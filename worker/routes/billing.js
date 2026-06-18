@@ -106,6 +106,7 @@ const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
 const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 1400;
+const PAID_PASS_DECISION_DB_TIMEOUT_MS = 10000;
 const PAID_ACCESS_DB_ERROR_SIGNATURES = [
   "temporarily unavailable",
   "temporarily_unavailable",
@@ -362,6 +363,32 @@ function resolvePassPolicyForTier(tierRaw) {
   };
 }
 
+function buildPassTierMatchValues(tierRaw) {
+  const tier = normalizePassTier(tierRaw);
+  if (!tier) return [];
+  return Array.from(new Set([
+    tier,
+    `${tier}_1m`,
+    `${tier}-1m`,
+    `honey_${tier}`,
+    `honey-${tier}`,
+    `${tier}_pass`,
+    `${tier}-pass`,
+    `${tier} pass`,
+    `${tier} plan`,
+    ...(tier === "family" ? [
+      "familyplan",
+      "familypass",
+      "family_plan",
+      "family-pass",
+      "Code Destiny Family",
+      "code destiny family",
+      "code-destiny-family",
+      "codedestinyfamily",
+    ] : []),
+  ]));
+}
+
 function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}) {
   const tier = normalizePassTier(
     entitlement?.passTier
@@ -389,6 +416,66 @@ function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}
   };
 }
 
+function resolveActivePassPolicyWithProfileFallback(user = {}) {
+  const entitlement = resolveActivePassPolicy(user || {});
+  if (entitlement?.isActive === true) return entitlement;
+
+  const sub = user?.profileSubscription && typeof user.profileSubscription === "object"
+    ? user.profileSubscription
+    : {};
+  const tier = normalizePassTier(
+    sub?.passTier
+      || sub?.tier
+      || sub?.plan
+      || sub?.planId
+      || sub?.productId
+      || user?.passTier
+      || user?.subscriptionTier
+      || user?.membershipTier,
+  );
+  const policy = resolvePassPolicyForTier(tier);
+  if (!policy) return entitlement;
+
+  const status = String(
+    sub?.status
+      || sub?.subscriptionStatus
+      || sub?.membershipStatus
+      || sub?.lastBillingStatus
+      || user?.status
+      || user?.subscriptionStatus
+      || user?.membershipStatus
+      || "",
+  ).trim().toLowerCase();
+  const inactive = ["expired", "canceled", "cancelled", "inactive", "failed", "paused", "refunded"].includes(status);
+  const activeStatus = ["active", "paid", "current", "subscribed", "success", "valid", "ok", "complete", "completed", "confirmed", "approved"].includes(status);
+  const expiresAt = sub?.expiresAt || user?.expiresAt || null;
+  const expiresMs = expiresAt ? new Date(expiresAt).getTime() : NaN;
+  const dateActive = !Number.isFinite(expiresMs) || expiresMs > Date.now();
+  const passLimit = Number(sub?.maxCoveredCoin || sub?.passLimit || sub?.freeLimit || policy.maxCoinLimit || 0);
+  const explicitPass = tier === "family" || passLimit > 0 || activeStatus;
+  if (inactive || !dateActive || !explicitPass) return entitlement;
+
+  const maxCoveredCoin = tier === "family"
+    ? Number(PASS_LIMITS.family || passLimit || policy.maxCoinLimit || 0)
+    : Number(passLimit || policy.maxCoinLimit || 0);
+  return {
+    ...(entitlement || {}),
+    tier,
+    passTier: tier,
+    passLabel: tier,
+    label: tier,
+    isActive: true,
+    maxCoveredCoin,
+    maxProfiles: tier === "family" ? 0 : Number(entitlement?.maxProfiles || sub?.profileLimit || 1),
+    profileLimit: tier === "family" ? 0 : Number(entitlement?.profileLimit || sub?.profileLimit || 1),
+    totalUses: null,
+    remainingUses: null,
+    source: entitlement?.source || "profile_subscription_fallback",
+    startedAt: sub?.startedAt ? new Date(sub.startedAt).toISOString() : null,
+    expiresAt: Number.isFinite(expiresMs) ? new Date(expiresMs).toISOString() : null,
+  };
+}
+
 async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -396,7 +483,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const amountKRW = resolvePricingAmountKRW(pricing, coinCost);
   const profileId = cleanProfileId(options?.profileId || body?.profileId || body?.selectedProfileId);
   const idempotencyMarker = normalizedRequestId && featureKey ? `tier-pass:${featureKey}:${normalizedRequestId}` : "";
-  if (!authUserId || !featureKey || !coinCost) return { ok: false, reason: "invalid_pass_request" };
+  if (!authUserId || !featureKey || !Number.isFinite(coinCost) || coinCost < 0) return { ok: false, reason: "invalid_pass_request" };
   if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) {
     await connectDb(env);
     const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
@@ -442,7 +529,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
       .select("points profileSubscription")
       .lean();
     if (idempotentUser) {
-      const entitlement = resolveActivePassPolicy(idempotentUser || {});
+      const entitlement = resolveActivePassPolicyWithProfileFallback(idempotentUser || {});
       const usage = resolveTierPassUsageSnapshot(idempotentUser?.profileSubscription || {}, entitlement);
       const policy = resolvePassPolicyForTier(usage?.tier);
       if (entitlement?.isActive && usage?.tier && policy && (usage.tier === "family" || coinCost <= Number(policy.maxCoinLimit || 0))) {
@@ -475,7 +562,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const user = await User.findById(authUserId)
     .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
-  const entitlement = resolveActivePassPolicy(user || {});
+  const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const usage = resolveTierPassUsageSnapshot(user?.profileSubscription || {}, entitlement);
   const policy = resolvePassPolicyForTier(usage?.tier);
   if (!entitlement?.isActive || !usage || !policy) {
@@ -496,18 +583,25 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
 
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
+  const tierMatchValues = buildPassTierMatchValues(usage.tier);
   const updateQuery = {
     _id: authUserId,
     ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
     $and: [
       {
         $or: [
-          { "profileSubscription.tier": usage.tier },
-          { "profileSubscription.passTier": usage.tier },
-          { passTier: usage.tier },
-          { subscriptionTier: usage.tier },
-          { membershipTier: usage.tier },
-          { tier: usage.tier },
+          { "profileSubscription.tier": { $in: tierMatchValues } },
+          { "profileSubscription.passTier": { $in: tierMatchValues } },
+          { "profileSubscription.plan": { $in: tierMatchValues } },
+          { "profileSubscription.planId": { $in: tierMatchValues } },
+          { "profileSubscription.productId": { $in: tierMatchValues } },
+          { passTier: { $in: tierMatchValues } },
+          { subscriptionTier: { $in: tierMatchValues } },
+          { membershipTier: { $in: tierMatchValues } },
+          { tier: { $in: tierMatchValues } },
+          { plan: { $in: tierMatchValues } },
+          { planId: { $in: tierMatchValues } },
+          { productId: { $in: tierMatchValues } },
         ],
       },
       {
@@ -558,9 +652,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     ok: true,
     tier: usage.tier,
     passTier: usage.tier,
-    accessMethod: "pass",
-    transactionType: "membership_pass",
-    accessType: "membership_pass",
+    accessMethod: usage.tier === "family" ? "family" : "pass",
+    transactionType: usage.tier === "family" ? "family_pass" : "membership_pass",
+    accessType: usage.tier === "family" ? "family" : "membership_pass",
     requestId: normalizedRequestId,
     idempotencyKey: idempotencyMarker || normalizedRequestId,
     featureKey,
@@ -659,11 +753,11 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
 }
 
 function isActiveMembership(profileSubscription = {}) {
-  return resolveActivePassPolicy({ profileSubscription }).isActive;
+  return resolveActivePassPolicyWithProfileFallback({ profileSubscription }).isActive;
 }
 
 function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscription = {}, overrides = {}) {
-  const activeEntitlement = resolveActivePassPolicy({ profileSubscription, ...(entitlement || {}) });
+  const activeEntitlement = resolveActivePassPolicyWithProfileFallback({ profileSubscription, ...(entitlement || {}) });
   const coinCost = resolvePricingCoinCost(pricing);
   const passLimitValue = Number(activeEntitlement?.maxCoveredCoin || 0);
   const monthlyBalance = Math.max(0, Math.floor(Number(
@@ -944,7 +1038,7 @@ async function getActiveMembershipPassForUser(env, authUserId) {
   const user = await User.findById(authUserId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
-  const entitlement = resolveActivePassPolicy(user || {});
+  const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   return {
     isActive: entitlement.isActive,
     tier: entitlement.isActive ? entitlement.tier : "free",
@@ -1034,7 +1128,7 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     freeLimit: Number(snapshot?.freeLimit || subscription?.freeLimit || 0),
     source: snapshot?.source || subscription?.source || "subscription_status_snapshot",
   };
-  const entitlement = resolveActivePassPolicy({ profileSubscription });
+  const entitlement = resolveActivePassPolicyWithProfileFallback({ profileSubscription });
   if (!entitlement.isActive) return null;
   return {
     isActive: true,
@@ -2934,7 +3028,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       env,
       authCheck.auth.userId,
     ),
-    PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
+    PAID_PASS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PASS_RESOLVE_TIMEOUT",
   ).catch((error) => {
     if (!isDatabaseUnavailableError(error)) {
@@ -4379,7 +4473,7 @@ async function handleBalance(request, env) {
         .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
         .lean();
       const sub = user?.profileSubscription || {};
-      const entitlement = resolveActivePassPolicy(user || {});
+      const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
       scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
       scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
       userScopedUnlockedFeatures = Array.isArray(user?.unlockedFeatures)
@@ -4481,7 +4575,7 @@ async function readSubscriptionStatusSnapshot(request, env) {
       const user = await User.findById(auth.userId)
         .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
         .lean();
-      const entitlement = resolveActivePassPolicy(user || {});
+      const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
       if (entitlement.isActive) {
         return {
           isActive: true,
@@ -4551,7 +4645,7 @@ async function readSubscriptionStatusSnapshot(request, env) {
 
 function buildBillingSubscriptionSnapshot(user = {}) {
   const sub = user?.profileSubscription || {};
-  const entitlement = resolveActivePassPolicy(user || {});
+  const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   return {
     isActive: entitlement.isActive,
     isSubscribed: Boolean(user?.isSubscribed || sub?.isSubscribed || entitlement.isActive),
@@ -4601,8 +4695,8 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
     membershipCreditBalance: Math.max(0, Math.floor(Number(snapshot.membershipCreditBalance || 0))),
   };
   const entitlement = subscription.entitlement && typeof subscription.entitlement === "object"
-    ? resolveActivePassPolicy({ profileSubscription, ...subscription.entitlement })
-    : resolveActivePassPolicy({ profileSubscription });
+    ? resolveActivePassPolicyWithProfileFallback({ profileSubscription, ...subscription.entitlement })
+    : resolveActivePassPolicyWithProfileFallback({ profileSubscription });
   return {
     isActive: Boolean(subscription.isActive || entitlement.isActive),
     tier: String(subscription.tier || entitlement.tier || "free"),
@@ -4648,7 +4742,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       .lean();
     const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
     const sub = effectiveUser?.profileSubscription || {};
-    const entitlement = resolveActivePassPolicy(effectiveUser || {});
+    const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});
     const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
     const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
     const userScopedUnlockedFeatures = Array.isArray(effectiveUser?.unlockedFeatures)

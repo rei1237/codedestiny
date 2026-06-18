@@ -405,6 +405,7 @@ async function prepare(base, authToken, premiumAccessToken, input, options = {})
     self: input.self,
     partner: input.partner,
     user: input.self,
+    ...(isEnabled(options.syncPrepare) ? { syncPrepare: true } : {}),
     ...(options.profileId ? { profileId: options.profileId, selectedProfileId: options.profileId } : {}),
   };
 
@@ -414,6 +415,7 @@ async function prepare(base, authToken, premiumAccessToken, input, options = {})
       "Content-Type": "application/json",
       Authorization: `Bearer ${authToken}`,
       ...(premiumAccessToken ? { "x-premium-access-token": premiumAccessToken } : {}),
+      ...(isEnabled(options.syncPrepare) ? { "x-sukuyo-sync": "1" } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -510,6 +512,24 @@ async function fetchArchiveWithRetry(base, authToken, reportId, usePremiumRoute,
   return lastResult;
 }
 
+async function fetchArchivePdfBytes(base, authToken, reportId) {
+  const response = await fetch(`${base}/api/premium/pdf-archive/${encodeURIComponent(reportId)}?format=pdf`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const prefix = new TextDecoder().decode(bytes.slice(0, 5));
+  return {
+    status: response.status,
+    ok: response.ok,
+    contentType: clean(response.headers.get("content-type")),
+    byteLength: bytes.byteLength,
+    startsWithPdf: prefix === "%PDF-",
+  };
+}
+
 function resolveStoredUrl(payload) {
   const p = payload || {};
   const ready = p.pdfReady && typeof p.pdfReady === "object" ? p.pdfReady : {};
@@ -601,6 +621,7 @@ async function main() {
     profileId,
     sessionId: ids.sessionId,
     reportId: ids.reportId,
+    syncPrepare: args.syncPrepare,
   });
   const payload = await waitForCompletedReport(base, loginResult.token, prepareResult.data || {}, {
     sessionId: clean(prepareResult.data?.sessionId || ids.sessionId),
@@ -638,9 +659,14 @@ async function main() {
   const reportId = clean(payload.reportId);
   const premiumArchive = await fetchArchiveWithRetry(base, loginResult.token, reportId, true);
   const billingArchive = await fetchArchiveWithRetry(base, loginResult.token, reportId, false);
+  const premiumPdf = await fetchArchivePdfBytes(base, loginResult.token, reportId);
 
   printKeyValue("ARCHIVE_PREMIUM_STATUS", premiumArchive.status);
   printKeyValue("ARCHIVE_BILLING_STATUS", billingArchive.status);
+  printKeyValue("ARCHIVE_PDF_STATUS", premiumPdf.status);
+  printKeyValue("ARCHIVE_PDF_TYPE", premiumPdf.contentType);
+  printKeyValue("ARCHIVE_PDF_BYTES", premiumPdf.byteLength);
+  printKeyValue("ARCHIVE_PDF_MAGIC", premiumPdf.startsWithPdf);
 
   const premiumReport = premiumArchive?.data?.report || {};
   const billingReport = billingArchive?.data?.report || {};
@@ -658,6 +684,8 @@ async function main() {
   ensure(["sukyo_book", "sookyoPremium", "sukyoPremium"].includes(billingReportType), "billing archive reportType alias 불일치", billingArchive.data);
   ensure(Boolean(clean(premiumReport?.pdfUrl || premiumReport?.htmlUrl)), "premium archive URL 누락", premiumArchive.data);
   ensure(Boolean(clean(billingReport?.pdfUrl || billingReport?.htmlUrl)), "billing archive URL 누락", billingArchive.data);
+
+  ensure(premiumPdf.ok && premiumPdf.startsWithPdf && premiumPdf.byteLength > 1024, "premium archive PDF bytes invalid", premiumPdf);
 
   printKeyValue("E2E_RESULT", "PASS");
 }

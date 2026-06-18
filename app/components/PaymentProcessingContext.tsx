@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
+import type { LoadingStage, PaymentType } from "@/constants/loadingMessages";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -75,41 +76,32 @@ type PaidFeatureGateContextValue = {
   preload: () => void;
 };
 
-const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
+const DEFAULT_PROCESSING_MESSAGE = "처리 중이에요\n잠시만 기다려 주세요";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const PAID_GATE_DEFAULT_MESSAGE = "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.";
+const PAID_GATE_DEFAULT_MESSAGE = "이용권을 확인하는 중이에요";
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: string; message: string }> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "준비", title: "결제 준비", message: "결제 가능한 수단을 확인하고 있습니다." },
-  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다." },
-  hasEntitlement: { label: "이용 가능", title: "이용권 적용 완료", message: "이용권으로 바로 이용할 수 있습니다." },
+  opening: { label: "준비", title: "잔액 확인", message: "잔액을 확인하는 중이에요" },
+  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
+  hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권을 확인했어요\n결과를 불러오는 중이에요" },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
-  loadingProducts: { label: "상품 조회", title: "결제 수단 확인", message: "결제 가능한 상품을 확인하고 있습니다." },
+  loadingProducts: { label: "상품 조회", title: "잔액 확인", message: "잔액을 확인하는 중이에요" },
   readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
-  paymentProcessing: { label: "처리 중", title: "결제 승인 확인", message: "결제 승인과 이용 권한을 확인하고 있습니다." },
-  paymentSuccess: { label: "완료", title: "이용 권한 저장 완료", message: "잠시 후 결과 화면으로 이어집니다." },
+  paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
+  paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 불러오는 중이에요" },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
   error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
-  paymentPreparing: { label: "결제 준비", title: "단건 결제창 준비 중", message: "단건 결제창을 여는 중입니다. 주문 정보를 안전하게 맞추고 있습니다." },
-  paymentWindowOpen: { label: "결제 진행", title: "결제 진행 중", message: "열린 결제창에서 카드 인증을 완료해 주세요." },
+  paymentPreparing: { label: "결제 준비", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
+  paymentWindowOpen: { label: "결제 진행", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
   savingUnlock: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   unlockSaving: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
 };
 
-const YEON_PAYMENT_SPRITE_URL =
-  "/fuctionassets/%EB%8F%88%EB%8F%85%EC%98%A4%EB%A5%B8%20%EC%97%B0%EC%9D%B4.webp?v=20260612-clean-cut";
-
-function resolvePaidGateSpriteTransform(status: PaidFeatureGateStatus) {
-  if (status === "readyToPay" || status === "paymentPreparing" || status === "paymentWindowOpen") return "translate3d(-50%, 0%, 0)";
-  if (status === "paymentProcessing") return "translate3d(-25%, -50%, 0)";
-  if (status === "savingUnlock" || status === "unlockSaving") return "translate3d(0%, -50%, 0)";
-  if (status === "hasEntitlement" || status === "paymentSuccess") return "translate3d(-75%, -50%, 0)";
-  if (status === "paymentFailed" || status === "error" || status === "cancelled" || status === "noEntitlement") return "translate3d(0%, 0%, 0)";
-  return "translate3d(-25%, 0%, 0)";
-}
+const KKULKKUL_PAYMENT_LOGO_URL =
+  "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
@@ -130,10 +122,30 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
   if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
   if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
-  if (/이용권 결제|구독|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
+  if (/이용권 결제|월정석|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
   if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
   if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";
   return "payment";
+}
+
+function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: string): LoadingStage {
+  const normalizedMessage = String(message || "");
+  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중/.test(normalizedMessage)) return "result_loading";
+  if (/결제를 처리하고 있어요|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
+  if (/정보를 확인하는 중이에요|잔액을 확인하는 중이에요|이용권을 확인하는 중이에요/.test(normalizedMessage)) return "access_check";
+  if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
+  if (variant === "payment-complete" || variant === "pass-applied" || variant === "unlock-saving") return "result_loading";
+  return "access_check";
+}
+
+function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
+  const normalizedMessage = String(message || "");
+  if (/이용권을 확인하는 중이에요|이용권을 확인했어요/.test(normalizedMessage)) return "pass";
+  if (/월정석|활성화되고/.test(normalizedMessage)) return "subscription";
+  if (/잔액|단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
+  if (variant === "subscription" || variant === "monthly") return "subscription";
+  if (variant === "pass-checking" || variant === "pass-applied") return "pass";
+  return "single";
 }
 
 function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
@@ -446,7 +458,6 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const copy = resolvePaidGateCopy(state);
   const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentWindowOpen", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
   const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
-  const spriteTransform = resolvePaidGateSpriteTransform(state.status);
 
   return (
     <PaidFeatureGateContext.Provider value={contextValue}>
@@ -457,47 +468,44 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
           aria-modal="true"
           aria-live="polite"
           data-paid-feature-gate-status={state.status}
-          className="fixed inset-0 z-[2147483002] flex items-end justify-center bg-black/58 px-0 backdrop-blur-sm sm:items-center sm:px-4"
+          className="fixed inset-0 z-[2147483002] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
         >
-          <div className="w-full rounded-t-[1.75rem] border border-white/15 bg-[#10131f] p-5 text-white shadow-[0_-22px_80px_rgba(0,0,0,0.35)] sm:max-w-md sm:rounded-[1.5rem] sm:p-6">
+          <div className="w-full rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6">
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-            <div className="mx-auto mb-4 h-[104px] w-[72px] overflow-hidden rounded-[1rem] border border-amber-100/35 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.18)] [contain:paint]">
+            <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
+              <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
               <div
-                className="h-[200%] w-[400%]"
+                className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
                 style={{
-                  backgroundImage: `url("${YEON_PAYMENT_SPRITE_URL}")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "auto",
-                  transform: spriteTransform,
+                  backgroundImage: `url("${KKULKKUL_PAYMENT_LOGO_URL}")`,
                 }}
               />
             </div>
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200/80">{copy.label}</p>
-                <h2 className="mt-1 text-xl font-black leading-tight text-white">{copy.title}</h2>
+                <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">{copy.label}</p>
+                <h2 className="m-0 text-[22px] font-black leading-[1.24] tracking-normal text-white">{copy.title}</h2>
               </div>
               <button
                 type="button"
                 aria-label="닫기"
                 onClick={() => close(state.requestId)}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/12 bg-white/8 text-lg font-bold text-white/80"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 text-lg font-bold text-white/80"
               >
                 ×
               </button>
             </div>
-            <p className="text-sm leading-6 text-slate-200">{copy.message}</p>
+            <p className="whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{copy.message}</p>
             {state.cost !== null ? (
-              <p className="mt-3 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-100">
+              <p className="mt-3 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">
                 필요 금액 {Math.max(0, state.cost * 100).toLocaleString("ko-KR")}원
               </p>
             ) : null}
             {showSkeleton ? (
-              <div className="mt-5 grid gap-2">
-                <span className="h-3 w-full animate-pulse rounded-full bg-white/12" />
-                <span className="h-3 w-4/5 animate-pulse rounded-full bg-white/10" />
-                <span className="h-3 w-2/3 animate-pulse rounded-full bg-white/8" />
+              <div className="mt-5 grid gap-[9px]">
+                <span className="h-3 w-full animate-pulse rounded-full bg-white/10" />
+                <span className="h-3 w-[82%] animate-pulse rounded-full bg-white/10" />
+                <span className="h-3 w-[64%] animate-pulse rounded-full bg-white/10" />
               </div>
             ) : null}
             {showPayAction ? (
@@ -506,7 +514,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
                 onClick={() => {
                   window.location.href = `/points?feature=${encodeURIComponent(state.featureId)}`;
                 }}
-                className="mt-5 min-h-12 w-full rounded-2xl bg-cyan-200 px-4 text-sm font-black text-slate-950"
+                className="mt-5 min-h-12 w-full rounded-[8px] bg-amber-100 px-4 text-sm font-black text-slate-950"
               >
                 결제 상품 보기
               </button>
@@ -695,6 +703,8 @@ export function PaymentProcessingProvider({
       <PaymentLoading
         open={isProcessing}
         variant={processingVariant}
+        stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
+        paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
         statusMessage={processingMessage}
       />
     </PaymentProcessingContext.Provider>

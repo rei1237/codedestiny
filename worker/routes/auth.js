@@ -779,6 +779,17 @@ function getAuthOpTimeoutMs(env) {
   return Math.floor(raw);
 }
 
+function getAuthConnectTimeoutMs(env) {
+  const authTimeoutMs = getAuthOpTimeoutMs(env);
+  const guardTimeoutMs = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"));
+  const serverSelectionTimeoutMs = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"));
+  return Math.max(
+    authTimeoutMs,
+    Number.isFinite(guardTimeoutMs) ? guardTimeoutMs + 5000 : 15000,
+    Number.isFinite(serverSelectionTimeoutMs) ? serverSelectionTimeoutMs + 7000 : 15000,
+  );
+}
+
 async function withAuthOpTimeout(task, timeoutMs, label) {
   let timeoutId;
   try {
@@ -1746,7 +1757,7 @@ async function handleLogin(request, env) {
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_login_connect_db");
+      await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_login_connect_db");
 
       const users = User.collection;
       const user = await withAuthOpTimeout(

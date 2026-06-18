@@ -9,6 +9,12 @@ import {
   markPaidAttemptPaymentRequested,
   markPaidAttemptPaymentSucceeded,
 } from "@/app/_lib/paid-attempt-session";
+import {
+  FALLBACK_LOADING_MESSAGE,
+  LOADING_MESSAGES,
+  type LoadingStage,
+  type PaymentType,
+} from "@/constants/loadingMessages";
 
 type BillingError = {
   code: string;
@@ -1412,6 +1418,15 @@ function shouldInvalidateSubscriptionSnapshot(status: number, code?: string) {
     || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED";
 }
 
+function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 402
+    || normalizedCode === "PAYMENT_REQUIRED"
+    || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED"
+    || normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT"
+    || normalizedCode === "INSUFFICIENT_COINS";
+}
+
 function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentEligibility | null) {
   const amountKRW = Math.max(0, Math.floor(toNumber(
     eligibility?.priceKRW
@@ -1698,6 +1713,18 @@ function resolvePaymentWaitKind(input: {
   return "payment";
 }
 
+function formatLoadingMessage(stage: LoadingStage, paymentType: PaymentType) {
+  const copy = LOADING_MESSAGES[stage]?.[paymentType] ?? FALLBACK_LOADING_MESSAGE;
+  return copy.sub ? `${copy.title}\n${copy.sub}` : copy.title;
+}
+
+function resolvePaymentTypeForWaitKind(kind: string, fallback: PaymentType = "single"): PaymentType {
+  if (kind === "pass") return "pass";
+  if (kind === "monthly" || kind === "subscription") return "subscription";
+  if (kind === "single") return "single";
+  return fallback;
+}
+
 function normalizeLicenseTier(value: unknown): LicenseTier | null {
   const text = toText(value).toUpperCase();
   if (text.includes("FAMILY")) return "FAMILY";
@@ -1771,31 +1798,54 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     accessType: toText(detail?.accessType),
   });
 
-  if (status === "checkingEntitlement") return { message: text || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
-  if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
-  if (status === "paymentPreparing") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
-  if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
+  if (status === "checkingEntitlement") {
+    const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
+    return {
+      message: formatLoadingMessage("access_check", paymentType),
+      mode: paymentType === "pass" ? "pass" : (paymentType === "subscription" ? "monthly" : "payment"),
+    };
+  }
+  if (status === "hasEntitlement") {
+    const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
+    return {
+      message: formatLoadingMessage("result_loading", paymentType),
+      mode: paymentType === "pass" ? "pass-applied" : "payment-complete",
+    };
+  }
+  if (status === "paymentPreparing") {
+    const paymentType = resolvePaymentTypeForWaitKind(kind, "single");
+    return {
+      message: formatLoadingMessage("pg_processing", paymentType === "pass" ? "single" : paymentType),
+      mode: paymentType === "subscription" ? "subscription" : "card",
+    };
+  }
+  if (status === "paymentWindowOpen") {
+    const paymentType = resolvePaymentTypeForWaitKind(kind, "single");
+    return {
+      message: formatLoadingMessage("pg_processing", paymentType === "pass" ? "single" : paymentType),
+      mode: paymentType === "subscription" ? "subscription" : "card",
+    };
+  }
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
-    if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "결제 권한을 확인하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "원화 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
+    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("access_check", "subscription"), mode: "monthly" };
+    if (kind === "pass") return { message: formatLoadingMessage("access_check", "pass"), mode: "pass" };
+    if (kind === "single") return { message: formatLoadingMessage("access_check", "single"), mode: "payment" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
-    return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
+    return { message: formatLoadingMessage("access_check", "single"), mode: "payment" };
   }
   if (status === "paymentProcessing") {
-    if (kind === "pass") return { message: text || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
-    if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "결제 권한을 확인하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "원화 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
+    if (kind === "pass") return { message: formatLoadingMessage("access_check", "pass"), mode: "pass" };
+    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("pg_processing", "subscription"), mode: "subscription" };
+    if (kind === "single") return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
-    return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
+    return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
   }
   if (status === "paymentSuccess") {
-    if (kind === "subscription") return { message: text || "원화 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
-    if (kind === "monthly") return { message: text || "콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
-    if (kind === "single") return { message: text || "원화 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "pass") return { message: formatLoadingMessage("result_loading", "pass"), mode: "pass-applied" };
+    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("result_loading", "subscription"), mode: "payment-complete" };
+    if (kind === "single") return { message: formatLoadingMessage("result_loading", "single"), mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
-    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    return { message: formatLoadingMessage("result_loading", "single"), mode: "payment-complete" };
   }
   if (status === "paymentFailed" || status === "error") return { message: text || "결제 확인에 실패했습니다. 결제 내역을 확인한 뒤 다시 시도해 주세요.", mode: "confirm" };
   return { message: text || "결제 상태를 안전하게 확인하고 있습니다.", mode: "payment" };
@@ -2259,6 +2309,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || eligibility?.pass.canUse === true;
     const snapshotSaysNoPass = eligibility?.access.reason === "subscription_snapshot_none";
+    console.log("[이용권 체크]", {
+      passStatus: {
+        source: eligibility ? "unlock-status" : (snapshotPassServerCheckFirst ? "subscription-snapshot" : "server-direct"),
+        tier: eligibility?.pass.tier ?? initialSnapshot?.tier ?? null,
+        hasActivePass: eligibility?.pass.hasActivePass ?? (initialSnapshot?.state === "active"),
+        canUse: Boolean(passFirstEligible),
+      },
+      featurePrice: knownCoinCost,
+      hasValidPass: Boolean(passFirstEligible),
+      shouldShowPayment: Boolean(!passFirstEligible && knownCoinCost > 0 && input.forceDeduct !== false),
+    });
     if (eligibility) {
       const eligibilityOverlay = resolvePaymentWaitOverlay(
         accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts"),
@@ -2497,6 +2558,94 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           priceKRW: input.priceKRW,
           amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
         }).catch(() => null);
+      }
+      if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
+        markPaymentRequestedOnce();
+        emitPaidFeatureGate("update", {
+          featureId,
+          featureKey: featureId,
+          requestId: gateRequestId,
+          status: "readyToPay",
+          message: "결제 가능한 상품을 확인해 주세요.",
+          cost: knownCoinCost,
+          reason: input.reason,
+        });
+        const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {
+          featureId,
+          requestId: gateRequestId,
+          eligibility,
+          runtimeGate: await loadRuntimeGateForPayment(),
+        });
+        if (runtimePaymentResult) {
+          if (runtimePaymentResult.ok && runtimePaymentResult.data) {
+            if (!hasVerifiedBillingAccess(runtimePaymentResult.data, input.featureKey || featureId)) {
+              markPaidAttemptFailed("server_access_grant_missing");
+              emitPaidFeatureGate("update", {
+                featureId,
+                featureKey: featureId,
+                requestId: gateRequestId,
+                status: "paymentFailed",
+                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+              });
+              return {
+                ...runtimePaymentResult,
+                ok: false,
+                status: runtimePaymentResult.status || 500,
+                data: null,
+                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                error: {
+                  code: "SERVER_ACCESS_GRANT_MISSING",
+                  message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                },
+              };
+            }
+            invalidateBillingBalanceCache();
+            normalizeBillingBalanceFields(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            emitBillingBalanceUpdated(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime-fallback");
+            markPaidAttemptPaymentSucceeded();
+            markPaidAttemptCallbackReturned();
+            const consume = asRecord(runtimePaymentResult.data.consume);
+            const accessType = toText(consume?.accessType);
+            const licenseGate = extractLicenseGateResult(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            const licenseMessage = buildLicensePassOverlayMessage(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            const runtimeData = runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>;
+            const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData);
+            const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
+              paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+              featureKey: featureId,
+              reason: input.reason,
+              accessType,
+              licenseTier: licenseGate?.licenseTier,
+              licenseReason: licenseGate?.reason,
+            });
+            emitPaidFeatureGate("update", {
+              featureId,
+              featureKey: featureId,
+              requestId: gateRequestId,
+              status: passApplied ? "hasEntitlement" : "paymentSuccess",
+              message: successOverlay.message,
+              cost: runtimePaymentResult.data.pricing?.cost,
+              paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+              reason: input.reason,
+              accessType,
+              licenseTier: licenseGate?.licenseTier,
+              licenseReason: licenseGate?.reason,
+            });
+          } else {
+            const runtimeCode = String(runtimePaymentResult.error?.code || "").toUpperCase();
+            markPaidAttemptFailed(runtimePaymentResult.error?.code || "payment_runtime_required");
+            emitPaidFeatureGate("update", {
+              featureId,
+              featureKey: featureId,
+              requestId: gateRequestId,
+              status: runtimeCode === "PAYMENT_CANCELLED" ? "noEntitlement" : "paymentFailed",
+              message: runtimePaymentResult.error?.message || runtimePaymentResult.message || "결제가 완료되지 않았습니다.",
+              cost: knownCoinCost,
+              reason: input.reason,
+            });
+          }
+          return runtimePaymentResult;
+        }
       }
       markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");
       emitPaidFeatureGate("update", {

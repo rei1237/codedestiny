@@ -529,8 +529,191 @@
     return selected ? _normalizeCalendarType(selected.value) : 'solar';
   }
 
+  function _readBoundedNumberInput(id, min, max, digits, required) {
+    var el = _qs(id);
+    var raw = _clean(el && el.value).replace(/\D/g, '');
+    if (raw.length > digits) raw = raw.slice(-digits);
+    if (el && el.value !== raw) el.value = raw;
+    if (!raw) {
+      return required ? { ok: false, value: null, empty: true } : { ok: true, value: null, empty: true };
+    }
+    var value = Number(raw);
+    if (!Number.isFinite(value) || value < min || value > max) {
+      return { ok: false, value: value, empty: false };
+    }
+    return { ok: true, value: value, empty: false };
+  }
+
+  function _pad2(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function _readSplitBirthDate(prefix) {
+    var year = _readBoundedNumberInput(prefix + 'BirthYear', 1900, 2100, 4, true);
+    var month = _readBoundedNumberInput(prefix + 'BirthMonth', 1, 12, 2, true);
+    var day = _readBoundedNumberInput(prefix + 'BirthDay', 1, 31, 2, true);
+    var ok = year.ok && month.ok && day.ok && !year.empty && !month.empty && !day.empty;
+    return {
+      ok: ok,
+      year: year.value,
+      month: month.value,
+      day: day.value,
+      birthDate: ok ? String(year.value).padStart(4, '0') + '-' + _pad2(month.value) + '-' + _pad2(day.value) : '',
+      birthInput: ok ? { year: year.value, month: month.value, day: day.value } : null,
+    };
+  }
+
+  function _readSplitBirthTime(prefix) {
+    var hourEl = _qs(prefix + 'BirthHour');
+    var minuteEl = _qs(prefix + 'BirthMinute');
+    var hourRaw = _clean(hourEl && hourEl.value);
+    var minuteRaw = _clean(minuteEl && minuteEl.value);
+    if (!hourRaw && !minuteRaw) {
+      return {
+        ok: true,
+        birthTime: '',
+        birthHour: null,
+        birthMinute: null,
+        isTimeUnknown: true,
+        birthInput: { hour: null, minute: null },
+      };
+    }
+    var hour = _readBoundedNumberInput(prefix + 'BirthHour', 0, 23, 2, true);
+    var minute = _readBoundedNumberInput(prefix + 'BirthMinute', 0, 59, 2, false);
+    var minuteValue = minute.empty ? 0 : minute.value;
+    var ok = hour.ok && !hour.empty && minute.ok;
+    return {
+      ok: ok,
+      birthTime: ok ? _pad2(hour.value) + ':' + _pad2(minuteValue) : '',
+      birthHour: ok ? hour.value : null,
+      birthMinute: ok ? minuteValue : null,
+      isTimeUnknown: !ok,
+      birthInput: { hour: ok ? hour.value : null, minute: ok ? minuteValue : null },
+    };
+  }
+
+  function _setSplitBirthDate(prefix, birth) {
+    birth = birth || {};
+    var y = _qs(prefix + 'BirthYear');
+    var m = _qs(prefix + 'BirthMonth');
+    var d = _qs(prefix + 'BirthDay');
+    if (y && Number.isFinite(_num(birth.year, NaN))) y.value = String(_num(birth.year, 0)).padStart(4, '0');
+    if (m && Number.isFinite(_num(birth.month, NaN))) m.value = _pad2(_num(birth.month, 0));
+    if (d && Number.isFinite(_num(birth.day, NaN))) d.value = _pad2(_num(birth.day, 0));
+  }
+
+  function _setSplitBirthTime(prefix, birth) {
+    birth = birth || {};
+    var h = _qs(prefix + 'BirthHour');
+    var m = _qs(prefix + 'BirthMinute');
+    var hour = _num(birth.hour, NaN);
+    var minute = _num(birth.minute, 0);
+    _setSplitBirthDate('skSelf', birth);
+    if (Number.isFinite(hour)) {
+      if (h) h.value = _pad2(hour);
+      if (m) m.value = _pad2(minute);
+    } else {
+      if (h) h.value = '';
+      if (m) m.value = '';
+    }
+  }
+
+  function _splitErrorId(inputId) {
+    if (/Birth(?:Year|Month|Day)$/.test(inputId)) {
+      return inputId.indexOf('skSelf') === 0 ? 'skSelfBirthDateError' : 'skPartnerBirthDateError';
+    }
+    if (/Birth(?:Hour|Minute)$/.test(inputId)) {
+      return inputId.indexOf('skSelf') === 0 ? 'skSelfBirthTimeTextError' : 'skPartnerBirthTimeTextError';
+    }
+    return '';
+  }
+
+  function _setSplitInputError(input, message) {
+    if (!input) return;
+    input.classList.add('is-error', 'sk-number-inp--invalid');
+    var errorEl = _qs(_splitErrorId(input.id));
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = '';
+    }
+  }
+
+  function _clearSplitInputError(input) {
+    if (!input) return;
+    input.classList.remove('is-error', 'sk-number-inp--invalid');
+    var group = input.closest('[data-sk-input-group]');
+    if (group && !group.querySelector('.sk-number-inp--invalid')) {
+      var errorEl = _qs(_splitErrorId(input.id));
+      if (errorEl) {
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+      }
+    }
+  }
+
+  function _nextSplitInputId(inputId) {
+    var order = ['BirthYear', 'BirthMonth', 'BirthDay', 'BirthHour', 'BirthMinute'];
+    var prefix = inputId.indexOf('skSelf') === 0 ? 'skSelf' : 'skPartner';
+    var suffix = inputId.replace(prefix, '');
+    var idx = order.indexOf(suffix);
+    if (idx < 0 || idx >= order.length - 1) return '';
+    return prefix + order[idx + 1];
+  }
+
+  function _handleSplitNumberInput(input) {
+    if (!input || !/^sk(?:Self|Partner)Birth(?:Year|Month|Day|Hour|Minute)$/.test(input.id || '')) return false;
+    var raw = _clean(input.value).replace(/\D/g, '');
+    var maxDigits = input.id.indexOf('BirthYear') >= 0 ? 4 : 2;
+    if (raw.length > maxDigits) raw = raw.slice(-maxDigits);
+    if (input.value !== raw) input.value = raw;
+
+    var value = raw ? Number(raw) : NaN;
+    var min = Number(input.getAttribute('min'));
+    var max = Number(input.getAttribute('max'));
+    var label = '';
+    if (input.id.indexOf('BirthYear') >= 0) label = '1900~2100 사이로 입력해 주세요';
+    if (input.id.indexOf('BirthMonth') >= 0) label = '1~12 사이로 입력해 주세요';
+    if (input.id.indexOf('BirthDay') >= 0) label = '1~31 사이로 입력해 주세요';
+    if (input.id.indexOf('BirthHour') >= 0) label = '0~23 사이로 입력해 주세요';
+    if (input.id.indexOf('BirthMinute') >= 0) label = '0~59 사이로 입력해 주세요';
+
+    if (raw && Number.isFinite(value) && Number.isFinite(min) && Number.isFinite(max) && (value < min || value > max)) {
+      _setSplitInputError(input, label);
+      return true;
+    }
+    _clearSplitInputError(input);
+
+    var shouldAdvance = false;
+    if (input.id.indexOf('BirthYear') >= 0) shouldAdvance = raw.length === 4;
+    else if (input.id.indexOf('BirthMonth') >= 0) shouldAdvance = raw.length === 2 || (raw.length === 1 && value >= 2 && value <= 9);
+    else if (input.id.indexOf('BirthDay') >= 0) shouldAdvance = raw.length === 2 || (raw.length === 1 && value >= 4 && value <= 9);
+    else if (input.id.indexOf('BirthHour') >= 0) shouldAdvance = raw.length === 2 || (raw.length === 1 && value >= 3 && value <= 9);
+    if (shouldAdvance) {
+      var next = _qs(_nextSplitInputId(input.id));
+      if (next && !next.disabled && typeof next.focus === 'function') next.focus();
+    }
+    return true;
+  }
+
   function _recoverBirthFromSukuyoForm() {
     try {
+      var splitDate = _readSplitBirthDate('skSelf');
+      if (splitDate.ok) {
+        var splitTime = _readSplitBirthTime('skSelf');
+        var splitNameEl = _qs('skSelfName');
+        return {
+          name: _clean(splitNameEl && splitNameEl.value) || '사용자',
+          gender: _resolveSelfGender(),
+          birth: {
+            year: splitDate.year,
+            month: splitDate.month,
+            day: splitDate.day,
+            hour: splitTime.birthHour,
+            minute: splitTime.birthMinute,
+          },
+          calendarType: _getSelectedSelfCalendarType(),
+        };
+      }
       var birthDateEl = _qs('skSelfBirthDate');
       if (!birthDateEl || !birthDateEl.value) return null;
 
@@ -605,12 +788,17 @@
   function _syncTimeUnknownControls(prefix) {
     var timeUnknownEl = _qs(prefix + 'TimeUnknown');
     var isUnknown = !!(timeUnknownEl && timeUnknownEl.checked);
-    var hourEl = _qs(prefix + 'Hour');
-    var minuteEl = _qs(prefix + 'Minute');
+    var hourEl = _qs(prefix + 'BirthHour') || _qs(prefix + 'Hour');
+    var minuteEl = _qs(prefix + 'BirthMinute') || _qs(prefix + 'Minute');
     var textEl = _qs(prefix + 'BirthTimeText');
     if (hourEl) hourEl.disabled = isUnknown;
     if (minuteEl) minuteEl.disabled = isUnknown;
     if (textEl) textEl.disabled = isUnknown;
+    if (isUnknown) {
+      if (hourEl) hourEl.value = '';
+      if (minuteEl) minuteEl.value = '';
+      _clearFieldError(prefix + 'BirthTimeText');
+    }
   }
 
   function _setCompatibilityFormEnabled(enabled) {
@@ -648,10 +836,14 @@
     });
     _setGenderToggle('skSelf', profile.gender);
     if (Number.isFinite(hour)) {
+      _setSplitBirthTime('skSelf', birth);
       if (hourEl) hourEl.value = String(hour);
       if (minuteEl) minuteEl.value = String(minute);
       if (textEl && !_clean(textEl.value)) textEl.value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
       if (timeUnknownEl) timeUnknownEl.checked = false;
+    } else {
+      _setSplitBirthTime('skSelf', {});
+      if (timeUnknownEl) timeUnknownEl.checked = true;
     }
   }
 
@@ -806,6 +998,47 @@
     };
   }
 
+  function _getPartnerInputV2() {
+    var nameEl = _qs('skPartnerName');
+    var legacyBirthDateEl = _qs('skPartnerBirthDate');
+    var legacyBirthTimeEl = _qs('skPartnerBirthTimeText');
+    var timeUnknownEl = _qs('skPartnerTimeUnknown');
+    var splitDate = _readSplitBirthDate('skPartner');
+    var birthDate = splitDate.ok ? splitDate.birthDate : _normalizeBirthDateInput(legacyBirthDateEl && legacyBirthDateEl.value);
+    var splitTime = (timeUnknownEl && timeUnknownEl.checked)
+      ? {
+        ok: true,
+        birthTime: '',
+        birthHour: null,
+        birthMinute: null,
+        isTimeUnknown: true,
+        birthInput: { hour: null, minute: null },
+      }
+      : _readSplitBirthTime('skPartner');
+    var parsed = splitTime.ok ? splitTime : _parseTimeLoose(_clean(legacyBirthTimeEl && legacyBirthTimeEl.value));
+    return {
+      name: _clean(nameEl && nameEl.value) || '상대방',
+      gender: _resolvePartnerGender(),
+      calendarType: _getSelectedPartnerCalendarType(),
+      birthDate: birthDate,
+      birthYear: splitDate.ok ? splitDate.year : null,
+      birthMonth: splitDate.ok ? splitDate.month : null,
+      birthDay: splitDate.ok ? splitDate.day : null,
+      birthTime: parsed.birthTime,
+      birthHour: parsed.birthHour,
+      birthMinute: parsed.birthMinute,
+      timezone: 'Asia/Seoul',
+      isTimeUnknown: parsed.isTimeUnknown,
+      birthInput: {
+        year: splitDate.ok ? splitDate.year : null,
+        month: splitDate.ok ? splitDate.month : null,
+        day: splitDate.ok ? splitDate.day : null,
+        hour: parsed.birthHour,
+        minute: parsed.birthMinute,
+      },
+    };
+  }
+
   function _normalizeCompatibilityInput(profile, partner) {
     var self = _formatProfile(profile);
     var partnerInput = Object.assign({}, partner || {});
@@ -817,11 +1050,25 @@
       self.birthYear = sDate.y;
       self.birthMonth = sDate.m;
       self.birthDay = sDate.d;
+      self.birthInput = {
+        year: sDate.y,
+        month: sDate.m,
+        day: sDate.d,
+        hour: self.birthHour,
+        minute: self.birthMinute,
+      };
     }
     if (pDate) {
       partnerInput.birthYear = pDate.y;
       partnerInput.birthMonth = pDate.m;
       partnerInput.birthDay = pDate.d;
+      partnerInput.birthInput = Object.assign({}, partnerInput.birthInput || {}, {
+        year: pDate.y,
+        month: pDate.m,
+        day: pDate.d,
+        hour: partnerInput.birthHour,
+        minute: partnerInput.birthMinute,
+      });
     }
 
     return {
@@ -937,7 +1184,7 @@
 
   function _refreshReadinessPanel() {
     var profile = _getActiveBirthProfile();
-    var partner = _getPartnerInput();
+    var partner = _getPartnerInputV2();
     var normalizedInput = _normalizeCompatibilityInput(profile || {}, partner);
     var check = _validateBeforePayment(normalizedInput);
     _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
@@ -946,7 +1193,13 @@
   function _focusFirstInputError(fieldErrors) {
     var ids = Object.keys(fieldErrors || {});
     if (!ids.length) return;
-    var field = _qs(ids[0]);
+    var focusMap = {
+      skSelfBirthDate: 'skSelfBirthYear',
+      skPartnerBirthDate: 'skPartnerBirthYear',
+      skSelfBirthTimeText: 'skSelfBirthHour',
+      skPartnerBirthTimeText: 'skPartnerBirthHour',
+    };
+    var field = _qs(focusMap[ids[0]] || ids[0]);
     if (!field || typeof field.focus !== 'function') return;
     try {
       field.focus({ preventScroll: true });
@@ -970,7 +1223,13 @@
   }
 
   function _setInputError(fieldId, message) {
-    var field = _qs(fieldId);
+    var focusMap = {
+      skSelfBirthDate: 'skSelfBirthYear',
+      skPartnerBirthDate: 'skPartnerBirthYear',
+      skSelfBirthTimeText: 'skSelfBirthHour',
+      skPartnerBirthTimeText: 'skPartnerBirthHour',
+    };
+    var field = _qs(focusMap[fieldId] || fieldId);
     if (field && field.classList) field.classList.add('is-error');
     var errorEl = _qs(fieldId + 'Error');
     if (errorEl) {
@@ -980,7 +1239,13 @@
   }
 
   function _clearFieldError(fieldId) {
-    var field = _qs(fieldId);
+    var focusMap = {
+      skSelfBirthDate: 'skSelfBirthYear',
+      skPartnerBirthDate: 'skPartnerBirthYear',
+      skSelfBirthTimeText: 'skSelfBirthHour',
+      skPartnerBirthTimeText: 'skPartnerBirthHour',
+    };
+    var field = _qs(focusMap[fieldId] || fieldId);
     if (field && field.classList) field.classList.remove('is-error');
     var errorEl = _qs(fieldId + 'Error');
     if (errorEl) {
@@ -1695,6 +1960,7 @@
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+      if (pathname === SUKYO_PREPARE_API) headers['x-sukuyo-sync'] = '1';
 
       var endpoint = endpoints[endpointIndex++];
       fetch(endpoint, {
@@ -2356,7 +2622,7 @@
 
     _log('[SukuyoBook][ProfileResolved]', { hasBirthDate: !!_clean(_formatProfile(profile).birthDate) });
 
-    var partner = _getPartnerInput();
+    var partner = _getPartnerInputV2();
     _log('[SukuyoBook][PartnerInputResolved]', {
       hasBirthDate: !!_clean(partner.birthDate),
       hasBirthTime: !!_clean(partner.birthTime),
@@ -2634,6 +2900,7 @@
   document.addEventListener('input', function (event) {
     var target = event.target;
     if (!(target instanceof Element)) return;
+    _handleSplitNumberInput(target);
     if (/^sk(Self|Partner)/.test(target.id || '')) _refreshReadinessPanel();
   });
 

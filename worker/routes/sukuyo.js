@@ -41,6 +41,18 @@ function clean(value) {
   return String(value == null ? "" : value).trim();
 }
 
+function withSukuyoTimeout(promise, timeoutMs = 2500, fallback = null) {
+  let timer = null;
+  return Promise.race([
+    promise,
+    new Promise((resolve) => {
+      timer = setTimeout(() => resolve(fallback), Math.max(1, Number(timeoutMs) || 2500));
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 function toNumber(value, fallback = NaN) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -981,6 +993,14 @@ function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) 
   return null;
 }
 
+function isCurrentSukuyoPendingExecution(doc = {}, sessionId = "", reportId = "") {
+  if (!doc) return false;
+  const status = clean(doc.status);
+  const premiumStatus = clean(doc.premiumStatus);
+  if (status !== "pending" && premiumStatus !== "generating") return false;
+  return clean(doc.sessionId) === clean(sessionId) && clean(doc.reportId) === clean(reportId);
+}
+
 async function acquireSukuyoExecutionLease(env, userId, executionCtx = {}) {
   const executionKey = clean(executionCtx.executionKey);
   if (!executionKey) return { ok: true };
@@ -1437,11 +1457,16 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
-  const reusableExecution = await findSukuyoReusableExecution(pdfDbEnv, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
+  const reusableExecution = await withSukuyoTimeout(
+    findSukuyoReusableExecution(pdfDbEnv, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey }),
+    2500,
+    null,
+  );
   const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
+  const currentPendingExecution = reusableResponse?.status === 202 && isCurrentSukuyoPendingExecution(reusableExecution, sessionId, reportId);
   if (reusableResponse?.status === 409 && reusableResponse.payload?.code === "SUKUYO_EXECUTION_STALE") {
     await markSukuyoStaleExecutionFailed(pdfDbEnv, reusableExecution, reusableResponse.payload.message);
-  } else if (reusableResponse) {
+  } else if (reusableResponse && !currentPendingExecution) {
     return json(reusableResponse.payload, { status: reusableResponse.status });
   }
 
@@ -1584,8 +1609,16 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
-    const executionLease = await acquireSukuyoExecutionLease(pdfDbEnv, auth.userId, executionCtx);
+    await withSukuyoTimeout(
+      startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx),
+      3000,
+      null,
+    );
+    const executionLease = await withSukuyoTimeout(
+      acquireSukuyoExecutionLease(pdfDbEnv, auth.userId, executionCtx),
+      3000,
+      { ok: false, error: "SUKUYO_EXECUTION_LEASE_TIMEOUT" },
+    );
     if (!executionLease.ok && !executionLease.error) {
       console.warn("[SukuyoPremiumPDF][ExecutionLeaseMissing]", {
         sessionId,
@@ -1732,13 +1765,17 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
           chapterCount: generated.chapterCount,
         },
       });
-      completedExecution = await completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
-        chapterCount: generated.chapterCount,
-        manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
-        localAssembly: localContract.localAssembly,
-        pdfCompletionValidation,
-        archive: archiveMetadata,
-      });
+      completedExecution = await withSukuyoTimeout(
+        completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
+          chapterCount: generated.chapterCount,
+          manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
+          localAssembly: localContract.localAssembly,
+          pdfCompletionValidation,
+          archive: archiveMetadata,
+        }),
+        5000,
+        { ok: false, code: "SUKUYO_EXECUTION_COMPLETE_TIMEOUT" },
+      );
       if (!completedExecution?.ok) {
         throw Object.assign(new Error("숙요점 PDF 완료 저장에 실패했습니다."), {
           status: 500,
@@ -1855,6 +1892,8 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
 }
 
 async function handleSukuyoPremiumPrepare(request, env, ctx = null) {
+  return await handleSukuyoPremiumPrepareSync(request, env);
+
   if (!ctx || typeof ctx.waitUntil !== "function" || request.headers.get("x-sukuyo-sync") === "1") {
     return await handleSukuyoPremiumPrepareSync(request, env);
   }
@@ -1864,6 +1903,9 @@ async function handleSukuyoPremiumPrepare(request, env, ctx = null) {
   try {
     body = bodyText ? JSON.parse(bodyText) : {};
   } catch (_) {
+    return await handleSukuyoPremiumPrepareSync(new Request(request, { body: bodyText }), env);
+  }
+  if (body?.sync === true || body?.syncPrepare === true || clean(body?.syncPrepare) === "true") {
     return await handleSukuyoPremiumPrepareSync(new Request(request, { body: bodyText }), env);
   }
 
@@ -1926,11 +1968,16 @@ async function handleSukuyoPremiumPrepare(request, env, ctx = null) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
-  const reusableExecution = await findSukuyoReusableExecution(pdfDbEnv, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
+  const reusableExecution = await withSukuyoTimeout(
+    findSukuyoReusableExecution(pdfDbEnv, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey }),
+    2500,
+    null,
+  );
   const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
+  const currentPendingExecution = reusableResponse?.status === 202 && isCurrentSukuyoPendingExecution(reusableExecution, sessionId, reportId);
   if (reusableResponse?.status === 409 && reusableResponse.payload?.code === "SUKUYO_EXECUTION_STALE") {
     await markSukuyoStaleExecutionFailed(pdfDbEnv, reusableExecution, reusableResponse.payload.message);
-  } else if (reusableResponse) {
+  } else if (reusableResponse && !currentPendingExecution) {
     return json(reusableResponse.payload, { status: reusableResponse.status });
   }
 
@@ -2030,7 +2077,11 @@ async function handleSukuyoPremiumStatus(request, env) {
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
 
-  const reusableExecution = await findSukuyoReusableExecution(pdfDbEnv, auth.userId, executionCtx, { sessionId, reportId, featureKey });
+  const reusableExecution = await withSukuyoTimeout(
+    findSukuyoReusableExecution(pdfDbEnv, auth.userId, executionCtx, { sessionId, reportId, featureKey }),
+    3500,
+    null,
+  );
   const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
   if (reusableResponse?.status === 200) {
     return json({

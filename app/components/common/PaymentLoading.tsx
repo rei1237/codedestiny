@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import {
+  FALLBACK_LOADING_MESSAGE,
+  resolveLoadingMessage,
+  type LoadingStage,
+  type PaymentType,
+} from "@/constants/loadingMessages";
 
 export type PaymentLoadingProps = {
   open: boolean;
@@ -19,23 +25,26 @@ export type PaymentLoadingProps = {
   title?: string;
   description?: string;
   statusMessage?: string;
+  stage?: LoadingStage;
+  paymentType?: PaymentType;
 };
 
-const DEFAULT_TITLE = "결제 상태를 확인하고 있습니다";
-const DEFAULT_DESCRIPTION = "결제와 이용 권한을 안전하게 확인하고 있습니다. 잠시만 기다려 주세요.";
-const YEON_SPRITE_PUBLIC_PATH =
-  "/fuctionassets/%EB%8F%88%EB%8F%85%EC%98%A4%EB%A5%B8%20%EC%97%B0%EC%9D%B4.webp?v=20260612-clean-cut";
-const YEON_SPRITE_URL = getAssetUrlFromPublicPath(YEON_SPRITE_PUBLIC_PATH);
-const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260612-clean-cut";
+const DEFAULT_TITLE = FALLBACK_LOADING_MESSAGE.title;
+const DEFAULT_DESCRIPTION = FALLBACK_LOADING_MESSAGE.sub;
+const KKULKKUL_LOGO_PUBLIC_PATH =
+  "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
+const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
+const UNIFIED_PAYMENT_MARKER = "cd-react-static-matched-payment-ui-v20260618";
 
-function resolveYeonSpriteAnimation(variant: NonNullable<PaymentLoadingProps["variant"]>) {
-  if (variant === "checkout") return "cdYeonPaymentSpriteCheckout 2.8s steps(1, end) infinite";
-  if (variant === "confirm") return "cdYeonPaymentSpriteConfirm 2.8s steps(1, end) infinite";
-  if (variant === "monthly" || variant === "subscription") return "cdYeonPaymentSpriteBalance 3.2s steps(1, end) infinite";
-  if (variant === "unlock-saving") return "cdYeonPaymentSpriteUnlock 3s steps(1, end) infinite";
-  if (variant === "payment-complete" || variant === "pass-applied") return "cdYeonPaymentSpriteComplete 2.6s steps(1, end) infinite";
-  if (variant === "refund") return "cdYeonPaymentSpriteCalm 3s steps(1, end) infinite";
-  return "cdYeonPaymentSpriteCheck 3s steps(1, end) infinite";
+function resolveLoadingContextFromVariant(variant: NonNullable<PaymentLoadingProps["variant"]>): { stage: LoadingStage; paymentType: PaymentType } | null {
+  if (variant === "pass-checking") return { stage: "access_check", paymentType: "pass" };
+  if (variant === "pass-applied") return { stage: "result_loading", paymentType: "pass" };
+  if (variant === "subscription") return { stage: "pg_processing", paymentType: "subscription" };
+  if (variant === "monthly") return { stage: "access_check", paymentType: "subscription" };
+  if (variant === "checkout" || variant === "confirm") return { stage: "pg_processing", paymentType: "single" };
+  if (variant === "payment-complete" || variant === "unlock-saving") return { stage: "result_loading", paymentType: "single" };
+  if (variant === "payment") return { stage: "access_check", paymentType: "single" };
+  return null;
 }
 
 export default function PaymentLoading({
@@ -44,6 +53,8 @@ export default function PaymentLoading({
   title,
   description,
   statusMessage,
+  stage,
+  paymentType,
 }: PaymentLoadingProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -52,7 +63,7 @@ export default function PaymentLoading({
     if (typeof window === "undefined") return;
     const img = new window.Image();
     img.decoding = "async";
-    img.src = YEON_SPRITE_URL;
+    img.src = KKULKKUL_LOGO_URL;
   }, [open]);
 
   useEffect(() => {
@@ -84,52 +95,16 @@ export default function PaymentLoading({
 
   const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
   const isPassAppliedVariant = variant === "pass-applied";
-  const copyMap: Record<NonNullable<PaymentLoadingProps["variant"]>, { title: string; description: string; status?: string }> = {
-    payment: {
-      title: "이용 권한 확인 중",
-      description: "주문 정보와 이용 권한을 차분히 맞춰 보고 있습니다.",
-    },
-    checkout: {
-      title: "결제창 준비 중",
-      description: "결제창을 열기 전 주문 금액과 인증 정보를 확인하고 있습니다.",
-    },
-    confirm: {
-      title: "결제 승인 확인 중",
-      description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
-    },
-    monthly: {
-      title: "이용권 혜택 적용 중",
-      description: "이용권 혜택과 콘텐츠 이용 권한을 확인하고 있습니다.",
-    },
-    subscription: {
-      title: "이용권 결제 확인 중",
-      description: "이용권 결제 승인과 서비스 이용 권한을 연결하고 있습니다.",
-    },
-    "unlock-saving": {
-      title: "잠금 해제 저장 중",
-      description: "결과 화면으로 이어지도록 권한 기록을 정리하고 있습니다.",
-    },
-    "payment-complete": {
-      title: "결제 확인 완료",
-      description: "이용 권한이 정상적으로 열렸습니다.",
-      status: "잠시 후 콘텐츠로 이어집니다.",
-    },
-    refund: {
-      title: "환불 상태 확인 중",
-      description: "결제 내역과 이용 권한을 안전하게 다시 확인하고 있습니다.",
-    },
-    "pass-checking": {
-      title: "이용권 확인 중",
-      description: "보유한 이용권 범위와 현재 콘텐츠 권한을 확인하고 있습니다.",
-      status: "이용권 적용 여부를 확인하고 있습니다.",
-    },
-    "pass-applied": {
-      title: "이용권 적용 완료",
-      description: "보유한 이용권으로 이번 콘텐츠가 열렸습니다.\n추가 결제 없이 바로 이어집니다.",
-      status: "콘텐츠 문을 여는 중입니다.",
-    },
+  const variantContext = resolveLoadingContextFromVariant(variant);
+  const resolvedStage = stage || variantContext?.stage;
+  const resolvedPaymentType = paymentType || variantContext?.paymentType;
+  const hasLoadingContext = Boolean(resolvedStage && resolvedPaymentType);
+  const copy = resolveLoadingMessage(resolvedStage, resolvedPaymentType);
+  const statusMap: Partial<Record<NonNullable<PaymentLoadingProps["variant"]>, string>> = {
+    "payment-complete": "잠시 후 콘텐츠로 이어집니다.",
+    "pass-checking": "이용권 적용 여부를 확인하고 있습니다.",
+    "pass-applied": "콘텐츠 문을 여는 중입니다.",
   };
-  const copy = copyMap[variant] || copyMap.payment;
   const cleanedStatus = String(statusMessage || "").trim();
   const passLines = isPassAppliedVariant && !description && cleanedStatus
     ? cleanedStatus.split(/\n+/).map((line) => line.trim()).filter(Boolean)
@@ -137,20 +112,24 @@ export default function PaymentLoading({
   const resolvedTitle = title || (passLines.length > 1 ? passLines[0] : "") || copy.title || DEFAULT_TITLE;
   const resolvedDescription = description
     || (passLines.length > 1 ? passLines.slice(1).join("\n") : "")
-    || copy.description
-    || DEFAULT_DESCRIPTION;
+    || (hasLoadingContext ? copy.sub : (copy.sub || DEFAULT_DESCRIPTION));
+  const shouldShowDescription = resolvedDescription.trim().length > 0;
   const isFamilyPassVariant = isPassAppliedVariant && [resolvedTitle, resolvedDescription, cleanedStatus].join(" ").toUpperCase().includes("FAMILY");
+  const normalizedResolvedCopy = [resolvedTitle, shouldShowDescription ? resolvedDescription : ""].filter(Boolean).join("\n").trim();
+  const shouldUseCleanedStatus = cleanedStatus
+    && cleanedStatus !== resolvedTitle
+    && cleanedStatus !== resolvedDescription
+    && cleanedStatus !== normalizedResolvedCopy;
   const resolvedStatus = elapsedMs >= 20000
     ? "확인이 길어지고 있습니다. 같은 창에서 계속 안전하게 재확인 중입니다."
     : elapsedMs >= 8000
       ? "결제 확인이 조금 지연되고 있습니다. 곧 자동으로 이어집니다."
       : isPassAppliedVariant
-        ? copy.status
-      : cleanedStatus && cleanedStatus !== resolvedDescription
+        ? statusMap[variant]
+      : shouldUseCleanedStatus
         ? cleanedStatus
-        : copy.status;
-  const isWarmVariant = ["pass-checking", "pass-applied", "subscription", "monthly"].includes(variant) || isPaymentComplete;
-  const spriteAnimation = resolveYeonSpriteAnimation(variant);
+        : statusMap[variant];
+  const showSkeleton = !isPaymentComplete;
 
   return (
     <div
@@ -159,19 +138,10 @@ export default function PaymentLoading({
       aria-live={isPassAppliedVariant ? "polite" : "assertive"}
       data-payment-loading-variant={variant}
       data-payment-loading-marker={UNIFIED_PAYMENT_MARKER}
-      className={`fixed inset-0 z-[2147483003] flex items-center justify-center px-4 ${
-        isPassAppliedVariant
-          ? "bg-slate-950/70 backdrop-blur-xl"
-          : "bg-[#050510]/78 backdrop-blur-md"
-      }`}
+      className="fixed inset-0 z-[2147483003] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
     >
-      <div className={`relative w-full max-w-[360px] overflow-hidden border p-5 text-center shadow-[0_20px_54px_rgba(0,0,0,0.38)] sm:p-6 ${
-        isPassAppliedVariant
-          ? `rounded-[2rem] border-white/15 bg-white/10 shadow-2xl ${isFamilyPassVariant ? "ring-1 ring-amber-200/30" : ""}`
-          : "rounded-[1.5rem] border-amber-100/35 bg-[linear-gradient(180deg,rgba(24,19,34,0.96),rgba(8,9,20,0.97))]"
-      }`}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" />
-        <div className={`pointer-events-none absolute inset-x-8 top-0 h-28 bg-gradient-to-b ${isPassAppliedVariant ? "from-amber-100/18" : "from-amber-200/12"} to-transparent`} />
+      <div className={`relative w-full overflow-hidden rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-left text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6 ${isFamilyPassVariant ? "ring-1 ring-amber-200/30" : ""}`}>
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
         {isPassAppliedVariant ? (
           <div className="pointer-events-none absolute inset-0 opacity-80">
             <span className="absolute left-[18%] top-[18%] h-1 w-1 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,.8)]" />
@@ -181,74 +151,33 @@ export default function PaymentLoading({
           </div>
         ) : null}
 
-        <div className="relative mx-auto mb-5 flex h-[142px] w-[104px] items-center justify-center">
-          <span className={`absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)] ${isFamilyPassVariant ? "scale-110 shadow-[0_0_38px_rgba(251,191,36,0.32)]" : ""}`} />
-          <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
-            <div
-              className="absolute left-0 top-0 h-[200%] w-[400%]"
-              style={{
-                animation: spriteAnimation,
-                backgroundImage: `url("${YEON_SPRITE_URL}")`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "100% 100%",
-                imageRendering: "auto",
-                transform: "translate3d(0, 0, 0)",
-                willChange: "transform",
-              }}
-            />
-          </div>
+        <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
+          <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
+          <div
+            className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
+            style={{ backgroundImage: `url("${KKULKKUL_LOGO_URL}")` }}
+          />
         </div>
 
-        <p className={`text-xl font-bold tracking-tight text-transparent bg-clip-text sm:text-2xl ${
-          isWarmVariant
-            ? "bg-gradient-to-r from-amber-100 via-fuchsia-100 to-cyan-100"
-            : "bg-gradient-to-r from-cyan-200 via-indigo-200 to-violet-300"
-        }`}>{resolvedTitle}</p>
-        <p className={`mt-3 whitespace-pre-line text-sm leading-relaxed ${isPassAppliedVariant ? "text-slate-100/86" : "text-indigo-100/76"}`}>{resolvedDescription}</p>
+        <div>
+          <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">secure check</p>
+          <h2 className="m-0 text-[22px] font-black leading-[1.24] tracking-normal text-white">{resolvedTitle}</h2>
+        </div>
+        {shouldShowDescription ? (
+          <p className="mt-4 whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{resolvedDescription}</p>
+        ) : null}
 
-        {resolvedStatus ? (
-          <div className="mt-6 flex justify-center">
-            <p className="relative rounded-2xl border border-indigo-500/30 bg-indigo-950/50 px-4 py-2.5 text-xs font-medium text-cyan-100 sm:text-sm">
-              <span className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-violet-500/10" />
-              <span className="relative">{resolvedStatus}</span>
-            </p>
+        {showSkeleton ? (
+          <div className="mt-5 grid gap-[9px]" aria-hidden="true">
+            <span className="h-3 w-full animate-pulse rounded-full bg-white/10" />
+            <span className="h-3 w-[82%] animate-pulse rounded-full bg-white/10" />
+            <span className="h-3 w-[64%] animate-pulse rounded-full bg-white/10" />
           </div>
         ) : null}
 
-        <style jsx global>{`
-          @keyframes cdYeonPaymentSpriteCheck {
-            0%, 49.99% { transform: translate3d(0%, 0%, 0); }
-            50%, 100% { transform: translate3d(-25%, 0%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteCheckout {
-            0%, 49.99% { transform: translate3d(-50%, 0%, 0); }
-            50%, 100% { transform: translate3d(-25%, -50%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteConfirm {
-            0%, 49.99% { transform: translate3d(-25%, -50%, 0); }
-            50%, 100% { transform: translate3d(-50%, -50%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteBalance {
-            0%, 49.99% { transform: translate3d(-50%, -50%, 0); }
-            50%, 100% { transform: translate3d(-75%, -50%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteUnlock {
-            0%, 49.99% { transform: translate3d(0%, -50%, 0); }
-            50%, 100% { transform: translate3d(-50%, -50%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteComplete {
-            0%, 49.99% { transform: translate3d(-75%, 0%, 0); }
-            50%, 100% { transform: translate3d(-75%, -50%, 0); }
-          }
-          @keyframes cdYeonPaymentSpriteCalm {
-            0%, 100% { transform: translate3d(0%, 0%, 0); }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            [data-payment-loading-marker="${UNIFIED_PAYMENT_MARKER}"] [style*="cdYeonPaymentSprite"] {
-              animation-duration: 6.4s !important;
-            }
-          }
-        `}</style>
+        {resolvedStatus ? (
+          <p className="mt-4 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">{resolvedStatus}</p>
+        ) : null}
       </div>
     </div>
   );

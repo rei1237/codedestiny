@@ -8236,11 +8236,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return syBuildGuardianStory(_selfGuardian, sData ? sData.mansion : '');
       })();
       const _guardianIllustrationPrompt = [
-        '월하의 숙요 동물을 2D 귀여운 토이 스타일 일러스트로 그려줘.',
-        '컨셉: 신비로운 새벽빛, 부드러운 포근함, 둥글고 다정한 형태.',
+        '월하의 숙요 동물을 2D 귀여운 마스코트 일러스트로 그려줘.',
+        '같은 캐릭터가 끝까지 유지되도록 종족, 얼굴형, 눈, 색, 소품, 비율을 고정하고 레퍼런스처럼 일관되게 유지해줘.',
+        '형태는 둥근 실루엣, 큰 반짝이는 눈, 짧은 팔다리, 부드러운 표정, 말랑한 인상으로 잡아줘.',
+        '스타일은 clean line art, soft pastel shading, gentle moonlight glow, simple background, no 3D, no realism, no heavy texture.',
         '주인공: ' + _selfGuardian.name + ' / 이모지: ' + _selfGuardian.emoji,
         '상징 키워드: ' + _selfGuardian.color + ', ' + _selfGuardian.place + ', ' + _selfGuardian.action,
-        '반드시 장면 안쪽에 "숙요점"과 "코드 데스티니" 문구를 섬세한 타이포로 노출.',
+        '장면 안쪽에는 "숙요점"과 "코드 데스티니" 타이포를 작고 섬세하게 녹여내고, 전체 분위기는 스티커처럼 귀엽고 안정감 있게.',
         '배경은 달빛 아래 은하수와 은은한 별무리 모티브로 마무리.'
       ].join('\\n');
       html += `<div class="sy-card sy-guardian-card">
@@ -8274,7 +8276,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </div>
           <div class="sy-guardian-art-board">
             <h5>나의 월하의 숙요 동물 2D 드로잉 프롬프트</h5>
-            <p>아래 프롬프트를 복사해 AI에 넣으면 월하의 숙요 동물을 2D 토이 스타일로 아주 귀엽게 그려낼 수 있습니다.</p>
+            <p>달빛 결을 머금은 같은 얼굴과 비율이 유지되도록, 월하의 숙요 동물을 부드럽고 사랑스러운 2D 마스코트로 불러내는 문장입니다.</p>
             <textarea class="sy-guardian-art-prompt" data-sy-guardian-art-prompt>${_guardianIllustrationPrompt}</textarea>
             <button type="button" class="sy-guardian-art-copy-btn" data-sy-guardian-art-copy>월하의 숙요 동물 프롬프트 복사</button>
           </div>
@@ -12610,9 +12612,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return Promise.reject(new Error('empty'));
     }
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-      return navigator.clipboard.writeText(text);
+      return navigator.clipboard.writeText(text).catch(function() {
+        return syCopyTextFallback(text);
+      });
     }
 
+    return syCopyTextFallback(text);
+  }
+
+  function syCopyTextFallback(text) {
     return new Promise(function(resolve, reject) {
       try {
         var ta = document.createElement('textarea');
@@ -12621,10 +12629,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         ta.style.position = 'fixed';
         ta.style.left = '-9999px';
         ta.style.top = '0';
+        ta.style.opacity = '0';
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
-        var ok = document.execCommand('copy');
+        ta.setSelectionRange(0, ta.value.length);
+        var ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch (_copyErr) {
+          ok = false;
+        }
         document.body.removeChild(ta);
         if (ok) resolve();
         else reject(new Error('copy failed'));

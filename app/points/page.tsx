@@ -1903,7 +1903,7 @@ export default function PointsPage() {
   );
 
   const syncSubscriptionAppliedStage = useCallback(async () => {
-    setProcessingStage("이용권 적용을 계정에 반영하고 있습니다.", "subscription");
+    setProcessingStage("이용권을 확인했어요\n결과를 불러오는 중이에요", "pass-applied");
     await Promise.allSettled([
       fetchMyPointState(),
     ]);
@@ -2264,9 +2264,9 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingStage(
       isSubscriptionRedirect
-        ? "모바일 이용권 결제 복귀를 확인하고 있습니다."
-        : "모바일 결제 복귀 신호를 확인하고 있습니다...",
-      isSubscriptionRedirect ? "subscription" : "confirm",
+        ? "월정석이 활성화되고 있어요\n곧 이용 가능해져요"
+        : "결제가 완료됐어요\n결과를 불러오는 중이에요",
+      "payment-complete",
     );
 
     if (isSubscriptionRedirect) {
@@ -2405,7 +2405,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("결제창을 열기 전 주문 정보를 확인하고 있습니다.", "checkout");
+    setProcessingStage("잔액을 확인하는 중이에요", "payment");
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
@@ -2484,6 +2484,7 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
+      setProcessingStage("결제를 처리하고 있어요\n창을 닫지 말아 주세요", "checkout");
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -2504,7 +2505,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("결제 승인을 서버에서 검증하고 있습니다.", "confirm");
+        setProcessingStage("결제가 완료됐어요\n결과를 불러오는 중이에요", "payment-complete");
         const result = await confirmPaymentWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -2570,7 +2571,7 @@ export default function PointsPage() {
 
     setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage(`${plan.title} 결제 정보를 확인하고 있습니다.`, "subscription");
+    setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly");
 
     try {
       const prepareRes = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
@@ -2655,6 +2656,7 @@ export default function PointsPage() {
       });
       savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
+      setProcessingStage("월정석 결제를 처리하고 있어요\n잠시만 기다려 주세요", "subscription");
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -2675,7 +2677,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("이용권 결제 승인과 활성화를 확인하고 있습니다.", "subscription");
+        setProcessingStage("월정석이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
         const confirmData = await confirmSubscriptionWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -2771,7 +2773,7 @@ export default function PointsPage() {
 
     setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage(`${plan.title}을 월정석으로 활성화하고 있습니다.`, "subscription");
+    setProcessingStage("월정석이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
 
     try {
       const confirmData = await confirmSubscriptionWithServer({
@@ -2842,7 +2844,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("이용권 상태를 안전하게 확인하고 있습니다.", "subscription");
+    setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly");
     try {
       const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",

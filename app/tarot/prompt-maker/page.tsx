@@ -432,7 +432,6 @@ export default function TarotPromptMakerPage() {
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
         reason: "타로 프롬프트 라이브러리",
-        forceDeduct: !Boolean(billingSnapshot?.canAccess),
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           generate();

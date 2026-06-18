@@ -7,6 +7,7 @@ import { __billingTestUtils } from "../worker/routes/billing.js";
 import {
   canUseByPass,
   HONEY_PASS_POLICY,
+  normalizePassTier,
   PASS_LIMITS,
   PASS_LIMITS_KRW,
   PASS_TIERS,
@@ -25,6 +26,7 @@ const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), 
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+const tarotPromptMakerSource = readFileSync(resolve(root, "app/tarot/prompt-maker/page.tsx"), "utf8");
 const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
 const statusCardSource = readFileSync(resolve(root, "app/points/SubscriptionStatusCard.tsx"), "utf8");
 const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
@@ -196,6 +198,9 @@ const family690 = decision({
   monthlyBalance: 0,
 });
 assert.equal(canUseByPass(activePass(PASS_TIERS.FAMILY), 690), true, "family covers every priced service");
+assert.equal(canUseByPass(activePass(PASS_TIERS.FAMILY), 0), true, "family covers zero-priced resolved services");
+assert.equal(normalizePassTier("family_1m"), PASS_TIERS.FAMILY, "family plan id normalizes to family pass");
+assert.equal(normalizePassTier("honey_family"), PASS_TIERS.FAMILY, "honey family plan id normalizes to family pass");
 assert.equal(family690.canUseByPass, true, "family 690: canUseByPass");
 assert.equal(family690.canUseByMonthly, false, "family 690: monthly fallback is unnecessary without balance");
 assertFinalPass(family690, "card", "family 690 requested card");
@@ -496,11 +501,19 @@ assertContains(billingSource, "&& !directPaymentRequested", "usage pass auto con
 assertContains(billingSource, "&& !coinPaymentRequested", "usage pass auto consume skips coin payment");
 assertContains(billingSource, "accessType: \"usage_pass\"", "usage pass responses carry explicit access type");
 assertContains(billingSource, "freeBySubscription: false", "usage pass responses are not reported as subscription free");
+assertContains(billingSource, "buildPassTierMatchValues", "billing pass consume accepts normalized plan/tier aliases");
+assertContains(billingSource, "\"profileSubscription.planId\": { $in: tierMatchValues }", "billing pass consume checks profile subscription plan id aliases");
+assertContains(billingSource, "transactionType: usage.tier === \"family\" ? \"family_pass\" : \"membership_pass\"", "family pass consume preserves family access type");
 assertContains(billingClientSource, "buildLicensePassOverlayMessage", "React billing client builds license pass overlay copy");
 assertContains(billingClientSource, 'snapshot.state !== "none" || !hasServerLookupKey', "React billing client does not let inactive snapshots skip server pass checks");
 assertContains(billingClientSource, "snapshotPassServerCheckFirst", "React billing client sends active pass snapshots directly to server pass check");
 assertContains(billingClientSource, "eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst", "React billing client skips duplicate eligibility lookup before server pass check");
 assertContains(billingClientSource, "passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst", "React billing client prioritizes pass before payment processing");
+assertContains(billingClientSource, "shouldOpenRuntimePaymentFallback", "React billing client opens the unified payment gate after pass-first payment-required responses");
+assertContains(billingClientSource, "coin-gate-runtime-fallback", "React payment fallback normalizes runtime payment success");
+assertNotContains(tarotPromptMakerSource, "forceDeduct: !Boolean(billingSnapshot?.canAccess)", "tarot prompt maker must not block payment fallback with stale billing snapshot");
+assertContains(billingClientSource, "console.log(\"[이용권 체크]\"", "React paid gate logs pass/payment decision while debugging");
+assertContains(indexSource, "console.log('[이용권 체크]'", "static paid gate logs pass/payment decision while debugging");
 assertContains(billingClientSource, "runtimeData.freeBySubscription === true", "React billing client treats server pass responses as entitlement success");
 assertNotContains(billingClientSource, "remainingUses <= 0", "React billing client must not block 30-day passes by service-use counters");
 assertNotContains(billingClientSource, "passTotalUses", "React billing client does not restore service-use counters from pass payloads");
