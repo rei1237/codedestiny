@@ -1280,6 +1280,7 @@ function buildPaymentPhoneResponse(user, extra = {}) {
     ...extra,
     hasPhone: Boolean(phoneNumber),
     maskedPhone: phoneNumber ? maskKoreanPhoneNumber(phoneNumber) : "",
+    ...(phoneNumber ? { phoneNumber } : {}),
   };
 }
 

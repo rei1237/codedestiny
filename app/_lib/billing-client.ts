@@ -257,7 +257,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0ba671a7cc64";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-b4f5da5e8a31";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
@@ -2163,10 +2163,19 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const requestedMode = normalizePaymentMode(input.paymentMode);
     const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
     const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW";
+    const knownInputCoinCost = resolveKnownCoinCost(input, null);
+    const initialSnapshotPassLimit = initialSnapshot?.state === "active" ? subscriptionSnapshotPassLimit(initialSnapshot.tier) : 0;
+    const snapshotPassServerCheckFirst = Boolean(
+      !explicitPaymentMode
+      && knownInputCoinCost > 0
+      && initialSnapshot?.state === "active"
+      && initialSnapshotPassLimit > 0
+      && (initialSnapshot.tier === "family" || knownInputCoinCost <= initialSnapshotPassLimit),
+    );
     const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));
-    const eligibilityResult = explicitPaymentMode
+    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
       ? null
       : await fetchPaymentEligibility({
         categoryKey: input.categoryKey,
@@ -2183,7 +2192,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
-    const passFirstEligible = explicitPassMode || accessAlreadyGranted || eligibility?.pass.canUse === true;
+    const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || eligibility?.pass.canUse === true;
     const snapshotSaysNoPass = eligibility?.access.reason === "subscription_snapshot_none";
     if (eligibility) {
       const eligibilityOverlay = resolvePaymentWaitOverlay(
