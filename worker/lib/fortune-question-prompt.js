@@ -28,6 +28,90 @@ function safeJsonBlock(value, fallback = "{}") {
   }
 }
 
+function buildQuestionFocusWords(userQuestion) {
+  const stopWords = new Set([
+    "그리고",
+    "그래서",
+    "하지만",
+    "저는",
+    "제가",
+    "나의",
+    "나는",
+    "어떻게",
+    "무엇을",
+    "궁금해",
+    "알고",
+    "싶어",
+    "해주세요",
+    "해줘",
+  ]);
+  const words = String(userQuestion || "")
+    .replace(/[^\w가-힣一-龥ぁ-んァ-ン\s]/g, " ")
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 2 && !stopWords.has(word));
+  return uniqueNonEmpty(words).slice(0, 8);
+}
+
+function buildQuestionContextLine({
+  userQuestion,
+  mode,
+  questionTypeLabel,
+  compatibilityTarget,
+  analysisAngles,
+  domainDataLines,
+}) {
+  const context = [];
+  const focusWords = buildQuestionFocusWords(userQuestion);
+  const safeMode = toText(mode);
+  const safeQuestionType = toText(questionTypeLabel);
+  const safeAngles = uniqueNonEmpty(analysisAngles);
+  const safeDomainLines = uniqueNonEmpty(domainDataLines);
+
+  if (safeQuestionType) context.push(`질문 결: ${safeQuestionType}`);
+  if (safeMode) context.push(`상담 자리: ${safeMode}`);
+  if (focusWords.length) context.push(`원문에서 강하게 떠오른 말: ${focusWords.join(", ")}`);
+  if (compatibilityTarget && typeof compatibilityTarget === "object") context.push("관계의 상대 축이 함께 놓여 있음");
+  if (safeAngles.length) context.push(`우선 비출 축: ${safeAngles.slice(0, 3).join(", ")}`);
+  if (safeDomainLines.length) context.push(`참조 기류: ${safeDomainLines.slice(0, 2).join(" / ")}`);
+
+  return context.length ? context.join(" / ") : "원문 질문의 표현과 요청 맥락을 중심에 둠";
+}
+
+function buildQuestionPersonalizationLines({
+  normalizedQuestion,
+  summaryIntent,
+  mode,
+  questionTypeLabel,
+  compatibilityTarget,
+  analysisAngles,
+  domainDataLines,
+}) {
+  return [
+    "[이번 질문의 결]",
+    `- 원문 질문: ${normalizedQuestion}`,
+    `- 중심 기류: ${summaryIntent}`,
+    `- 질문 속 단서: ${buildQuestionContextLine({
+      userQuestion: normalizedQuestion,
+      mode,
+      questionTypeLabel,
+      compatibilityTarget,
+      analysisAngles,
+      domainDataLines,
+    })}`,
+    "- 이번 상담은 원문에 담긴 단어, 망설임, 바라는 결말, 피하고 싶은 흐름을 우선하여 엽니다.",
+    "- 예전에 만든 범용 문장과 같은 예시를 그대로 되풀이하지 말고, 이번 질문에서 강하게 떠오르는 상징과 선택지를 중심으로 새롭게 엮습니다.",
+    "- 같은 명반이나 카드라도 이 질문에서 솟은 핵심 의도와 세부 조건이 답의 순서와 강조점을 이끌게 합니다.",
+  ];
+}
+
+function appendQuestionPersonalizationGuard(promptText, personalizationLines) {
+  const prompt = String(promptText || "");
+  const marker = "[이번 질문의 결]";
+  if (prompt.includes(marker)) return prompt;
+  return `${prompt}\n\n${personalizationLines.join("\n")}`;
+}
+
 function isSajuPrompt(fortuneType, fortuneLabel) {
   return String(fortuneType || "").toLowerCase() === "saju" || String(fortuneLabel || "").includes("사주");
 }
@@ -298,6 +382,15 @@ export function buildFortuneQuestionPromptPackage({
   });
 
   const safeDomainDataLines = uniqueNonEmpty(domainDataLines);
+  const questionPersonalizationLines = buildQuestionPersonalizationLines({
+    normalizedQuestion,
+    summaryIntent,
+    mode,
+    questionTypeLabel: toText(questionTypeLabel, "일반"),
+    compatibilityTarget,
+    analysisAngles: angles,
+    domainDataLines: safeDomainDataLines,
+  });
   const snapshot = {
     fortuneType: toText(fortuneType, "unknown"),
     mode: toText(mode, "personal"),
@@ -319,6 +412,7 @@ export function buildFortuneQuestionPromptPackage({
       fortuneType,
       safeFortuneLabel,
     );
+    generatedPrompt = appendQuestionPersonalizationGuard(generatedPrompt, questionPersonalizationLines);
   } else {
     // 기존 로직
     const lines = [
@@ -333,6 +427,8 @@ export function buildFortuneQuestionPromptPackage({
       "",
       "[질문의 숨은 의도]",
       summaryIntent,
+      "",
+      ...questionPersonalizationLines,
       "",
       "[핵심 분석 요청]",
       ...buildCoreRequestLines(fortuneType, safeFortuneLabel),
