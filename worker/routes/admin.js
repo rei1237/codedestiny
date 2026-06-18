@@ -287,8 +287,13 @@ function normalizeAdminPromptDomain(service, value) {
     if (domain === "compatibility") return "love";
     return domain;
   }
+  if (service === "saju") {
+    if (domain === "general" || domain === "personality") return "life_direction";
+    if (domain === "compatibility") return "love";
+    return domain;
+  }
   if (domain === "personality") return service === "sukuyo" ? "personality" : "general";
-  if (domain === "compatibility" && (service === "saju" || service === "ziwei")) return "love";
+  if (domain === "compatibility" && service === "ziwei") return "love";
   return domain;
 }
 
