@@ -13,15 +13,15 @@ import {
   useState,
   useTransition,
 } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ArtistKey, Track } from "./_data/musicManifest";
+import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import styles from "./moon-music-player.module.css";
 
 type PlaylistTab = "all" | ArtistKey;
 
 type MusicPlaylistPanelProps = {
   tracks: readonly Track[];
-  currentTrackId?: string;
-  isPlaying: boolean;
   failedCoverIds: Record<string, boolean>;
   onActiveTabChange?: (tabKey: PlaylistTab) => void;
   onCoverError: (trackId: string) => void;
@@ -105,8 +105,6 @@ type PlaylistTrackItemProps = {
   collectionLabel: string;
   durationLabel: string;
   isPlayable: boolean;
-  isCurrentTrack: boolean;
-  isCurrentTrackPlaying: boolean;
   isSharedTrack: boolean;
   hasCoverError: boolean;
   onCoverError: (trackId: string) => void;
@@ -119,15 +117,16 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
   collectionLabel,
   durationLabel,
   isPlayable,
-  isCurrentTrack,
-  isCurrentTrackPlaying,
   isSharedTrack,
   hasCoverError,
   onCoverError,
   onSelectTrack,
   onShareTrack,
 }: PlaylistTrackItemProps) {
-  const isCurrent = isCurrentTrack;
+  const isCurrent = useMusicPlaybackStore(useCallback((state) => state.currentTrackId === track.id, [track.id]));
+  const isCurrentTrackPlaying = useMusicPlaybackStore(
+    useCallback((state) => state.currentTrackId === track.id && state.isPlaying, [track.id]),
+  );
   const coverUnavailable = !track.coverUrl || hasCoverError;
   const handleTrackSelect = useCallback(() => {
     onSelectTrack(track.id);
@@ -204,6 +203,22 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
       </button>
     </div>
   );
+}, (prev, next) => {
+  return (
+    prev.track.id === next.track.id
+    && prev.track.title === next.track.title
+    && prev.track.artistKey === next.track.artistKey
+    && prev.track.artistName === next.track.artistName
+    && prev.track.coverUrl === next.track.coverUrl
+    && prev.collectionLabel === next.collectionLabel
+    && prev.durationLabel === next.durationLabel
+    && prev.isPlayable === next.isPlayable
+    && prev.isSharedTrack === next.isSharedTrack
+    && prev.hasCoverError === next.hasCoverError
+    && prev.onCoverError === next.onCoverError
+    && prev.onSelectTrack === next.onSelectTrack
+    && prev.onShareTrack === next.onShareTrack
+  );
 });
 
 type PlaylistTabButtonProps = {
@@ -239,8 +254,6 @@ const PlaylistTabButton = memo(function PlaylistTabButton({
 
 const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   tracks,
-  currentTrackId,
-  isPlaying,
   failedCoverIds,
   onActiveTabChange,
   onCoverError,
@@ -250,12 +263,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const [query, setQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
-  const [virtualScrollTop, setVirtualScrollTop] = useState(0);
-  const [virtualViewportHeight, setVirtualViewportHeight] = useState(516);
-  const [virtualRowStride, setVirtualRowStride] = useState(PLAYLIST_DEFAULT_ROW_STRIDE);
   const sharedTrackResetTimerRef = useRef<number | null>(null);
   const playlistScrollRef = useRef<HTMLDivElement | null>(null);
-  const virtualScrollRafRef = useRef<number | null>(null);
   const normalizedQuery = normalizeSearchText(query);
   const deferredQuery = useDeferredValue(normalizedQuery);
   const [, startSearchTransition] = useTransition();
@@ -307,31 +316,12 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       }));
   }, [activeTab, deferredQuery, searchableTracks]);
 
-  const virtualWindow = useMemo(() => {
-    if (!filteredTracks.length) {
-      return {
-        startIndex: 0,
-        endIndex: 0,
-        paddingTop: 0,
-        paddingBottom: 0,
-        tracks: [] as PlaylistTrackDisplay[],
-      };
-    }
-
-    const rowStride = Math.max(1, virtualRowStride);
-    const viewportHeight = Math.max(1, virtualViewportHeight);
-    const startIndex = Math.max(0, Math.floor(virtualScrollTop / rowStride) - PLAYLIST_OVERSCAN_COUNT);
-    const visibleCount = Math.ceil(viewportHeight / rowStride) + PLAYLIST_OVERSCAN_COUNT * 2;
-    const endIndex = Math.min(filteredTracks.length, startIndex + visibleCount);
-
-    return {
-      startIndex,
-      endIndex,
-      paddingTop: startIndex * rowStride,
-      paddingBottom: Math.max(0, (filteredTracks.length - endIndex) * rowStride),
-      tracks: filteredTracks.slice(startIndex, endIndex),
-    };
-  }, [filteredTracks, virtualRowStride, virtualScrollTop, virtualViewportHeight]);
+  const playlistVirtualizer = useVirtualizer({
+    count: filteredTracks.length,
+    getScrollElement: () => playlistScrollRef.current,
+    estimateSize: () => PLAYLIST_DEFAULT_ROW_STRIDE,
+    overscan: PLAYLIST_OVERSCAN_COUNT,
+  });
 
   const handleTrackSelect = useCallback((trackId: string) => {
     onSelectTrack(trackId);
@@ -399,21 +389,14 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   }, [clearSharedTrackResetTimer, trackById]);
 
   useEffect(() => {
-    startSearchTransition(() => {
-      setVirtualScrollTop(0);
-    });
     if (playlistScrollRef.current) {
       playlistScrollRef.current.scrollTop = 0;
     }
-  }, [activeTab, deferredQuery, tracks, startSearchTransition]);
+  }, [activeTab, deferredQuery, tracks]);
 
   useEffect(() => {
     return () => {
       clearSharedTrackResetTimer();
-      if (virtualScrollRafRef.current !== null) {
-        window.cancelAnimationFrame(virtualScrollRafRef.current);
-        virtualScrollRafRef.current = null;
-      }
     };
   }, [clearSharedTrackResetTimer]);
 
@@ -432,55 +415,6 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       window.clearTimeout(timerId);
     };
   }, [searchInput, startSearchTransition]);
-
-  const syncVirtualMetrics = useCallback(() => {
-    const listElement = playlistScrollRef.current;
-    if (!listElement) return;
-
-    const firstTrack = listElement.querySelector<HTMLElement>("[data-playlist-track='true']");
-    const listStyle = window.getComputedStyle(listElement);
-    const gap = Number.parseFloat(listStyle.rowGap || listStyle.gap || "0") || 0;
-    const fallbackStride = window.matchMedia("(max-width: 640px)").matches
-      ? 84
-      : window.matchMedia("(max-width: 1119px)").matches
-        ? 100
-        : PLAYLIST_DEFAULT_ROW_STRIDE;
-    const nextRowStride = Math.max(1, (firstTrack?.offsetHeight || fallbackStride) + gap);
-    const nextViewportHeight = listElement.clientHeight || 516;
-
-    setVirtualViewportHeight((current) => Math.abs(current - nextViewportHeight) > 1 ? nextViewportHeight : current);
-    setVirtualRowStride((current) => Math.abs(current - nextRowStride) > 1 ? nextRowStride : current);
-  }, []);
-
-  const handlePlaylistScroll = useCallback(() => {
-    const listElement = playlistScrollRef.current;
-    if (!listElement || virtualScrollRafRef.current !== null) return;
-
-    virtualScrollRafRef.current = window.requestAnimationFrame(() => {
-      virtualScrollRafRef.current = null;
-      const currentListElement = playlistScrollRef.current;
-      if (!currentListElement) return;
-
-      setVirtualScrollTop(currentListElement.scrollTop);
-      setVirtualViewportHeight(currentListElement.clientHeight || 516);
-    });
-  }, []);
-
-  useEffect(() => {
-    syncVirtualMetrics();
-  }, [syncVirtualMetrics, virtualWindow.tracks.length, activeTab, deferredQuery]);
-
-  useEffect(() => {
-    const listElement = playlistScrollRef.current;
-    if (!listElement || typeof ResizeObserver === "undefined") return;
-
-    const resizeObserver = new ResizeObserver(syncVirtualMetrics);
-    resizeObserver.observe(listElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [syncVirtualMetrics]);
 
   return (
     <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label="Music playlist">
@@ -524,32 +458,39 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
             />
           </label>
 
-          <div className={styles.playlistScroll} ref={playlistScrollRef} onScroll={handlePlaylistScroll}>
+          <div className={styles.playlistScroll} ref={playlistScrollRef}>
             {filteredTracks.length ? (
-              <>
-                {virtualWindow.paddingTop ? (
-                  <div className={styles.playlistVirtualSpacer} style={{ height: virtualWindow.paddingTop }} aria-hidden />
-                ) : null}
-                {virtualWindow.tracks.map((track) => (
-                  <PlaylistTrackItem
-                    key={track.track.id}
-                    track={track.track}
-                    collectionLabel={track.collectionLabel}
-                    durationLabel={track.durationLabel}
-                    isPlayable={track.isPlayable}
-                    isCurrentTrack={track.track.id === currentTrackId}
-                    isCurrentTrackPlaying={track.track.id === currentTrackId && isPlaying}
-                    isSharedTrack={track.track.id === sharedTrackId}
-                    hasCoverError={Boolean(failedCoverIds[track.track.id])}
-                    onCoverError={handleTrackCoverError}
-                    onSelectTrack={handleTrackSelect}
-                    onShareTrack={handleTrackShare}
-                  />
-                ))}
-                {virtualWindow.paddingBottom ? (
-                  <div className={styles.playlistVirtualSpacer} style={{ height: virtualWindow.paddingBottom }} aria-hidden />
-                ) : null}
-              </>
+              <div
+                className={styles.playlistVirtualCanvas}
+                style={{ height: `${playlistVirtualizer.getTotalSize()}px` }}
+              >
+                {playlistVirtualizer.getVirtualItems().map((virtualItem) => {
+                  const track = filteredTracks[virtualItem.index];
+                  if (!track) return null;
+
+                  return (
+                    <div
+                      key={virtualItem.key}
+                      ref={playlistVirtualizer.measureElement}
+                      className={styles.playlistVirtualRow}
+                      data-index={virtualItem.index}
+                      style={{ transform: `translateY(${virtualItem.start}px)` }}
+                    >
+                      <PlaylistTrackItem
+                        track={track.track}
+                        collectionLabel={track.collectionLabel}
+                        durationLabel={track.durationLabel}
+                        isPlayable={track.isPlayable}
+                        isSharedTrack={track.track.id === sharedTrackId}
+                        hasCoverError={Boolean(failedCoverIds[track.track.id])}
+                        onCoverError={handleTrackCoverError}
+                        onSelectTrack={handleTrackSelect}
+                        onShareTrack={handleTrackShare}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <div className={styles.playlistEmpty}>
                 <strong>No tracks found</strong>

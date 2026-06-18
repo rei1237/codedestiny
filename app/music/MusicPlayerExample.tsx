@@ -20,6 +20,7 @@ import {
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { allTracks, type ArtistKey } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
+import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import MoonAlbumArtwork from "./MoonAlbumArtwork";
 import MusicPlaylistPanel from "./MusicPlaylistPanel";
 import styles from "./moon-music-player.module.css";
@@ -169,6 +170,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     return sharedTrackId && allTracks.some((track) => track.id === sharedTrackId) ? sharedTrackId : undefined;
   }, [sharedTrackId]);
   const player = useMusicPlayer(allTracks, { initialVolume: 0.85, initialTrackId: initialSharedTrackId });
+  const setPlaybackState = useMusicPlaybackStore((state) => state.setPlaybackState);
   const selectTrack = player.selectTrack;
   const sharedTrackSyncAttemptsRef = useRef(0);
   const progressMax = player.duration || 0;
@@ -189,6 +191,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         : styles.neoMode;
   const isCompact = presentation === "compact";
   const hasCurrentTrack = Boolean(player.currentTrack);
+
+  useEffect(() => {
+    setPlaybackState(currentTrackId, player.isPlaying);
+  }, [currentTrackId, player.isPlaying, setPlaybackState]);
 
   useEffect(() => {
     const hasSharedTrack = Boolean(sharedTrackId && allTracks.some((track) => track.id === sharedTrackId));
@@ -641,8 +647,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
           <MusicPlaylistPanel
             tracks={player.tracks}
-            currentTrackId={player.currentTrack?.id}
-            isPlaying={player.isPlaying}
             failedCoverIds={failedCoverIds}
             onActiveTabChange={setPlaylistThemeMode}
             onCoverError={handlePlaylistCoverError}

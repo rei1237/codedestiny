@@ -2334,6 +2334,273 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   color: #372915;
 }
 
+.dream-card-count-control {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.dream-card-count-control legend {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  color: rgba(224, 203, 255, 0.82);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.dream-card-count-control label {
+  position: relative;
+  min-height: 42px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.dream-card-count-control input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dream-card-count-control span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(183, 148, 255, 0.3);
+  background: rgba(28, 19, 52, 0.74);
+  color: rgba(245, 239, 255, 0.84);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.dream-card-count-control input:checked + span {
+  border-color: rgba(216, 190, 255, 0.88);
+  background: linear-gradient(145deg, rgba(120, 74, 221, 0.92), rgba(67, 37, 128, 0.94));
+  color: #fff;
+  box-shadow: 0 0 18px rgba(168, 119, 255, 0.28);
+}
+
+.dream-v2-panel {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(176, 132, 255, 0.22), transparent 38%),
+    linear-gradient(160deg, #140d2b, #20133f 58%, #291447);
+  border-color: rgba(205, 179, 255, 0.24);
+}
+
+.dream-v2-card-stage {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+  gap: 14px;
+  align-items: start;
+  justify-items: center;
+  margin-top: 18px;
+}
+
+.dream-v2-card {
+  width: min(142px, 100%);
+  aspect-ratio: 2 / 3;
+  perspective: 900px;
+  opacity: 1;
+}
+
+.dream-v2-card-stage[data-stage="drawing"] .dream-v2-card {
+  animation: dreamV2DealIn 0.42s ease both;
+  animation-delay: var(--deal-delay, 0s);
+}
+
+.card-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.56s ease;
+  transform-style: preserve-3d;
+}
+
+.card-flip.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-back,
+.card-front {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  border: 1px solid rgba(220, 199, 255, 0.3);
+}
+
+.card-back {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.05) 75%, transparent 75%),
+    radial-gradient(circle at 50% 35%, rgba(220, 198, 255, 0.22), transparent 34%),
+    linear-gradient(145deg, #1a0f36, #4b258c 54%, #24104d);
+  background-size: 18px 18px, 100% 100%, 100% 100%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 34px rgba(6, 4, 16, 0.44);
+}
+
+.card-back span {
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 231, 255, 0.42);
+  box-shadow: 0 0 24px rgba(191, 154, 255, 0.36);
+}
+
+.card-front {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(247, 241, 255, 0.96), rgba(222, 208, 255, 0.94));
+  color: #1f143d;
+  transform: rotateY(180deg);
+}
+
+.dream-v2-card-art {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  flex: 1;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #2a1851, #6d45bd);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.35;
+  padding: 8px;
+}
+
+.dream-v2-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
+.dream-v2-card-info {
+  display: grid;
+  gap: 5px;
+  padding-top: 8px;
+}
+
+.dream-v2-card-name {
+  min-width: 0;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  color: #241742;
+  overflow-wrap: anywhere;
+}
+
+.reversed-badge {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: rgba(96, 52, 180, 0.12);
+  color: #5c2fb0;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.dream-v2-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dream-v2-keywords span {
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(42, 26, 82, 0.08);
+  color: #4b347b;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.dream-v2-prompt-panel {
+  margin-top: 20px;
+}
+
+.cards-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(210, 185, 255, 0.32);
+  background: rgba(34, 22, 62, 0.72);
+  color: #f4ebff;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.card-chip b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(216, 190, 255, 0.16);
+  color: #e8d8ff;
+  font-size: 0.64rem;
+}
+
+.dream-v2-divider {
+  height: 1px;
+  margin: 16px 0;
+  background: linear-gradient(90deg, transparent, rgba(220, 199, 255, 0.34), transparent);
+}
+
+.dream-v2-prompt-panel h4 {
+  margin: 0 0 10px;
+  color: #f7edff;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.prompt-output {
+  width: 100%;
+  min-height: 210px;
+  max-height: 38dvh;
+  resize: vertical;
+  border-radius: 14px;
+  border: 1px solid rgba(217, 196, 255, 0.32);
+  background: rgba(14, 10, 29, 0.82);
+  color: #fff8f1;
+  padding: 14px;
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.78;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.copy-hint {
+  margin: 10px 0 0;
+  color: rgba(233, 220, 255, 0.82);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+@keyframes dreamV2DealIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.82); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .dream-ledger-loader {
   margin-top: 14px;
   padding: 14px;

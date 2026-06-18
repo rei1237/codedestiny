@@ -207,6 +207,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     setAudioDebugHelperText(null);
 
     try {
+      audio.preload = "auto";
       await audio.play();
       isPlayingRef.current = true;
       setIsPlaying(true);
@@ -565,7 +566,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     }
 
     audio.src = currentTrack.audioUrl;
-    audio.preload = "metadata";
+    audio.preload = shouldPlayAfterLoad ? "auto" : "metadata";
     audio.load();
     setCurrentTime(0);
     setDuration(0);

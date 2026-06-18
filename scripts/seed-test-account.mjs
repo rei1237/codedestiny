@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 
@@ -48,6 +49,9 @@ const TEST_LOGIN_ID = String(args.email || "test1234@example.com").trim().toLowe
 const TEST_PASSWORD = String(args.password || "test!1234").trim();
 const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 9999;
 const TEST_NAME = String(args.name || "Test User").trim() || "Test User";
+if (String(args["mongo-uri"] || "").trim()) {
+  process.env.MONGO_URI = String(args["mongo-uri"]).trim();
+}
 
 if (!TEST_LOGIN_ID) {
   throw new Error("--email 값이 비어 있습니다.");
@@ -123,9 +127,11 @@ async function upsertTestAccount() {
   console.log("【로그인】");
   console.log(`  - URL: /login`);
   console.log("============================================");
+  await mongoose.disconnect();
 }
 
 upsertTestAccount().catch((error) => {
   console.error("[seed-test-account] failed:", error?.message || error);
+  mongoose.connection?.close().catch(() => {});
   process.exitCode = 1;
 });

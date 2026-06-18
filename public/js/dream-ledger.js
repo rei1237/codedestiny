@@ -57,7 +57,7 @@
     htmlOverflow: ''
   };
 
-  var DREAM_TAROT_API_TIMEOUT_MS = 22000;
+  var DREAM_TAROT_API_TIMEOUT_MS = 8000;
   var dreamAiLoadPromise = null;
 
   function $(id) {
@@ -2455,6 +2455,357 @@
       }, { passive: false });
     });
   }
+
+  var dreamPromptV2 = {
+    stage: 'input',
+    dreamInput: '',
+    drawnCards: [],
+    dreamThemes: [],
+    analysisNote: '',
+    dreamPrompt: '',
+    isCopied: false,
+    isPrompting: false,
+    timers: []
+  };
+
+  function clearDreamPromptV2Timers() {
+    while (dreamPromptV2.timers.length) {
+      clearTimeout(dreamPromptV2.timers.pop());
+    }
+  }
+
+  function queueDreamPromptV2Timer(fn, delay) {
+    var timer = setTimeout(function () {
+      dreamPromptV2.timers = dreamPromptV2.timers.filter(function (item) { return item !== timer; });
+      fn();
+    }, delay);
+    dreamPromptV2.timers.push(timer);
+    return timer;
+  }
+
+  function getDreamCardCount() {
+    var checked = document.querySelector('input[name="dreamCardCount"]:checked');
+    var count = parseInt(checked && checked.value ? checked.value : '3', 10);
+    if (!Number.isFinite(count)) return 3;
+    return Math.max(1, Math.min(5, count));
+  }
+
+  function setDreamPromptLoader(message, visible) {
+    setLoaderText(message || '');
+    var loader = $('dreamLoader');
+    if (loader) loader.style.display = visible ? 'block' : 'none';
+  }
+
+  function setDreamPromptStage(stage) {
+    dreamPromptV2.stage = stage;
+    renderDreamPromptV2();
+  }
+
+  function normalizeDreamV2Card(card, idx) {
+    var source = card && card.card ? card.card : card;
+    source = source || {};
+    var nameKo = String(source.nameKo || source.nameKr || source.name || ('카드 ' + (idx + 1))).trim();
+    var keywords = Array.isArray(source.keywords) ? source.keywords.slice(0, 4) : [];
+    return {
+      card: {
+        id: source.id,
+        name: String(source.name || '').trim(),
+        nameKo: nameKo,
+        arcana: String(source.arcana || 'major').trim(),
+        keywords: keywords.length ? keywords : ['무의식', '상징'],
+        dreamMeaning: String(source.dreamMeaning || '').trim(),
+        uprightMeaning: String(source.uprightMeaning || '').trim(),
+        reversedMeaning: String(source.reversedMeaning || '').trim(),
+        imageUrl: String(source.imageUrl || source.localImageUrl || source.tarot_image_url || '').trim()
+      },
+      isReversed: typeof card.isReversed === 'boolean' ? card.isReversed : Math.random() > 0.7,
+      isRevealed: Boolean(card.isRevealed)
+    };
+  }
+
+  function buildDreamV2ClientPrompt() {
+    var compact = String(dreamPromptV2.dreamInput || '').replace(/\s+/g, ' ').trim();
+    if (compact.length > 260) compact = compact.slice(0, 259) + '…';
+    var themes = dreamPromptV2.dreamThemes.length ? dreamPromptV2.dreamThemes.join(', ') : '무의식, 감정의 잔향';
+    var cards = dreamPromptV2.drawnCards.map(function (entry) {
+      var orientation = entry.isReversed ? '역방향' : '정방향';
+      var keywords = entry.card.keywords.slice(0, 3).join(', ');
+      return entry.card.nameKo + '(' + orientation + ': ' + keywords + ')';
+    }).join(' / ');
+    return [
+      '다음 꿈을 타로와 꿈 심리학의 관점으로 깊이 해석해 주세요. 꿈의 원문은 "' + compact + '"입니다.',
+      '중심 주제는 ' + themes + '이며, 뽑힌 카드는 ' + cards + '입니다.',
+      '각 카드가 꿈의 장면, 감정, 인물, 장소와 어떻게 맞물리는지 살피고, 정방향과 역방향의 결을 구분해 주세요.',
+      '융의 무의식, 그림자, 상징 원형의 관점을 자연스럽게 엮어 현재 내면에서 강하게 떠오르는 메시지를 짚어 주세요.',
+      '마지막에는 제가 오늘 붙들어야 할 한 문장, 현실에서 실천할 작은 의식, 그리고 스스로에게 던질 질문 3가지를 남겨 주세요.'
+    ].join(' ');
+  }
+
+  function renderDreamV2Card(entry, idx) {
+    var card = entry.card || {};
+    var delay = dreamPromptV2.stage === 'drawing' ? ' style="--deal-delay:' + (idx * 0.15) + 's"' : '';
+    var flipped = entry.isRevealed ? ' flipped' : '';
+    var reversed = entry.isReversed ? '1' : '0';
+    var keywords = Array.isArray(card.keywords) ? card.keywords.slice(0, 3) : [];
+    var image = card.imageUrl
+      ? '<img src="' + escapeHtml(card.imageUrl) + '" alt="' + escapeHtml(card.nameKo || card.name || '') + '" loading="lazy" decoding="async">'
+      : '<span>' + escapeHtml(card.nameKo || card.name || 'Tarot') + '</span>';
+    return [
+      '<article class="dream-v2-card"' + delay + '>',
+        '<div class="card-flip' + flipped + '">',
+          '<div class="card-back" aria-label="타로 카드 뒷면"><span></span></div>',
+          '<div class="card-front" data-reversed="' + reversed + '">',
+            '<div class="dream-v2-card-art">' + image + '</div>',
+            '<div class="dream-v2-card-info">',
+              '<strong class="dream-v2-card-name">' + escapeHtml(card.nameKo || card.name || ('카드 ' + (idx + 1))) + '</strong>',
+              entry.isReversed ? '<span class="reversed-badge">역방향</span>' : '',
+              '<div class="dream-v2-keywords">' + keywords.map(function (kw) {
+                return '<span>' + escapeHtml(kw) + '</span>';
+              }).join('') + '</div>',
+            '</div>',
+          '</div>',
+        '</div>',
+      '</article>'
+    ].join('');
+  }
+
+  function renderDreamPromptV2() {
+    var stage = dreamPromptV2.stage;
+    var inputScreen = $('dreamInputScreen');
+    var resultWrap = $('dreamResultWrap');
+    var cardStage = $('dreamV2CardStage');
+    var promptPanel = $('dreamV2PromptPanel');
+    var promptOutput = $('dreamPromptOutput');
+    var summaryWrap = $('dreamV2CardsSummary');
+    var copyHint = $('dreamCopyHint');
+    var copyBtn = $('dreamCopyPromptBtn');
+    var title = $('dreamCardTitle');
+    var summary = $('dreamCardSummary');
+
+    if (inputScreen) inputScreen.style.display = stage === 'input' ? 'block' : 'none';
+    if (resultWrap) resultWrap.style.display = (stage === 'drawing' || stage === 'revealing' || stage === 'result') ? 'block' : 'none';
+    if (cardStage) {
+      cardStage.dataset.stage = stage;
+      cardStage.innerHTML = dreamPromptV2.drawnCards.map(renderDreamV2Card).join('');
+    }
+    if (promptPanel) promptPanel.style.display = stage === 'result' ? 'block' : 'none';
+    if (promptOutput) promptOutput.value = dreamPromptV2.dreamPrompt || '';
+    if (summaryWrap) {
+      summaryWrap.innerHTML = dreamPromptV2.drawnCards.map(function (entry) {
+        return '<span class="card-chip"><span>' + escapeHtml(entry.card.nameKo) + '</span>' + (entry.isReversed ? '<b>역</b>' : '') + '</span>';
+      }).join('');
+    }
+    if (copyHint) copyHint.style.display = dreamPromptV2.isCopied ? 'block' : 'none';
+    if (copyBtn) copyBtn.textContent = dreamPromptV2.isCopied ? '복사됨' : '프롬프트 복사하기';
+
+    if (title) {
+      if (stage === 'drawing') title.textContent = '카드가 꿈의 문 앞에 놓입니다';
+      else if (stage === 'revealing') title.textContent = '타로 상징이 하나씩 열립니다';
+      else if (stage === 'result') title.textContent = '당신의 꿈을 위한 해몽 프롬프트';
+      else title.textContent = 'Dream Prompt';
+    }
+    if (summary) {
+      summary.textContent = stage === 'result'
+        ? '복사해 원하는 AI에 건네면 꿈의 상징을 더 깊이 이어갈 수 있습니다.'
+        : (dreamPromptV2.analysisNote || '꿈의 잔향과 맞닿은 카드가 펼쳐집니다.');
+    }
+
+    renderKeywordChips(stage === 'input' ? [] : dreamPromptV2.dreamThemes);
+  }
+
+  function revealDreamPromptV2Cards() {
+    setDreamPromptStage('revealing');
+    setDreamPromptLoader('', false);
+    dreamPromptV2.drawnCards.forEach(function (_, idx) {
+      queueDreamPromptV2Timer(function () {
+        if (!dreamPromptV2.drawnCards[idx]) return;
+        dreamPromptV2.drawnCards[idx].isRevealed = true;
+        renderDreamPromptV2();
+        if (idx === dreamPromptV2.drawnCards.length - 1) {
+          queueDreamPromptV2Timer(generateDreamPromptV2, 650);
+        }
+      }, 360 + idx * 620);
+    });
+  }
+
+  function startDreamPromptV2Drawing(data) {
+    var sourceCards = Array.isArray(data && data.cards) && data.cards.length
+      ? data.cards
+      : ((data && Array.isArray(data.selectedCardIds)) ? data.selectedCardIds.map(function (id, idx) {
+        return { id: id, nameKo: '카드 ' + (idx + 1), keywords: ['상징', '무의식'] };
+      }) : []);
+    dreamPromptV2.drawnCards = sourceCards.slice(0, getDreamCardCount()).map(function (card, idx) {
+      return normalizeDreamV2Card({
+        card: card,
+        isReversed: Math.random() > 0.7,
+        isRevealed: false
+      }, idx);
+    });
+    dreamPromptV2.dreamThemes = Array.isArray(data && data.dreamThemes) ? data.dreamThemes.slice(0, 5) : [];
+    dreamPromptV2.analysisNote = String(data && data.analysisNote ? data.analysisNote : '').trim();
+    setDreamPromptStage('drawing');
+    setDreamPromptLoader('운명의 카드를 소환하고 있어요...', true);
+    queueDreamPromptV2Timer(revealDreamPromptV2Cards, 620 + dreamPromptV2.drawnCards.length * 150);
+  }
+
+  function generateDreamPromptV2() {
+    dreamPromptV2.isPrompting = true;
+    setDreamPromptLoader('타로의 메시지를 프롬프트로 엮는 중이에요...', true);
+    var cards = dreamPromptV2.drawnCards.map(function (entry) {
+      return {
+        id: entry.card.id,
+        nameKo: entry.card.nameKo,
+        isReversed: entry.isReversed,
+        keywords: entry.card.keywords,
+        dreamMeaning: entry.card.dreamMeaning
+      };
+    });
+    callDreamApi('dream-prompt', {
+      dreamText: dreamPromptV2.dreamInput,
+      dreamContent: dreamPromptV2.dreamInput,
+      dreamThemes: dreamPromptV2.dreamThemes,
+      cards: cards
+    }).then(function (data) {
+      dreamPromptV2.dreamPrompt = String((data && (data.dreamPrompt || data.promptText)) || '').trim() || buildDreamV2ClientPrompt();
+    }).catch(function () {
+      dreamPromptV2.dreamPrompt = buildDreamV2ClientPrompt();
+    }).finally(function () {
+      dreamPromptV2.isPrompting = false;
+      setDreamPromptLoader('', false);
+      setInteractionLocked(false);
+      setDreamPromptStage('result');
+      setWizardLine('카드가 남긴 결이 하나의 프롬프트로 봉인되었습니다.');
+    });
+  }
+
+  var legacyCloseDreamModal = window.closeDreamModal;
+
+  window.openDreamModal = function openDreamModal() {
+    var overlay = $('dreamModalOverlay');
+    if (!overlay) return;
+    window.dreamReset();
+    overlay.style.display = 'block';
+    overlay.scrollTop = 0;
+    setBodyLock(true);
+    ensureAudioContext();
+    window.requestAnimationFrame(function () {
+      overlay.classList.add('dream-ledger-overlay--show');
+    });
+    syncInputEnergy();
+    setWizardLine('꿈의 첫 장면과 깨어난 뒤 남은 감정을 적어 주세요. 무의식의 상점이 어울리는 카드를 조용히 꺼냅니다.');
+    window.setTimeout(function () {
+      var input = $('dreamInput');
+      if (!input) return;
+      try {
+        input.focus({ preventScroll: false });
+      } catch (_) {
+        input.focus();
+      }
+    }, 120);
+  };
+
+  window.closeDreamModal = function closeDreamModal() {
+    clearDreamPromptV2Timers();
+    if (typeof legacyCloseDreamModal === 'function') {
+      legacyCloseDreamModal();
+      return;
+    }
+    var overlay = $('dreamModalOverlay');
+    if (overlay) overlay.style.display = 'none';
+    setBodyLock(false);
+  };
+
+  window.dreamReset = function dreamReset() {
+    clearDreamPromptV2Timers();
+    stopTyping();
+    clearGoldenTimer();
+    clearAutoRevealTimer();
+    setInteractionLocked(false);
+    dreamPromptV2.stage = 'input';
+    dreamPromptV2.dreamInput = '';
+    dreamPromptV2.drawnCards = [];
+    dreamPromptV2.dreamThemes = [];
+    dreamPromptV2.analysisNote = '';
+    dreamPromptV2.dreamPrompt = '';
+    dreamPromptV2.isCopied = false;
+    dreamPromptV2.isPrompting = false;
+    var input = $('dreamInput');
+    if (input) input.value = '';
+    var loader = $('dreamLoader');
+    if (loader) loader.style.display = 'none';
+    var resultWrap = $('dreamResultWrap');
+    if (resultWrap) resultWrap.style.display = 'none';
+    var promptPanel = $('dreamV2PromptPanel');
+    if (promptPanel) promptPanel.style.display = 'none';
+    setDreamPromptLoader('', false);
+    renderDreamPromptV2();
+    syncInputEnergy();
+    setWizardLine('꿈의 첫 장면과 깨어난 뒤 남은 감정을 적어 주세요. 무의식의 상점이 어울리는 카드를 조용히 꺼냅니다.');
+  };
+
+  window.startDreamReading = function startDreamReading() {
+    if (state.uiLocked || dreamPromptV2.isPrompting) return;
+    var input = $('dreamInput');
+    var text = input ? input.value.trim() : '';
+    if (input && typeof input.blur === 'function') input.blur();
+    if (!text) {
+      setDreamPromptLoader('꿈의 장면을 먼저 적어 주세요.', true);
+      queueDreamPromptV2Timer(function () { setDreamPromptLoader('', false); }, 1200);
+      return;
+    }
+    clearDreamPromptV2Timers();
+    setInteractionLocked(true);
+    dreamPromptV2.dreamInput = text;
+    dreamPromptV2.drawnCards = [];
+    dreamPromptV2.dreamPrompt = '';
+    dreamPromptV2.isCopied = false;
+    setDreamPromptStage('analyzing');
+    setDreamPromptLoader('꿈의 상징을 읽는 중이에요...', true);
+    callDreamApi('dream-tarot', {
+      dreamText: text,
+      dreamContent: text,
+      cardCount: getDreamCardCount()
+    }).then(function (data) {
+      startDreamPromptV2Drawing(data || {});
+    }).catch(function () {
+      setInteractionLocked(false);
+      setDreamPromptStage('input');
+      setDreamPromptLoader('꿈의 문이 잠시 닫혔습니다. 다시 시도해 주세요.', true);
+      queueDreamPromptV2Timer(function () { setDreamPromptLoader('', false); }, 1600);
+    });
+  };
+
+  window.dreamCopyPrompt = function dreamCopyPrompt() {
+    var text = dreamPromptV2.dreamPrompt || (($('dreamPromptOutput') && $('dreamPromptOutput').value) || '');
+    if (!text) return;
+    function markCopied() {
+      dreamPromptV2.isCopied = true;
+      renderDreamPromptV2();
+      queueDreamPromptV2Timer(function () {
+        dreamPromptV2.isCopied = false;
+        renderDreamPromptV2();
+      }, 3000);
+    }
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(text).then(markCopied).catch(markCopied);
+      return;
+    }
+    var output = $('dreamPromptOutput');
+    if (output && typeof output.select === 'function') {
+      output.select();
+      try { document.execCommand('copy'); } catch (_) {}
+    }
+    markCopied();
+  };
+
+  window.dreamShareCard = window.dreamCopyPrompt;
+
+  bindDirectTapAction('#dreamModalOverlay [data-action="dreamCopyPrompt"]', function () {
+    window.dreamCopyPrompt();
+  });
+  bindDirectTapAction('#dreamModalOverlay [data-action="dreamReset"]', function () {
+    window.dreamReset();
+  });
 
   bindDirectTapAction('#dreamModalOverlay .dream-ledger-close, #dreamModalOverlay [data-action="closeDreamModal"]', function () {
     window.closeDreamModal();

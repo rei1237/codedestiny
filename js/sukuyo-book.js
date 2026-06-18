@@ -60,6 +60,11 @@
     return _normalizeBirthDateInput(match[1] + String(match[2]).padStart(2, '0') + String(match[3]).padStart(2, '0'));
   }
   function _num(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
+  function _profileNum(value, fallback) {
+    if (value === null || value === undefined || _clean(value) === '') return fallback;
+    var n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
   function _resolveSukuyoCoinCost() {
     var card = document.querySelector('[data-action="gotoSukuyoPremium"][data-coin-cost]');
     var cost = _num(card && card.getAttribute('data-coin-cost'), NaN);
@@ -519,8 +524,8 @@
   function _resolveSelfGender() {
     var f = _qs('skSelfGenderF');
     var m = _qs('skSelfGenderM');
-    if (m && m.classList.contains('on')) return 'male';
-    if (f && f.classList.contains('on')) return 'female';
+    if (m && (m.classList.contains('on') || m.getAttribute('aria-pressed') === 'true')) return 'male';
+    if (f && (f.classList.contains('on') || f.getAttribute('aria-pressed') === 'true')) return 'female';
     return 'unknown';
   }
 
@@ -597,18 +602,17 @@
     var y = _qs(prefix + 'BirthYear');
     var m = _qs(prefix + 'BirthMonth');
     var d = _qs(prefix + 'BirthDay');
-    if (y && Number.isFinite(_num(birth.year, NaN))) y.value = String(_num(birth.year, 0)).padStart(4, '0');
-    if (m && Number.isFinite(_num(birth.month, NaN))) m.value = _pad2(_num(birth.month, 0));
-    if (d && Number.isFinite(_num(birth.day, NaN))) d.value = _pad2(_num(birth.day, 0));
+    if (y && Number.isFinite(_profileNum(birth.year, NaN))) y.value = String(_profileNum(birth.year, 0)).padStart(4, '0');
+    if (m && Number.isFinite(_profileNum(birth.month, NaN))) m.value = _pad2(_profileNum(birth.month, 0));
+    if (d && Number.isFinite(_profileNum(birth.day, NaN))) d.value = _pad2(_profileNum(birth.day, 0));
   }
 
   function _setSplitBirthTime(prefix, birth) {
     birth = birth || {};
     var h = _qs(prefix + 'BirthHour');
     var m = _qs(prefix + 'BirthMinute');
-    var hour = _num(birth.hour, NaN);
-    var minute = _num(birth.minute, 0);
-    _setSplitBirthDate('skSelf', birth);
+    var hour = _profileNum(birth.hour, NaN);
+    var minute = _profileNum(birth.minute, 0);
     if (Number.isFinite(hour)) {
       if (h) h.value = _pad2(hour);
       if (m) m.value = _pad2(minute);
@@ -819,32 +823,42 @@
     var nameEl = _qs('skSelfName');
     var hourEl = _qs('skSelfHour');
     var minuteEl = _qs('skSelfMinute');
+    var splitHourEl = _qs('skSelfBirthHour');
+    var splitMinuteEl = _qs('skSelfBirthMinute');
     var textEl = _qs('skSelfBirthTimeText');
     var timeUnknownEl = _qs('skSelfTimeUnknown');
     var calendarType = _normalizeCalendarType(profile.calendarType || 'solar');
-    var y = _num(birth.year, NaN);
-    var m = _num(birth.month, NaN);
-    var d = _num(birth.day, NaN);
-    var hour = _num(birth.hour, NaN);
-    var minute = _num(birth.minute, 0);
+    var y = _profileNum(birth.year, NaN);
+    var m = _profileNum(birth.month, NaN);
+    var d = _profileNum(birth.day, NaN);
+    var hour = _profileNum(birth.hour, NaN);
+    var minute = _profileNum(birth.minute, 0);
     if (nameEl && !_clean(nameEl.value)) nameEl.value = _clean(profile.name) || '사용자';
     if (dateEl && Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)) {
       dateEl.value = [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('');
+    }
+    if (Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)) {
+      _setSplitBirthDate('skSelf', birth);
+      _clearFieldError('skSelfBirthDate');
     }
     Array.prototype.forEach.call(document.querySelectorAll('input[name="skSelfCalType"]'), function (input) {
       input.checked = _normalizeCalendarType(input.value) === calendarType;
     });
     _setGenderToggle('skSelf', profile.gender);
+    _clearFieldError('skSelfGender');
     if (Number.isFinite(hour)) {
       _setSplitBirthTime('skSelf', birth);
       if (hourEl) hourEl.value = String(hour);
       if (minuteEl) minuteEl.value = String(minute);
+      if (splitHourEl) splitHourEl.value = _pad2(hour);
+      if (splitMinuteEl) splitMinuteEl.value = _pad2(minute);
       if (textEl && !_clean(textEl.value)) textEl.value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
       if (timeUnknownEl) timeUnknownEl.checked = false;
     } else {
       _setSplitBirthTime('skSelf', {});
       if (timeUnknownEl) timeUnknownEl.checked = true;
     }
+    _syncTimeUnknownControls('skSelf');
   }
 
   function _normalizeGender(raw) {
@@ -923,10 +937,10 @@
 
   function _formatProfile(profile) {
     var birth = profile && profile.birth || {};
-    var birthHour = _num(birth.hour, NaN);
-    var birthMinute = _num(birth.minute, 0);
+    var birthHour = _profileNum(birth.hour, NaN);
+    var birthMinute = _profileNum(birth.minute, 0);
     var hasKnownTime = Number.isFinite(birthHour);
-    var birthDate = [String(_num(birth.year, 0)).padStart(4, '0'), String(_num(birth.month, 0)).padStart(2, '0'), String(_num(birth.day, 0)).padStart(2, '0')].join('-');
+    var birthDate = [String(_profileNum(birth.year, 0)).padStart(4, '0'), String(_profileNum(birth.month, 0)).padStart(2, '0'), String(_profileNum(birth.day, 0)).padStart(2, '0')].join('-');
     var birthTime = hasKnownTime ? [String(birthHour).padStart(2, '0'), String(birthMinute).padStart(2, '0')].join(':') : '';
     return {
       name: _clean(profile && profile.name) || '사용자',
@@ -949,8 +963,8 @@
     if (selected) return _normalizeGender(selected.value);
     var f = _qs('skPartnerGenderF');
     var m = _qs('skPartnerGenderM');
-    if (m && m.classList.contains('on')) return 'male';
-    if (f && f.classList.contains('on')) return 'female';
+    if (m && (m.classList.contains('on') || m.getAttribute('aria-pressed') === 'true')) return 'male';
+    if (f && (f.classList.contains('on') || f.getAttribute('aria-pressed') === 'true')) return 'female';
     return 'unknown';
   }
 
@@ -1157,6 +1171,7 @@
     var dryRun = preflight && preflight.dryRun ? preflight.dryRun : {};
     var verified = dryRun.selfStarReady && dryRun.partnerStarReady;
     var hasUnknownTime = !!(safeInput.self && safeInput.self.isTimeUnknown) || !!(safeInput.partner && safeInput.partner.isTimeUnknown);
+    var invalidMessage = _readinessInvalidMessage(safeCheck);
 
     if (selfEl) selfEl.textContent = _readinessPersonLine(safeInput.self, '나');
     if (partnerEl) partnerEl.textContent = _readinessPersonLine(safeInput.partner, '상대방');
@@ -1172,7 +1187,7 @@
         ? '두 사람의 달별 기준이 맞춰졌습니다. ' + _sukuyoCoinLabel() + ' 결제 뒤 PDF 문이 열립니다.'
         : safeCheck.ok
           ? '상대방의 달빛 정보가 준비되었습니다. 결제 전에 27숙 산출 문이 먼저 열립니다.'
-          : '상대방 생년월일과 성별을 먼저 채워 주세요.';
+          : invalidMessage;
       statusEl.classList.toggle('sk-inline-error', !safeCheck.ok);
     }
     if (noticeEl) {
@@ -1188,6 +1203,16 @@
     var normalizedInput = _normalizeCompatibilityInput(profile || {}, partner);
     var check = _validateBeforePayment(normalizedInput);
     _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
+  }
+
+  function _readinessInvalidMessage(check) {
+    var errors = check && Array.isArray(check.errors) ? check.errors : [];
+    var selfMissing = errors.indexOf('self.birthDate') >= 0 || errors.indexOf('self.gender') >= 0;
+    var partnerMissing = errors.indexOf('partner.birthDate') >= 0 || errors.indexOf('partner.gender') >= 0;
+    if (selfMissing && partnerMissing) return '나와 상대방의 생년월일과 성별을 확인해 주세요.';
+    if (selfMissing) return '저장된 프로필의 생년월일과 성별을 먼저 확인해 주세요.';
+    if (partnerMissing) return '상대방 생년월일과 성별을 먼저 채워 주세요.';
+    return '생년월일과 성별을 확인해 주세요.';
   }
 
   function _focusFirstInputError(fieldErrors) {
@@ -1258,7 +1283,14 @@
     var element = _qs('skProfileSummary');
     var manualForm = _qs('skSelfManualForm');
     var selfCard = document.querySelector('#sukuyoBookModal .sk-self-card');
+    var wrapper = document.querySelector('#sukuyoBookModal .sk-self-card-wrap');
     if (!element) return;
+    if (wrapper) {
+      wrapper.hidden = false;
+      wrapper.removeAttribute('hidden');
+      wrapper.setAttribute('aria-hidden', 'false');
+      wrapper.style.display = '';
+    }
     if (!profile) {
       element.textContent = '나의 정보를 직접 입력해 주세요.';
       if (manualForm) manualForm.style.display = '';
@@ -1270,9 +1302,9 @@
     if (manualForm) manualForm.style.display = '';
     if (selfCard) selfCard.style.display = 'none';
     var birth = profile.birth || {};
-    var hasKnownTime = Number.isFinite(_num(birth.hour, NaN));
+    var hasKnownTime = Number.isFinite(_profileNum(birth.hour, NaN));
     var time = hasKnownTime
-      ? [String(_num(birth.hour, 0)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':')
+      ? [String(_profileNum(birth.hour, 0)).padStart(2, '0'), String(_profileNum(birth.minute, 0)).padStart(2, '0')].join(':')
       : '시간 미상';
     var selfName = _qs('skSelfNameValue');
     var selfBirth = _qs('skSelfBirthValue');

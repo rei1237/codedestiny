@@ -4,11 +4,233 @@ import { callGeminiText } from "../lib/gemini.js";
 let dreamGeminiCaller = callGeminiText;
 
 function normalizeDreamText(payload) {
-  const text = String(payload?.dreamText || "").trim();
-  if (!text) return { ok: false, message: "꿈 내용을 입력해 주세요." };
-  if (text.length < 8) return { ok: false, message: "꿈 내용을 조금 더 자세히 작성해 주세요. (최소 8자)" };
-  if (text.length > 6000) return { ok: false, message: "꿈 내용이 너무 깁니다. 6000자 이하로 입력해 주세요." };
+  const text = String(payload?.dreamText || payload?.dreamContent || "").trim();
+  if (!text) return { ok: false, message: "꿈의 장면을 입력해 주세요." };
+  if (text.length < 8) return { ok: false, message: "꿈의 장면을 조금 더 자세히 적어 주세요. 최소 8자 이상이 필요합니다." };
+  if (text.length > 6000) return { ok: false, message: "꿈의 장면이 너무 깁니다. 6000자 이내로 적어 주세요." };
   return { ok: true, text };
+}
+
+const DREAM_TAROT_CARDS = [
+  { id: 0, name: "The Fool", nameKo: "바보", arcana: "major", keywords: ["시작", "자유", "도약"], dreamMeaning: "익숙한 경계 밖으로 나가려는 마음이 떠오릅니다. 두려움보다 가능성의 문이 먼저 열립니다.", uprightMeaning: "새 출발, 모험, 순수한 가능성", reversedMeaning: "충동, 준비 부족, 방향 상실" },
+  { id: 1, name: "The Magician", nameKo: "마법사", arcana: "major", keywords: ["의지", "창조", "실행"], dreamMeaning: "흩어진 재료를 하나의 의식으로 묶으려는 힘이 강하게 떠오릅니다. 마음속 도구가 깨어나는 징조입니다.", uprightMeaning: "능력 발현, 집중, 구현", reversedMeaning: "분산, 속임수, 잠재력 지연" },
+  { id: 2, name: "The High Priestess", nameKo: "여사제", arcana: "major", keywords: ["직감", "비밀", "무의식"], dreamMeaning: "겉으로 드러나지 않은 감정과 기억이 물밑에서 움직입니다. 침묵 속의 신호가 선명해지는 때입니다.", uprightMeaning: "직관, 내면의 지혜, 은밀한 진실", reversedMeaning: "억눌린 직감, 혼란, 닫힌 내면" },
+  { id: 3, name: "The Empress", nameKo: "여황제", arcana: "major", keywords: ["돌봄", "풍요", "감각"], dreamMeaning: "몸과 감정이 더 부드러운 안식처를 찾고 있습니다. 관계와 창조성의 온기가 흐릅니다.", uprightMeaning: "풍요, 양육, 창조적 성장", reversedMeaning: "과잉보호, 결핍감, 돌봄의 고갈" },
+  { id: 4, name: "The Emperor", nameKo: "황제", arcana: "major", keywords: ["질서", "통제", "책임"], dreamMeaning: "흔들리는 상황을 붙들고 싶은 의지가 드러납니다. 경계와 구조를 다시 세우려는 마음입니다.", uprightMeaning: "안정, 권위, 책임 있는 결정", reversedMeaning: "경직, 통제 불안, 권위와의 긴장" },
+  { id: 5, name: "The Hierophant", nameKo: "교황", arcana: "major", keywords: ["규범", "가르침", "의식"], dreamMeaning: "오래된 믿음과 사회적 약속이 꿈의 배경에 머무릅니다. 배운 것과 진짜 마음 사이의 문턱이 비칩니다.", uprightMeaning: "전통, 조언, 제도적 지혜", reversedMeaning: "관습 저항, 내면의 신념 재정립" },
+  { id: 6, name: "The Lovers", nameKo: "연인", arcana: "major", keywords: ["선택", "결합", "관계"], dreamMeaning: "누군가와의 연결, 혹은 자기 안의 두 갈래 마음이 서로를 부릅니다. 중요한 선택의 온도가 흐릅니다.", uprightMeaning: "사랑, 조화, 가치 선택", reversedMeaning: "불일치, 망설임, 관계의 균열" },
+  { id: 7, name: "The Chariot", nameKo: "전차", arcana: "major", keywords: ["전진", "의지", "방향"], dreamMeaning: "움직이고 돌파하려는 힘이 강합니다. 속도와 통제 사이의 균형이 꿈속에서 시험받습니다.", uprightMeaning: "승리, 추진력, 자기 통제", reversedMeaning: "폭주, 지연, 방향 혼선" },
+  { id: 8, name: "Strength", nameKo: "힘", arcana: "major", keywords: ["용기", "절제", "내면"], dreamMeaning: "거친 감정과 본능을 부드럽게 다루려는 힘이 떠오릅니다. 억누름보다 다정한 통제가 필요합니다.", uprightMeaning: "용기, 인내, 따뜻한 통제", reversedMeaning: "위축, 분노, 자신감 저하" },
+  { id: 9, name: "The Hermit", nameKo: "은둔자", arcana: "major", keywords: ["탐색", "고독", "성찰"], dreamMeaning: "혼자만의 길에서 답을 찾으려는 마음이 비칩니다. 외부보다 내면의 등불이 가까워집니다.", uprightMeaning: "내면 탐구, 신중함, 지혜", reversedMeaning: "고립, 회피, 닫힌 사유" },
+  { id: 10, name: "Wheel of Fortune", nameKo: "운명의 수레바퀴", arcana: "major", keywords: ["전환", "흐름", "반복"], dreamMeaning: "반복되던 흐름이 다른 국면으로 돌아서려 합니다. 우연처럼 보이는 변화가 문턱에 머무릅니다.", uprightMeaning: "변화, 기회, 순환의 전환", reversedMeaning: "정체, 반복, 흐름 저항" },
+  { id: 11, name: "Justice", nameKo: "정의", arcana: "major", keywords: ["균형", "판단", "책임"], dreamMeaning: "마음이 어떤 선택의 무게를 재고 있습니다. 공정함과 죄책감의 저울이 꿈속에 놓입니다.", uprightMeaning: "균형, 진실, 책임 있는 판단", reversedMeaning: "불균형, 회피, 억울함" },
+  { id: 12, name: "The Hanged Man", nameKo: "매달린 사람", arcana: "major", keywords: ["정지", "희생", "관점"], dreamMeaning: "멈춤 속에서 다른 시야가 열립니다. 당장 움직이기보다 거꾸로 바라볼 시간이 다가옵니다.", uprightMeaning: "관점 전환, 수용, 기다림", reversedMeaning: "무기력, 지연, 억지 희생" },
+  { id: 13, name: "Death", nameKo: "죽음", arcana: "major", keywords: ["종결", "변화", "탈피"], dreamMeaning: "끝난 것을 놓고 새 껍질로 건너가려는 흐름입니다. 상실보다 변형의 기운이 깊습니다.", uprightMeaning: "종료, 전환, 재생", reversedMeaning: "미련, 변화 거부, 오래된 집착" },
+  { id: 14, name: "Temperance", nameKo: "절제", arcana: "major", keywords: ["조율", "회복", "균형"], dreamMeaning: "서로 다른 감정의 물줄기가 한 그릇 안에서 섞입니다. 치유와 조절의 리듬이 흐릅니다.", uprightMeaning: "조화, 절제, 회복", reversedMeaning: "과잉, 불균형, 조급함" },
+  { id: 15, name: "The Devil", nameKo: "악마", arcana: "major", keywords: ["집착", "욕망", "속박"], dreamMeaning: "끊기 어려운 유혹이나 두려움이 그림자처럼 붙어 있습니다. 묶인 곳을 알아차리는 꿈입니다.", uprightMeaning: "집착, 욕망, 얽매임", reversedMeaning: "해방의 시작, 속박 인식, 유혹에서 벗어남" },
+  { id: 16, name: "The Tower", nameKo: "탑", arcana: "major", keywords: ["붕괴", "충격", "각성"], dreamMeaning: "붙들고 있던 구조가 흔들리며 숨은 진실이 드러납니다. 추락과 폭발은 갑작스러운 각성을 가리킵니다.", uprightMeaning: "급변, 붕괴, 깨달음", reversedMeaning: "변화 지연, 내부 균열, 충격 회피" },
+  { id: 17, name: "The Star", nameKo: "별", arcana: "major", keywords: ["희망", "회복", "영감"], dreamMeaning: "어두운 장면 속에서도 회복의 빛이 남아 있습니다. 소망과 미래의 감각이 조용히 비칩니다.", uprightMeaning: "희망, 치유, 영감", reversedMeaning: "낙담, 믿음 약화, 회복 지연" },
+  { id: 18, name: "The Moon", nameKo: "달", arcana: "major", keywords: ["무의식", "환상", "불안"], dreamMeaning: "모호한 감정과 상징이 깊은 밤의 물결처럼 출렁입니다. 불안은 숨은 직감의 문을 두드립니다.", uprightMeaning: "무의식, 꿈, 직관, 불확실성", reversedMeaning: "혼란의 해소, 두려움 직면, 진실의 윤곽" },
+  { id: 19, name: "The Sun", nameKo: "태양", arcana: "major", keywords: ["명료함", "활력", "기쁨"], dreamMeaning: "어둠 뒤에 밝아지는 이해가 떠오릅니다. 몸과 마음이 더 단순한 진실을 향합니다.", uprightMeaning: "기쁨, 성공, 명료함", reversedMeaning: "활력 저하, 과한 낙관, 흐린 확신" },
+  { id: 20, name: "Judgement", nameKo: "심판", arcana: "major", keywords: ["각성", "부름", "재평가"], dreamMeaning: "과거의 장면이 다시 떠올라 새로운 응답을 요구합니다. 오래 미뤄둔 부름이 선명해집니다.", uprightMeaning: "각성, 소명, 재탄생", reversedMeaning: "자기비판, 회피, 부름을 미룸" },
+  { id: 21, name: "The World", nameKo: "세계", arcana: "major", keywords: ["완성", "통합", "순환"], dreamMeaning: "흩어진 경험이 하나의 원으로 묶이려 합니다. 마침과 시작이 같은 문에서 만납니다.", uprightMeaning: "완성, 성취, 통합", reversedMeaning: "미완성, 지연, 마무리 부족" },
+];
+
+const DREAM_THEME_RULES = [
+  { pattern: /(떨어|추락|낙하|무너|붕괴|폭발|지진)/i, cards: [16, 18, 12], themes: ["추락", "통제 상실", "각성"] },
+  { pattern: /(날|비행|하늘|구름|새|공중)/i, cards: [0, 17, 19], themes: ["자유", "도약", "가능성"] },
+  { pattern: /(물|바다|강|호수|비|홍수|파도|잠수)/i, cards: [18, 14, 2], themes: ["감정", "무의식", "정화"] },
+  { pattern: /(쫓|도망|괴물|귀신|공포|위협|숨)/i, cards: [15, 18, 7], themes: ["두려움", "그림자", "회피"] },
+  { pattern: /(죽|장례|무덤|끝|헤어|이별|사라)/i, cards: [13, 20, 10], themes: ["종결", "변형", "재탄생"] },
+  { pattern: /(집|방|문|계단|학교|회사|사무실|건물)/i, cards: [4, 5, 9], themes: ["구조", "역할", "내면의 방"] },
+  { pattern: /(가족|엄마|아빠|아이|아기|연인|친구|결혼)/i, cards: [6, 3, 11], themes: ["관계", "애착", "선택"] },
+  { pattern: /(시험|지각|실패|점수|판단|혼남)/i, cards: [11, 5, 9], themes: ["평가", "책임", "불안"] },
+  { pattern: /(차|기차|버스|길|여행|운전|역|공항)/i, cards: [7, 10, 0], themes: ["이동", "전환", "진로"] },
+  { pattern: /(동물|개|고양이|뱀|사자|말|새)/i, cards: [8, 18, 15], themes: ["본능", "감각", "그림자"] },
+  { pattern: /(거울|얼굴|알몸|몸|피부|머리|눈)/i, cards: [2, 11, 18], themes: ["자기상", "비밀", "민감함"] },
+  { pattern: /(불|화재|태양|빛|번개|뜨거)/i, cards: [19, 16, 1], themes: ["열망", "폭로", "활력"] },
+];
+
+function clampDreamCardCount(value) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return 3;
+  return Math.max(1, Math.min(5, parsed));
+}
+
+function compactDreamText(text, limit = 260) {
+  const compact = String(text || "").replace(/\s+/g, " ").trim();
+  return compact.length > limit ? `${compact.slice(0, limit - 1)}…` : compact;
+}
+
+function uniqueList(items, limit = 8) {
+  const seen = new Set();
+  const out = [];
+  for (const item of items || []) {
+    const value = String(item || "").trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function seededIndex(text, offset, modulo) {
+  let hash = 17 + offset * 31;
+  const source = String(text || "");
+  for (let i = 0; i < source.length; i += 1) {
+    hash = (hash * 33 + source.charCodeAt(i) + offset) >>> 0;
+  }
+  return modulo > 0 ? hash % modulo : 0;
+}
+
+function inferDreamThemes(dreamText) {
+  const themes = [];
+  for (const rule of DREAM_THEME_RULES) {
+    if (rule.pattern.test(dreamText)) themes.push(...rule.themes);
+  }
+  return uniqueList(themes.length ? themes : ["무의식", "감정의 잔향", "내면의 전환"], 5);
+}
+
+function chooseFallbackDreamCards(dreamText, requestedCount = 3) {
+  const cardCount = clampDreamCardCount(requestedCount);
+  const scores = new Map(DREAM_TAROT_CARDS.map((card) => [card.id, 0]));
+  const themes = [];
+
+  for (const rule of DREAM_THEME_RULES) {
+    if (!rule.pattern.test(dreamText)) continue;
+    themes.push(...rule.themes);
+    rule.cards.forEach((id, idx) => scores.set(id, (scores.get(id) || 0) + 12 - idx * 2));
+  }
+
+  if (/(불안|무서|두려|긴장|혼란|이상)/i.test(dreamText)) scores.set(18, (scores.get(18) || 0) + 8);
+  if (/(기쁨|편안|따뜻|행복|웃)/i.test(dreamText)) scores.set(19, (scores.get(19) || 0) + 8);
+  if (/(선택|갈림|고민|결정)/i.test(dreamText)) scores.set(6, (scores.get(6) || 0) + 8);
+  if (/(반복|계속|또|다시)/i.test(dreamText)) scores.set(10, (scores.get(10) || 0) + 8);
+
+  const ranked = DREAM_TAROT_CARDS
+    .map((card) => ({ id: card.id, score: scores.get(card.id) || 0 }))
+    .sort((a, b) => b.score - a.score || a.id - b.id)
+    .map((entry) => entry.id);
+
+  const selected = [];
+  for (const id of ranked) {
+    if ((scores.get(id) || 0) <= 0) break;
+    selected.push(id);
+    if (selected.length >= cardCount) break;
+  }
+
+  const fallbackIds = [18, 2, 16, 17, 10, 13, 6, 7, 14, 21, 0, 11];
+  let offset = 0;
+  while (selected.length < cardCount) {
+    const id = fallbackIds[seededIndex(dreamText, offset, fallbackIds.length)];
+    if (!selected.includes(id)) selected.push(id);
+    offset += 1;
+  }
+
+  const selectedCardIds = selected.slice(0, cardCount);
+  return {
+    cardCount,
+    selectedCardIds,
+    dreamThemes: uniqueList(themes.length ? themes : inferDreamThemes(dreamText), 5),
+    analysisNote: buildDreamAnalysisNote(dreamText, selectedCardIds),
+    cards: selectedCardIds.map((id) => DREAM_TAROT_CARDS.find((card) => card.id === id)).filter(Boolean),
+  };
+}
+
+function buildDreamAnalysisNote(dreamText, selectedCardIds) {
+  const names = selectedCardIds
+    .map((id) => DREAM_TAROT_CARDS.find((card) => card.id === id)?.nameKo)
+    .filter(Boolean)
+    .join(", ");
+  if (/(떨어|추락|무너)/i.test(dreamText)) return `${names}의 조합은 흔들리는 통제감과 새롭게 열리는 각성의 문을 가리킵니다.`;
+  if (/(물|바다|비|강|파도)/i.test(dreamText)) return `${names}의 조합은 깊은 감정의 물결과 무의식의 응답을 비춥니다.`;
+  if (/(쫓|도망|공포|괴물)/i.test(dreamText)) return `${names}의 조합은 피하고 싶은 그림자와 마주할 힘을 가리킵니다.`;
+  return `${names}의 조합은 꿈속 상징이 남긴 정서와 전환의 흐름을 비춥니다.`;
+}
+
+function normalizeDreamPromptCards(cards) {
+  if (!Array.isArray(cards)) return [];
+  return cards.slice(0, 5).map((entry, idx) => {
+    const id = Number.parseInt(entry?.id, 10);
+    const base = DREAM_TAROT_CARDS.find((card) => card.id === id)
+      || DREAM_TAROT_CARDS.find((card) => card.nameKo === entry?.nameKo)
+      || DREAM_TAROT_CARDS[idx % DREAM_TAROT_CARDS.length];
+    return {
+      id: base.id,
+      name: base.name,
+      nameKo: String(entry?.nameKo || base.nameKo).trim(),
+      isReversed: Boolean(entry?.isReversed || entry?.reversed || entry?.orientation === "reversed"),
+      keywords: uniqueList(Array.isArray(entry?.keywords) && entry.keywords.length ? entry.keywords : base.keywords, 4),
+      dreamMeaning: String(entry?.dreamMeaning || base.dreamMeaning).trim(),
+      uprightMeaning: base.uprightMeaning,
+      reversedMeaning: base.reversedMeaning,
+    };
+  });
+}
+
+function buildDreamPromptFallback({ dreamText, dreamThemes, cards }) {
+  const compact = compactDreamText(dreamText, 260);
+  const themeLine = uniqueList(dreamThemes, 5).join(", ") || "무의식, 감정의 잔향";
+  const cardLine = cards.map((card) => {
+    const orientation = card.isReversed ? "역방향" : "정방향";
+    const keywords = uniqueList(card.keywords, 3).join(", ");
+    return `${card.nameKo}(${orientation}: ${keywords})`;
+  }).join(" / ");
+
+  return [
+    `다음 꿈을 타로와 꿈 심리학의 관점으로 깊이 해석해 주세요. 꿈의 원문은 "${compact}"입니다.`,
+    `중심 주제는 ${themeLine}이며, 뽑힌 카드는 ${cardLine}입니다.`,
+    "각 카드가 꿈의 장면, 감정, 인물, 장소와 어떻게 맞물리는지 살피고, 정방향과 역방향의 결을 구분해 주세요.",
+    "융의 무의식, 그림자, 상징 원형의 관점을 자연스럽게 엮어 현재 내면에서 강하게 떠오르는 메시지를 짚어 주세요.",
+    "마지막에는 제가 오늘 붙들어야 할 한 문장, 현실에서 실천할 작은 의식, 그리고 스스로에게 던질 질문 3가지를 남겨 주세요.",
+  ].join(" ");
+}
+
+async function handleDreamTarotSelection(request) {
+  const body = await readJson(request);
+  const normalized = normalizeDreamText(body);
+  if (!normalized.ok) {
+    return json({ ok: false, message: normalized.message }, { status: 400 });
+  }
+
+  const selection = chooseFallbackDreamCards(normalized.text, body?.cardCount || body?.count || 3);
+  return json({
+    ok: true,
+    cached: false,
+    ...selection,
+    source: "local",
+    model: "local-symbol-matcher",
+    message: "ok",
+  });
+}
+
+async function handleDreamPrompt(request) {
+  const body = await readJson(request);
+  const normalized = normalizeDreamText(body);
+  if (!normalized.ok) {
+    return json({ ok: false, message: normalized.message }, { status: 400 });
+  }
+
+  let cards = normalizeDreamPromptCards(body?.cards);
+  if (!cards.length) {
+    cards = chooseFallbackDreamCards(normalized.text, body?.cardCount || 3).cards.map((card) => ({
+      ...card,
+      isReversed: false,
+    }));
+  }
+  const dreamThemes = uniqueList(body?.dreamThemes || inferDreamThemes(normalized.text), 5);
+  const dreamPrompt = buildDreamPromptFallback({ dreamText: normalized.text, dreamThemes, cards });
+
+  return json({
+    ok: true,
+    cached: false,
+    dreamPrompt,
+    promptText: dreamPrompt,
+    source: "local",
+    model: "local-prompt-weaver",
+    message: "ok",
+  });
 }
 
 function pickGeminiKeys(env) {
@@ -497,6 +719,12 @@ export async function handleDreamRoutes(request, env) {
     const path = getRoutePath(request, "/api/dream");
     if (path === "/psycho-analysis") {
       return await handlePsychoAnalysis(request, env);
+    }
+    if (path === "/dream-tarot") {
+      return await handleDreamTarotSelection(request);
+    }
+    if (path === "/dream-prompt") {
+      return await handleDreamPrompt(request);
     }
     if (path === "/prompt-maker") {
       return await handleDreamPromptMaker(request);
