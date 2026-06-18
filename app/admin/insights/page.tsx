@@ -63,6 +63,8 @@ type PromptLabService = "saju" | "tarot" | "sukuyo" | "astrology" | "ziwei" | "v
 type PromptLabDomain = "general" | "love" | "compatibility" | "career" | "money" | "health" | "life_direction" | "personality";
 type PromptLabTimeCorrectionPolicy = "auto" | "clock" | "local_mean" | "true_solar";
 type PromptLabDayChangePolicy = "auto" | "midnight" | "late_zi_next_day" | "true_solar_zi_next_day";
+type PromptLabEarthStorageMode = "conservative" | "standard" | "active";
+type PromptLabEarthStorageScope = "natal" | "natal_daewoon" | "natal_sewoon" | "natal_daewoon_sewoon" | "all";
 
 type PromptLabForm = {
   service: PromptLabService;
@@ -78,6 +80,9 @@ type PromptLabForm = {
   timezone: string;
   timeCorrectionPolicy: PromptLabTimeCorrectionPolicy;
   dayChangePolicy: PromptLabDayChangePolicy;
+  earthStorageOpeningEnabled: boolean;
+  earthStorageOpeningMode: PromptLabEarthStorageMode;
+  earthStorageOpeningScope: PromptLabEarthStorageScope;
   question: string;
 };
 
@@ -95,6 +100,49 @@ type PromptLabResult = {
   recommendedFollowUpQuestions?: string[];
   adminFreeExecution?: boolean;
   generatedAt?: string;
+  engineContextSummary?: {
+    marker?: string;
+    sourceLayers?: string[];
+    hiddenStemCount?: number;
+    hiddenStemExposureCount?: number;
+    touganCount?: number;
+    tuchulCount?: number;
+    earthStorageOpeningCount?: number;
+    earthStorageOpenings?: Array<{
+      sourceBranch?: string;
+      triggerBranch?: string;
+      relationType?: string;
+      openingStrength?: string;
+      timingLabel?: string;
+    }>;
+    promptConfig?: {
+      earthStorageOpening?: {
+        enabled?: boolean;
+        mode?: string;
+        scope?: string;
+      };
+    };
+    doChung?: {
+      exists?: boolean;
+      repeatedBranch?: string;
+      repeatedCount?: number;
+      inducedOppositeBranch?: string;
+      strength?: string;
+      summaryForPrompt?: string;
+    };
+  } | null;
+  advancedFactors?: {
+    hiddenStems?: unknown[];
+    hiddenStemExposures?: unknown[];
+    doChung?: {
+      exists?: boolean;
+      repeatedBranch?: string;
+      repeatedCount?: number;
+      inducedOppositeBranch?: string;
+      strength?: string;
+      summaryForPrompt?: string;
+    };
+  } | null;
 };
 
 const PROMPT_LAB_SERVICES: Array<{ key: PromptLabService; label: string }> = [
@@ -131,8 +179,20 @@ const DEFAULT_PROMPT_LAB_FORM: PromptLabForm = {
   timezone: "Asia/Seoul",
   timeCorrectionPolicy: "auto",
   dayChangePolicy: "auto",
+  earthStorageOpeningEnabled: true,
+  earthStorageOpeningMode: "standard",
+  earthStorageOpeningScope: "natal_daewoon_sewoon",
   question: "올해 제 운의 흐름에서 가장 강하게 열리는 문과 조심해야 할 기운은 무엇인가요?",
 };
+
+const SAJU_PROMPT_ADVANCED_RULES = [
+  "월지 지장간을 가장 무겁게 잡고 일지 지장간은 관계와 내면 반응에 연결",
+  "모든 지장간은 일간 기준 십성으로 변환",
+  "원국 천간에 드러난 지장간은 투간으로 분리",
+  "대운·세운 천간에 드러난 지장간은 투출로 분리",
+  "도충은 같은 지지 3개 이상 중첩과 반대 충 유도 구조로만 반영",
+  "辰·戌·丑·未 토 지지는 형충해파 자극 시 개고로 열린 지장간까지 반영",
+];
 
 const PROMPT_LAB_SERVICE_REQUIREMENTS: Record<PromptLabService, {
   needsCoordinates: boolean;
@@ -190,6 +250,20 @@ const PROMPT_LAB_DAY_CHANGE_OPTIONS: Array<{ key: PromptLabDayChangePolicy; labe
   { key: "midnight", label: "자정 기준" },
   { key: "late_zi_next_day", label: "야자시 다음날" },
   { key: "true_solar_zi_next_day", label: "진태양시 야자시" },
+];
+
+const PROMPT_LAB_EARTH_STORAGE_MODE_OPTIONS: Array<{ key: PromptLabEarthStorageMode; label: string }> = [
+  { key: "conservative", label: "보수적" },
+  { key: "standard", label: "표준" },
+  { key: "active", label: "적극적" },
+];
+
+const PROMPT_LAB_EARTH_STORAGE_SCOPE_OPTIONS: Array<{ key: PromptLabEarthStorageScope; label: string }> = [
+  { key: "natal", label: "원국 내부 형충해파" },
+  { key: "natal_daewoon", label: "원국 + 대운" },
+  { key: "natal_sewoon", label: "원국 + 세운" },
+  { key: "natal_daewoon_sewoon", label: "원국 + 대운 + 세운" },
+  { key: "all", label: "월운/일진까지 포함" },
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -772,6 +846,54 @@ export default function AdminInsightsPage() {
                 {promptLabRequirement.needsCoordinates ? " 위도·경도 필요." : " 위도·경도 선택."}
                 {promptLabRequirement.needsExactTime ? " 정확한 생시 필요." : " 생시 미상 허용."}
               </p>
+              {promptLabForm.service === "saju" ? (
+                <div className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-amber-100">사주 질문 고급 규칙</p>
+                    <label className="inline-flex items-center gap-2 text-xs text-amber-100/75">
+                      <input
+                        type="checkbox"
+                        checked={promptLabForm.earthStorageOpeningEnabled}
+                        onChange={(e) => updatePromptLabField("earthStorageOpeningEnabled", e.target.checked)}
+                        className="h-4 w-4 rounded border-amber-800 bg-[#201811]"
+                      />
+                      토 지지 개고
+                    </label>
+                  </div>
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="block text-xs text-amber-100/70">
+                      개고 해석 강도
+                      <select
+                        value={promptLabForm.earthStorageOpeningMode}
+                        onChange={(e) => updatePromptLabField("earthStorageOpeningMode", e.target.value as PromptLabEarthStorageMode)}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                      >
+                        {PROMPT_LAB_EARTH_STORAGE_MODE_OPTIONS.map((option) => (
+                          <option key={option.key} value={option.key}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block text-xs text-amber-100/70">
+                      개고 적용 범위
+                      <select
+                        value={promptLabForm.earthStorageOpeningScope}
+                        onChange={(e) => updatePromptLabField("earthStorageOpeningScope", e.target.value as PromptLabEarthStorageScope)}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                      >
+                        {PROMPT_LAB_EARTH_STORAGE_SCOPE_OPTIONS.map((option) => (
+                          <option key={option.key} value={option.key}>{option.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-2 grid gap-1 text-xs leading-5 text-amber-100/75">
+                    {SAJU_PROMPT_ADVANCED_RULES.map((item) => (
+                      <span key={item}>{item}</span>
+                    ))}
+                    <span>관계별 개고 강도: 충 매우 강함 · 형 강함 · 파 중간 · 해 약함</span>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <label className="block text-xs text-amber-100/70">
@@ -925,6 +1047,34 @@ export default function AdminInsightsPage() {
                   <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">질문 성격<br /><span className="text-sm font-semibold text-amber-50">{promptLabResult.domainLabel || promptLabResult.domain || "-"}</span></p>
                   <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">참조 축<br /><span className="text-sm font-semibold text-amber-50">{promptLabResult.analysisAngles?.length || 0}</span></p>
                   <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">결제<br /><span className="text-sm font-semibold text-emerald-300">{promptLabResult.adminFreeExecution ? "없음" : "-"}</span></p>
+                </div>
+              ) : null}
+              {promptLabResult?.service === "saju" && promptLabResult.engineContextSummary ? (
+                <div className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2">
+                  <p className="text-xs font-semibold text-amber-100">사주 계산 근거 미리보기</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-amber-100/75 md:grid-cols-4">
+                    <span>지장간 {promptLabResult.engineContextSummary.hiddenStemCount || 0}</span>
+                    <span>투간 {promptLabResult.engineContextSummary.touganCount || 0}</span>
+                    <span>투출 {promptLabResult.engineContextSummary.tuchulCount || 0}</span>
+                    <span>개고 {promptLabResult.engineContextSummary.earthStorageOpeningCount || 0}</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-amber-100/75 md:grid-cols-4">
+                    <span>도충 {promptLabResult.engineContextSummary.doChung?.exists ? "있음" : "없음"}</span>
+                    <span>개고 범위 {promptLabResult.engineContextSummary.promptConfig?.earthStorageOpening?.scope || "-"}</span>
+                    <span>개고 강도 {promptLabResult.engineContextSummary.promptConfig?.earthStorageOpening?.mode || "-"}</span>
+                    <span>개고 반영 {promptLabResult.engineContextSummary.promptConfig?.earthStorageOpening?.enabled === false ? "OFF" : "ON"}</span>
+                  </div>
+                  {promptLabResult.engineContextSummary.doChung?.exists ? (
+                    <p className="mt-2 text-xs leading-5 text-amber-100/70">
+                      {promptLabResult.engineContextSummary.doChung.repeatedBranch || "-"} {promptLabResult.engineContextSummary.doChung.repeatedCount || "-"}회 중첩 → {promptLabResult.engineContextSummary.doChung.inducedOppositeBranch || "-"} / {promptLabResult.engineContextSummary.doChung.strength || "-"}
+                    </p>
+                  ) : null}
+                  {promptLabResult.engineContextSummary.earthStorageOpenings?.length ? (
+                    <p className="mt-2 text-xs leading-5 text-amber-100/70">
+                      {promptLabResult.engineContextSummary.earthStorageOpenings.slice(0, 2).map((row) => `${row.sourceBranch || "-"}-${row.triggerBranch || "-"} ${row.relationType || "-"} ${row.openingStrength || "-"}`).join(" · ")}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-[11px] text-amber-100/50">{promptLabResult.engineContextSummary.marker || ""}</p>
                 </div>
               ) : null}
               <textarea

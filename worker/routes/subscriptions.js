@@ -14,6 +14,10 @@ function normalizeText(value, maxLength = 80) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function normalizeSnapshotKey(key) {
+  return normalizeText(key, 60).replace(/[$.]/g, "_");
+}
+
 function normalizeBirthDate(value) {
   const text = normalizeText(value, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
@@ -39,7 +43,7 @@ function sanitizeSnapshotValue(value, depth = 0) {
   if (typeof value === "object") {
     const out = {};
     for (const [key, item] of Object.entries(value).slice(0, 60)) {
-      const safeKey = normalizeText(key, 60);
+      const safeKey = normalizeSnapshotKey(key);
       if (!safeKey) continue;
       const safeValue = sanitizeSnapshotValue(item, depth + 1);
       if (safeValue != null) out[safeKey] = safeValue;
@@ -105,15 +109,22 @@ async function handleDailyFortunePost(request, env) {
       updateFields.birthYear = birthYear;
     }
 
-    const saved = await DailyFortuneSubscription.findOneAndUpdate(
+    let saved = await DailyFortuneSubscription.findOneAndUpdate(
       { email },
       { $set: updateFields },
       {
         upsert: true,
+        new: true,
         returnDocument: "after",
         setDefaultsOnInsert: true,
       }
     ).lean();
+    if (!saved) {
+      saved = await DailyFortuneSubscription.findOne({ email }).lean();
+    }
+    if (!saved) {
+      throw new Error("subscription_save_failed");
+    }
 
     let firstMailSent = false;
     let mailErrorCode = "";
@@ -123,10 +134,16 @@ async function handleDailyFortunePost(request, env) {
     } catch (err) {
       console.error("[SUBSCRIPTION] Immediate fortune failed:", err);
       mailErrorCode = normalizeText(err?.message || "first_mail_failed", 120);
-      await DailyFortuneSubscription.updateOne(
-        { _id: saved._id },
-        { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
-      );
+      if (saved._id) {
+        try {
+          await DailyFortuneSubscription.updateOne(
+            { _id: saved._id },
+            { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
+          );
+        } catch (recordError) {
+          console.error("[SUBSCRIPTION] Failed to record immediate fortune error:", recordError);
+        }
+      }
     }
 
     return json({

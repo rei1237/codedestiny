@@ -60,11 +60,100 @@ const SAJU_MONEY_ANGLES = Object.freeze([
 const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
   "외부 AI에게 그대로 물어볼 수 있도록 역할·원국 근거·질문 의도·답변 형식을 한 번에 묶기",
   "최고 수준의 명리학자 관점에서 일간·월령·조후·격국·용신·십성·합충형파해·대운·세운을 우선순위화",
+  "월지·일지 지장간과 일간 기준 십성을 질문 주제의 숨은 작동점으로 반영",
+  "원국 천간 투간과 대운·세운 투출을 구분해 성향과 시기 사건성을 나누기",
+  "도충 exists=true일 때 반복 지지와 유도되는 반대 충 지지를 질문 주제에 맞춰 절제해서 반영",
+  "辰·戌·丑·未 토 지지가 형충해파로 열리는 개고는 열린 지장간과 시기성을 분리해 반영",
+  "투간·투출·도충·개고를 서로 섞지 않고 각각의 작동 원리로 상담 흐름을 세우기",
   "확정 근거와 추정 영역을 나누어 단정 대신 확인 질문과 선택지로 돌리기",
   "AI 답변이 사주 전용 상담 흐름으로 열리도록 금지할 단정과 원하는 답변 구조를 분명히 남기기",
 ]);
 
 const SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER = "saju-ai-question-prompt-context-v20260617";
+
+const SAJU_STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
+const SAJU_BRANCHES = Object.freeze(["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]);
+const STEM_KO = Object.freeze({ 甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계" });
+const BRANCH_KO = Object.freeze({ 子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해" });
+const KO_TO_STEM = Object.freeze(Object.fromEntries(Object.entries(STEM_KO).map(([stem, ko]) => [ko, stem])));
+const KO_TO_BRANCH = Object.freeze(Object.fromEntries(Object.entries(BRANCH_KO).map(([branch, ko]) => [ko, branch])));
+const STEM_ELEMENT_KEY = Object.freeze({
+  甲: "wood",
+  乙: "wood",
+  丙: "fire",
+  丁: "fire",
+  戊: "earth",
+  己: "earth",
+  庚: "metal",
+  辛: "metal",
+  壬: "water",
+  癸: "water",
+});
+const STEM_POLARITY = Object.freeze({ 甲: "yang", 乙: "yin", 丙: "yang", 丁: "yin", 戊: "yang", 己: "yin", 庚: "yang", 辛: "yin", 壬: "yang", 癸: "yin" });
+const ELEMENT_KO_BY_KEY = Object.freeze({ wood: "목", fire: "화", earth: "토", metal: "금", water: "수" });
+const ELEMENT_KEY_BY_KO = Object.freeze({ 목: "wood", 화: "fire", 토: "earth", 금: "metal", 수: "water" });
+const ELEMENT_GENERATES = Object.freeze({ wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" });
+const ELEMENT_CONTROLS = Object.freeze({ wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" });
+const PILLAR_POSITION_LABELS = Object.freeze({ year: "년지", month: "월지", day: "일지", hour: "시지" });
+const STEM_POSITION_LABELS = Object.freeze({ year: "년간", month: "월간", day: "일간", hour: "시간" });
+const QUESTION_TEN_GOD_FOCUS = Object.freeze({
+  money: ["정재", "편재", "식신", "상관"],
+  career: ["정관", "편관", "정인", "편인", "식신", "상관"],
+  love: ["정관", "편관", "정재", "편재", "비견", "겁재"],
+  relationship: ["비견", "겁재", "식신", "상관", "정관", "편관"],
+  health: ["정인", "편인", "식신", "상관"],
+  life_direction: ["정관", "편관", "정인", "편인", "식신", "상관", "정재", "편재"],
+  general: [],
+});
+const HIDDEN_STEMS_BY_BRANCH = Object.freeze({
+  子: Object.freeze([{ stem: "癸", layer: "정기", weight: 100 }]),
+  丑: Object.freeze([{ stem: "己", layer: "정기", weight: 60 }, { stem: "癸", layer: "중기", weight: 30 }, { stem: "辛", layer: "여기", weight: 10 }]),
+  寅: Object.freeze([{ stem: "甲", layer: "정기", weight: 60 }, { stem: "丙", layer: "중기", weight: 30 }, { stem: "戊", layer: "여기", weight: 10 }]),
+  卯: Object.freeze([{ stem: "乙", layer: "정기", weight: 100 }]),
+  辰: Object.freeze([{ stem: "戊", layer: "정기", weight: 60 }, { stem: "乙", layer: "중기", weight: 30 }, { stem: "癸", layer: "여기", weight: 10 }]),
+  巳: Object.freeze([{ stem: "丙", layer: "정기", weight: 60 }, { stem: "戊", layer: "중기", weight: 30 }, { stem: "庚", layer: "여기", weight: 10 }]),
+  午: Object.freeze([{ stem: "丁", layer: "정기", weight: 70 }, { stem: "己", layer: "중기", weight: 30 }]),
+  未: Object.freeze([{ stem: "己", layer: "정기", weight: 60 }, { stem: "丁", layer: "중기", weight: 30 }, { stem: "乙", layer: "여기", weight: 10 }]),
+  申: Object.freeze([{ stem: "庚", layer: "정기", weight: 60 }, { stem: "壬", layer: "중기", weight: 30 }, { stem: "戊", layer: "여기", weight: 10 }]),
+  酉: Object.freeze([{ stem: "辛", layer: "정기", weight: 100 }]),
+  戌: Object.freeze([{ stem: "戊", layer: "정기", weight: 60 }, { stem: "辛", layer: "중기", weight: 30 }, { stem: "丁", layer: "여기", weight: 10 }]),
+  亥: Object.freeze([{ stem: "壬", layer: "정기", weight: 70 }, { stem: "甲", layer: "중기", weight: 30 }]),
+});
+const CHUNG_PAIRS = Object.freeze({
+  子: "午",
+  午: "子",
+  丑: "未",
+  未: "丑",
+  寅: "申",
+  申: "寅",
+  卯: "酉",
+  酉: "卯",
+  辰: "戌",
+  戌: "辰",
+  巳: "亥",
+  亥: "巳",
+});
+const EARTH_STORAGE_BRANCHES = Object.freeze(["辰", "戌", "丑", "未"]);
+const EARTH_STORAGE_INFO = Object.freeze({
+  辰: Object.freeze({ korean: "진", storageType: "水庫", storageElement: "water", hiddenStems: Object.freeze(["戊", "乙", "癸"]) }),
+  戌: Object.freeze({ korean: "술", storageType: "火庫", storageElement: "fire", hiddenStems: Object.freeze(["戊", "辛", "丁"]) }),
+  丑: Object.freeze({ korean: "축", storageType: "金庫", storageElement: "metal", hiddenStems: Object.freeze(["己", "癸", "辛"]) }),
+  未: Object.freeze({ korean: "미", storageType: "木庫", storageElement: "wood", hiddenStems: Object.freeze(["己", "丁", "乙"]) }),
+});
+const EARTH_STORAGE_OPENING_STRENGTH = Object.freeze({ 충: "veryStrong", 형: "strong", 파: "medium", 해: "weak" });
+const EARTH_STORAGE_PUNISHMENT_PAIRS = Object.freeze(new Set(["丑戌", "戌丑", "未戌", "戌未"]));
+const EARTH_STORAGE_BREAK_PAIRS = Object.freeze(new Set(["辰丑", "丑辰", "戌未", "未戌"]));
+const EARTH_STORAGE_HARM_PAIRS = Object.freeze(new Set(["辰卯", "卯辰", "戌酉", "酉戌", "丑午", "午丑", "未子", "子未"]));
+const EARTH_STORAGE_TRI_PUNISHMENT = Object.freeze(["丑", "未", "戌"]);
+const OPENING_STRENGTH_ORDER = Object.freeze(["weak", "medium", "strong", "veryStrong"]);
+const DEFAULT_SAJU_PROMPT_CONFIG = Object.freeze({
+  earthStorageOpening: Object.freeze({
+    enabled: true,
+    mode: "standard",
+    scope: "natal_daewoon_sewoon",
+    relationStrength: Object.freeze({ 충: "veryStrong", 형: "strong", 파: "medium", 해: "weak" }),
+  }),
+});
 
 const SAJU_QUESTION_FOCUS_GUIDE = Object.freeze({
   career: [
@@ -135,6 +224,647 @@ function toGenderLabel(gender) {
   if (v === "M") return "남성";
   if (v === "F") return "여성";
   return DEFAULT_TEXT;
+}
+
+function normalizeStem(value) {
+  const text = String(value == null ? "" : value).trim();
+  if (!text) return "";
+  for (const stem of SAJU_STEMS) {
+    if (text.includes(stem)) return stem;
+  }
+  for (const [ko, stem] of Object.entries(KO_TO_STEM)) {
+    if (text.includes(ko)) return stem;
+  }
+  return "";
+}
+
+function normalizeBranch(value) {
+  const text = String(value == null ? "" : value).trim();
+  if (!text) return "";
+  for (const branch of SAJU_BRANCHES) {
+    if (text.includes(branch)) return branch;
+  }
+  for (const [ko, branch] of Object.entries(KO_TO_BRANCH)) {
+    if (text.includes(ko)) return branch;
+  }
+  return "";
+}
+
+function normalizeElementKey(value) {
+  const text = String(value == null ? "" : value).trim().toLowerCase();
+  if (!text) return "";
+  if (ELEMENT_KO_BY_KEY[text]) return text;
+  for (const [ko, key] of Object.entries(ELEMENT_KEY_BY_KO)) {
+    if (text.includes(ko)) return key;
+  }
+  if (text.includes("wood")) return "wood";
+  if (text.includes("fire")) return "fire";
+  if (text.includes("earth")) return "earth";
+  if (text.includes("metal")) return "metal";
+  if (text.includes("water")) return "water";
+  return "";
+}
+
+function uniqueTexts(values) {
+  const seen = new Set();
+  const out = [];
+  for (const value of Array.isArray(values) ? values : []) {
+    const text = String(value == null ? "" : value).trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+  }
+  return out;
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  if (value == null || value === "") return [];
+  return [value];
+}
+
+function normalizeOpeningMode(value) {
+  const key = String(value || "").trim();
+  if (["conservative", "보수적"].includes(key)) return "conservative";
+  if (["active", "aggressive", "적극적"].includes(key)) return "active";
+  return "standard";
+}
+
+function normalizeOpeningScope(value) {
+  const key = String(value || "").trim();
+  if (["natal", "원국 내부 형충해파"].includes(key)) return "natal";
+  if (["natal_daewoon", "원국 + 대운"].includes(key)) return "natal_daewoon";
+  if (["natal_sewoon", "원국 + 세운"].includes(key)) return "natal_sewoon";
+  if (["all", "month_daily", "월운/일진까지 포함"].includes(key)) return "all";
+  return "natal_daewoon_sewoon";
+}
+
+function normalizeOpeningStrength(value, fallback) {
+  const key = String(value || "").trim();
+  if (OPENING_STRENGTH_ORDER.includes(key)) return key;
+  if (["매우 강함", "very strong"].includes(key)) return "veryStrong";
+  if (["강함", "strong"].includes(key)) return "strong";
+  if (["중간", "medium"].includes(key)) return "medium";
+  if (["약함", "weak"].includes(key)) return "weak";
+  return fallback;
+}
+
+function normalizeSajuPromptConfig(sajuResult) {
+  const candidates = [
+    sajuResult?.adminPromptConfig,
+    sajuResult?.promptConfig,
+    sajuResult?.engineContext?.adminPromptConfig,
+    sajuResult?.engineContext?.promptConfig,
+    sajuResult?.engineContext?.sajuPromptConfig,
+  ].filter((item) => item && typeof item === "object");
+  const raw = candidates[0] || {};
+  const rawEarth = raw.earthStorageOpening && typeof raw.earthStorageOpening === "object"
+    ? raw.earthStorageOpening
+    : raw;
+  const enabledValue = rawEarth.enabled ?? rawEarth.earthStorageOpeningEnabled;
+  const relationStrength = rawEarth.relationStrength && typeof rawEarth.relationStrength === "object"
+    ? rawEarth.relationStrength
+    : {};
+  return {
+    earthStorageOpening: {
+      enabled: enabledValue === false || enabledValue === "false" ? false : DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening.enabled,
+      mode: normalizeOpeningMode(rawEarth.mode || rawEarth.earthStorageOpeningMode),
+      scope: normalizeOpeningScope(rawEarth.scope || rawEarth.earthStorageOpeningScope),
+      relationStrength: {
+        충: normalizeOpeningStrength(relationStrength.충 || rawEarth.chungStrength, DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening.relationStrength.충),
+        형: normalizeOpeningStrength(relationStrength.형 || rawEarth.punishmentStrength, DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening.relationStrength.형),
+        파: normalizeOpeningStrength(relationStrength.파 || rawEarth.breakStrength, DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening.relationStrength.파),
+        해: normalizeOpeningStrength(relationStrength.해 || rawEarth.harmStrength, DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening.relationStrength.해),
+      },
+    },
+  };
+}
+
+function getTenGodFromDayMaster(dayStem, targetStem) {
+  const day = normalizeStem(dayStem);
+  const target = normalizeStem(targetStem);
+  const dayElement = STEM_ELEMENT_KEY[day];
+  const targetElement = STEM_ELEMENT_KEY[target];
+  if (!day || !target || !dayElement || !targetElement) return "";
+
+  const samePolarity = STEM_POLARITY[day] === STEM_POLARITY[target];
+  if (dayElement === targetElement) return samePolarity ? "비견" : "겁재";
+  if (ELEMENT_GENERATES[dayElement] === targetElement) return samePolarity ? "식신" : "상관";
+  if (ELEMENT_GENERATES[targetElement] === dayElement) return samePolarity ? "편인" : "정인";
+  if (ELEMENT_CONTROLS[dayElement] === targetElement) return samePolarity ? "편재" : "정재";
+  if (ELEMENT_CONTROLS[targetElement] === dayElement) return samePolarity ? "편관" : "정관";
+  return "";
+}
+
+function parsePillarLike(value) {
+  const text = String(value == null ? "" : value).trim();
+  return {
+    stem: normalizeStem(text),
+    branch: normalizeBranch(text),
+  };
+}
+
+function readPillar(source, fallbackGanji = "") {
+  const s = source && typeof source === "object" ? source : {};
+  const parsed = parsePillarLike(
+    fallbackGanji
+      || s.ganji
+      || s.pillar
+      || s.value
+      || `${s.g || s.gan || s.stem || ""}${s.j || s.zhi || s.branch || ""}`,
+  );
+  return {
+    stem: normalizeStem(s.g || s.gan || s.stem || s.heavenlyStem) || parsed.stem,
+    branch: normalizeBranch(s.j || s.zhi || s.branch || s.earthlyBranch) || parsed.branch,
+    stemElement: normalizeElementKey(s.gEKey || s.gE || s.stemElement || s.ganElement),
+    branchElement: normalizeElementKey(s.jEKey || s.jE || s.branchElement || s.zhiElement),
+  };
+}
+
+function normalizeSajuPillarRows(sajuResult) {
+  const result = sajuResult && typeof sajuResult === "object" ? sajuResult : {};
+  const p = result.pillars && typeof result.pillars === "object" ? result.pillars : {};
+  const bazi = result.bazi && typeof result.bazi === "object" ? result.bazi : {};
+  const engineBazi = result.engineContext?.bazi && typeof result.engineContext.bazi === "object"
+    ? result.engineContext.bazi
+    : {};
+  return [
+    { position: "year", ...readPillar(p.y || p.year, bazi.yearPillar || engineBazi.yearPillar || `${bazi.yearGan || ""}${bazi.yearZhi || ""}`) },
+    { position: "month", ...readPillar(p.m || p.month, bazi.monthPillar || engineBazi.monthPillar || `${bazi.monthGan || ""}${bazi.monthZhi || ""}`) },
+    { position: "day", ...readPillar(p.d || p.day, bazi.dayPillar || engineBazi.dayPillar || `${bazi.dayGan || ""}${bazi.dayZhi || ""}`) },
+    { position: "hour", ...readPillar(p.h || p.hour, bazi.hourPillar || engineBazi.hourPillar || `${bazi.timeGan || ""}${bazi.timeZhi || ""}`) },
+  ].filter((row) => row.stem || row.branch);
+}
+
+function normalizeLuckScope(scope, fallback) {
+  const key = String(scope || fallback || "").trim().toLowerCase();
+  if (["daewoon", "daewun", "대운"].includes(key)) return "daewoon";
+  if (["sewoon", "annual", "yearly", "세운"].includes(key)) return "sewoon";
+  if (["monthly", "month", "월운"].includes(key)) return "month운";
+  if (["daily", "day", "일운", "일진"].includes(key)) return "day운";
+  return fallback || "luck";
+}
+
+function buildLuckRow(raw, fallbackScope) {
+  const row = raw && typeof raw === "object" ? raw : {};
+  const parsed = parsePillarLike(row.ganji || row.pillar || row.label || `${row.gan || row.stem || ""}${row.zhi || row.branch || ""}`);
+  const stem = normalizeStem(row.gan || row.stem || row.heavenlyStem) || parsed.stem;
+  const branch = normalizeBranch(row.zhi || row.branch || row.earthlyBranch) || parsed.branch;
+  if (!stem && !branch) return null;
+  const scope = normalizeLuckScope(row.scope || row.type, fallbackScope);
+  const age = Number(row.age || row.startAge || row.startAgeYears || 0) || null;
+  const year = Number(row.year || row.targetYear || 0) || null;
+  const labelPrefix = scope === "daewoon" && age ? `${age}세 ` : (scope === "sewoon" && year ? `${year}년 ` : "");
+  const label = toText(row.label || row.ganji || row.pillar || `${stem}${branch}`, `${stem}${branch}`);
+  return {
+    scope,
+    stem,
+    branch,
+    age,
+    year,
+    label: `${labelPrefix}${label}`.trim(),
+  };
+}
+
+function buildSexagenaryYearPillar(year) {
+  const y = Number(year);
+  if (!Number.isFinite(y) || y < 1900) return null;
+  const index = ((Math.trunc(y) - 4) % 60 + 60) % 60;
+  return {
+    scope: "sewoon",
+    stem: SAJU_STEMS[index % 10],
+    branch: SAJU_BRANCHES[index % 12],
+    year: Math.trunc(y),
+    label: `${Math.trunc(y)}년 ${SAJU_STEMS[index % 10]}${SAJU_BRANCHES[index % 12]}`,
+  };
+}
+
+function normalizeSajuLuckRows(sajuResult, engineContext) {
+  const result = sajuResult && typeof sajuResult === "object" ? sajuResult : {};
+  const bazi = result.bazi && typeof result.bazi === "object" ? result.bazi : {};
+  const rows = [];
+  const addRows = (items, scope) => {
+    if (!Array.isArray(items)) return;
+    items.forEach((item) => {
+      const row = buildLuckRow(item, scope);
+      if (row) rows.push(row);
+    });
+  };
+
+  addRows(engineContext?.quantum?.daewun, "daewoon");
+  addRows(result.daewoon, "daewoon");
+  addRows(result.daewun, "daewoon");
+  addRows(bazi.daewunBridge, "daewoon");
+  addRows(result.sewoon, "sewoon");
+  addRows(result.annualLuck, "sewoon");
+  addRows(result.yearlyLuck, "sewoon");
+  addRows(result.monthlyLuck, "month운");
+  addRows(result.dailyLuck, "day운");
+  addRows(result.luckPillars, "luck");
+
+  const hasAnnual = rows.some((row) => row.scope === "sewoon");
+  if (!hasAnnual) {
+    const explicitYear = Number(result.targetYear || result.currentYear || result.engineContext?.currentYear || 0);
+    const currentYear = Number.isFinite(explicitYear) && explicitYear > 0 ? explicitYear : new Date().getUTCFullYear();
+    const annual = buildSexagenaryYearPillar(currentYear);
+    if (annual) rows.push(annual);
+  }
+
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = `${row.scope}:${row.stem}:${row.branch}:${row.age || ""}:${row.year || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function inferElementFavorability(element, power) {
+  const p = power && typeof power === "object" ? power : {};
+  const yongshin = asArray(p.yongshin).map(normalizeElementKey).filter(Boolean);
+  const kijishin = asArray(p.kijishin).concat(asArray(p.gisin)).map(normalizeElementKey).filter(Boolean);
+  if (yongshin.includes(element)) return true;
+  if (kijishin.includes(element)) return false;
+  return null;
+}
+
+function getBranchRelationType(sourceBranch, triggerBranch) {
+  const pair = `${sourceBranch}${triggerBranch}`;
+  if (CHUNG_PAIRS[sourceBranch] === triggerBranch) return "충";
+  if (EARTH_STORAGE_PUNISHMENT_PAIRS.has(pair)) return "형";
+  if (EARTH_STORAGE_BREAK_PAIRS.has(pair)) return "파";
+  if (EARTH_STORAGE_HARM_PAIRS.has(pair)) return "해";
+  return "";
+}
+
+function boostOpeningStrength(strength, steps = 1) {
+  const index = OPENING_STRENGTH_ORDER.indexOf(strength);
+  if (index < 0) return strength;
+  return OPENING_STRENGTH_ORDER[Math.min(OPENING_STRENGTH_ORDER.length - 1, index + Math.max(0, steps))];
+}
+
+function adjustOpeningStrength(strength, mode) {
+  if (mode === "active") return boostOpeningStrength(strength, 1);
+  if (mode !== "conservative") return strength;
+  const index = OPENING_STRENGTH_ORDER.indexOf(strength);
+  if (index <= 0) return strength;
+  return OPENING_STRENGTH_ORDER[index - 1];
+}
+
+function relationStrengthFromConfig(relationType, config) {
+  const raw = config?.earthStorageOpening?.relationStrength?.[relationType]
+    || EARTH_STORAGE_OPENING_STRENGTH[relationType]
+    || "weak";
+  return normalizeOpeningStrength(raw, EARTH_STORAGE_OPENING_STRENGTH[relationType] || "weak");
+}
+
+function timingTypeFromPosition(position) {
+  if (position === "daewoon") return "daewoon";
+  if (position === "sewoon") return "sewoon";
+  if (position === "month운") return "monthly";
+  if (position === "day운") return "daily";
+  return "natal";
+}
+
+function luckScopeToPosition(scope) {
+  if (scope === "daewoon") return "daewoon";
+  if (scope === "sewoon") return "sewoon";
+  if (scope === "month운") return "month운";
+  if (scope === "day운") return "day운";
+  return scope || "luck";
+}
+
+function shouldIncludeOpeningPosition(position, scope) {
+  if (["year", "month", "day", "hour"].includes(position)) return true;
+  if (scope === "natal") return false;
+  if (scope === "natal_daewoon") return position === "daewoon";
+  if (scope === "natal_sewoon") return position === "sewoon";
+  if (scope === "all") return ["daewoon", "sewoon", "month운", "day운"].includes(position);
+  return ["daewoon", "sewoon"].includes(position);
+}
+
+function buildOpeningBranchRows(pillarRows, luckRows, scope) {
+  const natalRows = pillarRows.map((row) => ({
+    branch: row.branch,
+    position: row.position,
+    label: PILLAR_POSITION_LABELS[row.position] || row.position,
+    timingType: "natal",
+  })).filter((row) => row.branch);
+  const luckBranchRows = luckRows.map((row) => {
+    const position = luckScopeToPosition(row.scope);
+    return {
+      branch: row.branch,
+      position,
+      label: row.label || `${row.stem || ""}${row.branch || ""}`,
+      timingType: timingTypeFromPosition(position),
+    };
+  }).filter((row) => row.branch && shouldIncludeOpeningPosition(row.position, scope));
+  return natalRows.concat(luckBranchRows);
+}
+
+function affectedAreasFromTenGods(tenGods, sourcePosition, relationType) {
+  const areas = new Set();
+  tenGods.forEach((tenGod) => {
+    if (["정재", "편재"].includes(tenGod)) ["재물", "사업", "연애"].forEach((area) => areas.add(area));
+    if (["정관", "편관"].includes(tenGod)) ["직장", "승진", "결혼", "법적문제"].forEach((area) => areas.add(area));
+    if (["정인", "편인"].includes(tenGod)) ["학업", "가족", "심리"].forEach((area) => areas.add(area));
+    if (["식신", "상관"].includes(tenGod)) ["창작", "사업", "건강"].forEach((area) => areas.add(area));
+    if (["비견", "겁재"].includes(tenGod)) ["사업", "가족", "심리"].forEach((area) => areas.add(area));
+  });
+  if (sourcePosition === "month") ["직장", "사업"].forEach((area) => areas.add(area));
+  if (sourcePosition === "day") ["연애", "결혼", "심리", "건강"].forEach((area) => areas.add(area));
+  if (relationType === "충") areas.add("이동");
+  return Array.from(areas).slice(0, 8);
+}
+
+function buildEarthStorageOpeningSummary(opening) {
+  const opened = opening.openedHiddenStems
+    .map((row) => `${row.stem}${row.tenGodFromDayMaster ? `(${row.tenGodFromDayMaster})` : ""}`)
+    .join(", ");
+  const timing = opening.timingType === "natal"
+    ? "원국 안에서 이미 압력이 머뭅니다"
+    : `${opening.timingLabel || opening.triggerPosition}에 시기성이 열립니다`;
+  const favorableText = opening.isFavorableOverall === true
+    ? "용신·희신성 지장간이 함께 열려 기회로 쓰일 여지가 큽니다"
+    : opening.isFavorableOverall === false
+      ? "기신성 지장간이 열릴 수 있어 부담과 갈등을 낮추어 다뤄야 합니다"
+      : "희기 판단은 단정하지 말고 질문 주제와 함께 살펴야 합니다";
+  return `${opening.sourceBranch} ${opening.storageType || "토 창고"}가 ${opening.triggerBranch} ${opening.relationType} 자극을 받아 개고됩니다. 열린 지장간은 ${opened || "지장간 미상"}이며, ${timing}. ${favorableText}.`;
+}
+
+function buildOpenedHiddenStemsForStorage(branch, dayStem, power) {
+  const hiddenRows = HIDDEN_STEMS_BY_BRANCH[branch] || [];
+  return hiddenRows.map((hidden) => {
+    const element = STEM_ELEMENT_KEY[hidden.stem] || "";
+    return {
+      stem: hidden.stem,
+      stemKorean: STEM_KO[hidden.stem] || "",
+      element,
+      tenGodFromDayMaster: getTenGodFromDayMaster(dayStem, hidden.stem),
+      layer: hidden.layer || "unknown",
+      favorable: inferElementFavorability(element, power),
+    };
+  });
+}
+
+function buildEarthStorageOpenings({ pillarRows, luckRows, dayStem, power, config }) {
+  const earthConfig = config?.earthStorageOpening || DEFAULT_SAJU_PROMPT_CONFIG.earthStorageOpening;
+  if (earthConfig.enabled === false) return [];
+
+  const branchRows = buildOpeningBranchRows(pillarRows, luckRows, earthConfig.scope);
+  const allBranches = new Set(branchRows.map((row) => row.branch));
+  const openings = [];
+  const seen = new Set();
+
+  for (let i = 0; i < branchRows.length; i += 1) {
+    const source = branchRows[i];
+    if (!EARTH_STORAGE_INFO[source.branch]) continue;
+    for (let j = 0; j < branchRows.length; j += 1) {
+      if (i === j) continue;
+      const trigger = branchRows[j];
+      if (source.branch === trigger.branch) continue;
+      const relationType = getBranchRelationType(source.branch, trigger.branch);
+      if (!relationType) continue;
+
+      let openingStrength = relationStrengthFromConfig(relationType, config);
+      const sameSourceRelationCount = branchRows.filter((row, index) => index !== i && getBranchRelationType(source.branch, row.branch)).length;
+      if (sameSourceRelationCount > 1) openingStrength = boostOpeningStrength(openingStrength, 1);
+      if (relationType === "형" && EARTH_STORAGE_TRI_PUNISHMENT.every((branch) => allBranches.has(branch))) {
+        openingStrength = boostOpeningStrength(openingStrength, 1);
+      }
+      openingStrength = adjustOpeningStrength(openingStrength, earthConfig.mode);
+
+      const storage = EARTH_STORAGE_INFO[source.branch];
+      const openedHiddenStems = buildOpenedHiddenStemsForStorage(source.branch, dayStem, power);
+      const mainActivatedTenGods = uniqueTexts(openedHiddenStems.map((row) => row.tenGodFromDayMaster));
+      const favorableRows = openedHiddenStems.filter((row) => row.favorable === true).length;
+      const unfavorableRows = openedHiddenStems.filter((row) => row.favorable === false).length;
+      const isFavorableOverall = favorableRows > unfavorableRows
+        ? true
+        : (unfavorableRows > favorableRows ? false : null);
+      const timingType = source.timingType !== "natal" ? source.timingType : trigger.timingType;
+      const timingLabel = timingType === "natal"
+        ? "원국 내부"
+        : (source.timingType !== "natal" ? source.label : trigger.label);
+      const key = `${source.position}:${source.branch}:${trigger.position}:${trigger.branch}:${relationType}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const opening = {
+        exists: true,
+        sourceBranch: source.branch,
+        sourceBranchKorean: storage.korean,
+        sourcePosition: source.position,
+        triggerBranch: trigger.branch,
+        triggerBranchKorean: BRANCH_KO[trigger.branch] || "",
+        triggerPosition: trigger.position,
+        relationType,
+        openingStrength,
+        storageType: storage.storageType,
+        storageElement: storage.storageElement,
+        openedHiddenStems,
+        mainActivatedTenGods,
+        affectedAreas: affectedAreasFromTenGods(mainActivatedTenGods, source.position, relationType),
+        timingType,
+        timingLabel,
+        isFavorableOverall,
+        summaryForPrompt: "",
+      };
+      opening.summaryForPrompt = buildEarthStorageOpeningSummary(opening);
+      openings.push(opening);
+    }
+  }
+
+  return openings.sort((a, b) => {
+    const strengthDiff = OPENING_STRENGTH_ORDER.indexOf(b.openingStrength) - OPENING_STRENGTH_ORDER.indexOf(a.openingStrength);
+    if (strengthDiff) return strengthDiff;
+    const positionWeight = { month: 4, day: 3, year: 2, hour: 2, daewoon: 1, sewoon: 1, "month운": 0, "day운": 0 };
+    return (positionWeight[b.sourcePosition] || 0) - (positionWeight[a.sourcePosition] || 0);
+  });
+}
+
+function normalizeExistingDoChungPayload(sajuResult) {
+  const result = sajuResult && typeof sajuResult === "object" ? sajuResult : {};
+  const candidates = [
+    result.advancedFactors?.doChung,
+    result.doChung,
+    result.dochung,
+    result.do_chung,
+    result.doChungAnalysis,
+    result.dochungAnalysis,
+    result.natalAnalysis?.doChungAnalysis,
+    result.natalAnalysis?.dochungAnalysis,
+    result.engineContext?.advancedFactors?.doChung,
+    result.interactions?.doChung,
+  ].filter((item) => item && typeof item === "object");
+
+  for (const payload of candidates) {
+    const rows = Array.isArray(payload.candidates) ? payload.candidates : [];
+    const strongest = payload.strongest && typeof payload.strongest === "object" ? payload.strongest : rows[0];
+    const row = strongest && typeof strongest === "object" ? strongest : payload;
+    const repeatedBranch = normalizeBranch(row.repeatedBranch || row.branch);
+    const repeatedCount = Number(row.repeatedCount || row.totalCount || row.count || 0) || 0;
+    const inducedOppositeBranch = normalizeBranch(row.inducedOppositeBranch || row.impliedOpposite || row.inducedBranch);
+    const exists = payload.exists === true || payload.activated === true || rows.length > 0 || repeatedCount >= 3;
+    if (!exists && !repeatedBranch && !inducedOppositeBranch) continue;
+    const summary = toText(
+      payload.summaryForPrompt
+        || row.summaryForPrompt
+        || row.requiredPhrase
+        || row.lifeEvent
+        || row.interpretation
+        || (Array.isArray(row.requiredSentences) ? row.requiredSentences.join(" ") : ""),
+      exists ? "도충 후보가 감지되었으나 상담에서는 원국과 운의 질문 연결 지점에서만 다룹니다." : "도충 조건은 뚜렷하지 않습니다.",
+    );
+    return {
+      exists,
+      repeatedBranch: repeatedBranch || undefined,
+      repeatedCount: repeatedCount || undefined,
+      inducedOppositeBranch: inducedOppositeBranch || undefined,
+      reason: toText(payload.principle || row.classification || row.reason, ""),
+      affectedAreas: uniqueTexts(asArray(row.affectedAreas).concat(row.lifeEvents || [])).slice(0, 6),
+      strength: repeatedCount >= 4 ? "strong" : (repeatedCount >= 3 || exists ? "medium" : "weak"),
+      summaryForPrompt: summary,
+    };
+  }
+  return null;
+}
+
+function buildComputedDoChungAnalysis(pillarRows, luckRows) {
+  const branchRows = [];
+  pillarRows.forEach((row) => {
+    if (row.branch) branchRows.push({ source: "natal", scope: row.position, branch: row.branch, label: `${PILLAR_POSITION_LABELS[row.position] || row.position} ${row.branch}` });
+  });
+  luckRows.forEach((row) => {
+    if (row.branch && ["daewoon", "sewoon", "month운", "day운"].includes(row.scope)) {
+      branchRows.push({ source: "luck", scope: row.scope, branch: row.branch, label: row.label });
+    }
+  });
+
+  let best = null;
+  SAJU_BRANCHES.forEach((branch) => {
+    const matches = branchRows.filter((row) => row.branch === branch);
+    if (matches.length < 3) return;
+    if (!best || matches.length > best.matches.length) {
+      best = { branch, matches };
+    }
+  });
+
+  if (!best) {
+    return {
+      exists: false,
+      strength: "weak",
+      affectedAreas: [],
+      summaryForPrompt: "같은 지지가 3개 이상 중첩되는 도충 조건은 뚜렷하지 않습니다.",
+    };
+  }
+
+  const induced = CHUNG_PAIRS[best.branch] || "";
+  const strength = best.matches.length >= 4 ? "strong" : "medium";
+  const areas = ["이동", "관계", "직장", "재물", "심리"];
+  return {
+    exists: true,
+    repeatedBranch: best.branch,
+    repeatedCount: best.matches.length,
+    inducedOppositeBranch: induced,
+    reason: `원국과 운에서 ${best.branch} 지지가 ${best.matches.length}개 중첩되어 반대 충 ${induced || "미상"}의 사건성이 유도되는 구조입니다.`,
+    affectedAreas: areas,
+    strength,
+    summaryForPrompt: `${best.branch} 지지가 ${best.matches.length}개 중첩되어 ${induced || "반대 충"}의 기운이 유도됩니다. 원국에 없는 글자가 실제로 생긴다고 단정하지 말고, 질문 주제와 연결될 때 이동·관계·직장·재물 변동으로 자연스럽게 풀어야 합니다.`,
+  };
+}
+
+function buildSajuHiddenStemItems(pillarRows, dayStem) {
+  return pillarRows.flatMap((row) => {
+    const hiddenRows = HIDDEN_STEMS_BY_BRANCH[row.branch] || [];
+    return hiddenRows.map((hidden) => {
+      const element = STEM_ELEMENT_KEY[hidden.stem] || "";
+      return {
+        branch: row.branch,
+        branchKorean: BRANCH_KO[row.branch] || "",
+        hiddenStem: hidden.stem,
+        hiddenStemKorean: STEM_KO[hidden.stem] || "",
+        position: row.position,
+        layer: hidden.layer || "unknown",
+        weight: hidden.weight,
+        element,
+        tenGodFromDayMaster: getTenGodFromDayMaster(dayStem, hidden.stem),
+      };
+    });
+  });
+}
+
+function buildHiddenStemExposureSummary(stem, sourceBranches, natalPositions, luckPositions, tenGods) {
+  const tenGodText = tenGods.length ? `일간 기준 ${tenGods.join("/")}` : "일간 기준 십성 미상";
+  if (natalPositions.length && luckPositions.length) {
+    return `${stem}(${tenGodText})가 ${sourceBranches.join(", ")} 지장간에 머물고 원국 천간과 운 천간에서 함께 드러나 잠재성이 실제 선택과 시기 사건으로 강하게 떠오릅니다.`;
+  }
+  if (natalPositions.length) {
+    return `${stem}(${tenGodText})가 ${sourceBranches.join(", ")} 지장간에서 원국 천간으로 투간되어 내면에 머물던 기운이 성향·관계·직업성으로 드러납니다.`;
+  }
+  if (luckPositions.length) {
+    return `${stem}(${tenGodText})가 ${sourceBranches.join(", ")} 지장간에 숨어 있다가 ${luckPositions.join(", ")}에서 투출되어 해당 시기의 사건성으로 열립니다.`;
+  }
+  return `${stem}(${tenGodText})는 ${sourceBranches.join(", ")} 지장간에 잠재되어 있으며 합충형파해나 운의 천간이 닿을 때 밖으로 떠오릅니다.`;
+}
+
+function buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, power) {
+  const grouped = new Map();
+  hiddenStems.forEach((item) => {
+    const key = item.hiddenStem;
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(item);
+  });
+
+  return Array.from(grouped.entries()).map(([stem, rows]) => {
+    const natalPositions = pillarRows
+      .filter((row) => row.stem === stem)
+      .map((row) => STEM_POSITION_LABELS[row.position] || row.position);
+    const luckPositions = luckRows
+      .filter((row) => row.stem === stem)
+      .map((row) => `${row.scope === "daewoon" ? "대운" : row.scope === "sewoon" ? "세운" : row.scope} ${row.label}`.trim());
+    const sourceBranches = uniqueTexts(rows.map((row) => row.branch));
+    const tenGods = uniqueTexts(rows.map((row) => row.tenGodFromDayMaster));
+    const element = STEM_ELEMENT_KEY[stem] || "";
+    const favorable = inferElementFavorability(element, power);
+    const interpretationLevel = natalPositions.length && luckPositions.length
+      ? "strong"
+      : (natalPositions.length || luckPositions.length || rows.some((row) => row.position === "month") ? "medium" : "weak");
+    return {
+      hiddenStem: stem,
+      sourceBranches,
+      exposedInNatalHeavenlyStem: natalPositions.length > 0,
+      exposedNatalPositions: uniqueTexts(natalPositions),
+      exposedByLuckStem: luckPositions.length > 0,
+      exposedLuckPositions: uniqueTexts(luckPositions),
+      interpretationLevel,
+      favorable,
+      summaryForPrompt: buildHiddenStemExposureSummary(stem, sourceBranches, uniqueTexts(natalPositions), uniqueTexts(luckPositions), tenGods),
+    };
+  });
+}
+
+function buildSajuAdvancedFactors(sajuResult, engineContext) {
+  const pillarRows = normalizeSajuPillarRows(sajuResult);
+  const dayStem = pillarRows.find((row) => row.position === "day")?.stem || engineContext?.quantum?.dayStem || "";
+  const luckRows = normalizeSajuLuckRows(sajuResult, engineContext);
+  const promptConfig = normalizeSajuPromptConfig(sajuResult);
+  const hiddenStems = buildSajuHiddenStemItems(pillarRows, dayStem);
+  const hiddenStemExposures = buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, sajuResult?.power);
+  const doChung = normalizeExistingDoChungPayload(sajuResult) || buildComputedDoChungAnalysis(pillarRows, luckRows);
+  const earthStorageOpenings = buildEarthStorageOpenings({
+    pillarRows,
+    luckRows,
+    dayStem,
+    power: sajuResult?.power,
+    config: promptConfig,
+  });
+  return {
+    hiddenStems,
+    hiddenStemExposures,
+    doChung,
+    earthStorageOpenings,
+    promptConfig,
+  };
 }
 
 function normalizeBirthInfo(profile, snapshot) {
@@ -385,7 +1115,7 @@ function normalizeSajuEngineContext(sajuResult) {
     })).filter((item) => item.text)
     : [];
 
-  return {
+  const normalized = {
     marker: toText(context.marker, ""),
     sourceLayers: Array.isArray(context.sourceLayers) ? context.sourceLayers.map((item) => toText(item, "")).filter(Boolean) : [],
     bazi,
@@ -398,6 +1128,8 @@ function normalizeSajuEngineContext(sajuResult) {
     },
     featureDigests,
   };
+  normalized.advancedFactors = buildSajuAdvancedFactors(sajuResult, normalized);
+  return normalized;
 }
 
 function buildSajuEngineContextLines(engineContext) {
@@ -436,6 +1168,124 @@ function buildSajuEngineContextLines(engineContext) {
   }
 
   return lines;
+}
+
+function formatHiddenStemRows(rows) {
+  if (!rows.length) return DEFAULT_TEXT;
+  return rows.map((row) => {
+    const stem = `${row.hiddenStem}${row.hiddenStemKorean ? `(${row.hiddenStemKorean})` : ""}`;
+    const layer = row.layer || "unknown";
+    const tenGod = row.tenGodFromDayMaster || "십성 미상";
+    const element = ELEMENT_KO_BY_KEY[row.element] || row.element || "오행 미상";
+    return `${stem} ${layer}/${tenGod}/${element}${row.weight ? `/${row.weight}` : ""}`;
+  }).join(" | ");
+}
+
+function formatExposureRows(rows, type) {
+  const filtered = rows.filter((row) => (
+    type === "natal" ? row.exposedInNatalHeavenlyStem : row.exposedByLuckStem
+  ));
+  if (!filtered.length) return DEFAULT_TEXT;
+  return filtered.map((row) => {
+    const positions = type === "natal" ? row.exposedNatalPositions : row.exposedLuckPositions;
+    return `${row.hiddenStem} ${positions?.join(", ") || "위치 미상"} / ${row.interpretationLevel} / ${row.summaryForPrompt}`;
+  }).join(" | ");
+}
+
+function pickQuestionRelevantHiddenStemRows(hiddenStems, questionType) {
+  const focus = QUESTION_TEN_GOD_FOCUS[questionType] || [];
+  const rows = focus.length
+    ? hiddenStems.filter((row) => focus.includes(row.tenGodFromDayMaster))
+    : hiddenStems.filter((row) => row.position === "month" || row.position === "day");
+  return rows.length ? rows : hiddenStems.slice(0, 6);
+}
+
+function formatQuestionRelevantHiddenStems(hiddenStems, questionType) {
+  const rows = pickQuestionRelevantHiddenStemRows(hiddenStems, questionType).slice(0, 8);
+  if (!rows.length) return DEFAULT_TEXT;
+  return rows.map((row) => {
+    const position = PILLAR_POSITION_LABELS[row.position] || row.position;
+    return `${position} ${row.branch}${row.hiddenStem}(${row.tenGodFromDayMaster || "십성 미상"})`;
+  }).join(" | ");
+}
+
+function pickQuestionRelevantEarthStorageOpenings(openings, questionType) {
+  const focus = QUESTION_TEN_GOD_FOCUS[questionType] || [];
+  const rows = focus.length
+    ? openings.filter((opening) => (opening.mainActivatedTenGods || []).some((tenGod) => focus.includes(tenGod)))
+    : openings;
+  return rows.length ? rows : openings;
+}
+
+function formatEarthStorageOpeningRows(openings, questionType) {
+  if (!openings.length) return "개고 조건이 뚜렷하지 않음";
+  return pickQuestionRelevantEarthStorageOpenings(openings, questionType).slice(0, 6).map((row) => {
+    const hidden = (row.openedHiddenStems || [])
+      .map((item) => `${item.stem}${item.tenGodFromDayMaster ? `(${item.tenGodFromDayMaster})` : ""}${item.favorable === true ? "/희신성" : item.favorable === false ? "/기신성" : ""}`)
+      .join(", ");
+    return `${row.sourcePosition} ${row.sourceBranch}(${row.storageType}) <- ${row.triggerPosition} ${row.triggerBranch} ${row.relationType}/${row.openingStrength}: ${hidden || DEFAULT_TEXT} / ${row.summaryForPrompt}`;
+  }).join(" | ");
+}
+
+function buildSajuAdvancedFactorLines(advancedFactors, questionType) {
+  const factors = advancedFactors && typeof advancedFactors === "object" ? advancedFactors : {};
+  const hiddenStems = Array.isArray(factors.hiddenStems) ? factors.hiddenStems : [];
+  const exposures = Array.isArray(factors.hiddenStemExposures) ? factors.hiddenStemExposures : [];
+  const doChung = factors.doChung && typeof factors.doChung === "object" ? factors.doChung : { exists: false };
+  const earthStorageOpenings = Array.isArray(factors.earthStorageOpenings) ? factors.earthStorageOpenings : [];
+  const byPosition = (position) => hiddenStems.filter((row) => row.position === position);
+  const allTenGods = hiddenStems.map((row) => `${row.branch}${row.hiddenStem}:${row.tenGodFromDayMaster || "십성 미상"}`);
+  const doChungExists = doChung.exists === true;
+  const earthStorageExists = earthStorageOpenings.length > 0;
+  const doChungSummary = doChungExists
+    ? (doChung.summaryForPrompt || `${doChung.repeatedBranch || "반복 지지"} 중첩으로 ${doChung.inducedOppositeBranch || "반대 충"}의 사건성이 유도됩니다.`)
+    : "도충 조건이 뚜렷하지 않으므로 상담문에서 억지로 끌어올리지 않습니다.";
+
+  return [
+    "[사주 상담 계산 사용 규칙]",
+    "사주 계산을 새로 세우지 말고 아래 canonical JSON과 계산 근거만 붙잡습니다.",
+    "지장간·투간·투출·도충·개고·합충형파해는 질문 주제와 맞닿은 항목만 상담 문장 속에 녹입니다.",
+    "JSON에 없는 신살, 격국, 용신, 도충, 개고는 새로 만들지 않습니다.",
+    doChungExists ? "도충 exists=true이며 질문 주제와 맞닿으면 한 문단 이상 자연스럽게 반영합니다." : "도충 exists=false이면 도충을 핵심 사건으로 쓰지 않습니다.",
+    earthStorageExists ? "토 지지 개고가 있으며 질문 주제와 맞닿으면 열린 지장간과 시기성을 한 문단 이상 자연스럽게 반영합니다." : "개고 조건이 없으면 辰戌丑未만 보고 개고를 만들지 않습니다.",
+    "투간은 원국 천간, 투출은 운의 천간, 도충은 반복 지지의 반대 충 유도, 개고는 辰戌丑未가 형충해파로 열리는 구조로 구분합니다.",
+    "",
+    "[고급 명리 계산 근거]",
+    "1. 지장간 분석",
+    `- 년지 지장간: ${formatHiddenStemRows(byPosition("year"))}`,
+    `- 월지 지장간: ${formatHiddenStemRows(byPosition("month"))}`,
+    `- 일지 지장간: ${formatHiddenStemRows(byPosition("day"))}`,
+    `- 시지 지장간: ${formatHiddenStemRows(byPosition("hour"))}`,
+    `- 일간 기준 십성 변환: ${allTenGods.length ? allTenGods.join(" | ") : DEFAULT_TEXT}`,
+    `- 질문 주제와 관련된 핵심 지장간: ${formatQuestionRelevantHiddenStems(hiddenStems, questionType)}`,
+    "",
+    "2. 지장간 투간 분석",
+    `- 원국 천간에 투간된 지장간: ${formatExposureRows(exposures, "natal")}`,
+    "- 투간된 지장간은 단순 잠재성이 아니라 실제 성향·재능·직업성·관계 양상으로 드러난 기운으로 봅니다.",
+    "",
+    "3. 지장간 투출 분석",
+    `- 대운/세운/월운/일운에서 투출되는 지장간: ${formatExposureRows(exposures, "luck")}`,
+    "- 투출된 지장간은 해당 시기에 잠재성이 현실 사건으로 떠오르는 흐름으로 봅니다.",
+    "",
+    "4. 도충 분석",
+    `- 도충 존재 여부: ${doChungExists ? "있음" : "없음"}`,
+    `- 반복 지지: ${doChung.repeatedBranch || DEFAULT_TEXT}`,
+    `- 반복 수: ${doChung.repeatedCount || DEFAULT_TEXT}`,
+    `- 유도되는 반대 충 지지: ${doChung.inducedOppositeBranch || DEFAULT_TEXT}`,
+    `- 강도: ${doChung.strength || DEFAULT_TEXT}`,
+    `- 질문 주제와 연결되는 사건성: ${(Array.isArray(doChung.affectedAreas) && doChung.affectedAreas.length) ? doChung.affectedAreas.join(", ") : DEFAULT_TEXT}`,
+    `- 상담에 반드시 반영해야 할 요약: ${doChungSummary}`,
+    "",
+    "5. 토 지지 개고 분석",
+    "[토 지지 개고 분석]",
+    `- 개고 존재 여부: ${earthStorageExists ? "있음" : "없음"}`,
+    `- 개고 상세: ${formatEarthStorageOpeningRows(earthStorageOpenings, questionType)}`,
+    "- 충에 의한 개고는 가장 강하고, 형은 내부 압력, 파는 균열, 해는 은근한 손상과 문제 표면화로 봅니다.",
+    "- 개고로 열린 지장간은 일간 기준 십성, 희신/기신 여부, 원국·대운·세운 시기성을 함께 봅니다.",
+    "",
+    "6. 합충형파해 연결",
+    "- 지장간이 충·형·합·파·해 또는 도충과 닿으면 안에 머물던 기운이 특정 운에서 표면으로 떠오르는 흐름으로 봅니다.",
+  ];
 }
 
 function buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext }) {
@@ -512,6 +1362,10 @@ function appendSajuExternalAiPurpose(prompt, template, questionTypeLabel) {
     "[사주 전용 AI 질문문 목적]",
     "- 외부 AI에게 그대로 붙여넣으면 최고 수준의 명리 상담 답변을 청할 수 있는 사주 전용 질문문입니다.",
     "- 답변자는 명리학자로서 일간·월령·조후·격국·용신·십성·합충형파해·대운/세운을 교차해 흐름을 읽어주세요.",
+    "- 지장간은 월지와 일지를 우선 보고, 원국 투간과 운의 투출을 서로 다른 작동층으로 나누어 상담에 녹여주세요.",
+    "- 도충은 exists=true인 계산값이 있을 때만 다루고, 없는 글자가 실제 원국에 생긴다고 단정하지 말아주세요.",
+    "- 토 지지 개고는 earthStorageOpenings에 제공된 항목만 다루고, 辰戌沖·丑未沖·토 형살·파해의 강도를 구분해주세요.",
+    "- 투간, 투출, 도충, 개고를 혼동하지 말고 각각 원국 천간, 운 천간, 반복 지지, 토 창고 형충해파로 나누어 비춰주세요.",
     `- 주제는 ${domainLabel}/${typeLabel}에 맞추고, 사주 근거와 현실 선택지를 함께 비춰주세요.`,
     "- 확정 예언보다 가능성, 리스크, 확인 질문, 다음 행동 순서가 먼저 드러나게 해주세요.",
   ];
@@ -548,8 +1402,18 @@ export function buildSajuAIPromptWithDomain({
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
   const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
   const engineContext = normalizeSajuEngineContext(sajuResult);
+  const advancedFactors = engineContext.advancedFactors;
+  const canonicalSajuResult = {
+    ...sajuResult,
+    advancedFactors,
+    engineContext: {
+      ...(sajuResult.engineContext && typeof sajuResult.engineContext === "object" ? sajuResult.engineContext : {}),
+      advancedFactors,
+    },
+  };
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
   const engineContextLines = buildSajuEngineContextLines(engineContext);
+  const advancedFactorLines = buildSajuAdvancedFactorLines(advancedFactors, questionType);
   const bindingLines = buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext });
   const analysisAngles = uniqueStringArray((template.analysisAngles || []).concat(
     SAJU_AI_PROMPT_MASTERY_ANGLES,
@@ -575,6 +1439,7 @@ export function buildSajuAIPromptWithDomain({
     `핵심 키워드 가중치: ${keywordWeightLines.join(" | ")}`,
     `질문별 명리 관문: ${questionFocusAngles.join(" | ") || DEFAULT_TEXT}`,
     ...engineContextLines,
+    ...advancedFactorLines,
     ...bindingLines,
   ];
 
@@ -588,7 +1453,7 @@ export function buildSajuAIPromptWithDomain({
     fortuneLabel: "사주",
     expertLabel: "최고 수준의 명리학자",
     userQuestion: normalizedQuestion,
-    analysisResult: sajuResult,
+    analysisResult: canonicalSajuResult,
     profile: normalizedProfile,
     compatibilityTarget,
     mode: mode || resolvedDomain,
@@ -632,6 +1497,7 @@ export function buildSajuAIPromptWithDomain({
     toText(jong.name, ""),
     questionFocusAngles.join("|"),
     engineContextLines.join("|"),
+    advancedFactorLines.join("|"),
     bindingLines.join("|"),
     JSON.stringify(engineContext),
     promptPackage.summaryIntent,
@@ -652,12 +1518,21 @@ export function buildSajuAIPromptWithDomain({
     domainLabel: template.domainKo,
     keywordWeights: template.keywordWeights,
     questionFocusGuide: questionFocusAngles,
+    advancedFactors,
     engineContextSummary: {
       marker: engineContext.marker || SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER,
       sourceLayers: engineContext.sourceLayers,
       quantumElementCount: engineContext.quantum.elementMap.length,
       daewunCount: engineContext.quantum.daewun.length,
       featureDigestCount: engineContext.featureDigests.length,
+      hiddenStemCount: advancedFactors.hiddenStems.length,
+      hiddenStemExposureCount: advancedFactors.hiddenStemExposures.length,
+      touganCount: advancedFactors.hiddenStemExposures.filter((row) => row.exposedInNatalHeavenlyStem).length,
+      tuchulCount: advancedFactors.hiddenStemExposures.filter((row) => row.exposedByLuckStem).length,
+      doChung: advancedFactors.doChung,
+      earthStorageOpeningCount: advancedFactors.earthStorageOpenings.length,
+      earthStorageOpenings: advancedFactors.earthStorageOpenings.slice(0, 6),
+      promptConfig: advancedFactors.promptConfig,
     },
     qualityChecks: qualityResult.checks,
     digestSource,

@@ -1479,7 +1479,7 @@ async function submitSajuSubscription(scope) {
     if (cfg.emailEl) cfg.emailEl.value = '';
   } catch (err) {
     var detail = err && err.message ? err.message : '잠시 후 다시 시도해 주세요.';
-    setSajuSubscriptionStatus(cfg.scope, 'error', '구독 등록 중 흐름이 끊겼습니다. ' + detail);
+    setSajuSubscriptionStatus(cfg.scope, 'error', '구독 등록이 완료되지 않았습니다. ' + detail);
   } finally {
     SAJU_SUBSCRIPTION_IN_FLIGHT[cfg.scope] = false;
     setSajuSubscriptionPending(cfg.scope, false);

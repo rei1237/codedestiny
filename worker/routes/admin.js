@@ -292,6 +292,39 @@ function normalizeAdminPromptDomain(service, value) {
   return domain;
 }
 
+function normalizeAdminEarthStorageMode(value) {
+  const key = String(value || "").trim();
+  if (key === "conservative" || key === "보수적") return "conservative";
+  if (key === "active" || key === "적극적") return "active";
+  return "standard";
+}
+
+function normalizeAdminEarthStorageScope(value) {
+  const key = String(value || "").trim();
+  if (key === "natal") return "natal";
+  if (key === "natal_daewoon") return "natal_daewoon";
+  if (key === "natal_sewoon") return "natal_sewoon";
+  if (key === "all") return "all";
+  return "natal_daewoon_sewoon";
+}
+
+function buildAdminSajuPromptConfig(body) {
+  const source = body && typeof body === "object" ? body : {};
+  return {
+    earthStorageOpening: {
+      enabled: source.earthStorageOpeningEnabled !== false,
+      mode: normalizeAdminEarthStorageMode(source.earthStorageOpeningMode),
+      scope: normalizeAdminEarthStorageScope(source.earthStorageOpeningScope),
+      relationStrength: {
+        충: "veryStrong",
+        형: "strong",
+        파: "medium",
+        해: "weak",
+      },
+    },
+  };
+}
+
 function normalizeAdminGender(value) {
   const text = String(value || "").trim().toLowerCase();
   if (["m", "male", "man", "남", "남성"].includes(text)) return "M";
@@ -984,6 +1017,7 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
     bazi: baziSnapshot,
     engineContext: {
       marker: "saju-ai-question-prompt-context-v20260617",
+      promptConfig: options.promptConfig || null,
       sourceLayers: [
         "pillars",
         "natal-elements",
@@ -1788,11 +1822,11 @@ async function buildAdminVedicContextFromEngine(profile, env, requestUrl) {
   };
 }
 
-async function buildAdminPromptByService({ service, question, profile, domain, env, requestUrl }) {
+async function buildAdminPromptByService({ service, question, profile, domain, promptConfig, env, requestUrl }) {
   if (service === "saju") {
     return buildSajuAIPromptWithDomain({
       question,
-      sajuResult: buildAdminSajuResultFromEngine(profile, { question, domain }),
+      sajuResult: buildAdminSajuResultFromEngine(profile, { question, domain, promptConfig }),
       domain,
     });
   }
@@ -1865,6 +1899,8 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, questi
     analysisAngles: Array.isArray(built?.analysisAngles) ? built.analysisAngles : [],
     recommendedFollowUpQuestions: Array.isArray(built?.recommendedFollowUpQuestions) ? built.recommendedFollowUpQuestions : [],
     caution: built?.caution || "",
+    engineContextSummary: built?.engineContextSummary || null,
+    advancedFactors: service === "saju" ? (built?.advancedFactors || null) : null,
     questionDigest: built?.questionDigest || built?.digest || "",
     inputProfile: {
       name: profile.name,
@@ -1905,11 +1941,13 @@ async function handleAdminPromptLabGenerate(request, env) {
   const profile = buildAdminPromptProfile(body);
   assertAdminPromptProfileReady(service, profile);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
+  const promptConfig = service === "saju" ? buildAdminSajuPromptConfig(body) : null;
   const built = await buildAdminPromptByService({
     service,
     question,
     profile,
     domain,
+    promptConfig,
     env,
     requestUrl: request.url,
   });
