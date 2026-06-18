@@ -2723,15 +2723,66 @@ async function requireBillingAuth(request, env, pricing = {}) {
   };
 }
 
+function isGenericBillingFeatureKey(featureKey) {
+  const key = String(featureKey || "").trim().toLowerCase();
+  return !key
+    || key === "coin-gate-per-use"
+    || key === "paid-service"
+    || key === "paid_service"
+    || key === "default"
+    || key === "service";
+}
+
 function resolvePricingFromBody(body = {}) {
-  return getBillingFeaturePricing({
+  const baseInput = {
     categoryKey: body?.categoryKey,
     subFeatureKey: body?.subFeatureKey,
     featureKey: body?.featureKey,
     reason: body?.reason,
     mode: body?.mode,
     reportMode: body?.reportMode,
-  });
+  };
+  const initial = getBillingFeaturePricing(baseInput);
+  if (initial?.ok && !isGenericBillingFeatureKey(initial?.pricing?.featureKey)) {
+    return initial;
+  }
+
+  const featureCandidates = [
+    body?.featureKey,
+    body?.subFeatureKey,
+    body?.paidFeatureKey,
+    body?.billingFeatureKey,
+    body?.unlockFeatureKey,
+    body?.accessFeatureKey,
+    body?.serviceKey,
+    body?.productId,
+    body?.contentKey,
+    body?.reportType,
+    body?.reportMode,
+    body?.mode,
+    body?.action,
+  ];
+  const seen = new Set();
+  for (const value of featureCandidates) {
+    const candidate = String(value || "").trim();
+    const dedupeKey = candidate.toLowerCase();
+    if (!candidate || seen.has(dedupeKey) || isGenericBillingFeatureKey(candidate)) continue;
+    seen.add(dedupeKey);
+    const resolved = getBillingFeaturePricing({
+      ...baseInput,
+      categoryKey: "",
+      subFeatureKey: "",
+      featureKey: candidate,
+    });
+    if (resolved?.ok && !isGenericBillingFeatureKey(resolved?.pricing?.featureKey)) {
+      return {
+        ...resolved,
+        source: `feature-candidate:${resolved.source || "feature"}`,
+      };
+    }
+  }
+
+  return initial;
 }
 
 async function processCoinGateFromPricing(request, env, body, pricingResult) {
@@ -2829,7 +2880,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const shouldAutoConsumeUsagePass = !membershipPassOnly
     && !monthlyBalanceRequested
     && !directPaymentRequested
-    && !coinPaymentRequested;
+    && !coinPaymentRequested
+    && false;
   const shouldAutoUnlockWithPass = !monthlyBalanceRequested
     && !directPaymentRequested
     && !coinPaymentRequested;
