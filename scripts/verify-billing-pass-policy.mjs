@@ -142,8 +142,18 @@ assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 3000, "standard pass limit is
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 5000, "premium pass limit is 5,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 10000, "vvip pass limit is 10,000 KRW");
 assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 3, "standard profile limit comes from shared policy");
-assert.equal(HONEY_PASS_POLICY.premium.totalUses, 7, "premium pass use count comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 7, "premium profile limit comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 15, "vvip profile limit comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.family.maxProfiles, 0, "family profile limit remains unlimited");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
+assert.equal(canUseByPass({
+  ...activePass(PASS_TIERS.STANDARD),
+  totalUses: 3,
+  remainingUses: 0,
+  passTotalUses: 3,
+  passRemainingUses: 0,
+  passUsedCount: 3,
+}, 30), true, "standard service access ignores legacy use counters");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
 assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
 assertPassFree(standard30, "standard 30");
@@ -347,6 +357,11 @@ assertContains(billingSource, 'accessMethod: "PASS"', "PASS access method respon
 assertContains(billingSource, "charged: 0", "PASS charged zero response");
 assertContains(billingSource, 'paymentMethod: "PASS"', "PASS usage log marker");
 assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence");
+assertContains(billingSource, "PASS_ACCESS_GRANTED", "30-day tier pass grants access without service-use deduction");
+assertNotContains(billingSource, "PASS_DEDUCT_SUCCESS", "30-day tier pass does not use service-use deduction logs");
+assertNotContains(billingSource, "PASS_DEDUCT_DUPLICATE_RETURNED", "30-day tier pass duplicate path does not use deduction logs");
+assertNotContains(billingSource, "pass_used_up", "tier pass is not blocked by service-use counters");
+assertNotContains(billingSource, '"profileSubscription.passRemainingUses"', "tier pass updates do not store service-use counters");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
 assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI result only for family");
@@ -416,7 +431,15 @@ assertContains(indexSource, "CD_PAID_PRECHECK_TTL_MS = 30000", "paid feature pre
 assertContains(indexSource, "MONTHLY_CREDIT_SYNC_FRESH_TTL_MS = 15000", "monthly credit sync fresh TTL");
 assertContains(indexSource, "monthlyCreditSyncPromise", "monthly credit sync in-flight dedupe");
 assertNotContains(indexSource, "retry=1&reason=", "monthly credit sync avoids third retry request");
-assertContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck can bypass modal");
+assertNotContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck must not bypass equal-priority payment choice");
+assertNotContains(indexSource, "function showChoiceWait", "payment choice does not open duplicate wait overlay before checkout handler");
+assertNotContains(indexSource, "showChoiceWait(mode)", "payment choice click does not flash a duplicate wait overlay");
+assertContains(indexSource, "window.__cdPortOneV2PreloadPromise", "payment choice modal preloads PortOne SDK for direct payment");
+assertContains(indexSource, "await portOneLoadPromise", "direct payment reuses preloaded PortOne SDK promise");
+assertContains(indexSource, "typeof _cdSetCoinGateOverlay === 'function' && (typeof _cdIsCoinGateOverlayVisible !== 'function' || !_cdIsCoinGateOverlayVisible())", "direct checkout keeps existing wait overlay instead of reopening it");
+assertContains(indexSource, "status: 'paymentWindowOpen'", "single payment wait UI remains while PortOne auth is open");
+assertContains(indexSource, "status: 'paymentProcessing'", "payment wait UI remains during server confirmation");
+assertContains(indexSource, "updateSharedPaidGate('paymentProcessing', '월정석 결제를 확인하고 있습니다.'", "monthly payment wait UI starts from the actual monthly charge request");
 assertContains(indexSource, "__cdMonthlyCreditGateInFlight", "monthly payment request has single-flight guard");
 assertContains(indexSource, "단건 결제가 완료되어 열람되었습니다.", "single payment success copy");
 assertContains(indexSource, "월정석 결제가 완료되었습니다.", "monthly payment success copy");
@@ -438,7 +461,11 @@ assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAc
 assertContains(indexSource, "passButtonHtml", "pass store card remains behind explicit allowPassChoice");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.standard.maxProfiles", "subscription plan uses shared standard profile policy");
-assertContains(paymentsSource, "passTotalUses: HONEY_PASS_POLICY.premium.totalUses", "subscription plan uses shared premium pass use policy");
+assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.premium.maxProfiles", "subscription plan uses shared premium profile policy");
+assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles", "subscription plan uses shared vvip profile policy");
+assertNotContains(paymentsSource, "passTotalUses:", "subscription plans do not store service-use counts");
+assertNotContains(paymentsSource, "passRemainingUses", "subscription writes do not store remaining service-use counts");
+assertNotContains(paymentsSource, "passUsedCount", "subscription writes do not store service-use counts");
 assertContains(paymentsSource, "maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin", "subscription plan uses shared vvip coin policy");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
 assertContains(indexSource, "width:min(520px,100%)", "legacy modal width");
@@ -470,6 +497,9 @@ assertContains(billingClientSource, "snapshotPassServerCheckFirst", "React billi
 assertContains(billingClientSource, "eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst", "React billing client skips duplicate eligibility lookup before server pass check");
 assertContains(billingClientSource, "passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst", "React billing client prioritizes pass before payment processing");
 assertContains(billingClientSource, "runtimeData.freeBySubscription === true", "React billing client treats server pass responses as entitlement success");
+assertNotContains(billingClientSource, "remainingUses <= 0", "React billing client must not block 30-day passes by service-use counters");
+assertNotContains(billingClientSource, "passTotalUses", "React billing client does not restore service-use counters from pass payloads");
+assertNotContains(billingClientSource, "passRemainingUses", "React billing client does not restore remaining service-use counters from pass payloads");
 assertContains(billingClientSource, "FAMILY 이용권이 적용되었습니다.", "React family license pass success copy");
 assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate rejects failure statuses");
 assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");

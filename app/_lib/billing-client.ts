@@ -371,16 +371,6 @@ export function decidePaidFeatureAccess(entitlement: EntitlementStatus, feature:
     };
   }
 
-  const remainingUses = entitlement.remainingUses;
-  if (typeof remainingUses === "number" && remainingUses <= 0) {
-    return {
-      allowed: false,
-      reason: "PLAN_LIMIT_EXCEEDED",
-      shouldOpenPaymentModal: true,
-      shouldConsumePass: false,
-    };
-  }
-
   const maxCoinCovered = typeof entitlement.maxCoinCovered === "number"
     ? entitlement.maxCoinCovered
     : maxCoinCoveredForPlan(plan);
@@ -1026,7 +1016,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             const entitlementStatus: EntitlementStatus = {
               isActive: latest.data?.pass.hasActivePass === true,
               plan: normalizeEntitlementPlan(latest.data?.pass.tier),
-              remainingUses: latest.data?.pass.remainingUses ?? null,
+              remainingUses: null,
               maxCoinCovered: latest.data?.pass.tier === "family" ? null : latest.data?.pass.limit ?? null,
               source: "server",
             };
@@ -2019,24 +2009,6 @@ export async function fetchPaymentEligibility(input: {
       ?? membershipPass?.maxCoveredCoin,
     NaN,
   );
-  const passTotalUses = toNumber(
-    options.totalUses
-      ?? options.passTotalUses
-      ?? data.totalUses
-      ?? data.passTotalUses
-      ?? membershipPass?.totalUses
-      ?? membershipPass?.passTotalUses,
-    NaN,
-  );
-  const passRemainingUses = toNumber(
-    options.remainingUses
-      ?? options.passRemainingUses
-      ?? data.remainingUses
-      ?? data.passRemainingUses
-      ?? membershipPass?.remainingUses
-      ?? membershipPass?.passRemainingUses,
-    NaN,
-  );
   const accessDecision = asRecord(data.accessDecision);
   const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
   const familyAllAccess = hasActivePass && passTier === "family";
@@ -2072,8 +2044,8 @@ export async function fetchPaymentEligibility(input: {
       tier: passTier,
       label: labelForPassTier(passTier),
       limit: normalizedPassLimit,
-      totalUses: Number.isFinite(passTotalUses) ? Math.floor(passTotalUses) : null,
-      remainingUses: Number.isFinite(passRemainingUses) ? Math.floor(passRemainingUses) : null,
+      totalUses: null,
+      remainingUses: null,
       canUse: Boolean(familyAllAccess || (options.canUseByPass ?? data.canUseByPass ?? passCovered)),
     },
     monthly: {
@@ -2090,7 +2062,7 @@ export async function fetchPaymentEligibility(input: {
   const entitlementStatus: EntitlementStatus = {
     isActive: eligibility.pass.hasActivePass,
     plan: normalizeEntitlementPlan(eligibility.pass.tier),
-    remainingUses: eligibility.pass.remainingUses ?? null,
+    remainingUses: null,
     maxCoinCovered: eligibility.pass.tier === "family" ? null : eligibility.pass.limit,
     source: "server",
   };

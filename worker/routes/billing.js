@@ -48,7 +48,6 @@ import {
   canUseByPass,
   normalizePassTier,
   PASS_LIMITS,
-  PASS_TOTAL_USES,
   resolveActivePassPolicy,
 } from "../lib/profile-limits.js";
 import {
@@ -359,8 +358,7 @@ function resolvePassPolicyForTier(tierRaw) {
   if (!tier) return null;
   return {
     tier,
-    maxCoinLimit: tier === "family" ? null : Number(PASS_LIMITS[tier] || 0),
-    totalUses: tier === "family" ? null : Number(PASS_TOTAL_USES[tier] || 0),
+    maxCoinLimit: Number(PASS_LIMITS[tier] || 0),
   };
 }
 
@@ -377,30 +375,17 @@ function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}
     return {
       tier: policy.tier,
       passTier: policy.tier,
-      maxCoinLimit: null,
+      maxCoinLimit: policy.maxCoinLimit,
       totalUses: null,
       remainingUses: null,
     };
   }
-  const totalUses = firstFiniteNonNegativeNumber([
-    profileSubscription.passTotalUses,
-    profileSubscription.totalUses,
-    entitlement.totalUses,
-    policy.totalUses,
-  ]) ?? policy.totalUses;
-  const remainingUses = firstFiniteNonNegativeNumber([
-    profileSubscription.passRemainingUses,
-    profileSubscription.remainingUses,
-    profileSubscription.usesRemaining,
-    entitlement.remainingUses,
-    totalUses,
-  ]) ?? totalUses;
   return {
     tier: policy.tier,
     passTier: policy.tier,
     maxCoinLimit: policy.maxCoinLimit,
-    totalUses,
-    remainingUses,
+    totalUses: null,
+    remainingUses: null,
   };
 }
 
@@ -431,7 +416,8 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     if (idempotentUser) {
       const entitlement = resolveActivePassPolicy(idempotentUser || {});
       const usage = resolveTierPassUsageSnapshot(idempotentUser?.profileSubscription || {}, entitlement);
-      if (usage?.tier) {
+      const policy = resolvePassPolicyForTier(usage?.tier);
+      if (entitlement?.isActive && usage?.tier && policy && (usage.tier === "family" || coinCost <= Number(policy.maxCoinLimit || 0))) {
         return {
           ok: true,
           idempotent: true,
@@ -446,10 +432,8 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           profileId,
           coinCost,
           amountKRW,
-          remainingUses: usage.remainingUses,
-          totalUses: usage.totalUses,
-          remainingUsesBefore: usage.remainingUses,
-          remainingUsesAfter: usage.remainingUses,
+          remainingUses: null,
+          totalUses: null,
           user: {
             id: String(authUserId || ""),
             points: Number(idempotentUser?.points || 0),
@@ -478,60 +462,15 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
       amountKRW,
       passTier: usage.tier,
       passLimit: policy.maxCoinLimit,
-      remainingUses: usage.remainingUses,
-    };
-  }
-  if (usage.tier !== "family" && Number(usage.remainingUses || 0) <= 0) {
-    return {
-      ok: false,
-      reason: "pass_used_up",
-      featureKey,
-      coinCost,
-      amountKRW,
-      passTier: usage.tier,
-      passLimit: policy.maxCoinLimit,
-      remainingUses: 0,
-    };
-  }
-
-  if (usage.tier === "family") {
-    return {
-      ok: true,
-      tier: "family",
-      passTier: "family",
-      accessMethod: "family",
-      transactionType: "family_pass",
-      accessType: "family",
-      requestId: normalizedRequestId,
-      idempotencyKey: idempotencyMarker || normalizedRequestId,
-      featureKey,
-      profileId,
-      coinCost,
-      amountKRW,
       remainingUses: null,
-      totalUses: null,
-      remainingUsesBefore: null,
-      remainingUsesAfter: null,
-      user: {
-        id: String(authUserId || ""),
-        points: Number(user?.points || 0),
-        profileSubscription: user?.profileSubscription || null,
-      },
     };
   }
 
-  const totalUses = Math.max(0, Math.floor(Number(usage.totalUses || policy.totalUses || 0)));
-  const remainingBefore = Math.max(0, Math.floor(Number(usage.remainingUses || 0)));
   const now = new Date();
+  const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const updateQuery = {
     _id: authUserId,
     ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
-    $expr: {
-      $gt: [
-        { $ifNull: ["$profileSubscription.passRemainingUses", totalUses] },
-        0,
-      ],
-    },
     $and: [
       {
         $or: [
@@ -561,24 +500,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
       {
         $set: {
           "profileSubscription.passTier": usage.tier,
-          "profileSubscription.passTotalUses": {
-            $ifNull: ["$profileSubscription.passTotalUses", totalUses],
-          },
-          "profileSubscription.passRemainingUses": {
-            $subtract: [
-              { $ifNull: ["$profileSubscription.passRemainingUses", totalUses] },
-              1,
-            ],
-          },
-          "profileSubscription.passUsedCount": {
-            $add: [
-              { $ifNull: ["$profileSubscription.passUsedCount", 0] },
-              1,
-            ],
-          },
-          "profileSubscription.maxCoveredCoin": Number(policy.maxCoinLimit || 0),
-          "profileSubscription.freeLimit": Number(policy.maxCoinLimit || 0),
-          "profileSubscription.passLimit": Number(policy.maxCoinLimit || 0),
+          "profileSubscription.maxCoveredCoin": coveredCoinLimit,
+          "profileSubscription.freeLimit": coveredCoinLimit,
+          "profileSubscription.passLimit": coveredCoinLimit,
           "profileSubscription.updatedAt": now,
           ...(idempotencyMarker ? {
             recentConsumeRequestIds: {
@@ -598,10 +522,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   ).lean();
 
   if (!updatedUser) {
-    return { ok: false, reason: "pass_deduct_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
+    return { ok: false, reason: "pass_access_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
   }
 
-  const remainingAfter = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.passRemainingUses || 0)));
   return {
     ok: true,
     tier: usage.tier,
@@ -615,10 +538,8 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     profileId,
     coinCost,
     amountKRW,
-    remainingUses: remainingAfter,
-    totalUses,
-    remainingUsesBefore: remainingBefore,
-    remainingUsesAfter: remainingAfter,
+    remainingUses: null,
+    totalUses: null,
     user: {
       id: String(authUserId || ""),
       points: Number(updatedUser?.points || 0),
@@ -1429,7 +1350,6 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
       coinPrice: coinCost,
       passTier: entitlement?.passTier || null,
       passLimit: Number(entitlement?.maxCoveredCoin || 0),
-      passRemainingUses: entitlement?.remainingUses ?? body?.passRemainingUses ?? null,
     },
   });
 }
@@ -3013,7 +2933,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       requestId,
       requestedPaymentMode,
-      allowPassAutoUnlock: shouldAutoUnlockWithPass,
+      allowPassAutoUnlock: false,
       subscriptionPass: subscriptionPassForDecision,
       body: scopedBody,
     });
@@ -3282,11 +3202,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           passEligible: false,
           passTier: paymentDecision.passTier,
           passLimit: paymentDecision.passLimit,
-          passRemainingUses: Number(tierPassConsume?.remainingUses || 0),
           idempotencyKey: requestId,
         });
       } else {
-        logPaidAccessStage(tierPassConsume.idempotent ? "PASS_DEDUCT_DUPLICATE_RETURNED" : "PASS_DEDUCT_SUCCESS", {
+        logPaidAccessStage(tierPassConsume.idempotent ? "PASS_ACCESS_DUPLICATE_RETURNED" : "PASS_ACCESS_GRANTED", {
           requestId,
           userId: authCheck.auth.userId,
           featureKey: pricing?.featureKey,
@@ -3298,9 +3217,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           passEligible: true,
           passTier: tierPassConsume.passTier,
           passLimit: paymentDecision.passLimit,
-          passRemainingUsesBefore: tierPassConsume.remainingUsesBefore,
-          passRemainingUsesAfter: tierPassConsume.remainingUsesAfter,
-          passRemainingUses: tierPassConsume.remainingUsesAfter,
           idempotencyKey: tierPassConsume.idempotencyKey || requestId,
         });
       let passEvidence = null;
@@ -3311,11 +3227,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           sessionId: reportSessionId,
           reportSessionId,
           accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
-          passRemainingUses: tierPassConsume.remainingUsesAfter,
         }, {
           ...subscriptionPass.entitlement,
           passTier: tierPassConsume.passTier,
-          remainingUses: tierPassConsume.remainingUsesAfter,
         });
       } catch (error) {
         logBillingRouteError("pass-access-record", error, request, {
@@ -3403,7 +3317,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           amountCoins: tierPassConsume.coinCost,
           amountKRW: tierPassConsume.amountKRW,
           passTier: tierPassConsume.passTier,
-          remainingUses: tierPassConsume.remainingUsesAfter,
           idempotent: Boolean(tierPassConsume.idempotent),
           chargedCoins: 0,
           membershipCreditCost: 0,
@@ -3429,8 +3342,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           freeLimit: subscriptionPass.freeLimit,
           passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
           maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
-          totalUses: tierPassConsume.totalUses,
-          remainingUses: tierPassConsume.remainingUsesAfter,
         },
         user: {
           id: String(authCheck.auth.userId || ""),
@@ -4547,8 +4458,8 @@ async function readSubscriptionStatusSnapshot(request, env) {
       freeLimit: Number(payload?.freeLimit || subscription?.freeLimit || 0),
       passLimit: Number(payload?.passLimit || payload?.freeLimit || subscription?.passLimit || subscription?.freeLimit || 0),
       maxCoveredCoin: Number(payload?.maxCoveredCoin || payload?.passLimit || payload?.freeLimit || subscription?.maxCoveredCoin || subscription?.passLimit || subscription?.freeLimit || 0),
-      totalUses: payload?.totalUses ?? payload?.passTotalUses ?? subscription?.totalUses ?? subscription?.passTotalUses ?? null,
-      remainingUses: payload?.remainingUses ?? payload?.passRemainingUses ?? subscription?.remainingUses ?? subscription?.passRemainingUses ?? null,
+      totalUses: null,
+      remainingUses: null,
       source: payload?.source || subscription?.source || "profile_subscription_status",
       subscription,
     };
@@ -4618,8 +4529,8 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
     freeLimit: Number(subscription.freeLimit || entitlement.maxCoveredCoin || 0),
     passLimit: Number(subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
     maxCoveredCoin: Number(subscription.maxCoveredCoin || subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
-    totalUses: subscription.totalUses ?? entitlement.totalUses ?? null,
-    remainingUses: subscription.remainingUses ?? entitlement.remainingUses ?? null,
+    totalUses: null,
+    remainingUses: null,
     profileSubscription,
     entitlement,
   };
@@ -5103,12 +5014,11 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       passEligible: false,
       passTier: paymentDecision.passTier,
       passLimit: paymentDecision.passLimit,
-      passRemainingUses: Number(tierPassConsume?.remainingUses || 0),
       idempotencyKey: requestId,
     });
     return null;
   }
-  logPaidAccessStage(tierPassConsume.idempotent ? "PASS_DEDUCT_DUPLICATE_RETURNED" : "PASS_DEDUCT_SUCCESS", {
+  logPaidAccessStage(tierPassConsume.idempotent ? "PASS_ACCESS_DUPLICATE_RETURNED" : "PASS_ACCESS_GRANTED", {
     requestId,
     userId: authCheck.auth.userId,
     featureKey: pricing?.featureKey,
@@ -5120,9 +5030,6 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     passEligible: true,
     passTier: tierPassConsume.passTier,
     passLimit: paymentDecision.passLimit,
-    passRemainingUsesBefore: tierPassConsume.remainingUsesBefore,
-    passRemainingUsesAfter: tierPassConsume.remainingUsesAfter,
-    passRemainingUses: tierPassConsume.remainingUsesAfter,
     idempotencyKey: tierPassConsume.idempotencyKey || requestId,
   });
 
@@ -5131,15 +5038,13 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
       ...scopedBody,
       reportId,
-      sessionId: reportSessionId,
-      reportSessionId,
-      accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
-      passRemainingUses: tierPassConsume.remainingUsesAfter,
-    }, {
-      ...subscriptionPass.entitlement,
-      passTier: tierPassConsume.passTier,
-      remainingUses: tierPassConsume.remainingUsesAfter,
-    });
+    sessionId: reportSessionId,
+    reportSessionId,
+    accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+  }, {
+    ...subscriptionPass.entitlement,
+    passTier: tierPassConsume.passTier,
+  });
   } catch (error) {
     logBillingRouteError("pass-access-record", error, request, {
       featureKey: String(pricing?.featureKey || ""),
@@ -5204,7 +5109,6 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       amountCoins: tierPassConsume.coinCost,
       amountKRW: tierPassConsume.amountKRW,
       passTier: tierPassConsume.passTier,
-      remainingUses: tierPassConsume.remainingUsesAfter,
       idempotent: Boolean(tierPassConsume.idempotent),
       chargedCoins: 0,
       membershipCreditCost: 0,
@@ -5230,8 +5134,6 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       freeLimit: subscriptionPass.freeLimit,
       passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
       maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
-      totalUses: tierPassConsume.totalUses,
-      remainingUses: tierPassConsume.remainingUsesAfter,
     },
     user: {
       id: String(authCheck.auth.userId || ""),
