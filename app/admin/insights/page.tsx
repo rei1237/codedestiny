@@ -72,6 +72,7 @@ type PromptLabTimeCorrectionPolicy = "auto" | "clock" | "local_mean" | "true_sol
 type PromptLabDayChangePolicy = "auto" | "midnight" | "late_zi_next_day" | "true_solar_zi_next_day";
 type PromptLabEarthStorageMode = "conservative" | "standard" | "active";
 type PromptLabEarthStorageScope = "natal" | "natal_daewoon" | "natal_sewoon" | "natal_daewoon_sewoon" | "all";
+type PromptLabCalendarType = "solar" | "lunar" | "lunar_leap";
 
 type PromptLabForm = {
   service: PromptLabService;
@@ -79,6 +80,7 @@ type PromptLabForm = {
   name: string;
   gender: "" | "M" | "F";
   birthDate: string;
+  calendarType: PromptLabCalendarType;
   birthTime: string;
   birthTimeUnknown: boolean;
   birthPlace: string;
@@ -178,6 +180,7 @@ const DEFAULT_PROMPT_LAB_FORM: PromptLabForm = {
   name: "",
   gender: "",
   birthDate: "",
+  calendarType: "solar",
   birthTime: "",
   birthTimeUnknown: true,
   birthPlace: "",
@@ -962,7 +965,7 @@ export default function AdminInsightsPage() {
                 </label>
               </div>
 
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <label className="block text-xs text-amber-100/70">
                   생년월일
                   <input
@@ -971,6 +974,18 @@ export default function AdminInsightsPage() {
                     onChange={(e) => updatePromptLabField("birthDate", e.target.value)}
                     className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
                   />
+                </label>
+                <label className="block text-xs text-amber-100/70">
+                  양력/음력
+                  <select
+                    value={promptLabForm.calendarType}
+                    onChange={(e) => updatePromptLabField("calendarType", e.target.value as PromptLabCalendarType)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  >
+                    <option value="solar">양력</option>
+                    <option value="lunar">음력</option>
+                    <option value="lunar_leap">윤달</option>
+                  </select>
                 </label>
                 <label className="block text-xs text-amber-100/70">
                   출생시간

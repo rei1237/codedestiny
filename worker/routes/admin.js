@@ -338,6 +338,16 @@ function adminGenderLabel(gender) {
   return "미지정";
 }
 
+function normalizeAdminCalendarType(value) {
+  const textRaw = String(value || "solar").trim();
+  const text = textRaw.toLowerCase();
+  if (text === "lunar_leap" || text === "leap" || text === "leap_lunar" || textRaw === "윤달" || textRaw === "음력윤달") {
+    return "lunar_leap";
+  }
+  if (text === "lunar" || textRaw === "음력") return "lunar";
+  return "solar";
+}
+
 function parseAdminBirthDate(value) {
   const text = normalizeAdminText(value, 20);
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
@@ -399,11 +409,13 @@ function buildAdminPromptProfile(body) {
   const latitude = toAdminNumber(body?.latitude, null);
   const longitude = toAdminNumber(body?.longitude, null);
   const name = normalizeAdminText(body?.name || "", 80) || "관리자 대상";
+  const calendarType = normalizeAdminCalendarType(body?.calendarType || body?.calType || body?.birth?.calendarType || body?.birth?.calType);
   const timezoneOffsetHours = adminTimezoneOffsetHours(timezone);
   const timeCorrectionPolicy = normalizeAdminTimeCorrectionPolicy(body?.timeCorrectionPolicy || body?.hourPillarTimePolicy);
   const dayChangePolicy = normalizeAdminDayChangePolicy(body?.dayChangePolicy);
   const seed = adminHashText(
     birthDate.text,
+    calendarType,
     birthTime.text,
     gender,
     timezone,
@@ -421,6 +433,7 @@ function buildAdminPromptProfile(body) {
     day: birthDate.day,
     hour: birthTime.hour,
     minute: birthTime.minute,
+    calendarType,
     birthDateText: birthDate.text,
     birthTimeText: birthTime.text,
     timeUnknown: birthTime.timeUnknown,
@@ -443,7 +456,9 @@ function buildAdminBirthObject(profile) {
     hour: profile.hour,
     minute: profile.minute,
     gender: profile.gender,
-    calType: "solar",
+    calType: profile.calendarType,
+    calendarType: profile.calendarType,
+    isLeapMonth: profile.calendarType === "lunar_leap",
     timeUnknown: profile.timeUnknown,
     timezone: profile.timezone,
     lat: profile.latitude,
@@ -883,7 +898,8 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
       day: profile.day,
       hour: profile.hour,
       minute: profile.minute,
-      calendarType: "solar",
+      calendarType: profile.calendarType,
+      isLeapMonth: profile.calendarType === "lunar_leap",
       unknownTime: profile.timeUnknown,
       timezone: profile.timezone,
       birthPlace: profile.birthPlace,
@@ -1907,6 +1923,7 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, questi
       gender: profile.gender,
       genderLabel: profile.genderLabel,
       birthDate: profile.birthDateText,
+      calendarType: profile.calendarType,
       birthTime: profile.birthTimeText,
       birthTimeUnknown: profile.timeUnknown,
       birthPlace: profile.birthPlace || "",
