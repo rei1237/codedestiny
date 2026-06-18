@@ -327,9 +327,13 @@
     if (typeof window._cdChooseServicePaymentMode === "function" && typeof window._cdRunDirectKrwCheckout === "function") {
       return window._cdChooseServicePaymentMode({
         title: reason,
+        reason: reason,
         coinPrice: cost,
         cost: cost,
+        amountKrw: Math.max(0, Number(cost || 0)) * 100,
+        featureKey: featureKey,
       }).then(function(choice) {
+        if (choice === "pass" || choice === "pass_applied") return true;
         if (choice === "direct") {
           if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, (Math.max(0, Number(cost || 0)) * 100).toLocaleString("ko-KR") + "원 결제를 확인하는 중입니다...");
           return window._cdRunDirectKrwCheckout({

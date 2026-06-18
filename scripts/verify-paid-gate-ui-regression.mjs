@@ -116,7 +116,7 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
-assertContains(indexSource, "var allowPassChoice = opts.allowPassChoice === true", "pass option is explicit precheck-only policy");
+assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
 assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
 assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
+  <script src="/js/destiny-profile.js?v=build-285876508574"></script>
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -1170,6 +1171,53 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         idempotencyKey:requestId,
         cost: COIN_COST,
       };
+      if(typeof window._cdCoinGatePerUse==='function'){
+        var gatePayload=null;
+        var gateGranted=false;
+        var gateResult=window._cdCoinGatePerUse(
+          COIN_COST,
+          body.reason,
+          function(_transactionId,payload){
+            gateGranted=true;
+            gatePayload=payload;
+          },
+          function(){
+            gateGranted=false;
+          },
+          {
+            categoryKey:body.categoryKey,
+            featureKey:body.featureKey,
+            reportType:body.reportType,
+            reason:body.reason,
+            reportId:body.reportId,
+            sessionId:body.sessionId,
+            reportSessionId:body.reportSessionId,
+            idempotencyKey:body.idempotencyKey,
+            serviceKey:'celestial-harmony',
+            action:'generateCelestialHarmony',
+            forceDeduct:true,
+            requestId:body.requestId
+          }
+        );
+        if(gateResult&&typeof gateResult.then==='function') gateResult=await gateResult;
+        if(gateGranted || (gateResult&&gateResult.ok!==false)){
+          var source=gatePayload || (gateResult&&gateResult.payload) || gateResult;
+          var gateNormalized=extractCoinGateResult(source, body);
+          if(gateNormalized.premiumAccessToken) persistPremiumToken(gateNormalized.premiumAccessToken);
+          return {
+            transactionId:clean(gateNormalized.transactionId),
+            purchaseId:clean(gateNormalized.purchaseId),
+            reportId:clean(gateNormalized.reportId || reportId),
+            accessGrant:gateNormalized.accessGrant,
+            consume:gateNormalized.consume,
+            premiumAccessToken:gateNormalized.premiumAccessToken,
+            requestId:clean(gateNormalized.requestId || body.requestId),
+          };
+        }
+        var cancelled=new Error('결제가 취소되었습니다.');
+        cancelled.code='PAYMENT_CANCELLED';
+        throw cancelled;
+      }
       console.log('[CelestialHarmony][Access] token/report/session state', {
         reportId: reportId,
         requestId: requestId,

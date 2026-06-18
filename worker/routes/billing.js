@@ -516,6 +516,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
       },
     ],
     {
+      updatePipeline: true,
       returnDocument: "after",
       projection: { points: 1, profileSubscription: 1 },
     },

@@ -59,34 +59,6 @@
     if (!match) return '';
     return _normalizeBirthDateInput(match[1] + String(match[2]).padStart(2, '0') + String(match[3]).padStart(2, '0'));
   }
-  function _birthDateDigits(value) {
-    var iso = _normalizeBirthDateInput(value);
-    return iso ? iso.replace(/\D/g, '') : _clean(value).replace(/\D/g, '').slice(0, 8);
-  }
-  function _installBirthDateDigitInputs(root) {
-    try {
-      var scope = root || document;
-      Array.prototype.forEach.call(scope.querySelectorAll('#skSelfBirthDate, #skPartnerBirthDate'), function (el) {
-        if (!el || el.__skBirthDateDigitsBound) return;
-        el.__skBirthDateDigitsBound = true;
-        el.setAttribute('inputmode', 'numeric');
-        el.setAttribute('maxlength', '8');
-        el.addEventListener('input', function () {
-          var next = _clean(el.value).replace(/\D/g, '').slice(0, 8);
-          if (el.value !== next) el.value = next;
-        });
-        el.addEventListener('blur', function () {
-          el.value = _birthDateDigits(el.value);
-        });
-        el.value = _birthDateDigits(el.value);
-      });
-    } catch (_) {}
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { _installBirthDateDigitInputs(document); });
-  } else {
-    _installBirthDateDigitInputs(document);
-  }
   function _num(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
   function _resolveSukuyoCoinCost() {
     var card = document.querySelector('[data-action="gotoSukuyoPremium"][data-coin-cost]');

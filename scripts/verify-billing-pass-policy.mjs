@@ -419,7 +419,7 @@ assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance"
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
-assertContains(indexSource, "var allowPassChoice = opts.allowPassChoice === true", "payment modal pass option is disabled by default");
+assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "payment modal pass option is available by default unless explicitly disabled");
 assertNotContains(indexSource, "var passMode = 'pass';", "payment modal does not offer pass apply option");
 assertNotContains(indexSource, "entitlementGranted = await refreshDirectEntitlementStatus", "payment modal does not re-run pass entitlement check");
 assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
@@ -462,7 +462,7 @@ assertContains(indexSource, "Code Destiny Family 30일", "main shell family paym
 assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
 assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
-assertContains(indexSource, "passButtonHtml", "pass store card remains behind explicit allowPassChoice");
+assertContains(indexSource, "passButtonHtml", "pass retry/store card remains in the payment modal");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.standard.maxProfiles", "subscription plan uses shared standard profile policy");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.premium.maxProfiles", "subscription plan uses shared premium profile policy");

@@ -51,7 +51,7 @@ type PointPackage = {
   points: number;
   featureKey: string;
   description: string;
-  productType: "paid_content" | "pdf_report" | "usage_pass";
+  productType: "paid_content" | "pdf_report";
 };
 
 type PaymentMethodOption = {
@@ -449,18 +449,26 @@ function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefi
   return SUBSCRIPTION_TIER_RANK[normalized] ?? 0;
 }
 
+function getSubscriptionPolicyFreeLimit(tier: SubscriptionTier | string | null | undefined) {
+  const normalized = normalizeSubscriptionTier(tier);
+  if (normalized === "family") return 999999999;
+  if (normalized === "vvip") return 100;
+  if (normalized === "premium") return 50;
+  if (normalized === "standard") return 30;
+  return 0;
+}
+
+function getSubscriptionPolicyProfileLimit(tier: SubscriptionTier | string | null | undefined) {
+  const normalized = normalizeSubscriptionTier(tier);
+  if (normalized === "family") return 0;
+  if (normalized === "vvip") return 15;
+  if (normalized === "premium") return 7;
+  if (normalized === "standard") return 3;
+  return 1;
+}
+
 const POINT_PACKAGES: PointPackage[] = [
-  { id: "saju_unlock_3", title: "사주 잠금 서비스 3개 해제권", amount: 12000, points: 150, featureKey: "usage-pass-saju-unlock-3", description: "사주 잠금 콘텐츠 3개를 필요한 순간에 해제", productType: "usage_pass" },
-  { id: "saju_unlock_5", title: "사주 잠금 서비스 5개 해제권", amount: 19000, points: 250, featureKey: "usage-pass-saju-unlock-5", description: "사주 잠금 콘텐츠 5개를 필요한 순간에 해제", productType: "usage_pass" },
-  { id: "fortune_30_3", title: "30 기준 이하 운세 3회 이용권", amount: 6900, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30 기준 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_30_10", title: "30 기준 이하 운세 10회 이용권", amount: 22500, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30 기준 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_30_30", title: "30 기준 이하 운세 30회 이용권", amount: 63000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30 기준 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
-  { id: "fortune_50_3", title: "50 기준 이하 운세 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50 기준 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_50_10", title: "50 기준 이하 운세 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50 기준 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_50_30", title: "50 기준 이하 운세 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50 기준 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
-  { id: "compat_3", title: "운세 서비스 궁합 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-compat-3", description: "궁합 계열 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "compat_10", title: "운세 서비스 궁합 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-compat-10", description: "궁합 계열 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "compat_30", title: "운세 서비스 궁합 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-compat-30", description: "궁합 계열 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "direct_paid_service", title: "상품별 원화 단건 결제", amount: 3000, points: 30, featureKey: "direct-paid-service", description: "이용권 한도 초과 또는 PDF 서비스는 상품별 원화 단건 결제로 진행됩니다.", productType: "paid_content" },
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -764,6 +772,8 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
   const rawPlanId = value.planId ?? value.plan ?? nested.planId ?? nested.plan;
   const durationMonths = normalizeSubscriptionDurationMonths(value.durationMonths ?? nested.durationMonths, rawPlanId);
   const cancelRequestedAt = normalizeSubscriptionDate(value.cancelRequestedAt ?? nested.cancelRequestedAt);
+  const policyFreeLimit = isActive ? getSubscriptionPolicyFreeLimit(tier) : 0;
+  const normalizedFreeLimit = Number.isFinite(freeLimit) && freeLimit > 0 ? Math.floor(freeLimit) : policyFreeLimit;
 
   return {
     tier,
@@ -771,12 +781,12 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
     isActive,
     startedAt,
     expiresAt,
-    profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : 1,
+    profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : getSubscriptionPolicyProfileLimit(tier),
     ...(durationMonths ? { durationMonths } : {}),
     lowBalanceWarning: !!(value.lowBalanceWarning ?? nested.lowBalanceWarning),
     cancelAtPeriodEnd: !!(value.cancelAtPeriodEnd ?? nested.cancelAtPeriodEnd),
     cancelRequestedAt,
-    freeLimit: Number.isFinite(freeLimit) && freeLimit >= 0 ? Math.floor(freeLimit) : 0,
+    freeLimit: normalizedFreeLimit,
   };
 }
 
@@ -789,11 +799,15 @@ function normalizeFirstSubscription(value: unknown): SubscriptionStatus | null {
 }
 
 function mergeSubscriptionState(prev: SubscriptionStatus, next: SubscriptionStatus): SubscriptionStatus {
+  const policyFreeLimit = next.isActive ? getSubscriptionPolicyFreeLimit(next.tier) : 0;
+  const normalizedFreeLimit = typeof next.freeLimit === "number" && next.freeLimit > 0
+    ? next.freeLimit
+    : policyFreeLimit;
   return {
     ...next,
     startedAt: next.startedAt ?? prev.startedAt ?? null,
     durationMonths: next.durationMonths ?? prev.durationMonths,
-    freeLimit: next.freeLimit ?? prev.freeLimit ?? 0,
+    freeLimit: normalizedFreeLimit,
     lowBalanceWarning: next.lowBalanceWarning ?? prev.lowBalanceWarning,
   };
 }
@@ -1114,9 +1128,9 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 한도 초과 일반 유료 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">이용권 결제 후 유료 기능을 1회 이상 이용하면 환불이 제한될 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
             <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
 
@@ -1772,6 +1786,7 @@ export default function PointsPage() {
           tier: sub.tier || "free",
           isActive: !!sub.isActive,
           profileLimit: sub.profileLimit ?? 1,
+          freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier)) : 0,
           startedAt: sub.startedAt || null,
           durationMonths: sub.durationMonths,
           expiresAt: sub.expiresAt || null,
@@ -1781,6 +1796,7 @@ export default function PointsPage() {
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
         profileLimit: sub.profileLimit ?? 1,
+        freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier)) : 0,
         startedAt: sub.startedAt || null,
         durationMonths: sub.durationMonths,
         expiresAt: sub.expiresAt || null,
@@ -2289,14 +2305,14 @@ export default function PointsPage() {
               expiresAt: data.subscription?.expiresAt || null,
               profileLimit: typeof data.subscription?.profileLimit === "number"
                 ? data.subscription.profileLimit
-                : 1,
+                : getSubscriptionPolicyProfileLimit(data.subscription?.tier || pendingSub.tier),
               durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths ?? pendingSub.durationMonths) ?? pendingSub.durationMonths,
               lowBalanceWarning: false,
               cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
               cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-              freeLimit: 0,
+              freeLimit: getSubscriptionPolicyFreeLimit(data.subscription?.tier || pendingSub.tier),
             };
-            setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+            setSubscription((prev) => mergeSubscriptionState(prev, newSub));
             persistSubscriptionCache(newSub);
           }
 
@@ -2683,14 +2699,14 @@ export default function PointsPage() {
             expiresAt: confirmData.subscription?.expiresAt || null,
             profileLimit: typeof confirmData.subscription?.profileLimit === "number"
               ? confirmData.subscription.profileLimit
-              : 1,
+              : getSubscriptionPolicyProfileLimit(confirmData.subscription?.tier || plan.tier),
             durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
             lowBalanceWarning: false,
             cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
             cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-            freeLimit: 0,
+            freeLimit: getSubscriptionPolicyFreeLimit(confirmData.subscription?.tier || plan.tier),
           };
-          setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+          setSubscription((prev) => mergeSubscriptionState(prev, newSub));
           persistSubscriptionCache(newSub);
         }
 
@@ -2780,14 +2796,14 @@ export default function PointsPage() {
           expiresAt: confirmData.subscription?.expiresAt || null,
           profileLimit: typeof confirmData.subscription?.profileLimit === "number"
             ? confirmData.subscription.profileLimit
-            : 1,
+            : getSubscriptionPolicyProfileLimit(confirmData.subscription?.tier || plan.tier),
           durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-          freeLimit: 0,
+          freeLimit: getSubscriptionPolicyFreeLimit(confirmData.subscription?.tier || plan.tier),
         };
-        setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+        setSubscription((prev) => mergeSubscriptionState(prev, newSub));
         persistSubscriptionCache(newSub);
       }
 
@@ -2852,14 +2868,14 @@ export default function PointsPage() {
           isActive: !!data.subscription?.isActive,
           startedAt: data.subscription?.startedAt || subscription.startedAt || null,
           expiresAt: data.subscription?.expiresAt || null,
-          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
+          profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : getSubscriptionPolicyProfileLimit(data.subscription?.tier || subscription.tier),
           durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths) ?? subscription.durationMonths,
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-          freeLimit: 0,
+          freeLimit: data.subscription?.isActive ? getSubscriptionPolicyFreeLimit(data.subscription?.tier || subscription.tier) : 0,
         };
-        setSubscription((prev) => ({ ...newSub, lowBalanceWarning: prev.lowBalanceWarning, freeLimit: prev.freeLimit || 0 }));
+        setSubscription((prev) => mergeSubscriptionState(prev, { ...newSub, lowBalanceWarning: prev.lowBalanceWarning }));
         persistSubscriptionCache(newSub);
       }
       pushToast("success", data.message || "이용권 상태가 변경되었습니다.");
@@ -2956,8 +2972,8 @@ export default function PointsPage() {
               <p className="font-black text-white">30일 이용권 조건</p>
               <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
               <p className="mt-1 font-bold text-[#f3dd9a]">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
-              <p className="mt-1 font-bold text-[#cab8ff]">월정석으로도 30일 이용권을 활성화할 수 있습니다. 월정석 자체는 보너스 혜택이며 구매·충전할 수 없습니다.</p>
-              <p className="mt-1">유료 기능 이용 전에는 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권으로 유료 기능을 1회 이상 이용한 뒤에는 환불이 제한될 수 있습니다.</p>
+              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다.</p>
+              <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기
               </a>
@@ -2969,7 +2985,7 @@ export default function PointsPage() {
                 onChange={(event) => setIsSubscriptionRefundAgreed(event.currentTarget.checked)}
                 className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-300"
               />
-              <span>30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.</span>
+              <span>원화 결제된 30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.</span>
             </label>
             <div className="mt-4 grid gap-2">
               <button
@@ -2997,7 +3013,7 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-[#cab8ff]/45 bg-[#cab8ff]/18 px-4 py-3 text-left text-slate-100 shadow-[0_10px_22px_rgba(202,184,255,0.14)] transition hover:bg-[#cab8ff]/24 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">월정석으로 이용권 구매</span>
+                <span className="block text-sm font-black">보너스 월정석 사용</span>
                 <span className="mt-1 block text-[12px] font-semibold">
                   {canUseMonthlyCreditForPendingSubscription
                     ? `${formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost)} 차감 후 30일 이용권을 활성화합니다.`

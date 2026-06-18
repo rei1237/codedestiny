@@ -2458,8 +2458,6 @@ async function handleSukuyoYearlyUnlock(request, env) {
         coinPrice: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
         cost: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
         amountKrw: SUKYO_YEARLY_FORTUNE_PRICE_KRW,
-        disablePassChoice: true,
-        disablePassFirst: true,
       },
     },
   });

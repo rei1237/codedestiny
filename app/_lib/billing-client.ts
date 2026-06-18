@@ -257,7 +257,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-b4f5da5e8a31";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-285876508574";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
@@ -739,6 +739,13 @@ function formatCoinValueWon(amount: number): string {
   return formatPaymentWon(Math.max(0, Math.floor(Number(amount || 0))) * 100);
 }
 
+function formatMembershipPassLimitLabel(tier: unknown, limit: number): string {
+  const normalizedTier = toText(tier).toLowerCase();
+  if (normalizedTier === "family" || limit >= 999999999) return "모든 유료 기능 이용 가능";
+  if (limit > 0) return `${formatCoinValueWon(limit)} 이하 기능은 이용권으로 바로 열립니다.`;
+  return "이 기능은 이용권 적용 대상이 아니어서 결제가 필요합니다.";
+}
+
 function escapePaymentText(value: unknown): string {
   return toText(value)
     .replace(/&/g, "&amp;")
@@ -916,9 +923,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passLabel = passTier
     ? `${passTier.toUpperCase()} 이용권`
     : "이용권 확인 완료";
-  const passHint = passLimit > 0
-    ? `${formatCoinValueWon(passLimit)} 상한을 초과해 결제가 필요합니다.`
-    : "이 기능은 이용권으로 바로 열 수 없어 결제가 필요합니다.";
+  const passHint = formatMembershipPassLimitLabel(passTier, passLimit);
   const passStoreTitle = passTier && passTier !== "free" ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
   const passStoreHint = passTier && passTier !== "free"
     ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
@@ -1073,6 +1078,64 @@ function installReactPaymentChoiceBridge() {
   runtimeWindow._cdChooseServicePaymentMode = choiceBridge;
 }
 
+function isMembershipPassAccessType(value: unknown): boolean {
+  const accessType = toText(value).toLowerCase();
+  return accessType === "membership_pass"
+    || accessType === "license_pass"
+    || accessType === "subscription_pass"
+    || accessType === "pass"
+    || accessType === "family"
+    || accessType === "family_pass"
+    || accessType === "already_unlocked"
+    || accessType === "pass_applied";
+}
+
+function isMembershipPassGrantedPayload(value: unknown): boolean {
+  const record = asRecord(value);
+  if (!record) return false;
+  const consume = asRecord(record.consume);
+  const accessGrant = asRecord(record.accessGrant);
+  const accessDecision = asRecord(record.accessDecision);
+  const accessGate = asRecord(record.accessGateResult) || asRecord(record.licensePass);
+  const membershipPass = asRecord(record.membershipPass);
+  const status = toText(
+    record.status
+    || accessDecision?.status
+    || accessGate?.status
+    || membershipPass?.status,
+  ).toLowerCase();
+  const reason = toText(
+    record.reason
+    || accessDecision?.reason
+    || accessGate?.reason
+    || membershipPass?.reason,
+  ).toLowerCase();
+
+  return record.freeBySubscription === true
+    || record.__cdPassGateResolved === true
+    || record.membershipFree === true
+    || record.passApplied === true
+    || membershipPass?.canUse === true
+    || membershipPass?.covered === true
+    || isMembershipPassAccessType(record.accessType)
+    || isMembershipPassAccessType(record.transactionType)
+    || isMembershipPassAccessType(record.accessMethod)
+    || isMembershipPassAccessType(consume?.accessType)
+    || isMembershipPassAccessType(consume?.transactionType)
+    || isMembershipPassAccessType(consume?.accessMethod)
+    || isMembershipPassAccessType(accessGrant?.accessType)
+    || isMembershipPassAccessType(accessGrant?.transactionType)
+    || isMembershipPassAccessType(accessGrant?.accessMethod)
+    || isMembershipPassAccessType(accessDecision?.accessType)
+    || isMembershipPassAccessType(accessDecision?.accessMethod)
+    || status === "license_passed"
+    || status === "already_unlocked"
+    || status === "pass_applied"
+    || reason === "pass_covered"
+    || reason === "family_all_access"
+    || reason === "license_coin_limit";
+}
+
 function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): boolean {
   const record = asRecord(data);
   if (!record) return false;
@@ -1080,9 +1143,11 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
   const pricing = asRecord(record.pricing);
   const pricingFeature = normalizeBillingFeatureKey(pricing?.featureKey);
   const accessDecision = asRecord(record.accessDecision);
+  const featureMatches = !expectedFeature || !pricingFeature || pricingFeature === expectedFeature;
+  if (featureMatches && isMembershipPassGrantedPayload(record)) return true;
   if (
     (record.canAccess === true || record.unlocked === true || accessDecision?.accessGranted === true)
-    && (!expectedFeature || !pricingFeature || pricingFeature === expectedFeature)
+    && featureMatches
   ) {
     return true;
   }
@@ -1500,6 +1565,14 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     chargedCoins: toNumber(consumeSource.chargedCoins ?? consumeSource.cost ?? source.chargedCoins, 0),
   };
   const consumeAccessType = toText(consumeSource.accessType);
+  const sourcePassGranted = source.freeBySubscription === true
+    || source.__cdPassGateResolved === true
+    || isMembershipPassAccessType(source.accessType)
+    || isMembershipPassAccessType(source.transactionType)
+    || isMembershipPassAccessType(source.accessMethod)
+    || isMembershipPassAccessType(consumeAccessType)
+    || isMembershipPassAccessType(consumeSource.transactionType)
+    || isMembershipPassAccessType(consumeSource.accessMethod);
   const user = readRuntimeNestedObject(source, "user");
   const data = {
     ...source,
@@ -1508,7 +1581,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     accessGrant,
     balance: Number.isFinite(Number(source.balance)) ? Number(source.balance) : null,
     user: Object.keys(user).length ? user : null,
-    freeBySubscription: source.freeBySubscription === true || consumeAccessType === "membership_pass",
+    freeBySubscription: sourcePassGranted,
   } as BillingCoinGateData & Record<string, unknown>;
   normalizeBillingBalanceFields(data);
 
@@ -1678,7 +1751,7 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     accessType: toText(detail?.accessType),
   });
 
-  if (status === "checkingEntitlement") return { message: text || "이용권 확인 중입니다.", mode: "pass" };
+  if (status === "checkingEntitlement") return { message: text || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
   if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   if (status === "paymentPreparing") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
   if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
@@ -1690,7 +1763,7 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {
-    if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
+    if (kind === "pass") return { message: text || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
     if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
     if (kind === "monthly") return { message: text || "결제 권한을 확인하고 있습니다.", mode: "monthly" };
     if (kind === "single") return { message: text || "원화 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
@@ -1742,7 +1815,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   const status = String(payload.status || "checkingEntitlement");
   const copyFromStatus: Record<PaidFeatureGateRuntimeStatus, string> = {
     opening: "결제 가능한 수단을 확인하고 있습니다.",
-    checkingEntitlement: "이용권 확인 중입니다.",
+    checkingEntitlement: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
     hasEntitlement: "이용권 적용이 완료되었습니다.",
     noEntitlement: "결제가 필요합니다. 결제 페이지로 이동해 주세요.",
     loadingProducts: "결제 상품 정보를 확인하고 있습니다.",
@@ -1840,7 +1913,7 @@ export function openPaidFeatureGate(input: {
     featureKey: featureId,
     requestId,
     title: input.title,
-    message: input.message || "이용권 확인 중입니다.",
+    message: input.message || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
     status: input.status || "checkingEntitlement",
     cost: input.cost,
     paymentMode: input.paymentMode,
@@ -2120,7 +2193,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     featureKey: featureId,
     requestId: gateRequestId,
     status: skipEntitlementCheck ? "loadingProducts" : "checkingEntitlement",
-    message: skipEntitlementCheck ? "결제 가능한 상품 정보를 준비하고 있습니다." : "이용권 확인 중입니다.",
+    message: skipEntitlementCheck ? "결제 가능한 상품 정보를 준비하고 있습니다." : "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
     paymentMode: input.paymentMode,
     reason: input.reason,
   });
@@ -2238,11 +2311,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           const licenseGate = extractLicenseGateResult(runtimeData);
           const licenseMessage = buildLicensePassOverlayMessage(runtimeData);
           const usagePassApplied = accessType === "usage_pass";
-          const passApplied = runtimeData.freeBySubscription === true
-            || accessType === "membership_pass"
-            || accessType === "family"
-            || accessType === "family_pass"
-            || accessType === "already_unlocked";
+          const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData);
           const entitlementApplied = passApplied || usagePassApplied;
           const entitlementPaymentMode = usagePassApplied ? "USAGE_PASS" : (passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW");
           const successOverlay = resolvePaymentWaitOverlay(entitlementApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
@@ -2369,12 +2438,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       const licenseGate = extractLicenseGateResult(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const licenseMessage = buildLicensePassOverlayMessage(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
-      const passApplied = runtimeData.freeBySubscription === true
-        || passFirstEligible
-        || accessType === "membership_pass"
-        || accessType === "family"
-        || accessType === "family_pass"
-        || accessType === "already_unlocked";
+      const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData) || passFirstEligible;
       const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
         paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
         featureKey: featureId,

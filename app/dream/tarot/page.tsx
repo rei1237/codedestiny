@@ -3,11 +3,11 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const META = {
   path: "/dream/tarot",
-  title: "드림 타로 - 꿈의 잔향을 여는 3카드 리딩",
-  description: "꿈속 장면과 깨어난 뒤의 감정을 세 장의 카드에 겹쳐, 무의식이 남긴 상징과 오늘 봉인할 선택을 읽습니다.",
-  keywords: ["꿈해몽", "드림 타로", "꿈 상징", "dream interpretation", "무의식"],
+  title: "드림 프롬프트 - 꿈의 잔향을 AI 상담 문장으로 봉인",
+  description: "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
+  keywords: ["꿈해몽", "드림 프롬프트", "꿈 상징", "dream prompt", "무의식"],
   image: "https://code-destiny.com/fuctionassets/heamong.webp",
-  featureList: ["꿈 장면의 상징 카드", "깨어난 뒤 감정의 잔향", "오늘 봉인할 작은 선택"],
+  featureList: ["꿈 장면 정리", "깨어난 뒤 감정의 잔향", "AI에게 건넬 질문"],
   applicationCategory: "LifestyleApplication",
 } as const;
 
@@ -18,12 +18,12 @@ export function generateMetadata() {
 const JSON_LD = buildFortuneJsonLd(META);
 
 const SERVICE = {
-  h1: "드림 타로",
+  h1: "드림 프롬프트",
   description: META.description,
   ogImage: META.image,
   landingPoints: [...META.featureList],
-  seoText: "드림 타로는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 옮겨 지금 마음이 붙잡은 신호와 오늘의 회복 방향을 읽는 꿈해몽 리딩입니다.",
-  valueGuideTitle: "꿈의 잔향을 현실 통찰로 바꾸는 6단계",
+  seoText: "드림 프롬프트는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
+  valueGuideTitle: "꿈의 잔향을 AI 상담 문장으로 봉인하는 6단계",
   valueSections: [
     {
       title: "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",

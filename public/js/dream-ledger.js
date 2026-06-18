@@ -771,6 +771,131 @@
     return [];
   }
 
+  function uniquePromptItems(items, limit) {
+    var seen = {};
+    var out = [];
+    (items || []).forEach(function (item) {
+      var value = String(item || '').trim();
+      if (!value || seen[value]) return;
+      seen[value] = true;
+      out.push(value);
+    });
+    return out.slice(0, limit || 8);
+  }
+
+  function extractPromptContextLines(context) {
+    if (!Array.isArray(context)) return [];
+    return context.slice(0, 5).map(function (entry) {
+      if (!entry) return '';
+      var keyword = String(entry.keyword || entry.title || '').trim();
+      var meaning = String(entry.meaning || entry.summary || entry.description || '').trim();
+      if (keyword && meaning) return keyword + ': ' + meaning;
+      return keyword || meaning;
+    }).filter(Boolean);
+  }
+
+  function buildDreamPromptCards(dreamText, localReading, context) {
+    var dream = String(dreamText || '').trim();
+    var reading = localReading || {};
+    var keywords = uniquePromptItems([].concat(
+      Array.isArray(reading.keywords) ? reading.keywords : [],
+      extractPromptContextLines(context).map(function (line) { return line.split(':')[0]; }),
+      dream.split(/\s+/).filter(function (word) { return word.length >= 2; }).slice(0, 5)
+    ), 9);
+
+    var scene = String(reading.scene || reading.summary || dream || '').trim();
+    var symbol = String(reading.symbol || '').trim();
+    var echo = String(reading.echo || '').trim();
+    var questionSeed = keywords.slice(0, 3).join(' · ') || '장면 · 감정 · 선택';
+
+    return [
+      {
+        card_name: '꿈 장면 정리',
+        symbol: '☾',
+        energy_keyword: uniquePromptItems(['장면', '인물', '장소'].concat(keywords), 5).join(' · '),
+        message: scene || '꿈의 첫 장면이 조용히 떠오릅니다.'
+      },
+      {
+        card_name: '상징과 감정 단서',
+        symbol: '✦',
+        energy_keyword: uniquePromptItems(['감정', '상징', '잔향'].concat(keywords.slice(1)), 5).join(' · '),
+        message: symbol || '반복되는 상징과 깨어난 뒤의 감정이 프롬프트의 중심을 이룹니다.'
+      },
+      {
+        card_name: 'AI에게 건넬 질문',
+        symbol: '✶',
+        energy_keyword: uniquePromptItems(['질문', '통찰', '정리'].concat(keywords.slice(2)), 5).join(' · '),
+        message: echo || questionSeed + '의 결을 따라 지금 필요한 질문이 열립니다.'
+      }
+    ];
+  }
+
+  function buildDreamPromptText(dreamText, tone, cards, localReading, context) {
+    var dream = String(dreamText || '').trim();
+    var reading = localReading || {};
+    var cardList = Array.isArray(cards) ? cards : [];
+    var contextLines = extractPromptContextLines(context);
+    var cardLines = cardList.map(function (card, idx) {
+      return (idx + 1) + '. ' + String(card.card_name || '').trim()
+        + ' — ' + String(card.message || card.energy_keyword || '').trim();
+    }).filter(Boolean);
+    var focus = tone === 'career' ? '일, 선택, 현실 리듬'
+      : tone === 'love' ? '관계, 마음의 거리, 감정의 진심'
+      : '회복, 안정, 내면의 균형';
+
+    return [
+      '당신은 꿈 상징 해석가입니다. 아래 꿈의 장면을 바탕으로, 꿈속 상징과 깨어난 뒤의 감정이 지금 삶에서 무엇을 비추는지 다정하고 신비롭게 풀어주세요.',
+      '',
+      '[꿈 원문]',
+      dream || '기억나는 꿈의 장면이 흐릿하게 남아 있습니다.',
+      '',
+      '[상담의 초점]',
+      focus,
+      '',
+      '[카드 단서]',
+      cardLines.join('\n') || '- 꿈 장면 정리 — 아직 선명하지 않은 장면을 먼저 조용히 붙잡아 주세요.',
+      '',
+      contextLines.length ? '[상징 사전 단서]\n' + contextLines.join('\n') + '\n' : '',
+      '[상담의 그릇]',
+      '1. 꿈에서 가장 강하게 떠오르는 상징 3가지를 짚어 주세요.',
+      '2. 그 상징이 감정, 관계, 일상 선택에 어떻게 흐르는지 비춰 주세요.',
+      '3. 오늘 바로 붙잡을 수 있는 작은 행동 3가지를 제안해 주세요.',
+      '4. 마지막에는 한 문장의 봉인 문장을 남겨 주세요.',
+      '',
+      '[봉인할 경계]',
+      '미래를 단정하거나 불안을 키우지 말고, 제작 과정이나 도구 이름은 장막 뒤에 두세요.'
+    ].filter(Boolean).join('\n');
+  }
+
+  function buildLocalDreamPromptRecord(dreamText, tone, localReading, context) {
+    var reading = localReading || {};
+    var cards = buildDreamPromptCards(dreamText, reading, context);
+    var promptText = buildDreamPromptText(dreamText, tone, cards, reading, context);
+    var keywords = uniquePromptItems([].concat(
+      Array.isArray(reading.keywords) ? reading.keywords : [],
+      cards.map(function (card) { return card.card_name; })
+    ), 10);
+
+    return {
+      kind: 'dream_prompt',
+      title: '꿈 프롬프트 생성서',
+      summary: String(reading.summary || '꿈의 장면과 감정의 잔향이 AI에게 건넬 질문으로 모입니다.').trim(),
+      scene: cards[0].message,
+      symbol: cards[1].message,
+      echo: cards[2].message,
+      keywords: keywords,
+      cards: cards,
+      promptText: promptText,
+      aiConsultMarkdown: promptText,
+      goldenAdvice: '이 프롬프트는 꿈의 잔향을 과장하지 않고, 지금 마음이 붙잡은 상징을 차분히 비추도록 봉인되었습니다.',
+      finalSpell: '나는 꿈의 언어를 분명한 질문으로 봉인한다.',
+      goldenCardName: '최종 프롬프트',
+      goldenCardSymbol: '✶',
+      goldenTone: tone || state.goldenTone,
+      usedDreamText: dreamText
+    };
+  }
+
   function loadScriptOnce(src) {
     var norm = String(src || '').trim();
     if (!norm) return Promise.reject(new Error('missing src'));
@@ -1297,7 +1422,7 @@
     list.unshift({
       id: id,
       createdAt: Date.now(),
-      title: state.reading.title || '드림 타로',
+      title: state.reading.title || '꿈 프롬프트',
       summary: state.reading.summary || '',
       reading: state.reading
     });
@@ -1312,12 +1437,12 @@
 
     var list = readArchive();
     if (!list.length) {
-      listEl.innerHTML = '<div class="dream-archive-item"><div class="dream-archive-meta">저장된 해몽이 없습니다. 해몽 후 [꿈 저장소]를 눌러 보관해보세요.</div></div>';
+      listEl.innerHTML = '<div class="dream-archive-item"><div class="dream-archive-meta">저장된 꿈 프롬프트가 없습니다. 생성 후 [프롬프트 저장소]를 눌러 보관해보세요.</div></div>';
       return;
     }
 
     listEl.innerHTML = list.map(function (item) {
-      var title = item.title || '드림 타로';
+      var title = item.title || '꿈 프롬프트';
       var summary = (item.summary || '').slice(0, 72);
       return '<article class="dream-archive-item">'
         + '<div class="dream-archive-title">' + title + '</div>'
@@ -1339,7 +1464,7 @@
     $('dreamCardSummary').textContent = state.reading.summary;
     renderKeywordChips(state.reading.keywords);
     renderCardFaces(state.reading);
-    $('dreamStageTitle').textContent = '첫 번째 카드가 꿈의 근원을 비춥니다.';
+    $('dreamStageTitle').textContent = '첫 번째 카드가 꿈 장면을 정리합니다.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var goldenAdviceText = $('dreamGoldenAdvice');
@@ -1348,7 +1473,7 @@
     if (finalConsultText) finalConsultText.textContent = '';
 
     var cardName4 = $('dreamCardName4');
-    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '봉인 카드') + ']';
+    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '최종 프롬프트') + ']';
     var cardSymbol4 = $('dreamCardSymbol4');
     if (cardSymbol4) cardSymbol4.textContent = reading.goldenCardSymbol || '✶';
 
@@ -1411,9 +1536,9 @@
 
   function stagePayload(s) {
     if (!state.reading) return { title: '', text: '' };
-    if (s === 1) return { title: '1장 · 꿈의 근원', text: state.reading.scene };
-    if (s === 2) return { title: '2장 · 마음의 전언', text: state.reading.symbol };
-    return { title: '3장 · 내일의 지침', text: state.reading.echo };
+    if (s === 1) return { title: '1장 · 꿈 장면 정리', text: state.reading.scene };
+    if (s === 2) return { title: '2장 · 상징과 감정 단서', text: state.reading.symbol };
+    return { title: '3장 · AI에게 건넬 질문', text: state.reading.echo };
   }
 
   function normalizedFinalSpell(reading) {
@@ -1430,13 +1555,16 @@
     var raw = reading && reading.goldenAdvice ? String(reading.goldenAdvice) : '';
     var text = raw.trim();
     if (!text) {
-      return '세 장의 장면은 지금 당신이 버텨온 시간을 인정하라고 말합니다. 오늘은 완벽함보다 회복을 먼저 선택하세요. 한 가지 작은 일만 끝내도 충분히 앞으로 가고 있습니다. 당신의 속도를 지키는 것이 가장 현실적인 승리입니다.';
+      return '세 장의 장면은 지금 당신이 버텨온 시간을 조용히 비춥니다. 오늘은 완벽함보다 회복을 먼저 선택하세요. 한 가지 작은 일만 끝내도 충분히 앞으로 가고 있습니다. 당신의 속도를 지키는 것이 가장 현실적인 승리입니다.';
     }
     return text;
   }
 
   function buildFinalConsulting(reading) {
     if (!reading) return '';
+    if (reading.promptText) {
+      return String(reading.promptText || '').trim();
+    }
     var title = String(reading.title || '오늘의 꿈');
     var summary = String(reading.summary || '').trim();
     var finalSpell = normalizedFinalSpell(reading);
@@ -1449,7 +1577,7 @@
 
     if (aiConsult) {
       return [
-        '■ 드림 타로 종합 리딩 — ' + title,
+        '■ 꿈 프롬프트 — ' + title,
         '',
         aiConsult,
         '',
@@ -1468,7 +1596,7 @@
     }
 
     return [
-      '■ 드림 타로 종합 리딩 — ' + title,
+      '■ 꿈 프롬프트 — ' + title,
       '',
       '【꿈의 첫 문장】',
       summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
@@ -1501,7 +1629,7 @@
 
     if (nextBtn) nextBtn.style.display = 'none';
     if (stageText) stageText.textContent = '';
-    if (title) title.textContent = '4장 · 봉인 카드의 조언';
+    if (title) title.textContent = '4장 · 최종 프롬프트 봉인';
 
     triggerGoldenImpactFeedback();
     setGoldenTabVisible(true);
@@ -1546,7 +1674,7 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('봉인 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
+        setWizardLine('최종 프롬프트가 봉인되었습니다. 마음에 맞는 AI에게 그대로 건네보세요.');
         return;
       }
 
@@ -1557,14 +1685,14 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('봉인 카드 조언과 종합 리딩이 모두 완성되었습니다. 지금 바로 실행할 한 가지를 정해보세요.');
+        setWizardLine('꿈의 잔향이 하나의 프롬프트로 엮였습니다. 필요한 곳에 그대로 건네보세요.');
       });
     });
   }
 
   function scheduleGoldenStageReveal() {
     clearGoldenTimer();
-    setWizardLine('세 장의 서사가 하나로 모이는 중입니다. 곧 봉인 카드가 마지막 문장을 엽니다.');
+    setWizardLine('세 장의 단서가 하나로 모이는 중입니다. 곧 최종 프롬프트가 열립니다.');
     state.goldenTimer = setTimeout(function () {
       state.goldenTimer = null;
       revealGoldenStage();
@@ -1588,7 +1716,7 @@
       overlay.classList.add('dream-ledger-overlay--show');
     });
     syncInputEnergy();
-    setWizardLine('반갑습니다, 무의식의 여행자여. 꿈의 서재를 열고 오늘 밤의 장면을 적어주세요.');
+    setWizardLine('반갑습니다, 무의식의 여행자여. 꿈의 잔향을 AI에게 건넬 문장으로 봉인해보세요.');
     renderSpeedButtons();
     renderToneButtons();
     renderDreamLibraryCategoryButtons();
@@ -1636,10 +1764,10 @@
     $('dreamResultWrap').style.display = 'none';
     if ($('dreamArchivePanel')) $('dreamArchivePanel').style.display = 'none';
     $('dreamLoader').style.display = 'none';
-    setLoaderText('카드가 꿈의 파장을 모으는 중입니다...');
+    setLoaderText('카드가 꿈의 잔향을 프롬프트로 엮는 중입니다...');
     resetCards();
     renderKeywordChips([]);
-    $('dreamStageTitle').textContent = '카드를 열어 꿈이 남긴 문장을 확인하세요.';
+    $('dreamStageTitle').textContent = '카드를 열어 꿈이 남긴 프롬프트 단서를 확인하세요.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var spellWrap = $('dreamFinalSpellWrap');
@@ -1770,8 +1898,15 @@
     if (!localReading || !consultRecord) return localReading;
     var merged = localReading;
 
+    if (consultRecord.title) {
+      merged.title = String(consultRecord.title || '').trim() || merged.title;
+    }
     if (consultRecord.summary) {
       merged.summary = String(consultRecord.summary || '').trim() || merged.summary;
+    }
+    if (consultRecord.promptText) {
+      merged.promptText = String(consultRecord.promptText || '').trim();
+      merged.aiConsultMarkdown = merged.promptText;
     }
     if (consultRecord.goldenAdvice) {
       merged.goldenAdvice = String(consultRecord.goldenAdvice || '').trim() || merged.goldenAdvice;
@@ -1784,8 +1919,35 @@
         return String(item || '').trim();
       }).filter(Boolean);
     }
+    if (Array.isArray(consultRecord.cards) && consultRecord.cards.length) {
+      merged.cards = consultRecord.cards.slice(0, 3).map(function (card, idx) {
+        var fallback = merged.cards && merged.cards[idx] ? merged.cards[idx] : {};
+        var energyKeyword = Array.isArray(card.keywords)
+          ? card.keywords.slice(0, 5).join(' · ')
+          : String(card.energy_keyword || card.keywords || fallback.energy_keyword || '').trim();
+        return {
+          card_name: String(card.card_name || card.name || fallback.card_name || ('프롬프트 카드 ' + (idx + 1))).trim(),
+          symbol: String(card.symbol || fallback.symbol || '✦').trim(),
+          energy_keyword: energyKeyword,
+          message: String(card.message || fallback.message || '').trim(),
+          tarot_image_url: String(card.tarot_image_url || fallback.tarot_image_url || '').trim()
+        };
+      });
+    }
     if (consultRecord.model) {
       merged.aiModel = String(consultRecord.model || '').trim();
+    }
+    if (consultRecord.kind) {
+      merged.kind = String(consultRecord.kind || '').trim();
+    }
+    if (consultRecord.finalSpell) {
+      merged.finalSpell = String(consultRecord.finalSpell || '').trim() || merged.finalSpell;
+    }
+    if (consultRecord.goldenCardName) {
+      merged.goldenCardName = String(consultRecord.goldenCardName || '').trim() || merged.goldenCardName;
+    }
+    if (consultRecord.goldenCardSymbol) {
+      merged.goldenCardSymbol = String(consultRecord.goldenCardSymbol || '').trim() || merged.goldenCardSymbol;
     }
 
     var stageReadings = consultRecord.stageReadings && typeof consultRecord.stageReadings === 'object'
@@ -1827,14 +1989,14 @@
 
     var ai = window.DreamLedgerAI;
     if (!ai || typeof ai.interpretDream !== 'function') {
-      setLoaderText('드림 타로의 문을 여는 중입니다...');
+      setLoaderText('드림 프롬프트의 문을 여는 중입니다...');
       $('dreamLoader').style.display = 'block';
       ensureDreamLedgerAiReady().then(function (loadedAi) {
         if (loadedAi && typeof loadedAi.interpretDream === 'function') {
           window.startDreamReading();
           return;
         }
-        setLoaderText('드림 타로의 문이 잠시 닫혀 있습니다. 잠시 후 다시 시도해 주세요.');
+        setLoaderText('드림 프롬프트의 문이 잠시 닫혀 있습니다. 잠시 후 다시 시도해 주세요.');
         setTimeout(function () {
           $('dreamLoader').style.display = 'none';
         }, 1500);
@@ -1849,9 +2011,9 @@
     $('dreamLoader').style.display = 'block';
 
     syncInputEnergy();
-    setWizardLine('꿈의 장면을 조용히 펼칩니다. 카드가 차례대로 서사를 들려줄 거예요.');
-    setLoaderText('카드가 상징의 결을 읽는 중...');
-    setTimeout(function () { setLoaderText('세 장의 카드에 꿈의 서사를 새기는 중...'); }, 700);
+    setWizardLine('꿈의 장면을 조용히 펼칩니다. 카드가 프롬프트 단서로 차례차례 정리됩니다.');
+    setLoaderText('꿈의 장면을 프롬프트 단서로 정리하는 중...');
+    setTimeout(function () { setLoaderText('세 장의 카드에 AI에게 건넬 질문을 새기는 중...'); }, 700);
 
     setTimeout(function () {
       var reading;
@@ -1875,7 +2037,7 @@
             reasons: enhancedReading._pipelineFallbacks,
             fallbackReason: enhancedReading.fallbackReason
           });
-          setWizardLine('일부 카드 전언이 늦어져, 꿈의 기본 서사와 함께 리딩을 완성했습니다.');
+          setWizardLine('일부 전언이 늦어져, 꿈의 기본 단서로 프롬프트를 완성했습니다.');
         }
         hydrateReading(enhancedReading);
         setInteractionLocked(false);
@@ -1887,92 +2049,38 @@
         }
       }
 
-      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → dream 상담 병합 → 최종화
       var pipelineFallbacks = [];
       var dreamLibraryContext = buildDreamLibraryContext(text);
+      var localPromptRecord = buildLocalDreamPromptRecord(text, state.goldenTone, reading, dreamLibraryContext);
 
-      setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
-      callDreamTarotApi('draw', { spreadType: 'three_card_past_present_future' })
-        .then(function (drawData) {
-          if (!drawData || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
-            pipelineFallbacks.push('draw:cards-missing');
-            return null;
-          }
-          return callDreamTarotApi('reading', {
-            category: 'dream_tarot',
-            spreadType: 'three_card_past_present_future',
-            cards: drawData.cards,
-            dreamText: text,
-            userQuestion: '이 꿈의 핵심 상징을 타로 3장으로 구체 해석해줘: ' + text,
-            userContext: {
-              dreamText: text,
-              localSummary: String(reading.summary || '').trim(),
-              localStageReadings: {
-                scene: String(reading.scene || '').trim(),
-                symbol: String(reading.symbol || '').trim(),
-                echo: String(reading.echo || '').trim()
-              },
-              dreamLibraryContext: dreamLibraryContext,
-              tone: state.goldenTone
-            }
-          })
-          .then(function (readingData) {
-            return { drawData: drawData, readingData: readingData };
-          })
-          .catch(function (error) {
-            pipelineFallbacks.push('reading:' + String(error && error.message || 'failed'));
-            console.warn('[DreamTarot] reading-fallback', error);
-            return { drawData: drawData, readingData: null };
-          });
-        })
-        .then(function (apiResult) {
-          var drawData = apiResult && apiResult.drawData ? apiResult.drawData : null;
-          var readingData = apiResult && apiResult.readingData ? apiResult.readingData : null;
-          var consultCards = buildConsultCardsPayload(reading, drawData);
-
-          if (apiResult && apiResult.drawData) {
-            reading = mergeTarotApiIntoReading(reading, drawData, readingData);
+      setLoaderText('꿈의 잔향을 AI 프롬프트로 봉인하는 중입니다...');
+      callDreamApi('prompt-maker', {
+        dreamText: text,
+        tone: state.goldenTone,
+        localReading: {
+          title: String(reading.title || '').trim(),
+          summary: String(reading.summary || '').trim(),
+          scene: String(reading.scene || '').trim(),
+          symbol: String(reading.symbol || '').trim(),
+          echo: String(reading.echo || '').trim(),
+          keywords: Array.isArray(reading.keywords) ? reading.keywords.slice(0, 8) : []
+        },
+        dreamLibraryContext: dreamLibraryContext
+      })
+        .then(function (promptData) {
+          if (promptData && promptData.record) {
+            reading = mergeDreamConsultIntoReading(localPromptRecord, promptData.record);
           } else {
-            pipelineFallbacks.push('draw:skipped');
+            pipelineFallbacks.push('prompt:record-missing');
+            reading = localPromptRecord;
           }
-
-          setLoaderText('카드 조합이 마지막 조언을 엮는 중...');
-          return callDreamApi('tarot-consult', {
-            dreamText: text,
-            spreadType: 'three_card_past_present_future',
-            tone: state.goldenTone,
-            cards: consultCards,
-            summary: reading.summary,
-            localReading: {
-              title: String(reading.title || '').trim(),
-              summary: String(reading.summary || '').trim(),
-              scene: String(reading.scene || '').trim(),
-              symbol: String(reading.symbol || '').trim(),
-              echo: String(reading.echo || '').trim(),
-              keywords: Array.isArray(reading.keywords) ? reading.keywords.slice(0, 8) : []
-            },
-            tarotNarratives: readingData && readingData.reading && Array.isArray(readingData.reading.cardNarratives)
-              ? readingData.reading.cardNarratives.slice(0, 3)
-              : [],
-            dreamLibraryContext: dreamLibraryContext
-          })
-          .then(function (consultData) {
-            if (consultData && consultData.record) {
-              reading = mergeDreamConsultIntoReading(reading, consultData.record);
-            }
-            reading._pipelineFallbacks = pipelineFallbacks.slice();
-            finalizeReading(reading);
-          })
-          .catch(function (error) {
-            pipelineFallbacks.push('consult:' + String(error && error.message || 'failed'));
-            console.warn('[DreamTarot] consult-fallback', error);
-            reading._pipelineFallbacks = pipelineFallbacks.slice();
-            finalizeReading(reading);
-          });
+          reading._pipelineFallbacks = pipelineFallbacks.slice();
+          finalizeReading(reading);
         })
         .catch(function (error) {
-          pipelineFallbacks.push('pipeline:' + String(error && error.message || 'failed'));
-          console.warn('[DreamTarot] pipeline-fallback', error);
+          pipelineFallbacks.push('prompt:' + String(error && error.message || 'failed'));
+          console.warn('[DreamPrompt] prompt-fallback', error);
+          reading = localPromptRecord;
           reading._pipelineFallbacks = pipelineFallbacks.slice();
           finalizeReading(reading);
         });
@@ -2191,7 +2299,7 @@
       var saved = saveCurrentReadingToArchive();
       if (saved) {
         sendAutoTuneSignal('saved_archive', 1.15, state.reading, { oncePerReading: true });
-        setWizardLine('현재 해몽을 꿈 저장소에 보관했습니다.');
+        setWizardLine('현재 꿈 프롬프트를 저장소에 보관했습니다.');
       }
     }
     renderArchiveList();
@@ -2214,7 +2322,7 @@
     resetCards();
     hydrateReading(found.reading);
     sendAutoTuneSignal('revisit_archive', 1.0, found.reading, { oncePerReading: true });
-    setWizardLine('저장된 해몽을 다시 펼쳤습니다. 카드 순서대로 다시 확인해보세요.');
+    setWizardLine('저장된 꿈 프롬프트를 다시 펼쳤습니다. 카드 순서대로 단서를 확인해보세요.');
   };
 
   window.dreamDeleteArchiveAt = function dreamDeleteArchiveAt(id) {
@@ -2224,7 +2332,8 @@
   };
 
   function buildShareText() {
-    if (!state.reading) return '드림 타로 해몽 결과를 확인해보세요.';
+    if (!state.reading) return '꿈 프롬프트를 확인해보세요.';
+    if (state.reading.promptText) return String(state.reading.promptText || '').trim();
     return [
       state.reading.title,
       state.reading.summary,
@@ -2241,7 +2350,7 @@
 
     if (navigator.share) {
       navigator.share({
-        title: '무의식의 마법 상점: 드림 타로',
+        title: '무의식의 마법 상점: 드림 프롬프트',
         text: shareText
       }).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
@@ -2252,7 +2361,7 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(shareText).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
-        alert('해몽 텍스트를 클립보드에 복사했습니다.');
+        alert('꿈 프롬프트를 클립보드에 복사했습니다.');
       }).catch(function () {
         alert('공유를 지원하지 않는 환경입니다.');
       });

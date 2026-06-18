@@ -1,23 +1,62 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
+
+let seedMongoose = null;
+
 function parseArgs(argv) {
   const out = {};
+  const setArg = (name, value) => {
+    out[name] = value;
+    const camelName = name.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
+    out[camelName] = value;
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const key = String(argv[i] || "");
     if (!key.startsWith("--")) continue;
     const value = String(argv[i + 1] || "");
     if (value && !value.startsWith("--")) {
-      out[key.slice(2)] = value;
+      setArg(key.slice(2), value);
       i += 1;
       continue;
     }
-    out[key.slice(2)] = "true";
+    setArg(key.slice(2), "true");
   }
   return out;
 }
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function isEnabled(value) {
+  return value === true || String(value || "").trim().toLowerCase() === "true";
+}
+
+function loadEnvFiles() {
+  for (const fileName of [".env.local", ".env"]) {
+    const envPath = path.join(process.cwd(), fileName);
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath, override: false });
+    }
+  }
+}
+
+function normalizeMongoUriEnv() {
+  const currentMongoUri = String(process.env.MONGO_URI || "").trim();
+  const fallbackMongoUri = String(process.env.MONGODB_URI || "").trim();
+  if (
+    fallbackMongoUri
+    && (!currentMongoUri || /(?:localhost|127\.0\.0\.1)(?::\d+)?/i.test(currentMongoUri))
+  ) {
+    process.env.MONGO_URI = fallbackMongoUri;
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function parseJsonSafe(response) {
@@ -51,17 +90,65 @@ function readAuthToken(payload) {
   return clean(payload?.token || payload?.accessToken || payload?.jwt);
 }
 
-function buildCompatibilityInput() {
+function pad2(value) {
+  return String(Number(value) || 0).padStart(2, "0");
+}
+
+function normalizeSukuyoGender(value) {
+  const raw = clean(value).toLowerCase();
+  if (["m", "male", "man", "남", "남자"].includes(raw)) return "male";
+  if (["f", "female", "woman", "여", "여자"].includes(raw)) return "female";
+  return "unknown";
+}
+
+function buildSeedProfileInput(args = {}) {
+  return {
+    profileId: clean(args.profileId || "sukuyo-family-e2e-profile"),
+    name: clean(args.profileName || "숙요 패밀리 테스트"),
+    gender: clean(args.profileGender || "M"),
+    birthDate: clean(args.profileBirthDate || "1991-02-20"),
+    birthTime: clean(args.profileBirthTime || "08:40"),
+    calendarType: clean(args.profileCalendarType || "solar"),
+    location: {
+      label: clean(args.profileLocation || "Seoul"),
+      tz: clean(args.profileTimezone || "Asia/Seoul"),
+      lat: 37.5665,
+      lng: 126.978,
+    },
+  };
+}
+
+function buildSelfInputFromProfile(profile, fallback = {}) {
+  const source = profile && typeof profile === "object" ? profile : {};
+  const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
+  const fallbackBirth = fallback.birth && typeof fallback.birth === "object" ? fallback.birth : {};
+  const year = Number(birth.year || fallbackBirth.year || 1991);
+  const month = Number(birth.month || fallbackBirth.month || 2);
+  const day = Number(birth.day || fallbackBirth.day || 20);
+  const hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : Number(fallbackBirth.hour || 8);
+  const minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : Number(fallbackBirth.minute || 40);
+  return {
+    name: clean(source.name || fallback.name || "사용자"),
+    gender: normalizeSukuyoGender(source.gender || fallback.gender || "M"),
+    calendarType: clean(birth.calType || source.calendarType || fallback.calendarType || "solar"),
+    birthDate: `${String(year).padStart(4, "0")}-${pad2(month)}-${pad2(day)}`,
+    birthTime: `${pad2(hour)}:${pad2(minute)}`,
+    timezone: clean(source.location?.tz || fallback.location?.tz || "Asia/Seoul"),
+  };
+}
+
+function buildCompatibilityInput(selfProfile = null, fallbackProfile = null) {
+  const self = selfProfile ? buildSelfInputFromProfile(selfProfile, fallbackProfile || {}) : {
+    name: "사용자",
+    gender: "male",
+    calendarType: "solar",
+    birthDate: "1991-02-20",
+    birthTime: "08:40",
+    timezone: "Asia/Seoul",
+  };
   return {
     mode: "compatibility",
-    self: {
-      name: "사용자",
-      gender: "male",
-      calendarType: "solar",
-      birthDate: "1991-02-20",
-      birthTime: "08:40",
-      timezone: "Asia/Seoul",
-    },
+    self,
     partner: {
       name: "상대방",
       gender: "female",
@@ -71,6 +158,97 @@ function buildCompatibilityInput() {
       timezone: "Asia/Seoul",
     },
   };
+}
+
+async function seedFamilyAccountIfRequested({ args, base, email, password }) {
+  if (!isEnabled(args.seedFamily) && !isEnabled(process.env.SUKUYO_E2E_SEED_FAMILY)) return null;
+  if (!isEnabled(args.allowSeed) && !isEnabled(process.env.ALLOW_SUKUYO_FAMILY_E2E_SEED)) {
+    throw new Error("ALLOW_SUKUYO_FAMILY_E2E_SEED=true 또는 --allow-seed true가 필요합니다.");
+  }
+  if (!/^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/i.test(base) && !isEnabled(args.allowRemoteSeed)) {
+    throw new Error("--seed-family는 로컬 base에서만 허용됩니다. 원격 base는 --allow-remote-seed true가 필요합니다.");
+  }
+  if (!email.endsWith("@code-destiny.local") && !isEnabled(args.allowExternalTestEmail)) {
+    throw new Error("--seed-family 테스트 계정은 @code-destiny.local 이메일만 허용됩니다.");
+  }
+
+  loadEnvFiles();
+  normalizeMongoUriEnv();
+
+  const [{ connectDb, mongoose }, { User }, { hashPassword }] = await Promise.all([
+    import("../worker/lib/db.js"),
+    import("../worker/lib/models.js"),
+    import("../worker/lib/password.js"),
+  ]);
+
+  await connectDb({ ...process.env, MONGO_IP_FAMILY: "4" });
+  seedMongoose = mongoose;
+
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 365);
+  const passwordHash = await hashPassword(password);
+  const user = await User.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        name: clean(args.name || "Sukuyo Family E2E"),
+        email,
+        passwordHash,
+        birthDate: "1991-02-20",
+        birthTime: "08:40",
+        gender: "M",
+        role: "user",
+        status: "active",
+        points: 0,
+        unlockedFeatures: [],
+        localAuth: {
+          enabled: true,
+          activatedAt: now,
+        },
+        profileSubscription: {
+          tier: "family",
+          source: "pass",
+          planId: "sukuyo-family-e2e",
+          productType: "family",
+          durationMonths: 12,
+          profileLimit: 0,
+          passTier: "family",
+          passTotalUses: 0,
+          passRemainingUses: 0,
+          passUsedCount: 0,
+          maxCoveredCoin: 999999999,
+          freeLimit: 999999999,
+          passLimit: 999999999,
+          membershipCreditBalance: 0,
+          membershipCreditGranted: 0,
+          membershipCreditUsed: 0,
+          startedAt: now,
+          expiresAt,
+          firstSubAt: now,
+          lastBillingStatus: "success",
+        },
+      },
+      $setOnInsert: {
+        joinedAt: now,
+      },
+    },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+  ).lean();
+
+  return {
+    userId: String(user?._id || ""),
+    email,
+    tier: clean(user?.profileSubscription?.tier),
+    passTier: clean(user?.profileSubscription?.passTier),
+    expiresAt: user?.profileSubscription?.expiresAt,
+  };
+}
+
+async function closeSeedDb() {
+  if (!seedMongoose || !seedMongoose.connection || seedMongoose.connection.readyState === 0) return;
+  try {
+    await seedMongoose.disconnect();
+  } catch (_) {}
 }
 
 async function login(base, email, password) {
@@ -85,6 +263,65 @@ async function login(base, email, password) {
     ok: response.ok,
     data,
     token: readAuthToken(data),
+  };
+}
+
+async function fetchProfile(base, authToken, profileId) {
+  const { response, data } = await requestJson(base, `/api/profile/${encodeURIComponent(profileId)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  return {
+    status: response.status,
+    ok: response.ok,
+    data,
+    profile: data?.profile || data?.data || null,
+  };
+}
+
+async function createOrFetchProfile(base, authToken, profileInput) {
+  const { response, data } = await requestJson(base, "/api/profile", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ profile: profileInput }),
+  });
+
+  if (response.ok) {
+    return {
+      status: response.status,
+      ok: true,
+      created: response.status === 201,
+      data,
+      profile: data?.profile || data?.data || null,
+      currentId: clean(data?.currentId || data?.profile?.id || data?.profile?.profileId),
+    };
+  }
+
+  if (response.status === 409 && clean(profileInput?.profileId)) {
+    const existing = await fetchProfile(base, authToken, profileInput.profileId);
+    return {
+      status: response.status,
+      ok: existing.ok,
+      created: false,
+      data: existing.data,
+      profile: existing.profile,
+      currentId: clean(existing.profile?.id || existing.profile?.profileId || profileInput.profileId),
+      reusedExisting: true,
+    };
+  }
+
+  return {
+    status: response.status,
+    ok: false,
+    created: false,
+    data,
+    profile: null,
+    currentId: "",
   };
 }
 
@@ -106,11 +343,15 @@ async function preflight(base, input) {
   };
 }
 
-async function consumeForSukuyo(base, authToken, requestId) {
+async function consumeForSukuyo(base, authToken, requestId, options = {}) {
+  const useFamilyPass = options.accessMode === "family";
   const body = {
     featureKey: "premium-sukuyo-report-compat",
     reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
     requestId,
+    ...(options.profileId ? { profileId: options.profileId, selectedProfileId: options.profileId } : {}),
+    ...(options.sessionId ? { sessionId: options.sessionId, reportSessionId: options.sessionId } : {}),
+    ...(options.reportId ? { reportId: options.reportId } : {}),
   };
 
   const { response, data } = await requestJson(base, "/api/billing/coin-gate", {
@@ -121,8 +362,8 @@ async function consumeForSukuyo(base, authToken, requestId) {
     },
     body: JSON.stringify({
       ...body,
-      paymentMode: "COIN",
-      forceDeduct: true,
+      paymentMode: useFamilyPass ? "membership_pass" : "COIN",
+      ...(useFamilyPass ? { accessMethod: "FAMILY", forceDeduct: false } : { forceDeduct: true }),
     }),
   });
   const billingData = data?.data && typeof data.data === "object" ? data.data : data;
@@ -135,13 +376,27 @@ async function consumeForSukuyo(base, authToken, requestId) {
     premiumAccessToken: clean(billingData?.premiumAccessToken || data?.premiumAccessToken),
     chargedCoins: Number(consume?.chargedCoins || consume?.cost || data?.chargedCoins || 0),
     code: clean(billingData?.code || data?.code),
+    accessSource: clean(billingData?.accessSource || data?.accessSource),
+    freeBySubscription: billingData?.freeBySubscription === true || data?.freeBySubscription === true,
+    membershipPassTier: clean(billingData?.membershipPass?.tier || billingData?.membershipPass?.passTier || data?.membershipPass?.tier || data?.membershipPass?.passTier),
+    accessDecisionReason: clean(billingData?.accessDecision?.reason || data?.accessDecision?.reason),
   };
 }
 
-async function prepare(base, authToken, premiumAccessToken, input) {
-  const sessionId = `sukuyo-e2e-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+function buildE2eIds() {
+  const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return {
+    sessionId: `sukuyo-e2e-${suffix}`,
+    reportId: `sukuyo-e2e-report-${suffix}`,
+  };
+}
+
+async function prepare(base, authToken, premiumAccessToken, input, options = {}) {
+  const sessionId = clean(options.sessionId) || `sukuyo-e2e-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const reportId = clean(options.reportId);
   const body = {
     sessionId,
+    ...(reportId ? { reportId } : {}),
     featureKey: "premium-sukuyo-report-compat",
     premiumAccessToken,
     mode: "compatibility",
@@ -150,6 +405,7 @@ async function prepare(base, authToken, premiumAccessToken, input) {
     self: input.self,
     partner: input.partner,
     user: input.self,
+    ...(options.profileId ? { profileId: options.profileId, selectedProfileId: options.profileId } : {}),
   };
 
   const { response, data } = await requestJson(base, "/api/sukuyo/premium/prepare", {
@@ -167,6 +423,59 @@ async function prepare(base, authToken, premiumAccessToken, input) {
     ok: response.ok,
     data,
   };
+}
+
+async function fetchGenerationStatus(base, authToken, { sessionId, reportId }) {
+  const params = new URLSearchParams();
+  if (sessionId) params.set("sessionId", sessionId);
+  if (reportId) params.set("reportId", reportId);
+  const { response, data } = await requestJson(base, `/api/sukuyo/premium/status?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  return {
+    status: response.status,
+    ok: response.ok,
+    data,
+  };
+}
+
+function readReportPayload(payload) {
+  if (payload?.report && typeof payload.report === "object") return payload.report;
+  return payload || {};
+}
+
+function isCompletedReport(payload) {
+  const report = readReportPayload(payload);
+  return Boolean(
+    report?.ok
+    && clean(report.serverStatus) === "completed"
+    && clean(report.qualityStatus) === "passed"
+    && Array.isArray(report.chapters)
+    && report.chapters.length === 15
+  );
+}
+
+async function waitForCompletedReport(base, authToken, initialPayload, { sessionId, reportId, attempts = 80, delayMs = 3000 } = {}) {
+  if (isCompletedReport(initialPayload)) return readReportPayload(initialPayload);
+  let last = initialPayload;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    await sleep(delayMs);
+    const statusResult = await fetchGenerationStatus(base, authToken, { sessionId, reportId });
+    last = statusResult.data;
+    const executionStatus = clean(last?.execution?.status);
+    if (isCompletedReport(last)) return readReportPayload(last);
+    if (executionStatus === "failed") {
+      const error = new Error("숙요 PDF 생성 상태가 failed입니다.");
+      error.details = last;
+      throw error;
+    }
+  }
+  const error = new Error("숙요 PDF 생성 완료 대기 시간이 초과되었습니다.");
+  error.details = last;
+  throw error;
 }
 
 async function fetchArchive(base, authToken, reportId, usePremiumRoute) {
@@ -217,13 +526,40 @@ function resolveStoredUrl(payload) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const base = clean(args.base || process.env.AUTH_SMOKE_BASE || process.env.TEST_BASE_URL || "https://code-destiny.com").replace(/\/+$/, "");
-  const email = clean(args.email || process.env.TEST_LOGIN_ID || "test1234@example.com").toLowerCase();
-  const password = clean(args.password || process.env.TEST_PASSWORD || "test!1234");
+  const seedFamily = isEnabled(args.seedFamily) || isEnabled(process.env.SUKUYO_E2E_SEED_FAMILY);
+  const accessMode = clean(args.access || args.accessMode || (seedFamily ? "family" : "coin")).toLowerCase();
+  const email = clean(args.email || process.env.TEST_LOGIN_ID || (seedFamily ? "sukuyo-family-e2e@code-destiny.local" : "test1234@example.com")).toLowerCase();
+  const password = clean(args.password || process.env.TEST_PASSWORD || (seedFamily ? "SukuyoFamily!2026" : "test!1234"));
 
   printKeyValue("BASE", base);
   printKeyValue("EMAIL", email);
+  printKeyValue("ACCESS_MODE", accessMode);
 
-  const input = buildCompatibilityInput();
+  const seeded = await seedFamilyAccountIfRequested({ args, base, email, password });
+  if (seeded) {
+    printKeyValue("SEEDED_FAMILY_USER", seeded.userId);
+    printKeyValue("SEEDED_FAMILY_TIER", seeded.tier);
+    printKeyValue("SEEDED_FAMILY_PASS_TIER", seeded.passTier);
+  }
+
+  const loginResult = await login(base, email, password);
+  printKeyValue("LOGIN_STATUS", loginResult.status);
+  ensure(loginResult.ok && clean(loginResult.token).length > 20, "로그인 실패 또는 토큰 누락", loginResult.data);
+
+  let profileResult = null;
+  let profileInput = null;
+  if (seedFamily || isEnabled(args.createProfile)) {
+    profileInput = buildSeedProfileInput(args);
+    profileResult = await createOrFetchProfile(base, loginResult.token, profileInput);
+    printKeyValue("PROFILE_STATUS", profileResult.status);
+    printKeyValue("PROFILE_CREATED", Boolean(profileResult.created));
+    printKeyValue("PROFILE_REUSED", Boolean(profileResult.reusedExisting));
+    printKeyValue("PROFILE_ID", clean(profileResult.currentId || profileResult.profile?.profileId || profileResult.profile?.id));
+    ensure(profileResult.ok && profileResult.profile, "프로필 생성/조회 실패", profileResult.data);
+  }
+
+  const profileId = clean(profileResult?.currentId || profileResult?.profile?.profileId || profileResult?.profile?.id || profileInput?.profileId);
+  const input = buildCompatibilityInput(profileResult?.profile, profileInput);
 
   const preflightResult = await preflight(base, input);
   printKeyValue("PREFLIGHT_STATUS", preflightResult.status);
@@ -239,19 +575,37 @@ async function main() {
   ensure(Boolean(preflightResult.data?.dryRun?.partnerStarReady), "preflight partner star 계산 실패", preflightResult.data);
   ensure(Boolean(clean(preflightResult.data?.dryRun?.relationType)), "preflight relationType 누락", preflightResult.data);
 
-  const loginResult = await login(base, email, password);
-  printKeyValue("LOGIN_STATUS", loginResult.status);
-  ensure(loginResult.ok && clean(loginResult.token).length > 20, "로그인 실패 또는 토큰 누락", loginResult.data);
-
+  const ids = buildE2eIds();
   const consumeRequestId = `sukuyo-e2e-consume-${Date.now().toString(36)}`;
-  const consumeResult = await consumeForSukuyo(base, loginResult.token, consumeRequestId);
+  const consumeResult = await consumeForSukuyo(base, loginResult.token, consumeRequestId, {
+    accessMode,
+    profileId,
+    sessionId: ids.sessionId,
+    reportId: ids.reportId,
+  });
   printKeyValue("CONSUME_STATUS", consumeResult.status);
   printKeyValue("CONSUME_CODE", consumeResult.code || "");
   printKeyValue("CONSUME_CHARGED", consumeResult.chargedCoins);
+  printKeyValue("CONSUME_ACCESS_SOURCE", consumeResult.accessSource || "");
+  printKeyValue("CONSUME_FREE_BY_SUBSCRIPTION", Boolean(consumeResult.freeBySubscription));
+  printKeyValue("CONSUME_PASS_TIER", consumeResult.membershipPassTier || "");
+  printKeyValue("CONSUME_ACCESS_DECISION", consumeResult.accessDecisionReason || "");
   ensure(consumeResult.ok && consumeResult.premiumAccessToken, "유료 처리 또는 premium access token 발급 실패", consumeResult.data);
+  if (accessMode === "family") {
+    ensure(consumeResult.chargedCoins === 0, "패밀리 이용권 처리에서 코인이 차감되었습니다.", consumeResult.data);
+    ensure(consumeResult.freeBySubscription, "패밀리 이용권 적용 플래그가 누락되었습니다.", consumeResult.data);
+    ensure(consumeResult.membershipPassTier === "family", "패밀리 passTier가 확인되지 않았습니다.", consumeResult.data);
+  }
 
-  const prepareResult = await prepare(base, loginResult.token, consumeResult.premiumAccessToken, input);
-  const payload = prepareResult.data || {};
+  const prepareResult = await prepare(base, loginResult.token, consumeResult.premiumAccessToken, input, {
+    profileId,
+    sessionId: ids.sessionId,
+    reportId: ids.reportId,
+  });
+  const payload = await waitForCompletedReport(base, loginResult.token, prepareResult.data || {}, {
+    sessionId: clean(prepareResult.data?.sessionId || ids.sessionId),
+    reportId: clean(prepareResult.data?.reportId || ids.reportId),
+  });
   const chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
   const firstChapterSectionCount = Array.isArray(chapters?.[0]?.sections) ? chapters[0].sections.length : 0;
   const storedUrl = resolveStoredUrl(payload);
@@ -308,11 +662,15 @@ async function main() {
   printKeyValue("E2E_RESULT", "PASS");
 }
 
-main().catch((error) => {
-  const detail = error && error.details ? error.details : null;
-  console.error("[smoke-sukuyo-premium-e2e] FAIL", {
-    message: String(error?.message || error),
-    details: detail,
+main()
+  .catch((error) => {
+    const detail = error && error.details ? error.details : null;
+    console.error("[smoke-sukuyo-premium-e2e] FAIL", {
+      message: String(error?.message || error),
+      details: detail,
+    });
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await closeSeedDb();
   });
-  process.exitCode = 1;
-});

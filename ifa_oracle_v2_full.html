@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>IFA Oracle - Sacred Odu Reading</title>
+<script src="/js/destiny-profile.js?v=build-285876508574"></script>
 <style>
 :root{
   --bg-void:#080503;
@@ -445,7 +446,15 @@ function ensureIfaCoinGate(){
     if (IFA_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window._cdCoinGatePerUse === "function") {
       try{
-        window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); });
+        window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); }, {
+          categoryKey: 'oracle',
+          subFeatureKey: 'ifa-oracle',
+          featureKey: 'ifa-oracle',
+          serviceKey: 'ifa-oracle',
+          action: 'openIfaOracle',
+          forceDeduct: true,
+          requestId: 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+        });
       }catch(_e){ resolve(false); }
       return;
     }

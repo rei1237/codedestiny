@@ -59,7 +59,7 @@ export const SERVICE_SECTIONS = [
       { href: "/geomancy-oracle-v4.html", title: "지오맨시 흙점", desc: "대지의 징후 16행 신탁" },
       { href: "/royal-tea-oracle.html", title: "타세오그래피 찻잎 점", desc: "런던 로열 컵 문양 리딩" },
       { href: "/destiny-poker.html", title: "데스티니 포커", desc: "신들과 벌이는 운명의 카드 대결" },
-      { href: "/dream/tarot", title: "드림 타로", desc: "꿈의 잔향을 여는 3카드 리딩" },
+      { href: "/dream/tarot", title: "드림 프롬프트", desc: "꿈 문장 AI 프롬프트" },
       { href: "/dream/psycho", title: "정신분석 해몽", desc: "프로이트 관점 해석" },
     ],
   },

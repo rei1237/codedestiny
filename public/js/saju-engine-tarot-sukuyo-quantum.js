@@ -6150,6 +6150,27 @@ function syResolveCurrentProfileIdForPaidGate() {
   return '';
 }
 
+function syIsPaidGateGranted(result) {
+  var gate = result && typeof result === 'object' ? result : {};
+  var status = String(gate.status || '').toLowerCase();
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+  var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  var consume = data.consume && typeof data.consume === 'object' ? data.consume : (payload.consume && typeof payload.consume === 'object' ? payload.consume : {});
+  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : (payload.accessGrant && typeof payload.accessGrant === 'object' ? payload.accessGrant : {});
+  var accessType = String(data.accessType || payload.accessType || consume.accessType || accessGrant.accessType || '').toLowerCase();
+  return status === 'granted'
+    || status === 'pass'
+    || status === 'pass_applied'
+    || status === 'already_unlocked'
+    || data.freeBySubscription === true
+    || payload.freeBySubscription === true
+    || accessType === 'membership_pass'
+    || !!data.accessGrant
+    || !!payload.accessGrant
+    || !!data.consume
+    || !!payload.consume;
+}
+
 function syOpenPaidSukuyoFeature(feature, onGranted) {
   var config = feature && typeof feature === 'object' ? feature : {};
   var cost = Math.max(0, Math.floor(Number(config.cost || 0)));
@@ -6171,7 +6192,7 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
     gateOptions.selectedProfileId = profileId;
   }
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
-    if (result && result.status === 'granted' && typeof onGranted === 'function') onGranted(result);
+    if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
     window.alert(message);
@@ -11555,15 +11576,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           targetYear: targetYear,
           coinPrice: 100,
           cost: 100,
-          amountKrw: 10000,
-          disablePassChoice: true,
-          disablePassFirst: true,
-          allowedPaymentModes: 'direct,monthly'
+          amountKrw: 10000
         })).then(function(result) {
-          if (!result || result.status !== 'granted') throw new Error('결제가 완료되지 않았습니다.');
+          if (!syIsPaidGateGranted(result)) throw new Error('결제가 완료되지 않았습니다.');
+          var resultPayload = result && result.payload && typeof result.payload === 'object' ? result.payload : (result || {});
+          var resultData = resultPayload.data && typeof resultPayload.data === 'object' ? resultPayload.data : resultPayload;
+          var resultConsume = resultData.consume && typeof resultData.consume === 'object' ? resultData.consume : {};
+          var resultGrant = resultData.accessGrant && typeof resultData.accessGrant === 'object' ? resultData.accessGrant : {};
+          var paymentId = String(result.transactionId || resultData.transactionId || resultConsume.transactionId || resultGrant.evidenceId || resultGrant.purchaseId || resultGrant.requestId || result.requestId || '').trim();
           return syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/verify-payment', {
             method: 'POST',
-            body: JSON.stringify({ profileId: payload.profileId || profileId, targetYear: targetYear, paymentId: result.transactionId })
+            body: JSON.stringify({ profileId: payload.profileId || profileId, targetYear: targetYear, paymentId: paymentId })
           }).then(function() {
             syHydrateSukuyoYearlyFortune(Object.assign({}, state, { profileId: payload.profileId || profileId, targetYear: targetYear }));
           });
@@ -12271,7 +12294,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         forcePassFirst: true,
         requestId: requestId
       }).then(function(openResult) {
-        if (openResult && openResult.status === 'granted') {
+        if (syIsPaidGateGranted(openResult)) {
           return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
         }
         return normalize({

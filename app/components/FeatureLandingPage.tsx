@@ -46,7 +46,7 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/animal/physio":     { icon:"🦁", badge:"AI FACE",       tag:"셀카 얼굴 관상 분석",    particles:["🦁","🐯","🦊","🐻","🐼"] },
   "/animal/mbti":       { icon:"🦊", badge:"MBTI TOTEM",   tag:"16가지 토템 케미",        particles:["🦊","🦁","🐺","🦅","🐬"] },
   "/animal/totem":      { icon:"🦅", badge:"TOTEM CARD",   tag:"수호 동물 카드 리딩",     particles:["🦅","🦉","🐺","🦁","🐉"] },
-  "/dream/tarot":       { icon:"💭", badge:"DREAM AI",      tag:"AI 꿈 해석 리포트",      particles:["💭","🌙","✨","⭐","💫"] },
+  "/dream/tarot":       { icon:"💭", badge:"DREAM PROMPT",  tag:"AI 꿈 프롬프트",        particles:["💭","🌙","✨","⭐","💫"] },
   "/dream/psycho":      { icon:"🧠", badge:"FREUD STUDY",  tag:"정신분석 해몽",           particles:["🧠","🌀","💭","🔮","✦"] },
   "/tarot/healing":     { icon:"☀️", badge:"HEALING",       tag:"4카드 힐링 스프레드",      particles:["☀️","🌿","✦","💛","🌟"] },
   "/tarot/mingri":      { icon:"🎴", badge:"AI TAROT",       tag:"78장 유니버설 덱 AI 리딩", particles:["🎴","✦","⭐","🔮","💫"] },

@@ -2343,7 +2343,8 @@
         if (typeof opts.onCancel === 'function') opts.onCancel();
         return { status: 'cancelled' };
       }
-      if (choice === 'pass') {
+      if (choice === 'pass') choice = 'pass_applied';
+      if (choice === 'pass_applied') {
         var passCacheKey = _dpPaidPassCacheKey(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }), title, coinPrice);
         var passResult = _dpTakePaidPassGateResult(passCacheKey);
         if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
@@ -2752,7 +2753,7 @@
             disablePassFirst: optionBag.disablePassFirst,
             disablePassChoice: optionBag.disablePassChoice
           }).then(function(choice) {
-            if (choice === 'pass' && optionBag.disablePassChoice !== true) {
+            if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) {
               if (typeof cb === 'function') cb(requestId, { __cdPassGateResolved: true, requestId: requestId });
               return { __cdPassGateResolved: true, requestId: requestId };
             }
@@ -2837,7 +2838,7 @@
           disablePassFirst: optionBag.disablePassFirst,
           disablePassChoice: optionBag.disablePassChoice,
           }).then(function(choice) {
-          if (choice === 'pass' && optionBag.disablePassChoice !== true) {
+          if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) {
             if (typeof cb === 'function') cb(String(optionBag.requestId || ''), { __cdPassGateResolved: true });
             return null;
           }
@@ -3139,6 +3140,12 @@
         currentCoins: balance,
         balanceLabel: balanceLabel
       }).then(function(choice) {
+        if (choice === 'pass' || choice === 'pass_applied') {
+          _dpSaveFeatureUnlock(info.key);
+          if (info.extraUnlockKeys) { for (var _ekPassI = 0; _ekPassI < info.extraUnlockKeys.length; _ekPassI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekPassI]); }
+          cb(unlockRequestId);
+          return;
+        }
         if (choice === 'monthly') {
           runFeatureUnlock();
           return;
@@ -6690,7 +6697,7 @@
           return passPayload;
         }
         if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
-        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined, amountKrw: optionBag.amountKrw, membershipCreditCost: optionBag.membershipCreditCost, allowedPaymentModes: optionBag.allowedPaymentModes, disablePassFirst: optionBag.disablePassFirst, disablePassChoice: optionBag.disablePassChoice }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (choice === 'pass' && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; } if (typeof onCancel === 'function') onCancel(); return null; }); }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined, amountKrw: optionBag.amountKrw, membershipCreditCost: optionBag.membershipCreditCost, allowedPaymentModes: optionBag.allowedPaymentModes, disablePassFirst: optionBag.disablePassFirst, disablePassChoice: optionBag.disablePassChoice }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; } if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
       }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
@@ -6848,7 +6855,7 @@
       }).then(function(choice) {
         if (choice === 'direct') return runDirectCheckout();
         if (choice === 'monthly') return runMonthlyCreditGate();
-        if (choice === 'pass' && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; }
+        if ((choice === 'pass' || choice === 'pass_applied') && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; }
         if (typeof onCancel === 'function') onCancel();
       });
     }

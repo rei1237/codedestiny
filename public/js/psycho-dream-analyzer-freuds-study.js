@@ -12,7 +12,6 @@
   var RESULT_MARKDOWN_ID = "psychoDreamResultMarkdown";
   var REPORT_META_ID = "psychoDreamReportMeta";
   var WIZARD_LINE_ID = "psychoDreamWizardLine";
-  var INTAKE_FIELDS_HOST_ID = "psychoDreamIntakeFields";
 
   var LOADING_MESSAGES = [
     "무의식의 방을 탐색 중입니다...",
@@ -27,7 +26,6 @@
     "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
     "말해지지 못한 감정은 증상으로 말하려 합니다."
   ];
-  var PSYCHO_API_TIMEOUT_MS = 45000;
 
   var state = {
     uiLocked: false,
@@ -75,140 +73,8 @@
     return base ? base + path : path;
   }
 
-  function normalizeApiBase(raw) {
-    var value = String(raw || "").trim();
-    if (!value) return "";
-    return value.replace(/\/+$/, "");
-  }
-
-  function buildPsychoApiBaseCandidates() {
-    var out = [];
-    function add(base) {
-      var normalized = normalizeApiBase(base);
-      if (normalized && out.indexOf(normalized) === -1) out.push(normalized);
-    }
-
-    out.push("");
-    try {
-      if (location && location.origin) add(location.origin);
-    } catch (_) {}
-
-    add(getPsychoApiBase());
-    add("https://code-destiny.com");
-    return out;
-  }
-
-  function parseJsonSafely(text) {
-    var body = String(text || "").trim();
-    if (!body) return null;
-    try {
-      return JSON.parse(body);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function isRetriablePsychoStatus(status) {
-    var code = Number(status || 0);
-    return code >= 500 || code === 408 || code === 425 || code === 429;
-  }
-
-  async function postPsychoAnalysisWithFallback(headers, payload) {
-    var bases = buildPsychoApiBaseCandidates();
-    var lastError = null;
-
-    for (var i = 0; i < bases.length; i += 1) {
-      var base = bases[i];
-      var url = (base ? base : "") + "/api/dream/psycho-analysis";
-      var controller = typeof AbortController === "function" ? new AbortController() : null;
-      var timeoutId = null;
-      if (controller) {
-        timeoutId = setTimeout(function () {
-          try {
-            controller.abort();
-          } catch (_) {}
-        }, PSYCHO_API_TIMEOUT_MS);
-      }
-
-      try {
-        var res = await fetch(url, {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(payload || {}),
-          credentials: "include",
-          cache: "no-store",
-          signal: controller ? controller.signal : undefined,
-        });
-
-        var bodyText = "";
-        try {
-          bodyText = await res.text();
-        } catch (_) {
-          bodyText = "";
-        }
-        var data = parseJsonSafely(bodyText);
-
-        // For user input errors (400), return immediately instead of trying other bases.
-        if (res.status === 400) {
-          return { res: res, data: data };
-        }
-
-        if (res.status === 401 || res.status === 402 || res.status === 403) {
-          return { res: res, data: data };
-        }
-
-        if (!res.ok || !data || typeof data !== "object") {
-          lastError = new Error("Psycho API failed: " + res.status + " @ " + url);
-          if (!isRetriablePsychoStatus(res.status)) {
-            throw lastError;
-          }
-          continue;
-        }
-
-        return { res: res, data: data };
-      } catch (e) {
-        lastError = e;
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-      }
-    }
-
-    throw lastError || new Error("Psycho API request failed");
-  }
-
   function $(id) {
     return document.getElementById(id);
-  }
-
-  function ensureIntakeFields() {
-    var host = $(INTAKE_FIELDS_HOST_ID);
-    if (host) return host;
-
-    var textarea = $(TEXTAREA_ID);
-    if (!textarea) return null;
-    var paper = textarea.closest(".ps-journal-paper");
-    if (!paper) return null;
-
-    host = document.createElement("div");
-    host.id = INTAKE_FIELDS_HOST_ID;
-    host.className = "ps-intake-grid";
-    host.innerHTML =
-      '<label class="ps-intake-item" for="psychoDreamEmotionInput"><span>현재 가장 강한 감정</span><input id="psychoDreamEmotionInput" class="ps-intake-input" type="text" maxlength="120" placeholder="예: 불안, 억울함, 공허함" /></label>' +
-      '<label class="ps-intake-item" for="psychoDreamConcernInput"><span>반복되는 고민</span><input id="psychoDreamConcernInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 관계에서 계속 같은 갈등" /></label>' +
-      '<label class="ps-intake-item" for="psychoDreamStressInput"><span>최근 스트레스 맥락</span><input id="psychoDreamStressInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 업무 과부하, 가족 갈등" /></label>' +
-      '<label class="ps-intake-item" for="psychoDreamGoalInput"><span>이번 해석에서 원하는 도움</span><input id="psychoDreamGoalInput" class="ps-intake-input" type="text" maxlength="220" placeholder="예: 감정 정리법, 행동 우선순위" /></label>';
-
-    paper.insertBefore(host, textarea);
-    return host;
-  }
-
-  function collectIntakeAnswers() {
-    return {
-      emotionalState: ($("psychoDreamEmotionInput") && $("psychoDreamEmotionInput").value || "").trim(),
-      recurringConcern: ($("psychoDreamConcernInput") && $("psychoDreamConcernInput").value || "").trim(),
-      recentStressContext: ($("psychoDreamStressInput") && $("psychoDreamStressInput").value || "").trim(),
-      desiredOutcome: ($("psychoDreamGoalInput") && $("psychoDreamGoalInput").value || "").trim(),
-    };
   }
 
   function escapeHtml(s) {
@@ -319,8 +185,8 @@
     var style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent =
-      "@font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional;}\n" +
-      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);--ps-font-sans:var(--font-body,'Apple SD Gothic Neo','Malgun Gothic',-apple-system,BlinkMacSystemFont,sans-serif);--ps-font-display:'CodeDestinyPremium',var(--font-display,var(--ps-font-sans));}\n" +
+      "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;600;700&family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');\n" +
+      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);--ps-font-sans:'Noto Sans KR','Lato',-apple-system,BlinkMacSystemFont,sans-serif;--ps-font-display:'Noto Serif KR','Playfair Display',Georgia,serif;}\n" +
       "#".concat(OVERLAY_ID, "{position:fixed;inset:0;display:none;z-index:9999;overflow:auto;overflow-x:hidden;min-height:100vh;min-height:100dvh;max-height:none;-webkit-overflow-scrolling:touch;background:\n" +
       "radial-gradient(1000px 600px at 15% 10%, rgba(212,175,37,.10), transparent 55%),\n" +
       "radial-gradient(900px 540px at 85% 25%, rgba(165,42,42,.10), transparent 60%),\n" +
@@ -378,10 +244,6 @@
       "background:radial-gradient(closest-side, rgba(212,175,37,.14), transparent 62%);\n" +
       "animation:psNibGlow .55s ease-out;pointer-events:none;}\n") +
       "@keyframes psNibGlow{0%{opacity:0;transform:scale(.98)}100%{opacity:1;transform:scale(1.01)}}\n" +
-      "#".concat(OVERLAY_ID, " .ps-intake-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;margin:0 0 12px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-intake-item{display:flex;flex-direction:column;gap:6px;font-family:var(--ps-font-sans);font-size:.84rem;color:rgba(24,28,34,.78);font-weight:700;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-intake-input{width:100%;height:38px;border-radius:10px;border:1px solid rgba(165,120,58,.34);background:rgba(255,255,255,.62);padding:8px 10px;color:#1c2430;font-size:.9rem;outline:none;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-intake-input:focus{border-color:rgba(165,90,42,.7);box-shadow:0 0 0 2px rgba(212,175,37,.2);}\n") +
       "#".concat(OVERLAY_ID, " .ps-input-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:10px;padding:0 4px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-error{width:100%;text-align:center;min-height:20px;color:rgba(165,42,42,.95);font-family:var(--ps-font-sans);font-weight:700;font-size:.92rem;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn{appearance:none;border-radius:14px;border:1px solid rgba(212,175,37,.42);background:rgba(255,255,255,.06);color:rgba(253,253,253,.95);\n" +
@@ -432,7 +294,7 @@
       "#".concat(OVERLAY_ID, " .ps-report-list li::marker{color:rgba(165,90,42,.88);font-weight:700;}\n") +
       "#".concat(OVERLAY_ID, " .ps-result-actions .ps-btn{min-width:220px}\n") +
       "#".concat(OVERLAY_ID, " .ps-stamp{margin:16px auto 0;display:flex;justify-content:center;}\n") +
-      "@media (max-width: 768px){#" + OVERLAY_ID + " .ps-dialog{margin:10px 10px calc(14px + env(safe-area-inset-bottom));padding:16px 14px 18px;border-radius:14px;position:relative;z-index:1;}#" + OVERLAY_ID + " .ps-header h2{font-size:1.4rem;}#" + OVERLAY_ID + " .ps-wizard{gap:10px;padding:10px 4px 6px;}#" + OVERLAY_ID + " .ps-wizard-medallion{width:64px;height:64px;}#" + OVERLAY_ID + " .ps-intake-grid{grid-template-columns:1fr;}#" + OVERLAY_ID + " .ps-textarea{min-height:148px;max-height:min(46dvh,calc(var(--ps-safe-vh,100vh) * 0.42));font-size:1.04rem;line-height:1.82;}#" + OVERLAY_ID + " .ps-result-actions .ps-btn{min-width:100%;}#" + OVERLAY_ID + " .ps-report-title{font-size:1.35rem;}#" + OVERLAY_ID + " .ps-report-meta{font-size:.82rem;padding:8px 10px;}#" + OVERLAY_ID + " .ps-report-body{max-height:min(52vh,520px);border-radius:16px;}#" + OVERLAY_ID + " .ps-report-body .ps-report-section{padding:14px 14px 12px;}#" + OVERLAY_ID + " .ps-report-section-body{font-size:1rem;line-height:2.02;}#" + OVERLAY_ID + " .ps-report-section-title{font-size:1rem;gap:10px;}}\n";
+      "@media (max-width: 768px){#" + OVERLAY_ID + " .ps-dialog{margin:10px 10px calc(14px + env(safe-area-inset-bottom));padding:16px 14px 18px;border-radius:14px;position:relative;z-index:1;}#" + OVERLAY_ID + " .ps-header h2{font-size:1.4rem;}#" + OVERLAY_ID + " .ps-wizard{gap:10px;padding:10px 4px 6px;}#" + OVERLAY_ID + " .ps-wizard-medallion{width:64px;height:64px;}#" + OVERLAY_ID + " .ps-textarea{min-height:148px;max-height:min(46dvh,calc(var(--ps-safe-vh,100vh) * 0.42));font-size:1.04rem;line-height:1.82;}#" + OVERLAY_ID + " .ps-result-actions .ps-btn{min-width:100%;}#" + OVERLAY_ID + " .ps-report-title{font-size:1.35rem;}#" + OVERLAY_ID + " .ps-report-meta{font-size:.82rem;padding:8px 10px;}#" + OVERLAY_ID + " .ps-report-body{max-height:min(52vh,520px);border-radius:16px;}#" + OVERLAY_ID + " .ps-report-body .ps-report-section{padding:14px 14px 12px;}#" + OVERLAY_ID + " .ps-report-section-body{font-size:1rem;line-height:2.02;}#" + OVERLAY_ID + " .ps-report-section-title{font-size:1rem;gap:10px;}}\n";
 
     document.head.appendChild(style);
   }
@@ -499,10 +361,6 @@
     setError("");
     var input = $(TEXTAREA_ID);
     if (input) input.value = "";
-    ["psychoDreamEmotionInput", "psychoDreamConcernInput", "psychoDreamStressInput", "psychoDreamGoalInput"].forEach(function (id) {
-      var el = $(id);
-      if (el) el.value = "";
-    });
     setScreen("input");
   }
 
@@ -710,7 +568,6 @@
 
     var anonKey = getOrCreateAnonKey();
     var token = getAuthToken();
-    var intake = collectIntakeAnswers();
 
     try {
       var headers = {
@@ -719,25 +576,55 @@
       };
       if (token) headers["Authorization"] = "Bearer " + token;
 
-      var responseBundle = await postPsychoAnalysisWithFallback(headers, {
-        dreamText: dreamText,
-        intake: intake,
-      });
-      var res = responseBundle && responseBundle.res;
-      var data = responseBundle && responseBundle.data;
+      // External provider 응답이 지연될 때 “무한 로딩”처럼 보이지 않도록
+      // 프론트에서도 Abort 기반 타임아웃을 둡니다.
+      var controller = typeof AbortController === "function" ? new AbortController() : null;
+      var timeoutMs = 45000;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          try {
+            controller.abort();
+          } catch (_) {}
+        }, timeoutMs);
+      }
+
+      var res = null;
+      try {
+        res = await fetch(getPsychoAnalysisUrl(), {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ dreamText: dreamText }),
+          signal: controller ? controller.signal : undefined,
+        });
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+
+      var data = null;
+      try {
+        var ct = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
+        if (ct.indexOf("application/json") === -1) {
+          throw new Error("non-json");
+        }
+        data = await res.json();
+      } catch (_) {
+        data = null;
+      }
 
       if (!data || typeof data !== "object") {
         stopTyping();
-        var hint = "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        var hint =
+          res.status === 404
+            ? "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요."
+            : "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.";
         setError(hint);
         setScreen("input");
         return;
       }
 
       if (!res.ok || !data.ok) {
-        var msg = res.status === 400
-          ? ((data && data.message) || "입력 내용을 다시 확인해 주세요.")
-          : "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        var msg = (data && data.message) || "분석에 실패했습니다.";
         stopTyping();
         setError(msg);
         setScreen("input");
@@ -749,9 +636,11 @@
 
       var metaEl = $(REPORT_META_ID);
       if (metaEl) {
+        var cachedTag = data.cached ? " (캐시됨)" : "";
         var dateStr = new Date().toLocaleString();
-        var toneText = data && data.tone && data.tone.primary ? "감정 톤: " + String(data.tone.primary) : "감정 톤: 분석됨";
-        metaEl.textContent = [dateStr, "정신분석 해몽 리포트", toneText].join(" · ");
+        var bits = [dateStr, "정신분석 데이터 분석"];
+        if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
+        metaEl.textContent = bits.join(" · ") + cachedTag;
       }
 
       var mdEl = $(RESULT_MARKDOWN_ID);
@@ -788,7 +677,10 @@
     } catch (e) {
       stopLoading();
       stopTyping();
-      var msg = "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+      var msg = (e && e.message) || "네트워크 오류로 분석에 실패했습니다.";
+      if (e && (e.name === "AbortError" || String(msg || "").toLowerCase().includes("abort"))) {
+        msg = "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+      }
       setError(msg);
       setScreen("input");
       // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
@@ -884,7 +776,6 @@
   }
 
   injectFreudsStudyStyles();
-  ensureIntakeFields();
   ensureResultHomeButton();
   attachPsychoCloseGuards();
   attachJournalMicroInteractions();

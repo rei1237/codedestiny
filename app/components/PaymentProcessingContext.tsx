@@ -78,12 +78,12 @@ type PaidFeatureGateContextValue = {
 const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const PAID_GATE_DEFAULT_MESSAGE = "이용권을 적용하고 있습니다.";
+const PAID_GATE_DEFAULT_MESSAGE = "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.";
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: string; message: string }> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
   opening: { label: "준비", title: "결제 준비", message: "결제 가능한 수단을 확인하고 있습니다." },
-  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 적용하고 있습니다." },
+  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다." },
   hasEntitlement: { label: "이용 가능", title: "이용권 적용 완료", message: "이용권으로 바로 이용할 수 있습니다." },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
   loadingProducts: { label: "상품 조회", title: "결제 수단 확인", message: "결제 가능한 상품을 확인하고 있습니다." },
@@ -126,7 +126,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (normalizedMode === "refund") return "refund";
 
   const normalizedMessage = String(message || "");
-  if (/이용권을 적용|이용권 확인|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
+  if (/이용권을 적용|이용권 확인|30일 이용권|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
   if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
   if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
@@ -187,7 +187,7 @@ function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
 
 function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?: string) {
   if (status === "checkingEntitlement") {
-    return { message: "이용권을 적용하고 있습니다.", mode: "pass" };
+    return { message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
   }
   if (status === "hasEntitlement") {
     return { message: message || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
