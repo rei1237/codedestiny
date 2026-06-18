@@ -24,7 +24,7 @@ import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/suku
 import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
-import { Solar } from "lunar-javascript";
+import { Lunar, Solar } from "lunar-javascript";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
   // current admin entry password: kangta!7989
@@ -400,6 +400,20 @@ function parseAdminBirthTime(value, unknown) {
   };
 }
 
+function assertAdminCalendarBirthDate(birthDate, calendarType) {
+  if (calendarType === "solar") return;
+
+  const lunarMonth = calendarType === "lunar_leap" ? -Math.abs(birthDate.month) : Math.abs(birthDate.month);
+  try {
+    Lunar.fromYmd(birthDate.year, lunarMonth, birthDate.day);
+  } catch (error) {
+    if (calendarType === "lunar_leap") {
+      throw createHttpError(400, "선택한 생년월일에는 윤달이 없습니다. 음력 평달이면 음력을 선택해 주세요.", { code: "INVALID_LUNAR_LEAP_DATE" });
+    }
+    throw createHttpError(400, "음력 생년월일 값이 올바르지 않습니다.", { code: "INVALID_LUNAR_DATE" });
+  }
+}
+
 function buildAdminPromptProfile(body) {
   const birthDate = parseAdminBirthDate(body?.birthDate || body?.birth_date);
   const birthTime = parseAdminBirthTime(body?.birthTime || body?.birth_time, body?.birthTimeUnknown === true);
@@ -410,6 +424,7 @@ function buildAdminPromptProfile(body) {
   const longitude = toAdminNumber(body?.longitude, null);
   const name = normalizeAdminText(body?.name || "", 80) || "관리자 대상";
   const calendarType = normalizeAdminCalendarType(body?.calendarType || body?.calType || body?.birth?.calendarType || body?.birth?.calType);
+  assertAdminCalendarBirthDate(birthDate, calendarType);
   const timezoneOffsetHours = adminTimezoneOffsetHours(timezone);
   const timeCorrectionPolicy = normalizeAdminTimeCorrectionPolicy(body?.timeCorrectionPolicy || body?.hourPillarTimePolicy);
   const dayChangePolicy = normalizeAdminDayChangePolicy(body?.dayChangePolicy);
