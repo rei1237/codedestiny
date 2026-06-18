@@ -410,7 +410,11 @@ async function handleSyncDestinyProfiles(request, auth) {
   const nextIdSet = new Set(normalizedProfiles.map((profile) => String(profile?.profileId || "")));
   const hasProfileAddition = normalizedProfiles.some((profile) => !existingIds.has(String(profile?.profileId || "")));
   const hasProfileDeletion = existingProfiles.some((profile) => !nextIdSet.has(String(profile?.profileId || profile?.id || "")));
-  if (hasProfileAddition || hasProfileDeletion) {
+  const isInitialProfileCreate = hasProfileAddition
+    && !hasProfileDeletion
+    && existingProfiles.length === 0
+    && normalizedProfiles.length <= 1;
+  if ((hasProfileAddition || hasProfileDeletion) && !isInitialProfileCreate) {
     const payment = await ensureSyncProfileMutationPayment(auth, body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId);
     if (!payment.ok) return payment.response;
   }

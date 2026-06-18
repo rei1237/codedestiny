@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
+import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -1764,10 +1765,16 @@ export default function PointsPage() {
     setProcessingText(text);
   }, []);
 
-  const showPassAppliedStage = useCallback(async (message = "이용권 적용이 완료되었습니다.") => {
-    setProcessingStage(message, "pass-applied");
+  const buildPassAppliedMessage = useCallback((tier?: unknown) => {
+    const label = getSubscriptionTierLabel(tier || subscription.tier);
+    const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
+    return `${passLabel} 혜택이 적용되었습니다.\n결과를 불러오는 중이에요`;
+  }, [subscription.tier]);
+
+  const showPassAppliedStage = useCallback(async (message?: string, tier?: unknown) => {
+    setProcessingStage(message || buildPassAppliedMessage(tier), "pass-applied");
     await new Promise((resolve) => window.setTimeout(resolve, 980));
-  }, [setProcessingStage]);
+  }, [buildPassAppliedMessage, setProcessingStage]);
 
   useEffect(() => {
     return () => {
@@ -1902,13 +1909,15 @@ export default function PointsPage() {
     [apiBase, persistSubscriptionCache, router],
   );
 
-  const syncSubscriptionAppliedStage = useCallback(async () => {
-    setProcessingStage("이용권을 확인했어요\n결과를 불러오는 중이에요", "pass-applied");
+  const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
+    const label = getSubscriptionTierLabel(tier || subscription.tier);
+    const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
+    setProcessingStage(`${passLabel}을 확인했어요\n결과를 불러오는 중이에요`, "pass-applied");
     await Promise.allSettled([
       fetchMyPointState(),
     ]);
-    await showPassAppliedStage();
-  }, [fetchMyPointState, setProcessingStage, showPassAppliedStage]);
+    await showPassAppliedStage(undefined, tier);
+  }, [fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
@@ -2317,7 +2326,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
-          await syncSubscriptionAppliedStage();
+          await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub.tier);
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
@@ -2713,7 +2722,7 @@ export default function PointsPage() {
         }
 
         clearPendingSubscriptionOrder();
-        await syncSubscriptionAppliedStage();
+        await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
         pushToast("success", confirmData.message || `${plan.title}이 활성화되었습니다.`);
         setShowStarBurst(true);
         setTimeout(() => setShowStarBurst(false), 1200);
@@ -2809,7 +2818,7 @@ export default function PointsPage() {
         persistSubscriptionCache(newSub);
       }
 
-      await syncSubscriptionAppliedStage();
+      await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
       pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);

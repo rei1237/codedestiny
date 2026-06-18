@@ -426,7 +426,8 @@ export default function MePage() {
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalanceLabel = formatMonthlyStoneBalance(monthlyStoneBalance);
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
-  const createRequiresProfileActionPayment = !isFamilyProfilePlan;
+  const canCreateInitialProfileForFree = profiles.length === 0;
+  const createRequiresProfileActionPayment = !isFamilyProfilePlan && !canCreateInitialProfileForFree;
   const deleteRequiresProfileActionPayment = !isFamilyProfilePlan;
   const profileActionPolicyNotice = isFamilyProfilePlan
     ? "Code Destiny Family 이용권으로 프로필 생성과 삭제를 제한 없이 진행할 수 있습니다."
@@ -1435,6 +1436,8 @@ export default function MePage() {
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {isFamilyProfilePlan
                 ? "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."
+                : canCreateInitialProfileForFree
+                ? "첫 프로필 카드는 이용권 없이 결제 없이 만들 수 있습니다."
                 : createRequiresProfileActionPayment
                 ? "새 프로필 카드를 추가하려면 5,000원 단건결제 또는 월정석 사용이 필요합니다."
                 : "이용권 슬롯 안에서 새 프로필 카드를 추가할 수 있습니다."}

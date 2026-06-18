@@ -191,6 +191,8 @@ type PaidFeatureGateRuntimeDetail = {
   accessType?: string;
   licenseTier?: string;
   licenseReason?: string;
+  passTier?: string;
+  subscriptionTier?: string;
   startedAt?: number;
 };
 
@@ -749,7 +751,7 @@ function formatMembershipPassLimitLabel(tier: unknown, limit: number): string {
   const normalizedTier = toText(tier).toLowerCase();
   if (normalizedTier === "family" || limit >= 999999999) return "모든 유료 기능 이용 가능";
   if (limit > 0) return `${formatCoinValueWon(limit)} 이하 기능은 이용권으로 바로 열립니다.`;
-  return "이 기능은 이용권 적용 대상이 아니어서 결제가 필요합니다.";
+  return "현재 서비스는 이용권 적용 범위 밖이라 결제가 필요합니다.";
 }
 
 function escapePaymentText(value: unknown): string {
@@ -1718,6 +1720,38 @@ function formatLoadingMessage(stage: LoadingStage, paymentType: PaymentType) {
   return copy.sub ? `${copy.title}\n${copy.sub}` : copy.title;
 }
 
+function formatPassTierLabel(value: unknown) {
+  const tier = toText(value).toUpperCase();
+  if (tier.includes("FAMILY")) return "FAMILY";
+  if (tier.includes("VVIP") || tier === "VIP") return "VVIP";
+  if (tier.includes("PREMIUM") || tier.includes("프리미엄") || tier === "PRO") return "프리미엄";
+  if (tier.includes("STANDARD") || tier.includes("스탠다드") || tier === "BASIC") return "스탠다드";
+  return "";
+}
+
+function resolvePassTierLabelFromDetail(detail?: Record<string, unknown>) {
+  const membershipPass = asRecord(detail?.membershipPass);
+  const accessGateResult = asRecord(detail?.accessGateResult) || asRecord(detail?.licensePass);
+  return formatPassTierLabel(
+    detail?.licenseTier
+      ?? detail?.passTier
+      ?? detail?.subscriptionTier
+      ?? membershipPass?.tier
+      ?? membershipPass?.passTier
+      ?? accessGateResult?.licenseTier
+      ?? accessGateResult?.tier
+      ?? accessGateResult?.passTier,
+  );
+}
+
+function formatPassLoadingMessage(stage: LoadingStage, detail?: Record<string, unknown>) {
+  const tierLabel = resolvePassTierLabelFromDetail(detail);
+  if (!tierLabel) return formatLoadingMessage(stage, "pass");
+  if (stage === "access_check") return `${tierLabel} 이용권을 확인하는 중이에요`;
+  if (stage === "result_loading") return `${tierLabel} 이용권 혜택이 적용되었습니다.\n결과를 불러오는 중이에요`;
+  return formatLoadingMessage(stage, "pass");
+}
+
 function resolvePaymentTypeForWaitKind(kind: string, fallback: PaymentType = "single"): PaymentType {
   if (kind === "pass") return "pass";
   if (kind === "monthly" || kind === "subscription") return "subscription";
@@ -1801,14 +1835,14 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "checkingEntitlement") {
     const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
     return {
-      message: formatLoadingMessage("access_check", paymentType),
+      message: paymentType === "pass" ? formatPassLoadingMessage("access_check", detail) : formatLoadingMessage("access_check", paymentType),
       mode: paymentType === "pass" ? "pass" : (paymentType === "subscription" ? "monthly" : "payment"),
     };
   }
   if (status === "hasEntitlement") {
     const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
     return {
-      message: formatLoadingMessage("result_loading", paymentType),
+      message: paymentType === "pass" ? formatPassLoadingMessage("result_loading", detail) : formatLoadingMessage("result_loading", paymentType),
       mode: paymentType === "pass" ? "pass-applied" : "payment-complete",
     };
   }
@@ -1834,14 +1868,14 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     return { message: formatLoadingMessage("access_check", "single"), mode: "payment" };
   }
   if (status === "paymentProcessing") {
-    if (kind === "pass") return { message: formatLoadingMessage("access_check", "pass"), mode: "pass" };
+    if (kind === "pass") return { message: formatPassLoadingMessage("access_check", detail), mode: "pass" };
     if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("pg_processing", "subscription"), mode: "subscription" };
     if (kind === "single") return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
   }
   if (status === "paymentSuccess") {
-    if (kind === "pass") return { message: formatLoadingMessage("result_loading", "pass"), mode: "pass-applied" };
+    if (kind === "pass") return { message: formatPassLoadingMessage("result_loading", detail), mode: "pass-applied" };
     if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("result_loading", "subscription"), mode: "payment-complete" };
     if (kind === "single") return { message: formatLoadingMessage("result_loading", "single"), mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
@@ -2391,6 +2425,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
           const licenseGate = extractLicenseGateResult(runtimeData);
           const licenseMessage = buildLicensePassOverlayMessage(runtimeData);
+          const runtimeMembershipPass = asRecord(runtimeData.membershipPass);
+          const runtimePassTier = toText(
+            runtimeData.passTier
+              ?? runtimeData.subscriptionTier
+              ?? runtimeMembershipPass?.tier
+              ?? runtimeMembershipPass?.passTier
+              ?? licenseGate?.licenseTier,
+          );
           const usagePassApplied = accessType === "usage_pass";
           const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData);
           const entitlementApplied = passApplied || usagePassApplied;
@@ -2402,6 +2444,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             accessType,
             licenseTier: licenseGate?.licenseTier,
             licenseReason: licenseGate?.reason,
+            passTier: runtimePassTier,
+            subscriptionTier: runtimePassTier,
+            membershipPass: runtimeMembershipPass,
           });
           emitPaidFeatureGate("update", {
             featureId,
@@ -2415,6 +2460,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             accessType,
             licenseTier: licenseGate?.licenseTier,
             licenseReason: licenseGate?.reason,
+            passTier: runtimePassTier,
+            subscriptionTier: runtimePassTier,
           });
         } else {
           const runtimeCode = String(parsed.error?.code || "").toUpperCase();

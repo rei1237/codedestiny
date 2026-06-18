@@ -7,6 +7,7 @@ type SubscriptionNoticeOptions = {
 
 export function getSubscriptionTierLabel(tierRaw?: unknown): string {
   let tier = String(tierRaw || "").trim().toLowerCase();
+  if (tier.includes("family")) return "FAMILY";
   if (tier === "vip") tier = "vvip";
   if (tier === "unlimited") tier = "vvip";
   if (tier === "pro") tier = "premium";
@@ -14,7 +15,8 @@ export function getSubscriptionTierLabel(tierRaw?: unknown): string {
   if (tier === "vvip") return "VVIP";
   if (tier === "premium") return "프리미엄";
   if (tier === "standard") return "스탠다드";
-  return "멤버십";
+  if (tier && tier !== "free" && tier !== "none") return String(tierRaw).trim();
+  return "이용권";
 }
 
 export function isSubscriptionIncludedResponse(data: any, chargedCoinsFallback = 0): boolean {
