@@ -90,7 +90,19 @@ assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%E
 assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
 assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
 assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
-assertContains(indexSource, "position: absolute !important", "payment/pass waiting copy is visually hidden");
+assertContains(indexSource, "saju-payment-copy-front-v20260619", "payment/pass waiting copy front marker");
+const honeyOverlayTextCss = section(
+  indexSource,
+  '#sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-eyebrow,',
+  '#sajuLoaderOverlay[data-mode=payment][data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-progress',
+  "honey payment overlay text css"
+);
+assertContains(honeyOverlayTextCss, "position: relative !important", "payment/pass waiting copy is visible");
+assertContains(honeyOverlayTextCss, "z-index: 4", "payment/pass waiting copy stays in front");
+assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/pass waiting copy wraps");
+assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
+assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
+assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
 assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "paid gate sprite uses honey fortune logo");
 assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 결제가 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");

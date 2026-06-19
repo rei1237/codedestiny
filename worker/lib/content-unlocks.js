@@ -16,6 +16,8 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
+const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
+
 const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ziwei_decade_luck: "ziwei.decadeLuck",
   ziwei_love_deep: "ziwei.loveDeep",
@@ -27,6 +29,7 @@ const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
 const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
   ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+  [SUKYO_YEARLY_FORTUNE_PRODUCT_KEY]: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
 });
 
 const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
@@ -66,9 +69,29 @@ function buildProfileScopeClause(profileId) {
   };
 }
 
+function buildAccountSnapshotScopeClause(profileId) {
+  const normalizedProfileId = cleanKey(profileId, 100);
+  const scopeClauses = [
+    { scope: CONTENT_ENTITLEMENT_SCOPES.USER },
+    { profileId: USER_SCOPE_PROFILE_ID },
+  ];
+  if (normalizedProfileId) {
+    scopeClauses.push({ scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE, profileId: normalizedProfileId });
+  }
+  return { $or: scopeClauses };
+}
+
 function canonicalizeContentKey(value) {
   const key = cleanKey(value, 160);
   return PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || key;
+}
+
+export function resolveUnlockedFeatureKeyFromContentKey(value) {
+  const key = canonicalizeContentKey(value);
+  if (key === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY || key.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`)) {
+    return SUKYO_YEARLY_FORTUNE_PRODUCT_KEY;
+  }
+  return PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[key] || key;
 }
 
 function resolveContentKeyAliases(value) {
@@ -292,6 +315,65 @@ export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) 
     ...doc,
     contentKey: canonicalizeContentKey(doc?.contentKey),
   }));
+}
+
+export async function getUnlockedContentSnapshot({ userId, profileId = "", serviceKey = "", serviceKeys = [] } = {}) {
+  const normalizedUserId = cleanKey(userId, 120);
+  if (!normalizedUserId) {
+    return {
+      docs: [],
+      contentKeys: [],
+      featureKeys: [],
+      unlockMap: {},
+      profileScopedAuthoritative: false,
+    };
+  }
+
+  const normalizedServiceKeys = Array.from(new Set([
+    ...((Array.isArray(serviceKeys) ? serviceKeys : []).map((key) => cleanKey(key, 80))),
+    cleanKey(serviceKey, 80),
+  ].filter(Boolean)));
+  const query = {
+    userId: normalizedUserId,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $and: [
+      activeExpiryClause(),
+      buildAccountSnapshotScopeClause(profileId),
+    ],
+  };
+  if (normalizedServiceKeys.length === 1) {
+    query.serviceKey = normalizedServiceKeys[0];
+  } else if (normalizedServiceKeys.length > 1) {
+    query.serviceKey = { $in: normalizedServiceKeys };
+  }
+
+  const docs = await ContentEntitlement.find(query)
+    .select("contentKey contentId serviceKey scope profileId source unlockedAt expiresAt")
+    .lean();
+  const contentKeys = [];
+  const featureKeys = [];
+  const unlockMap = Object.create(null);
+
+  for (const doc of docs) {
+    const contentKey = canonicalizeContentKey(doc?.contentKey || doc?.contentId);
+    const featureKey = resolveUnlockedFeatureKeyFromContentKey(contentKey);
+    if (contentKey) contentKeys.push(contentKey);
+    if (featureKey) {
+      featureKeys.push(featureKey);
+      unlockMap[featureKey] = true;
+    }
+  }
+
+  return {
+    docs: docs.map((doc) => ({
+      ...doc,
+      contentKey: canonicalizeContentKey(doc?.contentKey || doc?.contentId),
+    })),
+    contentKeys: Array.from(new Set(contentKeys)),
+    featureKeys: Array.from(new Set(featureKeys)),
+    unlockMap,
+    profileScopedAuthoritative: Boolean(cleanKey(profileId, 100)),
+  };
 }
 
 export async function ensureContentAccessOrThrow({ userId, profileId, serviceKey, contentKey }) {

@@ -49,6 +49,7 @@ for (const featureKey of promptFeatures) {
 assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, "coin consume must require explicit forceDeduct");
 assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
 assert.match(fortuneSource, /findAIPromptDirectPaymentEvidence/, "AI prompt consume must verify direct single-payment evidence");
+assert.match(fortuneSource, /if \(isAIPromptPassAccessPayload\(body\)\) \{[\s\S]*canUseByPass\(passEntitlement, cost\)[\s\S]*source: "pass_payload"/, "AI prompt consume must verify server-side pass entitlement evidence");
 assert.match(fortuneSource, /findAIPromptMonthlyCreditEvidence/, "AI prompt consume must verify monthly-credit payment evidence");
 assert.match(fortuneSource, /hasAIPromptDirectPaymentEvidenceToken/, "AI prompt direct evidence must fall back to direct payment tokens");
 assert.match(fortuneSource, /isAIPromptDirectAccessPayload\(body\) \|\| hasAIPromptDirectPaymentEvidenceToken\(body\)/, "AI prompt direct evidence lookup must not require paymentMode when payment ids are present");

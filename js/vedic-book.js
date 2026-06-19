@@ -57,6 +57,12 @@
   var _currentVedicReportId = '';
   var _currentVedicPaymentRequestId = '';
   var _lastPremiumPayment = null;
+  var VEDIC_PAYMENT_GATE_WINDOW_MS = 12000;
+  var _paymentChecking = false;
+  var _paymentOpening = false;
+  var _paymentGateOpenedAt = 0;
+  var _pendingPaymentPromise = null;
+  var _pendingPaymentSessionId = '';
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -202,13 +208,26 @@
       var found = String(payload[keys[index]] || '').trim();
       if (found) return found;
     }
-    return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+    return _extractPremiumToken(payload.data)
+      || _extractPremiumToken(payload.payload)
+      || _extractPremiumToken(payload.payment)
+      || _extractPremiumToken(payload._paymentContext)
+      || _extractPremiumToken(payload.paymentContext)
+      || _extractPremiumToken(payload.consume)
+      || _extractPremiumToken(payload.access)
+      || _extractPremiumToken(payload.accessGrant);
   }
 
   function _extractAccessGrant(payload) {
     if (!payload || typeof payload !== 'object') return null;
     if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
-    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.payment) || _extractAccessGrant(payload._paymentContext) || _extractAccessGrant(payload.consume);
+    if (payload.access && typeof payload.access === 'object') return payload.access;
+    return _extractAccessGrant(payload.data)
+      || _extractAccessGrant(payload.payload)
+      || _extractAccessGrant(payload.payment)
+      || _extractAccessGrant(payload._paymentContext)
+      || _extractAccessGrant(payload.paymentContext)
+      || _extractAccessGrant(payload.consume);
   }
 
   function _normalizePremiumPayment(transactionId, payload) {
@@ -217,14 +236,17 @@
     var nested = raw.payload && typeof raw.payload === 'object' ? raw.payload : {};
     var payment = raw.payment && typeof raw.payment === 'object' ? raw.payment : {};
     var context = raw._paymentContext && typeof raw._paymentContext === 'object' ? raw._paymentContext : {};
+    var paymentContext = raw.paymentContext && typeof raw.paymentContext === 'object' ? raw.paymentContext : {};
+    var consume = raw.consume && typeof raw.consume === 'object' ? raw.consume : {};
+    var access = raw.access && typeof raw.access === 'object' ? raw.access : {};
     var grant = _extractAccessGrant(raw);
     var token = _extractPremiumToken(raw) || _readPremiumAccessToken();
-    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
-    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || tx);
-    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || raw.paymentId || data.paymentId || tx);
-    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId);
-    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || sessionId);
-    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId);
+    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || paymentContext.transactionId || consume.transactionId || access.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
+    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || paymentContext.requestId || consume.requestId || access.requestId || tx);
+    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || paymentContext.purchaseId || consume.purchaseId || access.purchaseId || raw.paymentId || data.paymentId || tx);
+    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId || paymentContext.sessionId || consume.sessionId || access.sessionId);
+    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || paymentContext.reportSessionId || consume.reportSessionId || access.reportSessionId || sessionId);
+    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId || paymentContext.reportId || consume.reportId || access.reportId);
     var normalized = {
       featureKey: VEDIC_FEATURE_KEY,
       reportType: 'vedicPremium',
@@ -237,6 +259,7 @@
       reportId: reportId || undefined,
     };
     if (grant) normalized.accessGrant = grant;
+    if (Object.keys(consume).length) normalized.consume = consume;
     return normalized;
   }
 
@@ -280,6 +303,9 @@
     next.reportId = _clean(next.reportId || context.reportId) || undefined;
     next.requestId = _clean(next.requestId || context.requestId) || undefined;
     next.purchaseId = _clean(next.purchaseId || (next.accessGrant && next.accessGrant.purchaseId) || next.transactionId) || undefined;
+    next.transactionId = _clean(next.transactionId || next.purchaseId || next.requestId) || undefined;
+    next.featureKey = _clean(next.featureKey || VEDIC_FEATURE_KEY) || VEDIC_FEATURE_KEY;
+    next.reportType = _clean(next.reportType || 'vedicPremium') || 'vedicPremium';
     if (next.accessGrant && typeof next.accessGrant === 'object') {
       next.accessGrant.sessionId = _clean(next.accessGrant.sessionId || next.sessionId) || undefined;
       next.accessGrant.reportSessionId = _clean(next.accessGrant.reportSessionId || next.reportSessionId) || undefined;
@@ -290,6 +316,16 @@
       next.accessGrant.featureKey = _clean(next.accessGrant.featureKey || VEDIC_FEATURE_KEY) || VEDIC_FEATURE_KEY;
       next.accessGrant.reportType = _clean(next.accessGrant.reportType || 'vedicPremium') || 'vedicPremium';
     }
+    if (next.consume && typeof next.consume === 'object') {
+      next.consume.sessionId = _clean(next.consume.sessionId || next.sessionId) || undefined;
+      next.consume.reportSessionId = _clean(next.consume.reportSessionId || next.reportSessionId) || undefined;
+      next.consume.reportId = _clean(next.consume.reportId || next.reportId) || undefined;
+      next.consume.requestId = _clean(next.consume.requestId || next.requestId) || undefined;
+      next.consume.purchaseId = _clean(next.consume.purchaseId || next.purchaseId) || undefined;
+      next.consume.transactionId = _clean(next.consume.transactionId || next.transactionId || next.purchaseId) || undefined;
+      next.consume.featureKey = _clean(next.consume.featureKey || VEDIC_FEATURE_KEY) || VEDIC_FEATURE_KEY;
+      next.consume.reportType = _clean(next.consume.reportType || 'vedicPremium') || 'vedicPremium';
+    }
     return next;
   }
 
@@ -297,10 +333,10 @@
     var context = _ensureCurrentVedicGenerationIds();
     var value = payment && typeof payment === 'object' ? payment : {};
     if (value.adminTestMode === true || value.adminBypass === true) return true;
-    var hasPaymentEvidence = Boolean(value.transactionId || value.purchaseId || value.premiumAccessToken || value.accessGrant);
+    var hasPaymentEvidence = Boolean(value.transactionId || value.purchaseId || value.requestId || value.premiumAccessToken || value.accessGrant || value.consume);
     if (!hasPaymentEvidence) return false;
-    var sessionId = _clean(value.sessionId || value.reportSessionId || value.accessGrant && (value.accessGrant.sessionId || value.accessGrant.reportSessionId));
-    var reportId = _clean(value.reportId || value.accessGrant && value.accessGrant.reportId);
+    var sessionId = _clean(value.sessionId || value.reportSessionId || value.accessGrant && (value.accessGrant.sessionId || value.accessGrant.reportSessionId) || value.consume && (value.consume.sessionId || value.consume.reportSessionId));
+    var reportId = _clean(value.reportId || value.accessGrant && value.accessGrant.reportId || value.consume && value.consume.reportId);
     return sessionId === context.sessionId && reportId === context.reportId;
   }
 
@@ -1183,28 +1219,16 @@
 
   function _ensurePremiumPaymentThenStart() {
     var context = _ensureCurrentVedicGenerationIds();
-    if (_hasPremiumAccessForGeneration()) return true;
-    if (typeof window._cdCoinGatePerUse !== 'function') {
-      _logError({ message: '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.', status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' }, { stage: 'billing' });
-      alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
-      return false;
-    }
-    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
-    window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-      _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(_transactionId, data));
-      if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant) {
-        _lastPremiumPayment.adminTestMode = true;
-      }
-      _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
-      window.generateVedicBook();
-    }, function () {
-      _lastPremiumPayment = null;
-      _logError({ message: '결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.', status: 402, code: 'VEDIC_PAYMENT_CANCELLED' }, { stage: 'billing' });
-      _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
-    }, {
+    if (_hasPremiumAccessForGeneration()) return Promise.resolve(_lastPremiumPayment || true);
+    if (_pendingPaymentPromise && _pendingPaymentSessionId === context.sessionId) return _pendingPaymentPromise;
+    if ((_paymentChecking || _paymentOpening) && Date.now() - _paymentGateOpenedAt < VEDIC_PAYMENT_GATE_WINDOW_MS) return Promise.reject(new Error('VEDIC_PAYMENT_GATE_ALREADY_OPEN'));
+
+    var gateOptions = {
       featureKey: VEDIC_FEATURE_KEY,
+      subFeatureKey: VEDIC_FEATURE_KEY,
+      categoryKey: 'premium-pdf',
+      coinPrice: VEDIC_COIN_COST,
+      cost: VEDIC_COIN_COST,
       reportType: 'vedicPremium',
       serviceKey: 'vedic-premium',
       actionType: 'pdf',
@@ -1213,8 +1237,65 @@
       reportId: context.reportId,
       sessionId: context.sessionId,
       reportSessionId: context.sessionId,
+      mode: 'personal'
+    };
+
+    _pendingPaymentSessionId = context.sessionId;
+    _pendingPaymentPromise = new Promise(function (resolve, reject) {
+      function complete(transactionId, data) {
+        _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(transactionId, data));
+        if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant && !_lastPremiumPayment.consume) {
+          _lastPremiumPayment.adminTestMode = true;
+        }
+        _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
+        _markPremiumAccessVerified(25 * 60 * 1000);
+        _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
+        resolve(_lastPremiumPayment);
+      }
+
+      function cancel(error) {
+        _lastPremiumPayment = null;
+        _logError(error || { message: 'Payment cancelled.', status: 402, code: 'VEDIC_PAYMENT_CANCELLED' }, { stage: 'billing' });
+        _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
+        reject(error instanceof Error ? error : new Error('VEDIC_PAYMENT_CANCELLED'));
+      }
+
+      _paymentChecking = true;
+      _paymentOpening = true;
+      _paymentGateOpenedAt = Date.now();
+      _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
+
+      try {
+        if (typeof window._cdOpenPaidServiceGate === 'function') {
+          Promise.resolve(window._cdOpenPaidServiceGate(gateOptions)).then(function (result) {
+            if (result === false || result && result.cancelled) {
+              cancel(new Error('VEDIC_PAYMENT_CANCELLED'));
+              return;
+            }
+            complete(_clean(result && (result.transactionId || result.purchaseId || result.requestId)), result || {});
+          }).catch(cancel);
+          return;
+        }
+
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(VEDIC_COIN_COST, '\uBCA0\uB2E4 \uC810\uC131\uC220 \uD504\uB9AC\uBBF8\uC5C4 PDF \uB9AC\uD3EC\uD2B8 \uC0DD\uC131', complete, function () {
+            cancel(new Error('VEDIC_PAYMENT_CANCELLED'));
+          }, gateOptions);
+          return;
+        }
+
+        cancel({ message: 'Payment module is not available.', status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' });
+      } catch (error) {
+        cancel(error);
+      }
+    }).finally(function () {
+      _paymentChecking = false;
+      _paymentOpening = false;
+      _pendingPaymentPromise = null;
+      _pendingPaymentSessionId = '';
     });
-    return false;
+
+    return _pendingPaymentPromise;
   }
 
   window.openVedicBookModal = function () {
@@ -1306,11 +1387,6 @@
 
     _ensureCurrentVedicGenerationIds();
 
-    if (!_hasPremiumAccessForGeneration()) {
-      if (!_ensurePremiumPaymentThenStart()) return;
-      return;
-    }
-
     _generating = true;
     _currentProgressStep = 0;
     _setStartBusy(true);
@@ -1319,6 +1395,9 @@
     _startProgressAnimation();
 
     Promise.resolve()
+      .then(function () {
+        return _ensurePremiumPaymentThenStart();
+      })
       .then(function () {
         return _fetchVedicChart(profile, birthInput).then(function (chart) {
           if (chart) {
@@ -1339,17 +1418,34 @@
         paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
         _currentVedicReportId = _clean(paymentContext.reportId || _currentVedicReportId);
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
+        var paymentConsume = paymentContext.consume && typeof paymentContext.consume === 'object' ? paymentContext.consume : {};
+        var sourceTransactionId = _clean(paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
         return _postPrepare({
           sessionId: _currentVedicSessionId,
           featureKey: VEDIC_FEATURE_KEY,
           reportSessionId: paymentContext.reportSessionId || _currentVedicSessionId,
+          transactionId: paymentContext.transactionId || undefined,
+          sourceTransactionId: sourceTransactionId || undefined,
           purchaseId: paymentContext.purchaseId || undefined,
           requestId: paymentContext.requestId || undefined,
           reportId: _currentVedicReportId || paymentContext.reportId || undefined,
           accessGrant: paymentGrant || undefined,
           premiumAccessToken: paymentContext.premiumAccessToken || undefined,
+          consume: Object.assign({}, paymentConsume, {
+            featureKey: VEDIC_FEATURE_KEY,
+            reportType: 'vedicPremium',
+            transactionId: paymentConsume.transactionId || paymentContext.transactionId || sourceTransactionId || undefined,
+            purchaseId: paymentConsume.purchaseId || paymentContext.purchaseId || undefined,
+            requestId: paymentConsume.requestId || paymentContext.requestId || undefined,
+            sessionId: paymentConsume.sessionId || _currentVedicSessionId || undefined,
+            reportSessionId: paymentConsume.reportSessionId || paymentContext.reportSessionId || _currentVedicSessionId || undefined,
+            reportId: paymentConsume.reportId || _currentVedicReportId || paymentContext.reportId || undefined,
+            premiumAccessToken: paymentContext.premiumAccessToken || undefined,
+            accessGrant: paymentGrant || undefined
+          }),
           payment: paymentContext,
           _paymentContext: paymentContext,
+          paymentContext: paymentContext,
           birthInput: birthInput,
           reportType: 'vedicPremium',
           mode: 'personal',
@@ -1403,12 +1499,6 @@
       })
       .finally(function () {
         _generating = false;
-        _currentVedicSessionId = '';
-        _currentVedicReportId = '';
-        _currentVedicPaymentRequestId = '';
-        _premiumAccessVerifiedUntil = 0;
-        _premiumPaidUntil = 0;
-        _lastPremiumPayment = null;
         _setStartBusy(false);
         _stopProgressAnimation();
       });

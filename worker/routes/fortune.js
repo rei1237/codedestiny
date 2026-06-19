@@ -45,7 +45,7 @@ import {
   createPremiumAccessToken,
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
-import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
@@ -716,7 +716,33 @@ async function findAIPromptDirectPaymentEvidence({ auth, featureKey, body, reque
     .lean();
 }
 
-async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost }) {
+async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost, env }) {
+  if (isAIPromptPassAccessPayload(body)) {
+    const userId = String(auth?.userId || "").trim();
+    if (!userId) return null;
+    if (env) await connectDb(env);
+    const passUser = await User.findById(userId)
+      .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+      .lean();
+    const passEntitlement = normalizeHoneyPassEntitlement(passUser || {});
+    if (canUseByPass(passEntitlement, cost)) {
+      return {
+        source: "pass_payload",
+        record: {
+          _id: requestId || `pass:${userId}:${String(featureKey || "").trim()}`,
+          balanceAfter: Number(passUser?.points || 0),
+          featureKey,
+          metadata: {
+            requestId,
+            accessMethod: "PASS",
+            paymentMode: "MEMBERSHIP_PASS",
+            passTier: passEntitlement.passTier || passEntitlement.tier || "",
+          },
+        },
+      };
+    }
+  }
+
   const pointHistory = await findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost });
   if (pointHistory) return { source: "point_history", record: pointHistory };
 
@@ -2784,6 +2810,23 @@ async function handleSajuAIPrompt(request, auth, env) {
     return buildSajuAIPromptError("MISSING_SAJU_RESULT", "기본 사주 분석 결과가 필요합니다.", 400);
   }
 
+  const preflightRequestId = readAIPromptRequestId(body, "");
+  const preflightAccess = await findAIPromptPaidAccessEvidence({
+    auth,
+    featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+    body,
+    requestId: preflightRequestId,
+    cost: SAJU_AI_PROMPT_PRICE,
+    env,
+  });
+  if (!preflightAccess) {
+    return buildSajuAIPromptError(
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
+      402,
+    );
+  }
+
   let builtPrompt = null;
   try {
     builtPrompt = domain
@@ -2854,7 +2897,7 @@ async function handleSajuAIPrompt(request, auth, env) {
       ok: true,
       prompt: builtPrompt.prompt,
       generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
-      title: builtPrompt.title || "사주 심층 질문 프롬프트",
+      title: builtPrompt.title || SAJU_AI_PROMPT_TITLE,
       summaryIntent: builtPrompt.summaryIntent || "",
       analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
       recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)

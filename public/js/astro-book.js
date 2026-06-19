@@ -26,6 +26,15 @@
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var _lastPremiumPayment = null;
+  var ASTRO_PAYMENT_GATE_WINDOW_MS = 12000;
+  var _paymentChecking = false;
+  var _paymentOpening = false;
+  var _paymentGateOpenedAt = 0;
+  var _pendingPaymentPromise = null;
+  var _pendingPaymentSessionId = '';
+  var _currentAstroSessionId = '';
+  var _currentAstroReportId = '';
+  var _currentAstroPaymentRequestId = '';
 
   function _qs(id) { return document.getElementById(id); }
   function _detachModalFromResultPage(modal) {
@@ -234,13 +243,26 @@
       var found = String(payload[keys[i]] || '').trim();
       if (found) return found;
     }
-    return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+    return _extractPremiumToken(payload.data)
+      || _extractPremiumToken(payload.payload)
+      || _extractPremiumToken(payload.payment)
+      || _extractPremiumToken(payload._paymentContext)
+      || _extractPremiumToken(payload.paymentContext)
+      || _extractPremiumToken(payload.consume)
+      || _extractPremiumToken(payload.access)
+      || _extractPremiumToken(payload.accessGrant);
   }
 
   function _extractAccessGrant(payload) {
     if (!payload || typeof payload !== 'object') return null;
     if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
-    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.payment) || _extractAccessGrant(payload._paymentContext) || _extractAccessGrant(payload.consume);
+    if (payload.access && typeof payload.access === 'object') return payload.access;
+    return _extractAccessGrant(payload.data)
+      || _extractAccessGrant(payload.payload)
+      || _extractAccessGrant(payload.payment)
+      || _extractAccessGrant(payload._paymentContext)
+      || _extractAccessGrant(payload.paymentContext)
+      || _extractAccessGrant(payload.consume);
   }
 
   function _normalizePremiumPayment(transactionId, payload) {
@@ -249,14 +271,17 @@
     var nested = raw.payload && typeof raw.payload === 'object' ? raw.payload : {};
     var payment = raw.payment && typeof raw.payment === 'object' ? raw.payment : {};
     var context = raw._paymentContext && typeof raw._paymentContext === 'object' ? raw._paymentContext : {};
+    var paymentContext = raw.paymentContext && typeof raw.paymentContext === 'object' ? raw.paymentContext : {};
+    var consume = raw.consume && typeof raw.consume === 'object' ? raw.consume : {};
+    var access = raw.access && typeof raw.access === 'object' ? raw.access : {};
     var grant = _extractAccessGrant(raw);
     var token = _extractPremiumToken(raw) || _readPremiumAccessToken();
-    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
-    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || tx);
-    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || raw.paymentId || data.paymentId || tx);
-    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId);
-    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || sessionId);
-    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId);
+    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || paymentContext.transactionId || consume.transactionId || access.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
+    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || paymentContext.requestId || consume.requestId || access.requestId || tx);
+    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || paymentContext.purchaseId || consume.purchaseId || access.purchaseId || raw.paymentId || data.paymentId || tx);
+    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId || paymentContext.sessionId || consume.sessionId || access.sessionId);
+    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || paymentContext.reportSessionId || consume.reportSessionId || access.reportSessionId || sessionId);
+    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId || paymentContext.reportId || consume.reportId || access.reportId);
     var normalized = {
       featureKey: ASTRO_BILLING_FEATURE_KEY,
       reportType: 'westernAstrologyPremium',
@@ -269,6 +294,7 @@
       reportId: reportId || undefined,
     };
     if (grant) normalized.accessGrant = grant;
+    if (Object.keys(consume).length) normalized.consume = consume;
     return normalized;
   }
 
@@ -296,9 +322,72 @@
     if (until > _premiumPaidUntil) _premiumPaidUntil = until;
   }
 
+  function _ensureCurrentAstroGenerationIds() {
+    if (!_currentAstroSessionId) {
+      _currentAstroSessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+    }
+    if (!_currentAstroReportId) {
+      _currentAstroReportId = _currentAstroSessionId.replace(/^astro-premium:/, 'astro-report:');
+    }
+    if (!_currentAstroPaymentRequestId) {
+      _currentAstroPaymentRequestId = _currentAstroSessionId + ':pay';
+    }
+    return {
+      sessionId: _currentAstroSessionId,
+      reportId: _currentAstroReportId,
+      requestId: _currentAstroPaymentRequestId
+    };
+  }
+
+  function _bindPaymentToCurrentGeneration(payment) {
+    var context = _ensureCurrentAstroGenerationIds();
+    var next = payment && typeof payment === 'object' ? payment : {};
+    next.sessionId = _clean(next.sessionId || context.sessionId) || undefined;
+    next.reportSessionId = _clean(next.reportSessionId || next.sessionId || context.sessionId) || undefined;
+    next.reportId = _clean(next.reportId || context.reportId) || undefined;
+    next.requestId = _clean(next.requestId || context.requestId) || undefined;
+    next.purchaseId = _clean(next.purchaseId || (next.accessGrant && next.accessGrant.purchaseId) || next.transactionId) || undefined;
+    next.transactionId = _clean(next.transactionId || next.purchaseId || next.requestId) || undefined;
+    next.featureKey = _clean(next.featureKey || ASTRO_BILLING_FEATURE_KEY) || ASTRO_BILLING_FEATURE_KEY;
+    next.reportType = _clean(next.reportType || 'westernAstrologyPremium') || 'westernAstrologyPremium';
+    if (next.accessGrant && typeof next.accessGrant === 'object') {
+      next.accessGrant.sessionId = _clean(next.accessGrant.sessionId || next.sessionId) || undefined;
+      next.accessGrant.reportSessionId = _clean(next.accessGrant.reportSessionId || next.reportSessionId) || undefined;
+      next.accessGrant.reportId = _clean(next.accessGrant.reportId || next.reportId) || undefined;
+      next.accessGrant.requestId = _clean(next.accessGrant.requestId || next.requestId) || undefined;
+      next.accessGrant.purchaseId = _clean(next.accessGrant.purchaseId || next.purchaseId) || undefined;
+      next.accessGrant.transactionId = _clean(next.accessGrant.transactionId || next.transactionId || next.purchaseId) || undefined;
+      next.accessGrant.featureKey = _clean(next.accessGrant.featureKey || ASTRO_BILLING_FEATURE_KEY) || ASTRO_BILLING_FEATURE_KEY;
+      next.accessGrant.reportType = _clean(next.accessGrant.reportType || 'westernAstrologyPremium') || 'westernAstrologyPremium';
+    }
+    if (next.consume && typeof next.consume === 'object') {
+      next.consume.sessionId = _clean(next.consume.sessionId || next.sessionId) || undefined;
+      next.consume.reportSessionId = _clean(next.consume.reportSessionId || next.reportSessionId) || undefined;
+      next.consume.reportId = _clean(next.consume.reportId || next.reportId) || undefined;
+      next.consume.requestId = _clean(next.consume.requestId || next.requestId) || undefined;
+      next.consume.purchaseId = _clean(next.consume.purchaseId || next.purchaseId) || undefined;
+      next.consume.transactionId = _clean(next.consume.transactionId || next.transactionId || next.purchaseId) || undefined;
+      next.consume.featureKey = _clean(next.consume.featureKey || ASTRO_BILLING_FEATURE_KEY) || ASTRO_BILLING_FEATURE_KEY;
+      next.consume.reportType = _clean(next.consume.reportType || 'westernAstrologyPremium') || 'westernAstrologyPremium';
+    }
+    return next;
+  }
+
+  function _paymentMatchesCurrentGeneration(payment) {
+    var context = _ensureCurrentAstroGenerationIds();
+    var value = payment && typeof payment === 'object' ? payment : {};
+    if (value.adminTestMode === true || value.adminBypass === true) return true;
+    var hasPaymentEvidence = Boolean(value.transactionId || value.purchaseId || value.requestId || value.premiumAccessToken || value.accessGrant || value.consume);
+    if (!hasPaymentEvidence) return false;
+    var sessionId = _clean(value.sessionId || value.reportSessionId || value.accessGrant && (value.accessGrant.sessionId || value.accessGrant.reportSessionId) || value.consume && (value.consume.sessionId || value.consume.reportSessionId));
+    var reportId = _clean(value.reportId || value.accessGrant && value.accessGrant.reportId || value.consume && value.consume.reportId);
+    return sessionId === context.sessionId && reportId === context.reportId;
+  }
+
   function _hasPremiumAccessForGeneration() {
-    if (Date.now() < _premiumAccessVerifiedUntil) return true;
+    if (Date.now() < _premiumAccessVerifiedUntil && _paymentMatchesCurrentGeneration(_lastPremiumPayment)) return true;
     if (_premiumTokenMatches('westernAstrologyPremium') || Date.now() < _premiumPaidUntil) {
+      _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment('', _lastPremiumPayment || {}));
       _markPremiumAccessVerified(25 * 60 * 1000);
       return true;
     }
@@ -1448,6 +1537,99 @@
     });
   }
 
+  _ensurePremiumPaymentAsync = function () {
+    var context = _ensureCurrentAstroGenerationIds();
+    if (_hasPremiumAccessForGeneration()) {
+      _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true, sessionId: context.sessionId, reportId: context.reportId });
+      _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true, sessionId: context.sessionId, reportId: context.reportId });
+      return Promise.resolve({ ok: true, skipped: true, data: _lastPremiumPayment || {} });
+    }
+    if (_pendingPaymentPromise && _pendingPaymentSessionId === context.sessionId) return _pendingPaymentPromise;
+    if ((_paymentChecking || _paymentOpening) && Date.now() - _paymentGateOpenedAt < ASTRO_PAYMENT_GATE_WINDOW_MS) return Promise.reject(new Error('ASTRO_PAYMENT_GATE_ALREADY_OPEN'));
+
+    var gateOptions = {
+      featureKey: ASTRO_BILLING_FEATURE_KEY,
+      subFeatureKey: ASTRO_BILLING_FEATURE_KEY,
+      categoryKey: 'premium-pdf',
+      coinPrice: ASTRO_COIN_COST,
+      cost: ASTRO_COIN_COST,
+      reportType: 'westernAstrologyPremium',
+      serviceKey: 'astro-premium',
+      actionType: 'pdf',
+      action: 'generateAstroPremiumPdf',
+      requestId: context.requestId,
+      reportId: context.reportId,
+      sessionId: context.sessionId,
+      reportSessionId: context.sessionId,
+      mode: 'personal'
+    };
+
+    _pendingPaymentSessionId = context.sessionId;
+    _pendingPaymentPromise = new Promise(function (resolve, reject) {
+      function complete(transactionId, data) {
+        _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(transactionId, data));
+        if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant && !_lastPremiumPayment.consume) {
+          _lastPremiumPayment.adminTestMode = true;
+        }
+        _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
+        _markPremiumAccessVerified(25 * 60 * 1000);
+        _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
+        resolve({ ok: true, skipped: false, data: _lastPremiumPayment });
+      }
+
+      function cancel(error) {
+        var billingError = error instanceof Error ? error : new Error('ASTRO_PAYMENT_CANCELLED');
+        billingError.status = billingError.status || 402;
+        billingError.code = billingError.code || 'ASTRO_PAYMENT_CANCELLED';
+        billingError.stage = billingError.stage || 'billing';
+        _lastPremiumPayment = null;
+        _logError(billingError, { stage: 'billing' });
+        _logStage('PaymentGateCancel', { featureKey: ASTRO_BILLING_FEATURE_KEY });
+        reject(billingError);
+      }
+
+      _paymentChecking = true;
+      _paymentOpening = true;
+      _paymentGateOpenedAt = Date.now();
+      _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
+
+      try {
+        if (typeof window._cdOpenPaidServiceGate === 'function') {
+          Promise.resolve(window._cdOpenPaidServiceGate(gateOptions)).then(function (result) {
+            if (result === false || result && result.cancelled) {
+              cancel(new Error('ASTRO_PAYMENT_CANCELLED'));
+              return;
+            }
+            complete(_clean(result && (result.transactionId || result.purchaseId || result.requestId)), result || {});
+          }).catch(cancel);
+          return;
+        }
+
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(ASTRO_COIN_COST, '\uC810\uC131\uC220 \uD504\uB9AC\uBBF8\uC5C4 PDF \uB9AC\uD3EC\uD2B8 \uC0DD\uC131', complete, function () {
+            cancel(new Error('ASTRO_PAYMENT_CANCELLED'));
+          }, gateOptions);
+          return;
+        }
+
+        var missingPaymentError = new Error('Payment module is not available.');
+        missingPaymentError.status = 503;
+        missingPaymentError.code = 'ASTRO_PAYMENT_MODULE_MISSING';
+        missingPaymentError.stage = 'billing';
+        cancel(missingPaymentError);
+      } catch (error) {
+        cancel(error);
+      }
+    }).finally(function () {
+      _paymentChecking = false;
+      _paymentOpening = false;
+      _pendingPaymentPromise = null;
+      _pendingPaymentSessionId = '';
+    });
+
+    return _pendingPaymentPromise;
+  };
+
   window.openAstroBookModal = function () {
     _logFlow('CARD_CLICK');
     _logStage('ModalOpen', {});
@@ -1542,6 +1724,7 @@
 
     var astroBase = _buildAstroBase(profile);
     var astroClientEvidenceJson = _buildAstroClientEvidenceJson(profile, birthInput);
+    var generationContext = _ensureCurrentAstroGenerationIds();
 
     _generating = true;
     _setStartBusy(true);
@@ -1559,11 +1742,17 @@
           hasBirthDate: !!_clean(birthInput.birthDate),
           hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
         });
-        var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+        var sessionId = generationContext.sessionId;
+        var reportId = generationContext.reportId;
+        var requestId = generationContext.requestId;
         paymentContext.sessionId = _clean(paymentContext.sessionId || sessionId) || undefined;
         paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || sessionId) || undefined;
+        paymentContext.reportId = _clean(paymentContext.reportId || reportId) || undefined;
+        paymentContext.requestId = _clean(paymentContext.requestId || requestId) || undefined;
         paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
+        var paymentConsume = paymentContext.consume && typeof paymentContext.consume === 'object' ? paymentContext.consume : {};
+        var sourceTransactionId = _clean(paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
         _logStage('SessionCreateSuccess', { sessionId: sessionId });
         _setLoadingProgress(0, total, '출생 차트 계산 요청 중');
         _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
@@ -1573,19 +1762,34 @@
           premiumAccessToken: paymentContext.premiumAccessToken || undefined,
           sessionId: sessionId,
           reportSessionId: paymentContext.reportSessionId || sessionId,
+          transactionId: paymentContext.transactionId || undefined,
+          sourceTransactionId: sourceTransactionId || undefined,
           purchaseId: paymentContext.purchaseId || undefined,
           requestId: paymentContext.requestId || undefined,
-          reportId: paymentContext.reportId || undefined,
+          reportId: paymentContext.reportId || reportId || undefined,
           accessGrant: paymentGrant || undefined,
+          consume: Object.assign({}, paymentConsume, {
+            featureKey: ASTRO_BILLING_FEATURE_KEY,
+            reportType: 'westernAstrologyPremium',
+            transactionId: paymentConsume.transactionId || paymentContext.transactionId || sourceTransactionId || undefined,
+            purchaseId: paymentConsume.purchaseId || paymentContext.purchaseId || undefined,
+            requestId: paymentConsume.requestId || paymentContext.requestId || undefined,
+            sessionId: paymentConsume.sessionId || sessionId || undefined,
+            reportSessionId: paymentConsume.reportSessionId || paymentContext.reportSessionId || sessionId || undefined,
+            reportId: paymentConsume.reportId || paymentContext.reportId || reportId || undefined,
+            premiumAccessToken: paymentContext.premiumAccessToken || undefined,
+            accessGrant: paymentGrant || undefined
+          }),
           payment: paymentContext,
           _paymentContext: paymentContext,
+          paymentContext: paymentContext,
           birthInput: birthInput,
           profile: profile,
           astroBase: astroBase && astroBase.chart ? astroBase : undefined,
           astroClientEvidenceJson: astroClientEvidenceJson,
         }).then(function (response) {
           if (response && response.status === 'running') {
-            return _waitForAstroCompletion(sessionId, response.reportId || paymentContext.reportId);
+            return _waitForAstroCompletion(sessionId, response.reportId || paymentContext.reportId || reportId);
           }
           return response;
         });

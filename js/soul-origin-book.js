@@ -1148,13 +1148,13 @@
 
   function normalizeAccessGrant(raw, reportId, requestId, sessionId) {
     var data = raw && typeof raw === 'object' ? raw : {};
-    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : (data.access && typeof data.access === 'object' ? data.access : {});
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
 
     var normalizedReportId = clean(accessGrant.reportId || data.reportId || reportId);
     var normalizedRequestId = clean(accessGrant.requestId || data.requestId || consume.requestId || requestId);
-    var normalizedSessionId = clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || sessionId);
-    var purchaseId = clean(accessGrant.purchaseId || data.purchaseId || data.transactionId || consume.transactionId);
+    var normalizedSessionId = clean(accessGrant.sessionId || accessGrant.reportSessionId || data.sessionId || data.reportSessionId || consume.sessionId || consume.reportSessionId || sessionId);
+    var purchaseId = clean(accessGrant.purchaseId || data.purchaseId || data.transactionId || consume.purchaseId || consume.transactionId);
 
     if (!normalizedReportId || !normalizedSessionId || !normalizedRequestId || !purchaseId) return null;
 
@@ -1166,6 +1166,7 @@
       reportSessionId: normalizedSessionId,
       requestId: normalizedRequestId,
       purchaseId: purchaseId,
+      transactionId: clean(accessGrant.transactionId || data.transactionId || consume.transactionId || purchaseId) || undefined,
       paidAt: clean(accessGrant.paidAt || data.paidAt || new Date().toISOString()),
     };
   }
@@ -1175,19 +1176,36 @@
     var grant = accessGrant && typeof accessGrant === 'object' ? accessGrant : (source.accessGrant && typeof source.accessGrant === 'object' ? source.accessGrant : {});
     var nestedPayment = source.payment && typeof source.payment === 'object' ? source.payment : {};
     var nestedContext = source._paymentContext && typeof source._paymentContext === 'object' ? source._paymentContext : {};
-    var normalizedSessionId = clean(grant.sessionId || grant.reportSessionId || source.sessionId || source.reportSessionId || nestedPayment.sessionId || nestedContext.sessionId || sessionId);
+    var nestedPaymentContext = source.paymentContext && typeof source.paymentContext === 'object' ? source.paymentContext : {};
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : {};
+    var access = source.access && typeof source.access === 'object' ? source.access : {};
+    if (!Object.keys(grant).length && Object.keys(access).length) grant = access;
+    var normalizedSessionId = clean(grant.sessionId || grant.reportSessionId || source.sessionId || source.reportSessionId || nestedPayment.sessionId || nestedContext.sessionId || nestedPaymentContext.sessionId || consume.sessionId || consume.reportSessionId || sessionId);
     var context = {
       featureKey: FEATURE_KEY,
       reportType: REPORT_TYPE,
-      premiumAccessToken: clean(token || source.premiumAccessToken || source.accessToken || source.token || nestedPayment.premiumAccessToken || nestedContext.premiumAccessToken || readPremiumToken()) || undefined,
-      requestId: clean(grant.requestId || source.requestId || nestedPayment.requestId || nestedContext.requestId || requestId) || undefined,
-      purchaseId: clean(grant.purchaseId || source.purchaseId || source.paymentId || source.transactionId || nestedPayment.purchaseId || nestedContext.purchaseId) || undefined,
-      transactionId: clean(source.transactionId || grant.transactionId || nestedPayment.transactionId || nestedContext.transactionId) || undefined,
+      premiumAccessToken: clean(token || source.premiumAccessToken || source.accessToken || source.token || nestedPayment.premiumAccessToken || nestedContext.premiumAccessToken || nestedPaymentContext.premiumAccessToken || consume.premiumAccessToken || readPremiumToken()) || undefined,
+      requestId: clean(grant.requestId || source.requestId || nestedPayment.requestId || nestedContext.requestId || nestedPaymentContext.requestId || consume.requestId || requestId) || undefined,
+      purchaseId: clean(grant.purchaseId || source.purchaseId || source.paymentId || source.transactionId || nestedPayment.purchaseId || nestedContext.purchaseId || nestedPaymentContext.purchaseId || consume.purchaseId || consume.transactionId) || undefined,
+      transactionId: clean(source.transactionId || grant.transactionId || nestedPayment.transactionId || nestedContext.transactionId || nestedPaymentContext.transactionId || consume.transactionId) || undefined,
       sessionId: normalizedSessionId || undefined,
-      reportSessionId: clean(grant.reportSessionId || grant.sessionId || source.reportSessionId || nestedPayment.reportSessionId || nestedContext.reportSessionId || normalizedSessionId || sessionId) || undefined,
-      reportId: clean(grant.reportId || source.reportId || nestedPayment.reportId || nestedContext.reportId || reportId) || undefined,
+      reportSessionId: clean(grant.reportSessionId || grant.sessionId || source.reportSessionId || nestedPayment.reportSessionId || nestedContext.reportSessionId || nestedPaymentContext.reportSessionId || consume.reportSessionId || consume.sessionId || normalizedSessionId || sessionId) || undefined,
+      reportId: clean(grant.reportId || source.reportId || nestedPayment.reportId || nestedContext.reportId || nestedPaymentContext.reportId || consume.reportId || reportId) || undefined,
     };
+    context.sourceTransactionId = clean(source.sourceTransactionId || context.transactionId || context.purchaseId || context.requestId) || undefined;
     if (Object.keys(grant).length) context.accessGrant = grant;
+    context.consume = Object.assign({}, consume, {
+      featureKey: FEATURE_KEY,
+      reportType: REPORT_TYPE,
+      transactionId: clean(consume.transactionId || context.transactionId || context.sourceTransactionId) || undefined,
+      purchaseId: clean(consume.purchaseId || context.purchaseId) || undefined,
+      requestId: clean(consume.requestId || context.requestId) || undefined,
+      sessionId: clean(consume.sessionId || context.sessionId) || undefined,
+      reportSessionId: clean(consume.reportSessionId || context.reportSessionId || context.sessionId) || undefined,
+      reportId: clean(consume.reportId || context.reportId) || undefined,
+      premiumAccessToken: context.premiumAccessToken || undefined,
+      accessGrant: context.accessGrant || undefined
+    });
     return context;
   }
 
@@ -1338,13 +1356,17 @@
               ok: true,
               premiumAccessToken: token || readPremiumToken(),
               accessGrant: grant || undefined,
+              consume: paymentContext.consume || undefined,
+              sourceTransactionId: paymentContext.sourceTransactionId || paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId || undefined,
               requestId: paymentContext.requestId || requestId,
               sessionId: paymentContext.sessionId || sessionId,
               reportSessionId: paymentContext.reportSessionId || paymentContext.sessionId || sessionId,
               purchaseId: paymentContext.purchaseId || undefined,
+              transactionId: paymentContext.transactionId || undefined,
               reportId: paymentContext.reportId || reportId,
               payment: paymentContext,
               _paymentContext: paymentContext,
+              paymentContext: paymentContext,
             });
           }
           function cancel(error) {
@@ -1363,12 +1385,16 @@
           }
           try {
             var gate = window._cdOpenPaidServiceGate({
-              categoryKey: 'premium-report',
+              categoryKey: 'premium-pdf',
               featureKey: FEATURE_KEY,
+              subFeatureKey: FEATURE_KEY,
               title: '운명의 업 리포트 생성',
               reason: '운명의 업 리포트 생성',
               coinPrice: resolvedCoinCost,
               cost: resolvedCoinCost,
+              serviceKey: 'soul-origin',
+              actionType: 'pdf',
+              action: 'generateSoulOriginReport',
               reportType: REPORT_TYPE,
               reportId: reportId,
               sessionId: sessionId,
@@ -1424,8 +1450,11 @@
           reportId: paymentContext.reportId || reportId,
           premiumAccessToken: token || readPremiumToken(),
           accessGrant: grant || undefined,
+          consume: paymentContext.consume || undefined,
+          sourceTransactionId: paymentContext.sourceTransactionId || paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId || undefined,
           payment: paymentContext,
           _paymentContext: paymentContext,
+          paymentContext: paymentContext,
         }));
       }
 
@@ -1453,8 +1482,11 @@
           },
           {
             featureKey: FEATURE_KEY,
+            subFeatureKey: FEATURE_KEY,
             reportType: REPORT_TYPE,
             serviceKey: 'soul-origin',
+            actionType: 'pdf',
+            action: 'generateSoulOriginReport',
             reportId: paymentReportId,
             sessionId: sessionId,
             reportSessionId: sessionId,
@@ -1603,6 +1635,7 @@
 
       var reportId = clean((accessGrant && accessGrant.reportId) || (payment && (payment.reportId || (payment.payment && payment.payment.reportId) || (payment._paymentContext && payment._paymentContext.reportId))) || '') || ('soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8));
       var paymentContext = buildPaymentContext(payment, accessGrant, token, reportId, paymentRequestId || requestId, paymentSessionId || sessionId);
+      var sourceTransactionId = clean(paymentContext.sourceTransactionId || paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
       var toneSettings = readSoulOriginToneSettings();
       var payload = {
         mode: 'personal',
@@ -1618,13 +1651,18 @@
         sessionId: paymentSessionId || sessionId,
         reportSessionId: paymentSessionId || sessionId,
         reportId: reportId,
+        transactionId: paymentContext.transactionId || undefined,
+        sourceTransactionId: sourceTransactionId || undefined,
+        purchaseId: paymentContext.purchaseId || undefined,
         input: input,
         birthInput: input,
         premiumAccessToken: token || undefined,
         _premiumAccessToken: token || undefined,
         accessGrant: accessGrant || undefined,
+        consume: paymentContext.consume || undefined,
         payment: paymentContext,
         _paymentContext: paymentContext,
+        paymentContext: paymentContext,
         tonePreset: toneSettings.tonePreset,
         toneIntensity: toneSettings.toneIntensity,
         toneWeights: toneSettings.toneWeights,

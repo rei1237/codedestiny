@@ -25,11 +25,7 @@ import {
 import { connectDb } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
-  CONTENT_ENTITLEMENT_SCOPES,
-  CONTENT_ENTITLEMENT_SERVICE_KEYS,
   CONTENT_ENTITLEMENT_SOURCES,
-  CONTENT_ENTITLEMENT_STATUSES,
-  ContentEntitlement,
   MonthlyCreditLedger,
   PointHistory,
   SAJU_LOCKED_CONTENT_KEYS,
@@ -43,6 +39,7 @@ import {
 } from "../lib/pdf-pass-discount.js";
 import {
   findActivePaidContentUnlock,
+  getUnlockedContentSnapshot,
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
 import {
@@ -94,12 +91,6 @@ const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
     Object.entries(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
   ),
 );
-
-const PROFILE_UNLOCK_SERVICE_KEYS = Object.freeze([
-  CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
-  "ziwei",
-  "sukuyo",
-]);
 
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
 const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
@@ -1606,48 +1597,51 @@ async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
 
 function isProfileScopedUnlockKey(featureKey) {
   const key = String(featureKey || "").trim();
-  if (!key || !isUnlockPaidFeatureKey(key)) return false;
+  if (!key) return false;
   return Boolean(resolveSajuProfileUnlockContentKey(key));
 }
 
-async function resolveProfileScopedUnlocks(authUserId, profileId) {
-  if (!authUserId || !profileId) return { unlockedFeatures: [], unlockMap: {} };
-  const keys = await PointHistory.distinct("featureKey", {
-    userId: authUserId,
-    kind: "deduct",
-    featureKey: { $ne: "" },
-    $or: [
-      { "metadata.profileId": profileId },
-      { "metadata.selectedProfileId": profileId },
-    ],
-  });
-  const now = new Date();
-  const entitlementDocs = await ContentEntitlement.find({
-    userId: String(authUserId),
-    profileId: String(profileId),
-    serviceKey: { $in: PROFILE_UNLOCK_SERVICE_KEYS },
-    scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
-    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
-    $or: [
-      { expiresAt: null },
-      { expiresAt: { $exists: false } },
-      { expiresAt: { $gt: now } },
-    ],
-  }).select("contentKey").lean();
-  const entitlementKeys = entitlementDocs
-    .map((doc) => {
-      const contentKey = String(doc?.contentKey || "").trim();
-      return PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[contentKey]
-        || (isProfileScopedUnlockKey(contentKey) ? contentKey : "");
+function normalizeUnlockedFeatureList(values = []) {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((key) => String(key || "").trim())
+    .filter((key) => key && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY);
+}
+
+async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeatureKeys = []) {
+  if (!authUserId) return { unlockedFeatures: [], unlockMap: {}, contentKeys: [], profileScopedAuthoritative: false };
+  const normalizedProfileId = cleanProfileId(profileId);
+  const keys = normalizedProfileId
+    ? await PointHistory.distinct("featureKey", {
+      userId: authUserId,
+      kind: "deduct",
+      featureKey: { $ne: "" },
+      $or: [
+        { "metadata.profileId": normalizedProfileId },
+        { "metadata.selectedProfileId": normalizedProfileId },
+      ],
     })
-    .filter(Boolean);
+    : [];
+  const entitlementSnapshot = await getUnlockedContentSnapshot({
+    userId: String(authUserId),
+    profileId: normalizedProfileId,
+  });
+  const legacyProfileKeys = keys
+    .map((key) => String(key || "").trim())
+    .filter(isProfileScopedUnlockKey);
   const unlockedFeatures = Array.from(new Set([
-    ...keys.map((key) => String(key || "").trim()).filter(isProfileScopedUnlockKey),
-    ...entitlementKeys,
+    ...normalizeUnlockedFeatureList(accountFeatureKeys),
+    ...legacyProfileKeys,
+    ...normalizeUnlockedFeatureList(entitlementSnapshot.featureKeys),
   ]));
-  const unlockMap = Object.create(null);
+  const unlockMap = { ...(entitlementSnapshot.unlockMap || {}) };
   for (const key of unlockedFeatures) unlockMap[key] = true;
-  return { unlockedFeatures, unlockMap };
+  return {
+    unlockedFeatures,
+    unlockMap,
+    contentKeys: entitlementSnapshot.contentKeys || [],
+    profileScopedAuthoritative: entitlementSnapshot.profileScopedAuthoritative === true,
+  };
 }
 
 async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.", init = {}) {
@@ -4556,8 +4550,6 @@ async function handleBalance(request, env) {
   let membership = null;
   let scopedProfileId = "";
   let scopedUnlocks = null;
-  let userScopedUnlockedFeatures = [];
-  let userScopedUnlockMap = {};
   try {
     const auth = await getOptionalUserFromRequest(request, env);
     if (auth?.userId) {
@@ -4569,16 +4561,7 @@ async function handleBalance(request, env) {
       const sub = user?.profileSubscription || {};
       const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
       scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
-      scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
-      userScopedUnlockedFeatures = Array.isArray(user?.unlockedFeatures)
-        ? user.unlockedFeatures
-          .map((key) => String(key || "").trim())
-          .filter((key) => key && isUnlockPaidFeatureKey(key) && !resolveSajuProfileUnlockContentKey(key) && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY)
-        : [];
-      userScopedUnlockMap = userScopedUnlockedFeatures.reduce((acc, key) => {
-        acc[key] = true;
-        return acc;
-      }, {});
+      scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, user?.unlockedFeatures);
       membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
       membership = {
         tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
@@ -4606,11 +4589,9 @@ async function handleBalance(request, env) {
   }
 
   const mergedUnlockedFeatures = Array.from(new Set([
-    ...userScopedUnlockedFeatures,
     ...(scopedUnlocks ? scopedUnlocks.unlockedFeatures : []),
   ]));
   const mergedUnlockMap = {
-    ...userScopedUnlockMap,
     ...(scopedUnlocks ? scopedUnlocks.unlockMap : {}),
   };
   const responseUser = payload?.user && typeof payload.user === "object"
@@ -5058,23 +5039,9 @@ async function readBillingSnapshot(request, env, options = {}) {
     const sub = effectiveUser?.profileSubscription || {};
     const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});
     const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
-    const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
-    const userScopedUnlockedFeatures = Array.isArray(effectiveUser?.unlockedFeatures)
-      ? effectiveUser.unlockedFeatures
-        .map((key) => String(key || "").trim())
-        .filter((key) => key && isUnlockPaidFeatureKey(key) && !resolveSajuProfileUnlockContentKey(key) && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY)
-      : [];
-    const unlockedFeatures = Array.from(new Set([
-      ...userScopedUnlockedFeatures,
-      ...scopedUnlocks.unlockedFeatures,
-    ]));
-    const unlockMap = {
-      ...userScopedUnlockedFeatures.reduce((acc, key) => {
-        acc[key] = true;
-        return acc;
-      }, {}),
-      ...scopedUnlocks.unlockMap,
-    };
+    const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, effectiveUser?.unlockedFeatures);
+    const unlockedFeatures = Array.from(new Set(scopedUnlocks.unlockedFeatures));
+    const unlockMap = { ...scopedUnlocks.unlockMap };
     const balance = Number(effectiveUser?.points || 0);
     const membershipCreditBalance = Math.max(0, Math.floor(Number(sub?.membershipCreditBalance || 0)));
     const membership = {
