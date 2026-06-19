@@ -3856,6 +3856,35 @@ function renderTTest(p, natal, johu, pw) {
       + '</section>';
   }
 
+  function renderTTestPanelLock(feature) {
+    var priceLabel = syPaidPriceLabel(feature);
+    return '<section class="t-panel" style="--t-panel-accent:rgba(244,114,182,.26);opacity:.96;position:relative;">'
+      + '<div class="t-panel-title">🔒 콘텐츠 잠금 해제 필요</div>'
+      + '<p style="margin:0 0 10px;color:#cbd5e1;font-size:0.82rem;line-height:1.6;word-break:keep-all;">'
+      + '이 부분은 단건 결제로만 열립니다. 결제 후 [관계 회로]에서 아래 섹션 전체가 전부 해제됩니다.</p>'
+      + '<button type="button" data-extreme-t-lock-button data-extreme-t-feature-key="' + feature.key + '" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;width:100%;border-radius:10px;border:1px solid rgba(248,231,183,.56);background:linear-gradient(135deg, rgba(30,41,59,.68), rgba(59,7,100,.4));color:#fef3c7;font-size:0.82rem;font-weight:900;padding:8px 14px;cursor:pointer;">극T [관계 회로] 잠금 해제 · ' + priceLabel + '</button>'
+      + '</section>';
+  }
+
+  function bindExtremeTRelationshipUnlock(area, renderArgs) {
+    var buttons = area.querySelectorAll('[data-extreme-t-lock-button]');
+    if (!buttons.length) return;
+    for (var i = 0; i < buttons.length; i += 1) {
+      var button = buttons[i];
+      if (button._extremeTRelationLockBound) continue;
+      button._extremeTRelationLockBound = true;
+      button.addEventListener('click', function() {
+        var feature = SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit
+          ? SY_PAID_FEATURES.extremeTRelationshipCircuit
+          : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+        syRequirePaidSukuyoFeature(feature, function() {
+          syMarkPaidSukuyoFeatureUnlocked(feature.key);
+          renderTTest.apply(null, renderArgs);
+        });
+      });
+    }
+  }
+
   // 극T 결과 문장 생성은 별도 로컬 빌더로 분리하고,
   // 이 함수는 화면 조립과 표시만 담당한다.
   if (typeof buildExtremeTResult === 'function') {
@@ -3942,6 +3971,16 @@ function renderTTest(p, natal, johu, pw) {
         + '<div class="t-summary-foot"><div class="t-summary-foot-label">오늘의 미션</div>' + renderBulletList((mission.items || []).slice(0, 1), '#d1fae5') + '</div>'
         + '</section>';
 
+      var tTestFeature = (SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit)
+        ? SY_PAID_FEATURES.extremeTRelationshipCircuit
+        : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+      var hasExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(tTestFeature.key);
+      if (!hasExtremeTRelationshipAccess) {
+        relationshipHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
+        loveHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
+        workMoneyHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
+      }
+
       var builderHtml = '<div class="t-test-wrapper">';
       builderHtml += '<div class="t-scan-line">INITIATING T-BAL-NOM SCAN...</div>';
       builderHtml += '<div class="t-test-score"><span class="t-test-val">' + builtResult.finalScore + '</span><span class="t-test-pct">%</span></div>';
@@ -3961,6 +4000,7 @@ function renderTTest(p, natal, johu, pw) {
       builderHtml += '</div>';
 
       area.innerHTML = builderHtml;
+      bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
       card.style.display = 'block';
       if (typeof syncReportHeightFromNode === 'function') {
         syncReportHeightFromNode(card);
@@ -4416,6 +4456,15 @@ function renderTTest(p, natal, johu, pw) {
   var relationshipHtml = renderSection('[관계 회로] 가까운 사람에게 더 솔직해지는 타입', renderInfoRows(relationshipRows), 'rgba(96,165,250,.28)');
   var loveHtml = renderSection('[연애 알고리즘] 좋아할수록 더 현실적으로 계산하는 사람', renderInfoRows(loveRows), 'rgba(244,114,182,.28)');
   var workMoneyHtml = renderSection('[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌', renderInfoRows(workMoneyRows), 'rgba(250,204,21,.24)');
+  var fallbackExtremeTRelationshipFeature = (SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit)
+    ? SY_PAID_FEATURES.extremeTRelationshipCircuit
+    : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+  var hasFallbackExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(fallbackExtremeTRelationshipFeature.key);
+  if (!hasFallbackExtremeTRelationshipAccess) {
+    relationshipHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
+    loveHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
+    workMoneyHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
+  }
   var fatalBugHtml = renderSection('[치명적 버그] 가까워질수록 드러나는 오류 패턴', renderInfoRows(bugRows), 'rgba(248,113,113,.28)');
   var prescriptionHtml = renderSection('[디버깅 처방전] 바로 써먹는 관계 패치', renderInfoRows(prescriptionRows), 'rgba(251,191,36,.28)');
 
@@ -4451,6 +4500,7 @@ function renderTTest(p, natal, johu, pw) {
   html += '</div>';
 
   area.innerHTML = html;
+  bindExtremeTRelationshipUnlock(area, [p, natal, johu, pw]);
   card.style.display = 'block';
   if (typeof syncReportHeightFromNode === 'function') {
     syncReportHeightFromNode(card);
@@ -6428,6 +6478,7 @@ function syCanonicalEsc(value) {
 
 var SY_PAID_FEATURES = Object.freeze({
   relationshipRadar: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요 인연 레이더' },
+  extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 50, reason: '극T 관계 회로 확장' },
   relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 50, reason: '숙요 인연 도감' },
   pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 전생 인연 리딩' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },

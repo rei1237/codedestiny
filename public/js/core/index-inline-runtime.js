@@ -1909,7 +1909,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/compat-llm-prompts.js?v=build-d680f35a968b',
     '/js/saju-engine.js?v=build-d680f35a968b',
       '/js/core/saju/extremeTResult.js?v=build-d680f35a968b',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-d680f35a968b',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-20260619-e8c7d2f4',
     '/js/core/saju/modalProfileState.js?v=build-d680f35a968b',
     '/js/core/saju/reportDashboard.js?v=build-d680f35a968b',
     '/js/saju-engine-continuation.js?v=build-d680f35a968b',
@@ -7120,7 +7120,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   var chain = [
     '/js/compat-llm-prompts.js?v=build-d680f35a968b',
       '/js/saju-engine.js?v=build-d680f35a968b',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-d680f35a968b'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-20260619-e8c7d2f4'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
