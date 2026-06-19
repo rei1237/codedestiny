@@ -546,6 +546,7 @@
   }
 
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
+  var _DP_LOCAL_DEV_API_ORIGIN = 'http://127.0.0.1:8790';
   var _DP_FETCH_TIMEOUT_MS = 9000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
@@ -573,6 +574,15 @@
       if (host.indexOf('://') >= 0) host = new URL(host).hostname.toLowerCase();
     } catch (_) {}
     return host === 'workers.dev' || host.slice(-12) === '.workers.dev';
+  }
+
+  function _dpIsLocalDevHost(hostname) {
+    var host = String(hostname || '').trim().toLowerCase();
+    if (!host) return false;
+    try {
+      if (host.indexOf('://') >= 0) host = new URL(host).hostname.toLowerCase();
+    } catch (_) {}
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1';
   }
 
   function _dpNormalizeApiBase(rawBase) {
@@ -657,6 +667,8 @@
     var opts = options || {};
     var authSensitive = _dpIsAuthSensitivePath(path);
     var allowWorkerFallback = _dpShouldAllowWorkerFallback(path, opts);
+    var isLocalDevHost = false;
+    try { isLocalDevHost = _dpIsLocalDevHost((window && window.location && window.location.hostname) || ''); } catch (_) {}
 
     var out = [];
     var seen = Object.create(null);
@@ -670,14 +682,29 @@
     }
 
     if (authSensitive) {
+      if (isLocalDevHost) {
+        try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+        pushBase(_DP_LOCAL_DEV_API_ORIGIN);
+        try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+      }
       pushBase('');
       try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
-      try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
-      try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
-      try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
-      try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+      if (!isLocalDevHost) {
+        try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
+        try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+      }
       if (allowWorkerFallback) pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
     } else {
+      if (isLocalDevHost) {
+        try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
+        try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
+        pushBase(_DP_LOCAL_DEV_API_ORIGIN);
+      }
       try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
       try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
       try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
@@ -1752,6 +1779,9 @@
 
   function _dpSetPaymentPending(show, message, mode) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
+    if (show && String(mode || '').trim() === 'card' && /준비|여는 중|열고 있|주문 정보를 확인|보안 결제창|결제를 처리하고 있어요|창을 닫지 말아 주세요|진행 중입니다/.test(text)) {
+      text = '단건 결제 준비 중입니다. 주문 정보와 인증 흐름이 조용히 맞춰지고 있어요.';
+    }
 
     try {
       if (typeof window._cdSetCoinGateOverlay === 'function') {

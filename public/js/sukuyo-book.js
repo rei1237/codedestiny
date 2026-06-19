@@ -21,6 +21,7 @@
   var SUKYO_RUNNING_POLL_MAX_ATTEMPTS = 160;
   var SUKYO_LOCAL_MANUSCRIPT_SOURCE = 'local-assembled';
   var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LOCAL_MANUSCRIPT_SOURCE, 'local'];
+  var SUKYO_FLOATING_STYLE_ID = 'skFloatingWindowStyle';
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -64,6 +65,76 @@
     if (value === null || value === undefined || _clean(value) === '') return fallback;
     var n = Number(value);
     return Number.isFinite(n) ? n : fallback;
+  }
+  function _readProfileDateParts(profile) {
+    var source = profile || {};
+    var birth = source.birth && typeof source.birth === 'object' ? source.birth : {};
+    var year = _profileNum(birth.year != null ? birth.year : source.birthYear, NaN);
+    var month = _profileNum(birth.month != null ? birth.month : source.birthMonth, NaN);
+    var day = _profileNum(birth.day != null ? birth.day : source.birthDay, NaN);
+
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+      var dateText = _clean(source.birthDate || source.birthIso || source.birth || '');
+      if (dateText.indexOf('T') >= 0 || dateText.indexOf(' ') >= 0) dateText = dateText.split(/[T\s]/)[0] || dateText;
+      var normalized = _normalizeBirthDateInput(dateText);
+      var parts = normalized ? normalized.split('-') : [];
+      year = _profileNum(parts[0], NaN);
+      month = _profileNum(parts[1], NaN);
+      day = _profileNum(parts[2], NaN);
+    }
+
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+    return { year: year, month: month, day: day };
+  }
+  function _readProfileTimeParts(profile) {
+    var source = profile || {};
+    var birth = source.birth && typeof source.birth === 'object' ? source.birth : {};
+    var hour = _profileNum(birth.hour != null ? birth.hour : source.birthHour, NaN);
+    var minute = _profileNum(birth.minute != null ? birth.minute : source.birthMinute, 0);
+
+    if (!Number.isFinite(hour)) {
+      var timeText = _clean(source.birthTime || '');
+      if (!timeText && _clean(source.birthIso)) {
+        var isoTime = String(source.birthIso).split(/[T\s]/)[1] || '';
+        timeText = isoTime;
+      }
+      var parsed = _parseTimeLoose(timeText);
+      hour = parsed.birthHour;
+      minute = parsed.birthMinute;
+    }
+
+    if (!Number.isFinite(hour)) return { hour: null, minute: null };
+    if (!Number.isFinite(minute)) minute = 0;
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return { hour: null, minute: null };
+    return { hour: hour, minute: minute };
+  }
+  function _normalizeSukuyoProfile(profile, fallbackGender) {
+    if (!profile || typeof profile !== 'object') return null;
+    var date = _readProfileDateParts(profile);
+    if (!date) return null;
+    var time = _readProfileTimeParts(profile);
+    var birth = Object.assign({}, profile.birth && typeof profile.birth === 'object' ? profile.birth : {}, {
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      hour: time.hour,
+      minute: time.minute,
+    });
+    var gender = _normalizeGender(profile.gender || profile.sex || profile.genderCode || fallbackGender);
+    if (gender === 'unknown' && fallbackGender) gender = _normalizeGender(fallbackGender);
+    var calendarType = _normalizeCalendarType((profile.birth && profile.birth.calType) || profile.calType || profile.calendarType || 'solar');
+    return Object.assign({}, profile, {
+      gender: gender,
+      birth: birth,
+      birthYear: date.year,
+      birthMonth: date.month,
+      birthDay: date.day,
+      birthHour: time.hour,
+      birthMinute: time.minute,
+      calendarType: calendarType === 'unknown' ? 'solar' : calendarType,
+      birthDate: String(date.year).padStart(4, '0') + '-' + _pad2(date.month) + '-' + _pad2(date.day),
+      birthTime: Number.isFinite(time.hour) ? _pad2(time.hour) + ':' + _pad2(time.minute || 0) : '',
+    });
   }
   function _resolveSukuyoCoinCost() {
     var card = document.querySelector('[data-action="gotoSukuyoPremium"][data-coin-cost]');
@@ -265,6 +336,15 @@
       .trim();
   }
 
+  function _escapeSukuyoHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function _chapterTitleOnly(title, chapterNo) {
     var value = _clean(title);
     var no = Number(chapterNo || 0);
@@ -441,11 +521,123 @@
     return false;
   }
 
+  function _ensureFloatingWindowStyle() {
+    if (_qs(SUKYO_FLOATING_STYLE_ID)) return;
+    var style = document.createElement('style');
+    style.id = SUKYO_FLOATING_STYLE_ID;
+    style.textContent = [
+      'body>#skGenerationWindow.sk-floating-window,body>#skErrorWindow{position:fixed!important;inset:0!important;z-index:10080!important;display:none;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(6,3,18,.74)!important;backdrop-filter:blur(14px);}',
+      'body>#skGenerationWindow.sk-floating-window .sk-generation-window__panel,body>#skErrorWindow .sk-error-window__panel{width:min(460px,calc(100vw - 32px));border:1px solid rgba(196,181,253,.38);border-radius:8px;background:linear-gradient(135deg,rgba(18,10,42,.97),rgba(6,14,32,.97));box-shadow:0 28px 80px rgba(0,0,0,.5);padding:22px;text-align:center;color:#f9f4ff;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__orb,#skErrorWindow .sk-error-window__orb{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(253,230,138,.38);background:radial-gradient(circle,rgba(253,230,138,.24),rgba(124,58,237,.18));color:#fde68a;font-size:1.55rem;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__eyebrow,#skErrorWindow .sk-error-window__eyebrow{margin:0 0 6px;color:#c4b5fd;font-size:.76rem;font-weight:800;letter-spacing:0;text-transform:uppercase;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__title,#skErrorWindow .sk-error-window__title{margin:0 0 14px;color:#fff7ed;font-size:1.12rem;line-height:1.45;word-break:keep-all;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__chapter{padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__chapter span{display:block;margin-bottom:5px;color:#fde68a;font-weight:800;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__chapter p,#skErrorWindow .sk-error-window__msg{margin:0;color:#f9f4ff;font-size:.92rem;line-height:1.62;word-break:keep-all;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__bar{height:9px;margin:14px 0 7px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__bar i{display:block;width:0%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a78bfa,#fde68a);transition:width .28s ease;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__progress{margin:0;color:#d8c8ed;font-size:.82rem;font-weight:800;}',
+      '#skGenerationWindow.sk-floating-window .sk-generation-window__notice{margin:10px 0 0;color:#c4b5fd;font-size:.86rem;line-height:1.55;word-break:keep-all;}',
+      '#skErrorWindow .sk-error-window__scrim{position:absolute;inset:0;}',
+      '#skErrorWindow .sk-error-window__panel{position:relative;border-color:rgba(253,230,138,.42);}',
+      '#skErrorWindow .sk-error-window__actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px;}',
+      '#skErrorWindow .sk-error-window__btn{min-width:108px;border:1px solid rgba(196,181,253,.38);border-radius:8px;background:rgba(255,255,255,.08);color:#f9f4ff;padding:10px 14px;font-weight:800;cursor:pointer;}',
+      '#skErrorWindow .sk-error-window__btn--primary{border-color:rgba(253,230,138,.48);background:linear-gradient(135deg,#6d28d9,#a16207);color:#fff7ed;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skNoProfileScreen,#sukuyoBookModal.sukuyo-book-modal--result-open #skStartScreen,#sukuyoBookModal.sukuyo-book-modal--result-open #skLoadingScreen,#sukuyoBookModal.sukuyo-book-modal--result-open #skErrorScreen{display:none!important;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skResultScreen{display:grid!important;grid-template-columns:minmax(236px,286px) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"header header" "notice notice" "toc content";height:100%;min-height:0;overflow:hidden;background:linear-gradient(135deg,rgba(8,5,20,.98),rgba(13,13,42,.96));}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-modal__panel{padding:0!important;overflow:hidden!important;border-color:rgba(196,181,253,.32)!important;background:linear-gradient(135deg,rgba(8,5,20,.99),rgba(15,19,48,.98))!important;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__header{grid-area:header;position:relative;display:grid!important;grid-template-columns:48px minmax(0,1fr) auto;grid-template-rows:auto auto;grid-template-areas:"symbol title actions" "symbol meta actions";align-items:center;gap:4px 14px;padding:22px 24px 18px;border-bottom:1px solid rgba(167,139,250,.22);background:radial-gradient(circle at 12% 0%,rgba(253,230,138,.14),transparent 32%),radial-gradient(circle at 88% 8%,rgba(124,58,237,.28),transparent 38%),linear-gradient(180deg,rgba(15,10,34,.98),rgba(10,7,24,.92));}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__symbol{grid-area:symbol;margin:0;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__title{grid-area:title;margin:0;text-align:left;line-height:1.35;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__meta{grid-area:meta;justify-content:flex-start;margin:2px 0 0;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skCompletionNotice.sk-result-status{grid-area:notice;margin:0;padding:12px 24px;border:0;border-bottom:1px solid rgba(251,191,36,.22);border-radius:0;background:linear-gradient(90deg,rgba(251,191,36,.15),rgba(124,58,237,.12),rgba(14,165,233,.08));box-shadow:none;color:#fef7dc;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .sk-result-status__title{display:block;margin:0 0 6px;font-size:.95rem;color:#fde68a;line-height:1.45;word-break:keep-all;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .sk-result-status__body{display:block;line-height:1.62;font-size:.86rem;color:#f8f0ff;word-break:keep-all;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .sk-result-status__badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .sk-result-status__badges b{padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08);font-size:.73rem;color:#fff7ed;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skToc{grid-area:toc;display:flex!important;flex-direction:column;gap:8px;min-height:0;overflow:auto;padding:18px 14px 20px;border-right:1px solid rgba(167,139,250,.18);border-bottom:0;background:linear-gradient(180deg,rgba(11,7,28,.92),rgba(9,6,22,.82));white-space:normal;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skToc .lb-toc-item{width:100%;min-height:auto;padding:12px 13px;border-radius:8px;text-align:left;white-space:normal;background:rgba(255,255,255,.045);border:1px solid rgba(167,139,250,.22);box-shadow:none;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skToc .lb-toc-item.active{background:linear-gradient(135deg,rgba(124,58,237,.36),rgba(30,64,175,.24));border-color:rgba(196,181,253,.7);box-shadow:0 0 0 1px rgba(196,181,253,.16),0 12px 28px rgba(124,58,237,.18);}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skToc .lb-toc-item span{display:block;margin-bottom:5px;color:#c4b5fd;font-size:.7rem;letter-spacing:.08em;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skToc .lb-toc-item strong{display:block;color:#f7f1ff;font-size:.9rem;line-height:1.35;word-break:keep-all;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skChapterContent{grid-area:content;min-height:0;overflow-y:auto;padding:26px 34px 36px;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,0));}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skChapterContent>.lb-chapter-card{max-width:820px;margin:0 auto;border-radius:8px!important;background:rgba(10,5,22,.52)!important;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skChapterContent .lb-sub-card{border-radius:8px!important;background:rgba(255,255,255,.035)!important;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__actions{grid-area:actions;position:static!important;bottom:auto!important;display:flex!important;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin:0!important;padding:0!important;border:0!important;background:transparent!important;backdrop-filter:none!important;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__actions .lb-result__pdf-btn,#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__actions .lb-result__close-btn{min-height:42px;border-radius:8px;}',
+      '#sukuyoBookModal.sukuyo-book-modal--result-open #skDownloadNotice{display:none!important;}',
+      '@media(max-width:820px){#sukuyoBookModal.sukuyo-book-modal--result-open #skResultScreen{grid-template-columns:1fr!important;grid-template-rows:auto auto auto minmax(0,1fr)!important;grid-template-areas:"header" "notice" "toc" "content"!important;}#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__header{grid-template-columns:42px minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;grid-template-areas:"symbol title" "symbol meta" "actions actions"!important;padding:18px 16px 14px!important;}#sukuyoBookModal.sukuyo-book-modal--result-open .lb-result__actions{justify-content:flex-start!important;margin-top:12px!important;}#sukuyoBookModal.sukuyo-book-modal--result-open #skCompletionNotice.sk-result-status{padding:11px 16px!important;}#sukuyoBookModal.sukuyo-book-modal--result-open #skToc{flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important;padding:12px 14px!important;border-right:0!important;border-bottom:1px solid rgba(167,139,250,.18)!important;white-space:nowrap!important;}#sukuyoBookModal.sukuyo-book-modal--result-open #skToc .lb-toc-item{min-width:178px;width:auto!important;}#sukuyoBookModal.sukuyo-book-modal--result-open #skChapterContent{padding:18px 14px 28px!important;}}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  function _detachFloatingElement(element) {
+    if (!element || element.parentNode === document.body) return;
+    document.body.appendChild(element);
+  }
+
+  function _ensureSukuyoErrorWindow() {
+    _ensureFloatingWindowStyle();
+    var element = _qs('skErrorWindow');
+    if (element) return element;
+    element = document.createElement('div');
+    element.id = 'skErrorWindow';
+    element.setAttribute('role', 'dialog');
+    element.setAttribute('aria-modal', 'true');
+    element.setAttribute('aria-hidden', 'true');
+    element.style.display = 'none';
+    element.innerHTML = [
+      '<div class="sk-error-window__scrim" data-action="closeSukuyoErrorWindow"></div>',
+      '<div class="sk-error-window__panel">',
+      '<div class="sk-error-window__orb" aria-hidden="true">!</div>',
+      '<p class="sk-error-window__eyebrow">MOONLIGHT PAUSE</p>',
+      '<h3 class="sk-error-window__title" id="skErrorWindowTitle">생성 중 오류가 발생했습니다</h3>',
+      '<p class="sk-error-window__msg" id="skErrorWindowMsg">잠시 후 다시 시도해 주세요.</p>',
+      '<div class="sk-error-window__actions">',
+      '<button type="button" class="sk-error-window__btn sk-error-window__btn--primary" data-action="retrySukuyoBook">다시 시도</button>',
+      '<button type="button" class="sk-error-window__btn" data-action="closeSukuyoErrorWindow">닫기</button>',
+      '</div>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(element);
+    return element;
+  }
+
+  function _setSukuyoErrorWindowVisible(visible, message) {
+    var element = _ensureSukuyoErrorWindow();
+    var msg = _qs('skErrorWindowMsg');
+    if (msg && message !== undefined) msg.textContent = _sanitizeText(message) || '잠시 후 다시 시도해 주세요.';
+    if (visible) _setGenerationWindowVisible(false);
+    element.style.display = visible ? 'flex' : 'none';
+    try { element.setAttribute('aria-hidden', visible ? 'false' : 'true'); } catch (_) {}
+  }
+
   function _setGenerationWindowVisible(visible) {
     var element = _qs('skGenerationWindow');
     if (!element) return;
+    _ensureFloatingWindowStyle();
+    element.classList.add('sk-floating-window');
+    _detachFloatingElement(element);
+    if (visible) {
+      var errorWindow = _qs('skErrorWindow');
+      if (errorWindow) {
+        errorWindow.style.display = 'none';
+        try { errorWindow.setAttribute('aria-hidden', 'true'); } catch (_) {}
+      }
+    }
     element.style.display = visible ? 'flex' : 'none';
+    element.style.position = 'fixed';
+    element.style.inset = '0';
     try { element.setAttribute('aria-hidden', visible ? 'false' : 'true'); } catch (_) {}
+  }
+
+  function _hideSukuyoFloatingWindows() {
+    ['skGenerationWindow', 'skErrorWindow'].forEach(function (id) {
+      var element = _qs(id);
+      if (!element) return;
+      element.style.display = 'none';
+      try { element.setAttribute('aria-hidden', 'true'); } catch (_) {}
+    });
   }
 
   function _syncGenerationWindowProgress(step, total, title) {
@@ -464,7 +656,26 @@
   function _buildApiCandidates(pathname) {
     var path = String(pathname || '');
     if (path.charAt(0) !== '/') path = '/' + path;
-    var bases = ['', window.__CD_API_BASE_URL || '', window.__API_BASE_URL || '', window.__AUTH_API_BASE_URL || '', window.location && window.location.origin || ''];
+    var isLocal = false;
+    var queryApiBase = '';
+    try {
+      isLocal = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(String(window.location && window.location.hostname || ''));
+      var params = new URLSearchParams(window.location && window.location.search || '');
+      queryApiBase = params.get('api') || params.get('apiBase') || params.get('cdApiBase') || '';
+    } catch (_) {}
+    var bases = [
+      queryApiBase,
+      window.CODE_DESTINY_API_BASE_URL || '',
+      window.__CD_API_BASE_URL || '',
+      window.__API_BASE_URL || '',
+      window.__AUTH_API_BASE_URL || '',
+    ];
+    if (isLocal) {
+      bases.push('http://localhost:4000');
+      bases.push('http://127.0.0.1:4000');
+    }
+    bases.push('');
+    bases.push(window.location && window.location.origin || '');
     var seen = {};
     var out = [];
     bases.forEach(function (base) {
@@ -473,6 +684,13 @@
       if (!seen[url]) { seen[url] = true; out.push(url); }
     });
     return out;
+  }
+
+  function _resolveSukuyoApiUrl(url) {
+    var value = _clean(url);
+    if (!value || !/^\/api\//.test(value)) return value;
+    var candidates = _buildApiCandidates(value);
+    return candidates[0] || value;
   }
 
   function _buildQueryString(params) {
@@ -756,19 +974,19 @@
   }
 
   function _getActiveBirthProfile() {
-    var fromSukuyoForm = _recoverBirthFromSukuyoForm();
+    var fromSukuyoForm = _normalizeSukuyoProfile(_recoverBirthFromSukuyoForm());
     if (fromSukuyoForm) return fromSukuyoForm;
-    var profile = window.__cdActiveBirthProfile;
-    if (profile && profile.birth && profile.birth.year) return profile;
-    var snap = window.__destinyFlowerSajuSnapshot;
-    if (snap && snap.birth && snap.birth.year) return snap;
+    var profile = _normalizeSukuyoProfile(window.__cdActiveBirthProfile);
+    if (profile) return profile;
+    var snap = _normalizeSukuyoProfile(window.__destinyFlowerSajuSnapshot);
+    if (snap) return snap;
     var fromDom = _recoverBirthFromDOM();
-    if (fromDom) return fromDom;
+    if (fromDom) return _normalizeSukuyoProfile(fromDom) || fromDom;
     try {
-      var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+      var match = _normalizeSukuyoProfile((typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
         || window.__cdCurrentDestinyProfile
-        || null;
-      if (match && match.birth && match.birth.year) return match;
+        || null);
+      if (match) return match;
     } catch (_) {}
     return null;
   }
@@ -936,6 +1154,7 @@
   }
 
   function _formatProfile(profile) {
+    profile = _normalizeSukuyoProfile(profile) || profile || {};
     var birth = profile && profile.birth || {};
     var birthHour = _profileNum(birth.hour, NaN);
     var birthMinute = _profileNum(birth.minute, 0);
@@ -1177,23 +1396,23 @@
     if (partnerEl) partnerEl.textContent = _readinessPersonLine(safeInput.partner, '상대방');
     if (qualityEl) {
       qualityEl.textContent = verified
-        ? '본명숙 산출 완료 · 49,000원 PDF 상담 가능'
+        ? '두 본명숙이 맞닿음 · 15장 인연문 개방'
         : safeCheck.ok
-          ? '달별 기준 정렬 완료 · 결제 문 대기'
-          : '생년월일·성별 보완 필요';
+          ? '달빛 기준 정렬 완료 · 결제 문턱 대기'
+          : '생년월일·성별의 빈자리 보완 필요';
     }
     if (statusEl) {
       statusEl.textContent = state === 'verified'
-        ? '두 사람의 달별 기준이 맞춰졌습니다. ' + _sukuyoCoinLabel() + ' 결제 뒤 PDF 문이 열립니다.'
+        ? '두 사람의 달빛 기준이 맞닿았습니다. ' + _sukuyoCoinLabel() + '의 문턱을 지나면 15개의 인연 장이 천천히 열려요.'
         : safeCheck.ok
-          ? '상대방의 달빛 정보가 준비되었습니다. 결제 전에 27숙 산출 문이 먼저 열립니다.'
+          ? '상대방의 생년월일과 성별이 달의 자리 위에 놓였습니다. 결제 전 27숙의 첫 별자리를 먼저 비춰볼게요.'
           : invalidMessage;
       statusEl.classList.toggle('sk-inline-error', !safeCheck.ok);
     }
     if (noticeEl) {
       noticeEl.textContent = hasUnknownTime
-        ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 흐르고, 시간 세부 문장은 보수적으로 머무릅니다.'
-        : '49,000원 숙요점 PDF 전용 궁합입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴이 하나의 상담 흐름으로 이어집니다.';
+        ? '태어난 시간을 모르면 같은 날짜의 달빛을 중심에 두고, 시간의 안개가 닿는 대목은 조심스러운 문장으로 남겨요.'
+        : '49,000원의 전용 의식 안에서 본명숙, 관계의 이름, 서로의 거리와 회복의 리듬이 하나의 상담 흐름으로 이어져요.';
     }
   }
 
@@ -1210,7 +1429,7 @@
     var selfMissing = errors.indexOf('self.birthDate') >= 0 || errors.indexOf('self.gender') >= 0;
     var partnerMissing = errors.indexOf('partner.birthDate') >= 0 || errors.indexOf('partner.gender') >= 0;
     if (selfMissing && partnerMissing) return '나와 상대방의 생년월일과 성별을 확인해 주세요.';
-    if (selfMissing) return '저장된 프로필의 생년월일과 성별을 먼저 확인해 주세요.';
+    if (selfMissing) return '내 생년월일과 성별을 먼저 확인해 주세요.';
     if (partnerMissing) return '상대방 생년월일과 성별을 먼저 채워 주세요.';
     return '생년월일과 성별을 확인해 주세요.';
   }
@@ -1368,8 +1587,16 @@
     setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 3000);
   }
 
+  function _downloadSukuyoInlineHtml(ready, reportId) {
+    var html = _clean(ready && ready.html);
+    if (!html) return false;
+    var filename = reportId ? ('sukyo-premium-' + reportId + '.html') : 'sukyo-premium-report.html';
+    _downloadSukuyoBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), filename);
+    return true;
+  }
+
   function _downloadSukuyoUrlAsBlob(url, filename, expectedFormat) {
-    var targetUrl = _clean(url);
+    var targetUrl = _resolveSukuyoApiUrl(url);
     if (!targetUrl) return Promise.reject(new Error('SUKUYO_DOWNLOAD_URL_MISSING'));
     return fetch(targetUrl, {
       method: 'GET',
@@ -1454,8 +1681,35 @@
     var button = _qs('skPdfBtn') || _qs('skResultPdfBtn');
     if (!button) return;
     var isTemporaryHtml = _isSukuyoArchivePending(payload) && _hasInlineSukuyoHtml(payload);
-    button.textContent = isTemporaryHtml ? '📥 임시 HTML 원고 저장하기' : '📥 PDF로 저장하기';
-    button.setAttribute('aria-label', isTemporaryHtml ? '임시 HTML 원고 저장하기' : '숙요점 궁합 PDF 저장하기');
+    button.textContent = isTemporaryHtml ? '📥 HTML 원고 먼저 저장하기' : '📥 PDF 저장하기';
+    button.setAttribute('aria-label', isTemporaryHtml ? 'PDF 링크 준비 중, HTML 원고 먼저 저장하기' : '숙요점 궁합 PDF 저장하기');
+  }
+
+  function _renderSukuyoCompletionNotice(payload, chapters) {
+    var resultScreen = _qs('skResultScreen');
+    var toc = _qs('skToc');
+    if (!resultScreen || !toc) return;
+    var notice = _qs('skCompletionNotice');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'skCompletionNotice';
+      resultScreen.insertBefore(notice, toc);
+    }
+    var count = Array.isArray(chapters) ? chapters.length : 0;
+    var isTemporaryHtml = _isSukuyoArchivePending(payload) && _hasInlineSukuyoHtml(payload);
+    notice.className = 'sk-result-status';
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('aria-live', 'polite');
+    notice.innerHTML = ''
+      + '<strong class="sk-result-status__title">숙요점 프리미엄 궁합 원고가 완성되었습니다</strong>'
+      + '<span class="sk-result-status__body">'
+      + (isTemporaryHtml ? 'PDF 저장 링크가 열리는 동안 HTML 원고를 먼저 간직할 수 있습니다.' : '아래 저장 버튼으로 완성된 PDF 원고를 바로 간직할 수 있습니다.')
+      + '</span>'
+      + '<span class="sk-result-status__badges">'
+      + '<b>' + count + '개 챕터</b>'
+      + '<b>검증 완료</b>'
+      + '<b>' + (isTemporaryHtml ? 'HTML 저장 가능' : 'PDF 저장 가능') + '</b>'
+      + '</span>';
   }
 
   function _splitParagraphs(body) {
@@ -1495,48 +1749,83 @@
   }
 
   function _applyResultLayout() {
+    _ensureFloatingWindowStyle();
     var panel = document.querySelector('#sukuyoBookModal .lb-modal__panel');
     var resultScreen = _qs('skResultScreen');
+    var header = document.querySelector('#skResultScreen .lb-result__header');
+    var notice = _qs('skCompletionNotice');
     var toc = _qs('skToc');
     var content = _qs('skChapterContent');
     var actions = document.querySelector('#skResultScreen .lb-result__actions');
+    var downloadNotice = _qs('skDownloadNotice');
 
     if (panel) {
-      panel.style.maxHeight = '88vh';
+      panel.style.width = 'min(1180px, calc(100vw - 28px))';
+      panel.style.maxWidth = '1180px';
+      panel.style.height = 'calc(100vh - 28px)';
+      panel.style.maxHeight = 'calc(100vh - 28px)';
       panel.style.overflow = 'hidden';
       panel.style.display = 'flex';
       panel.style.flexDirection = 'column';
     }
     if (resultScreen) {
-      resultScreen.style.maxHeight = '88vh';
+      resultScreen.style.height = '100%';
+      resultScreen.style.maxHeight = 'none';
+      resultScreen.style.minHeight = '0';
       resultScreen.style.overflow = 'hidden';
-      resultScreen.style.display = 'flex';
-      resultScreen.style.flexDirection = 'column';
+      resultScreen.style.display = 'grid';
+      resultScreen.style.gridTemplateColumns = 'minmax(236px, 286px) minmax(0, 1fr)';
+      resultScreen.style.gridTemplateRows = 'auto auto minmax(0, 1fr)';
+      resultScreen.style.gridTemplateAreas = '"header header" "notice notice" "toc content"';
+      resultScreen.style.flexDirection = '';
+    }
+    if (header) {
+      header.style.gridArea = 'header';
+      header.style.flex = '';
+      header.style.padding = '24px 20px 16px';
+      header.style.borderBottom = '1px solid rgba(167,139,250,0.22)';
+      if (actions && actions.parentNode !== header) header.appendChild(actions);
+    }
+    if (notice) {
+      notice.style.gridArea = 'notice';
     }
     if (toc) {
+      toc.style.gridArea = 'toc';
       toc.style.display = 'flex';
+      toc.style.flexDirection = 'column';
       toc.style.flexWrap = 'nowrap';
-      toc.style.overflowX = 'auto';
-      toc.style.overflowY = 'hidden';
-      toc.style.whiteSpace = 'nowrap';
+      toc.style.overflowX = 'hidden';
+      toc.style.overflowY = 'auto';
+      toc.style.whiteSpace = 'normal';
       toc.style.WebkitOverflowScrolling = 'touch';
+      toc.style.flex = '0 0 auto';
     }
     if (content) {
-      content.style.flex = '1';
-      content.style.maxHeight = '58vh';
+      content.style.gridArea = 'content';
+      content.style.flex = '';
+      content.style.minHeight = '0';
+      content.style.maxHeight = 'none';
       content.style.overflowY = 'auto';
-      content.style.padding = '16px 18px 20px';
+      content.style.padding = '26px 34px 36px';
       content.style.display = 'block';
     }
     if (actions) {
-      actions.style.position = 'sticky';
-      actions.style.bottom = '0';
-      actions.style.padding = '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))';
-      actions.style.background = 'linear-gradient(180deg, rgba(12,10,22,0.82), rgba(12,10,22,0.97))';
-      actions.style.backdropFilter = 'blur(8px)';
-      actions.style.borderTop = '1px solid rgba(167,139,250,0.24)';
-      actions.style.zIndex = '8';
+      actions.style.gridArea = 'actions';
+      actions.style.position = 'static';
+      actions.style.bottom = 'auto';
+      actions.style.flex = '';
+      actions.style.display = 'flex';
+      actions.style.justifyContent = 'flex-end';
+      actions.style.flexWrap = 'wrap';
+      actions.style.gap = '10px';
+      actions.style.marginTop = '0';
+      actions.style.padding = '0';
+      actions.style.background = 'transparent';
+      actions.style.backdropFilter = 'none';
+      actions.style.borderTop = '0';
+      actions.style.zIndex = '2';
     }
+    if (downloadNotice) downloadNotice.style.display = 'none';
   }
 
   function _applySukuyoScreenLayout(screenId) {
@@ -1545,22 +1834,26 @@
     var header = document.querySelector('#sukuyoBookModal .lb-modal__header');
     var loadingScreen = _qs('skLoadingScreen');
     var isLoading = screenId === 'skLoadingScreen';
+    var isResult = screenId === 'skResultScreen';
 
     if (modal) {
       modal.classList.toggle('sukuyo-book-modal--generating', isLoading);
+      modal.classList.toggle('sukuyo-book-modal--result-open', isResult);
       modal.scrollTop = 0;
     }
-    if (header) header.style.display = isLoading ? 'none' : '';
+    if (header) header.style.display = (isLoading || isResult) ? 'none' : '';
     if (panel) {
       panel.scrollTop = 0;
-      panel.style.margin = isLoading ? 'auto' : '';
-      panel.style.width = isLoading ? 'min(520px, calc(100vw - 28px))' : '';
-      panel.style.maxWidth = isLoading ? '520px' : '';
-      panel.style.maxHeight = isLoading ? 'calc(100vh - 48px)' : '';
-      panel.style.minHeight = isLoading ? 'auto' : '';
-      panel.style.overflow = isLoading ? 'hidden' : '';
-      panel.style.display = '';
-      panel.style.flexDirection = '';
+      panel.style.margin = isLoading ? 'auto' : (isResult ? '14px auto' : '');
+      panel.style.width = isLoading ? 'min(520px, calc(100vw - 28px))' : (isResult ? 'min(1180px, calc(100vw - 28px))' : '');
+      panel.style.maxWidth = isLoading ? '520px' : (isResult ? '1180px' : '');
+      panel.style.height = isResult ? 'calc(100vh - 28px)' : '';
+      panel.style.maxHeight = isLoading ? 'calc(100vh - 48px)' : (isResult ? 'calc(100vh - 28px)' : '');
+      panel.style.minHeight = isLoading ? 'auto' : (isResult ? '0' : '');
+      panel.style.overflow = (isLoading || isResult) ? 'hidden' : '';
+      panel.style.display = isResult ? 'flex' : '';
+      panel.style.flexDirection = isResult ? 'column' : '';
+      if (!isResult) panel.style.padding = '';
     }
     if (loadingScreen) {
       loadingScreen.style.minHeight = isLoading ? 'auto' : '';
@@ -1681,24 +1974,24 @@
 
     var hint = _qs('skModeHint');
     if (hint) {
-      hint.textContent = '저장된 나의 운명 카드 위로 상대방의 달빛 정보가 겹치면 49,000원 전용 인연 지도가 열립니다.';
+      hint.textContent = '저장된 나의 운명 카드 위로 상대의 달빛 생일이 겹치면, 두 사람만의 15장 인연 지도가 조용히 펼쳐져요.';
       hint.classList.remove('sk-inline-error');
     }
 
     var startDesc = _qs('skStartDesc');
-    if (startDesc) startDesc.innerHTML = '두 사람의 본명숙, 관계 거리, 갈등 회복 흐름이 <strong>15챕터 숙요점 PDF</strong> 안에서 차분히 드러납니다.';
+    if (startDesc) startDesc.innerHTML = '두 사람의 본명숙과 관계 거리, 부딪힘 뒤에 되돌아오는 마음의 길이 <strong>15챕터 숙요점 PDF</strong> 안에서 달빛처럼 드러나요.';
 
     var title = _qs('skModalTitle');
     if (title) title.textContent = '💫 숙요점 프리미엄 궁합 PDF';
 
     var subtitle = _qs('skModalSubtitle');
-    if (subtitle) subtitle.textContent = '27개의 달별로 읽는 두 사람의 인연 지도 · 15챕터 리포트';
+    if (subtitle) subtitle.textContent = '27숙의 달빛이 두 사람의 끌림, 긴장, 회복의 길을 15개의 장으로 비춰요.';
 
     var startBtn = _qs('skStartBtn');
-    if (startBtn) startBtn.textContent = '달별 기준 맞추고 ' + _sukuyoCoinLabel() + ' 결제 후 PDF 열기';
+    if (startBtn) startBtn.textContent = '두 사람의 달빛 기준 맞추기';
 
     var coinMsg = _qs('skCompatNeedMsg');
-    if (coinMsg) coinMsg.textContent = '궁합 PDF는 상대방의 생년월일이 들어와야 열립니다.';
+    if (coinMsg) coinMsg.textContent = '상대방의 생년월일이 놓이면 두 사람의 숙요 궁합 문이 열려요.';
   }
 
   function _populateTimeSelects() {
@@ -1776,13 +2069,17 @@
       }
     });
     _applySukuyoScreenLayout(targetScreenId);
-    if (targetScreenId === 'skResultScreen') _applyResultLayout();
+    if (targetScreenId === 'skResultScreen') {
+      _hideSukuyoFloatingWindows();
+      _applyResultLayout();
+    }
   }
 
   function _setError(message) {
     var element = _qs('skErrorMsg');
     if (element) element.textContent = _sanitizeText(message) || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    _showScreen('skErrorScreen');
+    _showScreen('skStartScreen');
+    _setSukuyoErrorWindowVisible(true, message);
   }
 
   function _setStartBusy(isBusy) {
@@ -2430,15 +2727,57 @@
 
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return Promise.resolve(true);
-    if (typeof window._cdCoinGatePerUse !== 'function') {
+    if (typeof window._cdOpenPaidServiceGate !== 'function' && typeof window._cdCoinGatePerUse !== 'function') {
       return Promise.reject(new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.'));
     }
 
     var paymentScope = _getSukuyoGenerationScope();
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility', reportId: paymentScope.reportId });
+    var coinCost = _resolveSukuyoCoinCost();
+    var reason = '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel();
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return Promise.resolve(window._cdOpenPaidServiceGate({
+        title: '숙요점 프리미엄 궁합 PDF',
+        reason: reason,
+        coinPrice: coinCost,
+        cost: coinCost,
+        featureKey: SUKYO_FEATURE_KEY,
+        categoryKey: 'premium-pdf',
+        subFeatureKey: SUKYO_FEATURE_KEY,
+        mode: 'compatibility',
+        reportMode: 'compatibility',
+        reportType: 'sookyoPremium',
+        aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
+        serviceKey: 'sukuyo-premium',
+        reportId: paymentScope.reportId,
+        sessionId: paymentScope.sessionId,
+        reportSessionId: paymentScope.reportSessionId,
+        requestId: paymentScope.requestId,
+      })).then(function (gateResult) {
+        if (!gateResult || gateResult.status === 'cancelled') {
+          throw new Error((gateResult && gateResult.message) || '결제가 취소되어 생성을 중단했습니다.');
+        }
+        _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(gateResult.transactionId, gateResult.payload || gateResult));
+        if (gateResult.access && typeof gateResult.access === 'object') _lastPremiumPayment.accessGateResult = gateResult.access;
+        _lastPremiumPayment.featureKey = SUKYO_FEATURE_KEY;
+        _lastPremiumPayment.aliasFeatureKey = SUKYO_ALIAS_FEATURE_KEY;
+        _lastPremiumPayment.reportType = 'sookyoPremium';
+        _lastPremiumPayment.mode = 'compatibility';
+        _lastPremiumPayment.reportMode = 'compatibility';
+        _lastPremiumPayment.sessionId = _clean(_lastPremiumPayment.sessionId || paymentScope.sessionId) || paymentScope.sessionId;
+        _lastPremiumPayment.reportSessionId = _clean(_lastPremiumPayment.reportSessionId || paymentScope.reportSessionId) || paymentScope.reportSessionId;
+        _lastPremiumPayment.reportId = _clean(_lastPremiumPayment.reportId || paymentScope.reportId) || paymentScope.reportId;
+        _lastPremiumPayment.requestId = _clean(_lastPremiumPayment.requestId || paymentScope.requestId) || paymentScope.requestId;
+        _lastPremiumPayment.purchaseId = _clean(_lastPremiumPayment.purchaseId || _lastPremiumPayment.transactionId || _lastPremiumPayment.requestId) || undefined;
+        _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(gateResult.payload || gateResult));
+        _markPremiumAccessVerified(25 * 60 * 1000);
+        _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY, reportId: _lastPremiumPayment.reportId, status: gateResult.status });
+        return _lastPremiumPayment;
+      });
+    }
+
     return new Promise(function (resolve, reject) {
-      var coinCost = _resolveSukuyoCoinCost();
-      window._cdCoinGatePerUse(coinCost, '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel(), function (_transactionId, data) {
+      window._cdCoinGatePerUse(coinCost, reason, function (_transactionId, data) {
         _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(_transactionId, data));
         if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant) {
           _lastPremiumPayment.adminTestMode = true;
@@ -2489,6 +2828,8 @@
 
     if (name) name.textContent = '💫 ' + _sanitizeText(seed.userProfile && seed.userProfile.name || '사용자') + ' x ' + _sanitizeText(seed.partnerProfile && seed.partnerProfile.name || '상대방');
     if (date) date.textContent = [_sanitizeText(seed.userSukyo && seed.userSukyo.nameKo || ''), _sanitizeText(seed.partnerSukyo && seed.partnerSukyo.nameKo || ''), _sanitizeText(seed.compatibility && seed.compatibility.relationType || '')].filter(Boolean).join(' · ');
+    _renderSukuyoCompletionNotice(payload, chapters);
+    _applyResultLayout();
 
     chapters.forEach(function (chapter, index) {
       if (toc) {
@@ -2573,6 +2914,7 @@
       _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
       _setGenerationWindowVisible(false);
       _showScreen('skResultScreen');
+      _showSukuyoToast('숙요점 PDF 원고가 완성됐어요. 현재 창에서 확인하고 저장할 수 있어요.');
     });
   }
 
@@ -2583,6 +2925,8 @@
     _log('[SukuyoBook][ModalOpen]', { featureKey: SUKYO_FEATURE_KEY });
 
     _detachModalFromResultPage(modal);
+    _setSukuyoErrorWindowVisible(false);
+    _setGenerationWindowVisible(false);
     _populateTimeSelects();
     _forceCompatibilityMode();
     _syncGenderAria('skSelf');
@@ -2592,26 +2936,25 @@
     _applyResultLayout();
 
     var profile = _getActiveBirthProfile();
-    if (!profile || !profile.birth || !profile.birth.year) {
+    if (!profile) {
       try {
-        var pick = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        var pick = _normalizeSukuyoProfile((typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
           || window.__cdCurrentDestinyProfile
-          || null;
-        if (pick && pick.birth && pick.birth.year) {
+          || null);
+        if (pick) {
           window.__cdActiveBirthProfile = pick;
           profile = pick;
         }
       } catch (_) {}
     }
 
-    if (profile && profile.birth && profile.birth.year) {
+    if (profile) {
       window.__cdActiveBirthProfile = profile;
       _renderProfileSummary(profile);
-      _showScreen('skStartScreen');
     } else {
       _renderProfileSummary(null);
-      _showScreen('skSetupScreen');
     }
+    _showScreen('skStartScreen');
     _refreshReadinessPanel();
 
     modal.style.display = 'flex';
@@ -2633,6 +2976,7 @@
     if (!modal) return;
     modal.style.display = 'none';
     _setGenerationWindowVisible(false);
+    _setSukuyoErrorWindowVisible(false);
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
@@ -2646,10 +2990,8 @@
 
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth) {
-      _showScreen('skSetupScreen');
       _renderProfileSummary(null);
-      _clearInputErrors();
-      return;
+      _showScreen('skStartScreen');
     }
 
     _log('[SukuyoBook][ProfileResolved]', { hasBirthDate: !!_clean(_formatProfile(profile).birthDate) });
@@ -2673,18 +3015,15 @@
     _clearInputErrors();
     _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
     if (!check.ok) {
-      if (check.fieldErrors && (check.fieldErrors.skSelfBirthDate || check.fieldErrors.skSelfGender)) {
-        _showScreen('skSetupScreen');
-        return;
-      }
       Object.keys(check.fieldErrors || {}).forEach(function (fieldId) {
         _setInputError(fieldId, check.fieldErrors[fieldId]);
       });
       var modeHint = _qs('skModeHint');
       if (modeHint) {
-        modeHint.textContent = '상대방 생년월일과 성별을 먼저 확인해 주세요.';
+        modeHint.textContent = _readinessInvalidMessage(check);
         modeHint.classList.add('sk-inline-error');
       }
+      _showScreen('skStartScreen');
       _focusFirstInputError(check.fieldErrors);
       return;
     }
@@ -2854,6 +3193,10 @@
             _showSukuyoToast('로그인이 만료되었습니다. 다시 로그인한 뒤 PDF를 저장해 주세요.');
             return;
           }
+          if (inlineHtml && _downloadSukuyoInlineHtml(ready, reportId)) {
+            _showSukuyoToast('테스트 환경에서 PDF 저장소 연결이 없어 HTML 원고로 저장했어요. 파일을 열어 PDF로 저장할 수 있어요.');
+            return;
+          }
           _showSukuyoToast('PDF 저장 링크를 열 수 없습니다. 잠시 후 다시 시도해 주세요.');
         });
       return;
@@ -2887,6 +3230,8 @@
       var action = actionEl.getAttribute('data-action');
       if (action === 'openSukuyoBookModal') { window.openSukuyoBookModal(); return; }
       if (action === 'closeSukuyoBookModal') { window.closeSukuyoBookModal(); return; }
+      if (action === 'closeSukuyoErrorWindow') { _setSukuyoErrorWindowVisible(false); return; }
+      if (action === 'retrySukuyoBook') { _setSukuyoErrorWindowVisible(false); window.generateSukuyoBook(); return; }
       if (action === 'gotoSukuyoPremium') { window.gotoSukuyoPremium(); return; }
       if (action === 'generateSukuyoBook') { window.generateSukuyoBook(); return; }
     }

@@ -37,6 +37,7 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
       "spread-3": Object.freeze({ featureKey: "stonehenge-runes-triad", cost: 50, reason: "스톤헨지 룬 3-룬 리딩" }),
       "spread-5": Object.freeze({ featureKey: "stonehenge-runes-deep", cost: 70, reason: "스톤헨지 룬 5-룬 리딩" }),
       "spread-12": Object.freeze({ featureKey: "stonehenge-runes-yearly", cost: 120, reason: "스톤헨지 룬 12-룬 리딩" }),
+      "ai-prompt": Object.freeze({ featureKey: "stonehenge-runes-ai-prompt", cost: 30, reason: "스톤헨지 룬 AI 질문문 생성" }),
     }),
   }),
   "animal-totem": Object.freeze({
@@ -67,6 +68,7 @@ const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   "stonehenge-runes-triad": Object.freeze({ categoryKey: "stonehenge-runes", subFeatureKey: "spread-3" }),
   "stonehenge-runes-deep": Object.freeze({ categoryKey: "stonehenge-runes", subFeatureKey: "spread-5" }),
   "stonehenge-runes-yearly": Object.freeze({ categoryKey: "stonehenge-runes", subFeatureKey: "spread-12" }),
+  "stonehenge-runes-ai-prompt": Object.freeze({ categoryKey: "stonehenge-runes", subFeatureKey: "ai-prompt" }),
 
   // Animal totem
   "animal-totem": Object.freeze({ categoryKey: "animal-totem", subFeatureKey: "basic" }),

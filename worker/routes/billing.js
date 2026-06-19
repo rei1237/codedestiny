@@ -23,6 +23,7 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { connectDb } from "../lib/db.js";
+import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -450,7 +451,7 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   const activeStatus = ["active", "paid", "current", "subscribed", "success", "valid", "ok", "complete", "completed", "confirmed", "approved"].includes(status);
   const expiresAt = sub?.expiresAt || user?.expiresAt || null;
   const expiresMs = expiresAt ? new Date(expiresAt).getTime() : NaN;
-  const dateActive = !Number.isFinite(expiresMs) || expiresMs > Date.now();
+  const dateActive = expiresAt ? (Number.isFinite(expiresMs) && expiresMs > Date.now()) : true;
   const passLimit = Number(sub?.maxCoveredCoin || sub?.passLimit || sub?.freeLimit || policy.maxCoinLimit || 0);
   const explicitPass = tier === "family" || passLimit > 0 || activeStatus;
   if (inactive || !dateActive || !explicitPass) return entitlement;
@@ -1089,7 +1090,11 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     || rawStatus === "\uC774\uC6A9\uC911"
     || rawStatus === "\uC720\uD6A8"
     || rawStatus === "\uC644\uB8CC";
-  const isSnapshotActive = !inactiveStatus && (
+  const expiresAtRaw = snapshot?.expiresAt || subscription?.expiresAt || null;
+  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
+  const expiresAtValid = expiresAt && Number.isFinite(expiresAt.getTime());
+  const expiredByDate = Boolean(expiresAtRaw) && (!expiresAtValid || expiresAt.getTime() <= Date.now());
+  const isSnapshotActive = !inactiveStatus && !expiredByDate && (
     snapshot?.isActive === true
       || snapshot?.isSubscribed === true
       || snapshot?.active === true
@@ -1097,6 +1102,7 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
       || snapshot?.valid === true
       || snapshot?.registered === true
       || activeStatus
+      || Boolean(expiresAtValid && expiresAt.getTime() > Date.now())
   );
   if (!isSnapshotActive) return null;
   const tier = String(
@@ -1124,7 +1130,7 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     isActive: true,
     isSubscribed: true,
     status: rawStatus || "active",
-    expiresAt: snapshot?.expiresAt || subscription?.expiresAt || null,
+    expiresAt: expiresAtValid ? expiresAt.toISOString() : null,
     freeLimit: Number(snapshot?.freeLimit || subscription?.freeLimit || 0),
     source: snapshot?.source || subscription?.source || "subscription_status_snapshot",
   };
@@ -2010,6 +2016,66 @@ function isSukuyoArchiveReport(archive = {}, metadata = {}, reportType = "") {
   return /sukyo|sookyo|sukuyo/.test(haystack) || String(archive?.displayName || "").includes("숙요");
 }
 
+function archiveSukuyoTokenIncludes(value, tokens = []) {
+  const haystack = String(value || "").toLowerCase();
+  return tokens.some((token) => haystack.includes(String(token).toLowerCase()));
+}
+
+function archiveSukuyoDistanceTier(value) {
+  const token = String(value || "").toLowerCase();
+  if (token.includes("근") || token.includes("near")) return "near";
+  if (token.includes("원") || token.includes("far")) return "far";
+  return "middle";
+}
+
+function isArchiveMaoSamAngoeNearFireWater({ localJson = {}, payload = {}, relation = {}, compatibility = {} } = {}) {
+  const selfStar = [
+    localJson?.self?.sukuyoStar,
+    payload?.self?.sukuyoStar,
+    payload?.userSukyo?.nameKo,
+    payload?.userSukyo?.name,
+    payload?.userSukyo?.nameEn,
+  ].join(" ");
+  const partnerStar = [
+    localJson?.partner?.sukuyoStar,
+    payload?.partner?.sukuyoStar,
+    payload?.partnerSukyo?.nameKo,
+    payload?.partnerSukyo?.name,
+    payload?.partnerSukyo?.nameEn,
+  ].join(" ");
+  const relationName = [
+    relation?.typeKo,
+    relation?.typeHan,
+    relation?.type,
+    compatibility?.relationType,
+    compatibility?.relationTypeHan,
+  ].join(" ");
+  const distanceName = [
+    relation?.distanceLabel,
+    relation?.distance,
+    compatibility?.distanceLabel,
+    compatibility?.distance,
+  ].join(" ");
+  const selfElement = [
+    relation?.elementHarmony?.meElement,
+    relation?.elementHarmony?.aElement,
+    localJson?.self?.element,
+    payload?.userSukyo?.element,
+  ].join(" ");
+  const partnerElement = [
+    relation?.elementHarmony?.otherElement,
+    relation?.elementHarmony?.bElement,
+    localJson?.partner?.element,
+    payload?.partnerSukyo?.element,
+  ].join(" ");
+  return archiveSukuyoTokenIncludes(selfStar, ["묘", "mao", "卯"])
+    && archiveSukuyoTokenIncludes(partnerStar, ["삼", "sam", "參"])
+    && archiveSukuyoTokenIncludes(relationName, ["안괴", "安壞", "angoe", "ankai"])
+    && archiveSukuyoDistanceTier(distanceName) === "near"
+    && archiveSukuyoTokenIncludes(selfElement, ["화", "火", "fire"])
+    && archiveSukuyoTokenIncludes(partnerElement, ["수", "水", "water"]);
+}
+
 function buildSukuyoArchiveVisualModel(archive = {}, metadata = {}, reportType = "") {
   if (!isSukuyoArchiveReport(archive, metadata, reportType)) return null;
   const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
@@ -2021,15 +2087,43 @@ function buildSukuyoArchiveVisualModel(archive = {}, metadata = {}, reportType =
   const relation = localJson?.relation && typeof localJson.relation === "object" ? localJson.relation : {};
   const compatibility = payload?.compatibility && typeof payload.compatibility === "object" ? payload.compatibility : {};
   const chemistry = relation?.chemistry && typeof relation.chemistry === "object" ? relation.chemistry : {};
-  const items = [
-    { label: "궁합 지수", value: archivePdfScore(relation.score ?? relation.compatibilityScore ?? compatibility.compatibilityIndex ?? compatibility.score, 58), color: "0.56 0.28 0.86" },
-    { label: "감정 반응", value: archivePdfScore(chemistry.emotional ?? compatibility.temperature ?? compatibility.chemistryScore, 58), color: "0.88 0.24 0.50" },
-    { label: "대화 안정", value: archivePdfScore(chemistry.communication ?? compatibility.communicationScore, 55), color: "0.06 0.58 0.62" },
-    { label: "일상 안정", value: archivePdfScore(chemistry.dailyLife ?? compatibility.stabilityScore, 53), color: "0.86 0.55 0.08" },
-    { label: "회복 탄력", value: archivePdfScore(chemistry.recoveryPotential ?? compatibility.growthScore, 51), color: "0.18 0.45 0.86" },
-    { label: "장기 가능", value: archivePdfScore(chemistry.longTermPotential ?? compatibility.compatibilityIndex, 50), color: "0.18 0.62 0.32" },
-    { label: "갈등 민감", value: archivePdfScore(chemistry.conflictRisk ?? compatibility.conflictScore, 52), color: "0.88 0.26 0.20" },
-  ];
+  const exactPromptScores = isArchiveMaoSamAngoeNearFireWater({ localJson, payload, relation, compatibility });
+  const items = exactPromptScores
+    ? [
+      { label: "감정 공명", value: 72, color: "0.56 0.28 0.86" },
+      { label: "대화 안정성", value: 65, color: "0.06 0.58 0.62" },
+      { label: "갈등 회복력", value: 48, color: "0.86 0.55 0.08" },
+      { label: "가치관 일치", value: 61, color: "0.18 0.45 0.86" },
+      { label: "장기 지속력", value: 55, color: "0.18 0.62 0.32" },
+      { label: "친밀감 깊이", value: 78, color: "0.88 0.26 0.20" },
+      { label: "성장 시너지", value: 59, color: "0.56 0.28 0.86" },
+    ]
+    : [
+      { label: "감정 공명", value: archivePdfScore(chemistry.emotional ?? compatibility.temperature ?? compatibility.chemistryScore, 58), color: "0.56 0.28 0.86" },
+      { label: "대화 안정성", value: archivePdfScore(chemistry.communication ?? compatibility.communicationScore, 55), color: "0.06 0.58 0.62" },
+      { label: "갈등 회복력", value: archivePdfScore(chemistry.recoveryPotential ?? compatibility.growthScore, 51), color: "0.86 0.55 0.08" },
+      { label: "가치관 일치", value: archivePdfScore(chemistry.dailyLife ?? compatibility.stabilityScore, 53), color: "0.18 0.45 0.86" },
+      { label: "장기 지속력", value: archivePdfScore(chemistry.longTermPotential ?? compatibility.compatibilityIndex, 50), color: "0.18 0.62 0.32" },
+      { label: "친밀감 깊이", value: archivePdfScore(chemistry.physical ?? compatibility.chemistryScore ?? chemistry.emotional, 56), color: "0.88 0.26 0.20" },
+      { label: "성장 시너지", value: archivePdfScore(relation.magnetism ?? compatibility.growthScore ?? chemistry.recoveryPotential, 52), color: "0.56 0.28 0.86" },
+    ];
+  const radarItems = exactPromptScores
+    ? [
+      { label: "끌림", value: 82 },
+      { label: "소통", value: 65 },
+      { label: "회복", value: 48 },
+      { label: "안정", value: 55 },
+      { label: "성장", value: 59 },
+      { label: "현실", value: 61 },
+    ]
+    : [
+      { label: "끌림", value: archivePdfScore(relation.magnetism ?? compatibility.chemistryScore ?? items[5]?.value, 58) },
+      { label: "소통", value: items[1].value },
+      { label: "회복", value: items[2].value },
+      { label: "안정", value: items[4].value },
+      { label: "성장", value: items[6].value },
+      { label: "현실", value: items[3].value },
+    ];
   return {
     type: "sukuyo",
     relationType: archivePlainText(relation.typeKo || relation.type || compatibility.relationType || "숙요 궁합"),
@@ -2038,7 +2132,7 @@ function buildSukuyoArchiveVisualModel(archive = {}, metadata = {}, reportType =
     partnerStar: archivePlainText(localJson?.partner?.sukuyoStar || payload?.partner?.sukuyoStar || ""),
     relationTheme: archivePlainText(relation.relationTheme || ""),
     items,
-    radarItems: items.slice(0, 6),
+    radarItems,
   };
 }
 
@@ -4567,6 +4661,226 @@ async function handleBillingSnapshotBalance(request, env) {
   }, "Billing balance loaded.");
 }
 
+function requireDevPaymentTesterAccess(env) {
+  if (!isProductionRuntime(env)) return null;
+  return failure(403, "FORBIDDEN", "Development payment tester is disabled in production.");
+}
+
+function buildDevPassPatch(tier, now) {
+  const normalizedTier = normalizePassTier(tier);
+  const passCounts = { standard: 3, premium: 7, vvip: 15, family: 999999999 };
+  const profileLimits = { standard: 3, premium: 7, vvip: 15, family: 999999999 };
+  const passLimit = Number(PASS_LIMITS[normalizedTier] || 0);
+  const count = Number(passCounts[normalizedTier] || 0);
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  return {
+    tier: normalizedTier,
+    source: "event",
+    planId: `dev-${normalizedTier}`,
+    productType: "membership_pass",
+    durationMonths: 1,
+    profileLimit: Number(profileLimits[normalizedTier] || 1),
+    passTier: normalizedTier,
+    passTotalUses: count,
+    passRemainingUses: count,
+    passUsedCount: 0,
+    maxCoveredCoin: passLimit,
+    freeLimit: passLimit,
+    passLimit,
+    membershipCreditBalance: 0,
+    membershipCreditGranted: 0,
+    membershipCreditUsed: 0,
+    legacyCoinCreditSeeded: false,
+    legacyCoinCreditSeededAt: null,
+    legacyCoinCreditSeededPoints: 0,
+    startedAt: now,
+    expiresAt,
+    firstSubAt: now,
+    cancelAtPeriodEnd: false,
+    cancelRequestedAt: null,
+    customerUid: "",
+    paymentMethod: "dev-payment-tester",
+    nextBillingAt: null,
+    lastBillingAt: now,
+    lastBillingStatus: "success",
+    lastBillingError: "",
+  };
+}
+
+function buildDevLicensePatch(tier, now) {
+  const normalizedTier = normalizePassTier(tier);
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  return {
+    standard: normalizedTier === "standard" ? 3 : 0,
+    premium: normalizedTier === "premium" ? 7 : 0,
+    vvip: normalizedTier === "vvip" ? 15 : 0,
+    status: "active",
+    expiresAt,
+  };
+}
+
+function buildDevFreePatch(now) {
+  return {
+    paidFeatures: [],
+    unlockedFeatures: [],
+    licenses: {
+      standard: 0,
+      premium: 0,
+      vvip: 0,
+      status: "none",
+      expiresAt: null,
+    },
+    profileSubscription: {
+      tier: "free",
+      source: "event",
+      planId: "",
+      productType: "",
+      durationMonths: 0,
+      profileLimit: 1,
+      passTier: "",
+      passTotalUses: 0,
+      passRemainingUses: 0,
+      passUsedCount: 0,
+      maxCoveredCoin: 0,
+      freeLimit: 0,
+      passLimit: 0,
+      membershipCreditBalance: 0,
+      membershipCreditGranted: 0,
+      membershipCreditUsed: 0,
+      legacyCoinCreditSeeded: false,
+      legacyCoinCreditSeededAt: null,
+      legacyCoinCreditSeededPoints: 0,
+      startedAt: null,
+      expiresAt: null,
+      firstSubAt: null,
+      cancelAtPeriodEnd: false,
+      cancelRequestedAt: null,
+      customerUid: "",
+      paymentMethod: "",
+      nextBillingAt: null,
+      lastBillingAt: null,
+      lastBillingStatus: "idle",
+      lastBillingError: "",
+    },
+    monthlySubscription: {
+      active: false,
+      status: "none",
+      tier: "",
+      startedAt: null,
+      expiresAt: null,
+      source: "dev-payment-tester",
+    },
+    updatedAt: now,
+  };
+}
+
+async function readDevPaymentTesterSnapshot(userId) {
+  const user = await User.findById(userId)
+    .select("email name paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription points")
+    .lean();
+  if (!user?._id) return null;
+  return {
+    userId: String(user._id || ""),
+    email: String(user.email || ""),
+    name: String(user.name || ""),
+    points: Number(user.points || 0),
+    paidFeatures: Array.isArray(user.paidFeatures) ? user.paidFeatures : [],
+    unlockedFeatures: Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : [],
+    licenses: user.licenses || null,
+    profileSubscription: user.profileSubscription || null,
+    monthlySubscription: user.monthlySubscription || null,
+  };
+}
+
+async function handlePaidAccessCheck(request, env) {
+  const method = request.method.toUpperCase();
+  const url = new URL(request.url);
+  const body = method === "POST" ? await readJson(request) : {};
+  const auth = await getOptionalUserFromRequest(request, env);
+  const featureKey = String(body?.featureKey || url.searchParams.get("featureKey") || "").trim();
+  const decision = await canAccessPaidFeature(auth?.userId || "", featureKey, {
+    env,
+    categoryKey: body?.categoryKey || url.searchParams.get("categoryKey") || "",
+    subFeatureKey: body?.subFeatureKey || url.searchParams.get("subFeatureKey") || "",
+    reason: body?.reason || url.searchParams.get("reason") || "",
+  });
+  const status = decision.reason === "LOGIN_REQUIRED" ? 401 : 200;
+  return json({ ok: decision.allowed, data: decision, code: decision.reason }, { status });
+}
+
+async function handleDevPaymentTester(request, env) {
+  const blocked = requireDevPaymentTesterAccess(env);
+  if (blocked) return blocked;
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) {
+    return failure(401, "LOGIN_REQUIRED", "Development payment tester requires a current user.");
+  }
+
+  await connectDb(env);
+
+  if (request.method.toUpperCase() === "GET") {
+    const snapshot = await readDevPaymentTesterSnapshot(auth.userId);
+    return success({ user: snapshot }, "Development payment tester state loaded.");
+  }
+
+  const body = await readJson(request);
+  const action = String(body?.action || "").trim().toLowerCase();
+  const now = new Date();
+
+  if (action === "free" || action === "reset") {
+    await User.findByIdAndUpdate(auth.userId, { $set: buildDevFreePatch(now) });
+  } else if (["standard", "premium", "vvip", "family"].includes(action)) {
+    const patch = buildDevFreePatch(now);
+    await User.findByIdAndUpdate(auth.userId, {
+      $set: {
+        ...patch,
+        licenses: buildDevLicensePatch(action, now),
+        profileSubscription: buildDevPassPatch(action, now),
+      },
+    });
+  } else if (action === "monthly") {
+    const patch = buildDevFreePatch(now);
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    await User.findByIdAndUpdate(auth.userId, {
+      $set: {
+        ...patch,
+        profileSubscription: {
+          ...patch.profileSubscription,
+          membershipCreditBalance: 999999,
+          membershipCreditGranted: 999999,
+        },
+        monthlySubscription: {
+          active: true,
+          status: "active",
+          tier: "dev-monthly",
+          startedAt: now,
+          expiresAt,
+          source: "dev-payment-tester",
+        },
+      },
+    });
+  } else if (action === "paid-feature") {
+    const featureKey = String(body?.featureKey || "").trim();
+    if (!featureKey) return failure(400, "FEATURE_KEY_REQUIRED", "featureKey is required.");
+    await User.findByIdAndUpdate(auth.userId, {
+      $addToSet: {
+        paidFeatures: featureKey,
+        unlockedFeatures: featureKey,
+      },
+      $set: {
+        "monthlySubscription.source": "dev-payment-tester",
+        updatedAt: now,
+      },
+    });
+  } else {
+    return failure(400, "UNKNOWN_DEV_PAYMENT_TEST_ACTION", "Unknown development payment tester action.");
+  }
+
+  const snapshot = await readDevPaymentTesterSnapshot(auth.userId);
+  return success({ user: snapshot }, "Development payment tester state updated.");
+}
+
 async function readSubscriptionStatusSnapshot(request, env) {
   try {
     const auth = await getOptionalUserFromRequest(request, env);
@@ -4915,6 +5229,13 @@ async function handleUnlockStatus(request, env) {
     if (pricing.featureKey) unlockMap[pricing.featureKey] = true;
   }
 
+  const serverAccess = await canAccessPaidFeature(String(data.authUserId || ""), pricing.featureKey, {
+    env,
+    categoryKey,
+    subFeatureKey,
+    reason,
+  });
+
   const legacyAccess = buildAccessDecision({
     pricing,
     authenticated: Boolean(data.authenticated),
@@ -4936,6 +5257,7 @@ async function handleUnlockStatus(request, env) {
     subscriptionTier: subscription.tier,
     freeLimit: Number(subscription.freeLimit || 0),
     freeBySubscription: passStatusCovered,
+    serverAccessDecision: serverAccess,
     accessGateResult: accessDecision.accessGateResult || null,
     licensePass: accessDecision.accessGateResult || null,
     currentBalance,
@@ -5469,6 +5791,8 @@ export async function handleBillingRoutes(request, env) {
   try {
     if (method === "GET" && path === "/features") return await handleFeatures(request);
     if (method === "GET" && path === "/balance") return await handleBillingSnapshotBalance(request, env);
+    if ((method === "GET" || method === "POST") && path === "/access") return await handlePaidAccessCheck(request, env);
+    if ((method === "GET" || method === "POST") && path === "/dev-payment-tester") return await handleDevPaymentTester(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { logout, primeAuthFromCache, refreshAuth, useAuthStore } from "../_lib/auth-store";
+import { logout, refreshAuth, useAuthStore } from "../_lib/auth-store";
 
 type AuthUser = {
   id?: string;
@@ -32,14 +32,12 @@ export default function AuthWidget() {
 
   useEffect(() => {
     setMounted(true);
-    primeAuthFromCache();
-    refreshAuth({ silent: false }).catch(() => {
+    refreshAuth({ force: true, silent: false }).catch(() => {
       // best-effort bootstrap sync
     });
 
     const syncUser = () => {
-      primeAuthFromCache();
-      refreshAuth({ silent: true }).catch(() => {
+      refreshAuth({ force: true, silent: true }).catch(() => {
         // transient failures should not break header rendering
       });
     };
@@ -76,8 +74,20 @@ export default function AuthWidget() {
   };
 
   if (!mounted) return null;
+  const isVerifiedUser = auth.isAuthenticated && !!user;
+  const isCheckingAuth = !auth.authReady || (auth.isLoading && !isVerifiedUser);
 
-  if (user) {
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-[34px] items-center gap-2" aria-live="polite" aria-busy="true">
+        <span className="h-7 w-7 animate-pulse rounded-full border border-violet-300/30 bg-violet-500/15" />
+        <span className="h-7 w-20 animate-pulse rounded-lg border border-violet-300/20 bg-violet-500/10" />
+        <span className="h-7 w-16 animate-pulse rounded-lg border border-fuchsia-300/20 bg-fuchsia-500/10" />
+      </div>
+    );
+  }
+
+  if (isVerifiedUser) {
     const displayName = String(user.name || "사용자");
     const displayEmail = String(user.email || "");
     const displayImage = String(user.image || "");

@@ -1325,7 +1325,7 @@ NPC, NPC
 
 [YEONI - main hook]
 Level, level up with you
-내 하루가 빛나 blue
+내 하루가 빛나 bloom
 
 [BLOOM - high hook]
 Lucky, lucky, stay with me
@@ -1388,7 +1388,7 @@ NPC, NPC
 
 [YEONI - main hook]
 Level, level up with you
-내 하루가 빛나 blue
+내 하루가 빛나 bloom
 
 [BLOOM - high hook]
 Lucky, lucky, stay with me

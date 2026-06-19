@@ -8,6 +8,7 @@ import {
   guardWarningTarotText,
 } from "../../lib/tarot/warning-card-guard.mjs";
 import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
+import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
@@ -1464,6 +1465,9 @@ export async function handleTarotRoutes(request, env = {}) {
     }
 
     if (path === "/crystal-soul") {
+      if (body?.crystalSoulVersion === "gem-v3" || body?.promptVersion === "crystal-soul-v3") {
+        return json(buildCrystalSoulV3Reading(body));
+      }
       const cards = Array.isArray(body?.cards) ? body.cards : [];
       if (!cards.length) {
         return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });

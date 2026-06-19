@@ -91,6 +91,15 @@ function extractUserId(decoded: string | jwt.JwtPayload): string {
   return /^[a-f0-9]{24}$/i.test(userId) ? userId : "";
 }
 
+function getDevAuthUserId(): string {
+  const userId = readEnv("DEV_AUTH_USER_ID");
+  if (process.env.NODE_ENV === "production") {
+    if (userId) throw new Error("DEV_AUTH_USER_ID must not be used in production");
+    return "";
+  }
+  return /^[a-f0-9]{24}$/i.test(userId) ? userId : "";
+}
+
 function verifyAccessTokenAndExtractUserId(token: string): string {
   if (!token) return "";
   try {
@@ -124,6 +133,8 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
   const bearerToken = getBearerTokenFromRequest(req);
   const accessCookieToken = getAccessCookieTokenFromRequest(req);
   const refreshCookieToken = getRefreshCookieTokenFromRequest(req);
+  const devUserId = getDevAuthUserId();
+  if (devUserId) return { ok: true, userId: devUserId };
 
   if (!bearerToken && !accessCookieToken && !refreshCookieToken) {
     logRouteAuthDiagnostic(req, new Error("missing_auth_token"), "route_auth_missing_token");
@@ -165,4 +176,13 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
       ),
     };
   }
+}
+
+export function getServerUser(req: NextRequest): { userId: string } | null {
+  const auth = requireRouteAuth(req);
+  return auth.ok ? { userId: auth.userId } : null;
+}
+
+export function getCurrentUser(req: NextRequest): { userId: string } | null {
+  return getServerUser(req);
 }

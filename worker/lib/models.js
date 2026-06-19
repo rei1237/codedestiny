@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema({
   points: { type: Number, default: 0, min: 0 },
   recentConsumeRequestIds: { type: [String], default: [] },
   unlockedFeatures: { type: [String], default: [] },
+  paidFeatures: { type: [String], default: [] },
+  licenses: {
+    standard: { type: Number, default: 0, min: 0 },
+    premium: { type: Number, default: 0, min: 0 },
+    vvip: { type: Number, default: 0, min: 0 },
+    status: { type: String, default: "", trim: true },
+    expiresAt: { type: Date, default: null },
+  },
   usagePasses: {
     type: [{
       category: { type: String, enum: ["saju", "tarot", "saju_unlock", "fortune_30", "fortune_50", "compat"], required: true },
@@ -97,6 +105,14 @@ const userSchema = new mongoose.Schema({
       default: "idle",
     },
     lastBillingError: { type: String, default: "" },
+  },
+  monthlySubscription: {
+    active: { type: Boolean, default: false },
+    status: { type: String, default: "", trim: true },
+    tier: { type: String, default: "", trim: true },
+    startedAt: { type: Date, default: null },
+    expiresAt: { type: Date, default: null },
+    source: { type: String, default: "", trim: true },
   },
   has_started_paid_service: { type: Boolean, default: false, index: true },
   first_service_access_date: { type: Date, default: null },

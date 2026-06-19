@@ -54,7 +54,7 @@ export default function TarotYearFortuneClient() {
 
   return (
     <>
-      <Script src="/js/tarot-year-fortune-experience.js?v=build-1bcb12c9e742" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
+      <Script src="/js/tarot-year-fortune-experience.js?v=20260619-zodiac-tarot-reading" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
 
       <div
         id="tarotYearFortuneOverlay"
@@ -161,19 +161,16 @@ export default function TarotYearFortuneClient() {
 
                   <div className="ty-month-category-tabs" id="tarotYearMonthCategoryTabs">
                     <button type="button" className="ty-month-cat-btn is-active" data-cat="general">
-                      전반
-                    </button>
-                    <button type="button" className="ty-month-cat-btn" data-cat="money">
-                      재물
-                    </button>
-                    <button type="button" className="ty-month-cat-btn" data-cat="love">
-                      연애
+                      핵심
                     </button>
                     <button type="button" className="ty-month-cat-btn" data-cat="relationship">
-                      인간관계
+                      관계
                     </button>
-                    <button type="button" className="ty-month-cat-btn" data-cat="exam">
-                      합격
+                    <button type="button" className="ty-month-cat-btn" data-cat="money">
+                      금전·일
+                    </button>
+                    <button type="button" className="ty-month-cat-btn" data-cat="health">
+                      건강
                     </button>
                   </div>
 

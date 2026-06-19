@@ -23,6 +23,12 @@
       return normalized;
     }
 
+    function isLocalDevHost(hostname) {
+      var host = String(hostname || "").trim().toLowerCase();
+      if (!host) return false;
+      return host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "::1";
+    }
+
     function applyRuntimeBase(base) {
       var normalized = normalizeAllowedBase(base);
       if (!normalized) return "";
@@ -62,6 +68,11 @@
         applyRuntimeBase(fromMeta);
         return;
       }
+    }
+
+    if (isLocalDevHost(location.hostname)) {
+      applyRuntimeBase("http://127.0.0.1:8790");
+      return;
     }
 
     var storedBase = readStoredBase();

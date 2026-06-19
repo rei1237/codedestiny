@@ -82,7 +82,7 @@ var TAROT_CONTEXT = {
       var map = {
         '바보': r ? '충동적 움직임이 인연을 놀라게 합니다. 의도와 다르게 자유분방함이 무책임으로 읽히고 있습니다. 진지함을 보여줄 때입니다.' : '새로운 인연의 파동이 다가옵니다. '+c.name_kr+'은 두려움 없이 첫 발을 내딛는 자에게만 열리는 문의 상징입니다. 지금 당신에게 그 문이 열려 있습니다.',
         '연인': r ? '선택의 기로에서 머뭇거리는 사이 인연이 식어갑니다. 카드는 지금 당신의 마음이 나뉘어 있음을 드러냅니다. 하나를 택하고 그것에 전부를 주십시오.' : '운명적 결합의 순간이 가까워지고 있습니다. 이 카드가 나왔다는 것은 우주가 이미 두 사람의 궤도를 겹쳐 놓았다는 신호입니다. 지금의 끌림을 신뢰하십시오.',
-        '악마': r ? '구속의 사슬이 느슨해지고 있습니다. 집착이나 두려움으로 유지되던 관계에서 벗어날 용기가 생기는 시기입니다. 해방이 곧 당신의 진짜 행복입니다.' : '매혹적인 위험. 이 카드는 당신이 이미 그 인연의 독성을 알면서도 놓지 못하고 있음을 말합니다. 알면서도 선택하는 것이 인간이지만, 대가는 반드시 치러집니다.'
+        '악마': r ? '구속의 사슬이 느슨해지고 있습니다. 집착이나 두려움으로 유지되던 관계에서 벗어날 용기가 생기는 시기입니다. 해방이 곧 당신의 진짜 행복입니다.' : '매혹적인 위험. 이미 그 인연의 독성을 알면서도 놓지 못하는 마음이 드러납니다. 알면서도 선택하는 것이 인간이지만, 대가는 반드시 치러집니다.'
       };
       return map[c.name_kr] || (r
         ? c.name_kr+'이(가) 역행합니다. '+SIPSIN_CARD_META[c.sipsinTag].neg+' 지금 상대는 당신의 침묵 속에서 열기를 잃어가고 있습니다. 작은 표현 하나가 관계의 온도를 되살릴 수 있습니다.'
@@ -100,7 +100,7 @@ var TAROT_CONTEXT = {
       var map = {
         '심판':    r ? '각성의 나팔 소리가 들리지 않는 것은 때가 아직 아니기 때문입니다. 억지로 연락하는 것은 인연을 더 멀리 밀어냅니다.' : '관성(官星)의 각성 기운이 임했습니다. 상대 역시 지금 이 인연을 다시 생각하고 있을 가능성이 높습니다.',
         '운명의 수레바퀴': r ? '역마(驛馬)의 사이클이 역행하니, 아직 재회의 타이밍이 열리지 않았습니다. 흐름이 돌아올 때까지 기다리십시오.' : '인연의 수레바퀴가 다시 한 바퀴를 돌아 당신 앞에 섰습니다. 이 기회의 창은 오래 열려 있지 않습니다.',
-        '달':      r ? '상대의 마음이 여전히 안개 속에 있습니다. 지금 상대는 당신에 대한 감정을 스스로도 명확히 모르는 상태입니다.' : '편인(偏印)의 직관이 말합니다. 상대도 이 연결을 느끼고 있습니다. 다만 먼저 움직이기를 두려워할 뿐입니다.',
+        '달':      r ? '상대의 마음이 여전히 안개 속에 있습니다. 지금 상대는 당신에 대한 감정을 스스로도 명확히 모르는 상태입니다.' : '편인(偏印)의 직관이 조용히 떠오릅니다. 상대도 이 연결을 느끼고 있습니다. 다만 먼저 움직이기를 두려워할 뿐입니다.',
         '탑':      r ? '탑이 무너진 자리에서 재건을 논하기엔 아직 잔해가 뜨겁습니다. 상처가 아물 시간이 먼저입니다.' : '무너졌던 것이 다시 세워질 수 있는 기운입니다. 단, 과거의 구조 그대로 복원하려 하면 또다시 무너집니다. 새로운 관계로 재설계하십시오.',
         '별':      r ? '치유가 완전히 이루어지지 않은 상태에서의 재회는 같은 상처를 반복할 수 있습니다. 먼저 당신 자신을 채우십시오.' : '식신(食神)의 치유 에너지가 흘러들어, 두 사람 사이의 상처가 자연스럽게 봉합될 조건이 만들어지고 있습니다.',
         '매달린 사람': r ? '과거에 매달린 채 시간이 정지되어 있습니다. 시각을 뒤집어야 합니다. 재회가 아닌 새 출발이 진짜 답일 수 있습니다.' : '지금은 멈추고 기다려야 하는 시간입니다. 관성(貫性)보다 통찰(洞察)이 이 인연을 되살리는 힘입니다.',
@@ -113,7 +113,7 @@ var TAROT_CONTEXT = {
     },
     revelation: function(c, r) {
       var map = {
-        '심판': r ? '카드는 아직 각성의 때가 오지 않았음을 말합니다. 지금의 연락은 상대를 불편하게 할 뿐입니다. 상대가 스스로 깨어나는 시간을 주십시오.' : '심판의 나팔 소리는 양쪽 모두에게 들립니다. 이 카드가 나왔다면 상대 역시 지금 이 인연을 다시 소환하고 싶은 무의식적 충동을 느끼고 있을 가능성이 있습니다. 먼저 신호를 보내십시오.',
+        '심판': r ? '아직 각성의 때가 오지 않았습니다. 지금의 연락은 상대를 불편하게 할 뿐입니다. 상대가 스스로 깨어나는 시간을 주십시오.' : '심판의 나팔 소리는 양쪽 모두에게 들립니다. 이 카드가 나왔다면 상대 역시 지금 이 인연을 다시 소환하고 싶은 무의식적 충동을 느끼고 있을 가능성이 있습니다. 먼저 신호를 보내십시오.',
         '운명의 수레바퀴': r ? '수레바퀴가 아직 당신의 방향으로 돌아오지 않았습니다. 시간의 흐름에 저항하면 더 긴 기다림이 생깁니다. 지금은 자신에게 집중할 때입니다.' : '역마(驛馬)의 사이클이 두 사람을 같은 지점으로 데려오고 있습니다. 이 거대한 흐름은 인간의 의지가 아닌 시간이 만들어내는 것입니다. 당신이 준비되어 있는지가 유일한 변수입니다.',
         '탑': r ? '탑이 무너진 자리에 다시 탑을 세우려 하고 있습니다. 재회를 원한다면, 과거와 다른 구조로 관계를 설계해야 합니다. 같은 방식의 반복은 같은 결말을 낳습니다.' : '충격적 붕괴 이후 남은 것이 진짜입니다. 탑이 무너지고도 두 사람 사이에 무언가가 남아 있다면, 그것은 거짓으로 만들어진 것이 아닙니다. 그 진짜를 토대로 새로 쌓으십시오.'
       };
@@ -251,7 +251,7 @@ var TAROT_CONTEXT = {
     revelation: function(c, r) {
       return r
         ? c.name_kr+'이(가) 역행합니다. 비겁(比劫)의 기운이 뒤틀려 있습니다. 비견이라 믿었던 사람이 겁재로 돌변할 수 있는 시기입니다. 가까운 이에게 재물이나 중요한 정보를 섣불리 내어주지 마십시오.'
-        : c.name_kr+'의 기운이 순행합니다. 비견(比肩)의 동료적 에너지가 강합니다. 지금 당신 주변의 사람들은 경쟁자가 아니라 동반자입니다. 함께 나아가는 것이 홀로 치달리는 것보다 훨씬 멀리 갑니다.';
+        : c.name_kr+'의 기운이 순행합니다. 비견(比肩)의 동료적 결이 선명합니다. 지금 당신 주변의 사람들은 경쟁자가 아니라 동반자입니다. 함께 나아가는 것이 홀로 치달리는 것보다 훨씬 멀리 갑니다.';
     },
     oracle: function(c, r) { return r ? '겁재(劫財)의 그림자가 비견을 가장하고 있다. '+c.name_kr+'. 동료를 가려내는 눈이 지금 당신에게 필요하다.' : '비견(比肩)의 파동이 연결된다. '+c.name_kr+'. 혼자였을 때 보이지 않던 길이 열린다.'; }
   },
@@ -335,6 +335,11 @@ var tarotThreeCardState = { cards: [], revealedIndex: -1 };
 var tarotReadingTimer = null;
 var tarotLifecycleToken = 0;
 var lastTarotMissingCategoryAlertAt = 0;
+var MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY = 'tarot-myeongri-three-card';
+var MYEONGRI_TAROT_THREE_CARD_COST = 50;
+var MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW = 5000;
+var MYEONGRI_TAROT_THREE_CARD_TITLE = '명리학 타로 3장 스프레드';
+var myeongriTarotThreeCardPaymentPending = false;
 
 function invalidateTarotFlow() {
   tarotLifecycleToken += 1;
@@ -352,6 +357,74 @@ window.invalidateTarotFlow = invalidateTarotFlow;
 function isTarotModalActive() {
   var overlay = document.getElementById('tarotModalOverlay');
   return !!overlay && overlay.style.display !== 'none';
+}
+
+function isMyeongriTarotThreeCardGateGranted(result) {
+  var gate = result && typeof result === 'object' ? result : {};
+  var status = String(gate.status || '').toLowerCase();
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+  var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  var consume = data.consume && typeof data.consume === 'object' ? data.consume : (payload.consume && typeof payload.consume === 'object' ? payload.consume : {});
+  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : (payload.accessGrant && typeof payload.accessGrant === 'object' ? payload.accessGrant : {});
+  var accessType = String(data.accessType || payload.accessType || consume.accessType || accessGrant.accessType || '').toLowerCase();
+  return status === 'granted'
+    || status === 'direct_paid'
+    || status === 'paid'
+    || accessType === 'single_purchase'
+    || accessType === 'single_payment'
+    || !!data.consume
+    || !!payload.consume
+    || !!data.accessGrant
+    || !!payload.accessGrant;
+}
+
+function requireMyeongriTarotThreeCardPayment(onGranted) {
+  if (myeongriTarotThreeCardPaymentPending) return true;
+  if (typeof window._cdOpenPaidServiceGate !== 'function') {
+    window.alert('결제 문이 아직 열리지 않았습니다. 잠시 뒤 다시 눌러 주세요.');
+    return true;
+  }
+  myeongriTarotThreeCardPaymentPending = true;
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  var originalText = finalBtn ? finalBtn.textContent : '';
+  if (finalBtn) {
+    finalBtn.disabled = true;
+    finalBtn.textContent = '결제 확인 중';
+  }
+  window._cdOpenPaidServiceGate({
+    title: MYEONGRI_TAROT_THREE_CARD_TITLE,
+    reason: MYEONGRI_TAROT_THREE_CARD_TITLE,
+    categoryKey: 'tarot',
+    subFeatureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
+    featureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
+    action: 'showTarotFinalInterpretation',
+    coinPrice: MYEONGRI_TAROT_THREE_CARD_COST,
+    cost: MYEONGRI_TAROT_THREE_CARD_COST,
+    amountKrw: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
+    paymentAmount: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
+    allowedPaymentModes: ['direct'],
+    disablePassFirst: true,
+    disablePassChoice: true,
+    requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+  }).then(function(result) {
+    if (isMyeongriTarotThreeCardGateGranted(result)) {
+      if (typeof onGranted === 'function') onGranted(result);
+      return;
+    }
+    if (!result || result.status !== 'cancelled') {
+      window.alert('5,000원 결제가 끝나야 세 장의 흐름이 열립니다.');
+    }
+  }).catch(function(error) {
+    var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+    window.alert(message);
+  }).then(function() {
+    myeongriTarotThreeCardPaymentPending = false;
+    if (finalBtn) {
+      finalBtn.disabled = false;
+      finalBtn.textContent = originalText || '흐름 리딩 보기 · 5,000원';
+    }
+  });
+  return true;
 }
 
 // 스프레드 모드별 라벨 (카테고리별 커스텀 가능)
@@ -413,7 +486,7 @@ function selectTarotCategory(cat, btn) {
   
   // 리추얼 메시지 초기화
   var msgEl = document.getElementById('tarotRitualMsg');
-  var catCtx = TAROT_CONTEXT[cat];
+  var catCtx = TAROT_CONTEXT[cat] || { label: mapCategoryToMyeongriCategory(cat) };
   if (msgEl) {
     msgEl.innerHTML = catCtx
       ? `🌿 <b>${catCtx.label}</b>의 질문 위에 카드를 펼칩니다. 잠시 호흡을 고르세요.`
@@ -500,15 +573,20 @@ function pickOneCardForMingri() {
 
 function mapTarotCategoryToEngine(cat) {
   var map = {
+    daily: 'daily',
     love: 'love',
     reunion: 'love',
     friendship: 'love',
+    people: 'love',
     wealth: 'money',
+    money: 'money',
     loss: 'money',
+    career: 'career',
     contract: 'career',
     travel: 'career',
     creative: 'career',
-    health: 'general'
+    health: 'general',
+    exam: 'career'
   };
   return map[cat] || 'general';
 }
@@ -890,11 +968,40 @@ function getTarotDeepProfile(card) {
   var base = TAROT_CARD_DEEP_PROFILE[card && card.name_kr];
   if (base) return base;
   return {
-    core: '현재 삶의 핵심 과제를 비추는 카드',
+    core: '현재 삶의 핵심 과제를 드러내는 카드',
     psych: '지금 감정과 생각의 패턴을 점검해야 합니다.',
     shadow: '극단적 해석이나 성급함은 손실을 부를 수 있습니다.',
     heal: '작은 행동을 반복해 안정적으로 흐름을 복구하십시오.'
   };
+}
+
+var MYEONGRI_TAROT_CARD_SYMBOLS = {
+  '바보': '벼랑 끝에서 흰 꽃을 든 인물이 하늘을 보며 첫발을 내딛습니다.',
+  '마법사': '한 손은 하늘, 한 손은 땅을 가리키고 네 도구가 탁자 위에 놓여 있습니다.',
+  '여사제': '두 기둥 사이 베일 앞의 두루마리가 침묵 속 진실을 감춥니다.',
+  '여황제': '열두 별의 관과 밀밭은 무르익는 결실을 알립니다.',
+  '황제': '바위 왕좌와 홀은 흔들리지 않는 구조를 세웁니다.',
+  '교황': '삼중 관과 두 제자는 검증된 약속과 배움의 질서를 엽니다.',
+  '연인': '천사의 시선 아래 두 인물이 서로를 마주하며 선택의 문 앞에 섭니다.',
+  '전차': '흑백 스핑크스가 다른 쪽을 보아도 전차는 하나의 방향을 요구합니다.',
+  '힘': '여인이 사자의 입을 부드럽게 닫으며 감정 조율의 힘을 드러냅니다.',
+  '은둔자': '설산의 등불과 지팡이는 혼자 확인해야 할 진실을 밝힙니다.',
+  '운명의 수레바퀴': '회전하는 바퀴와 네 생명체는 바뀌는 주기를 알립니다.',
+  '정의': '저울과 검은 감정보다 사실의 균형을 세웁니다.',
+  '매달린 사람': '거꾸로 매달린 몸과 평온한 얼굴은 멈춤 속 관점 전환을 가리킵니다.',
+  '죽음': '백마의 기수와 흰 장미 깃발은 끝난 것 뒤의 변용을 엽니다.',
+  '절제': '두 컵 사이를 흐르는 물과 한 발의 물가가 리듬 조율을 가리킵니다.',
+  '악마': '느슨한 사슬과 염소 머리 형상은 스스로 묶인 욕망을 드러냅니다.',
+  '탑': '번개 맞은 탑과 떨어지는 인물들은 더 버틸 수 없는 구조를 깨웁니다.',
+  '별': '무릎 꿇은 여인과 두 물병, 여덟 별이 상처 뒤 회복을 밝힙니다.',
+  '달': '두 탑 사이 길과 개, 늑대, 물에서 오른 게가 불안한 직감을 흔듭니다.',
+  '태양': '백마 위 아이와 해바라기는 명료한 활력과 열린 기쁨을 펼칩니다.',
+  '심판': '트럼펫 소리와 관에서 일어나는 인물들은 과거의 부름을 깨웁니다.',
+  '세계': '월계관 안의 무용수와 사방의 네 생명체가 한 순환의 완성을 감쌉니다.'
+};
+
+function getMyeongriCardSymbol(cardName) {
+  return MYEONGRI_TAROT_CARD_SYMBOLS[cardName] || '카드의 인물, 색채, 자세가 질문의 핵심 장면을 드러냅니다.';
 }
 
 var TAROT_ORIENTATION_LABEL_KO = {
@@ -1097,105 +1204,286 @@ function inferSuitFromCard(card) {
   return 'major';
 }
 
+var MYEONGRI_CATEGORY_ALIASES = {
+  daily: 'daily',
+  today: 'daily',
+  '오늘': 'daily',
+  '오늘의 운세': 'daily',
+  love: 'love',
+  relationship: 'love',
+  '연애': 'love',
+  '연애운': 'love',
+  reunion: 'reunion',
+  '재회': 'reunion',
+  '재회운': 'reunion',
+  career: 'career',
+  job: 'career',
+  contract: 'career',
+  creative: 'career',
+  '직장': 'career',
+  '커리어': 'career',
+  '직장·커리어운': 'career',
+  money: 'money',
+  wealth: 'money',
+  loss: 'money',
+  finance: 'money',
+  '재물': 'money',
+  '재물운': 'money',
+  health: 'health',
+  '건강': 'health',
+  '건강운': 'health',
+  exam: 'exam',
+  test: 'exam',
+  '시험': 'exam',
+  '합격': 'exam',
+  '시험·합격운': 'exam',
+  people: 'people',
+  friendship: 'people',
+  '대인관계': 'people',
+  '대인관계운': 'people',
+  travel: 'daily'
+};
+
+var MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS = {
+  daily: {
+    '정관': '정관은 약속과 규칙이 오늘의 리듬을 단정히 잡는 방식으로 작동합니다.',
+    '편관': '편관은 갑작스러운 압박과 변수로 하루의 속도를 시험합니다.',
+    '식신': '식신은 말, 식사, 작은 즐거움 속에서 활력을 살립니다.',
+    '상관': '상관은 즉흥적인 말과 반응이 하루의 균형을 흔드는 신호입니다.',
+    '정재': '정재는 시간, 물건, 돈을 차분히 챙기게 하는 생활 감각입니다.',
+    '편재': '편재는 예상 밖 제안과 이동성 있는 기회로 다가옵니다.',
+    '비견': '비견은 내 기준을 지키며 하루의 선택을 스스로 고르는 힘입니다.',
+    '겁재': '겁재는 비교, 경쟁, 충동 구매처럼 에너지가 새는 틈을 건드립니다.',
+    '정인': '정인은 휴식, 도움, 배려를 통해 마음을 안정시키는 결입니다.',
+    '편인': '편인은 과한 생각과 예민한 직감이 하루의 판단을 흐릴 수 있음을 알립니다.'
+  },
+  love: {
+    '정관': '정관은 안정 지향의 파트너십과 신뢰 기반 감정으로 드러납니다.',
+    '편관': '편관은 강한 끌림, 긴장, 갈등이 동시에 올라오는 사랑의 압력입니다.',
+    '식신': '식신은 다정한 표현과 배려가 관계의 온도를 살리는 방식입니다.',
+    '상관': '상관은 숨긴 감정을 솔직하게 터뜨리려는 욕구입니다.',
+    '정재': '정재는 꾸준한 태도와 현실적 안정감을 확인하려는 마음입니다.',
+    '편재': '편재는 설렘, 변동성, 갑작스러운 호감의 흔들림입니다.',
+    '비견': '비견은 동등하게 마주 서고 싶은 관계 감각입니다.',
+    '겁재': '겁재는 질투, 비교, 관계 안의 경쟁심을 건드립니다.',
+    '정인': '정인은 감정적 수용과 보호받고 싶은 마음입니다.',
+    '편인': '편인은 불안, 의존, 혼자 깊게 해석하는 그림자입니다.'
+  },
+  reunion: {
+    '정관': '정관은 과거 관계에서 지켜졌거나 무너진 신뢰의 구조를 다시 묻습니다.',
+    '편관': '편관은 지나간 상처와 갈등의 긴장이 아직 식지 않았음을 드러냅니다.',
+    '식신': '식신은 재회를 향한 따뜻한 표현과 조심스러운 시도를 엽니다.',
+    '상관': '상관은 솔직한 대화의 문이지만, 감정 폭발도 함께 경계해야 합니다.',
+    '정재': '정재는 거리, 상황, 시간 같은 현실 조건을 정리하라는 신호입니다.',
+    '편재': '편재는 상대의 마음과 상황이 아직 흔들리는 변동성입니다.',
+    '비견': '비견은 두 사람이 같은 무게로 회복을 원해야 열린다는 기준입니다.',
+    '겁재': '겁재는 경쟁자, 자존심, 주변 방해가 재회 흐름에 끼어드는 모양입니다.',
+    '정인': '정인은 감정을 받아들이고 기다릴 수 있는 회복의 품입니다.',
+    '편인': '편인은 아직 풀리지 않은 집착과 상처가 안쪽에 남은 결입니다.'
+  },
+  career: {
+    '정관': '정관은 조직 내 신뢰, 평판, 승진 가능성을 다지는 책임의 결입니다.',
+    '편관': '편관은 압박, 도전, 경쟁 속에서 실력을 시험하는 흐름입니다.',
+    '식신': '식신은 맡은 일을 결과물로 보여주는 실력 발휘의 자리입니다.',
+    '상관': '상관은 혁신과 반발이 함께 올라오는 업무 표현입니다.',
+    '정재': '정재는 안정 수익과 꾸준한 역할을 지키는 현실 감각입니다.',
+    '편재': '편재는 사업, 외부 제안, 새 기회가 움직이는 흐름입니다.',
+    '비견': '비견은 동료와 협업하되 내 몫을 분명히 세우는 힘입니다.',
+    '겁재': '겁재는 경쟁자와 성과 비교가 커지는 구간입니다.',
+    '정인': '정인은 학습, 지원, 멘토링이 커리어를 받치는 별입니다.',
+    '편인': '편인은 비정규성, 불안정한 업무, 혼자 파고드는 과제입니다.'
+  },
+  money: {
+    '정관': '정관은 계획과 규율로 재물의 흐름을 붙잡는 기준입니다.',
+    '편관': '편관은 충동, 손실, 리스크가 금전 판단을 압박하는 신호입니다.',
+    '식신': '식신은 생산과 창출을 통해 돈의 씨앗을 만드는 힘입니다.',
+    '상관': '상관은 과소비와 무리한 투자 욕구를 키울 수 있습니다.',
+    '정재': '정재는 안정 수입과 관리, 반복 지출 점검의 자리입니다.',
+    '편재': '편재는 투자, 사업, 변동성 있는 기회로 움직입니다.',
+    '비견': '비견은 협업 수익과 공동 목표에서 돈길을 엽니다.',
+    '겁재': '겁재는 금전 갈등, 빼앗김, 비교 소비를 경계하게 합니다.',
+    '정인': '정인은 절약, 지원, 보호 자금처럼 재물을 지키는 힘입니다.',
+    '편인': '편인은 불규칙 수입과 숨어 있는 비용을 살피라는 신호입니다.'
+  },
+  health: {
+    '정관': '정관은 규칙적 관리와 생활 리듬을 회복시키는 힘입니다.',
+    '편관': '편관은 급성 스트레스와 갑작스러운 증상에 주의를 세웁니다.',
+    '식신': '식신은 활력, 면역, 소화 리듬이 살아나는 흐름입니다.',
+    '상관': '상관은 과로, 긴장, 말 못 한 스트레스가 몸에 쌓이는 결입니다.',
+    '정재': '정재는 체중, 대사, 식사 균형을 현실적으로 챙기게 합니다.',
+    '편재': '편재는 불규칙한 수면과 생활 패턴이 몸을 흔드는 신호입니다.',
+    '비견': '비견은 기본 체력을 유지하고 회복 루틴을 지키는 힘입니다.',
+    '겁재': '겁재는 무리한 운동, 충동적 생활, 과한 경쟁을 경계하게 합니다.',
+    '정인': '정인은 휴식, 회복, 보호가 필요한 몸의 요청입니다.',
+    '편인': '편인은 만성 피로, 우울감, 예민한 신경을 살피라는 결입니다.'
+  },
+  exam: {
+    '정관': '정관은 안정적 실력과 합격 가능성을 차분히 쌓는 힘입니다.',
+    '편관': '편관은 경쟁 강도와 압박이 시험 흐름을 조이는 구간입니다.',
+    '식신': '식신은 준비한 실력을 시험장에서 꺼내는 집중력입니다.',
+    '상관': '상관은 실수, 긴장, 말리는 사고 흐름을 조심하게 합니다.',
+    '정재': '정재는 꾸준한 노력과 반복 학습이 점수로 굳어지는 자리입니다.',
+    '편재': '편재는 시험 운의 변동성과 예상 밖 문제를 알립니다.',
+    '비견': '비견은 동기, 경쟁자, 같은 목표를 향한 의지를 비춥니다.',
+    '겁재': '겁재는 방해 요소와 비교 불안이 집중력을 빼앗는 신호입니다.',
+    '정인': '정인은 학습, 자료, 조력자가 합격운을 받치는 흐름입니다.',
+    '편인': '편인은 집중력 분산과 엉뚱한 해석을 경계하게 합니다.'
+  },
+  people: {
+    '정관': '정관은 신뢰 관계와 약속의 무게를 다시 세웁니다.',
+    '편관': '편관은 긴장, 지배, 압박이 관계 안에서 커지는 결입니다.',
+    '식신': '식신은 배려와 표현이 화해의 문을 여는 방식입니다.',
+    '상관': '상관은 솔직함이 필요하지만 충돌로 번지기 쉬운 말의 결입니다.',
+    '정재': '정재는 안정적이고 오래 가는 관계의 현실 감각입니다.',
+    '편재': '편재는 새 인연과 넓어지는 관계망의 변동성입니다.',
+    '비견': '비견은 동등한 우정과 같은 눈높이의 교류입니다.',
+    '겁재': '겁재는 갈등, 경쟁, 비교심이 관계를 흔드는 신호입니다.',
+    '정인': '정인은 지지와 포용으로 관계를 감싸는 힘입니다.',
+    '편인': '편인은 오해, 거리감, 혼자 해석한 감정이 쌓이는 결입니다.'
+  }
+};
+
+var MYEONGRI_CATEGORY_FRAMES = {
+  daily: {
+    label: '오늘의 운세',
+    theme: '오늘 하루의 흐름과 주의할 변수',
+    question: '오늘 하루에서 먼저 살펴야 할 변수는 무엇인가',
+    focus: '카드의 색채와 인물 행동을 오늘의 기분, 결정, 일상 변수로 옮깁니다.',
+    risk: '하루 전체를 단정하면 작은 신호를 놓치기 쉽습니다.',
+    action: '오늘 일정에서 미룬 항목 하나를 20분 안에 끝내세요.',
+    past: '지나온 리듬이 오늘의 컨디션에 남긴 흔적',
+    present: '지금 가장 크게 흔들리는 하루의 중심 변수',
+    next: '오늘 안에 선택을 좁힐 행동 기준',
+    choices: ['오늘 오전이나 오후 일정 중 미룬 일 하나를 20분만 처리하세요.', '오늘 만나는 사람에게 답장 한 건을 짧게 정리해 보내세요.', '잠들기 전까지 새 약속을 늘리지 말고 가장 중요한 선택 하나만 남기세요.'],
+    oneLine: function(cardName) { return cardName + '처럼 오늘을 한 칸 낮추세요.'; }
+  },
+  love: {
+    label: '연애운',
+    theme: '감정의 흐름과 관계의 온도',
+    question: '마음을 확인하기 전에 어떤 속도로 다가가야 하는가',
+    focus: '인물의 거리, 시선, 손의 방향을 감정 온도와 관계 행동으로 옮깁니다.',
+    risk: '확답을 빨리 요구하면 마음보다 방어가 먼저 올라올 수 있습니다.',
+    action: '보내고 싶은 말을 감정 한 문장과 부탁 한 문장으로 나눠 적으세요.',
+    past: '지나온 감정 패턴이 지금의 끌림에 남긴 흔적',
+    present: '현재 관계의 온도와 표현의 속도',
+    next: '다음으로 다가갈 때 지켜야 할 감정 기준',
+    choices: ['연락 전에 표현하고 싶은 감정 한 문장과 기대 한 가지를 분리해 적으세요.', '오늘은 답을 요구하지 말고 상대가 부담 없이 답할 질문 하나만 남기세요.', '다음 만남이나 대화에서 지킬 속도와 경계 하나를 먼저 정하세요.'],
+    oneLine: function(cardName) { return cardName + '의 속도로 마음을 전하세요.'; }
+  },
+  reunion: {
+    label: '재회운',
+    theme: '다시 연결될 조건과 마음의 온도',
+    question: '연락보다 먼저 회복되어야 할 기준은 무엇인가',
+    focus: '귀환, 부활, 분리, 재결합의 상징을 상대의 마음과 내면 정리로 옮깁니다.',
+    risk: '그리움을 진심으로만 믿으면 같은 상처가 반복될 수 있습니다.',
+    action: '오늘 연락하기 전에 과거에 반복된 반응 세 가지를 적어보세요.',
+    past: '과거 관계에서 아직 풀리지 않은 반복 패턴',
+    present: '상대의 마음 온도와 내 안의 미련이 만나는 지점',
+    next: '다시 닿기 전에 먼저 정리해야 할 기준',
+    choices: ['오늘 연락하기 전에 과거에 같은 상황에서 내가 보인 반응 세 가지를 적어보세요.', '상대의 답을 기다리기보다 내가 사과하거나 인정할 한 문장을 먼저 고르세요.', '다시 시작해도 반복하지 않을 행동 두 가지를 짧게 적어두세요.'],
+    oneLine: function(cardName) { return cardName + '의 문은 천천히 여세요.'; }
+  },
+  career: {
+    label: '직장·커리어운',
+    theme: '성과, 관계, 커리어 선택 기준',
+    question: '지금 성과로 남겨야 할 일은 무엇인가',
+    focus: '노동, 권위, 여정, 성취 상징을 업무 성과와 커리어 판단으로 옮깁니다.',
+    risk: '성과 기준이 흐리면 바쁜 움직임만 남을 수 있습니다.',
+    action: '오늘 오후 현재 맡은 업무 중 끝내지 못한 항목 하나를 마무리하세요.',
+    past: '지금의 업무 평판을 만든 이전 선택',
+    present: '현재 성과와 대인 관계에서 가장 중요한 압력',
+    next: '이직, 승진, 역할 선택에 적용할 기준',
+    choices: ['오늘 오후 현재 맡은 업무 중 완료하지 못한 항목 하나를 끝내는 데 집중하세요.', '상사나 동료에게 확인할 업무 기준 하나를 문장으로 정리하세요.', '다음 선택 전에 유지할 역할과 내려놓을 역할을 한 줄씩 나누세요.'],
+    oneLine: function(cardName) { return cardName + '처럼 성과를 남기세요.'; }
+  },
+  money: {
+    label: '재물운',
+    theme: '수입, 지출, 투자와 사업 타이밍',
+    question: '지금 돈을 늘릴 때인가, 지킬 때인가',
+    focus: '물질, 교환, 풍요, 결핍 상징을 금전 관리와 타이밍으로 옮깁니다.',
+    risk: '기대감만 따라가면 지출과 손실의 틈이 커질 수 있습니다.',
+    action: '이번 주 지출 내역을 열고 반복 지출 하나를 정리하세요.',
+    past: '최근 돈의 흐름을 만든 소비와 선택',
+    present: '지금 수입과 지출에서 가장 민감한 변수',
+    next: '투자, 구매, 사업 판단에 적용할 금전 기준',
+    choices: ['이번 주 지출 내역을 열어보고 반복 지출 항목 하나를 정리하세요.', '새 결제나 투자는 오늘 하루 보류하고 회수 시점을 숫자로 적어보세요.', '다음 금전 선택 전에 필요, 욕망, 체면을 세 칸으로 나눠 적으세요.'],
+    oneLine: function(cardName) { return cardName + '의 금전문은 기준으로 여세요.'; }
+  },
+  health: {
+    label: '건강운',
+    theme: '몸과 마음의 에너지와 회복 방향',
+    question: '지금 몸과 마음이 요구하는 회복 방식은 무엇인가',
+    focus: '자세, 색채, 주변 환경을 열, 냉기, 긴장, 회복 리듬으로 옮깁니다.',
+    risk: '버티는 힘을 회복으로 착각하면 피로가 더 깊어질 수 있습니다.',
+    action: '오늘 밤 수면 시간을 먼저 정하고, 늦은 자극 하나를 줄이세요.',
+    past: '최근 누적된 피로와 생활 습관의 흔적',
+    present: '현재 몸과 마음이 가장 크게 요청하는 돌봄',
+    next: '회복을 위해 오늘부터 줄이거나 지킬 습관',
+    choices: ['오늘 밤 잠드는 시간을 먼저 정하고 늦은 화면 노출을 줄이세요.', '몸에서 가장 긴장된 부위를 하나 고르고 10분만 풀어주세요.', '이번 주 무리한 약속 하나를 줄이고 식사 시간을 고정하세요.'],
+    oneLine: function(cardName) { return cardName + '의 리듬으로 몸을 쉬게 하세요.'; }
+  },
+  exam: {
+    label: '시험·합격운',
+    theme: '준비도, 시험 흐름, 결과 가능성',
+    question: '지금 점수로 이어질 준비는 무엇인가',
+    focus: '집중, 승리, 좌절, 여정 상징을 시험 준비와 멘탈 관리로 옮깁니다.',
+    risk: '불안이 커지면 아는 문제에서도 실수가 날 수 있습니다.',
+    action: '오늘 틀린 문제 세 개만 다시 풀고 실수 이유를 한 줄씩 적으세요.',
+    past: '지금 준비도를 만든 학습 습관',
+    present: '현재 시험운에서 가장 중요한 집중 변수',
+    next: '합격 가능성을 높이기 위해 바로 고칠 행동',
+    choices: ['오늘 틀린 문제 세 개만 다시 풀고 실수 이유를 한 줄씩 적으세요.', '공부 시간을 늘리기보다 다음 40분에 볼 범위 하나만 정하세요.', '시험 전까지 버릴 자료와 반복할 자료를 따로 묶어두세요.'],
+    oneLine: function(cardName) { return cardName + '처럼 실수를 줄이세요.'; }
+  },
+  people: {
+    label: '대인관계운',
+    theme: '갈등, 화해, 새로운 인연의 흐름',
+    question: '지금 관계에서 어떤 말과 거리를 선택해야 하는가',
+    focus: '인물 수, 거리, 손짓을 갈등, 화해, 새 인연의 신호로 옮깁니다.',
+    risk: '좋은 사람으로 남으려다 내 기준이 흐려질 수 있습니다.',
+    action: '오늘 불편했던 대화 하나를 사실과 감정으로 나눠 적으세요.',
+    past: '관계 안에서 반복되어 온 거리와 말의 패턴',
+    present: '현재 갈등이나 화해를 좌우하는 핵심 태도',
+    next: '새 인연과 기존 관계를 대할 대화 기준',
+    choices: ['오늘 불편했던 대화 하나를 사실과 감정으로 나눠 적으세요.', '상대에게 바로 반응하기 전에 내가 원하는 거리 한 가지를 먼저 정하세요.', '다음 대화에서는 설명을 늘리기보다 요청 한 문장만 분명히 남기세요.'],
+    oneLine: function(cardName) { return cardName + '의 거리로 말하세요.'; }
+  }
+};
+
+function normalizeMyeongriCategoryKey(category) {
+  var raw = String(category || '').trim();
+  var lower = raw.toLowerCase();
+  return MYEONGRI_CATEGORY_ALIASES[raw] || MYEONGRI_CATEGORY_ALIASES[lower] || 'daily';
+}
+
+function getMyeongriCategoryFrame(category) {
+  var key = normalizeMyeongriCategoryKey(category);
+  return MYEONGRI_CATEGORY_FRAMES[key] || MYEONGRI_CATEGORY_FRAMES.daily;
+}
+
 function mapCategoryToMyeongriCategory(category) {
-  var map = {
-    love: '연애',
-    reunion: '재회',
-    friendship: '인간관계',
-    wealth: '재물/사업',
-    loss: '재물 관리',
-    contract: '계약/문서',
-    travel: '이동/해외',
-    creative: '창의/예술',
-    health: '건강/휴식'
-  };
-  return map[category] || '오늘';
+  return getMyeongriCategoryFrame(category).label;
+}
+
+function getMyeongriTenGodContext(category, tenGod) {
+  var key = normalizeMyeongriCategoryKey(category);
+  var main = normalizeTenGod(tenGod) || '정인';
+  var frame = MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS[key] || MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS.daily;
+  return frame[main] || MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS.daily[main] || (main + '은 질문의 결을 현실 기준으로 가다듬습니다.');
 }
 
 function getMyeongriCategoryLens(category, tenGod, orientation) {
-  var base = {
-    theme: '오늘의 선택 기준',
-    question: '지금 무엇을 먼저 정리해야 하는가',
-    focus: '카드가 보여준 기운을 현실의 작은 기준으로 낮추는 것이 핵심입니다.',
-    risk: '한 번에 결론을 내리려 하면 카드가 비춘 신호가 흐려질 수 있습니다.',
-    action: '오늘 바로 옮길 수 있는 행동 하나를 정하고 작게 실행하세요.'
-  };
-  var map = {
-    love: {
-      theme: '관계의 온도와 표현의 속도',
-      question: '마음을 확인하기 전에 어떤 속도로 다가가야 하는가',
-      focus: '상대의 반응보다 말투, 반복 행동, 부담을 느끼는 지점을 함께 봐야 합니다.',
-      risk: '확답을 빨리 요구하면 관계의 온도보다 방어심이 먼저 커질 수 있습니다.',
-      action: '긴 고백보다 부담 없는 한 문장으로 온도를 확인하세요.'
-    },
-    reunion: {
-      theme: '다시 닿아도 되는 거리',
-      question: '연락보다 먼저 회복되어야 할 기준은 무엇인가',
-      focus: '그리움의 크기보다 같은 상처를 반복하지 않을 구조가 먼저입니다.',
-      risk: '미련을 진심으로 착각하면 같은 방식의 이별을 다시 부를 수 있습니다.',
-      action: '바로 연락하기보다 과거 반복 패턴 하나를 먼저 정리하세요.'
-    },
-    friendship: {
-      theme: '관계의 신뢰와 거리감',
-      question: '어디까지 다가가고 어디서 선을 지켜야 하는가',
-      focus: '호의와 부담, 협력과 소모의 경계를 함께 읽어야 합니다.',
-      risk: '좋은 사람으로 남으려다 내 기준이 흐려질 수 있습니다.',
-      action: '상대에게 맞추기 전에 내가 편안한 거리 하나를 정하세요.'
-    },
-    wealth: {
-      theme: '재물과 사업의 회수 가능성',
-      question: '지금 확장할 때인가, 먼저 관리할 때인가',
-      focus: '돈의 흐름은 기대감보다 조건, 숫자, 반복 가능한 수익 구조로 판단해야 합니다.',
-      risk: '좋아 보이는 기회라도 관리 기준이 없으면 손실로 바뀔 수 있습니다.',
-      action: '수익 기대보다 비용, 조건, 회수 시점을 먼저 적어보세요.'
-    },
-    loss: {
-      theme: '새는 돈과 지켜야 할 자산',
-      question: '무엇을 벌기보다 무엇을 막아야 하는가',
-      focus: '재물운은 들어오는 돈만이 아니라 빠져나가는 구멍을 보는 자리입니다.',
-      risk: '불안한 마음으로 지출하거나 손실을 만회하려 하면 더 크게 흔들릴 수 있습니다.',
-      action: '오늘은 새 지출보다 보류할 항목 하나를 정하세요.'
-    },
-    contract: {
-      theme: '문서, 약속, 책임의 기준',
-      question: '서명하거나 약속하기 전에 무엇을 확인해야 하는가',
-      focus: '계약운은 말의 분위기보다 문장, 조건, 책임 범위를 정확히 보는 자리입니다.',
-      risk: '좋은 분위기에 밀려 불리한 조건을 넘기면 뒤늦게 부담이 커질 수 있습니다.',
-      action: '조건, 기한, 책임 주체를 한 번 더 확인한 뒤 결정하세요.'
-    },
-    travel: {
-      theme: '이동의 타이밍과 준비',
-      question: '지금 움직일 때인가, 준비를 더 해야 하는가',
-      focus: '이동운은 방향감과 준비 상태가 함께 맞아야 길하게 열립니다.',
-      risk: '충동적으로 움직이면 일정, 비용, 체력에서 작은 누수가 생길 수 있습니다.',
-      action: '일정표와 예비 비용을 먼저 확인하고 움직이세요.'
-    },
-    creative: {
-      theme: '표현, 창작, 공개의 시점',
-      question: '아이디어를 더 품을 때인가, 밖으로 내놓을 때인가',
-      focus: '창의운은 영감보다 결과물로 꺼내는 순간에 실제 힘이 생깁니다.',
-      risk: '완벽해질 때까지 미루면 좋은 기운이 머릿속에서만 맴돌 수 있습니다.',
-      action: '완성도보다 공개 가능한 최소 결과물을 하나 정하세요.'
-    },
-    health: {
-      theme: '회복 리듬과 몸의 신호',
-      question: '지금 몸과 마음이 요구하는 회복 방식은 무엇인가',
-      focus: '건강운은 극적인 변화보다 수면, 식사, 호흡, 휴식 리듬을 먼저 봅니다.',
-      risk: '버티는 힘을 운으로 착각하면 피로가 더 깊어질 수 있습니다.',
-      action: '오늘은 회복을 방해하는 습관 하나를 줄이세요.'
-    }
-  };
-  var lens = map[category] || base;
+  var frame = getMyeongriCategoryFrame(category);
   var dirNote = orientation === 'reversed'
-    ? ' 역방향이므로 이 주제는 무리하게 밀기보다 줄이고 정리하는 방식으로 다뤄야 합니다.'
-    : ' 정방향이므로 이 주제는 작은 실행으로 흐름을 확인해도 좋습니다.';
+    ? ' 역행이므로 이 주제는 밖으로 밀기보다 안쪽의 지연, 불안, 반복을 먼저 다룹니다.'
+    : ' 순행이므로 이 주제는 작은 실행으로 흐름을 확인할 수 있습니다.';
   return {
-    theme: lens.theme,
-    question: lens.question,
-    focus: lens.focus + dirNote,
-    risk: lens.risk,
-    action: lens.action,
-    tenGodUse: tenGod ? tenGod + '의 기운은 이 질문에서 "' + lens.theme + '"을 현실로 다루는 방식으로 나타납니다.' : lens.focus
+    theme: frame.theme,
+    question: frame.question,
+    focus: frame.focus + dirNote,
+    risk: frame.risk,
+    action: frame.action,
+    tenGodUse: tenGod ? getMyeongriTenGodContext(category, tenGod) : frame.focus
   };
 }
 
@@ -1219,12 +1507,11 @@ function resolveCardBridge(cardName, tenGod, orientation) {
   var profile = getTenGodRealityProfile(tenGod);
   var cardText = String(cardName || '').trim();
   var focus = profile.focus || '현실 역할';
-  var work = profile.work || '실행 방식';
   var action = profile.action || '오늘의 실천';
   if (orientation === 'reversed') {
     return withKoreanJosa(cardText, '은', '는') + ' 겉으로 큰 변화를 일으키기보다 ' + focus + ' 쪽의 긴장을 안쪽에서 흔들고 있습니다. ' + profile.risk + ' 그래서 오늘은 큰 결론보다 바로 붙잡을 기준 하나가 필요합니다.';
   }
-  return withKoreanJosa(cardText, '은', '는') + ' ' + withKoreanJosa(focus, '을', '를') + ' 현실 위로 또렷하게 올려놓습니다. ' + profile.reality + ' 특히 ' + withEuroRo(work) + ' 이어질 때 오늘의 운이 실제 선택으로 바뀝니다.';
+  return withKoreanJosa(cardText, '은', '는') + ' ' + withKoreanJosa(focus, '을', '를') + ' 현실 위로 또렷하게 올려놓습니다. ' + profile.reality + ' 특히 오늘은 ' + withEuroRo(action) + ' 기준을 좁힐 때 선택이 단단해집니다.';
 }
 
 function removeRepeatedMyeongriTarotPhrases(text) {
@@ -1328,7 +1615,7 @@ function buildMyeongriMysticOracle(cardName, tenGod, orientation) {
     '정재': '쌓아온 질서가 오늘의 무게로 응답합니다.',
     '편관': '두려움의 뒤편에서 돌파의 기척이 살아납니다.',
     '정관': '정해진 자리 위로 새로운 이름의 울림이 번집니다.',
-    '편인': '읽히지 않은 감각이 먼저 당신을 읽습니다.',
+    '편인': '읽히지 않은 감각이 당신 안쪽에서 먼저 흔들립니다.',
     '정인': '보이지 않는 도움은 이미 가까이 숨을 맞춥니다.'
   };
   var pool = orientation === 'reversed' ? reversed : upright;
@@ -1344,31 +1631,32 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var dir = orientation === 'reversed' ? 'reversed' : 'upright';
   var directionLabel = TAROT_ORIENTATION_LABEL_KO[dir];
   var profile = getTarotDeepProfile(card);
-  var suit = inferSuitFromCard(card);
   var mainTenGod = normalizeTenGod(tenGod) || resolveMainTenGod(card);
   var tenMeta = TEN_GOD_DETAILS[mainTenGod] || TEN_GOD_DETAILS['정인'];
-  var suitTheme = (SUIT_TEN_GOD_AFFINITY[suit] || SUIT_TEN_GOD_AFFINITY.major).theme;
   var tenProfile = getTenGodRealityProfile(mainTenGod);
   var comboArchetype = buildTarotComboArchetype(cardName, mainTenGod, profile, tenProfile);
   var categoryLens = getMyeongriCategoryLens(category, mainTenGod, dir);
+  var frame = getMyeongriCategoryFrame(category);
+  var cardSymbol = getMyeongriCardSymbol(cardName);
+  var tenGodContext = getMyeongriTenGodContext(category, mainTenGod);
 
   var cardSubject = cardName + ' ' + (dir === 'reversed' ? '역행' : '순행');
   var bridge = resolveCardBridge(cardName, mainTenGod, dir);
-  var opening = '오늘 ' + catKo + '의 자리에는 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 들어와 있습니다. 핵심 질문은 "' + categoryLens.question + '"입니다.';
+  var opening = '오늘 ' + catKo + '의 자리에서 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 움직입니다. 핵심 질문은 "' + categoryLens.question + '"입니다.';
   var cardMeaning = dir === 'reversed'
-    ? cardName + '의 역행이 들어온 오늘은 겉으로 밀어붙일수록 마음의 압력이 커질 수 있습니다. ' + profile.shadow + ' ' + categoryLens.focus
-    : cardName + '의 순행이 들어온 오늘은 이미 품고 있던 힘을 현실로 꺼내기 좋습니다. ' + profile.psych + ' ' + categoryLens.focus;
-  var tenGodInterpretation = mainTenGod + '의 결은 ' + tenMeta.meaning + '을 오늘의 현실 감각으로 끌어올립니다. ' + categoryLens.tenGodUse + ' ' + (dir === 'reversed' ? tenProfile.risk + ' 그래서 분석을 늘리기보다 속도를 낮추고 손실을 줄이는 쪽이 먼저입니다.' : tenProfile.reality + ' 이 흐름은 ' + withEuroRo(tenProfile.work) + ' 옮길 때 가장 안정적으로 살아납니다.');
+    ? cardName + '의 역행은 겉으로 밀어붙일수록 마음의 압력이 커지는 장면입니다. ' + cardSymbol + ' ' + profile.shadow + ' ' + categoryLens.focus
+    : cardName + '의 순행은 이미 품고 있던 힘을 현실로 꺼내는 장면입니다. ' + cardSymbol + ' ' + profile.psych + ' ' + categoryLens.focus;
+  var tenGodInterpretation = mainTenGod + '은 ' + tenGodContext + ' ' + (dir === 'reversed' ? '역행이라 속도를 낮추고, 마음 안에서 꼬인 기준부터 풀어야 합니다.' : '순행이라 오늘의 말과 행동 속에서 비교적 또렷하게 드러납니다.');
 
-  var combinedReading = cardSubject + '의 상징이 ' + mainTenGod + '의 기운과 맞물리며 ' + comboArchetype + '의 흐름을 만듭니다. ' +
-    bridge + ' 오늘은 이 감각을 ' + withEuroRo(tenProfile.work) + ' 작게 옮길수록 판단이 선명해집니다. 특히 ' + catKo + ' 질문에서는 ' + categoryLens.theme + '을 먼저 기준으로 삼으세요.';
+  var combinedReading = cardSubject + '의 상징은 ' + mainTenGod + '의 결과 맞물려 ' + comboArchetype + '으로 드러납니다. ' +
+    bridge + ' 특히 ' + catKo + '에서는 ' + categoryLens.theme + '을 먼저 기준으로 삼으세요.';
 
   var shadowWarning = dir === 'reversed'
     ? '압박이 커질수록 감정으로 바로 반응하기보다 구조를 먼저 세워야 합니다. ' + tenProfile.risk + ' ' + categoryLens.risk
     : '흐름이 열려 있어도 무리하게 속도를 올릴 필요는 없습니다. ' + tenProfile.risk + ' ' + categoryLens.risk + ' 오늘은 힘을 증명하기보다 오래 갈 리듬을 잡는 편이 좋습니다.';
   var practicalAdvice = dir === 'reversed'
     ? '지금 겪는 지연이나 압박을 실패로 단정하지 마세요. 일정과 기준을 다시 줄이고, ' + tenProfile.action + ' ' + categoryLens.action
-    : '오늘은 마음속 결심을 바깥 행동으로 옮겨도 좋습니다. ' + tenProfile.action + ' ' + categoryLens.action + ' 특히 ' + withEuroRo(tenProfile.work) + ' 이어지는 작은 실행 하나가 다음 흐름을 열어줍니다.';
+    : '오늘은 마음속 결심을 바깥 행동으로 옮겨도 좋습니다. ' + tenProfile.action + ' ' + categoryLens.action;
 
   var oracleMessage = buildMyeongriMysticOracle(cardName, mainTenGod, dir);
   var sealSentence = dir === 'reversed'
@@ -1376,33 +1664,33 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
     : '작게라도 밖으로 내보낸 행동 하나가 오늘의 운을 현실 쪽으로 돌려놓습니다.';
   var currentSituation = opening + ' ' + combinedReading;
   var whyThisHappens = dir === 'reversed'
-    ? cardName + '의 힘이 안으로 접히며 ' + tenProfile.focus + '가 과열되거나 지연되고 있습니다.'
-    : cardName + '의 본래 힘이 ' + withEuroRo(tenProfile.work) + ' 이어질 준비가 되었습니다.';
+    ? cardName + '의 힘이 안으로 접히며 ' + frame.theme + ' 안의 지연과 불안을 건드립니다.'
+    : cardName + '의 본래 힘이 ' + frame.theme + ' 안에서 바깥 선택으로 드러날 준비를 마쳤습니다.';
   var biggestRisk = dir === 'reversed'
     ? '계속 생각만 하며 ' + tenProfile.action + '를 미루는 것.'
     : tenProfile.risk;
   var bestChoice = dir === 'reversed'
     ? '속도를 줄이고 ' + categoryLens.action
-    : withEuroRo(tenProfile.work) + ' 바로 옮기되, ' + categoryLens.theme + '을 기준으로 삼는 것.';
+    : categoryLens.theme + '을 기준으로 삼고 ' + categoryLens.action;
   var actionAdvice = dir === 'reversed'
     ? '일정 축소, 정리, 삭제, 재검토를 먼저 하세요. ' + categoryLens.action
-    : '공개, 신청, 제안, 출시처럼 바깥으로 내보내는 행동을 선택하세요. ' + categoryLens.action;
+    : categoryLens.action;
   var oneLineConclusion = dir === 'reversed'
-    ? '지금은 버티기보다 방향을 다시 세우는 시기입니다.'
-    : '지금은 준비를 늘리는 것보다 공개와 실행이 운을 움직입니다.';
+    ? '지금은 속도를 낮추고 기준을 다시 세우는 때입니다.'
+    : '지금은 선택을 한 가지 행동으로 좁힐 때입니다.';
   var reading = {
     category: catKo,
     card: {
       nameKo: cardName,
       nameEn: cardEn,
       orientation: dir,
-      keywords: [comboArchetype, profile.core, tenMeta.label, suitTheme, directionLabel].slice(0, 5)
+      keywords: [comboArchetype, profile.core, tenMeta.label, frame.label, directionLabel].slice(0, 5)
     },
     tenGod: {
       main: mainTenGod,
       group: tenMeta.group,
       label: tenMeta.label,
-      meaning: tenMeta.meaning
+      meaning: tenGodContext
     },
     title: cardName + ' · ' + mainTenGod + ' ' + catKo + ' 리딩',
     opening: opening,
@@ -1551,58 +1839,77 @@ function analyzeMyeongriTenGodFlow(readings) {
   };
 }
 
+function buildMyeongriFlowSummary(category) {
+  var frame = getMyeongriCategoryFrame(category);
+  return frame.label + '에서는 ' + frame.past + '이 먼저 떠오르고, 현재는 ' + frame.present + '이 중심에 섭니다. 다음 선택은 ' + frame.next + '으로 좁혀야 오늘의 흐름이 흩어지지 않습니다.';
+}
+
+function getMyeongriPositionFocus(frame, idx) {
+  if (idx === 0) return frame.past;
+  if (idx === 1) return frame.present;
+  return frame.next;
+}
+
+function buildMyeongriPositionVerdict(frame, idx) {
+  if (idx === 0) return '지금 ' + frame.label + '을 본다면, ' + frame.past + '을 먼저 직면해야 합니다.';
+  if (idx === 1) return '현재 ' + frame.label + '의 핵심은 ' + frame.present + '을 서두르지 않고 붙잡는 데 있습니다.';
+  return '다음 선택은 ' + frame.next + '을 기준으로 삼을 때 흔들리지 않습니다.';
+}
+
+function buildMyeongriPositionReadingHtml(reading, category, idx, labels) {
+  var frame = getMyeongriCategoryFrame(category);
+  var cardName = String((reading && reading.card && reading.card.nameKo) || '타로 카드');
+  var orientation = reading && reading.card && reading.card.orientation === 'reversed' ? 'reversed' : 'upright';
+  var directionLabel = orientation === 'reversed' ? '역행' : '순행';
+  var tenGod = normalizeTenGod(reading && reading.tenGod && reading.tenGod.main) || '정인';
+  var positionName = labels[idx] || TAROT_SPREAD_LABELS.default[idx] || ('카드 ' + (idx + 1));
+  var positionFocus = getMyeongriPositionFocus(frame, idx);
+  var visual = getMyeongriCardSymbol(cardName);
+  var tenGodLine = getMyeongriTenGodContext(category, tenGod);
+  var directionLine = orientation === 'reversed'
+    ? '역행이라 이 상징은 바깥 사건보다 안쪽의 지연, 불안, 망설임으로 먼저 머무릅니다.'
+    : '순행이라 이 상징은 말, 태도, 선택 속에서 비교적 선명하게 드러납니다.';
+  var translated = frame.label + '에서는 이 장면이 ' + positionFocus + '으로 이어집니다.';
+  var action = frame.choices[idx] || frame.action;
+  var oneLine = frame.oneLine ? frame.oneLine(cardName, tenGod, orientation) : (cardName + '의 결을 오늘 행동으로 좁히세요.');
+
+  return '' +
+    '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
+      '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(positionName) + ' — ' + escapeTarotHtml(cardName) + ' (' + escapeTarotHtml(directionLabel) + ')</b>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#e5e7eb;">' +
+        '<b style="color:#c4b5fd;">핵심 판정</b><br>' +
+        '<span>' + escapeTarotHtml(buildMyeongriPositionVerdict(frame, idx)) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#fef3c7;">' +
+        '<b style="color:#fcd34d;">카드와 십성의 결</b><br>' +
+        '<span>' + escapeTarotHtml(visual + ' ' + translated + ' ' + tenGodLine + ' ' + directionLine) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#d1fae5;">' +
+        '<b style="color:#6ee7b7;">오늘의 선택</b><br>' +
+        '<span>' + escapeTarotHtml(action) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:10px;padding:13px 14px;border:1px solid rgba(253,230,138,0.24);border-radius:12px;background:rgba(2,6,23,0.38);">' +
+        '<b style="color:#fde68a;font-size:1em">오늘의 한 문장</b><br><br>' +
+        '<span style="line-height:1.9;color:#fef3c7;">' + escapeTarotHtml(oneLine) + '</span>' +
+      '</div>' +
+    '</div>';
+}
+
 function buildTarotRealityPlan(cardsData, category, labels, readings) {
-  var past = cardsData[0] || {};
-  var now = cardsData[1] || cardsData[0] || {};
-  var fut = cardsData[2] || cardsData[cardsData.length - 1] || now;
-  var pastReading = (readings && readings[0]) || combineTarotAndTenGod(past.card || {}, '', category, past.isReversed ? 'reversed' : 'upright');
-  var nowReading = (readings && readings[1]) || combineTarotAndTenGod(now.card || {}, '', category, now.isReversed ? 'reversed' : 'upright');
-  var futReading = (readings && readings[2]) || combineTarotAndTenGod(fut.card || {}, '', category, fut.isReversed ? 'reversed' : 'upright');
-  var dom = summarizeDominantSipsin(cardsData) || '정인';
-  var l1 = labels[0] || '지금까지의 흐름';
-  var l2 = labels[1] || '현재의 핵심 기운';
-  var l3 = labels[2] || '다음 선택 기준';
-  var title = mapCategoryToMyeongriCategory(category);
-  var futureCard = String((fut.card && fut.card.name_kr) || '다가오는 카드');
-  var tenGodFlow = [
-    (pastReading.tenGod && pastReading.tenGod.main) || '미상',
-    (nowReading.tenGod && nowReading.tenGod.main) || '미상',
-    (futReading.tenGod && futReading.tenGod.main) || '미상'
-  ].join(' → ');
-  var tenGodFlowAnalysis = analyzeMyeongriTenGodFlow([pastReading, nowReading, futReading]);
-  var coreConclusion = (futureCard === '태양' || futReading.tenGod.main === '식신')
-    ? '이번 리딩의 핵심은 “더 준비하라”가 아니라 “이제 공개하라”입니다. 특히 ' + tenGodFlowAnalysis.oneLine
-    : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlowAnalysis.oneLine;
-  var pastStory = '지금까지의 흐름에 놓인 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간을 비춥니다. ' + escapeTarotHtml(pastReading.cardMeaning);
-  var nowStory = '현재의 핵심 기운에 놓인 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간을 말합니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
-  var futureStory = '다음 선택 기준에 놓인 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oneLineConclusion || futReading.bestChoice || '');
+  var safeLabels = labels && labels.length ? labels : TAROT_SPREAD_LABELS.default;
+  var safeReadings = (readings && readings.length ? readings : (cardsData || []).map(function(data) {
+    return combineTarotAndTenGod(data.card || {}, '', category, data.isReversed ? 'reversed' : 'upright');
+  })).slice(0, 3);
+  var sections = safeReadings.map(function(reading, idx) {
+    return buildMyeongriPositionReadingHtml(reading, category, idx, safeLabels);
+  }).join('');
 
   return '' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
-      '<b style="color:#c4b5fd;font-size:1em">📖 세 장의 명리 흐름</b><br><br>' +
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">' +
-        '<span style="padding:3px 9px;border-radius:20px;background:rgba(196,181,253,0.18);color:#e9d5ff;font-size:.76rem;font-weight:700;">' + escapeTarotHtml(l1) + '</span>' +
-        '<span style="padding:3px 9px;border-radius:20px;background:rgba(196,181,253,0.14);color:#ddd6fe;font-size:.76rem;font-weight:700;">' + escapeTarotHtml(l2) + '</span>' +
-        '<span style="padding:3px 9px;border-radius:20px;background:rgba(196,181,253,0.12);color:#c4b5fd;font-size:.76rem;font-weight:700;">' + escapeTarotHtml(l3) + '</span>' +
-      '</div>' +
-      '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:10px;">' + pastStory + '</div>' +
-      '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:10px;">' + nowStory + '</div>' +
-      '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:12px;">' + futureStory + '</div>' +
-      '<div style="line-height:1.9;color:#bfdbfe;background:rgba(30,64,175,0.18);border:1px solid rgba(147,197,253,0.24);border-radius:10px;padding:10px 12px;margin-bottom:12px;">' +
-        '<b>십성 흐름 판정:</b> ' + escapeTarotHtml(tenGodFlowAnalysis.label) + ' · ' + escapeTarotHtml(tenGodFlowAnalysis.names) + '<br>' +
-        '<span>' + escapeTarotHtml(tenGodFlowAnalysis.detail) + '</span>' +
-      '</div>' +
-      '<div style="line-height:1.9;color:#fde68a;background:rgba(2,6,23,0.28);border:1px solid rgba(253,230,138,0.22);border-radius:10px;padding:10px 12px;">' +
-        '<b>핵심 결론:</b> ' + escapeTarotHtml(coreConclusion) +
-      '</div>' +
+      '<b style="color:#c4b5fd;font-size:1em">📖 세 장의 흐름 요약</b><br><br>' +
+      '<div style="line-height:1.9;color:#f5f3ff;">' + escapeTarotHtml(buildMyeongriFlowSummary(category)) + '</div>' +
     '</div>' +
-    '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
-      '<b style="color:#fde68a;font-size:1em">🛠 오늘의 실행 의식 (24시간·7일·30일)</b><br><br>' +
-      '<span style="line-height:1.85;"><b>1) 24시간:</b> 지금 가장 무거운 감정 1가지를 적고, 그 감정 아래 숨은 욕구를 한 줄로 정리하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>2) 7일:</b> 지금의 카드 <b>' + escapeTarotHtml((now.card && now.card.name_kr) || '지금의 카드') + '</b> 해석을 기준으로 "' + escapeTarotHtml(nowReading.practicalAdvice) + '"를 매일 10분 실천하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>3) 30일:</b> 다가오는 카드 <b>' + escapeTarotHtml(futureCard) + '</b>의 메시지( ' + escapeTarotHtml(futReading.combinedReading) + ' )를 기준으로 오래 가져갈 선택 1개를 정하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>주도 십성:</b> <b>' + escapeTarotHtml(dom) + '</b> · <b>질문의 자리:</b> ' + escapeTarotHtml(title) + '</span>' +
-    '</div>';
+    '<div style="margin-top:12px;">' + sections + '</div>';
 }
 
 function startThreeCardFlow() {
@@ -1713,8 +2020,9 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
-  // 명리학 타로는 무료 전환: 유료 게이트를 거치지 않고 즉시 실행
-  _runShowTarotFinalInterpretation();
+  requireMyeongriTarotThreeCardPayment(function() {
+    _runShowTarotFinalInterpretation();
+  });
 }
 
 function _runShowTarotFinalInterpretation() {
@@ -1731,10 +2039,6 @@ function _runShowTarotFinalInterpretation() {
   var readings = cardsData.map(function(data) {
     return combineTarotAndTenGod(data.card, '', curTarotCat, data.isReversed ? 'reversed' : 'upright');
   });
-  var parts = readings.map(function(reading, idx) {
-    var label = labels[idx] || TAROT_SPREAD_LABELS.default[idx] || ('카드 ' + (idx + 1));
-    return buildMyeongriTarotReadingHtml(reading, label);
-  }).join('');
   var realityPlan = buildTarotRealityPlan(cardsData, curTarotCat, labels, readings);
   var dominantTenGod = summarizeDominantSipsin(cardsData);
   var advice = removeRepeatedMyeongriTarotPhrases(
@@ -1745,8 +2049,7 @@ function _runShowTarotFinalInterpretation() {
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var interpretation = '' +
     '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">세 장의 카드는 지나온 흐름, 현재의 기운, 오늘 선택할 기준을 차례로 비춥니다.</span><br><br>' +
-    parts +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">지나온 흐름, 현재의 결, 다음 선택 기준을 차례로 엮습니다.</span><br><br>' +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
       '<b style="color:#6ee7b7;font-size:1em">🪷 오늘의 조율 문장</b><br><br>' +
@@ -1787,7 +2090,6 @@ function startTarotReading() {
   }
   if(isReading) return;
   if (!isTarotModalActive()) return;
-  // 명리학 타로는 무료 전환: 유료 게이트를 거치지 않고 즉시 실행
   _runStartTarotReading();
 }
 
@@ -3800,7 +4102,7 @@ function renderTTest(p, natal, johu, pw) {
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 읽습니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
+          { title:'좋아하는 사람 앞에서의 태도', text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 살핍니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
           { title:'연락 스타일', text:'연락은 감정형처럼 완전히 흘러가지도, T형처럼 기능적이지도 않습니다. 다정함과 효율이 섞여 있어 답장 톤이 상황 따라 달라질 수 있습니다.' },
           { title:'서운함을 처리하는 방식', text:'서운함이 생기면 바로 터뜨리기보다 해석을 먼저 합니다. 그래서 말을 꺼내는 데 시간이 걸리고, 그 사이 상대는 당신 마음을 헷갈릴 수 있습니다.' },
           { title:'싸울 때의 패턴', text:'싸울 때도 감정만 밀어붙이지 않고 왜 이런 패턴이 반복되는지 보려 합니다. 다만 너무 중간 지점을 찾다 보면 결정적인 문제를 흐릴 수 있습니다.' },
@@ -4718,7 +5020,7 @@ function buildLottoRitualReport(state){
     priceCoins:50,
     moneyCondition:{
       title:'이번 주 금전운 컨디션',
-      body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 읽습니다.',
+      body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 짚습니다.',
       points:['충동 지출은 메모 후 하루 미루기','작은 기회는 크게 기대하지 않고 관찰하기','정리해야 할 소비 패턴 하나만 고르기']
     },
     numberInsights:numberInsights,
@@ -6101,7 +6403,7 @@ function syRenderWheelCard(wheelState, compatInfo) {
   var rendered = ''
     + '<div class="sy-card sy-wheel-card" id="syWheelCardHost">'
     + '<div class="sy-wheel-title">🪐 27숙 달빛 명반</div>'
-    + '<p class="sy-wheel-caption">12시 방향에서 시작해 시계 방향으로 별자리를 배치했습니다. 안쪽 원은 내 별을 기준으로 인연 흐름을 보여줍니다.</p>'
+    + '<p class="sy-wheel-caption">12시 방향에서 시작해 시계 방향으로 별자리를 배치했습니다. 안쪽 원은 내 별을 기준으로 인연 흐름을 드러냅니다.</p>'
     + '<div class="sy-wheel-svg-wrap">' + svg.join('') + '</div>'
     + '<div class="sy-wheel-legend">' + legend.join('') + '</div>'
     + '<div class="sy-wheel-meta-grid">' + infoRows.join('') + '</div>'
@@ -10389,7 +10691,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       label: '생명(命)',
       badgeDesc: '거울처럼 닮아 서로를 비추는 인연',
       lead: '서로를 통해 나를 또렷하게 보게 되는 관계입니다. 강한 공감과 닮음이 장점이지만, 경계가 흐려지지 않도록 균형이 필요합니다.',
-      firstMeet: '처음인데도 오래 알던 사람 같은 기시감이 빠르게 생깁니다. 서로의 반응을 놀랄 만큼 잘 읽습니다.',
+      firstMeet: '처음인데도 오래 알던 사람 같은 기시감이 빠르게 생깁니다. 서로의 반응을 놀랄 만큼 잘 살핍니다.',
       development: '함께할수록 호흡은 쉬워지고 이해 속도도 빨라집니다. 다만 닮음이 커질수록 차이를 존중하는 기술이 중요해집니다.',
       caution: '"우린 원래 같아"라는 전제를 내려놓고, 서로의 독립성을 확인해 주세요. 거울 인연은 경계를 지킬 때 오래 아름답습니다.'
     },
@@ -10718,7 +11020,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var reverse = Number(distanceMetrics && distanceMetrics.reverseDistance);
     var numericLine = Number.isFinite(forward) && Number.isFinite(reverse)
       ? 'A에서 B로 ' + forward + '칸, B에서 A로 ' + reverse + '칸 흐르며 최단 체감 거리는 ' + (Number.isFinite(shortest) ? shortest : '?') + '칸입니다.'
-      : '정밀 거리값은 관계 계산 후 보조 지표로 읽습니다.';
+      : '정밀 거리값은 관계 계산 후 보조 지표로 살핍니다.';
     var relationHint = relationKey === 'ankai'
       ? '이 관계에서는 거리감이 좁아질수록 감정 파동도 커지므로, 가까워질 때일수록 경계선 문장이 필요합니다.'
       : (relationKey === 'yeongchin'
@@ -11187,7 +11489,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       {
         step: '3단계 · 재접속',
         time: '서로 말할 수 있을 때',
-        action: '먼저 한 문장으로 사과하거나 인정한 뒤, 바라는 행동을 하나만 말합니다.',
+        action: '먼저 한 문장으로 사과하거나 인정한 뒤, 바라는 행동을 하나만 건네세요.',
         line: '내가 날카로웠던 부분은 미안해. 다음에는 이 방식으로 맞춰보고 싶어.'
       },
       {
@@ -11662,7 +11964,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     return {
       title: '연도별 관계 흐름',
-      summary: '올해부터 10년까지 두 사람의 관계가 어떤 국면으로 움직이는지 봅니다. 3년은 가까운 선택, 5년은 장기 방향, 10년은 인연의 큰 궤도를 읽습니다.',
+      summary: '올해부터 10년까지 두 사람의 관계가 어떤 국면으로 움직이는지 봅니다. 3년은 가까운 선택, 5년은 장기 흐름, 10년은 인연의 큰 궤도를 살핍니다.',
       views: [
         { label: '3년 보기', body: years.slice(0, 3).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
         { label: '5년 보기', body: years.slice(0, 5).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },

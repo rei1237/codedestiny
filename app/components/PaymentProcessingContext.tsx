@@ -93,8 +93,8 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: stri
   paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 불러오는 중이에요" },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
   error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
-  paymentPreparing: { label: "결제 준비", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
-  paymentWindowOpen: { label: "결제 진행", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
+  paymentPreparing: { label: "결제 준비", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
+  paymentWindowOpen: { label: "결제 진행", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
   savingUnlock: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   unlockSaving: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
@@ -218,10 +218,10 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?
     return { message: message || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: resolvePaymentLoadingVariant(message, "confirm") };
   }
   if (status === "paymentPreparing") {
-    return { message: message || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
+    return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };
   }
   if (status === "paymentWindowOpen") {
-    return { message: message || "열린 결제창에서 인증을 완료해 주세요. 완료 후 권한을 확인합니다.", mode: "checkout" };
+    return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };
   }
   if (status === "savingUnlock" || status === "unlockSaving") {
     return { message: message || "잠금 해제 권한을 저장하고 있습니다.", mode: "unlock-saving" };

@@ -261,10 +261,10 @@ type BillingCoinGateInput = {
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
+const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 5000;
 const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1bcb12c9e742";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
@@ -323,6 +323,11 @@ const billingCoinGateRecent = new Map<string, {
   promise: BillingCoinGatePromise;
   expiresAt: number;
 }>();
+const paymentEligibilityInFlight = new Map<string, Promise<BillingResult<PaymentEligibility>>>();
+const paymentEligibilityRecent = new Map<string, {
+  result: BillingResult<PaymentEligibility>;
+  expiresAt: number;
+}>();
 let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = null;
 let billingBalanceRecent: { result: BillingResult<BillingBalanceData>; expiresAt: number } | null = null;
 let billingBalanceCacheVersion = 0;
@@ -333,6 +338,8 @@ function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
   billingBalanceRecent = null;
   billingBalanceInFlight = null;
+  paymentEligibilityInFlight.clear();
+  paymentEligibilityRecent.clear();
 }
 
 function debugEntitlement(...args: unknown[]) {
@@ -599,6 +606,7 @@ function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source
       ?? nested.endsAt
       ?? nested.validUntil,
   );
+  const expiredByDate = !!expiresAt && Date.parse(expiresAt) <= Date.now();
   const rawStatus = record.status ?? record.subscriptionStatus ?? record.membershipStatus ?? options.status ?? nested.status ?? nested.subscriptionStatus;
   const hasFutureExpiry = !!expiresAt && Date.parse(expiresAt) > Date.now();
   const explicitActive = record.isActive === true
@@ -618,7 +626,7 @@ function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source
     || (options.hasActivePass === false && !explicitActive)
     || (nested.isActive === false && !explicitActive)
     || (nested.isSubscribed === false && !explicitActive);
-  const state = tier !== "free" && !explicitInactive && (explicitActive || hasFutureExpiry) ? "active" : "none";
+  const state = tier !== "free" && !expiredByDate && !explicitInactive && (explicitActive || hasFutureExpiry) ? "active" : "none";
   return {
     userId,
     state,
@@ -849,6 +857,10 @@ function openMembershipPassStore(coinPrice: number, currentTier?: string) {
   window.location.assign(url.toString());
 }
 
+function hasActiveReactPaymentChoiceModal() {
+  return typeof document !== "undefined" && Boolean(document.querySelector("[data-cd-react-payment-choice]"));
+}
+
 function ensureReactPaymentChoiceStyles() {
   if (typeof document === "undefined" || document.getElementById("cd-react-payment-choice-style")) return;
   const style = document.createElement("style");
@@ -898,16 +910,15 @@ function ensureReactPaymentChoiceStyles() {
 
 async function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
   const now = Date.now();
-  if (reactPaymentChoiceInFlight && now - reactPaymentChoiceInFlight.startedAt < PAYMENT_CHOICE_IN_FLIGHT_TTL_MS) {
+  if (reactPaymentChoiceInFlight && now - reactPaymentChoiceInFlight.startedAt < PAYMENT_CHOICE_IN_FLIGHT_TTL_MS && hasActiveReactPaymentChoiceModal()) {
     return reactPaymentChoiceInFlight.promise;
   }
+  reactPaymentChoiceInFlight = null;
 
   const promise = openReactPaymentChoiceModalInner(options || {});
   reactPaymentChoiceInFlight = { promise, startedAt: now };
   return promise.finally(() => {
-    globalThis.setTimeout(() => {
-      if (reactPaymentChoiceInFlight?.promise === promise) reactPaymentChoiceInFlight = null;
-    }, PAYMENT_CHOICE_RECENT_TTL_MS);
+    if (reactPaymentChoiceInFlight?.promise === promise) reactPaymentChoiceInFlight = null;
   });
 }
 
@@ -1404,7 +1415,7 @@ function buildRuntimeMembershipCoverage(eligibility: PaymentEligibility | null) 
 
 function isSubscriptionSnapshotEligibility(eligibility: PaymentEligibility | null) {
   if (!eligibility) return false;
-  const reason = toText(eligibility.access.reason);
+  const reason = normalizeAccessReason(eligibility.access.reason);
   if (reason === "subscription_snapshot_active" || reason === "subscription_snapshot_none") return true;
   const raw = asRecord(eligibility.raw);
   return Boolean(asRecord(raw?.subscriptionSnapshot));
@@ -1427,6 +1438,36 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED"
     || normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT"
     || normalizedCode === "INSUFFICIENT_COINS";
+}
+
+function normalizeAccessReason(value: unknown) {
+  return toText(value).trim().toLowerCase();
+}
+
+function shouldCachePaymentEligibilityResult(result: BillingResult<PaymentEligibility>) {
+  if (!result.ok || !result.data) return false;
+  const code = toText(result.error?.code || asRecord(result.raw)?.code).toUpperCase();
+  const reason = normalizeAccessReason(result.data.access.reason || asRecord(result.raw)?.accessReason || asRecord(result.raw)?.decisionReason);
+  if (
+    result.status >= 400
+    || code === "PAYMENT_REQUIRED"
+    || code === "MEMBERSHIP_PASS_NOT_COVERED"
+    || code === "PRICE_EXCEEDS_PASS_LIMIT"
+    || reason === "payment_required"
+    || reason === "pass_unavailable"
+  ) return false;
+  return Boolean(
+    result.data.access.canAccess
+      || result.data.pass.canUse
+      || result.data.monthly.canUse
+  );
+}
+
+function shouldCacheBillingCoinGateResult(result: BillingResult<BillingCoinGateData>) {
+  if (!result.ok || !result.data) return false;
+  const record = asRecord(result.data);
+  const pricing = asRecord(record?.pricing);
+  return hasVerifiedBillingAccess(result.data, pricing?.featureKey || record?.featureKey || "");
 }
 
 function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentEligibility | null) {
@@ -1998,6 +2039,34 @@ function resolvePaidFeatureInFlightKey(input: {
   return parts ? `${featureId}|${parts}` : featureId;
 }
 
+function resolvePaymentEligibilityCacheKey(input: {
+  productId?: string;
+  serviceType?: string;
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  coinCost?: number;
+  coinPrice?: number;
+  priceKRW?: number;
+  amountKRW?: number;
+}) {
+  const baseKey = resolvePaidFeatureInFlightKey({
+    productId: input.productId,
+    serviceType: input.serviceType,
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    featureKey: input.featureKey,
+    paymentMode: "eligibility",
+  });
+  return [
+    baseKey,
+    `reason:${toText(input.reason)}`,
+    `coins:${Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)))}`,
+    `krw:${Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)))}`,
+  ].join("|");
+}
+
 export function openPaidFeatureGate(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -2098,7 +2167,7 @@ function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
   return null;
 }
 
-export async function fetchPaymentEligibility(input: {
+async function fetchPaymentEligibilityUncached(input: {
   productId?: string;
   serviceType?: string;
   categoryKey?: string;
@@ -2176,7 +2245,9 @@ export async function fetchPaymentEligibility(input: {
       ?? membershipPass?.passTier
       ?? membershipPass?.tier,
   );
-  const hasActivePass = Boolean(options.hasActivePass ?? data.hasActivePass);
+  const passExpiresAt = normalizeSubscriptionSnapshotDate(data.expiresAt ?? options.expiresAt ?? membershipPass?.expiresAt);
+  const passExpired = !!passExpiresAt && Date.parse(passExpiresAt) <= Date.now();
+  const hasActivePass = !passExpired && Boolean(options.hasActivePass ?? data.hasActivePass);
   const passLimit = toNumber(
     options.passLimit
       ?? data.passLimit
@@ -2187,13 +2258,16 @@ export async function fetchPaymentEligibility(input: {
     NaN,
   );
   const accessDecision = asRecord(data.accessDecision);
-  const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
+  const accessReason = normalizeAccessReason(accessDecision?.reason || data.accessReason || data.decisionReason);
+  const accessStatus = normalizeAccessReason(accessDecision?.status);
   const familyAllAccess = hasActivePass && passTier === "family";
-  const passCovered = familyAllAccess
-    || data.freeBySubscription === true
-    || accessReason === "pass_covered"
-    || accessReason === "family_all_access"
-    || toText(accessDecision?.status) === "license_passed";
+  const passCovered = !passExpired && (
+    familyAllAccess
+      || data.freeBySubscription === true
+      || accessReason === "pass_covered"
+      || accessReason === "family_all_access"
+      || accessStatus === "license_passed"
+  );
   const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true || passCovered);
   const normalizedPassLimit = passTier === "family"
     ? 999999999
@@ -2205,7 +2279,7 @@ export async function fetchPaymentEligibility(input: {
     passTier: options.passTier ?? data.passTier ?? membershipPass?.passTier,
     isActive: hasActivePass,
     hasActivePass,
-    expiresAt: data.expiresAt ?? options.expiresAt,
+    expiresAt: passExpiresAt ?? data.expiresAt ?? options.expiresAt,
   }, "unlock-status");
   const eligibility: PaymentEligibility = {
     loading: false,
@@ -2223,7 +2297,7 @@ export async function fetchPaymentEligibility(input: {
       limit: normalizedPassLimit,
       totalUses: null,
       remainingUses: null,
-      canUse: Boolean(familyAllAccess || (options.canUseByPass ?? data.canUseByPass ?? passCovered)),
+      canUse: !passExpired && Boolean(familyAllAccess || (options.canUseByPass ?? data.canUseByPass ?? passCovered)),
     },
     monthly: {
       balance: monthlyBalance,
@@ -2255,6 +2329,51 @@ export async function fetchPaymentEligibility(input: {
     ...parsed,
     data: eligibility,
   };
+}
+
+export async function fetchPaymentEligibility(input: {
+  productId?: string;
+  serviceType?: string;
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  coinCost?: number;
+  coinPrice?: number;
+  priceKRW?: number;
+  amountKRW?: number;
+}, fetchOptions: { force?: boolean } = {}): Promise<BillingResult<PaymentEligibility>> {
+  const cacheKey = resolvePaymentEligibilityCacheKey(input);
+  const now = Date.now();
+  if (fetchOptions.force === true) {
+    paymentEligibilityRecent.delete(cacheKey);
+    paymentEligibilityInFlight.delete(cacheKey);
+  } else {
+    const recent = paymentEligibilityRecent.get(cacheKey);
+    if (recent && recent.expiresAt > now) return recent.result;
+    if (recent) paymentEligibilityRecent.delete(cacheKey);
+    const current = paymentEligibilityInFlight.get(cacheKey);
+    if (current) return current;
+  }
+
+  const promise = fetchPaymentEligibilityUncached(input);
+  paymentEligibilityInFlight.set(cacheKey, promise);
+  try {
+    const result = await promise;
+    if (shouldCachePaymentEligibilityResult(result)) {
+      paymentEligibilityRecent.set(cacheKey, {
+        result,
+        expiresAt: Date.now() + PAYMENT_ELIGIBILITY_RECENT_TTL_MS,
+      });
+    } else {
+      paymentEligibilityRecent.delete(cacheKey);
+    }
+    return result;
+  } finally {
+    if (paymentEligibilityInFlight.get(cacheKey) === promise) {
+      paymentEligibilityInFlight.delete(cacheKey);
+    }
+  }
 }
 
 export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
@@ -2342,7 +2461,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || eligibility?.pass.canUse === true;
-    const snapshotSaysNoPass = eligibility?.access.reason === "subscription_snapshot_none";
+    const snapshotSaysNoPass = normalizeAccessReason(eligibility?.access.reason) === "subscription_snapshot_none";
     console.log("[이용권 체크]", {
       passStatus: {
         source: eligibility ? "unlock-status" : (snapshotPassServerCheckFirst ? "subscription-snapshot" : "server-direct"),
@@ -2604,7 +2723,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           coinPrice: input.coinPrice,
           priceKRW: input.priceKRW,
           amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
-        }).catch(() => null);
+        }, { force: true }).catch(() => null);
       }
       if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
         markPaymentRequestedOnce();
@@ -2707,18 +2826,30 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     }
 
     return parsed;
-  })().finally(() => {
-    billingCoinGateInFlight.delete(inFlightKey);
-    billingCoinGateRecent.set(inFlightKey, {
-      requestId: gateRequestId,
-      promise: requestPromise,
-      expiresAt: Date.now() + BILLING_COIN_GATE_RECENT_TTL_MS,
+  })()
+    .then((result) => {
+      if (shouldCacheBillingCoinGateResult(result)) {
+        billingCoinGateRecent.set(inFlightKey, {
+          requestId: gateRequestId,
+          promise: requestPromise,
+          expiresAt: Date.now() + BILLING_COIN_GATE_RECENT_TTL_MS,
+        });
+        globalThis.setTimeout(() => {
+          const recent = billingCoinGateRecent.get(inFlightKey);
+          if (recent?.promise === requestPromise) billingCoinGateRecent.delete(inFlightKey);
+        }, BILLING_COIN_GATE_RECENT_TTL_MS + 100);
+      } else {
+        billingCoinGateRecent.delete(inFlightKey);
+      }
+      return result;
+    })
+    .catch((error) => {
+      billingCoinGateRecent.delete(inFlightKey);
+      throw error;
+    })
+    .finally(() => {
+      billingCoinGateInFlight.delete(inFlightKey);
     });
-    globalThis.setTimeout(() => {
-      const recent = billingCoinGateRecent.get(inFlightKey);
-      if (recent?.promise === requestPromise) billingCoinGateRecent.delete(inFlightKey);
-    }, BILLING_COIN_GATE_RECENT_TTL_MS + 100);
-  });
 
   billingCoinGateInFlight.set(inFlightKey, { requestId: gateRequestId, promise: requestPromise });
   return requestPromise;

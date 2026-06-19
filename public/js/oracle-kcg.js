@@ -348,6 +348,10 @@
 /* ==============================================================
    이집트 신탁 (Kemet Oracle) - 헤르메스 트리스메기스투스 신탁 시스템
 ============================================================== */
+const KEMET_AI_PROMPT_FEATURE_KEY = "egyptian_oracle_ai_prompt";
+const KEMET_AI_PROMPT_COST = 30;
+const KEMET_AI_PROMPT_REASON = "이집트 신탁 AI 질문 프롬프트 생성";
+
 const KEMET_GODS = [
   {
     god: "라 (Ra)", role: "태양과 창조의 신", icon: "𓇳",
@@ -458,6 +462,193 @@ const KEMET_GODS = [
     papyrus: "아문은 이름이 없어도 모든 바람 속에 있다—당신의 가장 조용한 소망이 가장 강한 기도다."
   }
 ];
+
+function escapeKemetHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, function(ch) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+  });
+}
+
+function normalizeKemetPromptText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function stripKemetHtml(value) {
+  if (typeof document === 'undefined') {
+    return normalizeKemetPromptText(String(value || '').replace(/<[^>]+>/g, ' '));
+  }
+  var div = document.createElement('div');
+  div.innerHTML = String(value || '');
+  return normalizeKemetPromptText(div.textContent || div.innerText || '');
+}
+
+function buildKemetAiPrompt(data) {
+  var question = normalizeKemetPromptText(data.question);
+  var pastGod = data.pastGod;
+  var presentGod = data.presentGod;
+  var futureGod = data.futureGod;
+  var catKey = data.catKey;
+
+  return [
+    '나는 이집트 신탁에서 다음 흐름을 받았습니다.',
+    '',
+    '내가 올린 물음',
+    question,
+    '',
+    '신들이 드러낸 세 장',
+    '과거의 뿌리: ' + pastGod.god + ' — ' + pastGod.role,
+    stripKemetHtml(pastGod.nileOracle),
+    '',
+    '현재의 흐름: ' + presentGod.god + ' — ' + presentGod.role,
+    stripKemetHtml(presentGod.nileOracle),
+    '',
+    '미래의 명령: ' + futureGod.god + ' — ' + futureGod.role,
+    stripKemetHtml(futureGod.nileOracle),
+    '',
+    '물음의 중심',
+    data.catLabel + ' / ' + data.catSymbol,
+    stripKemetHtml(pastGod[catKey]),
+    stripKemetHtml(presentGod[catKey]),
+    stripKemetHtml(futureGod[catKey]),
+    '',
+    '오늘의 헤카',
+    stripKemetHtml(pastGod.heka),
+    stripKemetHtml(presentGod.heka),
+    stripKemetHtml(futureGod.heka),
+    '',
+    '파피루스에 남은 문장',
+    presentGod.papyrus,
+    '',
+    '이 신탁을 바탕으로 지금 내 삶에서 무엇을 받아들이고 무엇을 정리해야 하는지 비춰 주세요. 관계, 일, 돈, 감정의 현실 흐름을 함께 살피되, 이집트 신탁 상담가가 조용히 말하듯 전문적이고 신비롭지만 현실적인 문장으로 답해 주세요. 선택의 방향, 조심할 점, 오늘 바로 옮길 행동을 분명하게 열어 주세요.'
+  ].join('\n');
+}
+
+function findKemetAiPromptPanel(node) {
+  return node && node.closest ? node.closest('[data-kemet-ai-prompt-card]') : null;
+}
+
+function setKemetAiPromptStatus(panel, message, tone) {
+  var status = panel ? panel.querySelector('[data-kemet-ai-prompt-status]') : null;
+  if (!status) return;
+  status.textContent = message;
+  status.setAttribute('data-tone', tone || 'info');
+}
+
+function revealKemetAiPrompt(panel) {
+  if (!panel) return;
+  var output = panel.querySelector('[data-kemet-ai-prompt-output]');
+  var copyBtn = panel.querySelector('[data-kemet-ai-prompt-copy]');
+  var generateBtn = panel.querySelector('[data-kemet-ai-prompt-generate]');
+  panel.dataset.generated = '1';
+  if (output) output.style.display = 'block';
+  if (copyBtn) copyBtn.style.display = 'inline-flex';
+  if (generateBtn) generateBtn.style.display = 'none';
+  setKemetAiPromptStatus(panel, '프롬프트가 열렸습니다. 그대로 복사해 원하는 AI에게 건네면 됩니다.', 'success');
+}
+
+function consumeKemetAiPromptCoin() {
+  return new Promise(function(resolve) {
+    var settled = false;
+    function done(ok) {
+      if (settled) return;
+      settled = true;
+      resolve(!!ok);
+    }
+    if (typeof window._cdCoinGatePerUse !== 'function') {
+      alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
+      done(false);
+      return;
+    }
+    try {
+      var requestId = KEMET_AI_PROMPT_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      var result = window._cdCoinGatePerUse(
+        KEMET_AI_PROMPT_COST,
+        KEMET_AI_PROMPT_REASON,
+        function() { done(true); },
+        function() { done(false); },
+        {
+          featureKey: KEMET_AI_PROMPT_FEATURE_KEY,
+          categoryKey: 'oracle',
+          subFeatureKey: KEMET_AI_PROMPT_FEATURE_KEY,
+          requestId: requestId,
+          amountKrw: KEMET_AI_PROMPT_COST * 100
+        }
+      );
+      if (result && typeof result.then === 'function') {
+        result.then(function(payload) {
+          if (payload && payload.status === 'granted') done(true);
+        }).catch(function() { done(false); });
+      }
+    } catch (_err) {
+      alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      done(false);
+    }
+  });
+}
+
+function generateKemetAiPrompt(button) {
+  var panel = findKemetAiPromptPanel(button);
+  if (!panel) return;
+  if (panel.dataset.generated === '1') {
+    revealKemetAiPrompt(panel);
+    return;
+  }
+  var prevText = button ? button.textContent : '';
+  if (button) {
+    button.disabled = true;
+    button.textContent = '30코인 확인 중...';
+  }
+  setKemetAiPromptStatus(panel, '이 신탁의 흐름을 열기 전 30코인 결제를 확인하고 있습니다.', 'info');
+  consumeKemetAiPromptCoin().then(function(ok) {
+    if (!ok) {
+      setKemetAiPromptStatus(panel, '결제가 완료되지 않아 프롬프트를 열지 않았습니다.', 'warn');
+      return;
+    }
+    revealKemetAiPrompt(panel);
+  }).finally(function() {
+    if (!button) return;
+    button.disabled = false;
+    if (panel.dataset.generated !== '1') button.textContent = prevText || 'AI에게 더 깊이 묻기 · 30코인';
+  });
+}
+
+function copyKemetText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise(function(resolve, reject) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      var ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      ok ? resolve() : reject(new Error('copy failed'));
+    } catch (err) {
+      document.body.removeChild(textarea);
+      reject(err);
+    }
+  });
+}
+
+function copyKemetAiPrompt(button) {
+  var panel = findKemetAiPromptPanel(button);
+  var output = panel ? panel.querySelector('[data-kemet-ai-prompt-output]') : null;
+  var text = output ? output.value : '';
+  if (!text.trim()) {
+    setKemetAiPromptStatus(panel, '복사할 프롬프트가 아직 열리지 않았습니다.', 'warn');
+    return;
+  }
+  copyKemetText(text).then(function() {
+    setKemetAiPromptStatus(panel, '프롬프트가 복사되었습니다.', 'success');
+  }).catch(function() {
+    setKemetAiPromptStatus(panel, '복사에 실패했습니다. 문장을 직접 선택해 복사해 주세요.', 'warn');
+  });
+}
 
 function resetKemetOracle() {
   const resultDiv = document.getElementById('kemetResult');
@@ -576,6 +767,17 @@ function showKemetSpread(userInput, selectedIndices) {
   var catLabel = catKey === 'love' ? '사랑과 관계' : catKey === 'wealth' ? '풍요와 재물' : '성취와 갈등';
   var catSymbol = catKey === 'love' ? '이시스의 축복' : catKey === 'wealth' ? '나일강의 범람' : '세트의 시련';
   var catEmoji = catKey === 'love' ? '💞' : catKey === 'wealth' ? '🌾' : '⚔️';
+  var safeUserInput = escapeKemetHtml(userInput);
+  var aiPromptText = buildKemetAiPrompt({
+    question: userInput,
+    pastGod: pastGod,
+    presentGod: presentGod,
+    futureGod: futureGod,
+    catKey: catKey,
+    catLabel: catLabel,
+    catSymbol: catSymbol
+  });
+  var safeAiPromptText = escapeKemetHtml(aiPromptText);
 
   resultDiv.innerHTML = `
     <style>
@@ -614,6 +816,21 @@ function showKemetSpread(userInput, selectedIndices) {
       .km-papyrus-quote { font-size:1.05rem; color:#ffd700; font-style:italic; font-weight:700; line-height:1.7; text-shadow:0 0 15px rgba(255,215,0,0.3); }
 
       .km-divider-line { height:1px; background:linear-gradient(90deg,transparent,rgba(212,175,55,0.35),transparent); margin:6px 0 18px; }
+      .km-ai-prompt-panel { margin:24px 0 18px; padding:18px; border-radius:12px; border:1px solid rgba(212,175,55,0.28); background:linear-gradient(135deg,rgba(7,11,24,0.82),rgba(55,33,7,0.62)); box-shadow:0 18px 40px rgba(0,0,0,0.28); }
+      .km-ai-prompt-head { display:flex; align-items:flex-start; gap:13px; margin-bottom:14px; }
+      .km-ai-prompt-seal { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; flex:0 0 44px; border-radius:50%; color:#facc15; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.42); font-size:1.45rem; box-shadow:0 0 24px rgba(212,175,55,0.18); }
+      .km-ai-prompt-kicker { margin:0 0 4px; color:rgba(250,204,21,0.66); font-size:.72rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
+      .km-ai-prompt-title { margin:0; color:#fff2c2; font-size:1.08rem; font-weight:900; line-height:1.35; letter-spacing:0; }
+      .km-ai-prompt-lead { margin:7px 0 0; color:rgba(242,226,197,0.82); font-size:.84rem; line-height:1.72; }
+      .km-ai-prompt-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:14px; }
+      .km-ai-prompt-btn { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 15px; border-radius:8px; border:1px solid rgba(250,204,21,0.5); background:linear-gradient(135deg,#facc15,#d97706); color:#241407; font-size:.82rem; font-weight:900; cursor:pointer; box-shadow:0 12px 26px rgba(217,119,6,0.24); }
+      .km-ai-prompt-btn:disabled { cursor:wait; opacity:.68; }
+      .km-ai-prompt-btn--copy { background:rgba(15,23,42,0.82); color:#fef3c7; border-color:rgba(254,243,199,0.34); box-shadow:none; }
+      .km-ai-prompt-output { width:100%; min-height:260px; margin-top:14px; padding:14px; border-radius:8px; border:1px solid rgba(250,204,21,0.24); background:rgba(0,0,0,0.42); color:#f8ecd0; font-family:'Noto Serif KR','Gowun Batang',serif; font-size:.86rem; line-height:1.78; resize:vertical; box-sizing:border-box; }
+      .km-ai-prompt-status { margin:11px 0 0; color:rgba(242,226,197,0.68); font-size:.78rem; line-height:1.55; }
+      .km-ai-prompt-status[data-tone="success"] { color:#bbf7d0; }
+      .km-ai-prompt-status[data-tone="warn"] { color:#fde68a; }
+      @media(max-width:560px){ .km-ai-prompt-panel { padding:15px 13px; } .km-ai-prompt-head { gap:10px; } .km-ai-prompt-seal { width:38px; height:38px; flex-basis:38px; font-size:1.22rem; } .km-ai-prompt-title { font-size:.98rem; } .km-ai-prompt-btn { width:100%; } }
     </style>
 
     <div class="km-oracle-wrap">
@@ -624,7 +841,7 @@ function showKemetSpread(userInput, selectedIndices) {
         <p class="km-prologue-quote">
           "나일강의 상류에서 하류까지, 피라미드의 정점에서 지하 묘실까지—<br>
           <strong>50년을 신들의 언어로 운명을 읽어온 대사제가 당신의 물음,</strong><br>
-          <span class="km-prologue-q">${userInput}</span><br>
+          <span class="km-prologue-q">${safeUserInput}</span><br>
           에 응답하노라. 눈을 감고 나일강의 물결 소리에 귀를 기울이라."
         </p>
       </div>
@@ -682,7 +899,7 @@ function showKemetSpread(userInput, selectedIndices) {
         </div>
         <div class="km-section-body">
           <div style="font-size:.82rem;color:rgba(212,175,55,0.6);margin-bottom:14px;letter-spacing:1px;">
-            "${userInput}" — <strong style="color:#d4af37;">${catEmoji} ${catLabel} (${catSymbol})</strong> 중심으로 해석되었습니다
+            "${safeUserInput}" — <strong style="color:#d4af37;">${catEmoji} ${catLabel} (${catSymbol})</strong> 중심으로 해석되었습니다
           </div>
           <div class="km-cat-grid">
             <div class="km-cat-box">
@@ -735,6 +952,23 @@ function showKemetSpread(userInput, selectedIndices) {
             <div style="margin-top:10px;font-size:.75rem;color:rgba(212,175,55,0.5);letter-spacing:2px;">— ${presentGod.god} · 헤르메스 트리스메기스투스의 신전에서</div>
           </div>
         </div>
+      </div>
+
+      <div class="km-ai-prompt-panel" data-kemet-ai-prompt-card data-marker="kemet-ai-prompt-generator-v20260619">
+        <div class="km-ai-prompt-head">
+          <span class="km-ai-prompt-seal" aria-hidden="true">𓂀</span>
+          <div>
+            <p class="km-ai-prompt-kicker">AI ORACLE PROMPT</p>
+            <h3 class="km-ai-prompt-title">AI에게 건넬 이집트 신탁 질문문</h3>
+            <p class="km-ai-prompt-lead">이 신탁의 상징과 세 장의 흐름을 바탕으로, AI에게 더 깊이 물을 수 있는 문장을 엽니다. 30코인이 사용됩니다.</p>
+          </div>
+        </div>
+        <div class="km-ai-prompt-actions">
+          <button class="km-ai-prompt-btn" type="button" data-action="generateKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-generate data-feature-key="${KEMET_AI_PROMPT_FEATURE_KEY}" data-coin-cost="${KEMET_AI_PROMPT_COST}">AI에게 더 깊이 묻기 · 30코인</button>
+          <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy style="display:none;">프롬프트 복사</button>
+        </div>
+        <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>질문문은 결제 확인 뒤 이 자리에서 바로 열립니다.</p>
+        <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="이집트 신탁 AI 질문 프롬프트" style="display:none;">${safeAiPromptText}</textarea>
       </div>
 
       <div style="width:100%; text-align:center; padding:10px 0 6px;">

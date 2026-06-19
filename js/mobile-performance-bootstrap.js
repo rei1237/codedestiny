@@ -547,7 +547,6 @@ function setupViewportEventOptimizations() {
 function setupLazySectionHydration() {
   const heavyIds = [
     'compatCard',
-    'skillTreeCard',
     'energyCoordCard',
     // Keep health/teto/hormone cards always hydrated to prevent white-gap regressions.
     // lottoCard has runtime-bound button handlers; keep DOM stable to preserve interactions.

@@ -32,10 +32,14 @@ const {
 
 const AUTH = { userId: "64f0a1b2c3d4e5f678901234", role: "user" };
 const ENV = {
-  PORTONE_API_Secret: "sk_test_secret_should_never_leave_server",
-  PORTONE_webhook: "whsec_d2ViaG9vay11bml0LXNlY3JldA==",
-  PORTONE_channel: "channel_test_123",
-  PORTONE_Store: "store_test_123",
+  PORTONE_API_SECRET: "sk_test_secret_should_never_leave_server",
+  PORTONE_WEBHOOK_SECRET: "whsec_d2ViaG9vay11bml0LXNlY3JldA==",
+  PORTONE_CHANNEL_KEY: "channel_test_123",
+  PORTONE_STORE_ID: "store_test_123",
+  MID: "INIpayTest",
+  INIsignkey: "signkey_test_should_never_leave_server",
+  INIAPIKEY: "inicis_api_key_should_never_leave_server",
+  INIAPI_IV: "inicis_api_iv_should_never_leave_server",
   SITE_BASE_URL: "https://code-destiny.test",
 };
 
@@ -50,6 +54,7 @@ const originals = {
   paymentFindByIdAndUpdate: Payment.findByIdAndUpdate,
   profileFindOne: ProfileCard.findOne,
   userFindById: User.findById,
+  userUpdateOne: User.updateOne,
 };
 
 function query(value) {
@@ -116,7 +121,7 @@ function makePortOnePayment(overrides = {}) {
     paymentId: "cd-single-test-1710000000000-abcd1234",
     id: "cd-single-test-1710000000000-abcd1234",
     status: "PAID",
-    storeId: ENV.PORTONE_Store,
+    storeId: ENV.PORTONE_STORE_ID,
     amount: { total: 5000, paid: 5000, currency: "KRW" },
     currency: "KRW",
     paidAt: "2026-06-04T00:00:00.000Z",
@@ -143,6 +148,7 @@ function resetState() {
     email: "tester@example.com",
     phoneNumber: "01012345678",
   });
+  User.updateOne = async () => ({ acknowledged: true, modifiedCount: 1 });
   ContentEntitlement.findOne = (criteria = {}) => {
     if (state.preUnlocked) return query({ _id: "entitlement_existing", ...criteria, unlockedAt: new Date() });
     const key = [
@@ -228,6 +234,7 @@ function restoreMocks() {
   Payment.findByIdAndUpdate = originals.paymentFindByIdAndUpdate;
   ProfileCard.findOne = originals.profileFindOne;
   User.findById = originals.userFindById;
+  User.updateOne = originals.userUpdateOne;
 }
 
 async function jsonResponse(response) {
@@ -255,7 +262,7 @@ async function signedWebhookRequest(body) {
   const rawBody = JSON.stringify(body);
   const webhookId = `msg_${Math.random().toString(36).slice(2)}`;
   const timestamp = "1710000000";
-  const signature = await signStandardWebhookPayload(ENV.PORTONE_webhook, webhookId, timestamp, rawBody);
+  const signature = await signStandardWebhookPayload(ENV.PORTONE_WEBHOOK_SECRET, webhookId, timestamp, rawBody);
   return new Request("https://code-destiny.test/api/payments/webhook", {
     method: "POST",
     headers: {
@@ -272,6 +279,11 @@ async function runServerTests() {
   const missingConfig = portoneMod.getPortOnePublicConfig({});
   assert.equal(missingConfig.configured, false, "env missing should fail safely");
   assert.equal("portoneApiSecret" in missingConfig, false, "public config should not expose API secret key");
+  const fullConfig = portoneMod.getPortOnePublicConfig(ENV);
+  assert.equal(fullConfig.configured, true, "PortOne and Inicis env should configure payments");
+  assert.equal(fullConfig.inicisConfigured, true, "Inicis MID/signkey/API key/IV should be required");
+  assert.equal(JSON.stringify(fullConfig).includes(ENV.INIAPIKEY), false, "public config should not expose Inicis API key");
+  assert.equal(portoneMod.getPortOnePublicConfig({ ...ENV, INIAPIKEY: "" }).configured, false, "missing Inicis API key should block checkout config");
 
   resetState();
   state.preUnlocked = true;
@@ -301,7 +313,8 @@ async function runServerTests() {
   assert.equal(result.status, 201, "single start should create order");
   assert.equal(result.payload.order.totalAmount, 5000, "50 coins should become 5000 KRW");
   assert.equal(state.createdPayments[0].paymentAmount, 5000, "server amount should ignore client amount");
-  assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_Secret), false, "client response should not include API secret");
+  assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
+  assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
   resetState();
   response = await handleSinglePaymentStart(startRequest({
@@ -394,10 +407,11 @@ function runClientStaticTests() {
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
-  assertContains(indexSource, "if (status === 'checkingEntitlement') return { title: '이용권 확인 중'", "checking entitlement UI state");
-  assertContains(indexSource, "status === 'opening' || status === 'loadingProducts' || status === 'generationPreparing' || status === 'readyToPay'", "ready-to-pay UI state");
+  assertContains(indexSource, "if (status === 'checkingEntitlement') {", "checking entitlement UI state");
+  assertContains(indexSource, "if (status === 'readyToPay' || status === 'noEntitlement')", "ready-to-pay UI state");
+  assertContains(indexSource, "status === 'opening' || status === 'loadingProducts' || status === 'generationPreparing'", "pre-payment UI state");
   assertContains(indexSource, "if (status === 'paymentProcessing')", "payment processing UI state");
-  assertContains(indexSource, "if (status === 'savingUnlock') return { title: '잠금 해제 저장 중'", "unlock saving UI state");
+  assertContains(indexSource, "if (status === 'savingUnlock') return { title:", "unlock saving UI state");
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");
   assertContains(paymentsRouteSource, 'redirectUrl.searchParams.set("payment_id", paymentId)', "redirectUrl carries paymentId");
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");

@@ -2493,7 +2493,7 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      setProcessingStage("결제를 처리하고 있어요\n창을 닫지 말아 주세요", "checkout");
+      setProcessingStage("단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 

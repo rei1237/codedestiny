@@ -21,13 +21,13 @@
 - If the user's prompt is too vague, stop and ask a clarifying question before writing code.
 - Ensure every code snippet is copy-paste ready with enough local context for placement.
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
-- All fortune-related writing must read as professional and mystical, and must never sound like developer documentation, technical specs, or implementation notes.
-- This rule applies to every Markdown document, prompt file, generated report, UI copy, JSON text payload, PDF manuscript, and test fixture that contains fortune-related writing.
-- Fortune writing must never introduce itself as a feature, service, section, report, analysis result, or content block.
-- Ban functional/explanatory phrasing in fortune writing: "보여줍니다", "읽습니다", "말합니다", "방향입니다", "설명합니다", "제공합니다", "이 글은", "이 섹션은", "이 기능은", "이 결과는", "분석 결과는".
+- All fortune-related writing must read as professional, mystical, and emotionally natural, and must never sound like developer documentation, technical specs, or implementation notes.
+- This rule applies only to fortune-facing writing in Markdown documents, prompt files, generated reports, UI copy, JSON text payloads, PDF manuscripts, and test fixtures.
+- Fortune writing must not introduce itself as a feature, service, section, report, analysis result, or content block.
+- Phrases such as "비춥니다", "보여 줄 수 있습니다", "말합니다", and similar consultation verbs are allowed when they sound like a human fortune expert speaking naturally. Revise them only when they make the sentence feel functional, mechanical, or product-spec-like.
 - Write as the relevant fortune expert speaking directly to the user: 명리학자, 타로 리더, 점성술사, 숙요점 상담가, 자미두수 해석가, 베다 점성술사, 수비학 해석가, or 꿈 상징 해석가.
-- Replace functional explanation with mystical consultation language such as "드러납니다", "흐릅니다", "가리킵니다", "비춥니다", "기울어 있습니다", "열립니다", "머무릅니다", "강하게 떠오릅니다".
-- Before finishing any fortune-related Markdown or copy change, search the touched files for the banned phrasing above and remove every functional-description sentence.
+- Prefer consultation language such as "드러납니다", "흐릅니다", "가리킵니다", "비춥니다", "기울어 있습니다", "열립니다", "머무릅니다", "강하게 떠오릅니다", but do not force replacements when the original sentence is already natural and professional.
+- Before finishing any fortune-facing copy change, search the touched fortune content for mechanical labels such as "이 기능은", "이 결과는", "분석 결과는", and revise only sentences that read like product or implementation explanation.
 - New features should default to full-screen or header/footer-hidden layouts; do not introduce visible headers or footers unless explicitly requested.
 
 ## 1.25 동시 변경/원복 방지 운영 룰 (Must Follow)

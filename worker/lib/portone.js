@@ -2,10 +2,16 @@ import { getEnv } from "./env.js";
 
 const DEFAULT_PORTONE_BASE_URL = "https://api.portone.io";
 const PORTONE_REQUIRED_ENV_KEYS = Object.freeze([
-  "PORTONE_API_Secret",
-  "PORTONE_webhook",
-  "PORTONE_channel",
-  "PORTONE_Store",
+  "PORTONE_API_SECRET",
+  "PORTONE_WEBHOOK_SECRET",
+  "PORTONE_CHANNEL_KEY",
+  "PORTONE_STORE_ID",
+]);
+const INICIS_REQUIRED_ENV_KEYS = Object.freeze([
+  "MID",
+  "INIsignkey",
+  "INIAPIKEY",
+  "INIAPI_IV",
 ]);
 
 function getPortOneBaseUrl(env) {
@@ -41,39 +47,72 @@ function getExactEnvWithAlias(env, primaryKey, aliases = []) {
 
 function logMissingPortOneEnv(missingKeys) {
   if (!Array.isArray(missingKeys) || missingKeys.length === 0) return;
-  console.error(`[portone-config] Missing required PortOne env: ${missingKeys.join(", ")}`);
+  console.error(`[portone-config] Missing required payment env: ${missingKeys.join(", ")}`);
 }
 
 export function getPortOneConfig(env) {
   const config = {
-    portoneApiSecret: getExactEnvWithAlias(env, "PORTONE_API_Secret", [
-      "PORTONE_API_SECRET",
+    portoneApiSecret: getExactEnvWithAlias(env, "PORTONE_API_SECRET", [
+      "PORTONE_API_Secret",
     ]),
-    portoneWebhookSecret: getExactEnvWithAlias(env, "PORTONE_webhook", [
+    portoneWebhookSecret: getExactEnvWithAlias(env, "PORTONE_WEBHOOK_SECRET", [
+      "PORTONE_webhook",
       "PORTONE_WEBHOOK",
-      "PORTONE_WEBHOOK_SECRET",
       "PORTONE_WEBHOOK_SECRET_KEY",
+      "PORTONE_WEBHOOK_TOKEN",
+      "PORTONE_webhook_Secret",
     ]),
-    portoneChannelKey: getExactEnvWithAlias(env, "PORTONE_channel", [
+    portoneChannelKey: getExactEnvWithAlias(env, "PORTONE_CHANNEL_KEY", [
+      "PORTONE_channel",
       "PORTONE_CHANNEL",
-      "PORTONE_CHANNEL_KEY",
     ]),
-    portoneStoreId: getExactEnvWithAlias(env, "PORTONE_Store", [
+    portoneStoreId: getExactEnvWithAlias(env, "PORTONE_STORE_ID", [
+      "PORTONE_Store",
       "PORTONE_STORE",
-      "PORTONE_STORE_ID",
+    ]),
+    inicisMid: getExactEnvWithAlias(env, "MID", [
+      "INICISMID",
+      "INIstoreId",
+      "INI_STORE_ID",
+      "INICIS_MID",
+      "INICIS_STORE_ID",
+    ]),
+    inicisSignKey: getExactEnvWithAlias(env, "INIsignkey", [
+      "INISIGNKEY",
+      "INI_SIGNKEY",
+      "INICIS_SIGNKEY",
+      "INICIS_WEB_SIGNKEY",
+    ]),
+    inicisApiKey: getExactEnvWithAlias(env, "INIAPIKEY", [
+      "INI_API_KEY",
+      "INICIS_API_KEY",
+    ]),
+    inicisApiIv: getExactEnvWithAlias(env, "INIAPI_IV", [
+      "INI_API_IV",
+      "INICIS_API_IV",
     ]),
   };
-  const missing = PORTONE_REQUIRED_ENV_KEYS.filter((key) => {
-    if (key === "PORTONE_API_Secret") return !config.portoneApiSecret;
-    if (key === "PORTONE_webhook") return !config.portoneWebhookSecret;
-    if (key === "PORTONE_channel") return !config.portoneChannelKey;
-    if (key === "PORTONE_Store") return !config.portoneStoreId;
+  const missingPortOne = PORTONE_REQUIRED_ENV_KEYS.filter((key) => {
+    if (key === "PORTONE_API_SECRET") return !config.portoneApiSecret;
+    if (key === "PORTONE_WEBHOOK_SECRET") return !config.portoneWebhookSecret;
+    if (key === "PORTONE_CHANNEL_KEY") return !config.portoneChannelKey;
+    if (key === "PORTONE_STORE_ID") return !config.portoneStoreId;
     return false;
   });
+  const missingInicis = INICIS_REQUIRED_ENV_KEYS.filter((key) => {
+    if (key === "MID") return !config.inicisMid;
+    if (key === "INIsignkey") return !config.inicisSignKey;
+    if (key === "INIAPIKEY") return !config.inicisApiKey;
+    if (key === "INIAPI_IV") return !config.inicisApiIv;
+    return false;
+  });
+  const missing = missingPortOne.concat(missingInicis);
   logMissingPortOneEnv(missing);
   return {
     ...config,
     missing,
+    missingPortOne,
+    missingInicis,
     configured: missing.length === 0,
   };
 }
@@ -97,7 +136,7 @@ export function getPortOneWebhookUrl(env) {
 function getPortOneHeaders(env) {
   const apiSecret = getPortOneConfig(env).portoneApiSecret;
   if (!apiSecret) {
-    throw new Error("PORTONE_API_Secret is required.");
+    throw new Error("PORTONE_API_SECRET is required.");
   }
   return {
     "Content-Type": "application/json",
@@ -178,7 +217,8 @@ export function getPortOnePublicConfig(env) {
   const config = getPortOneConfig(env);
   const storeId = config.portoneStoreId;
   const channelKey = config.portoneChannelKey;
-  const serverVerificationConfigured = Boolean(config.portoneApiSecret);
+  const inicisConfigured = Boolean(config.inicisMid && config.inicisSignKey && config.inicisApiKey && config.inicisApiIv);
+  const serverVerificationConfigured = Boolean(config.portoneApiSecret && inicisConfigured);
   return {
     provider: "portone-v2",
     pg: "kg-inicis",
@@ -187,8 +227,14 @@ export function getPortOnePublicConfig(env) {
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
     noticeUrl: getPortOneWebhookUrl(env),
-    configured: Boolean(storeId && channelKey),
+    configured: Boolean(storeId && channelKey && serverVerificationConfigured),
     serverVerificationConfigured,
+    inicisConfigured,
+    inicisMidConfigured: Boolean(config.inicisMid),
+    inicisSignKeyConfigured: Boolean(config.inicisSignKey),
+    inicisApiKeyConfigured: Boolean(config.inicisApiKey),
+    inicisApiIvConfigured: Boolean(config.inicisApiIv),
+    missing: config.missing,
   };
 }
 

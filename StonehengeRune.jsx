@@ -109,6 +109,9 @@ const RUNE_FALLBACK_FEATURE_BY_SPREAD = Object.freeze({
   12: "stonehenge-runes-yearly",
 });
 
+const RUNE_AI_PROMPT_SUB_FEATURE = "ai-prompt";
+const RUNE_AI_PROMPT_FEATURE_KEY = "stonehenge-runes-ai-prompt";
+
 const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
 const RUNE_PREPAID_MARKER_TTL_MS = 10 * 60 * 1000;
 
@@ -127,6 +130,27 @@ function consumeRunePrepaidMarker() {
     } catch (_e2) {}
     return false;
   }
+}
+
+function syncRuneCoinBalanceFromGate(coinGateResult) {
+  const remainingPoints = Number(
+    coinGateResult.data?.balance
+      ?? coinGateResult.data?.user?.points
+      ?? NaN,
+  );
+
+  try {
+    if (Number.isFinite(remainingPoints)) {
+      localStorage.setItem("fortune_user_points", String(remainingPoints));
+      const authRaw = localStorage.getItem("fortune_auth_user") || "";
+      const authUser = authRaw ? JSON.parse(authRaw) : {};
+      authUser.points = remainingPoints;
+      localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
+      if (typeof window.__cdSetGoldenBalance === "function") {
+        window.__cdSetGoldenBalance(remainingPoints);
+      }
+    }
+  } catch {}
 }
 
 async function consumeRunePerUseCoin(spreadCount) {
@@ -191,25 +215,70 @@ async function consumeRunePerUseCoin(spreadCount) {
     return false;
   }
 
-  const remainingPoints = Number(
-    coinGateResult.data?.balance
-      ?? coinGateResult.data?.user?.points
-      ?? NaN,
-  );
+  syncRuneCoinBalanceFromGate(coinGateResult);
 
+  return true;
+}
+
+async function consumeRuneAiPromptCoin(payloadHash) {
+  if (typeof window === "undefined") return false;
+  if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
+
+  let requiredCoins = 30;
   try {
-    if (Number.isFinite(remainingPoints)) {
-      localStorage.setItem("fortune_user_points", String(remainingPoints));
-      const authRaw = localStorage.getItem("fortune_auth_user") || "";
-      const authUser = authRaw ? JSON.parse(authRaw) : {};
-      authUser.points = remainingPoints;
-      localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
-      if (typeof window.__cdSetGoldenBalance === "function") {
-        window.__cdSetGoldenBalance(remainingPoints);
-      }
+    const pricingResult = await fetchBillingFeaturePricing({
+      categoryKey: "stonehenge-runes",
+      subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
+      featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
+    });
+    if (pricingResult.ok && pricingResult.data?.pricing) {
+      requiredCoins = Number(pricingResult.data.pricing.cost || requiredCoins);
     }
-  } catch (_e2) {}
+  } catch {}
 
+  let token = "";
+  try {
+    token = String(localStorage.getItem("fortune_auth_token") || "");
+  } catch {}
+
+  if (!token) {
+    if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+      window.location.href = "/login?next=%2Foracle%2Frune";
+    }
+    return false;
+  }
+
+  const coinGateResult = await runBillingCoinGate({
+    categoryKey: "stonehenge-runes",
+    subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
+    featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
+    requestId: `rune-ai-prompt:${payloadHash}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+    payloadHash,
+    forceDeduct: true,
+  });
+
+  if (!coinGateResult.ok) {
+    const code = String(coinGateResult.error?.code || "").toUpperCase();
+    if (code === "AUTH_REQUIRED") {
+      if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+        window.location.href = "/login?next=%2Foracle%2Frune";
+      }
+      return false;
+    }
+    if (code === "INSUFFICIENT_COINS") {
+      const costMessage = requiredCoins > 0 ? ` (필요 코인: ${requiredCoins})` : "";
+      window.alert(`코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.${costMessage}`);
+      return false;
+    }
+    if (code === "PRICE_NOT_FOUND") {
+      window.alert("AI 질문문 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
+    }
+    window.alert(coinGateResult.error?.message || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    return false;
+  }
+
+  syncRuneCoinBalanceFromGate(coinGateResult);
   return true;
 }
 
@@ -618,6 +687,63 @@ function getQuarterTone(score) {
   return "리스크 관리";
 }
 
+function compactRunePromptText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function getRuneDirectionLabel(rune) {
+  return rune.isReversed && !rune.isSymmetric ? "역방향" : "정방향";
+}
+
+function createRunePromptPayloadHash(value) {
+  const text = String(value || "");
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+  }
+  return `${text.length}-${Math.abs(hash).toString(36)}`;
+}
+
+function buildRuneAiQuestionPrompt({ drawnRunes, spread, spreadInsight }) {
+  const spreadOption = SPREAD_OPTIONS.find((option) => option.count === spread);
+  const spreadName = spreadOption?.name || `${drawnRunes.length}-룬 배열`;
+  const labels = SPREAD_LABELS[drawnRunes.length] || [];
+  const runeLines = drawnRunes.map((rune, idx) => {
+    const guide = getRuneGuide(rune.id);
+    const isReversed = rune.isReversed && !rune.isSymmetric;
+    const label = labels[idx] || `${idx + 1}번째 룬`;
+    const direction = getRuneDirectionLabel(rune);
+    const core = isReversed ? guide.coreReversed : guide.coreUpright;
+    const caution = isReversed ? guide.cautionReversed : guide.cautionUpright;
+    return [
+      `${idx + 1}. ${label}: ${rune.name} ${rune.id === "wyrd" ? "○" : rune.symbol} - ${direction}`,
+      `   핵심 축: ${compactRunePromptText(guide.axis)}`,
+      `   기본 의미: ${compactRunePromptText(getMeaningText(rune))}`,
+      `   중심 흐름: ${compactRunePromptText(core)}`,
+      `   주의 신호: ${compactRunePromptText(caution)}`,
+    ].join("\n");
+  });
+  const flowLines = Array.isArray(spreadInsight?.points)
+    ? spreadInsight.points.map((point) => `- ${compactRunePromptText(point)}`)
+    : [];
+
+  return [
+    "나는 스톤헨지 룬점을 보았고, 지금 펼쳐진 룬들이 내 상황을 이렇게 비춥니다.",
+    "",
+    "질문: 지금 이 흐름에서 내가 알아차려야 할 핵심 메시지와 다음 선택은 무엇인가요?",
+    "",
+    `배열: ${spreadName}`,
+    "",
+    "나온 룬:",
+    runeLines.join("\n\n"),
+    "",
+    "전체 흐름:",
+    flowLines.join("\n"),
+    "",
+    "위 내용을 바탕으로 룬 리더처럼 차분하고 신비롭게 해석해 주세요. 단정적으로 예언하지 말고, 상징이 드러내는 방향과 내가 조심해야 할 점, 지금 붙잡아야 할 행동을 함께 읽어 주세요.",
+  ].join("\n");
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function StonehengeRune() {
   const { drawnRunes, isDrawing, phase, drawRunes, reset } = useRuneDraw();
@@ -625,6 +751,10 @@ export default function StonehengeRune() {
   const [selectedRune, setSelectedRune] = useState(null);
   const [visibleCards, setVisibleCards] = useState([]);
   const [isPaying, setIsPaying] = useState(false);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [copyState, setCopyState] = useState("");
 
   useEffect(() => {
     if (phase === "revealed" && drawnRunes.length > 0) {
@@ -642,6 +772,9 @@ export default function StonehengeRune() {
   const handleSpreadSelect = (n) => {
     setSpread(n);
     setSelectedRune(null);
+    setIsPromptModalOpen(false);
+    setAiPrompt("");
+    setCopyState("");
     reset();
   };
 
@@ -652,7 +785,18 @@ export default function StonehengeRune() {
     setIsPaying(false);
     if (!paid) return;
     setSelectedRune(null);
+    setIsPromptModalOpen(false);
+    setAiPrompt("");
+    setCopyState("");
     drawRunes(spread);
+  };
+
+  const handleResetRunes = () => {
+    setSelectedRune(null);
+    setIsPromptModalOpen(false);
+    setAiPrompt("");
+    setCopyState("");
+    reset();
   };
 
   const openRuneAt = useCallback((index) => {
@@ -769,6 +913,35 @@ export default function StonehengeRune() {
     return null;
   };
 
+  const spreadInsight = getSpreadInsight();
+
+  const handleGenerateAiPrompt = async () => {
+    if (!drawnRunes.length || isGeneratingPrompt) return;
+    const promptText = buildRuneAiQuestionPrompt({ drawnRunes, spread, spreadInsight });
+    const payloadHash = createRunePromptPayloadHash(promptText);
+
+    setIsGeneratingPrompt(true);
+    const paid = await consumeRuneAiPromptCoin(payloadHash);
+    setIsGeneratingPrompt(false);
+    if (!paid) return;
+
+    setAiPrompt(promptText);
+    setCopyState("");
+    setIsPromptModalOpen(false);
+  };
+
+  const handleCopyAiPrompt = async () => {
+    if (!aiPrompt) return;
+    try {
+      await navigator.clipboard.writeText(aiPrompt);
+      setCopyState("copied");
+      setTimeout(() => setCopyState(""), 1800);
+    } catch {
+      setCopyState("failed");
+      window.alert("복사할 수 없습니다. 문장을 직접 선택해 복사해 주세요.");
+    }
+  };
+
   const handleShareKakao = async () => {
     const shareTitle = "스톤헨지 룬 오라클";
     const shareText = "룬의 속삭임으로 오늘의 흐름을 확인해보세요.";
@@ -815,7 +988,6 @@ export default function StonehengeRune() {
     ? SPREAD_LABELS[drawnRunes.length][selectedRune.index]
     : null;
   const selectedReading = selectedRune ? getDetailedReading(selectedRune, selectedPositionLabel) : null;
-  const spreadInsight = getSpreadInsight();
 
   return (
     <>
@@ -1622,6 +1794,162 @@ export default function StonehengeRune() {
           font-weight: 800;
         }
 
+        .sr-ai-prompt-wrap {
+          background: linear-gradient(140deg, rgba(8, 13, 32, 0.94), rgba(29, 20, 58, 0.78));
+          border: 1px solid rgba(167, 139, 250, 0.32);
+          border-radius: 16px;
+          padding: 22px 20px;
+          margin-bottom: 22px;
+          box-shadow: 0 18px 36px rgba(2, 6, 23, 0.28);
+        }
+        .sr-ai-prompt-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 10px;
+        }
+        .sr-ai-prompt-kicker,
+        .sr-ai-modal-kicker {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          color: #a5b4fc;
+          text-transform: uppercase;
+        }
+        .sr-ai-prompt-head h3,
+        .sr-ai-modal h3 {
+          font-size: 18px;
+          color: #f8fafc;
+          margin-top: 4px;
+        }
+        .sr-ai-prompt-price {
+          flex: 0 0 auto;
+          border: 1px solid rgba(125, 211, 252, 0.38);
+          border-radius: 999px;
+          padding: 6px 10px;
+          color: #bae6fd;
+          font-size: 12px;
+          font-weight: 800;
+          background: rgba(14, 165, 233, 0.08);
+        }
+        .sr-ai-prompt-desc,
+        .sr-ai-modal p {
+          font-size: 14px;
+          line-height: 1.65;
+          color: #cbd5e1;
+          margin-bottom: 14px;
+        }
+        .sr-ai-prompt-button,
+        .sr-ai-copy-btn,
+        .sr-ai-modal-btn {
+          width: 100%;
+          min-height: 44px;
+          border-radius: 10px;
+          border: 1px solid rgba(167, 139, 250, 0.48);
+          background: linear-gradient(135deg, rgba(67, 56, 202, 0.72), rgba(124, 58, 237, 0.66));
+          color: #f8fafc;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.25s;
+        }
+        .sr-ai-prompt-button:hover,
+        .sr-ai-copy-btn:hover,
+        .sr-ai-modal-btn:hover {
+          border-color: rgba(191, 219, 254, 0.72);
+          box-shadow: 0 0 18px rgba(129, 140, 248, 0.32);
+          transform: translateY(-1px);
+        }
+        .sr-ai-prompt-button:disabled,
+        .sr-ai-modal-btn:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+        .sr-ai-prompt-result {
+          display: grid;
+          gap: 12px;
+        }
+        .sr-ai-prompt-note {
+          font-size: 13px;
+          line-height: 1.6;
+          color: #dbeafe;
+        }
+        .sr-ai-prompt-textarea {
+          width: 100%;
+          min-height: 260px;
+          resize: vertical;
+          border-radius: 12px;
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          background: rgba(2, 6, 23, 0.52);
+          color: #e5e7eb;
+          padding: 14px;
+          font-size: 13px;
+          line-height: 1.7;
+          font-family: var(--font-body);
+        }
+        .sr-ai-copy-btn.done {
+          background: rgba(14, 116, 144, 0.62);
+          border-color: rgba(125, 211, 252, 0.52);
+        }
+        .sr-ai-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 60;
+          display: grid;
+          place-items: center;
+          padding: 20px;
+          background: rgba(2, 6, 23, 0.74);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+        }
+        .sr-ai-modal {
+          width: min(460px, 100%);
+          position: relative;
+          border-radius: 16px;
+          border: 1px solid rgba(167, 139, 250, 0.38);
+          background: linear-gradient(150deg, rgba(15, 23, 42, 0.98), rgba(30, 27, 75, 0.96));
+          padding: 24px;
+          box-shadow: 0 26px 70px rgba(2, 6, 23, 0.62);
+        }
+        .sr-ai-modal-close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.42);
+          background: rgba(15, 23, 42, 0.82);
+          color: #e2e8f0;
+          font-size: 16px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .sr-ai-modal-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .sr-ai-modal-btn.ghost {
+          background: rgba(15, 23, 42, 0.68);
+          color: #c7d2fe;
+        }
+        @media (max-width: 520px) {
+          .sr-ai-prompt-head,
+          .sr-ai-modal-actions {
+            grid-template-columns: 1fr;
+          }
+          .sr-ai-prompt-head {
+            display: grid;
+          }
+          .sr-ai-prompt-price {
+            width: fit-content;
+          }
+        }
+
         /* ── CTA ── */
         .sr-cta-wrap {
           background: rgba(15,23,42,0.7);
@@ -1930,6 +2258,65 @@ export default function StonehengeRune() {
                 </section>
               )}
 
+              <section className="sr-ai-prompt-wrap">
+                <div className="sr-ai-prompt-head">
+                  <div>
+                    <p className="sr-ai-prompt-kicker">AI QUESTION RITUAL</p>
+                    <h3>AI에게 더 깊이 물어보기</h3>
+                  </div>
+                  <span className="sr-ai-prompt-price">30코인</span>
+                </div>
+                <p className="sr-ai-prompt-desc">
+                  이 룬의 흐름을 AI에게 더 깊이 물을 수 있는 질문문으로 정리합니다.
+                </p>
+
+                {aiPrompt ? (
+                  <div className="sr-ai-prompt-result">
+                    <p className="sr-ai-prompt-note">
+                      이 문장을 복사해 AI에게 건네면, 지금 펼쳐진 룬의 흐름을 더 깊이 들여다볼 수 있습니다.
+                    </p>
+                    <textarea className="sr-ai-prompt-textarea" value={aiPrompt} readOnly />
+                    <button
+                      type="button"
+                      className={`sr-ai-copy-btn ${copyState === "copied" ? "done" : ""}`}
+                      onClick={handleCopyAiPrompt}
+                    >
+                      {copyState === "copied" ? "복사 완료" : "복사하기"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="sr-ai-prompt-button"
+                    onClick={() => setIsPromptModalOpen(true)}
+                    disabled={isGeneratingPrompt}
+                  >
+                    {isGeneratingPrompt ? "질문문을 여는 중..." : "AI 질문문 생성하기"}
+                  </button>
+                )}
+              </section>
+
+              {isPromptModalOpen && (
+                <div className="sr-ai-modal-overlay" onClick={() => setIsPromptModalOpen(false)} role="presentation">
+                  <div className="sr-ai-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="AI 질문문 생성 확인">
+                    <button type="button" className="sr-ai-modal-close" onClick={() => setIsPromptModalOpen(false)} aria-label="닫기">✕</button>
+                    <p className="sr-ai-modal-kicker">30코인</p>
+                    <h3>AI에게 건넬 문장을 엽니다</h3>
+                    <p>
+                      이 룬의 흐름을 AI에게 더 깊이 물을 수 있는 질문문으로 정리합니다. 30코인이 사용됩니다.
+                    </p>
+                    <div className="sr-ai-modal-actions">
+                      <button type="button" className="sr-ai-modal-btn ghost" onClick={() => setIsPromptModalOpen(false)}>
+                        닫기
+                      </button>
+                      <button type="button" className="sr-ai-modal-btn" onClick={handleGenerateAiPrompt} disabled={isGeneratingPrompt}>
+                        {isGeneratingPrompt ? "정리하는 중..." : "30코인 사용하기"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!selectedRune && (
                 <p className="sr-hint-text" style={{ marginTop: 8 }}>
                   룬 카드를 클릭하면 상세 해석이 즉시 팝업으로 열립니다
@@ -1946,7 +2333,7 @@ export default function StonehengeRune() {
                 </div>
               </div>
 
-              <button type="button" className="sr-reset-btn" onClick={reset}>
+              <button type="button" className="sr-reset-btn" onClick={handleResetRunes}>
                 ↺ &nbsp;다시 뽑기
               </button>
             </>

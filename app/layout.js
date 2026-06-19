@@ -8,6 +8,7 @@ import DeferredAdsense from "./components/DeferredAdsense";
 import LegacyAuthTokenCleanup from "./components/LegacyAuthTokenCleanup";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
+import DevPaymentTester from "./components/DevPaymentTester";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
 import {
@@ -139,6 +140,7 @@ export default function RootLayout({ children }) {
               <AppVersionGuard />
               <ToastProvider />
               <AppChrome>{children}</AppChrome>
+              <DevPaymentTester />
             </NavigationProvider>
           </Suspense>
         </PaymentProcessingProvider>

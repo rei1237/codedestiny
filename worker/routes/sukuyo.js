@@ -2,6 +2,7 @@ import { Solar } from "lunar-javascript";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
 import {
@@ -1141,6 +1142,12 @@ function withSukuyoArchiveFormat(url, format = "pdf") {
   return `${value}${value.includes("?") ? "&" : "?"}format=${encodeURIComponent(targetFormat)}`;
 }
 
+function isSoftSukuyoCompletionIssue(issue = "") {
+  const value = clean(issue).replace(/^(manuscript|quality)\./i, "");
+  return /^section\.chapter_tone\.\d+$/i.test(value)
+    || /^chapter\.\d+\.chapter_tone$/i.test(value);
+}
+
 function buildSukuyoPdfFilename(reportId = "") {
   const id = clean(reportId).replace(/[^\w.-]+/g, "-") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
   return `sukyo-premium-${id}.pdf`;
@@ -1190,6 +1197,45 @@ async function resolveSukuyoSignedTokenAccess(env, userId, premiumAccessToken) {
     chargedCoins,
     signedTokenFallback: true,
   };
+}
+
+async function resolveSukuyoPaidFeatureAccess(env, userId, featureKey, reportId, sessionId) {
+  const keys = [featureKey, SUKYO_PDF_FEATURE_KEY, SUKYO_PDF_ALIAS_FEATURE_KEY]
+    .map((key) => clean(key))
+    .filter(Boolean)
+    .filter((key, index, list) => list.indexOf(key) === index);
+
+  for (const key of keys) {
+    try {
+      const decision = await canAccessPaidFeature(userId, key, { env });
+      if (!decision?.allowed) continue;
+      const accessSource = clean(decision.accessSource);
+      const reason = clean(decision.reason);
+      return {
+        ok: true,
+        accessType: accessSource || "paid_feature_access",
+        accessMethod: reason || "PAID_FEATURE_ACCESS",
+        paymentMode: reason === "MONTHLY_SUBSCRIPTION"
+          ? "monthly_subscription"
+          : (accessSource === "paidFeatures" ? "single_purchase" : "membership_pass"),
+        reportType: "sookyoPremium",
+        featureKey: key,
+        reportId,
+        sessionId,
+        freeBySubscription: reason === "MONTHLY_SUBSCRIPTION",
+        paidFeatureAccess: decision,
+      };
+    } catch (error) {
+      console.warn("[SukuyoPremiumPDF][PaidFeatureAccessCheckFailed]", {
+        userId,
+        featureKey: key,
+        code: clean(error?.code || ""),
+        message: clean(error?.message || error).slice(0, 160),
+      });
+    }
+  }
+
+  return null;
 }
 
 function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
@@ -1521,7 +1567,10 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
 
   try {
     const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, auth.userId, premiumAccessToken);
-    let access = signedTokenAccess;
+    const paidFeatureAccess = signedTokenAccess
+      ? null
+      : await resolveSukuyoPaidFeatureAccess(pdfDbEnv, auth.userId, featureKey, reportId, sessionId);
+    let access = signedTokenAccess || paidFeatureAccess;
     if (!access) {
       try {
         access = await requirePremiumReportAccess(
@@ -1719,11 +1768,26 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       requireDownloadUrl: true,
     });
     if (!pdfCompletionValidation.ok) {
+      const softIssues = (Array.isArray(pdfCompletionValidation.issues) ? pdfCompletionValidation.issues : [])
+        .filter((issue) => isSoftSukuyoCompletionIssue(issue));
+      const blockingIssues = (Array.isArray(pdfCompletionValidation.issues) ? pdfCompletionValidation.issues : [])
+        .filter((issue) => !isSoftSukuyoCompletionIssue(issue));
+      if (blockingIssues.length === 0 && softIssues.length <= 4) {
+        console.warn("[SukuyoPremiumPDF][RouteCompletionSoftQualityIssues]", {
+          reportId,
+          sessionId,
+          issues: softIssues,
+        });
+        pdfCompletionValidation.softIssues = softIssues;
+        pdfCompletionValidation.issues = [];
+        pdfCompletionValidation.ok = true;
+      } else {
       throw Object.assign(new Error("숙요점 PDF 완료 검증에 실패했습니다."), {
         status: 500,
         code: "SUKUYO_REPORT_COMPLETION_INVALID",
         issues: pdfCompletionValidation.issues,
       });
+      }
     }
     pdfReady.pdfCompletionValidation = pdfCompletionValidation;
     const localPdfResult = await generateSukuyoLocalPdf({

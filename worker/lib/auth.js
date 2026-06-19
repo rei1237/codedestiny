@@ -314,8 +314,25 @@ function extractTokenUserId(payload) {
   return userId;
 }
 
+function isProductionRuntime(env) {
+  return String(getEnv(env, "NODE_ENV") || "").trim().toLowerCase() === "production";
+}
+
+async function getDevAuthUserFromEnv(env) {
+  const userId = String(getEnv(env, "DEV_AUTH_USER_ID") || "").trim();
+  if (isProductionRuntime(env)) {
+    if (userId) throw new Error("DEV_AUTH_USER_ID must not be used in production");
+    return null;
+  }
+  if (!mongoose.Types.ObjectId.isValid(userId)) return null;
+
+  await connectDb(env);
+  const user = await User.findById(userId).lean();
+  return user?._id ? normalizeAuthResultFromUser(user) : null;
+}
+
 export async function requireAuth(request, env) {
-  return requireUserFromRequest(request, env);
+  return getServerUser(request, env);
 }
 
 export async function getOptionalUserFromRequest(request, env) {
@@ -340,8 +357,12 @@ export async function getOptionalUserFromRequest(request, env) {
       if (refreshAuth) return refreshAuth;
     }
 
+    const devAuth = await getDevAuthUserFromEnv(env);
+    if (devAuth) return devAuth;
+
     return null;
   } catch (error) {
+    if (error?.message === "DEV_AUTH_USER_ID must not be used in production") throw error;
     logAuthError("get-optional-user", error, {
       hasAuthorizationHeader: Boolean(request?.headers?.get("Authorization")),
       hasCookieHeader: Boolean(request?.headers?.get("Cookie")),
@@ -354,6 +375,14 @@ export async function requireUserFromRequest(request, env) {
   const auth = await getOptionalUserFromRequest(request, env);
   if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
+}
+
+export async function getServerUser(request, env) {
+  return requireUserFromRequest(request, env);
+}
+
+export async function getCurrentUser(request, env) {
+  return getOptionalUserFromRequest(request, env);
 }
 
 export async function signAuthToken(user, env) {

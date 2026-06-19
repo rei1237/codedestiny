@@ -645,11 +645,8 @@ export function setUser(user: AuthUser | null) {
 }
 
 export function primeAuthFromCache() {
-  if (typeof window === "undefined") return;
-  const cached = readSanitizedAuthUser() as AuthUser | null;
-  if (cached) {
-    applyResolvedUser(cached);
-  }
+  if (typeof window === "undefined") return null;
+  return readSanitizedAuthUser() as AuthUser | null;
 }
 
 export function subscribeAuth(listener: () => void) {

@@ -1102,6 +1102,21 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   ).lean();
 }
 
+async function recordUserPaidFeature(userId, featureKey, options = {}) {
+  const key = String(featureKey || "").trim();
+  if (!userId || !key) return null;
+  return User.updateOne(
+    { _id: userId },
+    {
+      $addToSet: {
+        paidFeatures: key,
+        unlockedFeatures: key,
+      },
+    },
+    options?.session ? { session: options.session } : undefined,
+  );
+}
+
 function buildSafePortOneLookupLog(portOnePayment = {}) {
   const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
   const amountNode = raw?.amount && typeof raw.amount === "object" ? raw.amount : {};
@@ -1165,6 +1180,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
     let entitlement;
     try {
       entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
+      await recordUserPaidFeature(order.userId, order.featureKey);
     } catch (error) {
       await Payment.findByIdAndUpdate(order._id, {
         $set: {
@@ -1417,6 +1433,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
   if (!entitlement) {
     try {
       entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
+      await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
     } catch (error) {
       await Payment.findByIdAndUpdate(finalPayment._id, {
         $set: {
@@ -1429,6 +1446,8 @@ async function handleSinglePaymentComplete(request, env, auth) {
       }).catch(() => {});
       throw error;
     }
+  } else {
+    await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
   }
   const unlockedPayment = await Payment.findByIdAndUpdate(finalPayment._id, {
     $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
@@ -1675,7 +1694,11 @@ async function handleSinglePaymentStart(request, env, auth) {
       missing: {
         storeId: !config.storeId,
         channelKey: !config.channelKey,
-        serverVerification: !config.configured,
+        serverVerification: !config.serverVerificationConfigured,
+        inicisMid: !config.inicisMidConfigured,
+        inicisSignKey: !config.inicisSignKeyConfigured,
+        inicisApiKey: !config.inicisApiKeyConfigured,
+        inicisApiIv: !config.inicisApiIvConfigured,
       },
     }, { status: 503 });
   }
@@ -2561,6 +2584,7 @@ async function settlePaymentByImpUid({
         });
         profileId = entitlementResult.profileId;
         unlockEntitlement = entitlementResult.unlockEntitlement;
+        await recordUserPaidFeature(ownerUserId, finalizedPayment.featureKey);
       } catch (error) {
         await Payment.findByIdAndUpdate(finalizedPayment._id, {
           $set: {
@@ -2719,6 +2743,7 @@ async function settlePaymentByImpUid({
           });
           const profileId = entitlementResult.profileId;
           const unlockEntitlement = entitlementResult.unlockEntitlement;
+          await recordUserPaidFeature(ownerUserId, finalizedPayment.featureKey, { session });
           txResult = {
             ok: true,
             idempotent: false,
@@ -4951,7 +4976,8 @@ function handlePaymentConfig(env) {
     console.warn("[payments/config] PORTONE config is not ready", {
       storeId: Boolean(config.storeId),
       channelKey: Boolean(config.channelKey),
-      serverVerification: Boolean(config.configured),
+      serverVerification: Boolean(config.serverVerificationConfigured),
+      inicis: Boolean(config.inicisConfigured),
     });
     return json({
       message: "PortOne V2 KG Inicis public payment config is missing.",
@@ -4959,7 +4985,11 @@ function handlePaymentConfig(env) {
       missing: {
         storeId: !config.storeId,
         channelKey: !config.channelKey,
-        serverVerification: !config.configured,
+        serverVerification: !config.serverVerificationConfigured,
+        inicisMid: !config.inicisMidConfigured,
+        inicisSignKey: !config.inicisSignKeyConfigured,
+        inicisApiKey: !config.inicisApiKeyConfigured,
+        inicisApiIv: !config.inicisApiIvConfigured,
       },
     }, { status: 503 });
   }
@@ -4968,6 +4998,11 @@ function handlePaymentConfig(env) {
     ok: true,
     configured: config.configured,
     serverVerificationConfigured: Boolean(config.serverVerificationConfigured),
+    inicisConfigured: Boolean(config.inicisConfigured),
+    inicisMidConfigured: Boolean(config.inicisMidConfigured),
+    inicisSignKeyConfigured: Boolean(config.inicisSignKeyConfigured),
+    inicisApiKeyConfigured: Boolean(config.inicisApiKeyConfigured),
+    inicisApiIvConfigured: Boolean(config.inicisApiIvConfigured),
     provider: config.provider,
     pg: config.pg,
     storeId: config.storeId,
