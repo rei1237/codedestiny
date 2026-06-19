@@ -11,9 +11,20 @@
   var DOWNLOAD_API = '/api/ziwei-book/download';
   var PAID_SESSION_STORAGE_KEY = 'premium:ziwei:paid-session:v1';
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
+  var PREVIOUS_PAYMENT_GATE_WINDOW_MS = 12000;
   var RESULT = null;
   var GENERATING = false;
   var DOWNLOADING = false;
+  var isPaymentChecking = false;
+  var isPaymentOpening = false;
+  var paymentGateOpenedAt = 0;
+  var pendingPaymentPromise = null;
+  var pendingPaymentBirthHash = '';
+  var paymentRequestId = '';
+  var activePaymentBirthHash = '';
+  var activeSessionId = '';
+  var activeReportId = '';
+  var activePaymentRequestId = '';
   var LAST_SEED = null;
   var RESULT_POLL_MAX_ATTEMPTS = 150;
   var RESULT_POLL_INTERVAL_MS = 4000;
@@ -361,6 +372,43 @@
     return 'ziwei-premium:' + text(birthHash || 'unknown') + ':' + Date.now().toString(36);
   }
 
+  function buildReportId(sessionId){
+    var safe = text(sessionId || buildSessionId('unknown')).replace(/[^a-zA-Z0-9_-]+/g, '-');
+    return 'ziwei-premium-' + safe;
+  }
+
+  function resetZiweiGenerationScope(){
+    activePaymentBirthHash = '';
+    activeSessionId = '';
+    activeReportId = '';
+    activePaymentRequestId = '';
+  }
+
+  function setZiweiGenerationScope(scope){
+    var next = scope && typeof scope === 'object' ? scope : {};
+    activePaymentBirthHash = text(next.birthHash || activePaymentBirthHash);
+    activeSessionId = text(next.sessionId || next.reportSessionId || activeSessionId);
+    activeReportId = text(next.reportId || activeReportId || (activeSessionId ? buildReportId(activeSessionId) : ''));
+    activePaymentRequestId = text(next.requestId || activePaymentRequestId || (activeReportId ? activeReportId + '-pay' : ''));
+  }
+
+  function getZiweiGenerationScope(birthHash){
+    var hash = text(birthHash || activePaymentBirthHash || 'unknown');
+    if(!activeSessionId || activePaymentBirthHash !== hash){
+      activePaymentBirthHash = hash;
+      activeSessionId = buildSessionId(hash);
+      activeReportId = buildReportId(activeSessionId);
+      activePaymentRequestId = activeReportId + '-pay';
+    }
+    return {
+      birthHash: activePaymentBirthHash,
+      sessionId: activeSessionId,
+      reportSessionId: activeSessionId,
+      reportId: activeReportId,
+      requestId: activePaymentRequestId
+    };
+  }
+
   function updateZiweiGenerationState(patch){
     ZIWEI_GENERATION_STATE = Object.assign({}, ZIWEI_GENERATION_STATE, patch || {});
     try { window.__ziweiPdfGenerationState = ZIWEI_GENERATION_STATE; } catch (_) {}
@@ -544,6 +592,24 @@
     error.payloadSafe = safe;
     error.payload = payload;
     return error;
+  }
+
+  async function fetchZiweiApi(url, options){
+    var settings = Object.assign({}, options || {});
+    var parseMode = text(settings.parse) || 'json';
+    if(settings.parse) delete settings.parse;
+    if(!settings.credentials) settings.credentials = 'include';
+    var response = await fetch(url, settings);
+    if(parseMode === 'blob'){
+      var blob = await response.blob().catch(function(){ return null; });
+      return { res: response, blob: blob, json: blob };
+    }
+    if(parseMode === 'text'){
+      var textValue = await response.text().catch(function(){ return ''; });
+      return { res: response, text: textValue, json: { message: textValue } };
+    }
+    var json = await response.json().catch(function(){ return {}; });
+    return { res: response, json: json };
   }
 
   function logZiweiError(error, meta){
@@ -1214,6 +1280,7 @@
   function extractAccessGrant(source){
     if(!source || typeof source !== 'object') return null;
     if(source.accessGrant && typeof source.accessGrant === 'object') return source.accessGrant;
+    if(source.access && typeof source.access === 'object') return source.access;
     return extractAccessGrant(source.data) || extractAccessGrant(source.payload) || extractAccessGrant(source.payment) || extractAccessGrant(source._paymentContext) || extractAccessGrant(source.paymentContext) || extractAccessGrant(source.consume);
   }
 
@@ -1225,6 +1292,7 @@
       raw,
       objectValue(raw, 'data'),
       objectValue(raw, 'payload'),
+      objectValue(raw, 'access'),
       objectValue(raw, 'payment'),
       objectValue(raw, '_paymentContext'),
       objectValue(raw, 'paymentContext'),
@@ -1266,108 +1334,193 @@
   async function ensurePaymentOrRestore(birthInput, options){
     var reuseOnly = Boolean(options && options.reuseOnly);
     var birthHash = makeBirthHash(birthInput || {});
-    var saved = readPaidSession();
-    if(isSamePaidSessionTarget(saved, birthHash)){
-      var verified = await verifyPaidSessionAccess(saved);
+    var scope = getZiweiGenerationScope(birthHash);
+    var now = Date.now();
+
+    var cached = readPaidSession();
+    if(cached && isSamePaidSessionTarget(cached, birthHash)){
+      var verified = await verifyPaidSessionAccess(cached);
       if(verified){
-        logFlow('PaymentReuse', {
+        setZiweiGenerationScope({
           birthHash: birthHash,
-          hasToken: Boolean(text(saved && saved.premiumAccessToken)),
-          palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0),
-          verified: true
+          sessionId: text(cached.sessionId || cached.reportSessionId) || scope.sessionId,
+          reportId: text(cached.reportId) || scope.reportId,
+          requestId: text(cached.requestId) || scope.requestId
         });
-        return Object.assign({}, saved, {
+        scope = getZiweiGenerationScope(birthHash);
+        var reused = Object.assign({}, cached, {
           ok: true,
           reused: true,
           verified: true,
-          sessionId: text(saved.sessionId) || buildSessionId(birthHash),
-          premiumAccessToken: text(saved.premiumAccessToken) || getPremiumToken(),
+          sessionId: scope.sessionId,
+          reportSessionId: scope.reportSessionId,
+          reportId: scope.reportId,
+          requestId: text(cached.requestId) || scope.requestId,
+          premiumAccessToken: text(cached.premiumAccessToken) || getPremiumToken(),
           birthHash: birthHash
         });
+        logFlow('PaymentReuse', {
+          birthHash: birthHash,
+          hasToken: Boolean(text(cached && cached.premiumAccessToken)),
+          verified: true,
+          status: text(cached.status),
+          reportType: text(cached.reportType)
+        });
+        return reused;
       }
       clearPaidSession();
       logFlow('PaymentReuseRejected', {
         birthHash: birthHash,
-        hasToken: Boolean(text(saved && saved.premiumAccessToken))
+        hasToken: Boolean(text(cached && cached.premiumAccessToken)),
+        status: text(cached && cached.status)
       });
       if(reuseOnly){
-        throw buildRetryableError('결제 내역을 확인하지 못했습니다. 생성 버튼에서 결제를 다시 확인해 주세요.', 402, 'PAYMENT_REUSE_UNVERIFIED', 'payment');
+        throw buildRetryableError('저장된 결제 세션을 확인하지 못했습니다. 결제를 다시 확인해 주세요.', 402, 'PAYMENT_REUSE_UNVERIFIED', 'payment');
       }
-    } else if(saved && isZiweiFeatureKey(saved.featureKey) && reuseOnly !== true) {
+    } else if(cached && isZiweiFeatureKey(cached.featureKey) && reuseOnly !== true) {
       clearPaidSession();
     }
 
-    if(typeof window._cdCoinGatePerUse !== 'function'){
-      throw new Error('결제 모듈을 찾을 수 없습니다. 로그인 상태와 결제 수단을 확인해 주세요.');
+    if(typeof window._cdOpenPaidServiceGate !== 'function' && typeof window._cdCoinGatePerUse !== 'function'){
+      throw buildRetryableError('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.', 503, 'PAYMENT_GATE_MISSING', 'payment');
     }
 
-    return new Promise(function(resolve, reject){
-      var settled = false;
-      function finish(result){
-        if(settled) return;
-        settled = true;
-        if(result && result.ok === false){
-          var paymentError = buildZiweiApiError({ status: Number(result.status || 402), body: result }, result.message || '원화 결제 확인이 필요합니다.', 'payment');
-          logZiweiError(paymentError, { stage: 'billing', requestId: result && result.requestId });
-          reject(paymentError);
-          return;
-        }
+    if(pendingPaymentPromise && pendingPaymentBirthHash === birthHash){
+      return pendingPaymentPromise;
+    }
+
+    if((isPaymentChecking || isPaymentOpening) && now - paymentGateOpenedAt <= PREVIOUS_PAYMENT_GATE_WINDOW_MS){
+      return Promise.reject(buildRetryableError('결제창을 여는 중입니다. 잠시만 기다려 주세요.', 429, 'PAYMENT_OPEN_IN_PROGRESS', 'payment'));
+    }
+
+    var requestId = scope.requestId || (FEATURE_KEY + '-ziwei-' + now + '-' + Math.random().toString(36).slice(2, 8));
+    var requestSeed = {
+      title: '자미두수 프리미엄 PDF',
+      reason: '자미두수 프리미엄 PDF 생성',
+      coinPrice: COIN_COST,
+      cost: COIN_COST,
+      featureKey: FEATURE_KEY,
+      categoryKey: 'premium-pdf',
+      subFeatureKey: FEATURE_KEY,
+      mode: 'compatibility',
+      reportMode: 'compatibility',
+      reportType: 'ziweiPremium',
+      serviceKey: 'ziwei-book',
+      requestId: requestId,
+      reportId: scope.reportId,
+      sessionId: scope.sessionId,
+      reportSessionId: scope.reportSessionId
+    };
+
+    pendingPaymentBirthHash = birthHash;
+    pendingPaymentPromise = (async function(){
+      isPaymentChecking = true;
+      isPaymentOpening = true;
+      paymentRequestId = requestId;
+      paymentGateOpenedAt = Date.now();
+
+      function buildPaymentContext(result){
         var paymentContext = normalizePaymentContext(result, birthHash);
         var token = text(paymentContext.premiumAccessToken) || getPremiumToken();
         if(token) storePremiumToken(token);
-        var sessionId = text(paymentContext.sessionId) || buildSessionId(birthHash);
-        paymentContext.sessionId = sessionId;
-        paymentContext.reportSessionId = text(paymentContext.reportSessionId) || sessionId;
+
+        paymentContext.featureKey = FEATURE_KEY;
+        paymentContext.reportType = 'ziweiPremium';
+        paymentContext.birthHash = birthHash;
         paymentContext.premiumAccessToken = token || undefined;
+        paymentContext.requestId = text(paymentContext.requestId) || requestId;
+        paymentContext.sessionId = text(paymentContext.sessionId) || scope.sessionId;
+        paymentContext.reportSessionId = text(paymentContext.reportSessionId) || paymentContext.sessionId || scope.reportSessionId;
+        paymentContext.reportId = text(paymentContext.reportId) || scope.reportId;
+        return paymentContext;
+      }
+
+      function finalizeGrant(result){
+        var paymentContext = buildPaymentContext(result);
         if(!hasPaymentEvidence(Object.assign({}, result || {}, paymentContext), birthHash)){
-          reject(new Error('결제 확인 정보가 누락되었습니다. 다시 결제를 진행해 주세요.'));
-          return;
+          throw buildRetryableError('결제 확인 정보가 누락되었습니다. 결제 상태를 확인한 뒤 다시 시도해 주세요.', 402, 'PAYMENT_EVIDENCE_MISSING', 'payment');
         }
+
+        var sessionId = text(paymentContext.sessionId);
         var savedSession = writePaidSession(Object.assign({}, paymentContext, {
-          featureKey: FEATURE_KEY,
-          reportType: 'ziweiPremium',
           sessionId: sessionId,
-          premiumAccessToken: token,
+          premiumAccessToken: text(paymentContext.premiumAccessToken),
           transactionId: text(paymentContext.transactionId),
           paidAt: text(paymentContext.paidAt) || new Date().toISOString(),
           birthHash: birthHash,
+          requestId: requestId,
+          reportId: text(paymentContext.reportId) || scope.reportId,
           status: 'paid'
         }));
         logFlow('PaymentCreated', {
           birthHash: birthHash,
-          hasToken: Boolean(token),
-          palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0)
+          requestId: requestId,
+          hasToken: Boolean(text(paymentContext.premiumAccessToken)),
+          status: 'paid'
         });
-        resolve(Object.assign({}, savedSession, result || {}, {
+
+        return Object.assign({}, savedSession, result || {}, {
           ok: true,
-          premiumAccessToken: token,
+          reused: false,
+          verified: true,
           sessionId: sessionId,
+          reportSessionId: text(paymentContext.reportSessionId) || sessionId,
+          reportId: text(paymentContext.reportId) || scope.reportId,
+          requestId: requestId,
+          premiumAccessToken: text(paymentContext.premiumAccessToken),
           birthHash: birthHash,
           accessGrant: paymentContext.accessGrant || undefined,
           payment: paymentContext,
           _paymentContext: paymentContext
-        }));
-      }
-      try {
-        var immediate = window._cdCoinGatePerUse(COIN_COST, '자미두수 프리미엄 PDF 리포트 생성', function(_transactionId, data){
-          finish(Object.assign({ ok: true, transactionId: _transactionId }, data || {}));
-        }, function(error){
-          finish(Object.assign({ ok: false, status: 402, code: 'ZIWEI_PAYMENT_CANCELLED', message: (error && error.message) || '원화 결제 확인이 필요합니다.' }, error || {}));
-        }, {
-          featureKey: FEATURE_KEY,
-          serviceKey: 'ziwei-book',
-          reportType: 'ziweiPremium',
-          requestId: FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
         });
-        if(immediate && typeof immediate.then === 'function'){
-          immediate.then(finish).catch(function(error){ finish({ ok: false, message: error && error.message }); });
-        } else if(immediate && immediate.ok === false) {
-          finish(immediate);
+      }
+
+      try {
+        var gateResult = null;
+        if(typeof window._cdOpenPaidServiceGate === 'function'){
+          gateResult = await Promise.resolve(window._cdOpenPaidServiceGate(Object.assign({}, requestSeed, {
+            action: 'generate'
+          })));
+        } else {
+          gateResult = await new Promise(function(resolve, reject){
+            window._cdCoinGatePerUse(
+              COIN_COST,
+              requestSeed.title,
+              function(_transactionId, data){
+                resolve(Object.assign({ ok: true, transactionId: _transactionId }, data || {}));
+              },
+              function(error){
+                reject(buildRetryableError((error && error.message) || '결제가 취소되어 생성을 중단했습니다.', 402, 'ZIWEI_PAYMENT_CANCELLED', 'payment'));
+              },
+              requestSeed
+            );
+          });
         }
-      } catch(error) {
-        finish({ ok: false, message: error && error.message });
+
+        if(!gateResult || gateResult.status === 'cancelled'){
+          throw buildZiweiApiError({ status: 402, body: gateResult }, gateResult && gateResult.message || '결제가 취소되어 생성을 중단했습니다.', 'payment');
+        }
+        if(gateResult.ok === false){
+          throw buildZiweiApiError({ status: Number(gateResult.status || 402), body: gateResult }, gateResult.message || '결제 확인에 실패했습니다. 다시 시도해 주세요.', 'payment');
+        }
+
+        return finalizeGrant(gateResult);
+      } finally {
+        isPaymentChecking = false;
+        isPaymentOpening = false;
+        paymentRequestId = '';
+        paymentGateOpenedAt = Date.now();
+      }
+    })();
+
+    var wrapped = pendingPaymentPromise.finally(function(){
+      if(pendingPaymentBirthHash === birthHash){
+        pendingPaymentPromise = null;
+        pendingPaymentBirthHash = '';
       }
     });
+    pendingPaymentPromise = wrapped;
+    return wrapped;
   }
 
   function buildRetryableError(message, status, code, kind){
@@ -1384,8 +1537,9 @@
     if(text(reportId)) query.push('reportId=' + encodeURIComponent(text(reportId)));
     if(!query.length) return null;
     var url = RESULT_API + '?' + query.join('&');
-    var res = await fetch(url, { method: 'GET', credentials: 'include' });
-    var json = await res.json().catch(function(){ return {}; });
+    var fetched = await fetchZiweiApi(url, { method: 'GET' });
+    var res = fetched.res;
+    var json = fetched.json;
     if(!res.ok && res.status !== 202) return null;
     if(!json) return null;
     var readiness = getZiweiReportReadiness(json);
@@ -1447,13 +1601,22 @@
   }
 
   async function postPrepare(profile, seed, payment, birthInput){
-    var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
     var birthHash = text(payment && payment.birthHash) || makeBirthHash(birthInput || {});
-    var paymentContext = normalizePaymentContext(Object.assign({}, payment || {}, { sessionId: sessionId, birthHash: birthHash }), birthHash);
+    var scope = getZiweiGenerationScope(birthHash);
+    var sessionId = text(payment && (payment.reportSessionId || payment.sessionId)) || scope.sessionId;
+    var paymentContext = normalizePaymentContext(Object.assign({}, payment || {}, {
+      sessionId: sessionId,
+      reportSessionId: sessionId,
+      reportId: text(payment && payment.reportId) || scope.reportId,
+      requestId: text(payment && payment.requestId) || scope.requestId,
+      birthHash: birthHash
+    }), birthHash);
     var token = text(paymentContext.premiumAccessToken) || (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
     paymentContext.premiumAccessToken = token || undefined;
     paymentContext.sessionId = text(paymentContext.sessionId) || sessionId;
     paymentContext.reportSessionId = text(paymentContext.reportSessionId) || paymentContext.sessionId || sessionId;
+    paymentContext.reportId = text(paymentContext.reportId) || scope.reportId;
+    paymentContext.requestId = text(paymentContext.requestId) || scope.requestId;
     var accessGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
     if(!hasPaymentEvidence(Object.assign({}, paymentContext, { premiumAccessToken: token, accessGrant: accessGrant }), birthHash)){
       throw buildRetryableError('결제 확인 정보가 누락되었습니다. 다시 결제를 진행해 주세요.', 402, 'PAYMENT_EVIDENCE_MISSING', 'payment');
@@ -1470,8 +1633,21 @@
       premiumAccessToken: token || '',
       requestId: text(paymentContext.requestId) || undefined,
       purchaseId: text(paymentContext.purchaseId) || undefined,
+      transactionId: text(paymentContext.transactionId) || undefined,
+      sourceTransactionId: text(paymentContext.transactionId || paymentContext.purchaseId) || undefined,
       reportId: text(paymentContext.reportId) || undefined,
       accessGrant: accessGrant || undefined,
+      consume: {
+        featureKey: FEATURE_KEY,
+        transactionId: text(paymentContext.transactionId || paymentContext.purchaseId) || undefined,
+        purchaseId: text(paymentContext.purchaseId || paymentContext.transactionId) || undefined,
+        requestId: text(paymentContext.requestId) || undefined,
+        reportId: text(paymentContext.reportId) || undefined,
+        sessionId: sessionId || undefined,
+        reportSessionId: paymentContext.reportSessionId || sessionId || undefined,
+        premiumAccessToken: token || undefined,
+        accessGrant: accessGrant || undefined
+      },
       payment: paymentContext,
       _paymentContext: paymentContext,
       paymentContext: paymentContext,
@@ -1493,8 +1669,9 @@
       chapterCount: 0,
       hasToken: Boolean(token)
     });
-    var res = await fetch(PREPARE_API, { method: 'POST', credentials: 'include', headers: headers, body: JSON.stringify(body) });
-    var json = await res.json().catch(function(){ return {}; });
+    var fetched = await fetchZiweiApi(PREPARE_API, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+    var res = fetched.res;
+    var json = fetched.json;
     if(!res.ok || !json.ok){
       if(json && json.retryable && text(json.status) === 'processing' && (text(json.reportId) || text(json.sessionId) || Array.isArray(json.chapters))){
         return json;
@@ -1863,13 +2040,28 @@
         isTimeUnknown: resolved.birthInput.isTimeUnknown
       });
       validateBirthInputOrThrow(resolved.birthInput);
+      var currentBirthHash = makeBirthHash(resolved.birthInput);
+      if(usePaidSessionOnly === true){
+        var savedScope = readPaidSession();
+        if(savedScope){
+          setZiweiGenerationScope({
+            birthHash: text(savedScope.birthHash) || currentBirthHash,
+            sessionId: text(savedScope.sessionId || savedScope.reportSessionId),
+            reportId: text(savedScope.reportId),
+            requestId: text(savedScope.requestId)
+          });
+        }
+      } else {
+        resetZiweiGenerationScope();
+      }
+      var generationScope = getZiweiGenerationScope(currentBirthHash);
       updateZiweiGenerationState({ status: 'birthInputValidated' });
       logFlow('ValidationBeforePayment', {
         hasBirthDate: true,
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
+      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST, reportId: generationScope.reportId, sessionId: generationScope.sessionId });
       setZiweiPhase('payment', '결제 확인 중입니다. 완료 후 생성이 시작됩니다.');
       setGeneratingUiLock(true, '결제 확인 중...');
       setDisplay('zbStartScreen','none');
@@ -1883,6 +2075,13 @@
       if(usePaidSessionOnly === true && !payment.reused){
         throw buildRetryableError('결제 내역을 찾지 못했습니다. 먼저 결제를 완료해 주세요.', 402, 'PAYMENT_REUSE_MISSING', 'payment');
       }
+      setZiweiGenerationScope({
+        birthHash: text(payment.birthHash) || currentBirthHash,
+        sessionId: text(payment.sessionId || payment.reportSessionId),
+        reportId: text(payment.reportId) || generationScope.reportId,
+        requestId: text(payment.requestId) || generationScope.requestId
+      });
+      generationScope = getZiweiGenerationScope(currentBirthHash);
       setZiweiPhase('calculate', '결제가 확인되었습니다. 명궁과 12궁을 계산합니다.');
       setGeneratingUiLock(true, '명반 계산 중...');
       updateProgress(10, '명궁 12궁 계산을 위한 출생 정보를 정리하는 중입니다.');
@@ -1893,11 +2092,14 @@
       writePaidSession({
         featureKey: FEATURE_KEY,
         reportType: 'ziweiPremium',
-        sessionId: text(payment.sessionId),
+        sessionId: generationScope.sessionId,
+        reportSessionId: generationScope.reportSessionId,
+        reportId: generationScope.reportId,
+        requestId: generationScope.requestId,
         premiumAccessToken: text(payment.premiumAccessToken || payment.accessToken || payment.token),
         transactionId: text(payment.transactionId),
         paidAt: text(payment.paidAt) || new Date().toISOString(),
-        birthHash: text(payment.birthHash),
+        birthHash: text(payment.birthHash) || currentBirthHash,
         status: 'generating'
       });
       logFlow('PaymentGateSuccess', {
@@ -1907,11 +2109,11 @@
       updateProgress(52, getChapterProgressLine(1));
       setZiweiPhase('write', '15챕터 상담문을 정리하고 있습니다.');
       updateZiweiGenerationState({ status: 'drafting' });
-      var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
+      var sessionId = generationScope.sessionId;
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
-      var data = await postPrepare(profile, seed, Object.assign({}, payment, { sessionId: sessionId }), resolved.birthInput);
+      var data = await postPrepare(profile, seed, Object.assign({}, payment, generationScope, { sessionId: sessionId }), resolved.birthInput);
       var readiness = getZiweiReportReadiness(data);
       if(!readiness.completed){
         var recoveredData = await recoverPendingResult(data, payment);
@@ -1983,11 +2185,13 @@
       writePaidSession({
         featureKey: FEATURE_KEY,
         reportType: 'ziweiPremium',
-        sessionId: text(data && data.sessionId) || sessionId,
-        reportId: text(data && data.reportId),
+        sessionId: text(data && (data.reportSessionId || data.sessionId)) || sessionId,
+        reportSessionId: text(data && (data.reportSessionId || data.sessionId)) || sessionId,
+        reportId: text(data && data.reportId) || generationScope.reportId,
+        requestId: generationScope.requestId,
         premiumAccessToken: text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)),
         transactionId: text(payment && payment.transactionId),
-        birthHash: text(payment && payment.birthHash),
+        birthHash: text(payment && payment.birthHash) || currentBirthHash,
         paidAt: text(payment && payment.paidAt) || new Date().toISOString(),
         status: 'completed'
       });
@@ -2073,10 +2277,12 @@
       if(!downloadUrl){
         downloadUrl = DOWNLOAD_API + '?reportId=' + encodeURIComponent(reportId);
       }
-      var res = await fetch(downloadUrl, {
+      var fetched = await fetchZiweiApi(downloadUrl, {
         method: 'GET',
-        credentials: 'include'
+        parse: 'blob'
       });
+      var res = fetched.res;
+      var blob = fetched.blob;
       if(!res.ok){
         throw new Error('download_http_' + res.status);
       }
@@ -2084,7 +2290,6 @@
       if(contentType.toLowerCase().indexOf('application/pdf') === -1){
         throw new Error('download_invalid_content_type:' + contentType);
       }
-      var blob = await res.blob();
       if(!blob || blob.size < 500){
         throw new Error('download_pdf_too_small:' + (blob ? blob.size : 0));
       }
