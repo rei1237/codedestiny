@@ -8,6 +8,7 @@ import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -90,6 +91,9 @@ type PrepareSubscriptionOrderResponse = {
     durationDays: number;
   };
 };
+
+const KKULKKUL_POINTS_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
+const KKULKKUL_POINTS_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_POINTS_LOGO_PUBLIC_PATH);
 
 type ConfirmResponse = {
   message?: string;
@@ -3062,7 +3066,7 @@ export default function PointsPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Image
-                  src="/icons/꿀꿀 운세 로고.webp"
+                  src={KKULKKUL_POINTS_LOGO_URL}
                   sizes="72px"
                   width={72}
                   height={72}

@@ -12,6 +12,7 @@ import {
 
 import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
 import type { LoadingStage, PaymentType } from "@/constants/loadingMessages";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -101,7 +102,7 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: stri
 };
 
 const KKULKKUL_PAYMENT_LOGO_URL =
-  "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
+  getAssetUrlFromPublicPath("/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate");
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
