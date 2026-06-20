@@ -268,47 +268,16 @@ async function main() {
   printKeyValue("PREPARE_CF_RAY", prepareResult.headers.cfRay || "");
 
   const payload = prepareResult.data || {};
-  const chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
-  const manuscriptSource = clean(payload.manuscriptSource).toLowerCase();
-  const calcMode = clean(payload?.localAstroChartJson?.calculationMode).toLowerCase();
-  const hasPdfHtml = Boolean(clean(payload?.pdfReady?.html));
-  const pdfUrl = clean(payload?.pdfReady?.pdfUrl || payload?.pdfUrl);
-  const htmlUrl = clean(payload?.pdfReady?.htmlUrl || payload?.htmlUrl);
-  const mimeType = clean(payload?.pdfReady?.mimeType);
-  const masterSchema = clean(payload?.astroMasterJson?.schemaVersion);
-  const masterValidationOk = Boolean(payload?.masterJsonValidation?.ok);
-  const validationOk = Boolean(payload?.validation?.ok);
-  const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
-  const localAssembly = payload?.localAssembly && typeof payload.localAssembly === "object"
-    ? payload.localAssembly
-    : {};
-  const pdfLocalAssembly = payload?.pdfReady?.localAssembly && typeof payload.pdfReady.localAssembly === "object"
-    ? payload.pdfReady.localAssembly
-    : {};
-  const pdfCompletionValidationOk = Boolean(payload?.pdfCompletionValidation?.ok || payload?.pdfReady?.pdfCompletionValidation?.ok);
-
-  printKeyValue("PREPARE_OK", Boolean(payload.ok));
-  printKeyValue("CHAPTERS", chapters.length);
-  printKeyValue("MANUSCRIPT_SOURCE", manuscriptSource);
-  printKeyValue("LOCAL_DRAFT_CHAPTERS", localDraftChapterCount);
-  printKeyValue("LOCAL_ASSEMBLY_ENABLED", localAssembly.enabled === true);
-  printKeyValue("LOCAL_ASSEMBLY_CHAPTERS", Number(localAssembly.chapterCount || 0));
-  printKeyValue("LOCAL_ASSEMBLY_EXTERNAL_GENERATION", localAssembly.externalGeneration === true);
-  printKeyValue("SEED_CALC_MODE", calcMode);
-  printKeyValue("MASTER_SCHEMA", masterSchema);
-  printKeyValue("MASTER_VALIDATION_OK", masterValidationOk);
-  printKeyValue("VALIDATION_OK", validationOk);
-  printKeyValue("PDF_COMPLETION_VALIDATION_OK", pdfCompletionValidationOk);
-  printKeyValue("HAS_PDF_HTML", hasPdfHtml);
-  printKeyValue("PDF_URL", pdfUrl);
-  printKeyValue("HTML_URL", htmlUrl);
-  printKeyValue("MIME_TYPE", mimeType);
   const sessionId = clean(payload.sessionId || prepareResult.sessionId);
   const reportId = clean(payload.reportId || prepareResult.reportId);
+  const errorCode = clean(payload.code || payload.originalCode || prepareResult.headers.errorCode);
+
+  printKeyValue("PREPARE_OK", Boolean(payload.ok));
+  printKeyValue("PREPARE_CODE", errorCode);
   printKeyValue("SESSION_ID", sessionId);
   printKeyValue("REPORT_ID", reportId);
 
-  if (!prepareResult.ok || !payload.ok) {
+  if (sessionId || reportId) {
     try {
       const executionStatus = await fetchExecutionStatus(base, loginResult.token, sessionId, reportId);
       const execution = executionStatus.execution || {};
@@ -323,28 +292,17 @@ async function main() {
     }
   }
 
-  ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
-  ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
-  ensure(manuscriptSource === "local-assembled", "ASTRO manuscript source is not local-assembled", { manuscriptSource, payload });
-  ensure(localDraftChapterCount === 12, "ASTRO local draft chapter count must be 12", { localDraftChapterCount, payload });
-  ensure(localAssembly.enabled === true, "ASTRO local assembly flag missing", { localAssembly, payload });
-  ensure(localAssembly.externalGeneration === false, "ASTRO external generation must be blocked", { localAssembly, payload });
-  ensure(Number(localAssembly.chapterCount || 0) === 12, "ASTRO local assembly chapter count must be 12", { localAssembly, payload });
-  ensure(Number(localAssembly.expectedChapterCount || 0) === 12, "ASTRO local assembly expected chapter count must be 12", { localAssembly, payload });
-  ensure(clean(localAssembly.templateVersion), "ASTRO local assembly template version missing", { localAssembly, payload });
-  ensure(pdfLocalAssembly.enabled === true, "ASTRO pdfReady local assembly flag missing", { pdfLocalAssembly, payload });
-  ensure(pdfLocalAssembly.externalGeneration === false, "ASTRO pdfReady external generation must be blocked", { pdfLocalAssembly, payload });
-  ensure(calcMode === "full", "Swiss 기반 full 계산 seed 아님", { calcMode, payload });
-  ensure(masterSchema === "astro-premium-master-json.v1", "점성술 마스터 JSON 스키마 누락", payload?.astroMasterJson || payload);
-  ensure(masterValidationOk, "점성술 마스터 JSON 검증 실패", payload?.masterJsonValidation || payload);
-  ensure(validationOk, "최종 원고 검증 실패", payload?.validation || payload);
-  ensure(pdfCompletionValidationOk, "ASTRO PDF completion validation failed", payload?.pdfCompletionValidation || payload?.pdfReady?.pdfCompletionValidation || payload);
-  ensure(hasPdfHtml, "PDF html 누락", payload?.pdfReady || payload);
-  ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=pdf/i.test(pdfUrl), "PDF archive URL 형식 오류", payload?.pdfReady || payload);
-  ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=html/i.test(htmlUrl), "HTML archive URL 형식 오류", payload?.pdfReady || payload);
-  ensure(mimeType === "application/pdf", "PDF mimeType 오류", payload?.pdfReady || payload);
+  ensure(prepareResult.ok && payload.ok === true, "Astro prepare should complete with LLM-only PDF", payload);
+  ensure(prepareResult.status >= 200 && prepareResult.status < 300, "Astro prepare status should be 2xx", { status: prepareResult.status, payload });
+  ensure(clean(payload.status) === "completed", "Astro prepare should return completed status", payload);
+  ensure(clean(payload.downloadUrl || payload.pdfUrl || payload?.pdfReady?.downloadUrl), "Astro prepare should return a download URL", payload);
+  ensure(payload.llmAssemblyOnly === true || payload?.pdfReady?.llmAssemblyOnly === true, "Astro prepare should be LLM-only", payload);
+  const expectedChapterCount = Number(payload.expectedChapterCount || payload?.llmAssembly?.expectedChapterCount || 15);
+  ensure(Array.isArray(payload.chapters) && payload.chapters.length === expectedChapterCount, "Astro prepare should return the expected LLM chapters", payload);
+  ensure(payload?.pdfCompletionValidation?.ok !== false, "Astro prepare PDF completion validation should pass", payload);
+  ensure(!payload.localAstroChartJson && !payload?.payload?.localAstroChartJson, "Astro prepare should not expose raw chart JSON", payload);
 
-  printKeyValue("E2E_RESULT", "PASS");
+  printKeyValue("E2E_RESULT", "ASTROLOGY_LLM_PDF_COMPLETED");
 }
 
 main().catch((error) => {

@@ -1804,6 +1804,114 @@ const REPORT_TYPE_FALLBACK = Object.freeze({
   soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 업" },
 });
 
+const ZIWEI_ARCHIVE_CHAPTER_COUNT = 15;
+const ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER = 5;
+const ZIWEI_ARCHIVE_FORBIDDEN_TOKENS = Object.freeze([
+  "json",
+  "payload",
+  "fallback",
+  "llm",
+  "api",
+  "debug",
+  "engine",
+  "internal server error",
+  "undefined",
+  "null",
+  "nan",
+  "about:blank",
+  "[object object]",
+]);
+const ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE = "llm-html-v3";
+const ZIWEI_ARCHIVE_REQUIRED_TEMPLATE_VERSION = "ziwei-premium-html-v3.0.0";
+const ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES = Object.freeze(["local", "localdraft", "template", "fallback", "skeleton"]);
+
+function isZiweiArchiveDocument(doc = {}, archive = {}) {
+  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
+  return cleanText(doc?.reportType, 80) === "ziweiPremium"
+    || cleanText(archive?.reportType, 80) === "ziwei_book"
+    || cleanText(archive?.serviceKey, 80) === "ziwei-book"
+    || cleanText(payload?.serviceKey, 80) === "ziwei-book"
+    || cleanText(payload?.featureKey, 120) === "premium-ziwei-report";
+}
+
+function hasZiweiArchiveForbiddenToken(value = "") {
+  const text = String(value || "").toLowerCase();
+  return ZIWEI_ARCHIVE_FORBIDDEN_TOKENS.some((token) => text.includes(token));
+}
+
+function countZiweiArchiveMatches(value = "", pattern) {
+  return (String(value || "").match(pattern) || []).length;
+}
+
+function ziweiArchiveObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function resolveZiweiArchiveChapters({ metadata = {}, archive = {}, pdfReady = {} } = {}) {
+  const payload = ziweiArchiveObject(archive?.payload || metadata?.payload);
+  const candidates = [
+    archive?.chapters,
+    metadata?.chapters,
+    pdfReady?.chapters,
+    payload?.chapters,
+  ];
+  return candidates.find((item) => Array.isArray(item)) || [];
+}
+
+function resolveZiweiArchiveLlmAssembly({ metadata = {}, archive = {}, pdfReady = {} } = {}) {
+  const diagnostics = ziweiArchiveObject(archive?.diagnostics);
+  const payload = ziweiArchiveObject(archive?.payload || metadata?.payload);
+  const metadataPdfReady = ziweiArchiveObject(metadata?.pdfReady);
+  const candidates = [
+    archive?.llmAssembly,
+    pdfReady?.llmAssembly,
+    diagnostics?.llmAssembly,
+    metadata?.llmAssembly,
+    metadataPdfReady?.llmAssembly,
+    payload?.llmAssembly,
+    ziweiArchiveObject(payload?.pdfReady)?.llmAssembly,
+  ];
+  return candidates.find((item) => item && typeof item === "object" && !Array.isArray(item)) || {};
+}
+
+function validateZiweiArchiveForDownload({ doc = {}, metadata = {}, archive = {}, htmlContent = "" } = {}) {
+  const issues = [];
+  if (!isZiweiArchiveDocument(doc, archive)) return { ok: true, issues, skipped: true };
+
+  const pdfReady = ziweiArchiveObject(archive?.pdfReady || metadata?.pdfReady);
+  const chapters = resolveZiweiArchiveChapters({ metadata, archive, pdfReady });
+  const llmAssembly = resolveZiweiArchiveLlmAssembly({ metadata, archive, pdfReady });
+  const html = String(htmlContent || pdfReady?.html || archive?.html || metadata?.html || "");
+  const htmlArticleCount = countZiweiArchiveMatches(html, /<article\b[^>]*data-chapter-id=/gi);
+  const htmlSectionCount = countZiweiArchiveMatches(html, /<section\b/gi);
+
+  if (chapters.length !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("chapter_count");
+  if (!html.trim()) issues.push("html_missing");
+  if (html.trim() && htmlArticleCount !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("html_article_count");
+  if (html.trim() && htmlSectionCount < ZIWEI_ARCHIVE_CHAPTER_COUNT * ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER) issues.push("html_section_count");
+  if (hasZiweiArchiveForbiddenToken(html)) issues.push("forbidden_token");
+  if (llmAssembly.enabled !== true) issues.push("llm_enabled");
+  if (cleanText(llmAssembly.source, 80) !== ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE) issues.push("llm_source");
+  if (!cleanText(llmAssembly.provider, 80)) issues.push("llm_provider");
+  if (cleanText(llmAssembly.templateVersion, 120) !== ZIWEI_ARCHIVE_REQUIRED_TEMPLATE_VERSION) issues.push("llm_template_version");
+  if (llmAssembly.externalGeneration !== true) issues.push("external_generation");
+  if (llmAssembly.externalCallsAllowed !== true) issues.push("external_calls_allowed");
+  if (llmAssembly.fallbackUsed === true) issues.push("fallback_used");
+  if (llmAssembly.localFallbackUsed === true) issues.push("local_fallback_used");
+  if (Number(llmAssembly.chapterCount || 0) !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("llm_chapter_count");
+
+  chapters.forEach((chapter, index) => {
+    const source = cleanText(chapter?.source, 80).toLowerCase();
+    const provider = cleanText(chapter?.provider, 80).toLowerCase();
+    if (source !== ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE) issues.push(`chapter_source_${index + 1}`);
+    if (ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES.includes(source)) issues.push(`chapter_blocked_source_${index + 1}`);
+    if (!provider || ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES.includes(provider)) issues.push(`chapter_provider_${index + 1}`);
+    if (!Array.isArray(chapter?.sections) || chapter.sections.length < ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER) issues.push(`chapter_sections_${index + 1}`);
+  });
+
+  return { ok: issues.length === 0, issues, skipped: false };
+}
+
 function toArchiveBase(doc) {
   const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
   const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
@@ -1820,6 +1928,12 @@ function toArchiveBase(doc) {
   const htmlUrl = cleanText(archive.htmlUrl || archive?.pdfReady?.htmlUrl, 500);
   const downloadUrl = cleanText(archive.downloadUrl || archive?.pdfReady?.downloadUrl || pdfUrl, 500);
   const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  const ziweiArchiveValidation = validateZiweiArchiveForDownload({
+    doc,
+    metadata,
+    archive,
+    htmlContent: archive?.pdfReady?.html || archive?.html || "",
+  });
   const canReopen = Boolean(pdfUrl || chapters.length > 0 || (archive.payload && typeof archive.payload === "object"));
 
   return {
@@ -1844,18 +1958,24 @@ function toArchiveBase(doc) {
     chapterCount: Number(archive.chapterCount || chapters.length || 0),
     expectedChapterCount: Number(archive.expectedChapterCount || 0),
     localDraftChapterCount: Number(archive.localDraftChapterCount || archive?.pdfReady?.localDraftChapterCount || chapters.length || 0),
+    llmDraftChapterCount: Number(archive.llmDraftChapterCount || archive?.pdfReady?.llmDraftChapterCount || 0),
     manuscriptSource: cleanText(archive.manuscriptSource || archive?.pdfReady?.manuscriptSource || "", 80),
-    localAssemblyOnly: archive.localAssemblyOnly !== false && archive?.pdfReady?.localAssemblyOnly !== false,
+    localAssemblyOnly: !(archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true)
+      && archive.localAssemblyOnly !== false
+      && archive?.pdfReady?.localAssemblyOnly !== false,
+    llmAssemblyOnly: archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true,
     externalCallsAllowed: archive.externalCallsAllowed === true || archive?.pdfReady?.externalCallsAllowed === true,
+    llmAssembly: resolveZiweiArchiveLlmAssembly({ metadata, archive, pdfReady: archive?.pdfReady }),
     localAssembly: archive.localAssembly && typeof archive.localAssembly === "object" ? archive.localAssembly : archive?.pdfReady?.localAssembly,
     pdfCompletionValidation: archive.pdfCompletionValidation || archive?.pdfReady?.pdfCompletionValidation || null,
+    pdfV2: archive.pdfV2 && typeof archive.pdfV2 === "object" ? archive.pdfV2 : archive?.payload?.pdfV2,
     pdfReady: archive.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : null,
     chapters,
     payload: archive.payload && typeof archive.payload === "object" ? archive.payload : null,
     paymentSessionId: cleanText(doc?.paymentSessionId || metadata.purchaseId || "", 160),
     coinAmount: Number(doc?.coinAmount || 0),
     canReopen,
-    canDownload: Boolean(downloadUrl || pdfUrl),
+    canDownload: Boolean(downloadUrl || pdfUrl) && ziweiArchiveValidation.ok,
   };
 }
 
@@ -2198,14 +2318,14 @@ function buildArchivePdfSections({ archive = {}, metadata = {}, reportId = "", h
         pushArchivePdfListBlock(blocks, "사주 근거", section?.sajuEvidence);
         pushArchivePdfListBlock(blocks, "핵심 포인트", section?.keyPoints);
         pushArchivePdfListBlock(blocks, "실천 조언", section?.actionGuide || section?.actionItems || section?.advice);
-        pushArchivePdfListBlock(blocks, "주의할 흐름", section?.caution);
+        pushArchivePdfListBlock(blocks, "살펴볼 부분", section?.caution);
         pushArchivePdfListBlock(blocks, "체크리스트", section?.checklist);
         pushArchivePdfTableBlock(blocks, section);
       }
     }
-    pushArchivePdfBlock(blocks, "실전 조언", chapter?.practicalAdvice);
-    pushArchivePdfBlock(blocks, "주의할 흐름", chapter?.cautionFlow);
-    pushArchivePdfBlock(blocks, "전환의 문장", chapter?.transitionLine);
+    pushArchivePdfBlock(blocks, "실행 방향", chapter?.practicalAdvice);
+    pushArchivePdfBlock(blocks, "살펴볼 부분", chapter?.cautionFlow);
+    pushArchivePdfBlock(blocks, "다음 선택", chapter?.transitionLine);
     pushArchivePdfBlock(blocks, "", chapter?.finalText || chapter?.text || chapter?.content || chapter?.body);
     return { title: chapterTitle, blocks };
   }).filter((section) => section.title || section.blocks.length);
@@ -2474,6 +2594,12 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
     || metadata?.lifeBookPdfRecord?.htmlContent
     || "",
   );
+  const ziweiArchiveValidation = validateZiweiArchiveForDownload({ doc, metadata, archive, htmlContent });
+  if (!ziweiArchiveValidation.ok) {
+    return failure(409, "ZIWEI_PDF_COMPLETION_INVALID", "자미두수 PDF 원고 검증이 완료되지 않았습니다. 다시 생성해 주세요.", "", {
+      issues: ziweiArchiveValidation.issues,
+    });
+  }
   if (format === "html" || format === "document" || format === "print") {
     if (!htmlContent.trim()) {
       return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");

@@ -19,8 +19,8 @@
   var SUKYO_COIN_COST_FALLBACK = 490;
   var SUKYO_RUNNING_POLL_INTERVAL_MS = 4500;
   var SUKYO_RUNNING_POLL_MAX_ATTEMPTS = 160;
-  var SUKYO_LOCAL_MANUSCRIPT_SOURCE = 'local-assembled';
-  var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LOCAL_MANUSCRIPT_SOURCE, 'local'];
+  var SUKYO_LLM_MANUSCRIPT_SOURCE = 'llm-authored';
+  var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LLM_MANUSCRIPT_SOURCE, 'llm-html-v2', 'llm-workers-ai', 'llm-gemini', 'llm-workers-ai+gemini'];
   var SUKYO_FLOATING_STYLE_ID = 'skFloatingWindowStyle';
 
   var _chapters = [];
@@ -32,9 +32,10 @@
   var _activePaymentRequestId = '';
   var _lastPremiumPayment = null;
   var _activeChapterIndex = 0;
+  var _lastLoadingStep = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
-  var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:v2';
+  var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:llm-v3';
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -159,9 +160,32 @@
   function _isAcceptedManuscriptSource(source) {
     return SUKYO_ACCEPTED_MANUSCRIPT_SOURCES.indexOf(_clean(source)) >= 0;
   }
-  function _isLocalManuscriptSource(source) {
+  function _isLlmManuscriptSource(source) {
     var value = _clean(source);
-    return value === SUKYO_LOCAL_MANUSCRIPT_SOURCE || value === 'local';
+    return value.indexOf('llm') === 0 || SUKYO_ACCEPTED_MANUSCRIPT_SOURCES.indexOf(value) >= 0;
+  }
+  function _resolveSukuyoLlmAssembly(payload, ready, nested) {
+    var p = payload && typeof payload === 'object' ? payload : {};
+    var r = ready && typeof ready === 'object' ? ready : {};
+    var n = nested && typeof nested === 'object' ? nested : {};
+    return p.llmAssembly && typeof p.llmAssembly === 'object'
+      ? p.llmAssembly
+      : (r.llmAssembly && typeof r.llmAssembly === 'object'
+        ? r.llmAssembly
+        : (n.llmAssembly && typeof n.llmAssembly === 'object' ? n.llmAssembly : {}));
+  }
+  function _isSukuyoLlmAssemblyReady(assembly, source) {
+    var item = assembly && typeof assembly === 'object' ? assembly : {};
+    var provider = _clean(item.provider);
+    var manuscriptSource = _clean(item.source || source);
+    return item.enabled === true
+      && _isLlmManuscriptSource(manuscriptSource)
+      && /workers-ai|gemini/i.test(provider)
+      && item.externalGeneration === true
+      && item.externalCallsAllowed === true
+      && item.fallbackUsed !== true
+      && Number(item.chapterCount || 0) === SUKYO_TOTAL_CHAPTERS
+      && Number(item.expectedChapterCount || 0) === SUKYO_TOTAL_CHAPTERS;
   }
 
   function normalizeSukuyoError(error) {
@@ -259,6 +283,8 @@
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var execution = p.execution && typeof p.execution === 'object' ? p.execution : {};
     var chapters = _resolveSukuyoCompletedChapters(p);
+    var nested = p.payload && typeof p.payload === 'object' ? p.payload : {};
+    var llmAssembly = _resolveSukuyoLlmAssembly(p, ready, nested);
     return {
       ok: p.ok,
       code: _clean(p.code || p.errorCode || p.error),
@@ -270,9 +296,10 @@
       chapterCount: Number(p.chapterCount || chapters.length || 0),
       expectedChapterCount: SUKYO_TOTAL_CHAPTERS,
       qualityStatus: _clean(p.qualityStatus),
-      manuscriptSource: _clean(p.manuscriptSource || ready.manuscriptSource),
-      localDraftChapterCount: Number(p.localDraftChapterCount || ready.localDraftChapterCount || p.chapterCount || ready.chapterCount || chapters.length || 0),
-      localAssemblyOnly: p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false,
+      manuscriptSource: _clean(p.manuscriptSource || ready.manuscriptSource || llmAssembly.source),
+      llmDraftChapterCount: Number(p.llmDraftChapterCount || ready.llmDraftChapterCount || llmAssembly.chapterCount || p.chapterCount || ready.chapterCount || chapters.length || 0),
+      llmAssemblyOnly: p.llmAssemblyOnly === true || ready.llmAssemblyOnly === true || llmAssembly.externalGeneration === true,
+      llmAssemblyReady: _isSukuyoLlmAssemblyReady(llmAssembly, p.manuscriptSource || ready.manuscriptSource),
       externalCallsAllowed: p.externalCallsAllowed === true || ready.externalCallsAllowed === true,
       hasPdfUrl: !!_clean(p.downloadUrl || p.pdfUrl || p.storedUrl || p.reportUrl || p.fileUrl || p.storageUrl || ready.downloadUrl || ready.pdfUrl),
       keys: Object.keys(p).slice(0, 30),
@@ -286,11 +313,12 @@
     var summary = _summarizeSukuyoPayload(p);
     var nested = p.payload && typeof p.payload === 'object' ? p.payload : {};
     var validation = p.pdfCompletionValidation && typeof p.pdfCompletionValidation === 'object' ? p.pdfCompletionValidation : ready.pdfCompletionValidation;
-    var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource || nested.manuscriptSource || SUKYO_LOCAL_MANUSCRIPT_SOURCE);
-    var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount, p.chapterCount, ready.chapterCount, chapters.length);
-    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var llmAssembly = _resolveSukuyoLlmAssembly(p, ready, nested);
+    var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource || nested.manuscriptSource || llmAssembly.source || SUKYO_LLM_MANUSCRIPT_SOURCE);
+    var llmDraftChapterCount = _firstFiniteNumber(0, p.llmDraftChapterCount, ready.llmDraftChapterCount, llmAssembly.chapterCount, p.chapterCount, ready.chapterCount, chapters.length);
+    var llmAssemblyOnly = p.llmAssemblyOnly === true || ready.llmAssemblyOnly === true || llmAssembly.externalGeneration === true;
     var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
-    var countContractOk = localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
+    var countContractOk = llmDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var checks = {
       hasReportId: !!_clean(p.reportId),
       hasStoredUrl: !!_resolveSukuyoStoredUrl(p),
@@ -298,10 +326,11 @@
       serverCompleted: _clean(p.serverStatus) === 'completed' || _clean(p.status) === 'completed' || _clean(p.status) === 'done',
       qualityPassed: _clean(p.qualityStatus) === 'passed' || (validation && validation.ok === true),
       sourceAccepted: _isAcceptedManuscriptSource(manuscriptSource),
-      sourceLocalOnly: _isLocalManuscriptSource(manuscriptSource),
+      sourceLlmOnly: _isLlmManuscriptSource(manuscriptSource),
+      llmAssemblyReady: _isSukuyoLlmAssemblyReady(llmAssembly, manuscriptSource),
       chapterCountContract: countContractOk,
-      localAssemblyOnly: localAssemblyOnly,
-      externalCallsBlocked: !externalCallsAllowed,
+      llmAssemblyOnly: llmAssemblyOnly,
+      externalCallsAllowed: externalCallsAllowed,
     };
     summary.failedChecks = Object.keys(checks).filter(function (key) { return !checks[key]; });
     summary.checks = checks;
@@ -1638,7 +1667,8 @@
   function _resolveSukuyoStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
-    var reportId = _clean(p.reportId || ready.reportId);
+    var nested = p.payload && typeof p.payload === 'object' ? p.payload : {};
+    var reportId = _clean(p.reportId || ready.reportId || nested.reportId);
     var archiveUrl = _buildSukuyoArchiveUrl(reportId, 'pdf');
     var archivePending = p.archivePending === true
       || ready.archivePending === true
@@ -1657,6 +1687,9 @@
       || ready.reportUrl
       || ready.fileUrl
       || ready.storageUrl
+      || nested.downloadUrl
+      || nested.pdfUrl
+      || nested.htmlUrl
       || p.htmlUrl
       || ready.htmlUrl
       || archiveUrl
@@ -1913,9 +1946,13 @@
     var p = payload && typeof payload === 'object' ? payload : {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var nested = p.payload && typeof p.payload === 'object' ? p.payload : {};
+    var archive = p.archive && typeof p.archive === 'object' ? p.archive : {};
+    var metadataArchive = p.metadata && p.metadata.archive && typeof p.metadata.archive === 'object' ? p.metadata.archive : {};
     if (Array.isArray(p.chapters) && p.chapters.length) return p.chapters;
     if (Array.isArray(ready.chapters) && ready.chapters.length) return ready.chapters;
     if (Array.isArray(nested.chapters) && nested.chapters.length) return nested.chapters;
+    if (Array.isArray(archive.chapters) && archive.chapters.length) return archive.chapters;
+    if (Array.isArray(metadataArchive.chapters) && metadataArchive.chapters.length) return metadataArchive.chapters;
     return [];
   }
 
@@ -1924,19 +1961,20 @@
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var payloadBody = p.payload && typeof p.payload === 'object' ? p.payload : {};
     var chapters = _resolveSukuyoCompletedChapters(p);
-    var hasReportId = !!_clean(p.reportId);
+    var hasReportId = !!_clean(p.reportId || ready.reportId || payloadBody.reportId);
     var hasStoredUrl = !!_resolveSukuyoStoredUrl(p);
     var validation = p.pdfCompletionValidation && typeof p.pdfCompletionValidation === 'object' ? p.pdfCompletionValidation : ready.pdfCompletionValidation;
-    var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource || payloadBody.manuscriptSource || SUKYO_LOCAL_MANUSCRIPT_SOURCE);
-    var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount, p.chapterCount, ready.chapterCount, chapters.length);
+    var llmAssembly = _resolveSukuyoLlmAssembly(p, ready, payloadBody);
+    var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource || payloadBody.manuscriptSource || llmAssembly.source || SUKYO_LLM_MANUSCRIPT_SOURCE);
+    var llmDraftChapterCount = _firstFiniteNumber(0, p.llmDraftChapterCount, ready.llmDraftChapterCount, payloadBody.llmDraftChapterCount, llmAssembly.chapterCount, p.chapterCount, ready.chapterCount, payloadBody.chapterCount, chapters.length);
     var sourceOk = _isAcceptedManuscriptSource(manuscriptSource);
-    var sourceLocalOnly = _isLocalManuscriptSource(manuscriptSource);
-    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
-    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
-    var countContractOk = Number.isFinite(localDraftChapterCount)
-      && localDraftChapterCount >= 0
-      && localDraftChapterCount <= SUKYO_TOTAL_CHAPTERS
-      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
+    var sourceLlmOnly = _isLlmManuscriptSource(manuscriptSource);
+    var llmAssemblyOnly = p.llmAssemblyOnly === true || ready.llmAssemblyOnly === true || llmAssembly.externalGeneration === true;
+    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true || payloadBody.externalCallsAllowed === true || llmAssembly.externalCallsAllowed === true;
+    var countContractOk = Number.isFinite(llmDraftChapterCount)
+      && llmDraftChapterCount >= 0
+      && llmDraftChapterCount <= SUKYO_TOTAL_CHAPTERS
+      && llmDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var chapterShapeOk = chapters.length === SUKYO_TOTAL_CHAPTERS
       && chapters.every(function (chapter) {
         var sections = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
@@ -1948,16 +1986,19 @@
       || _clean(p.status) === 'completed'
       || _clean(p.status) === 'done';
     var qualityPassed = _clean(p.qualityStatus) === 'passed'
-      || (validation && validation.ok === true);
+      || (validation && validation.ok === true)
+      || (ready.pdfCompletionValidation && ready.pdfCompletionValidation.ok === true)
+      || _clean(payloadBody.qualityStatus) === 'passed';
     return hasReportId
       && hasStoredUrl
       && chapterShapeOk
       && serverCompleted
       && qualityPassed
       && sourceOk
-      && sourceLocalOnly
-      && localAssemblyOnly
-      && !externalCallsAllowed
+      && sourceLlmOnly
+      && llmAssemblyOnly
+      && externalCallsAllowed
+      && _isSukuyoLlmAssemblyReady(llmAssembly, manuscriptSource)
       && countContractOk;
   }
 
@@ -2078,7 +2119,7 @@
   function _setError(message) {
     var element = _qs('skErrorMsg');
     if (element) element.textContent = _sanitizeText(message) || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    _showScreen('skStartScreen');
+    _showScreen('skErrorScreen');
     _setSukuyoErrorWindowVisible(true, message);
   }
 
@@ -2091,6 +2132,12 @@
 
   function _setLoadingProgress(step, total, title) {
     var normalizedStep = Math.max(0, Math.min(total, Number(step) || 0));
+    if (normalizedStep <= 0) {
+      _lastLoadingStep = 0;
+    } else {
+      normalizedStep = Math.max(normalizedStep, _lastLoadingStep);
+      _lastLoadingStep = normalizedStep;
+    }
     var pct = Math.max(0, Math.min(100, Math.round((normalizedStep / Math.max(total, 1)) * 100)));
     var bar = _qs('skProgressBar');
     var text = _qs('skProgressText');
@@ -2122,6 +2169,7 @@
     _chapters = [];
     _resultPayload = null;
     _lastPremiumPayment = null;
+    _lastLoadingStep = 0;
     _activeSessionId = _clean(sessionId) || _newSessionId();
     _activeReportId = '';
     _activePaymentRequestId = '';
@@ -2228,11 +2276,17 @@
     var rawStep = Number(progress.currentChapterNo || progress.chapterNo || progress.step || 0);
     var fallbackStep = Math.min(total - 1, Math.max(1, Math.floor((Number(attempts) || 1) / 2) + 1));
     var step = Math.max(1, Math.min(total, rawStep || fallbackStep));
+    step = Math.max(step, _lastLoadingStep || 0);
     var stage = _clean(progress.stage || payload.status || '');
     var chapter = _canonicalChapters[step - 1] || {};
     var title = '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...';
     if (stage === 'pdf-rendering') title = '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다';
     if (stage === 'archive-completing') title = '완성된 PDF를 저장하고 다운로드를 준비하는 중입니다';
+    var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice() : [];
+    if (!completed.length) {
+      var doneCount = (stage === 'pdf-rendering' || stage === 'archive-completing') ? total : Math.max(0, step - 1);
+      for (var done = 1; done <= doneCount; done += 1) completed.push(done);
+    }
     _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
     _setLoadingProgress(step, total, title);
     _setLoadingNotice(payload.message || '숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
@@ -2242,7 +2296,7 @@
       currentChapterIndex: Math.max(0, step - 1),
       currentChapterNo: step,
       totalChapters: total,
-      completedChapters: [],
+      completedChapters: completed,
       failedChapters: [],
       reportId: _clean(payload.reportId || _activeReportId || (_resultPayload && _resultPayload.reportId)),
       sessionId: _clean(payload.sessionId || _activeSessionId),
@@ -2289,7 +2343,6 @@
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
-      if (pathname === SUKYO_PREPARE_API) headers['x-sukuyo-sync'] = '1';
 
       var endpoint = endpoints[endpointIndex++];
       fetch(endpoint, {
@@ -2529,10 +2582,11 @@
     var chapters = _resolveSukuyoCompletedChapters(safeReport);
     var pdfUrl = _withSukuyoArchiveFormat(_clean(safeReport.pdfUrl || ready.pdfUrl || safeReport.downloadUrl || ready.downloadUrl) || _buildSukuyoArchiveUrl(reportId, 'pdf'), 'pdf');
     var htmlUrl = _withSukuyoArchiveFormat(_clean(safeReport.htmlUrl || ready.htmlUrl) || _buildSukuyoArchiveUrl(reportId, 'html'), 'html');
-    var manuscriptSource = _clean(safeReport.manuscriptSource || payload.manuscriptSource || ready.manuscriptSource || SUKYO_LOCAL_MANUSCRIPT_SOURCE);
-    var localDraftChapterCount = _firstFiniteNumber(NaN, safeReport.localDraftChapterCount, payload.localDraftChapterCount, ready.localDraftChapterCount);
-    if (!Number.isFinite(localDraftChapterCount)) localDraftChapterCount = chapters.length;
-    var localAssemblyOnly = safeReport.localAssemblyOnly !== false && payload.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var llmAssembly = _resolveSukuyoLlmAssembly(safeReport, ready, payload);
+    var manuscriptSource = _clean(safeReport.manuscriptSource || payload.manuscriptSource || ready.manuscriptSource || llmAssembly.source || SUKYO_LLM_MANUSCRIPT_SOURCE);
+    var llmDraftChapterCount = _firstFiniteNumber(NaN, safeReport.llmDraftChapterCount, payload.llmDraftChapterCount, ready.llmDraftChapterCount, llmAssembly.chapterCount);
+    if (!Number.isFinite(llmDraftChapterCount)) llmDraftChapterCount = chapters.length;
+    var llmAssemblyOnly = safeReport.llmAssemblyOnly === true || payload.llmAssemblyOnly === true || ready.llmAssemblyOnly === true || llmAssembly.externalGeneration === true;
     var externalCallsAllowed = safeReport.externalCallsAllowed === true || payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
     return {
       ok: true,
@@ -2548,10 +2602,11 @@
       aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
       reportId: reportId,
       chapterCount: chapters.length,
-      localDraftChapterCount: localDraftChapterCount,
+      llmDraftChapterCount: llmDraftChapterCount,
       manuscriptSource: manuscriptSource,
-      localAssemblyOnly: localAssemblyOnly,
+      llmAssemblyOnly: llmAssemblyOnly,
       externalCallsAllowed: externalCallsAllowed,
+      llmAssembly: llmAssembly,
       chapters: chapters,
       payload: payload,
       pdfReady: {
@@ -2565,9 +2620,10 @@
         contentType: 'application/pdf',
         renderFormat: 'pdf-archive',
         manuscriptSource: manuscriptSource,
-        localAssemblyOnly: localAssemblyOnly,
+        llmAssemblyOnly: llmAssemblyOnly,
         externalCallsAllowed: externalCallsAllowed,
-        localDraftChapterCount: localDraftChapterCount,
+        llmDraftChapterCount: llmDraftChapterCount,
+        llmAssembly: llmAssembly,
       },
       pdfUrl: pdfUrl,
       htmlUrl: htmlUrl,
@@ -2954,7 +3010,15 @@
     } else {
       _renderProfileSummary(null);
     }
-    _showScreen('skStartScreen');
+    if (_resultPayload && _chapters.length && _isSukyoReportReady(_resultPayload)) {
+      _renderResult(_chapters, _resultPayload);
+      _showScreen('skResultScreen');
+    } else if (_generating) {
+      _showScreen('skLoadingScreen');
+      _setGenerationWindowVisible(true);
+    } else {
+      _showScreen('skStartScreen');
+    }
     _refreshReadinessPanel();
 
     modal.style.display = 'flex';

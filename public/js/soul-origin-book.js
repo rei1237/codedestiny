@@ -549,28 +549,21 @@
     var manuscriptSource = clean(data.manuscriptSource || pdfReady.manuscriptSource).toLowerCase();
     var chapterAuthoringSource = clean(data.chapterAuthoringSource).toLowerCase();
     var summarySource = clean(data.summarySource).toLowerCase();
-    var localAuthoringUsed = data.localAuthoringUsed === true;
-    var localAssembly = data.localAssembly && typeof data.localAssembly === 'object'
-      ? data.localAssembly
-      : (pdfReady.localAssembly && typeof pdfReady.localAssembly === 'object' ? pdfReady.localAssembly : {});
+    var llmAssembly = (data.llmAssembly && typeof data.llmAssembly === 'object')
+      ? data.llmAssembly
+      : (pdfReady.llmAssembly && typeof pdfReady.llmAssembly === 'object' ? pdfReady.llmAssembly : {});
+    var llmAssemblyOnly = data.llmAssemblyOnly === true || pdfReady.llmAssemblyOnly === true;
+    var externalGeneration = llmAssembly.externalGeneration === true;
+    var fallbackUsed = data.fallbackUsed === true || llmAssembly.fallbackUsed === true;
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data, 'pdf') && !!resolveReportUrl(data, 'html');
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = qualityStatus === 'passed';
-    var hasAcceptedManuscript = manuscriptSource === 'local-master-authored';
-    var hasAcceptedChapters = chapterAuthoringSource === 'local-master-authored';
-    var hasLocalSummary = summarySource === 'local-master-authored';
-    var hasLocalAssembly = localAssembly.enabled === true
-      && localAssembly.externalGeneration === false
-      && localAssembly.externalCallsAllowed === false
-      && localAssembly.fallbackUsed !== true
-      && clean(localAssembly.authoringEngine) === 'local-master-counsel-engine'
-      && Number(localAssembly.chapterCount || 0) >= EXPECTED_CHAPTER_COUNT
-      && Number(localAssembly.expectedChapterCount || 0) === EXPECTED_CHAPTER_COUNT
-      && clean(localAssembly.templateVersion) === 'soul-origin-local-master-v3';
-    var hasAcceptedAuthoring = localAuthoringUsed && hasLocalAssembly;
-    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasAcceptedAuthoring;
+    var hasAcceptedManuscript = manuscriptSource === 'llm-authored';
+    var hasAcceptedChapters = !chapterAuthoringSource || chapterAuthoringSource === 'llm-authored';
+    var hasAcceptedSummary = !summarySource || summarySource === 'llm-authored';
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasAcceptedSummary && llmAssemblyOnly && externalGeneration && !fallbackUsed;
   }
 
   function isSoulOriginRunning(payload) {
@@ -1130,11 +1123,14 @@
     if (code.indexOf('SOUL_ORIGIN_STATUS_TIMEOUT') >= 0) {
       return '운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 reportId로 다시 불러와 주세요.';
     }
-    if (stage === 'LOCAL-ASSEMBLY' || stage === 'LOCAL_ASSEMBLY') {
-      return '상담 문장 생성 단계에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    if (code.indexOf('LLM_NOT_CONFIGURED') >= 0
+      || code.indexOf('LLM_REQUEST_FAILED') >= 0
+      || code.indexOf('LLM_TIMEOUT') >= 0
+    ) {
+      return '운명의 업 상담 원고 생성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
-    if (code.indexOf('SOUL_ORIGIN_LOCAL_CHAPTER_VALIDATION_FAILED') >= 0
-      || code.indexOf('SOUL_ORIGIN_LOCAL_MANUSCRIPT_VALIDATION_FAILED') >= 0
+    if (code.indexOf('INVALID_LLM_RESPONSE') >= 0
+      || code.indexOf('QUALITY_VALIDATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0
     ) {
@@ -1319,13 +1315,9 @@
         .catch(function () { return next(); });
     }
     return next().then(function (cost) {
-      if (!cost) {
-        var error = new Error('결제 금액을 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-        error.code = 'SOUL_ORIGIN_PRICING_LOOKUP_FAILED';
-        error.status = 503;
-        throw error;
-      }
-      updateSoulOriginCoinCost(cost);
+      var effectiveCost = Number(cost || COIN_COST);
+      if (!cost) logStage('ProductLookupFallback', { fallbackCoinCost: effectiveCost });
+      updateSoulOriginCoinCost(effectiveCost);
       return _resolvedCoinCost;
     });
   }
@@ -1682,7 +1674,7 @@
       setLoadingMessage('사주·자미두수·점성술·베다점의 핵심 신호를 정밀 산출하는 중입니다.');
       logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
       setLoadingMessage('운명의 업 마스터 상담사가 장별 해석을 집필하는 중입니다.');
-      logStage('LocalAssemblyStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
+      logStage('MasterAuthoringStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
       setLoadingMessage('상담 품질을 검수하고 프리미엄 PDF로 봉인하는 중입니다.');
       logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var statusContext = {
@@ -1716,7 +1708,7 @@
         throw readyError;
       }
       logStage('ServerLocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('LocalAssemblySuccess', {
+      logStage('MasterAuthoringSuccess', {
         requestId: requestId,
         sessionId: clean(data && data.sessionId) || sessionId,
         chapterCount: Number(data && data.chapterCount || 0),

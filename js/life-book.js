@@ -1554,7 +1554,7 @@ function _isLifeBookGenerationBusy() {
         targetYear: _lbCurrentTargetYear || new Date().getFullYear(),
         savedAt: new Date().toISOString()
       }));
-    } catch (e) { /* ?⑸웾 珥덇낵 ?먮뒗 釉뚮씪?곗? ?쒗븳 */ }
+    } catch (e) { /* 저장 용량 초과 또는 브라우저 제한 */ }
   }
 
   function _lbLoadSaved(profile) {
@@ -1714,7 +1714,7 @@ function _isLifeBookGenerationBusy() {
       } catch (_dpE) {}
     }
     if (!profile) {
-      // ?낅젰 ?쇱쑝濡??ㅽ겕濡??좊룄
+      // 입력 영역으로 스크롤 유도
       var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
       if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
       alert('인생의 책을 생성하려면 생년월일과 출생 시간을 입력하고 사주 분석을 먼저 완료해 주세요.');
@@ -1727,7 +1727,7 @@ function _isLifeBookGenerationBusy() {
       gender: String((profile && profile.gender) || ''),
     });
 
-    // 蹂듦뎄???꾨줈?꾩씠 ?덉쑝硫?window??二쇱엯
+    // 복구된 프로필이 있으면 window에 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
     }
@@ -1858,6 +1858,15 @@ function _isLifeBookGenerationBusy() {
     local_reinforce: '부족한 장을 보강하는 중',
   };
 
+  Object.assign(_lbStateMessages, {
+    local_draft: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    local_chapters_start: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    local_writing: '인생의 책 원고를 LLM으로 정리하는 중',
+    writing_local: '인생의 책 원고를 LLM으로 정리하는 중',
+    calculation_validated: '사주 계산 완료 · LLM 원고 생성 시작',
+    local_reinforce: '인생의 책 원고를 보강하는 중',
+  });
+
   window.generateLifeBook = function (options) {
     if (_isLifeBookGenerationBusy()) return;
 
@@ -1961,7 +1970,7 @@ function _isLifeBookGenerationBusy() {
         };
         profile.location = _newLoc;
         if (window.__cdActiveBirthProfile) window.__cdActiveBirthProfile.location = _newLoc;
-        /* ?좏깮???꾩튂濡??ъ＜ ?먭뎅 ?ш퀎??*/
+        /* 선택한 위치로 사주 원국 재계산 */
         if (typeof window.computeProfileForModal === 'function') {
           window.computeProfileForModal(profile);
         }
@@ -2028,7 +2037,7 @@ function _isLifeBookGenerationBusy() {
     var chapterNumEl = _qs('lbLoadingChapterNum');
     var mysticEl = _qs('lbMysticQuote');
 
-    // ?좊퉬 硫섑듃 ?명꽣踰??쒖옉
+    // 준비 멘트 인터벌 시작
     if (_mysticTimer) clearInterval(_mysticTimer);
     var _mqIdx = 0;
     if (mysticEl) {
@@ -2063,7 +2072,7 @@ function _isLifeBookGenerationBusy() {
       if (chapterNumEl) {
         chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? ('제 ' + (done + 1) + '장') : '완료';
       }
-      // 梨뺥꽣 ?꾩씠肄??낅뜲?댄듃
+      // 챕터 아이콘 업데이트
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-lbch'));
         var wasDone = d.classList.contains('lb-ch-dot--done');
@@ -2146,7 +2155,7 @@ function _isLifeBookGenerationBusy() {
       });
       _lifeBookLog('PaymentGateSuccess', { reportId: _lbReportId });
       _setGenerationState('calculating_saju');
-      _lifeBookLog('LocalCalculationStart', { reportId: _lbReportId });
+      _lifeBookLog('CalculationStart', { reportId: _lbReportId });
       _setGenerationState('daewoon_calc');
       _flowLog('LIFE_BOOK_GENERATION_SESSION_CREATED', {
         featureKey: LIFE_BOOK_FEATURE_KEY,
@@ -2168,9 +2177,9 @@ function _isLifeBookGenerationBusy() {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'local-assembled',
+        generationMode: 'llm-only',
         calculationSource: 'local-saju-engine',
-        authoringMode: 'local-assembled',
+        authoringMode: 'llm-only',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -2221,7 +2230,7 @@ function _isLifeBookGenerationBusy() {
         }
         if (Number.isFinite(_current) && _current > 0) {
           _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
-          _lifeBookLog('LocalChapterProgress', {
+          _lifeBookLog('LlmChapterProgress', {
             chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
             total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
           });
@@ -2298,8 +2307,8 @@ function _isLifeBookGenerationBusy() {
         ''
       );
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
-      var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'life-book-local-v1')).trim();
-      _lifeBookLog('ManuscriptSourceResolved', { source: _manuscriptSource || 'life-book-local-v1' });
+      var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'life-book-llm-v1')).trim();
+      _lifeBookLog('ManuscriptSourceResolved', { source: _manuscriptSource || 'life-book-llm-v1' });
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
@@ -2345,24 +2354,25 @@ function _isLifeBookGenerationBusy() {
         };
         if (chapterMsg) chapterMsg.textContent = '제 ' + (_i + 1) + '장 정리 완료 · 다음 챕터를 준비하고 있습니다...';
         _setProgress(_i + 1);
-        _lifeBookLog('LocalDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
+        _lifeBookLog('LlmDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
         await new Promise(function (r) { setTimeout(r, 90); });
       }
 
       _setGenerationState('writing_local');
-      _flowLog('LIFE_BOOK_LOCAL_ASSEMBLED_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
-      _lifeBookLog('LocalManuscriptReady', { reportId: _lbReportId });
-      var _localAssembly = (_data && _data.localAssembly && typeof _data.localAssembly === 'object')
-        ? _data.localAssembly
-        : ((_data && _data.pdfReady && _data.pdfReady.localAssembly && typeof _data.pdfReady.localAssembly === 'object') ? _data.pdfReady.localAssembly : {});
+      _flowLog('LIFE_BOOK_LLM_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
+      _lifeBookLog('LlmManuscriptReady', { reportId: _lbReportId });
+      var _llmAssembly = (_data && _data.llmAssembly && typeof _data.llmAssembly === 'object')
+        ? _data.llmAssembly
+        : ((_data && _data.pdfReady && _data.pdfReady.llmAssembly && typeof _data.pdfReady.llmAssembly === 'object') ? _data.pdfReady.llmAssembly : {});
       if (
-        !/local-assembled/i.test(_manuscriptSource)
-        || _localAssembly.enabled !== true
-        || _localAssembly.externalGeneration !== false
-        || Number(_localAssembly.chapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
-        || Number(_localAssembly.expectedChapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
+        !/llm/i.test(_manuscriptSource)
+        || _llmAssembly.enabled !== true
+        || _llmAssembly.externalGeneration !== true
+        || _llmAssembly.fallbackUsed === true
+        || Number(_llmAssembly.chapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
+        || Number(_llmAssembly.expectedChapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
       ) {
-        throw new Error('LIFE_BOOK_LOCAL_ASSEMBLY_REQUIRED');
+        throw new Error('LIFE_BOOK_LLM_ASSEMBLY_REQUIRED');
       }
 
       _setGenerationState('rendering_pdf');

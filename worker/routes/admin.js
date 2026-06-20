@@ -4293,21 +4293,29 @@ async function handleAdminDiag(request, env) {
 
 function listGeminiKeyStatus(env) {
   const keyNames = [
+    "PREMIUM_GEMINI_API_KEY0",
     "PREMIUM_GEMINI_API_KEY1",
     "PREMIUM_GEMINI_API_KEY2",
     "PREMIUM_GEMINI_API_KEY3",
     "PREMIUM_GEMINI_API_KEY4",
     "PREMIUM_GEMINI_API_KEY5",
+    "PREMIUM_GEMINI_API_KEY6",
+    "PREMIUM_GEMINI_API_KEY7",
+    "PREMIUM_GEMINI_API_KEY8",
     "GEMINI_API_KEY",
     "GOOGLE_GEMINI_API_KEY",
     "GOOGLE_GENERATIVE_AI_API_KEY",
     "GOOGLE_AI_API_KEY",
     "GOOGLE_API_KEY",
+    "GEMINIF_API_KEY0",
     "GEMINIF_API_KEY1",
     "GEMINIF_API_KEY2",
     "GEMINIF_API_KEY3",
     "GEMINIF_API_KEY4",
     "GEMINIF_API_KEY5",
+    "GEMINIF_API_KEY6",
+    "GEMINIF_API_KEY7",
+    "GEMINIF_API_KEY8",
   ];
   const status = {};
   let enabledCount = 0;
@@ -4325,22 +4333,31 @@ function listGeminiKeyStatus(env) {
 async function runGeminiSmoke(env, requestId) {
   const prompt = `healthcheck:${requestId}`;
   const result = await callGeminiText(env, prompt, {
+    disableWorkersAiPrimary: true,
     keyEnvKeys: [
+      "PREMIUM_GEMINI_API_KEY0",
       "PREMIUM_GEMINI_API_KEY1",
       "PREMIUM_GEMINI_API_KEY2",
       "PREMIUM_GEMINI_API_KEY3",
       "PREMIUM_GEMINI_API_KEY4",
       "PREMIUM_GEMINI_API_KEY5",
+      "PREMIUM_GEMINI_API_KEY6",
+      "PREMIUM_GEMINI_API_KEY7",
+      "PREMIUM_GEMINI_API_KEY8",
       "GEMINI_API_KEY",
       "GOOGLE_GEMINI_API_KEY",
       "GOOGLE_GENERATIVE_AI_API_KEY",
       "GOOGLE_AI_API_KEY",
       "GOOGLE_API_KEY",
+      "GEMINIF_API_KEY0",
       "GEMINIF_API_KEY1",
       "GEMINIF_API_KEY2",
       "GEMINIF_API_KEY3",
       "GEMINIF_API_KEY4",
       "GEMINIF_API_KEY5",
+      "GEMINIF_API_KEY6",
+      "GEMINIF_API_KEY7",
+      "GEMINIF_API_KEY8",
     ],
     modelEnvKeys: ["PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
     temperature: 0,

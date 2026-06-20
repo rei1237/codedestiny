@@ -585,9 +585,9 @@ export default function SajuLifebookPage() {
         productKey: FEATURE_KEY,
         featureKey: FEATURE_KEY,
         reportType: "lifeBook",
-        generationMode: "local",
+        generationMode: "llm-only",
         calculationSource: "client-quantum-myeongri-v2+worker-saju-engine",
-        authoringMode: "local",
+        authoringMode: "llm-only",
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportId: String(accessGrant?.reportId || reportId || "").trim(),
@@ -1014,4 +1014,3 @@ export default function SajuLifebookPage() {
     </main>
   );
 }
-

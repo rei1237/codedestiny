@@ -27,8 +27,6 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
-import { generateSukuyoLocalPdf } from "../pdf-v2/sukuyo-local-pdf.js";
-
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKUYO_EXECUTION_STALE_MS = 25 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
@@ -913,6 +911,35 @@ function buildSukuyoRunningResponse(request, { sessionId = "", reportId = "", fe
   };
 }
 
+function buildSukuyoGenerationFailureProgress(error = {}) {
+  const failedChapters = Array.isArray(error?.failedChapters)
+    ? error.failedChapters.slice(0, 15).map((chapter) => ({
+      id: clean(chapter?.id || chapter?.chapterId || ""),
+      order: Number(chapter?.order || chapter?.chapterOrder || 0) || undefined,
+      title: clean(chapter?.title || ""),
+      errorCode: clean(chapter?.errorCode || ""),
+      attempts: Array.isArray(chapter?.attempts)
+        ? chapter.attempts.slice(-8).map((attempt) => ({
+          provider: clean(attempt?.provider || ""),
+          retry: Number(attempt?.retry || 0),
+          ok: Boolean(attempt?.ok),
+          errorCode: clean(attempt?.errorCode || ""),
+          status: Number(attempt?.status || 0) || undefined,
+          issues: Array.isArray(attempt?.issues) ? attempt.issues.slice(0, 10).map((issue) => clean(issue)) : undefined,
+        }))
+        : [],
+    }))
+    : [];
+  return {
+    stage: "failed",
+    errorCode: clean(error?.code || error?.errorCode || "SUKUYO_PREMIUM_LLM_GENERATION_FAILED"),
+    error: clean(error?.message || "숙요점 PDF 문장 생성에 실패했습니다. 잠시 후 다시 시도해 주세요."),
+    failedChapters,
+    chapterCount: Number(error?.chapterCount || 0) || 0,
+    expectedChapterCount: Number(error?.expectedChapterCount || SUKYO_PDF_CHAPTER_COUNT) || SUKYO_PDF_CHAPTER_COUNT,
+  };
+}
+
 async function findSukuyoReusableExecution(env, userId, executionCtx = {}, fallback = {}) {
   try {
     await connectDb(withPdfFastDbEnv(env));
@@ -1239,18 +1266,36 @@ async function resolveSukuyoPaidFeatureAccess(env, userId, featureKey, reportId,
 }
 
 function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
-  const localContract = buildSukuyoLocalContract(generated, pdfReady);
+  const llmContract = buildSukuyoLlmContract(generated, pdfReady);
   const enhancedPdfReady = {
     ...(pdfReady || {}),
     reportId,
-    chapterCount: localContract.chapterCount,
+    chapterCount: llmContract.chapterCount,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-    localDraftChapterCount: localContract.localDraftChapterCount,
-    localAssemblyOnly: localContract.localAssemblyOnly,
-    externalCallsAllowed: localContract.externalCallsAllowed,
-    localAssembly: localContract.localAssembly,
+    llmDraftChapterCount: llmContract.llmDraftChapterCount,
+    llmAssemblyOnly: llmContract.llmAssemblyOnly,
+    externalCallsAllowed: llmContract.externalCallsAllowed,
+    llmAssembly: llmContract.llmAssembly,
     canDownload: true,
   };
+  const payload = generated?.payload && typeof generated.payload === "object"
+    ? {
+      ...generated.payload,
+      ok: true,
+      status: "completed",
+      serverStatus: "completed",
+      qualityStatus: "passed",
+      reportId,
+      chapterCount: llmContract.chapterCount,
+      expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+      llmDraftChapterCount: llmContract.llmDraftChapterCount,
+      llmAssemblyOnly: llmContract.llmAssemblyOnly,
+      externalCallsAllowed: llmContract.externalCallsAllowed,
+      llmAssembly: llmContract.llmAssembly,
+      chapters: generated.chapters,
+      pdfReady: enhancedPdfReady,
+    }
+    : null;
   return {
     reportId,
     reportType: "sukyo_book",
@@ -1267,34 +1312,35 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     pdfUrl: enhancedPdfReady.pdfUrl,
     htmlUrl: enhancedPdfReady.htmlUrl,
     downloadUrl: enhancedPdfReady.downloadUrl,
-    chapterCount: localContract.chapterCount,
+    chapterCount: llmContract.chapterCount,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-    localDraftChapterCount: localContract.localDraftChapterCount,
-    localAssemblyOnly: localContract.localAssemblyOnly,
-    externalCallsAllowed: localContract.externalCallsAllowed,
+    llmDraftChapterCount: llmContract.llmDraftChapterCount,
+    llmAssemblyOnly: llmContract.llmAssemblyOnly,
+    externalCallsAllowed: llmContract.externalCallsAllowed,
     chapters: generated.chapters,
-    payload: generated.payload,
-    localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
+    payload,
+    sukuyoCompatibilityJson: generated?.payload?.sukuyoCompatibilityJson || generated?.payload,
     pdfReady: enhancedPdfReady,
     manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
     generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
     provider: generated.provider || SUKYO_PDF_CONFIG.provider,
-    writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
-    localAssembly: localContract.localAssembly,
+    writingPipeline: generated.writingPipeline || "sukyo-calculation-to-llm-authored-pdf",
+    llmAssembly: llmContract.llmAssembly,
+    pdfV2: generated.pdfV2 || generated?.payload?.pdfV2 || null,
     pdfCompletionValidation: generated.pdfCompletionValidation,
     canReopen: true,
     canDownload: true,
   };
 }
 
-function buildSukuyoLocalContract(generated = {}, pdfReady = {}) {
+function buildSukuyoLlmContract(generated = {}, pdfReady = {}) {
   const chapters = Array.isArray(generated?.chapters) ? generated.chapters : [];
-  const sourceAssembly = generated?.localAssembly && typeof generated.localAssembly === "object"
-    ? generated.localAssembly
-    : generated?.payload?.localAssembly && typeof generated.payload.localAssembly === "object"
-      ? generated.payload.localAssembly
-      : pdfReady?.localAssembly && typeof pdfReady.localAssembly === "object"
-        ? pdfReady.localAssembly
+  const sourceAssembly = generated?.llmAssembly && typeof generated.llmAssembly === "object"
+    ? generated.llmAssembly
+    : generated?.payload?.llmAssembly && typeof generated.payload.llmAssembly === "object"
+      ? generated.payload.llmAssembly
+      : pdfReady?.llmAssembly && typeof pdfReady.llmAssembly === "object"
+        ? pdfReady.llmAssembly
         : {};
   const chapterCount = Number(
     generated?.chapterCount
@@ -1302,7 +1348,7 @@ function buildSukuyoLocalContract(generated = {}, pdfReady = {}) {
     || chapters.length
     || SUKYO_PDF_CHAPTER_COUNT,
   );
-  const localAssembly = {
+  const llmAssembly = {
     ...sourceAssembly,
     enabled: true,
     source: clean(sourceAssembly.source || generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
@@ -1310,15 +1356,17 @@ function buildSukuyoLocalContract(generated = {}, pdfReady = {}) {
     templateVersion: SUKYO_PDF_CONFIG.templateVersion,
     chapterCount,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-    externalGeneration: false,
-    externalCallsAllowed: false,
   };
+  const usesLlm = /^llm/i.test(llmAssembly.source) || /workers-ai|gemini/i.test(llmAssembly.provider);
+  llmAssembly.externalGeneration = usesLlm ? true : false;
+  llmAssembly.externalCallsAllowed = usesLlm ? true : false;
+  llmAssembly.fallbackUsed = usesLlm ? false : true;
   return {
     chapterCount,
-    localDraftChapterCount: chapterCount,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
-    localAssembly,
+    llmDraftChapterCount: chapterCount,
+    llmAssemblyOnly: usesLlm,
+    externalCallsAllowed: usesLlm,
+    llmAssembly,
   };
 }
 
@@ -1328,44 +1376,82 @@ function hasCompleteSukuyoChapters(chapters = []) {
     const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
     const expectedSections = Array.isArray(SUKYO_PDF_CHAPTERS[index]?.sections) ? SUKYO_PDF_CHAPTERS[index].sections.length : 5;
     return clean(chapter?.title)
-      && sections.length === expectedSections
+      && sections.length >= Math.max(1, expectedSections)
       && sections.every((section) => clean(section?.heading) && clean(section?.body));
   });
 }
 
+function resolveSukuyoCompletedChaptersFromPayload(payload = {}) {
+  const candidates = [
+    payload?.chapters,
+    payload?.payload?.chapters,
+    payload?.pdfReady?.chapters,
+    payload?.archive?.chapters,
+    payload?.metadata?.archive?.chapters,
+  ];
+  for (const value of candidates) {
+    if (Array.isArray(value) && value.length) return value;
+  }
+  return [];
+}
+
+function resolveSukuyoReadyFromPayload(payload = {}) {
+  if (payload?.pdfReady && typeof payload.pdfReady === "object") return payload.pdfReady;
+  if (payload?.payload?.pdfReady && typeof payload.payload.pdfReady === "object") return payload.payload.pdfReady;
+  if (payload?.archive?.pdfReady && typeof payload.archive.pdfReady === "object") return payload.archive.pdfReady;
+  if (payload?.metadata?.archive?.pdfReady && typeof payload.metadata.archive.pdfReady === "object") return payload.metadata.archive.pdfReady;
+  return {};
+}
+
+function resolveSukuyoLlmAssemblyFromPayload(payload = {}, ready = {}) {
+  const candidates = [
+    payload?.llmAssembly,
+    ready?.llmAssembly,
+    payload?.payload?.llmAssembly,
+    payload?.archive?.llmAssembly,
+    payload?.metadata?.archive?.llmAssembly,
+  ];
+  for (const value of candidates) {
+    if (value && typeof value === "object") return value;
+  }
+  return {};
+}
+
 function isSukuyoCompletedPayloadReady(payload = {}) {
-  const chapters = Array.isArray(payload?.chapters) ? payload.chapters : [];
-  const ready = payload?.pdfReady && typeof payload.pdfReady === "object" ? payload.pdfReady : {};
+  const nested = payload?.payload && typeof payload.payload === "object" ? payload.payload : {};
+  const chapters = resolveSukuyoCompletedChaptersFromPayload(payload);
+  const ready = resolveSukuyoReadyFromPayload(payload);
   const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
-  const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource);
-  const localAssembly = payload?.localAssembly && typeof payload.localAssembly === "object"
-    ? payload.localAssembly
-    : ready?.localAssembly && typeof ready.localAssembly === "object"
-      ? ready.localAssembly
-      : {};
-  const localDraftChapterCount = Number(
-    payload?.localDraftChapterCount
-    || ready?.localDraftChapterCount
-    || localAssembly.chapterCount
+  const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource || nested.manuscriptSource);
+  const llmAssembly = resolveSukuyoLlmAssemblyFromPayload(payload, ready);
+  const llmDraftChapterCount = Number(
+    payload?.llmDraftChapterCount
+    || ready?.llmDraftChapterCount
+    || nested.llmDraftChapterCount
+    || llmAssembly.chapterCount
     || chapters.length
     || 0,
   );
-  const localAssemblyOnly = payload?.localAssemblyOnly !== false
-    && ready?.localAssemblyOnly !== false
-    && localAssembly.externalGeneration !== true;
+  const llmAssemblyOnly = payload?.llmAssemblyOnly === true
+    || ready?.llmAssemblyOnly === true
+    || nested.llmAssemblyOnly === true
+    || llmAssembly.externalGeneration === true;
   const externalCallsAllowed = payload?.externalCallsAllowed === true
     || ready?.externalCallsAllowed === true
-    || localAssembly.externalCallsAllowed === true;
-  const sourceIsLocal = ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource);
-  const localAssemblyOk = localAssembly.enabled === true
-    && localAssembly.externalGeneration === false
-    && localAssembly.externalCallsAllowed === false
-    && Number(localAssembly.chapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
-    && Number(localAssembly.expectedChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
-    && clean(localAssembly.templateVersion) === SUKYO_PDF_CONFIG.templateVersion;
-  const chapterCountContractOk = localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT
-    && localAssemblyOnly
-    && !externalCallsAllowed;
+    || nested.externalCallsAllowed === true
+    || llmAssembly.externalCallsAllowed === true;
+  const sourceUsesLlm = /^llm/i.test(manuscriptSource) || /workers-ai|gemini/i.test(clean(llmAssembly.provider));
+  const llmAssemblyOk = llmAssembly.enabled === true
+    && sourceUsesLlm
+    && llmAssembly.externalGeneration === true
+    && llmAssembly.externalCallsAllowed === true
+    && llmAssembly.fallbackUsed !== true
+    && Number(llmAssembly.chapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
+    && Number(llmAssembly.expectedChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
+    && clean(llmAssembly.templateVersion) === SUKYO_PDF_CONFIG.templateVersion;
+  const chapterCountContractOk = llmDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT
+    && llmAssemblyOnly
+    && externalCallsAllowed;
   const chapterQuality = payload?.chapterQuality && typeof payload.chapterQuality === "object"
     ? payload.chapterQuality
     : payload?.payload?.chapterQuality && typeof payload.payload.chapterQuality === "object"
@@ -1377,9 +1463,9 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && hasUrl
     && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
-    && clean(payload?.qualityStatus) === "passed"
-    && sourceIsLocal
-    && localAssemblyOk
+    && (clean(payload?.qualityStatus) === "passed" || clean(nested.qualityStatus) === "passed" || ready?.pdfCompletionValidation?.ok === true)
+    && sourceUsesLlm
+    && llmAssemblyOk
     && chapterCountContractOk
     && chapterQualityOk
   );
@@ -1530,7 +1616,24 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
 
   if (existingLock?.status === "done" && existingLock?.result) {
     if (!isSukuyoCompletedPayloadReady(existingLock.result)) {
-      sukuyoPdfGenerationLocks.delete(sessionId);
+      sukuyoPdfGenerationLocks.set(sessionId, {
+        ...existingLock,
+        status: "failed",
+        progress: {
+          ...(existingLock.progress || {}),
+          stage: "validation_failed",
+          error: "SUKUYO_COMPLETED_PAYLOAD_INVALID",
+        },
+      });
+      return json({
+        ok: false,
+        status: "failed",
+        serverStatus: "validation_failed",
+        code: "SUKUYO_COMPLETED_PAYLOAD_INVALID",
+        message: "숙요점 PDF 완료 결과 검증이 끝나지 않았습니다. 다시 생성해 주세요.",
+        reportId: clean(existingLock.reportId || reportId),
+        sessionId,
+      }, { status: 500 });
     } else {
     return json({
       ...existingLock.result,
@@ -1719,39 +1822,45 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
       manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
-      localAssembly: generated?.localAssembly || generated?.payload?.localAssembly || {
+      llmAssembly: generated?.llmAssembly || generated?.payload?.llmAssembly || {
         enabled: true,
         source: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
         provider: clean(generated?.provider || generated?.payload?.provider || SUKYO_PDF_CONFIG.provider),
         templateVersion: SUKYO_PDF_CONFIG.templateVersion,
         chapterCount: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT),
         expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-        externalGeneration: false,
-        externalCallsAllowed: false,
+        externalGeneration: true,
+        externalCallsAllowed: true,
+        fallbackUsed: false,
       },
     };
-    const localContract = buildSukuyoLocalContract(generated, pdfReady);
+    const llmContract = buildSukuyoLlmContract(generated, pdfReady);
     Object.assign(pdfReady, {
       reportId,
-      chapterCount: localContract.chapterCount,
+      chapterCount: llmContract.chapterCount,
       expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-      localDraftChapterCount: localContract.localDraftChapterCount,
-      localAssemblyOnly: localContract.localAssemblyOnly,
-      externalCallsAllowed: localContract.externalCallsAllowed,
-      localAssembly: localContract.localAssembly,
+      llmDraftChapterCount: llmContract.llmDraftChapterCount,
+      llmAssemblyOnly: llmContract.llmAssemblyOnly,
+      externalCallsAllowed: llmContract.externalCallsAllowed,
+      llmAssembly: llmContract.llmAssembly,
       canDownload: true,
     });
     const responsePayload = generated?.payload && typeof generated.payload === "object"
       ? {
         ...generated.payload,
-        chapterCount: localContract.chapterCount,
+        ok: true,
+        status: "completed",
+        reportId,
+        chapterCount: llmContract.chapterCount,
         expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-        localDraftChapterCount: localContract.localDraftChapterCount,
-        localAssemblyOnly: localContract.localAssemblyOnly,
-        externalCallsAllowed: localContract.externalCallsAllowed,
-        localAssembly: localContract.localAssembly,
+        llmDraftChapterCount: llmContract.llmDraftChapterCount,
+        llmAssemblyOnly: llmContract.llmAssemblyOnly,
+        externalCallsAllowed: llmContract.externalCallsAllowed,
+        llmAssembly: llmContract.llmAssembly,
         serverStatus: "completed",
         qualityStatus: "passed",
+        chapters: generated.chapters,
+        pdfReady,
       }
       : generated?.payload;
 
@@ -1790,24 +1899,11 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       }
     }
     pdfReady.pdfCompletionValidation = pdfCompletionValidation;
-    const localPdfResult = await generateSukuyoLocalPdf({
-      reportId,
-      sessionId,
-      featureKey,
-      chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
-      chapters: generated.chapters,
-      localAssembly: localContract.localAssembly,
+    const pdfPackagingResult = {
       pdfReady,
       pdfCompletionValidation,
-      pdfUrl: pdfReady.pdfUrl,
-      htmlUrl: pdfReady.htmlUrl,
-      downloadUrl: pdfReady.downloadUrl,
-    }, {
-      config: SUKYO_PDF_CONFIG,
-      expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-      buildLocalPdf: (payload) => payload,
-    });
+      llmAssembly: llmContract.llmAssembly,
+    };
 
     const archiveMetadata = buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId);
     let archiveStatus = "completed";
@@ -1833,7 +1929,7 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
         completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
           chapterCount: generated.chapterCount,
           manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
-          localAssembly: localContract.localAssembly,
+          llmAssembly: llmContract.llmAssembly,
           pdfCompletionValidation,
           archive: archiveMetadata,
         }),
@@ -1877,18 +1973,17 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
       canonicalReportType: "sookyoPremium",
       aliasReportTypes: ["sukyoPremium", "sukyo_book"],
-      chapterCount: localContract.chapterCount,
+      chapterCount: llmContract.chapterCount,
       expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
-      localDraftChapterCount: localContract.localDraftChapterCount,
+      llmDraftChapterCount: llmContract.llmDraftChapterCount,
       manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
       generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
       provider: generated.provider || SUKYO_PDF_CONFIG.provider,
-      writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
-      localAssembly: localContract.localAssembly,
-      localAssemblyOnly: localContract.localAssemblyOnly,
-      externalCallsAllowed: localContract.externalCallsAllowed,
-      localOnly: localPdfResult.localOnly,
-      localContract: localPdfResult.localContract,
+      writingPipeline: generated.writingPipeline || "sukyo-calculation-to-llm-authored-pdf",
+      llmAssembly: llmContract.llmAssembly,
+      llmAssemblyOnly: llmContract.llmAssemblyOnly,
+      externalCallsAllowed: llmContract.externalCallsAllowed,
+      llmPackaging: pdfPackagingResult,
       pdfCompletionValidation,
       archiveStatus,
       archivePending: archiveStatus !== "completed",
@@ -1935,12 +2030,13 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
+    const failureProgress = buildSukuyoGenerationFailureProgress(error);
     await failPremiumPdfExecution(
       pdfDbEnv,
       auth.userId,
       failedCtx,
       "sukuyo_generation_failed",
-      clean(error?.message || "숙요점 PDF 생성에 실패했습니다."),
+      clean(failureProgress.error || "숙요점 PDF 생성에 실패했습니다."),
       "sukuyo-generation",
     );
     sukuyoPdfGenerationLocks.set(sessionId, {
@@ -1949,16 +2045,22 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       featureKey,
       status: "failed",
       startedAt: new Date().toISOString(),
-      progress: { stage: "failed", error: clean(error?.message || "unknown") },
+      progress: failureProgress,
+    });
+    console.error("[SukuyoPremiumPDF][GenerationFailed]", {
+      reportId,
+      sessionId,
+      errorCode: failureProgress.errorCode,
+      chapterCount: failureProgress.chapterCount,
+      expectedChapterCount: failureProgress.expectedChapterCount,
+      failedChapters: failureProgress.failedChapters,
     });
     throw error;
   }
 }
 
 async function handleSukuyoPremiumPrepare(request, env, ctx = null) {
-  return await handleSukuyoPremiumPrepareSync(request, env);
-
-  if (!ctx || typeof ctx.waitUntil !== "function" || request.headers.get("x-sukuyo-sync") === "1") {
+  if (!ctx || typeof ctx.waitUntil !== "function") {
     return await handleSukuyoPremiumPrepareSync(request, env);
   }
 
@@ -2087,19 +2189,21 @@ async function handleSukuyoPremiumPrepare(request, env, ctx = null) {
         try { await response?.text?.(); } catch (_) {}
       })
       .catch((error) => {
+        const failureProgress = buildSukuyoGenerationFailureProgress(error);
         sukuyoPdfGenerationLocks.set(sessionId, {
           sessionId,
           reportId,
           featureKey,
           status: "failed",
           startedAt: new Date().toISOString(),
-          progress: { stage: "failed", error: clean(error?.message || error) },
+          progress: failureProgress,
         });
         console.error("[SukuyoPremiumPDF][BackgroundPrepareFailed]", {
           reportId,
           sessionId,
-          code: clean(error?.code || ""),
-          message: clean(error?.message || error).slice(0, 200),
+          code: failureProgress.errorCode,
+          message: clean(failureProgress.error || error).slice(0, 200),
+          failedChapters: failureProgress.failedChapters,
         });
       }),
   );
@@ -2181,6 +2285,18 @@ async function handleSukuyoPremiumStatus(request, env) {
       },
     });
   }
+  if (lock?.status === "done" && lock.result && !isSukuyoCompletedPayloadReady(lock.result)) {
+    return json({
+      ok: true,
+      execution: {
+        status: "failed",
+        premiumStatus: "validation_failed",
+        reportId: clean(lock.reportId || reportId),
+        sessionId,
+        reasonMessage: "숙요점 PDF 완료 결과 검증이 끝나지 않았습니다. 다시 생성해 주세요.",
+      },
+    });
+  }
   if (["queued", "running"].includes(clean(lock?.status))) {
     return json({
       ok: true,
@@ -2226,6 +2342,7 @@ async function handleSukuyoPremiumStatus(request, env) {
   }
 
   if (lock?.status === "failed") {
+    const failureProgress = lock.progress || {};
     return json({
       ok: true,
       execution: {
@@ -2233,7 +2350,11 @@ async function handleSukuyoPremiumStatus(request, env) {
         premiumStatus: "failed",
         reportId: clean(lock.reportId || reportId),
         sessionId,
-        reasonMessage: clean(lock.progress?.error || "숙요점 PDF 생성이 완료되지 않았습니다."),
+        reasonMessage: clean(failureProgress.error || "숙요점 PDF 생성이 완료되지 않았습니다."),
+        errorCode: clean(failureProgress.errorCode || ""),
+        failedChapters: Array.isArray(failureProgress.failedChapters) ? failureProgress.failedChapters : [],
+        chapterCount: Number(failureProgress.chapterCount || 0) || 0,
+        expectedChapterCount: Number(failureProgress.expectedChapterCount || SUKYO_PDF_CHAPTER_COUNT) || SUKYO_PDF_CHAPTER_COUNT,
       },
     });
   }

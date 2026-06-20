@@ -6,6 +6,7 @@ import {
 } from "./content-unlocks.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
+import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   sajuNewYear: ["premiumDivinationPack"],
@@ -117,6 +118,51 @@ function logPremiumAccessDecision(payload = {}) {
     return;
   }
   console.info("[PremiumAccessDecision]", safe);
+}
+
+function resolvePremiumPassReportAccess(user = {}, {
+  normalizedReportType = "",
+  requestBody = {},
+  requiredRules = [],
+  alternativeRules = [],
+  unlockPolicy = [],
+  receivedFeatureKey = "",
+} = {}) {
+  const entitlement = normalizeHoneyPassEntitlement(user || {});
+  if (entitlement?.isActive !== true) return null;
+
+  const passTier = String(entitlement.passTier || entitlement.tier || "").trim();
+  const maxCoveredCoin = Number(entitlement.maxCoveredCoin || 0);
+  const requestedCoinCost = Math.max(
+    0,
+    ...[...requiredRules, ...alternativeRules].map((rule) => Number(rule?.minCost || 0)),
+    Number(requestBody?.coinCost || requestBody?.chargedCoins || requestBody?.amountCoins || requestBody?.coins || 0),
+  );
+
+  if (passTier !== "family" && (!Number.isFinite(requestedCoinCost) || requestedCoinCost <= 0 || requestedCoinCost > maxCoveredCoin)) {
+    return null;
+  }
+
+  const featureKey = String(
+    receivedFeatureKey
+      || alternativeRules[0]?.featureKey
+      || requiredRules[0]?.featureKey
+      || unlockPolicy[0]
+      || normalizedReportType
+      || "",
+  ).trim();
+
+  return {
+    ok: true,
+    accessType: passTier === "family" ? "family_pass" : "membership_pass",
+    reportType: normalizedReportType,
+    featureKey,
+    passTier,
+    passLabel: entitlement.passLabel || entitlement.label || passTier,
+    chargedCoins: 0,
+    coveredCoinLimit: maxCoveredCoin,
+    requestedCoinCost,
+  };
 }
 
 function hasCompatibilityPartnerInputs(requestBody = {}) {
@@ -1163,7 +1209,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   await connectDb(env);
 
   const user = await User.findById(userId)
-    .select("_id unlockedFeatures")
+    .select("_id unlockedFeatures profileSubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
 
   if (!user?._id) {
@@ -1183,6 +1229,27 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     };
     logSajuAccessResolved(denied);
     return denied;
+  }
+
+  const passAccess = resolvePremiumPassReportAccess(user, {
+    normalizedReportType,
+    requestBody,
+    requiredRules,
+    alternativeRules,
+    unlockPolicy,
+    receivedFeatureKey,
+  });
+  if (passAccess?.ok) {
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: passAccess.featureKey,
+      accessSource: passAccess.accessType,
+      entitlementId: passAccess.passTier,
+    });
+    logSajuAccessResolved(passAccess);
+    return passAccess;
   }
 
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));

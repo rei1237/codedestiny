@@ -37,20 +37,30 @@ import {
   STEM_YINYANG,
   STEMS,
 } from "../lib/saju-new-year-constants.js";
-import { generateNewYearLocalPdf } from "../pdf-v2/new-year-local-pdf.js";
+import {
+  generateSajuNewYearPremiumReport,
+} from "../lib/pdf-v2/saju-new-year/generate-saju-new-year-premium-report.js";
+import {
+  SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
+  SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+  SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+  SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+  SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
+  SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+} from "../lib/pdf-v2/saju-new-year/saju-new-year-premium.types.js";
 
 const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
 
 export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
-  generationMode: "high-quality-assembled",
-  provider: "saju-high-quality-consultation-engine",
-  templateVersion: "yearly-saju-high-quality-v5",
+  generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+  provider: "saju-new-year-llm",
+  templateVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
 });
 
 const ANNUAL_FORTUNE_PRODUCT_ID = "saju_annual_fortune";
 const ANNUAL_FORTUNE_ASSEMBLY_VERSION = YEARLY_SAJU_PDF_CONFIG.templateVersion;
-const ANNUAL_FORTUNE_ENGINE_VERSION = "worker-saju-new-year-engine.v1";
+const ANNUAL_FORTUNE_ENGINE_VERSION = SAJU_NEW_YEAR_LLM_ENGINE_VERSION;
 const ANNUAL_FORTUNE_CHAPTER_ID_BY_NO = Object.freeze({
   1: "annual_overview",
   2: "career_business",
@@ -91,10 +101,7 @@ const ANNUAL_FORTUNE_RISK_REPLACEMENTS = Object.freeze([
 ]);
 const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
 const NEW_YEAR_MANUSCRIPT_SOURCE = Object.freeze({
-  HIGH_QUALITY: "high-quality-consultation",
-  LOCAL_DRAFT: "local-draft",
-  LOCAL_REPAIR: "local-repair",
-  LOCAL: "local-assembled",
+  LLM_ONLY: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
 });
 
 const LOCAL_STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
@@ -1472,9 +1479,14 @@ function buildYearlySajuPdfCacheKey(normalized = {}) {
   const natalCalculation = normalized.natalCalculation || seed.saju || {};
   const annualCalculation = normalized.yearlyCalculation || seed.saju?.annualLuck || {};
   const monthlyCalculation = normalized.monthlyCalculation || seed.saju?.monthlyLuck || [];
-  return `yearly-saju-cache:${hashAnnualFortuneValue({
-    service: "yearly-saju",
-    version: YEARLY_SAJU_PDF_CONFIG.templateVersion,
+  return `saju-new-year-llm-cache:${hashAnnualFortuneValue({
+    service: "saju-new-year",
+    source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+    promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+    schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+    qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
+    engineVersion: SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
+    generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
     targetYear,
     profile,
     natalCalculationResultHash: hashAnnualFortuneValue(natalCalculation),
@@ -1492,9 +1504,12 @@ function buildYearlySajuPdfCacheExecutionContext(baseCtx = {}, cacheKey = "") {
     idempotencyKey: executionKey,
     metadata: {
       ...(baseCtx.metadata || {}),
-      cacheKind: "yearly-saju-pdf",
+      cacheKind: "saju-new-year-llm-pdf",
       cacheKey: executionKey,
       templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
+      promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+      schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+      manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
     },
   };
 }
@@ -1934,7 +1949,6 @@ function buildAnnualFortuneChapterPlans(seed = {}, chapterSpecs = []) {
   const specs = Array.isArray(chapterSpecs) && chapterSpecs.length ? chapterSpecs : buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
   return specs.map((chapterSpec) => {
     const chapterId = getAnnualFortuneChapterId(chapterSpec);
-    const local = buildDeterministicChapterFromSpec(seed, chapterSpec, "annual_fortune_plan_local_draft");
     return compactNewYearObject({
       chapterId,
       chapterTitle: clean(chapterSpec?.title),
@@ -1949,7 +1963,6 @@ function buildAnnualFortuneChapterPlans(seed = {}, chapterSpecs = []) {
         "월별 운세는 제공된 12개월 월운을 벗어나 임의 생성하지 않습니다.",
       ],
       recommendedTone: "전문적이고 신비로운 프리미엄 신년운세 상담체",
-      localDraft: local.text,
     });
   });
 }
@@ -2521,7 +2534,7 @@ function buildInterpretationSeeds(seed) {
   };
 }
 
-// (buildCategoryEvidence는 localParagraph 내부에서 직접 처리됩니다)
+// 카테고리별 사주 근거는 계산 JSON과 LLM 검증 단계에서만 사용합니다.
 
 function localSexagenaryYear(year) {
   const index = ((toInt(year, 1984) - 1984) % 60 + 60) % 60;
@@ -3050,16 +3063,6 @@ function buildPdfSeed(profile, targetYear, body = {}) {
   return seed;
 }
 
-function buildNewYearChapterLocalGuide(seed, chapterSpec) {
-  return [
-    "사주 명리학 기반 신년운세 프리미엄 PDF의 챕터 구조를 따라 원고를 작성합니다.",
-    "챕터 구조와 세부 카테고리를 누락하지 않습니다.",
-    "각 세부 카테고리 본문은 최소 700자 이상, 가능하면 900자 이상으로 확장합니다.",
-    `챕터 구조: ${JSON.stringify(chapterSpec || {})}`,
-    `로컬 계산 입력: ${JSON.stringify({ input: seed?.input, natalChart: seed?.natalChart, luckCycles: seed?.luckCycles })}`,
-  ].join("\n");
-}
-
 function desiredSectionLength() {
   return Math.max(MIN_SECTION_CHARS + 220, 920);
 }
@@ -3078,52 +3081,6 @@ function validateSajuNewYearSeed(seed = {}) {
     if (!["GO", "WATCH", "STOP"].includes(clean(item?.decision))) errors.push(`quantumMyeongri.monthlyQuantum.${index + 1}.decision`);
   });
   return { ok: errors.length === 0, errors };
-}
-
-function buildDeterministicChapterFromSpec(seed, chapterSpec, reason = "") {
-  const chapter = {
-    no: Number(chapterSpec?.no || 0),
-    title: clean(chapterSpec?.title || ""),
-    categories: (chapterSpec?.categories || []).slice(),
-  };
-  const sections = (chapterSpec?.categories || []).map((categoryTitle, idx) => ({
-    title: categoryTitle,
-    body: ensureMinLength(buildHighQualityNewYearSection(seed, chapter, categoryTitle, idx), desiredSectionLength(), seed, categoryTitle),
-  }));
-  return {
-    no: chapter.no,
-    title: chapter.title,
-    sections,
-    text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    source: "local-reinforced",
-  };
-}
-
-function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = {}) {
-  const srcSections = Array.isArray(chapter?.sections) ? chapter.sections : [];
-  let reinforced = false;
-  const sections = (chapterSpec?.categories || []).map((title, idx) => {
-    const src = srcSections[idx] || {};
-    const body = stripForbiddenText(src.body || src.finalText || src.text || "");
-    if (clean(src.title) === clean(title) && body.length >= MIN_SECTION_CHARS && !hasForbiddenText(body)) {
-      return { title, body };
-    }
-    reinforced = true;
-    return {
-      title,
-      body: ensureMinLength(buildHighQualityNewYearSection(seed, chapterSpec, title, idx), desiredSectionLength(), seed, title),
-    };
-  });
-  return {
-    reinforced,
-    chapter: {
-      no: Number(chapterSpec?.no || 0),
-      title: clean(chapterSpec?.title || ""),
-      sections,
-      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-      source: reinforced ? "local-reinforced" : clean(chapter?.source || "local-only"),
-    },
-  };
 }
 
 function normalizeNewYearChapterSections(chapter = {}) {
@@ -3511,21 +3468,10 @@ function buildNewYearMasterJson(seed = {}, body = {}) {
     })),
     quantumMyeongri: seed?.quantumMyeongri || seed?.saju?.quantumMyeongri,
     annualFortuneFacts: seed?.annualFortuneFacts || buildAnnualFortuneFacts(seed),
-    annualFortuneChapterPlans: (seed?.annualFortuneChapterPlans || []).map((plan) => ({
-      ...plan,
-      localDraft: clean(plan.localDraft).slice(0, 2400),
-    })),
+    annualFortuneChapterPlans: (seed?.annualFortuneChapterPlans || []).map((plan) => ({ ...plan })),
     structure: seed?.structure,
     derivedSignals: seed?.derivedSignals,
     chapterSpecs: seed?.chapterSpecs,
-    localSeedSummary: {
-      yearlyThemeSignals: seed?.derivedSignals?.yearlyThemeSignals,
-      careerSignals: seed?.derivedSignals?.careerSignals,
-      moneySignals: seed?.derivedSignals?.moneySignals,
-      relationshipSignals: seed?.derivedSignals?.humanRelationSignals,
-      healthSignals: seed?.derivedSignals?.healthMindSignals,
-      riskSignals: seed?.derivedSignals?.crisisSignals,
-    },
     clientEngineEvidence: clientEvidence && typeof clientEvidence === "object"
       ? {
           usagePolicy: "supplemental_only_worker_engine_is_source_of_truth",
@@ -3579,640 +3525,6 @@ function validateNewYearMasterJson(masterJson = {}) {
   requireField(Array.isArray(masterJson?.annualFortuneChapterPlans) && masterJson.annualFortuneChapterPlans.length === 10, "annual_fortune_chapter_plans_count");
 
   return { ok: errors.length === 0, errors };
-}
-
-function countAnnualFortuneLockedFactMatches(text = "", lockedFacts = []) {
-  const body = clean(text);
-  if (!body || !Array.isArray(lockedFacts) || lockedFacts.length === 0) return 0;
-  return lockedFacts.reduce((acc, fact) => {
-    const tokens = clean(fact).match(/[가-힣A-Za-z0-9甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]{2,}/g) || [];
-    return acc + (tokens.some((token) => body.includes(token)) ? 1 : 0);
-  }, 0);
-}
-
-function buildHighQualityAnnualFortuneChapter({ seed, chapterSpec, chapterPlan } = {}) {
-  const plan = chapterPlan || {};
-  const lockedFacts = Array.isArray(plan.lockedFacts) ? plan.lockedFacts : [];
-  const sections = (chapterSpec?.categories || []).map((title, index) => {
-    let body = buildHighQualityNewYearSection(seed, chapterSpec, title, index);
-    const matches = countAnnualFortuneLockedFactMatches(body, lockedFacts);
-    if (lockedFacts.length && matches < Math.min(3, lockedFacts.length)) {
-      body = `${body}\n\n이 장에서 변하지 않는 기준은 ${lockedFacts.slice(0, 3).join(" ")} 이 흐름입니다. 따라서 ${seed?.targetYear}년의 판단은 제공된 세운과 월운, 원국 관계를 벗어나지 않는 선에서 조정해야 합니다.`;
-    }
-    body = ensureMinLength(softenAnnualFortuneRiskText(body, seed?.targetYear), desiredSectionLength(), seed, title);
-    return {
-      title,
-      body,
-      text: body,
-      finalText: body,
-      localSummary: body.slice(0, 320),
-      source: NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY,
-    };
-  });
-  const categories = sections.map((section) => ({
-    title: section.title,
-    localSummary: section.localSummary,
-    finalText: section.body,
-    text: section.body,
-    source: NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY,
-  }));
-  return {
-    no: Number(chapterSpec?.no || 0),
-    title: clean(chapterSpec?.title || ""),
-    categories,
-    sections,
-    text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    source: NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY,
-    chapterPlanId: clean(plan.chapterId || getAnnualFortuneChapterId(chapterSpec)),
-    fallbackSections: 0,
-  };
-}
-
-function sanitizeAnnualFortuneChapter({ seed, chapterSpec, chapter, chapterPlan, source = NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL } = {}) {
-  const plan = chapterPlan || {};
-  const lockedFacts = Array.isArray(plan.lockedFacts) ? plan.lockedFacts : [];
-  const localDraft = buildDeterministicChapterFromSpec(seed, chapterSpec, "annual_fortune_chapter_sanitize");
-  const srcSections = Array.isArray(chapter?.sections)
-    ? chapter.sections
-    : Array.isArray(chapter?.categories)
-      ? chapter.categories.map((item) => ({ title: item?.title, body: item?.finalText || item?.localSummary || item?.body || "" }))
-      : [];
-  let fallbackSections = 0;
-  const sections = (chapterSpec?.categories || []).map((title, index) => {
-    const src = srcSections[index] || {};
-    const localBody = clean(localDraft.sections?.[index]?.body || buildHighQualityNewYearSection(seed, chapterSpec, title, index));
-    let body = softenAnnualFortuneRiskText(src.body || src.finalText || src.text || "", seed?.targetYear);
-    if (clean(src.title) !== clean(title) || body.length < MIN_SECTION_CHARS || hasForbiddenText(body)) {
-      fallbackSections += 1;
-      body = localBody;
-    }
-    const matches = countAnnualFortuneLockedFactMatches(body, lockedFacts);
-    if (lockedFacts.length && matches < Math.min(3, lockedFacts.length)) {
-      body = `${body}\n\n이 장에서 변하지 않는 기준은 ${lockedFacts.slice(0, 3).join(" ")} 이 흐름입니다. 따라서 ${seed?.targetYear}년의 판단은 제공된 세운과 월운, 원국 관계를 벗어나지 않는 선에서 조정해야 합니다.`;
-    }
-    return {
-      title,
-      body: ensureMinLength(softenAnnualFortuneRiskText(body, seed?.targetYear), desiredSectionLength(), seed, title),
-    };
-  });
-  const categories = sections.map((section) => ({
-    title: section.title,
-    localSummary: section.body,
-    finalText: section.body,
-  }));
-  return {
-    chapter: {
-      no: Number(chapterSpec?.no || 0),
-      title: clean(chapterSpec?.title || ""),
-      categories,
-      sections,
-      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-      masterAdvice: softenAnnualFortuneRiskText(chapter?.masterAdvice || "", seed?.targetYear),
-      source,
-      chapterPlanId: clean(plan.chapterId || getAnnualFortuneChapterId(chapterSpec)),
-      fallbackSections,
-    },
-    fallbackSections,
-  };
-}
-
-function localParagraph(seed, chapter, category, idx) {
-  const annual = seed.saju.annualLuck;
-  const tenGodLib = getTenGodLib(annual.tenGod);
-  const relations = seed.saju.relations?.branchRelations || [];
-  const clashes = relations.filter((r) => r.type === "충");
-  const combos = relations.filter((r) => r.type === "합");
-  const monthlyStrong = seed.saju.monthlyLuck.filter((m) => m.score >= 75);
-  const monthlyCare = seed.saju.monthlyLuck.filter((m) => m.score < 60);
-  const dayMaster = seed.saju.dayMaster || "戊";
-  const dayElementKo = ELEMENT_KO[STEM_ELEMENT[dayMaster] || "earth"] || "토";
-  const yearPillar = seed.saju.pillars?.year?.branch || "";
-  const monthPillarBranch = seed.saju.pillars?.month?.branch || "";
-  const dayPillarBranch = seed.saju.pillars?.day?.branch || "";
-  const hourPillarBranch = seed.saju.pillars?.hour?.branch || "";
-  const relMsgs = relations.slice(0, 3).map((r) => r.message).join(" ");
-  const canonicalChapterNo = Number(chapter.no || 0);
-
-  // Chapter 9 — 월별 Go/Stop
-  if (canonicalChapterNo === 9) {
-    if (idx === 0) {
-      const firstHalf = seed.saju.monthlyLuck.slice(0, 6);
-      return describeMonthlyGroup(firstHalf, seed) + `\n\n상반기는 올해 전체 방향을 실제 행동으로 바꾸는 구간입니다. ${annual.label} 세운이 초반에 던지는 신호를 흘려보내지 말고, 1월부터 6월까지의 흐름을 연결해서 보면 어디에서 속도를 내고 어디에서 균형을 잡아야 하는지가 선명해집니다. 상반기에 무리하게 모든 것을 끝내려 하기보다, 6월까지 기반을 단단히 세우고 관계와 일의 우선순위를 정리해 두면 하반기의 성과가 훨씬 안정적으로 이어집니다.`;
-    }
-    if (idx === 1) {
-      const secondHalf = seed.saju.monthlyLuck.slice(6, 12);
-      return describeMonthlyGroup(secondHalf, seed) + `\n\n하반기는 상반기에 만들어 둔 흐름을 수확과 재배치로 연결하는 구간입니다. 7월부터 12월까지는 운의 강약이 더 분명하게 체감되기 쉬우므로, 기회가 오는 달에는 과감히 밀어붙이고 부담이 커지는 달에는 무리한 결정을 늦추는 식의 운영이 필요합니다. 하반기를 잘 쓰는 사람은 연말에 성과만 남기는 것이 아니라, 다음 해로 이어질 기반까지 함께 남깁니다.`;
-    }
-    if (idx === 2) {
-      const careMonths = seed.saju.monthlyLuck.filter((m) => m.score < 60);
-      return `${careMonths.length ? careMonths.map((m) => `${m.month}월`).join("·") : "올해는 특정 한 달보다 상황별 대응이 더 중요합니다."}에는 특히 조심해야 할 흐름이 드러납니다. ${careMonths.length ? `${careMonths.map((m) => `${m.month}월`).join("·")}에는 세운과 월운이 원국에 부담으로 겹치면서 일정 변경, 감정 소모, 지출 증가, 관계 오해가 함께 움직일 가능성이 큽니다.` : "점수가 급격히 무너지는 달이 적더라도, 무리한 투자나 감정적 결정을 반복하면 충분히 흐름이 흔들릴 수 있습니다."} 이런 시기에는 새로운 시작보다 이미 잡아 놓은 계획을 점검하고, 사람과 돈, 일정의 균형을 다시 맞추는 것이 더 중요합니다. 조심해야 할 달의 핵심은 겁을 먹는 것이 아니라, 속도를 조절하고 방어선을 세우는 데 있습니다. 중요한 계약이나 큰 지출은 하루 이틀이라도 더 시간을 두고 검토하고, 관계에서는 말의 결론보다 말의 온도를 먼저 관리해야 손실을 줄일 수 있습니다. 결국 조심해야 할 달을 잘 보내는 사람이 한 해 전체의 안정감을 지킬 수 있습니다.`;
-    }
-    if (idx === 3) {
-      const opportunityMonths = seed.saju.monthlyLuck.filter((m) => m.score >= 75);
-      return `${opportunityMonths.length ? opportunityMonths.map((m) => `${m.month}월`).join("·") : "올해의 기회는 특정 한 달에 몰리기보다 준비된 순간에 열립니다."}에는 기회를 잡기 좋은 흐름이 강하게 작동합니다. ${opportunityMonths.length ? `${opportunityMonths.map((m) => `${m.month}월`).join("·")}은 세운의 힘이 월운과 맞물리면서 일, 재물, 관계에서 성과를 현실로 끌어오기 좋은 달입니다.` : "기회가 한 달에 몰리지 않더라도, 준비된 사람에게는 언제든 흐름이 열릴 수 있습니다."} 이 시기에는 준비만 하다가 타이밍을 놓치지 않도록 제안, 발표, 계약, 전환 같은 핵심 행동을 미리 배치해 두는 것이 좋습니다. 기회를 잡기 좋은 달에는 완벽한 조건을 기다리기보다 이미 준비한 것을 시장과 관계 속에 내놓는 용기가 필요합니다. 올해의 좋은 달을 잘 쓰는 사람은 단순히 운이 좋았던 것이 아니라, 좋은 달이 왔을 때 바로 움직일 수 있도록 미리 정리해 둔 사람입니다.`;
-    }
-    return `월별 운세는 달마다 점수가 다르다는 사실을 보는 데서 끝나면 큰 의미가 없습니다. 중요한 것은 그 달의 기운을 실제 계획에 어떻게 배치하느냐입니다. 점수가 높은 달에는 사람을 만나고, 제안을 하고, 중요한 결정을 내리는 쪽으로 일정을 설계하고, 점수가 낮은 달에는 점검과 정리, 관계 조율, 비용 관리에 무게를 두는 방식이 가장 현실적입니다. 또한 올해의 월운은 원국과 대운, 세운이 함께 만든 리듬이므로 한 달만 떼어 보지 말고 앞뒤 달의 연결까지 함께 봐야 흐름이 읽힙니다. 월별 운세 활용법의 핵심은 달의 좋고 나쁨을 따지는 것이 아니라, 달마다 해야 할 행동의 성격을 다르게 가져가는 데 있습니다. 그 기준만 잡혀 있으면 한 해 전체가 훨씬 덜 흔들리고, 운을 생활 속 선택으로 바꾸는 힘이 생깁니다.`;
-  }
-
-  if (canonicalChapterNo === 7) {
-    const q1 = seed.saju.monthlyLuck.slice(0, 3);
-    const q2 = seed.saju.monthlyLuck.slice(3, 6);
-    const q3 = seed.saju.monthlyLuck.slice(6, 9);
-    const q4 = seed.saju.monthlyLuck.slice(9, 12);
-    const quarterText = (label, rows) => {
-      const strong = rows.filter((m) => Number(m.score || 0) >= 75).map((m) => `${m.month}월`);
-      const care = rows.filter((m) => Number(m.score || 0) < 60).map((m) => `${m.month}월`);
-      return `${label}는 ${rows.map((m) => `${m.month}월 ${m.pillar?.label || ""}(${m.score}점)`).join(", ")}의 흐름으로 열립니다. ${strong.length ? `${strong.join("·")}에는 제안, 실행, 발표, 관계 확장처럼 밖으로 드러나는 선택을 배치하는 것이 좋습니다.` : "무리한 확장보다 기반을 다듬는 운영이 더 중요합니다."} ${care.length ? `${care.join("·")}에는 일정, 지출, 감정 반응을 보수적으로 조절해야 합니다.` : "크게 꺾이는 달이 적더라도 결정의 순서를 정돈해야 안정감이 유지됩니다."}`;
-    };
-    const texts = [
-      `${quarterText("1분기", q1)} 1분기는 한 해의 기준을 세우는 문입니다. 이 시기에는 새로운 목표를 많이 늘리기보다, 원국과 세운이 가리키는 핵심 과제를 먼저 한 문장으로 정리해야 합니다. 세운 ${annual.label}의 ${annual.tenGod} 기운이 초반부터 압박이나 기회로 들어올 수 있으므로, 사람·돈·일정의 우선순위를 빠르게 확정하는 것이 좋습니다. 1분기에 선택해야 할 것은 큰 승부가 아니라 올해 끝까지 지킬 기준입니다.`,
-      `${quarterText("2분기", q2)} 2분기는 1분기에 세운 기준을 현실에서 검증하는 시기입니다. 좋은 흐름이 열리면 제안과 실행을 늦추지 말고, 흐름이 약한 달에는 계약 조건과 협업 구조를 다시 확인해야 합니다. 이때 중요한 것은 확장 자체가 아니라 확장한 뒤 감당할 수 있는가입니다. 세운과 월운이 함께 살아나는 달에는 커리어, 재물, 관계에서 눈에 보이는 반응이 들어올 수 있으므로 미리 준비한 안건을 꺼내는 용기가 필요합니다.`,
-      `${quarterText("3분기", q3)} 3분기는 상반기의 결과가 사람과 돈, 감정의 문제로 되돌아오는 구간입니다. 이 시기에는 속도보다 조율이 중요하며, 이미 시작한 일의 손익과 관계의 온도를 함께 살펴야 합니다. 충이나 해의 신호가 강한 달에는 작은 오해가 큰 피로로 커질 수 있으므로 말의 결론보다 말의 순서를 조심해야 합니다. 3분기를 잘 쓰면 한 해의 중반 피로가 성과 회수의 힘으로 바뀝니다.`,
-      `${quarterText("4분기", q4)} 4분기는 마무리와 재설계가 함께 필요한 시기입니다. 성과가 난 일은 구조화하고, 힘만 들고 남은 것이 적은 일은 과감하게 덜어내야 합니다. 연말의 운은 다음 해의 기반과 이어지므로, 단순히 버티는 방식보다 무엇을 남기고 무엇을 닫을지 분명히 정하는 것이 좋습니다. 4분기에는 큰 결론보다 정리의 품질이 다음 흐름을 결정합니다.`,
-      `올해 가장 중요한 결정 타이밍은 월운 점수가 높은 달과 세운의 ${annual.tenGod} 기운이 현실 사건으로 드러나는 순간이 겹칠 때입니다. ${monthlyStrong.length ? `${monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·")}은 실행 후보가 될 수 있고,` : "좋은 흐름은 특정 달 하나보다 준비된 순간에 열릴 수 있고,"} ${monthlyCare.length ? `${monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·")}은 재검토 후보가 됩니다.` : "낮은 흐름은 감정과 일정이 동시에 무거워질 때 재검토해야 합니다."} 분기별 의사결정의 핵심은 운을 기다리는 것이 아니라, 강한 달에는 열고 약한 달에는 닫는 문을 정확히 구분하는 데 있습니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  const chapterNo = ({ 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 8: 9 }[canonicalChapterNo] || canonicalChapterNo);
-
-  // Chapter 1 — 올해의 큰 흐름
-  if (chapterNo === 1) {
-    const openings = [
-      `${seed.targetYear}년을 시작하면서 가장 먼저 알아야 할 것은 이 해가 어떤 에너지로 열리는가입니다. 세운 ${annual.label}은 ${annual.elementKo} 기운을 중심으로 움직이며, 이 기운이 당신의 원국과 만나는 방식에서 올해의 큰 그림이 결정됩니다.`,
-      `올해의 분위기를 한 마디로 설명한다면, ${annual.tenGod}의 에너지가 당신의 일상 선택에 어떻게 들어오느냐입니다. ${tenGodLib.yearlyTheme}`,
-      `세운 ${annual.label}이 원국에 들어올 때 ${annual.dayMasterRelation}의 방식으로 작동합니다. 이것은 올해가 ${annual.dayMasterRelation === "압박과 책임" ? "외부의 요구와 책임이 커지는 해" : annual.dayMasterRelation === "표현과 생산" ? "내가 가진 것을 외부로 드러내고 생산하는 해" : annual.dayMasterRelation === "관리와 재물" ? "재물과 성과를 직접 관리하는 해" : annual.dayMasterRelation === "지원과 회복" ? "지원받고 회복하며 기반을 다지는 해" : "내 기준과 중심을 더 선명하게 세우는 해"}임을 말해줍니다.`,
-      `${clashes.length > 0 ? `올해의 큰 흐름에서 주목할 점은 원국의 ${clashes.map((c) => c.branch).join("·")}과 세운 ${annual.branch}의 충 신호입니다. 이것은 이동, 변화, 결단의 압력이 강해진다는 뜻이며, 기존에 유지하던 구조에 변화를 줄 시점임을 알려줍니다.` : combos.length > 0 ? `올해의 큰 흐름에서 주목할 점은 원국과 세운의 합 신호입니다. 이것은 협력과 연결이 강화되며 새로운 인연이나 기회와 자연스럽게 이어질 가능성이 높다는 뜻입니다.` : `올해의 큰 흐름은 급격한 충돌보다 운영과 균형을 조율하는 방향으로 움직입니다. 큰 사건보다 선택의 누적이 올해 성과를 만들어냅니다.`}`,
-      `${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에는 기회가 강하게 열리는 흐름이 있으며," : "상반기부터 꾸준히 기회가 분산되어 있으며,"} ${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에는 보수적인 판단이 필요한 구간이 있습니다." : "위험 구간은 고르게 관리됩니다."} 올해는 좋은 달에 밀고 조심할 달에 점검하는 이중 트랙 운영이 핵심 전략입니다.`,
-      `올해를 여는 핵심 조언은 세운을 기다리는 것이 아니라 세운의 에너지를 내 선택의 기준으로 삼는 것입니다. ${tenGodLib.advice}`,
-    ];
-    return openings[idx] || openings[0];
-  }
-
-  // Chapter 2 — 원국과 올해의 관계
-  if (chapterNo === 2) {
-    const texts = [
-      `일간 ${dayMaster}는 ${dayElementKo} 기운을 중심으로 원국 전체를 주도합니다. 세운 ${annual.label}의 ${annual.elementKo} 기운이 이 일간과 만나면 ${annual.tenGod}의 방식으로 작동하며, 이것은 올해 ${annual.dayMasterRelation}의 방향으로 당신의 일상이 움직인다는 것을 의미합니다. 일간이 세운을 받아들이는 방식이 올해 모든 선택의 출발점이 됩니다.`,
-      `월지 ${monthPillarBranch ? monthPillarBranch : ""}는 현실적인 활동성과 사회적 목표를 나타내는 자리입니다. 이 자리가 세운 ${annual.branch}와 ${relations.find((r) => r.label === "월지")?.type ? relations.find((r) => r.label === "월지").type + "의 관계를 이룬다면, " + relations.find((r) => r.label === "월지").message : "특별한 합충 없이 만나더라도,"} 일과 수익, 현실 목표의 방향에 변화가 생기는 흐름이 감지됩니다. 올해 현실적인 성과를 내려면 월지의 에너지를 어떤 방향으로 쓸지 먼저 정해두는 것이 효과적입니다.`,
-      `일지 ${dayPillarBranch ? dayPillarBranch : ""}는 관계와 배우자, 자기 내면의 실질적인 자리입니다. 세운과 일지의 에너지가 만나면 ${relations.find((r) => r.label === "일지")?.message || "관계에서 새로운 흐름이 감지됩니다."} 올해 관계에서 가장 중요한 것은 내가 무엇을 원하는지를 먼저 명확히 하고, 그것을 상대에게 솔직하게 표현하는 것입니다.`,
-      `천간에서는 세운의 ${annual.stem}과 원국 천간의 관계가 올해의 의지, 판단, 결정 방식에 영향을 줍니다. 세운 천간이 원국 천간을 자극하면 말, 사고방식, 의사결정의 패턴이 바뀌는 신호가 됩니다. ${tenGodLib.career} 이 해에는 생각을 행동으로 바꾸는 속도가 성과를 좌우합니다.`,
-      `지지에서는 세운 ${annual.branch}이 원국의 연지 ${yearPillar}, 월지 ${monthPillarBranch}, 일지 ${dayPillarBranch}, 시지 ${hourPillarBranch}와 어떻게 만나는지가 중요합니다. ${relMsgs || "지지의 관계가 비교적 안정적인 흐름을 유지하며, 사건보다 선택의 누적이 올해 결과를 만듭니다."} 지지의 흐름은 몸이 느끼는 현실, 생활 환경, 인간관계의 실제 변화로 드러납니다.`,
-      `원국 전체를 놓고 올해의 방향을 보면, ${annual.dayMasterRelation}의 흐름 속에서 ${tenGodLib.yearlyTheme} 이 해에 원국이 가장 강하게 살아나는 영역은 ${annual.tenGod === "식신" || annual.tenGod === "상관" ? "표현, 창의, 생산의 영역" : annual.tenGod === "편재" || annual.tenGod === "정재" ? "재물, 성과, 관리의 영역" : annual.tenGod === "편관" || annual.tenGod === "정관" ? "책임, 역할, 사회적 위치의 영역" : annual.tenGod === "편인" || annual.tenGod === "정인" ? "배움, 회복, 내면 성장의 영역" : "자기 기준, 독립, 자립의 영역"}입니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 3 — 커리어
-  if (chapterNo === 3) {
-    const texts = [
-      `${tenGodLib.career} 올해의 직업운은 ${annual.tenGod} 에너지가 일의 현실에 어떻게 작동하느냐에 달려 있습니다. 세운 ${annual.label}의 ${annual.elementKo} 기운이 원국과 ${annual.dayMasterRelation}을 이루는 만큼, 지금 있는 자리에서 더 깊이 파고들수록 성과가 나는 해인지, 새로운 방향으로 전환할 준비를 해야 하는 해인지를 먼저 판단해야 합니다.`,
-      `일에서 인정받는 방식은 올해의 세운 에너지에 따라 달라집니다. ${annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임감 있게 역할을 수행하고 신뢰를 쌓는 방식이 가장 강하게 인정받습니다." : annual.tenGod === "식신" || annual.tenGod === "상관" ? "창의적인 아이디어나 표현력, 새로운 방법을 제시하는 방식이 주목받는 시기입니다." : annual.tenGod === "편재" || annual.tenGod === "정재" ? "성과 수치와 실질적인 결과를 보여주는 방식이 가장 강한 설득력을 가집니다." : "자기 기준을 지키며 꾸준히 전문성을 쌓는 방식이 결국 인정으로 돌아옵니다."} 남들이 보기 좋은 방식보다 실제 가치를 만들어내는 방식에 집중하는 것이 올해의 커리어 전략입니다.`,
-      `올해 조직과 독립 중 어느 방향이 더 유리한지는 월별 흐름과 합충 신호로 판단합니다. ${combos.length > 0 ? "합 신호가 있어 파트너십이나 팀 기반의 협업이 개인 역량보다 더 강한 결과를 낼 가능성이 있습니다." : clashes.length > 0 ? "충 신호가 있어 기존 조직 구조에서 벗어나 독립적인 방향으로 전환하는 움직임이 자연스럽게 나타날 수 있습니다." : "조직과 독립의 선택에서 지금 당장의 안정보다 3~5년 후 어디에 있고 싶은지를 기준으로 결정하는 것이 유리합니다."}`,
-      `일에서 경쟁과 압박이 강해지는 시기입니다. ${annual.tenGod === "겁재" ? "겁재의 에너지가 경쟁 구도를 만들어내므로, 남과 비교하기보다 내 고유한 역량과 차별점을 선명하게 보여주는 것이 핵심입니다." : annual.tenGod === "편관" ? "편관의 압박은 역량을 증명하는 기회입니다. 어려운 과제를 정면으로 받아내는 태도가 장기적인 신뢰를 만듭니다." : "경쟁이 강해질 때는 남의 속도보다 내 방향을 먼저 확인하는 것이 중요합니다."} ${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에는 과도한 업무 수용을 조심해야 합니다." : ""}`,
-      `커리어 전환이나 확장의 가능성이 있는 해입니다. ${clashes.length > 0 ? "충의 에너지가 기존 구조에 변화를 요구하므로, 이직이나 업무 영역 확장을 고려한다면 이 해에 결정을 내리는 것이 자연스러운 흐름입니다." : monthlyStrong.length > 0 ? monthlyStrong.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에 새로운 기회나 제안이 들어올 가능성이 있으므로 미리 자신의 방향을 정리해두는 것이 좋습니다." : "커리어 확장은 급격한 변화보다 현재의 역량을 더 깊이 발전시키는 방향에서 기회가 열립니다."}`,
-      `${tenGodLib.advice} 올해 일운을 가장 잘 살리는 전략은 내가 가장 잘할 수 있는 것을 가장 명확한 형태로 보여주는 것입니다. ${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에 중요한 제안, 발표, 협상을 집중시키고" : "일의 기회를 월별 점수가 높은 시기에 집중시키고"} 낮은 점수 구간에는 실력을 다듬고 다음 기회를 준비하는 방식으로 연간 커리어를 설계하세요.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 4 — 재물운
-  if (chapterNo === 4) {
-    const texts = [
-      `${tenGodLib.money} 올해 돈이 들어오는 방식은 세운 ${annual.label}의 ${annual.tenGod} 에너지와 직접 연결됩니다. ${annual.tenGod === "편재" || annual.tenGod === "정재" ? "재성이 직접 작동하는 해이므로 수익 구조를 명확히 정리할수록 재물이 더 안정적으로 흐릅니다." : annual.tenGod === "식신" || annual.tenGod === "상관" ? "식상이 재를 생하는 구조로 내가 생산하고 표현하는 만큼 재물이 따라옵니다." : "재물은 직접적인 행운보다 내가 제공하는 가치와 역량에 비례해 들어오는 구조입니다."} 올해 재물운의 흐름을 이해하는 첫 번째 출발점은 어떤 방식으로 가치를 제공하고 있는지 점검하는 것입니다.`,
-      `수익이 커지는 조건은 올해의 세운 흐름과 월별 에너지가 맞아야 합니다. ${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에는 새로운 수익 구조를 시작하거나 기존 수익을 확장하기 좋은 타이밍입니다." : "꾸준한 실행이 수익 증가의 핵심 조건입니다."} 수익이 커지려면 내가 제공하는 것의 가격, 범위, 방식을 명확하게 정의하는 것이 먼저입니다.`,
-      `돈이 막히는 패턴을 미리 파악하면 손실을 줄일 수 있습니다. ${annual.tenGod === "겁재" ? "경쟁 구도에서 가격을 낮추거나 조건을 양보하는 방식이 결국 재물을 깎아먹습니다." : annual.tenGod === "편관" ? "외부의 압박에 쫓겨 충동적인 지출이나 급한 투자를 결정하는 것이 손실의 원인이 됩니다." : "계획 없이 지출을 늘리거나 충동적인 소비가 재물운을 막는 주요 패턴입니다."} ${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에는 큰 지출이나 새로운 투자 결정을 늦추는 것이 안전합니다." : ""}`,
-      `투자와 계약, 가격 책정에서는 세운의 충 신호를 반드시 확인해야 합니다. ${clashes.length > 0 ? `원국의 ${clashes.map((c) => c.branch).join("·")}과 세운의 충이 있어 계약 조항이나 투자 구조를 평소보다 더 꼼꼼하게 점검하는 것이 필요합니다.` : "계약과 투자에서는 서두르는 것보다 조건을 충분히 검토하는 것이 더 유리합니다."} 가격 책정에서는 시장 평균보다 내가 제공하는 가치를 기준으로 책정하는 것이 장기적으로 더 안정적인 수익 구조를 만들어냅니다.`,
-      `고정수익과 확장수익의 균형을 유지하는 것이 올해 재물 전략의 핵심입니다. 고정수익은 안정의 기반이고 확장수익은 성장의 연료입니다. ${annual.tenGod === "정재" ? "정재의 흐름은 안정적인 고정 수입 구조에서 더 강하게 작동합니다. 무리한 확장보다 지금 있는 수익 구조를 더 견고하게 만드는 것이 유리합니다." : annual.tenGod === "편재" ? "편재의 흐름은 다양한 수익 채널을 열 때 더 강하게 작동합니다. 단, 너무 많은 채널을 동시에 관리하면 오히려 수익이 분산됩니다." : "올해는 한 가지 수익 구조를 충분히 성장시킨 다음 다음 단계를 설계하는 순서가 더 효과적입니다."}`,
-      `${tenGodLib.advice} 올해 재물운을 키우는 가장 현실적인 방법은 수입 구조, 지출 패턴, 저축 목표를 한 페이지로 정리해두는 것입니다. 월별 흐름이 좋은 달에는 새로운 수익 구조를 시도하고, 흐름이 약한 달에는 기존 구조를 점검하고 비용을 줄이는 방식으로 1년을 설계하세요.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 5 — 인간관계
-  if (chapterNo === 5) {
-    const texts = [
-      `${tenGodLib.yearlyTheme} 올해 가까워지는 사람은 단순히 성향이 맞는 사람보다, 지금 당신이 풀어야 하는 과제와 연결되는 사람일 가능성이 큽니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "같은 분야에서 경쟁과 협력을 동시에 경험하는 사람들, 혹은 비슷한 위치에서 서로를 자극하는 관계가 가까워질 수 있습니다." : annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임감이 강하고 현실 감각이 분명한 사람이 올해의 인간관계에서 중요한 축이 되기 쉽습니다." : "생각을 넓혀 주고 감정의 밀도를 바꿔 주는 사람이 올해는 더 큰 의미로 들어올 가능성이 높습니다."} 가까워지는 사람을 무조건 오래 붙잡는 것이 중요한 것이 아니라, 그 사람이 내 삶에 어떤 방향을 열어 주는지를 읽어내는 것이 더 중요합니다. 관계의 초반에는 편안함보다 배울 점이 있는지, 긴장되더라도 성장의 계기를 주는지를 함께 보세요. 그런 기준으로 사람을 보면 올해 인간관계의 질이 훨씬 선명해집니다.`,
-      `${combos.length > 0 ? "합의 기운이 강하게 들어오면 귀인운은 의외로 자연스럽게 작동합니다. 억지로 도움을 요청하기보다, 이미 연결된 사람 안에서 다음 단계로 이어 줄 다리가 나타나는 경우가 많습니다." : "귀인운은 화려한 인맥보다 적절한 순간에 현실적인 도움을 주는 관계에서 드러납니다."} 올해 도움을 받을 수 있는 관계는 감정적으로만 편한 사람보다, 당신의 결정을 더 정확하게 만들고 시야를 넓혀 주는 사람입니다. 일에서는 방향을 정리해 주는 조언자, 돈 문제에서는 손익 감각을 잡아 주는 현실적인 사람, 감정에서는 과열된 마음을 가라앉혀 주는 차분한 사람이 귀인의 역할을 합니다. 중요한 것은 도움을 받을 때 막연히 기대는 것이 아니라, 내가 어떤 도움을 필요로 하는지 먼저 분명히 알고 다가가는 태도입니다. 그래야 관계가 일방적인 기대가 아니라 서로에게 의미 있는 연결로 남습니다.`,
-      `${clashes.length > 0 ? `올해는 ${clashes.map((c) => c.branch).join("·")} 자리의 충 신호가 관계 재편으로 드러날 가능성이 있습니다. 그래서 멀어질 수 있는 인연은 갑작스러운 사건 때문이라기보다, 이미 맞지 않던 방식이 더 이상 유지되지 않는 방향으로 정리되기 쉽습니다.` : "멀어질 수 있는 인연은 크게 싸워서 끊어지는 경우보다, 결이 맞지 않던 관계가 자연스럽게 소원해지는 방식으로 드러날 가능성이 높습니다."} 여기서 중요한 것은 관계가 멀어진다는 사실 자체를 실패로 해석하지 않는 것입니다. 지금의 삶과 방향에 맞지 않는 관계를 억지로 붙들면 오히려 에너지가 오래 소모됩니다. 올해는 모두를 만족시키려 하기보다, 내 시간을 쓰고 싶은 사람과 그렇지 않은 사람을 더 분명히 나누는 훈련이 필요합니다. 그 과정이 차갑게 느껴질 수 있어도, 결국 건강한 관계 구조를 만드는 데는 반드시 필요한 정리입니다.`,
-      `갈등이 생기는 이유는 표면적인 사건보다 기대와 역할의 차이에서 더 자주 시작됩니다. ${annual.tenGod === "상관" ? "특히 말이 빠르고 판단이 선명해지는 해에는 내가 한 말의 논리가 맞더라도 상대가 상처를 받는 경우가 생깁니다." : annual.tenGod === "비견" || annual.tenGod === "겁재" ? "비교와 자존심이 관계 안으로 들어오면 작은 일도 힘겨루기로 변할 수 있습니다." : "상대가 당연히 알아줄 것이라고 기대하는 부분이 실제로는 가장 큰 오해의 출발점이 되기 쉽습니다."} 갈등을 줄이려면 문제를 키운 뒤에 설명하는 것이 아니라, 불편함이 생긴 초기에 말의 온도를 낮춰서 꺼내는 습관이 필요합니다. 누가 옳은지를 가리기보다 지금 무엇이 어긋났는지를 확인하는 방식으로 대화를 열어야 관계가 덜 소모됩니다. 올해의 인간관계는 감정의 크기보다 조율의 기술이 결과를 좌우합니다.`,
-      `${tenGodLib.advice} 좋은 인연을 붙잡는 태도는 결국 분별력과 지속성에 달려 있습니다. 처음의 강한 호감만으로 관계를 판단하지 말고, 시간이 지나도 약속을 지키는지, 말과 행동이 일치하는지, 내가 약해졌을 때도 관계의 균형이 유지되는지를 보세요. 그런 사람에게는 조금 더 시간을 쓰고, 먼저 마음을 열고, 작게라도 신뢰를 쌓는 행동을 반복하는 것이 좋습니다. 올해 인연운은 많은 사람을 만나는 데서 완성되지 않습니다. 정말 남겨야 할 사람을 알아보고 그 관계를 오래 가는 구조로 만드는 데서 비로소 빛이 납니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 6 — 연애와 결혼운
-  if (chapterNo === 6) {
-    const texts = [
-      `${tenGodLib.relationship} 올해 연애 기운의 강도는 세운 ${annual.label}이 원국의 배우자성, 일지, 관계 관련 십성과 만나는 방식에서 드러납니다. ${annual.tenGod === "정관" || annual.tenGod === "정재" ? "올해는 관계를 안정적으로 정리하고 한 사람과의 깊이를 키우는 방향으로 기운이 모이기 쉽습니다." : annual.tenGod === "편재" || annual.tenGod === "편관" ? "새로운 자극과 만남의 가능성이 커지는 대신, 선택을 서두르면 관계의 소모도 커질 수 있습니다." : "연애 기운이 아예 약하다기보다, 감정의 파도보다 관계의 방향을 먼저 확인해야 하는 해에 가깝습니다."} 그래서 올해 사랑운은 강한 끌림 하나로 판단하기보다, 그 인연이 내 삶의 구조와 얼마나 잘 맞는지까지 함께 보아야 정확합니다. 감정이 올라오는 순간과 관계가 오래 가는 조건은 다를 수 있다는 점을 먼저 기억하세요.`,
-      `${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "에는 새로운 인연이 들어올 가능성이 높습니다." : "새로운 인연은 한 달에 몰리기보다 준비된 시기에 자연스럽게 들어올 수 있습니다."} 새로운 인연이 들어오는 방식은 ${combos.length > 0 ? "합의 기운을 타고 지인의 소개, 일 연결, 자연스러운 협업 속에서 가까워지는 흐름" : "억지로 만남을 만들기보다, 내가 꾸준히 드러나는 공간에서 천천히 연결되는 흐름"}에 더 가깝습니다. 올해는 화려한 첫인상보다 관계의 리듬이 맞는지를 더 중요하게 봐야 합니다. 처음엔 강하게 느껴지지 않아도 대화가 편안하고 약속이 안정적인 사람이 오히려 오래 갈 가능성이 큽니다. 인연을 찾는 과정에서 기준을 낮추기보다, 내가 반복해서 상처받는 패턴이 무엇인지 먼저 아는 것이 더 중요합니다.`,
-      `${clashes.find((c) => c.label === "일지") ? "일지에 충 신호가 들어오면 기존 관계에서 숨겨 두었던 문제들이 더 이상 미뤄지지 않고 드러날 수 있습니다." : "기존 관계의 문제는 갑자기 생긴다기보다, 오래 묵어 있던 감정과 생활 습관의 차이가 더 선명해지는 방식으로 드러날 가능성이 큽니다."} 올해 기존 관계에서 드러나는 문제는 대개 사랑이 식어서라기보다, 기대와 역할을 다루는 방식이 어긋나기 때문입니다. 상대가 알아서 맞춰 주길 기다리거나, 반대로 내가 모두 참아 주는 구조가 오래 지속되면 관계는 겉으로는 조용해도 안쪽에서 빠르게 마릅니다. 올해는 불편함을 참는 능력보다, 불편함을 상처로 만들기 전에 대화로 조율하는 능력이 더 중요합니다. 문제를 피하지 않고 언어로 다루기 시작할 때 관계는 무너지는 대신 다시 설계될 수 있습니다.`,
-      `${annual.tenGod === "정관" || annual.tenGod === "정재" ? "결혼이나 장기 관계 가능성은 올해 비교적 분명하게 열릴 수 있습니다. 특히 현실 조건과 미래 계획을 함께 맞춰 갈 수 있는 상대라면 관계의 공식화가 자연스럽게 논의될 수 있습니다." : "결혼이나 장기 관계 가능성은 감정의 속도보다 생활 구조와 책임을 함께 감당할 수 있는지에서 결정됩니다."} 사랑이 깊어진다고 해서 곧바로 오래 가는 관계가 되는 것은 아닙니다. 올해 장기 관계를 판단할 때는 감정 표현의 빈도보다 갈등이 생겼을 때 어떻게 해결하는지, 돈과 시간의 우선순위를 어떻게 맞추는지, 각자의 삶을 존중하면서도 함께 갈 수 있는지를 보아야 합니다. 그 조건이 갖춰진 관계라면 올해는 충분히 다음 단계로 넘어갈 수 있습니다. 반대로 그 기준이 불분명하다면, 서두르지 않는 것이 오히려 관계를 지키는 선택입니다.`,
-      `${tenGodLib.caution} 사랑에서 조심해야 할 태도는 내가 불안할수록 더 뚜렷해집니다. ${annual.tenGod === "상관" ? "말로 상대를 시험하거나, 상처받기 전에 먼저 거리를 두는 태도" : annual.tenGod === "비견" || annual.tenGod === "겁재" ? "자존심 때문에 원하는 것을 말하지 않거나, 비교심으로 관계를 흔드는 태도" : "상대에게 맞춰 주는 척하면서 실제 감정은 쌓아 두는 태도"}는 올해 특히 관계를 어렵게 만들 수 있습니다. 사랑에서 중요한 것은 멋지게 보이는 대응이 아니라, 내가 무엇을 원하는지 솔직히 말하고 상대의 반응을 있는 그대로 보는 용기입니다. 서운함을 돌려 말하거나 기대를 숨기면, 관계는 더 오래 꼬입니다. 올해 사랑을 지키려면 감정을 미화하지 말고, 다정하지만 분명한 태도로 관계의 기준을 세우는 연습이 필요합니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 7 — 건강
-  if (chapterNo === 7) {
-    const texts = [
-      `${tenGodLib.health} 올해 몸이 예민해지는 부분은 세운 ${annual.label}의 ${annual.elementKo} 기운이 원국의 약한 오행이나 이미 과도한 오행을 건드리는 지점에서 먼저 드러납니다. ${annual.elementKo === "목" ? "근육의 긴장, 눈의 피로, 간담 계열의 답답함처럼 몸의 긴장이 먼저 느껴질 수 있습니다." : annual.elementKo === "화" ? "열감, 심장 두근거림, 혈압성 피로, 과열된 신경 반응처럼 몸과 마음이 동시에 들뜨는 양상이 나타날 수 있습니다." : annual.elementKo === "토" ? "소화기 부담, 체중 기복, 몸이 무거워지는 느낌처럼 정체감이 두드러질 수 있습니다." : annual.elementKo === "금" ? "호흡기, 피부, 건조감, 예민한 신경 반응처럼 외부 자극에 민감해지는 흐름이 생길 수 있습니다." : "냉증, 부종, 수면의 질 저하처럼 체내 순환과 회복 리듬에서 불편함이 먼저 드러날 수 있습니다."} 올해는 몸이 보내는 작은 신호를 무시하지 않는 태도가 중요합니다. 병명을 단정하기보다, 반복해서 예민해지는 부분을 생활 리듬과 연결해 살피는 것이 훨씬 현실적인 관리 방법입니다.`,
-      `${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + "에는 마음이 흔들리는 시기가 더 선명하게 드러날 수 있습니다." : "올해는 특정 시기보다 피로가 누적된 순간에 마음의 흔들림이 더 크게 느껴질 수 있습니다."} 감정이 흔들릴 때 그것을 성격 문제로 몰아가지 말고, 몸의 피로와 일정의 밀도를 함께 보아야 합니다. ${annual.tenGod === "상관" ? "생각이 많아질수록 잠이 얕아지고, 잠이 얕아질수록 감정 기복이 더 커지는 흐름이 반복되기 쉽습니다." : annual.tenGod === "편관" ? "외부 압박을 오래 견디다 보면 멀쩡한 척하다가 한 번에 무너지는 방식으로 드러날 수 있습니다." : "참고 넘긴 감정이 쌓일수록 사소한 일에도 예민하게 반응하게 될 수 있습니다."} 올해 심리 리듬을 지키려면 감정을 통제하는 데만 집중하지 말고, 감정이 요동치기 전 몸의 신호를 먼저 읽어내는 연습이 필요합니다.`,
-      `스트레스가 쌓이는 방식은 사람마다 다르지만, 당신의 경우에는 운의 흐름이 강해질수록 더 분명한 패턴이 드러납니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "경쟁과 비교, 자존심을 지키려는 압박이 스트레스를 키우기 쉽습니다." : annual.tenGod === "정관" || annual.tenGod === "편관" ? "책임을 놓치면 안 된다는 긴장감이 몸을 먼저 굳게 만들 수 있습니다." : annual.tenGod === "식신" || annual.tenGod === "상관" ? "생각과 표현이 많아질수록 정리되지 않은 자극이 피로로 쌓일 수 있습니다." : "겉으로는 조용해 보여도 감정과 걱정을 오래 안으로 묻어 두는 방식이 누적 피로를 만들 수 있습니다."} 스트레스를 줄이려면 큰 결심보다 배출 통로를 만드는 것이 먼저입니다. 하루에 짧게라도 걷기, 기록하기, 사람과 말하기 같은 방식으로 마음속 에너지가 멈춰 서지 않게 흘려보내야 올해의 건강운이 무너지지 않습니다.`,
-      `회복력을 높이는 생활 리듬은 특별한 비법보다 반복 가능한 기본에서 나옵니다. 수면 시간을 일정하게 맞추고, 식사 간격을 크게 무너뜨리지 않고, 몸을 지나치게 몰아붙인 날에는 반드시 회복 시간을 다음 일정 안에 포함시키는 식의 운영이 필요합니다. 특히 올해는 "버틸 수 있으니 더 한다"는 방식이 누적 손상을 만들기 쉽습니다. ${annual.elementKo === "화" ? "열을 식히는 휴식과 자극을 줄이는 밤 루틴" : annual.elementKo === "금" ? "건조함을 막는 습도 관리와 호흡을 길게 만드는 습관" : annual.elementKo === "수" ? "몸을 따뜻하게 하고 수면 깊이를 회복하는 습관" : annual.elementKo === "목" ? "몸을 풀어 주는 스트레칭과 긴장 완화 루틴" : "소화 부담을 줄이는 식사 리듬과 걷기"}이 올해 회복력을 높이는 데 특히 유효합니다. 회복력은 여유가 생긴 뒤 챙기는 것이 아니라, 일정이 많을수록 먼저 넣어 두어야 하는 필수 항목입니다.`,
-      `${tenGodLib.advice} 건강운을 지키는 조언을 한 가지로 압축하면, 무너지기 전에 조절하는 습관을 만드는 것입니다. 올해는 참아 내는 힘보다 조절하는 힘이 더 중요합니다. 몸이 보내는 예민함을 무시하지 말고, 마음이 흔들릴 때 큰 결정을 잠시 미루고, 일정이 빽빽할수록 일부러 빈 시간을 만들어 두세요. 그렇게 하면 올해의 건강운은 단순히 아프지 않은 수준을 넘어, 중요한 순간에 필요한 에너지를 안정적으로 유지하는 방향으로 바뀝니다. 결국 몸과 마음의 리듬을 지키는 사람만이 올해의 기회도 오래 붙잡을 수 있습니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 9 — 위기와 반전
-  if (chapterNo === 9) {
-    const texts = [
-      `올해 가장 흔들리기 쉬운 문제는 ${clashes.length > 0 ? `원국과 세운의 충이 작동하는 ${monthlyCare.map((m) => `${m.month}월`).slice(0, 2).join("·") || "점수가 낮은 시기"}에 더 뚜렷하게 드러날 가능성이 있습니다.` : `${monthlyCare.length > 0 ? monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·") + " 같은 구간에서" : "운의 강약이 엇갈리는 순간에"} 작게 시작한 문제가 빠르게 커질 수 있습니다.`} 흔들리기 쉬운 문제의 본질은 외부 사건 그 자체보다, 이미 쌓여 있던 피로와 미뤄 둔 결정이 한꺼번에 표면으로 올라오는 데 있습니다. 그래서 올해의 위기는 예상 밖 재난처럼 오기보다, 조금씩 무시해 온 신호가 어느 순간 더는 미룰 수 없게 되는 방식으로 나타날 가능성이 큽니다. 이 점을 이해하면 위기를 두려워하기보다, 신호를 먼저 읽고 구조를 정리하는 방향으로 대응할 수 있습니다.`,
-      `반복될 수 있는 실수는 대체로 익숙한 방식으로 다시 반응하는 데서 시작됩니다. ${annual.tenGod === "겁재" ? "이기고 싶다는 마음이 앞서 판단을 서두르는 실수" : annual.tenGod === "상관" ? "생각이 앞서 방향을 자주 바꾸고 끝맺음을 늦추는 실수" : annual.tenGod === "편관" ? "압박을 견디기 위해 무리하게 버티다가 뒤늦게 무너지는 실수" : "감정 상태를 점검하지 않은 채 중요한 선택을 내려 후회하는 실수"}가 올해 반복될 가능성이 높습니다. 실수를 줄이는 가장 좋은 방법은 완벽해지는 것이 아니라, 내가 어떤 순간에 같은 패턴으로 무너지는지를 정확히 아는 것입니다. 결정 앞에서 한 번 더 멈추고, 지금 내 상태가 과열인지 피곤한지부터 확인하는 습관만 생겨도 반복 실수의 절반은 줄어듭니다. 올해는 능력보다 자기 패턴을 읽는 힘이 더 큰 보호막이 됩니다.`,
-      `${clashes.length > 0 ? "위기가 기회로 바뀌는 조건은 변화 자체를 피하지 않는 데 있습니다. 충의 기운이 작동하면 기존 구조가 흔들릴 수밖에 없는데, 그때 무엇을 지키고 무엇을 바꿀지 스스로 선택하면 위기는 전환점이 됩니다." : "위기가 기회로 바뀌는 조건은 문제를 빠르게 인정하고, 감정 반응보다 구조 조정에 먼저 들어가는 데 있습니다."} 올해는 감정적으로만 버티는 방식으로는 반전이 잘 일어나지 않습니다. 일과 돈, 관계, 생활 리듬 중 어디가 먼저 무너졌는지 확인하고 그 지점을 다시 설계해야 합니다. 위기를 기회로 만드는 사람은 특별히 강한 사람이 아니라, 흔들릴 때 원인을 명확히 보고 작은 조정을 빠르게 반복하는 사람입니다. 올해 반전의 계기는 한 번의 큰 승부보다, 무너지는 흐름을 끊어 내는 작은 기준에서 시작될 가능성이 큽니다.`,
-      `피해야 할 선택은 겉으로는 쉬워 보이지만, 뒤로 갈수록 더 큰 비용을 남기는 선택입니다. 예를 들어 불안하다고 해서 무조건 확장하는 선택, 외롭다고 해서 맞지 않는 관계를 붙잡는 선택, 손실이 두려워 확인도 없이 결정을 미루는 선택은 모두 올해의 흐름을 더 꼬이게 만들 수 있습니다. ${tenGodLib.caution} 특히 ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "자존심 때문에 협력 기회를 놓치는 선택" : annual.tenGod === "상관" ? "말로 이기려다 관계 기반을 잃는 선택" : annual.tenGod === "편관" ? "압박을 버티기 위해 몸과 마음을 소진시키는 선택" : "겉으로는 무난해 보여도 본심과 다른 방향으로 끌려가는 선택"}은 오래 갈수록 손실이 커질 가능성이 높습니다. 올해는 순간의 편안함보다 장기적인 균형을 남기는 선택인지 스스로에게 계속 물어야 합니다.`,
-      `${tenGodLib.advice} 반전을 만드는 행동은 의외로 단순합니다. 미뤄 둔 문제를 작은 단위로 정리하고, 관계에서 불편한 부분을 초기에 말로 다루고, 돈과 일정에서 새는 구멍을 먼저 막고, 기회가 오는 달에는 망설이기보다 준비한 것을 꺼내는 것입니다. 반전은 갑자기 뒤집는 극적인 장면에서 나오지 않습니다. 흔들리는 흐름을 정확히 읽고, 그 흐름을 더 나빠지지 않게 끊는 행동에서 시작됩니다. 올해는 무섭게 예언을 듣는 해가 아니라, 위험 신호를 현실적인 선택으로 바꾸는 해여야 합니다. 그렇게 해야 비로소 위기가 지나간 자리에서 더 단단한 방향이 남습니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Chapter 10 — 마스터플랜
-  if (chapterNo === 10) {
-    const texts = [
-      `올해의 핵심 메시지는 세운 ${annual.label}을 막연한 분위기로 받아들이지 말고, 실제 선택의 기준으로 쓰라는 것입니다. ${tenGodLib.yearlyTheme} 이 해는 좋고 나쁨을 단정하는 해가 아니라, 무엇에 에너지를 써야 하고 무엇을 줄여야 하는지를 빨리 알아차리는 사람이 훨씬 유리한 해입니다. 그래서 올해의 핵심 메시지는 "운을 기다리지 말고 흐름에 맞게 움직이라"는 말로 정리할 수 있습니다. 기회가 오는 달에는 바로 움직일 수 있도록 미리 준비하고, 부담이 커지는 달에는 과감하게 속도를 줄이며 구조를 다시 세우는 태도가 필요합니다. 이 기준만 분명하면 한 해 전체가 훨씬 덜 흔들립니다.`,
-      `가장 먼저 정리해야 할 것은 마음속 불안보다 실제로 에너지를 빼앗는 요소들입니다. 사람 문제인지, 돈 문제인지, 생활 리듬인지, 미뤄 둔 결정인지부터 나눠 보아야 올해의 흐름이 선명해집니다. ${monthlyStrong.length > 0 ? `${monthlyStrong[0].month}월 전후로 흐름이 강해지기 전에 우선순위를 정리해 두면` : "초반 흐름을 정리해 두면"} 좋은 운이 들어와도 허공으로 새지 않습니다. 쌓인 피로와 미정 상태를 그대로 둔 채 새 계획을 올리면 좋은 운도 오래 못 갑니다. 올해는 큰 목표부터 잡는 것보다, 먼저 치워야 할 문제를 정리하고 에너지 누수를 막는 것이 진짜 출발선입니다.`,
-      `반드시 밀어붙여야 할 것은 지금까지 준비해 왔지만 망설임 때문에 밖으로 꺼내지 못했던 일입니다. ${annual.tenGod === "식신" || annual.tenGod === "상관" ? "표현하고 제안하고 결과물로 만드는 일" : annual.tenGod === "편재" || annual.tenGod === "정재" ? "수익 구조와 계약, 성과를 명확하게 만드는 일" : annual.tenGod === "편관" || annual.tenGod === "정관" ? "책임을 맡고 자리의 무게를 받아내는 일" : "내 기준을 세우고 방향을 결정하는 일"}은 올해 미루면 아쉬움이 더 크게 남을 가능성이 있습니다. ${monthlyStrong.length > 0 ? monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·") + "처럼 흐름이 강한 달에는" : "흐름이 열리는 순간에는"} 완벽해진 뒤 움직이겠다는 생각보다, 준비한 것을 실제로 세상과 관계 속에 놓는 쪽이 훨씬 큰 성과로 이어집니다. 올해는 주저하는 시간보다 실행의 리듬이 더 중요합니다.`,
-      `내려놓아야 할 것은 늘 해 오던 방식인데도 이미 효율이 떨어진 습관들입니다. ${annual.tenGod === "비견" || annual.tenGod === "겁재" ? "혼자 다 해내려는 태도와 필요 이상으로 버티는 습관" : annual.tenGod === "상관" ? "말과 생각만 많고 끝맺음이 늦어지는 패턴" : annual.tenGod === "편관" ? "압박을 견디는 것 자체를 성실함으로 착각하는 태도" : "상황이 바뀌었는데도 익숙하다는 이유로 붙들고 있는 방식"}은 올해의 흐름을 무겁게 만들 수 있습니다. 내려놓는다는 것은 포기하는 것이 아니라, 지금의 삶에 맞지 않는 방식에 더 이상 에너지를 주지 않는다는 뜻입니다. 그래야 정말 밀어붙여야 할 것에 힘이 모입니다. 올해는 덜어 내는 결단이 오히려 전진의 속도를 높여 줄 수 있습니다.`,
-      `${tenGodLib.advice} 1년을 잘 보내기 위한 실전 전략은 복잡하지 않습니다. 좋은 달에는 실행, 어려운 달에는 조정, 흔들리는 순간에는 기준 확인이라는 세 가지 원칙을 계속 반복하면 됩니다. 이 원칙을 지키기 위해 분기마다 한 번씩 현재 흐름을 점검하고, 월별로는 중요한 일정과 지출, 관계 에너지를 짧게라도 기록해 두세요. 기록이 쌓이면 운은 더 이상 막연한 느낌이 아니라, 실제 선택을 돕는 데이터가 됩니다. 결국 올해를 잘 보내는 사람은 운이 좋은 사람보다, 자신의 흐름을 읽고 거기에 맞게 움직일 줄 아는 사람입니다. ${seed.targetYear}년은 바로 그 감각을 길러 주는 한 해가 되어야 합니다.`,
-    ];
-    return texts[idx] || texts[0];
-  }
-
-  // Fallback
-  const seeds = seed.interpretationSeeds;
-  const keyMap = { "일": "career", "커리어": "career", "재물": "wealth", "돈": "wealth", "연애": "love", "사랑": "love", "관계": "relationships", "건강": "health", "마음": "health", "위기": "risks", "전략": "finalStrategy" };
-  const found = Object.keys(keyMap).find((token) => category.includes(token));
-  const list = seeds[found ? keyMap[found] : "yearlyTheme"] || seeds.yearlyTheme;
-  const base = list[idx % list.length] || list[0] || "";
-  return `${base}\n\n${tenGodLib.yearlyTheme}\n\n${relMsgs || "올해는 선택의 기준을 미리 세워두는 것이 가장 중요한 준비입니다."}\n\n${tenGodLib.advice}`;
-}
-
-function getNewYearSectionFocus(categoryTitle = "", categoryRule = null) {
-  const title = clean(categoryTitle);
-  if (categoryRule?.subject) {
-    return {
-      toneKey: categoryRule.toneKey || "yearlyTheme",
-      subject: categoryRule.subject,
-      reality: categoryRule.reality,
-    };
-  }
-  if (/커리어|직장|조직|평가|이직|전환|확장|성과|업무|일\b/.test(title)) {
-    return {
-      toneKey: "career",
-      subject: "일의 방향과 사회적 역할",
-      reality: "올해 현실에서는 맡은 역할, 평가 기준, 성과가 드러나는 방식이 함께 움직입니다. 관성이 강하면 책임과 신뢰가 중요해지고, 식상이 살아나면 표현과 결과물이 성과로 이어지며, 재성이 작동하면 일의 결과가 수익과 계약으로 연결됩니다.",
-    };
-  }
-  if (/재물|돈|수익|지출|손실|계약|투자|가격/.test(title)) {
-    return {
-      toneKey: "money",
-      subject: "돈의 흐름과 손익 구조",
-      reality: "올해 현실에서는 수입의 통로, 지출의 압력, 계약 조건이 한 덩어리로 움직입니다. 재성이 직접 열리는 달에는 수익 기회가 살아나고, 충·해·파가 강한 구간에는 작은 비용 결정도 손실로 커질 수 있으므로 숫자와 약속을 함께 관리해야 합니다.",
-    };
-  }
-  if (/연애|인연|결혼|약속|가족|관계|귀인|협업|파트너|감정|거리/.test(title)) {
-    return {
-      toneKey: "relationship",
-      subject: "사람과 마음의 연결 방식",
-      reality: "올해 현실에서는 가까워지는 사람, 멀어지는 사람, 책임이 필요한 관계가 선명하게 갈립니다. 합의 기운은 연결을 만들고, 충의 기운은 관계의 재배치를 요구하므로 감정의 크기보다 약속과 역할의 균형을 먼저 보아야 합니다.",
-    };
-  }
-  if (/건강|심리|몸|피로|스트레스|마음|회복|멘탈|생활/.test(title)) {
-    return {
-      toneKey: "health",
-      subject: "몸과 마음의 회복 리듬",
-      reality: "올해 현실에서는 몸의 예민함과 감정의 밀도가 함께 움직입니다. 약한 오행이 눌리거나 과한 오행이 더 과열되는 달에는 피로, 수면, 소화, 호흡, 긴장 반응이 먼저 신호를 보내므로 생활 리듬을 운의 강약에 맞춰 조절해야 합니다.",
-    };
-  }
-  if (/위험|위기|흔들|합충|형파해|사건|실수|회복 플랜|주의/.test(title)) {
-    return {
-      toneKey: "caution",
-      subject: "위험 신호와 반전의 조건",
-      reality: "올해 현실에서는 작은 균열이 사람, 돈, 일정, 감정 중 한 곳에서 먼저 드러납니다. 합은 기회를 만들지만 과한 기대를 부를 수 있고, 충·해·파는 변화를 재촉하므로 위기를 피하려 하기보다 초기에 구조를 조정하는 태도가 필요합니다.",
-    };
-  }
-  if (/분기|월별|Go\/Stop|상반기|하반기|타이밍|로드맵|루틴|메시지|정리|밀어붙일|내려놓/.test(title)) {
-    return {
-      toneKey: "advice",
-      subject: "시간표와 실행 순서",
-      reality: "올해 현실에서는 어느 달에 열고 어느 달에 닫을지가 성과를 가릅니다. 좋은 흐름은 실행으로 쓰고, 부담이 커지는 흐름은 점검과 정리로 쓰면 같은 운도 훨씬 안정적인 결과로 이어집니다.",
-    };
-  }
-  return {
-    toneKey: "yearlyTheme",
-    subject: "올해 전체 운의 방향",
-    reality: "올해 현실에서는 세운의 기운이 원국의 강점과 약점을 동시에 드러냅니다. 중요한 것은 길흉을 단정하는 것이 아니라, 어떤 선택이 운을 살리고 어떤 습관이 흐름을 막는지 구체적으로 구분하는 일입니다.",
-  };
-}
-
-function buildHighQualityNewYearSection(seed, chapterSpec, categoryTitle, sectionIndex = 0) {
-  const annual = seed?.saju?.annualLuck || {};
-  const pillars = seed?.saju?.pillars || {};
-  const dayMaster = clean(seed?.saju?.dayMaster || pillars?.day?.stem || "戊");
-  const dayElement = STEM_ELEMENT[dayMaster] || "earth";
-  const dayElementKo = ELEMENT_KO[dayElement] || "토";
-  const annualStem = clean(annual?.stem || "");
-  const annualBranch = clean(annual?.branch || "");
-  const annualLabel = formatNewYearGanjiForCustomer(clean(annual?.label || `${annualStem}${annualBranch}` || "세운"));
-  const annualFlowLabel = annualLabel.includes("세운") ? annualLabel : `${annualLabel} 세운`;
-  const annualBranchLabel = formatNewYearBranchForCustomer(annualBranch || "");
-  const annualTenGod = clean(annual?.tenGod || tenGod(dayMaster, annualStem || "甲"));
-  const dayMasterRelation = clean(annual?.dayMasterRelation || elementRelation(dayElement, annual?.element || "earth"));
-  const dayMasterLabel = formatNewYearStemForCustomer(dayMaster);
-  const relationRows = Array.isArray(seed?.saju?.relations?.branchRelations) ? seed.saju.relations.branchRelations : [];
-  const relationSummary = relationRows.length
-    ? relationRows.slice(0, 4).map((row) => row.message).join(" ")
-    : "원국 지지와 세운 지지 사이에 큰 충돌이 드러나지 않더라도, 월별 강약에 따라 체감 리듬은 충분히 달라질 수 있습니다.";
-  const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
-  const strongMonths = monthly.filter((m) => Number(m?.score || 0) >= 75).slice(0, 4).map((m) => `${m.month}월`);
-  const careMonths = monthly.filter((m) => Number(m?.score || 0) < 60).slice(0, 4).map((m) => `${m.month}월`);
-  const geokguk = clean(seed?.structure?.geokguk || "");
-  const usefulKeywords = Array.isArray(seed?.structure?.usefulGodKeywords) ? seed.structure.usefulGodKeywords.filter(Boolean) : [];
-  const usefulSummary = usefulKeywords.length
-    ? `용신·희신 흐름은 ${usefulKeywords.join(" / ")} 방향에서 힘을 보태며, 기신이 강해지는 구간에서는 과열된 결정을 낮추는 방식이 필요합니다.`
-    : "용신과 희신의 방향은 균형 회복에 맞추고, 기신이 강해질 때는 속도를 조절하는 원칙으로 운영해야 안정감이 높아집니다.";
-  const tone = getTenGodLib(annualTenGod);
-  const categoryRule = getNewYearCategoryRule(categoryTitle, chapterSpec);
-  const categoryLabel = humanizeNewYearCustomerText(categoryTitle);
-  const focus = getNewYearSectionFocus(categoryTitle, categoryRule);
-  const consultationProfile = getNewYearDomainConsultationProfile(categoryRule.domain, sectionIndex);
-  const chapterTitle = clean(chapterSpec?.title || chapterSpec?.focus || "신년운세");
-  const chapterSubject = humanizeNewYearCustomerText(stripNewYearChapterPrefix(chapterTitle));
-  const clientLabel = newYearClientLabel(seed);
-  const openingLead = [
-    `${chapterSubject}에서 먼저 살필 대목은 ${categoryLabel}입니다.`,
-    `${categoryLabel} 대목은 장 전체의 흐름과 함께 보아야 합니다.`,
-    `${clientLabel}에게 ${categoryLabel} 대목은 올해의 선택 순서를 알려줍니다.`,
-    `${categoryLabel}의 문은 ${chapterSubject} 안에서 특히 섬세하게 열립니다.`,
-    `${chapterSubject} 속 ${categoryLabel} 대목은 올해 생활 리듬으로 내려와야 합니다.`,
-  ][sectionIndex % 5];
-  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
-  const annualQuantum = quantum?.annualQuantum || {};
-  const quantumSummary = humanizeNewYearCustomerText(quantum?.professionalSummary || "");
-  const quantumSummaryForCategory = quantumSummary
-    ? `${categoryLabel}에 적용하면 ${quantumSummary.replace(/[.!?。！？]+/g, ", ").replace(/\s+/g, " ").trim()} 흐름으로 읽습니다.`
-    : "";
-  const quantumStrongMonths = Array.isArray(quantum?.monthlyQuantum)
-    ? quantum.monthlyQuantum.filter((m) => m.decision === "GO").slice(0, 4).map((m) => `${m.month}월`)
-    : [];
-  const quantumCareMonths = Array.isArray(quantum?.monthlyQuantum)
-    ? quantum.monthlyQuantum.filter((m) => m.decision === "STOP").slice(0, 4).map((m) => `${m.month}월`)
-    : [];
-  const categoryEvidence = formatNewYearRuleList(categoryRule.evidence, "원국 · 세운 · 월운");
-  const categoryActions = formatNewYearRuleList(categoryRule.actionGuide, "기준 정리 · 실행 · 점검");
-  const categoryChecklist = formatNewYearRuleList(categoryRule.checklist, "기록 · 확인 · 조율");
-  const categoryCautions = formatNewYearRuleList(categoryRule.caution, "무리한 확장과 감정적 결론 주의");
-  const categoryOpportunity = formatNewYearRuleList(categoryRule.opportunity, "운이 열리는 지점을 실제 행동으로 옮기기");
-  const rawRelationFocus = relationRows.length
-    ? clean(relationRows[sectionIndex % relationRows.length]?.message || relationRows[0]?.message || "")
-    : "원국과 세운 사이의 큰 충돌이 약하더라도 월별 강약에 따라 체감 흐름은 달라집니다.";
-  const relationFocus = `${categoryLabel} 관점에서 ${rawRelationFocus}`.replace(/[.!?。！？]+$/g, "");
-  const usefulLabels = usefulKeywords
-    .flatMap((item) => clean(item).split(/[,\s/]+/))
-    .map((item) => newYearElementKo(item, item))
-    .filter(Boolean);
-  const usefulText = usefulLabels.length ? Array.from(new Set(usefulLabels)).join("·") : "균형 회복";
-  const categoryAngles = buildNewYearCategoryConsultationAngles({
-    categoryRule,
-    categoryLabel,
-    profile: consultationProfile,
-    seed,
-    strongMonths,
-    careMonths,
-    sectionIndex,
-  });
-  const tenGodSentence = newYearTenGodConsultationSentence(annualTenGod, categoryLabel, categoryRule.domain, sectionIndex);
-  const sectionSignature = `${chapterSubject} / ${categoryLabel}`;
-  const lineIndex = sectionIndex % 5;
-  const introLines = [
-    `${openingLead} ${categoryLabel}을 볼 때 ${seed.targetYear}년 ${annualFlowLabel}은 일간 ${dayMasterLabel || dayMaster}에게 ${annualTenGod}의 결을 만들며, ${clientLabel}의 실제 선택 안에서는 ${dayMasterRelation}의 패턴으로 체감됩니다. ${sectionSignature}에서 첫 기준은 ${categoryEvidence}이고, 상담의 초점은 ${focus.subject}입니다. ${tenGodSentence}`,
-    `${openingLead} ${categoryLabel}은 ${annualTenGod} 세운이 ${clientLabel}의 마음과 현실 선택에 어떻게 내려오는지 보는 항목입니다. ${seed.targetYear}년 ${annualFlowLabel}은 ${dayMasterLabel || dayMaster} 일간에게 ${dayMasterRelation} 흐름을 만들고, ${categoryEvidence}를 통해 ${focus.subject}의 방향을 드러냅니다. ${tenGodSentence}`,
-    `${openingLead} ${categoryLabel}의 문은 ${annualLabel} 세운과 원국 일간 ${dayMasterLabel || dayMaster}이 만나는 자리에서 열립니다. 올해의 십성은 ${annualTenGod}이고, 체감 패턴은 ${dayMasterRelation}이므로 ${categoryEvidence}를 먼저 살피면 ${focus.subject}의 핵심이 분명해집니다. ${tenGodSentence}`,
-    `${openingLead} ${categoryLabel}에서는 큰 운의 이름보다 실제 선택 순서가 중요합니다. ${seed.targetYear}년 ${annualFlowLabel}, 일간 ${dayMasterLabel || dayMaster}, 십성 ${annualTenGod}, 그리고 ${dayMasterRelation} 신호를 함께 놓고 보면 ${sectionSignature}의 첫 문은 ${categoryEvidence}에서 시작됩니다. ${tenGodSentence}`,
-    `${openingLead} ${categoryLabel}은 올해 운이 생활 속에서 어디로 먼저 드러나는지를 알려주는 표식입니다. ${annualLabel} 세운은 ${dayMasterLabel || dayMaster} 일간에게 ${annualTenGod}의 옷을 입히고, ${clientLabel}에게는 ${dayMasterRelation}의 방식으로 ${focus.subject}을 시험하게 합니다. ${tenGodSentence}`,
-  ];
-  const evidenceLines = [
-    `${categoryLabel}에서 확인할 명식 근거는 원국의 일간 ${dayMasterLabel || dayMaster}, 세운 간지 ${annualLabel}, 그리고 ${annualTenGod} 십성의 작용입니다. 원국 지지의 핵심은 년지 ${formatNewYearBranchForCustomer(pillars?.year?.branch || "-")}, 월지 ${formatNewYearBranchForCustomer(pillars?.month?.branch || "-")}, 일지 ${formatNewYearBranchForCustomer(pillars?.day?.branch || "-")}, 시지 ${formatNewYearBranchForCustomer(pillars?.hour?.branch || "-")}이고, 세운 지지 ${annualBranchLabel || "-"}와 만나는 신호는 ${categoryLabel} 관점에서 ${relationFocus} ${geokguk ? `${categoryLabel}의 격국은 ${geokguk}의 틀을 바탕으로 보되,` : ""} 보완 방향은 ${usefulText} 쪽에 두는 편이 좋습니다. ${categoryLabel}의 정밀 보정은 세운이 ${clean(annualQuantum.elementRoleLabel || "중립")} 흐름에 가깝고, 체감 강도는 ${Number(annualQuantum.finalScore || 0) || "관찰"} 정도로 봅니다. ${quantumSummaryForCategory}`,
-    `${categoryLabel}의 뿌리는 네 기둥의 지지와 세운 지지의 만남에서 읽습니다. ${categoryLabel} 기준으로 년지 ${formatNewYearBranchForCustomer(pillars?.year?.branch || "-")}는 바깥 환경, 월지 ${formatNewYearBranchForCustomer(pillars?.month?.branch || "-")}는 생활 기반, 일지 ${formatNewYearBranchForCustomer(pillars?.day?.branch || "-")}는 가까운 선택, 시지 ${formatNewYearBranchForCustomer(pillars?.hour?.branch || "-")}는 미래 반응을 보여 주며, 세운 ${annualBranchLabel || "-"}와의 접점은 ${relationFocus} ${categoryLabel}의 보완 오행은 ${usefulText}이고 정밀 보정 강도는 ${Number(annualQuantum.finalScore || 0) || "관찰"}로 봅니다. ${quantumSummaryForCategory}`,
-    `${categoryLabel}을 명리적으로 좁히면 일간 ${dayMasterLabel || dayMaster}, 십성 ${annualTenGod}, 세운 ${annualLabel}이 먼저 서고 그 뒤에 원국 지지의 반응이 따라옵니다. ${categoryLabel}에서 ${formatNewYearBranchForCustomer(pillars?.day?.branch || "-")} 일지와 ${annualBranchLabel || "-"} 세운 지지가 만드는 신호는 ${relationFocus} ${geokguk ? `${geokguk}의 틀은 ${categoryLabel}에서 과한 확장보다 균형을 요구하고,` : ""} ${usefulText} 흐름을 보태면 선택이 한결 안정됩니다. ${quantumSummaryForCategory}`,
-    `${categoryLabel}의 계산 근거는 한 글자만으로 보지 않습니다. ${categoryLabel}에서는 원국 네 지지 ${[pillars?.year?.branch, pillars?.month?.branch, pillars?.day?.branch, pillars?.hour?.branch].map((item) => formatNewYearBranchForCustomer(item || "-")).join("·")}와 세운 ${annualBranchLabel || "-"}의 접점, ${annualTenGod} 십성, ${dayMasterRelation} 체감이 함께 움직입니다. 이때 ${usefulText} 보완이 들어가면 ${categoryLabel}의 흔들림을 줄일 수 있고, 정밀 보정은 ${clean(annualQuantum.elementRoleLabel || "중립")} 쪽으로 읽습니다. ${quantumSummaryForCategory}`,
-    `${categoryLabel}에서는 원국의 반복 신호와 세운의 새 신호를 분리해서 보아야 합니다. ${annualLabel} 세운은 ${annualTenGod}을 통해 ${focus.subject}을 건드리고, 원국 지지와의 만남은 ${relationFocus} ${categoryLabel}의 월운과 용신·기신까지 함께 살피면 보완 방향은 ${usefulText}이며, ${geokguk ? `${geokguk} 구조 안에서는 무리한 속도보다 순서가 중요합니다.` : "격국의 틀은 속도보다 균형을 먼저 요구합니다."} ${categoryLabel}의 정밀 보정은 ${Number(annualQuantum.finalScore || 0) || "관찰"}의 체감 강도로 봅니다.`,
-  ];
-  const realityLines = [
-    `${categoryLabel}이 현실에서 드러나는 모습은 ${focus.reality} ${categoryAngles.opportunity} ${categoryOpportunity}은 이 대목에서 운을 살리는 문입니다. ${categoryLabel}에서는 좋은 말만 붙잡는 것이 아니라, 이 흐름이 실제로 어느 사람, 어느 돈, 어느 일정, 어느 몸의 신호로 나타나는지 분리해 보아야 합니다.`,
-    `${categoryLabel}의 현실 발현은 ${focus.reality}에 가깝습니다. ${categoryAngles.opportunity} ${categoryLabel}의 기회는 ${categoryOpportunity}에서 열리니, 올해는 사건을 크게 해석하기보다 작은 반복 신호를 먼저 붙잡는 편이 좋습니다.`,
-    `${categoryLabel}에서는 운이 눈에 보이는 사건보다 습관과 약속의 모양으로 먼저 옵니다. ${focus.reality} ${categoryOpportunity}을 살리려면 ${categoryAngles.opportunity}라는 기준을 실제 일정에 올려야 합니다.`,
-    `${categoryLabel}의 체감은 한 번의 좋은 소식보다 지속되는 흐름에서 정확해집니다. ${focus.reality} 여기에 ${categoryAngles.opportunity}을 더하면 ${categoryOpportunity}이 현실적인 문으로 바뀝니다.`,
-    `${categoryLabel}이 올해의 삶에서 움직일 때는 ${focus.reality}라는 모습으로 드러납니다. ${categoryAngles.opportunity} 그러므로 ${categoryOpportunity}을 추상적인 희망이 아니라 이번 해에 실제로 열어 둘 자리로 보아야 합니다.`,
-  ];
-  const cautionLines = [
-    `${categoryLabel}에서는 ${careMonths.length ? `${careMonths.join("·")}에` : "월운이 약해지는 구간에"} 감정적 결론이나 무리한 일정 확장이 부담으로 이어질 수 있습니다. ${categoryAngles.caution} ${categoryCautions}은 이 절에서 반드시 살필 주의선입니다. ${categoryLabel}에서 합·충·해·파 신호가 겹치는 시기에는 말의 온도, 비용 지출 순서, 약속의 범위를 먼저 정리해야 손실이 작아집니다.`,
-    `${categoryLabel}의 주의선은 ${careMonths.length ? careMonths.join("·") : "흐름이 낮아지는 달"}에 선명해집니다. ${categoryAngles.caution} ${categoryCautions}을 가볍게 넘기면 좋은 인연이나 좋은 제안도 부담으로 바뀔 수 있으니, 먼저 줄이고 확인하는 순서가 필요합니다.`,
-    `${categoryLabel}에서 흔들림이 커지는 때는 ${careMonths.length ? careMonths.join("·") : "점검 달"}입니다. ${categoryCautions}을 기준으로 삼고 ${categoryAngles.caution}을 적용하면 충돌의 크기를 줄일 수 있습니다. ${categoryLabel}에서는 말, 돈, 일정 중 하나라도 과열되면 하루를 두고 다시 판단하십시오.`,
-    `${categoryLabel}의 약한 달에는 빠른 결론보다 보호가 먼저입니다. ${categoryAngles.caution} ${categoryCautions}을 살피며 합·충·해·파가 겹친 날에는 약속 범위와 비용 상한선을 좁히는 것이 안전합니다.`,
-    `${categoryLabel}에서 조심해야 할 흐름은 불안 때문에 더 크게 벌리는 선택입니다. ${careMonths.length ? `${careMonths.join("·")}에는` : "기운이 눌리는 때에는"} ${categoryAngles.caution}을 먼저 놓고, ${categoryCautions}을 올해의 방어선으로 삼아야 합니다.`,
-  ];
-  const actionLines = [
-    `${categoryLabel}의 힘을 키우려면 ${strongMonths.length ? `${strongMonths.join("·")}에는` : "월운이 살아나는 구간에는"} ${categoryActions}을 앞에 두세요. ${categoryAngles.action} 실행한 뒤에는 ${categoryAngles.checklist} ${categoryLabel}의 처방은 완벽한 때를 기다리는 것이 아니라, 운이 열리는 자리에서 작게라도 움직이고 약한 자리에서는 과감히 다듬는 것입니다.`,
-    `${categoryLabel}의 실행 처방은 ${categoryActions}에서 시작합니다. ${strongMonths.length ? `${strongMonths.join("·")}에는` : "기회가 열리는 달에는"} 작은 행동을 먼저 세우고 ${categoryAngles.action}을 적용하세요. 이후 ${categoryAngles.checklist}을 남기면 다음 달 판단이 훨씬 또렷해집니다.`,
-    `${categoryLabel}을 살리는 방법은 크게 벌리는 것이 아니라 맞는 때에 맞는 행동을 놓는 것입니다. ${strongMonths.length ? `${strongMonths.join("·")}` : "강한 달"}에는 ${categoryActions}을 실행하고, 그 결과를 ${categoryAngles.checklist}로 확인하십시오. ${categoryAngles.action}`,
-    `${categoryLabel}에서는 행동의 양보다 순서가 운을 살립니다. ${categoryActions}을 먼저 정하고 ${strongMonths.length ? `${strongMonths.join("·")}` : "좋은 달"}에 실험한 뒤, ${categoryAngles.checklist}을 통해 계속할 것과 줄일 것을 나누십시오. ${categoryAngles.action}`,
-    `${categoryLabel}의 처방은 올해 한 번의 결심이 아니라 매달 반복할 작은 방식입니다. ${strongMonths.length ? `${strongMonths.join("·")}에는` : "운이 열리는 달에는"} ${categoryActions}을 앞세우고, 실행 후에는 ${categoryAngles.checklist}을 남기며 ${categoryAngles.action}`,
-  ];
-  const monthlyLines = [
-    `${categoryLabel}의 월별 기준은 ${categoryChecklist}입니다. ${categoryAngles.monthly} ${categoryLabel} 기준으로 실행 흐름이 열린 달(${quantumStrongMonths.join("·") || "흐름이 분산된 때"})에는 움직임을 앞세우고, 정비가 필요한 달(${quantumCareMonths.join("·") || "흐름이 분산된 때"})에는 큰 결정을 늦추는 것이 좋습니다. 매달 하나의 실행 항목과 하나의 금지 항목을 동시에 정하면 ${categoryLabel}의 체감 성과가 더 선명해집니다.`,
-    `${categoryLabel}의 달력은 ${categoryChecklist}을 기준으로 잡으십시오. ${categoryLabel}에서 실행 흐름이 열린 달은 ${quantumStrongMonths.join("·") || "생활 흐름이 가벼운 때"}이고, 정비가 필요한 달은 ${quantumCareMonths.join("·") || "판단을 늦출 때"}입니다. ${categoryAngles.monthly} ${categoryLabel}의 월말에는 한 가지 성과와 한 가지 누수를 함께 적어야 합니다.`,
-    `${categoryLabel}에서는 매달 같은 질문을 반복하는 것이 좋습니다. 이번 달에 할 일은 ${categoryChecklist}인지, 미룰 일은 무엇인지 먼저 정하십시오. ${categoryAngles.monthly} ${categoryLabel}은 ${quantumStrongMonths.join("·") || "좋은 흐름"}에는 움직임을 열고 ${quantumCareMonths.join("·") || "정비 흐름"}에는 결정을 줄이면 리듬이 안정됩니다.`,
-    `${categoryLabel}의 월별 처방은 강한 달과 약한 달을 다르게 쓰는 데 있습니다. ${categoryLabel}은 ${quantumStrongMonths.join("·") || "기회 달"}에는 실행 항목을 하나 밖으로 꺼내고, ${quantumCareMonths.join("·") || "정비 달"}에는 금지 항목을 먼저 지키십시오. ${categoryAngles.monthly} 기준은 ${categoryChecklist}입니다.`,
-    `${categoryLabel}은 월별로 체감이 달라지는 항목입니다. ${categoryChecklist}을 달력에 적어 두고 ${quantumStrongMonths.join("·") || "열리는 달"}에는 제안과 실행을, ${quantumCareMonths.join("·") || "눌리는 달"}에는 점검과 회복을 앞에 두십시오. ${categoryAngles.monthly}`,
-  ];
-  const professionalParagraphs = buildNewYearProfessionalSectionParagraphs({
-    categoryLabel,
-    categoryRule,
-    consultationProfile,
-    chapterSubject,
-    clientLabel,
-    seed,
-    annualLabel,
-    annualFlowLabel,
-    annualTenGod,
-    dayMaster,
-    dayMasterLabel,
-    dayMasterRelation,
-    categoryEvidence,
-    categoryActions,
-    categoryChecklist,
-    categoryCautions,
-    categoryOpportunity,
-    focus,
-    tenGodSentence,
-    pillars,
-    annualBranchLabel,
-    relationFocus,
-    geokguk,
-    usefulText,
-    annualQuantum,
-    quantumSummaryForCategory,
-    categoryAngles,
-    strongMonths,
-    careMonths,
-    quantumStrongMonths,
-    quantumCareMonths,
-    sectionIndex,
-  });
-  const sectionHeadings = buildNewYearSectionHeadings(categoryLabel, categoryRule.domain);
-  const blockMap = {
-    intro: {
-      heading: sectionHeadings[0] || consultationProfile.headings[0] || consultationProfile.heading || "핵심 결론",
-      body: professionalParagraphs.intro || introLines[lineIndex],
-    },
-    scenario: {
-      heading: buildNewYearScenarioHeading(categoryRule.domain, categoryLabel),
-      body: professionalParagraphs.scenario || "",
-    },
-    evidence: {
-      heading: sectionHeadings[1] || consultationProfile.headings[1] || "명식의 신호",
-      body: professionalParagraphs.evidence || evidenceLines[lineIndex],
-    },
-    reality: {
-      heading: sectionHeadings[2] || consultationProfile.headings[2] || "현실의 체감",
-      body: professionalParagraphs.reality || realityLines[lineIndex],
-    },
-    caution: {
-      heading: sectionHeadings[3] || consultationProfile.headings[3] || "주의할 결",
-      body: professionalParagraphs.caution || cautionLines[lineIndex],
-    },
-    action: {
-      heading: sectionHeadings[4] || consultationProfile.headings[4] || "실행 처방",
-      body: professionalParagraphs.action || actionLines[lineIndex],
-    },
-    monthly: {
-      heading: sectionHeadings[5] || consultationProfile.heading || "월별 처방",
-      body: professionalParagraphs.monthly || monthlyLines[lineIndex],
-    },
-  };
-  const blockOrder = buildNewYearDomainBlockOrder(categoryRule.domain, categoryLabel, sectionIndex);
-  const lines = blockOrder.flatMap((key) => {
-    const block = blockMap[key];
-    if (!block || !clean(block.body)) return [];
-    return [block.heading, block.body, ""];
-  });
-
-  return polishNewYearConsultationText(normalizeNewYearAnnualWording(lines.join("\n"), seed?.targetYear));
-}
-
-function repairSajuNewYearChapters({ seed, chapters, expectedChapters, errors = [] } = {}) {
-  const expected = Array.isArray(expectedChapters) && expectedChapters.length
-    ? expectedChapters
-    : buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
-  const forceDiversityRepair = Array.isArray(errors)
-    && errors.some((error) => /sentence_repetition|section_similarity|chapter_similarity|repetition_ratio|diversity/i.test(clean(error)));
-
-  return expected.map((spec, chapterIndex) => {
-    const current = Array.isArray(chapters) ? chapters[chapterIndex] : null;
-    const currentSections = Array.isArray(current?.sections)
-      ? current.sections
-      : Array.isArray(current?.categories)
-        ? current.categories.map((item) => ({ title: item?.title, body: item?.finalText || item?.localSummary || "" }))
-        : [];
-
-    if (!current || clean(current.title) !== clean(spec.title)) {
-      const repaired = buildDeterministicChapterFromSpec(seed, spec, "missing_or_title_mismatch");
-      const categories = repaired.sections.map((section) => ({
-        title: section.title,
-        localSummary: section.body,
-        finalText: section.body,
-      }));
-      return {
-        no: spec.no,
-        title: spec.title,
-        categories,
-        sections: repaired.sections,
-        text: repaired.sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-        source: "local-rule-completed",
-      };
-    }
-
-    const fixedSections = spec.categories.map((categoryTitle, sectionIndex) => {
-      const currentSection = currentSections[sectionIndex] || null;
-      const body = stripForbiddenText(currentSection?.body || currentSection?.finalText || currentSection?.text || "");
-
-      if (
-        clean(currentSection?.title) !== clean(categoryTitle)
-        || body.length < desiredSectionLength()
-        || hasForbiddenText(body)
-        || new RegExp(NEW_YEAR_LOCAL_FORBIDDEN_RE.source, "i").test(body)
-        || hasNewYearCustomerSentenceIssue(body)
-        || hasNewYearTemplateSentenceIssue(body)
-        || forceDiversityRepair
-      ) {
-        return {
-          title: categoryTitle,
-          body: ensureMinLength(
-            buildHighQualityNewYearSection(seed, spec, categoryTitle, sectionIndex),
-            desiredSectionLength(),
-            seed,
-            categoryTitle,
-          ),
-        };
-      }
-
-      return {
-        title: categoryTitle,
-        body,
-      };
-    });
-
-    const categories = fixedSections.map((section) => ({
-      title: section.title,
-      localSummary: section.body,
-      finalText: section.body,
-    }));
-
-    return {
-      no: spec.no,
-      title: spec.title,
-      categories,
-      sections: fixedSections,
-      text: fixedSections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-      source: "local-rule-completed",
-      repairSignals: Array.isArray(errors) ? errors.slice(0, 30) : [],
-    };
-  });
-}
-
-function buildLocalSkeleton(seed) {
-  const expectedChapters = buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
-  return expectedChapters.map((chapter) => {
-    const categories = chapter.categories.map((category, idx) => {
-      const base = buildHighQualityNewYearSection(seed, chapter, category, idx);
-      const expanded = ensureMinLength(base, desiredSectionLength(), seed, category);
-      const sanitized = stripForbiddenText(expanded);
-      return {
-        title: category,
-        localSummary: sanitized,
-        finalText: sanitized,
-      };
-    });
-    return {
-      no: chapter.no,
-      title: chapter.title,
-      categories,
-      text: categories.map((category) => `## ${category.title}\n${category.finalText}`).join("\n\n"),
-      sections: categories.map((c) => ({ title: c.title, body: c.finalText })),
-      source: "local-only",
-    };
-  });
 }
 
 function ensureMinLength(text, minLength, seed, categoryTitle) {
@@ -4305,266 +3617,6 @@ function renderNewYearSectionBody(body = "") {
     .join("");
 }
 
-function buildYearlyPdfInsightSections(seed = {}) {
-  const annual = seed.saju?.annualLuck || {};
-  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
-  const opportunities = topYearlyMonths(seed, "opportunity", 3);
-  const risks = topYearlyMonths(seed, "risk", 3);
-  const cards = [
-    ["세운", clean(annual.label || "")],
-    ["십성", clean(annual.tenGod || "")],
-    ["일간 관계", clean(annual.dayMasterRelation || "")],
-    ["유리 오행", (quantum.favorableElements || []).join("·") || "중립"],
-    ["주의 오행", (quantum.cautionElements || []).join("·") || "중립"],
-    ["기회 1순위", opportunities[0] ? `${opportunities[0].month}월 ${opportunities[0].pillar?.label || ""}` : "월운 확인"],
-    ["기회 2순위", opportunities[1] ? `${opportunities[1].month}월 ${opportunities[1].pillar?.label || ""}` : "월운 확인"],
-    ["기회 3순위", opportunities[2] ? `${opportunities[2].month}월 ${opportunities[2].pillar?.label || ""}` : "월운 확인"],
-    ["주의 1순위", risks[0] ? `${risks[0].month}월 ${risks[0].pillar?.label || ""}` : "월운 확인"],
-    ["연간 전략", "좋은 달에는 실행, 낮은 달에는 정비"],
-  ];
-  const cardHtml = cards.map(([label, value]) => `<div class="metric-card"><strong>${escHtml(label)}</strong><span>${escHtml(value)}</span></div>`).join("");
-  const monthRows = (rows, mode) => rows.map((item, index) => `<tr><td>TOP ${index + 1}</td><td>${Number(item.month || 0)}월</td><td>${escHtml(formatNewYearGanjiForCustomer(item.pillar?.label || ""))}</td><td>${escHtml(displayNewYearDecision(item.decision || decisionFromScore(item.finalScore || item.score)))}</td><td>${Number(item.finalScore ?? item.score ?? 0)}</td><td>${escHtml(mode === "opportunity" ? "준비한 일을 실제 일정에 올리는 달" : "지출, 관계, 건강 리듬을 점검하는 달")}</td></tr>`).join("");
-  const masterRows = [
-    ["1분기", "기준 정리", "올해 목표와 금지 행동을 한 문장으로 정리"],
-    ["2분기", "실행과 검증", "기회 달에 제안, 발표, 협상 배치"],
-    ["3분기", "조율과 회복", "관계, 비용, 체력의 새는 부분 정비"],
-    ["4분기", "마무리와 재설계", "남길 것과 내려놓을 것을 구분"],
-  ].map((row) => `<tr><td>${escHtml(row[0])}</td><td>${escHtml(row[1])}</td><td>${escHtml(row[2])}</td></tr>`).join("");
-  return `
-    <section class="insight-panel">
-      <h2>올해의 핵심 카드</h2>
-      <div class="metric-grid">${cardHtml}</div>
-    </section>
-    <section class="insight-panel">
-      <h2>기회 시기 TOP 3</h2>
-      <table class="yearly-rank-table"><thead><tr><th>순위</th><th>월</th><th>월운</th><th>흐름</th><th>강도</th><th>활용법</th></tr></thead><tbody>${monthRows(opportunities, "opportunity")}</tbody></table>
-    </section>
-    <section class="insight-panel">
-      <h2>주의 시기 TOP 3</h2>
-      <table class="yearly-rank-table"><thead><tr><th>순위</th><th>월</th><th>월운</th><th>흐름</th><th>강도</th><th>대응법</th></tr></thead><tbody>${monthRows(risks, "risk")}</tbody></table>
-    </section>
-    <section class="insight-panel">
-      <h2>올해의 마스터플랜 표</h2>
-      <table class="masterplan-table"><thead><tr><th>구간</th><th>운영 키워드</th><th>실천 기준</th></tr></thead><tbody>${masterRows}</tbody></table>
-    </section>`;
-}
-
-function buildMonthlyFortuneCardsHtml(monthlySections = []) {
-  const rows = Array.isArray(monthlySections) ? monthlySections.slice(0, 12) : [];
-  if (!rows.length) return "";
-  const cards = rows.map((item) => `
-    <article class="monthly-fortune-card">
-      <h3>${escHtml(item.month)}월</h3>
-      <p><strong>핵심 키워드:</strong> ${escHtml(item.summary)}</p>
-      <p><strong>기회:</strong> ${escHtml(item.opportunity)}</p>
-      <p><strong>주의:</strong> ${escHtml(item.caution)}</p>
-      <p><strong>일/커리어:</strong> ${escHtml(item.career)}</p>
-      <p><strong>돈/소비:</strong> ${escHtml(item.money)}</p>
-      <p><strong>관계:</strong> ${escHtml(item.relationship)}</p>
-      <p><strong>건강/리듬:</strong> ${escHtml(item.health)}</p>
-      <p><strong>이번 달 실천:</strong> ${escHtml(item.action)}</p>
-      <p><strong>행운 루틴:</strong> ${escHtml(item.luckyRoutine)}</p>
-    </article>`).join("");
-  return `
-    <section class="monthly-card-panel page-break">
-      <h2>12개월 월별 운세 카드</h2>
-      <div class="monthly-card-grid">${cards}</div>
-    </section>`;
-}
-
-function normalizeNewYearClientMonth(item = {}, fallbackMonth = 0) {
-  const month = Number(item?.month || fallbackMonth || 0) || 0;
-  const score = Number(item?.finalScore ?? item?.score ?? item?.baseScore ?? 0);
-  const decision = clean(item?.decision || decisionFromScore(score || 60));
-  return compactNewYearObject({
-    month,
-    label: clean(item?.pillar?.label || item?.pillar || item?.label || ""),
-    decision,
-    score: Number.isFinite(score) && score > 0 ? Math.round(score) : undefined,
-    summary: clean(item?.summary || item?.advice || item?.quantumSummary || ""),
-    action: clean(item?.action || item?.opportunity || item?.advice || "중요한 선택은 기록과 일정으로 나누어 실행합니다."),
-    caution: clean(item?.caution || "무리한 확장보다 약속과 지출의 순서를 먼저 확인합니다."),
-  });
-}
-
-function buildNewYearClientSummary({ seed = {}, chapters = [], newYearMasterJson = {}, monthlyFortuneSections = [], validation = {}, pdfCompletionValidation = {} } = {}) {
-  const annual = seed?.saju?.annualLuck || newYearMasterJson?.yearlyFlow || {};
-  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || newYearMasterJson?.quantumMyeongri || {};
-  const monthlySource = Array.isArray(seed?.saju?.monthlyLuck) && seed.saju.monthlyLuck.length
-    ? seed.saju.monthlyLuck
-    : Array.isArray(newYearMasterJson?.monthlyFlow)
-      ? newYearMasterJson.monthlyFlow
-      : [];
-  const months = monthlySource.map((item, index) => normalizeNewYearClientMonth(item, index + 1)).filter((item) => item.month);
-  const opportunities = (monthlySource.length ? monthlySource.slice() : [])
-    .sort((a, b) => Number(b?.finalScore ?? b?.score ?? 0) - Number(a?.finalScore ?? a?.score ?? 0))
-    .slice(0, 3)
-    .map((item) => normalizeNewYearClientMonth(item));
-  const cautions = (monthlySource.length ? monthlySource.slice() : [])
-    .sort((a, b) => Number(a?.finalScore ?? a?.score ?? 100) - Number(b?.finalScore ?? b?.score ?? 100))
-    .slice(0, 3)
-    .map((item) => normalizeNewYearClientMonth(item));
-  const monthlyCards = Array.isArray(monthlyFortuneSections) && monthlyFortuneSections.length
-    ? monthlyFortuneSections.slice(0, 12).map((item, index) => normalizeNewYearClientMonth(item, index + 1))
-    : months.slice(0, 12);
-  const qualityStats = validation?.stats || {};
-  return compactNewYearObject({
-    title: `${Number(seed?.targetYear || newYearMasterJson?.targetYear || resolveDefaultTargetYear())}년 핵심 상담 요약`,
-    cards: [
-      { label: "세운", value: clean(annual?.label || annual?.pillar || "") || "세운 확인" },
-      { label: "십성", value: clean(annual?.tenGod || annual?.tenGodToDayMaster || "") || "중심 기운" },
-      { label: "일간 관계", value: clean(annual?.dayMasterRelation || annual?.relation || "") || "균형과 조율" },
-      { label: "유리 오행", value: (quantum?.favorableElements || []).join(" · ") || "균형 보완" },
-      { label: "주의 오행", value: (quantum?.cautionElements || []).join(" · ") || "과열 점검" },
-      { label: "상담서 상태", value: `${Number(chapters.length || qualityStats.chapterCount || 0)}챕터 · ${clean(pdfCompletionValidation?.ok === false ? "보강 필요" : "준비 완료")}` },
-    ],
-    consultation: [
-      `${clean(annual?.label || annual?.pillar || "대상 연도 세운")}의 흐름은 확장 구간과 점검 구간을 구분할 때 가장 안정적으로 열립니다.`,
-      `${opportunities.map((item) => `${item.month}월`).filter(Boolean).join(" · ") || "기회 흐름이 강한 달"}에는 제안, 협상, 실행 일정을 앞에 두는 편이 좋습니다.`,
-      `${cautions.map((item) => `${item.month}월`).filter(Boolean).join(" · ") || "정비가 필요한 달"}에는 지출, 약속, 건강 리듬을 보수적으로 확인하십시오.`,
-    ],
-    opportunities,
-    cautions,
-    monthlyCards,
-    masterPlan: [
-      { period: "1분기", focus: "기준 정리", action: "대상 연도의 목표와 금지 행동을 한 문장으로 정리합니다." },
-      { period: "2분기", focus: "실행 검증", action: "기회 달에 제안, 발표, 협상 일정을 배치합니다." },
-      { period: "3분기", focus: "관계 조율", action: "비용, 역할, 체력의 새는 부분을 정비합니다." },
-      { period: "4분기", focus: "마무리", action: "남길 것과 내려놓을 것을 구분해 다음 해 기반을 만듭니다." },
-    ],
-    quality: {
-      status: validation?.ok === false ? "completed_with_repair" : "passed",
-      totalChars: qualityStats.totalChars,
-      monthCoverage: qualityStats.monthCoverage,
-      repetitionRatio: qualityStats.repetitionRatio,
-      pdfReady: pdfCompletionValidation?.ok !== false,
-    },
-  });
-}
-
-function displayPillarValue(value) {
-  if (!value) return "";
-  if (typeof value === "string") return formatNewYearGanjiForCustomer(value);
-  return formatNewYearGanjiForCustomer(value.label || `${clean(value.stem)}${clean(value.branch)}`);
-}
-
-function tableRows(rows = []) {
-  return rows.map(([label, value]) => `<tr><th>${escHtml(label)}</th><td>${escHtml(value || "확인 가능한 계산값 없음")}</td></tr>`).join("");
-}
-
-function buildYearlyPremiumTables(seed = {}) {
-  const saju = seed.saju || {};
-  const annual = saju.annualLuck || {};
-  const pillars = saju.pillars || {};
-  const quantum = seed?.quantumMyeongri || saju?.quantumMyeongri || {};
-  const daewoon = saju.currentDaewoon || seed.luckCycles?.currentDaewoon || seed.luckCycles?.daewoon || {};
-  const natalRows = [
-    ["년주", displayPillarValue(pillars.year)],
-    ["월주", displayPillarValue(pillars.month)],
-    ["일주", displayPillarValue(pillars.day)],
-    ["시주", displayPillarValue(pillars.hour)],
-    ["일간", formatNewYearStemForCustomer(saju.dayMaster || saju.dayMasterInfo?.stem || "")],
-    ["오행 분포", ["wood", "fire", "earth", "metal", "water"].map((key) => `${LOCAL_ELEMENT_KO[key] || key} ${Number(saju.fiveElements?.[key] || 0)}`).join(" · ")],
-  ];
-  const annualRows = [
-    ["세운", formatNewYearGanjiForCustomer(annual.label || "")],
-    ["천간", formatNewYearStemForCustomer(annual.stem || annual.heavenlyStem || "")],
-    ["지지", formatNewYearBranchForCustomer(annual.branch || annual.earthlyBranch || "")],
-    ["일간 기준 십성", clean(annual.tenGod || "")],
-    ["일간 관계", clean(annual.dayMasterRelation || "")],
-    ["유리 오행", (quantum.favorableElements || []).join(" · ") || "중립"],
-    ["주의 오행", (quantum.cautionElements || []).join(" · ") || "중립"],
-  ];
-  const daewoonRows = [
-    ["현재 대운", cleanNormalizedText(daewoon) || clean(daewoon.label || daewoon.name || "")],
-    ["대운 흐름", clean(daewoon.flow || daewoon.relation || daewoon.summary || "대운은 올해 세운이 작동하는 큰 배경으로 참고합니다.")],
-    ["세운과의 관계", clean(annual.dayMasterRelation || "세운의 십성 흐름을 중심으로 올해의 선택 기준을 봅니다.")],
-    ["운영 기준", "확장 흐름에는 실행을 앞에 두고, 부담이 커지는 구간에는 문서·약속·일정 점검을 우선합니다."],
-  ];
-  return `
-    <section class="content premium-table-section page-break">
-      <h2>사주 신년운세 계산 요약</h2>
-      <div class="premium-table-grid">
-        <article><h3>원국 요약표</h3><table class="premium-info-table">${tableRows(natalRows)}</table></article>
-        <article><h3>세운 요약표</h3><table class="premium-info-table">${tableRows(annualRows)}</table></article>
-        <article><h3>대운·세운 관계표</h3><table class="premium-info-table">${tableRows(daewoonRows)}</table></article>
-      </div>
-    </section>`;
-}
-
-function chapterQuote(chapter = {}, seed = {}) {
-  const annual = seed.saju?.annualLuck || {};
-  const quotes = [
-    `${clean(annual.label || "대상 연도의 운")}은 기다리는 운이 아니라, 선택의 기준으로 읽을 때 가장 선명해집니다.`,
-    "확장 흐름에는 문을 열고, 부담이 큰 구간에는 기준을 정비하는 사람이 한 해를 안정적으로 씁니다.",
-    "운의 흐름은 단정이 아니라 리듬입니다. 대상 연도에는 그 리듬을 생활 속 판단으로 옮기는 힘이 중요합니다.",
-    "사주가 보여주는 것은 결과의 확정이 아니라, 더 나은 선택을 위한 방향입니다.",
-  ];
-  return quotes[(Number(chapter.no || 1) - 1) % quotes.length];
-}
-
-function buildFinalSummaryPage(seed = {}, monthlySections = []) {
-  const annual = seed.saju?.annualLuck || {};
-  const opportunities = topYearlyMonths(seed, "opportunity", 3).map((item) => `${Number(item.month || 0)}월`).filter(Boolean).join(" · ") || "준비된 시기";
-  const risks = topYearlyMonths(seed, "risk", 3).map((item) => `${Number(item.month || 0)}월`).filter(Boolean).join(" · ") || "점검이 필요한 시기";
-  const routineRows = monthlySections.slice(0, 12).map((item) => `<tr><td>${escHtml(item.month)}월</td><td>${escHtml(item.action)}</td><td>${escHtml(item.luckyRoutine)}</td></tr>`).join("");
-  return `
-    <section class="final-page page-break">
-      <span class="badge dark">CODE · SAJU NEW YEAR</span>
-      <h2>마지막 정리</h2>
-      <div class="final-summary-grid">
-        <div><strong>전체 요약</strong><p>${escHtml(seed.targetYear)}년은 ${escHtml(annual.label || "세운")}의 ${escHtml(annual.tenGod || "흐름")}을 기준으로, 확장 구간에는 실행 근거를 남기고 부담이 커지는 구간에는 관계·돈·일정을 정비하는 해입니다.</p></div>
-        <div><strong>기회 흐름</strong><p>${escHtml(opportunities)}에는 제안, 발표, 협상, 실행 일정을 앞에 두기 좋습니다.</p></div>
-        <div><strong>주의 흐름</strong><p>${escHtml(risks)}에는 큰 결정보다 문서, 약속, 기록, 절차를 한 번 더 살피는 편이 안정적입니다.</p></div>
-      </div>
-      <h3>12개월 실행 루틴</h3>
-      <table class="masterplan-table"><thead><tr><th>월</th><th>이번 달 실천</th><th>루틴</th></tr></thead><tbody>${routineRows}</tbody></table>
-      <div class="reopen-note">
-        <strong>재열람 안내</strong>
-        <p>결제 완료 후 제공되는 보관 링크에서 같은 리포트를 다시 열람할 수 있습니다. 저장된 PDF는 생성 당시의 계산값과 원고를 기준으로 보존됩니다.</p>
-      </div>
-    </section>`;
-}
-
-function buildReportHtml(seed, chapters) {
-  const profile = seed.birthProfile;
-  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
-  const generatedDate = new Date().toISOString().slice(0, 10);
-  const profileName = clean(profile.name || "") || "익명";
-  const annual = seed.saju?.annualLuck || {};
-  const monthlyRows = seed.saju.monthlyLuck.map((item) => `<tr><td>${item.month}월</td><td>${escHtml(formatNewYearGanjiForCustomer(item.pillar.label))}</td><td>${item.baseScore ?? item.score}</td><td>${Number(item.quantumAdjustment || 0) >= 0 ? "+" : ""}${Number(item.quantumAdjustment || 0)}</td><td>${item.finalScore ?? item.score}</td><td>${escHtml(displayNewYearDecision(item.decision || decisionFromScore(item.finalScore || item.score)))}</td><td>${escHtml(humanizeNewYearCustomerText(item.advice))}</td></tr>`).join("");
-  const monthlyFortuneSections = buildMonthlyFortuneSections({ seed });
-  const toc = chapters.map((chapter) => `<li><span>${chapter.no}</span>${escHtml(chapter.title)}</li>`).join("");
-  const body = chapters.map((chapter, idx) => {
-    const sections = Array.isArray(chapter?.sections)
-      ? chapter.sections
-      : Array.isArray(chapter?.categories)
-        ? chapter.categories.map((item) => ({ title: item?.title, body: item?.finalText || item?.localSummary || "" }))
-        : [];
-    return `
-    <section class="chapter-cover page-break">
-      <p class="chapter-kicker">CHAPTER ${String(chapter.no).padStart(2, "0")}</p>
-      <h2>${escHtml(chapter.title)}</h2>
-      <blockquote>${escHtml(chapterQuote(chapter, seed))}</blockquote>
-    </section>
-    <section class="chapter">
-      <h2>${escHtml(chapter.title)}</h2>
-      ${sections.map((section) => `<article><h3>${escHtml(section.title)}</h3><div class="section-body">${renderNewYearSectionBody(section.body || section.finalText || section.text || "")}</div></article>`).join("")}
-    </section>`;
-  }).join("");
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${seed.targetYear} 신년운세 프리미엄 리포트</title><style>
-    @page{size:A4;margin:16mm}*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#1f2937;font-family:Arial,'Noto Sans KR',sans-serif;line-height:1.72}.page{background:#fff;min-height:100vh}.cover{min-height:100vh;padding:54px 48px;color:#fff;background:linear-gradient(145deg,#080b19,#182044 48%,#5b1b2b);display:flex;flex-direction:column;justify-content:space-between}.cover img{width:100%;max-height:300px;object-fit:cover;border-radius:14px;border:1px solid rgba(250,204,21,.42);box-shadow:0 24px 60px rgba(0,0,0,.32)}.badge{display:inline-block;padding:7px 12px;border:1px solid rgba(250,204,21,.7);border-radius:999px;color:#fde68a;font-size:12px;letter-spacing:.08em}.badge.dark{color:#7f1d1d;border-color:#d9b45f}.cover h1{font-size:48px;margin:18px 0 8px;color:#fff4c2;letter-spacing:0}.cover p{font-size:17px;color:#fef3c7}.cover-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px;color:#fde68a;font-size:13px}.cover-meta div{border:1px solid rgba(250,204,21,.32);padding:10px;border-radius:8px}.content,.insight-panel,.monthly-card-panel,.final-page{padding:34px 42px;background:#fff}.summary,.metric-grid,.body-card-grid,.final-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.summary div,.metric-card,.body-card-grid div,.final-summary-grid div{border:1px solid #f1d58b;background:#fff8e1;border-radius:8px;padding:12px}.metric-card strong,.body-card-grid strong,.final-summary-grid strong{display:block;color:#7f1d1d}.metric-card span{display:block;margin-top:6px}.premium-table-grid{display:grid;grid-template-columns:1fr;gap:18px}.premium-table-grid article{break-inside:avoid}.premium-info-table{width:100%;border-collapse:collapse;background:#fff}.premium-info-table th,.premium-info-table td{border:1px solid #ead7a6;padding:9px;font-size:12px;text-align:left}.premium-info-table th{width:30%;background:#fff8e1;color:#7f1d1d}.monthly-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:18px 0}.monthly-fortune-card{border:1px solid #ead7a6;background:#fffaf0;border-radius:8px;padding:14px;break-inside:avoid}.monthly-fortune-card h3{margin:0 0 8px;color:#7f1d1d}.monthly-fortune-card p{margin:6px 0;font-size:12px;line-height:1.68}.monthly-fortune-card strong{color:#92400e}.toc{padding:34px 42px;background:#fffaf0}.toc h2,.chapter h2,.insight-panel h2,.monthly-card-panel h2,.premium-table-section h2,.final-page h2{color:#7f1d1d}.toc li{margin:8px 0}.toc span{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:8px;border-radius:50%;background:#991b1b;color:#fff}.chapter-cover{min-height:72vh;padding:64px 48px;background:linear-gradient(145deg,#fffaf0,#fff 54%,#f8e7b0);display:flex;flex-direction:column;justify-content:center;border-top:8px solid #7f1d1d}.chapter-kicker{color:#b45309;font-size:13px;letter-spacing:.12em}.chapter-cover h2{font-size:32px;color:#7f1d1d;margin:8px 0 18px}.chapter-cover blockquote{margin:0;padding:18px 22px;border-left:4px solid #d97706;background:rgba(255,255,255,.72);font-size:17px;color:#4b5563}.chapter{padding:32px 42px;background:#fff}.chapter h2{font-size:25px;border-bottom:2px solid #f59e0b;padding-bottom:10px}.chapter article{margin:18px 0;padding:16px;border-left:4px solid #d97706;background:#fffaf0;border-radius:0 8px 8px 0;break-inside:avoid}.chapter h3{margin:0 0 8px;color:#92400e}.section-body{display:flex;flex-direction:column;gap:12px}.section-body h5{margin:18px 0 2px;color:#8a5a32;font-weight:800}.section-body p{margin:0;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}.monthly,.yearly-rank-table,.masterplan-table{width:100%;border-collapse:collapse;margin:18px 0;background:#fff}.monthly th,.monthly td,.yearly-rank-table th,.yearly-rank-table td,.masterplan-table th,.masterplan-table td{border:1px solid #ead7a6;padding:8px;font-size:12px;text-align:left}.monthly th,.yearly-rank-table th,.masterplan-table th{background:#7f1d1d;color:#fff}.reopen-note{margin-top:22px;padding:16px;border:1px solid #ead7a6;background:#fffaf0;border-radius:8px}.page-break{page-break-before:always}@media print{body{background:#fff}.page{min-height:auto}.cover{height:100vh}.page-break{break-before:page}.chapter-cover{height:100vh}}
-  </style></head><body><main class="page">
-    <section class="cover"><div><span class="badge">Code</span><h1>사주 신년운세</h1><p>나의 사주 구조로 읽는 1년의 흐름</p><div class="cover-meta"><div><strong>대상 연도</strong><br>${escHtml(seed.targetYear)}년</div><div><strong>생성일</strong><br>${escHtml(generatedDate)}</div><div><strong>프로필</strong><br>${escHtml(profileName)}</div><div><strong>서비스명</strong><br>Code</div></div></div><img src="${COVER_IMAGE}" alt="사주 신년운세 표지 이미지" onerror="this.style.display='none'"><p>${escHtml(seed.targetYear)}년 나의 운의 흐름과 선택 전략</p></section>
-    <section class="content"><h2>본문 카드</h2><div class="body-card-grid"><div><strong>올해의 핵심 키워드</strong><p>${escHtml(formatNewYearGanjiForCustomer(annual.label || "세운"))} · ${escHtml(annual.tenGod || "흐름")} · ${escHtml(annual.dayMasterRelation || "중립")}</p></div><div><strong>올해의 강점</strong><p>${escHtml((quantum.favorableElements || []).join(" · ") || "균형을 유지하는 힘")}</p></div><div><strong>올해의 주의점</strong><p>${escHtml((quantum.cautionElements || []).join(" · ") || "속도와 지출 관리")}</p></div><div><strong>올해의 실천 조언</strong><p>좋은 달에는 실행을 앞에 두고, 부담이 커지는 달에는 문서·약속·일정을 정비하세요.</p></div></div><h2>올해의 핵심 요약</h2><div class="summary"><div><strong>세운</strong><br>${escHtml(formatNewYearGanjiForCustomer(seed.saju.annualLuck.label))} · ${escHtml(seed.saju.annualLuck.elementKo)}</div><div><strong>일간 관계</strong><br>${escHtml(seed.saju.annualLuck.tenGod)} · ${escHtml(seed.saju.annualLuck.dayMasterRelation)}</div><div><strong>정밀 보정</strong><br>${escHtml((quantum.favorableElements || []).join("·") || "중립")} 유리 · ${escHtml((quantum.cautionElements || []).join("·") || "중립")} 주의</div></div><p>${escHtml(humanizeNewYearCustomerText(quantum.professionalSummary || "월별 운영은 기본 월운과 정밀 보정을 함께 보아 실행 강약을 조절합니다."))}</p><table class="monthly"><thead><tr><th>월</th><th>월운</th><th>기본</th><th>보정</th><th>체감</th><th>흐름</th><th>전략</th></tr></thead><tbody>${monthlyRows}</tbody></table></section>
-    ${buildYearlyPremiumTables(seed)}
-    ${buildYearlyPdfInsightSections(seed)}
-    ${buildMonthlyFortuneCardsHtml(monthlyFortuneSections)}
-    <section class="toc page-break"><h2>목차</h2><p>사주 신년운세 10챕터 목록</p><ol>${toc}</ol></section>${body}
-    ${buildFinalSummaryPage(seed, monthlyFortuneSections)}
-  </main></body></html>`;
-}
-
 const SAJU_NEW_YEAR_ASSEMBLED_MOJIBAKE_RE = /[\uFFFD\uF900-\uFAFF]|[?][\uAC00-\uD7A3]|[\u3131-\u318E]{2,}|[\u6028\u6C85\u8ADB\u85E5\u9DAF\u8036\u6E26\u8A1D\u96C5\u91CE\u8E02\u6FE1]/;
 const SAJU_NEW_YEAR_ASSEMBLED_FORBIDDEN_RE = /\b(?:undefined|null|nan|json|schema|debug|prompt|raw|payload|object|engine)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i;
 
@@ -4608,64 +3660,6 @@ function buildSajuNewYearAssembledFacts(seed = {}) {
     usefulElements: (Array.isArray(seed?.quantumMyeongri?.favorableElements) ? seed.quantumMyeongri.favorableElements : []).map((item) => newYearElementKo(item, "")).filter(Boolean).join(", ") || "균형",
     cautionElements: (Array.isArray(seed?.quantumMyeongri?.cautionElements) ? seed.quantumMyeongri.cautionElements : []).map((item) => newYearElementKo(item, "")).filter(Boolean).join(", ") || "과열",
   };
-}
-
-function buildSajuNewYearAssembledSectionBody({ seed, spec, sectionTitle, chapterNo, sectionNo }) {
-  const facts = buildSajuNewYearAssembledFacts(seed);
-  const year = facts.targetYear;
-  const paragraphA = `${sectionTitle}에서는 ${spec.focus}을 중심으로 ${year}년의 흐름을 읽습니다. ${facts.name}님의 올해 운은 단순한 길흉보다 선택의 순서가 중요하며, 강하게 열리는 문과 천천히 다듬어야 할 문을 구분할 때 한 해의 결이 안정됩니다.`;
-  const paragraphB = `사주 근거로는 올해의 ${facts.annualElement} 기운, ${facts.tenGod}, 그리고 ${facts.annualTone}의 흐름을 함께 봅니다. 이 조합은 계획을 크게 세우는 힘과 현실을 검증하는 태도를 동시에 요구하므로, 감으로 밀어붙이기보다 작은 실행을 반복해 신뢰를 쌓는 편이 좋습니다.`;
-  const paragraphC = `${chapterNo}장의 ${sectionNo}번째 관점에서 특히 중요한 시기는 ${facts.topMonths}입니다. 이때는 제안, 정리, 발표, 관계 회복처럼 밖으로 드러나는 행동을 배치하기 좋고, ${facts.careMonths}에는 무리한 확장보다 일정, 돈, 건강, 약속을 다시 확인하는 태도가 필요합니다.`;
-  const paragraphD = `올해를 좋게 쓰는 핵심은 ${facts.usefulElements}의 기운을 살리고 ${facts.cautionElements}의 과함을 낮추는 것입니다. 좋은 흐름이 왔을 때는 바로 움직일 수 있도록 자료와 사람을 미리 준비하고, 흔들리는 흐름에서는 결론을 늦추며 기록과 확인을 앞세우면 손실보다 배움을 크게 남길 수 있습니다.`;
-  return [paragraphA, paragraphB, paragraphC, paragraphD].join("\n\n");
-}
-
-function buildSajuNewYearAssembledChapters(seed = {}, chapters = []) {
-  return buildSajuNewYearAssembledChaptersClean(seed, chapters);
-}
-
-function renderSajuNewYearAssembledHtml(seed = {}, chapters = []) {
-  const facts = buildSajuNewYearAssembledFacts(seed);
-  const toc = buildSajuNewYearTocHtml(chapters);
-  const overview = buildSajuNewYearOverviewHtml(chapters);
-  const tableBlock = (section) => {
-    const rows = Array.isArray(section?.tableRows) ? section.tableRows : [];
-    if (!rows.length) return "";
-    const headers = Array.isArray(section?.tableHeaders) && section.tableHeaders.length ? section.tableHeaders : ["구분", "흐름", "실천"];
-    return `<div class="table-card"><strong>${escHtml(section.tableTitle || "운세 흐름표")}</strong><table><thead><tr>${headers.map((header) => `<th>${escHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-  };
-  const listBlock = (label, values, limit = 3) => {
-    const items = (Array.isArray(values) ? values : []).map((item) => normalizeNewYearAnnualWording(safeNewYearDisplayText(item), facts.targetYear)).filter(Boolean).slice(0, limit);
-    if (!items.length) return "";
-    return `<div class="note"><strong>${escHtml(label)}</strong><ul>${items.map((item) => `<li>${escHtml(item)}</li>`).join("")}</ul></div>`;
-  };
-  const chapterHtml = chapters.map((chapter, index) => {
-    const chapterSections = Array.isArray(chapter?.sections) ? chapter.sections : [];
-    const chapterSnapshot = buildSajuNewYearChapterSnapshotHtml(chapter, chapterSections);
-    const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => {
-      const paragraphs = renderNewYearSectionBody(section?.body || section?.finalText || section?.text || "");
-      const notes = buildSajuNewYearSectionNotesHtml(section, listBlock);
-      return `<section class="body-card"><h3>${escHtml(section.title)}</h3>${paragraphs}${tableBlock(section)}${notes ? `<div class="notes">${notes}</div>` : ""}</section>`;
-    }).join("");
-    return `<article class="chapter" style="page-break-before:${index > 0 ? "always" : "auto"}"><header><span>CHAPTER ${escHtml(String(chapter.no).padStart(2, "0"))}</span><h2>${escHtml(chapter.title)}</h2><p>${escHtml(chapter.focus || "")}</p></header>${chapterSnapshot}${sections}</article>`;
-  }).join("");
-  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escHtml(`${facts.name}님의 ${facts.targetYear}년 신년운세`)}</title><style>@page{size:A4;margin:14mm;}*{box-sizing:border-box;}body{margin:0;background:#fffaf0;color:#2a1b10;font-family:"Noto Serif KR","Malgun Gothic",serif;line-height:1.78;}header.cover{min-height:760px;padding:72px 56px;background:linear-gradient(145deg,#120d24,#55221f 52%,#8a5a16);color:#fff;page-break-after:always;}header.cover .brand{font-size:20px;font-weight:700;}header.cover .service{margin-top:64px;font-size:13px;letter-spacing:.22em;color:#fde68a;}header.cover h1{margin:14px 0;font-size:48px;color:#fff7ce;}header.cover p{font-size:17px;color:#fff3c4;}.cover-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:34px;}.cover-grid div{border:1px solid rgba(253,230,138,.42);border-radius:8px;padding:12px;background:rgba(255,255,255,.08);}nav.toc,.overview,main,.final-page{padding:42px 48px;background:#fff;}nav.toc{page-break-after:always;}nav.toc h2,.overview h2,.final-page h2{margin:0 0 20px;color:#7f1d1d;font-size:28px;}nav.toc ol{list-style:none;margin:0;padding:0;}nav.toc li{display:grid;grid-template-columns:48px 1fr;gap:12px;border-bottom:1px solid #ead7a6;padding:12px 0;}nav.toc span{color:#991b1b;font-weight:700;}.overview{page-break-after:always;}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}.overview-grid div,.note,.table-card{border:1px solid #ead7a6;background:#fffaf0;border-radius:8px;padding:12px;}.overview-grid strong,.note strong,.table-card strong{display:block;color:#7f1d1d;margin-bottom:6px;}article.chapter header{border-bottom:2px solid #d97706;margin:24px 0 20px;padding-bottom:14px;}article.chapter header span{font-size:12px;letter-spacing:.16em;color:#b45309;}article.chapter h2{margin:6px 0;color:#7f1d1d;font-size:25px;}article.chapter header p{margin:0;color:#7c4a21;}.body-card{border-left:4px solid #d97706;background:#fffaf0;border-radius:0 8px 8px 0;padding:16px 18px;margin:16px 0 20px;page-break-inside:avoid;}.body-card h3{margin:0 0 10px;color:#92400e;font-size:17px;}.body-card h5{margin:14px 0 6px;color:#7f1d1d;font-size:13px;font-weight:800;letter-spacing:0;}.body-card p{margin:0 0 12px;line-height:1.9;word-break:keep-all;overflow-wrap:break-word;}.notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}.note ul{margin:0;padding-left:16px;}.note li{font-size:12px;line-height:1.65;margin-bottom:4px;}table{width:100%;border-collapse:collapse;background:#fff;margin-top:10px;}th,td{border:1px solid #ead7a6;padding:8px;text-align:left;font-size:12px;line-height:1.5;}th{background:#7f1d1d;color:#fff;}.final-page{page-break-before:always;}.final-page p{font-size:14px;line-height:1.9;}</style>${SAJU_NEW_YEAR_PDF_UX_STYLE}</head><body><header class="cover"><div class="brand">Code Destiny</div><div class="service">PREMIUM SAJU NEW YEAR</div><h1>${escHtml(facts.targetYear)}년 신년운세</h1><p>사주 구조로 읽는 한 해의 흐름과 실천 로드맵</p><div class="cover-grid"><div><strong>프로필</strong><br>${escHtml(facts.name)}</div><div><strong>중심 기운</strong><br>${escHtml(facts.tenGod)}</div><div><strong>기회 흐름</strong><br>${escHtml(facts.topMonths)}</div><div><strong>점검 흐름</strong><br>${escHtml(facts.careMonths)}</div></div></header><nav class="toc"><h2>목차</h2><ol>${toc}</ol></nav><section class="overview"><h2>전체 요약</h2><div class="overview-grid">${overview}</div></section><main>${chapterHtml}</main><section class="final-page"><h2>마지막 정리</h2><p>${escHtml(`${facts.targetYear}년의 운은 한 번에 결정되는 예언이 아닙니다. 매달의 선택과 조율이 겹쳐 만들어지는 흐름입니다. 확장 흐름에는 준비한 것을 밖으로 내고, 점검 흐름에는 약속과 기록을 정비하십시오. 그렇게 움직일 때 대상 연도의 기운은 더 단단하고 맑은 결과로 이어집니다.`)}</p></section></body></html>`;
-}
-
-function newYearElementKoAssembled(value, fallback = "균형") {
-  const key = clean(value).toLowerCase();
-  return ({
-    wood: "목",
-    fire: "화",
-    earth: "토",
-    metal: "금",
-    water: "수",
-    "목": "목",
-    "화": "화",
-    "토": "토",
-    "금": "금",
-    "수": "수",
-  })[key] || fallback;
 }
 
 function buildSajuNewYearTocHtml(chapters = []) {
@@ -4715,13 +3709,13 @@ function buildSajuNewYearAssembledFactsClean(seed = {}) {
   return {
     targetYear,
     name: safeNewYearDisplayText(profile?.name, "고객"),
-    annualElement: newYearElementKoAssembled(annual?.element || annual?.elementKo, "중화"),
+    annualElement: newYearElementKo(annual?.element || annual?.elementKo, "중화"),
     annualTone: safeNewYearDisplayText(annual?.dayMasterRelation || annual?.relation, "균형과 조율"),
     tenGod: safeNewYearDisplayText(annual?.tenGod || annual?.tenGodToDayMaster, "중심 기운"),
     topMonths: topMonths.length ? topMonths.join(", ") : "준비된 시기",
     careMonths: careMonths.length ? careMonths.join(", ") : "점검이 필요한 시기",
-    usefulElements: favorable.map((item) => newYearElementKoAssembled(item, "")).filter(Boolean).join(", ") || "균형",
-    cautionElements: caution.map((item) => newYearElementKoAssembled(item, "")).filter(Boolean).join(", ") || "과열",
+    usefulElements: favorable.map((item) => newYearElementKo(item, "")).filter(Boolean).join(", ") || "균형",
+    cautionElements: caution.map((item) => newYearElementKo(item, "")).filter(Boolean).join(", ") || "과열",
   };
 }
 
@@ -4819,135 +3813,74 @@ function normalizeNewYearAnnualWording(text = "", targetYear = resolveDefaultTar
     .replace(/정비 흐름에(?=\s|[,.。])/g, "정비 흐름에서");
 }
 
-function buildSajuNewYearAssembledSectionBodyClean({ seed, spec, sectionTitle, chapterNo, sectionNo }) {
-  const facts = buildSajuNewYearAssembledFactsClean(seed);
-  const chapterLabel = `${chapterNo}장 ${sectionNo}절`;
-  const categoryRule = getNewYearCategoryRule(sectionTitle, spec);
-  const domain = clean(categoryRule.domain || "annual");
-  const profile = getNewYearDomainConsultationProfile(domain, sectionNo);
-  const language = SAJU_NEW_YEAR_DOMAIN_CONSULT_LANGUAGE[domain] || SAJU_NEW_YEAR_DOMAIN_CONSULT_LANGUAGE.annual;
-  const heading = pickNewYearVariant(profile.headings, sectionNo, sectionTitle);
-  const cleanForYear = (value, fallback = "") => normalizeNewYearAnnualWording(value || fallback, facts.targetYear);
-  const evidence = cleanForYear(formatNewYearRuleList(categoryRule.evidence, `${sectionTitle}의 명리 근거`));
-  const opportunity = cleanForYear(formatNewYearRuleList(categoryRule.opportunity, language.opportunityName));
-  const caution = cleanForYear(formatNewYearRuleList(categoryRule.caution, language.cautionName));
-  const action = cleanForYear(formatNewYearRuleList(categoryRule.actionGuide, language.action));
-  const checklist = cleanForYear(formatNewYearRuleList(categoryRule.checklist, `${sectionTitle} 점검 기준`));
-  return [
-    `${sectionTitle}의 핵심은 ${language.object}을 ${heading}의 관점으로 읽는 데 있습니다. ${facts.name}님에게 ${facts.targetYear}년은 단순한 길흉보다 ${language.decisionAxis}의 순서가 중요하게 작동합니다. ${cleanForYear(categoryRule.subject || spec.focus)}이 분명해질수록 이 항목은 막연한 운세가 아니라 생활 속 판단 기준으로 내려옵니다.`,
-    `${chapterLabel}의 명리 근거는 ${evidence}입니다. 세운의 ${facts.annualElement} 기운과 ${facts.tenGod}의 작용, ${facts.annualTone}의 관계가 ${sectionTitle}에 닿으면서 ${facts.usefulElements}의 보완점과 ${facts.cautionElements}의 과열 신호를 함께 보여 줍니다. 그래서 이 절은 감으로 밀어붙이는 조언이 아니라 원국, 세운, 월운의 결을 겹쳐 읽는 상담입니다.`,
-    `${language.opportunityName}은 ${facts.topMonths}에 두드러집니다. 이 흐름에서는 ${opportunity}을 현실 일정에 올리는 편이 좋습니다. ${sectionTitle}이 ${profile.reality ? cleanForYear(profile.reality) : `${facts.targetYear}년의 생활 변화로 드러납니다.`} 준비해 둔 말, 자료, 만남, 조건을 밖으로 내면 운의 문이 더 또렷하게 열립니다.`,
-    `${language.cautionName}은 ${facts.careMonths}에 특히 세밀하게 보아야 합니다. ${caution} ${profile.risk ? cleanForYear(profile.risk) : "불안은 피해야 할 흉조가 아니라 방향을 다시 맞추라는 신호입니다."} 이때는 큰 결론보다 문서, 약속, 몸의 신호, 지출 기준을 차례로 확인하는 것이 손실을 줄입니다.`,
-    `${sectionTitle}의 실천 처방은 ${action}입니다. 점검 기준은 ${checklist}이며, ${profile.action ? cleanForYear(profile.action) : cleanForYear(language.action)} ${facts.targetYear}년의 운은 기다리는 힘보다 배치하는 힘에 응답하므로, 행동을 한 번에 크게 만들기보다 순서와 기록을 남기는 방식이 안정적입니다.`,
-    `마지막으로 ${sectionTitle}은 ${spec.focus} 안에서 ${facts.name}님의 ${language.object}을 정리하는 절입니다. ${profile.monthly ? cleanForYear(profile.monthly) : "월운은 실행할 때와 정비할 때를 나누는 지도처럼 쓰는 것이 좋습니다."} 이 기준을 기억하면 ${facts.targetYear}년의 문은 우연히 열리는 것이 아니라, 준비된 선택을 통해 서서히 분명해집니다.`,
-  ].map((paragraph) => cleanForYear(paragraph)).join("\n\n");
-}
-
-function buildSajuNewYearAssembledChaptersClean(seed = {}, chapters = []) {
-  const specs = buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
-  return specs.map((spec, index) => {
-    const chapterNo = index + 1;
-    const sourceChapter = Array.isArray(chapters) ? chapters[index] || {} : {};
-    const sourceSections = normalizeNewYearChapterSections(sourceChapter);
-    const sourceByTitle = new Map(sourceSections.map((section) => [clean(section.title), section]));
-    const chapterSource = clean(sourceChapter?.source || NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY);
-    const sections = (spec.categories || []).map((title, sectionIndex) => {
-      const matched = sourceByTitle.get(clean(title));
-      const sourceBody = clean(matched?.body || "");
-      const categoryRule = getNewYearCategoryRule(title, spec);
-      const sourceReady = isSajuNewYearSectionConsultationReady({
-        body: sourceBody,
-        categoryTitle: title,
-        chapterSpec: spec,
-        section: matched,
-      });
-      const body = sourceReady
-        ? sourceBody
-        : ensureMinLength(buildHighQualityNewYearSection(seed, spec, title, sectionIndex), desiredSectionLength(), seed, title);
-      return {
-        title,
-        body,
-        text: body,
-        sajuEvidence: [
-          `${spec.title} · ${title}`,
-          `${seed?.targetYear || resolveDefaultTargetYear()}년 세운의 중심 기운`,
-          ...categoryRule.evidence.slice(0, 3),
-          categoryRule.monthMode === "required" ? "월별 실행·관망·정비 흐름" : "오행 보완과 과열 신호",
-        ],
-        keyPoints: [
-          categoryRule.subject,
-          categoryRule.reality,
-          formatNewYearRuleList(categoryRule.opportunity, `${title}의 기회와 점검 기준을 분리합니다.`),
-        ],
-        actionGuide: categoryRule.actionGuide.length
-          ? categoryRule.actionGuide
-          : [`${title}에 관한 중요한 결정은 자료, 사람, 일정 순서로 확인합니다.`],
-        checklist: categoryRule.checklist.length
-          ? categoryRule.checklist
-          : [`${title}에 대한 올해 기준을 한 문장으로 정했는가`],
-        caution: categoryRule.caution.length
-          ? categoryRule.caution
-          : [`${title}은 좋은 흐름도 준비 없이 커지면 부담이 됩니다.`],
-      };
-    });
-    if (chapterNo === 9) {
-      const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
-      const monthlyTableIndex = Math.max(0, sections.findIndex((section) => clean(section.title) === "월별 실행·정비 실행표"));
-      if (sections[monthlyTableIndex]) {
-        sections[monthlyTableIndex].tableType = "monthly-flow";
-        sections[monthlyTableIndex].tableTitle = "12개월 월별 실행·정비표";
-        sections[monthlyTableIndex].tableHeaders = ["월", "흐름", "실천 기준"];
-        sections[monthlyTableIndex].tableRows = Array.from({ length: 12 }, (_, idx) => {
-          const row = monthly[idx] || {};
-          const score = Number(row?.score || row?.finalScore || 60);
-          const decision = score >= 72 ? "실행" : score >= 58 ? "관망" : "정비";
-          const guide = score >= 72
-            ? "제안, 실행, 만남을 앞에 둡니다."
-            : score >= 58
-              ? "속도를 조절하며 준비를 보강합니다."
-              : "큰 결정보다 정비와 회복을 우선합니다.";
-          return [`${idx + 1}월`, decision, guide];
-        });
-      }
-    }
-    if (chapterNo === 10) {
-      const routineIndex = Math.max(0, sections.findIndex((section) => clean(section.title) === "1년 실행 루틴"));
-      if (sections[routineIndex]) {
-        sections[routineIndex].tableType = "year-roadmap";
-        sections[routineIndex].tableTitle = "연간 실행 로드맵";
-        sections[routineIndex].tableHeaders = ["구간", "주제", "실천법"];
-        sections[routineIndex].tableRows = [
-          ["1분기", "기준 세우기", "올해 반드시 지킬 돈, 건강, 관계의 기준을 정합니다."],
-          ["2분기", "실행 확장", "좋은 흐름이 오는 일에 제안과 결과물을 밖으로 냅니다."],
-          ["3분기", "조율과 회복", "과열된 영역을 줄이고 반복되는 문제를 구조로 고칩니다."],
-          ["4분기", "정리와 재설계", "남길 것과 멈출 것을 구분해 다음 해의 기반을 만듭니다."],
-        ];
-      }
-    }
-    const text = sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n");
+function newYearMonthlyVisualRows(seed = {}, monthlyFortunes = []) {
+  const calculated = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1;
+    const calc = calculated[index] || {};
+    const llm = Array.isArray(monthlyFortunes) ? monthlyFortunes.find((item) => Number(item?.month) === month) || monthlyFortunes[index] || {} : {};
+    const score = Math.max(0, Math.min(100, Number(calc.finalScore ?? calc.score ?? calc.baseScore ?? 60)));
+    const decision = clean(calc.decision || (score >= 72 ? "GO" : score >= 58 ? "WATCH" : "STOP"));
     return {
-      ...(Array.isArray(chapters) ? chapters[index] || {} : {}),
-      no: chapterNo,
-      id: String(chapterNo),
-      title: spec.title,
-      focus: spec.focus,
-      sections,
-      categories: sections.map((section) => ({ title: section.title, finalText: section.body, localSummary: section.body.slice(0, 260) })),
-      text,
-      source: chapterSource,
-      metadata: {
-        assemblyMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-        templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-        manuscriptSource: chapterSource,
-      },
+      month,
+      score,
+      decision,
+      title: clean(llm.title || `${month}월`),
+      action: clean(llm.action || llm.advice || ""),
     };
   });
 }
 
-function renderSajuNewYearAssembledHtmlClean(seed = {}, chapters = []) {
+function newYearDecisionClass(decision = "") {
+  const value = clean(decision).toUpperCase();
+  if (value === "GO") return "go";
+  if (value === "STOP") return "stop";
+  return "watch";
+}
+
+function buildNewYearMonthlyScoreChartHtml(seed = {}, monthlyFortunes = []) {
+  const rows = newYearMonthlyVisualRows(seed, monthlyFortunes);
+  const bars = rows.map((row) => {
+    const decisionClass = newYearDecisionClass(row.decision);
+    return `<div class="month-bar month-bar--${decisionClass}"><div class="month-bar__track"><span style="height:${row.score}%"><b>${Math.round(row.score)}</b></span></div><em>${row.month}월</em></div>`;
+  }).join("");
+  const tableRows = rows.map((row) => `<tr><td>${row.month}월</td><td>${Math.round(row.score)}</td><td>${escHtml(displayNewYearDecision(row.decision))}</td><td>${escHtml(row.title)}</td><td>${escHtml(row.action)}</td></tr>`).join("");
+  return `<article class="visual-card visual-card--wide"><h3>월별 운세 리듬 그래프</h3><div class="monthly-score-chart">${bars}</div><table class="visual-table"><thead><tr><th>월</th><th>점수</th><th>흐름</th><th>상담 주제</th><th>실천 기준</th></tr></thead><tbody>${tableRows}</tbody></table></article>`;
+}
+
+function buildNewYearElementBalanceChartHtml(seed = {}) {
+  const counts = seed?.saju?.fiveElements || {};
+  const keys = ["wood", "fire", "earth", "metal", "water"];
+  const max = Math.max(1, ...keys.map((key) => Number(counts[key] || 0)));
+  const rows = keys.map((key) => {
+    const value = Number(counts[key] || 0);
+    const width = Math.max(8, Math.round((value / max) * 100));
+    return `<div class="element-row"><strong>${escHtml(ELEMENT_KO[key] || key)}</strong><span><i style="width:${width}%"></i></span><em>${value}</em></div>`;
+  }).join("");
+  const favorable = (Array.isArray(seed?.quantumMyeongri?.favorableElements) ? seed.quantumMyeongri.favorableElements : []).map((item) => newYearElementKo(item, "")).filter(Boolean).join(" · ") || "균형";
+  const caution = (Array.isArray(seed?.quantumMyeongri?.cautionElements) ? seed.quantumMyeongri.cautionElements : []).map((item) => newYearElementKo(item, "")).filter(Boolean).join(" · ") || "과열";
+  return `<article class="visual-card"><h3>오행 균형 그래프</h3><div class="element-balance-chart">${rows}</div><div class="visual-tags"><span>보완 ${escHtml(favorable)}</span><span>주의 ${escHtml(caution)}</span></div></article>`;
+}
+
+function buildNewYearVisualDashboardHtml(seed = {}, renderOptions = {}) {
+  const monthlyFortunes = Array.isArray(renderOptions.monthlyFortunes) ? renderOptions.monthlyFortunes : [];
+  return `<section class="visual-dashboard"><h2>운의 시각 지도</h2><div class="visual-grid">${buildNewYearMonthlyScoreChartHtml(seed, monthlyFortunes)}${buildNewYearElementBalanceChartHtml(seed)}</div></section>`;
+}
+
+function renderSajuNewYearAssembledHtmlClean(seed = {}, chapters = [], renderOptions = {}) {
   const facts = buildSajuNewYearAssembledFactsClean(seed);
   const toc = buildSajuNewYearTocHtml(chapters);
   const overview = buildSajuNewYearOverviewHtml(chapters);
+  const visualDashboard = buildNewYearVisualDashboardHtml(seed, renderOptions);
+  const finalAdviceSource = renderOptions?.finalAdvice && typeof renderOptions.finalAdvice === "object"
+    ? renderOptions.finalAdvice
+    : {};
+  const lastChapterSections = Array.isArray(chapters?.[chapters.length - 1]?.sections) ? chapters[chapters.length - 1].sections : [];
+  const finalAdviceTitle = safeNewYearDisplayText(finalAdviceSource.title || "마지막 정리", "마지막 정리");
+  const finalAdviceBody = safeNewYearDisplayText(
+    finalAdviceSource.body || lastChapterSections[lastChapterSections.length - 1]?.body || "",
+    "",
+  );
   const tableBlock = (section) => {
     const rows = Array.isArray(section?.tableRows) ? section.tableRows : [];
     if (!rows.length) return "";
@@ -4969,7 +3902,7 @@ function renderSajuNewYearAssembledHtmlClean(seed = {}, chapters = []) {
     }).join("");
     return `<article class="chapter" style="page-break-before:${index > 0 ? "always" : "auto"}"><header><span>CHAPTER ${escHtml(String(chapter.no).padStart(2, "0"))}</span><h2>${escHtml(chapter.title)}</h2><p>${escHtml(chapter.focus || "")}</p></header>${chapterSnapshot}${sections}</article>`;
   }).join("");
-  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escHtml(`${facts.name}님의 ${facts.targetYear}년 신년운세`)}</title><style>@page{size:A4;margin:14mm;}*{box-sizing:border-box;}body{margin:0;background:#fffaf0;color:#2a1b10;font-family:"Noto Serif KR","Malgun Gothic",serif;line-height:1.78;}header.cover{min-height:760px;padding:72px 56px;background:linear-gradient(145deg,#120d24,#55221f 52%,#8a5a16);color:#fff;page-break-after:always;}header.cover .brand{font-size:20px;font-weight:700;}header.cover .service{margin-top:64px;font-size:13px;letter-spacing:.22em;color:#fde68a;}header.cover h1{margin:14px 0;font-size:48px;color:#fff7ce;}header.cover p{font-size:17px;color:#fff3c4;}.cover-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:34px;}.cover-grid div{border:1px solid rgba(253,230,138,.42);border-radius:8px;padding:12px;background:rgba(255,255,255,.08);}nav.toc,.overview,main,.final-page{padding:42px 48px;background:#fff;}nav.toc{page-break-after:always;}nav.toc h2,.overview h2,.final-page h2{margin:0 0 20px;color:#7f1d1d;font-size:28px;}nav.toc ol{list-style:none;margin:0;padding:0;}nav.toc li{display:grid;grid-template-columns:48px 1fr;gap:12px;border-bottom:1px solid #ead7a6;padding:12px 0;}nav.toc span{color:#991b1b;font-weight:700;}.overview{page-break-after:always;}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}.overview-grid div,.note,.table-card{border:1px solid #ead7a6;background:#fffaf0;border-radius:8px;padding:12px;}.overview-grid strong,.note strong,.table-card strong{display:block;color:#7f1d1d;margin-bottom:6px;}article.chapter header{border-bottom:2px solid #d97706;margin:24px 0 20px;padding-bottom:14px;}article.chapter header span{font-size:12px;letter-spacing:.16em;color:#b45309;}article.chapter h2{margin:6px 0;color:#7f1d1d;font-size:25px;}article.chapter header p{margin:0;color:#7c4a21;}.body-card{border-left:4px solid #d97706;background:#fffaf0;border-radius:0 8px 8px 0;padding:16px 18px;margin:16px 0 20px;page-break-inside:avoid;}.body-card h3{margin:0 0 10px;color:#92400e;font-size:17px;}.body-card h5{margin:14px 0 6px;color:#7f1d1d;font-size:13px;font-weight:800;letter-spacing:0;}.body-card p{margin:0 0 12px;line-height:1.9;word-break:keep-all;overflow-wrap:break-word;}.notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}.note ul{margin:0;padding-left:16px;}.note li{font-size:12px;line-height:1.65;margin-bottom:4px;}table{width:100%;border-collapse:collapse;background:#fff;margin-top:10px;}th,td{border:1px solid #ead7a6;padding:8px;text-align:left;font-size:12px;line-height:1.5;}th{background:#7f1d1d;color:#fff;}.final-page{page-break-before:always;}.final-page p{font-size:14px;line-height:1.9;}</style>${SAJU_NEW_YEAR_PDF_UX_STYLE}</head><body><header class="cover"><div class="brand">Code Destiny</div><div class="service">PREMIUM SAJU NEW YEAR</div><h1>${escHtml(facts.targetYear)}년 신년운세</h1><p>사주 구조로 읽는 한 해의 흐름과 실천 로드맵</p><div class="cover-grid"><div><strong>프로필</strong><br>${escHtml(facts.name)}</div><div><strong>중심 기운</strong><br>${escHtml(facts.tenGod)}</div><div><strong>기회 흐름</strong><br>${escHtml(facts.topMonths)}</div><div><strong>점검 흐름</strong><br>${escHtml(facts.careMonths)}</div></div></header><nav class="toc"><h2>목차</h2><ol>${toc}</ol></nav><section class="overview"><h2>전체 요약</h2><div class="overview-grid">${overview}</div></section><main>${chapterHtml}</main><section class="final-page"><h2>마지막 정리</h2><p>${escHtml(`${facts.targetYear}년의 운은 한 번에 결정되는 예언이 아닙니다. 매달의 선택과 조율이 겹쳐 만들어지는 흐름입니다. 확장 흐름에는 준비한 것을 밖으로 내고, 점검 흐름에는 약속과 기록을 정비하십시오. 그렇게 움직일 때 대상 연도의 기운은 더 단단하고 맑은 결과로 이어집니다.`)}</p></section></body></html>`;
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escHtml(`${facts.name}님의 ${facts.targetYear}년 신년운세`)}</title><style>@page{size:A4;margin:14mm;}*{box-sizing:border-box;}body{margin:0;background:#fffaf0;color:#2a1b10;font-family:"Noto Serif KR","Malgun Gothic",serif;line-height:1.78;}header.cover{min-height:760px;padding:72px 56px;background:linear-gradient(145deg,#120d24,#55221f 52%,#8a5a16);color:#fff;page-break-after:always;}header.cover .brand{font-size:20px;font-weight:700;}header.cover .service{margin-top:64px;font-size:13px;letter-spacing:.22em;color:#fde68a;}header.cover h1{margin:14px 0;font-size:48px;color:#fff7ce;}header.cover p{font-size:17px;color:#fff3c4;}.cover-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:34px;}.cover-grid div{border:1px solid rgba(253,230,138,.42);border-radius:8px;padding:12px;background:rgba(255,255,255,.08);}nav.toc,.overview,.visual-dashboard,main,.final-page{padding:42px 48px;background:#fff;}nav.toc{page-break-after:always;}nav.toc h2,.overview h2,.visual-dashboard h2,.final-page h2{margin:0 0 20px;color:#7f1d1d;font-size:28px;}nav.toc ol{list-style:none;margin:0;padding:0;}nav.toc li{display:grid;grid-template-columns:48px 1fr;gap:12px;border-bottom:1px solid #ead7a6;padding:12px 0;}nav.toc span{color:#991b1b;font-weight:700;}.overview{page-break-after:always;}.visual-dashboard{page-break-after:always;background:#fffdf7;}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}.overview-grid div,.note,.table-card,.visual-card{border:1px solid #ead7a6;background:#fffaf0;border-radius:8px;padding:12px;}.overview-grid strong,.note strong,.table-card strong{display:block;color:#7f1d1d;margin-bottom:6px;}.visual-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:start;}.visual-card h3{margin:0 0 12px;color:#7f1d1d;font-size:18px;}.monthly-score-chart{height:188px;display:grid;grid-template-columns:repeat(12,1fr);gap:7px;align-items:end;border:1px solid #ead7a6;background:#fff;padding:12px 10px 28px;margin-bottom:12px;}.month-bar{height:148px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;}.month-bar__track{height:126px;width:100%;display:flex;align-items:flex-end;justify-content:center;background:#f7ead0;border-radius:6px 6px 3px 3px;overflow:hidden;}.month-bar__track span{display:flex;align-items:flex-start;justify-content:center;width:100%;min-height:12%;background:#b45309;color:#fff;font-size:9px;font-style:normal;padding-top:3px;}.month-bar--go .month-bar__track span{background:#15803d;}.month-bar--watch .month-bar__track span{background:#b45309;}.month-bar--stop .month-bar__track span{background:#991b1b;}.month-bar em{font-size:10px;font-style:normal;color:#7c4a21;}.visual-table{font-size:11px;}.element-balance-chart{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid #ead7a6;padding:12px;}.element-row{display:grid;grid-template-columns:32px 1fr 28px;gap:8px;align-items:center;}.element-row strong,.element-row em{font-size:12px;color:#7f1d1d;font-style:normal;}.element-row span{height:12px;background:#f7ead0;border-radius:999px;overflow:hidden;}.element-row i{display:block;height:100%;background:#d97706;border-radius:999px;}.visual-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}.visual-tags span{border:1px solid #ead7a6;background:#fff;padding:6px 8px;border-radius:999px;font-size:11px;color:#7f1d1d;}article.chapter header{border-bottom:2px solid #d97706;margin:24px 0 20px;padding-bottom:14px;}article.chapter header span{font-size:12px;letter-spacing:.16em;color:#b45309;}article.chapter h2{margin:6px 0;color:#7f1d1d;font-size:25px;}article.chapter header p{margin:0;color:#7c4a21;}.body-card{border-left:4px solid #d97706;background:#fffaf0;border-radius:0 8px 8px 0;padding:16px 18px;margin:16px 0 20px;page-break-inside:avoid;}.body-card h3{margin:0 0 10px;color:#92400e;font-size:17px;}.body-card h5{margin:14px 0 6px;color:#7f1d1d;font-size:13px;font-weight:800;letter-spacing:0;}.body-card p{margin:0 0 12px;line-height:1.9;word-break:keep-all;overflow-wrap:break-word;}.notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}.note ul{margin:0;padding-left:16px;}.note li{font-size:12px;line-height:1.65;margin-bottom:4px;}table{width:100%;border-collapse:collapse;background:#fff;margin-top:10px;}th,td{border:1px solid #ead7a6;padding:8px;text-align:left;font-size:12px;line-height:1.5;}th{background:#7f1d1d;color:#fff;}.final-page{page-break-before:always;}.final-page p{font-size:14px;line-height:1.9;}</style>${SAJU_NEW_YEAR_PDF_UX_STYLE}</head><body><header class="cover"><div class="brand">Code Destiny</div><div class="service">PREMIUM SAJU NEW YEAR</div><h1>${escHtml(facts.targetYear)}년 신년운세</h1><p>사주 구조로 읽는 한 해의 흐름과 실천 로드맵</p><div class="cover-grid"><div><strong>프로필</strong><br>${escHtml(facts.name)}</div><div><strong>중심 기운</strong><br>${escHtml(facts.tenGod)}</div><div><strong>기회 흐름</strong><br>${escHtml(facts.topMonths)}</div><div><strong>점검 흐름</strong><br>${escHtml(facts.careMonths)}</div></div></header><nav class="toc"><h2>목차</h2><ol>${toc}</ol></nav><section class="overview"><h2>전체 요약</h2><div class="overview-grid">${overview}</div></section>${visualDashboard}<main>${chapterHtml}</main><section class="final-page"><h2>${escHtml(finalAdviceTitle)}</h2><p>${escHtml(finalAdviceBody)}</p></section></body></html>`;
 }
 
 function collectSajuNewYearAssembledText(chapters = []) {
@@ -5015,30 +3948,27 @@ function sanitizeSajuNewYearAssembledChapters(chapters = [], targetYear = resolv
   });
 }
 
-function isHighQualityNewYearManuscriptSource(value = "") {
-  return clean(value) === NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY;
+function isLlmOnlyNewYearManuscriptSource(value = "") {
+  return clean(value) === SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE;
+}
+
+function isNewYearLlmMetadataValid(metadata = {}) {
+  const llmAssembly = metadata?.llmAssembly && typeof metadata.llmAssembly === "object" ? metadata.llmAssembly : {};
+  return isLlmOnlyNewYearManuscriptSource(metadata?.manuscriptSource || llmAssembly.source)
+    && metadata?.llmAssemblyOnly === true
+    && llmAssembly.enabled === true
+    && llmAssembly.externalGeneration === true
+    && llmAssembly.externalCallsAllowed === true
+    && llmAssembly.fallbackUsed === false
+    && clean(metadata?.promptVersion || llmAssembly.promptVersion) === SAJU_NEW_YEAR_LLM_PROMPT_VERSION
+    && clean(metadata?.schemaVersion || llmAssembly.schemaVersion) === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION;
 }
 
 function getNewYearPdfCompletionMeta(pdfReady = {}, chapters = []) {
   const metadata = pdfReady?.metadata && typeof pdfReady.metadata === "object" ? pdfReady.metadata : {};
-  const localAssembly = metadata.localAssembly && typeof metadata.localAssembly === "object"
-    ? metadata.localAssembly
-    : pdfReady?.localAssembly && typeof pdfReady.localAssembly === "object"
-      ? pdfReady.localAssembly
-      : {};
   const chapterSource = Array.isArray(chapters) && chapters.length ? clean(chapters[0]?.source) : "";
-  const manuscriptSource = clean(metadata.manuscriptSource || pdfReady?.manuscriptSource || localAssembly.manuscriptSource || chapterSource);
-  return { metadata, localAssembly, manuscriptSource };
-}
-
-function hasNewYearFallbackAssembly(localAssembly = {}, metadata = {}) {
-  const repaired = Number(localAssembly?.repairedSections || 0);
-  const fallback = Number(localAssembly?.fallbackSections || 0);
-  return repaired > 0
-    || fallback > 0
-    || localAssembly?.normalizedToLocal === true
-    || localAssembly?.fallbackAllowed === true
-    || Boolean(clean(localAssembly?.normalizationReason || metadata?.localNormalizationReason));
+  const manuscriptSource = clean(metadata.manuscriptSource || pdfReady?.manuscriptSource || chapterSource);
+  return { metadata, manuscriptSource };
 }
 
 function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDownloadUrl = false } = {}) {
@@ -5047,11 +3977,12 @@ function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDo
   const html = clean(pdfReady?.html || "");
   const text = `${html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")}\n${collectSajuNewYearAssembledText(list)}`;
   const completionMeta = getNewYearPdfCompletionMeta(pdfReady, list);
+  const llmOnly = isLlmOnlyNewYearManuscriptSource(completionMeta.manuscriptSource) && isNewYearLlmMetadataValid(completionMeta.metadata);
   const issues = [];
   if (!html.includes("<!DOCTYPE html>")) issues.push("html_shell_missing");
   if (requireDownloadUrl && !clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl)) issues.push("download_url_missing");
-  if (!isHighQualityNewYearManuscriptSource(completionMeta.manuscriptSource)) issues.push("high_quality_manuscript_source_required");
-  if (hasNewYearFallbackAssembly(completionMeta.localAssembly, completionMeta.metadata)) issues.push("fallback_assembly_not_allowed");
+  if (!isLlmOnlyNewYearManuscriptSource(completionMeta.manuscriptSource)) issues.push("llm_only_manuscript_source_required");
+  if (!llmOnly) issues.push("llm_metadata_invalid");
   if (clean(completionMeta.metadata?.qualityStatus) && clean(completionMeta.metadata.qualityStatus) !== "passed") issues.push("quality_status_not_passed");
   if (list.length !== expectedChapters.length) issues.push("chapter_count_mismatch");
   expectedChapters.forEach((spec, index) => {
@@ -5071,19 +4002,24 @@ function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDo
       if (hasNewYearTemplateSentenceIssue(clean(sections[sectionIndex]?.body || ""))) {
         issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_template_sentence_quality`);
       }
-      const coverage = validateSajuNewYearCategoryCoverage({
-        body: clean(sections[sectionIndex]?.body || ""),
-        categoryTitle,
-        chapterSpec: spec,
-        section: sections[sectionIndex],
-      });
-      if (!coverage.ok) issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_consultation_quality`);
+      if (clean(sections[sectionIndex]?.body || "").replace(/\s+/g, "").length < MIN_SECTION_CHARS) {
+        issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_min_chars`);
+      }
+      if (!llmOnly) {
+        const coverage = validateSajuNewYearCategoryCoverage({
+          body: clean(sections[sectionIndex]?.body || ""),
+          categoryTitle,
+          chapterSpec: spec,
+          section: sections[sectionIndex],
+        });
+        if (!coverage.ok) issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_consultation_quality`);
+      }
     });
   });
-  if (collectSajuNewYearAssembledText(list).replace(/\s+/g, "").length < 42000) issues.push("manuscript_too_short");
+  if (collectSajuNewYearAssembledText(list).replace(/\s+/g, "").length < MIN_TOTAL_CHARS) issues.push("manuscript_too_short");
   if (SAJU_NEW_YEAR_ASSEMBLED_MOJIBAKE_RE.test(text)) issues.push("mojibake_detected");
   if (SAJU_NEW_YEAR_ASSEMBLED_FORBIDDEN_RE.test(text)) issues.push("forbidden_terms_detected");
-  const sentenceDiversity = validateSajuNewYearSentenceDiversity({ chapters: list });
+  const sentenceDiversity = llmOnly ? { ok: true, stats: { skipped: "llm_only_validated_upstream" } } : validateSajuNewYearSentenceDiversity({ chapters: list });
   if (!sentenceDiversity.ok) issues.push("consultation_sentence_diversity");
   return {
     ok: issues.length === 0,
@@ -5109,29 +4045,61 @@ function buildNewYearHtmlFilename(targetYear, rawName = "user") {
   return buildNewYearPdfFilename(targetYear, rawName).replace(/\.pdf$/i, ".html");
 }
 
-function buildPdfReadyPayload(seed, chapters, metadata = {}) {
-  return {
-    title: `${seed.targetYear} 신년운세 프리미엄 리포트`,
-    filename: buildNewYearPdfFilename(seed.targetYear, seed.birthProfile.name),
-    htmlFilename: buildNewYearHtmlFilename(seed.targetYear, seed.birthProfile.name),
-    generatedAt: new Date().toISOString(),
-    profile: seed.birthProfile,
-    targetYear: seed.targetYear,
-    quantumMyeongri: seed.quantumMyeongri || seed.saju?.quantumMyeongri || null,
-    metadata,
-    html: renderSajuNewYearAssembledHtmlClean(seed, sanitizeSajuNewYearAssembledChapters(buildSajuNewYearAssembledChaptersClean(seed, chapters), seed?.targetYear)),
-    chapters: chapters.map((chapter) => ({
-      chapter: chapter.no,
-      title: chapter.title,
-      categories: (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => category.title),
-      text: chapter.text,
-      source: chapter.source,
-    })),
-  };
+function prepareSajuNewYearLlmChaptersForRender(chapters = [], options = {}) {
+  const monthlyFortunes = Array.isArray(options.monthlyFortunes) ? options.monthlyFortunes : [];
+  const monthlyVisualRows = newYearMonthlyVisualRows(options.seed || {}, monthlyFortunes);
+  return (Array.isArray(chapters) ? chapters : []).map((chapter, chapterIndex) => {
+    const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section, sectionIndex) => {
+      const nextSection = {
+        title: clean(section?.title),
+        body: clean(section?.body || section?.finalText || section?.text),
+        text: clean(section?.body || section?.finalText || section?.text),
+        finalText: clean(section?.body || section?.finalText || section?.text),
+        sajuEvidence: Array.isArray(section?.sajuEvidence) ? section.sajuEvidence.map(clean).filter(Boolean) : [],
+        keyPoints: Array.isArray(section?.keyPoints) ? section.keyPoints.map(clean).filter(Boolean) : [],
+        actionGuide: Array.isArray(section?.actionGuide) ? section.actionGuide.map(clean).filter(Boolean) : [],
+        checklist: Array.isArray(section?.checklist) ? section.checklist.map(clean).filter(Boolean) : [],
+        caution: Array.isArray(section?.caution) ? section.caution.map(clean).filter(Boolean) : [],
+      };
+      if (Number(chapter?.no || chapterIndex + 1) === 9 && sectionIndex === 4 && monthlyFortunes.length === 12) {
+        nextSection.tableType = "monthly-flow";
+        nextSection.tableTitle = "12개월 월별 실행·정비표";
+        nextSection.tableHeaders = ["월", "점수", "흐름", "실천 기준"];
+        nextSection.tableRows = monthlyFortunes.map((item, itemIndex) => [
+          `${Number(item.month || 0)}월`,
+          String(Math.round(monthlyVisualRows[itemIndex]?.score ?? 0)),
+          clean(item.title || item.flow),
+          clean(item.action || item.advice),
+        ]);
+      }
+      return nextSection;
+    });
+    return {
+      no: Number(chapter?.no || chapterIndex + 1),
+      id: clean(chapter?.id || String(chapter?.no || chapterIndex + 1)),
+      title: clean(chapter?.title),
+      focus: clean(chapter?.focus),
+      sections,
+      categories: sections.map((section) => ({
+        title: section.title,
+        finalText: section.body,
+        text: section.body,
+      })),
+      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+      source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+      metadata: {
+        ...(chapter?.metadata || {}),
+        manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+        generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+        promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+        schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+      },
+    };
+  });
 }
 
-function buildPdfReadyPayloadAssembled(seed, chapters, metadata = {}) {
-  const assembledChapters = sanitizeSajuNewYearAssembledChapters(buildSajuNewYearAssembledChaptersClean(seed, chapters), seed?.targetYear);
+function buildPdfReadyPayloadLlmOnly(seed, chapters, metadata = {}) {
+  const llmChapters = prepareSajuNewYearLlmChaptersForRender(chapters, { ...metadata, seed });
   return {
     title: `${seed.targetYear}년 신년운세 프리미엄 리포트`,
     filename: buildNewYearPdfFilename(seed.targetYear, seed?.birthProfile?.name),
@@ -5145,11 +4113,15 @@ function buildPdfReadyPayloadAssembled(seed, chapters, metadata = {}) {
     quantumMyeongri: seed.quantumMyeongri || seed.saju?.quantumMyeongri || null,
     metadata: {
       ...metadata,
-      assemblyMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-      templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
+      manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+      generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+      promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+      schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+      qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
+      llmAssemblyOnly: true,
     },
-    html: renderSajuNewYearAssembledHtmlClean(seed, assembledChapters),
-    chapters: assembledChapters.map((chapter) => ({
+    html: renderSajuNewYearAssembledHtmlClean(seed, llmChapters, metadata),
+    chapters: llmChapters.map((chapter) => ({
       chapter: chapter.no,
       title: chapter.title,
       categories: (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => category.title),
@@ -5430,30 +4402,6 @@ function composeMonthlyFortuneTable(normalized = {}) {
   return Array.isArray(normalized.monthlyCalculation) ? normalized.monthlyCalculation : [];
 }
 
-function formatInterpretationBlockForChapter(block, seed = {}, context = {}) {
-  if (!block) return "";
-  const sectionTitle = humanizeNewYearCustomerText(clean(context.sectionTitle || context.section?.title || "이 항목"));
-  const chapterTitle = humanizeNewYearCustomerText(stripNewYearChapterPrefix(clean(context.chapterTitle || context.chapter?.title || "올해 흐름")));
-  const body = Array.isArray(block.body) ? block.body : [];
-  const advice = Array.isArray(block.advice) ? block.advice : [];
-  const caution = Array.isArray(block.caution) ? block.caution : [];
-  const checklist = Array.isArray(block.checklist) ? block.checklist : [];
-  const phrase = (line) => clean(line).replace(/[.!?。！？]+$/g, "");
-  const lines = [
-    `${sectionTitle}에는 ${clean(block.title)} 흐름도 함께 비칩니다.`,
-    `${chapterTitle} 안에서 ${sectionTitle}은 ${phrase(block.summary)} 쪽으로 해석합니다.`,
-    ...body.slice(0, 2).map((line, index) => `${sectionTitle}의 ${index === 0 ? "현실 신호" : "깊은 결"}는 ${phrase(line)}입니다.`),
-    advice.length ? `${sectionTitle}의 실천은 ${advice.slice(0, 2).map(phrase).join(" 그리고 ")}입니다.` : "",
-    caution.length ? `${sectionTitle}에서 주의할 지점은 ${phrase(caution[0])}입니다.` : "",
-    checklist.length ? `${sectionTitle}의 확인 순서는 ${checklist.slice(0, 3).map(phrase).join(" / ")}입니다.` : "",
-  ];
-  if (Number(block.weight || 0) >= 3) {
-    lines.push(...body.slice(2, 4).map((line) => `${sectionTitle}에서 한 겹 더 보면 ${phrase(line)}입니다.`));
-    lines.push(...advice.slice(2, 3).map((line) => `${sectionTitle}의 보완 처방은 ${phrase(line)}입니다.`));
-  }
-  return polishNewYearConsultationText(assembleYearlyLocalLines(lines, seed, `interpretation:${block.id}:${sectionTitle}:${Number(context.sectionIndex || 0)}`).join("\n"));
-}
-
 function topYearlyMonths(seed = {}, mode = "opportunity", limit = 3) {
   const rows = Array.isArray(seed.saju?.monthlyLuck) ? seed.saju.monthlyLuck.slice() : [];
   rows.sort((a, b) => mode === "risk"
@@ -5679,269 +4627,6 @@ function buildMonthlyFortuneSections(normalized = {}) {
   });
 }
 
-function buildChapterMinimumLines(seed = {}, chapter = {}, sectionTitle = "") {
-  const annual = seed.saju?.annualLuck || {};
-  const opportunityMonths = topYearlyMonths(seed, "opportunity", 3);
-  const riskMonths = topYearlyMonths(seed, "risk", 3);
-  const chapterTitle = clean(chapter.title || "");
-  const tenGod = clean(annual.tenGod || "세운");
-  const annualLabel = clean(annual.label || "올해 세운");
-  const relation = clean(annual.dayMasterRelation || "중립");
-  const opportunityText = monthListText(opportunityMonths) || "흐름이 열리는 달";
-  const riskText = monthListText(riskMonths) || "속도 조절이 필요한 달";
-
-  if (sectionTitle === "핵심 요약 카드") {
-    return [
-      `핵심 요약 1. ${chapterTitle}의 중심은 ${annualLabel} 세운과 ${tenGod} 흐름이 만드는 선택 기준입니다.`,
-      `핵심 요약 2. 일간과 세운의 관계는 ${relation}로 작동하므로, 올해의 판단은 감정적 속도보다 흐름의 쓰임을 먼저 보아야 합니다.`,
-      `핵심 요약 3. 기회 달은 ${opportunityText}이며, 이 시기에는 준비해 둔 일을 실제 행동으로 옮기는 것이 좋습니다.`,
-    ];
-  }
-  if (sectionTitle === "계산 근거 기반 해석") {
-    return [
-      `계산 근거 1. 세운 간지는 ${annualLabel}이고 일간 기준 십성은 ${tenGod}입니다.`,
-      "계산 근거 2. 월별 강약은 12개월 월운의 흐름과 정밀 보정을 함께 반영했습니다.",
-      `계산 근거 3. 조심할 달은 ${riskText} 중심으로 보며, 무리한 확장보다 점검과 정비에 적합합니다.`,
-    ];
-  }
-  if (sectionTitle === "주의할 점") {
-    return [
-      `주의 1. ${riskText}에는 큰 지출, 감정적 결론, 무리한 일정 확장을 줄이는 편이 안전합니다.`,
-      "주의 2. 좋은 흐름이 들어와도 계약, 약속, 책임 범위를 확인하지 않으면 운의 이익이 흩어질 수 있습니다.",
-      "주의 3. 같은 문젯거리가 반복되면 운이 나쁜 것이 아니라 조정해야 할 패턴이 드러난 것으로 보아야 합니다.",
-    ];
-  }
-  if (sectionTitle === "실천 조언") {
-    return [
-      `실천 조언 1. ${opportunityText}에는 제안, 발표, 협상, 실행 일정을 우선 배치하세요.`,
-      `실천 조언 2. ${riskText}에는 검토, 회복, 관계 조율, 비용 점검을 먼저 배치하세요.`,
-      "실천 조언 3. 매월 초에는 이번 달의 한 가지 목표와 한 가지 금지 행동을 함께 적어 두세요.",
-    ];
-  }
-  if (sectionTitle === "체크리스트") {
-    return [
-      "체크리스트 1. 이번 챕터에서 바로 실행할 행동 1가지를 정했는가.",
-      "체크리스트 2. 기회 달과 주의 달을 실제 달력에 표시했는가.",
-      "체크리스트 3. 사람, 돈, 건강, 일 중 가장 먼저 조정할 영역을 골랐는가.",
-    ];
-  }
-  if (sectionTitle === "챕터 마무리 문장") {
-    return [
-      `마무리. ${chapterTitle}은 단정적인 예언보다 올해의 흐름을 현실 선택으로 바꾸기 위한 기준입니다.`,
-      "마무리. 좋은 달에는 행동하고, 낮은 달에는 정비하며, 매달 같은 기준으로 자신을 점검할 때 한 해의 운은 더 안정적으로 열립니다.",
-    ];
-  }
-  return [];
-}
-
-function enforceYearlySajuChapterMinimums(chapter = {}, seed = {}) {
-  const sections = Array.isArray(chapter.sections) ? chapter.sections : [];
-  const nextSections = sections.map((section) => {
-    const additions = buildChapterMinimumLines(seed, chapter, clean(section.title));
-    if (!additions.length) return section;
-    const existing = stripForbiddenText(section.body || section.finalText || section.text || "");
-    const missing = assembleYearlyLocalLines(additions, seed, `minimum:${chapter.no}:${section.title}`).filter((line) => !existing.includes(line));
-    if (!missing.length) return { ...section, body: existing };
-    return { ...section, body: softenAnnualFortuneRiskText(`${existing}\n\n${missing.join("\n")}`, seed?.targetYear) };
-  });
-  const categories = nextSections.map((section) => ({
-    title: section.title,
-    localSummary: section.body,
-    finalText: section.body,
-  }));
-  return {
-    ...chapter,
-    sections: nextSections,
-    categories,
-    text: nextSections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-  };
-}
-
-function blocksForChapter(chapterNo, interpretationBlocks = {}) {
-  const byTag = interpretationBlocks.byTag || {};
-  const all = Array.isArray(interpretationBlocks.all) ? interpretationBlocks.all : [];
-  const pick = (...tags) => uniqueInterpretationBlocks(tags.flatMap((tag) => byTag[tag] || []));
-  if (chapterNo === 1) return uniqueInterpretationBlocks([...(byTag.annual || []), ...(byTag["five-elements"] || []), ...(byTag["useful-god"] || [])]).slice(0, 4);
-  if (chapterNo === 2) return uniqueInterpretationBlocks([...(byTag.annual || []), ...(byTag["ten-god"] || []), ...(byTag.stem || []), ...(byTag.branch || [])]).slice(0, 4);
-  if (chapterNo === 3) return pick("daewoon", "annual", "opportunity", "risk").slice(0, 4);
-  if (chapterNo === 4) return pick("career", "work", "opportunity", "risk").slice(0, 3);
-  if (chapterNo === 5) return pick("money", "spending", "opportunity", "risk").slice(0, 3);
-  if (chapterNo === 6) return pick("relationship", "love", "relation", "combination", "clash").slice(0, 4);
-  if (chapterNo === 7) return pick("health", "rhythm", "risk").slice(0, 3);
-  if (chapterNo === 8) return pick("risk", "opportunity", "clash", "harm", "break", "punishment", "monthly").slice(0, 4);
-  if (chapterNo === 9) return pick("monthly", "routine", "action", "opportunity", "risk").slice(0, 4);
-  if (chapterNo === 10) return uniqueInterpretationBlocks([...(byTag.action || []), ...(byTag.routine || []), ...all]).slice(0, 4);
-  return all.slice(0, 2);
-}
-
-function enrichChapterWithInterpretationBlocks(chapter = {}, interpretationBlocks = {}, seed = {}) {
-  const selected = blocksForChapter(Number(chapter.no || 0), interpretationBlocks);
-  if (!selected.length) return chapter;
-  const sections = Array.isArray(chapter.sections) ? chapter.sections.slice() : [];
-  if (!sections.length) return chapter;
-  const nextSections = sections.map((section, index) => {
-    const block = selected[index] || null;
-    const addition = formatInterpretationBlockForChapter(block, seed, {
-      chapter,
-      chapterTitle: chapter.title,
-      section,
-      sectionTitle: section.title,
-      sectionIndex: index,
-    });
-    if (!addition) return section;
-    const body = softenAnnualFortuneRiskText(`${section.body || section.finalText || section.text || ""}\n\n${addition}`, seed?.targetYear);
-    return { ...section, body };
-  });
-  const categories = nextSections.map((section) => ({
-    title: section.title,
-    localSummary: section.body,
-    finalText: section.body,
-  }));
-  return {
-    ...chapter,
-    sections: nextSections,
-    categories,
-    text: nextSections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    interpretationBlockIds: selected.map((block) => block.id),
-  };
-}
-
-function composeYearlySajuChapters(normalized = {}) {
-  const seed = normalized.seed || {};
-  const expectedChapters = Array.isArray(normalized.expectedChapters) && normalized.expectedChapters.length
-    ? normalized.expectedChapters
-    : buildSajuNewYearChapterSpecs(seed.targetYear || resolveDefaultTargetYear());
-  const plans = Array.isArray(seed.annualFortuneChapterPlans) ? seed.annualFortuneChapterPlans : [];
-  const localAssembly = {
-    enabled: true,
-    externalCallsAllowed: false,
-    externalGeneration: false,
-    localAssemblyOnly: false,
-    highQualityManuscript: true,
-    fallbackAllowed: false,
-    manuscriptSource: NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY,
-    assemblyVersion: ANNUAL_FORTUNE_ASSEMBLY_VERSION,
-    engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
-    generationMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-    provider: YEARLY_SAJU_PDF_CONFIG.provider,
-    templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-    chapterCount: expectedChapters.length,
-    expectedChapterCount: expectedChapters.length,
-    repairedSections: 0,
-    fallbackSections: 0,
-    normalizedToLocal: false,
-    chapterIds: expectedChapters.map((chapterSpec) => getAnnualFortuneChapterId(chapterSpec)),
-  };
-
-  let chapters = expectedChapters.map((chapterSpec, index) => {
-    const chapterPlan = plans.find((plan) => clean(plan?.chapterId) === getAnnualFortuneChapterId(chapterSpec)) || plans[index] || {};
-    const highQualityChapter = buildHighQualityAnnualFortuneChapter({
-      seed,
-      chapterSpec,
-      chapterPlan,
-    });
-    return enforceYearlySajuChapterMinimums(enrichChapterWithInterpretationBlocks(highQualityChapter, normalized.interpretationBlocks, seed), seed);
-  });
-  chapters = sanitizeSajuNewYearAssembledChapters(chapters, seed.targetYear || resolveDefaultTargetYear());
-
-  let localNormalizationReason = "";
-  let validation = validateSajuNewYearPdfQuality({
-    chapters,
-    expectedChapters,
-    minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
-    minSectionLength: desiredSectionLength(),
-  });
-
-  if (!validation.ok) {
-    localNormalizationReason = `high_quality_validation_failed:${validation.errors.slice(0, 20).join(",")}`;
-    localAssembly.qualityFailureReason = localNormalizationReason;
-  }
-
-  return {
-    chapters,
-    expectedChapters,
-    validation,
-    manuscriptSource: NEW_YEAR_MANUSCRIPT_SOURCE.HIGH_QUALITY,
-    localNormalizationReason,
-    localAssembly,
-    monthlyTable: composeMonthlyFortuneTable(normalized),
-  };
-}
-
-function renderYearlySajuHtml(chapters, normalized = {}) {
-  const seed = normalized.seed || {};
-  return renderSajuNewYearAssembledHtmlClean(seed, sanitizeSajuNewYearAssembledChapters(buildSajuNewYearAssembledChaptersClean(seed, chapters), seed.targetYear || resolveDefaultTargetYear()));
-}
-
-function renderYearlySajuPdf({ normalized = {}, chapters = [], metadata = {} } = {}) {
-  const pdfReady = buildPdfReadyPayloadAssembled(normalized.seed || {}, chapters, metadata);
-  pdfReady.html = renderYearlySajuHtml(chapters, normalized);
-  return pdfReady;
-}
-
-function generateYearlySajuPdf(profile, targetYear, options = {}) {
-  const normalized = normalizeYearlySajuInput({
-    profile,
-    targetYear,
-    body: options.body || {},
-    natalCalculation: options.natalCalculation || null,
-  });
-  const chapterResult = composeYearlySajuChapters(normalized);
-  if (!chapterResult.validation.ok) {
-    throw Object.assign(new Error(`SAJU_NEW_YEAR_FINAL_VALIDATION_FAILED:${chapterResult.validation.errors.slice(0, 20).join(",")}`), {
-      code: "SAJU_NEW_YEAR_FINAL_VALIDATION_FAILED",
-      status: 422,
-    });
-  }
-
-  const assembledChapters = sanitizeSajuNewYearAssembledChapters(buildSajuNewYearAssembledChaptersClean(normalized.seed, chapterResult.chapters), normalized.seed.targetYear || resolveDefaultTargetYear());
-  const pdfReady = renderYearlySajuPdf({
-    normalized,
-    chapters: assembledChapters,
-    metadata: {
-      ...(options.metadata || {}),
-      localNormalizationReason: chapterResult.localNormalizationReason,
-      manuscriptSource: chapterResult.manuscriptSource,
-      localDraftChapterCount: assembledChapters.length,
-      writingPipeline: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-      assemblyVersion: ANNUAL_FORTUNE_ASSEMBLY_VERSION,
-      engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
-      generationMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-      provider: YEARLY_SAJU_PDF_CONFIG.provider,
-      qualityStatus: "passed",
-      localAssembly: chapterResult.localAssembly,
-      masterJsonValidation: normalized.masterJsonValidation,
-      normalizedData: normalized.normalizedData,
-      monthlyFortuneSections: normalized.monthlyFortuneSections,
-      interpretationBlockIds: (normalized.interpretationBlocks?.all || []).map((block) => block.id),
-    },
-  });
-  const pdfCompletionValidation = validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters: assembledChapters });
-  if (!pdfCompletionValidation.ok) {
-    throw Object.assign(new Error(`SAJU_NEW_YEAR_PDF_COMPLETION_INVALID:${pdfCompletionValidation.issues.join(",")}`), {
-      code: "SAJU_NEW_YEAR_PDF_COMPLETION_INVALID",
-      status: 422,
-    });
-  }
-
-  return {
-    ...chapterResult,
-    chapters: assembledChapters,
-    manuscriptSource: chapterResult.manuscriptSource,
-    normalized,
-    seed: normalized.seed,
-    localYearSajuJson: normalized.seed,
-    masterJson: normalized.masterJson,
-    newYearMasterJson: normalized.masterJson,
-    masterJsonValidation: normalized.masterJsonValidation,
-    normalizedData: normalized.normalizedData,
-    interpretationBlocks: normalized.interpretationBlocks,
-    monthlyFortuneSections: normalized.monthlyFortuneSections,
-    pdfReady,
-    pdfCompletionValidation,
-  };
-}
-
 function buildNewYearArchiveUrl(origin, reportId) {
   const base = clean(origin).replace(/\/+$/, "");
   if (!base) return "";
@@ -6006,34 +4691,28 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
         : Array.isArray(pdfReady?.chapters)
           ? pdfReady.chapters
           : [];
-    const localAssembly = archive.localAssembly || metadata.localAssembly || payload.localAssembly || pdfReady?.metadata?.localAssembly || {
-      enabled: true,
-      externalCallsAllowed: false,
-      externalGeneration: false,
-      localAssemblyOnly: true,
-      assemblyVersion: ANNUAL_FORTUNE_ASSEMBLY_VERSION,
-      engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
-      generationMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-      provider: YEARLY_SAJU_PDF_CONFIG.provider,
-      templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-      chapterCount: chapters.length,
-      expectedChapterCount: ASSEMBLED_NEW_YEAR_CHAPTERS.length,
+    const llmAssembly = archive.llmAssembly || metadata.llmAssembly || payload.llmAssembly || pdfReady?.metadata?.llmAssembly || null;
+    const llmMetadata = {
+      ...(pdfReady?.metadata || {}),
+      ...metadata,
+      ...archive,
+      llmAssembly,
+      llmAssemblyOnly: archive.llmAssemblyOnly ?? metadata.llmAssemblyOnly ?? payload.llmAssemblyOnly ?? pdfReady?.metadata?.llmAssemblyOnly,
+      promptVersion: archive.promptVersion || metadata.promptVersion || payload.promptVersion || pdfReady?.metadata?.promptVersion,
+      schemaVersion: archive.schemaVersion || metadata.schemaVersion || payload.schemaVersion || pdfReady?.metadata?.schemaVersion,
+      manuscriptSource: archive.manuscriptSource || metadata.manuscriptSource || payload.manuscriptSource || pdfReady?.metadata?.manuscriptSource,
     };
-    const manuscriptSource = clean(archive.manuscriptSource || metadata.manuscriptSource || payload.manuscriptSource || pdfReady?.metadata?.manuscriptSource || NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL);
-    if (!isHighQualityNewYearManuscriptSource(manuscriptSource) || hasNewYearFallbackAssembly(localAssembly, metadata)) {
+    const manuscriptSource = clean(llmMetadata.manuscriptSource);
+    if (!isLlmOnlyNewYearManuscriptSource(manuscriptSource) || !isNewYearLlmMetadataValid(llmMetadata)) {
       return null;
     }
     const localSajuJson = archive.localSajuJson || metadata.localSajuJson || payload.localSajuJson || payload.seed || null;
     const newYearMasterJson = archive.newYearMasterJson || metadata.newYearMasterJson || payload.newYearMasterJson || null;
     const monthlyFortuneSections = archive.monthlyFortuneSections || metadata.monthlyFortuneSections || payload.monthlyFortuneSections || null;
-    const clientSummary = archive.clientSummary || metadata.clientSummary || payload.clientSummary || buildNewYearClientSummary({
-      seed: localSajuJson || {},
-      chapters,
-      newYearMasterJson: newYearMasterJson || {},
-      monthlyFortuneSections: monthlyFortuneSections || [],
-      validation: archive.validation || metadata.validation || payload.validation || {},
-      pdfCompletionValidation: archive.pdfCompletionValidation || metadata.pdfCompletionValidation || payload.pdfCompletionValidation || {},
-    });
+    const monthlyFortunes = archive.monthlyFortunes || metadata.monthlyFortunes || payload.monthlyFortunes || null;
+    const finalAdvice = archive.finalAdvice || metadata.finalAdvice || payload.finalAdvice || null;
+    const clientSummary = archive.clientSummary || metadata.clientSummary || payload.clientSummary || null;
+    if (!clientSummary) return null;
     if (pdfReady) {
       pdfReady.filename = clean(pdfReady.filename).replace(/\.html$/i, ".pdf") || buildNewYearPdfFilename(targetYear, archive.birthName || payload?.profile?.name || "user");
       pdfReady.htmlFilename = clean(pdfReady.htmlFilename) || pdfReady.filename.replace(/\.pdf$/i, ".html");
@@ -6052,17 +4731,24 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
       serviceKey: SERVICE_KEY,
       targetYear,
       chapterCount: Number(archive.chapterCount || payload.chapterCount || chapters.length),
-      localDraftChapterCount: Number(archive.chapterCount || payload.localDraftChapterCount || chapters.length),
       finalChapterCount: Number(archive.chapterCount || payload.finalChapterCount || chapters.length),
       manuscriptSource,
+      llmAssembly,
+      llmAssemblyOnly: true,
+      fallbackUsed: false,
+      promptVersion: clean(llmMetadata.promptVersion),
+      schemaVersion: clean(llmMetadata.schemaVersion),
+      generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+      provider: clean(llmAssembly?.provider || archive.provider || metadata.provider || payload.provider || YEARLY_SAJU_PDF_CONFIG.provider),
       chapters,
       localSajuJson,
       newYearMasterJson,
       masterJsonValidation: archive.masterJsonValidation || metadata.masterJsonValidation || null,
       normalizedData: archive.normalizedData || metadata.normalizedData || null,
       monthlyFortuneSections,
+      monthlyFortunes,
+      finalAdvice,
       clientSummary,
-      localAssembly,
       pdfReady,
       pdfUrl: storedUrl,
       htmlUrl: clean(pdfReady?.htmlUrl || archive.htmlUrl || payload.htmlUrl),
@@ -6361,17 +5047,18 @@ async function handlePrepare(request, env) {
 
     const yearlySajuPdfConfig = getYearlySajuPdfConfig(env);
 
-    console.info("[NewYearPremiumPDF][YearlySajuLocalPipelineStarted]", {
+    console.info("[NewYearPremiumPDF][YearlySajuLlmPipelineStarted]", {
       targetYear: normalized.targetYear,
       sessionId: sessionKey,
       generationMode: yearlySajuPdfConfig.generationMode,
       provider: yearlySajuPdfConfig.provider,
-      localAssemblyOnly: false,
-      highQualityManuscript: true,
+      llmAssemblyOnly: true,
     });
-    const pipelineResult = generateYearlySajuPdf(normalized.profile, normalized.targetYear, {
-      body,
-      natalCalculation: cacheNormalized.seed,
+    const pipelineResult = await generateSajuNewYearPremiumReport({
+      env,
+      normalized: cacheNormalized,
+      userId: auth.userId,
+      jobId: reportId,
       metadata: {
         featureKey,
         reportType: "sajuNewYear",
@@ -6387,19 +5074,43 @@ async function handlePrepare(request, env) {
     const chapters = pipelineResult.chapters;
     const validation = pipelineResult.validation;
     const manuscriptSource = pipelineResult.manuscriptSource;
-    const localNormalizationReason = pipelineResult.localNormalizationReason;
-    const localAssembly = pipelineResult.localAssembly;
     const monthlyFortuneSections = pipelineResult.monthlyFortuneSections;
-    let pdfCompletionValidation = pipelineResult.pdfCompletionValidation;
-    const pdfReady = pipelineResult.pdfReady;
+    const monthlyFortunes = pipelineResult.monthlyFortunes;
+    const finalAdvice = pipelineResult.finalAdvice;
+    const llmAssembly = pipelineResult.llmAssembly;
+    const clientSummary = pipelineResult.clientSummary;
+    let pdfCompletionValidation = null;
+    const pdfReady = buildPdfReadyPayloadLlmOnly(localYearSajuJson, chapters, {
+      featureKey,
+      reportType: "sajuNewYear",
+      sessionId: sessionKey,
+      accessType: clean(access.accessType || "unknown"),
+      cacheKey: yearlySajuPdfCacheKey,
+      manuscriptSource,
+      llmAssembly,
+      llmAssemblyOnly: true,
+      fallbackUsed: false,
+      externalCallsAllowed: true,
+      generationMode: pipelineResult.generationMode,
+      provider: pipelineResult.provider,
+      modelName: pipelineResult.modelName,
+      promptVersion: pipelineResult.promptVersion,
+      schemaVersion: pipelineResult.schemaVersion,
+      qualityVersion: pipelineResult.qualityVersion,
+      engineVersion: pipelineResult.engineVersion,
+      finalAdvice,
+      monthlyFortunes,
+      qualityStatus: "passed",
+      masterJsonValidation,
+      normalizedData,
+      monthlyFortuneSections,
+    });
     const finalTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
-    console.info("[NewYearPremiumPDF][YearlySajuLocalPipelineCompleted]", {
+    console.info("[NewYearPremiumPDF][YearlySajuLlmPipelineCompleted]", {
       chapterCount: chapters.length,
       targetYear: localYearSajuJson.targetYear,
       totalChars: finalTotalChars,
       manuscriptSource,
-      localNormalizationReason,
-      localAssembly,
       validationOk: validation.ok,
     });
     console.info("[NewYearPremiumPDF][FinalValidationPassed]", { chapterCount: chapters.length, manuscriptSource });
@@ -6438,36 +5149,15 @@ async function handlePrepare(request, env) {
         status: 500,
       });
     }
-    const localPdfResult = await generateNewYearLocalPdf({
-      reportId,
-      featureKey,
-      sessionId: sessionKey,
-      targetYear: localYearSajuJson.targetYear,
-      chapterCount: chapters.length,
-      manuscriptSource,
-      chapters,
-      localAssembly,
-      pdfReady,
-      pdfCompletionValidation,
-      pdfUrl: storedUrl,
-      htmlUrl: clean(pdfReady.htmlUrl),
-      downloadUrl: clean(pdfReady.downloadUrl || storedUrl),
-    }, {
-      config: YEARLY_SAJU_PDF_CONFIG,
-      expectedChapterCount: chapters.length,
-      buildLocalPdf: (payload) => payload,
-    });
-    const clientSummary = buildNewYearClientSummary({
-      seed: localYearSajuJson,
-      chapters,
-      newYearMasterJson,
-      monthlyFortuneSections,
-      validation,
-      pdfCompletionValidation,
-    });
-
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource,
+      llmAssembly,
+      llmAssemblyOnly: true,
+      fallbackUsed: false,
+      generationMode: pipelineResult.generationMode,
+      provider: pipelineResult.provider,
+      promptVersion: pipelineResult.promptVersion,
+      schemaVersion: pipelineResult.schemaVersion,
       chapterCount: chapters.length,
       targetYear: localYearSajuJson.targetYear,
       archive: {
@@ -6486,12 +5176,21 @@ async function handlePrepare(request, env) {
         localSajuJson: localYearSajuJson,
         normalizedData,
         monthlyFortuneSections,
+        monthlyFortunes,
+        finalAdvice,
         clientSummary,
         newYearMasterJson,
         masterJsonValidation,
-        localAssembly,
         pdfCompletionValidation,
         pdfReady,
+        llmAssembly,
+        llmAssemblyOnly: true,
+        fallbackUsed: false,
+        generationMode: pipelineResult.generationMode,
+        provider: pipelineResult.provider,
+        promptVersion: pipelineResult.promptVersion,
+        schemaVersion: pipelineResult.schemaVersion,
+        qualityVersion: pipelineResult.qualityVersion,
         canReopen: true,
         canDownload: true,
       },
@@ -6506,28 +5205,33 @@ async function handlePrepare(request, env) {
       serviceKey: SERVICE_KEY,
       targetYear: localYearSajuJson.targetYear,
       chapterCount: chapters.length,
-      localDraftChapterCount: chapters.length,
       finalChapterCount: chapters.length,
       manuscriptSource,
-      localEngineUsed: true,
+      calculationEngineUsed: true,
+      localEngineUsed: false,
+      llmAssembly,
+      llmAssemblyOnly: true,
+      externalCallsAllowed: true,
       fallbackUsed: false,
       writingPipeline: YEARLY_SAJU_PDF_CONFIG.templateVersion,
       assemblyVersion: ANNUAL_FORTUNE_ASSEMBLY_VERSION,
       engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
       generationMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
-      provider: YEARLY_SAJU_PDF_CONFIG.provider,
+      provider: pipelineResult.provider,
+      modelName: pipelineResult.modelName,
+      promptVersion: pipelineResult.promptVersion,
+      schemaVersion: pipelineResult.schemaVersion,
+      qualityVersion: pipelineResult.qualityVersion,
       cacheKey: yearlySajuPdfCacheKey,
       cacheHit: false,
-      localNormalizationReason,
-      localAssembly,
-      localOnly: localPdfResult.localOnly,
-      localContract: localPdfResult.localContract,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,
       localSajuJson: localYearSajuJson,
       normalizedData,
       monthlyFortuneSections,
+      monthlyFortunes,
+      finalAdvice,
       clientSummary,
       newYearMasterJson,
       masterJsonValidation,
@@ -6630,7 +5334,6 @@ export const __sajuNewYearTestUtils = {
   getYearlySajuPdfConfig,
   normalizeInput,
   buildPdfSeed,
-  buildLocalSkeleton,
   validateChapters,
   buildSajuNewYearChapterSpecs,
   validateSajuNewYearSeed,
@@ -6647,28 +5350,19 @@ export const __sajuNewYearTestUtils = {
   buildYearlySajuPdfCacheExecutionContext,
   buildNewYearReusableExecutionResponse,
   selectYearlyInterpretationBlocks,
-  enrichChapterWithInterpretationBlocks,
   normalizeYearlySajuInput,
   composeMonthlyFortuneTable,
   buildMonthlyFortuneSections,
-  buildMonthlyFortuneCardsHtml,
-  buildSajuNewYearAssembledChapters: buildSajuNewYearAssembledChaptersClean,
   validateSajuNewYearPdfCompletionPayload,
   getNewYearCategoryRule,
   validateSajuNewYearCategoryCoverage,
   validateSajuNewYearSentenceDiversity,
-  composeYearlySajuChapters,
-  renderYearlySajuHtml,
-  renderYearlySajuPdf,
-  generateYearlySajuPdf,
   softenAnnualFortuneRiskText,
-  buildNewYearChapterLocalGuide,
-  buildDeterministicChapterFromSpec,
-  buildHighQualityNewYearSection,
-  repairSajuNewYearChapters,
-  reinforceChapterFromSpec,
   validateSajuNewYearPdfQuality,
   stripForbiddenText,
-  buildPdfReadyPayload: buildPdfReadyPayloadAssembled,
+  buildPdfReadyPayload: buildPdfReadyPayloadLlmOnly,
+  buildPdfReadyPayloadLlmOnly,
+  prepareSajuNewYearLlmChaptersForRender,
+  generateSajuNewYearPremiumReport,
   buildNewYearArchiveUrls,
 };

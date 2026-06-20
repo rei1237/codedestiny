@@ -190,6 +190,16 @@
     }).join('');
   }
 
+  function renderZiweiLlmChapterHtml(chapter, index){
+    var source = text(chapter && chapter.html);
+    if(!source || source.indexOf('<article') === -1) return '';
+    var safe = source
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+      .replace(/\son[a-z]+\s*=\s*(['"])[\s\S]*?\1/gi, '');
+    return '<div class="lb-result-article lb-result-article--llm" id="zbChapterSection-' + (index + 1) + '">' + safe + '</div>';
+  }
+
   function setGeneratingUiLock(isBusy, label){
     var btn = $('zbStartBtn');
     if(!btn) return;
@@ -428,6 +438,32 @@
     });
   }
 
+  function getZiweiLlmAssembly(data){
+    var payload = data || {};
+    var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    return payload.llmAssembly && typeof payload.llmAssembly === 'object'
+      ? payload.llmAssembly
+      : (ready.llmAssembly && typeof ready.llmAssembly === 'object' ? ready.llmAssembly : {});
+  }
+
+  function hasZiweiV3LlmAssembly(data){
+    var payload = data || {};
+    var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    var llmAssembly = getZiweiLlmAssembly(payload);
+    var manuscriptSource = text(payload.manuscriptSource || ready.manuscriptSource).toLowerCase();
+    var chapterCount = Number(llmAssembly.chapterCount || payload.llmChapterCount || payload.llmDraftChapterCount || 0);
+    return manuscriptSource === 'llm-html-v3'
+      && llmAssembly.enabled === true
+      && text(llmAssembly.source).toLowerCase() === 'llm-html-v3'
+      && Boolean(text(llmAssembly.provider))
+      && text(llmAssembly.templateVersion) === 'ziwei-premium-html-v3.0.0'
+      && llmAssembly.externalCallsAllowed === true
+      && llmAssembly.externalGeneration === true
+      && llmAssembly.fallbackUsed !== true
+      && llmAssembly.localFallbackUsed !== true
+      && chapterCount >= TOTAL_CHAPTERS;
+  }
+
   function getZiweiReportReadiness(data){
     var payload = data || {};
     var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
@@ -448,13 +484,13 @@
       || ready.pdfUrl
       || ready.storedUrl
       || ready.reportUrl
-      || ready.htmlUrl
     ));
     var ok = payload.ok === true;
     var retryable = payload.retryable === true;
     var failedRetryable = serverStatus === 'failed_retryable' || status === 'failed_retryable';
     var processing = status === 'processing' || serverStatus === 'processing' || retryable || failedRetryable;
     var successCandidate = (ok || processing || retryable) && (hasReportId || hasSessionId);
+    var llmReady = hasZiweiV3LlmAssembly(payload);
     return {
       ok: ok,
       processing: processing,
@@ -462,7 +498,8 @@
       failedRetryable: failedRetryable,
       recoverable: processing && (hasReportId || hasSessionId),
       successCandidate: successCandidate,
-      completed: ok && successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS,
+      completed: ok && successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS && llmReady,
+      llmReady: llmReady,
       hasPdfHtml: hasPdfHtml,
       hasStoredUrl: hasStoredUrl,
       chapterCount: chapters.length,
@@ -536,8 +573,124 @@
     );
   }
 
+  var ZIWEI_DEV_TRACE_LIMIT = 36;
+  var ZIWEI_DEV_TRACE_EVENTS = [];
+
+  function isZiweiDevTraceEnabled(){
+    try {
+      var host = String(window.location && window.location.hostname || '');
+      var params = new URLSearchParams(window.location && window.location.search || '');
+      return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(host)
+        || params.has('familyTest')
+        || params.has('ziweiDebug')
+        || params.has('debugZiwei');
+    } catch(_) {
+      return false;
+    }
+  }
+
+  function sanitizeZiweiDevTrace(value, depth, key){
+    var field = String(key || '').toLowerCase();
+    if(/token|authorization|secret|password|phone|email|name|birthdate|birthinput|birthprofile|payment|transaction|purchase|accessgrant/.test(field)){
+      return '[redacted]';
+    }
+    if(value === undefined) return undefined;
+    if(value === null) return null;
+    if(depth > 3) return '[truncated]';
+    if(Array.isArray(value)){
+      return value.slice(0, 8).map(function(item){ return sanitizeZiweiDevTrace(item, depth + 1, key); });
+    }
+    if(typeof value === 'object'){
+      var out = {};
+      Object.keys(value).slice(0, 28).forEach(function(childKey){
+        var next = sanitizeZiweiDevTrace(value[childKey], depth + 1, childKey);
+        if(next !== undefined) out[childKey] = next;
+      });
+      return out;
+    }
+    return value;
+  }
+
+  function stringifyZiweiDevTrace(value){
+    try { return JSON.stringify(sanitizeZiweiDevTrace(value, 0, ''), null, 2); }
+    catch(_) { return String(value || ''); }
+  }
+
+  function ensureZiweiDevTracePanel(){
+    if(!isZiweiDevTraceEnabled() || !document || !document.body) return null;
+    var panel = document.getElementById('ziweiDevTracePanel');
+    if(panel) return panel;
+    panel = document.createElement('aside');
+    panel.id = 'ziweiDevTracePanel';
+    panel.setAttribute('aria-live', 'polite');
+    panel.style.cssText = [
+      'position:fixed',
+      'right:16px',
+      'bottom:16px',
+      'z-index:2147483000',
+      'width:min(520px,calc(100vw - 32px))',
+      'max-height:42vh',
+      'display:flex',
+      'flex-direction:column',
+      'gap:8px',
+      'padding:12px',
+      'border:1px solid rgba(168,85,247,.55)',
+      'border-radius:14px',
+      'background:rgba(18,10,38,.94)',
+      'box-shadow:0 18px 48px rgba(0,0,0,.36)',
+      'color:#f7f2ff',
+      'font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace'
+    ].join(';');
+    panel.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:Malgun Gothic,Apple SD Gothic Neo,sans-serif;">'
+      + '<strong style="font-size:13px;color:#facc15;">자미두수 PDF 개발 진단</strong>'
+      + '<button type="button" data-ziwei-dev-close style="border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;border-radius:8px;padding:4px 8px;cursor:pointer;">닫기</button>'
+      + '</div>'
+      + '<pre id="ziweiDevTraceOutput" style="margin:0;overflow:auto;white-space:pre-wrap;word-break:break-word;max-height:32vh;"></pre>';
+    panel.querySelector('[data-ziwei-dev-close]').onclick = function(){
+      panel.style.display = 'none';
+    };
+    document.body.appendChild(panel);
+    return panel;
+  }
+
+  function renderZiweiDevTracePanel(){
+    if(!isZiweiDevTraceEnabled()) return;
+    var panel = ensureZiweiDevTracePanel();
+    if(!panel) return;
+    var output = document.getElementById('ziweiDevTraceOutput');
+    if(!output) return;
+    output.textContent = ZIWEI_DEV_TRACE_EVENTS.map(function(event){
+      return '[' + event.time + '] ' + event.kind + ' ' + event.tag + '\n' + event.detail;
+    }).join('\n\n');
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function recordZiweiDevTrace(kind, tag, payload){
+    if(!isZiweiDevTraceEnabled()) return;
+    var event = {
+      time: new Date().toLocaleTimeString('ko-KR', { hour12: false }),
+      kind: text(kind || 'flow'),
+      tag: text(tag || ''),
+      payload: sanitizeZiweiDevTrace(payload || {}, 0, '')
+    };
+    event.detail = stringifyZiweiDevTrace(event.payload);
+    ZIWEI_DEV_TRACE_EVENTS.push(event);
+    if(ZIWEI_DEV_TRACE_EVENTS.length > ZIWEI_DEV_TRACE_LIMIT) ZIWEI_DEV_TRACE_EVENTS.shift();
+    try {
+      window.__ziweiDevTraceEvents = ZIWEI_DEV_TRACE_EVENTS.slice();
+      window.__ziweiLastDevTrace = event;
+      console.info('[ZiweiBook][DevTrace][' + event.tag + '] ' + event.detail);
+    } catch(_) {}
+    renderZiweiDevTracePanel();
+  }
+
   function logFlow(tag, payload){
-    try { console.info('[ZiweiBook][' + tag + ']', payload || {}); } catch(_) {}
+    try {
+      var safePayload = payload || {};
+      console.info('[ZiweiBook][' + tag + ']', safePayload);
+      recordZiweiDevTrace('flow', tag, safePayload);
+    } catch(_) {}
   }
 
   function normalizeZiweiError(error){
@@ -594,26 +747,127 @@
     return error;
   }
 
+  function buildZiweiApiCandidates(url){
+    var value = text(url);
+    if(!value) return [''];
+    if(!/^\/api\//.test(value)) return [value];
+    var isLocal = false;
+    var queryApiBase = '';
+    try {
+      isLocal = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(String(window.location && window.location.hostname || ''));
+      var params = new URLSearchParams(window.location && window.location.search || '');
+      queryApiBase = params.get('api') || params.get('apiBase') || params.get('cdApiBase') || '';
+    } catch(e) {}
+    var bases = [
+      queryApiBase,
+      window.CODE_DESTINY_API_BASE_URL || '',
+      window.__CD_API_BASE_URL || '',
+      window.__API_BASE_URL || '',
+      window.__AUTH_API_BASE_URL || ''
+    ];
+    if(isLocal){
+      bases.push('http://localhost:4000');
+      bases.push('http://127.0.0.1:4000');
+    }
+    bases.push('');
+    bases.push(window.location && window.location.origin || '');
+    var seen = {};
+    var out = [];
+    bases.forEach(function(base){
+      var cleanBase = text(base).replace(/\/+$/, '');
+      var endpoint = cleanBase ? cleanBase + value : value;
+      if(!seen[endpoint]){
+        seen[endpoint] = true;
+        out.push(endpoint);
+      }
+    });
+    return out.length ? out : [value];
+  }
+
   async function fetchZiweiApi(url, options){
     var settings = Object.assign({}, options || {});
     var parseMode = text(settings.parse) || 'json';
     if(settings.parse) delete settings.parse;
     if(!settings.credentials) settings.credentials = 'include';
-    var response = await fetch(url, settings);
-    if(parseMode === 'blob'){
-      var blob = await response.blob().catch(function(){ return null; });
-      return { res: response, blob: blob, json: blob };
+    if(!settings.cache) settings.cache = 'no-store';
+    var endpoints = buildZiweiApiCandidates(url);
+    var lastPack = null;
+    var lastError = null;
+    for(var i = 0; i < endpoints.length; i += 1){
+      var endpoint = endpoints[i];
+      try {
+        var response = await fetch(endpoint, settings);
+        if(parseMode === 'blob'){
+          var blob = await response.blob().catch(function(){ return null; });
+          lastPack = { res: response, blob: blob, json: blob, endpoint: endpoint };
+        } else if(parseMode === 'text'){
+          var textValue = await response.text().catch(function(){ return ''; });
+          lastPack = { res: response, text: textValue, json: { message: textValue }, endpoint: endpoint };
+        } else {
+          var json = await response.json().catch(function(){ return {}; });
+          lastPack = { res: response, json: json, endpoint: endpoint };
+        }
+        recordZiweiDevTrace('network', 'API_RESPONSE', {
+          endpoint: endpoint,
+          status: response.status,
+          ok: response.ok,
+          parseMode: parseMode,
+          response: ziweiPayloadSafe(lastPack && lastPack.json)
+        });
+        if(response.ok || response.status !== 404 || i === endpoints.length - 1) return lastPack;
+      } catch(error) {
+        lastError = error;
+        recordZiweiDevTrace('network', 'API_EXCEPTION', {
+          endpoint: endpoint,
+          message: text(error && error.message ? error.message : error),
+          name: text(error && error.name)
+        });
+        if(i === endpoints.length - 1) throw error;
+      }
     }
-    if(parseMode === 'text'){
-      var textValue = await response.text().catch(function(){ return ''; });
-      return { res: response, text: textValue, json: { message: textValue } };
-    }
-    var json = await response.json().catch(function(){ return {}; });
-    return { res: response, json: json };
+    if(lastPack) return lastPack;
+    throw lastError || new Error('Ziwei API request failed');
   }
 
-  function logZiweiError(error, meta){
+  function buildZiweiPrepareDiagnostics(profile, seed, paymentContext, birthInput, body, endpoint){
+    var palaces = Array.isArray(seed && seed.palaces) ? seed.palaces : [];
+    var chartMeta = seed && seed.chartMeta && typeof seed.chartMeta === 'object' ? seed.chartMeta : {};
+    var input = birthInput && typeof birthInput === 'object' ? birthInput : {};
+    var payment = paymentContext && typeof paymentContext === 'object' ? paymentContext : {};
+    var hasBirthDate = Boolean(input.birthDate || (profile && profile.year && profile.month && profile.day));
+    var hasBirthTime = Number.isFinite(Number(input.birthHour)) || Number.isFinite(Number(profile && profile.hour));
+    return {
+      hasProfile: Boolean(profile && profile.year && profile.month && profile.day),
+      hasBirthDate: hasBirthDate,
+      hasBirthTime: hasBirthTime,
+      hasGender: Boolean(text((profile && profile.gender) || input.gender)),
+      hasZiweiChart: Boolean(seed && palaces.length),
+      hasPalaces: palaces.length >= 12,
+      palaceCount: palaces.length,
+      hasMingGong: Boolean(text(chartMeta.mingGong)),
+      hasShenGong: Boolean(text(chartMeta.shenGong)),
+      hasFourTransformations: Boolean(Array.isArray(seed && seed.sihua) && seed.sihua.length),
+      paymentMode: text(payment.accessType || payment.paymentMode || payment.mode || 'unknown'),
+      unlockMode: payment.accessGrant ? 'access-grant' : (payment.premiumAccessToken ? 'premium-token' : 'payment-context'),
+      requestPayloadPreview: {
+        featureKey: text(body && body.featureKey),
+        reportType: text(body && body.reportType),
+        hasPremiumAccessToken: Boolean(text(body && body.premiumAccessToken)),
+        hasAccessGrant: Boolean(body && body.accessGrant),
+        hasConsume: Boolean(body && body.consume),
+        sessionHash: toHexHash(text(body && (body.reportSessionId || body.sessionId))),
+        reportHash: toHexHash(text(body && body.reportId)),
+        birthHash: text(body && body.birthHash)
+      },
+      apiEndpoint: text(endpoint || PREPARE_API)
+    };
+  }
+
+  function logZiweiError(stageOrError, errorOrMeta, extra){
     try {
+      var stageOverride = typeof stageOrError === 'string' ? stageOrError : '';
+      var error = stageOverride ? errorOrMeta : stageOrError;
+      var meta = stageOverride ? (extra || {}) : (errorOrMeta || {});
       var payloadSafe = error && error.payloadSafe
         ? error.payloadSafe
         : ziweiPayloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
@@ -621,11 +875,13 @@
         serviceKey: 'ziwei-book',
         featureKey: FEATURE_KEY,
         reportType: 'ziweiPremium',
-        stage: text(meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown',
+        stage: text(stageOverride || meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown',
         failureType: text(error && error.failureType || payloadSafe.failureType) || undefined,
         status: Number(error && error.status || meta && meta.status || 0) || undefined,
         code: text(error && error.code || payloadSafe.code) || 'ZIWEI_CLIENT_ERROR',
         message: text(error && error.message ? error.message : error) || 'unknown',
+        name: text(error && error.name) || undefined,
+        stack: text(error && error.stack, 2000) || undefined,
         requestId: text(meta && meta.requestId || error && error.requestId) || undefined,
         sessionId: text(meta && meta.sessionId || error && error.sessionId || payloadSafe.sessionId) || undefined,
         reportId: text(meta && meta.reportId || error && error.reportId || payloadSafe.reportId || RESULT && RESULT.reportId) || undefined,
@@ -633,9 +889,15 @@
         missing: ziweiShortList(error && error.missing || payloadSafe.missing, 6),
         issues: ziweiShortList(error && error.issues || payloadSafe.issues, 6),
         causeMessage: text(error && error.cause && (error.cause.message || error.cause)) || undefined,
-        payloadSafe: payloadSafe
+        payloadSafe: payloadSafe,
+        extra: meta && typeof meta === 'object' ? meta : undefined,
+        error: error
       };
       console.error('[ZiweiBook][Error][' + safe.stage + ']', safe);
+      var printable = Object.assign({}, safe);
+      delete printable.error;
+      console.error('[ZiweiBook][ErrorJson][' + safe.stage + '] ' + stringifyZiweiDevTrace(printable));
+      recordZiweiDevTrace('error', safe.stage, printable);
     } catch(_) {}
   }
 
@@ -1256,7 +1518,10 @@
 
   function getPremiumToken(){
     try {
-      var keys = ['cd_premium_access','premiumAccessToken','cdPremiumAccessToken','ziweiPremiumAccessToken'];
+      if(window.__cdPremiumAccessToken) return text(window.__cdPremiumAccessToken);
+    } catch(e) {}
+    try {
+      var keys = ['cd_premium_access_token','cd_premium_access','premiumAccessToken','cdPremiumAccessToken','ziweiPremiumAccessToken'];
       for(var i=0;i<keys.length;i++){
         var local = localStorage.getItem(keys[i]) || sessionStorage.getItem(keys[i]);
         if(local) return local;
@@ -1267,7 +1532,10 @@
 
   function storePremiumToken(token){
     if(!token) return;
+    try { window.__cdPremiumAccessToken = token; } catch(e) {}
     try {
+      localStorage.setItem('cd_premium_access_token', token);
+      sessionStorage.setItem('cd_premium_access_token', token);
       localStorage.setItem('ziweiPremiumAccessToken', token);
       sessionStorage.setItem('ziweiPremiumAccessToken', token);
     } catch(e) {}
@@ -1327,6 +1595,7 @@
       paidAt: pick(['paidAt', 'createdAt']) || undefined,
       birthHash: text(birthHash) || undefined
     };
+    context.sourceTransactionId = text(pick(['sourceTransactionId']) || context.transactionId || context.purchaseId || context.requestId) || undefined;
     if(grant) context.accessGrant = grant;
     return context;
   }
@@ -1341,12 +1610,18 @@
     if(cached && isSamePaidSessionTarget(cached, birthHash)){
       var verified = await verifyPaidSessionAccess(cached);
       if(verified){
-        setZiweiGenerationScope({
-          birthHash: birthHash,
-          sessionId: text(cached.sessionId || cached.reportSessionId) || scope.sessionId,
-          reportId: text(cached.reportId) || scope.reportId,
-          requestId: text(cached.requestId) || scope.requestId
-        });
+        var cachedStatus = text(cached.status);
+        var useCachedGeneration = reuseOnly === true || cachedStatus !== 'failed_retryable';
+        if(useCachedGeneration){
+          setZiweiGenerationScope({
+            birthHash: birthHash,
+            sessionId: text(cached.sessionId || cached.reportSessionId) || scope.sessionId,
+            reportId: text(cached.reportId) || scope.reportId,
+            requestId: text(cached.requestId) || scope.requestId
+          });
+        } else {
+          resetZiweiGenerationScope();
+        }
         scope = getZiweiGenerationScope(birthHash);
         var reused = Object.assign({}, cached, {
           ok: true,
@@ -1355,7 +1630,7 @@
           sessionId: scope.sessionId,
           reportSessionId: scope.reportSessionId,
           reportId: scope.reportId,
-          requestId: text(cached.requestId) || scope.requestId,
+          requestId: useCachedGeneration ? (text(cached.requestId) || scope.requestId) : scope.requestId,
           premiumAccessToken: text(cached.premiumAccessToken) || getPremiumToken(),
           birthHash: birthHash
         });
@@ -1363,7 +1638,7 @@
           birthHash: birthHash,
           hasToken: Boolean(text(cached && cached.premiumAccessToken)),
           verified: true,
-          status: text(cached.status),
+          status: cachedStatus,
           reportType: text(cached.reportType)
         });
         return reused;
@@ -1540,25 +1815,11 @@
     var fetched = await fetchZiweiApi(url, { method: 'GET' });
     var res = fetched.res;
     var json = fetched.json;
-    if(!res.ok && res.status !== 202) return null;
     if(!json) return null;
     var readiness = getZiweiReportReadiness(json);
+    if(!res.ok && res.status !== 202 && !readiness.processing && !readiness.recoverable) return null;
     if(json.ok !== true && !readiness.processing && !readiness.recoverable) return null;
     return json;
-  }
-
-  function ensureChapterFallback(chapters){
-    var base = Array.isArray(chapters) ? chapters.slice(0, TOTAL_CHAPTERS) : [];
-    var fallbackTitles = ['핵심 성요 신호', '궁 연결 해석', '시기별 실행 전략', '관계/일/재정 실전 조언'];
-    for(var i = base.length; i < TOTAL_CHAPTERS; i++){
-      base.push({
-        title: CHAPTERS[i] || ('Chapter ' + (i + 1)),
-        categories: fallbackTitles.map(function(title){
-          return { title: title, finalText: '현재 생성 중인 리포트입니다. 잠시 후 재조회하면 완성본이 반영됩니다.' };
-        })
-      });
-    }
-    return base;
   }
 
   async function recoverPendingResult(data, payment){
@@ -1575,7 +1836,7 @@
     var latest = initial;
     for(var attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt++){
       var percent = Math.min(92, 56 + Math.round((attempt / Math.max(1, RESULT_POLL_MAX_ATTEMPTS - 1)) * 34));
-      updateProgress(percent, '로컬 명반 원고와 PDF 저장 상태를 확인하는 중입니다.');
+      updateProgress(percent, '자미두수 원고와 PDF 저장 상태를 확인하는 중입니다.');
       var recovered = await fetchZiweiResult(baseSession, baseReport);
       if(recovered){
         latest = recovered;
@@ -1594,7 +1855,7 @@
     if(latestReadiness.successCandidate || readiness.successCandidate){
       return Object.assign({}, latest || initial, {
         status: 'processing',
-        chapters: ensureChapterFallback((latest && latest.chapters) || initial.chapters)
+        chapters: Array.isArray(latest && latest.chapters) ? latest.chapters : []
       });
     }
     return latest || initial;
@@ -1634,12 +1895,13 @@
       requestId: text(paymentContext.requestId) || undefined,
       purchaseId: text(paymentContext.purchaseId) || undefined,
       transactionId: text(paymentContext.transactionId) || undefined,
-      sourceTransactionId: text(paymentContext.transactionId || paymentContext.purchaseId) || undefined,
+      sourceTransactionId: text(paymentContext.sourceTransactionId || paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId) || undefined,
       reportId: text(paymentContext.reportId) || undefined,
       accessGrant: accessGrant || undefined,
       consume: {
         featureKey: FEATURE_KEY,
-        transactionId: text(paymentContext.transactionId || paymentContext.purchaseId) || undefined,
+        reportType: 'ziweiPremium',
+        transactionId: text(paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId) || undefined,
         purchaseId: text(paymentContext.purchaseId || paymentContext.transactionId) || undefined,
         requestId: text(paymentContext.requestId) || undefined,
         reportId: text(paymentContext.reportId) || undefined,
@@ -1664,11 +1926,24 @@
       ziweiClientEvidenceJson: buildZiweiClientEvidenceJson(seed, birthInput),
       ziweiBase: seed
     };
+    var prepareDiagnostics = buildZiweiPrepareDiagnostics(profile, seed, paymentContext, birthInput, body, PREPARE_API);
     logFlow('PrepareRequest', {
       birthHash: birthHash,
       chapterCount: 0,
-      hasToken: Boolean(token)
+      hasToken: Boolean(token),
+      hasProfile: prepareDiagnostics.hasProfile,
+      hasBirthDate: prepareDiagnostics.hasBirthDate,
+      hasBirthTime: prepareDiagnostics.hasBirthTime,
+      hasGender: prepareDiagnostics.hasGender,
+      hasZiweiChart: prepareDiagnostics.hasZiweiChart,
+      hasPalaces: prepareDiagnostics.hasPalaces,
+      palaceCount: prepareDiagnostics.palaceCount,
+      hasMingGong: prepareDiagnostics.hasMingGong,
+      hasShenGong: prepareDiagnostics.hasShenGong,
+      hasFourTransformations: prepareDiagnostics.hasFourTransformations,
+      apiEndpoint: prepareDiagnostics.apiEndpoint
     });
+    logFlow('ZIWEI_PDF_REQUEST_SENT', prepareDiagnostics);
     var fetched = await fetchZiweiApi(PREPARE_API, { method: 'POST', headers: headers, body: JSON.stringify(body) });
     var res = fetched.res;
     var json = fetched.json;
@@ -1678,13 +1953,14 @@
       }
       var code = text(json.code || json.error || 'ZIWEI_PREPARE_FAILED');
       var message = text(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
-      if(res.status === 401 || res.status === 402 || res.status === 403){
-        throw buildZiweiApiError({ res: res, json: json }, message, 'payment');
-      }
-      if(res.status === 422 || res.status >= 500){
-        throw buildZiweiApiError({ res: res, json: json }, message, 'generation');
-      }
-      throw buildZiweiApiError({ res: res, json: json }, message, 'request');
+      var apiError = buildZiweiApiError({ res: res, json: json }, message, (res.status === 401 || res.status === 402 || res.status === 403) ? 'payment' : ((res.status === 422 || res.status >= 500) ? 'generation' : 'request'));
+      apiError.prepareDiagnostics = Object.assign({}, prepareDiagnostics, {
+        apiEndpoint: text(fetched && fetched.endpoint) || prepareDiagnostics.apiEndpoint,
+        responseStatus: res.status,
+        responseCode: code
+      });
+      logZiweiError('prepare', apiError, apiError.prepareDiagnostics);
+      throw apiError;
     }
     if(json.premiumAccessToken || json.accessToken) storePremiumToken(json.premiumAccessToken || json.accessToken);
     return json;
@@ -1738,28 +2014,32 @@
       var topActions = document.createElement('div');
       topActions.className = 'lb-result__top-actions';
       topActions.innerHTML = ''
-        + '<button type="button" class="lb-result__pdf-btn" id="zbTopPdfBtn">PDF 다운로드</button>'
-        + '<button type="button" class="lb-result__rerun-btn" id="zbTopRegenBtn">결제 내역으로 복구</button>';
+        + '<button type="button" class="lb-result__pdf-btn" id="zbTopPdfBtn">PDF 다운로드</button>';
       header.appendChild(topActions);
     }
 
     var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 명반서 표지"><div><p>PURPLE STAR ARCHIVE</p><h3>자미두수 프리미엄 PDF</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span>' + renderZiweiQualityBadge(data) + '</div></div>';
+    var v3Ready = hasZiweiV3LlmAssembly(data);
     var html = chapters.map(function(chapter, index){
+      if(v3Ready){
+        return renderZiweiLlmChapterHtml(chapter, index) || (
+          '<article class="lb-result-article" id="zbChapterSection-' + (index + 1) + '">'
+          + '<header class="lb-result-article__head"><span class="lb-result-article__chapter">Chapter ' + (index + 1) + '</span><h3 class="lb-result-article__title">' + esc(text(chapter && chapter.title) || CHAPTERS[index] || '') + '</h3></header>'
+          + '<p class="lb-result-article__summary">이 장의 원고를 불러오지 못했습니다. 리포트를 다시 열어 주세요.</p>'
+          + '</article>'
+        );
+      }
       var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
       var catHtml = categories.map(function(cat){
         return '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + esc(cat.title) + '</h4>' + renderZiweiCategoryText(cat.finalText || cat.text || '') + '</section>';
       }).join('');
       var chapterTitle = text(chapter.title || CHAPTERS[index] || '');
       var summary = text(chapter.summary || '해당 챕터의 핵심 흐름을 정리했습니다.');
-      var advice = text(chapter.practicalAdvice || '실전 조언은 기준을 줄이고 반복 루틴을 고정하는 것입니다.');
-      var caution = text(chapter.cautionFlow || '주의 흐름은 속도 과열과 감정 과부하입니다.');
       return ''
         + '<article class="lb-result-article" id="zbChapterSection-' + (index + 1) + '">' 
         + '<header class="lb-result-article__head"><span class="lb-result-article__chapter">Chapter ' + (index + 1) + '</span><h3 class="lb-result-article__title">' + esc(chapterTitle) + '</h3></header>'
         + '<p class="lb-result-article__summary">' + esc(summary) + '</p>'
         + catHtml
-        + '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">실전 조언</h4><p class="lb-result-article__section-body">' + esc(advice) + '</p></section>'
-        + '<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">주의 흐름</h4><p class="lb-result-article__section-body">' + esc(caution) + '</p></section>'
         + '</article>';
     }).join('');
     box.innerHTML = cover + html + '<div class="zb-result-bottom-download"><button type="button" class="lb-result__pdf-btn" id="zbBottomPdfBtn">PDF 다운로드</button></div>';
@@ -1768,14 +2048,11 @@
     if(bottomActions){
       bottomActions.innerHTML = ''
         + '<button class="lb-result__pdf-btn" id="zbPdfBtn" onclick="downloadZiweiBookPdf()">📥 PDF 다운로드</button>'
-        + '<button class="lb-result__rerun-btn" id="zbRegenBtn" onclick="generateZiweiBook(true)">결제 내역으로 이어서 생성</button>'
         + '<button class="lb-result__close-btn" data-action="closeZiweiBookModal">닫기</button>';
     }
 
     var topPdfBtn = $('zbTopPdfBtn');
     if(topPdfBtn) topPdfBtn.onclick = function(){ window.downloadZiweiBookPdf(); };
-    var topRegenBtn = $('zbTopRegenBtn');
-    if(topRegenBtn) topRegenBtn.onclick = function(){ window.generateZiweiBook(true); };
     var bottomPdfBtn = $('zbBottomPdfBtn');
     if(bottomPdfBtn) bottomPdfBtn.onclick = function(){ window.downloadZiweiBookPdf(); };
 
@@ -1826,17 +2103,23 @@
     var kind = text(error && error.kind);
     var code = text(error && error.code);
     var msg = text(message || (error && error.message));
+    if(code === 'ZIWEI_PROCESSING') return 'processing';
+    if(code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || code === 'ZIWEI_LLM_REPORT_REQUIRED' || code === 'ZIWEI_PREMIUM_GENERATION_FAILED' || code === 'ZIWEI_PDF_COMPLETION_INVALID' || kind === 'generation' || status >= 500) return 'generation';
+    if(/\ud504\ub85c\ud544|\ucd9c\uc0dd \uc2dc\uac04|\ucd9c\uc0dd\uc77c|\uc785\ub825\uac12/.test(msg)) return 'input';
+    if(kind === 'payment' || status === 401 || status === 402 || status === 403) return 'payment';
+    if(/\uacb0\uc81c(?:\s|\S){0,12}(\ud544\uc694|\uc2e4\ud328|\ucde8\uc18c|\ub204\ub77d)|\uc774\uc6a9\uad8c(?:\s|\S){0,12}(\ud544\uc694|\ubd80\uc871|\ub9cc\ub8cc)/.test(msg)) return 'payment';
     if(/프로필|출생 시간|출생시|생년월일|입력값/.test(msg)) return 'input';
-    if(code === 'ZIWEI_PROCESSING' || code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || kind === 'generation' || status >= 500) return 'recovery';
     if(kind === 'payment' || status === 401 || status === 402 || status === 403 || /결제|이용권/.test(msg)) return 'payment';
     return 'general';
   }
 
   function resolveZiweiErrorTitle(kind){
-    if(kind === 'input') return '프로필 보완이 필요합니다';
-    if(kind === 'payment') return '결제 확인이 필요합니다';
-    if(kind === 'recovery') return '생성 상태를 이어받을 수 있습니다';
-    return '생성 상태를 확인해 주세요';
+    if(kind === 'input') return '\ud504\ub85c\ud544 \ubcf4\uc644\uc774 \ud544\uc694\ud569\ub2c8\ub2e4';
+    if(kind === 'payment') return '\uacb0\uc81c \ud655\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4';
+    if(kind === 'processing') return 'PDF 생성이 진행 중입니다';
+    if(kind === 'generation') return 'PDF 생성에 실패했습니다';
+    if(kind === 'recovery') return '\uc0dd\uc131 \uc0c1\ud0dc\ub97c \uc774\uc5b4\ubc1b\uc744 \uc218 \uc788\uc2b5\ub2c8\ub2e4';
+    return '\uc0dd\uc131 \uc0c1\ud0dc\ub97c \ud655\uc778\ud574 \uc8fc\uc138\uc694';
   }
 
   function ensureErrorActions(error, message){
@@ -1845,18 +2128,19 @@
     var actions = screen.querySelector('.lb-error__actions');
     if(!actions) return;
     var errorKind = resolveZiweiErrorKind(error || {}, message || '');
-    var retryBtn = actions.querySelector('.lb-error__retry');
+    var retryBtn = actions.querySelector('.lb-error__retry:not(#zbOpenPreviousBtn)');
     if(retryBtn){
       retryBtn.removeAttribute('onclick');
       if(errorKind === 'input'){
         retryBtn.textContent = '프로필 카드 보완하기';
         retryBtn.onclick = function(){ window.goToZiweiProfileSetup(); };
+        retryBtn.textContent = '\ud504\ub85c\ud544 \uce74\ub4dc \ubcf4\uc644\ud558\uae30';
       } else if(errorKind === 'payment'){
-        retryBtn.textContent = '결제 다시 확인하기';
         retryBtn.onclick = function(){ window.generateZiweiBook(false); };
+        retryBtn.textContent = '\uacb0\uc81c \ub2e4\uc2dc \ud655\uc778\ud558\uae30';
       } else {
-        retryBtn.textContent = '결제 내역으로 이어서 생성';
-        retryBtn.onclick = function(){ window.generateZiweiBook(true); };
+        retryBtn.onclick = function(){ window.generateZiweiBook(false); };
+        retryBtn.textContent = '\uc0c8\ub85c \uc0dd\uc131\ud558\uae30';
       }
     }
 
@@ -1868,27 +2152,29 @@
       previousBtn.style.marginLeft = '8px';
       previousBtn.textContent = '이전 PDF 열기';
       previousBtn.onclick = function(){ reopenPreviousReport(); };
-      actions.insertBefore(previousBtn, actions.firstChild);
+      previousBtn.textContent = '완성된 PDF 다시 열기';
+      previousBtn.textContent = '\uc644\uc131\ub41c PDF \ub2e4\uc2dc \uc5f4\uae30';
+      actions.appendChild(previousBtn);
     }
     var paid = readPaidSession();
-    previousBtn.style.display = errorKind !== 'input' && paid && text(paid.reportId) ? 'inline-flex' : 'none';
+    previousBtn.style.display = errorKind !== 'input' && paid && text(paid.reportId) && text(paid.status) === 'completed' ? 'inline-flex' : 'none';
   }
 
   function mapErrorMessage(error){
     var status = Number(error && error.status || 0);
     var kind = text(error && error.kind);
     var code = text(error && error.code);
-    if(kind === 'payment' || status === 401 || status === 402 || status === 403){
-      return '결제 또는 이용권 확인이 필요합니다. 로그인 상태와 결제 내역을 확인해 주세요.';
+    if(code === 'ZIWEI_PROCESSING'){
+      return text(error && error.message) || '자미두수 PDF를 생성하는 중입니다. 잠시 후 자동으로 결과를 확인합니다.';
     }
-    if(code === 'ZIWEI_PROCESSING' || code === 'ZIWEI_REPORT_RECOVERY_REQUIRED'){
-      return text(error && error.message) || '결제는 확인되었습니다. 로컬 명반 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 이어받아 주세요.';
+    if(code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || code === 'ZIWEI_LLM_REPORT_REQUIRED' || code === 'ZIWEI_PREMIUM_GENERATION_FAILED' || code === 'ZIWEI_PDF_COMPLETION_INVALID' || kind === 'generation' || status >= 500){
+      return text(error && error.message) || '자미두수 PDF 생성이 완료되지 않았습니다. 잠시 후 다시 생성해 주세요.';
+    }
+    if(kind === 'payment' || status === 401 || status === 402 || status === 403){
+      return '\uacb0\uc81c \ub610\ub294 \uc774\uc6a9\uad8c \ud655\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4. \ub85c\uadf8\uc778 \uc0c1\ud0dc\uc640 \uacb0\uc81c \ub0b4\uc5ed\uc744 \ud655\uc778\ud574 \uc8fc\uc138\uc694.';
     }
     if(status === 422){
-      return '명반 계산 또는 입력값 검증 단계에서 오류가 발생했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.';
-    }
-    if(status >= 500){
-      return '결제는 확인되었습니다. 생성 상태를 이어받습니다.';
+      return '자미두수 명반 또는 원고 검증 단계에서 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
     }
     return text(error && error.message) || '생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
   }
@@ -1902,6 +2188,15 @@
     setText('zbErrorTitle', resolveZiweiErrorTitle(errorKind));
     setText('zbErrorMsg', msg);
     ensureErrorActions(error || {}, msg);
+    recordZiweiDevTrace('ui', 'VISIBLE_ERROR', {
+      kind: errorKind,
+      message: msg,
+      status: error && error.status,
+      code: error && error.code,
+      stage: error && error.stage,
+      reportId: error && error.reportId,
+      sessionId: error && error.sessionId
+    });
     updateZiweiGenerationState({
       status: 'failed',
       failedChapters: ZIWEI_GENERATION_STATE.failedChapters.concat([Math.max(1, Number(ZIWEI_GENERATION_STATE.currentChapterNo || 1))]),
@@ -2120,46 +2415,34 @@
         readiness = getZiweiReportReadiness(recoveredData);
         if(readiness.processing){
           writePaidSession({
-            status: 'failed_retryable',
+            status: 'generating',
             reportId: text(recoveredData.reportId || data.reportId),
             sessionId: text(recoveredData.sessionId || sessionId)
           });
           RESULT = recoveredData;
-          throw buildRetryableError('결제는 확인되었습니다. 로컬 명반 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 이어받아 주세요.', 202, 'ZIWEI_PROCESSING', 'generation');
+          throw buildRetryableError('자미두수 PDF를 생성하는 중입니다. 잠시 후 다시 확인해 주세요.', 202, 'ZIWEI_PROCESSING', 'processing');
         }
         data = recoveredData;
       }
       if(!isZiweiReportReady(data)){
         writePaidSession({ status: 'failed_retryable', reportId: text(data && data.reportId), sessionId: text(data && data.sessionId) || sessionId });
         RESULT = data;
-        throw buildRetryableError('결제는 확인되었습니다. 로컬 명반 결과를 아직 PDF로 확정하지 못했습니다. 결제 내역으로 이어받아 주세요.', 202, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
+        throw buildRetryableError('자미두수 PDF 생성이 완료되지 않았습니다. 잠시 후 다시 생성해 주세요.', 422, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
-      var manuscriptSource = text(data && data.manuscriptSource).toLowerCase();
-      var localAssembly = data && data.localAssembly && typeof data.localAssembly === 'object' ? data.localAssembly : {};
-      var localAssemblyChapterCount = Number(localAssembly.chapterCount || 0);
-      if(
-        manuscriptSource !== 'premium-local-expert'
-        || localAssembly.enabled !== true
-        || localAssembly.qualityTier !== 'premium-local-expert'
-        || localAssembly.externalCallsAllowed !== false
-        || localAssembly.externalGeneration === true
-        || localAssembly.fallbackUsed === true
-        || localAssembly.fallbackAllowed === true
-        || localAssemblyChapterCount < TOTAL_CHAPTERS
-      ){
-        throw buildRetryableError('자미두수 PDF가 로컬 전문가 원고 검증을 통과하지 못했습니다. 결제 내역으로 이어받아 주세요.', 422, 'ZIWEI_LOCAL_EXPERT_REQUIRED', 'generation');
+      if(!hasZiweiV3LlmAssembly(data)){
+        throw buildRetryableError('자미두수 PDF 원고 생성 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', 422, 'ZIWEI_LLM_REPORT_REQUIRED', 'generation');
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         qualityStatus: text(data && data.qualityStatus)
       });
-      var localDraftCount = Number((data && data.localDraftChapterCount) || 0);
-      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, localDraftCount || Number((data && data.chapterCount) || 0)));
+      var llmDraftCount = Number((data && data.llmDraftChapterCount) || (data && data.llmChapterCount) || 0);
+      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, llmDraftCount || Number((data && data.chapterCount) || 0)));
       updateProgress(66, FINALIZE_PROGRESS_LINES[0]);
       for(var i=0; i<chapterProgressCount; i++){
         markChapter(i);
         updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), getChapterProgressLine(i));
-        logFlow('LocalExpertProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
+        logFlow('LlmChapterProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
         logFlow('ChapterGenerated', {
           birthHash: text(payment && payment.birthHash),
           chapterCount: i + 1,
@@ -2175,7 +2458,7 @@
       RESULT = data;
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
-        localDraftChapterCount: localDraftCount,
+        llmDraftChapterCount: llmDraftCount,
         qualityStatus: text(data && data.qualityStatus)
       });
       markChapter(TOTAL_CHAPTERS - 1);

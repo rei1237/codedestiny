@@ -612,6 +612,8 @@ async function handleTarotConsult(request, env) {
   const ai = await dreamGeminiCaller(env, prompt, {
     keyEnvKeys: ["DREAM_TAROT_GEMINI_API_KEY", "PSYCHO_ANALYSIS_GEMINI_API_KEY"],
     modelEnvKeys: ["DREAM_TAROT_GEMINI_MODEL", "PSYCHO_ANALYSIS_GEMINI_MODEL"],
+    workersAiOnly: true,
+    workersAiModel: env.DREAM_TAROT_WORKERS_AI_MODEL || env.DREAM_WORKERS_AI_MODEL || "",
     temperature: 0.84,
     topP: 0.93,
     maxOutputTokens: 4096,
@@ -646,7 +648,7 @@ async function handleTarotConsult(request, env) {
       summary,
       goldenAdvice,
       actionPlan,
-      source: ai.ok ? "gemini" : "fallback",
+      source: ai.ok ? resolveDreamAiSource(ai) : "fallback",
       model: ai.ok ? ai.model : "fallback/local",
       createdAt: new Date().toISOString(),
     },
@@ -654,9 +656,15 @@ async function handleTarotConsult(request, env) {
   });
 }
 
-async function callGemini(env, prompt) {
-  return callGeminiText(env, prompt, {
+function resolveDreamAiSource(ai) {
+  return String(ai?.provider || "gemini").trim();
+}
+
+async function callPsychoAnalysisAi(env, prompt) {
+  return dreamGeminiCaller(env, prompt, {
     modelEnvKeys: ["PSYCHO_ANALYSIS_GEMINI_MODEL"],
+    workersAiOnly: true,
+    workersAiModel: env.PSYCHO_ANALYSIS_WORKERS_AI_MODEL || env.DREAM_WORKERS_AI_MODEL || "",
     temperature: 0.88,
     topP: 0.95,
     maxOutputTokens: 8192,
@@ -672,7 +680,7 @@ async function handlePsychoAnalysis(request, env) {
   }
 
   const prompt = psychoPrompt(normalized.text);
-  const ai = await callGemini(env, prompt);
+  const ai = await callPsychoAnalysisAi(env, prompt);
 
   let markdown = "";
   let formatWarning = false;
@@ -695,7 +703,7 @@ async function handlePsychoAnalysis(request, env) {
     record: {
       id: `psycho-${Date.now()}`,
       markdown,
-      source: ai.ok ? "gemini" : "fallback",
+      source: ai.ok ? resolveDreamAiSource(ai) : "fallback",
       model: ai.ok ? ai.model : "fallback/local",
       createdAt: new Date().toISOString(),
     },

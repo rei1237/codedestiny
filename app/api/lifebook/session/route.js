@@ -65,6 +65,11 @@ function hasVertexServiceAccountCreds() {
     .some(Boolean);
 }
 
+function isLifebookVertexEnabled() {
+  const value = String(process.env.LIFEBOOK_VERTEX_ENABLED || "").trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
 function parseText(payload) {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   for (const c of candidates) {
@@ -1485,11 +1490,15 @@ export async function POST(req) {
     const userPrompt = buildChapterUserPrompt(promptPayload, canonicalSajuChart);
 
     const geminiKeys = pickGeminiKeys();
-    const hasVertexCred = hasVertexServiceAccountCreds();
+    const vertexEnabled = isLifebookVertexEnabled();
+    const hasVertexCred = vertexEnabled && hasVertexServiceAccountCreds();
 
     if (!geminiKeys.length && !hasVertexCred) {
+      const missingKeyMessage = vertexEnabled
+        ? "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINIF_API_KEY1~4 환경변수를 확인해 주세요."
+        : "서버 API 키가 설정되지 않았습니다. GEMINIF_API_KEY1~4 환경변수를 확인해 주세요.";
       return NextResponse.json(
-        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINIF_API_KEY1~4 환경변수를 확인해 주세요." },
+        { ok: false, message: missingKeyMessage },
         { status: 500 }
       );
     }
@@ -1498,55 +1507,57 @@ export async function POST(req) {
     let lastError = null;
     let lastErrorStatus = 500;
 
-    // 1) Vertex AI 우선 시도
-    try {
-      const vertexPrompt = `${LIFEBOOK_SYSTEM_PROMPT}\n\n${userPrompt}`;
-      const text = await callVertexGemini(vertexPrompt, {
-        temperature: 0.45,
-        maxOutputTokens: 12288,
-      });
-      const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
-      if (text && quality.isValid) {
-        return NextResponse.json({
-          ok: true,
-          text: withSummaryTable(text, canonicalSajuChart),
-          sessionId,
-          title: chapterMeta.title,
-          mode: chapterMeta.mode,
-          chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-          minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-          model: "vertex/service-account",
-          canonicalSajuChart,
-          chapterPlan,
-          validation: canonicalValidation,
-        });
-      }
-      if (text && text.length > 0) {
-        const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
-        const retried = await callVertexGemini(`${LIFEBOOK_SYSTEM_PROMPT}\n\n${retryPrompt}`, {
-          temperature: 0.35,
+    if (hasVertexCred) {
+      // 1) Vertex AI 우선 시도
+      try {
+        const vertexPrompt = `${LIFEBOOK_SYSTEM_PROMPT}\n\n${userPrompt}`;
+        const text = await callVertexGemini(vertexPrompt, {
+          temperature: 0.45,
           maxOutputTokens: 12288,
         });
-        const retriedQuality = validateGeneratedChapterText(retried, promptPayload, canonicalSajuChart);
-        if (retried && retriedQuality.isValid) {
+        const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
+        if (text && quality.isValid) {
           return NextResponse.json({
             ok: true,
-            text: withSummaryTable(retried, canonicalSajuChart),
+            text: withSummaryTable(text, canonicalSajuChart),
             sessionId,
             title: chapterMeta.title,
             mode: chapterMeta.mode,
             chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
             minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-            model: "vertex/service-account-retry",
+            model: "vertex/service-account",
             canonicalSajuChart,
             chapterPlan,
             validation: canonicalValidation,
           });
         }
-        lastError = new Error(`Vertex AI 응답 품질 미달: ${quality.errors.join(", ") || "요건 불충족"}`);
+        if (text && text.length > 0) {
+          const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
+          const retried = await callVertexGemini(`${LIFEBOOK_SYSTEM_PROMPT}\n\n${retryPrompt}`, {
+            temperature: 0.35,
+            maxOutputTokens: 12288,
+          });
+          const retriedQuality = validateGeneratedChapterText(retried, promptPayload, canonicalSajuChart);
+          if (retried && retriedQuality.isValid) {
+            return NextResponse.json({
+              ok: true,
+              text: withSummaryTable(retried, canonicalSajuChart),
+              sessionId,
+              title: chapterMeta.title,
+              mode: chapterMeta.mode,
+              chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
+              minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+              model: "vertex/service-account-retry",
+              canonicalSajuChart,
+              chapterPlan,
+              validation: canonicalValidation,
+            });
+          }
+          lastError = new Error(`Vertex AI 응답 품질 미달: ${quality.errors.join(", ") || "요건 불충족"}`);
+        }
+      } catch (e) {
+        lastError = e;
       }
-    } catch (e) {
-      lastError = e;
     }
 
     // 2) Gemini API 키 + 모델 폴백

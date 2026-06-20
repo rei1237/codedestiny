@@ -530,7 +530,7 @@ function mergeAiSummary(baseSummary = {}, aiSummary = {}) {
   };
 }
 
-function normalizeAiReadingCandidate(candidate, baseReading, model = "") {
+function normalizeAiReadingCandidate(candidate, baseReading, model = "", provider = "") {
   const root = candidate && typeof candidate === "object" ? candidate : {};
   const src = root.result && typeof root.result === "object"
     ? root.result
@@ -553,6 +553,7 @@ function normalizeAiReadingCandidate(candidate, baseReading, model = "") {
       apiUsed: true,
       aiSchema: "celestial-harmony-json-v1",
       aiModel: model,
+      aiProvider: provider,
     },
   };
 }
@@ -562,6 +563,8 @@ async function enrichCelestialReading(env, reading, goldenCard) {
 
   const ai = await callGeminiText(env, prompt, {
     modelEnvKeys: ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
+    workersAiOnly: true,
+    workersAiModel: text(env.CELESTIAL_HARMONY_WORKERS_AI_MODEL || env.TAROT_WORKERS_AI_MODEL || ""),
     temperature: 0.72,
     topP: 0.95,
     topK: 40,
@@ -571,8 +574,9 @@ async function enrichCelestialReading(env, reading, goldenCard) {
 
   if (!ai.ok) return { used: false, message: ai.message || "" };
   const parsed = extractJsonObject(ai.text);
-  const merged = parsed ? normalizeAiReadingCandidate(parsed, reading, text(ai.model)) : null;
-  if (merged) return { used: true, result: merged, model: text(ai.model) };
+  const provider = text(ai.provider || "workers-ai");
+  const merged = parsed ? normalizeAiReadingCandidate(parsed, reading, text(ai.model), provider) : null;
+  if (merged) return { used: true, result: merged, model: text(ai.model), provider };
 
   const finalOracle = sanitizeCelestialMelodyText(ai.text);
   if (!finalOracle) return { used: false, message: "" };
@@ -589,9 +593,11 @@ async function enrichCelestialReading(env, reading, goldenCard) {
         apiUsed: true,
         aiSchema: "celestial-harmony-text-fallback",
         aiModel: text(ai.model),
+        aiProvider: provider,
       },
     },
     model: text(ai.model),
+    provider,
   };
 }
 
@@ -730,7 +736,7 @@ async function handleGenerate(request, env) {
 
   return json({
     ok: true,
-    source: ai.used ? "local+gemini-json" : "local",
+    source: ai.used ? `local+${text(ai.provider || "workers-ai")}` : "local",
     quality: local.quality,
     archiveSaved,
     archiveWarning: archiveSaved ? "" : archiveWarning,
@@ -842,4 +848,3 @@ export async function handleCelestialHarmonyRoutes(request, env = {}) {
     return handleRouteError(error);
   }
 }
-

@@ -7,6 +7,9 @@ routes = [
   { pattern = "api.code-destiny.com", custom_domain = true },
 ]
 
+[ai]
+binding = "AI"
+
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.
 [vars]
@@ -38,7 +41,10 @@ PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
 # Vertex AI fallback (when Gemini exhausted): Set via wrangler secret put
 # VERTEX_PROJECT_ID, VERTEX_LOCATION, VERTEX_SA_CLIENT_EMAIL, VERTEX_SA_PRIVATE_KEY
 VERTEX_LOCATION = "us-central1"
-ZIWEI_VERTEX_PREFER_FIRST = "true"
+VERTEX_PREFER_FIRST = "false"
+VERTEX_ONLY = "false"
+GEMINI_DISABLE_VERTEX_FALLBACK = "true"
+ZIWEI_VERTEX_PREFER_FIRST = "false"
 ZIWEI_VERTEX_ONLY = "false"
 
 # Worker-native route groups:

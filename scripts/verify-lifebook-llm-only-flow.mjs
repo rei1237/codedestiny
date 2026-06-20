@@ -1,392 +1,296 @@
-import { __lifeBookTestUtils as utils, LIFE_BOOK_PDF_CONFIG } from "../worker/routes/saju-lifebook.js";
+import assert from "node:assert/strict";
 
-const labelPrefix = "lifebook-local-assembled";
-const blockedHosts = [
-  "generativelanguage.googleapis.com",
-  "vertexai.googleapis.com",
-  "api.openai.com",
-];
-const forbiddenPdfText = [
-  "undefined",
-  "null",
-  "NaN",
-  "[object Object]",
-  "준비중",
-  "생성 실패",
-  "스켈레톤",
-  "무조건",
-  "반드시 성공",
-  "반드시 이혼",
-  "100%",
-  "확정 수익",
-  "수익 보장",
-  "투자하면 오른다",
-  "종목 추천",
-  "투자 판단",
-];
+const unique = Date.now();
+const { generateLifeBookPremiumPdfV2 } = await import(`../worker/lib/pdf-v2/life-book/create-life-book-premium-pdf-job.js?verify=${unique}`);
+const { lifeBookPremiumChapterPlanV1 } = await import(`../worker/lib/pdf-v2/life-book/life-book-premium.chapter-plan.js?verify=${unique}`);
+const { validateLifeBookPremiumChapterHtml } = await import(`../worker/lib/pdf-v2/life-book/life-book-premium.validator.js?verify=${unique}`);
+const { handleSajuLifebookRoutes } = await import(`../worker/routes/saju-lifebook.js?verify=${unique}`);
+const { signJwt } = await import(`../worker/lib/jwt.js?verify=${unique}`);
+const { createPremiumAccessToken } = await import(`../worker/lib/premium-access-token.js?verify=${unique}`);
 
-const expectedPhase6Titles = [
-  "프롤로그 — 내 인생의 핵심 코드",
-  "원국 해석 — 태어난 순간의 구조",
-  "일간과 월지 — 내가 세상을 살아가는 기본 방식",
-  "오행 균형 — 넘치는 기운과 부족한 기운",
-  "십성 구조 — 성격, 재능, 욕망의 패턴",
-  "용신·희신·기신 — 나를 살리는 방향과 피해야 할 방향",
-  "격국과 삶의 큰 틀 — 인생이 풀리는 방식",
-  "연애와 관계 — 사랑, 결혼, 친밀감의 패턴",
-  "직업과 재물 — 돈이 들어오는 방식과 커리어 방향",
-  "건강과 생활 리듬 — 몸과 마음의 관리법",
-  "대운 분석 — 인생의 큰 계절 변화",
-  "선택 연도와 가까운 미래 — 세운·월운 기반 실전 조언",
-  "마스터플랜 — 앞으로의 선택과 실행 전략",
-];
-
-const expectedPhase6Sections = [
-  "챕터 표지",
-  "한 줄 핵심 메시지",
-  "명리 구조 요약",
-  "쉬운 현실 언어 해석",
-  "강점 분석",
-  "주의점 분석",
-  "상담 확인 질문",
-  "장 요약 박스",
-  "다음 장으로 연결되는 문장",
-];
-
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(`[${labelPrefix}] ${message}`);
-  }
+function makeMockChapterHtml(prompt = "") {
+  const id = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "01";
+  const title = (prompt.match(/<h1>([^<]+)<\/h1>/) || [])[1] || "사주 인생의 책";
+  const sections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>/g)].map((match) => match[1]);
+  const tones = ["기본 구조", "생활 리듬", "관계 감각", "선택 기준", "회복 방향", "실행 전략"];
+  const body = sections.map((section, index) => {
+    const tone = tones[index % tones.length];
+    const p1 = `${section}에서는 ${tone}와 사주 원국의 중심 기운이 맞물리는 방식을 섬세하게 살피며 ${title} 안에서 이 대목이 어떤 선택의 기준으로 드러나는지 이어서 풀이합니다 ${section}의 흐름은 타고난 성향을 단정하지 않고 반복해서 나타나는 마음의 결을 비추며 현실에서 붙잡을 수 있는 기준을 선명하게 세워 줍니다 ${index + 1}번째 장면은 생활의 속도와 관계의 온도를 함께 조율하라는 고유한 신호로 읽힙니다`;
+    const p2 = `${section}의 ${tone}을 살릴 때는 이미 드러난 기운을 안정적으로 쓰는 태도가 중요하며 이 부분은 다른 섹션과 달리 ${section}만의 선택 감각을 중심에 둡니다 ${section}에서 강하게 흐르는 기운은 실행력으로 살리고 부족하게 느껴지는 부분은 사람과 습관의 보완으로 채우면 좋습니다 ${section}의 조언은 다음 계절로 넘어갈 때 흔들림을 줄이고 오늘의 선택이 오래 남는 방향으로 이어지게 합니다`;
+    return `<section><h2>${section}</h2><p>${p1}</p><p>${p2}</p></section>`;
+  }).join("");
+  return `<article data-chapter-id="${id}"><h1>${title}</h1>${body}</article>`;
 }
 
-function assertInterpretationBlockShape(block, label) {
-  assert(typeof block?.id === "string" && block.id, `${label} block id missing`);
-  assert(Array.isArray(block?.tags), `${label} block tags missing`);
-  assert(Number.isFinite(Number(block?.weight)), `${label} block weight missing`);
-  assert(typeof block?.title === "string" && block.title, `${label} block title missing`);
-  assert(typeof block?.summary === "string" && block.summary, `${label} block summary missing`);
-  assert(Array.isArray(block?.body), `${label} block body missing`);
-  assert(Array.isArray(block?.advice), `${label} block advice missing`);
-  assert(Array.isArray(block?.caution), `${label} block caution missing`);
-  assert(Array.isArray(block?.checklist), `${label} block checklist missing`);
-}
+const env = {
+  AI: {
+    async run(model, payload) {
+      const prompt = payload.messages?.find((message) => message.role === "user")?.content || "";
+      return { response: makeMockChapterHtml(prompt) };
+    },
+  },
+};
 
-function getChapterMarkdown(finalMarkdown, title, nextTitle = "", index = 0) {
-  const chapterPrefix = `## ${utils.CHAPTER_BLUEPRINTS[index]?.roman}. ${title}`;
-  const nextPrefix = nextTitle ? `## ${utils.CHAPTER_BLUEPRINTS[index + 1]?.roman}. ${nextTitle}` : "";
-  const start = finalMarkdown.indexOf(chapterPrefix);
-  if (start < 0) return "";
-  const end = nextPrefix ? finalMarkdown.indexOf(nextPrefix, start + chapterPrefix.length) : -1;
-  return finalMarkdown.slice(start, end > start ? end : undefined);
-}
-
-function countMatches(text, pattern) {
-  return (String(text || "").match(pattern) || []).length;
-}
-
-function buildProfile() {
-  return {
-    name: "Local User",
-    gender: "male",
-    calendarType: "solar",
-    year: 1991,
-    month: 2,
-    day: 20,
-    hour: 7,
-    minute: 30,
-    timeKnown: true,
-    birthplace: "Seoul",
-    birthIso: "1991-02-20 07:30",
-  };
-}
-
-function buildSignals() {
-  return {
-    dayMaster: "gap",
-    yearStem: "sin",
-    monthStem: "gyeong",
-    hourStem: "byeong",
-    yearBranch: "mi",
-    monthBranch: "in",
-    dayBranch: "ja",
-    hourBranch: "jin",
-    useful: "wood",
-    support: "water",
-    caution: "metal",
-    dominantElement: "wood",
-    weakestElement: "fire",
-    powerLabel: "balanced",
-    currentDaewun: "gyeongsin",
-    nextDaewun: "sinyu",
-    currentYear: 2026,
-    currentYearPillar: "byeongo",
-    daewunCycles: [
-      { label: "gyeongsin", startAge: 32, endAge: 41 },
-      { label: "sinyu", startAge: 42, endAge: 51 },
-      { label: "imsa", startAge: 52, endAge: 61 },
-    ],
-    currentDaeunNode: { label: "gyeongsin", startAge: 32, endAge: 41 },
-    nextDaeunNode: { label: "sinyu", startAge: 42, endAge: 51 },
-    elementWeights: { wood: 25, fire: 20, earth: 20, metal: 20, water: 15 },
-    tenGodCounts: { resource: 2, wealth: 1, officer: 1, output: 1 },
-    tenGodByPillar: { year: "resource", month: "wealth", day: "self", hour: "output" },
-    twelveGrowthStages: [
-      { pillar: "year", stage: "crown" },
-      { pillar: "month", stage: "growth" },
-      { pillar: "day", stage: "birth" },
-    ],
-    specialStars: ["dohwa", "hwagae"],
-    geokguk: "resource-centered structure",
-    relationshipFocus: "steady partnership rhythm",
-    spouseSignal: "relationship signals work through trust and timing.",
-    wealthSignal: "wealth grows through repeatable systems and careful pacing.",
-    careerSignal: "career flow favors expertise, planning, and visible output.",
-    talentSignal: "talent becomes stronger when ideas are organized into practice.",
-    timing: { current: "gyeongsin", next: "sinyu", year: 2026, yearPillar: "byeongo" },
-    weakSignals: ["fire rhythm", "rest rhythm"],
-    topTenGod: "resource",
-  };
-}
-
-function buildBirthInput(profile = buildProfile()) {
-  return {
-    name: profile.name,
-    gender: profile.gender,
-    calendarType: profile.calendarType,
-    birthDate: "1991-02-20",
-    birthTime: "07:30",
-    birthHour: 7,
-    birthMinute: 30,
-    timezone: "Asia/Seoul",
-    birthplace: "Seoul",
-  };
-}
-
-function buildLifeBookBody() {
-  return { analysisSignals: buildSignals() };
-}
-
-function buildNormalizedLifeBookFixture({ sessionId = "", requestId = "" } = {}) {
-  const profile = buildProfile();
-  const birthInput = buildBirthInput(profile);
-  const body = buildLifeBookBody();
-  const precomputedCalculation = utils.calculateSajuLocally({ birthInput, profile, body, sessionId });
-  return utils.normalizeLifeBookInput({
-    birthInput,
-    profile,
-    signals: precomputedCalculation.signals,
-    localSajuJson: precomputedCalculation.localSajuJson,
-    body,
-    sessionId,
-    requestId,
-  });
-}
-
-async function run() {
-  assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local-assembled", "generation mode must be local-assembled");
-  assert(LIFE_BOOK_PDF_CONFIG.provider === "saju-assembler", "provider must be saju-assembler");
-  const expectedTemplateVersion = LIFE_BOOK_PDF_CONFIG.templateVersion;
-  assert(/^life-book-local-assembled-v\d+$/.test(expectedTemplateVersion), "template version mismatch");
-
-  const originalFetch = globalThis.fetch;
-  const seenUrls = [];
-  globalThis.fetch = async (input) => {
-    const url = String(input?.url || input || "");
-    seenUrls.push(url);
-    if (blockedHosts.some((host) => url.includes(host))) {
-      throw new Error(`[${labelPrefix}] forbidden external LLM fetch: ${url}`);
-    }
-    throw new Error(`[${labelPrefix}] unexpected fetch during local assembly: ${url}`);
-  };
-
-  try {
-    const envWithKeys = {
-      GEMINI_API_KEY: "test-key",
-      GOOGLE_API_KEY: "test-key",
-      PREMIUM_GEMINI_MODEL: "gemini-2.5-flash",
-      LIFE_BOOK_LLM_ENHANCEMENT_ENABLED: "true",
-    };
-    const runtime = utils.resolveLifeBookAssemblyRuntimeInfo(envWithKeys);
-    assert(runtime.provider === "saju-assembler", "runtime provider must remain saju-assembler even when keys exist");
-    assert(runtime.runtime === "local-assembled", "runtime must remain local-assembled even when keys exist");
-    assert(runtime.externalCallsAllowed === false, "runtime external calls must be disabled");
-    assert(utils.CHAPTER_BLUEPRINTS.length === 13, "phase6 must keep 13 fixed chapters");
-    expectedPhase6Titles.forEach((title, index) => {
-      const blueprint = utils.CHAPTER_BLUEPRINTS[index];
-      assert(blueprint?.title === title, `phase6 chapter title mismatch: ${index + 1}`);
-      assert(Array.isArray(blueprint?.categories) && blueprint.categories.length >= 7, `phase6 chapter categories missing: ${index + 1}`);
-      blueprint.categories.forEach((section, sectionIndex) => {
-        assert(typeof section === "string" && section.trim(), `phase6 section title missing in chapter ${index + 1}.${sectionIndex + 1}`);
-      });
-    });
-
-    const assemblyFixture = buildNormalizedLifeBookFixture({
-      sessionId: "verify-lifebook-local-assembled-session",
-      requestId: "verify-lifebook-local-assembled",
-    });
-    const generated = await utils.assembleLifeBookChaptersLocally(envWithKeys, {
-      profile: assemblyFixture.profile,
-      signals: assemblyFixture.signals,
-      assemblyInput: assemblyFixture.assemblyInput,
-      requestId: "verify-lifebook-local-assembled",
-    });
-
-    assert(Array.isArray(generated.chapters) && generated.chapters.length === 13, "local assembly must return 13 chapters");
-    assert(generated.generationMode === "local-assembled", "result generation mode must be local-assembled");
-    assert(generated.provider === "saju-assembler", "result provider must be saju-assembler");
-    assert(generated.localAssembly?.enabled === true, "result local assembly must be enabled");
-    assert(generated.localAssembly?.externalGeneration === false, "result external generation must be disabled");
-    assert(generated.localAssembly?.externalCallsAllowed === false, "result external calls must be disabled");
-    assert(generated.localAssembly?.chapterCount === 13, "result local assembly chapter count mismatch");
-    assert(generated.localAssembly?.expectedChapterCount === 13, "result expected chapter count mismatch");
-    assert(generated.localAssembly?.templateVersion === LIFE_BOOK_PDF_CONFIG.templateVersion, "result template version mismatch");
-    assert(seenUrls.length === 0, `local assembly must not call fetch, got ${seenUrls.join(", ")}`);
-
-    const generatedText = [
-      generated.finalManuscriptMarkdown,
-      ...generated.chapters.flatMap((chapter) => [
-        chapter.finalText,
-        chapter.text,
-        ...(Array.isArray(chapter.categories) ? chapter.categories.map((category) => category.finalText || category.text) : []),
-      ]),
-    ].join("\n");
-    const leakedToken = forbiddenPdfText.find((token) => generatedText.includes(token));
-    assert(!leakedToken, `forbidden PDF text leaked: ${leakedToken}`);
-
-    const profile = buildProfile();
-    const pipeline = await utils.generateLifeBookPdf(profile, {
-      env: envWithKeys,
-      birthInput: buildBirthInput(profile),
-      body: buildLifeBookBody(),
-      sessionId: "verify-lifebook-local-assembled-session",
-      reportId: "verify-lifebook-local-assembled-report",
-      requestId: "verify-lifebook-local-assembled-pipeline",
-    });
-
-    assert(Array.isArray(pipeline.completedChapters) && pipeline.completedChapters.length === 13, "pipeline must return 13 chapters");
-    expectedPhase6Titles.forEach((title, index) => {
-      assert(pipeline.completedChapters[index]?.title === title, `pipeline chapter title mismatch: ${index + 1}`);
-    });
-    assert(pipeline.generatedLifeBook?.generationMode === "local-assembled", "pipeline generation mode must be local-assembled");
-    assert(pipeline.generatedLifeBook?.localAssembly?.enabled === true, "pipeline local assembly must be enabled");
-    assert(pipeline.generatedLifeBook?.localAssembly?.externalGeneration === false, "pipeline external generation must be disabled");
-    assert(pipeline.generatedLifeBook?.localAssembly?.chapterCount === 13, "pipeline local assembly chapter count mismatch");
-    assert(typeof pipeline.html === "string" && pipeline.html.includes("<!doctype html>"), "pipeline must render html");
-    assert(pipeline.pdf?.renderFormat === "pdf-archive", "pipeline pdf render format mismatch");
-    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes(`life_book_pdf:${expectedTemplateVersion}:`), "pipeline cache key missing");
-    assert(typeof pipeline.calculationResultHash === "string" && pipeline.calculationResultHash.length > 0, "pipeline calculation result hash missing");
-    assert(pipeline.cacheHit === false, "first pipeline run must render before cache");
-    const normalized = pipeline.lifeBookNormalizedData;
-    assert(normalized?.profile?.birthDate === "1991-02-20", "normalized profile birthDate missing");
-    assert(typeof normalized?.pillars?.year === "string", "normalized year pillar missing");
-    assert(typeof normalized?.pillars?.month === "string", "normalized month pillar missing");
-    assert(typeof normalized?.pillars?.day === "string", "normalized day pillar missing");
-    assert(typeof normalized?.dayMaster?.stem === "string", "normalized day master missing");
-    assert(["weak", "balanced", "strong", undefined].includes(normalized?.dayMaster?.strength), "normalized day master strength invalid");
-    ["wood", "fire", "earth", "metal", "water"].forEach((element) => {
-      assert(Number.isFinite(Number(normalized?.fiveElements?.[element])), `normalized element count missing: ${element}`);
-    });
-    assert(Array.isArray(normalized?.fiveElements?.strongest), "normalized strongest elements missing");
-    assert(Array.isArray(normalized?.fiveElements?.weakest), "normalized weakest elements missing");
-    assert(typeof normalized?.fiveElements?.balanceSummary === "string", "normalized balance summary missing");
-    assert(normalized?.tenGods?.distribution && typeof normalized.tenGods.distribution === "object", "normalized ten gods distribution missing");
-    assert(Array.isArray(normalized?.tenGods?.dominant), "normalized dominant ten gods missing");
-    assert(Array.isArray(normalized?.tenGods?.weak), "normalized weak ten gods missing");
-    assert(typeof normalized?.usefulGods?.summary === "string", "normalized useful gods summary missing");
-    assert(Array.isArray(normalized?.structure?.notes), "normalized structure notes missing");
-    assert(Array.isArray(normalized?.luckCycles?.monthlyLuck), "normalized monthly luck missing");
-    assert(Array.isArray(normalized?.relationships?.clashes), "normalized clashes missing");
-    assert(Array.isArray(normalized?.relationships?.combinations), "normalized combinations missing");
-    assert(Array.isArray(normalized?.relationships?.punishments), "normalized punishments missing");
-    assert(Array.isArray(normalized?.relationships?.harms), "normalized harms missing");
-    assert(Array.isArray(normalized?.specialStars), "normalized special stars missing");
-    assert(Array.isArray(normalized?.risks), "normalized risks missing");
-    assert(Array.isArray(normalized?.opportunities), "normalized opportunities missing");
-    const selectedBlocks = utils.selectLifeBookInterpretationBlocks(normalized, utils.CHAPTER_BLUEPRINTS[0], "verify");
-    assert(selectedBlocks.length >= 4, "local interpretation blocks must be selected");
-    selectedBlocks.forEach((block, index) => assertInterpretationBlockShape(block, `selected-${index}`));
-    assert(selectedBlocks.some((block) => block.tags.includes("dayMaster")), "day master block missing");
-    assert(selectedBlocks.some((block) => block.tags.includes("element")), "element block missing");
-    assert(selectedBlocks.some((block) => block.tags.includes("tenGod")), "ten god block missing");
-    assert(selectedBlocks.some((block) => block.tags.includes("usefulGod")), "useful god block missing");
-    assertInterpretationBlockShape(Object.values(utils.LIFEBOOK_DAY_MASTER_BLOCKS)[0], "day-master-db");
-    assert(Object.keys(utils.LIFEBOOK_DAY_MASTER_BLOCKS).length === 10, "day master block db must cover 10 stems");
-    assert(Object.keys(utils.LIFEBOOK_ELEMENT_BLOCKS).length >= 15, "element block db must cover excess deficient balanced");
-    assert(Object.keys(utils.LIFEBOOK_TEN_GOD_BLOCKS).length >= 20, "ten god block db must cover strong weak");
-    assert(Object.keys(utils.LIFEBOOK_USEFUL_GOD_BLOCKS).length >= 15, "useful god block db must cover yongshin heeshin gishin");
-    assert(Object.keys(utils.LIFEBOOK_DOMAIN_BLOCKS).length >= 7, "domain block db must cover core domains");
-    const blockText = utils.buildLifeBookBlockInterpretationText(normalized, utils.CHAPTER_BLUEPRINTS[12], "verify");
-    assert(typeof blockText === "string" && blockText.length > 300, "block interpretation text missing");
-    const alternateBlockText = utils.buildLifeBookBlockInterpretationText(normalized, utils.CHAPTER_BLUEPRINTS[12], "verify-alt");
-    assert(blockText !== alternateBlockText, "seeded block interpretation should vary by category seed");
-    expectedPhase6Titles.forEach((title) => {
-      assert(pipeline.finalManuscriptMarkdown.includes(title), `final manuscript missing phase6 title: ${title}`);
-    });
-    expectedPhase6Sections.forEach((section) => {
-      assert(pipeline.finalManuscriptMarkdown.includes(section), `final manuscript missing phase6 section: ${section}`);
-    });
-    assert(pipeline.finalManuscriptMarkdown.includes("| 구성 | 역할 |"), "final manuscript must include structure table");
-    expectedPhase6Titles.forEach((title, index) => {
-      const chapterMarkdown = getChapterMarkdown(pipeline.finalManuscriptMarkdown, title, expectedPhase6Titles[index + 1], index);
-      assert(chapterMarkdown.length >= 2000, `chapter minimum body length failed: ${index + 1}`);
-      const missingCategory = (utils.CHAPTER_BLUEPRINTS[index]?.categories || []).find((categoryTitle) => !chapterMarkdown.includes(categoryTitle));
-      assert(!missingCategory, `chapter category missing: ${index + 1}: ${missingCategory}`);
-      assert(chapterMarkdown.includes("상담 확인 질문"), `chapter consultation questions missing: ${index + 1}`);
-      assert(chapterMarkdown.includes("장 요약 박스"), `chapter summary box missing: ${index + 1}`);
-    });
-    assert(countMatches(pipeline.finalManuscriptMarkdown, /\| 구성 \| 역할 \|/g) >= 10, "final manuscript must include at least 10 table/card sections");
-    assert(pipeline.finalManuscriptMarkdown.includes("월별 흐름 표"), "final manuscript missing monthly flow table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 월 | 흐름 | 실전 조언 |"), "final manuscript missing monthly flow table header");
-    assert(pipeline.finalManuscriptMarkdown.includes("인생 마스터플랜 표"), "final manuscript missing masterplan table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 영역 | 해석 기준 | 확인할 내용 |"), "final manuscript missing masterplan table header");
-    assert(pipeline.finalManuscriptMarkdown.includes("Code:Destiny"), "final manuscript missing service name");
-    assert(pipeline.finalManuscriptMarkdown.includes("나의 사주 구조로 읽는 삶의 방향"), "final manuscript missing cover subtitle");
-    assert(pipeline.finalManuscriptMarkdown.includes("생성일:"), "final manuscript missing generated date");
-    assert(pipeline.finalManuscriptMarkdown.includes("오행 균형표"), "final manuscript missing five element table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 오행 | 읽는 방향 | 관리 포인트 |"), "final manuscript missing five element table header");
-    assert(pipeline.finalManuscriptMarkdown.includes("십성 분포표"), "final manuscript missing ten god table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 십성 축 | 삶에서 드러나는 장면 | 상담 포인트 |"), "final manuscript missing ten god table header");
-    assert(pipeline.finalManuscriptMarkdown.includes("대운 흐름표"), "final manuscript missing daewoon table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 구간 | 의미 | 실행 방향 |"), "final manuscript missing daewoon table header");
-    assert(pipeline.finalManuscriptMarkdown.includes("마지막 페이지 — 전체 요약과 재열람 안내"), "final manuscript missing closing page");
-    assert(pipeline.finalManuscriptMarkdown.includes("30일 실천 루틴"), "final manuscript missing 30-day routine");
-    assert(pipeline.finalManuscriptMarkdown.includes("재열람 안내"), "final manuscript missing revisit guide");
-    assert(countMatches(pipeline.finalManuscriptMarkdown, /챕터 표지/g) >= 13, "final manuscript must include chapter cover sections");
-    const finalLeakedToken = forbiddenPdfText.find((token) => pipeline.finalManuscriptMarkdown.includes(token));
-    assert(!finalLeakedToken, `forbidden final manuscript text leaked: ${finalLeakedToken}`);
-    assert(!/반드시\s*(성공|이혼|돈|수익)/.test(pipeline.finalManuscriptMarkdown), "risky absolute phrase leaked");
-    assert(!/(투자하면\s*오른다|수익\s*보장|종목\s*추천)/.test(pipeline.finalManuscriptMarkdown), "investment advice phrase leaked");
-    assert(pipeline.html.includes("lb-markdown-table"), "pipeline html must render markdown tables");
-    assert(pipeline.html.includes("lb-final-section--front"), "pipeline html missing premium cover style");
-    assert(pipeline.html.includes("lb-final-section--chapter"), "pipeline html missing chapter cover style");
-    assert(!pipeline.html.includes("[object Object]"), "pipeline html leaked object text");
-
-    const cachedPipeline = await utils.generateLifeBookPdf(profile, {
-      env: envWithKeys,
-      birthInput: buildBirthInput(profile),
-      body: buildLifeBookBody(),
-      sessionId: "verify-lifebook-local-assembled-session-refresh",
-      reportId: "verify-lifebook-local-assembled-report-refresh",
-      requestId: "verify-lifebook-local-assembled-pipeline-refresh",
-    });
-
-    assert(cachedPipeline.cacheHit === true, "second matching pipeline run must use cache");
-    assert(cachedPipeline.fromCache === true, "second matching pipeline run must be marked fromCache");
-    assert(cachedPipeline.cacheKey === pipeline.cacheKey, "cached pipeline cache key mismatch");
-    assert(cachedPipeline.calculationResultHash === pipeline.calculationResultHash, "cached pipeline calculation hash mismatch");
-    assert(Array.isArray(cachedPipeline.completedChapters) && cachedPipeline.completedChapters.length === 13, "cached pipeline must keep 13 chapters");
-    const cachedLeakedToken = forbiddenPdfText.find((token) => cachedPipeline.finalManuscriptMarkdown.includes(token));
-    assert(!cachedLeakedToken, `forbidden cached manuscript text leaked: ${cachedLeakedToken}`);
-    assert(!cachedPipeline.html.includes("[object Object]"), "cached pipeline html leaked object text");
-    assert(seenUrls.length === 0, `full local assembly pipeline must not call fetch, got ${seenUrls.join(", ")}`);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-
-  console.log(`[${labelPrefix}] PASS`);
-}
-
-run().catch((error) => {
-  console.error(error?.message || error);
-  process.exitCode = 1;
+const runId = Date.now().toString(36);
+const generated = await generateLifeBookPremiumPdfV2({
+  userId: "507f1f77bcf86cd799439011",
+  reportId: `saju-lifebook-verify-${runId}`,
+  sessionId: `life-book:verify:${runId}`,
+  requestUrl: "https://example.com/api/premium/saju-lifebook/prepare",
+  env,
+  input: {
+    name: "테스트",
+    gender: "female",
+    birthDate: "1990-01-02",
+    birthTime: "08:30",
+    birthTimeKnown: true,
+    targetYear: 2026,
+    localSajuJson: {
+      pillars: { year: "gyeongo", month: "jeongchuk", day: "gabin", hour: "mujin" },
+      elementBalance: { wood: 2, fire: 3, earth: 2, metal: 1, water: 1 },
+      tenGods: { resource: 2, wealth: 1, officer: 1, output: 2 },
+      daewoon: { current: { ganji: "gapsul", summary: "turning flow" } },
+      yearly: { ganji: "byeongo" },
+    },
+    analysisSignals: { usefulGod: "water", targetYear: 2026, verificationRunId: runId },
+  },
 });
+
+const html = String(generated.pdfReady?.html || "");
+assert.equal(generated.ok, true, "life book LLM PDF job must complete");
+assert.equal(generated.status, "completed", "status must be completed");
+assert.equal(generated.generationMode, "llm-only", "generation mode must be llm-only");
+assert.equal(generated.manuscriptSource, "life-book-llm-v1", "manuscript source must be life-book-llm-v1");
+assert.equal(generated.writingPipeline, "saju-calculation-to-llm-authored-pdf", "writing pipeline must match public contract");
+assert.equal(generated.pdfReady?.generationMode, "llm-only", "pdfReady generation mode must be llm-only");
+assert.equal(generated.pdfReady?.manuscriptSource, "life-book-llm-v1", "pdfReady manuscript source must match");
+assert.equal(generated.pdfReady?.writingPipeline, "saju-calculation-to-llm-authored-pdf", "pdfReady writing pipeline must match");
+assert.equal(generated.llmAssembly?.externalGeneration, true, "LLM assembly must be externally generated");
+assert.equal(generated.llmAssembly?.fallbackUsed, false, "fallback must not be used");
+assert.equal(generated.llmAssembly?.chapterCount, lifeBookPremiumChapterPlanV1.chapters.length, "LLM assembly chapter count must match plan");
+assert.equal(generated.llmAssembly?.expectedChapterCount, lifeBookPremiumChapterPlanV1.chapters.length, "LLM assembly expected count must match plan");
+assert.ok(generated.downloadUrl, "downloadUrl must exist");
+assert.ok(generated.htmlUrl, "htmlUrl must exist");
+assert.ok(html, "pdfReady.html must exist");
+
+assert.equal(generated.chapters.length, lifeBookPremiumChapterPlanV1.chapters.length, "all 13 chapters must be generated");
+generated.chapters.forEach((chapter, index) => {
+  const expected = lifeBookPremiumChapterPlanV1.chapters[index];
+  assert.equal(chapter.id, expected.id, `chapter ${index + 1} id must match plan`);
+  assert.equal(chapter.title, expected.title, `chapter ${index + 1} title must match plan`);
+  assert.equal(chapter.sectionCount, expected.sections.length, `chapter ${index + 1} section count must match plan`);
+  assert.deepEqual(chapter.sections.map((section) => section.title), expected.sections, `chapter ${index + 1} sections must match plan`);
+});
+
+assert.match(html, /class="[^"]*visual-summary/, "visual summary section must render");
+assert.match(html, /class="lb-table"/, "tables must render");
+assert.match(html, /class="[^"]*element-bars/, "element bar graph must render");
+assert.match(html, /class="[^"]*cycle-timeline/, "cycle timeline must render");
+assert.match(html, /class="[^"]*chapter-flow/, "chapter visual flow must render");
+assert.match(html, /class="[^"]*chapter-flow-bars/, "chapter visual bars must render");
+assert.equal((html.match(/data-chapter-flow=/g) || []).length, lifeBookPremiumChapterPlanV1.chapters.length, "each chapter must render one visual flow");
+for (const label of ["사주 네 기둥", "오행 균형 그래프", "십성 분포", "운의 흐름"]) {
+  assert.ok(html.includes(label), `visual label must render: ${label}`);
+}
+for (const chapter of lifeBookPremiumChapterPlanV1.chapters) {
+  assert.ok(html.includes(`data-chapter-flow="${chapter.id}"`), `chapter visual flow must render: ${chapter.id}`);
+}
+assert.ok(html.includes("장별 흐름표"), "chapter flow table label must render");
+assert.doesNotMatch(html, /local-assembled|localAssembly|undefined|null|NaN|\[object Object\]/i, "final HTML must not leak local/debug/empty values");
+assert.doesNotMatch(html, /\uFFFD|\?{3,}/, "final HTML must not contain replacement or mojibake placeholders");
+
+const originalFetch = globalThis.fetch;
+let geminiFetchCount = 0;
+globalThis.fetch = async (url, init = {}) => {
+  geminiFetchCount += 1;
+  const body = JSON.parse(String(init.body || "{}"));
+  const prompt = body.contents?.[0]?.parts?.[0]?.text || "";
+  return new Response(JSON.stringify({
+    candidates: [{ content: { parts: [{ text: makeMockChapterHtml(prompt) }] } }],
+  }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+};
+try {
+  const fallbackGenerated = await generateLifeBookPremiumPdfV2({
+    userId: "507f1f77bcf86cd799439011",
+    reportId: `saju-lifebook-gemini-alt-${runId}`,
+    sessionId: `life-book:gemini-alt:${runId}`,
+    requestUrl: "https://example.com/api/premium/saju-lifebook/prepare",
+    env: {
+      LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT: 0,
+      LIFE_BOOK_PREMIUM_LLM_PROVIDERS: "workers-ai,gemini",
+      LIFE_BOOK_PREMIUM_GEMINI_MODEL: "gemini-test",
+      GEMINI_API_KEY: "AIzaTestGeminiFallbackKey000000000000",
+      GEMINI_USE_SDK: "false",
+      PREMIUM_GEMINI_USE_SDK: "false",
+      AI: {
+        async run() {
+          throw new Error("workers_ai_forced_failure");
+        },
+      },
+    },
+    input: {
+      name: "테스트",
+      gender: "female",
+      birthDate: "1990-01-02",
+      birthTime: "08:30",
+      birthTimeKnown: true,
+      targetYear: 2026,
+      localSajuJson: {
+        pillars: { year: "gyeongo", month: "jeongchuk", day: "gabin", hour: "mujin" },
+        elementBalance: { wood: 2, fire: 3, earth: 2, metal: 1, water: 1 },
+        tenGods: { resource: 2, wealth: 1, officer: 1, output: 2 },
+      },
+    },
+  });
+  assert.equal(fallbackGenerated.ok, true, "Gemini fallback PDF job must complete");
+  assert.equal(fallbackGenerated.provider, "gemini", "provider must fall back to Gemini");
+  assert.equal(fallbackGenerated.chapters.length, lifeBookPremiumChapterPlanV1.chapters.length, "Gemini fallback must generate all chapters");
+  assert.ok(geminiFetchCount >= lifeBookPremiumChapterPlanV1.chapters.length, "Gemini fallback must call Gemini for each chapter");
+} finally {
+  globalThis.fetch = originalFetch;
+}
+
+const firstPlan = lifeBookPremiumChapterPlanV1.chapters[0];
+const firstSection = firstPlan.sections[0];
+function makeValidatorArticle(chapter, headings = chapter.sections) {
+  const sections = headings.map((heading, index) => {
+    const body = `${heading} validator section ${index + 1} keeps the chapter plan exact with a long enough authored passage that names the heading, follows the intended reading order, and prevents hidden extra sections from slipping into the final manuscript. The paragraph stays distinct for this heading so repetition checks continue to exercise meaningful content.`;
+    return `<section><h2>${heading}</h2><p>${body}</p></section>`;
+  }).join("");
+  return `<article data-chapter-id="${chapter.id}"><h1>${chapter.title}</h1>${sections}</article>`;
+}
+const invalidCases = {
+  rawJson: "{\"chapters\":[]}",
+  codeFence: "```html\n<article data-chapter-id=\"01\"></article>\n```",
+  undefinedLeak: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>undefined</p></section></article>`,
+  internalKey: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>payload debug prompt</p></section></article>`,
+  mojibakePlaceholder: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>??? ??? ???</p></section></article>`,
+  extraSection: makeValidatorArticle(firstPlan, [...firstPlan.sections, "Unexpected section"]),
+  wrongSectionOrder: makeValidatorArticle(firstPlan, [firstPlan.sections[1], firstPlan.sections[0], ...firstPlan.sections.slice(2)]),
+};
+for (const [name, value] of Object.entries(invalidCases)) {
+  assert.equal(validateLifeBookPremiumChapterHtml(value, lifeBookPremiumChapterPlanV1.chapters[0]).ok, false, `${name} must be rejected`);
+}
+assert.ok(
+  validateLifeBookPremiumChapterHtml(invalidCases.extraSection, firstPlan).issues.some((issue) => issue.startsWith("section.unexpected.") || issue.startsWith("section.count.")),
+  "extra sections must be rejected by exact chapter plan validation",
+);
+assert.ok(
+  validateLifeBookPremiumChapterHtml(invalidCases.wrongSectionOrder, firstPlan).issues.some((issue) => issue.startsWith("section.order.")),
+  "section order must be rejected by exact chapter plan validation",
+);
+
+const missingProviderGenerated = await generateLifeBookPremiumPdfV2({
+  userId: "507f1f77bcf86cd799439011",
+  reportId: `saju-lifebook-no-provider-${runId}`,
+  sessionId: `life-book:no-provider:${runId}`,
+  requestUrl: "https://example.com/api/premium/saju-lifebook/prepare",
+  env: {
+    LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT: 0,
+    LIFE_BOOK_PREMIUM_LLM_PROVIDERS: "workers-ai",
+    LIFE_BOOK_PREMIUM_DISABLE_GEMINI_FALLBACK: "true",
+    LIFE_BOOK_PREMIUM_WORKERS_AI_MODEL: `workers-ai-missing-provider-${runId}`,
+  },
+  input: {
+    name: "No Provider",
+    gender: "female",
+    birthDate: "1991-03-04",
+    birthTime: "06:10",
+    birthTimeKnown: true,
+    targetYear: 2027,
+    localSajuJson: {
+      pillars: { year: "sinmi", month: "gyeongin", day: "eulsa", hour: "gichuk" },
+      elementBalance: { wood: 1, fire: 2, earth: 3, metal: 1, water: 1 },
+      tenGods: { resource: 1, wealth: 2, officer: 1, output: 1 },
+    },
+  },
+});
+assert.equal(missingProviderGenerated.ok, false, "missing provider must fail instead of assembling locally");
+assert.equal(missingProviderGenerated.code, "LIFE_BOOK_CHAPTER_GENERATION_FAILED", "missing provider must fail at LLM chapter generation");
+assert.equal(missingProviderGenerated.status, "failed", "missing provider result must be failed");
+assert.equal(missingProviderGenerated.details?.attempts?.[0]?.errorCode, "workers_ai_not_configured", "missing provider failure must expose provider configuration issue");
+assert.doesNotMatch(JSON.stringify(missingProviderGenerated), /local-assembled|localAssembly|LIFEBOOK_LOCAL_ASSEMBLY_REMOVED/i, "missing provider failure must not leak local assembly");
+
+const routeUserId = "507f1f77bcf86cd799439011";
+const routeReportId = `saju-lifebook-route-${runId}`;
+const routeSessionId = `life-book:route:${runId}`;
+const routeEnv = {
+  ...env,
+  LIFE_BOOK_PREMIUM_TEST_BYPASS_DB: "true",
+  JWT_ACCESS_SECRET: "lifebook-test-secret",
+  PREMIUM_ACCESS_TOKEN_SECRET: "lifebook-premium-test-secret",
+};
+const authToken = await signJwt({
+  userId: routeUserId,
+  email: "lifebook-route@example.test",
+  role: "user",
+  name: "테스트",
+}, routeEnv.JWT_ACCESS_SECRET, {
+  expiresIn: "30m",
+  issuer: "code-destiny-api",
+  audience: "code-destiny-web",
+});
+const premiumAccessToken = await createPremiumAccessToken(routeEnv, {
+  userId: routeUserId,
+  reportType: "lifeBook",
+  featureKey: "saju_life_book_pdf",
+  transactionId: `lifebook-route-token-${runId}`,
+  purchaseId: `lifebook-route-purchase-${runId}`,
+  reportId: routeReportId,
+  sessionId: routeSessionId,
+  chargedCoins: 500,
+});
+const routeResponse = await handleSajuLifebookRoutes(new Request("https://example.com/api/premium/saju-lifebook/prepare", {
+  method: "POST",
+  headers: {
+    "content-type": "application/json",
+    "authorization": `Bearer ${authToken}`,
+    "x-premium-access-token": premiumAccessToken,
+    "x-lifebook-sync": "1",
+  },
+  body: JSON.stringify({
+    name: "테스트",
+    gender: "female",
+    birthDate: "1990-01-02",
+    birthTime: "08:30",
+    birthTimeKnown: true,
+    calendarType: "solar",
+    targetYear: 2026,
+    reportId: routeReportId,
+    sessionId: routeSessionId,
+    featureKey: "saju_life_book_pdf",
+    generationMode: "llm-only",
+    authoringMode: "llm-only",
+  }),
+}), routeEnv, null);
+const routeBody = await routeResponse.json();
+assert.equal(routeResponse.status, 200, "prepare route success smoke must return 200");
+assert.equal(routeBody.ok, true, "prepare route success smoke must be ok");
+assert.equal(routeBody.status, "completed", "prepare route success smoke must complete");
+assert.equal(routeBody.generationMode, "llm-only", "prepare route must stay llm-only");
+assert.equal(routeBody.manuscriptSource, "life-book-llm-v1", "prepare route manuscript source must match");
+assert.equal(routeBody.writingPipeline, "saju-calculation-to-llm-authored-pdf", "prepare route writing pipeline must match");
+assert.equal(routeBody.chapters?.length, lifeBookPremiumChapterPlanV1.chapters.length, "prepare route must return all 13 chapters");
+assert.ok(routeBody.downloadUrl, "prepare route must return downloadUrl");
+assert.ok(routeBody.htmlUrl, "prepare route must return htmlUrl");
+assert.ok(routeBody.pdfReady?.html, "prepare route must return pdfReady.html");
+assert.equal(routeBody.llmAssembly?.enabled, true, "prepare route LLM assembly must be enabled");
+assert.equal(routeBody.llmAssembly?.externalGeneration, true, "prepare route LLM assembly must be external");
+assert.equal(routeBody.llmAssembly?.fallbackUsed, false, "prepare route must not use fallback");
+assert.equal(routeBody.llmAssembly?.chapterCount, lifeBookPremiumChapterPlanV1.chapters.length, "prepare route LLM assembly count must match");
+assert.doesNotMatch(JSON.stringify(routeBody), /local-assembled|localAssembly|LIFEBOOK_LOCAL_ASSEMBLY_REMOVED/i, "prepare route response must not leak local assembly");
+
+const unauthResponse = await handleSajuLifebookRoutes(new Request("https://example.com/api/premium/saju-lifebook/prepare", {
+  method: "POST",
+  headers: { "content-type": "application/json", "x-lifebook-sync": "1" },
+  body: JSON.stringify({ birthDate: "1990-01-02", birthTime: "08:30", gender: "female" }),
+}), {}, null);
+const unauthBody = await unauthResponse.json();
+assert.equal(unauthResponse.status, 401, "prepare route must require auth before generation");
+assert.notEqual(unauthResponse.status, 410, "prepare route must not return removed-local-assembly status");
+assert.notEqual(unauthBody.code, "LIFEBOOK_LOCAL_ASSEMBLY_REMOVED", "legacy local assembly removal code must not surface");
+
+console.log("[verify-lifebook-llm-only-flow] PASS");

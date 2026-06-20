@@ -3797,6 +3797,8 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
       return await handleSajuAIPrompt(request, auth, env);
     }
 

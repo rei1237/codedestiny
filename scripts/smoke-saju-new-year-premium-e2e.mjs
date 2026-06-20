@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { generateNewYearLocalPdf } from "../worker/pdf-v2/new-year-local-pdf.js";
 import { __sajuNewYearTestUtils as newYear } from "../worker/routes/saju-new-year.js";
 
 const routeSource = readFileSync(new URL("../worker/routes/saju-new-year.js", import.meta.url), "utf8");
@@ -25,11 +24,6 @@ const profile = {
   },
 };
 
-function longBody(seed, title, index) {
-  const base = `${seed.targetYear}년 ${title}에서는 세운과 월운, 퀀텀 명리 보정을 함께 보아 실행의 강약을 정합니다. `;
-  return Array.from({ length: 42 }, (_, i) => `${base}사주 근거 ${index + 1}-${i + 1}은 올해의 선택 기준과 월별 실천 전략으로 이어집니다.`).join(" ");
-}
-
 const seed = newYear.buildPdfSeed(profile, 2026, {
   quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" },
 });
@@ -40,390 +34,254 @@ const masterValidation = newYear.validateNewYearMasterJson(masterJson);
 assert.equal(masterValidation.ok, true, `master json validation ${JSON.stringify(masterValidation)}`);
 assert.equal(masterJson.schemaVersion, "saju-new-year-master-json.v1");
 assert.equal(masterJson.monthlyFlow.length, 12);
-assert.equal(masterJson.quantumMyeongri.monthlyQuantum.length, 12);
 
 const specs = newYear.buildSajuNewYearChapterSpecs(2026);
-assert.deepEqual(seed.chapters, []);
-const expectedChapterTitles = [
-  "제 1장. 2026년 총운과 세운의 문",
-  "제 2장. 2026년 커리어와 일의 방향",
-  "제 3장. 2026년 재물운과 돈의 흐름",
-  "제 4장. 2026년 인간관계와 귀인운",
-  "제 5장. 2026년 연애·결혼·가족운",
-  "제 6장. 2026년 건강과 심리 리듬",
-  "제 7장. 2026년 분기별 의사결정",
-  "제 8장. 2026년 위험 관리와 반전 전략",
-  "제 9장. 2026년 12개월 실행/정비 월별 지도",
-  "제 10장. 2026년 최종 신년 로드맵",
-];
-const expectedChapterSections = [
-  [
-    "세운 간지와 올해의 첫 신호",
-    "원국과 세운의 조화·충돌",
-    "오행 강약과 용신·희신 방향",
-    "가장 크게 바뀌는 삶의 영역",
-    "올해를 지키는 핵심 기준",
-  ],
-  [
-    "올해 일의 기본 흐름",
-    "직장·조직·평가운",
-    "이직·전환·확장 가능성",
-    "성과가 열리는 방식",
-    "피해야 할 업무 패턴",
-  ],
-  [
-    "돈이 들어오는 방식",
-    "고정수익과 확장수익",
-    "큰 지출과 손실 주의",
-    "계약·투자·가격 결정",
-    "재물운을 살리는 습관",
-  ],
-  [
-    "올해 가까워지는 사람",
-    "귀인이 들어오는 통로",
-    "협업과 파트너십",
-    "멀어질 관계와 갈등 신호",
-    "관계를 넓히는 전략",
-  ],
-  [
-    "연애운의 전체 흐름",
-    "새로운 인연과 기존 관계",
-    "결혼·약속·장기 관계",
-    "가족과 가까운 사람의 책임",
-    "감정 기복과 거리 조절",
-  ],
-  [
-    "오행으로 보는 몸의 신호",
-    "피로와 스트레스 누적 구간",
-    "마음이 흔들리는 이유",
-    "회복력을 높이는 생활 리듬",
-    "건강·멘탈 관리 원칙",
-  ],
-  [
-    "1분기 선택과 정리",
-    "2분기 확장과 검증",
-    "3분기 조율과 회수",
-    "4분기 마무리와 재설계",
-    "가장 중요한 결정 타이밍",
-  ],
-  [
-    "가장 흔들리기 쉬운 문제",
-    "합충형파해와 사건 신호",
-    "반복하면 안 되는 실수",
-    "위기가 기회로 바뀌는 조건",
-    "위험을 낮추는 회복 플랜",
-  ],
-  [
-    "상반기 월별 흐름",
-    "하반기 월별 흐름",
-    "주의해야 할 달",
-    "기회를 잡기 좋은 달",
-    "월별 실행·정비 흐름 실행표",
-  ],
-  [
-    "올해의 최종 메시지",
-    "먼저 정리해야 할 것",
-    "반드시 밀어붙일 것",
-    "내려놓아야 할 것",
-    "1년 실행 루틴",
-  ],
-];
-assert.deepEqual(specs.map((spec) => spec.title), expectedChapterTitles);
 assert.equal(specs.length, 10);
-assert.deepEqual(specs.map((spec) => spec.categories), expectedChapterSections);
+
 const paymentCheckIndex = handlePrepareSource.indexOf("const premiumAccessToken = clean");
 const requireAccessIndex = handlePrepareSource.indexOf("await requirePremiumReportAccess", paymentCheckIndex);
 const cacheLookupIndex = handlePrepareSource.indexOf("const cachedPdfExecution = await findNewYearReusableExecution");
 const startExecutionIndex = handlePrepareSource.indexOf("await startPremiumPdfExecution");
-const generatePdfIndex = handlePrepareSource.indexOf("const pipelineResult = generateYearlySajuPdf");
+const generatePdfIndex = handlePrepareSource.indexOf("const pipelineResult = await generateSajuNewYearPremiumReport");
 const completeExecutionIndex = handlePrepareSource.indexOf("await completePremiumPdfExecution");
-const failExecutionIndex = handlePrepareSource.indexOf("await failPremiumPdfExecution");
 assert.ok(paymentCheckIndex > -1, "premium access check exists");
-assert.ok(requireAccessIndex > paymentCheckIndex, "premium report access resolver exists after test-mode branch");
-assert.ok(handlePrepareSource.includes("normalizeYearlySajuInput"), "calculation cache normalization exists");
-assert.ok(cacheLookupIndex > paymentCheckIndex, "calculation-result cache lookup happens after payment access");
+assert.ok(requireAccessIndex > paymentCheckIndex, "premium report access resolver exists after token read");
+assert.ok(cacheLookupIndex > paymentCheckIndex, "cache lookup happens after payment access");
 assert.ok(startExecutionIndex > cacheLookupIndex, "premium execution starts after cache lookup");
-assert.ok(generatePdfIndex > startExecutionIndex, "PDF generation starts after payment execution start");
-assert.ok(completeExecutionIndex > generatePdfIndex, "premium execution completes after PDF generation");
-assert.ok(failExecutionIndex > completeExecutionIndex, "failure settlement path remains in catch block");
-assert.equal(handlePrepareSource.slice(0, paymentCheckIndex).includes("generateYearlySajuPdf("), false, "no PDF generation before payment access");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "high-quality-assembled");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "saju-high-quality-consultation-engine");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-high-quality-v5");
+assert.ok(generatePdfIndex > startExecutionIndex, "LLM generation starts after payment execution start");
+assert.ok(completeExecutionIndex > generatePdfIndex, "premium execution completes after LLM generation");
+assert.equal(handlePrepareSource.slice(0, paymentCheckIndex).includes("generateSajuNewYearPremiumReport("), false, "no LLM generation before payment access");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "pdf-v3-llm-only");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "saju-new-year-llm");
 
-const originalFetch = globalThis.fetch;
-const forbiddenHosts = [
-  "generativelanguage.googleapis.com",
-  "vertexai.googleapis.com",
-  "api.openai.com",
-];
-let externalGenerationFetchCount = 0;
-let pipelineResultForArchive = null;
-const assertiveForbiddenRe = /반드시\s*성공한다|무조건\s*성공한다|100\s*%\s*돈\s*번다|무조건\s*이별한다|사고가\s*난다|송사|관재|의료\s*진단|투자\s*조언/i;
-globalThis.fetch = async (input, init) => {
-  const url = String(typeof input === "string" ? input : input?.url || "");
-  if (forbiddenHosts.some((host) => url.includes(host))) {
-    externalGenerationFetchCount += 1;
-    throw new Error(`Forbidden external generation request during saju new year local generation: ${url}`);
-  }
-  if (typeof originalFetch === "function") return originalFetch(input, init);
-  throw new Error(`Unexpected fetch during saju new year local generation: ${url}`);
-};
-try {
-  const normalizedLocal = newYear.normalizeYearlySajuInput({
-    profile,
-    targetYear: 2026,
-    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+function longConsultation(chapterNo, sectionTitle, sectionIndex) {
+  const lead = `${sectionTitle}에서는 원국, 세운, 월운, 오행, 십성, 합, 충, 용신, 희신의 흐름을 함께 보며 2026년의 선택 기준을 세웁니다.`;
+  const paragraphs = Array.from({ length: 5 }, (_, idx) => {
+    const monthA = ((chapterNo + sectionIndex + idx) % 12) + 1;
+    const monthB = ((chapterNo + sectionIndex + idx + 5) % 12) + 1;
+    return `${lead} ${monthA}월에는 실행과 기록을 앞에 두면 흐름이 안정되고, ${monthB}월에는 관계와 지출, 건강 리듬을 차분히 점검하는 편이 좋습니다. ${sectionTitle}의 결은 단순한 길흉보다 어떤 문을 열고 어떤 문을 천천히 닫을지 알려 주며, 세운의 십성은 삶의 방향을 현실적인 태도로 옮기라고 가리킵니다. 원국의 오행 균형이 살아나는 때에는 제안과 만남을 피하지 말고, 충의 신호가 강한 때에는 말의 온도와 약속의 범위를 먼저 정리하십시오.`;
   });
-  assert.equal(normalizedLocal.normalizedData.service, "yearly-saju");
-  assert.equal(normalizedLocal.normalizedData.targetYear, 2026);
-  assert.equal(typeof normalizedLocal.normalizedData.profile.birthDate, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.pillars.year, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.pillars.month, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.pillars.day, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.dayMaster.stem, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.dayMaster.element, "string");
-  assert.equal(typeof normalizedLocal.normalizedData.natal.fiveElements.wood, "number");
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.natal.fiveElements.strongest));
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.natal.tenGods.dominant));
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.annual.clashes));
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.annual.combinations));
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.monthly));
-  assert.equal(normalizedLocal.normalizedData.monthly.length, 12);
-  assert.ok(Array.isArray(normalizedLocal.monthlyFortuneSections));
-  assert.equal(normalizedLocal.monthlyFortuneSections.length, 12);
-  for (const monthlySection of normalizedLocal.monthlyFortuneSections) {
-    assert.equal(typeof monthlySection.month, "number");
-    for (const key of ["title", "summary", "opportunity", "caution", "relationship", "money", "career", "health", "action", "luckyRoutine"]) {
-      assert.equal(typeof monthlySection[key], "string", `monthly ${monthlySection.month} ${key}`);
-      assert.ok(monthlySection[key].length > 0, `monthly ${monthlySection.month} ${key} empty`);
-      assert.equal(/\[object Object\]|\b(?:undefined|null|NaN)\b/i.test(monthlySection[key]), false, `monthly ${monthlySection.month} ${key} forbidden marker`);
-      assert.equal(assertiveForbiddenRe.test(monthlySection[key]), false, `monthly ${monthlySection.month} ${key} assertive marker`);
-    }
-  }
-  const partialMonthlySections = newYear.buildMonthlyFortuneSections({
-    seed: {
-      ...normalizedLocal.seed,
-      saju: {
-        ...normalizedLocal.seed.saju,
-        monthlyLuck: normalizedLocal.seed.saju.monthlyLuck.slice(0, 6),
-      },
-    },
-  });
-  assert.equal(partialMonthlySections.length, 12);
-  assert.deepEqual(partialMonthlySections.map((item) => item.month), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-  assert.ok(Array.isArray(normalizedLocal.normalizedData.yearlyThemes.actionPlan));
-  assert.equal(/\[object Object\]|\b(?:undefined|null|NaN)\b/i.test(JSON.stringify(normalizedLocal.normalizedData)), false);
-  assert.ok(Object.keys(newYear.ANNUAL_STEM_BLOCKS).length >= 10);
-  assert.ok(Object.keys(newYear.ANNUAL_BRANCH_BLOCKS).length >= 12);
-  assert.ok(Object.keys(newYear.ANNUAL_TEN_GOD_BLOCKS).length >= 10);
-  assert.ok(Object.keys(newYear.YEARLY_CONTEXT_BLOCKS).length >= 10);
-  assert.ok(Array.isArray(normalizedLocal.interpretationBlocks.all));
-  assert.ok(normalizedLocal.interpretationBlocks.all.length >= 10);
-  for (const block of normalizedLocal.interpretationBlocks.all) {
-    assert.equal(typeof block.id, "string");
-    assert.ok(Array.isArray(block.tags));
-    assert.equal(typeof block.weight, "number");
-    assert.equal(typeof block.title, "string");
-    assert.equal(typeof block.summary, "string");
-    assert.ok(Array.isArray(block.body));
-    assert.ok(Array.isArray(block.advice));
-    assert.ok(Array.isArray(block.caution));
-    assert.ok(Array.isArray(block.checklist));
-  }
-  assert.equal(normalizedLocal.yearlyCalculation.year, 2026);
-  assert.equal(newYear.composeMonthlyFortuneTable(normalizedLocal).length, 12);
-  const cacheKeyA = newYear.buildYearlySajuPdfCacheKey(normalizedLocal);
-  const cacheKeyB = newYear.buildYearlySajuPdfCacheKey(newYear.normalizeYearlySajuInput({
-    profile,
-    targetYear: 2026,
-    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
-  }));
-  const cacheKeyNextYear = newYear.buildYearlySajuPdfCacheKey(newYear.normalizeYearlySajuInput({
-    profile,
-    targetYear: 2027,
-    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
-  }));
-  assert.match(cacheKeyA, /^yearly-saju-cache:/);
-  assert.equal(cacheKeyA, cacheKeyB);
-  assert.notEqual(cacheKeyA, cacheKeyNextYear);
-  const cacheCtx = newYear.buildYearlySajuPdfCacheExecutionContext({ executionKey: "session-key", idempotencyKey: "session-key", metadata: {} }, cacheKeyA);
-  assert.equal(cacheCtx.executionKey, cacheKeyA);
-  assert.equal(cacheCtx.idempotencyKey, cacheKeyA);
-  assert.equal(cacheCtx.metadata.cacheKind, "yearly-saju-pdf");
-  assert.equal(cacheCtx.metadata.templateVersion, "yearly-saju-high-quality-v5");
-  const pipelineResult = newYear.generateYearlySajuPdf(profile, 2026, {
-    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
-    metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline" },
-  });
-  pipelineResultForArchive = pipelineResult;
-  assert.equal(pipelineResult.validation.ok, true, `pipeline validation ${JSON.stringify(pipelineResult.validation)}`);
-  assert.equal(pipelineResult.localAssembly.enabled, true);
-  assert.equal(pipelineResult.localAssembly.provider, "saju-high-quality-consultation-engine");
-  assert.equal(pipelineResult.localAssembly.localAssemblyOnly, false);
-  assert.equal(pipelineResult.localAssembly.externalCallsAllowed, false);
-  assert.equal(pipelineResult.localAssembly.externalGeneration, false);
-  assert.equal(pipelineResult.localAssembly.templateVersion, "yearly-saju-high-quality-v5");
-  assert.equal(pipelineResult.localAssembly.chapterCount, specs.length);
-  assert.equal(pipelineResult.localAssembly.expectedChapterCount, specs.length);
-  assert.equal(pipelineResult.manuscriptSource, "high-quality-consultation");
-  assert.equal(pipelineResult.chapters.length, specs.length);
-  assert.ok(Array.isArray(pipelineResult.monthlyFortuneSections));
-  assert.equal(pipelineResult.monthlyFortuneSections.length, 12);
-  assert.equal(pipelineResult.pdfReady.metadata.writingPipeline, "yearly-saju-high-quality-v5");
-  assert.ok(Array.isArray(pipelineResult.pdfReady.metadata.interpretationBlockIds));
-  assert.ok(pipelineResult.pdfReady.metadata.interpretationBlockIds.length >= 10);
-  assert.equal(pipelineResult.normalizedData.service, "yearly-saju");
-  const variantProfile = structuredClone(profile);
-  variantProfile.name = "Variant User";
-  variantProfile.gender = "M";
-  variantProfile.birth = {
-    ...variantProfile.birth,
-    year: 1988,
-    month: 11,
-    day: 22,
-    hour: 18,
-    minute: 30,
-  };
-  const variantPipelineResult = newYear.generateYearlySajuPdf(variantProfile, 2027, {
-    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
-    metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline-variant" },
-  });
-  assert.notDeepEqual(pipelineResult.normalizedData.annual, variantPipelineResult.normalizedData.annual, "different local inputs produce distinct annual data");
-  assert.notEqual(pipelineResult.chapters[0].text, variantPipelineResult.chapters[0].text, "different local inputs produce distinct chapter text");
-  assert.ok(pipelineResult.chapters.some((chapter) => Array.isArray(chapter.interpretationBlockIds) && chapter.interpretationBlockIds.length > 0));
-  for (const chapter of pipelineResult.chapters) {
-    const chapterText = String(chapter.text || "");
-    const sectionTitles = Array.isArray(chapter.sections) ? chapter.sections.map((section) => String(section.title || "")) : [];
-    assert.equal(typeof chapter.title, "string", `chapter ${chapter.no} title`);
-    assert.ok(chapter.title.length > 0, `chapter ${chapter.no} title empty`);
-    for (const sectionName of expectedChapterSections[Number(chapter.no || 1) - 1] || []) {
-      assert.ok(sectionTitles.includes(sectionName), `chapter ${chapter.no} section ${sectionName}`);
-    }
-    assert.ok(chapterText.length >= 1800, `chapter ${chapter.no} length ${chapterText.length}`);
-    assert.ok(chapter.sections.every((section) => String(section.body || "").length >= 1800), `chapter ${chapter.no} section body length`);
-    assert.equal(assertiveForbiddenRe.test(chapterText), false, `chapter ${chapter.no} assertive marker`);
-  }
-  assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "high-quality-consultation"));
-  const localPdfReady = pipelineResult.pdfReady;
-  assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]|준비중|생성 실패|스켈레톤/i.test(String(localPdfReady.html || "")), false);
-  assert.equal(assertiveForbiddenRe.test(String(localPdfReady.html || "")), false);
-  assert.equal(String(localPdfReady.html || "").includes('"service":"yearly-saju"'), false);
-  assert.ok(String(localPdfReady.html || "").includes("<div class=\"brand\">Code Destiny</div>"));
-  assert.ok(String(localPdfReady.html || "").includes("<h1>2026년 신년운세</h1>"));
-  assert.ok(String(localPdfReady.html || "").includes("사주 구조로 읽는 한 해의 흐름과 실천 로드맵"));
-  assert.ok(String(localPdfReady.html || "").includes("세운 간지와 올해의 첫 신호"));
-  assert.ok(String(localPdfReady.html || "").includes("원국과 세운의 조화·충돌"));
-  assert.ok(String(localPdfReady.html || "").includes("12개월 실행/정비 월별 지도"));
-  assert.ok(String(localPdfReady.html || "").includes("최종 신년 로드맵"));
-  assert.ok(String(localPdfReady.html || "").includes("마지막 조언"));
-  const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady: localPdfReady, chapters: pipelineResult.chapters });
-  assert.equal(completionValidation.ok, true, `completion validation ${JSON.stringify(completionValidation)}`);
-  const localPdfReadyWithDownload = {
-    ...localPdfReady,
-    pdfUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=pdf",
-    downloadUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=pdf",
-    htmlUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=html",
-  };
-  const localPdfContractResult = await generateNewYearLocalPdf({
-    reportId: "smoke-local-pipeline",
-    featureKey: "saju_new_year_pdf",
-    sessionId: "smoke-local-pipeline",
-    targetYear: pipelineResult.localYearSajuJson.targetYear,
-    chapterCount: pipelineResult.chapters.length,
-    manuscriptSource: pipelineResult.manuscriptSource,
-    chapters: pipelineResult.chapters,
-    localAssembly: pipelineResult.localAssembly,
-    pdfReady: localPdfReadyWithDownload,
-    pdfCompletionValidation: newYear.validateSajuNewYearPdfCompletionPayload({
-      pdfReady: localPdfReadyWithDownload,
-      chapters: pipelineResult.chapters,
-      requireDownloadUrl: true,
-    }),
-    pdfUrl: localPdfReadyWithDownload.pdfUrl,
-    htmlUrl: localPdfReadyWithDownload.htmlUrl,
-    downloadUrl: localPdfReadyWithDownload.downloadUrl,
-  }, {
-    config: newYear.YEARLY_SAJU_PDF_CONFIG,
-    expectedChapterCount: pipelineResult.chapters.length,
-    buildLocalPdf: (payload) => payload,
-  });
-  assert.equal(localPdfContractResult.localContract.ok, true, `local pdf contract ${JSON.stringify(localPdfContractResult.localContract)}`);
-  assert.deepEqual(localPdfContractResult.localContract.issues, []);
-  assert.equal(localPdfContractResult.localContract.manuscriptSource, "high-quality-consultation");
-  assert.equal(localPdfContractResult.localContract.assemblyGenerationMode, "high-quality-assembled");
-  assert.equal(externalGenerationFetchCount, 0);
-  const reusableCached = newYear.buildNewYearReusableExecutionResponse({
-    status: "success",
-    premiumStatus: "completed",
-    reportId: "cached-report",
-    sessionId: "cached-session",
-    featureKey: "sajuNewYear",
-    metadata: {
-      cacheKey: cacheKeyA,
-      archive: {
-        reportId: "cached-report",
-        targetYear: 2026,
-        chapterCount: pipelineResult.chapters.length,
-        chapters: pipelineResult.chapters,
-        normalizedData: pipelineResult.normalizedData,
-        monthlyFortuneSections: pipelineResult.monthlyFortuneSections,
-        pdfReady: {
-          ...localPdfReady,
-          pdfUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=pdf",
-          downloadUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=pdf",
-          htmlUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=html",
-        },
-      },
-    },
-  }, { cacheKey: cacheKeyA, targetYear: 2026 });
-  assert.equal(reusableCached.status, 200);
-  assert.equal(reusableCached.payload.data.cacheHit, true);
-  assert.equal(reusableCached.payload.data.cacheKey, cacheKeyA);
-  assert.equal(reusableCached.payload.data.fromCache, true);
-  assert.equal(reusableCached.payload.data.canReopen, true);
-  assert.equal(reusableCached.payload.data.canDownload, true);
-  assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]/i.test(String(reusableCached.payload.data.pdfReady.html || "")), false);
-  const rejectedBadCache = newYear.buildNewYearReusableExecutionResponse({
-    status: "success",
-    premiumStatus: "completed",
-    reportId: "bad-cache-report",
-    metadata: {
-      archive: {
-        pdfReady: { downloadUrl: "https://example.test/bad.pdf", html: "undefined [object Object]" },
-      },
-    },
-  }, {});
-  assert.equal(rejectedBadCache, null);
-} finally {
-  globalThis.fetch = originalFetch;
+  return paragraphs.join("\n\n");
 }
 
-const normalizedGeneratedChapters = specs.map((spec) => newYear.buildDeterministicChapterFromSpec(seed, spec, "smoke-local-assembled"));
-const generatedChapter = normalizedGeneratedChapters[0];
-assert.equal(generatedChapter.source, "local-reinforced");
-assert.equal(generatedChapter.sections.length, specs[0].categories.length);
-assert.ok(generatedChapter.sections[0].body.length >= 920);
+function makeChapterJson(chapterNo) {
+  const spec = specs[chapterNo - 1];
+  const chapter = {
+    schemaVersion: "saju-new-year-llm-json.v1",
+    targetYear: 2026,
+    chapterNo,
+    title: spec.title,
+    focus: `${spec.title}의 핵심 흐름`,
+    sections: spec.categories.map((title, index) => ({
+      title,
+      body: longConsultation(chapterNo, title, index),
+      sajuEvidence: ["원국과 세운의 관계", "월운과 오행의 흐름"],
+      keyPoints: [`${title}의 핵심은 실행과 점검의 균형입니다.`],
+      actionGuide: ["좋은 달에는 제안과 실행을 앞에 둡니다."],
+      checklist: ["월말마다 관계, 돈, 몸의 리듬을 확인합니다."],
+      caution: ["충의 신호가 강한 달에는 결론을 서두르지 않습니다."],
+    })),
+  };
+  if (chapterNo === 9) {
+    chapter.monthlyFortunes = Array.from({ length: 12 }, (_, index) => ({
+      month: index + 1,
+      title: `${index + 1}월의 실행과 정비를 여는 상담 흐름`,
+      flow: `${index + 1}월은 원국과 세운, 월운이 만나는 결을 차분히 살피며 실행과 정비를 나누는 달입니다.`,
+      advice: "준비된 일은 작게 열고, 결과는 기록으로 남기십시오.",
+      caution: "감정적인 약속과 충동적인 지출은 한 번 더 확인하십시오.",
+      action: "이번 달 가장 중요한 일정 하나를 먼저 정리하십시오.",
+      luckyRoutine: "아침마다 오늘의 선택 기준을 한 줄로 적으십시오.",
+    }));
+  }
+  if (chapterNo === 10) {
+    chapter.finalAdvice = {
+      title: "마지막 조언",
+      body: Array.from({ length: 4 }, () => "2026년의 흐름은 원국과 세운, 월운의 결을 매달의 선택으로 옮길 때 가장 맑게 열립니다. 좋은 달에는 준비한 것을 밖으로 내고, 점검의 달에는 관계와 돈, 몸의 리듬을 차분히 다듬으십시오. 올해의 운은 한 번의 결론보다 반복되는 기준 속에서 깊어집니다.").join("\n\n"),
+    };
+  }
+  return chapter;
+}
+
+function chapterNoFromPrompt(prompt) {
+  const match = String(prompt || "").match(/(?:이번에 작성할 챕터|작성 대상):\s*\n\s*(\d+)\./);
+  return Number(match?.[1] || 1);
+}
+
+let firstCall = true;
+let aiCallCount = 0;
+const env = {
+  SAJU_NEW_YEAR_LLM_PROVIDERS: "workers-ai",
+  SAJU_NEW_YEAR_LLM_REPAIR_LIMIT: "1",
+  AI: {
+    async run(_model, payload) {
+      aiCallCount += 1;
+      const prompt = payload?.messages?.find((item) => item.role === "user")?.content || "";
+      if (firstCall) {
+        firstCall = false;
+        return { response: "{}" };
+      }
+      return { response: JSON.stringify(makeChapterJson(chapterNoFromPrompt(prompt))) };
+    },
+  },
+};
+
+const normalized = newYear.normalizeYearlySajuInput({
+  profile,
+  targetYear: 2026,
+  body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+});
+assert.equal(normalized.normalizedData.service, "yearly-saju");
+assert.equal(normalized.normalizedData.targetYear, 2026);
+assert.equal(normalized.normalizedData.monthly.length, 12);
+assert.equal(normalized.monthlyFortuneSections.length, 12);
+
+const cacheKeyA = newYear.buildYearlySajuPdfCacheKey(normalized);
+const cacheKeyB = newYear.buildYearlySajuPdfCacheKey(newYear.normalizeYearlySajuInput({
+  profile,
+  targetYear: 2026,
+  body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+}));
+const cacheKeyNextYear = newYear.buildYearlySajuPdfCacheKey(newYear.normalizeYearlySajuInput({
+  profile,
+  targetYear: 2027,
+  body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+}));
+assert.match(cacheKeyA, /^saju-new-year-llm-cache:/);
+assert.equal(cacheKeyA, cacheKeyB);
+assert.notEqual(cacheKeyA, cacheKeyNextYear);
+const cacheCtx = newYear.buildYearlySajuPdfCacheExecutionContext({ executionKey: "session-key", idempotencyKey: "session-key", metadata: {} }, cacheKeyA);
+assert.equal(cacheCtx.metadata.cacheKind, "saju-new-year-llm-pdf");
+assert.equal(cacheCtx.metadata.promptVersion, "saju-new-year-llm-prompt.v1");
+assert.equal(cacheCtx.metadata.schemaVersion, "saju-new-year-llm-json.v1");
+
+const pipelineResult = await newYear.generateSajuNewYearPremiumReport({
+  env,
+  normalized,
+  userId: "smoke-user",
+  jobId: "smoke-new-year-llm",
+});
+assert.equal(aiCallCount, 11, "first invalid call is repaired, then 10 valid chapter calls complete");
+assert.equal(pipelineResult.manuscriptSource, "saju-new-year-llm-only");
+assert.equal(pipelineResult.llmAssemblyOnly, true);
+assert.equal(pipelineResult.fallbackUsed, false);
+assert.equal(pipelineResult.externalCallsAllowed, true);
+assert.equal(pipelineResult.generationMode, "pdf-v3-llm-only");
+assert.equal(pipelineResult.promptVersion, "saju-new-year-llm-prompt.v1");
+assert.equal(pipelineResult.schemaVersion, "saju-new-year-llm-json.v1");
+assert.equal(pipelineResult.chapters.length, 10);
+assert.equal(pipelineResult.monthlyFortunes.length, 12);
+assert.equal(pipelineResult.validation.ok, true, `LLM report validation ${JSON.stringify(pipelineResult.validation)}`);
+assert.equal(JSON.stringify(pipelineResult.chapters).includes("local-rule-completed"), false);
 
 const archiveUrls = newYear.buildNewYearArchiveUrls("https://example.test", "new-year-smoke");
-assert.ok(archiveUrls.pdfUrl.includes("format=pdf"));
-assert.ok(archiveUrls.htmlUrl.includes("format=html"));
-
-const archiveChapters = pipelineResultForArchive?.chapters || [];
-const pdfReady = newYear.buildPdfReadyPayload(seed, archiveChapters, {
-  manuscriptSource: "high-quality-consultation",
-  localDraftChapterCount: archiveChapters.length,
-  writingPipeline: "yearly-saju-high-quality-v5",
+const pdfReady = newYear.buildPdfReadyPayload(seed, pipelineResult.chapters, {
+  manuscriptSource: pipelineResult.manuscriptSource,
+  llmAssembly: pipelineResult.llmAssembly,
+  llmAssemblyOnly: true,
+  fallbackUsed: false,
+  externalCallsAllowed: true,
+  generationMode: pipelineResult.generationMode,
+  provider: pipelineResult.provider,
+  promptVersion: pipelineResult.promptVersion,
+  schemaVersion: pipelineResult.schemaVersion,
+  qualityVersion: pipelineResult.qualityVersion,
+  finalAdvice: pipelineResult.finalAdvice,
+  monthlyFortunes: pipelineResult.monthlyFortunes,
+  qualityStatus: "passed",
 });
 pdfReady.pdfUrl = archiveUrls.pdfUrl;
 pdfReady.downloadUrl = archiveUrls.pdfUrl;
 pdfReady.htmlUrl = archiveUrls.htmlUrl;
 pdfReady.mimeType = "application/pdf";
 pdfReady.contentType = "application/pdf";
-assert.ok(String(pdfReady.html || "").includes("신년운세"));
-assert.equal(newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters: archiveChapters, requireDownloadUrl: true }).ok, true);
-assert.equal(pdfReady.mimeType, "application/pdf");
-assert.ok(pdfReady.downloadUrl.includes("format=pdf"));
-assert.ok(pdfReady.htmlUrl.includes("format=html"));
+assert.ok(String(pdfReady.html || "").includes("<div class=\"brand\">Code Destiny</div>"));
+assert.ok(String(pdfReady.html || "").includes("<h1>2026년 신년운세</h1>"));
+assert.ok(String(pdfReady.html || "").includes("운의 시각 지도"));
+assert.ok(String(pdfReady.html || "").includes("월별 운세 리듬 그래프"));
+assert.ok(String(pdfReady.html || "").includes("오행 균형 그래프"));
+assert.ok(String(pdfReady.html || "").includes("monthly-score-chart"));
+assert.ok(String(pdfReady.html || "").includes("element-balance-chart"));
+assert.ok(String(pdfReady.html || "").includes("<th>점수</th>"));
+assert.ok(String(pdfReady.html || "").includes("마지막 조언"));
+assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]|local-rule-completed/i.test(String(pdfReady.html || "")), false);
+const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({
+  pdfReady,
+  chapters: pipelineResult.chapters,
+  requireDownloadUrl: true,
+});
+assert.equal(completionValidation.ok, true, `completion validation ${JSON.stringify(completionValidation)}`);
+
+const reusableCached = newYear.buildNewYearReusableExecutionResponse({
+  status: "success",
+  premiumStatus: "completed",
+  reportId: "cached-report",
+  sessionId: "cached-session",
+  featureKey: "sajuNewYear",
+  metadata: {
+    cacheKey: cacheKeyA,
+    manuscriptSource: pipelineResult.manuscriptSource,
+    llmAssembly: pipelineResult.llmAssembly,
+    llmAssemblyOnly: true,
+    promptVersion: pipelineResult.promptVersion,
+    schemaVersion: pipelineResult.schemaVersion,
+    archive: {
+      reportId: "cached-report",
+      targetYear: 2026,
+      chapterCount: pipelineResult.chapters.length,
+      manuscriptSource: pipelineResult.manuscriptSource,
+      llmAssembly: pipelineResult.llmAssembly,
+      llmAssemblyOnly: true,
+      promptVersion: pipelineResult.promptVersion,
+      schemaVersion: pipelineResult.schemaVersion,
+      chapters: pipelineResult.chapters,
+      normalizedData: pipelineResult.normalizedData,
+      monthlyFortuneSections: pipelineResult.monthlyFortuneSections,
+      monthlyFortunes: pipelineResult.monthlyFortunes,
+      finalAdvice: pipelineResult.finalAdvice,
+      clientSummary: pipelineResult.clientSummary,
+      pdfReady: {
+        ...pdfReady,
+        pdfUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=pdf",
+        downloadUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=pdf",
+        htmlUrl: "https://example.test/api/premium/pdf-archive/cached-report?format=html",
+      },
+    },
+  },
+}, { cacheKey: cacheKeyA, targetYear: 2026 });
+assert.equal(reusableCached.status, 200);
+assert.equal(reusableCached.payload.data.cacheHit, true);
+assert.equal(reusableCached.payload.data.llmAssemblyOnly, true);
+assert.equal(reusableCached.payload.data.fallbackUsed, false);
+
+const rejectedLocalCache = newYear.buildNewYearReusableExecutionResponse({
+  status: "success",
+  premiumStatus: "completed",
+  reportId: "old-local-cache",
+  metadata: {
+    archive: {
+      manuscriptSource: "high-quality-consultation",
+      pdfReady: { downloadUrl: "https://example.test/old.pdf", html: pdfReady.html },
+      chapters: pipelineResult.chapters,
+      clientSummary: pipelineResult.clientSummary,
+    },
+  },
+}, {});
+assert.equal(rejectedLocalCache, null);
+
+const rejectedProviderFailure = await newYear.generateSajuNewYearPremiumReport({
+  env: {
+    SAJU_NEW_YEAR_LLM_PROVIDERS: "workers-ai",
+    SAJU_NEW_YEAR_LLM_REPAIR_LIMIT: "0",
+    SAJU_NEW_YEAR_WORKERS_AI_MODEL: "failure-model",
+    AI: { async run() { return { response: "{}" }; } },
+  },
+  normalized,
+  userId: "smoke-user",
+  jobId: "smoke-new-year-llm-fail",
+}).then(
+  () => null,
+  (error) => error,
+);
+assert.equal(rejectedProviderFailure?.code, "SAJU_NEW_YEAR_LLM_CHAPTER_GENERATION_FAILED");
 
 console.log("[smoke-saju-new-year-premium-e2e] ok");

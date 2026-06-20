@@ -2,158 +2,341 @@
  * @jest-environment node
  */
 
-function buildBody(chapterSpec, sectionTitle, extraTokens = []) {
-  const tokens = [chapterSpec.title, sectionTitle, ...extraTokens].filter(Boolean);
-  return [
-    `${tokens.join(' · ')}는 현재 차트에서 어떤 중심축이 작동하는지 보여 줍니다. 이 문단은 장기 성향, 감정 반응, 실행 습관이 서로 어떻게 엮이는지 한 번에 읽히도록 구성했습니다. 더 나아가, 반복되는 선택이 어떻게 감정의 안전지대와 충돌하는지까지 함께 설명해 실제 판단 기준으로 바꿉니다.`,
-    `${sectionTitle}의 관점에서는 일상에서 드러나는 선택의 패턴을 살펴봅니다. 같은 결정이 반복되는 이유와, 그 반복을 끊는 실천 기준을 분명하게 제시합니다. 여기에 사람, 일, 관계, 회복의 맥락을 덧붙여 읽으면 앞으로의 선택이 훨씬 선명해집니다.`,
-    `실전 적용 단계에서는 이 신호를 관계, 일, 회복, 자원 관리에 연결합니다. 추상적인 설명보다 생활 속 행동으로 바꿔 읽을 수 있도록 사례 중심으로 정리합니다. 또한 말보다 행동이 먼저 나오는 순간을 구체적으로 짚어, 해석이 습관 변화로 이어지도록 만듭니다.`,
-    `마지막으로 ${chapterSpec.title} 전체를 묶어, 앞으로 어떤 태도로 반응하면 좋은지 정리합니다. 짧은 요약이 아니라 바로 실행 가능한 판단 기준을 남기는 데 초점을 둡니다. 선택의 우선순위, 경계선, 회복 속도를 한 번에 정리하는 마무리 문단입니다.`,
-    `보이는 결과와 보이지 않는 동기 사이의 간격도 함께 살핍니다. 같은 선택이 왜 다른 관계에서는 다른 결과를 만드는지까지 짚어 두어, 해석이 실제 삶에서 바로 쓰이도록 만듭니다. 다음 단계에서는 어떤 신호를 믿고 어떤 신호를 보류할지까지 적어 둡니다.`,
-  ].join('\n\n');
+const { execFileSync } = require("child_process");
+
+function runEsm(code) {
+  const output = execFileSync(process.execPath, ["--input-type=module", "-"], {
+    cwd: process.cwd(),
+    input: code,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 20,
+  });
+  const jsonLine = output.trim().split(/\r?\n/).reverse().find((line) => line.trim().startsWith("{"));
+  return JSON.parse(jsonLine);
 }
 
-function astroTokensForChapter(chapterNo) {
-  switch (chapterNo) {
-    case 1:
-      return ['태양', '달', 'ASC', 'MC', '상승궁'];
-    case 5:
-      return ['금성', '화성', '7하우스'];
-    case 6:
-      return ['MC', '10하우스', '토성'];
-    case 9:
-      return ['12하우스', '8하우스', '명왕성'];
-    case 11:
-      return ['남쪽 노드', '북쪽 노드', '노드축'];
-    case 12:
-      return ['3년', '5년', '10년'];
-    default:
-      return ['태양', '달', 'ASC'];
-  }
-}
-
-function makeSwissChart() {
+function makeLocalAstroChartJson() {
   return {
-    source: 'swiss-wasm-local',
-    planets: {
-      Sun: { signKo: '사자자리', longitude: 120.5, house: 10, degree: 0.5 },
-      Moon: { signKo: '천칭자리', longitude: 180.2, house: 7, degree: 0.2 },
-      Mercury: { signKo: '처녀자리', longitude: 150.1, house: 9, degree: 0.1 },
-      Venus: { signKo: '황소자리', longitude: 60.3, house: 4, degree: 0.3 },
-      Mars: { signKo: '양자리', longitude: 20.4, house: 1, degree: 0.4 },
-      Jupiter: { signKo: '궁수자리', longitude: 270.1, house: 12, degree: 0.1 },
-      Saturn: { signKo: '물고기자리', longitude: 330.2, house: 2, degree: 0.2 },
+    birthInput: {
+      name: "테스트",
+      gender: "female",
+      birthDate: "1991-02-20",
+      birthTime: "07:00",
+      timezone: "Asia/Seoul",
+      birthPlace: "서울",
+      latitude: 37.5665,
+      longitude: 126.978,
     },
-    ascendant: { signKo: '천칭자리', longitude: 180.0, degree: 0, house: 1 },
-    midheaven: { signKo: '염소자리', longitude: 270.0, degree: 0, house: 10 },
-    houseCusps: Array.from({ length: 12 }, (_, index) => (index * 30) + 15),
-    aspects: [
-      { p1: 'Sun', p2: 'Moon', type: 'trine', orb: 2.3 },
-      { p1: 'Sun', p2: 'Saturn', type: 'square', orb: 5.1 },
-    ],
+    calculationMode: "swiss-wasm-local",
+    chartSource: "swiss-wasm-local",
+    engineQuality: "swiss",
+    houseSystem: "Placidus",
+    chart: {
+      zodiacType: "tropical",
+      houseSystem: "Placidus",
+      sunSign: "물고기자리",
+      moonSign: "천칭자리",
+      ascendantSign: "천칭자리",
+      midheavenSign: "게자리",
+      elementBalance: { fire: 2, earth: 1, air: 3, water: 4 },
+      modalityBalance: { cardinal: 4, fixed: 2, mutable: 4 },
+      planets: [
+        { name: "Sun", sign: "물고기자리", house: 5, degree: 1.2 },
+        { name: "Moon", sign: "천칭자리", house: 1, degree: 12.3 },
+        { name: "Mercury", sign: "물병자리", house: 4, degree: 22.1 },
+        { name: "Venus", sign: "양자리", house: 7, degree: 4.4 },
+        { name: "Mars", sign: "쌍둥이자리", house: 9, degree: 18.2 },
+        { name: "Jupiter", sign: "사자자리", house: 11, degree: 7.8 },
+        { name: "Saturn", sign: "염소자리", house: 4, degree: 28.5 },
+      ],
+      houses: Array.from({ length: 12 }, (_, index) => ({
+        house: index + 1,
+        sign: ["천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리", "양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리"][index],
+        cuspDegree: `${index * 30}도`,
+      })),
+      aspects: [
+        { planetA: "Sun", planetB: "Moon", type: "trine", orb: 2.1 },
+        { planetA: "Venus", planetB: "Mars", type: "opposition", orb: 1.4 },
+      ],
+    },
+    timingInsights: {
+      calculated: true,
+      source: "western-transit-swiss",
+      baseDate: "2026-06-20",
+      currentSummary: "목성의 흐름이 관계와 사회적 확장에 닿습니다.",
+      ninetyDaySummary: "토성의 흐름이 생활 리듬을 정돈하게 합니다.",
+      threeYearSummary: "장기적으로 책임과 확장이 함께 열립니다.",
+      snapshots: [
+        { label: "현재", outerPlanets: ["목성 게자리"], aspects: [{ text: "목성-태양 트라인" }] },
+      ],
+    },
   };
 }
 
-describe('Astro premium generator local-only pipeline', () => {
-  let astro;
+function fixtureLiteral() {
+  return JSON.stringify(makeLocalAstroChartJson());
+}
 
-  beforeAll(async () => {
-    astro = await import('../../worker/lib/astro-premium-generator.js');
+function mockArticleSource() {
+  return String.raw`
+function buildMockArticle(prompt) {
+  const chapterId = (prompt.match(/<article data-chapter-id="([^"]+)"/) || [])[1] || "ch01";
+  const title = (prompt.match(/<h1>([\s\S]*?)<\/h1>/) || [])[1] || "점성술 챕터";
+  const grounding = ((prompt.match(/필수 근거 용어: ([^\n]+)/) || [])[1] || "태양 / 달 / 상승궁")
+    .split("/")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(", ");
+  const outputFormat = prompt.slice(Math.max(0, prompt.lastIndexOf("[출력 형식]")));
+  const sections = Array.from(outputFormat.matchAll(/<h2>([\s\S]*?)<\/h2>/g)).map((match) => match[1]);
+  const body = sections.map((section, index) => {
+    const marker = " [장" + chapterId.replace("ch", "") + "-" + (index + 1) + "]";
+    const paragraphA = section + marker + "에서는 " + grounding + "의 근거와 함께 태양, 달, 상승궁, 하우스와 애스펙트가 만드는 흐름을 차분히 읽습니다. " + section + marker + "의 핵심은 계산된 차트에 있는 행성 배치와 현재 트랜짓을 현실의 감각으로 번역하는 데 있습니다. " + section + marker + "은 사용자가 반복해 선택하는 기준, 감정이 먼저 반응하는 방향, 관계 안에서 자연스럽게 취하는 태도를 하나씩 밝혀 줍니다.";
+    const paragraphB = section + marker + "의 조언은 단정적인 예언이 아니라 자기이해를 돕는 안내입니다. " + section + marker + "은 제공된 점성술 계산 결과를 기준으로 확인되는 신호만 다루며, 부족한 정보는 신중하게 제한을 밝힙니다. " + section + marker + "의 흐름은 관계, 일, 돈, 생활 리듬에서 지금 조정할 수 있는 행동을 부드럽게 가리킵니다.";
+    const paragraphC = section + marker + "을 현실에 적용할 때는 행성의 위치와 하우스의 무대가 겹치는 부분을 먼저 봅니다. " + section + marker + "은 당장 바꿀 수 있는 습관, 더 지켜봐야 할 변화, 타인과 대화로 풀어야 할 주제를 구분하게 합니다. " + section + marker + "의 마지막 조언은 오늘의 작은 선택을 차트의 큰 방향과 맞추는 데 있습니다.";
+    return "<section><h2>" + section + "</h2><p>" + paragraphA + "</p><p>" + paragraphB + "</p><p>" + paragraphC + "</p></section>";
+  }).join("");
+  return "<article data-chapter-id=\"" + chapterId + "\"><h1>" + title + "</h1>" + body + "</article>";
+}
+`;
+}
+
+describe("Astrology premium LLM-only PDF pipeline", () => {
+  test("chapter plan has the configured 15 chapters", () => {
+    const result = runEsm(`
+      import { astrologyPremiumChapterPlanV2, assertAstrologyPremiumChapterPlan } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
+      console.log(JSON.stringify({
+        ok: assertAstrologyPremiumChapterPlan(astrologyPremiumChapterPlanV2),
+        count: astrologyPremiumChapterPlanV2.chapters.length
+      }));
+    `);
+    expect(result.ok).toBe(true);
+    expect(result.count).toBe(15);
   });
 
-  function makeInput(overrides = {}) {
-    return {
-      birthInput: {
-        name: '테스터',
-        gender: 'female',
-        birthDate: '1991-02-20',
-        birthYear: 1991,
-        birthMonth: 2,
-        birthDay: 20,
-        birthTime: '07:00',
-        birthHour: 7,
-        birthMinute: 0,
-        timezone: 'Asia/Seoul',
-        birthPlace: '서울',
-        latitude: 37.5665,
-        longitude: 126.978,
-      },
-      swissChart: makeSwissChart(),
-      ...overrides,
-    };
-  }
-
-  test('로컬 생성으로 PDF가 완성되어야 한다', async () => {
-    const generated = await astro.generateAstroPremiumReport({}, makeInput(), {
-      llmChapterGenerator: async ({ chapterSpec }) => ({
-        title: chapterSpec.title,
-        sections: chapterSpec.sections.map((section, sectionIndex) => ({
-          title: section.title,
-          body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo).concat([`섹션 ${sectionIndex + 1}`])),
-        })),
-      }),
-    });
-
-    expect(generated.chapterCount).toBe(12);
-    expect(generated.chapters).toHaveLength(12);
-    expect(generated.fallbackUsed).toBe(false);
-    expect(generated.manuscriptSource).toBe('local-only');
-    expect(generated.validation.ok).toBe(true);
-    expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
-    expect(generated.totalLength).toBeGreaterThanOrEqual(40000);
+  test("normalizer compacts astrology calculation input without unsafe values", () => {
+    const result = runEsm(`
+      import { normalizeAstrologyPremiumInput } from "./worker/lib/pdf-v2/astrology/astrology-premium.normalizer.js";
+      const input = normalizeAstrologyPremiumInput({ progressions: [] }, ${fixtureLiteral()});
+      console.log(JSON.stringify({
+        planets: input.chart.planets.length,
+        houses: input.chart.houses.length,
+        aspects: input.chart.aspects.length,
+        unsafe: /undefined|NaN|\\[object Object\\]/.test(JSON.stringify(input)),
+        warnings: input.warnings
+      }));
+    `);
+    expect(result.planets).toBeGreaterThanOrEqual(7);
+    expect(result.houses).toBe(12);
+    expect(result.aspects).toBe(2);
+    expect(result.unsafe).toBe(false);
+    expect(result.warnings).toContain("프로그레션 정보가 제공되지 않았습니다.");
   });
 
-  test('LLM 생성기 실패와 무관하게 로컬 생성은 완료되어야 한다', async () => {
-    const generated = await astro.generateAstroPremiumReport({}, makeInput(), {
-      llmChapterGenerator: async () => {
-        throw new Error('chapter failure');
-      },
-    });
-
-    expect(generated.manuscriptSource).toBe('local-only');
-    expect(generated.chapters).toHaveLength(12);
-    expect(generated.validation.ok).toBe(true);
+  test("validator rejects generic chapter copy without astrology grounding", () => {
+    const result = runEsm(`
+      import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
+      import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
+      const chapter = astrologyPremiumChapterPlanV2.chapters[0];
+      const sections = chapter.sections.map((section) => "<section><h2>" + section + "</h2><p>이 문단은 충분히 길지만 구체적인 차트 근거 없이 좋은 선택과 마음의 균형만 반복해서 말합니다. 오늘의 태도와 관계의 방향을 부드럽게 살피라는 일반적인 안내를 이어 갑니다.</p><p>이 문단도 충분히 길지만 실제 행성이나 하우스 근거를 쓰지 않습니다. 그래서 프리미엄 리포트의 정확한 점성술 해석으로 보기 어렵습니다.</p></section>").join("");
+      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const validation = validateAstrologyPremiumChapterHtml(html, chapter);
+      console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
+    `);
+    expect(result.ok).toBe(false);
+    expect(result.issues).toContain("body.astrology_terms");
   });
 
-  test('Swiss 차트가 없어도 safe chart로 생성이 완료되어야 한다', async () => {
-    const generated = await astro.generateAstroPremiumReport({}, makeInput({
-      swissChart: null,
-    }), {
-      llmChapterGenerator: async ({ chapterSpec }) => ({
-        title: chapterSpec.title,
-        sections: chapterSpec.sections.map((section) => ({
-          title: section.title,
-          body: buildBody(chapterSpec, section.title, astroTokensForChapter(chapterSpec.chapterNo)),
-        })),
-      }),
-    });
-
-    expect(generated.chapterCount).toBe(12);
-    expect(generated.chapters).toHaveLength(12);
-    expect(generated.pdfReady && generated.pdfReady.html).toBeTruthy();
-    expect(generated.validationWarning).toBe(true);
+  test("validator rejects a chapter that misses its required focus terms", () => {
+    const result = runEsm(`
+      import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
+      import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
+      const chapter = astrologyPremiumChapterPlanV2.chapters.find((item) => item.id === "ch09");
+      const sections = chapter.sections.map((section, index) => {
+        const marker = " [재정초점누락-" + (index + 1) + "]";
+        return "<section><h2>" + section + "</h2><p>" + section + marker + "에서는 태양, 달, 상승궁, 애스펙트, 트랜짓의 일반 흐름을 충분히 길게 설명합니다. " + section + marker + "의 문장은 계산된 출생 차트를 바탕으로 자기이해를 돕는 상담처럼 이어지지만, 이 챕터가 요구하는 재정과 자원 중심의 핵심 근거는 의도적으로 제외합니다. " + section + marker + "은 독자가 현재의 선택을 차분히 바라보게 하는 일반적인 조언을 덧붙입니다.</p><p>" + section + marker + "의 두 번째 문단은 하우스라는 표현을 쓰지 않고 관계와 감정의 균형만 말합니다. " + section + marker + "은 충분한 길이를 채우되, 해당 챕터에 필요한 구체 근거가 없으면 통과하면 안 됩니다. " + section + marker + "은 프리미엄 리포트가 챕터마다 정확한 초점을 가져야 한다는 점을 검증합니다.</p></section>";
+      }).join("");
+      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const validation = validateAstrologyPremiumChapterHtml(html, chapter);
+      console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
+    `);
+    expect(result.ok).toBe(false);
+    expect(result.issues).toContain("body.chapter_grounding_terms");
   });
 
-  test('birth input 정규화가 한국어 시간/별칭 필드를 처리해야 한다', () => {
-    const normalized = astro.normalizeAstroPremiumBirthInput({
-      name: '사용자',
-      sex: '남성',
-      date: '1991-02-20',
-      timeText: '오전 7시',
-      place: '서울',
-      tz: 'Asia/Seoul',
-      lat: 37.5665,
-      lng: 126.978,
-      birth_hour: 7,
-    });
+  test("validator rejects unexpected foreign tokens inside chapter paragraphs", () => {
+    const result = runEsm(`
+      import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
+      import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
+      const chapter = astrologyPremiumChapterPlanV2.chapters[0];
+      const sections = chapter.sections.map((section, index) => {
+        const marker = " [외국어혼입-" + (index + 1) + "]";
+        return "<section><h2>" + section + "</h2><p>" + section + marker + "에서는 출생 차트, 태양, 달, 상승궁, 하우스와 애스펙트의 흐름을 충분히 구체적으로 읽습니다. " + section + marker + "은 원소와 모달리티가 만드는 기질의 균형을 차분히 살피며, 현재 트랜짓까지 함께 비춥니다. 그런데 이 문장에는 excellent strategy라는 외국어 표현이 섞여 있습니다.</p><p>" + section + marker + "의 두 번째 문단은 점성술 계산 결과를 바탕으로 현실적인 자기이해를 돕습니다. " + section + marker + "은 제공된 근거만 사용하고 부족한 정보는 신중하게 제한을 밝히며, 문단 길이도 충분히 유지합니다. " + section + marker + "은 한국어 리포트 안에 불필요한 외국어가 남으면 실패해야 함을 확인합니다.</p></section>";
+      }).join("");
+      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const validation = validateAstrologyPremiumChapterHtml(html, chapter);
+      console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
+    `);
+    expect(result.ok).toBe(false);
+    expect(result.issues).toContain("body.foreign_tokens");
+  });
 
-    expect(normalized.birthDate).toBe('1991-02-20');
-    expect(normalized.birthYear).toBe(1991);
-    expect(normalized.birthMonth).toBe(2);
-    expect(normalized.birthDay).toBe(20);
-    expect(normalized.birthHour).toBe(7);
-    expect(normalized.birthMinute).toBe(0);
-    expect(normalized.timezone).toBe('Asia/Seoul');
-    expect(normalized.gender).toBe('male');
+  test("LLM report generation validates every chapter and marks no fallback", () => {
+    const result = runEsm(`
+      import { generateAstrologyPremiumReport } from "./worker/lib/pdf-v2/astrology/generate-astrology-premium-report.js";
+      ${mockArticleSource()}
+      let callCount = 0;
+      const env = { AI: { run: async (_model, request) => {
+        callCount += 1;
+        return { response: buildMockArticle(request.messages[1].content) };
+      } } };
+      const generated = await generateAstrologyPremiumReport({
+        userId: "user-1",
+        jobId: "astro-test-job",
+        env,
+        input: { localAstroChartJson: ${fixtureLiteral()} }
+      });
+      console.log(JSON.stringify({
+        chapterCount: generated.chapterCount,
+        chapters: generated.chapters.length,
+        manuscriptSource: generated.manuscriptSource,
+        llmEnabled: generated.llmAssembly.enabled,
+        fallbackUsed: generated.llmAssembly.fallbackUsed,
+        callCount
+      }));
+    `);
+    expect(result.chapterCount).toBe(15);
+    expect(result.chapters).toBe(15);
+    expect(result.manuscriptSource).toBe("astrology-premium-llm-only");
+    expect(result.llmEnabled).toBe(true);
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.callCount).toBe(15);
+  });
+
+  test("LLM repair stores only validated chapter HTML and later reuses cache", () => {
+    const result = runEsm(`
+      import { generateAstrologyPremiumReport } from "./worker/lib/pdf-v2/astrology/generate-astrology-premium-report.js";
+      ${mockArticleSource()}
+      const attemptsByChapter = new Map();
+      let callCount = 0;
+      const env = { AI: { run: async (_model, request) => {
+        callCount += 1;
+        const prompt = request.messages[1].content;
+        const chapterId = (prompt.match(/<article data-chapter-id="([^"]+)"/) || [])[1] || "unknown";
+        const seen = attemptsByChapter.get(chapterId) || 0;
+        attemptsByChapter.set(chapterId, seen + 1);
+        if (seen === 0) {
+          return { response: JSON.stringify({ chapterId, html: "invalid local fallback payload" }) };
+        }
+        return { response: buildMockArticle(prompt) };
+      } } };
+      const first = await generateAstrologyPremiumReport({
+        userId: "user-1",
+        jobId: "astro-repair-job",
+        env,
+        input: { localAstroChartJson: ${fixtureLiteral()} }
+      });
+      const afterFirst = callCount;
+      const second = await generateAstrologyPremiumReport({
+        userId: "user-1",
+        jobId: "astro-cache-job",
+        env,
+        input: { localAstroChartJson: ${fixtureLiteral()} }
+      });
+      console.log(JSON.stringify({
+        firstChapters: first.chapters.length,
+        secondChapters: second.chapters.length,
+        firstSources: first.chapters.map((chapter) => chapter.source),
+        secondSources: second.chapters.map((chapter) => chapter.source),
+        afterFirst,
+        afterSecond: callCount,
+        repairedChapters: Array.from(attemptsByChapter.values()).filter((count) => count === 2).length,
+        fallbackUsed: first.llmAssembly.fallbackUsed || second.llmAssembly.fallbackUsed
+      }));
+    `);
+    expect(result.firstChapters).toBe(15);
+    expect(result.secondChapters).toBe(15);
+    expect(result.firstSources.every((source) => source === "llm")).toBe(true);
+    expect(result.secondSources.every((source) => source === "llm-cache")).toBe(true);
+    expect(result.afterFirst).toBe(30);
+    expect(result.afterSecond).toBe(30);
+    expect(result.repairedChapters).toBe(15);
+    expect(result.fallbackUsed).toBe(false);
+  });
+
+  test("LLM provider failure does not fall back to local manuscript assembly", () => {
+    const result = runEsm(`
+      import { generateAstrologyPremiumReport } from "./worker/lib/pdf-v2/astrology/generate-astrology-premium-report.js";
+      let callCount = 0;
+      const env = {
+        ASTROLOGY_PREMIUM_LLM_PROVIDERS: "workers-ai",
+        ASTROLOGY_PREMIUM_DISABLE_GEMINI_FALLBACK: "true",
+        AI: { run: async () => {
+          callCount += 1;
+          return { response: "" };
+        } }
+      };
+      try {
+        await generateAstrologyPremiumReport({
+          userId: "user-1",
+          jobId: "astro-no-fallback-job",
+          env,
+          input: { localAstroChartJson: ${fixtureLiteral()} }
+        });
+        console.log(JSON.stringify({ ok: true, callCount }));
+      } catch (error) {
+        console.log(JSON.stringify({
+          ok: false,
+          code: error.code,
+          message: error.message,
+          failedChapterCount: error.failedChapters?.length || 0,
+          callCount
+        }));
+      }
+    `);
+    expect(result.ok).toBe(false);
+    expect(result.code).toBe("ASTROLOGY_PREMIUM_CHAPTER_GENERATION_FAILED");
+    expect(result.failedChapterCount).toBe(1);
+    expect(result.callCount).toBeGreaterThanOrEqual(1);
+  });
+
+  test("PDF job returns archive download URL and LLM-only completion evidence", () => {
+    const result = runEsm(`
+      import { generateAstrologyPremiumPdfV2 } from "./worker/lib/pdf-v2/astrology/create-astrology-premium-pdf-job.js";
+      ${mockArticleSource()}
+      const env = { AI: { run: async (_model, request) => ({ response: buildMockArticle(request.messages[1].content) }) } };
+      const generated = await generateAstrologyPremiumPdfV2({
+        userId: "user-1",
+        env,
+        input: { localAstroChartJson: ${fixtureLiteral()} },
+        requestUrl: "https://example.test/api/astro/premium/prepare",
+        reportId: "astro-report-test",
+        sessionId: "astro-session-test",
+        paymentContext: { reportId: "astro-report-test", sessionId: "astro-session-test" }
+      });
+      console.log(JSON.stringify({
+        ok: generated.ok,
+        status: generated.status,
+        downloadUrl: generated.downloadUrl,
+        llmOnly: generated.pdfReady.llmAssemblyOnly,
+        completionOk: generated.pdfCompletionValidation.ok,
+        hasPlanetTable: generated.pdfReady.html.includes("astro-planet-table"),
+        hasHouseTable: generated.pdfReady.html.includes("astro-house-table"),
+        hasAspectTable: generated.pdfReady.html.includes("astro-aspect-table"),
+        hasBalanceBars: generated.pdfReady.html.includes("astro-balance-bars"),
+        hasTransitTimeline: generated.pdfReady.html.includes("astro-transit-timeline")
+      }));
+    `);
+    expect(result.ok).toBe(true);
+    expect(result.status).toBe("completed");
+    expect(result.downloadUrl).toBe("https://example.test/api/premium/pdf-archive/astro-report-test?format=pdf");
+    expect(result.llmOnly).toBe(true);
+    expect(result.completionOk).toBe(true);
+    expect(result.hasPlanetTable).toBe(true);
+    expect(result.hasHouseTable).toBe(true);
+    expect(result.hasAspectTable).toBe(true);
+    expect(result.hasBalanceBars).toBe(true);
+    expect(result.hasTransitTimeline).toBe(true);
   });
 });

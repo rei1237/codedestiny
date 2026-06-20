@@ -11,6 +11,7 @@ const GEMINI_KEY_TTL_OK_MS = 10 * 60 * 1000;
 const GEMINI_KEY_TTL_RATE_LIMIT_MS = 45 * 1000;
 const GEMINI_KEY_TTL_INVALID_MS = 60 * 60 * 1000;
 const GEMINIF_PRIMARY_KEY_ENV_KEYS = Object.freeze([
+  "GEMINIF_API_KEY0",
   "GEMINIF_API_KEY1",
   "GEMINIF_API_KEY2",
   "GEMINIF_API_KEY3",
@@ -33,6 +34,10 @@ function isUsable(value) {
   if (normalized.includes("your_")) return false;
   if (normalized.includes("example")) return false;
   return true;
+}
+
+function isGeminiRestApiKey(value) {
+  return /^AIza[0-9A-Za-z_-]{20,}$/.test(clean(value));
 }
 
 function unique(values) {
@@ -59,11 +64,13 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
     getEnv(env, "ZIWEI_GEMINI_API_KEY4"),
     getEnv(env, "ZIWEI_GEMINI_API_KEY5"),
     getEnv(env, "ZIWEI_GEMINI_API_KEY"),
+    getEnv(env, "PREMIUM_GEMINI_API_KEY0"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY1"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY2"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY3"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY4"),
     getEnv(env, "PREMIUM_GEMINI_API_KEY5"),
+    getEnv(env, "GEMINIF_API_KEY0"),
     getEnv(env, "GEMINIF_API_KEY1"),
     getEnv(env, "GEMINIF_API_KEY2"),
     getEnv(env, "GEMINIF_API_KEY3"),
@@ -77,7 +84,7 @@ export function pickGeminiKeys(env, preferredEnvKeys = []) {
     getEnv(env, "GOOGLE_GENERATIVE_AI_API_KEY"),
     getEnv(env, "GOOGLE_AI_API_KEY"),
     getEnv(env, "GOOGLE_API_KEY"),
-  ].filter(isUsable));
+  ].filter((value) => isUsable(value) && isGeminiRestApiKey(value)));
 }
 
 export function pickGeminiModels(env, preferredEnvKeys = []) {
@@ -579,6 +586,125 @@ function computeRetryDelayMs(attempt, response, message = "") {
   return base + bonus + jitter;
 }
 
+const GEMINI_QUOTA_RETRY_DELAYS_MS = Object.freeze([1000, 2000, 4000]);
+
+function isQuotaExceededStatus(status) {
+  return Number(status) === 429;
+}
+
+function computeQuotaBackoffDelayMs(retryIndex) {
+  const base = GEMINI_QUOTA_RETRY_DELAYS_MS[Math.max(0, Math.min(Number(retryIndex) || 0, GEMINI_QUOTA_RETRY_DELAYS_MS.length - 1))];
+  return base + Math.floor(Math.random() * 250);
+}
+
+function extractWorkersAiText(result) {
+  if (!result) return "";
+  if (typeof result === "string") return clean(result);
+  const candidates = [
+    result.response,
+    result.text,
+    result.content,
+    result.result?.response,
+    result.result?.text,
+    result.result?.content,
+    result.output_text,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && clean(candidate)) return clean(candidate);
+  }
+  if (Array.isArray(result.content)) {
+    return result.content.map((part) => clean(part?.text || part)).filter(Boolean).join("\n").trim();
+  }
+  return "";
+}
+
+function pickWorkersAiTextModel(env, options = {}) {
+  return clean(
+    options.workersAiModel
+      || getEnv(env, "GEMINI_TEXT_WORKERS_AI_MODEL")
+      || getEnv(env, "AI_TEXT_WORKERS_AI_MODEL")
+      || getEnv(env, "WORKERS_AI_MODEL")
+      || getEnv(env, "SUKYO_PREMIUM_WORKERS_AI_MODEL")
+      || "@cf/meta/llama-3.1-8b-instruct",
+  );
+}
+
+function isWorkersAiPrimaryEnabled(env, options = {}) {
+  if (options.disableWorkersAiPrimary === true) return false;
+  const raw = clean(options.workersAiPrimary ?? getEnv(env, "GEMINI_TEXT_WORKERS_AI_PRIMARY") ?? getEnv(env, "AI_TEXT_WORKERS_AI_PRIMARY")) || "true";
+  return isTrueLike(raw) && typeof env?.AI?.run === "function";
+}
+
+function isWorkersAiRetriableError(error) {
+  const message = clean(error?.message || error).toLowerCase();
+  if (!message) return true;
+  return /timeout|timed out|temporar|overload|rate|429|500|502|503|504/.test(message);
+}
+
+function withPromiseTimeout(promise, timeoutMs, message) {
+  const ms = Number(timeoutMs);
+  if (!Number.isFinite(ms) || ms <= 0) return promise;
+  let timer = null;
+  return Promise.race([
+    promise.finally(() => {
+      if (timer) clearTimeout(timer);
+    }),
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message || "request_timeout")), ms);
+    }),
+  ]);
+}
+
+async function callWorkersAiTextPrimary(env, prompt, options = {}) {
+  const textPrompt = clean(prompt);
+  if (!textPrompt) return { ok: false, error: "empty_prompt", message: "Workers AI prompt is empty." };
+  if (typeof env?.AI?.run !== "function") {
+    return { ok: false, error: "workers_ai_not_configured", message: "Workers AI binding is not configured." };
+  }
+
+  const model = pickWorkersAiTextModel(env, options);
+  const maxAttempts = Math.max(1, Math.min(3, Number(options.workersAiRetries || getEnv(env, "GEMINI_TEXT_WORKERS_AI_RETRIES") || getEnv(env, "AI_TEXT_WORKERS_AI_RETRIES") || 2)));
+  const timeoutMs = Number(options.workersAiTimeoutMs || options.timeoutMs || getEnv(env, "GEMINI_TEXT_WORKERS_AI_TIMEOUT_MS") || getEnv(env, "AI_TEXT_WORKERS_AI_TIMEOUT_MS") || 30000);
+  let lastError = "";
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const result = await withPromiseTimeout(
+        env.AI.run(model, {
+          messages: [
+            ...(options.systemPrompt ? [{ role: "system", content: clean(options.systemPrompt) }] : []),
+            { role: "user", content: textPrompt },
+          ],
+          temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86,
+          top_p: Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95,
+          max_tokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
+        }),
+        timeoutMs,
+        "workers_ai_timeout",
+      );
+      const text = extractWorkersAiText(result);
+      if (text) return { ok: true, text, model, provider: "workers-ai", usage: result?.usage || null };
+      lastError = "Workers AI returned an empty response.";
+    } catch (error) {
+      lastError = clean(error?.message || String(error));
+      if (attempt < maxAttempts && isWorkersAiRetriableError(error)) {
+        await sleep(computeRetryDelayMs(attempt, null, lastError));
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  return {
+    ok: false,
+    error: "workers_ai_exhausted",
+    message: lastError || "Workers AI request failed.",
+    model,
+    provider: "workers-ai",
+  };
+}
+
 function canUseNodeSdk() {
   return typeof process !== "undefined" && Boolean(process?.versions?.node);
 }
@@ -605,10 +731,12 @@ async function callGeminiTextViaSdk(env, prompt, options = {}) {
   const models = Array.isArray(options.models) && options.models.length
     ? unique(options.models.map((item) => clean(item)).filter(Boolean))
     : pickGeminiModels(env, options.modelEnvKeys || []);
-  const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
+  const maxAttemptsPerPair = 1 + GEMINI_QUOTA_RETRY_DELAYS_MS.length;
   let lastError = "";
   let lastStatus = null;
+  let quotaRetryCount = 0;
 
+  sdkOuter:
   for (const model of models) {
     for (const key of keys) {
       for (let attempt = 1; attempt <= maxAttemptsPerPair; attempt += 1) {
@@ -642,9 +770,14 @@ async function callGeminiTextViaSdk(env, prompt, options = {}) {
           lastStatus = Number(error?.status || error?.code || 0) || null;
         }
 
-        if (attempt < maxAttemptsPerPair) {
-          await sleep(computeRetryDelayMs(attempt, null, lastError));
+        if (isQuotaExceededStatus(lastStatus) && quotaRetryCount < GEMINI_QUOTA_RETRY_DELAYS_MS.length) {
+          // 429 quota errors are retried only three times with 1s, 2s, 4s backoff plus jitter.
+          await sleep(computeQuotaBackoffDelayMs(quotaRetryCount));
+          quotaRetryCount += 1;
+          continue;
         }
+        if (isQuotaExceededStatus(lastStatus)) break sdkOuter;
+        break;
       }
     }
   }
@@ -653,7 +786,9 @@ async function callGeminiTextViaSdk(env, prompt, options = {}) {
     ok: false,
     error: "gemini_sdk_exhausted",
     status: lastStatus,
-    message: lastError || "Gemini SDK request failed for all configured models and keys.",
+    message: isQuotaExceededStatus(lastStatus)
+      ? "AI 생성 요청 한도가 일시적으로 초과되었습니다. 잠시 후 다시 시도해 주세요."
+      : (lastError || "Gemini SDK request failed for all configured models and keys."),
   };
 }
 
@@ -673,6 +808,7 @@ export async function callGeminiText(env, prompt, options = {}) {
   const totalTimeoutMs = Number.isFinite(totalTimeoutMsRaw) && totalTimeoutMsRaw > 0
     ? Math.max(1000, totalTimeoutMsRaw)
     : 0;
+  const workersAiOnly = isTrueLike(options.workersAiOnly ?? getEnv(env, "GEMINI_TEXT_WORKERS_AI_ONLY") ?? getEnv(env, "AI_TEXT_WORKERS_AI_ONLY") ?? false);
   const startedAt = Date.now();
   const deadlineAt = totalTimeoutMs > 0 ? startedAt + totalTimeoutMs : 0;
 
@@ -692,6 +828,41 @@ export async function callGeminiText(env, prompt, options = {}) {
     const budgetMs = Math.max(250, Math.floor(remaining - 120));
     if (!configuredMs) return budgetMs;
     return Math.max(250, Math.min(configuredMs, budgetMs));
+  }
+
+  if (isWorkersAiPrimaryEnabled(env, options)) {
+    const workersAiAttemptTimeoutMs = computeAttemptTimeoutMs();
+    if (workersAiAttemptTimeoutMs !== 0) {
+      const workersAiResult = await callWorkersAiTextPrimary(env, textPrompt, {
+        ...options,
+        timeoutMs: workersAiAttemptTimeoutMs > 0 ? workersAiAttemptTimeoutMs : options.timeoutMs,
+      });
+      if (workersAiResult?.ok && clean(workersAiResult.text)) {
+        return {
+          ok: true,
+          text: clean(workersAiResult.text),
+          model: clean(workersAiResult.model) || "workers-ai",
+          provider: "workers-ai",
+        };
+      }
+      if (workersAiOnly) {
+        return {
+          ok: false,
+          error: clean(workersAiResult?.error || "workers_ai_exhausted") || "workers_ai_exhausted",
+          message: clean(workersAiResult?.message || "Workers AI request failed."),
+          model: clean(workersAiResult?.model || ""),
+          provider: "workers-ai",
+        };
+      }
+    }
+  } else if (workersAiOnly) {
+    return {
+      ok: false,
+      error: "workers_ai_not_configured",
+      message: "Workers AI binding is not configured.",
+      model: pickWorkersAiTextModel(env, options),
+      provider: "workers-ai",
+    };
   }
 
   async function tryVertexFirst() {
@@ -812,9 +983,10 @@ export async function callGeminiText(env, prompt, options = {}) {
     generationConfig.presencePenalty = Number(options.presencePenalty);
   }
 
-  const maxAttemptsPerPair = Math.max(1, Math.min(5, Number(options.maxAttemptsPerPair) || 2));
+  const maxAttemptsPerPair = 1 + GEMINI_QUOTA_RETRY_DELAYS_MS.length;
   let lastError = "";
   let lastStatus = null;
+  let quotaRetryCount = 0;
 
   outer:
   for (const model of models) {
@@ -847,20 +1019,22 @@ export async function callGeminiText(env, prompt, options = {}) {
               break;
             }
             if (response.status === 429) {
+              if (quotaRetryCount < GEMINI_QUOTA_RETRY_DELAYS_MS.length) {
+                const delayMs = computeQuotaBackoffDelayMs(quotaRetryCount);
+                if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
+                  lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
+                  break outer;
+                }
+                // 429 quota errors are retried only three times with 1s, 2s, 4s backoff plus jitter.
+                await sleep(delayMs);
+                quotaRetryCount += 1;
+                continue;
+              }
               writeGeminiKeyCache(key, "rate_limited", GEMINI_KEY_TTL_RATE_LIMIT_MS, lastError);
-              break;
+              break outer;
             }
             if (response.status === 400) {
               break outer;
-            }
-            if (attempt < maxAttemptsPerPair && (isRetriableStatus(response.status) || isRetriableErrorMessage(lastError))) {
-              const delayMs = computeRetryDelayMs(attempt, response, lastError);
-              if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
-                lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
-                break outer;
-              }
-              await sleep(delayMs);
-              continue;
             }
             break;
           }
@@ -872,28 +1046,22 @@ export async function callGeminiText(env, prompt, options = {}) {
           }
 
           lastError = "Gemini returned an empty response.";
-          if (attempt < maxAttemptsPerPair) {
-            const delayMs = computeRetryDelayMs(attempt, null, lastError);
-            if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
-              lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
-              break outer;
-            }
-            await sleep(delayMs);
-            continue;
-          }
           break;
         } catch (error) {
           lastError = error?.message || String(error);
           lastStatus = Number(error?.status || error?.code || 0) || null;
-          if (attempt < maxAttemptsPerPair && isRetriableErrorMessage(lastError)) {
-            const delayMs = computeRetryDelayMs(attempt, null, lastError);
+          if (isQuotaExceededStatus(lastStatus) && quotaRetryCount < GEMINI_QUOTA_RETRY_DELAYS_MS.length) {
+            const delayMs = computeQuotaBackoffDelayMs(quotaRetryCount);
             if (deadlineAt && (remainingBudgetMs() - delayMs) <= 150) {
               lastError = `Gemini total timeout exceeded (${totalTimeoutMs}ms).`;
               break outer;
             }
+            // 429 quota errors are retried only three times with 1s, 2s, 4s backoff plus jitter.
             await sleep(delayMs);
+            quotaRetryCount += 1;
             continue;
           }
+          if (isQuotaExceededStatus(lastStatus)) break outer;
           break;
         }
       }
@@ -913,7 +1081,9 @@ export async function callGeminiText(env, prompt, options = {}) {
       ok: false,
       error: "gemini_exhausted",
       status: lastStatus,
-      message: `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
+      message: isQuotaExceededStatus(lastStatus)
+        ? `AI 생성 요청 한도가 일시적으로 초과되었습니다. 잠시 후 다시 시도해 주세요. (keyPool=${keyPoolSize})`
+        : `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
     };
   }
 
@@ -942,6 +1112,8 @@ export async function callGeminiText(env, prompt, options = {}) {
     ok: false,
     error: "gemini_exhausted",
     status: lastStatus,
-    message: `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
+    message: isQuotaExceededStatus(lastStatus)
+      ? `AI 생성 요청 한도가 일시적으로 초과되었습니다. 잠시 후 다시 시도해 주세요. (keyPool=${keyPoolSize})`
+      : `${lastError || "Gemini request failed for all configured keys and models."} (keyPool=${keyPoolSize})`,
   };
 }

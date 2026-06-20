@@ -12,7 +12,7 @@
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
-  var VEDIC_LOCAL_MANUSCRIPT_SOURCE = 'local-assembled';
+  var VEDIC_LLM_MANUSCRIPT_SOURCE = 'vedic-premium-llm-only';
   var VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION = 'vedic-premium-client-evidence.v1';
   var VEDIC_STATUS_MAX_ATTEMPTS = 150;
   var VEDIC_STATUS_POLL_MS = 4000;
@@ -861,17 +861,17 @@
       || ready.downloadUrl
     );
     var manuscriptSource = _clean(payload.manuscriptSource || ready.manuscriptSource).toLowerCase();
-    var localAssembly = payload.localAssembly && typeof payload.localAssembly === 'object'
-      ? payload.localAssembly
-      : (ready.localAssembly && typeof ready.localAssembly === 'object' ? ready.localAssembly : {});
-    var localContractOk = manuscriptSource === VEDIC_LOCAL_MANUSCRIPT_SOURCE
-      && localAssembly.enabled === true
-      && localAssembly.externalGeneration === false
-      && localAssembly.externalCallsAllowed === false
-      && Number(localAssembly.chapterCount || 0) >= total
-      && Number(localAssembly.expectedChapterCount || 0) === total
-      && _clean(localAssembly.templateVersion) === 'vedic-premium-local-assembled-v2';
-    return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed') && localContractOk;
+    var llmAssembly = payload.llmAssembly && typeof payload.llmAssembly === 'object'
+      ? payload.llmAssembly
+      : (ready.llmAssembly && typeof ready.llmAssembly === 'object' ? ready.llmAssembly : {});
+    var llmContractOk = (manuscriptSource === VEDIC_LLM_MANUSCRIPT_SOURCE || payload.llmAssemblyOnly === true || ready.llmAssemblyOnly === true)
+      && llmAssembly.enabled === true
+      && llmAssembly.externalGeneration === true
+      && llmAssembly.externalCallsAllowed !== false
+      && llmAssembly.fallbackUsed !== true
+      && Number(llmAssembly.chapterCount || payload.chapterCount || ready.chapterCount || 0) >= total
+      && Number(llmAssembly.expectedChapterCount || payload.expectedChapterCount || ready.expectedChapterCount || 0) === total;
+    return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed') && llmContractOk;
   }
 
   function _isRunningReport(response) {
@@ -1162,10 +1162,18 @@
         sectionEl.className = 'lb-chapter-card';
         var html = '<h4 class="lb-chapter-title">제' + chapterNo + '장 ' + heading + '</h4>';
         html = '<h4 class="lb-chapter-title">제' + chapterNo + '장 ' + _escapeHtml(heading) + '</h4>';
-        var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
+        var categories = Array.isArray(chapter.categories) && chapter.categories.length
+          ? chapter.categories
+          : (Array.isArray(chapter.sections) ? chapter.sections.map(function (section) {
+            return {
+              title: section && (section.title || section.heading),
+              body: section && section.body,
+              text: section && section.text
+            };
+          }) : []);
         for (var categoryIndex = 0; categoryIndex < categories.length; categoryIndex += 1) {
           var category = categories[categoryIndex] || {};
-          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _escapeHtml(_sanitizeText(category.title || ('세부 카테고리 ' + (categoryIndex + 1)))) + '</h5><div class="lb-sub-body vd-section-body">' + _renderVedicSectionBody(category.text || category.localSummary || category.body || '') + '</div></article>';
+          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _escapeHtml(_sanitizeText(category.title || category.heading || ('세부 카테고리 ' + (categoryIndex + 1)))) + '</h5><div class="lb-sub-body vd-section-body">' + _renderVedicSectionBody(category.text || category.localSummary || category.body || '') + '</div></article>';
         }
         sectionEl.innerHTML = html;
         content.appendChild(sectionEl);
@@ -1454,7 +1462,7 @@
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {
             chapterCount: Number(data && data.chapterCount || 0),
-            localAssembly: Boolean(data && data.localAssembly && data.localAssembly.enabled === true),
+            llmAssembly: Boolean(data && data.llmAssembly && data.llmAssembly.enabled === true),
           });
           _logStage('PdfRequestStart', {
             chapterCount: Number(data && data.chapterCount || 0),
@@ -1489,7 +1497,7 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
         _renderResult(_chapters, response.payload || response.localVedicChartJson || {}, response);
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: Boolean(response.localAssembly && response.localAssembly.enabled === true) });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, llmAssembly: Boolean(response.llmAssembly && response.llmAssembly.enabled === true) });
 
         _showScreen('vdResultScreen');
       })

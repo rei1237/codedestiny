@@ -558,30 +558,37 @@
     var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
-    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLocalReady(payload, total);
+    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLlmOnlyReady(payload, total);
   }
 
-  function _hasAstroLocalReady(payload, totalOverride) {
+  function _hasAstroLlmOnlyReady(payload, totalOverride) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
-    var localDraftChapterCount = Number(p.localDraftChapterCount || ready.localDraftChapterCount || 0);
-    var localAssembly = p.localAssembly && typeof p.localAssembly === 'object'
-      ? p.localAssembly
-      : (ready.localAssembly && typeof ready.localAssembly === 'object' ? ready.localAssembly : {});
+    var llmAssembly = p.llmAssembly && typeof p.llmAssembly === 'object'
+      ? p.llmAssembly
+      : (ready.llmAssembly && typeof ready.llmAssembly === 'object' ? ready.llmAssembly : {});
     var quality = p.quality && typeof p.quality === 'object' ? p.quality : {};
     var pdfQuality = p.pdfQuality && typeof p.pdfQuality === 'object' ? p.pdfQuality : {};
     var validation = p.validation && typeof p.validation === 'object' ? p.validation : {};
-    var source = _clean(p.manuscriptSource || ready.manuscriptSource || quality.manuscriptSource).toLowerCase();
-    var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
-    return source === 'local-assembled'
-      && localDraftChapterCount === total
+    var completion = p.pdfCompletionValidation && typeof p.pdfCompletionValidation === 'object'
+      ? p.pdfCompletionValidation
+      : (ready.pdfCompletionValidation && typeof ready.pdfCompletionValidation === 'object' ? ready.pdfCompletionValidation : {});
+    var source = _clean(p.manuscriptSource || ready.manuscriptSource || quality.manuscriptSource || llmAssembly.source).toLowerCase();
+    var llmDraftChapterCount = Number(p.llmDraftChapterCount || ready.llmDraftChapterCount || llmAssembly.chapterCount || p.chapterCount || ready.chapterCount || 0);
+    var expectedChapterCount = Number(p.expectedChapterCount || ready.expectedChapterCount || llmAssembly.expectedChapterCount || total);
+    var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false && completion.ok !== false;
+    var sourceOk = source === 'astrology-premium-llm-only' || p.llmAssemblyOnly === true || ready.llmAssemblyOnly === true;
+    return sourceOk
+      && llmDraftChapterCount === total
+      && expectedChapterCount === total
       && qualityOk
-      && localAssembly.enabled === true
-      && localAssembly.externalGeneration === false
-      && Number(localAssembly.chapterCount || 0) === total
-      && Number(localAssembly.expectedChapterCount || 0) === total
-      && _clean(localAssembly.templateVersion);
+      && llmAssembly.enabled === true
+      && llmAssembly.externalGeneration === true
+      && llmAssembly.fallbackUsed !== true
+      && Number(llmAssembly.chapterCount || 0) === total
+      && Number(llmAssembly.expectedChapterCount || 0) === total
+      && _clean(llmAssembly.promptVersion || p.generationMode || ready.manuscriptSource);
   }
 
   function _setStartBusy(isBusy) {
@@ -1417,7 +1424,7 @@
     var data = _statusData(statusPayload);
     var progress = data.progress && typeof data.progress === 'object' ? data.progress : {};
     var total = Number(progress.totalChapters || data.chapterCount || ASTRO_TOTAL_CHAPTERS || 12);
-    var current = Number(progress.currentChapterNo || data.localAssembly && data.localAssembly.chapterCount || 0);
+    var current = Number(progress.currentChapterNo || data.llmAssembly && data.llmAssembly.chapterCount || 0);
     var state = _clean(progress.stateKey || data.status);
     if (Number.isFinite(total) && total > 0) ASTRO_TOTAL_CHAPTERS = Math.trunc(total);
     _setLoadingProgress(
@@ -1797,7 +1804,7 @@
       .then(function (response) {
         if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
-        if (response && !_hasAstroLocalReady(response, total)) {
+        if (response && !_hasAstroLlmOnlyReady(response, total)) {
           throw new Error('점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
         if (!_isCompletedReportReady(response)) {
@@ -1814,7 +1821,7 @@
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
         _renderResult(_chapters, response.payload || {});
         _setLoadingProgress(total, total, '완료', true);
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: response.localAssembly || null });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, llmAssembly: response.llmAssembly || null });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {
