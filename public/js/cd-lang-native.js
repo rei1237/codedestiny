@@ -58,7 +58,18 @@
     return normalizeLang(parsed);
   }
 
+  function getUrlLang() {
+    try {
+      var params = new URLSearchParams(window.location.search || '');
+      var lang = params.get('lang');
+      return lang ? normalizeLang(lang) : '';
+    } catch (_) {}
+    return '';
+  }
+
   function getSavedLang() {
+    var urlLang = getUrlLang();
+    if (urlLang) return urlLang;
     try {
       var stored = localStorage.getItem('cd_lang');
       if (stored) return normalizeLang(stored);
@@ -261,6 +272,7 @@
     if (applying) return;
     applying = true;
     setSavedLang(lang);
+    writeCookie('cd_locale_ack', '1', 315360000);
     updateLanguageUi(lang);
     closeLanguageMenu();
     applyGoogleTranslate(lang);
@@ -280,7 +292,9 @@
     }
     markNativeNodes();
     var lang = getSavedLang();
+    if (getUrlLang()) setSavedLang(lang);
     updateLanguageUi(lang);
+    if (lang !== 'ko') applyGoogleTranslate(lang);
     applyNativeTranslations(lang);
     if (!window.__cdNativeLangClickBound) {
       window.__cdNativeLangClickBound = true;

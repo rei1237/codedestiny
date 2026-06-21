@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "페이지를 찾지 못했습니다",
-  description: "요청한 페이지를 찾지 못했습니다. Code Destiny의 공개 운세 가이드와 주요 서비스에서 가까운 경로를 확인할 수 있습니다.",
+  title: "페이지를 찾을 수 없습니다 | Code Destiny",
+  description: "요청한 페이지를 찾을 수 없습니다. Code Destiny의 공개 운세 가이드와 주요 서비스로 이동할 수 있습니다.",
   robots: {
     index: false,
     follow: true,
@@ -8,11 +8,28 @@ export const metadata = {
 };
 
 const quickLinks = [
-  { href: "/insights", label: "운세 인사이트 가이드" },
-  { href: "/manse", label: "무료 만세력 사주 분석" },
-  { href: "/tarot", label: "무료 타로 리딩" },
-  { href: "/today", label: "오늘의 운세 보기" },
+  { href: "/insights", label: "운세 인사이트 허브" },
+  { href: "/saju/guide", label: "사주 명리학 기본 가이드" },
+  { href: "/tarot/guide", label: "타로 리딩 입문" },
+  { href: "/faq", label: "자주 묻는 질문" },
 ];
+
+const linkStyle = {
+  border: "1px solid rgba(251,191,36,0.32)",
+  borderRadius: "14px",
+  background: "rgba(251,191,36,0.08)",
+  color: "#fde68a",
+  fontWeight: 800,
+  padding: "12px 14px",
+  textDecoration: "none",
+};
+
+const actionStyle = {
+  borderRadius: "999px",
+  fontWeight: 800,
+  padding: "10px 18px",
+  textDecoration: "none",
+};
 
 export default function NotFound() {
   return (
@@ -41,26 +58,15 @@ export default function NotFound() {
           ERROR 404
         </p>
         <h1 style={{ margin: "8px 0 10px", color: "#f8fafc", fontSize: "2.25rem", lineHeight: 1.2 }}>
-          페이지를 찾지 못했습니다
+          페이지를 찾을 수 없습니다
         </h1>
         <p style={{ margin: "0 auto", maxWidth: "520px", lineHeight: 1.7, color: "#cbd5e1" }}>
-          주소가 바뀌었거나 아직 공개되지 않은 페이지일 수 있습니다. 아래의 공개 가이드와 주요 운세 서비스에서 가까운 경로를 확인해 주세요.
+          주소가 바뀌었거나 아직 공개되지 않은 페이지일 수 있습니다. 아래 링크에서 가까운 운세 가이드와
+          인사이트를 확인해 주세요.
         </p>
         <div style={{ margin: "22px auto 0", display: "grid", gap: "10px", maxWidth: "520px" }}>
           {quickLinks.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              style={{
-                border: "1px solid rgba(251,191,36,0.32)",
-                borderRadius: "14px",
-                background: "rgba(251,191,36,0.08)",
-                color: "#fde68a",
-                fontWeight: 800,
-                padding: "12px 14px",
-                textDecoration: "none",
-              }}
-            >
+            <a key={item.href} href={item.href} style={linkStyle}>
               {item.label}
             </a>
           ))}
@@ -69,12 +75,9 @@ export default function NotFound() {
           <a
             href="/"
             style={{
-              borderRadius: "999px",
+              ...actionStyle,
               background: "#f8fafc",
               color: "#0f172a",
-              fontWeight: 800,
-              padding: "10px 18px",
-              textDecoration: "none",
             }}
           >
             홈으로 돌아가기
@@ -82,15 +85,12 @@ export default function NotFound() {
           <a
             href="/saju/basic"
             style={{
-              borderRadius: "999px",
+              ...actionStyle,
               background: "linear-gradient(135deg, #f59e0b, #d97706)",
               color: "#111827",
-              fontWeight: 800,
-              padding: "10px 18px",
-              textDecoration: "none",
             }}
           >
-            사주 기본 해석 보기
+            무료 사주 분석 보기
           </a>
         </div>
       </section>

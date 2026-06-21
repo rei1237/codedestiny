@@ -20,7 +20,17 @@ const META = {
 } as const;
 
 export function generateMetadata() {
-  return generatePageMetadata(META);
+  return {
+    ...generatePageMetadata(META),
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
+  };
 }
 
 export default function SikojenpovailuPlayPage() {

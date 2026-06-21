@@ -839,10 +839,12 @@
     var draw = byId("tarotLoveDrawStage");
     var result = byId("tarotLoveResultStage");
     var strip = byId("tarotLoveResultCardsStrip");
+    var promptPanel = byId("tarotLoveAiPromptPanel");
     if (intro) intro.classList.add("is-active");
     if (draw) draw.classList.remove("is-active");
     if (result) result.classList.remove("is-active");
     if (strip) strip.innerHTML = "";
+    if (promptPanel) promptPanel.remove();
   }
 
   function startTarotLoveReading() {
@@ -1260,8 +1262,8 @@
 
     container.innerHTML = html;
 
-    // 결과 하단의 6장 미니 카드 스트립도 함께 렌더링
     renderTarotLoveResultCardsStrip();
+    renderTarotLoveAiPromptPanel(r);
   }
 
   function renderTarotLoveResultCardsStrip() {
@@ -1311,6 +1313,72 @@
     });
   }
 
+  function compactTarotLovePromptText(value, fallback) {
+    var text = cleanRelationshipResultText(value || "");
+    if (!text) return String(fallback || "").trim();
+    return text.replace(/\s+/g, " ").trim();
+  }
+
+  function buildTarotLoveAiPromptText(reading, cards) {
+    var r = reading && typeof reading === "object" ? reading : {};
+    var finalAdvice = r.finalAdvice && typeof r.finalAdvice === "object" ? r.finalAdvice : {};
+    var cardLines = (DISPLAY_ORDER || [0, 1, 2, 3, 4, 5]).map(function (idx) {
+      var card = cards && cards[idx] ? cards[idx] : null;
+      if (!card) return "";
+      var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
+      var name = String(card.nameKr || card.name || "이름이 확인되지 않은 카드").trim();
+      var orientation = card.orientation === "reversed" ? "역방향" : "정방향";
+      return String(idx + 1) + ". " + label + ": " + name + " · " + orientation;
+    }).filter(Boolean);
+
+    return [
+      "당신은 말의 온도와 침묵의 결을 섬세하게 읽는 연애 타로 리더입니다.",
+      "아래 6장의 관계 스프레드와 이미 드러난 흐름을 바탕으로, 두 사람 사이의 감정 온도와 앞으로의 선택을 자연스럽게 읽어 주세요.",
+      "",
+      "[카드 흐름]",
+      cardLines.join("\n"),
+      "",
+      "[이미 드러난 관계의 기운]",
+      "현재 온도: " + compactTarotLovePromptText(r.overallVibe, "카드가 두 사람 사이에 남은 온도를 비춥니다."),
+      "엇갈리는 지점: " + compactTarotLovePromptText(r.deepReading, "말과 행동 사이에서 조심스럽게 확인해야 할 마음이 떠오릅니다."),
+      "현실 흐름: " + compactTarotLovePromptText(r.realityAndFuture, "가까운 선택은 서두른 결론보다 대화의 리듬을 먼저 가리킵니다."),
+      "오늘 남길 한 문장: " + compactTarotLovePromptText(finalAdvice.instantMission, "상대의 반응을 재촉하지 않고 내 마음을 차분히 건넵니다."),
+      "7일의 리듬: " + compactTarotLovePromptText(finalAdvice.nextSevenDays, "이번 7일은 결론보다 관계의 온도를 안정시키는 시간이 됩니다."),
+      "",
+      "[리딩 부탁]",
+      "두 사람의 관계 이름을 단정하기보다 지금 흐르는 감정, 망설임, 가까워질 수 있는 속도를 먼저 읽어 주세요.",
+      "상대의 마음을 확정적으로 말하지 말고, 카드가 비추는 가능성과 조심해야 할 흐름을 구분해 주세요.",
+      "마지막에는 오늘 건네기 좋은 한 문장과 앞으로 7일 동안 지키면 좋은 선택을 따뜻하게 남겨 주세요.",
+    ].join("\n");
+  }
+
+  function renderTarotLoveAiPromptPanel(reading) {
+    var strip = byId("tarotLoveResultCardsStrip");
+    if (!strip || !state.hasAccess) return;
+    var oldPanel = byId("tarotLoveAiPromptPanel");
+    if (oldPanel) oldPanel.remove();
+
+    var promptText = buildTarotLoveAiPromptText(reading, state.cards);
+    if (!promptText.trim()) return;
+
+    var panel = document.createElement("section");
+    panel.id = "tarotLoveAiPromptPanel";
+    panel.className = "tarot-love-ai-prompt-panel";
+    panel.setAttribute("data-marker", "tarot-love-ai-prompt-bottom-v20260621");
+    panel.innerHTML =
+      '<div class="tarot-love-ai-prompt-head">' +
+      '<span class="tarot-love-ai-prompt-kicker">AI Oracle Prompt</span>' +
+      '<h4 class="tarot-love-ai-prompt-title">✦ AI에게 건넬 연애운 질문문</h4>' +
+      '<p class="tarot-love-ai-prompt-lead">방금 펼친 카드와 관계의 온도를 그대로 담았습니다. 필요한 AI에게 옮기면 오늘의 연애운을 더 깊게 이어 볼 수 있습니다.</p>' +
+      '</div>' +
+      '<textarea id="tarotLoveAiPromptOutput" class="tarot-love-ai-prompt-output" readonly aria-label="우리는 무슨 사이 AI 연애운 질문문">' + escapeHtml(promptText) + '</textarea>' +
+      '<div class="tarot-love-ai-prompt-actions">' +
+      '<button type="button" class="tarot-love-ai-prompt-copy" data-action="copyTarotLoveAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
+      '<span id="tarotLoveAiPromptStatus" class="tarot-love-ai-prompt-status">결제된 관계 리딩에 포함된 질문문입니다.</span>' +
+      '</div>';
+    strip.insertAdjacentElement("afterend", panel);
+  }
+
   function escapeHtml(s) {
     if (s == null || s === "") return "";
     var div = document.createElement("div");
@@ -1350,6 +1418,42 @@
     });
 
     return out.join("");
+  }
+
+  function copyTarotLoveAiPrompt() {
+    var output = byId("tarotLoveAiPromptOutput");
+    var status = byId("tarotLoveAiPromptStatus");
+    var text = output ? String(output.value || "").trim() : "";
+    function setStatus(message, tone) {
+      if (!status) return;
+      status.textContent = message;
+      status.setAttribute("data-tone", tone || "info");
+    }
+    if (!text) {
+      setStatus("복사할 프롬프트가 아직 열리지 않았습니다.", "warn");
+      return;
+    }
+    function fallbackCopy() {
+      if (!output) return false;
+      output.focus();
+      output.select();
+      try {
+        return document.execCommand("copy");
+      } catch (e) {
+        return false;
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(function () { setStatus("프롬프트가 복사되었습니다.", "success"); })
+        .catch(function () {
+          var copied = fallbackCopy();
+          setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
+        });
+      return;
+    }
+    var copied = fallbackCopy();
+    setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
   }
 
   function shareTarotLoveResult() {
@@ -1395,4 +1499,5 @@
   window.flipTarotLoveCard = flipTarotLoveCard;
   window.showTarotLoveFinalReading = showTarotLoveFinalReading;
   window.shareTarotLoveResult = shareTarotLoveResult;
+  window.copyTarotLoveAiPrompt = copyTarotLoveAiPrompt;
 })();

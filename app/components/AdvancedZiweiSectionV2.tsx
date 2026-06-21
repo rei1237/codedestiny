@@ -11,6 +11,12 @@ import { normalizeZiweiInput } from "../_lib/normalize-ziwei-input";
 import { getZiweiDeepChapter, primeZiweiDeepRuntime } from "../_lib/ziwei-deep-runtime";
 import { validateZiweiChart } from "../_lib/validate-ziwei-chart";
 import {
+  isDestinyProfileStorageKey,
+  readCurrentDestinyProfile,
+  resolveDestinyProfileBirthParts,
+  type DestinyProfileCard,
+} from "../_lib/profile-card-storage";
+import {
   ZiweiDeepChart,
   ZiweiDeepChapter,
   ZiweiPalace,
@@ -45,105 +51,277 @@ interface FormState {
   timezone: string;
 }
 
-const RESULT_CACHE_KEY = "premium:ziwei:result:v8";
+const RESULT_CACHE_KEY = "premium:ziwei:result:v9";
 const BASIC_ZIWEI_ENTRY_URL = "/?action=openZiweiModal";
+
+type ZiweiProfileTimeSeed = {
+  birthHour: string;
+  birthMinute: string;
+  unknownHour: boolean;
+  hasProfileHour: boolean;
+};
+
+type ZiweiProfileSeed = {
+  fingerprint: string;
+  form: Partial<FormState>;
+  hasProfileHour: boolean;
+};
+
+function toProfileInt(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function normalizeZiweiProfileGender(profile: DestinyProfileCard | null): ZiweiGender {
+  return String(profile?.gender || "").trim().toUpperCase() === "M" ? "M" : "F";
+}
+
+function normalizeZiweiProfileCalendarType(profile: DestinyProfileCard | null): FormState["calendarType"] {
+  const raw = String(profile?.birth?.calType || profile?.calType || profile?.calendarType || "solar").trim().toLowerCase();
+  return raw === "lunar" ? "lunar" : "solar";
+}
+
+function isUnknownProfileTime(value: unknown): boolean {
+  return /unknown|no\s*time|none|미상|모름|불명/i.test(String(value || "").trim());
+}
+
+function parseZiweiProfileTimeText(value: unknown): { hour: number; minute: number } | null {
+  const raw = String(value || "").trim();
+  if (!raw || isUnknownProfileTime(raw)) return null;
+  const timePart = raw.includes("T")
+    ? raw.split("T")[1]
+    : raw.includes(" ")
+      ? raw.split(/\s+/).find((part) => /\d{1,2}:?\d{2}/.test(part)) || raw
+      : raw;
+  const matched = timePart.match(/(\d{1,2})\D?(\d{2})/);
+  if (!matched) return null;
+  const hour = Number(matched[1]);
+  const minute = Number(matched[2]);
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23) return null;
+  if (!Number.isFinite(minute) || minute < 0 || minute > 59) return null;
+  return { hour: Math.trunc(hour), minute: Math.trunc(minute) };
+}
+
+function resolveZiweiProfileTime(profile: DestinyProfileCard | null): ZiweiProfileTimeSeed {
+  const birth = profile?.birth || {};
+  const explicitUnknown = Boolean(profile?.timeUnknown)
+    || Boolean(profile?.birthTimeUnknown)
+    || Boolean(profile?.noBirthTime)
+    || Boolean(birth.timeUnknown)
+    || isUnknownProfileTime(profile?.birthTime);
+  if (explicitUnknown) {
+    return { birthHour: "", birthMinute: "0", unknownHour: true, hasProfileHour: false };
+  }
+
+  const hour = toProfileInt(birth.hour ?? profile?.birthHour);
+  const minute = toProfileInt(birth.minute ?? profile?.birthMinute);
+  if (hour !== null && hour >= 0 && hour <= 23) {
+    const safeMinute = minute !== null && minute >= 0 && minute <= 59 ? minute : 0;
+    return {
+      birthHour: String(hour),
+      birthMinute: String(safeMinute),
+      unknownHour: false,
+      hasProfileHour: true,
+    };
+  }
+
+  const parsed = parseZiweiProfileTimeText(profile?.birthTime || profile?.birthIso);
+  if (parsed) {
+    return {
+      birthHour: String(parsed.hour),
+      birthMinute: String(parsed.minute),
+      unknownHour: false,
+      hasProfileHour: true,
+    };
+  }
+
+  return { birthHour: "", birthMinute: "0", unknownHour: true, hasProfileHour: false };
+}
+
+function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null {
+  const profile = readCurrentDestinyProfile(eventProfile);
+  const birth = resolveDestinyProfileBirthParts(profile);
+  if (!profile || !birth) return null;
+
+  const time = resolveZiweiProfileTime(profile);
+  const gender = normalizeZiweiProfileGender(profile);
+  const calendarType = normalizeZiweiProfileCalendarType(profile);
+  const profileId = String(profile.id || profile.profileId || "").trim();
+  const name = String(profile.name || "").trim();
+  const birthDate = `${String(birth.year).padStart(4, "0")}-${pad2(birth.month)}-${pad2(birth.day)}`;
+  const birthPlace = String(profile.location?.label || profile.birthRegion || "").trim();
+  const timezone = String(profile.location?.tz || "").trim();
+
+  const form: Partial<FormState> = {
+    name,
+    birthYear: String(birth.year),
+    birthMonth: String(birth.month),
+    birthDay: String(birth.day),
+    birthHour: time.birthHour,
+    birthMinute: time.birthMinute,
+    unknownHour: time.unknownHour,
+    gender,
+    calendarType,
+  };
+
+  if (birthPlace) form.birthPlace = birthPlace;
+  if (timezone) form.timezone = timezone;
+
+  return {
+    fingerprint: [
+      profileId,
+      name,
+      birthDate,
+      time.hasProfileHour ? pad2(Number(time.birthHour)) : "",
+      time.hasProfileHour ? pad2(Number(time.birthMinute)) : "",
+      gender,
+      calendarType,
+      time.unknownHour ? "unknown" : "known",
+    ].join("|"),
+    form,
+    hasProfileHour: time.hasProfileHour,
+  };
+}
 
 function sectionTitle(sectionId: ZiweiSectionId): string {
   return ZIWEI_SECTIONS.find((s) => s.id === sectionId)?.title || sectionId;
 }
 
-const ZIWEI_COUNSELING_TRACKS = [
+type ZiweiConsultationTrackId =
+  | "life"
+  | "career"
+  | "wealth"
+  | "love"
+  | "relationships"
+  | "family"
+  | "health"
+  | "timing";
+
+interface ZiweiCounselingTrackConfig {
+  key: ZiweiConsultationTrackId;
+  title: string;
+  shortTitle: string;
+  purpose: string;
+  primaryPalaces: ZiweiPalaceId[];
+  secondaryPalaces: ZiweiPalaceId[];
+  keyQuestions: string[];
+  interpretationPriorities: string[];
+  timingFocus: string;
+  actionGuideType: string;
+  cautionRules: string[];
+}
+
+const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   {
-    key: "overview",
-    title: "타고난 본성",
-    sectionId: "overview" as ZiweiSectionId,
-    note: "명궁과 신궁이 만드는 삶의 기본 온도, 감정 반응, 자존감의 결을 먼저 읽습니다.",
-  },
-  {
-    key: "ming",
-    title: "명궁",
-    sectionId: "ming" as ZiweiSectionId,
-    note: "당신의 기본 성향, 삶의 중심축, 선택의 기준이 어디에서 시작되는지 봅니다.",
-  },
-  {
-    key: "siblings",
-    title: "형제궁",
-    sectionId: "siblings" as ZiweiSectionId,
-    note: "가까운 사람과의 거리감, 협업 결, 신뢰가 깨지기 쉬운 패턴을 확인합니다.",
-  },
-  {
-    key: "spouse",
-    title: "부부궁",
-    sectionId: "spouse" as ZiweiSectionId,
-    note: "연애와 결혼에서 반복되는 감정 패턴, 갈등 회복력, 오래 가는 관계 조건을 읽습니다.",
-  },
-  {
-    key: "children",
-    title: "자녀궁",
-    sectionId: "children" as ZiweiSectionId,
-    note: "자녀 인연뿐 아니라 창작물, 프로젝트, 결과물을 세상에 내보내는 생산력을 봅니다.",
-  },
-  {
-    key: "wealth",
-    title: "재백궁",
-    sectionId: "wealth" as ZiweiSectionId,
-    note: "돈이 들어오고 나가는 구조, 수입화 방식, 누수를 막는 재무 습관을 확인합니다.",
-  },
-  {
-    key: "health",
-    title: "질액궁",
-    sectionId: "health" as ZiweiSectionId,
-    note: "체력 소모 패턴, 번아웃 신호, 회복 루틴의 핵심 포인트를 살핍니다.",
-  },
-  {
-    key: "travel",
-    title: "천이궁",
-    sectionId: "travel" as ZiweiSectionId,
-    note: "바깥 무대에서 기회가 열리는 방식, 이동과 환경 변화에 대한 적응력을 확인합니다.",
-  },
-  {
-    key: "friends",
-    title: "노복궁",
-    sectionId: "friends" as ZiweiSectionId,
-    note: "동료, 고객, 협력자, 커뮤니티 인연에서 도움과 소모가 갈리는 기준을 봅니다.",
+    key: "life",
+    title: "종합·인생 흐름",
+    shortTitle: "종합",
+    purpose: "명궁과 신궁을 중심으로 삶의 방향, 선택 습관, 반복 패턴을 통합해서 봅니다.",
+    primaryPalaces: ["ming", "fortune", "career"],
+    secondaryPalaces: ["wealth", "travel", "spouse"],
+    keyQuestions: ["내 명반에서 가장 선명한 성향은 무엇인가?", "반복되는 선택 패턴은 어디에서 시작되는가?", "삶의 균형을 잡으려면 어떤 축을 먼저 조절해야 하는가?"],
+    interpretationPriorities: ["명궁·신궁의 기본 반응", "강한 궁과 관리 궁의 균형", "대궁·삼방사정으로 보이는 반복 패턴"],
+    timingFocus: "현재 운 데이터가 있을 때만 원국의 어떤 특징이 강화되는지 확인합니다.",
+    actionGuideType: "삶의 방향을 넓게 정리하고, 당장 고정할 생활 기준을 뽑습니다.",
+    cautionRules: ["성격을 단정하지 않고 상황별 반응으로 설명합니다.", "모든 궁을 같은 비중으로 펼치기보다 핵심 축을 먼저 보여줍니다."],
   },
   {
     key: "career",
-    title: "관록궁",
-    sectionId: "career" as ZiweiSectionId,
-    note: "직업명보다 일하는 방식, 성과가 나는 포지션, 커리어 성장 곡선을 읽습니다.",
+    title: "직업·진로",
+    shortTitle: "직업",
+    purpose: "관록궁을 중심으로 일하는 방식, 성과가 나는 역할, 소진되는 환경을 구분합니다.",
+    primaryPalaces: ["career", "ming", "wealth"],
+    secondaryPalaces: ["travel", "fortune", "friends"],
+    keyQuestions: ["어떤 방식으로 일할 때 성과가 나는가?", "조직과 독립 중 어떤 조건이 더 맞는가?", "소진을 줄이려면 어떤 업무 환경을 피해야 하는가?"],
+    interpretationPriorities: ["관록궁의 주성·사화", "명궁과 관록궁의 연결", "재백궁과 천이궁이 보여주는 성과 전환 방식"],
+    timingFocus: "대한·세운 데이터가 있으면 커리어 확장과 보수적 접근 구간을 분리합니다.",
+    actionGuideType: "역할 선택, 업무 리듬, 협업 기준을 실행 조언으로 정리합니다.",
+    cautionRules: ["직업명을 단정하지 않고 적합한 역할과 환경을 설명합니다.", "성과 욕구와 회복 리듬을 함께 봅니다."],
   },
   {
-    key: "property",
-    title: "전택궁",
-    sectionId: "property" as ZiweiSectionId,
-    note: "주거 안정, 공간 운, 장기 자산 기반을 쌓는 흐름과 타이밍을 확인합니다.",
+    key: "wealth",
+    title: "재물·사업",
+    shortTitle: "재물",
+    purpose: "재백궁을 중심으로 수입화 방식, 관리 습관, 위험 선호와 누수 패턴을 읽습니다.",
+    primaryPalaces: ["wealth", "career", "property"],
+    secondaryPalaces: ["fortune", "ming", "friends"],
+    keyQuestions: ["돈을 버는 방식은 어디에서 힘을 얻는가?", "재물의 누수는 어떤 선택 습관에서 생기는가?", "사업이나 투자 판단에서 조절할 기준은 무엇인가?"],
+    interpretationPriorities: ["재백궁의 주성·보조성", "관록궁과 재백궁의 성과 연결", "전택궁이 보여주는 장기 기반"],
+    timingFocus: "현재 운 데이터가 있을 때만 확장·보수·정비 구간을 구분합니다.",
+    actionGuideType: "수입 구조, 지출 기준, 위험 관리 문장으로 정리합니다.",
+    cautionRules: ["투자 성공이나 손실을 확정하지 않습니다.", "재물운을 감정이 아니라 관리 구조로 설명합니다."],
   },
   {
-    key: "fortune",
-    title: "복덕궁",
-    sectionId: "fortune" as ZiweiSectionId,
-    note: "내면의 안정감, 만족도, 회복 탄성을 어떻게 지켜야 하는지 상담합니다.",
+    key: "love",
+    title: "연애·배우자",
+    shortTitle: "연애",
+    purpose: "부부궁을 중심으로 끌리는 관계 유형, 애정 표현, 갈등과 회복 방식을 봅니다.",
+    primaryPalaces: ["spouse", "ming", "fortune"],
+    secondaryPalaces: ["friends", "children", "travel"],
+    keyQuestions: ["관계에서 어떤 상대와 흐름이 맞는가?", "갈등은 어떤 감정 반응에서 커지는가?", "건강한 관계를 위해 어떤 표현을 연습해야 하는가?"],
+    interpretationPriorities: ["부부궁의 주성·사화", "명궁이 관계에서 드러나는 방식", "복덕궁과 교우궁의 정서 안정"],
+    timingFocus: "시기 데이터가 있을 때만 관계 확장보다 조율이 필요한 구간을 구분합니다.",
+    actionGuideType: "관계 표현, 경계 설정, 갈등 회복 문장으로 정리합니다.",
+    cautionRules: ["이혼·결별·결혼을 확정하지 않습니다.", "상대방을 규정하지 않고 관계에서 반복되는 반응을 설명합니다."],
   },
   {
-    key: "parents",
-    title: "부모궁",
-    sectionId: "parents" as ZiweiSectionId,
-    note: "부모·상사·스승·문서 인연에서 도움과 마찰이 생기는 구조를 정리합니다.",
+    key: "relationships",
+    title: "인간관계",
+    shortTitle: "관계",
+    purpose: "교우궁과 형제궁을 중심으로 신뢰 형성, 협업, 경쟁, 경계 설정을 읽습니다.",
+    primaryPalaces: ["friends", "siblings", "travel"],
+    secondaryPalaces: ["ming", "spouse", "career"],
+    keyQuestions: ["어떤 사람과 협업이 잘 맞는가?", "관계에서 소모가 생기는 지점은 어디인가?", "경계를 세워야 할 신호는 무엇인가?"],
+    interpretationPriorities: ["교우궁의 사람운", "형제궁의 수평 관계", "천이궁의 외부 인연과 명궁의 반응"],
+    timingFocus: "운 데이터가 있으면 외부 인연 확장과 관계 정비 타이밍을 구분합니다.",
+    actionGuideType: "협업 기준, 거절 문장, 신뢰 검증 기준을 제시합니다.",
+    cautionRules: ["사람을 좋은 사람/나쁜 사람으로 나누지 않습니다.", "관계의 강점과 소모 지점을 함께 봅니다."],
   },
   {
-    key: "turning",
-    title: "운명의 전환점",
-    sectionId: "master" as ZiweiSectionId,
-    note: "대한과 사화가 크게 바뀌는 시기, 인생의 갈림길과 조심해야 할 문턱을 정리합니다.",
+    key: "family",
+    title: "가족·자녀",
+    shortTitle: "가족",
+    purpose: "부모궁, 형제궁, 자녀궁으로 가족 안의 역할과 정서적 거리, 책임 패턴을 읽습니다.",
+    primaryPalaces: ["parents", "siblings", "children"],
+    secondaryPalaces: ["property", "spouse", "fortune"],
+    keyQuestions: ["가족 안에서 반복되는 역할은 무엇인가?", "정서적 거리와 책임감은 어떻게 균형을 잡아야 하는가?", "자녀·후배·결과물과의 관계에서 무엇을 조절해야 하는가?"],
+    interpretationPriorities: ["부모궁의 윗사람·문서 인연", "형제궁의 수평 관계", "자녀궁의 생산성과 돌봄 방식"],
+    timingFocus: "운 데이터가 있으면 가족 책임이 커지는 구간과 독립성이 필요한 구간을 구분합니다.",
+    actionGuideType: "가족 대화, 책임 분담, 돌봄과 독립의 기준을 정리합니다.",
+    cautionRules: ["가족 구성원을 단정하지 않습니다.", "책임감과 경계 설정을 함께 다룹니다."],
   },
   {
-    key: "strategy",
-    title: "인생 전략 최종 조언",
-    sectionId: "master" as ZiweiSectionId,
-    note: "이 명반을 실제 삶의 선택으로 바꾸는 마지막 조언과 평생 운의 사용법을 정리합니다.",
+    key: "health",
+    title: "건강·생활 리듬",
+    shortTitle: "리듬",
+    purpose: "질액궁과 복덕궁을 중심으로 스트레스 반응, 소진 신호, 회복 루틴을 봅니다.",
+    primaryPalaces: ["health", "fortune", "ming"],
+    secondaryPalaces: ["travel", "career", "property"],
+    keyQuestions: ["어떤 상황에서 에너지가 빨리 소모되는가?", "회복을 위해 먼저 고정할 루틴은 무엇인가?", "생활 리듬을 흔드는 반복 패턴은 어디에서 오는가?"],
+    interpretationPriorities: ["질액궁의 생활 리듬", "복덕궁의 회복 방식", "명궁·신궁의 스트레스 반응"],
+    timingFocus: "운 데이터가 있으면 과로를 줄이고 회복을 우선할 구간을 구분합니다.",
+    actionGuideType: "수면·일정·감정 반응을 점검하는 생활 조언으로 정리합니다.",
+    cautionRules: ["의학적 진단처럼 말하지 않습니다.", "필요한 경우 전문가 상담을 권합니다."],
   },
-] as const;
+  {
+    key: "timing",
+    title: "대운·세운·시기",
+    shortTitle: "시기",
+    purpose: "원국과 제공된 운한 데이터를 대조해 지금 집중할 일과 보수적으로 접근할 일을 구분합니다.",
+    primaryPalaces: ["ming", "career", "wealth"],
+    secondaryPalaces: ["fortune", "travel", "health"],
+    keyQuestions: ["지금 원국의 어떤 특징이 강화되는가?", "확장하기 좋은 분야와 조심할 분야는 무엇인가?", "현재 운 데이터가 제한될 때 무엇까지 말할 수 있는가?"],
+    interpretationPriorities: ["annualFlow가 제공하는 핵심 궁", "majorPeriods에 기록된 대한 구간", "원국의 강한 궁과 관리 궁"],
+    timingFocus: "운한 데이터가 없으면 현재 시기 단정 없이 원국 기준의 선택 우선순위만 제시합니다.",
+    actionGuideType: "기회, 부담, 선택 기준, 주의 행동을 분리합니다.",
+    cautionRules: ["현재 연도나 특정 사건을 임의로 예측하지 않습니다.", "데이터가 없으면 확인 불가로 표시합니다."],
+  },
+];
 
 const ZIWEI_STRENGTH_COPY: Record<string, string> = {
   "◎": "별의 힘이 가장 찬란하게 살아나는 상태",
@@ -153,22 +331,102 @@ const ZIWEI_STRENGTH_COPY: Record<string, string> = {
   X: "별의 에너지가 눌리거나 왜곡되기 쉬운 상태",
 };
 
-const TRACK_ICON_MAP: Partial<Record<ZiweiSectionId, string>> = {
-  overview: "總",
-  ming: "命",
-  siblings: "兄",
-  spouse: "夫",
-  children: "子",
-  wealth: "財",
-  health: "疾",
-  travel: "遷",
-  friends: "僕",
+const COUNSELING_TRACK_ICON_MAP: Record<ZiweiConsultationTrackId, string> = {
+  life: "總",
   career: "官",
-  property: "田",
-  fortune: "福",
-  parents: "父",
-  master: "限",
+  wealth: "財",
+  love: "緣",
+  relationships: "朋",
+  family: "家",
+  health: "息",
+  timing: "限",
 };
+
+interface ZiweiPalaceCounselingItem {
+  palace: ZiweiPalace;
+  energy: number;
+  keywords: string[];
+  starMechanics: string;
+  brightness: string;
+  assists: string;
+  malefics: string;
+  transformations: string[];
+  isBorrowed: boolean;
+  reality: string;
+  strengths: string;
+  cautions: string;
+  advice: string;
+  prescription: string;
+  definition: string;
+}
+
+interface ZiweiTrackPattern {
+  title: string;
+  interpretation: string;
+  evidence: string[];
+  palaceIds: ZiweiPalaceId[];
+}
+
+interface ZiweiTrackFlowStage {
+  stage: string;
+  title: string;
+  content: string;
+  evidence: string[];
+  actions: string[];
+}
+
+interface ZiweiPalaceEvidence {
+  mainStars: string[];
+  auxiliaryStars: string[];
+  transformations: string[];
+  oppositePalace: string;
+  relatedPalaces: string[];
+  lines: string[];
+}
+
+interface ZiweiTrackPalaceReading {
+  palaceId: ZiweiPalaceId;
+  palaceName: string;
+  headline: string;
+  customerMeaning: string;
+  corePattern: string;
+  strengths: string[];
+  challenges: string[];
+  realLifeManifestations: string[];
+  crossPalaceInterpretation: string;
+  selectedTrackRelevance: string;
+  timingInterpretation: string;
+  practicalAdvice: string[];
+  evidence: ZiweiPalaceEvidence;
+  dataLimitations: string[];
+  priority: "primary" | "secondary" | "supporting";
+}
+
+interface ZiweiTrackAnalysis {
+  selectedTrack: ZiweiCounselingTrackConfig;
+  executiveSummary: {
+    headline: string;
+    summary: string;
+    keyPatterns: ZiweiTrackPattern[];
+  };
+  consultationFlow: ZiweiTrackFlowStage[];
+  palaceReadings: ZiweiTrackPalaceReading[];
+  timing: {
+    available: boolean;
+    currentTheme: string;
+    opportunities: string[];
+    cautions: string[];
+    recommendedActions: string[];
+    evidence: string[];
+  };
+  actionPlan: {
+    start: string[];
+    reduce: string[];
+    maintain: string[];
+    reflectionQuestions: string[];
+  };
+  dataWarnings: string[];
+}
 
 const PALACE_DEFINITION_MAP: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
   ming: {
@@ -373,7 +631,7 @@ function buildPalaceSpecialAdvice(palace: ZiweiPalace, score: number): { reality
     return {
       reality: `재백궁은 돈을 버는 속도와 지키는 구조를 함께 봐야 힘이 생깁니다. ${coreStars}는 수익 창출 방식과 지출 관리 방식의 균형을 요구합니다.`,
       caution: "유입이 늘어도 통제 없는 고정비·충동 지출·계약 검토 누락이 겹치면 재무 체감이 약해질 수 있습니다.",
-      action: "수입 채널은 확장하되 지출 규칙은 단순하게 고정하고, 큰 계약은 반드시 하루 숙성 후 확정하세요.",
+      action: "수입 채널은 확장하되 지출 규칙은 단순하게 고정하고, 큰 계약은 하루 숙성 후 확정하는 편이 안정적입니다.",
     };
   }
 
@@ -417,11 +675,306 @@ function buildPalaceSpecialAdvice(palace: ZiweiPalace, score: number): { reality
   };
 }
 
-function splitReadableParagraphs(text: string): string[] {
-  return String(text || "")
-    .split(/\n{2,}/)
-    .map((row) => row.trim())
-    .filter(Boolean);
+function uniqueList(values: string[]): string[] {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+}
+
+function joinStarNames(stars: ZiweiStarMeta[], fallback: string): string {
+  const names = stars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).filter(Boolean);
+  return names.length ? names.join(" · ") : fallback;
+}
+
+function buildPalaceEvidenceLines(item: ZiweiPalaceCounselingItem): string[] {
+  const palace = item.palace;
+  const transformations = item.transformations.filter((line) => !line.includes("직접 작동은 크지"));
+  return [
+    `관련 궁: ${palace.name}(${palace.earthlyBranch})`,
+    `핵심 주성: ${joinStarNames(palace.mainStars, "직접 주성 없음")}`,
+    `보조 요소: ${joinStarNames([...palace.auxiliaryStars, ...palace.maleficStars], "직접 보조성·살성 정보 제한")}`,
+    `사화: ${transformations.length ? transformations.join(" / ") : "직접 사화 신호는 약함"}`,
+    `연결 구조: 대궁 ${palace.oppositePalace?.name || "확인 제한"} / 삼방사정 ${palace.sanFangSiZheng?.palaceNames?.join(" · ") || palace.triadPalaceIds.join(" · ") || "확인 제한"}`,
+    `궁세: ${palaceForceLabel(item.energy)}(${Math.round(item.energy)})`,
+  ];
+}
+
+function buildPalaceEvidence(item: ZiweiPalaceCounselingItem): ZiweiPalaceEvidence {
+  const palace = item.palace;
+  const transformations = item.transformations.filter((line) => !line.includes("직접 작동은 크지"));
+  return {
+    mainStars: palace.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`),
+    auxiliaryStars: [...palace.auxiliaryStars, ...palace.maleficStars].map((star) => star.name),
+    transformations,
+    oppositePalace: palace.oppositePalace?.name || "",
+    relatedPalaces: palace.sanFangSiZheng?.palaceNames || palace.triadPalaceIds,
+    lines: buildPalaceEvidenceLines(item),
+  };
+}
+
+function rowsForTrack(track: ZiweiCounselingTrackConfig, rows: ZiweiPalaceCounselingItem[]) {
+  const byId = Object.fromEntries(rows.map((row) => [row.palace.id, row] as const));
+  const primary = track.primaryPalaces.map((id) => byId[id]).filter(Boolean) as ZiweiPalaceCounselingItem[];
+  const secondary = track.secondaryPalaces.map((id) => byId[id]).filter(Boolean) as ZiweiPalaceCounselingItem[];
+  const ranked = uniqueList([...primary, ...secondary].map((row) => row.palace.id))
+    .map((id) => byId[id as ZiweiPalaceId])
+    .filter(Boolean)
+    .sort((a, b) => b.energy - a.energy) as ZiweiPalaceCounselingItem[];
+  return { byId, primary, secondary, ranked };
+}
+
+function trackPalacePriority(track: ZiweiCounselingTrackConfig, palaceId: ZiweiPalaceId): "primary" | "secondary" | "supporting" {
+  if (track.primaryPalaces.includes(palaceId)) return "primary";
+  if (track.secondaryPalaces.includes(palaceId)) return "secondary";
+  return "supporting";
+}
+
+function trackPriorityLabel(priority: "primary" | "secondary" | "supporting"): string {
+  if (priority === "primary") return "이 상담에서 중요한 궁";
+  if (priority === "secondary") return "보조로 함께 볼 궁";
+  return "전체 균형 참고";
+}
+
+function trackPriorityToneClass(priority: "primary" | "secondary" | "supporting"): string {
+  if (priority === "primary") return "border-amber-200/35 bg-amber-200/14 text-amber-50";
+  if (priority === "secondary") return "border-cyan-200/30 bg-cyan-200/12 text-cyan-50";
+  return "border-white/10 bg-white/6 text-slate-300";
+}
+
+function buildTrackRelevance(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string {
+  const priority = trackPalacePriority(track, item.palace.id);
+  if (priority === "primary") {
+    return `${item.palace.name}은 ${track.title} 상담의 중심 궁입니다. 이 궁의 주성·사화·궁세가 상담 결론의 우선순위를 직접 정합니다.`;
+  }
+  if (priority === "secondary") {
+    return `${item.palace.name}은 ${track.title} 상담을 보정하는 궁입니다. 중심 궁의 결론이 현실에서 어떻게 작동하는지 확인하는 보조 근거로 봅니다.`;
+  }
+  return `${item.palace.name}은 이번 트랙의 직접 중심은 아니지만, 전체 명반 균형을 확인할 때 참고하는 배경 궁입니다.`;
+}
+
+function buildTrackManifestation(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string[] {
+  const palaceFocus = PALACE_DEFINITION_MAP[item.palace.id].focus;
+  const mainStars = item.palace.mainStars.map((star) => star.name).slice(0, 2).join(" · ") || "대궁·삼방사정";
+  const base = `${track.shortTitle} 주제에서는 ${item.palace.name}의 ${palaceFocus}가 ${mainStars}의 결을 통해 현실 행동으로 드러납니다.`;
+  const pressure = item.energy >= 62
+    ? `잘 작동할 때는 ${palaceFocus}에서 결정이 빨라지고, 주변이 신뢰할 수 있는 기준을 만들기 쉽습니다.`
+    : `흔들릴 때는 ${palaceFocus}에서 판단이 늦어지거나 같은 문제를 반복 점검하느라 에너지가 소모될 수 있습니다.`;
+  const contextByTrack: Record<ZiweiConsultationTrackId, string> = {
+    life: "삶의 큰 선택에서는 빠른 결론보다 내가 반복해서 선택하는 기준을 확인할수록 명반의 장점이 안정적으로 살아납니다.",
+    career: "업무에서는 역할·권한·평가 기준이 명확할수록 장점이 선명해지고, 모호한 책임 구조에서는 피로가 빨리 쌓일 수 있습니다.",
+    wealth: "돈 문제에서는 수입의 크기보다 관리 규칙, 계약 검토, 손실 한도를 먼저 정할 때 체감 안정감이 올라갑니다.",
+    love: "관계에서는 감정의 크기보다 회복 방식과 경계 합의가 오래 가는 힘을 만들며, 침묵이나 압박이 반복될 때 소모가 커집니다.",
+    relationships: "사람 사이에서는 친밀감보다 역할과 기대치를 먼저 맞출 때 신뢰가 쌓이고, 애매한 약속은 관계 피로로 번지기 쉽습니다.",
+    family: "가족 안에서는 책임을 떠안는 속도와 정서적 거리를 함께 보아야 하며, 돌봄과 독립의 기준을 나누면 부담이 줄어듭니다.",
+    health: "생활에서는 몸의 신호를 성과보다 먼저 확인할 때 리듬이 무너지지 않습니다. 이 해석은 의학적 진단이 아니라 생활 패턴 조언입니다.",
+    timing: "시기 판단에서는 확장할 일과 보수적으로 다룰 일을 분리해야 합니다. 계산된 운한이 없는 영역은 원국의 선택 기준까지만 봅니다.",
+  };
+  const context = contextByTrack[track.key];
+  return [base, pressure, context];
+}
+
+function buildTrackSpecificAdvice(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string[] {
+  const palaceName = item.palace.name;
+  const focus = PALACE_DEFINITION_MAP[item.palace.id].focus;
+  const adviceByTrack: Record<ZiweiConsultationTrackId, string[]> = {
+    life: [
+      `${palaceName}의 ${focus}을 하루 선택 기준 하나로 적어두면 반복 패턴을 더 빨리 알아차릴 수 있습니다.`,
+      "큰 결정을 앞두면 강하게 끌리는 선택과 오래 버틸 수 있는 선택을 따로 비교하세요.",
+    ],
+    career: [
+      `${palaceName}이 강하게 반응하는 업무 조건을 역할·권한·평가 기준으로 나눠 확인하세요.`,
+      "새 제안을 받을 때는 직함보다 실제 책임 범위와 회복 가능한 일정인지 먼저 보세요.",
+    ],
+    wealth: [
+      `${palaceName}의 흐름을 수입, 지출, 보유, 위험 한도 네 칸으로 나누어 관리하면 누수를 줄일 수 있습니다.`,
+      "큰돈이 오가는 선택에서는 기대 수익보다 손실이 났을 때 멈출 기준을 먼저 정하세요.",
+    ],
+    love: [
+      `${palaceName}에서 올라오는 감정은 바로 결론 내리기보다 원하는 거리감과 회복 방식을 말로 확인하는 편이 좋습니다.`,
+      "관계 대화에서는 상대 평가보다 내가 필요한 시간, 약속, 표현을 구체적으로 말하세요.",
+    ],
+    relationships: [
+      `${palaceName}의 사람운은 호감보다 역할 합의가 먼저 잡힐 때 안정됩니다.`,
+      "도움을 주기 전에는 내가 맡을 범위와 멈출 기준을 한 문장으로 정해두세요.",
+    ],
+    family: [
+      `${palaceName}의 책임 흐름은 돌봄과 독립을 함께 세울 때 무겁게 굳지 않습니다.`,
+      "가족 대화에서는 마음의 옳고 그름보다 누가, 언제, 어디까지 맡을지를 먼저 나누세요.",
+    ],
+    health: [
+      `${palaceName}의 신호는 컨디션을 단정하기보다 수면, 식사, 이동, 감정 반응의 리듬으로 점검하세요.`,
+      "불편함이 지속되거나 강해지면 생활 조언에 머물지 말고 전문가 상담을 함께 고려하세요.",
+    ],
+    timing: [
+      `${palaceName}이 운에서 강조될 때는 새로 벌릴 일과 정리할 일을 한 목록에 섞지 않는 편이 안전합니다.`,
+      "현재 운한 데이터가 확인되는 범위 안에서만 기회와 부담을 나누고, 특정 사건은 단정하지 마세요.",
+    ],
+  };
+  return adviceByTrack[track.key];
+}
+
+function buildPalaceTimingInterpretation(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string {
+  const annual = chart.annualFlow;
+  if (annual?.keyPalaces?.includes(item.palace.id)) {
+    return `${annual.yearLabel} 흐름에서 ${item.palace.name}이 핵심 궁으로 잡혀, ${track.shortTitle} 주제에서 이 궁의 선택 기준이 더 자주 시험될 수 있습니다.`;
+  }
+  if (track.key === "timing" && !annual) {
+    return "현재 계산 결과에는 세운 핵심 궁 데이터가 없어 특정 연도 사건을 단정하지 않습니다. 원국의 강한 궁과 관리 궁을 기준으로 선택 우선순위만 제시합니다.";
+  }
+  return "현재 계산 결과에서는 이 궁에 대한 별도 세운 변화가 확인되지 않아 원국 기준으로 해석합니다.";
+}
+
+function buildPalaceReading(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): ZiweiTrackPalaceReading {
+  const priority = trackPalacePriority(track, item.palace.id);
+  const evidence = buildPalaceEvidence(item);
+  const limitations: string[] = [];
+  if (item.isBorrowed) limitations.push("직접 주성이 약해 대궁·삼방사정 보정으로 읽었습니다.");
+  if (!item.palace.fourTransformations.length && !item.palace.incomingFourTransformations.length) limitations.push("직접 사화 신호는 강하게 확인되지 않습니다.");
+  if (!chart.annualFlow) limitations.push("현재 세운 데이터가 없어 특정 시기 예측은 제외했습니다.");
+
+  return {
+    palaceId: item.palace.id,
+    palaceName: item.palace.name,
+    headline: `${item.palace.name}은 ${track.shortTitle} 상담에서 ${priority === "primary" ? "가장 먼저 확인할 축" : priority === "secondary" ? "현실 적용을 보정하는 축" : "전체 균형을 확인하는 축"}입니다.`,
+    customerMeaning: `${item.palace.name}은 ${PALACE_DEFINITION_MAP[item.palace.id].definition}입니다. ${track.title}에서는 ${PALACE_DEFINITION_MAP[item.palace.id].focus}이 실제 선택 기준으로 어떻게 드러나는지 봅니다.`,
+    corePattern: `${item.starMechanics} ${item.brightness}`,
+    strengths: [item.strengths, item.assists],
+    challenges: [item.cautions, item.malefics],
+    realLifeManifestations: buildTrackManifestation(track, item),
+    crossPalaceInterpretation: `${item.palace.oppositePalace?.name || "대궁"}과 ${item.palace.sanFangSiZheng?.palaceNames?.join(" · ") || "삼방사정"}을 함께 보면, 이 궁은 단독 결론보다 관계망 속에서 더 정확하게 읽힙니다.`,
+    selectedTrackRelevance: buildTrackRelevance(track, item),
+    timingInterpretation: buildPalaceTimingInterpretation(chart, track, item),
+    practicalAdvice: [item.advice, ...buildTrackSpecificAdvice(track, item), item.prescription],
+    evidence,
+    dataLimitations: limitations,
+    priority,
+  };
+}
+
+function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, rows: ZiweiPalaceCounselingItem[]): ZiweiTrackAnalysis {
+  const { primary, secondary, ranked } = rowsForTrack(track, rows);
+  const strongest = ranked[0] || rows[0];
+  const second = ranked[1] || strongest;
+  const third = ranked[2] || second;
+  const weakest = [...primary, ...secondary].sort((a, b) => a.energy - b.energy)[0] || [...rows].sort((a, b) => a.energy - b.energy)[0];
+  const keyPalaces = uniqueList([...track.primaryPalaces, ...track.secondaryPalaces]).map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean) as ZiweiPalaceCounselingItem[];
+  const keyPatterns: ZiweiTrackPattern[] = [strongest, second, third].filter(Boolean).map((item, index) => ({
+    title: index === 0 ? `${item.palace.name}이 여는 ${track.shortTitle}의 핵심 장점` : index === 1 ? `${item.palace.name}에서 확인되는 보정 조건` : `${item.palace.name}이 알려주는 반복 패턴`,
+    interpretation: `${item.palace.name}은 ${palaceForceLabel(item.energy)}로 읽힙니다. ${buildTrackRelevance(track, item)} ${item.reality}`,
+    evidence: buildPalaceEvidenceLines(item),
+    palaceIds: [item.palace.id],
+  }));
+
+  const palaceReadings = rows.map((item) => buildPalaceReading(chart, track, item));
+  const trackPalaceNames = keyPalaces.map((item) => item.palace.name).join(" · ");
+  const summary = `${track.title}에서는 ${trackPalaceNames || "명반 전체"}을 우선 봅니다. 이 명반은 ${strongest?.palace.name || "강한 궁"}의 장점을 살리되, ${weakest?.palace.name || "관리 궁"}의 피로 신호를 생활 규칙으로 조절할 때 안정적으로 읽힙니다.`;
+  const annual = chart.annualFlow;
+  const qualityWarnings = [
+    ...(palaceReadings.length === 12 ? [] : ["12궁 전체 해석 데이터가 완성되지 않아 표시 범위를 제한했습니다."]),
+    ...(keyPatterns.every((pattern) => pattern.evidence.length) ? [] : ["핵심 패턴 중 명반 근거가 부족한 항목은 결론에서 제외해야 합니다."]),
+    ...(keyPalaces.length ? [] : ["선택한 상담 트랙의 핵심 궁 매핑을 확인하지 못했습니다."]),
+  ];
+  const timingEvidence = annual
+    ? [
+        `세운 라벨: ${annual.yearLabel}`,
+        `핵심 궁: ${annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)?.palace.name || id).join(" · ")}`,
+        ...annual.notes.slice(0, 3),
+      ]
+    : [];
+
+  const timing = annual
+    ? {
+        available: true,
+        currentTheme: `${annual.yearLabel}에는 ${annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)?.palace.name || id).join(" · ")} 흐름이 강조됩니다.`,
+        opportunities: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => `${item!.palace.name}: ${item!.strengths}`),
+        cautions: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => `${item!.palace.name}: ${item!.cautions}`),
+        recommendedActions: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => item!.advice),
+        evidence: timingEvidence,
+      }
+    : {
+        available: false,
+        currentTheme: "현재 계산 결과에는 세운 핵심 데이터가 없어 특정 시기 예측은 생성하지 않았습니다.",
+        opportunities: ["원국에서 강한 궁을 먼저 활용하고, 관리 궁은 생활 규칙으로 보정하는 방식이 안전합니다."],
+        cautions: ["현재 연도·특정 사건·확정적 결과는 계산 근거가 없어 말하지 않습니다."],
+        recommendedActions: [track.timingFocus],
+        evidence: ["annualFlow 데이터 없음", chart.majorPeriods.length ? `대한 구간 목록 ${chart.majorPeriods.length}개 확인` : "대한 구간 데이터 없음"],
+      };
+  const strongestTrackAdvice = strongest ? buildTrackSpecificAdvice(track, strongest) : [];
+  const weakestTrackAdvice = weakest ? buildTrackSpecificAdvice(track, weakest) : [];
+  const primaryPalaceNames = track.primaryPalaces.map((id) => rows.find((row) => row.palace.id === id)?.palace.name || id).join(" · ");
+
+  const consultationFlow: ZiweiTrackFlowStage[] = [
+    {
+      stage: "1",
+      title: "지금 가장 중요한 상담 결론",
+      content: `${track.title}의 결론은 ${strongest?.palace.name || "핵심 궁"}의 힘을 먼저 쓰고 ${weakest?.palace.name || "관리 궁"}의 반복 피로를 줄이는 것입니다. ${summary}`,
+      evidence: strongest ? buildPalaceEvidenceLines(strongest) : [],
+      actions: [`${strongest?.palace.name || "강한 궁"}과 관련된 선택을 이번 주 우선순위로 올리세요.`, `${weakest?.palace.name || "관리 궁"}의 과부하 신호를 하루 한 번 기록하세요.`],
+    },
+    {
+      stage: "2",
+      title: "명반이 보여주는 이유",
+      content: `${track.interpretationPriorities.join(" / ")} 순서로 보면 트랙의 초점이 흐려지지 않습니다. 전문 용어는 근거로 남기고, 실제 판단은 행동 기준으로 바꿉니다.`,
+      evidence: keyPalaces.flatMap((item) => buildPalaceEvidenceLines(item)).slice(0, 8),
+      actions: track.keyQuestions.slice(0, 2),
+    },
+    {
+      stage: "3",
+      title: "현실에서 나타나는 모습",
+      content: `${strongest?.reality || "핵심 궁의 현실 반응을 확인합니다."} ${second?.reality || ""}`,
+      evidence: [strongest?.palace.name, second?.palace.name].filter(Boolean) as string[],
+      actions: [track.actionGuideType, ...strongestTrackAdvice.slice(0, 1), weakest?.advice || "관리 궁의 루틴을 먼저 세우세요."],
+    },
+    {
+      stage: "4",
+      title: "반복되는 패턴과 원인",
+      content: `${strongest?.palace.name || "강한 궁"}이 빠르게 앞서가고 ${weakest?.palace.name || "관리 궁"}이 뒤에서 피로를 만드는 구도가 반복될 수 있습니다. 이 차이는 좋고 나쁨보다 속도 차이로 읽어야 합니다.`,
+      evidence: [strongest ? `${strongest.palace.name} ${palaceForceLabel(strongest.energy)}` : "", weakest ? `${weakest.palace.name} ${palaceForceLabel(weakest.energy)}` : ""].filter(Boolean),
+      actions: ["강한 궁은 확장 기준으로, 약한 궁은 점검표로 분리하세요."],
+    },
+    {
+      stage: "5",
+      title: "현재 시기의 흐름",
+      content: timing.currentTheme,
+      evidence: timing.evidence,
+      actions: [...timing.opportunities.slice(0, 1), ...timing.cautions.slice(0, 1)],
+    },
+    {
+      stage: "6",
+      title: "고객을 위한 실행 조언",
+      content: `${track.actionGuideType} 조언은 명반의 중심 궁과 관리 궁을 연결해 현실에서 바로 점검할 수 있게 정리했습니다.`,
+      evidence: keyPalaces.slice(0, 3).map((item) => `${item.palace.name}: ${item.keywords.join(" · ") || "키워드 제한"}`),
+      actions: [strongest?.advice, ...strongestTrackAdvice.slice(0, 2), ...weakestTrackAdvice.slice(0, 1)].filter(Boolean) as string[],
+    },
+    {
+      stage: "7",
+      title: "상담 마무리",
+      content: `${track.title}의 흐름은 사용자를 규정하기보다, 강한 축을 어떻게 쓰고 약한 축을 어떻게 돌볼지 알려줍니다. 지금은 ${strongest?.palace.name || "강점"}을 믿되 ${weakest?.palace.name || "조절점"}을 방치하지 않는 태도가 중요합니다.`,
+      evidence: track.keyQuestions,
+      actions: track.keyQuestions.slice(0, 3),
+    },
+  ];
+
+  return {
+    selectedTrack: track,
+    executiveSummary: {
+      headline: `${track.shortTitle} 상담의 핵심은 ${strongest?.palace.name || "중심 궁"} 활용과 ${weakest?.palace.name || "관리 궁"} 조율입니다.`,
+      summary,
+      keyPatterns,
+    },
+    consultationFlow,
+    palaceReadings,
+    timing,
+    actionPlan: {
+      start: [strongest?.advice || "강한 궁의 장점을 한 가지 행동으로 옮기세요.", ...strongestTrackAdvice.slice(0, 1), `${primaryPalaceNames} 관련 선택을 먼저 정리하세요.`],
+      reduce: [weakest?.cautions || "피로가 누적되는 궁의 반복 반응을 줄이세요.", ...weakestTrackAdvice.slice(0, 1), ...track.cautionRules.slice(0, 1)],
+      maintain: [strongest?.prescription || "강점을 유지할 작은 루틴을 고정하세요.", "명반 근거와 현실 행동을 분리해 점검하세요.", "앞으로 3개월 동안 같은 기준을 반복 점검하세요."],
+      reflectionQuestions: track.keyQuestions.slice(0, 3),
+    },
+    dataWarnings: [
+      ...qualityWarnings,
+      ...(annual ? [] : ["현재 세운 데이터가 없어 특정 시기 예측은 제외했습니다."]),
+      ...keyPalaces.filter((item) => item.isBorrowed).map((item) => `${item.palace.name}은 직접 주성이 약해 대궁·삼방사정 보정으로 읽었습니다.`),
+    ],
+  };
 }
 
 function zPatternStrengthDescription(symbol: string): string {
@@ -508,6 +1061,7 @@ export default function AdvancedZiweiSectionV2({
   const [chart, setChart] = useState<ZiweiDeepChart | null>(null);
   const [chapters, setChapters] = useState<Partial<Record<ZiweiSectionId, ZiweiDeepChapter>>>({});
   const [activeSection, setActiveSection] = useState<ZiweiSectionId>("overview");
+  const [activeTrackId, setActiveTrackId] = useState<ZiweiConsultationTrackId>("life");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [form, setForm] = useState<FormState>({
@@ -526,9 +1080,10 @@ export default function AdvancedZiweiSectionV2({
   });
 
   const autoComputeRef = useRef(false);
+  const currentProfileFingerprintRef = useRef("");
 
   const activeChapter = chapters[activeSection];
-  const activeTrack = useMemo(() => ZIWEI_COUNSELING_TRACKS.find((track) => track.sectionId === activeSection) || ZIWEI_COUNSELING_TRACKS[0], [activeSection]);
+  const activeTrack = useMemo(() => ZIWEI_COUNSELING_TRACKS.find((track) => track.key === activeTrackId) || ZIWEI_COUNSELING_TRACKS[0], [activeTrackId]);
 
   const activePalace = useMemo(() => {
     if (!chart) return null;
@@ -564,23 +1119,7 @@ export default function AdvancedZiweiSectionV2({
   }, [activePalace, normalizeStrengthBand]);
 
   const palaceCounseling = useMemo(() => {
-    if (!chart) return [] as Array<{
-      palace: ZiweiPalace;
-      energy: number;
-      keywords: string[];
-      starMechanics: string;
-      brightness: string;
-      assists: string;
-      malefics: string;
-      transformations: string[];
-      isBorrowed: boolean;
-      reality: string;
-      strengths: string;
-      cautions: string;
-      advice: string;
-      prescription: string;
-      definition: string;
-    }>;
+    if (!chart) return [] as ZiweiPalaceCounselingItem[];
 
     return chart.palaces.map((palace) => {
       const energy = buildEnergyScore(palace);
@@ -606,7 +1145,7 @@ export default function AdvancedZiweiSectionV2({
         : "보조성의 직접 보정은 약하지만, 루틴을 세우면 궁의 기본 힘이 살아납니다.";
 
       const maleficLine = maleficNames.length
-        ? `${maleficNames.join(" · ")}는 사건성과 속도를 높입니다. 무조건 나쁜 신호가 아니라 리스크 관리가 필요한 가속 장치입니다.`
+        ? `${maleficNames.join(" · ")}는 사건성과 속도를 높입니다. 나쁜 신호로만 볼 필요는 없고, 리스크 관리가 필요한 가속 장치로 읽습니다.`
         : "급격한 충돌 신호는 약한 편이라, 꾸준함이 성패를 가릅니다.";
 
       const transformLine = transformLabels.length
@@ -649,6 +1188,20 @@ export default function AdvancedZiweiSectionV2({
 
   const strongTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => b.energy - a.energy).slice(0, 3), [palaceCounseling]);
   const weakTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => a.energy - b.energy).slice(0, 3), [palaceCounseling]);
+  const trackAnalysis = useMemo(() => (chart && palaceCounseling.length ? buildTrackAnalysis(chart, activeTrack, palaceCounseling) : null), [activeTrack, chart, palaceCounseling]);
+  const trackPalaceReadingById = useMemo(() => {
+    if (!trackAnalysis) return {} as Partial<Record<ZiweiPalaceId, ZiweiTrackPalaceReading>>;
+    return Object.fromEntries(trackAnalysis.palaceReadings.map((reading) => [reading.palaceId, reading])) as Partial<Record<ZiweiPalaceId, ZiweiTrackPalaceReading>>;
+  }, [trackAnalysis]);
+  const orderedPalaceCounseling = useMemo(() => {
+    const order = { primary: 0, secondary: 1, supporting: 2 };
+    return [...palaceCounseling].sort((a, b) => {
+      const aReading = trackPalaceReadingById[a.palace.id];
+      const bReading = trackPalaceReadingById[b.palace.id];
+      const priorityGap = order[aReading?.priority || "supporting"] - order[bReading?.priority || "supporting"];
+      return priorityGap || b.energy - a.energy;
+    });
+  }, [palaceCounseling, trackPalaceReadingById]);
 
   const overallCounselingSummary = useMemo(() => {
     if (!palaceCounseling.length) {
@@ -731,17 +1284,6 @@ export default function AdvancedZiweiSectionV2({
     });
   }, [palaceCounseling]);
 
-  const practicalAdvices = useMemo(() => {
-    if (!strongTop3.length || !weakTop3.length) return [] as string[];
-    return [
-      `왕성한 궁 ${strongTop3[0].palace.name}의 추진력을 관리 궁 ${weakTop3[0].palace.name}의 대궁·삼방사정 보정에 연결하세요. 한쪽만 밀면 피로가 누적됩니다.`,
-      `주간 계획은 관계·일·회복 3칸으로 나누고, 관리 궁 관련 일정은 흔들리지 않는 고정 시간에 배치하세요.`,
-      `중요 결정은 감정이 올라온 당일 확정하지 말고 24시간 숙성 후 체크리스트로 검토하세요.`,
-      `관계 갈등은 성격 평가 대신 역할·기대·기한의 문장으로 바꾸면 운의 소모를 크게 줄일 수 있습니다.`,
-      `성공 신호가 올라올수록 쉬는 방식을 먼저 고정하면 대한의 큰 흐름을 오래 견디는 힘이 살아납니다.`,
-    ];
-  }, [strongTop3, weakTop3]);
-
   const enterImmersiveMode = useCallback(async () => {
     if (typeof document === "undefined") return;
     const el = document.documentElement;
@@ -784,6 +1326,16 @@ export default function AdvancedZiweiSectionV2({
       });
     },
     [chart],
+  );
+
+  const selectCounselingTrack = useCallback(
+    (trackId: ZiweiConsultationTrackId) => {
+      const nextTrack = ZIWEI_COUNSELING_TRACKS.find((track) => track.key === trackId) || ZIWEI_COUNSELING_TRACKS[0];
+      setActiveTrackId(nextTrack.key);
+      const firstPalace = nextTrack.primaryPalaces[0];
+      if (firstPalace) loadSection(firstPalace);
+    },
+    [loadSection],
   );
 
   const handleCompute = useCallback(() => {
@@ -865,12 +1417,18 @@ export default function AdvancedZiweiSectionV2({
 
         setChart(nextChart);
         setChapters({ overview, ming });
-        setActiveSection("overview");
+        setActiveSection("ming");
 
         try {
           sessionStorage.setItem(
             RESULT_CACHE_KEY,
-            JSON.stringify({ chart: nextChart, chapters: { overview, ming }, activeSection: "overview" }),
+            JSON.stringify({
+              chart: nextChart,
+              chapters: { overview, ming },
+              activeSection: "ming",
+              activeTrackId,
+              profileFingerprint: currentProfileFingerprintRef.current,
+            }),
           );
         } catch {
           // no-op
@@ -886,7 +1444,78 @@ export default function AdvancedZiweiSectionV2({
         setStep("form");
       }
     }, 1600);
-  }, [enterImmersiveMode, form]);
+  }, [activeTrackId, enterImmersiveMode, form]);
+
+  const restoreCachedResult = useCallback((expectedFingerprint: string): boolean => {
+    if (!expectedFingerprint) return false;
+    try {
+      const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
+      if (!cached) return false;
+      const parsed = JSON.parse(cached);
+      if (!parsed?.chart || !parsed?.chapters || parsed.profileFingerprint !== expectedFingerprint) {
+        sessionStorage.removeItem(RESULT_CACHE_KEY);
+        return false;
+      }
+
+      const migratedChart = (!parsed.chart.version || !String(parsed.chart.version).includes("four-transformations"))
+        ? normalizeZiweiForAdvancedReport(parsed.chart)
+        : parsed.chart;
+      const advancedValidation = validateAdvancedZiweiResult(migratedChart);
+      if (!advancedValidation.valid) {
+        sessionStorage.removeItem(RESULT_CACHE_KEY);
+        return false;
+      }
+
+      primeZiweiDeepRuntime(migratedChart, ["overview", "ming"]);
+      const overview = parsed.chapters?.overview || getZiweiDeepChapter(migratedChart, "overview");
+      const ming = parsed.chapters?.ming || getZiweiDeepChapter(migratedChart, "ming");
+      setChart(migratedChart);
+      setChapters({ ...parsed.chapters, overview, ming });
+      setActiveSection(parsed.activeSection || "overview");
+      if (ZIWEI_COUNSELING_TRACKS.some((track) => track.key === parsed.activeTrackId)) {
+        setActiveTrackId(parsed.activeTrackId);
+      }
+      setStep("result");
+      return true;
+    } catch {
+      try {
+        sessionStorage.removeItem(RESULT_CACHE_KEY);
+      } catch {}
+      return false;
+    }
+  }, []);
+
+  const applyCurrentProfileSeed = useCallback((eventProfile?: unknown) => {
+    const seed = buildZiweiProfileSeed(eventProfile);
+    const nextFingerprint = seed?.fingerprint || "";
+    currentProfileFingerprintRef.current = nextFingerprint;
+
+    if (nextFingerprint && restoreCachedResult(nextFingerprint)) {
+      autoComputeRef.current = false;
+      return;
+    }
+
+    try {
+      sessionStorage.removeItem(RESULT_CACHE_KEY);
+    } catch {}
+
+    setChart(null);
+    setChapters({});
+    setActiveSection("overview");
+    setActiveTrackId("life");
+    setStep("form");
+
+    if (!seed) {
+      autoComputeRef.current = false;
+      return;
+    }
+
+    autoComputeRef.current = seed.hasProfileHour;
+    setForm((prev) => ({
+      ...prev,
+      ...seed.form,
+    }));
+  }, [restoreCachedResult]);
 
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -898,60 +1527,42 @@ export default function AdvancedZiweiSectionV2({
   }, []);
 
   useEffect(() => {
-    try {
-      const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed?.chart && parsed?.chapters) {
-          const migratedChart = (!parsed.chart.version || !String(parsed.chart.version).includes("four-transformations"))
-            ? normalizeZiweiForAdvancedReport(parsed.chart)
-            : parsed.chart;
-          const advancedValidation = validateAdvancedZiweiResult(migratedChart);
-          if (!advancedValidation.valid) {
-            sessionStorage.removeItem(RESULT_CACHE_KEY);
-          } else {
-            primeZiweiDeepRuntime(migratedChart, ["overview", "ming"]);
-            const overview = parsed.chapters?.overview || getZiweiDeepChapter(migratedChart, "overview");
-            const ming = parsed.chapters?.ming || getZiweiDeepChapter(migratedChart, "ming");
-            setChart(migratedChart);
-            setChapters({ ...parsed.chapters, overview, ming });
-            setActiveSection(parsed.activeSection || "overview");
-            setStep("result");
-            return;
-          }
-        }
-      }
+    applyCurrentProfileSeed();
+  }, [applyCurrentProfileSeed]);
 
-      const rawProfile = localStorage.getItem("FORTUNE_APP_VEDIC_PAYLOAD");
-      if (rawProfile) {
-        const payload = JSON.parse(rawProfile);
-        if (payload?.birth?.year) {
-          const profileHour = Number(payload.birth.hour);
-          const hasProfileHour = Number.isFinite(profileHour) && profileHour >= 0 && profileHour <= 23;
-          setForm((prev) => ({
-            ...prev,
-            name: payload.name || "",
-            birthYear: String(payload.birth.year),
-            birthMonth: String(payload.birth.month ?? 1),
-            birthDay: String(payload.birth.day ?? 1),
-            birthHour: hasProfileHour ? String(profileHour) : "",
-            birthMinute: String(payload.birth.minute ?? 0),
-            unknownHour: !hasProfileHour,
-            gender: (payload.gender === "M" ? "M" : "F") as ZiweiGender,
-          }));
-          autoComputeRef.current = hasProfileHour;
-        }
-      }
-    } catch {
-      // no-op
-    }
-  }, []);
+  useEffect(() => {
+    const handleProfileUpdated = (event: Event) => {
+      const detail = event instanceof CustomEvent ? event.detail : undefined;
+      applyCurrentProfileSeed(detail);
+    };
+    const handleProfileStorage = (event: StorageEvent) => {
+      if (!isDestinyProfileStorageKey(event.key)) return;
+      applyCurrentProfileSeed();
+    };
+
+    window.addEventListener("cd:destiny-profile-updated", handleProfileUpdated);
+    window.addEventListener("storage", handleProfileStorage);
+    return () => {
+      window.removeEventListener("cd:destiny-profile-updated", handleProfileUpdated);
+      window.removeEventListener("storage", handleProfileStorage);
+    };
+  }, [applyCurrentProfileSeed]);
 
   useEffect(() => {
     if (!autoComputeRef.current || !form.birthYear) return;
     autoComputeRef.current = false;
     handleCompute();
-  }, [form.birthYear, handleCompute]);
+  }, [
+    form.birthYear,
+    form.birthMonth,
+    form.birthDay,
+    form.birthHour,
+    form.birthMinute,
+    form.gender,
+    form.calendarType,
+    form.unknownHour,
+    handleCompute,
+  ]);
 
   const maxDay = useMemo(() => {
     const y = Number(form.birthYear || 2000);
@@ -962,11 +1573,11 @@ export default function AdvancedZiweiSectionV2({
 
   if (showIntro) {
     return (
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
+      <section className="font-premium relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
         <GalaxyBackdrop />
         <div className="relative z-10">
           <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM COUNSELING</p>
-          <h3 className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 12궁 상담</h3>
+          <h3 className="font-display mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 12궁 상담</h3>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/90">
             기본 명반 보기와 별개로, 주성·사화·삼방사정·대한을 한 판단으로 묶어 관계와 돈과 일의 실제 선택 흐름까지 읽습니다.
           </p>
@@ -997,15 +1608,15 @@ export default function AdvancedZiweiSectionV2({
 
   if (step === "form") {
     return (
-      <section className="relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
+      <section className="font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
         <GalaxyBackdrop />
         <div className="relative mx-auto flex min-h-[100dvh] max-w-5xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
           <StagePanel className="relative z-10 w-full p-5 sm:p-7 lg:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">ZIWEI PREMIUM INPUT</p>
-                <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">심화 자미두수 상담 명반을 준비합니다</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
+                <h1 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">심화 자미두수 상담 명반을 준비합니다</h1>
+                <p className="font-premium mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
                   기본 무료 자미두수는 12궁 명반 확인용입니다. 이 화면은 같은 명반을 사화·삼방사정·대한·실행 조언까지 확장해 읽는 심화 상담용입니다.
                 </p>
               </div>
@@ -1176,12 +1787,13 @@ export default function AdvancedZiweiSectionV2({
 
   if (step === "computing") {
     return (
-      <section className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 text-center text-slate-100">
+      <section className="font-body relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 text-center text-slate-100">
         <GalaxyBackdrop />
         <div className="relative z-10 w-full max-w-xl">
           <StagePanel className="p-8 sm:p-10">
             <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">운명의 문이 열리는 순간</p>
-            <h2 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">{loadingText}</h2>
+            <h2 className="font-display mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">{loadingText}</h2>
+            <p className="mt-3 text-sm font-semibold text-amber-100">상담 트랙: {activeTrack.title}</p>
             <div className="mt-7 overflow-hidden rounded-full border border-white/12 bg-white/10">
               <div className="h-2 bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200" style={{ width: `${progress}%` }} />
             </div>
@@ -1198,14 +1810,13 @@ export default function AdvancedZiweiSectionV2({
 
   const orbitActivePalaceId: ZiweiPalaceId | undefined =
     activeSection === "overview" || activeSection === "master" ? undefined : activeSection;
-  const activeParagraphs = splitReadableParagraphs(activeChapter.fullText);
   const chapterHighlights = [
     ...(activeChapter.highlights || []),
     ...(activeChapter.summary || []),
   ].slice(0, 6);
 
   return (
-    <section className="fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-slate-100 sm:px-6 lg:px-8">
+    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-slate-100 sm:px-6 lg:px-8">
       <GalaxyBackdrop />
       <motion.div
         className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4"
@@ -1227,8 +1838,8 @@ export default function AdvancedZiweiSectionV2({
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="space-y-5">
               <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM REPORT</p>
-              <h1 className="max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
-              <p className="max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
+              <h1 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
+              <p className="font-premium max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
                 명궁·신궁의 축, 주성의 묘왕평함, 사화와 삼방사정, 대한·유년의 흐름을 함께 대조해 삶의 우선순위를 상담하듯 풀어드립니다.
               </p>
 
@@ -1292,6 +1903,51 @@ export default function AdvancedZiweiSectionV2({
           </div>
         </StagePanel>
 
+        {trackAnalysis ? (
+          <StagePanel className="p-4 sm:p-5 lg:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold text-cyan-100/80">선택한 상담 트랙 · {trackAnalysis.selectedTrack.title}</p>
+                <h2 className="font-display mt-2 text-2xl font-black leading-tight text-white md:text-3xl">
+                  {trackAnalysis.executiveSummary.headline}
+                </h2>
+                <p className="font-premium mt-3 text-sm leading-7 text-slate-200/90 md:text-base">
+                  {trackAnalysis.executiveSummary.summary}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs leading-6 text-slate-200">
+                <p className="font-semibold text-amber-100">우선 해석 궁</p>
+                <p className="mt-1">{trackAnalysis.selectedTrack.primaryPalaces.map((id) => trackPalaceReadingById[id]?.palaceName || id).join(" · ")}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+              {trackAnalysis.executiveSummary.keyPatterns.map((pattern) => (
+                <article key={pattern.title} className="rounded-2xl border border-white/10 bg-black/24 p-4">
+                  <p className="text-sm font-black text-white">{pattern.title}</p>
+                  <p className="mt-2 text-sm leading-7 text-slate-200">{pattern.interpretation}</p>
+                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
+                    <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                    <ul className="mt-2 space-y-1">
+                      {pattern.evidence.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </details>
+                </article>
+              ))}
+            </div>
+
+            {trackAnalysis.dataWarnings.length ? (
+              <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 px-4 py-3 text-xs leading-6 text-amber-50">
+                {trackAnalysis.dataWarnings.map((warning) => (
+                  <p key={warning}>{warning}</p>
+                ))}
+              </div>
+            ) : null}
+          </StagePanel>
+        ) : null}
+
         {chart.warnings.length ? (
           <StagePanel className="p-4 sm:p-5">
             <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">정밀도 참고</p>
@@ -1305,20 +1961,23 @@ export default function AdvancedZiweiSectionV2({
 
         <StagePanel className="p-4 sm:p-5">
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">상담 트랙</p>
+            <p className="text-xs font-semibold text-cyan-100/80">상담 트랙</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {ZIWEI_COUNSELING_TRACKS.map((track) => {
-                const active = track.sectionId === activeSection;
-                const icon = TRACK_ICON_MAP[track.sectionId] || "✦";
+                const active = track.key === activeTrackId;
+                const icon = COUNSELING_TRACK_ICON_MAP[track.key];
                 return (
                   <button
                     key={track.key}
                     type="button"
-                    onClick={() => loadSection(track.sectionId)}
+                    onClick={() => selectCounselingTrack(track.key)}
                     className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-200/60 bg-gradient-to-br from-cyan-200/16 to-sky-200/10 shadow-[0_0_32px_rgba(56,189,248,0.22)]" : "border-white/10 bg-black/20 hover:border-cyan-200/25 hover:bg-black/30"}`}
                   >
                     <p className="text-sm font-semibold text-white">{icon} {track.title}</p>
-                    <p className="mt-2 text-xs leading-6 text-slate-300">{track.note}</p>
+                    <p className="mt-2 text-xs leading-6 text-slate-300">{track.purpose}</p>
+                    <p className="mt-2 text-[11px] leading-5 text-cyan-100/80">
+                      핵심 궁: {track.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
+                    </p>
                   </button>
                 );
               })}
@@ -1519,22 +2178,33 @@ export default function AdvancedZiweiSectionV2({
                   <th className="px-3 py-3 font-semibold">주성</th>
                   <th className="px-3 py-3 font-semibold">보조성</th>
                   <th className="px-3 py-3 font-semibold">궁세</th>
+                  <th className="px-3 py-3 font-semibold">상담 우선순위</th>
                 </tr>
               </thead>
               <tbody>
-                {palaceCounseling.map((item) => (
-                  <tr key={`table-${item.palace.id}`} className="border-t border-white/8 text-slate-100/90">
-                    <td className="px-3 py-3 font-semibold">{item.palace.name}</td>
-                    <td className="px-3 py-3 text-slate-300">{item.definition}</td>
-                    <td className="px-3 py-3">{item.palace.mainStars.map((s) => s.name).join(" · ") || "무주성궁"}</td>
-                    <td className="px-3 py-3">{item.palace.auxiliaryStars.map((s) => s.name).slice(0, 3).join(" · ") || "-"}</td>
-                    <td className="px-3 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>
-                        {palaceForceLabel(item.energy)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {palaceCounseling.map((item) => {
+                  const reading = trackPalaceReadingById[item.palace.id];
+                  return (
+                    <tr key={`table-${item.palace.id}`} className="border-t border-white/8 text-slate-100/90">
+                      <td className="px-3 py-3 font-semibold">{item.palace.name}</td>
+                      <td className="px-3 py-3 text-slate-300">{item.definition}</td>
+                      <td className="px-3 py-3">{item.palace.mainStars.map((s) => s.name).join(" · ") || "무주성궁"}</td>
+                      <td className="px-3 py-3">{item.palace.auxiliaryStars.map((s) => s.name).slice(0, 3).join(" · ") || "-"}</td>
+                      <td className="px-3 py-3">
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>
+                          {palaceForceLabel(item.energy)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        {reading ? (
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${trackPriorityToneClass(reading.priority)}`}>
+                            {trackPriorityLabel(reading.priority)}
+                          </span>
+                        ) : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1582,30 +2252,117 @@ export default function AdvancedZiweiSectionV2({
         <StagePanel className="p-4 sm:p-5">
           <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">4. 각 궁별 상세 상담 해석</p>
           <div className="mt-4 grid gap-4 xl:grid-cols-2">
-            {palaceCounseling.map((item) => (
-              <article key={`detail-${item.palace.id}`} className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a1427]/90 via-[#0b1224]/85 to-[#130b25]/88 p-4 shadow-[0_14px_40px_rgba(5,10,30,0.35)]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-lg font-black text-white">{item.palace.name}</h3>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>{palaceForceLabel(item.energy)}</span>
-                </div>
-                <p className="mt-2 text-xs leading-6 text-slate-300">정의: {item.definition}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-300">주성: {item.palace.mainStars.map((s) => `${s.name}${s.strengthSymbol || ""}`).join(" · ") || "무주성궁"}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-300">보조성: {item.palace.auxiliaryStars.map((s) => s.name).join(" · ") || "-"}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-300">살성: {item.palace.maleficStars.map((s) => s.name).join(" · ") || "-"}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-300">사화: {item.transformations.join(" / ")}</p>
-                <p className="mt-1 text-xs leading-6 text-slate-300">차성 여부: {item.isBorrowed ? "차성 보정 필요" : "직접 작동 중심"}</p>
+            {orderedPalaceCounseling.map((item) => {
+              const reading = trackPalaceReadingById[item.palace.id];
+              if (!reading) return null;
+              return (
+                <article key={`detail-${item.palace.id}`} className={`rounded-2xl border bg-gradient-to-br from-[#0a1427]/90 via-[#0b1224]/85 to-[#130b25]/88 p-4 shadow-[0_14px_40px_rgba(5,10,30,0.35)] ${reading.priority === "primary" ? "border-amber-200/28" : "border-white/10"}`}>
+                  <details open={reading.priority === "primary"}>
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-display text-lg font-black text-white">{reading.palaceName}</h3>
+                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${trackPriorityToneClass(reading.priority)}`}>
+                              {trackPriorityLabel(reading.priority)}
+                            </span>
+                          </div>
+                          <p className="font-premium mt-2 text-sm leading-7 text-slate-200">{reading.headline}</p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>{palaceForceLabel(item.energy)}</span>
+                      </div>
+                    </summary>
 
-                <div className="mt-3 space-y-2 text-sm leading-7">
-                  <p><span className="font-semibold text-cyan-100">핵심 키워드</span>: <span className="text-slate-200">{item.keywords.join(" · ") || "흐름 정렬"}</span></p>
-                  <p><span className="font-semibold text-cyan-100">별의 작동 방식</span>: <span className="text-slate-200">{item.starMechanics} {item.brightness} {item.assists} {item.malefics}</span></p>
-                  <p><span className="font-semibold text-cyan-100">현실에서 나타나는 모습</span>: <span className="text-slate-200">{item.reality}</span></p>
-                  <p><span className="font-semibold text-cyan-100">장점</span>: <span className="text-slate-200">{item.strengths}</span></p>
-                  <p><span className="font-semibold text-cyan-100">주의점</span>: <span className="text-slate-200">{item.cautions}</span></p>
-                  <p><span className="font-semibold text-cyan-100">실전 조언</span>: <span className="text-slate-200">{item.advice}</span></p>
-                  <p className="rounded-xl border border-amber-200/25 bg-amber-200/10 px-3 py-2 text-amber-50"><span className="font-semibold">한줄 처방</span>: {item.prescription}</p>
-                </div>
-              </article>
-            ))}
+                    <div className="mt-4 grid gap-3">
+                      <section className="rounded-2xl border border-cyan-200/15 bg-black/24 p-4">
+                        <p className="text-xs font-semibold text-cyan-100">명반 근거 요약</p>
+                        <div className="mt-3 grid gap-2 text-xs leading-6 text-slate-200 sm:grid-cols-2">
+                          <p><span className="font-semibold text-white">핵심 주성</span>: {reading.evidence.mainStars.join(" · ") || "직접 주성 없음"}</p>
+                          <p><span className="font-semibold text-white">보조 요소</span>: {reading.evidence.auxiliaryStars.join(" · ") || "직접 보조성·살성 정보 제한"}</p>
+                          <p><span className="font-semibold text-white">사화</span>: {reading.evidence.transformations.join(" / ") || "직접 사화 신호는 약함"}</p>
+                          <p><span className="font-semibold text-white">연결 궁</span>: {[reading.evidence.oppositePalace, ...reading.evidence.relatedPalaces].filter(Boolean).join(" · ") || "확인 제한"}</p>
+                        </div>
+                      </section>
+
+                      <section className="rounded-2xl border border-cyan-200/16 bg-cyan-200/8 p-4">
+                        <p className="text-xs font-semibold text-cyan-100">고객용 해석</p>
+                        <div className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
+                          <p><span className="font-semibold text-white">의미</span>: {reading.customerMeaning}</p>
+                          <p><span className="font-semibold text-white">핵심 구성</span>: {reading.corePattern}</p>
+                          <p><span className="font-semibold text-white">기본 성향</span>: {item.reality}</p>
+                        </div>
+                      </section>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <section className="rounded-2xl border border-emerald-300/18 bg-emerald-200/8 p-4">
+                          <p className="text-xs font-semibold text-emerald-100">잘 발휘될 때</p>
+                          <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
+                            {reading.strengths.map((line) => (
+                              <li key={line}>• {line}</li>
+                            ))}
+                          </ul>
+                        </section>
+                        <section className="rounded-2xl border border-rose-300/18 bg-rose-200/8 p-4">
+                          <p className="text-xs font-semibold text-rose-100">과도하게 작동할 때</p>
+                          <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
+                            {reading.challenges.map((line) => (
+                              <li key={line}>• {line}</li>
+                            ))}
+                          </ul>
+                        </section>
+                      </div>
+
+                      <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <p className="text-xs font-semibold text-cyan-100">현실에서 나타나는 장면</p>
+                        <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                          {reading.realLifeManifestations.map((line) => (
+                            <li key={line}>• {line}</li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <p className="text-xs font-semibold text-cyan-100">다른 궁과 연결했을 때</p>
+                        <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.crossPalaceInterpretation}</p>
+                        <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.selectedTrackRelevance}</p>
+                      </section>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <section className="rounded-2xl border border-amber-200/20 bg-amber-200/8 p-4">
+                          <p className="text-xs font-semibold text-amber-100">현재 운한에서 보는 부분</p>
+                          <p className="font-premium mt-3 text-sm leading-7 text-slate-100/92">{reading.timingInterpretation}</p>
+                        </section>
+                        <section className="rounded-2xl border border-sky-200/18 bg-sky-200/8 p-4">
+                          <p className="text-xs font-semibold text-sky-100">구체적인 활용법</p>
+                          <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
+                            {reading.practicalAdvice.map((line) => (
+                              <li key={line}>• {line}</li>
+                            ))}
+                          </ul>
+                        </section>
+                      </div>
+
+                      {reading.dataLimitations.length ? (
+                        <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-xs leading-6 text-slate-300">
+                          {reading.dataLimitations.map((line) => (
+                            <p key={line}>{line}</p>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <details className="rounded-2xl border border-cyan-200/15 bg-cyan-200/8 px-4 py-3 text-xs leading-6 text-cyan-50">
+                        <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                        <ul className="mt-3 space-y-1">
+                          {reading.evidence.lines.map((line) => (
+                            <li key={line}>• {line}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    </div>
+                  </details>
+                </article>
+              );
+            })}
           </div>
         </StagePanel>
 
@@ -1650,62 +2407,122 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
         </div>
 
-        <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">8. 현실 조언</p>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {practicalAdvices.map((line, index) => (
-              <p key={`practical-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
-                {line}
-              </p>
-            ))}
-          </div>
-        </StagePanel>
+        {trackAnalysis ? (
+          <StagePanel className="p-4 sm:p-5">
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">8. {activeTrack.title} 실천 가이드</p>
+            <div className="mt-4 grid gap-3 lg:grid-cols-3">
+              {[
+                { title: "지금 시도할 행동", lines: trackAnalysis.actionPlan.start },
+                { title: "줄이거나 조절할 행동", lines: trackAnalysis.actionPlan.reduce },
+                { title: "유지할 기준", lines: trackAnalysis.actionPlan.maintain },
+              ].map((group) => (
+                <section key={group.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-sm font-black text-white">{group.title}</p>
+                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                    {group.lines.map((line) => (
+                      <li key={line}>• {line}</li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 p-4">
+              <p className="text-sm font-black text-amber-50">자기 점검 질문</p>
+              <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
+                {trackAnalysis.actionPlan.reflectionQuestions.map((question) => (
+                  <li key={question}>• {question}</li>
+                ))}
+              </ul>
+            </div>
+          </StagePanel>
+        ) : null}
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">상담의 흐름</p>
+          <p className="text-xs font-semibold text-cyan-100/80">상담의 흐름 · {activeTrack.title}</p>
           <div className="mt-4 grid gap-4">
-            {activeParagraphs.map((paragraph, index) => (
-              <motion.p
-                key={`${activeSection}-${index}`}
-                className={`rounded-2xl border px-4 py-3 text-sm leading-8 md:text-[15px] ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "border-white/10 bg-black/20 text-slate-200/92"}`}
+            {(trackAnalysis?.consultationFlow || []).map((stage, index) => (
+              <motion.article
+                key={`${activeTrack.key}-${stage.stage}`}
+                className={`rounded-2xl border px-4 py-4 text-sm leading-7 md:text-[15px] ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "border-white/10 bg-black/20 text-slate-200/92"}`}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.45, delay: index * 0.03 }}
               >
-                {paragraph}
-              </motion.p>
+                <p className="text-xs font-semibold text-cyan-100">STEP {stage.stage}</p>
+                <h3 className="mt-1 text-base font-black text-white">{stage.title}</h3>
+                <p className="mt-2">{stage.content}</p>
+                {stage.actions.length ? (
+                  <ul className="mt-3 space-y-1 text-xs leading-6 text-slate-200">
+                    {stage.actions.map((action) => (
+                      <li key={action}>• {action}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                {stage.evidence.length ? (
+                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
+                    <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                    <ul className="mt-2 space-y-1">
+                      {stage.evidence.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
+              </motion.article>
             ))}
           </div>
         </StagePanel>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">운명의 전환점</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {activeChapter.actionItems.slice(0, 4).map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-slate-200">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </StagePanel>
+        {trackAnalysis ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <StagePanel className="p-4 sm:p-5">
+              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">현재 시기 분석</p>
+              <p className="font-premium mt-4 text-sm leading-7 text-slate-200">{trackAnalysis.timing.currentTheme}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <section className="rounded-2xl border border-emerald-300/20 bg-emerald-200/8 p-4">
+                  <p className="text-sm font-black text-emerald-50">기회로 쓰기 좋은 흐름</p>
+                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                    {trackAnalysis.timing.opportunities.map((line) => (
+                      <li key={line}>• {line}</li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="rounded-2xl border border-rose-300/20 bg-rose-200/8 p-4">
+                  <p className="text-sm font-black text-rose-50">주의할 행동</p>
+                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                    {trackAnalysis.timing.cautions.map((line) => (
+                      <li key={line}>• {line}</li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+              <details className="mt-4 rounded-2xl border border-cyan-200/15 bg-cyan-200/8 px-4 py-3 text-xs leading-6 text-cyan-50">
+                <summary className="cursor-pointer font-semibold">시기 근거 보기</summary>
+                <ul className="mt-3 space-y-1">
+                  {trackAnalysis.timing.evidence.map((line) => (
+                    <li key={line}>• {line}</li>
+                  ))}
+                </ul>
+              </details>
+            </StagePanel>
 
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">30일 후의 그림</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {activeChapter.routine30Days.slice(0, 4).map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-slate-200">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </StagePanel>
-        </div>
+            <StagePanel className="p-4 sm:p-5">
+              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">상담 마무리</p>
+              <p className="font-premium mt-4 text-sm leading-7 text-slate-200">
+                {activeTrack.title}의 흐름은 당신을 하나의 성격으로 고정하지 않습니다. 명반에서 강하게 열린 궁은 선택의 힘으로 쓰고, 조율이 필요한 궁은 생활 기준으로 돌볼 때 더 편안하게 움직입니다.
+              </p>
+              <div className="mt-4 grid gap-3">
+                {trackAnalysis.timing.recommendedActions.map((item) => (
+                  <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-slate-200">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </StagePanel>
+          </div>
+        ) : null}
 
-        <footer className="pb-6 text-center text-xs text-slate-400">
-          이 읽기는 삶의 선택을 돕기 위한 참고용 상담이며, 중요한 결정은 현실 조건과 함께 살펴보는 편이 좋습니다.
-        </footer>
       </motion.div>
     </section>
   );

@@ -2,6 +2,7 @@
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
 import { categoryToSlug, publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
+import { getChaptersByStoryId, mockStories } from "./stories/data";
 
 export const BASE_URL = "https://code-destiny.com";
 
@@ -55,56 +56,75 @@ const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   })),
 ];
 
+const STORY_ROUTE_ENTRIES: SitemapRouteEntry[] = [
+  { path: "/stories", changeFrequency: "weekly", priority: 0.74 },
+  ...mockStories.flatMap((story) => [
+    { path: `/stories/${story.slug}`, changeFrequency: "weekly" as const, priority: 0.72 },
+    ...getChaptersByStoryId(story.slug).map((chapter) => ({
+      path: `/stories/${story.slug}/${chapter.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.68,
+    })),
+  ]),
+];
+
 export const ROUTES: SitemapRouteEntry[] = [
   // ── 홈 (최우선) ──────────────────────────────────────────────
   { path: "/", changeFrequency: "daily", priority: 1.0 },
 
   // ── 핵심 SEO 랜딩 페이지 (브랜드/일반 키워드 타겟) ─────────────
   { path: "/saju",          changeFrequency: "daily", priority: 0.98 },
+  { path: "/saju/guide",    changeFrequency: "monthly", priority: 0.90 },
+  { path: "/saju/ten-gods", changeFrequency: "monthly", priority: 0.89 },
+  { path: "/saju/five-elements", changeFrequency: "monthly", priority: 0.89 },
+  { path: "/health-report/guide", changeFrequency: "monthly", priority: 0.87 },
   { path: "/manse",         changeFrequency: "daily", priority: 0.98 },
   { path: "/today",         changeFrequency: "daily", priority: 0.97 },
   { path: "/daily-fortune", changeFrequency: "daily", priority: 0.97 },
+  { path: "/calendar/guide", changeFrequency: "monthly", priority: 0.88 },
   { path: "/compatibility", changeFrequency: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changeFrequency: "weekly", priority: 0.96 },
   { path: "/tarot",         changeFrequency: "weekly", priority: 0.96 },
+  { path: "/tarot/guide",   changeFrequency: "monthly", priority: 0.90 },
+  { path: "/tarot/numerology", changeFrequency: "weekly", priority: 0.88 },
+  { path: "/tarot/prompt-maker", changeFrequency: "weekly", priority: 0.86 },
   { path: "/tarot/reunion", changeFrequency: "weekly", priority: 0.94 },
   { path: "/tarot/mindscan", changeFrequency: "weekly", priority: 0.94 },
   { path: "/ziwei",         changeFrequency: "weekly", priority: 0.95 },
+  { path: "/ziwei/guide",   changeFrequency: "monthly", priority: 0.89 },
   { path: "/astrology",     changeFrequency: "weekly", priority: 0.95 },
+  { path: "/astrology/guide", changeFrequency: "monthly", priority: 0.89 },
   { path: "/sukuyo",        changeFrequency: "weekly", priority: 0.94 },
+  { path: "/sukuyo/guide",  changeFrequency: "monthly", priority: 0.89 },
   { path: "/sukuyo/compatibility", changeFrequency: "weekly", priority: 0.93 },
   { path: "/vedic",         changeFrequency: "weekly", priority: 0.94 },
+  { path: "/vedic/guide",   changeFrequency: "monthly", priority: 0.89 },
+  { path: "/mayan-calendar/guide", changeFrequency: "monthly", priority: 0.88 },
+  { path: "/music/guide",   changeFrequency: "monthly", priority: 0.86 },
+  { path: "/yeon-star-hug", changeFrequency: "weekly", priority: 0.84 },
   { path: "/dream",         changeFrequency: "weekly", priority: 0.94 },
   { path: "/love",          changeFrequency: "weekly", priority: 0.94 },
   { path: "/physiognomy",   changeFrequency: "weekly", priority: 0.93 },
-  { path: "/premium",       changeFrequency: "weekly", priority: 0.93 },
-  { path: "/premium-reports", changeFrequency: "weekly", priority: 0.92 },
-  { path: "/pdf/life-book", changeFrequency: "monthly", priority: 0.88 },
-  { path: "/pdf/love-report", changeFrequency: "monthly", priority: 0.88 },
-  { path: "/pdf/new-year", changeFrequency: "monthly", priority: 0.88 },
-
   // ── 기존 핵심 서비스 (직접 사용자 inflow) ─────────────────────
   { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
   { path: "/oracle/sukuyo",    changeFrequency: "weekly", priority: 0.93 },
   { path: "/tarot/mingri",     changeFrequency: "weekly", priority: 0.93 },
   { path: "/vedic/jyotish",    changeFrequency: "weekly", priority: 0.93 },
-  { path: "/ziwei/chart",      changeFrequency: "weekly", priority: 0.92 },
   { path: "/astrology/cosmic", changeFrequency: "weekly", priority: 0.92 },
   { path: "/tarot/love",       changeFrequency: "weekly", priority: 0.90 },
-  { path: "/tarot/healing",    changeFrequency: "weekly", priority: 0.90 },
   { path: "/oracle/hwatu-life",      changeFrequency: "weekly", priority: 0.88 },
   { path: "/dream/tarot",            changeFrequency: "weekly", priority: 0.88 },
   { path: "/dream/psycho",           changeFrequency: "weekly", priority: 0.88 },
   { path: "/animal/mbti",            changeFrequency: "weekly", priority: 0.87 },
   ...PSYCHOTEST_ROUTE_ENTRIES,
-  { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.87 },
-  { path: "/saju-picture",           changeFrequency: "weekly", priority: 0.86 },
 
   // ── 콘텐츠 허브 ───────────────────────────────────────────────
   { path: "/insights",    changeFrequency: "weekly", priority: 0.90 },
   { path: "/insights/saju", changeFrequency: "weekly", priority: 0.86 },
   { path: "/insights/ziwei", changeFrequency: "weekly", priority: 0.89 },
+  { path: "/insights/ziwei-basics", changeFrequency: "monthly", priority: 0.83 },
   { path: "/insights/sukuyo", changeFrequency: "weekly", priority: 0.89 },
+  { path: "/insights/sukuyo-basics", changeFrequency: "monthly", priority: 0.83 },
   { path: "/insights/tarot", changeFrequency: "weekly", priority: 0.85 },
   { path: "/insights/astrology", changeFrequency: "weekly", priority: 0.85 },
   { path: "/insights/vedic", changeFrequency: "weekly", priority: 0.85 },
@@ -112,6 +132,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
   ...FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES,
   ...FAMOUS_SAJU_ROUTE_ENTRIES,
+  ...STORY_ROUTE_ENTRIES,
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 
   // ── High-Value 개별 문서 ──────────────────────────────────────
@@ -137,6 +158,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/terms",            changeFrequency: "yearly",  priority: 0.56 },
   { path: "/disclaimer",       changeFrequency: "yearly",  priority: 0.54 },
   { path: "/advertising-policy", changeFrequency: "yearly", priority: 0.54 },
+  { path: "/editorial-policy", changeFrequency: "yearly", priority: 0.54 },
 ];
 
 export function getAllSitemapUrls(): string[] {

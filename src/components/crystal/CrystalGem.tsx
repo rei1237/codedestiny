@@ -9,7 +9,12 @@ export type GemType =
   | "moonstone"
   | "lapis"
   | "citrine"
-  | "black_tourmaline";
+  | "black_tourmaline"
+  | "tiger_eye"
+  | "clear_quartz"
+  | "green_aventurine"
+  | "garnet"
+  | "labradorite";
 
 export type RubState = "idle" | "rubbing" | "activated" | "revealed";
 
@@ -77,6 +82,36 @@ export const GEM_META: Record<GemType, { name: string; keywords: string; energy:
     keywords: "차단 · 뿌리내림 · 안정",
     energy: "흔들리게 하는 것을 차단하고 몸과 마음을 다시 접지합니다.",
     initial: "B",
+  },
+  tiger_eye: {
+    name: "호안석",
+    keywords: "용기 · 통찰 · 현실 판단",
+    energy: "흔들리는 마음에 중심을 세우고 현실을 꿰뚫는 눈을 깨웁니다.",
+    initial: "T",
+  },
+  clear_quartz: {
+    name: "백수정",
+    keywords: "증폭 · 정화 · 명료함",
+    energy: "흐린 신호를 맑게 정렬하고 필요한 기운을 또렷하게 증폭합니다.",
+    initial: "Q",
+  },
+  green_aventurine: {
+    name: "그린 아벤츄린",
+    keywords: "기회 · 회복 · 성장",
+    energy: "닫혀 있던 가능성을 부드럽게 열고 회복의 흐름을 키웁니다.",
+    initial: "V",
+  },
+  garnet: {
+    name: "가넷",
+    keywords: "열정 · 생명력 · 결단",
+    energy: "식어 있던 의지를 다시 데우고 끝까지 가는 힘을 불러냅니다.",
+    initial: "G",
+  },
+  labradorite: {
+    name: "래브라도라이트",
+    keywords: "변신 · 보호 · 숨은 빛",
+    energy: "보이지 않던 재능과 변화의 문을 신비롭게 드러냅니다.",
+    initial: "D",
   },
 };
 
@@ -200,6 +235,93 @@ const GEM_SHAPES: Record<GemType, GemShape> = {
       { x: 95, y: 91, r: 1.3, delay: 1.3 },
     ],
   },
+  tiger_eye: {
+    label: "호안석",
+    color: "#c47a28",
+    glow: "#f59e0b",
+    facet: "#fde68a",
+    stops: ["#f7c46a", "#9a5a16", "#32160a"],
+    blur: 6,
+    d: "M58 8 L92 27 L101 68 L72 108 L35 103 L18 63 L31 23 Z",
+    highlight: { cx: 52, cy: 35, rx: 22, ry: 7, rotate: -18 },
+    facets: ["M31 23 L58 60 L92 27", "M18 63 L58 60 L72 108", "M40 96 L58 60", "M58 8 L58 108"],
+    particles: [
+      { x: 19, y: 26, r: 1.5, delay: 0.05 },
+      { x: 101, y: 38, r: 1.4, delay: 0.42 },
+      { x: 23, y: 98, r: 1.8, delay: 0.82 },
+      { x: 94, y: 93, r: 1.4, delay: 1.2 },
+    ],
+  },
+  clear_quartz: {
+    label: "백수정",
+    color: "#dbeafe",
+    glow: "#bfdbfe",
+    facet: "#ffffff",
+    stops: ["#ffffff", "#dbeafe", "#93c5fd"],
+    blur: 8,
+    d: "M60 6 L91 34 L84 91 L60 114 L36 91 L29 34 Z",
+    highlight: { cx: 52, cy: 31, rx: 18, ry: 7, rotate: -15 },
+    facets: ["M60 6 L60 114", "M29 34 L60 57 L91 34", "M36 91 L60 57 L84 91", "M45 103 L60 57 L75 103"],
+    particles: [
+      { x: 20, y: 28, r: 1.7, delay: 0.12 },
+      { x: 100, y: 29, r: 1.5, delay: 0.5 },
+      { x: 19, y: 94, r: 1.4, delay: 0.86 },
+      { x: 101, y: 93, r: 1.9, delay: 1.24 },
+      { x: 61, y: 11, r: 1.2, delay: 1.5 },
+    ],
+  },
+  green_aventurine: {
+    label: "그린 아벤츄린",
+    color: "#22c55e",
+    glow: "#86efac",
+    facet: "#bbf7d0",
+    stops: ["#86efac", "#16a34a", "#14532d"],
+    blur: 6,
+    d: "M59 12 C84 10 101 31 98 59 C96 86 79 104 57 108 C34 104 18 85 20 58 C22 32 37 14 59 12 Z",
+    highlight: { cx: 50, cy: 36, rx: 22, ry: 8, rotate: -14 },
+    facets: ["M31 39 L58 63 L88 38", "M25 73 L58 63 L85 80", "M58 16 L57 106"],
+    particles: [
+      { x: 16, y: 36, r: 1.5, delay: 0.1 },
+      { x: 104, y: 32, r: 1.7, delay: 0.46 },
+      { x: 25, y: 101, r: 1.8, delay: 0.9 },
+      { x: 96, y: 94, r: 1.4, delay: 1.24 },
+    ],
+  },
+  garnet: {
+    label: "가넷",
+    color: "#b91c1c",
+    glow: "#ef4444",
+    facet: "#fecaca",
+    stops: ["#f87171", "#991b1b", "#450a0a"],
+    blur: 6,
+    d: "M60 8 L91 25 L101 57 L82 98 L60 113 L38 98 L19 57 L29 25 Z",
+    highlight: { cx: 51, cy: 35, rx: 18, ry: 7, rotate: -16 },
+    facets: ["M60 8 L60 113", "M29 25 L60 58 L91 25", "M19 57 L60 58 L101 57", "M38 98 L60 58 L82 98"],
+    particles: [
+      { x: 17, y: 29, r: 1.4, delay: 0.08 },
+      { x: 102, y: 31, r: 1.6, delay: 0.5 },
+      { x: 20, y: 96, r: 1.9, delay: 0.94 },
+      { x: 99, y: 90, r: 1.4, delay: 1.28 },
+    ],
+  },
+  labradorite: {
+    label: "래브라도라이트",
+    color: "#2563eb",
+    glow: "#67e8f9",
+    facet: "#a7f3d0",
+    stops: ["#67e8f9", "#2563eb", "#111827"],
+    blur: 8,
+    d: "M42 10 L86 19 L104 60 L78 103 L39 109 L17 69 L25 30 Z",
+    highlight: { cx: 55, cy: 35, rx: 25, ry: 8, rotate: -12 },
+    facets: ["M42 10 L56 61 L86 19", "M25 30 L56 61 L17 69", "M56 61 L78 103", "M56 61 L39 109"],
+    particles: [
+      { x: 15, y: 25, r: 1.6, delay: 0.12 },
+      { x: 103, y: 36, r: 1.8, delay: 0.46 },
+      { x: 25, y: 101, r: 1.3, delay: 0.88 },
+      { x: 97, y: 93, r: 1.7, delay: 1.26 },
+      { x: 60, y: 10, r: 1.2, delay: 1.52 },
+    ],
+  },
 };
 
 export function getGemColor(type: GemType) {
@@ -244,6 +366,17 @@ export default function CrystalGem({
             <stop offset="0.38" stopColor="rgba(255,255,255,0.18)" />
             <stop offset="1" stopColor="rgba(255,255,255,0)" />
           </radialGradient>
+          <pattern id={`${id}-grain`} width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+            <path d="M0 4 C4 1 10 7 16 3" stroke="rgba(255,255,255,0.16)" strokeWidth="1" fill="none" />
+            <path d="M0 11 C5 8 10 15 16 10" stroke="rgba(0,0,0,0.18)" strokeWidth="0.8" fill="none" />
+          </pattern>
+          <linearGradient id={`${id}-rub-streak`} x1="18" y1="78" x2="102" y2="30" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="rgba(255,255,255,0)" />
+            <stop offset="0.42" stopColor="rgba(255,255,255,0.08)" />
+            <stop offset="0.52" stopColor="rgba(255,255,255,0.64)" />
+            <stop offset="0.62" stopColor="rgba(255,255,255,0.12)" />
+            <stop offset="1" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
           <linearGradient id={`${id}-moon`} x1="20" y1="28" x2="100" y2="94" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor="#f0f9ff" stopOpacity="0.12" />
             <stop offset="0.38" stopColor="#f9a8d4" stopOpacity="0.18" />
@@ -263,7 +396,11 @@ export default function CrystalGem({
 
         <path className="crystal-gem__edge" d={shape.d} fill={shape.glow} filter={`url(#${id}-glow)`} opacity="0.58" />
         <path className="crystal-gem__base" d={shape.d} fill={`url(#${id}-base)`} />
+        <path className="crystal-gem__grain" d={shape.d} fill={`url(#${id}-grain)`} />
+        {type === "tiger_eye" ? <path className="crystal-gem__tiger-band" d={shape.d} fill="rgba(253,230,138,0.22)" /> : null}
+        {type === "labradorite" ? <path className="crystal-gem__labrador-flash" d={shape.d} fill={`url(#${id}-moon)`} /> : null}
         <path className="crystal-gem__rub-light" d={shape.d} fill={`url(#${id}-rub)`} opacity={clampedProgress / 130} />
+        <path className="crystal-gem__rub-streak" d={shape.d} fill={`url(#${id}-rub-streak)`} opacity={clampedProgress / 120} />
         {type === "moonstone" ? <path className="crystal-gem__moon-shimmer" d={shape.d} fill={`url(#${id}-moon)`} /> : null}
 
         <ellipse
@@ -287,6 +424,13 @@ export default function CrystalGem({
             <circle cx="74" cy="34" r="1.5" fill="#d4af37" opacity="0.72" />
             <circle cx="82" cy="76" r="2.3" fill="#d4af37" opacity="0.76" />
             <circle cx="48" cy="88" r="1.6" fill="#d4af37" opacity="0.68" />
+          </>
+        ) : null}
+        {type === "tiger_eye" ? (
+          <>
+            <path d="M30 36 C48 28 70 31 94 43" stroke="#fde68a" strokeWidth="5.4" strokeLinecap="round" opacity="0.25" />
+            <path d="M24 61 C45 52 72 55 99 70" stroke="#451a03" strokeWidth="4.2" strokeLinecap="round" opacity="0.32" />
+            <path d="M33 82 C52 74 70 78 86 91" stroke="#fbbf24" strokeWidth="2.8" strokeLinecap="round" opacity="0.28" />
           </>
         ) : null}
 
@@ -387,6 +531,37 @@ export default function CrystalGem({
           stroke-width: 1;
         }
 
+        .crystal-gem__grain {
+          mix-blend-mode: soft-light;
+          opacity: 0.52;
+        }
+
+        .crystal-gem__rub-streak {
+          mix-blend-mode: screen;
+          transform-origin: 60px 60px;
+          transition: opacity 0.12s ease;
+        }
+
+        .crystal-gem--rubbing .crystal-gem__grain {
+          animation: crystalGrainShift 0.48s linear infinite;
+          opacity: 0.78;
+        }
+
+        .crystal-gem--rubbing .crystal-gem__rub-streak {
+          animation: crystalRubStreak 0.72s ease-in-out infinite;
+        }
+
+        .crystal-gem__tiger-band {
+          mix-blend-mode: overlay;
+          opacity: 0.5;
+        }
+
+        .crystal-gem__labrador-flash {
+          mix-blend-mode: screen;
+          opacity: 0.48;
+          animation: crystalMoonShimmer 6.4s linear infinite;
+        }
+
         .crystal-gem__highlight {
           mix-blend-mode: screen;
         }
@@ -446,6 +621,18 @@ export default function CrystalGem({
           0% { filter: hue-rotate(0deg); opacity: 0.52; }
           50% { filter: hue-rotate(70deg); opacity: 0.82; }
           100% { filter: hue-rotate(0deg); opacity: 0.52; }
+        }
+
+        @keyframes crystalGrainShift {
+          0% { transform: translate(-1px, 0); }
+          50% { transform: translate(1.5px, -0.5px); }
+          100% { transform: translate(-1px, 0); }
+        }
+
+        @keyframes crystalRubStreak {
+          0% { transform: translate(-8px, 7px) scale(0.98); opacity: 0.18; }
+          50% { transform: translate(6px, -5px) scale(1.02); opacity: 0.82; }
+          100% { transform: translate(-8px, 7px) scale(0.98); opacity: 0.22; }
         }
       `}</style>
     </span>

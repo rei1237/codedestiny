@@ -1,4 +1,5 @@
 import createBundleAnalyzer from "@next/bundle-analyzer";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -27,7 +28,7 @@ function readPackageVersion() {
     const raw = readFileSync(packageJsonPath, "utf8");
     const parsed = JSON.parse(raw);
     return String(parsed?.version || "").trim();
-  } catch (e) {
+  } catch {
     return "";
   }
 }
@@ -54,29 +55,35 @@ const buildTime = firstNonEmpty([
 ]);
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
-  compress: true,
-  env: {
-    NEXT_PUBLIC_APP_VERSION: buildAppVersion,
-    NEXT_PUBLIC_GIT_SHA: buildGitSha,
-    NEXT_PUBLIC_BUILD_TIME: buildTime,
-  },
-  productionBrowserSourceMaps: process.env.NEXT_PUBLIC_ENABLE_SOURCEMAPS === "1"
-    || process.env.ENABLE_SOURCEMAPS === "1",
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  images: {
-    unoptimized: true,
-  },
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
-  },
-  trailingSlash: true,
+function createNextConfig(phase) {
+  const isDevelopmentServer = phase === PHASE_DEVELOPMENT_SERVER;
+  const isProductionBuild = !isDevelopmentServer && process.env.NODE_ENV === "production";
+
+  return withBundleAnalyzer({
+    output: isProductionBuild ? "export" : undefined,
+    compress: true,
+    env: {
+      NEXT_PUBLIC_APP_VERSION: buildAppVersion,
+      NEXT_PUBLIC_GIT_SHA: buildGitSha,
+      NEXT_PUBLIC_BUILD_TIME: buildTime,
+    },
+    productionBrowserSourceMaps: process.env.NEXT_PUBLIC_ENABLE_SOURCEMAPS === "1"
+      || process.env.ENABLE_SOURCEMAPS === "1",
+    eslint: {
+      ignoreDuringBuilds: true,
+    },
+    typescript: {
+      ignoreBuildErrors: true,
+    },
+    images: {
+      unoptimized: true,
+    },
+    experimental: {
+      cpus: 1,
+      optimizePackageImports: ['lucide-react'],
+    },
+    trailingSlash: true,
+  });
 }
 
-export default withBundleAnalyzer(nextConfig)
+export default createNextConfig;

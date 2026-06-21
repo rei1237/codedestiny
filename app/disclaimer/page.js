@@ -4,10 +4,10 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/disclaimer",
-    title: "Disclaimer | 면책 고지 — Code Destiny",
+    title: "면책 고지 | Code Destiny",
     description:
-      "Code Destiny 면책 고지 페이지입니다. 서비스 정보의 성격, 비보장 항목, 책임 제한, 전문 자문 권고, 긴급 상황 대응 원칙을 안내합니다.",
-    keywords: ["Disclaimer", "면책 고지", "운세 면책", "법률 고지", "전문가 자문"],
+      "Code Destiny 운세, 상담형 콘텐츠, 건강·재물·관계 해석의 한계와 전문가 상담 필요성을 안내하는 면책 고지입니다.",
+    keywords: ["면책 고지", "운세 면책", "건강 고지", "재물운 고지", "전문가 상담"],
   });
 }
 
@@ -19,6 +19,8 @@ const sectionStyle = {
   boxShadow: "0 14px 34px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03)",
   backdropFilter: "blur(8px)",
 };
+
+const paragraphStyle = { lineHeight: 1.78, wordBreak: "keep-all" };
 
 export default function DisclaimerPage() {
   return (
@@ -43,87 +45,81 @@ export default function DisclaimerPage() {
           textShadow: "0 0 18px rgba(244, 206, 120, 0.2)",
         }}
       >
-        면책 고지 (Disclaimer)
+        면책 고지
       </h1>
       <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-        시행일: 2026-05-07 / Effective Date: 2026-05-07
+        시행일: 2026-06-21 / Effective Date: 2026-06-21
       </p>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 본 고지의 목적 / Purpose of this Disclaimer</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          본 문서는 Code Destiny에서 제공하는 콘텐츠의 성격과 한계를 명확히 안내하기 위한 고지입니다. 이용자는 본 고지를 통해
-          서비스의 정보가 어떤 범위에서 활용되어야 하는지 이해할 수 있습니다. This page clarifies the scope and limitations of information
-          provided on Code Destiny.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 고지의 목적</h2>
+        <p style={paragraphStyle}>
+          이 문서는 Code Destiny에서 제공하는 사주, 자미두수, 숙요점, 점성술, 베다점, 타로, 마야 달력, 명리 헬스 리포트, 운세 다이어리, 명상 음악, 캐릭터 콘텐츠의 성격과 한계를 분명히 안내합니다.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 정보의 성격 / Nature of the Content</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          사주, 타로, 점성술, 오라클 및 관련 해석은 오락·자기 성찰·관점 확장 목적의 참고 정보입니다. 결과 문구는 확정된 사실 또는
-          미래 사건의 보증이 아니며, 개인 상황에 따라 다르게 해석될 수 있습니다. Fortune readings are for entertainment and self-reflection,
-          not factual guarantees.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>2. 콘텐츠의 성격</h2>
+        <p style={paragraphStyle}>
+          Code Destiny의 해석은 전통 상징 체계와 현대적 상담 언어를 바탕으로 한 엔터테인먼트 및 자기 성찰용 참고 정보입니다. 결과 문구는 미래의 확정된 사실이나 특정 사건의 보장을 뜻하지 않으며, 개인의 현실 조건에 따라 다르게 받아들여질 수 있습니다.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 전문 자문 대체 불가 / Not a Substitute for Professional Advice</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          본 서비스는 의학, 법률, 투자, 세무, 정신건강, 심리치료 등 전문 자문을 대체하지 않습니다. 건강 이상, 법적 분쟁, 자산 운용,
-          중대한 계약 체결 등 중요한 의사결정은 반드시 해당 자격을 갖춘 전문가와 상담한 후 진행하시기 바랍니다.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3. 전문가 조언을 대체하지 않음</h2>
+        <p style={paragraphStyle}>
+          본 서비스는 의료, 법률, 투자, 세무, 심리 치료, 진로 상담, 결혼·이혼·소송 관련 전문가의 조언을 대체하지 않습니다. 건강 이상, 법적 분쟁, 투자 결정, 계약 체결, 관계와 생계에 큰 영향을 주는 선택은 반드시 자격 있는 전문가와 상의하십시오.
         </p>
-        <p style={{ lineHeight: 1.75 }}>
-          This service does not replace professional medical, legal, financial, tax, or mental health advice. Consult qualified professionals
-          before making high-impact decisions.
+        <p style={paragraphStyle}>
+          This service does not replace professional medical, legal, financial, tax, relationship, career, or mental health advice.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 비보장 항목 / No-Guarantee Statement</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          Code Destiny는 다음 결과를 보장하지 않습니다.
-          (1) 의료 진단·치료의 성공 또는 회복 결과,
-          (2) 민사·형사 사건을 포함한 법적 절차의 결과,
-          (3) 투자 수익, 원금 보전, 손실 회피,
-          (4) 취업·승진·시험·관계 회복 등 특정 사건의 성사 여부.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 결과 보장 없음</h2>
+        <p style={paragraphStyle}>
+          Code Destiny는 질병의 진단·치료, 법적 절차의 결과, 투자 수익, 자금 보전, 시험 합격, 취업, 승진, 결혼, 이혼, 재회, 특정 시기의 사건 발생을 보장하지 않습니다. &ldquo;반드시&rdquo;, &ldquo;무조건&rdquo;, &ldquo;확정&rdquo;처럼 현실 판단을 흐릴 수 있는 단정 표현을 피하고, 가능한 흐름과 참고 관점으로 안내합니다.
         </p>
-        <p style={{ lineHeight: 1.75 }}>
-          Code Destiny does not guarantee medical outcomes, legal results (including criminal cases), investment returns, or specific life-event outcomes.
+        <p style={paragraphStyle}>
+          Code Destiny does not guarantee medical outcomes, legal results, investment returns, or specific life-event outcomes.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 이용자 책임 / User Responsibility</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          서비스 콘텐츠를 참고하여 이루어진 최종 판단과 행동의 책임은 이용자 본인에게 있습니다. 운영자는 이용자의 개별 상황에서 발생한
-          직접·간접 손해, 기회손실, 결과적 손해에 대해 법령이 허용하는 범위 내에서 책임을 제한할 수 있습니다.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 건강·재물·관계 해석</h2>
+        <p style={paragraphStyle}>
+          명리 헬스 리포트는 의료 진단이 아니며, 재물운·사업운·투자운은 금융 조언이 아닙니다. 결혼운, 이혼운, 소송운, 진로 상담 역시 법률·심리·의료·재무 전문가 상담의 대체물이 아닙니다. 해석은 현실적 정보와 전문가 조언을 함께 놓고 참고해 주십시오.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 외부 링크 및 제3자 서비스 / External Links and Third-Party Services</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          서비스에는 외부 웹사이트, 결제사, 광고 네트워크, 분석 도구로 연결되는 링크가 포함될 수 있습니다. 외부 서비스의 내용, 약관,
-          개인정보 처리 방식은 각 제공자의 정책이 적용되며, 당사는 해당 영역을 통제하지 않습니다.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>6. 불안 조장과 강제 결제 금지</h2>
+        <p style={paragraphStyle}>
+          Code Destiny는 공포를 키우거나 결제를 강요하는 표현을 지양합니다. 결제하지 않으면 운이 나빠진다는 식의 문구, 불안을 이용한 구매 유도, 특정 선택을 강제하는 상담 표현은 서비스 운영 기준에 맞지 않습니다.
         </p>
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 긴급 상황 고지 / Emergency Notice</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          생명·신체 위험, 자해·타해 우려, 범죄 피해 우려, 즉시 의료 처치가 필요한 경우에는 본 서비스를 이용해 판단하지 마시고,
-          지역 응급기관 또는 전문기관에 즉시 연락해 주세요.
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 외부 링크와 제3자 서비스</h2>
+        <p style={paragraphStyle}>
+          서비스에는 결제사, 광고 네트워크, 분석 도구, 외부 참고 자료로 이어지는 링크가 포함될 수 있습니다. 외부 서비스의 콘텐츠와 개인정보 처리 방식은 각 제공자의 약관과 정책이 적용됩니다.
         </p>
-        <p style={{ lineHeight: 1.75 }}>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 긴급 상황</h2>
+        <p style={paragraphStyle}>
+          생명·신체의 위험, 자해나 타해 우려, 즉각적인 의료 처치가 필요한 상황, 범죄 피해나 안전 위협이 있는 경우에는 본 서비스를 이용해 판단하지 말고 지역 응급기관 또는 자격 있는 전문가에게 즉시 연락하십시오.
+        </p>
+        <p style={paragraphStyle}>
           In emergencies involving health or safety risks, contact emergency services or qualified professionals immediately.
         </p>
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 문의 / Contact</h2>
-        <p style={{ lineHeight: 1.75 }}>
-          고지 관련 문의: <a href={SUPPORT_MAILTO} style={{ color: "#93c5fd", textDecoration: "underline" }}>{SUPPORT_EMAIL}</a>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 문의</h2>
+        <p style={paragraphStyle}>
+          면책 고지 또는 콘텐츠 표현 관련 문의: <a href={SUPPORT_MAILTO} style={{ color: "#93c5fd", textDecoration: "underline" }}>{SUPPORT_EMAIL}</a>
           <br />
           Disclaimer inquiries: <a href={SUPPORT_MAILTO} style={{ color: "#93c5fd", textDecoration: "underline" }}>{SUPPORT_EMAIL}</a>
         </p>

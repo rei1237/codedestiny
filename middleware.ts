@@ -3,15 +3,13 @@ import { NextResponse } from "next/server";
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
 
-/**
- * Accept-Language ??locale slug 留ㅽ븨
- * 釉뚮씪?곗? ?몄뼱 媛먯? ???대떦 寃쎈줈濡??먮룞 由щ떎?대젆?? */
+// Map supported browser languages to public locale roots.
 const ACCEPT_LANG_MAP = [
   { prefix: "ja", slug: "/ja" },
   { prefix: "zh", slug: "/zh" },
   { prefix: "en", slug: "/en" },
 ];
-/** ?대? 濡쒖???prefix ?섏뿉 ?덈뒗 寃쎈줈?몄? ?뺤씤 */
+// Legacy locale roots are redirected to the current short slugs.
 const LEGACY_LOCALE_SLUGS = ["/en-us", "/ja-jp", "/zh-cn"];
 const LOCALE_SLUGS = new Set([...ACCEPT_LANG_MAP.map((l) => l.slug), ...LEGACY_LOCALE_SLUGS]);
 const LEGACY_LOCALE_REDIRECTS = new Map([
@@ -19,20 +17,64 @@ const LEGACY_LOCALE_REDIRECTS = new Map([
   ["/ja-jp", "/ja"],
   ["/zh-cn", "/zh"],
 ]);
+const COUNTRY_TRANSLATE_LANG = new Map([
+  ["US", "en"], ["GB", "en"], ["AU", "en"], ["NZ", "en"], ["IE", "en"], ["SG", "en"], ["PH", "en"],
+  ["JP", "ja"],
+  ["CN", "zh-CN"], ["HK", "zh-CN"], ["MO", "zh-CN"], ["TW", "zh-CN"],
+  ["IN", "hi"],
+  ["ES", "es"], ["MX", "es"], ["AR", "es"], ["CO", "es"], ["CL", "es"], ["PE", "es"], ["VE", "es"], ["UY", "es"], ["PY", "es"], ["BO", "es"], ["EC", "es"], ["GT", "es"], ["CR", "es"], ["PA", "es"], ["DO", "es"], ["HN", "es"], ["NI", "es"], ["SV", "es"], ["CU", "es"],
+  ["FR", "fr"], ["MC", "fr"], ["LU", "fr"],
+  ["DE", "de"], ["AT", "de"],
+  ["NL", "nl"],
+  ["MY", "ms"], ["BN", "ms"],
+]);
 function getLocaleSlugFromAcceptLang(acceptLang) {
   if (!acceptLang) return null;
-  // e.g. "ja-JP,ja;q=0.9,en;q=0.8" ??["ja-JP","ja","en"]
+  // e.g. "ja-JP,ja;q=0.9,en;q=0.8" -> ["ja-JP", "ja", "en"]
   const langs = acceptLang
     .split(",")
     .map((s) => s.split(";")[0].trim().toLowerCase())
     .filter(Boolean);
   for (const lang of langs) {
-    // ko ???쒓뎅?댁씠硫?由щ떎?대젆??遺덊븘??    if (lang.startsWith("ko")) return null;
+    if (lang.startsWith("ko")) return null;
     for (const entry of ACCEPT_LANG_MAP) {
       if (lang.startsWith(entry.prefix)) return entry.slug;
     }
   }
   return null;
+}
+function getTranslateLangFromAcceptLang(acceptLang) {
+  if (!acceptLang) return null;
+  const langs = acceptLang
+    .split(",")
+    .map((s) => s.split(";")[0].trim().toLowerCase())
+    .filter(Boolean);
+  for (const lang of langs) {
+    if (lang.startsWith("ko")) return null;
+    if (lang.startsWith("zh")) return "zh-CN";
+    if (lang.startsWith("en")) return "en";
+    if (lang.startsWith("ja")) return "ja";
+    if (lang.startsWith("hi")) return "hi";
+    if (lang.startsWith("es")) return "es";
+    if (lang.startsWith("fr")) return "fr";
+    if (lang.startsWith("de")) return "de";
+    if (lang.startsWith("nl")) return "nl";
+    if (lang.startsWith("ms")) return "ms";
+  }
+  return null;
+}
+function getRequestCountry(request) {
+  const rawCountry =
+    request.headers.get("cf-ipcountry") ||
+    request.headers.get("x-vercel-ip-country") ||
+    request.geo?.country ||
+    "";
+  return String(rawCountry || "").trim().toUpperCase();
+}
+function getAutoTranslateLang(request) {
+  const countryLang = COUNTRY_TRANSLATE_LANG.get(getRequestCountry(request));
+  if (countryLang) return countryLang;
+  return getTranslateLangFromAcceptLang(request.headers.get("accept-language") || "");
 }
 const SEO_PUBLIC_PATHS = new Set([
   "/robots.txt",
@@ -171,7 +213,7 @@ function decodeJwtPayload(token) {
   try {
     if (typeof atob !== "function") return null;
     return JSON.parse(atob(padded));
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -278,14 +320,13 @@ function logMiddlewareError(request, error) {
 
   try {
     console.error("[middleware-auth-diagnostic]", JSON.stringify(payload));
-  } catch (e) {
+  } catch {
     console.error("[middleware-auth-diagnostic]", payload);
   }
 }
 
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
-  const ua = request.headers.get("user-agent") || "";
   const method = (request.method || "GET").toUpperCase();
 
   try {
@@ -314,6 +355,15 @@ export function middleware(request) {
      */
     if (pathname === "/") {
       const url = request.nextUrl.clone();
+      const localeAck = request.cookies.get("cd_locale_ack");
+      const hasLangParam = url.searchParams.has("lang");
+      if (!localeAck && !hasLangParam) {
+        const targetLang = getAutoTranslateLang(request);
+        if (targetLang) {
+          url.searchParams.set("lang", targetLang);
+          return NextResponse.redirect(url, 307);
+        }
+      }
       url.pathname = "/index.html";
       url.search = search;
       return NextResponse.rewrite(url);
@@ -335,7 +385,7 @@ export function middleware(request) {
     }
 
     // Admin route protection: /admin/* (except /admin/login) requires flower_admin_token cookie
-    if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+    if (pathname.startsWith("/admin") && pathname !== "/admin/login" && pathname !== "/admin/login/") {
       const tokenCookie = request.cookies.get("flower_admin_token")?.value;
       if (!tokenCookie) {
         const loginUrl = request.nextUrl.clone();
@@ -412,12 +462,8 @@ export function middleware(request) {
 
   // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
 
-  /**
-   * Accept-Language ?먮룞 由щ떎?대젆??
-   * 猷⑦듃(/) 諛⑸Ц ??釉뚮씪?곗? ?몄뼱媛 鍮꾪븳援?뼱?대㈃ ?대떦 濡쒖???寃쎈줈濡?301 由щ떎?대젆??
-   * - ?대? 濡쒖???寃쎈줈 ?섏뿉 ?덉쑝硫??ㅽ궢 (臾댄븳猷⑦봽 諛⑹?)
-   * - 荑좏궎 `cd_locale_ack=1` ???덉쑝硫??ㅽ궢 (?ъ슜?먭? ?몄뼱 ?좏깮?덉쓣 ???명똿)
-   */
+  // Redirect first-time root visits to a supported locale when the browser language is non-Korean.
+  // Existing locale paths and users with cd_locale_ack are left unchanged.
   const isLocaleRoot = LOCALE_SLUGS.has(rawPath.replace(/\/$/, "")) ||
     [...LOCALE_SLUGS].some((s) => rawPath.startsWith(s + "/"));
   if (!isLocaleRoot && (rawPath === "/" || rawPath === "")) {
@@ -428,7 +474,7 @@ export function middleware(request) {
       if (targetSlug) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = targetSlug;
-        // 307 Temporary: SEO 愿?먯뿉???쒓뎅?닿? 湲곕낯 canonical?대?濡??꾩떆 由щ떎?대젆??        return NextResponse.redirect(redirectUrl, 307);
+        return NextResponse.redirect(redirectUrl, 307);
       }
     }
   }

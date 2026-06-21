@@ -12,14 +12,6 @@ export function generateMetadata() {
 
   return {
     ...metadata,
-    robots: {
-      index: false,
-      follow: false,
-      googleBot: {
-        index: false,
-        follow: false,
-      },
-    },
     alternates: {
       ...(metadata.alternates || {}),
       canonical: "https://code-destiny.com/terms",

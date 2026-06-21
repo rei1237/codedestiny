@@ -23,15 +23,26 @@ function extractSourceBlock(source, startMarker, endMarker) {
 
 const sajuAIGateSource = extractSourceBlock(sajuEngineSource, "function _cdAIPromptGate(input) {", "function _sajuPromptClone(value) {");
 const sajuPromptRequestSource = extractSourceBlock(sajuEngineSource, "function _requestSajuQuestionPrompt(question, privacyOptions, domain)", "function _buildSajuQuestionPromptHtml() {");
+const astrologyPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleAstrologyAIPrompt(request, auth, env) {", "async function handleVedicAIPrompt(request, auth, env) {");
+const vedicPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleVedicAIPrompt(request, auth, env) {", "async function handleSajuAIPrompt(request, auth, env) {");
 const sajuPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSajuAIPrompt(request, auth, env) {", "async function handleZiweiAIPrompt(request, auth, env) {");
+const ziweiPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleZiweiAIPrompt(request, auth, env) {", "function buildSukuyoAIPromptError(code, message, status = 400) {");
+const sukuyoPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSukuyoAIPrompt(request, auth, env) {", "async function handleSubscriptionStatus(request, env, auth) {");
+const allPromptRouteSource = [
+  astrologyPromptRouteSource,
+  vedicPromptRouteSource,
+  sajuPromptRouteSource,
+  ziweiPromptRouteSource,
+  sukuyoPromptRouteSource,
+].join("\n");
 
 const promptFeatures = [
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",
-  "sukuyo_ai_prompt_generator",
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
 ];
+const freePromptFeatures = ["sukuyo_ai_prompt_generator"];
 
 for (const featureKey of promptFeatures) {
   assert.equal(
@@ -45,6 +56,21 @@ for (const featureKey of promptFeatures) {
     `${featureKey} route must use its canonical feature key`,
   );
 }
+
+for (const featureKey of freePromptFeatures) {
+  assert.equal(
+    FEATURE_KEY_PRICE_TABLE[featureKey]?.cost,
+    0,
+    `${featureKey} must stay free in the server registry`,
+  );
+  assert.match(
+    fortuneSource,
+    new RegExp(`featureKey:\\s*${featureKey.toUpperCase().replace(/_AI_PROMPT_GENERATOR$/, "_AI_PROMPT_FEATURE_KEY")}`),
+    `${featureKey} route must use its canonical feature key`,
+  );
+}
+
+const allPromptFeatures = [...promptFeatures, ...freePromptFeatures];
 
 assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, "coin consume must require explicit forceDeduct");
 assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
@@ -74,8 +100,8 @@ assert.match(fortuneSource, /kind: "deduct"/, "coin consume must write deduct hi
 assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "deduct history must bind requestId");
 assert.match(fortuneSource, /accessGrant: body\?\.accessGrant/, "prompt routes must forward accessGrant evidence");
 assert.equal(
-  (fortuneSource.match(/requireExistingPaidAccess: true/g) || []).length,
-  promptFeatures.length,
+  (allPromptRouteSource.match(/requireExistingPaidAccess: true/g) || []).length,
+  allPromptFeatures.length,
   "all AI prompt routes must require pre-verified paid access",
 );
 assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
@@ -102,18 +128,18 @@ assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt
 assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");
 assert.match(fortuneSource, /body\?\.idempotencyKey[\s\S]*paymentContext\.idempotencyKey[\s\S]*body\?\.requestId[\s\S]*paymentContext\.requestId[\s\S]*fallbackRequestId/, "AI prompt request-id resolution must prefer client payment flow ids");
 assert.equal(
-  (fortuneSource.match(/const requestId = readAIPromptRequestId\(body, fallbackRequestId\);/g) || []).length,
-  promptFeatures.length,
+  (allPromptRouteSource.match(/const requestId = readAIPromptRequestId\(body, fallbackRequestId\);/g) || []).length,
+  allPromptFeatures.length,
   "all AI prompt routes must use payment-flow request ids",
 );
 assert.equal(
-  (fortuneSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  promptFeatures.length,
+  (allPromptRouteSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
+  allPromptFeatures.length,
   "AI prompt generation routes must forward accessDecision into paid-access verification",
 );
 assert.equal(
-  (fortuneSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  promptFeatures.length,
+  (allPromptRouteSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
+  allPromptFeatures.length,
   "AI prompt generation routes must forward subscription pass evidence into paid-access verification",
 );
 assert.doesNotMatch(

@@ -6,9 +6,11 @@ const publicDir = resolve(rootDir, "public");
 const publicIndexPath = resolve(rootDir, "public", "index.html");
 const publicStaticIndexPath = resolve(rootDir, "public", "static", "index.html");
 const generatedSitemapPath = resolve(rootDir, "out", "sitemap.xml");
+const generatedRobotsPath = resolve(rootDir, "out", "robots.txt");
 const generatedOutDir = resolve(rootDir, "out");
 const distIndexPath = resolve(rootDir, "dist", "index.html");
 const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
+const distRobotsPath = resolve(rootDir, "dist", "robots.txt");
 const distStaticIndexPath = resolve(rootDir, "dist", "static", "index.html");
 const generatedRouteHtmlFiles = [
   "insights/index.html",
@@ -84,6 +86,11 @@ if (existsSync(publicDir)) {
   if (existsSync(generatedSitemapPath)) {
     copyFileSync(generatedSitemapPath, distSitemapPath);
     console.log(`[promote-static-shell] sitemap: ${generatedSitemapPath} -> ${distSitemapPath}`);
+  }
+
+  if (existsSync(generatedRobotsPath)) {
+    copyFileSync(generatedRobotsPath, distRobotsPath);
+    console.log(`[promote-static-shell] robots: ${generatedRobotsPath} -> ${distRobotsPath}`);
   }
 }
 

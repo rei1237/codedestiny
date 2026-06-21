@@ -32,7 +32,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
       en: "Zi Wei Dou Shu Beginner Guide: Reading Order",
     },
     descriptionByLocale: {
-      ko: "자미두수 초보자가 궁위 중심으로 명반을 읽는 기본 순서를 정리했습니다.",
+      ko: "자미두수 초보자가 명궁, 재백궁, 관록궁처럼 핵심 궁위를 중심으로 명반을 차분히 읽는 기본 순서를 정리했습니다.",
       ja: "紫微斗数の初心者向けに、宮位中心で命盤を読む基本順序を整理しました。",
       zh: "面向新手整理紫微斗数命盘的关键阅读顺序与理解方法。",
       en: "A practical reading sequence for beginners who want to interpret Zi Wei charts by key palaces.",
@@ -99,7 +99,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
       en: "Sukuyo Relationship Reading: Conflict Pattern Basics",
     },
     descriptionByLocale: {
-      ko: "숙요점을 통해 관계의 반복 갈등과 회복 타이밍을 읽는 실전 가이드입니다.",
+      ko: "숙요점을 통해 관계의 반복 갈등, 소통 리듬, 회복 타이밍을 함께 읽고 현실적인 대화 기준으로 정리하는 실전 가이드입니다.",
       ja: "宿曜を使って関係の衝突反復と回復タイミングを読む実践ガイドです。",
       zh: "通过宿曜识别关系中的冲突循环与修复窗口。",
       en: "A practical guide to identifying recurring conflict and recovery windows with Sukuyo.",

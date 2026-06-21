@@ -14,13 +14,16 @@
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
+    "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
+    "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",
+    "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
-    "_build:cf:main": "npm run clean:build && npm run sync:public && npm run verify:public-parity && npm run verify:i18n-runtime && node scripts/verify-i18n-public-parity.mjs --all && npm run verify:locale-main-sync && npm run verify:runtime-cache-sync && node scripts/print-build-context.mjs && node scripts/next-build-with-pages-manifest.mjs",
+    "_build:cf:main": "npm run clean:build && npm run sync:public && npm run verify:public-parity && npm run verify:i18n-runtime && node scripts/verify-i18n-public-parity.mjs --all && npm run verify:locale-main-sync && npm run verify:runtime-cache-sync && npm run verify:adsense-route-policy && node scripts/print-build-context.mjs && node scripts/next-build-with-pages-manifest.mjs",
     "build": "node scripts/with-utf8-console.mjs npm run _build:cf:main",
     "analyze": "cross-env ANALYZE=true next build",
-    "postbuild": "node scripts/prepare-cloudflare-dist.mjs && node scripts/write-version-json.mjs && node scripts/promote-static-shell-to-root.mjs",
+    "postbuild": "node scripts/run-postbuild.mjs",
     "clean:build": "node scripts/clean-cloudflare-build.mjs",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
@@ -136,6 +139,7 @@
     "resend": "^6.12.2",
     "sonner": "^2.0.7",
     "sweph-wasm": "^2.6.9",
+    "tz-lookup": "^6.1.25",
     "web-vitals": "^4.2.4",
     "zustand": "^5.0.13"
   },
@@ -155,5 +159,23 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.5.2",
     "wrangler": "^4.73.0"
-  }
+  },
+  "description": "",
+  "main": "AnalysisEngine.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rei1237/codedestiny.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rei1237/codedestiny/issues"
+  },
+  "homepage": "https://github.com/rei1237/codedestiny#readme"
 }

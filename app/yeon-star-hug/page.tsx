@@ -2237,6 +2237,44 @@ export default function YeonStarHugPage() {
           </div>
         </section>
 
+        <section className="grid gap-3 rounded-3xl border border-white/45 bg-white/75 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.14)] backdrop-blur-sm md:grid-cols-3">
+          <article>
+            <h2 className="text-base font-black text-slate-700">무엇을 비추나요</h2>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              선택한 감정, 별자리, 고민 문장을 함께 놓고 오늘 강하게 떠오르는 마음의 결을 읽습니다. 결과는 확정된 예언보다
+              지금의 감정이 어디에서 지치고 어디에서 회복되는지 살피는 다정한 상담에 가깝습니다.
+            </p>
+          </article>
+          <article>
+            <h2 className="text-base font-black text-slate-700">어떤 상황에 좋나요</h2>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              관계의 말투, 일상의 피로, 선택 앞의 망설임처럼 누군가에게 부드럽게 정리받고 싶은 마음이 있을 때 참고하기 좋습니다.
+              고민을 한 문장으로 적으면 키워드와 작은 실천 순서가 더 자연스럽게 열립니다.
+            </p>
+          </article>
+          <article>
+            <h2 className="text-base font-black text-slate-700">읽을 때의 약속</h2>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              이 상담은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 재정, 관계의 중대한 결정은 결과 하나로
+              단정하지 말고 현실적인 정보와 전문가의 도움을 함께 확인하세요.
+            </p>
+          </article>
+          <article className="md:col-span-3">
+            <h2 className="text-base font-black text-slate-700">더 부드럽게 사용하는 법</h2>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              마음이 복잡한 날에는 긴 설명보다 지금 가장 크게 느껴지는 감정 하나를 먼저 고르는 편이 좋습니다. 고민 문장은
+              “왜 이렇게 힘들까”에서 멈추기보다 “오늘 내가 덜 상처받기 위해 확인할 것은 무엇일까”처럼 스스로를 지키는 방향으로
+              적어 보세요. 결과에 나온 작은 행동은 하루를 바꾸는 주문이 아니라 마음을 안정시키는 짧은 리듬입니다. 잘 맞는 문장은
+              기록해 두고, 불편하거나 과하게 느껴지는 문장은 현실의 판단과 대화 속에서 다시 조정해 주세요.
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-600">
+              감정이 강한 날일수록 결과를 운명처럼 붙잡기보다 지금 필요한 돌봄의 언어로 받아들이는 것이 좋습니다. 별자리와 달의
+              흐름은 분위기를 비추는 배경이고, 실제 선택은 사용자의 상황과 관계, 몸의 컨디션, 주변의 도움을 함께 보며 정하는 편이
+              더 안전합니다. 오늘의 작은 문장이 마음을 덜 흔들리게 해 준다면 그것만으로도 충분한 안내가 됩니다.
+            </p>
+          </article>
+        </section>
+
         <motion.nav
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}

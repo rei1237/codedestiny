@@ -104,6 +104,19 @@ function normalizeCardEntry(card = {}, fallback = {}) {
   };
 }
 
+function normalizeClosingFortune(value = {}, fallback = {}) {
+  const src = value && typeof value === "object" ? value : {};
+  const base = fallback && typeof fallback === "object" ? fallback : {};
+  return {
+    title: text(src.title || base.title || "오늘의 별빛 운세"),
+    overall: text(src.overall || base.overall || "오늘의 별빛은 큰 결론보다 작은 조율을 먼저 비춥니다. 마음이 흔들리는 지점은 멈춤의 신호가 아니라 기준을 다시 세우라는 안내입니다. 한 가지 약속을 끝까지 지키면 운의 흐름이 차분하게 정돈됩니다. 지금 열리는 길은 급한 확정보다 부드러운 선택 속에서 더 선명해집니다."),
+    love: text(src.love || base.love || "관계에서는 마음을 시험하기보다 필요한 감정을 한 문장으로 전하는 흐름이 좋습니다. 다정함과 경계를 함께 세울 때 인연의 결이 안정됩니다."),
+    work: text(src.work || base.work || "일에서는 속도보다 순서가 운을 엽니다. 가장 부담스러운 일 하나를 작게 나누어 시작하면 막혀 있던 흐름이 다시 움직입니다."),
+    money: text(src.money || base.money || "재물운은 확장보다 검증을 먼저 요구합니다. 작은 지출 패턴을 알아차릴 때 자원의 흐름이 단단해집니다."),
+    health: text(src.health || base.health || "몸과 마음은 단순한 회복 의식을 원합니다. 수면, 호흡, 물 한 잔처럼 기본적인 리듬이 전체 운의 균형을 다시 세웁니다."),
+  };
+}
+
 function normalizeSummary(summary = {}, fallback = {}) {
   const src = summary && typeof summary === "object" ? summary : {};
   const base = fallback && typeof fallback === "object" ? fallback : {};
@@ -128,6 +141,7 @@ function normalizeSummary(summary = {}, fallback = {}) {
     practices: toStringArray(src.practices, toStringArray(base.practices, [])),
     ritualPlan: toStringArray(src.ritualPlan, toStringArray(base.ritualPlan, [])),
     finalOracle: text(src.finalOracle || base.finalOracle || "작은 실천이 반복될 때 우주의 선율은 현실 변화로 완성됩니다."),
+    closingFortune: normalizeClosingFortune(src.closingFortune, base.closingFortune),
   };
 }
 
@@ -395,7 +409,15 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
           money: "돈/자원 해석",
           health: "회복/컨디션 해석"
         },
-        finalOracle: "황금 카드까지 통합한 마지막 오라클"
+        finalOracle: "황금 카드까지 통합한 마지막 오라클",
+        closingFortune: {
+          title: "오늘의 별빛 운세",
+          overall: "결제 후 결과의 가장 마지막에서 전문 타로 리더가 직접 봐주는 종합 운세 4~6문장",
+          love: "연애와 관계 운세 2~3문장",
+          work: "일과 성과 운세 2~3문장",
+          money: "돈과 자원 운세 2~3문장",
+          health: "회복과 컨디션 운세 2~3문장"
+        }
       }
     }),
     "작성 조건:",
@@ -403,6 +425,8 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정/역방향, 심리 패턴, 그림자, 실천을 모두 반영합니다.",
     "3) summary.overallTheme은 전체 흐름을 충분히 엮고, finalOracle은 황금 카드까지 반영해 한 편의 완성된 오라클처럼 씁니다.",
     "4) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작은 조율 의식으로 구체화합니다.",
+    "5) summary.closingFortune은 결제 후 결과의 가장 하단에서 전문 타로 리더가 직접 운세를 봐주는 문체로 씁니다. title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 작성합니다.",
+    "6) closingFortune에는 기능명이나 결과물을 주어로 삼는 제품 설명 어투를 쓰지 말고, 운세 상담가가 사용자에게 직접 말하는 자연스러운 문장만 사용합니다.",
     "황금 통합 카드=" + goldenLine,
     "dominantLayer=" + (summary?.dominantLayer || ""),
     "strongestPlanetSignal=" + (summary?.strongestPlanetSignal || ""),
@@ -527,6 +551,7 @@ function mergeAiSummary(baseSummary = {}, aiSummary = {}) {
       money: preferText(srcMatrix.money, baseMatrix.money, 40),
       health: preferText(srcMatrix.health, baseMatrix.health, 40),
     },
+    closingFortune: normalizeClosingFortune(src.closingFortune, baseSummary.closingFortune),
   };
 }
 

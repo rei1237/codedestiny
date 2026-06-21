@@ -1118,6 +1118,136 @@
     return div.innerHTML;
   }
 
+  function compactSelfEsteemPromptText(value, fallback) {
+    var text = "";
+    if (Array.isArray(value)) {
+      text = value.map(function (line) { return String(line || "").trim(); }).filter(Boolean).join(" / ");
+    } else {
+      text = String(value || "").trim();
+    }
+    text = text.replace(/\s+/g, " ").trim();
+    return text ? text.slice(0, 560) : (fallback || "");
+  }
+
+  function buildTarotSelfEsteemAiPromptText(reading, positionItems) {
+    var r = reading || {};
+    var items = Array.isArray(positionItems) ? positionItems : [];
+    if (!r || (!items.length && !r.opening && !r.topSummary && !r.levelupGuide)) return "";
+
+    var cardLines = items.slice(0, 5).map(function (item, idx) {
+      var card = null;
+      (state.cards || []).forEach(function (c) {
+        if (c && c.position === item.positionKey) card = c;
+      });
+      var position = compactSelfEsteemPromptText(item.positionTitle || POSITION_LABELS[item.positionKey], "자리 " + (idx + 1));
+      var cardName = compactSelfEsteemPromptText(item.cardName || item.cardNameEn || (card && (card.nameKr || card.name)), "카드 " + (idx + 1));
+      var orientation = compactSelfEsteemPromptText(item.orientationLabel || ((card && card.orientation === "reversed") ? "역방향" : "정방향"));
+      var keywords = Array.isArray(item.keywords) ? item.keywords.map(function (kw) { return String(kw || "").trim(); }).filter(Boolean).slice(0, 4).join(", ") : "";
+      var message = compactSelfEsteemPromptText(item.easyAnswer || item.recoveryReframe || item.healingSentence);
+      var practice = compactSelfEsteemPromptText(item.actionPractice || item.todayAction || item.caution);
+      return [
+        (idx + 1) + ". " + position + ": " + cardName + (orientation ? " " + orientation : ""),
+        keywords ? "키워드: " + keywords : "",
+        message ? "메시지: " + message : "",
+        practice ? "오늘의 기준 회복: " + practice : "",
+      ].filter(Boolean).join(" | ");
+    });
+
+    var top = r.topSummary && typeof r.topSummary === "object" ? r.topSummary : {};
+    var guide = r.levelupGuide && typeof r.levelupGuide === "object" ? r.levelupGuide : {};
+    var questLines = Array.isArray(guide.sevenDayQuest) ? guide.sevenDayQuest.map(function (line, idx) {
+      return (idx + 1) + ". " + compactSelfEsteemPromptText(line);
+    }).filter(Boolean).slice(0, 7) : [];
+    var actionLines = Array.isArray(r.actionPlan) ? r.actionPlan.map(function (line, idx) {
+      return (idx + 1) + ". " + compactSelfEsteemPromptText(line);
+    }).filter(Boolean).slice(0, 5) : [];
+
+    return [
+      "자기 기준 회복 타로에서 받은 아래 흐름을 바탕으로, 지금 내가 다시 내 편에 서는 길을 깊게 봐주세요.",
+      "",
+      "차분하고 신뢰감 있는 타로 리더처럼 말해주세요. 타인의 반응을 예언처럼 단정하기보다, 내 기준이 흔들리는 자리와 회복 가능한 선택을 중심으로 읽어주세요.",
+      "",
+      "[처음 비친 장면] " + compactSelfEsteemPromptText(r.opening, "마음이 자기 기준을 되찾아야 하는 장면부터 짚어주세요."),
+      "[다섯 장의 흐름] " + compactSelfEsteemPromptText(top.flowLine || top.flow || guide.flow, "카드들이 이어서 보여주는 자기 기준 회복 흐름을 연결해 주세요."),
+      "[핵심 패턴] " + compactSelfEsteemPromptText(top.corePattern || guide.rootPattern || r.pastDebuff),
+      "[흔들리는 이유] " + compactSelfEsteemPromptText(top.rootCause || r.innerMonster),
+      "[회복의 열쇠] " + compactSelfEsteemPromptText(top.recoveryKey || guide.recoveryPath || r.mindShield),
+      "",
+      "[펼쳐진 카드]",
+      cardLines.join("\n"),
+      "",
+      "[자기 기준 회복 가이드]",
+      compactSelfEsteemPromptText(guide.boundaryPractice || r.levelupGuidance),
+      compactSelfEsteemPromptText(guide.practiceSentence || top.todayAction || r.levelupMastery),
+      questLines.length ? "[7일 회복 연습]\n" + questLines.join("\n") : "",
+      actionLines.length ? "[오늘의 실천]\n" + actionLines.join("\n") : "",
+      "",
+      "이 흐름에서 내가 남의 시선에 맡겨 버린 기준, 다시 회수해야 할 감정의 책임, 오늘 당장 지킬 수 있는 작은 경계를 차례로 봐주세요. 마지막에는 내 기준을 세우는 짧은 확언 3문장과 오늘 밤 실천할 회복 의식을 건네주세요.",
+    ].filter(function (line) { return String(line || "").trim(); }).join("\n");
+  }
+
+  function copyTarotSelfEsteemAiPrompt(self) {
+    var panel = self && self.closest ? self.closest(".tarot-self-esteem-ai-prompt-panel") : null;
+    var textarea = panel ? panel.querySelector("#tarotSelfEsteemAiPromptOutput") : byId("tarotSelfEsteemAiPromptOutput");
+    var status = panel ? panel.querySelector(".tarot-self-esteem-ai-prompt-status") : byId("tarotSelfEsteemAiPromptStatus");
+    var text = textarea ? String(textarea.value || "") : "";
+    if (!text) return;
+
+    function done(message, ok) {
+      if (!status) return;
+      status.textContent = message;
+      status.setAttribute("data-state", ok ? "success" : "warn");
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        done("복사되었습니다.", true);
+      }).catch(function () {
+        try {
+          textarea.focus();
+          textarea.select();
+          document.execCommand("copy");
+          done("복사되었습니다.", true);
+        } catch (e) {
+          done("직접 선택해 복사해 주세요.", false);
+        }
+      });
+      return;
+    }
+
+    try {
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      done("복사되었습니다.", true);
+    } catch (e2) {
+      done("직접 선택해 복사해 주세요.", false);
+    }
+  }
+
+  function renderTarotSelfEsteemAiPromptPanel(container, reading, positionItems) {
+    if (!container || !reading) return;
+    var promptText = buildTarotSelfEsteemAiPromptText(reading, positionItems);
+    if (!promptText) return;
+
+    var section = document.createElement("section");
+    section.className = "tarot-self-esteem-section tarot-self-esteem-ai-prompt-panel";
+    section.setAttribute("data-marker", "tarot-self-esteem-ai-prompt-bottom-v20260621");
+    section.innerHTML =
+      '<p class="tarot-self-esteem-ai-prompt-kicker">AI에게 건넬 자기 기준 질문문</p>' +
+      '<h3 class="tarot-self-esteem-ai-prompt-title">다시 내 편에 서는 문장을 더 깊이 비추기</h3>' +
+      '<p class="tarot-self-esteem-ai-prompt-lead">아래 문장을 그대로 전하면, 오늘 펼쳐진 카드의 기준 회복 흐름을 바탕으로 더 깊은 운세를 이어서 들을 수 있습니다.</p>' +
+      '<textarea id="tarotSelfEsteemAiPromptOutput" class="tarot-self-esteem-ai-prompt-output" readonly></textarea>' +
+      '<div class="tarot-self-esteem-ai-prompt-actions">' +
+      '<button type="button" class="tarot-self-esteem-ai-prompt-copy" data-action="copyTarotSelfEsteemAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
+      '<span id="tarotSelfEsteemAiPromptStatus" class="tarot-self-esteem-ai-prompt-status" aria-live="polite"></span>' +
+      '</div>';
+
+    var textarea = section.querySelector("#tarotSelfEsteemAiPromptOutput");
+    if (textarea) textarea.value = promptText;
+    container.appendChild(section);
+  }
+
   function typeWriter(el, text, options, callback) {
     if (!el || text == null) {
           if (typeof callback === "function") callback();
@@ -1503,6 +1633,7 @@
       container.appendChild(actionCard);
     }
 
+    renderTarotSelfEsteemAiPromptPanel(container, r, positionItems);
     attachLevelUpOnScroll(container);
   }
 
@@ -1541,4 +1672,5 @@
   window.flipTarotSelfEsteemCard = flipTarotSelfEsteemCard;
   window.showTarotSelfEsteemFinalReading = showTarotSelfEsteemFinalReading;
   window.shareTarotSelfEsteemResult = shareTarotSelfEsteemResult;
+  window.copyTarotSelfEsteemAiPrompt = copyTarotSelfEsteemAiPrompt;
 })();

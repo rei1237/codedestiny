@@ -258,6 +258,7 @@ export function withUniqueRouteMetadata(
   options?: { variantKey?: string; inLanguage?: string },
 ) {
   const canonicalPath = normalizeCanonicalPath(path);
+  const indexable = isIndexableRoute(canonicalPath);
   const rawTitle = normalizeMetaText(metadata?.title);
   const rawDescription = normalizeMetaText(metadata?.description);
   const languageHint =
@@ -326,5 +327,25 @@ export function withUniqueRouteMetadata(
       ...(alternates || {}),
       canonical,
     },
+    robots: indexable
+      ? metadata?.robots || {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        }
+      : {
+          index: false,
+          follow: false,
+          googleBot: {
+            index: false,
+            follow: false,
+          },
+        },
   };
 }

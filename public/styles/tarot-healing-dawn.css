@@ -1286,6 +1286,44 @@
   border-color: var(--sun-border);
   box-shadow: 0 6px 20px var(--sun-shadow);
 }
+.tarot-healing-ai-prompt-panel {
+  position: relative;
+  overflow: hidden;
+}
+.tarot-healing-ai-prompt-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.74), transparent 30%),
+    radial-gradient(circle at 88% 4%, rgba(20, 184, 166, 0.16), transparent 34%),
+    linear-gradient(120deg, rgba(251, 191, 36, 0.08), transparent 58%);
+}
+.tarot-healing-ai-prompt-panel > * {
+  position: relative;
+  z-index: 1;
+}
+.tarot-healing-ai-prompt-kicker {
+  color: #0f766e;
+}
+.tarot-healing-ai-prompt-title {
+  text-shadow: 0 10px 26px rgba(245, 158, 11, 0.14);
+}
+.tarot-healing-ai-prompt-output {
+  font-family: var(--sun-font-sans);
+  caret-color: var(--sun-gold);
+}
+.tarot-healing-ai-prompt-output:focus {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14), inset 0 2px 10px rgba(180, 120, 35, 0.08);
+}
+.tarot-healing-ai-prompt-copy {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.tarot-healing-ai-prompt-status:empty {
+  display: none;
+}
 @media (min-width: 480px) {
   .tarot-healing-result-actions {
     max-width: 360px;
@@ -1340,6 +1378,18 @@
   }
   .tarot-healing-reading-content {
     max-height: none;
+  }
+  .tarot-healing-ai-prompt-output {
+    min-height: 190px;
+    max-height: 38dvh;
+    font-size: 0.82rem;
+  }
+  .tarot-healing-ai-prompt-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .tarot-healing-ai-prompt-copy {
+    width: 100%;
   }
 }
 

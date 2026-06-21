@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Footprints,
   HeartHandshake,
+  Clipboard,
   Lightbulb,
   Loader2,
   RotateCcw,
@@ -417,6 +418,65 @@ function RoutineCard({ item }: { item: RecoveryRoutineDto }) {
   );
 }
 
+function compactHealingPromptText(value: unknown, fallback = "") {
+  const text = Array.isArray(value)
+    ? value.map((line) => String(line || "").trim()).filter(Boolean).join(" / ")
+    : String(value || "").trim();
+  const compacted = text.replace(/\s+/g, " ").trim();
+  return compacted ? compacted.slice(0, 520) : fallback;
+}
+
+function buildSunHealingAiPromptText(args: {
+  reading: HealingReadingDto | null;
+  cards: TarotCardDto[];
+  resultCards: SunRecoveryCardReadingDto[];
+  resultRoutines: RecoveryRoutineDto[];
+}) {
+  const { reading, cards, resultCards, resultRoutines } = args;
+  if (!reading) return "";
+
+  const cardLines = resultCards.slice(0, SPREAD_CARD_COUNT).map((item, idx) => {
+    const card = cards[idx];
+    const position = compactHealingPromptText(item.positionLabel || item.position || card?.position, `자리 ${idx + 1}`);
+    const cardName = compactHealingPromptText(item.cardName || card?.nameKr || card?.name, `카드 ${idx + 1}`);
+    const orientation = compactHealingPromptText(item.orientationLabel || orientationLabelOf(String(item.orientation || card?.orientation || "upright")));
+    const keywords = Array.isArray(item.keywords) ? item.keywords.map((v) => String(v || "").trim()).filter(Boolean).slice(0, 4).join(", ") : "";
+    const meaning = compactHealingPromptText(item.meaning || item.shortMessage);
+    const recoveryAdvice = compactHealingPromptText(item.recoveryAdvice || item.shadow);
+    return `${idx + 1}. ${position}: ${cardName} ${orientation}${keywords ? ` | 키워드: ${keywords}` : ""}${meaning ? ` | 메시지: ${meaning}` : ""}${recoveryAdvice ? ` | 회복 조언: ${recoveryAdvice}` : ""}`;
+  });
+
+  const routineLines = resultRoutines.slice(0, 3).map((item, idx) => {
+    const title = compactHealingPromptText(item.title, `회복 루틴 ${idx + 1}`);
+    const action = compactHealingPromptText(item.action || item.description);
+    const timeGuide = compactHealingPromptText(item.timeGuide);
+    return `${idx + 1}. ${title}${timeGuide ? ` (${timeGuide})` : ""}${action ? ` - ${action}` : ""}`;
+  });
+
+  const highlightLines = Array.isArray(reading.consultingHighlights)
+    ? reading.consultingHighlights.map((line) => compactHealingPromptText(line)).filter(Boolean).slice(0, 4)
+    : [];
+
+  return [
+    "태양 회복 타로에서 받은 아래 흐름을 바탕으로, 지금 내 마음이 다시 온기를 되찾는 길을 깊게 봐주세요.",
+    "",
+    "따뜻하지만 단정한 타로 리더의 상담처럼 말해주세요. 단정적인 예언보다 현재의 감정, 회복 방향, 오늘부터 가능한 선택을 중심으로 읽어주세요.",
+    "",
+    `[오늘의 태양 문장] ${compactHealingPromptText(reading.oneLineMessage || reading.sunLine || reading.summary, "아직 한 문장 메시지가 비어 있습니다.")}`,
+    `[처음 비춘 장면] ${compactHealingPromptText(reading.opening || reading.subtitle, "마음이 쉬어 갈 자리를 먼저 짚어주세요.")}`,
+    highlightLines.length ? `[상담의 빛] ${highlightLines.join(" / ")}` : "",
+    "",
+    "[펼쳐진 카드]",
+    cardLines.join("\n"),
+    "",
+    `[종합 흐름] ${compactHealingPromptText(reading.storyFlow || reading.integrationMessage, "카드들이 함께 가리키는 회복의 흐름을 연결해 주세요.")}`,
+    routineLines.length ? `[오늘의 회복 루틴]\n${routineLines.join("\n")}` : "",
+    reading.affirmation ? `[마음에 남은 문장] ${compactHealingPromptText(reading.affirmation)}` : "",
+    "",
+    "이 흐름에서 내가 붙잡고 있는 감정의 이름, 놓아도 되는 부담, 다시 따뜻해지는 작은 행동을 차례로 봐주세요. 마지막에는 오늘 밤 바로 해볼 수 있는 3문장 회복 의식을 건네주세요.",
+  ].filter(Boolean).join("\n");
+}
+
 export default function SunHealingTarot() {
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
@@ -429,6 +489,7 @@ export default function SunHealingTarot() {
   const [, setTyped] = useState<Record<string, string>>({});
   const [, setTypingSection] = useState<string | null>(null);
   const [glowingCard, setGlowingCard] = useState<number | null>(null);
+  const [aiPromptCopyStatus, setAiPromptCopyStatus] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
 
@@ -446,6 +507,7 @@ export default function SunHealingTarot() {
     setTapToReveal(false);
     setTyped({});
     setTypingSection(null);
+    setAiPromptCopyStatus("");
     setRevealedCount(0);
     abortRef.current?.abort();
     const ac = new AbortController();
@@ -493,6 +555,7 @@ export default function SunHealingTarot() {
     if (revealedCount < SPREAD_CARD_COUNT || cards.length !== SPREAD_CARD_COUNT) return;
 
     setLoading(true);
+    setAiPromptCopyStatus("");
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -594,6 +657,34 @@ export default function SunHealingTarot() {
   }, [reading]);
   const resultStory = String(reading?.storyFlow || reading?.integrationMessage || "").trim();
   const resultSunLine = String(reading?.oneLineMessage || reading?.sunLine || reading?.summary || "").trim();
+  const aiPromptText = useMemo(() => buildSunHealingAiPromptText({ reading, cards, resultCards, resultRoutines }), [cards, reading, resultCards, resultRoutines]);
+
+  const copyAiPrompt = useCallback(async () => {
+    if (!aiPromptText) return;
+    try {
+      await navigator.clipboard.writeText(aiPromptText);
+      setAiPromptCopyStatus("복사되었습니다.");
+      return;
+    } catch {}
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = aiPromptText;
+      textarea.setAttribute("readonly", "true");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setAiPromptCopyStatus("복사되었습니다.");
+    } catch {
+      setAiPromptCopyStatus("직접 선택해 복사해 주세요.");
+    }
+  }, [aiPromptText]);
+
+  useEffect(() => {
+    setAiPromptCopyStatus("");
+  }, [aiPromptText]);
 
   return (
     <main
@@ -804,6 +895,37 @@ export default function SunHealingTarot() {
                 ) : null}
                 {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
                 {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">오늘의 태양 메시지가 한층 맑은 결로 정리되었습니다.</p>)}
+                {aiPromptText ? (
+                  <section
+                    className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
+                    data-marker="tarot-healing-ai-prompt-bottom-v20260621"
+                  >
+                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">AI에게 건넬 회복 질문문</p>
+                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">태양이 남긴 문장을 더 깊이 비추기</h3>
+                    <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
+                      아래 문장을 그대로 전하면, 오늘 펼쳐진 카드의 온기와 회복 루틴을 바탕으로 더 깊은 운세를 이어서 들을 수 있습니다.
+                    </p>
+                    <textarea
+                      id="tarotHealingAiPromptOutput"
+                      className="tarot-healing-ai-prompt-output mt-4 min-h-[230px] w-full resize-y rounded-lg border border-amber-200/80 bg-white/86 p-4 text-sm leading-7 text-stone-800 outline-none shadow-inner focus:border-amber-400"
+                      value={aiPromptText}
+                      readOnly
+                    />
+                    <div className="tarot-healing-ai-prompt-actions mt-3 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={copyAiPrompt}
+                        className="tarot-healing-ai-prompt-copy inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/92 px-5 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"
+                      >
+                        <Clipboard className="h-4 w-4" />
+                        프롬프트 복사
+                      </button>
+                      <span className="tarot-healing-ai-prompt-status text-xs font-semibold text-teal-700" aria-live="polite">
+                        {aiPromptCopyStatus}
+                      </span>
+                    </div>
+                  </section>
+                ) : null}
               </div>
             </motion.section>
           ) : null}

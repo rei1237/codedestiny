@@ -14,6 +14,20 @@ export function generateStaticParams() {
   return HIGH_VALUE_CATEGORIES.map((item) => ({ category: item.slug }));
 }
 
+function buildCategoryDescription(category, pages = []) {
+  const base = String(category?.description || "").trim();
+  if (base.length >= 50) return base;
+
+  const titleList = pages
+    .slice(0, 3)
+    .map((item) => item.title)
+    .filter(Boolean)
+    .join(", ");
+  const articleHint = titleList ? `${titleList} 흐름을 함께 묶어 ` : "";
+
+  return `${base} ${articleHint}${category.name}를 처음 읽는 사람이 개념, 사용 상황, 해석의 한계와 주의점을 한 번에 이해하도록 정리합니다.`;
+}
+
 export function generateMetadata({ params }) {
   const category = getHighValueCategoryBySlug(params?.category);
   if (!category) {
@@ -23,10 +37,13 @@ export function generateMetadata({ params }) {
     };
   }
 
+  const pages = getHighValuePagesByCategory(category.slug);
+  const description = buildCategoryDescription(category, pages);
+
   return buildSeoMetadata({
     path: `/high-value/category/${category.slug}`,
     title: `${category.name} 가이드 | Code Destiny`,
-    description: category.description,
+    description,
     keywords: [category.name, "운세 인사이트", "Code Destiny"],
   });
 }
@@ -36,6 +53,7 @@ export default function HighValueCategoryPage({ params }) {
   if (!category) notFound();
 
   const pages = getHighValuePagesByCategory(category.slug);
+  const description = buildCategoryDescription(category, pages);
   const path = `/high-value/category/${category.slug}`;
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",
@@ -48,7 +66,7 @@ export default function HighValueCategoryPage({ params }) {
       buildCollectionPageJsonLd({
         path,
         title: `${category.name} 가이드`,
-        description: category.description,
+        description,
       }),
     ],
   });
@@ -63,7 +81,7 @@ export default function HighValueCategoryPage({ params }) {
 
       <header className="cd-main-header">
         <h1 className="cd-main-title">{category.name} 가이드</h1>
-        <p className="cd-main-intro">{category.description}</p>
+        <p className="cd-main-intro">{description}</p>
       </header>
 
       <section className="cd-card-grid">

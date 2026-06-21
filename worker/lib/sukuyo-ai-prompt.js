@@ -7,7 +7,7 @@ import {
 const DEFAULT_TEXT = "미상";
 
 export const SUKUYO_AI_PROMPT_FEATURE_KEY = "sukuyo_ai_prompt_generator";
-export const SUKUYO_AI_PROMPT_PRICE = 100;
+export const SUKUYO_AI_PROMPT_PRICE = 0;
 export { classifyQuestionToSukuyoDomain, getSukuyoPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({

@@ -53,7 +53,7 @@ export function generateStaticParams() {
 }
 
 function articleDescription(article) {
-  return String(article.excerpt || article.description || article.subtitle || "")
+  return String(article.seoDescription || article.metaDescription || article.description || article.excerpt || article.subtitle || "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 160);

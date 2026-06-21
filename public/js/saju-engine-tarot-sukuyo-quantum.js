@@ -439,6 +439,131 @@ function getTarotSpreadLabels(cat) {
   return TAROT_SPREAD_LABELS.default;
 }
 
+function setMyeongriTarotAiPromptPanel(promptText) {
+  var panel = document.getElementById('myeongriTarotAiPromptPanel');
+  var output = document.getElementById('myeongriTarotAiPromptOutput');
+  var status = document.getElementById('myeongriTarotAiPromptStatus');
+  var text = String(promptText || '').trim();
+  if (output) output.value = text;
+  if (status) status.textContent = text ? '프롬프트가 준비되었습니다. 복사해 AI에게 이어서 물어보세요.' : '';
+  if (panel) panel.style.display = text ? 'block' : 'none';
+}
+
+function resetMyeongriTarotAiPromptPanel() {
+  setMyeongriTarotAiPromptPanel('');
+}
+
+function myeongriTarotCopyText(text) {
+  if (!text) return Promise.reject(new Error('empty'));
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(text).catch(function() {
+      return myeongriTarotCopyTextFallback(text);
+    });
+  }
+  return myeongriTarotCopyTextFallback(text);
+}
+
+function myeongriTarotCopyTextFallback(text) {
+  return new Promise(function(resolve, reject) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (_err) {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+      if (ok) resolve();
+      else reject(new Error('copy failed'));
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+function getMyeongriTarotAiPromptText() {
+  var output = document.getElementById('myeongriTarotAiPromptOutput');
+  return String(output && output.value ? output.value : '').trim();
+}
+
+function copyMyeongriTarotAiPrompt() {
+  var status = document.getElementById('myeongriTarotAiPromptStatus');
+  var text = getMyeongriTarotAiPromptText();
+  if (!text) {
+    if (status) status.textContent = '복사할 프롬프트가 아직 열리지 않았습니다.';
+    return;
+  }
+  myeongriTarotCopyText(text).then(function() {
+    if (status) status.textContent = '프롬프트를 복사했습니다. 원하는 AI에 붙여 넣어 사용하세요.';
+  }).catch(function() {
+    if (status) status.textContent = '복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.';
+  });
+}
+
+function openMyeongriTarotAiPromptChat() {
+  var status = document.getElementById('myeongriTarotAiPromptStatus');
+  var text = getMyeongriTarotAiPromptText();
+  if (!text) {
+    if (status) status.textContent = 'AI에게 건넬 프롬프트가 아직 열리지 않았습니다.';
+    return;
+  }
+  var opened = null;
+  try {
+    opened = window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+  } catch (_err) {
+    opened = null;
+  }
+  myeongriTarotCopyText(text).then(function() {
+    if (status) status.textContent = opened ? 'AI 채팅이 열렸고 프롬프트도 복사되었습니다.' : '프롬프트를 복사했습니다. 새 탭이 차단되면 직접 AI를 열어 붙여 넣어 주세요.';
+  }).catch(function() {
+    if (status) status.textContent = opened ? 'AI 채팅은 열렸습니다. 프롬프트는 직접 선택해 복사해 주세요.' : '새 탭과 복사가 모두 막혔습니다. 텍스트를 직접 선택해 주세요.';
+  });
+}
+
+function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advice, oracle) {
+  var catLabel = mapCategoryToMyeongriCategory(category);
+  var cardLines = cardsData.map(function(data, idx) {
+    var card = data && data.card ? data.card : {};
+    var reading = readings[idx] || {};
+    var direction = data && data.isReversed ? '역방향' : '정방향';
+    var tenGod = reading && reading.tenGod && reading.tenGod.main ? reading.tenGod.main : '십성의 결';
+    var keyword = reading && reading.card && Array.isArray(reading.card.keywords) ? reading.card.keywords.slice(0, 4).join(' · ') : '';
+    return (idx + 1) + '. ' + (labels[idx] || '카드 자리') + ' — ' + String(card.name_kr || '타로 카드') + ' ' + direction + ' / ' + tenGod + (keyword ? ' / ' + keyword : '');
+  }).join('\n');
+  var summary = removeRepeatedMyeongriTarotPhrases(buildMyeongriFlowSummary(category));
+  var safeAdvice = removeRepeatedMyeongriTarotPhrases(advice || '');
+  var safeOracle = removeRepeatedMyeongriTarotPhrases(oracle || '');
+  return [
+    '당신은 명리학과 타로 상징을 함께 읽는 운세 상담가입니다.',
+    '아래 세 장의 흐름을 바탕으로 내담자에게 직접 말하듯 오늘부터 30일 사이의 운세를 봐주세요.',
+    '문체는 어두운 보랏빛 오라클 화면에 어울리게 차분하고 신비롭게 유지하고, 말은 따뜻하되 단정은 피해주세요.',
+    '',
+    '질문의 문: ' + catLabel,
+    '펼쳐진 카드:',
+    cardLines,
+    '',
+    '세 장의 흐름 요약: ' + summary,
+    safeAdvice ? '조율 문장: ' + safeAdvice : '',
+    safeOracle ? '봉인 오라클: ' + safeOracle : '',
+    '',
+    '운은 다음 순서로 펼쳐 주세요.',
+    '1. 지금 가장 강하게 드러나는 운의 결',
+    '2. 마음, 관계, 현실에서 조심할 흐름',
+    '3. 오늘부터 7일 안에 잡을 선택',
+    '4. 30일 안에 열리는 가능성',
+    '5. 마지막 한 문장'
+  ].filter(Boolean).join('\n');
+}
+
 function setTarotMode(mode) {
   invalidateTarotFlow();
   if (isReading) return;
@@ -464,6 +589,7 @@ function setTarotMode(mode) {
   tarotThreeCardState = { cards: [], revealedIndex: -1 };
   var resultEl = document.getElementById('tarotResultContainer');
   if (resultEl) resultEl.classList.add('is-empty');
+  resetMyeongriTarotAiPromptPanel();
   // 모드 전환 시 이미 카테고리가 선택되어 있으면 즉시 덱 준비
   if (mode === 'three' && curTarotCat && isTarotModalActive()) {
     startThreeCardFlow();
@@ -497,6 +623,7 @@ function selectTarotCategory(cat, btn) {
   // 결과창 초기화
   var resultEl = document.getElementById('tarotResultContainer');
   if (resultEl) resultEl.classList.add('is-empty');
+  resetMyeongriTarotAiPromptPanel();
   var oracleEl = document.getElementById('tarotOracleText');
   if (oracleEl) {
     oracleEl.classList.remove('show');
@@ -1915,6 +2042,7 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
 function startThreeCardFlow() {
   if (!curTarotCat || !isTarotModalActive()) return;
   isReading = true;
+  resetMyeongriTarotAiPromptPanel();
   tarotThreeCardState = { cards: [], revealedIndex: -1 };
   
   var labels = getTarotSpreadLabels(curTarotCat);
@@ -2030,6 +2158,7 @@ function _runShowTarotFinalInterpretation() {
   var labels = getTarotSpreadLabels(curTarotCat);
   var msgEl = document.getElementById('tarotRitualMsg');
   if (msgEl) msgEl.innerHTML = '🔮 세 장의 결을 이어 명리 타로를 여는 중...';
+  resetMyeongriTarotAiPromptPanel();
 
   var cardNameEl = document.getElementById('tarotCardName');
   if (cardNameEl) {
@@ -2047,6 +2176,7 @@ function _runShowTarotFinalInterpretation() {
     '의 순서가 마음을 차분히 정리하게 합니다. ' + dominantTenGod + '의 결이 강하니, 큰 결론보다 지금 지킬 기준 하나와 바로 옮길 행동 하나에 집중하세요.'
   );
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
+  var aiPrompt = buildMyeongriTarotAiPrompt(cardsData, curTarotCat, labels, readings, advice, oracle);
   var interpretation = '' +
     '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
     '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">지나온 흐름, 현재의 결, 다음 선택 기준을 차례로 엮습니다.</span><br><br>' +
@@ -2075,6 +2205,7 @@ function _runShowTarotFinalInterpretation() {
         var guide = document.getElementById('tarotSpreadGuide');
         if (guide) guide.textContent = '✨ 세 장의 명리 흐름이 완성되었습니다.';
         if (msgEl) msgEl.innerHTML = '🌟 카드와 십성의 신호를 오늘의 선택 기준으로 옮겨보세요.';
+        setMyeongriTarotAiPromptPanel(aiPrompt);
       });
     }, 350);
   }, 80);
@@ -2096,6 +2227,7 @@ function startTarotReading() {
 function _runStartTarotReading() {
   invalidateTarotFlow();
   isReading = true;
+  resetMyeongriTarotAiPromptPanel();
   
   var msgEl = document.getElementById('tarotRitualMsg');
   var card = document.getElementById('tarotCardEl');
@@ -3753,6 +3885,8 @@ if (typeof window !== 'undefined') {
   if (typeof startThreeCardFlow === 'function') window.startThreeCardFlow = startThreeCardFlow;
   if (typeof flipTarotSpreadCard === 'function') window.flipTarotSpreadCard = flipTarotSpreadCard;
   if (typeof showTarotFinalInterpretation === 'function') window.showTarotFinalInterpretation = showTarotFinalInterpretation;
+  if (typeof copyMyeongriTarotAiPrompt === 'function') window.copyMyeongriTarotAiPrompt = copyMyeongriTarotAiPrompt;
+  if (typeof openMyeongriTarotAiPromptChat === 'function') window.openMyeongriTarotAiPromptChat = openMyeongriTarotAiPromptChat;
 }
 
 /* ── renderTTest: 극T 테스트 ── */
@@ -7889,6 +8023,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-past-life-section h6 { margin:0 0 6px; color:#f5d0fe; font-size:0.8rem; line-height:1.35; }
         .sy-past-life-section p,.sy-past-life-section li { margin:0; color:#dbeafe; font-size:0.82rem; line-height:1.72; word-break:keep-all; }
         .sy-past-life-section ul { margin:0; padding-left:17px; display:grid; gap:4px; }
+        .sy-past-life-section--wide { grid-column:1/-1; }
+        .sy-past-life-ai { border:1px solid rgba(250,204,21,0.28); border-radius:15px; background:radial-gradient(circle at 8% 0%,rgba(250,204,21,0.13),transparent 32%),linear-gradient(145deg,rgba(25,20,45,0.92),rgba(8,13,30,0.94)); padding:13px; display:grid; gap:10px; }
+        .sy-past-life-ai-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap; }
+        .sy-past-life-ai-kicker { margin:0 0 4px; color:#fde68a; font-size:0.72rem; font-weight:900; letter-spacing:0; }
+        .sy-past-life-ai-title { margin:0; color:#f8fafc; font-size:1rem; line-height:1.42; }
+        .sy-past-life-ai-copy { margin:0; color:#e9d5ff; font-size:0.82rem; line-height:1.7; word-break:keep-all; }
+        .sy-past-life-ai-output { width:100%; min-height:220px; border-radius:12px; border:1px solid rgba(216,180,254,0.34); background:rgba(2,6,23,0.58); color:#f5f3ff; padding:12px; font-size:0.8rem; line-height:1.7; resize:vertical; box-sizing:border-box; }
+        .sy-past-life-ai-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .sy-past-life-ai-btn { min-height:39px; border-radius:10px; border:1px solid rgba(216,180,254,0.45); background:linear-gradient(135deg,rgba(124,58,237,0.82),rgba(79,70,229,0.82)); color:#fff; padding:8px 12px; font-size:0.78rem; font-weight:900; cursor:pointer; }
+        .sy-past-life-ai-btn--open { border-color:rgba(253,224,71,0.38); background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74)); }
+        .sy-past-life-ai-status { color:#fde68a; font-size:0.76rem; line-height:1.55; word-break:keep-all; }
         .sy-past-life-one-line { border:1px solid rgba(250,204,21,0.28); border-radius:13px; background:rgba(250,204,21,0.08); color:#fef3c7; padding:11px; font-size:0.87rem; line-height:1.7; font-weight:850; word-break:keep-all; }
         .sy-past-life-disclaimer { color:#cbd5e1; font-size:0.75rem; line-height:1.6; word-break:keep-all; }
         .sy-dogam-title { margin:0; color:#fde68a; font-size:1.06rem; line-height:1.38; }
@@ -8513,7 +8658,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-radar-result" data-sy-radar-result></div>
     </div>`;
 
-    html += `<div class="sy-card sy-past-life-card" data-sy-past-life-card="20260616-sukyo-past-life-reading" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
+    html += `<div class="sy-card sy-past-life-card" data-sy-past-life-card="20260621-sukyo-past-life-v2" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">숙요 전생 서사 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
@@ -8663,7 +8808,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </div>
         </div>
         <p style="font-size:0.86rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.82;word-break:keep-all;">
-          본명숙과 월하의 숙요 동물을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 월하의 숙요 동물 드로잉용 문장도 함께 제공되어 2D 생성 AI에서 바로 사용할 수 있습니다. 생성 시 10,000원 결제가 확인됩니다.
+          본명숙과 월하의 숙요 동물을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 월하의 숙요 동물 드로잉용 문장도 함께 제공되어 2D 생성 AI에서 바로 사용할 수 있습니다. 이 프롬프트 생성은 무료로 열립니다.
         </p>
         <textarea data-sy-ai-question maxlength="1000" placeholder="예: 월하의 숙요 동물을 2D 귀여운 스타일로 묘사해 오늘 관계의 리듬을 읽어줘. 화면에 '숙요점', '코드 데스티니' 문구가 보이게 해줘." style="width:100%;min-height:116px;border-radius:12px;border:1px solid rgba(250,204,21,0.34);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.86rem;line-height:1.72;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -8671,7 +8816,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">월하의 숙요 동물 프롬프트 생성 · 10,000원</button>
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">월하의 숙요 동물 프롬프트 무료 생성</button>
           <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
           <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
@@ -8772,7 +8917,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         const syAiPromptCard = document.getElementById('syAiPromptCard');
         if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '월하의 숙요 동물 프롬프트 생성 · 10,000원', loadingLabel: '월하의 숙요 동물 프롬프트 작성 중...' });
+          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '월하의 숙요 동물 프롬프트 무료 생성', loadingLabel: '월하의 숙요 동물 프롬프트 작성 중...', freePrompt: true });
         }
         const guardianArtCopyBtn = syAiPromptCard && syAiPromptCard.querySelector('[data-sy-guardian-art-copy]');
         const guardianArtPromptEl = syAiPromptCard && syAiPromptCard.querySelector('[data-sy-guardian-art-prompt]');
@@ -9229,11 +9374,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           pastLife: { role: '전생의 번영 공동체', karma: '함께 세상에 아낌없이 나눈 선행의 총합' },
           advantages: [
             { icon: '🌌', label: '영적 동력', text: '두 사람이 함께 있을 때 서로의 가능성을 더 쉽게 끌어내는 흐름입니다. 안정감과 응원이 잠재력을 현실로 옮기는 힘이 됩니다.' },
-            { icon: '💼', label: '현실적 보완', text: '경제적·사회적 운기가 동반 상승한다. 이 인연을 통해 인맥이 확장되고, 기회가 자연스럽게 양쪽 모두에게 찾아온다. 함께 시작한 프로젝트는 반드시 성공의 궤도에 오른다.' },
-            { icon: '💜', label: '심리적 위안', text: '상대 앞에서는 무방비 상태로도 안전하다. 완전한 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 \"진짜 나\"가 될 수 있다.' }
+            { icon: '💼', label: '현실적 보완', text: '경제적·사회적 흐름이 함께 살아날 가능성이 드러납니다. 이 인연을 통해 인맥이 넓어지고 서로의 기회가 자연스럽게 맞물릴 수 있으나, 공동의 일은 현실적인 계획과 꾸준한 조율이 더해질 때 안정적인 궤도에 오르기 쉽습니다.' },
+            { icon: '💜', label: '심리적 위안', text: '상대 앞에서는 마음의 경계가 조금씩 부드러워집니다. 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 더 자연스러운 자신에게 가까워질 수 있습니다.' }
           ],
           archiveStory: '전생의 황금기, 두 사람은 같은 마을의 이웃이었다. 수확의 시절에는 먼저 이웃에게 곡식을 나눴고, 가뭄의 해에는 서로의 우물을 공유했다. 그 수십 년의 선업(善業)이 하늘에 쌓여 현생에 \"복의 카르마\"로 결실을 맺었다. 이 인연이 기쁜 것은, 우연이 아니라 당신들이 쌓아온 빛의 결과이기 때문이다.',
-          mission: '현생에서 이 인연의 과제는 단 하나 — 이 번영의 에너지를 세상으로 확장하는 것이다. 두 사람만의 화원에 갇히지 말고, 주변 사람들에게도 동일한 따스함을 전파할 때 이 인연은 영원히 지속된다.',
+          mission: '현생에서 이 인연의 과제는 번영의 에너지를 세상으로 확장하는 데 있습니다. 두 사람만의 화원에 갇히지 말고, 주변 사람들에게도 동일한 따스함을 전파할 때 이 인연은 오래 맑게 이어지기 쉽습니다.',
           prescription: [
             '🌱 함께 공동의 목표를 세우고, 그 과정을 즐겨라. 결과보다 여정이 이 인연의 황금빛을 유지한다.',
             '💡 주기적으로 하나씩 새로운 도전을 시작하라. 편안함은 이 인연의 자산이지만 자극이 없으면 성장이 멈춘다.',
@@ -9876,7 +10021,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   var SukuyoPastLifeEngine = (function() {
-    var LOGIC_VERSION = 'sukyo-past-life-v1';
+    var LOGIC_VERSION = 'sukyo-past-life-v2';
     var PURPOSE_LABELS = {
       love: '연애',
       reunion: '재회',
@@ -10074,6 +10219,99 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return base;
     }
 
+    function relationNameReading(relationType, meta, userName, partnerName) {
+      var map = {
+        '업태': userName + '님과 ' + partnerName + '님의 업태는 서로에게 남겨 둔 약속을 다시 확인하게 하는 결입니다. 마음은 빠르게 오래된 쪽으로 기울지만, 이 관계의 진짜 문은 현재의 책임과 약속에서 열립니다.',
+        '안괴': userName + '님과 ' + partnerName + '님의 안괴는 강한 끌림과 흔들림을 함께 품습니다. 서로의 약한 곳을 건드릴 수 있으므로, 감정의 속도보다 안전한 경계를 먼저 세울 때 인연의 힘이 맑아집니다.',
+        '명': userName + '님과 ' + partnerName + '님의 명은 닮은 영혼이 서로를 비추는 자리입니다. 편안함은 빠르게 오지만, 같은 방어와 같은 고집이 동시에 올라올 수 있어 각자의 회복법을 존중해야 합니다.',
+        '영친': userName + '님과 ' + partnerName + '님의 영친은 오래 쉬어 갈 품처럼 드러납니다. 서로를 돌보는 마음이 자연스럽지만, 익숙함에 기대어 표현을 줄이면 따뜻한 결이 흐려질 수 있습니다.',
+        '우쇠': userName + '님과 ' + partnerName + '님의 우쇠는 다른 온도를 배우는 인연입니다. 한쪽이 더 빠르게 다가가거나 더 오래 기다릴 수 있으니, 애정의 양보다 표현 방식의 차이를 읽어야 합니다.',
+        '성위': userName + '님과 ' + partnerName + '님의 성위는 서로를 밀어 올리는 성장의 계약처럼 보입니다. 목표와 자극은 강하지만, 마음이 평가받는 느낌으로 굳지 않게 부드러운 쉼을 함께 두어야 합니다.'
+      };
+      return map[relationType] || ((meta && meta.theme ? meta.theme + '의 결이' : '두 사람의 결이') + ' 관계의 오래된 흐름을 비춥니다.');
+    }
+
+    function distanceReading(distance, relationType) {
+      if (relationType === '명') return '명 관계는 거리보다 닮음의 울림이 먼저 드러납니다. 가까워질수록 상대의 모습 안에서 내 익숙한 반응을 보게 되므로, 같은 장면이 반복될 때 잠시 멈추는 힘이 필요합니다.';
+      if (relationType === '업태') return '업태는 거리보다 미완의 약속감이 크게 작용합니다. 멀리 있어도 마음이 오래 남고, 가까이 있어도 현실의 약속이 흐리면 불안이 커질 수 있습니다.';
+      if (distance === '근거리') return '근거리는 체감이 빠르고 반응이 선명합니다. 좋을 때는 서로를 강하게 끌어당기지만, 감정이 오른 날에는 작은 말도 크게 남으니 속도를 낮추는 여백이 필요합니다.';
+      if (distance === '중거리') return '중거리는 조율의 여지가 살아 있는 거리입니다. 서로의 차이를 이해할 시간이 있으며, 약속과 표현을 차분히 맞추면 오래 갈 힘이 생깁니다.';
+      if (distance === '원거리') return '원거리는 쉽게 닿지 않는 여운을 남깁니다. 마음속에서는 오래된 인연처럼 크게 느껴질 수 있으나, 현실에서 확인되는 행동을 기준으로 삼아야 합니다.';
+      return '이 관계는 거리의 이름보다 관계 유형의 결이 더 강하게 떠오릅니다. 서로에게 남는 감정의 흔적을 차분히 살피는 편이 좋습니다.';
+    }
+
+    function relationshipRhythm(relationType, distance, direction) {
+      var base = relationType === '안괴'
+        ? '강하게 확인하고 싶을수록 한 박자 늦추는 리듬이 필요합니다.'
+        : relationType === '영친'
+          ? '익숙해질수록 작은 표현을 일부러 남기는 리듬이 좋습니다.'
+          : relationType === '성위'
+            ? '목표를 함께 보되, 마음의 안전을 먼저 묻는 리듬이 좋습니다.'
+            : relationType === '우쇠'
+              ? '서로 다른 속도를 같은 언어로 번역하는 리듬이 필요합니다.'
+              : relationType === '업태'
+                ? '오래된 의미보다 지금 지켜지는 약속을 확인하는 리듬이 좋습니다.'
+                : '닮은 반응이 동시에 올라올 때 각자의 시간을 인정하는 리듬이 좋습니다.';
+      var distanceTail = distance === '근거리' ? ' 감정이 빨리 번질 수 있으니 연락 직후 바로 결론을 내리지 마세요.' : (distance === '원거리' ? ' 그리움이 커질수록 확인 가능한 약속을 작게 남기세요.' : ' 서로의 차이를 고칠 문제로 보지 말고 맞출 기준으로 보세요.');
+      var directionTail = direction === '상호작용' ? ' 두 사람 모두 흔적을 남기므로 책임도 함께 나누어야 합니다.' : (direction === '상대가 나에게 작용' ? ' 상대의 반응에 마음이 크게 움직일수록 내 생활 리듬을 먼저 지키세요.' : (direction === '내가 상대에게 작용' ? ' 내가 던지는 말과 태도가 오래 남을 수 있으니 부드러운 표현이 인연을 살립니다.' : ''));
+      return base + distanceTail + directionTail;
+    }
+
+    function conversationScript(purpose, relationType, userName, partnerName) {
+      var scripts = [
+        '나는 이 관계를 오래된 느낌만으로 밀어붙이고 싶지 않아요. 지금 서로가 편안하게 지킬 수 있는 약속부터 맞추고 싶어요.',
+        '마음이 커질수록 확인하고 싶은 것도 많아지지만, 당신의 속도와 경계도 함께 존중하고 싶어요.'
+      ];
+      if (relationType === '안괴') scripts.unshift('우리 사이의 끌림이 강한 만큼, 불안할 때 서로를 시험하지 않는 기준을 먼저 정하고 싶어요.');
+      if (relationType === '영친') scripts.unshift('편해질수록 당연하게 여기지 않고, 고마운 마음을 더 자주 말하고 싶어요.');
+      if (relationType === '성위') scripts.unshift('서로를 더 나아지게 하는 것도 좋지만, 힘든 날에도 안전하게 돌아올 수 있는 말을 만들고 싶어요.');
+      if (purpose === 'reunion') scripts.push('다시 이어진다면 예전의 상처를 반복하지 않기 위해 연락 방식과 쉬어 가는 시간을 먼저 합의하고 싶어요.');
+      else if (purpose === 'marriage') scripts.push('함께 오래 가려면 마음뿐 아니라 생활 리듬, 돈, 책임의 기준도 차분히 맞추고 싶어요.');
+      else if (purpose === 'crush') scripts.push(partnerName + '님의 마음을 단정하지 않고, 내 감정이 건강하게 머물 수 있는 거리를 지키고 싶어요.');
+      else scripts.push('서로에게 남는 감정의 크기보다, 실제로 지켜지는 배려를 기준으로 관계를 보고 싶어요.');
+      return scripts.slice(0, 4);
+    }
+
+    function buildAiFollowupPrompt(result) {
+      var s = result.scores || {};
+      var lines = [
+        '당신은 숙요점 27숙과 인연의 결을 오래 상담해 온 숙요점 전문가입니다.',
+        '전생을 실제 사실로 단정하지 말고, 오래된 인연처럼 느껴지는 감정 패턴과 현실에서 지켜야 할 경계를 중심으로 이어서 읽어 주세요.',
+        '',
+        '[두 사람의 달빛 자리]',
+        '- 나: ' + (result.userName || '나') + ' · ' + (result['user宿'] || '본명숙 미상'),
+        '- 상대: ' + (result.partnerName || '상대') + ' · ' + (result['partner宿'] || '상대 숙 미상'),
+        '- 관계: ' + (result.relationType || '미상') + ' · ' + (result.distance || '거리 미상') + ' · ' + (result.direction || '방향 미상'),
+        '- 목적: ' + (PURPOSE_LABELS[result.purpose] || PURPOSE_LABELS.general),
+        '',
+        '[이미 드러난 결]',
+        '- 핵심: ' + (result.summary || ''),
+        '- 관계명 해석: ' + (result.relationNameReading || result.karmicTheme || ''),
+        '- 거리 흐름: ' + (result.distanceReading || ''),
+        '- 방향 흐름: ' + (result.directionReading || ''),
+        '- 반복 패턴: ' + (result.repeatPattern || ''),
+        '- 미완의 숙제: ' + (result.unfinishedTask || ''),
+        '- 감정 버튼: ' + (result.emotionalTrigger || ''),
+        '',
+        '[지표]',
+        '- 전생감 ' + (s.pastLifeFeeling != null ? s.pastLifeFeeling : '-') + '/100, 끌림 ' + (s.attraction != null ? s.attraction : '-') + '/100, 미완의 숙제 ' + (s.unfinishedTask != null ? s.unfinishedTask : '-') + '/100',
+        '- 반복 패턴 ' + (s.repeatPattern != null ? s.repeatPattern : '-') + '/100, 감정 소모 ' + (s.emotionalExhaustion != null ? s.emotionalExhaustion : '-') + '/100, 치유 가능성 ' + (s.healingPotential != null ? s.healingPotential : '-') + '/100',
+        '',
+        '[이어 듣고 싶은 것]',
+        '1. 이 인연에서 지금 가장 먼저 다뤄야 할 감정의 매듭을 숙요점 상담가의 말투로 풀어 주세요.',
+        '2. 상대에게 건넬 수 있는 부드러운 문장 5개를 관계 목적에 맞게 써 주세요.',
+        '3. 앞으로 2주 동안 지켜야 할 경계, 연락 리듬, 회복 행동을 현실적으로 정리해 주세요.',
+        '4. 이 관계를 붙잡아야 할 때와 내려놓아야 할 때의 신호를 차분히 구분해 주세요.',
+        '',
+        '답변은 신비롭지만 단정적이지 않게, 전문 숙요점 상담처럼 따뜻하고 자연스럽게 이어 주세요.'
+      ];
+      var script = Array.isArray(result.conversationScript) ? result.conversationScript.filter(Boolean) : [];
+      if (script.length) {
+        lines.splice(lines.length - 2, 0, '[이미 준비된 말]', script.map(function(item, idx) { return (idx + 1) + '. ' + item; }).join('\n'), '');
+      }
+      return lines.join('\n');
+    }
+
     function build(input) {
       var userIdx = syWheelNormalizeIndex(input.userMansionIdx);
       var partnerIdx = syWheelNormalizeIndex(input.partnerMansionIdx);
@@ -10091,7 +10329,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var meta = RELATION_META[relationType] || RELATION_META['성위'];
       var directionLine = directionReading(direction);
       var scores = buildScores(relationType, distance, seed);
-      return {
+      var result = {
         userProfileId: input.userProfileId || '',
         userName: input.userName || '나',
         partnerName: input.partnerName || '상대',
@@ -10105,8 +10343,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         subtitle: meta.subtitle,
         karmicTheme: meta.theme,
         scores: scores,
-        summary: meta.summary + (directionLine ? ' ' + directionLine : ''),
+        summary: meta.summary,
         firstImpression: meta.first,
+        relationNameReading: relationNameReading(relationType, meta, input.userName || '나', input.partnerName || '상대'),
+        distanceReading: distanceReading(distance, relationType),
+        directionReading: directionLine,
+        relationshipRhythm: relationshipRhythm(relationType, distance, direction),
         pastLifeStory: meta.story,
         unfinishedTask: meta.task,
         repeatPattern: meta.repeat,
@@ -10116,12 +10358,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         purposeReading: purposeReading(purpose, relationType),
         warningSigns: warningSigns(purpose, relationType),
         healingActions: healingActions(relationType),
+        conversationScript: conversationScript(purpose, relationType, input.userName || '나', input.partnerName || '상대'),
         oneLine: meta.oneLine,
         disclaimer: '전생을 실제 사실로 단정하지 않습니다. 숙요점 관계 구조가 만드는 오래된 인연 같은 감정 패턴을 상담 언어로 비춘 것입니다.',
         generatedAt: new Date().toISOString(),
         logicVersion: LOGIC_VERSION,
         seedSignature: SukuyoRadarEngine.hash(seed).toString(36)
       };
+      result.aiFollowupPrompt = buildAiFollowupPrompt(result);
+      return result;
     }
 
     function scoreCard(label, value) {
@@ -10129,12 +10374,23 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return '<div class="sy-past-life-score"><span>' + syCanonicalEsc(label) + '</span><strong>' + safeValue + '</strong><i style="width:' + safeValue + '%"></i></div>';
     }
 
-    function section(title, body) {
-      return '<article class="sy-past-life-section"><h6>' + syCanonicalEsc(title) + '</h6><p>' + syCanonicalEsc(body) + '</p></article>';
+    function section(title, body, wide) {
+      return '<article class="sy-past-life-section' + (wide ? ' sy-past-life-section--wide' : '') + '"><h6>' + syCanonicalEsc(title) + '</h6><p>' + syCanonicalEsc(body) + '</p></article>';
     }
 
-    function listSection(title, items) {
-      return '<article class="sy-past-life-section"><h6>' + syCanonicalEsc(title) + '</h6><ul>' + (items || []).map(function(item) { return '<li>' + syCanonicalEsc(item) + '</li>'; }).join('') + '</ul></article>';
+    function listSection(title, items, wide) {
+      return '<article class="sy-past-life-section' + (wide ? ' sy-past-life-section--wide' : '') + '"><h6>' + syCanonicalEsc(title) + '</h6><ul>' + (items || []).map(function(item) { return '<li>' + syCanonicalEsc(item) + '</li>'; }).join('') + '</ul></article>';
+    }
+
+    function renderAiPrompt(result) {
+      var promptText = String(result.aiFollowupPrompt || buildAiFollowupPrompt(result) || '').trim();
+      if (!promptText) return '';
+      return '<section class="sy-past-life-ai" data-sy-past-life-ai>'
+        + '<div class="sy-past-life-ai-head"><div><p class="sy-past-life-ai-kicker">달빛 질문문</p><h6 class="sy-past-life-ai-title">AI에게 이어 묻는 숙요 전생 인연 질문</h6></div><span class="sy-paid-status is-unlocked">리딩 포함</span></div>'
+        + '<p class="sy-past-life-ai-copy">방금 열린 두 사람의 숙요 결을 그대로 담았습니다. 필요한 AI에게 옮기면 관계의 매듭과 다음 대화를 더 깊게 이어 볼 수 있습니다.</p>'
+        + '<textarea class="sy-past-life-ai-output" data-sy-past-life-ai-output readonly aria-label="숙요 전생 인연 AI 질문문">' + syCanonicalEsc(promptText) + '</textarea>'
+        + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button><button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open>ChatGPT로 열기</button><span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 전생 리딩 안에 함께 열렸습니다.</span></div>'
+        + '</section>';
     }
 
     function render(result, unlocked) {
@@ -10154,18 +10410,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       ];
       if (unlocked) {
         body = body.concat([
+          section('관계명으로 보는 두 사람', result.relationNameReading || result.karmicTheme, true),
+          section('거리의 결', result.distanceReading || result.distance),
+          section('방향의 결', result.directionReading || result.direction),
           section('전생 서사로 본 이 관계', result.pastLifeStory),
           section('이번 생에 반복되는 감정 패턴', result.repeatPattern),
           section('이 관계의 미완의 숙제', result.unfinishedTask),
           section('상대가 건드리는 감정 버튼', result.emotionalTrigger),
           section('이번 생에서 풀어야 할 관계 과제', result.currentLifeLesson),
+          section('관계 리듬 처방', result.relationshipRhythm || result.relationshipAdvice, true),
           section('관계 목적별 리딩', result.purposeReading),
           listSection('위험 신호', result.warningSigns),
-          listSection('치유 행동', result.healingActions)
+          listSection('치유 행동', result.healingActions),
+          listSection('실제로 건넬 수 있는 말', result.conversationScript, true)
         ]);
       } else {
         body.push(section('잠긴 심화 리딩', '전생 서사 전체, 미완의 숙제, 반복 패턴, 감정 버튼, 목적별 리딩, 위험 신호와 치유 행동은 해금 후 열립니다.'));
       }
+      var aiPromptHtml = unlocked ? renderAiPrompt(result) : '';
       return '<div class="sy-past-life-panel" data-relation="' + syCanonicalEsc(result.relationType) + '">'
         + '<div class="sy-past-life-head">'
         + '<div class="sy-past-life-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>' + syCanonicalEsc(result.relationType + ' · ' + result.distance) + '</span><span>' + syCanonicalEsc(result.direction) + '</span></div>'
@@ -10176,12 +10438,51 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div class="sy-past-life-score-grid">' + scoreHtml + '</div>'
         + '<div class="sy-past-life-section-grid">' + body.join('') + '</div>'
         + '<div class="sy-past-life-one-line">' + syCanonicalEsc(result.oneLine) + '</div>'
+        + aiPromptHtml
         + '<div class="sy-past-life-disclaimer">' + syCanonicalEsc(result.disclaimer) + '</div>'
         + '</div></div>';
     }
 
     return { build: build, render: render, logicVersion: LOGIC_VERSION };
   })();
+
+  function syBindSukuyoPastLifeAiPrompt(rootEl) {
+    var root = rootEl || document;
+    var panel = root.querySelector && root.querySelector('[data-sy-past-life-ai]');
+    if (!panel || panel.__syPastLifeAiBound) return;
+    panel.__syPastLifeAiBound = true;
+    var outputEl = panel.querySelector('[data-sy-past-life-ai-output]');
+    var copyBtn = panel.querySelector('[data-sy-past-life-ai-copy]');
+    var openBtn = panel.querySelector('[data-sy-past-life-ai-open]');
+    var statusEl = panel.querySelector('[data-sy-past-life-ai-status]');
+    function promptText() {
+      return String(outputEl && outputEl.value || '').trim();
+    }
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var text = promptText();
+        if (!text) {
+          if (statusEl) statusEl.textContent = '복사할 질문문이 아직 열리지 않았습니다.';
+          return;
+        }
+        syCopyText(text).then(function() {
+          if (statusEl) statusEl.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 이어서 물어보세요.';
+        }).catch(function() {
+          if (statusEl) statusEl.textContent = '복사가 막혔습니다. 질문문을 직접 선택해 복사해 주세요.';
+        });
+      });
+    }
+    if (openBtn) {
+      openBtn.addEventListener('click', function() {
+        var text = promptText();
+        if (!text) {
+          if (statusEl) statusEl.textContent = 'AI에게 건넬 질문문이 아직 열리지 않았습니다.';
+          return;
+        }
+        syOpenAiChat(text, statusEl);
+      });
+    }
+  }
 
   function syPastLifeGateEvidence(gateResult) {
     var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
@@ -10296,7 +10597,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           };
           var result = SukuyoPastLifeEngine.build(inputPayload);
           var reveal = function(unlocked) {
-            if (resultHost) resultHost.innerHTML = SukuyoPastLifeEngine.render(result, unlocked);
+            if (resultHost) {
+              resultHost.innerHTML = SukuyoPastLifeEngine.render(result, unlocked);
+              if (unlocked) syBindSukuyoPastLifeAiPrompt(resultHost);
+            }
             if (status) status.textContent = unlocked ? '숙요 전생 인연 리딩이 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 전생 서사는 해금 후 이어집니다.';
             if (statusPill && unlocked) {
               statusPill.textContent = '해금 완료';
@@ -12617,8 +12921,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var featureKey = String(opts.featureKey || 'sukuyo_ai_prompt_generator').trim();
     var reason = String(opts.reason || '숙요점 AI 질문 프롬프트 생성').trim();
     var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
-    var cost = Number(opts.cost || 100);
-    if (!Number.isFinite(cost) || cost <= 0) cost = 100;
+    var rawCost = opts.cost;
+    var cost = rawCost == null || rawCost === '' ? 100 : Number(rawCost);
+    if (!Number.isFinite(cost) || cost < 0) cost = 100;
     function normalize(result) {
       var payload = result && result.payload ? result.payload : {};
       var data = syPromptPayloadData(payload);
@@ -12632,6 +12937,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         message: String((payload.error && payload.error.message) || payload.message || data.message || '').trim(),
         requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
       };
+    }
+    if (cost <= 0) {
+      return Promise.resolve(normalize({
+        ok: true,
+        status: 200,
+        payload: {
+          ok: true,
+          featureKey: featureKey,
+          accessType: 'free',
+          accessMethod: 'FREE',
+          accessGrant: {
+            requestId: requestId,
+            featureKey: featureKey,
+            accessType: 'free',
+            accessMethod: 'FREE'
+          }
+        }
+      }));
     }
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       return window._cdOpenPaidServiceGate({
@@ -12657,7 +12980,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           status: 402,
           payload: {
             code: 'PAYMENT_REQUIRED',
-            message: '결제 후 프롬프트를 생성할 수 있습니다.',
+            message: '프롬프트를 생성할 수 없습니다.',
             requiredCoins: cost
           }
         });
@@ -12667,7 +12990,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           status: Number(error && error.status) || 402,
           payload: {
             code: String(error && error.code || 'PAYMENT_REQUIRED'),
-            message: String(error && error.message || '결제 후 프롬프트를 생성할 수 있습니다.'),
+            message: String(error && error.message || '프롬프트를 생성할 수 없습니다.'),
             requiredCoins: cost
           }
         });
@@ -12687,7 +13010,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var gate = normalize(result);
       if (gate.ok) return gate;
       gate.code = gate.code || 'PAYMENT_REQUIRED';
-      gate.message = gate.message || '결제 후 프롬프트를 생성할 수 있습니다.';
+      gate.message = gate.message || '프롬프트를 생성할 수 없습니다.';
       return gate;
     });
   }
@@ -12724,7 +13047,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       payload: {
         ok: false,
         code: code || 'PAYMENT_REQUIRED',
-        message: gate.message || '결제 후 프롬프트를 생성할 수 있습니다.',
+        message: gate.message || '프롬프트를 생성할 수 없습니다.',
         requiredCoins: gate.requiredCoins || 0
       }
     };
@@ -12772,7 +13095,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return syPromptGate({
       featureKey: 'sukuyo_ai_prompt_generator',
       reason: '숙요점 AI 질문 프롬프트 생성',
-      cost: 100,
+      cost: 0,
       requestId: 'sukuyo-ai-prompt:' + requestNonce,
       categoryKey: 'sukuyo'
     }).then(function(gateResult) {
@@ -12835,7 +13158,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     rootEl.dataset.syAiBound = '1';
 
     var isLoading = false;
-    var generateLabel = opts.generateLabel || '10,000원 선택 생성';
+    var isFreePrompt = opts.freePrompt === true;
+    var generateLabel = opts.generateLabel || '무료 프롬프트 생성';
     var loadingLabel = opts.loadingLabel || '프롬프트 생성 중...';
 
     function setStatus(message, tone) {
@@ -12870,6 +13194,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     function updateBalanceText() {
       if (!balanceEl) return;
+      if (isFreePrompt) {
+        balanceEl.textContent = '무료 생성입니다.';
+        return;
+      }
       syFetchCoinBalance().then(function(points) {
         if (points == null) {
           balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
@@ -12906,15 +13234,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           var balanceAfter = Number(payload.balanceAfter);
-          if (balanceEl && Number.isFinite(balanceAfter)) {
+          if (balanceEl && isFreePrompt) {
+            balanceEl.textContent = '무료 생성 완료';
+          } else if (balanceEl && Number.isFinite(balanceAfter)) {
             balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
           }
 
           if (payload.compatibilityUsed) {
-            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
+            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
           } else {
             var hint = String(payload.compatibilityHint || '궁합 데이터가 없어 기본 숙요점 기준으로 생성했습니다.');
-            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + hint, 'success');
+            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + hint, 'success');
           }
           return;
         }
@@ -12957,7 +13287,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     updateCount();
     updateBalanceText();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 프롬프트를 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 무료로 프롬프트를 생성합니다.', 'info');
   }
 
   function syCopyText(text) {
@@ -13933,14 +14263,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
-                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리/관계유형/카르마)를 포함해 프롬프트를 생성합니다. (1회 10,000원)</div>
+                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 담아, AI에게 이어 묻기 좋은 프롬프트를 무료로 정리합니다.</div>
                 <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 선택 생성</button>
+                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">프롬프트 무료 생성</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                 </div>
@@ -13973,7 +14303,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
           if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true });
+            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '프롬프트 무료 생성', freePrompt: true });
           }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약

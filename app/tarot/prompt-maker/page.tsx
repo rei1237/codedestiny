@@ -15,11 +15,12 @@ import {
   QUESTION_CHIPS,
   SPREAD_LIBRARY,
 } from "./data/tarotSpreadLibrary";
-import type { DrawnTarotCard, TarotCardOrientation, TarotSpreadCategory } from "./types";
+import type { DrawnTarotCard, TarotCardOrientation, TarotSpread, TarotSpreadCategory } from "./types";
 import { detectTarotCategory, recommendSpreads } from "./utils/classifyTarotQuestion";
-import { buildOraclePrompt } from "./utils/buildOraclePrompt";
+import { buildLenormandPrompt, buildOraclePrompt } from "./utils/buildOraclePrompt";
 
 type Stage = "question" | "draw" | "prompt";
+type OracleDeckMode = "tarot" | "lenormand";
 
 type TarotCardSource = {
   code?: string;
@@ -40,6 +41,15 @@ type BillingSnapshot = {
   accessReason: string;
 };
 
+type OracleCardPick = {
+  cardCode: string;
+  cardNameKo: string;
+  cardNameEn: string;
+  keywords: string[];
+  focus: string;
+  image: string;
+};
+
 function formatCoinValue(amount: number) {
   return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
 }
@@ -48,7 +58,7 @@ function formatMonthlyCreditValue(amount: number) {
   return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}원 상당`;
 }
 
-const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
+const CARD_POOL: OracleCardPick[] = (TAROT_CARDS as TarotCardSource[])
   .map((card) => ({
     cardCode: String(card?.code || ""),
     cardNameKo: String(card?.nameKo || "알 수 없는 카드"),
@@ -59,7 +69,124 @@ const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
   }))
   .filter((card) => card.cardCode);
 
-const DECK_SLOTS = Array.from({ length: 78 }, (_, index) => index);
+function buildLenormandCardImage(cardNumber: string, cardName: string, symbol: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f8fafc"/><stop offset="0.52" stop-color="#ede9fe"/><stop offset="1" stop-color="#fef3c7"/></linearGradient></defs><rect width="240" height="360" rx="24" fill="url(#g)"/><rect x="16" y="16" width="208" height="328" rx="18" fill="none" stroke="#7c3aed" stroke-width="3" opacity="0.55"/><text x="120" y="58" text-anchor="middle" font-family="serif" font-size="22" fill="#4c1d95">${cardNumber}</text><text x="120" y="176" text-anchor="middle" font-size="74">${symbol}</text><text x="120" y="282" text-anchor="middle" font-family="serif" font-size="24" font-weight="700" fill="#312e81">${cardName}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+const LENORMAND_CARD_DATA = [
+  ["01", "기수", "Rider", "소식", "방문", "빠른 움직임", "소식과 접근 신호", "♘"],
+  ["02", "클로버", "Clover", "작은 행운", "기회", "가벼운 전환", "작지만 유리한 틈", "♣"],
+  ["03", "배", "Ship", "이동", "거리", "확장", "멀어지거나 넓어지는 흐름", "⛵"],
+  ["04", "집", "House", "안정", "기반", "가족", "안전한 자리와 생활 기반", "⌂"],
+  ["05", "나무", "Tree", "성장", "건강", "시간", "천천히 뿌리내리는 흐름", "♧"],
+  ["06", "구름", "Clouds", "혼란", "불확실성", "가림", "시야를 흐리는 요소", "☁"],
+  ["07", "뱀", "Snake", "복잡함", "우회", "경계", "직선이 아닌 복잡한 길", "♆"],
+  ["08", "관", "Coffin", "종료", "멈춤", "정리", "끝내야 열리는 흐름", "▭"],
+  ["09", "꽃다발", "Bouquet", "호의", "선물", "좋은 인상", "부드럽게 열리는 호감", "✽"],
+  ["10", "낫", "Scythe", "절단", "결단", "급변", "빠르게 잘라낼 지점", "⌁"],
+  ["11", "채찍", "Whip", "반복", "논쟁", "압박", "되풀이되는 긴장", "〰"],
+  ["12", "새들", "Birds", "대화", "걱정", "소문", "말과 신경 쓰임의 흐름", "♬"],
+  ["13", "아이", "Child", "시작", "순수함", "미숙함", "아직 작고 여린 가능성", "◇"],
+  ["14", "여우", "Fox", "주의", "전략", "일", "세밀한 경계와 계산", "△"],
+  ["15", "곰", "Bear", "힘", "보호", "영향력", "크게 버티는 힘", "⬟"],
+  ["16", "별", "Stars", "희망", "방향", "영감", "멀리서 길을 잡는 신호", "✦"],
+  ["17", "황새", "Stork", "변화", "이전", "개선", "상태가 바뀌는 움직임", "⇧"],
+  ["18", "개", "Dog", "신뢰", "친구", "충성", "믿을 수 있는 연결", "●"],
+  ["19", "탑", "Tower", "거리", "기관", "고립", "높은 기준과 분리된 자리", "▥"],
+  ["20", "정원", "Garden", "모임", "공개", "사회성", "사람들 앞에 드러나는 흐름", "✿"],
+  ["21", "산", "Mountain", "장애", "지연", "막힘", "넘어야 할 큰 저항", "▲"],
+  ["22", "갈림길", "Crossroads", "선택", "분기", "대안", "길이 나뉘는 순간", "⌯"],
+  ["23", "쥐", "Mice", "소모", "손실", "불안", "조금씩 갉아먹는 누수", "⋯"],
+  ["24", "하트", "Heart", "마음", "애정", "끌림", "감정이 살아 있는 자리", "♡"],
+  ["25", "반지", "Ring", "약속", "계약", "순환", "묶임과 반복되는 약속", "○"],
+  ["26", "책", "Book", "비밀", "지식", "숨은 정보", "아직 열리지 않은 내용", "▤"],
+  ["27", "편지", "Letter", "문서", "메시지", "연락", "글로 오가는 소식", "✉"],
+  ["28", "남자", "Man", "남성 인물", "주체", "관계 축", "남성적 축 또는 당사자", "♂"],
+  ["29", "여자", "Woman", "여성 인물", "주체", "관계 축", "여성적 축 또는 당사자", "♀"],
+  ["30", "백합", "Lily", "성숙", "평온", "품위", "차분하게 익은 흐름", "⚜"],
+  ["31", "태양", "Sun", "성공", "활력", "명료함", "밝게 드러나는 힘", "☉"],
+  ["32", "달", "Moon", "감정", "평판", "직감", "감정과 인상이 흐르는 자리", "☾"],
+  ["33", "열쇠", "Key", "해결", "확신", "돌파", "문을 여는 결정적 단서", "⚿"],
+  ["34", "물고기", "Fish", "돈", "흐름", "교환", "자원과 거래의 흐름", "♓"],
+  ["35", "닻", "Anchor", "고정", "안정", "지속", "쉽게 흔들리지 않는 기준", "⚓"],
+  ["36", "십자가", "Cross", "부담", "운명감", "책임", "피하기 어려운 무게", "✚"],
+] as const;
+
+const LENORMAND_CARD_POOL: OracleCardPick[] = LENORMAND_CARD_DATA.map(([number, nameKo, nameEn, ...rest]) => {
+  const symbol = rest[rest.length - 1];
+  const keywords = rest.slice(0, 3);
+  const focus = rest[3];
+  return {
+    cardCode: `L${number}`,
+    cardNameKo: nameKo,
+    cardNameEn: nameEn,
+    keywords,
+    focus,
+    image: buildLenormandCardImage(number, nameKo, symbol),
+  };
+});
+
+const LENORMAND_SPREAD: TarotSpread = {
+  id: "lenormand-six-flow",
+  title: "레노먼드 6장 흐름",
+  category: "special",
+  cardCount: 6,
+  difficulty: "easy",
+  purpose: "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다.",
+  positions: [
+    { index: 1, label: "현재 상황", description: "지금 질문의 표면에 드러난 중심 흐름", x: 20, y: 30, rotate: -8 },
+    { index: 2, label: "가까운 배경", description: "이 흐름을 만든 최근 조건과 주변 분위기", x: 50, y: 18, rotate: 0 },
+    { index: 3, label: "반복 신호", description: "계속 되풀이되는 패턴과 확인할 포인트", x: 80, y: 30, rotate: 8 },
+    { index: 4, label: "전환 단서", description: "흐름이 바뀌거나 열리는 계기", x: 20, y: 70, rotate: -8 },
+    { index: 5, label: "행동 단서", description: "줄이거나 늘려야 할 현실 행동", x: 50, y: 82, rotate: 0, emphasis: true },
+    { index: 6, label: "다음 흐름", description: "가까운 다음 장면과 정리 메시지", x: 80, y: 70, rotate: 8 },
+  ],
+  interpretationGuide: [
+    "카드를 한 장씩 고립하지 않고 인접 카드와 조합해 문장처럼 읽습니다.",
+    "타로식 역방향을 쓰지 않고 카드의 거리, 순서, 반복 신호를 봅니다.",
+    "좋고 나쁨보다 어떤 행동을 줄이거나 늘릴지 정리합니다.",
+  ],
+  tags: ["레노먼드", "6 cards", "무료"],
+  mood: "흐름과 행동 단서를 짧고 또렷하게 읽는 레노먼드 라인",
+  ritual: "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요.",
+};
+
+const LENORMAND_DEFAULT_QUESTION = "지금 보고 싶은 상황에서 가장 먼저 확인해야 할 흐름과 행동 단서는 무엇일까?";
+
+const LENORMAND_INFO_ITEMS = [
+  ["01", "무엇을 확인하나요", "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다. 단정형 예언보다 현재 흐름, 반복 패턴, 다음 행동 후보를 차분히 나누어 읽습니다."],
+  ["02", "전통과 이야기", "레노먼드는 19세기 프랑스의 점술가 마드무아젤 르노르망과 연결되어 널리 알려진 36장 카드 전통입니다."],
+  ["03", "특징", "카드를 한 장씩 고립해 보기보다 인접 카드와 조합을 문장처럼 이어 읽고, 타로식 역방향을 쓰지 않는 점이 특징입니다."],
+  ["04", "입력 전 체크", "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요. 질문 범위와 확인할 포인트를 좁히면 결과를 더 안정적으로 읽을 수 있습니다."],
+  ["05", "해석 기준", "좋고 나쁨의 판정보다 어떤 신호가 반복되는지, 어떤 행동을 줄이거나 늘릴지 확인하는 데 초점을 둡니다."],
+  ["06", "주의할 점", "의료, 법률, 재무처럼 손실이 큰 결정은 이 결과만으로 확정하지 말고 판단을 정리하는 참고 자료로 사용하세요."],
+] as const;
+
+const ORACLE_MODE_META: Record<OracleDeckMode, { title: string; eyebrow: string; description: string; drawLabel: string; deckLabel: string; deckCaption: string; promptLabel: string; outputLabel: string }> = {
+  tarot: {
+    title: "타로 프롬프트",
+    eyebrow: "타로",
+    description: "질문, 스프레드, 카드의 방향을 하나의 섬세한 AI 타로 상담 프롬프트로 엮습니다.",
+    drawLabel: "✦ 카드 뽑기 시작",
+    deckLabel: "Tarot Deck",
+    deckCaption: "78장 덱에서 한 장씩 뽑아보세요.",
+    promptLabel: "✦ AI 오라클 프롬프트 만들기",
+    outputLabel: "AI 오라클 프롬프트",
+  },
+  lenormand: {
+    title: "레노먼드 프롬프트",
+    eyebrow: "레노먼드",
+    description: "질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.",
+    drawLabel: "레노먼드 6장 뽑기",
+    deckLabel: "Lenormand Deck",
+    deckCaption: "36장 레노먼드 덱에서 6장을 뽑아 흐름과 행동 단서를 봅니다.",
+    promptLabel: "무료 레노먼드 프롬프트 만들기",
+    outputLabel: "복사용 레노먼드 프롬프트",
+  },
+};
+
+const DECK_SLOTS = Array.from({ length: Math.max(CARD_POOL.length, LENORMAND_CARD_POOL.length) }, (_, index) => index);
 
 const STEP_META: Array<{ id: Stage; title: string; caption: string; icon: string }> = [
   { id: "question", title: "질문 올리기", caption: "마음속 질문을 밤하늘에 올리고 어울리는 스프레드를 고르세요.", icon: "✦" },
@@ -197,6 +324,7 @@ function StarField() {
 export default function TarotPromptMakerPage() {
   const { ensurePaidAccess, isPaying } = useCoinGate();
 
+  const [oracleMode, setOracleMode] = useState<OracleDeckMode>("tarot");
   const [stage, setStage] = useState<Stage>("question");
   const [question, setQuestion] = useState("");
   const [manualCategory, setManualCategory] = useState<"auto" | TarotSpreadCategory>("auto");
@@ -217,21 +345,25 @@ export default function TarotPromptMakerPage() {
   const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
 
-  const selectedSpread = findSpreadById(selectedSpreadId);
+  const isLenormandMode = oracleMode === "lenormand";
+  const oracleModeMeta = ORACLE_MODE_META[oracleMode];
+  const selectedSpread = isLenormandMode ? LENORMAND_SPREAD : findSpreadById(selectedSpreadId);
+  const activeCardPool = isLenormandMode ? LENORMAND_CARD_POOL : CARD_POOL;
+  const activeDeckSize = activeCardPool.length;
   const detectedCategory = detectTarotCategory(question);
   const selectedQuestionCategory = manualCategory === "auto" ? detectedCategory : manualCategory;
 
   const effectiveQuestion = useMemo(
-    () => normalizeText(question) || DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory],
-    [question, selectedQuestionCategory],
+    () => normalizeText(question) || (isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]),
+    [question, isLenormandMode, selectedQuestionCategory],
   );
 
   const flowLines = useMemo(() => buildFlowLines(drawnCards), [drawnCards]);
   const progressText = `${drawnCards.length} / ${selectedSpread.cardCount}`;
 
   const recommendedSpreads = useMemo(
-    () => recommendSpreads(effectiveQuestion, cardCountFilter, selectedQuestionCategory).slice(0, 6),
-    [effectiveQuestion, cardCountFilter, selectedQuestionCategory],
+    () => isLenormandMode ? [LENORMAND_SPREAD] : recommendSpreads(effectiveQuestion, cardCountFilter, selectedQuestionCategory).slice(0, 6),
+    [effectiveQuestion, cardCountFilter, isLenormandMode, selectedQuestionCategory],
   );
 
   const filteredSpreads = useMemo(
@@ -256,8 +388,14 @@ export default function TarotPromptMakerPage() {
   );
 
   const recommendedQuestions = useMemo(
-    () => buildRecommendedQuestionsForSpread(selectedSpread, selectedQuestionCategory, 5, question),
-    [selectedSpread, selectedQuestionCategory, question],
+    () => isLenormandMode
+      ? [
+        "지금 보고 싶은 상황에서 가장 반복되는 신호는 무엇일까?",
+        "이 흐름에서 내가 줄여야 할 행동과 늘려야 할 행동은 무엇일까?",
+        "가까운 다음 장면으로 이어지는 현실 단서는 무엇일까?",
+      ]
+      : buildRecommendedQuestionsForSpread(selectedSpread, selectedQuestionCategory, 5, question),
+    [isLenormandMode, selectedSpread, selectedQuestionCategory, question],
   );
 
   const billingPassIncluded = Boolean(billingSnapshot?.freeBySubscription || billingSnapshot?.canUseByPass);
@@ -266,14 +404,16 @@ export default function TarotPromptMakerPage() {
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
-    : "1회 5,000원";
+    ? (isLenormandMode ? "무료" : billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
+    : (isLenormandMode ? "무료" : "1회 5,000원");
 
   const billingStateLabel = billingSnapshot
-    ? (billingPassIncluded ? "이용권 적용 가능" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
-    : (billingLoading ? "확인 중" : "미연동");
-  const sensitiveCategoryNotice = SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
-  const questionQualityNotice = buildQuestionQualityNotice(question, selectedQuestionCategory);
+    ? (isLenormandMode ? "레노먼드 무료" : billingPassIncluded ? "이용권 적용 가능" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
+    : (isLenormandMode ? "레노먼드 무료" : billingLoading ? "확인 중" : "미연동");
+  const sensitiveCategoryNotice = isLenormandMode ? "" : SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
+  const questionQualityNotice = isLenormandMode
+    ? (normalizeText(question) ? "질문 흐름이 잡혔습니다. 6장 레노먼드 카드로 반복 신호와 행동 단서를 엮습니다." : "지금 보고 싶은 상황이나 질문을 한 문장으로 적어주세요.")
+    : buildQuestionQualityNotice(question, selectedQuestionCategory);
 
   useEffect(() => {
     if (selectedSpreadId) return;
@@ -319,6 +459,17 @@ export default function TarotPromptMakerPage() {
     setShowFullDeck(false);
   }
 
+  function handleOracleModeChange(nextMode: OracleDeckMode) {
+    if (nextMode === oracleMode) return;
+    setOracleMode(nextMode);
+    resetDrawState();
+    setStage("question");
+    setFeedback("");
+    setQuestionStatus("");
+    setShowSpreadPicker(false);
+    if (nextMode === "lenormand") setAllowReversed(false);
+  }
+
   function handleSelectSpread(spreadId: string) {
     setSelectedSpreadId(spreadId);
     setFeedback("");
@@ -326,6 +477,7 @@ export default function TarotPromptMakerPage() {
   }
 
   function buildPromptForCurrentState() {
+    if (isLenormandMode) return buildLenormandPrompt(selectedSpread, effectiveQuestion, drawnCards);
     return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory });
   }
 
@@ -352,13 +504,13 @@ export default function TarotPromptMakerPage() {
     setStage("draw");
   }
 
-  function addDrawnCard(picked: (typeof CARD_POOL)[number], deckSlot?: number) {
+  function addDrawnCard(picked: OracleCardPick, deckSlot?: number) {
     if (stage !== "draw") return;
     if (drawnCards.length >= selectedSpread.cardCount) return;
     if (drawnCards.some((card) => card.cardCode === picked.cardCode)) return;
     const position = selectedSpread.positions[drawnCards.length];
     if (!position) return;
-    const orientation: TarotCardOrientation = allowReversed && Math.random() < 0.35 ? "reversed" : "upright";
+    const orientation: TarotCardOrientation = !isLenormandMode && allowReversed && Math.random() < 0.35 ? "reversed" : "upright";
     if (typeof deckSlot === "number") {
       setUsedDeckSlots((prev) => prev.includes(deckSlot) ? prev : [...prev, deckSlot]);
     }
@@ -384,18 +536,19 @@ export default function TarotPromptMakerPage() {
   function drawCardFromDeckSlot(deckSlot: number) {
     if (usedDeckSlots.includes(deckSlot)) return;
     const usedCodes = new Set(drawnCards.map((card) => card.cardCode));
-    const availableCards = CARD_POOL.filter((card) => !usedCodes.has(card.cardCode));
+    const availableCards = activeCardPool.filter((card) => !usedCodes.has(card.cardCode));
     if (!availableCards.length) return;
     const picked = availableCards[Math.floor(Math.random() * availableCards.length)];
     addDrawnCard(picked, deckSlot);
   }
 
-  function drawSpecificCard(picked: (typeof CARD_POOL)[number]) {
-    const cardSlot = CARD_POOL.findIndex((card) => card.cardCode === picked.cardCode);
+  function drawSpecificCard(picked: OracleCardPick) {
+    const cardSlot = activeCardPool.findIndex((card) => card.cardCode === picked.cardCode);
     addDrawnCard(picked, cardSlot >= 0 ? cardSlot : undefined);
   }
 
   function toggleDrawnCardOrientation(cardIndex: number) {
+    if (isLenormandMode) return;
     setDrawnCards((prev) => prev.map((card, index) => {
       if (index !== cardIndex) return card;
       const orientation: TarotCardOrientation = card.orientation === "upright" ? "reversed" : "upright";
@@ -409,7 +562,7 @@ export default function TarotPromptMakerPage() {
   }
 
   function drawCardFromStack() {
-    const availableSlots = DECK_SLOTS.filter((slot) => !usedDeckSlots.includes(slot));
+    const availableSlots = DECK_SLOTS.slice(0, activeDeckSize).filter((slot) => !usedDeckSlots.includes(slot));
     if (!availableSlots.length) return;
     const randomSlot = availableSlots[Math.floor(Math.random() * availableSlots.length)];
     drawCardFromDeckSlot(randomSlot);
@@ -429,6 +582,11 @@ export default function TarotPromptMakerPage() {
     };
     setIsGenerating(true);
     try {
+      if (isLenormandMode) {
+        generate();
+        showToast("무료 레노먼드 프롬프트가 완성되었습니다.", "success");
+        return;
+      }
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
         reason: "타로 프롬프트 라이브러리",
@@ -479,7 +637,7 @@ export default function TarotPromptMakerPage() {
     try {
       await navigator.clipboard.writeText(promptResult.prompt);
       setCopied(true);
-      showToast("AI 오라클 프롬프트가 복사되었습니다.", "success");
+      showToast(isLenormandMode ? "레노먼드 프롬프트가 복사되었습니다." : "AI 오라클 프롬프트가 복사되었습니다.", "success");
     } catch {
       showToast("클립보드 복사에 실패했습니다.", "error");
     }
@@ -490,7 +648,7 @@ export default function TarotPromptMakerPage() {
     const nextPrompt = buildPromptForCurrentState();
     setPromptResult(nextPrompt);
     setFeedback("");
-    showToast("같은 카드 조합으로 AI 오라클 프롬프트를 다시 정리했습니다.", "success");
+    showToast(isLenormandMode ? "같은 레노먼드 카드 조합으로 프롬프트를 다시 정리했습니다." : "같은 카드 조합으로 AI 오라클 프롬프트를 다시 정리했습니다.", "success");
   }
 
   function handleTunePrompt(label: string, instruction: string) {
@@ -563,7 +721,7 @@ export default function TarotPromptMakerPage() {
               <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">AI 프롬프트로</span>
             </h1>
             <p className="mt-3 text-[#c4b5fd]/70 text-sm sm:text-base">
-              질문, 스프레드, 카드의 방향을 하나의 섬세한 AI 타로 상담 프롬프트로 엮습니다.
+              {oracleModeMeta.description}
             </p>
 
             {/* Billing badge */}
@@ -603,10 +761,24 @@ export default function TarotPromptMakerPage() {
                   >
                     <div className="text-center mb-6">
                       <div className="text-4xl mb-3">🌙</div>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-[#e9d5ff]">마음 속 질문을 들려주세요</h2>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-[#e9d5ff]">{isLenormandMode ? "질문" : "마음 속 질문을 들려주세요"}</h2>
                       <p className="mt-2 text-[#a78bfa]/80 text-sm leading-relaxed">
-                        타로가 당신만의 이야기를 풀어낼 준비를 합니다.
+                        {isLenormandMode ? "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다." : "타로가 당신만의 이야기를 풀어낼 준비를 합니다."}
                       </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {(["tarot", "lenormand"] as OracleDeckMode[]).map((mode) => (
+                        <button
+                          key={`oracle-mode-${mode}`}
+                          type="button"
+                          onClick={() => handleOracleModeChange(mode)}
+                          className={`rounded-2xl border px-4 py-3 text-left transition-all ${oracleMode === mode ? "border-[#f59e0b]/45 bg-[#f59e0b]/12 text-[#fff7ed]" : "border-white/10 bg-white/5 text-[#c4b5fd]/75 hover:bg-white/10"}`}
+                        >
+                          <span className="block text-[10px] uppercase tracking-[0.18em] opacity-70">{ORACLE_MODE_META[mode].eyebrow}</span>
+                          <span className="mt-1 block text-sm font-bold">{ORACLE_MODE_META[mode].title}</span>
+                        </button>
+                      ))}
                     </div>
 
                     {/* Textarea */}
@@ -618,7 +790,7 @@ export default function TarotPromptMakerPage() {
                         value={question}
                         onChange={(e) => { setQuestion(e.target.value); setFeedback(""); setQuestionStatus(""); }}
                         maxLength={220}
-                        placeholder="지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?"
+                        placeholder={isLenormandMode ? "지금 보고 싶은 상황이나 질문을 적어주세요." : "지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?"}
                         className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-sm sm:text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
                       />
                       <div className="flex items-start justify-between gap-3 mt-2">
@@ -627,39 +799,41 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-2xl border border-[#6d28d9]/35 p-4 mb-4"
-                      style={{ background: "rgba(15,5,35,0.48)" }}
-                    >
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">질문 카테고리</div>
-                          <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {CATEGORY_LABEL[detectedCategory]}</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setManualCategory("auto")}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${manualCategory === "auto" ? "border-[#f59e0b]/45 bg-[#f59e0b]/15 text-[#fde68a]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
-                        >
-                          자동 추정
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {QUESTION_CATEGORY_OPTIONS.map((category) => (
+                    {!isLenormandMode && (
+                      <div
+                        className="rounded-2xl border border-[#6d28d9]/35 p-4 mb-4"
+                        style={{ background: "rgba(15,5,35,0.48)" }}
+                      >
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">질문 카테고리</div>
+                            <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {CATEGORY_LABEL[detectedCategory]}</div>
+                          </div>
                           <button
-                            key={`question-category-${category}`}
                             type="button"
-                            onClick={() => setManualCategory(category)}
-                            className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all ${manualCategory !== "auto" && selectedQuestionCategory === category ? "border-[#c084fc]/50 bg-[#c084fc]/15 text-[#f3e8ff]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
+                            onClick={() => setManualCategory("auto")}
+                            className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${manualCategory === "auto" ? "border-[#f59e0b]/45 bg-[#f59e0b]/15 text-[#fde68a]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
                           >
-                            {CATEGORY_LABEL[category]}
+                            자동 추정
                           </button>
-                        ))}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {QUESTION_CATEGORY_OPTIONS.map((category) => (
+                            <button
+                              key={`question-category-${category}`}
+                              type="button"
+                              onClick={() => setManualCategory(category)}
+                              className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all ${manualCategory !== "auto" && selectedQuestionCategory === category ? "border-[#c084fc]/50 bg-[#c084fc]/15 text-[#f3e8ff]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
+                            >
+                              {CATEGORY_LABEL[category]}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Quick chips */}
-                    <div className="flex flex-wrap gap-2 mb-5">
+                    {!isLenormandMode && <div className="flex flex-wrap gap-2 mb-5">
                       {QUESTION_CHIPS.slice(0, 6).map((chip) => (
                         <button
                           key={chip.label}
@@ -670,7 +844,7 @@ export default function TarotPromptMakerPage() {
                           {chip.label}
                         </button>
                       ))}
-                    </div>
+                    </div>}
 
                     {/* Selected spread */}
                     <div
@@ -681,16 +855,16 @@ export default function TarotPromptMakerPage() {
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">선택된 스프레드</div>
                           <div className="text-[#e9d5ff] font-semibold text-base">{selectedSpread.title}</div>
-                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · 상담 카테고리 {CATEGORY_LABEL[selectedQuestionCategory]}</div>
+                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? "레노먼드" : `상담 카테고리 ${CATEGORY_LABEL[selectedQuestionCategory]}`}</div>
                           <div className="text-[#c4b5fd]/60 text-xs mt-1 leading-relaxed">{selectedSpread.purpose}</div>
                         </div>
-                        <button
+                        {!isLenormandMode && <button
                           type="button"
                           onClick={() => setShowSpreadPicker(true)}
                           className="px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
                         >
                           스프레드 바꾸기
-                        </button>
+                        </button>}
                       </div>
                     </div>
 
@@ -701,7 +875,7 @@ export default function TarotPromptMakerPage() {
                       <div className="flex items-center justify-between gap-3 mb-3">
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">추천 질문</div>
-                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {CATEGORY_LABEL[selectedQuestionCategory]}</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {isLenormandMode ? "레노먼드" : CATEGORY_LABEL[selectedQuestionCategory]}</div>
                         </div>
                         <button
                           type="button"
@@ -725,6 +899,27 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
+                    {isLenormandMode && (
+                      <div
+                        className="rounded-2xl border border-[#f59e0b]/25 p-4 mb-5"
+                        style={{ background: "linear-gradient(135deg, rgba(120,53,15,0.18), rgba(88,28,135,0.16))" }}
+                      >
+                        <div className="mb-3">
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#fbbf24]/70">무료 레노먼드 프롬프트</div>
+                          <div className="mt-1 text-sm leading-relaxed text-[#fde68a]/90">질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.</div>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {LENORMAND_INFO_ITEMS.map(([number, title, body]) => (
+                            <div key={`lenormand-info-${number}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                              <div className="text-[10px] font-bold text-[#fbbf24]">{number}</div>
+                              <div className="mt-0.5 text-xs font-semibold text-[#f3e8ff]">{title}</div>
+                              <div className="mt-1 text-[11px] leading-relaxed text-[#c4b5fd]/70">{body}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {sensitiveCategoryNotice && (
                       <div className="mb-5 rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 px-4 py-3 text-xs leading-relaxed text-[#fde68a]/90">
                         {sensitiveCategoryNotice}
@@ -736,13 +931,13 @@ export default function TarotPromptMakerPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setQuestion(DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
+                          setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
                           setFeedback("");
-                          setQuestionStatus("카테고리 기본 질문으로 상담 방향을 맞췄습니다.");
+                          setQuestionStatus(isLenormandMode ? "레노먼드 기본 질문으로 흐름을 맞췄습니다." : "카테고리 기본 질문으로 상담 방향을 맞췄습니다.");
                         }}
                         className="flex-1 px-4 py-3 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-sm font-medium hover:bg-white/10 transition-all"
                       >
-                        카테고리 기본 질문
+                        {isLenormandMode ? "레노먼드 기본 질문" : "카테고리 기본 질문"}
                       </button>
                       <motion.button
                         whileHover={{ scale: 1.03 }}
@@ -752,7 +947,7 @@ export default function TarotPromptMakerPage() {
                         className="flex-1 sm:flex-[2] px-6 py-3 rounded-full font-bold text-sm text-[#1a0533] shadow-lg transition-all"
                         style={{ background: "linear-gradient(90deg, #c084fc, #f472b6, #fbbf24)", boxShadow: "0 8px 30px rgba(192,132,252,0.35)" }}
                       >
-                        ✦ 카드 뽑기 시작
+                        {oracleModeMeta.drawLabel}
                       </motion.button>
                     </div>
 
@@ -791,16 +986,16 @@ export default function TarotPromptMakerPage() {
                           >
                             {progressText} 완료
                           </div>
-                          <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-xs text-[#c4b5fd]">
+                          {!isLenormandMode && <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-xs text-[#c4b5fd]">
                             <input type="checkbox" checked={allowReversed} onChange={(e) => setAllowReversed(e.target.checked)} className="accent-[#a855f7] h-3.5 w-3.5" />
                             역방향 포함
-                          </label>
+                          </label>}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-3">
                         <button type="button" onClick={handleGoQuestion} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">← 질문으로 돌아가기</button>
                         <button type="button" onClick={handleResetAll} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">처음으로</button>
-                        <button type="button" onClick={() => setShowSpreadPicker(true)} className="px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-[#c4b5fd] font-semibold hover:bg-[#7c3aed]/20 transition-all">다른 스프레드</button>
+                        {!isLenormandMode && <button type="button" onClick={() => setShowSpreadPicker(true)} className="px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-[#c4b5fd] font-semibold hover:bg-[#7c3aed]/20 transition-all">다른 스프레드</button>}
                       </div>
                     </div>
 
@@ -851,10 +1046,10 @@ export default function TarotPromptMakerPage() {
                                     className="h-full flex flex-col"
                                     style={{ backfaceVisibility: "hidden" }}
                                   >
-                                    <img src={drawn.image} alt={drawn.cardNameKo} className="w-full flex-1 object-cover" style={{ filter: drawn.orientation === "reversed" ? "hue-rotate(180deg) brightness(0.85)" : undefined, transform: drawn.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
+                                    <img src={drawn.image} alt={drawn.cardNameKo} className="w-full flex-1 object-cover" style={{ filter: !isLenormandMode && drawn.orientation === "reversed" ? "hue-rotate(180deg) brightness(0.85)" : undefined, transform: !isLenormandMode && drawn.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
                                     <div className="px-1 py-1 text-center" style={{ background: "rgba(0,0,0,0.7)" }}>
                                       <div className="text-[9px] font-bold text-[#e9d5ff] leading-tight line-clamp-1">{drawn.cardNameKo}</div>
-                                      <div className="text-[8px] text-[#f472b6]">{drawn.orientationLabel}</div>
+                                      <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? "조합 읽기" : drawn.orientationLabel}</div>
                                     </div>
                                   </motion.div>
                                 ) : (
@@ -893,11 +1088,11 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/60">Tarot Deck</div>
-                          <div className="text-xs text-[#a78bfa]/70 mt-0.5">78장 덱에서 한 장씩 뽑아보세요.</div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/60">{oracleModeMeta.deckLabel}</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-0.5">{oracleModeMeta.deckCaption}</div>
                         </div>
                         <div className="px-2.5 py-1 rounded-full border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd]">
-                          {78 - usedDeckSlots.length} / 78
+                          {activeDeckSize - usedDeckSlots.length} / {activeDeckSize}
                         </div>
                       </div>
 
@@ -934,7 +1129,7 @@ export default function TarotPromptMakerPage() {
                         className="w-full py-3 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                         style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.3)" }}
                       >
-                        ✦ 카드 뽑기
+                        {isLenormandMode ? "레노먼드 카드 뽑기" : "✦ 카드 뽑기"}
                       </motion.button>
 
                       <button
@@ -954,7 +1149,7 @@ export default function TarotPromptMakerPage() {
                             className="mt-3 max-h-72 overflow-y-auto pr-1 custom-scrollbar"
                           >
                             <div className="grid grid-cols-2 gap-1.5">
-                            {CARD_POOL.map((card) => {
+                            {activeCardPool.map((card) => {
                               const disabled = drawnCards.some((drawn) => drawn.cardCode === card.cardCode) || drawnCards.length >= selectedSpread.cardCount;
                               return (
                                 <button
@@ -989,17 +1184,17 @@ export default function TarotPromptMakerPage() {
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="text-xs text-[#f3e8ff] font-medium truncate">{drawn.cardNameKo}</span>
-                                      <span className="text-[10px] text-[#f472b6] shrink-0">{drawn.orientationLabel}</span>
+                                      <span className="text-[10px] text-[#f472b6] shrink-0">{isLenormandMode ? "레노먼드" : drawn.orientationLabel}</span>
                                     </div>
                                     <div className="mt-0.5 text-[10px] text-white/40 leading-relaxed line-clamp-2">{drawn.positionDescription}</div>
                                   </div>
-                                  <button
+                                  {!isLenormandMode && <button
                                     type="button"
                                     onClick={() => toggleDrawnCardOrientation(index)}
                                     className="shrink-0 px-2 py-1 rounded-full border border-[#c084fc]/30 bg-[#c084fc]/10 text-[10px] font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all"
                                   >
                                     방향 변경
-                                  </button>
+                                  </button>}
                                 </div>
                               ) : (
                                 <div className="mt-0.5 text-[10px] text-white/30">아직 선택되지 않았어요.</div>
@@ -1025,11 +1220,11 @@ export default function TarotPromptMakerPage() {
                       whileTap={{ scale: 0.97 }}
                       type="button"
                       onClick={handleGeneratePrompt}
-                      disabled={drawnCards.length !== selectedSpread.cardCount || isGenerating || isPaying}
+                      disabled={drawnCards.length !== selectedSpread.cardCount || isGenerating || (!isLenormandMode && isPaying)}
                       className="w-full py-4 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                       style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 8px 30px rgba(168,85,247,0.3)" }}
                     >
-                      {isGenerating || isPaying ? "✦ 프롬프트 조율 중..." : "✦ AI 오라클 프롬프트 만들기"}
+                      {isGenerating || (!isLenormandMode && isPaying) ? "✦ 프롬프트 조율 중..." : oracleModeMeta.promptLabel}
                     </motion.button>
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
@@ -1053,7 +1248,7 @@ export default function TarotPromptMakerPage() {
                       className="rounded-2xl border border-[#7c3aed]/30 p-5"
                       style={{ background: "linear-gradient(145deg, rgba(25,10,55,0.92), rgba(15,5,38,0.92))" }}
                     >
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">AI 상담 프롬프트 지도</div>
+                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">{isLenormandMode ? "레노먼드 프롬프트 지도" : "AI 상담 프롬프트 지도"}</div>
                       <h2 className="text-xl font-bold text-[#e9d5ff] mb-2">{selectedSpread.title}</h2>
                       <p className="text-xs text-[#a78bfa]/75 leading-relaxed mb-2">{promptResult.effectiveQuestion}</p>
                       <p className="text-xs text-[#c4b5fd]/65 leading-relaxed">{promptResult.summary}</p>
@@ -1066,7 +1261,7 @@ export default function TarotPromptMakerPage() {
                         {drawnCards.slice(0, 5).map((card, i) => (
                           <div key={i} className="flex flex-col items-center gap-1">
                             <div className="w-14 h-20 rounded-lg overflow-hidden border border-[#7c3aed]/30 shadow-md">
-                              <img src={card.image} alt={card.cardNameKo} className="w-full h-full object-cover" style={{ filter: card.orientation === "reversed" ? "brightness(0.75)" : undefined, transform: card.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
+                              <img src={card.image} alt={card.cardNameKo} className="w-full h-full object-cover" style={{ filter: !isLenormandMode && card.orientation === "reversed" ? "brightness(0.75)" : undefined, transform: !isLenormandMode && card.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
                             </div>
                             <div className="text-[8px] text-[#c4b5fd] text-center w-14 leading-tight line-clamp-2">{card.cardNameKo}</div>
                           </div>
@@ -1081,7 +1276,7 @@ export default function TarotPromptMakerPage() {
                               <div className="text-[10px] text-[#c084fc]">{position.index}. {position.label}</div>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-xs font-semibold text-[#f3e8ff]">{drawn.cardNameKo}</span>
-                                <span className="text-[10px] text-[#f472b6]">{drawn.orientationLabel}</span>
+                                <span className="text-[10px] text-[#f472b6]">{isLenormandMode ? "레노먼드" : drawn.orientationLabel}</span>
                               </div>
                               <div className="text-[10px] text-white/45 mt-0.5 leading-relaxed">{drawn.positionDescription}</div>
                             </div>
@@ -1112,8 +1307,8 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between gap-3 mb-4">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">AI 오라클 프롬프트</div>
-                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">지금 복사할 AI 오라클 프롬프트 ✦</div>
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">{oracleModeMeta.outputLabel}</div>
+                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">{isLenormandMode ? "지금 복사할 무료 레노먼드 프롬프트" : "지금 복사할 AI 오라클 프롬프트 ✦"}</div>
                         </div>
                         <button
                           type="button"
@@ -1137,7 +1332,7 @@ export default function TarotPromptMakerPage() {
                     {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
-                        {copied ? "✓ 복사 완료" : "✦ AI 오라클 프롬프트 복사"}
+                        {copied ? "✓ 복사 완료" : isLenormandMode ? "레노먼드 프롬프트 복사" : "✦ AI 오라클 프롬프트 복사"}
                       </button>
                       <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 질문자에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 질문자의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
                         상담톤 강화
@@ -1154,9 +1349,9 @@ export default function TarotPromptMakerPage() {
                       <button type="button" onClick={handleRedrawCards} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
                         🃏 카드 다시 열기
                       </button>
-                      <button type="button" onClick={handleChooseAnotherSpread} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
+                      {!isLenormandMode && <button type="button" onClick={handleChooseAnotherSpread} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
                         다른 스프레드 선택
-                      </button>
+                      </button>}
                       <button type="button" onClick={handleResetAll} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
                         처음부터 다시 시작
                       </button>
@@ -1169,7 +1364,54 @@ export default function TarotPromptMakerPage() {
             </AnimatePresence>
           </div>
 
-          {/* Bottom padding */}
+          <section className="mt-6 grid gap-3 rounded-3xl border border-[#c084fc]/20 bg-black/20 p-5 text-[#ede9fe]/80 backdrop-blur-sm md:grid-cols-3">
+            <article>
+              <h2 className="text-base font-bold text-[#f5d0fe]">무엇을 정리하나요</h2>
+              <p className="mt-2 text-xs leading-6">
+                질문의 주제, 선택한 스프레드, 카드의 방향을 한 문장씩 엮어 타로 상담에 바로 쓸 수 있는 프롬프트 흐름으로 정리합니다.
+                레노먼드는 사건의 순서와 행동 단서를, 타로는 마음의 층과 상징의 결을 더 깊게 비춥니다.
+              </p>
+            </article>
+            <article>
+              <h2 className="text-base font-bold text-[#f5d0fe]">어떻게 읽으면 좋나요</h2>
+              <p className="mt-2 text-xs leading-6">
+                질문을 구체적으로 적을수록 결과는 막연한 길흉보다 현재 상황, 반복 신호, 전환 단서, 현실 행동 쪽으로 선명해집니다.
+                무료 레노먼드는 흐름 정리에, 유료 오라클 프롬프트는 더 긴 상담 문장과 조율 지시에 어울립니다.
+              </p>
+            </article>
+            <article>
+              <h2 className="text-base font-bold text-[#f5d0fe]">주의할 점</h2>
+              <p className="mt-2 text-xs leading-6">
+                결과는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 의료, 법률, 투자, 임신, 합격 여부처럼 손실이 큰 결정은
+                이 리딩만으로 확정하지 말고 현실 정보와 전문가 상담을 함께 확인하세요. 프롬프트는 판단을 대신하지 않고 질문을 더 맑게 정리하는 도구로 읽어 주세요.
+              </p>
+            </article>
+            <article className="md:col-span-3">
+              <h2 className="text-base font-bold text-[#f5d0fe]">좋은 질문을 만드는 법</h2>
+              <p className="mt-2 text-xs leading-6">
+                “그 사람이 돌아올까요”처럼 결말을 묻는 질문보다 “지금 이 관계에서 내가 확인해야 할 신호는 무엇인가요”처럼
+                마음과 행동을 함께 묻는 문장이 더 안정적으로 읽힙니다. 프롬프트를 복사한 뒤에는 카드 이름만 나열하기보다,
+                현재 상황, 상대와 나의 감정, 현실적으로 할 수 있는 선택지를 함께 적어 두면 해석이 덜 단정적이고 더 상담답게 열립니다.
+                같은 카드 조합이라도 질문의 시점과 태도에 따라 메시지는 달라질 수 있으니, 결과를 압박으로 받아들이기보다
+                오늘 정리할 한 문장과 줄여야 할 행동 하나를 고르는 방식으로 사용해 주세요.
+              </p>
+              <p className="mt-2 text-xs leading-6">
+                타로 초보자는 1장 또는 3장 스프레드로 질문의 방향을 먼저 잡고, 복잡한 관계나 커리어 고민은 5장 이상의 스프레드로
+                배경과 행동 단서를 나누어 보는 편이 좋습니다. 결과가 마음에 들지 않더라도 같은 질문을 반복해서 뽑기보다,
+                질문을 더 정확하게 다듬거나 하루 정도 시간을 둔 뒤 다시 읽으면 상징이 더 차분하게 다가옵니다.
+                저장한 프롬프트는 상담 기록처럼 다시 보며 마음의 변화와 선택의 흐름을 비교해도 좋습니다.
+                처음 방문한 사용자는 무료 레노먼드로 흐름을 익힌 뒤, 필요한 때에만 더 긴 오라클 프롬프트를 열어도 충분합니다.
+              </p>
+              <p className="mt-2 text-xs leading-6">
+                입력값은 질문 문장, 고민 주제, 선택한 스프레드, 뽑은 카드입니다. 질문 문장은 상담의 초점을 정하고,
+                고민 주제는 사랑·일·돈·건강처럼 해석에서 조심해야 할 경계를 알려 줍니다. 스프레드는 시간의 흐름이나
+                관계의 위치를 나누고, 카드는 그 자리에 놓인 상징을 비춥니다. 예를 들어 “이직을 준비해도 될까요”라는 질문에
+                현재·장애물·조언 3장을 놓았다면, 프롬프트는 합격이나 수입을 단정하기보다 준비 상태, 확인해야 할 현실 조건,
+                무리하지 않고 움직일 수 있는 순서를 묻는 문장으로 정리됩니다.
+              </p>
+            </article>
+          </section>
+
           <div className="h-8" />
         </div>
       </div>

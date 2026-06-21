@@ -78,7 +78,7 @@ export default function AdvertisingPolicyPage() {
           표기를 제공합니다. 사용자가 광고성 정보를 콘텐츠 본문과 구분할 수 있도록 명확한 레이블을 유지합니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          Sponsored or affiliate content is disclosed with clear labels such as "Ad", "Sponsored", or "Affiliate".
+          Sponsored or affiliate content is disclosed with clear labels such as &ldquo;Ad&rdquo;, &ldquo;Sponsored&rdquo;, or &ldquo;Affiliate&rdquo;.
         </p>
       </section>
 
@@ -96,11 +96,23 @@ export default function AdvertisingPolicyPage() {
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>5. 데이터 및 맞춤 광고 / Data and Personalized Ads</h2>
         <p style={{ lineHeight: 1.75 }}>
-          광고 제공 과정에서 쿠키 또는 유사 식별자가 사용될 수 있습니다. 맞춤형 광고 여부는 브라우저 설정, Google 광고 설정,
-          디바이스 수준 개인정보 옵션을 통해 관리할 수 있습니다. 자세한 내용은 개인정보처리방침을 참고해 주세요.
+          광고 제공 과정에서 쿠키, 웹 비콘, IP 주소, 광고 식별자 또는 유사 식별자가 사용될 수 있습니다. Google을 포함한 제3자 광고 파트너는
+          광고 제공과 측정을 위해 이러한 정보를 사용할 수 있으며, 맞춤형 광고 여부는 브라우저 설정, Google 광고 설정,
+          디바이스 수준 개인정보 옵션을 통해 관리할 수 있습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          Ad personalization may rely on cookies and similar identifiers. Users can manage ad preferences via browser and platform settings.
+          Google 광고 설정은{" "}
+          <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+            adssettings.google.com
+          </a>
+          에서, Google이 파트너 사이트와 앱의 데이터를 사용하는 방식은{" "}
+          <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+            Google 파트너 사이트/앱 데이터 사용 안내
+          </a>
+          에서 확인할 수 있습니다.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          Ad personalization may rely on cookies, web beacons, IP addresses, ad identifiers, and similar identifiers.
         </p>
       </section>
 

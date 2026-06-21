@@ -355,7 +355,7 @@ function buildSukuyoSeedErrorResponse(error, fallbackMessage = "숙요점 궁합
 
 const SUKYO_PAST_LIFE_FEATURE_KEY = "sukuyo-past-life-reading";
 const SUKYO_PAST_LIFE_REPORT_TYPE = "sukuyoPastLifeReading";
-const SUKYO_PAST_LIFE_LOGIC_VERSION = "sukyo-past-life-v1";
+const SUKYO_PAST_LIFE_LOGIC_VERSION = "sukyo-past-life-v2";
 const SUKYO_PAST_LIFE_PURPOSES = new Set(["love", "reunion", "marriage", "crush", "friend", "family", "business", "work", "general"]);
 
 const SUKYO_PAST_LIFE_SCORE_RANGES = Object.freeze({
@@ -584,6 +584,110 @@ function buildPastLifeHealingActions(purpose, relationType) {
   return actions.slice(0, 5);
 }
 
+function relationPastLifeReading(relationType, userName, partnerName, meta = {}) {
+  const map = {
+    업태: `${userName}님과 ${partnerName}님의 업태는 서로에게 남겨 둔 약속을 다시 확인하게 하는 결입니다. 마음은 빠르게 오래된 쪽으로 기울지만, 이 관계의 진짜 문은 현재의 책임과 약속에서 열립니다.`,
+    안괴: `${userName}님과 ${partnerName}님의 안괴는 강한 끌림과 흔들림을 함께 품습니다. 서로의 약한 곳을 건드릴 수 있으므로, 감정의 속도보다 안전한 경계를 먼저 세울 때 인연의 힘이 맑아집니다.`,
+    명: `${userName}님과 ${partnerName}님의 명은 닮은 영혼이 서로를 비추는 자리입니다. 편안함은 빠르게 오지만, 같은 방어와 같은 고집이 동시에 올라올 수 있어 각자의 회복법을 존중해야 합니다.`,
+    영친: `${userName}님과 ${partnerName}님의 영친은 오래 쉬어 갈 품처럼 드러납니다. 서로를 돌보는 마음이 자연스럽지만, 익숙함에 기대어 표현을 줄이면 따뜻한 결이 흐려질 수 있습니다.`,
+    우쇠: `${userName}님과 ${partnerName}님의 우쇠는 다른 온도를 배우는 인연입니다. 한쪽이 더 빠르게 다가가거나 더 오래 기다릴 수 있으니, 애정의 양보다 표현 방식의 차이를 읽어야 합니다.`,
+    성위: `${userName}님과 ${partnerName}님의 성위는 서로를 밀어 올리는 성장의 계약처럼 보입니다. 목표와 자극은 강하지만, 마음이 평가받는 느낌으로 굳지 않게 부드러운 쉼을 함께 두어야 합니다.`,
+  };
+  return map[relationType] || `${clean(meta.theme || "두 사람의 결")}이 관계의 오래된 흐름을 비춥니다.`;
+}
+
+function distancePastLifeReading(distance, relationType) {
+  if (relationType === "명") return "명 관계는 거리보다 닮음의 울림이 먼저 드러납니다. 가까워질수록 상대의 모습 안에서 내 익숙한 반응을 보게 되므로, 같은 장면이 반복될 때 잠시 멈추는 힘이 필요합니다.";
+  if (relationType === "업태") return "업태는 거리보다 미완의 약속감이 크게 작용합니다. 멀리 있어도 마음이 오래 남고, 가까이 있어도 현실의 약속이 흐리면 불안이 커질 수 있습니다.";
+  if (distance === "근거리") return "근거리는 체감이 빠르고 반응이 선명합니다. 좋을 때는 서로를 강하게 끌어당기지만, 감정이 오른 날에는 작은 말도 크게 남으니 속도를 낮추는 여백이 필요합니다.";
+  if (distance === "중거리") return "중거리는 조율의 여지가 살아 있는 거리입니다. 서로의 차이를 이해할 시간이 있으며, 약속과 표현을 차분히 맞추면 오래 갈 힘이 생깁니다.";
+  if (distance === "원거리") return "원거리는 쉽게 닿지 않는 여운을 남깁니다. 마음속에서는 오래된 인연처럼 크게 느껴질 수 있으나, 현실에서 확인되는 행동을 기준으로 삼아야 합니다.";
+  return "이 관계는 거리의 이름보다 관계 유형의 결이 더 강하게 떠오릅니다. 서로에게 남는 감정의 흔적을 차분히 살피는 편이 좋습니다.";
+}
+
+function relationshipPastLifeRhythm(relationType, distance, direction) {
+  const base = relationType === "안괴"
+    ? "강하게 확인하고 싶을수록 한 박자 늦추는 리듬이 필요합니다."
+    : relationType === "영친"
+      ? "익숙해질수록 작은 표현을 일부러 남기는 리듬이 좋습니다."
+      : relationType === "성위"
+        ? "목표를 함께 보되, 마음의 안전을 먼저 묻는 리듬이 좋습니다."
+        : relationType === "우쇠"
+          ? "서로 다른 속도를 같은 언어로 번역하는 리듬이 필요합니다."
+          : relationType === "업태"
+            ? "오래된 의미보다 지금 지켜지는 약속을 확인하는 리듬이 좋습니다."
+            : "닮은 반응이 동시에 올라올 때 각자의 시간을 인정하는 리듬이 좋습니다.";
+  const distanceTail = distance === "근거리" ? " 감정이 빨리 번질 수 있으니 연락 직후 바로 결론을 내리지 마세요." : (distance === "원거리" ? " 그리움이 커질수록 확인 가능한 약속을 작게 남기세요." : " 서로의 차이를 고칠 문제로 보지 말고 맞출 기준으로 보세요.");
+  const directionTail = direction === "상호작용" ? " 두 사람 모두 흔적을 남기므로 책임도 함께 나누어야 합니다." : (direction === "상대가 나에게 작용" ? " 상대의 반응에 마음이 크게 움직일수록 내 생활 리듬을 먼저 지키세요." : (direction === "내가 상대에게 작용" ? " 내가 던지는 말과 태도가 오래 남을 수 있으니 부드러운 표현이 인연을 살립니다." : ""));
+  return `${base}${distanceTail}${directionTail}`;
+}
+
+function buildPastLifeConversationScript(purpose, relationType, userName, partnerName) {
+  const scripts = [
+    "나는 이 관계를 오래된 느낌만으로 밀어붙이고 싶지 않아요. 지금 서로가 편안하게 지킬 수 있는 약속부터 맞추고 싶어요.",
+    "마음이 커질수록 확인하고 싶은 것도 많아지지만, 당신의 속도와 경계도 함께 존중하고 싶어요.",
+  ];
+  if (relationType === "안괴") scripts.unshift("우리 사이의 끌림이 강한 만큼, 불안할 때 서로를 시험하지 않는 기준을 먼저 정하고 싶어요.");
+  if (relationType === "영친") scripts.unshift("편해질수록 당연하게 여기지 않고, 고마운 마음을 더 자주 말하고 싶어요.");
+  if (relationType === "성위") scripts.unshift("서로를 더 나아지게 하는 것도 좋지만, 힘든 날에도 안전하게 돌아올 수 있는 말을 만들고 싶어요.");
+  if (purpose === "reunion") scripts.push("다시 이어진다면 예전의 상처를 반복하지 않기 위해 연락 방식과 쉬어 가는 시간을 먼저 합의하고 싶어요.");
+  else if (purpose === "marriage") scripts.push("함께 오래 가려면 마음뿐 아니라 생활 리듬, 돈, 책임의 기준도 차분히 맞추고 싶어요.");
+  else if (purpose === "crush") scripts.push(`${partnerName}님의 마음을 단정하지 않고, 내 감정이 건강하게 머물 수 있는 거리를 지키고 싶어요.`);
+  else scripts.push("서로에게 남는 감정의 크기보다, 실제로 지켜지는 배려를 기준으로 관계를 보고 싶어요.");
+  return scripts.slice(0, 4);
+}
+
+function buildPastLifeFollowupPrompt(result = {}) {
+  const scores = result.scores || {};
+  const script = Array.isArray(result.conversationScript) ? result.conversationScript.filter(Boolean) : [];
+  const purposeLabel = {
+    love: "연애",
+    reunion: "재회",
+    marriage: "결혼",
+    crush: "짝사랑",
+    friend: "친구",
+    family: "가족",
+    business: "동업/비즈니스",
+    work: "직장/상사/동료",
+    general: "전체 분석",
+  }[result.purpose] || "전체 분석";
+  const lines = [
+    "당신은 숙요점 27숙과 인연의 결을 오래 상담해 온 숙요점 전문가입니다.",
+    "전생을 실제 사실로 단정하지 말고, 오래된 인연처럼 느껴지는 감정 패턴과 현실에서 지켜야 할 경계를 중심으로 이어서 읽어 주세요.",
+    "",
+    "[두 사람의 달빛 자리]",
+    `- 나: ${result.userName || "나"} · ${result.user宿 || "본명숙 미상"}`,
+    `- 상대: ${result.partnerName || "상대"} · ${result.partner宿 || "상대 숙 미상"}`,
+    `- 관계: ${result.relationType || "미상"} · ${result.distance || "거리 미상"} · ${result.direction || "방향 미상"}`,
+    `- 목적: ${purposeLabel}`,
+    "",
+    "[이미 드러난 결]",
+    `- 핵심: ${result.summary || ""}`,
+    `- 관계명 해석: ${result.relationNameReading || result.karmicTheme || ""}`,
+    `- 거리 흐름: ${result.distanceReading || ""}`,
+    `- 방향 흐름: ${result.directionReading || ""}`,
+    `- 반복 패턴: ${result.repeatPattern || ""}`,
+    `- 미완의 숙제: ${result.unfinishedTask || ""}`,
+    `- 감정 버튼: ${result.emotionalTrigger || ""}`,
+    "",
+    "[지표]",
+    `- 전생감 ${scores.pastLifeFeeling ?? "-"}/100, 끌림 ${scores.attraction ?? "-"}/100, 미완의 숙제 ${scores.unfinishedTask ?? "-"}/100`,
+    `- 반복 패턴 ${scores.repeatPattern ?? "-"}/100, 감정 소모 ${scores.emotionalExhaustion ?? "-"}/100, 치유 가능성 ${scores.healingPotential ?? "-"}/100`,
+    "",
+    "[이어 듣고 싶은 것]",
+    "1. 이 인연에서 지금 가장 먼저 다뤄야 할 감정의 매듭을 숙요점 상담가의 말투로 풀어 주세요.",
+    "2. 상대에게 건넬 수 있는 부드러운 문장 5개를 관계 목적에 맞게 써 주세요.",
+    "3. 앞으로 2주 동안 지켜야 할 경계, 연락 리듬, 회복 행동을 현실적으로 정리해 주세요.",
+    "4. 이 관계를 붙잡아야 할 때와 내려놓아야 할 때의 신호를 차분히 구분해 주세요.",
+    "",
+    "답변은 신비롭지만 단정적이지 않게, 전문 숙요점 상담처럼 따뜻하고 자연스럽게 이어 주세요.",
+  ];
+  if (script.length) {
+    lines.splice(lines.length - 2, 0, "[이미 준비된 말]", script.map((item, index) => `${index + 1}. ${item}`).join("\n"), "");
+  }
+  return lines.join("\n");
+}
+
 function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSukuyo, canonical, userProfileId = "" } = {}) {
   const compatibility = canonical?.compatibility || {};
   const forwardDistance = Number(compatibility.forwardDistance ?? compatibility.distanceMetrics?.forwardDistance ?? 0);
@@ -599,7 +703,8 @@ function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSuk
   const seed = [userMansion, partnerMansion, relationType, self?.birthDate || "", partner?.birthDate || "", purpose].join("|");
   const scores = buildPastLifeScores(relationType, distance, seed);
   const directionLine = directionPastLifeLine(direction, userName, partnerName);
-  return {
+  const conversationScript = buildPastLifeConversationScript(purpose, relationType, userName, partnerName);
+  const result = {
     userProfileId: clean(userProfileId || body?.userProfileId || ""),
     userName,
     partnerName,
@@ -615,6 +720,10 @@ function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSuk
     scores,
     summary: meta.summary,
     firstImpression: meta.first,
+    relationNameReading: relationPastLifeReading(relationType, userName, partnerName, meta),
+    distanceReading: distancePastLifeReading(distance, relationType),
+    directionReading: directionLine,
+    relationshipRhythm: relationshipPastLifeRhythm(relationType, distance, direction),
     pastLifeStory: `${meta.story} ${directionLine}`.trim(),
     unfinishedTask: meta.task,
     repeatPattern: `${relationType}의 흐름에서는 비슷한 감정 장면이 다시 떠오르기 쉽습니다. 그 장면을 운명으로만 붙잡기보다, 내가 어떤 반응을 반복하는지 먼저 알아차려야 합니다.`,
@@ -624,10 +733,15 @@ function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSuk
     purposeReading: purposePastLifeReading(purpose, relationType, userName, partnerName),
     warningSigns: buildPastLifeWarningSigns(purpose, relationType),
     healingActions: buildPastLifeHealingActions(purpose, relationType),
+    conversationScript,
     oneLine: `${relationType}의 결은 ${meta.theme}을 비추며, 이번 생에서는 감정보다 현실의 태도가 더 중요한 표식으로 떠오릅니다.`,
     disclaimer: "이 리딩은 전생을 사실로 단정하지 않습니다. 숙요점 관계 구조 위에 오래된 인연처럼 느껴지는 감정 패턴을 비춘 상담입니다.",
     generatedAt: new Date().toISOString(),
     logicVersion: SUKYO_PAST_LIFE_LOGIC_VERSION,
+  };
+  return {
+    ...result,
+    aiFollowupPrompt: buildPastLifeFollowupPrompt(result),
   };
 }
 
@@ -805,7 +919,7 @@ async function handleSukuyoPastLifeReading(request, env) {
       personASukuyo: selfSukuyo,
       personBSukuyo: partnerSukuyo,
       calendarSource: "lunar-javascript",
-      methodVersion: "sukyo-past-life-v1",
+      methodVersion: SUKYO_PAST_LIFE_LOGIC_VERSION,
     });
   } catch (error) {
     return pastLifeErrorResponse(clean(error?.code || "SUKYO_CALCULATION_FAILED"), clean(error?.message || "숙요 계산에 실패했습니다."), Number(error?.status) || 422);

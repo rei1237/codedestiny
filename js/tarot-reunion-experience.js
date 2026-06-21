@@ -1567,6 +1567,72 @@
       quality.textContent = "엔진 품질 강화 적용: 재회운 구조형 해석 모드";
       container.appendChild(quality);
     }
+
+    renderTarotReunionAiPromptPanel(container, r);
+  }
+
+  function compactReunionPromptText(value, fallback) {
+    var text = cleanReunionText(value || "");
+    if (!text) return String(fallback || "").trim();
+    return text.replace(/\s+/g, " ").trim();
+  }
+
+  function buildTarotReunionAiPromptText(reading, cards) {
+    var r = reading && typeof reading === "object" ? reading : {};
+    var summary = r.summary && typeof r.summary === "object" ? r.summary : {};
+    var comprehensive = summary.comprehensive && typeof summary.comprehensive === "object" ? summary.comprehensive : {};
+    var finalGuide = r.finalGuide && typeof r.finalGuide === "object" ? r.finalGuide : {};
+    var cardLines = (Array.isArray(cards) ? cards : []).slice(0, 5).map(function (card, idx) {
+      var meta = getPositionMeta(card && card.position, idx);
+      var name = cardDisplayName(card);
+      var orient = orientationLabel(card && card.orientation);
+      return String(idx + 1) + ". " + (meta.label || "등대 자리") + ": " + name + " · " + orient;
+    }).filter(Boolean);
+
+    return [
+      "당신은 밤바다의 등대처럼 그리움과 현실의 거리를 함께 비추는 재회운 타로 리더입니다.",
+      "아래 다섯 장의 등대 스프레드와 이미 드러난 흐름을 바탕으로, 다시 닿아도 괜찮은 거리와 마음의 회복 순서를 차분히 읽어 주세요.",
+      "",
+      "[등대 카드 흐름]",
+      cardLines.join("\n"),
+      "",
+      "[이미 드러난 재회운의 결]",
+      "회복 신호: " + compactReunionPromptText(summary.reunionChanceLabel, "관계 회복 신호를 조심스럽게 확인하는 흐름입니다."),
+      "상대가 보이는 마음의 결: " + compactReunionPromptText(summary.partnerState, "상대의 마음은 확정 대신 행동의 반복으로 살피는 편이 안전합니다."),
+      "다시 닿기 좋은 거리와 때: " + compactReunionPromptText(summary.bestContactTiming, "짧고 부담 없는 안부부터 거리를 확인하는 흐름입니다."),
+      "현실 장벽: " + compactReunionPromptText(summary.mainObstacle, "같은 갈등이 반복되지 않도록 먼저 기준을 세워야 합니다."),
+      "흐름을 바꾸는 핵심: " + compactReunionPromptText(comprehensive.biggestVariable, "재발 방지와 감정 압박을 낮추는 태도입니다."),
+      "부담을 낮춘 첫 문장: " + compactReunionPromptText(finalGuide.messageExample, "문득 생각나서 안부만 남겨. 편할 때 짧게 답해줘도 괜찮아."),
+      "앞으로 7일: " + compactReunionPromptText(finalGuide.nextSevenDays, "감정을 정리하고 내 생활 리듬을 안정시키는 시간이 필요합니다."),
+      "",
+      "[리딩 부탁]",
+      "재회를 확정하거나 단정하지 말고, 카드가 비추는 남은 온기와 현실적인 거리감을 나누어 읽어 주세요.",
+      "상대의 마음은 가능성과 조심해야 할 파도로 구분해 말하고, 사용자가 먼저 움직여도 되는 기준을 부드럽게 정리해 주세요.",
+      "마지막에는 오늘 건네기 좋은 한 문장, 아직 아껴두어야 할 표현, 앞으로 7일 동안 마음을 회복하는 작은 루틴을 남겨 주세요.",
+    ].join("\n");
+  }
+
+  function renderTarotReunionAiPromptPanel(container, reading) {
+    if (!container || !state.hasAccess) return;
+    var promptText = buildTarotReunionAiPromptText(reading, state.cards);
+    if (!promptText.trim()) return;
+
+    var panel = document.createElement("section");
+    panel.id = "tarotReunionAiPromptPanel";
+    panel.className = "tarot-reunion-section tarot-reunion-ai-prompt-panel";
+    panel.setAttribute("data-marker", "tarot-reunion-ai-prompt-bottom-v20260621");
+    panel.innerHTML =
+      '<div class="tarot-reunion-ai-prompt-head">' +
+      '<span class="tarot-reunion-ai-prompt-kicker">AI Oracle Prompt</span>' +
+      '<h4 class="tarot-reunion-section-title tarot-reunion-ai-prompt-title">AI에게 건넬 재회운 질문문</h4>' +
+      '<p class="tarot-reunion-ai-prompt-lead">방금 밝힌 등대 카드와 마음의 거리를 담았습니다. 필요한 AI에게 옮기면 오늘의 재회운을 더 깊게 이어 볼 수 있습니다.</p>' +
+      '</div>' +
+      '<textarea id="tarotReunionAiPromptOutput" class="tarot-reunion-ai-prompt-output" readonly aria-label="재회운 타로 AI 질문문">' + escapeHtml(promptText) + '</textarea>' +
+      '<div class="tarot-reunion-ai-prompt-actions">' +
+      '<button type="button" class="tarot-reunion-ai-prompt-copy" data-action="copyTarotReunionAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
+      '<span id="tarotReunionAiPromptStatus" class="tarot-reunion-ai-prompt-status">등대 리딩에 포함된 질문문입니다.</span>' +
+      '</div>';
+    container.appendChild(panel);
   }
 
   function ensureTarotReunionLightbox() {
@@ -1647,6 +1713,42 @@
     return div.innerHTML;
   }
 
+  function copyTarotReunionAiPrompt() {
+    var output = byId("tarotReunionAiPromptOutput");
+    var status = byId("tarotReunionAiPromptStatus");
+    var text = output ? String(output.value || "").trim() : "";
+    function setStatus(message, tone) {
+      if (!status) return;
+      status.textContent = message;
+      status.setAttribute("data-tone", tone || "info");
+    }
+    if (!text) {
+      setStatus("복사할 프롬프트가 아직 열리지 않았습니다.", "warn");
+      return;
+    }
+    function fallbackCopy() {
+      if (!output) return false;
+      output.focus();
+      output.select();
+      try {
+        return document.execCommand("copy");
+      } catch (e) {
+        return false;
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(function () { setStatus("프롬프트가 복사되었습니다.", "success"); })
+        .catch(function () {
+          var copied = fallbackCopy();
+          setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
+        });
+      return;
+    }
+    var copied = fallbackCopy();
+    setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
+  }
+
   function shareTarotReunionResult() {
     var r = normalizeReunionResultData(state.reading, state.cards);
     if (!r) return;
@@ -1686,6 +1788,7 @@
   window.flipTarotReunionCard = flipTarotReunionCard;
   window.showTarotReunionFinalReading = showTarotReunionFinalReading;
   window.shareTarotReunionResult = shareTarotReunionResult;
+  window.copyTarotReunionAiPrompt = copyTarotReunionAiPrompt;
   window.toggleTarotReunionMeditation = toggleTarotReunionMeditation;
   window.openTarotReunionCardLightbox = openTarotReunionCardLightbox;
   window.closeTarotReunionCardLightbox = closeTarotReunionCardLightbox;

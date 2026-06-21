@@ -5,7 +5,7 @@ import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 const JSON_LD = buildFortuneJsonLd({
   path: "/oracle/hwatu-life",
   title: "화투 인생 패 테스트",
-  description: "7문항 선택으로 나를 상징하는 화투 인생 패 아키타입을 찾아주는 무료 테스트.",
+  description: "7문항 선택으로 나를 상징하는 화투 인생 패 아키타입을 찾고 선택 패턴과 생활 리듬을 가볍게 점검하는 무료 테스트입니다.",
   keywords: ["화투 인생 패", "심리테스트", "아키타입 테스트", "hwatu life test"],
   image: "https://code-destiny.com/fuctionassets/tazza.webp",
   featureList: ["7문항 심리테스트", "화투 인생 패 아키타입", "선택 패턴 분석"],
@@ -58,7 +58,7 @@ const SERVICE = {
 export const metadata = withUniqueRouteMetadata("/oracle/hwatu-life", {
   title: "화투 인생 패 테스트",
   description:
-    "7문항 선택으로 나를 상징하는 화투 인생 패 아키타입을 찾아주는 무료 테스트.",
+    "7문항 선택으로 나를 상징하는 화투 인생 패 아키타입을 찾고 선택 패턴과 생활 리듬을 가볍게 점검하는 무료 테스트입니다.",
 });
 
 export default function HwatuLifeLandingPage() {

@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: ChapterPageProps): Promise<Me
   if (!story || !chapter) return {};
   return {
     title: `${chapter.title} - ${story.title} | CODE DESTINY NOVEL`,
-    description: story.description,
+    description: `${story.title} ${chapter.title} 편입니다. ${story.description} 운명과 선택의 흐름을 따라 이어지는 무료 연재소설을 읽어보세요.`,
     alternates: {
       canonical: `/stories/${story.slug}/${chapter.slug}`,
     },

@@ -747,8 +747,6 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
   const practicalActions = uniqueSentenceList([...(warningGuard?.actions || []), ...(Array.isArray(voice.action) ? voice.action : []), positionLens.action, `${crystal.nameKo}를 떠올리며 ${lens.axis}을 1줄로 적습니다.`]).slice(0, 4);
   const opportunity = guardWarningTarotText(`${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 ${lens.opportunity}로 바뀝니다. 이번 주에는 기대를 키우기보다 ${lens.action}에 맞는 단서 하나를 조용히 확인해 보세요.`, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn }, { field: "opportunity", orientation });
   const action = practicalActions.join(" / ");
-  const neoLine = `네오: ${voice.neo}`;
-  const younLine = `연이: ${voice.youn}`;
   const categoryReading = uniqueSentenceList([
     oneLineSummary,
     crystalEnergy,
@@ -757,8 +755,6 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     caution,
     uplift,
     `오늘의 의식: ${action}`,
-    neoLine,
-    younLine,
   ]).join(" ");
 
   return guardWarningTarotSection({
@@ -786,8 +782,6 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     uplift,
     practicalActions,
     action,
-    neoLine,
-    younLine,
   }, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn });
 }
 
@@ -811,8 +805,6 @@ function buildCrystalSoulSummary(category, sections, coreCrystal) {
     timingAdvice: `${voice.pulse} 지금은 크게 밀어붙이기보다 14~30일 검증 구간을 두는 타이밍입니다. ${lens.timing}을 유지하면 준비와 실행이 분리되고, 카드가 보여 준 흐름이 더 또렷한 현실 신호로 남습니다.`,
     practicalActions,
     oracleMessage: `${coreCrystal.nameKo}의 오라클: "${lens.oracle}."`,
-    neoLine: `네오: ${voice.neo}`,
-    younLine: `연이: ${voice.youn}`,
   };
 }
 
@@ -826,8 +818,6 @@ function readingSectionLength(section) {
     section.caution,
     section.uplift,
     section.action,
-    section.neoLine,
-    section.younLine,
   ].join(" ").length;
 }
 
@@ -1163,8 +1153,6 @@ function crystalReadingToText(reading) {
     lines.push(`주의점: ${section.caution}`);
     lines.push(`좋게 살리는 방법: ${section.uplift}`);
     lines.push(`오늘의 의식: ${(section.practicalActions || []).join(" / ")}`);
-    lines.push(section.neoLine);
-    lines.push(section.younLine);
     lines.push("");
   }
   lines.push("종합 리딩");

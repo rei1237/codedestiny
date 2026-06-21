@@ -141,6 +141,60 @@ function cardRomanSymbol(id: number): string {
   return ["🔥","💧","⚔️","⭕"][Math.floor(m / 14)] || "✦";
 }
 
+function compactMindscanPromptText(value: unknown, fallback = "아직 말로 다 드러나지 않은 흐름입니다."): string {
+  const raw = Array.isArray(value) ? value.map((item) => String(item || "").trim()).filter(Boolean).join(" / ") : String(value || "").trim();
+  return raw.replace(/\s+/g, " ").trim() || fallback;
+}
+
+function buildMindscanAiPromptText({
+  question,
+  reading,
+  drawn,
+  drawnSub,
+  readingText,
+}: {
+  question: string;
+  reading: ReadingResult;
+  drawn: Record<string, number>;
+  drawnSub: Record<string, number>;
+  readingText: string;
+}): string {
+  const cardLines = POSITIONS.map((pos, index) => {
+    const section = reading.sections?.[index];
+    const mainCard = section?.mainCardName || cardName(drawn[pos.id] ?? index);
+    const subCard = section?.subCardName || cardName(drawnSub[pos.id] ?? index + 5);
+
+    return [
+      `${index + 1}. ${pos.label} · ${pos.meaning}`,
+      `앞장: ${compactMindscanPromptText(mainCard)}`,
+      `이면: ${compactMindscanPromptText(subCard)}`,
+      `드러난 결: ${compactMindscanPromptText(section?.summary || section?.content)}`,
+      `말하지 못한 메시지: ${compactMindscanPromptText(section?.hiddenMessage)}`,
+      `조심할 그림자: ${compactMindscanPromptText(section?.caution)}`,
+      `내가 건넬 태도: ${compactMindscanPromptText(section?.advice)}`,
+    ].join("\n");
+  }).join("\n\n");
+
+  return [
+    "말과 행동 사이 타로에서 열린 아래 흐름을 바탕으로, 이 관계의 겉말과 실제 행동 사이에 남은 온도를 더 깊게 봐주세요.",
+    "관계 타로 리더처럼 말해주세요. 단정적인 결론보다 감정 온도, 방어심, 침묵의 이유, 다시 닿아도 좋은 속도와 지금 건네도 되는 말을 중심으로 읽어주세요.",
+    "",
+    `내 질문: ${compactMindscanPromptText(question)}`,
+    `페르소나: ${compactMindscanPromptText(reading.persona)}`,
+    `감정 온도: ${compactMindscanPromptText(reading.summaryCard?.emotionalTemperatureText || reading.innerHeartSummary?.emotionalTemperature)}`,
+    `관계 흐름: ${compactMindscanPromptText(reading.summaryCard?.relationFlow || reading.innerHeartSummary?.finalFlow)}`,
+    `추천 태도: ${compactMindscanPromptText(reading.summaryCard?.recommendedAction || reading.innerHeartSummary?.recommendedAttitude)}`,
+    "",
+    "카드가 펼친 다섯 자리",
+    cardLines,
+    "",
+    "방금 열린 리딩의 전체 흐름",
+    compactMindscanPromptText(readingText),
+    "",
+    "마지막에는 지금 보내도 좋은 한 문장, 아직 보내지 말아야 할 말, 앞으로 7일 동안 지켜볼 행동 신호를 부드럽게 정리해주세요.",
+  ].join("\n");
+}
+
 function pickRandom(used: Set<number>): number {
   const pool: number[] = [];
   for (let i = 0; i < DECK_SIZE; i++) if (!used.has(i)) pool.push(i);
@@ -703,12 +757,14 @@ interface ResultStageProps {
   drawn: Record<string, number>;
   drawnSub: Record<string, number>;
   reading: ReadingResult;
+  question: string;
   onRestart: () => void;
   reportRef: React.RefObject<HTMLDivElement>;
 }
 
-function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultStageProps) {
+function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef }: ResultStageProps) {
   const [shareMsg, setShareMsg] = useState("");
+  const [aiPromptMsg, setAiPromptMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
   const LUXE_PANEL = "rounded-[1.5rem] border border-amber-200/25 bg-[linear-gradient(145deg,rgba(36,20,10,0.84),rgba(22,14,22,0.9)_48%,rgba(10,10,18,0.92))] backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.58),0_0_28px_rgba(251,191,36,0.14)]";
   const LUXE_CARD = "rounded-[1.2rem] border border-amber-100/18 bg-[linear-gradient(150deg,rgba(30,20,16,0.78),rgba(16,16,26,0.82))] backdrop-blur-lg";
@@ -804,7 +860,16 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     reading.oneLineConclusion || reading.closing,
   ].join("\n"), [innerHeartSummary, insightDeck, reading, suggestedMessages, summaryCard]);
 
+  const aiPromptText = useMemo(() => buildMindscanAiPromptText({
+    question,
+    reading,
+    drawn,
+    drawnSub,
+    readingText: buildText(),
+  }), [buildText, drawn, drawnSub, question, reading]);
+
   const showMsg = (msg: string) => { setShareMsg(msg); setTimeout(() => setShareMsg(""), 2500); };
+  const showAiPromptMsg = (msg: string) => { setAiPromptMsg(msg); setTimeout(() => setAiPromptMsg(""), 2500); };
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
@@ -887,6 +952,15 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     try { await navigator.clipboard.writeText(buildText()); showMsg("클립보드에 복사됨!"); }
     catch (e) { showMsg("복사 실패"); }
   }, [buildText]);
+
+  const handleCopyAiPrompt = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(aiPromptText);
+      showAiPromptMsg("질문문이 복사되었습니다.");
+    } catch (e) {
+      showAiPromptMsg("직접 선택해 복사해 주세요.");
+    }
+  }, [aiPromptText]);
 
   const handleSaveImage = useCallback(async () => {
     if (!reportRef.current) return;
@@ -1292,6 +1366,39 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           </motion.p>
         )}
 
+        <motion.article
+          className={`mt-6 w-full max-w-2xl p-5 sm:p-6 ${LUXE_CARD}`}
+          data-marker="tarot-mindscan-ai-prompt-bottom-v20260621"
+          style={{ background: "linear-gradient(135deg,rgba(245,158,11,0.16),rgba(147,51,234,0.12),rgba(15,23,42,0.68))" }}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: visibleCount >= 16 ? 1 : 0, y: visibleCount >= 16 ? 0 : 14 }}
+          transition={{ duration: 0.38 }}>
+          <p className="text-[10px] tracking-[0.4em] text-amber-100/62 uppercase mb-3 text-center">Next Oracle Prompt</p>
+          <h4 className="text-base sm:text-lg font-black text-amber-50 mb-2 text-center" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
+            말과 행동 사이의 온도를 한 번 더 비추기
+          </h4>
+          <p className="text-[13px] sm:text-sm text-stone-100/78 leading-7 mb-3 text-center">
+            방금 열린 다섯 자리의 결을 그대로 건네면, 상대의 말과 행동 사이에 남은 신호를 더 깊게 이어 볼 수 있습니다.
+          </p>
+          <textarea
+            className="min-h-[230px] max-h-[44dvh] w-full resize-y rounded-2xl border border-amber-200/22 bg-black/28 p-3 text-[12px] sm:text-[13px] leading-7 text-stone-100/90 outline-none focus:border-amber-200/48 focus:ring-2 focus:ring-amber-200/18"
+            value={aiPromptText}
+            readOnly
+            aria-label="말과 행동 사이 타로 AI 질문문"
+          />
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-[max-content_1fr] items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleCopyAiPrompt}
+              className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-400/20 text-amber-50 hover:bg-amber-400/30 transition-colors">
+              질문문 복사
+            </button>
+            <span className="min-h-5 text-center sm:text-left text-xs text-amber-100/78" aria-live="polite">
+              {aiPromptMsg}
+            </span>
+          </div>
+        </motion.article>
+
         <button type="button" onClick={onRestart}
           className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/78 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
           🔄 다시 카드 열기
@@ -1517,7 +1624,7 @@ export default function MindScanTarot() {
         )}
         {stage === "result" && reading && (
           <ResultStage key="result"
-            drawn={drawn} drawnSub={drawnSub} reading={reading} onRestart={restart} reportRef={reportRef} />
+            drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} />
         )}
       </AnimatePresence>
     </div>

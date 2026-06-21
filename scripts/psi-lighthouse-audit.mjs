@@ -17,6 +17,7 @@ const API_KEY = process.env.PAGESPEED_API_KEY || process.env.LIGHTHOUSE_KEY || p
 const TARGET_URL = process.env.PSI_URL || 'https://code-destiny.com';
 const OUT_DIR = process.env.PSI_OUT_DIR || 'reports';
 const ENFORCE = String(process.env.PSI_ENFORCE_THRESHOLDS || 'false').toLowerCase() === 'true';
+const FAIL_ON_API_KEY_ERROR = String(process.env.PSI_FAIL_ON_API_KEY_ERROR || 'false').toLowerCase() === 'true';
 
 const thresholds = {
   perfMin: Number(process.env.PSI_PERF_MIN || 80),
@@ -28,9 +29,39 @@ const thresholds = {
   a11yMin: Number(process.env.PSI_A11Y_MIN || 90),
 };
 
+function isApiKeyError(message) {
+  return /api key|apikey|key not found|invalid key|permission denied/i.test(String(message || ''));
+}
+
+function createSkipError(reason) {
+  const err = new Error(reason);
+  err.name = 'PsiAuditSkipped';
+  return err;
+}
+
+async function skipAudit(reason) {
+  await fs.mkdir(OUT_DIR, { recursive: true });
+  const summaryPath = path.join(OUT_DIR, 'psi-summary.md');
+  const md = [
+    '# PSI Lighthouse Audit',
+    '',
+    `- URL: ${TARGET_URL}`,
+    '- Status: skipped',
+    `- Reason: ${reason}`,
+  ].join('\n');
+  await fs.writeFile(summaryPath, md, 'utf8');
+  console.warn(`[psi-audit] skipped: ${reason}`);
+  console.log(`[psi-audit] wrote ${summaryPath}`);
+}
+
 if (!API_KEY) {
-  console.error('[psi-audit] Missing API key: set PAGESPEED_API_KEY, LIGHTHOUSE_KEY (or lighthouse_key), or PSI_KEY');
-  process.exit(1);
+  const reason = 'missing API key';
+  if (FAIL_ON_API_KEY_ERROR) {
+    console.error(`[psi-audit] ${reason}: set PAGESPEED_API_KEY, LIGHTHOUSE_KEY (or lighthouse_key), or PSI_KEY`);
+    process.exit(1);
+  }
+  await skipAudit(reason);
+  process.exit(0);
 }
 
 function toScore(v) {
@@ -70,6 +101,9 @@ async function fetchPsi(strategy) {
   const json = await res.json();
   if (!res.ok || json.error) {
     const msg = json?.error?.message || `HTTP ${res.status}`;
+    if (isApiKeyError(msg) && !FAIL_ON_API_KEY_ERROR) {
+      throw createSkipError(`${strategy} request skipped: ${msg}`);
+    }
     throw new Error(`[psi-audit] ${strategy} request failed: ${msg}`);
   }
   return json;
@@ -180,7 +214,11 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
+  if (err && err.name === 'PsiAuditSkipped') {
+    await skipAudit(err.message);
+    return;
+  }
   console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
 });

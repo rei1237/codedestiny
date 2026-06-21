@@ -853,6 +853,93 @@ body {
   min-height: 40px;
 }
 
+.ijik-ai-prompt {
+  margin-top: 18px;
+  border: 1px solid rgba(212,160,23,0.24);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(212,160,23,0.13), transparent 34%),
+    linear-gradient(135deg, rgba(10,4,34,0.92), rgba(35,18,65,0.84));
+  padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.ijik-ai-prompt[hidden] { display: none; }
+
+.ijik-ai-prompt-kicker {
+  margin: 0 0 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: rgba(232,196,74,0.78);
+  letter-spacing: 1.8px;
+}
+
+.ijik-ai-prompt-title {
+  margin: 0 0 8px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 18px;
+  color: #e8c44a;
+  letter-spacing: 0;
+}
+
+.ijik-ai-prompt-desc {
+  margin: 0 0 12px;
+  color: rgba(228,215,250,0.76);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.ijik-ai-prompt-textarea {
+  width: 100%;
+  min-height: 250px;
+  max-height: 46dvh;
+  border: 1px solid rgba(212,160,23,0.22);
+  border-radius: 12px;
+  background: rgba(5,2,24,0.76);
+  color: rgba(239,232,255,0.92);
+  padding: 12px;
+  resize: vertical;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.ijik-ai-prompt-textarea:focus {
+  outline: 2px solid rgba(212,160,23,0.36);
+  outline-offset: 2px;
+}
+
+.ijik-ai-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.ijik-ai-prompt-copy {
+  font-family: 'Noto Serif KR', serif;
+  border: 1px solid rgba(232,196,74,0.46);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(232,196,74,0.92), rgba(160,110,36,0.92));
+  color: #180b27;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ijik-ai-prompt-copy:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+}
+
+.ijik-ai-prompt-status {
+  min-height: 18px;
+  color: rgba(232,196,74,0.82);
+  font-size: 12px;
+}
+
 .loading-dots {
   display: flex;
   align-items: center;
@@ -902,6 +989,9 @@ body {
   .card-label-below { max-width: 94px; font-size: 10px; }
   .reading-body { padding: 20px; }
   .reading-text { font-size: 14px; line-height: 1.85; }
+  .ijik-ai-prompt-textarea { min-height: 190px; max-height: 38dvh; font-size: 12px; }
+  .ijik-ai-prompt-copy { width: 100%; }
+  .ijik-ai-prompt-status { width: 100%; text-align: center; }
   .oracle-ring { width: 140px; height: 140px; }
   .oracle-symbol { font-size: 48px; }
 }
@@ -1226,6 +1316,16 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <button class="btn-reset" type="button" onclick="shareIjikResult()" style="margin:0;">🔗 &nbsp; 공유하기</button>
         <button class="btn-reset" type="button" onclick="goHomeNow()" style="margin:0;">🏠 &nbsp; 홈으로 바로가기</button>
       </div>
+      <div class="ijik-ai-prompt" id="ijikAiPromptPanel" data-marker="tarot-ijik-ai-prompt-bottom-v20260621" hidden>
+        <p class="ijik-ai-prompt-kicker">NEXT ORACLE PROMPT</p>
+        <h3 class="ijik-ai-prompt-title">일의 문턱을 한 번 더 비추기</h3>
+        <p class="ijik-ai-prompt-desc">방금 열린 일곱 장의 흐름을 그대로 건네면, 남길 기준과 옮길 방향을 더 깊게 이어 볼 수 있습니다.</p>
+        <textarea class="ijik-ai-prompt-textarea" id="ijikAiPromptText" readonly aria-label="이직 운명의 카드 AI 질문문"></textarea>
+        <div class="ijik-ai-prompt-actions">
+          <button class="ijik-ai-prompt-copy" type="button" onclick="copyIjikAiPrompt()">질문문 복사</button>
+          <span class="ijik-ai-prompt-status" id="ijikAiPromptStatus" aria-live="polite"></span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1292,6 +1392,7 @@ const POSITIONS = [
 let drawnCards = [];
 let flippedCount = 0;
 let isDeckReady = false;
+let ijikAiPromptText = '';
 
 const JOB_CHANGE_POSITIONS = [
   'calling',
@@ -1568,6 +1669,61 @@ function createLocalJobChangeReading(cards) {
 
   sections.push(`━━━━━━━━━━━━━━━━\n✦ 앞으로 30일의 선택 기준\n${actionItems.slice(0, 3).join('\n')}\n\n이번 리딩은 퇴사와 합격을 단번에 맞히는 예언이 아니라, 안전하게 움직이기 위한 작은 나침반입니다. 오늘 나온 조언 중 하나만 일정에 올리면 막연한 고민이 현실의 길로 바뀌기 시작합니다.`);
   return sections.join('\n\n');
+}
+
+function compactIjikPromptText(value, fallback) {
+  const raw = Array.isArray(value) ? value.map((item) => String(item || '').trim()).filter(Boolean).join(' / ') : String(value || '').trim();
+  return raw.replace(/\s+/g, ' ').trim() || fallback || '아직 말로 다 드러나지 않은 흐름입니다.';
+}
+
+function buildIjikAiPromptText(cards, readingText) {
+  const cardLines = (cards || []).map((card, index) => {
+    const position = POSITIONS[index] || {};
+    const cardName = card.nameKr || card.name || `카드 ${index + 1}`;
+    const directionLabel = card.orientation === 'reversed' ? '역방향' : '정방향';
+    const cardSignal = CARD_SIGNAL_BY_ID[card.cardId] || {};
+    const signal = card.orientation === 'reversed' ? cardSignal.re : cardSignal.up;
+
+    return [
+      `${index + 1}. ${compactIjikPromptText(position.label, '일의 문턱')} · ${cardName} ${directionLabel}`,
+      `이 카드가 여는 질문: ${compactIjikPromptText(position.q, '지금 내 일이 어디로 흐르는지 봅니다.')}`,
+      `카드의 신호: ${compactIjikPromptText(signal, '이 카드는 지금의 선택을 다시 바라보게 합니다.')}`,
+    ].join('\n');
+  }).join('\n\n');
+
+  return [
+    '이직 운명의 카드에서 열린 아래 일곱 장을 바탕으로, 지금 내 일의 문턱이 어느 방향으로 기울어 있는지 더 깊게 봐주세요.',
+    '커리어 타로 리더처럼 말해주세요. 단정적인 퇴사·합격 예언보다 남길 기준, 옮길 방향, 확인해야 할 조건, 앞으로 30일의 현실 행동을 중심으로 읽어주세요.',
+    '',
+    '일곱 장의 배열',
+    cardLines || '아직 카드가 조용히 닫혀 있습니다.',
+    '',
+    '방금 열린 흐름',
+    compactIjikPromptText(readingText, '일곱 장의 흐름이 아직 말로 정리되지 않았습니다.'),
+    '',
+    '마지막에는 지금 남겨야 할 일의 기준 3가지, 옮겨도 좋은 신호 3가지, 아직 확인해야 할 조건 3가지를 조용히 정리해주세요.',
+  ].join('\n');
+}
+
+function renderIjikAiPrompt(readingText) {
+  const panel = document.getElementById('ijikAiPromptPanel');
+  const textarea = document.getElementById('ijikAiPromptText');
+  const status = document.getElementById('ijikAiPromptStatus');
+  if (!panel || !textarea) return;
+  ijikAiPromptText = buildIjikAiPromptText(drawnCards, readingText);
+  textarea.value = ijikAiPromptText;
+  panel.hidden = !ijikAiPromptText;
+  if (status) status.textContent = '';
+}
+
+function clearIjikAiPrompt() {
+  const panel = document.getElementById('ijikAiPromptPanel');
+  const textarea = document.getElementById('ijikAiPromptText');
+  const status = document.getElementById('ijikAiPromptStatus');
+  ijikAiPromptText = '';
+  if (textarea) textarea.value = '';
+  if (status) status.textContent = '';
+  if (panel) panel.hidden = true;
 }
 
 // ─── STARS GENERATION ───
@@ -1864,6 +2020,27 @@ async function shareIjikResult() {
   }
 }
 
+async function copyIjikAiPrompt() {
+  const textarea = document.getElementById('ijikAiPromptText');
+  const status = document.getElementById('ijikAiPromptStatus');
+  const text = (ijikAiPromptText || textarea?.value || '').trim();
+  if (!text) {
+    if (status) status.textContent = '먼저 일곱 장의 흐름을 열어 주세요.';
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    if (status) status.textContent = '복사되었습니다.';
+  } catch (_) {
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+    }
+    if (status) status.textContent = '직접 선택해 복사해 주세요.';
+  }
+}
+
 function goHomeNow() {
   window.location.href = '/';
 }
@@ -1927,6 +2104,7 @@ async function resetSpread() {
   document.getElementById('readingSection').classList.remove('visible');
   document.getElementById('readingText').textContent = '';
   document.getElementById('cardsSummary').innerHTML = '';
+  clearIjikAiPrompt();
   await initDeckFromApi();
 }
 
@@ -1961,12 +2139,14 @@ async function getReading() {
 
   try {
     const rawText = createLocalJobChangeReading(drawnCards);
+    renderIjikAiPrompt(rawText);
     textEl.textContent = '';
     await typeWriteText(textEl, rawText);
     btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
     console.error('[tarot-ijik] local reading failed', e);
     const localText = createLocalJobChangeReading(drawnCards);
+    renderIjikAiPrompt(localText);
     textEl.textContent = '';
     await typeWriteText(textEl, localText);
     btn.innerHTML = '<div>✦ 해석 완료</div>';

@@ -42,6 +42,23 @@ function generateFamousSajuMetadata(seo: FamousSajuSeoMeta) {
   };
 }
 
+function withNoindexFollow(metadata: ReturnType<typeof generateFamousSajuMetadata>) {
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: {
+        index: false,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
+  };
+}
+
 export function generateStaticParams() {
   return getPublishedCelebrityStaticSlugs().map((slug) => ({ slug }));
 }
@@ -57,7 +74,8 @@ export function generateMetadata({ params }: PageProps) {
     });
   }
 
-  return generateFamousSajuMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
+  const metadata = generateFamousSajuMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
+  return params.slug === reading.celebrity.slug ? metadata : withNoindexFollow(metadata);
 }
 
 function PillarBox({ label, value }: { label: string; value: string }) {

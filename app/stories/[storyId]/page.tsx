@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: StoryPageProps): Promise<Meta
   if (!story) return {};
   return {
     title: `${story.title} | CODE DESTINY NOVEL`,
-    description: story.description,
+    description: `${story.description} ${story.totalChapters}화 전체 무료 공개로 운명과 선택을 따라가는 Code Destiny 연재소설입니다.`,
     alternates: {
       canonical: `/stories/${story.slug}`,
     },

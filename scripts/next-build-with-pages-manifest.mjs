@@ -9,6 +9,7 @@ const pagesDir = resolve(rootDir, ".next", "server", "pages");
 const appDir = resolve(rootDir, ".next", "server", "app");
 const export500Path = resolve(rootDir, ".next", "export", "500.html");
 const diagnosticsPath = resolve(rootDir, ".next", "diagnostics", "build-diagnostics.json");
+const routesManifestPath = resolve(rootDir, ".next", "routes-manifest.json");
 const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
 
 function readJsonObject(filePath) {
@@ -26,10 +27,6 @@ function writeJsonAtomic(filePath, value) {
   const tmpPath = `${filePath}.${process.pid}.tmp`;
   writeFileSync(tmpPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   renameSync(tmpPath, filePath);
-}
-
-function readManifestKeys() {
-  return Object.keys(readJsonObject(manifestPath));
 }
 
 function collectPagesManifestEntries(dir = pagesDir, entries = {}) {
@@ -102,19 +99,20 @@ function ensureExport500Fallback() {
 }
 
 function ensurePagesManifest({ exportFallback = false } = {}) {
-  if (readManifestKeys().length > 0) {
+  const current = readJsonObject(manifestPath);
+  const entries = collectPagesManifestEntries();
+  const merged = { ...current, ...entries };
+  if (Object.keys(merged).length === 0) {
+    seedEmptyPagesManifest();
+    return;
+  }
+  if (JSON.stringify(current) === JSON.stringify(merged)) {
     if (exportFallback) ensureExport500Fallback();
     return;
   }
 
-  const entries = collectPagesManifestEntries();
-  if (Object.keys(entries).length === 0) {
-    seedEmptyPagesManifest();
-    return;
-  }
-
   try {
-    writeJsonAtomic(manifestPath, entries);
+    writeJsonAtomic(manifestPath, merged);
     if (exportFallback) ensureExport500Fallback();
   } catch (error) {
     if (error?.code === "ENOENT") return;
@@ -130,7 +128,10 @@ function ensureAppPathsManifest() {
     entries["/_not-found/page"] = "app/_not-found/page.js";
   }
   const merged = { ...current, ...entries };
-  if (Object.keys(merged).length === 0) return;
+  if (Object.keys(merged).length === 0) {
+    seedEmptyAppPathsManifest();
+    return;
+  }
   if (JSON.stringify(current) === JSON.stringify(merged)) return;
 
   writeJsonAtomic(appManifestPath, merged);
@@ -156,16 +157,55 @@ function seedEmptyAppPathsManifest() {
   writeJsonAtomic(appManifestPath, {});
 }
 
+function seedPrebuildManifests() {
+  seedEmptyPagesManifest();
+  seedEmptyAppPathsManifest();
+}
+
+function assertCoreRoutesManifest() {
+  if (existsSync(routesManifestPath)) return true;
+
+  console.error(
+    [
+      "[next-build-with-pages-manifest] missing .next/routes-manifest.json after next build.",
+      "This is a core Next.js build artifact and will not be synthesized.",
+      "Check the earlier Next build/export error before re-running the build.",
+    ].join(" "),
+  );
+  return false;
+}
+
 ensureBuildDiagnostics();
+seedPrebuildManifests();
 
 const child = spawn(process.execPath, [nextCli, "build"], {
   cwd: rootDir,
+  env: {
+    ...process.env,
+    CIRCLE_NODE_TOTAL: process.env.CIRCLE_NODE_TOTAL || "1",
+  },
   stdio: "inherit",
   shell: false,
 });
 
 child.on("close", (code) => {
-  if (code === 0) ensureBuildManifests({ exportFallback: true });
+  let manifestRepairFailed = false;
+
+  try {
+    ensureBuildManifests({ exportFallback: true });
+  } catch (error) {
+    manifestRepairFailed = true;
+    console.error("[next-build-with-pages-manifest] manifest repair failed:", error);
+  }
+
+  if (!assertCoreRoutesManifest()) {
+    process.exit(code === 0 ? 1 : (code ?? 1));
+  }
+
+  if (manifestRepairFailed) {
+    process.exit(1);
+  }
+
   process.exit(code ?? 1);
 });
 

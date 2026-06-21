@@ -45,7 +45,9 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "tarot-celestial-harmony",
   "tarot-crystal-soul-reading",
   "tarot-numerology-reading",
+  "tarot-numerology-ai-prompt",
   "tarot-prompt-maker",
+  "maya-prompt-generator",
   "tarot-ijik",
   "fortune-fish-gacha",
   "royal-tea-oracle",
@@ -188,7 +190,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-numerology-reading": { cost: 30, reason: "수비학 타로 리딩" },
+  "tarot-numerology-ai-prompt": { cost: 30, reason: "수비학 프롬프트 도구" },
   "tarot-prompt-maker": { cost: 50, reason: "타로 프롬프트 라이브러리" },
+  "maya-prompt-generator": { cost: 30, reason: "마야점 상담 프롬프트 생성" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
   "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
@@ -242,9 +246,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "saju_ai_question_prompt": { cost: 100, reason: "최고의 명리학자처럼 AI에게 물어볼 사주 질문문" },
   "saju_ai_prompt_generator": { cost: 100, reason: "사주 AI 질문 프롬프트 생성" },
   "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
-  "sukuyo_ai_prompt_generator": { cost: 100, reason: "숙요점 AI 질문 프롬프트 생성" },
+  "sukuyo_ai_prompt_generator": { cost: 0, reason: "월하의 숙요 동물 프롬프트 무료 생성" },
   "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
   "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
+  "vedic_prashna_prompt": { cost: 50, reason: "프라슈나 프롬프트" },
   "astro_career_talent_deep": { cost: 50, reason: "점성술 커리어·재능 정밀 분석" },
   "astro_talent_attraction_deep": { cost: 50, reason: "점성술 재능과 끌림 심화 분석" },
   "astro_relationship_deep": { cost: 50, reason: "점성술 관계·끌림 심화 분석" },
@@ -388,7 +393,9 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "tarot-celestial-harmony",
   "tarot-crystal-soul-reading",
   "tarot-numerology-reading",
+  "tarot-numerology-ai-prompt",
   "tarot-prompt-maker",
+  "maya-prompt-generator",
   "tarot-ijik",
   "fortune-fish-gacha",
   "royal-tea-oracle",
@@ -435,9 +442,9 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "saju_ai_question_prompt",
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",
-  "sukuyo_ai_prompt_generator",
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
+  "vedic_prashna_prompt",
   "astro_monthly_transit",
   "astro_yearly_transit",
   "premium-sibyl-dominator",
@@ -530,7 +537,8 @@ export function getPaidFeatureBillingType(featureKey) {
   if (UNLOCK_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.UNLOCK;
   if (PDF_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PDF;
   if (PER_USE_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PER_USE;
-  return FEATURE_KEY_PRICE_TABLE[key] ? PAID_FEATURE_BILLING_TYPES.PER_USE : "";
+  const registryPrice = Number(FEATURE_KEY_PRICE_TABLE[key]?.cost);
+  return Number.isFinite(registryPrice) && registryPrice > 0 ? PAID_FEATURE_BILLING_TYPES.PER_USE : "";
 }
 
 export function isPerUsePaidFeatureKey(featureKey) {
@@ -709,9 +717,12 @@ export function listLegacyUnlockBaselineMismatches() {
 }
 
 export function listServerPricedFeatureKeys() {
+  const pricedRegistryKeys = Object.entries(FEATURE_KEY_PRICE_TABLE)
+    .filter(([, entry]) => Number(entry?.cost) > 0)
+    .map(([key]) => key);
   const keys = new Set([
     "coin-gate-per-use",
-    ...Object.keys(FEATURE_KEY_PRICE_TABLE),
+    ...pricedRegistryKeys,
     ...Object.keys(UNLOCK_PRODUCT_BY_FEATURE_KEY),
     ...Object.keys(PAID_FEATURE_KEY_ALIASES),
   ]);

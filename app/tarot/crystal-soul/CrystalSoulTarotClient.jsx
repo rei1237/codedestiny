@@ -1,14 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from "lucide-react";
-import CrystalGem, { GEM_META } from "@/src/components/crystal/CrystalGem";
+import { Copy, Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from "lucide-react";
+import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/CrystalGem";
 import { useRubInteraction } from "@/src/components/crystal/useRubInteraction";
 import { useCoinGate } from "../../hooks/useCoinGate";
 
 const CRYSTAL_COST = 50;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-const GEM_TYPES = ["amethyst", "rose_quartz", "obsidian", "moonstone", "lapis", "citrine", "black_tourmaline"];
+const GEM_TYPES = [
+  "amethyst",
+  "rose_quartz",
+  "obsidian",
+  "moonstone",
+  "lapis",
+  "citrine",
+  "black_tourmaline",
+  "tiger_eye",
+  "clear_quartz",
+  "green_aventurine",
+  "garnet",
+  "labradorite",
+];
 
 const POSITION_LABELS = [
   "원석의 첫 번째 빛",
@@ -22,27 +35,27 @@ function isAdminSessionClient() {
   if (typeof window === "undefined") return false;
   try {
     if (window.__cdAdminBypass) return true;
-  } catch (e) {}
+  } catch {}
   try {
     const user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null");
     if (String(user?.role || "").toLowerCase() === "admin") return true;
-  } catch (e) {}
+  } catch {}
   try {
     const user = JSON.parse(localStorage.getItem("cd_user") || "null");
     if (String(user?.role || "").toLowerCase() === "admin") return true;
-  } catch (e) {}
+  } catch {}
   try {
     const roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
     if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
-  } catch (e) {}
+  } catch {}
   try {
     const token = String(sessionStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
-  } catch (e) {}
+  } catch {}
   try {
     const token = String(localStorage.getItem("flower_admin_token") || "");
     if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
-  } catch (e) {}
+  } catch {}
   return false;
 }
 
@@ -133,6 +146,8 @@ function GemRubScreen({ gemType, onBack, onRevealed }) {
       </button>
       <p className="rub-kicker">✦ {meta.name}이 선택되었습니다 ✦</p>
       <div className="rub-stage" {...handlers}>
+        <span className="rub-stage__aura" aria-hidden="true" />
+        <span className="rub-stage__grain" aria-hidden="true" />
         <CrystalGem type={gemType} size="min(280px, 70vw)" state={rubState} progress={progress} />
       </div>
       <div className="rub-progress" aria-label={`문지르기 진행률 ${Math.round(progress)}%`}>
@@ -248,6 +263,8 @@ function CardReadingBubble({ gemType, card }) {
 
 function ReadingResult({ gemType, reading, onRetry, onHome }) {
   const meta = GEM_META[gemType];
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const aiFortunePrompt = reading.ai_fortune_prompt || reading.aiFortunePrompt || "";
 
   const onShare = useCallback(async () => {
     const text = `${meta.name} 원석 소울 타로\n${reading.synthesis.gem_message}`;
@@ -257,8 +274,17 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
       } else {
         await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
       }
-    } catch (e) {}
+    } catch {}
   }, [meta.name, reading.synthesis.gem_message]);
+
+  const onCopyPrompt = useCallback(async () => {
+    if (!aiFortunePrompt || typeof navigator === "undefined" || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(aiFortunePrompt);
+      setCopiedPrompt(true);
+      window.setTimeout(() => setCopiedPrompt(false), 1600);
+    } catch {}
+  }, [aiFortunePrompt]);
 
   return (
     <section className="reading-result">
@@ -270,6 +296,7 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
       <div className="reading-result__body">
         <h2>✦ {meta.name}이 전하는 오늘의 메시지</h2>
         <article className="synthesis-panel">
+          {reading.synthesis.gem_profile ? <p className="gem-profile">{reading.synthesis.gem_profile}</p> : null}
           <p>{reading.synthesis.body}</p>
           <div className="gem-message">{reading.synthesis.gem_message}</div>
         </article>
@@ -283,11 +310,35 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
                 <span>{card.pos_name}</span>
                 <h3>{card.card_name} · {card.direction}</h3>
                 <p>{card.reading}</p>
+                {card.gem_reading ? <p className="result-card__gem-reading">{card.gem_reading}</p> : null}
+                {card.gem_alignment ? (
+                  <div className="result-card__gem-detail">
+                    <span>{card.gem_focus}</span>
+                    <span>{card.gem_shadow}</span>
+                    <span>{card.gem_alignment}</span>
+                  </div>
+                ) : null}
                 <b>{card.one_line}</b>
               </div>
             </article>
           ))}
         </div>
+
+        {aiFortunePrompt ? (
+          <>
+            <div className="result-divider">추가 운세 프롬프트</div>
+            <section className="ai-fortune-prompt" aria-label="추가 운세 프롬프트">
+              <div className="ai-fortune-prompt__header">
+                <span>✦ 마지막 원석 문장</span>
+                <button type="button" onClick={onCopyPrompt}>
+                  <Copy size={15} />
+                  {copiedPrompt ? "복사 완료" : "복사"}
+                </button>
+              </div>
+              <pre>{aiFortunePrompt}</pre>
+            </section>
+          </>
+        ) : null}
       </div>
 
       <footer className="result-actions">
@@ -316,7 +367,10 @@ export default function CrystalSoulTarotClient() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
 
-  const activeGemStyle = useMemo(() => ({ "--active-gem": reading?.gem_color || "#a78bfa" }), [reading?.gem_color]);
+  const activeGemStyle = useMemo(() => {
+    const gemKey = reading?.gem || selectedGem;
+    return { "--active-gem": reading?.gem_color || getGemColor(gemKey) || "#a78bfa" };
+  }, [reading?.gem, reading?.gem_color, selectedGem]);
 
   const resetForGem = useCallback((gemType) => {
     setSelectedGem(gemType);
@@ -347,7 +401,7 @@ export default function CrystalSoulTarotClient() {
       setReading(normalized);
       setOpenedCards([]);
       setStage("reader");
-    } catch (e) {
+    } catch {
       setError("카드의 빛을 여는 데 실패했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
@@ -384,7 +438,7 @@ export default function CrystalSoulTarotClient() {
         }
         setError(result.message || "결제를 완료하지 못했습니다.");
       }
-    } catch (e) {
+    } catch {
       setError("리딩을 여는 과정에서 오류가 발생했습니다.");
     } finally {
       setPaying(false);
@@ -448,6 +502,8 @@ export default function CrystalSoulTarotClient() {
         }
 
         .crystal-soul-shell {
+          --crystal-font-body: var(--font-body, Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+          --crystal-font-display: var(--font-premium, var(--font-display, "Noto Serif KR", serif));
           --text-main: #e2e0f0;
           --text-soft: rgba(226, 224, 240, 0.68);
           --line: rgba(167, 139, 250, 0.18);
@@ -458,7 +514,7 @@ export default function CrystalSoulTarotClient() {
           background:
             radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--active-gem), transparent 72%), transparent 35%),
             linear-gradient(180deg, #0a0818 0%, #0f0c1e 52%, #13102a 100%);
-          font-family: Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-family: var(--crystal-font-body);
           padding: 24px 16px 92px;
         }
 
@@ -520,9 +576,9 @@ export default function CrystalSoulTarotClient() {
 
         .gem-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 14px;
-          width: min(780px, 100%);
+          width: min(980px, 100%);
         }
 
         .gem-card {
@@ -595,8 +651,37 @@ export default function CrystalSoulTarotClient() {
           height: min(320px, 78vw);
           display: grid;
           place-items: center;
+          position: relative;
           touch-action: none;
           cursor: grab;
+        }
+
+        .rub-stage__aura,
+        .rub-stage__grain {
+          position: absolute;
+          inset: 6%;
+          border-radius: 999px;
+          pointer-events: none;
+        }
+
+        .rub-stage__aura {
+          background:
+            conic-gradient(from 180deg, transparent, color-mix(in srgb, var(--active-gem), transparent 38%), transparent 44%),
+            radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--active-gem), transparent 74%), transparent 58%);
+          filter: blur(16px);
+          opacity: 0.58;
+          animation: crystalRubAura 2.8s linear infinite;
+        }
+
+        .rub-stage__grain {
+          inset: 10%;
+          border: 1px solid color-mix(in srgb, var(--active-gem), transparent 74%);
+          background:
+            repeating-linear-gradient(115deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 8px),
+            repeating-radial-gradient(circle at 50% 50%, transparent 0 14px, rgba(255,255,255,0.07) 15px 16px);
+          mask-image: radial-gradient(circle, #000 0 62%, transparent 72%);
+          opacity: 0.46;
+          animation: crystalRubTexture 0.9s linear infinite;
         }
 
         .rub-progress {
@@ -977,6 +1062,11 @@ export default function CrystalSoulTarotClient() {
           line-height: 1.9;
         }
 
+        .synthesis-panel .gem-profile {
+          margin-bottom: 14px;
+          color: #d8c8ff;
+        }
+
         .gem-message {
           margin-top: 18px;
           border-left: 3px solid var(--active-gem);
@@ -1038,11 +1128,105 @@ export default function CrystalSoulTarotClient() {
           letter-spacing: 0;
         }
 
+        .result-card .result-card__gem-reading {
+          margin-top: 10px;
+          color: #d8c8ff;
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
+        .result-card__gem-detail {
+          display: grid;
+          gap: 6px;
+          margin-top: 12px;
+          padding: 11px 12px;
+          border: 1px solid color-mix(in srgb, var(--active-gem), transparent 78%);
+          border-radius: 10px;
+          background: color-mix(in srgb, var(--active-gem), transparent 92%);
+        }
+
+        .result-card__gem-detail span {
+          color: rgba(226, 224, 240, 0.78);
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
         .result-card b {
           display: block;
           margin-top: 9px;
           color: #c4b5fd;
           font-size: 13px;
+        }
+
+        .ai-fortune-prompt {
+          border: 1px solid rgba(167, 139, 250, 0.22);
+          border-radius: 14px;
+          background:
+            linear-gradient(135deg, color-mix(in srgb, var(--active-gem), transparent 88%), rgba(15, 12, 30, 0.78)),
+            rgba(15, 12, 30, 0.72);
+          padding: 18px;
+          box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+        }
+
+        .ai-fortune-prompt__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 12px;
+          color: #d8c8ff;
+          font-family: "Noto Serif KR", serif;
+          font-size: 16px;
+        }
+
+        .ai-fortune-prompt__header button {
+          min-width: 82px;
+          min-height: 36px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          border: 1px solid rgba(196, 181, 253, 0.24);
+          border-radius: 999px;
+          background: rgba(10, 8, 24, 0.58);
+          color: #e2e0f0;
+          font-size: 12px;
+          cursor: pointer;
+        }
+
+        .ai-fortune-prompt pre {
+          max-height: 360px;
+          overflow: auto;
+          margin: 0;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          color: rgba(226, 224, 240, 0.82);
+          font-family: "Noto Serif KR", serif;
+          font-size: 13px;
+          line-height: 1.8;
+        }
+
+        .crystal-title-row h1,
+        .crystal-subtitle,
+        .gem-card__name,
+        .rub-kicker,
+        .rub-hint,
+        .reader-gem-pin,
+        .reader-bubble p,
+        .card-reading-bubble__card strong,
+        .card-reading-bubble p,
+        .reading-result__sticky,
+        .reading-result h2,
+        .synthesis-panel p,
+        .result-card p,
+        .gem-message,
+        .result-card h3,
+        .result-card .result-card__gem-reading,
+        .ai-fortune-prompt__header,
+        .ai-fortune-prompt pre {
+          font-family: var(--crystal-font-display);
+          font-feature-settings: "kern" 1;
+          text-rendering: optimizeLegibility;
         }
 
         .result-actions {
@@ -1112,6 +1296,16 @@ export default function CrystalSoulTarotClient() {
           to { opacity: 0.88; }
         }
 
+        @keyframes crystalRubAura {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes crystalRubTexture {
+          0% { transform: translate(-2px, 1px) rotate(0deg); }
+          50% { transform: translate(2px, -1px) rotate(1deg); }
+          100% { transform: translate(-2px, 1px) rotate(0deg); }
+        }
+
         @keyframes crystalSpin {
           to { transform: rotate(360deg); }
         }
@@ -1146,9 +1340,9 @@ export default function CrystalSoulTarotClient() {
           }
 
           .gem-card:last-child {
-            grid-column: 1 / -1;
-            width: min(220px, 100%);
-            justify-self: center;
+            grid-column: auto;
+            width: auto;
+            justify-self: stretch;
           }
 
           .card-spread {

@@ -41,6 +41,15 @@ import {
   VEDIC_AI_PROMPT_PRICE,
 } from "../lib/vedic-ai-prompt.js";
 import {
+  createPrashnaSnapshot,
+  generatePrashnaPromptResult,
+  VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+  VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+  VEDIC_PRASHNA_PROMPT_PRICE,
+  VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+  VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+} from "../lib/vedic-prashna-prompt.js";
+import {
   buildPremiumAccessCookie,
   createPremiumAccessToken,
   resolvePremiumAccessReportType,
@@ -2238,6 +2247,444 @@ function buildVedicAIPromptError(code, message, status = 400) {
   return json({ ok: false, code, message }, { status });
 }
 
+function buildVedicPrashnaError(code, message, status = 400, extra = {}) {
+  return json({ ok: false, code, message, ...extra }, { status });
+}
+
+function getPrashnaExecutionId(userId, orderId) {
+  return `vedic-prashna:${String(userId || "").trim()}:${String(orderId || "").trim()}`.slice(0, 160);
+}
+
+function readPrashnaAccessMethod(payload = {}) {
+  const text = String(
+    payload?.accessMethod
+      || payload?.paymentMethod
+      || payload?.paymentMode
+      || payload?.consume?.accessMethod
+      || payload?.accessGrant?.accessMethod
+      || "",
+  ).trim().toLowerCase();
+  if (text.includes("pass")) return "pass";
+  if (text.includes("family")) return "family";
+  if (text.includes("month") || text.includes("credit")) return "monthly";
+  return "single";
+}
+
+function readPrashnaTransactionId(payload = {}, requestId = "") {
+  return String(
+    payload?.transactionId
+      || payload?.consume?.transactionId
+      || payload?.accessGrant?.evidenceId
+      || payload?.accessGrant?.purchaseId
+      || payload?.payment?._id
+      || payload?.payment?.id
+      || payload?.payment?.paymentId
+      || payload?._paymentContext?.transactionId
+      || requestId
+      || "",
+  ).trim().slice(0, 160);
+}
+
+function normalizePrashnaStoredResult(record) {
+  const result = record?.result && typeof record.result === "object" ? record.result : {};
+  return {
+    ok: true,
+    idempotent: true,
+    order: result.order || {
+      orderId: String(record?.orderId || ""),
+      productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+      productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+      amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+      currency: "KRW",
+      paymentType: "ONE_TIME",
+      paymentStatus: "PAID",
+      generationStatus: "GENERATED",
+    },
+    result: result.prashnaResult || result.result || null,
+    promptText: String(result.promptText || result.prashnaResult?.promptText || ""),
+    chart: result.chart || result.prashnaResult?.chart || null,
+    snapshot: result.snapshot || result.prashnaResult?.snapshot || null,
+  };
+}
+
+async function handleVedicPrashnaSnapshot(request, auth) {
+  const body = await readJson(request);
+  let snapshot = null;
+  try {
+    snapshot = await createPrashnaSnapshot({
+      question: body?.question,
+      latitude: body?.latitude,
+      longitude: body?.longitude,
+      orderId: body?.orderId,
+    });
+  } catch (error) {
+    return buildVedicPrashnaError(
+      String(error?.code || "SNAPSHOT_FAILED"),
+      String(error?.message || "스냅샷 생성에 실패했습니다."),
+      error?.code === "TIMEZONE_LOOKUP_FAILED" ? 422 : 400,
+    );
+  }
+
+  const executionId = getPrashnaExecutionId(auth.userId, snapshot.orderId);
+  const existing = await PaidExecutionRecord.findOne({
+    userId: String(auth.userId),
+    featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+    orderId: snapshot.orderId,
+  }).lean();
+  if (existing?.status === "completed") {
+    return json(normalizePrashnaStoredResult(existing));
+  }
+
+  await PaidExecutionRecord.findOneAndUpdate(
+    { executionId },
+    {
+      $setOnInsert: {
+        executionId,
+        requestId: snapshot.orderId,
+        userId: String(auth.userId),
+        featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+        profileId: "prashna",
+        accessMode: "per_use",
+        accessMethod: "single",
+        amountCoins: VEDIC_PRASHNA_PROMPT_PRICE,
+        amountKRW: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+        orderId: snapshot.orderId,
+        status: "paid_pending_generation",
+        resultId: "",
+        idempotencyKey: snapshot.orderId,
+        result: {
+          order: {
+            orderId: snapshot.orderId,
+            productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+            productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+            amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+            currency: "KRW",
+            paymentType: "ONE_TIME",
+            paymentStatus: "PENDING",
+            generationStatus: "NOT_STARTED",
+            createdAt: new Date().toISOString(),
+            paidAt: null,
+          },
+          snapshot,
+        },
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  ).lean();
+
+  return json({
+    ok: true,
+    order: {
+      orderId: snapshot.orderId,
+      productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+      productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+      amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+      currency: "KRW",
+      paymentType: "ONE_TIME",
+      paymentStatus: "PENDING",
+      generationStatus: "NOT_STARTED",
+    },
+    snapshot,
+    confirmMessage: "아래 질문·시각·위치를 기준으로 프라슈나 차트가 생성됩니다.",
+  });
+}
+
+async function handleVedicPrashnaGenerate(request, auth, env) {
+  const body = await readJson(request);
+  const bodySnapshot = body?.snapshot && typeof body.snapshot === "object" ? body.snapshot : {};
+  const orderId = String(body?.orderId || bodySnapshot.orderId || "").trim();
+  if (!orderId) {
+    return buildVedicPrashnaError("ORDER_REQUIRED", "주문 스냅샷이 필요합니다.", 400);
+  }
+
+  const executionId = getPrashnaExecutionId(auth.userId, orderId);
+  const existing = await PaidExecutionRecord.findOne({
+    userId: String(auth.userId),
+    featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+    orderId,
+  }).lean();
+  if (!existing) {
+    return buildVedicPrashnaError("SNAPSHOT_NOT_FOUND", "주문 스냅샷을 찾을 수 없습니다. 다시 생성해 주세요.", 404);
+  }
+  if (existing.status === "completed") {
+    return json(normalizePrashnaStoredResult(existing));
+  }
+  if (existing.status === "generating") {
+    return buildVedicPrashnaError(
+      "REQUEST_IN_PROGRESS",
+      "이미 처리 중인 주문입니다. 중복 결제 없이 기존 요청의 진행 상태를 확인합니다.",
+      409,
+      { orderId },
+    );
+  }
+
+  const storedResult = existing.result && typeof existing.result === "object" ? existing.result : {};
+  const snapshot = storedResult.snapshot && typeof storedResult.snapshot === "object" ? storedResult.snapshot : null;
+  if (!snapshot || snapshot.orderId !== orderId) {
+    return buildVedicPrashnaError("SNAPSHOT_INVALID", "주문 스냅샷이 올바르지 않습니다. 다시 생성해 주세요.", 409);
+  }
+
+  const requestId = readAIPromptRequestId(body, orderId);
+  let consumePayload = null;
+  let chargedCoins = 0;
+  let sourceTransactionId = "";
+  const skipPaymentConsume = existing.status === "generation_failed" && storedResult?.order?.paymentStatus === "PAID";
+
+  if (!skipPaymentConsume) {
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+        reason: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+        forceDeduct: true,
+        requireExistingPaidAccess: true,
+        requestId,
+        categoryKey: "vedic",
+        subFeatureKey: "prashna-prompt",
+        payloadHash: snapshot.snapshotHash,
+        accessGrant: body?.accessGrant,
+        accessDecision: body?.accessDecision,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
+      }),
+    });
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    consumePayload = await consumeResponse.json().catch(() => ({}));
+    if (!consumeResponse.ok) {
+      return mapVedicPrashnaConsumeFailure(consumeResponse, consumePayload);
+    }
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
+    const accessMethod = readPrashnaAccessMethod(consumePayload || body);
+    if (accessMethod !== "single") {
+      return buildVedicPrashnaError(
+        "PAYMENT_REQUIRED",
+        "프라슈나 프롬프트는 1회 5,000원 단건 결제 후 생성할 수 있습니다.",
+        402,
+      );
+    }
+    sourceTransactionId = readPrashnaTransactionId({
+      ...consumePayload,
+      consume: consumePayload,
+      accessGrant: consumePayload?.accessGrant,
+      payment: body?.payment,
+      _paymentContext: body?._paymentContext,
+    }, requestId);
+    if (chargedCoins < VEDIC_PRASHNA_PROMPT_PRICE) {
+      return buildVedicPrashnaError(
+        "PAYMENT_REQUIRED",
+        "결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.",
+        402,
+      );
+    }
+  } else {
+    chargedCoins = VEDIC_PRASHNA_PROMPT_PRICE;
+    sourceTransactionId = String(existing.paymentId || existing.idempotencyKey || requestId || "").trim();
+  }
+
+  await PaidExecutionRecord.updateOne(
+    { executionId, status: { $in: ["paid_pending_generation", "generation_failed"] } },
+    {
+      $set: {
+        status: "generating",
+        accessMethod: readPrashnaAccessMethod(consumePayload || body),
+        amountCoins: VEDIC_PRASHNA_PROMPT_PRICE,
+        amountKRW: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+        paymentId: sourceTransactionId,
+        consumedAt: new Date(),
+        result: {
+          ...storedResult,
+          order: {
+            ...(storedResult.order || {}),
+            orderId,
+            productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+            productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+            amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+            currency: "KRW",
+            paymentType: "ONE_TIME",
+            paymentStatus: "PAID",
+            generationStatus: "CALCULATING",
+            paidAt: new Date().toISOString(),
+          },
+          snapshot,
+          billing: {
+            requestId,
+            sourceTransactionId,
+            chargedCoins,
+          },
+        },
+      },
+    },
+  );
+
+  try {
+    const prashnaResult = await generatePrashnaPromptResult(env, snapshot, { requestUrl: request.url });
+    const completedOrder = {
+      orderId,
+      productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+      productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+      amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+      currency: "KRW",
+      paymentType: "ONE_TIME",
+      paymentStatus: "PAID",
+      generationStatus: "GENERATED",
+      paidAt: new Date().toISOString(),
+    };
+    await PaidExecutionRecord.updateOne(
+      { executionId },
+      {
+        $set: {
+          status: "completed",
+          completedAt: new Date(),
+          resultId: prashnaResult.resultId,
+          result: {
+            order: completedOrder,
+            snapshot,
+            chart: prashnaResult.chart,
+            promptText: prashnaResult.promptText,
+            prashnaResult,
+            billing: {
+              requestId,
+              sourceTransactionId,
+              chargedCoins,
+            },
+          },
+          error: null,
+        },
+      },
+    );
+    return json({
+      ok: true,
+      order: completedOrder,
+      result: prashnaResult,
+      promptText: prashnaResult.promptText,
+      chart: prashnaResult.chart,
+      snapshot,
+    });
+  } catch (error) {
+    let refundAttempted = false;
+    let refundOk = false;
+    if (chargedCoins > 0 && sourceTransactionId) {
+      refundAttempted = true;
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: chargedCoins,
+            featureKey: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+            sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Prashna prompt generation failed auto-refund",
+          }),
+        });
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        refundOk = refundResponse.ok;
+      } catch (refundError) {
+        console.error("[fortune][vedic-prashna] refund failed:", refundError);
+      }
+    }
+    await PaidExecutionRecord.updateOne(
+      { executionId },
+      {
+        $set: {
+          status: refundOk ? "refunded" : "generation_failed",
+          error: {
+            code: String(error?.code || "PRASHNA_GENERATION_FAILED"),
+            message: String(error?.message || error || "Prashna generation failed."),
+            refundAttempted,
+            refundOk,
+          },
+          result: {
+            ...storedResult,
+            order: {
+              ...(storedResult.order || {}),
+              orderId,
+              productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
+              productName: VEDIC_PRASHNA_PROMPT_PRODUCT_NAME,
+              amount: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
+              currency: "KRW",
+              paymentType: "ONE_TIME",
+              paymentStatus: refundOk ? "REFUNDED" : "PAID",
+              generationStatus: "FAILED",
+            },
+            snapshot,
+            retryEligible: !refundOk,
+          },
+        },
+      },
+    );
+    console.error("[fortune][vedic-prashna] generation failed:", error);
+    return buildVedicPrashnaError(
+      "PRASHNA_GENERATION_FAILED",
+      refundOk
+        ? "결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다."
+        : "차트 계산 중 오류가 발생했습니다. 추가 결제 없이 다시 시도합니다.",
+      500,
+      { orderId, refundAttempted, refundOk, retryEligible: !refundOk },
+    );
+  }
+}
+
+async function handleVedicPrashnaResult(request, auth) {
+  const url = new URL(request.url);
+  const orderId = String(url.searchParams.get("orderId") || "").trim();
+  if (!orderId) {
+    return buildVedicPrashnaError("ORDER_REQUIRED", "주문 ID가 필요합니다.", 400);
+  }
+  const record = await PaidExecutionRecord.findOne({
+    userId: String(auth.userId),
+    featureId: VEDIC_PRASHNA_PROMPT_FEATURE_KEY,
+    orderId,
+  }).lean();
+  if (!record) {
+    return buildVedicPrashnaError("RESULT_NOT_FOUND", "프라슈나 결과를 찾을 수 없습니다.", 404);
+  }
+  if (record.status !== "completed") {
+    return buildVedicPrashnaError(
+      "RESULT_NOT_READY",
+      record.status === "generation_failed"
+        ? "결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다."
+        : "결제 상태를 확인하고 있습니다. 창을 닫지 말고 잠시 기다려 주세요.",
+      202,
+      { orderId, status: record.status },
+    );
+  }
+  await PaidExecutionRecord.updateOne(
+    { _id: record._id },
+    { $set: { "result.prashnaResult.lastViewedAt": new Date().toISOString() } },
+  );
+  return json(normalizePrashnaStoredResult(record));
+}
+
+function mapVedicPrashnaConsumeFailure(response, payload) {
+  const status = Number(response?.status || 500);
+  const code = String(payload?.code || "").trim();
+  const message = String(payload?.message || "").trim();
+
+  if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
+    return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+  }
+
+  if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "PAYMENT_REQUIRED") {
+    return buildVedicPrashnaError(
+      "PAYMENT_REQUIRED",
+      "프라슈나 프롬프트는 1회 5,000원 단건 결제 후 생성할 수 있습니다.",
+      402,
+    );
+  }
+
+  return buildVedicPrashnaError(
+    "PRASHNA_PAYMENT_VERIFY_FAILED",
+    message || "결제 상태를 확인하고 있습니다. 창을 닫지 말고 잠시 기다려 주세요.",
+    status >= 400 && status < 600 ? status : 500,
+  );
+}
+
 function mapAstrologyConsumeFailure(response, payload) {
   const status = Number(response?.status || 500);
   const code = String(payload?.code || "").trim();
@@ -3169,6 +3616,28 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
 
   try {
+    if (SUKUYO_AI_PROMPT_PRICE <= 0) {
+      return json({
+        ok: true,
+        prompt: builtPrompt.prompt,
+        generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+        title: builtPrompt.title || "월하의 숙요 동물 프롬프트",
+        summaryIntent: builtPrompt.summaryIntent || "",
+        analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+        recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+          ? builtPrompt.recommendedFollowUpQuestions
+          : [],
+        caution: String(builtPrompt.caution || "").trim() || undefined,
+        questionType: builtPrompt.questionType,
+        chargedCoins: 0,
+        featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
+        accessType: "free",
+        accessMethod: "FREE",
+        compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
+        compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+      });
+    }
+
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -3797,8 +4266,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSajuAIPrompt(request, auth, env);
     }
 
@@ -3822,6 +4289,39 @@ export async function handleFortuneRoutes(request, env) {
       await connectDb(env);
       trace.dbConnected = true;
       return await handleVedicAIPrompt(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/vedic/prashna/snapshot") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleVedicPrashnaSnapshot(request, auth, env);
+    }
+
+    if (method === "POST" && path === "/vedic/prashna/generate") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleVedicPrashnaGenerate(request, auth, env);
+    }
+
+    if (method === "GET" && path === "/vedic/prashna/result") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      }
+      trace.authVerified = true;
+      await connectDb(env);
+      trace.dbConnected = true;
+      return await handleVedicPrashnaResult(request, auth);
     }
 
     const auth = await requireUserFromRequest(request, env);

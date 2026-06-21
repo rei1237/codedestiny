@@ -4,7 +4,7 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 
 const path = "/insights/dream";
 const title = "꿈해몽 인사이트 허브 · 꿈 상징 해석 가이드 | Code Destiny";
-const description = "꿈해몽, 무료 꿈해몽, 꿈 상징 해석, 꿈 기록법을 정리한 꿈해몽 인사이트 허브입니다.";
+const description = "꿈해몽, 무료 꿈해몽, 꿈 상징 해석, 꿈 기록법을 현실적인 자기 점검과 일상 기록으로 연결하는 꿈해몽 인사이트 허브입니다.";
 
 export const metadata = buildSeoMetadata({
   path,

@@ -2298,7 +2298,7 @@ function calcCompatibility(nak1,nak2){
 }
 
 // ─── STATE ────────────────────────────────────────────────
-let G={chart:null,report:null,chartStyle:"south",activeTab:"overview",usedLocalCalc:false,usedSwissFallback:false,vedicAi:null,vedicCompatibilityResult:null};
+let G={chart:null,report:null,chartStyle:"south",activeTab:"overview",usedLocalCalc:false,usedSwissFallback:false,vedicAi:null,vedicPrashna:null,vedicCompatibilityResult:null};
 let VEDIC_LANG_STATE={
   current:'ko',
   token:0,
@@ -3386,6 +3386,525 @@ async function vedicAiCopyPrompt(){
     state.statusMessage='복사에 실패했습니다. 다시 시도해 주세요.';
     vedicAiRefreshUi();
   }
+}
+
+const VEDIC_PRASHNA_FEATURE_KEY='vedic_prashna_prompt';
+const VEDIC_PRASHNA_AMOUNT_KRW=5000;
+const VEDIC_PRASHNA_PRICE=50;
+const VEDIC_PRASHNA_STEPS=[
+  '결제를 확인하고 있습니다.',
+  '질문 시각과 위치를 고정했습니다.',
+  '프라슈나 차트를 계산하고 있습니다.',
+  '차트 산출값을 검증하고 있습니다.',
+  '복사용 프롬프트를 만들고 있습니다.'
+];
+
+function vedicPrashnaCreateState(){
+  var f=G.chart&&G.chart.f?G.chart.f:{};
+  return {
+    question:'',
+    latitude:(Number.isFinite(Number(f.lat))?Number(f.lat).toFixed(6):''),
+    longitude:(Number.isFinite(Number(f.lon))?Number(f.lon).toFixed(6):''),
+    locationMode:'manual',
+    snapshot:null,
+    order:null,
+    prompt:'',
+    chart:null,
+    result:null,
+    confirmOpen:false,
+    confirmed:false,
+    chartOpen:false,
+    inFlight:false,
+    statusError:false,
+    loadingStep:0,
+    statusMessage:'프라슈나는 한 번에 하나의 구체적인 질문을 다룰 때 판단 기준이 가장 선명해집니다.'
+  };
+}
+
+function vedicPrashnaEnsureState(){
+  if(!G.vedicPrashna) G.vedicPrashna=vedicPrashnaCreateState();
+  return G.vedicPrashna;
+}
+
+function vedicPrashnaTrack(name,payload){
+  try{
+    var safe=Object.assign({event:name,featureKey:VEDIC_PRASHNA_FEATURE_KEY},payload||{});
+    delete safe.question;
+    delete safe.latitude;
+    delete safe.longitude;
+    if(window.dataLayer&&typeof window.dataLayer.push==='function') window.dataLayer.push(safe);
+  }catch(_){}
+}
+
+function vedicPrashnaSetStatus(message,isError){
+  var state=vedicPrashnaEnsureState();
+  state.statusMessage=String(message||'');
+  state.statusError=!!isError;
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaSetQuestion(value){
+  var state=vedicPrashnaEnsureState();
+  state.question=String(value||'').slice(0,600);
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaSetLocationMode(mode){
+  var state=vedicPrashnaEnsureState();
+  state.locationMode=mode==='current'?'current':'manual';
+  vedicPrashnaTrack('prashna_location_selected',{mode:state.locationMode});
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaSetCoord(kind,value){
+  var state=vedicPrashnaEnsureState();
+  if(kind==='lat') state.latitude=String(value||'').slice(0,24);
+  if(kind==='lon') state.longitude=String(value||'').slice(0,24);
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaUseExample(text){
+  var state=vedicPrashnaEnsureState();
+  state.question=String(text||'').slice(0,600);
+  state.statusError=false;
+  state.statusMessage='예시 질문을 적용했습니다.';
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaValidateClient(){
+  var state=vedicPrashnaEnsureState();
+  var question=String(state.question||'').trim().replace(/\s+/g,' ');
+  var lat=Number(state.latitude);
+  var lon=Number(state.longitude);
+  if(!question){
+    return '질문이 비어 있습니다.';
+  }
+  if(question.length<12){
+    return '결과의 판단 기준을 분명하게 만들 수 있도록 대상, 상황, 확인하고 싶은 내용을 조금 더 구체적으로 적어주세요.';
+  }
+  if(question.length>600){
+    return '질문은 600자 이하로 입력해 주세요.';
+  }
+  if((question.match(/[?？]/g)||[]).length>1 || ((question.match(/그리고|또는|혹은|동시에/g)||[]).length>=2)){
+    return '프라슈나는 한 번에 하나의 질문을 다룹니다. 가장 먼저 확인하고 싶은 질문 하나만 남겨주세요.';
+  }
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+    return '프라슈나 차트를 생성하려면 현재 위치 또는 위도·경도가 필요합니다.';
+  }
+  if(lat<-90||lat>90||lon<-180||lon>180){
+    return '위도는 -90~90, 경도는 -180~180 사이로 입력해 주세요.';
+  }
+  return '';
+}
+
+function vedicPrashnaReadAuthHeaders(){
+  var headers={'Content-Type':'application/json'};
+  try{
+    var token=localStorage.getItem('fortune_auth_token')||'';
+    if(token) headers.Authorization='Bearer '+token;
+  }catch(_){}
+  return headers;
+}
+
+function vedicPrashnaLoginPrompt(){
+  if(window.confirm('로그인이 필요합니다. 로그인 화면으로 이동할까요?')){
+    window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
+  }
+}
+
+function vedicPrashnaUseCurrentLocation(){
+  var state=vedicPrashnaEnsureState();
+  state.locationMode='current';
+  if(!navigator.geolocation){
+    vedicPrashnaSetStatus('현재 위치를 불러올 수 없습니다. 위도·경도를 직접 입력해 주세요.',true);
+    return;
+  }
+  state.inFlight=true;
+  state.statusError=false;
+  state.statusMessage='위치 권한은 프라슈나 차트의 시간대와 라그나를 계산하는 데에만 사용됩니다.';
+  vedicPrashnaRefreshUi();
+  navigator.geolocation.getCurrentPosition(function(pos){
+    state.inFlight=false;
+    state.latitude=Number(pos.coords.latitude).toFixed(6);
+    state.longitude=Number(pos.coords.longitude).toFixed(6);
+    state.statusError=false;
+    state.statusMessage='현재 위치를 불러왔습니다. 입력된 위치의 시간대는 자동으로 확인됩니다.';
+    vedicPrashnaTrack('prashna_location_selected',{mode:'current'});
+    vedicPrashnaRefreshUi();
+  },function(){
+    state.inFlight=false;
+    state.locationMode='manual';
+    state.statusError=true;
+    state.statusMessage='현재 위치 권한이 거부되었습니다. 위도·경도를 직접 입력해 주세요.';
+    vedicPrashnaRefreshUi();
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+}
+
+function vedicPrashnaCreateRequestId(orderId){
+  return String(orderId||('vedic-prashna:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9))).slice(0,120);
+}
+
+function vedicPrashnaGateEvidence(gateResult,requestId){
+  var evidence=vedicAiGateEvidence(gateResult,requestId);
+  evidence._paymentContext=evidence._paymentContext||{};
+  evidence._paymentContext.featureKey=VEDIC_PRASHNA_FEATURE_KEY;
+  evidence._paymentContext.requestId=evidence._paymentContext.requestId||requestId;
+  evidence._paymentContext.idempotencyKey=evidence._paymentContext.idempotencyKey||requestId;
+  return evidence;
+}
+
+async function vedicPrashnaPaidGate(snapshot){
+  var requestId=vedicPrashnaCreateRequestId(snapshot&&snapshot.orderId);
+  if(typeof window._cdOpenPaidServiceGate!=='function'){
+    return {ok:false,status:402,code:'PAYMENT_REQUIRED',message:'결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'};
+  }
+  var result=await window._cdOpenPaidServiceGate({
+    title:'프라슈나 프롬프트',
+    reason:'프라슈나 프롬프트',
+    featureKey:VEDIC_PRASHNA_FEATURE_KEY,
+    categoryKey:'vedic',
+    subFeatureKey:'prashna-prompt',
+    serviceKey:'vedic-prashna-prompt',
+    action:'generateVedicPrashnaPrompt',
+    coinPrice:VEDIC_PRASHNA_PRICE,
+    cost:VEDIC_PRASHNA_PRICE,
+    amountKrw:VEDIC_PRASHNA_AMOUNT_KRW,
+    amountKRW:VEDIC_PRASHNA_AMOUNT_KRW,
+    paymentAmount:VEDIC_PRASHNA_AMOUNT_KRW,
+    membershipCreditCost:0,
+    forcePassFirst:false,
+    requestId:requestId
+  });
+  if(result&&result.status==='granted'){
+    return Object.assign({ok:true,status:200},vedicPrashnaGateEvidence(result,requestId));
+  }
+  return {
+    ok:false,
+    status:402,
+    code:'PAYMENT_REQUIRED',
+    message:String((result&&(result.message||result.reason))||'결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.').trim()
+  };
+}
+
+async function vedicPrashnaCreateSnapshot(){
+  var state=vedicPrashnaEnsureState();
+  var err=vedicPrashnaValidateClient();
+  if(err){
+    vedicPrashnaSetStatus(err,true);
+    return;
+  }
+  state.inFlight=true;
+  state.statusError=false;
+  state.statusMessage='질문 시각을 서버에서 고정하고 위치의 시간대를 확인하고 있습니다.';
+  state.snapshot=null;
+  state.order=null;
+  state.confirmed=false;
+  state.confirmOpen=false;
+  vedicPrashnaRefreshUi();
+  try{
+    var resp=await fetch('/api/fortune/vedic/prashna/snapshot',{
+      method:'POST',
+      headers:vedicPrashnaReadAuthHeaders(),
+      body:JSON.stringify({
+        question:String(state.question||'').trim(),
+        latitude:Number(state.latitude),
+        longitude:Number(state.longitude)
+      })
+    });
+    var data=await resp.json().catch(function(){return{};});
+    if(!resp.ok){
+      if(data&&data.code==='AUTH_REQUIRED') vedicPrashnaLoginPrompt();
+      vedicPrashnaSetStatus(String(data&&data.message||'시간대 확인 실패: 위치를 다시 입력하거나 시간대를 확인해 주세요.'),true);
+      return;
+    }
+    state.snapshot=data.snapshot||null;
+    state.order=data.order||null;
+    state.confirmOpen=true;
+    state.confirmed=false;
+    state.statusError=false;
+    state.statusMessage='아래 질문·시각·위치를 기준으로 프라슈나 차트가 생성됩니다.';
+    vedicPrashnaTrack('prashna_snapshot_created',{orderId:state.order&&state.order.orderId});
+    vedicPrashnaRefreshUi();
+  }catch(e){
+    console.error('[vedic prashna snapshot]',e);
+    vedicPrashnaSetStatus('시간대 확인 실패: 위치를 다시 입력하거나 시간대를 확인해 주세요.',true);
+  }finally{
+    state.inFlight=false;
+    vedicPrashnaRefreshUi();
+  }
+}
+
+function vedicPrashnaCloseConfirm(){
+  var state=vedicPrashnaEnsureState();
+  state.confirmOpen=false;
+  vedicPrashnaRefreshUi();
+}
+
+function vedicPrashnaSetConfirmCheck(value){
+  var state=vedicPrashnaEnsureState();
+  state.confirmed=!!value;
+  vedicPrashnaRefreshUi();
+}
+
+async function vedicPrashnaConfirmGenerate(){
+  var state=vedicPrashnaEnsureState();
+  if(!state.snapshot||!state.order){
+    vedicPrashnaSetStatus('주문 스냅샷이 필요합니다. 다시 생성해 주세요.',true);
+    return;
+  }
+  if(!state.confirmed){
+    vedicPrashnaSetStatus('질문, 시각, 위치와 결제 금액을 확인해 주세요.',true);
+    return;
+  }
+  state.confirmOpen=false;
+  state.inFlight=true;
+  state.statusError=false;
+  state.loadingStep=0;
+  state.statusMessage=VEDIC_PRASHNA_STEPS[0];
+  state.prompt='';
+  state.chart=null;
+  state.result=null;
+  vedicPrashnaTrack('prashna_checkout_started',{orderId:state.order.orderId});
+  vedicPrashnaRefreshUi();
+  _vedicSetPaymentPending(true,VEDIC_PRASHNA_STEPS[0]);
+  var timer=setInterval(function(){
+    var s=vedicPrashnaEnsureState();
+    if(!s.inFlight){clearInterval(timer);return;}
+    s.loadingStep=Math.min(VEDIC_PRASHNA_STEPS.length-1,(s.loadingStep||0)+1);
+    s.statusMessage=VEDIC_PRASHNA_STEPS[s.loadingStep];
+    _vedicSetPaymentPending(true,s.statusMessage);
+    vedicPrashnaRefreshUi();
+  },900);
+  try{
+    var gate=await vedicPrashnaPaidGate(state.snapshot);
+    if(!gate||gate.ok!==true){
+      state.statusError=true;
+      state.statusMessage=String(gate&&gate.message||'결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.');
+      vedicPrashnaTrack('prashna_payment_failed',{orderId:state.order.orderId});
+      vedicPrashnaRefreshUi();
+      return;
+    }
+    state.loadingStep=2;
+    state.statusMessage=VEDIC_PRASHNA_STEPS[2];
+    vedicPrashnaTrack('prashna_payment_succeeded',{orderId:state.order.orderId});
+    vedicPrashnaRefreshUi();
+    var headers=vedicPrashnaReadAuthHeaders();
+    headers['idempotency-key']=gate.requestId||state.snapshot.orderId;
+    var resp=await fetch('/api/fortune/vedic/prashna/generate',{
+      method:'POST',
+      headers:headers,
+      body:JSON.stringify({
+        orderId:state.order.orderId,
+        snapshot:state.snapshot,
+        requestId:gate.requestId||state.snapshot.orderId,
+        accessGrant:gate.accessGrant,
+        accessDecision:gate.accessDecision,
+        consume:gate.consume,
+        payment:gate.payment,
+        _paymentContext:gate._paymentContext
+      })
+    });
+    var data=await resp.json().catch(function(){return{};});
+    if(!resp.ok){
+      state.statusError=true;
+      state.statusMessage=String(data&&data.message||'결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다.');
+      vedicPrashnaTrack('prashna_generation_failed',{orderId:state.order.orderId,code:String(data&&data.code||'')});
+      vedicPrashnaRefreshUi();
+      return;
+    }
+    state.result=data.result||null;
+    state.prompt=String(data.promptText||(data.result&&data.result.promptText)||'').trim();
+    state.chart=data.chart||(data.result&&data.result.chart)||null;
+    state.snapshot=data.snapshot||state.snapshot;
+    state.order=data.order||state.order;
+    state.statusError=false;
+    state.statusMessage='프라슈나 프롬프트가 준비되었습니다';
+    vedicPrashnaTrack('prashna_chart_generated',{orderId:state.order&&state.order.orderId});
+    try{localStorage.setItem('VEDIC_PRASHNA_LAST_RESULT',JSON.stringify({order:state.order,snapshot:state.snapshot,prompt:state.prompt,chart:state.chart,result:state.result,savedAt:new Date().toISOString()}));}catch(_){}
+    vedicPrashnaRefreshUi();
+  }catch(e){
+    console.error('[vedic prashna generate]',e);
+    state.statusError=true;
+    state.statusMessage='결제 상태를 확인하고 있습니다. 창을 닫지 말고 잠시 기다려 주세요.';
+    vedicPrashnaRefreshUi();
+  }finally{
+    clearInterval(timer);
+    state.inFlight=false;
+    _vedicSetPaymentPending(false);
+    vedicPrashnaRefreshUi();
+  }
+}
+
+function vedicPrashnaToggleChart(){
+  var state=vedicPrashnaEnsureState();
+  state.chartOpen=!state.chartOpen;
+  vedicPrashnaRefreshUi();
+}
+
+async function vedicPrashnaCopyPrompt(){
+  var state=vedicPrashnaEnsureState();
+  var text=String(state.prompt||'').trim();
+  if(!text){
+    vedicPrashnaSetStatus('복사할 프라슈나 프롬프트가 없습니다.',true);
+    return;
+  }
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+    }else{
+      var ta=document.createElement('textarea');
+      ta.value=text;
+      ta.style.position='fixed';
+      ta.style.left='-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    state.statusError=false;
+    state.statusMessage='프라슈나 프롬프트를 복사했습니다.';
+    vedicPrashnaTrack('prashna_prompt_copied',{orderId:state.order&&state.order.orderId});
+    vedicPrashnaRefreshUi();
+  }catch(_){
+    vedicPrashnaSetStatus('복사에 실패했습니다. 직접 선택해 복사해 주세요.',true);
+  }
+}
+
+function vedicPrashnaOpenHistory(){
+  window.location.href='/points/history';
+}
+
+function vedicPrashnaRefreshUi(){
+  var state=vedicPrashnaEnsureState();
+  var q=document.getElementById('vedicPrashnaQuestion');
+  var lat=document.getElementById('vedicPrashnaLat');
+  var lon=document.getElementById('vedicPrashnaLon');
+  var status=document.getElementById('vedicPrashnaStatus');
+  var count=document.getElementById('vedicPrashnaCount');
+  var btn=document.getElementById('vedicPrashnaCreateBtn');
+  var modal=document.getElementById('vedicPrashnaConfirmModal');
+  var modalBody=document.getElementById('vedicPrashnaConfirmBody');
+  var check=document.getElementById('vedicPrashnaConfirmCheck');
+  var pay=document.getElementById('vedicPrashnaPayBtn');
+  var result=document.getElementById('vedicPrashnaResult');
+  var prompt=document.getElementById('vedicPrashnaPromptText');
+  var chart=document.getElementById('vedicPrashnaChartText');
+  var chartWrap=document.getElementById('vedicPrashnaChartWrap');
+  if(q&&q.value!==state.question) q.value=state.question;
+  if(lat&&lat.value!==state.latitude) lat.value=state.latitude;
+  if(lon&&lon.value!==state.longitude) lon.value=state.longitude;
+  if(count) count.textContent=String((state.question||'').length);
+  if(status){
+    status.textContent=state.statusMessage||'';
+    status.style.color=state.statusError?'#fda4af':'var(--text3)';
+  }
+  if(btn){
+    btn.disabled=!!state.inFlight;
+    btn.textContent=state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 5,000원';
+  }
+  if(modal){
+    modal.style.display=state.confirmOpen?'flex':'none';
+  }
+  if(check) check.checked=!!state.confirmed;
+  if(pay) pay.disabled=!state.confirmed||state.inFlight;
+  if(modalBody&&state.snapshot){
+    modalBody.innerHTML=[
+      ['질문',state.snapshot.question],
+      ['기준 시각',state.snapshot.capturedAtLocal],
+      ['시간대',state.snapshot.timezone],
+      ['위치',Number(state.snapshot.latitude).toFixed(6)+', '+Number(state.snapshot.longitude).toFixed(6)],
+      ['사용 가격','5,000원']
+    ].map(function(row){
+      return '<div style="display:grid;grid-template-columns:82px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><strong style="color:#fde68a;font-size:12px">'+hEsc(row[0])+'</strong><span style="color:#e2e8f0;font-size:12px;line-height:1.55;word-break:break-word">'+hEsc(row[1])+'</span></div>';
+    }).join('');
+  }
+  if(result) result.style.display=state.prompt?'block':'none';
+  if(prompt) prompt.textContent=state.prompt||'';
+  if(chartWrap) chartWrap.style.display=(state.chartOpen&&state.chart)?'block':'none';
+  if(chart) chart.textContent=state.chart?JSON.stringify(state.chart,null,2):'';
+}
+
+function renderVedicPrashnaSection(){
+  var state=vedicPrashnaEnsureState();
+  var statusColor=state.statusError?'#fda4af':'var(--text3)';
+  return `
+  <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(45,212,191,0.32);border-radius:16px;background:radial-gradient(130% 140% at 8% 0%, rgba(45,212,191,0.18), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(251,191,36,0.16), transparent 42%), linear-gradient(145deg, rgba(6,18,34,0.94), rgba(22,28,45,0.94));box-shadow:0 24px 56px rgba(8,47,73,0.24), inset 0 1px 0 rgba(255,255,255,0.07);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">
+      <div>
+        <div class="section-head section-head-kr" style="margin-bottom:4px;color:#99f6e4">프라슈나 프롬프트</div>
+        <div style="font-size:18px;font-weight:900;color:#ecfeff;line-height:1.35">프라슈나 질문 차트 준비</div>
+      </div>
+      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36);white-space:nowrap">1회 5,000원</span>
+    </div>
+    <div class="body-text" style="margin-bottom:10px;line-height:1.72;color:#e2e8f0">출생정보 대신 질문이 선명해진 순간의 시각과 위치로 프라슈나 차트를 세웁니다. 라그나·달·하우스 로드·나크샤트라 등 실제 산출값을 담은 복사용 분석 프롬프트를 생성합니다.</div>
+    <div class="info-box" style="margin-bottom:12px">프라슈나는 출생정보가 아니라 질문이 분명해진 순간의 시각과 현재 위치를 기준으로 판단합니다. 질문을 하나로 좁히고, 차트를 생성할 위치를 확인해 주세요.</div>
+    <label for="vedicPrashnaQuestion">질문</label>
+    <textarea id="vedicPrashnaQuestion" maxlength="600" oninput="vedicPrashnaSetQuestion(this.value)" placeholder="예: 지금 받은 이직 제안을 받아들이는 것이 나에게 유리할까?" style="width:100%;min-height:110px;border-radius:12px;border:1px solid rgba(45,212,191,0.34);background:rgba(6,14,30,0.68);color:#ecfeff;padding:12px;font-size:13px;line-height:1.65;resize:vertical">${hEsc(state.question)}</textarea>
+    <div style="display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:var(--text3)">
+      <span>한 번에 하나의 구체적인 질문을 적어주세요. 두 개 이상의 질문이나 서로 다른 주제를 한 문장에 섞지 마세요.</span>
+      <span><span id="vedicPrashnaCount">${String(state.question||'').length}</span>/600</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px">
+      <button class="btn-sm" type="button" onclick="vedicPrashnaUseExample('이 계약을 이번 달 안에 진행하는 것이 유리할까?')">계약</button>
+      <button class="btn-sm" type="button" onclick="vedicPrashnaUseExample('현재 관계를 계속 이어가는 것이 서로에게 도움이 될까?')">관계</button>
+      <button class="btn-sm" type="button" onclick="vedicPrashnaUseExample('준비 중인 시험에서 원하는 결과를 얻을 가능성이 있을까?')">시험</button>
+      <button class="btn-sm" type="button" onclick="vedicPrashnaUseExample('지금 시작하려는 사업 계획을 실행해도 괜찮을까?')">사업</button>
+    </div>
+    <div style="display:grid;gap:10px;margin-top:10px">
+      <div>
+        <label>질문 위치</label>
+        <div class="body-text" style="font-size:12px;color:var(--text2);margin-bottom:8px">프라슈나 차트를 생성할 현재 위치입니다. 현재 위치 사용을 허용하거나 위도와 경도를 직접 입력하세요.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <button class="btn-sm" type="button" onclick="vedicPrashnaSetLocationMode('current');vedicPrashnaUseCurrentLocation()">현재 위치 불러오기</button>
+          <button class="btn-sm" type="button" onclick="vedicPrashnaSetLocationMode('manual')">위도·경도 직접 입력</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label for="vedicPrashnaLat">위도</label><input id="vedicPrashnaLat" inputmode="decimal" value="${hEsc(state.latitude)}" oninput="vedicPrashnaSetCoord('lat',this.value)" placeholder="37.5665"></div>
+          <div><label for="vedicPrashnaLon">경도</label><input id="vedicPrashnaLon" inputmode="decimal" value="${hEsc(state.longitude)}" oninput="vedicPrashnaSetCoord('lon',this.value)" placeholder="126.9780"></div>
+        </div>
+        <div class="tips">입력된 위치의 시간대는 자동으로 확인됩니다.</div>
+      </div>
+      <div class="info-box">
+        <strong>질문 시각</strong><br>
+        질문 시각은 직접 고르지 않습니다. 생성 버튼을 누르는 순간의 서버 시각과 입력한 위치의 현지 시간대를 자동으로 기록합니다.<br>
+        결제가 완료되면 처음 기록된 동일한 시각과 위치를 기준으로 차트를 생성합니다.
+      </div>
+      <button class="btn-primary" id="vedicPrashnaCreateBtn" type="button" onclick="vedicPrashnaCreateSnapshot()" style="background:linear-gradient(135deg,#14b8a6,#0f766e 58%,#f59e0b);border:1px solid rgba(153,246,228,0.4);color:#ecfeff;box-shadow:0 10px 26px rgba(20,184,166,0.24)">${state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 5,000원'}</button>
+      <div class="body-text" style="font-size:12px;color:var(--text2);line-height:1.7">1회 결제로 하나의 질문, 하나의 프라슈나 차트, 하나의 복사용 분석 프롬프트가 생성됩니다. 같은 결과를 다시 열람하거나 복사하는 데에는 추가 결제가 발생하지 않습니다. 질문, 시각 또는 위치를 바꾸어 새로운 차트를 생성하는 경우에는 별도의 1회 이용으로 처리합니다.</div>
+      <div class="tips">의료, 법률, 재무, 투자, 계약처럼 손실이나 위험이 큰 결정은 이 결과만으로 확정하지 말고 관련 전문가와 현실적인 자료를 함께 검토하세요.</div>
+      <div id="vedicPrashnaStatus" style="font-size:12px;color:${statusColor};line-height:1.65">${hEsc(state.statusMessage)}</div>
+    </div>
+    <div id="vedicPrashnaResult" style="display:${state.prompt?'block':'none'};margin-top:14px">
+      <div class="card-gold" style="border-color:rgba(153,246,228,0.32);background:rgba(15,118,110,0.12)">
+        <div style="font-size:17px;font-weight:900;color:#ecfeff;margin-bottom:4px">프라슈나 프롬프트가 준비되었습니다</div>
+        <div class="body-text" style="font-size:12px;color:#ccfbf1;margin-bottom:10px">질문한 순간의 실제 차트 산출값이 포함되어 있습니다. 아래 내용을 복사하여 AI 분석에 사용할 수 있습니다.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <button class="btn-sm" type="button" onclick="vedicPrashnaCopyPrompt()">프롬프트 복사</button>
+          <button class="btn-sm" type="button" onclick="vedicPrashnaToggleChart()">차트 산출값 보기</button>
+          <button class="btn-sm" type="button" onclick="vedicPrashnaOpenHistory()">결제 내역 보기</button>
+        </div>
+        <pre id="vedicPrashnaPromptText" style="margin:0;padding:12px;border-radius:12px;border:1px solid rgba(45,212,191,0.24);background:rgba(2,6,23,0.58);color:#ccfbf1;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto">${hEsc(state.prompt)}</pre>
+        <div id="vedicPrashnaChartWrap" style="display:${state.chartOpen&&state.chart?'block':'none'};margin-top:10px">
+          <pre id="vedicPrashnaChartText" style="margin:0;padding:12px;border-radius:12px;border:1px solid rgba(251,191,36,0.22);background:rgba(2,6,23,0.5);color:#fde68a;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto">${state.chart?hEsc(JSON.stringify(state.chart,null,2)):''}</pre>
+        </div>
+      </div>
+    </div>
+    <div id="vedicPrashnaConfirmModal" style="display:${state.confirmOpen?'flex':'none'};position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,0.72);backdrop-filter:blur(10px)">
+      <div style="width:min(460px,100%);border-radius:18px;border:1px solid rgba(153,246,228,0.34);background:linear-gradient(145deg,rgba(8,47,73,0.96),rgba(15,23,42,0.98));box-shadow:0 24px 80px rgba(0,0,0,0.45);padding:18px;color:#e2e8f0">
+        <div style="font-size:18px;font-weight:900;color:#ecfeff;margin-bottom:6px">프라슈나 차트 생성 확인</div>
+        <div class="body-text" style="font-size:12px;color:#ccfbf1;line-height:1.65;margin-bottom:10px">아래 질문·시각·위치를 기준으로 프라슈나 차트를 생성합니다. 생성이 시작된 후 질문이나 차트 기준값을 변경하려면 새로운 이용이 필요합니다.</div>
+        <div id="vedicPrashnaConfirmBody" style="border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:10px"></div>
+        <label style="display:flex;align-items:flex-start;gap:8px;margin:10px 0 14px;color:#e2e8f0;font-size:12px;line-height:1.55">
+          <input id="vedicPrashnaConfirmCheck" type="checkbox" onchange="vedicPrashnaSetConfirmCheck(this.checked)" style="width:auto;margin-top:2px">
+          <span>질문, 시각, 위치와 결제 금액을 확인했습니다.</span>
+        </label>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" type="button" onclick="vedicPrashnaCloseConfirm()" style="flex:1">다시 확인</button>
+          <button class="btn-primary" id="vedicPrashnaPayBtn" type="button" onclick="vedicPrashnaConfirmGenerate()" style="flex:1;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1f2937" ${state.confirmed?'':'disabled'}>5,000원 결제하고 생성</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ─── DEEP INSIGHT GENERATOR ───────────────────────────────
@@ -4556,6 +5075,8 @@ function renderResult(){
   ${masterReadingHtml}
 
   ${vedicCanonicalCardsHtml}
+
+  ${renderVedicPrashnaSection()}
 
   ${renderVedicAIPromptSection()}
 

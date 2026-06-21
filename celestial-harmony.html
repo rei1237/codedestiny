@@ -199,6 +199,48 @@
       letter-spacing: .03em;
       cursor: pointer;
     }
+    .closing-fortune {
+      margin-top: 1.25rem;
+      border-radius: 18px;
+      border: 1px solid rgba(167, 139, 250, .28);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(245, 208, 111, .12), transparent 36%),
+        linear-gradient(145deg, rgba(18, 10, 42, .9), rgba(7, 8, 24, .96));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .38), inset 0 0 0 1px rgba(255, 255, 255, .035);
+      padding: 1.25rem;
+    }
+    .closing-fortune__lead {
+      color: rgba(255, 255, 255, .84);
+      font-size: .9rem;
+      line-height: 1.9;
+      word-break: keep-all;
+      margin: .55rem 0 1rem;
+    }
+    .closing-fortune__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .7rem;
+    }
+    .closing-fortune__item {
+      border-radius: 12px;
+      border: 1px solid rgba(245, 208, 111, .18);
+      background: rgba(5, 8, 22, .54);
+      padding: .75rem .8rem;
+    }
+    .closing-fortune__item .k {
+      color: rgba(253, 230, 138, .9);
+      font-size: .64rem;
+      letter-spacing: .1em;
+      font-family: monospace;
+      text-transform: uppercase;
+    }
+    .closing-fortune__item .v {
+      margin-top: .35rem;
+      color: rgba(255, 255, 255, .8);
+      font-size: .8rem;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
 
     /* Planetary Spread Layout */
     .spread-label {
@@ -329,6 +371,7 @@
     @media(max-width:760px){
       .premium-steps{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .summary-grid{ grid-template-columns: 1fr; }
+      .closing-fortune__grid{ grid-template-columns: 1fr; }
     }
   </style>
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
@@ -809,6 +852,20 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       var openingCard = cards[0] || {};
       var closingCard = cards[cards.length - 1] || {};
       var oracle = '첫 장 ' + (openingCard.planetKo || '초기 신호') + '에서 시작한 선율을 마지막 장 ' + (closingCard.planetKo || '종결 신호') + '에서 정돈하면, 11장의 의미가 하나의 별자리처럼 이어집니다. 각 카드는 따로 떨어진 답이 아니라 행성의 질문과 방향이 만난 오늘의 오라클입니다.';
+      var insightMatrix = {
+        love: '감정 관계는 즉시 반응보다 경계 기반의 공유가 안정적입니다. 현재 ' + cards[0].planetKo + ' 기조로 상대의 필요와 나의 기준을 1줄씩 분리하세요.',
+        work: '성과는 빠른 판단보다 반복 가능성으로 상승합니다. ' + cards[3].planetKo + '의 규칙으로 업무 우선순위를 압축해 진행하세요.',
+        money: '지출/투자 결정을 동일 프레임으로 묶으세요. ' + cards[5].planetKo + '의 현실 감각으로 금전 패턴을 기록하고 조절하세요.',
+        health: '회복은 수면·수분·호흡의 기본 축이 먼저입니다. ' + cards[2].planetKo + '의 조화 신호에 맞춰 하루 3요소를 규칙화하세요.'
+      };
+      var closingFortune = {
+        title: '오늘의 별빛 운세',
+        overall: '오늘의 별빛은 ' + (openingCard.planetKo || '첫 행성') + '의 문에서 열리고 ' + (closingCard.planetKo || '마지막 행성') + '의 자리에서 차분히 정돈됩니다. 지금 운의 흐름은 빠른 확정보다 흩어진 마음을 한곳으로 모을 때 강해집니다. 가장 오래 미뤄 둔 감정 반응을 부드럽게 알아차리면, 막혀 있던 선택지가 다시 보이기 시작합니다. 오늘은 큰 결론보다 작은 약속 하나를 끝까지 지킬 때 선율이 현실로 내려옵니다.',
+        love: insightMatrix.love + ' 마음을 시험하기보다 필요한 감정을 짧고 따뜻하게 전할 때 인연의 결이 안정됩니다.',
+        work: insightMatrix.work + ' 오늘은 가장 부담스러운 일 하나를 작게 나누어 시작하면 성과의 문이 다시 열립니다.',
+        money: insightMatrix.money + ' 큰 선택보다 작은 지출 패턴을 알아차릴 때 재물의 흐름이 단단해집니다.',
+        health: insightMatrix.health + ' 단순한 회복 루틴이 전체 운의 균형을 다시 세웁니다.'
+      };
 
       return {
         cards: cards,
@@ -829,12 +886,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             'Day 2: ' + cards[4].planetKo + '의 패턴을 점검해 유사 반응 1개를 제거',
             'Day 3: ' + cards[10].planetKo + ' 정합으로 실패 규칙 1개를 폐기하고 대체 행동 1개 반영'
           ],
-          insightMatrix: {
-            love: '감정 관계는 즉시 반응보다 경계 기반의 공유가 안정적입니다. 현재 ' + cards[0].planetKo + ' 기조로 상대의 필요와 나의 기준을 1줄씩 분리하세요.',
-            work: '성과는 빠른 판단보다 반복 가능성으로 상승합니다. ' + cards[3].planetKo + '의 규칙으로 업무 우선순위를 압축해 진행하세요.',
-            money: '지출/투자 결정을 동일 프레임으로 묶으세요. ' + cards[5].planetKo + '의 현실 감각으로 금전 패턴을 기록하고 조절하세요.',
-            health: '회복은 수면·수분·호흡의 기본 축이 먼저입니다. ' + cards[2].planetKo + '의 조화 신호에 맞춰 하루 3요소를 규칙화하세요.'
-          }
+          insightMatrix: insightMatrix,
+          closingFortune: closingFortune
         },
         payment: {
           featureKey: FEATURE_KEY,
@@ -855,9 +908,43 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       };
     }
 
+    function normalizeClosingFortune(summary){
+      var s = summary && typeof summary === 'object' ? summary : {};
+      var cf = s.closingFortune && typeof s.closingFortune === 'object' ? s.closingFortune : {};
+      var matrix = s.insightMatrix && typeof s.insightMatrix === 'object' ? s.insightMatrix : {};
+      var finalOracle = clean(s.finalOracle) || '오늘의 별빛은 이미 당신 안에서 조용히 방향을 잡고 있습니다.';
+      return {
+        title: clean(cf.title) || '오늘의 별빛 운세',
+        overall: clean(cf.overall) || (finalOracle + ' 지금의 운은 큰 결론보다 작은 조율을 먼저 비춥니다. 마음이 흔들리는 지점은 멈춤의 신호가 아니라 기준을 다시 세우라는 안내입니다. 오늘은 한 가지 약속을 끝까지 지킬 때 흐름이 차분하게 열립니다.'),
+        love: clean(cf.love) || clean(matrix.love) || '관계에서는 마음을 시험하기보다 필요한 감정을 한 문장으로 전하는 흐름이 좋습니다. 다정함과 경계를 함께 세울 때 인연의 결이 안정됩니다.',
+        work: clean(cf.work) || clean(matrix.work) || '일에서는 속도보다 순서가 운을 엽니다. 가장 부담스러운 일 하나를 작게 나누어 시작하면 막혀 있던 흐름이 다시 움직입니다.',
+        money: clean(cf.money) || clean(matrix.money) || '재물운은 확장보다 검증을 먼저 요구합니다. 작은 지출 패턴을 알아차릴 때 자원의 흐름이 단단해집니다.',
+        health: clean(cf.health) || clean(matrix.health) || '몸과 마음은 단순한 회복 의식을 원합니다. 수면, 호흡, 물 한 잔처럼 기본적인 리듬이 전체 운의 균형을 다시 세웁니다.'
+      };
+    }
+
+    function renderClosingFortune(summary){
+      var fortune = normalizeClosingFortune(summary);
+      var items = [
+        { k:'LOVE', v: fortune.love },
+        { k:'WORK', v: fortune.work },
+        { k:'MONEY', v: fortune.money },
+        { k:'HEALTH', v: fortune.health }
+      ];
+      return '<section class="closing-fortune">'+
+        '<p style="color:rgba(245,208,111,.76);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;font-family:monospace;margin:0 0 .35rem;">FINAL FORTUNE</p>'+
+        '<h4 class="shimmer-gold" style="font-size:clamp(1.15rem,2.2vw,1.55rem);font-weight:700;margin:0;">'+esc(fortune.title)+'</h4>'+
+        '<p class="closing-fortune__lead">'+esc(fortune.overall)+'</p>'+
+        '<div class="closing-fortune__grid">'+items.map(function(item){
+          return '<div class="closing-fortune__item"><div class="k">'+esc(item.k)+'</div><div class="v">'+esc(item.v)+'</div></div>';
+        }).join('')+'</div>'+
+      '</section>';
+    }
+
     function sanitizeReadingResult(raw){
-      if(raw && raw.summary && raw.summary.insightMatrix){
+      if(raw && raw.summary){
         raw.summary = raw.summary || {};
+        raw.summary.closingFortune = normalizeClosingFortune(raw.summary);
       }
       return raw;
     }
@@ -1083,6 +1170,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         { k:'MONEY', v: insightMatrix.money || '' },
         { k:'HEALTH', v: insightMatrix.health || '' },
       ].filter(function(item){ return !!clean(item.v); });
+      var closingFortuneHtml = renderClosingFortune(s);
       $goldSec.style.display='block';
       $goldCon.innerHTML='<div class="golden-card fade-rise" style="padding:2rem 1.6rem;">'+
         '<div class="golden-inner-border"></div>'+
@@ -1112,6 +1200,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             '<button type="button" class="summary-btn" id="copyOracleBtn">오라클 복사</button>'+
           '</div>'+
           '<p style="color:rgba(255,255,255,.35);font-size:.75rem;margin-top:1rem;">reportId: '+esc(payment.reportId||'')+' / transactionId: '+esc(payment.transactionId||'')+'</p>'+
+          closingFortuneHtml+
         '</div>'+
       '</div>';
 
@@ -1384,7 +1473,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       }
       localReadingUsed = false;
       localReadingReason = '';
-      return payload.result;
+      return sanitizeReadingResult(payload.result);
     }
 
     async function restoreFromApi(reportId, transactionId){

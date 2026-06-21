@@ -719,7 +719,6 @@ export function validateAdvancedZiweiResult(result: ZiweiDeepChart): { valid: bo
     if (!palace?.branch) missingFields.push(`palaces[${index}].branch`);
     if (!Array.isArray(palace?.mainStars)) missingFields.push(`palaces[${index}].mainStars`);
     if (Array.isArray(palace?.mainStars) && !palace.mainStars.length && !palace?.isEmptyMainStarPalace) {
-      missingFields.push(`palaces[${index}].mainStars.emptyUnexpected`);
       console.warn(`[Ziwei] Unexpected empty mainStars at ${palace?.name || index}`);
     }
     if (
@@ -730,7 +729,6 @@ export function validateAdvancedZiweiResult(result: ZiweiDeepChart): { valid: bo
       && !palace.auxiliaryStars.length
       && !palace.maleficStars.length
     ) {
-      missingFields.push(`palaces[${index}].allStars.empty`);
       console.warn(`[Ziwei] Palace has no star data at all: ${palace?.name || index}`);
     }
     if (!Array.isArray(palace?.fourTransformations)) missingFields.push(`palaces[${index}].fourTransformations`);

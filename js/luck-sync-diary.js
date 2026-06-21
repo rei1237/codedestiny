@@ -114,6 +114,47 @@
   };
   var GAN_LIST = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
   var ZHI_LIST = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var GAN_SOUND = {
+    '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
+    '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계'
+  };
+  var JI_SOUND = {
+    '子': '자', '丑': '축', '寅': '인', '卯': '묘', '辰': '진', '巳': '사',
+    '午': '오', '未': '미', '申': '신', '酉': '유', '戌': '술', '亥': '해'
+  };
+  var WEEKDAY_NAMES = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  var GANZHI_ELEMENT_COPY = {
+    wood: {
+      label: '목기',
+      point: '새로운 방향을 세우고 관계의 실마리를 부드럽게 틔우기 좋은 흐름이 드러납니다.',
+      use: ['새 계획 첫걸음', '연락과 제안 정리', '배움과 기록 시작'],
+      caution: ['무리한 확장', '말만 앞서는 약속', '방향을 자주 바꾸는 태도']
+    },
+    fire: {
+      label: '화기',
+      point: '표현력과 추진력이 살아나지만, 감정의 온도를 차분히 조율할수록 빛이 안정됩니다.',
+      use: ['발표와 공유', '미뤄둔 결정', '관계의 온기 회복'],
+      caution: ['성급한 판단', '말의 과열', '감정적으로 밀어붙이기']
+    },
+    earth: {
+      label: '토기',
+      point: '현실을 정리하고 흩어진 일을 한곳에 모으는 힘이 차분히 머무릅니다.',
+      use: ['미뤄둔 일 정리', '계약/문서 확인', '일정 구조화'],
+      caution: ['고집스러운 판단', '과한 책임 떠안기', '결정을 오래 미루기']
+    },
+    metal: {
+      label: '금기',
+      point: '기준을 세우고 불필요한 것을 덜어내는 감각이 또렷하게 떠오릅니다.',
+      use: ['규칙과 기준 정리', '문서 검토', '불필요한 지출 줄이기'],
+      caution: ['날카로운 말', '완벽주의 압박', '관계의 선을 급히 긋기']
+    },
+    water: {
+      label: '수기',
+      point: '생각이 깊어지고 흐름을 읽는 감각이 열리니, 서두르기보다 관찰이 힘이 됩니다.',
+      use: ['자료 조사', '감정 기록', '휴식과 회복'],
+      caution: ['걱정의 반복', '실행 미루기', '속마음을 너무 닫기']
+    }
+  };
 
   /* ─── 십성 계산 ─────────────────────────────────────────────── */
   var ELEM_LIST = ['wood','fire','earth','metal','water'];
@@ -146,31 +187,136 @@
     return null;
   }
 
-  /* ─── 날짜별 일진 계산 ─────────────────────────────────────────── */
-  function getGanZhiByDate(dt) {
-    var baseDate = (dt instanceof Date) ? dt : new Date();
-    var y = baseDate.getFullYear(), m = baseDate.getMonth() + 1, d = baseDate.getDate(), h = baseDate.getHours();
-    // 1순위: 사주 엔진 내장 함수 사용
-    if (typeof window.getGanZhiForDate === 'function') {
-      return window.getGanZhiForDate(y, m, d, h);
+  function _makeLocalNoonDate(year, monthIndex, day) {
+    return new Date(Number(year), Number(monthIndex), Number(day), 12, 0, 0, 0);
+  }
+
+  function _formatDateKeyParts(year, month, day) {
+    return String(year).padStart(4, '0') + '-' + _pad2(month) + '-' + _pad2(day);
+  }
+
+  function _parseDateKeyToDate(key) {
+    var match = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return null;
+    var y = Number(match[1]);
+    var m = Number(match[2]);
+    var d = Number(match[3]);
+    var dt = _makeLocalNoonDate(y, m - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+    return dt;
+  }
+
+  function _getSeoulDateParts(date) {
+    var baseDate = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    try {
+      var parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(baseDate);
+      var out = {};
+      parts.forEach(function (part) {
+        if (part.type !== 'literal') out[part.type] = Number(part.value);
+      });
+      if (out.year && out.month && out.day) return out;
+    } catch (e) {}
+    return {
+      year: baseDate.getFullYear(),
+      month: baseDate.getMonth() + 1,
+      day: baseDate.getDate()
+    };
+  }
+
+  function _normalizeGanjiPair(raw) {
+    if (raw && typeof raw === 'object') {
+      return _normalizeGanjiPair(String(raw.g || raw.gan || raw.stem || '') + String(raw.j || raw.ji || raw.branch || ''));
     }
-    // 2순위: KasiEngine.getGanji 사용
+    var text = String(raw || '').replace(/\s+/g, '');
+    var gan = '';
+    var ji = '';
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (!gan && GAN_SOUND[ch]) {
+        gan = ch;
+        continue;
+      }
+      if (!ji && JI_SOUND[ch]) {
+        ji = ch;
+        continue;
+      }
+      if (gan && ji) break;
+    }
+    return gan && ji ? (gan + ji) : '';
+  }
+
+  function _pillarFromGanji(pair) {
+    var normalized = _normalizeGanjiPair(pair);
+    var gan = normalized.charAt(0);
+    var ji = normalized.charAt(1);
+    return {
+      gan: gan,
+      ji: ji,
+      korean: (GAN_SOUND[gan] || gan || '') + (JI_SOUND[ji] || ji || ''),
+      hanja: normalized
+    };
+  }
+
+  function _readGanzhiFromEngineDate(dateObj) {
+    var baseDate = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
+    var y = baseDate.getFullYear();
+    var m = baseDate.getMonth() + 1;
+    var d = baseDate.getDate();
+    var h = baseDate.getHours();
+
     if (window.KasiEngine && typeof window.KasiEngine.getGanji === 'function') {
       try {
-        var gz = window.KasiEngine.getGanji(new Date(y, m - 1, d, h));
-        var iljin = gz && (gz.iljin || gz.day);
-        if (iljin && iljin.length >= 2) {
-          return { g: iljin[0], j: iljin[1] };
+        var gj = window.KasiEngine.getGanji(baseDate, { yaja: false, leapMonthOption: 'prev' });
+        var yearPair = _normalizeGanjiPair(gj && (gj.secha || gj.year));
+        var monthPair = _normalizeGanjiPair(gj && (gj.weolgeon || gj.month));
+        var dayPair = _normalizeGanjiPair(gj && (gj.iljin || gj.day));
+        if (yearPair && monthPair && dayPair) {
+          return {
+            year: yearPair,
+            month: monthPair,
+            day: dayPair,
+            source: gj.source || 'KasiEngine.getGanji'
+          };
         }
       } catch (e) {}
     }
-    // 3순위: 60갑자 사이클 수동 계산
-    // 기준: 2024-01-01 = 癸卯 일진 (갑자사이클 39번째, 0-indexed 39)
-    var base = Date.UTC(2024, 0, 1);
-    var cur  = Date.UTC(y, m - 1, d);
-    var diff = Math.round((cur - base) / 86400000);
-    var idx  = ((39 + diff) % 60 + 60) % 60;
-    return { g: GAN_LIST[idx % 10], j: ZHI_LIST[idx % 12] };
+
+    if (window.Solar && typeof window.Solar.fromYmdHms === 'function') {
+      try {
+        var solar = window.Solar.fromYmdHms(y, m, d, h || 12, 0, 0);
+        var eightChar = solar && solar.getLunar && solar.getLunar().getEightChar();
+        var directYear = eightChar && _normalizeGanjiPair(eightChar.getYear && eightChar.getYear());
+        var directMonth = eightChar && _normalizeGanjiPair(eightChar.getMonth && eightChar.getMonth());
+        var directDay = eightChar && _normalizeGanjiPair(eightChar.getDay && eightChar.getDay());
+        if (directYear && directMonth && directDay) {
+          return {
+            year: directYear,
+            month: directMonth,
+            day: directDay,
+            source: 'lunar-javascript EightChar'
+          };
+        }
+      } catch (e) {}
+    }
+
+    if (typeof window.getGanZhiForDate === 'function') {
+      try {
+        var dayOnly = _normalizeGanjiPair(window.getGanZhiForDate(y, m, d, h || 12));
+        if (dayOnly) return { year: '', month: '', day: dayOnly, source: 'getGanZhiForDate' };
+      } catch (e) {}
+    }
+
+    return null;
+  }
+
+  function getGanZhiByDate(dt) {
+    var info = _readGanzhiFromEngineDate(dt);
+    return info && info.day ? { g: info.day.charAt(0), j: info.day.charAt(1) } : null;
   }
 
   /* ─── 오늘 일진 계산 ─────────────────────────────────────────── */
@@ -242,7 +388,8 @@
     power: null,
     jong: null
   };
-  var _lsdMonthCalendarState = { year: 0, month: 0, selectedKey: '' };
+  var _lsdMonthCalendarState = { year: 0, month: 0, selectedKey: '', mode: 'diary' };
+  var _lsdGanzhiMonthCache = Object.create(null);
 
   function ensureEntryShape(entry) {
     if (!entry || typeof entry !== 'object') return;
@@ -384,10 +531,8 @@
     }
   }
   function getTodayKey() {
-    var now = new Date();
-    return now.getFullYear() + '-' +
-      String(now.getMonth() + 1).padStart(2, '0') + '-' +
-      String(now.getDate()).padStart(2, '0');
+    var now = _getSeoulDateParts(new Date());
+    return _formatDateKeyParts(now.year, now.month, now.day);
   }
   function getTodayEntry(diary) {
     var key = getTodayKey();
@@ -2646,6 +2791,102 @@
     return cells;
   }
 
+  function _getGanzhiMonthMap(year, monthIndex) {
+    var cacheKey = year + '-' + _pad2(monthIndex + 1);
+    if (_lsdGanzhiMonthCache[cacheKey]) return _lsdGanzhiMonthCache[cacheKey];
+    var daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    var map = Object.create(null);
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dt = _makeLocalNoonDate(year, monthIndex, d);
+      var key = _dateKeyFromDate(dt);
+      var info = _readGanzhiFromEngineDate(dt);
+      map[key] = {
+        year: info && info.year ? info.year : '',
+        month: info && info.month ? info.month : '',
+        day: info && info.day ? info.day : '',
+        source: info && info.source ? info.source : ''
+      };
+    }
+    _lsdGanzhiMonthCache[cacheKey] = map;
+    return map;
+  }
+
+  function _getGanzhiByDateKey(key) {
+    var dt = _parseDateKeyToDate(key);
+    if (!dt) return null;
+    var map = _getGanzhiMonthMap(dt.getFullYear(), dt.getMonth());
+    return map[key] || null;
+  }
+
+  function _buildDailyGanzhiCalendarDay(cell, selectedKey, todayKey) {
+    var info = _getGanzhiByDateKey(cell.key) || {};
+    return {
+      date: cell.key,
+      day: cell.day,
+      weekday: WEEKDAY_NAMES[cell.date.getDay()] || '',
+      isToday: cell.key === todayKey,
+      isSelected: cell.key === selectedKey,
+      yearPillar: _pillarFromGanji(info.year || ''),
+      monthPillar: _pillarFromGanji(info.month || ''),
+      dayPillar: _pillarFromGanji(info.day || ''),
+      source: info.source || ''
+    };
+  }
+
+  function _getPillarElement(pillar) {
+    if (!pillar) return '';
+    return GAN_ELEM[pillar.gan] || JI_ELEM[pillar.ji] || '';
+  }
+
+  function _buildGanzhiInsight(dayPillar) {
+    var stemElement = _getPillarElement({ gan: dayPillar && dayPillar.gan, ji: '' }) || 'earth';
+    var branchElement = _getPillarElement({ gan: '', ji: dayPillar && dayPillar.ji }) || stemElement;
+    var stemInfo = GANZHI_ELEMENT_COPY[stemElement] || GANZHI_ELEMENT_COPY.earth;
+    var branchInfo = GANZHI_ELEMENT_COPY[branchElement] || stemInfo;
+    var actionByElement = {
+      wood: '성장과 조율',
+      fire: '추진력',
+      earth: '현실 정리',
+      metal: '분별과 정돈',
+      water: '관찰과 회복'
+    };
+    var flowLabel = stemElement === branchElement
+      ? stemInfo.label
+      : stemInfo.label + '와 ' + branchInfo.label;
+    var actionLabel = stemElement === branchElement
+      ? actionByElement[stemElement]
+      : actionByElement[stemElement] + ', ' + actionByElement[branchElement];
+    return {
+      point: (dayPillar.korean || '오늘') + '일은 ' + flowLabel + '의 작용이 드러나는 날입니다. ' + actionLabel + '의 결을 무리 없이 이어갈 때 하루의 흐름이 안정됩니다.',
+      use: stemElement === branchElement ? stemInfo.use : stemInfo.use.slice(0, 2).concat(branchInfo.use.slice(0, 1)),
+      caution: stemElement === branchElement ? stemInfo.caution : stemInfo.caution.slice(0, 2).concat(branchInfo.caution.slice(0, 1))
+    };
+  }
+
+  function _renderGanzhiDetail(dayData) {
+    if (!dayData || !dayData.dayPillar || !dayData.dayPillar.hanja || !dayData.yearPillar.hanja || !dayData.monthPillar.hanja) {
+      return '<div class="lsd-ganzhi-detail-empty">사주 엔진을 준비하고 있습니다. 잠시 후 다시 열어주세요.</div>';
+    }
+    var insight = _buildGanzhiInsight(dayData.dayPillar);
+    var dateParts = String(dayData.date || '').split('-');
+    var dateLabel = Number(dateParts[0]) + '년 ' + Number(dateParts[1]) + '월 ' + Number(dateParts[2]) + '일 ' + dayData.weekday;
+    function list(items) {
+      return '<ul>' + items.map(function (item) { return '<li>' + escHtml(item) + '</li>'; }).join('') + '</ul>';
+    }
+    return ''
+      + '<div class="lsd-ganzhi-detail">'
+      + '<p class="lsd-ganzhi-kicker">선택 날짜</p>'
+      + '<h4>' + escHtml(dateLabel) + '</h4>'
+      + '<div class="lsd-ganzhi-pillars">'
+      + '<div><span>년주</span><b>' + escHtml(dayData.yearPillar.korean) + ' <em>' + escHtml(dayData.yearPillar.hanja) + '</em></b></div>'
+      + '<div><span>월주</span><b>' + escHtml(dayData.monthPillar.korean) + ' <em>' + escHtml(dayData.monthPillar.hanja) + '</em></b></div>'
+      + '<div><span>일주</span><b>' + escHtml(dayData.dayPillar.korean) + ' <em>' + escHtml(dayData.dayPillar.hanja) + '</em></b></div>'
+      + '</div>'
+      + '<div class="lsd-ganzhi-point"><b>오늘의 일진 포인트</b><p>' + escHtml(insight.point) + '</p></div>'
+      + '<div class="lsd-ganzhi-columns"><div><b>활용 포인트</b>' + list(insight.use) + '</div><div><b>주의 포인트</b>' + list(insight.caution) + '</div></div>'
+      + '</div>';
+  }
+
   function _ensureMonthCalendarState() {
     if (_lsdMonthCalendarState.year && (_lsdMonthCalendarState.month >= 0)) return;
     var now = new Date();
@@ -2664,11 +2905,27 @@
 
     var y = Number(_lsdMonthCalendarState.year);
     var m = Number(_lsdMonthCalendarState.month);
+    var mode = _lsdMonthCalendarState.mode === 'ganzhi' ? 'ganzhi' : 'diary';
     var monthPrefix = y + '-' + _pad2(m + 1);
     var todayKey = getTodayKey();
+    var monthCard = grid.closest ? grid.closest('.lsd-month-card') : null;
+    var guide = monthCard && monthCard.querySelector ? monthCard.querySelector('.lsd-month-guide') : null;
+    var legend = monthCard && monthCard.querySelector ? monthCard.querySelector('.lsd-month-legend') : null;
 
     if (label) label.textContent = String(y).slice(2) + '년 ' + (m + 1) + '월';
     if (histTitle) histTitle.textContent = (m + 1) + '월 운세 기록';
+    if (guide) {
+      guide.textContent = mode === 'ganzhi'
+        ? '입춘과 절입의 문턱을 따라 년·월·일의 글자가 차분히 놓입니다.'
+        : '기록이 있는 날짜와 하루 흐름을 단순하게 살펴봅니다.';
+    }
+    if (legend) legend.style.display = mode === 'ganzhi' ? 'none' : 'flex';
+    document.querySelectorAll('[data-lsd-calendar-mode]').forEach(function (btn) {
+      var active = btn.getAttribute('data-lsd-calendar-mode') === mode;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    grid.classList.toggle('is-ganzhi-mode', mode === 'ganzhi');
 
     var selectedKey = _lsdMonthCalendarState.selectedKey || '';
     if (!selectedKey || selectedKey.indexOf(monthPrefix + '-') !== 0) {
@@ -2684,16 +2941,41 @@
     grid.innerHTML = cells.map(function (cell) {
       var classes = ['lsd-month-cell'];
       var title = '';
+      var dayData = mode === 'ganzhi' ? _buildDailyGanzhiCalendarDay(cell, selectedKey, todayKey) : null;
       if (!cell.inMonth) {
         classes.push('is-muted');
+      } else if (mode === 'ganzhi') {
+        if (_hasDiaryRecord(diary[cell.key])) classes.push('is-recorded');
       } else {
         var snap = _classifyDayFromSaju(cell.date, pillars, power, jong);
         classes.push('is-' + snap.tone);
         title = snap.label + ' · 안정도 ' + snap.goodness + '점';
         if (_hasDiaryRecord(diary[cell.key])) classes.push('is-recorded');
       }
+      if (mode === 'ganzhi' && dayData && dayData.dayPillar.hanja) {
+        title = dayData.date + ' ' + dayData.weekday + ' · 년주 ' + dayData.yearPillar.hanja + ' · 월주 ' + dayData.monthPillar.hanja + ' · 일주 ' + dayData.dayPillar.hanja;
+      }
       if (cell.key === selectedKey) classes.push('is-selected');
       if (cell.key === todayKey) classes.push('is-today');
+      if (mode === 'ganzhi') classes.push('is-ganzhi');
+      function pillarLine(pillar, suffix) {
+        return pillar && pillar.hanja
+          ? '<span class="lsd-ganzhi-line">' + escHtml(pillar.hanja) + '<span class="lsd-ganzhi-suffix">' + suffix + '</span></span>'
+          : '<span class="lsd-ganzhi-line is-empty">—</span>';
+      }
+      if (mode === 'ganzhi') {
+        return ''
+          + '<button type="button" class="' + classes.join(' ') + '" data-month-day="' + cell.key + '" data-in-month="' + (cell.inMonth ? '1' : '0') + '"'
+          + (title ? (' title="' + escHtml(title) + '"') : '') + '>'
+          + '  <span class="lsd-month-day-no">' + cell.day + '</span>'
+          + '  <span class="lsd-month-ganzhi-lines">'
+          + pillarLine(dayData.yearPillar, '年')
+          + pillarLine(dayData.monthPillar, '月')
+          + pillarLine(dayData.dayPillar, '日')
+          + '  </span>'
+          + '  <span class="lsd-month-record-dot"></span>'
+          + '</button>';
+      }
       return ''
         + '<button type="button" class="' + classes.join(' ') + '" data-month-day="' + cell.key + '" data-in-month="' + (cell.inMonth ? '1' : '0') + '"'
         + (title ? (' title="' + escHtml(title) + '"') : '') + '>'
@@ -2703,15 +2985,23 @@
     }).join('');
 
     if (hint) {
-      var selectedDate = new Date(selectedKey + 'T12:00:00');
-      var selectedSnap = _classifyDayFromSaju(selectedDate, pillars, power, jong);
-      var selectedEntry = diary[selectedKey] || null;
-      var memo = selectedEntry ? (selectedEntry.practiceNote || selectedEntry.nightLog || selectedEntry.memoNote || '') : '';
-      hint.innerHTML = ''
-        + '<strong>' + escHtml(selectedKey) + '</strong> · '
-        + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
-        + ' · 안정도 ' + selectedSnap.goodness + '점'
-        + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '');
+      var selectedDate = _parseDateKeyToDate(selectedKey);
+      hint.classList.toggle('is-ganzhi-detail', mode === 'ganzhi');
+      if (mode === 'ganzhi') {
+        var selectedDayData = selectedDate
+          ? _buildDailyGanzhiCalendarDay({ day: selectedDate.getDate(), date: selectedDate, key: selectedKey }, selectedKey, todayKey)
+          : null;
+        hint.innerHTML = _renderGanzhiDetail(selectedDayData);
+      } else if (selectedDate) {
+        var selectedSnap = _classifyDayFromSaju(selectedDate, pillars, power, jong);
+        var selectedEntry = diary[selectedKey] || null;
+        var memo = selectedEntry ? (selectedEntry.practiceNote || selectedEntry.nightLog || selectedEntry.memoNote || '') : '';
+        hint.innerHTML = ''
+          + '<strong>' + escHtml(selectedKey) + '</strong> · '
+          + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
+          + ' · 안정도 ' + selectedSnap.goodness + '점'
+          + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '');
+      }
     }
   }
 
@@ -3310,6 +3600,8 @@
         '.lsd-diary-lines{background:#fffdf8;line-height:1.7;padding:11px 12px;box-shadow:inset 0 0 0 1px rgba(240,214,232,.7);background-image:repeating-linear-gradient(to bottom,transparent,transparent 28px,rgba(232,205,222,.55) 28px,rgba(232,205,222,.55) 29px)}.lsd-save-row{padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.lsd-save-night-btn{padding:10px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#ff7ab6,#8b5cf6);color:#fff;font-size:.76rem;font-weight:950;cursor:pointer;box-shadow:0 9px 20px rgba(217,70,158,.24);transition:all .2s}.lsd-save-night-btn:hover{transform:translateY(-1px)}',
         '.lsd-sats-playlist{display:grid;gap:8px;max-height:248px;overflow:auto;padding-right:2px;scrollbar-width:thin}.lsd-sats-track{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:8px;transition:all .2s}.lsd-sats-thumb{width:56px;height:42px;flex-shrink:0;border-radius:10px;object-fit:cover;background:#0f172a}.lsd-sats-track-title{font-size:.72rem;font-weight:900;color:#0f172a;margin:0;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.lsd-sats-track-channel{font-size:.64rem;color:#64748b;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lsd-sats-track-license{font-size:.6rem;color:#4f46e5;margin:3px 0 0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lsd-sats-play-btn{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 10px;font-size:.66rem;font-weight:900;color:#0f172a;cursor:pointer;flex-shrink:0}',
         '.lsd-month-card{background:#fff;border-radius:18px;padding:14px 14px 12px;box-shadow:0 10px 24px rgba(15,23,42,.05);border:1px solid #e2e8f0;margin-bottom:12px}.lsd-month-guide{margin:10px 0 10px;font-size:.78rem;color:#475569;line-height:1.5}.lsd-month-legend{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.lsd-month-pill{border-radius:999px;padding:6px 10px;font-size:.66rem;font-weight:900;line-height:1}.lsd-month-pill.vg,.lsd-month-pill.g,.lsd-month-pill.n,.lsd-month-pill.b,.lsd-month-pill.vb{background:#f1f5f9;color:#475569}.lsd-month-pill.record{background:#eef2ff;color:#4f46e5}.lsd-month-cell{height:40px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#0f172a}.lsd-month-cell.is-very-good{background:#ecfdf5;color:#047857}.lsd-month-cell.is-good{background:#eff6ff;color:#1d4ed8}.lsd-month-cell.is-normal{background:#f8fafc;color:#475569}.lsd-month-cell.is-bad{background:#fff7ed;color:#c2410c}.lsd-month-cell.is-very-bad{background:#fff1f2;color:#be123c}.lsd-month-cell.is-selected{box-shadow:0 0 0 2px #93c5fd}.lsd-month-cell.is-recorded .lsd-month-record-dot{opacity:1}.lsd-month-record-dot{background:#6366f1}',
+        '.lsd-month-mode-toggle{display:inline-flex;gap:4px;margin-top:10px;padding:4px;border:1px solid rgba(139,92,246,.2);border-radius:999px;background:linear-gradient(135deg,#f8f5ff,#fff7fb);box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}.lsd-month-mode-btn{border:none;border-radius:999px;background:transparent;color:#6b4b7d;padding:8px 12px;font-size:.7rem;font-weight:950;cursor:pointer;white-space:nowrap}.lsd-month-mode-btn.is-active{background:linear-gradient(135deg,#4c1d95,#8b5cf6);color:#fff;box-shadow:0 8px 18px rgba(76,29,149,.24)}.lsd-month-body{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(230px,.94fr);gap:12px;align-items:start}.lsd-month-calendar-wrap{min-width:0}.lsd-month-grid.is-ganzhi-mode{gap:6px}.lsd-month-cell.is-ganzhi{height:76px;align-items:flex-start;justify-content:flex-start;flex-direction:column;padding:7px 6px;gap:4px;text-align:left;background:linear-gradient(160deg,#fff,#f8f5ff);border-color:#ddd6fe;box-sizing:border-box;overflow:hidden}.lsd-month-cell.is-ganzhi.is-muted{background:#f8fafc;color:#a1a1aa;border-color:#eef2ff}.lsd-month-cell.is-ganzhi.is-today{border-color:#facc15;background:linear-gradient(160deg,#fff8db,#f7edff)}.lsd-month-cell.is-ganzhi.is-selected{box-shadow:0 0 0 2px #a78bfa,0 8px 18px rgba(124,58,237,.16)}.lsd-month-cell.is-ganzhi .lsd-month-day-no{font-size:.72rem;font-weight:950;color:#4c1d95}.lsd-month-ganzhi-lines{display:grid;gap:1px;width:100%;font-family:"Noto Serif CJK KR","Songti SC","Yu Mincho","Malgun Gothic",serif}.lsd-ganzhi-line{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.66rem;line-height:1.08;font-weight:900;color:#251238;letter-spacing:0}.lsd-ganzhi-line.is-empty{color:#a1a1aa}.lsd-ganzhi-suffix{color:#7c3aed;margin-left:1px}.lsd-month-hint.is-ganzhi-detail{margin-top:0;padding:0;border:none;background:transparent;color:inherit}.lsd-ganzhi-detail{min-height:100%;border:1px solid rgba(196,181,253,.42);border-radius:18px;padding:14px;background:radial-gradient(circle at 88% 8%,rgba(250,204,21,.16),transparent 32%),linear-gradient(160deg,#211047,#3d1a68 58%,#111827);color:#f8f5ff;box-shadow:0 16px 34px rgba(31,16,70,.22)}.lsd-ganzhi-kicker{margin:0 0 5px;font-size:.62rem;font-weight:950;letter-spacing:.14em;color:#facc15;text-transform:uppercase}.lsd-ganzhi-detail h4{margin:0 0 11px;font-size:.94rem;line-height:1.35;color:#fff;font-weight:950}.lsd-ganzhi-pillars{display:grid;gap:7px;margin-bottom:12px}.lsd-ganzhi-pillars div{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);border-radius:12px;padding:8px 10px}.lsd-ganzhi-pillars span{font-size:.68rem;font-weight:900;color:#ddd6fe}.lsd-ganzhi-pillars b{font-size:.82rem;color:#fff;font-weight:950}.lsd-ganzhi-pillars em{font-style:normal;color:#facc15;margin-left:4px}.lsd-ganzhi-point{border-top:1px solid rgba(255,255,255,.14);padding-top:11px}.lsd-ganzhi-point b,.lsd-ganzhi-columns b{display:block;font-size:.72rem;color:#fef3c7;margin-bottom:5px}.lsd-ganzhi-point p{margin:0;font-size:.75rem;line-height:1.62;color:#ede9fe}.lsd-ganzhi-columns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}.lsd-ganzhi-columns ul{margin:0;padding-left:18px;color:#e0e7ff;font-size:.72rem;line-height:1.55}.lsd-ganzhi-detail-empty{border:1px dashed #c4b5fd;border-radius:16px;padding:16px;background:#faf5ff;color:#6d28d9;font-size:.76rem;font-weight:900;line-height:1.5}',
+        '@media(max-width:760px){.lsd-month-mode-toggle{display:flex;width:100%;box-sizing:border-box}.lsd-month-mode-btn{flex:1;padding:8px 7px;font-size:.68rem}.lsd-month-body{grid-template-columns:1fr}.lsd-month-grid.is-ganzhi-mode{gap:5px}.lsd-month-cell.is-ganzhi{height:66px;padding:5px 4px;gap:2px}.lsd-month-cell.is-ganzhi .lsd-month-day-no{font-size:.66rem}.lsd-ganzhi-line{font-size:.56rem;line-height:1.04}.lsd-ganzhi-suffix{display:none}.lsd-ganzhi-detail{padding:12px}.lsd-ganzhi-pillars div{padding:7px 9px}.lsd-ganzhi-pillars b{font-size:.78rem}}',
         '.lsd-empty-state{text-align:center;border:1px dashed #cbd5e1;background:linear-gradient(135deg,#ffffff,#f8fbff);border-radius:18px;padding:28px 18px;color:#475569}.lsd-empty-state-mark{width:44px;height:44px;border-radius:999px;background:#eef2ff;color:#4f46e5;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-weight:950}.lsd-empty-state-title{margin:0 0 5px;font-size:.9rem;font-weight:950;color:#0f172a}.lsd-empty-state-copy{margin:0 auto 14px;max-width:300px;font-size:.76rem;line-height:1.5}.lsd-empty-state-btn{border:none;border-radius:999px;padding:10px 15px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:0 9px 20px rgba(14,165,233,.23)}',
         '.lsd-local-policy{margin:14px 14px 0;border:1px solid #bfdbfe;background:linear-gradient(135deg,#ffffff,#eff6ff 60%,#f5f3ff);border-radius:18px;padding:12px 13px;box-shadow:0 8px 22px rgba(59,130,246,.07);color:#334155}.lsd-local-policy-title{margin:0 0 5px;font-size:.76rem;font-weight:950;color:#1d4ed8}.lsd-local-policy-copy{margin:0;font-size:.72rem;line-height:1.55;font-weight:750}.lsd-local-policy-note{display:block;margin-top:5px;color:#64748b;font-weight:800}',
         '.lsd-pwa-card{margin:10px 14px 0;border:1px solid #c7d2fe;background:linear-gradient(135deg,#ffffff,#f5f3ff 62%,#ecfeff);border-radius:18px;padding:13px;box-shadow:0 10px 24px rgba(99,102,241,.08);color:#1e293b}.lsd-pwa-card.is-locked{background:#fff;border-style:dashed;color:#64748b}.lsd-pwa-card.is-installed{border-color:#99f6e4;background:linear-gradient(135deg,#f0fdfa,#ffffff)}.lsd-pwa-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.lsd-pwa-title{margin:0;font-size:.78rem;font-weight:950;color:#312e81}.lsd-pwa-status{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#4338ca;padding:5px 9px;font-size:.64rem;font-weight:950;white-space:nowrap}.lsd-pwa-card.is-locked .lsd-pwa-title{color:#64748b}.lsd-pwa-card.is-locked .lsd-pwa-status{background:#f1f5f9;color:#64748b}.lsd-pwa-copy{margin:7px 0 0;font-size:.73rem;line-height:1.55;font-weight:800;color:#334155}.lsd-pwa-note{margin:5px 0 0;font-size:.7rem;line-height:1.45;color:#64748b;font-weight:800}.lsd-pwa-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lsd-pwa-install-btn,.lsd-pwa-guide-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:9px 13px;font-size:.72rem;font-weight:950;cursor:pointer}.lsd-pwa-install-btn{border:none;background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;box-shadow:0 9px 18px rgba(79,70,229,.22)}.lsd-pwa-guide-btn{border:1px solid #bfdbfe;background:#fff;color:#1d4ed8}',
@@ -3563,6 +3855,10 @@
       '<div class="lsd-month-title" id="lsdMonthLabel">26년 5월</div>',
       '<button id="lsdNextMonthBtn" type="button" class="lsd-month-nav" aria-label="다음 달">›</button>',
       '</div>',
+      '<div class="lsd-month-mode-toggle" role="group" aria-label="달력 보기 전환">',
+      '<button type="button" class="lsd-month-mode-btn is-active" data-lsd-calendar-mode="diary" aria-pressed="true">다이어리 모드</button>',
+      '<button type="button" class="lsd-month-mode-btn" data-lsd-calendar-mode="ganzhi" aria-pressed="false">일진 달력</button>',
+      '</div>',
       '<p class="lsd-month-guide">기록이 있는 날짜와 하루 흐름을 단순하게 살펴봅니다.</p>',
       '<div class="lsd-month-legend">',
       '<span class="lsd-month-pill record">기록</span>',
@@ -3572,9 +3868,13 @@
       '<span class="lsd-month-pill b">주의</span>',
       '<span class="lsd-month-pill vb">강한 주의</span>',
       '</div>',
+      '<div class="lsd-month-body">',
+      '<div class="lsd-month-calendar-wrap">',
       '<div class="lsd-month-week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>',
       '<div id="lsdMonthCalendarGrid" class="lsd-month-grid"></div>',
+      '</div>',
       '<div id="lsdMonthSelectedHint" class="lsd-month-hint"></div>',
+      '</div>',
       '<button id="lsdPredictFromCalendarBtn" type="button" class="lsd-month-cta">+ 나의 운세 예측하기</button>',
       '</div>',
       '<div class="lsd-history-head">',
@@ -3595,6 +3895,20 @@
 
   /* ─── 모달 오픈 ──────────────────────────────────────────────── */
   function openDiary() {
+    if (!openDiary.__coreFailed && !(window.Solar && typeof window.Solar.fromYmdHms === 'function') && typeof window.__cdEnsureSajuCoreLoaded === 'function') {
+      if (openDiary.__loadingCore) return openDiary.__loadingCore;
+      openDiary.__loadingCore = window.__cdEnsureSajuCoreLoaded().then(function () {
+        openDiary.__loadingCore = null;
+        return openDiary();
+      }).catch(function (err) {
+        openDiary.__loadingCore = null;
+        openDiary.__coreFailed = true;
+        console.warn('[LuckSyncDiary] saju core load failed:', err);
+        return openDiary();
+      });
+      return openDiary.__loadingCore;
+    }
+
     buildModal();
     ensureMzBlocks();
     var modal = document.getElementById('luckSyncDiaryModal');
@@ -3604,7 +3918,8 @@
     document.body.style.overflow = 'hidden';
 
     /* 오늘 날짜 */
-    var now  = new Date();
+    var seoulToday = _getSeoulDateParts(new Date());
+    var now = _makeLocalNoonDate(seoulToday.year, seoulToday.month - 1, seoulToday.day);
     var days = ['일','월','화','수','목','금','토'];
     _lsdMonthCalendarState.year = now.getFullYear();
     _lsdMonthCalendarState.month = now.getMonth();
@@ -3787,6 +4102,13 @@
       return;
     }
     modal.__lsdEventsBound = true;
+
+    modal.querySelectorAll('[data-lsd-calendar-mode]').forEach(function (btn) {
+      btn.onclick = function () {
+        _lsdMonthCalendarState.mode = btn.getAttribute('data-lsd-calendar-mode') === 'ganzhi' ? 'ganzhi' : 'diary';
+        renderMonthCalendar(loadDiary());
+      };
+    });
 
     /* 탭 */
     var tabs = Array.prototype.slice.call(modal.querySelectorAll('.lsd-tab'));
@@ -4151,7 +4473,13 @@
     if (predictBtn) predictBtn.onclick = function () {
       _ensureMonthCalendarState();
       var key = _lsdMonthCalendarState.selectedKey || getTodayKey();
-      var dt = new Date(key + 'T12:00:00');
+      var dt = _parseDateKeyToDate(key);
+      if (!dt) return;
+      if (_lsdMonthCalendarState.mode === 'ganzhi') {
+        var dayData = _buildDailyGanzhiCalendarDay({ day: dt.getDate(), date: dt, key: key }, key, getTodayKey());
+        alert(key + ' 일진: 년주 ' + dayData.yearPillar.hanja + ' · 월주 ' + dayData.monthPillar.hanja + ' · 일주 ' + dayData.dayPillar.hanja);
+        return;
+      }
       var snap = _classifyDayFromSaju(dt, _lsdCtx.pillars, _lsdCtx.power, _lsdCtx.jong);
       alert(key + ' 예상 흐름: ' + snap.label + ' · 안정도 ' + snap.goodness + '점');
       switchTab('dashboard');

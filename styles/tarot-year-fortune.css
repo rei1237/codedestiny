@@ -1191,6 +1191,111 @@
   margin: 0;
 }
 
+.ty-ai-prompt-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  margin-bottom: 32px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 215, 0, 0.16), transparent 34%),
+    radial-gradient(circle at 90% 0%, rgba(136, 19, 55, 0.38), transparent 38%),
+    linear-gradient(165deg, rgba(32, 6, 12, 0.96), rgba(84, 13, 28, 0.86));
+  border: 3px solid rgba(212, 175, 55, 0.46);
+  box-shadow:
+    0 0 50px rgba(212, 175, 55, 0.14),
+    inset 0 0 60px rgba(212, 175, 55, 0.06);
+  animation: tyFadeUp 0.6s ease 0.48s both;
+}
+.ty-ai-prompt-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 248, 220, 0.18), transparent),
+    repeating-linear-gradient(135deg, rgba(212,175,55,0.06) 0 1px, transparent 1px 12px);
+}
+.ty-ai-prompt-panel > * {
+  position: relative;
+  z-index: 1;
+}
+.ty-ai-prompt-kicker {
+  margin: 0;
+  color: rgba(255, 248, 220, 0.78);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+.ty-ai-prompt-title {
+  margin: 8px 0 0;
+  color: var(--ty-gold);
+  font-size: 1.18rem;
+  font-weight: 900;
+  text-shadow: 0 0 24px rgba(212, 175, 55, 0.38);
+}
+.ty-ai-prompt-lead {
+  margin: 12px 0 0;
+  color: rgba(255, 248, 220, 0.9);
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+.ty-ai-prompt-output {
+  width: 100%;
+  min-height: 250px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  resize: vertical;
+  border-radius: 18px;
+  border: 2px solid rgba(212, 175, 55, 0.34);
+  background: rgba(15, 4, 8, 0.78);
+  color: rgba(255, 248, 220, 0.96);
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.85;
+  outline: none;
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.35);
+}
+.ty-ai-prompt-output:focus {
+  border-color: rgba(255, 215, 0, 0.62);
+  box-shadow:
+    0 0 0 3px rgba(212, 175, 55, 0.12),
+    inset 0 0 28px rgba(0, 0, 0, 0.35);
+}
+.ty-ai-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.ty-ai-prompt-copy {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 2px solid var(--ty-gold);
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--ty-red-deep), var(--ty-crimson));
+  color: var(--ty-gold-bright);
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.ty-ai-prompt-copy:hover {
+  transform: translateY(-2px);
+  border-color: var(--ty-gold-bright);
+  box-shadow: 0 0 34px rgba(212, 175, 55, 0.42);
+}
+.ty-ai-prompt-status {
+  min-height: 1.2em;
+  color: rgba(255, 248, 220, 0.76);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+.ty-ai-prompt-status[data-state="success"] { color: var(--ty-gold-bright); }
+.ty-ai-prompt-status[data-state="warn"] { color: #fca5a5; }
+
 /* ─── 액션 버튼 ─── */
 .ty-result-actions {
   display: flex;
@@ -1454,6 +1559,34 @@
   .ty-advice-text {
     font-size: 0.88rem;
     line-height: 1.65;
+  }
+  .ty-ai-prompt-panel {
+    padding: 14px;
+    border-width: 2px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .ty-ai-prompt-title {
+    font-size: 0.98rem;
+  }
+  .ty-ai-prompt-lead {
+    font-size: 0.84rem;
+    line-height: 1.7;
+  }
+  .ty-ai-prompt-output {
+    min-height: 190px;
+    max-height: 38dvh;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    border-radius: 12px;
+  }
+  .ty-ai-prompt-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ty-ai-prompt-copy {
+    width: 100%;
   }
   .ty-result-actions {
     display: grid;

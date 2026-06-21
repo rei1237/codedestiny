@@ -77,7 +77,11 @@ assert.match(destinyProfileSource, /PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-c
 assert.match(destinyProfileSource, /featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY/, "profile card actions must pass featureKey into billing gate");
 assert.match(destinyProfileSource, /\/api\/billing\/coin-gate/, "common paid gate must use worker billing coin-gate");
 
-for (const featureKey of Object.keys(FEATURE_KEY_PRICE_TABLE)) {
+for (const [featureKey, entry] of Object.entries(FEATURE_KEY_PRICE_TABLE)) {
+  if (Number(entry?.cost) <= 0) {
+    assert.equal(getPaidFeatureBillingType(featureKey), "", `${featureKey} must not be classified as paid when priced free`);
+    continue;
+  }
   assert.ok(getPaidFeatureBillingType(featureKey), `${featureKey} must have a billing type`);
 }
 
@@ -94,7 +98,6 @@ for (const featureKey of [
   "tarot-prompt-maker",
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",
-  "sukuyo_ai_prompt_generator",
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
   "profile-card-manage",
@@ -105,6 +108,11 @@ for (const featureKey of [
   assert.equal(isPerUsePaidFeatureKey(featureKey), true, `${featureKey} must be per-use paid`);
   assert.equal(isUnlockPaidFeatureKey(featureKey), false, `${featureKey} must not persist unlock entitlement`);
 }
+
+assert.equal(FEATURE_KEY_PRICE_TABLE.sukuyo_ai_prompt_generator?.cost, 0, "sukuyo_ai_prompt_generator must stay free");
+assert.equal(getPaidFeatureBillingType("sukuyo_ai_prompt_generator"), "", "sukuyo_ai_prompt_generator must not be billed as paid");
+assert.equal(isPerUsePaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not be per-use paid");
+assert.equal(isUnlockPaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not persist unlock entitlement");
 
 for (const featureKey of [
   "section_daewun",

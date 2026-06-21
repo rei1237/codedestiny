@@ -388,6 +388,97 @@ function relationshipSignals(cards: DrawnTarotCard[], analysis: SpreadAnalysis) 
   return lines;
 }
 
+function lenormandCardLine(card: DrawnTarotCard | null) {
+  if (!card) return "해당 카드 없음";
+  return `${card.positionLabel}의 ${card.cardNameKo}`;
+}
+
+function buildLenormandPairLines(cards: DrawnTarotCard[]) {
+  return cards.slice(0, -1).map((card, index) => {
+    const next = cards[index + 1];
+    return `${card.cardNameKo} + ${next.cardNameKo}: ${card.focus}에서 ${next.focus}로 이어지는 흐름을 한 문장처럼 읽습니다.`;
+  });
+}
+
+export function buildLenormandPrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[]): OraclePromptResult {
+  const effectiveQuestion = ensureText(question) || "지금 보고 싶은 상황에서 가장 먼저 확인해야 할 흐름과 행동 단서는 무엇일까?";
+  const cardFlow = drawnCards.map((card) => `${card.positionLabel}의 ${card.cardNameKo}`).join(", ");
+  const cardDigest = drawnCards.map((card, index) => [
+    `${index + 1}. ${card.positionLabel} - ${card.positionDescription}`,
+    `카드: ${card.cardNameKo}`,
+    `핵심 단서: ${toUnique([...card.keywords, card.focus]).join(" | ")}`,
+  ].join("\n"));
+  const pairLines = buildLenormandPairLines(drawnCards);
+  const guidance = [
+    "레노먼드는 카드를 한 장씩 고립해 보기보다 인접 카드와 조합을 문장처럼 이어 읽습니다.",
+    "타로식 역방향을 쓰지 않고 카드의 순서, 거리, 반복되는 신호를 기준으로 해석합니다.",
+    "결과를 단정형 예언으로 고정하지 말고 현재 흐름, 반복 패턴, 다음 행동 후보로 나누어 읽습니다.",
+    "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리한 뒤 카드의 흐름을 연결합니다.",
+    "좋고 나쁨을 판정하기보다 어떤 행동을 줄이거나 늘릴지 확인합니다.",
+    "의료, 법률, 재무처럼 손실이 큰 결정은 이 리딩만으로 확정하지 말고 참고 자료로 표현합니다.",
+  ];
+  const summary = `${spread.title} 안에 ${cardFlow} 흐름이 놓였습니다. 6장의 인접 조합을 따라 현재 상황, 반복 신호, 행동 단서가 차례로 드러납니다.`;
+  const prompt = [
+    "당신은 실제 고객을 상담하는 전문 레노먼드 리더입니다.",
+    "",
+    "고객의 질문은 다음과 같습니다.",
+    "",
+    "[고객 질문]",
+    effectiveQuestion,
+    "",
+    "질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.",
+    "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다.",
+    "",
+    "[전통과 이야기]",
+    "레노먼드는 19세기 프랑스의 점술가 마드무아젤 르노르망과 연결되어 널리 알려진 36장 카드 전통입니다.",
+    "",
+    "[입력 전 체크]",
+    "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리합니다. 레노먼드는 출생시간보다 질문의 초점과 산출된 카드 순서가 중요합니다.",
+    "",
+    "[사용한 배열]",
+    `배열: ${spread.title}`,
+    `카드 수: ${spread.cardCount}`,
+    `배열 목적: ${spread.purpose}`,
+    "",
+    "[6장 레노먼드 카드]",
+    ...cardDigest,
+    "",
+    "[인접 카드 조합]",
+    ...pairLines.map((line) => `- ${line}`),
+    "",
+    "[전체 흐름 단서]",
+    `- 첫 카드: ${lenormandCardLine(drawnCards[0] || null)}`,
+    `- 중심 카드: ${lenormandCardLine(drawnCards[Math.floor(drawnCards.length / 2)] || null)}`,
+    `- 마지막 카드: ${lenormandCardLine(drawnCards[drawnCards.length - 1] || null)}`,
+    "",
+    "[해석 기준]",
+    ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
+    "",
+    "[출력 형식]",
+    "아래 순서로 실제 레노먼드 상담 결과를 작성하세요.",
+    "",
+    "1. 질문 범위와 지금 확인해야 할 포인트",
+    "2. 6장이 이어 만드는 한 문장 흐름",
+    "3. 인접 카드 조합별 해석",
+    "4. 반복되는 신호와 줄여야 할 행동",
+    "5. 늘리면 좋은 행동 단서 2~3가지",
+    "6. 판단을 정리하는 마지막 한마디",
+    "",
+    "[목소리]",
+    "문체는 전문적이고 신뢰감 있는 레노먼드 상담체로 작성하세요.",
+    "카드 이름을 기계적으로 나열하지 말고, 인접 카드가 이어지는 문장을 따라 질문자의 현실에 닿게 말하세요.",
+    "단정적인 예언보다 지금 드러난 흐름, 반복 패턴, 선택 가능한 행동을 선명하게 비추세요.",
+  ].join("\n");
+
+  return {
+    prompt,
+    summary,
+    cardDigest,
+    guidance,
+    effectiveQuestion,
+  };
+}
+
 export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[], options: OraclePromptOptions = {}): OraclePromptResult {
   const questionCategory = options.questionCategory || spread.category;
   const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[questionCategory];
