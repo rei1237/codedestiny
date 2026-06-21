@@ -18,7 +18,7 @@ export type Track = {
   lyricsLookupKey?: string;
 };
 
-type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "lunabloom";
+type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom";
 
 type ArtistConfig = {
   artistKey: ArtistKey;
@@ -156,6 +156,31 @@ const artistAudioManifests = [
       "자미제왕 컴백.wav",
       "천동성 힐링남.mp3",
       "편관의 궤도.wav",
+    ],
+  },
+  {
+    artistKey: "dest1nova",
+    folder: "DEST1NOVA/DEST1NOVA 2집",
+    fallbackCoverFileName: "DEST1NOVA2.webp",
+    coverFileNames: ["DEST1NOVA2.webp"],
+    audioFileNames: [
+      "ANDROMEDA.mp3",
+      "Burn My Fate.mp3",
+      "CONSTELLATION.mp3",
+      "Fatal Code feat. yeoni.mp3",
+      "Fate Rider.mp3",
+      "Golden Kindness.mp3",
+      "HEAVEN LIGHT.mp3",
+      "LUCKY RUSH_Title.mp3",
+      "Milky Way Angle.mp3",
+      "STARLINE.mp3",
+      "Scarlet Orbit.mp3",
+      "Starry Way.mp3",
+      "saju Destiny.mp3",
+      "달의 인력.mp3",
+      "별이 될 거야.mp3",
+      "불꽃의 운명.mp3",
+      "은하수 아래.mp3",
     ],
   },
   {

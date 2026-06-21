@@ -304,6 +304,62 @@ const PSYCH_INFO_SECTIONS = [
   },
 ];
 
+const PREMIUM_HUB_NAV = [
+  { id: "generic", label: "종합 프롬프트", note: "맞춤형" },
+  { id: "yukhyo", label: "육효", note: "삼전기괘" },
+  { id: "psych", label: "심리테스트", note: "마음결" },
+  { id: "kusei", label: "구성기학", note: "본명성" },
+  { id: "horary", label: "호라리", note: "질문 시각" },
+  { id: "meihua", label: "매화역수", note: "본괘 흐름" },
+  { id: "dangsaju", label: "당사주", note: "12성" },
+  { id: "lite", label: "기본 운세", note: "4종" },
+] as const;
+
+type PremiumPromptToolId = (typeof PREMIUM_HUB_NAV)[number]["id"];
+
+const ACTIVE_TOOL_STAGE_COPY: Record<PremiumPromptToolId, { title: string; description: string; flow: string }> = {
+  generic: {
+    title: "종합 운세 프롬프트",
+    description: "사주, 타로, 점성술, 상징 해석의 흐름을 하나의 상담 문장으로 정리합니다.",
+    flow: "기본 정보 → 질문 정리 → 복사",
+  },
+  yukhyo: {
+    title: "무료 육효 프롬프트",
+    description: "삼전기괘로 여섯 효를 세우고, 실제 산출값을 담은 상담 프롬프트를 만듭니다.",
+    flow: "질문 입력 → 기괘 → 산출값 반영",
+  },
+  psych: {
+    title: "심리테스트 기반 프롬프트",
+    description: "짧은 마음결 테스트 결과를 바탕으로 AI 상담에 바로 쓸 프롬프트를 엽니다.",
+    flow: "테스트 선택 → 답변 → 프롬프트",
+  },
+  kusei: {
+    title: "무료 구성기학 리딩 프롬프트",
+    description: "본명성, 월명성, 오행 관계와 현재 흐름을 계산해 리딩 문장으로 정리합니다.",
+    flow: "생년월일 → 9성 계산 → 흐름 정리",
+  },
+  horary: {
+    title: "무료 호라리 프롬프트",
+    description: "질문이 선명해진 순간의 시간과 위치를 기준으로 호라리 상담 프롬프트를 만듭니다.",
+    flow: "질문 → 위치 → 현재 시각",
+  },
+  meihua: {
+    title: "무료 매화역수 프롬프트",
+    description: "본괘, 호괘, 변괘와 체용 관계를 계산해 선택의 전환점을 살핍니다.",
+    flow: "입력값 → 괘 계산 → 프롬프트",
+  },
+  dangsaju: {
+    title: "무료 당사주 프롬프트",
+    description: "초년부터 말년까지 이어지는 12성 흐름을 정리해 상담 문장으로 엮습니다.",
+    flow: "출생정보 → 12성 → 흐름 요약",
+  },
+  lite: {
+    title: "무료 기본 운세 프롬프트",
+    description: "간단한 사주, 베다점, 점성술, 숙요점의 핵심 단서를 가볍게 정리합니다.",
+    flow: "모드 선택 → 단서 정리 → 복사",
+  },
+};
+
 const TRIGRAMS: Record<string, { name: string; symbol: string }> = {
   "111": { name: "건", symbol: "☰" },
   "110": { name: "태", symbol: "☱" },
@@ -684,6 +740,7 @@ async function copyTextToClipboard(text: string) {
 }
 
 export default function ComprehensivePromptHubPage() {
+  const [activePromptTool, setActivePromptTool] = useState<PremiumPromptToolId>("generic");
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>("all");
   const [topic, setTopic] = useState("");
   const [question, setQuestion] = useState("");
@@ -691,6 +748,8 @@ export default function ComprehensivePromptHubPage() {
   const [birthInfo, setBirthInfo] = useState("");
   const [tone, setTone] = useState(TONES[0]);
   const [copied, setCopied] = useState(false);
+  const [genericResultVisible, setGenericResultVisible] = useState(false);
+  const [genericIsGenerating, setGenericIsGenerating] = useState(false);
   const [yukHyoQuestion, setYukHyoQuestion] = useState("");
   const [yukHyoDraw, setYukHyoDraw] = useState<YukHyoDrawResult | null>(null);
   const [yukHyoError, setYukHyoError] = useState("");
@@ -790,6 +849,7 @@ export default function ComprehensivePromptHubPage() {
   const [psychError, setPsychError] = useState("");
   const [psychCopied, setPsychCopied] = useState(false);
 
+  const activeTool = ACTIVE_TOOL_STAGE_COPY[activePromptTool];
   const category = CATEGORIES.find((item) => item.id === selectedCategory) || CATEGORIES[0];
   const selectedMeihuaMode = MEIHUA_MODES.find((item) => item.id === meihuaMode) || MEIHUA_MODES[0];
   const selectedDangsajuMode = DANGSAJU_MODES.find((item) => item.id === dangsajuMode) || DANGSAJU_MODES[0];
@@ -811,6 +871,7 @@ export default function ComprehensivePromptHubPage() {
   const psychQuestionNotice = useMemo(() => getPsychQuestionNotice(psychQuestion), [psychQuestion]);
 
   async function copyPrompt() {
+    setGenericResultVisible(true);
     await copyTextToClipboard(generatedPrompt);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
@@ -1330,6 +1391,8 @@ export default function ComprehensivePromptHubPage() {
     setBirthInfo("");
     setTone(TONES[0]);
     setCopied(false);
+    setGenericResultVisible(false);
+    setGenericIsGenerating(false);
   }
 
   function fillExample() {
@@ -1340,20 +1403,540 @@ export default function ComprehensivePromptHubPage() {
     setBirthInfo(EXAMPLE_STATE.birthInfo);
     setTone(EXAMPLE_STATE.tone);
     setCopied(false);
+    setGenericResultVisible(false);
+    setGenericIsGenerating(false);
+  }
+
+  function generateGenericPrompt() {
+    setCopied(false);
+    setGenericIsGenerating(true);
+    window.setTimeout(() => {
+      setGenericResultVisible(true);
+      setGenericIsGenerating(false);
+    }, 420);
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050711] text-slate-100">
+    <main className="prompt-hub-root relative min-h-screen overflow-hidden bg-[#fff8ef] text-slate-900 antialiased selection:bg-rose-200/55 selection:text-slate-950">
+      <style>{`
+        .prompt-hub-root {
+          font-family: "SUIT", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          font-kerning: normal;
+          font-variant-numeric: tabular-nums;
+          word-break: keep-all;
+          letter-spacing: 0;
+        }
+        .prompt-hub-root textarea,
+        .prompt-hub-root input,
+        .prompt-hub-root select,
+        .prompt-hub-root button {
+          font: inherit;
+        }
+        .prompt-hub-root textarea,
+        .prompt-hub-root input {
+          word-break: break-word;
+        }
+        .atelier-heading {
+          font-family: "MaruBuri", "Noto Serif KR", "Nanum Myeongjo", "Apple SD Gothic Neo", Georgia, serif;
+          font-weight: 800;
+          letter-spacing: 0;
+        }
+        .lunar-glass {
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
+        }
+        .lunar-glass::before {
+          content: "";
+          position: absolute;
+          inset: 1px;
+          border-radius: inherit;
+          pointer-events: none;
+          background:
+            linear-gradient(135deg, rgba(255,255,255,.78), transparent 32%, rgba(253,230,138,.24) 62%, transparent),
+            radial-gradient(circle at 18% 0%, rgba(251,207,232,.24), transparent 35%);
+          opacity: .9;
+          z-index: -1;
+        }
+        .lunar-glass::after {
+          content: "";
+          position: absolute;
+          left: 16%;
+          right: 16%;
+          top: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(244,114,182,.28), rgba(253,230,138,.46), transparent);
+          opacity: .8;
+        }
+        .moon-disc {
+          box-shadow: 0 0 92px rgba(253,230,138,.34), 0 26px 86px rgba(244,114,182,.16), inset -18px -12px 32px rgba(156,103,255,.18);
+        }
+        .moon-disc::before {
+          content: "";
+          position: absolute;
+          inset: 18%;
+          border-radius: 999px;
+          background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.64), transparent 18%), radial-gradient(circle at 68% 62%, rgba(255,255,255,.32), transparent 16%);
+          opacity: .55;
+        }
+        .moon-lotus {
+          display: block;
+          width: min(176px, 48vw);
+          height: auto;
+          overflow: visible;
+          filter: drop-shadow(0 22px 54px rgba(244,114,182,.22)) drop-shadow(0 0 34px rgba(253,230,138,.16));
+        }
+        .moon-lotus .lotus-petal {
+          transform-box: fill-box;
+          transform-origin: center bottom;
+        }
+        .moon-lotus .lotus-ray {
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .moon-petal { animation: moonPetalDrift 14s ease-in-out infinite alternate; }
+          .moon-petal:nth-child(2) { animation-delay: -4s; }
+          .moon-petal:nth-child(3) { animation-delay: -8s; }
+          .premium-glow { animation: premiumGlowPulse 8s ease-in-out infinite; }
+          .moon-lotus { animation: lotusFloat 9s ease-in-out infinite alternate; }
+          .moon-lotus .lotus-petal { animation: lotusPetalGlow 7s ease-in-out infinite alternate; }
+          .moon-lotus .lotus-petal:nth-of-type(2n) { animation-delay: -2.2s; }
+          .moon-lotus .lotus-ray { animation: lotusRayPulse 8s ease-in-out infinite; }
+        }
+        @keyframes moonPetalDrift {
+          from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: .42; }
+          to { transform: translate3d(18px, -26px, 0) rotate(9deg); opacity: .76; }
+        }
+        @keyframes premiumGlowPulse {
+          0%, 100% { opacity: .62; filter: blur(0px); }
+          50% { opacity: .92; filter: blur(1px); }
+        }
+        @keyframes lotusFloat {
+          from { transform: translate3d(0, 0, 0) rotate(-2deg); }
+          to { transform: translate3d(0, -10px, 0) rotate(3deg); }
+        }
+        @keyframes lotusPetalGlow {
+          from { opacity: .78; }
+          to { opacity: 1; }
+        }
+        @keyframes lotusRayPulse {
+          0%, 100% { opacity: .34; transform: scale(.98); }
+          50% { opacity: .62; transform: scale(1.04); }
+        }
+      `}</style>
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(168,85,247,0.24),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_50%_92%,rgba(250,204,21,0.11),transparent_34%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.05),transparent_28%,rgba(255,255,255,0.04)_62%,transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(251,207,232,0.42),transparent_28%),radial-gradient(circle_at_82%_8%,rgba(253,230,138,0.36),transparent_24%),radial-gradient(circle_at_86%_32%,rgba(221,214,254,0.42),transparent_30%),radial-gradient(circle_at_48%_100%,rgba(244,114,182,0.18),transparent_38%),linear-gradient(180deg,#fffaf2_0%,#fff4f8_36%,#f4efff_70%,#fff8ef_100%)]" />
+        <div className="moon-disc absolute -right-20 top-8 h-80 w-80 rounded-full border border-amber-200/60 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.98),rgba(255,248,220,0.86)_28%,rgba(253,230,138,0.28)_60%,transparent_74%)]" />
+        <div className="absolute right-12 top-[118px] h-20 w-44 rotate-[-8deg] rounded-full bg-gradient-to-r from-transparent via-amber-200/28 to-transparent blur-xl" />
+        <div className="premium-glow absolute left-[6%] top-[12%] h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(244,114,182,0.24),transparent_68%)]" />
+        <div className="premium-glow absolute bottom-[8%] right-[10%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(196,181,253,0.28),transparent_72%)]" />
+        <div className="premium-glow absolute bottom-[22%] left-[18%] h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.2),transparent_70%)]" />
+        <div className="absolute inset-0 opacity-[0.42] [background-image:radial-gradient(circle_at_20%_18%,rgba(244,114,182,0.4)_0_1px,transparent_1.5px),radial-gradient(circle_at_76%_28%,rgba(168,85,247,0.26)_0_1px,transparent_1.5px),radial-gradient(circle_at_42%_68%,rgba(217,119,6,0.22)_0_1px,transparent_1.5px),radial-gradient(circle_at_88%_72%,rgba(244,114,182,0.3)_0_1px,transparent_1.5px),radial-gradient(circle_at_11%_72%,rgba(168,85,247,0.2)_0_1px,transparent_1.5px)]" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(0deg,rgba(255,248,239,0.94),transparent)]" />
+        <div className="moon-petal absolute left-[7%] top-[25%] h-16 w-28 rounded-[55%_45%_62%_38%] bg-gradient-to-br from-rose-300/24 to-fuchsia-200/6 blur-[1px]" />
+        <div className="moon-petal absolute right-[18%] top-[42%] h-14 w-24 rounded-[44%_56%_38%_62%] bg-gradient-to-br from-violet-300/22 to-rose-200/6 blur-[1px]" />
+        <div className="moon-petal absolute bottom-[16%] left-[22%] h-12 w-20 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-amber-200/28 to-rose-200/8 blur-[1px]" />
+        <div className="moon-petal absolute right-[8%] bottom-[26%] h-10 w-16 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-rose-200/24 to-amber-100/8 blur-[1px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.5),transparent_28%,rgba(255,255,255,0.2)_62%,transparent)]" />
       </div>
 
+      <section className="relative mx-auto grid max-w-7xl gap-6 px-4 pb-8 pt-7 sm:px-6 lg:grid-cols-[0.94fr_1.06fr] lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55 }}
+          className="flex flex-col justify-center"
+        >
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/80 bg-white/85 px-3 py-1.5 text-xs font-semibold text-rose-950 shadow-[0_12px_36px_rgba(244,114,182,0.14)] backdrop-blur-xl">
+            <Sparkles size={14} />
+            Moonlight Atelier
+          </div>
+          <h1 className="atelier-heading mt-4 max-w-2xl text-2xl leading-tight text-slate-950 drop-shadow-[0_16px_42px_rgba(244,114,182,0.14)] sm:text-4xl">
+            달빛 아래 피어나는 나만의 종합 운세 프롬프트
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm font-medium leading-7 text-slate-800 sm:text-base">
+            생년월일과 질문을 입력하면, 당신의 운세 흐름에 맞춘 AI 상담 프롬프트가 은은한 달빛처럼 완성됩니다.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-rose-950/80">
+            사주, 자미두수, 숙요, 점성술의 감성을 하나의 흐름으로 정리해보세요. 질문은 꽃잎처럼 펼쳐지고, 답을 청할 문장은 차분히 맺힙니다.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              ["무료 도구", "육효·호라리·매화역수·당사주"],
+              ["새 마음결", "심리테스트 후 AI 상담 프롬프트"],
+              ["검증 흐름", "입력값과 산출값을 프롬프트에 반영"],
+            ].map(([label, value]) => (
+              <div key={label} className="lunar-glass rounded-2xl border border-white/80 bg-white/78 p-4 shadow-[0_18px_48px_rgba(148,84,117,0.12)] backdrop-blur-xl">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-rose-800">{label}</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">{value}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.08 }}
+          className="lunar-glass self-center rounded-[34px] border border-white/85 bg-white/78 p-5 shadow-[0_30px_90px_rgba(148,84,117,0.16)] backdrop-blur-2xl sm:p-6"
+        >
+          <div className="relative mb-4 overflow-hidden rounded-[26px] border border-amber-200/65 bg-white/86 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+            <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.62),rgba(253,230,138,0.16)_52%,transparent_72%)]" />
+            <svg
+              className="moon-lotus"
+              viewBox="0 0 220 176"
+              role="img"
+              aria-label="달빛에 피어난 연꽃 장식"
+            >
+              <defs>
+                <radialGradient id="lotusMoonGlow" cx="50%" cy="28%" r="68%">
+                  <stop offset="0%" stopColor="#fff7d6" stopOpacity="0.9" />
+                  <stop offset="44%" stopColor="#f9d6e5" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="#bda8ff" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient id="lotusPetalMain" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#fff8f0" stopOpacity="0.95" />
+                  <stop offset="38%" stopColor="#f9bfd5" stopOpacity="0.78" />
+                  <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0.16" />
+                </linearGradient>
+                <linearGradient id="lotusPetalSide" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#fff3dc" stopOpacity="0.82" />
+                  <stop offset="48%" stopColor="#f0a8c4" stopOpacity="0.54" />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.08" />
+                </linearGradient>
+                <linearGradient id="lotusLeafMist" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="#f9a8d4" stopOpacity="0" />
+                  <stop offset="48%" stopColor="#fde68a" stopOpacity="0.34" />
+                  <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0" />
+                </linearGradient>
+                <filter id="lotusSoftGlow" x="-30%" y="-30%" width="160%" height="170%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feColorMatrix
+                    in="blur"
+                    type="matrix"
+                    values="1 0 0 0 0.98  0 1 0 0 0.67  0 0 1 0 0.84  0 0 0 .45 0"
+                    result="glow"
+                  />
+                  <feMerge>
+                    <feMergeNode in="glow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <ellipse cx="110" cy="88" rx="96" ry="76" fill="url(#lotusMoonGlow)" className="lotus-ray" />
+              <path
+                d="M28 132 C56 116 83 116 110 132 C137 116 164 116 192 132 C162 149 137 154 110 146 C83 154 58 149 28 132Z"
+                fill="url(#lotusLeafMist)"
+                opacity="0.74"
+              />
+              <g filter="url(#lotusSoftGlow)">
+                <path className="lotus-petal" d="M110 22 C90 54 91 88 110 124 C129 88 130 54 110 22Z" fill="url(#lotusPetalMain)" />
+                <path className="lotus-petal" d="M82 42 C58 67 57 99 105 130 C111 91 106 63 82 42Z" fill="url(#lotusPetalSide)" />
+                <path className="lotus-petal" d="M138 42 C162 67 163 99 115 130 C109 91 114 63 138 42Z" fill="url(#lotusPetalSide)" />
+                <path className="lotus-petal" d="M58 76 C38 92 39 121 100 140 C92 110 80 88 58 76Z" fill="url(#lotusPetalSide)" opacity="0.88" />
+                <path className="lotus-petal" d="M162 76 C182 92 181 121 120 140 C128 110 140 88 162 76Z" fill="url(#lotusPetalSide)" opacity="0.88" />
+                <path className="lotus-petal" d="M110 68 C94 88 96 116 110 143 C124 116 126 88 110 68Z" fill="url(#lotusPetalMain)" opacity="0.92" />
+                <path d="M50 133 C68 124 86 127 101 143 C78 143 62 140 50 133Z" fill="#fbcfe8" opacity="0.28" />
+                <path d="M170 133 C152 124 134 127 119 143 C142 143 158 140 170 133Z" fill="#ddd6fe" opacity="0.26" />
+                <path d="M110 122 C101 130 100 141 110 152 C120 141 119 130 110 122Z" fill="#fff7d6" opacity="0.78" />
+              </g>
+              <g opacity="0.64">
+                <path d="M110 40 C103 65 104 96 110 126" fill="none" stroke="#fff7ed" strokeOpacity="0.48" strokeWidth="1.2" />
+                <path d="M80 56 C76 82 86 108 104 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
+                <path d="M140 56 C144 82 134 108 116 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
+              </g>
+              <circle cx="110" cy="138" r="9" fill="#fde68a" opacity="0.76" />
+              <circle cx="110" cy="138" r="4" fill="#fff7ed" opacity="0.94" />
+            </svg>
+            <p className="relative mt-2 max-w-sm text-sm font-medium leading-6 text-rose-950/82">
+              달빛에 피는 꽃처럼, 질문의 결을 부드럽게 열어주는 프롬프트 정원입니다.
+            </p>
+            <div className="relative mt-5 grid gap-3 rounded-[24px] border border-rose-100/80 bg-rose-50/75 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-rose-800">Moonlit Atelier</p>
+              <p className="text-sm font-medium leading-6 text-slate-800">
+                기능을 고르면 아래 무대에서 창이 바로 바뀝니다. 긴 스크롤을 따라 내려가지 않아도 지금 필요한 프롬프트에 곧장 머물 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      <section className="relative mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8" aria-label="프롬프트 기능 선택">
+        <div className="lunar-glass rounded-[30px] border border-white/85 bg-white/78 p-3 shadow-[0_24px_80px_rgba(148,84,117,0.14)] backdrop-blur-2xl sm:p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/75">Prompt Atelier Tools</p>
+            <p className="max-w-lg text-xs font-medium leading-5 text-slate-700">
+              선택한 도구는 같은 자리에서 차분히 열립니다.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {PREMIUM_HUB_NAV.map((item) => {
+              const isActive = activePromptTool === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-label={`${item.label} 창 열기 - ${item.note}`}
+                  onClick={() => setActivePromptTool(item.id)}
+                  className={`group relative min-h-[72px] rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-rose-300/60 ${
+                    isActive
+                      ? "border-rose-300/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(255,241,242,0.92),rgba(253,230,138,0.28))] text-slate-950 shadow-[0_0_34px_rgba(244,114,182,0.16),0_18px_44px_rgba(148,84,117,0.12)]"
+                      : "border-white/80 bg-white/64 text-slate-700 hover:-translate-y-0.5 hover:border-rose-200/80 hover:bg-white/88"
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-black text-slate-950">{item.label}</span>
+                    <span className={`h-2.5 w-2.5 rounded-full ${isActive ? "bg-rose-400 shadow-[0_0_16px_rgba(244,114,182,0.55)]" : "bg-rose-200/70 group-hover:bg-rose-300"}`} />
+                  </span>
+                  <span className={`mt-2 block text-xs font-semibold leading-5 ${isActive ? "text-rose-900" : "text-slate-600 group-hover:text-rose-800"}`}>
+                    {item.note}
+                  </span>
+                  {isActive ? (
+                    <span className="mt-2 inline-flex rounded-full border border-rose-300/70 bg-rose-100/75 px-2 py-0.5 text-[11px] font-black text-rose-900">
+                      열림
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8" aria-label="선택된 프롬프트 작업 창">
+        <div className="lunar-glass rounded-[34px] border border-white/85 bg-white/82 p-3 shadow-[0_30px_100px_rgba(148,84,117,0.16)] backdrop-blur-2xl sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-white/80 bg-white/68 px-4 py-3 sm:px-5">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/72">현재 창</p>
+            <span className="rounded-full border border-rose-200/70 bg-rose-50/70 px-3 py-1.5 text-xs font-bold text-rose-950">
+              {activeTool.flow}
+            </span>
+          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activePromptTool}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.28 }}
+              className="mt-4"
+            >
+
+      <section
+        hidden={activePromptTool !== "generic"}
+        className={`${activePromptTool !== "generic" ? "hidden " : ""}grid gap-5 pb-2 lg:grid-cols-[0.9fr_1.1fr]`}
+        aria-labelledby="premium-generic-prompt-title"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="lunar-glass rounded-[34px] border border-white/85 bg-white/88 p-4 shadow-[0_34px_105px_rgba(148,84,117,0.15)] backdrop-blur-2xl sm:p-5"
+        >
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/80 bg-rose-50/80 px-3 py-1.5 text-xs font-semibold text-rose-950 shadow-[0_0_26px_rgba(244,114,182,0.1)]">
+            <Sparkles size={14} />
+            달빛 프롬프트 허브
+          </div>
+          <h2 id="premium-generic-prompt-title" className="atelier-heading max-w-xl text-xl leading-tight text-slate-950 sm:text-3xl">
+            운명의 질문을 달빛 꽃처럼 펼쳐보는 종합 운세 프롬프트
+          </h2>
+          <p className="mt-3 max-w-xl text-sm font-medium leading-7 text-slate-700">
+            흩어진 질문과 출생 단서를 한 문장씩 정리하면, 여러 운세 체계를 함께 읽는 상담 프롬프트가 달빛처럼 차분히 완성됩니다.
+          </p>
+
+          <div className="mt-5 grid gap-2 text-sm leading-6 text-slate-700">
+            {[
+              ["01 기본 정보", "당신의 운세 흐름을 읽기 위한 단서를 정리합니다."],
+              ["02 주제 선택", "지금 가장 선명한 질문의 방향을 하나로 좁힙니다."],
+              ["03 결과 확인", "완성된 프롬프트를 복사해 AI 상담에 바로 이어갑니다."],
+            ].map(([label, body]) => (
+              <div key={label} className="rounded-2xl border border-rose-100/80 bg-white/74 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                <span className="font-black text-rose-900">{label}</span>
+                <span className="ml-2 font-medium text-slate-700">{body}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-900/75">운세 주제 선택</p>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {CATEGORIES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={selectedCategory === item.id}
+                  onClick={() => setSelectedCategory(item.id)}
+                  className={`min-h-[46px] rounded-xl border px-3 py-2 text-sm font-bold shadow-[0_10px_26px_rgba(148,84,117,0.1)] transition focus:outline-none focus:ring-2 focus:ring-rose-300/50 ${
+                    selectedCategory === item.id
+                      ? "border-rose-300/80 bg-rose-50/95 text-rose-950 shadow-[0_0_28px_rgba(244,114,182,0.12)]"
+                      : "border-white/80 bg-white/70 text-slate-700 hover:border-rose-200/80 hover:bg-white/92"
+                  }`}
+                >
+                  <span className={`mr-2 inline-block h-2 w-2 rounded-full bg-gradient-to-r ${item.accent}`} />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+          className="grid gap-4"
+        >
+          <div className="lunar-glass grid gap-4 rounded-[34px] border border-white/85 bg-white/88 p-4 shadow-[0_34px_110px_rgba(148,84,117,0.15)] backdrop-blur-2xl sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-[1fr_190px]">
+              <label className="grid gap-2 text-sm font-semibold text-rose-950">
+                기본 정보 · 상담 주제
+                <input
+                  value={topic}
+                  onChange={(event) => setTopic(event.target.value)}
+                  className="min-h-[50px] rounded-2xl border border-rose-100/90 bg-white/94 px-4 text-sm font-medium text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                  placeholder="예: 올해의 일과 사랑 흐름"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-rose-950">
+                어조
+                <select
+                  value={tone}
+                  onChange={(event) => setTone(event.target.value)}
+                  className="min-h-[50px] rounded-2xl border border-rose-100/90 bg-white/94 px-4 text-sm font-medium text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                >
+                  {TONES.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="grid gap-2 text-sm font-semibold text-rose-950">
+              상담 질문
+              <textarea
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                rows={3}
+                className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                placeholder="지금 가장 알고 싶은 마음의 방향을 적어 주세요."
+              />
+            </label>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-2 text-sm font-semibold text-rose-950">
+                상황 설명
+                <textarea
+                  value={context}
+                  onChange={(event) => setContext(event.target.value)}
+                  rows={4}
+                  className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                  placeholder="최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-semibold text-rose-950">
+                운세 흐름을 읽기 위한 출생 정보
+                <textarea
+                  value={birthInfo}
+                  onChange={(event) => setBirthInfo(event.target.value)}
+                  rows={4}
+                  className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                  placeholder="생년월일, 출생시간, 출생지처럼 알고 있는 정보를 적어 주세요."
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="button"
+                onClick={generateGenericPrompt}
+                disabled={genericIsGenerating}
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-200 via-violet-200 to-amber-100 px-5 text-sm font-black text-slate-950 shadow-[0_18px_48px_rgba(244,114,182,0.24)] transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-amber-100/55 disabled:cursor-wait disabled:opacity-75"
+              >
+                <WandSparkles size={16} />
+                {genericIsGenerating ? "달빛을 모으는 중..." : "달빛 프롬프트 생성하기"}
+              </button>
+              <button
+                type="button"
+                onClick={fillExample}
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-2xl border border-rose-200/80 bg-white/80 px-4 text-sm font-bold text-rose-950 shadow-[0_12px_32px_rgba(148,84,117,0.12)] transition hover:border-rose-300 hover:bg-white focus:outline-none focus:ring-2 focus:ring-rose-200/55"
+              >
+                <Sparkles size={16} />
+                예시 입력
+              </button>
+              <button
+                type="button"
+                onClick={resetForm}
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-2xl border border-rose-200/70 bg-white/50 px-4 text-sm font-bold text-slate-700 transition hover:border-rose-300 hover:bg-white/85 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-rose-200/45"
+              >
+                <RotateCcw size={16} />
+                초기화
+              </button>
+            </div>
+          </div>
+
+          <div className="lunar-glass rounded-[34px] border border-white/85 bg-white/88 p-4 shadow-[0_32px_100px_rgba(148,84,117,0.15)] backdrop-blur-xl sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-900/72">Moonlight Result</p>
+                <h2 className="mt-1 text-lg font-black text-slate-950">완성된 나만의 운세 프롬프트 · {category.label}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={copyPrompt}
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-rose-300/70 bg-rose-100/80 px-4 text-sm font-black text-rose-950 shadow-[0_12px_32px_rgba(244,114,182,0.12)] transition hover:border-rose-400 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200/60"
+              >
+                <Copy size={16} />
+                {copied ? "달빛 프롬프트가 복사되었어요" : "프롬프트 복사하기"}
+              </button>
+            </div>
+            <AnimatePresence mode="wait">
+              {genericResultVisible ? (
+                <motion.textarea
+                  key="generic-result"
+                  readOnly
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  value={generatedPrompt}
+                  className="min-h-[320px] w-full resize-y rounded-[24px] border border-rose-100/90 bg-white/94 p-4 text-sm font-medium leading-7 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
+                  aria-label="생성된 종합 운세 프롬프트"
+                />
+              ) : (
+                <motion.div
+                  key="generic-empty"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="grid min-h-[220px] place-items-center rounded-[24px] border border-dashed border-rose-200/80 bg-rose-50/48 p-5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
+                  aria-live="polite"
+                >
+                  <div>
+                    <p className="text-sm font-black text-slate-950">
+                      {genericIsGenerating ? "달빛을 모으는 중..." : "아직 열린 프롬프트가 없습니다"}
+                    </p>
+                    <p className="mt-2 max-w-md text-sm font-medium leading-6 text-slate-700">
+                      질문과 단서를 적고 “달빛 프롬프트 생성하기”를 누르면, 복사 가능한 상담 프롬프트가 이곳에 피어납니다.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </section>
+
       <motion.section
+        hidden={activePromptTool !== "yukhyo"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "yukhyo" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="yukhyo-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
@@ -1362,7 +1945,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               삼전기괘
             </span>
-            <h1 id="yukhyo-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h1 id="yukhyo-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {YUKHYO_UI_COPY.title}
             </h1>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{YUKHYO_UI_COPY.description}</p>
@@ -1494,7 +2077,7 @@ export default function ComprehensivePromptHubPage() {
               <textarea
                 readOnly
                 value={yukHyoPrompt}
-                className="min-h-[360px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+                className="min-h-[300px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
                 aria-label="무료 육효 상담 프롬프트"
               />
             </div>
@@ -1503,10 +2086,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "psych"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "psych" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="psych-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.88fr_1.12fr]">
@@ -1515,7 +2099,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {PSYCH_UI_COPY.subtitle}
             </span>
-            <h2 id="psych-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h2 id="psych-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {PSYCH_UI_COPY.title}
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{PSYCH_UI_COPY.description}</p>
@@ -1690,7 +2274,7 @@ export default function ComprehensivePromptHubPage() {
             <textarea
               readOnly
               value={psychPrompt || "심리테스트 결과 기반 프롬프트 생성 후 표시됩니다."}
-              className="mt-4 min-h-[440px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+              className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
               aria-label="생성된 심리테스트 기반 AI 상담 프롬프트"
             />
           </div>
@@ -1698,10 +2282,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "kusei"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "kusei" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="kusei-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
@@ -1710,7 +2295,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {KUSEI_UI_COPY.subtitle}
             </span>
-            <h1 id="kusei-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h1 id="kusei-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {KUSEI_UI_COPY.title}
             </h1>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{KUSEI_UI_COPY.description}</p>
@@ -1956,7 +2541,7 @@ export default function ComprehensivePromptHubPage() {
             <textarea
               readOnly
               value={kuseiResult?.prompt || "구성기학 리딩 프롬프트 생성 후 표시됩니다."}
-              className="mt-4 min-h-[460px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+              className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
               aria-label="생성된 구성기학 리딩 프롬프트"
             />
           </div>
@@ -1964,10 +2549,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "horary"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, delay: 0.05 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "horary" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="horary-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
@@ -1976,7 +2562,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {HORARY_UI_COPY.subtitle}
             </span>
-            <h2 id="horary-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h2 id="horary-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {HORARY_UI_COPY.title}
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{HORARY_UI_COPY.description}</p>
@@ -2152,7 +2738,7 @@ export default function ComprehensivePromptHubPage() {
               <textarea
                 readOnly
                 value={horaryResult?.prompt || "호라리 프롬프트 생성 후 표시됩니다."}
-                className="min-h-[520px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+                className="min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
                 aria-label="생성된 호라리 프롬프트"
               />
 
@@ -2186,10 +2772,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "meihua"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, delay: 0.08 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "meihua" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="meihua-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
@@ -2198,7 +2785,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {MEIHUA_UI_COPY.subtitle}
             </span>
-            <h2 id="meihua-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h2 id="meihua-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {MEIHUA_UI_COPY.title}
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{MEIHUA_UI_COPY.description}</p>
@@ -2645,7 +3232,7 @@ export default function ComprehensivePromptHubPage() {
               <textarea
                 readOnly
                 value={meihuaPrompt || "매화역수 프롬프트 생성 후 표시됩니다."}
-                className="min-h-[520px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+                className="min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
                 aria-label="생성된 매화역수 프롬프트"
               />
 
@@ -2683,10 +3270,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "dangsaju"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "dangsaju" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="dangsaju-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
@@ -2695,7 +3283,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {DANGSAJU_UI_COPY.subtitle}
             </span>
-            <h1 id="dangsaju-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h1 id="dangsaju-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {DANGSAJU_UI_COPY.title}
             </h1>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{DANGSAJU_UI_COPY.description}</p>
@@ -3051,7 +3639,7 @@ export default function ComprehensivePromptHubPage() {
             <textarea
               readOnly
               value={dangsajuPrompt || "당사주 프롬프트 생성 후 표시됩니다."}
-              className="mt-4 min-h-[460px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+              className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
               aria-label="생성된 당사주 프롬프트"
             />
             <p className="mt-2 text-xs leading-5 text-slate-400">서비스 내부 기준으로 계산한 참고용 당사주 리딩입니다.</p>
@@ -3060,10 +3648,11 @@ export default function ComprehensivePromptHubPage() {
       </motion.section>
 
       <motion.section
+        hidden={activePromptTool !== "lite"}
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="relative mx-auto grid min-h-screen max-w-7xl content-center gap-5 px-4 py-6 sm:px-6 lg:px-8"
+        className={`${activePromptTool !== "lite" ? "hidden " : ""}grid gap-4 py-2`}
         aria-labelledby="lite-prompt-title"
       >
         <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
@@ -3072,7 +3661,7 @@ export default function ComprehensivePromptHubPage() {
               <Sparkles size={14} />
               {LITE_UI_COPY.subtitle}
             </span>
-            <h1 id="lite-prompt-title" className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h1 id="lite-prompt-title" className="mt-3 text-xl font-black leading-tight text-white sm:text-3xl">
               {LITE_UI_COPY.title}
             </h1>
             <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{LITE_UI_COPY.description}</p>
@@ -3291,171 +3880,18 @@ export default function ComprehensivePromptHubPage() {
             <textarea
               readOnly
               value={liteResult?.prompt || "무료 기본 운세 프롬프트 생성 후 표시됩니다."}
-              className="mt-4 min-h-[420px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
+              className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
               aria-label="생성된 무료 기본 운세 프롬프트"
             />
           </div>
         </div>
       </motion.section>
 
-      <div className="relative mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="flex flex-col justify-center py-6"
-        >
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/20 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold text-violet-100 shadow-[0_0_22px_rgba(168,85,247,0.14)]">
-            <Sparkles size={14} />
-            달빛 프롬프트 허브
-          </div>
-          <h1 className="max-w-xl text-3xl font-black leading-tight text-white sm:text-5xl">
-            질문의 결을 잡아 주는 종합 운세 프롬프트
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
-            흩어진 질문과 출생 단서를 한 문장씩 정리하면, 여러 운세 체계를 함께 읽는 상담 프롬프트가 조용히 완성됩니다.
-          </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
 
-          <div className="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {CATEGORIES.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSelectedCategory(item.id)}
-                className={`min-h-[46px] rounded-xl border px-3 py-2 text-sm font-bold transition ${
-                  selectedCategory === item.id
-                    ? "border-white/50 bg-white/[0.18] text-white shadow-[0_0_24px_rgba(196,181,253,0.2)]"
-                    : "border-white/[0.12] bg-white/[0.07] text-slate-300 hover:border-white/[0.28] hover:bg-white/[0.11]"
-                }`}
-              >
-                <span className={`mr-2 inline-block h-2 w-2 rounded-full bg-gradient-to-r ${item.accent}`} />
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.08 }}
-          className="grid content-center gap-4 py-6"
-        >
-          <div className="grid gap-3 rounded-[28px] border border-white/[0.12] bg-white/[0.07] p-4 shadow-[0_26px_80px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:p-5">
-            <label className="grid gap-1.5 text-sm font-semibold text-violet-100">
-              상담 주제
-              <input
-                value={topic}
-                onChange={(event) => setTopic(event.target.value)}
-                className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-violet-200/60"
-                placeholder="예: 올해의 일과 사랑 흐름"
-              />
-            </label>
-
-            <label className="grid gap-1.5 text-sm font-semibold text-violet-100">
-              질문
-              <textarea
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                rows={3}
-                className="rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-200/60"
-                placeholder="지금 가장 알고 싶은 마음의 방향을 적어 주세요."
-              />
-            </label>
-
-            <label className="grid gap-1.5 text-sm font-semibold text-violet-100">
-              상황
-              <textarea
-                value={context}
-                onChange={(event) => setContext(event.target.value)}
-                rows={4}
-                className="rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-violet-200/60"
-                placeholder="최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
-              />
-            </label>
-
-            <div className="grid gap-3 sm:grid-cols-[1fr_190px]">
-              <label className="grid gap-1.5 text-sm font-semibold text-violet-100">
-                출생 정보
-                <input
-                  value={birthInfo}
-                  onChange={(event) => setBirthInfo(event.target.value)}
-                  className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-violet-200/60"
-                  placeholder="생년월일, 시간, 출생지"
-                />
-              </label>
-              <label className="grid gap-1.5 text-sm font-semibold text-violet-100">
-                어조
-                <select
-                  value={tone}
-                  onChange={(event) => setTone(event.target.value)}
-                  className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none transition focus:border-violet-200/60"
-                >
-                  {TONES.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              <button
-                type="button"
-                onClick={copyPrompt}
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-gradient-to-r from-violet-300 to-cyan-200 px-4 text-sm font-black text-slate-950 transition hover:brightness-110"
-              >
-                <Copy size={16} />
-                {copied ? "복사 완료" : "프롬프트 복사"}
-              </button>
-              <button
-                type="button"
-                onClick={fillExample}
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-white/[0.16] bg-white/[0.09] px-4 text-sm font-bold text-white transition hover:border-violet-200/40"
-              >
-                <WandSparkles size={16} />
-                예시 입력
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-white/[0.16] bg-transparent px-4 text-sm font-bold text-slate-300 transition hover:border-white/[0.32] hover:text-white"
-              >
-                <RotateCcw size={16} />
-                초기화
-              </button>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-violet-200/[0.18] bg-[#070914]/[0.92] p-4 shadow-[0_26px_80px_rgba(0,0,0,0.34)] sm:p-5">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Generated Prompt</p>
-                <h2 className="mt-1 text-lg font-black text-white">{category.label}</h2>
-              </div>
-              <AnimatePresence>
-                {copied ? (
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.92 }}
-                    className="rounded-full border border-emerald-200/30 bg-emerald-300/[0.12] px-3 py-1 text-xs font-bold text-emerald-100"
-                  >
-                    달빛에 담겼습니다
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
-            </div>
-            <textarea
-              readOnly
-              value={generatedPrompt}
-              className="min-h-[430px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-              aria-label="생성된 종합 운세 프롬프트"
-            />
-          </div>
-        </motion.div>
-      </div>
     </main>
   );
 }
