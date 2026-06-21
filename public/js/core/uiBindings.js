@@ -32,30 +32,30 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-fc65bcf31dfe'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-fc65bcf31dfe'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-02792dd03e87'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-02792dd03e87'),
   openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-fc65bcf31dfe')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-02792dd03e87')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-fc65bcf31dfe'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-fc65bcf31dfe'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-02792dd03e87'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-02792dd03e87'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-fc65bcf31dfe'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-fc65bcf31dfe'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-fc65bcf31dfe'),
-  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-fc65bcf31dfe'),
-  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-fc65bcf31dfe'),
-  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-fc65bcf31dfe'),
-  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-fc65bcf31dfe'),
-  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-fc65bcf31dfe'),
-  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-fc65bcf31dfe'),
-  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-fc65bcf31dfe'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-02792dd03e87'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-02792dd03e87'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-02792dd03e87'),
+  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-02792dd03e87'),
+  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-02792dd03e87'),
+  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'),
+  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'),
+  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'),
+  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'),
   openZiweiBookModal: () => __loadZiweiBookReady(),
   closeZiweiBookModal: () => __loadZiweiBookReady(),
   generateZiweiBook: () => __loadZiweiBookReady(),
@@ -65,32 +65,32 @@ const __lazyActionLoaders = {
     else if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
     return true;
   }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-fc65bcf31dfe'),
-  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-fc65bcf31dfe'),
-  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-fc65bcf31dfe'),
-  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-fc65bcf31dfe'),
-  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-fc65bcf31dfe'),
-  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-fc65bcf31dfe'),
-  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-fc65bcf31dfe'),
-  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-fc65bcf31dfe'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-fc65bcf31dfe'),
-  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-fc65bcf31dfe'),
-  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-fc65bcf31dfe'),
-  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-fc65bcf31dfe'),
-  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-fc65bcf31dfe'),
-  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-fc65bcf31dfe'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-fc65bcf31dfe'),
-  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-fc65bcf31dfe'),
-  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-fc65bcf31dfe'),
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'),
+  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'),
+  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'),
+  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'),
+  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'),
+  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'),
+  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'),
+  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'),
+  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'),
+  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'),
+  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'),
+  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'),
+  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'),
+  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-fc65bcf31dfe').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-02792dd03e87').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-fc65bcf31dfe')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-02792dd03e87')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -207,7 +207,7 @@ function __assertZiweiBookReady() {
 }
 
 function __loadZiweiBookReady() {
-  const src = '/js/ziwei-book.js?v=build-fc65bcf31dfe';
+  const src = '/js/ziwei-book.js?v=build-02792dd03e87';
   return __loadScriptOnce(src).then(() => {
     try {
       __assertZiweiBookReady();

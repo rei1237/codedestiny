@@ -164,6 +164,7 @@ const artistAudioManifests = [
     fallbackCoverFileName: "DEST1NOVA2.webp",
     coverFileNames: ["DEST1NOVA2.webp"],
     audioFileNames: [
+      "11PM.mp3",
       "ANDROMEDA.mp3",
       "Burn My Fate.mp3",
       "CONSTELLATION.mp3",
@@ -181,6 +182,7 @@ const artistAudioManifests = [
       "별이 될 거야.mp3",
       "불꽃의 운명.mp3",
       "은하수 아래.mp3",
+      "은하수를 건너 니 곁으로 feat.yeoni.mp3",
     ],
   },
   {
