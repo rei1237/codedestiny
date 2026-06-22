@@ -1106,20 +1106,22 @@
 }
 
 .resultBox {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(37, 42, 60, 0.12);
   border-radius: 12px;
-  background: rgba(5, 7, 27, 0.72);
+  background: rgba(255, 255, 255, 0.64);
   padding: 10px;
 }
 
-.resultBox h4 {
+.resultBox h4,
+.resultBox h5 {
   margin: 0 0 6px;
   font-size: 13px;
-  color: #f0d79f;
+  color: #7a4f17;
 }
 
 .resultBox p {
   margin: 0;
+  color: #2f394d;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1252,7 +1254,8 @@
   .keyList,
   .resultGrid,
   .infoRail,
-  .freeProfileGrid {
+  .freeProfileGrid,
+  .followUpList {
     grid-template-columns: 1fr;
   }
 
@@ -1307,6 +1310,12 @@
 
   .formGrid {
     grid-template-columns: 1fr;
+  }
+
+  .resultHeader,
+  .resultActions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .aiPromptOutput {

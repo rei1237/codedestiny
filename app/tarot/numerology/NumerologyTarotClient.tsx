@@ -296,8 +296,6 @@ const INCLUDED_BENEFITS = [
 
 const NUMEROLOGY_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
-const NUMEROLOGY_PROMPT_FEATURE_KEY = "tarot-numerology-ai-prompt";
-const NUMEROLOGY_PROMPT_PRICE_LABEL = "3,000원";
 const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement";
 const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:";
 
