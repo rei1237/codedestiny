@@ -11,7 +11,13 @@ import {
 } from "react";
 
 import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
-import type { LoadingStage, PaymentType } from "@/constants/loadingMessages";
+import {
+  getCurrentLoadingLocale,
+  resolveLoadingMessage,
+  type LoadingLocale,
+  type LoadingStage,
+  type PaymentType,
+} from "@/constants/loadingMessages";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
@@ -86,7 +92,18 @@ const DEFAULT_PROCESSING_MESSAGE = "처리 중이에요\n잠시만 기다려 주
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
 const PAID_GATE_DEFAULT_MESSAGE = "이용권을 확인하는 중이에요";
 
-const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: string; message: string }> = {
+type PaidGateCopy = { label: string; title: string; message: string };
+type PaidGateUiCopy = {
+  closeLabel: string;
+  costPrefix: string;
+  costSuffix: string;
+  payAction: string;
+  genericLabel: string;
+};
+
+const KOREAN_TEXT_PATTERN = /[가-힣]/;
+
+const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
   opening: { label: "준비", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
   checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
@@ -103,6 +120,127 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: stri
   savingUnlock: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   unlockSaving: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
   cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
+};
+
+const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Record<PaidFeatureGateStatus, PaidGateCopy>>> = {
+  en: {
+    idle: { label: "Waiting", title: "Payment/pass check", message: "Checking your pass." },
+    noEntitlement: { label: "Payment needed", title: "Payment/pass check", message: "No usable pass was found." },
+    readyToPay: { label: "Choose payment", title: "Choose a payment method", message: "Select a payment method to open this content." },
+    paymentFailed: { label: "Failed", title: "Payment check failed", message: "Payment could not be completed." },
+    error: { label: "Error", title: "Check failed", message: "Please check your network and try again." },
+    cancelled: { label: "Cancelled", title: "Payment selection cancelled", message: "You can try again whenever needed." },
+  },
+  ja: {
+    idle: { label: "待機中", title: "決済・利用券の確認", message: "利用券を確認しています。" },
+    noEntitlement: { label: "決済が必要", title: "決済・利用券の確認", message: "利用できる利用券が見つかりませんでした。" },
+    readyToPay: { label: "選択待ち", title: "決済方法の選択", message: "このコンテンツを開く決済方法を選んでください。" },
+    paymentFailed: { label: "失敗", title: "決済確認に失敗しました", message: "お支払いを完了できませんでした。" },
+    error: { label: "エラー", title: "確認に失敗しました", message: "通信状況を確認して、もう一度お試しください。" },
+    cancelled: { label: "キャンセル", title: "決済選択をキャンセルしました", message: "必要なときにもう一度進められます。" },
+  },
+  "zh-CN": {
+    idle: { label: "等待", title: "支付/通行券确认", message: "正在确认通行券。" },
+    noEntitlement: { label: "需要支付", title: "支付/通行券确认", message: "未找到可用的通行券。" },
+    readyToPay: { label: "等待选择", title: "选择支付方式", message: "请选择可打开此内容的支付方式。" },
+    paymentFailed: { label: "失败", title: "支付确认失败", message: "未能完成支付。" },
+    error: { label: "错误", title: "确认失败", message: "请检查网络状态后重试。" },
+    cancelled: { label: "已取消", title: "已取消支付选择", message: "需要时可以再次继续。" },
+  },
+  "zh-TW": {
+    idle: { label: "等待", title: "付款/通行券確認", message: "正在確認通行券。" },
+    noEntitlement: { label: "需要付款", title: "付款/通行券確認", message: "找不到可用的通行券。" },
+    readyToPay: { label: "等待選擇", title: "選擇付款方式", message: "請選擇可開啟此內容的付款方式。" },
+    paymentFailed: { label: "失敗", title: "付款確認失敗", message: "未能完成付款。" },
+    error: { label: "錯誤", title: "確認失敗", message: "請檢查網路狀態後再試一次。" },
+    cancelled: { label: "已取消", title: "已取消付款選擇", message: "需要時可以再次繼續。" },
+  },
+  vi: {
+    idle: { label: "Đang chờ", title: "Kiểm tra thanh toán/vé", message: "Đang kiểm tra vé sử dụng." },
+    noEntitlement: { label: "Cần thanh toán", title: "Kiểm tra thanh toán/vé", message: "Không tìm thấy vé có thể dùng." },
+    readyToPay: { label: "Chờ chọn", title: "Chọn phương thức thanh toán", message: "Chọn phương thức thanh toán để mở nội dung này." },
+    paymentFailed: { label: "Thất bại", title: "Xác nhận thanh toán thất bại", message: "Không thể hoàn tất thanh toán." },
+    error: { label: "Lỗi", title: "Kiểm tra thất bại", message: "Vui lòng kiểm tra mạng rồi thử lại." },
+    cancelled: { label: "Đã hủy", title: "Đã hủy lựa chọn thanh toán", message: "Bạn có thể thực hiện lại khi cần." },
+  },
+  hi: {
+    idle: { label: "प्रतीक्षा", title: "भुगतान/पास जाँच", message: "आपका पास जाँचा जा रहा है." },
+    noEntitlement: { label: "भुगतान आवश्यक", title: "भुगतान/पास जाँच", message: "उपयोग योग्य पास नहीं मिला." },
+    readyToPay: { label: "चयन प्रतीक्षा", title: "भुगतान विधि चुनें", message: "इस सामग्री को खोलने के लिए भुगतान विधि चुनें." },
+    paymentFailed: { label: "विफल", title: "भुगतान पुष्टि विफल", message: "भुगतान पूरा नहीं हो सका." },
+    error: { label: "त्रुटि", title: "जाँच विफल", message: "कृपया नेटवर्क स्थिति जाँचकर फिर प्रयास करें." },
+    cancelled: { label: "रद्द", title: "भुगतान चयन रद्द हुआ", message: "ज़रूरत पड़ने पर फिर से आगे बढ़ सकते हैं." },
+  },
+  es: {
+    idle: { label: "En espera", title: "Comprobación de pago/pase", message: "Comprobando tu pase." },
+    noEntitlement: { label: "Pago necesario", title: "Comprobación de pago/pase", message: "No se encontró un pase disponible." },
+    readyToPay: { label: "Elegir pago", title: "Elige un método de pago", message: "Selecciona un método de pago para abrir este contenido." },
+    paymentFailed: { label: "Falló", title: "Falló la confirmación del pago", message: "No se pudo completar el pago." },
+    error: { label: "Error", title: "Falló la comprobación", message: "Revisa la conexión e inténtalo de nuevo." },
+    cancelled: { label: "Cancelado", title: "Selección de pago cancelada", message: "Puedes intentarlo de nuevo cuando lo necesites." },
+  },
+  fr: {
+    idle: { label: "En attente", title: "Vérification paiement/pass", message: "Vérification de votre pass." },
+    noEntitlement: { label: "Paiement requis", title: "Vérification paiement/pass", message: "Aucun pass utilisable n'a été trouvé." },
+    readyToPay: { label: "Choix du paiement", title: "Choisir un moyen de paiement", message: "Sélectionnez un moyen de paiement pour ouvrir ce contenu." },
+    paymentFailed: { label: "Échec", title: "Échec de la confirmation du paiement", message: "Le paiement n'a pas pu être terminé." },
+    error: { label: "Erreur", title: "Échec de la vérification", message: "Vérifiez votre connexion puis réessayez." },
+    cancelled: { label: "Annulé", title: "Sélection du paiement annulée", message: "Vous pourrez réessayer quand vous le souhaitez." },
+  },
+  de: {
+    idle: { label: "Warten", title: "Zahlung/Pass wird geprüft", message: "Dein Pass wird geprüft." },
+    noEntitlement: { label: "Zahlung nötig", title: "Zahlung/Pass wird geprüft", message: "Es wurde kein nutzbarer Pass gefunden." },
+    readyToPay: { label: "Zahlung wählen", title: "Zahlungsmethode wählen", message: "Wähle eine Zahlungsmethode, um diesen Inhalt zu öffnen." },
+    paymentFailed: { label: "Fehlgeschlagen", title: "Zahlungsprüfung fehlgeschlagen", message: "Die Zahlung konnte nicht abgeschlossen werden." },
+    error: { label: "Fehler", title: "Prüfung fehlgeschlagen", message: "Bitte prüfe deine Verbindung und versuche es erneut." },
+    cancelled: { label: "Abgebrochen", title: "Zahlungsauswahl abgebrochen", message: "Du kannst es bei Bedarf erneut versuchen." },
+  },
+  nl: {
+    idle: { label: "Wachten", title: "Betaling/pas controleren", message: "Je pas wordt gecontroleerd." },
+    noEntitlement: { label: "Betaling nodig", title: "Betaling/pas controleren", message: "Er is geen bruikbare pas gevonden." },
+    readyToPay: { label: "Betaling kiezen", title: "Kies een betaalmethode", message: "Kies een betaalmethode om deze inhoud te openen." },
+    paymentFailed: { label: "Mislukt", title: "Betaalcontrole mislukt", message: "De betaling kon niet worden voltooid." },
+    error: { label: "Fout", title: "Controle mislukt", message: "Controleer je netwerk en probeer het opnieuw." },
+    cancelled: { label: "Geannuleerd", title: "Betaalkeuze geannuleerd", message: "Je kunt het opnieuw proberen wanneer dat nodig is." },
+  },
+  ms: {
+    idle: { label: "Menunggu", title: "Semakan bayaran/pas", message: "Menyemak pas anda." },
+    noEntitlement: { label: "Bayaran diperlukan", title: "Semakan bayaran/pas", message: "Tiada pas yang boleh digunakan ditemui." },
+    readyToPay: { label: "Pilih bayaran", title: "Pilih kaedah bayaran", message: "Pilih kaedah bayaran untuk membuka kandungan ini." },
+    paymentFailed: { label: "Gagal", title: "Pengesahan bayaran gagal", message: "Bayaran tidak dapat diselesaikan." },
+    error: { label: "Ralat", title: "Semakan gagal", message: "Sila semak rangkaian anda dan cuba lagi." },
+    cancelled: { label: "Dibatalkan", title: "Pilihan bayaran dibatalkan", message: "Anda boleh cuba semula apabila perlu." },
+  },
+};
+
+const PAID_GATE_UI_COPY: Record<LoadingLocale, PaidGateUiCopy> = {
+  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중" },
+  en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking" },
+  ja: { closeLabel: "閉じる", costPrefix: "必要金額", costSuffix: "ウォン", payAction: "決済商品を見る", genericLabel: "確認中" },
+  "zh-CN": { closeLabel: "关闭", costPrefix: "所需金额", costSuffix: "韩元", payAction: "查看支付选项", genericLabel: "确认中" },
+  "zh-TW": { closeLabel: "關閉", costPrefix: "所需金額", costSuffix: "韓元", payAction: "查看付款選項", genericLabel: "確認中" },
+  vi: { closeLabel: "Đóng", costPrefix: "Số tiền cần", costSuffix: " KRW", payAction: "Xem lựa chọn thanh toán", genericLabel: "Đang kiểm tra" },
+  hi: { closeLabel: "बंद करें", costPrefix: "आवश्यक राशि", costSuffix: " KRW", payAction: "भुगतान विकल्प देखें", genericLabel: "जाँच जारी" },
+  es: { closeLabel: "Cerrar", costPrefix: "Importe requerido", costSuffix: " KRW", payAction: "Ver opciones de pago", genericLabel: "Comprobando" },
+  fr: { closeLabel: "Fermer", costPrefix: "Montant requis", costSuffix: " KRW", payAction: "Voir les options de paiement", genericLabel: "Vérification" },
+  de: { closeLabel: "Schließen", costPrefix: "Erforderlicher Betrag", costSuffix: " KRW", payAction: "Zahlungsoptionen ansehen", genericLabel: "Prüfung" },
+  nl: { closeLabel: "Sluiten", costPrefix: "Benodigd bedrag", costSuffix: " KRW", payAction: "Betaalopties bekijken", genericLabel: "Controleren" },
+  ms: { closeLabel: "Tutup", costPrefix: "Jumlah diperlukan", costSuffix: " KRW", payAction: "Lihat pilihan bayaran", genericLabel: "Menyemak" },
+};
+
+const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
+  vi: "vi-VN",
+  hi: "hi-IN",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  nl: "nl-NL",
+  ms: "ms-MY",
 };
 
 const KKULKKUL_PAYMENT_LOGO_URL =
@@ -292,18 +430,56 @@ function resolvePaidGateFeature(detail: PaidFeatureGateDetail) {
   return String(detail.featureId || detail.featureKey || "paid-feature").trim() || "paid-feature";
 }
 
-function resolvePaidGateCopy(state: PaidFeatureGateState) {
-  const fallback = PAID_GATE_COPY[state.status] || PAID_GATE_COPY.checkingEntitlement;
+function resolvePaidGateLocalizedCopy(status: PaidFeatureGateStatus, locale: LoadingLocale): PaidGateCopy {
+  const koFallback = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
+  if (locale === "ko") return koFallback;
+
+  const localized = PAID_GATE_LOCALIZED_COPY[locale]?.[status] || PAID_GATE_LOCALIZED_COPY.en[status];
+  if (localized) return localized;
+
+  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.en;
+  const loadingCopy =
+    status === "paymentProcessing" || status === "paymentPreparing" || status === "paymentWindowOpen"
+      ? resolveLoadingMessage("pg_processing", "single", locale)
+      : status === "hasEntitlement" || status === "paymentSuccess" || status === "savingUnlock" || status === "unlockSaving"
+        ? resolveLoadingMessage("result_loading", "pass", locale)
+        : resolveLoadingMessage("access_check", "pass", locale);
+
   return {
-    label: fallback.label,
-    title: state.title || fallback.title,
-    message: state.message || fallback.message,
+    label: uiCopy.genericLabel,
+    title: loadingCopy.title,
+    message: loadingCopy.sub || loadingCopy.title,
+  };
+}
+
+function resolvePaidGateDisplayText(value: string, fallback: string, locale: LoadingLocale) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return fallback;
+  if (locale !== "ko" && KOREAN_TEXT_PATTERN.test(normalized)) return fallback;
+  return normalized;
+}
+
+function formatPaidGateCost(cost: number, locale: LoadingLocale) {
+  const uiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
+  const numberLocale = PAID_GATE_NUMBER_LOCALE[locale] || PAID_GATE_NUMBER_LOCALE.ko;
+  const amount = Math.max(0, Math.floor(Number(cost || 0) * 100));
+  return `${new Intl.NumberFormat(numberLocale).format(amount)}${uiCopy.costSuffix}`;
+}
+
+function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale) {
+  const fallback = PAID_GATE_COPY[state.status] || PAID_GATE_COPY.checkingEntitlement;
+  const localized = resolvePaidGateLocalizedCopy(state.status, locale);
+  return {
+    label: localized.label,
+    title: resolvePaidGateDisplayText(state.title, localized.title || fallback.title, locale),
+    message: resolvePaidGateDisplayText(state.message, localized.message || fallback.message, locale),
   };
 }
 
 function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [state, setState] = useState<PaidFeatureGateState>({
     open: false,
     status: "idle",
@@ -330,7 +506,9 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     const startedAt = Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : nowForPaidGate();
     const featureId = resolvePaidGateFeature(detail);
     const status = detail.status || "checkingEntitlement";
-    const copy = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
+    const activeLocale = getCurrentLoadingLocale();
+    const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
+    setLocale(activeLocale);
 
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
@@ -400,6 +578,8 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 
   const update = useCallback((detail: PaidFeatureGateDetail) => {
     const requestedStatus = detail.status || "checkingEntitlement";
+    const activeLocale = getCurrentLoadingLocale();
+    setLocale(activeLocale);
     if (isExternalPaymentWindowStatus(requestedStatus)) {
       setState((prev) => {
         if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
@@ -415,7 +595,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         requestedStatus,
         {
           ...detail,
-          message: detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE,
+          message: detail.message || resolvePaidGateLocalizedCopy(detail.status || "checkingEntitlement", activeLocale).message || PAID_GATE_DEFAULT_MESSAGE,
         },
       );
       setState((prev) => {
@@ -433,7 +613,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     setState((prev) => {
       if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
       const status = detail.status || prev.status;
-      const copy = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
+      const copy = resolvePaidGateLocalizedCopy(status, activeLocale);
       if (!prev.open) {
         return {
           open: true,
@@ -521,7 +701,8 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   }, [close, open, preload, update]);
 
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
-  const copy = resolvePaidGateCopy(state);
+  const copy = resolvePaidGateCopy(state, locale);
+  const gateUiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
   const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
   const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
 
@@ -554,7 +735,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
               </div>
               <button
                 type="button"
-                aria-label="닫기"
+                aria-label={gateUiCopy.closeLabel}
                 onClick={() => close(state.requestId)}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 text-lg font-bold text-white/80"
               >
@@ -564,7 +745,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
             <p className="whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{copy.message}</p>
             {state.cost !== null ? (
               <p className="mt-3 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">
-                필요 금액 {Math.max(0, state.cost * 100).toLocaleString("ko-KR")}원
+                {gateUiCopy.costPrefix} {formatPaidGateCost(state.cost, locale)}
               </p>
             ) : null}
             {showSkeleton ? (
@@ -582,7 +763,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
                 }}
                 className="mt-5 min-h-12 w-full rounded-[8px] bg-amber-100 px-4 text-sm font-black text-slate-950"
               >
-                결제 상품 보기
+                {gateUiCopy.payAction}
               </button>
             ) : null}
           </div>
