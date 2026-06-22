@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import { Check, Copy, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MEIHUA_MODES,
@@ -111,6 +112,87 @@ type HoraryResult = {
   locationSource: string;
   prompt: string;
 };
+
+type MoonLotusDecorationProps = {
+  idPrefix: string;
+  wrapperClassName?: string;
+  svgClassName?: string;
+  ariaHidden?: boolean;
+};
+
+function MoonLotusDecoration({ idPrefix, wrapperClassName = "", svgClassName = "", ariaHidden = true }: MoonLotusDecorationProps) {
+  return (
+    <div className={wrapperClassName}>
+      <svg
+        className={`moon-lotus ${svgClassName}`.trim()}
+        viewBox="0 0 220 176"
+        role="img"
+        aria-hidden={ariaHidden}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <radialGradient id={`${idPrefix}-lotusMoonGlow`} cx="50%" cy="28%" r="68%">
+            <stop offset="0%" stopColor="#fff7d6" stopOpacity="0.9" />
+            <stop offset="44%" stopColor="#f9d6e5" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#bda8ff" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id={`${idPrefix}-lotusPetalMain`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#fff8f0" stopOpacity="0.95" />
+            <stop offset="38%" stopColor="#f9bfd5" stopOpacity="0.78" />
+            <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0.16" />
+          </linearGradient>
+          <linearGradient id={`${idPrefix}-lotusPetalSide`} x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor="#fff3dc" stopOpacity="0.82" />
+            <stop offset="48%" stopColor="#f0a8c4" stopOpacity="0.54" />
+            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.08" />
+          </linearGradient>
+          <linearGradient id={`${idPrefix}-lotusLeafMist`} x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#f9a8d4" stopOpacity="0" />
+            <stop offset="48%" stopColor="#fde68a" stopOpacity="0.34" />
+            <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0" />
+          </linearGradient>
+          <filter id={`${idPrefix}-lotusSoftGlow`} x="-30%" y="-30%" width="160%" height="170%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feColorMatrix
+              in="blur"
+              type="matrix"
+              values="1 0 0 0 0.98  0 1 0 0 0.67  0 0 1 0 0.84  0 0 0 .45 0"
+              result="glow"
+            />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <ellipse cx="110" cy="88" rx="96" ry="76" fill={`url(#${idPrefix}-lotusMoonGlow)`} className="lotus-ray" />
+        <path
+          d="M28 132 C56 116 83 116 110 132 C137 116 164 116 192 132 C162 149 137 154 110 146 C83 154 58 149 28 132Z"
+          fill={`url(#${idPrefix}-lotusLeafMist)`}
+          opacity="0.74"
+        />
+        <g filter={`url(#${idPrefix}-lotusSoftGlow)`}>
+          <path className="lotus-petal" d="M110 22 C90 54 91 88 110 124 C129 88 130 54 110 22Z" fill={`url(#${idPrefix}-lotusPetalMain)`} />
+          <path className="lotus-petal" d="M82 42 C58 67 57 99 105 130 C111 91 106 63 82 42Z" fill={`url(#${idPrefix}-lotusPetalSide)`} />
+          <path className="lotus-petal" d="M138 42 C162 67 163 99 115 130 C109 91 114 63 138 42Z" fill={`url(#${idPrefix}-lotusPetalSide)`} />
+          <path className="lotus-petal" d="M58 76 C38 92 39 121 100 140 C92 110 80 88 58 76Z" fill={`url(#${idPrefix}-lotusPetalSide)`} opacity="0.88" />
+          <path className="lotus-petal" d="M162 76 C182 92 181 121 120 140 C128 110 140 88 162 76Z" fill={`url(#${idPrefix}-lotusPetalSide)`} opacity="0.88" />
+          <path className="lotus-petal" d="M110 68 C94 88 96 116 110 143 C124 116 126 88 110 68Z" fill={`url(#${idPrefix}-lotusPetalMain)`} opacity="0.92" />
+          <path d="M50 133 C68 124 86 127 101 143 C78 143 62 140 50 133Z" fill="#fbcfe8" opacity="0.28" />
+          <path d="M170 133 C152 124 134 127 119 143 C142 143 158 140 170 133Z" fill="#ddd6fe" opacity="0.26" />
+          <path d="M110 122 C101 130 100 141 110 152 C120 141 119 130 110 122Z" fill="#fff7d6" opacity="0.78" />
+        </g>
+        <g opacity="0.64">
+          <path d="M110 40 C103 65 104 96 110 126" fill="none" stroke="#fff7ed" strokeOpacity="0.48" strokeWidth="1.2" />
+          <path d="M80 56 C76 82 86 108 104 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
+          <path d="M140 56 C144 82 134 108 116 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
+        </g>
+        <circle cx="110" cy="138" r="9" fill="#fde68a" opacity="0.76" />
+        <circle cx="110" cy="138" r="4" fill="#fff7ed" opacity="0.94" />
+      </svg>
+    </div>
+  );
+}
 
 const CATEGORIES: CategoryOption[] = [
   { id: "all", label: "종합", accent: "from-fuchsia-300 to-cyan-200", note: "여러 상징을 한 흐름으로 엮어 읽습니다." },
@@ -2487,19 +2569,36 @@ export default function ComprehensivePromptHubPage() {
       </div>
 
       <section className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+        <div className="mb-3 flex justify-end">
+          <Link
+            href="/"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-rose-200/80 bg-white/86 px-3 py-2 text-sm font-black text-rose-900 shadow-[0_12px_30px_rgba(244,114,182,0.16)] transition hover:bg-white/94 focus:outline-none focus:ring-2"
+            style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+            aria-label="서비스 메인 화면으로 이동"
+          >
+            <Home size={15} />
+            메인 화면
+          </Link>
+        </div>
         <div
           className="rounded-[28px] border bg-white/88 p-4 shadow-[0_28px_90px_rgba(90,64,82,0.14)] backdrop-blur-2xl sm:p-5"
           style={{ borderColor: currentTool.theme.accentSoft }}
         >
           <div
-            className="overflow-hidden rounded-[24px] border p-5 sm:p-6"
+            className="relative overflow-hidden rounded-[24px] border p-5 sm:p-6"
             style={{
               borderColor: currentTool.theme.accentSoft,
               background: `linear-gradient(135deg, ${currentTool.theme.surface} 0%, #ffffff 54%, ${currentTool.theme.accentSoft} 100%)`,
               color: currentTool.theme.text,
             }}
           >
-            <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
+            <MoonLotusDecoration
+              idPrefix="lotus-main"
+              wrapperClassName="pointer-events-none absolute -right-[56px] -top-[34px] z-0 h-full w-full opacity-32 sm:-top-[24px] sm:-right-[42px] lg:-top-[8px] lg:-right-[20px]"
+              svgClassName="mx-auto sm:mx-0 w-[128px] sm:w-[156px] md:w-[182px] lg:w-[202px]"
+              ariaHidden
+            />
+            <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
               <div>
                 <div className="inline-flex min-h-[34px] items-center gap-2 rounded-full border bg-white/78 px-3 text-xs font-black uppercase tracking-[0.14em]" style={{ borderColor: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
                   <Sparkles size={14} />
@@ -2827,72 +2926,12 @@ export default function ComprehensivePromptHubPage() {
         >
           <div className="relative mb-4 overflow-hidden rounded-[26px] border border-amber-200/65 bg-white/86 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
             <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.62),rgba(253,230,138,0.16)_52%,transparent_72%)]" />
-            <svg
-              className="moon-lotus"
-              viewBox="0 0 220 176"
-              role="img"
-              aria-label="달빛에 피어난 연꽃 장식"
-            >
-              <defs>
-                <radialGradient id="lotusMoonGlow" cx="50%" cy="28%" r="68%">
-                  <stop offset="0%" stopColor="#fff7d6" stopOpacity="0.9" />
-                  <stop offset="44%" stopColor="#f9d6e5" stopOpacity="0.28" />
-                  <stop offset="100%" stopColor="#bda8ff" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="lotusPetalMain" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#fff8f0" stopOpacity="0.95" />
-                  <stop offset="38%" stopColor="#f9bfd5" stopOpacity="0.78" />
-                  <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0.16" />
-                </linearGradient>
-                <linearGradient id="lotusPetalSide" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#fff3dc" stopOpacity="0.82" />
-                  <stop offset="48%" stopColor="#f0a8c4" stopOpacity="0.54" />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.08" />
-                </linearGradient>
-                <linearGradient id="lotusLeafMist" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="#f9a8d4" stopOpacity="0" />
-                  <stop offset="48%" stopColor="#fde68a" stopOpacity="0.34" />
-                  <stop offset="100%" stopColor="#c4b5fd" stopOpacity="0" />
-                </linearGradient>
-                <filter id="lotusSoftGlow" x="-30%" y="-30%" width="160%" height="170%">
-                  <feGaussianBlur stdDeviation="4" result="blur" />
-                  <feColorMatrix
-                    in="blur"
-                    type="matrix"
-                    values="1 0 0 0 0.98  0 1 0 0 0.67  0 0 1 0 0.84  0 0 0 .45 0"
-                    result="glow"
-                  />
-                  <feMerge>
-                    <feMergeNode in="glow" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <ellipse cx="110" cy="88" rx="96" ry="76" fill="url(#lotusMoonGlow)" className="lotus-ray" />
-              <path
-                d="M28 132 C56 116 83 116 110 132 C137 116 164 116 192 132 C162 149 137 154 110 146 C83 154 58 149 28 132Z"
-                fill="url(#lotusLeafMist)"
-                opacity="0.74"
-              />
-              <g filter="url(#lotusSoftGlow)">
-                <path className="lotus-petal" d="M110 22 C90 54 91 88 110 124 C129 88 130 54 110 22Z" fill="url(#lotusPetalMain)" />
-                <path className="lotus-petal" d="M82 42 C58 67 57 99 105 130 C111 91 106 63 82 42Z" fill="url(#lotusPetalSide)" />
-                <path className="lotus-petal" d="M138 42 C162 67 163 99 115 130 C109 91 114 63 138 42Z" fill="url(#lotusPetalSide)" />
-                <path className="lotus-petal" d="M58 76 C38 92 39 121 100 140 C92 110 80 88 58 76Z" fill="url(#lotusPetalSide)" opacity="0.88" />
-                <path className="lotus-petal" d="M162 76 C182 92 181 121 120 140 C128 110 140 88 162 76Z" fill="url(#lotusPetalSide)" opacity="0.88" />
-                <path className="lotus-petal" d="M110 68 C94 88 96 116 110 143 C124 116 126 88 110 68Z" fill="url(#lotusPetalMain)" opacity="0.92" />
-                <path d="M50 133 C68 124 86 127 101 143 C78 143 62 140 50 133Z" fill="#fbcfe8" opacity="0.28" />
-                <path d="M170 133 C152 124 134 127 119 143 C142 143 158 140 170 133Z" fill="#ddd6fe" opacity="0.26" />
-                <path d="M110 122 C101 130 100 141 110 152 C120 141 119 130 110 122Z" fill="#fff7d6" opacity="0.78" />
-              </g>
-              <g opacity="0.64">
-                <path d="M110 40 C103 65 104 96 110 126" fill="none" stroke="#fff7ed" strokeOpacity="0.48" strokeWidth="1.2" />
-                <path d="M80 56 C76 82 86 108 104 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
-                <path d="M140 56 C144 82 134 108 116 132" fill="none" stroke="#fff7ed" strokeOpacity="0.28" strokeWidth="1" />
-              </g>
-              <circle cx="110" cy="138" r="9" fill="#fde68a" opacity="0.76" />
-              <circle cx="110" cy="138" r="4" fill="#fff7ed" opacity="0.94" />
-            </svg>
+            <MoonLotusDecoration
+              idPrefix="lotus-intro"
+              wrapperClassName="pointer-events-none absolute left-1/2 top-3 w-full -translate-x-1/2 opacity-40"
+              svgClassName="mx-auto w-[160px] sm:w-[176px] md:w-[196px] lg:w-[214px]"
+              ariaHidden
+            />
             <p className="relative mt-2 max-w-sm text-sm font-medium leading-6 text-rose-950/82">
               달빛에 피는 꽃처럼, 질문의 결을 부드럽게 열어주는 프롬프트 정원입니다.
             </p>
