@@ -95,6 +95,7 @@
 .actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -104,6 +105,7 @@
   border-radius: 12px;
   border: 1px solid transparent;
   padding: 9px 12px;
+  min-height: 44px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -123,10 +125,10 @@
 }
 
 .mainBtn {
-  background: linear-gradient(120deg, #7d54ff 0%, #5932d8 55%, #8f62ff 100%);
-  color: #f8f4ff;
-  border-color: rgba(194, 169, 255, 0.6);
-  box-shadow: 0 0 0 1px rgba(159, 117, 255, 0.35) inset, 0 14px 28px rgba(58, 36, 134, 0.35);
+  background: linear-gradient(120deg, #f2d18b 0%, #bf8740 56%, #f4dfaa 100%);
+  color: #21162f;
+  border-color: rgba(244, 220, 165, 0.75);
+  box-shadow: 0 0 0 1px rgba(244, 220, 165, 0.35) inset, 0 14px 28px rgba(78, 54, 24, 0.35);
 }
 
 .mainBtn:disabled,
@@ -388,6 +390,7 @@
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 10px;
   padding: 6px 8px;
+  min-height: 44px;
   font-size: 12px;
   background: rgba(255, 255, 255, 0.04);
   color: #f4ebde;
@@ -397,6 +400,36 @@
 .topicTabActive {
   border-color: rgba(219, 179, 95, 0.85);
   background: rgba(160, 120, 32, 0.24);
+}
+
+.topicTab:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.followUpList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.followUpChip {
+  border: 1px solid rgba(244, 220, 165, 0.22);
+  border-radius: 10px;
+  background: rgba(244, 220, 165, 0.08);
+  color: rgba(247, 241, 225, 0.88);
+  min-height: 44px;
+  padding: 9px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.followUpChip:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
 }
 
 .formGrid {
@@ -441,10 +474,54 @@
   border-color: rgba(220, 189, 121, 0.9);
 }
 
+.input:disabled,
+.select:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.includedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.includedList span,
+.noExtraPay {
+  border: 1px solid rgba(244, 220, 165, 0.24);
+  border-radius: 999px;
+  background: rgba(244, 220, 165, 0.08);
+  color: rgba(244, 220, 165, 0.92);
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .error {
   margin-top: 8px;
   font-size: 12px;
   color: #fca5a5;
+}
+
+.failureBox {
+  margin-top: 10px;
+  border: 1px solid rgba(252, 165, 165, 0.32);
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.18);
+  padding: 12px;
+  color: #ffe4e6;
+}
+
+.failureBox h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.failureBox p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .stageVisual {
@@ -557,6 +634,11 @@
   border-color: rgba(235, 208, 145, 0.84);
 }
 
+.previewCard:disabled {
+  cursor: default;
+  opacity: 0.78;
+}
+
 .previewCardLocked {
   display: flex;
   align-items: center;
@@ -564,6 +646,11 @@
   color: rgba(250, 243, 229, 0.7);
   font-size: 12px;
   letter-spacing: 0.18em;
+}
+
+.previewCardOpen {
+  border-color: rgba(244, 220, 165, 0.95);
+  box-shadow: 0 0 0 2px rgba(244, 220, 165, 0.25), 0 16px 36px rgba(0, 0, 0, 0.34);
 }
 
 .previewCardImageWrap {

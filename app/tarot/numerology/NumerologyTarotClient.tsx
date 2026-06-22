@@ -1444,7 +1444,12 @@ export default function NumerologyTarotClient() {
                   <span className={styles.noExtraPay}>추가 결제 없음</span>
                 </div>
 
-                {error ? <p className={styles.error}>{error}</p> : null}
+                {flowState === "reading_failed" ? (
+                  <div className={styles.failureBox} role="alert">
+                    <h4>결과를 불러오지 못했어요</h4>
+                    <p>결제와 카드 선택 내용은 안전하게 저장되어 있습니다. 추가 결제 없이 다시 시도할 수 있어요.</p>
+                  </div>
+                ) : error ? <p className={styles.error}>{error}</p> : null}
               </section>
 
               <section className={styles.stageVisual}>
@@ -1550,107 +1555,180 @@ export default function NumerologyTarotClient() {
               </section>
             ) : null}
 
-            {reading ? (
-              <section className={styles.resultCard}>
-                <h3>숫자와 카드가 엮은 오늘의 결</h3>
-                <div className={styles.resultStack}>
-                  <article className={styles.resultSection}>
-                    <h4>1. 생명수가 여는 첫 리듬</h4>
-                    <p className={styles.resultLead}>{reading.numerologyReading}</p>
-                    <p className={styles.resultCoreMessage}>오늘 붙잡을 한 문장: {reading.coreMessage}</p>
+            {reading ? (() => {
+              const renderedCards = reading.cards?.length
+                ? reading.cards
+                : reading.cardReadings.map((item) => ({
+                  cardId: item.cardId || item.cardNameEn,
+                  cardName: item.cardNameKr,
+                  arcanaNumber: item.arcanaNumber ?? null,
+                  orientation: item.orientation,
+                  positionTitle: item.positionTitle || item.title,
+                  directMeaning: item.directMeaning || item.cardMeaning,
+                  contextualInterpretation: item.contextualInterpretation || item.topicInterpretation,
+                  practicalAdvice: item.practicalAdvice || item.actionTip,
+                  caution: item.caution,
+                }));
+              return (
+                <section className={styles.resultCard}>
+                  <div className={styles.resultHeader}>
+                    <div>
+                      <p className={styles.promptToolKicker}>{TOPIC_LABELS[topic]}</p>
+                      <h3>{toText(name) || "내담자"}님의 수비학 타로 상담</h3>
+                      <p>{analysisDate} · {readingId || reading.readingId}</p>
+                    </div>
+                    <div className={styles.resultActions}>
+                      <button type="button" className={styles.ghostBtn} onClick={saveReadingResult}>저장</button>
+                      <button type="button" className={styles.ghostBtn} onClick={shareReadingResult}>공유</button>
+                      <button
+                        type="button"
+                        className={styles.lightBtn}
+                        onClick={() => {
+                          setEntitlement(null);
+                          setReadingId("");
+                          setCards([]);
+                          setRevealed([]);
+                          setReading(null);
+                          setStandalonePromptText("");
+                          setStandalonePromptStatus("");
+                          setSaveStatus("");
+                          setFlowState("checkout_ready");
+                          if (typeof window !== "undefined") {
+                            window.localStorage.removeItem(READING_ENTITLEMENT_STORAGE_KEY);
+                          }
+                        }}
+                      >
+                        새로운 질문
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.resultStack}>
+                    <article className={`${styles.resultSection} ${styles.answerSection}`}>
+                      <h4>상담사의 첫 답변</h4>
+                      <p className={styles.resultLead}>{reading.opening || `${toText(name) || "내담자"}님, 먼저 질문의 핵심부터 보겠습니다.`}</p>
+                      <p className={styles.resultCoreMessage}>{reading.directAnswer || reading.coreMessage}</p>
+                      <div className={styles.resultGrid}>
+                        <article className={styles.resultBox}><h5>현재 흐름</h5><p>{reading.synthesis?.currentSituation || reading.categoryDeepDive.currentFlow}</p></article>
+                        <article className={styles.resultBox}><h5>가장 중요한 조언</h5><p>{reading.synthesis?.likelyDirection || reading.categoryDeepDive.timing}</p></article>
+                      </div>
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>숫자가 보여 주는 관계 방식</h4>
+                      <p className={styles.resultLead}>{reading.numerologyInsight?.summary || reading.numerologyReading}</p>
+                      {reading.numerologyInsight?.relevantNumbers?.length ? (
+                        <div className={styles.resultGrid}>
+                          {reading.numerologyInsight.relevantNumbers.map((item) => (
+                            <article key={`${item.label}-${item.value}`} className={styles.resultBox}>
+                              <h5>{item.label} {item.value}</h5>
+                              <p>{item.meaning}</p>
+                              <p>{item.relevance}</p>
+                            </article>
+                          ))}
+                        </div>
+                      ) : null}
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>다섯 장의 카드가 만드는 이야기</h4>
+                      <p className={styles.resultLead}>{reading.cardStory || reading.topicReading.topicOverview}</p>
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>카드별 핵심 해석</h4>
+                      <div className={styles.cardReadingGrid}>
+                        {renderedCards.map((item, index) => (
+                          <details key={`${item.cardId}-${item.positionTitle}`} className={styles.cardReadingBox} open={index === 0}>
+                            <summary className={styles.cardReadingHeader}>
+                              <div>
+                                <p className={styles.cardReadingOrder}>{String(index + 1).padStart(2, "0")}</p>
+                                <h5>{item.positionTitle}</h5>
+                              </div>
+                              <div className={styles.cardReadingMeta}>
+                                <span>{item.cardName}</span>
+                                <span>{item.arcanaNumber === null ? "번호 없음" : `${item.arcanaNumber}번`} · {item.orientation === "reversed" ? "역방향" : "정방향"}</span>
+                              </div>
+                            </summary>
+                            <p><strong>이 카드가 질문에 주는 답</strong><br />{item.directMeaning}</p>
+                            <p><strong>현실에서 확인할 부분</strong><br />{item.contextualInterpretation}</p>
+                            <p className={styles.actionTip}><strong>도움이 되는 행동</strong><br />{item.practicalAdvice}</p>
+                            {item.caution ? <p className={styles.cautionText}><strong>주의점</strong><br />{item.caution}</p> : null}
+                          </details>
+                        ))}
+                      </div>
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>상담사의 종합 정리</h4>
+                      <div className={styles.resultGrid}>
+                        <article className={styles.resultBox}><h5>기회</h5><p>{reading.synthesis?.opportunity || reading.categoryDeepDive.opportunity}</p></article>
+                        <article className={styles.resultBox}><h5>주의할 부분</h5><p>{reading.synthesis?.challenge || reading.categoryDeepDive.hiddenIssue}</p></article>
+                        <article className={styles.resultBox}><h5>정리</h5><p>{reading.conclusion.summary}</p></article>
+                      </div>
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>현실적인 다음 행동</h4>
+                      <ol className={styles.planList}>
+                        {(reading.nextActions?.length ? reading.nextActions : reading.conclusion.doThis).slice(0, 3).map((item, idx) => (
+                          <li key={`${idx}-${item}`}>{item}</li>
+                        ))}
+                      </ol>
+                      {reading.conclusion.sevenDayPlan?.length ? (
+                        <details className={styles.utilityPanel}>
+                          <summary>요청한 7일 계획 보기</summary>
+                          <ol className={styles.planList}>
+                            {reading.conclusion.sevenDayPlan.map((item, idx) => (
+                              <li key={`${idx}-${item}`}>{item}</li>
+                            ))}
+                          </ol>
+                        </details>
+                      ) : null}
+                    </article>
+
+                    <article className={styles.resultSection}>
+                      <h4>따뜻한 마무리</h4>
+                      <p className={styles.finalWord}>{reading.counselorClosing || reading.conclusion.finalWord}</p>
+                      <p className={styles.qualityNote}>{reading.disclaimer}</p>
+                    </article>
+
+                    <article className={styles.utilityPanel}>
+                      <div className={styles.promptToolHeader}>
+                        <div>
+                          <p className={styles.promptToolKicker}>결과 활용하기</p>
+                          <h4>AI 상담 이어가기</h4>
+                          <p>이번 리딩의 숫자, 카드, 질문을 정리한 상담용 문장입니다. 결제에 포함되어 추가 비용이 없습니다.</p>
+                        </div>
+                      </div>
+                      <div className={styles.promptToolActions}>
+                        <button type="button" className={styles.mainBtn} onClick={generateStandalonePrompt} disabled={standalonePromptLoading}>
+                          {standalonePromptLoading ? "정리 중..." : "상담 요약문 열기"}
+                        </button>
+                        {standalonePromptText ? (
+                          <button type="button" className={styles.lightBtn} onClick={copyStandalonePrompt}>
+                            상담 요약문 복사
+                          </button>
+                        ) : null}
+                        <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus || saveStatus}</span>
+                      </div>
+                      {standalonePromptText ? (
+                        <textarea
+                          className={styles.aiPromptOutput}
+                          value={standalonePromptText}
+                          readOnly
+                          aria-label="AI 상담 이어가기용 요약문"
+                        />
+                      ) : null}
+                    </article>
+
                     {reading.quality?.warnings?.length ? (
-                      <p className={styles.qualityNote}>리딩 보강: 숫자와 카드의 연결을 한 번 더 차분히 정리했습니다.</p>
+                      <p className={styles.qualityNote}>상담 결과를 표시하기 전 카드와 문장 품질을 점검했습니다.</p>
                     ) : null}
-                  </article>
-
-                  <article className={styles.resultSection}>
-                    <h4>2. 질문수가 가리키는 중심 자리</h4>
-                    <div className={styles.resultGrid}>
-                      <article className={styles.resultBox}>
-                        <h5>{reading.topicReading.topicLabel}</h5>
-                        <p>{reading.topicReading.topicOverview}</p>
-                      </article>
-                      <article className={styles.resultBox}>
-                        <h5>왜 지금 중요한가</h5>
-                        <p>{reading.topicReading.whyThisTopicMatters}</p>
-                      </article>
-                      <article className={styles.resultBox}>
-                        <h5>숫자의 리듬</h5>
-                        <p>{reading.topicReading.numerologyTopicBridge}</p>
-                      </article>
-                    </div>
-                  </article>
-
-                  <article className={styles.resultSection}>
-                    <h4>3. 카드별 심층 해석</h4>
-                    <div className={styles.cardReadingGrid}>
-                      {reading.cardReadings.map((item) => (
-                        <article key={`${item.order}-${item.cardNameEn}-${item.title}`} className={styles.cardReadingBox}>
-                          <div className={styles.cardReadingHeader}>
-                            <div>
-                              <p className={styles.cardReadingOrder}>{String(item.order).padStart(2, "0")}</p>
-                              <h5>{item.title}</h5>
-                            </div>
-                            <div className={styles.cardReadingMeta}>
-                              <span>{item.cardNameKr}</span>
-                              <span>{item.orientationLabel}</span>
-                            </div>
-                          </div>
-                          <p className={styles.keywordChip}>질문: {item.question}</p>
-                          <p className={styles.keywordChip}>키워드: {item.keywordFocus}</p>
-                          <p><strong>카드 기본 의미</strong><br />{item.cardMeaning}</p>
-                          <p><strong>숫자의 리듬</strong><br />{item.numerologyBridge}</p>
-                          <p><strong>선택한 주제의 해석</strong><br />{item.topicInterpretation}</p>
-                          <p><strong>숨은 패턴</strong><br />{item.hiddenPattern}</p>
-                          <p className={styles.actionTip}><strong>오늘의 작은 의식</strong><br />{item.actionTip}</p>
-                          <p className={styles.cautionText}><strong>주의점</strong><br />{item.caution}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </article>
-
-                  <article className={styles.resultSection}>
-                    <h4>4. 선택한 주제의 깊은 흐름</h4>
-                    <div className={styles.resultGrid}>
-                      <article className={styles.resultBox}><h5>현재 흐름</h5><p>{reading.categoryDeepDive.currentFlow}</p></article>
-                      <article className={styles.resultBox}><h5>숨은 문제</h5><p>{reading.categoryDeepDive.hiddenIssue}</p></article>
-                      <article className={styles.resultBox}><h5>기회</h5><p>{reading.categoryDeepDive.opportunity}</p></article>
-                      <article className={styles.resultBox}><h5>주의할 그림자</h5><p>{reading.categoryDeepDive.risk}</p></article>
-                      <article className={styles.resultBox}><h5>움직일 시간</h5><p>{reading.categoryDeepDive.timing}</p></article>
-                    </div>
-                  </article>
-
-                  <article className={styles.resultSection}>
-                    <h4>5. 앞으로 7일 작은 실천</h4>
-                    <ol className={styles.planList}>
-                      {reading.conclusion.sevenDayPlan.map((item, idx) => (
-                        <li key={`${idx}-${item}`}>{item}</li>
-                      ))}
-                    </ol>
-                  </article>
-
-                  <article className={styles.resultSection}>
-                    <h4>6. 지금 할 것 / 잠시 미룰 것</h4>
-                    <div className={styles.resultGrid}>
-                      <article className={styles.resultBox}>
-                        <h5>지금 할 것</h5>
-                        <p>{reading.conclusion.doThis.join(" / ")}</p>
-                      </article>
-                      <article className={styles.resultBox}>
-                        <h5>잠시 미룰 것</h5>
-                        <p>{reading.conclusion.avoidThis.join(" / ")}</p>
-                      </article>
-                      <article className={styles.resultBox}>
-                        <h5>결론</h5>
-                        <p>{reading.conclusion.summary}</p>
-                      </article>
-                    </div>
-                    <p className={styles.finalWord}>{reading.conclusion.finalWord}</p>
-                  </article>
-
-                </div>
-              </section>
-            ) : null}
+                  </div>
+                </section>
+              );
+            })() : null}
           </div>
 
           <aside className={styles.sidePanel}>

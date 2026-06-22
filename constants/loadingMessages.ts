@@ -1,7 +1,7 @@
 export const LOADING_MESSAGES = {
   pg_processing: {
     subscription: {
-      title: "월정석 결제를 처리하고 있어요",
+      title: "이용권 결제를 처리하고 있어요",
       sub: "잠시만 기다려 주세요",
     },
     single: {
@@ -11,7 +11,7 @@ export const LOADING_MESSAGES = {
   },
   result_loading: {
     subscription: {
-      title: "월정석이 활성화되고 있어요",
+      title: "이용권이 활성화되고 있어요",
       sub: "곧 이용 가능해져요",
     },
     single: {
@@ -25,7 +25,7 @@ export const LOADING_MESSAGES = {
   },
   access_check: {
     subscription: {
-      title: "월정석 정보를 확인하는 중이에요",
+      title: "이용권 결제 정보를 확인하는 중이에요",
       sub: "",
     },
     single: {

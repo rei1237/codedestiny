@@ -1769,6 +1769,18 @@ export default function PointsPage() {
     setProcessingText(text);
   }, []);
 
+  const closeProcessingOverlayBeforeExternalCheckout = useCallback(async () => {
+    setIsProcessing(false);
+    hideProcessingOverlay();
+    await new Promise<void>((resolve) => {
+      if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+        resolve();
+        return;
+      }
+      window.requestAnimationFrame(() => resolve());
+    });
+  }, [hideProcessingOverlay]);
+
   const buildPassAppliedMessage = useCallback((tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
     const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
@@ -2277,7 +2289,7 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingStage(
       isSubscriptionRedirect
-        ? "월정석이 활성화되고 있어요\n곧 이용 가능해져요"
+        ? "30일 이용권이 활성화되고 있어요\n곧 이용 가능해져요"
         : "결제가 완료됐어요\n결과를 불러오는 중이에요",
       "payment-complete",
     );
@@ -2582,9 +2594,9 @@ export default function PointsPage() {
     const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly");
+    setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout");
+    setIsProcessing(true);
 
     try {
       const prepareRes = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
@@ -2669,7 +2681,7 @@ export default function PointsPage() {
       });
       savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
-      setProcessingStage("월정석 결제를 처리하고 있어요\n잠시만 기다려 주세요", "subscription");
+      await closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -2690,7 +2702,8 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("월정석이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
+        setProcessingStage("30일 이용권 결제를 확인하고 있어요\n잠시만 기다려 주세요", "subscription");
+        setIsProcessing(true);
         const confirmData = await confirmSubscriptionWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -2786,7 +2799,7 @@ export default function PointsPage() {
 
     setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
+    setProcessingStage("월정석으로 이용권이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
 
     try {
       const confirmData = await confirmSubscriptionWithServer({

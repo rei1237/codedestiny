@@ -405,6 +405,16 @@ assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscr
 assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
 assertNotContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
 assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request remains explicit");
+const handleSubscribeStart = pointsSource.indexOf("const handleSubscribe = async (plan: SubscriptionPlan) => {");
+const handleMonthlyCreditStart = pointsSource.indexOf("const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {");
+assert.ok(handleSubscribeStart >= 0 && handleMonthlyCreditStart > handleSubscribeStart, "points page subscription handlers found");
+const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, handleMonthlyCreditStart);
+assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription prepare uses checkout wait UI");
+assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
+assertBefore(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens after React overlay closes");
+assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"30일 이용권 결제를 확인하고 있어요", "subscription confirm wait starts only after PG response");
+const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
+assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
 assertContains(pointsSource, "PDF 서비스는 상품별 원화 단건 결제", "standard pass PDF single-payment UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
