@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DestinyIconName } from "./icons/DestinyIcon";
 import FeatureSymbol from "./icons/FeatureSymbol";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Badge = {
   text: string;
@@ -30,9 +31,35 @@ function badgeClass(tone: Badge["tone"]) {
   return "border-sky-100/30 bg-sky-900/35 text-sky-50";
 }
 
+const SERVICE_CARD_CTA: Record<LoadingLocale, string> = {
+  ko: "바로가기",
+  en: "Open",
+  ja: "開く",
+  "zh-CN": "打开",
+  "zh-TW": "開啟",
+  vi: "Mở",
+  hi: "खोलें",
+  es: "Abrir",
+  fr: "Ouvrir",
+  de: "Öffnen",
+  nl: "Openen",
+  ms: "Buka",
+};
+
+function hasKoreanText(value?: string) {
+  return /[가-힣]/.test(String(value || ""));
+}
+
 export default function ServiceCard({ item }: { item: ServiceCardModel }) {
   const [isScrolling, setIsScrolling] = useState(false);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   const touchStartPos = useRef({ x: 0, y: 0 });
+  const defaultCta = SERVICE_CARD_CTA[locale] || SERVICE_CARD_CTA.ko;
+  const cta = item.cta && (locale === "ko" || !hasKoreanText(item.cta)) ? item.cta : defaultCta;
+
+  useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -97,7 +124,7 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
           onClick={handleClick}
           className="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-100/35 bg-[linear-gradient(135deg,rgba(56,189,248,0.32),rgba(30,64,175,0.38))] px-3 py-2 text-xs font-semibold text-sky-50 transition duration-300 group-hover:border-sky-100/55 group-hover:bg-[linear-gradient(135deg,rgba(56,189,248,0.42),rgba(37,99,235,0.46))]"
         >
-          {item.cta || "바로가기"}
+          {cta}
           <span aria-hidden>→</span>
         </Link>
       </div>

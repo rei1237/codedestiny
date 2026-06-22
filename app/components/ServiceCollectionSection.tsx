@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import ServiceCard, { type ServiceCardModel } from "./ServiceCard";
 import IconBadge from "./ui/IconBadge";
 import SectionTitle from "./ui/SectionTitle";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Props = {
   title: string;
@@ -13,6 +14,26 @@ type Props = {
   icon?: ReactNode;
   items: ServiceCardModel[];
   defaultOpen?: boolean;
+};
+
+const SERVICE_COLLECTION_COPY: Record<LoadingLocale, {
+  open: string;
+  close: string;
+  showCore: string;
+  showMore: string;
+}> = {
+  ko: { open: "열기", close: "접기", showCore: "핵심 카드만 보기", showMore: "더 보기" },
+  en: { open: "Open", close: "Collapse", showCore: "Show core cards", showMore: "Show more" },
+  ja: { open: "開く", close: "閉じる", showCore: "主要カードだけ見る", showMore: "もっと見る" },
+  "zh-CN": { open: "打开", close: "收起", showCore: "只看核心卡片", showMore: "查看更多" },
+  "zh-TW": { open: "開啟", close: "收合", showCore: "只看核心卡片", showMore: "查看更多" },
+  vi: { open: "Mở", close: "Thu gọn", showCore: "Chỉ xem thẻ chính", showMore: "Xem thêm" },
+  hi: { open: "खोलें", close: "समेटें", showCore: "मुख्य कार्ड ही देखें", showMore: "और देखें" },
+  es: { open: "Abrir", close: "Contraer", showCore: "Ver solo tarjetas clave", showMore: "Ver más" },
+  fr: { open: "Ouvrir", close: "Réduire", showCore: "Voir les cartes clés", showMore: "Voir plus" },
+  de: { open: "Öffnen", close: "Einklappen", showCore: "Nur Kernkarten zeigen", showMore: "Mehr anzeigen" },
+  nl: { open: "Openen", close: "Inklappen", showCore: "Alleen kernkaarten tonen", showMore: "Meer tonen" },
+  ms: { open: "Buka", close: "Tutup", showCore: "Lihat kad utama sahaja", showMore: "Lihat lagi" },
 };
 
 export default function ServiceCollectionSection({
@@ -25,9 +46,15 @@ export default function ServiceCollectionSection({
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const [expandedMobile, setExpandedMobile] = useState(false);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const copy = SERVICE_COLLECTION_COPY[locale] || SERVICE_COLLECTION_COPY.ko;
 
   const [isScrolling, setIsScrolling] = useState(false);
   const touchStartPos = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -79,7 +106,7 @@ export default function ServiceCollectionSection({
         <p className="text-sm font-semibold text-sky-100/95">{subtitle}</p>
         <p className="mt-1 text-sm leading-6 text-slate-100/80">{description}</p>
         <div className="mt-4 inline-flex items-center rounded-full border border-slate-100/20 bg-slate-950/35 px-3 py-1 text-xs font-semibold text-slate-100/90">
-          {open ? "접기" : "열기"}
+          {open ? copy.close : copy.open}
         </div>
       </button>
 
@@ -100,7 +127,7 @@ export default function ServiceCollectionSection({
                 onClick={wrapClick(() => setExpandedMobile((v) => !v))}
                 className="rounded-full border border-sky-100/40 bg-slate-900/55 px-4 py-1.5 text-xs font-semibold text-sky-50"
               >
-                {expandedMobile ? "핵심 카드만 보기" : "더 보기"}
+                {expandedMobile ? copy.showCore : copy.showMore}
               </button>
             </div>
           ) : null}
