@@ -248,6 +248,246 @@ const SAJU_GUARDIAN_LOCALIZED = {
   },
 };
 
+const DESTINY_MEETING_PLACE_LOCALIZED = {
+  en: {
+    title: "Destined Meeting Places by Saju - independent coordinates of connection",
+    h1: "Destined Meeting Places by Saju",
+    description: "Your Saju energy points toward the places, cities, timing, and small objects where a meaningful connection is most likely to open.",
+    seoText: "This reading unfolds the spaces, city moods, seasons, and movement style where your Four Pillars energy can meet the right connection.",
+    landingPoints: ["Standalone input flow", "Top 5 meeting-place types", "Country and city recommendations", "KRW 10,000 per reading"],
+  },
+  ja: {
+    title: "四柱推命で見る縁の場所 - ご縁が開く独立運命座標リポート",
+    h1: "四柱推命で見る縁の場所",
+    description: "あなたの四柱推命の気が、縁の開きやすい場所、国や都市、動くとよい時期、そっと持ちたい運命の小物を指し示します。",
+    seoText: "四柱推命の気の流れから、ご縁が届きやすい空間、街のムード、季節、行動スタイルが一つのリポートとして開きます。",
+    landingPoints: ["独立入力フォーム", "縁の場所TOP5", "国・都市のおすすめ", "1回10,000ウォン"],
+  },
+  "zh-CN": {
+    title: "四柱看缘分地点 - 独立命运坐标报告",
+    h1: "四柱看缘分地点",
+    description: "你的四柱能量会指向缘分容易开启的地点、国家与城市、适合行动的时机，以及带来呼应的命运小物。",
+    seoText: "沿着四柱气势，可以展开适合相遇的空间类型、城市气质、时节与行动方式，形成一份独立的缘分地点报告。",
+    landingPoints: ["独立输入流程", "缘分地点TOP5", "国家/城市推荐", "单次10,000韩元"],
+  },
+  "zh-TW": {
+    title: "四柱看緣分地點 - 獨立命運座標報告",
+    h1: "四柱看緣分地點",
+    description: "你的四柱能量會指向緣分容易開啟的地點、國家與城市、適合行動的時機，以及帶來呼應的命運小物。",
+    seoText: "沿著四柱氣勢，可以展開適合相遇的空間類型、城市氣質、時節與行動方式，形成一份獨立的緣分地點報告。",
+    landingPoints: ["獨立輸入流程", "緣分地點TOP5", "國家/城市推薦", "單次10,000韓元"],
+  },
+  vi: {
+    title: "Nơi gặp duyên qua Saju - tọa độ định mệnh độc lập",
+    h1: "Nơi gặp duyên qua Saju",
+    description: "Năng lượng Saju của bạn chỉ về nơi chốn, quốc gia, thành phố, thời điểm và vật nhỏ dễ mở ra một mối duyên có ý nghĩa.",
+    seoText: "Dòng khí Tứ trụ mở ra kiểu không gian, sắc thái thành phố, mùa chuyển động và phong cách hành động nơi duyên lành dễ chạm tới bạn.",
+    landingPoints: ["Luồng nhập độc lập", "Top 5 kiểu nơi gặp duyên", "Gợi ý quốc gia/thành phố", "10.000 KRW/lần"],
+  },
+  hi: {
+    title: "Saju से नियत मिलन-स्थान - संबंध के स्वतंत्र भाग्य coordinates",
+    h1: "Saju से नियत मिलन-स्थान",
+    description: "आपकी Saju ऊर्जा उन जगहों, शहरों, समय और छोटे भाग्य-चिह्नों की ओर संकेत करती है जहाँ meaningful connection खुलने की संभावना अधिक है.",
+    seoText: "Four Pillars की ऊर्जा से ऐसे स्थान, शहर का mood, मौसम और चलने का तरीका खुलता है जहाँ सही संबंध आप तक आसानी से पहुँच सकता है.",
+    landingPoints: ["स्वतंत्र input flow", "मिलन स्थान TOP 5", "देश और शहर सुझाव", "प्रति reading 10,000 KRW"],
+  },
+  es: {
+    title: "Lugar destinado por Saju - coordenadas independientes del encuentro",
+    h1: "Lugar destinado por Saju",
+    description: "Tu energía Saju señala lugares, países, ciudades, momentos y pequeños objetos donde una conexión significativa puede abrirse con más facilidad.",
+    seoText: "Esta lectura despliega espacios, atmósferas de ciudad, estaciones y estilo de movimiento donde tu energía de Cuatro Pilares puede encontrar una conexión correcta.",
+    landingPoints: ["Flujo de entrada independiente", "Top 5 tipos de lugares de encuentro", "Recomendación de país y ciudad", "10.000 KRW por lectura"],
+  },
+  fr: {
+    title: "Lieu de rencontre destiné par Saju - coordonnées indépendantes du lien",
+    h1: "Lieu de rencontre destiné par Saju",
+    description: "Votre énergie Saju indique les lieux, pays, villes, moments et petits objets où une rencontre significative peut s'ouvrir plus naturellement.",
+    seoText: "Cette lecture déploie les espaces, ambiances de ville, saisons et gestes où l'énergie des Quatre Piliers peut rejoindre le bon lien.",
+    landingPoints: ["Saisie indépendante", "Top 5 des lieux de rencontre", "Pays et villes recommandés", "10 000 KRW par lecture"],
+  },
+  de: {
+    title: "Schicksalhafter Treffpunkt nach Saju - unabhängige Koordinaten der Verbindung",
+    h1: "Schicksalhafter Treffpunkt nach Saju",
+    description: "Deine Saju-Energie weist auf Orte, Länder, Städte, Zeitfenster und kleine Schicksalsobjekte hin, an denen eine bedeutsame Verbindung leichter aufgehen kann.",
+    seoText: "Diese Lesung entfaltet Räume, Stadtstimmungen, Jahreszeiten und Bewegungsarten, in denen deine Vier-Säulen-Energie der passenden Verbindung begegnen kann.",
+    landingPoints: ["Eigenständiger Eingabefluss", "Top 5 Treffpunktarten", "Länder- und Stadtempfehlungen", "10.000 KRW pro Lesung"],
+  },
+  nl: {
+    title: "Bestemde ontmoetingsplek via Saju - onafhankelijke coördinaten van verbinding",
+    h1: "Bestemde ontmoetingsplek via Saju",
+    description: "Je Saju-energie wijst naar plaatsen, landen, steden, timing en kleine voorwerpen waar een betekenisvolle verbinding gemakkelijker kan openen.",
+    seoText: "Deze lezing ontvouwt ruimtes, stadsstemmingen, seizoenen en bewegingsstijl waarin je Vierpijlerenergie de juiste verbinding kan ontmoeten.",
+    landingPoints: ["Zelfstandige invoerstroom", "Top 5 ontmoetingsplaatsen", "Land- en stadadvies", "KRW 10.000 per lezing"],
+  },
+  ms: {
+    title: "Tempat Pertemuan Takdir melalui Saju - koordinat hubungan yang berdiri sendiri",
+    h1: "Tempat Pertemuan Takdir melalui Saju",
+    description: "Tenaga Saju anda menunjuk kepada tempat, negara, bandar, masa dan objek kecil yang lebih mudah membuka hubungan bermakna.",
+    seoText: "Bacaan ini membuka jenis ruang, suasana bandar, musim dan gaya bergerak tempat tenaga Empat Tiang anda boleh bertemu hubungan yang tepat.",
+    landingPoints: ["Aliran input berdiri sendiri", "Top 5 jenis tempat pertemuan", "Cadangan negara dan bandar", "KRW 10,000 setiap bacaan"],
+  },
+};
+
+const ASTROLOGY_COSMIC_LOCALIZED = {
+  en: {
+    title: "Cosmic Astrology Chart - Sun, Moon, and Ascendant reading",
+    h1: "Cosmic Astrology Chart",
+    description: "Through the Sun, Moon, and Ascendant, your temperament, emotional rhythm, relationship patterns, and outer expression rise in the language of the stars.",
+    seoText: "The Cosmic Astrology Chart reads the Sun, Moon, Ascendant, and house emphasis to illuminate inner nature, emotional habits, and the way you meet the world.",
+    landingPoints: ["Sun, Moon, and Ascendant reading", "Cosmic-style chart", "Relationship pattern insight"],
+  },
+  ja: {
+    title: "コズミック占星術チャート - 太陽・月・アセンダント分析",
+    h1: "コズミック占星術チャート",
+    description: "太陽、月、アセンダントを中心に、性質、感情のリズム、関係パターン、外へ見せる表情が星の言葉で浮かび上がります。",
+    seoText: "コズミック占星術チャートは、太陽・月・アセンダント・ハウスの強調点を読み、内面の質、感情の癖、世界との向き合い方を照らします。",
+    landingPoints: ["太陽・月・アセンダント解釈", "コズミックスタイルチャート", "関係パターン把握"],
+  },
+  "zh-CN": {
+    title: "宇宙占星星盘 - 太阳、月亮与上升分析",
+    h1: "宇宙占星星盘",
+    description: "太阳、月亮与上升星座会以星辰语言显现你的气质、情绪节奏、关系模式与对外表达。",
+    seoText: "宇宙占星星盘读取太阳、月亮、上升与宫位重点，照亮内在性格、情绪习惯，以及你与世界相遇的方式。",
+    landingPoints: ["太阳/月亮/上升解读", "宇宙风格星盘", "关系模式洞察"],
+  },
+  "zh-TW": {
+    title: "宇宙占星星盤 - 太陽、月亮與上升分析",
+    h1: "宇宙占星星盤",
+    description: "太陽、月亮與上升星座會以星辰語言顯現你的氣質、情緒節奏、關係模式與對外表達。",
+    seoText: "宇宙占星星盤讀取太陽、月亮、上升與宮位重點，照亮內在性格、情緒習慣，以及你與世界相遇的方式。",
+    landingPoints: ["太陽/月亮/上升解讀", "宇宙風格星盤", "關係模式洞察"],
+  },
+  vi: {
+    title: "Bản đồ Chiêm tinh Cosmic - Mặt Trời, Mặt Trăng và Cung mọc",
+    h1: "Bản đồ Chiêm tinh Cosmic",
+    description: "Qua Mặt Trời, Mặt Trăng và Cung mọc, khí chất, nhịp cảm xúc, mô thức quan hệ và cách bạn bước ra thế giới hiện lên bằng ngôn ngữ các vì sao.",
+    seoText: "Bản đồ Chiêm tinh Cosmic đọc Mặt Trời, Mặt Trăng, Cung mọc và trọng tâm nhà để soi sáng bản chất bên trong, thói quen cảm xúc và cách bạn gặp thế giới.",
+    landingPoints: ["Đọc Mặt Trời, Mặt Trăng, Cung mọc", "Bản đồ phong cách cosmic", "Nhìn rõ mô thức quan hệ"],
+  },
+  hi: {
+    title: "Cosmic Astrology Chart - सूर्य, चंद्र और Ascendant reading",
+    h1: "Cosmic Astrology Chart",
+    description: "सूर्य, चंद्र और Ascendant के माध्यम से आपका स्वभाव, भावनात्मक लय, संबंध pattern और बाहरी अभिव्यक्ति सितारों की भाषा में खुलती है.",
+    seoText: "Cosmic Astrology Chart सूर्य, चंद्र, Ascendant और house emphasis को पढ़कर inner nature, emotional habits और दुनिया से मिलने का तरीका दिखाता है.",
+    landingPoints: ["सूर्य, चंद्र और Ascendant reading", "Cosmic-style chart", "Relationship pattern insight"],
+  },
+  es: {
+    title: "Carta de Astrología Cósmica - Sol, Luna y Ascendente",
+    h1: "Carta de Astrología Cósmica",
+    description: "A través del Sol, la Luna y el Ascendente, tu temperamento, ritmo emocional, patrones de relación y expresión externa aparecen en el lenguaje de las estrellas.",
+    seoText: "La Carta de Astrología Cósmica lee Sol, Luna, Ascendente y énfasis de casas para iluminar naturaleza interior, hábitos emocionales y la forma en que encuentras el mundo.",
+    landingPoints: ["Lectura de Sol, Luna y Ascendente", "Carta de estilo cósmico", "Patrones de relación"],
+  },
+  fr: {
+    title: "Carte d'Astrologie cosmique - Soleil, Lune et Ascendant",
+    h1: "Carte d'Astrologie cosmique",
+    description: "À travers le Soleil, la Lune et l'Ascendant, votre tempérament, votre rythme émotionnel, vos schémas relationnels et votre expression extérieure apparaissent dans la langue des étoiles.",
+    seoText: "La Carte d'Astrologie cosmique lit Soleil, Lune, Ascendant et maisons dominantes pour éclairer nature intérieure, habitudes émotionnelles et manière de rencontrer le monde.",
+    landingPoints: ["Lecture Soleil, Lune et Ascendant", "Carte au style cosmique", "Schémas relationnels"],
+  },
+  de: {
+    title: "Kosmische Astrologie-Chart - Sonne, Mond und Aszendent",
+    h1: "Kosmische Astrologie-Chart",
+    description: "Über Sonne, Mond und Aszendent treten Temperament, emotionaler Rhythmus, Beziehungsmuster und äußere Ausstrahlung in der Sprache der Sterne hervor.",
+    seoText: "Die kosmische Astrologie-Chart liest Sonne, Mond, Aszendent und Häuserbetonung, um innere Natur, emotionale Gewohnheiten und Begegnung mit der Welt zu beleuchten.",
+    landingPoints: ["Sonne, Mond und Aszendent lesen", "Kosmischer Chart-Stil", "Beziehungsmuster erkennen"],
+  },
+  nl: {
+    title: "Kosmische astrologiekaart - Zon, Maan en Ascendant",
+    h1: "Kosmische astrologiekaart",
+    description: "Via Zon, Maan en Ascendant verschijnen je temperament, emotionele ritme, relatiepatronen en uiterlijke expressie in de taal van de sterren.",
+    seoText: "De kosmische astrologiekaart leest Zon, Maan, Ascendant en huisaccenten om innerlijke natuur, emotionele gewoonten en je manier van de wereld ontmoeten te verlichten.",
+    landingPoints: ["Zon, Maan en Ascendant lezen", "Kosmische kaartstijl", "Relatiepatronen zien"],
+  },
+  ms: {
+    title: "Carta Astrologi Kosmik - bacaan Matahari, Bulan dan Ascendant",
+    h1: "Carta Astrologi Kosmik",
+    description: "Melalui Matahari, Bulan dan Ascendant, perangai, rentak emosi, pola hubungan dan ekspresi luar anda muncul dalam bahasa bintang.",
+    seoText: "Carta Astrologi Kosmik membaca Matahari, Bulan, Ascendant dan penekanan rumah untuk menerangi sifat dalaman, tabiat emosi dan cara anda menemui dunia.",
+    landingPoints: ["Bacaan Matahari, Bulan dan Ascendant", "Carta gaya kosmik", "Pola hubungan"],
+  },
+};
+
+const ZIWEI_CHART_LOCALIZED = {
+  en: {
+    title: "Zi Wei Dou Shu 12-Palace Chart - destiny map of the life palace",
+    h1: "Zi Wei Dou Shu 12-Palace Chart",
+    description: "The Life Palace, major stars, and 12 palaces of Zi Wei Dou Shu open a layered map of temperament, relationships, career, and long-term flow.",
+    seoText: "Zi Wei Dou Shu reads the Life Palace, body palace, star combinations, and 12-palace structure to reveal the deeper architecture of destiny.",
+    landingPoints: ["12-palace chart structure", "Major star combinations", "Temperament, relationship, and career flow"],
+  },
+  ja: {
+    title: "紫微斗数 十二宮命盤分析 - 命宮から開く運命地図",
+    h1: "紫微斗数 十二宮命盤分析",
+    description: "紫微斗数の命宮、主要星、十二宮の配置から、性質、関係、仕事、人生の長い流れが立体的に開きます。",
+    seoText: "紫微斗数は命宮・身宮・星曜の組み合わせ・十二宮構造を読み、運命の深い設計図を静かに照らします。",
+    landingPoints: ["十二宮命盤の構造", "主要星の組み合わせ解釈", "性質・関係・仕事の流れ"],
+  },
+  "zh-CN": {
+    title: "紫微斗数十二宫命盘分析 - 从命宫展开的命运地图",
+    h1: "紫微斗数十二宫命盘分析",
+    description: "紫微斗数的命宫、主星与十二宫布局，会立体展开性格、关系、事业与人生长线流动。",
+    seoText: "紫微斗数读取命宫、身宫、星曜组合与十二宫结构，安静照见命运更深层的架构。",
+    landingPoints: ["十二宫命盘结构", "主要星曜组合解读", "性格、关系与事业流动"],
+  },
+  "zh-TW": {
+    title: "紫微斗數十二宮命盤分析 - 從命宮展開的命運地圖",
+    h1: "紫微斗數十二宮命盤分析",
+    description: "紫微斗數的命宮、主星與十二宮布局，會立體展開性格、關係、事業與人生長線流動。",
+    seoText: "紫微斗數讀取命宮、身宮、星曜組合與十二宮結構，安靜照見命運更深層的架構。",
+    landingPoints: ["十二宮命盤結構", "主要星曜組合解讀", "性格、關係與事業流動"],
+  },
+  vi: {
+    title: "Lá số Tử Vi Đẩu Số 12 cung - bản đồ vận mệnh từ cung Mệnh",
+    h1: "Lá số Tử Vi Đẩu Số 12 cung",
+    description: "Cung Mệnh, các chính tinh và bố cục 12 cung của Tử Vi Đẩu Số mở ra bản đồ nhiều lớp về khí chất, quan hệ, nghề nghiệp và dòng đời dài hạn.",
+    seoText: "Tử Vi Đẩu Số đọc cung Mệnh, cung Thân, tổ hợp sao và cấu trúc 12 cung để soi sáng kiến trúc sâu hơn của vận mệnh.",
+    landingPoints: ["Cấu trúc lá số 12 cung", "Giải tổ hợp chính tinh", "Dòng khí chất, quan hệ và nghề nghiệp"],
+  },
+  hi: {
+    title: "Zi Wei Dou Shu 12-Palace Chart - life palace से खुलता destiny map",
+    h1: "Zi Wei Dou Shu 12-Palace Chart",
+    description: "Zi Wei Dou Shu का Life Palace, प्रमुख तारे और 12 palaces स्वभाव, संबंध, करियर और दीर्घकालिक जीवन प्रवाह का layered map खोलते हैं.",
+    seoText: "Zi Wei Dou Shu Life Palace, body palace, star combinations और 12-palace structure पढ़कर destiny की गहरी architecture दिखाता है.",
+    landingPoints: ["12-palace chart structure", "Major star combinations", "Temperament, relationship और career flow"],
+  },
+  es: {
+    title: "Carta Zi Wei Dou Shu de 12 palacios - mapa del destino desde el palacio de vida",
+    h1: "Carta Zi Wei Dou Shu de 12 palacios",
+    description: "El palacio de vida, las estrellas principales y los 12 palacios de Zi Wei Dou Shu abren un mapa por capas de temperamento, relaciones, carrera y flujo vital.",
+    seoText: "Zi Wei Dou Shu lee palacio de vida, palacio del cuerpo, combinaciones estelares y estructura de 12 palacios para revelar la arquitectura profunda del destino.",
+    landingPoints: ["Estructura de 12 palacios", "Combinaciones de estrellas principales", "Flujo de temperamento, relaciones y carrera"],
+  },
+  fr: {
+    title: "Thème Zi Wei Dou Shu des 12 palais - carte du destin depuis le palais de vie",
+    h1: "Thème Zi Wei Dou Shu des 12 palais",
+    description: "Le palais de vie, les étoiles majeures et les 12 palais de Zi Wei Dou Shu ouvrent une carte stratifiée du tempérament, des relations, du métier et du long courant de vie.",
+    seoText: "Zi Wei Dou Shu lit le palais de vie, le palais du corps, les combinaisons d'étoiles et la structure des 12 palais pour révéler l'architecture profonde du destin.",
+    landingPoints: ["Structure des 12 palais", "Combinaisons d'étoiles majeures", "Flux tempérament, relations et carrière"],
+  },
+  de: {
+    title: "Zi-Wei-Dou-Shu-Chart der 12 Paläste - Schicksalskarte des Lebenspalasts",
+    h1: "Zi-Wei-Dou-Shu-Chart der 12 Paläste",
+    description: "Lebenspalast, Hauptsterne und die 12 Paläste des Zi Wei Dou Shu öffnen eine vielschichtige Karte von Temperament, Beziehungen, Beruf und langfristigem Lebensfluss.",
+    seoText: "Zi Wei Dou Shu liest Lebenspalast, Körperpalast, Sternkombinationen und 12-Palast-Struktur, um die tiefere Architektur des Schicksals zu zeigen.",
+    landingPoints: ["12-Palast-Chartstruktur", "Kombinationen der Hauptsterne", "Fluss von Temperament, Beziehung und Beruf"],
+  },
+  nl: {
+    title: "Zi Wei Dou Shu 12-paleizenkaart - bestemmingskaart van het levenspaleis",
+    h1: "Zi Wei Dou Shu 12-paleizenkaart",
+    description: "Het levenspaleis, de hoofdsterren en de 12 paleizen van Zi Wei Dou Shu openen een gelaagde kaart van temperament, relaties, loopbaan en langetermijnstroom.",
+    seoText: "Zi Wei Dou Shu leest levenspaleis, lichaamspaleis, sterrencombinaties en de 12-paleizenstructuur om de diepere architectuur van bestemming zichtbaar te maken.",
+    landingPoints: ["Structuur van de 12 paleizen", "Combinaties van hoofdsterren", "Temperament-, relatie- en loopbaanstroom"],
+  },
+  ms: {
+    title: "Carta Zi Wei Dou Shu 12 Istana - peta takdir daripada istana kehidupan",
+    h1: "Carta Zi Wei Dou Shu 12 Istana",
+    description: "Istana kehidupan, bintang utama dan 12 istana Zi Wei Dou Shu membuka peta berlapis tentang perangai, hubungan, kerjaya dan aliran hidup jangka panjang.",
+    seoText: "Zi Wei Dou Shu membaca istana kehidupan, istana tubuh, gabungan bintang dan struktur 12 istana untuk menerangi seni bina takdir yang lebih dalam.",
+    landingPoints: ["Struktur carta 12 istana", "Gabungan bintang utama", "Aliran perangai, hubungan dan kerjaya"],
+  },
+};
+
 export const SERVICE_MAP = {
   "tarot/healing": {
     component: FeatureLandingPage,
@@ -620,11 +860,12 @@ export const SERVICE_MAP = {
     title: "사주로 보는 인연의 장소 - 독립 운명 좌표 리포트",
     h1: "사주로 보는 인연의 장소",
     description:
-      "생년월일 기반 사주 에너지로 인연이 열리는 장소, 국가/도시, 타이밍, 운명의 아이템을 추천하는 독립 리포트 페이지.",
+      "생년월일 기반 사주 에너지가 인연이 열리기 쉬운 장소, 국가와 도시, 움직이기 좋은 때, 운명의 작은 물건을 가리킵니다.",
     seoText:
       "사주 에너지 위로 인연이 닿기 쉬운 장소, 도시의 무드, 움직이기 좋은 때가 독립된 리포트로 펼쳐집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
     landingPoints: ["독립 실행 입력 폼", "인연 장소 TOP 5", "국가/도시 추천", "1회 10,000원"],
+    localized: DESTINY_MEETING_PLACE_LOCALIZED,
     keywords: [
       "사주로 보는 인연의 장소",
       "인연 장소 추천",
@@ -640,9 +881,10 @@ export const SERVICE_MAP = {
     description:
       "태양궁, 달궁, 상승궁을 중심으로 당신의 성향과 관계 패턴이 별자리의 언어로 드러납니다.",
     seoText:
-      "점성술 코즈믹 차트는 출생 정보를 기반으로 태양, 달, 상승궁을 해석해 성향과 감정 패턴, 표현 방식을 이해하도록 돕습니다.",
+      "점성술 코즈믹 차트는 태양, 달, 상승궁과 하우스의 강조점을 따라 내면의 결, 감정 습관, 세상과 만나는 방식을 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/jumsung.webp",
     landingPoints: ["태양궁·달궁·상승궁 해석", "코즈믹 스타일 차트", "관계 패턴 파악"],
+    localized: ASTROLOGY_COSMIC_LOCALIZED,
     keywords: [
       "점성술",
       "코즈믹 차트",
@@ -661,9 +903,10 @@ export const SERVICE_MAP = {
     description:
       "자미두수(紫微斗數)의 명궁과 주요 성군, 12궁 배치 위로 삶의 결이 입체적으로 열립니다.",
     seoText:
-      "자미두수 서비스는 생년월일시를 기반으로 12궁 명반 구조를 해석하고 성향, 관계, 진로 등 핵심 흐름을 제공합니다.",
+      "자미두수는 명궁, 신궁, 성요 조합과 12궁 구조를 따라 운명의 깊은 설계도를 조용히 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/jami.webp",
     landingPoints: ["12궁 명반 구조 도식", "주요 성군 조합 해석", "성향·관계·진로 흐름 파악"],
+    localized: ZIWEI_CHART_LOCALIZED,
     keywords: [
       "자미두수",
       "紫微斗數",
@@ -678,7 +921,7 @@ export const SERVICE_MAP = {
     title: "AI 동물 관상 - 셀카 얼굴 분석",
     h1: "AI 동물 관상",
     description: "셀카에 담긴 얼굴형과 인상의 결에서 성향과 분위기의 흐름을 읽습니다.",
-    seoText: "AI 동물 관상은 얼굴 이미지를 바탕으로 동물상 비유 분석과 해석 포인트를 제공합니다.",
+    seoText: "AI 동물 관상에서는 얼굴 이미지 위로 동물상 비유와 해석의 포인트가 자연스럽게 떠오릅니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20animal.webp",
     landingPoints: ["셀카 기반 얼굴형 분석", "동물상 비유 해석", "가볍게 즐기는 성향 리포트"],
     keywords: [
@@ -695,9 +938,9 @@ export const SERVICE_MAP = {
     title: "MBTI 동물 궁합 - 16가지 토템 케미",
     h1: "MBTI 동물 궁합",
     description: "MBTI 성향 조합을 동물 토템의 상징으로 비추어 관계의 케미와 소통 결을 읽습니다.",
-    seoText: "MBTI 동물 궁합은 16유형 조합의 관계 포인트를 쉽고 직관적으로 제공합니다.",
+    seoText: "MBTI 동물 궁합에서는 16유형 조합 속 관계 포인트와 소통의 결이 동물 토템처럼 선명하게 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20face.webp",
-    landingPoints: ["16유형 조합 분석", "연애/친구 케미 포인트", "관계 소통 팁 제공"],
+    landingPoints: ["16유형 조합 분석", "연애/친구 케미 포인트", "관계 소통 팁"],
     keywords: [
       "MBTI 궁합",
       "MBTI 동물",
@@ -791,9 +1034,9 @@ export const SERVICE_MAP = {
     title: "고대 이집트 신탁 - 케멧 오라클",
     h1: "고대 이집트 신탁",
     description: "케멧 오라클의 상징이 질문 속에 숨어 있던 메시지와 지금 필요한 응답을 비춥니다.",
-    seoText: "이집트 신탁은 상징 중심 질문-응답 방식의 오라클 리딩을 제공합니다.",
+    seoText: "이집트 신탁에서는 케멧의 상징이 질문에 응답하며, 지금 붙잡아야 할 메시지를 조용히 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/egypt.webp",
-    landingPoints: ["오라클 상징 리딩", "질문 중심 해석", "직관 메시지 제공"],
+    landingPoints: ["오라클 상징 리딩", "질문 중심 해석", "직관 메시지"],
     keywords: [
       "이집트 신탁",
       "케멧 오라클",
@@ -807,7 +1050,7 @@ export const SERVICE_MAP = {
     title: "주역 거북점 - 64괘 해석",
     h1: "주역 거북점",
     description: "주역 64괘의 상징 체계가 지금의 흐름과 선택 앞에 놓인 기미를 차분히 가리킵니다.",
-    seoText: "주역 거북점은 고전 괘상 해석을 바탕으로 의사결정 힌트를 제공합니다.",
+    seoText: "주역 거북점에서는 고전 괘상의 흐름을 따라 선택 앞에 놓인 의사결정의 힌트가 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/juyuk.webp",
     landingPoints: ["64괘 상징 해석", "상황 판단 힌트", "고전 기반 리딩"],
     keywords: [
@@ -844,7 +1087,7 @@ export const SERVICE_MAP = {
     title: "스톤헨지 룬 오라클 - Stonehenge Rune",
     h1: "스톤헨지 룬 오라클",
     description: "고대 룬 상징으로 현재 흐름과 연간 운세를 읽는 스톤헨지 룬 신탁 서비스입니다.",
-    seoText: "스톤헨지 룬 오라클은 1/3/5/12 룬 스프레드를 통해 상황별 통찰과 실행 힌트를 제공합니다.",
+    seoText: "스톤헨지 룬 오라클에서는 1/3/5/12 룬 스프레드 위로 상황별 통찰과 실행 힌트가 떠오릅니다.",
     ogImage: "https://code-destiny.com/fuctionassets/rune.webp",
     landingPoints: ["1/3/5/12 룬 스프레드", "정·역방향 룬 해석", "연간 흐름 리딩"],
     keywords: [
@@ -876,8 +1119,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "운명의 꽃 - 통합 아틀리에",
     h1: "운명의 꽃 아틀리에",
-    description: "사주·점성술·자미두수·숙요 데이터를 소스별 탭으로 전환해 운명의 꽃을 시각화하는 안내 페이지.",
-    seoText: "운명의 꽃 아틀리에는 사주/점성술/자미두수/숙요 엔진 결과를 기반으로 꽃, 팔레트, 해석 패널을 생성합니다.",
+    description: "사주·점성술·자미두수·숙요의 결을 소스별 탭으로 열어, 내 운명의 꽃과 팔레트가 피어나는 흐름을 봅니다.",
+    seoText: "운명의 꽃 아틀리에는 네 가지 운세의 기운을 꽃, 팔레트, 해석 패널로 피워 올립니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower.webp",
     landingPoints: ["4개 운세 소스 탭 전환", "소스별 꽃·키워드·해석 패널", "프롬프트/저장/공유 도구"],
     keywords: [
@@ -893,8 +1136,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "점성술 운명의 꽃",
     h1: "점성술 운명의 꽃",
-    description: "태양궁 중심 매핑에 상승궁·달궁 보조 신호를 더해 꽃 결과를 생성하는 점성술 꽃 안내 페이지.",
-    seoText: "점성술 운명의 꽃은 태양궁으로 꽃을 선택하고, 상승궁·달궁은 분위기/해석 패널을 보강하는 구조입니다.",
+    description: "태양궁의 중심 기운에 상승궁과 달궁의 보조 신호가 더해지며, 나의 점성술 꽃이 성운처럼 피어납니다.",
+    seoText: "점성술 운명의 꽃에서는 태양궁의 꽃 위로 상승궁과 달궁의 분위기가 은은하게 겹칩니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower2.webp",
     landingPoints: ["태양궁 중심 꽃 매핑", "상승궁·달궁 보조 시그널", "성운 테마 시각화/공유"],
     keywords: [
@@ -908,8 +1151,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "자미두수 운명의 꽃",
     h1: "자미두수 운명의 꽃",
-    description: "명궁·주성(주요 별)·밝기 정보를 기반으로 꽃과 테마를 합성하는 자미두수 꽃 안내 페이지.",
-    seoText: "자미두수 운명의 꽃은 명궁 힌트와 주성 규칙, 밝기 강도를 반영해 꽃 팔레트와 해석을 생성합니다.",
+    description: "명궁과 주성, 밝기의 기운이 겹치며 자미두수의 꽃과 테마가 한 장의 운명 정원처럼 피어납니다.",
+    seoText: "자미두수 운명의 꽃에서는 명궁의 힌트와 주성의 빛이 꽃 팔레트와 해석으로 번집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower3.webp",
     landingPoints: ["명궁/주성 기반 꽃 산출", "밝기 강도 반영 테마", "자미두수 해석 패널"],
     keywords: [
@@ -923,8 +1166,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "숙요 운명의 꽃",
     h1: "숙요 운명의 꽃",
-    description: "숙요 27수(숙명)와 월상 정보를 바탕으로 달빛 테마 꽃을 생성하는 안내 페이지.",
-    seoText: "숙요 운명의 꽃은 숙요 27수 인덱스/별칭 해석과 월상 보정으로 꽃·키워드·의식을 구성합니다.",
+    description: "숙요 27수와 월상의 흐름이 겹치며, 달빛을 머금은 나만의 꽃과 작은 의식이 열립니다.",
+    seoText: "숙요 운명의 꽃에서는 27수의 별빛과 월상의 그림자가 꽃, 키워드, 의식으로 이어집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower4.webp",
     landingPoints: ["27수 기반 꽃 매칭", "달 위상 보정 시각화", "숙요 해석/가이드 패널"],
     keywords: [
@@ -990,9 +1233,9 @@ export const SERVICE_MAP = {
     description:
       "핀란드 전통 주석점(낙점) 의식을 무료로 체험하세요. 낙이 물에서 굳는 형태로 미래를 읽는 5단게 인터랙티브 오라클.",
     seoText:
-      "핀란드 주석점은 5단계 인터랙티브 의식으로 낙 형태 상징을 해석하고 Shadow Reading까지 제공합니다.",
+      "핀란드 주석점에서는 5단계 의식 속에 굳어지는 주석의 형상이 지금의 그림자와 선택의 실마리를 비춥니다.",
     ogImage: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
-    landingPoints: ["5단계 인터랙티브 의식", "낙 형태 상징 해석", "Shadow Reading 제공"],
+    landingPoints: ["5단계 인터랙티브 의식", "낙 형태 상징 해석", "Shadow Reading"],
     keywords: [
       "핀란드 주석점",
       "Sikojen Povailu",
@@ -1006,9 +1249,9 @@ export const SERVICE_MAP = {
     title: "IFA 오라클 - 요루바 256 오두 신탁",
     h1: "IFA 오라클",
     description:
-      "요루바 전통 256 오두 체계를 기반으로 질문의 흐름을 읽는 IFA 오라클 안내 페이지입니다.",
+      "요루바 전통 256 오두의 흐름 위로 질문의 뿌리와 지금 필요한 응답이 조용히 떠오릅니다.",
     seoText:
-      "IFA 오라클은 상징 조합과 질문 맥락을 연결해 연애·재물·건강 흐름을 해석하는 인터랙티브 신탁 서비스입니다.",
+      "IFA 오라클에서는 상징 조합과 질문의 맥락이 맞물리며 연애, 재물, 건강의 흐름이 신탁처럼 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ifafortune.webp",
     landingPoints: ["256 오두 전통 해석", "질문 맥락형 오라클", "회차당 3,000원 리딩"],
     keywords: [
@@ -1021,14 +1264,14 @@ export const SERVICE_MAP = {
   },
   "oracle/royal-tea": {
     component: FeatureLandingPage,
-    title: "타세오그래피 찻잎 점 - 랰던 로열 컵 문양 리딩",
+    title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩",
     h1: "타세오그래피 찻잎 점",
     description:
-      "랰던 로열 컵 문양을 기반으로 상징을 해석하는 영국 홀차 찻잎 점 오라클 리딩 서비스.",
+      "런던 로열 컵에 남은 찻잎 문양을 따라 상징의 흐름과 다가오는 기미를 읽습니다.",
     seoText:
-      "타세오그래피는 타 컵 내에 남은 찻잎 패턴으로 미래를 읽는 유럽 전통 점술입니다.",
+      "타세오그래피에서는 찻잔 안에 남은 잎의 패턴이 미래의 작은 징후와 마음의 방향을 비춥니다.",
     ogImage: "/fuctionassets/london.webp",
-    landingPoints: ["랰던 로열 컵 문양 리딩", "영국 홀차 전통 점술", "상징 해석 오라클"],
+    landingPoints: ["런던 로열 컵 문양 리딩", "영국 홍차 전통 점술", "상징 해석 오라클"],
     keywords: [
       "타세오그래피",
       "찻잎 점",
@@ -1044,7 +1287,7 @@ export const SERVICE_MAP = {
     description:
       "상대방의 생년월일로 사주를 분석해 페르소나 캐릭터를 만들고, 데이트 코스·선택지를 통해 상대방의 취향과 성격을 미리 경험해보는 사주 연애 시뮬레이션.",
     seoText:
-      "LOVE CODE는 명리학 기반 사주 분석으로 상대방의 오행·일간·MBTI를 파악한 뒤 데이트 시나리오 시뮬레이션을 제공합니다.",
+      "LOVE CODE에서는 상대의 오행, 일간, MBTI가 연애 반응의 결로 이어지며 데이트 시나리오의 흐름을 엽니다.",
     ogImage: "https://code-destiny.com/fuctionassets/love%20code.webp",
     landingPoints: [
       "상대방 생년월일 사주 분석",
