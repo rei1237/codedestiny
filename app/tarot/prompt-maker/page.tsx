@@ -161,6 +161,12 @@ type PromptMakerUiCopy = {
   creditValue: (amount: number) => string;
 };
 
+type CardFlowCopy = {
+  orientation: Record<TarotCardOrientation, string>;
+  waiting: string[];
+  flow: (first: string, firstOrientation: string, middle: string, middleOrientation: string, lastPosition: string, last: string, uprightCount: number, reversedCount: number) => string[];
+};
+
 const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
   ko: {
     free: "무료",
@@ -1678,6 +1684,77 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
   },
 };
 
+const CARD_FLOW_COPY: Record<LoadingLocale, CardFlowCopy> = {
+  ko: {
+    orientation: { upright: "정방향", reversed: "역방향" },
+    waiting: [
+      "카드가 열리면 질문의 별자리와 포지션별 흐름이 이곳에 떠오릅니다.",
+      "지금은 질문과 스프레드에 맞는 첫 문장을 기다리고 있습니다.",
+      "직관이 머무는 순서대로 한 장씩 조용히 열어보세요.",
+    ],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [
+      `${first} ${firstOrientation}에서 열린 첫빛이 ${middle} ${middleOrientation}을 지나며 질문의 중심을 비춥니다.`,
+      `현재 조합에는 정방향 ${uprightCount}장, 역방향 ${reversedCount}장의 흐름 속에서 열리는 힘과 머무는 힘의 균형이 드러납니다.`,
+      `${lastPosition}에 놓인 ${last}가 이 프롬프트의 마지막 문장과 행동 톤을 정합니다.`,
+    ],
+  },
+  en: {
+    orientation: { upright: "Upright", reversed: "Reversed" },
+    waiting: ["When the cards open, the question's constellation and each position flow will appear here.", "The first sentence for this question and spread is waiting quietly.", "Open each card in the order your intuition rests."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`The first light opens with ${first} ${firstOrientation}, then passes through ${middle} ${middleOrientation} to illuminate the question's center.`, `This draw holds ${uprightCount} upright and ${reversedCount} reversed cards, showing the balance between opening force and delayed force.`, `${last} in ${lastPosition} shapes the final sentence and action tone of this prompt.`],
+  },
+  ja: {
+    orientation: { upright: "正位置", reversed: "逆位置" },
+    waiting: ["カードが開くと、質問の星座と各ポジションの流れがここに浮かびます。", "今は質問とスプレッドに合う最初の一文を静かに待っています。", "直感が留まる順に、一枚ずつ静かに開いてください。"],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`${first} ${firstOrientation}から開いた最初の光が、${middle} ${middleOrientation}を通って質問の中心を照らします。`, `この組み合わせには正位置${uprightCount}枚、逆位置${reversedCount}枚があり、開く力と留まる力の均衡が表れています。`, `${lastPosition}に置かれた${last}が、このプロンプトの最後の一文と行動の温度を整えます。`],
+  },
+  "zh-CN": {
+    orientation: { upright: "正位", reversed: "逆位" },
+    waiting: ["卡牌打开后，问题的星图与各位置流向会浮现在这里。", "现在正等待适合这个问题和牌阵的第一句话。", "请按直觉停留的顺序，一张一张安静地打开。"],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`从${first}${firstOrientation}开启的第一道光，会经过${middle}${middleOrientation}照亮问题中心。`, `当前组合中有正位${uprightCount}张、逆位${reversedCount}张，显示打开之力与停滞之力的平衡。`, `位于${lastPosition}的${last}决定这段提示词最后一句和行动语气。`],
+  },
+  "zh-TW": {
+    orientation: { upright: "正位", reversed: "逆位" },
+    waiting: ["卡牌打開後，問題的星圖與各位置流向會浮現在這裡。", "現在正等待適合這個問題和牌陣的第一句話。", "請按直覺停留的順序，一張一張安靜地打開。"],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`從${first}${firstOrientation}開啟的第一道光，會經過${middle}${middleOrientation}照亮問題中心。`, `目前組合中有正位${uprightCount}張、逆位${reversedCount}張，顯示打開之力與停滯之力的平衡。`, `位於${lastPosition}的${last}決定這段提示詞最後一句和行動語氣。`],
+  },
+  vi: {
+    orientation: { upright: "Xuôi", reversed: "Ngược" },
+    waiting: ["Khi lá bài mở ra, chòm sao câu hỏi và dòng từng vị trí sẽ hiện ở đây.", "Câu đầu tiên cho câu hỏi và trải bài này đang lặng lẽ chờ.", "Hãy mở từng lá theo thứ tự trực giác dừng lại."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`Ánh sáng đầu mở từ ${first} ${firstOrientation}, đi qua ${middle} ${middleOrientation} để soi tâm điểm câu hỏi.`, `Tổ hợp này có ${uprightCount} lá xuôi và ${reversedCount} lá ngược, cho thấy cân bằng giữa lực mở ra và lực còn giữ lại.`, `${last} ở vị trí ${lastPosition} định hình câu cuối và giọng hành động của prompt này.`],
+  },
+  hi: {
+    orientation: { upright: "Upright", reversed: "Reversed" },
+    waiting: ["Cards खुलते ही question constellation और position flow यहाँ दिखेंगे.", "यह question और spread अपनी first sentence का शांत इंतज़ार कर रहे हैं.", "Intuition जहाँ रुके, उसी क्रम में cards खोलें."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`First light ${first} ${firstOrientation} से खुलकर ${middle} ${middleOrientation} से गुजरती हुई question center को रोशन करती है.`, `इस draw में ${uprightCount} upright और ${reversedCount} reversed cards हैं, जो opening force और delayed force का balance दिखाते हैं.`, `${lastPosition} में रखा ${last} इस prompt की final sentence और action tone तय करता है.`],
+  },
+  es: {
+    orientation: { upright: "Derecha", reversed: "Invertida" },
+    waiting: ["Cuando se abran las cartas, aparecerán aquí la constelación de la pregunta y el flujo de cada posición.", "La primera frase para esta pregunta y tirada está esperando en silencio.", "Abre cada carta en el orden donde descanse tu intuición."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`La primera luz se abre con ${first} ${firstOrientation} y pasa por ${middle} ${middleOrientation} para iluminar el centro de la pregunta.`, `Esta combinación tiene ${uprightCount} cartas derechas y ${reversedCount} invertidas, mostrando el equilibrio entre fuerza abierta y fuerza detenida.`, `${last} en ${lastPosition} define la última frase y el tono de acción de este prompt.`],
+  },
+  fr: {
+    orientation: { upright: "Droite", reversed: "Renversée" },
+    waiting: ["Quand les cartes s'ouvrent, la constellation de la question et le flux de chaque position apparaissent ici.", "La première phrase pour cette question et ce tirage attend en silence.", "Ouvrez chaque carte dans l'ordre où votre intuition se pose."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`La première lumière s'ouvre avec ${first} ${firstOrientation}, puis traverse ${middle} ${middleOrientation} pour éclairer le centre de la question.`, `Ce tirage contient ${uprightCount} cartes droites et ${reversedCount} renversées, montrant l'équilibre entre force d'ouverture et force retenue.`, `${last}, placé en ${lastPosition}, règle la dernière phrase et le ton d'action de ce prompt.`],
+  },
+  de: {
+    orientation: { upright: "Aufrecht", reversed: "Umgekehrt" },
+    waiting: ["Wenn die Karten sich öffnen, erscheinen hier die Konstellation der Frage und der Fluss jeder Position.", "Der erste Satz für diese Frage und Legung wartet still.", "Öffne jede Karte in der Reihenfolge, in der deine Intuition verweilt."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`Das erste Licht öffnet sich mit ${first} ${firstOrientation} und geht durch ${middle} ${middleOrientation}, um das Zentrum der Frage zu beleuchten.`, `Diese Legung enthält ${uprightCount} aufrechte und ${reversedCount} umgekehrte Karten und zeigt die Balance zwischen Öffnung und Verzögerung.`, `${last} in ${lastPosition} bestimmt den letzten Satz und den Handlungston dieses Prompts.`],
+  },
+  nl: {
+    orientation: { upright: "Rechtop", reversed: "Omgekeerd" },
+    waiting: ["Wanneer de kaarten opengaan, verschijnen hier de constellatie van de vraag en de stroom per positie.", "De eerste zin voor deze vraag en spread wacht rustig.", "Open elke kaart in de volgorde waarin je intuïtie blijft rusten."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`Het eerste licht opent met ${first} ${firstOrientation} en gaat via ${middle} ${middleOrientation} naar het centrum van de vraag.`, `Deze trekking heeft ${uprightCount} rechtop en ${reversedCount} omgekeerde kaarten, met balans tussen openende en vertraagde kracht.`, `${last} in ${lastPosition} bepaalt de laatste zin en actietoon van deze prompt.`],
+  },
+  ms: {
+    orientation: { upright: "Tegak", reversed: "Terbalik" },
+    waiting: ["Apabila kad dibuka, buruj soalan dan aliran setiap posisi akan muncul di sini.", "Ayat pertama untuk soalan dan spread ini sedang menunggu dengan tenang.", "Buka setiap kad mengikut urutan intuisi anda berhenti."],
+    flow: (first, firstOrientation, middle, middleOrientation, lastPosition, last, uprightCount, reversedCount) => [`Cahaya pertama terbuka melalui ${first} ${firstOrientation}, lalu melalui ${middle} ${middleOrientation} untuk menerangi pusat soalan.`, `Cabutan ini mempunyai ${uprightCount} kad tegak dan ${reversedCount} kad terbalik, menunjukkan imbangan antara daya terbuka dan daya tertahan.`, `${last} di ${lastPosition} membentuk ayat akhir dan nada tindakan prompt ini.`],
+  },
+};
+
 function formatCoinValue(amount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_UI_COPY.ko) {
   return copy.currency(amount);
 }
@@ -2162,6 +2239,18 @@ function normalizeText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
 
+function resolveCardFlowCopy(locale: LoadingLocale) {
+  return CARD_FLOW_COPY[locale] || CARD_FLOW_COPY.ko;
+}
+
+function resolveOracleCardName(card: Pick<OracleCardPick, "cardNameKo" | "cardNameEn">, locale: LoadingLocale) {
+  return locale === "ko" ? card.cardNameKo : (card.cardNameEn || card.cardNameKo);
+}
+
+function resolveOrientationLabel(orientation: TarotCardOrientation, locale: LoadingLocale) {
+  return resolveCardFlowCopy(locale).orientation[orientation];
+}
+
 function buildQuestionQualityNotice(
   question: string,
   category: TarotSpreadCategory,
@@ -2178,24 +2267,26 @@ function buildQuestionQualityNotice(
   return copy.ready;
 }
 
-function buildFlowLines(cards: DrawnTarotCard[]) {
+function buildFlowLines(cards: DrawnTarotCard[], locale: LoadingLocale) {
+  const copy = resolveCardFlowCopy(locale);
   if (!cards.length) {
-    return [
-      "카드가 열리면 질문의 별자리와 포지션별 흐름이 이곳에 떠오릅니다.",
-      "지금은 질문과 스프레드에 맞는 첫 문장을 기다리고 있습니다.",
-      "직관이 머무는 순서대로 한 장씩 조용히 열어보세요.",
-    ];
+    return copy.waiting;
   }
   const first = cards[0];
   const middle = cards[Math.floor(cards.length / 2)] || first;
   const last = cards[cards.length - 1] || first;
   const uprightCount = cards.filter((card) => card.orientation === "upright").length;
   const reversedCount = cards.length - uprightCount;
-  return [
-    `${first.cardNameKo} ${first.orientationLabel}에서 열린 첫빛이 ${middle.cardNameKo} ${middle.orientationLabel}을 지나며 질문의 중심을 비춥니다.`,
-    `현재 조합에는 정방향 ${uprightCount}장, 역방향 ${reversedCount}장의 흐름 속에서 열리는 힘과 머무는 힘의 균형이 드러납니다.`,
-    `${last.positionLabel}에 놓인 ${last.cardNameKo}가 이 프롬프트의 마지막 문장과 행동 톤을 정합니다.`,
-  ];
+  return copy.flow(
+    resolveOracleCardName(first, locale),
+    resolveOrientationLabel(first.orientation, locale),
+    resolveOracleCardName(middle, locale),
+    resolveOrientationLabel(middle.orientation, locale),
+    last.positionLabel,
+    resolveOracleCardName(last, locale),
+    uprightCount,
+    reversedCount,
+  );
 }
 
 /* ─── StepIndicator ─── */
@@ -2341,7 +2432,7 @@ export default function TarotPromptMakerPage() {
     [question, isLenormandMode, selectedQuestionCategory, defaultQuestionByCategory, lenormandDefaultQuestion],
   );
 
-  const flowLines = useMemo(() => buildFlowLines(drawnCards), [drawnCards]);
+  const flowLines = useMemo(() => buildFlowLines(drawnCards, locale), [drawnCards, locale]);
   const progressText = `${drawnCards.length} / ${selectedSpread.cardCount}`;
 
   const recommendedSpreads = useMemo(
@@ -3030,10 +3121,10 @@ export default function TarotPromptMakerPage() {
                                     className="h-full flex flex-col"
                                     style={{ backfaceVisibility: "hidden" }}
                                   >
-                                    <img src={drawn.image} alt={drawn.cardNameKo} className="w-full flex-1 object-cover" style={{ filter: !isLenormandMode && drawn.orientation === "reversed" ? "hue-rotate(180deg) brightness(0.85)" : undefined, transform: !isLenormandMode && drawn.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
+                                    <img src={drawn.image} alt={resolveOracleCardName(drawn, locale)} className="w-full flex-1 object-cover" style={{ filter: !isLenormandMode && drawn.orientation === "reversed" ? "hue-rotate(180deg) brightness(0.85)" : undefined, transform: !isLenormandMode && drawn.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
                                     <div className="px-1 py-1 text-center" style={{ background: "rgba(0,0,0,0.7)" }}>
-                                      <div className="text-[9px] font-bold text-[#e9d5ff] leading-tight line-clamp-1">{drawn.cardNameKo}</div>
-                                      <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? uiCopy.combinationReading : drawn.orientationLabel}</div>
+                                      <div className="text-[9px] font-bold text-[#e9d5ff] leading-tight line-clamp-1">{resolveOracleCardName(drawn, locale)}</div>
+                                      <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? uiCopy.combinationReading : resolveOrientationLabel(drawn.orientation, locale)}</div>
                                     </div>
                                   </motion.div>
                                 ) : (
@@ -3143,8 +3234,8 @@ export default function TarotPromptMakerPage() {
                                   onClick={() => drawSpecificCard(card)}
                                   className={`min-h-12 rounded-xl px-2 py-2 text-left transition-all ${disabled ? "border border-white/5 bg-black/20 text-white/20" : "border border-[#7c3aed]/35 bg-[#2d1b69]/60 text-[#c4b5fd] hover:-translate-y-0.5 hover:border-[#c084fc]/50 hover:shadow-[0_0_8px_rgba(192,132,252,0.3)]"}`}
                                 >
-                                  <span className="block text-[10px] font-bold leading-tight line-clamp-1">{card.cardNameKo}</span>
-                                  <span className="block text-[8px] text-[#a78bfa]/60 leading-tight line-clamp-1">{card.keywords.slice(0, 2).join(" · ") || card.cardNameEn}</span>
+                                  <span className="block text-[10px] font-bold leading-tight line-clamp-1">{resolveOracleCardName(card, locale)}</span>
+                                  <span className="block text-[8px] text-[#a78bfa]/60 leading-tight line-clamp-1">{locale === "ko" ? (card.keywords.slice(0, 2).join(" · ") || card.cardNameEn) : card.cardCode}</span>
                                 </button>
                               );
                             })}
@@ -3167,8 +3258,8 @@ export default function TarotPromptMakerPage() {
                                 <div className="mt-1 flex items-center justify-between gap-2">
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs text-[#f3e8ff] font-medium truncate">{drawn.cardNameKo}</span>
-                                      <span className="text-[10px] text-[#f472b6] shrink-0">{isLenormandMode ? uiCopy.lenormandLabel : drawn.orientationLabel}</span>
+                                      <span className="text-xs text-[#f3e8ff] font-medium truncate">{resolveOracleCardName(drawn, locale)}</span>
+                                      <span className="text-[10px] text-[#f472b6] shrink-0">{isLenormandMode ? uiCopy.lenormandLabel : resolveOrientationLabel(drawn.orientation, locale)}</span>
                                     </div>
                                     <div className="mt-0.5 text-[10px] text-white/40 leading-relaxed line-clamp-2">{drawn.positionDescription}</div>
                                   </div>
@@ -3245,9 +3336,9 @@ export default function TarotPromptMakerPage() {
                         {drawnCards.slice(0, 5).map((card, i) => (
                           <div key={i} className="flex flex-col items-center gap-1">
                             <div className="w-14 h-20 rounded-lg overflow-hidden border border-[#7c3aed]/30 shadow-md">
-                              <img src={card.image} alt={card.cardNameKo} className="w-full h-full object-cover" style={{ filter: !isLenormandMode && card.orientation === "reversed" ? "brightness(0.75)" : undefined, transform: !isLenormandMode && card.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
+                              <img src={card.image} alt={resolveOracleCardName(card, locale)} className="w-full h-full object-cover" style={{ filter: !isLenormandMode && card.orientation === "reversed" ? "brightness(0.75)" : undefined, transform: !isLenormandMode && card.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
                             </div>
-                            <div className="text-[8px] text-[#c4b5fd] text-center w-14 leading-tight line-clamp-2">{card.cardNameKo}</div>
+                            <div className="text-[8px] text-[#c4b5fd] text-center w-14 leading-tight line-clamp-2">{resolveOracleCardName(card, locale)}</div>
                           </div>
                         ))}
                       </div>
@@ -3259,8 +3350,8 @@ export default function TarotPromptMakerPage() {
                             <div key={`${selectedSpread.id}-result-${position.index}`} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
                               <div className="text-[10px] text-[#c084fc]">{position.index}. {position.label}</div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs font-semibold text-[#f3e8ff]">{drawn.cardNameKo}</span>
-                                <span className="text-[10px] text-[#f472b6]">{isLenormandMode ? uiCopy.lenormandLabel : drawn.orientationLabel}</span>
+                                <span className="text-xs font-semibold text-[#f3e8ff]">{resolveOracleCardName(drawn, locale)}</span>
+                                <span className="text-[10px] text-[#f472b6]">{isLenormandMode ? uiCopy.lenormandLabel : resolveOrientationLabel(drawn.orientation, locale)}</span>
                               </div>
                               <div className="text-[10px] text-white/45 mt-0.5 leading-relaxed">{drawn.positionDescription}</div>
                             </div>
