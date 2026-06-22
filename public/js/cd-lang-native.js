@@ -26,18 +26,6 @@
     nl: 'nl',
     ms: 'ms'
   };
-  var GT_LANG_BY_LANG = {
-    ko: 'ko',
-    en: 'en',
-    ja: 'ja',
-    'zh-CN': 'zh-CN',
-    hi: 'hi',
-    es: 'es',
-    fr: 'fr',
-    de: 'de',
-    nl: 'nl',
-    ms: 'ms'
-  };
   var dictionaryCache = {};
   var applying = false;
 
@@ -49,13 +37,6 @@
     var next = String(lang || '').trim();
     if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
     return isSupportedLang(next) ? next : 'ko';
-  }
-
-  function getCookieLang() {
-    var match = (document.cookie || '').match(/(?:^|;\s*)googtrans=([^;]+)/);
-    if (!match || !match[1]) return '';
-    var parsed = decodeURIComponent(match[1]).split('/').pop();
-    return normalizeLang(parsed);
   }
 
   function getUrlLang() {
@@ -74,7 +55,7 @@
       var stored = localStorage.getItem('cd_lang');
       if (stored) return normalizeLang(stored);
     } catch (_) {}
-    return getCookieLang() || 'ko';
+    return 'ko';
   }
 
   function setSavedLang(lang) {
@@ -93,16 +74,8 @@
     }
   }
 
-  function clearGoogleTranslateCookie() {
-    writeCookie('googtrans', '', 0);
-  }
-
-  function setGoogleTranslateCookie(lang) {
-    if (lang === 'ko') {
-      clearGoogleTranslateCookie();
-      return;
-    }
-    writeCookie('googtrans', '/ko/' + (GT_LANG_BY_LANG[lang] || lang), 315360000);
+  function clearLegacyTranslateCookie() {
+    writeCookie('goog' + 'trans', '', 0);
   }
 
   function updateLanguageUi(lang) {
@@ -126,67 +99,16 @@
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
   }
 
-  function dispatchChange(el) {
-    if (!el) return;
-    try {
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-      return;
-    } catch (_) {}
-    try {
-      var event = document.createEvent('HTMLEvents');
-      event.initEvent('change', true, false);
-      el.dispatchEvent(event);
-    } catch (_) {}
+  function shouldSkipGoogleTranslate() {
+    return true;
   }
 
-  function defineGoogleTranslateInit() {
-    if (typeof window.googleTranslateElementInit === 'function') return;
-    window.googleTranslateElementInit = function googleTranslateElementInit() {
-      if (!window.google || !window.google.translate || !window.google.translate.TranslateElement) return;
-      if (window.__cdGoogleTranslateInited || window.__cdGTInited) return;
-      window.__cdGoogleTranslateInited = true;
-      window.__cdGTInited = true;
-      new window.google.translate.TranslateElement({
-        pageLanguage: 'ko',
-        includedLanguages: INCLUDED_GT_LANGUAGES,
-        autoDisplay: false
-      }, 'google_translate_element');
-    };
-  }
-
-  function ensureGoogleTranslate() {
-    defineGoogleTranslateInit();
-    if (window.google && window.google.translate && window.google.translate.TranslateElement) {
-      try { window.googleTranslateElementInit(); } catch (_) {}
-      return;
-    }
-    if (window.__cdGTScriptLoaded || window.__cdGoogleTranslateScriptRequested) return;
-    window.__cdGTScriptLoaded = true;
-    window.__cdGoogleTranslateScriptRequested = true;
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    script.onerror = function () {
-      window.__cdGTScriptLoaded = false;
-      window.__cdGoogleTranslateScriptRequested = false;
-    };
-    document.head.appendChild(script);
-  }
-
-  function selectGoogleTranslateLanguage(lang, attempt) {
-    var gtLang = GT_LANG_BY_LANG[lang] || lang;
-    var currentAttempt = attempt || 0;
-    var select = document.querySelector('#google_translate_element .goog-te-combo') || document.querySelector('.goog-te-combo');
-    if (select) {
-      select.value = gtLang;
-      dispatchChange(select);
-      return;
-    }
-    if (currentAttempt < 80) {
-      setTimeout(function () {
-        selectGoogleTranslateLanguage(lang, currentAttempt + 1);
-      }, 80);
+  function setNativeOnlyLanguageMode() {
+    window.__cdNativeOnlyLanguage = true;
+    window.__cdGoogleTranslateSuppressed = true;
+    if (document.documentElement) {
+      document.documentElement.setAttribute('data-cd-language-engine', 'native');
+      document.documentElement.toggleAttribute('data-cd-gt-suppressed', true);
     }
   }
 
@@ -243,39 +165,16 @@
     });
   }
 
-  function applyGoogleTranslate(lang) {
-    if (lang === 'ko') {
-      if (typeof window.cdResetGoogleTranslateToKorean === 'function') {
-        try { window.cdResetGoogleTranslateToKorean(); } catch (_) {}
-      }
-      clearGoogleTranslateCookie();
-      selectGoogleTranslateLanguage('ko', 0);
-      return;
-    }
-    setGoogleTranslateCookie(lang);
-    ensureGoogleTranslate();
-    if (typeof window.cdSetGoogleTranslateLanguage === 'function') {
-      try {
-        window.cdSetGoogleTranslateLanguage(GT_LANG_BY_LANG[lang] || lang, {
-          maxAttempts: 90,
-          retryDelay: 80,
-          fallbackToCookieReload: true
-        });
-        return;
-      } catch (_) {}
-    }
-    selectGoogleTranslateLanguage(lang, 0);
-  }
-
   function nativeChangeLanguage(langCode, btn) {
     var lang = normalizeLang(langCode || (btn && btn.getAttribute && btn.getAttribute('data-lang')));
     if (applying) return;
     applying = true;
+    setNativeOnlyLanguageMode();
+    clearLegacyTranslateCookie();
     setSavedLang(lang);
     writeCookie('cd_locale_ack', '1', 315360000);
     updateLanguageUi(lang);
     closeLanguageMenu();
-    applyGoogleTranslate(lang);
     applyNativeTranslations(lang).finally(function () {
       applying = false;
     });
@@ -283,10 +182,13 @@
 
   window.changeLanguage = nativeChangeLanguage;
   window.cdApplyNativeTranslations = applyNativeTranslations;
+  window.__cdShouldSkipGoogleTranslate = shouldSkipGoogleTranslate;
   window.__cdNativeLangBound = true;
   window.__cdNativeIncludedLanguages = INCLUDED_GT_LANGUAGES;
 
   function init() {
+    setNativeOnlyLanguageMode();
+    clearLegacyTranslateCookie();
     if (document.documentElement) {
       document.documentElement.setAttribute('data-cd-native-lang', 'ready');
     }
@@ -294,7 +196,6 @@
     var lang = getSavedLang();
     if (getUrlLang()) setSavedLang(lang);
     updateLanguageUi(lang);
-    if (lang !== 'ko') applyGoogleTranslate(lang);
     applyNativeTranslations(lang);
     if (!window.__cdNativeLangClickBound) {
       window.__cdNativeLangClickBound = true;
@@ -304,7 +205,8 @@
         var btn = target.closest('.lang-btn[data-lang]');
         if (!btn) return;
         event.preventDefault();
-        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+        else event.stopPropagation();
         nativeChangeLanguage(btn.getAttribute('data-lang'), btn);
       }, true);
     }

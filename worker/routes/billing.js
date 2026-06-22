@@ -3329,7 +3329,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
 
   if (accessDecision.paymentOptions) {
-    paymentDecision = passOnly
+    paymentDecision = membershipPassOnly
       ? {
         ...accessDecision.paymentOptions,
         monthlyBalance: 0,

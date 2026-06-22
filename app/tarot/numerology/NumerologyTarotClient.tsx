@@ -324,6 +324,7 @@ const NUMEROLOGY_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
 const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement";
 const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:";
+const READING_RECOVERY_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 const PROMPT_TOPIC_OPTIONS: PromptTopicOption[] = [
   {
@@ -842,6 +843,26 @@ function readJson<T>(key: string): T | null {
   }
 }
 
+function isRecoverableReadingEntitlement(entitlement: ReadingEntitlement): boolean {
+  const purchasedAt = Date.parse(entitlement.purchasedAt || "");
+  if (!Number.isFinite(purchasedAt)) return false;
+  return Date.now() - purchasedAt <= READING_RECOVERY_MAX_AGE_MS;
+}
+
+function clearStoredReadingSession(readingId?: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const saved = readJson<ReadingEntitlement>(READING_ENTITLEMENT_STORAGE_KEY);
+    const targetReadingId = readingId || saved?.readingId;
+    window.localStorage.removeItem(READING_ENTITLEMENT_STORAGE_KEY);
+    if (targetReadingId) {
+      window.localStorage.removeItem(`${READING_RESULT_STORAGE_PREFIX}${targetReadingId}`);
+    }
+  } catch {
+    return;
+  }
+}
+
 function buildReadingEntitlement(readingId: string, paymentContext: ReadingPaymentContext): ReadingEntitlement {
   return {
     readingId,
@@ -1083,7 +1104,15 @@ export default function NumerologyTarotClient() {
   useEffect(() => {
     const savedEntitlement = readJson<ReadingEntitlement>(READING_ENTITLEMENT_STORAGE_KEY);
     if (!savedEntitlement?.paid || !savedEntitlement.readingId) return;
+    if (!isRecoverableReadingEntitlement(savedEntitlement)) {
+      clearStoredReadingSession(savedEntitlement.readingId);
+      return;
+    }
     const snapshot = readJson<ReadingSnapshot>(`${READING_RESULT_STORAGE_PREFIX}${savedEntitlement.readingId}`);
+    if (snapshot?.reading) {
+      clearStoredReadingSession(savedEntitlement.readingId);
+      return;
+    }
     setEntitlement(savedEntitlement);
     setReadingId(savedEntitlement.readingId);
     if (!snapshot) {
@@ -1321,19 +1350,7 @@ export default function NumerologyTarotClient() {
       readingId,
     };
     setReading(nextReading);
-    if (entitlement?.paid && readingId) {
-      persistJson(`${READING_RESULT_STORAGE_PREFIX}${readingId}`, {
-        entitlement,
-        name,
-        birthDate,
-        topic,
-        question,
-        numerology,
-        cards,
-        revealed,
-        reading: nextReading,
-      } satisfies ReadingSnapshot);
-    }
+    clearStoredReadingSession(readingId);
     setFlowState("reading_complete");
     return nextReading;
   }
@@ -1906,9 +1923,7 @@ export default function NumerologyTarotClient() {
                           setStandalonePromptStatus("");
                           setSaveStatus("");
                           setFlowState("checkout_ready");
-                          if (typeof window !== "undefined") {
-                            window.localStorage.removeItem(READING_ENTITLEMENT_STORAGE_KEY);
-                          }
+                          clearStoredReadingSession(readingId || reading.readingId);
                         }}
                       >
                         <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />

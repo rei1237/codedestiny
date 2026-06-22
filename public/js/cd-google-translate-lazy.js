@@ -3,7 +3,18 @@
 
   var loaded = false;
 
+  function shouldSkipGoogleTranslate() {
+    try {
+      if (typeof window.__cdShouldSkipGoogleTranslate === 'function') {
+        return !!window.__cdShouldSkipGoogleTranslate();
+      }
+      return !!window.__cdGoogleTranslateSuppressed;
+    } catch (_) {}
+    return false;
+  }
+
   function loadTranslate() {
+    if (shouldSkipGoogleTranslate()) return;
     // cd-lang-native.js v4+가 이미 GT를 로드한 경우 중복 로드 방지
     if (loaded || window.__cdGTScriptLoaded) return;
     loaded = true;
@@ -57,6 +68,7 @@
   }
 
   function hasTranslateIntent() {
+    if (shouldSkipGoogleTranslate()) return false;
     var urlLang = getUrlLang();
     if (urlLang && urlLang !== 'ko') return true;
     var savedLang = getExplicitSavedLang();
