@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
-import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
+import { authFetch, clearClientAuthState, logoutWithServer, waitForAuthLogoutToSettle } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import {
   markAuthUserCacheVerified,
@@ -309,13 +309,15 @@ function clearStaleGuestCache() {
   });
 }
 
-async function refreshProfileSubscriptionCache() {
+async function refreshProfileSubscriptionCache(expectedAuthMutationSeq = authMutationSeq) {
   const response = await authFetch("/api/fortune/pig-coin/profile-subscription/status", {
     method: "GET",
     cache: "no-store",
   });
+  if (expectedAuthMutationSeq !== authMutationSeq) return;
   if (!response.ok) return;
   const statusPayload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+  if (expectedAuthMutationSeq !== authMutationSeq) return;
   if (!statusPayload) return;
 
   const base = readSanitizedAuthUser() as AuthUser | null;
@@ -327,19 +329,23 @@ async function refreshProfileSubscriptionCache() {
       profileLimit: Number.isFinite(Number(statusPayload.profileLimit)) ? Number(statusPayload.profileLimit) : undefined,
     },
   });
+  if (expectedAuthMutationSeq !== authMutationSeq) return;
   resolveSafeUser(merged);
 }
 
-export async function refreshBillingBalance() {
+export async function refreshBillingBalance(expectedAuthMutationSeq = authMutationSeq) {
   if (billingBalanceInFlight) return billingBalanceInFlight;
 
-  billingBalanceInFlight = (async () => {
+  const requestAuthMutationSeq = expectedAuthMutationSeq;
+  const nextBillingBalanceInFlight = (async () => {
     const response = await authFetch("/api/billing/balance?compact=1", {
       method: "GET",
       cache: "no-store",
     });
+    if (requestAuthMutationSeq !== authMutationSeq) return null;
     if (!response.ok) return null;
     const payload = (await response.json().catch(() => null)) as BillingBalancePayload | null;
+    if (requestAuthMutationSeq !== authMutationSeq) return null;
     if (!payload) return null;
     const balanceData = payload.data && typeof payload.data === "object" ? payload.data : payload;
     if (balanceData.authenticated === false || balanceData.degraded === true) return null;
@@ -374,6 +380,7 @@ export async function refreshBillingBalance() {
       monthlyStoneBalance: normalizedMonthlyStoneBalance,
       profileSubscription: membershipPatch,
     });
+    if (requestAuthMutationSeq !== authMutationSeq) return null;
     const safe = resolveSafeUser(merged);
     if (safe) applyResolvedUser(safe);
     if (typeof normalizedMonthlyStoneBalance === "number") {
@@ -382,22 +389,25 @@ export async function refreshBillingBalance() {
     }
     return null;
   })();
+  billingBalanceInFlight = nextBillingBalanceInFlight;
 
   try {
-    return await billingBalanceInFlight;
+    return await nextBillingBalanceInFlight;
   } finally {
-    billingBalanceInFlight = null;
+    if (billingBalanceInFlight === nextBillingBalanceInFlight) {
+      billingBalanceInFlight = null;
+    }
   }
 }
 
-async function refreshEntitlements() {
-  await refreshBillingBalance();
+async function refreshEntitlements(expectedAuthMutationSeq = authMutationSeq) {
+  await refreshBillingBalance(expectedAuthMutationSeq);
 }
 
-export async function syncPostLoginData() {
+export async function syncPostLoginData(expectedAuthMutationSeq = authMutationSeq) {
   await Promise.allSettled([
-    refreshProfileSubscriptionCache(),
-    refreshEntitlements(),
+    refreshProfileSubscriptionCache(expectedAuthMutationSeq),
+    refreshEntitlements(expectedAuthMutationSeq),
   ]);
 }
 
@@ -419,6 +429,8 @@ function applyResolvedUser(user: AuthUser | null) {
 function clearAuthStateHard() {
   authMutationSeq += 1;
   refreshInFlight = null;
+  billingBalanceInFlight = null;
+  lastRefreshCompletedAt = 0;
   clearClientAuthState();
   setState({
     user: null,
@@ -452,9 +464,16 @@ async function loadMeFromServer() {
     throw new Error("auth_refresh_failed");
   }
 
-  const payload = (await response.json()) as { user?: AuthUser };
+  const payload = (await response.json()) as { authenticated?: boolean; user?: AuthUser };
   if (requestAuthMutationSeq !== authMutationSeq) {
     return state.user;
+  }
+
+  if (payload?.authenticated === false) {
+    latestAppliedMeSeq = requestSeq;
+    clearAuthStateHard();
+    publishAuthSync("logout");
+    return null;
   }
 
   const cachedUser = readSanitizedAuthUser() as AuthUser | null;
@@ -516,7 +535,6 @@ export async function login(credentials: LoginCredentials) {
     throw new Error("로그인이 이미 진행 중이에요. 잠시만 기다려 주세요.");
   }
 
-  authMutationSeq += 1;
   const apiBase = String(credentials.apiBase || getApiBaseUrl() || "").trim();
   const email = String(credentials.email || "").trim();
   const password = String(credentials.password || "");
@@ -530,6 +548,18 @@ export async function login(credentials: LoginCredentials) {
     isLoggingIn: true,
     error: null,
   });
+
+  try {
+    await waitForAuthLogoutToSettle();
+  } catch (e) {
+    void e;
+  }
+
+  authMutationSeq += 1;
+  refreshInFlight = null;
+  billingBalanceInFlight = null;
+  lastRefreshCompletedAt = 0;
+  const loginAuthMutationSeq = authMutationSeq;
 
   clearStaleGuestCache();
   debugAuth("[auth] login started");
@@ -607,7 +637,8 @@ export async function login(credentials: LoginCredentials) {
 
     markAuthUserCacheVerified((readSanitizedAuthUser() as AuthUser | null) || resolvedUser);
 
-    void syncPostLoginData().then(() => {
+    void syncPostLoginData(loginAuthMutationSeq).then(() => {
+      if (loginAuthMutationSeq !== authMutationSeq) return;
       const mergedUser = (readSanitizedAuthUser() as AuthUser | null) || resolvedUser;
       applyResolvedUser(mergedUser);
       debugAuth("[auth] post-login sync completed");
@@ -637,9 +668,9 @@ export async function login(credentials: LoginCredentials) {
 }
 
 export async function logout(apiBase?: string) {
-  await logoutWithServer(apiBase);
   clearAuthStateHard();
   publishAuthSync("logout");
+  void logoutWithServer(apiBase);
 }
 
 export function clearAuthError() {

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { waitForAuthLogoutToSettle } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
@@ -299,17 +300,20 @@ export default function SignupPage() {
     const controller = new AbortController();
     bootstrapAuthCheckControllerRef.current = controller;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
 
-    fetch(`${authApiBase}/api/auth/me`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
+    (async () => {
+      await waitForAuthLogoutToSettle();
+      if (cancelled) return null;
+      const response = await fetch(`${authApiBase}/api/auth/me`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+        signal: controller.signal,
+      });
         if (!response.ok) return null;
         return parseJsonResponse<SignupResult>(response);
-      })
+    })()
       .then((payload) => {
         if (!payload?.user) return;
         persistAuth(payload.user, payload.accessToken);
@@ -323,6 +327,7 @@ export default function SignupPage() {
       });
 
     return () => {
+      cancelled = true;
       if (bootstrapAuthCheckControllerRef.current === controller) {
         bootstrapAuthCheckControllerRef.current = null;
       }
@@ -353,6 +358,8 @@ export default function SignupPage() {
     setLoading(true);
 
     (async () => {
+      await waitForAuthLogoutToSettle();
+
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
 
@@ -450,6 +457,8 @@ export default function SignupPage() {
 
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
+
+      await waitForAuthLogoutToSettle();
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {

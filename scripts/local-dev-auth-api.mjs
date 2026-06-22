@@ -156,7 +156,18 @@ const server = http.createServer(async (req, res) => {
 
     const response = await worker.fetch(request, workerEnv, ctx);
     const responseBody = Buffer.from(await response.arrayBuffer());
-    response.headers.forEach((value, key) => res.setHeader(key, value));
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== "set-cookie") res.setHeader(key, value);
+    });
+    const setCookies = typeof response.headers.getSetCookie === "function"
+      ? response.headers.getSetCookie()
+      : [];
+    if (setCookies.length) {
+      res.setHeader("Set-Cookie", setCookies);
+    } else {
+      const setCookie = response.headers.get("set-cookie");
+      if (setCookie) res.setHeader("Set-Cookie", setCookie);
+    }
     res.statusCode = response.status;
     res.end(responseBody);
   } catch (error) {

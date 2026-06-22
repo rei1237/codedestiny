@@ -1,13 +1,18 @@
 import { getApiBaseUrl } from "./api-config";
-import { toAbsoluteApiUrl } from "./http-client";
+import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+const AUTH_LOGOUT_INFLIGHT_KEY = "fortune_auth_logout_inflight_at";
+const LOGOUT_TIMEOUT_MS = 3500;
+const LOGOUT_INFLIGHT_TTL_MS = 5000;
+const LOGOUT_INFLIGHT_POLL_MS = 80;
 
 type RefreshSessionState = "success" | "invalid" | "transient";
 
 let refreshInFlight: Promise<RefreshSessionState> | null = null;
 let meRequestInFlight: Promise<Response> | null = null;
+let logoutInFlight: Promise<void> | null = null;
 
 const AUTH_LOCAL_STORAGE_KEYS = [
   "fortune_auth_token",
@@ -60,6 +65,69 @@ function clearLegacyClientAccessToken() {
   } catch (e) {
     // ignore storage failures
   }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function readLogoutInFlightStartedAt(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    return Number(localStorage.getItem(AUTH_LOGOUT_INFLIGHT_KEY) || sessionStorage.getItem(AUTH_LOGOUT_INFLIGHT_KEY) || 0);
+  } catch (e) {
+    return 0;
+  }
+}
+
+function markLogoutInFlight() {
+  if (typeof window === "undefined") return;
+  const value = String(Date.now());
+  try {
+    localStorage.setItem(AUTH_LOGOUT_INFLIGHT_KEY, value);
+  } catch (e) {
+    void e;
+  }
+  try {
+    sessionStorage.setItem(AUTH_LOGOUT_INFLIGHT_KEY, value);
+  } catch (e) {
+    void e;
+  }
+}
+
+function clearLogoutInFlightMarker() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(AUTH_LOGOUT_INFLIGHT_KEY);
+  } catch (e) {
+    void e;
+  }
+  try {
+    sessionStorage.removeItem(AUTH_LOGOUT_INFLIGHT_KEY);
+  } catch (e) {
+    void e;
+  }
+}
+
+export async function waitForAuthLogoutToSettle(timeoutMs = LOGOUT_TIMEOUT_MS) {
+  if (logoutInFlight) {
+    try {
+      await logoutInFlight;
+    } catch (e) {
+      void e;
+    }
+    return;
+  }
+
+  const startedAt = readLogoutInFlightStartedAt();
+  if (!Number.isFinite(startedAt) || startedAt <= 0) return;
+
+  const deadline = Math.min(startedAt + LOGOUT_INFLIGHT_TTL_MS, Date.now() + timeoutMs);
+  while (Date.now() < deadline) {
+    if (readLogoutInFlightStartedAt() <= 0) return;
+    await sleep(Math.min(LOGOUT_INFLIGHT_POLL_MS, Math.max(0, deadline - Date.now())));
+  }
+  clearLogoutInFlightMarker();
 }
 
 function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
@@ -229,17 +297,33 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
 }
 
 export async function logoutWithServer(apiBase?: string) {
+  if (logoutInFlight) return logoutInFlight;
   const resolvedBase = String(apiBase || getApiBaseUrl() || "").trim();
-  clearClientAuthState();
+  const nextLogoutInFlight = (async () => {
+    markLogoutInFlight();
+    clearClientAuthState();
+    try {
+      await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        keepalive: true,
+      }, LOGOUT_TIMEOUT_MS);
+    } catch (e) {
+      void e;
+    } finally {
+      clearLogoutInFlightMarker();
+    }
+    clearClientAuthState();
+    publishAuthSync("logout");
+  })();
+
+  logoutInFlight = nextLogoutInFlight;
   try {
-    await fetch(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store",
-    });
-  } catch (e) {
-    // local cleanup still required
+    await nextLogoutInFlight;
+  } finally {
+    if (logoutInFlight === nextLogoutInFlight) {
+      logoutInFlight = null;
+    }
   }
-  clearClientAuthState();
-  publishAuthSync("logout");
 }

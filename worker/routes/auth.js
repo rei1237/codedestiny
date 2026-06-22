@@ -543,8 +543,7 @@ function isLocalDevAuthTokenUser(request, env, auth) {
 
 function isLocalDevAuthRoute(request, env, method, path) {
   if (!isLocalDevAuthEnabled(request, env)) return false;
-  return (method === "POST" && path === "/login")
-    || (method === "GET" && (path === "/me" || path === "/session"));
+  return method === "POST" && path === "/login";
 }
 
 function resolveCookieSecure(request, env) {
@@ -575,6 +574,7 @@ function resolveCookieSameSite(env) {
 function buildCookieValue(name, value, options = {}) {
   const pieces = [`${name}=${encodeURIComponent(String(value || ""))}`];
   pieces.push(`Path=${options.path || "/"}`);
+  if (options.domain) pieces.push(`Domain=${options.domain}`);
   if (typeof options.maxAge === "number") pieces.push(`Max-Age=${Math.max(0, Math.floor(options.maxAge))}`);
   if (options.httpOnly) pieces.push("HttpOnly");
   if (options.secure) pieces.push("Secure");
@@ -594,6 +594,41 @@ function buildAuthCookieOptions(request, env) {
     accessMaxAgeSec,
     refreshMaxAgeSec,
   };
+}
+
+function normalizeCookieDomain(rawValue) {
+  const value = String(rawValue || "").trim().replace(/^\./, "").toLowerCase();
+  if (!value || value === "localhost" || value.includes(":")) return "";
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(value)) return "";
+  return value;
+}
+
+function resolveCookieClearDomains(request, env) {
+  const domains = new Set();
+  const configured = normalizeCookieDomain(getEnv(env, "AUTH_COOKIE_DOMAIN") || getEnv(env, "COOKIE_DOMAIN"));
+  if (configured) domains.add(configured);
+
+  try {
+    const host = normalizeCookieDomain(new URL(request.url).hostname.replace(/^www\./i, ""));
+    if (host === "code-destiny.com" || host.endsWith(".code-destiny.com")) {
+      domains.add("code-destiny.com");
+    }
+  } catch (e) {
+    void e;
+  }
+
+  return Array.from(domains).flatMap((domain) => [domain, `.${domain}`]);
+}
+
+function appendClearCookie(response, name, options = {}) {
+  response.headers.append("Set-Cookie", buildCookieValue(name, "", options));
+  if (String(name || "").startsWith("__Host-")) return;
+  for (const domain of options.clearDomains || []) {
+    response.headers.append("Set-Cookie", buildCookieValue(name, "", {
+      ...options,
+      domain,
+    }));
+  }
 }
 
 function appendAuthCookies(response, request, env, accessToken, refreshToken) {
@@ -616,35 +651,40 @@ function appendAuthCookies(response, request, env, accessToken, refreshToken) {
 
 function appendClearAuthCookies(response, request, env) {
   const cookieOptions = buildAuthCookieOptions(request, env);
-  response.headers.append("Set-Cookie", buildCookieValue(ACCESS_COOKIE_NAME, "", {
+  const clearDomains = resolveCookieClearDomains(request, env);
+  appendClearCookie(response, ACCESS_COOKIE_NAME, {
     path: "/",
     maxAge: 0,
     httpOnly: true,
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
-  }));
-  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
+    clearDomains,
+  });
+  appendClearCookie(response, REFRESH_COOKIE_NAME, {
     path: REFRESH_COOKIE_PRIMARY_PATH,
     maxAge: 0,
     httpOnly: true,
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
-  }));
-  response.headers.append("Set-Cookie", buildCookieValue(REFRESH_COOKIE_NAME, "", {
+    clearDomains,
+  });
+  appendClearCookie(response, REFRESH_COOKIE_NAME, {
     path: REFRESH_COOKIE_LEGACY_PATH,
     maxAge: 0,
     httpOnly: true,
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
-  }));
+    clearDomains,
+  });
   for (const cookieName of EXTRA_AUTH_CLEAR_COOKIE_NAMES) {
-    response.headers.append("Set-Cookie", buildCookieValue(cookieName, "", {
+    appendClearCookie(response, cookieName, {
       path: "/",
       maxAge: 0,
       httpOnly: true,
       secure: cookieOptions.secure,
       sameSite: cookieOptions.sameSite,
-    }));
+      clearDomains,
+    });
   }
 }
 

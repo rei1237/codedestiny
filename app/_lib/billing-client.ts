@@ -157,6 +157,7 @@ type RuntimeApiWindow = Window & {
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
+  __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
   __cdOpenChargeModal?: () => void;
   __cdRestoreCanonicalPaymentMode?: () => unknown;
@@ -266,6 +267,7 @@ type PaymentEligibilityPhase = "pass" | "full";
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 5000;
+const REACT_PAID_FEATURE_GATE_RECENT_TTL_MS = 1200;
 const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;
@@ -331,6 +333,10 @@ const billingCoinGateRecent = new Map<string, {
 const paymentEligibilityInFlight = new Map<string, Promise<BillingResult<PaymentEligibility>>>();
 const paymentEligibilityRecent = new Map<string, {
   result: BillingResult<PaymentEligibility>;
+  expiresAt: number;
+}>();
+const reactPaidFeatureGateRecent = new Map<string, {
+  requestId: string;
   expiresAt: number;
 }>();
 let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = null;
@@ -1333,18 +1339,20 @@ function collectBillingFallbackBases(): string[] {
 }
 
 async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
-  const primary = await authFetchBillingOnce(path, init);
-  if (primary.ok || primary.status !== 404) return primary;
+  return withSuppressedRuntimePaymentFetchOverlay(async () => {
+    const primary = await authFetchBillingOnce(path, init);
+    if (primary.ok || primary.status !== 404) return primary;
 
-  const fallbackBases = collectBillingFallbackBases();
-  if (!fallbackBases.length) return primary;
+    const fallbackBases = collectBillingFallbackBases();
+    if (!fallbackBases.length) return primary;
 
-  for (const apiBase of fallbackBases) {
-    const retried = await authFetchBillingOnce(path, init, { apiBase });
-    if (retried.ok || retried.status !== 404) return retried;
-  }
+    for (const apiBase of fallbackBases) {
+      const retried = await authFetchBillingOnce(path, init, { apiBase });
+      if (retried.ok || retried.status !== 404) return retried;
+    }
 
-  return primary;
+    return primary;
+  });
 }
 
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
@@ -2034,6 +2042,17 @@ function emitPaymentLoadingState(open: boolean, message?: string, mode?: string)
   }));
 }
 
+async function withSuppressedRuntimePaymentFetchOverlay<T>(task: () => Promise<T>): Promise<T> {
+  if (typeof window === "undefined") return task();
+  const runtimeWindow = window as RuntimeApiWindow;
+  runtimeWindow.__cdSuppressPaymentFetchOverlayCount = Math.max(0, Number(runtimeWindow.__cdSuppressPaymentFetchOverlayCount || 0)) + 1;
+  try {
+    return await task();
+  } finally {
+    runtimeWindow.__cdSuppressPaymentFetchOverlayCount = Math.max(0, Number(runtimeWindow.__cdSuppressPaymentFetchOverlayCount || 0) - 1);
+  }
+}
+
 function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFeatureGateRuntimeDetail) {
   if (typeof window === "undefined") return;
   const featureId = toText(detail.featureId || detail.featureKey) || "paid-feature";
@@ -2131,6 +2150,23 @@ function resolvePaidFeatureInFlightKey(input: {
   return parts ? `${featureId}|${parts}` : featureId;
 }
 
+function resolveReactPaidFeatureGateUiKey(input: {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  cost?: number;
+  paymentMode?: string;
+}) {
+  const featureId = normalizeBillingFeatureKey(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
+  return [
+    featureId,
+    normalizePaymentMode(input.paymentMode),
+    Math.max(0, Math.floor(toNumber(input.cost, 0))),
+    toText(input.reason).slice(0, 120),
+  ].join("|");
+}
+
 function resolvePaymentEligibilityCacheKey(input: {
   productId?: string;
   serviceType?: string;
@@ -2172,7 +2208,16 @@ export function openPaidFeatureGate(input: {
   paymentMode?: string;
 }) {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
+  const now = Date.now();
+  const gateUiKey = resolveReactPaidFeatureGateUiKey(input);
+  const recentGate = reactPaidFeatureGateRecent.get(gateUiKey);
+  if (recentGate && recentGate.expiresAt > now) return recentGate.requestId;
+  if (recentGate) reactPaidFeatureGateRecent.delete(gateUiKey);
   const requestId = toText(input.requestId || `${featureId}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+  reactPaidFeatureGateRecent.set(gateUiKey, {
+    requestId,
+    expiresAt: now + REACT_PAID_FEATURE_GATE_RECENT_TTL_MS,
+  });
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,
