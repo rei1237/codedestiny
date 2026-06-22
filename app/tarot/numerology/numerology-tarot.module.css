@@ -811,10 +811,38 @@
 
 .resultCard {
   margin-top: 16px;
-  border: 1px solid var(--nt-line);
+  border: 1px solid rgba(244, 220, 165, 0.48);
   border-radius: 18px;
-  background: var(--nt-card-strong);
-  padding: 16px;
+  background: #fff7e6;
+  color: #172033;
+  padding: 18px;
+  max-width: 840px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 24px 70px rgba(4, 7, 24, 0.36);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid rgba(73, 50, 15, 0.16);
+  padding-bottom: 12px;
+}
+
+.resultHeader p {
+  margin: 4px 0 0;
+  color: rgba(23, 32, 51, 0.68);
+  font-size: 13px;
+}
+
+.resultActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .resultStack {
@@ -825,35 +853,43 @@
 }
 
 .resultSection {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(37, 42, 60, 0.12);
   border-radius: 16px;
-  background: rgba(6, 8, 28, 0.72);
+  background: rgba(255, 252, 244, 0.88);
   padding: 14px;
+}
+
+.answerSection {
+  background: linear-gradient(180deg, rgba(255, 250, 236, 0.98), rgba(246, 236, 212, 0.92));
+  border-color: rgba(191, 135, 64, 0.28);
 }
 
 .resultSection h4 {
   margin: 0 0 10px;
   font-size: 18px;
-  color: #f3dca6;
+  color: #7a4f17;
   font-family: "Noto Serif KR", serif;
 }
 
 .resultLead {
   margin: 0;
-  color: rgba(247, 241, 225, 0.92);
+  color: #263044;
   line-height: 1.75;
   white-space: pre-line;
+  font-size: 16px;
 }
 
 .resultCoreMessage {
   margin: 10px 0 0;
-  color: #f4dca5;
+  color: #5f3c0f;
   line-height: 1.6;
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .qualityNote {
   margin: 10px 0 0;
-  color: #f8c9a5;
+  color: #78624a;
   font-size: 12px;
 }
 
@@ -864,9 +900,9 @@
 }
 
 .cardReadingBox {
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(37, 42, 60, 0.12);
   border-radius: 14px;
-  background: rgba(5, 7, 27, 0.76);
+  background: rgba(255, 255, 255, 0.72);
   padding: 12px;
 }
 
@@ -876,20 +912,26 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cardReadingHeader::-webkit-details-marker {
+  display: none;
 }
 
 .cardReadingOrder {
   margin: 0;
-  color: rgba(244, 220, 165, 0.72);
+  color: #9b6c24;
   font-size: 11px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0;
 }
 
 .cardReadingHeader h5,
 .cardReadingBox h5 {
   margin: 2px 0 0;
   font-size: 16px;
-  color: #f7e8bf;
+  color: #172033;
 }
 
 .cardReadingMeta {
@@ -898,18 +940,19 @@
   align-items: flex-end;
   gap: 4px;
   font-size: 11px;
-  color: var(--nt-text-dim);
+  color: rgba(23, 32, 51, 0.64);
   white-space: nowrap;
 }
 
 .cardReadingBox p {
   margin: 0 0 8px;
-  font-size: 13px;
-  line-height: 1.55;
+  color: #2f394d;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .cautionText {
-  color: rgba(255, 210, 183, 0.88);
+  color: #7f3f1d;
 }
 
 .planList {
@@ -917,13 +960,13 @@
   padding-left: 18px;
   display: grid;
   gap: 8px;
-  color: rgba(247, 241, 225, 0.9);
+  color: #263044;
   line-height: 1.65;
 }
 
 .finalWord {
   margin: 10px 0 0;
-  color: #f4dca5;
+  color: #684414;
   line-height: 1.7;
   font-style: italic;
 }
@@ -934,8 +977,8 @@
   max-height: 46dvh;
   border: 1px solid rgba(244, 220, 165, 0.24);
   border-radius: 14px;
-  background: rgba(4, 6, 24, 0.72);
-  color: rgba(247, 241, 225, 0.92);
+  background: rgba(255, 252, 244, 0.9);
+  color: #172033;
   padding: 12px;
   resize: vertical;
   font-family: inherit;
@@ -974,8 +1017,34 @@
 
 .aiPromptStatus {
   min-height: 20px;
-  color: rgba(244, 220, 165, 0.86);
+  color: #7a4f17;
   font-size: 12px;
+}
+
+.utilityPanel {
+  border: 1px solid rgba(191, 135, 64, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 250, 236, 0.9);
+  padding: 14px;
+  color: #172033;
+}
+
+.utilityPanel summary {
+  cursor: pointer;
+  color: #7a4f17;
+  font-weight: 800;
+}
+
+.utilityPanel .promptToolHeader {
+  margin-bottom: 10px;
+}
+
+.utilityPanel .promptToolHeader h4 {
+  color: #172033;
+}
+
+.utilityPanel .promptToolHeader p {
+  color: rgba(23, 32, 51, 0.68);
 }
 
 .freeProfileCard {
