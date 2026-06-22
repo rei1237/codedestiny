@@ -8,6 +8,246 @@ export const SECTION_LABELS = {
   oracle: "신탁",
 };
 
+const SAJU_BASIC_LOCALIZED = {
+  en: {
+    title: "Basic Saju Manse Calendar Reading - Five Elements, Ten Gods, and birth chart flow",
+    h1: "Basic Saju Manse Calendar Reading",
+    description: "Your birth date and time open a Four Pillars chart where the balance of the Five Elements and the movement of the Ten Gods are read with calm clarity.",
+    seoText: "The Saju Manse Calendar reading follows the Four Pillars, Five Elements, Ten Gods, and timing currents to reveal the structure of your nature, relationships, work, and turning points.",
+    landingPoints: ["Generate the Four Pillars chart", "Read Five Elements balance", "Interpret Ten Gods flow"],
+  },
+  ja: {
+    title: "四柱推命 万歳暦 基本鑑定 - 五行・十神・命式の流れ",
+    h1: "四柱推命 万歳暦 基本鑑定",
+    description: "生年月日と出生時間から開かれる命式の中で、五行のバランスと十神の流れが静かに立ち上がります。",
+    seoText: "四柱推命の万歳暦鑑定は、四柱・五行・十神・時期の流れをたどり、性質、関係、仕事、転機の輪郭を読み解きます。",
+    landingPoints: ["四柱推命の命式を作成", "五行バランスを読む", "十神の流れを解釈"],
+  },
+  "zh-CN": {
+    title: "四柱推命万年历基础解读 - 五行、十神与命式流动",
+    h1: "四柱推命万年历基础解读",
+    description: "出生年月日时打开你的四柱命式，五行的平衡与十神的流动会在其中安静显现。",
+    seoText: "四柱推命万年历解读沿着四柱、五行、十神与时间运势，读出性格、关系、事业与转折点的命理结构。",
+    landingPoints: ["生成四柱命式", "读取五行平衡", "解读十神流动"],
+  },
+  "zh-TW": {
+    title: "四柱推命萬年曆基礎解讀 - 五行、十神與命式流動",
+    h1: "四柱推命萬年曆基礎解讀",
+    description: "出生年月日時打開你的四柱命式，五行的平衡與十神的流動會在其中安靜顯現。",
+    seoText: "四柱推命萬年曆解讀沿著四柱、五行、十神與時間運勢，讀出性格、關係、事業與轉折點的命理結構。",
+    landingPoints: ["生成四柱命式", "讀取五行平衡", "解讀十神流動"],
+  },
+  vi: {
+    title: "Luận Saju Manse cơ bản - Ngũ hành, Thập Thần và dòng mệnh cục",
+    h1: "Luận Saju Manse cơ bản",
+    description: "Ngày giờ sinh mở ra lá số Tứ trụ, nơi cân bằng Ngũ hành và dòng chảy Thập Thần hiện lên một cách lặng lẽ.",
+    seoText: "Bài luận Saju Manse đi theo Tứ trụ, Ngũ hành, Thập Thần và vận thời gian để đọc cấu trúc tính cách, quan hệ, công việc và các điểm chuyển mình.",
+    landingPoints: ["Tạo mệnh cục Tứ trụ", "Đọc cân bằng Ngũ hành", "Giải dòng chảy Thập Thần"],
+  },
+  hi: {
+    title: "Saju Manse मूल रीडिंग - पाँच तत्व, दश देव और जन्मपत्र प्रवाह",
+    h1: "Saju Manse मूल रीडिंग",
+    description: "जन्म तिथि और समय से खुली Four Pillars जन्मपत्री में पाँच तत्वों का संतुलन और दश देवों की धारा शांत रूप से दिखाई देती है.",
+    seoText: "Saju Manse रीडिंग Four Pillars, पाँच तत्व, दश देव और समय प्रवाह के सहारे स्वभाव, संबंध, काम और मोड़ के भाग्य ढाँचे को पढ़ती है.",
+    landingPoints: ["Four Pillars जन्मपत्री बनाएँ", "पाँच तत्व संतुलन पढ़ें", "दश देवों की धारा समझें"],
+  },
+  es: {
+    title: "Lectura básica de Saju Manse - Cinco Elementos, Diez Dioses y flujo de carta natal",
+    h1: "Lectura básica de Saju Manse",
+    description: "La fecha y hora de nacimiento abren una carta de Cuatro Pilares donde el equilibrio de los Cinco Elementos y el movimiento de los Diez Dioses aparecen con calma.",
+    seoText: "La lectura Saju Manse sigue los Cuatro Pilares, Cinco Elementos, Diez Dioses y corrientes del tiempo para revelar la estructura de naturaleza, relaciones, trabajo y giros vitales.",
+    landingPoints: ["Generar carta de Cuatro Pilares", "Leer equilibrio de Cinco Elementos", "Interpretar flujo de Diez Dioses"],
+  },
+  fr: {
+    title: "Lecture Saju Manse de base - Cinq Éléments, Dix Dieux et flux du thème",
+    h1: "Lecture Saju Manse de base",
+    description: "La date et l'heure de naissance ouvrent un thème des Quatre Piliers où l'équilibre des Cinq Éléments et le mouvement des Dix Dieux se révèlent avec calme.",
+    seoText: "La lecture Saju Manse suit les Quatre Piliers, les Cinq Éléments, les Dix Dieux et les courants du temps pour éclairer la nature, les relations, le travail et les passages de vie.",
+    landingPoints: ["Créer le thème des Quatre Piliers", "Lire l'équilibre des Cinq Éléments", "Interpréter le flux des Dix Dieux"],
+  },
+  de: {
+    title: "Basisdeutung Saju Manse - Fünf Elemente, Zehn Götter und Geburtschartfluss",
+    h1: "Basisdeutung Saju Manse",
+    description: "Geburtsdatum und Uhrzeit öffnen ein Vier-Säulen-Chart, in dem das Gleichgewicht der Fünf Elemente und die Bewegung der Zehn Götter ruhig sichtbar werden.",
+    seoText: "Die Saju-Manse-Lesung folgt Vier Säulen, Fünf Elementen, Zehn Göttern und Zeitströmungen, um Wesen, Beziehungen, Arbeit und Wendepunkte zu lesen.",
+    landingPoints: ["Vier-Säulen-Chart erstellen", "Balance der Fünf Elemente lesen", "Fluss der Zehn Götter deuten"],
+  },
+  nl: {
+    title: "Basis Saju Manse lezing - Vijf Elementen, Ten Gods en geboortechartstroom",
+    h1: "Basis Saju Manse lezing",
+    description: "Geboortedatum en -tijd openen een Vierpijlerchart waarin de balans van de Vijf Elementen en de beweging van Ten Gods rustig zichtbaar worden.",
+    seoText: "De Saju Manse lezing volgt Vier Pilaren, Vijf Elementen, Ten Gods en tijdstromen om natuur, relaties, werk en keerpunten te lezen.",
+    landingPoints: ["Vierpijlerchart maken", "Balans van Vijf Elementen lezen", "Stroom van Ten Gods duiden"],
+  },
+  ms: {
+    title: "Bacaan asas Saju Manse - Lima Unsur, Ten Gods dan aliran carta kelahiran",
+    h1: "Bacaan asas Saju Manse",
+    description: "Tarikh dan masa lahir membuka carta Empat Tiang, tempat keseimbangan Lima Unsur dan gerak Ten Gods muncul dengan tenang.",
+    seoText: "Bacaan Saju Manse menelusuri Empat Tiang, Lima Unsur, Ten Gods dan arus masa untuk membaca sifat, hubungan, kerja dan titik perubahan hidup.",
+    landingPoints: ["Jana carta Empat Tiang", "Baca keseimbangan Lima Unsur", "Tafsir aliran Ten Gods"],
+  },
+};
+
+const DESTINY_BIAS_LOCALIZED = {
+  en: {
+    title: "Destiny Bias - Saju-based fandom resonance reading",
+    h1: "Destiny Bias",
+    description: "Your Saju and your bias's symbolic energy are placed side by side, revealing resonance score, elemental support, Ten Gods roles, and a small action for today.",
+    seoText: "Destiny Bias reads fandom affection through Saju resonance, showing how your elemental rhythm meets the symbolic presence of the person you cherish.",
+    landingPoints: ["My Saju x bias resonance score", "Elemental support and Ten Gods roles", "KRW 5,000 one-time reading card"],
+  },
+  ja: {
+    title: "推し運命 - 四柱推命ベースのファンダム共鳴リーディング",
+    h1: "推し運命",
+    description: "あなたの四柱推命の気と推しの象徴エネルギーを重ね、共鳴スコア、五行の補い、十神の役割、今日の小さなアクションをカードに映します。",
+    seoText: "推し運命は、推しへの想いを四柱推命の共鳴として読み、あなたの五行リズムと大切な存在の象徴がどのように響き合うかを照らします。",
+    landingPoints: ["私の四柱推命 × 推しの共鳴スコア", "五行補完と十神の役割", "1回5,000ウォンの分析カード"],
+  },
+  "zh-CN": {
+    title: "本命偏爱 - 基于四柱推命的粉丝共鸣解读",
+    h1: "本命偏爱",
+    description: "你的四柱能量与本命的象征能量并列展开，共鸣分数、五行补足、十神角色与今天的小行动会浮现出来。",
+    seoText: "本命偏爱以四柱推命读取粉丝心意的共鸣，看你的五行节奏如何与珍视之人的象征气场相互呼应。",
+    landingPoints: ["我的四柱 × 本命共鸣分数", "五行补足与十神角色", "单次5,000韩元分析卡"],
+  },
+  "zh-TW": {
+    title: "本命偏愛 - 基於四柱推命的粉絲共鳴解讀",
+    h1: "本命偏愛",
+    description: "你的四柱能量與本命的象徵能量並列展開，共鳴分數、五行補足、十神角色與今天的小行動會浮現出來。",
+    seoText: "本命偏愛以四柱推命讀取粉絲心意的共鳴，看你的五行節奏如何與珍視之人的象徵氣場相互呼應。",
+    landingPoints: ["我的四柱 × 本命共鳴分數", "五行補足與十神角色", "單次5,000韓元分析卡"],
+  },
+  vi: {
+    title: "Destiny Bias - bài đọc cộng hưởng fandom dựa trên Saju",
+    h1: "Destiny Bias",
+    description: "Năng lượng Saju của bạn và biểu tượng của người bạn thương mến được đặt cạnh nhau, để điểm cộng hưởng, phần Ngũ hành bù đắp, vai trò Thập Thần và hành động hôm nay hiện lên.",
+    seoText: "Destiny Bias đọc tình cảm fandom như một cộng hưởng Saju, nơi nhịp Ngũ hành của bạn gặp biểu tượng của người bạn trân quý.",
+    landingPoints: ["Điểm cộng hưởng Saju x bias", "Bù đắp Ngũ hành và vai trò Thập Thần", "Thẻ đọc một lần 5.000 KRW"],
+  },
+  hi: {
+    title: "Destiny Bias - Saju आधारित fandom resonance रीडिंग",
+    h1: "Destiny Bias",
+    description: "आपकी Saju ऊर्जा और आपके प्रिय bias की प्रतीक ऊर्जा साथ रखी जाती है, जहाँ resonance score, तत्वीय सहारा, दश देवों की भूमिका और आज का छोटा action उभरता है.",
+    seoText: "Destiny Bias fandom स्नेह को Saju resonance की तरह पढ़ता है, जहाँ आपकी तत्वीय लय उस प्रिय उपस्थिति के प्रतीक से मिलती है.",
+    landingPoints: ["मेरी Saju x bias resonance score", "तत्वीय सहारा और दश देव भूमिकाएँ", "5,000 KRW एक बार की reading card"],
+  },
+  es: {
+    title: "Destiny Bias - lectura de resonancia fandom basada en Saju",
+    h1: "Destiny Bias",
+    description: "Tu energía Saju y la energía simbólica de tu bias se colocan lado a lado, revelando puntuación de resonancia, apoyo elemental, roles de Diez Dioses y una pequeña acción para hoy.",
+    seoText: "Destiny Bias lee el afecto fandom como resonancia Saju, mostrando cómo tu ritmo elemental se encuentra con la presencia simbólica de quien aprecias.",
+    landingPoints: ["Puntuación de resonancia Saju x bias", "Apoyo elemental y roles de Diez Dioses", "Tarjeta de lectura única de 5.000 KRW"],
+  },
+  fr: {
+    title: "Destiny Bias - lecture de résonance fandom selon Saju",
+    h1: "Destiny Bias",
+    description: "Votre énergie Saju et l'énergie symbolique de votre bias se placent côte à côte, révélant score de résonance, soutien des éléments, rôles des Dix Dieux et petit geste du jour.",
+    seoText: "Destiny Bias lit l'affection fandom comme une résonance Saju, là où votre rythme élémentaire rencontre la présence symbolique de la personne chérie.",
+    landingPoints: ["Score de résonance Saju x bias", "Soutien des éléments et rôles des Dix Dieux", "Carte de lecture unique à 5 000 KRW"],
+  },
+  de: {
+    title: "Destiny Bias - Saju-basierte Fandom-Resonanzlesung",
+    h1: "Destiny Bias",
+    description: "Deine Saju-Energie und die symbolische Energie deines Bias werden nebeneinandergelegt; Resonanzscore, elementare Unterstützung, Rollen der Zehn Götter und eine kleine heutige Handlung treten hervor.",
+    seoText: "Destiny Bias liest Fandom-Zuneigung als Saju-Resonanz und zeigt, wie dein Elementrhythmus der symbolischen Präsenz deines Lieblings begegnet.",
+    landingPoints: ["Saju x Bias Resonanzscore", "Elementare Unterstützung und Rollen der Zehn Götter", "Einmalige Lesekarte für 5.000 KRW"],
+  },
+  nl: {
+    title: "Destiny Bias - Saju-gebaseerde fandomresonantielezing",
+    h1: "Destiny Bias",
+    description: "Jouw Saju-energie en de symbolische energie van je bias worden naast elkaar gelegd, waardoor resonantiescore, elementaire steun, rollen van Ten Gods en een kleine actie voor vandaag zichtbaar worden.",
+    seoText: "Destiny Bias leest fandomliefde als Saju-resonantie en toont hoe jouw elementaire ritme de symbolische aanwezigheid van je geliefde artiest ontmoet.",
+    landingPoints: ["Saju x bias resonantiescore", "Elementaire steun en rollen van Ten Gods", "Eenmalige lezingkaart van KRW 5.000"],
+  },
+  ms: {
+    title: "Destiny Bias - bacaan resonans fandom berasaskan Saju",
+    h1: "Destiny Bias",
+    description: "Tenaga Saju anda dan tenaga simbolik bias anda diletakkan bersebelahan, membuka skor resonans, sokongan unsur, peranan Ten Gods dan tindakan kecil untuk hari ini.",
+    seoText: "Destiny Bias membaca kasih fandom sebagai resonans Saju, tempat rentak unsur anda bertemu kehadiran simbolik orang yang anda hargai.",
+    landingPoints: ["Skor resonans Saju x bias", "Sokongan unsur dan peranan Ten Gods", "Kad bacaan sekali 5,000 KRW"],
+  },
+};
+
+const SAJU_GUARDIAN_LOCALIZED = {
+  en: {
+    title: "Saju Guardian Art - guardian animal test from your Four Pillars",
+    h1: "Saju Guardian Art",
+    description: "Your day stem, month branch, elemental balance, and Ten Gods flow call forth a guardian animal card with its protection tone, warning message, and relationship harmony.",
+    seoText: "Saju Guardian Art reads the protective style hidden in your Four Pillars and shapes it into a shareable guardian animal card.",
+    landingPoints: ["Day stem, month branch, and element-based match", "Fixed 2D guardian animal card", "Saju basis plus today’s message", "Save a share card"],
+  },
+  ja: {
+    title: "四柱推命ガーディアンアート - 命式から読む守護動物テスト",
+    h1: "四柱推命ガーディアンアート",
+    description: "日干、月支、五行バランス、十神の流れから、守護動物カード、守護の質、警告メッセージ、相性の響きが呼び出されます。",
+    seoText: "四柱推命ガーディアンアートは、命式に隠れた守護スタイルを読み、共有できる守護動物カードとして映し出します。",
+    landingPoints: ["日干・月支・五行による照合", "固定2D守護動物カード", "四柱推命の根拠 + 今日のメッセージ", "共有カード保存"],
+  },
+  "zh-CN": {
+    title: "四柱守护艺术 - 从命式唤醒守护动物测试",
+    h1: "四柱守护艺术",
+    description: "日干、月支、五行平衡与十神流动会唤出你的守护动物卡，也照见守护力、提醒讯息与关系合拍度。",
+    seoText: "四柱守护艺术读取四柱中隐藏的保护方式，并把它化成可以保存分享的守护动物卡。",
+    landingPoints: ["日干、月支与五行匹配", "固定2D守护动物卡", "四柱依据 + 今日讯息", "保存分享卡"],
+  },
+  "zh-TW": {
+    title: "四柱守護藝術 - 從命式喚醒守護動物測試",
+    h1: "四柱守護藝術",
+    description: "日干、月支、五行平衡與十神流動會喚出你的守護動物卡，也照見守護力、提醒訊息與關係合拍度。",
+    seoText: "四柱守護藝術讀取四柱中隱藏的保護方式，並把它化成可以保存分享的守護動物卡。",
+    landingPoints: ["日干、月支與五行匹配", "固定2D守護動物卡", "四柱依據 + 今日訊息", "保存分享卡"],
+  },
+  vi: {
+    title: "Saju Guardian Art - bài test linh thú hộ mệnh từ Tứ trụ",
+    h1: "Saju Guardian Art",
+    description: "Thiên can ngày, địa chi tháng, cân bằng Ngũ hành và dòng Thập Thần gọi lên lá bài linh thú hộ mệnh, sắc thái bảo hộ, lời nhắc cảnh tỉnh và độ hòa hợp.",
+    seoText: "Saju Guardian Art đọc phong cách bảo hộ ẩn trong Tứ trụ rồi hóa nó thành một lá bài linh thú có thể lưu và chia sẻ.",
+    landingPoints: ["Ghép theo can ngày, chi tháng và Ngũ hành", "Thẻ linh thú 2D cố định", "Căn cứ Saju + thông điệp hôm nay", "Lưu thẻ chia sẻ"],
+  },
+  hi: {
+    title: "Saju Guardian Art - Four Pillars से रक्षक पशु टेस्ट",
+    h1: "Saju Guardian Art",
+    description: "दिन-तना, माह-शाखा, तत्व संतुलन और दश देवों की धारा आपका guardian animal card, सुरक्षा स्वर, चेतावनी संदेश और संबंध harmony बुलाते हैं.",
+    seoText: "Saju Guardian Art आपकी Four Pillars में छिपी सुरक्षा शैली पढ़कर उसे share करने योग्य guardian animal card में बदलता है.",
+    landingPoints: ["दिन-तना, माह-शाखा और तत्व आधारित मिलान", "स्थिर 2D guardian animal card", "Saju आधार + आज का संदेश", "Share card सहेजें"],
+  },
+  es: {
+    title: "Arte Guardián Saju - test de animal protector desde tus Cuatro Pilares",
+    h1: "Arte Guardián Saju",
+    description: "El tallo del día, la rama del mes, el equilibrio elemental y el flujo de Diez Dioses llaman a tu animal guardián, su tono protector, advertencia y armonía relacional.",
+    seoText: "Arte Guardián Saju lee el estilo protector escondido en tus Cuatro Pilares y lo convierte en una carta de animal guardián para guardar y compartir.",
+    landingPoints: ["Asignación por tallo, rama y elementos", "Carta 2D fija de animal guardián", "Base Saju + mensaje de hoy", "Guardar carta para compartir"],
+  },
+  fr: {
+    title: "Art Gardien Saju - test d'animal protecteur depuis les Quatre Piliers",
+    h1: "Art Gardien Saju",
+    description: "Le tronc du jour, la branche du mois, l'équilibre des éléments et le flux des Dix Dieux appellent votre animal gardien, sa tonalité de protection, son avertissement et son harmonie relationnelle.",
+    seoText: "Art Gardien Saju lit le style protecteur caché dans vos Quatre Piliers et le transforme en carte d'animal gardien à sauvegarder et partager.",
+    landingPoints: ["Correspondance tronc, branche et éléments", "Carte 2D fixe d'animal gardien", "Base Saju + message du jour", "Sauvegarde de carte partageable"],
+  },
+  de: {
+    title: "Saju Guardian Art - Schutztier-Test aus deinen Vier Säulen",
+    h1: "Saju Guardian Art",
+    description: "Tagesstamm, Monatszweig, Elementbalance und der Fluss der Zehn Götter rufen dein Schutztier, seine Schutzfarbe, Warnbotschaft und Beziehungsharmonie hervor.",
+    seoText: "Saju Guardian Art liest den Schutzstil in deinen Vier Säulen und formt ihn zu einer teilbaren Schutztierkarte.",
+    landingPoints: ["Zuordnung nach Tagesstamm, Monatszweig und Elementen", "Feste 2D-Schutztierkarte", "Saju-Basis + heutige Botschaft", "Teilbare Karte speichern"],
+  },
+  nl: {
+    title: "Saju Guardian Art - beschermdiertest vanuit je Vier Pilaren",
+    h1: "Saju Guardian Art",
+    description: "Dagstam, maandtak, elementbalans en de stroom van Ten Gods roepen je beschermdierkaart, beschermingstoon, waarschuwing en relatieharmonie op.",
+    seoText: "Saju Guardian Art leest de beschermstijl in je Vier Pilaren en vormt die tot een deelbare beschermdierkaart.",
+    landingPoints: ["Match op dagstam, maandtak en elementen", "Vaste 2D beschermdierkaart", "Saju-basis + boodschap van vandaag", "Deelkaart opslaan"],
+  },
+  ms: {
+    title: "Saju Guardian Art - ujian haiwan penjaga daripada Empat Tiang",
+    h1: "Saju Guardian Art",
+    description: "Day stem, month branch, keseimbangan unsur dan aliran Ten Gods memanggil kad haiwan penjaga, nada perlindungan, mesej amaran dan keharmonian hubungan anda.",
+    seoText: "Saju Guardian Art membaca gaya perlindungan yang tersembunyi dalam Empat Tiang anda lalu membentuknya menjadi kad haiwan penjaga yang boleh dikongsi.",
+    landingPoints: ["Padanan day stem, month branch dan unsur", "Kad haiwan penjaga 2D tetap", "Asas Saju + mesej hari ini", "Simpan kad kongsi"],
+  },
+};
+
 export const SERVICE_MAP = {
   "tarot/healing": {
     component: FeatureLandingPage,
@@ -312,20 +552,22 @@ export const SERVICE_MAP = {
     description:
       "생년월일시로 열린 사주 명식 속에서 오행의 균형과 십성의 흐름이 차분히 드러납니다.",
     seoText:
-      "사주 서비스는 년월일시와 출생지 정보를 바탕으로 오행 균형, 십성 관계, 해석 포인트를 제공하는 개인 맞완 운세 분석 기능입니다.",
+      "사주 만세력은 사주팔자, 오행, 십성, 시간의 흐름을 따라 성향과 관계, 일의 결, 전환점을 읽습니다.",
     ogImage: "/fuctionassets/saju.webp",
     landingPoints: ["사주팔자 명식 생성", "오행 균형 분석", "십성 흐름 해석"],
+    localized: SAJU_BASIC_LOCALIZED,
   },
   "saju/destiny-bias": {
     component: FeatureLandingPage,
     title: "최애운명 - 사주 기반 팬덤 공명 분석",
     h1: "최애운명",
     description:
-      "내 사주와 최애 사주를 내부 명식 엔진으로 계산해 공명 점수, 오행 보완, 오늘의 액션을 카드로 보여주는 팬덤 특화 사주 분석.",
+      "나의 사주 기운과 최애의 상징 에너지가 나란히 놓이며, 공명 점수와 오행 보완, 십성 역할, 오늘의 작은 액션이 카드처럼 떠오릅니다.",
     seoText:
-      "최애운명은 AI가 계산하지 않고 내부 사주 엔진의 canonical JSON을 기반으로 해석만 생성합니다.",
+      "최애운명은 팬덤의 애정을 사주 공명으로 읽어, 나의 오행 리듬이 소중한 존재의 상징과 어떻게 울리는지 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
     landingPoints: ["내 사주 × 최애 사주 공명 점수", "오행 보완/십성 역할 제안", "1회 5,000원 분석 카드"],
+    localized: DESTINY_BIAS_LOCALIZED,
     keywords: [
       "최애운명",
       "팬덤 사주",
@@ -340,11 +582,12 @@ export const SERVICE_MAP = {
     title: "사주 가디언 아트 - 내 사주 수호동물 테스트",
     h1: "사주 가디언 아트",
     description:
-      "일간, 월지, 오행 균형, 십성 흐름을 기반으로 수호동물 카드, 사주 근거, 수호력, 경고 메시지, 궁합을 제공하는 사주 캐릭터 테스트.",
+      "일간, 월지, 오행 균형, 십성 흐름이 나만의 수호동물 카드와 수호력, 경고 메시지, 관계의 조화를 불러냅니다.",
     seoText:
-      "사주 가디언 아트는 사주 계산값으로 내 운명 보호 스타일과 수호동물을 배정하고 공유용 가디언 카드로 보여줍니다.",
+      "사주 가디언 아트는 명식 안에 숨어 있는 보호 스타일을 읽어, 저장하고 나눌 수 있는 수호동물 카드로 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
     landingPoints: ["일간·월지·오행 기반 배정", "고정 2D 수호동물 카드", "사주 근거 + 오늘의 메시지", "공유 카드 저장"],
+    localized: SAJU_GUARDIAN_LOCALIZED,
     keywords: [
       "사주 가디언",
       "수호동물",
@@ -358,11 +601,12 @@ export const SERVICE_MAP = {
     title: "사주 가디언 아트 - 내 사주 수호동물 테스트",
     h1: "사주 가디언 아트",
     description:
-      "일간, 월지, 오행 균형, 십성 흐름을 기반으로 수호동물 카드, 사주 근거, 수호력, 경고 메시지, 궁합을 제공하는 사주 캐릭터 테스트.",
+      "일간, 월지, 오행 균형, 십성 흐름이 나만의 수호동물 카드와 수호력, 경고 메시지, 관계의 조화를 불러냅니다.",
     seoText:
-      "사주 가디언 아트는 사주 계산값으로 내 운명 보호 스타일과 수호동물을 배정하고 공유용 가디언 카드로 보여줍니다.",
+      "사주 가디언 아트는 명식 안에 숨어 있는 보호 스타일을 읽어, 저장하고 나눌 수 있는 수호동물 카드로 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EB%8F%99%EB%AC%BC%EC%A0%90%ED%85%8C%EC%8A%A4%ED%8A%B8.webp",
     landingPoints: ["일간·월지·오행 기반 배정", "고정 2D 수호동물 카드", "사주 근거 + 오늘의 메시지", "공유 카드 저장"],
+    localized: SAJU_GUARDIAN_LOCALIZED,
     keywords: [
       "사주 가디언",
       "수호동물",
