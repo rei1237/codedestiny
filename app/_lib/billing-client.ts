@@ -10,8 +10,9 @@ import {
   markPaidAttemptPaymentSucceeded,
 } from "@/app/_lib/paid-attempt-session";
 import {
-  FALLBACK_LOADING_MESSAGE,
-  LOADING_MESSAGES,
+  getCurrentLoadingLocale,
+  resolveLoadingMessage,
+  type LoadingLocale,
   type LoadingStage,
   type PaymentType,
 } from "@/constants/loadingMessages";
@@ -1890,20 +1891,36 @@ function resolvePaymentWaitKind(input: {
 }
 
 function formatLoadingMessage(stage: LoadingStage, paymentType: PaymentType) {
-  const copy = LOADING_MESSAGES[stage]?.[paymentType] ?? FALLBACK_LOADING_MESSAGE;
+  const copy = resolveLoadingMessage(stage, paymentType, getCurrentLoadingLocale());
   return copy.sub ? `${copy.title}\n${copy.sub}` : copy.title;
 }
 
-function formatPassTierLabel(value: unknown) {
+const PASS_TIER_LABELS: Record<LoadingLocale, Record<"FAMILY" | "VVIP" | "PREMIUM" | "STANDARD", string>> = {
+  ko: { FAMILY: "FAMILY", VVIP: "VVIP", PREMIUM: "프리미엄", STANDARD: "스탠다드" },
+  en: { FAMILY: "Family", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+  ja: { FAMILY: "ファミリー", VVIP: "VVIP", PREMIUM: "プレミアム", STANDARD: "スタンダード" },
+  "zh-CN": { FAMILY: "家庭", VVIP: "VVIP", PREMIUM: "高级", STANDARD: "标准" },
+  "zh-TW": { FAMILY: "家庭", VVIP: "VVIP", PREMIUM: "高級", STANDARD: "標準" },
+  vi: { FAMILY: "Gia đình", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Tiêu chuẩn" },
+  hi: { FAMILY: "Family", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+  es: { FAMILY: "Familiar", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Estándar" },
+  fr: { FAMILY: "Famille", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+  de: { FAMILY: "Familie", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+  nl: { FAMILY: "Gezin", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standaard" },
+  ms: { FAMILY: "Keluarga", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+};
+
+function formatPassTierLabel(value: unknown, locale: LoadingLocale) {
   const tier = toText(value).toUpperCase();
-  if (tier.includes("FAMILY")) return "FAMILY";
-  if (tier.includes("VVIP") || tier === "VIP") return "VVIP";
-  if (tier.includes("PREMIUM") || tier.includes("프리미엄") || tier === "PRO") return "프리미엄";
-  if (tier.includes("STANDARD") || tier.includes("스탠다드") || tier === "BASIC") return "스탠다드";
+  const labels = PASS_TIER_LABELS[locale] || PASS_TIER_LABELS.ko;
+  if (tier.includes("FAMILY")) return labels.FAMILY;
+  if (tier.includes("VVIP") || tier === "VIP") return labels.VVIP;
+  if (tier.includes("PREMIUM") || tier.includes("프리미엄") || tier === "PRO") return labels.PREMIUM;
+  if (tier.includes("STANDARD") || tier.includes("스탠다드") || tier === "BASIC") return labels.STANDARD;
   return "";
 }
 
-function resolvePassTierLabelFromDetail(detail?: Record<string, unknown>) {
+function resolvePassTierLabelFromDetail(detail: Record<string, unknown> | undefined, locale: LoadingLocale) {
   const membershipPass = asRecord(detail?.membershipPass);
   const accessGateResult = asRecord(detail?.accessGateResult) || asRecord(detail?.licensePass);
   return formatPassTierLabel(
@@ -1915,12 +1932,19 @@ function resolvePassTierLabelFromDetail(detail?: Record<string, unknown>) {
       ?? accessGateResult?.licenseTier
       ?? accessGateResult?.tier
       ?? accessGateResult?.passTier,
+    locale,
   );
 }
 
 function formatPassLoadingMessage(stage: LoadingStage, detail?: Record<string, unknown>) {
-  const tierLabel = resolvePassTierLabelFromDetail(detail);
+  const locale = getCurrentLoadingLocale();
+  const tierLabel = resolvePassTierLabelFromDetail(detail, locale);
   if (!tierLabel) return formatLoadingMessage(stage, "pass");
+  if (locale !== "ko") {
+    const copy = resolveLoadingMessage(stage, "pass", locale);
+    const title = `${tierLabel} ${copy.title}`;
+    return copy.sub ? `${title}\n${copy.sub}` : title;
+  }
   if (stage === "access_check") return `${tierLabel} 이용권을 확인하는 중이에요`;
   if (stage === "result_loading") return `${tierLabel} 이용권 혜택이 적용되었습니다.\n결과를 불러오는 중이에요`;
   return formatLoadingMessage(stage, "pass");
