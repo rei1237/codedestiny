@@ -13,6 +13,107 @@ const SERVICE = {
   ],
   seoText:
     "시빌라 시스템은 사주팔자 오행 분포를 기반으로 진로 적성을 진단하고, 운명 위험 계수를 시각화하는 독자적인 AI 분석 서비스입니다.",
+  localized: {
+    en: {
+      title: "Sibyl System - Four Pillars Career Aptitude and Destiny Risk Index",
+      h1: "⚡ Sibyl System - Four Pillars Career Aptitude",
+      description:
+        "An AI system that assigns career aptitude sectors and analyzes destiny risk coefficients from the eight characters of a Four Pillars chart.",
+      landingPoints: ["Destiny Hue color diagnosis", "Automatic Four Pillars aptitude sector matching", "Five Elements risk coefficient graph", "Dominator deep report (10,000 KRW)"],
+      seoText:
+        "The Sibyl System diagnoses career aptitude from Four Pillars Five Elements distribution and visualizes destiny risk coefficients through a dedicated AI analysis flow.",
+    },
+    ja: {
+      title: "シビラシステム - 四柱推命の進路適性 × 運命リスク係数",
+      h1: "⚡ シビラシステム - 四柱推命の進路適性分析",
+      description:
+        "四柱推命の8文字をもとに進路適性セクターを割り当て、運命リスク係数を分析するAIシステムです。",
+      landingPoints: ["Destiny Hue 色彩診断", "四柱推命ベースの適性セクター自動判定", "五行分布リスク係数グラフ", "ドミネーター深層リポート（10,000ウォン）"],
+      seoText:
+        "シビラシステムは、四柱推命の五行分布をもとに進路適性を診断し、運命リスク係数を可視化する独自のAI分析サービスです。",
+    },
+    "zh-CN": {
+      title: "Sibyl 系统 - 四柱推命职业适性 × 命运风险系数",
+      h1: "⚡ Sibyl 系统 - 四柱推命职业适性分析",
+      description:
+        "基于四柱八字8个字分配职业适性板块，并分析命运风险系数的AI系统。",
+      landingPoints: ["Destiny Hue 色彩诊断", "基于四柱的适性板块自动分配", "五行分布风险系数图表", "Dominator深度报告（10,000韩元）"],
+      seoText:
+        "Sibyl系统基于四柱八字五行分布诊断职业适性，并可视化命运风险系数，是独立的AI分析服务。",
+    },
+    "zh-TW": {
+      title: "Sibyl 系統 - 四柱推命職涯適性 × 命運風險係數",
+      h1: "⚡ Sibyl 系統 - 四柱推命職涯適性分析",
+      description:
+        "基於四柱八字8個字分配職涯適性區塊，並分析命運風險係數的AI系統。",
+      landingPoints: ["Destiny Hue 色彩診斷", "基於四柱的適性區塊自動分配", "五行分布風險係數圖表", "Dominator深度報告（10,000韓元）"],
+      seoText:
+        "Sibyl系統基於四柱八字五行分布診斷職涯適性，並視覺化命運風險係數，是獨立的AI分析服務。",
+    },
+    vi: {
+      title: "Hệ thống Sibyl - Tứ Trụ định hướng nghề nghiệp và hệ số rủi ro vận mệnh",
+      h1: "⚡ Hệ thống Sibyl - Phân tích năng lực nghề nghiệp bằng Tứ Trụ",
+      description:
+        "Hệ thống AI phân bổ nhóm năng lực nghề nghiệp và phân tích hệ số rủi ro vận mệnh dựa trên tám ký tự của lá số Tứ Trụ.",
+      landingPoints: ["Chẩn đoán màu Destiny Hue", "Tự động phân nhóm năng lực từ Tứ Trụ", "Biểu đồ hệ số rủi ro phân bố Ngũ hành", "Báo cáo Dominator chuyên sâu (10.000 KRW)"],
+      seoText:
+        "Hệ thống Sibyl chẩn đoán năng lực nghề nghiệp từ phân bố Ngũ hành Tứ Trụ và trực quan hóa hệ số rủi ro vận mệnh bằng luồng phân tích AI riêng.",
+    },
+    hi: {
+      title: "सिबिल सिस्टम - चार स्तंभ करियर योग्यता और भाग्य जोखिम गुणांक",
+      h1: "⚡ सिबिल सिस्टम - चार स्तंभ करियर योग्यता विश्लेषण",
+      description:
+        "चार स्तंभ चार्ट के आठ अक्षरों से करियर योग्यता सेक्टर तय करने और भाग्य जोखिम गुणांक पढ़ने वाला AI सिस्टम.",
+      landingPoints: ["Destiny Hue रंग निदान", "चार स्तंभ आधारित योग्यता सेक्टर स्वचालित मिलान", "पाँच तत्व जोखिम गुणांक ग्राफ", "Dominator गहन रिपोर्ट (10,000 KRW)"],
+      seoText:
+        "सिबिल सिस्टम चार स्तंभ पाँच तत्व वितरण से करियर योग्यता का निदान करता है और भाग्य जोखिम गुणांकों को AI विश्लेषण प्रवाह में दृश्य बनाता है.",
+    },
+    es: {
+      title: "Sistema Sibyl - Aptitud profesional de Cuatro Pilares e índice de riesgo del destino",
+      h1: "⚡ Sistema Sibyl - Aptitud profesional con Cuatro Pilares",
+      description:
+        "Sistema de IA que asigna sectores de aptitud profesional y analiza coeficientes de riesgo del destino a partir de los ocho caracteres de una carta de Cuatro Pilares.",
+      landingPoints: ["Diagnóstico de color Destiny Hue", "Asignación automática de aptitud por Cuatro Pilares", "Gráfico de coeficiente de riesgo de Cinco Elementos", "Informe profundo Dominator (10.000 KRW)"],
+      seoText:
+        "El Sistema Sibyl diagnostica aptitud profesional desde la distribución de Cinco Elementos de Cuatro Pilares y visualiza coeficientes de riesgo del destino con IA.",
+    },
+    fr: {
+      title: "Système Sibyl - Aptitude professionnelle des Quatre Piliers et coefficient de risque",
+      h1: "⚡ Système Sibyl - Analyse d'aptitude professionnelle par les Quatre Piliers",
+      description:
+        "Un système d'IA qui attribue des secteurs d'aptitude professionnelle et analyse les coefficients de risque de destinée à partir des huit caractères des Quatre Piliers.",
+      landingPoints: ["Diagnostic couleur Destiny Hue", "Attribution automatique de secteur par les Quatre Piliers", "Graphique de risque des Cinq Éléments", "Rapport approfondi Dominator (10 000 KRW)"],
+      seoText:
+        "Le Système Sibyl diagnostique l'aptitude professionnelle depuis la distribution des Cinq Éléments des Quatre Piliers et visualise les coefficients de risque par IA.",
+    },
+    de: {
+      title: "Sibyl-System - Vier-Säulen-Karriereeignung und Schicksalsrisiko",
+      h1: "⚡ Sibyl-System - Vier-Säulen-Karriereeignung",
+      description:
+        "Ein KI-System, das aus den acht Zeichen eines Vier-Säulen-Charts berufliche Eignungssektoren zuordnet und Schicksalsrisiko-Koeffizienten analysiert.",
+      landingPoints: ["Destiny Hue Farbanalyse", "Automatische Vier-Säulen-Eignungszuordnung", "Fünf-Elemente-Risikokoeffizient-Grafik", "Dominator Tiefenbericht (10.000 KRW)"],
+      seoText:
+        "Das Sibyl-System diagnostiziert Karriereeignung aus der Fünf-Elemente-Verteilung der Vier Säulen und visualisiert Schicksalsrisiken per KI.",
+    },
+    nl: {
+      title: "Sibyl-systeem - Vier Pilaren loopbaangeschiktheid en bestemmingsrisico",
+      h1: "⚡ Sibyl-systeem - Loopbaangeschiktheid via Vier Pilaren",
+      description:
+        "Een AI-systeem dat loopbaangeschiktheidssectoren toewijst en bestemmingsrisico-coëfficiënten analyseert vanuit de acht tekens van een Vier Pilaren-kaart.",
+      landingPoints: ["Destiny Hue kleurdiagnose", "Automatische geschiktheidssector via Vier Pilaren", "Risicografiek van de Vijf Elementen", "Dominator diepteverslag (10.000 KRW)"],
+      seoText:
+        "Het Sibyl-systeem diagnosticeert loopbaangeschiktheid uit de Vijf Elementen-verdeling van Vier Pilaren en visualiseert bestemmingsrisico met AI.",
+    },
+    ms: {
+      title: "Sistem Sibyl - Kecenderungan kerjaya Empat Tiang dan pekali risiko takdir",
+      h1: "⚡ Sistem Sibyl - Analisis kecenderungan kerjaya Empat Tiang",
+      description:
+        "Sistem AI yang menetapkan sektor kecenderungan kerjaya dan menganalisis pekali risiko takdir berdasarkan lapan aksara carta Empat Tiang.",
+      landingPoints: ["Diagnosis warna Destiny Hue", "Padanan sektor kecenderungan automatik berdasarkan Empat Tiang", "Graf pekali risiko taburan Lima Unsur", "Laporan mendalam Dominator (10,000 KRW)"],
+      seoText:
+        "Sistem Sibyl mendiagnosis kecenderungan kerjaya daripada taburan Lima Unsur Empat Tiang dan memvisualkan pekali risiko takdir melalui analisis AI.",
+    },
+  },
 };
 
 export const metadata = {
