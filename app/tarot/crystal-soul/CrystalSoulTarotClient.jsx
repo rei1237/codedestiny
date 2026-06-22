@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Copy, Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from "lucide-react";
+import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
 import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/CrystalGem";
 import { useRubInteraction } from "@/src/components/crystal/useRubInteraction";
 import { useCoinGate } from "../../hooks/useCoinGate";
@@ -30,6 +32,595 @@ const POSITION_LABELS = [
   "크리스탈의 처방",
   "빛이 열어줄 문",
 ];
+
+const CRYSTAL_UI_COPY = {
+  ko: {
+    title: "원석 소울 타로",
+    subtitle: "손이 멈추는 원석이 오늘의 기운입니다",
+    selectAria: "원석 선택",
+    chooseGemAgain: "원석 다시 고르기",
+    selectedGem: "✦ {gem}이 선택되었습니다 ✦",
+    rubProgressLabel: "문지르기 진행률 {progress}%",
+    rubHint: "원석에 손을 얹고 천천히 문질러 주세요",
+    rubSubHint: "당신의 에너지가 카드를 깨웁니다",
+    readerFallback: "{gem}의 질문을 마음속에 담고 카드를 한 장씩 열어 주세요.",
+    openingCards: "카드의 빛을 여는 중",
+    openReading: "카드 리딩 열기 ({cost}코인)",
+    spreadAria: "5장 원석 타로 스프레드",
+    positionPrefix: "포지션",
+    resultHeader: "원석 소울 타로 결과",
+    gemMessageTitle: "✦ {gem}이 전하는 오늘의 메시지",
+    detailDivider: "카드별 상세 해석",
+    promptDivider: "추가 운세 프롬프트",
+    promptAria: "추가 운세 프롬프트",
+    promptHeader: "✦ 마지막 원석 문장",
+    copied: "복사 완료",
+    copy: "복사",
+    share: "공유",
+    retry: "다시 뽑기",
+    home: "홈",
+    shareTitle: "원석 소울 타로",
+    paymentReason: "크리스탈 소울 타로 리딩",
+    loginRequired: "로그인이 필요합니다. 로그인 화면으로 이동합니다.",
+    paymentFailed: "결제를 완료하지 못했습니다.",
+    readingError: "리딩을 여는 과정에서 오류가 발생했습니다.",
+    openFailed: "카드의 빛을 여는 데 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    positionLabels: POSITION_LABELS,
+  },
+  en: {
+    title: "Crystal Soul Tarot",
+    subtitle: "The stone your hand chooses carries today's energy",
+    selectAria: "Choose a crystal",
+    chooseGemAgain: "Choose another crystal",
+    selectedGem: "✦ {gem} has been chosen ✦",
+    rubProgressLabel: "Rubbing progress {progress}%",
+    rubHint: "Place your hand on the crystal and rub slowly",
+    rubSubHint: "Your energy awakens the cards",
+    readerFallback: "Hold your question inside {gem} and open each card one by one.",
+    openingCards: "Opening the light of the cards",
+    openReading: "Open card reading ({cost} coins)",
+    spreadAria: "Five-card crystal tarot spread",
+    positionPrefix: "Position",
+    resultHeader: "Crystal Soul Tarot Result",
+    gemMessageTitle: "✦ Today's message from {gem}",
+    detailDivider: "Detailed card interpretations",
+    promptDivider: "Extra fortune prompt",
+    promptAria: "Extra fortune prompt",
+    promptHeader: "✦ Final crystal sentence",
+    copied: "Copied",
+    copy: "Copy",
+    share: "Share",
+    retry: "Draw again",
+    home: "Home",
+    shareTitle: "Crystal Soul Tarot",
+    paymentReason: "Crystal Soul Tarot reading",
+    loginRequired: "Login is required. Moving to the login screen.",
+    paymentFailed: "Payment could not be completed.",
+    readingError: "An error occurred while opening the reading.",
+    openFailed: "The card light could not be opened. Please try again shortly.",
+    positionLabels: ["The crystal's first light", "Hidden side", "Warning from the crystal", "Crystal prescription", "The door opened by light"],
+  },
+  ja: {
+    title: "クリスタルソウルタロット",
+    subtitle: "手が止まる天然石が、今日の気配を映します",
+    selectAria: "天然石を選択",
+    chooseGemAgain: "天然石を選び直す",
+    selectedGem: "✦ {gem}が選ばれました ✦",
+    rubProgressLabel: "こする進行率 {progress}%",
+    rubHint: "天然石に手を重ね、ゆっくりなでてください",
+    rubSubHint: "あなたのエネルギーがカードを目覚めさせます",
+    readerFallback: "{gem}に問いをそっと預け、カードを一枚ずつ開いてください。",
+    openingCards: "カードの光を開いています",
+    openReading: "カードリーディングを開く（{cost}コイン）",
+    spreadAria: "5枚クリスタルタロットスプレッド",
+    positionPrefix: "ポジション",
+    resultHeader: "クリスタルソウルタロット結果",
+    gemMessageTitle: "✦ {gem}が伝える今日のメッセージ",
+    detailDivider: "カード別の詳しい解釈",
+    promptDivider: "追加の占いプロンプト",
+    promptAria: "追加の占いプロンプト",
+    promptHeader: "✦ 最後のクリスタルメッセージ",
+    copied: "コピーしました",
+    copy: "コピー",
+    share: "共有",
+    retry: "もう一度引く",
+    home: "ホーム",
+    shareTitle: "クリスタルソウルタロット",
+    paymentReason: "クリスタルソウルタロットリーディング",
+    loginRequired: "ログインが必要です。ログイン画面へ移動します。",
+    paymentFailed: "決済を完了できませんでした。",
+    readingError: "リーディングを開く途中でエラーが発生しました。",
+    openFailed: "カードの光を開けませんでした。しばらくしてからもう一度お試しください。",
+    positionLabels: ["天然石の最初の光", "隠れた面", "天然石からの警告", "クリスタルの処方", "光が開く扉"],
+  },
+  "zh-CN": {
+    title: "水晶灵魂塔罗",
+    subtitle: "让手停下的那颗原石，就是今天的能量",
+    selectAria: "选择原石",
+    chooseGemAgain: "重新选择原石",
+    selectedGem: "✦ 已选择 {gem} ✦",
+    rubProgressLabel: "摩挲进度 {progress}%",
+    rubHint: "把手放在原石上，慢慢摩挲",
+    rubSubHint: "你的能量正在唤醒牌面",
+    readerFallback: "把问题交给 {gem}，然后一张一张打开牌。",
+    openingCards: "正在开启牌的光",
+    openReading: "开启卡牌解读（{cost}枚硬币）",
+    spreadAria: "五张原石塔罗牌阵",
+    positionPrefix: "位置",
+    resultHeader: "水晶灵魂塔罗结果",
+    gemMessageTitle: "✦ {gem}传来的今日讯息",
+    detailDivider: "逐张牌详细解读",
+    promptDivider: "追加运势提示词",
+    promptAria: "追加运势提示词",
+    promptHeader: "✦ 最后的原石语句",
+    copied: "已复制",
+    copy: "复制",
+    share: "分享",
+    retry: "重新抽取",
+    home: "首页",
+    shareTitle: "水晶灵魂塔罗",
+    paymentReason: "水晶灵魂塔罗解读",
+    loginRequired: "需要登录。正在前往登录页面。",
+    paymentFailed: "未能完成支付。",
+    readingError: "开启解读时发生错误。",
+    openFailed: "未能开启牌的光。请稍后再试。",
+    positionLabels: ["原石的第一道光", "被遮住的一面", "原石送来的提醒", "水晶处方", "光将打开的门"],
+  },
+  "zh-TW": {
+    title: "水晶靈魂塔羅",
+    subtitle: "讓手停下的那顆原石，就是今天的能量",
+    selectAria: "選擇原石",
+    chooseGemAgain: "重新選擇原石",
+    selectedGem: "✦ 已選擇 {gem} ✦",
+    rubProgressLabel: "摩挲進度 {progress}%",
+    rubHint: "把手放在原石上，慢慢摩挲",
+    rubSubHint: "你的能量正在喚醒牌面",
+    readerFallback: "把問題交給 {gem}，然後一張一張打開牌。",
+    openingCards: "正在開啟牌的光",
+    openReading: "開啟卡牌解讀（{cost}枚硬幣）",
+    spreadAria: "五張原石塔羅牌陣",
+    positionPrefix: "位置",
+    resultHeader: "水晶靈魂塔羅結果",
+    gemMessageTitle: "✦ {gem}傳來的今日訊息",
+    detailDivider: "逐張牌詳細解讀",
+    promptDivider: "追加運勢提示詞",
+    promptAria: "追加運勢提示詞",
+    promptHeader: "✦ 最後的原石語句",
+    copied: "已複製",
+    copy: "複製",
+    share: "分享",
+    retry: "重新抽取",
+    home: "首頁",
+    shareTitle: "水晶靈魂塔羅",
+    paymentReason: "水晶靈魂塔羅解讀",
+    loginRequired: "需要登入。正在前往登入頁面。",
+    paymentFailed: "未能完成付款。",
+    readingError: "開啟解讀時發生錯誤。",
+    openFailed: "未能開啟牌的光。請稍後再試。",
+    positionLabels: ["原石的第一道光", "被遮住的一面", "原石送來的提醒", "水晶處方", "光將打開的門"],
+  },
+  vi: {
+    title: "Tarot Linh Hồn Pha Lê",
+    subtitle: "Viên đá khiến tay bạn dừng lại chính là năng lượng hôm nay",
+    selectAria: "Chọn đá",
+    chooseGemAgain: "Chọn lại viên đá",
+    selectedGem: "✦ {gem} đã được chọn ✦",
+    rubProgressLabel: "Tiến độ chạm đá {progress}%",
+    rubHint: "Đặt tay lên viên đá và xoa thật chậm",
+    rubSubHint: "Năng lượng của bạn đánh thức các lá bài",
+    readerFallback: "Giữ câu hỏi trong {gem} rồi mở từng lá bài.",
+    openingCards: "Đang mở ánh sáng của lá bài",
+    openReading: "Mở bài đọc ({cost} coin)",
+    spreadAria: "Trải bài tarot pha lê 5 lá",
+    positionPrefix: "Vị trí",
+    resultHeader: "Kết quả Tarot Linh Hồn Pha Lê",
+    gemMessageTitle: "✦ Thông điệp hôm nay từ {gem}",
+    detailDivider: "Diễn giải chi tiết từng lá",
+    promptDivider: "Prompt vận mệnh bổ sung",
+    promptAria: "Prompt vận mệnh bổ sung",
+    promptHeader: "✦ Câu pha lê cuối cùng",
+    copied: "Đã sao chép",
+    copy: "Sao chép",
+    share: "Chia sẻ",
+    retry: "Rút lại",
+    home: "Trang chủ",
+    shareTitle: "Tarot Linh Hồn Pha Lê",
+    paymentReason: "Bài đọc Tarot Linh Hồn Pha Lê",
+    loginRequired: "Cần đăng nhập. Đang chuyển đến màn hình đăng nhập.",
+    paymentFailed: "Không thể hoàn tất thanh toán.",
+    readingError: "Đã xảy ra lỗi khi mở bài đọc.",
+    openFailed: "Không thể mở ánh sáng của lá bài. Vui lòng thử lại sau.",
+    positionLabels: ["Ánh sáng đầu tiên của viên đá", "Mặt bị che khuất", "Lời cảnh báo từ viên đá", "Phương thuốc pha lê", "Cánh cửa ánh sáng mở ra"],
+  },
+  hi: {
+    title: "Crystal Soul Tarot",
+    subtitle: "जिस पत्थर पर हाथ ठहरे, वही आज की ऊर्जा है",
+    selectAria: "क्रिस्टल चुनें",
+    chooseGemAgain: "क्रिस्टल फिर चुनें",
+    selectedGem: "✦ {gem} चुना गया है ✦",
+    rubProgressLabel: "रबिंग प्रगति {progress}%",
+    rubHint: "क्रिस्टल पर हाथ रखें और धीरे-धीरे रगड़ें",
+    rubSubHint: "आपकी ऊर्जा कार्डों को जगाती है",
+    readerFallback: "{gem} में अपना प्रश्न रखें और कार्ड एक-एक करके खोलें।",
+    openingCards: "कार्डों की रोशनी खुल रही है",
+    openReading: "कार्ड रीडिंग खोलें ({cost} coins)",
+    spreadAria: "5-card crystal tarot spread",
+    positionPrefix: "Position",
+    resultHeader: "Crystal Soul Tarot Result",
+    gemMessageTitle: "✦ {gem} से आज का संदेश",
+    detailDivider: "हर कार्ड की विस्तृत रीडिंग",
+    promptDivider: "अतिरिक्त fortune prompt",
+    promptAria: "अतिरिक्त fortune prompt",
+    promptHeader: "✦ अंतिम crystal sentence",
+    copied: "कॉपी हो गया",
+    copy: "कॉपी",
+    share: "शेयर",
+    retry: "फिर चुनें",
+    home: "होम",
+    shareTitle: "Crystal Soul Tarot",
+    paymentReason: "Crystal Soul Tarot reading",
+    loginRequired: "लॉगिन आवश्यक है। लॉगिन स्क्रीन पर जा रहे हैं।",
+    paymentFailed: "भुगतान पूरा नहीं हो सका।",
+    readingError: "रीडिंग खोलते समय त्रुटि हुई।",
+    openFailed: "कार्डों की रोशनी नहीं खुल सकी। कृपया थोड़ी देर बाद फिर कोशिश करें।",
+    positionLabels: ["Crystal की पहली रोशनी", "छिपा पहलू", "Crystal की चेतावनी", "Crystal prescription", "रोशनी से खुलता द्वार"],
+  },
+  es: {
+    title: "Tarot del Alma de Cristal",
+    subtitle: "La piedra donde se detiene tu mano trae la energía de hoy",
+    selectAria: "Elegir cristal",
+    chooseGemAgain: "Elegir otra piedra",
+    selectedGem: "✦ {gem} ha sido elegido ✦",
+    rubProgressLabel: "Progreso de frotar {progress}%",
+    rubHint: "Pon la mano sobre la piedra y frótala despacio",
+    rubSubHint: "Tu energía despierta las cartas",
+    readerFallback: "Guarda tu pregunta en {gem} y abre las cartas una por una.",
+    openingCards: "Abriendo la luz de las cartas",
+    openReading: "Abrir lectura de cartas ({cost} monedas)",
+    spreadAria: "Tirada de tarot cristalino de 5 cartas",
+    positionPrefix: "Posición",
+    resultHeader: "Resultado del Tarot del Alma de Cristal",
+    gemMessageTitle: "✦ Mensaje de hoy de {gem}",
+    detailDivider: "Interpretación detallada por carta",
+    promptDivider: "Prompt de fortuna adicional",
+    promptAria: "Prompt de fortuna adicional",
+    promptHeader: "✦ Última frase del cristal",
+    copied: "Copiado",
+    copy: "Copiar",
+    share: "Compartir",
+    retry: "Volver a sacar",
+    home: "Inicio",
+    shareTitle: "Tarot del Alma de Cristal",
+    paymentReason: "Lectura de Tarot del Alma de Cristal",
+    loginRequired: "Debes iniciar sesión. Te llevamos a la pantalla de inicio.",
+    paymentFailed: "No se pudo completar el pago.",
+    readingError: "Ocurrió un error al abrir la lectura.",
+    openFailed: "No se pudo abrir la luz de las cartas. Inténtalo de nuevo en un momento.",
+    positionLabels: ["Primera luz de la piedra", "Lado oculto", "Advertencia de la piedra", "Receta del cristal", "Puerta que abre la luz"],
+  },
+  fr: {
+    title: "Tarot de l'Âme Cristal",
+    subtitle: "La pierre où votre main s'arrête porte l'énergie du jour",
+    selectAria: "Choisir un cristal",
+    chooseGemAgain: "Choisir une autre pierre",
+    selectedGem: "✦ {gem} a été choisi ✦",
+    rubProgressLabel: "Progression du geste {progress}%",
+    rubHint: "Posez la main sur la pierre et frottez lentement",
+    rubSubHint: "Votre énergie éveille les cartes",
+    readerFallback: "Déposez votre question dans {gem} et ouvrez les cartes une à une.",
+    openingCards: "Ouverture de la lumière des cartes",
+    openReading: "Ouvrir la lecture ({cost} pièces)",
+    spreadAria: "Tirage tarot cristal en 5 cartes",
+    positionPrefix: "Position",
+    resultHeader: "Résultat du Tarot de l'Âme Cristal",
+    gemMessageTitle: "✦ Message du jour de {gem}",
+    detailDivider: "Interprétation détaillée par carte",
+    promptDivider: "Prompt d'oracle supplémentaire",
+    promptAria: "Prompt d'oracle supplémentaire",
+    promptHeader: "✦ Dernière phrase du cristal",
+    copied: "Copié",
+    copy: "Copier",
+    share: "Partager",
+    retry: "Tirer à nouveau",
+    home: "Accueil",
+    shareTitle: "Tarot de l'Âme Cristal",
+    paymentReason: "Lecture Tarot de l'Âme Cristal",
+    loginRequired: "Connexion requise. Redirection vers l'écran de connexion.",
+    paymentFailed: "Le paiement n'a pas pu être terminé.",
+    readingError: "Une erreur est survenue pendant l'ouverture de la lecture.",
+    openFailed: "La lumière des cartes n'a pas pu s'ouvrir. Veuillez réessayer dans un instant.",
+    positionLabels: ["Première lumière de la pierre", "Face cachée", "Avertissement de la pierre", "Prescription du cristal", "Porte ouverte par la lumière"],
+  },
+  de: {
+    title: "Kristallseelen-Tarot",
+    subtitle: "Der Stein, bei dem deine Hand anhält, trägt die Energie des Tages",
+    selectAria: "Kristall auswählen",
+    chooseGemAgain: "Anderen Stein wählen",
+    selectedGem: "✦ {gem} wurde gewählt ✦",
+    rubProgressLabel: "Reibefortschritt {progress}%",
+    rubHint: "Lege deine Hand auf den Stein und reibe langsam",
+    rubSubHint: "Deine Energie weckt die Karten",
+    readerFallback: "Lege deine Frage in {gem} und öffne die Karten nacheinander.",
+    openingCards: "Das Licht der Karten öffnet sich",
+    openReading: "Kartenlesung öffnen ({cost} Coins)",
+    spreadAria: "5-Karten-Kristalltarot-Legung",
+    positionPrefix: "Position",
+    resultHeader: "Kristallseelen-Tarot Ergebnis",
+    gemMessageTitle: "✦ Heutige Botschaft von {gem}",
+    detailDivider: "Detaillierte Deutung jeder Karte",
+    promptDivider: "Zusätzlicher Orakel-Prompt",
+    promptAria: "Zusätzlicher Orakel-Prompt",
+    promptHeader: "✦ Letzter Kristallsatz",
+    copied: "Kopiert",
+    copy: "Kopieren",
+    share: "Teilen",
+    retry: "Neu ziehen",
+    home: "Home",
+    shareTitle: "Kristallseelen-Tarot",
+    paymentReason: "Kristallseelen-Tarot-Lesung",
+    loginRequired: "Login erforderlich. Weiterleitung zum Login.",
+    paymentFailed: "Die Zahlung konnte nicht abgeschlossen werden.",
+    readingError: "Beim Öffnen der Lesung ist ein Fehler aufgetreten.",
+    openFailed: "Das Licht der Karten konnte nicht geöffnet werden. Bitte versuche es gleich erneut.",
+    positionLabels: ["Erstes Licht des Steins", "Verborgene Seite", "Warnung des Steins", "Kristallrezept", "Tür, die das Licht öffnet"],
+  },
+  nl: {
+    title: "Kristalziel Tarot",
+    subtitle: "De steen waar je hand stopt draagt de energie van vandaag",
+    selectAria: "Kristal kiezen",
+    chooseGemAgain: "Kies opnieuw een steen",
+    selectedGem: "✦ {gem} is gekozen ✦",
+    rubProgressLabel: "Wrijfvoortgang {progress}%",
+    rubHint: "Leg je hand op de steen en wrijf langzaam",
+    rubSubHint: "Jouw energie wekt de kaarten",
+    readerFallback: "Leg je vraag in {gem} en open de kaarten één voor één.",
+    openingCards: "Het licht van de kaarten opent",
+    openReading: "Kaartlezing openen ({cost} coins)",
+    spreadAria: "5-kaarten kristaltarotlegging",
+    positionPrefix: "Positie",
+    resultHeader: "Kristalziel Tarot resultaat",
+    gemMessageTitle: "✦ Bericht van vandaag van {gem}",
+    detailDivider: "Gedetailleerde kaartuitleg",
+    promptDivider: "Extra orakelprompt",
+    promptAria: "Extra orakelprompt",
+    promptHeader: "✦ Laatste kristalzin",
+    copied: "Gekopieerd",
+    copy: "Kopiëren",
+    share: "Delen",
+    retry: "Opnieuw trekken",
+    home: "Home",
+    shareTitle: "Kristalziel Tarot",
+    paymentReason: "Kristalziel Tarot reading",
+    loginRequired: "Inloggen is nodig. Je gaat naar het inlogscherm.",
+    paymentFailed: "Betaling kon niet worden voltooid.",
+    readingError: "Er ging iets mis bij het openen van de reading.",
+    openFailed: "Het licht van de kaarten kon niet openen. Probeer het straks opnieuw.",
+    positionLabels: ["Eerste licht van de steen", "Verborgen kant", "Waarschuwing van de steen", "Kristalrecept", "Deur die het licht opent"],
+  },
+  ms: {
+    title: "Tarot Jiwa Kristal",
+    subtitle: "Batu yang menghentikan tangan anda membawa tenaga hari ini",
+    selectAria: "Pilih kristal",
+    chooseGemAgain: "Pilih batu semula",
+    selectedGem: "✦ {gem} telah dipilih ✦",
+    rubProgressLabel: "Kemajuan gosokan {progress}%",
+    rubHint: "Letakkan tangan pada batu dan gosok perlahan-lahan",
+    rubSubHint: "Tenaga anda membangunkan kad",
+    readerFallback: "Simpan soalan anda dalam {gem} dan buka kad satu demi satu.",
+    openingCards: "Membuka cahaya kad",
+    openReading: "Buka bacaan kad ({cost} coin)",
+    spreadAria: "Sebaran tarot kristal 5 kad",
+    positionPrefix: "Posisi",
+    resultHeader: "Keputusan Tarot Jiwa Kristal",
+    gemMessageTitle: "✦ Mesej hari ini daripada {gem}",
+    detailDivider: "Tafsiran terperinci setiap kad",
+    promptDivider: "Prompt nasib tambahan",
+    promptAria: "Prompt nasib tambahan",
+    promptHeader: "✦ Ayat kristal terakhir",
+    copied: "Disalin",
+    copy: "Salin",
+    share: "Kongsi",
+    retry: "Cabut lagi",
+    home: "Laman utama",
+    shareTitle: "Tarot Jiwa Kristal",
+    paymentReason: "Bacaan Tarot Jiwa Kristal",
+    loginRequired: "Log masuk diperlukan. Bergerak ke skrin log masuk.",
+    paymentFailed: "Bayaran tidak dapat diselesaikan.",
+    readingError: "Ralat berlaku semasa membuka bacaan.",
+    openFailed: "Cahaya kad tidak dapat dibuka. Cuba lagi sebentar lagi.",
+    positionLabels: ["Cahaya pertama batu", "Sisi tersembunyi", "Amaran daripada batu", "Preskripsi kristal", "Pintu yang dibuka cahaya"],
+  },
+};
+
+const GEM_DISPLAY_COPY = {
+  ko: {
+    amethyst: ["자수정", "직관 · 보호 · 내면의 평화"],
+    rose_quartz: ["장미수정", "자기애 · 치유 · 감정 회복"],
+    obsidian: ["흑요석", "진실 · 경계 · 에너지 정화"],
+    moonstone: ["문스톤", "감수성 · 여성성 · 사이클"],
+    lapis: ["라피스라줄리", "지혜 · 소통 · 진실의 힘"],
+    citrine: ["시트린", "풍요 · 자신감 · 행동력"],
+    black_tourmaline: ["블랙투르말린", "차단 · 뿌리내림 · 안정"],
+    tiger_eye: ["호안석", "용기 · 통찰 · 현실 판단"],
+    clear_quartz: ["백수정", "증폭 · 정화 · 명료함"],
+    green_aventurine: ["그린 아벤츄린", "기회 · 회복 · 성장"],
+    garnet: ["가넷", "열정 · 생명력 · 결단"],
+    labradorite: ["래브라도라이트", "변신 · 보호 · 숨은 빛"],
+  },
+  en: {
+    amethyst: ["Amethyst", "Intuition · Protection · Inner peace"],
+    rose_quartz: ["Rose Quartz", "Self-love · Healing · Emotional recovery"],
+    obsidian: ["Obsidian", "Truth · Boundaries · Energy cleansing"],
+    moonstone: ["Moonstone", "Sensitivity · Feminine rhythm · Cycles"],
+    lapis: ["Lapis Lazuli", "Wisdom · Communication · Truth"],
+    citrine: ["Citrine", "Abundance · Confidence · Action"],
+    black_tourmaline: ["Black Tourmaline", "Shielding · Grounding · Stability"],
+    tiger_eye: ["Tiger Eye", "Courage · Insight · Practical judgment"],
+    clear_quartz: ["Clear Quartz", "Amplification · Cleansing · Clarity"],
+    green_aventurine: ["Green Aventurine", "Opportunity · Recovery · Growth"],
+    garnet: ["Garnet", "Passion · Vitality · Decision"],
+    labradorite: ["Labradorite", "Transformation · Protection · Hidden light"],
+  },
+  ja: {
+    amethyst: ["アメジスト", "直感 · 保護 · 内なる平穏"],
+    rose_quartz: ["ローズクォーツ", "自己愛 · 癒し · 感情の回復"],
+    obsidian: ["オブシディアン", "真実 · 境界線 · エネルギー浄化"],
+    moonstone: ["ムーンストーン", "感受性 · 女性性 · サイクル"],
+    lapis: ["ラピスラズリ", "知恵 · 対話 · 真実の力"],
+    citrine: ["シトリン", "豊かさ · 自信 · 行動力"],
+    black_tourmaline: ["ブラックトルマリン", "遮断 · グラウンディング · 安定"],
+    tiger_eye: ["タイガーアイ", "勇気 · 洞察 · 現実判断"],
+    clear_quartz: ["クリアクォーツ", "増幅 · 浄化 · 明晰さ"],
+    green_aventurine: ["グリーンアベンチュリン", "機会 · 回復 · 成長"],
+    garnet: ["ガーネット", "情熱 · 生命力 · 決断"],
+    labradorite: ["ラブラドライト", "変容 · 保護 · 隠れた光"],
+  },
+  "zh-CN": {
+    amethyst: ["紫水晶", "直觉 · 保护 · 内在平静"],
+    rose_quartz: ["粉晶", "自爱 · 疗愈 · 情绪修复"],
+    obsidian: ["黑曜石", "真相 · 边界 · 能量净化"],
+    moonstone: ["月光石", "感受力 · 阴性能量 · 周期"],
+    lapis: ["青金石", "智慧 · 沟通 · 真相之力"],
+    citrine: ["黄水晶", "丰盛 · 自信 · 行动力"],
+    black_tourmaline: ["黑碧玺", "阻隔 · 扎根 · 稳定"],
+    tiger_eye: ["虎眼石", "勇气 · 洞察 · 现实判断"],
+    clear_quartz: ["白水晶", "增强 · 净化 · 清晰"],
+    green_aventurine: ["绿东陵", "机会 · 修复 · 成长"],
+    garnet: ["石榴石", "热情 · 生命力 · 决断"],
+    labradorite: ["拉长石", "转化 · 保护 · 隐藏之光"],
+  },
+  "zh-TW": {
+    amethyst: ["紫水晶", "直覺 · 保護 · 內在平靜"],
+    rose_quartz: ["粉晶", "自愛 · 療癒 · 情緒修復"],
+    obsidian: ["黑曜石", "真相 · 邊界 · 能量淨化"],
+    moonstone: ["月光石", "感受力 · 陰性能量 · 週期"],
+    lapis: ["青金石", "智慧 · 溝通 · 真相之力"],
+    citrine: ["黃水晶", "豐盛 · 自信 · 行動力"],
+    black_tourmaline: ["黑碧璽", "阻隔 · 扎根 · 穩定"],
+    tiger_eye: ["虎眼石", "勇氣 · 洞察 · 現實判斷"],
+    clear_quartz: ["白水晶", "增強 · 淨化 · 清晰"],
+    green_aventurine: ["綠東陵", "機會 · 修復 · 成長"],
+    garnet: ["石榴石", "熱情 · 生命力 · 決斷"],
+    labradorite: ["拉長石", "轉化 · 保護 · 隱藏之光"],
+  },
+  vi: {
+    amethyst: ["Thạch anh tím", "Trực giác · Bảo vệ · Bình an nội tâm"],
+    rose_quartz: ["Thạch anh hồng", "Yêu bản thân · Chữa lành · Hồi phục cảm xúc"],
+    obsidian: ["Hắc diện thạch", "Sự thật · Ranh giới · Thanh lọc năng lượng"],
+    moonstone: ["Đá mặt trăng", "Nhạy cảm · Nữ tính · Chu kỳ"],
+    lapis: ["Lapis Lazuli", "Trí tuệ · Giao tiếp · Sức mạnh sự thật"],
+    citrine: ["Citrine", "Thịnh vượng · Tự tin · Hành động"],
+    black_tourmaline: ["Tourmaline đen", "Che chắn · Tiếp đất · Ổn định"],
+    tiger_eye: ["Mắt hổ", "Can đảm · Thấu thị · Phán đoán thực tế"],
+    clear_quartz: ["Thạch anh trắng", "Khuếch đại · Thanh lọc · Minh mẫn"],
+    green_aventurine: ["Aventurine xanh", "Cơ hội · Hồi phục · Tăng trưởng"],
+    garnet: ["Garnet", "Đam mê · Sinh lực · Quyết đoán"],
+    labradorite: ["Labradorite", "Biến đổi · Bảo vệ · Ánh sáng ẩn"],
+  },
+  hi: {
+    amethyst: ["Amethyst", "अंतर्ज्ञान · सुरक्षा · भीतर की शांति"],
+    rose_quartz: ["Rose Quartz", "स्व-प्रेम · उपचार · भावनात्मक रिकवरी"],
+    obsidian: ["Obsidian", "सत्य · सीमा · ऊर्जा शुद्धि"],
+    moonstone: ["Moonstone", "संवेदनशीलता · स्त्री ऊर्जा · चक्र"],
+    lapis: ["Lapis Lazuli", "बुद्धि · संवाद · सत्य की शक्ति"],
+    citrine: ["Citrine", "समृद्धि · आत्मविश्वास · क्रिया"],
+    black_tourmaline: ["Black Tourmaline", "रक्षा · grounding · स्थिरता"],
+    tiger_eye: ["Tiger Eye", "साहस · अंतर्दृष्टि · वास्तविक निर्णय"],
+    clear_quartz: ["Clear Quartz", "वृद्धि · शुद्धि · स्पष्टता"],
+    green_aventurine: ["Green Aventurine", "अवसर · रिकवरी · विकास"],
+    garnet: ["Garnet", "जोश · जीवन शक्ति · निर्णय"],
+    labradorite: ["Labradorite", "परिवर्तन · सुरक्षा · छिपी रोशनी"],
+  },
+  es: {
+    amethyst: ["Amatista", "Intuición · Protección · Paz interior"],
+    rose_quartz: ["Cuarzo rosa", "Amor propio · Sanación · Recuperación emocional"],
+    obsidian: ["Obsidiana", "Verdad · Límites · Limpieza energética"],
+    moonstone: ["Piedra lunar", "Sensibilidad · Energía femenina · Ciclos"],
+    lapis: ["Lapislázuli", "Sabiduría · Comunicación · Verdad"],
+    citrine: ["Citrino", "Abundancia · Confianza · Acción"],
+    black_tourmaline: ["Turmalina negra", "Protección · Enraizamiento · Estabilidad"],
+    tiger_eye: ["Ojo de tigre", "Coraje · Perspicacia · Juicio práctico"],
+    clear_quartz: ["Cuarzo transparente", "Amplificación · Limpieza · Claridad"],
+    green_aventurine: ["Aventurina verde", "Oportunidad · Recuperación · Crecimiento"],
+    garnet: ["Granate", "Pasión · Vitalidad · Decisión"],
+    labradorite: ["Labradorita", "Transformación · Protección · Luz oculta"],
+  },
+  fr: {
+    amethyst: ["Améthyste", "Intuition · Protection · Paix intérieure"],
+    rose_quartz: ["Quartz rose", "Amour de soi · Guérison · Récupération émotionnelle"],
+    obsidian: ["Obsidienne", "Vérité · Limites · Purification énergétique"],
+    moonstone: ["Pierre de lune", "Sensibilité · Énergie féminine · Cycles"],
+    lapis: ["Lapis-lazuli", "Sagesse · Communication · Vérité"],
+    citrine: ["Citrine", "Abondance · Confiance · Action"],
+    black_tourmaline: ["Tourmaline noire", "Protection · Ancrage · Stabilité"],
+    tiger_eye: ["Oeil de tigre", "Courage · Discernement · Jugement pratique"],
+    clear_quartz: ["Quartz clair", "Amplification · Purification · Clarté"],
+    green_aventurine: ["Aventurine verte", "Occasion · Récupération · Croissance"],
+    garnet: ["Grenat", "Passion · Vitalité · Décision"],
+    labradorite: ["Labradorite", "Transformation · Protection · Lumière cachée"],
+  },
+  de: {
+    amethyst: ["Amethyst", "Intuition · Schutz · Innerer Frieden"],
+    rose_quartz: ["Rosenquarz", "Selbstliebe · Heilung · Emotionale Erholung"],
+    obsidian: ["Obsidian", "Wahrheit · Grenzen · Energetische Reinigung"],
+    moonstone: ["Mondstein", "Feingefühl · Weibliche Energie · Zyklen"],
+    lapis: ["Lapislazuli", "Weisheit · Kommunikation · Wahrheit"],
+    citrine: ["Citrin", "Fülle · Selbstvertrauen · Handlungskraft"],
+    black_tourmaline: ["Schwarzer Turmalin", "Abschirmung · Erdung · Stabilität"],
+    tiger_eye: ["Tigerauge", "Mut · Einsicht · Realistisches Urteil"],
+    clear_quartz: ["Bergkristall", "Verstärkung · Reinigung · Klarheit"],
+    green_aventurine: ["Grüner Aventurin", "Chance · Erholung · Wachstum"],
+    garnet: ["Granat", "Leidenschaft · Lebenskraft · Entscheidung"],
+    labradorite: ["Labradorit", "Wandlung · Schutz · Verborgene Lichtkraft"],
+  },
+  nl: {
+    amethyst: ["Amethist", "Intuïtie · Bescherming · Innerlijke rust"],
+    rose_quartz: ["Rozenkwarts", "Zelfliefde · Healing · Emotioneel herstel"],
+    obsidian: ["Obsidiaan", "Waarheid · Grenzen · Energiereiniging"],
+    moonstone: ["Maansteen", "Gevoeligheid · Vrouwelijke energie · Cycli"],
+    lapis: ["Lapis Lazuli", "Wijsheid · Communicatie · Waarheid"],
+    citrine: ["Citrien", "Overvloed · Vertrouwen · Actie"],
+    black_tourmaline: ["Zwarte toermalijn", "Afscherming · Aarding · Stabiliteit"],
+    tiger_eye: ["Tijgeroog", "Moed · Inzicht · Praktisch oordeel"],
+    clear_quartz: ["Bergkristal", "Versterking · Reiniging · Helderheid"],
+    green_aventurine: ["Groene aventurijn", "Kans · Herstel · Groei"],
+    garnet: ["Granaat", "Passie · Levenskracht · Besluit"],
+    labradorite: ["Labradoriet", "Transformatie · Bescherming · Verborgen licht"],
+  },
+  ms: {
+    amethyst: ["Amethyst", "Intuisi · Perlindungan · Damai dalaman"],
+    rose_quartz: ["Rose Quartz", "Cinta diri · Penyembuhan · Pemulihan emosi"],
+    obsidian: ["Obsidian", "Kebenaran · Batas · Pembersihan tenaga"],
+    moonstone: ["Moonstone", "Kepekaan · Tenaga feminin · Kitaran"],
+    lapis: ["Lapis Lazuli", "Kebijaksanaan · Komunikasi · Kebenaran"],
+    citrine: ["Citrine", "Kelimpahan · Keyakinan · Tindakan"],
+    black_tourmaline: ["Black Tourmaline", "Perisai · Pembumian · Kestabilan"],
+    tiger_eye: ["Tiger Eye", "Keberanian · Wawasan · Pertimbangan realistik"],
+    clear_quartz: ["Clear Quartz", "Penguatan · Pembersihan · Kejelasan"],
+    green_aventurine: ["Green Aventurine", "Peluang · Pemulihan · Pertumbuhan"],
+    garnet: ["Garnet", "Semangat · Daya hidup · Keputusan"],
+    labradorite: ["Labradorite", "Transformasi · Perlindungan · Cahaya tersembunyi"],
+  },
+};
+
+function resolveLocaleFromPath(pathname) {
+  const firstSegment = (pathname || "").split("/").filter(Boolean)[0];
+  return firstSegment ? normalizeLoadingLocale(firstSegment) : "ko";
+}
+
+function formatCopy(template, values) {
+  return Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
+}
+
+function getLocalizedGemMeta(type, locale) {
+  const fallback = GEM_META[type];
+  const localized = GEM_DISPLAY_COPY[locale]?.[type] || GEM_DISPLAY_COPY.ko[type] || [fallback.name, fallback.keywords];
+  return { ...fallback, name: localized[0], keywords: localized[1] };
+}
+
+function getPositionLabel(copy, card) {
+  return copy.positionLabels[Number(card?.pos_id || 1) - 1] || card?.pos_name || "";
+}
 
 function isAdminSessionClient() {
   if (typeof window === "undefined") return false;
@@ -100,18 +691,18 @@ function TypedText({ text, className = "", speed = 15 }) {
   );
 }
 
-function GemSelectScreen({ selectedGem, onSelect }) {
+function GemSelectScreen({ selectedGem, onSelect, copy, locale }) {
   return (
     <section className="crystal-screen crystal-screen--select">
       <div className="crystal-title-row">
         <GemIcon size={25} strokeWidth={1.8} />
-        <h1>원석 소울 타로</h1>
+        <h1>{copy.title}</h1>
       </div>
-      <p className="crystal-subtitle">손이 멈추는 원석이 오늘의 기운입니다</p>
+      <p className="crystal-subtitle">{copy.subtitle}</p>
 
-      <div className="gem-grid" aria-label="원석 선택">
+      <div className="gem-grid" aria-label={copy.selectAria}>
         {GEM_TYPES.map((type) => {
-          const meta = GEM_META[type];
+          const meta = getLocalizedGemMeta(type, locale);
           const selected = selectedGem === type;
           return (
             <button
@@ -132,8 +723,8 @@ function GemSelectScreen({ selectedGem, onSelect }) {
   );
 }
 
-function GemRubScreen({ gemType, onBack, onRevealed }) {
-  const meta = GEM_META[gemType];
+function GemRubScreen({ gemType, onBack, onRevealed, copy, locale }) {
+  const meta = getLocalizedGemMeta(gemType, locale);
   const handleActivated = useCallback(() => {
     window.setTimeout(onRevealed, 820);
   }, [onRevealed]);
@@ -142,20 +733,20 @@ function GemRubScreen({ gemType, onBack, onRevealed }) {
   return (
     <section className="crystal-screen crystal-screen--rub">
       <button type="button" className="crystal-text-button" onClick={onBack}>
-        원석 다시 고르기
+        {copy.chooseGemAgain}
       </button>
-      <p className="rub-kicker">✦ {meta.name}이 선택되었습니다 ✦</p>
+      <p className="rub-kicker">{formatCopy(copy.selectedGem, { gem: meta.name })}</p>
       <div className="rub-stage" {...handlers}>
         <span className="rub-stage__aura" aria-hidden="true" />
         <span className="rub-stage__grain" aria-hidden="true" />
         <CrystalGem type={gemType} size="min(280px, 70vw)" state={rubState} progress={progress} />
       </div>
-      <div className="rub-progress" aria-label={`문지르기 진행률 ${Math.round(progress)}%`}>
+      <div className="rub-progress" aria-label={formatCopy(copy.rubProgressLabel, { progress: Math.round(progress) })}>
         <span style={{ width: `${progress}%` }} />
       </div>
       <div className="rub-progress-label">{Math.round(progress)}%</div>
-      <p className="rub-hint">원석에 손을 얹고 천천히 문질러 주세요</p>
-      <p className="rub-hint rub-hint--sub">당신의 에너지가 카드를 깨웁니다</p>
+      <p className="rub-hint">{copy.rubHint}</p>
+      <p className="rub-hint rub-hint--sub">{copy.rubSubHint}</p>
     </section>
   );
 }
@@ -171,9 +762,9 @@ function ReaderBubble({ gemType, text, children }) {
   );
 }
 
-function TarotReaderChat({ gemType, reading, loading, paying, error, onStart }) {
-  const meta = GEM_META[gemType];
-  const intro = reading?.intro || meta.energy + " 질문을 마음속에 담고 카드를 한 장씩 열어 주세요.";
+function TarotReaderChat({ gemType, reading, loading, paying, error, onStart, copy, locale }) {
+  const meta = getLocalizedGemMeta(gemType, locale);
+  const intro = reading?.intro && locale === "ko" ? reading.intro : formatCopy(copy.readerFallback, { gem: meta.name });
 
   return (
     <section className="crystal-screen crystal-screen--reader">
@@ -188,7 +779,7 @@ function TarotReaderChat({ gemType, reading, loading, paying, error, onStart }) 
         <div className="reader-pay-panel">
           <button type="button" className="crystal-primary-button" onClick={onStart} disabled={loading || paying}>
             {loading || paying ? <Loader2 size={18} className="spin" /> : <Sparkles size={18} />}
-            {loading || paying ? "카드의 빛을 여는 중" : `카드 리딩 열기 (${CRYSTAL_COST}코인)`}
+            {loading || paying ? copy.openingCards : formatCopy(copy.openReading, { cost: CRYSTAL_COST })}
           </button>
           {error ? <p className="crystal-error">{error}</p> : null}
         </div>
@@ -197,9 +788,9 @@ function TarotReaderChat({ gemType, reading, loading, paying, error, onStart }) 
   );
 }
 
-function CardSpread({ gemType, reading, openedCards, onOpenCard }) {
+function CardSpread({ gemType, reading, openedCards, onOpenCard, copy }) {
   return (
-    <section className="card-spread-section" aria-label="5장 원석 타로 스프레드">
+    <section className="card-spread-section" aria-label={copy.spreadAria}>
       <div className="card-spread">
         {reading.cards.map((card, index) => {
           const opened = openedCards.includes(index);
@@ -230,9 +821,9 @@ function CardSpread({ gemType, reading, openedCards, onOpenCard }) {
               </button>
               <div className="spread-item__label">
                 <strong>{index + 1}</strong>
-                <span>{card.pos_name}</span>
+                <span>{getPositionLabel(copy, card)}</span>
               </div>
-              {opened ? <CardReadingBubble gemType={gemType} card={card} /> : null}
+              {opened ? <CardReadingBubble gemType={gemType} card={card} copy={copy} /> : null}
             </article>
           );
         })}
@@ -241,12 +832,12 @@ function CardSpread({ gemType, reading, openedCards, onOpenCard }) {
   );
 }
 
-function CardReadingBubble({ gemType, card }) {
+function CardReadingBubble({ gemType, card, copy }) {
   return (
     <article className="card-reading-bubble">
       <header>
         <CrystalGem type={gemType} size={28} compact state="revealed" />
-        <span>포지션 {card.pos_id} · {card.pos_name}</span>
+        <span>{copy.positionPrefix} {card.pos_id} · {getPositionLabel(copy, card)}</span>
       </header>
       <div className="card-reading-bubble__card">
         <img src={card.imageUrl} alt={card.card_name} className={card.orientation === "reversed" ? "is-reversed" : ""} loading="lazy" />
@@ -261,21 +852,21 @@ function CardReadingBubble({ gemType, card }) {
   );
 }
 
-function ReadingResult({ gemType, reading, onRetry, onHome }) {
-  const meta = GEM_META[gemType];
+function ReadingResult({ gemType, reading, onRetry, onHome, copy, locale }) {
+  const meta = getLocalizedGemMeta(gemType, locale);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const aiFortunePrompt = reading.ai_fortune_prompt || reading.aiFortunePrompt || "";
 
   const onShare = useCallback(async () => {
-    const text = `${meta.name} 원석 소울 타로\n${reading.synthesis.gem_message}`;
+    const text = `${meta.name} ${copy.shareTitle}\n${reading.synthesis.gem_message || ""}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "원석 소울 타로", text, url: window.location.href });
+        await navigator.share({ title: copy.shareTitle, text, url: window.location.href });
       } else {
         await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
       }
     } catch {}
-  }, [meta.name, reading.synthesis.gem_message]);
+  }, [copy.shareTitle, meta.name, reading.synthesis.gem_message]);
 
   const onCopyPrompt = useCallback(async () => {
     if (!aiFortunePrompt || typeof navigator === "undefined" || !navigator.clipboard) return;
@@ -290,24 +881,24 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
     <section className="reading-result">
       <header className="reading-result__sticky">
         <CrystalGem type={gemType} size={38} compact state="revealed" />
-        <span>원석 소울 타로 결과</span>
+        <span>{copy.resultHeader}</span>
       </header>
 
       <div className="reading-result__body">
-        <h2>✦ {meta.name}이 전하는 오늘의 메시지</h2>
+        <h2>{formatCopy(copy.gemMessageTitle, { gem: meta.name })}</h2>
         <article className="synthesis-panel">
           {reading.synthesis.gem_profile ? <p className="gem-profile">{reading.synthesis.gem_profile}</p> : null}
           <p>{reading.synthesis.body}</p>
           <div className="gem-message">{reading.synthesis.gem_message}</div>
         </article>
 
-        <div className="result-divider">카드별 상세 해석</div>
+        <div className="result-divider">{copy.detailDivider}</div>
         <div className="result-card-list">
           {reading.cards.map((card) => (
             <article key={`result-${card.pos_id}-${card.card_id}`} className="result-card">
               <img src={card.imageUrl} alt={card.card_name} className={card.orientation === "reversed" ? "is-reversed" : ""} loading="lazy" />
               <div>
-                <span>{card.pos_name}</span>
+                <span>{getPositionLabel(copy, card)}</span>
                 <h3>{card.card_name} · {card.direction}</h3>
                 <p>{card.reading}</p>
                 {card.gem_reading ? <p className="result-card__gem-reading">{card.gem_reading}</p> : null}
@@ -326,13 +917,13 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
 
         {aiFortunePrompt ? (
           <>
-            <div className="result-divider">추가 운세 프롬프트</div>
-            <section className="ai-fortune-prompt" aria-label="추가 운세 프롬프트">
+            <div className="result-divider">{copy.promptDivider}</div>
+            <section className="ai-fortune-prompt" aria-label={copy.promptAria}>
               <div className="ai-fortune-prompt__header">
-                <span>✦ 마지막 원석 문장</span>
+                <span>{copy.promptHeader}</span>
                 <button type="button" onClick={onCopyPrompt}>
                   <Copy size={15} />
-                  {copiedPrompt ? "복사 완료" : "복사"}
+                  {copiedPrompt ? copy.copied : copy.copy}
                 </button>
               </div>
               <pre>{aiFortunePrompt}</pre>
@@ -342,9 +933,9 @@ function ReadingResult({ gemType, reading, onRetry, onHome }) {
       </div>
 
       <footer className="result-actions">
-        <button type="button" onClick={onShare}><Share2 size={17} />공유</button>
-        <button type="button" onClick={onRetry}><RotateCcw size={17} />다시 뽑기</button>
-        <button type="button" onClick={onHome}><Home size={17} />홈</button>
+        <button type="button" onClick={onShare}><Share2 size={17} />{copy.share}</button>
+        <button type="button" onClick={onRetry}><RotateCcw size={17} />{copy.retry}</button>
+        <button type="button" onClick={onHome}><Home size={17} />{copy.home}</button>
       </footer>
     </section>
   );
@@ -358,7 +949,9 @@ function normalizeReadingPayload(data) {
 
 export default function CrystalSoulTarotClient() {
   useBodyChrome();
+  const pathname = usePathname();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  const [locale, setLocale] = useState(() => resolveLocaleFromPath(pathname));
   const [stage, setStage] = useState("select");
   const [selectedGem, setSelectedGem] = useState("amethyst");
   const [reading, setReading] = useState(null);
@@ -366,6 +959,12 @@ export default function CrystalSoulTarotClient() {
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const copy = CRYSTAL_UI_COPY[locale] || CRYSTAL_UI_COPY.ko;
+
+  useEffect(() => {
+    const fromPath = resolveLocaleFromPath(pathname);
+    setLocale(fromPath === "ko" ? getCurrentLoadingLocale() : fromPath);
+  }, [pathname]);
 
   const activeGemStyle = useMemo(() => {
     const gemKey = reading?.gem || selectedGem;
@@ -402,11 +1001,11 @@ export default function CrystalSoulTarotClient() {
       setOpenedCards([]);
       setStage("reader");
     } catch {
-      setError("카드의 빛을 여는 데 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(copy.openFailed);
     } finally {
       setLoading(false);
     }
-  }, [selectedGem]);
+  }, [copy.openFailed, selectedGem]);
 
   const startPaidReading = useCallback(async () => {
     if (loading || paying || isPaying) return;
@@ -422,7 +1021,7 @@ export default function CrystalSoulTarotClient() {
     try {
       const result = await ensurePaidAccess({
         featureKey: "tarot-crystal-soul-reading",
-        reason: "크리스탈 소울 타로 리딩",
+        reason: copy.paymentReason,
         forceDeduct: true,
         requestId: `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: requestReading,
@@ -430,20 +1029,20 @@ export default function CrystalSoulTarotClient() {
 
       if (!result.ok) {
         if (result.code === "AUTH_REQUIRED") {
-          setError("로그인이 필요합니다. 로그인 화면으로 이동합니다.");
+          setError(copy.loginRequired);
           window.setTimeout(() => {
             window.location.href = "/login?next=%2Ftarot%2Fcrystal-soul";
           }, 600);
           return;
         }
-        setError(result.message || "결제를 완료하지 못했습니다.");
+        setError(result.message || copy.paymentFailed);
       }
     } catch {
-      setError("리딩을 여는 과정에서 오류가 발생했습니다.");
+      setError(copy.readingError);
     } finally {
       setPaying(false);
     }
-  }, [ensurePaidAccess, isPaying, loading, paying, requestReading]);
+  }, [copy.loginRequired, copy.paymentFailed, copy.paymentReason, copy.readingError, ensurePaidAccess, isPaying, loading, paying, requestReading]);
 
   const openCard = useCallback((index) => {
     setOpenedCards((current) => current.includes(index) ? current : [...current, index]);
@@ -465,7 +1064,7 @@ export default function CrystalSoulTarotClient() {
       <div className="crystal-soul-orbit" aria-hidden="true" />
 
       {stage === "select" ? (
-        <GemSelectScreen selectedGem={selectedGem} onSelect={resetForGem} />
+        <GemSelectScreen selectedGem={selectedGem} onSelect={resetForGem} copy={copy} locale={locale} />
       ) : null}
 
       {stage === "rub" ? (
@@ -473,6 +1072,8 @@ export default function CrystalSoulTarotClient() {
           gemType={selectedGem}
           onBack={() => setStage("select")}
           onRevealed={() => setStage("reader")}
+          copy={copy}
+          locale={locale}
         />
       ) : null}
 
@@ -485,9 +1086,11 @@ export default function CrystalSoulTarotClient() {
             paying={paying || isPaying}
             error={error}
             onStart={startPaidReading}
+            copy={copy}
+            locale={locale}
           />
-          {reading ? <CardSpread gemType={selectedGem} reading={reading} openedCards={openedCards} onOpenCard={openCard} /> : null}
-          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = "/"; }} /> : null}
+          {reading ? <CardSpread gemType={selectedGem} reading={reading} openedCards={openedCards} onOpenCard={openCard} copy={copy} /> : null}
+          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = "/"; }} copy={copy} locale={locale} /> : null}
         </>
       ) : null}
 
