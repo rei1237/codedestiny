@@ -119,6 +119,8 @@ assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45
 assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React coin gate uses confirm timeout");
 assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React billing confirm uses confirm timeout");
 assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "React payment verification must not use shared 14s mutation timeout");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-20260622-pg-top"', "React paid runtime cache key includes PG top-window fix");
+assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
 assertContains(billingClientSource, "const monthlyApplied = candidates.some(isMonthlyCreditAccessType);", "React monthly-credit success is resolved before pass success");
@@ -169,6 +171,7 @@ assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
 assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
+assertContains(destinyProfileSource, "_dpSetPaymentPending(false);\n      var rsp = await window.PortOne.requestPayment(requestData);", "destiny runtime hides payment overlay immediately before PG window");
 
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");
 assertContains(paymentsRouteSource, "merchantUid", "merchantUid duplicate key");
