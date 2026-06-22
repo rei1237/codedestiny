@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
@@ -48,6 +49,569 @@ type OracleCardPick = {
   keywords: string[];
   focus: string;
   image: string;
+};
+
+type PromptMakerFeedbackCopy = {
+  free: string;
+  oneTimePrice: string;
+  lenormandFree: string;
+  passAvailable: string;
+  instantUse: string;
+  paymentRequired: string;
+  checking: string;
+  disconnected: string;
+  lenormandQuestionReady: string;
+  lenormandQuestionEmpty: string;
+  quickQuestionStatus: string;
+  recommendedQuestionStatus: string;
+  askQuestionFirst: string;
+  spreadNeedAll: (count: number) => string;
+  lenormandCompleteToast: string;
+  subscriptionPromptComplete: string;
+  subscriptionReason: string;
+  passBenefit: string;
+  passRemaining: (amount: string) => string;
+  passOpened: (spent: string, balance: string) => string;
+  paidApproved: (balance: string) => string;
+  loginRequired: string;
+  insufficientCoins: (amount: string) => string;
+  priceNotFound: string;
+  serverConfigError: string;
+  refunded: string;
+  paymentIncomplete: string;
+  promptError: string;
+  lenormandCopied: string;
+  tarotCopied: string;
+  copyFailed: string;
+  cardSelectionIncomplete: string;
+  lenormandRegenerated: string;
+  tarotRegenerated: string;
+  tuneAlready: string;
+  tuneAdded: (label: string) => string;
+  lenormandDefaultStatus: string;
+  categoryDefaultStatus: string;
+  copiedDone: string;
+  copyPrompt: string;
+  generating: string;
+};
+
+const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
+  ko: {
+    free: "무료",
+    oneTimePrice: "1회 5,000원",
+    lenormandFree: "레노먼드 무료",
+    passAvailable: "이용권 적용 가능",
+    instantUse: "즉시 이용",
+    paymentRequired: "결제 필요",
+    checking: "확인 중",
+    disconnected: "미연동",
+    lenormandQuestionReady: "질문 흐름이 잡혔습니다. 6장 레노먼드 카드로 반복 신호와 행동 단서를 엮습니다.",
+    lenormandQuestionEmpty: "지금 보고 싶은 상황이나 질문을 한 문장으로 적어주세요.",
+    quickQuestionStatus: "빠른 질문으로 상담 초점을 잡았습니다.",
+    recommendedQuestionStatus: "추천 질문으로 상담 초점을 다듬었습니다.",
+    askQuestionFirst: "질문을 먼저 입력해 주세요. 짧아도 괜찮아요.",
+    spreadNeedAll: (count) => `이 스프레드는 ${count}장을 모두 뽑아야 합니다.`,
+    lenormandCompleteToast: "무료 레노먼드 프롬프트가 완성되었습니다.",
+    subscriptionPromptComplete: "이용권 혜택이 적용되어 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
+    subscriptionReason: "타로 프롬프트 라이브러리",
+    passBenefit: "보유 이용권 혜택",
+    passRemaining: (amount) => ` 남은 이용권 혜택: ${amount}`,
+    passOpened: (spent, balance) => `이용권 혜택 ${spent}으로 타로 프롬프트 라이브러리가 열렸습니다.${balance}`,
+    paidApproved: (balance) => `타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${balance}`,
+    loginRequired: "로그인이 필요합니다.",
+    insufficientCoins: (amount) => `결제 가능 금액이 부족합니다. ${amount} 결제가 필요합니다.`,
+    priceNotFound: "서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    serverConfigError: "결제 확인이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
+    refunded: "AI 오라클 프롬프트가 완성되지 않아 이번 결제가 환불되었습니다.",
+    paymentIncomplete: "결제 확인이 완료되지 않았습니다.",
+    promptError: "AI 오라클 프롬프트를 엮는 중 문제가 발생했습니다.",
+    lenormandCopied: "레노먼드 프롬프트가 복사되었습니다.",
+    tarotCopied: "AI 오라클 프롬프트가 복사되었습니다.",
+    copyFailed: "클립보드 복사에 실패했습니다.",
+    cardSelectionIncomplete: "카드 선택이 완료된 뒤 다시 생성할 수 있습니다.",
+    lenormandRegenerated: "같은 레노먼드 카드 조합으로 프롬프트를 다시 정리했습니다.",
+    tarotRegenerated: "같은 카드 조합으로 AI 오라클 프롬프트를 다시 정리했습니다.",
+    tuneAlready: "이미 반영된 조율입니다.",
+    tuneAdded: (label) => `${label} 조율 문장을 더했습니다.`,
+    lenormandDefaultStatus: "레노먼드 기본 질문으로 흐름을 맞췄습니다.",
+    categoryDefaultStatus: "카테고리 기본 질문으로 상담 방향을 맞췄습니다.",
+    copiedDone: "✓ 복사 완료",
+    copyPrompt: "📋 프롬프트 복사",
+    generating: "✦ 프롬프트 조율 중...",
+  },
+  en: {
+    free: "Free",
+    oneTimePrice: "One use KRW 5,000",
+    lenormandFree: "Lenormand free",
+    passAvailable: "Pass available",
+    instantUse: "Ready now",
+    paymentRequired: "Payment required",
+    checking: "Checking",
+    disconnected: "Not connected",
+    lenormandQuestionReady: "The question flow is set. Six Lenormand cards will weave repeated signs and action clues.",
+    lenormandQuestionEmpty: "Write the situation or question you want to examine in one sentence.",
+    quickQuestionStatus: "A quick question set the consultation focus.",
+    recommendedQuestionStatus: "The recommended question refined the consultation focus.",
+    askQuestionFirst: "Please enter a question first. A short one is fine.",
+    spreadNeedAll: (count) => `This spread needs all ${count} cards drawn.`,
+    lenormandCompleteToast: "Your free Lenormand prompt is ready.",
+    subscriptionPromptComplete: "Your pass benefit opened the Tarot Prompt Library. The AI oracle prompt is complete in the moonlit flow.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "available pass benefit",
+    passRemaining: (amount) => ` Remaining pass benefit: ${amount}`,
+    passOpened: (spent, balance) => `The Tarot Prompt Library opened with ${spent}.${balance}`,
+    paidApproved: (balance) => `Tarot Prompt Library access was approved. Remaining KRW value: ${balance}`,
+    loginRequired: "Login is required.",
+    insufficientCoins: (amount) => `Your available balance is not enough. ${amount} is required.`,
+    priceNotFound: "Could not confirm the service terms. Please try again shortly.",
+    serverConfigError: "Payment confirmation is delayed. Please try again shortly.",
+    refunded: "This payment was refunded because the AI oracle prompt was not completed.",
+    paymentIncomplete: "Payment confirmation was not completed.",
+    promptError: "A problem occurred while weaving the AI oracle prompt.",
+    lenormandCopied: "Lenormand prompt copied.",
+    tarotCopied: "AI oracle prompt copied.",
+    copyFailed: "Could not copy to clipboard.",
+    cardSelectionIncomplete: "You can regenerate after card selection is complete.",
+    lenormandRegenerated: "The prompt was reorganized with the same Lenormand card combination.",
+    tarotRegenerated: "The AI oracle prompt was reorganized with the same card combination.",
+    tuneAlready: "This tuning has already been applied.",
+    tuneAdded: (label) => `${label} tuning was added.`,
+    lenormandDefaultStatus: "The Lenormand default question set the flow.",
+    categoryDefaultStatus: "The category default question set the consultation direction.",
+    copiedDone: "✓ Copied",
+    copyPrompt: "📋 Copy prompt",
+    generating: "✦ Tuning the prompt...",
+  },
+  ja: {
+    free: "無料",
+    oneTimePrice: "1回 5,000ウォン",
+    lenormandFree: "ルノルマン無料",
+    passAvailable: "利用券を適用できます",
+    instantUse: "すぐ利用可能",
+    paymentRequired: "決済が必要です",
+    checking: "確認中",
+    disconnected: "未連携",
+    lenormandQuestionReady: "質問の流れが整いました。6枚のルノルマンカードで、繰り返すサインと行動の手がかりを結びます。",
+    lenormandQuestionEmpty: "今見たい状況や質問を一文で入力してください。",
+    quickQuestionStatus: "クイック質問で相談の焦点を整えました。",
+    recommendedQuestionStatus: "おすすめ質問で相談の焦点を磨きました。",
+    askQuestionFirst: "先に質問を入力してください。短くても大丈夫です。",
+    spreadNeedAll: (count) => `このスプレッドは${count}枚すべてを引く必要があります。`,
+    lenormandCompleteToast: "無料ルノルマンプロンプトが完成しました。",
+    subscriptionPromptComplete: "利用券特典が適用され、タロットプロンプトライブラリが開きました。月明かりの流れの中でAIオラクルプロンプトが完成しました。",
+    subscriptionReason: "タロットプロンプトライブラリ",
+    passBenefit: "保有中の利用券特典",
+    passRemaining: (amount) => ` 残り利用券特典: ${amount}`,
+    passOpened: (spent, balance) => `利用券特典 ${spent} でタロットプロンプトライブラリが開きました。${balance}`,
+    paidApproved: (balance) => `タロットプロンプトライブラリの利用が承認されました。残りウォン価値: ${balance}`,
+    loginRequired: "ログインが必要です。",
+    insufficientCoins: (amount) => `決済可能な残高が不足しています。${amount} の決済が必要です。`,
+    priceNotFound: "サービス利用条件を確認できませんでした。しばらくしてからもう一度お試しください。",
+    serverConfigError: "決済確認が一時的に遅れています。しばらくしてからもう一度お試しください。",
+    refunded: "AIオラクルプロンプトが完成しなかったため、今回の決済は返金されました。",
+    paymentIncomplete: "決済確認が完了しませんでした。",
+    promptError: "AIオラクルプロンプトを編む途中で問題が発生しました。",
+    lenormandCopied: "ルノルマンプロンプトをコピーしました。",
+    tarotCopied: "AIオラクルプロンプトをコピーしました。",
+    copyFailed: "クリップボードへのコピーに失敗しました。",
+    cardSelectionIncomplete: "カード選択が完了してから再生成できます。",
+    lenormandRegenerated: "同じルノルマンカードの組み合わせでプロンプトを整え直しました。",
+    tarotRegenerated: "同じカードの組み合わせでAIオラクルプロンプトを整え直しました。",
+    tuneAlready: "この調整はすでに反映されています。",
+    tuneAdded: (label) => `${label}の調整文を追加しました。`,
+    lenormandDefaultStatus: "ルノルマン基本質問で流れを整えました。",
+    categoryDefaultStatus: "カテゴリ基本質問で相談の方向を整えました。",
+    copiedDone: "✓ コピー完了",
+    copyPrompt: "📋 プロンプトをコピー",
+    generating: "✦ プロンプトを調整中...",
+  },
+  "zh-CN": {
+    free: "免费",
+    oneTimePrice: "单次 5,000韩元",
+    lenormandFree: "雷诺曼免费",
+    passAvailable: "可使用通行权益",
+    instantUse: "可立即使用",
+    paymentRequired: "需要支付",
+    checking: "确认中",
+    disconnected: "未连接",
+    lenormandQuestionReady: "问题流向已成形。6张雷诺曼牌将整理重复信号与行动线索。",
+    lenormandQuestionEmpty: "请用一句话写下想查看的状况或问题。",
+    quickQuestionStatus: "已用快捷问题确定咨询焦点。",
+    recommendedQuestionStatus: "已用推荐问题细化咨询焦点。",
+    askQuestionFirst: "请先输入问题。简短也可以。",
+    spreadNeedAll: (count) => `这个牌阵需要抽满 ${count} 张牌。`,
+    lenormandCompleteToast: "免费雷诺曼提示词已完成。",
+    subscriptionPromptComplete: "已应用通行权益并开启塔罗提示词库。AI神谕提示词已在月光流动中完成。",
+    subscriptionReason: "塔罗提示词库",
+    passBenefit: "持有的通行权益",
+    passRemaining: (amount) => ` 剩余通行权益：${amount}`,
+    passOpened: (spent, balance) => `已使用通行权益 ${spent} 开启塔罗提示词库。${balance}`,
+    paidApproved: (balance) => `塔罗提示词库使用已通过。剩余韩元价值：${balance}`,
+    loginRequired: "需要登录。",
+    insufficientCoins: (amount) => `可支付余额不足。需要支付 ${amount}。`,
+    priceNotFound: "未能确认服务使用条件。请稍后再试。",
+    serverConfigError: "支付确认暂时延迟。请稍后再试。",
+    refunded: "AI神谕提示词未完成，本次支付已退款。",
+    paymentIncomplete: "支付确认未完成。",
+    promptError: "编织AI神谕提示词时出现问题。",
+    lenormandCopied: "雷诺曼提示词已复制。",
+    tarotCopied: "AI神谕提示词已复制。",
+    copyFailed: "复制到剪贴板失败。",
+    cardSelectionIncomplete: "卡牌选择完成后才能重新生成。",
+    lenormandRegenerated: "已用同一组雷诺曼牌重新整理提示词。",
+    tarotRegenerated: "已用同一组牌重新整理AI神谕提示词。",
+    tuneAlready: "该调整已应用。",
+    tuneAdded: (label) => `已添加${label}调整句。`,
+    lenormandDefaultStatus: "已用雷诺曼默认问题调整流向。",
+    categoryDefaultStatus: "已用分类默认问题调整咨询方向。",
+    copiedDone: "✓ 已复制",
+    copyPrompt: "📋 复制提示词",
+    generating: "✦ 正在调整提示词...",
+  },
+  "zh-TW": {
+    free: "免費",
+    oneTimePrice: "單次 5,000韓元",
+    lenormandFree: "雷諾曼免費",
+    passAvailable: "可使用通行權益",
+    instantUse: "可立即使用",
+    paymentRequired: "需要付款",
+    checking: "確認中",
+    disconnected: "未連接",
+    lenormandQuestionReady: "問題流向已成形。6張雷諾曼牌將整理重複訊號與行動線索。",
+    lenormandQuestionEmpty: "請用一句話寫下想查看的狀況或問題。",
+    quickQuestionStatus: "已用快捷問題確定諮詢焦點。",
+    recommendedQuestionStatus: "已用推薦問題細化諮詢焦點。",
+    askQuestionFirst: "請先輸入問題。簡短也可以。",
+    spreadNeedAll: (count) => `這個牌陣需要抽滿 ${count} 張牌。`,
+    lenormandCompleteToast: "免費雷諾曼提示詞已完成。",
+    subscriptionPromptComplete: "已套用通行權益並開啟塔羅提示詞庫。AI神諭提示詞已在月光流動中完成。",
+    subscriptionReason: "塔羅提示詞庫",
+    passBenefit: "持有的通行權益",
+    passRemaining: (amount) => ` 剩餘通行權益：${amount}`,
+    passOpened: (spent, balance) => `已使用通行權益 ${spent} 開啟塔羅提示詞庫。${balance}`,
+    paidApproved: (balance) => `塔羅提示詞庫使用已通過。剩餘韓元價值：${balance}`,
+    loginRequired: "需要登入。",
+    insufficientCoins: (amount) => `可付款餘額不足。需要支付 ${amount}。`,
+    priceNotFound: "未能確認服務使用條件。請稍後再試。",
+    serverConfigError: "付款確認暫時延遲。請稍後再試。",
+    refunded: "AI神諭提示詞未完成，本次付款已退款。",
+    paymentIncomplete: "付款確認未完成。",
+    promptError: "編織AI神諭提示詞時出現問題。",
+    lenormandCopied: "雷諾曼提示詞已複製。",
+    tarotCopied: "AI神諭提示詞已複製。",
+    copyFailed: "複製到剪貼簿失敗。",
+    cardSelectionIncomplete: "卡牌選擇完成後才能重新生成。",
+    lenormandRegenerated: "已用同一組雷諾曼牌重新整理提示詞。",
+    tarotRegenerated: "已用同一組牌重新整理AI神諭提示詞。",
+    tuneAlready: "該調整已套用。",
+    tuneAdded: (label) => `已加入${label}調整句。`,
+    lenormandDefaultStatus: "已用雷諾曼預設問題調整流向。",
+    categoryDefaultStatus: "已用分類預設問題調整諮詢方向。",
+    copiedDone: "✓ 已複製",
+    copyPrompt: "📋 複製提示詞",
+    generating: "✦ 正在調整提示詞...",
+  },
+  vi: {
+    free: "Miễn phí",
+    oneTimePrice: "Một lần 5.000 KRW",
+    lenormandFree: "Lenormand miễn phí",
+    passAvailable: "Có thể dùng quyền lợi",
+    instantUse: "Dùng ngay",
+    paymentRequired: "Cần thanh toán",
+    checking: "Đang kiểm tra",
+    disconnected: "Chưa kết nối",
+    lenormandQuestionReady: "Dòng câu hỏi đã rõ. 6 lá Lenormand sẽ kết lại tín hiệu lặp lại và manh mối hành động.",
+    lenormandQuestionEmpty: "Hãy viết tình huống hoặc câu hỏi bạn muốn xem trong một câu.",
+    quickQuestionStatus: "Câu hỏi nhanh đã đặt trọng tâm tư vấn.",
+    recommendedQuestionStatus: "Câu hỏi gợi ý đã tinh chỉnh trọng tâm tư vấn.",
+    askQuestionFirst: "Vui lòng nhập câu hỏi trước. Ngắn cũng được.",
+    spreadNeedAll: (count) => `Trải bài này cần rút đủ ${count} lá.`,
+    lenormandCompleteToast: "Prompt Lenormand miễn phí đã hoàn tất.",
+    subscriptionPromptComplete: "Quyền lợi đã được áp dụng và Tarot Prompt Library đã mở. Prompt AI oracle đã hoàn tất trong dòng trăng.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "quyền lợi hiện có",
+    passRemaining: (amount) => ` Quyền lợi còn lại: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library đã mở bằng quyền lợi ${spent}.${balance}`,
+    paidApproved: (balance) => `Quyền dùng Tarot Prompt Library đã được duyệt. Giá trị KRW còn lại: ${balance}`,
+    loginRequired: "Cần đăng nhập.",
+    insufficientCoins: (amount) => `Số dư khả dụng không đủ. Cần thanh toán ${amount}.`,
+    priceNotFound: "Không thể xác nhận điều kiện sử dụng dịch vụ. Vui lòng thử lại sau.",
+    serverConfigError: "Xác nhận thanh toán đang bị chậm. Vui lòng thử lại sau.",
+    refunded: "Thanh toán lần này đã được hoàn vì prompt AI oracle chưa hoàn tất.",
+    paymentIncomplete: "Xác nhận thanh toán chưa hoàn tất.",
+    promptError: "Đã xảy ra lỗi khi kết prompt AI oracle.",
+    lenormandCopied: "Đã sao chép prompt Lenormand.",
+    tarotCopied: "Đã sao chép prompt AI oracle.",
+    copyFailed: "Không thể sao chép vào clipboard.",
+    cardSelectionIncomplete: "Bạn có thể tạo lại sau khi chọn đủ lá.",
+    lenormandRegenerated: "Prompt đã được sắp lại với cùng tổ hợp Lenormand.",
+    tarotRegenerated: "Prompt AI oracle đã được sắp lại với cùng tổ hợp lá.",
+    tuneAlready: "Điều chỉnh này đã được áp dụng.",
+    tuneAdded: (label) => `Đã thêm câu điều chỉnh ${label}.`,
+    lenormandDefaultStatus: "Câu hỏi Lenormand mặc định đã chỉnh dòng chảy.",
+    categoryDefaultStatus: "Câu hỏi mặc định theo danh mục đã chỉnh hướng tư vấn.",
+    copiedDone: "✓ Đã sao chép",
+    copyPrompt: "📋 Sao chép prompt",
+    generating: "✦ Đang tinh chỉnh prompt...",
+  },
+  hi: {
+    free: "मुफ्त",
+    oneTimePrice: "एक बार KRW 5,000",
+    lenormandFree: "Lenormand मुफ्त",
+    passAvailable: "Pass लागू हो सकता है",
+    instantUse: "अभी उपयोग करें",
+    paymentRequired: "भुगतान आवश्यक",
+    checking: "जाँच हो रही है",
+    disconnected: "कनेक्ट नहीं",
+    lenormandQuestionReady: "Question flow तैयार है. 6 Lenormand cards repeated signs और action clues को जोड़ेंगे.",
+    lenormandQuestionEmpty: "जिस स्थिति या प्रश्न को देखना है, उसे एक वाक्य में लिखें.",
+    quickQuestionStatus: "Quick question ने consultation focus सेट किया.",
+    recommendedQuestionStatus: "Recommended question ने consultation focus को refined किया.",
+    askQuestionFirst: "कृपया पहले प्रश्न लिखें. छोटा प्रश्न भी ठीक है.",
+    spreadNeedAll: (count) => `इस spread में सभी ${count} cards खींचने होंगे.`,
+    lenormandCompleteToast: "Free Lenormand prompt तैयार है.",
+    subscriptionPromptComplete: "Pass benefit लागू हुआ और Tarot Prompt Library खुल गई. AI oracle prompt moonlit flow में पूरा हुआ.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "available pass benefit",
+    passRemaining: (amount) => ` Remaining pass benefit: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library ${spent} pass benefit से खुल गई.${balance}`,
+    paidApproved: (balance) => `Tarot Prompt Library access approved. Remaining KRW value: ${balance}`,
+    loginRequired: "Login आवश्यक है.",
+    insufficientCoins: (amount) => `Available balance कम है. ${amount} required है.`,
+    priceNotFound: "Service terms confirm नहीं हो सके. थोड़ी देर बाद फिर कोशिश करें.",
+    serverConfigError: "Payment confirmation थोड़ी देर से हो रही है. कृपया फिर कोशिश करें.",
+    refunded: "AI oracle prompt पूरा नहीं हुआ, इसलिए यह payment refund कर दिया गया.",
+    paymentIncomplete: "Payment confirmation पूरा नहीं हुआ.",
+    promptError: "AI oracle prompt बनाते समय समस्या हुई.",
+    lenormandCopied: "Lenormand prompt copy हो गया.",
+    tarotCopied: "AI oracle prompt copy हो गया.",
+    copyFailed: "Clipboard पर copy नहीं हो सका.",
+    cardSelectionIncomplete: "Cards selection पूरी होने के बाद regenerate कर सकते हैं.",
+    lenormandRegenerated: "Same Lenormand card combination से prompt फिर व्यवस्थित हुआ.",
+    tarotRegenerated: "Same card combination से AI oracle prompt फिर व्यवस्थित हुआ.",
+    tuneAlready: "यह tuning पहले ही लागू है.",
+    tuneAdded: (label) => `${label} tuning जोड़ी गई.`,
+    lenormandDefaultStatus: "Lenormand default question ने flow सेट किया.",
+    categoryDefaultStatus: "Category default question ने consultation direction सेट की.",
+    copiedDone: "✓ Copied",
+    copyPrompt: "📋 Copy prompt",
+    generating: "✦ Prompt tuning...",
+  },
+  es: {
+    free: "Gratis",
+    oneTimePrice: "Una vez 5.000 KRW",
+    lenormandFree: "Lenormand gratis",
+    passAvailable: "Pase disponible",
+    instantUse: "Uso inmediato",
+    paymentRequired: "Pago requerido",
+    checking: "Comprobando",
+    disconnected: "Sin conexión",
+    lenormandQuestionReady: "El flujo de la pregunta está listo. Seis cartas Lenormand unirán señales repetidas y pistas de acción.",
+    lenormandQuestionEmpty: "Escribe en una frase la situación o pregunta que quieres mirar.",
+    quickQuestionStatus: "La pregunta rápida fijó el foco de consulta.",
+    recommendedQuestionStatus: "La pregunta recomendada afinó el foco de consulta.",
+    askQuestionFirst: "Primero escribe una pregunta. Puede ser breve.",
+    spreadNeedAll: (count) => `Esta tirada necesita sacar las ${count} cartas.`,
+    lenormandCompleteToast: "El prompt Lenormand gratis está listo.",
+    subscriptionPromptComplete: "Se aplicó tu pase y se abrió Tarot Prompt Library. El prompt de oráculo AI está completo bajo la luz lunar.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "beneficio disponible del pase",
+    passRemaining: (amount) => ` Beneficio restante: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library se abrió con ${spent}.${balance}`,
+    paidApproved: (balance) => `Acceso aprobado a Tarot Prompt Library. Valor KRW restante: ${balance}`,
+    loginRequired: "Debes iniciar sesión.",
+    insufficientCoins: (amount) => `Tu saldo disponible no alcanza. Se requiere ${amount}.`,
+    priceNotFound: "No se pudieron confirmar las condiciones del servicio. Inténtalo en un momento.",
+    serverConfigError: "La confirmación del pago está retrasada. Inténtalo en un momento.",
+    refunded: "Este pago fue reembolsado porque el prompt de oráculo AI no se completó.",
+    paymentIncomplete: "La confirmación del pago no se completó.",
+    promptError: "Ocurrió un problema al tejer el prompt de oráculo AI.",
+    lenormandCopied: "Prompt Lenormand copiado.",
+    tarotCopied: "Prompt de oráculo AI copiado.",
+    copyFailed: "No se pudo copiar al portapapeles.",
+    cardSelectionIncomplete: "Puedes regenerar después de completar la selección de cartas.",
+    lenormandRegenerated: "El prompt se reorganizó con la misma combinación Lenormand.",
+    tarotRegenerated: "El prompt de oráculo AI se reorganizó con la misma combinación de cartas.",
+    tuneAlready: "Este ajuste ya fue aplicado.",
+    tuneAdded: (label) => `Se agregó el ajuste ${label}.`,
+    lenormandDefaultStatus: "La pregunta Lenormand predeterminada ajustó el flujo.",
+    categoryDefaultStatus: "La pregunta predeterminada de categoría ajustó la dirección.",
+    copiedDone: "✓ Copiado",
+    copyPrompt: "📋 Copiar prompt",
+    generating: "✦ Ajustando prompt...",
+  },
+  fr: {
+    free: "Gratuit",
+    oneTimePrice: "Une fois 5 000 KRW",
+    lenormandFree: "Lenormand gratuit",
+    passAvailable: "Pass disponible",
+    instantUse: "Utilisable maintenant",
+    paymentRequired: "Paiement requis",
+    checking: "Vérification",
+    disconnected: "Non connecté",
+    lenormandQuestionReady: "Le flux de la question est prêt. Six cartes Lenormand relieront les signes répétés et les pistes d'action.",
+    lenormandQuestionEmpty: "Écrivez en une phrase la situation ou la question à observer.",
+    quickQuestionStatus: "La question rapide a fixé le focus de consultation.",
+    recommendedQuestionStatus: "La question recommandée a affiné le focus de consultation.",
+    askQuestionFirst: "Veuillez d'abord saisir une question. Elle peut être courte.",
+    spreadNeedAll: (count) => `Ce tirage demande de tirer les ${count} cartes.`,
+    lenormandCompleteToast: "Le prompt Lenormand gratuit est prêt.",
+    subscriptionPromptComplete: "Votre pass a ouvert Tarot Prompt Library. Le prompt d'oracle IA est complet dans le flux lunaire.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "avantage de pass disponible",
+    passRemaining: (amount) => ` Avantage restant: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library s'est ouvert avec ${spent}.${balance}`,
+    paidApproved: (balance) => `Accès approuvé à Tarot Prompt Library. Valeur KRW restante: ${balance}`,
+    loginRequired: "Connexion requise.",
+    insufficientCoins: (amount) => `Votre solde disponible est insuffisant. ${amount} est requis.`,
+    priceNotFound: "Impossible de confirmer les conditions du service. Réessayez dans un instant.",
+    serverConfigError: "La confirmation du paiement est retardée. Réessayez dans un instant.",
+    refunded: "Ce paiement a été remboursé car le prompt d'oracle IA n'a pas été terminé.",
+    paymentIncomplete: "La confirmation du paiement n'est pas terminée.",
+    promptError: "Un problème est survenu pendant la création du prompt d'oracle IA.",
+    lenormandCopied: "Prompt Lenormand copié.",
+    tarotCopied: "Prompt d'oracle IA copié.",
+    copyFailed: "Impossible de copier dans le presse-papiers.",
+    cardSelectionIncomplete: "Vous pouvez régénérer après avoir terminé la sélection des cartes.",
+    lenormandRegenerated: "Le prompt a été réorganisé avec la même combinaison Lenormand.",
+    tarotRegenerated: "Le prompt d'oracle IA a été réorganisé avec la même combinaison de cartes.",
+    tuneAlready: "Cet ajustement est déjà appliqué.",
+    tuneAdded: (label) => `Ajustement ${label} ajouté.`,
+    lenormandDefaultStatus: "La question Lenormand par défaut a réglé le flux.",
+    categoryDefaultStatus: "La question par défaut de catégorie a réglé la direction.",
+    copiedDone: "✓ Copié",
+    copyPrompt: "📋 Copier le prompt",
+    generating: "✦ Ajustement du prompt...",
+  },
+  de: {
+    free: "Kostenlos",
+    oneTimePrice: "Einmal 5.000 KRW",
+    lenormandFree: "Lenormand kostenlos",
+    passAvailable: "Pass verfügbar",
+    instantUse: "Sofort nutzbar",
+    paymentRequired: "Zahlung erforderlich",
+    checking: "Prüfung",
+    disconnected: "Nicht verbunden",
+    lenormandQuestionReady: "Der Fragenfluss steht. Sechs Lenormandkarten verbinden wiederkehrende Zeichen und Handlungshinweise.",
+    lenormandQuestionEmpty: "Schreibe die Situation oder Frage in einem Satz auf.",
+    quickQuestionStatus: "Die Schnellfrage hat den Beratungsfokus gesetzt.",
+    recommendedQuestionStatus: "Die empfohlene Frage hat den Beratungsfokus verfeinert.",
+    askQuestionFirst: "Bitte gib zuerst eine Frage ein. Kurz ist in Ordnung.",
+    spreadNeedAll: (count) => `Für diese Legung müssen alle ${count} Karten gezogen werden.`,
+    lenormandCompleteToast: "Der kostenlose Lenormand-Prompt ist fertig.",
+    subscriptionPromptComplete: "Dein Passvorteil hat die Tarot Prompt Library geöffnet. Der KI-Orakel-Prompt ist im Mondlichtfluss fertig.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "verfügbarer Passvorteil",
+    passRemaining: (amount) => ` Verbleibender Passvorteil: ${amount}`,
+    passOpened: (spent, balance) => `Die Tarot Prompt Library wurde mit ${spent} geöffnet.${balance}`,
+    paidApproved: (balance) => `Zugang zur Tarot Prompt Library genehmigt. Verbleibender KRW-Wert: ${balance}`,
+    loginRequired: "Login erforderlich.",
+    insufficientCoins: (amount) => `Dein verfügbares Guthaben reicht nicht aus. ${amount} ist erforderlich.`,
+    priceNotFound: "Die Nutzungsbedingungen konnten nicht bestätigt werden. Bitte versuche es gleich erneut.",
+    serverConfigError: "Die Zahlungsbestätigung verzögert sich. Bitte versuche es gleich erneut.",
+    refunded: "Diese Zahlung wurde erstattet, weil der KI-Orakel-Prompt nicht fertiggestellt wurde.",
+    paymentIncomplete: "Die Zahlungsbestätigung wurde nicht abgeschlossen.",
+    promptError: "Beim Erstellen des KI-Orakel-Prompts ist ein Problem aufgetreten.",
+    lenormandCopied: "Lenormand-Prompt kopiert.",
+    tarotCopied: "KI-Orakel-Prompt kopiert.",
+    copyFailed: "Kopieren in die Zwischenablage fehlgeschlagen.",
+    cardSelectionIncomplete: "Du kannst neu generieren, nachdem die Kartenauswahl abgeschlossen ist.",
+    lenormandRegenerated: "Der Prompt wurde mit derselben Lenormand-Kartenkombination neu geordnet.",
+    tarotRegenerated: "Der KI-Orakel-Prompt wurde mit derselben Kartenkombination neu geordnet.",
+    tuneAlready: "Diese Anpassung wurde bereits angewendet.",
+    tuneAdded: (label) => `${label}-Anpassung hinzugefügt.`,
+    lenormandDefaultStatus: "Die Lenormand-Standardfrage hat den Fluss gesetzt.",
+    categoryDefaultStatus: "Die Kategorie-Standardfrage hat die Beratungsrichtung gesetzt.",
+    copiedDone: "✓ Kopiert",
+    copyPrompt: "📋 Prompt kopieren",
+    generating: "✦ Prompt wird abgestimmt...",
+  },
+  nl: {
+    free: "Gratis",
+    oneTimePrice: "Eenmalig KRW 5.000",
+    lenormandFree: "Lenormand gratis",
+    passAvailable: "Pass beschikbaar",
+    instantUse: "Direct te gebruiken",
+    paymentRequired: "Betaling nodig",
+    checking: "Controleren",
+    disconnected: "Niet verbonden",
+    lenormandQuestionReady: "De vraagstroom is gezet. Zes Lenormandkaarten verbinden herhaalde signalen en actietips.",
+    lenormandQuestionEmpty: "Schrijf de situatie of vraag die je wilt bekijken in één zin.",
+    quickQuestionStatus: "De snelle vraag heeft de consultfocus gezet.",
+    recommendedQuestionStatus: "De aanbevolen vraag heeft de consultfocus verfijnd.",
+    askQuestionFirst: "Voer eerst een vraag in. Kort is prima.",
+    spreadNeedAll: (count) => `Deze spread heeft alle ${count} kaarten nodig.`,
+    lenormandCompleteToast: "De gratis Lenormand-prompt is klaar.",
+    subscriptionPromptComplete: "Je passvoordeel opende de Tarot Prompt Library. De AI-orakelprompt is klaar in de maanlichtstroom.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "beschikbaar passvoordeel",
+    passRemaining: (amount) => ` Resterend passvoordeel: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library is geopend met ${spent}.${balance}`,
+    paidApproved: (balance) => `Toegang tot Tarot Prompt Library goedgekeurd. Resterende KRW-waarde: ${balance}`,
+    loginRequired: "Inloggen is vereist.",
+    insufficientCoins: (amount) => `Je beschikbare saldo is niet genoeg. ${amount} is vereist.`,
+    priceNotFound: "De servicevoorwaarden konden niet worden bevestigd. Probeer het zo opnieuw.",
+    serverConfigError: "Betalingscontrole is vertraagd. Probeer het zo opnieuw.",
+    refunded: "Deze betaling is terugbetaald omdat de AI-orakelprompt niet is voltooid.",
+    paymentIncomplete: "Betalingscontrole is niet voltooid.",
+    promptError: "Er ging iets mis bij het maken van de AI-orakelprompt.",
+    lenormandCopied: "Lenormand-prompt gekopieerd.",
+    tarotCopied: "AI-orakelprompt gekopieerd.",
+    copyFailed: "Kopiëren naar klembord mislukt.",
+    cardSelectionIncomplete: "Je kunt opnieuw genereren nadat de kaartkeuze compleet is.",
+    lenormandRegenerated: "De prompt is opnieuw geordend met dezelfde Lenormandcombinatie.",
+    tarotRegenerated: "De AI-orakelprompt is opnieuw geordend met dezelfde kaartcombinatie.",
+    tuneAlready: "Deze afstemming is al toegepast.",
+    tuneAdded: (label) => `${label}-afstemming toegevoegd.`,
+    lenormandDefaultStatus: "De Lenormand-standaardvraag heeft de stroom gezet.",
+    categoryDefaultStatus: "De categorie-standaardvraag heeft de consult richting gezet.",
+    copiedDone: "✓ Gekopieerd",
+    copyPrompt: "📋 Prompt kopiëren",
+    generating: "✦ Prompt afstemmen...",
+  },
+  ms: {
+    free: "Percuma",
+    oneTimePrice: "Sekali KRW 5,000",
+    lenormandFree: "Lenormand percuma",
+    passAvailable: "Pas tersedia",
+    instantUse: "Boleh guna segera",
+    paymentRequired: "Bayaran diperlukan",
+    checking: "Menyemak",
+    disconnected: "Tidak bersambung",
+    lenormandQuestionReady: "Aliran soalan sudah jelas. Enam kad Lenormand akan mengikat isyarat berulang dan petunjuk tindakan.",
+    lenormandQuestionEmpty: "Tulis situasi atau soalan yang mahu dilihat dalam satu ayat.",
+    quickQuestionStatus: "Soalan pantas menetapkan fokus konsultasi.",
+    recommendedQuestionStatus: "Soalan cadangan memperhalus fokus konsultasi.",
+    askQuestionFirst: "Sila masukkan soalan dahulu. Pendek pun tidak mengapa.",
+    spreadNeedAll: (count) => `Spread ini memerlukan semua ${count} kad dicabut.`,
+    lenormandCompleteToast: "Prompt Lenormand percuma sudah siap.",
+    subscriptionPromptComplete: "Manfaat pas digunakan dan Tarot Prompt Library dibuka. Prompt oracle AI siap dalam aliran cahaya bulan.",
+    subscriptionReason: "Tarot Prompt Library",
+    passBenefit: "manfaat pas tersedia",
+    passRemaining: (amount) => ` Baki manfaat pas: ${amount}`,
+    passOpened: (spent, balance) => `Tarot Prompt Library dibuka dengan manfaat ${spent}.${balance}`,
+    paidApproved: (balance) => `Akses Tarot Prompt Library diluluskan. Nilai KRW berbaki: ${balance}`,
+    loginRequired: "Log masuk diperlukan.",
+    insufficientCoins: (amount) => `Baki tersedia tidak mencukupi. ${amount} diperlukan.`,
+    priceNotFound: "Syarat penggunaan servis tidak dapat disahkan. Cuba sebentar lagi.",
+    serverConfigError: "Pengesahan bayaran sedang tertangguh. Cuba sebentar lagi.",
+    refunded: "Bayaran ini telah dipulangkan kerana prompt oracle AI tidak selesai.",
+    paymentIncomplete: "Pengesahan bayaran belum selesai.",
+    promptError: "Masalah berlaku semasa menyusun prompt oracle AI.",
+    lenormandCopied: "Prompt Lenormand disalin.",
+    tarotCopied: "Prompt oracle AI disalin.",
+    copyFailed: "Gagal menyalin ke papan klip.",
+    cardSelectionIncomplete: "Anda boleh jana semula selepas pilihan kad selesai.",
+    lenormandRegenerated: "Prompt disusun semula dengan gabungan kad Lenormand yang sama.",
+    tarotRegenerated: "Prompt oracle AI disusun semula dengan gabungan kad yang sama.",
+    tuneAlready: "Penalaan ini sudah digunakan.",
+    tuneAdded: (label) => `Ayat penalaan ${label} ditambah.`,
+    lenormandDefaultStatus: "Soalan lalai Lenormand menetapkan aliran.",
+    categoryDefaultStatus: "Soalan lalai kategori menetapkan arah konsultasi.",
+    copiedDone: "✓ Disalin",
+    copyPrompt: "📋 Salin prompt",
+    generating: "✦ Menala prompt...",
+  },
 };
 
 function formatCoinValue(amount: number) {
@@ -322,6 +886,7 @@ function StarField() {
 
 /* ─── Main Component ─── */
 export default function TarotPromptMakerPage() {
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   const { ensurePaidAccess, isPaying } = useCoinGate();
 
   const [oracleMode, setOracleMode] = useState<OracleDeckMode>("tarot");
@@ -344,6 +909,7 @@ export default function TarotPromptMakerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
+  const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
 
   const isLenormandMode = oracleMode === "lenormand";
   const oracleModeMeta = ORACLE_MODE_META[oracleMode];
@@ -404,16 +970,20 @@ export default function TarotPromptMakerPage() {
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (isLenormandMode ? "무료" : billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
-    : (isLenormandMode ? "무료" : "1회 5,000원");
+    ? (isLenormandMode ? feedbackCopy.free : billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : feedbackCopy.free)
+    : (isLenormandMode ? feedbackCopy.free : feedbackCopy.oneTimePrice);
 
   const billingStateLabel = billingSnapshot
-    ? (isLenormandMode ? "레노먼드 무료" : billingPassIncluded ? "이용권 적용 가능" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
-    : (isLenormandMode ? "레노먼드 무료" : billingLoading ? "확인 중" : "미연동");
+    ? (isLenormandMode ? feedbackCopy.lenormandFree : billingPassIncluded ? feedbackCopy.passAvailable : billingSnapshot.canAccess ? feedbackCopy.instantUse : feedbackCopy.paymentRequired)
+    : (isLenormandMode ? feedbackCopy.lenormandFree : billingLoading ? feedbackCopy.checking : feedbackCopy.disconnected);
   const sensitiveCategoryNotice = isLenormandMode ? "" : SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
   const questionQualityNotice = isLenormandMode
-    ? (normalizeText(question) ? "질문 흐름이 잡혔습니다. 6장 레노먼드 카드로 반복 신호와 행동 단서를 엮습니다." : "지금 보고 싶은 상황이나 질문을 한 문장으로 적어주세요.")
+    ? (normalizeText(question) ? feedbackCopy.lenormandQuestionReady : feedbackCopy.lenormandQuestionEmpty)
     : buildQuestionQualityNotice(question, selectedQuestionCategory);
+
+  useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
+  }, []);
 
   useEffect(() => {
     if (selectedSpreadId) return;
@@ -484,18 +1054,18 @@ export default function TarotPromptMakerPage() {
   function handleQuestionChip(text: string) {
     setQuestion(text);
     setFeedback("");
-    setQuestionStatus("빠른 질문으로 상담 초점을 잡았습니다.");
+    setQuestionStatus(feedbackCopy.quickQuestionStatus);
   }
 
   function handleRecommendedQuestion(text: string) {
     setQuestion(text);
     setFeedback("");
-    setQuestionStatus("추천 질문으로 상담 초점을 다듬었습니다.");
+    setQuestionStatus(feedbackCopy.recommendedQuestionStatus);
   }
 
   function handleStartDraw() {
     if (!normalizeText(question)) {
-      setFeedback("질문을 먼저 입력해 주세요. 짧아도 괜찮아요.");
+      setFeedback(feedbackCopy.askQuestionFirst);
       return;
     }
     if (!selectedSpreadId) setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || "");
@@ -571,7 +1141,7 @@ export default function TarotPromptMakerPage() {
   async function handleGeneratePrompt() {
     if (isGenerating || isPaying) return;
     if (drawnCards.length !== selectedSpread.cardCount) {
-      setFeedback(`이 스프레드는 ${selectedSpread.cardCount}장을 모두 뽑아야 합니다.`);
+      setFeedback(feedbackCopy.spreadNeedAll(selectedSpread.cardCount));
       return;
     }
     const generate = () => {
@@ -584,7 +1154,7 @@ export default function TarotPromptMakerPage() {
     try {
       if (isLenormandMode) {
         generate();
-        showToast("무료 레노먼드 프롬프트가 완성되었습니다.", "success");
+        showToast(feedbackCopy.lenormandCompleteToast, "success");
         return;
       }
       const paymentResult = await ensurePaidAccess({
@@ -595,38 +1165,38 @@ export default function TarotPromptMakerPage() {
           generate();
           if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingPassIncluded)) {
             showSubscriptionIncludedNotice({
-              message: "이용권 혜택이 적용되어 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
-              reason: "타로 프롬프트 라이브러리",
+              message: feedbackCopy.subscriptionPromptComplete,
+              reason: feedbackCopy.subscriptionReason,
               tier: subscriptionTier || billingSnapshot?.subscriptionTier,
             });
             return;
           }
           if (accessSource === "moonlight_stone") {
-            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : "보유 이용권 혜택";
-            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 이용권 혜택: ${formatMonthlyCreditValue(monthlyBalanceAfter)}` : "";
-            showToast(`이용권 혜택 ${spentText}으로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
+            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : feedbackCopy.passBenefit;
+            const balanceText = typeof monthlyBalanceAfter === "number" ? feedbackCopy.passRemaining(formatMonthlyCreditValue(monthlyBalanceAfter)) : "";
+            showToast(feedbackCopy.passOpened(spentText, balanceText), "info");
             return;
           }
-          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${formatCoinValue(balanceAfter)}`, "info");
+          if (chargedCoins > 0) showToast(feedbackCopy.paidApproved(formatCoinValue(balanceAfter)), "info");
         },
       });
       if (!paymentResult.ok) {
         if (paymentResult.code === "AUTH_REQUIRED") {
-          setFeedback("로그인이 필요합니다.");
+          setFeedback(feedbackCopy.loginRequired);
           if (typeof window !== "undefined") {
             const next = encodeURIComponent(window.location.pathname + window.location.search);
             window.setTimeout(() => { window.location.href = `/login?next=${next}`; }, 600);
           }
           return;
         }
-        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(`결제 가능 금액이 부족합니다. ${formatCoinValue(paymentResult.requiredCoins)} 결제가 필요합니다.`); return; }
-        if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback("서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."); return; }
-        if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback("결제 확인이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요."); return; }
-        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("AI 오라클 프롬프트가 완성되지 않아 이번 결제가 환불되었습니다.", "info");
-        setFeedback(paymentResult.message || "결제 확인이 완료되지 않았습니다.");
+        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(feedbackCopy.insufficientCoins(formatCoinValue(paymentResult.requiredCoins))); return; }
+        if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback(feedbackCopy.priceNotFound); return; }
+        if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback(feedbackCopy.serverConfigError); return; }
+        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast(feedbackCopy.refunded, "info");
+        setFeedback(paymentResult.message || feedbackCopy.paymentIncomplete);
       }
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "AI 오라클 프롬프트를 엮는 중 문제가 발생했습니다.");
+      setFeedback(error instanceof Error ? error.message : feedbackCopy.promptError);
     } finally {
       setIsGenerating(false);
     }
@@ -637,32 +1207,32 @@ export default function TarotPromptMakerPage() {
     try {
       await navigator.clipboard.writeText(promptResult.prompt);
       setCopied(true);
-      showToast(isLenormandMode ? "레노먼드 프롬프트가 복사되었습니다." : "AI 오라클 프롬프트가 복사되었습니다.", "success");
+      showToast(isLenormandMode ? feedbackCopy.lenormandCopied : feedbackCopy.tarotCopied, "success");
     } catch {
-      showToast("클립보드 복사에 실패했습니다.", "error");
+      showToast(feedbackCopy.copyFailed, "error");
     }
   }
 
   function handleRegeneratePrompt() {
-    if (drawnCards.length !== selectedSpread.cardCount) { setFeedback("카드 선택이 완료된 뒤 다시 생성할 수 있습니다."); return; }
+    if (drawnCards.length !== selectedSpread.cardCount) { setFeedback(feedbackCopy.cardSelectionIncomplete); return; }
     const nextPrompt = buildPromptForCurrentState();
     setPromptResult(nextPrompt);
     setFeedback("");
-    showToast(isLenormandMode ? "같은 레노먼드 카드 조합으로 프롬프트를 다시 정리했습니다." : "같은 카드 조합으로 AI 오라클 프롬프트를 다시 정리했습니다.", "success");
+    showToast(isLenormandMode ? feedbackCopy.lenormandRegenerated : feedbackCopy.tarotRegenerated, "success");
   }
 
   function handleTunePrompt(label: string, instruction: string) {
     if (!promptResult) return;
     const marker = `[리딩 톤 조율 - ${label}]`;
     if (promptResult.prompt.includes(marker)) {
-      showToast("이미 반영된 조율입니다.", "info");
+      showToast(feedbackCopy.tuneAlready, "info");
       return;
     }
     setPromptResult({
       ...promptResult,
       prompt: `${promptResult.prompt}\n\n${marker}\n${instruction}`,
     });
-    showToast(`${label} 조율 문장을 더했습니다.`, "success");
+    showToast(feedbackCopy.tuneAdded(label), "success");
   }
 
   function handleRedrawCards() { resetDrawState(); setStage("draw"); setFeedback(""); }
@@ -930,11 +1500,11 @@ export default function TarotPromptMakerPage() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
                         type="button"
-                        onClick={() => {
-                          setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
-                          setFeedback("");
-                          setQuestionStatus(isLenormandMode ? "레노먼드 기본 질문으로 흐름을 맞췄습니다." : "카테고리 기본 질문으로 상담 방향을 맞췄습니다.");
-                        }}
+                          onClick={() => {
+                            setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
+                            setFeedback("");
+                            setQuestionStatus(isLenormandMode ? feedbackCopy.lenormandDefaultStatus : feedbackCopy.categoryDefaultStatus);
+                          }}
                         className="flex-1 px-4 py-3 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-sm font-medium hover:bg-white/10 transition-all"
                       >
                         {isLenormandMode ? "레노먼드 기본 질문" : "카테고리 기본 질문"}
@@ -1224,7 +1794,7 @@ export default function TarotPromptMakerPage() {
                       className="w-full py-4 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                       style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 8px 30px rgba(168,85,247,0.3)" }}
                     >
-                      {isGenerating || (!isLenormandMode && isPaying) ? "✦ 프롬프트 조율 중..." : oracleModeMeta.promptLabel}
+                      {isGenerating || (!isLenormandMode && isPaying) ? feedbackCopy.generating : oracleModeMeta.promptLabel}
                     </motion.button>
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
@@ -1315,7 +1885,7 @@ export default function TarotPromptMakerPage() {
                           onClick={handleCopyPrompt}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
                         >
-                          {copied ? "✓ 복사 완료" : "📋 프롬프트 복사"}
+                          {copied ? feedbackCopy.copiedDone : feedbackCopy.copyPrompt}
                         </button>
                       </div>
 
@@ -1332,7 +1902,7 @@ export default function TarotPromptMakerPage() {
                     {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
-                        {copied ? "✓ 복사 완료" : isLenormandMode ? "레노먼드 프롬프트 복사" : "✦ AI 오라클 프롬프트 복사"}
+                        {copied ? feedbackCopy.copiedDone : isLenormandMode ? feedbackCopy.copyPrompt : feedbackCopy.copyPrompt}
                       </button>
                       <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 질문자에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 질문자의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
                         상담톤 강화
