@@ -261,6 +261,8 @@ type FeatureLandingCopy = {
   freeCta: string;
   insights: string;
   paidNotice: string;
+  mainBrand: string;
+  mainDescription: string;
   categoryTags: Record<string, string>;
 };
 
@@ -275,6 +277,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "기능 바로 실행",
     insights: "관련 인사이트 보기",
     paidNotice: "유료 기능입니다. 바로가기를 누르면 메인 화면에서 결제 확인이 먼저 표시됩니다.",
+    mainBrand: "꿀꿀 만세력",
+    mainDescription: "사주·타로·점성술·자미두수 통합 플랫폼",
     categoryTags: {},
   },
   en: {
@@ -287,6 +291,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Start feature",
     insights: "View related insights",
     paidNotice: "This is a paid feature. Payment access is checked on the main screen before it opens.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Four Pillars, tarot, astrology, and Zi Wei in one platform",
     categoryTags: { flower: "Flower destiny report", tarot: "Tarot reading", oracle: "Oracle reading", vedic: "Vedic astrology", animal: "Totem reading", dream: "Dream interpretation", saju: "Four Pillars reading", ziwei: "Zi Wei Dou Shu chart", astrology: "Astrology chart", yoga: "Yoga reset" },
   },
   ja: {
@@ -299,6 +305,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "機能を開く",
     insights: "関連インサイトを見る",
     paidNotice: "有料機能です。開く前にメイン画面で決済確認が表示されます。",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "四柱推命・タロット・占星術・紫微斗数を一つに結ぶプラットフォーム",
     categoryTags: { flower: "花の運勢リポート", tarot: "タロットリーディング", oracle: "オラクルリーディング", vedic: "ヴェーダ占星術", animal: "トーテムリーディング", dream: "夢占い", saju: "四柱推命リーディング", ziwei: "紫微斗数命盤", astrology: "占星術チャート", yoga: "ヨガリセット" },
   },
   "zh-CN": {
@@ -311,6 +319,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "立即启动功能",
     insights: "查看相关洞察",
     paidNotice: "这是付费功能。打开前会先在主画面确认支付权限。",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "四柱推命、塔罗、占星与紫微斗数一体平台",
     categoryTags: { flower: "花之命运报告", tarot: "塔罗牌解读", oracle: "神谕解读", vedic: "吠陀占星", animal: "图腾解读", dream: "梦境解析", saju: "四柱推命解读", ziwei: "紫微斗数命盘", astrology: "占星星盘", yoga: "瑜伽重置" },
   },
   "zh-TW": {
@@ -323,6 +333,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "立即啟動功能",
     insights: "查看相關洞察",
     paidNotice: "這是付費功能。開啟前會先在主畫面確認付款權限。",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "四柱推命、塔羅、占星與紫微斗數整合平台",
     categoryTags: { flower: "花之命運報告", tarot: "塔羅牌解讀", oracle: "神諭解讀", vedic: "吠陀占星", animal: "圖騰解讀", dream: "夢境解析", saju: "四柱推命解讀", ziwei: "紫微斗數命盤", astrology: "占星星盤", yoga: "瑜伽重置" },
   },
   vi: {
@@ -335,6 +347,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Mở tính năng",
     insights: "Xem góc nhìn liên quan",
     paidNotice: "Đây là tính năng trả phí. Màn hình chính sẽ kiểm tra quyền thanh toán trước khi mở.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Nền tảng hợp nhất Tứ trụ, tarot, chiêm tinh và Tử Vi Đẩu Số",
     categoryTags: { flower: "Báo cáo vận mệnh hoa", tarot: "Trải bài tarot", oracle: "Lời oracle", vedic: "Chiêm tinh Vệ Đà", animal: "Đọc biểu tượng totem", dream: "Giải mã giấc mơ", saju: "Luận Tứ trụ", ziwei: "Lá số Tử Vi Đẩu Số", astrology: "Bản đồ chiêm tinh", yoga: "Yoga reset" },
   },
   hi: {
@@ -347,6 +361,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "फीचर शुरू करें",
     insights: "संबंधित इनसाइट देखें",
     paidNotice: "यह पेड फीचर है. खुलने से पहले मुख्य स्क्रीन पर भुगतान पहुँच जाँची जाएगी.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "चार स्तंभ, टैरो, ज्योतिष और Zi Wei को जोड़ने वाला मंच",
     categoryTags: { flower: "फूल भाग्य रिपोर्ट", tarot: "टैरो रीडिंग", oracle: "ओरेकल रीडिंग", vedic: "वैदिक ज्योतिष", animal: "टोटेम रीडिंग", dream: "स्वप्न व्याख्या", saju: "चार स्तंभ रीडिंग", ziwei: "ज़ी वेई डोउ शू चार्ट", astrology: "ज्योतिष चार्ट", yoga: "योग रीसेट" },
   },
   es: {
@@ -359,6 +375,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Abrir función",
     insights: "Ver insights relacionados",
     paidNotice: "Esta función es de pago. La pantalla principal comprobará el acceso antes de abrirla.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Plataforma de Cuatro Pilares, tarot, astrología y Zi Wei",
     categoryTags: { flower: "Informe floral del destino", tarot: "Lectura de tarot", oracle: "Lectura oracular", vedic: "Astrología védica", animal: "Lectura de tótem", dream: "Interpretación de sueños", saju: "Lectura de Cuatro Pilares", ziwei: "Carta Zi Wei Dou Shu", astrology: "Carta astrológica", yoga: "Reinicio de yoga" },
   },
   fr: {
@@ -371,6 +389,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Ouvrir la fonction",
     insights: "Voir les insights liés",
     paidNotice: "Cette fonction est payante. L'accès au paiement sera vérifié sur l'écran principal avant l'ouverture.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Plateforme réunissant Quatre Piliers, tarot, astrologie et Zi Wei",
     categoryTags: { flower: "Rapport floral de destinée", tarot: "Lecture de tarot", oracle: "Lecture oracle", vedic: "Astrologie védique", animal: "Lecture totem", dream: "Interprétation des rêves", saju: "Lecture des Quatre Piliers", ziwei: "Thème Zi Wei Dou Shu", astrology: "Carte astrologique", yoga: "Réinitialisation yoga" },
   },
   de: {
@@ -383,6 +403,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Funktion öffnen",
     insights: "Verwandte Insights ansehen",
     paidNotice: "Dies ist eine Bezahlfunktion. Vor dem Öffnen wird der Zahlungszugang auf dem Hauptbildschirm geprüft.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Plattform für Vier Säulen, Tarot, Astrologie und Zi Wei",
     categoryTags: { flower: "Blumen-Schicksalsbericht", tarot: "Tarot-Lesung", oracle: "Orakel-Lesung", vedic: "Vedische Astrologie", animal: "Totem-Lesung", dream: "Traumdeutung", saju: "Vier-Säulen-Lesung", ziwei: "Zi-Wei-Dou-Shu-Chart", astrology: "Astrologie-Chart", yoga: "Yoga-Reset" },
   },
   nl: {
@@ -395,6 +417,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Functie openen",
     insights: "Gerelateerde inzichten bekijken",
     paidNotice: "Dit is een betaalde functie. Het hoofdscherm controleert de betaaltoegang voordat deze opent.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Platform voor Vier Pilaren, tarot, astrologie en Zi Wei",
     categoryTags: { flower: "Bloemenrapport voor bestemming", tarot: "Tarotlezing", oracle: "Orakellezing", vedic: "Vedische astrologie", animal: "Totemlezing", dream: "Droomduiding", saju: "Vierpijlerlezen", ziwei: "Zi Wei Dou Shu-kaart", astrology: "Astrologische kaart", yoga: "Yoga-reset" },
   },
   ms: {
@@ -407,6 +431,8 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     freeCta: "Buka ciri",
     insights: "Lihat wawasan berkaitan",
     paidNotice: "Ini ialah ciri berbayar. Skrin utama akan menyemak akses bayaran sebelum ia dibuka.",
+    mainBrand: "Kkulkkul Manseryuk",
+    mainDescription: "Platform Empat Tiang, tarot, astrologi dan Zi Wei dalam satu aliran",
     categoryTags: { flower: "Laporan takdir bunga", tarot: "Bacaan tarot", oracle: "Bacaan oracle", vedic: "Astrologi Veda", animal: "Bacaan totem", dream: "Tafsiran mimpi", saju: "Bacaan Empat Tiang", ziwei: "Carta Zi Wei Dou Shu", astrology: "Carta astrologi", yoga: "Reset yoga" },
   },
 };
@@ -916,12 +942,12 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 background:"linear-gradient(135deg,#be185d 0%,#d97706 100%)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
                 lineHeight:1.2,
-              }}>꿀꿀 만세력</span>
+              }}>{copy.mainBrand}</span>
               <span style={{
                 display:"block",
                 fontSize:"0.73rem", color:"rgba(120,60,60,0.68)",
                 marginTop:"3px", lineHeight:1.4,
-              }}>사주·타로·점성술·자미두수 통합 플랫폼</span>
+              }}>{copy.mainDescription}</span>
             </span>
 
             <span style={{
