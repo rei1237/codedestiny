@@ -73,14 +73,6 @@ type Props = {
   variant?: "default" | "belowLegacy";
 };
 
-const HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS = [
-  { href: "/oracle/ifa", label: "Ifa Oracle" },
-  { href: "/oracle/royal-tea", label: "Tasseography" },
-  { href: "/oracle/sikojen-povailu", label: "Finnish Tin Oracle" },
-  { href: "/flower/destiny", label: "Destiny Flower" },
-  { href: "/dream/tarot", label: "Dream Prompt" },
-];
-
 const HOME_SERVICE_COPY: Record<LoadingLocale, {
   title: string;
   defaultIntro: string;
@@ -172,16 +164,28 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Mở toàn bộ tính năng (main cũ)",
     legacyNote: "Main cũ gom thẻ và modal trên cùng một màn hình.",
     quickTitle: "Vận may huyền bí ngoài Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/oracle/royal-tea", label: "Bói lá trà" },
+      { href: "/oracle/sikojen-povailu", label: "Bói thiếc Phần Lan" },
+      { href: "/flower/destiny", label: "Hoa định mệnh" },
+      { href: "/dream/tarot", label: "Gợi ý giấc mơ" },
+    ],
   },
   hi: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Free Saju, Zi Wei, Myeongri Tarot, astrology, I Ching, Sukuyo, Hwatu, animal face reading, MBTI compatibility, Destiny Flower, Dream Prompt and more are available in one place.",
-    belowLegacyIntro: "ऊपर की स्क्रीन legacy main जैसे cards और modals खोलती है. यह सूची search और internal links के लिए native pages तक ले जाती है.",
-    legacyCta: "सभी features खोलें (legacy main)",
-    legacyNote: "Legacy main cards और modals को एक स्क्रीन पर रखता है.",
-    quickTitle: "Saju के बाहर mystic fortunes",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    defaultIntro: "मुफ्त Saju, Zi Wei, Myeongri Tarot, ज्योतिष, I Ching, Sukuyo, Hwatu, पशु-चेहरा रीडिंग, MBTI संगति, Destiny Flower, Dream Prompt और अन्य भाग्य सेवाएँ एक ही जगह उपलब्ध हैं.",
+    belowLegacyIntro: "ऊपर की स्क्रीन पुराने मुख्य पेज की तरह कार्ड और मोडल खोलती है. यह सूची खोज और आंतरिक लिंक के लिए सीधे native पेजों तक ले जाती है.",
+    legacyCta: "सभी सुविधाएँ खोलें (पुराना मुख्य पेज)",
+    legacyNote: "पुराना मुख्य पेज कार्ड और मोडल को एक ही स्क्रीन पर रखता है.",
+    quickTitle: "Saju से आगे की रहस्यमय रीडिंग",
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Ifa Oracle" },
+      { href: "/oracle/royal-tea", label: "चाय-पत्ती ओरेकल" },
+      { href: "/oracle/sikojen-povailu", label: "फ़िनिश टिन ओरेकल" },
+      { href: "/flower/destiny", label: "नियति का फूल" },
+      { href: "/dream/tarot", label: "स्वप्न प्रॉम्प्ट" },
+    ],
   },
   es: {
     title: "Kkulkkul Manse Calendar",
@@ -190,7 +194,13 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Abrir pantalla de funciones (main heredado)",
     legacyNote: "El main heredado reúne tarjetas y modales en una pantalla.",
     quickTitle: "Fortunas místicas más allá de Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Oráculo Ifá" },
+      { href: "/oracle/royal-tea", label: "Lectura de té" },
+      { href: "/oracle/sikojen-povailu", label: "Oráculo finlandés de estaño" },
+      { href: "/flower/destiny", label: "Flor del destino" },
+      { href: "/dream/tarot", label: "Prompt de sueños" },
+    ],
   },
   fr: {
     title: "Kkulkkul Manse Calendar",
@@ -199,7 +209,13 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Ouvrir toutes les fonctions (ancien main)",
     legacyNote: "L'ancien main rassemble cartes et modales sur un seul écran.",
     quickTitle: "Oracles mystiques au-delà de Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/oracle/royal-tea", label: "Lecture des feuilles de thé" },
+      { href: "/oracle/sikojen-povailu", label: "Oracle finlandais de l'étain" },
+      { href: "/flower/destiny", label: "Fleur du destin" },
+      { href: "/dream/tarot", label: "Prompt de rêve" },
+    ],
   },
   de: {
     title: "Kkulkkul Manse Calendar",
@@ -208,7 +224,13 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Alle Funktionen öffnen (alter Main)",
     legacyNote: "Der alte Main sammelt Karten und Modals auf einem Bildschirm.",
     quickTitle: "Mystische Orakel jenseits von Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Ifa-Orakel" },
+      { href: "/oracle/royal-tea", label: "Teeblatt-Orakel" },
+      { href: "/oracle/sikojen-povailu", label: "Finnisches Zinnorakel" },
+      { href: "/flower/destiny", label: "Blume des Schicksals" },
+      { href: "/dream/tarot", label: "Traum-Prompt" },
+    ],
   },
   nl: {
     title: "Kkulkkul Manse Calendar",
@@ -217,7 +239,13 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Alle functies openen (legacy main)",
     legacyNote: "De legacy main verzamelt kaarten en modals op één scherm.",
     quickTitle: "Mystieke lezingen buiten Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Ifa-orakel" },
+      { href: "/oracle/royal-tea", label: "Theebladlezing" },
+      { href: "/oracle/sikojen-povailu", label: "Fins tinorakel" },
+      { href: "/flower/destiny", label: "Bloem van bestemming" },
+      { href: "/dream/tarot", label: "Droomprompt" },
+    ],
   },
   ms: {
     title: "Kkulkkul Manse Calendar",
@@ -226,7 +254,13 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyCta: "Buka semua fungsi (main lama)",
     legacyNote: "Main lama mengumpulkan kad dan modal pada satu skrin.",
     quickTitle: "Nasib mistik selain Saju",
-    quickLinks: HOME_SERVICE_COPY_FALLBACK_QUICK_LINKS,
+    quickLinks: [
+      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/oracle/royal-tea", label: "Bacaan daun teh" },
+      { href: "/oracle/sikojen-povailu", label: "Oracle timah Finland" },
+      { href: "/flower/destiny", label: "Bunga takdir" },
+      { href: "/dream/tarot", label: "Prompt mimpi" },
+    ],
   },
 };
 

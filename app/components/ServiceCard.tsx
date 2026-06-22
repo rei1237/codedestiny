@@ -15,7 +15,7 @@ export type ServiceCardModel = {
   href: string;
   emoji?: string;
   iconName?: DestinyIconName;
-  image?: string; // 신규: 카드 꾸미기용 이미지
+  image?: string;
   badges?: Badge[];
   cta?: string;
 };
@@ -46,8 +46,31 @@ const SERVICE_CARD_CTA: Record<LoadingLocale, string> = {
   ms: "Buka",
 };
 
+type BadgeTone = NonNullable<Badge["tone"]> | "default";
+
+const SERVICE_CARD_BADGE_FALLBACK: Record<LoadingLocale, Record<BadgeTone, string>> = {
+  ko: { free: "무료", coin: "코인", new: "신규", soft: "안내", default: "안내" },
+  en: { free: "Free", coin: "Coin", new: "New", soft: "Guide", default: "Guide" },
+  ja: { free: "無料", coin: "コイン", new: "新着", soft: "ガイド", default: "ガイド" },
+  "zh-CN": { free: "免费", coin: "金币", new: "新", soft: "指南", default: "指南" },
+  "zh-TW": { free: "免費", coin: "金幣", new: "新", soft: "指南", default: "指南" },
+  vi: { free: "Miễn phí", coin: "Xu", new: "Mới", soft: "Gợi ý", default: "Gợi ý" },
+  hi: { free: "मुफ्त", coin: "सिक्का", new: "नया", soft: "मार्गदर्शिका", default: "मार्गदर्शिका" },
+  es: { free: "Gratis", coin: "Coin", new: "Nuevo", soft: "Guía", default: "Guía" },
+  fr: { free: "Gratuit", coin: "Coin", new: "Nouveau", soft: "Guide", default: "Guide" },
+  de: { free: "Gratis", coin: "Coin", new: "Neu", soft: "Guide", default: "Guide" },
+  nl: { free: "Gratis", coin: "Coin", new: "Nieuw", soft: "Gids", default: "Gids" },
+  ms: { free: "Percuma", coin: "Syiling", new: "Baharu", soft: "Panduan", default: "Panduan" },
+};
+
 function hasKoreanText(value?: string) {
   return /[가-힣]/.test(String(value || ""));
+}
+
+function resolveBadgeText(badge: Badge, locale: LoadingLocale) {
+  if (locale === "ko" || !hasKoreanText(badge.text)) return badge.text;
+  const tone = badge.tone || "default";
+  return SERVICE_CARD_BADGE_FALLBACK[locale]?.[tone] || SERVICE_CARD_BADGE_FALLBACK.en[tone];
 }
 
 export default function ServiceCard({ item }: { item: ServiceCardModel }) {
@@ -75,7 +98,6 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    // 스크롤 중에는 클릭(이동)이 발생하지 않도록 방어
     if (isScrolling) {
       e.preventDefault();
       e.stopPropagation();
@@ -108,14 +130,17 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
       <p className="mb-3 min-h-[44px] text-xs leading-5 text-slate-100/78">{item.description}</p>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
-        {(item.badges || []).map((badge) => (
-          <span
-            key={`${item.title}-${badge.text}`}
-            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold backdrop-blur ${badgeClass(badge.tone)}`}
-          >
-            {badge.text}
-          </span>
-        ))}
+        {(item.badges || []).map((badge) => {
+          const text = resolveBadgeText(badge, locale);
+          return (
+            <span
+              key={`${item.title}-${text}`}
+              className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold backdrop-blur ${badgeClass(badge.tone)}`}
+            >
+              {text}
+            </span>
+          );
+        })}
       </div>
 
       <div className="mt-auto">
