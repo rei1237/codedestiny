@@ -162,6 +162,34 @@ describe("Payments prepare idempotency", () => {
     expect(Payment.create).not.toHaveBeenCalled();
   });
 
+  test("subscription prepare: new card order merchantUid should fit Inicis oid limit", async () => {
+    for (const tier of ["standard", "premium", "vvip", "family"]) {
+      mockUserFindById({
+        profileSubscription: { tier: "free", expiresAt: null },
+      });
+      mockPaymentFindOne(null);
+      Payment.create = jest.fn();
+
+      const req = new Request("https://example.com/api/payments/subscription/prepare", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": `idem-sub-new-${tier}`,
+        },
+        body: JSON.stringify({ tier, paymentMethod: "card_general" }),
+      });
+
+      const response = await testUtils.handleSubscriptionPrepare(req, auth);
+      const { status, payload } = await readResponse(response);
+      const created = Payment.create.mock.calls[0]?.[0];
+
+      expect(status).toBe(201);
+      expect(payload.order.merchantUid).toBe(created.merchantUid);
+      expect(created.merchantUid).toMatch(/^[A-Za-z0-9_-]+$/);
+      expect(created.merchantUid.length).toBeLessThanOrEqual(40);
+    }
+  });
+
   test("subscription prepare: 동일 idempotency key + 상이 plan이면 409 IDEMPOTENCY_CONFLICT여야 한다", async () => {
     mockUserFindById({
       profileSubscription: { tier: "free", expiresAt: null },

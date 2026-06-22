@@ -379,8 +379,16 @@ function validateNewSubscriptionDuration(durationMonthsRaw, durationDaysRaw) {
 
 function buildSubscriptionMerchantUid(userId, tier, durationMonths = 1) {
   const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
+  const timestampTag = Date.now().toString(36);
+  const tierCodeMap = {
+    [PASS_TIERS.STANDARD]: "s",
+    [PASS_TIERS.PREMIUM]: "p",
+    [PASS_TIERS.VVIP]: "v",
+    [PASS_TIERS.FAMILY]: "f",
+  };
+  const tierCode = tierCodeMap[tier] || String(tier || "x").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3) || "x";
   const randomTag = Math.random().toString(36).slice(2, 6);
-  return `sub_${Date.now()}_${tier}_${durationMonths}m_${userTag}_${randomTag}`;
+  return `sub_${timestampTag}_${tierCode}${durationMonths}m_${userTag}_${randomTag}`.slice(0, 40);
 }
 
 function buildSubscriptionCustomerUid(userId) {
