@@ -194,6 +194,22 @@ type FreeProfile = {
   cards: FreeProfileCard[];
 };
 
+type ReadingPaymentContext = {
+  featureKey: string;
+  requestId: string;
+  payloadHash: string;
+  transactionId?: string;
+  chargedCoins?: number;
+  requiredCoins?: number;
+  balanceAfter?: number;
+  accessSource?: string;
+  accessType?: string;
+  paymentMode?: string;
+  subscriptionTier?: string;
+  monthlyCreditsSpent?: number;
+  monthlyBalanceAfter?: number | null;
+};
+
 type ReadingEntitlement = {
   readingId: string;
   userId: string;
@@ -203,7 +219,12 @@ type ReadingEntitlement = {
   includesFullReading: true;
   includesContinuationPrompt: true;
   purchasedAt: string;
+  requestId?: string;
+  payloadHash?: string;
+  chargedCoins?: number;
+  requiredCoins?: number;
   transactionId?: string;
+  paymentContext?: ReadingPaymentContext;
 };
 
 type FlowState =
@@ -668,6 +689,14 @@ function getPromptTopicOption(value: PromptTopicKey): PromptTopicOption {
   return PROMPT_TOPIC_OPTIONS.find((option) => option.value === value) || PROMPT_TOPIC_OPTIONS[0];
 }
 
+function resolvePromptTopicFromTarotTopic(value: TopicKey): PromptTopicKey {
+  if (value === "money") return "money";
+  if (value === "career") return "career";
+  if (value === "love" || value === "reunion" || value === "feelings" || value === "relationship") return "love";
+  if (value === "move" || value === "health") return "change";
+  return "blueprint";
+}
+
 function formatNumberSequence(values: number[] = [], unit = "단계"): string {
   return values.map((value, index) => `${index + 1}${unit} ${value}`).join(" / ");
 }
@@ -760,6 +789,35 @@ function createReadingId(): string {
   return `nt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function buildReadingRequestId(readingId: string): string {
+  return `${NUMEROLOGY_READING_FEATURE_KEY}:req:${readingId}`;
+}
+
+function buildReadingPayloadHash({
+  name,
+  birthDate,
+  topic,
+  question,
+}: {
+  name: string;
+  birthDate: string;
+  topic: TopicKey;
+  question: string;
+}): string {
+  const source = JSON.stringify({
+    birthDate: toText(birthDate),
+    name: toText(name),
+    question: compactNumerologyPromptText(question, ""),
+    topic,
+  });
+  let hash = 2166136261;
+  for (let idx = 0; idx < source.length; idx += 1) {
+    hash ^= source.charCodeAt(idx);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `nt-${(hash >>> 0).toString(36)}`;
+}
+
 function persistJson(key: string, value: unknown) {
   if (typeof window === "undefined") return;
   try {
@@ -779,7 +837,7 @@ function readJson<T>(key: string): T | null {
   }
 }
 
-function buildReadingEntitlement(readingId: string, transactionId?: string): ReadingEntitlement {
+function buildReadingEntitlement(readingId: string, paymentContext: ReadingPaymentContext): ReadingEntitlement {
   return {
     readingId,
     userId: "current-user",
@@ -789,7 +847,12 @@ function buildReadingEntitlement(readingId: string, transactionId?: string): Rea
     includesFullReading: true,
     includesContinuationPrompt: true,
     purchasedAt: new Date().toISOString(),
-    transactionId,
+    requestId: paymentContext.requestId,
+    payloadHash: paymentContext.payloadHash,
+    chargedCoins: paymentContext.chargedCoins,
+    requiredCoins: paymentContext.requiredCoins,
+    transactionId: paymentContext.transactionId,
+    paymentContext,
   };
 }
 
@@ -839,7 +902,6 @@ export default function NumerologyTarotClient() {
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
   const [topic, setTopic] = useState<TopicKey>("love");
-  const [promptTopic, setPromptTopic] = useState<PromptTopicKey>("blueprint");
   const [analysisDate, setAnalysisDate] = useState(getTodayDateInput());
   const [question, setQuestion] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -864,6 +926,7 @@ export default function NumerologyTarotClient() {
   }, [numerology]);
 
   const questionKeywords = useMemo(() => extractQuestionKeywords(question), [question]);
+  const promptTopic = useMemo<PromptTopicKey>(() => resolvePromptTopicFromTarotTopic(topic), [topic]);
   const promptTopicOption = useMemo(() => getPromptTopicOption(promptTopic), [promptTopic]);
   const promptContext = useMemo<NumerologyPromptContext | null>(() => {
     if (!birthDate) return null;
@@ -1063,6 +1126,14 @@ export default function NumerologyTarotClient() {
     }
 
     const nextReadingId = createReadingId();
+    const requestId = buildReadingRequestId(nextReadingId);
+    const payloadHash = buildReadingPayloadHash({
+      name,
+      birthDate,
+      topic,
+      question,
+    });
+    let paymentContextEvidence: Partial<ReadingPaymentContext> = {};
     setFlowState("checkout_pending");
     setError("");
 
@@ -1071,7 +1142,23 @@ export default function NumerologyTarotClient() {
         featureKey: NUMEROLOGY_READING_FEATURE_KEY,
         reason: "수비학 타로 상담",
         forceDeduct: true,
-        requestId: `${NUMEROLOGY_READING_FEATURE_KEY}:req:${nextReadingId}`,
+        requestId,
+        payloadHash,
+        onPaid: (context) => {
+          paymentContextEvidence = {
+            accessSource: context.accessSource,
+            accessType: context.accessType,
+            balanceAfter: context.balanceAfter,
+            chargedCoins: context.chargedCoins,
+            featureKey: context.featureKey,
+            monthlyBalanceAfter: context.monthlyBalanceAfter,
+            monthlyCreditsSpent: context.monthlyCreditsSpent,
+            paymentMode: context.paymentMode,
+            requiredCoins: context.requiredCoins,
+            subscriptionTier: context.subscriptionTier,
+            transactionId: context.transactionId,
+          };
+        },
       });
 
       if (!paymentResult.ok) {
@@ -1094,7 +1181,17 @@ export default function NumerologyTarotClient() {
         return;
       }
 
-      const paidEntitlement = buildReadingEntitlement(nextReadingId, paymentResult.transactionId);
+      const paymentContext: ReadingPaymentContext = {
+        featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+        requestId,
+        payloadHash,
+        ...paymentContextEvidence,
+        transactionId: paymentResult.transactionId || paymentContextEvidence.transactionId,
+        chargedCoins: paymentResult.chargedCoins,
+        requiredCoins: paymentResult.requiredCoins,
+        balanceAfter: paymentResult.balanceAfter,
+      };
+      const paidEntitlement = buildReadingEntitlement(nextReadingId, paymentContext);
       setEntitlement(paidEntitlement);
       setReadingId(nextReadingId);
       persistJson(READING_ENTITLEMENT_STORAGE_KEY, paidEntitlement);
@@ -1124,11 +1221,36 @@ export default function NumerologyTarotClient() {
   }
 
   async function requestReading() {
+    const requestId = entitlement?.requestId || buildReadingRequestId(readingId);
+    const payloadHash = entitlement?.payloadHash || buildReadingPayloadHash({
+      name,
+      birthDate,
+      topic,
+      question,
+    });
+    const paymentContext = {
+      ...(entitlement?.paymentContext || {}),
+      featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+      requestId,
+      payloadHash,
+      transactionId: entitlement?.transactionId || entitlement?.paymentContext?.transactionId,
+      chargedCoins: entitlement?.chargedCoins ?? entitlement?.paymentContext?.chargedCoins,
+      requiredCoins: entitlement?.requiredCoins ?? entitlement?.paymentContext?.requiredCoins,
+    };
     const res = await authFetch("/api/tarot/numerology-reading", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         readingId,
+        featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+        requestId,
+        idempotencyKey: requestId,
+        payloadHash,
+        transactionId: paymentContext.transactionId,
+        chargedCoins: paymentContext.chargedCoins,
+        requiredCoins: paymentContext.requiredCoins,
+        paymentContext,
+        _paymentContext: paymentContext,
         entitlement,
         name: toText(name),
         birthDate,
@@ -1209,18 +1331,23 @@ export default function NumerologyTarotClient() {
       setStandalonePromptStatus("상담 결과가 열린 뒤 사용할 수 있어요.");
       return;
     }
-    if (!continuationSummaryText) {
-      setStandalonePromptStatus("상담 요약문을 만들 수 없습니다.");
+    const promptText = [
+      standalonePromptPreview,
+      continuationSummaryText,
+    ].filter(Boolean).join("\n\n---\n\n");
+
+    if (!promptText) {
+      setStandalonePromptStatus("상담 프롬프트를 만들 수 없습니다.");
       return;
     }
 
     setStandalonePromptLoading(true);
     setStandalonePromptStatus("");
     try {
-      setStandalonePromptText(continuationSummaryText);
-      setStandalonePromptStatus("상담 요약문이 준비되었습니다. 추가 결제는 없습니다.");
+      setStandalonePromptText(promptText);
+      setStandalonePromptStatus(`${promptTopicOption.title} 프롬프트가 준비되었습니다. 추가 결제는 없습니다.`);
     } catch {
-      setStandalonePromptStatus("상담 요약문을 여는 중 오류가 발생했습니다.");
+      setStandalonePromptStatus("상담 프롬프트를 여는 중 오류가 발생했습니다.");
     } finally {
       setStandalonePromptLoading(false);
     }
@@ -1228,7 +1355,7 @@ export default function NumerologyTarotClient() {
 
   async function copyStandalonePrompt() {
     const copied = await copyTextToClipboard(standalonePromptText);
-    setStandalonePromptStatus(copied ? "상담 요약문이 복사되었습니다." : "직접 선택해 복사해 주세요.");
+    setStandalonePromptStatus(copied ? "상담 프롬프트가 복사되었습니다." : "직접 선택해 복사해 주세요.");
   }
 
   function saveReadingResult() {
@@ -1545,7 +1672,7 @@ export default function NumerologyTarotClient() {
                     <div>
                       <p className={styles.promptToolKicker}>결제에 포함</p>
                       <h4>숫자와 카드 5장을 함께 읽는 상담 결과</h4>
-                      <p>카드 추첨, 전체 해석, 결과 저장, AI 상담 이어가기가 모두 포함됩니다. 추가 결제는 없습니다.</p>
+                      <p>카드 추첨, 전체 해석, 결과 저장, 질문 주제에 맞춘 AI 상담 프롬프트가 모두 포함됩니다. 추가 결제는 없습니다.</p>
                     </div>
                     <div className={styles.promptPriceBadge}>추가 결제 없음</div>
                   </div>
@@ -1695,17 +1822,24 @@ export default function NumerologyTarotClient() {
                       <div className={styles.promptToolHeader}>
                         <div>
                           <p className={styles.promptToolKicker}>결과 활용하기</p>
-                          <h4>AI 상담 이어가기</h4>
-                          <p>이번 리딩의 숫자, 카드, 질문을 정리한 상담용 문장입니다. 결제에 포함되어 추가 비용이 없습니다.</p>
+                          <h4>{TOPIC_LABELS[topic]} 맞춤 AI 상담 프롬프트</h4>
+                          <p>이번 리딩의 숫자, 카드 5장, 질문을 {promptTopicOption.title} 흐름에 맞춰 정리합니다. 결제에 포함되어 추가 비용이 없습니다.</p>
                         </div>
+                      </div>
+                      <div className={styles.promptAutoPanel}>
+                        <span className={styles.promptTopicSymbol}>{promptTopicOption.symbol}</span>
+                        <span className={styles.promptTopicContent}>
+                          <strong>{promptTopicOption.title}</strong>
+                          <small>{promptTopicOption.focus}</small>
+                        </span>
                       </div>
                       <div className={styles.promptToolActions}>
                         <button type="button" className={styles.mainBtn} onClick={generateStandalonePrompt} disabled={standalonePromptLoading}>
-                          {standalonePromptLoading ? "정리 중..." : "상담 요약문 열기"}
+                          {standalonePromptLoading ? "정리 중..." : "현재 주제 맞춤 프롬프트 열기"}
                         </button>
                         {standalonePromptText ? (
                           <button type="button" className={styles.lightBtn} onClick={copyStandalonePrompt}>
-                            상담 요약문 복사
+                            상담 프롬프트 복사
                           </button>
                         ) : null}
                         <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus || saveStatus}</span>
@@ -1715,7 +1849,7 @@ export default function NumerologyTarotClient() {
                           className={styles.aiPromptOutput}
                           value={standalonePromptText}
                           readOnly
-                          aria-label="AI 상담 이어가기용 요약문"
+                          aria-label="현재 주제 맞춤 AI 상담 프롬프트"
                         />
                       ) : null}
                     </article>

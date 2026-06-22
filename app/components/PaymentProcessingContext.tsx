@@ -58,6 +58,10 @@ type PaidFeatureGateDetail = {
   message?: string;
   status?: PaidFeatureGateStatus;
   cost?: number;
+  paymentMode?: string;
+  accessType?: string;
+  accessMethod?: string;
+  paymentMethod?: string;
   startedAt?: number;
 };
 
@@ -201,19 +205,49 @@ function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
   ].includes(status);
 }
 
-function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?: string) {
+// 월정석 aliases: monthly_credit, membership_credit, moonlight_stone, MONTHLY, 월정석은 모두 월정석으로 처리한다.
+function isMonthlyPaidFeatureDetail(detail: PaidFeatureGateDetail) {
+  const haystack = [
+    detail.message,
+    detail.paymentMode,
+    detail.accessType,
+    detail.accessMethod,
+    detail.paymentMethod,
+  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
+  return /\b(monthly|monthly_credit|membership_credit|moonlight_stone|monthly_subscription)\b|월정석/.test(haystack);
+}
+
+function isPassPaidFeatureDetail(detail: PaidFeatureGateDetail) {
+  const haystack = [
+    detail.message,
+    detail.paymentMode,
+    detail.accessType,
+    detail.accessMethod,
+    detail.paymentMethod,
+  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
+  return /\b(membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b|이용권 적용|이용권으로/.test(haystack);
+}
+
+function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: PaidFeatureGateDetail | string = {}) {
+  const resolvedDetail = typeof detail === "string" ? { message: detail } : detail;
+  const message = String(resolvedDetail.message || "");
   if (status === "checkingEntitlement") {
     return { message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
   }
   if (status === "hasEntitlement") {
+    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
+      return { message: "월정석이 적용되었습니다.", mode: "payment-complete" };
+    }
     return { message: message || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   }
   if (status === "paymentSuccess") {
-    const text = String(message || "");
-    if (/이용권 적용|이용권으로|pass_applied|membership/i.test(text)) {
+    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
+      return { message: "월정석이 적용되었습니다.", mode: "payment-complete" };
+    }
+    if (isPassPaidFeatureDetail(resolvedDetail)) {
       return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
     }
-    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    return { message: message || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }
   if (status === "opening" || status === "loadingProducts") {
     return { message: message || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
@@ -307,7 +341,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     }
 
     if (paymentLoadingOwnsPaidFeatureStatus(status)) {
-      const overlay = resolvePaidFeatureStatusOverlay(status, detail.message || copy.message);
+      const overlay = resolvePaidFeatureStatusOverlay(status, { ...detail, message: detail.message || copy.message });
       setState((prev) => {
         if (!prev.open) return prev;
         return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
@@ -373,7 +407,10 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus)) {
       const overlay = resolvePaidFeatureStatusOverlay(
         requestedStatus,
-        detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE,
+        {
+          ...detail,
+          message: detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE,
+        },
       );
       setState((prev) => {
         if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;

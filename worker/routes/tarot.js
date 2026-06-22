@@ -1,6 +1,9 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { connectDb, mongoose } from "../lib/db.js";
+import { Payment, PointHistory } from "../lib/models.js";
+import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
   getWarningCardGuard,
@@ -34,6 +37,186 @@ import {
 
 function asText(value) {
   return String(value || "").trim();
+}
+
+const NUMEROLOGY_TAROT_READING_FEATURE_KEY = "tarot-numerology-reading";
+const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
+const PAID_EVIDENCE_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
+
+function safeRecord(value) {
+  return value && typeof value === "object" ? value : {};
+}
+
+function uniqueTextValues(values = []) {
+  return Array.from(new Set(values.map((value) => asText(value)).filter(Boolean)));
+}
+
+function numerologyFeatureCandidates() {
+  return uniqueTextValues([
+    NUMEROLOGY_TAROT_READING_FEATURE_KEY,
+    NUMEROLOGY_TAROT_READING_FEATURE_KEY.replace(/-/g, "_"),
+  ]);
+}
+
+function collectNumerologyPaymentTokens(body = {}) {
+  const entitlement = safeRecord(body?.entitlement);
+  const paymentContext = safeRecord(body?._paymentContext || body?.paymentContext || entitlement.paymentContext);
+  const accessGrant = safeRecord(body?.accessGrant || paymentContext.accessGrant);
+  const accessDecision = safeRecord(body?.accessDecision || paymentContext.accessDecision);
+  const consume = safeRecord(body?.consume || paymentContext.consume);
+  const payment = safeRecord(body?.payment || paymentContext.payment);
+  return uniqueTextValues([
+    body?.requestId,
+    body?.idempotencyKey,
+    body?.transactionId,
+    body?.purchaseId,
+    body?.paymentId,
+    body?.merchantUid,
+    body?.impUid,
+    entitlement.requestId,
+    entitlement.transactionId,
+    paymentContext.requestId,
+    paymentContext.transactionId,
+    paymentContext.purchaseId,
+    paymentContext.paymentId,
+    paymentContext.merchantUid,
+    paymentContext.impUid,
+    accessGrant.evidenceId,
+    accessGrant.ledgerId,
+    accessGrant.purchaseId,
+    accessGrant.paymentId,
+    accessGrant.merchantUid,
+    accessGrant.impUid,
+    accessGrant.requestId,
+    accessDecision.evidenceId,
+    accessDecision.ledgerId,
+    accessDecision.transactionId,
+    accessDecision.purchaseId,
+    accessDecision.paymentId,
+    accessDecision.merchantUid,
+    accessDecision.impUid,
+    accessDecision.requestId,
+    consume.transactionId,
+    consume.pointHistoryId,
+    consume.receiptId,
+    consume.purchaseId,
+    consume.paymentId,
+    consume.merchantUid,
+    consume.impUid,
+    consume.requestId,
+    payment._id,
+    payment.id,
+    payment.transactionId,
+    payment.purchaseId,
+    payment.paymentId,
+    payment.merchantUid,
+    payment.impUid,
+    payment.requestId,
+  ]);
+}
+
+function buildPointHistoryTokenClauses(tokens = []) {
+  const clauses = [];
+  for (const token of tokens) {
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
+    clauses.push({ "metadata.orderId": token });
+    clauses.push({ "metadata.transactionId": token });
+    clauses.push({ "metadata.pointHistoryId": token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+  }
+  return clauses;
+}
+
+function buildPaymentTokenClauses(tokens = []) {
+  const clauses = [];
+  for (const token of tokens) {
+    clauses.push({ idempotencyKey: token });
+    clauses.push({ requestId: token });
+    clauses.push({ merchantUid: token });
+    clauses.push({ impUid: token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+  }
+  return clauses;
+}
+
+async function findNumerologyPaidEvidence({ env, auth, body }) {
+  const tokens = collectNumerologyPaymentTokens(body);
+  if (!tokens.length) return null;
+
+  await connectDb(env);
+  const userId = asText(auth?.userId);
+  const featureKeys = numerologyFeatureCandidates();
+
+  const pointQuery = {
+    kind: "deduct",
+    featureKey: { $in: featureKeys },
+    delta: { $lte: -NUMEROLOGY_TAROT_READING_MIN_COST },
+    $or: buildPointHistoryTokenClauses(tokens),
+  };
+  if (userId && mongoose.Types.ObjectId.isValid(userId)) pointQuery.userId = userId;
+
+  const pointHistory = await PointHistory.findOne(pointQuery)
+    .select("_id delta featureKey metadata")
+    .sort({ createdAt: -1 })
+    .lean();
+  if (pointHistory?._id) return { source: "point_history", record: pointHistory };
+
+  const paymentQuery = {
+    paymentType: "digital_content",
+    featureKey: { $in: featureKeys },
+    status: { $in: PAID_EVIDENCE_STATUSES },
+    $and: [
+      { $or: buildPaymentTokenClauses(tokens) },
+      {
+        $or: [
+          { expectedChargedPoints: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
+          { chargedPoints: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
+          { coinPrice: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST } },
+          { paymentAmount: { $gte: NUMEROLOGY_TAROT_READING_MIN_COST * 100 } },
+        ],
+      },
+    ],
+  };
+  if (userId && mongoose.Types.ObjectId.isValid(userId)) paymentQuery.userId = userId;
+
+  const payment = await Payment.findOne(paymentQuery)
+    .select("_id featureKey status requestId idempotencyKey merchantUid impUid paymentAmount chargedPoints coinPrice")
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .lean();
+  if (payment?._id) return { source: "payment", record: payment };
+
+  return null;
+}
+
+async function verifyNumerologyReadingAccess(request, env, body = {}) {
+  let auth = null;
+  let authError = null;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    authError = error;
+  }
+
+  if (auth?.userId) {
+    const accessDecision = await canAccessPaidFeature(auth.userId, NUMEROLOGY_TAROT_READING_FEATURE_KEY, {
+      env,
+      reason: "수비학 타로 리딩",
+    });
+    if (accessDecision?.allowed) {
+      return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
+    }
+  }
+
+  const evidence = await findNumerologyPaidEvidence({ env, auth, body });
+  if (evidence) return { ok: true, auth, evidence };
+
+  return {
+    ok: false,
+    status: authError?.status === 401 ? 401 : 402,
+    message: "결제 완료 내역을 확인할 수 없습니다. 추가 결제 없이 다시 시도하려면 결제 직후의 결과 확인 버튼을 사용해 주세요.",
+  };
 }
 
 function reinforceNumerologyInterpretation(interpretation, fallback) {
@@ -1406,12 +1589,33 @@ export async function handleTarotRoutes(request, env = {}) {
       return methodNotAllowed();
     }
 
+    const body = await readJson(request);
+
+    if (path === "/numerology-reading") {
+      const access = await verifyNumerologyReadingAccess(request, env, body);
+      if (!access.ok) {
+        return json(
+          {
+            ok: false,
+            code: "NUMEROLOGY_TAROT_PAYMENT_NOT_VERIFIED",
+            message: access.message,
+          },
+          { status: access.status || 402 },
+        );
+      }
+      const payload = await buildNumerologyReadingPayload(body, env);
+      return json({
+        ...payload,
+        accessVerified: true,
+        accessSource: access.evidence?.source || "auth",
+      });
+    }
+
     // Mindscan reading is finalized by coin-gate and must not fail at result generation
     // due to auth token drift between runtime environments.
     if (path !== "/mindscan") {
       await requireAuth(request, env);
     }
-    const body = await readJson(request);
 
     if (path === "/draw") {
       const spreadType = normalizeSpreadType(body?.spreadType || "one_card");
@@ -1494,11 +1698,6 @@ export async function handleTarotRoutes(request, env = {}) {
         );
       }
       return json(reading);
-    }
-
-    if (path === "/numerology-reading") {
-      const payload = await buildNumerologyReadingPayload(body, env);
-      return json(payload);
     }
 
     return notFound();

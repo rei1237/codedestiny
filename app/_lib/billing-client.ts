@@ -1178,6 +1178,7 @@ function isMembershipPassGrantedPayload(value: unknown): boolean {
     || reason === "license_coin_limit";
 }
 
+// 월정석 aliases: monthly_credit, membership_credit, moonlight_stone, MONTHLY, 월정석은 모두 월정석으로 처리한다.
 function isMonthlyCreditAccessType(value: unknown): boolean {
   const accessType = toText(value).toLowerCase();
   return accessType === "membership_credit"
