@@ -24,6 +24,96 @@ export default function TarotLoveLandingPage() {
         ogImage: META.image,
         landingPoints: [...META.featureList],
         seoText: "실행은 메인 런처에서 진행됩니다.",
+        localized: {
+          en: {
+            title: "What Are We? - 6-Card Love Relationship Tarot",
+            h1: "💕 What Are We?",
+            description:
+              "Check how you see the other person, how they may see you, what blocks the relationship, and the likely direction through a 6-card spread.",
+            landingPoints: ["6-card love spread", "See both perspectives", "Understand the relationship direction at a glance"],
+            seoText: "The reading starts from the main launcher.",
+          },
+          ja: {
+            title: "私たちはどんな関係？ - 6カード恋愛関係タロット",
+            h1: "💕 私たちはどんな関係？",
+            description:
+              "あなたから見た相手、相手から見たあなた、関係を止めているもの、これからの流れまで、6枚のタロットでやさしく確認します。",
+            landingPoints: ["6カード恋愛スプレッド", "お互いの視線を確認", "関係の方向をひと目で把握"],
+            seoText: "リーディングはメインランチャーから始まります。",
+          },
+          "zh-CN": {
+            title: "我们是什么关系？- 6张牌恋爱关系塔罗",
+            h1: "💕 我们是什么关系？",
+            description:
+              "通过6张牌展开，查看你眼中的对方、对方的视线、阻碍关系的因素以及可能的走向。",
+            landingPoints: ["6张牌恋爱展开", "确认彼此视角", "一眼掌握关系方向"],
+            seoText: "阅读将在主启动器中进行。",
+          },
+          "zh-TW": {
+            title: "我們是什麼關係？- 6張牌戀愛關係塔羅",
+            h1: "💕 我們是什麼關係？",
+            description:
+              "透過6張牌展開，查看你眼中的對方、對方的視線、阻礙關係的因素以及可能的走向。",
+            landingPoints: ["6張牌戀愛展開", "確認彼此視角", "一眼掌握關係方向"],
+            seoText: "閱讀將在主啟動器中進行。",
+          },
+          vi: {
+            title: "Chúng ta là gì của nhau? - Tarot quan hệ tình yêu 6 lá",
+            h1: "💕 Chúng ta là gì của nhau?",
+            description:
+              "Xem cách bạn nhìn người ấy, ánh nhìn của họ, điều đang cản trở mối quan hệ và hướng đi dự kiến qua trải bài 6 lá.",
+            landingPoints: ["Trải bài tình yêu 6 lá", "Nhìn từ hai phía", "Nắm hướng quan hệ trong một lượt"],
+            seoText: "Bài đọc được bắt đầu từ launcher chính.",
+          },
+          hi: {
+            title: "हमारा रिश्ता क्या है? - 6 कार्ड प्रेम संबंध टैरो",
+            h1: "💕 हमारा रिश्ता क्या है?",
+            description:
+              "6 कार्ड स्प्रेड से देखें कि आप सामने वाले को कैसे देखते हैं, उनकी दृष्टि क्या हो सकती है, संबंध में रुकावट क्या है और आगे की दिशा कैसी है.",
+            landingPoints: ["6 कार्ड प्रेम स्प्रेड", "दोनों दृष्टिकोण देखें", "संबंध दिशा एक नज़र में समझें"],
+            seoText: "रीडिंग मुख्य लॉन्चर से शुरू होती है.",
+          },
+          es: {
+            title: "¿Qué somos? - Tarot de relación amorosa de 6 cartas",
+            h1: "💕 ¿Qué somos?",
+            description:
+              "Consulta cómo ves a la otra persona, cómo puede verte, qué bloquea la relación y hacia dónde se dirige mediante una tirada de 6 cartas.",
+            landingPoints: ["Tirada amorosa de 6 cartas", "Ver ambas miradas", "Entender la dirección de la relación"],
+            seoText: "La lectura se inicia desde el lanzador principal.",
+          },
+          fr: {
+            title: "Que sommes-nous ? - Tarot relationnel amoureux en 6 cartes",
+            h1: "💕 Que sommes-nous ?",
+            description:
+              "Découvrez votre regard sur l'autre, son regard possible sur vous, ce qui bloque la relation et la direction attendue avec un tirage de 6 cartes.",
+            landingPoints: ["Tirage amoureux en 6 cartes", "Voir les deux regards", "Comprendre la direction relationnelle"],
+            seoText: "La lecture démarre depuis le lanceur principal.",
+          },
+          de: {
+            title: "Was sind wir? - 6-Karten-Liebesbeziehungs-Tarot",
+            h1: "💕 Was sind wir?",
+            description:
+              "Erkenne mit einem 6-Karten-Spread, wie du die andere Person siehst, wie sie dich sehen könnte, was die Beziehung blockiert und welche Richtung sich zeigt.",
+            landingPoints: ["6-Karten-Liebesspread", "Beide Perspektiven sehen", "Beziehungsrichtung auf einen Blick"],
+            seoText: "Die Lesung startet im Haupt-Launcher.",
+          },
+          nl: {
+            title: "Wat zijn wij? - 6-kaarten liefdesrelatie tarot",
+            h1: "💕 Wat zijn wij?",
+            description:
+              "Bekijk met een 6-kaarten spread hoe jij de ander ziet, hoe de ander jou mogelijk ziet, wat de relatie blokkeert en welke richting zichtbaar wordt.",
+            landingPoints: ["6-kaarten liefdesspread", "Beide perspectieven zien", "Relatierichting in één oogopslag"],
+            seoText: "De reading start vanuit de hoofdlauncher.",
+          },
+          ms: {
+            title: "Apakah hubungan kita? - Tarot hubungan cinta 6 kad",
+            h1: "💕 Apakah hubungan kita?",
+            description:
+              "Lihat cara anda melihat si dia, pandangan si dia terhadap anda, halangan hubungan dan arah yang mungkin muncul melalui spread 6 kad.",
+            landingPoints: ["Spread cinta 6 kad", "Lihat dua perspektif", "Fahami arah hubungan sepintas lalu"],
+            seoText: "Bacaan bermula daripada pelancar utama.",
+          },
+        },
       }}
     />
   );
