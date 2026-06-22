@@ -1798,6 +1798,10 @@ function runtimeNow() {
   return Date.now();
 }
 
+function isExternalPaymentWindowStatus(status: string) {
+  return status === "paymentWindowOpen";
+}
+
 function paymentLoadingOwnsPaidFeatureStatus(status: string) {
   return [
     "opening",
@@ -1807,7 +1811,6 @@ function paymentLoadingOwnsPaidFeatureStatus(status: string) {
     "paymentProcessing",
     "paymentSuccess",
     "paymentPreparing",
-    "paymentWindowOpen",
   ].includes(status);
 }
 
@@ -2058,6 +2061,11 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     }
   } catch (_) {}
   const runtimeWindow = window as RuntimeApiWindow;
+  if (action !== "close" && isExternalPaymentWindowStatus(status)) {
+    emitPaymentLoadingState(false);
+    runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
+    return;
+  }
   if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status)) {
     const overlay = resolvePaidFeatureOverlay(status, overlayMessage, payload as Record<string, unknown>);
     emitPaymentLoadingState(true, overlay.message, overlay.mode);

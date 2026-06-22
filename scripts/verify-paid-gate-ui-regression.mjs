@@ -7,6 +7,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
 const billingRouteSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const tarotLoveSource = readFileSync(resolve(root, "js/tarot-love-experience.js"), "utf8");
@@ -126,6 +127,21 @@ const reactWaitKindSource = section(billingClientSource, "function resolvePaymen
 assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
 assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
 assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
+
+const reactBillingOverlayOwnershipSource = section(billingClientSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaymentWaitKind", "React billing overlay ownership");
+assertNotContains(reactBillingOverlayOwnershipSource, '"paymentWindowOpen"', "React billing must not keep overlay during external PG window");
+const reactBillingGateEmitSource = section(billingClientSource, "function emitPaidFeatureGate(", "function resolvePaidFeatureInFlightKey", "React billing paid gate emit");
+assertBefore(reactBillingGateEmitSource, 'if (action !== "close" && isExternalPaymentWindowStatus(status))', 'if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status))', "React billing closes overlays before PG window owns focus");
+assertContains(reactBillingGateEmitSource, "emitPaymentLoadingState(false);", "React billing closes payment overlay for PG window");
+const reactProviderOverlayOwnershipSource = section(paymentProcessingContextSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaidFeatureStatusOverlay", "React provider overlay ownership");
+assertNotContains(reactProviderOverlayOwnershipSource, '"paymentWindowOpen"', "React provider must not keep overlay during external PG window");
+const reactProviderOpenSource = section(paymentProcessingContextSource, "const open = useCallback", "const update = useCallback", "React provider open");
+assertBefore(reactProviderOpenSource, "if (isExternalPaymentWindowStatus(status))", "if (paymentLoadingOwnsPaidFeatureStatus(status))", "React provider closes overlays before opening payment loading");
+const reactProviderUpdateSource = section(paymentProcessingContextSource, "const update = useCallback", "const preload = useCallback", "React provider update");
+assertBefore(reactProviderUpdateSource, "if (isExternalPaymentWindowStatus(requestedStatus))", "if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus))", "React provider update closes overlays before payment loading");
+const reactOverlayApplySource = section(paymentProcessingContextSource, "const applyReactPaymentOverlay = useCallback", "useEffect(() => {", "React payment overlay apply");
+assertBefore(reactOverlayApplySource, "if (!previous.open) {", "stopProcessing();", "React provider closes directly-started payment overlay on global close");
+assertContains(reactOverlayApplySource, "closeProcessingNow();", "React provider direct payment overlay close");
 
 assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume path");
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");

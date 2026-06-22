@@ -183,6 +183,10 @@ function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {
   overlayWindow._cdSetCoinGateOverlay?.(open, message, mode);
 }
 
+function isExternalPaymentWindowStatus(status: PaidFeatureGateStatus) {
+  return status === "paymentWindowOpen";
+}
+
 function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
   return [
     "opening",
@@ -192,7 +196,6 @@ function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
     "paymentProcessing",
     "paymentSuccess",
     "paymentPreparing",
-    "paymentWindowOpen",
     "savingUnlock",
     "unlockSaving",
   ].includes(status);
@@ -294,6 +297,15 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       closeTimerRef.current = null;
     }
 
+    if (isExternalPaymentWindowStatus(status)) {
+      setState((prev) => {
+        if (!prev.open) return prev;
+        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
+      });
+      emitCoinGateOverlay(false);
+      return seq;
+    }
+
     if (paymentLoadingOwnsPaidFeatureStatus(status)) {
       const overlay = resolvePaidFeatureStatusOverlay(status, detail.message || copy.message);
       setState((prev) => {
@@ -348,6 +360,16 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 
   const update = useCallback((detail: PaidFeatureGateDetail) => {
     const requestedStatus = detail.status || "checkingEntitlement";
+    if (isExternalPaymentWindowStatus(requestedStatus)) {
+      setState((prev) => {
+        if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
+        if (!prev.open) return prev;
+        return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
+      });
+      emitCoinGateOverlay(false);
+      return;
+    }
+
     if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus)) {
       const overlay = resolvePaidFeatureStatusOverlay(
         requestedStatus,
@@ -457,7 +479,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
   const copy = resolvePaidGateCopy(state);
-  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentWindowOpen", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
+  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
   const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
 
   return (
@@ -608,9 +630,12 @@ export function PaymentProcessingProvider({
       setIsProcessing(true);
       return;
     }
-    if (!previous.open) return;
+    if (!previous.open) {
+      closeProcessingNow();
+      return;
+    }
     stopProcessing();
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, stopProcessing]);
+  }, [clearCompletionCloseTimer, closeProcessingNow, setPaymentLoadingVariant, stopProcessing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
