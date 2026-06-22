@@ -8,7 +8,7 @@ import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } f
 import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
 import ShareWidget from "./ShareWidget";
 
-type ServiceLike = {
+type ServiceContent = {
   title?: string;
   h1?: string;
   description?: string;
@@ -20,6 +20,10 @@ type ServiceLike = {
     title: string;
     body: string;
   }>;
+};
+
+type ServiceLike = ServiceContent & {
+  localized?: Partial<Record<LoadingLocale, ServiceContent>>;
 };
 
 /* ═══════════════════════════════════════════
@@ -549,6 +553,13 @@ function resolveFeatureOptionalText(value: string | undefined, locale: LoadingLo
   return text;
 }
 
+function resolveLocalizedService(service: ServiceLike | undefined, locale: LoadingLocale): ServiceContent | undefined {
+  if (!service) return undefined;
+  if (locale === "ko") return service;
+  const localized = service.localized?.[locale] || service.localized?.en;
+  return localized ? { ...service, ...localized } : service;
+}
+
 function formatFeaturePrice(value: string, locale: LoadingLocale) {
   const amount = Number(String(value || "").replace(/[^\d]/g, ""));
   if (!Number.isFinite(amount) || amount <= 0) return value;
@@ -597,16 +608,17 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   };
   const heroIconName = resolveTokenIcon(cfg.icon);
   const copy = FEATURE_LANDING_COPY[locale] || FEATURE_LANDING_COPY.ko;
+  const activeService = resolveLocalizedService(service, locale);
   const localizedTag = resolveFeatureTag(basePath, category, cfg.tag, locale);
   const titleFallback = locale === "ko" ? copy.defaultTitle : (cfg.badge || copy.defaultTitle);
-  const title = resolveFeatureText(service?.h1 || service?.title, titleFallback, locale);
-  const description = resolveFeatureText(service?.description, copy.defaultDescription, locale);
-  const rawPoints = Array.isArray(service?.landingPoints) ? service!.landingPoints! : [];
+  const title = resolveFeatureText(activeService?.h1 || activeService?.title, titleFallback, locale);
+  const description = resolveFeatureText(activeService?.description, copy.defaultDescription, locale);
+  const rawPoints = Array.isArray(activeService?.landingPoints) ? activeService!.landingPoints! : [];
   const points = locale === "ko" ? rawPoints : rawPoints.filter((point) => !hasKoreanText(point));
-  const rawValueSections = Array.isArray(service?.valueSections) ? service.valueSections : [];
+  const rawValueSections = Array.isArray(activeService?.valueSections) ? activeService.valueSections : [];
   const valueSections = locale === "ko" ? rawValueSections : rawValueSections.filter((section) => !hasKoreanText(section.title) && !hasKoreanText(section.body));
-  const valueGuideTitle = resolveFeatureText(service?.valueGuideTitle, copy.valueGuideTitle, locale);
-  const seoText = resolveFeatureOptionalText(service?.seoText, locale);
+  const valueGuideTitle = resolveFeatureText(activeService?.valueGuideTitle, copy.valueGuideTitle, locale);
+  const seoText = resolveFeatureOptionalText(activeService?.seoText, locale);
   const isFlower = category === "flower";
 
   return (
@@ -767,7 +779,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
         </header>
 
         {/* OG Image */}
-        {service?.ogImage && (
+        {activeService?.ogImage && (
           <div className="flp-in flp-d2 flp-img-wrap" style={{
             borderRadius:"20px", overflow:"hidden", marginBottom:"26px",
             border:`1px solid ${t.border}`,
@@ -775,7 +787,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             position:"relative", height:"220px",
           }}>
             <img
-              src={service.ogImage}
+              src={activeService.ogImage}
               alt={title}
               loading="eager"
               decoding="async"
@@ -989,7 +1001,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           title={title}
           description={description}
           path={basePath}
-          image={service?.ogImage}
+          image={activeService?.ogImage}
           contentType="software"
           contentId={basePath}
         />
