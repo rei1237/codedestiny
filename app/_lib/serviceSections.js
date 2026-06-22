@@ -356,6 +356,75 @@ const SERVICE_SECTION_TRANSLATIONS = {
       ],
     },
   ],
+  vi: [
+    {
+      title: "Saju & Mệnh lý",
+      items: [
+        ["Luận Saju Manse cơ bản", "Phân tích mệnh cục theo ngũ hành và Thập Thần · Miễn phí"],
+        ["Hệ thống Sibyl", "Năng khiếu nghề nghiệp và hệ số rủi ro vận mệnh dựa trên Saju · Cơ bản miễn phí"],
+        ["Cuốn sách cuộc đời", "Phân tích Saju chuyên sâu cao cấp · 50.000 KRW"],
+        ["Bí quyết tình yêu", "Chiến lược tình yêu dựa trên Saju · 1 người 30.000 KRW / tương hợp +10.000 KRW (tổng 40.000 KRW)"],
+        ["LOVE CODE", "Mô phỏng tình yêu Saju · Mở khóa 10.000 KRW"],
+        ["Destiny Bias", "Phân tích cộng hưởng fandom dựa trên Saju · 5.000 KRW/lần"],
+        ["Bói động vật Thập Nhị Vận Tinh", "Linh thú hộ mệnh thức tỉnh từ Thập Nhị Vận Tinh trong Saju · Mở khóa 10.000 KRW"],
+        ["Nơi gặp duyên qua Saju", "Phân tích độc lập về địa điểm, thành phố và thời điểm duyên phận · 10.000 KRW/lần"],
+      ],
+    },
+    {
+      title: "Mệnh lý Đông Tây",
+      items: [
+        ["Lá số Tử Vi Đẩu Số", "Dịch vụ cơ bản miễn phí · Tương hợp 5.000 KRW"],
+        ["Chiêm tinh Cosmic", "Dịch vụ cơ bản miễn phí · Tương hợp 5.000 KRW"],
+        ["Chiêm tinh Vệ Đà", "Dịch vụ cơ bản miễn phí · Tương hợp 5.000 KRW"],
+      ],
+    },
+    {
+      title: "Bài đọc Tarot",
+      items: [
+        ["Myeongri Tarot", "Bài đọc nối lá bài với Thập Thần · Miễn phí"],
+        ["Chúng ta là gì của nhau?", "Bài đọc quan hệ tình yêu 6 lá · 5.000 KRW"],
+        ["Thư viện prompt Tarot", "Thiết kế câu hỏi + rút bài + tổng hợp câu oracle · 5.000 KRW/lần · 63 trải bài", "Thư viện prompt Tarot"],
+        ["Tarot Mặt Trời Hồi Phục", "Nhiệt độ cảm xúc và routine hồi phục · Miễn phí"],
+        ["Nâng cấp lòng tự trọng", "5 lá giúp bạn đứng vững lại · Miễn phí"],
+        ["Tarot Ngọn Hải Đăng Tái Hợp", "Khoảng cách an toàn để chạm lại · 5.000 KRW"],
+        ["Thiên vận 12 con giáp", "Nhịp bảo hộ của mười hai tháng · 3.000 KRW"],
+        ["Tarot Linh Hồn Pha Lê", "Bài đọc theo kết cấu đá và lá bài · 5.000 KRW"],
+        ["Đọc thầm tâm trí", "Đọc khoảng cách giữa lời nói ngoài mặt và cảm xúc bên trong · 5.000 KRW"],
+        ["Giai điệu thiên thể", "Bài đọc cosmic 11 lá hành tinh · 10.000 KRW"],
+        ["Lá bài vận mệnh đổi việc", "Trải bài sự nghiệp 7 lá · 5.000 KRW"],
+      ],
+    },
+    {
+      title: "Oracle & Giải mộng",
+      items: [
+        ["Bói Hwatu của cao thủ bài", "Vận may 12 tháng bằng bộ bài Hwatu"],
+        ["Bài test cuộc đời Hwatu", "Bài test tâm lý 7 câu theo concept cao thủ bài"],
+        ["Ifa Oracle", "Oracle Yoruba 256 Odu · 3.000 KRW"],
+        ["Oracle Ai Cập cổ đại", "Bài đọc Kemet oracle"],
+        ["Bói rùa Kinh Dịch", "Giải nghĩa biểu tượng 64 quẻ"],
+        ["Sukuyo Astrology", "Dịch vụ cơ bản miễn phí · Tương hợp 5.000 KRW"],
+        ["Stonehenge Rune Oracle", "Bài đọc biểu tượng rune cổ"],
+        ["Geomancy Earth Oracle", "Oracle 16 hàng dấu hiệu của đất"],
+        ["Bói lá trà Tasseography", "Bài đọc hoa văn tách trà hoàng gia London"],
+        ["Destiny Poker", "Trận đấu bài vận mệnh với các vị thần"],
+        ["Dream Prompt", "Prompt AI từ câu chữ trong mơ"],
+        ["Giải mộng phân tâm học", "Diễn giải theo góc nhìn Freud"],
+      ],
+    },
+    {
+      title: "Nội dung đặc biệt",
+      items: [
+        ["I Am Solo Secret House", "Mô phỏng tình yêu bắt daily stem tự động"],
+        ["AI xem tướng động vật", "Phân tích dáng mặt từ selfie"],
+        ["Tương hợp động vật MBTI", "Phân tích chemistry 16 kiểu"],
+        ["Animal Totem", "Thông điệp linh thú hộ mệnh"],
+        ["Destiny Flower", "Atelier tích hợp"],
+        ["Astrology Flower", "Trực quan hóa chủ đề tinh vân"],
+        ["Zi Wei Flower", "Báo cáo chủ đề cung Mệnh"],
+        ["Sukuyo Flower", "Hoa dựa trên pha Mặt Trăng"],
+      ],
+    },
+  ],
 };
 
 export function getLocalizedServiceSections(locale = "ko") {
