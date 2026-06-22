@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 declare global {
@@ -273,6 +273,7 @@ export default function SignupPage() {
       const safeUser = persistSanitizedAuthUser(user);
       const role = String((safeUser && safeUser.role) || user.role || "user");
       document.cookie = `fortune_auth_role=${encodeURIComponent(role)}; path=/; max-age=604800; samesite=lax`;
+      markAuthUserCacheVerified(safeUser || user);
       publishAuthSync("login");
     }
   };

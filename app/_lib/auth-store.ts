@@ -4,7 +4,12 @@ import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
 import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
-import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
+import {
+  markAuthUserCacheVerified,
+  persistSanitizedAuthUser,
+  readSanitizedAuthUser,
+  type ClientAuthUser,
+} from "./auth-storage";
 import { resolveMonthlyStoneBalance } from "./monthly-stone";
 
 export type AuthUser = ClientAuthUser & {
@@ -599,6 +604,8 @@ export async function login(credentials: LoginCredentials) {
     }
 
     debugAuth("[auth] user ready", resolvedUser.id || resolvedUser.userId || resolvedUser._id || resolvedUser.uid || "");
+
+    markAuthUserCacheVerified((readSanitizedAuthUser() as AuthUser | null) || resolvedUser);
 
     void syncPostLoginData().then(() => {
       const mergedUser = (readSanitizedAuthUser() as AuthUser | null) || resolvedUser;

@@ -1,5 +1,7 @@
 import { resolveMonthlyStoneBalance } from "./monthly-stone";
 
+const AUTH_CACHE_VERIFICATION_KEY = "fortune_auth_cache_verified_v1";
+
 export type ClientAuthUser = {
   id?: string;
   userId?: string;
@@ -89,6 +91,22 @@ export function persistSanitizedAuthUser(input: unknown): ClientAuthUser | null 
     return safe;
   } catch (e) {
     return null;
+  }
+}
+
+export function markAuthUserCacheVerified(input: unknown): void {
+  try {
+    const safe = sanitizeClientAuthUser(input);
+    if (!safe) return;
+    const scope = resolveAuthScopeFromUser(safe);
+    if (!scope) return;
+    const payload = JSON.stringify({
+      scope,
+      verifiedAt: Date.now(),
+    });
+    localStorage.setItem(AUTH_CACHE_VERIFICATION_KEY, payload);
+  } catch (e) {
+    // ignore storage failures
   }
 }
 

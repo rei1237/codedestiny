@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-20260622-inicis-phone').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-329023ecb30f').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +757,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-20260622-inicis-phone'
+      'js/animal-totem-experience.js?v=build-329023ecb30f'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-20260622-inicis-phone'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-20260622-inicis-phone'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-20260622-inicis-phone'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-329023ecb30f'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-329023ecb30f'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-329023ecb30f'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-20260622-inicis-phone'],
-    openDreamModal: ['js/dream-ledger.js?v=build-20260622-inicis-phone'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-329023ecb30f'],
+    openDreamModal: ['js/dream-ledger.js?v=build-329023ecb30f'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-20260622-inicis-phone']
+    openSibylModal: ['js/sibyl-system.js?v=build-329023ecb30f']
   };
 
   function normalizeScriptSrc(src) {
