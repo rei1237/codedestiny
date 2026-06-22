@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type TarotCardProps = {
   frontImageUrl?: string;
@@ -27,6 +28,24 @@ const FLIPPED_SHADOW =
 const DEFAULT_SHADOW = "0 16px 30px rgba(0,0,0,0.18)";
 const HOVER_SHADOW = "0 22px 40px rgba(124, 58, 237, 0.28)";
 
+const TAROT_CARD_COPY: Record<LoadingLocale, {
+  frontAria: string;
+  backAria: string;
+}> = {
+  ko: { frontAria: "타로 카드 앞면", backAria: "타로 카드 뒷면" },
+  en: { frontAria: "Tarot card front", backAria: "Tarot card back" },
+  ja: { frontAria: "タロットカードの表面", backAria: "タロットカードの裏面" },
+  "zh-CN": { frontAria: "塔罗牌正面", backAria: "塔罗牌背面" },
+  "zh-TW": { frontAria: "塔羅牌正面", backAria: "塔羅牌背面" },
+  vi: { frontAria: "Mặt trước lá bài tarot", backAria: "Mặt sau lá bài tarot" },
+  hi: { frontAria: "टैरो कार्ड का सामने वाला भाग", backAria: "टैरो कार्ड का पिछला भाग" },
+  es: { frontAria: "Frente de la carta del tarot", backAria: "Reverso de la carta del tarot" },
+  fr: { frontAria: "Face de la carte de tarot", backAria: "Dos de la carte de tarot" },
+  de: { frontAria: "Vorderseite der Tarotkarte", backAria: "Rückseite der Tarotkarte" },
+  nl: { frontAria: "Voorkant van de tarotkaart", backAria: "Achterkant van de tarotkaart" },
+  ms: { frontAria: "Bahagian depan kad tarot", backAria: "Bahagian belakang kad tarot" },
+};
+
 function getCardAnimate(isFlipped: boolean) {
   return {
     rotateY: isFlipped ? 180 : 0,
@@ -48,13 +67,20 @@ export default function TarotCard({
   initiallyFlipped = false,
 }: TarotCardProps) {
   const [isFlipped, setIsFlipped] = useState(initiallyFlipped);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const copy = TAROT_CARD_COPY[locale] || TAROT_CARD_COPY.ko;
+
+  useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
+  }, []);
+
   const toggleFlipped = useCallback(() => {
     setIsFlipped((v) => !v);
   }, []);
 
   const ariaLabel = useMemo(
-    () => (isFlipped ? "타로 카드 앞면" : "타로 카드 뒷면"),
-    [isFlipped],
+    () => (isFlipped ? copy.frontAria : copy.backAria),
+    [copy.backAria, copy.frontAria, isFlipped],
   );
   const animate = useMemo(() => getCardAnimate(isFlipped), [isFlipped]);
 
