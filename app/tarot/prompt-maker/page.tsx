@@ -2441,8 +2441,8 @@ export default function TarotPromptMakerPage() {
   }
 
   function buildPromptForCurrentState() {
-    if (isLenormandMode) return buildLenormandPrompt(selectedSpread, effectiveQuestion, drawnCards);
-    return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory });
+    if (isLenormandMode) return buildLenormandPrompt(selectedSpread, effectiveQuestion, drawnCards, locale);
+    return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory, locale });
   }
 
   function handleQuestionChip(text: string) {

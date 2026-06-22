@@ -1,5 +1,5 @@
 import { TAROT_CARDS } from "../../../../lib/tarot/tarot-cards.mjs";
-import { CATEGORY_LABEL, DEFAULT_QUESTION_BY_CATEGORY } from "../data/tarotSpreadLibrary";
+import { CATEGORY_LABEL, DEFAULT_QUESTION_BY_CATEGORY, getLocalizedPromptMakerData } from "../data/tarotSpreadLibrary";
 import type { DrawnTarotCard, TarotSpread } from "../types";
 
 type OraclePromptResult = {
@@ -14,6 +14,34 @@ type SuitCode = "W" | "C" | "S" | "P";
 
 type OraclePromptOptions = {
   questionCategory?: TarotSpread["category"];
+  locale?: string | null;
+};
+
+type PromptBuilderLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+
+type LocalizedPromptBuilderCopy = {
+  tarotRole: string;
+  lenormandRole: string;
+  outputLanguage: string;
+  clientQuestion: string;
+  spreadInfo: string;
+  cards: string;
+  readingRules: string;
+  outputFormat: string;
+  voice: string;
+  category: string;
+  spreadName: (categoryName: string, count: number) => string;
+  cardCount: (count: number) => string;
+  cardDigest: (index: number, cardName: string, cardCode: string, direction: string) => string;
+  lenormandDigest: (index: number, cardName: string, cardCode: string) => string;
+  orientation: Record<"upright" | "reversed", string>;
+  tarotGuidance: string[];
+  lenormandGuidance: string[];
+  tarotOutput: string[];
+  lenormandOutput: string[];
+  voiceLines: string[];
+  tarotSummary: (spreadName: string, categoryName: string) => string;
+  lenormandSummary: (spreadName: string) => string;
 };
 
 type TarotMeaning = {
@@ -190,6 +218,281 @@ const CARD_MEANING_MAP = new Map(
     .filter((card) => card?.code)
     .map((card) => [String(card.code).toUpperCase(), card]),
 );
+
+const LOCALIZED_PROMPT_BUILDER_COPY: Record<Exclude<PromptBuilderLocale, "ko">, LocalizedPromptBuilderCopy> = {
+  en: {
+    tarotRole: "You are a professional tarot reader consulting a real client.",
+    lenormandRole: "You are a professional Lenormand reader consulting a real client.",
+    outputLanguage: "Write the final reading in natural English.",
+    clientQuestion: "Client question",
+    spreadInfo: "Spread information",
+    cards: "Cards",
+    readingRules: "Reading rules",
+    outputFormat: "Output format",
+    voice: "Voice",
+    category: "Question category",
+    spreadName: (categoryName, count) => `${categoryName} ${count}-card spread`,
+    cardCount: (count) => `${count} cards`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "upright", reversed: "reversed" },
+    tarotGuidance: ["Read the card in relation to the question and its order, not as an isolated keyword.", "Do not make fixed predictions about love, money, health, legal matters, pregnancy, or exam outcomes.", "End with realistic actions the client can choose today."],
+    lenormandGuidance: ["Read neighboring cards as a sentence-like flow.", "Do not use tarot reversals; read order, distance, and repeated signs.", "Separate current flow, repeated pattern, and next practical action."],
+    tarotOutput: ["1. The real theme behind the question", "2. The first overall flow shown by the spread", "3. Card-by-card reading", "4. Tensions and harmonies between cards", "5. Possible illusion or over-expectation to watch", "6. Two or three realistic actions from today", "7. A final sentence that settles the heart"],
+    lenormandOutput: ["1. Question scope and what to check now", "2. The one-sentence flow made by the six cards", "3. Neighboring card pair readings", "4. Repeated signs and actions to reduce", "5. Two or three actions to increase", "6. A final sentence that organizes judgment"],
+    voiceLines: ["Use a warm, trustworthy consultation tone.", "Speak like a real reader, not like a technical report.", "Keep Code Destiny's moonlit tone without fear-based or exaggerated claims."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} is ready for a ${categoryName} consultation prompt in English.`,
+    lenormandSummary: (spreadName) => `${spreadName} is ready as a Lenormand prompt in English.`,
+  },
+  ja: {
+    tarotRole: "あなたは実際の相談者を前にする専門タロットリーダーです。",
+    lenormandRole: "あなたは実際の相談者を前にする専門ルノルマンリーダーです。",
+    outputLanguage: "最終リーディングは自然な日本語のです・ます調で書いてください。",
+    clientQuestion: "相談者の質問",
+    spreadInfo: "スプレッド情報",
+    cards: "カード",
+    readingRules: "リーディング基準",
+    outputFormat: "出力形式",
+    voice: "語り口",
+    category: "質問カテゴリ",
+    spreadName: (categoryName, count) => `${categoryName} ${count}枚スプレッド`,
+    cardCount: (count) => `${count}枚`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName}（${cardCode}） - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName}（${cardCode}）`,
+    orientation: { upright: "正位置", reversed: "逆位置" },
+    tarotGuidance: ["カードを単独の意味ではなく、質問と並び順に結びつけて読んでください。", "恋愛、金銭、健康、法律、妊娠、合否は断定せず参考として扱ってください。", "最後は今日選べる現実的な行動で結んでください。"],
+    lenormandGuidance: ["隣り合うカードを一文の流れのように読んでください。", "タロットの逆位置は使わず、順序、距離、繰り返すサインを見てください。", "現在の流れ、反復パターン、次の現実行動を分けてください。"],
+    tarotOutput: ["1. 質問の奥にある本当のテーマ", "2. スプレッド全体で最初に見える流れ", "3. カードごとの解釈", "4. カード同士の緊張と調和", "5. 気をつけたい思い込みや過剰な期待", "6. 今日からできる現実行動2〜3個", "7. 心を整える最後の一言"],
+    lenormandOutput: ["1. 質問範囲と今確認するポイント", "2. 6枚がつくる一文の流れ", "3. 隣接カードの組み合わせ解釈", "4. 繰り返すサインと減らす行動", "5. 増やすとよい行動2〜3個", "6. 判断を整える最後の一言"],
+    voiceLines: ["温かく信頼できる相談口調で書いてください。", "技術文書ではなく、実際の占い師が語るように自然に話してください。", "Code Destinyらしい月明かりの繊細な雰囲気を保ち、恐怖や誇張は避けてください。"],
+    tarotSummary: (spreadName, categoryName) => `${spreadName}で、${categoryName}の相談プロンプトを日本語で作成します。`,
+    lenormandSummary: (spreadName) => `${spreadName}で、ルノルマン相談プロンプトを日本語で作成します。`,
+  },
+  "zh-CN": {
+    tarotRole: "你是一位为真实来访者咨询的专业塔罗师。",
+    lenormandRole: "你是一位为真实来访者咨询的专业雷诺曼牌读者。",
+    outputLanguage: "请用自然的简体中文写最终解读。",
+    clientQuestion: "来访者问题",
+    spreadInfo: "牌阵信息",
+    cards: "卡牌",
+    readingRules: "解读规则",
+    outputFormat: "输出格式",
+    voice: "语气",
+    category: "问题分类",
+    spreadName: (categoryName, count) => `${categoryName}${count}张牌阵`,
+    cardCount: (count) => `${count}张`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName}（${cardCode}） - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName}（${cardCode}）`,
+    orientation: { upright: "正位", reversed: "逆位" },
+    tarotGuidance: ["请把卡牌放在问题和顺序中解读，不要孤立解释关键词。", "爱情、金钱、健康、法律、怀孕、录取结果都不要作确定断言。", "结尾请给出来访者今天可以选择的现实行动。"],
+    lenormandGuidance: ["把相邻卡牌读成一句连续的流向。", "不要使用塔罗逆位，重点看顺序、距离和重复信号。", "区分当前流向、重复模式和下一步现实行动。"],
+    tarotOutput: ["1. 问题背后的真正主题", "2. 牌阵整体最先显示的流向", "3. 逐张卡牌解读", "4. 卡牌之间的张力与和谐", "5. 需要留意的错觉或过度期待", "6. 今天可以做的现实行动2到3项", "7. 让内心安定的最后一句"],
+    lenormandOutput: ["1. 问题范围和现在要确认的重点", "2. 六张牌连接成的一句话流向", "3. 相邻卡牌组合解读", "4. 重复信号和需要减少的行动", "5. 可以增加的行动2到3项", "6. 整理判断的最后一句"],
+    voiceLines: ["请使用温暖、可信的咨询语气。", "像真实读牌者一样说话，不要写成技术报告。", "保留Code Destiny的月光感，避免恐吓或夸张断言。"],
+    tarotSummary: (spreadName, categoryName) => `${spreadName}已准备好生成${categoryName}咨询提示词。`,
+    lenormandSummary: (spreadName) => `${spreadName}已准备好生成雷诺曼咨询提示词。`,
+  },
+  "zh-TW": {
+    tarotRole: "你是一位為真實來訪者諮詢的專業塔羅師。",
+    lenormandRole: "你是一位為真實來訪者諮詢的專業雷諾曼牌讀者。",
+    outputLanguage: "請用自然的繁體中文寫最終解讀。",
+    clientQuestion: "來訪者問題",
+    spreadInfo: "牌陣資訊",
+    cards: "卡牌",
+    readingRules: "解讀規則",
+    outputFormat: "輸出格式",
+    voice: "語氣",
+    category: "問題分類",
+    spreadName: (categoryName, count) => `${categoryName}${count}張牌陣`,
+    cardCount: (count) => `${count}張`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName}（${cardCode}） - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName}（${cardCode}）`,
+    orientation: { upright: "正位", reversed: "逆位" },
+    tarotGuidance: ["請把卡牌放在問題和順序中解讀，不要孤立解釋關鍵字。", "愛情、金錢、健康、法律、懷孕、錄取結果都不要作確定斷言。", "結尾請給出來訪者今天可以選擇的現實行動。"],
+    lenormandGuidance: ["把相鄰卡牌讀成一句連續的流向。", "不要使用塔羅逆位，重點看順序、距離和重複訊號。", "區分目前流向、重複模式和下一步現實行動。"],
+    tarotOutput: ["1. 問題背後的真正主題", "2. 牌陣整體最先顯示的流向", "3. 逐張卡牌解讀", "4. 卡牌之間的張力與和諧", "5. 需要留意的錯覺或過度期待", "6. 今天可以做的現實行動2到3項", "7. 讓內心安定的最後一句"],
+    lenormandOutput: ["1. 問題範圍和現在要確認的重點", "2. 六張牌連接成的一句話流向", "3. 相鄰卡牌組合解讀", "4. 重複訊號和需要減少的行動", "5. 可以增加的行動2到3項", "6. 整理判斷的最後一句"],
+    voiceLines: ["請使用溫暖、可信的諮詢語氣。", "像真實讀牌者一樣說話，不要寫成技術報告。", "保留Code Destiny的月光感，避免恐嚇或誇張斷言。"],
+    tarotSummary: (spreadName, categoryName) => `${spreadName}已準備好生成${categoryName}諮詢提示詞。`,
+    lenormandSummary: (spreadName) => `${spreadName}已準備好生成雷諾曼諮詢提示詞。`,
+  },
+  vi: {
+    tarotRole: "Bạn là một tarot reader chuyên nghiệp đang tư vấn cho khách thật.",
+    lenormandRole: "Bạn là một Lenormand reader chuyên nghiệp đang tư vấn cho khách thật.",
+    outputLanguage: "Hãy viết phần luận giải cuối bằng tiếng Việt tự nhiên.",
+    clientQuestion: "Câu hỏi của khách",
+    spreadInfo: "Thông tin trải bài",
+    cards: "Lá bài",
+    readingRules: "Quy tắc luận giải",
+    outputFormat: "Định dạng trả lời",
+    voice: "Giọng điệu",
+    category: "Danh mục câu hỏi",
+    spreadName: (categoryName, count) => `trải ${count} lá cho ${categoryName}`,
+    cardCount: (count) => `${count} lá`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "xuôi", reversed: "ngược" },
+    tarotGuidance: ["Đọc lá bài trong quan hệ với câu hỏi và thứ tự, không tách thành từ khóa rời.", "Không kết luận chắc chắn về tình yêu, tiền bạc, sức khỏe, pháp lý, thai kỳ hay kết quả thi cử.", "Kết bằng hành động thực tế khách có thể chọn hôm nay."],
+    lenormandGuidance: ["Đọc các lá liền kề như một dòng câu.", "Không dùng đảo chiều kiểu tarot; hãy đọc thứ tự, khoảng cách và tín hiệu lặp lại.", "Tách dòng hiện tại, mẫu lặp lại và hành động thực tế tiếp theo."],
+    tarotOutput: ["1. Chủ đề thật phía sau câu hỏi", "2. Dòng lớn đầu tiên hiện trong trải bài", "3. Luận giải từng lá", "4. Căng thẳng và hòa hợp giữa các lá", "5. Ảo tưởng hoặc kỳ vọng quá mức cần chú ý", "6. Hai hoặc ba hành động thực tế từ hôm nay", "7. Một câu cuối giúp lòng yên lại"],
+    lenormandOutput: ["1. Phạm vi câu hỏi và điểm cần kiểm tra", "2. Dòng một câu do sáu lá tạo thành", "3. Luận giải cặp lá liền kề", "4. Tín hiệu lặp lại và hành động nên giảm", "5. Hai hoặc ba hành động nên tăng", "6. Một câu cuối để sắp lại phán đoán"],
+    voiceLines: ["Dùng giọng tư vấn ấm và đáng tin.", "Nói như một reader thật, không như tài liệu kỹ thuật.", "Giữ sắc thái ánh trăng của Code Destiny, tránh gây sợ hoặc phóng đại."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} đã sẵn sàng cho prompt tư vấn ${categoryName}.`,
+    lenormandSummary: (spreadName) => `${spreadName} đã sẵn sàng cho prompt Lenormand.`,
+  },
+  hi: {
+    tarotRole: "आप वास्तविक client को consult करने वाले professional tarot reader हैं.",
+    lenormandRole: "आप वास्तविक client को consult करने वाले professional Lenormand reader हैं.",
+    outputLanguage: "Final reading natural Hindi में लिखें.",
+    clientQuestion: "Client question",
+    spreadInfo: "Spread information",
+    cards: "Cards",
+    readingRules: "Reading rules",
+    outputFormat: "Output format",
+    voice: "Voice",
+    category: "Question category",
+    spreadName: (categoryName, count) => `${categoryName} ${count}-card spread`,
+    cardCount: (count) => `${count} cards`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "upright", reversed: "reversed" },
+    tarotGuidance: ["Card को isolated keyword की तरह नहीं, question और order से जोड़कर पढ़ें.", "Love, money, health, legal, pregnancy या exam outcomes पर fixed prediction न दें.", "अंत में client आज चुन सके ऐसी realistic actions दें."],
+    lenormandGuidance: ["Neighboring cards को sentence-like flow की तरह पढ़ें.", "Tarot reversals न लगाएँ; order, distance और repeated signs पढ़ें.", "Current flow, repeated pattern और next practical action अलग करें."],
+    tarotOutput: ["1. Question के पीछे का real theme", "2. Spread में पहले दिखने वाला बड़ा flow", "3. Card-by-card reading", "4. Cards के बीच tension और harmony", "5. ध्यान रखने योग्य illusion या over-expectation", "6. आज से संभव 2-3 realistic actions", "7. Heart को settle करने वाली final sentence"],
+    lenormandOutput: ["1. Question scope और अभी check करने का point", "2. Six cards से बना one-sentence flow", "3. Neighboring card pair readings", "4. Repeated signs और घटाने वाली actions", "5. बढ़ाने योग्य 2-3 actions", "6. Judgment organize करने वाली final sentence"],
+    voiceLines: ["Warm और trustworthy consultation tone रखें.", "Technical report नहीं, real reader की तरह बोलें.", "Code Destiny का moonlit tone रखें, fear या exaggeration से बचें."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} ${categoryName} consultation prompt के लिए ready है.`,
+    lenormandSummary: (spreadName) => `${spreadName} Lenormand prompt के लिए ready है.`,
+  },
+  es: {
+    tarotRole: "Eres una tarotista profesional que atiende a una persona real.",
+    lenormandRole: "Eres una lectora Lenormand profesional que atiende a una persona real.",
+    outputLanguage: "Escribe la lectura final en español natural.",
+    clientQuestion: "Pregunta de la persona consultante",
+    spreadInfo: "Información de la tirada",
+    cards: "Cartas",
+    readingRules: "Reglas de lectura",
+    outputFormat: "Formato de salida",
+    voice: "Voz",
+    category: "Categoría de pregunta",
+    spreadName: (categoryName, count) => `tirada de ${count} cartas para ${categoryName}`,
+    cardCount: (count) => `${count} cartas`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "derecha", reversed: "invertida" },
+    tarotGuidance: ["Lee cada carta en relación con la pregunta y el orden, no como palabra clave aislada.", "No hagas predicciones fijas sobre amor, dinero, salud, temas legales, embarazo o resultados.", "Cierra con acciones realistas que la persona pueda elegir hoy."],
+    lenormandGuidance: ["Lee las cartas vecinas como un flujo de frase.", "No uses invertidas de tarot; lee orden, distancia y señales repetidas.", "Separa flujo actual, patrón repetido y próxima acción práctica."],
+    tarotOutput: ["1. Tema real detrás de la pregunta", "2. Primer gran flujo que muestra la tirada", "3. Lectura carta por carta", "4. Tensiones y armonías entre cartas", "5. Ilusión o expectativa excesiva a vigilar", "6. Dos o tres acciones realistas desde hoy", "7. Una frase final que ordene el corazón"],
+    lenormandOutput: ["1. Alcance de la pregunta y punto a revisar ahora", "2. Flujo en una frase creado por las seis cartas", "3. Lecturas de pares vecinos", "4. Señales repetidas y acciones a reducir", "5. Dos o tres acciones a aumentar", "6. Una frase final para ordenar el juicio"],
+    voiceLines: ["Usa un tono de consulta cálido y confiable.", "Habla como una lectora real, no como un informe técnico.", "Mantén el tono lunar de Code Destiny sin miedo ni exageración."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} está lista para un prompt de consulta de ${categoryName}.`,
+    lenormandSummary: (spreadName) => `${spreadName} está lista como prompt Lenormand.`,
+  },
+  fr: {
+    tarotRole: "Vous êtes une lectrice de tarot professionnelle qui conseille une personne réelle.",
+    lenormandRole: "Vous êtes une lectrice Lenormand professionnelle qui conseille une personne réelle.",
+    outputLanguage: "Rédigez la lecture finale en français naturel.",
+    clientQuestion: "Question de la personne",
+    spreadInfo: "Informations du tirage",
+    cards: "Cartes",
+    readingRules: "Règles de lecture",
+    outputFormat: "Format de sortie",
+    voice: "Voix",
+    category: "Catégorie de question",
+    spreadName: (categoryName, count) => `tirage ${count} cartes pour ${categoryName}`,
+    cardCount: (count) => `${count} cartes`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "droite", reversed: "renversée" },
+    tarotGuidance: ["Lisez la carte avec la question et l'ordre, pas comme un mot-clé isolé.", "Ne faites pas de prédiction fixe sur amour, argent, santé, droit, grossesse ou résultats.", "Terminez par des actions réalistes que la personne peut choisir aujourd'hui."],
+    lenormandGuidance: ["Lisez les cartes voisines comme un flux de phrase.", "N'utilisez pas les renversées du tarot; lisez ordre, distance et signes répétés.", "Séparez flux actuel, motif répété et prochaine action pratique."],
+    tarotOutput: ["1. Thème réel derrière la question", "2. Premier grand flux montré par le tirage", "3. Lecture carte par carte", "4. Tensions et harmonies entre les cartes", "5. Illusion ou attente excessive à surveiller", "6. Deux ou trois actions réalistes dès aujourd'hui", "7. Une phrase finale qui apaise le coeur"],
+    lenormandOutput: ["1. Portée de la question et point à vérifier", "2. Flux en une phrase créé par les six cartes", "3. Lectures des paires voisines", "4. Signes répétés et actions à réduire", "5. Deux ou trois actions à renforcer", "6. Une phrase finale pour organiser le jugement"],
+    voiceLines: ["Utilisez un ton de consultation chaleureux et fiable.", "Parlez comme une vraie lectrice, pas comme un rapport technique.", "Gardez le ton lunaire de Code Destiny sans peur ni exagération."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} est prêt pour un prompt de consultation ${categoryName}.`,
+    lenormandSummary: (spreadName) => `${spreadName} est prêt comme prompt Lenormand.`,
+  },
+  de: {
+    tarotRole: "Du bist eine professionelle Tarotleserin und berätst eine echte Person.",
+    lenormandRole: "Du bist eine professionelle Lenormand-Leserin und berätst eine echte Person.",
+    outputLanguage: "Schreibe die finale Deutung in natürlichem Deutsch.",
+    clientQuestion: "Frage der Person",
+    spreadInfo: "Legungsinformationen",
+    cards: "Karten",
+    readingRules: "Leseregeln",
+    outputFormat: "Ausgabeformat",
+    voice: "Stimme",
+    category: "Fragenkategorie",
+    spreadName: (categoryName, count) => `${count}-Karten-Legung für ${categoryName}`,
+    cardCount: (count) => `${count} Karten`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "aufrecht", reversed: "umgekehrt" },
+    tarotGuidance: ["Lies die Karte in Bezug auf Frage und Reihenfolge, nicht als isoliertes Stichwort.", "Keine festen Vorhersagen zu Liebe, Geld, Gesundheit, Recht, Schwangerschaft oder Ergebnissen.", "Schließe mit realistischen Handlungen, die heute gewählt werden können."],
+    lenormandGuidance: ["Lies benachbarte Karten wie einen Satzfluss.", "Nutze keine Tarot-Umkehrungen; lies Reihenfolge, Abstand und wiederholte Zeichen.", "Trenne aktuellen Verlauf, wiederholtes Muster und nächste praktische Handlung."],
+    tarotOutput: ["1. Das wahre Thema hinter der Frage", "2. Der erste große Verlauf der Legung", "3. Karte-für-Karte-Deutung", "4. Spannungen und Harmonien zwischen den Karten", "5. Mögliche Illusion oder überhöhte Erwartung", "6. Zwei oder drei realistische Handlungen ab heute", "7. Ein letzter Satz, der das Herz ordnet"],
+    lenormandOutput: ["1. Fragerahmen und jetzt zu prüfender Punkt", "2. Ein-Satz-Verlauf aus sechs Karten", "3. Lesung benachbarter Paare", "4. Wiederholte Zeichen und zu reduzierende Handlungen", "5. Zwei oder drei Handlungen zum Verstärken", "6. Ein letzter Satz zur Klärung"],
+    voiceLines: ["Nutze einen warmen, vertrauenswürdigen Beratungston.", "Sprich wie eine echte Leserin, nicht wie ein technischer Bericht.", "Bewahre Code Destinys Mondlichtton ohne Angst oder Übertreibung."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} ist für einen ${categoryName}-Beratungsprompt bereit.`,
+    lenormandSummary: (spreadName) => `${spreadName} ist als Lenormand-Prompt bereit.`,
+  },
+  nl: {
+    tarotRole: "Je bent een professionele tarotlezer die een echte cliënt adviseert.",
+    lenormandRole: "Je bent een professionele Lenormand-lezer die een echte cliënt adviseert.",
+    outputLanguage: "Schrijf de uiteindelijke reading in natuurlijk Nederlands.",
+    clientQuestion: "Vraag van de cliënt",
+    spreadInfo: "Spreadinformatie",
+    cards: "Kaarten",
+    readingRules: "Leesregels",
+    outputFormat: "Uitvoerformaat",
+    voice: "Stem",
+    category: "Vraagcategorie",
+    spreadName: (categoryName, count) => `${count}-kaart spread voor ${categoryName}`,
+    cardCount: (count) => `${count} kaarten`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "rechtop", reversed: "omgekeerd" },
+    tarotGuidance: ["Lees de kaart met de vraag en volgorde, niet als los sleutelwoord.", "Doe geen vaste voorspellingen over liefde, geld, gezondheid, recht, zwangerschap of uitslagen.", "Eindig met realistische acties die de cliënt vandaag kan kiezen."],
+    lenormandGuidance: ["Lees naburige kaarten als een zinsstroom.", "Gebruik geen tarot-omkeringen; lees volgorde, afstand en herhaalde signalen.", "Scheid huidige stroom, herhaald patroon en volgende praktische actie."],
+    tarotOutput: ["1. Het echte thema achter de vraag", "2. De eerste grote stroom in de spread", "3. Kaart-voor-kaart reading", "4. Spanningen en harmonie tussen kaarten", "5. Illusie of te hoge verwachting om op te letten", "6. Twee of drie realistische acties vanaf vandaag", "7. Een laatste zin die het hart ordent"],
+    lenormandOutput: ["1. Vraagbereik en wat nu te controleren", "2. Eén-zinsstroom van de zes kaarten", "3. Readings van naburige paren", "4. Herhaalde signalen en acties om te verminderen", "5. Twee of drie acties om te versterken", "6. Een laatste zin om oordeel te ordenen"],
+    voiceLines: ["Gebruik een warme, betrouwbare consulttoon.", "Spreek als een echte reader, niet als een technisch rapport.", "Behoud de maanlichte toon van Code Destiny zonder angst of overdrijving."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} is klaar voor een ${categoryName}-consultprompt.`,
+    lenormandSummary: (spreadName) => `${spreadName} is klaar als Lenormand-prompt.`,
+  },
+  ms: {
+    tarotRole: "Anda ialah pembaca tarot profesional yang menasihati klien sebenar.",
+    lenormandRole: "Anda ialah pembaca Lenormand profesional yang menasihati klien sebenar.",
+    outputLanguage: "Tulis bacaan akhir dalam bahasa Melayu yang semula jadi.",
+    clientQuestion: "Soalan klien",
+    spreadInfo: "Maklumat spread",
+    cards: "Kad",
+    readingRules: "Peraturan bacaan",
+    outputFormat: "Format output",
+    voice: "Suara",
+    category: "Kategori soalan",
+    spreadName: (categoryName, count) => `spread ${count} kad untuk ${categoryName}`,
+    cardCount: (count) => `${count} kad`,
+    cardDigest: (index, cardName, cardCode, direction) => `${index}. ${cardName} (${cardCode}) - ${direction}`,
+    lenormandDigest: (index, cardName, cardCode) => `${index}. ${cardName} (${cardCode})`,
+    orientation: { upright: "tegak", reversed: "terbalik" },
+    tarotGuidance: ["Baca kad bersama soalan dan susunan, bukan sebagai kata kunci terasing.", "Jangan buat ramalan tetap tentang cinta, wang, kesihatan, undang-undang, kehamilan atau keputusan.", "Akhiri dengan tindakan realistik yang boleh dipilih klien hari ini."],
+    lenormandGuidance: ["Baca kad berjiran seperti aliran satu ayat.", "Jangan gunakan terbalik tarot; baca susunan, jarak dan isyarat berulang.", "Pisahkan aliran semasa, pola berulang dan tindakan praktikal seterusnya."],
+    tarotOutput: ["1. Tema sebenar di sebalik soalan", "2. Aliran besar pertama dalam spread", "3. Bacaan setiap kad", "4. Ketegangan dan harmoni antara kad", "5. Ilusi atau harapan berlebihan yang perlu dijaga", "6. Dua atau tiga tindakan realistik mulai hari ini", "7. Satu ayat akhir yang menenangkan hati"],
+    lenormandOutput: ["1. Ruang soalan dan perkara yang perlu diperiksa sekarang", "2. Aliran satu ayat daripada enam kad", "3. Bacaan pasangan kad berjiran", "4. Isyarat berulang dan tindakan yang perlu dikurangkan", "5. Dua atau tiga tindakan yang baik ditambah", "6. Satu ayat akhir untuk menyusun pertimbangan"],
+    voiceLines: ["Gunakan nada konsultasi yang hangat dan dipercayai.", "Bercakap seperti reader sebenar, bukan laporan teknikal.", "Kekalkan nada cahaya bulan Code Destiny tanpa rasa takut atau keterlaluan."],
+    tarotSummary: (spreadName, categoryName) => `${spreadName} sedia untuk prompt konsultasi ${categoryName}.`,
+    lenormandSummary: (spreadName) => `${spreadName} sedia sebagai prompt Lenormand.`,
+  },
+};
+
+function normalizePromptBuilderLocale(locale: string | null | undefined): PromptBuilderLocale {
+  const value = String(locale || "ko");
+  if (value === "zh" || value === "zh-CN") return "zh-CN";
+  if (value === "zh-TW") return "zh-TW";
+  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(value)) return value as PromptBuilderLocale;
+  return "en";
+}
 
 function ensureText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
@@ -400,7 +703,97 @@ function buildLenormandPairLines(cards: DrawnTarotCard[]) {
   });
 }
 
-export function buildLenormandPrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[]): OraclePromptResult {
+function cardDisplayName(card: DrawnTarotCard) {
+  return ensureText(card.cardNameEn) || ensureText(card.cardNameKo) || card.cardCode;
+}
+
+function buildLocalizedLenormandPrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[], locale: Exclude<PromptBuilderLocale, "ko">): OraclePromptResult {
+  const copy = LOCALIZED_PROMPT_BUILDER_COPY[locale] || LOCALIZED_PROMPT_BUILDER_COPY.en;
+  const localized = getLocalizedPromptMakerData(locale);
+  const categoryName = localized.categoryLabel[spread.category];
+  const spreadName = copy.spreadName(categoryName, spread.cardCount);
+  const effectiveQuestion = ensureText(question) || localized.defaultQuestionByCategory[spread.category];
+  const cardDigest = drawnCards.map((card, index) => copy.lenormandDigest(index + 1, cardDisplayName(card), card.cardCode));
+  const pairLines = drawnCards.slice(0, -1).map((card, index) => {
+    const next = drawnCards[index + 1];
+    return `${cardDisplayName(card)} + ${cardDisplayName(next)}`;
+  });
+  const guidance = copy.lenormandGuidance;
+  const summary = copy.lenormandSummary(spreadName);
+  const prompt = [
+    copy.lenormandRole,
+    copy.outputLanguage,
+    "",
+    `[${copy.clientQuestion}]`,
+    effectiveQuestion,
+    "",
+    `[${copy.spreadInfo}]`,
+    `${copy.category}: ${categoryName}`,
+    `${copy.cardCount(spread.cardCount)}`,
+    "",
+    `[${copy.cards}]`,
+    ...cardDigest,
+    "",
+    "[Pairs]",
+    ...pairLines.map((line) => `- ${line}`),
+    "",
+    `[${copy.readingRules}]`,
+    ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
+    "",
+    `[${copy.outputFormat}]`,
+    ...copy.lenormandOutput,
+    "",
+    `[${copy.voice}]`,
+    ...copy.voiceLines,
+  ].join("\n");
+  return { prompt, summary, cardDigest, guidance, effectiveQuestion };
+}
+
+function buildLocalizedTarotPrompt(
+  spread: TarotSpread,
+  question: string,
+  drawnCards: DrawnTarotCard[],
+  options: OraclePromptOptions,
+  locale: Exclude<PromptBuilderLocale, "ko">,
+): OraclePromptResult {
+  const questionCategory = options.questionCategory || spread.category;
+  const copy = LOCALIZED_PROMPT_BUILDER_COPY[locale] || LOCALIZED_PROMPT_BUILDER_COPY.en;
+  const localized = getLocalizedPromptMakerData(locale);
+  const categoryName = localized.categoryLabel[questionCategory];
+  const spreadName = copy.spreadName(categoryName, spread.cardCount);
+  const effectiveQuestion = ensureText(question) || localized.defaultQuestionByCategory[questionCategory];
+  const cardDigest = drawnCards.map((card, index) => copy.cardDigest(index + 1, cardDisplayName(card), card.cardCode, copy.orientation[card.orientation]));
+  const guidance = copy.tarotGuidance;
+  const summary = copy.tarotSummary(spreadName, categoryName);
+  const prompt = [
+    copy.tarotRole,
+    copy.outputLanguage,
+    "",
+    `[${copy.clientQuestion}]`,
+    effectiveQuestion,
+    "",
+    `[${copy.spreadInfo}]`,
+    `${copy.category}: ${categoryName}`,
+    `${copy.cardCount(spread.cardCount)}`,
+    "",
+    `[${copy.cards}]`,
+    ...cardDigest,
+    "",
+    `[${copy.readingRules}]`,
+    ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
+    "",
+    `[${copy.outputFormat}]`,
+    ...copy.tarotOutput,
+    "",
+    `[${copy.voice}]`,
+    ...copy.voiceLines,
+  ].join("\n");
+  return { prompt, summary, cardDigest, guidance, effectiveQuestion };
+}
+
+export function buildLenormandPrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[], localeRaw?: string | null): OraclePromptResult {
+  const locale = normalizePromptBuilderLocale(localeRaw);
+  if (locale !== "ko") return buildLocalizedLenormandPrompt(spread, question, drawnCards, locale);
   const effectiveQuestion = ensureText(question) || "지금 보고 싶은 상황에서 가장 먼저 확인해야 할 흐름과 행동 단서는 무엇일까?";
   const cardFlow = drawnCards.map((card) => `${card.positionLabel}의 ${card.cardNameKo}`).join(", ");
   const cardDigest = drawnCards.map((card, index) => [
@@ -480,6 +873,8 @@ export function buildLenormandPrompt(spread: TarotSpread, question: string, draw
 }
 
 export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[], options: OraclePromptOptions = {}): OraclePromptResult {
+  const locale = normalizePromptBuilderLocale(options.locale);
+  if (locale !== "ko") return buildLocalizedTarotPrompt(spread, question, drawnCards, options, locale);
   const questionCategory = options.questionCategory || spread.category;
   const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[questionCategory];
   const analysis = analyzeSpreadCards(drawnCards);
