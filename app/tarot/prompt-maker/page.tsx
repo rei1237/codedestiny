@@ -10,8 +10,9 @@ import { buildImageCandidates, TAROT_CARDS } from "../../../lib/tarot/tarot-card
 import {
   buildLocalizedRecommendedQuestionsForSpread,
   DIFFICULTY_LABEL,
-  findSpreadById,
+  findLocalizedSpreadById,
   getLocalizedPromptMakerData,
+  getLocalizedSpreadLibrary,
   SPREAD_LIBRARY,
 } from "./data/tarotSpreadLibrary";
 import type { DrawnTarotCard, TarotCardOrientation, TarotSpread, TarotSpreadCategory } from "./types";
@@ -2280,6 +2281,7 @@ export default function TarotPromptMakerPage() {
   const uiCopy = PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko;
   const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
   const localizedPromptData = useMemo(() => getLocalizedPromptMakerData(locale), [locale]);
+  const localizedSpreadLibrary = useMemo(() => getLocalizedSpreadLibrary(locale), [locale]);
   const categoryLabel = localizedPromptData.categoryLabel;
   const questionChips = localizedPromptData.questionChips;
   const defaultQuestionByCategory = localizedPromptData.defaultQuestionByCategory;
@@ -2310,7 +2312,25 @@ export default function TarotPromptMakerPage() {
   );
   const oracleModeMetaByMode = ORACLE_MODE_META_COPY[locale] || ORACLE_MODE_META_COPY.ko;
   const oracleModeMeta = oracleModeMetaByMode[oracleMode];
-  const selectedSpread = isLenormandMode ? LENORMAND_SPREAD : findSpreadById(selectedSpreadId);
+  const localizedLenormandSpread = useMemo<TarotSpread>(() => {
+    if (locale === "ko") return LENORMAND_SPREAD;
+    const templateSpread = localizedSpreadLibrary[0] || LENORMAND_SPREAD;
+    return {
+      ...LENORMAND_SPREAD,
+      title: oracleModeMetaByMode.lenormand.title,
+      purpose: uiCopy.questionDescription.lenormand,
+      positions: LENORMAND_SPREAD.positions.map((position, index) => ({
+        ...position,
+        label: templateSpread.positions[index]?.label || position.label,
+        description: templateSpread.positions[index]?.description || position.description,
+      })),
+      interpretationGuide: templateSpread.interpretationGuide,
+      tags: [uiCopy.lenormandLabel, uiCopy.cardCount(LENORMAND_SPREAD.cardCount), feedbackCopy.free],
+      mood: uiCopy.lenormandFreeDescription,
+      ritual: questionPlaceholder.lenormand,
+    };
+  }, [feedbackCopy.free, locale, localizedSpreadLibrary, oracleModeMetaByMode, questionPlaceholder.lenormand, uiCopy]);
+  const selectedSpread = isLenormandMode ? localizedLenormandSpread : findLocalizedSpreadById(selectedSpreadId, locale);
   const activeCardPool = isLenormandMode ? LENORMAND_CARD_POOL : CARD_POOL;
   const activeDeckSize = activeCardPool.length;
   const detectedCategory = detectTarotCategory(question);
@@ -2330,7 +2350,7 @@ export default function TarotPromptMakerPage() {
   );
 
   const filteredSpreads = useMemo(
-    () => SPREAD_LIBRARY.filter((spread) => {
+    () => localizedSpreadLibrary.filter((spread) => {
       const normalizedQuery = normalizeText(searchQuery).toLowerCase();
       const matchesSearch = !normalizedQuery
         || normalizeText(spread.title).toLowerCase().includes(normalizedQuery)
@@ -2347,7 +2367,7 @@ export default function TarotPromptMakerPage() {
       if (right.category === selectedQuestionCategory && left.category !== selectedQuestionCategory) return 1;
       return left.cardCount - right.cardCount;
     }),
-    [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, selectedQuestionCategory],
+    [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, selectedQuestionCategory, localizedSpreadLibrary],
   );
 
   const recommendedQuestions = useMemo(
@@ -2381,8 +2401,8 @@ export default function TarotPromptMakerPage() {
 
   useEffect(() => {
     if (selectedSpreadId) return;
-    setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || "");
-  }, [selectedSpreadId]);
+    setSelectedSpreadId(localizedSpreadLibrary[0]?.id || "");
+  }, [selectedSpreadId, localizedSpreadLibrary]);
 
   useEffect(() => {
     if (!copied) return;
@@ -2462,7 +2482,7 @@ export default function TarotPromptMakerPage() {
       setFeedback(feedbackCopy.askQuestionFirst);
       return;
     }
-    if (!selectedSpreadId) setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || "");
+    if (!selectedSpreadId) setSelectedSpreadId(localizedSpreadLibrary[0]?.id || "");
     resetDrawState();
     setFeedback("");
     setStage("draw");
@@ -2632,7 +2652,7 @@ export default function TarotPromptMakerPage() {
   function handleRedrawCards() { resetDrawState(); setStage("draw"); setFeedback(""); }
   function handleChooseAnotherSpread() { resetDrawState(); setStage("question"); setShowSpreadPicker(true); setFeedback(""); }
   function handleGoQuestion() { setStage("question"); setFeedback(""); }
-  function handleResetAll() { setQuestion(""); setManualCategory("auto"); setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || ""); setAllowReversed(true); resetDrawState(); setFeedback(""); setStage("question"); }
+  function handleResetAll() { setQuestion(""); setManualCategory("auto"); setSelectedSpreadId(localizedSpreadLibrary[0]?.id || ""); setAllowReversed(true); resetDrawState(); setFeedback(""); setStage("question"); }
 
   return (
     <div

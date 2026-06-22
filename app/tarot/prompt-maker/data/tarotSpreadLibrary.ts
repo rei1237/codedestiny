@@ -1203,7 +1203,170 @@ function buildSpread(blueprint: SpreadBlueprint): TarotSpread {
   };
 }
 
+type LocalizedSpreadCopy = {
+  spreadLabel: string;
+  cardCount: (count: number) => string;
+  title: (categoryName: string, count: number, difficulty: TarotDifficulty) => string;
+  purpose: (categoryName: string, count: number) => string;
+  mood: (categoryName: string) => string;
+  ritual: (categoryName: string) => string;
+  positions: string[];
+  descriptions: string[];
+  guide: string[];
+};
+
+const LOCALIZED_SPREAD_COPY: Record<Exclude<PromptMakerLocale, "ko">, LocalizedSpreadCopy> = {
+  en: {
+    spreadLabel: "Spread",
+    cardCount: (count) => `${count} cards`,
+    title: (categoryName, count, difficulty) => `${categoryName} ${count}-Card ${DIFFICULTY_LABEL[difficulty]} Spread`,
+    purpose: (categoryName, count) => `A ${count}-card spread that organizes the ${categoryName} question into present flow, hidden factors, and practical guidance.`,
+    mood: (categoryName) => `A moonlit ${categoryName} line that reads emotional texture and practical timing together.`,
+    ritual: (categoryName) => `Before drawing, write one sentence about the ${categoryName} point you most want to clarify.`,
+    positions: ["Current Flow", "Surface Feeling", "Hidden Feeling", "Obstacle", "Opportunity", "Near Future", "Middle Flow", "Practical Advice", "Caution", "Core Message", "Relationship Shift", "Action Strategy", "Long-Term Direction", "Breakthrough Point", "One-Sentence Closing"],
+    descriptions: ["The visible situation around the question now.", "The feeling that is easiest to notice on the surface.", "The quieter motive, emotion, or background influence.", "The factor slowing, blocking, or distorting the flow.", "The opening that can change the atmosphere.", "The likely near movement if the present pattern continues.", "The rhythm that may unfold after the first change.", "The attitude or action that can be chosen realistically.", "The point to handle carefully without fear.", "The central message that gathers the spread.", "How the relationship or situation may shift.", "The practical order of action to consider.", "The wider direction beyond the immediate moment.", "The point where the pattern can begin to open.", "The final sentence that settles the reading."],
+    guide: ["Read the position question before the card meaning.", "Treat upright and reversed cards as differences in flow.", "Describe another person's heart as possibility and context, not certainty.", "Include hope, boundary, and action guidance together.", "Finish with one practical sentence that can be used today."],
+  },
+  ja: {
+    spreadLabel: "スプレッド",
+    cardCount: (count) => `${count}枚`,
+    title: (categoryName, count, difficulty) => `${categoryName} ${count}枚 ${DIFFICULTY_LABEL[difficulty]} スプレッド`,
+    purpose: (categoryName, count) => `${categoryName}の質問を、現在の流れ、隠れた要素、現実的な助言へ整える${count}枚スプレッドです。`,
+    mood: (categoryName) => `${categoryName}の感情の質感と現実のタイミングを一緒に読む、月明かりのラインです。`,
+    ritual: (categoryName) => `カードを引く前に、${categoryName}でいちばん明らかにしたい点を一文で書いてください。`,
+    positions: ["現在の流れ", "表面の感情", "隠れた感情", "障害", "機会", "近い未来", "中期の流れ", "現実的な助言", "注意点", "核心メッセージ", "関係の変化", "行動戦略", "長期の方向", "突破口", "一文の結論"],
+    descriptions: ["今の質問を取り巻く、目に見える状況です。", "表面に出やすい感情や反応です。", "静かに影響している動機、感情、背景です。", "流れを遅らせたり歪ませたりする要素です。", "空気を変えるために開き始める入口です。", "今の流れが続く時に近く現れやすい動きです。", "最初の変化の後に続くリズムです。", "現実的に選べる態度や行動です。", "怖がらず慎重に扱うポイントです。", "スプレッド全体をまとめる中心メッセージです。", "関係や状況がどのように動くかを見ます。", "考えるべき行動の順番です。", "目先を越えた広い方向性です。", "パターンが開き始める場所です。", "リーディングを整える最後の一文です。"],
+    guide: ["カード意味より先にポジションの問いを読んでください。", "正位置と逆位置は流れの違いとして扱ってください。", "相手の心は断定せず、可能性と状況で表現してください。", "希望、境界線、行動の助言を一緒に含めてください。", "最後は今日使える現実的な一文で締めてください。"],
+  },
+  "zh-CN": {
+    spreadLabel: "牌阵",
+    cardCount: (count) => `${count}张`,
+    title: (categoryName, count, difficulty) => `${categoryName}${count}张${DIFFICULTY_LABEL[difficulty]}牌阵`,
+    purpose: (categoryName, count) => `用${count}张牌把${categoryName}问题整理为当前流向、隐藏因素与现实建议。`,
+    mood: (categoryName) => `在月光感中同时读取${categoryName}的情绪纹理与现实时机。`,
+    ritual: (categoryName) => `抽牌前，请用一句话写下${categoryName}里最想澄清的重点。`,
+    positions: ["当前流向", "表层感受", "隐藏感受", "障碍", "机会", "近期未来", "中期流向", "现实建议", "注意点", "核心讯息", "关系变化", "行动策略", "长期方向", "突破点", "一句话结论"],
+    descriptions: ["问题周围现在可见的状况。", "表面最容易察觉的感受。", "安静影响着局面的动机、情绪或背景。", "拖慢、阻挡或扭曲流向的因素。", "可能改变气氛的入口。", "当前模式持续时近期可能出现的动向。", "最初变化之后延展的节奏。", "现在可以现实选择的态度或行动。", "需要谨慎处理但无需恐惧的重点。", "汇拢整个牌阵的核心讯息。", "关系或状况可能移动的方式。", "可以考虑的行动顺序。", "超越眼前时刻的更大方向。", "模式开始打开的位置。", "整理这次解读的最后一句。"],
+    guide: ["先读位置的问题，再读卡牌意义。", "正位和逆位作为流向差异处理。", "他人的心意只说可能性与情境，不作断定。", "同时包含希望、边界和行动建议。", "最后用今天可使用的一句现实话语收束。"],
+  },
+  "zh-TW": {
+    spreadLabel: "牌陣",
+    cardCount: (count) => `${count}張`,
+    title: (categoryName, count, difficulty) => `${categoryName}${count}張${DIFFICULTY_LABEL[difficulty]}牌陣`,
+    purpose: (categoryName, count) => `用${count}張牌把${categoryName}問題整理為目前流向、隱藏因素與現實建議。`,
+    mood: (categoryName) => `在月光感中同時讀取${categoryName}的情緒紋理與現實時機。`,
+    ritual: (categoryName) => `抽牌前，請用一句話寫下${categoryName}裡最想澄清的重點。`,
+    positions: ["目前流向", "表層感受", "隱藏感受", "障礙", "機會", "近期未來", "中期流向", "現實建議", "注意點", "核心訊息", "關係變化", "行動策略", "長期方向", "突破點", "一句話結論"],
+    descriptions: ["問題周圍現在可見的狀況。", "表面最容易察覺的感受。", "安靜影響著局面的動機、情緒或背景。", "拖慢、阻擋或扭曲流向的因素。", "可能改變氣氛的入口。", "目前模式持續時近期可能出現的動向。", "最初變化之後延展的節奏。", "現在可以現實選擇的態度或行動。", "需要謹慎處理但無需恐懼的重點。", "匯攏整個牌陣的核心訊息。", "關係或狀況可能移動的方式。", "可以考慮的行動順序。", "超越眼前時刻的更大方向。", "模式開始打開的位置。", "整理這次解讀的最後一句。"],
+    guide: ["先讀位置的問題，再讀卡牌意義。", "正位和逆位作為流向差異處理。", "他人的心意只說可能性與情境，不作斷定。", "同時包含希望、邊界和行動建議。", "最後用今天可使用的一句現實話語收束。"],
+  },
+  vi: {
+    spreadLabel: "Trải bài",
+    cardCount: (count) => `${count} lá`,
+    title: (categoryName, count, difficulty) => `Trải ${count} lá ${DIFFICULTY_LABEL[difficulty]} cho ${categoryName}`,
+    purpose: (categoryName, count) => `Một trải bài ${count} lá sắp câu hỏi ${categoryName} thành dòng hiện tại, yếu tố ẩn và lời khuyên thực tế.`,
+    mood: (categoryName) => `Một đường đọc ánh trăng cho ${categoryName}, nối cảm xúc với thời điểm thực tế.`,
+    ritual: (categoryName) => `Trước khi rút bài, hãy viết một câu về điểm ${categoryName} bạn muốn làm rõ nhất.`,
+    positions: ["Dòng hiện tại", "Cảm xúc bề mặt", "Cảm xúc ẩn", "Trở ngại", "Cơ hội", "Tương lai gần", "Dòng trung hạn", "Lời khuyên thực tế", "Điểm cần lưu ý", "Thông điệp lõi", "Chuyển động quan hệ", "Chiến lược hành động", "Hướng dài hạn", "Điểm đột phá", "Kết luận một câu"],
+    descriptions: ["Tình huống đang hiện rõ quanh câu hỏi.", "Cảm xúc dễ nhận thấy nhất trên bề mặt.", "Động cơ, cảm xúc hoặc bối cảnh đang âm thầm ảnh hưởng.", "Yếu tố làm chậm, chặn hoặc làm lệch dòng chảy.", "Cánh cửa có thể đổi bầu khí.", "Chuyển động gần nếu mẫu hiện tại tiếp tục.", "Nhịp mở ra sau thay đổi đầu tiên.", "Thái độ hoặc hành động có thể chọn trong thực tế.", "Điểm cần cẩn trọng nhưng không cần sợ hãi.", "Thông điệp gom lại toàn bộ trải bài.", "Cách quan hệ hoặc tình huống có thể dịch chuyển.", "Thứ tự hành động nên cân nhắc.", "Hướng rộng hơn ngoài khoảnh khắc trước mắt.", "Nơi mẫu cũ bắt đầu mở ra.", "Một câu cuối giúp sắp lại bài đọc."],
+    guide: ["Đọc câu hỏi của vị trí trước ý nghĩa lá bài.", "Xem xuôi và ngược như khác biệt trong dòng chảy.", "Nói về lòng người khác bằng khả năng và bối cảnh, không khẳng định.", "Gộp hy vọng, ranh giới và lời khuyên hành động.", "Kết bằng một câu thực tế có thể dùng hôm nay."],
+  },
+  hi: {
+    spreadLabel: "Spread",
+    cardCount: (count) => `${count} cards`,
+    title: (categoryName, count, difficulty) => `${categoryName} ${count}-card ${DIFFICULTY_LABEL[difficulty]} spread`,
+    purpose: (categoryName, count) => `${categoryName} question को current flow, hidden factors और practical guidance में व्यवस्थित करने वाला ${count}-card spread.`,
+    mood: (categoryName) => `${categoryName} में emotional texture और practical timing को साथ पढ़ने वाली moonlit line.`,
+    ritual: (categoryName) => `Draw से पहले ${categoryName} में सबसे स्पष्ट करना चाहा गया point एक sentence में लिखें.`,
+    positions: ["Current Flow", "Surface Feeling", "Hidden Feeling", "Obstacle", "Opportunity", "Near Future", "Middle Flow", "Practical Advice", "Caution", "Core Message", "Relationship Shift", "Action Strategy", "Long-Term Direction", "Breakthrough Point", "One-Sentence Closing"],
+    descriptions: ["Question के आसपास अभी दिख रही स्थिति.", "Surface पर सबसे आसानी से दिखने वाली feeling.", "चुपचाप असर डाल रही motive, emotion या background.", "Flow को slow, block या distort करने वाला factor.", "Atmosphere बदल सकने वाली opening.", "Current pattern जारी रहे तो near movement.", "First change के बाद खुलने वाली rhythm.", "Realistically चुनी जा सकने वाली attitude या action.", "Fear के बिना carefully handle करने का point.", "पूरे spread को gather करने वाला central message.", "Relationship या situation कैसे shift हो सकती है.", "Consider करने योग्य practical action order.", "Immediate moment से आगे की wider direction.", "Pattern खुलना शुरू कर सकता है जहाँ.", "Reading settle करने वाली final sentence."],
+    guide: ["Card meaning से पहले position question पढ़ें.", "Upright और reversed को flow difference की तरह treat करें.", "दूसरे व्यक्ति के heart को certainty नहीं, possibility और context की तरह कहें.", "Hope, boundary और action guidance साथ रखें.", "आज use हो सके ऐसी practical sentence पर finish करें."],
+  },
+  es: {
+    spreadLabel: "Tirada",
+    cardCount: (count) => `${count} cartas`,
+    title: (categoryName, count, difficulty) => `Tirada ${DIFFICULTY_LABEL[difficulty]} de ${count} cartas para ${categoryName}`,
+    purpose: (categoryName, count) => `Una tirada de ${count} cartas que ordena la pregunta de ${categoryName} en flujo actual, factores ocultos y guía práctica.`,
+    mood: (categoryName) => `Una línea lunar de ${categoryName} que lee textura emocional y tiempo práctico a la vez.`,
+    ritual: (categoryName) => `Antes de sacar cartas, escribe una frase sobre el punto de ${categoryName} que quieres aclarar.`,
+    positions: ["Flujo actual", "Sentimiento visible", "Sentimiento oculto", "Obstáculo", "Oportunidad", "Futuro cercano", "Flujo medio", "Consejo práctico", "Cuidado", "Mensaje central", "Cambio de relación", "Estrategia de acción", "Dirección a largo plazo", "Punto de avance", "Cierre en una frase"],
+    descriptions: ["La situación visible alrededor de la pregunta.", "La emoción que se percibe con más facilidad.", "El motivo, emoción o fondo que influye en silencio.", "El factor que frena, bloquea o distorsiona el flujo.", "La apertura que puede cambiar la atmósfera.", "El movimiento cercano si continúa el patrón actual.", "El ritmo que puede desplegarse tras el primer cambio.", "La actitud o acción que puede elegirse en la realidad.", "El punto a tratar con cuidado, sin miedo.", "El mensaje central que reúne la tirada.", "Cómo puede moverse la relación o la situación.", "El orden práctico de acción a considerar.", "La dirección amplia más allá del momento inmediato.", "El punto donde el patrón puede empezar a abrirse.", "La frase final que asienta la lectura."],
+    guide: ["Lee la pregunta de la posición antes del significado de la carta.", "Trata derechas e invertidas como diferencias de flujo.", "Habla del corazón ajeno como posibilidad y contexto, no certeza.", "Incluye esperanza, límite y acción en conjunto.", "Termina con una frase práctica para hoy."],
+  },
+  fr: {
+    spreadLabel: "Tirage",
+    cardCount: (count) => `${count} cartes`,
+    title: (categoryName, count, difficulty) => `Tirage ${DIFFICULTY_LABEL[difficulty]} de ${count} cartes pour ${categoryName}`,
+    purpose: (categoryName, count) => `Un tirage de ${count} cartes qui organise la question de ${categoryName} entre flux actuel, facteurs cachés et guidance pratique.`,
+    mood: (categoryName) => `Une ligne lunaire de ${categoryName} qui lit ensemble texture émotionnelle et timing concret.`,
+    ritual: (categoryName) => `Avant de tirer, écrivez en une phrase le point de ${categoryName} à éclaircir.`,
+    positions: ["Flux actuel", "Ressenti visible", "Ressenti caché", "Obstacle", "Ouverture", "Futur proche", "Flux intermédiaire", "Conseil pratique", "Point d'attention", "Message central", "Changement relationnel", "Stratégie d'action", "Direction longue", "Point de percée", "Conclusion en une phrase"],
+    descriptions: ["La situation visible autour de la question.", "Le ressenti le plus facile à percevoir.", "Le motif, l'émotion ou le contexte qui agit en silence.", "Ce qui ralentit, bloque ou déforme le flux.", "L'ouverture qui peut changer l'atmosphère.", "Le mouvement proche si le schéma actuel continue.", "Le rythme qui peut suivre le premier changement.", "L'attitude ou l'action réaliste à choisir.", "Le point à manier prudemment, sans peur.", "Le message central qui rassemble le tirage.", "La façon dont la relation ou la situation peut bouger.", "L'ordre d'action pratique à considérer.", "La direction plus large au-delà de l'instant.", "L'endroit où le schéma peut commencer à s'ouvrir.", "La dernière phrase qui pose la lecture."],
+    guide: ["Lisez la question de la position avant le sens de la carte.", "Traitez droites et renversées comme des différences de flux.", "Parlez du coeur d'autrui en possibilité et contexte, pas en certitude.", "Incluez espoir, limite et conseil d'action ensemble.", "Finissez par une phrase pratique pour aujourd'hui."],
+  },
+  de: {
+    spreadLabel: "Legung",
+    cardCount: (count) => `${count} Karten`,
+    title: (categoryName, count, difficulty) => `${DIFFICULTY_LABEL[difficulty]} ${count}-Karten-Legung für ${categoryName}`,
+    purpose: (categoryName, count) => `Eine ${count}-Karten-Legung, die die ${categoryName}-Frage in aktuellen Verlauf, verborgene Faktoren und praktische Führung ordnet.`,
+    mood: (categoryName) => `Eine mondhelle ${categoryName}-Linie, die emotionale Textur und praktisches Timing zusammen liest.`,
+    ritual: (categoryName) => `Schreibe vor dem Ziehen einen Satz zu dem ${categoryName}-Punkt, den du klären möchtest.`,
+    positions: ["Aktueller Verlauf", "Oberflächengefühl", "Verborgenes Gefühl", "Hindernis", "Chance", "Nahe Zukunft", "Mittlerer Verlauf", "Praktischer Rat", "Achtungspunkt", "Kernbotschaft", "Beziehungswandel", "Handlungsstrategie", "Langfristige Richtung", "Durchbruchspunkt", "Ein-Satz-Abschluss"],
+    descriptions: ["Die sichtbare Situation rund um die Frage.", "Das Gefühl, das an der Oberfläche am leichtesten erkennbar ist.", "Motiv, Gefühl oder Hintergrund, der leise wirkt.", "Der Faktor, der den Verlauf bremst, blockiert oder verzerrt.", "Die Öffnung, die die Stimmung verändern kann.", "Die nahe Bewegung, wenn das Muster weitergeht.", "Der Rhythmus nach der ersten Veränderung.", "Die realistisch wählbare Haltung oder Handlung.", "Der vorsichtig, aber ohne Angst zu behandelnde Punkt.", "Die zentrale Botschaft der Legung.", "Wie Beziehung oder Situation sich bewegen können.", "Die praktische Handlungsreihenfolge.", "Die weitere Richtung über den Moment hinaus.", "Der Punkt, an dem sich das Muster öffnen kann.", "Der letzte Satz, der die Lesung ordnet."],
+    guide: ["Lies zuerst die Positionsfrage, dann die Kartenbedeutung.", "Behandle aufrecht und umgekehrt als Unterschiede im Fluss.", "Sprich über das Herz anderer als Möglichkeit und Kontext, nicht Gewissheit.", "Verbinde Hoffnung, Grenze und Handlungshinweis.", "Ende mit einem praktischen Satz für heute."],
+  },
+  nl: {
+    spreadLabel: "Spread",
+    cardCount: (count) => `${count} kaarten`,
+    title: (categoryName, count, difficulty) => `${DIFFICULTY_LABEL[difficulty]} ${count}-kaart spread voor ${categoryName}`,
+    purpose: (categoryName, count) => `Een ${count}-kaart spread die de ${categoryName}-vraag ordent in huidige stroom, verborgen factoren en praktische begeleiding.`,
+    mood: (categoryName) => `Een maanlichte ${categoryName}-lijn die emotionele textuur en praktische timing samen leest.`,
+    ritual: (categoryName) => `Schrijf vóór het trekken één zin over het ${categoryName}-punt dat je wilt verhelderen.`,
+    positions: ["Huidige stroom", "Oppervlaktegevoel", "Verborgen gevoel", "Obstakel", "Kans", "Nabije toekomst", "Middenstroom", "Praktisch advies", "Aandachtspunt", "Kernboodschap", "Relatieverschuiving", "Actiestrategie", "Lange richting", "Doorbraakpunt", "Slot in één zin"],
+    descriptions: ["De zichtbare situatie rond de vraag.", "Het gevoel dat het makkelijkst zichtbaar is.", "De stille drijfveer, emotie of achtergrondinvloed.", "De factor die de stroom vertraagt, blokkeert of vervormt.", "De opening die de sfeer kan veranderen.", "De nabije beweging als het huidige patroon doorgaat.", "Het ritme na de eerste verandering.", "De houding of actie die realistisch gekozen kan worden.", "Het punt om zorgvuldig, zonder angst te behandelen.", "De centrale boodschap die de spread samenbrengt.", "Hoe relatie of situatie kan verschuiven.", "De praktische volgorde van actie.", "De bredere richting voorbij het moment.", "Het punt waar het patroon kan openen.", "De laatste zin die de reading laat landen."],
+    guide: ["Lees eerst de positievraag, daarna de kaartbetekenis.", "Zie rechtop en omgekeerd als verschillen in stroom.", "Beschrijf iemands hart als mogelijkheid en context, niet zekerheid.", "Neem hoop, grens en actieadvies samen op.", "Sluit af met één praktische zin voor vandaag."],
+  },
+  ms: {
+    spreadLabel: "Spread",
+    cardCount: (count) => `${count} kad`,
+    title: (categoryName, count, difficulty) => `Spread ${DIFFICULTY_LABEL[difficulty]} ${count} kad untuk ${categoryName}`,
+    purpose: (categoryName, count) => `Spread ${count} kad yang menyusun soalan ${categoryName} kepada aliran semasa, faktor tersembunyi dan panduan praktikal.`,
+    mood: (categoryName) => `Garis cahaya bulan untuk ${categoryName} yang membaca tekstur emosi dan masa praktikal bersama.`,
+    ritual: (categoryName) => `Sebelum mencabut kad, tulis satu ayat tentang titik ${categoryName} yang paling mahu dijernihkan.`,
+    positions: ["Aliran semasa", "Rasa permukaan", "Rasa tersembunyi", "Halangan", "Peluang", "Masa dekat", "Aliran pertengahan", "Nasihat praktikal", "Perhatian", "Mesej inti", "Perubahan hubungan", "Strategi tindakan", "Arah panjang", "Titik tembus", "Penutup satu ayat"],
+    descriptions: ["Situasi yang kelihatan di sekitar soalan sekarang.", "Rasa yang paling mudah kelihatan di permukaan.", "Motif, emosi atau latar yang diam-diam mempengaruhi.", "Faktor yang memperlahankan, menghalang atau memesongkan aliran.", "Bukaan yang boleh mengubah suasana.", "Gerakan dekat jika pola semasa berterusan.", "Rentak yang mungkin muncul selepas perubahan pertama.", "Sikap atau tindakan yang boleh dipilih secara realistik.", "Titik yang perlu dijaga tanpa rasa takut.", "Mesej pusat yang menghimpunkan spread.", "Cara hubungan atau situasi boleh bergerak.", "Susunan tindakan praktikal untuk dipertimbang.", "Arah lebih luas di luar saat ini.", "Titik di mana pola boleh mula terbuka.", "Ayat akhir yang menenangkan bacaan."],
+    guide: ["Baca soalan posisi sebelum makna kad.", "Anggap tegak dan terbalik sebagai beza aliran.", "Hati orang lain disebut sebagai kemungkinan dan konteks, bukan kepastian.", "Gabungkan harapan, batas dan nasihat tindakan.", "Akhiri dengan satu ayat praktikal untuk hari ini."],
+  },
+};
+
+function localizeSpread(spread: TarotSpread, locale: PromptMakerLocale): TarotSpread {
+  if (locale === "ko") return spread;
+  const copy = LOCALIZED_SPREAD_COPY[locale] || LOCALIZED_SPREAD_COPY.en;
+  const localized = getLocalizedPromptMakerData(locale);
+  const categoryName = localized.categoryLabel[spread.category] || localized.categoryLabel.special;
+  return {
+    ...spread,
+    title: copy.title(categoryName, spread.cardCount, spread.difficulty),
+    purpose: copy.purpose(categoryName, spread.cardCount),
+    positions: spread.positions.map((position, index) => ({
+      ...position,
+      label: copy.positions[index] || `${copy.spreadLabel} ${index + 1}`,
+      description: copy.descriptions[index] || copy.descriptions[copy.descriptions.length - 1],
+    })),
+    interpretationGuide: copy.guide,
+    tags: [categoryName, copy.cardCount(spread.cardCount), DIFFICULTY_LABEL[spread.difficulty]],
+    mood: copy.mood(categoryName),
+    ritual: copy.ritual(categoryName),
+  };
+}
+
 export const SPREAD_LIBRARY: TarotSpread[] = BLUEPRINTS.map(buildSpread);
+
+export function getLocalizedSpreadLibrary(locale: string | null | undefined) {
+  const normalized = normalizePromptMakerLocale(locale);
+  if (normalized === "ko") return SPREAD_LIBRARY;
+  return SPREAD_LIBRARY.map((spread) => localizeSpread(spread, normalized));
+}
 
 export function buildRecommendedQuestionsForSpread(spread: TarotSpread, questionCategory?: TarotSpreadCategory, limit = 5, currentQuestion = "") {
   const category = questionCategory || spread.category;
@@ -1246,4 +1409,9 @@ export function buildLocalizedRecommendedQuestionsForSpread(
 
 export function findSpreadById(id: string) {
   return SPREAD_LIBRARY.find((spread) => spread.id === id) || SPREAD_LIBRARY[0];
+}
+
+export function findLocalizedSpreadById(id: string, locale: string | null | undefined) {
+  const library = getLocalizedSpreadLibrary(locale);
+  return library.find((spread) => spread.id === id) || library[0];
 }
