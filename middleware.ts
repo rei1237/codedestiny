@@ -218,17 +218,21 @@ function decodeJwtPayload(token) {
   }
 }
 
+function hasJwtShape(rawToken) {
+  const token = String(rawToken || "").trim();
+  if (!token) return false;
+  return token.split(".").length >= 2;
+}
+
 function isUsableAuthToken(token) {
   const raw = String(token || "").trim();
   if (!raw) return false;
 
   const payload = decodeJwtPayload(raw);
-  // Fail-open on decode mismatch so middleware does not block login flow unexpectedly.
-  // Actual authentication validity is enforced by /api/auth/me and protected APIs.
-  if (!payload || typeof payload !== "object") return true;
+  if (!payload || typeof payload !== "object") return false;
 
   const exp = Number(payload.exp);
-  if (!Number.isFinite(exp)) return true;
+  if (!Number.isFinite(exp)) return false;
 
   const nowSec = Math.floor(Date.now() / 1000);
   return exp > nowSec + 5;
@@ -276,7 +280,7 @@ function hasAuthSessionCookie(request) {
   if (isUsableAuthToken(accessToken)) return true;
 
   const refreshToken = String(request.cookies.get("fortune_auth_refresh")?.value || "").trim();
-  return Boolean(refreshToken);
+  return hasJwtShape(refreshToken);
 }
 
 function buildLoginRedirectUrl(request) {

@@ -4753,7 +4753,14 @@ async function handleBalance(request, env) {
 }
 
 async function handleBillingSnapshotBalance(request, env) {
-  const snapshot = await readBillingSnapshot(request, env);
+  const billingUrl = new URL(request.url);
+  const isMoonlightStoneRequest = billingUrl.searchParams.get("moonlightStone") === "1";
+  const isCompactRequest = billingUrl.searchParams.get("compact") === "1" || isMoonlightStoneRequest;
+  const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : !isCompactRequest;
+  const snapshot = await readBillingSnapshot(request, env, {
+    seedLegacyCredit,
+    includeUnlocks: !isCompactRequest,
+  });
   if (snapshot?.degraded === true) {
     return success({
       ...snapshot,
@@ -4777,9 +4784,9 @@ async function handleBillingSnapshotBalance(request, env) {
         membershipCreditBalance: 0,
         monthlyCredits: 0,
         monthlyCreditsAsCoins: 0,
-      },
-      snapshot?.error?.details,
-    );
+        },
+        snapshot?.error?.details,
+      );
   }
   return success({
     ...snapshot,
@@ -5155,6 +5162,11 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
 }
 
 async function readBillingSnapshot(request, env, options = {}) {
+  const {
+    seedLegacyCredit = true,
+    includeUnlocks = true,
+  } = options || {};
+
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth?.userId) {
     return {
@@ -5177,17 +5189,24 @@ async function readBillingSnapshot(request, env, options = {}) {
 
   try {
     await connectDb(env);
-    const seededUser = options.seedLegacyCredit === false
-      ? null
-      : await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
-    const user = await User.findById(auth.userId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
-      .lean();
+    const [seededUser, user] = await Promise.all([
+      seedLegacyCredit === true ? seedMembershipCreditForExistingPassIfNeeded(auth.userId) : Promise.resolve(null),
+      User.findById(auth.userId)
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
+        .lean(),
+    ]);
     const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
     const sub = effectiveUser?.profileSubscription || {};
     const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});
     const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
-    const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, effectiveUser?.unlockedFeatures);
+    const scopedUnlocks = includeUnlocks && auth.userId
+      ? await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, effectiveUser?.unlockedFeatures)
+      : {
+          unlockedFeatures: normalizeUnlockedFeatureList(effectiveUser?.unlockedFeatures || []),
+          unlockMap: {},
+          contentKeys: [],
+          profileScopedAuthoritative: false,
+        };
     const unlockedFeatures = Array.from(new Set(scopedUnlocks.unlockedFeatures));
     const unlockMap = { ...scopedUnlocks.unlockMap };
     const balance = Number(effectiveUser?.points || 0);

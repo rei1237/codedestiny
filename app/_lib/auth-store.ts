@@ -334,7 +334,7 @@ export async function refreshBillingBalance() {
   if (billingBalanceInFlight) return billingBalanceInFlight;
 
   billingBalanceInFlight = (async () => {
-    const response = await authFetch("/api/billing/balance", {
+    const response = await authFetch("/api/billing/balance?compact=1", {
       method: "GET",
       cache: "no-store",
     });

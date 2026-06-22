@@ -31,6 +31,15 @@ function getJwtAudience(): string {
   return readEnv("JWT_AUDIENCE", "AUTH_AUDIENCE") || "code-destiny-web";
 }
 
+function buildExplicitJwtVerifyOptions(): jwt.VerifyOptions {
+  const verifyOptions: jwt.VerifyOptions = {};
+  const issuer = readEnv("JWT_ISSUER");
+  const audience = readEnv("JWT_AUDIENCE", "AUTH_AUDIENCE");
+  if (issuer) verifyOptions.issuer = issuer;
+  if (audience) verifyOptions.audience = audience;
+  return verifyOptions;
+}
+
 function routeAuthStackSnippet(error: unknown): string {
   const stack = String((error as any)?.stack || "");
   if (!stack) return "";
@@ -54,6 +63,10 @@ function logRouteAuthDiagnostic(req: NextRequest, error: unknown, marker: string
     env: {
       hasAuthSecret: Boolean(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
       hasJwtSecret: Boolean(process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET),
+      hasJwtIssuer: Boolean(readEnv("JWT_ISSUER")),
+      jwtIssuerValue: getJwtIssuer(),
+      hasJwtAudience: Boolean(readEnv("JWT_AUDIENCE", "AUTH_AUDIENCE")),
+      jwtAudienceValue: getJwtAudience(),
       hasAuthUrl: Boolean(process.env.AUTH_URL || process.env.NEXTAUTH_URL),
       hasAuthApiBaseUrl: Boolean(process.env.AUTH_API_BASE_URL),
       hasAuthTrustHost: Boolean(process.env.AUTH_TRUST_HOST || process.env.NEXTAUTH_TRUST_HOST),
@@ -103,10 +116,7 @@ function getDevAuthUserId(): string {
 function verifyAccessTokenAndExtractUserId(token: string): string {
   if (!token) return "";
   try {
-    const decoded = jwt.verify(token, getAccessTokenSecret(), {
-      issuer: getJwtIssuer(),
-      audience: getJwtAudience(),
-    });
+    const decoded = jwt.verify(token, getAccessTokenSecret(), buildExplicitJwtVerifyOptions());
     return extractUserId(decoded);
   } catch (e) {
     return "";
@@ -116,10 +126,7 @@ function verifyAccessTokenAndExtractUserId(token: string): string {
 function verifyRefreshTokenAndExtractUserId(token: string): string {
   if (!token) return "";
   try {
-    const decoded = jwt.verify(token, getRefreshTokenSecret(), {
-      issuer: getJwtIssuer(),
-      audience: getJwtAudience(),
-    });
+    const decoded = jwt.verify(token, getRefreshTokenSecret(), buildExplicitJwtVerifyOptions());
     if (!decoded || typeof decoded === "string") return "";
     const payload = decoded as AuthPayload;
     if (String(payload.typ || "").trim().toLowerCase() !== "refresh") return "";
