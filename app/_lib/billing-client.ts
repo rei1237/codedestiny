@@ -1318,7 +1318,24 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
   return Boolean(expectedFeature && unlockedFeatures.includes(expectedFeature));
 }
 
+function isWorkersDevBillingBaseUrl(baseUrl?: string | null): boolean {
+  const value = String(baseUrl || "").trim();
+  if (!value) return false;
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
+  } catch (e) {
+    return /workers\.dev/i.test(value);
+  }
+}
+
 function collectBillingFallbackBases(): string[] {
+  if (typeof window !== "undefined") {
+    const sameOrigin = normalizeBaseUrl(window.location.origin);
+    const currentHostIsWorkersDev = isWorkersDevBillingBaseUrl(sameOrigin);
+    if (!currentHostIsWorkersDev) return [];
+  }
+
   const fromEnv = [
     process.env.NEXT_PUBLIC_AUTH_API_BASE_URL,
     process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -1336,6 +1353,29 @@ function collectBillingFallbackBases(): string[] {
 
   return Array.from(new Set([...fromRuntime, ...fromEnv]))
     .filter((base) => Boolean(base) && base !== sameOrigin);
+}
+
+function hasClientAuthSessionHint() {
+  if (typeof window === "undefined") return false;
+  const user = readSanitizedAuthUser();
+  const userRecord = asRecord(user);
+  const userId = toText(userRecord?.id || userRecord?.userId || userRecord?._id || userRecord?.uid || userRecord?.email);
+  if (userId) return true;
+  try {
+    return document.cookie.includes("fortune_auth_role=");
+  } catch (e) {
+    return false;
+  }
+}
+
+function isAuthRequiredBillingCode(status: number, code?: unknown) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 401
+    || status === 403
+    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "LOGIN_REQUIRED"
+    || normalizedCode === "UNAUTHORIZED"
+    || normalizedCode === "NOT_LOGGED_IN";
 }
 
 async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
@@ -2304,6 +2344,79 @@ function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
   return null;
 }
 
+function buildRecoverablePaymentEligibility(input: {
+  productId?: string;
+  serviceType?: string;
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  coinCost?: number;
+  coinPrice?: number;
+  priceKRW?: number;
+  amountKRW?: number;
+}, phase: PaymentEligibilityPhase, parsed: BillingResult<Record<string, unknown>>): BillingResult<PaymentEligibility> {
+  const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
+  const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
+  const priceKRW = Math.max(0, Math.floor(toNumber(knownPriceKRW > 0 ? knownPriceKRW : coinCost * 100, 0)));
+  const authUser = asRecord(readSanitizedAuthUser());
+  const authSubscription = asRecord(authUser?.profileSubscription);
+  const monthlyBalance = phase === "pass"
+    ? 0
+    : Math.max(0, Math.floor(toNumber(
+      authUser?.monthlyStoneBalance
+        ?? authUser?.membershipCreditBalance
+        ?? authUser?.monthlyCredits
+        ?? authSubscription?.monthlyStoneBalance
+        ?? authSubscription?.membershipCreditBalance
+        ?? authSubscription?.monthlyCredits,
+      0,
+    )));
+  const monthlyCost = Math.max(0, Math.floor(coinCost * 10));
+
+  return {
+    ok: true,
+    status: 200,
+    data: {
+      loading: false,
+      coinCost,
+      priceKRW,
+      access: {
+        canAccess: false,
+        alreadyUnlocked: false,
+        reason: "auth_recovered_payment_required",
+      },
+      pass: {
+        hasActivePass: false,
+        tier: null,
+        label: null,
+        limit: null,
+        totalUses: null,
+        remainingUses: null,
+        canUse: false,
+      },
+      monthly: {
+        balance: monthlyBalance,
+        canUse: phase !== "pass" && monthlyCost > 0 && monthlyBalance >= monthlyCost,
+        afterBalance: phase === "pass" ? 0 : Math.max(0, monthlyBalance - monthlyCost),
+      },
+      card: {
+        canUse: phase !== "pass",
+        provider: "PORTONE_V2_KG_INICIS",
+      },
+      raw: {
+        recoveredFromAuthRequired: true,
+        originalStatus: parsed.status,
+        originalCode: parsed.error?.code || asRecord(parsed.raw)?.code || "",
+        originalMessage: parsed.error?.message || parsed.message || "",
+      },
+    },
+    message: "결제 가능한 상품을 확인했습니다.",
+    error: null,
+    raw: parsed.raw,
+  };
+}
+
 async function fetchPaymentEligibilityUncached(input: {
   productId?: string;
   serviceType?: string;
@@ -2358,6 +2471,10 @@ async function fetchPaymentEligibilityUncached(input: {
   if (!parsed.ok || !parsed.data) {
     const failureCode = toText(parsed.error?.code || (asRecord(parsed.raw)?.code));
     if (shouldInvalidateSubscriptionSnapshot(parsed.status, failureCode)) clearSubscriptionSnapshotForUser();
+    if (isAuthRequiredBillingCode(parsed.status, failureCode) && hasClientAuthSessionHint()) {
+      const recovered = buildRecoverablePaymentEligibility(input, phase, parsed);
+      if (recovered.data && recovered.data.coinCost > 0) return recovered;
+    }
     return {
       ...parsed,
       data: null,
