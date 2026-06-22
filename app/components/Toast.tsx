@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 export type ToastType = "success" | "error" | "info";
 
@@ -44,6 +45,21 @@ const ICONS: Record<ToastType, string> = {
   info: "◈",
 };
 
+const TOAST_CLOSE_LABEL: Record<LoadingLocale, string> = {
+  ko: "닫기",
+  en: "Close",
+  ja: "閉じる",
+  "zh-CN": "关闭",
+  "zh-TW": "關閉",
+  vi: "Đóng",
+  hi: "बंद करें",
+  es: "Cerrar",
+  fr: "Fermer",
+  de: "Schließen",
+  nl: "Sluiten",
+  ms: "Tutup",
+};
+
 function SingleToast({
   item,
   onRemove,
@@ -52,6 +68,7 @@ function SingleToast({
   onRemove: (id: number) => void;
 }) {
   const [visible, setVisible] = useState(false);
+  const closeLabel = TOAST_CLOSE_LABEL[getCurrentLoadingLocale()] || TOAST_CLOSE_LABEL.ko;
 
   useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 16);
@@ -84,7 +101,7 @@ function SingleToast({
         type="button"
         onClick={() => onRemove(item.id)}
         className="ml-1 shrink-0 text-lg leading-none text-white/45 transition-colors hover:text-white/90 focus:outline-none"
-        aria-label="닫기"
+        aria-label={closeLabel}
       >
         ×
       </button>
