@@ -21,6 +21,8 @@ const buttonLangToFile = {
   en: "en.json",
   ja: "ja.json",
   "zh-CN": "zh-cn.json",
+  "zh-TW": "zh-tw.json",
+  vi: "vi.json",
   hi: "hi.json",
   es: "es.json",
   fr: "fr.json",

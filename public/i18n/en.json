@@ -4,8 +4,8 @@
 
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Eastern Meta-Psychology · Decoded",
-    "subtitle": "Where ancient wisdom meets modern AI",
+    "tagline": "Eastern wisdom, read with modern AI",
+    "subtitle": "Ancient divination traditions, softly decoded for your next step",
     "trustBadge": "Trusted by 100,000+ seekers across 80+ countries"
   },
 
@@ -15,11 +15,11 @@
       "brandLine": "Celestial Fortune Collection",
       "titleLine1": "Free Saju & Tarot",
       "titleAccent": "Today's Fortune",
-      "titleLine3": "All in One Place",
-      "lead": "Explore Saju, tarot, Zi Wei Dou Shu, astrology, Sukuyo compatibility, and today's fortune in one calm space. Enter your birth details or a question, and receive a reading that clarifies the moment before your next choice.",
+      "titleLine3": "Held in One Calm Space",
+      "lead": "Explore Saju, tarot, Zi Wei Dou Shu, astrology, Sukuyo compatibility, and today's fortune in one quiet space. Share your birth details or a present question, and let the reading clarify the flow before your next choice.",
       "primaryCta": "Start Free Saju Reading",
       "tarotCta": "Draw Tarot Cards",
-      "todayCta": "View Today's Fortune"
+      "todayCta": "Open Today's Fortune"
     },
     "nav": {
       "home": "Home",
@@ -58,16 +58,16 @@
       "hint": "✦ Moonlight playlist"
     },
     "mapIntro": {
-      "title": "Open the destiny gates placed upon the moonlit map",
-      "desc": "Tarot, oracles, destiny flowers, dream readings, meditation, and premium reports. The sign you need now glows quietly in the texture of each card.",
+      "title": "Open the destiny gates on the moonlit map",
+      "desc": "Tarot, oracles, destiny flowers, dream readings, meditation, and premium readings. The sign you need now glows quietly through the texture of each card.",
       "chipTarot": "Tarot",
       "chipOracle": "Oracles",
       "chipFlower": "Flowers & Dreams",
       "chipPremium": "Premium Reports"
     },
     "input": {
-      "title": "Start Saju Analysis",
-      "desc": "Enter your name and birth time to unfold the chart, elements, and Ten Gods in order.",
+      "title": "Begin Your Saju Reading",
+      "desc": "Enter your name and birth time, and the chart, elements, and Ten Gods open in a clear order.",
       "nameLabel": "Name",
       "nameHint": "Enter the name to show in your reading.",
       "birthDateLabel": "Date of birth",
@@ -84,7 +84,7 @@
       "genderLabel": "Gender",
       "female": "Female",
       "male": "Male",
-      "submit": "Start Free Saju Analysis",
+      "submit": "Start Free Saju Reading",
       "saveProfile": "Save profile card",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao share event",
@@ -94,7 +94,7 @@
     "startSection": {
       "kicker": "TODAY CARDS",
       "title": "Free Destiny Cards to Open Today",
-      "lead": "Start gently under the moonlight with the lightest cards for your first visit."
+      "lead": "Start gently under the moonlight with the cards that feel easiest to open first."
     },
     "startCards": {
       "ziweiBadge": "Collection No. 01 · Picked",
@@ -355,13 +355,13 @@
     "saju": {
       "name": "Four Pillars of Destiny",
       "short": "Saju Reading",
-      "description": "The original Eastern Meta-Psychology system. Your birthdate encodes a precise cosmic signature — four pillars, eight characters, infinite depth.",
+      "description": "Saju is the Korean Four Pillars tradition. Your birthdate opens four pillars, eight characters, and a quiet map of timing, temperament, and direction.",
       "badge": "Most Popular"
     },
     "tarot": {
       "name": "AI Tarot Guidance",
       "short": "AI Tarot",
-      "description": "Ancient archetypal wisdom amplified by artificial intelligence. Each reading reflects your unique energetic field."
+      "description": "Ancient archetypal wisdom, read with modern AI. Each spread reflects the question, emotional weather, and choice that are alive now."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu (Purple Star Astrology)",
@@ -400,7 +400,7 @@
 
   "footer": {
     "tagline": "Ancient wisdom, modern precision.",
-    "about": "Code Destiny is an AI-powered fortune & destiny analysis platform combining 3,000+ years of Eastern cosmological systems with modern artificial intelligence. Available in 10 languages, free to use.",
+    "about": "Code Destiny brings 3,000+ years of Eastern cosmology together with modern AI, offering calm fortune readings in 10 languages with free core experiences.",
     "sections": {
       "services": "Services",
       "resources": "Resources",

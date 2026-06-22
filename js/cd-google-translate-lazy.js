@@ -28,7 +28,7 @@
         window.__cdGTInited = true;
         new window.google.translate.TranslateElement({
           pageLanguage: 'ko',
-          includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
+          includedLanguages: 'ko,en,ja,zh-CN,zh-TW,vi,fr,es,hi,de,nl,ms',
           autoDisplay: false
         }, 'google_translate_element');
       };
@@ -44,8 +44,11 @@
 
   function normalizeLang(lang) {
     var next = String(lang || '').trim();
-    if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
-    if (/^(ko|en|ja|zh-CN|hi|es|fr|de|nl|ms)$/.test(next)) return next;
+    var lower = next.toLowerCase().replace('_', '-');
+    if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-hans') return 'zh-CN';
+    if (lower === 'zh-tw' || lower === 'zh-hant' || lower === 'zh-hk' || lower === 'zh-mo') return 'zh-TW';
+    if (lower === 'vi-vn') return 'vi';
+    if (/^(ko|en|ja|zh-CN|zh-TW|vi|hi|es|fr|de|nl|ms)$/.test(next)) return next;
     return 'ko';
   }
 

@@ -3,29 +3,29 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Sagesse Orientale × Analyse IA",
-    "subtitle": "3 000 ans de numérologie chinoise, décodés par l'IA moderne",
+    "tagline": "Sagesse orientale lue avec l'IA",
+    "subtitle": "Traditions anciennes et IA moderne pour éclairer votre prochain pas",
     "trustBadge": "Plus de 100 000 chercheurs dans 80+ pays nous font confiance"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / Honey Pig Fortune",
       "brandLine": "Collection céleste des destinées",
-      "titleLine1": "Saju et tarot gratuits",
+      "titleLine1": "Quatre Piliers et tarot gratuits",
       "titleAccent": "Guidance du jour",
-      "titleLine3": "sur une seule plateforme",
-      "lead": "Explorez le Saju, le tarot, le Zi Wei Dou Shu, l'astrologie, le Sukuyo, les compatibilités et la guidance du jour dans un même espace apaisé. Entrez vos données de naissance ou votre question, puis recevez une lecture qui éclaire le moment avant votre prochain choix.",
-      "primaryCta": "Commencer le Saju gratuit",
+      "titleLine3": "dans une même lumière de lune",
+      "lead": "Explorez les Quatre Piliers, le tarot, le Zi Wei Dou Shu, l'astrologie, l'astrologie Sukuyo, les compatibilités et la guidance du jour dans un espace apaisé. Entrez vos données de naissance ou votre question actuelle, puis recevez une lecture qui éclaire le moment avant votre prochain choix.",
+      "primaryCta": "Lire mes Quatre Piliers gratuitement",
       "tarotCta": "Tirer les cartes du tarot",
       "todayCta": "Voir la guidance du jour"
     },
     "nav": {
       "home": "Accueil",
-      "saju": "Saju",
+      "saju": "Quatre Piliers",
       "tarot": "Tarot",
       "astrology": "Astrologie",
-      "sukuyo": "Sukuyo",
-      "ziwei": "Zi Wei",
+      "sukuyo": "Astrologie Sukuyo",
+      "ziwei": "Zi Wei Dou Shu",
       "vedic": "Védique",
       "flowerDream": "Fleurs & rêves",
       "vvip": "Bibliothèque VVIP",
@@ -64,7 +64,7 @@
       "chipPremium": "Rapports premium"
     },
     "input": {
-      "title": "Commencer l'analyse Saju",
+      "title": "Commencer la lecture des Quatre Piliers",
       "desc": "Entrez votre nom et votre heure de naissance pour dérouler le thème, les éléments et les Dix Dieux.",
       "nameLabel": "Nom",
       "nameHint": "Indiquez le nom à afficher dans votre lecture.",
@@ -82,7 +82,7 @@
       "genderLabel": "Genre",
       "female": "Femme",
       "male": "Homme",
-      "submit": "Commencer l'analyse Saju gratuite",
+      "submit": "Lecture gratuite des Quatre Piliers",
       "saveProfile": "Enregistrer la carte de profil",
       "saveOptional": "Facultatif",
       "kakaoEvent": "Événement de partage Kakao",
@@ -110,7 +110,7 @@
       "sukuyoBadge": "Collection No. 04 · Recommandé",
       "sukuyoTitle": "Sukuyo",
       "sukuyoDesc": "Vérifiez d'abord votre demeure lunaire, votre tempérament et le rythme du jour.",
-      "sukuyoCta": "Voir le Sukuyo gratuit"
+      "sukuyoCta": "Voir l'astrologie Sukuyo gratuite"
     },
     "collectionHeaders": {
       "animal": {
@@ -283,7 +283,7 @@
     "오행": "Cinq Éléments",
     "음양": "Yin et Yang",
     "자미두수": "Astrologie Étoile Pourpre (Zi Wei Dou Shu)",
-    "숙요점": "Oracle des 27 Maisons Lunaires",
+    "숙요점": "Astrologie Sukuyo (27 maisons lunaires)",
     "명리학": "Science de l'Analyse du Destin",
     "궁합": "Compatibilité Cosmique",
     "운명의꽃": "Archétype Floral du Destin",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "Sagesse ancienne, précision moderne.",
-    "about": "Code Destiny est une plateforme d'analyse du destin et de la fortune propulsée par l'IA, combinant plus de 3 000 ans de systèmes cosmologiques orientaux avec l'intelligence artificielle moderne. Disponible en 10 langues, gratuit.",
+    "about": "Code Destiny relie plus de 3 000 ans de cosmologie orientale à l'IA moderne pour offrir des lectures calmes en 10 langues, avec des expériences essentielles gratuites.",
     "links": {
       "privacy": "Politique de Confidentialité",
       "terms": "Conditions d'Utilisation",
@@ -451,14 +451,14 @@
   "services": {
     "saju": {
       "name": "Quatre Piliers du Destin",
-      "short": "Lecture Saju",
-      "description": "Le système originel de métapsychologie orientale. Votre date de naissance encode une signature cosmique précise: quatre piliers, huit caractères et une profondeur infinie.",
+      "short": "Lecture des Quatre Piliers",
+      "description": "Les Quatre Piliers lisent le tempérament, le timing et la direction à partir des données de naissance, des éléments et des cycles. Ils ne figent pas l'avenir; ils révèlent le rythme dans lequel un choix devient plus clair.",
       "badge": "Populaire"
     },
     "tarot": {
       "name": "Guidance Tarot IA",
       "short": "Tarot IA",
-      "description": "Sagesse archétypale ancienne amplifiée par l’intelligence artificielle. Chaque tirage reflète votre champ énergétique du moment."
+      "description": "Sagesse archétypale ancienne lue avec l'IA moderne. Chaque tirage reflète la question, la météo émotionnelle et la direction vivante du moment."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",

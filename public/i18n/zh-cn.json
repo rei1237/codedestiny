@@ -1,23 +1,23 @@
 {
-  "_comment": "Code Destiny — Chinese Simplified premium localization (zh-cn.json)",
+  "_comment": "Code Destiny - Chinese Simplified premium localization (zh-cn.json)",
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "东方智慧 × AI解析",
-    "subtitle": "3000年命理学，现代AI精准解读",
-    "trustBadge": "全球80+国家，逾10万用户信赖的命运分析平台"
+    "tagline": "以现代AI，温柔读懂东方智慧",
+    "subtitle": "古老命理与星辰语言，为你照亮下一步",
+    "trustBadge": "全球80+国家，逾10万用户选择的占卜体验"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / 蜜豚运势",
-      "brandLine": "星辰命运合集",
+      "brandLine": "月光里的占卜合集",
       "titleLine1": "免费八字 · 塔罗",
       "titleAccent": "今日运势",
-      "titleLine3": "一站式平台",
-      "lead": "在这里集中查看八字、塔罗、紫微斗数、占星、宿曜、合盘与今日运势。输入出生信息或当下的问题，让解读为你梳理此刻的气场与下一步选择。",
-      "primaryCta": "开始免费八字分析",
+      "titleLine3": "归于一片月光",
+      "lead": "八字、塔罗、紫微斗数、占星、宿曜、合盘与今日运势，都在这里静静展开。输入出生信息，或把此刻的问题交给牌面与星象，让下一步的方向渐渐清晰。",
+      "primaryCta": "用八字免费占算",
       "tarotCta": "抽取塔罗牌",
-      "todayCta": "查看今日运势"
+      "todayCta": "开启今日运势"
     },
     "nav": {
       "home": "首页",
@@ -56,16 +56,16 @@
       "hint": "✦ 月光播放列表"
     },
     "mapIntro": {
-      "title": "打开月光地图上的命运之门",
-      "desc": "塔罗、神谕、命运之花、解梦、冥想与高级报告。此刻需要的征兆，会在卡片纹理中静静发光。",
+      "title": "月光地图上，命运之门正缓缓开启",
+      "desc": "塔罗、神谕、命运之花、解梦、冥想与进阶占断。此刻需要的征兆，会在卡片纹理里静静发光。",
       "chipTarot": "塔罗",
       "chipOracle": "神谕",
       "chipFlower": "花与梦",
       "chipPremium": "高级报告"
     },
     "input": {
-      "title": "开始八字分析",
-      "desc": "输入姓名与出生时间后，命盘、五行与十神流向会依次展开。",
+      "title": "用八字读懂此刻的流向",
+      "desc": "输入姓名与出生时间后，命盘、五行与十神的脉络会依次展开。",
       "nameLabel": "姓名",
       "nameHint": "请输入要显示在分析结果中的姓名。",
       "birthDateLabel": "出生日期",
@@ -82,7 +82,7 @@
       "genderLabel": "性别",
       "female": "女性",
       "male": "男性",
-      "submit": "开始免费八字分析",
+      "submit": "免费八字占算",
       "saveProfile": "保存个人命运卡",
       "saveOptional": "可选",
       "kakaoEvent": "Kakao分享活动",
@@ -91,8 +91,8 @@
     },
     "startSection": {
       "kicker": "TODAY CARDS",
-      "title": "今日可开启的免费命运卡",
-      "lead": "初次来到这里，也可以从月光下最轻盈的卡片开始。"
+      "title": "今日可以开启的免费命运卡",
+      "lead": "即使是第一次来到这里，也可以从月光下最轻盈的一张牌开始。"
     },
     "startCards": {
       "ziweiBadge": "Collection No. 01 · 推荐",
@@ -272,7 +272,7 @@
     }
   },
   "terms": {
-    "사주": "四柱八字",
+    "사주": "八字命理",
     "사주팔자": "四柱八字（Ba Zi）",
     "용신": "用神（命局平衡枢纽）",
     "격국": "格局（命式核心原型）",
@@ -283,9 +283,9 @@
     "오행": "五行",
     "음양": "阴阳",
     "자미두수": "紫微斗数",
-    "숙요점": "二十七宿神谕",
+    "숙요점": "宿曜占星（二十七宿）",
     "명리학": "命理学",
-    "궁합": "合婚配对",
+    "궁합": "合盘相性",
     "운명의꽃": "命运之花原型",
     "타로": "塔罗",
     "신살": "神煞（业力指标）",
@@ -332,7 +332,7 @@
     }
   },
   "trust": {
-    "headline": "为何超10万人信赖Code Destiny",
+    "headline": "为何超10万人选择Code Destiny",
     "badges": [
       {
         "icon": "🌍",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "古代智慧，现代精准。",
-    "about": "Code Destiny是一个AI驱动的命运分析平台，融合超过3000年的东方宇宙命理体系与现代人工智能。支持10种语言，基础功能永久免费。",
+    "about": "Code Destiny把三千年以上的东方命理与现代AI结合在一起，以10种语言提供安静、清晰的占卜体验，核心功能可免费开启。",
     "links": {
       "privacy": "隐私政策",
       "terms": "服务条款",
@@ -450,20 +450,20 @@
   },
   "services": {
     "saju": {
-      "name": "四柱八字",
-      "short": "八字命盘",
-      "description": "东方命理心理学的源头。出生日期中藏着精密的宇宙签名：四柱、八字，以及无穷层次。",
+      "name": "八字命理",
+      "short": "八字占算",
+      "description": "八字命理以四柱与五行读出人生的气质、时机与方向。出生信息不是冷冰冰的数据，而是一张关于流年与选择的星图。",
       "badge": "最受欢迎"
     },
     "tarot": {
       "name": "AI塔罗指引",
       "short": "AI塔罗",
-      "description": "以人工智能放大古老原型智慧。每一次牌阵，都映照你当下独特的能量场。"
+      "description": "古老牌面与现代AI一起回应你的提问。每一次牌阵，都映照当下的情绪天气、关系温度与可选择的方向。"
     },
     "ziwei": {
       "name": "紫微斗数",
       "short": "星盘命宫",
-      "description": "古代中国的帝王星盘系统。144个宫位与108颗星，构成一幅完整的人生命运全景。",
+      "description": "紫微斗数以十二宫与诸星的落位，读出性格、关系、事业与财帛的起伏。它像一幅细密的人生星盘，照见长期的流向。",
       "badge": "深度解析"
     },
     "astrology": {

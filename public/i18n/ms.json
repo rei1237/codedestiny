@@ -3,29 +3,29 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Kebijaksanaan Timur × Analisis AI",
-    "subtitle": "3,000 tahun numerologi China, ditafsir oleh AI moden",
+    "tagline": "Kebijaksanaan Timur, dibaca lembut oleh AI",
+    "subtitle": "Tradisi ramalan purba menerangi langkah anda yang seterusnya",
     "trustBadge": "Lebih 100,000 pengguna di 80+ negara mempercayai kami"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / Honey Pig Fortune",
       "brandLine": "Koleksi Takdir Cakerawala",
-      "titleLine1": "Saju & Tarot Percuma",
+      "titleLine1": "Empat Tiang & Tarot Percuma",
       "titleAccent": "Ramalan Hari Ini",
-      "titleLine3": "dalam satu platform",
-      "lead": "Terokai Saju, tarot, Zi Wei Dou Shu, astrologi, Sukuyo, keserasian dan ramalan hari ini dalam satu ruang yang tenang. Masukkan maklumat kelahiran atau soalan anda, lalu terima bacaan yang menjernihkan saat sebelum pilihan seterusnya.",
-      "primaryCta": "Mulakan bacaan Saju percuma",
+      "titleLine3": "dalam satu cahaya bulan",
+      "lead": "Terokai Empat Tiang, tarot, Zi Wei Dou Shu, astrologi, astrologi Sukuyo, keserasian dan ramalan hari ini dalam ruang yang tenang. Masukkan maklumat kelahiran atau soalan semasa anda, lalu terima bacaan yang menjernihkan saat sebelum pilihan seterusnya.",
+      "primaryCta": "Mulakan bacaan Empat Tiang percuma",
       "tarotCta": "Cabut kad tarot",
       "todayCta": "Lihat ramalan hari ini"
     },
     "nav": {
       "home": "Utama",
-      "saju": "Saju",
+      "saju": "Empat Tiang",
       "tarot": "Tarot",
       "astrology": "Astrologi",
-      "sukuyo": "Sukuyo",
-      "ziwei": "Zi Wei",
+      "sukuyo": "Astrologi Sukuyo",
+      "ziwei": "Zi Wei Dou Shu",
       "vedic": "Veda",
       "flowerDream": "Bunga & Mimpi",
       "vvip": "Arkib VVIP",
@@ -64,7 +64,7 @@
       "chipPremium": "Laporan premium"
     },
     "input": {
-      "title": "Mulakan Analisis Saju",
+      "title": "Mulakan Bacaan Empat Tiang",
       "desc": "Masukkan nama dan masa lahir untuk membuka carta, elemen dan Sepuluh Dewa secara berturutan.",
       "nameLabel": "Nama",
       "nameHint": "Masukkan nama yang akan dipaparkan dalam bacaan.",
@@ -82,7 +82,7 @@
       "genderLabel": "Jantina",
       "female": "Perempuan",
       "male": "Lelaki",
-      "submit": "Mulakan analisis Saju percuma",
+      "submit": "Bacaan Empat Tiang percuma",
       "saveProfile": "Simpan kad profil",
       "saveOptional": "Pilihan",
       "kakaoEvent": "Acara kongsi Kakao",
@@ -110,7 +110,7 @@
       "sukuyoBadge": "Collection No. 04 · Disyorkan",
       "sukuyoTitle": "Sukuyo",
       "sukuyoDesc": "Semak rumah bulan, perangai dan rentak rujukan hari ini terlebih dahulu.",
-      "sukuyoCta": "Lihat Sukuyo percuma"
+      "sukuyoCta": "Lihat astrologi Sukuyo percuma"
     },
     "collectionHeaders": {
       "animal": {
@@ -283,7 +283,7 @@
     "오행": "Lima Elemen",
     "음양": "Yin dan Yang",
     "자미두수": "Astrologi Bintang Ungu (Zi Wei Dou Shu)",
-    "숙요점": "Oracle 27 Rumah Bulan",
+    "숙요점": "Astrologi Sukuyo (27 Rumah Bulan)",
     "명리학": "Sains Analisis Nasib",
     "궁합": "Keserasian Kosmik",
     "운명의꽃": "Arkitaip Bunga Nasib",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "Kebijaksanaan purba, ketepatan moden.",
-    "about": "Code Destiny ialah platform analisis nasib dan tuah berkuasa AI yang menggabungkan lebih 3,000 tahun sistem kosmologi Timur dengan kecerdasan buatan moden. Tersedia dalam 10 bahasa, percuma untuk digunakan.",
+    "about": "Code Destiny menggabungkan lebih 3,000 tahun kosmologi Timur dengan AI moden untuk membuka bacaan nasib yang tenang dalam 10 bahasa, dengan pengalaman asas percuma.",
     "links": {
       "privacy": "Dasar Privasi",
       "terms": "Terma Perkhidmatan",
@@ -451,14 +451,14 @@
   "services": {
     "saju": {
       "name": "Empat Tiang Takdir",
-      "short": "Bacaan Saju",
-      "description": "Sistem asal meta-psikologi Timur. Tarikh lahir anda menyimpan tandatangan kosmik yang tepat: empat tiang, lapan aksara, dan kedalaman luas.",
+      "short": "Bacaan Empat Tiang",
+      "description": "Empat Tiang membaca perangai, masa dan arah melalui maklumat kelahiran, unsur dan kitaran. Ia tidak membekukan masa depan, tetapi menunjukkan rentak ketika pilihan menjadi lebih jelas.",
       "badge": "Popular"
     },
     "tarot": {
       "name": "Panduan Tarot AI",
       "short": "Tarot AI",
-      "description": "Kebijaksanaan arketip purba diperkuat oleh kecerdasan buatan. Setiap bacaan memantulkan medan tenaga anda saat ini."
+      "description": "Kebijaksanaan arketip purba dibaca bersama AI moden. Setiap bentangan memantulkan soalan, cuaca emosi dan arah yang sedang hidup sekarang."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",

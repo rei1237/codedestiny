@@ -3,29 +3,29 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Östliche Weisheit × KI-Analyse",
-    "subtitle": "3.000 Jahre chinesische Numerologie, entschlüsselt durch moderne KI",
+    "tagline": "Östliche Weisheit, sanft mit KI gelesen",
+    "subtitle": "Alte Deutungskunst und moderne KI leuchten deinen nächsten Schritt aus",
     "trustBadge": "Über 100.000 Suchende in 80+ Ländern vertrauen uns"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / Honey Pig Fortune",
       "brandLine": "Himmlische Schicksalssammlung",
-      "titleLine1": "Kostenloses Saju & Tarot",
+      "titleLine1": "Kostenlose Vier Säulen & Tarot",
       "titleAccent": "Dein Tagesorakel",
-      "titleLine3": "an einem Ort",
-      "lead": "Entdecke Saju, Tarot, Zi Wei Dou Shu, Astrologie, Sukuyo, Kompatibilität und dein Tagesorakel in einem ruhigen Raum. Gib deine Geburtsdaten oder deine Frage ein und erhalte eine Deutung, die den Moment vor deiner nächsten Entscheidung klärt.",
-      "primaryCta": "Kostenlose Saju-Deutung starten",
+      "titleLine3": "in einem ruhigen Mondlicht",
+      "lead": "Entdecke die Vier Säulen, Tarot, Zi Wei Dou Shu, Astrologie, Sukuyo-Astrologie, Kompatibilität und dein Tagesorakel in einem ruhigen Raum. Gib deine Geburtsdaten oder deine aktuelle Frage ein, und die Deutung klärt den Moment vor deiner nächsten Entscheidung.",
+      "primaryCta": "Kostenlose Vier-Säulen-Deutung starten",
       "tarotCta": "Tarotkarten ziehen",
       "todayCta": "Tagesorakel ansehen"
     },
     "nav": {
       "home": "Start",
-      "saju": "Saju",
+      "saju": "Vier Säulen",
       "tarot": "Tarot",
       "astrology": "Astrologie",
-      "sukuyo": "Sukuyo",
-      "ziwei": "Zi Wei",
+      "sukuyo": "Sukuyo-Astrologie",
+      "ziwei": "Zi Wei Dou Shu",
       "vedic": "Vedisch",
       "flowerDream": "Blumen & Träume",
       "vvip": "VVIP-Archiv",
@@ -64,7 +64,7 @@
       "chipPremium": "Premiumberichte"
     },
     "input": {
-      "title": "Saju-Analyse starten",
+      "title": "Vier-Säulen-Deutung beginnen",
       "desc": "Gib Name und Geburtszeit ein, damit Chart, Elemente und Zehn Götter der Reihe nach sichtbar werden.",
       "nameLabel": "Name",
       "nameHint": "Gib den Namen ein, der in der Deutung erscheinen soll.",
@@ -82,7 +82,7 @@
       "genderLabel": "Geschlecht",
       "female": "Weiblich",
       "male": "Männlich",
-      "submit": "Kostenlose Saju-Analyse starten",
+      "submit": "Kostenlose Vier-Säulen-Deutung",
       "saveProfile": "Profilkarte speichern",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao-Teilen-Event",
@@ -110,7 +110,7 @@
       "sukuyoBadge": "Collection No. 04 · Empfohlen",
       "sukuyoTitle": "Sukuyo",
       "sukuyoDesc": "Prüfe zuerst deine Mondstation, dein Temperament und den Tagesrhythmus.",
-      "sukuyoCta": "Kostenloses Sukuyo ansehen"
+      "sukuyoCta": "Kostenlose Sukuyo-Astrologie öffnen"
     },
     "collectionHeaders": {
       "animal": {
@@ -283,7 +283,7 @@
     "오행": "Fünf Elemente",
     "음양": "Yin und Yang",
     "자미두수": "Purpurstern-Astrologie (Zi Wei Dou Shu)",
-    "숙요점": "Orakel der 27 Mondstationen",
+    "숙요점": "Sukuyo-Astrologie (27 Mondstationen)",
     "명리학": "Schicksalsanalyse-Wissenschaft",
     "궁합": "Kosmische Kompatibilität",
     "운명의꽃": "Schicksals-Blumen-Archetyp",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "Antike Weisheit, moderne Präzision.",
-    "about": "Code Destiny ist eine KI-gestützte Schicksals- und Fortunanalyse-Plattform, die über 3.000 Jahre östlicher kosmologischer Systeme mit moderner künstlicher Intelligenz verbindet. In 10 Sprachen verfügbar, kostenlos nutzbar.",
+    "about": "Code Destiny verbindet mehr als 3.000 Jahre östlicher Kosmologie mit moderner KI und öffnet ruhige Deutungen in 10 Sprachen, mit kostenlosen Kernangeboten.",
     "links": {
       "privacy": "Datenschutzrichtlinie",
       "terms": "Nutzungsbedingungen",
@@ -451,14 +451,14 @@
   "services": {
     "saju": {
       "name": "Vier Säulen des Schicksals",
-      "short": "Saju-Lesung",
-      "description": "Das ursprüngliche System östlicher Meta-Psychologie. Dein Geburtsdatum trägt eine präzise kosmische Signatur: vier Säulen, acht Zeichen und tiefe Resonanz.",
+      "short": "Vier-Säulen-Deutung",
+      "description": "Die Vier Säulen lesen Temperament, Timing und Richtung aus Geburtsdaten, Elementen und Zyklen. Sie zeigen keine starre Zukunft, sondern den Rhythmus, in dem Entscheidungen leichter werden.",
       "badge": "Beliebt"
     },
     "tarot": {
       "name": "KI-Tarotführung",
       "short": "KI-Tarot",
-      "description": "Archetypische Weisheit, verstärkt durch künstliche Intelligenz. Jede Lesung spiegelt dein gegenwärtiges Energiefeld."
+      "description": "Alte archetypische Weisheit, mit moderner KI gelesen. Jede Legung spiegelt die Frage, die emotionale Wetterlage und die Richtung, die jetzt lebendig ist."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",

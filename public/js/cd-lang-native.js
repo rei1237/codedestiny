@@ -1,13 +1,15 @@
 (function () {
   'use strict';
 
-  var SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh-CN', 'hi', 'es', 'fr', 'de', 'nl', 'ms'];
-  var INCLUDED_GT_LANGUAGES = 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms';
+  var SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms'];
+  var INCLUDED_GT_LANGUAGES = 'ko,en,ja,zh-CN,zh-TW,vi,fr,es,hi,de,nl,ms';
   var LABEL_BY_LANG = {
     ko: 'KR',
     en: 'ENG',
     ja: 'JPN',
     'zh-CN': 'CHN',
+    'zh-TW': 'TWN',
+    vi: 'VIE',
     hi: 'HIN',
     es: 'ESP',
     fr: 'FRA',
@@ -19,6 +21,8 @@
     en: 'en',
     ja: 'ja',
     'zh-CN': 'zh-cn',
+    'zh-TW': 'zh-tw',
+    vi: 'vi',
     hi: 'hi',
     es: 'es',
     fr: 'fr',
@@ -35,7 +39,10 @@
 
   function normalizeLang(lang) {
     var next = String(lang || '').trim();
-    if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
+    var lower = next.toLowerCase().replace('_', '-');
+    if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-hans') return 'zh-CN';
+    if (lower === 'zh-tw' || lower === 'zh-hant' || lower === 'zh-hk' || lower === 'zh-mo') return 'zh-TW';
+    if (lower === 'vi-vn') return 'vi';
     return isSupportedLang(next) ? next : 'ko';
   }
 

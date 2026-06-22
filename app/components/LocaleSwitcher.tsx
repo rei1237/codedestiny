@@ -5,14 +5,23 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 import { getRouteKeyByLocalizedPath, I18N_ROUTE_MAP } from "../../lib/i18n/routes";
 
-type LocaleCode = "ko" | "en" | "ja" | "zh";
-type LocaleItem = { code: LocaleCode; slug: string; label: string; hrefLang: string };
+type LocaleCode = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+type RouteLocaleCode = "ko" | "en" | "ja" | "zh";
+type LocaleItem = { code: LocaleCode; slug: string; label: string; shortLabel: string; hrefLang: string; routeLocale?: RouteLocaleCode };
 
 const LOCALES: LocaleItem[] = [
-  { code: "ko", slug: "", label: "한국어", hrefLang: "ko" },
-  { code: "en", slug: "/en", label: "English", hrefLang: "en" },
-  { code: "ja", slug: "/ja", label: "日本語", hrefLang: "ja" },
-  { code: "zh", slug: "/zh", label: "中文", hrefLang: "zh" },
+  { code: "ko", slug: "", label: "한국어", shortLabel: "KR", hrefLang: "ko", routeLocale: "ko" },
+  { code: "en", slug: "/en", label: "English", shortLabel: "ENG", hrefLang: "en", routeLocale: "en" },
+  { code: "ja", slug: "/ja", label: "日本語", shortLabel: "JPN", hrefLang: "ja", routeLocale: "ja" },
+  { code: "zh-CN", slug: "/zh", label: "简体中文", shortLabel: "CHN", hrefLang: "zh-CN", routeLocale: "zh" },
+  { code: "zh-TW", slug: "", label: "繁體中文", shortLabel: "TWN", hrefLang: "zh-TW" },
+  { code: "vi", slug: "", label: "Tiếng Việt", shortLabel: "VIE", hrefLang: "vi" },
+  { code: "hi", slug: "", label: "हिन्दी", shortLabel: "HIN", hrefLang: "hi" },
+  { code: "es", slug: "", label: "Español", shortLabel: "ESP", hrefLang: "es" },
+  { code: "fr", slug: "", label: "Français", shortLabel: "FRA", hrefLang: "fr" },
+  { code: "de", slug: "", label: "Deutsch", shortLabel: "DEU", hrefLang: "de" },
+  { code: "nl", slug: "", label: "Nederlands", shortLabel: "NLD", hrefLang: "nl" },
+  { code: "ms", slug: "", label: "Bahasa Melayu", shortLabel: "MYS", hrefLang: "ms" },
 ];
 
 function normalizePathname(input: string | null | undefined) {
@@ -27,7 +36,7 @@ function detectLocaleFromPath(pathname: string) {
   const match = LOCALES.find(
     (locale) => locale.slug && (normalized === locale.slug || normalized.startsWith(`${locale.slug}/`)),
   );
-  return match || LOCALES[0];
+  return match || null;
 }
 
 function stripLocalePrefix(pathname: string) {
@@ -46,31 +55,59 @@ function setLocaleCookie(localeCode: LocaleCode) {
   document.cookie = `cd_locale_ack=1; Max-Age=${oneYear}; Path=/; SameSite=Lax`;
 }
 
-function getLocalizedHref(pathname: string, targetLocale: LocaleCode) {
+function normalizeStoredLocale(value: string | null | undefined): LocaleCode {
+  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "vi-vn") return "vi";
+  return LOCALES.find((locale) => locale.code.toLowerCase() === normalized)?.code || "ko";
+}
+
+function readSavedLocale(): LocaleItem {
+  if (typeof window === "undefined") return LOCALES[0];
+  try {
+    const stored = window.localStorage.getItem("cd_lang");
+    return LOCALES.find((locale) => locale.code === normalizeStoredLocale(stored)) || LOCALES[0];
+  } catch {
+    return LOCALES[0];
+  }
+}
+
+function saveLocalePreference(localeCode: LocaleCode) {
+  try {
+    window.localStorage.setItem("cd_lang", localeCode);
+    window.localStorage.setItem("cd_lang_explicit", "1");
+  } catch {}
+  setLocaleCookie(localeCode);
+}
+
+function getLocalizedHref(pathname: string, targetLocale: LocaleItem) {
   const normalized = normalizePathname(pathname);
   const routeKey = getRouteKeyByLocalizedPath(normalized);
-  if (routeKey) {
-    return I18N_ROUTE_MAP[routeKey][targetLocale];
+  if (routeKey && targetLocale.routeLocale) {
+    return I18N_ROUTE_MAP[routeKey][targetLocale.routeLocale];
   }
 
   const basePath = stripLocalePrefix(normalized);
-  if (targetLocale === "ko") return basePath;
+  if (targetLocale.code === "ko") return basePath;
 
-  // Unknown routes often do not have localized static exports.
-  // Fall back to locale landing root to avoid 404 on language switch.
-  const localeRoot = LOCALES.find((locale) => locale.code === targetLocale)?.slug || "";
-  return localeRoot || "/";
+  return targetLocale.slug || `/?lang=${encodeURIComponent(targetLocale.code)}`;
 }
 
 export function LocaleSwitcher() {
   const pathname = usePathname() || "/";
 
-  const current = React.useMemo(() => detectLocaleFromPath(pathname), [pathname]);
+  const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALES[0]);
   const [open, setOpen] = React.useState(false);
 
-  const currentLabel = current.label;
+  React.useEffect(() => {
+    setSavedLocale(readSavedLocale());
+  }, []);
 
-  const ButtonStyle: React.CSSProperties = {
+  const current = React.useMemo(() => detectLocaleFromPath(pathname) || savedLocale, [pathname, savedLocale]);
+  const currentLabel = current.shortLabel;
+
+  const buttonStyle: React.CSSProperties = {
     height: "36px",
     padding: "0 12px",
     borderRadius: "999px",
@@ -84,7 +121,7 @@ export function LocaleSwitcher() {
     gap: "8px",
   };
 
-  const MenuStyle: React.CSSProperties = {
+  const menuStyle: React.CSSProperties = {
     position: "absolute",
     top: "calc(100% + 8px)",
     right: 0,
@@ -105,9 +142,9 @@ export function LocaleSwitcher() {
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        style={ButtonStyle}
+        style={buttonStyle}
       >
-        <span aria-hidden="true">🌐</span>
+        <span aria-hidden="true">🌙</span>
         <span style={{ fontSize: "13px", letterSpacing: "0.08em" }}>{currentLabel}</span>
         <span aria-hidden="true" style={{ opacity: 0.8 }}>
           ▾
@@ -115,17 +152,18 @@ export function LocaleSwitcher() {
       </button>
 
       {open ? (
-        <div role="menu" aria-label="언어 목록" style={MenuStyle} onMouseLeave={() => setOpen(false)}>
-          {LOCALES.map((l) => (
+        <div role="menu" aria-label="언어 목록" style={menuStyle} onMouseLeave={() => setOpen(false)}>
+          {LOCALES.map((locale) => (
             <Link
-              key={l.code}
+              key={locale.code}
               role="menuitem"
-              href={getLocalizedHref(pathname, l.code)}
-              hrefLang={l.hrefLang}
-              lang={l.hrefLang}
+              href={getLocalizedHref(pathname, locale)}
+              hrefLang={locale.hrefLang}
+              lang={locale.hrefLang}
               onClick={() => {
                 setOpen(false);
-                setLocaleCookie(l.code);
+                setSavedLocale(locale);
+                saveLocalePreference(locale.code);
               }}
               style={{
                 display: "block",
@@ -134,14 +172,14 @@ export function LocaleSwitcher() {
                 padding: "10px 10px",
                 borderRadius: "12px",
                 border: "1px solid transparent",
-                background: l.code === current.code ? "rgba(99, 102, 241, 0.18)" : "transparent",
+                background: locale.code === current.code ? "rgba(99, 102, 241, 0.18)" : "transparent",
                 color: "#e2e8f0",
                 fontWeight: 800,
                 cursor: "pointer",
                 textDecoration: "none",
               }}
             >
-              {l.label}
+              {locale.label}
             </Link>
           ))}
         </div>
@@ -149,4 +187,3 @@ export function LocaleSwitcher() {
     </div>
   );
 }
-

@@ -1,0 +1,570 @@
+{
+  "_comment": "Code Destiny - Traditional Chinese premium localization (zh-tw.json)",
+  "_version": "1.0.0",
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "以現代AI，溫柔讀懂東方智慧",
+    "subtitle": "古老命理與星辰語言，為你照亮下一步",
+    "trustBadge": "全球80+國家，逾10萬用戶選擇的占卜體驗"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / 蜜豚運勢",
+      "brandLine": "月光裡的占卜合集",
+      "titleLine1": "免費八字 · 塔羅",
+      "titleAccent": "今日運勢",
+      "titleLine3": "歸於一片月光",
+      "lead": "八字、塔羅、紫微鬥數、占星、宿曜、合盤與今日運勢，都在這裡靜靜展開。輸入出生資訊，或把此刻的問題交給牌面與星象，讓下一步的方向漸漸清晰。",
+      "primaryCta": "用八字免費占算",
+      "tarotCta": "抽塔羅牌",
+      "todayCta": "開啟今日運勢"
+    },
+    "nav": {
+      "home": "首頁",
+      "saju": "八字",
+      "tarot": "塔羅",
+      "astrology": "占星",
+      "sukuyo": "宿曜",
+      "ziwei": "紫微鬥數",
+      "vedic": "吠陀",
+      "flowerDream": "花與夢",
+      "vvip": "VVIP書庫",
+      "oracle": "神諭",
+      "brandAlias": "蜜豚運勢"
+    },
+    "previewCards": {
+      "tarotName": "塔羅",
+      "tarotMeta": "牌陣解讀",
+      "oracleName": "神諭",
+      "oracleMeta": "神秘指引",
+      "astrologyName": "占星",
+      "astrologyMeta": "星盤",
+      "ziweiName": "紫微鬥數",
+      "ziweiMeta": "十二宮命盤",
+      "vedicName": "吠陀",
+      "vedicMeta": "業力解讀",
+      "ichingName": "易經",
+      "ichingMeta": "64卦神諭",
+      "yeonStarHugName": "Yeoni心之星座",
+      "yeonStarHugMeta": "情緒星光練習",
+      "nevilleName": "內維爾冥想",
+      "nevilleMeta": "現實創造練習"
+    },
+    "music": {
+      "title": "月光下，花豬1號播放列表",
+      "desc": "進入由Neo與花豬1號感性聲線交織而成的月光節奏。",
+      "hint": "✦ 月光播放列表"
+    },
+    "mapIntro": {
+      "title": "月光地圖上，命運之門正緩緩開啟",
+      "desc": "塔羅、神諭、命運之花、解夢、冥想與進階占斷。此刻需要的徵兆，會在卡片紋理裡靜靜發光。",
+      "chipTarot": "塔羅",
+      "chipOracle": "神諭",
+      "chipFlower": "花與夢",
+      "chipPremium": "進階報告"
+    },
+    "input": {
+      "title": "用八字讀懂此刻的流向",
+      "desc": "輸入姓名與出生時間後，命盤、五行與十神的脈絡會依序展開。",
+      "nameLabel": "姓名",
+      "nameHint": "請輸入要顯示在分析結果中的姓名。",
+      "birthDateLabel": "出生日期",
+      "birthDateHint": "選擇出生日期，八字命盤的第一項基準就會開啟。",
+      "solar": "陽曆",
+      "lunar": "陰曆",
+      "lunarLeap": "陰曆閏月",
+      "birthTimeLabel": "出生時間",
+      "birthTimeUnknown": "如果不知道出生時間，將以中午12點為基準進行保守分析。",
+      "birthCountryLabel": "出生國家/地點",
+      "birthCountryHint": "自動套用夏令時間與經度校正",
+      "birthPlaceLoading": "正在加載出生地...",
+      "timePreview": "時間校正預覽",
+      "genderLabel": "性別",
+      "female": "女性",
+      "male": "男性",
+      "submit": "免費八字占算",
+      "saveProfile": "保存個人命運卡",
+      "saveOptional": "可選",
+      "kakaoEvent": "Kakao分享活動",
+      "kakaoEventSub": "建立好友邀請連結",
+      "referralNote": "可透過你的月光邀請連結邀請好友。"
+    },
+    "startSection": {
+      "kicker": "TODAY CARDS",
+      "title": "今日可以開啟的免費命運卡",
+      "lead": "即使是第一次來到這裡，也可以從月光下最輕盈的一張牌開始。"
+    },
+    "startCards": {
+      "ziweiBadge": "Collection No. 01 · 推薦",
+      "ziweiTitle": "紫微鬥數",
+      "ziweiDesc": "透過十二宮命盤，讀取性格、事業、財富與關係的核心軸線。",
+      "ziweiCta": "查看命盤",
+      "vedicBadge": "Collection No. 02 · 推薦",
+      "vedicTitle": "吠陀占星",
+      "vedicDesc": "以 Jyotish 星宿與業力流向，照見今日可行的路徑。",
+      "vedicCta": "查看吠陀解讀",
+      "astrologyBadge": "Collection No. 03 · 推薦",
+      "astrologyTitle": "占星",
+      "astrologyDesc": "以太陽、月亮、上升與天頂讀取基礎出生星盤。",
+      "astrologyCta": "查看星盤",
+      "sukuyoBadge": "Collection No. 04 · 推薦",
+      "sukuyoTitle": "宿曜",
+      "sukuyoDesc": "先確認本命宿、氣質與今日可參考的月之節奏。",
+      "sukuyoCta": "查看免費宿曜"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "動物與面相合集",
+        "subtitle": "喚醒你內在沉睡的野性本能",
+        "lede": "結合臉型、性格與八字訊號，一次看見你的本能角色與關係能量。",
+        "featureline": "AI動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印"
+      },
+      "meditation": {
+        "title": "冥想合集",
+        "subtitle": "用想像與潛意識整理今日能量",
+        "lede": "以內維爾·戈達德式想像冥想穩定情緒，並把注意力安放在你想顯化的現實上。",
+        "featureline": "內維爾冥想 · 專注呼吸 · 自我暗示 · 現實顯化觀想"
+      },
+      "tarot": {
+        "title": "塔羅解讀合集",
+        "subtitle": "選擇需要的塔羅，現在開始解讀",
+        "lede": "關係、療癒、自我信任、複合、年運與現實選擇，都可透過對應牌陣深入讀取。",
+        "featureline": "關係6牌 · 療癒4牌 · 自我信任修復 · 複合運 · 生肖年運 · 命理塔羅"
+      },
+      "oracle": {
+        "title": "神諭與佔術合集",
+        "subtitle": "古老智慧今日向你發聲",
+        "lede": "放下一個問題，讓東西方象徵解讀交織，為今日整理清晰結論。",
+        "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔 · 命運撲克"
+      },
+      "cosmic": {
+        "title": "宇宙與星座合集",
+        "subtitle": "星辰寫下的宇宙命運地圖",
+        "lede": "連接行星、星座與宮位，以天體路徑讀取性格與時機。",
+        "featureline": "西洋占星 · 紫微鬥數 · 吠陀占星 · 奧林匹斯星座神諭"
+      },
+      "flower": {
+        "title": "命運之花與夢境合集",
+        "subtitle": "用宇宙語言綻放只屬於你的命運",
+        "lede": "把八字、占星、紫微鬥數與宿曜結果編織成花的象徵，化為詩意命運報告。",
+        "featureline": "命運之花工坊 · 占星花 · 紫微花 · 宿曜花 · 夢境塔羅 · 精神分析解夢"
+      },
+      "vvip": {
+        "title": "VVIP命運書庫",
+        "subtitle": "將你的星盤、八字與緣分記錄匯集成一份秘密文檔。",
+        "lede": "不只是輕輕看過的運勢，而是深入展開人生、愛情、金錢、關係與轉捩點的高級解讀合輯。",
+        "featureline": "紫微鬥數 · 宿曜 · 占星 · 吠陀 · 靈魂業力"
+      },
+      "misc": {
+        "title": "其他佔術合集",
+        "subtitle": "從心理測驗到八字FPTI，一次探索",
+        "lede": "心理測驗、AI禦神簽、血型測驗、本命推運與八字FPTI，自然連結成一組卡片合集。",
+        "featureline": "心理測驗中心 · AI禦神簽 · 血型測驗 · 本命推運 · 八字FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 AI動物面相",
+      "animalFaceDesc": "用自拍讀取面相",
+      "animalMbtiTitle": "🦁 MBTI動物合盤",
+      "animalMbtiDesc": "16種圖騰相性",
+      "animalTotemTitle": "🧸 動物圖騰",
+      "animalTotemDesc": "守護動物卡牌解讀",
+      "sajuGuardianTitle": "🐲 八字守護召喚陣",
+      "sajuGuardianDesc": "日柱、五行、六十甲子守護印與7日任務",
+      "destinyEggTitle": "🥚 命運之蛋",
+      "destinyEggDesc": "只屬於你的運勢夥伴",
+      "fortuneFishTitle": "🐟 Fortune Teller Fish",
+      "fortuneFishDesc": "免費魚形解讀與幸運護符收藏",
+      "palmMapTitle": "🖐 手相地圖",
+      "palmMapDesc": "讀取掌心裡的愛情、財富與職業流向。",
+      "nevillePracticeTitle": "🧘 內維爾冥想練習",
+      "nevillePracticeDesc": "想像創造專注指南",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "個人化冥想瑜珈流程",
+      "cosmicSoulMeditationTitle": "🌌 宇宙靈魂冥想",
+      "cosmicSoulMeditationDesc": "30/60分鐘現實渲染協議",
+      "tarotLoveTitle": "💕 我們是什麼關係？",
+      "tarotLoveDesc": "語言與行動之間的溫度",
+      "tarotHealingTitle": "☀ 溫暖太陽療癒塔羅",
+      "tarotHealingDesc": "心累的位置與今日之光",
+      "tarotSelfEsteemTitle": "✨ 自我標準修復塔羅",
+      "tarotSelfEsteemDesc": "5張牌的心靈中心解讀",
+      "tarotReunionTitle": "🌊 複合燈塔塔塔羅",
+      "tarotReunionDesc": "殘留的溫度與安全距離",
+      "tarotPromptMakerTitle": "💘 塔羅提示詞資料庫",
+      "tarotPromptMakerDesc": "選擇牌陣、打開卡牌、完成解讀文本",
+      "tarotYearTitle": "🐉 十二生肖天運塔羅",
+      "tarotYearDesc": "十二個月的守護月運",
+      "tarotNumerologyTitle": "🔢 數秘塔羅",
+      "tarotNumerologyDesc": "生命數與今日數5牌解讀",
+      "tarotCareerMoveTitle": "💼 轉職命運卡",
+      "tarotCareerMoveDesc": "保留標準與轉向方向的7牌",
+      "tarotMindscanTitle": "🔮 言語與行動之間",
+      "tarotMindscanDesc": "心之溫度10牌",
+      "tarotCrystalSoulTitle": "💎 原石靈魂塔羅",
+      "tarotCrystalSoulDesc": "水晶能量解讀",
+      "celestialHarmonyTitle": "✨ 天體和聲",
+      "celestialHarmonyDesc": "編織11顆行星聲音的塔羅",
+      "sajuTarotTitle": "🔮 命理塔羅",
+      "sajuTarotDesc": "以卡牌與十神讀取選擇標準",
+      "hwatuTitle": "🎴 花牌佔",
+      "hwatuDesc": "12個月花牌運勢",
+      "egyptOracleTitle": "𓂀 埃及神諭",
+      "egyptOracleDesc": "凱美特神諭運勢",
+      "ifaOracleTitle": "🪬 IFÀ神諭",
+      "ifaOracleDesc": "約魯巴256奧杜神諭",
+      "ichingTurtleTitle": "☯️ 易經龜佔",
+      "ichingTurtleDesc": "64卦與3000年智慧",
+      "runeOracleTitle": "ᚠ 巨石陣符文神諭",
+      "runeOracleDesc": "古代符文象徵解讀",
+      "geomancyTitle": "⟁ 土佔神諭",
+      "geomancyDesc": "大地徵兆16行神諭",
+      "sikojenTitle": "🐷 芬蘭小豬錫佔",
+      "sikojenDesc": "Yeoni與錫影帶來的可愛新年神諭",
+      "royalTeaTitle": "🫖 英國紅茶佔",
+      "royalTeaDesc": "王室茶葉佔讀",
+      "destinyPokerTitle": "🃏 命運撲克",
+      "destinyPokerDesc": "與眾神展開命運卡牌對決",
+      "westernAstrologyTitle": "✨ 西洋占星基礎星盤",
+      "westernAstrologyDesc": "基本出生星盤免費 · 合盤相性50金幣",
+      "ziweiBasicTitle": "🌌 紫微鬥數",
+      "ziweiBasicDesc": "基本命盤免費 · 合盤可選擴充50金幣",
+      "ziweiAdvancedTitle": "🌟 紫微鬥數進階",
+      "ziweiAdvancedDesc": "十二宮人生策略 · 命宮深度分析",
+      "vedicAstrologyTitle": "🪐 吠陀占星",
+      "vedicAstrologyDesc": "基礎命盤免費 · 合盤50金幣",
+      "olympusOracleTitle": "⚡ 奧林匹斯神諭",
+      "olympusOracleDesc": "12神與星座命運判讀",
+      "destinyFlowerTitle": "🌸 命運之花",
+      "destinyFlowerDesc": "從八字綻放的你的花",
+      "astrologyFlowerTitle": "✨ 占星之花",
+      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "ziweiFlowerTitle": "🌺 紫微之花",
+      "ziweiFlowerDesc": "命宮主星 · 星曜亮度",
+      "sukuyoFlowerTitle": "🌙 宿曜之花",
+      "sukuyoFlowerDesc": "27宿 · 月相",
+      "dreamTarotTitle": "🌙 夢境塔羅",
+      "dreamTarotDesc": "夢境餘韻3牌解讀",
+      "psychoDreamTitle": "🕯️ 精神分析解夢",
+      "psychoDreamDesc": "Freud · British Study",
+      "sukuyoPremiumTitle": "宿曜高級合盤",
+      "sukuyoPremiumDesc": "獨立於基礎合盤和精密擴展，生成15章諮詢PDF。",
+      "ziweiPremiumTitle": "紫微鬥數高級PDF",
+      "ziweiPremiumDesc": "解讀命宮與十二宮中刻寫的人生宮位。",
+      "astroReportTitle": "占星宇宙報告",
+      "astroReportDesc": "將土星、交點、行運與宮位流向疊加在太陽、月亮、上升上讀取轉折點。",
+      "vedicPremiumTitle": "吠陀高級PDF",
+      "vedicPremiumDesc": "展開拉格納與納克沙特拉所訴說的靈魂方向。",
+      "soulKarmaTitle": "命運之業",
+      "soulKarmaDesc": "你從何處而來，又為了化解什麼來到此生？",
+      "psychotestHubTitle": "🧠 心理測驗中心",
+      "psychotestHubDesc": "14種主題測試",
+      "aiOmikujiTitle": "🤖 AI情緒禦神簽",
+      "aiOmikujiDesc": "感性神諭解讀",
+      "yeonStarHugTileTitle": "🌸 Yeoni心之星座",
+      "yeonStarHugTileDesc": "今天也輕輕擁抱你的心",
+      "bloodTypeTitle": "🩸 血型測試",
+      "bloodTypeDesc": "性格 · 合盤 · 指引",
+      "favoriteDestinyTitle": "✨ 本命推運",
+      "favoriteDestinyDesc": "照片卡情緒解讀",
+      "sajuFptiTitle": "🔮 八字FPTI測試",
+      "sajuFptiDesc": "五行與十神4軸性格分析"
+    }
+  },
+  "terms": {
+    "사주": "八字命理",
+    "사주팔자": "四柱八字（Ba Zi）",
+    "용신": "用神（命局平衡樞紐）",
+    "격국": "格局（命式核心原型）",
+    "대운": "大運（十年命運週期）",
+    "세운": "流年（年度運勢）",
+    "천간": "天幹",
+    "지지": "地支",
+    "오행": "五行",
+    "음양": "陰陽",
+    "자미두수": "紫微鬥數",
+    "숙요점": "宿曜占星（二十七宿）",
+    "명리학": "命理學",
+    "궁합": "合盤相性",
+    "운명의꽃": "命運之花原型",
+    "타로": "塔羅",
+    "신살": "神煞（業力指標）",
+    "공망": "空亡（業力盲點）",
+    "일주": "日柱（核心自我）",
+    "월주": "月柱（潛力支柱）",
+    "년주": "年柱（祖先·起點）",
+    "시주": "時柱（晚年·遺產）",
+    "자수": "子水·夜淵（鼠靈深水）",
+    "축토": "丑土·鐵基（牛力堅土）",
+    "인목": "寅木·王林（虎威大木）",
+    "묘목": "卯木·晨翠（兔柔曙木）",
+    "진토": "辰土·天威（龙权玄土）",
+    "사화": "巳火·隱焰（蛇智潛火）",
+    "오화": "午火·烈陽（馬奔炎火）",
+    "미토": "未土·樂園（羊溫福土）",
+    "신금": "申金·機鋒（猴智利金）",
+    "유금": "酉金·曉鋼（雞精晨金）",
+    "술토": "戌土·守疆（犬忠衛土）",
+    "해수": "亥水·本源（豬豐深水）"
+  },
+  "premium": {
+    "reportTitle": "您的命運藍圖",
+    "reportSubtitle": "東方命理學 × AI驅動的高階人生分析",
+    "intro": "這份報告不僅僅是對您未來的預測——它是對塑造您存在的能量架構的精準、數據驅動的解讀。透過超過3000年的東方宇宙哲學智慧，您的四柱八字透過先進AI的鏡頭被解碼，揭示支配您優勢、陰影和最璀璨潛能的無形力量。這是您專屬的人生說明書，助您以清明的意圖駕馭十年命運大運。",
+    "dominantElement": {
+      "label": "用神（命局平衡樞紐）",
+      "description": "用神是平衡並激活您整個命局結構的單一能量密鑰。當您將環境、關係和決策與此元素對齊時，您命盤的自然動能便會加速。錯位則產生摩擦。這不是迷信，而是您能量藍圖的精準校準。"
+    },
+    "coreArchetype": {
+      "label": "格局（命式核心原型）",
+      "description": "格局是您命運的結構性印記－定義您能量如何在世界中表達的[模式]。如同音樂的調性為每個音符定下基調，您的格局揭示了您最自然強大的領域，以及您的才華完全結晶的條件。"
+    },
+    "decadeCycle": {
+      "label": "大運（十年命運週期）",
+      "description": "大運描述了您一生中經歷的十年能量氣候。它不是簡單的[好運或壞運]二元，每個週期都會改變您整個命盤的共鳴場－開啟新的潛能，或揭示需要整合的業力課題。了解您當前和即將到來的大運，賦予您深刻的策略優勢。"
+    },
+    "cta": "解鎖您的完整命運藍圖",
+    "priceDisplay": "¥28起",
+    "guarantee": "30天滿意保證",
+    "compatibility": {
+      "label": "宇宙相性分析",
+      "description": "真正的相性不止於性格類型。宇宙相性分析會讀取兩張命盤之間的五行互動，揭示彼此增強之處、容易產生摩擦之處，以及讓關係更優雅流動的方法。"
+    }
+  },
+  "trust": {
+    "headline": "為何超10萬人選擇Code Destiny",
+    "badges": [
+      {
+        "icon": "🌍",
+        "label": "全球社群",
+        "value": "80+國家 · 逾10萬用戶"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL加密",
+        "value": "256位元加密 · 安全支付"
+      },
+      {
+        "icon": "⭐",
+        "label": "滿意度",
+        "value": "平均分數 4.9/5"
+      },
+      {
+        "icon": "🌐",
+        "label": "多語言",
+        "value": "10種語言 · 隨時可用"
+      },
+      {
+        "icon": "💳",
+        "label": "安全結帳",
+        "value": "Stripe認證 · 主流信用卡"
+      },
+      {
+        "icon": "🔄",
+        "label": "保障",
+        "value": "30天退款承諾"
+      }
+    ]
+  },
+  "footer": {
+    "tagline": "古代智慧，現代精準。",
+    "about": "Code Destiny把三千年以上的東方命理與現代AI結合在一起，以10種語言提供安靜、清晰的占卜體驗，核心功能可免費開啟。",
+    "links": {
+      "privacy": "隱私權政策",
+      "terms": "服務條款",
+      "refund": "退款政策",
+      "about": "關於我們",
+      "faq": "常見問題",
+      "contact": "聯絡我們"
+    },
+    "refundPolicy": "高級硬幣（數位積分）購買後14天內未使用可依消費者保護法申請退款。已使用積分不可退。如需協助請聯絡客服。",
+    "copyright": "© 2025 Code Destiny. 保留所有權利。本服務僅供娛樂與自我反思之用，不構成專業建議。",
+    "sections": {
+      "services": "服務",
+      "resources": "資源",
+      "legal": "法律",
+      "support": "支援"
+    }
+  },
+  "branches": {
+    "자수": {
+      "label": "午夜深淵",
+      "animal": "鼠・水（子水）",
+      "essence": "子鼠能在最深的水脈中精準前進。午夜深淵象徵隱密情報、資源整合力，以及在無人看見道路時開闢路徑的智慧。"
+    },
+    "축토": {
+      "label": "鐵之基岩",
+      "animal": "牛・土（醜土）",
+      "essence": "醜牛能承受他人無法承受的重量。鐵之基岩代表穩定的耐心、長期累積的力量，以及以堅持而非炫耀建立人生的厚重氣質。"
+    },
+    "인목": {
+      "label": "王者之森",
+      "animal": "虎・木（寅）",
+      "essence": "寅虎統領原始森林。王者之森象徵天然的領導力、強烈的守護本能，以及無法被壓抑的向上生長之勢。"
+    },
+    "묘목": {
+      "label": "黎明華蓋",
+      "animal": "兔・木（卯木）",
+      "essence": "卯兔帶著第一道晨光般的生命力，溫柔卻不可忽視。黎明華蓋代表社交優雅、藝術感受力，以及以柔和而非強硬綻放的天賦。"
+    },
+    "진토": {
+      "label": "天上王座",
+      "animal": "龍・土（辰土）",
+      "essence": "辰龍是十二支中唯一的神話存在。天上王座象徵轉化格局的器量、天生的存在感，以及無需刻意也會被視為不凡的命運重量。"
+    },
+    "사화": {
+      "label": "隱密餘燼",
+      "animal": "蛇・火（巳火）",
+      "essence": "巳蛇從不急於宣告自己。隱密餘燼代表在沉默中累積的智慧、緩慢燃燒的強度，以及看破深處卻不盡數顯露的神秘洞察。"
+    },
+    "오화": {
+      "label": "太陽烈焰",
+      "animal": "馬・火（午火）",
+      "essence": "午馬是正午太陽般的能量。太陽烈焰象徵光芒、速度、熱情與自由，當它奔向所愛之事時，磁場最強。"
+    },
+    "미토": {
+      "label": "牧野聖所",
+      "animal": "羊・土（未土）",
+      "essence": "未羊帶來沒有攻擊性的豐盛。牧野聖所代表滋養、和諧、深層創造力，以及讓他人感到安全的空間感。"
+    },
+    "신금": {
+      "label": "水銀鋒刃",
+      "animal": "猴・金（申金）",
+      "essence": "申猴是十二支中的智性變術師。水銀刃象徵機敏、創新、複雜局面的適應力，以及以智慧和彈性解決難題的能力。"
+    },
+    "유금": {
+      "label": "新月之鋼",
+      "animal": "雞・金（酉金）",
+      "essence": "酉雞是精準的化身，也是黎明的報時者。新月之鋼代表紀律、美感、分辨力，以及看見真正價值的銳利眼光。"
+    },
+    "술토": {
+      "label": "守護之門",
+      "animal": "犬・土（戌土）",
+      "essence": "戌犬守在最神聖的門口。守護之門象徵著信任、忠誠、保護重要之物的力量，以及不會輕易動搖的道德核心。"
+    },
+    "해수": {
+      "label": "原初之泉",
+      "animal": "豬・水（亥水）",
+      "essence": "亥豬是一股寬厚而真誠的大水。原初之泉代表生命力、慷慨、純淨，以及對保持初心的人永不枯竭的深井。"
+    }
+  },
+  "services": {
+    "saju": {
+      "name": "八字命理",
+      "short": "八字占算",
+      "description": "八字命理以四柱與五行讀出人生的氣質、時機與方向。出生資訊不是冷冰冰的資料，而是一張關於流年與選擇的星圖。",
+      "badge": "最受歡迎"
+    },
+    "tarot": {
+      "name": "AI塔羅指引",
+      "short": "AI塔羅",
+      "description": "古老牌面與現代AI一起回應你的提問。每一次牌陣，都映照當下的情緒天氣、關係溫度與可選擇的方向。"
+    },
+    "ziwei": {
+      "name": "紫微鬥數",
+      "short": "星盤命宮",
+      "description": "紫微鬥數以十二宮與諸星的落位，讀出性格、關係、事業與財帛的起伏。它像一幅細密的人生星盤，照見長期的流向。",
+      "badge": "深度解析"
+    },
+    "astrology": {
+      "name": "宇宙占星",
+      "short": "印度與西洋占星",
+      "description": "融合印度吠陀占星与西洋占星，从多重传统解读行星排列的讯息。"
+    },
+    "destinyFlower": {
+      "name": "命運之花原型",
+      "short": "命運之花",
+      "description": "根据五行命运签名，描绘灵魂如何绽放的诗性而精密的原型。"
+    },
+    "compatibility": {
+      "name": "宇宙相性",
+      "short": "相性分析",
+      "description": "超越MBTI，以五行互动读取你与他人之间更深层的能量契约。"
+    }
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "A$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "₹",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "入門",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10次高級命運解讀",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "標準",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35次進階解讀 + 完整命運報告",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "進階",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80次解讀 + 終身存取功能",
+        "popular": false
+      }
+    ]
+  }
+}

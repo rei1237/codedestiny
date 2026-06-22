@@ -3,29 +3,29 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Sabiduría Oriental × Análisis IA",
-    "subtitle": "3.000 años de numerología china, descifrados por IA moderna",
+    "tagline": "Sabiduría oriental leída con IA",
+    "subtitle": "Tradiciones antiguas y AI moderna para iluminar tu próximo paso",
     "trustBadge": "Más de 100.000 buscadores en 80+ países confían en nosotros"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / Honey Pig Fortune",
       "brandLine": "Colección Celestial de Destino",
-      "titleLine1": "Saju y tarot gratis",
+      "titleLine1": "Cuatro Pilares y tarot gratis",
       "titleAccent": "Horóscopo de hoy",
-      "titleLine3": "en una sola plataforma",
-      "lead": "Consulta Saju, tarot, Zi Wei Dou Shu, astrología, Sukuyo, compatibilidad y el horóscopo de hoy en un mismo espacio sereno. Introduce tus datos de nacimiento o tu pregunta y recibe una lectura que ordena el momento antes de tu próxima decisión.",
-      "primaryCta": "Iniciar lectura Saju gratis",
+      "titleLine3": "bajo una misma luz lunar",
+      "lead": "Consulta los Cuatro Pilares, tarot, Zi Wei Dou Shu, astrología, astrología Sukuyo, compatibilidad y el horóscopo de hoy en un espacio sereno. Introduce tus datos de nacimiento o tu pregunta actual y recibe una lectura que ordena el momento antes de tu próxima decisión.",
+      "primaryCta": "Leer mis Cuatro Pilares gratis",
       "tarotCta": "Sacar cartas del tarot",
       "todayCta": "Ver horóscopo de hoy"
     },
     "nav": {
       "home": "Inicio",
-      "saju": "Saju",
+      "saju": "Cuatro Pilares",
       "tarot": "Tarot",
       "astrology": "Astrología",
-      "sukuyo": "Sukuyo",
-      "ziwei": "Zi Wei",
+      "sukuyo": "Astrología Sukuyo",
+      "ziwei": "Zi Wei Dou Shu",
       "vedic": "Védica",
       "flowerDream": "Flores y sueños",
       "vvip": "Biblioteca VVIP",
@@ -64,7 +64,7 @@
       "chipPremium": "Informes premium"
     },
     "input": {
-      "title": "Iniciar análisis Saju",
+      "title": "Iniciar lectura de Cuatro Pilares",
       "desc": "Al abrir tu nombre y hora de nacimiento, se despliegan la carta, los elementos y los Diez Dioses.",
       "nameLabel": "Nombre",
       "nameHint": "Escribe el nombre que se mostrará en el resultado.",
@@ -82,7 +82,7 @@
       "genderLabel": "Género",
       "female": "Mujer",
       "male": "Hombre",
-      "submit": "Iniciar análisis Saju gratis",
+      "submit": "Lectura gratis de Cuatro Pilares",
       "saveProfile": "Guardar carta de perfil",
       "saveOptional": "Opcional",
       "kakaoEvent": "Evento de compartir en Kakao",
@@ -110,7 +110,7 @@
       "sukuyoBadge": "Collection No. 04 · Recomendado",
       "sukuyoTitle": "Sukuyo",
       "sukuyoDesc": "Consulta primero tu mansión lunar, temperamento y ritmo de referencia para hoy.",
-      "sukuyoCta": "Ver Sukuyo gratis"
+      "sukuyoCta": "Ver astrología Sukuyo gratis"
     },
     "collectionHeaders": {
       "animal": {
@@ -283,7 +283,7 @@
     "오행": "Cinco Elementos",
     "음양": "Yin y Yang",
     "자미두수": "Astrología Estrella Púrpura (Zi Wei Dou Shu)",
-    "숙요점": "Oráculo de las 27 Mansiones Lunares",
+    "숙요점": "Astrología Sukuyo (27 mansiones lunares)",
     "명리학": "Ciencia del Análisis del Destino",
     "궁합": "Compatibilidad Cósmica",
     "운명의꽃": "Arquetipo Floral del Destino",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "Sabiduría antigua, precisión moderna.",
-    "about": "Code Destiny es una plataforma de análisis de destino y fortuna impulsada por IA que combina más de 3.000 años de sistemas cosmológicos orientales con inteligencia artificial moderna. Disponible en 10 idiomas, gratis para usar.",
+    "about": "Code Destiny une más de 3.000 años de cosmología oriental con IA moderna para ofrecer lecturas serenas en 10 idiomas, con experiencias esenciales gratuitas.",
     "links": {
       "privacy": "Política de Privacidad",
       "terms": "Términos de Servicio",
@@ -451,14 +451,14 @@
   "services": {
     "saju": {
       "name": "Cuatro Pilares del Destino",
-      "short": "Lectura Saju",
-      "description": "El sistema original de metapsicología oriental. Tu fecha de nacimiento codifica una firma cósmica precisa: cuatro pilares, ocho caracteres y profundidad infinita.",
+      "short": "Lectura de Cuatro Pilares",
+      "description": "Los Cuatro Pilares leen temperamento, tiempos y dirección a partir de los datos de nacimiento, los elementos y los ciclos. No fijan el futuro; muestran el ritmo en el que una elección se vuelve más clara.",
       "badge": "Popular"
     },
     "tarot": {
       "name": "Guía de Tarot IA",
       "short": "Tarot IA",
-      "description": "Sabiduría arquetípica antigua amplificada por inteligencia artificial. Cada lectura refleja tu campo energético actual."
+      "description": "Sabiduría arquetípica antigua leída con IA moderna. Cada tirada refleja la pregunta, el clima emocional y la dirección viva en este momento."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",

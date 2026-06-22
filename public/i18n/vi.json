@@ -1,0 +1,570 @@
+{
+  "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",
+  "_version": "1.0.0",
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Siêu tâm lý học phương Đông · Giải mã",
+    "subtitle": "Nơi trí tuệ cổ xưa gặp AI hiện đại",
+    "trustBadge": "Được tin cậy bởi hơn 100.000 người tìm kiếm trên hơn 80 quốc gia"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / Heo Mật Phúc",
+      "brandLine": "Bộ sưu tập thiên tài",
+      "titleLine1": "Tứ trụ & Tarot miễn phí",
+      "titleAccent": "Vận may hôm nay",
+      "titleLine3": "Tất cả ở một nơi",
+      "lead": "Khám phá Tứ trụ, tarot, Tử Vi Đẩu Số, chiêm tinh, khả năng tương thích Tú Diệu và vận may ngày nay trong một không gian yên tĩnh. Nhập chi tiết ngày sinh của bạn hoặc một câu hỏi và nhận bài đọc làm rõ thời điểm trước lựa chọn tiếp theo của bạn.",
+      "primaryCta": "Bắt đầu đọc Tứ trụ miễn phí",
+      "tarotCta": "Rút bài Tarot",
+      "todayCta": "Xem vận may hôm nay"
+    },
+    "nav": {
+      "home": "Trang chủ",
+      "saju": "Tứ trụ",
+      "tarot": "tarot",
+      "astrology": "Chiêm tinh học",
+      "sukuyo": "Tú Diệu",
+      "ziwei": "Tử Vi",
+      "vedic": "kinh Vệ Đà",
+      "flowerDream": "Hoa & Giấc mơ",
+      "vvip": "Thư viện VVIP",
+      "oracle": "Lời tiên tri",
+      "brandAlias": "May mắn lợn mật"
+    },
+    "previewCards": {
+      "tarotName": "tarot",
+      "tarotMeta": "Đọc thẻ",
+      "oracleName": "Lời tiên tri",
+      "oracleMeta": "Dấu hiệu thiêng liêng",
+      "astrologyName": "Chiêm tinh học",
+      "astrologyMeta": "Biểu đồ vũ trụ",
+      "ziweiName": "Tử Vi",
+      "ziweiMeta": "Sơ đồ 12 cung",
+      "vedicName": "kinh Vệ Đà",
+      "vedicMeta": "đọc nghiệp báo",
+      "ichingName": "Tôi Chính",
+      "ichingMeta": "64 quẻ",
+      "yeonStarHugName": "Cái ôm của ngôi sao Yeon",
+      "yeonStarHugMeta": "Nghi lễ ánh sao đầy cảm xúc",
+      "nevilleName": "Thiền Neville",
+      "nevilleMeta": "Thói quen sáng tạo thực tế"
+    },
+    "music": {
+      "title": "Danh sách nhạc ánh trăng, Flower Pig Vol. 1",
+      "desc": "Hòa vào nhịp điệu ánh trăng hòa cùng album giọng ca đầy cảm xúc đầu tiên của Neo và Flower Pig.",
+      "hint": "✦ Danh sách nhạc ánh trăng"
+    },
+    "mapIntro": {
+      "title": "Mở cánh cổng định mệnh đặt trên bản đồ ánh trăng",
+      "desc": "Tarot, bói toán, hoa định mệnh, đọc giấc mơ, thiền định và báo cáo cao cấp. Dấu hiệu bạn cần bây giờ phát sáng lặng lẽ trong kết cấu của mỗi tấm thẻ.",
+      "chipTarot": "tarot",
+      "chipOracle": "Lời tiên tri",
+      "chipFlower": "Hoa & Giấc mơ",
+      "chipPremium": "Báo cáo đặc biệt"
+    },
+    "input": {
+      "title": "Bắt đầu phân tích Tứ trụ",
+      "desc": "Nhập tên và giờ sinh của bạn để mở biểu đồ, các yếu tố và Mười vị thần theo thứ tự.",
+      "nameLabel": "Tên",
+      "nameHint": "Nhập tên để hiển thị trong bài đọc của bạn.",
+      "birthDateLabel": "Ngày sinh",
+      "birthDateHint": "Chọn ngày sinh của bạn để mở cơ sở đầu tiên trong biểu đồ Tứ trụ của bạn.",
+      "solar": "Mặt trời",
+      "lunar": "Âm lịch",
+      "lunarLeap": "Tháng nhuận âm lịch",
+      "birthTimeLabel": "Giờ sinh",
+      "birthTimeUnknown": "Nếu bạn không biết giờ sinh của mình, chúng tôi sẽ phân tích thận trọng từ trưa.",
+      "birthCountryLabel": "Quốc gia/nơi sinh",
+      "birthCountryHint": "Hiệu chỉnh DST và kinh độ được áp dụng tự động",
+      "birthPlaceLoading": "Đang tải nơi sinh...",
+      "timePreview": "Xem trước hiệu chỉnh thời gian",
+      "genderLabel": "Giới tính",
+      "female": "Nữ giới",
+      "male": "Nam giới",
+      "submit": "Bắt đầu phân tích Tứ trụ miễn phí",
+      "saveProfile": "Lưu thẻ hồ sơ",
+      "saveOptional": "Không bắt buộc",
+      "kakaoEvent": "Sự kiện chia sẻ Kakao",
+      "kakaoEventSub": "Tạo liên kết mời kết bạn",
+      "referralNote": "Mời bạn bè thông qua liên kết ánh trăng của bạn."
+    },
+    "startSection": {
+      "kicker": "THẺ HÔM NAY",
+      "title": "Thẻ định mệnh miễn phí sẽ mở ngay hôm nay",
+      "lead": "Bắt đầu nhẹ nhàng dưới ánh trăng với những tấm thiệp nhẹ nhàng nhất cho lần ghé thăm đầu tiên của bạn."
+    },
+    "startCards": {
+      "ziweiBadge": "Bộ sưu tập số 01 · Đã chọn",
+      "ziweiTitle": "Tử Vi Đấu Thụ",
+      "ziweiDesc": "Đọc bản chất cốt lõi, công việc, tiền bạc và các mối quan hệ của bạn thông qua biểu đồ vận mệnh 12 cung điện.",
+      "ziweiCta": "Xem biểu đồ",
+      "vedicBadge": "Bộ sưu tập số 02 · Đã chọn",
+      "vedicTitle": "Chiêm tinh học Vệ Đà",
+      "vedicDesc": "Hãy đi theo con đường ngày nay qua các cung sao Jyotish và dòng nghiệp yên tĩnh.",
+      "vedicCta": "Xem đọc Vệ đà",
+      "astrologyBadge": "Bộ sưu tập số 03 · Đã chọn",
+      "astrologyTitle": "Chiêm tinh học",
+      "astrologyDesc": "Đọc biểu đồ sinh của bạn thông qua Mặt trời, Mặt trăng, Cung Mọc và Thiên đỉnh.",
+      "astrologyCta": "Xem biểu đồ",
+      "sukuyoBadge": "Bộ sưu tập số 04 · Đã chọn",
+      "sukuyoTitle": "Tú Diệu",
+      "sukuyoDesc": "Trước tiên hãy kiểm tra biệt thự mặt trăng, tính khí và nhịp điệu tham chiếu ngày hôm nay của bạn.",
+      "sukuyoCta": "Xem Tú Diệu miễn phí"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "Đọc khuôn mặt & Bộ sưu tập biểu tượng",
+        "subtitle": "Mở những dấu hiệu ẩn giấu trên khuôn mặt, khí chất và biểu tượng Tứ trụ của bạn",
+        "lede": "Từ các bài kiểm tra ánh sáng đến các con dấu Tứ trụ cao cấp, bộ sưu tập này tiết lộ các biểu tượng và năng lượng mối quan hệ phản ánh con người bạn.",
+        "featureline": "Đọc khuôn mặt AI · Khả năng tương thích MBTI · Vật tổ động vật · Con dấu giám hộ Tứ trụ"
+      },
+      "meditation": {
+        "title": "Bộ sưu tập thiền",
+        "subtitle": "Giải quyết năng lượng ngày nay thông qua trí tưởng tượng và tiềm thức",
+        "lede": "Các thói quen hình dung lấy cảm hứng từ Neville Goddard giúp ổn định cảm xúc của bạn và tập trung vào thực tế mà bạn mong muốn thể hiện.",
+        "featureline": "Thiền Neville · Hơi thở tập trung · Tự ám thị · Hình dung thực tế"
+      },
+      "tarot": {
+        "title": "Bộ sưu tập đọc Tarot",
+        "subtitle": "Chọn trải bài tarot bạn cần và bắt đầu ngay bây giờ",
+        "lede": "Khám phá các mối quan hệ, sự chữa lành, sự tự tin, sự đoàn tụ, vận may hàng năm và những quyết định thiết thực thông qua việc trải bài tập trung.",
+        "featureline": "Mối quan hệ 6 lá bài · Chữa lành 4 lá bài · Phục hồi lòng tin · Đoàn tụ · Vận may năm hoàng đạo · Tứ trụ tarot"
+      },
+      "oracle": {
+        "title": "Bộ sưu tập Oracle & Bói toán",
+        "subtitle": "Trí tuệ cổ xưa nói với bạn hôm nay",
+        "lede": "Đưa ra một câu hỏi, sau đó nhận được kết luận rõ ràng thông qua cách đọc biểu tượng phương Đông và phương Tây.",
+        "featureline": "Hwatu · Nhà tiên tri Ai Cập · IFA · Kinh Dịch 64 quẻ · Runes · Phong thủy · Lá trà · Poker định mệnh"
+      },
+      "cosmic": {
+        "title": "Bộ sưu tập vũ trụ & cung hoàng đạo",
+        "subtitle": "Bản đồ vận mệnh vũ trụ của bạn được viết bằng các vì sao",
+        "lede": "Kết nối các hành tinh, cung hoàng đạo và ngôi nhà để đọc tính cách và thời gian thông qua con đường đọc thiên thể.",
+        "featureline": "Chiêm tinh học phương Tây · Tử Vi Đẩu Số · Chiêm tinh học Vệ Đà · Nhà tiên tri cung hoàng đạo Olympus"
+      },
+      "flower": {
+        "title": "Bộ sưu tập hoa định mệnh & giấc mơ",
+        "subtitle": "Số phận cá nhân của bạn nở rộ theo ngôn ngữ của vũ trụ",
+        "lede": "Dệt Tứ trụ, chiêm tinh, Tử Vi và Tú Diệu dẫn đến những báo cáo về vận mệnh đầy chất thơ thông qua biểu tượng hoa.",
+        "featureline": "Xưởng hoa định mệnh · Hoa chiêm tinh · Hoa Tử Vi · Hoa Tú Diệu · Tarot giấc mơ · Đọc giấc mơ phân tâm học"
+      },
+      "vvip": {
+        "title": "Lưu trữ định mệnh VVIP",
+        "subtitle": "Các ngôi sao, Tứ trụ và trái phiếu của bạn trở thành một tài liệu bí mật.",
+        "lede": "Một bộ sưu tập diễn giải cao cấp mở ra chiều sâu về cuộc sống, tình yêu, tiền bạc, các mối quan hệ và những bước ngoặt.",
+        "featureline": "Tử Vi · Tú Diệu · Chiêm tinh · Vệ Đà · Nghiệp linh hồn"
+      },
+      "misc": {
+        "title": "Bộ sưu tập bói toán khác",
+        "subtitle": "Khám phá mọi thứ từ bài kiểm tra tâm lý đến Tứ trụ FPTI",
+        "lede": "Các bài kiểm tra tâm lý, AI omikuji, bài kiểm tra nhóm máu, số phận người được yêu thích và Tứ trụ FPTI kết hợp với nhau thành một bộ sưu tập thẻ.",
+        "featureline": "Trung tâm tâm lý học · AI Omikuji · Kiểm tra nhóm máu · Vận mệnh người được yêu thích · Tứ trụ FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 AI Đọc khuôn mặt động vật",
+      "animalFaceDesc": "Đọc khuôn mặt từ ảnh selfie của bạn",
+      "animalMbtiTitle": "🦁 MBTI Khả năng tương thích với động vật",
+      "animalMbtiDesc": "16 đường dẫn tương thích vật tổ",
+      "animalTotemTitle": "🧸 Vật tổ động vật",
+      "animalTotemDesc": "Đọc thẻ động vật giám hộ",
+      "sajuGuardianTitle": "🔮 Con dấu hộ mệnh Tứ trụ",
+      "sajuGuardianDesc": "Nhánh ngày, tháng, giờ giám hộ đọc sách",
+      "destinyEggTitle": "🥚 Trứng định mệnh",
+      "destinyEggDesc": "Người bạn đồng hành tài sản cá nhân của bạn",
+      "fortuneFishTitle": "🐟 Cá thầy bói",
+      "fortuneFishDesc": "Đọc cá miễn phí và hầm bùa may mắn",
+      "palmMapTitle": "🖐 Bản đồ cọ",
+      "palmMapDesc": "Đọc những dòng tình yêu, tiền bạc và ơn gọi viết trong lòng bàn tay của bạn.",
+      "nevillePracticeTitle": "🧘 Thực hành Thiền Neville",
+      "nevillePracticeDesc": "Hướng dẫn tập trung để sáng tạo tưởng tượng",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "Thói quen thiền và yoga cá nhân",
+      "cosmicSoulMeditationTitle": "🌌 Thiền tâm hồn vũ trụ",
+      "cosmicSoulMeditationDesc": "Giao thức kết xuất thực tế 30 và 60 phút",
+      "tarotLoveTitle": "💕 Chúng tôi là gì?",
+      "tarotLoveDesc": "Nhiệt độ giữa lời nói và hành động",
+      "tarotHealingTitle": "☀ Tarot chữa lành mặt trời ấm áp",
+      "tarotHealingDesc": "Nơi trái tim mỏi mệt và ánh sáng hôm nay",
+      "tarotSelfEsteemTitle": "✨ Tarot phục hồi niềm tin vào bản thân",
+      "tarotSelfEsteemDesc": "Đọc 5 lá lấy trái tim làm trung tâm",
+      "tarotReunionTitle": "🌊 Tarot Ngọn Hải Đăng Reunion",
+      "tarotReunionDesc": "Còn lại hơi ấm và khoảng cách an toàn",
+      "tarotPromptMakerTitle": "💘 Thư viện nhắc nhở Tarot",
+      "tarotPromptMakerDesc": "Chọn trải bài, mở bài, hoàn thành bài đọc",
+      "tarotYearTitle": "🐉 Bói bài năm hoàng đạo",
+      "tarotYearDesc": "Mười hai tháng hộ mệnh tài lộc",
+      "tarotNumerologyTitle": "🔢 Tarot số học",
+      "tarotNumerologyDesc": "Đọc 5 lá bài số cuộc đời và số ngày",
+      "tarotCareerMoveTitle": "💼 Thẻ chuyển đổi nghề nghiệp",
+      "tarotCareerMoveDesc": "7 lá bài về những gì nên giữ và di chuyển ở đâu",
+      "tarotMindscanTitle": "🔮 Giữa Lời Nói và Hành Động",
+      "tarotMindscanDesc": "10 thẻ đo nhiệt độ của trái tim",
+      "tarotCrystalSoulTitle": "💎 Bài Tarot Linh Hồn Pha Lê",
+      "tarotCrystalSoulDesc": "Đọc năng lượng tinh thể",
+      "celestialHarmonyTitle": "✨ Thiên đường hòa hợp",
+      "celestialHarmonyDesc": "Tarot được dệt từ tiếng nói của 11 hành tinh",
+      "sajuTarotTitle": "🔮 Tứ trụ Tarot",
+      "sajuTarotDesc": "Hướng dẫn lựa chọn thông qua thẻ bài và Thập Thần",
+      "hwatuTitle": "🎴 Hwatu Fortune",
+      "hwatuDesc": "Vận may qua 12 tháng thiệp hoa",
+      "egyptOracleTitle": "𓂀 Nhà tiên tri Ai Cập",
+      "egyptOracleDesc": "Kemet bói toán may mắn",
+      "ifaOracleTitle": "🪬 NẾU Oracle",
+      "ifaOracleDesc": "Nhà tiên tri Yoruba 256 Odu",
+      "ichingTurtleTitle": "☯️ I Ching Rùa Oracle",
+      "ichingTurtleDesc": "64 quẻ và 3.000 năm trí tuệ",
+      "runeOracleTitle": "ᚠ Stonehenge Rune Oracle",
+      "runeOracleDesc": "Đọc biểu tượng rune cổ",
+      "geomancyTitle": "⟁ Nhà tiên tri địa chất Trái đất",
+      "geomancyDesc": "16 dòng dấu hiệu từ trái đất",
+      "sikojenTitle": "🐷 Nhà tiên tri lợn Phần Lan",
+      "sikojenDesc": "Lời tiên tri năm mới ngọt ngào với Yeoni và bóng thiếc",
+      "royalTeaTitle": "🫖 Đọc Trà Hoàng Gia",
+      "royalTeaDesc": "Đọc lá trà hoàng gia tasseography",
+      "destinyPokerTitle": "🃏 Poker định mệnh",
+      "destinyPokerDesc": "Cuộc đấu tay đôi của lá bài định mệnh với các vị thần",
+      "westernAstrologyTitle": "✨ Biểu Đồ Chiêm Tinh Phương Tây Cơ Bản",
+      "westernAstrologyDesc": "Biểu đồ sinh miễn phí · Khả năng tương thích Synastry 50 xu",
+      "ziweiBasicTitle": "🌌 Tử Vi Đấu Thụ",
+      "ziweiBasicDesc": "Biểu đồ cơ sở miễn phí · Mở rộng tùy chọn tương thích 50 xu",
+      "ziweiAdvancedTitle": "🌟 Tử Vi nâng cao",
+      "ziweiAdvancedDesc": "Chiến lược sống 12 cung · Phân tích sâu sắc Minh Cung",
+      "vedicAstrologyTitle": "🪐 Chiêm tinh học Vệ Đà",
+      "vedicAstrologyDesc": "Biểu đồ cơ sở miễn phí · Khả năng tương thích 50 xu",
+      "olympusOracleTitle": "⚡ Olympus Oracle",
+      "olympusOracleDesc": "Đọc vận mệnh 12 vị thần và cung hoàng đạo",
+      "destinyFlowerTitle": "🌺 Hoa định mệnh",
+      "destinyFlowerDesc": "Bông hoa nở từ Tứ trụ của bạn",
+      "astrologyFlowerTitle": "✨ Hoa chiêm tinh",
+      "astrologyFlowerDesc": "Mặt Trời · Mọc · Mặt Trăng",
+      "ziweiFlowerTitle": "🌺 Hoa Tử Vi",
+      "ziweiFlowerDesc": "Ngôi sao chính của Minh Cung · độ sáng của sao",
+      "sukuyoFlowerTitle": "🌙 Hoa Tú Diệu",
+      "sukuyoFlowerDesc": "27 biệt thự · tuần trăng",
+      "dreamTarotTitle": "🌙 Bói bài giấc mơ",
+      "dreamTarotDesc": "Đọc 3 lá bài mơ thấy ánh hào quang",
+      "psychoDreamTitle": "🕯️ Đọc giấc mơ phân tâm học",
+      "psychoDreamDesc": "Freud · Nghiên cứu về người Anh",
+      "sukuyoPremiumTitle": "Khả năng tương thích Tú Diệu cao cấp",
+      "sukuyoPremiumDesc": "Tạo bản PDF tư vấn gồm 15 chương tách biệt với khả năng tương thích cơ bản và mở rộng chi tiết.",
+      "ziweiPremiumTitle": "Tử Vi PDF cao cấp",
+      "ziweiPremiumDesc": "Giải thích các cung điện cuộc đời được viết trong Cung điện nhà Minh và 12 cung điện của bạn.",
+      "astroReportTitle": "Báo cáo vũ trụ chiêm tinh",
+      "astroReportDesc": "Đọc các bước ngoặt bằng cách xếp lớp Sao Thổ, các nút, đường chuyển tiếp và dòng nhà trên Mặt trời, Mặt trăng và Mọc.",
+      "vedicPremiumTitle": "Vệ đà PDF cao cấp",
+      "vedicPremiumDesc": "Mở hướng tâm hồn được nói bởi Lagna và Nakshatra.",
+      "soulKarmaTitle": "Nghiệp linh hồn",
+      "soulKarmaDesc": "Bạn đến từ đâu và bạn đến cuộc đời này để giải quyết điều gì?",
+      "psychotestHubTitle": "🧠 Trung tâm kiểm tra tâm lý",
+      "psychotestHubDesc": "14 bài kiểm tra theo chủ đề",
+      "aiOmikujiTitle": "🤖 AI Emoi Omikuji",
+      "aiOmikujiDesc": "Đọc lời tiên tri đầy cảm xúc",
+      "yeonStarHugTileTitle": "✨ Chòm sao trái tim của Yeon",
+      "yeonStarHugTileDesc": "Một cái ôm nhẹ nhàng cho trái tim hôm nay",
+      "bloodTypeTitle": "🩸 Xét nghiệm nhóm máu",
+      "bloodTypeDesc": "Đặc điểm · khả năng tương thích · huấn luyện",
+      "favoriteDestinyTitle": "✨ Người được yêu thích nhất định mệnh",
+      "favoriteDestinyDesc": "Photocard đọc tâm trạng",
+      "sajuFptiTitle": "🔮 Tứ trụ FPTI Test",
+      "sajuFptiDesc": "Tính cách bốn trục qua các yếu tố và Thập Thần"
+    }
+  },
+  "terms": {
+    "사주": "Bốn trụ cột định mệnh",
+    "사주팔자": "Tứ Trụ Định Mệnh (Ba Zi)",
+    "용신": "Yếu tố chiếm ưu thế (Trục may mắn)",
+    "격국": "Nguyên mẫu cuộc sống cốt lõi",
+    "대운": "Thập kỷ chu kỳ của số phận",
+    "세운": "Chu kỳ may mắn hàng năm",
+    "천간": "Thiên Thân",
+    "지지": "Chi nhánh trần gian",
+    "오행": "Ngũ hành",
+    "음양": "Âm & Dương",
+    "자미두수": "Tử Vi Đẩu Số (Chiêm tinh sao tím)",
+    "숙요점": "Chiêm tinh Tú Diệu 27 tú",
+    "명리학": "Khoa học phân tích vận mệnh",
+    "궁합": "Khả năng tương thích vũ trụ",
+    "운명의꽃": "Nguyên mẫu hoa định mệnh",
+    "타로": "tarot",
+    "신살": "Chỉ báo nghiệp báo",
+    "공망": "Nhánh Hư Vô (Điểm mù Nghiệp)",
+    "일주": "Trụ cột ngày (Bản thân cốt lõi)",
+    "월주": "Trụ cột tháng (Tiềm năng)",
+    "년주": "Năm Trụ (Tổ tiên)",
+    "시주": "Trụ cột Giờ (Cũ)",
+    "자수": "Vực thẳm nửa đêm (Chuột·Nước)",
+    "축토": "Đá nền sắt (Ox·Trái đất)",
+    "인목": "Sự đột biến có chủ quyền (Hổ·Mộc)",
+    "묘목": "Tán bình minh (Thỏ·Gỗ)",
+    "진토": "Thiên Ngai (Rồng·Thổ)",
+    "사화": "Than hồng ẩn (Rắn·Lửa)",
+    "오화": "Ngọn lửa mặt trời (Ngựa·Lửa)",
+    "미토": "Thánh Địa Mục Vụ (Dê·Trái Đất)",
+    "신금": "Mercurial Edge (Khỉ·Kim loại)",
+    "유금": "Thép Lưỡi liềm (Dậu·Kim loại)",
+    "술토": "Ngưỡng bảo vệ (Chó·Trái đất)",
+    "해수": "Suối Nguyên Thủy (Lợn·Nước)"
+  },
+  "branches": {
+    "자수": {
+      "label": "Vực thẳm nửa đêm",
+      "animal": "Chuột · Nước (子水)",
+      "essence": "Người tuổi Tý điều hướng những vùng nước tối tăm nhất với độ chính xác kỳ lạ - tháo vát, dễ thích nghi và sâu vô tận. Năng lượng của Midnight Abyss vượt trội ở trí thông minh tiềm ẩn, sự nhạy bén về tài chính và tìm ra những con đường không thể nhìn thấy được."
+    },
+    "축토": {
+      "label": "Nền đá sắt",
+      "animal": "Sửu · Trái đất (丑土)",
+      "essence": "Sửu chịu đựng những gì người khác không thể. Iron Bedrock đại diện cho sự kiên nhẫn bất di bất dịch, sự tích lũy quyền lực chậm rãi và phẩm giá thầm lặng của những người xây dựng đế chế thông qua sự kiên trì hơn là sự xuất chúng."
+    },
+    "인목": {
+      "label": "Sự đột biến có chủ quyền",
+      "animal": "Hổ · Mộc (寅木)",
+      "essence": "Hổ cai quản rừng nguyên sinh. Năng lượng Sovereign Surge là nguyên mẫu của quyền chỉ huy, khả năng bảo vệ quyết liệt và động lực đi lên không thể bị kìm hãm - sự lãnh đạo theo bản chất, không phải do lựa chọn."
+    },
+    "묘목": {
+      "label": "Tán bình minh",
+      "animal": "Thỏ · Gỗ (卯木)",
+      "essence": "Thỏ nắm giữ năng lượng của ánh sáng đầu tiên - dịu dàng nhưng không thể cưỡng lại. Dawn Canopy đại diện cho sự duyên dáng xã hội, sự nhạy cảm về nghệ thuật và khả năng thăng hoa hiếm có thông qua sự mềm mại hơn là vũ lực."
+    },
+    "진토": {
+      "label": "Thiên Vương",
+      "animal": "Rồng · Đất (辰土)",
+      "essence": "Rồng là sinh vật thần thoại duy nhất trong số mười hai - bản chất là thiên thể, có khả năng biến đổi theo thiết kế. Năng lượng của Celestial Throne tỏa ra uy quyền thần thánh, và những người mang nó thường được coi là phi thường mà không biết tại sao."
+    },
+    "사화": {
+      "label": "Than hồng ẩn",
+      "animal": "Rắn · Lửa (巳火)",
+      "essence": "Rắn không tự thông báo. Hidden Ember là năng lượng của trí tuệ sâu sắc được tích lũy trong im lặng - trí thông minh thần bí, cường độ cháy chậm và sức mạnh của việc biết nhiều hơn những gì bạn tiết lộ."
+    },
+    "오화": {
+      "label": "Ngọn lửa mặt trời",
+      "animal": "Ngựa · Lửa (午火)",
+      "essence": "Ngựa là năng lượng của mặt trời buổi trưa - sự rạng rỡ tột đỉnh, động lực không kiềm chế, sự tự do đầy đam mê. Tính cách của Solar Blaze có từ tính, năng động và mạnh mẽ nhất khi chạy về phía thứ họ yêu thích."
+    },
+    "미토": {
+      "label": "Thánh địa mục vụ",
+      "animal": "Dê · Đất (未土)",
+      "essence": "Dê mang trong mình phép thuật nhẹ nhàng của sự phong phú mà không gây hấn - nuôi dưỡng, hài hòa và sáng tạo sâu sắc. Năng lượng của Thánh địa Mục vụ xây dựng những thứ đẹp đẽ, lâu dài và tạo ra những không gian nơi người khác cảm thấy an toàn."
+    },
+    "신금": {
+      "label": "Cạnh thủy ngân",
+      "animal": "Khỉ · Kim loại (申金)",
+      "essence": "Khỉ là người thông thái trong cung hoàng đạo - thông minh, nhanh trí và có khả năng thích nghi vô tận. Năng lượng Mercurial Edge phát triển mạnh trong sự phức tạp, đổi mới và các tình huống đòi hỏi cả trí tuệ nhạy bén và chiến lược linh hoạt."
+    },
+    "유금": {
+      "label": "Thép lưỡi liềm",
+      "animal": "Gà trống · Kim loại (酉金)",
+      "essence": "Người tuổi Dậu là hiện thân của sự chính xác - người báo trước bình minh, người giữ đúng giờ. Năng lượng của Crescent Steel thể hiện ở sự xuất sắc về kỷ luật, sự sáng suốt tinh tế và năng khiếu hiếm có trong việc nhìn thấy những gì thực sự có giá trị."
+    },
+    "술토": {
+      "label": "Ngưỡng giám hộ",
+      "animal": "Chó · Đất (戌土)",
+      "essence": "Chó giữ chức vụ thiêng liêng nhất - người gác cổng, người giữ lòng trung thành. Năng lượng Ngưỡng Giám hộ là nền tảng của sự đáng tin cậy, sự bảo vệ quyết liệt những gì quan trọng và tính chính trực về mặt đạo đức vững chắc."
+    },
+    "해수": {
+      "label": "Mùa xuân nguyên thủy",
+      "animal": "Lợn · Nước (亥水)",
+      "essence": "Heo Rừng là dòng chảy hào phóng vĩ đại - nguyên sơ, dồi dào và hoàn toàn chân thành. Năng lượng Mùa xuân nguyên thủy mang đến sức sống vô tận và nguồn nước sâu không bao giờ cạn cho những ai có tâm hồn trong sáng."
+    }
+  },
+  "premium": {
+    "reportTitle": "Bản kế hoạch định mệnh của bạn",
+    "reportSubtitle": "Phân tích cuộc sống cao cấp được hỗ trợ bởi Siêu tâm lý học & AI phương Đông",
+    "intro": "Báo cáo này không chỉ là dự đoán đơn thuần về tương lai của bạn — nó là bản thiết kế chính xác, dựa trên dữ liệu về kiến ​​trúc tràn đầy năng lượng định hình sự tồn tại của bạn. Rút ra từ hơn 3.000 năm trí tuệ vũ trụ học phương Đông, Tứ trụ định mệnh (Ba Zi) của bạn được giải mã qua lăng kính của AI tiên tiến để tiết lộ các thế lực vô hình chi phối sức mạnh, bóng tối và tiềm năng phát sáng nhất của bạn. Hãy coi đây là cuốn cẩm nang cá nhân của bạn để điều hướng các Chu kỳ Thập kỷ của Số phận một cách rõ ràng và có chủ ý.",
+    "dominantElement": {
+      "label": "Yếu tố chiếm ưu thế của bạn (Trục may mắn)",
+      "description": "Yếu tố thống trị - được biết đến trong tiếng Trung cổ là 用神 (Yòng Shén) - là chìa khóa năng lượng duy nhất giúp cân bằng và kích hoạt toàn bộ cấu trúc vận mệnh của bạn. Khi bạn điều chỉnh môi trường, các mối quan hệ và quyết định của mình với yếu tố này, động lực tự nhiên trong biểu đồ của bạn sẽ tăng tốc. Sự lệch hướng tạo ra ma sát. Đây không phải là mê tín; đó là sự hiệu chỉnh chính xác cho bản thiết kế tràn đầy năng lượng của bạn."
+    },
+    "coreArchetype": {
+      "label": "Nguyên mẫu cuộc sống cốt lõi của bạn",
+      "description": "Nguyên mẫu cốt lõi (格局, Gé Jú) là dấu hiệu cấu trúc cho số phận của bạn - 'khuôn mẫu' xác định cách năng lượng của bạn thể hiện trên thế giới. Giống như một phím đàn tạo ra giai điệu cho từng nốt nhạc, nguyên mẫu của bạn tiết lộ lĩnh vực mà bạn có sức mạnh bẩm sinh nhất và những điều kiện để tài năng của bạn kết tinh hoàn toàn."
+    },
+    "decadeCycle": {
+      "label": "Thập kỷ chu kỳ của số phận",
+      "description": "Chu Kỳ Thập Kỷ Của Số Phận (大運, Dà Yùn) mô tả những vùng khí hậu tràn đầy năng lượng trong 10 năm mà bạn phải trải qua trong suốt cuộc đời của mình. Không giống như hệ nhị phân 'may mắn hay không may mắn' đơn giản, mỗi chu kỳ sẽ thay đổi toàn bộ trường cộng hưởng trong biểu đồ của bạn - mở khóa tiềm năng mới hoặc tiết lộ các bài học về nghiệp quả phải được tích hợp. Hiểu được chu kỳ hiện tại và sắp tới sẽ mang lại cho bạn lợi thế chiến lược sâu sắc."
+    },
+    "compatibility": {
+      "label": "Phân tích tương thích vũ trụ",
+      "description": "Khả năng tương thích thực sự vượt qua các loại tính cách. Bài đọc Tương thích vũ trụ xem xét sự tương tác của Ngũ hành giữa hai biểu đồ định mệnh để tiết lộ hợp đồng năng lượng cơ bản giữa hai người - nơi bạn khuếch đại lẫn nhau, nơi mà xung đột sẽ nảy sinh có thể đoán trước được và cách điều hướng nó một cách duyên dáng."
+    },
+    "cta": "Mở khóa toàn bộ bản kế hoạch định mệnh của bạn",
+    "priceDisplay": "Từ $39",
+    "guarantee": "Đảm bảo sự hài lòng trong 30 ngày"
+  },
+  "services": {
+    "saju": {
+      "name": "Bốn trụ cột định mệnh",
+      "short": "Đọc sách Tứ trụ",
+      "description": "Hệ thống siêu tâm lý học phương Đông ban đầu. Ngày sinh của bạn mã hóa một chữ ký vũ trụ chính xác - bốn trụ cột, tám ký tự, chiều sâu vô hạn.",
+      "badge": "Phổ biến nhất"
+    },
+    "tarot": {
+      "name": "Hướng dẫn AI Tarot",
+      "short": "AI Tarot",
+      "description": "Trí tuệ nguyên mẫu cổ xưa được khuếch đại bởi trí tuệ nhân tạo. Mỗi bài đọc phản ánh trường năng lượng độc đáo của bạn."
+    },
+    "ziwei": {
+      "name": "Tử Vi Đẩu Số (Chiêm tinh sao tím)",
+      "short": "Biểu đồ sao",
+      "description": "Hệ thống bản đồ sao hoàng gia của Trung Quốc cổ đại - 144 cung điện sự sống, 108 ngôi sao - một bức tranh toàn cảnh về vận mệnh.",
+      "badge": "Lặn sâu"
+    },
+    "astrology": {
+      "name": "Chiêm tinh học vũ trụ",
+      "short": "Vệ đà & phương Tây",
+      "description": "Sự kết hợp giữa chiêm tinh học Vệ đà Jyotish và phương Tây, cung cấp những hiểu biết sâu sắc về sự liên kết hành tinh đa truyền thống."
+    },
+    "destinyFlower": {
+      "name": "Nguyên mẫu hoa định mệnh",
+      "short": "Hoa Định Mệnh",
+      "description": "Hình mẫu nở rộ của tâm hồn bạn - một nguyên mẫu thơ mộng nhưng chính xác bắt nguồn từ chữ ký số phận nguyên tố của bạn."
+    },
+    "compatibility": {
+      "name": "Khả năng tương thích vũ trụ",
+      "short": "Khả năng tương thích",
+      "description": "Beyond Myers-Briggs — một bản phân tích về khả năng tương thích dựa trên Năm Yếu tố cho thấy mối liên hệ sâu sắc về năng lượng giữa bạn và những người khác."
+    }
+  },
+  "trust": {
+    "headline": "Tại sao hơn 100.000 người tin tưởng Code Destiny",
+    "badges": [
+      {
+        "icon": "🌍",
+        "label": "Cộng đồng toàn cầu",
+        "value": "Hơn 100.000 người dùng ở hơn 80 quốc gia"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL bảo mật",
+        "value": "Mã hóa 256-bit · Thanh toán an toàn"
+      },
+      {
+        "icon": "⭐",
+        "label": "Sự hài lòng",
+        "value": "đánh giá trung bình 4,9/5"
+      },
+      {
+        "icon": "🌐",
+        "label": "Ngôn ngữ",
+        "value": "10 ngôn ngữ · Luôn có sẵn"
+      },
+      {
+        "icon": "💳",
+        "label": "Thanh toán an toàn",
+        "value": "Đã được xác minh sọc · Tất cả các thẻ chính"
+      },
+      {
+        "icon": "🔄",
+        "label": "Bảo đảm",
+        "value": "Lời hứa hoàn tiền trong 30 ngày"
+      }
+    ]
+  },
+  "footer": {
+    "tagline": "Trí tuệ cổ xưa, độ chính xác hiện đại.",
+    "about": "Code Destiny là nền tảng phân tích vận may và vận mệnh được hỗ trợ bởi AI kết hợp hơn 3.000 năm hệ thống vũ trụ phương Đông với trí tuệ nhân tạo hiện đại. Có sẵn trong 10 ngôn ngữ, sử dụng miễn phí.",
+    "sections": {
+      "services": "Dịch vụ",
+      "resources": "Tài nguyên",
+      "legal": "Hợp pháp",
+      "support": "Ủng hộ"
+    },
+    "links": {
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản dịch vụ",
+      "refund": "Chính sách hoàn tiền",
+      "about": "Về chúng tôi",
+      "faq": "Câu hỏi thường gặp",
+      "contact": "Liên hệ với chúng tôi"
+    },
+    "refundPolicy": "Tiền xu dịch vụ kỹ thuật số (tín dụng cao cấp) được hoàn lại trong vòng 14 ngày kể từ ngày mua nếu không sử dụng, theo luật bảo vệ người tiêu dùng. Các khoản tín dụng đã sử dụng sẽ không được hoàn lại. Liên hệ hỗ trợ để được hỗ trợ.",
+    "copyright": "© 2025 Code Destiny. Mọi quyền được bảo lưu. Chỉ nhằm mục đích giải trí và tự suy ngẫm - không thay thế cho lời khuyên chuyên môn."
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "$",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "món khai vị",
+        "name": "người mới bắt đầu",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10 bài đọc may mắn cao cấp",
+        "popular": false
+      },
+      {
+        "id": "tiêu chuẩn",
+        "name": "Tiêu chuẩn",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35 bài đọc cao cấp + báo cáo định mệnh đầy đủ",
+        "popular": true
+      },
+      {
+        "id": "phần thưởng",
+        "name": "Phần thưởng",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80 bài đọc + tính năng truy cập trọn đời",
+        "popular": false
+      }
+    ]
+  }
+}

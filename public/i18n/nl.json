@@ -3,29 +3,29 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Oosterse Wijsheid × AI-Analyse",
-    "subtitle": "3.000 jaar Chinese numerologie, ontcijferd door moderne AI",
+    "tagline": "Oosterse wijsheid, zacht gelezen met AI",
+    "subtitle": "Oude duidingskunst en moderne AI verlichten je volgende stap",
     "trustBadge": "Meer dan 100.000 zoekers in 80+ landen vertrouwen ons"
   },
   "home": {
     "hero": {
       "eyebrow": "Code Destiny / Honey Pig Fortune",
       "brandLine": "Hemelse collectie voor je lot",
-      "titleLine1": "Gratis Saju & Tarot",
+      "titleLine1": "Gratis Vier Pijlers & Tarot",
       "titleAccent": "Je dagorakel",
-      "titleLine3": "op één platform",
-      "lead": "Ontdek Saju, tarot, Zi Wei Dou Shu, astrologie, Sukuyo, compatibiliteit en je dagorakel in één rustige omgeving. Vul je geboortegegevens of vraag in en krijg een reading die het moment voor je volgende keuze helder maakt.",
-      "primaryCta": "Start gratis Saju-reading",
+      "titleLine3": "in één rustig maanlicht",
+      "lead": "Ontdek de Vier Pijlers, tarot, Zi Wei Dou Shu, astrologie, Sukuyo-astrologie, compatibiliteit en je dagorakel in één rustige omgeving. Vul je geboortegegevens of huidige vraag in en krijg een lezing die het moment voor je volgende keuze helder maakt.",
+      "primaryCta": "Start gratis Vier-Pijlers-lezing",
       "tarotCta": "Trek tarotkaarten",
       "todayCta": "Bekijk je dagorakel"
     },
     "nav": {
       "home": "Start",
-      "saju": "Saju",
+      "saju": "Vier Pijlers",
       "tarot": "Tarot",
       "astrology": "Astrologie",
-      "sukuyo": "Sukuyo",
-      "ziwei": "Zi Wei",
+      "sukuyo": "Sukuyo-astrologie",
+      "ziwei": "Zi Wei Dou Shu",
       "vedic": "Vedisch",
       "flowerDream": "Bloemen & dromen",
       "vvip": "VVIP-bibliotheek",
@@ -64,7 +64,7 @@
       "chipPremium": "Premiumrapporten"
     },
     "input": {
-      "title": "Start Saju-analyse",
+      "title": "Begin je Vier-Pijlers-lezing",
       "desc": "Vul je naam en geboortetijd in om chart, elementen en Tien Goden stap voor stap te openen.",
       "nameLabel": "Naam",
       "nameHint": "Vul de naam in die in je reading moet verschijnen.",
@@ -82,7 +82,7 @@
       "genderLabel": "Geslacht",
       "female": "Vrouw",
       "male": "Man",
-      "submit": "Start gratis Saju-analyse",
+      "submit": "Gratis Vier-Pijlers-lezing",
       "saveProfile": "Profielkaart opslaan",
       "saveOptional": "Optioneel",
       "kakaoEvent": "Kakao-deelevent",
@@ -110,7 +110,7 @@
       "sukuyoBadge": "Collection No. 04 · Aanbevolen",
       "sukuyoTitle": "Sukuyo",
       "sukuyoDesc": "Bekijk eerst je maanwoning, temperament en het ritme van vandaag.",
-      "sukuyoCta": "Bekijk gratis Sukuyo"
+      "sukuyoCta": "Bekijk gratis Sukuyo-astrologie"
     },
     "collectionHeaders": {
       "animal": {
@@ -283,7 +283,7 @@
     "오행": "Vijf Elementen",
     "음양": "Yin en Yang",
     "자미두수": "Purperen Ster Astrologie (Zi Wei Dou Shu)",
-    "숙요점": "Orakel van de 27 Maanhuizen",
+    "숙요점": "Sukuyo-astrologie (27 maanhuizen)",
     "명리학": "Lotanalysewetenschap",
     "궁합": "Kosmische Compatibiliteit",
     "운명의꽃": "Lotsbloemarchetyp",
@@ -368,7 +368,7 @@
   },
   "footer": {
     "tagline": "Oude wijsheid, moderne precisie.",
-    "about": "Code Destiny is een AI-aangedreven lotsanalyseplatform dat meer dan 3.000 jaar oosterse kosmologische systemen combineert met moderne kunstmatige intelligentie. Beschikbaar in 10 talen, gratis te gebruiken.",
+    "about": "Code Destiny verbindt meer dan 3.000 jaar oosterse kosmologie met moderne AI en opent rustige lezingen in 10 talen, met gratis kernervaringen.",
     "links": {
       "privacy": "Privacybeleid",
       "terms": "Servicevoorwaarden",
@@ -451,14 +451,14 @@
   "services": {
     "saju": {
       "name": "Vier Pijlers van het Lot",
-      "short": "Saju-lezing",
-      "description": "Het oorspronkelijke systeem van oosterse meta-psychologie. Je geboortedatum draagt een precieze kosmische signatuur: vier pijlers, acht tekens en diepe resonantie.",
+      "short": "Vier-Pijlers-lezing",
+      "description": "De Vier Pijlers lezen temperament, timing en richting uit geboortegegevens, elementen en cycli. Ze zetten de toekomst niet vast, maar tonen het ritme waarin keuzes duidelijker worden.",
       "badge": "Populair"
     },
     "tarot": {
       "name": "AI-tarotbegeleiding",
       "short": "AI-tarot",
-      "description": "Oude archetypische wijsheid, versterkt door kunstmatige intelligentie. Elke lezing weerspiegelt je huidige energieveld."
+      "description": "Oude archetypische wijsheid, gelezen met moderne AI. Elke legging weerspiegelt je vraag, het emotionele weer en de richting die nu leeft."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",

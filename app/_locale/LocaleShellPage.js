@@ -6,10 +6,11 @@ const LOCALE_CONTENT = {
     langQuery: "en",
     title: "Code Destiny in English",
     lead:
-      "Explore Saju, Tarot, Ziwei, and Astrology in one place. We are actively improving English localization for core content.",
+      "Open Saju, Tarot, Zi Wei Dou Shu, Sukuyo astrology, and daily guidance in one calm English experience.",
     intro:
-      "This page is the English locale hub. You can start from the main experience in English mode and access policy and methodology pages while full localization continues.",
-    cta: "Open Main Experience in English",
+      "Your next reading begins from the main moonlit page, where the language engine keeps the active service flow in English.",
+    cta: "Open the English Experience",
+    quickLinks: "Quick Links",
     links: [
       { href: "/about", label: "About" },
       { href: "/methodology", label: "Methodology" },
@@ -20,12 +21,13 @@ const LOCALE_CONTENT = {
   },
   "ja-jp": {
     langQuery: "ja",
-    title: "Code Destiny 日本語ガイド",
+    title: "Code Destiny 日本語版",
     lead:
-      "四柱推命、タロット、紫微斗数、西洋占星術を一つのサービスで利用できます。主要コンテンツの日本語翻訳を継続中です。",
+      "四柱推命、タロット、紫微斗数、宿曜占星術、今日の運勢まで、月明かりの中で静かに開けます。",
     intro:
-      "このページは日本語ロケールの入口です。日本語モードでメイン画面へ進み、運営方針・方法論・FAQを確認できます。",
-    cta: "日本語モードでメインへ進む",
+      "いま必要な問いを持って、メイン画面へ進んでください。日本語の流れで、カードと星の言葉が次の一歩を照らします。",
+    cta: "日本語で占いを開く",
+    quickLinks: "クイックリンク",
     links: [
       { href: "/about", label: "運営情報" },
       { href: "/methodology", label: "方法論" },
@@ -36,12 +38,13 @@ const LOCALE_CONTENT = {
   },
   "zh-cn": {
     langQuery: "zh-CN",
-    title: "Code Destiny 简体中文入口",
+    title: "Code Destiny 中文版",
     lead:
-      "在一个平台体验四柱八字、塔罗、紫微斗数与占星服务。核心内容的中文本地化正在持续完善。",
+      "八字、塔罗、紫微斗数、宿曜占星与今日运势，都可以在一片安静的月光里开启。",
     intro:
-      "本页面是简体中文入口。你可以先进入中文模式主界面，并查看平台介绍、方法论、常见问题与政策页面。",
-    cta: "进入中文模式主页面",
+      "带着此刻的问题进入主画面，中文占卜流程会为你整理牌面、星象与下一步方向。",
+    cta: "用中文开启占卜",
+    quickLinks: "快速链接",
     links: [
       { href: "/about", label: "关于我们" },
       { href: "/methodology", label: "方法论" },
@@ -101,7 +104,7 @@ export function createLocaleShellPage(localeSlug) {
         </Link>
 
         <section>
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>Quick Links</h2>
+          <h2 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>{content.quickLinks}</h2>
           <ul style={{ paddingLeft: "18px", lineHeight: 1.9 }}>
             {content.links.map((link) => (
               <li key={link.href}>
