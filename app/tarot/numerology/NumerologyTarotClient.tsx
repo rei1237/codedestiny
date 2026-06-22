@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Copy, RefreshCw, Save, Share2, WandSparkles } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
@@ -186,12 +187,16 @@ type NumerologyContext = {
 type FreeProfileCard = {
   title: string;
   value: string;
+  accent?: string;
 };
 
 type FreeProfile = {
   headline: string;
   summary: string;
+  keySentence: string;
+  highlights: FreeProfileCard[];
   cards: FreeProfileCard[];
+  moonNote: string;
 };
 
 type ReadingPaymentContext = {
@@ -963,38 +968,82 @@ export default function NumerologyTarotClient() {
     const lifePath = Number(numerology?.lifePathNumber || 0);
     if (!numerology || !lifePath) return null;
     const base = FREE_TALENT_MAP[lifePath] || FREE_TALENT_MAP[(lifePath % 9) || 9] || FREE_TALENT_MAP[9];
-    const topicFocusMap: Record<TopicKey, string> = {
-      love: "지금 관계의 온도와 진심을 읽는 흐름에 맞춘 해석입니다.",
-      reunion: "끊어진 인연의 잔향과 다시 닿을 여지를 함께 봅니다.",
-      feelings: "상대의 말과 행동 사이에 남은 온도차를 함께 봅니다.",
-      career: "역할, 성장, 성과 흐름이 어디에 모이는지 중심으로 읽습니다.",
-      money: "수입, 지출, 기회 포착의 리듬을 기준으로 풀어냅니다.",
-      relationship: "대인관계의 경계와 신뢰, 협력의 온도를 함께 봅니다.",
-      health: "컨디션, 회복, 에너지 소모를 생활 리듬 기준으로 읽습니다.",
-      move: "이동과 변화의 타이밍, 준비도, 정착 여지를 함께 점검합니다.",
-      general: "지금 전체 운의 방향과 실행 우선순위를 함께 보는 기준입니다.",
+    const topicFocusMap: Record<TopicKey, { focus: string; expression: string; closing: string }> = {
+      love: {
+        focus: "지금 관계의 온도와 진심을 읽는 흐름입니다.",
+        expression: "말의 밝기보다 감정의 깊이가 매력을 오래 남깁니다.",
+        closing: "관계는 서두르기보다, 마음이 드러나는 속도를 서로 맞출 때 더 선명해집니다.",
+      },
+      reunion: {
+        focus: "끊어진 인연의 잔향과 다시 닿을 여지를 함께 봅니다.",
+        expression: "그리움이 앞설수록 단정한 표현과 분명한 경계가 더 큰 힘을 냅니다.",
+        closing: "다시 닿고 싶은 마음은 좋지만, 같은 흐름이 반복되지 않을 기준을 먼저 세워야 합니다.",
+      },
+      feelings: {
+        focus: "상대의 말과 행동 사이에 남은 온도차를 살핍니다.",
+        expression: "확인받고 싶은 마음을 급히 드러내기보다, 차분한 질문이 더 깊은 답을 끌어냅니다.",
+        closing: "상대의 반응은 한 장면보다 반복되는 결에서 더 분명하게 드러납니다.",
+      },
+      career: {
+        focus: "역할, 성장, 성과 흐름이 어디에 모이는지 중심으로 읽습니다.",
+        expression: "보여 주는 방식과 설명하는 힘이 일의 신뢰를 함께 키웁니다.",
+        closing: "지금은 재능을 증명하려 애쓰기보다, 맡을 수 있는 역할을 선명하게 보여 줄 때입니다.",
+      },
+      money: {
+        focus: "수입, 지출, 기회 포착의 리듬을 기준으로 풀어냅니다.",
+        expression: "매력과 수익은 흩어진 아이디어보다 반복 가능한 채널에서 더 잘 이어집니다.",
+        closing: "돈의 흐름은 큰 결정보다 오늘의 작은 기준에서 먼저 정돈됩니다.",
+      },
+      relationship: {
+        focus: "대인관계의 경계와 신뢰, 협력의 온도를 함께 봅니다.",
+        expression: "좋은 분위기를 만드는 힘은 분명한 기준과 함께 있을 때 오래갑니다.",
+        closing: "모두에게 맞추려 하기보다, 오래 갈 관계에 에너지를 남겨 두세요.",
+      },
+      health: {
+        focus: "컨디션, 회복, 에너지 소모를 생활 리듬 기준으로 읽습니다.",
+        expression: "몸의 속도가 느려질수록 표현도 부드러워지고 판단이 맑아집니다.",
+        closing: "오늘은 크게 바꾸기보다 새는 기운 하나를 막는 쪽이 좋습니다.",
+      },
+      move: {
+        focus: "이동과 변화의 타이밍, 준비도, 정착 여지를 함께 점검합니다.",
+        expression: "변화 앞에서는 멋진 선언보다 현실적인 첫 정리가 운을 움직입니다.",
+        closing: "떠날지 머물지는 감정의 파도보다 준비된 자리의 밀도로 판단하세요.",
+      },
+      general: {
+        focus: "지금 전체 운의 방향과 실행 우선순위를 함께 보는 기준입니다.",
+        expression: "가장 먼저 드러나는 매력은 선택을 단순하게 정리하는 태도에서 나옵니다.",
+        closing: "오늘의 운은 넓게 벌리기보다 한 방향으로 달빛을 모을 때 살아납니다.",
+      },
     };
+    const topicFocus = topicFocusMap[topic];
+    const lifeKeyword = lifeData?.keyword || "핵심 기질";
+    const lifeMeaning = lifeData?.meaning || "지금 흐름은 자신이 가진 결을 알아보고, 그 결이 자연스럽게 쓰이는 자리를 찾는 데 있습니다.";
+    const topicLabel = TOPIC_LABELS[topic];
 
     return {
-      headline: `${lifeData?.keyword || "핵심 기질"}을 중심으로 한 기초 리딩`,
-      summary: `생명수 ${numerology.lifePathNumber}와 ${TOPIC_LABELS[topic]}의 오늘 리듬을 겹쳐, 지금 먼저 보이는 성향과 선택의 결을 정리했습니다.`,
-      cards: [
-        { title: "타고난 성향", value: base.trait },
-        { title: "핵심 강점", value: base.strength },
-        { title: "보완 포인트", value: base.shadow },
-        { title: "적성 영역", value: base.aptitude.join(" / ") },
-        { title: "연애/관계", value: base.love },
-        { title: "일/커리어", value: base.work },
-        { title: "금전 흐름", value: base.money },
-        { title: "대인/협업", value: base.relationship },
-        { title: "회복 포인트", value: base.recovery },
-        { title: "오늘의 실행", value: base.action },
-        { title: "주의 신호", value: base.caution },
-        { title: "타로 연결", value: base.cardBridge },
-        { title: "주제 초점", value: topicFocusMap[topic] },
+      headline: `${lifeKeyword}이 피어나는 자리`,
+      summary: `생명수 ${numerology.lifePathNumber}의 기본 결은 ${base.trait}입니다. ${base.strength} ${topicFocus.focus} ${lifeMeaning} ${base.cardBridge}`,
+      keySentence: `${toText(name) || "당신"}님의 매력은 억지로 크게 드러낼 때보다, 자기 속도를 잃지 않고 말과 태도에 온기를 남길 때 더 또렷하게 빛납니다.`,
+      highlights: [
+        { title: "생명수", value: String(numerology.lifePathNumber), accent: lifeKeyword },
+        { title: "질문 주제", value: topicLabel, accent: topicFocus.focus },
+        { title: "오늘의 결", value: String(numerology.personalDayNumber), accent: "작은 실행이 흐름을 바꿉니다." },
       ],
+      cards: [
+        { title: "첫인상과 분위기", value: `${base.trait}의 기운이 먼저 드러납니다. ${base.strength} 그래서 처음 만나는 사람에게도 흐름을 살리는 사람, 분위기를 바꾸는 사람으로 비치기 쉽습니다.` },
+        { title: "표현의 방식", value: `${topicFocus.expression} ${lifeMeaning} 말, 글, 이미지, 태도 중 하나를 고르기보다 지금은 자신이 가장 자연스럽게 반응을 만드는 방식을 먼저 살리는 편이 좋습니다.` },
+        { title: "타고난 매력", value: `${base.strength} 이 매력은 억지로 증명하려 할수록 흐려지고, 편안하게 자기 결을 지킬수록 은은하게 남습니다.` },
+        { title: "관계에서 빛나는 지점", value: base.love },
+        { title: "일과 창작에서의 활용", value: `${base.work} 적성은 ${base.aptitude.join(" / ")} 쪽으로 잘 열리며, 지금은 잘하는 것을 크게 벌리기보다 보여 줄 수 있는 형태로 정리하는 것이 중요합니다.` },
+        { title: "돈의 흐름과 선택 기준", value: base.money },
+        { title: "대인/협업의 온도", value: base.relationship },
+        { title: "주의해야 할 흐림", value: `${base.shadow} ${base.caution}` },
+        { title: "회복과 재정렬", value: `${base.recovery} ${base.growthTip}` },
+        { title: "오늘의 작은 실행", value: base.action },
+      ],
+      moonNote: `${topicFocus.closing} 오늘의 카드는 아직 결론보다 방향을 먼저 비추고 있으니, 마음이 가벼워지는 선택부터 하나만 잡아 보세요.`,
     };
-  }, [lifeData?.keyword, numerology, topic]);
+  }, [lifeData?.keyword, lifeData?.meaning, name, numerology, topic]);
 
   const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
 
@@ -1345,7 +1394,7 @@ export default function NumerologyTarotClient() {
     setStandalonePromptStatus("");
     try {
       setStandalonePromptText(promptText);
-      setStandalonePromptStatus(`${promptTopicOption.title} 프롬프트가 준비되었습니다. 추가 결제는 없습니다.`);
+      setStandalonePromptStatus(`${promptTopicOption.title} 흐름으로 이어 볼 상담 문장이 준비되었습니다. 추가 결제는 없습니다.`);
     } catch {
       setStandalonePromptStatus("상담 프롬프트를 여는 중 오류가 발생했습니다.");
     } finally {
@@ -1355,7 +1404,7 @@ export default function NumerologyTarotClient() {
 
   async function copyStandalonePrompt() {
     const copied = await copyTextToClipboard(standalonePromptText);
-    setStandalonePromptStatus(copied ? "상담 프롬프트가 복사되었습니다." : "직접 선택해 복사해 주세요.");
+    setStandalonePromptStatus(copied ? "상담 문장이 복사되었습니다." : "직접 선택해 복사해 주세요.");
   }
 
   function saveReadingResult() {
@@ -1654,10 +1703,23 @@ export default function NumerologyTarotClient() {
 
             {numerology && freeProfile ? (
               <section className={styles.freeProfileCard}>
-                <h3>{freeProfile.headline}</h3>
-                <p className={styles.freeProfileLead}>
-                  {freeProfile.summary}
-                </p>
+                <div className={styles.freeProfileHero}>
+                  <p className={styles.promptToolKicker}>기초 리딩</p>
+                  <h3>{freeProfile.headline}</h3>
+                  <p className={styles.freeProfileLead}>
+                    {freeProfile.summary}
+                  </p>
+                  <p className={styles.freeProfileKeySentence}>{freeProfile.keySentence}</p>
+                </div>
+                <div className={styles.freeProfileHighlights}>
+                  {freeProfile.highlights.map((item) => (
+                    <article key={item.title} className={styles.freeProfileHighlight}>
+                      <span>{item.title}</span>
+                      <strong>{item.value}</strong>
+                      {item.accent ? <small>{item.accent}</small> : null}
+                    </article>
+                  ))}
+                </div>
                 <div className={styles.freeProfileGrid}>
                   {freeProfile.cards.map((item) => (
                     <article key={item.title} className={styles.resultBox}>
@@ -1666,6 +1728,7 @@ export default function NumerologyTarotClient() {
                     </article>
                   ))}
                 </div>
+                <p className={styles.freeProfileMoonNote}>{freeProfile.moonNote}</p>
 
                 <div className={styles.promptMergedPanel} data-marker="tarot-numerology-one-payment-included-v20260622">
                   <div className={styles.promptToolHeader}>
@@ -1694,44 +1757,47 @@ export default function NumerologyTarotClient() {
                   practicalAdvice: item.practicalAdvice || item.actionTip,
                   caution: item.caution,
                 }));
+              const resultSubtitle = numerology?.lifePathNumber
+                ? `생명수 ${numerology.lifePathNumber}, 선택한 카드 5장을 함께 엮은 맞춤 상담입니다.`
+                : "숫자의 흐름과 선택한 카드 5장을 함께 엮은 맞춤 상담입니다.";
+              const sitterName = toText(name) || "내담자";
+              const primaryAction = reading.nextActions?.[0] || reading.conclusion.doThis?.[0] || "오늘 떠오른 마음을 한 문장으로 남겨 보세요.";
+              const resultMoonHighlights = [
+                {
+                  title: "첫인상과 분위기",
+                  value: reading.synthesis?.currentSituation || reading.categoryDeepDive.currentFlow,
+                },
+                {
+                  title: "표현의 방식",
+                  value: reading.numerologyInsight?.summary || reading.numerologyReading,
+                },
+                {
+                  title: "오늘의 작은 실행",
+                  value: primaryAction,
+                },
+              ];
               return (
                 <section className={styles.resultCard}>
                   <div className={styles.resultHeader}>
-                    <div>
+                    <div className={styles.resultTitleBlock}>
                       <p className={styles.promptToolKicker}>{TOPIC_LABELS[topic]}</p>
-                      <h3>{toText(name) || "내담자"}님의 수비학 타로 상담</h3>
-                      <p>{analysisDate} · {readingId || reading.readingId}</p>
+                      <h3>{sitterName}님의 달빛 수비학 타로 상담</h3>
+                      <p className={styles.resultSubtitle}>{resultSubtitle}</p>
                     </div>
-                    <div className={styles.resultActions}>
-                      <button type="button" className={styles.ghostBtn} onClick={saveReadingResult}>저장</button>
-                      <button type="button" className={styles.ghostBtn} onClick={shareReadingResult}>공유</button>
-                      <button
-                        type="button"
-                        className={styles.lightBtn}
-                        onClick={() => {
-                          setEntitlement(null);
-                          setReadingId("");
-                          setCards([]);
-                          setRevealed([]);
-                          setReading(null);
-                          setStandalonePromptText("");
-                          setStandalonePromptStatus("");
-                          setSaveStatus("");
-                          setFlowState("checkout_ready");
-                          if (typeof window !== "undefined") {
-                            window.localStorage.removeItem(READING_ENTITLEMENT_STORAGE_KEY);
-                          }
-                        }}
-                      >
-                        새로운 질문
-                      </button>
-                    </div>
+                  </div>
+                  <div className={styles.resultMoonPanel}>
+                    {resultMoonHighlights.map((item) => (
+                      <article key={item.title} className={styles.resultMoonItem}>
+                        <h4>{item.title}</h4>
+                        <p>{item.value}</p>
+                      </article>
+                    ))}
                   </div>
 
                   <div className={styles.resultStack}>
                     <article className={`${styles.resultSection} ${styles.answerSection}`}>
-                      <h4>상담사의 첫 답변</h4>
-                      <p className={styles.resultLead}>{reading.opening || `${toText(name) || "내담자"}님, 먼저 질문의 핵심부터 보겠습니다.`}</p>
+                      <h4>표현과 매력이 피어나는 첫 답변</h4>
+                      <p className={styles.resultLead}>{reading.opening || `${sitterName}님, 먼저 질문의 핵심부터 차분히 보겠습니다.`}</p>
                       <p className={styles.resultCoreMessage}>{reading.directAnswer || reading.coreMessage}</p>
                       <div className={styles.resultGrid}>
                         <article className={styles.resultBox}><h5>현재 흐름</h5><p>{reading.synthesis?.currentSituation || reading.categoryDeepDive.currentFlow}</p></article>
@@ -1740,7 +1806,7 @@ export default function NumerologyTarotClient() {
                     </article>
 
                     <article className={styles.resultSection}>
-                      <h4>숫자가 보여 주는 관계 방식</h4>
+                      <h4>숫자가 비추는 매력의 방식</h4>
                       <p className={styles.resultLead}>{reading.numerologyInsight?.summary || reading.numerologyReading}</p>
                       {reading.numerologyInsight?.relevantNumbers?.length ? (
                         <div className={styles.resultGrid}>
@@ -1756,7 +1822,7 @@ export default function NumerologyTarotClient() {
                     </article>
 
                     <article className={styles.resultSection}>
-                      <h4>다섯 장의 카드가 만드는 이야기</h4>
+                      <h4>다섯 장의 카드가 남긴 흐름</h4>
                       <p className={styles.resultLead}>{reading.cardStory || reading.topicReading.topicOverview}</p>
                     </article>
 
@@ -1818,12 +1884,44 @@ export default function NumerologyTarotClient() {
                       <p className={styles.qualityNote}>{reading.disclaimer}</p>
                     </article>
 
+                    <div className={styles.resultActionDock}>
+                      <button type="button" className={styles.ghostBtn} onClick={saveReadingResult}>
+                        <Save className={styles.actionIcon} size={15} aria-hidden="true" />
+                        저장
+                      </button>
+                      <button type="button" className={styles.ghostBtn} onClick={shareReadingResult}>
+                        <Share2 className={styles.actionIcon} size={15} aria-hidden="true" />
+                        공유
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.lightBtn}
+                        onClick={() => {
+                          setEntitlement(null);
+                          setReadingId("");
+                          setCards([]);
+                          setRevealed([]);
+                          setReading(null);
+                          setStandalonePromptText("");
+                          setStandalonePromptStatus("");
+                          setSaveStatus("");
+                          setFlowState("checkout_ready");
+                          if (typeof window !== "undefined") {
+                            window.localStorage.removeItem(READING_ENTITLEMENT_STORAGE_KEY);
+                          }
+                        }}
+                      >
+                        <RefreshCw className={styles.actionIcon} size={15} aria-hidden="true" />
+                        새로운 질문
+                      </button>
+                    </div>
+
                     <article className={styles.utilityPanel}>
                       <div className={styles.promptToolHeader}>
                         <div>
                           <p className={styles.promptToolKicker}>결과 활용하기</p>
-                          <h4>{TOPIC_LABELS[topic]} 맞춤 AI 상담 프롬프트</h4>
-                          <p>이번 리딩의 숫자, 카드 5장, 질문을 {promptTopicOption.title} 흐름에 맞춰 정리합니다. 결제에 포함되어 추가 비용이 없습니다.</p>
+                          <h4>{TOPIC_LABELS[topic]} 흐름으로 이어 보는 상담 프롬프트</h4>
+                          <p>이번 리딩의 숫자, 카드 5장, 질문을 {promptTopicOption.title} 흐름에 맞춰 자연스럽게 엮습니다. 결제에 포함되어 추가 비용은 없습니다.</p>
                         </div>
                       </div>
                       <div className={styles.promptAutoPanel}>
@@ -1835,11 +1933,13 @@ export default function NumerologyTarotClient() {
                       </div>
                       <div className={styles.promptToolActions}>
                         <button type="button" className={styles.mainBtn} onClick={generateStandalonePrompt} disabled={standalonePromptLoading}>
-                          {standalonePromptLoading ? "정리 중..." : "현재 주제 맞춤 프롬프트 열기"}
+                          <WandSparkles className={styles.actionIcon} size={16} aria-hidden="true" />
+                          {standalonePromptLoading ? "정리 중..." : "이 흐름으로 더 깊이 보기"}
                         </button>
                         {standalonePromptText ? (
                           <button type="button" className={styles.lightBtn} onClick={copyStandalonePrompt}>
-                            상담 프롬프트 복사
+                            <Copy className={styles.actionIcon} size={16} aria-hidden="true" />
+                            상담 문장 복사하기
                           </button>
                         ) : null}
                         <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus || saveStatus}</span>

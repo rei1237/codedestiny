@@ -31,7 +31,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
   const [error, setError] = useState("");
 
   const buttonLabel = useMemo(() => {
-    if (loading) return "마야 시간 코드를 여는 중...";
+    if (loading) return "고대 시간 문양을 여는 중...";
     if (prompt) return "다시 생성하기";
     return "마야점 프롬프트 생성하기";
   }, [loading, prompt]);
@@ -83,7 +83,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         cost: FEATURE_COST,
         paymentMode: "pass",
         title: "마야점 프롬프트 생성",
-        message: `${FEATURE_PRICE_LABEL} 또는 이용권 적용 여부를 확인하고 있습니다.`,
+        message: "이용권 확인 중",
       });
 
       try {
@@ -138,16 +138,16 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
       document.execCommand("copy");
       document.body.removeChild(textarea);
     }
-    setMessage("마야점 프롬프트를 복사했습니다.");
+    setMessage("마야점 프롬프트가 석판에서 복사되었어요.");
   }
 
   return (
-    <section className="relative overflow-hidden rounded-lg border border-[#d8b56d]/24 bg-[#04100d]/92 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)] backdrop-blur">
+    <section className="relative min-w-0 overflow-hidden rounded-lg border border-[#d8b56d]/24 bg-[#04100d]/92 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)] backdrop-blur">
       <div className="pointer-events-none absolute inset-0 opacity-42 [background-image:radial-gradient(circle_at_90%_0%,rgba(216,181,109,0.18),transparent_34%),radial-gradient(circle_at_12%_4%,rgba(111,191,154,0.13),transparent_32%),linear-gradient(135deg,rgba(216,181,109,0.05)_1px,transparent_1px)] [background-size:auto,auto,48px_48px]" />
       <div className="pointer-events-none absolute inset-3 rounded-lg border border-[#d8b56d]/14" />
       <div className="pointer-events-none absolute -right-20 top-16 h-44 w-44 rounded-full border border-dashed border-[#d8b56d]/20 shadow-[0_0_60px_rgba(216,181,109,0.10)]" />
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="relative">
+        <div className="relative min-w-0">
           <p className={`inline-flex items-center gap-2 rounded-full border border-[#d8b56d]/30 bg-[#081812]/78 px-3 py-1 text-xs font-black text-[#f5d48f] ${CODE_FONT_CLASS}`}>
             <WandSparkles className="h-4 w-4" />
             Maya Prompt
@@ -163,8 +163,8 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         </span>
       </div>
 
-      <div className="relative mt-5 grid gap-4 md:grid-cols-2">
-        <label className="block text-sm font-bold text-[#eee5cb]">
+      <div className="relative mt-5 grid min-w-0 gap-4 md:grid-cols-2">
+        <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
           이름 또는 닉네임
           <input
             value={name}
@@ -173,7 +173,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             placeholder="미입력 가능"
           />
         </label>
-        <label className="block text-sm font-bold text-[#eee5cb]">
+        <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
           생년월일, 선택
           <input
             type="date"
@@ -182,7 +182,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             className="mt-2 w-full rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70"
           />
         </label>
-        <label className="block text-sm font-bold text-[#eee5cb] md:col-span-2">
+        <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
           상담 주제
           <select
             value={topic}
@@ -194,7 +194,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             ))}
           </select>
         </label>
-        <label className="block text-sm font-bold text-[#eee5cb] md:col-span-2">
+        <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
           현재 고민 또는 질문
           <textarea
             value={concern}
@@ -246,11 +246,11 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
       {prompt ? (
         <div
           ref={promptResultRef}
-          className="relative mt-5 overflow-hidden rounded-lg border border-[#d8b56d]/28 bg-[#020706]/90 shadow-[inset_0_1px_0_rgba(245,239,217,0.06)] scroll-mt-6"
+          className="relative mt-5 min-w-0 scroll-mt-24 overflow-x-hidden rounded-lg border border-[#d8b56d]/34 bg-[#020706]/92 shadow-[0_0_42px_rgba(216,181,109,0.12),inset_0_1px_0_rgba(245,239,217,0.06)]"
         >
           <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(135deg,rgba(216,181,109,0.08)_1px,transparent_1px),radial-gradient(1px_1px_at_18%_28%,rgba(245,239,217,0.14),transparent)] [background-size:22px_22px,48px_48px]" />
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d8b56d]/16 px-4 py-3">
-            <div>
+          <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-[#d8b56d]/18 bg-[#04100d]/62 px-4 py-3">
+            <div className="min-w-0">
               <h3 className={`relative text-base font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>완성된 마야점 프롬프트</h3>
               <p className="mt-1 text-xs leading-5 text-[#e6dcc1]">
                 선택한 날짜의 시간 좌표를 바탕으로 생성되었습니다.
@@ -266,9 +266,20 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
               시간 코드 복사하기
             </button>
           </div>
-          <pre className="relative max-h-[520px] overflow-auto whitespace-pre-wrap p-4 text-sm leading-7 text-[#f5efd9]">
+          <pre className="relative whitespace-pre-wrap break-words p-4 text-sm leading-7 text-[#f5efd9] [overflow-wrap:anywhere]">
             {prompt}
           </pre>
+          <div className="relative flex justify-end border-t border-[#d8b56d]/16 bg-[#04100d]/54 px-4 py-3">
+            <button
+              type="button"
+              onClick={copyPrompt}
+              aria-label="시간 코드 복사하기"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#d8b56d]/28 bg-[#081812]/78 px-4 py-2 text-xs font-black text-[#f5d48f] transition hover:border-[#f5d48f]/58 hover:bg-[#0f2c22]/82 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70 motion-reduce:transition-none"
+            >
+              <Copy className="h-4 w-4" />
+              시간 코드 복사하기
+            </button>
+          </div>
         </div>
       ) : (
         <div className="relative mt-5 overflow-hidden rounded-lg border border-[#d8b56d]/18 bg-[#020706]/66 p-5 text-sm leading-7 text-[#e6dcc1]">

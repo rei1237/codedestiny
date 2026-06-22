@@ -93,9 +93,9 @@ export default function HomePage() {
           <span className={styles.musicCopy}>
             <span className={styles.musicKicker}>MOON MUSIC</span>
             <strong>달빛 아래, DEST1NOVA 2집까지 열린 플레이리스트</strong>
-            <span>DEST1NOVA의 새 별빛 19곡이 더해져 네오와 연이, 루나 블룸의 무드까지 이어집니다.</span>
+            <span>DEST1NOVA의 새 별빛 20곡이 더해져 네오와 연이, 루나 블룸의 무드까지 이어집니다.</span>
           </span>
-          <span className={styles.musicCta}>88곡 감상하기</span>
+          <span className={styles.musicCta}>89곡 감상하기</span>
         </Link>
       </section>
 

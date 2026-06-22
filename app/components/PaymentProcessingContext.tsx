@@ -88,11 +88,11 @@ const PAID_GATE_DEFAULT_MESSAGE = "이용권을 확인하는 중이에요";
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: string; message: string }> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "준비", title: "잔액 확인", message: "잔액을 확인하는 중이에요" },
+  opening: { label: "준비", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
   checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
   hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권을 확인했어요\n결과를 불러오는 중이에요" },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
-  loadingProducts: { label: "상품 조회", title: "잔액 확인", message: "잔액을 확인하는 중이에요" },
+  loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: "이용권 적용 여부와 결제 가능 상태를 확인하고 있어요" },
   readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
   paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
   paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 불러오는 중이에요" },
@@ -137,7 +137,7 @@ function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: st
   const normalizedMessage = String(message || "");
   if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중/.test(normalizedMessage)) return "result_loading";
   if (/결제를 처리하고 있어요|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
-  if (/정보를 확인하는 중이에요|잔액을 확인하는 중이에요|이용권을 확인하는 중이에요/.test(normalizedMessage)) return "access_check";
+  if (/정보를 확인하는 중이에요|이용권을 확인하는 중이에요|결제 가능 상태를 확인하고 있어요/.test(normalizedMessage)) return "access_check";
   if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
   if (variant === "payment-complete" || variant === "pass-applied" || variant === "unlock-saving") return "result_loading";
   return "access_check";
@@ -145,9 +145,9 @@ function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: st
 
 function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
   const normalizedMessage = String(message || "");
-  if (/이용권을 확인하는 중이에요|이용권을 확인했어요/.test(normalizedMessage)) return "pass";
+  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|30일 이용권으로/.test(normalizedMessage)) return "pass";
   if (/월정석|활성화되고/.test(normalizedMessage)) return "subscription";
-  if (/잔액|단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
+  if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
   if (variant === "subscription" || variant === "monthly") return "subscription";
   if (variant === "pass-checking" || variant === "pass-applied") return "pass";
   return "single";
@@ -225,7 +225,7 @@ function isPassPaidFeatureDetail(detail: PaidFeatureGateDetail) {
     detail.accessMethod,
     detail.paymentMethod,
   ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b|이용권 적용|이용권으로/.test(haystack);
+  return /\b(pass|membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b|이용권 확인|이용권 적용|이용권으로/.test(haystack);
 }
 
 function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: PaidFeatureGateDetail | string = {}) {
@@ -250,6 +250,12 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
     return { message: message || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }
   if (status === "opening" || status === "loadingProducts") {
+    if (isPassPaidFeatureDetail(resolvedDetail)) {
+      return { message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
+    }
+    if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
+      return { message: message || "월정석 정보를 확인하는 중이에요", mode: "monthly" };
+    }
     return { message: message || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {

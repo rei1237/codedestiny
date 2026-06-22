@@ -168,6 +168,7 @@ const artistAudioManifests = [
       "ANDROMEDA.mp3",
       "Burn My Fate.mp3",
       "CONSTELLATION.mp3",
+      "Draw My Fate.mp3",
       "Fatal Code feat. yeoni.mp3",
       "Fate Rider.mp3",
       "Golden Kindness.mp3",

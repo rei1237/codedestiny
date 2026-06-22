@@ -10,6 +10,2437 @@ export function lyricsFromAudioFileName(audioFileName: string) {
     .replace(/\s+/gu, " ")
     .trim();
 
+  if (normalizedSongKey === "lucky rush title") {
+    return `[Intro]
+Lucky Rush
+Lucky Rush
+별이 터져 like that
+Lucky Rush
+너를 본 순간
+
+[Verse 1]
+오늘 운세는 느낌이 달라
+하늘이 먼저 내게 sign
+닫혀 있던 하루 위로
+네가 번져오는 light
+
+손금처럼 꼬인 길도
+이상하게 풀려가
+네가 웃는 그 순간
+내 리듬이 바뀌잖아
+
+숨겨진 별자리 속
+너의 이름이 flash
+모든 불안이 멈춰
+내 심장은 dash
+
+[Pre-Chorus]
+흐린 밤이 열리고
+은하수가 내려와
+기다렸던 대운처럼
+네가 내게 와
+
+겁이 많던 yesterday
+이젠 전부 far away
+네 눈빛 하나로
+내 세상이 turn up
+
+[Chorus]
+Lucky Rush, Lucky Rush
+너는 나의 lucky sign
+멈춰 있던 운명이
+너를 따라 달려가
+
+Lucky Rush, Lucky Rush
+밤하늘이 터져 now
+너를 만난 뒤로 난
+빛나는 쪽으로 가
+
+[Post-Chorus]
+Rush, rush, lucky rush
+심장이 boom, boom, rush
+Star, star, 너라는 star
+나를 깨워 higher
+
+Luck, luck, lucky rush
+손끝이 touch, touch, rush
+Run, run, 은하수 run
+너에게로 higher
+
+[Verse 2]
+타로 속에 hidden answer
+네가 열어준 new chapter
+틀린 줄 알았던 길도
+너를 향해 all better
+
+막힌 대운 위로 jump
+불안 따윈 전부 cut
+별빛 아래 we don’t stop
+운세보다 더 뜨거워
+
+내 하루의 password
+네 이름을 입력해
+닫힌 문이 열리고
+내일이 시작돼
+
+[Pre-Chorus 2]
+흐린 밤이 열리고
+은하수가 내려와
+기다렸던 대운처럼
+네가 내게 와
+
+겁이 많던 yesterday
+이젠 전부 far away
+네 눈빛 하나로
+내 세상이 turn up
+
+[Chorus]
+Lucky Rush, Lucky Rush
+너는 나의 lucky sign
+멈춰 있던 운명이
+너를 따라 달려가
+
+Lucky Rush, Lucky Rush
+밤하늘이 터져 now
+너를 만난 뒤로 난
+빛나는 쪽으로 가
+
+[Post-Chorus]
+Rush, rush, lucky rush
+심장이 boom, boom, rush
+Star, star, 너라는 star
+나를 깨워 higher
+
+Luck, luck, lucky rush
+손끝이 touch, touch, rush
+Run, run, 은하수 run
+너에게로 higher
+
+[Bridge]
+가끔은 별이 흐려져도
+나는 이제 알아
+네가 있는 방향으로
+내 운명이 빛나
+
+수많은 밤을 건너
+너와 나란히 서면
+흩어진 별들도 모여
+하나의 길이 돼
+
+[Final Chorus]
+Lucky Rush, Lucky Rush
+너는 나의 lucky sign
+멈춰 있던 운명이
+너를 따라 달려가
+
+Lucky Rush, Lucky Rush
+밤하늘이 터져 now
+너를 만난 뒤로 난
+빛나는 쪽으로 가
+
+[Final Post-Chorus]
+Rush, rush, lucky rush
+심장이 boom, boom, rush
+Star, star, 너라는 star
+나를 깨워 higher
+
+Luck, luck, lucky rush
+손끝이 touch, touch, rush
+Run, run, 은하수 run
+너에게로 higher
+
+[Outro]
+Lucky Rush
+Lucky Rush
+너를 만난 순간
+My stars wake up`;
+  }
+
+  if (normalizedSongKey === "starline") {
+    return `[Intro]
+Follow the starline
+Follow the starline
+흐린 밤을 건너
+너에게로
+
+[Verse 1]
+오늘의 운세는 흐림
+별 하나 보이지 않던 밤
+나도 모르게 멈춰 서서
+하늘만 바라봤어
+
+손금처럼 엉킨 길 위
+조용히 번진 작은 빛
+너를 만난 그 순간부터
+내 마음이 움직였어
+
+운명선 끝에 피어난
+이름 없는 별 하나
+왜인지 네 눈빛 같아서
+한참을 바라봤어
+
+[Pre-Chorus]
+흔들리던 별자리도
+너를 향해 이어지고
+닫혀 있던 내일마저
+조금씩 문을 열어
+
+멀리 있던 대운처럼
+네가 내게 다가와
+겁이 많던 나의 밤을
+은하수로 바꿔놔
+
+[Chorus]
+Follow the starline
+너를 따라 빛나
+어두웠던 내 운명이
+다시 숨을 쉬잖아
+
+Follow the starline
+하늘 끝을 지나
+너를 만난 뒤로
+내 운명은 빛나
+
+[Post-Chorus]
+Starline, starline
+길을 잃어도
+Starline, starline
+너를 찾을게
+
+Light up, light up
+밤을 넘어서
+너와 나의 운세는
+눈부시게 피어나
+
+[Verse 2]
+타로 속에 감춘 answer
+별빛처럼 내게 whisper
+틀린 줄 알았던 길도
+너를 향해 align
+
+막힌 대운 위를 걸어
+불안했던 나를 넘어
+너와 함께라면 every day
+내일은 lucky sign
+
+달의 모양이 변해도
+계절이 다시 돌아도
+내가 믿고 싶은 건 하나
+너와 같은 하늘 아래
+
+[Pre-Chorus 2]
+흐려졌던 horoscope
+네 이름으로 밝아지고
+닫힌 운명의 페이지가
+우리 둘로 채워져
+
+멀리 있던 꿈이라도
+네가 있으면 닿을 듯해
+겁이 많던 나의 밤을
+은하수로 바꿔놔
+
+[Chorus]
+Follow the starline
+너를 따라 빛나
+어두웠던 내 운명이
+다시 숨을 쉬잖아
+
+Follow the starline
+하늘 끝을 지나
+너를 만난 뒤로
+내 운명은 빛나
+
+[Post-Chorus]
+Starline, starline
+길을 잃어도
+Starline, starline
+너를 찾을게
+
+Light up, light up
+밤을 넘어서
+너와 나의 운세는
+눈부시게 피어나
+
+[Bridge]
+가끔은 나도 두려워
+별이 사라진 밤이면
+정해진 답이 없어서
+모든 게 흔들릴 때
+
+그때 네가 말해줬어
+“넌 이미 빛나고 있어”
+그 한마디가 내 안에
+새 별자리를 그렸어
+
+[Final Chorus]
+Follow the starline
+너를 따라 빛나
+어두웠던 내 운명이
+다시 숨을 쉬잖아
+
+Follow the starline
+하늘 끝을 지나
+너를 만난 뒤로
+내 운명은 빛나
+
+[Final Post-Chorus]
+Starline, starline
+길을 잃어도
+Starline, starline
+너를 찾을게
+
+Light up, light up
+밤을 넘어서
+너와 나의 운세는
+눈부시게 피어나
+
+[Outro]
+Follow the starline
+Follow the starline
+흐린 운세 끝에
+너라는 별`;
+  }
+
+  if (normalizedSongKey === "heaven light") {
+    return `[Intro]
+Heaven Light
+Heaven Light
+검은 별이 널 부를 때
+I won’t let fate take you
+
+[Verse 1]
+오늘의 하늘은 무거워
+별들도 말을 잃은 밤
+웃고 있는 네 눈가에
+숨은 비가 보여
+
+운세는 조용히 warning
+길은 자꾸 멀어지고
+혼자 괜찮은 척하는
+네 손끝이 떨려
+
+흐린 명반 위에
+하나의 빛이 깨어나
+천량의 별처럼
+너의 곁에 내려와
+
+[Pre-Chorus]
+무너지는 하늘이면
+내가 먼저 받쳐줄게
+운명이 칼이 되어도
+네 앞에서 막아설게
+
+네가 길을 잃은 밤엔
+내 심장을 등불 삼아
+끝이 너를 부른대도
+I’ll be your shield tonight
+
+[Chorus]
+I won’t let fate take you
+끝까지 널 지킬게
+검은 별이 쏟아져도
+내가 모두 막을게
+
+I won’t let fate break you
+두려움은 내게 줘
+너의 밤이 무너질 때
+내가 하늘이 될게
+
+[Post-Chorus]
+Heaven Light
+Heaven Light
+너를 향해 타올라
+
+Heaven Light
+Heaven Light
+어둠 위로 날아가
+
+No more night
+No more tears
+내가 여기 있잖아
+
+Heaven Light
+Heaven Light
+I won’t let fate take you
+
+[Verse 2]
+대운이 등을 돌려도
+별자리가 엇갈려도
+나는 그 예언보다
+네 눈물을 믿어
+
+뒤집힌 카드 끝에서
+우린 답을 찾을 거야
+불길한 징조마저
+길의 불꽃이 되게
+
+가장 깊은 위기 속에
+가장 먼저 닿는 빛
+천량의 이름처럼
+늦지 않게 갈게
+
+[Pre-Chorus 2]
+네가 더는 못 걷겠다면
+내 어깨를 내어줄게
+세상이 널 지운대도
+나는 너를 기억할게
+
+운명이 틀렸다는 걸
+내 사랑으로 증명해
+흔들리는 네 하늘에
+I’ll be your shield tonight
+
+[Chorus]
+I won’t let fate take you
+끝까지 널 지킬게
+검은 별이 쏟아져도
+내가 모두 막을게
+
+I won’t let fate break you
+두려움은 내게 줘
+너의 밤이 무너질 때
+내가 하늘이 될게
+
+[Post-Chorus]
+Heaven Light
+Heaven Light
+너를 향해 타올라
+
+Heaven Light
+Heaven Light
+어둠 위로 날아가
+
+No more night
+No more tears
+내가 여기 있잖아
+
+Heaven Light
+Heaven Light
+I won’t let fate take you
+
+[Bridge]
+은하수 아래 맹세해
+너를 놓치지 않겠다고
+네가 부르는 그 순간
+어디든 달려가겠다고
+
+사랑은 운명 앞에서
+무릎 꿇는 게 아니야
+너를 살리기 위해
+내가 강해지는 거야
+
+[Final Chorus]
+I won’t let fate take you
+끝까지 널 지킬게
+검은 별이 쏟아져도
+내가 모두 막을게
+
+I won’t let fate break you
+두려움은 내게 줘
+너의 밤이 무너질 때
+내가 하늘이 될게
+
+[Final Post-Chorus]
+Heaven Light
+Heaven Light
+너를 향해 타올라
+
+Heaven Light
+Heaven Light
+어둠 위로 날아가
+
+No more night
+No more tears
+내가 여기 있잖아
+
+Heaven Light
+Heaven Light
+I won’t let fate take you
+
+[Outro]
+천량의 별 아래
+너를 안고 말할게
+운명이 널 부른대도
+I won’t let fate take you`;
+  }
+
+  if (normalizedSongKey === "constellation") {
+    return `[Intro]
+No fate can break us
+No night can take us
+별이 흐려져도
+I’ll be your constellation
+
+[Verse 1]
+오늘의 하늘은 cloudy
+운세는 조용히 warning
+길을 잃은 너의 눈빛
+내 마음을 부르지
+
+손금처럼 엉킨 거리
+별자리도 어긋난 밤
+괜찮아, 내가 먼저
+너의 길을 찾을게
+
+흐린 chart 위에
+네 이름이 떠올라
+어둠 속에서도
+가장 선명한 sign
+
+[Pre-Chorus]
+네 하늘이 무너지면
+내가 별을 이어줄게
+끊어진 fate line 끝에
+우리 이름 새겨둘게
+
+두려움이 다가와도
+손을 놓지 않을게
+운명이 등을 돌려도
+I’ll stand by your side
+
+[Chorus]
+No fate can break us
+별을 넘어 달려가
+No night can take us
+너를 향해 빛나
+
+I’ll be your constellation
+길을 잃은 밤마다
+네가 고개 들 수 있게
+내 하늘을 다 줄게
+
+[Post-Chorus]
+Star by star
+We light it up
+Heart to heart
+We rise above
+
+No fate
+No night
+No fear
+Tonight
+
+I’ll be, I’ll be
+Your constellation
+I’ll be, I’ll be
+Your constellation
+
+[Verse 2]
+은하수 아래 running
+불안은 뒤로 fading
+막힌 대운 위를 밟고
+우린 다시 moving
+
+타로가 뒤집혀도
+답은 아직 남아 있어
+깨진 별도 모이면
+찬란한 길이 돼
+
+네가 작아지는 날
+내가 크게 외칠게
+너는 아직 끝이 아냐
+You’re my brightest fate
+
+[Pre-Chorus 2]
+네 계절이 흔들리면
+내가 봄을 데려올게
+차가워진 별빛 위에
+따뜻한 꿈을 켤게
+
+세상이 멀어진대도
+난 더 가까이 갈게
+운명이 벽을 세워도
+I’ll break through the sky
+
+[Chorus]
+No fate can break us
+별을 넘어 달려가
+No night can take us
+너를 향해 빛나
+
+I’ll be your constellation
+길을 잃은 밤마다
+네가 고개 들 수 있게
+내 하늘을 다 줄게
+
+[Post-Chorus]
+Star by star
+We light it up
+Heart to heart
+We rise above
+
+No fate
+No night
+No fear
+Tonight
+
+I’ll be, I’ll be
+Your constellation
+I’ll be, I’ll be
+Your constellation
+
+[Bridge]
+가끔 나도 무서워
+별 하나 없는 밤이면
+하지만 네가 울 것 같아
+나는 다시 강해져
+
+은하수는 말해줘
+혼자 빛나는 별은 없다고
+서로를 이어줄 때
+우린 하늘이 된다고
+
+[Final Chorus]
+No fate can break us
+별을 넘어 달려가
+No night can take us
+너를 향해 빛나
+
+I’ll be your constellation
+길을 잃은 밤마다
+네가 고개 들 수 있게
+내 하늘을 다 줄게
+
+[Final Post-Chorus]
+Star by star
+We light it up
+Heart to heart
+We rise above
+
+No fate
+No night
+No fear
+Tonight
+
+I’ll be, I’ll be
+Your constellation
+I’ll be, I’ll be
+Your constellation
+
+[Outro]
+No fate can break us
+No night can take us
+별이 사라져도
+I’ll be your constellation`;
+  }
+
+  if (normalizedSongKey === "starry way") {
+    return `[Intro]
+Starry way
+Starry way
+흐린 밤이 열려
+너에게로
+
+[Verse 1]
+오늘 운세는 cloudy
+별 하나 보이지 않던 밤
+멈춰 있던 내 마음 위로
+네가 조용히 내려와
+
+손금처럼 엉킨 길도
+너를 따라 풀려가
+불안했던 내일마저
+이상하게 빛나
+
+[Pre-Chorus]
+닫힌 별자리 사이
+네 이름이 떠올라
+잃어버린 나의 용기
+다시 숨을 쉬어
+
+달의 모양이 바뀌듯
+내 마음도 변해가
+겁이 많던 나의 밤이
+은하수로 번져가
+
+[Chorus]
+Starry way, starry way
+너를 따라 걸어가
+어두웠던 내 운명이
+별빛처럼 깨어나
+
+Starry way, starry way
+하늘 끝을 건너가
+너라는 은하수 아래
+나는 다시 빛나
+
+[Post-Chorus]
+Oh, light it up
+Light it up
+별을 따라, 따라
+
+Oh, rise me up
+Rise me up
+너와 날아, 날아
+
+Starry way
+Starry way
+너라는 은하수
+내 운명을 밝혀
+
+[Verse 2]
+깨진 차트 위에 피어난 sign
+네가 오면 all align
+막힌 대운도 열리는 듯해
+내 심장이 말해, it’s time
+
+타로 속에 숨은 answer
+별빛처럼 번진 whisper
+운명은 멀리 있는 게 아냐
+네 손끝에 있어
+
+흔들리던 yesterday
+너를 만나 holiday
+겁내던 나의 계절도
+이젠 반짝이는 Milky Way
+
+[Pre-Chorus 2]
+닫힌 별자리 사이
+네 이름이 떠올라
+잃어버린 나의 용기
+다시 숨을 쉬어
+
+달의 모양이 바뀌듯
+내 마음도 변해가
+겁이 많던 나의 밤이
+은하수로 번져가
+
+[Chorus]
+Starry way, starry way
+너를 따라 걸어가
+어두웠던 내 운명이
+별빛처럼 깨어나
+
+Starry way, starry way
+하늘 끝을 건너가
+너라는 은하수 아래
+나는 다시 빛나
+
+[Post-Chorus]
+Oh, light it up
+Light it up
+별을 따라, 따라
+
+Oh, rise me up
+Rise me up
+너와 날아, 날아
+
+Starry way
+Starry way
+너라는 은하수
+내 운명을 밝혀
+
+[Bridge]
+가끔은 나도 무서워
+길이 보이지 않을 때
+하지만 네가 웃으면
+밤도 나를 밀어줘
+
+별은 혼자 빛나지만
+은하수는 함께 빛나
+내 모든 내일 위에
+너를 새기고 싶어
+
+[Final Chorus]
+Starry way, starry way
+너를 따라 걸어가
+어두웠던 내 운명이
+별빛처럼 깨어나
+
+Starry way, starry way
+하늘 끝을 건너가
+너라는 은하수 아래
+나는 다시 빛나
+
+[Final Post-Chorus]
+Oh, light it up
+Light it up
+별을 따라, 따라
+
+Oh, rise me up
+Rise me up
+너와 날아, 날아
+
+Starry way
+Starry way
+너라는 은하수
+내 운명을 밝혀
+
+[Outro]
+Starry way
+Starry way
+흐린 운세 끝에
+너라는 별`;
+  }
+
+  if (normalizedSongKey === "달의 인력") {
+    return `[Intro — Rhodes 피아노, 달빛처럼 고요히]
+달이 차오르는 밤
+어디선가 네가 걷고 있을 것 같아
+같은 달을 보고 있을 것 같아
+
+[Verse 1 — 솔로 보컬, 서정적으로]
+은하수가 흐르는 방향으로
+발길이 자꾸 향해
+지도도 없이 걷는데
+이상하게 길을 잃지 않아
+
+달빛이 내 그림자를 끌고
+어딘가로 데려가
+그 끝에 네가 서 있을 것 같아
+멈출 수가 없어
+
+[Verse 2 — 두 번째 보컬, 결처럼 부드럽게]
+손금을 따라 흐르는 달빛
+오늘따라 선명해
+누군가 미리 그어놓은 것처럼
+이 선이 너에게 닿아
+
+보름달이 뜨는 날이면
+괜히 마음이 커져
+설명할 수 없는 인력으로
+네 쪽으로 기울어져
+
+[Pre-Chorus — 3명 하모니, 몽환적으로]
+우연이라 하기엔
+너무 많이 겹쳐있어
+같은 달 아래
+같은 시간에
+같은 방향을 보고 있었어
+
+[Chorus — 5인 전원, 웅장하게 터짐]
+은하수를 따라 흘러온 거야
+달빛이 이어준 우리의 실
+끊어질 것 같아도 끊어지지 않아
+운명이란 게 이런 거잖아
+
+보름달이 기억하고 있어
+우리가 처음 같은 하늘을 본 날
+그 달이 다시 차오를 때까지
+나는 여기서 기다릴게
+
+[Verse 3 — 래퍼, 나직하고 묵직하게]
+달이 기우는 방향으로
+그림자가 길게 늘어져
+내 그림자 끝이 닿는 곳에
+네 그림자가 시작돼
+
+은하수는 원래 하나였대
+빛이 흩어져 강이 된 거라고
+우리도 그래 처음엔 하나였다가
+이 생에서 다시 만난 거야
+
+[Bridge — 피아노 솔로 위 보컬, 극도로 감성적]
+달에게 물어봤어
+우리가 왜 이렇게 끌리냐고
+달은 아무 말 않고
+그냥 더 밝게 빛났어
+
+그게 답인 것 같아
+설명이 필요 없는 것들이 있어
+느껴지면 그만인
+그런 사이 있잖아
+우리처럼
+
+[Pre-Final Chorus — 리드 보컬, 떨리듯이]
+은하수 저편에서 출발했을
+네가 여기까지 온 거잖아
+나도 알지 못한 채로
+너를 향해 걷고 있었던 거잖아
+
+[Final Chorus — 키 올려, 오케스트라 풀 스웰]
+은하수를 따라 흘러온 거야
+달빛이 이어준 우리의 실
+끊어질 것 같아도 끊어지지 않아
+운명이란 게 이런 거잖아
+
+보름달이 기억하고 있어
+우리가 처음 같은 하늘을 본 날
+그 달이 다시 차오를 때까지
+나는 여기서 기다릴게
+
+[Outro — 현악기 잔향, 보컬 위스퍼로 소멸]
+달빛 아래서…
+은하수 끝에서…
+운명처럼…
+너에게로…`;
+  }
+
+  if (normalizedSongKey === "은하수를 건너 니 곁으로 feat yeoni") {
+    return `[Verse 1]
+오늘의 별자리 속 넌 어디쯤 있어
+은하수 저편에서 나를 기다려
+사자자리 별빛이 내 손을 이끌어
+오리온의 허리띠 세 개의 약속
+
+[Pre-Chorus]
+운명이란 이름의 별이 쏟아져
+오늘 밤 하늘은 우리 편이야
+점성술사도 몰랐던 우리 사이
+천 년에 한 번의 별의 배열
+
+[Chorus]
+은하수를 건너 니 곁으로 가
+별자리가 그린 우리의 운세
+오늘 밤 Mercury가 속삭여줘
+You're my destiny, 별빛 아래서
+반짝반짝 빛나는 우리의 미래
+Star sign이 말해 우린 연결돼
+이 우주의 끝까지 너를 찾아가
+은하수야 길을 밝혀줘
+
+[Verse 2]
+물병자리 새벽별 눈을 떠보면
+쌍둥이자리처럼 둘이 하나돼
+타로카드 뒤집어 The Star 카드야
+우주가 보내준 너란 시그널
+
+[Bridge]
+목성이 내 마음을 크게 만들어
+금성이 사랑으로 물들여줘
+모든 행성이 정렬되는 그 순간
+우린 하나가 돼 (We align, we shine)
+
+[Final Chorus — 한 키 올려]
+은하수를 건너 니 곁으로 가
+별자리가 그린 우리의 운세
+오늘 밤 운명의 문이 열려
+You're my destiny, 별빛 아래서
+천문도 위에 새겨진 우리 이름
+Star sign이 말해 우린 하나야
+이 우주가 끝나도 손을 잡을게
+은하수야 영원히 빛나줘
+
+[Outro]
+✨ 별빛이 말해… 우린 운명이야 ✨`;
+  }
+
+  if (normalizedSongKey === "fatal code feat yeoni") {
+    return `[Intro]
+Fatal code
+Fatal code
+운명이 켜져
+When I see you
+
+[Verse 1]
+오늘 밤 별들이 glitch
+내 심장은 이미 switch
+네 눈빛이 스친 뒤
+내 운세가 바뀌지
+
+손금 위에 없던 route
+타로 속에 hidden truth
+읽으려 할수록 더
+너에게로 overload
+
+도화처럼 켜진 light
+홍염처럼 burning eyes
+피하려고 한 순간
+이미 너는 in my mind
+
+[Pre-Chorus]
+닫힌 fate line 위로
+네 이름이 떠올라
+불길한 예감마저
+이상하게 빛나
+
+사주엔 없던 signal
+은하수 속 miracle
+널 해석하려 해도
+심장이 먼저 알아
+
+[Chorus]
+Fatal code, fatal code
+너는 나를 깨워
+Fatal code, fatal code
+숨을 멎게 해
+
+Fatal code, fatal code
+읽을수록 깊어
+눈빛 하나로 unlocked
+너에게 falling down
+
+[Post-Chorus]
+Code, code, fatal code
+너를 보면 danger glow
+Code, code, fatal code
+빠져들어 low, low
+
+Click, click, turn me on
+Tick, tick, all night long
+Code, code, fatal code
+너는 나의 fatal love
+
+[Verse 2]
+Reversed card, 뒤집힌 sign
+불길함도 feels so fine
+틀린 줄 알았던 line
+너를 향해 realign
+
+네 이름이 뜨는 screen
+밤하늘의 secret scene
+내 안의 모든 logic
+너 때문에 disappear
+
+별자리도 move, move
+내 리듬도 groove, groove
+네가 다가오는 순간
+운명마저 lose, lose
+
+[Pre-Chorus 2]
+닫힌 fate line 위로
+네 이름이 떠올라
+위험한 이 끌림도
+아름답게 빛나
+
+사주엔 없던 signal
+은하수 속 miracle
+널 해석하려 해도
+심장이 먼저 알아
+
+[Chorus]
+Fatal code, fatal code
+너는 나를 깨워
+Fatal code, fatal code
+숨을 멎게 해
+
+Fatal code, fatal code
+읽을수록 깊어
+눈빛 하나로 unlocked
+너에게 falling down
+
+[Post-Chorus]
+Code, code, fatal code
+너를 보면 danger glow
+Code, code, fatal code
+빠져들어 low, low
+
+Click, click, turn me on
+Tick, tick, all night long
+Code, code, fatal code
+너는 나의 fatal love
+
+[Bridge]
+처음 본 순간 알았어
+이건 우연이 아니야
+흐린 운세표 위에
+네가 별처럼 떠올라
+
+숨길수록 선명해
+밀어낼수록 원해
+내 운명을 실행해
+You run my heart
+
+[Final Chorus]
+Fatal code, fatal code
+너는 나를 깨워
+Fatal code, fatal code
+숨을 멎게 해
+
+Fatal code, fatal code
+읽을수록 깊어
+눈빛 하나로 unlocked
+너에게 falling down
+
+[Final Post-Chorus]
+Code, code, fatal code
+너를 보면 danger glow
+Code, code, fatal code
+빠져들어 low, low
+
+Click, click, turn me on
+Tick, tick, all night long
+Code, code, fatal code
+너는 나의 fatal love
+
+[Outro]
+Fatal code
+Fatal code
+내 운명을 켜
+When I see you`;
+  }
+
+  if (normalizedSongKey === "fate unlock") {
+    return `[Intro]
+Flip the sign
+Open the night
+운명의 문 앞에서
+We unlock, we unlock
+
+[Verse 1]
+검은 도시 위로 번진 별
+오늘 운세는 cloudy sky
+불길한 예언이 웃어도
+내 심장은 말해, not tonight
+
+찢어진 차트 한가운데
+숨겨진 길이 빛나
+누가 정한 결말이라도
+내 발로 다시 써
+
+[Pre-Chorus]
+역방향 카드도
+뒤집으면 길이 돼
+막힌 문 앞에서
+나는 더 선명해져
+
+흔들린 zodiac
+어긋난 timeline
+믿는 순간 시작돼
+새로운 나의 highlight
+
+[Chorus]
+Fate unlock, 운명을 열어
+닫힌 밤을 넘어 달려
+별이 막아도 I go up
+내일을 다시 가져와
+
+Break the lock, 두려움 넘어
+빛나는 답을 찾아가
+정해진 운세는 없어
+I choose, I choose my sky
+
+[Post-Chorus]
+Na-na-na, unlock my fate
+Na-na-na, raise my name
+Na-na-na, 별을 넘어
+We rise, we rise tonight
+
+Na-na-na, change my sign
+Na-na-na, cross that line
+Na-na-na, 운명 위로
+We shine, we shine tonight
+
+[Verse 2]
+대운이 늦게 온대도
+기다릴 생각은 없어
+행운은 손금이 아니라
+뛰는 심장 속에 있어
+
+The Tower falls, I stand higher
+The Moon lies, I burn brighter
+The Star calls, I run faster
+The World opens after disaster
+
+운명표 위 troublemaker
+불운마저 elevator
+닫힌 길을 밟고 올라
+나는 나를 증명해
+
+[Pre-Chorus 2]
+깨진 별자리도
+이어 붙이면 은하가 돼
+길을 잃은 밤도
+우리 무대가 돼
+
+흐려진 horoscope
+숨겨진 sunrise
+믿는 순간 시작돼
+새로운 나의 highlight
+
+[Chorus]
+Fate unlock, 운명을 열어
+닫힌 밤을 넘어 달려
+별이 막아도 I go up
+내일을 다시 가져와
+
+Break the lock, 두려움 넘어
+빛나는 답을 찾아가
+정해진 운세는 없어
+I choose, I choose my sky
+
+[Bridge]
+가끔은 나도 흔들려
+별 하나 없는 밤이면
+내가 믿던 모든 길이
+사라진 것 같아서
+
+하지만 내 안의 작은 불
+아직 꺼지지 않았어
+상처가 만든 별빛으로
+다시 문을 열겠어
+
+[Final Chorus]
+Fate unlock, 운명을 열어
+닫힌 밤을 넘어 달려
+별이 막아도 I go up
+내일을 다시 가져와
+
+Break the lock, 두려움 넘어
+빛나는 답을 찾아가
+정해진 운세는 없어
+I choose, I choose my sky
+
+[Final Post-Chorus]
+Na-na-na, unlock my fate
+Na-na-na, raise my name
+Na-na-na, 별을 넘어
+We rise, we rise tonight
+
+Na-na-na, change my sign
+Na-na-na, cross that line
+Na-na-na, 운명 위로
+We shine, we shine tonight
+
+[Outro]
+Flip the sign
+Open the night
+정답은 내 안에
+Fate unlock`;
+  }
+
+  if (normalizedSongKey === "별이 될 거야") {
+    return `[Intro]
+괜찮아
+말하지 않아도 돼
+오늘의 눈물도
+별이 될 거야
+
+[Verse 1]
+강한 척하던 하루 끝에
+불 꺼진 방에 앉아
+웃는 법을 잊은 것처럼
+조용히 숨을 쉬었지
+
+누구나 길을 잃고
+누구나 조금은 부족해
+그래서 우리는 서로를
+더 따뜻하게 알아봐
+
+[Chorus]
+괜찮아, 흘러가
+아픈 날도 지나가
+눈물은 밤을 건너
+작은 별이 될 거야
+
+괜찮아, 여기 있어
+혼자 걷지 않아도 돼
+부서진 마음까지
+빛이 될 거야
+
+[Verse 2]
+확실한 답을 찾다가
+더 멀리 헤맨 날도
+네가 웃으며 말해줬지
+천천히 가도 된다고
+
+잃어버린 줄 알았던
+내 안의 작은 용기
+너는 먼저 알아봤어
+아직 꺼지지 않았다고
+
+[Chorus]
+괜찮아, 흘러가
+아픈 날도 지나가
+눈물은 밤을 건너
+작은 별이 될 거야
+
+괜찮아, 여기 있어
+혼자 걷지 않아도 돼
+부서진 마음까지
+빛이 될 거야
+
+[Bridge]
+언젠가 계절이 바뀌고
+우리도 달라지겠지
+그래도 이 마음 하나는
+변하지 않게 해줘
+
+네가 있어서
+정말 다행이야
+이 말이 내 안에서
+등불처럼 빛나
+
+[Final Chorus]
+괜찮아, 흘러가
+아픈 날도 지나가
+눈물은 밤을 건너
+작은 별이 될 거야
+
+괜찮아, 여기 있어
+혼자 걷지 않아도 돼
+부서진 마음까지
+빛이 될 거야
+
+[Outro]
+강한 척하지 않아도 돼
+부족한 채로 와도 돼
+너와 걷는 이 길 위에
+우리 별이 될 거야`;
+  }
+
+  if (normalizedSongKey === "golden kindness") {
+    return `[Intro]
+Golden kindness
+You light my way
+비가 그친 거리 위로
+I can bloom again
+
+[Verse 1]
+색을 잃은 꽃처럼
+고개 숙인 날들이 있었어
+매일 같은 눈물 속에
+이유조차 잊어버린 채
+
+하지만 너는 조용히
+내 이름을 불러줬어
+괜찮다는 그 한마디가
+햇살처럼 번져왔어
+
+[Pre-Chorus]
+Yesterday was crying
+But today is shining
+흐린 마음 사이로
+작은 빛이 피어나
+
+Every pain has meaning
+When your heart is near me
+상처였던 시간도
+길이 되어 날 이끌어
+
+[Chorus]
+너의 빛으로 I rise again
+시든 꿈도 다시 피어나
+눈물의 강을 지나온 나
+이제 웃을 수 있어
+
+Your kindness makes me brave
+두려움은 멀어져 가
+과거가 말해줘 someday
+You can be your own hero
+
+[Post-Chorus]
+Oh, shine on, shine on
+너의 마음이 날 깨워
+Oh, shine on, shine on
+Every day, I change my world
+
+Oh, shine on, shine on
+슬픔마저 빛이 돼
+With your golden kindness
+I can bloom again
+
+[Verse 2]
+비밀스러운 골목 끝
+노란 불빛 아래 서 있던 나
+답을 찾지 못한 채로
+내 그림자만 바라봤어
+
+넌 말했지, “천천히 가”
+틀려도 괜찮다고
+넘어진 자리마다
+새로운 꽃이 핀다고
+
+[Rap]
+Step by step, I’m moving on
+울던 어제는 not alone
+네가 준 말 하나가
+내 하루의 lucky tone
+
+Misery to melody
+Tears into memory
+아팠던 순간까지
+이젠 나의 energy
+
+숨겨진 내 용기를
+네가 먼저 알아봤어
+작은 나의 마음에도
+큰 하늘이 있다고
+
+[Pre-Chorus 2]
+Yesterday was crying
+But today is shining
+흐린 마음 사이로
+작은 빛이 피어나
+
+Every scar has meaning
+When you stand beside me
+무너졌던 시간도
+나를 여기 데려와
+
+[Chorus]
+너의 빛으로 I rise again
+시든 꿈도 다시 피어나
+눈물의 강을 지나온 나
+이제 웃을 수 있어
+
+Your kindness makes me brave
+두려움은 멀어져 가
+과거가 말해줘 someday
+You can be your own hero
+
+[Post-Chorus]
+Oh, shine on, shine on
+너의 마음이 날 깨워
+Oh, shine on, shine on
+Every day, I change my world
+
+Oh, shine on, shine on
+슬픔마저 빛이 돼
+With your golden kindness
+I can bloom again
+
+[Bridge]
+때로는 다시 흔들려도
+길을 잃은 밤이 와도
+네가 남긴 따뜻한 말이
+내 안에서 별이 돼
+
+과거는 나를 붙잡는
+그림자가 아니야
+내가 나를 사랑하도록
+비춰주는 지도야
+
+[Final Chorus]
+너의 빛으로 I rise again
+시든 꿈도 다시 피어나
+눈물의 강을 지나온 나
+이제 웃을 수 있어
+
+Your kindness makes me brave
+두려움은 멀어져 가
+과거가 말해줘 someday
+You can be your own hero
+
+[Final Post-Chorus]
+Oh, shine on, shine on
+너의 마음이 날 깨워
+Oh, shine on, shine on
+Every day, I change my world
+
+Oh, shine on, shine on
+슬픔마저 빛이 돼
+With your golden kindness
+I can bloom again
+
+[Outro]
+Golden kindness
+You light my way
+비가 그친 하늘 아래
+I can bloom again`;
+  }
+
+  if (normalizedSongKey === "은하수 아래") {
+    return `[Intro]
+Under the Milky Way
+별들이 말을 걸어
+Tonight
+너라는 빛을 따라가
+
+[Verse 1]
+길을 잃은 밤이었어
+내 마음은 구름에 가려
+어떤 별도 보이지 않아
+혼자 멈춰 있던 그때
+
+네가 조용히 다가와
+내 이름을 불러줬어
+괜찮다는 그 한마디에
+내 우주가 다시 숨을 쉬어
+
+[Pre-Chorus]
+내 차트 속 빈칸처럼
+비어 있던 마음 위에
+너는 별자리처럼 와서
+길을 그려줬어
+
+흔들리는 나의 계절도
+네 눈빛 하나면 괜찮아
+운명이 멀리 있어도
+너와 함께면 닿을 것 같아
+
+[Chorus]
+너는 나의 은하수
+어두운 밤을 건너게 해
+빛을 잃은 나의 별도
+다시 타오르게 해
+
+너는 나의 lucky star
+무너진 나를 일으켜
+겁이 나던 내일마저
+너와 있으면 beautiful
+
+[Post-Chorus]
+Oh, shine on me
+Shine on me
+너의 빛을 따라가
+
+Oh, stay with me
+Stay with me
+내 운명이 되어줘
+
+Oh, shine on me
+Shine on me
+별빛처럼 안아줘
+
+너라는 은하수 아래
+I can rise again
+
+[Verse 2]
+별자리 운세처럼
+하루가 자꾸 바뀌어도
+너는 언제나 같은 자리
+나를 지켜보는 Polaris
+
+내가 약해지는 순간
+넌 내 손을 잡아줘
+“넌 할 수 있어” 그 말이
+내 심장에 불을 켜
+
+달의 위상처럼 변해도
+사랑은 사라지지 않아
+우리 둘의 궤도는
+서로를 향해 돌아와
+
+[Rap]
+Check my stars, 너는 my sign
+흔들리던 밤의 sunrise
+불안했던 마음의 line
+네가 와서 전부 align
+
+사주의 길이 막혀도
+별의 문이 닫혀도
+너의 한마디면 I go
+겁냈던 나를 넘어
+
+You’re my Venus, my Jupiter
+사랑과 행운의 messenger
+네가 웃으면 universe
+내일이 다시 beautiful
+
+[Pre-Chorus 2]
+내 차트 속 작은 불씨가
+너를 만나 별이 됐어
+어둠 속에 숨어 있던
+나의 용기를 깨웠어
+
+멀리 있는 꿈이라 해도
+네가 있으면 두렵지 않아
+운명이 나를 불러도
+이젠 내가 대답할 거야
+
+[Chorus]
+너는 나의 은하수
+어두운 밤을 건너게 해
+빛을 잃은 나의 별도
+다시 타오르게 해
+
+너는 나의 lucky star
+무너진 나를 일으켜
+겁이 나던 내일마저
+너와 있으면 beautiful
+
+[Post-Chorus]
+Oh, shine on me
+Shine on me
+너의 빛을 따라가
+
+Oh, stay with me
+Stay with me
+내 운명이 되어줘
+
+Oh, shine on me
+Shine on me
+별빛처럼 안아줘
+
+너라는 은하수 아래
+I can rise again
+
+[Bridge]
+가끔 세상이 차갑게
+내 꿈을 가려도
+네가 내 곁에 있으면
+나는 나를 믿게 돼
+
+별은 혼자 빛나지만
+은하수는 함께 빛나
+나의 모든 내일 위에
+너를 새기고 싶어
+
+You are my sky
+You are my fate
+수많은 밤을 지나도
+내 답은 always you
+
+[Final Chorus]
+너는 나의 은하수
+어두운 밤을 건너게 해
+빛을 잃은 나의 별도
+다시 타오르게 해
+
+너는 나의 lucky star
+무너진 나를 일으켜
+겁이 나던 내일마저
+너와 있으면 beautiful
+
+[Final Post-Chorus]
+Oh, shine on me
+Shine on me
+너의 빛을 따라가
+
+Oh, stay with me
+Stay with me
+내 운명이 되어줘
+
+Oh, shine on me
+Shine on me
+별빛처럼 안아줘
+
+너라는 은하수 아래
+I can rise again
+
+[Outro]
+Under the Milky Way
+별들이 웃고 있어
+Tonight
+너와 나의 운세는 love`;
+  }
+
+  if (normalizedSongKey === "불꽃의 운명") {
+    return `[Intro]
+Fire sign
+붉은 별이 떠올라
+My fate is rising
+너와 함께
+
+[Verse 1]
+밤하늘 끝에 번진 light
+네가 온 순간 달라진 time
+멈춰 있던 내 심장 위로
+뜨거운 별 하나가 내려와
+
+사주 위에 그어진 line
+이제는 두렵지 않아
+너를 만난 그날부터
+내 운명은 앞을 봐
+
+[Pre-Chorus]
+도화처럼 피어난 눈빛
+홍염처럼 빛나는 밤
+내 안의 잠든 용기까지
+너 때문에 깨어나
+
+You’re my good luck
+You’re my sunrise
+흔들리던 나의 길 위에
+네가 별처럼 떠올라
+
+[Chorus]
+Burn, burn, burn my love
+운명이 불붙어
+네 손을 잡고서
+하늘 끝까지 올라가
+
+Run, run, run with you
+불꽃처럼 더 강하게
+세상이 막아도
+너와 난 더 빛나
+
+You’re my fire sign
+You’re my bright star
+숨이 벅찰 만큼
+뜨겁게 날 살려줘
+
+[Post-Chorus]
+La-la-la, light me up
+La-la-la, lift me higher
+La-la-la, 너와 나
+Rising, rising, rising now
+
+La-la-la, fate on fire
+La-la-la, love is power
+La-la-la, 이 순간
+Burning, burning, burning bright
+
+[Verse 2]
+대운이 열린 것처럼
+세상이 환해져 now
+잃어버린 나의 계절도
+너 때문에 돌아와
+
+화기운이 춤을 춰
+차가운 걱정은 melt down
+사랑이란 이름의 용기
+이제 난 멈추지 않아
+
+Red star, new start
+너는 내 마음의 restart
+같은 꿈을 바라보면
+어떤 길도 두렵지 않아
+
+[Pre-Chorus 2]
+별자리가 움직이고
+은하수가 길을 열어
+네가 웃는 그 한순간
+모든 불안이 사라져
+
+You’re my answer
+You’re my future
+운명이 나를 부른다면
+너와 함께 갈 거야
+
+[Chorus]
+Burn, burn, burn my love
+운명이 불붙어
+네 손을 잡고서
+하늘 끝까지 올라가
+
+Run, run, run with you
+불꽃처럼 더 강하게
+세상이 막아도
+너와 난 더 빛나
+
+You’re my fire sign
+You’re my bright star
+숨이 벅찰 만큼
+뜨겁게 날 살려줘
+
+[Dance Break]
+Fire, fire, fire sign
+Love, love, love is light
+Fate, fate, fate on fire
+너와 함께 rise
+
+붉게 타는 sky
+심장 속의 siren
+불꽃 끝에 너와 나
+We shine, we shine, we shine
+
+[Bridge]
+가끔 길이 어두워도
+내가 먼저 불을 켤게
+네가 지치고 흔들릴 땐
+내 어깨를 빌려줄게
+
+운명이 바람처럼
+우릴 시험한대도
+내 답은 하나뿐이야
+I choose you every time
+
+[Final Chorus]
+Burn, burn, burn my love
+운명이 불붙어
+네 손을 잡고서
+하늘 끝까지 올라가
+
+Run, run, run with you
+불꽃처럼 더 강하게
+세상이 막아도
+너와 난 더 빛나
+
+You’re my fire sign
+You’re my bright star
+숨이 벅찰 만큼
+뜨겁게 날 살려줘
+
+[Final Post-Chorus]
+La-la-la, light me up
+La-la-la, lift me higher
+La-la-la, 너와 나
+Rising, rising, rising now
+
+La-la-la, fate on fire
+La-la-la, love is power
+La-la-la, 이 순간
+Burning, burning, burning bright
+
+[Outro]
+Fire sign
+붉은 별이 떠올라
+My fate is rising
+너와 함께`;
+  }
+
+  if (normalizedSongKey === "burn my fate") {
+    return `[Intro]
+Tick-tock, midnight
+검은 달이 떠올라
+No fear, no escape
+I burn my fate tonight
+
+[Verse 1]
+어둠이 내려와 city light
+숨죽인 거리는 black and white
+거울 속 내 shadow가 말해
+“넌 도망칠 수 없어 tonight”
+
+카드 한 장 뒤집힌 순간
+심장이 먼저 알아본 sign
+The Fool처럼 뛰어들어
+끝을 몰라도 I cross the line
+
+[Pre-Chorus]
+The Moon is calling
+깊은 밤이 날 삼켜도
+The Tower falling
+무너진 길 위로 걸어
+
+숨이 멎을 듯한 fear
+하지만 난 멈추지 않아
+운명이 칼을 겨눠도
+I look it in the eye
+
+[Chorus]
+Burn my fate, burn my dread
+검은 밤을 찢고 달려
+끝이라 말한 그 순간
+I wake up, I wake up again
+
+Burn my fate, burn my dread
+두려움마저 불태워
+죽은 별빛 속에서도
+I rise up, I rise up again
+
+[Post-Chorus]
+Na-na-na, burn it higher
+Na-na-na, light my fire
+Na-na-na, 운명 위로
+Run, run, run through the night
+
+Na-na-na, break the silence
+Na-na-na, fight my shadow
+Na-na-na, 새벽 끝에
+I’m alive, I’m alive tonight
+
+[Verse 2]
+Death card, 겁내지 않아
+끝은 또 다른 door
+무너진 내 yesterday
+오늘의 나를 깨워
+
+The Devil whispers in my head
+“포기해, 넌 이미 late”
+I laugh back, no regret
+내 심장에 불을 set
+
+운세 따윈 lock me down 못 해
+검은 별도 block me now 못 해
+내가 뽑은 card 위에
+내 이름을 새겨 넣어
+
+[Pre-Chorus 2]
+The Star is rising
+희미해도 난 보여
+The World is waiting
+마지막 문을 열어
+
+상처는 나의 proof
+두려움은 나의 fuel
+운명이 날 삼켜도
+I make it mine tonight
+
+[Chorus]
+Burn my fate, burn my dread
+검은 밤을 찢고 달려
+끝이라 말한 그 순간
+I wake up, I wake up again
+
+Burn my fate, burn my dread
+두려움마저 불태워
+죽은 별빛 속에서도
+I rise up, I rise up again
+
+[Post-Chorus]
+Na-na-na, burn it higher
+Na-na-na, light my fire
+Na-na-na, 운명 위로
+Run, run, run through the night
+
+Na-na-na, break the silence
+Na-na-na, fight my shadow
+Na-na-na, 새벽 끝에
+I’m alive, I’m alive tonight
+
+[Rap Break]
+Tick-tock, 시간이 나를 쫓아
+Blackout, 도시가 숨을 멈춰
+Countdown, 끝이라 믿은 순간
+내 안의 불꽃이 다시 번져
+
+Flip that card, no mercy
+Fate line, I rewrite it
+Shadow world, I dive in
+겁을 삼켜, I ignite it
+
+[Dance Break]
+Burn, burn, burn my fate
+Run, run, run this maze
+Turn, turn, turn that card
+Light, light, light my heart
+
+No fear, no more
+No fate, no chain
+새벽이 오기 전에
+I burn it all again
+
+[Bridge]
+사실 나도 무서웠어
+끝이 나를 부를 때
+차가운 밤 한가운데
+혼자 남겨진 것 같아
+
+하지만 어둠 끝에서
+작은 불빛이 말해
+“살아있다는 건
+다시 선택하는 것”
+
+[Final Chorus]
+Burn my fate, burn my dread
+검은 밤을 찢고 달려
+끝이라 말한 그 순간
+I wake up, I wake up again
+
+Burn my fate, burn my dread
+두려움마저 불태워
+죽은 별빛 속에서도
+I rise up, I rise up again
+
+[Final Post-Chorus]
+Na-na-na, burn it higher
+Na-na-na, light my fire
+Na-na-na, 운명 위로
+Run, run, run through the night
+
+Na-na-na, break the silence
+Na-na-na, fight my shadow
+Na-na-na, 새벽 끝에
+I’m alive, I’m alive tonight
+
+[Outro]
+Tick-tock, sunrise
+검은 달이 사라져
+No fear, no escape
+I burned my fate tonight`;
+  }
+
+  if (normalizedSongKey === "fate rider") {
+    return `[Intro - Member 2]
+Yeah
+Fate Rider
+운명이 날 불러
+But I don’t kneel
+I ride it
+
+[Verse 1 - Member 2]
+검은 밤 위에 뜬 red star
+내 이름을 새긴 sign
+막으려 해도 못 막아
+이미 바뀌었어 my time
+
+[Verse 1 - Member 5]
+사주 위에 그어진 line
+그 선을 밟고 올라가
+흉한 별이 날 노려도
+내 눈빛은 더 차가워
+
+[Verse 1 - Member 3 Rap]
+대운이 와, 판을 뒤집어
+겁먹은 어제는 전부 지워
+천살처럼 날카롭게 cut
+막힌 길도 부숴, no stop
+
+운세가 말해, “조심해”
+난 웃고 말해, “watch me”
+별들이 등 뒤에 붙어
+오늘 밤 내가 destiny
+
+[Pre-Chorus - Member 4]
+은하수 끝에 걸린 꿈
+손끝에 닿을 듯 멀어도
+숨이 차오를수록
+내 심장은 더 크게 burn
+
+[Pre-Chorus - Member 1]
+무너진 별빛 사이로
+너의 목소리가 들려
+운명이 나를 묶어도
+I break it, I make it mine
+
+[Chorus - All]
+대운을 타고 올라
+하늘 끝까지 ride
+별이 막아도 올라
+I’m never gonna die
+
+Fate, fate, fate, I ride
+겁 없이 불타는 night
+운명이 나를 물어도
+I bite it back tonight
+
+[Post-Chorus - All / Member 5]
+Ta-Ta-Ta, 대운 타
+Ta-Ta-Ta, 더 올라
+Da-da-da, fate on fire
+We ride, we ride, we ride
+
+Ta-Ta-Ta, 별을 타
+Ta-Ta-Ta, 다 뚫어
+Da-da-da, fate on fire
+We rise, we rise, we rise
+
+[Verse 2 - Member 3 Rap]
+Check my chart, 안 봐도 villain
+위험할수록 더 올라가는 feeling
+도화는 blade, 귀인은 flame
+내 길을 막으면 전부 game
+
+겁재 같은 밤이 날 시험해도
+편관 같은 압박이 날 눌러도
+난 꺾이지 않아, 더 세게 가
+내 운의 목덜미를 잡아
+
+[Verse 2 - Member 2]
+내 안의 짐승이 깨어나
+낮은 숨으로 널 불러
+차가운 별자리 아래
+뜨겁게 나를 걸어
+
+[Verse 2 - Member 5]
+은하가 갈라진대도
+난 내 길을 알아봐
+누가 뭐라 해도
+I was born to be the one
+
+[Pre-Chorus 2 - Member 4]
+붉은 별 하나가 떨어져
+내 심장 위에 박혀
+상처가 빛이 되는 밤
+I never run away
+
+[Pre-Chorus 2 - Member 1]
+무너진 운의 파도도
+나를 삼키지는 못해
+운명이 나를 묶어도
+I break it, I make it mine
+
+[Chorus - All]
+대운을 타고 올라
+하늘 끝까지 ride
+별이 막아도 올라
+I’m never gonna die
+
+Fate, fate, fate, I ride
+겁 없이 불타는 night
+운명이 나를 물어도
+I bite it back tonight
+
+[Post-Chorus - All / Member 5]
+Ta-Ta-Ta, 대운 타
+Ta-Ta-Ta, 더 올라
+Da-da-da, fate on fire
+We ride, we ride, we ride
+
+Ta-Ta-Ta, 별을 타
+Ta-Ta-Ta, 다 뚫어
+Da-da-da, fate on fire
+We rise, we rise, we rise
+
+[Dance Break - Member 3 / All]
+Ride, ride, ride
+Fate Rider
+Burn, burn, burn
+Fate on fire
+
+운명을 밟고
+하늘을 찢고
+별들을 깨워
+We rise higher
+
+[Bridge - Member 1]
+사실 나도 두려웠어
+무너질까 봐
+내 운이 나를 버린 밤엔
+혼자 울었어
+
+[Bridge - Member 4]
+근데 저 별들이 말해
+아직 끝난 게 아냐
+상처도 나의 별자리
+이제 내가 빛나
+
+[Bridge - Member 2]
+나를 꺾으려던 밤도
+내가 삼켜낼 거야
+운명이 칼을 겨눠도
+난 웃으며 걸어가
+
+[Final Chorus - All]
+대운을 타고 올라
+하늘 끝까지 ride
+별이 막아도 올라
+I’m never gonna die
+
+Fate, fate, fate, I ride
+겁 없이 불타는 night
+운명이 나를 물어도
+I bite it back tonight
+
+[Final Post-Chorus - All / Member 1 Ad-lib]
+Ta-Ta-Ta, 대운 타
+Ta-Ta-Ta, 더 올라
+Da-da-da, fate on fire
+We ride, we ride, we ride
+
+Ta-Ta-Ta, 별을 타
+Ta-Ta-Ta, 다 뚫어
+Da-da-da, fate on fire
+We rise, we rise, we rise
+
+[Outro - Member 2]
+Fate Rider
+운명은 나를 못 가둬
+별이 꺼진다 해도
+I ride my own sky`;
+  }
+
+  if (normalizedSongKey === "draw my fate") {
+    return `[Intro]
+Shuffle the night
+Pick a card
+운명은 아직 몰라
+Draw my fate
+
+[Verse 1 - Member 2]
+Golden street, midnight sign
+불빛 아래 뒤집힌 card
+오늘의 luck, maybe lie
+진짜 답은 deep inside
+
+[Verse 1 - Member 4]
+The Fool처럼 걸어가
+길을 몰라도 괜찮아
+넘어져도 다시 rise
+새로운 route가 열려 now
+
+[Verse 1 - Member 5]
+달빛은 조용히 말해
+“겁내지 마, choose your way”
+손끝에 닿은 한 장의 fate
+내일이 바뀌는 순간
+
+[Pre-Chorus - Member 1]
+The Tower falls down
+무너진 밤 위로
+숨겨진 별빛이 보여
+I can see the truth
+
+[Pre-Chorus - Member 2]
+The Devil whispers
+“넌 못 벗어나”
+But I just smile and say
+I’m not afraid tonight
+
+[Chorus - All]
+Draw my fate, 운명을 뒤집어
+어둠 속에 숨은 나를 깨워
+One more chance, 다시 빛을 따라
+I will find my way, my way
+
+Turn the card, 내일을 바꿔
+정해진 답은 없어 no more
+Shine my heart, 진실을 향해
+I will run, run, run to the truth
+
+[Post-Chorus - All / Member 4]
+Na-na-na, draw my fate
+Na-na-na, change my way
+Na-na-na, 별빛 아래
+We go, we go, we go
+
+Na-na-na, flip that card
+Na-na-na, light my heart
+Na-na-na, 운명 위로
+We glow, we glow, we glow
+
+[Verse 2 - Member 3 Rap]
+Ace of Wands, 불이 붙어
+막힌 길도 내가 뚫어
+Wheel of Fortune, spin it fast
+어제의 shadow, now it’s past
+
+Death card 나와도 don’t be scared
+끝이 아닌 new reset
+Hanged Man처럼 멈춘대도
+생각을 뒤집어, get it back
+
+[Verse 2 - Member 2]
+거울 속의 나를 봐
+모르는 얼굴 같아
+근데 이상하게 tonight
+조금 더 자유로워
+
+[Verse 2 - Member 5]
+The Moon 아래 감춘 fear
+The Sun이 밝히는 real
+타로는 답이 아니라
+나를 여는 secret key
+
+[Pre-Chorus 2 - Member 1]
+The Lovers call me
+선택의 문 앞에
+흔들리는 심장까지
+전부 나의 sign
+
+[Pre-Chorus 2 - Member 4]
+The Star is rising
+멀리 빛나도
+손을 뻗는 순간
+I’m already on my way
+
+[Chorus - All]
+Draw my fate, 운명을 뒤집어
+어둠 속에 숨은 나를 깨워
+One more chance, 다시 빛을 따라
+I will find my way, my way
+
+Turn the card, 내일을 바꿔
+정해진 답은 없어 no more
+Shine my heart, 진실을 향해
+I will run, run, run to the truth
+
+[Post-Chorus - All / Member 4]
+Na-na-na, draw my fate
+Na-na-na, change my way
+Na-na-na, 별빛 아래
+We go, we go, we go
+
+Na-na-na, flip that card
+Na-na-na, light my heart
+Na-na-na, 운명 위로
+We glow, we glow, we glow
+
+[Dance Break - Member 3 / All]
+Flip, flip, flip that card
+Run, run, run this night
+Truth, truth, find my star
+We glow in the golden light
+
+Major, minor, arcana
+숨겨진 나를 찾아가
+Shadow, mirror, destiny
+Now I’m free, now I’m me
+
+[Bridge - Member 1]
+가끔은 나도 무서워
+내 길이 틀릴까 봐
+하지만 틀린 카드도
+나를 여기 데려왔잖아
+
+[Bridge - Member 2]
+운명은 벽이 아냐
+문이 될 수도 있어
+한 장을 다시 뒤집어
+I choose who I become
+
+[Bridge - Member 5]
+The World is waiting
+마지막 장을 넘겨
+끝이라고 믿은 순간
+새로운 내가 보여
+
+[Final Chorus - All]
+Draw my fate, 운명을 뒤집어
+어둠 속에 숨은 나를 깨워
+One more chance, 다시 빛을 따라
+I will find my way, my way
+
+Turn the card, 내일을 바꿔
+정해진 답은 없어 no more
+Shine my heart, 진실을 향해
+I will run, run, run to the truth
+
+[Final Post-Chorus - All / Member 1 Ad-lib]
+Na-na-na, draw my fate
+Na-na-na, change my way
+Na-na-na, 별빛 아래
+We go, we go, we go
+
+Na-na-na, flip that card
+Na-na-na, light my heart
+Na-na-na, 운명 위로
+We glow, we glow, we glow
+
+[Outro - Member 5]
+Shuffle the night
+Pick a card
+정답은 없어
+I draw my fate`;
+  }
+
+  if (normalizedSongKey === "scarlet orbit") {
+    return `[Intro - Member 2]
+Yeah
+Milky Way above us
+Scarlet Orbit
+너의 별이 날 불러
+I can’t get away
+
+[Verse 1 - Member 2]
+밤하늘 끝에 번진 sign
+네 이름이 먼저 빛나
+숨죽인 내 심장 위로
+붉은 별 하나가 떨어져
+
+[Verse 1 - Member 4]
+차갑던 나의 궤도는
+네 눈빛에 방향을 잃어
+피하려 할수록 더 가까워져
+넌 내 forbidden star
+
+[Verse 1 - Member 5]
+별자리 사이 감춰진 line
+처음부터 정해진 듯해
+손끝이 스친 그 순간
+내 우주는 너로 기울어
+
+[Pre-Chorus - Member 1]
+홍란처럼 흔들린 밤
+천희처럼 웃는 너의 eyes
+우연이라 하기엔 너무 깊어
+이미 새겨진 fate line
+
+[Pre-Chorus - Member 4]
+화록처럼 달콤하게
+화권처럼 날 무너뜨려
+화기처럼 아픈데도
+I want you more and more
+
+[Chorus - All]
+돌고 돌아 네게로
+은하 끝을 건너도
+별이 나를 밀어
+너에게로 falling now
+
+너는 나의 galaxy
+나는 너의 gravity
+벗어나려 할수록
+더 깊이 빠져가
+
+[Post-Chorus - All / Member 5]
+Oh na na na
+너의 은하에 갇혀
+Oh na na na
+숨이 멎게 아름다워
+
+Oh na na na
+사랑의 성좌가 타올라
+Burn it, burn it, burn it up
+너에게로 falling now
+
+[Verse 2 - Member 3 Rap]
+Check my fate, 이미 적혀 있어
+네가 뜬 순간 밤이 뒤집혔어
+Tan Lang, 끌림은 dangerous
+Lian Zhen, 눈빛은 venomous
+
+도망쳐도 rewind
+너의 gravity, losing my mind
+별빛처럼 번지는 desire
+심장 안에 set a fire
+
+[Verse 2 - Member 2]
+넌 나를 망칠 수도 있어
+근데 또 나를 살릴 수도 있어
+위험한 걸 알면서도
+난 네 쪽으로 걸어
+
+[Verse 2 - Member 5]
+끝없는 은하수 아래
+너와 난 서로를 알아봐
+천 년을 돌아온 듯한
+뜨거운 déjà vu
+
+[Pre-Chorus 2 - Member 4]
+별들이 조용히 움직여
+우리의 밤을 이어
+한 번 스친 사랑이 아냐
+운명이 된 fever
+
+[Pre-Chorus 2 - Member 1]
+화록처럼 달콤하게
+화권처럼 날 무너뜨려
+화기처럼 아픈데도
+I want you more and more
+
+[Chorus - All]
+돌고 돌아 네게로
+은하 끝을 건너도
+별이 나를 밀어
+너에게로 falling now
+
+너는 나의 galaxy
+나는 너의 gravity
+벗어나려 할수록
+더 깊이 빠져가
+
+[Post-Chorus - All / Member 5]
+Oh na na na
+너의 은하에 갇혀
+Oh na na na
+숨이 멎게 아름다워
+
+Oh na na na
+사랑의 성좌가 타올라
+Burn it, burn it, burn it up
+너에게로 falling now
+
+[Dance Break - Member 3 / All]
+Zi wei, zi wei
+밤의 별이 깨어나
+Scarlet, orbit
+우릴 다시 묶어놔
+
+Zi wei, zi wei
+은하수가 타올라
+Fatal, gravity
+너에게로 burn
+
+[Bridge - Member 1]
+혹시 이 사랑이
+나를 다 태운대도
+난 너를 택할래
+끝까지 안을래
+
+[Bridge - Member 4]
+무너진 별빛 속에서도
+너 하나만 보여
+내 모든 우주가 말해
+The answer is you
+
+[Bridge - Member 2]
+상처도 운명이라면
+피하지 않을게
+너라는 밤에 갇혀도
+난 빛을 잃지 않아
+
+[Final Chorus - All]
+돌고 돌아 네게로
+은하 끝을 건너도
+별이 나를 밀어
+너에게로 falling now
+
+너는 나의 galaxy
+나는 너의 gravity
+벗어나려 할수록
+더 깊이 빠져가
+
+[Final Post-Chorus - All / Member 1 Ad-lib]
+Oh na na na
+너의 은하에 갇혀
+Oh na na na
+숨이 멎게 아름다워
+
+Oh na na na
+사랑의 성좌가 타올라
+Burn it, burn it, burn it up
+너에게로 falling now
+
+[Outro - Member 2]
+Milky Way above us
+끝내 나를 바꾼 love
+별이 사라진대도`;
+  }
+
   if (normalizedSongKey === "gisin out yongsin in") {
     return `[Verse 1]
 I checked my face today

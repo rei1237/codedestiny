@@ -261,6 +261,8 @@ type BillingCoinGateInput = {
   orderId?: string;
 };
 
+type PaymentEligibilityPhase = "pass" | "full";
+
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 5000;
@@ -664,11 +666,11 @@ function buildSnapshotPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, snapshot: SubscriptionSnapshot): BillingResult<PaymentEligibility> {
+}, snapshot: SubscriptionSnapshot, phase: PaymentEligibilityPhase = "full"): BillingResult<PaymentEligibility> {
   const inputPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, inputPriceKRW > 0 ? Math.ceil(inputPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
-  const monthlyBalance = readSubscriptionSnapshotMonthlyBalance();
+  const monthlyBalance = phase === "pass" ? 0 : readSubscriptionSnapshotMonthlyBalance();
   const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
   const passTier = snapshot.state === "active" && snapshot.tier !== "free"
     ? snapshot.tier as PaymentEligibility["pass"]["tier"]
@@ -680,9 +682,9 @@ function buildSnapshotPaymentEligibility(input: {
     passLimit,
     freeLimit: passLimit,
     canUseByPass,
-    monthlyBalance,
+    ...(phase === "pass" ? {} : { monthlyBalance }),
     canUseByMonthly: false,
-    canUseByCard: true,
+    canUseByCard: phase !== "pass",
     coinCost,
   };
   const raw = {
@@ -712,12 +714,12 @@ function buildSnapshotPaymentEligibility(input: {
         canUse: canUseByPass,
       },
       monthly: {
-        balance: monthlyBalance,
+        balance: phase === "pass" ? 0 : monthlyBalance,
         canUse: false,
-        afterBalance: monthlyBalance,
+        afterBalance: phase === "pass" ? 0 : monthlyBalance,
       },
       card: {
-        canUse: true,
+        canUse: phase !== "pass",
         provider: "PORTONE_V2_KG_INICIS",
       },
       raw,
@@ -2268,7 +2270,8 @@ async function fetchPaymentEligibilityUncached(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean } = {}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+  const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
   const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
@@ -2281,7 +2284,7 @@ async function fetchPaymentEligibilityUncached(input: {
   const canUseLocalSubscriptionSnapshot = Boolean(snapshot && snapshot.state !== "none" && snapshotAllowsLocalPass && !hasServerLookupKey);
   if (snapshot && canUseLocalSubscriptionSnapshot) {
     if (knownCoinCost > 0 || knownPriceKRW > 0) {
-      return buildSnapshotPaymentEligibility(input, snapshot);
+      return buildSnapshotPaymentEligibility(input, snapshot, phase);
     }
     const pricing = await fetchPricingForSubscriptionSnapshot(input).catch(() => null);
     if (pricing) {
@@ -2291,9 +2294,9 @@ async function fetchPaymentEligibilityUncached(input: {
         ...input,
         coinCost: pricingCoinCost,
         priceKRW: pricingAmountKRW > 0 ? pricingAmountKRW : pricingCoinCost * 100,
-      }, snapshot);
+      }, snapshot, phase);
     }
-    return buildSnapshotPaymentEligibility(input, snapshot);
+    return buildSnapshotPaymentEligibility(input, snapshot, phase);
   }
   const query = toQuery({
     productId: input.productId,
@@ -2302,6 +2305,7 @@ async function fetchPaymentEligibilityUncached(input: {
     subFeatureKey: input.subFeatureKey,
     featureKey: input.featureKey,
     reason: input.reason,
+    scope: phase === "pass" ? "pass" : undefined,
   });
   const response = await authFetchBilling(query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status", { method: "GET", cache: "no-store" });
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
@@ -2325,7 +2329,7 @@ async function fetchPaymentEligibilityUncached(input: {
   const explicitPriceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW, 0)));
   const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, explicitPriceKRW > 0 ? Math.ceil(explicitPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(explicitPriceKRW > 0 ? explicitPriceKRW : coinCost * 100, 0)));
-  const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
+  const monthlyBalance = phase === "pass" ? 0 : Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
   const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
   const membershipPass = asRecord(data.membershipPass);
   const passTier = normalizePassTier(
@@ -2391,11 +2395,11 @@ async function fetchPaymentEligibilityUncached(input: {
     },
     monthly: {
       balance: monthlyBalance,
-      canUse: Boolean(options.canUseByMonthly ?? data.canUseByMonthly),
-      afterBalance: Math.max(0, monthlyBalance - monthlyCost),
+      canUse: phase === "pass" ? false : Boolean(options.canUseByMonthly ?? data.canUseByMonthly),
+      afterBalance: phase === "pass" ? 0 : Math.max(0, monthlyBalance - monthlyCost),
     },
     card: {
-      canUse: Boolean(options.canUseByCard ?? data.canUseByCard ?? true),
+      canUse: phase === "pass" ? false : Boolean(options.canUseByCard ?? data.canUseByCard ?? true),
       provider: "PORTONE_V2_KG_INICIS",
     },
     raw: data,
@@ -2432,8 +2436,9 @@ export async function fetchPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}, fetchOptions: { force?: boolean } = {}): Promise<BillingResult<PaymentEligibility>> {
-  const cacheKey = resolvePaymentEligibilityCacheKey(input);
+}, fetchOptions: { force?: boolean; phase?: PaymentEligibilityPhase } = {}): Promise<BillingResult<PaymentEligibility>> {
+  const phase: PaymentEligibilityPhase = fetchOptions.phase === "pass" ? "pass" : "full";
+  const cacheKey = `${phase}:${resolvePaymentEligibilityCacheKey(input)}`;
   const now = Date.now();
   if (fetchOptions.force === true) {
     paymentEligibilityRecent.delete(cacheKey);
@@ -2446,7 +2451,7 @@ export async function fetchPaymentEligibility(input: {
     if (current) return current;
   }
 
-  const promise = fetchPaymentEligibilityUncached(input);
+  const promise = fetchPaymentEligibilityUncached(input, { force: fetchOptions.force, phase });
   paymentEligibilityInFlight.set(cacheKey, promise);
   try {
     const result = await promise;
@@ -2500,13 +2505,12 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   });
   const gateRequestId = toText(input.requestId || activeAttempt.attemptId || inFlightKey);
   const initialSnapshot = readSubscriptionSnapshotForUser();
-  const skipEntitlementCheck = initialSnapshot?.state === "none";
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,
     requestId: gateRequestId,
-    status: skipEntitlementCheck ? "loadingProducts" : "checkingEntitlement",
-    message: skipEntitlementCheck ? "결제 가능한 상품 정보를 준비하고 있습니다." : "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    status: "checkingEntitlement",
+    message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
     paymentMode: input.paymentMode,
     reason: input.reason,
   });
@@ -2533,20 +2537,39 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));
-    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
+    const eligibilityInput = {
+      categoryKey: input.categoryKey,
+      subFeatureKey: input.subFeatureKey,
+      featureKey: input.featureKey,
+      reason: input.reason,
+      productId: input.productId,
+      serviceType: input.serviceType || input.productType,
+      coinCost: input.cost,
+      coinPrice: input.coinPrice,
+      priceKRW: input.priceKRW,
+      amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
+    };
+    const passEligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
       ? null
-      : await fetchPaymentEligibility({
-        categoryKey: input.categoryKey,
-        subFeatureKey: input.subFeatureKey,
-        featureKey: input.featureKey,
+      : await fetchPaymentEligibility(eligibilityInput, { phase: "pass" }).catch(() => null);
+    const passEligibility = passEligibilityResult?.ok ? passEligibilityResult.data : null;
+    const passAlreadyGranted = passEligibility?.access.canAccess === true;
+    const passCoveredByServer = passAlreadyGranted || passEligibility?.pass.canUse === true;
+    if (passEligibility && !passCoveredByServer && !explicitPaymentMode && input.forceDeduct !== false) {
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status: "loadingProducts",
+        message: "이용권 확인이 끝났습니다. 결제 가능 상태를 확인하고 있습니다.",
+        cost: passEligibility.coinCost,
+        paymentMode: requestedMode,
         reason: input.reason,
-        productId: input.productId,
-        serviceType: input.serviceType || input.productType,
-        coinCost: input.cost,
-        coinPrice: input.coinPrice,
-        priceKRW: input.priceKRW,
-        amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
-      }).catch(() => null);
+      });
+    }
+    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || passCoveredByServer
+      ? passEligibilityResult
+      : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;

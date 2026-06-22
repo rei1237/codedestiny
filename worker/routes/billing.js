@@ -3328,7 +3328,18 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
   }
 
-  if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
+  if (accessDecision.paymentOptions) {
+    paymentDecision = passOnly
+      ? {
+        ...accessDecision.paymentOptions,
+        monthlyBalance: 0,
+        canUseByMonthly: false,
+        canUseByCard: false,
+        recommendedMethods: accessDecision.paymentOptions.canUseByPass ? ["PASS"] : [],
+        equalPriorityMethods: [],
+      }
+      : accessDecision.paymentOptions;
+  }
   if (accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered") {
     logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "EXISTING_UNLOCK_FOUND" : "PASS_FEATURE_ELIGIBLE", {
       requestId,
@@ -5265,6 +5276,7 @@ async function handleUnlockStatus(request, env) {
   const subFeatureKey = String(url.searchParams.get("subFeatureKey") || "").trim();
   const featureKey = String(url.searchParams.get("featureKey") || "").trim();
   const reason = String(url.searchParams.get("reason") || "").trim();
+  const passOnly = String(url.searchParams.get("scope") || "").trim().toLowerCase() === "pass";
 
   const pricingResult = getBillingFeaturePricing({ categoryKey, subFeatureKey, featureKey, reason });
   if (!pricingResult.ok) {
@@ -5301,9 +5313,14 @@ async function handleUnlockStatus(request, env) {
     expiresAt: subscription.entitlement?.expiresAt || null,
   };
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionEntitlement);
-  let paymentDecision = buildPassPaymentDecision(subscriptionEntitlement, pricing, {
-    membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
-  });
+  let paymentDecision = buildPassPaymentDecision(
+    subscriptionEntitlement,
+    pricing,
+    passOnly ? {} : {
+      membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
+    },
+    passOnly ? { monthlyBalance: 0 } : {},
+  );
 
   const subscriptionPass = buildMembershipPassFromBillingSnapshot(data);
   const accessProfileId = cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || "");
@@ -5331,6 +5348,50 @@ async function handleUnlockStatus(request, env) {
   if (accessDecision.accessGranted) {
     unlocked = true;
     if (pricing.featureKey) unlockMap[pricing.featureKey] = true;
+  }
+
+  if (passOnly) {
+    return success({
+      pricing,
+      profileId: accessProfileId,
+      coinCost: paymentDecision.coinCost,
+      amountKRW: paymentDecision.amountKRW,
+      hasActivePass: paymentDecision.hasActivePass,
+      passTier: paymentDecision.passTier,
+      passLimit: paymentDecision.passLimit,
+      passLimitKRW: paymentDecision.passLimitKRW,
+      canUseByPass: passStatusCovered,
+      paymentOptions: {
+        coinCost: paymentDecision.coinCost,
+        amountKRW: paymentDecision.amountKRW,
+        hasActivePass: paymentDecision.hasActivePass,
+        passTier: paymentDecision.passTier,
+        passLimit: paymentDecision.passLimit,
+        passLimitKRW: paymentDecision.passLimitKRW,
+        canUseByPass: passStatusCovered,
+        canUseByMonthly: false,
+        canUseByCard: false,
+        recommendedMethod: passStatusCovered ? "PASS" : "PAYMENT_REQUIRED",
+        recommendedMethods: passStatusCovered ? ["PASS"] : [],
+        equalPriorityMethods: [],
+        hiddenMethods: passStatusCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
+        paymentPriority: passStatusCovered ? "PASS_FIRST" : "PAYMENT_AFTER_PASS",
+        decisionReason: paymentDecision.decisionReason,
+      },
+      accessDecision: responseAccessDecision,
+      accessReason: accessDecision.reason === "already_unlocked"
+        ? ACCESS_DECISION_REASONS.ALREADY_UNLOCKED
+        : (passStatusCovered ? ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE : accessDecision.reason),
+      subscriptionTier: subscription.tier,
+      freeLimit: Number(subscription.freeLimit || 0),
+      freeBySubscription: passStatusCovered,
+      accessGateResult: accessDecision.accessGateResult || null,
+      licensePass: accessDecision.accessGateResult || null,
+      requiredCoins: accessDecision.accessGranted || passStatusCovered ? 0 : Number(pricing.cost || 0),
+      shouldOpenPaymentSelector: false,
+      availableMethods: passStatusCovered ? ["PASS"] : [],
+      canAccess: Boolean(accessDecision.accessGranted || passStatusCovered),
+    }, "이용권 접근 상태를 조회했습니다.");
   }
 
   const serverAccess = await canAccessPaidFeature(String(data.authUserId || ""), pricing.featureKey, {

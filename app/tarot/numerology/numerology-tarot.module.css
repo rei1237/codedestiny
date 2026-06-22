@@ -1,3 +1,19 @@
+@font-face {
+  font-family: "CodeDestinyNumerologyDisplay";
+  src: url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "CodeDestinyNumerologyPremium";
+  src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 .screen {
   --nt-bg-0: #040514;
   --nt-bg-1: #0b0f35;
@@ -13,6 +29,7 @@
   --nt-text-dim: rgba(247, 241, 225, 0.74);
   min-height: 100dvh;
   color: var(--nt-text);
+  font-family: "CodeDestinyNumerologyPremium", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   background:
     radial-gradient(64rem 64rem at 12% 8%, rgba(98, 76, 222, 0.25), transparent 64%),
     radial-gradient(48rem 48rem at 84% 10%, rgba(66, 102, 255, 0.2), transparent 68%),
@@ -822,30 +839,83 @@
 
 .resultCard {
   margin-top: 16px;
-  border: 1px solid rgba(244, 220, 165, 0.48);
-  border-radius: 18px;
-  background: #fff7e6;
-  color: #172033;
-  padding: 18px;
-  max-width: 840px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(244, 220, 165, 0.36);
+  border-radius: 26px;
+  background:
+    radial-gradient(34rem 24rem at 18% -4%, rgba(244, 220, 165, 0.2), transparent 72%),
+    radial-gradient(24rem 20rem at 93% 10%, rgba(222, 233, 255, 0.16), transparent 64%),
+    radial-gradient(32rem 22rem at 82% 78%, rgba(151, 118, 255, 0.18), transparent 72%),
+    linear-gradient(145deg, rgba(9, 10, 34, 0.98), rgba(18, 13, 48, 0.95) 54%, rgba(7, 9, 30, 0.99));
+  color: #f8efe0;
+  padding: clamp(18px, 3vw, 30px);
+  max-width: 960px;
   margin-left: auto;
   margin-right: auto;
-  box-shadow: 0 24px 70px rgba(4, 7, 24, 0.36);
+  box-shadow: 0 30px 90px rgba(2, 3, 18, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: "CodeDestinyNumerologyPremium", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.resultCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 9% 7%, rgba(255, 255, 255, 0.76), transparent),
+    radial-gradient(1px 1px at 76% 12%, rgba(255, 255, 255, 0.62), transparent),
+    radial-gradient(1px 1px at 93% 34%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 18% 92%, rgba(255, 255, 255, 0.42), transparent),
+    linear-gradient(90deg, transparent, rgba(244, 220, 165, 0.22), transparent) 0 0 / 100% 1px no-repeat,
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.026) 0 1px, transparent 1px 8px);
+  opacity: 0.72;
+}
+
+.resultCard::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  right: clamp(20px, 3vw, 42px);
+  z-index: -1;
+  width: clamp(68px, 9vw, 108px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.92), rgba(244, 220, 165, 0.5) 34%, transparent 68%);
+  box-shadow:
+    inset -24px 0 0 rgba(10, 10, 36, 0.92),
+    0 0 42px rgba(244, 220, 165, 0.22),
+    0 0 90px rgba(151, 118, 255, 0.18);
+  opacity: 0.82;
 }
 
 .resultHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  border-bottom: 1px solid rgba(73, 50, 15, 0.16);
-  padding-bottom: 12px;
+  gap: 16px;
+  border-bottom: 1px solid rgba(244, 220, 165, 0.22);
+  padding-bottom: 18px;
+  position: relative;
+}
+
+.resultTitleBlock {
+  min-width: 0;
 }
 
 .resultHeader p {
   margin: 4px 0 0;
-  color: rgba(23, 32, 51, 0.68);
+  color: rgba(248, 239, 224, 0.72);
   font-size: 13px;
+  line-height: 1.55;
+}
+
+.resultSubtitle {
+  max-width: 620px;
 }
 
 .resultActions {
@@ -856,65 +926,123 @@
   gap: 8px;
 }
 
+.resultMoonPanel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.resultMoonItem {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(244, 220, 165, 0.18);
+  border-radius: 18px;
+  background:
+    radial-gradient(14rem 9rem at 100% 0%, rgba(244, 220, 165, 0.08), transparent 72%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.032));
+  padding: 14px;
+  min-height: 132px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.resultMoonItem::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 26px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset -8px 0 0 rgba(3, 6, 24, 0.92);
+  background: rgba(244, 220, 165, 0.48);
+  opacity: 0.42;
+}
+
+.resultMoonItem h4 {
+  margin: 0 0 8px;
+  color: rgba(240, 207, 138, 0.92);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.resultMoonItem p {
+  margin: 0;
+  color: rgba(248, 239, 224, 0.82);
+  font-size: 13px;
+  line-height: 1.64;
+}
+
 .resultStack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .resultSection {
-  border: 1px solid rgba(37, 42, 60, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 252, 244, 0.88);
-  padding: 14px;
+  border: 1px solid rgba(244, 220, 165, 0.16);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.078), rgba(255, 255, 255, 0.032)),
+    radial-gradient(18rem 12rem at 100% 0%, rgba(244, 220, 165, 0.05), transparent 70%);
+  padding: clamp(15px, 2.3vw, 22px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(10px);
 }
 
 .answerSection {
-  background: linear-gradient(180deg, rgba(255, 250, 236, 0.98), rgba(246, 236, 212, 0.92));
-  border-color: rgba(191, 135, 64, 0.28);
+  background:
+    radial-gradient(22rem 12rem at 12% 0%, rgba(244, 220, 165, 0.16), transparent 72%),
+    radial-gradient(18rem 12rem at 94% 16%, rgba(222, 233, 255, 0.09), transparent 68%),
+    linear-gradient(145deg, rgba(79, 51, 112, 0.34), rgba(255, 255, 255, 0.058));
+  border-color: rgba(244, 220, 165, 0.3);
 }
 
 .resultSection h4 {
   margin: 0 0 10px;
-  font-size: 18px;
-  color: #7a4f17;
-  font-family: "Noto Serif KR", serif;
+  color: #f0cf8a;
+  font-family: "CodeDestinyNumerologyDisplay", "Noto Serif KR", serif;
+  font-size: clamp(18px, 2.1vw, 22px);
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .resultLead {
   margin: 0;
-  color: #263044;
-  line-height: 1.75;
+  color: rgba(248, 239, 224, 0.86);
+  line-height: 1.82;
   white-space: pre-line;
   font-size: 16px;
 }
 
 .resultCoreMessage {
-  margin: 10px 0 0;
-  color: #5f3c0f;
-  line-height: 1.6;
-  font-size: 18px;
-  font-weight: 800;
+  margin: 14px 0 0;
+  color: #fff4cf;
+  line-height: 1.76;
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 500;
 }
 
 .qualityNote {
   margin: 10px 0 0;
-  color: #78624a;
+  color: rgba(248, 239, 224, 0.56);
   font-size: 12px;
 }
 
 .cardReadingGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .cardReadingBox {
-  border: 1px solid rgba(37, 42, 60, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 12px;
+  border: 1px solid rgba(244, 220, 165, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(10rem 8rem at 100% 0%, rgba(244, 220, 165, 0.045), transparent 72%),
+    rgba(3, 6, 24, 0.42);
+  padding: 14px;
 }
 
 .cardReadingHeader {
@@ -933,7 +1061,7 @@
 
 .cardReadingOrder {
   margin: 0;
-  color: #9b6c24;
+  color: rgba(240, 207, 138, 0.82);
   font-size: 11px;
   letter-spacing: 0;
 }
@@ -942,7 +1070,7 @@
 .cardReadingBox h5 {
   margin: 2px 0 0;
   font-size: 16px;
-  color: #172033;
+  color: #fff4cf;
 }
 
 .cardReadingMeta {
@@ -951,19 +1079,19 @@
   align-items: flex-end;
   gap: 4px;
   font-size: 11px;
-  color: rgba(23, 32, 51, 0.64);
+  color: rgba(248, 239, 224, 0.62);
   white-space: nowrap;
 }
 
 .cardReadingBox p {
   margin: 0 0 8px;
-  color: #2f394d;
+  color: rgba(248, 239, 224, 0.82);
   font-size: 15px;
   line-height: 1.65;
 }
 
 .cautionText {
-  color: #7f3f1d;
+  color: #f0b987;
 }
 
 .planList {
@@ -971,25 +1099,25 @@
   padding-left: 18px;
   display: grid;
   gap: 8px;
-  color: #263044;
+  color: rgba(248, 239, 224, 0.86);
   line-height: 1.65;
 }
 
 .finalWord {
   margin: 10px 0 0;
-  color: #684414;
-  line-height: 1.7;
-  font-style: italic;
+  color: #fff4cf;
+  line-height: 1.82;
+  font-size: 17px;
 }
 
 .aiPromptOutput {
   width: 100%;
   min-height: 260px;
   max-height: 46dvh;
-  border: 1px solid rgba(244, 220, 165, 0.24);
+  border: 1px solid rgba(244, 220, 165, 0.2);
   border-radius: 14px;
-  background: rgba(255, 252, 244, 0.9);
-  color: #172033;
+  background: rgba(3, 6, 24, 0.48);
+  color: rgba(248, 239, 224, 0.9);
   padding: 12px;
   resize: vertical;
   font-family: inherit;
@@ -1028,21 +1156,38 @@
 
 .aiPromptStatus {
   min-height: 20px;
-  color: #7a4f17;
+  color: rgba(240, 207, 138, 0.9);
   font-size: 12px;
 }
 
 .utilityPanel {
-  border: 1px solid rgba(191, 135, 64, 0.28);
-  border-radius: 16px;
-  background: rgba(255, 250, 236, 0.9);
-  padding: 14px;
-  color: #172033;
+  border: 1px solid rgba(244, 220, 165, 0.2);
+  border-radius: 20px;
+  background:
+    radial-gradient(18rem 11rem at 8% 0%, rgba(244, 220, 165, 0.12), transparent 72%),
+    radial-gradient(18rem 12rem at 100% 100%, rgba(151, 118, 255, 0.12), transparent 72%),
+    linear-gradient(145deg, rgba(244, 220, 165, 0.085), rgba(151, 118, 255, 0.08));
+  padding: clamp(15px, 2.2vw, 22px);
+  color: rgba(248, 239, 224, 0.9);
+}
+
+.resultActionDock {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px solid rgba(244, 220, 165, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(244, 220, 165, 0.08), rgba(151, 118, 255, 0.08)),
+    rgba(3, 6, 24, 0.3);
+  padding: 12px;
 }
 
 .utilityPanel summary {
   cursor: pointer;
-  color: #7a4f17;
+  color: #f0cf8a;
   font-weight: 800;
 }
 
@@ -1051,38 +1196,131 @@
 }
 
 .utilityPanel .promptToolHeader h4 {
-  color: #172033;
+  color: #fff4cf;
 }
 
 .utilityPanel .promptToolHeader p {
-  color: rgba(23, 32, 51, 0.68);
+  color: rgba(248, 239, 224, 0.7);
 }
 
 .freeProfileCard {
   margin-top: 14px;
-  border: 1px solid var(--nt-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(18, 20, 61, 0.88), rgba(8, 10, 36, 0.95));
-  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(244, 220, 165, 0.3);
+  border-radius: 24px;
+  background:
+    radial-gradient(30rem 20rem at 12% -8%, rgba(244, 220, 165, 0.16), transparent 72%),
+    radial-gradient(22rem 18rem at 92% 4%, rgba(222, 233, 255, 0.13), transparent 70%),
+    linear-gradient(150deg, rgba(12, 14, 48, 0.96), rgba(17, 12, 53, 0.92) 58%, rgba(5, 8, 30, 0.96));
+  padding: clamp(16px, 2.4vw, 24px);
+  box-shadow: 0 22px 70px rgba(2, 3, 18, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.freeProfileCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 8% 18%, rgba(255, 255, 255, 0.62), transparent),
+    radial-gradient(1px 1px at 72% 16%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 94% 54%, rgba(255, 255, 255, 0.4), transparent),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 8px);
+  opacity: 0.7;
+}
+
+.freeProfileHero,
+.freeProfileHighlights,
+.freeProfileGrid,
+.freeProfileMoonNote,
+.freeProfileCard .promptMergedPanel {
+  position: relative;
 }
 
 .freeProfileCard h3 {
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-family: "Noto Serif KR", serif;
+  margin: 0 0 10px;
+  color: #fff4cf;
+  font-size: clamp(25px, 3vw, 36px);
+  font-family: "CodeDestinyNumerologyDisplay", "Noto Serif KR", serif;
+  font-weight: 400;
+  line-height: 1.28;
 }
 
 .freeProfileLead {
   margin: 0;
-  color: rgba(247, 241, 225, 0.88);
-  line-height: 1.6;
+  max-width: 920px;
+  color: rgba(248, 239, 224, 0.86);
+  line-height: 1.82;
+  font-size: 15px;
+}
+
+.freeProfileKeySentence {
+  margin: 12px 0 0;
+  max-width: 820px;
+  color: #fff4cf;
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.72;
+}
+
+.freeProfileHighlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.freeProfileHighlight {
+  border: 1px solid rgba(244, 220, 165, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(12rem 8rem at 100% 0%, rgba(244, 220, 165, 0.07), transparent 72%),
+    rgba(3, 6, 24, 0.36);
+  padding: 12px;
+}
+
+.freeProfileHighlight span {
+  display: block;
+  color: rgba(240, 207, 138, 0.82);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.freeProfileHighlight strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff4cf;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.freeProfileHighlight small {
+  display: block;
+  margin-top: 8px;
+  color: rgba(248, 239, 224, 0.72);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .freeProfileGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.freeProfileMoonNote {
+  margin: 16px 0 0;
+  border: 1px solid rgba(244, 220, 165, 0.22);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(244, 220, 165, 0.11), rgba(151, 118, 255, 0.1)),
+    rgba(3, 6, 24, 0.3);
+  color: #fff4cf;
+  padding: 14px 16px;
+  line-height: 1.72;
+  font-size: 15px;
 }
 
 .keywordLine {
@@ -1099,14 +1337,104 @@
 
 .actionTip {
   margin-top: 7px;
-  color: rgba(247, 241, 225, 0.72);
+  color: rgba(240, 207, 138, 0.82);
   font-size: 12px;
 }
 
 .resultCard h3 {
   margin: 0 0 8px;
-  font-size: 24px;
-  font-family: "Noto Serif KR", serif;
+  color: #fff4cf;
+  font-size: clamp(25px, 3vw, 34px);
+  font-family: "CodeDestinyNumerologyDisplay", "Noto Serif KR", serif;
+  font-weight: 400;
+  line-height: 1.32;
+}
+
+.resultCard .promptToolKicker {
+  color: rgba(240, 207, 138, 0.88);
+}
+
+.resultCard .ghostBtn,
+.resultCard .lightBtn,
+.resultCard .mainBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  min-height: 42px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.actionIcon {
+  flex: 0 0 auto;
+}
+
+.resultCard .ghostBtn {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(244, 220, 165, 0.22);
+  color: rgba(248, 239, 224, 0.9);
+}
+
+.resultCard .lightBtn {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(151, 118, 255, 0.26)),
+    rgba(151, 118, 255, 0.16);
+  border-color: rgba(219, 205, 255, 0.5);
+  color: #fff8ff;
+  box-shadow: 0 10px 24px rgba(42, 28, 100, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.resultCard .mainBtn {
+  color: #1d1532;
+  border-color: rgba(255, 238, 184, 0.92);
+  background:
+    radial-gradient(circle at 24% 20%, rgba(255, 255, 255, 0.86), transparent 28%),
+    linear-gradient(135deg, #fff0b8 0%, #e6bd63 54%, #f8dda0 100%);
+  box-shadow: 0 15px 30px rgba(181, 129, 42, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.resultCard .ghostBtn:hover,
+.resultCard .lightBtn:hover,
+.resultCard .mainBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.resultCard .promptToolActions {
+  grid-template-columns: minmax(220px, max-content) minmax(190px, max-content) minmax(0, 1fr);
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(244, 220, 165, 0.16);
+  border-radius: 18px;
+  background: rgba(3, 6, 24, 0.26);
+}
+
+.resultCard .aiPromptStatus {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  color: rgba(248, 239, 224, 0.72);
+  line-height: 1.45;
+}
+
+.resultCard .promptAutoPanel {
+  border-color: rgba(244, 220, 165, 0.28);
+  background:
+    linear-gradient(135deg, rgba(244, 220, 165, 0.1), rgba(255, 255, 255, 0.045)),
+    rgba(3, 6, 24, 0.32);
+  margin-top: 12px;
+}
+
+.resultCard .promptTopicSymbol {
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.5), transparent 42%),
+    rgba(244, 220, 165, 0.16);
+  color: #ffe6a6;
 }
 
 .resultGrid {
@@ -1117,24 +1445,24 @@
 }
 
 .resultBox {
-  border: 1px solid rgba(37, 42, 60, 0.12);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.64);
-  padding: 10px;
+  border: 1px solid rgba(244, 220, 165, 0.16);
+  border-radius: 14px;
+  background: rgba(3, 6, 24, 0.35);
+  padding: 12px;
 }
 
 .resultBox h4,
 .resultBox h5 {
   margin: 0 0 6px;
   font-size: 13px;
-  color: #7a4f17;
+  color: rgba(240, 207, 138, 0.92);
 }
 
 .resultBox p {
   margin: 0;
-  color: #2f394d;
+  color: rgba(248, 239, 224, 0.8);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.58;
 }
 
 .flowGrid {
@@ -1264,7 +1592,9 @@
   .userFlowRow,
   .keyList,
   .resultGrid,
+  .resultMoonPanel,
   .infoRail,
+  .freeProfileHighlights,
   .freeProfileGrid,
   .followUpList {
     grid-template-columns: 1fr;
@@ -1324,9 +1654,28 @@
   }
 
   .resultHeader,
-  .resultActions {
+  .resultActions,
+  .resultActionDock {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .resultCard::after {
+    top: 18px;
+    right: 18px;
+    opacity: 0.48;
+  }
+
+  .resultCard .promptToolActions {
+    grid-template-columns: 1fr;
+  }
+
+  .resultCard .ghostBtn,
+  .resultCard .lightBtn,
+  .resultCard .mainBtn {
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
   }
 
   .aiPromptOutput {

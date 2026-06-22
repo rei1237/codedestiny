@@ -2312,7 +2312,7 @@ export default function PalmDestinyMain() {
       openPaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
         requestId: billingCheckRequestId,
-        message: "손금 AI 상담 가격을 확인하고 있습니다.",
+        message: "이용권 확인 중",
       });
 
       const entitlementCheckResult = await runBillingCoinGate({

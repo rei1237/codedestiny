@@ -25,28 +25,28 @@ function SummaryRow({
   className: string;
 }) {
   return (
-    <div className={`group relative overflow-hidden rounded-lg border p-4 shadow-[0_18px_54px_rgba(0,0,0,0.28)] transition duration-200 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none ${className}`}>
-      <div className="pointer-events-none absolute inset-0 opacity-42 [background-image:radial-gradient(circle_at_82%_2%,rgba(245,239,217,0.18),transparent_34%),radial-gradient(circle_at_50%_115%,rgba(216,181,109,0.12),transparent_42%)]" />
-      <div className="pointer-events-none absolute right-3 top-3 h-12 w-12 rounded-full border border-[#f5d48f]/18" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#d8b56d]/42 opacity-80" />
+    <div className={`group relative min-w-0 overflow-hidden rounded-lg border p-4 shadow-[0_18px_54px_rgba(0,0,0,0.30)] transition duration-200 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none ${className}`}>
+      <div className="pointer-events-none absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_82%_2%,rgba(245,239,217,0.22),transparent_34%),radial-gradient(circle_at_50%_115%,rgba(216,181,109,0.16),transparent_42%)]" />
+      <div className="pointer-events-none absolute right-3 top-3 h-14 w-14 rounded-full border border-[#f5d48f]/24 shadow-[0_0_24px_rgba(216,181,109,0.16)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#f5d48f]/54 opacity-90" />
       <dt className="relative flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#f5efd9]/82">
         {icon}
         {label}
       </dt>
-      <dd className={`relative mt-3 text-2xl font-black text-[#f8efd2] ${CODE_FONT_CLASS}`}>{value}</dd>
-      <p className="relative mt-2 text-xs leading-5 text-[#e6dcc1]/82">{description}</p>
+      <dd className={`relative mt-3 break-words text-2xl font-black text-[#fff0b8] drop-shadow-[0_0_18px_rgba(216,181,109,0.18)] sm:text-3xl ${CODE_FONT_CLASS}`}>{value}</dd>
+      <p className="relative mt-2 text-xs font-bold leading-5 text-[#eee5cb]/88">{description}</p>
     </div>
   );
 }
 
 export default function MayaDateSummaryCard({ result }: Props) {
   return (
-    <section className="relative overflow-hidden rounded-lg border border-[#d8b56d]/26 bg-[#04100d]/92 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)] backdrop-blur">
-      <div className="pointer-events-none absolute inset-0 opacity-44 [background-image:radial-gradient(circle_at_18%_0%,rgba(216,181,109,0.18),transparent_30%),radial-gradient(circle_at_84%_10%,rgba(111,191,154,0.12),transparent_26%),linear-gradient(135deg,rgba(216,181,109,0.05)_1px,transparent_1px)] [background-size:auto,auto,54px_54px]" />
+    <section className="relative min-w-0 overflow-hidden rounded-lg border border-[#d8b56d]/30 bg-[#04100d]/94 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34)] backdrop-blur">
+      <div className="pointer-events-none absolute inset-0 opacity-48 [background-image:radial-gradient(circle_at_18%_0%,rgba(216,181,109,0.22),transparent_30%),radial-gradient(circle_at_84%_10%,rgba(111,191,154,0.14),transparent_26%),linear-gradient(135deg,rgba(216,181,109,0.05)_1px,transparent_1px)] [background-size:auto,auto,54px_54px]" />
       <div className="pointer-events-none absolute inset-3 rounded-lg border border-[#d8b56d]/14" />
       <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full border border-[#d8b56d]/20 shadow-[0_0_70px_rgba(216,181,109,0.10)]" />
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="relative">
+        <div className="relative min-w-0">
           <p className="inline-flex items-center gap-2 rounded-full border border-[#d8b56d]/30 bg-[#081812]/78 px-3 py-1 text-xs font-black text-[#f5d48f]">
             <CalendarDays className="h-4 w-4" />
             선택된 시간 좌표
@@ -56,36 +56,36 @@ export default function MayaDateSummaryCard({ result }: Props) {
             GMT 584283 기준으로 계산된 마야 달력 좌표입니다.
           </p>
         </div>
-        <div className={`relative rounded-lg border border-[#d8b56d]/34 bg-[#020706]/72 px-4 py-2 text-sm font-black text-[#f5d48f] shadow-[0_0_28px_rgba(216,181,109,0.14)] ${CODE_FONT_CLASS}`}>
+        <div className={`relative rounded-lg border border-[#d8b56d]/42 bg-[#020706]/78 px-4 py-2 text-sm font-black text-[#fff0b8] shadow-[0_0_32px_rgba(216,181,109,0.18)] ${CODE_FONT_CLASS}`}>
           {result.tzolkin.label}
         </div>
       </div>
 
-      <dl className="relative mt-5 grid gap-3 md:grid-cols-3">
+      <dl className="relative mt-5 grid min-w-0 gap-3 md:grid-cols-3">
         <SummaryRow
           label="Long Count"
           value={result.longCount.label}
           description="장대한 시간의 흐름 속 현재 위치"
           icon={<Compass className="h-4 w-4 text-[#d8b56d]" />}
-          className="border-[#d8b56d]/36 bg-[#020706]/84"
+          className="border-[#d8b56d]/44 bg-[#020706]/90"
         />
         <SummaryRow
           label="Tzolk'in"
           value={result.tzolkin.label}
           description="260일 주기의 내면 리듬"
           icon={<Hash className="h-4 w-4 text-[#6fbf9a]" />}
-          className="border-[#6fbf9a]/30 bg-[#052018]/82"
+          className="border-[#6fbf9a]/38 bg-[#052018]/86"
         />
         <SummaryRow
           label="Haab"
           value={result.haab.label}
           description="365일 태양력의 계절 흐름"
           icon={<Moon className="h-4 w-4 text-[#eadfc0]" />}
-          className="border-[#b67a48]/30 bg-[#1b100b]/78"
+          className="border-[#b67a48]/40 bg-[#1b100b]/84"
         />
       </dl>
 
-      <div className="relative mt-4 grid gap-3 md:grid-cols-3">
+      <div className="relative mt-4 grid min-w-0 gap-3 md:grid-cols-3">
         <div className="relative overflow-hidden rounded-lg border border-[#d8b56d]/18 bg-[#020706]/62 p-4 shadow-[inset_0_0_0_1px_rgba(245,239,217,0.03)]">
           <div className="pointer-events-none absolute inset-0 opacity-22 [background-image:linear-gradient(135deg,rgba(216,181,109,0.08)_1px,transparent_1px)] [background-size:20px_20px]" />
           <Hash className="h-5 w-5 text-[#f5d48f]" />
