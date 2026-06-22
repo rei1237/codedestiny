@@ -8,12 +8,10 @@ import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { buildImageCandidates, TAROT_CARDS } from "../../../lib/tarot/tarot-cards.mjs";
 import {
-  CATEGORY_LABEL,
-  buildRecommendedQuestionsForSpread,
-  DEFAULT_QUESTION_BY_CATEGORY,
+  buildLocalizedRecommendedQuestionsForSpread,
   DIFFICULTY_LABEL,
   findSpreadById,
-  QUESTION_CHIPS,
+  getLocalizedPromptMakerData,
   SPREAD_LIBRARY,
 } from "./data/tarotSpreadLibrary";
 import type { DrawnTarotCard, TarotCardOrientation, TarotSpread, TarotSpreadCategory } from "./types";
@@ -93,6 +91,14 @@ type PromptMakerFeedbackCopy = {
   copiedDone: string;
   copyPrompt: string;
   generating: string;
+};
+
+type QuestionQualityNoticeCopy = {
+  empty: (categoryName: string) => string;
+  tooShort: string;
+  tooLong: string;
+  addDirection: string;
+  ready: string;
 };
 
 const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
@@ -614,6 +620,237 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
 };
 
+const ALL_FILTER_LABEL: Record<LoadingLocale, string> = {
+  ko: "전체",
+  en: "All",
+  ja: "すべて",
+  "zh-CN": "全部",
+  "zh-TW": "全部",
+  vi: "Tất cả",
+  hi: "सभी",
+  es: "Todo",
+  fr: "Tout",
+  de: "Alle",
+  nl: "Alles",
+  ms: "Semua",
+};
+
+const QUESTION_PLACEHOLDER_COPY: Record<LoadingLocale, { tarot: string; lenormand: string }> = {
+  ko: {
+    tarot: "지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?",
+    lenormand: "지금 보고 싶은 상황이나 질문을 적어주세요.",
+  },
+  en: {
+    tarot: "Write the question you most want to ask now. Example: Will that person contact me again?",
+    lenormand: "Write the situation or question you want to examine now.",
+  },
+  ja: {
+    tarot: "今いちばん気になる質問を入力してください。例：あの人からまた連絡は来ますか？",
+    lenormand: "今見たい状況や質問を入力してください。",
+  },
+  "zh-CN": {
+    tarot: "写下你现在最想问的问题。例：那个人还会再联系我吗？",
+    lenormand: "写下你现在想查看的状况或问题。",
+  },
+  "zh-TW": {
+    tarot: "寫下你現在最想問的問題。例：那個人還會再聯絡我嗎？",
+    lenormand: "寫下你現在想查看的狀況或問題。",
+  },
+  vi: {
+    tarot: "Hãy viết câu hỏi bạn đang muốn hỏi nhất. Ví dụ: Người ấy có liên lạc lại không?",
+    lenormand: "Hãy viết tình huống hoặc câu hỏi bạn muốn xem lúc này.",
+  },
+  hi: {
+    tarot: "अभी जो प्रश्न सबसे अधिक मन में है, उसे लिखें. उदाहरण: क्या वह व्यक्ति फिर संपर्क करेगा?",
+    lenormand: "अभी जिस स्थिति या प्रश्न को देखना है, उसे लिखें.",
+  },
+  es: {
+    tarot: "Escribe la pregunta que más te inquieta ahora. Ejemplo: ¿Esa persona volverá a contactarme?",
+    lenormand: "Escribe la situación o pregunta que quieres mirar ahora.",
+  },
+  fr: {
+    tarot: "Écrivez la question qui vous préoccupe le plus maintenant. Exemple : Cette personne va-t-elle me recontacter ?",
+    lenormand: "Écrivez la situation ou la question à observer maintenant.",
+  },
+  de: {
+    tarot: "Schreibe die Frage auf, die dich gerade am meisten beschäftigt. Beispiel: Meldet sich diese Person wieder?",
+    lenormand: "Schreibe die Situation oder Frage auf, die du jetzt betrachten möchtest.",
+  },
+  nl: {
+    tarot: "Schrijf de vraag op die je nu het meest bezighoudt. Voorbeeld: Neemt die persoon opnieuw contact op?",
+    lenormand: "Schrijf de situatie of vraag op die je nu wilt bekijken.",
+  },
+  ms: {
+    tarot: "Tulis soalan yang paling ingin ditanya sekarang. Contoh: Adakah orang itu akan menghubungi saya semula?",
+    lenormand: "Tulis situasi atau soalan yang mahu dilihat sekarang.",
+  },
+};
+
+const LENORMAND_DEFAULT_QUESTION_COPY: Record<LoadingLocale, string> = {
+  ko: "지금 보고 싶은 상황에서 가장 먼저 확인해야 할 흐름과 행동 단서는 무엇일까?",
+  en: "What flow and action clue should I check first in the situation I want to examine now?",
+  ja: "今見たい状況で、最初に確認すべき流れと行動の手がかりは何ですか？",
+  "zh-CN": "在我现在想看的状况里，最先该确认的流向和行动线索是什么？",
+  "zh-TW": "在我現在想看的狀況裡，最先該確認的流向和行動線索是什麼？",
+  vi: "Trong tình huống tôi muốn xem lúc này, dòng chảy và manh mối hành động nào cần kiểm tra trước?",
+  hi: "अभी जिस स्थिति को देखना है, उसमें सबसे पहले कौन सा flow और action clue देखना चाहिए?",
+  es: "En la situación que quiero mirar ahora, ¿qué flujo y pista de acción debo revisar primero?",
+  fr: "Dans la situation que je veux observer maintenant, quel courant et quelle piste d'action dois-je vérifier d'abord ?",
+  de: "Welchen Verlauf und welchen Handlungshinweis sollte ich in der aktuellen Situation zuerst prüfen?",
+  nl: "Welke stroom en actietip moet ik eerst bekijken in de situatie die ik nu wil zien?",
+  ms: "Dalam situasi yang mahu saya lihat sekarang, aliran dan petunjuk tindakan apa yang patut diperiksa dahulu?",
+};
+
+const LENORMAND_RECOMMENDED_QUESTIONS: Record<LoadingLocale, string[]> = {
+  ko: [
+    "지금 보고 싶은 상황에서 가장 반복되는 신호는 무엇일까?",
+    "이 흐름에서 내가 줄여야 할 행동과 늘려야 할 행동은 무엇일까?",
+    "가까운 다음 장면으로 이어지는 현실 단서는 무엇일까?",
+  ],
+  en: [
+    "What sign repeats most in the situation I want to examine now?",
+    "Which action should I reduce, and which action should I increase in this flow?",
+    "What practical clue leads into the next nearby scene?",
+  ],
+  ja: [
+    "今見たい状況で、最も繰り返されているサインは何ですか？",
+    "この流れで、私が減らすべき行動と増やすべき行動は何ですか？",
+    "近い次の場面につながる現実的な手がかりは何ですか？",
+  ],
+  "zh-CN": [
+    "在我现在想看的状况里，最反复出现的信号是什么？",
+    "这段流向中，我该减少的行动和该增加的行动是什么？",
+    "通向近期下一幕的现实线索是什么？",
+  ],
+  "zh-TW": [
+    "在我現在想看的狀況裡，最反覆出現的訊號是什麼？",
+    "這段流向中，我該減少的行動和該增加的行動是什麼？",
+    "通往近期下一幕的現實線索是什麼？",
+  ],
+  vi: [
+    "Trong tình huống tôi muốn xem lúc này, tín hiệu nào lặp lại rõ nhất?",
+    "Trong dòng chảy này, tôi nên giảm hành động nào và tăng hành động nào?",
+    "Manh mối thực tế nào dẫn tới cảnh gần tiếp theo?",
+  ],
+  hi: [
+    "अभी जिस स्थिति को देखना है, उसमें कौन सा संकेत सबसे अधिक दोहर रहा है?",
+    "इस flow में मुझे कौन सा action घटाना और कौन सा action बढ़ाना चाहिए?",
+    "अगले निकट दृश्य तक ले जाने वाला वास्तविक clue क्या है?",
+  ],
+  es: [
+    "En la situación que quiero mirar ahora, ¿qué señal se repite con más fuerza?",
+    "En este flujo, ¿qué acción debo reducir y cuál debo aumentar?",
+    "¿Qué pista práctica conduce a la próxima escena cercana?",
+  ],
+  fr: [
+    "Dans la situation que je veux observer maintenant, quel signe se répète le plus ?",
+    "Dans ce flux, quelle action dois-je réduire et quelle action dois-je renforcer ?",
+    "Quelle piste concrète mène à la prochaine scène proche ?",
+  ],
+  de: [
+    "Welches Zeichen wiederholt sich in der Situation, die ich jetzt betrachten möchte, am stärksten?",
+    "Welche Handlung sollte ich in diesem Verlauf verringern und welche verstärken?",
+    "Welcher praktische Hinweis führt in die nächste nahe Szene?",
+  ],
+  nl: [
+    "Welk signaal herhaalt zich het meest in de situatie die ik nu wil bekijken?",
+    "Welke actie moet ik in deze stroom verminderen en welke versterken?",
+    "Welke praktische aanwijzing leidt naar de volgende nabije scène?",
+  ],
+  ms: [
+    "Dalam situasi yang mahu saya lihat sekarang, isyarat apa yang paling berulang?",
+    "Dalam aliran ini, tindakan apa yang patut saya kurangkan dan apa yang patut saya tambah?",
+    "Petunjuk nyata apa yang membawa kepada babak terdekat seterusnya?",
+  ],
+};
+
+const QUESTION_QUALITY_NOTICE_COPY: Record<LoadingLocale, QuestionQualityNoticeCopy> = {
+  ko: {
+    empty: (categoryName) => `${categoryName} 질문을 한 문장으로 적으면 추천 질문과 스프레드가 더 정확해집니다.`,
+    tooShort: "질문이 짧아 해석 범위가 넓어질 수 있어요. 대상, 상황, 알고 싶은 결론 중 하나를 더해보세요.",
+    tooLong: "질문이 길어 핵심이 흐려질 수 있어요. 가장 중요한 사건과 알고 싶은 방향만 남기면 프롬프트가 선명해집니다.",
+    addDirection: "질문 안에 알고 싶은 방향을 조금 더 넣으면 카드가 답할 상담 초점이 또렷해집니다.",
+    ready: "질문 흐름이 충분히 잡혔습니다. 추천 질문을 고르면 더 상담형 문장으로 다듬을 수 있습니다.",
+  },
+  en: {
+    empty: (categoryName) => `Write one ${categoryName} question to make the recommended questions and spread more precise.`,
+    tooShort: "The question is short, so the reading may stay broad. Add a person, situation, or outcome you want to understand.",
+    tooLong: "The question is long, so the core may blur. Keep the main event and the direction you want to know.",
+    addDirection: "Add a little more direction to the question so the cards can answer with a clearer consultation focus.",
+    ready: "The question flow is clear enough. Choosing a recommended question can make it more consultation-ready.",
+  },
+  ja: {
+    empty: (categoryName) => `${categoryName}の質問を一文で書くと、おすすめ質問とスプレッドがより正確になります。`,
+    tooShort: "質問が短いため、解釈の幅が広がりやすいです。相手、状況、知りたい結論のどれかを少し足してみてください。",
+    tooLong: "質問が長いため、核心がぼやけることがあります。いちばん大切な出来事と知りたい方向だけを残すと、プロンプトが澄んできます。",
+    addDirection: "質問の中に知りたい方向をもう少し入れると、カードが答える相談の焦点がはっきりします。",
+    ready: "質問の流れは十分に整っています。おすすめ質問を選ぶと、さらに相談向きの文に磨けます。",
+  },
+  "zh-CN": {
+    empty: (categoryName) => `请用一句话写下${categoryName}问题，推荐问题和牌阵会更准确。`,
+    tooShort: "问题较短，解读范围可能会变宽。可以补充对象、状况或想知道的结果。",
+    tooLong: "问题较长，核心可能会变得模糊。只保留最重要的事件和想知道的方向，提示词会更清晰。",
+    addDirection: "在问题里再加入一点想知道的方向，卡牌回答的咨询焦点会更清楚。",
+    ready: "问题流向已经足够清晰。选择推荐问题，可以把句子打磨得更适合咨询。",
+  },
+  "zh-TW": {
+    empty: (categoryName) => `請用一句話寫下${categoryName}問題，推薦問題和牌陣會更準確。`,
+    tooShort: "問題較短，解讀範圍可能會變寬。可以補充對象、狀況或想知道的結果。",
+    tooLong: "問題較長，核心可能會變得模糊。只保留最重要的事件和想知道的方向，提示詞會更清晰。",
+    addDirection: "在問題裡再加入一點想知道的方向，卡牌回答的諮詢焦點會更清楚。",
+    ready: "問題流向已經足夠清晰。選擇推薦問題，可以把句子打磨得更適合諮詢。",
+  },
+  vi: {
+    empty: (categoryName) => `Viết một câu hỏi ${categoryName} trong một câu để gợi ý và trải bài chính xác hơn.`,
+    tooShort: "Câu hỏi còn ngắn nên phạm vi luận giải có thể rộng. Hãy thêm đối tượng, tình huống hoặc điều bạn muốn biết.",
+    tooLong: "Câu hỏi khá dài nên trọng tâm có thể mờ đi. Giữ lại sự kiện chính và hướng bạn muốn biết.",
+    addDirection: "Thêm một chút hướng muốn biết vào câu hỏi để lá bài trả lời với trọng tâm rõ hơn.",
+    ready: "Dòng câu hỏi đã đủ rõ. Chọn câu hỏi gợi ý sẽ giúp câu chữ hợp với tư vấn hơn.",
+  },
+  hi: {
+    empty: (categoryName) => `${categoryName} question को एक वाक्य में लिखें, ताकि suggested questions और spread अधिक सटीक हों.`,
+    tooShort: "Question छोटा है, इसलिए reading बहुत व्यापक हो सकती है. व्यक्ति, स्थिति या desired outcome में से कुछ जोड़ें.",
+    tooLong: "Question लंबा है, इसलिए core धुंधला हो सकता है. मुख्य घटना और जानने की दिशा ही रखें.",
+    addDirection: "Question में जानने की दिशा थोड़ा और जोड़ें, ताकि cards का consultation focus साफ हो.",
+    ready: "Question flow पर्याप्त स्पष्ट है. Recommended question चुनने से वाक्य consultation-ready हो जाएगा.",
+  },
+  es: {
+    empty: (categoryName) => `Escribe una pregunta de ${categoryName} en una frase para que las sugerencias y la tirada sean más precisas.`,
+    tooShort: "La pregunta es breve y la lectura puede quedar amplia. Añade una persona, situación o resultado que quieras comprender.",
+    tooLong: "La pregunta es larga y el núcleo puede difuminarse. Conserva el hecho principal y la dirección que deseas conocer.",
+    addDirection: "Añade un poco más de dirección a la pregunta para que las cartas respondan con un foco más claro.",
+    ready: "El flujo de la pregunta está claro. Una pregunta recomendada puede dejarla más lista para consulta.",
+  },
+  fr: {
+    empty: (categoryName) => `Écrivez une question de ${categoryName} en une phrase pour rendre les suggestions et le tirage plus précis.`,
+    tooShort: "La question est courte, la lecture peut rester large. Ajoutez une personne, une situation ou le résultat que vous souhaitez comprendre.",
+    tooLong: "La question est longue, le noyau peut se brouiller. Gardez l'événement principal et la direction à éclairer.",
+    addDirection: "Ajoutez un peu plus de direction dans la question pour que les cartes répondent avec un focus plus net.",
+    ready: "Le flux de la question est assez clair. Une question recommandée peut la rendre plus prête pour la consultation.",
+  },
+  de: {
+    empty: (categoryName) => `Schreibe eine ${categoryName}-Frage in einem Satz, damit Empfehlungen und Legung genauer werden.`,
+    tooShort: "Die Frage ist kurz, daher kann die Deutung breit bleiben. Ergänze eine Person, Situation oder das Ergebnis, das du verstehen möchtest.",
+    tooLong: "Die Frage ist lang, daher kann der Kern unscharf werden. Behalte das wichtigste Ereignis und die Richtung, die du wissen möchtest.",
+    addDirection: "Gib der Frage etwas mehr Richtung, damit die Karten mit klarerem Beratungsfokus antworten können.",
+    ready: "Der Fragenfluss ist klar genug. Eine empfohlene Frage kann ihn noch beratungstauglicher machen.",
+  },
+  nl: {
+    empty: (categoryName) => `Schrijf één ${categoryName}-vraag in één zin, zodat suggesties en spread preciezer worden.`,
+    tooShort: "De vraag is kort, waardoor de reading breed kan blijven. Voeg een persoon, situatie of gewenste uitkomst toe.",
+    tooLong: "De vraag is lang, waardoor de kern kan vervagen. Houd alleen de hoofdgebeurtenis en de richting die je wilt weten.",
+    addDirection: "Voeg wat meer richting toe aan de vraag, zodat de kaarten met een duidelijker consultfocus kunnen antwoorden.",
+    ready: "De vraagstroom is duidelijk genoeg. Een aanbevolen vraag kan hem meer consultklaar maken.",
+  },
+  ms: {
+    empty: (categoryName) => `Tulis satu soalan ${categoryName} dalam satu ayat supaya cadangan dan spread lebih tepat.`,
+    tooShort: "Soalan masih pendek, jadi bacaan boleh menjadi terlalu luas. Tambahkan orang, situasi atau hasil yang mahu difahami.",
+    tooLong: "Soalan agak panjang, jadi inti boleh menjadi kabur. Kekalkan peristiwa utama dan arah yang mahu diketahui.",
+    addDirection: "Tambahkan sedikit arah dalam soalan supaya kad menjawab dengan fokus konsultasi yang lebih jelas.",
+    ready: "Aliran soalan sudah cukup jelas. Soalan cadangan boleh menjadikannya lebih sesuai untuk konsultasi.",
+  },
+};
+
 function formatCoinValue(amount: number) {
   return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
 }
@@ -786,27 +1023,24 @@ const SENSITIVE_CATEGORY_NOTICE: Partial<Record<TarotSpreadCategory, string>> = 
   legal: "법률·송사 질문은 승패나 판결을 단정하지 않고, 기록 정리와 전문가 상담을 돕는 참고용 상징 해석으로만 다룹니다.",
 };
 
-const CATEGORY_FILTER_OPTIONS: Array<{ id: "all" | TarotSpreadCategory; label: string }> = [
-  { id: "all", label: "전체" },
-  ...(Object.keys(CATEGORY_LABEL) as TarotSpreadCategory[]).map((id) => ({
-    id,
-    label: CATEGORY_LABEL[id],
-  })),
-];
-
 function normalizeText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
 
-function buildQuestionQualityNotice(question: string, category: TarotSpreadCategory) {
+function buildQuestionQualityNotice(
+  question: string,
+  category: TarotSpreadCategory,
+  categoryLabel: Record<TarotSpreadCategory, string>,
+  copy: QuestionQualityNoticeCopy,
+) {
   const text = normalizeText(question);
-  if (!text) return `${CATEGORY_LABEL[category]} 질문을 한 문장으로 적으면 추천 질문과 스프레드가 더 정확해집니다.`;
-  if (text.length < 12) return "질문이 짧아 해석 범위가 넓어질 수 있어요. 대상, 상황, 알고 싶은 결론 중 하나를 더해보세요.";
-  if (text.length > 170) return "질문이 길어 핵심이 흐려질 수 있어요. 가장 중요한 사건과 알고 싶은 방향만 남기면 프롬프트가 선명해집니다.";
+  if (!text) return copy.empty(categoryLabel[category]);
+  if (text.length < 12) return copy.tooShort;
+  if (text.length > 170) return copy.tooLong;
   if (!/(어떻게|무엇|뭐|왜|언제|가능성|마음|흐름|조언|선택|해야|될까|일까|할까|괜찮|가능|타이밍|결과|주의)/u.test(text)) {
-    return "질문 안에 알고 싶은 방향을 조금 더 넣으면 카드가 전할 상담 초점이 또렷해집니다.";
+    return copy.addDirection;
   }
-  return "질문 흐름이 충분히 잡혔습니다. 추천 질문을 누르면 더 상담형 문장으로 다듬을 수 있습니다.";
+  return copy.ready;
 }
 
 function buildFlowLines(cards: DrawnTarotCard[]) {
@@ -910,6 +1144,25 @@ export default function TarotPromptMakerPage() {
   const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
   const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
+  const localizedPromptData = useMemo(() => getLocalizedPromptMakerData(locale), [locale]);
+  const categoryLabel = localizedPromptData.categoryLabel;
+  const questionChips = localizedPromptData.questionChips;
+  const defaultQuestionByCategory = localizedPromptData.defaultQuestionByCategory;
+  const allFilterLabel = ALL_FILTER_LABEL[locale] || ALL_FILTER_LABEL.ko;
+  const questionPlaceholder = QUESTION_PLACEHOLDER_COPY[locale] || QUESTION_PLACEHOLDER_COPY.ko;
+  const lenormandDefaultQuestion = LENORMAND_DEFAULT_QUESTION_COPY[locale] || LENORMAND_DEFAULT_QUESTION_COPY.ko;
+  const lenormandRecommendedQuestions = LENORMAND_RECOMMENDED_QUESTIONS[locale] || LENORMAND_RECOMMENDED_QUESTIONS.ko;
+  const questionQualityCopy = QUESTION_QUALITY_NOTICE_COPY[locale] || QUESTION_QUALITY_NOTICE_COPY.ko;
+  const categoryFilterOptions = useMemo<Array<{ id: "all" | TarotSpreadCategory; label: string }>>(
+    () => [
+      { id: "all", label: allFilterLabel },
+      ...(Object.keys(categoryLabel) as TarotSpreadCategory[]).map((id) => ({
+        id,
+        label: categoryLabel[id],
+      })),
+    ],
+    [categoryLabel, allFilterLabel],
+  );
 
   const isLenormandMode = oracleMode === "lenormand";
   const oracleModeMeta = ORACLE_MODE_META[oracleMode];
@@ -920,8 +1173,8 @@ export default function TarotPromptMakerPage() {
   const selectedQuestionCategory = manualCategory === "auto" ? detectedCategory : manualCategory;
 
   const effectiveQuestion = useMemo(
-    () => normalizeText(question) || (isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]),
-    [question, isLenormandMode, selectedQuestionCategory],
+    () => normalizeText(question) || (isLenormandMode ? lenormandDefaultQuestion : defaultQuestionByCategory[selectedQuestionCategory]),
+    [question, isLenormandMode, selectedQuestionCategory, defaultQuestionByCategory, lenormandDefaultQuestion],
   );
 
   const flowLines = useMemo(() => buildFlowLines(drawnCards), [drawnCards]);
@@ -955,13 +1208,9 @@ export default function TarotPromptMakerPage() {
 
   const recommendedQuestions = useMemo(
     () => isLenormandMode
-      ? [
-        "지금 보고 싶은 상황에서 가장 반복되는 신호는 무엇일까?",
-        "이 흐름에서 내가 줄여야 할 행동과 늘려야 할 행동은 무엇일까?",
-        "가까운 다음 장면으로 이어지는 현실 단서는 무엇일까?",
-      ]
-      : buildRecommendedQuestionsForSpread(selectedSpread, selectedQuestionCategory, 5, question),
-    [isLenormandMode, selectedSpread, selectedQuestionCategory, question],
+      ? lenormandRecommendedQuestions
+      : buildLocalizedRecommendedQuestionsForSpread(selectedSpread, selectedQuestionCategory, 5, question, locale),
+    [isLenormandMode, lenormandRecommendedQuestions, selectedSpread, selectedQuestionCategory, question, locale],
   );
 
   const billingPassIncluded = Boolean(billingSnapshot?.freeBySubscription || billingSnapshot?.canUseByPass);
@@ -979,7 +1228,7 @@ export default function TarotPromptMakerPage() {
   const sensitiveCategoryNotice = isLenormandMode ? "" : SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
   const questionQualityNotice = isLenormandMode
     ? (normalizeText(question) ? feedbackCopy.lenormandQuestionReady : feedbackCopy.lenormandQuestionEmpty)
-    : buildQuestionQualityNotice(question, selectedQuestionCategory);
+    : buildQuestionQualityNotice(question, selectedQuestionCategory, categoryLabel, questionQualityCopy);
 
   useEffect(() => {
     setLocale(getCurrentLoadingLocale());
@@ -1360,7 +1609,7 @@ export default function TarotPromptMakerPage() {
                         value={question}
                         onChange={(e) => { setQuestion(e.target.value); setFeedback(""); setQuestionStatus(""); }}
                         maxLength={220}
-                        placeholder={isLenormandMode ? "지금 보고 싶은 상황이나 질문을 적어주세요." : "지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?"}
+                        placeholder={isLenormandMode ? questionPlaceholder.lenormand : questionPlaceholder.tarot}
                         className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-sm sm:text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
                       />
                       <div className="flex items-start justify-between gap-3 mt-2">
@@ -1377,7 +1626,7 @@ export default function TarotPromptMakerPage() {
                         <div className="flex items-center justify-between gap-3 mb-3">
                           <div>
                             <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">질문 카테고리</div>
-                            <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {CATEGORY_LABEL[detectedCategory]}</div>
+                            <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {categoryLabel[detectedCategory]}</div>
                           </div>
                           <button
                             type="button"
@@ -1395,7 +1644,7 @@ export default function TarotPromptMakerPage() {
                               onClick={() => setManualCategory(category)}
                               className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all ${manualCategory !== "auto" && selectedQuestionCategory === category ? "border-[#c084fc]/50 bg-[#c084fc]/15 text-[#f3e8ff]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
                             >
-                              {CATEGORY_LABEL[category]}
+                              {categoryLabel[category]}
                             </button>
                           ))}
                         </div>
@@ -1404,7 +1653,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Quick chips */}
                     {!isLenormandMode && <div className="flex flex-wrap gap-2 mb-5">
-                      {QUESTION_CHIPS.slice(0, 6).map((chip) => (
+                      {questionChips.slice(0, 6).map((chip) => (
                         <button
                           key={chip.label}
                           type="button"
@@ -1425,7 +1674,7 @@ export default function TarotPromptMakerPage() {
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">선택된 스프레드</div>
                           <div className="text-[#e9d5ff] font-semibold text-base">{selectedSpread.title}</div>
-                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? "레노먼드" : `상담 카테고리 ${CATEGORY_LABEL[selectedQuestionCategory]}`}</div>
+                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? "레노먼드" : `상담 카테고리 ${categoryLabel[selectedQuestionCategory]}`}</div>
                           <div className="text-[#c4b5fd]/60 text-xs mt-1 leading-relaxed">{selectedSpread.purpose}</div>
                         </div>
                         {!isLenormandMode && <button
@@ -1445,11 +1694,11 @@ export default function TarotPromptMakerPage() {
                       <div className="flex items-center justify-between gap-3 mb-3">
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">추천 질문</div>
-                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {isLenormandMode ? "레노먼드" : CATEGORY_LABEL[selectedQuestionCategory]}</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {isLenormandMode ? "레노먼드" : categoryLabel[selectedQuestionCategory]}</div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleRecommendedQuestion(recommendedQuestions[0] || DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory])}
+                          onClick={() => handleRecommendedQuestion(recommendedQuestions[0] || defaultQuestionByCategory[selectedQuestionCategory])}
                           className="px-3 py-1.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-xs font-semibold text-[#fde68a] hover:bg-[#f59e0b]/15 transition-all"
                         >
                           첫 질문 적용
@@ -1501,7 +1750,7 @@ export default function TarotPromptMakerPage() {
                       <button
                         type="button"
                           onClick={() => {
-                            setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
+                            setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : defaultQuestionByCategory[selectedQuestionCategory]);
                             setFeedback("");
                             setQuestionStatus(isLenormandMode ? feedbackCopy.lenormandDefaultStatus : feedbackCopy.categoryDefaultStatus);
                           }}
@@ -2023,11 +2272,11 @@ export default function TarotPromptMakerPage() {
                     className="rounded-xl border border-[#6d28d9]/35 bg-black/30 px-3 py-2 text-sm text-[#f3e8ff] outline-none placeholder:text-[#7c3aed]/40"
                   />
                   <div className="rounded-xl border border-[#6d28d9]/25 bg-black/20 px-3 py-2 text-xs text-[#a78bfa]/70">
-                    추천 테마: {CATEGORY_LABEL[detectedCategory]}
+                    추천 테마: {categoryLabel[detectedCategory]}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {CATEGORY_FILTER_OPTIONS.map((item) => (
+                  {categoryFilterOptions.map((item) => (
                     <button
                       key={`spread-filter-${item.id}`}
                       type="button"
@@ -2073,7 +2322,7 @@ export default function TarotPromptMakerPage() {
                         }}
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <div className="text-[9px] uppercase tracking-[0.16em] text-[#7c3aed]/55">{CATEGORY_LABEL[spread.category]}</div>
+                          <div className="text-[9px] uppercase tracking-[0.16em] text-[#7c3aed]/55">{categoryLabel[spread.category]}</div>
                           {recommended && <span className="px-1.5 py-0.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[9px] text-[#fcd34d]">추천</span>}
                         </div>
                         <div className="text-sm font-bold text-[#e9d5ff]">{spread.title}</div>
