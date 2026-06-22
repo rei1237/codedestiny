@@ -91,8 +91,8 @@ assert(!includes(files.engine, "별의 조합"), "engine.must_not_use_generic_st
 assert(!includes(files.engine, "강한 별"), "engine.must_not_use_generic_strong_star_term");
 assert(includes(files.engine, "주성·보좌성·살성·궁·사화·대한·유년"), "engine.uses_precise_ziwei_source_terms");
 assert(includes(files.engine, "주의 깊게 볼 성曜"), "engine.uses_precise_caution_star_label");
-assert(includes(files.engine, 'const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v4";'), "engine.prompt_version_v4");
-assert(includes(files.engine, 'const ZIWEI_PDF_QUALITY_VERSION = "no-repeat-v3";'), "engine.quality_version_no_repeat_v3");
+assert(includes(files.engine, 'const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v5";'), "engine.prompt_version_v5");
+assert(includes(files.engine, 'const ZIWEI_PDF_QUALITY_VERSION = "category-depth-v4";'), "engine.quality_version_category_depth_v4");
 assert(includes(files.engine, 'generationMode: "llm-html-v3"'), "engine.generation_mode_llm_html_v3");
 assert(includes(files.engine, 'templateVersion: "ziwei-premium-html-v3.0.0"'), "engine.template_version_v3");
 assert(includes(files.engine, '"반드시 파산"'), "engine.blocks_fear_based_financial_determinism");
@@ -118,8 +118,9 @@ assert(includes(files.engine, "function hasDisallowedChapterTag"), "engine.disal
 assert(includes(files.engine, "html.disallowed-tag"), "engine.rejects_disallowed_chapter_tags");
 assert(includes(files.engine, "function hasSectionHeadingEcho"), "engine.section_heading_echo_detector_exists");
 assert(includes(files.engine, "section.heading-echo"), "engine.rejects_section_heading_echo");
-assert(includes(files.engine, "const MIN_SECTION_BODY_LENGTH = 240;"), "engine.min_section_length_240");
-assert(includes(files.engine, "const MIN_CHAPTER_LENGTH_RATIO = 0.75;"), "engine.min_chapter_length_ratio");
+assert(includes(files.engine, "const MIN_SECTION_BODY_LENGTH = 300;"), "engine.min_section_length_300");
+assert(includes(files.engine, "const MIN_SECTION_PARAGRAPH_COUNT = 3;"), "engine.min_section_paragraph_count_3");
+assert(includes(files.engine, "const MIN_CHAPTER_LENGTH_RATIO = 0.85;"), "engine.min_chapter_length_ratio");
 assert(includes(files.engine, "function hasAsciiReportToken"), "engine.ascii_token_detector_exists");
 assert(includes(files.engine, 'item === "workers-ai" || item === "gemini"'), "engine.restricts_ziwei_providers");
 assert(includes(files.engine, "Math.min(3, Math.max(0, Number(env?.ZIWEI_PREMIUM_LLM_REPAIR_LIMIT ?? 2)))"), "engine.caps_repair_limit");
@@ -289,6 +290,7 @@ function buildSampleChapters({ source = ZIWEI_PDF_CONFIG.generationMode, provide
       const paragraphs = [
         sampleParagraph(chapter, title, chapterIndex, sectionIndex, 0),
         sampleParagraph(chapter, title, chapterIndex, sectionIndex, 1),
+        sampleParagraph(chapter, title, chapterIndex, sectionIndex, 2),
       ];
       return {
         title,
@@ -631,6 +633,7 @@ function buildFakeProviderHtml(prompt) {
     const paragraphs = [
       sampleParagraph(chapter, title, chapterIndex, sectionIndex, 0),
       sampleParagraph(chapter, title, chapterIndex, sectionIndex, 1),
+      sampleParagraph(chapter, title, chapterIndex, sectionIndex, 2),
     ].map((paragraph, paragraphIndex) => (
       paragraphIndex === 0 ? `${actualStar}의 기세와 ${paragraph}` : paragraph
     ));
@@ -714,7 +717,7 @@ console.log(JSON.stringify({
     chapterCount: 15,
     guidanceCount: 15,
     evidenceFocusCount: 15,
-    promptVersion: "ziwei-premium-prompt-v4",
-    qualityVersion: "no-repeat-v3",
+    promptVersion: "ziwei-premium-prompt-v5",
+    qualityVersion: "category-depth-v4",
   },
 }, null, 2));

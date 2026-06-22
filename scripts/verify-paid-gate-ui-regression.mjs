@@ -141,8 +141,8 @@ assertNotContains(reactProviderOverlayOwnershipSource, '"paymentWindowOpen"', "R
 assertContains(paymentProcessingContextSource, "function isMonthlyPaidFeatureDetail", "React provider has monthly paid-feature resolver");
 const reactProviderStatusOverlaySource = section(paymentProcessingContextSource, "function resolvePaidFeatureStatusOverlay(", "function nowForPaidGate", "React provider paid status overlay");
 assertBefore(reactProviderStatusOverlaySource, "isMonthlyPaidFeatureDetail(resolvedDetail)", "isPassPaidFeatureDetail(resolvedDetail)", "React provider resolves monthly success before pass success");
-assertContains(reactProviderStatusOverlaySource, 'return { message: "월정석이 적용되었습니다.", mode: "payment-complete" };', "React provider monthly success copy");
-assertContains(loadingMessagesSource, 'title: "월정석이 적용되었습니다."', "React payment loading monthly success title");
+assertContains(reactProviderStatusOverlaySource, 'return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };', "React provider monthly success copy");
+assertContains(loadingMessagesSource, 'title: "월정석이 깃들고 있어요"', "React payment loading monthly success title");
 assertNotContains(loadingMessagesSource, 'title: "이용권이 활성화되고 있어요"', "React payment loading must not show pass copy for monthly success");
 const reactProviderOpenSource = section(paymentProcessingContextSource, "const open = useCallback", "const update = useCallback", "React provider open");
 assertBefore(reactProviderOpenSource, "if (isExternalPaymentWindowStatus(status))", "if (paymentLoadingOwnsPaidFeatureStatus(status))", "React provider closes overlays before opening payment loading");

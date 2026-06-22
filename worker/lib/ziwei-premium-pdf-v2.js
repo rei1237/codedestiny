@@ -11,11 +11,12 @@ export const ZIWEI_PDF_CONFIG = Object.freeze({
 const PROVIDER_TIMEOUT_MS = 45000;
 const ZIWEI_PDF_ENGINE_VERSION = "pdf-v3-llm-only";
 const ZIWEI_PDF_CHAPTER_PLAN_VERSION = "ziwei-premium-chapter-plan-v3";
-const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v4";
-const ZIWEI_PDF_QUALITY_VERSION = "no-repeat-v3";
+const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v5";
+const ZIWEI_PDF_QUALITY_VERSION = "category-depth-v4";
 const CHAPTER_CACHE = new Map();
-const MIN_SECTION_BODY_LENGTH = 240;
-const MIN_CHAPTER_LENGTH_RATIO = 0.75;
+const MIN_SECTION_BODY_LENGTH = 300;
+const MIN_SECTION_PARAGRAPH_COUNT = 3;
+const MIN_CHAPTER_LENGTH_RATIO = 0.85;
 const DANGEROUS_HTML_RE = /<(script|iframe|object|embed|link|meta|base|form|input|button|textarea|select)\b[\s\S]*?<\/\1>|<(script|iframe|object|embed|link|meta|base|form|input|button|textarea|select)\b[^>]*\/?>/gi;
 const EXECUTABLE_HTML_RE = /<(script|iframe|object|embed|form|input|button|textarea|select)\b[\s\S]*?<\/\1>|<(script|iframe|object|embed|form|input|button|textarea|select)\b[^>]*\/?>/gi;
 const ALLOWED_CHAPTER_HTML_TAGS = Object.freeze(["article", "h1", "section", "h2", "p"]);
@@ -579,6 +580,13 @@ function buildSectionEvidenceHints(chapterSpec = {}) {
   }).join("\n");
 }
 
+function buildCategoryQualityHints(chapterSpec = {}) {
+  return asArray(chapterSpec.sections).map((sectionTitle, index) => {
+    const evidence = sectionEvidenceTerms(chapterSpec, index).join(", ") || "명반 근거";
+    return `- ${index + 1}번째 카테고리 「${sectionTitle}」: 첫 문단은 ${evidence}를 근거로 해석하고, 둘째 문단은 현실 장면을 풀고, 셋째 문단은 조심할 점과 실행 방향을 자연스럽게 정리하세요.`;
+  }).join("\n");
+}
+
 function clean(value, max = 100000) {
   const text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
   return Number.isFinite(max) ? text.slice(0, max) : text;
@@ -853,10 +861,12 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     .map((line) => `- ${line}`)
     .join("\n");
   const sectionEvidenceLines = buildSectionEvidenceHints(chapterSpec);
+  const categoryQualityLines = buildCategoryQualityHints(chapterSpec);
   return [
     "아래 자미두수 명반 요약을 바탕으로 현재 챕터만 작성하세요.",
-    "각 section은 독립된 관점으로 최소 2문단 이상 작성하고, 같은 문장·같은 예시·같은 조언을 반복하지 마세요.",
-    "각 section은 h2 하나와 p 두 개 이상으로 구성하고, section당 260자 안팎의 충분한 상담 문장으로 작성하세요.",
+    "각 section은 PDF의 독립 카테고리 하나입니다. 모든 카테고리는 최소 3문단 이상 작성하고, 같은 문장·같은 예시·같은 조언을 반복하지 마세요.",
+    "각 section은 h2 하나와 p 세 개 이상으로 구성하고, section당 공백 제외 320자 이상의 충분한 상담 문장으로 작성하세요.",
+    "각 카테고리는 명반 근거, 자미두수적 의미, 현실 장면, 조심할 부분, 실행 방향이 한 흐름으로 이어져야 합니다.",
     "각 section마다 명궁, 신궁, 궁 이름, 주성, 보좌성, 살성, 사화, 대한, 유년 중 제공된 근거를 하나 이상 자연스럽게 연결하세요.",
     "마지막 section도 명궁·신궁·궁·주성·사화·대한·유년 중 하나를 자연스럽게 포함해 챕터 전체가 자미두수 리포트처럼 읽히게 하세요.",
     "근거가 부족한 항목은 지어내지 말고 제공된 명반 데이터 기준에서는 확인이 제한된다고 신중하게 표현하세요.",
@@ -889,6 +899,7 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     guidanceLines ? `챕터별 전문 지침:\n${guidanceLines}` : "",
     evidenceFocusLines ? `이 장에서 우선 사용할 명반 근거:\n${evidenceFocusLines}` : "",
     sectionEvidenceLines ? `section별 우선 근거:\n${sectionEvidenceLines}` : "",
+    categoryQualityLines ? `카테고리별 완성 기준:\n${categoryQualityLines}` : "",
     "",
     "반드시 아래 구조와 소제목을 정확히 한 번씩만 사용하세요.",
     `<article data-chapter-id="${chapterSpec.id}">`,
@@ -906,7 +917,8 @@ function buildRepairPrompt({ facts, chapterSpec, issues, previousSummary }) {
     "chapter.evidence-focus 또는 section.evidence-focus 실패가 있으면 이 장에서 우선 사용할 명반 근거와 section별 우선 근거를 본문 안에 직접 반영하세요.",
     "chapter.actual-chart-evidence 실패가 있으면 제공된 12궁 요약의 실제 주성·보좌성·살성·사화 이름 중 하나 이상을 본문에 자연스럽게 반영하세요.",
     "chapter.practical-focus 또는 section.practical-scene 실패가 있으면 이 장의 주제에 맞는 현실 축, 예를 들어 돈·일·관계·가족·건강·이동·회복 중 해당 장에 맞는 장면을 직접 넣으세요.",
-    "chapter.length 또는 section.body 실패가 있으면 각 section의 p를 두 개 이상으로 나누고, 현실 장면과 실천 방향을 한 문단씩 더 보강하세요.",
+    "chapter.length 또는 section.body 실패가 있으면 각 section의 p를 세 개 이상으로 나누고, 명반 근거·현실 장면·실천 방향을 각각 한 문단씩 보강하세요.",
+    "section.paragraphs 실패가 있으면 해당 카테고리를 최소 3문단으로 다시 쓰고, 마지막 문단에는 조심할 점과 실행 방향을 함께 넣으세요.",
     "html.disallowed-tag 실패가 있으면 article, h1, section, h2, p 태그만 사용해 처음부터 다시 작성하세요.",
     "section.heading-echo 실패가 있으면 본문 첫 문장에 소제목을 그대로 반복하지 말고, 명반 근거나 현실 장면으로 바로 시작하세요.",
     "소제목은 chapter plan의 sections를 정확히 한 번씩만 사용하세요.",
@@ -963,7 +975,7 @@ export function validateZiweiPremiumChapterHtml(html, chapterSpec, facts = {}) {
     const section = sections[index] || {};
     if (clean(section.title) !== clean(title)) issues.push(`section.title.${index + 1}`);
     if (!clean(section.body) || clean(section.body).length < MIN_SECTION_BODY_LENGTH) issues.push(`section.body.${index + 1}`);
-    if (asArray(section.paragraphs).length < 2) issues.push(`section.paragraphs.${index + 1}`);
+    if (asArray(section.paragraphs).length < MIN_SECTION_PARAGRAPH_COUNT) issues.push(`section.paragraphs.${index + 1}`);
     if (hasForbiddenPdfToken(section.body)) issues.push(`section.forbidden.${index + 1}`);
     if (hasForbiddenZiweiReportTerm(section.body)) issues.push(`section.report-term.${index + 1}`);
     if (hasForeignReportToken(section.body)) issues.push(`section.foreign.${index + 1}`);
@@ -1364,12 +1376,20 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
 
 function renderReportHtml({ facts, chapters }) {
   const reportName = displayReportName(facts.profile.name);
-  const toc = chapters.map((chapter) => `<li><span>제${chapter.order}장</span><strong>${escapeHtml(displayChapterTitle(chapter.title))}</strong></li>`).join("");
+  const categoryCount = chapters.reduce((sum, chapter) => sum + asArray(chapter.sections).length, 0);
+  const toc = chapters.map((chapter) => {
+    const categoryLine = asArray(chapter.sections).map((section) => escapeHtml(section.title || section.heading || "")).filter(Boolean).join(" · ");
+    return `<li><span>제${chapter.order}장</span><strong>${escapeHtml(displayChapterTitle(chapter.title))}</strong>${categoryLine ? `<small>${categoryLine}</small>` : ""}</li>`;
+  }).join("");
   const palaceCards = facts.chart.palaces.map((palace) => `
     <div class="palace-card">
       <strong>${escapeHtml(palace.name || "궁")}</strong>
       <span>${escapeHtml(palace.branch || "지지 확인")}</span>
       <p>${escapeHtml(palace.mainStars || "주성 흐름 확인")}</p>
+      <div class="palace-lines">
+        <em>보좌</em><b>${escapeHtml(palace.auxStars || "잔잔한 보조 흐름")}</b>
+        <em>긴장</em><b>${escapeHtml(palace.maleficStars || "강한 압박 제한")}</b>
+      </div>
     </div>
   `).join("");
   const chapterHtml = chapters.map((chapter) => chapter.html).join("\n");
@@ -1380,36 +1400,43 @@ function renderReportHtml({ facts, chapters }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(reportName)} 자미두수 프리미엄 리포트</title>
   <style>
+    :root{color-scheme:light;--ink:#211522;--soft:#fffaf4;--mist:#f6efe4;--wine:#4a1727;--jade:#10564a;--gold:#b77a26;--line:#eadbc8}
     *{box-sizing:border-box}
-    body{margin:0;background:#12071f;color:#2b1838;font-family:"Noto Serif KR","Noto Sans KR","Malgun Gothic",serif;line-height:1.82;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .page{max-width:1040px;margin:0 auto;background:#fffaf6;min-height:100vh}
-    .cover{min-height:92vh;padding:72px 64px;background:radial-gradient(circle at 75% 16%,rgba(250,204,21,.28),transparent 24%),linear-gradient(145deg,#1b0b2f 0%,#38206d 48%,#081b37 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
-    .cover:after{content:"";position:absolute;inset:30px;border:1px solid rgba(250,204,21,.32);border-radius:24px;pointer-events:none}
-    .kicker{letter-spacing:.22em;text-transform:uppercase;color:#facc15;font-size:12px;font-weight:800}
-    .cover h1{font-size:46px;line-height:1.15;margin:20px 0 16px;color:#fff7d6}
-    .cover p{max-width:760px;color:#e8ddff;font-size:18px}
-    .cover-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:34px}
-    .cover-grid div{padding:16px;border-radius:16px;background:rgba(255,255,255,.1);border:1px solid rgba(250,204,21,.24)}
-    .cover-grid span{display:block;color:#d8c7ff;font-size:12px}
-    .cover-grid strong{display:block;color:#fff7d6;margin-top:6px}
+    body{margin:0;background:#211522;color:var(--ink);font-family:"Noto Serif KR","Noto Sans KR","Malgun Gothic",serif;line-height:1.82;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .page{max-width:1040px;margin:0 auto;background:var(--soft);min-height:100vh}
+    .cover{min-height:90vh;padding:72px 64px;background:radial-gradient(circle at 78% 14%,rgba(183,122,38,.26),transparent 24%),radial-gradient(circle at 14% 82%,rgba(16,86,74,.34),transparent 28%),linear-gradient(145deg,#211522 0%,#4a1727 48%,#10564a 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+    .cover:after{content:"";position:absolute;inset:30px;border:1px solid rgba(246,239,228,.38);border-radius:24px;pointer-events:none}
+    .kicker{letter-spacing:.16em;color:#f6d48b;font-size:12px;font-weight:800}
+    .cover h1{font-size:46px;line-height:1.16;margin:20px 0 16px;color:#fff7df;max-width:760px}
+    .cover p{max-width:780px;color:#f2e9dd;font-size:18px}
+    .cover-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:34px}
+    .cover-grid div{padding:16px;border-radius:12px;background:rgba(255,250,244,.1);border:1px solid rgba(246,212,139,.28)}
+    .cover-grid span{display:block;color:#d7c7b5;font-size:12px}
+    .cover-grid strong{display:block;color:#fff7df;margin-top:6px}
     .section{padding:46px 64px}
-    .section h2{margin:0 0 18px;color:#3b1763;font-size:28px}
+    .section h2{margin:0 0 18px;color:var(--wine);font-size:28px}
     .toc{break-after:page}
     .toc ol{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:0;padding:0;list-style:none}
-    .toc li{padding:12px 14px;border-radius:14px;background:#f2e8ff;border:1px solid #e4d4ff}
-    .toc span{display:block;color:#7c3aed;font-size:12px;font-weight:800}
-    .toc strong{display:block;color:#2e1745}
+    .toc li{padding:13px 15px;border-radius:12px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);break-inside:avoid}
+    .toc span{display:block;color:var(--gold);font-size:12px;font-weight:800}
+    .toc strong{display:block;color:var(--ink)}
+    .toc small{display:block;margin-top:6px;color:#735f52;font-size:12px;line-height:1.55}
     .palace-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .palace-card{padding:14px;border-radius:16px;background:#fff;border:1px solid #eadcff;box-shadow:0 8px 20px rgba(47,24,70,.06)}
-    .palace-card strong{display:block;color:#5b21b6}
-    .palace-card span{display:block;color:#8b5fbf;font-size:13px}
-    .palace-card p{margin:8px 0 0;color:#3f3150;font-size:14px}
-    article{break-before:page;padding:50px 64px;background:#fffaf6}
-    article h1{margin:0 0 30px;padding-bottom:14px;border-bottom:2px solid #b98536;color:#2e1745;font-size:30px}
-    article section{margin:24px 0;padding:22px 24px;border-radius:18px;background:#fff;border:1px solid #eadcff;box-shadow:0 10px 22px rgba(47,24,70,.06);break-inside:avoid;page-break-inside:avoid}
-    article h2{margin:0 0 12px;color:#5b21b6;font-size:21px}
+    .palace-card{padding:15px;border-radius:12px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 18px rgba(33,21,34,.05)}
+    .palace-card strong{display:block;color:var(--jade)}
+    .palace-card span{display:block;color:#7b6255;font-size:13px}
+    .palace-card p{margin:8px 0 10px;color:#3f3150;font-size:14px}
+    .palace-lines{display:grid;grid-template-columns:42px 1fr;gap:4px 8px;padding-top:9px;border-top:1px solid #efe1d2}
+    .palace-lines em{font-style:normal;color:var(--gold);font-size:12px;font-weight:700}
+    .palace-lines b{color:#4d3c35;font-size:12px;font-weight:500}
+    article{break-before:page;padding:52px 64px;background:var(--soft);counter-reset:category}
+    article h1{margin:0 0 30px;padding:0 0 15px;border-bottom:2px solid var(--gold);color:var(--wine);font-size:30px;line-height:1.35}
+    article section{counter-increment:category;margin:22px 0;padding:22px 24px;border-radius:12px;background:#fff;border:1px solid var(--line);box-shadow:0 10px 22px rgba(33,21,34,.05);break-inside:avoid;page-break-inside:avoid}
+    article h2{margin:0 0 12px;color:var(--jade);font-size:21px;line-height:1.36;display:flex;gap:10px;align-items:flex-start}
+    article h2:before{content:counter(category,decimal-leading-zero);flex:0 0 auto;color:var(--gold);font-size:13px;font-weight:800;padding-top:3px}
     article p{margin:0 0 12px;color:#31243e;font-size:16px}
-    .notice{padding:30px 64px 52px;color:#6f6078;font-size:13px;border-top:1px solid #e8d8f8}
+    article p:last-child{margin-bottom:0}
+    .notice{padding:30px 64px 52px;color:#6f6078;font-size:13px;border-top:1px solid var(--line)}
     @page{size:A4;margin:15mm 13mm 17mm}
     @media print{body{background:#fff}.page{max-width:none}.cover{border-radius:0}article{break-before:page}.toc{break-after:page}.section{break-inside:avoid}}
     @media(max-width:760px){.cover,.section,article,.notice{padding:32px 20px}.cover h1{font-size:34px}.cover-grid,.palace-grid,.toc ol{grid-template-columns:1fr}}
@@ -1426,6 +1453,8 @@ function renderReportHtml({ facts, chapters }) {
         <div><span>출생 시간</span><strong>${escapeHtml(facts.profile.birthTime || "확인 범위")}</strong></div>
         <div><span>명궁</span><strong>${escapeHtml(facts.chart.mingGong || "명반 기준")}</strong></div>
         <div><span>신궁</span><strong>${escapeHtml(facts.chart.shenGong || "명반 기준")}</strong></div>
+        <div><span>챕터</span><strong>${escapeHtml(String(chapters.length))}장</strong></div>
+        <div><span>카테고리</span><strong>${escapeHtml(String(categoryCount))}개</strong></div>
       </div>
     </section>
     <section class="section">
@@ -1494,7 +1523,7 @@ function validateZiweiFinalReportHtml(html = "", chapters = []) {
         const expectedTitle = spec.sections[sectionIndex] || "";
         if (clean(section.title) !== clean(expectedTitle)) issues.push(`final.section-title.${id}.${sectionIndex + 1}`);
         if (!clean(section.body) || clean(section.body).length < MIN_SECTION_BODY_LENGTH) issues.push(`final.section-body.${id}.${sectionIndex + 1}`);
-        if (asArray(section.paragraphs).length < 2) issues.push(`final.section-paragraphs.${id}.${sectionIndex + 1}`);
+        if (asArray(section.paragraphs).length < MIN_SECTION_PARAGRAPH_COUNT) issues.push(`final.section-paragraphs.${id}.${sectionIndex + 1}`);
         if (hasSectionHeadingEcho(expectedTitle, section.body)) issues.push(`final.section-heading-echo.${id}.${sectionIndex + 1}`);
         if (!hasPracticalScene(section.body)) issues.push(`final.section-practical-scene.${id}.${sectionIndex + 1}`);
         if (sectionEvidenceTerms(spec, sectionIndex).length && countEvidenceTerms(section.body, sectionEvidenceTerms(spec, sectionIndex)) < 1) {
@@ -1553,7 +1582,7 @@ function buildChapterQuality(chapters = []) {
       if (sectionEvidenceTerms(spec, sectionIndex).length && countEvidenceTerms(section.body, sectionEvidenceTerms(spec, sectionIndex)) < 1) {
         chapterIssues.push(`section.evidence-focus.${index + 1}.${sectionIndex + 1}`);
       }
-      if (asArray(section.paragraphs).length < 2) chapterIssues.push(`section.paragraphs.${index + 1}.${sectionIndex + 1}`);
+      if (asArray(section.paragraphs).length < MIN_SECTION_PARAGRAPH_COUNT) chapterIssues.push(`section.paragraphs.${index + 1}.${sectionIndex + 1}`);
     });
     issues.push(...chapterIssues);
     return {
@@ -1612,6 +1641,7 @@ export function validateZiweiPdfCompletionPayload({ pdfReady = {}, chapters = []
     if (missingPracticalFocus.length) issues.push(`chapter.practical-focus.${index + 1}.${missingPracticalFocus.join(",")}`);
     asArray(chapter.sections).forEach((section, sectionIndex) => {
       if (!clean(section.heading) || !clean(section.body) || clean(section.body).length < MIN_SECTION_BODY_LENGTH) issues.push(`section.body.${index + 1}.${sectionIndex + 1}`);
+      if (asArray(section.paragraphs).length < MIN_SECTION_PARAGRAPH_COUNT) issues.push(`section.paragraphs.${index + 1}.${sectionIndex + 1}`);
       if (hasAsciiReportToken(section.body)) issues.push(`section.ascii-token.${index + 1}.${sectionIndex + 1}`);
       if (hasSectionHeadingEcho(spec.sections[sectionIndex], section.body)) issues.push(`section.heading-echo.${index + 1}.${sectionIndex + 1}`);
       if (!hasPracticalScene(section.body)) issues.push(`section.practical-scene.${index + 1}.${sectionIndex + 1}`);

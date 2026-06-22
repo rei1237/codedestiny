@@ -2855,7 +2855,7 @@ export default function PointsPage() {
 
     setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석으로 이용권이 활성화되고 있어요\n곧 이용 가능해져요", "payment-complete");
+    setProcessingStage("월정석이 깃들고 있어요\n곧 이용 가능해져요", "payment-complete");
 
     try {
       const confirmData = await confirmSubscriptionWithServer({
@@ -2892,11 +2892,11 @@ export default function PointsPage() {
       }
 
       await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
-      pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
+      pushToast("success", confirmData.message || "월정석이 깃들었습니다.");
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
-      const message = getErrorMessage(error, "월정석으로 이용권을 활성화하지 못했습니다.");
+      const message = getErrorMessage(error, "월정석을 적용하지 못했습니다.");
       if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("부족")) {
         pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
       } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {

@@ -236,13 +236,13 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
   }
   if (status === "hasEntitlement") {
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "월정석이 적용되었습니다.", mode: "payment-complete" };
+      return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
     }
     return { message: message || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   }
   if (status === "paymentSuccess") {
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
-      return { message: "월정석이 적용되었습니다.", mode: "payment-complete" };
+      return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
     }
     if (isPassPaidFeatureDetail(resolvedDetail)) {
       return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };

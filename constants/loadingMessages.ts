@@ -11,7 +11,7 @@ export const LOADING_MESSAGES = {
   },
   result_loading: {
     subscription: {
-      title: "월정석이 적용되었습니다.",
+      title: "월정석이 깃들고 있어요",
       sub: "곧 이용 가능해져요",
     },
     single: {
