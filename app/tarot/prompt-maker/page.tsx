@@ -101,6 +101,65 @@ type QuestionQualityNoticeCopy = {
   ready: string;
 };
 
+type PromptMakerUiCopy = {
+  heroBadge: string;
+  heroSteps: [string, string, string];
+  questionTitle: { tarot: string; lenormand: string };
+  questionDescription: { tarot: string; lenormand: string };
+  categoryTitle: string;
+  autoDetected: (categoryName: string) => string;
+  autoDetectButton: string;
+  selectedSpread: string;
+  cardCount: (count: number) => string;
+  consultationCategory: (categoryName: string) => string;
+  changeSpread: string;
+  recommendedQuestions: string;
+  applyFirstQuestion: string;
+  lenormandFreeTitle: string;
+  lenormandFreeDescription: string;
+  defaultQuestionButton: { tarot: string; lenormand: string };
+  completeSuffix: string;
+  includeReversed: string;
+  backToQuestion: string;
+  resetStart: string;
+  otherSpread: string;
+  spreadBoardHint: string;
+  combinationReading: string;
+  positionMeaning: string;
+  drawCard: { tarot: string; lenormand: string };
+  fullDeck: { open: string; close: string };
+  selectedCards: string;
+  lenormandLabel: string;
+  changeDirection: string;
+  notSelected: string;
+  promptMap: { tarot: string; lenormand: string };
+  oracleMap: string;
+  outputTitle: { tarot: string; lenormand: string };
+  tune: {
+    consultLabel: string;
+    consultInstruction: string;
+    practicalLabel: string;
+    practicalInstruction: string;
+    warmLabel: string;
+    warmInstruction: string;
+  };
+  regenerateSameCards: string;
+  redrawCards: string;
+  chooseAnotherSpread: string;
+  restartFromBeginning: string;
+  guideArticles: Array<{ title: string; paragraphs: string[] }>;
+  spreadLibraryTitle: string;
+  close: string;
+  spreadSearchPlaceholder: string;
+  recommendedTheme: (categoryName: string) => string;
+  countAll: string;
+  recommendedBadge: string;
+  noSpreads: string;
+  subscriptionPassLabel: (tier: string) => string;
+  currency: (amount: number) => string;
+  creditValue: (amount: number) => string;
+};
+
 const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
   ko: {
     free: "무료",
@@ -851,12 +910,779 @@ const QUESTION_QUALITY_NOTICE_COPY: Record<LoadingLocale, QuestionQualityNoticeC
   },
 };
 
-function formatCoinValue(amount: number) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+function formatWonNumber(amount: number) {
+  return Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR");
 }
 
-function formatMonthlyCreditValue(amount: number) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}원 상당`;
+function formatCreditWonNumber(amount: number) {
+  return Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR");
+}
+
+const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
+  ko: {
+    heroBadge: "AI 오라클 프롬프트 아틀리에",
+    heroSteps: ["질문을 올리고", "카드를 열어", "AI 프롬프트로"],
+    questionTitle: { tarot: "마음 속 질문을 들려주세요", lenormand: "질문" },
+    questionDescription: { tarot: "타로가 당신만의 이야기를 풀어낼 준비를 합니다.", lenormand: "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다." },
+    categoryTitle: "질문 카테고리",
+    autoDetected: (categoryName) => `자동 추정: ${categoryName}`,
+    autoDetectButton: "자동 추정",
+    selectedSpread: "선택된 스프레드",
+    cardCount: (count) => `${count}장`,
+    consultationCategory: (categoryName) => `상담 카테고리 ${categoryName}`,
+    changeSpread: "스프레드 바꾸기",
+    recommendedQuestions: "추천 질문",
+    applyFirstQuestion: "첫 질문 적용",
+    lenormandFreeTitle: "무료 레노먼드 프롬프트",
+    lenormandFreeDescription: "질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.",
+    defaultQuestionButton: { tarot: "카테고리 기본 질문", lenormand: "레노먼드 기본 질문" },
+    completeSuffix: "완료",
+    includeReversed: "역방향 포함",
+    backToQuestion: "← 질문으로 돌아가기",
+    resetStart: "처음으로",
+    otherSpread: "다른 스프레드",
+    spreadBoardHint: "직관이 끌리는 순서대로 카드를 뽑아보세요.",
+    combinationReading: "조합 읽기",
+    positionMeaning: "포지션 의미",
+    drawCard: { tarot: "카드 뽑기", lenormand: "레노먼드 카드 뽑기" },
+    fullDeck: { open: "전체 카드 직접 선택", close: "전체 카드 목록 닫기" },
+    selectedCards: "선택된 카드",
+    lenormandLabel: "레노먼드",
+    changeDirection: "방향 변경",
+    notSelected: "아직 선택되지 않았어요.",
+    promptMap: { tarot: "AI 상담 프롬프트 지도", lenormand: "레노먼드 프롬프트 지도" },
+    oracleMap: "카드가 만든 신탁 지도",
+    outputTitle: { tarot: "지금 복사할 AI 오라클 프롬프트", lenormand: "지금 복사할 무료 레노먼드 프롬프트" },
+    tune: {
+      consultLabel: "상담톤 강화",
+      consultInstruction: "전체 답변을 실제 상담사가 눈앞의 질문자에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 질문자의 주도권을 회복시키는 방향으로 정리하세요.",
+      practicalLabel: "더 현실적으로",
+      practicalInstruction: "상징 해석 뒤에는 반드시 현실적인 판단 기준과 행동 순서를 붙여 주세요. 법률, 의료, 투자, 임신, 합격 여부 등 민감한 주제는 참고용 조언으로만 표현하고 전문가 상담을 함께 권하세요.",
+      warmLabel: "더 따뜻하게",
+      warmInstruction: "답변의 온도를 조금 더 부드럽게 낮추고, 불안한 질문자가 숨을 고를 수 있도록 위로와 선택지를 함께 주세요. 공포를 주는 표현이나 단정적 미래 예언은 피하세요.",
+    },
+    regenerateSameCards: "같은 카드로 다시 엮기",
+    redrawCards: "카드 다시 열기",
+    chooseAnotherSpread: "다른 스프레드 선택",
+    restartFromBeginning: "처음부터 다시 시작",
+    guideArticles: [
+      { title: "무엇을 정리하나요", paragraphs: ["질문의 주제, 선택한 스프레드, 카드의 방향을 한 문장씩 엮어 타로 상담에 바로 쓸 수 있는 프롬프트 흐름으로 정리합니다. 레노먼드는 사건의 순서와 행동 단서를, 타로는 마음의 층과 상징의 결을 더 깊게 비춥니다."] },
+      { title: "어떻게 읽으면 좋나요", paragraphs: ["질문을 구체적으로 적을수록 결과는 막연한 길흉보다 현재 상황, 반복 신호, 전환 단서, 현실 행동 쪽으로 선명해집니다. 무료 레노먼드는 흐름 정리에, 유료 오라클 프롬프트는 더 긴 상담 문장과 조율 지시에 어울립니다."] },
+      { title: "주의할 점", paragraphs: ["결과는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 의료, 법률, 투자, 임신, 합격 여부처럼 손실이 큰 결정은 이 리딩만으로 확정하지 말고 현실 정보와 전문가 상담을 함께 확인하세요. 프롬프트는 판단을 대신하지 않고 질문을 더 맑게 정리하는 도구로 읽어 주세요."] },
+      { title: "좋은 질문을 만드는 법", paragraphs: ["“그 사람이 돌아올까요”처럼 결말을 묻는 질문보다 “지금 이 관계에서 내가 확인해야 할 신호는 무엇인가요”처럼 마음과 행동을 함께 묻는 문장이 더 안정적으로 읽힙니다. 프롬프트를 복사한 뒤에는 카드 이름만 나열하기보다, 현재 상황, 상대와 나의 감정, 현실적으로 할 수 있는 선택지를 함께 적어 두면 해석이 덜 단정적이고 더 상담답게 열립니다.", "같은 카드 조합이라도 질문의 시점과 태도에 따라 메시지는 달라질 수 있으니, 결과를 압박으로 받아들이기보다 오늘 정리할 한 문장과 줄여야 할 행동 하나를 고르는 방식으로 사용해 주세요.", "타로 초보자는 1장 또는 3장 스프레드로 질문의 방향을 먼저 잡고, 복잡한 관계나 커리어 고민은 5장 이상의 스프레드로 배경과 행동 단서를 나누어 보는 편이 좋습니다. 결과가 마음에 들지 않더라도 같은 질문을 반복해서 뽑기보다, 질문을 더 정확하게 다듬거나 하루 정도 시간을 둔 뒤 다시 읽으면 상징이 더 차분하게 다가옵니다.", "입력값은 질문 문장, 고민 주제, 선택한 스프레드, 뽑은 카드입니다. 질문 문장은 상담의 초점을 정하고, 고민 주제는 사랑·일·돈·건강처럼 해석에서 조심해야 할 경계를 알려 줍니다. 스프레드는 시간의 흐름이나 관계의 위치를 나누고, 카드는 그 자리에 놓인 상징을 비춥니다."] },
+    ],
+    spreadLibraryTitle: "다른 스프레드 보기",
+    close: "닫기",
+    spreadSearchPlaceholder: "스프레드 검색",
+    recommendedTheme: (categoryName) => `추천 테마: ${categoryName}`,
+    countAll: "전체",
+    recommendedBadge: "추천",
+    noSpreads: "조건에 맞는 스프레드가 없습니다. 필터를 조정해 주세요.",
+    subscriptionPassLabel: (tier) => `${tier} 이용권`,
+    currency: (amount) => `${formatWonNumber(amount)}원`,
+    creditValue: (amount) => `${formatCreditWonNumber(amount)}원 상당`,
+  },
+  en: {
+    heroBadge: "AI Oracle Prompt Atelier",
+    heroSteps: ["Lift the question", "Open the cards", "Shape an AI prompt"],
+    questionTitle: { tarot: "Tell the question in your heart", lenormand: "Question" },
+    questionDescription: { tarot: "Tarot is preparing to unfold your own story.", lenormand: "Enter a topic and read the flow with six Lenormand cards and practical clues." },
+    categoryTitle: "Question category",
+    autoDetected: (categoryName) => `Auto-detected: ${categoryName}`,
+    autoDetectButton: "Auto detect",
+    selectedSpread: "Selected spread",
+    cardCount: (count) => `${count} cards`,
+    consultationCategory: (categoryName) => `Consultation category ${categoryName}`,
+    changeSpread: "Change spread",
+    recommendedQuestions: "Recommended questions",
+    applyFirstQuestion: "Apply first question",
+    lenormandFreeTitle: "Free Lenormand prompt",
+    lenormandFreeDescription: "Write a question and the matching prompt flow opens right away.",
+    defaultQuestionButton: { tarot: "Category default question", lenormand: "Lenormand default question" },
+    completeSuffix: "complete",
+    includeReversed: "Include reversals",
+    backToQuestion: "← Back to question",
+    resetStart: "Start over",
+    otherSpread: "Other spread",
+    spreadBoardHint: "Draw the cards in the order your intuition chooses.",
+    combinationReading: "Combination reading",
+    positionMeaning: "Position meaning",
+    drawCard: { tarot: "Draw card", lenormand: "Draw Lenormand cards" },
+    fullDeck: { open: "Choose from full deck", close: "Close full deck list" },
+    selectedCards: "Selected cards",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Change direction",
+    notSelected: "Not selected yet.",
+    promptMap: { tarot: "AI consultation prompt map", lenormand: "Lenormand prompt map" },
+    oracleMap: "Oracle map made by the cards",
+    outputTitle: { tarot: "AI oracle prompt ready to copy", lenormand: "Free Lenormand prompt ready to copy" },
+    tune: {
+      consultLabel: "Strengthen consultation tone",
+      consultInstruction: "Let the full answer flow as if a real reader is speaking to the questioner in front of them. Explain the question context, position meaning, and card relationships before card names, and end each paragraph by returning agency to the questioner.",
+      practicalLabel: "Make it more practical",
+      practicalInstruction: "After symbolic interpretation, add realistic decision standards and action order. For sensitive topics such as legal, medical, investment, pregnancy, or exam outcomes, frame the answer as reference guidance and recommend expert consultation.",
+      warmLabel: "Make it warmer",
+      warmInstruction: "Soften the emotional temperature, add comfort and choices so an anxious questioner can breathe, and avoid fear-inducing wording or fixed future predictions.",
+    },
+    regenerateSameCards: "Weave again with same cards",
+    redrawCards: "Open cards again",
+    chooseAnotherSpread: "Choose another spread",
+    restartFromBeginning: "Restart from beginning",
+    guideArticles: [
+      { title: "What is organized", paragraphs: ["The question topic, chosen spread, and card direction are woven into a prompt flow ready for tarot consultation. Lenormand reads sequence and action clues; tarot looks deeper into emotional layers and symbolic texture."] },
+      { title: "How to read it", paragraphs: ["The more specific the question, the clearer the result becomes around current situation, repeated signs, turning clues, and realistic action instead of vague luck. Free Lenormand suits flow sorting; the paid oracle prompt suits longer consultation language and tuning instructions."] },
+      { title: "Important note", paragraphs: ["The result is for entertainment and self-reflection. For high-impact decisions involving medicine, law, investment, pregnancy, or admissions, do not decide from this reading alone. Check real-world information and consult a qualified expert."] },
+      { title: "How to ask well", paragraphs: ["Questions that ask about heart and action together read more steadily than questions asking only for an ending. After copying the prompt, add the current situation, both people's emotions, and realistic options rather than listing card names only.", "Even with the same cards, the message changes with timing and attitude. Use the result by choosing one sentence to clarify today and one action to reduce.", "Beginners can start with one-card or three-card spreads; complex relationships or career concerns often benefit from five or more cards to separate background and action clues.", "Inputs include the question, concern category, chosen spread, and drawn cards. The prompt does not decide for you; it clears the question so judgment can breathe."] },
+    ],
+    spreadLibraryTitle: "View other spreads",
+    close: "Close",
+    spreadSearchPlaceholder: "Search spreads",
+    recommendedTheme: (categoryName) => `Recommended theme: ${categoryName}`,
+    countAll: "All",
+    recommendedBadge: "Recommended",
+    noSpreads: "No spreads match the filters. Please adjust them.",
+    subscriptionPassLabel: (tier) => `${tier} pass`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} value`,
+  },
+  ja: {
+    heroBadge: "AIオラクルプロンプト・アトリエ",
+    heroSteps: ["質問を掲げて", "カードを開き", "AIプロンプトへ"],
+    questionTitle: { tarot: "心の中の質問を聞かせてください", lenormand: "質問" },
+    questionDescription: { tarot: "タロットが、あなただけの物語をほどく準備をしています。", lenormand: "テーマを入力し、6枚のルノルマンカードで流れと行動の手がかりを見ます。" },
+    categoryTitle: "質問カテゴリ",
+    autoDetected: (categoryName) => `自動推定: ${categoryName}`,
+    autoDetectButton: "自動推定",
+    selectedSpread: "選択中のスプレッド",
+    cardCount: (count) => `${count}枚`,
+    consultationCategory: (categoryName) => `相談カテゴリ ${categoryName}`,
+    changeSpread: "スプレッドを変更",
+    recommendedQuestions: "おすすめ質問",
+    applyFirstQuestion: "最初の質問を適用",
+    lenormandFreeTitle: "無料ルノルマンプロンプト",
+    lenormandFreeDescription: "質問を書くと、そのテーマに合うプロンプトと解釈の流れがすぐ開きます。",
+    defaultQuestionButton: { tarot: "カテゴリ基本質問", lenormand: "ルノルマン基本質問" },
+    completeSuffix: "完了",
+    includeReversed: "逆位置を含める",
+    backToQuestion: "← 質問に戻る",
+    resetStart: "最初へ",
+    otherSpread: "別のスプレッド",
+    spreadBoardHint: "直感が惹かれる順にカードを引いてください。",
+    combinationReading: "組み合わせ読み",
+    positionMeaning: "ポジションの意味",
+    drawCard: { tarot: "カードを引く", lenormand: "ルノルマンカードを引く" },
+    fullDeck: { open: "全カードから選ぶ", close: "全カード一覧を閉じる" },
+    selectedCards: "選択したカード",
+    lenormandLabel: "ルノルマン",
+    changeDirection: "向きを変更",
+    notSelected: "まだ選択されていません。",
+    promptMap: { tarot: "AI相談プロンプトマップ", lenormand: "ルノルマンプロンプトマップ" },
+    oracleMap: "カードが作った神託マップ",
+    outputTitle: { tarot: "今コピーできるAIオラクルプロンプト", lenormand: "今コピーできる無料ルノルマンプロンプト" },
+    tune: {
+      consultLabel: "相談口調を強める",
+      consultInstruction: "回答全体を、実際の占い師が目の前の相談者に語りかけるように自然につなげてください。カード名より先に質問の文脈、ポジションの意味、カード同士の関係を説明し、各段落の最後は相談者が主導権を取り戻せる方向で整えてください。",
+      practicalLabel: "もっと現実的に",
+      practicalInstruction: "象徴解釈の後には、必ず現実的な判断基準と行動の順序を添えてください。法律、医療、投資、妊娠、合否などの繊細なテーマは参考として表現し、専門家への相談も勧めてください。",
+      warmLabel: "もっと温かく",
+      warmInstruction: "答えの温度を少しやわらげ、不安な相談者が息を整えられるよう慰めと選択肢を添えてください。恐怖を与える表現や断定的な未来予言は避けてください。",
+    },
+    regenerateSameCards: "同じカードでもう一度編む",
+    redrawCards: "カードをもう一度開く",
+    chooseAnotherSpread: "別のスプレッドを選ぶ",
+    restartFromBeginning: "最初からやり直す",
+    guideArticles: [
+      { title: "何を整えますか", paragraphs: ["質問のテーマ、選んだスプレッド、カードの向きを一文ずつ結び、タロット相談ですぐ使えるプロンプトの流れに整えます。ルノルマンは出来事の順序と行動の手がかりを、タロットは心の層と象徴の質感をより深く照らします。"] },
+      { title: "どう読むとよいですか", paragraphs: ["質問が具体的であるほど、結果は漠然とした吉凶ではなく、現在の状況、繰り返すサイン、転換の手がかり、現実的な行動へと澄んでいきます。無料ルノルマンは流れの整理に、有料オラクルプロンプトは長い相談文と調整指示に向いています。"] },
+      { title: "注意すること", paragraphs: ["結果はエンターテインメントと自己省察のための参考です。医療、法律、投資、妊娠、合否のように影響の大きい判断は、このリーディングだけで決めず、現実の情報と専門家への相談を合わせて確認してください。"] },
+      { title: "よい質問の作り方", paragraphs: ["「あの人は戻りますか」のように結末だけを尋ねるより、「今この関係で私が確認すべきサインは何ですか」のように心と行動を一緒に尋ねる文のほうが安定して読めます。", "同じカードの組み合わせでも、質問の時点と態度によってメッセージは変わります。結果を圧力として受け取らず、今日整える一文と減らす行動を一つ選ぶ形で使ってください。", "タロット初心者は1枚または3枚のスプレッドで方向をつかみ、複雑な関係や仕事の悩みは5枚以上で背景と行動の手がかりを分けると読みやすくなります。", "入力されるのは質問文、悩みのテーマ、選んだスプレッド、引いたカードです。プロンプトは判断を代行するものではなく、質問を澄ませるための道具として受け取ってください。"] },
+    ],
+    spreadLibraryTitle: "別のスプレッドを見る",
+    close: "閉じる",
+    spreadSearchPlaceholder: "スプレッド検索",
+    recommendedTheme: (categoryName) => `おすすめテーマ: ${categoryName}`,
+    countAll: "すべて",
+    recommendedBadge: "おすすめ",
+    noSpreads: "条件に合うスプレッドがありません。フィルターを調整してください。",
+    subscriptionPassLabel: (tier) => `${tier}利用券`,
+    currency: (amount) => `${formatWonNumber(amount)}ウォン`,
+    creditValue: (amount) => `${formatCreditWonNumber(amount)}ウォン相当`,
+  },
+  "zh-CN": {
+    heroBadge: "AI神谕提示词工坊",
+    heroSteps: ["托起问题", "开启卡牌", "化为AI提示词"],
+    questionTitle: { tarot: "请说出心中的问题", lenormand: "问题" },
+    questionDescription: { tarot: "塔罗正准备展开只属于你的故事。", lenormand: "输入主题，用6张雷诺曼牌查看流向和行动线索。" },
+    categoryTitle: "问题分类",
+    autoDetected: (categoryName) => `自动判断：${categoryName}`,
+    autoDetectButton: "自动判断",
+    selectedSpread: "已选牌阵",
+    cardCount: (count) => `${count}张`,
+    consultationCategory: (categoryName) => `咨询分类 ${categoryName}`,
+    changeSpread: "更换牌阵",
+    recommendedQuestions: "推荐问题",
+    applyFirstQuestion: "应用第一个问题",
+    lenormandFreeTitle: "免费雷诺曼提示词",
+    lenormandFreeDescription: "写下问题后，适合该主题的提示词和解读流向会立即打开。",
+    defaultQuestionButton: { tarot: "分类默认问题", lenormand: "雷诺曼默认问题" },
+    completeSuffix: "完成",
+    includeReversed: "包含逆位",
+    backToQuestion: "← 返回问题",
+    resetStart: "回到开始",
+    otherSpread: "其他牌阵",
+    spreadBoardHint: "按直觉牵引的顺序抽牌。",
+    combinationReading: "组合解读",
+    positionMeaning: "位置含义",
+    drawCard: { tarot: "抽牌", lenormand: "抽雷诺曼牌" },
+    fullDeck: { open: "从完整牌组选择", close: "关闭完整牌组列表" },
+    selectedCards: "已选卡牌",
+    lenormandLabel: "雷诺曼",
+    changeDirection: "改变方向",
+    notSelected: "尚未选择。",
+    promptMap: { tarot: "AI咨询提示词地图", lenormand: "雷诺曼提示词地图" },
+    oracleMap: "卡牌生成的神谕地图",
+    outputTitle: { tarot: "现在可复制的AI神谕提示词", lenormand: "现在可复制的免费雷诺曼提示词" },
+    tune: {
+      consultLabel: "加强咨询语气",
+      consultInstruction: "请让整段回答像真实占卜师面对提问者说话一样自然延展。先说明问题语境、位置含义和卡牌关系，再提卡名，并在每段结尾帮助提问者收回主导权。",
+      practicalLabel: "更现实",
+      practicalInstruction: "象征解读之后，请加入现实判断标准和行动顺序。法律、医疗、投资、怀孕、录取等敏感主题只作为参考建议，并提醒咨询专家。",
+      warmLabel: "更温暖",
+      warmInstruction: "请让回答更柔和，加入安抚和可选择的方向，让不安的提问者可以慢慢呼吸。避免制造恐惧或断定未来。",
+    },
+    regenerateSameCards: "用同一组牌重新编织",
+    redrawCards: "重新开牌",
+    chooseAnotherSpread: "选择其他牌阵",
+    restartFromBeginning: "从头开始",
+    guideArticles: [
+      { title: "整理什么", paragraphs: ["将问题主题、所选牌阵和卡牌方向逐一连成可用于塔罗咨询的提示词流向。雷诺曼看事件顺序和行动线索，塔罗更深地照见心绪层次和象征纹理。"] },
+      { title: "如何阅读", paragraphs: ["问题越具体，结果越会从模糊吉凶转向当前状况、重复信号、转折线索和现实行动。免费雷诺曼适合整理流向，付费神谕提示词适合更长的咨询文字与调校指令。"] },
+      { title: "注意事项", paragraphs: ["结果用于娱乐和自我省察。涉及医疗、法律、投资、怀孕、录取等高影响决定时，不要只凭这次解读下结论，请结合现实信息并咨询专业人士。"] },
+      { title: "如何提出好问题", paragraphs: ["比起只问结局，把心意和行动一起放进问题里会读得更稳定。复制提示词后，也可以补充当前状况、双方情绪和现实选择。", "同一组牌也会因提问时间和态度不同而显出不同讯息。请把结果当作今天要整理的一句话和一个需要减少的行动。", "初学者可先用1张或3张牌抓住方向，复杂关系或事业问题适合用5张以上拆分背景与行动线索。", "输入内容包括问题句、烦恼主题、所选牌阵和抽到的卡牌。提示词不是替你判断，而是让问题更清澈。"] },
+    ],
+    spreadLibraryTitle: "查看其他牌阵",
+    close: "关闭",
+    spreadSearchPlaceholder: "搜索牌阵",
+    recommendedTheme: (categoryName) => `推荐主题：${categoryName}`,
+    countAll: "全部",
+    recommendedBadge: "推荐",
+    noSpreads: "没有符合条件的牌阵。请调整筛选。",
+    subscriptionPassLabel: (tier) => `${tier}通行权益`,
+    currency: (amount) => `${formatWonNumber(amount)}韩元`,
+    creditValue: (amount) => `${formatCreditWonNumber(amount)}韩元价值`,
+  },
+  "zh-TW": {
+    heroBadge: "AI神諭提示詞工坊",
+    heroSteps: ["托起問題", "開啟卡牌", "化為AI提示詞"],
+    questionTitle: { tarot: "請說出心中的問題", lenormand: "問題" },
+    questionDescription: { tarot: "塔羅正準備展開只屬於你的故事。", lenormand: "輸入主題，用6張雷諾曼牌查看流向和行動線索。" },
+    categoryTitle: "問題分類",
+    autoDetected: (categoryName) => `自動判斷：${categoryName}`,
+    autoDetectButton: "自動判斷",
+    selectedSpread: "已選牌陣",
+    cardCount: (count) => `${count}張`,
+    consultationCategory: (categoryName) => `諮詢分類 ${categoryName}`,
+    changeSpread: "更換牌陣",
+    recommendedQuestions: "推薦問題",
+    applyFirstQuestion: "套用第一個問題",
+    lenormandFreeTitle: "免費雷諾曼提示詞",
+    lenormandFreeDescription: "寫下問題後，適合該主題的提示詞和解讀流向會立即開啟。",
+    defaultQuestionButton: { tarot: "分類預設問題", lenormand: "雷諾曼預設問題" },
+    completeSuffix: "完成",
+    includeReversed: "包含逆位",
+    backToQuestion: "← 返回問題",
+    resetStart: "回到開始",
+    otherSpread: "其他牌陣",
+    spreadBoardHint: "按直覺牽引的順序抽牌。",
+    combinationReading: "組合解讀",
+    positionMeaning: "位置含義",
+    drawCard: { tarot: "抽牌", lenormand: "抽雷諾曼牌" },
+    fullDeck: { open: "從完整牌組選擇", close: "關閉完整牌組列表" },
+    selectedCards: "已選卡牌",
+    lenormandLabel: "雷諾曼",
+    changeDirection: "改變方向",
+    notSelected: "尚未選擇。",
+    promptMap: { tarot: "AI諮詢提示詞地圖", lenormand: "雷諾曼提示詞地圖" },
+    oracleMap: "卡牌生成的神諭地圖",
+    outputTitle: { tarot: "現在可複製的AI神諭提示詞", lenormand: "現在可複製的免費雷諾曼提示詞" },
+    tune: {
+      consultLabel: "加強諮詢語氣",
+      consultInstruction: "請讓整段回答像真實占卜師面對提問者說話一樣自然延展。先說明問題語境、位置含義和卡牌關係，再提卡名，並在每段結尾幫助提問者收回主導權。",
+      practicalLabel: "更現實",
+      practicalInstruction: "象徵解讀之後，請加入現實判斷標準和行動順序。法律、醫療、投資、懷孕、錄取等敏感主題只作為參考建議，並提醒諮詢專家。",
+      warmLabel: "更溫暖",
+      warmInstruction: "請讓回答更柔和，加入安撫和可選擇的方向，讓不安的提問者可以慢慢呼吸。避免製造恐懼或斷定未來。",
+    },
+    regenerateSameCards: "用同一組牌重新編織",
+    redrawCards: "重新開牌",
+    chooseAnotherSpread: "選擇其他牌陣",
+    restartFromBeginning: "從頭開始",
+    guideArticles: [
+      { title: "整理什麼", paragraphs: ["將問題主題、所選牌陣和卡牌方向逐一連成可用於塔羅諮詢的提示詞流向。雷諾曼看事件順序和行動線索，塔羅更深地照見心緒層次和象徵紋理。"] },
+      { title: "如何閱讀", paragraphs: ["問題越具體，結果越會從模糊吉凶轉向目前狀況、重複訊號、轉折線索和現實行動。免費雷諾曼適合整理流向，付費神諭提示詞適合更長的諮詢文字與調校指令。"] },
+      { title: "注意事項", paragraphs: ["結果用於娛樂和自我省察。涉及醫療、法律、投資、懷孕、錄取等高影響決定時，不要只憑這次解讀下結論，請結合現實資訊並諮詢專業人士。"] },
+      { title: "如何提出好問題", paragraphs: ["比起只問結局，把心意和行動一起放進問題裡會讀得更穩定。複製提示詞後，也可以補充目前狀況、雙方情緒和現實選擇。", "同一組牌也會因提問時間和態度不同而顯出不同訊息。請把結果當作今天要整理的一句話和一個需要減少的行動。", "初學者可先用1張或3張牌抓住方向，複雜關係或事業問題適合用5張以上拆分背景與行動線索。", "輸入內容包括問題句、煩惱主題、所選牌陣和抽到的卡牌。提示詞不是替你判斷，而是讓問題更清澈。"] },
+    ],
+    spreadLibraryTitle: "查看其他牌陣",
+    close: "關閉",
+    spreadSearchPlaceholder: "搜尋牌陣",
+    recommendedTheme: (categoryName) => `推薦主題：${categoryName}`,
+    countAll: "全部",
+    recommendedBadge: "推薦",
+    noSpreads: "沒有符合條件的牌陣。請調整篩選。",
+    subscriptionPassLabel: (tier) => `${tier}通行權益`,
+    currency: (amount) => `${formatWonNumber(amount)}韓元`,
+    creditValue: (amount) => `${formatCreditWonNumber(amount)}韓元價值`,
+  },
+  vi: {
+    heroBadge: "Xưởng prompt AI oracle",
+    heroSteps: ["Nâng câu hỏi", "Mở lá bài", "Thành prompt AI"],
+    questionTitle: { tarot: "Hãy kể câu hỏi trong lòng bạn", lenormand: "Câu hỏi" },
+    questionDescription: { tarot: "Tarot đang chuẩn bị mở câu chuyện riêng của bạn.", lenormand: "Nhập chủ đề và xem dòng chảy cùng manh mối hành động bằng 6 lá Lenormand." },
+    categoryTitle: "Danh mục câu hỏi",
+    autoDetected: (categoryName) => `Tự nhận diện: ${categoryName}`,
+    autoDetectButton: "Tự nhận diện",
+    selectedSpread: "Trải bài đã chọn",
+    cardCount: (count) => `${count} lá`,
+    consultationCategory: (categoryName) => `Danh mục tư vấn ${categoryName}`,
+    changeSpread: "Đổi trải bài",
+    recommendedQuestions: "Câu hỏi gợi ý",
+    applyFirstQuestion: "Dùng câu hỏi đầu",
+    lenormandFreeTitle: "Prompt Lenormand miễn phí",
+    lenormandFreeDescription: "Viết câu hỏi và dòng prompt phù hợp với chủ đề sẽ mở ngay.",
+    defaultQuestionButton: { tarot: "Câu hỏi mặc định theo danh mục", lenormand: "Câu hỏi Lenormand mặc định" },
+    completeSuffix: "hoàn tất",
+    includeReversed: "Gồm lá ngược",
+    backToQuestion: "← Quay lại câu hỏi",
+    resetStart: "Bắt đầu lại",
+    otherSpread: "Trải bài khác",
+    spreadBoardHint: "Rút bài theo thứ tự trực giác dẫn bạn.",
+    combinationReading: "Đọc tổ hợp",
+    positionMeaning: "Ý nghĩa vị trí",
+    drawCard: { tarot: "Rút bài", lenormand: "Rút bài Lenormand" },
+    fullDeck: { open: "Chọn từ toàn bộ bộ bài", close: "Đóng danh sách bộ bài" },
+    selectedCards: "Lá đã chọn",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Đổi chiều",
+    notSelected: "Chưa được chọn.",
+    promptMap: { tarot: "Bản đồ prompt tư vấn AI", lenormand: "Bản đồ prompt Lenormand" },
+    oracleMap: "Bản đồ oracle do lá bài tạo",
+    outputTitle: { tarot: "Prompt AI oracle sẵn sàng sao chép", lenormand: "Prompt Lenormand miễn phí sẵn sàng sao chép" },
+    tune: {
+      consultLabel: "Tăng giọng tư vấn",
+      consultInstruction: "Hãy để toàn bộ câu trả lời tự nhiên như một reader thật đang nói với người hỏi trước mặt. Giải thích bối cảnh câu hỏi, ý nghĩa vị trí và quan hệ giữa các lá trước tên lá, rồi kết mỗi đoạn theo hướng trả lại quyền chủ động cho người hỏi.",
+      practicalLabel: "Thực tế hơn",
+      practicalInstruction: "Sau phần biểu tượng, hãy thêm tiêu chuẩn phán đoán thực tế và thứ tự hành động. Với pháp lý, y tế, đầu tư, thai kỳ, kết quả thi cử, chỉ diễn đạt như tham khảo và khuyên hỏi chuyên gia.",
+      warmLabel: "Ấm áp hơn",
+      warmInstruction: "Làm giọng trả lời dịu hơn, thêm an ủi và lựa chọn để người hỏi đang lo có thể thở lại. Tránh lời gây sợ hoặc tiên đoán tương lai chắc chắn.",
+    },
+    regenerateSameCards: "Kết lại với cùng lá",
+    redrawCards: "Mở bài lại",
+    chooseAnotherSpread: "Chọn trải bài khác",
+    restartFromBeginning: "Làm lại từ đầu",
+    guideArticles: [
+      { title: "Điều được sắp xếp", paragraphs: ["Chủ đề câu hỏi, trải bài đã chọn và hướng lá được kết lại thành dòng prompt có thể dùng ngay cho tư vấn tarot. Lenormand đọc thứ tự sự việc và manh mối hành động; tarot soi sâu hơn tầng cảm xúc và đường nét biểu tượng."] },
+      { title: "Cách đọc", paragraphs: ["Câu hỏi càng cụ thể, kết quả càng rõ về tình huống hiện tại, tín hiệu lặp lại, manh mối chuyển hướng và hành động thực tế thay vì may rủi mơ hồ. Lenormand miễn phí hợp để sắp dòng chảy; prompt oracle trả phí hợp với câu tư vấn dài hơn và chỉ dẫn tinh chỉnh."] },
+      { title: "Lưu ý", paragraphs: ["Kết quả dành cho giải trí và tự soi chiếu. Với quyết định ảnh hưởng lớn như y tế, pháp lý, đầu tư, thai kỳ hoặc thi cử, đừng quyết định chỉ từ trải bài này; hãy kiểm tra thông tin thực tế và hỏi chuyên gia."] },
+      { title: "Cách đặt câu hỏi tốt", paragraphs: ["Câu hỏi gộp cả cảm xúc và hành động thường được đọc ổn định hơn câu hỏi chỉ hỏi kết cục. Sau khi sao chép prompt, hãy thêm tình huống hiện tại, cảm xúc của đôi bên và lựa chọn thực tế.", "Cùng một tổ hợp lá vẫn có thể đổi sắc theo thời điểm và thái độ hỏi. Hãy dùng kết quả như một câu cần làm rõ hôm nay và một hành động nên giảm.", "Người mới có thể bắt đầu bằng trải 1 hoặc 3 lá; quan hệ phức tạp hay sự nghiệp thường cần 5 lá trở lên để tách bối cảnh và manh mối hành động.", "Dữ liệu nhập gồm câu hỏi, chủ đề lo lắng, trải bài đã chọn và các lá đã rút. Prompt không phán quyết thay bạn; nó làm câu hỏi trong hơn."] },
+    ],
+    spreadLibraryTitle: "Xem trải bài khác",
+    close: "Đóng",
+    spreadSearchPlaceholder: "Tìm trải bài",
+    recommendedTheme: (categoryName) => `Chủ đề gợi ý: ${categoryName}`,
+    countAll: "Tất cả",
+    recommendedBadge: "Gợi ý",
+    noSpreads: "Không có trải bài phù hợp. Hãy chỉnh bộ lọc.",
+    subscriptionPassLabel: (tier) => `${tier} pass`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `giá trị KRW ${formatCreditWonNumber(amount)}`,
+  },
+  hi: {
+    heroBadge: "AI Oracle Prompt Atelier",
+    heroSteps: ["प्रश्न उठाएँ", "Cards खोलें", "AI prompt बनाएँ"],
+    questionTitle: { tarot: "अपने मन का प्रश्न बताइए", lenormand: "प्रश्न" },
+    questionDescription: { tarot: "Tarot आपकी अपनी कहानी खोलने की तैयारी कर रहा है.", lenormand: "विषय लिखें और 6 Lenormand cards से flow और action clues देखें." },
+    categoryTitle: "Question category",
+    autoDetected: (categoryName) => `Auto-detected: ${categoryName}`,
+    autoDetectButton: "Auto detect",
+    selectedSpread: "Selected spread",
+    cardCount: (count) => `${count} cards`,
+    consultationCategory: (categoryName) => `Consultation category ${categoryName}`,
+    changeSpread: "Spread बदलें",
+    recommendedQuestions: "Recommended questions",
+    applyFirstQuestion: "पहला question लगाएँ",
+    lenormandFreeTitle: "Free Lenormand prompt",
+    lenormandFreeDescription: "Question लिखते ही उसी theme का prompt और reading flow खुलता है.",
+    defaultQuestionButton: { tarot: "Category default question", lenormand: "Lenormand default question" },
+    completeSuffix: "complete",
+    includeReversed: "Reversals शामिल करें",
+    backToQuestion: "← Question पर लौटें",
+    resetStart: "Start over",
+    otherSpread: "Other spread",
+    spreadBoardHint: "जिस क्रम में intuition खींचे, उसी क्रम में cards खोलें.",
+    combinationReading: "Combination reading",
+    positionMeaning: "Position meaning",
+    drawCard: { tarot: "Card draw करें", lenormand: "Lenormand cards draw करें" },
+    fullDeck: { open: "Full deck से चुनें", close: "Full deck list बंद करें" },
+    selectedCards: "Selected cards",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Direction बदलें",
+    notSelected: "अभी चयन नहीं हुआ.",
+    promptMap: { tarot: "AI consultation prompt map", lenormand: "Lenormand prompt map" },
+    oracleMap: "Cards से बना oracle map",
+    outputTitle: { tarot: "Copy करने के लिए AI oracle prompt", lenormand: "Copy करने के लिए free Lenormand prompt" },
+    tune: {
+      consultLabel: "Consultation tone बढ़ाएँ",
+      consultInstruction: "पूरे उत्तर को ऐसे बहने दें जैसे कोई वास्तविक reader सामने बैठे प्रश्नकर्ता से बात कर रहा हो. Card names से पहले question context, position meaning और card relationships समझाएँ, और हर paragraph के अंत में प्रश्नकर्ता की agency वापस दिलाएँ.",
+      practicalLabel: "More practical",
+      practicalInstruction: "Symbolic interpretation के बाद realistic judgment standards और action order जोड़ें. Legal, medical, investment, pregnancy या exam result जैसे sensitive topics को reference guidance की तरह रखें और expert consultation सुझाएँ.",
+      warmLabel: "Warmer",
+      warmInstruction: "Answer की emotional temperature को नरम करें, comfort और choices जोड़ें ताकि anxious questioner साँस ले सके. Fear-inducing wording या fixed future prediction से बचें.",
+    },
+    regenerateSameCards: "Same cards से फिर weave करें",
+    redrawCards: "Cards फिर खोलें",
+    chooseAnotherSpread: "Another spread चुनें",
+    restartFromBeginning: "Beginning से restart",
+    guideArticles: [
+      { title: "क्या व्यवस्थित होता है", paragraphs: ["Question topic, chosen spread और card direction मिलकर ऐसा prompt flow बनाते हैं जिसे tarot consultation में तुरंत इस्तेमाल किया जा सके. Lenormand event order और action clues पढ़ता है; tarot emotional layers और symbolic texture को गहराई से देखता है."] },
+      { title: "कैसे पढ़ें", paragraphs: ["Question जितना specific होगा, result vague luck से हटकर current situation, repeated signs, turning clues और realistic action की ओर साफ होगा. Free Lenormand flow sorting के लिए है; paid oracle prompt longer consultation language और tuning instructions के लिए अच्छा है."] },
+      { title: "ध्यान रखें", paragraphs: ["Result entertainment और self-reflection के लिए है. Medical, legal, investment, pregnancy या admissions जैसे high-impact decisions में केवल reading से निर्णय न लें; real information और qualified expert consultation भी देखें."] },
+      { title: "अच्छा question कैसे बनाएँ", paragraphs: ["सिर्फ ending पूछने से बेहतर है कि heart और action को साथ पूछें. Prompt copy करने के बाद current situation, दोनों पक्षों की feelings और realistic options जोड़ें.", "Same cards भी timing और attitude के अनुसार अलग message दिखा सकते हैं. Result को pressure नहीं, आज साफ करने वाली एक sentence और घटाने वाली एक action की तरह लें.", "Beginners one-card या three-card spread से direction पकड़ सकते हैं; complex relationship या career concerns में five-plus cards background और action clues अलग करते हैं.", "Inputs question sentence, concern category, chosen spread और drawn cards हैं. Prompt आपके लिए judgment नहीं करता; यह question को clearer बनाता है."] },
+    ],
+    spreadLibraryTitle: "Other spreads देखें",
+    close: "Close",
+    spreadSearchPlaceholder: "Spread search",
+    recommendedTheme: (categoryName) => `Recommended theme: ${categoryName}`,
+    countAll: "All",
+    recommendedBadge: "Recommended",
+    noSpreads: "Filters से matching spread नहीं मिला. कृपया filters बदलें.",
+    subscriptionPassLabel: (tier) => `${tier} pass`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} value`,
+  },
+  es: {
+    heroBadge: "Atelier de prompts de oráculo AI",
+    heroSteps: ["Eleva la pregunta", "Abre las cartas", "Llévala a prompt AI"],
+    questionTitle: { tarot: "Cuéntame la pregunta que llevas dentro", lenormand: "Pregunta" },
+    questionDescription: { tarot: "El tarot se prepara para desplegar tu propia historia.", lenormand: "Escribe un tema y mira el flujo con seis cartas Lenormand y pistas de acción." },
+    categoryTitle: "Categoría de pregunta",
+    autoDetected: (categoryName) => `Detectado: ${categoryName}`,
+    autoDetectButton: "Detectar",
+    selectedSpread: "Tirada seleccionada",
+    cardCount: (count) => `${count} cartas`,
+    consultationCategory: (categoryName) => `Categoría de consulta ${categoryName}`,
+    changeSpread: "Cambiar tirada",
+    recommendedQuestions: "Preguntas recomendadas",
+    applyFirstQuestion: "Aplicar primera pregunta",
+    lenormandFreeTitle: "Prompt Lenormand gratis",
+    lenormandFreeDescription: "Escribe una pregunta y se abrirá el flujo de prompt adecuado para ese tema.",
+    defaultQuestionButton: { tarot: "Pregunta base de categoría", lenormand: "Pregunta base Lenormand" },
+    completeSuffix: "completo",
+    includeReversed: "Incluir invertidas",
+    backToQuestion: "← Volver a la pregunta",
+    resetStart: "Empezar de nuevo",
+    otherSpread: "Otra tirada",
+    spreadBoardHint: "Saca las cartas en el orden que marque tu intuición.",
+    combinationReading: "Lectura combinada",
+    positionMeaning: "Significado de posición",
+    drawCard: { tarot: "Sacar carta", lenormand: "Sacar cartas Lenormand" },
+    fullDeck: { open: "Elegir del mazo completo", close: "Cerrar lista del mazo" },
+    selectedCards: "Cartas seleccionadas",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Cambiar dirección",
+    notSelected: "Aún no seleccionado.",
+    promptMap: { tarot: "Mapa de prompt de consulta AI", lenormand: "Mapa de prompt Lenormand" },
+    oracleMap: "Mapa oracular creado por las cartas",
+    outputTitle: { tarot: "Prompt de oráculo AI listo para copiar", lenormand: "Prompt Lenormand gratis listo para copiar" },
+    tune: {
+      consultLabel: "Reforzar tono de consulta",
+      consultInstruction: "Haz que toda la respuesta fluya como si una tarotista real hablara a la persona consultante. Explica primero el contexto de la pregunta, las posiciones y la relación entre cartas, y cierra cada párrafo devolviendo agencia a la persona.",
+      practicalLabel: "Más realista",
+      practicalInstruction: "Después de la interpretación simbólica, añade criterios de juicio realistas y orden de acción. En temas legales, médicos, inversión, embarazo o resultados, exprésalo como guía de referencia y recomienda consulta experta.",
+      warmLabel: "Más cálido",
+      warmInstruction: "Suaviza la temperatura emocional, añade consuelo y opciones para que la persona ansiosa pueda respirar. Evita expresiones de miedo o predicciones fijas.",
+    },
+    regenerateSameCards: "Volver a tejer con las mismas cartas",
+    redrawCards: "Abrir cartas otra vez",
+    chooseAnotherSpread: "Elegir otra tirada",
+    restartFromBeginning: "Reiniciar desde el principio",
+    guideArticles: [
+      { title: "Qué se ordena", paragraphs: ["El tema, la tirada elegida y la dirección de las cartas se unen en un flujo de prompt listo para una consulta de tarot. Lenormand lee secuencia y pistas de acción; el tarot ilumina capas emocionales y textura simbólica."] },
+      { title: "Cómo leerlo", paragraphs: ["Cuanto más concreta sea la pregunta, más claro será el resultado en situación actual, señales repetidas, pistas de cambio y acción realista. Lenormand gratis sirve para ordenar el flujo; el prompt de oráculo de pago sirve para textos más largos y ajustes."] },
+      { title: "Nota importante", paragraphs: ["El resultado es para entretenimiento y autoobservación. En decisiones de alto impacto como salud, derecho, inversión, embarazo o admisiones, no decidas solo con esta lectura; revisa información real y consulta a una persona experta."] },
+      { title: "Cómo formular bien", paragraphs: ["Una pregunta que une emoción y acción se lee con más estabilidad que una que solo pide el final. Después de copiar el prompt, añade situación actual, emociones y opciones realistas.", "Las mismas cartas pueden cambiar según el momento y la actitud. Usa el resultado como una frase a aclarar hoy y una acción a reducir.", "Quien empieza puede usar tiradas de una o tres cartas; temas complejos de relación o carrera suelen beneficiarse de cinco cartas o más.", "Los datos son la pregunta, el tema, la tirada y las cartas. El prompt no decide por ti; limpia la pregunta para que puedas mirar mejor."] },
+    ],
+    spreadLibraryTitle: "Ver otras tiradas",
+    close: "Cerrar",
+    spreadSearchPlaceholder: "Buscar tirada",
+    recommendedTheme: (categoryName) => `Tema recomendado: ${categoryName}`,
+    countAll: "Todo",
+    recommendedBadge: "Recomendada",
+    noSpreads: "No hay tiradas que coincidan. Ajusta los filtros.",
+    subscriptionPassLabel: (tier) => `pase ${tier}`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `valor KRW ${formatCreditWonNumber(amount)}`,
+  },
+  fr: {
+    heroBadge: "Atelier de prompts d'oracle IA",
+    heroSteps: ["Élever la question", "Ouvrir les cartes", "En faire un prompt IA"],
+    questionTitle: { tarot: "Confiez la question dans votre coeur", lenormand: "Question" },
+    questionDescription: { tarot: "Le tarot se prépare à déplier votre propre histoire.", lenormand: "Saisissez un thème et lisez le flux avec six cartes Lenormand et des pistes d'action." },
+    categoryTitle: "Catégorie de question",
+    autoDetected: (categoryName) => `Détection: ${categoryName}`,
+    autoDetectButton: "Détection auto",
+    selectedSpread: "Tirage sélectionné",
+    cardCount: (count) => `${count} cartes`,
+    consultationCategory: (categoryName) => `Catégorie de consultation ${categoryName}`,
+    changeSpread: "Changer de tirage",
+    recommendedQuestions: "Questions recommandées",
+    applyFirstQuestion: "Appliquer la première",
+    lenormandFreeTitle: "Prompt Lenormand gratuit",
+    lenormandFreeDescription: "Écrivez une question et le flux de prompt adapté au thème s'ouvre aussitôt.",
+    defaultQuestionButton: { tarot: "Question par défaut de catégorie", lenormand: "Question Lenormand par défaut" },
+    completeSuffix: "terminé",
+    includeReversed: "Inclure les renversées",
+    backToQuestion: "← Revenir à la question",
+    resetStart: "Recommencer",
+    otherSpread: "Autre tirage",
+    spreadBoardHint: "Tirez les cartes dans l'ordre où votre intuition vous appelle.",
+    combinationReading: "Lecture combinée",
+    positionMeaning: "Sens des positions",
+    drawCard: { tarot: "Tirer une carte", lenormand: "Tirer les cartes Lenormand" },
+    fullDeck: { open: "Choisir dans le jeu complet", close: "Fermer la liste du jeu" },
+    selectedCards: "Cartes sélectionnées",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Changer le sens",
+    notSelected: "Pas encore sélectionné.",
+    promptMap: { tarot: "Carte du prompt de consultation IA", lenormand: "Carte du prompt Lenormand" },
+    oracleMap: "Carte oraculaire créée par les cartes",
+    outputTitle: { tarot: "Prompt d'oracle IA prêt à copier", lenormand: "Prompt Lenormand gratuit prêt à copier" },
+    tune: {
+      consultLabel: "Renforcer le ton de consultation",
+      consultInstruction: "Faites couler toute la réponse comme si une lectrice réelle parlait à la personne en face. Expliquez d'abord le contexte, le sens des positions et les liens entre cartes, puis terminez chaque paragraphe en rendant du pouvoir d'action à la personne.",
+      practicalLabel: "Plus concret",
+      practicalInstruction: "Après l'interprétation symbolique, ajoutez des critères réalistes et un ordre d'action. Pour les sujets juridiques, médicaux, financiers, grossesse ou résultats, gardez une guidance de référence et conseillez un expert.",
+      warmLabel: "Plus chaleureux",
+      warmInstruction: "Adoucissez la température émotionnelle, ajoutez du réconfort et des options pour que la personne anxieuse puisse respirer. Évitez les formules effrayantes ou les prédictions fixes.",
+    },
+    regenerateSameCards: "Retisser avec les mêmes cartes",
+    redrawCards: "Rouvrir les cartes",
+    chooseAnotherSpread: "Choisir un autre tirage",
+    restartFromBeginning: "Repartir du début",
+    guideArticles: [
+      { title: "Ce qui est organisé", paragraphs: ["Le thème, le tirage choisi et l'orientation des cartes sont reliés en un flux de prompt prêt pour une consultation de tarot. Lenormand lit la séquence et les pistes d'action; le tarot éclaire les couches émotionnelles et la texture symbolique."] },
+      { title: "Comment lire", paragraphs: ["Plus la question est précise, plus le résultat se clarifie autour de la situation actuelle, des signes répétés, des pistes de bascule et de l'action réaliste. Lenormand gratuit sert à ordonner le flux; le prompt d'oracle payant convient aux textes plus longs et aux consignes d'ajustement."] },
+      { title: "À garder en tête", paragraphs: ["Le résultat sert au divertissement et à l'introspection. Pour les décisions à fort impact comme santé, droit, investissement, grossesse ou admission, ne décidez pas seulement avec cette lecture; vérifiez les faits et consultez un spécialiste."] },
+      { title: "Poser une bonne question", paragraphs: ["Une question qui relie émotion et action se lit mieux qu'une demande de résultat seul. Après la copie du prompt, ajoutez la situation actuelle, les émotions et les options réalistes.", "Les mêmes cartes changent selon le moment et l'attitude. Utilisez le résultat comme une phrase à clarifier aujourd'hui et une action à réduire.", "Les débutants peuvent commencer avec une ou trois cartes; les questions relationnelles ou professionnelles complexes gagnent souvent à utiliser cinq cartes ou plus.", "Les entrées sont la question, le thème, le tirage et les cartes. Le prompt ne décide pas à votre place; il clarifie la question."] },
+    ],
+    spreadLibraryTitle: "Voir d'autres tirages",
+    close: "Fermer",
+    spreadSearchPlaceholder: "Rechercher un tirage",
+    recommendedTheme: (categoryName) => `Thème recommandé: ${categoryName}`,
+    countAll: "Tout",
+    recommendedBadge: "Recommandé",
+    noSpreads: "Aucun tirage ne correspond. Ajustez les filtres.",
+    subscriptionPassLabel: (tier) => `pass ${tier}`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `valeur KRW ${formatCreditWonNumber(amount)}`,
+  },
+  de: {
+    heroBadge: "KI-Orakel-Prompt-Atelier",
+    heroSteps: ["Frage erheben", "Karten öffnen", "Zum KI-Prompt formen"],
+    questionTitle: { tarot: "Erzähle die Frage in deinem Herzen", lenormand: "Frage" },
+    questionDescription: { tarot: "Tarot bereitet sich vor, deine eigene Geschichte zu entfalten.", lenormand: "Gib ein Thema ein und lies den Verlauf mit sechs Lenormandkarten und Handlungshinweisen." },
+    categoryTitle: "Fragenkategorie",
+    autoDetected: (categoryName) => `Automatisch erkannt: ${categoryName}`,
+    autoDetectButton: "Automatisch",
+    selectedSpread: "Ausgewählte Legung",
+    cardCount: (count) => `${count} Karten`,
+    consultationCategory: (categoryName) => `Beratungskategorie ${categoryName}`,
+    changeSpread: "Legung ändern",
+    recommendedQuestions: "Empfohlene Fragen",
+    applyFirstQuestion: "Erste Frage übernehmen",
+    lenormandFreeTitle: "Kostenloser Lenormand-Prompt",
+    lenormandFreeDescription: "Schreibe eine Frage und der passende Promptfluss öffnet sich sofort.",
+    defaultQuestionButton: { tarot: "Standardfrage der Kategorie", lenormand: "Lenormand-Standardfrage" },
+    completeSuffix: "fertig",
+    includeReversed: "Umkehrungen einschließen",
+    backToQuestion: "← Zur Frage",
+    resetStart: "Neu beginnen",
+    otherSpread: "Andere Legung",
+    spreadBoardHint: "Ziehe die Karten in der Reihenfolge, die deine Intuition wählt.",
+    combinationReading: "Kombinationslesung",
+    positionMeaning: "Positionsbedeutung",
+    drawCard: { tarot: "Karte ziehen", lenormand: "Lenormandkarten ziehen" },
+    fullDeck: { open: "Aus ganzem Deck wählen", close: "Deckliste schließen" },
+    selectedCards: "Ausgewählte Karten",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Richtung ändern",
+    notSelected: "Noch nicht gewählt.",
+    promptMap: { tarot: "KI-Beratungs-Promptkarte", lenormand: "Lenormand-Promptkarte" },
+    oracleMap: "Orakelkarte der Karten",
+    outputTitle: { tarot: "KI-Orakel-Prompt zum Kopieren", lenormand: "Kostenloser Lenormand-Prompt zum Kopieren" },
+    tune: {
+      consultLabel: "Beratungston stärken",
+      consultInstruction: "Lass die Antwort klingen, als würde eine echte Leserin direkt zur fragenden Person sprechen. Erkläre zuerst Kontext, Positionen und Kartenbeziehungen und schließe jeden Absatz so, dass die Person ihre Handlungskraft zurückgewinnt.",
+      practicalLabel: "Praktischer machen",
+      practicalInstruction: "Füge nach der Symboldeutung realistische Entscheidungskriterien und eine Handlungsreihenfolge hinzu. Bei Recht, Medizin, Investitionen, Schwangerschaft oder Ergebnissen nur als Orientierung formulieren und fachliche Beratung empfehlen.",
+      warmLabel: "Wärmer machen",
+      warmInstruction: "Mache den Ton weicher, füge Trost und Optionen hinzu, damit eine verunsicherte Person wieder atmen kann. Vermeide angstmachende Worte oder feste Zukunftsvorhersagen.",
+    },
+    regenerateSameCards: "Mit denselben Karten neu weben",
+    redrawCards: "Karten erneut öffnen",
+    chooseAnotherSpread: "Andere Legung wählen",
+    restartFromBeginning: "Von vorn beginnen",
+    guideArticles: [
+      { title: "Was geordnet wird", paragraphs: ["Thema, Legung und Kartenrichtung werden zu einem Promptfluss verbunden, der für eine Tarotberatung bereit ist. Lenormand liest Reihenfolge und Handlungshinweise; Tarot beleuchtet emotionale Schichten und symbolische Textur."] },
+      { title: "Wie man liest", paragraphs: ["Je konkreter die Frage, desto klarer wird das Ergebnis zu aktueller Lage, wiederholten Zeichen, Wendepunkten und realistischem Handeln. Kostenloses Lenormand ordnet den Verlauf; der bezahlte Orakel-Prompt eignet sich für längere Beratungstexte und Feinabstimmung."] },
+      { title: "Wichtig", paragraphs: ["Das Ergebnis dient Unterhaltung und Selbstreflexion. Bei folgenreichen Entscheidungen zu Gesundheit, Recht, Investitionen, Schwangerschaft oder Prüfungen nicht allein danach entscheiden; reale Informationen prüfen und Fachleute konsultieren."] },
+      { title: "Gute Fragen stellen", paragraphs: ["Fragen, die Gefühl und Handlung verbinden, lesen sich stabiler als reine Ergebnisfragen. Ergänze nach dem Kopieren des Prompts aktuelle Situation, Gefühle und realistische Optionen.", "Dieselben Karten können je nach Zeitpunkt und Haltung anders sprechen. Nutze das Ergebnis als einen Satz für heute und eine Handlung, die du reduzieren kannst.", "Einsteiger beginnen gut mit einer oder drei Karten; komplexe Beziehungen oder Karrierethemen profitieren oft von fünf oder mehr Karten.", "Eingaben sind Frage, Thema, Legung und Karten. Der Prompt entscheidet nicht für dich; er klärt die Frage."] },
+    ],
+    spreadLibraryTitle: "Andere Legungen ansehen",
+    close: "Schließen",
+    spreadSearchPlaceholder: "Legung suchen",
+    recommendedTheme: (categoryName) => `Empfohlenes Thema: ${categoryName}`,
+    countAll: "Alle",
+    recommendedBadge: "Empfohlen",
+    noSpreads: "Keine passende Legung gefunden. Bitte Filter anpassen.",
+    subscriptionPassLabel: (tier) => `${tier}-Pass`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} Wert`,
+  },
+  nl: {
+    heroBadge: "AI-orakelprompt atelier",
+    heroSteps: ["Til de vraag op", "Open de kaarten", "Vorm een AI-prompt"],
+    questionTitle: { tarot: "Vertel de vraag in je hart", lenormand: "Vraag" },
+    questionDescription: { tarot: "Tarot bereidt zich voor om jouw verhaal te ontvouwen.", lenormand: "Voer een thema in en lees de stroom met zes Lenormandkaarten en actietips." },
+    categoryTitle: "Vraagcategorie",
+    autoDetected: (categoryName) => `Automatisch herkend: ${categoryName}`,
+    autoDetectButton: "Automatisch",
+    selectedSpread: "Gekozen spread",
+    cardCount: (count) => `${count} kaarten`,
+    consultationCategory: (categoryName) => `Consultcategorie ${categoryName}`,
+    changeSpread: "Spread wijzigen",
+    recommendedQuestions: "Aanbevolen vragen",
+    applyFirstQuestion: "Eerste vraag toepassen",
+    lenormandFreeTitle: "Gratis Lenormand-prompt",
+    lenormandFreeDescription: "Schrijf een vraag en de passende promptstroom opent meteen.",
+    defaultQuestionButton: { tarot: "Categorie standaardvraag", lenormand: "Lenormand standaardvraag" },
+    completeSuffix: "voltooid",
+    includeReversed: "Omgekeerde kaarten",
+    backToQuestion: "← Terug naar vraag",
+    resetStart: "Opnieuw beginnen",
+    otherSpread: "Andere spread",
+    spreadBoardHint: "Trek de kaarten in de volgorde die je intuïtie kiest.",
+    combinationReading: "Combinatielezing",
+    positionMeaning: "Betekenis positie",
+    drawCard: { tarot: "Kaart trekken", lenormand: "Lenormandkaarten trekken" },
+    fullDeck: { open: "Kiezen uit volledig deck", close: "Volledige decklijst sluiten" },
+    selectedCards: "Gekozen kaarten",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Richting wijzigen",
+    notSelected: "Nog niet gekozen.",
+    promptMap: { tarot: "AI-consultprompt kaart", lenormand: "Lenormand-prompt kaart" },
+    oracleMap: "Orakelkaart gemaakt door de kaarten",
+    outputTitle: { tarot: "AI-orakelprompt klaar om te kopiëren", lenormand: "Gratis Lenormand-prompt klaar om te kopiëren" },
+    tune: {
+      consultLabel: "Consulttoon versterken",
+      consultInstruction: "Laat het antwoord vloeien alsof een echte reader spreekt met de vraagsteller voor zich. Leg eerst context, positiebetekenis en kaartrelaties uit en eindig elke alinea met meer eigen regie voor de vraagsteller.",
+      practicalLabel: "Praktischer maken",
+      practicalInstruction: "Voeg na symbolische uitleg realistische beoordelingscriteria en actiestappen toe. Bij recht, medisch, investering, zwangerschap of uitslagen alleen als referentie formuleren en deskundig advies aanraden.",
+      warmLabel: "Warmer maken",
+      warmInstruction: "Verzacht de emotionele toon, voeg troost en keuzes toe zodat een angstige vraagsteller kan ademen. Vermijd angsttaal of vaste toekomstvoorspellingen.",
+    },
+    regenerateSameCards: "Opnieuw weven met dezelfde kaarten",
+    redrawCards: "Kaarten opnieuw openen",
+    chooseAnotherSpread: "Andere spread kiezen",
+    restartFromBeginning: "Vanaf begin opnieuw",
+    guideArticles: [
+      { title: "Wat wordt geordend", paragraphs: ["Vraagthema, gekozen spread en kaartrichting worden één promptstroom voor tarotconsult. Lenormand leest volgorde en actietips; tarot belicht emotionele lagen en symbolische textuur."] },
+      { title: "Hoe te lezen", paragraphs: ["Hoe specifieker de vraag, hoe helderder het resultaat rond huidige situatie, herhaalde signalen, kantelpunten en realistische actie. Gratis Lenormand ordent de stroom; de betaalde orakelprompt past bij langere consultteksten en tuning."] },
+      { title: "Let op", paragraphs: ["Het resultaat is voor entertainment en zelfreflectie. Neem bij medische, juridische, investerings-, zwangerschaps- of toelatingsbeslissingen geen besluit op basis van deze reading alleen; check feiten en raadpleeg een expert."] },
+      { title: "Goede vragen maken", paragraphs: ["Een vraag die gevoel en actie verbindt leest stabieler dan alleen een eindvraag. Voeg na het kopiëren huidige situatie, gevoelens en realistische opties toe.", "Dezelfde kaarten kunnen anders spreken door timing en houding. Gebruik het resultaat als één zin voor vandaag en één actie om te verminderen.", "Beginners kunnen starten met één of drie kaarten; complexe relaties of carrièrevragen hebben vaak baat bij vijf of meer kaarten.", "Inputs zijn vraag, thema, spread en kaarten. De prompt beslist niet voor je; hij maakt de vraag helderder."] },
+    ],
+    spreadLibraryTitle: "Andere spreads bekijken",
+    close: "Sluiten",
+    spreadSearchPlaceholder: "Spread zoeken",
+    recommendedTheme: (categoryName) => `Aanbevolen thema: ${categoryName}`,
+    countAll: "Alles",
+    recommendedBadge: "Aanbevolen",
+    noSpreads: "Geen passende spreads. Pas de filters aan.",
+    subscriptionPassLabel: (tier) => `${tier}-pass`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} waarde`,
+  },
+  ms: {
+    heroBadge: "Atelier prompt oracle AI",
+    heroSteps: ["Angkat soalan", "Buka kad", "Jadi prompt AI"],
+    questionTitle: { tarot: "Ceritakan soalan dalam hati anda", lenormand: "Soalan" },
+    questionDescription: { tarot: "Tarot sedang bersedia membuka cerita anda sendiri.", lenormand: "Masukkan tema dan baca aliran dengan enam kad Lenormand serta petunjuk tindakan." },
+    categoryTitle: "Kategori soalan",
+    autoDetected: (categoryName) => `Dikesan automatik: ${categoryName}`,
+    autoDetectButton: "Kesan automatik",
+    selectedSpread: "Spread dipilih",
+    cardCount: (count) => `${count} kad`,
+    consultationCategory: (categoryName) => `Kategori konsultasi ${categoryName}`,
+    changeSpread: "Tukar spread",
+    recommendedQuestions: "Soalan cadangan",
+    applyFirstQuestion: "Guna soalan pertama",
+    lenormandFreeTitle: "Prompt Lenormand percuma",
+    lenormandFreeDescription: "Tulis soalan dan aliran prompt yang sesuai dengan tema akan terbuka segera.",
+    defaultQuestionButton: { tarot: "Soalan lalai kategori", lenormand: "Soalan lalai Lenormand" },
+    completeSuffix: "selesai",
+    includeReversed: "Sertakan terbalik",
+    backToQuestion: "← Kembali ke soalan",
+    resetStart: "Mula semula",
+    otherSpread: "Spread lain",
+    spreadBoardHint: "Cabut kad mengikut urutan yang ditarik oleh intuisi.",
+    combinationReading: "Bacaan gabungan",
+    positionMeaning: "Makna posisi",
+    drawCard: { tarot: "Cabut kad", lenormand: "Cabut kad Lenormand" },
+    fullDeck: { open: "Pilih daripada dek penuh", close: "Tutup senarai dek penuh" },
+    selectedCards: "Kad dipilih",
+    lenormandLabel: "Lenormand",
+    changeDirection: "Tukar arah",
+    notSelected: "Belum dipilih.",
+    promptMap: { tarot: "Peta prompt konsultasi AI", lenormand: "Peta prompt Lenormand" },
+    oracleMap: "Peta oracle daripada kad",
+    outputTitle: { tarot: "Prompt oracle AI sedia disalin", lenormand: "Prompt Lenormand percuma sedia disalin" },
+    tune: {
+      consultLabel: "Kuatkan nada konsultasi",
+      consultInstruction: "Biarkan seluruh jawapan mengalir seperti reader sebenar bercakap dengan penanya di hadapan. Terangkan konteks soalan, makna posisi dan hubungan kad sebelum nama kad, lalu akhiri setiap perenggan dengan memulangkan kuasa pilihan kepada penanya.",
+      practicalLabel: "Lebih praktikal",
+      practicalInstruction: "Selepas tafsiran simbolik, tambah piawai penilaian realistik dan susunan tindakan. Untuk undang-undang, perubatan, pelaburan, kehamilan atau keputusan, nyatakan sebagai rujukan dan sarankan konsultasi pakar.",
+      warmLabel: "Lebih hangat",
+      warmInstruction: "Lembutkan suhu emosi, tambah sokongan dan pilihan supaya penanya yang cemas boleh bernafas. Elakkan kata yang menakutkan atau ramalan masa depan yang muktamad.",
+    },
+    regenerateSameCards: "Susun semula dengan kad sama",
+    redrawCards: "Buka kad semula",
+    chooseAnotherSpread: "Pilih spread lain",
+    restartFromBeginning: "Mula dari awal",
+    guideArticles: [
+      { title: "Apa yang disusun", paragraphs: ["Tema soalan, spread dipilih dan arah kad digabung menjadi aliran prompt untuk konsultasi tarot. Lenormand membaca urutan peristiwa dan petunjuk tindakan; tarot menyinari lapisan emosi dan tekstur simbol."] },
+      { title: "Cara membaca", paragraphs: ["Semakin khusus soalan, semakin jelas hasil pada situasi semasa, isyarat berulang, petunjuk perubahan dan tindakan realistik. Lenormand percuma sesuai untuk menyusun aliran; prompt oracle berbayar sesuai untuk ayat konsultasi lebih panjang dan arahan penalaan."] },
+      { title: "Perhatian", paragraphs: ["Hasil ini untuk hiburan dan refleksi diri. Untuk keputusan besar seperti perubatan, undang-undang, pelaburan, kehamilan atau kemasukan, jangan buat keputusan hanya daripada bacaan ini; semak maklumat sebenar dan rujuk pakar."] },
+      { title: "Membentuk soalan baik", paragraphs: ["Soalan yang menggabungkan hati dan tindakan lebih stabil dibaca daripada soalan yang hanya meminta akhir cerita. Selepas menyalin prompt, tambah situasi semasa, emosi kedua pihak dan pilihan realistik.", "Gabungan kad sama boleh membawa mesej berbeza mengikut masa dan sikap. Gunakan hasil sebagai satu ayat untuk dijernihkan hari ini dan satu tindakan untuk dikurangkan.", "Pemula boleh bermula dengan spread 1 atau 3 kad; isu hubungan atau kerjaya rumit sering lebih jelas dengan 5 kad atau lebih.", "Input ialah soalan, tema, spread dan kad. Prompt tidak membuat keputusan untuk anda; ia menjernihkan soalan."] },
+    ],
+    spreadLibraryTitle: "Lihat spread lain",
+    close: "Tutup",
+    spreadSearchPlaceholder: "Cari spread",
+    recommendedTheme: (categoryName) => `Tema cadangan: ${categoryName}`,
+    countAll: "Semua",
+    recommendedBadge: "Cadangan",
+    noSpreads: "Tiada spread sepadan. Laraskan penapis.",
+    subscriptionPassLabel: (tier) => `pas ${tier}`,
+    currency: (amount) => `KRW ${formatWonNumber(amount)}`,
+    creditValue: (amount) => `nilai KRW ${formatCreditWonNumber(amount)}`,
+  },
+};
+
+function formatCoinValue(amount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_UI_COPY.ko) {
+  return copy.currency(amount);
+}
+
+function formatMonthlyCreditValue(amount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_UI_COPY.ko) {
+  return copy.creditValue(amount);
 }
 
 const CARD_POOL: OracleCardPick[] = (TAROT_CARDS as TarotCardSource[])
@@ -953,8 +1779,6 @@ const LENORMAND_SPREAD: TarotSpread = {
   ritual: "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요.",
 };
 
-const LENORMAND_DEFAULT_QUESTION = "지금 보고 싶은 상황에서 가장 먼저 확인해야 할 흐름과 행동 단서는 무엇일까?";
-
 const LENORMAND_INFO_ITEMS = [
   ["01", "무엇을 확인하나요", "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다. 단정형 예언보다 현재 흐름, 반복 패턴, 다음 행동 후보를 차분히 나누어 읽습니다."],
   ["02", "전통과 이야기", "레노먼드는 19세기 프랑스의 점술가 마드무아젤 르노르망과 연결되어 널리 알려진 36장 카드 전통입니다."],
@@ -987,13 +1811,253 @@ const ORACLE_MODE_META: Record<OracleDeckMode, { title: string; eyebrow: string;
   },
 };
 
-const DECK_SLOTS = Array.from({ length: Math.max(CARD_POOL.length, LENORMAND_CARD_POOL.length) }, (_, index) => index);
+const ORACLE_MODE_META_COPY: Record<LoadingLocale, typeof ORACLE_MODE_META> = {
+  ko: ORACLE_MODE_META,
+  en: {
+    tarot: {
+      title: "Tarot Prompt",
+      eyebrow: "Tarot",
+      description: "Weave your question, spread, and card directions into one refined AI tarot consultation prompt.",
+      drawLabel: "Start drawing cards",
+      deckLabel: "Tarot Deck",
+      deckCaption: "Draw one card at a time from the 78-card deck.",
+      promptLabel: "Create AI oracle prompt",
+      outputLabel: "AI oracle prompt",
+    },
+    lenormand: {
+      title: "Lenormand Prompt",
+      eyebrow: "Lenormand",
+      description: "Write a question and the prompt with its reading flow opens around that theme.",
+      drawLabel: "Draw 6 Lenormand cards",
+      deckLabel: "Lenormand Deck",
+      deckCaption: "Draw 6 cards from the 36-card Lenormand deck to read flow and action clues.",
+      promptLabel: "Create free Lenormand prompt",
+      outputLabel: "Lenormand prompt to copy",
+    },
+  },
+  ja: {
+    tarot: {
+      title: "タロットプロンプト",
+      eyebrow: "タロット",
+      description: "質問、スプレッド、カードの向きを、繊細なAIタロット相談プロンプトへ編み上げます。",
+      drawLabel: "カードを引き始める",
+      deckLabel: "タロットデッキ",
+      deckCaption: "78枚のデッキから一枚ずつ引いてください。",
+      promptLabel: "AIオラクルプロンプトを作る",
+      outputLabel: "AIオラクルプロンプト",
+    },
+    lenormand: {
+      title: "ルノルマンプロンプト",
+      eyebrow: "ルノルマン",
+      description: "質問を書くと、そのテーマに合うプロンプトと解釈の流れがすぐ開きます。",
+      drawLabel: "ルノルマン6枚を引く",
+      deckLabel: "ルノルマンデッキ",
+      deckCaption: "36枚のルノルマンデッキから6枚を引き、流れと行動の手がかりを見ます。",
+      promptLabel: "無料ルノルマンプロンプトを作る",
+      outputLabel: "コピー用ルノルマンプロンプト",
+    },
+  },
+  "zh-CN": {
+    tarot: {
+      title: "塔罗提示词",
+      eyebrow: "塔罗",
+      description: "将问题、牌阵和卡牌方向编织成细腻的AI塔罗咨询提示词。",
+      drawLabel: "开始抽牌",
+      deckLabel: "塔罗牌组",
+      deckCaption: "从78张牌组中逐张抽取。",
+      promptLabel: "生成AI神谕提示词",
+      outputLabel: "AI神谕提示词",
+    },
+    lenormand: {
+      title: "雷诺曼提示词",
+      eyebrow: "雷诺曼",
+      description: "写下问题后，适合该主题的提示词和解读流向会立即打开。",
+      drawLabel: "抽6张雷诺曼牌",
+      deckLabel: "雷诺曼牌组",
+      deckCaption: "从36张雷诺曼牌中抽6张，查看流向和行动线索。",
+      promptLabel: "生成免费雷诺曼提示词",
+      outputLabel: "可复制的雷诺曼提示词",
+    },
+  },
+  "zh-TW": {
+    tarot: {
+      title: "塔羅提示詞",
+      eyebrow: "塔羅",
+      description: "將問題、牌陣和卡牌方向編織成細膩的AI塔羅諮詢提示詞。",
+      drawLabel: "開始抽牌",
+      deckLabel: "塔羅牌組",
+      deckCaption: "從78張牌組中逐張抽取。",
+      promptLabel: "生成AI神諭提示詞",
+      outputLabel: "AI神諭提示詞",
+    },
+    lenormand: {
+      title: "雷諾曼提示詞",
+      eyebrow: "雷諾曼",
+      description: "寫下問題後，適合該主題的提示詞和解讀流向會立即開啟。",
+      drawLabel: "抽6張雷諾曼牌",
+      deckLabel: "雷諾曼牌組",
+      deckCaption: "從36張雷諾曼牌中抽6張，查看流向和行動線索。",
+      promptLabel: "生成免費雷諾曼提示詞",
+      outputLabel: "可複製的雷諾曼提示詞",
+    },
+  },
+  vi: {
+    tarot: {
+      title: "Prompt Tarot",
+      eyebrow: "Tarot",
+      description: "Kết câu hỏi, trải bài và hướng lá thành một prompt tư vấn tarot AI tinh tế.",
+      drawLabel: "Bắt đầu rút bài",
+      deckLabel: "Bộ Tarot",
+      deckCaption: "Rút từng lá từ bộ 78 lá.",
+      promptLabel: "Tạo prompt AI oracle",
+      outputLabel: "Prompt AI oracle",
+    },
+    lenormand: {
+      title: "Prompt Lenormand",
+      eyebrow: "Lenormand",
+      description: "Viết câu hỏi và dòng prompt phù hợp với chủ đề sẽ mở ngay.",
+      drawLabel: "Rút 6 lá Lenormand",
+      deckLabel: "Bộ Lenormand",
+      deckCaption: "Rút 6 lá từ bộ Lenormand 36 lá để đọc dòng chảy và manh mối hành động.",
+      promptLabel: "Tạo prompt Lenormand miễn phí",
+      outputLabel: "Prompt Lenormand để sao chép",
+    },
+  },
+  hi: {
+    tarot: {
+      title: "Tarot Prompt",
+      eyebrow: "Tarot",
+      description: "Question, spread और card directions को refined AI tarot consultation prompt में बुनें.",
+      drawLabel: "Cards draw शुरू करें",
+      deckLabel: "Tarot Deck",
+      deckCaption: "78-card deck से एक-एक card draw करें.",
+      promptLabel: "AI oracle prompt बनाएँ",
+      outputLabel: "AI oracle prompt",
+    },
+    lenormand: {
+      title: "Lenormand Prompt",
+      eyebrow: "Lenormand",
+      description: "Question लिखते ही theme के अनुरूप prompt और reading flow खुलता है.",
+      drawLabel: "6 Lenormand cards draw करें",
+      deckLabel: "Lenormand Deck",
+      deckCaption: "36-card Lenormand deck से 6 cards draw करके flow और action clues देखें.",
+      promptLabel: "Free Lenormand prompt बनाएँ",
+      outputLabel: "Copy-ready Lenormand prompt",
+    },
+  },
+  es: {
+    tarot: {
+      title: "Prompt de tarot",
+      eyebrow: "Tarot",
+      description: "Une pregunta, tirada y direcciones de cartas en un prompt AI de consulta de tarot.",
+      drawLabel: "Empezar a sacar cartas",
+      deckLabel: "Mazo de tarot",
+      deckCaption: "Saca una carta cada vez del mazo de 78 cartas.",
+      promptLabel: "Crear prompt de oráculo AI",
+      outputLabel: "Prompt de oráculo AI",
+    },
+    lenormand: {
+      title: "Prompt Lenormand",
+      eyebrow: "Lenormand",
+      description: "Escribe una pregunta y se abre el prompt con su flujo de lectura.",
+      drawLabel: "Sacar 6 cartas Lenormand",
+      deckLabel: "Mazo Lenormand",
+      deckCaption: "Saca 6 cartas del mazo Lenormand de 36 para leer flujo y pistas de acción.",
+      promptLabel: "Crear prompt Lenormand gratis",
+      outputLabel: "Prompt Lenormand para copiar",
+    },
+  },
+  fr: {
+    tarot: {
+      title: "Prompt de tarot",
+      eyebrow: "Tarot",
+      description: "Tissez question, tirage et orientations des cartes en un prompt IA de consultation tarot.",
+      drawLabel: "Commencer le tirage",
+      deckLabel: "Jeu de tarot",
+      deckCaption: "Tirez une carte à la fois dans le jeu de 78 cartes.",
+      promptLabel: "Créer le prompt d'oracle IA",
+      outputLabel: "Prompt d'oracle IA",
+    },
+    lenormand: {
+      title: "Prompt Lenormand",
+      eyebrow: "Lenormand",
+      description: "Écrivez une question et le prompt avec son flux de lecture s'ouvre.",
+      drawLabel: "Tirer 6 cartes Lenormand",
+      deckLabel: "Jeu Lenormand",
+      deckCaption: "Tirez 6 cartes du jeu Lenormand de 36 pour lire le flux et les pistes d'action.",
+      promptLabel: "Créer le prompt Lenormand gratuit",
+      outputLabel: "Prompt Lenormand à copier",
+    },
+  },
+  de: {
+    tarot: {
+      title: "Tarot-Prompt",
+      eyebrow: "Tarot",
+      description: "Webe Frage, Legung und Kartenrichtungen zu einem feinen KI-Tarotberatungs-Prompt.",
+      drawLabel: "Karten ziehen starten",
+      deckLabel: "Tarotdeck",
+      deckCaption: "Ziehe eine Karte nach der anderen aus dem 78-Karten-Deck.",
+      promptLabel: "KI-Orakel-Prompt erstellen",
+      outputLabel: "KI-Orakel-Prompt",
+    },
+    lenormand: {
+      title: "Lenormand-Prompt",
+      eyebrow: "Lenormand",
+      description: "Schreibe eine Frage und der passende Prompt mit Lesefluss öffnet sich.",
+      drawLabel: "6 Lenormandkarten ziehen",
+      deckLabel: "Lenormanddeck",
+      deckCaption: "Ziehe 6 Karten aus dem 36-Karten-Lenormanddeck, um Verlauf und Handlungshinweise zu lesen.",
+      promptLabel: "Kostenlosen Lenormand-Prompt erstellen",
+      outputLabel: "Lenormand-Prompt zum Kopieren",
+    },
+  },
+  nl: {
+    tarot: {
+      title: "Tarotprompt",
+      eyebrow: "Tarot",
+      description: "Weef vraag, spread en kaartrichtingen tot één verfijnde AI-tarotconsultprompt.",
+      drawLabel: "Kaarten trekken starten",
+      deckLabel: "Tarotdeck",
+      deckCaption: "Trek één kaart tegelijk uit het deck van 78 kaarten.",
+      promptLabel: "AI-orakelprompt maken",
+      outputLabel: "AI-orakelprompt",
+    },
+    lenormand: {
+      title: "Lenormand-prompt",
+      eyebrow: "Lenormand",
+      description: "Schrijf een vraag en de prompt met leesstroom opent rond dat thema.",
+      drawLabel: "6 Lenormandkaarten trekken",
+      deckLabel: "Lenormanddeck",
+      deckCaption: "Trek 6 kaarten uit het Lenormanddeck van 36 om stroom en actietips te lezen.",
+      promptLabel: "Gratis Lenormand-prompt maken",
+      outputLabel: "Lenormand-prompt om te kopiëren",
+    },
+  },
+  ms: {
+    tarot: {
+      title: "Prompt Tarot",
+      eyebrow: "Tarot",
+      description: "Anyam soalan, spread dan arah kad menjadi prompt konsultasi tarot AI yang halus.",
+      drawLabel: "Mula cabut kad",
+      deckLabel: "Dek Tarot",
+      deckCaption: "Cabut satu kad demi satu daripada dek 78 kad.",
+      promptLabel: "Cipta prompt oracle AI",
+      outputLabel: "Prompt oracle AI",
+    },
+    lenormand: {
+      title: "Prompt Lenormand",
+      eyebrow: "Lenormand",
+      description: "Tulis soalan dan prompt dengan aliran bacaan akan terbuka mengikut tema.",
+      drawLabel: "Cabut 6 kad Lenormand",
+      deckLabel: "Dek Lenormand",
+      deckCaption: "Cabut 6 kad daripada dek Lenormand 36 kad untuk membaca aliran dan petunjuk tindakan.",
+      promptLabel: "Cipta prompt Lenormand percuma",
+      outputLabel: "Prompt Lenormand untuk disalin",
+    },
+  },
+};
 
-const STEP_META: Array<{ id: Stage; title: string; caption: string; icon: string }> = [
-  { id: "question", title: "질문 올리기", caption: "마음속 질문을 밤하늘에 올리고 어울리는 스프레드를 고르세요.", icon: "✦" },
-  { id: "draw", title: "카드 열기", caption: "직관이 닿는 순서대로 카드를 열어 질문의 별자리를 만듭니다.", icon: "✦" },
-  { id: "prompt", title: "AI 프롬프트", caption: "카드가 만든 흐름을 AI 타로 상담 프롬프트로 정리합니다.", icon: "✦" },
-];
+const DECK_SLOTS = Array.from({ length: Math.max(CARD_POOL.length, LENORMAND_CARD_POOL.length) }, (_, index) => index);
 
 const CARD_COUNT_FILTERS = ["all", 1, 3, 5, 7, 10, 12, 14] as const;
 
@@ -1021,6 +2085,76 @@ const SENSITIVE_CATEGORY_NOTICE: Partial<Record<TarotSpreadCategory, string>> = 
   money: "금전 질문에는 수익이나 투자 판단의 단정 대신, 위험 신호와 관리 기준이 먼저 떠오릅니다.",
   self: "마음 질문은 진단이 아니라 감정의 이름과 회복 행동을 찾는 참고 리딩으로 다룹니다.",
   legal: "법률·송사 질문은 승패나 판결을 단정하지 않고, 기록 정리와 전문가 상담을 돕는 참고용 상징 해석으로만 다룹니다.",
+};
+
+const SENSITIVE_CATEGORY_NOTICE_COPY: Record<LoadingLocale, Partial<Record<TarotSpreadCategory, string>>> = {
+  ko: SENSITIVE_CATEGORY_NOTICE,
+  en: {
+    crisis: "Crisis questions separate what to pause and where to seek help now, without feeding fear.",
+    money: "Money questions bring up risk signals and management standards before profit or investment conclusions.",
+    self: "Mind questions are treated as reflective readings for naming emotions and finding recovery actions, not diagnosis.",
+    legal: "Legal questions are symbolic references for organizing records and seeking expert counsel, not predictions of wins or rulings.",
+  },
+  ja: {
+    crisis: "危機の質問では恐れを強めず、止める選択と今助けを求める場所を先に分けます。",
+    money: "金運の質問では利益や投資判断を断定せず、危険サインと管理基準を先に見ます。",
+    self: "心の質問は診断ではなく、感情の名前と回復行動を見つけるための参考リーディングとして扱います。",
+    legal: "法律・訴訟の質問は勝敗や判決を断定せず、記録整理と専門家相談を助ける参考の象徴解釈として扱います。",
+  },
+  "zh-CN": {
+    crisis: "危机问题不放大恐惧，而是先区分该暂停的选择和现在该求助的位置。",
+    money: "金钱问题不直接断定收益或投资判断，而是先看风险信号和管理标准。",
+    self: "内心问题不是诊断，而是作为命名情绪、寻找恢复行动的参考解读。",
+    legal: "法律诉讼问题不断定胜负或判决，只作为整理记录、咨询专家的象征参考。",
+  },
+  "zh-TW": {
+    crisis: "危機問題不放大恐懼，而是先區分該暫停的選擇和現在該求助的位置。",
+    money: "金錢問題不直接斷定收益或投資判斷，而是先看風險訊號和管理標準。",
+    self: "內心問題不是診斷，而是作為命名情緒、尋找恢復行動的參考解讀。",
+    legal: "法律訴訟問題不斷定勝負或判決，只作為整理紀錄、諮詢專家的象徵參考。",
+  },
+  vi: {
+    crisis: "Câu hỏi khủng hoảng không nuôi thêm nỗi sợ; nó tách điều cần dừng và nơi cần tìm trợ giúp lúc này.",
+    money: "Câu hỏi tiền bạc đặt tín hiệu rủi ro và tiêu chuẩn quản lý trước kết luận lợi nhuận hay đầu tư.",
+    self: "Câu hỏi nội tâm là đọc tham khảo để gọi tên cảm xúc và tìm hành động hồi phục, không phải chẩn đoán.",
+    legal: "Câu hỏi pháp lý chỉ là tham khảo biểu tượng để sắp hồ sơ và tìm tư vấn chuyên gia, không quyết định thắng thua.",
+  },
+  hi: {
+    crisis: "Crisis questions डर नहीं बढ़ाते; वे पहले रोकने योग्य choice और मदद माँगने की जगह अलग करते हैं.",
+    money: "Money questions profit या investment judgment से पहले risk signals और management standards दिखाते हैं.",
+    self: "Mind questions diagnosis नहीं हैं; वे emotions को नाम देने और recovery actions खोजने की reflective reading हैं.",
+    legal: "Legal questions wins या rulings तय नहीं करते; वे records organize करने और expert counsel लेने की symbolic reference हैं.",
+  },
+  es: {
+    crisis: "Las preguntas de crisis separan lo que conviene pausar y dónde pedir ayuda ahora, sin alimentar el miedo.",
+    money: "Las preguntas de dinero muestran señales de riesgo y criterios de gestión antes de concluir sobre ganancias o inversión.",
+    self: "Las preguntas del ánimo se leen como referencia para nombrar emociones y hallar acciones de recuperación, no como diagnóstico.",
+    legal: "Las preguntas legales son referencia simbólica para ordenar registros y buscar asesoría experta, no predicciones de fallo.",
+  },
+  fr: {
+    crisis: "Les questions de crise séparent ce qu'il faut suspendre et où demander de l'aide maintenant, sans nourrir la peur.",
+    money: "Les questions d'argent font d'abord émerger les signaux de risque et les repères de gestion, pas une conclusion d'investissement.",
+    self: "Les questions du coeur sont une lecture de référence pour nommer l'émotion et trouver une action de rétablissement, pas un diagnostic.",
+    legal: "Les questions juridiques restent une référence symbolique pour organiser les dossiers et consulter un expert, sans prédire verdict ou victoire.",
+  },
+  de: {
+    crisis: "Krisenfragen trennen zuerst, was gestoppt werden sollte und wo jetzt Hilfe gesucht werden kann, ohne Angst zu nähren.",
+    money: "Geldfragen zeigen zuerst Risikosignale und Managementmaßstäbe, statt Gewinn oder Investition festzulegen.",
+    self: "Seelenfragen sind keine Diagnose, sondern eine Reflexionslesung zum Benennen von Gefühlen und Finden von Erholungsschritten.",
+    legal: "Rechtsfragen sind symbolische Hinweise für Unterlagen und Fachberatung, keine Aussage über Sieg oder Urteil.",
+  },
+  nl: {
+    crisis: "Crisisvragen scheiden eerst wat moet pauzeren en waar nu hulp gezocht kan worden, zonder angst te voeden.",
+    money: "Geldvragen tonen risicosignalen en beheercriteria vóór winst- of investeringsconclusies.",
+    self: "Vragen over het innerlijk zijn geen diagnose, maar een reflectieve reading om emoties te benoemen en herstelacties te vinden.",
+    legal: "Juridische vragen zijn symbolische referentie voor dossiers en deskundig advies, geen voorspelling van winst of uitspraak.",
+  },
+  ms: {
+    crisis: "Soalan krisis memisahkan pilihan yang perlu dihentikan dan tempat meminta bantuan sekarang, tanpa membesarkan rasa takut.",
+    money: "Soalan wang menaikkan isyarat risiko dan piawai pengurusan sebelum kesimpulan untung atau pelaburan.",
+    self: "Soalan hati ialah bacaan reflektif untuk menamakan emosi dan mencari tindakan pemulihan, bukan diagnosis.",
+    legal: "Soalan undang-undang hanyalah rujukan simbolik untuk menyusun rekod dan mendapatkan nasihat pakar, bukan ramalan keputusan.",
+  },
 };
 
 function normalizeText(value: string) {
@@ -1064,11 +2198,11 @@ function buildFlowLines(cards: DrawnTarotCard[]) {
 }
 
 /* ─── StepIndicator ─── */
-function StepIndicator({ current }: { current: Stage }) {
-  const currentIndex = STEP_META.findIndex((s) => s.id === current);
+function StepIndicator({ current, steps }: { current: Stage; steps: Array<{ id: Stage; title: string; caption: string; icon: string }> }) {
+  const currentIndex = steps.findIndex((s) => s.id === current);
   return (
     <div className="flex items-center justify-center gap-0 w-full max-w-3xl mx-auto">
-      {STEP_META.map((step, idx) => {
+      {steps.map((step, idx) => {
         const active = currentIndex === idx;
         const done = currentIndex > idx;
         return (
@@ -1085,7 +2219,7 @@ function StepIndicator({ current }: { current: Stage }) {
                 {step.title}
               </div>
             </div>
-            {idx < STEP_META.length - 1 && (
+            {idx < steps.length - 1 && (
               <div className={`h-px flex-1 mx-2 transition-all duration-700 ${done ? "bg-gradient-to-r from-[#a855f7] to-[#c084fc]" : "bg-white/15"}`} />
             )}
           </div>
@@ -1143,6 +2277,7 @@ export default function TarotPromptMakerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
+  const uiCopy = PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko;
   const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
   const localizedPromptData = useMemo(() => getLocalizedPromptMakerData(locale), [locale]);
   const categoryLabel = localizedPromptData.categoryLabel;
@@ -1165,7 +2300,16 @@ export default function TarotPromptMakerPage() {
   );
 
   const isLenormandMode = oracleMode === "lenormand";
-  const oracleModeMeta = ORACLE_MODE_META[oracleMode];
+  const stepMeta = useMemo<Array<{ id: Stage; title: string; caption: string; icon: string }>>(
+    () => [
+      { id: "question", title: uiCopy.heroSteps[0], caption: "", icon: "✦" },
+      { id: "draw", title: uiCopy.heroSteps[1], caption: "", icon: "✦" },
+      { id: "prompt", title: uiCopy.heroSteps[2], caption: "", icon: "✦" },
+    ],
+    [uiCopy],
+  );
+  const oracleModeMetaByMode = ORACLE_MODE_META_COPY[locale] || ORACLE_MODE_META_COPY.ko;
+  const oracleModeMeta = oracleModeMetaByMode[oracleMode];
   const selectedSpread = isLenormandMode ? LENORMAND_SPREAD : findSpreadById(selectedSpreadId);
   const activeCardPool = isLenormandMode ? LENORMAND_CARD_POOL : CARD_POOL;
   const activeDeckSize = activeCardPool.length;
@@ -1219,13 +2363,14 @@ export default function TarotPromptMakerPage() {
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (isLenormandMode ? feedbackCopy.free : billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : feedbackCopy.free)
+    ? (isLenormandMode ? feedbackCopy.free : billingPassIncluded ? uiCopy.subscriptionPassLabel(billingSubscriptionLabel) : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins, uiCopy) : feedbackCopy.free)
     : (isLenormandMode ? feedbackCopy.free : feedbackCopy.oneTimePrice);
 
   const billingStateLabel = billingSnapshot
     ? (isLenormandMode ? feedbackCopy.lenormandFree : billingPassIncluded ? feedbackCopy.passAvailable : billingSnapshot.canAccess ? feedbackCopy.instantUse : feedbackCopy.paymentRequired)
     : (isLenormandMode ? feedbackCopy.lenormandFree : billingLoading ? feedbackCopy.checking : feedbackCopy.disconnected);
-  const sensitiveCategoryNotice = isLenormandMode ? "" : SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
+  const sensitiveCategoryNoticeByCategory = SENSITIVE_CATEGORY_NOTICE_COPY[locale] || SENSITIVE_CATEGORY_NOTICE_COPY.ko;
+  const sensitiveCategoryNotice = isLenormandMode ? "" : sensitiveCategoryNoticeByCategory[selectedQuestionCategory];
   const questionQualityNotice = isLenormandMode
     ? (normalizeText(question) ? feedbackCopy.lenormandQuestionReady : feedbackCopy.lenormandQuestionEmpty)
     : buildQuestionQualityNotice(question, selectedQuestionCategory, categoryLabel, questionQualityCopy);
@@ -1251,7 +2396,7 @@ export default function TarotPromptMakerPage() {
     async function loadBillingSnapshot() {
       setBillingLoading(true);
       try {
-        const query = new URLSearchParams({ featureKey: "tarot-prompt-maker", reason: "타로 프롬프트 라이브러리" });
+        const query = new URLSearchParams({ featureKey: "tarot-prompt-maker", reason: feedbackCopy.subscriptionReason });
         const response = await fetch(`/api/billing/unlock-status?${query.toString()}`, { method: "GET", credentials: "include", signal: controller.signal });
         const payload = await response.json().catch(() => ({}));
         const data = payload?.ok && payload?.data && typeof payload.data === "object" ? payload.data : null;
@@ -1268,7 +2413,7 @@ export default function TarotPromptMakerPage() {
     }
     loadBillingSnapshot();
     return () => { active = false; controller.abort(); };
-  }, []);
+  }, [feedbackCopy.subscriptionReason]);
 
   function resetDrawState() {
     setUsedDeckSlots([]);
@@ -1408,7 +2553,7 @@ export default function TarotPromptMakerPage() {
       }
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
-        reason: "타로 프롬프트 라이브러리",
+        reason: feedbackCopy.subscriptionReason,
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           generate();
@@ -1421,12 +2566,12 @@ export default function TarotPromptMakerPage() {
             return;
           }
           if (accessSource === "moonlight_stone") {
-            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : feedbackCopy.passBenefit;
-            const balanceText = typeof monthlyBalanceAfter === "number" ? feedbackCopy.passRemaining(formatMonthlyCreditValue(monthlyBalanceAfter)) : "";
+            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent, uiCopy) : feedbackCopy.passBenefit;
+            const balanceText = typeof monthlyBalanceAfter === "number" ? feedbackCopy.passRemaining(formatMonthlyCreditValue(monthlyBalanceAfter, uiCopy)) : "";
             showToast(feedbackCopy.passOpened(spentText, balanceText), "info");
             return;
           }
-          if (chargedCoins > 0) showToast(feedbackCopy.paidApproved(formatCoinValue(balanceAfter)), "info");
+          if (chargedCoins > 0) showToast(feedbackCopy.paidApproved(formatCoinValue(balanceAfter, uiCopy)), "info");
         },
       });
       if (!paymentResult.ok) {
@@ -1438,7 +2583,7 @@ export default function TarotPromptMakerPage() {
           }
           return;
         }
-        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(feedbackCopy.insufficientCoins(formatCoinValue(paymentResult.requiredCoins))); return; }
+        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(feedbackCopy.insufficientCoins(formatCoinValue(paymentResult.requiredCoins, uiCopy))); return; }
         if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback(feedbackCopy.priceNotFound); return; }
         if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback(feedbackCopy.serverConfigError); return; }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast(feedbackCopy.refunded, "info");
@@ -1530,14 +2675,14 @@ export default function TarotPromptMakerPage() {
           {/* ── Header ── */}
           <header className="text-center mb-8 pt-2">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#a855f7]/40 bg-[#a855f7]/10 text-[11px] font-semibold tracking-[0.25em] text-[#c4b5fd] uppercase mb-4">
-              ✦ AI 오라클 프롬프트 아틀리에 ✦
+              ✦ {uiCopy.heroBadge} ✦
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: "#fff", textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
-              <span className="text-[#e9d5ff]">질문을 올리고</span>
+              <span className="text-[#e9d5ff]">{uiCopy.heroSteps[0]}</span>
               <span className="mx-3 text-[#c084fc]">→</span>
-              <span className="text-[#e9d5ff]">카드를 열어</span>
+              <span className="text-[#e9d5ff]">{uiCopy.heroSteps[1]}</span>
               <span className="mx-3 text-[#c084fc]">→</span>
-              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">AI 프롬프트로</span>
+              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">{uiCopy.heroSteps[2]}</span>
             </h1>
             <p className="mt-3 text-[#c4b5fd]/70 text-sm sm:text-base">
               {oracleModeMeta.description}
@@ -1553,7 +2698,7 @@ export default function TarotPromptMakerPage() {
 
           {/* ── Step Indicator ── */}
           <div className="mb-8">
-            <StepIndicator current={stage} />
+            <StepIndicator current={stage} steps={stepMeta} />
           </div>
 
           {/* ── Stage Content ── */}
@@ -1580,9 +2725,9 @@ export default function TarotPromptMakerPage() {
                   >
                     <div className="text-center mb-6">
                       <div className="text-4xl mb-3">🌙</div>
-                      <h2 className="text-2xl sm:text-3xl font-bold text-[#e9d5ff]">{isLenormandMode ? "질문" : "마음 속 질문을 들려주세요"}</h2>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-[#e9d5ff]">{isLenormandMode ? uiCopy.questionTitle.lenormand : uiCopy.questionTitle.tarot}</h2>
                       <p className="mt-2 text-[#a78bfa]/80 text-sm leading-relaxed">
-                        {isLenormandMode ? "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다." : "타로가 당신만의 이야기를 풀어낼 준비를 합니다."}
+                        {isLenormandMode ? uiCopy.questionDescription.lenormand : uiCopy.questionDescription.tarot}
                       </p>
                     </div>
 
@@ -1594,8 +2739,8 @@ export default function TarotPromptMakerPage() {
                           onClick={() => handleOracleModeChange(mode)}
                           className={`rounded-2xl border px-4 py-3 text-left transition-all ${oracleMode === mode ? "border-[#f59e0b]/45 bg-[#f59e0b]/12 text-[#fff7ed]" : "border-white/10 bg-white/5 text-[#c4b5fd]/75 hover:bg-white/10"}`}
                         >
-                          <span className="block text-[10px] uppercase tracking-[0.18em] opacity-70">{ORACLE_MODE_META[mode].eyebrow}</span>
-                          <span className="mt-1 block text-sm font-bold">{ORACLE_MODE_META[mode].title}</span>
+                          <span className="block text-[10px] uppercase tracking-[0.18em] opacity-70">{oracleModeMetaByMode[mode].eyebrow}</span>
+                          <span className="mt-1 block text-sm font-bold">{oracleModeMetaByMode[mode].title}</span>
                         </button>
                       ))}
                     </div>
@@ -1625,15 +2770,15 @@ export default function TarotPromptMakerPage() {
                       >
                         <div className="flex items-center justify-between gap-3 mb-3">
                           <div>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">질문 카테고리</div>
-                            <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {categoryLabel[detectedCategory]}</div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">{uiCopy.categoryTitle}</div>
+                            <div className="text-xs text-[#a78bfa]/70 mt-1">{uiCopy.autoDetected(categoryLabel[detectedCategory])}</div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setManualCategory("auto")}
                             className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${manualCategory === "auto" ? "border-[#f59e0b]/45 bg-[#f59e0b]/15 text-[#fde68a]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
                           >
-                            자동 추정
+                            {uiCopy.autoDetectButton}
                           </button>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -1672,9 +2817,9 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">선택된 스프레드</div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">{uiCopy.selectedSpread}</div>
                           <div className="text-[#e9d5ff] font-semibold text-base">{selectedSpread.title}</div>
-                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? "레노먼드" : `상담 카테고리 ${categoryLabel[selectedQuestionCategory]}`}</div>
+                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{uiCopy.cardCount(selectedSpread.cardCount)} · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? uiCopy.lenormandLabel : uiCopy.consultationCategory(categoryLabel[selectedQuestionCategory])}</div>
                           <div className="text-[#c4b5fd]/60 text-xs mt-1 leading-relaxed">{selectedSpread.purpose}</div>
                         </div>
                         {!isLenormandMode && <button
@@ -1682,7 +2827,7 @@ export default function TarotPromptMakerPage() {
                           onClick={() => setShowSpreadPicker(true)}
                           className="px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
                         >
-                          스프레드 바꾸기
+                          {uiCopy.changeSpread}
                         </button>}
                       </div>
                     </div>
@@ -1693,15 +2838,15 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between gap-3 mb-3">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">추천 질문</div>
-                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {isLenormandMode ? "레노먼드" : categoryLabel[selectedQuestionCategory]}</div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">{uiCopy.recommendedQuestions}</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {isLenormandMode ? uiCopy.lenormandLabel : categoryLabel[selectedQuestionCategory]}</div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRecommendedQuestion(recommendedQuestions[0] || defaultQuestionByCategory[selectedQuestionCategory])}
                           className="px-3 py-1.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-xs font-semibold text-[#fde68a] hover:bg-[#f59e0b]/15 transition-all"
                         >
-                          첫 질문 적용
+                          {uiCopy.applyFirstQuestion}
                         </button>
                       </div>
                       <div className="grid gap-2 sm:grid-cols-2">
@@ -1724,8 +2869,8 @@ export default function TarotPromptMakerPage() {
                         style={{ background: "linear-gradient(135deg, rgba(120,53,15,0.18), rgba(88,28,135,0.16))" }}
                       >
                         <div className="mb-3">
-                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#fbbf24]/70">무료 레노먼드 프롬프트</div>
-                          <div className="mt-1 text-sm leading-relaxed text-[#fde68a]/90">질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.</div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#fbbf24]/70">{uiCopy.lenormandFreeTitle}</div>
+                          <div className="mt-1 text-sm leading-relaxed text-[#fde68a]/90">{uiCopy.lenormandFreeDescription}</div>
                         </div>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {LENORMAND_INFO_ITEMS.map(([number, title, body]) => (
@@ -1750,13 +2895,13 @@ export default function TarotPromptMakerPage() {
                       <button
                         type="button"
                           onClick={() => {
-                            setQuestion(isLenormandMode ? LENORMAND_DEFAULT_QUESTION : defaultQuestionByCategory[selectedQuestionCategory]);
+                            setQuestion(isLenormandMode ? lenormandDefaultQuestion : defaultQuestionByCategory[selectedQuestionCategory]);
                             setFeedback("");
                             setQuestionStatus(isLenormandMode ? feedbackCopy.lenormandDefaultStatus : feedbackCopy.categoryDefaultStatus);
                           }}
                         className="flex-1 px-4 py-3 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-sm font-medium hover:bg-white/10 transition-all"
                       >
-                        {isLenormandMode ? "레노먼드 기본 질문" : "카테고리 기본 질문"}
+                        {isLenormandMode ? uiCopy.defaultQuestionButton.lenormand : uiCopy.defaultQuestionButton.tarot}
                       </button>
                       <motion.button
                         whileHover={{ scale: 1.03 }}
@@ -1803,18 +2948,18 @@ export default function TarotPromptMakerPage() {
                             className="px-3 py-1.5 rounded-full text-xs font-bold"
                             style={{ background: "linear-gradient(90deg, rgba(192,132,252,0.2), rgba(244,114,182,0.15))", border: "1px solid rgba(192,132,252,0.35)", color: "#e9d5ff" }}
                           >
-                            {progressText} 완료
+                            {progressText} {uiCopy.completeSuffix}
                           </div>
                           {!isLenormandMode && <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-xs text-[#c4b5fd]">
                             <input type="checkbox" checked={allowReversed} onChange={(e) => setAllowReversed(e.target.checked)} className="accent-[#a855f7] h-3.5 w-3.5" />
-                            역방향 포함
+                            {uiCopy.includeReversed}
                           </label>}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-3">
-                        <button type="button" onClick={handleGoQuestion} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">← 질문으로 돌아가기</button>
-                        <button type="button" onClick={handleResetAll} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">처음으로</button>
-                        {!isLenormandMode && <button type="button" onClick={() => setShowSpreadPicker(true)} className="px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-[#c4b5fd] font-semibold hover:bg-[#7c3aed]/20 transition-all">다른 스프레드</button>}
+                        <button type="button" onClick={handleGoQuestion} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">{uiCopy.backToQuestion}</button>
+                        <button type="button" onClick={handleResetAll} className="px-3 py-1.5 rounded-full border border-white/12 bg-white/5 text-xs text-[#c4b5fd] hover:bg-white/10 transition-all">{uiCopy.resetStart}</button>
+                        {!isLenormandMode && <button type="button" onClick={() => setShowSpreadPicker(true)} className="px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-[#c4b5fd] font-semibold hover:bg-[#7c3aed]/20 transition-all">{uiCopy.otherSpread}</button>}
                       </div>
                     </div>
 
@@ -1828,7 +2973,7 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
                         <div className="text-xs uppercase tracking-[0.22em] text-[#7c3aed]/55">Spread Board</div>
-                        <div className="ml-auto text-xs text-[#a78bfa]/60">직관이 끌리는 순서대로 카드를 뽑아보세요.</div>
+                        <div className="ml-auto text-xs text-[#a78bfa]/60">{uiCopy.spreadBoardHint}</div>
                       </div>
                       <div className="relative" style={{ paddingBottom: "90%", minHeight: 280 }}>
                         {selectedSpread.positions.map((position) => {
@@ -1868,7 +3013,7 @@ export default function TarotPromptMakerPage() {
                                     <img src={drawn.image} alt={drawn.cardNameKo} className="w-full flex-1 object-cover" style={{ filter: !isLenormandMode && drawn.orientation === "reversed" ? "hue-rotate(180deg) brightness(0.85)" : undefined, transform: !isLenormandMode && drawn.orientation === "reversed" ? "rotate(180deg)" : undefined }} />
                                     <div className="px-1 py-1 text-center" style={{ background: "rgba(0,0,0,0.7)" }}>
                                       <div className="text-[9px] font-bold text-[#e9d5ff] leading-tight line-clamp-1">{drawn.cardNameKo}</div>
-                                      <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? "조합 읽기" : drawn.orientationLabel}</div>
+                                      <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? uiCopy.combinationReading : drawn.orientationLabel}</div>
                                     </div>
                                   </motion.div>
                                 ) : (
@@ -1886,7 +3031,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Position guide */}
                     <div className="rounded-2xl border border-[#6d28d9]/20 p-4" style={{ background: "rgba(10,5,25,0.7)" }}>
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">포지션 의미</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">{uiCopy.positionMeaning}</div>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {selectedSpread.positions.map((position) => (
                           <div key={`${selectedSpread.id}-position-${position.index}`} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
@@ -1948,7 +3093,7 @@ export default function TarotPromptMakerPage() {
                         className="w-full py-3 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                         style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.3)" }}
                       >
-                        {isLenormandMode ? "레노먼드 카드 뽑기" : "✦ 카드 뽑기"}
+                        {isLenormandMode ? uiCopy.drawCard.lenormand : uiCopy.drawCard.tarot}
                       </motion.button>
 
                       <button
@@ -1956,7 +3101,7 @@ export default function TarotPromptMakerPage() {
                         onClick={() => setShowFullDeck((p) => !p)}
                         className="mt-2 w-full py-2 rounded-xl border border-white/10 bg-white/5 text-xs text-[#a78bfa] hover:bg-white/10 transition-all"
                       >
-                        {showFullDeck ? "전체 카드 목록 닫기" : "전체 카드 직접 선택"}
+                        {showFullDeck ? uiCopy.fullDeck.close : uiCopy.fullDeck.open}
                       </button>
 
                       <AnimatePresence>
@@ -1991,7 +3136,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Drawn cards list */}
                     <div className="rounded-2xl border border-[#6d28d9]/20 p-4" style={{ background: "rgba(10,5,25,0.7)" }}>
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">선택된 카드</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">{uiCopy.selectedCards}</div>
                       <div className="space-y-1.5">
                         {selectedSpread.positions.map((position, index) => {
                           const drawn = drawnCards[index];
@@ -2003,7 +3148,7 @@ export default function TarotPromptMakerPage() {
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="text-xs text-[#f3e8ff] font-medium truncate">{drawn.cardNameKo}</span>
-                                      <span className="text-[10px] text-[#f472b6] shrink-0">{isLenormandMode ? "레노먼드" : drawn.orientationLabel}</span>
+                                      <span className="text-[10px] text-[#f472b6] shrink-0">{isLenormandMode ? uiCopy.lenormandLabel : drawn.orientationLabel}</span>
                                     </div>
                                     <div className="mt-0.5 text-[10px] text-white/40 leading-relaxed line-clamp-2">{drawn.positionDescription}</div>
                                   </div>
@@ -2012,11 +3157,11 @@ export default function TarotPromptMakerPage() {
                                     onClick={() => toggleDrawnCardOrientation(index)}
                                     className="shrink-0 px-2 py-1 rounded-full border border-[#c084fc]/30 bg-[#c084fc]/10 text-[10px] font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all"
                                   >
-                                    방향 변경
+                                    {uiCopy.changeDirection}
                                   </button>}
                                 </div>
                               ) : (
-                                <div className="mt-0.5 text-[10px] text-white/30">아직 선택되지 않았어요.</div>
+                                <div className="mt-0.5 text-[10px] text-white/30">{uiCopy.notSelected}</div>
                               )}
                             </div>
                           );
@@ -2067,7 +3212,7 @@ export default function TarotPromptMakerPage() {
                       className="rounded-2xl border border-[#7c3aed]/30 p-5"
                       style={{ background: "linear-gradient(145deg, rgba(25,10,55,0.92), rgba(15,5,38,0.92))" }}
                     >
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">{isLenormandMode ? "레노먼드 프롬프트 지도" : "AI 상담 프롬프트 지도"}</div>
+                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">{isLenormandMode ? uiCopy.promptMap.lenormand : uiCopy.promptMap.tarot}</div>
                       <h2 className="text-xl font-bold text-[#e9d5ff] mb-2">{selectedSpread.title}</h2>
                       <p className="text-xs text-[#a78bfa]/75 leading-relaxed mb-2">{promptResult.effectiveQuestion}</p>
                       <p className="text-xs text-[#c4b5fd]/65 leading-relaxed">{promptResult.summary}</p>
@@ -2075,7 +3220,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Card images strip */}
                     <div className="rounded-2xl border border-[#6d28d9]/20 p-4" style={{ background: "rgba(8,4,20,0.75)" }}>
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">선택된 카드</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-3">{uiCopy.selectedCards}</div>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {drawnCards.slice(0, 5).map((card, i) => (
                           <div key={i} className="flex flex-col items-center gap-1">
@@ -2095,7 +3240,7 @@ export default function TarotPromptMakerPage() {
                               <div className="text-[10px] text-[#c084fc]">{position.index}. {position.label}</div>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-xs font-semibold text-[#f3e8ff]">{drawn.cardNameKo}</span>
-                                <span className="text-[10px] text-[#f472b6]">{isLenormandMode ? "레노먼드" : drawn.orientationLabel}</span>
+                                <span className="text-[10px] text-[#f472b6]">{isLenormandMode ? uiCopy.lenormandLabel : drawn.orientationLabel}</span>
                               </div>
                               <div className="text-[10px] text-white/45 mt-0.5 leading-relaxed">{drawn.positionDescription}</div>
                             </div>
@@ -2106,7 +3251,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Spread summary */}
                     <div className="rounded-2xl border border-white/8 p-4" style={{ background: "rgba(5,3,15,0.6)" }}>
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-2">카드가 만든 신탁 지도</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-2">{uiCopy.oracleMap}</div>
                       <div className="space-y-1.5">
                         {flowLines.map((line, i) => (
                           <p key={i} className="text-xs leading-relaxed text-[#a78bfa]/70">{line}</p>
@@ -2127,7 +3272,7 @@ export default function TarotPromptMakerPage() {
                       <div className="flex items-center justify-between gap-3 mb-4">
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">{oracleModeMeta.outputLabel}</div>
-                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">{isLenormandMode ? "지금 복사할 무료 레노먼드 프롬프트" : "지금 복사할 AI 오라클 프롬프트 ✦"}</div>
+                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">{isLenormandMode ? uiCopy.outputTitle.lenormand : uiCopy.outputTitle.tarot}</div>
                         </div>
                         <button
                           type="button"
@@ -2153,26 +3298,26 @@ export default function TarotPromptMakerPage() {
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
                         {copied ? feedbackCopy.copiedDone : isLenormandMode ? feedbackCopy.copyPrompt : feedbackCopy.copyPrompt}
                       </button>
-                      <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 질문자에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 질문자의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
-                        상담톤 강화
+                      <button type="button" onClick={() => handleTunePrompt(uiCopy.tune.consultLabel, uiCopy.tune.consultInstruction)} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
+                        {uiCopy.tune.consultLabel}
                       </button>
-                      <button type="button" onClick={() => handleTunePrompt("더 현실적으로", "상징 해석 뒤에는 반드시 현실적인 판단 기준과 행동 순서를 붙여 주세요. 법률, 의료, 투자, 임신, 합격 여부 등 민감한 주제는 참고용 조언으로만 표현하고 전문가 상담을 함께 권하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        더 현실적으로
+                      <button type="button" onClick={() => handleTunePrompt(uiCopy.tune.practicalLabel, uiCopy.tune.practicalInstruction)} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
+                        {uiCopy.tune.practicalLabel}
                       </button>
-                      <button type="button" onClick={() => handleTunePrompt("더 따뜻하게", "답변의 온도를 조금 더 부드럽게 낮추고, 불안한 질문자가 숨을 고를 수 있도록 위로와 선택지를 함께 주세요. 공포를 주는 표현이나 단정적 미래 예언은 피하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        더 따뜻하게
+                      <button type="button" onClick={() => handleTunePrompt(uiCopy.tune.warmLabel, uiCopy.tune.warmInstruction)} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
+                        {uiCopy.tune.warmLabel}
                       </button>
                       <button type="button" onClick={handleRegeneratePrompt} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        ↺ 같은 카드로 다시 엮기
+                        {uiCopy.regenerateSameCards}
                       </button>
                       <button type="button" onClick={handleRedrawCards} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        🃏 카드 다시 열기
+                        {uiCopy.redrawCards}
                       </button>
                       {!isLenormandMode && <button type="button" onClick={handleChooseAnotherSpread} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
-                        다른 스프레드 선택
+                        {uiCopy.chooseAnotherSpread}
                       </button>}
                       <button type="button" onClick={handleResetAll} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
-                        처음부터 다시 시작
+                        {uiCopy.restartFromBeginning}
                       </button>
                     </div>
 
@@ -2184,51 +3329,14 @@ export default function TarotPromptMakerPage() {
           </div>
 
           <section className="mt-6 grid gap-3 rounded-3xl border border-[#c084fc]/20 bg-black/20 p-5 text-[#ede9fe]/80 backdrop-blur-sm md:grid-cols-3">
-            <article>
-              <h2 className="text-base font-bold text-[#f5d0fe]">무엇을 정리하나요</h2>
-              <p className="mt-2 text-xs leading-6">
-                질문의 주제, 선택한 스프레드, 카드의 방향을 한 문장씩 엮어 타로 상담에 바로 쓸 수 있는 프롬프트 흐름으로 정리합니다.
-                레노먼드는 사건의 순서와 행동 단서를, 타로는 마음의 층과 상징의 결을 더 깊게 비춥니다.
-              </p>
-            </article>
-            <article>
-              <h2 className="text-base font-bold text-[#f5d0fe]">어떻게 읽으면 좋나요</h2>
-              <p className="mt-2 text-xs leading-6">
-                질문을 구체적으로 적을수록 결과는 막연한 길흉보다 현재 상황, 반복 신호, 전환 단서, 현실 행동 쪽으로 선명해집니다.
-                무료 레노먼드는 흐름 정리에, 유료 오라클 프롬프트는 더 긴 상담 문장과 조율 지시에 어울립니다.
-              </p>
-            </article>
-            <article>
-              <h2 className="text-base font-bold text-[#f5d0fe]">주의할 점</h2>
-              <p className="mt-2 text-xs leading-6">
-                결과는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 의료, 법률, 투자, 임신, 합격 여부처럼 손실이 큰 결정은
-                이 리딩만으로 확정하지 말고 현실 정보와 전문가 상담을 함께 확인하세요. 프롬프트는 판단을 대신하지 않고 질문을 더 맑게 정리하는 도구로 읽어 주세요.
-              </p>
-            </article>
-            <article className="md:col-span-3">
-              <h2 className="text-base font-bold text-[#f5d0fe]">좋은 질문을 만드는 법</h2>
-              <p className="mt-2 text-xs leading-6">
-                “그 사람이 돌아올까요”처럼 결말을 묻는 질문보다 “지금 이 관계에서 내가 확인해야 할 신호는 무엇인가요”처럼
-                마음과 행동을 함께 묻는 문장이 더 안정적으로 읽힙니다. 프롬프트를 복사한 뒤에는 카드 이름만 나열하기보다,
-                현재 상황, 상대와 나의 감정, 현실적으로 할 수 있는 선택지를 함께 적어 두면 해석이 덜 단정적이고 더 상담답게 열립니다.
-                같은 카드 조합이라도 질문의 시점과 태도에 따라 메시지는 달라질 수 있으니, 결과를 압박으로 받아들이기보다
-                오늘 정리할 한 문장과 줄여야 할 행동 하나를 고르는 방식으로 사용해 주세요.
-              </p>
-              <p className="mt-2 text-xs leading-6">
-                타로 초보자는 1장 또는 3장 스프레드로 질문의 방향을 먼저 잡고, 복잡한 관계나 커리어 고민은 5장 이상의 스프레드로
-                배경과 행동 단서를 나누어 보는 편이 좋습니다. 결과가 마음에 들지 않더라도 같은 질문을 반복해서 뽑기보다,
-                질문을 더 정확하게 다듬거나 하루 정도 시간을 둔 뒤 다시 읽으면 상징이 더 차분하게 다가옵니다.
-                저장한 프롬프트는 상담 기록처럼 다시 보며 마음의 변화와 선택의 흐름을 비교해도 좋습니다.
-                처음 방문한 사용자는 무료 레노먼드로 흐름을 익힌 뒤, 필요한 때에만 더 긴 오라클 프롬프트를 열어도 충분합니다.
-              </p>
-              <p className="mt-2 text-xs leading-6">
-                입력값은 질문 문장, 고민 주제, 선택한 스프레드, 뽑은 카드입니다. 질문 문장은 상담의 초점을 정하고,
-                고민 주제는 사랑·일·돈·건강처럼 해석에서 조심해야 할 경계를 알려 줍니다. 스프레드는 시간의 흐름이나
-                관계의 위치를 나누고, 카드는 그 자리에 놓인 상징을 비춥니다. 예를 들어 “이직을 준비해도 될까요”라는 질문에
-                현재·장애물·조언 3장을 놓았다면, 프롬프트는 합격이나 수입을 단정하기보다 준비 상태, 확인해야 할 현실 조건,
-                무리하지 않고 움직일 수 있는 순서를 묻는 문장으로 정리됩니다.
-              </p>
-            </article>
+            {uiCopy.guideArticles.map((article, index) => (
+              <article key={`prompt-guide-${article.title}`} className={index === uiCopy.guideArticles.length - 1 ? "md:col-span-3" : undefined}>
+                <h2 className="text-base font-bold text-[#f5d0fe]">{article.title}</h2>
+                {article.paragraphs.map((paragraph) => (
+                  <p key={paragraph} className="mt-2 text-xs leading-6">{paragraph}</p>
+                ))}
+              </article>
+            ))}
           </section>
 
           <div className="h-8" />
@@ -2257,9 +3365,9 @@ export default function TarotPromptMakerPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
                 <div>
                   <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/60">Spread Library</div>
-                  <div className="text-lg font-bold text-[#e9d5ff] mt-0.5">✦ 다른 스프레드 보기</div>
+                  <div className="text-lg font-bold text-[#e9d5ff] mt-0.5">✦ {uiCopy.spreadLibraryTitle}</div>
                 </div>
-                <button type="button" onClick={() => setShowSpreadPicker(false)} className="px-3 py-1.5 rounded-full border border-white/14 bg-white/6 text-sm text-[#a78bfa] hover:bg-white/12 transition-all">닫기</button>
+                <button type="button" onClick={() => setShowSpreadPicker(false)} className="px-3 py-1.5 rounded-full border border-white/14 bg-white/6 text-sm text-[#a78bfa] hover:bg-white/12 transition-all">{uiCopy.close}</button>
               </div>
 
               {/* Search and filters */}
@@ -2268,11 +3376,11 @@ export default function TarotPromptMakerPage() {
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="스프레드 검색"
+                    placeholder={uiCopy.spreadSearchPlaceholder}
                     className="rounded-xl border border-[#6d28d9]/35 bg-black/30 px-3 py-2 text-sm text-[#f3e8ff] outline-none placeholder:text-[#7c3aed]/40"
                   />
                   <div className="rounded-xl border border-[#6d28d9]/25 bg-black/20 px-3 py-2 text-xs text-[#a78bfa]/70">
-                    추천 테마: {categoryLabel[detectedCategory]}
+                    {uiCopy.recommendedTheme(categoryLabel[detectedCategory])}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -2295,7 +3403,7 @@ export default function TarotPromptMakerPage() {
                       onClick={() => setCardCountFilter(count === "all" ? "all" : count)}
                       className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all ${cardCountFilter === count ? "border-[#a855f7]/45 bg-[#a855f7]/15 text-[#e9d5ff]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
                     >
-                      {count === "all" ? "전체" : `${count}장`}
+                      {count === "all" ? uiCopy.countAll : uiCopy.cardCount(count)}
                     </button>
                   ))}
                 </div>
@@ -2323,17 +3431,17 @@ export default function TarotPromptMakerPage() {
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div className="text-[9px] uppercase tracking-[0.16em] text-[#7c3aed]/55">{categoryLabel[spread.category]}</div>
-                          {recommended && <span className="px-1.5 py-0.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[9px] text-[#fcd34d]">추천</span>}
+                          {recommended && <span className="px-1.5 py-0.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[9px] text-[#fcd34d]">{uiCopy.recommendedBadge}</span>}
                         </div>
                         <div className="text-sm font-bold text-[#e9d5ff]">{spread.title}</div>
-                        <div className="text-xs text-[#a78bfa]/60 mt-0.5">{spread.cardCount}장 · {DIFFICULTY_LABEL[spread.difficulty]}</div>
+                        <div className="text-xs text-[#a78bfa]/60 mt-0.5">{uiCopy.cardCount(spread.cardCount)} · {DIFFICULTY_LABEL[spread.difficulty]}</div>
                         <p className="mt-2 text-xs leading-relaxed text-white/55">{spread.purpose}</p>
                       </motion.button>
                     );
                   })}
                   {!filteredSpreads.length && (
                     <div className="col-span-full rounded-2xl border border-dashed border-white/15 bg-white/3 px-4 py-10 text-center text-sm text-white/45">
-                      조건에 맞는 스프레드가 없습니다. 필터를 조정해 주세요.
+                      {uiCopy.noSpreads}
                     </div>
                   )}
                 </div>
