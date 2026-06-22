@@ -1,22 +1,142 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthWidget from "./AuthWidget";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const headerNavItems = [
-  { href: "/index.html", label: "홈" },
-];
+  { href: "/index.html" },
+] as const;
 
 const policyNavItems = [
-  { href: "/privacy", label: "개인정보" },
-  { href: "/terms", label: "이용약관" },
-  { href: "/contact", label: "문의" },
-  { href: "/about", label: "소개" },
-  { href: "/disclaimer", label: "면책" },
-  { href: "/advertising-policy", label: "광고정책" },
-];
+  { href: "/privacy" },
+  { href: "/terms" },
+  { href: "/contact" },
+  { href: "/about" },
+  { href: "/disclaimer" },
+  { href: "/advertising-policy" },
+] as const;
+
+const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
+  nav: Record<string, string>;
+  mainNav: string;
+  openMenu: string;
+  closeMenu: string;
+  menu: string;
+  auth: string;
+  policyLinks: string;
+}> = {
+  ko: {
+    nav: { "/index.html": "홈", "/privacy": "개인정보", "/terms": "이용약관", "/contact": "문의", "/about": "소개", "/disclaimer": "면책", "/advertising-policy": "광고정책" },
+    mainNav: "주요 내비게이션",
+    openMenu: "메뉴 열기",
+    closeMenu: "메뉴 닫기",
+    menu: "메뉴",
+    auth: "인증",
+    policyLinks: "정책 링크",
+  },
+  en: {
+    nav: { "/index.html": "Home", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy" },
+    mainNav: "Main navigation",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    menu: "Menu",
+    auth: "Auth",
+    policyLinks: "Policy Links",
+  },
+  ja: {
+    nav: { "/index.html": "ホーム", "/privacy": "プライバシー", "/terms": "利用規約", "/contact": "お問い合わせ", "/about": "紹介", "/disclaimer": "免責事項", "/advertising-policy": "広告ポリシー" },
+    mainNav: "メインナビゲーション",
+    openMenu: "メニューを開く",
+    closeMenu: "メニューを閉じる",
+    menu: "メニュー",
+    auth: "認証",
+    policyLinks: "ポリシーリンク",
+  },
+  "zh-CN": {
+    nav: { "/index.html": "首页", "/privacy": "隐私", "/terms": "使用条款", "/contact": "联系", "/about": "关于", "/disclaimer": "免责声明", "/advertising-policy": "广告政策" },
+    mainNav: "主导航",
+    openMenu: "打开菜单",
+    closeMenu: "关闭菜单",
+    menu: "菜单",
+    auth: "认证",
+    policyLinks: "政策链接",
+  },
+  "zh-TW": {
+    nav: { "/index.html": "首頁", "/privacy": "隱私", "/terms": "使用條款", "/contact": "聯絡", "/about": "關於", "/disclaimer": "免責聲明", "/advertising-policy": "廣告政策" },
+    mainNav: "主要導覽",
+    openMenu: "開啟選單",
+    closeMenu: "關閉選單",
+    menu: "選單",
+    auth: "認證",
+    policyLinks: "政策連結",
+  },
+  vi: {
+    nav: { "/index.html": "Trang chủ", "/privacy": "Quyền riêng tư", "/terms": "Điều khoản", "/contact": "Liên hệ", "/about": "Giới thiệu", "/disclaimer": "Miễn trừ", "/advertising-policy": "Chính sách quảng cáo" },
+    mainNav: "Điều hướng chính",
+    openMenu: "Mở menu",
+    closeMenu: "Đóng menu",
+    menu: "Menu",
+    auth: "Xác thực",
+    policyLinks: "Liên kết chính sách",
+  },
+  hi: {
+    nav: { "/index.html": "होम", "/privacy": "गोपनीयता", "/terms": "शर्तें", "/contact": "संपर्क", "/about": "परिचय", "/disclaimer": "अस्वीकरण", "/advertising-policy": "विज्ञापन नीति" },
+    mainNav: "मुख्य नेविगेशन",
+    openMenu: "मेनू खोलें",
+    closeMenu: "मेनू बंद करें",
+    menu: "मेनू",
+    auth: "प्रमाणन",
+    policyLinks: "नीति लिंक",
+  },
+  es: {
+    nav: { "/index.html": "Inicio", "/privacy": "Privacidad", "/terms": "Términos", "/contact": "Contacto", "/about": "Acerca de", "/disclaimer": "Aviso legal", "/advertising-policy": "Política publicitaria" },
+    mainNav: "Navegación principal",
+    openMenu: "Abrir menú",
+    closeMenu: "Cerrar menú",
+    menu: "Menú",
+    auth: "Acceso",
+    policyLinks: "Enlaces de políticas",
+  },
+  fr: {
+    nav: { "/index.html": "Accueil", "/privacy": "Confidentialité", "/terms": "Conditions", "/contact": "Contact", "/about": "À propos", "/disclaimer": "Avertissement", "/advertising-policy": "Politique publicitaire" },
+    mainNav: "Navigation principale",
+    openMenu: "Ouvrir le menu",
+    closeMenu: "Fermer le menu",
+    menu: "Menu",
+    auth: "Compte",
+    policyLinks: "Liens de politique",
+  },
+  de: {
+    nav: { "/index.html": "Start", "/privacy": "Datenschutz", "/terms": "Nutzungsbedingungen", "/contact": "Kontakt", "/about": "Über uns", "/disclaimer": "Haftungsausschluss", "/advertising-policy": "Werberichtlinie" },
+    mainNav: "Hauptnavigation",
+    openMenu: "Menü öffnen",
+    closeMenu: "Menü schließen",
+    menu: "Menü",
+    auth: "Auth",
+    policyLinks: "Richtlinienlinks",
+  },
+  nl: {
+    nav: { "/index.html": "Home", "/privacy": "Privacy", "/terms": "Voorwaarden", "/contact": "Contact", "/about": "Over", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertentiebeleid" },
+    mainNav: "Hoofdnavigatie",
+    openMenu: "Menu openen",
+    closeMenu: "Menu sluiten",
+    menu: "Menu",
+    auth: "Auth",
+    policyLinks: "Beleidslinks",
+  },
+  ms: {
+    nav: { "/index.html": "Laman utama", "/privacy": "Privasi", "/terms": "Terma", "/contact": "Hubungi", "/about": "Tentang", "/disclaimer": "Penafian", "/advertising-policy": "Dasar iklan" },
+    mainNav: "Navigasi utama",
+    openMenu: "Buka menu",
+    closeMenu: "Tutup menu",
+    menu: "Menu",
+    auth: "Auth",
+    policyLinks: "Pautan dasar",
+  },
+};
 
 function isStaticShellHref(href: string) {
   return href === "/index.html" || href.startsWith("/index.html?");
@@ -24,6 +144,12 @@ function isStaticShellHref(href: string) {
 
 export default function GlobalHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const copy = GLOBAL_HEADER_COPY[locale] || GLOBAL_HEADER_COPY.ko;
+
+  useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
+  }, []);
 
   return (
     <>
@@ -36,16 +162,17 @@ export default function GlobalHeader() {
             Code Destiny
           </a>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto xl:flex" aria-label="주요 내비게이션">
+          <nav className="hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto xl:flex" aria-label={copy.mainNav}>
             {headerNavItems.map((item) => {
               const className = "inline-flex shrink-0 items-center rounded-full border border-violet-200/25 bg-[rgba(33,18,64,0.56)] px-3 py-1.5 text-[12px] font-semibold text-violet-100 transition hover:border-violet-200/50 hover:bg-[rgba(65,39,120,0.55)]";
+              const label = copy.nav[item.href] || item.href;
               return isStaticShellHref(item.href) ? (
                 <a key={item.href} href={item.href} className={className}>
-                  {item.label}
+                  {label}
                 </a>
               ) : (
                 <Link key={item.href} href={item.href} className={className}>
-                  {item.label}
+                  {label}
                 </Link>
               );
             })}
@@ -59,24 +186,27 @@ export default function GlobalHeader() {
           <button
             type="button"
             className="ml-auto rounded-lg border border-violet-200/30 bg-[rgba(32,19,60,0.78)] px-3 py-1.5 text-sm font-semibold text-violet-100 md:hidden"
-            aria-label="메뉴 열기"
+            aria-label={menuOpen ? copy.closeMenu : copy.openMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((value) => !value)}
           >
-            {menuOpen ? "닫기" : "메뉴"}
+            {menuOpen ? copy.closeMenu : copy.menu}
           </button>
         </div>
         <div className="hidden border-t border-violet-200/15 xl:block">
-          <nav className="mx-auto flex w-[min(1240px,100%-20px)] flex-wrap items-center justify-end gap-2 py-2" aria-label="정책 링크">
-            {policyNavItems.map((item) => (
-              <Link
-                key={`d-${item.href}`}
-                href={item.href}
-                className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="mx-auto flex w-[min(1240px,100%-20px)] flex-wrap items-center justify-end gap-2 py-2" aria-label={copy.policyLinks}>
+            {policyNavItems.map((item) => {
+              const label = copy.nav[item.href] || item.href;
+              return (
+                <Link
+                  key={`d-${item.href}`}
+                  href={item.href}
+                  className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>
@@ -84,7 +214,7 @@ export default function GlobalHeader() {
       {menuOpen ? (
         <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
           <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
-            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">AUTH</span>
+            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">{copy.auth}</span>
             <div className="flex items-center gap-2">
               <LocaleSwitcher />
               <AuthWidget />
@@ -93,30 +223,34 @@ export default function GlobalHeader() {
           <div className="grid grid-cols-3 gap-2">
             {headerNavItems.map((item) => {
               const className = "rounded-xl border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-2 text-center text-[11px] font-semibold text-violet-100";
+              const label = copy.nav[item.href] || item.href;
               return isStaticShellHref(item.href) ? (
                 <a key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
-                  {item.label}
+                  {label}
                 </a>
               ) : (
                 <Link key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
-                  {item.label}
+                  {label}
                 </Link>
               );
             })}
           </div>
           <div className="mt-4 border-t border-violet-200/15 pt-3">
-            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">정책 링크</p>
+            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">{copy.policyLinks}</p>
             <div className="flex flex-wrap gap-2">
-              {policyNavItems.map((item) => (
-                <Link
-                  key={`m-policy-${item.href}`}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-full border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-1 text-[11px] font-semibold text-violet-100"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {policyNavItems.map((item) => {
+                const label = copy.nav[item.href] || item.href;
+                return (
+                  <Link
+                    key={`m-policy-${item.href}`}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-full border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-1 text-[11px] font-semibold text-violet-100"
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>

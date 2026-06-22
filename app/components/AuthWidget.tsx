@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { logout, refreshAuth, useAuthStore } from "../_lib/auth-store";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AuthUser = {
   id?: string;
@@ -25,12 +26,42 @@ type AuthUser = {
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 
+const AUTH_WIDGET_COPY: Record<LoadingLocale, {
+  userFallback: string;
+  initialFallback: string;
+  profileAlt: (name: string) => string;
+  nameLabel: (name: string) => string;
+  admin: string;
+  subscriptionTitle: string;
+  accountTitle: string;
+  account: string;
+  logout: string;
+  login: string;
+  signup: string;
+}> = {
+  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", accountTitle: "마이페이지", account: "계정", logout: "로그아웃", login: "로그인", signup: "회원가입" },
+  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", accountTitle: "My page", account: "Account", logout: "Log out", login: "Log in", signup: "Sign up" },
+  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", accountTitle: "マイページ", account: "アカウント", logout: "ログアウト", login: "ログイン", signup: "新規登録" },
+  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", accountTitle: "我的页面", account: "账户", logout: "退出登录", login: "登录", signup: "注册" },
+  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", accountTitle: "我的頁面", account: "帳戶", logout: "登出", login: "登入", signup: "註冊" },
+  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", accountTitle: "Trang của tôi", account: "Tài khoản", logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
+  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", accountTitle: "मेरा पेज", account: "खाता", logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
+  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", accountTitle: "Mi página", account: "Cuenta", logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
+  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", accountTitle: "Ma page", account: "Compte", logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
+  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", accountTitle: "Meine Seite", account: "Konto", logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
+  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", accountTitle: "Mijn pagina", account: "Account", logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
+  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", accountTitle: "Halaman saya", account: "Akaun", logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
+};
+
 export default function AuthWidget() {
   const auth = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   const user = (auth.user as AuthUser | null) || null;
+  const copy = AUTH_WIDGET_COPY[locale] || AUTH_WIDGET_COPY.ko;
 
   useEffect(() => {
+    setLocale(getCurrentLoadingLocale());
     setMounted(true);
     refreshAuth({ force: true, silent: false }).catch(() => {
       // best-effort bootstrap sync
@@ -88,10 +119,10 @@ export default function AuthWidget() {
   }
 
   if (isVerifiedUser) {
-    const displayName = String(user.name || "사용자");
+    const displayName = String(user.name || copy.userFallback);
     const displayEmail = String(user.email || "");
     const displayImage = String(user.image || "");
-    const initial = displayName.trim().charAt(0) || "사";
+    const initial = displayName.trim().charAt(0) || copy.initialFallback;
     const subscriptionTier = user.profileSubscription?.isActive
       ? String(user.profileSubscription?.tier || "free").toLowerCase()
       : "free";
@@ -118,7 +149,7 @@ export default function AuthWidget() {
         {displayImage ? (
           <img
             src={displayImage}
-            alt={`${displayName} 프로필`}
+            alt={copy.profileAlt(displayName)}
             className="h-7 w-7 rounded-full border border-violet-300/40 object-cover"
             loading="lazy"
             decoding="async"
@@ -130,7 +161,7 @@ export default function AuthWidget() {
           </span>
         )}
         <span className="flex max-w-[180px] flex-col leading-tight">
-          <span className="truncate text-sm text-violet-200/90">{displayName}님</span>
+          <span className="truncate text-sm text-violet-200/90">{copy.nameLabel(displayName)}</span>
           {displayEmail ? (
             <span className="truncate text-[11px] text-violet-200/60">{displayEmail}</span>
           ) : null}
@@ -140,29 +171,29 @@ export default function AuthWidget() {
             href="/admin"
             className="rounded-lg border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/35"
           >
-            관리자
+            {copy.admin}
           </Link>
         )}
         <Link
           href="/points"
           className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${subscriptionCls}`}
-          title="현재 구독 티어"
+          title={copy.subscriptionTitle}
         >
           {subscriptionLabel}
         </Link>
         <Link
           href="/me"
           className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
-          title="마이페이지"
+          title={copy.accountTitle}
         >
-          계정
+          {copy.account}
         </Link>
         <button
           type="button"
           onClick={handleLogout}
           className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
         >
-          로그아웃
+          {copy.logout}
         </button>
       </div>
     );
@@ -174,13 +205,13 @@ export default function AuthWidget() {
         href="/login"
         className="rounded-lg border border-violet-300/40 bg-violet-500/10 px-3 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/25"
       >
-        로그인
+        {copy.login}
       </Link>
       <Link
         href="/signup"
         className="rounded-lg border border-fuchsia-300/50 bg-gradient-to-r from-violet-600/60 to-fuchsia-600/60 px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-110"
       >
-        회원가입
+        {copy.signup}
       </Link>
     </div>
   );
