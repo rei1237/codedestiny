@@ -24,6 +24,24 @@ const LOCALES: LocaleItem[] = [
   { code: "ms", slug: "", label: "Bahasa Melayu", shortLabel: "MYS", hrefLang: "ms" },
 ];
 
+const LOCALE_SWITCHER_COPY: Record<LocaleCode, {
+  changeLanguage: string;
+  languageList: string;
+}> = {
+  ko: { changeLanguage: "언어 변경", languageList: "언어 목록" },
+  en: { changeLanguage: "Change language", languageList: "Language list" },
+  ja: { changeLanguage: "言語を変更", languageList: "言語一覧" },
+  "zh-CN": { changeLanguage: "更改语言", languageList: "语言列表" },
+  "zh-TW": { changeLanguage: "變更語言", languageList: "語言清單" },
+  vi: { changeLanguage: "Đổi ngôn ngữ", languageList: "Danh sách ngôn ngữ" },
+  hi: { changeLanguage: "भाषा बदलें", languageList: "भाषा सूची" },
+  es: { changeLanguage: "Cambiar idioma", languageList: "Lista de idiomas" },
+  fr: { changeLanguage: "Changer de langue", languageList: "Liste des langues" },
+  de: { changeLanguage: "Sprache ändern", languageList: "Sprachliste" },
+  nl: { changeLanguage: "Taal wijzigen", languageList: "Talenlijst" },
+  ms: { changeLanguage: "Tukar bahasa", languageList: "Senarai bahasa" },
+};
+
 function normalizePathname(input: string | null | undefined) {
   if (!input) return "/";
   const withSlash = input.startsWith("/") ? input : `/${input}`;
@@ -106,6 +124,7 @@ export function LocaleSwitcher() {
 
   const current = React.useMemo(() => detectLocaleFromPath(pathname) || savedLocale, [pathname, savedLocale]);
   const currentLabel = current.shortLabel;
+  const copy = LOCALE_SWITCHER_COPY[current.code] || LOCALE_SWITCHER_COPY.ko;
 
   const buttonStyle: React.CSSProperties = {
     height: "36px",
@@ -138,7 +157,7 @@ export function LocaleSwitcher() {
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
       <button
         type="button"
-        aria-label="언어 변경"
+        aria-label={copy.changeLanguage}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -152,7 +171,7 @@ export function LocaleSwitcher() {
       </button>
 
       {open ? (
-        <div role="menu" aria-label="언어 목록" style={menuStyle} onMouseLeave={() => setOpen(false)}>
+        <div role="menu" aria-label={copy.languageList} style={menuStyle} onMouseLeave={() => setOpen(false)}>
           {LOCALES.map((locale) => (
             <Link
               key={locale.code}
