@@ -8,6 +8,7 @@ import {
   logPaidAttemptEvent,
   restorePaidAttemptFromUrlOrStorage,
 } from "../_lib/paid-attempt-session";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const APP_VERSION = process.env.NEXT_PUBLIC_GIT_SHA
   || process.env.NEXT_PUBLIC_BUILD_TIME
@@ -31,6 +32,193 @@ type PendingUpdateState = {
   version: string;
   reason: string;
 };
+
+type BlockingReasonKey = "paymentProcessing" | "paidAttempt" | "importantInput" | "criticalTask" | "typing";
+
+type AppVersionCopy = {
+  updateTitle: string;
+  updateBody: (reason: string) => string;
+  later: string;
+  reloadNow: string;
+  reasons: Record<BlockingReasonKey, string>;
+};
+
+const APP_VERSION_COPY: Record<LoadingLocale, AppVersionCopy> = {
+  ko: {
+    updateTitle: "새 버전이 배포되었습니다.",
+    updateBody: (reason) => `현재 ${reason} 상태여서 자동 새로고침을 보류했습니다.`,
+    later: "나중에",
+    reloadNow: "지금 새로고침",
+    reasons: {
+      paymentProcessing: "결제 처리 중",
+      paidAttempt: "유료 결과 생성 흐름 복구/진행 중",
+      importantInput: "중요 입력 작업 진행 중",
+      criticalTask: "핵심 작업 진행 중",
+      typing: "입력 중",
+    },
+  },
+  en: {
+    updateTitle: "A new version has been deployed.",
+    updateBody: (reason) => `Auto refresh is paused because ${reason}.`,
+    later: "Later",
+    reloadNow: "Refresh now",
+    reasons: {
+      paymentProcessing: "payment is processing",
+      paidAttempt: "paid result recovery or generation is in progress",
+      importantInput: "important input is in progress",
+      criticalTask: "a critical task is in progress",
+      typing: "you are typing",
+    },
+  },
+  ja: {
+    updateTitle: "新しいバージョンが配信されました。",
+    updateBody: (reason) => `現在${reason}のため、自動更新を保留しています。`,
+    later: "あとで",
+    reloadNow: "今すぐ更新",
+    reasons: {
+      paymentProcessing: "決済処理中",
+      paidAttempt: "有料結果の復旧または生成中",
+      importantInput: "重要な入力作業中",
+      criticalTask: "重要な処理中",
+      typing: "入力中",
+    },
+  },
+  "zh-CN": {
+    updateTitle: "新版本已发布。",
+    updateBody: (reason) => `当前正在${reason}，已暂停自动刷新。`,
+    later: "稍后",
+    reloadNow: "立即刷新",
+    reasons: {
+      paymentProcessing: "处理支付",
+      paidAttempt: "恢复或生成付费结果",
+      importantInput: "进行重要输入",
+      criticalTask: "执行关键任务",
+      typing: "输入内容",
+    },
+  },
+  "zh-TW": {
+    updateTitle: "新版本已發布。",
+    updateBody: (reason) => `目前正在${reason}，已暫停自動重新整理。`,
+    later: "稍後",
+    reloadNow: "立即重新整理",
+    reasons: {
+      paymentProcessing: "處理付款",
+      paidAttempt: "恢復或生成付費結果",
+      importantInput: "進行重要輸入",
+      criticalTask: "執行關鍵任務",
+      typing: "輸入內容",
+    },
+  },
+  vi: {
+    updateTitle: "Phiên bản mới đã được phát hành.",
+    updateBody: (reason) => `Tự làm mới đang tạm dừng vì ${reason}.`,
+    later: "Để sau",
+    reloadNow: "Làm mới ngay",
+    reasons: {
+      paymentProcessing: "đang xử lý thanh toán",
+      paidAttempt: "đang khôi phục hoặc tạo kết quả trả phí",
+      importantInput: "bạn đang nhập thông tin quan trọng",
+      criticalTask: "tác vụ quan trọng đang chạy",
+      typing: "bạn đang nhập",
+    },
+  },
+  hi: {
+    updateTitle: "नया संस्करण जारी हो गया है.",
+    updateBody: (reason) => `${reason} के कारण ऑटो रिफ्रेश रोका गया है.`,
+    later: "बाद में",
+    reloadNow: "अभी रिफ्रेश करें",
+    reasons: {
+      paymentProcessing: "भुगतान संसाधित हो रहा है",
+      paidAttempt: "पेड परिणाम रिकवरी या निर्माण चल रहा है",
+      importantInput: "महत्वपूर्ण इनपुट चल रहा है",
+      criticalTask: "महत्वपूर्ण कार्य चल रहा है",
+      typing: "आप टाइप कर रहे हैं",
+    },
+  },
+  es: {
+    updateTitle: "Se ha publicado una nueva versión.",
+    updateBody: (reason) => `La actualización automática está pausada porque ${reason}.`,
+    later: "Más tarde",
+    reloadNow: "Actualizar ahora",
+    reasons: {
+      paymentProcessing: "el pago se está procesando",
+      paidAttempt: "se está recuperando o generando un resultado de pago",
+      importantInput: "hay una entrada importante en curso",
+      criticalTask: "hay una tarea crítica en curso",
+      typing: "estás escribiendo",
+    },
+  },
+  fr: {
+    updateTitle: "Une nouvelle version a été déployée.",
+    updateBody: (reason) => `L'actualisation automatique est suspendue car ${reason}.`,
+    later: "Plus tard",
+    reloadNow: "Actualiser",
+    reasons: {
+      paymentProcessing: "le paiement est en cours",
+      paidAttempt: "la récupération ou la génération du résultat payant est en cours",
+      importantInput: "une saisie importante est en cours",
+      criticalTask: "une tâche critique est en cours",
+      typing: "vous êtes en train d'écrire",
+    },
+  },
+  de: {
+    updateTitle: "Eine neue Version wurde bereitgestellt.",
+    updateBody: (reason) => `Die automatische Aktualisierung pausiert, weil ${reason}.`,
+    later: "Später",
+    reloadNow: "Jetzt aktualisieren",
+    reasons: {
+      paymentProcessing: "eine Zahlung verarbeitet wird",
+      paidAttempt: "ein bezahltes Ergebnis wiederhergestellt oder erstellt wird",
+      importantInput: "eine wichtige Eingabe läuft",
+      criticalTask: "eine kritische Aufgabe läuft",
+      typing: "du gerade tippst",
+    },
+  },
+  nl: {
+    updateTitle: "Er is een nieuwe versie uitgerold.",
+    updateBody: (reason) => `Automatisch vernieuwen is gepauzeerd omdat ${reason}.`,
+    later: "Later",
+    reloadNow: "Nu vernieuwen",
+    reasons: {
+      paymentProcessing: "de betaling wordt verwerkt",
+      paidAttempt: "een betaald resultaat wordt hersteld of gemaakt",
+      importantInput: "er belangrijke invoer bezig is",
+      criticalTask: "er een kritieke taak bezig is",
+      typing: "je aan het typen bent",
+    },
+  },
+  ms: {
+    updateTitle: "Versi baharu telah dikeluarkan.",
+    updateBody: (reason) => `Muat semula automatik dijeda kerana ${reason}.`,
+    later: "Kemudian",
+    reloadNow: "Muat semula sekarang",
+    reasons: {
+      paymentProcessing: "bayaran sedang diproses",
+      paidAttempt: "keputusan berbayar sedang dipulihkan atau dijana",
+      importantInput: "input penting sedang berjalan",
+      criticalTask: "tugasan penting sedang berjalan",
+      typing: "anda sedang menaip",
+    },
+  },
+};
+
+const KOREAN_BLOCKING_REASON_TO_KEY: Record<string, BlockingReasonKey> = {
+  "결제 처리 중": "paymentProcessing",
+  "유료 결과 생성 흐름 복구/진행 중": "paidAttempt",
+  "중요 입력 작업 진행 중": "importantInput",
+  "핵심 작업 진행 중": "criticalTask",
+  "입력 중": "typing",
+};
+
+function resolveAppVersionCopy(locale: LoadingLocale) {
+  return APP_VERSION_COPY[locale] || APP_VERSION_COPY.ko;
+}
+
+function resolveBlockingReasonText(reason: string, copy: AppVersionCopy, locale: LoadingLocale) {
+  const key = KOREAN_BLOCKING_REASON_TO_KEY[String(reason || "").trim()];
+  if (key && locale !== "ko") return copy.reasons[key];
+  return reason || copy.reasons.criticalTask;
+}
 
 function pickRuntimeVersion(payload: unknown): string {
   if (!payload || typeof payload !== "object") return APP_VERSION;
@@ -154,21 +342,22 @@ function getBlockingReason(isPaymentProcessing: boolean): string {
   if (typeof document === "undefined") {
     return "";
   }
+  const copy = resolveAppVersionCopy(getCurrentLoadingLocale());
 
   if (isPaymentProcessing || getWindowBooleanFlag("__CD_PAYMENT_PROCESSING__")) {
-    return "결제 처리 중";
+    return copy.reasons.paymentProcessing;
   }
 
   if (isPaidAttemptInProgress()) {
-    return "유료 결과 생성 흐름 복구/진행 중";
+    return copy.reasons.paidAttempt;
   }
 
   if (getWindowBooleanFlag("__CD_VERSION_GUARD_BLOCK__")) {
-    return "중요 입력 작업 진행 중";
+    return copy.reasons.importantInput;
   }
 
   if (document?.body?.dataset?.cdVersionGuardBusy === "1") {
-    return "핵심 작업 진행 중";
+    return copy.reasons.criticalTask;
   }
 
   const active = document.activeElement as
@@ -186,7 +375,7 @@ function getBlockingReason(isPaymentProcessing: boolean): string {
       const value = String(active.value || "").trim();
       const text = String(active.textContent || "").trim();
       if (value || text) {
-        return "입력 중";
+        return copy.reasons.typing;
       }
     }
   }
@@ -351,14 +540,17 @@ export default function AppVersionGuard() {
   }, [runVersionCheck]);
 
   if (!pendingUpdate) return null;
+  const locale = getCurrentLoadingLocale();
+  const copy = resolveAppVersionCopy(locale);
+  const pendingReason = resolveBlockingReasonText(pendingUpdate.reason, copy, locale);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-3 sm:px-4 sm:pb-4">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-xl border border-amber-300/45 bg-amber-50 px-4 py-3 text-amber-950 shadow-[0_10px_30px_rgba(0,0,0,0.15)] sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold">새 버전이 배포되었습니다.</p>
+          <p className="text-sm font-semibold">{copy.updateTitle}</p>
           <p className="text-xs text-amber-900/90">
-            현재 {pendingUpdate.reason} 상태여서 자동 새로고침을 보류했습니다.
+            {copy.updateBody(pendingReason)}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -374,7 +566,7 @@ export default function AppVersionGuard() {
               setPendingUpdate(null);
             }}
           >
-            나중에
+            {copy.later}
           </button>
           <button
             type="button"
@@ -383,7 +575,7 @@ export default function AppVersionGuard() {
               void applyUpdate(pendingUpdate.version);
             }}
           >
-            지금 새로고침
+            {copy.reloadNow}
           </button>
         </div>
       </div>
