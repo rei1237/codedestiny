@@ -19,6 +19,8 @@ type AuthUser = {
   uid?: string;
   name?: string;
   email?: string;
+  phone?: string;
+  phoneNumber?: string;
   hasLocalAuth?: boolean;
   role?: "user" | "admin";
   points?: number;
@@ -262,7 +264,56 @@ function buildCreateDraft(): ProfileCreateDraft {
   };
 }
 
-function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
+function normalizePaymentPhoneNumber(value: string): string {
+  const digits = String(value || "").replace(/\D+/g, "");
+  const normalized = digits.startsWith("82") && digits.length >= 11 ? `0${digits.slice(2)}` : digits;
+  return /^01\d{8,9}$/.test(normalized) ? normalized : "";
+}
+
+async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
+  const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
+    method: "GET",
+    credentials: "include",
+  }, {
+    retryOn401: true,
+    apiBase,
+  });
+  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
+  if (!response.ok) throw new Error(payload.message || "결제용 휴대폰 번호를 확인하지 못했습니다.");
+  return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || "");
+}
+
+async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Promise<string> {
+  const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ phone: phoneNumber }),
+  }, {
+    retryOn401: true,
+    apiBase,
+  });
+  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
+  if (!response.ok) throw new Error(payload.message || "휴대폰 번호 저장에 실패했습니다.");
+  return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
+}
+
+async function ensurePaymentPhoneNumber(apiBase: string, user: AuthUser | null): Promise<string> {
+  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+  const current = normalizePaymentPhoneNumber(user?.phoneNumber || user?.phone || cachedUser?.phoneNumber || cachedUser?.phone || "");
+  if (current) return current;
+  const saved = await getSavedPaymentPhoneNumber(apiBase).catch(() => "");
+  if (saved) return saved;
+  const typed = window.prompt("이니시스 단건결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.", "");
+  const normalized = normalizePaymentPhoneNumber(typed || "");
+  if (!normalized) throw new Error("이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
+  const nextPhone = await savePaymentPhoneNumber(apiBase, normalized);
+  const latestUser = readSanitizedAuthUser() as AuthUser | null;
+  if (latestUser) persistSanitizedAuthUser({ ...latestUser, phoneNumber: nextPhone, phone: latestUser.phone || nextPhone });
+  return nextPhone;
+}
+
+function buildPortOneCustomer(user: AuthUser | null, paymentId: string, phoneNumber = "") {
   const merged = { ...((readSanitizedAuthUser() as AuthUser | null) || {}), ...(user || {}) } as AuthUser;
   const email = String(merged.email || "").trim();
   if (!/^[^@\s]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -272,6 +323,7 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
     customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
     fullName: String(merged.name || "\uACE0\uAC1D").trim(),
     email,
+    phoneNumber: normalizePaymentPhoneNumber(phoneNumber || merged.phoneNumber || merged.phone || ""),
   };
 }
 
@@ -732,6 +784,8 @@ export default function MePage() {
     const paymentConfig = await fetchPortOnePaymentConfig();
     const redirectUrl = new URL("/me", window.location.origin);
     redirectUrl.searchParams.set("portone_redirect", "1");
+    const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, user);
+    setUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
 
     const paymentRequest: PortOnePaymentRequest = {
       storeId: paymentConfig.storeId,
@@ -742,7 +796,7 @@ export default function MePage() {
       currency: paymentConfig.currency || "CURRENCY_KRW",
       payMethod: paymentConfig.payMethod || "CARD",
       redirectUrl: redirectUrl.toString(),
-      customer: buildPortOneCustomer(user, order.merchantUid),
+      customer: buildPortOneCustomer(user, order.merchantUid, customerPhoneNumber),
       customData: {
         productType: PROFILE_CARD_ACTION_SERVICE_TYPE,
         serviceType: PROFILE_CARD_ACTION_SERVICE_TYPE,

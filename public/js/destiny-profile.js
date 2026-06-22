@@ -2096,6 +2096,55 @@
     return _dpToText(value).replace(/\D+/g, '');
   }
 
+  function _dpNormalizePaymentPhoneNumber(value) {
+    var digits = _dpDigitsOnly(value);
+    var normalized = digits.indexOf('82') === 0 && digits.length >= 11 ? ('0' + digits.slice(2)) : digits;
+    return /^01\d{8,9}$/.test(normalized) ? normalized : '';
+  }
+
+  function _dpReadPaymentPhoneState(payload) {
+    var data = _dpExtractBillingData(payload || {});
+    var phoneNumber = _dpNormalizePaymentPhoneNumber(data.phoneNumber || data.phone || data.mobile || data.mobileNumber || data.buyerTel || data.buyer_tel);
+    return {
+      hasPhone: Boolean(phoneNumber || data.hasPhone),
+      maskedPhone: String(data.maskedPhone || '').trim(),
+      phoneNumber: phoneNumber
+    };
+  }
+
+  async function _dpGetPaymentPhoneStatus() {
+    var result = await _dpPaymentFetchJson('/api/me/payment-phone', { method: 'GET' });
+    if (!result || !result.ok) throw new Error(_dpReadBillingMessage(result && result.payload, '결제용 휴대폰 번호를 확인하지 못했습니다.'));
+    return _dpReadPaymentPhoneState(result.payload);
+  }
+
+  async function _dpSavePaymentPhoneNumber(phoneNumber) {
+    var result = await _dpPaymentFetchJson('/api/me/payment-phone', {
+      method: 'POST',
+      body: JSON.stringify({ phone: phoneNumber })
+    });
+    if (!result || !result.ok) throw new Error(_dpReadBillingMessage(result && result.payload, '휴대폰 번호 저장에 실패했습니다.'));
+    var saved = _dpReadPaymentPhoneState(result.payload);
+    if (!saved.phoneNumber) saved.phoneNumber = _dpNormalizePaymentPhoneNumber(phoneNumber);
+    try {
+      var currentUser = _dpReadAuthUser() || {};
+      if (saved.phoneNumber) _dpPersistSessionUser(Object.assign({}, currentUser, { phoneNumber: saved.phoneNumber, phone: currentUser.phone || saved.phoneNumber }));
+    } catch (_) {}
+    return saved;
+  }
+
+  async function _dpEnsurePaymentPhoneNumber() {
+    try {
+      var current = await _dpGetPaymentPhoneStatus();
+      if (current && current.phoneNumber) return current.phoneNumber;
+    } catch (_) {}
+    var typed = window.prompt('이니시스 단건결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.', '');
+    var normalized = _dpNormalizePaymentPhoneNumber(typed || '');
+    if (!normalized) throw new Error('이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.');
+    var saved = await _dpSavePaymentPhoneNumber(normalized);
+    return saved.phoneNumber || normalized;
+  }
+
   function _dpLoadPortOneV2Sdk() {
     if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return Promise.resolve();
     return new Promise(function(resolve, reject) {
@@ -2503,7 +2552,7 @@
         checkoutUser.email,
         checkoutUser.userEmail,
       ]);
-      var customerPhone = _dpDigitsOnly(_dpPickText([
+      var customerPhone = _dpNormalizePaymentPhoneNumber(_dpPickText([
         payloadCustomer.phoneNumber,
         payloadCustomer.phone,
         checkoutPayload.phoneNumber,
@@ -2522,14 +2571,21 @@
         throw new Error('구매자 이메일 형식이 올바르지 않습니다.');
       }
 
+      if (!customerPhone) {
+        customerPhone = await _dpEnsurePaymentPhoneNumber();
+      }
+      if (!customerPhone) {
+        throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
+      }
+
       var redirectUrl = new URL(window.location.href);
       redirectUrl.searchParams.set('portone_redirect', '1');
       var customer = {
         customerId: customerId,
         fullName: customerName,
-        email: customerEmail
+        email: customerEmail,
+        phoneNumber: customerPhone
       };
-      if (customerPhone) customer.phoneNumber = customerPhone;
       var requestData = {
         storeId: config.storeId,
         channelKey: config.channelKey,

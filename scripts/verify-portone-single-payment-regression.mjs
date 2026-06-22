@@ -9,6 +9,8 @@ const portoneSource = readFileSync(resolve(root, "worker/lib/portone.js"), "utf8
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
+const pointsPageSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
+const mePageSource = readFileSync(resolve(root, "app/me/page.tsx"), "utf8");
 const pagesHeadersSource = readFileSync(resolve(root, "public/_headers"), "utf8");
 const clientPaymentSource = `${indexSource}\n${destinyProfileSource}`;
 
@@ -41,6 +43,12 @@ const ENV = {
   INIAPIKEY: "inicis_api_key_should_never_leave_server",
   INIAPI_IV: "inicis_api_iv_should_never_leave_server",
   SITE_BASE_URL: "https://code-destiny.test",
+};
+const ENV_CORE = {
+  PORTONE_API_SECRET: ENV.PORTONE_API_SECRET,
+  PORTONE_CHANNEL_KEY: ENV.PORTONE_CHANNEL_KEY,
+  PORTONE_STORE_ID: ENV.PORTONE_STORE_ID,
+  SITE_BASE_URL: ENV.SITE_BASE_URL,
 };
 
 const originals = {
@@ -280,10 +288,25 @@ async function runServerTests() {
   assert.equal(missingConfig.configured, false, "env missing should fail safely");
   assert.equal("portoneApiSecret" in missingConfig, false, "public config should not expose API secret key");
   const fullConfig = portoneMod.getPortOnePublicConfig(ENV);
-  assert.equal(fullConfig.configured, true, "PortOne and Inicis env should configure payments");
-  assert.equal(fullConfig.inicisConfigured, true, "Inicis MID/signkey/API key/IV should be required");
+  assert.equal(fullConfig.configured, true, "PortOne core env should configure payments");
+  assert.equal(fullConfig.inicisConfigured, true, "Inicis MID/signkey/API key/IV should be reported when present");
+  assert.equal(fullConfig.webhookSecretConfigured, true, "webhook secret should be reported when present");
   assert.equal(JSON.stringify(fullConfig).includes(ENV.INIAPIKEY), false, "public config should not expose Inicis API key");
-  assert.equal(portoneMod.getPortOnePublicConfig({ ...ENV, INIAPIKEY: "" }).configured, false, "missing Inicis API key should block checkout config");
+  const coreConfig = portoneMod.getPortOnePublicConfig(ENV_CORE);
+  assert.equal(coreConfig.configured, true, "PortOne API secret/store/channel should be enough to open checkout");
+  assert.equal(coreConfig.inicisConfigured, false, "missing Inicis API key should not block checkout config");
+  assert.equal(coreConfig.webhookSecretConfigured, false, "missing webhook secret should not block checkout config");
+  assert.equal(coreConfig.noticeUrl, "", "missing webhook secret should not expose per-payment notice URL");
+  assert.equal(coreConfig.missing.length, 0, "core config should not report required env missing");
+  assert.ok(coreConfig.missingOptional.includes("PORTONE_WEBHOOK_SECRET"), "webhook secret should be optional diagnostics");
+  assert.ok(coreConfig.missingOptional.includes("INIAPIKEY"), "Inicis API key should be optional diagnostics");
+  assert.equal(portoneMod.getPortOnePublicConfig({ ...ENV, INIAPIKEY: "" }).configured, true, "missing Inicis API key should not block checkout config");
+  const aliasConfig = portoneMod.getPortOnePublicConfig({
+    portone_api_secret_key: ENV.PORTONE_API_SECRET,
+    "portone-channelkey": ENV.PORTONE_CHANNEL_KEY,
+    portone_storeid: ENV.PORTONE_STORE_ID,
+  });
+  assert.equal(aliasConfig.configured, true, "normalized PortOne env aliases should configure payments");
 
   resetState();
   state.preUnlocked = true;
@@ -404,6 +427,14 @@ function runClientStaticTests() {
   assertContains(indexSource, "_cdPromptDirectCheckoutPhoneNumber", "Inicis checkout phone prompt");
   assertContains(indexSource, "phoneNumber: customerPhone", "PortOne V2 customer phoneNumber");
   assertContains(indexSource, "hasBuyerPhoneNumber: Boolean(customerPhone)", "direct checkout safe phone presence log");
+  assertContains(destinyProfileSource, "async function _dpEnsurePaymentPhoneNumber()", "runtime Inicis phone prompt");
+  assertContains(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "runtime direct checkout phone fallback");
+  assertContains(destinyProfileSource, "phoneNumber: customerPhone", "runtime PortOne V2 customer phoneNumber");
+  assertBefore(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "window.PortOne.requestPayment(requestData)", "runtime phone fallback must run before PortOne window opens");
+  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser)", "points page phone fallback");
+  assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
+  assertContains(mePageSource, "ensurePaymentPhoneNumber(apiBase, user)", "profile action phone fallback");
+  assertContains(mePageSource, "phoneNumber: normalizePaymentPhoneNumber", "profile action PortOne phoneNumber");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
@@ -442,7 +473,7 @@ try {
   runClientStaticTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
-  assertContains(portoneSource, "noticeUrl: getPortOneWebhookUrl(env)", "PortOne public config should expose webhook notice URL");
+  assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");
   assert.equal(portoneMod.getPortOnePublicConfig(ENV).noticeUrl, "https://code-destiny.test/api/webhooks/portone", "PortOne public config should derive a default notice URL from SITE_BASE_URL");
   assertContains(paymentsRouteSource, "noticeUrl: config.noticeUrl", "payment config API should return PortOne notice URL");
   console.log("[verify-portone-single-payment-regression] PASS");

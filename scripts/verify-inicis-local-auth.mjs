@@ -1,5 +1,5 @@
-const TEST_LOGIN_ID = "test_inicis";
-const TEST_PASSWORD = "inicis1234!";
+const TEST_LOGIN_ID = process.env.LOCAL_DEV_AUTH_EMAIL || "local-login-test@example.com";
+const TEST_PASSWORD = process.env.LOCAL_DEV_AUTH_PASSWORD || "LocalTest!2026";
 const REQUIRED_POINTS = 9999;
 const BASE_URL = process.env.TEST_BASE_URL || "http://127.0.0.1:3000";
 
@@ -25,7 +25,8 @@ async function run() {
   });
   const loginPayload = await parseJsonResponse(loginResponse);
 
-  if (!loginResponse.ok || !loginPayload?.token) {
+  const accessToken = loginPayload?.token || loginPayload?.accessToken;
+  if (!loginResponse.ok || !accessToken) {
     throw new Error(`로그인 검증 실패: status=${loginResponse.status}, payload=${JSON.stringify(loginPayload)}`);
   }
 
@@ -36,7 +37,7 @@ async function run() {
   const meResponse = await fetch(`${BASE_URL}/api/auth/me`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${loginPayload.token}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
   const mePayload = await parseJsonResponse(meResponse);

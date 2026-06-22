@@ -3,9 +3,11 @@ import { getEnv } from "./env.js";
 const DEFAULT_PORTONE_BASE_URL = "https://api.portone.io";
 const PORTONE_REQUIRED_ENV_KEYS = Object.freeze([
   "PORTONE_API_SECRET",
-  "PORTONE_WEBHOOK_SECRET",
   "PORTONE_CHANNEL_KEY",
   "PORTONE_STORE_ID",
+]);
+const PORTONE_RECOMMENDED_ENV_KEYS = Object.freeze([
+  "PORTONE_WEBHOOK_SECRET",
 ]);
 const INICIS_REQUIRED_ENV_KEYS = Object.freeze([
   "MID",
@@ -19,21 +21,7 @@ function getPortOneBaseUrl(env) {
 }
 
 function getExactEnv(env, key, fallback = "") {
-  const direct = env?.[key];
-  if (direct !== undefined && direct !== null) {
-    const trimmed = String(direct).trim();
-    if (trimmed) return trimmed;
-  }
-
-  if (typeof globalThis?.process !== "undefined") {
-    const fromProcess = globalThis.process?.env?.[key];
-    if (fromProcess !== undefined && fromProcess !== null) {
-      const trimmed = String(fromProcess).trim();
-      if (trimmed) return trimmed;
-    }
-  }
-
-  return fallback;
+  return getEnv(env, key, fallback);
 }
 
 function getExactEnvWithAlias(env, primaryKey, aliases = []) {
@@ -54,6 +42,10 @@ export function getPortOneConfig(env) {
   const config = {
     portoneApiSecret: getExactEnvWithAlias(env, "PORTONE_API_SECRET", [
       "PORTONE_API_Secret",
+      "PORTONE_API_SECRET_KEY",
+      "PORTONE_V2_API_SECRET",
+      "PORTONE_API_SECRET_V2",
+      "PORTONE_SECRET",
     ]),
     portoneWebhookSecret: getExactEnvWithAlias(env, "PORTONE_WEBHOOK_SECRET", [
       "PORTONE_webhook",
@@ -61,14 +53,19 @@ export function getPortOneConfig(env) {
       "PORTONE_WEBHOOK_SECRET_KEY",
       "PORTONE_WEBHOOK_TOKEN",
       "PORTONE_webhook_Secret",
+      "PORTONE_V2_WEBHOOK_SECRET",
     ]),
     portoneChannelKey: getExactEnvWithAlias(env, "PORTONE_CHANNEL_KEY", [
       "PORTONE_channel",
       "PORTONE_CHANNEL",
+      "PORTONE_CHANNELKEY",
+      "PORTONE_V2_CHANNEL_KEY",
     ]),
     portoneStoreId: getExactEnvWithAlias(env, "PORTONE_STORE_ID", [
       "PORTONE_Store",
       "PORTONE_STORE",
+      "PORTONE_STOREID",
+      "PORTONE_V2_STORE_ID",
     ]),
     inicisMid: getExactEnvWithAlias(env, "MID", [
       "INICISMID",
@@ -99,6 +96,10 @@ export function getPortOneConfig(env) {
     if (key === "PORTONE_STORE_ID") return !config.portoneStoreId;
     return false;
   });
+  const missingRecommendedPortOne = PORTONE_RECOMMENDED_ENV_KEYS.filter((key) => {
+    if (key === "PORTONE_WEBHOOK_SECRET") return !config.portoneWebhookSecret;
+    return false;
+  });
   const missingInicis = INICIS_REQUIRED_ENV_KEYS.filter((key) => {
     if (key === "MID") return !config.inicisMid;
     if (key === "INIsignkey") return !config.inicisSignKey;
@@ -106,12 +107,16 @@ export function getPortOneConfig(env) {
     if (key === "INIAPI_IV") return !config.inicisApiIv;
     return false;
   });
-  const missing = missingPortOne.concat(missingInicis);
+  const missing = missingPortOne;
+  const missingOptional = missingRecommendedPortOne.concat(missingInicis);
   logMissingPortOneEnv(missing);
   return {
     ...config,
     missing,
+    missingRequired: missing,
+    missingOptional,
     missingPortOne,
+    missingRecommendedPortOne,
     missingInicis,
     configured: missing.length === 0,
   };
@@ -218,7 +223,10 @@ export function getPortOnePublicConfig(env) {
   const storeId = config.portoneStoreId;
   const channelKey = config.portoneChannelKey;
   const inicisConfigured = Boolean(config.inicisMid && config.inicisSignKey && config.inicisApiKey && config.inicisApiIv);
-  const serverVerificationConfigured = Boolean(config.portoneApiSecret && inicisConfigured);
+  const serverVerificationConfigured = Boolean(config.portoneApiSecret);
+  const webhookSecretConfigured = Boolean(config.portoneWebhookSecret);
+  const webhookUrl = getPortOneWebhookUrl(env);
+  const noticeUrl = webhookSecretConfigured ? webhookUrl : "";
   return {
     provider: "portone-v2",
     pg: "kg-inicis",
@@ -226,15 +234,19 @@ export function getPortOnePublicConfig(env) {
     channelKey,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    noticeUrl: getPortOneWebhookUrl(env),
+    noticeUrl,
     configured: Boolean(storeId && channelKey && serverVerificationConfigured),
     serverVerificationConfigured,
+    webhookSecretConfigured,
+    webhookUrlConfigured: Boolean(webhookUrl),
     inicisConfigured,
     inicisMidConfigured: Boolean(config.inicisMid),
     inicisSignKeyConfigured: Boolean(config.inicisSignKey),
     inicisApiKeyConfigured: Boolean(config.inicisApiKey),
     inicisApiIvConfigured: Boolean(config.inicisApiIv),
     missing: config.missing,
+    missingRequired: config.missingRequired,
+    missingOptional: config.missingOptional,
   };
 }
 

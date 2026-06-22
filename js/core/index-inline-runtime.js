@@ -1614,39 +1614,39 @@ __cdInlineRuntimeEvents.authChangedForTileLocks = __cdHandleRuntimeAuthChangedFo
 window.addEventListener('cd:auth-changed', __cdInlineRuntimeEvents.authChangedForTileLocks);
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-02792dd03e87'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-02792dd03e87'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-02792dd03e87'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-20260622-inicis-phone'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-20260622-inicis-phone'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-20260622-inicis-phone'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-02792dd03e87'); },
-  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-02792dd03e87'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-02792dd03e87').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-02792dd03e87'); }); },
+  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-20260622-inicis-phone'); },
+  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-20260622-inicis-phone'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-20260622-inicis-phone').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-20260622-inicis-phone'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-02792dd03e87'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-02792dd03e87'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-20260622-inicis-phone'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-20260622-inicis-phone'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-02792dd03e87'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-02792dd03e87'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-20260622-inicis-phone'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-20260622-inicis-phone'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-02792dd03e87').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-20260622-inicis-phone').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
-  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  closeLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  generateLoveSecret: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  openLoveSecretLatestReport: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  downloadLoveSecretPdf: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  shareLoveSecretKakao: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-02792dd03e87'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-02792dd03e87'); },
-  closeLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-02792dd03e87'); },
-  generateLifeBook: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-02792dd03e87'); },
-  openAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'); },
-  closeAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'); },
-  generateAstroBook: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'); },
-  downloadAstroBookPdf: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-02792dd03e87'); },
+  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  closeLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  generateLoveSecret: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  openLoveSecretLatestReport: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  downloadLoveSecretPdf: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  shareLoveSecretKakao: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-20260622-inicis-phone'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-20260622-inicis-phone'); },
+  closeLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-20260622-inicis-phone'); },
+  generateLifeBook: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-20260622-inicis-phone'); },
+  openAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-20260622-inicis-phone'); },
+  closeAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-20260622-inicis-phone'); },
+  generateAstroBook: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-20260622-inicis-phone'); },
+  downloadAstroBookPdf: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-20260622-inicis-phone'); },
+  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-20260622-inicis-phone'); },
   openZiweiBookModal: function() { return __cdLoadZiweiBookReady(); },
   closeZiweiBookModal: function() { return __cdLoadZiweiBookReady(); },
   generateZiweiBook: function() { return __cdLoadZiweiBookReady(); },
@@ -1658,20 +1658,20 @@ var __cdLazyActionLoaders = {
       return true;
     });
   },
-  openSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'); },
-  closeSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'); },
-  generateSajuNewYear: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'); },
-  downloadSajuNewYearPdf: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-02792dd03e87'); },
-  openVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'); },
-  closeVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'); },
-  generateVedicBook: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'); },
-  downloadVedicBookPdf: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-02792dd03e87'); },
-  openSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'); },
-  closeSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'); },
-  generateSukuyoBook: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'); },
-  downloadSukuyoBookPdf: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-02792dd03e87'); },
+  openSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-20260622-inicis-phone'); },
+  closeSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-20260622-inicis-phone'); },
+  generateSajuNewYear: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-20260622-inicis-phone'); },
+  downloadSajuNewYearPdf: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-20260622-inicis-phone'); },
+  openVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-20260622-inicis-phone'); },
+  closeVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-20260622-inicis-phone'); },
+  generateVedicBook: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-20260622-inicis-phone'); },
+  downloadVedicBookPdf: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-20260622-inicis-phone'); },
+  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-20260622-inicis-phone'); },
+  openSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-20260622-inicis-phone'); },
+  closeSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-20260622-inicis-phone'); },
+  generateSukuyoBook: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-20260622-inicis-phone'); },
+  downloadSukuyoBookPdf: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-20260622-inicis-phone'); },
+  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-20260622-inicis-phone'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   setTarotMode: function() { return __cdEnsureSajuCoreLoaded(); },
   selectTarotCategory: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1865,7 +1865,7 @@ function __cdAssertZiweiBookReady() {
 }
 
 function __cdLoadZiweiBookReady() {
-  var src = '/js/ziwei-book.js?v=build-02792dd03e87';
+  var src = '/js/ziwei-book.js?v=build-20260622-inicis-phone';
   return __cdLoadScriptOnce(src).then(function() {
     try {
       __cdAssertZiweiBookReady();
@@ -2014,15 +2014,15 @@ function __cdEnsureSajuCoreLoaded() {
 
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-    '/js/core/kasi-calendar-service.js?v=build-02792dd03e87',
-    '/js/compat-llm-prompts.js?v=build-02792dd03e87',
-    '/js/saju-engine.js?v=build-02792dd03e87',
-      '/js/core/saju/extremeTResult.js?v=build-02792dd03e87',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-02792dd03e87',
-    '/js/core/saju/modalProfileState.js?v=build-02792dd03e87',
-    '/js/core/saju/reportDashboard.js?v=build-02792dd03e87',
-    '/js/saju-engine-continuation.js?v=build-02792dd03e87',
-    '/js/entertain-engine.js?v=build-02792dd03e87'
+    '/js/core/kasi-calendar-service.js?v=build-20260622-inicis-phone',
+    '/js/compat-llm-prompts.js?v=build-20260622-inicis-phone',
+    '/js/saju-engine.js?v=build-20260622-inicis-phone',
+      '/js/core/saju/extremeTResult.js?v=build-20260622-inicis-phone',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-20260622-inicis-phone',
+    '/js/core/saju/modalProfileState.js?v=build-20260622-inicis-phone',
+    '/js/core/saju/reportDashboard.js?v=build-20260622-inicis-phone',
+    '/js/saju-engine-continuation.js?v=build-20260622-inicis-phone',
+    '/js/entertain-engine.js?v=build-20260622-inicis-phone'
   ];
 
   __cdSajuCoreLoadPromise = chain.reduce(function(promise, src) {
@@ -2042,7 +2042,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-02792dd03e87')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-20260622-inicis-phone')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2060,7 +2060,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-02792dd03e87';
+    var src = '/js/swisseph-loader.js?v=build-20260622-inicis-phone';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2324,7 +2324,7 @@ __cdInstallSajuActionStub('runCompat');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-02792dd03e87').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-20260622-inicis-phone').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
       return window.LuckSyncDiary.open();
     }
@@ -2332,7 +2332,7 @@ window.openLuckSyncDiary = function() {
   });
 };
 window.closeLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-02792dd03e87').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-20260622-inicis-phone').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
       return window.LuckSyncDiary.close();
     }
@@ -2756,8 +2756,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-02792dd03e87')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-02792dd03e87'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-20260622-inicis-phone')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-20260622-inicis-phone'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -7234,9 +7234,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-02792dd03e87',
-      '/js/saju-engine.js?v=build-02792dd03e87',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-02792dd03e87'
+    '/js/compat-llm-prompts.js?v=build-20260622-inicis-phone',
+      '/js/saju-engine.js?v=build-20260622-inicis-phone',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-20260622-inicis-phone'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7256,7 +7256,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-02792dd03e87'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-20260622-inicis-phone'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -7945,8 +7945,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-02792dd03e87')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-02792dd03e87'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-20260622-inicis-phone')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-20260622-inicis-phone'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
@@ -8102,7 +8102,7 @@ function openSajuLifeBookBuilder() {
     window.openLifeBookModal();
     return;
   }
-  __cdLoadScriptOnce('/js/life-book.js?v=build-02792dd03e87').then(function () {
+  __cdLoadScriptOnce('/js/life-book.js?v=build-20260622-inicis-phone').then(function () {
     if (typeof window.openLifeBookModal === 'function') window.openLifeBookModal();
   });
 }
