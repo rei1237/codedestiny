@@ -78,3 +78,308 @@ export const SERVICE_SECTIONS = [
     ],
   },
 ];
+
+const SERVICE_SECTION_TRANSLATIONS = {
+  en: [
+    {
+      title: "Saju & Myeongri",
+      items: [
+        ["Basic Saju Manse Calendar Reading", "Five elements and Ten Gods birth chart analysis · Free"],
+        ["Sibyl System", "Saju career aptitude and destiny risk coefficient · Basic free"],
+        ["Book of Life", "Premium deep Saju analysis · KRW 50,000"],
+        ["Love Secret Strategy", "Saju-based love strategy · Solo KRW 30,000 / compatibility +KRW 10,000 (total KRW 40,000)"],
+        ["LOVE CODE", "Saju love simulation · Unlock KRW 10,000"],
+        ["Destiny Bias", "Saju-based fandom resonance analysis · KRW 5,000 per reading"],
+        ["Twelve Growth Animal Oracle", "Your guardian animal awakened through Twelve Growth Stars in Saju · Unlock KRW 10,000"],
+        ["Destined Meeting Place by Saju", "Independent reading for relationship places, cities, and timing · KRW 10,000 per reading"],
+      ],
+    },
+    {
+      title: "Eastern & Western Fate Systems",
+      items: [
+        ["Zi Wei Dou Shu Chart", "Basic service free · Compatibility KRW 5,000"],
+        ["Cosmic Astrology", "Basic service free · Compatibility KRW 5,000"],
+        ["Vedic Astrology", "Basic service free · Compatibility KRW 5,000"],
+      ],
+    },
+    {
+      title: "Tarot Readings",
+      items: [
+        ["Myeongri Tarot", "A reading that connects cards and Ten Gods · Free"],
+        ["What Are We?", "6-card love relationship reading · KRW 5,000"],
+        ["Tarot Prompt Library", "Question design, card draw, and oracle sentence summary · KRW 5,000 per use · 63 spreads", "Tarot Prompt Library"],
+        ["Warm Sun Healing Tarot", "Emotional temperature and recovery routines · Free"],
+        ["Self-Esteem Level Up", "A 5-card reading that helps you stand again · Free"],
+        ["Reunion Lighthouse Tarot", "The safe distance for reconnecting · KRW 5,000"],
+        ["Twelve Zodiac Heaven Luck", "Guardian rhythm of twelve months · KRW 3,000"],
+        ["Crystal Soul Tarot", "Stone and card texture reading · KRW 5,000"],
+        ["Mind Scan Tarot", "Reading the gap between spoken words and inner feelings · KRW 5,000"],
+        ["Celestial Harmony", "11-card planetary cosmic reading · KRW 10,000"],
+        ["Career Change Destiny Cards", "7-card career spread · KRW 5,000"],
+      ],
+    },
+    {
+      title: "Oracles & Dreams",
+      items: [
+        ["Hwatu Oracle of Card Masters", "12-month Hwatu card fortune"],
+        ["Hwatu Life Card Test", "7-question psychology test with a card-master concept"],
+        ["IFA Oracle", "Yoruba 256 Odu oracle · KRW 3,000"],
+        ["Ancient Egyptian Oracle", "Kemet oracle reading"],
+        ["I Ching Turtle Oracle", "64 hexagram symbolic reading"],
+        ["Sukuyo Astrology", "Basic service free · Compatibility KRW 5,000"],
+        ["Stonehenge Rune Oracle", "Ancient rune symbol reading"],
+        ["Geomancy Earth Oracle", "16-line earth sign oracle"],
+        ["Tasseography Tea Leaf Oracle", "London royal cup pattern reading"],
+        ["Destiny Poker", "A destiny card duel with the gods"],
+        ["Dream Prompt", "AI prompt from dream sentences"],
+        ["Psychoanalytic Dream Reading", "Freudian interpretation"],
+      ],
+    },
+    {
+      title: "Special Content",
+      items: [
+        ["I Am Solo Secret House", "Automatic daily love-catch simulation"],
+        ["AI Animal Face Reading", "Selfie face-shape analysis"],
+        ["MBTI Animal Compatibility", "16-type chemistry analysis"],
+        ["Animal Totem", "Guardian animal message"],
+        ["Destiny Flower", "Integrated atelier"],
+        ["Astrology Flower", "Nebula-themed visualization"],
+        ["Zi Wei Flower", "Life palace themed report"],
+        ["Sukuyo Flower", "Moon-phase based flower"],
+      ],
+    },
+  ],
+  ja: [
+    {
+      title: "四柱推命・命理",
+      items: [
+        ["四柱推命 万歳暦 基本解釈", "五行・十神にもとづく命式分析 · 無料"],
+        ["シビュラシステム", "四柱推命ベースの適職適性 × 運命リスク係数 · 基本無料"],
+        ["人生の書", "プレミアム四柱推命深層分析 · 50,000ウォン"],
+        ["恋愛秘策", "四柱推命ベースの恋愛戦略 · 1名 30,000ウォン / 相性 +10,000ウォン（合計 40,000ウォン）"],
+        ["LOVE CODE", "四柱推命恋愛シミュレーション · 解錠 10,000ウォン"],
+        ["推し運命", "四柱推命ベースのファンダム共鳴分析 · 1回 5,000ウォン"],
+        ["十二運星どうぶつ占い", "四柱推命の十二運星から目覚める私だけの守護動物 · 解錠 10,000ウォン"],
+        ["四柱推命で見る縁の場所", "縁の場所・都市・タイミング独立分析 · 1回 10,000ウォン"],
+      ],
+    },
+    {
+      title: "東西の命理",
+      items: [
+        ["紫微斗数命盤", "基本サービス無料 · 相性 5,000ウォン"],
+        ["コズミック占星術", "基本サービス無料 · 相性 5,000ウォン"],
+        ["ヴェーダ占星術", "基本サービス無料 · 相性 5,000ウォン"],
+      ],
+    },
+    {
+      title: "タロットリーディング",
+      items: [
+        ["命理タロット", "カードと十神をつなぐリーディング · 無料"],
+        ["私たちはどんな関係？", "6枚カード恋愛関係リーディング · 5,000ウォン"],
+        ["タロットプロンプトライブラリ", "質問設計 + カードドロー + オラクル文整理 · 1回 5,000ウォン · 63スプレッド", "タロットプロンプトライブラリ"],
+        ["あたたかな太陽回復タロット", "感情の温度と回復ルーティン · 無料"],
+        ["自己肯定感レベルアップ", "自分をもう一度立て直す5枚カード · 無料"],
+        ["復縁運 灯台タロット", "もう一度届いても安全な距離 · 5,000ウォン"],
+        ["十二支天運", "十二か月の守護リズム · 3,000ウォン"],
+        ["クリスタルソウルタロット", "天然石とカードの質感リーディング · 5,000ウォン"],
+        ["本音を読むタロット", "表の言葉と本音の距離を読む · 5,000ウォン"],
+        ["天体の旋律", "惑星11カード コズミックリーディング · 10,000ウォン"],
+        ["転職運命のカード", "7枚カード キャリアスプレッド · 5,000ウォン"],
+      ],
+    },
+    {
+      title: "神託・夢占い",
+      items: [
+        ["花札師たちの花札占い", "12か月花札運勢"],
+        ["花札人生カードテスト", "勝負師コンセプトの7問心理テスト"],
+        ["IFAオラクル", "ヨルバ256オドゥ神託 · 3,000ウォン"],
+        ["古代エジプト神託", "ケメトオラクルリーディング"],
+        ["易経亀占い", "64卦象徴解釈"],
+        ["宿曜占星術", "基本サービス無料 · 相性 5,000ウォン"],
+        ["ストーンヘンジ ルーンオラクル", "古代ルーン象徴リーディング"],
+        ["ジオマンシー土占い", "大地の兆し16行神託"],
+        ["タッセオグラフィー茶葉占い", "ロンドンロイヤルカップ文様リーディング"],
+        ["デスティニーポーカー", "神々と挑む運命のカード対決"],
+        ["ドリームプロンプト", "夢の文章AIプロンプト"],
+        ["精神分析夢占い", "フロイト視点の解釈"],
+      ],
+    },
+    {
+      title: "特別コンテンツ",
+      items: [
+        ["私はソロ Secret House", "自動日干キャッチ恋愛シミュレーション"],
+        ["AIどうぶつ人相", "セルフィー顔型分析"],
+        ["MBTIどうぶつ相性", "16タイプのケミ分析"],
+        ["アニマルトーテム", "守護動物メッセージ"],
+        ["運命の花", "統合アトリエ"],
+        ["占星術の花", "星雲テーマ視覚化"],
+        ["紫微斗数の花", "命宮テーマレポート"],
+        ["宿曜の花", "月相ベースの花"],
+      ],
+    },
+  ],
+  "zh-CN": [
+    {
+      title: "八字与命理",
+      items: [
+        ["八字万年历基础解读", "五行·十神命式分析 · 免费"],
+        ["西比拉系统", "基于八字的职业适性 × 命运风险系数 · 基础免费"],
+        ["人生之书", "高级八字深度分析 · 50,000韩元"],
+        ["恋爱秘籍", "八字恋爱策略 · 单人30,000韩元 / 合盘 +10,000韩元（共40,000韩元）"],
+        ["LOVE CODE", "八字恋爱模拟 · 解锁10,000韩元"],
+        ["本命偏爱", "基于八字的粉丝共鸣分析 · 每次5,000韩元"],
+        ["十二运星动物占", "从八字十二运星唤醒你的守护动物 · 解锁10,000韩元"],
+        ["八字中的缘分地点", "缘分地点、城市与时机独立分析 · 每次10,000韩元"],
+      ],
+    },
+    {
+      title: "东西方命理",
+      items: [
+        ["紫微斗数命盘", "基础服务免费 · 合盘5,000韩元"],
+        ["宇宙占星术", "基础服务免费 · 合盘5,000韩元"],
+        ["吠陀占星术", "基础服务免费 · 合盘5,000韩元"],
+      ],
+    },
+    {
+      title: "塔罗解读",
+      items: [
+        ["命理塔罗", "连接卡牌与十神的解读 · 免费"],
+        ["我们是什么关系？", "6张牌恋爱关系解读 · 5,000韩元"],
+        ["塔罗提示词库", "问题设计 + 抽牌 + 神谕句整理 · 每次5,000韩元 · 63个牌阵", "塔罗提示词库"],
+        ["暖阳疗愈塔罗", "情绪温度与恢复日常 · 免费"],
+        ["自尊感升级", "重新支撑自己的5张牌 · 免费"],
+        ["复合灯塔塔罗", "再次靠近也安全的距离 · 5,000韩元"],
+        ["十二生肖天运", "十二个月守护节奏 · 3,000韩元"],
+        ["水晶灵魂塔罗", "原石与卡牌质感解读 · 5,000韩元"],
+        ["内心扫描塔罗", "读取表面话语与真实心意的距离 · 5,000韩元"],
+        ["天体的旋律", "行星11张牌宇宙解读 · 10,000韩元"],
+        ["转职命运卡牌", "7张牌职业牌阵 · 5,000韩元"],
+      ],
+    },
+    {
+      title: "神谕与解梦",
+      items: [
+        ["牌手花札占", "12个月花札牌运势"],
+        ["花札人生牌测试", "牌手概念7题心理测试"],
+        ["IFA神谕", "约鲁巴256奥杜神谕 · 3,000韩元"],
+        ["古埃及神谕", "凯美特神谕解读"],
+        ["周易龟占", "64卦象征解读"],
+        ["宿曜占星", "基础服务免费 · 合盘5,000韩元"],
+        ["巨石阵卢恩神谕", "古代卢恩象征解读"],
+        ["地占土之神谕", "大地征兆16行神谕"],
+        ["茶叶占卜", "伦敦皇家杯纹样解读"],
+        ["命运扑克", "与诸神展开的命运卡牌对决"],
+        ["梦境提示词", "梦句AI提示词"],
+        ["精神分析解梦", "弗洛伊德视角解读"],
+      ],
+    },
+    {
+      title: "特别内容",
+      items: [
+        ["我是Solo秘密之家", "自动日干捕捉恋爱模拟"],
+        ["AI动物面相", "自拍脸型分析"],
+        ["MBTI动物合盘", "16型化学反应分析"],
+        ["动物图腾", "守护动物讯息"],
+        ["命运之花", "综合工作室"],
+        ["占星花", "星云主题视觉化"],
+        ["紫微斗数花", "命宫主题报告"],
+        ["宿曜花", "月相基础花朵"],
+      ],
+    },
+  ],
+  "zh-TW": [
+    {
+      title: "八字與命理",
+      items: [
+        ["八字萬年曆基礎解讀", "五行·十神命式分析 · 免費"],
+        ["西比拉系統", "基於八字的職業適性 × 命運風險係數 · 基礎免費"],
+        ["人生之書", "高級八字深度分析 · 50,000韓元"],
+        ["戀愛祕策", "八字戀愛策略 · 單人30,000韓元 / 合盤 +10,000韓元（共40,000韓元）"],
+        ["LOVE CODE", "八字戀愛模擬 · 解鎖10,000韓元"],
+        ["本命偏愛", "基於八字的粉絲共鳴分析 · 每次5,000韓元"],
+        ["十二運星動物占", "從八字十二運星喚醒你的守護動物 · 解鎖10,000韓元"],
+        ["八字中的緣分地點", "緣分地點、城市與時機獨立分析 · 每次10,000韓元"],
+      ],
+    },
+    {
+      title: "東西方命理",
+      items: [
+        ["紫微斗數命盤", "基礎服務免費 · 合盤5,000韓元"],
+        ["宇宙占星術", "基礎服務免費 · 合盤5,000韓元"],
+        ["吠陀占星術", "基礎服務免費 · 合盤5,000韓元"],
+      ],
+    },
+    {
+      title: "塔羅解讀",
+      items: [
+        ["命理塔羅", "連接卡牌與十神的解讀 · 免費"],
+        ["我們是什麼關係？", "6張牌戀愛關係解讀 · 5,000韓元"],
+        ["塔羅提示詞庫", "問題設計 + 抽牌 + 神諭句整理 · 每次5,000韓元 · 63個牌陣", "塔羅提示詞庫"],
+        ["暖陽療癒塔羅", "情緒溫度與恢復日常 · 免費"],
+        ["自尊感升級", "重新支撐自己的5張牌 · 免費"],
+        ["復合燈塔塔羅", "再次靠近也安全的距離 · 5,000韓元"],
+        ["十二生肖天運", "十二個月守護節奏 · 3,000韓元"],
+        ["水晶靈魂塔羅", "原石與卡牌質感解讀 · 5,000韓元"],
+        ["內心掃描塔羅", "讀取表面話語與真實心意的距離 · 5,000韓元"],
+        ["天體的旋律", "行星11張牌宇宙解讀 · 10,000韓元"],
+        ["轉職命運卡牌", "7張牌職業牌陣 · 5,000韓元"],
+      ],
+    },
+    {
+      title: "神諭與解夢",
+      items: [
+        ["牌手花札占", "12個月花札牌運勢"],
+        ["花札人生牌測試", "牌手概念7題心理測試"],
+        ["IFA神諭", "約魯巴256奧杜神諭 · 3,000韓元"],
+        ["古埃及神諭", "凱美特神諭解讀"],
+        ["周易龜占", "64卦象徵解讀"],
+        ["宿曜占星", "基礎服務免費 · 合盤5,000韓元"],
+        ["巨石陣盧恩神諭", "古代盧恩象徵解讀"],
+        ["地占土之神諭", "大地徵兆16行神諭"],
+        ["茶葉占卜", "倫敦皇家杯紋樣解讀"],
+        ["命運撲克", "與諸神展開的命運卡牌對決"],
+        ["夢境提示詞", "夢句AI提示詞"],
+        ["精神分析解夢", "佛洛伊德視角解讀"],
+      ],
+    },
+    {
+      title: "特別內容",
+      items: [
+        ["我是Solo秘密之家", "自動日干捕捉戀愛模擬"],
+        ["AI動物面相", "自拍臉型分析"],
+        ["MBTI動物合盤", "16型化學反應分析"],
+        ["動物圖騰", "守護動物訊息"],
+        ["命運之花", "綜合工作室"],
+        ["占星花", "星雲主題視覺化"],
+        ["紫微斗數花", "命宮主題報告"],
+        ["宿曜花", "月相基礎花朵"],
+      ],
+    },
+  ],
+};
+
+export function getLocalizedServiceSections(locale = "ko") {
+  const normalizedLocale = locale === "zh" ? "zh-CN" : locale;
+  const localized = SERVICE_SECTION_TRANSLATIONS[normalizedLocale] || (normalizedLocale === "ko" ? null : SERVICE_SECTION_TRANSLATIONS.en);
+  if (!localized) return SERVICE_SECTIONS;
+
+  return SERVICE_SECTIONS.map((section, sectionIndex) => {
+    const translatedSection = localized[sectionIndex];
+    if (!translatedSection) return section;
+
+    return {
+      ...section,
+      title: translatedSection.title || section.title,
+      items: section.items.map((item, itemIndex) => {
+        const translatedItem = translatedSection.items?.[itemIndex];
+        if (!translatedItem) return item;
+        return {
+          ...item,
+          title: translatedItem[0] || item.title,
+          desc: translatedItem[1] || item.desc,
+          alt: translatedItem[2] || item.alt,
+        };
+      }),
+    };
+  });
+}
