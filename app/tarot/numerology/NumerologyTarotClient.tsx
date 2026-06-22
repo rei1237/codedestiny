@@ -74,10 +74,13 @@ type DrawnCard = {
 type NumerologyTarotInterpretationCard = {
   order: number;
   title: string;
+  positionTitle?: string;
   question: string;
   keywordFocus: string;
+  cardId?: string;
   cardNameKr: string;
   cardNameEn: string;
+  arcanaNumber?: number | null;
   orientation: "upright" | "reversed";
   orientationLabel: string;
   cardMeaning: string;
@@ -87,9 +90,49 @@ type NumerologyTarotInterpretationCard = {
   actionTip: string;
   caution: string;
   interpretation?: string;
+  directMeaning?: string;
+  contextualInterpretation?: string;
+  practicalAdvice?: string;
 };
 
 type NumerologyTarotInterpretation = {
+  readingId?: string;
+  title?: string;
+  topic?: string;
+  userQuestion?: string;
+  opening?: string;
+  directAnswer?: string;
+  numerologyInsight?: {
+    summary: string;
+    relevantNumbers: Array<{
+      label: string;
+      value: string;
+      meaning: string;
+      relevance: string;
+    }>;
+  };
+  cardStory?: string;
+  cards?: Array<{
+    cardId: string;
+    cardName: string;
+    arcanaNumber: number | null;
+    orientation: "upright" | "reversed";
+    positionTitle: string;
+    directMeaning: string;
+    contextualInterpretation: string;
+    practicalAdvice: string;
+    caution?: string;
+  }>;
+  synthesis?: {
+    currentSituation: string;
+    opportunity: string;
+    challenge: string;
+    likelyDirection: string;
+  };
+  nextActions?: string[];
+  counselorClosing?: string;
+  disclaimer?: string;
+  continuationPrompt?: string;
   numerologyReading: string;
   coreMessage: string;
   topicReading: {
@@ -151,13 +194,112 @@ type FreeProfile = {
   cards: FreeProfileCard[];
 };
 
+type ReadingEntitlement = {
+  readingId: string;
+  userId: string;
+  productId: "numerology_tarot_reading";
+  paid: true;
+  includesCardDraw: true;
+  includesFullReading: true;
+  includesContinuationPrompt: true;
+  purchasedAt: string;
+  transactionId?: string;
+};
+
+type FlowState =
+  | "topic_selection"
+  | "question_input"
+  | "checkout_ready"
+  | "checkout_pending"
+  | "payment_complete"
+  | "card_drawing"
+  | "cards_selected"
+  | "reading_generating"
+  | "reading_complete"
+  | "reading_failed"
+  | "result_saved";
+
+type ReadingSnapshot = {
+  entitlement: ReadingEntitlement;
+  name: string;
+  birthDate: string;
+  topic: TopicKey;
+  question: string;
+  numerology: NumerologyContext | null;
+  cards: DrawnCard[];
+  revealed: number[];
+  reading: NumerologyTarotInterpretation | null;
+};
+
 const TOPIC_OPTIONS: Array<{ value: TopicKey; label: string }> = Object.entries(TOPIC_LABELS).map(([value, label]) => ({
   value: value as TopicKey,
   label: String(label),
 }));
 
+const TOPIC_QUESTION_HINTS: Record<TopicKey, string[]> = {
+  love: [
+    "현재 관계가 어떻게 흘러갈지 알고 싶어요.",
+    "상대와 소통할 때 무엇을 조심해야 하나요?",
+    "지금 관계에서 제가 바꿀 점은 무엇인가요?",
+  ],
+  reunion: [
+    "재회를 기다려도 괜찮을까요?",
+    "다시 연락한다면 어떤 태도가 필요할까요?",
+    "이 관계를 다시 시작해도 같은 문제가 반복될까요?",
+  ],
+  feelings: [
+    "상대의 반응을 어떻게 받아들여야 할까요?",
+    "겉으로 보이는 태도와 실제 마음을 어떻게 구분하면 좋을까요?",
+    "제가 지금 확인해야 할 단서는 무엇인가요?",
+  ],
+  career: [
+    "지금 직업 선택에서 무엇을 우선해야 할까요?",
+    "이직이나 이동을 준비해도 괜찮을까요?",
+    "현재 역할에서 성장 가능성을 어떻게 볼 수 있을까요?",
+  ],
+  money: [
+    "이번 달 금전 흐름에서 무엇을 조심해야 할까요?",
+    "지출과 기회를 어떻게 나누어 봐야 할까요?",
+    "계약이나 투자 전 확인할 점이 궁금해요.",
+  ],
+  relationship: [
+    "이 사람과의 관계에서 경계를 어떻게 잡아야 할까요?",
+    "지금 오해를 풀려면 어떤 말이 필요할까요?",
+    "협력과 거리 두기 중 어디에 더 힘을 둬야 할까요?",
+  ],
+  health: [
+    "요즘 컨디션을 회복하려면 무엇부터 바꿔야 할까요?",
+    "몸과 마음의 피로가 어디에서 오는지 보고 싶어요.",
+    "생활 리듬에서 지금 가장 중요한 조정점이 궁금해요.",
+  ],
+  move: [
+    "지금 이동이나 변화가 필요한 시기인지 궁금해요.",
+    "환경을 바꾸기 전에 무엇을 확인해야 할까요?",
+    "새로운 선택을 시작해도 괜찮을지 보고 싶어요.",
+  ],
+  general: [
+    "지금 가장 먼저 정리해야 할 주제가 궁금해요.",
+    "현재 흐름에서 기회와 주의점을 함께 보고 싶어요.",
+    "다음 선택을 위해 어떤 기준을 세우면 좋을까요?",
+  ],
+};
+
+const INCLUDED_BENEFITS = [
+  "수비학 계산",
+  "타로 카드 5장 추첨",
+  "카드별 해석",
+  "수비학과 타로를 연결한 종합 상담",
+  "결과 저장 및 다시 보기",
+  "AI 상담 이어가기용 요약문",
+  "생성 실패 시 무료 재시도",
+];
+
+const NUMEROLOGY_READING_FEATURE_KEY = "tarot-numerology-reading";
+const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
 const NUMEROLOGY_PROMPT_FEATURE_KEY = "tarot-numerology-ai-prompt";
 const NUMEROLOGY_PROMPT_PRICE_LABEL = "3,000원";
+const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement";
+const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:";
 
 const PROMPT_TOPIC_OPTIONS: PromptTopicOption[] = [
   {
@@ -242,7 +384,7 @@ const PROMPT_TOPIC_OPTIONS: PromptTopicOption[] = [
   },
 ];
 
-const STEP_LABELS = ["정보 입력", "숫자 정렬", "카드 열기", "결 읽기"];
+const STEP_LABELS = ["상담 입력", "결제 완료", "카드 5장", "상담 결과"];
 
 const PREVIEW_PLACEHOLDERS = [
   { title: "과거", icon: "✶" },
@@ -613,6 +755,81 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
   }
 }
 
+function createReadingId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `nt_${crypto.randomUUID()}`;
+  }
+  return `nt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function persistJson(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    return;
+  }
+}
+
+function readJson<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as T : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildReadingEntitlement(readingId: string, transactionId?: string): ReadingEntitlement {
+  return {
+    readingId,
+    userId: "current-user",
+    productId: "numerology_tarot_reading",
+    paid: true,
+    includesCardDraw: true,
+    includesFullReading: true,
+    includesContinuationPrompt: true,
+    purchasedAt: new Date().toISOString(),
+    transactionId,
+  };
+}
+
+function buildContinuationSummaryText({
+  name,
+  topicLabel,
+  question,
+  numerology,
+  cards,
+  reading,
+}: {
+  name: string;
+  topicLabel: string;
+  question: string;
+  numerology: NumerologyContext | null;
+  cards: DrawnCard[];
+  reading: NumerologyTarotInterpretation | null;
+}): string {
+  if (reading?.continuationPrompt) return reading.continuationPrompt;
+  const cardLine = cards
+    .map((entry, index) => `${index + 1}. ${entry.card.nameKr || entry.card.name} / ${entry.card.id}번 / ${entry.orientation === "reversed" ? "역방향" : "정방향"} / ${entry.positionLabel}`)
+    .join("\n");
+  return [
+    "아래 수비학 타로 상담 내용을 이어서 다뤄 주세요.",
+    `이름: ${toText(name) || "내담자"}`,
+    `상담 주제: ${topicLabel}`,
+    `질문: ${toText(question)}`,
+    `생명수: ${numerology?.lifePathNumber ?? "-"}`,
+    `개인일수: ${numerology?.personalDayNumber ?? "-"}`,
+    `질문수: ${numerology?.questionNumber ?? "-"}`,
+    "선택 카드:",
+    cardLine,
+    `핵심 답변: ${reading?.directAnswer || reading?.coreMessage || ""}`,
+    `마무리 조언: ${reading?.counselorClosing || reading?.conclusion?.finalWord || ""}`,
+    "상대의 속마음이나 미래를 단정하지 말고, 현실에서 확인할 수 있는 선택지를 중심으로 상담해 주세요.",
+  ].join("\n");
+}
+
 export default function NumerologyTarotClient() {
   const router = useRouter();
   const { ensurePaidAccess, isPaying } = useCoinGate();
@@ -628,6 +845,9 @@ export default function NumerologyTarotClient() {
   const [analysisDate, setAnalysisDate] = useState(getTodayDateInput());
   const [question, setQuestion] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [flowState, setFlowState] = useState<FlowState>("topic_selection");
+  const [readingId, setReadingId] = useState("");
+  const [entitlement, setEntitlement] = useState<ReadingEntitlement | null>(null);
 
   const [numerology, setNumerology] = useState<NumerologyContext | null>(null);
   const [cards, setCards] = useState<DrawnCard[]>([]);
@@ -638,6 +858,7 @@ export default function NumerologyTarotClient() {
   const [standalonePromptLoading, setStandalonePromptLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
 
   const lifeData = useMemo(() => {
     const key = Number(numerology?.lifePathNumber || 0);
@@ -664,6 +885,19 @@ export default function NumerologyTarotClient() {
       topicOption: promptTopicOption,
     });
   }, [name, promptContext, promptTopicOption, question]);
+  const hasPaidAccess = Boolean(entitlement?.paid);
+  const selectedTopicHints = TOPIC_QUESTION_HINTS[topic] || TOPIC_QUESTION_HINTS.general;
+  const continuationSummaryText = useMemo(() => {
+    if (!reading) return "";
+    return buildContinuationSummaryText({
+      name,
+      topicLabel: TOPIC_LABELS[topic],
+      question,
+      numerology,
+      cards,
+      reading,
+    });
+  }, [cards, name, numerology, question, reading, topic]);
   const freeProfile = useMemo<FreeProfile | null>(() => {
     const lifePath = Number(numerology?.lifePathNumber || 0);
     if (!numerology || !lifePath) return null;
@@ -704,15 +938,15 @@ export default function NumerologyTarotClient() {
   const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
 
   const activeStep = useMemo(() => {
-    if (reading) return 3;
-    if (cards.length && revealed.length === cards.length) return 2;
-    if (cards.length) return 1;
+    if (flowState === "reading_complete" || reading) return 3;
+    if (flowState === "cards_selected" || (cards.length && revealed.length === cards.length)) return 2;
+    if (hasPaidAccess || cards.length) return 1;
     return 0;
-  }, [cards.length, reading, revealed.length]);
+  }, [cards.length, flowState, hasPaidAccess, reading, revealed.length]);
 
   const revealProgress = `${Math.min(revealed.length, cards.length || 5)}/${cards.length || 5}`;
 
-  const readingEnabled = cards.length > 0 && revealed.length === cards.length;
+  const readingEnabled = hasPaidAccess && cards.length > 0 && revealed.length === cards.length;
 
   useEffect(() => {
     if (birthDate && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
@@ -730,9 +964,32 @@ export default function NumerologyTarotClient() {
   }, [birthDay, birthMonth, birthYear]);
 
   useEffect(() => {
+    if (entitlement?.paid || reading) return;
+    setFlowState(toText(question) ? "checkout_ready" : "question_input");
     setStandalonePromptText("");
     setStandalonePromptStatus("");
-  }, [standalonePromptPreview]);
+  }, [birthDate, entitlement?.paid, name, question, reading, topic]);
+
+  useEffect(() => {
+    const savedEntitlement = readJson<ReadingEntitlement>(READING_ENTITLEMENT_STORAGE_KEY);
+    if (!savedEntitlement?.paid || !savedEntitlement.readingId) return;
+    const snapshot = readJson<ReadingSnapshot>(`${READING_RESULT_STORAGE_PREFIX}${savedEntitlement.readingId}`);
+    setEntitlement(savedEntitlement);
+    setReadingId(savedEntitlement.readingId);
+    if (!snapshot) {
+      setFlowState("payment_complete");
+      return;
+    }
+    setName(snapshot.name || "");
+    setBirthDate(snapshot.birthDate || "");
+    setTopic(snapshot.topic || "love");
+    setQuestion(snapshot.question || "");
+    setNumerology(snapshot.numerology || null);
+    setCards(Array.isArray(snapshot.cards) ? snapshot.cards : []);
+    setRevealed(Array.isArray(snapshot.revealed) ? snapshot.revealed : []);
+    setReading(snapshot.reading || null);
+    setFlowState(snapshot.reading ? "reading_complete" : snapshot.cards?.length ? "cards_selected" : "payment_complete");
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -757,14 +1014,14 @@ export default function NumerologyTarotClient() {
     }
   }
 
-  function startDraw() {
+  function drawCardsForCurrentInput(nextReadingId = readingId) {
     if (!birthDate) {
       setError("생년월일을 입력해 주세요.");
-      return;
+      return false;
     }
     if (!toText(question)) {
       setError("상담 질문을 입력해 주세요.");
-      return;
+      return false;
     }
 
     const context = buildNumerologyContext({
@@ -784,11 +1041,88 @@ export default function NumerologyTarotClient() {
     setReading(null);
     setError("");
     setRevealed([]);
+    setSaveStatus("");
+    setStandalonePromptText("");
+    setStandalonePromptStatus("");
+    if (nextReadingId) setReadingId(nextReadingId);
+    setFlowState("card_drawing");
+    return true;
+  }
+
+  async function startDraw() {
+    if (!birthDate) {
+      setError("생년월일을 입력해 주세요.");
+      return;
+    }
+    if (!toText(question)) {
+      setError("상담 질문을 입력해 주세요.");
+      return;
+    }
+
+    if (hasPaidAccess) {
+      drawCardsForCurrentInput(readingId);
+      return;
+    }
+
+    const nextReadingId = createReadingId();
+    setFlowState("checkout_pending");
+    setError("");
+
+    try {
+      const paymentResult = await ensurePaidAccess({
+        featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+        reason: "수비학 타로 상담",
+        forceDeduct: true,
+        requestId: `${NUMEROLOGY_READING_FEATURE_KEY}:req:${nextReadingId}`,
+      });
+
+      if (!paymentResult.ok) {
+        setFlowState("checkout_ready");
+        if (paymentResult.code === "AUTH_REQUIRED") {
+          setError("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+          if (typeof window !== "undefined") {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.setTimeout(() => {
+              window.location.href = `/login?next=${next}`;
+            }, 600);
+          }
+          return;
+        }
+        if (paymentResult.code === "INSUFFICIENT_COINS" || paymentResult.code === "PAYMENT_REQUIRED") {
+          setError(`결제 가능 금액이 부족합니다. ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 필요합니다.`);
+          return;
+        }
+        setError(paymentResult.message || "결제를 완료하지 못했습니다.");
+        return;
+      }
+
+      const paidEntitlement = buildReadingEntitlement(nextReadingId, paymentResult.transactionId);
+      setEntitlement(paidEntitlement);
+      setReadingId(nextReadingId);
+      persistJson(READING_ENTITLEMENT_STORAGE_KEY, paidEntitlement);
+      setFlowState("payment_complete");
+      drawCardsForCurrentInput(nextReadingId);
+      if (paymentResult.chargedCoins > 0) {
+        showToast(`수비학 타로 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
+      } else {
+        showSubscriptionIncludedNotice({
+          message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
+          reason: "수비학 타로 상담",
+        });
+      }
+    } catch (paymentError) {
+      setFlowState("checkout_ready");
+      setError(paymentError instanceof Error ? paymentError.message : "결제 확인 중 오류가 발생했습니다.");
+    }
   }
 
   function revealCard(index: number) {
     if (revealed.includes(index)) return;
-    setRevealed((prev) => [...prev, index]);
+    setRevealed((prev) => {
+      const next = [...prev, index];
+      if (cards.length && next.length >= cards.length) setFlowState("cards_selected");
+      return next;
+    });
   }
 
   async function requestReading() {
@@ -796,6 +1130,8 @@ export default function NumerologyTarotClient() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        readingId,
+        entitlement,
         name: toText(name),
         birthDate,
         topic,
@@ -811,7 +1147,26 @@ export default function NumerologyTarotClient() {
     if (!res.ok || !data?.ok || !data?.interpretation) {
       throw new Error(data?.message || "리딩 생성에 실패했습니다.");
     }
-    setReading(data.interpretation);
+    const nextReading = {
+      ...data.interpretation,
+      readingId,
+    };
+    setReading(nextReading);
+    if (entitlement?.paid && readingId) {
+      persistJson(`${READING_RESULT_STORAGE_PREFIX}${readingId}`, {
+        entitlement,
+        name,
+        birthDate,
+        topic,
+        question,
+        numerology,
+        cards,
+        revealed,
+        reading: nextReading,
+      } satisfies ReadingSnapshot);
+    }
+    setFlowState("reading_complete");
+    return nextReading;
   }
 
   async function payAndRead() {
@@ -827,121 +1182,47 @@ export default function NumerologyTarotClient() {
       setError(`카드 ${cards.length || 5}장을 모두 열어야 리딩을 볼 수 있습니다.`);
       return;
     }
+    if (!entitlement?.paid || !readingId) {
+      setError("결제 완료 내역을 확인할 수 없습니다. 처음부터 다시 진행해 주세요.");
+      setFlowState("checkout_ready");
+      return;
+    }
 
     setLoading(true);
     setError("");
+    setFlowState("reading_generating");
 
     try {
-      const paymentResult = await ensurePaidAccess({
-        featureKey: "tarot-numerology-reading",
-        reason: "수비학 타로 리딩",
-        forceDeduct: true,
-        requestId: `tarot-numerology-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: async ({ chargedCoins, requiredCoins, balanceAfter }) => {
-          await requestReading();
-          if (chargedCoins <= 0 && requiredCoins > 0) {
-            showSubscriptionIncludedNotice({
-              message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
-              reason: "수비학 타로 리딩",
-            });
-            return;
-          }
-          if (chargedCoins > 0) {
-            showToast(`수비학 타로 리딩 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`, "info");
-          }
-        },
-      });
-
-      if (!paymentResult.ok) {
-        if (paymentResult.code === "AUTH_REQUIRED") {
-          setError("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-          if (typeof window !== "undefined") {
-            const next = encodeURIComponent(window.location.pathname + window.location.search);
-            window.setTimeout(() => {
-              window.location.href = `/login?next=${next}`;
-            }, 600);
-          }
-          return;
-        }
-        if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setError(`결제 가능 금액이 부족합니다. ${Math.max(0, Number(paymentResult.requiredCoins || 0) * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`);
-          return;
-        }
-        setError(paymentResult.message || "원화 결제에 실패했습니다.");
-      }
+      await requestReading();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "리딩 생성 중 오류가 발생했습니다.");
+      setFlowState("reading_failed");
+      setError(requestError instanceof Error ? requestError.message : "결과를 불러오지 못했어요");
     } finally {
       setLoading(false);
     }
   }
 
   async function generateStandalonePrompt() {
-    if (!birthDate || !promptContext) {
-      setStandalonePromptStatus("생년월일을 입력해 주세요.");
+    if (!entitlement?.paid) {
+      setStandalonePromptStatus("결제 완료 내역을 먼저 확인해 주세요.");
       return;
     }
-    if (!toText(question)) {
-      setStandalonePromptStatus("질문을 입력해 주세요.");
+    if (!reading) {
+      setStandalonePromptStatus("상담 결과가 열린 뒤 사용할 수 있어요.");
       return;
     }
-    if (!standalonePromptPreview) {
-      setStandalonePromptStatus("숫자 흐름을 다시 확인해 주세요.");
+    if (!continuationSummaryText) {
+      setStandalonePromptStatus("상담 요약문을 만들 수 없습니다.");
       return;
     }
 
     setStandalonePromptLoading(true);
     setStandalonePromptStatus("");
-
-    let generated = false;
     try {
-      const paymentResult = await ensurePaidAccess({
-        featureKey: NUMEROLOGY_PROMPT_FEATURE_KEY,
-        reason: "수비학 프롬프트 도구",
-        forceDeduct: true,
-        requestId: `tarot-numerology-ai-prompt:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: async ({ chargedCoins, requiredCoins, balanceAfter }) => {
-          generated = true;
-          setStandalonePromptText(standalonePromptPreview);
-          setStandalonePromptStatus("프롬프트가 열렸습니다.");
-          if (chargedCoins <= 0 && requiredCoins > 0) {
-            showSubscriptionIncludedNotice({
-              message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
-              reason: "수비학 프롬프트 도구",
-            });
-            return;
-          }
-          if (chargedCoins > 0) {
-            showToast(`수비학 프롬프트 도구 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`, "info");
-          }
-        },
-      });
-
-      if (paymentResult.ok && !generated) {
-        setStandalonePromptText(standalonePromptPreview);
-        setStandalonePromptStatus("프롬프트가 열렸습니다.");
-        return;
-      }
-
-      if (!paymentResult.ok) {
-        if (paymentResult.code === "AUTH_REQUIRED") {
-          setStandalonePromptStatus("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-          if (typeof window !== "undefined") {
-            const next = encodeURIComponent(window.location.pathname + window.location.search);
-            window.setTimeout(() => {
-              window.location.href = `/login?next=${next}`;
-            }, 600);
-          }
-          return;
-        }
-        if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setStandalonePromptStatus(`${NUMEROLOGY_PROMPT_PRICE_LABEL} 결제가 필요합니다.`);
-          return;
-        }
-        setStandalonePromptStatus(paymentResult.message || "프롬프트 생성 결제에 실패했습니다.");
-      }
+      setStandalonePromptText(continuationSummaryText);
+      setStandalonePromptStatus("상담 요약문이 준비되었습니다. 추가 결제는 없습니다.");
     } catch {
-      setStandalonePromptStatus("프롬프트를 여는 중 오류가 발생했습니다.");
+      setStandalonePromptStatus("상담 요약문을 여는 중 오류가 발생했습니다.");
     } finally {
       setStandalonePromptLoading(false);
     }
@@ -949,7 +1230,53 @@ export default function NumerologyTarotClient() {
 
   async function copyStandalonePrompt() {
     const copied = await copyTextToClipboard(standalonePromptText);
-    setStandalonePromptStatus(copied ? "복사되었습니다." : "직접 선택해 복사해 주세요.");
+    setStandalonePromptStatus(copied ? "상담 요약문이 복사되었습니다." : "직접 선택해 복사해 주세요.");
+  }
+
+  function saveReadingResult() {
+    if (!entitlement?.paid || !readingId || !reading) {
+      setSaveStatus("저장할 상담 결과가 없습니다.");
+      return;
+    }
+    persistJson(`${READING_RESULT_STORAGE_PREFIX}${readingId}`, {
+      entitlement,
+      name,
+      birthDate,
+      topic,
+      question,
+      numerology,
+      cards,
+      revealed,
+      reading,
+    } satisfies ReadingSnapshot);
+    setSaveStatus("상담 결과가 저장되었습니다.");
+    setFlowState("result_saved");
+  }
+
+  async function shareReadingResult() {
+    if (!reading) {
+      setSaveStatus("공유할 상담 결과가 없습니다.");
+      return;
+    }
+    const shareText = [
+      reading.title || `${TOPIC_LABELS[topic]} 수비학 타로 상담`,
+      reading.directAnswer || reading.coreMessage,
+      reading.counselorClosing || reading.conclusion?.finalWord,
+    ].filter(Boolean).join("\n\n");
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({
+          title: reading.title || "수비학 타로 상담",
+          text: shareText,
+        });
+        setSaveStatus("공유 화면을 열었습니다.");
+        return;
+      }
+      const copied = await copyTextToClipboard(shareText);
+      setSaveStatus(copied ? "상담 요약이 복사되었습니다." : "직접 선택해 복사해 주세요.");
+    } catch {
+      setSaveStatus("공유를 완료하지 못했습니다.");
+    }
   }
 
   return (
@@ -958,10 +1285,10 @@ export default function NumerologyTarotClient() {
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
           <nav className={styles.topNav} aria-label="수비학 타로 메뉴">
-            <span>정보 입력</span>
-            <span>숫자 정렬</span>
-            <span>카드 열기</span>
-            <span>결 읽기</span>
+            <span>상담 입력</span>
+            <span>결제 완료</span>
+            <span>카드 5장</span>
+            <span>상담 결과</span>
           </nav>
           <div className={styles.actions}>
             <button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>
@@ -971,8 +1298,8 @@ export default function NumerologyTarotClient() {
 
         <section className={styles.heroGrid}>
           <div className={styles.mainPanel}>
-            <h1 className={styles.title}>숫자 리듬 타로</h1>
-            <p className={styles.subtitle}>생명수·오늘수·질문수가 5장의 카드와 만나는 리딩</p>
+            <h1 className={styles.title}>수비학 타로 상담</h1>
+            <p className={styles.subtitle}>숫자의 흐름과 선택한 카드를 함께 읽어, 지금 질문에 맞는 상담 결과를 전합니다.</p>
 
             <div className={styles.stepRail}>
               {STEP_LABELS.map((label, idx) => (
@@ -984,7 +1311,7 @@ export default function NumerologyTarotClient() {
 
             <div className={styles.stage}>
               <section className={styles.formCard}>
-                <h2 className={styles.formTitle}>당신의 숫자가 깨어나는 시간을 알려주세요</h2>
+                <h2 className={styles.formTitle}>지금 가장 궁금한 이야기를 골라 주세요</h2>
 
                 <div className={styles.topicTabs}>
                   {TOPIC_OPTIONS.map((option) => (
@@ -993,8 +1320,24 @@ export default function NumerologyTarotClient() {
                       type="button"
                       className={`${styles.topicTab} ${topic === option.value ? styles.topicTabActive : ""}`}
                       onClick={() => setTopic(option.value)}
+                      disabled={hasPaidAccess}
+                      aria-pressed={topic === option.value}
                     >
                       {option.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={styles.followUpList} aria-label="주제별 질문 예시">
+                  {selectedTopicHints.map((hint) => (
+                    <button
+                      key={hint}
+                      type="button"
+                      className={styles.followUpChip}
+                      onClick={() => setQuestion(hint)}
+                      disabled={hasPaidAccess}
+                    >
+                      {hint}
                     </button>
                   ))}
                 </div>
@@ -1007,6 +1350,7 @@ export default function NumerologyTarotClient() {
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       placeholder="이름"
+                      disabled={hasPaidAccess}
                     />
                   </label>
 
@@ -1016,6 +1360,7 @@ export default function NumerologyTarotClient() {
                       className={styles.select}
                       value={birthYear}
                       onChange={(event) => setBirthYear(event.target.value)}
+                      disabled={hasPaidAccess}
                     >
                       <option value="">연도</option>
                       {YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
@@ -1031,6 +1376,7 @@ export default function NumerologyTarotClient() {
                         setBirthMonth(event.target.value);
                         setBirthDay("");
                       }}
+                      disabled={hasPaidAccess}
                     >
                       <option value="">월</option>
                       {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
@@ -1043,6 +1389,7 @@ export default function NumerologyTarotClient() {
                       className={styles.select}
                       value={birthDay}
                       onChange={(event) => setBirthDay(event.target.value)}
+                      disabled={hasPaidAccess}
                     >
                       <option value="">일</option>
                       {dayOptions.map((day) => <option key={day} value={day}>{day}</option>)}
@@ -1056,25 +1403,45 @@ export default function NumerologyTarotClient() {
                       type="date"
                       value={analysisDate}
                       onChange={(event) => setAnalysisDate(event.target.value)}
+                      disabled={hasPaidAccess}
                     />
                   </label>
 
                   <label className={`${styles.field} ${styles.fieldWide}`}>
-                    <span className={styles.label}>질문 (필수)</span>
+                    <span className={styles.label}>가장 궁금한 질문</span>
                     <input
                       className={styles.input}
                       value={question}
                       onChange={(event) => setQuestion(event.target.value)}
-                      placeholder="예: 이 관계가 앞으로 어떤 방향으로 흘러가며, 내가 먼저 조정해야 할 태도는 무엇인가요?"
+                      placeholder="예: 지금 연락하고 있는 사람과 관계가 발전할 가능성이 궁금해요."
+                      disabled={hasPaidAccess}
                     />
                   </label>
                 </div>
 
+                <div className={styles.includedList} aria-label="이번 상담 포함 항목">
+                  {INCLUDED_BENEFITS.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+
                 <div className={styles.actions} style={{ marginTop: 12 }}>
-                  <button type="button" onClick={startDraw} className={styles.mainBtn}>숫자 리듬 열기 ✦</button>
-                  <button type="button" onClick={payAndRead} disabled={!readingEnabled || loading || isPaying} className={styles.lightBtn}>
-                    {loading || isPaying ? "숫자와 카드를 엮는 중..." : "리딩 결과 열기 (3,000원)"}
-                  </button>
+                  {!hasPaidAccess ? (
+                    <button type="button" onClick={startDraw} disabled={isPaying || loading} className={styles.mainBtn}>
+                      {isPaying || flowState === "checkout_pending" ? "결제 확인 중..." : `결제하고 카드 5장 뽑기 · ${NUMEROLOGY_READING_PRICE_LABEL}`}
+                    </button>
+                  ) : null}
+                  {hasPaidAccess && !cards.length ? (
+                    <button type="button" onClick={startDraw} disabled={loading} className={styles.mainBtn}>
+                      카드 5장 뽑기
+                    </button>
+                  ) : null}
+                  {hasPaidAccess && cards.length ? (
+                    <button type="button" onClick={payAndRead} disabled={!readingEnabled || loading} className={styles.lightBtn}>
+                      {loading ? "상담 결과를 정리하는 중..." : flowState === "reading_failed" ? "결과 다시 불러오기" : "상담 결과 확인하기"}
+                    </button>
+                  ) : null}
+                  <span className={styles.noExtraPay}>추가 결제 없음</span>
                 </div>
 
                 {error ? <p className={styles.error}>{error}</p> : null}
@@ -1094,7 +1461,9 @@ export default function NumerologyTarotClient() {
                       <button
                         type="button"
                         key={isRealCard ? `${entry.card.id}-${idx}` : `${entry.title}-${idx}`}
-                        className={`${styles.previewCard} ${isRealCard && !isOpen ? styles.previewCardLocked : ""}`}
+                        className={`${styles.previewCard} ${isRealCard && !isOpen ? styles.previewCardLocked : ""} ${isRealCard && isOpen ? styles.previewCardOpen : ""}`}
+                        aria-pressed={isRealCard ? isOpen : undefined}
+                        disabled={!isRealCard || !hasPaidAccess}
                         onClick={() => {
                           if (isRealCard) revealCard(idx);
                         }}
@@ -1116,7 +1485,7 @@ export default function NumerologyTarotClient() {
                               <p className={styles.previewMeta}>{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
                             </>
                           ) : (
-                            <span>열기</span>
+                            <span>선택</span>
                           )
                         ) : (
                           <>
@@ -1168,87 +1537,15 @@ export default function NumerologyTarotClient() {
                   ))}
                 </div>
 
-                <div className={styles.promptMergedPanel} data-marker="tarot-numerology-result-prompt-merged-v20260621">
+                <div className={styles.promptMergedPanel} data-marker="tarot-numerology-one-payment-included-v20260622">
                   <div className={styles.promptToolHeader}>
                     <div>
-                      <p className={styles.promptToolKicker}>수비학 결과 프롬프트</p>
-                      <h4>이 숫자 흐름을 AI에게 건넬 문장으로 정리합니다</h4>
-                      <p>생명수, 정점수 4단계, 도전수 3개와 분석 날짜를 함께 묶어 지금 질문에 맞는 리딩 프롬프트로 엽니다.</p>
+                      <p className={styles.promptToolKicker}>결제에 포함</p>
+                      <h4>숫자와 카드 5장을 함께 읽는 상담 결과</h4>
+                      <p>카드 추첨, 전체 해석, 결과 저장, AI 상담 이어가기가 모두 포함됩니다. 추가 결제는 없습니다.</p>
                     </div>
-                    <div className={styles.promptPriceBadge}>{NUMEROLOGY_PROMPT_PRICE_LABEL}</div>
+                    <div className={styles.promptPriceBadge}>추가 결제 없음</div>
                   </div>
-
-                  <div className={styles.promptSummaryGrid}>
-                    <article className={styles.promptSummaryBox}>
-                      <h4>생명수</h4>
-                      <p>{promptContext?.lifePathNumber ?? "-"}</p>
-                    </article>
-                    <article className={styles.promptSummaryBox}>
-                      <h4>정점수 4단계</h4>
-                      <p>{promptContext ? formatNumberSequence(promptContext.pinnacleNumbers) : "-"}</p>
-                    </article>
-                    <article className={styles.promptSummaryBox}>
-                      <h4>도전수 3개</h4>
-                      <p>{promptContext ? formatNumberSequence(promptContext.challengeNumbers, "번") : "-"}</p>
-                    </article>
-                    <article className={styles.promptSummaryBox}>
-                      <h4>개인연도·월수</h4>
-                      <p>{promptContext ? `${promptContext.personalYearNumber}년 / ${promptContext.personalMonthNumber}월` : "-"}</p>
-                    </article>
-                    <article className={styles.promptSummaryBox}>
-                      <h4>이름수</h4>
-                      <p>{formatNameNumber(promptContext)}</p>
-                    </article>
-                  </div>
-
-                  <div className={styles.promptTopicHeader}>프롬프트 주제를 선택해 주세요</div>
-                  <div className={styles.promptTopicGrid}>
-                    {PROMPT_TOPIC_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`${styles.promptTopicCard} ${promptTopic === option.value ? styles.promptTopicCardActive : ""}`}
-                        onClick={() => setPromptTopic(option.value)}
-                        aria-pressed={promptTopic === option.value}
-                      >
-                        <span className={styles.promptTopicSymbol}>{option.symbol}</span>
-                        <span className={styles.promptTopicContent}>
-                          <strong>{option.title}</strong>
-                          <small>{option.description}</small>
-                        </span>
-                        <span className={styles.promptTopicArrow}>›</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className={styles.promptToolActions}>
-                    <button
-                      type="button"
-                      className={styles.mainBtn}
-                      onClick={generateStandalonePrompt}
-                      disabled={!promptContext || !toText(question) || standalonePromptLoading || isPaying}
-                    >
-                      {standalonePromptLoading || isPaying ? "결제 확인 중..." : `프롬프트 생성 (${NUMEROLOGY_PROMPT_PRICE_LABEL})`}
-                    </button>
-                    <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus}</span>
-                  </div>
-
-                  {standalonePromptText ? (
-                    <div className={styles.promptOutputPanel}>
-                      <textarea
-                        className={styles.aiPromptOutput}
-                        value={standalonePromptText}
-                        readOnly
-                        aria-label="수비학 프롬프트 생성문"
-                      />
-                      <div className={styles.aiPromptActions}>
-                        <button type="button" className={styles.aiPromptCopy} onClick={copyStandalonePrompt}>
-                          프롬프트 복사
-                        </button>
-                        <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus}</span>
-                      </div>
-                    </div>
-                  ) : null}
                 </div>
               </section>
             ) : null}

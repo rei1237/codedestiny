@@ -1,8 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, Copy, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MEIHUA_MODES,
   RELATIONSHIP_TYPES,
@@ -390,6 +390,683 @@ const EXAMPLE_STATE = {
   tone: "따뜻한 위로",
 };
 
+type ToolId =
+  | "comprehensive"
+  | "basic"
+  | "saju"
+  | "yukhyo"
+  | "dangsaju"
+  | "kusei"
+  | "psych"
+  | "tarot"
+  | "astrology"
+  | "vedic"
+  | "ziwei"
+  | "sukuyo"
+  | "numerology"
+  | "dream"
+  | "horary"
+  | "meihua";
+
+type FieldType = "text" | "textarea" | "select" | "multiselect" | "date" | "time" | "datetime-local" | "number" | "checkbox";
+
+type FieldConfig = {
+  id: string;
+  label: string;
+  type: FieldType;
+  required?: boolean;
+  placeholder?: string;
+  help?: string;
+  privacyHint?: string;
+  options?: string[];
+  rows?: number;
+  advanced?: boolean;
+  min?: number;
+  max?: number;
+};
+
+type ToolDraftValue = string | string[] | boolean;
+type ToolDraft = Record<string, ToolDraftValue>;
+
+type ToolConfig = {
+  id: ToolId;
+  label: string;
+  shortLabel: string;
+  description: string;
+  detail: string;
+  icon: string;
+  theme: {
+    accent: string;
+    accentStrong: string;
+    accentSoft: string;
+    surface: string;
+    text: string;
+    motif: string;
+  };
+  fields: FieldConfig[];
+  exampleValues: ToolDraft;
+  generateLabel: string;
+  resultLabel: string;
+  emptyState: string;
+  role: string;
+  principles: string[];
+  answerSections: string[];
+  keywords: string[];
+  ready: "ready" | "beta";
+};
+
+const RESPONSE_TONES = ["차분한 상담", "따뜻한 위로", "현실적인 조언", "상징적인 문장", "간결한 정리"];
+const RESPONSE_DEPTHS = ["핵심만 짧게", "균형 있게", "깊고 자세하게"];
+
+const COMMON_FIELDS: FieldConfig[] = [
+  { id: "topic", label: "상담 주제", type: "text", required: true, placeholder: "예: 올해의 일과 사랑 흐름" },
+  { id: "question", label: "구체적인 질문", type: "textarea", required: true, rows: 4, placeholder: "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요." },
+  { id: "context", label: "상황 설명", type: "textarea", rows: 4, placeholder: "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요." },
+  { id: "tone", label: "원하는 답변 어조", type: "select", options: RESPONSE_TONES },
+  { id: "depth", label: "원하는 답변 깊이", type: "select", options: RESPONSE_DEPTHS },
+  { id: "avoid", label: "피하고 싶은 표현", type: "text", placeholder: "예: 겁을 주는 말, 단정적인 예언", advanced: true },
+];
+
+const BIRTH_PRIVACY_HINT = "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요.";
+
+const BIRTH_FIELDS: FieldConfig[] = [
+  { id: "calendarType", label: "양력/음력", type: "select", options: ["양력", "음력"] },
+  { id: "birthDate", label: "생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
+  { id: "birthTime", label: "출생 시각", type: "time", help: "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.", privacyHint: BIRTH_PRIVACY_HINT },
+  { id: "birthPlace", label: "출생 지역", type: "text", placeholder: "예: 서울", privacyHint: BIRTH_PRIVACY_HINT },
+  { id: "leapMonth", label: "윤달 여부", type: "checkbox", advanced: true },
+  { id: "birthTimeUnknown", label: "출생 시각 모름", type: "checkbox", advanced: true },
+];
+
+const toolRegistry: ToolConfig[] = [
+  {
+    id: "comprehensive",
+    label: "종합 프롬프트",
+    shortLabel: "종합",
+    description: "여러 운세 체계를 한데 엮어 질문의 결을 정돈합니다.",
+    detail: "달빛 아래 흩어진 단서를 모으듯 사주, 타로, 점성술, 상징 해석을 함께 다루는 범용 상담 프롬프트입니다.",
+    icon: "✦",
+    theme: { accent: "#a13f5d", accentStrong: "#7f1d3a", accentSoft: "#ffe4ed", surface: "#fff8f1", text: "#24151b", motif: "얇은 궤도와 달빛 점선" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "타로", "점성술", "수비학", "꿈/상징", "숙요점"] },
+      { id: "period", label: "상담 기간", type: "select", options: ["오늘", "이번 주", "이번 달", "3개월", "올해"] },
+      { id: "birthInfo", label: "출생 정보", type: "textarea", rows: 3, placeholder: "알고 있는 생년월일, 출생시각, 출생지를 적어 주세요.", privacyHint: BIRTH_PRIVACY_HINT },
+    ],
+    exampleValues: {
+      topic: "올해의 일과 사랑 흐름",
+      question: "지금 준비하는 일이 내게 맞는 방향인지, 관계에서는 어떤 태도를 지키면 좋을까요?",
+      context: "새로운 제안을 받았고 마음은 끌리지만 책임이 커질까 망설이고 있습니다.",
+      tone: "따뜻한 위로",
+      depth: "균형 있게",
+      systems: ["사주/명리학", "타로", "점성술"],
+      period: "3개월",
+      birthInfo: "1994년 8월 17일 오전 9시 20분, 서울 출생",
+    },
+    generateLabel: "종합 운세 프롬프트 생성하기",
+    resultLabel: "완성된 종합 운세 상담 프롬프트",
+    emptyState: "질문, 배경, 활용할 체계를 적으면 여러 운세의 언어가 한 문장 안에서 차분히 정돈됩니다.",
+    role: "여러 운세 체계를 조화롭게 엮는 명리·타로 통합 상담가",
+    principles: ["체계별 해석을 섞되 근거를 구분합니다.", "질문자의 선택권을 흐리지 않습니다.", "상징은 가능성의 언어로 전합니다."],
+    answerSections: ["질문의 핵심", "체계별로 드러나는 흐름", "겹쳐지는 신호", "현실적인 선택지", "오늘부터 할 수 있는 작은 실천"],
+    keywords: ["통합", "달빛", "상담", "여러 체계"],
+    ready: "ready",
+  },
+  {
+    id: "basic",
+    label: "기본 운세",
+    shortLabel: "기본",
+    description: "오늘이나 특정 기간의 흐름을 부담 없이 살핍니다.",
+    detail: "해와 달의 주기처럼 가벼운 일상 운세를 정리해, 지금 확인할 영역과 기간에 맞는 상담 프롬프트를 만듭니다.",
+    icon: "☼",
+    theme: { accent: "#256b8f", accentStrong: "#164e63", accentSoft: "#dff4ff", surface: "#fffaf0", text: "#122633", motif: "해와 달의 주기, 캘린더" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "targetDate", label: "확인할 날짜 또는 기간", type: "text", required: true, placeholder: "예: 2026년 7월, 이번 주말" },
+      { id: "focusArea", label: "관심 영역", type: "multiselect", options: ["일", "연애", "돈", "건강", "관계", "학업"] },
+    ],
+    exampleValues: {
+      topic: "이번 달의 전반적인 흐름",
+      question: "이번 달에 집중하면 좋은 일과 조심할 흐름은 무엇인가요?",
+      targetDate: "2026년 7월",
+      focusArea: ["일", "관계"],
+      tone: "차분한 상담",
+      depth: "핵심만 짧게",
+    },
+    generateLabel: "기본 운세 프롬프트 생성하기",
+    resultLabel: "완성된 기본 운세 상담 프롬프트",
+    emptyState: "날짜와 관심 영역을 정하면 오늘의 빛처럼 가볍고 선명한 상담 프롬프트가 열립니다.",
+    role: "일상의 흐름을 쉽고 밝게 짚어 주는 운세 상담가",
+    principles: ["무겁지 않은 언어로 안내합니다.", "기간과 관심 영역을 분명히 나눕니다.", "실행 가능한 조언을 우선합니다."],
+    answerSections: ["기간의 전체 흐름", "관심 영역별 신호", "피하면 좋은 행동", "가볍게 시도할 일"],
+    keywords: ["오늘", "기간", "일상", "가벼운 운세"],
+    ready: "ready",
+  },
+  {
+    id: "saju",
+    label: "사주/명리학",
+    shortLabel: "사주",
+    description: "시간과 오행의 구조로 질문의 뿌리를 살핍니다.",
+    detail: "한지 위에 명식을 기록하듯 생년월일, 시각, 지역을 정리해 오행과 십성의 흐름을 읽는 프롬프트를 만듭니다.",
+    icon: "印",
+    theme: { accent: "#b5482b", accentStrong: "#7c2d12", accentSoft: "#ffe5d5", surface: "#fbf6ea", text: "#231915", motif: "오행, 천간지지, 인장" },
+    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "focusPillar", label: "중점 영역", type: "select", options: ["성향", "일과 재능", "관계", "재물", "대운 흐름"] }],
+    exampleValues: {
+      topic: "일과 관계의 균형",
+      question: "내 사주에서 지금 일에 힘을 실어도 좋은 시기인지 알고 싶습니다.",
+      calendarType: "양력",
+      birthDate: "1994-08-17",
+      birthTime: "09:20",
+      birthPlace: "서울",
+      focusPillar: "일과 재능",
+      tone: "현실적인 조언",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "사주/명리 상담 프롬프트 생성하기",
+    resultLabel: "완성된 사주/명리 상담 프롬프트",
+    emptyState: "생년월일과 질문을 적으면 오행의 균형과 현재 선택의 방향을 읽는 프롬프트가 준비됩니다.",
+    role: "오행과 십성의 균형을 차분히 읽는 명리학자",
+    principles: ["출생 정보가 불완전하면 단정하지 않습니다.", "오행, 십성, 대운을 구분해 설명합니다.", "강약보다 균형과 보완을 중심에 둡니다."],
+    answerSections: ["명식에서 먼저 볼 축", "오행과 십성의 흐름", "현재 질문과 맞닿은 지점", "보완하면 좋은 태도", "현실적인 선택 조언"],
+    keywords: ["사주", "명리", "오행", "천간지지"],
+    ready: "ready",
+  },
+  {
+    id: "yukhyo",
+    label: "육효",
+    shortLabel: "육효",
+    description: "여섯 효의 변화로 지금 질문의 판단점을 세웁니다.",
+    detail: "괘를 얻은 방식과 효의 흐름을 정리해, 변화와 응기를 간결하게 살피는 육효 상담 프롬프트를 만듭니다.",
+    icon: "☷",
+    theme: { accent: "#9a3412", accentStrong: "#1f2937", accentSoft: "#fef3c7", surface: "#f8f3e8", text: "#171717", motif: "음효·양효 선과 괘" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "drawMethod", label: "괘를 얻은 방식", type: "select", options: ["동전", "숫자", "시간", "직접 입력"] },
+      { id: "sixLines", label: "여섯 효 또는 동전 결과", type: "textarea", rows: 4, placeholder: "아래에서 위 순서로 적어 주세요. 예: 소양, 노음, 소음..." },
+      { id: "questionTime", label: "질문 시각", type: "datetime-local" },
+    ],
+    exampleValues: {
+      topic: "계약 진행 여부",
+      question: "이번 제안을 받아들이는 것이 내게 유리할까요?",
+      drawMethod: "동전",
+      sixLines: "소양 / 소음 / 노양 / 소음 / 소양 / 노음",
+      questionTime: "2026-07-08T21:10",
+      tone: "간결한 정리",
+      depth: "균형 있게",
+    },
+    generateLabel: "육효 상담 프롬프트 생성하기",
+    resultLabel: "완성된 육효 상담 프롬프트",
+    emptyState: "하나의 질문과 괘를 얻은 단서를 적으면 여섯 효의 변화가 판단의 초점으로 정리됩니다.",
+    role: "괘와 효의 변화를 절제된 언어로 읽는 육효 상담가",
+    principles: ["한 번에 하나의 질문만 다룹니다.", "본괘, 변괘, 동효의 의미를 구분합니다.", "판단은 가능성과 주의점으로 전합니다."],
+    answerSections: ["질문의 초점", "본괘의 분위기", "움직이는 효", "변화 뒤의 흐름", "결정 전 확인할 현실 조건"],
+    keywords: ["육효", "괘", "동효", "변괘"],
+    ready: "ready",
+  },
+  {
+    id: "dangsaju",
+    label: "당사주",
+    shortLabel: "당사주",
+    description: "열두 자리와 생시의 흐름으로 삶의 결을 살핍니다.",
+    detail: "12성의 배치를 중심으로 초년부터 말년까지 이어지는 리듬과 지금 질문의 자리를 정리합니다.",
+    icon: "⑫",
+    theme: { accent: "#b0892f", accentStrong: "#27215f", accentSoft: "#f8e7b0", surface: "#f5f1e8", text: "#17172f", motif: "12궁 원형 궤도" },
+    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "lifeArea", label: "중점 영역", type: "select", options: ["전체 흐름", "초년", "중년", "말년", "관계", "일"] }],
+    exampleValues: {
+      topic: "관계와 일의 흐름",
+      question: "올해 사람들과의 협업이 내게 어떤 방향으로 열릴까요?",
+      birthDate: "1992-03-21",
+      birthTime: "14:40",
+      birthPlace: "부산",
+      lifeArea: "관계",
+      tone: "차분한 상담",
+      depth: "균형 있게",
+    },
+    generateLabel: "당사주 상담 프롬프트 생성하기",
+    resultLabel: "완성된 당사주 상담 프롬프트",
+    emptyState: "생년월일과 생시를 적으면 열두 자리의 흐름이 지금의 질문과 연결됩니다.",
+    role: "12성의 흐름을 정교하게 풀어내는 당사주 상담가",
+    principles: ["12성의 배치를 삶의 시기와 연결합니다.", "고전적 표현을 현대적인 조언으로 풀어냅니다.", "한 사람의 가능성을 좁히지 않습니다."],
+    answerSections: ["12성의 중심 흐름", "시기별로 드러나는 결", "현재 질문과 맞물린 자리", "관계와 행동의 조언"],
+    keywords: ["당사주", "12성", "생시", "고전"],
+    ready: "ready",
+  },
+  {
+    id: "kusei",
+    label: "구성기학",
+    shortLabel: "구성",
+    description: "방향과 시기의 질서를 공간적으로 살핍니다.",
+    detail: "구궁 격자와 방위의 흐름을 기준으로 이동, 거주, 시기 선택에 필요한 단서를 정리합니다.",
+    icon: "九",
+    theme: { accent: "#2f7f78", accentStrong: "#164e63", accentSoft: "#d8f3ee", surface: "#f3f8f2", text: "#132927", motif: "구궁 격자와 나침반" },
+    fields: [
+      ...COMMON_FIELDS,
+      ...BIRTH_FIELDS,
+      { id: "baseDate", label: "분석 기준일", type: "date", required: true },
+      { id: "directionQuestion", label: "이동·방향·거주 질문", type: "textarea", rows: 3, placeholder: "예: 이사 방향, 출장 시기, 자리 이동" },
+    ],
+    exampleValues: {
+      topic: "이사 방향과 시기",
+      question: "올해 이사를 한다면 어느 방향과 시기를 조심해서 보면 좋을까요?",
+      birthDate: "1990-11-02",
+      birthTime: "12:00",
+      baseDate: "2026-07-01",
+      directionQuestion: "서울 동쪽 지역으로 이동을 고민하고 있습니다.",
+      tone: "현실적인 조언",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "구성기학 상담 프롬프트 생성하기",
+    resultLabel: "완성된 구성기학 상담 프롬프트",
+    emptyState: "생년월일, 기준일, 이동 질문을 적으면 구궁의 질서가 선택의 방향을 밝혀 줍니다.",
+    role: "방위와 시기의 질서를 명료하게 읽는 구성기학 상담가",
+    principles: ["방위, 시기, 생활 조건을 함께 봅니다.", "금기보다 조정 가능한 현실 대안을 제안합니다.", "불확실한 계산값은 가능성으로 설명합니다."],
+    answerSections: ["본명성과 기준 흐름", "방위에서 살필 신호", "시기 선택의 장단점", "현실적인 조정 방법"],
+    keywords: ["구성기학", "구궁", "방위", "이동"],
+    ready: "ready",
+  },
+  {
+    id: "psych",
+    label: "심리테스트",
+    shortLabel: "심리",
+    description: "가볍게 자신을 탐색하는 질문을 만듭니다.",
+    detail: "말풍선처럼 부담 없는 질문으로 마음의 패턴을 발견하고, 결과 해석까지 이어지는 테스트 프롬프트를 구성합니다.",
+    icon: "◇",
+    theme: { accent: "#8b5cf6", accentStrong: "#5b3aa4", accentSoft: "#efe5ff", surface: "#f8f5ff", text: "#24143f", motif: "말풍선과 선택 카드" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "testTheme", label: "테스트 주제", type: "text", required: true, placeholder: "예: 관계에서 내가 피곤해지는 순간" },
+      { id: "audience", label: "대상", type: "select", options: ["나 자신", "연인", "친구", "팀", "콘텐츠 독자"] },
+      { id: "questionCount", label: "문항 수", type: "number", min: 4, max: 20 },
+      { id: "resultType", label: "결과 유형", type: "select", options: ["4가지 타입", "5단계 점수", "짧은 리포트", "카드형 결과"] },
+    ],
+    exampleValues: {
+      topic: "관계 성향 테스트",
+      question: "내가 가까운 관계에서 어떤 방식으로 마음을 닫는지 알고 싶습니다.",
+      testTheme: "관계에서 내가 피곤해지는 순간",
+      audience: "나 자신",
+      questionCount: "8",
+      resultType: "4가지 타입",
+      tone: "따뜻한 위로",
+      depth: "균형 있게",
+    },
+    generateLabel: "심리테스트 프롬프트 생성하기",
+    resultLabel: "완성된 심리테스트 프롬프트",
+    emptyState: "테스트 주제와 대상, 문항 수를 정하면 마음을 가볍게 비추는 질문지가 준비됩니다.",
+    role: "부담 없는 질문으로 자기 이해를 돕는 심리테스트 설계자",
+    principles: ["낙인찍는 표현을 피합니다.", "질문은 짧고 명확하게 둡니다.", "결과는 위로와 실천으로 이어지게 합니다."],
+    answerSections: ["테스트 소개", "문항 구성", "채점 기준", "결과 타입", "타입별 조언"],
+    keywords: ["심리", "테스트", "질문", "자기 탐색"],
+    ready: "ready",
+  },
+  {
+    id: "tarot",
+    label: "타로",
+    shortLabel: "타로",
+    description: "상징이 담긴 카드로 질문의 흐름을 읽습니다.",
+    detail: "카드 프레임 속 별과 달처럼 질문, 스프레드, 뽑은 카드를 정리해 직관적인 상담 프롬프트를 만듭니다.",
+    icon: "✷",
+    theme: { accent: "#b9974b", accentStrong: "#21143f", accentSoft: "#efe4ff", surface: "#f3eefb", text: "#170f2f", motif: "카드 프레임, 별, 태양과 달" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "spread", label: "스프레드 종류", type: "select", required: true, options: ["원 카드", "3카드", "켈틱 크로스", "관계 스프레드", "직접 지정"] },
+      { id: "cardCount", label: "카드 수", type: "number", min: 1, max: 12 },
+      { id: "drawnCards", label: "직접 뽑은 카드 및 정·역방향", type: "textarea", rows: 4, placeholder: "예: 1. The Star 정방향, 2. Two of Cups 역방향" },
+    ],
+    exampleValues: {
+      topic: "관계의 다음 흐름",
+      question: "상대와 다시 대화를 시작해도 좋을지 알고 싶습니다.",
+      spread: "3카드",
+      cardCount: "3",
+      drawnCards: "1. The Star 정방향\n2. Two of Cups 역방향\n3. Temperance 정방향",
+      tone: "상징적인 문장",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "타로 상담 프롬프트 생성하기",
+    resultLabel: "완성된 타로 상담 프롬프트",
+    emptyState: "질문과 스프레드, 뽑은 카드를 적으면 카드의 상징이 상담 문장으로 차분히 펼쳐집니다.",
+    role: "카드의 상징과 질문자의 마음을 함께 읽는 타로 리더",
+    principles: ["카드의 정·역방향을 구분합니다.", "상징을 단정적 예언으로 몰아가지 않습니다.", "질문자의 선택과 대화 가능성을 열어 둡니다."],
+    answerSections: ["질문에 어울리는 스프레드", "카드별 상징", "카드 사이의 이야기", "지금 필요한 태도", "현실적인 다음 행동"],
+    keywords: ["타로", "스프레드", "카드", "상징"],
+    ready: "ready",
+  },
+  {
+    id: "astrology",
+    label: "점성술",
+    shortLabel: "점성",
+    description: "행성과 별자리의 관계를 차트처럼 읽습니다.",
+    detail: "출생 차트와 행성의 관계를 정리해, 우주적인 상징과 분석적인 해석이 함께 흐르는 프롬프트를 만듭니다.",
+    icon: "♄",
+    theme: { accent: "#4f8fd9", accentStrong: "#12294f", accentSoft: "#deecff", surface: "#eef4ff", text: "#101b33", motif: "출생 차트와 행성 궤도" },
+    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "analysisArea", label: "분석 영역", type: "select", options: ["성향", "관계", "커리어", "시기", "트랜짓"] }],
+    exampleValues: {
+      topic: "커리어 전환",
+      question: "올해 직업 방향을 바꾸는 선택이 내 차트에서 어떻게 보일까요?",
+      birthDate: "1989-06-12",
+      birthTime: "22:15",
+      birthPlace: "대구",
+      analysisArea: "커리어",
+      tone: "현실적인 조언",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "점성술 상담 프롬프트 생성하기",
+    resultLabel: "완성된 점성술 상담 프롬프트",
+    emptyState: "출생 정보와 분석 영역을 적으면 행성과 별자리의 관계가 질문 위에 놓입니다.",
+    role: "행성과 하우스의 관계를 분석적으로 읽는 점성술사",
+    principles: ["태양, 달, 상승궁을 구분해 설명합니다.", "하우스와 행성의 상징을 현실 언어로 풀어냅니다.", "트랜짓은 가능성의 흐름으로 안내합니다."],
+    answerSections: ["차트에서 먼저 볼 축", "행성·하우스의 신호", "질문과 연결되는 지점", "시기별 가능성", "현실적인 조언"],
+    keywords: ["점성술", "차트", "행성", "하우스"],
+    ready: "ready",
+  },
+  {
+    id: "vedic",
+    label: "베다점",
+    shortLabel: "베다",
+    description: "전통적인 베다 점성 체계로 흐름을 살핍니다.",
+    detail: "사프란빛 만다라처럼 출생 정보와 라그나, 나크샤트라 단서를 정리해 깊고 차분한 프롬프트를 만듭니다.",
+    icon: "◈",
+    theme: { accent: "#c77720", accentStrong: "#0f5753", accentSoft: "#ffe7bd", surface: "#fff4df", text: "#1f2418", motif: "절제된 만다라와 사각 차트" },
+    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "vedicTopic", label: "분석 주제", type: "select", options: ["라그나", "나크샤트라", "다샤", "관계", "커리어"] }, { id: "advancedSettings", label: "고급 설정", type: "textarea", rows: 3, advanced: true, placeholder: "알고 있는 라그나, 나크샤트라, 아야남샤 설정" }],
+    exampleValues: {
+      topic: "다샤 흐름과 일",
+      question: "지금의 일 방향이 장기적으로 이어질 힘이 있는지 알고 싶습니다.",
+      birthDate: "1991-12-04",
+      birthTime: "06:35",
+      birthPlace: "인천",
+      vedicTopic: "다샤",
+      tone: "차분한 상담",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "베다점 상담 프롬프트 생성하기",
+    resultLabel: "완성된 베다점 상담 프롬프트",
+    emptyState: "출생 정보와 베다 점성의 분석 주제를 적으면 깊은 전통의 흐름이 정리됩니다.",
+    role: "베다 점성의 전통을 차분히 풀어내는 베다 점성술사",
+    principles: ["라그나와 나크샤트라를 구분합니다.", "다샤는 시기의 분위기로 설명합니다.", "전통 용어는 쉬운 말로 덧붙입니다."],
+    answerSections: ["베다 차트의 중심", "나크샤트라와 다샤의 흐름", "질문과 연결되는 가능성", "조심할 판단", "실천 조언"],
+    keywords: ["베다", "라그나", "나크샤트라", "다샤"],
+    ready: "ready",
+  },
+  {
+    id: "ziwei",
+    label: "자미두수",
+    shortLabel: "자미",
+    description: "별과 명궁의 배치를 정밀하게 살핍니다.",
+    detail: "명궁 격자에 별을 놓듯 생년월일과 분석 궁을 정리해 권위 있고 섬세한 상담 프롬프트를 만듭니다.",
+    icon: "紫",
+    theme: { accent: "#9a5baf", accentStrong: "#5b1b6f", accentSoft: "#f0ddff", surface: "#fbf3ff", text: "#241029", motif: "명궁 격자와 별" },
+    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
+    exampleValues: {
+      topic: "직업 방향과 재능",
+      question: "내가 오래 가져갈 수 있는 일의 결이 무엇인지 알고 싶습니다.",
+      birthDate: "1987-09-10",
+      birthTime: "18:05",
+      birthPlace: "광주",
+      palace: "관록궁",
+      tone: "현실적인 조언",
+      depth: "깊고 자세하게",
+    },
+    generateLabel: "자미두수 상담 프롬프트 생성하기",
+    resultLabel: "완성된 자미두수 상담 프롬프트",
+    emptyState: "출생 정보와 살피고 싶은 궁을 적으면 별과 명궁의 질서가 상담 문장으로 정리됩니다.",
+    role: "명궁과 별의 배치를 체계적으로 읽는 자미두수 해석가",
+    principles: ["궁과 별의 역할을 분리해 설명합니다.", "권위적인 단정보다 구조적 가능성을 전합니다.", "질문자의 현실 조건을 함께 살핍니다."],
+    answerSections: ["중심 궁의 의미", "별의 배치가 비추는 기질", "질문과 연결된 흐름", "강점과 보완점", "현실적인 실행 방향"],
+    keywords: ["자미두수", "명궁", "별", "궁"],
+    ready: "ready",
+  },
+  {
+    id: "sukuyo",
+    label: "숙요점",
+    shortLabel: "숙요",
+    description: "달의 숙과 관계의 흐름을 섬세하게 봅니다.",
+    detail: "달의 위상과 숙의 배열을 바탕으로 나와 상대, 관계의 온도를 정리하는 프롬프트를 만듭니다.",
+    icon: "☾",
+    theme: { accent: "#6b8fc7", accentStrong: "#24335f", accentSoft: "#e4efff", surface: "#f6f8ff", text: "#14213d", motif: "달의 위상과 숙의 배열" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "birthDate", label: "내 생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "partnerBirthDate", label: "상대 생년월일", type: "date", privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "relationshipType", label: "관계 유형", type: "select", options: ["연애", "부부", "썸", "친구", "동료", "가족"] },
+    ],
+    exampleValues: {
+      topic: "관계의 거리감",
+      question: "상대와 가까워질수록 왜 서로 조심스러워지는지 알고 싶습니다.",
+      birthDate: "1995-02-14",
+      partnerBirthDate: "1993-10-08",
+      relationshipType: "연애",
+      tone: "따뜻한 위로",
+      depth: "균형 있게",
+    },
+    generateLabel: "숙요점 상담 프롬프트 생성하기",
+    resultLabel: "완성된 숙요점 상담 프롬프트",
+    emptyState: "나와 상대의 생년월일, 관계 유형을 적으면 달의 숙이 관계의 결을 비춥니다.",
+    role: "달의 숙과 관계의 리듬을 섬세하게 읽는 숙요점 상담가",
+    principles: ["상대의 마음을 단정하지 않습니다.", "관계의 거리와 리듬을 중심으로 봅니다.", "상호 존중의 행동을 제안합니다."],
+    answerSections: ["두 사람의 기본 결", "끌림과 피로가 생기는 지점", "대화의 타이밍", "관계를 지키는 행동"],
+    keywords: ["숙요", "관계", "달", "상성"],
+    ready: "ready",
+  },
+  {
+    id: "numerology",
+    label: "수비학",
+    shortLabel: "수비",
+    description: "숫자에 담긴 반복과 패턴을 논리적으로 봅니다.",
+    detail: "숫자 그리드와 기하학적 선처럼 생년월일, 이름, 관심 숫자를 정리해 현대적인 상담 프롬프트를 만듭니다.",
+    icon: "9",
+    theme: { accent: "#2f76d2", accentStrong: "#1f2937", accentSoft: "#dbeafe", surface: "#f8fafc", text: "#111827", motif: "숫자 그리드와 기하학적 선" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "birthDate", label: "생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "includeName", label: "이름을 함께 반영", type: "checkbox", privacyHint: "이름은 숫자 진동을 정리하는 단서로만 프롬프트에 포함됩니다. 공유 전 이니셜로 바꿔도 좋습니다." },
+      { id: "name", label: "이름", type: "text", advanced: true },
+      { id: "numberFocus", label: "분석 숫자 또는 관심 주제", type: "text", placeholder: "예: 라이프패스, 7이 반복됨, 이직 시기" },
+    ],
+    exampleValues: {
+      topic: "반복되는 선택 패턴",
+      question: "왜 중요한 선택 앞에서 항상 비슷한 망설임이 생기는지 알고 싶습니다.",
+      birthDate: "1996-05-29",
+      includeName: true,
+      name: "민지",
+      numberFocus: "라이프패스와 올해 개인년",
+      tone: "현실적인 조언",
+      depth: "균형 있게",
+    },
+    generateLabel: "수비학 상담 프롬프트 생성하기",
+    resultLabel: "완성된 수비학 상담 프롬프트",
+    emptyState: "생년월일과 관심 숫자를 적으면 반복되는 패턴이 선명한 구조로 정리됩니다.",
+    role: "숫자의 반복과 리듬을 논리적으로 해석하는 수비학 해석가",
+    principles: ["숫자를 성향의 가능성으로 설명합니다.", "반복 패턴과 현재 선택을 연결합니다.", "실천 가능한 행동으로 마무리합니다."],
+    answerSections: ["핵심 숫자", "반복되는 패턴", "현재 질문과의 연결", "강점과 과제", "현실적인 조언"],
+    keywords: ["수비학", "숫자", "패턴", "라이프패스"],
+    ready: "ready",
+  },
+  {
+    id: "dream",
+    label: "꿈/상징",
+    shortLabel: "꿈",
+    description: "꿈속 장면과 감정의 상징을 기록합니다.",
+    detail: "흐릿한 물결 속 문을 열듯 꿈의 장면, 등장 인물, 감정과 반복 상징을 선명한 상담 프롬프트로 정리합니다.",
+    icon: "⌁",
+    theme: { accent: "#4c8ea8", accentStrong: "#1d3265", accentSoft: "#e6f7fb", surface: "#f5f2ff", text: "#14213d", motif: "흐릿한 레이어, 물결, 문" },
+    fields: [
+      { id: "dreamText", label: "꿈의 내용", type: "textarea", required: true, rows: 5, placeholder: "꿈에서 기억나는 장면을 순서대로 적어 주세요." },
+      { id: "mainScenes", label: "주요 장면", type: "text", placeholder: "예: 물가, 닫힌 문, 오래된 집" },
+      { id: "characters", label: "등장 인물", type: "text", placeholder: "예: 낯선 사람, 가족, 예전 친구" },
+      { id: "emotions", label: "깨어난 뒤 감정", type: "multiselect", options: ["불안", "그리움", "안도", "설렘", "혼란", "슬픔", "해방감"] },
+      { id: "symbols", label: "반복된 상징", type: "text", placeholder: "예: 물, 열쇠, 계단, 새" },
+      { id: "recentContext", label: "최근 상황", type: "textarea", rows: 3 },
+      { id: "tone", label: "원하는 답변 어조", type: "select", options: RESPONSE_TONES },
+      { id: "depth", label: "원하는 답변 깊이", type: "select", options: RESPONSE_DEPTHS },
+    ],
+    exampleValues: {
+      dreamText: "낯선 집에서 문을 찾고 있었고, 복도 끝에 물이 차오르는 장면이 선명했습니다.",
+      mainScenes: "낯선 집, 긴 복도, 차오르는 물",
+      characters: "말없는 어린아이",
+      emotions: ["불안", "그리움"],
+      symbols: "문, 물, 열쇠",
+      recentContext: "최근 큰 결정을 미루고 있고 가족과의 대화가 마음에 남아 있습니다.",
+      tone: "따뜻한 위로",
+      depth: "균형 있게",
+    },
+    generateLabel: "꿈/상징 상담 프롬프트 생성하기",
+    resultLabel: "완성된 꿈/상징 상담 프롬프트",
+    emptyState: "꿈의 장면과 감정을 적으면 흐릿한 상징이 선명한 질문으로 다시 떠오릅니다.",
+    role: "꿈의 장면과 감정의 상징을 섬세하게 읽는 꿈 상징 해석가",
+    principles: ["꿈을 현실의 확정 예고로 말하지 않습니다.", "상징과 감정을 함께 다룹니다.", "최근 상황과 연결하되 단정하지 않습니다."],
+    answerSections: ["꿈의 핵심 장면", "상징별 의미", "감정의 흐름", "최근 상황과의 연결", "기록하거나 실천할 일"],
+    keywords: ["꿈", "상징", "무의식", "감정"],
+    ready: "ready",
+  },
+  {
+    id: "horary",
+    label: "호라리",
+    shortLabel: "호라리",
+    description: "질문이 떠오른 순간의 시간과 하늘을 봅니다.",
+    detail: "시계와 좌표처럼 하나의 명확한 질문, 날짜, 시각, 장소를 정리해 순간성과 정확성이 살아 있는 프롬프트를 만듭니다.",
+    icon: "◎",
+    theme: { accent: "#b87333", accentStrong: "#172554", accentSoft: "#ffe2c5", surface: "#f8f0e4", text: "#171b2e", motif: "시계, 좌표, 점성 차트" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "horaryQuestion", label: "하나의 명확한 질문", type: "textarea", required: true, rows: 3, help: "예/아니오로 좁힐 수 있을 만큼 선명한 질문이 좋습니다." },
+      { id: "questionDateTime", label: "질문이 떠오른 날짜·시각", type: "datetime-local", required: true },
+      { id: "questionPlace", label: "질문 장소", type: "text", required: true, placeholder: "예: 서울 강남구" },
+    ],
+    exampleValues: {
+      topic: "제안 수락 여부",
+      question: "이번 제안을 받아들이는 것이 나에게 맞을까요?",
+      horaryQuestion: "이번 제안을 받아들이는 것이 나에게 맞을까요?",
+      questionDateTime: "2026-07-08T20:30",
+      questionPlace: "서울 강남구",
+      tone: "간결한 정리",
+      depth: "균형 있게",
+    },
+    generateLabel: "호라리 상담 프롬프트 생성하기",
+    resultLabel: "완성된 호라리 상담 프롬프트",
+    emptyState: "하나의 질문, 떠오른 시각, 장소를 적으면 그 순간의 하늘을 기준으로 프롬프트가 열립니다.",
+    role: "질문이 떠오른 순간의 하늘을 읽는 호라리 점성술사",
+    principles: ["질문은 하나로 좁혀 다룹니다.", "시각과 장소의 불확실성을 명시합니다.", "판단은 가능성과 조건으로 설명합니다."],
+    answerSections: ["질문의 성립 여부", "시각과 장소 기준", "주요 시그니피케이터", "가능성과 장애물", "결정 전 확인할 현실 조건"],
+    keywords: ["호라리", "질문 시각", "좌표", "점성"],
+    ready: "ready",
+  },
+  {
+    id: "meihua",
+    label: "매화역수",
+    shortLabel: "매화",
+    description: "시간, 수, 자연의 징후로 변화를 관찰합니다.",
+    detail: "매화 가지처럼 피어나는 숫자와 징후를 본괘, 호괘, 변괘의 흐름으로 정리합니다.",
+    icon: "梅",
+    theme: { accent: "#c65777", accentStrong: "#1f2937", accentSoft: "#ffe1ea", surface: "#f7f3eb", text: "#18181b", motif: "매화, 숫자, 괘" },
+    fields: [
+      ...COMMON_FIELDS,
+      { id: "eventDateTime", label: "사건이나 징후가 발생한 시각", type: "datetime-local", required: true },
+      { id: "numberOrSign", label: "숫자 또는 계기", type: "text", required: true, placeholder: "예: 떠오른 숫자 37, 시계 11:11, 문득 본 매화" },
+      { id: "observation", label: "관찰한 징후", type: "textarea", rows: 3 },
+    ],
+    exampleValues: {
+      topic: "새로운 제안의 흐름",
+      question: "갑자기 들어온 제안이 내게 어떤 변화를 열까요?",
+      eventDateTime: "2026-07-08T13:44",
+      numberOrSign: "회의 직전 37이라는 숫자를 반복해서 봄",
+      observation: "오래 미뤘던 연락이 같은 날 이어졌습니다.",
+      tone: "상징적인 문장",
+      depth: "균형 있게",
+    },
+    generateLabel: "매화역수 상담 프롬프트 생성하기",
+    resultLabel: "완성된 매화역수 상담 프롬프트",
+    emptyState: "질문, 시각, 숫자나 징후를 적으면 변화의 결이 본괘와 변괘의 언어로 정리됩니다.",
+    role: "수와 징후에서 변화의 결을 읽는 매화역수 해석가",
+    principles: ["징후를 과장하지 않고 관찰의 단서로 봅니다.", "본괘, 호괘, 변괘의 흐름을 나눕니다.", "시적인 표현과 현실 조언의 균형을 지킵니다."],
+    answerSections: ["질문의 씨앗", "숫자와 징후의 의미", "본괘와 변괘의 흐름", "전환점", "현실적인 실천"],
+    keywords: ["매화역수", "숫자", "징후", "괘"],
+    ready: "ready",
+  },
+];
+
+const toolConfigById = toolRegistry.reduce<Record<ToolId, ToolConfig>>((acc, config) => {
+  acc[config.id] = config;
+  return acc;
+}, {} as Record<ToolId, ToolConfig>);
+
+const toolIdAliases: Record<string, ToolId> = {
+  generic: "comprehensive",
+  all: "comprehensive",
+  lite: "basic",
+  psychotest: "psych",
+  psychology: "psych",
+  meiha: "meihua",
+};
+
+function normalizeToolId(value: string | null | undefined): ToolId {
+  const key = String(value || "").trim().toLowerCase();
+  if (key in toolConfigById) return key as ToolId;
+  return toolIdAliases[key] || "comprehensive";
+}
+
+function getDefaultDraft(config: ToolConfig): ToolDraft {
+  return config.fields.reduce<ToolDraft>((draft, field) => {
+    if (field.type === "multiselect") draft[field.id] = [];
+    else if (field.type === "checkbox") draft[field.id] = false;
+    else if (field.type === "select") draft[field.id] = field.options?.[0] || "";
+    else draft[field.id] = "";
+    return draft;
+  }, {});
+}
+
+function formatDraftValue(value: ToolDraftValue | undefined) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+  if (typeof value === "boolean") return value ? "예" : "";
+  return String(value || "").trim();
+}
+
+function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft) {
+  const filledFields = config.fields
+    .map((field) => {
+      const value = formatDraftValue(values[field.id]);
+      return value ? `- ${field.label}: ${value}` : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+  const avoid = formatDraftValue(values.avoid);
+  const tone = formatDraftValue(values.tone) || "차분하고 전문적인 상담";
+  const depth = formatDraftValue(values.depth) || "균형 있게";
+
+  return [
+    `당신은 ${config.role}입니다.`,
+    "",
+    `선택된 운세 체계: ${config.label}`,
+    `해석 모티프: ${config.theme.motif}`,
+    `상담 분위기: ${tone}`,
+    `답변 깊이: ${depth}`,
+    "",
+    "사용자가 건넨 단서",
+    filledFields || "- 아직 입력된 단서가 적습니다. 부족한 정보는 추정하지 말고 필요한 확인 질문을 먼저 제안해 주세요.",
+    avoid ? `\n피해야 할 표현: ${avoid}` : "",
+    "",
+    "해석 원칙",
+    ...config.principles.map((item) => `- ${item}`),
+    "- 단정적인 예언, 공포를 주는 표현, 운명을 고정하는 표현은 피합니다.",
+    "- 불확실한 내용은 가능성, 경향, 선택지의 언어로 설명합니다.",
+    "- 의료, 법률, 투자, 계약 등 전문 판단을 대신하지 않으며 필요한 경우 전문가 상담을 권합니다.",
+    "- 질문자가 오늘 실천할 수 있는 현실적인 조언을 포함합니다.",
+    "",
+    "답변 구조",
+    ...config.answerSections.map((item, index) => `${index + 1}. ${item}`),
+    "",
+    "말투",
+    "전문적이되 차갑지 않게, 신비롭되 과장하지 않게 말해 주세요. 운세의 상징은 질문자가 자기 선택을 더 선명하게 바라보도록 돕는 언어로 전해 주세요.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function getInitialDraftsByToolId() {
+  return toolRegistry.reduce<Record<ToolId, ToolDraft>>((acc, config) => {
+    acc[config.id] = getDefaultDraft(config);
+    return acc;
+  }, {} as Record<ToolId, ToolDraft>);
+}
+
 function buildPrompt({
   category,
   topic,
@@ -740,6 +1417,32 @@ async function copyTextToClipboard(text: string) {
 }
 
 export default function ComprehensivePromptHubPage() {
+  const [activeToolId, setActiveToolId] = useState<ToolId>("comprehensive");
+  const [draftsByToolId, setDraftsByToolId] = useState<Record<ToolId, ToolDraft>>(getInitialDraftsByToolId);
+  const [resultsByToolId, setResultsByToolId] = useState<Record<ToolId, { prompt: string; generatedAt: string } | null>>(
+    () =>
+      toolRegistry.reduce<Record<ToolId, { prompt: string; generatedAt: string } | null>>((acc, config) => {
+        acc[config.id] = null;
+        return acc;
+      }, {} as Record<ToolId, { prompt: string; generatedAt: string } | null>),
+  );
+  const [validationAttemptedByToolId, setValidationAttemptedByToolId] = useState<Record<ToolId, boolean>>(
+    () =>
+      toolRegistry.reduce<Record<ToolId, boolean>>((acc, config) => {
+        acc[config.id] = false;
+        return acc;
+      }, {} as Record<ToolId, boolean>),
+  );
+  const [expandedResultsByToolId, setExpandedResultsByToolId] = useState<Record<ToolId, boolean>>(
+    () =>
+      toolRegistry.reduce<Record<ToolId, boolean>>((acc, config) => {
+        acc[config.id] = false;
+        return acc;
+      }, {} as Record<ToolId, boolean>),
+  );
+  const [isGeneratingToolPrompt, setIsGeneratingToolPrompt] = useState(false);
+  const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
+  const resultPanelRef = useRef<HTMLElement | null>(null);
   const [activePromptTool, setActivePromptTool] = useState<PremiumPromptToolId>("generic");
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>("all");
   const [topic, setTopic] = useState("");
@@ -849,6 +1552,15 @@ export default function ComprehensivePromptHubPage() {
   const [psychError, setPsychError] = useState("");
   const [psychCopied, setPsychCopied] = useState(false);
 
+  const currentTool = toolConfigById[activeToolId];
+  const currentDraft = draftsByToolId[activeToolId] || getDefaultDraft(currentTool);
+  const currentResult = resultsByToolId[activeToolId];
+  const missingRequiredFields = currentTool.fields.filter((field) => field.required && !formatDraftValue(currentDraft[field.id]));
+  const disabledReason = missingRequiredFields.length
+    ? `${missingRequiredFields.map((field) => field.label).join(", ")} 입력이 필요합니다.`
+    : "";
+  const showValidationErrors = validationAttemptedByToolId[activeToolId];
+  const isCurrentResultExpanded = expandedResultsByToolId[activeToolId] || false;
   const activeTool = ACTIVE_TOOL_STAGE_COPY[activePromptTool];
   const category = CATEGORIES.find((item) => item.id === selectedCategory) || CATEGORIES[0];
   const selectedMeihuaMode = MEIHUA_MODES.find((item) => item.id === meihuaMode) || MEIHUA_MODES[0];
@@ -869,6 +1581,236 @@ export default function ComprehensivePromptHubPage() {
   const dangsajuQuestionNotice = useMemo(() => getDangsajuQuestionNotice(dangsajuQuestion), [dangsajuQuestion]);
   const liteQuestionNotice = useMemo(() => getLiteQuestionNotice(liteQuestion), [liteQuestion]);
   const psychQuestionNotice = useMemo(() => getPsychQuestionNotice(psychQuestion), [psychQuestion]);
+
+  useEffect(() => {
+    setActivePromptTool("generic");
+    const syncToolFromUrl = () => {
+      const nextToolId = normalizeToolId(new URLSearchParams(window.location.search).get("tool"));
+      setActiveToolId(nextToolId);
+      setActivePromptTool("generic");
+    };
+    syncToolFromUrl();
+    window.addEventListener("popstate", syncToolFromUrl);
+    return () => window.removeEventListener("popstate", syncToolFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.querySelector(`[data-tool-tab="${activeToolId}"]`)?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [activeToolId]);
+
+  function updateToolQueryParam(toolId: ToolId, mode: "push" | "replace" = "push") {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("tool") === toolId) return;
+    url.searchParams.set("tool", toolId);
+    if (mode === "replace") window.history.replaceState({}, "", url.toString());
+    else window.history.pushState({}, "", url.toString());
+  }
+
+  function selectTool(toolId: ToolId, options: { updateUrl?: boolean; replace?: boolean } = {}) {
+    setActiveToolId(toolId);
+    setActivePromptTool("generic");
+    setCopiedToolId(null);
+    setValidationAttemptedByToolId((prev) => ({ ...prev, [toolId]: false }));
+    if (options.updateUrl !== false) updateToolQueryParam(toolId, options.replace ? "replace" : "push");
+  }
+
+  function updateCurrentDraft(fieldId: string, value: ToolDraftValue) {
+    setDraftsByToolId((prev) => ({
+      ...prev,
+      [activeToolId]: {
+        ...(prev[activeToolId] || getDefaultDraft(currentTool)),
+        [fieldId]: value,
+      },
+    }));
+    setCopiedToolId(null);
+  }
+
+  function toggleCurrentDraftOption(fieldId: string, option: string) {
+    const currentValue = currentDraft[fieldId];
+    const values = Array.isArray(currentValue) ? currentValue : [];
+    updateCurrentDraft(fieldId, values.includes(option) ? values.filter((item) => item !== option) : [...values, option]);
+  }
+
+  function fillCurrentToolExample() {
+    setDraftsByToolId((prev) => ({
+      ...prev,
+      [activeToolId]: {
+        ...getDefaultDraft(currentTool),
+        ...currentTool.exampleValues,
+      },
+    }));
+    setResultsByToolId((prev) => ({ ...prev, [activeToolId]: null }));
+    setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
+    setCopiedToolId(null);
+  }
+
+  function resetCurrentToolDraft() {
+    setDraftsByToolId((prev) => ({ ...prev, [activeToolId]: getDefaultDraft(currentTool) }));
+    setResultsByToolId((prev) => ({ ...prev, [activeToolId]: null }));
+    setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
+    setExpandedResultsByToolId((prev) => ({ ...prev, [activeToolId]: false }));
+    setCopiedToolId(null);
+  }
+
+  function generateCurrentToolPrompt() {
+    const toolId = activeToolId;
+    const config = currentTool;
+    const draft = currentDraft;
+    const missingFields = config.fields.filter((field) => field.required && !formatDraftValue(draft[field.id]));
+    setValidationAttemptedByToolId((prev) => ({ ...prev, [toolId]: true }));
+    setCopiedToolId(null);
+    if (missingFields.length) return;
+    setIsGeneratingToolPrompt(true);
+    window.setTimeout(() => {
+      setResultsByToolId((prev) => ({
+        ...prev,
+        [toolId]: {
+          prompt: buildStructuredFortunePrompt(config, draft),
+          generatedAt: new Intl.DateTimeFormat("ko-KR", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date()),
+        },
+      }));
+      setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: true }));
+      setIsGeneratingToolPrompt(false);
+      if (toolId === activeToolId) resultPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 220);
+  }
+
+  async function copyCurrentToolPrompt() {
+    if (!currentResult?.prompt) {
+      setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
+      return;
+    }
+    await copyTextToClipboard(currentResult.prompt);
+    setCopiedToolId(activeToolId);
+    window.setTimeout(() => setCopiedToolId(null), 1600);
+  }
+
+  function toggleCurrentResultExpanded() {
+    setExpandedResultsByToolId((prev) => ({ ...prev, [activeToolId]: !prev[activeToolId] }));
+  }
+
+  function renderToolField(field: FieldConfig) {
+    const value = currentDraft[field.id];
+    const inputId = `prompt-tool-${activeToolId}-${field.id}`;
+    const hasError = showValidationErrors && field.required && !formatDraftValue(value);
+    const inputClass =
+      "min-h-[48px] w-full rounded-xl border bg-white px-3.5 text-sm font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:ring-2";
+    const inputStyle = {
+      borderColor: hasError ? "#e11d48" : "rgba(148, 163, 184, 0.45)",
+      boxShadow: hasError ? "0 0 0 3px rgba(225, 29, 72, 0.12)" : undefined,
+    };
+
+    return (
+      <div key={field.id} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+        {field.type === "checkbox" ? (
+          <label
+            htmlFor={inputId}
+            className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-bold text-slate-800 transition hover:border-slate-300 focus-within:ring-2"
+            style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+          >
+            <input
+              id={inputId}
+              type="checkbox"
+              checked={Boolean(value)}
+              onChange={(event) => updateCurrentDraft(field.id, event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300"
+              style={{ accentColor: currentTool.theme.accent }}
+            />
+            {field.label}
+          </label>
+        ) : (
+          <label htmlFor={inputId} className="grid gap-2 text-sm font-bold text-slate-900">
+            <span className="flex flex-wrap items-center gap-2">
+              {field.label}
+              {field.required ? <span className="text-xs font-black" style={{ color: currentTool.theme.accent }}>필수</span> : null}
+            </span>
+            {field.type === "textarea" ? (
+              <textarea
+                id={inputId}
+                value={String(value || "")}
+                onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
+                rows={field.rows || 3}
+                placeholder={field.placeholder}
+                aria-invalid={hasError}
+                aria-describedby={`${inputId}-hint`}
+                className={`${inputClass} min-h-[112px] resize-y py-3 leading-6`}
+                style={inputStyle}
+              />
+            ) : field.type === "select" ? (
+              <select
+                id={inputId}
+                value={String(value || field.options?.[0] || "")}
+                onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
+                aria-invalid={hasError}
+                aria-describedby={`${inputId}-hint`}
+                className={inputClass}
+                style={inputStyle}
+              >
+                {(field.options || []).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : field.type === "multiselect" ? (
+              <div id={inputId} className="flex flex-wrap gap-2" aria-describedby={`${inputId}-hint`}>
+                {(field.options || []).map((option) => {
+                  const values = Array.isArray(value) ? value : [];
+                  const selected = values.includes(option);
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleCurrentDraftOption(field.id, option)}
+                      className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border px-3 text-sm font-bold transition focus:outline-none focus:ring-2"
+                      style={{
+                        borderColor: selected ? currentTool.theme.accent : "rgba(148, 163, 184, 0.42)",
+                        background: selected ? currentTool.theme.accentSoft : "#ffffff",
+                        color: selected ? currentTool.theme.text : "#334155",
+                        "--tw-ring-color": currentTool.theme.accentSoft,
+                      } as React.CSSProperties}
+                    >
+                      {selected ? <Check size={14} /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <input
+                id={inputId}
+                type={field.type}
+                value={String(value || "")}
+                min={field.min}
+                max={field.max}
+                onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
+                placeholder={field.placeholder}
+                aria-invalid={hasError}
+                aria-describedby={`${inputId}-hint`}
+                className={inputClass}
+                style={inputStyle}
+              />
+            )}
+          </label>
+        )}
+        <div id={`${inputId}-hint`} className="mt-1.5 min-h-[18px] text-xs font-medium leading-5 text-slate-600">
+          {hasError ? (
+            <span className="font-bold text-rose-700">{field.label} 입력이 필요합니다.</span>
+          ) : field.privacyHint ? (
+            <span>{field.privacyHint}</span>
+          ) : field.help ? (
+            <span>{field.help}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   async function copyPrompt() {
     setGenericResultVisible(true);
@@ -1544,7 +2486,306 @@ export default function ComprehensivePromptHubPage() {
         <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.5),transparent_28%,rgba(255,255,255,0.2)_62%,transparent)]" />
       </div>
 
-      <section className="relative mx-auto grid max-w-7xl gap-6 px-4 pb-8 pt-7 sm:px-6 lg:grid-cols-[0.94fr_1.06fr] lg:px-8">
+      <section className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+        <div
+          className="rounded-[28px] border bg-white/88 p-4 shadow-[0_28px_90px_rgba(90,64,82,0.14)] backdrop-blur-2xl sm:p-5"
+          style={{ borderColor: currentTool.theme.accentSoft }}
+        >
+          <div
+            className="overflow-hidden rounded-[24px] border p-5 sm:p-6"
+            style={{
+              borderColor: currentTool.theme.accentSoft,
+              background: `linear-gradient(135deg, ${currentTool.theme.surface} 0%, #ffffff 54%, ${currentTool.theme.accentSoft} 100%)`,
+              color: currentTool.theme.text,
+            }}
+          >
+            <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
+              <div>
+                <div className="inline-flex min-h-[34px] items-center gap-2 rounded-full border bg-white/78 px-3 text-xs font-black uppercase tracking-[0.14em]" style={{ borderColor: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
+                  <Sparkles size={14} />
+                  Moonlight Prompt Atelier
+                </div>
+                <h1 className="atelier-heading mt-4 max-w-3xl text-2xl leading-tight text-slate-950 sm:text-4xl">
+                  {currentTool.label}
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-slate-800 sm:text-base">{currentTool.description}</p>
+                <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-700">{currentTool.detail}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full border bg-white/80 px-3 py-1 text-xs font-bold text-slate-700" style={{ borderColor: currentTool.theme.accentSoft }}>
+                    {currentTool.theme.motif}
+                  </span>
+                  {currentTool.keywords.slice(0, 4).map((keyword) => (
+                    <span key={keyword} className="rounded-full bg-white/68 px-3 py-1 text-xs font-bold text-slate-600">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-[22px] border bg-white/76 p-4" style={{ borderColor: currentTool.theme.accentSoft }}>
+                <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>Current Tool</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl text-xl font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]" style={{ background: currentTool.theme.accentStrong }}>
+                    {currentTool.icon}
+                  </span>
+                  <div>
+                    <p className="text-base font-black text-slate-950">{currentTool.shortLabel}</p>
+                    <p className="text-xs font-bold text-slate-600">{currentTool.ready === "ready" ? "바로 생성 가능" : "준비 중"}</p>
+                  </div>
+                </div>
+                <select
+                  value={activeToolId}
+                  onChange={(event) => selectTool(event.target.value as ToolId)}
+                  className="mt-4 min-h-[46px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2"
+                  style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                  aria-label="모바일 도구 선택"
+                >
+                  {toolRegistry.map((tool) => (
+                    <option key={tool.id} value={tool.id}>
+                      {tool.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-[22px] border border-slate-200/70 bg-white/72 p-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">Prompt Atelier Tools</p>
+              <p className="text-xs font-bold text-slate-500">어느 카드에서 선택해도 같은 도구가 열립니다.</p>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {toolRegistry.map((tool) => {
+                const isActive = tool.id === activeToolId;
+                return (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    data-tool-tab={tool.id}
+                    aria-pressed={isActive}
+                    onClick={() => selectTool(tool.id)}
+                    className="group inline-flex min-h-[54px] min-w-[132px] items-center gap-2 rounded-2xl border px-3 text-left text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-2"
+                    style={{
+                      borderColor: isActive ? tool.theme.accent : "rgba(226, 232, 240, 0.9)",
+                      background: isActive ? tool.theme.accentSoft : "rgba(255,255,255,0.82)",
+                      color: isActive ? tool.theme.text : "#334155",
+                      "--tw-ring-color": tool.theme.accentSoft,
+                    } as React.CSSProperties}
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-sm font-black text-white" style={{ background: isActive ? tool.theme.accentStrong : "#94a3b8" }}>
+                      {isActive ? <Check size={16} /> : tool.icon}
+                    </span>
+                    <span>
+                      <span className="block">{tool.shortLabel}</span>
+                      <span className="block text-[11px] font-bold opacity-75">{tool.ready === "ready" ? "열림" : "준비"}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)_minmax(320px,0.82fr)]">
+            <aside className="rounded-[22px] border border-slate-200/70 bg-white/82 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">운세 도구 탐색</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">선택하면 폼과 결과가 함께 바뀝니다.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-1">
+                {toolRegistry.map((tool) => {
+                  const isActive = tool.id === activeToolId;
+                  return (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => selectTool(tool.id)}
+                      className="flex min-h-[58px] items-center gap-3 rounded-2xl border px-3 text-left transition hover:-translate-y-0.5 focus:outline-none focus:ring-2"
+                      style={{
+                        borderColor: isActive ? tool.theme.accent : "rgba(226,232,240,0.9)",
+                        background: isActive ? `linear-gradient(135deg, #ffffff 0%, ${tool.theme.accentSoft} 100%)` : "#ffffff",
+                        color: tool.theme.text,
+                        "--tw-ring-color": tool.theme.accentSoft,
+                      } as React.CSSProperties}
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-black text-white" style={{ background: isActive ? tool.theme.accentStrong : "#cbd5e1" }}>
+                        {isActive ? <Check size={16} /> : tool.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-slate-950">{tool.shortLabel}</span>
+                        <span className="line-clamp-1 block text-xs font-semibold text-slate-500">{tool.description}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <section id="tool-form-card" className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>입력 정리</p>
+                  <h2 className="mt-1 text-xl font-black text-slate-950">{currentTool.label} 입력</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">{currentTool.emptyState}</p>
+                </div>
+                <span className="rounded-full px-3 py-1 text-xs font-black" style={{ background: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
+                  {currentTool.fields.filter((field) => field.required).length}개 필수
+                </span>
+              </div>
+
+              <form
+                className="mt-5"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  generateCurrentToolPrompt();
+                }}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {currentTool.fields.filter((field) => !field.advanced).map(renderToolField)}
+                </div>
+
+                {currentTool.fields.some((field) => field.advanced) ? (
+                  <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                    <summary className="cursor-pointer text-sm font-black text-slate-800">고급 설정</summary>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      {currentTool.fields.filter((field) => field.advanced).map(renderToolField)}
+                    </div>
+                  </details>
+                ) : null}
+
+                {disabledReason ? (
+                  <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700" aria-live="polite">
+                    {disabledReason}
+                  </p>
+                ) : null}
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    type="submit"
+                    disabled={Boolean(disabledReason) || isGeneratingToolPrompt}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 text-sm font-black text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-55"
+                    style={{ background: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    title={disabledReason || currentTool.generateLabel}
+                  >
+                    <WandSparkles size={17} />
+                    {isGeneratingToolPrompt ? "프롬프트를 정돈하는 중..." : currentTool.generateLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fillCurrentToolExample}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2"
+                    style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                  >
+                    <Sparkles size={16} />
+                    예시 입력
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetCurrentToolDraft}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2"
+                    style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                  >
+                    <RotateCcw size={16} />
+                    초기화
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <section ref={resultPanelRef} className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5" aria-live="polite">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>Moonlight Result</p>
+                  <h2 className="mt-1 text-lg font-black text-slate-950">{currentTool.resultLabel}</h2>
+                  <p className="mt-1 text-xs font-bold text-slate-500">
+                    {currentResult?.generatedAt ? `마지막 생성 ${currentResult.generatedAt}` : `${currentTool.shortLabel} 입력을 기다리고 있습니다.`}
+                  </p>
+                </div>
+                <span className="grid h-11 w-11 place-items-center rounded-2xl text-lg font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
+                  {currentTool.icon}
+                </span>
+              </div>
+
+              {currentResult?.prompt ? (
+                <div className="mt-4">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={copyCurrentToolPrompt}
+                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                      style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    >
+                      <Copy size={16} />
+                      {copiedToolId === activeToolId ? "복사 완료" : "프롬프트 복사"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={generateCurrentToolPrompt}
+                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    >
+                      <WandSparkles size={16} />
+                      다시 생성
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("tool-form-card")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                      className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    >
+                      입력 수정
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleCurrentResultExpanded}
+                      className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    >
+                      {isCurrentResultExpanded ? "접기" : "전체 펼치기"}
+                    </button>
+                  </div>
+                  <pre
+                    className={`mt-4 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-950 p-4 text-sm font-medium leading-7 text-slate-50 ${isCurrentResultExpanded ? "max-h-[680px]" : "max-h-[300px]"}`}
+                  >
+                    {currentResult.prompt}
+                  </pre>
+                </div>
+              ) : (
+                <div className="mt-4 grid min-h-[280px] place-items-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/74 p-5 text-center">
+                  <div>
+                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl text-xl font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
+                      {currentTool.icon}
+                    </div>
+                    <p className="mt-4 text-base font-black text-slate-950">아직 생성된 프롬프트가 없습니다</p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{currentTool.emptyState}</p>
+                    <p className="mt-3 text-xs font-bold text-slate-500">
+                      필수 입력: {currentTool.fields.filter((field) => field.required).map((field) => field.label).join(", ")}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <div className="sticky bottom-0 z-20 mt-4 rounded-t-2xl border border-slate-200 bg-white/94 p-3 shadow-[0_-18px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
+            <button
+              type="button"
+              onClick={generateCurrentToolPrompt}
+              disabled={Boolean(disabledReason) || isGeneratingToolPrompt}
+              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
+              style={{ background: currentTool.theme.accentStrong }}
+              title={disabledReason || currentTool.generateLabel}
+            >
+              <WandSparkles size={17} />
+              {isGeneratingToolPrompt ? "프롬프트를 정돈하는 중..." : currentTool.generateLabel}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section aria-hidden="true" className="!hidden relative mx-auto grid max-w-7xl gap-6 px-4 pb-8 pt-7 sm:px-6 lg:grid-cols-[0.94fr_1.06fr] lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1665,7 +2906,7 @@ export default function ComprehensivePromptHubPage() {
         </motion.div>
       </section>
 
-      <section className="relative mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8" aria-label="프롬프트 기능 선택">
+      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8" aria-label="프롬프트 기능 선택">
         <div className="lunar-glass rounded-[30px] border border-white/85 bg-white/78 p-3 shadow-[0_24px_80px_rgba(148,84,117,0.14)] backdrop-blur-2xl sm:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/75">Prompt Atelier Tools</p>
@@ -1708,7 +2949,7 @@ export default function ComprehensivePromptHubPage() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8" aria-label="선택된 프롬프트 작업 창">
+      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8" aria-label="선택된 프롬프트 작업 창">
         <div className="lunar-glass rounded-[34px] border border-white/85 bg-white/82 p-3 shadow-[0_30px_100px_rgba(148,84,117,0.16)] backdrop-blur-2xl sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-white/80 bg-white/68 px-4 py-3 sm:px-5">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/72">현재 창</p>

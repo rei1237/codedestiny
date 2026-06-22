@@ -109,7 +109,7 @@ for (const featureKey of [
   assert.equal(isUnlockPaidFeatureKey(featureKey), false, `${featureKey} must not persist unlock entitlement`);
 }
 
-assert.equal(FEATURE_KEY_PRICE_TABLE.sukuyo_ai_prompt_generator?.cost, 0, "sukuyo_ai_prompt_generator must stay free");
+assert.equal(FEATURE_KEY_PRICE_TABLE.sukuyo_ai_prompt_generator, undefined, "sukuyo_ai_prompt_generator must stay outside the paid registry");
 assert.equal(getPaidFeatureBillingType("sukuyo_ai_prompt_generator"), "", "sukuyo_ai_prompt_generator must not be billed as paid");
 assert.equal(isPerUsePaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not be per-use paid");
 assert.equal(isUnlockPaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not persist unlock entitlement");

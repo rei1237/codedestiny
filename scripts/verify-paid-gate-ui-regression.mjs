@@ -113,6 +113,19 @@ assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "
 assertContains(billingClientSource, "SERVER_ACCESS_GRANT_MISSING", "React server grant missing error");
 assertContains(billingClientSource, "서버 권한 검증에 실패했습니다", "React server verification failure message");
 assertContains(billingClientSource, "billingCoinGateInFlight", "React in-flight duplicate guard");
+assertContains(billingClientSource, "const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;", "React checkout timeout is long enough for PG setup");
+assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;", "React confirm timeout is long enough for payment verification");
+assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React coin gate uses confirm timeout");
+assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React billing confirm uses confirm timeout");
+assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "React payment verification must not use shared 14s mutation timeout");
+assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
+assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
+assertContains(billingClientSource, "const monthlyApplied = candidates.some(isMonthlyCreditAccessType);", "React monthly-credit success is resolved before pass success");
+assertContains(billingClientSource, "resolveAppliedBillingPayment(runtimeData, requestedMode, passFirstEligible", "React coin-gate success uses applied payment resolver");
+const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
+assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
+assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
+assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
 
 assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume path");
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");

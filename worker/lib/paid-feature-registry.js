@@ -246,7 +246,6 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "saju_ai_question_prompt": { cost: 100, reason: "최고의 명리학자처럼 AI에게 물어볼 사주 질문문" },
   "saju_ai_prompt_generator": { cost: 100, reason: "사주 AI 질문 프롬프트 생성" },
   "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
-  "sukuyo_ai_prompt_generator": { cost: 0, reason: "월하의 숙요 동물 프롬프트 무료 생성" },
   "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
   "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
   "vedic_prashna_prompt": { cost: 50, reason: "프라슈나 프롬프트" },

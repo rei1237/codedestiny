@@ -189,6 +189,8 @@ type PaidFeatureGateRuntimeDetail = {
   paymentMode?: string;
   reason?: string;
   accessType?: string;
+  accessMethod?: string;
+  paymentMethod?: string;
   licenseTier?: string;
   licenseReason?: string;
   passTier?: string;
@@ -263,7 +265,8 @@ const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 5000;
 const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
-const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
+const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;
+const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1bcb12c9e742";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
@@ -1175,6 +1178,80 @@ function isMembershipPassGrantedPayload(value: unknown): boolean {
     || reason === "license_coin_limit";
 }
 
+function isMonthlyCreditAccessType(value: unknown): boolean {
+  const accessType = toText(value).toLowerCase();
+  return accessType === "membership_credit"
+    || accessType === "monthly_credit"
+    || accessType === "moonlight_stone"
+    || accessType === "monthly"
+    || accessType === "monthly_subscription";
+}
+
+function isUsagePassAccessType(value: unknown): boolean {
+  return toText(value).toLowerCase() === "usage_pass";
+}
+
+function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string, unknown>, requestedMode = "", passFirstEligible = false) {
+  const consume = asRecord(data.consume);
+  const accessGrant = asRecord(data.accessGrant);
+  const candidates = [
+    requestedMode,
+    data.paymentMode,
+    data.paymentIntentType,
+    data.accessSource,
+    data.accessType,
+    data.transactionType,
+    data.accessMethod,
+    data.paymentMethod,
+    consume?.accessType,
+    consume?.transactionType,
+    consume?.accessMethod,
+    consume?.paymentMethod,
+    accessGrant?.accessType,
+    accessGrant?.transactionType,
+    accessGrant?.accessMethod,
+    accessGrant?.paymentMethod,
+  ];
+  const monthlyApplied = candidates.some(isMonthlyCreditAccessType);
+  const usagePassApplied = candidates.some(isUsagePassAccessType);
+  const membershipPassApplied = !monthlyApplied && (data.freeBySubscription === true || isMembershipPassGrantedPayload(data) || passFirstEligible);
+
+  if (monthlyApplied) {
+    return {
+      status: "paymentSuccess" as const,
+      paymentMode: "MOONLIGHT_STONE",
+      entitlementApplied: false,
+      passApplied: false,
+      usagePassApplied: false,
+    };
+  }
+  if (usagePassApplied) {
+    return {
+      status: "hasEntitlement" as const,
+      paymentMode: "USAGE_PASS",
+      entitlementApplied: true,
+      passApplied: false,
+      usagePassApplied: true,
+    };
+  }
+  if (membershipPassApplied) {
+    return {
+      status: "hasEntitlement" as const,
+      paymentMode: "MEMBERSHIP_PASS",
+      entitlementApplied: true,
+      passApplied: true,
+      usagePassApplied: false,
+    };
+  }
+  return {
+    status: "paymentSuccess" as const,
+    paymentMode: normalizePaymentMode(requestedMode) || "DIRECT_KRW",
+    entitlementApplied: false,
+    passApplied: false,
+    usagePassApplied: false,
+  };
+}
+
 function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): boolean {
   const record = asRecord(data);
   if (!record) return false;
@@ -1270,9 +1347,9 @@ async function authFetchBilling(path: string, init: RequestInit): Promise<Respon
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
   const method = String(init.method || "GET").toUpperCase();
   const normalizedPath = String(path || "");
-  if (method !== "GET" && normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
-  if (method !== "GET" && normalizedPath.startsWith("/api/billing/checkout")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
-  if (method !== "GET" && normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/checkout")) return BILLING_FETCH_CHECKOUT_TIMEOUT_MS;
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;
   return BILLING_FETCH_DEFAULT_TIMEOUT_MS;
 }
 
@@ -1741,15 +1818,17 @@ function resolvePaymentWaitKind(input: {
   featureKey?: string;
   reason?: string;
   accessType?: string;
+  accessMethod?: string;
+  paymentMethod?: string;
 }) {
   const mode = normalizePaymentMode(input.paymentMode);
-  const haystack = [input.status, input.message, input.paymentMode, input.featureKey, input.reason, input.accessType]
+  const haystack = [input.status, input.message, input.paymentMode, input.featureKey, input.reason, input.accessType, input.accessMethod, input.paymentMethod]
     .map((value) => toText(value).toLowerCase())
     .filter(Boolean)
     .join(" ");
 
-  if (mode === "MEMBERSHIP_PASS" || /membership_pass|pass_applied|이용권 확인|이용권 적용|이용권으로|membership/.test(haystack)) return "pass";
-  if (mode === "MOONLIGHT_STONE" || /\bmonthly_credit\b|membership_credit|moonlight_stone/.test(haystack)) return "monthly";
+  if (mode === "MOONLIGHT_STONE" || /\b(monthly_credit|membership_credit|moonlight_stone|monthly_subscription|monthly)\b/.test(haystack)) return "monthly";
+  if (mode === "MEMBERSHIP_PASS" || /\b(membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b/.test(haystack)) return "pass";
   if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
   if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
   if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
@@ -1871,6 +1950,8 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     featureKey: toText(detail?.featureKey || detail?.featureId),
     reason: toText(detail?.reason || detail?.title),
     accessType: toText(detail?.accessType),
+    accessMethod: toText(detail?.accessMethod),
+    paymentMethod: toText(detail?.paymentMethod),
   });
 
   if (status === "checkingEntitlement") {
@@ -2541,6 +2622,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           markPaidAttemptCallbackReturned();
           const consume = asRecord(parsed.data.consume);
           const accessType = toText(consume?.accessType);
+          const accessMethod = toText(consume?.accessMethod);
+          const paymentMethod = toText(consume?.paymentMethod);
           const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
           const licenseGate = extractLicenseGateResult(runtimeData);
           const licenseMessage = buildLicensePassOverlayMessage(runtimeData);
@@ -2552,15 +2635,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               ?? runtimeMembershipPass?.passTier
               ?? licenseGate?.licenseTier,
           );
-          const usagePassApplied = accessType === "usage_pass";
-          const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData);
-          const entitlementApplied = passApplied || usagePassApplied;
-          const entitlementPaymentMode = usagePassApplied ? "USAGE_PASS" : (passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW");
-          const successOverlay = resolvePaymentWaitOverlay(entitlementApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
-            paymentMode: entitlementPaymentMode,
+          const appliedPayment = resolveAppliedBillingPayment(runtimeData, "DIRECT_KRW", runtimeData.freeBySubscription === true);
+          const successOverlay = resolvePaymentWaitOverlay(appliedPayment.status, licenseMessage || undefined, {
+            paymentMode: appliedPayment.paymentMode,
             featureKey: featureId,
             reason: input.reason,
             accessType,
+            accessMethod,
+            paymentMethod,
             licenseTier: licenseGate?.licenseTier,
             licenseReason: licenseGate?.reason,
             passTier: runtimePassTier,
@@ -2571,12 +2653,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             featureId,
             featureKey: featureId,
             requestId: gateRequestId,
-            status: entitlementApplied ? "hasEntitlement" : "paymentSuccess",
+            status: appliedPayment.status,
             message: successOverlay.message,
             cost: parsed.data.pricing?.cost,
-            paymentMode: entitlementPaymentMode,
+            paymentMode: appliedPayment.paymentMode,
             reason: input.reason,
             accessType,
+            accessMethod,
+            paymentMethod,
             licenseTier: licenseGate?.licenseTier,
             licenseReason: licenseGate?.reason,
             passTier: runtimePassTier,
@@ -2682,15 +2766,19 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       markPaidAttemptCallbackReturned();
       const consume = asRecord(parsed.data.consume);
       const accessType = toText(consume?.accessType);
+      const accessMethod = toText(consume?.accessMethod);
+      const paymentMethod = toText(consume?.paymentMethod);
       const licenseGate = extractLicenseGateResult(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const licenseMessage = buildLicensePassOverlayMessage(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
-      const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData) || passFirstEligible;
-      const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
-        paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+      const appliedPayment = resolveAppliedBillingPayment(runtimeData, requestedMode, passFirstEligible || runtimeData.freeBySubscription === true);
+      const successOverlay = resolvePaymentWaitOverlay(appliedPayment.status, licenseMessage || undefined, {
+        paymentMode: appliedPayment.paymentMode,
         featureKey: featureId,
         reason: input.reason,
         accessType,
+        accessMethod,
+        paymentMethod,
         licenseTier: licenseGate?.licenseTier,
         licenseReason: licenseGate?.reason,
       });
@@ -2698,12 +2786,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: passApplied ? "hasEntitlement" : "paymentSuccess",
+        status: appliedPayment.status,
         message: successOverlay.message,
         cost: parsed.data.pricing?.cost,
-        paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+        paymentMode: appliedPayment.paymentMode,
         reason: input.reason,
         accessType,
+        accessMethod,
+        paymentMethod,
         licenseTier: licenseGate?.licenseTier,
         licenseReason: licenseGate?.reason,
       });
@@ -2772,15 +2862,19 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             markPaidAttemptCallbackReturned();
             const consume = asRecord(runtimePaymentResult.data.consume);
             const accessType = toText(consume?.accessType);
+            const accessMethod = toText(consume?.accessMethod);
+            const paymentMethod = toText(consume?.paymentMethod);
             const licenseGate = extractLicenseGateResult(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
             const licenseMessage = buildLicensePassOverlayMessage(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
             const runtimeData = runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>;
-            const passApplied = runtimeData.freeBySubscription === true || isMembershipPassGrantedPayload(runtimeData);
-            const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
-              paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+            const appliedPayment = resolveAppliedBillingPayment(runtimeData, requestedMode, runtimeData.freeBySubscription === true);
+            const successOverlay = resolvePaymentWaitOverlay(appliedPayment.status, licenseMessage || undefined, {
+              paymentMode: appliedPayment.paymentMode,
               featureKey: featureId,
               reason: input.reason,
               accessType,
+              accessMethod,
+              paymentMethod,
               licenseTier: licenseGate?.licenseTier,
               licenseReason: licenseGate?.reason,
             });
@@ -2788,12 +2882,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               featureId,
               featureKey: featureId,
               requestId: gateRequestId,
-              status: passApplied ? "hasEntitlement" : "paymentSuccess",
+              status: appliedPayment.status,
               message: successOverlay.message,
               cost: runtimePaymentResult.data.pricing?.cost,
-              paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+              paymentMode: appliedPayment.paymentMode,
               reason: input.reason,
               accessType,
+              accessMethod,
+              paymentMethod,
               licenseTier: licenseGate?.licenseTier,
               licenseReason: licenseGate?.reason,
             });

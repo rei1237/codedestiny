@@ -6,9 +6,9 @@ let utils;
 let signJwt;
 
 beforeAll(async () => {
-  const mod = await import("../../worker/routes/fortune.js");
+  const mod = await import("../../worker/lib/fortune-access-guard.js");
   const jwtMod = await import("../../worker/lib/jwt.js");
-  utils = mod.__fortuneAccessTestUtils;
+  utils = mod;
   signJwt = jwtMod.signJwt;
 });
 

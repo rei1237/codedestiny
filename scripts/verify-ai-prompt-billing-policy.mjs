@@ -59,9 +59,9 @@ for (const featureKey of promptFeatures) {
 
 for (const featureKey of freePromptFeatures) {
   assert.equal(
-    FEATURE_KEY_PRICE_TABLE[featureKey]?.cost,
-    0,
-    `${featureKey} must stay free in the server registry`,
+    FEATURE_KEY_PRICE_TABLE[featureKey],
+    undefined,
+    `${featureKey} must stay outside the paid server registry`,
   );
   assert.match(
     fortuneSource,

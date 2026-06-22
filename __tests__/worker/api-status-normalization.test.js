@@ -42,6 +42,54 @@ async function buildAuthRequest(url, method = "GET", body) {
 }
 
 beforeAll(async () => {
+  const promptBuildResult = {
+    prompt: "",
+    generatedPrompt: "",
+    title: "",
+    digestSource: "status-normalization-test",
+  };
+
+  await Promise.all([
+    jest.unstable_mockModule("../../worker/lib/ziwei-ai-prompt.js", () => ({
+      ZIWEI_AI_PROMPT_FEATURE_KEY: "ziwei_ai_prompt_generator",
+      ZIWEI_AI_PROMPT_PRICE: 100,
+      buildZiweiAIPrompt: () => promptBuildResult,
+      buildZiweiAIPromptWithDomain: () => promptBuildResult,
+    })),
+    jest.unstable_mockModule("../../worker/lib/sukuyo-ai-prompt.js", () => ({
+      SUKUYO_AI_PROMPT_FEATURE_KEY: "sukuyo_ai_prompt_generator",
+      SUKUYO_AI_PROMPT_PRICE: 0,
+      buildSukuyoAIPrompt: () => promptBuildResult,
+      buildSukuyoAIPromptWithDomain: () => promptBuildResult,
+    })),
+    jest.unstable_mockModule("../../worker/lib/saju-ai-prompt.js", () => ({
+      SAJU_AI_PROMPT_FEATURE_KEY: "saju_ai_prompt_generator",
+      SAJU_AI_PROMPT_PRICE: 100,
+      buildSajuAIPrompt: () => promptBuildResult,
+      buildSajuAIPromptWithDomain: () => promptBuildResult,
+    })),
+    jest.unstable_mockModule("../../worker/lib/astrology-ai-prompt.js", () => ({
+      ASTROLOGY_AI_PROMPT_FEATURE_KEY: "astrology_ai_prompt_generator",
+      ASTROLOGY_AI_PROMPT_PRICE: 100,
+      buildAstrologyAIPrompt: () => promptBuildResult,
+      buildAstrologyAIPromptWithDomain: () => promptBuildResult,
+    })),
+    jest.unstable_mockModule("../../worker/lib/vedic-ai-prompt.js", () => ({
+      VEDIC_AI_PROMPT_FEATURE_KEY: "vedic_ai_prompt_generator",
+      VEDIC_AI_PROMPT_PRICE: 100,
+      buildVedicAIPrompt: () => promptBuildResult,
+    })),
+    jest.unstable_mockModule("../../worker/lib/vedic-prashna-prompt.js", () => ({
+      VEDIC_PRASHNA_PROMPT_FEATURE_KEY: "vedic_prashna_prompt",
+      VEDIC_PRASHNA_PROMPT_PRICE: 50,
+      VEDIC_PRASHNA_PROMPT_AMOUNT_KRW: 5000,
+      VEDIC_PRASHNA_PROMPT_PRODUCT_CODE: "PRASHNA_PROMPT_1",
+      VEDIC_PRASHNA_PROMPT_PRODUCT_NAME: "프라슈나 프롬프트",
+      createPrashnaSnapshot: () => ({}),
+      generatePrashnaPromptResult: async () => promptBuildResult,
+    })),
+  ]);
+
   const [fortuneMod, userMod, billingMod, authMod, jwtMod] = await Promise.all([
     import("../../worker/routes/fortune.js"),
     import("../../worker/routes/user.js"),

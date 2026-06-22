@@ -4744,6 +4744,17 @@ async function handleBalance(request, env) {
 async function handleBillingSnapshotBalance(request, env) {
   const snapshot = await readBillingSnapshot(request, env);
   if (snapshot?.degraded === true) {
+    return success({
+      ...snapshot,
+      raw: {
+        source: "billing_snapshot",
+        code: snapshot?.error?.code || "DB_FALLBACK",
+        degraded: true,
+        errorDetails: snapshot?.error?.errorDetails || snapshot?.error?.details || null,
+      },
+    }, "Billing balance fallback loaded.");
+  }
+  if (snapshot?.degraded === true) {
     return failure(
       503,
       "BALANCE_SNAPSHOT_UNAVAILABLE",

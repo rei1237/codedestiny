@@ -3,6 +3,12 @@ import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord }
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
+  getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
+  isAdminPigCoinBypassEnabled as isAdminPigCoinBypassEnabledFromGuard,
+  resolvePigCoinConsumeAuth as resolvePigCoinConsumeAuthFromGuard,
+  resolveServerCoinPricing as resolveServerCoinPricingFromGuard,
+} from "../lib/fortune-access-guard.js";
+import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   PIG_COIN_UNLOCK_PRODUCTS,
@@ -323,23 +329,6 @@ function buildJsonWithPremiumAccessCookie(body, init = {}, premiumAccessToken = 
 
 function isDynamicCostFallbackEnabled(env) {
   return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_DYNAMIC_PIG_COIN_COST_FALLBACK);
-}
-
-function isAdminPigCoinBypassEnabled(env) {
-  if (isProductionRuntime(env)) return false;
-  return isTruthyFlag(env?.ALLOW_ADMIN_PIG_COIN_BYPASS);
-}
-
-function getForcePaidTestAccountEmails(env) {
-  if (isProductionRuntime(env)) return new Set();
-
-  const raw = String(env?.FORCE_PAID_TEST_ACCOUNT_EMAILS || "");
-  const values = raw
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-
-  return new Set(values);
 }
 
 function normalizeFeatureKey(rawKey) {
@@ -1658,7 +1647,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     featureKey = inferFeatureKeyFromReason(requestReason, featureKey).slice(0, 60);
   }
   const requestedCost = Number(productSpec ? productSpec.cost : body?.cost);
-  const pricing = resolveServerCoinPricing({
+  const pricing = resolveServerCoinPricingFromGuard({
     env,
     productSpec,
     requestedCost,
@@ -4223,7 +4212,7 @@ export async function handleFortuneRoutes(request, env) {
     }
 
     if (method === "POST" && path === "/pig-coin/unlock") {
-      const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      const authCtx = await resolvePigCoinConsumeAuthFromGuard(request, env);
       trace.authVerified = true;
       await connectDb(env);
       trace.dbConnected = true;
@@ -4231,7 +4220,7 @@ export async function handleFortuneRoutes(request, env) {
     }
 
     if (method === "POST" && path === "/pig-coin/consume") {
-      const authCtx = await resolvePigCoinConsumeAuth(request, env);
+      const authCtx = await resolvePigCoinConsumeAuthFromGuard(request, env);
       trace.authVerified = true;
       await connectDb(env);
       trace.dbConnected = true;
@@ -4357,8 +4346,8 @@ export async function handleFortuneRoutes(request, env) {
 }
 
 export const __fortuneAccessTestUtils = {
-  resolveServerCoinPricing,
-  getForcePaidTestAccountEmails,
-  resolvePigCoinConsumeAuth,
-  isAdminPigCoinBypassEnabled,
+  resolveServerCoinPricing: resolveServerCoinPricingFromGuard,
+  getForcePaidTestAccountEmails: getForcePaidTestAccountEmailsFromGuard,
+  resolvePigCoinConsumeAuth: resolvePigCoinConsumeAuthFromGuard,
+  isAdminPigCoinBypassEnabled: isAdminPigCoinBypassEnabledFromGuard,
 };
