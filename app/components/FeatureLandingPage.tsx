@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
 import ShareWidget from "./ShareWidget";
 
@@ -249,6 +251,166 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/yoga-guru": { coins: "3,000원" },
 };
 
+type FeatureLandingCopy = {
+  defaultTitle: string;
+  defaultDescription: string;
+  valueGuideTitle: string;
+  corePoints: string;
+  freeMainService: string;
+  paidCta: (price: string) => string;
+  freeCta: string;
+  insights: string;
+  paidNotice: string;
+  categoryTags: Record<string, string>;
+};
+
+const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
+  ko: {
+    defaultTitle: "운세 서비스",
+    defaultDescription: "Code Destiny 메인 기능으로 연결되는 서비스입니다.",
+    valueGuideTitle: "실전 활용 가이드",
+    corePoints: "핵심 포인트",
+    freeMainService: "FREE · 무료 메인 서비스",
+    paidCta: (price) => `유료 기능 실행 · ${price}`,
+    freeCta: "기능 바로 실행",
+    insights: "관련 인사이트 보기",
+    paidNotice: "유료 기능입니다. 바로가기를 누르면 메인 화면에서 결제 확인이 먼저 표시됩니다.",
+    categoryTags: {},
+  },
+  en: {
+    defaultTitle: "Fortune service",
+    defaultDescription: "A service connected to the main Code Destiny experience.",
+    valueGuideTitle: "Practical Guide",
+    corePoints: "Key Points",
+    freeMainService: "FREE · Main free service",
+    paidCta: (price) => `Start paid feature · ${price}`,
+    freeCta: "Start feature",
+    insights: "View related insights",
+    paidNotice: "This is a paid feature. Payment access is checked on the main screen before it opens.",
+    categoryTags: { flower: "Flower destiny report", tarot: "Tarot reading", oracle: "Oracle reading", vedic: "Vedic astrology", animal: "Totem reading", dream: "Dream interpretation", saju: "Four Pillars reading", ziwei: "Zi Wei Dou Shu chart", astrology: "Astrology chart", yoga: "Yoga reset" },
+  },
+  ja: {
+    defaultTitle: "占いサービス",
+    defaultDescription: "Code Destinyのメイン機能につながるサービスです。",
+    valueGuideTitle: "実践活用ガイド",
+    corePoints: "注目ポイント",
+    freeMainService: "FREE · 無料メインサービス",
+    paidCta: (price) => `有料機能を開く · ${price}`,
+    freeCta: "機能を開く",
+    insights: "関連インサイトを見る",
+    paidNotice: "有料機能です。開く前にメイン画面で決済確認が表示されます。",
+    categoryTags: { flower: "花の運勢リポート", tarot: "タロットリーディング", oracle: "オラクルリーディング", vedic: "ヴェーダ占星術", animal: "トーテムリーディング", dream: "夢占い", saju: "四柱推命リーディング", ziwei: "紫微斗数命盤", astrology: "占星術チャート", yoga: "ヨガリセット" },
+  },
+  "zh-CN": {
+    defaultTitle: "占卜服务",
+    defaultDescription: "连接到 Code Destiny 主功能的服务。",
+    valueGuideTitle: "实用指南",
+    corePoints: "重点提示",
+    freeMainService: "FREE · 免费主服务",
+    paidCta: (price) => `启动付费功能 · ${price}`,
+    freeCta: "立即启动功能",
+    insights: "查看相关洞察",
+    paidNotice: "这是付费功能。打开前会先在主画面确认支付权限。",
+    categoryTags: { flower: "花之命运报告", tarot: "塔罗牌解读", oracle: "神谕解读", vedic: "吠陀占星", animal: "图腾解读", dream: "梦境解析", saju: "四柱推命解读", ziwei: "紫微斗数命盘", astrology: "占星星盘", yoga: "瑜伽重置" },
+  },
+  "zh-TW": {
+    defaultTitle: "占卜服務",
+    defaultDescription: "連接到 Code Destiny 主功能的服務。",
+    valueGuideTitle: "實用指南",
+    corePoints: "重點提示",
+    freeMainService: "FREE · 免費主服務",
+    paidCta: (price) => `啟動付費功能 · ${price}`,
+    freeCta: "立即啟動功能",
+    insights: "查看相關洞察",
+    paidNotice: "這是付費功能。開啟前會先在主畫面確認付款權限。",
+    categoryTags: { flower: "花之命運報告", tarot: "塔羅牌解讀", oracle: "神諭解讀", vedic: "吠陀占星", animal: "圖騰解讀", dream: "夢境解析", saju: "四柱推命解讀", ziwei: "紫微斗數命盤", astrology: "占星星盤", yoga: "瑜伽重置" },
+  },
+  vi: {
+    defaultTitle: "Dịch vụ vận mệnh",
+    defaultDescription: "Dịch vụ kết nối với trải nghiệm chính của Code Destiny.",
+    valueGuideTitle: "Hướng dẫn ứng dụng",
+    corePoints: "Điểm chính",
+    freeMainService: "FREE · Dịch vụ chính miễn phí",
+    paidCta: (price) => `Mở tính năng trả phí · ${price}`,
+    freeCta: "Mở tính năng",
+    insights: "Xem góc nhìn liên quan",
+    paidNotice: "Đây là tính năng trả phí. Màn hình chính sẽ kiểm tra quyền thanh toán trước khi mở.",
+    categoryTags: { flower: "Báo cáo vận mệnh hoa", tarot: "Trải bài tarot", oracle: "Lời oracle", vedic: "Chiêm tinh Vệ Đà", animal: "Đọc biểu tượng totem", dream: "Giải mã giấc mơ", saju: "Luận Tứ trụ", ziwei: "Lá số Tử Vi Đẩu Số", astrology: "Bản đồ chiêm tinh", yoga: "Yoga reset" },
+  },
+  hi: {
+    defaultTitle: "भाग्य सेवा",
+    defaultDescription: "Code Destiny के मुख्य अनुभव से जुड़ी सेवा.",
+    valueGuideTitle: "व्यावहारिक मार्गदर्शिका",
+    corePoints: "मुख्य बिंदु",
+    freeMainService: "FREE · मुफ्त मुख्य सेवा",
+    paidCta: (price) => `पेड फीचर शुरू करें · ${price}`,
+    freeCta: "फीचर शुरू करें",
+    insights: "संबंधित इनसाइट देखें",
+    paidNotice: "यह पेड फीचर है. खुलने से पहले मुख्य स्क्रीन पर भुगतान पहुँच जाँची जाएगी.",
+    categoryTags: { flower: "फूल भाग्य रिपोर्ट", tarot: "टैरो रीडिंग", oracle: "ओरेकल रीडिंग", vedic: "वैदिक ज्योतिष", animal: "टोटेम रीडिंग", dream: "स्वप्न व्याख्या", saju: "चार स्तंभ रीडिंग", ziwei: "ज़ी वेई डोउ शू चार्ट", astrology: "ज्योतिष चार्ट", yoga: "योग रीसेट" },
+  },
+  es: {
+    defaultTitle: "Servicio de destino",
+    defaultDescription: "Un servicio conectado con la experiencia principal de Code Destiny.",
+    valueGuideTitle: "Guía práctica",
+    corePoints: "Puntos clave",
+    freeMainService: "FREE · Servicio principal gratis",
+    paidCta: (price) => `Abrir función de pago · ${price}`,
+    freeCta: "Abrir función",
+    insights: "Ver insights relacionados",
+    paidNotice: "Esta función es de pago. La pantalla principal comprobará el acceso antes de abrirla.",
+    categoryTags: { flower: "Informe floral del destino", tarot: "Lectura de tarot", oracle: "Lectura oracular", vedic: "Astrología védica", animal: "Lectura de tótem", dream: "Interpretación de sueños", saju: "Lectura de Cuatro Pilares", ziwei: "Carta Zi Wei Dou Shu", astrology: "Carta astrológica", yoga: "Reinicio de yoga" },
+  },
+  fr: {
+    defaultTitle: "Service de destinée",
+    defaultDescription: "Un service relié à l'expérience principale de Code Destiny.",
+    valueGuideTitle: "Guide pratique",
+    corePoints: "Points clés",
+    freeMainService: "FREE · Service principal gratuit",
+    paidCta: (price) => `Ouvrir la fonction payante · ${price}`,
+    freeCta: "Ouvrir la fonction",
+    insights: "Voir les insights liés",
+    paidNotice: "Cette fonction est payante. L'accès au paiement sera vérifié sur l'écran principal avant l'ouverture.",
+    categoryTags: { flower: "Rapport floral de destinée", tarot: "Lecture de tarot", oracle: "Lecture oracle", vedic: "Astrologie védique", animal: "Lecture totem", dream: "Interprétation des rêves", saju: "Lecture des Quatre Piliers", ziwei: "Thème Zi Wei Dou Shu", astrology: "Carte astrologique", yoga: "Réinitialisation yoga" },
+  },
+  de: {
+    defaultTitle: "Schicksalsservice",
+    defaultDescription: "Ein Service, der mit der Hauptfunktion von Code Destiny verbunden ist.",
+    valueGuideTitle: "Praxisguide",
+    corePoints: "Kernpunkte",
+    freeMainService: "FREE · Kostenloser Hauptservice",
+    paidCta: (price) => `Bezahlfunktion öffnen · ${price}`,
+    freeCta: "Funktion öffnen",
+    insights: "Verwandte Insights ansehen",
+    paidNotice: "Dies ist eine Bezahlfunktion. Vor dem Öffnen wird der Zahlungszugang auf dem Hauptbildschirm geprüft.",
+    categoryTags: { flower: "Blumen-Schicksalsbericht", tarot: "Tarot-Lesung", oracle: "Orakel-Lesung", vedic: "Vedische Astrologie", animal: "Totem-Lesung", dream: "Traumdeutung", saju: "Vier-Säulen-Lesung", ziwei: "Zi-Wei-Dou-Shu-Chart", astrology: "Astrologie-Chart", yoga: "Yoga-Reset" },
+  },
+  nl: {
+    defaultTitle: "Bestemmingsservice",
+    defaultDescription: "Een service die is verbonden met de hoofdbeleving van Code Destiny.",
+    valueGuideTitle: "Praktische gids",
+    corePoints: "Kernpunten",
+    freeMainService: "FREE · Gratis hoofdservice",
+    paidCta: (price) => `Betaalde functie openen · ${price}`,
+    freeCta: "Functie openen",
+    insights: "Gerelateerde inzichten bekijken",
+    paidNotice: "Dit is een betaalde functie. Het hoofdscherm controleert de betaaltoegang voordat deze opent.",
+    categoryTags: { flower: "Bloemenrapport voor bestemming", tarot: "Tarotlezing", oracle: "Orakellezing", vedic: "Vedische astrologie", animal: "Totemlezing", dream: "Droomduiding", saju: "Vierpijlerlezen", ziwei: "Zi Wei Dou Shu-kaart", astrology: "Astrologische kaart", yoga: "Yoga-reset" },
+  },
+  ms: {
+    defaultTitle: "Servis takdir",
+    defaultDescription: "Servis yang disambungkan kepada pengalaman utama Code Destiny.",
+    valueGuideTitle: "Panduan praktikal",
+    corePoints: "Perkara utama",
+    freeMainService: "FREE · Servis utama percuma",
+    paidCta: (price) => `Buka ciri berbayar · ${price}`,
+    freeCta: "Buka ciri",
+    insights: "Lihat wawasan berkaitan",
+    paidNotice: "Ini ialah ciri berbayar. Skrin utama akan menyemak akses bayaran sebelum ia dibuka.",
+    categoryTags: { flower: "Laporan takdir bunga", tarot: "Bacaan tarot", oracle: "Bacaan oracle", vedic: "Astrologi Veda", animal: "Bacaan totem", dream: "Tafsiran mimpi", saju: "Bacaan Empat Tiang", ziwei: "Carta Zi Wei Dou Shu", astrology: "Carta astrologi", yoga: "Reset yoga" },
+  },
+};
+
 /* Particle positions for the 5 floating items */
 const PARTICLE_POS = [
   { top:"6%",  left:"4%"   },
@@ -301,12 +463,91 @@ function resolveTokenIcon(token: string): DestinyIconName {
   return ICON_TOKEN_MAP[token] || "sparkle";
 }
 
+const FEATURE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
+  vi: "vi-VN",
+  hi: "hi-IN",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  nl: "nl-NL",
+  ms: "ms-MY",
+};
+
+const FEATURE_PRICE_SUFFIX: Record<LoadingLocale, string> = {
+  ko: "원",
+  en: " KRW",
+  ja: "ウォン",
+  "zh-CN": "韩元",
+  "zh-TW": "韓元",
+  vi: " KRW",
+  hi: " KRW",
+  es: " KRW",
+  fr: " KRW",
+  de: " KRW",
+  nl: " KRW",
+  ms: " KRW",
+};
+
+function resolveFeatureLocaleFromPath(pathname: string): LoadingLocale {
+  const localeSegment = String(pathname || "").split("/").filter(Boolean)[0];
+  if (!localeSegment) return "ko";
+  return normalizeLoadingLocale(localeSegment);
+}
+
+function resolveFeatureLocale(pathname: string): LoadingLocale {
+  const pathLocale = resolveFeatureLocaleFromPath(pathname);
+  if (pathLocale !== "ko") return pathLocale;
+  return getCurrentLoadingLocale();
+}
+
+function hasKoreanText(value?: string) {
+  return /[가-힣]/.test(String(value || ""));
+}
+
+function resolveFeatureText(value: string | undefined, fallback: string, locale: LoadingLocale) {
+  const text = String(value || "").trim();
+  if (!text) return fallback;
+  if (locale !== "ko" && hasKoreanText(text)) return fallback;
+  return text;
+}
+
+function resolveFeatureOptionalText(value: string | undefined, locale: LoadingLocale) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (locale !== "ko" && hasKoreanText(text)) return "";
+  return text;
+}
+
+function formatFeaturePrice(value: string, locale: LoadingLocale) {
+  const amount = Number(String(value || "").replace(/[^\d]/g, ""));
+  if (!Number.isFinite(amount) || amount <= 0) return value;
+  const numberLocale = FEATURE_NUMBER_LOCALE[locale] || FEATURE_NUMBER_LOCALE.ko;
+  const suffix = FEATURE_PRICE_SUFFIX[locale] || FEATURE_PRICE_SUFFIX.ko;
+  return `${new Intl.NumberFormat(numberLocale).format(amount)}${suffix}`;
+}
+
+function resolveFeatureTag(basePath: string, category: string, tag: string | undefined, locale: LoadingLocale) {
+  if (locale === "ko" || !tag || !hasKoreanText(tag)) return tag;
+  const copy = FEATURE_LANDING_COPY[locale] || FEATURE_LANDING_COPY.en;
+  return copy.categoryTags[basePath] || copy.categoryTags[category] || copy.defaultTitle;
+}
+
 /* ═══════════════════════════════════════════
    Component
 ═══════════════════════════════════════════ */
 export default function FeatureLandingPage({ service }: { service?: ServiceLike }) {
   const pathname = usePathname() || "/";
   const basePath = stripLocalePrefix(pathname);
+  const [locale, setLocale] = useState<LoadingLocale>(() => resolveFeatureLocaleFromPath(pathname));
+
+  useEffect(() => {
+    setLocale(resolveFeatureLocale(pathname));
+  }, [pathname]);
 
   const action = ACTION_MAP[basePath];
   const runHref = basePath === "/oracle/sikojen-povailu"
@@ -329,12 +570,17 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     icon:"✨", badge:"SERVICE", particles:["✦","⭐","✨","💫","✦"],
   };
   const heroIconName = resolveTokenIcon(cfg.icon);
-
-  const title = service?.h1 || service?.title || "운세 서비스";
-  const description = service?.description || "Code Destiny 메인 기능으로 연결되는 서비스입니다.";
-  const points = Array.isArray(service?.landingPoints) ? service!.landingPoints! : [];
-  const valueSections = Array.isArray(service?.valueSections) ? service.valueSections : [];
-  const valueGuideTitle = service?.valueGuideTitle || "실전 활용 가이드";
+  const copy = FEATURE_LANDING_COPY[locale] || FEATURE_LANDING_COPY.ko;
+  const localizedTag = resolveFeatureTag(basePath, category, cfg.tag, locale);
+  const titleFallback = locale === "ko" ? copy.defaultTitle : (cfg.badge || copy.defaultTitle);
+  const title = resolveFeatureText(service?.h1 || service?.title, titleFallback, locale);
+  const description = resolveFeatureText(service?.description, copy.defaultDescription, locale);
+  const rawPoints = Array.isArray(service?.landingPoints) ? service!.landingPoints! : [];
+  const points = locale === "ko" ? rawPoints : rawPoints.filter((point) => !hasKoreanText(point));
+  const rawValueSections = Array.isArray(service?.valueSections) ? service.valueSections : [];
+  const valueSections = locale === "ko" ? rawValueSections : rawValueSections.filter((section) => !hasKoreanText(section.title) && !hasKoreanText(section.body));
+  const valueGuideTitle = resolveFeatureText(service?.valueGuideTitle, copy.valueGuideTitle, locale);
+  const seoText = resolveFeatureOptionalText(service?.seoText, locale);
   const isFlower = category === "flower";
 
   return (
@@ -487,9 +733,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
             margin:"0 0 8px", wordBreak:"keep-all",
           }}>{title}</h1>
-          {cfg.tag && (
+          {localizedTag && (
             <p style={{ fontSize:"0.78rem", color:t.accent, opacity:.68, letterSpacing:"0.1em", margin:0 }}>
-              {cfg.tag}
+              {localizedTag}
             </p>
           )}
         </header>
@@ -545,7 +791,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               fontSize:"0.66rem", fontWeight:800, letterSpacing:"0.22em",
               textTransform:"uppercase", color:t.accent, opacity:.72,
               marginBottom:"10px", marginTop:0,
-            }}>핵심 포인트</h2>
+            }}>{copy.corePoints}</h2>
             <div style={{
               display:"grid",
               gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",
@@ -663,7 +909,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 fontSize:"0.65rem", fontWeight:800, letterSpacing:"0.18em",
                 color:"rgba(213,63,90,0.72)", textTransform:"uppercase",
                 marginBottom:"2px",
-              }}>FREE · 무료 메인 서비스</span>
+              }}>{copy.freeMainService}</span>
               <span style={{
                 display:"block",
                 fontSize:"1rem", fontWeight:900,
@@ -699,7 +945,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             fontFamily:"'Noto Sans KR',sans-serif",
           }}>
             <DestinyIcon name={heroIconName} size={18} className="text-white" variant="soft" />
-            <span>{isPaidFeature ? `유료 기능 실행 · ${paidMeta.coins}` : "기능 바로 실행"}</span>
+            <span>{isPaidFeature ? copy.paidCta(formatFeaturePrice(paidMeta.coins, locale)) : copy.freeCta}</span>
           </a>
           <Link href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -709,7 +955,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             fontWeight:700, fontSize:"0.9rem",
             textDecoration:"none", letterSpacing:"0.02em",
           }}>
-            관련 인사이트 보기
+            {copy.insights}
           </Link>
         </div>
 
@@ -728,16 +974,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             fontSize:"0.78rem", lineHeight:1.6, textAlign:"center",
             color:"rgba(248,250,252,0.78)",
           }}>
-            유료 기능입니다. 바로가기를 누르면 메인 화면에서 결제 확인이 먼저 표시됩니다.
+            {copy.paidNotice}
           </p>
         )}
 
         {/* SEO text */}
-        {service?.seoText && (
+        {seoText && (
           <p style={{
             marginTop:"36px", fontSize:"0.73rem", lineHeight:1.75,
             color:t.seo, textAlign:"center", padding:"0 4px", wordBreak:"keep-all",
-          }}>{service.seoText}</p>
+          }}>{seoText}</p>
         )}
       </div>
     </main>
