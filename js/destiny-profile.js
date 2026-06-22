@@ -2607,6 +2607,8 @@
       _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4') + ' ' + '\uB2E8\uAC74 \uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4. \uC8FC\uBB38 \uAE08\uC561\uACFC \uC778\uC99D \uC815\uBCF4\uB97C \uC548\uC804\uD558\uAC8C \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'card');
       await _dpWaitForPaymentOverlayPaint();
       _dpSetPaymentPending(true, '\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744 \uC9C4\uD589\uD574 \uC8FC\uC138\uC694. \uC778\uC99D\uC774 \uB05D\uB098\uBA74 \uAD8C\uD55C\uC744 \uD655\uC778\uD569\uB2C8\uB2E4.', 'card');
+      await _dpWaitForPaymentOverlayPaint();
+      _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {

@@ -2562,6 +2562,7 @@ export default function PointsPage() {
       }
 
       setProcessingStage("단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
+      await closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -2583,6 +2584,7 @@ export default function PointsPage() {
 
       try {
         setProcessingStage("결제가 완료됐어요\n결과를 불러오는 중이에요", "payment-complete");
+        setIsProcessing(true);
         const result = await confirmPaymentWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,

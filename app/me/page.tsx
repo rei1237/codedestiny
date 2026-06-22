@@ -144,6 +144,7 @@ declare global {
     PortOne?: {
       requestPayment: (request: PortOnePaymentRequest) => Promise<PortOnePaymentResponse>;
     };
+    _cdSetCoinGateOverlay?: (isOpen: boolean, message?: string, mode?: string) => void;
   }
 }
 
@@ -325,6 +326,18 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string, phoneNum
     email,
     phoneNumber: normalizePaymentPhoneNumber(phoneNumber || merged.phoneNumber || merged.phone || ""),
   };
+}
+
+async function closeSharedPaymentOverlayBeforeExternalCheckout() {
+  if (typeof window === "undefined") return;
+  window._cdSetCoinGateOverlay?.(false);
+  await new Promise<void>((resolve) => {
+    if (typeof window.requestAnimationFrame !== "function") {
+      resolve();
+      return;
+    }
+    window.requestAnimationFrame(() => resolve());
+  });
 }
 
 function mapPaymentErrorMessage(message?: string) {
@@ -813,6 +826,7 @@ export default function MePage() {
     };
     if (paymentConfig.noticeUrl) paymentRequest.noticeUrls = [paymentConfig.noticeUrl];
 
+    await closeSharedPaymentOverlayBeforeExternalCheckout();
     const rsp = await window.PortOne.requestPayment(paymentRequest);
     const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
     if (!rsp || rsp.code || !paymentId) {
