@@ -20,12 +20,16 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      GEMINIF_API_KEY: ${{ secrets.GEMINIF_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY || secrets.GEMINIF_API_KEY }}
+      GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY || secrets.GEMINI_API_KEY || secrets.GEMINIF_API_KEY }}
       CF_WORKER_NAME: code-destiny-web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Load local fallback env (optional)
+        id: load-gemini-fallback
         run: |
           set -euo pipefail
           if [ ! -f .env.local ]; then
@@ -82,6 +86,7 @@ jobs:
           )"
 
           if [ -n "${fallback_gemini_key:-}" ]; then
+            echo "gemini_api_key=${fallback_gemini_key}" >> "${GITHUB_OUTPUT}"
             {
               echo "GEMINIF_API_KEY=${fallback_gemini_key}"
               echo "GEMINI_API_KEY=${fallback_gemini_key}"
@@ -96,13 +101,16 @@ jobs:
           cache: npm
 
       - name: Validate required secrets
-        env:
-          GEMINIF_API_KEY: ${{ secrets.GEMINIF_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY || env.GEMINIF_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_GEMINI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY || secrets.GEMINIF_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_GEMINI_API_KEY || env.GEMINIF_API_KEY }}
-          GOOGLE_GEMINI_API_KEY: ${{ secrets.GOOGLE_GEMINI_API_KEY || secrets.GEMINI_API_KEY || secrets.GEMINIF_API_KEY || env.GOOGLE_GEMINI_API_KEY || env.GEMINI_API_KEY || env.GEMINIF_API_KEY }}
         run: |
           set -euo pipefail
           resolved_gemini_api_key="${GEMINIF_API_KEY:-${GEMINI_API_KEY:-${GOOGLE_GEMINI_API_KEY:-}}}"
+          fallback_gemini_api_key="${{ steps.load-gemini-fallback.outputs.gemini_api_key || '' }}"
+          if [ -z "${resolved_gemini_api_key:-}" ] && [ -n "${fallback_gemini_api_key}" ]; then
+            resolved_gemini_api_key="${fallback_gemini_api_key}"
+          fi
+          has_job_env="$(if [ -n "${GEMINIF_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ] || [ -n "${GOOGLE_GEMINI_API_KEY:-}" ]; then echo "true"; else echo "false"; fi)"
+          has_fallback="$(if [ -n "${fallback_gemini_api_key}" ]; then echo "true"; else echo "false"; fi)"
+          echo "::notice::Gemini key source check: job_env=${has_job_env}, fallback_file=${has_fallback}"
           if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
             echo "::error::Missing required secret CLOUDFLARE_API_TOKEN"
             exit 1
@@ -112,10 +120,16 @@ jobs:
             exit 1
           fi
           if [ -z "${resolved_gemini_api_key:-}" ]; then
-            echo "::error::No Gemini API key secret found. Set GEMINIF_API_KEY (or GEMINI_API_KEY/GOOGLE_GEMINI_API_KEY)"
+            echo "::error::No Gemini API key secret found."
+            echo "::error::Set one of: GEMINIF_API_KEY (or GEMINI_API_KEY / GOOGLE_GEMINI_API_KEY) in GitHub Secrets, or provide in .env.local as a non-placeholder key."
             exit 1
           fi
           export GEMINIF_API_KEY="${resolved_gemini_api_key}"
+          export GEMINI_API_KEY="${resolved_gemini_api_key}"
+          export GOOGLE_GEMINI_API_KEY="${resolved_gemini_api_key}"
+          echo "GEMINIF_API_KEY=${resolved_gemini_api_key}" >> "$GITHUB_ENV"
+          echo "GEMINI_API_KEY=${resolved_gemini_api_key}" >> "$GITHUB_ENV"
+          echo "GOOGLE_GEMINI_API_KEY=${resolved_gemini_api_key}" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci
@@ -131,8 +145,6 @@ jobs:
 
       - name: Sync Worker runtime secrets
         env:
-          GEMINIF_API_KEY: ${{ secrets.GEMINIF_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY || env.GEMINIF_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_GEMINI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GOOGLE_GEMINI_API_KEY || secrets.GEMINIF_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_GEMINI_API_KEY || env.GEMINIF_API_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
           GOOGLE_YOUTUBE_API_KEY: ${{ secrets.GOOGLE_YOUTUBE_API_KEY }}
