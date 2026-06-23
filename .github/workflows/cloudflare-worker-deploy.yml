@@ -33,53 +33,53 @@ jobs:
           fi
 
           fallback_gemini_key="$(node - <<'NODE'
-const fs = require("node:fs");
+          const fs = require("node:fs");
 
-const CANDIDATES = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
-const PLACEHOLDERS = ["CHANGE_ME", "PLEASE_CHANGE", "YOUR_", "EXAMPLE", "PUT_32_CHAR_RANDOM_HASH_HERE", "YOUR_SECRET", "YOUR_API_KEY"];
+          const CANDIDATES = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
+          const PLACEHOLDERS = ["CHANGE_ME", "PLEASE_CHANGE", "YOUR_", "EXAMPLE", "PUT_32_CHAR_RANDOM_HASH_HERE", "YOUR_SECRET", "YOUR_API_KEY"];
 
-function isUsable(value) {
-  if (!value) return false;
-  const trimmed = String(value).trim();
-  if (!trimmed) return false;
-  const upper = trimmed.toUpperCase();
-  return !PLACEHOLDERS.some((marker) => upper.includes(marker));
-}
+          function isUsable(value) {
+            if (!value) return false;
+            const trimmed = String(value).trim();
+            if (!trimmed) return false;
+            const upper = trimmed.toUpperCase();
+            return !PLACEHOLDERS.some((marker) => upper.includes(marker));
+          }
 
-function unquote(value) {
-  const trimmed = String(value).trim();
-  if (!trimmed) return "";
-  if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-    return trimmed.slice(1, -1).trim();
-  }
-  return trimmed;
-}
+          function unquote(value) {
+            const trimmed = String(value).trim();
+            if (!trimmed) return "";
+            if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+              return trimmed.slice(1, -1).trim();
+            }
+            return trimmed;
+          }
 
-try {
-  const text = fs.readFileSync(".env.local", "utf8");
-  const source = Object.create(null);
+          try {
+            const text = fs.readFileSync(".env.local", "utf8");
+            const source = Object.create(null);
 
-  for (const line of text.split(/\r?\n/)) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-    if (!match) continue;
-    const key = match[1].trim().toUpperCase();
-    const value = unquote(match[2]);
-    if (!value || !isUsable(value)) continue;
-    source[key] = value;
-  }
+            for (const line of text.split(/\r?\n/)) {
+              const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+              if (!match) continue;
+              const key = match[1].trim().toUpperCase();
+              const value = unquote(match[2]);
+              if (!value || !isUsable(value)) continue;
+              source[key] = value;
+            }
 
-  for (const key of CANDIDATES) {
-    const value = source[key];
-    if (value) {
-      process.stdout.write(value);
-      break;
-    }
-  }
-} catch (_error) {
-  // ignore
-}
-NODE
-)"
+            for (const key of CANDIDATES) {
+              const value = source[key];
+              if (value) {
+                process.stdout.write(value);
+                break;
+              }
+            }
+          } catch (_error) {
+            // ignore
+          }
+          NODE
+          )"
 
           if [ -n "${fallback_gemini_key:-}" ]; then
             {
