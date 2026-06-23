@@ -3168,6 +3168,41 @@ function parseAdminContentId(path) {
   return token;
 }
 
+function parseAdminContentPathIdentifier(path) {
+  const matched = String(path || "").match(/^\/content\/([^/]+)$/i);
+  if (!matched) return "";
+
+  try {
+    const token = decodeURIComponent(String(matched[1] || "").trim());
+    if (!token) return "";
+    if (token.startsWith("insight:")) return token.slice("insight:".length);
+    return token;
+  } catch (error) {
+    return "";
+  }
+}
+
+async function findContentByAdminPath(path) {
+  const token = parseAdminContentPathIdentifier(path);
+  if (!token) return null;
+
+  const trimmed = token.trim();
+  const lowered = trimmed.toLowerCase();
+
+  if (/^[a-f0-9]{24}$/i.test(trimmed)) {
+    const byId = await Insight.findById(trimmed).lean();
+    if (byId) return byId;
+  }
+
+  const slugCandidates = [...new Set([trimmed, lowered].filter(Boolean))];
+  return Insight.findOne({ slug: { $in: slugCandidates } }).lean();
+}
+
+async function resolveAdminContentId(path) {
+  const found = await findContentByAdminPath(path);
+  return found ? String(found?._id || "") : "";
+}
+
 function parseAdminContentSlug(path) {
   const matched = String(path || "").match(/^\/content\/by-slug\/([^/]+)$/i);
   if (!matched) return "";
@@ -3175,7 +3210,6 @@ function parseAdminContentSlug(path) {
   try {
     const decoded = decodeURIComponent(String(matched[1] || "")).trim().toLowerCase();
     if (!decoded || decoded.length > 240) return "";
-    if (!/^[a-z0-9-]+$/.test(decoded)) return "";
     return decoded;
   } catch (e) {
     return "";
@@ -3369,10 +3403,7 @@ async function handleContentGetById(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseAdminContentId(path);
-  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
-
-  const found = await Insight.findById(id).lean();
+  const found = await findContentByAdminPath(path);
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const item = toContentItem(found);
@@ -3415,11 +3446,10 @@ async function handleContentPatch(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseAdminContentId(path);
-  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
-
-  const existing = await Insight.findById(id).lean();
+  const existing = await findContentByAdminPath(path);
   if (!existing) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  const id = String(existing?._id || "");
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const body = await readJson(request);
   const { payload, title, providedSlug } = normalizeContentPayload(body, "update", existing);
@@ -3488,8 +3518,9 @@ async function handleContentDelete(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseAdminContentId(path);
-  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  const existing = await findContentByAdminPath(path);
+  const id = String(existing?._id || "");
+  if (!existing || !id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const updateResult = await Insight.updateOne(
     { _id: id },
@@ -3527,10 +3558,6 @@ async function handleContentDelete(path, request, env) {
       modifiedCount: Number(updateResult.modifiedCount || 0),
     },
   });
-}
-
-function parseRevisionContentId(path, suffix) {
-  return parseAdminContentId(String(path || "").replace(new RegExp(`${suffix}$`, "i"), ""));
 }
 
 function findContentRevision(item, body = {}) {
@@ -3582,7 +3609,7 @@ async function handleContentRevisions(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseRevisionContentId(path, "/revisions");
+  const id = await resolveAdminContentId(path.replace(/\/revisions$/i, ""));
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const found = await Insight.findById(id).lean();
@@ -3621,7 +3648,7 @@ async function handleContentRestore(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseRevisionContentId(path, "/restore");
+  const id = await resolveAdminContentId(path.replace(/\/restore$/i, ""));
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const existing = await Insight.findById(id).lean();
@@ -3997,11 +4024,10 @@ async function handleContentPublishStatus(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseAdminContentId(path.replace(/\/publish-status$/i, ""));
-  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
-
-  const found = await Insight.findById(id).lean();
+  const found = await findContentByAdminPath(path.replace(/\/publish-status$/i, ""));
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  const id = String(found?._id || "");
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const item = toContentItem(found);
   const publication = await buildContentPublicationStatus(request, env, item);
@@ -4023,13 +4049,13 @@ async function handleContentCachePurge(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = parseAdminContentId(path.replace(/\/cache-purge$/i, ""));
+  const purgeRecord = await findContentByAdminPath(path.replace(/\/cache-purge$/i, ""));
+  if (!purgeRecord) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  const id = String(purgeRecord?._id || "");
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
-  const found = await Insight.findById(id).lean();
-  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  const item = toContentItem(purgeRecord);
 
-  const item = toContentItem(found);
   const urls = buildContentPublicUrls(request, env, item);
   const purge = await purgeCloudflareContentCache(env, [
     urls.pageUrl,

@@ -956,16 +956,25 @@ export default function AdminContentPage() {
           </div>
 
           <div className="space-y-2 border-b border-slate-800 bg-slate-900/40 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">빠른 기능</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">챗봇 운영</p>
             <Link
               href="/admin/insights?service=saju#adminPromptLab"
-              className="block rounded-lg border border-amber-700 bg-gradient-to-br from-amber-950/70 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-500 hover:from-amber-900/70 hover:to-amber-900/40"
+              className="group block rounded-xl border border-amber-700 bg-gradient-to-br from-amber-950/80 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-400 hover:from-amber-900/80 hover:to-amber-900/40"
             >
-              사주 프롬프트 생성
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-lg border border-amber-300/40 bg-amber-300/10 p-1.5">
+                  <Sparkles className="h-4 w-4 text-amber-200" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-amber-100">사주 프롬프트 설정</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300">사주운세 프롬프트 규칙을 한곳에서 관리하고 샘플 프롬프트를 즉시 확인하세요.</p>
+                  <p className="mt-2 inline-flex items-center text-[11px] text-amber-200">
+                    설정 화면 열기
+                    <ExternalLink className="ml-1 h-3 w-3 opacity-80 transition group-hover:translate-x-0.5" />
+                  </p>
+                </div>
+              </div>
             </Link>
-            <p className="text-xs leading-5 text-slate-400">
-              생년월일과 질문을 입력해 사주 운영용 프롬프트를 바로 생성합니다.
-            </p>
           </div>
 
           <div className="max-h-[calc(100vh-182px)] overflow-y-auto">
