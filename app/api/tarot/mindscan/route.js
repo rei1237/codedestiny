@@ -53,6 +53,8 @@ function getGeminiModel() {
 function getGeminiKeyPool() {
   return [
     process.env.GEMINIF_API_KEY,
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_GEMINI_API_KEY,
   ]
     .map((key) => toText(key))
     .filter(Boolean);

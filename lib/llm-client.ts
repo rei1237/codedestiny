@@ -21,6 +21,8 @@ export interface LLMResponse {
 
 export interface CloudflareEnv {
   GEMINIF_API_KEY?: string;
+  GEMINI_API_KEY?: string;
+  GOOGLE_GEMINI_API_KEY?: string;
   AI?: {
     run: (model: string, options: object) => Promise<unknown>;
   };
@@ -46,6 +48,8 @@ type GeminiPayload = {
 
 const GEMINI_KEY_ORDER = [
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ] as const;
 
 function readProcessGeminiKey(): string {
