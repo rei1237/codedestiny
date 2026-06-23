@@ -5,6 +5,7 @@ import ImageExtension from "@tiptap/extension-image";
 import LinkExtension from "@tiptap/extension-link";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Archive,
   Bold,
@@ -952,6 +953,19 @@ export default function AdminContentPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="space-y-2 border-b border-slate-800 bg-slate-900/40 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">빠른 기능</p>
+            <Link
+              href="/admin/insights?service=saju#adminPromptLab"
+              className="block rounded-lg border border-amber-700 bg-gradient-to-br from-amber-950/70 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-500 hover:from-amber-900/70 hover:to-amber-900/40"
+            >
+              사주 프롬프트 생성
+            </Link>
+            <p className="text-xs leading-5 text-slate-400">
+              생년월일과 질문을 입력해 사주 운영용 프롬프트를 바로 생성합니다.
+            </p>
           </div>
 
           <div className="max-h-[calc(100vh-182px)] overflow-y-auto">
