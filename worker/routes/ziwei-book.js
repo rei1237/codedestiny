@@ -3686,12 +3686,9 @@ function buildZiweiJsonV2(profile = {}, seed = {}, chapters = [], metadata = {})
         ? metadata.consultationQuality
         : scoreZiweiConsultationQuality({ birthInput: seed?.localZiweiChartJson?.birthInput, seed, chapters }),
       manuscriptSource: clean(metadata?.manuscriptSource || metadata?.source),
-      localAssemblyOnly: metadata?.localAssemblyOnly === true,
-      localExpertOnly: metadata?.localExpertOnly === true,
       externalCallsAllowed: metadata?.externalCallsAllowed === true,
       fallbackAllowed: metadata?.fallbackAllowed === true,
       fallbackUsed: metadata?.fallbackUsed === true,
-      localAssembly: metadata?.localAssembly && typeof metadata.localAssembly === "object" ? metadata.localAssembly : null,
       generationMode: clean(metadata?.generationMode || ZIWEI_PDF_CONFIG.generationMode),
       provider: clean(metadata?.provider || ZIWEI_PDF_CONFIG.provider),
       writingPipeline: clean(metadata?.writingPipeline || ZIWEI_PDF_CONFIG.templateVersion),

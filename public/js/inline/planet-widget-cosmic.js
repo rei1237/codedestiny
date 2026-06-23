@@ -986,7 +986,7 @@
           try { combo.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
           // Google Translate가 실제로 DOM을 번역할 수 있도록, 번역 대상 영역에서 notranslate 제거
           try {
-            var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="deepl"]'));
+            var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="content"]'));
             nodes.forEach(function(el) {
               if (!el) return;
               el.classList.remove('notranslate');

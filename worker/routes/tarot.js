@@ -840,14 +840,6 @@ function ensureTextLength(text, minLength = 220) {
   return value.length >= minLength ? value : "";
 }
 
-function hasGeminiKey(env = {}) {
-  return Boolean(
-    asText(env?.GEMINI_API_KEY) ||
-    asText(env?.GOOGLE_API_KEY) ||
-    asText(env?.GOOGLE_GENERATIVE_AI_API_KEY),
-  );
-}
-
 function sanitizeCrystalSoulText(text) {
   return String(text || "")
     .replace(/[\t\r]+/g, " ")
@@ -1108,139 +1100,6 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
   }));
 }
 
-function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
-  const category = asText(readingData?.category) || "크리스탈 소울";
-  const coreCrystal = asText(readingData?.coreCrystal) || "그린 플로라이트";
-  const topicHint = asText(intake?.topic?.hint || intake?.topic?.name || "");
-
-  const sectionSeeds = (Array.isArray(readingData?.sections) ? readingData.sections : []).map((section) => ({
-    order: section.order,
-    positionTitle: section.positionTitle,
-    question: section.question,
-    cardNameKo: section.cardNameKo,
-    cardNameEn: section.cardNameEn,
-    orientation: section.orientation,
-    tarotKeywords: section.tarotKeywords,
-    crystalName: section.crystalName,
-    crystalKeywords: section.crystalKeywords,
-    cardMeaning: section.cardMeaning,
-    crystalMeaning: section.crystalMeaning,
-    positionInterpretation: section.positionInterpretation,
-  }));
-
-  return [
-    "당신은 점술 서비스의 맥락을 이해하는 크리스탈 오라클 리더입니다. 원석의 파동과 타로 상징을 함께 읽되, 말투는 인간적인 공감과 은은한 위로로 이어갑니다.",
-    "문체 규칙:",
-    "- 반드시 1:1 상담 대화체로 작성하고, 기계적 나열형 문장을 금지합니다.",
-    "- 각 카드 해설은 메이저/마이너 아르카나 맥락과 수비학 신호를 자연스럽게 포함합니다.",
-    "- 카드와 원석의 치유 파동을 결합해 오늘 실천할 작은 회복 의식을 제시합니다.",
-    "- 모든 문장은 카테고리의 현실 문맥에 맞춰 씁니다. 연애는 감정과 표현, 재물은 조건과 손실 방어, 재회는 감정과 재접근 조건, 건강은 생활 리듬 중심으로 해석합니다.",
-    "- 건강/재물/관계 결과는 단정하거나 공포를 주지 말고, 관찰 가능한 신호와 선택 가능한 행동으로 번역합니다.",
-    "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 남깁니다.",
-    "- 분량 축소 금지: 카드 5섹션 + 깊은 7개의 문을 모두 작성합니다.",
-    "",
-    "출력 규칙:",
-    "- JSON만 출력합니다. 코드펜스/설명문/주석 금지.",
-    "- 아래 리딩 형식을 유지합니다.",
-    "",
-    '{"sections":[{"order":1,"keywordVisual":"[키워드: ...]","categoryReading":"...","crystalEnergy":"...","cardFlow":"...","currentPulse":"...","caution":"...","uplift":"...","practicalActions":["...","...","..."]}],"summary":{"overallFlow":"...","strongestSignal":"...","opportunity":"...","risk":"...","timingAdvice":"...","oracleMessage":"...","practicalActions":["...","...","...","..."]},"masterChapters":[{"no":1,"title":"...","openingKeywords":["...","...","..."],"keywordVisual":"[키워드: ...]","content":"..."}]}',
-    "",
-    "길이 규칙:",
-    "- sections는 정확히 5개.",
-    "- 각 section.categoryReading은 최소 650자.",
-    "- masterChapters는 정확히 7개.",
-    "- 각 chapter.content는 최소 650자.",
-    "- practicalActions는 섹션별 최소 3개, summary는 최소 4개.",
-    "",
-    "이 리딩은 점술 서비스 관점에서 내담자 흐름을 먼저 읽고, 질문의 정서를 정리해 행동으로 번역합니다.",
-    `카테고리: ${category}`,
-    `핵심 원석: ${coreCrystal}`,
-    `내담자 질문 힌트: ${topicHint || "없음"}`,
-    "",
-    "[입력 시드 JSON]",
-    JSON.stringify({
-      category,
-      coreCrystal,
-      topicHint,
-      summarySeed: readingData?.summary || {},
-      sections: sectionSeeds,
-    }),
-  ].join("\n");
-}
-
-function normalizeCrystalSoulAiSections(baseSections, aiSections) {
-  if (!Array.isArray(aiSections) || aiSections.length !== 5) return null;
-
-  const merged = [];
-  for (let i = 0; i < baseSections.length; i += 1) {
-    const base = baseSections[i];
-    const ai = aiSections[i] || {};
-    const practicalActions = Array.isArray(ai.practicalActions)
-      ? ai.practicalActions.map((item) => asText(item)).filter(Boolean).slice(0, 5)
-      : base.practicalActions;
-
-    const categoryReading = ensureTextLength(ai.categoryReading, 320) || base.categoryReading;
-    const crystalEnergy = ensureTextLength(ai.crystalEnergy, 120) || base.crystalEnergy;
-    const cardFlow = ensureTextLength(ai.cardFlow, 120) || base.cardFlow;
-    const currentPulse = ensureTextLength(ai.currentPulse, 90) || base.currentPulse;
-    const caution = ensureTextLength(ai.caution, 80) || base.caution;
-    const uplift = ensureTextLength(ai.uplift, 80) || base.uplift;
-
-    merged.push(guardWarningTarotSection({
-      ...base,
-      keywordVisual: asText(ai.keywordVisual) || base.keywordVisual || buildKeywordVisual(base.tarotKeywords),
-      categoryReading,
-      crystalEnergy,
-      cardFlow,
-      currentPulse,
-      caution,
-      uplift,
-      practicalActions,
-      action: practicalActions.join(" / "),
-    }, base));
-  }
-  return merged;
-}
-
-function normalizeCrystalSoulAiSummary(baseSummary, aiSummary) {
-  const actions = Array.isArray(aiSummary?.practicalActions)
-    ? aiSummary.practicalActions.map((item) => asText(item)).filter(Boolean).slice(0, 6)
-    : baseSummary.practicalActions;
-
-  return {
-    ...baseSummary,
-    overallFlow: ensureTextLength(aiSummary?.overallFlow, 140) || baseSummary.overallFlow,
-    strongestSignal: ensureTextLength(aiSummary?.strongestSignal, 120) || baseSummary.strongestSignal,
-    opportunity: ensureTextLength(aiSummary?.opportunity, 110) || baseSummary.opportunity,
-    risk: ensureTextLength(aiSummary?.risk, 110) || baseSummary.risk,
-    timingAdvice: ensureTextLength(aiSummary?.timingAdvice, 110) || baseSummary.timingAdvice,
-    oracleMessage: ensureTextLength(aiSummary?.oracleMessage, 100) || baseSummary.oracleMessage,
-    practicalActions: actions,
-  };
-}
-
-function normalizeCrystalSoulAiChapters(aiChapters, fallbackChapters) {
-  if (!Array.isArray(aiChapters) || aiChapters.length !== 7) {
-    return fallbackChapters;
-  }
-
-  const merged = aiChapters.map((chapter, idx) => {
-    const fallback = fallbackChapters[idx] || {};
-    const openingKeywords = Array.isArray(chapter?.openingKeywords)
-      ? chapter.openingKeywords.map((item) => asText(item)).filter(Boolean).slice(0, 5)
-      : fallback.openingKeywords;
-    return {
-      no: idx + 1,
-      title: asText(chapter?.title) || fallback.title || CRYSTAL_MASTER_CHAPTER_TITLES[idx],
-      openingKeywords: openingKeywords && openingKeywords.length ? openingKeywords : fallback.openingKeywords || [],
-      keywordVisual: asText(chapter?.keywordVisual) || fallback.keywordVisual || buildKeywordVisual(openingKeywords),
-      content: ensureTextLength(chapter?.content, 260) || fallback.content || "",
-    };
-  });
-
-  return merged;
-}
-
 async function buildCrystalSoulReading(body = {}, env = {}) {
   const categoryId = asText(body?.topic?.id) || "wealth";
   const category = CATEGORY_DEFS[categoryId] || CATEGORY_DEFS.wealth;
@@ -1266,39 +1125,7 @@ async function buildCrystalSoulReading(body = {}, env = {}) {
 
   let readingData = fallbackReadingData;
   let source = "deterministic";
-  let model = "";
-
-  if (hasGeminiKey(env)) {
-    try {
-      const prompt = buildCrystalSoulMasterPrompt(fallbackReadingData, body);
-      const aiResult = await callGeminiText(env, prompt, {
-        modelEnvKeys: ["TAROT_GEMINI_MODEL", "NUMEROLOGY_TAROT_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-        maxOutputTokens: 4096,
-        timeoutMs: 14000,
-        totalTimeoutMs: 26000,
-      });
-
-      if (aiResult?.ok && asText(aiResult?.text)) {
-        const parsed = parseJsonCandidate(aiResult.text);
-        if (parsed && typeof parsed === "object") {
-          const mergedSections = normalizeCrystalSoulAiSections(fallbackReadingData.sections, parsed.sections);
-          const mergedSummary = normalizeCrystalSoulAiSummary(fallbackReadingData.summary, parsed.summary || {});
-          if (mergedSections) {
-            readingData = {
-              ...fallbackReadingData,
-              sections: mergedSections,
-              summary: mergedSummary,
-              masterChapters: normalizeCrystalSoulAiChapters(parsed.masterChapters, fallbackReadingData.masterChapters),
-            };
-            source = "gemini";
-            model = asText(aiResult.model);
-          }
-        }
-      }
-    } catch (error) {
-      console.warn("[tarot] crystal-soul ai enhancement fallback", asText(error?.message));
-    }
-  }
+  let model = "local";
 
   readingData = guardCrystalSoulReadingData(readingData);
 

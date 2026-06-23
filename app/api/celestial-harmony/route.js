@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { callLLM } from "@/lib/llm-client";
 import {
   buildCelestialMelodyReading,
   persistCelestialSession,
@@ -11,7 +12,6 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 const SESSION_CACHE = new Map();
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 function text(value) {
   return String(value || "").trim();
@@ -33,33 +33,6 @@ function cacheGet(key) {
     return null;
   }
   return hit.value;
-}
-
-function getGeminiModel() {
-  return text(process.env.CELESTIAL_HARMONY_GEMINI_MODEL) || text(process.env.GEMINI_MODEL) || DEFAULT_GEMINI_MODEL;
-}
-
-function getGeminiKeyPool() {
-  return [
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY,
-  ].map((key) => text(key)).filter(Boolean);
-}
-
-function pickGeminiKey() {
-  const keys = getGeminiKeyPool();
-  if (!keys.length) return "";
-  return keys[Math.floor(Math.random() * keys.length)] || "";
-}
-
-function extractGeminiText(payload) {
-  if (!payload || typeof payload !== "object") return "";
-  return text(payload?.candidates?.[0]?.content?.parts?.map((part) => text(part?.text)).join("\n") || "");
 }
 
 function buildCelestialHarmonyPrompt(reading = {}) {
@@ -99,23 +72,14 @@ function buildCelestialHarmonyPrompt(reading = {}) {
   ].join("\n");
 }
 async function enrichFinalOracleWithGemini(reading) {
-  const apiKey = pickGeminiKey();
-  if (!apiKey) return { used: false };
-
   const prompt = buildCelestialHarmonyPrompt(reading);
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getGeminiModel())}:generateContent?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.6, topP: 0.95, topK: 40, maxOutputTokens: 1100 },
-    }),
+  const response = await callLLM({
+    prompt,
+    maxTokens: 1100,
+    temperature: 0.6,
+    taskType: "fortune",
   });
-
-  if (!response.ok) return { used: false };
-  const data = await response.json().catch(() => ({}));
-  const finalOracle = sanitizeCelestialMelodyText(extractGeminiText(data));
+  const finalOracle = sanitizeCelestialMelodyText(response.text);
   if (!finalOracle) return { used: false };
   return { used: true, finalOracle };
 }

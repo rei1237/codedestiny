@@ -106,7 +106,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google-cloud/vertexai": "^1.11.0",
     "@tanstack/react-virtual": "^3.14.3",
     "@tiptap/extension-image": "^3.22.5",
     "@tiptap/extension-link": "^3.22.5",

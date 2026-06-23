@@ -139,7 +139,7 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
         requestId: `${jobId}:${chapter.id}:${retry}`,
       }, env);
       const attempt = {
-        provider,
+        provider: result.provider || provider,
         retry,
         ok: Boolean(result.ok),
         errorCode: clean(result.errorCode),
@@ -152,7 +152,7 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
           jobId,
           userId,
           chapterId: chapter.id,
-          provider,
+          provider: result.provider || provider,
           modelName: result.model || modelName,
           status: "provider_failed",
           durationMs: attempt.durationMs,
@@ -168,7 +168,7 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
       if (validation.ok) {
         await writeChapterCache(env, cacheKey, {
           html: validation.html,
-          provider,
+          provider: result.provider || provider,
           modelName: result.model || modelName,
           promptVersion: LIFE_BOOK_PREMIUM_PROMPT_VERSION,
           chapterPlanVersion: lifeBookPremiumChapterPlanV1.version,
@@ -176,18 +176,18 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
           storedAt: new Date().toISOString(),
         });
         const parsed = parseLifeBookPremiumChapterHtml(validation.html, chapter);
-        parsed.provider = provider;
+        parsed.provider = result.provider || provider;
         parsed.cached = false;
         logLifeBookPdfEvent("LIFE_BOOK_LLM_GENERATION_COMPLETED", {
           jobId,
           userId,
           chapterId: chapter.id,
           status: "completed",
-          provider,
+          provider: result.provider || provider,
           modelName: result.model || modelName,
           durationMs: attempt.durationMs,
         });
-        return { ok: true, parsed, provider, status: "completed", source: "llm", attempts };
+        return { ok: true, parsed, provider: result.provider || provider, status: "completed", source: "llm", attempts };
       }
 
       attempt.ok = false;

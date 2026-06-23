@@ -518,7 +518,6 @@ function buildExpansionPrompt(category = {}, content = "", minChars = SIBYL_MIN_
 
 async function callSibylGemini(env, prompt, options = {}) {
   return callGeminiText(env, prompt, {
-    keyEnvKeys: ["SIBYL_GEMINI_API_KEY1", "SIBYL_GEMINI_API_KEY2"],
     modelEnvKeys: ["SIBYL_GEMINI_MODEL"],
     temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.74,
     topP: 0.92,

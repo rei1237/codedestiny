@@ -1411,7 +1411,7 @@
     var title = _clean(progress && progress.currentChapterTitle);
     if (state === 'local_calculation') return '행성 좌표와 하우스의 삶의 장면을 정리하는 중입니다';
     if (state === 'writing_seed') return '차트의 핵심 상징을 상담 목차로 엮는 중입니다';
-    if (state === 'writing_local') return title ? title : '12개 챕터의 상담문을 차례로 엮는 중입니다';
+    if (state === 'writing_llm') return title ? title : '12개 챕터의 상담문을 차례로 엮는 중입니다';
     if (state === 'manuscript_validated') return '챕터 흐름과 문장 결을 마지막으로 살피는 중입니다';
     if (state === 'pdf_rendering') return '코즈믹 리포트 PDF를 편집하는 중입니다';
     if (state === 'pdf_rendered') return 'PDF 저장 경로를 확인하는 중입니다';

@@ -29,7 +29,6 @@ function pickYoutubeApiKey(env) {
     env?.YOUTUBE_DATA_API_KEY,
     env?.YOUTUBE_API_KEY,
     env?.GOOGLE_YOUTUBE_API_KEY,
-    env?.GOOGLE_API_KEY,
   ]
     .map((key) => String(key || "").trim())
     .find(Boolean) || "";

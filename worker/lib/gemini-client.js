@@ -1,58 +1,36 @@
-import { callGeminiText } from "./gemini.js";
-import { getEnv } from "./env.js";
+import { callLLM } from "../../lib/llm-client.ts";
+
+function clean(value, maxLength = 0) {
+  const text = String(value || "").trim();
+  return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function normalizeProvider(provider) {
+  return provider === "cloudflare" ? "workers-ai" : provider;
+}
 
 export async function generateWithGemini(env, prompt, options = {}) {
-  const temperature = Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.86;
-  const topP = Number.isFinite(Number(options.topP)) ? Number(options.topP) : 0.95;
-  const maxOutputTokens = Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192;
-  const frequencyPenalty = Number.isFinite(Number(options.frequencyPenalty)) ? Number(options.frequencyPenalty) : undefined;
-  const presencePenalty = Number.isFinite(Number(options.presencePenalty)) ? Number(options.presencePenalty) : undefined;
-  const timeoutMs = Number.isFinite(Number(options.timeoutMs))
-    ? Number(options.timeoutMs)
-    : Number(getEnv(env, "PREMIUM_GEMINI_TIMEOUT_MS") || 45000);
-  const maxAttemptsPerPair = Number.isFinite(Number(options.maxAttemptsPerPair))
-    ? Number(options.maxAttemptsPerPair)
-    : Number(getEnv(env, "PREMIUM_GEMINI_RETRIES") || 2);
-  const totalTimeoutMs = Number.isFinite(Number(options.totalTimeoutMs))
-    ? Number(options.totalTimeoutMs)
-    : 0;
-  const requestId = String(options.requestId || "").trim();
+  try {
+    const result = await callLLM({
+      prompt: clean(prompt),
+      systemPrompt: clean(options.systemPrompt),
+      maxTokens: Number(options.maxOutputTokens || options.maxTokens) || undefined,
+      temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
+      taskType: options.taskType || "pdf",
+    }, env);
 
-  return callGeminiText(env, prompt, {
-    disableWorkersAiPrimary: true,
-    keyEnvKeys: [
-      "PREMIUM_GEMINI_API_KEY0",
-      "PREMIUM_GEMINI_API_KEY1",
-      "PREMIUM_GEMINI_API_KEY2",
-      "PREMIUM_GEMINI_API_KEY3",
-      "PREMIUM_GEMINI_API_KEY4",
-      "PREMIUM_GEMINI_API_KEY5",
-      "PREMIUM_GEMINI_API_KEY6",
-      "PREMIUM_GEMINI_API_KEY7",
-      "PREMIUM_GEMINI_API_KEY8",
-      "GEMINIF_API_KEY0",
-      "GEMINIF_API_KEY1",
-      "GEMINIF_API_KEY2",
-      "GEMINIF_API_KEY3",
-      "GEMINIF_API_KEY4",
-      "GEMINIF_API_KEY5",
-      "GEMINIF_API_KEY6",
-      "GEMINIF_API_KEY7",
-      "GEMINIF_API_KEY8",
-      "GEMINI_API_KEY",
-      "GOOGLE_GEMINI_API_KEY",
-      "GOOGLE_GENERATIVE_AI_API_KEY",
-      "GOOGLE_API_KEY",
-    ],
-    modelEnvKeys: ["PREMIUM_GEMINI_MODEL", ...(Array.isArray(options.modelEnvKeys) ? options.modelEnvKeys : [])],
-    temperature,
-    topP,
-    maxOutputTokens,
-    frequencyPenalty,
-    presencePenalty,
-    timeoutMs,
-    totalTimeoutMs,
-    maxAttemptsPerPair,
-    metadata: requestId ? { requestId } : undefined,
-  });
+    return {
+      ok: true,
+      text: result.text,
+      model: result.model,
+      provider: normalizeProvider(result.provider),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: clean(error?.code || "llm_failed"),
+      message: clean(error?.message || error, 500),
+      status: Number(error?.status || 0) || null,
+    };
+  }
 }

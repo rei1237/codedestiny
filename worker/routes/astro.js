@@ -892,11 +892,11 @@ function buildVedicProgressPatch(stage, payload = {}) {
   switch (stage) {
     case "LocalCalculationJsonPrepared":
       return { stateKey: "local_calculation", currentChapterNo: 0, totalChapters, currentChapterTitle: "베다 차트 근거 정리" };
-    case "LocalAssembledManuscriptReady":
+    case "LlmManuscriptReady":
       return { stateKey: "writing_seed", currentChapterNo: 0, totalChapters, currentChapterTitle: "상담 원고 신호 구성" };
-    case "LocalAssembledManuscriptSuccess":
-      return { stateKey: "writing_local", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "상담 원고 조립 완료" };
-    case "LocalAssembledManuscriptFailed":
+    case "LlmManuscriptSuccess":
+      return { stateKey: "writing_llm", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "상담 원고 조립 완료" };
+    case "LlmManuscriptFailed":
       return { stateKey: "failed", currentChapterNo: chapterNo, totalChapters, currentChapterTitle: "상담 원고 작성 실패" };
     case "FinalManuscriptValidated":
       return { stateKey: "manuscript_validated", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "상담 원고 검수 완료" };
@@ -1961,9 +1961,6 @@ async function handleVedicPremiumPrepare(request, env) {
         : rawMessage.includes("원고") || rawMessage.includes("검증") || rawMessage.includes("contract")
           ? "생성된 베다점 상담 원고가 품질 기준을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."
           : "베다점 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-    if (errorCode === "VEDIC_LOCAL_ASSEMBLY_REMOVED" || errorCode === "VEDIC_LOCAL_PDF_REMOVED") {
-      userFacingMessage = "Vedic premium local PDF assembly has been removed. Please retry the LLM-only PDF generation.";
-    }
     return json({
       ok: false,
       code: error?.code || "VEDIC_PREMIUM_GENERATION_FAILED",

@@ -33,16 +33,7 @@ jobs:
 
       - name: Validate required secrets
         env:
-          GEMINIF_API_KEY1: ${{ secrets.GEMINIF_API_KEY1 }}
-          GEMINIF_API_KEY2: ${{ secrets.GEMINIF_API_KEY2 }}
-          GEMINIF_API_KEY3: ${{ secrets.GEMINIF_API_KEY3 }}
-          GEMINIF_API_KEY4: ${{ secrets.GEMINIF_API_KEY4 }}
-          PREMIUM_GEMINI_API_KEY1: ${{ secrets.PREMIUM_GEMINI_API_KEY1 }}
-          PREMIUM_GEMINI_API_KEY2: ${{ secrets.PREMIUM_GEMINI_API_KEY2 }}
-          PREMIUM_GEMINI_API_KEY3: ${{ secrets.PREMIUM_GEMINI_API_KEY3 }}
-          PREMIUM_GEMINI_API_KEY4: ${{ secrets.PREMIUM_GEMINI_API_KEY4 }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINIF_API_KEY: ${{ secrets.GEMINIF_API_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
@@ -53,8 +44,8 @@ jobs:
             echo "::error::Missing required secret CLOUDFLARE_ACCOUNT_ID"
             exit 1
           fi
-          if [ -z "${GEMINIF_API_KEY1:-}${GEMINIF_API_KEY2:-}${GEMINIF_API_KEY3:-}${GEMINIF_API_KEY4:-}${PREMIUM_GEMINI_API_KEY1:-}${PREMIUM_GEMINI_API_KEY2:-}${PREMIUM_GEMINI_API_KEY3:-}${PREMIUM_GEMINI_API_KEY4:-}${GEMINI_API_KEY:-}${GOOGLE_API_KEY:-}" ]; then
-            echo "::error::No Gemini API key secret found. Set at least one of GEMINIF_API_KEY1~4, PREMIUM_GEMINI_API_KEY1~4, GEMINI_API_KEY, GOOGLE_API_KEY"
+          if [ -z "${GEMINIF_API_KEY:-}" ]; then
+            echo "::error::No Gemini API key secret found. Set GEMINIF_API_KEY"
             exit 1
           fi
 
@@ -72,11 +63,7 @@ jobs:
 
       - name: Sync Worker runtime secrets
         env:
-          GEMINIF_API_KEY1: ${{ secrets.GEMINIF_API_KEY1 }}
-          GEMINIF_API_KEY2: ${{ secrets.GEMINIF_API_KEY2 }}
-          GEMINIF_API_KEY3: ${{ secrets.GEMINIF_API_KEY3 }}
-          GEMINIF_API_KEY4: ${{ secrets.GEMINIF_API_KEY4 }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINIF_API_KEY: ${{ secrets.GEMINIF_API_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_DATA_API_KEY: ${{ secrets.YOUTUBE_DATA_API_KEY }}
           GOOGLE_YOUTUBE_API_KEY: ${{ secrets.GOOGLE_YOUTUBE_API_KEY }}
@@ -95,7 +82,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.MONGO_URI || secrets.MONGODB_URI || secrets.MONGO_URL }}
           MONGO_DB_NAME: ${{ vars.MONGO_DB_NAME || vars.MONGODB_DB_NAME }}
           MONGODB_DB_NAME: ${{ vars.MONGODB_DB_NAME || vars.MONGO_DB_NAME }}
-        run: npm run secrets:cf:worker -- --skip-empty
+        run: npm run secrets:cf:worker -- --skip-empty --continue-on-transient-api-error
 
       - name: Worker preflight build (dry-run)
         run: npm run build:worker

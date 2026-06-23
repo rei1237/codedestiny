@@ -8,6 +8,8 @@ const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
 const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
 const onlyPortone = args.has("--only-portone");
+const continueOnTransientApiError = args.has("--continue-on-transient-api-error");
+const retryDelayMs = Number(process.env.CF_SECRET_SYNC_RETRY_DELAY_MS || 15000);
 
 const envFiles = [
   ".env.local",
@@ -183,27 +185,7 @@ const SECRET_KEYS = [
   "INIsignkey",
   "INIAPIKEY",
   "INIAPI_IV",
-  "GEMINIF_API_KEY0",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINIF_API_KEY5",
-  "GEMINIF_API_KEY6",
-  "GEMINIF_API_KEY7",
-  "GEMINIF_API_KEY8",
-  "PREMIUM_GEMINI_API_KEY0",
-  "PREMIUM_GEMINI_API_KEY1",
-  "PREMIUM_GEMINI_API_KEY2",
-  "PREMIUM_GEMINI_API_KEY3",
-  "PREMIUM_GEMINI_API_KEY4",
-  "PREMIUM_GEMINI_API_KEY5",
-  "PREMIUM_GEMINI_API_KEY6",
-  "PREMIUM_GEMINI_API_KEY7",
-  "PREMIUM_GEMINI_API_KEY8",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
-  "GOOGLE_API_KEY",
+  "GEMINIF_API_KEY",
   "YOUTUBE_API_KEY",
   "YOUTUBE_DATA_API_KEY",
   "GOOGLE_YOUTUBE_API_KEY",
@@ -220,7 +202,6 @@ const SECRET_KEYS = [
   "PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS",
   "PREMIUM_GEMINI_TIMEOUT_MS",
   "ANTHROPIC_API_KEY",
-  "DEEPL_API_KEY",
   "KASI_SERVICE_KEY",
   "KASI_API_BASE_URL",
   "GOOGLE_OAUTH_CLIENT_ID",
@@ -241,16 +222,6 @@ const SECRET_KEYS = [
   "SUBSCRIPTION_LINK_SECRET",
   "ADMIN_SECRET_HASH",
   "FLOWER_ADMIN_SECRET",
-  "VERTEX_PROJECT_ID",
-  "VERTEX_LOCATION",
-  "VERTEX_SA_JSON",
-  "VERTEX_SA_JSON_BASE64",
-  "VERTEX_SA_CLIENT_EMAIL",
-  "VERTEX_SA_PRIVATE_KEY",
-  "GCP_SERVICE_ACCOUNT_JSON",
-  "GCP_SERVICE_ACCOUNT_JSON_BASE64",
-  "GOOGLE_SERVICE_ACCOUNT_JSON",
-  "GOOGLE_SERVICE_ACCOUNT_JSON_BASE64",
   "RESEND_API_KEY",
   "ADMIN_SMTP_HOST",
   "ADMIN_SMTP_PORT",
@@ -273,15 +244,6 @@ const SECRET_KEY_ALIASES = {
   NAVER_OAUTH_CLIENT_SECRET: ["NAVER_CLIENT_SECRET"],
   KAKAO_OAUTH_CLIENT_ID: ["KAKAO_CLIENT_ID"],
   KAKAO_OAUTH_CLIENT_SECRET: ["KAKAO_CLIENT_SECRET"],
-  PREMIUM_GEMINI_API_KEY0: ["GEMINIF_API_KEY0"],
-  PREMIUM_GEMINI_API_KEY1: ["GEMINIF_API_KEY1"],
-  PREMIUM_GEMINI_API_KEY2: ["GEMINIF_API_KEY2"],
-  PREMIUM_GEMINI_API_KEY3: ["GEMINIF_API_KEY3"],
-  PREMIUM_GEMINI_API_KEY4: ["GEMINIF_API_KEY4"],
-  PREMIUM_GEMINI_API_KEY5: ["GEMINIF_API_KEY5"],
-  PREMIUM_GEMINI_API_KEY6: ["GEMINIF_API_KEY6"],
-  PREMIUM_GEMINI_API_KEY7: ["GEMINIF_API_KEY7"],
-  PREMIUM_GEMINI_API_KEY8: ["GEMINIF_API_KEY8"],
   PORTONE_API_SECRET: ["PORTONE_API_Secret"],
   PORTONE_API_Secret: ["PORTONE_API_SECRET"],
   PORTONE_WEBHOOK_URL: ["PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOKURL"],
@@ -345,6 +307,18 @@ function isBindingNameInUseError(outputText) {
     && text.includes("code: 10053");
 }
 
+function isTransientCloudflareApiError(outputText) {
+  const text = String(outputText || "");
+  return text.includes("code: 10013")
+    || text.includes("An unknown error has occurred")
+    || text.includes("Received a malformed response from the API")
+    || /workers\/scripts\/.+\/secrets/.test(text) && /5\d\d/.test(text);
+}
+
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.max(0, ms));
+}
+
 function isAliasRelatedKey(keyA, keyB) {
   const keysA = new Set([keyA, ...(SECRET_KEY_ALIASES[keyA] || [])]);
   const keysB = new Set([keyB, ...(SECRET_KEY_ALIASES[keyB] || [])]);
@@ -360,38 +334,59 @@ function putWorkerSecret(key, value) {
     return 0;
   }
 
-  const firstTry = runSecretPutCommand(key, value, false);
-  const firstStdout = String(firstTry.result.stdout || "");
-  const firstStderr = String(firstTry.result.stderr || "");
-  if (firstStdout) process.stdout.write(firstStdout);
-  if (firstStderr) process.stderr.write(firstStderr);
+  const maxAttempts = 3;
+  let lastStatus = 1;
+  let lastOutput = "";
 
-  let finalResult = firstTry.result;
-  let mergedOutput = `${firstStdout}\n${firstStderr}`;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (attempt > 1) {
+      console.warn(`[worker-secrets] ${key}: retrying transient Cloudflare API error (${attempt}/${maxAttempts}).`);
+      sleep(retryDelayMs);
+    }
 
-  if (finalResult.status !== 0 && isWorkerLatestVersionGuardError(mergedOutput)) {
-    console.warn(`[worker-secrets] ${key}: switching to 'wrangler versions secret put' due to Worker Versions guard.`);
-    const retry = runSecretPutCommand(key, value, true);
-    const retryStdout = String(retry.result.stdout || "");
-    const retryStderr = String(retry.result.stderr || "");
-    if (retryStdout) process.stdout.write(retryStdout);
-    if (retryStderr) process.stderr.write(retryStderr);
-    finalResult = retry.result;
-    mergedOutput = `${retryStdout}\n${retryStderr}`;
+    const firstTry = runSecretPutCommand(key, value, false);
+    const firstStdout = String(firstTry.result.stdout || "");
+    const firstStderr = String(firstTry.result.stderr || "");
+    if (firstStdout) process.stdout.write(firstStdout);
+    if (firstStderr) process.stderr.write(firstStderr);
+
+    let finalResult = firstTry.result;
+    let mergedOutput = `${firstStdout}\n${firstStderr}`;
+
+    if (finalResult.status !== 0 && isWorkerLatestVersionGuardError(mergedOutput)) {
+      console.warn(`[worker-secrets] ${key}: switching to 'wrangler versions secret put' due to Worker Versions guard.`);
+      const retry = runSecretPutCommand(key, value, true);
+      const retryStdout = String(retry.result.stdout || "");
+      const retryStderr = String(retry.result.stderr || "");
+      if (retryStdout) process.stdout.write(retryStdout);
+      if (retryStderr) process.stderr.write(retryStderr);
+      finalResult = retry.result;
+      mergedOutput = `${retryStdout}\n${retryStderr}`;
+    }
+
+    if (finalResult.error) {
+      console.error(`[worker-secrets] Failed to run wrangler for ${key}: ${finalResult.error.message}`);
+      return 1;
+    }
+
+    if (finalResult.status !== 0 && isBindingNameInUseError(mergedOutput)) {
+      console.warn(`[worker-secrets] Skipping ${key}: already defined as non-secret binding.`);
+      return 0;
+    }
+
+    lastStatus = Number.isInteger(finalResult.status) ? finalResult.status : 1;
+    lastOutput = mergedOutput;
+
+    if (lastStatus === 0) return 0;
+    if (!isTransientCloudflareApiError(mergedOutput)) return lastStatus;
   }
 
-  if (finalResult.error) {
-    console.error(`[worker-secrets] Failed to run wrangler for ${key}: ${finalResult.error.message}`);
-    return 1;
-  }
-
-  if (finalResult.status !== 0 && isBindingNameInUseError(mergedOutput)) {
-    // Wrangler returns this when a key already exists as a non-secret [vars] binding.
-    console.warn(`[worker-secrets] Skipping ${key}: already defined as non-secret binding.`);
+  if (continueOnTransientApiError && isTransientCloudflareApiError(lastOutput)) {
+    console.warn("[worker-secrets] Cloudflare secret API kept returning a transient error; continuing because --continue-on-transient-api-error was supplied.");
     return 0;
   }
 
-  return Number.isInteger(finalResult.status) ? finalResult.status : 1;
+  return lastStatus;
 }
 
 const activeSecretKeys = onlyPortone

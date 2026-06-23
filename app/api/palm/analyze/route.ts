@@ -8,6 +8,7 @@ import {
 } from "@/types/palm-reading";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { buildBothHandsComparison } from "@/lib/palm/both-hands-comparison";
+import { callLLM } from "@/lib/llm-client";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 import palmMapEngine from "@/lib/palm/palm-map-engine.js";
 import fs from "fs";
@@ -16,7 +17,6 @@ const { analyzePalmHandInput } = (palmMapEngine as {
   analyzePalmHandInput?: (input: Record<string, unknown>) => unknown;
 }) || {};
 
-const GEMINI_VISION_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 const MIN_IMAGE_BYTES = 8 * 1024;
 const ALLOWED_IMAGE_MIME = new Set([
@@ -31,21 +31,6 @@ const ALLOWED_IMAGE_MIME = new Set([
   "image/heif",
   "application/octet-stream",
 ]);
-
-function pickVisionKey(): string {
-  const keys = [
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_GEMINI_API_KEY,
-  ]
-    .map((v) => String(v || "").trim())
-    .filter(Boolean);
-  if (!keys.length) return "";
-  return keys[Math.floor(Math.random() * keys.length)];
-}
 
 function dataUrlToBase64(dataUrl: string): { mimeType: string; data: string } | null {
   const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -862,14 +847,8 @@ async function analyzeHandWithGeminiVision(
   declaredSide: "left" | "right",
   analysisPurpose: string,
 ): Promise<VisionAnalysisResult | null> {
-  const key = pickVisionKey();
-  if (!key) return null;
-
   const imageInfo = dataUrlToBase64(imageDataUrl);
   if (!imageInfo) return null;
-
-  const model = "gemini-2.0-flash";
-  const endpoint = GEMINI_VISION_ENDPOINT.replace("{model}", model);
 
   const purposeKo: Record<string, string> = {
     general: "전체 운세",
@@ -891,26 +870,20 @@ async function analyzeHandWithGeminiVision(
     { inline_data: { mime_type: imageInfo.mimeType, data: imageInfo.data } },
   ];
 
-  let payload: unknown;
+  let text = "";
   try {
-    const res = await fetch(`${endpoint}?key=${key}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 8192,
-        },
-      }),
+    const response = await callLLM({
+      prompt: userPrompt,
+      geminiParts: parts,
+      maxTokens: 8192,
+      temperature: 0.2,
+      taskType: "fortune",
     });
-    if (!res.ok) return null;
-    payload = await res.json();
+    text = response.text;
   } catch (e) {
     return null;
   }
 
-  const text = extractGeminiText(payload);
   if (!text) return null;
 
   const jsonText = text.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
@@ -952,16 +925,6 @@ async function analyzeHandWithGeminiVision(
     detectedLineKeys,
     qualityScore: computeQualityScore({ imageQuality, detectedLineKeys, palmDetected }),
   };
-}
-
-function extractGeminiText(payload: unknown): string {
-  const p = payload as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  for (const c of p?.candidates ?? []) {
-    for (const part of c?.content?.parts ?? []) {
-      if (part?.text?.trim()) return part.text.trim();
-    }
-  }
-  return "";
 }
 
 function str(v: unknown, fallback: string): string {
@@ -1187,9 +1150,6 @@ async function generatePalmAiPrompt(input: {
   analysisPurpose: PalmAnalysisPurpose;
   dominantHand: PalmDominantHand;
 }): Promise<string | null> {
-  const key = pickVisionKey();
-  if (!key) return null;
-
   const purposeLabel =
     input.analysisPurpose === "general"
       ? "전체 운세"
@@ -1232,7 +1192,6 @@ async function generatePalmAiPrompt(input: {
     2,
   );
 
-  const endpoint = GEMINI_VISION_ENDPOINT.replace("{model}", "gemini-2.0-flash");
   const systemPrompt = `당신은 수많은 손금 판독에서 핵심 메시지를 정제하는 고급 손금 AI 상담자입니다.
 결과 텍스트는 사용자의 분석 결과만 기반으로 작성하고, 이미지 내용 자체를 추측하지 않습니다.
 문장 톤은 신비롭지만 단정하고, 비난적이거나 단정적 판단보다 흐름의 기운 중심으로 해석합니다.
@@ -1245,28 +1204,20 @@ async function generatePalmAiPrompt(input: {
 tone: 오라클 상담/수도림 풍의 신비로운 어조.
 analysisPayload=${promptContext}`;
 
-  let payload: unknown;
+  let rawText = "";
   try {
-    const res = await fetch(`${endpoint}?key=${key}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\n${reportSection}` }] },
-        ],
-      }),
+    const response = await callLLM({
+      prompt: `${userPrompt}\n\n${reportSection}`,
+      systemPrompt,
+      maxTokens: 4096,
+      temperature: 0.7,
+      taskType: "fortune",
     });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    payload = await res.json();
+    rawText = response.text;
   } catch (error) {
     return null;
   }
 
-  const rawText = extractGeminiText(payload);
   if (!rawText) return null;
 
   const normalized = String(rawText).trim();
@@ -1796,7 +1747,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const hasVisionKey = Boolean(pickVisionKey());
     const leftQuality = normalizeClientImageQuality(payload.leftImageQuality);
     const rightQuality = normalizeClientImageQuality(payload.rightImageQuality);
 
@@ -1834,7 +1784,7 @@ export async function POST(req: NextRequest) {
     const analyses: SideAnalysisResult[] = [leftSelected, rightSelected].filter((item): item is SideAnalysisResult => Boolean(item));
 
     if (analyses.length === 0) {
-      if (!hasVisionKey && typeof analyzePalmHandInput !== "function") {
+      if (typeof analyzePalmHandInput !== "function") {
         return errorResponse({
           status: 502,
           code: "ANALYSIS_ENGINE_UNAVAILABLE",

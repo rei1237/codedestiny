@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { buildVedicLocalChartJson } from "../worker/lib/vedic-premium-generator.js";
 import { generateVedicPremiumReport } from "../worker/lib/pdf-v2/vedic/generate-vedic-premium-report.js";
 import { vedicPremiumChapterPlanV2 } from "../worker/lib/pdf-v2/vedic/vedic-premium.chapter-plan.js";
@@ -133,12 +133,18 @@ for (const birth of births) {
 }
 
 const routeSource = readFileSync(new URL("../worker/routes/astro.js", import.meta.url), "utf8");
-const localPdfSource = readFileSync(new URL("../worker/pdf-v2/vedic-local-pdf.js", import.meta.url), "utf8");
+const localPdfPath = new URL("../worker/pdf-v2/vedic-local-pdf.js", import.meta.url);
 const generatorSource = readFileSync(new URL("../worker/lib/vedic-premium-generator.js", import.meta.url), "utf8");
 const browserSource = readFileSync(new URL("../js/vedic-book.js", import.meta.url), "utf8");
 const newEngineSource = readFileSync(new URL("../worker/lib/pdf-v2/vedic/create-vedic-premium-pdf-job.js", import.meta.url), "utf8");
 const swissCallIndex = routeSource.indexOf("const calculated = await getSwissVedicPlanets");
 const providedLookupIndex = routeSource.indexOf("const provided = extractProvidedVedicBase");
+const legacyLocalPdfEntrypoints = [
+  "renderVedic" + "PremiumPdf",
+  "generateVedic" + "LocalPdf",
+  "buildVedic" + "Local" + "PremiumManuscript",
+  "expandVedic" + "LocalManuscript",
+];
 
 const serviceFlowChecks = {
   browserPrepareApi: browserSource.includes("var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';"),
@@ -155,9 +161,10 @@ const serviceFlowChecks = {
   pdfDbComplete: newEngineSource.includes("completePremiumPdfExecution("),
   pdfDbFail: routeSource.includes("failPremiumPdfExecution("),
   statusProgress: routeSource.includes("buildVedicStatusPayload") && routeSource.includes("updateVedicSessionProgress"),
-  localPdfRemoved: localPdfSource.includes("VEDIC_LOCAL_PDF_REMOVED") && localPdfSource.includes("throw createRemovedVedicLocalPdfError"),
-  oldLocalRenderNotUsed: !routeSource.includes("renderVedicPremiumPdf(") && !routeSource.includes("generateVedicLocalPdf("),
+  localPdfDeleted: !existsSync(localPdfPath),
+  oldLocalRenderNotUsed: !legacyLocalPdfEntrypoints.slice(0, 2).some((name) => routeSource.includes(`${name}(`)),
   llmOnlyConfig: generatorSource.includes('generationMode: "vedic-premium-llm-only"'),
+  legacyEntrypointsDeleted: !legacyLocalPdfEntrypoints.some((name) => generatorSource.includes(`${name}(`)),
   noLocalPipelineContract: !newEngineSource.includes("local-calculation-to-local-assembled-pdf"),
 };
 

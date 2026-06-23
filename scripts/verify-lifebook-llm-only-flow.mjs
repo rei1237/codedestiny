@@ -122,7 +122,7 @@ try {
       LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT: 0,
       LIFE_BOOK_PREMIUM_LLM_PROVIDERS: "workers-ai,gemini",
       LIFE_BOOK_PREMIUM_GEMINI_MODEL: "gemini-test",
-      GEMINI_API_KEY: "AIzaTestGeminiFallbackKey000000000000",
+      GEMINIF_API_KEY: "AIzaTestGeminiFallbackKey000000000000",
       GEMINI_USE_SDK: "false",
       PREMIUM_GEMINI_USE_SDK: "false",
       AI: {

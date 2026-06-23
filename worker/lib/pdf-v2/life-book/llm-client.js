@@ -1,4 +1,4 @@
-import { generateWithGemini } from "../../gemini-client.js";
+import { callLLM } from "../../../../lib/llm-client.ts";
 import { clean } from "./life-book-premium.types.js";
 
 const PROVIDER_TIMEOUT_MS = 120000;
@@ -24,6 +24,12 @@ function cleanBlock(value) {
     .replace(/^```(?:html)?\s*/i, "")
     .replace(/```$/i, "")
     .trim();
+}
+
+function normalizeProviderErrorCode(error, fallback = "provider_exception") {
+  const message = clean(error?.message || error, 300);
+  if (/Workers AI binding is not configured/i.test(message)) return "workers_ai_not_configured";
+  return clean(error?.code || fallback);
 }
 
 export function resolveLifeBookLlmProviders(env = {}) {
@@ -64,26 +70,20 @@ async function callWorkersAi(params, env) {
         latencyMs: Date.now() - started,
       };
     }
-    if (!env?.AI?.run) {
-      return { ok: false, provider: "workers-ai", model: "", errorCode: "workers_ai_not_configured", latencyMs: Date.now() - started };
-    }
-    const model = clean(params.model || env.LIFE_BOOK_PREMIUM_WORKERS_AI_MODEL || env.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct");
-    const result = await withTimeout(env.AI.run(model, {
-      messages: [
-        { role: "system", content: params.systemPrompt },
-        { role: "user", content: params.userPrompt },
-      ],
+    const result = await withTimeout(callLLM({
+      prompt: params.userPrompt,
+      systemPrompt: params.systemPrompt,
       temperature: Number(params.temperature ?? env.LIFE_BOOK_PREMIUM_LLM_TEMPERATURE ?? 0.68),
-      max_tokens: Number(params.maxTokens || env.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-    }), Number(params.timeoutMs || env.LIFE_BOOK_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const text = cleanBlock(result?.response || result?.result?.response || result?.text || result?.content || "");
-    if (!text) return { ok: false, provider: "workers-ai", model, errorCode: "empty_response", latencyMs: Date.now() - started };
+      maxTokens: Number(params.maxTokens || env.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
+      taskType: "pdf",
+    }, env), Number(params.timeoutMs || env.LIFE_BOOK_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const text = cleanBlock(result?.text || "");
+    if (!text) return { ok: false, provider: "workers-ai", model: clean(result?.model || ""), errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
       text,
-      model,
-      provider: "workers-ai",
-      usage: result?.usage,
+      model: clean(result?.model || params.model),
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
       latencyMs: Date.now() - started,
     };
   } catch (error) {
@@ -91,7 +91,7 @@ async function callWorkersAi(params, env) {
       ok: false,
       provider: "workers-ai",
       model: clean(params.model || env?.LIFE_BOOK_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL),
-      errorCode: clean(error?.code || "provider_exception"),
+      errorCode: normalizeProviderErrorCode(error),
       errorMessage: clean(error?.message || error, 300),
       latencyMs: Date.now() - started,
     };
@@ -101,32 +101,20 @@ async function callWorkersAi(params, env) {
 async function callGemini(params, env) {
   const started = Date.now();
   try {
-    const result = await generateWithGemini(env, `${params.systemPrompt}\n\n${params.userPrompt}`, {
-      modelEnvKeys: ["LIFE_BOOK_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-      timeoutMs: Number(params.timeoutMs || env?.LIFE_BOOK_PREMIUM_LLM_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS),
-      maxOutputTokens: Number(params.maxTokens || env?.LIFE_BOOK_PREMIUM_GEMINI_MAX_TOKENS || env?.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
+    const result = await withTimeout(callLLM({
+      prompt: params.userPrompt,
+      systemPrompt: params.systemPrompt,
+      maxTokens: Number(params.maxTokens || env?.LIFE_BOOK_PREMIUM_GEMINI_MAX_TOKENS || env?.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
       temperature: Number(params.temperature ?? env?.LIFE_BOOK_PREMIUM_LLM_TEMPERATURE ?? 0.68),
-      requestId: params.requestId,
-    });
-    if (result?.ok === false) {
-      return {
-        ok: false,
-        provider: "gemini",
-        model: clean(result.model || env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL),
-        errorCode: clean(result.error || result.code || "gemini_failed"),
-        errorMessage: clean(result.message || "", 300),
-        status: Number(result.status || 0) || null,
-        latencyMs: Date.now() - started,
-      };
-    }
-    const text = cleanBlock(result?.text || result?.rawText || result?.content || result?.response || "");
+      taskType: "pdf",
+    }, env), Number(params.timeoutMs || env?.LIFE_BOOK_PREMIUM_LLM_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const text = cleanBlock(result?.text || "");
     if (!text) return { ok: false, provider: "gemini", model: clean(result?.model || ""), errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
       text,
-      model: clean(result?.model || env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini"),
-      provider: "gemini",
-      usage: result?.usage,
+      model: clean(result?.model || "gemini"),
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
       latencyMs: Date.now() - started,
     };
   } catch (error) {
@@ -134,7 +122,7 @@ async function callGemini(params, env) {
       ok: false,
       provider: "gemini",
       model: clean(env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL),
-      errorCode: clean(error?.code || "provider_exception"),
+      errorCode: normalizeProviderErrorCode(error),
       errorMessage: clean(error?.message || error, 300),
       latencyMs: Date.now() - started,
     };

@@ -747,12 +747,13 @@
 
   function _assertHighQualityPreparePayload(payload) {
     var manuscriptSource = _clean(payload && payload.manuscriptSource).toLowerCase();
-    var localAssembly = payload && payload.localAssembly && typeof payload.localAssembly === 'object' ? payload.localAssembly : {};
     var ready = payload && payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    var llmAssembly = payload && payload.llmAssembly && typeof payload.llmAssembly === 'object'
+      ? payload.llmAssembly
+      : (ready && ready.metadata && ready.metadata.llmAssembly && typeof ready.metadata.llmAssembly === 'object' ? ready.metadata.llmAssembly : {});
     var qualityStatus = _clean(payload && payload.qualityStatus || ready && ready.metadata && ready.metadata.qualityStatus).toLowerCase();
     var pdfUrl = _clean(payload && (payload.downloadUrl || payload.pdfUrl) || ready && (ready.downloadUrl || ready.pdfUrl));
-    var repairedSections = Number(localAssembly.repairedSections || localAssembly.fallbackSections || 0);
-    if ((payload && payload.fallbackUsed) || manuscriptSource !== 'high-quality-consultation' || localAssembly.fallbackAllowed === true || localAssembly.normalizedToLocal === true || repairedSections > 0 || qualityStatus !== 'passed' || !pdfUrl) {
+    if ((payload && payload.fallbackUsed) || manuscriptSource !== 'saju-new-year-llm-only' || llmAssembly.enabled !== true || llmAssembly.externalGeneration !== true || llmAssembly.fallbackUsed === true || qualityStatus !== 'passed' || !pdfUrl) {
       throw _buildPdfApiError(payload, 422, '신년운세 PDF가 고품질 원고 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요.');
     }
   }
@@ -761,8 +762,8 @@
     var payload = _unwrapPreparePayload(data);
     if (!_isCompletedPreparePayload(payload)) return false;
     _assertHighQualityPreparePayload(payload);
-    _log('LocalChapterDraftCompleted', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS), cacheHit: !!payload.cacheHit });
-    _log('LocalQualityValidationPassed', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
+    _log('LlmChapterDraftCompleted', { chapterCount: Number(payload && (payload.llmDraftChapterCount || payload.chapterCount) || TOTAL_CHAPTERS), cacheHit: !!payload.cacheHit });
+    _log('LlmQualityValidationPassed', { chapterCount: Number(payload && (payload.llmDraftChapterCount || payload.chapterCount) || TOTAL_CHAPTERS) });
     _log('FinalValidationPassed', { chapterCount: payload && payload.chapterCount || TOTAL_CHAPTERS });
     _log('PDFArchiveReady', { chapterCount: payload && payload.chapterCount || TOTAL_CHAPTERS });
     _setProgress(TOTAL_CHAPTERS, payload && payload.cacheHit ? '보관된 신년운세 PDF를 불러왔습니다' : '신년운세 프리미엄 PDF를 완성하는 중입니다');

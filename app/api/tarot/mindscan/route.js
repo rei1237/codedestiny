@@ -52,13 +52,7 @@ function getGeminiModel() {
 
 function getGeminiKeyPool() {
   return [
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY,
+    process.env.GEMINIF_API_KEY,
   ]
     .map((key) => toText(key))
     .filter(Boolean);
@@ -67,8 +61,7 @@ function getGeminiKeyPool() {
 function pickGeminiKey() {
   const keys = getGeminiKeyPool();
   if (!keys.length) return null;
-  const index = Math.floor(Math.random() * keys.length);
-  return keys[index];
+  return keys[0];
 }
 
 function cardNameFromId(id) {

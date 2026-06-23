@@ -1,8 +1,4 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { callGeminiText } from "../lib/gemini.js";
-
-let dreamGeminiCaller = callGeminiText;
-
 function normalizeDreamText(payload) {
   const text = String(payload?.dreamText || payload?.dreamContent || "").trim();
   if (!text) return { ok: false, message: "꿈의 장면을 입력해 주세요." };
@@ -233,45 +229,6 @@ async function handleDreamPrompt(request) {
   });
 }
 
-function pickGeminiKeys(env) {
-  return [
-    env.GEMINIF_API_KEY1,
-    env.GEMINIF_API_KEY2,
-    env.GEMINIF_API_KEY3,
-    env.GEMINIF_API_KEY4,
-  ].map((v) => String(v || "").trim()).filter(Boolean);
-}
-
-function pickGeminiModels(env) {
-  const primary = String(env.PSYCHO_ANALYSIS_GEMINI_MODEL || env.GEMINI_MODEL || "").trim();
-  const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
-  return primary ? [primary, ...defaults.filter((m) => m !== primary)] : defaults;
-}
-
-function psychoPrompt(dreamText) {
-  return [
-    "당신은 프로이트 관점의 꿈 해석 상담가입니다.",
-    "반드시 한국어로 답하고, 추상적인 문장 대신 구체적인 행동 조언을 포함하세요.",
-    "",
-    "출력 형식:",
-    "## 핵심 상징",
-    "## 무의식의 갈등",
-    "## 감정 패턴",
-    "## 현재 삶과 연결",
-    "## 7일 실천 가이드",
-    "",
-    "각 섹션은 3문단 이상 작성하고, 필요시 불릿 목록을 사용하세요.",
-    "",
-    "[꿈 원문]",
-    dreamText,
-  ].join("\n");
-}
-
-function extractGeminiText(payload) {
-  const parts = payload?.candidates?.[0]?.content?.parts;
-  if (!Array.isArray(parts)) return "";
-  return parts.map((part) => String(part?.text || "")).join("\n").trim();
-}
 
 function fallbackMarkdown(dreamText) {
   const compact = dreamText.replace(/\s+/g, " ").trim();
@@ -344,50 +301,6 @@ function consultToneGuide(tone) {
   return "정서적 안정감을 주는 꿈 상징 해석가의 톤으로 말하고, 불안을 키우지 않으면서 마음을 정리하는 작은 회복 행동을 제시하세요.";
 }
 
-function tarotConsultPrompt({ dreamText, cards, tone, summary }) {
-  const cardLines = cards.map((card, idx) => {
-    const orient = card.orientation === "reversed" ? "역방향" : "정방향";
-    const keywords = card.keywords.length ? card.keywords.join(", ") : "키워드 없음";
-    return `- ${idx + 1}번 카드: ${card.name} (${orient}) | 키워드: ${keywords}`;
-  });
-
-  return [
-    "당신은 꿈의 잔향을 세 장의 상징 카드로 비추는 한국어 꿈 상징 해석가입니다.",
-    consultToneGuide(tone),
-    "과장된 예언이나 단정은 금지하고, 꿈의 상징, 깨어난 뒤의 감정, 카드의 방향을 연결해 신비롭지만 현실적인 조언을 남기세요.",
-    "각 문단은 꿈을 해부하는 설명문이 아니라, 사용자가 자기 마음을 안전하게 알아차리도록 돕는 리딩 문장으로 작성하세요.",
-    "제작 과정과 도구 이름은 장막 뒤에 두고, 꿈의 언어만 남기세요.",
-    "출력은 반드시 아래 형식 그대로 작성하세요.",
-    "",
-    "## 꿈의 문을 여는 카드",
-    "3~4문장. 꿈 원문에서 가장 선명한 장면과 세 카드 이름을 자연스럽게 엮어, 이 꿈이 어떤 문을 열었는지 읽으세요.",
-    "",
-    "## 마음 아래 흐르는 감정",
-    "3~4문장. 꿈이 남긴 감정의 잔향과 카드의 정방향/역방향 흐름을 함께 읽고, 불안을 단정하지 말고 감정의 이름을 부드럽게 붙이세요.",
-    "",
-    "## 오늘의 작은 선택 3가지",
-    "- 꿈의 장면을 현실에서 안전하게 다루는 작은 행동 1",
-    "- 관계나 일에서 바로 확인할 수 있는 작은 행동 1",
-    "- 잠들기 전 마음을 봉인하는 회복 행동 1",
-    "",
-    "## 관계/일/회복의 길",
-    "- 관계: 상대를 단정하기보다 내 감정과 필요를 정리하는 방향으로 쓰세요.",
-    "- 일/돈: 큰 결론보다 오늘 줄일 수 있는 부담과 현실적 우선순위를 쓰세요.",
-    "- 회복: 수면, 호흡, 기록처럼 오늘 밤 반복 가능한 회복 루틴을 쓰세요.",
-    "",
-    "## 봉인 문장",
-    "한 줄. 꿈의 빛을 오늘의 선택으로 옮기는 신비롭고 단정한 문장으로 마무리하세요.",
-    "",
-    "[사용자 꿈 원문]",
-    dreamText,
-    "",
-    "[카드 정보]",
-    ...cardLines,
-    "",
-    "[사전 요약 참고]",
-    String(summary || "없음"),
-  ].join("\n");
-}
 
 function fallbackTarotConsultMarkdown({ dreamText, cards }) {
   const compact = String(dreamText || "").replace(/\s+/g, " ").trim().slice(0, 180);
@@ -543,11 +456,11 @@ function buildDreamPromptRecord({ dreamText, tone, localReading, dreamLibraryCon
     id: `dream-prompt-${Date.now()}`,
     kind: "dream_prompt",
     title: "꿈 프롬프트 생성서",
-    summary: "꿈의 장면과 감정의 잔향이 AI에게 건넬 질문의 중심으로 모였습니다.",
+    summary: "꿈의 장면과 감정의 잔향이 ?? ??에게 건넬 질문의 중심으로 모였습니다.",
     stageReadings: {
       scene: "꿈 원문에서 가장 선명한 장면을 먼저 붙잡습니다. 이 장면은 프롬프트의 첫 문을 열고, 상담이 막연한 해몽으로 흩어지지 않도록 중심을 잡습니다.",
       symbol: "반복되는 존재와 감정의 잔향을 함께 묶습니다. 상징은 단독으로 고정되지 않고, 깨어난 뒤 남은 느낌과 함께 프롬프트 안에서 살아납니다.",
-      echo: "마지막 장은 AI에게 건넬 질문의 문을 가리킵니다. 관계, 일, 회복 중 어느 문을 열지 정하면 꿈의 언어가 더 또렷하게 흐릅니다.",
+      echo: "마지막 장은 ?? ??에게 건넬 질문의 문을 가리킵니다. 관계, 일, 회복 중 어느 문을 열지 정하면 꿈의 언어가 더 또렷하게 흐릅니다.",
     },
     goldenAdvice: "봉인 카드 아래 완성된 프롬프트를 그대로 옮기면, 꿈의 잔향이 상담 가능한 질문으로 열립니다.",
     actionPlan: [
@@ -589,7 +502,7 @@ async function handleDreamPromptMaker(request) {
   });
 }
 
-async function handleTarotConsult(request, env) {
+async function handleTarotConsult(request) {
   const body = await readJson(request);
   const normalized = normalizeDreamText(body);
   if (!normalized.ok) {
@@ -601,38 +514,8 @@ async function handleTarotConsult(request, env) {
     return json({ ok: false, message: cards.message }, { status: 400 });
   }
 
-  const tone = normalizeConsultTone(body?.tone);
-  const prompt = tarotConsultPrompt({
-    dreamText: normalized.text,
-    cards: cards.cards,
-    tone,
-    summary: String(body?.summary || "").trim(),
-  });
-
-  const ai = await dreamGeminiCaller(env, prompt, {
-    keyEnvKeys: ["DREAM_TAROT_GEMINI_API_KEY", "PSYCHO_ANALYSIS_GEMINI_API_KEY"],
-    modelEnvKeys: ["DREAM_TAROT_GEMINI_MODEL", "PSYCHO_ANALYSIS_GEMINI_MODEL"],
-    workersAiOnly: true,
-    workersAiModel: env.DREAM_TAROT_WORKERS_AI_MODEL || env.DREAM_WORKERS_AI_MODEL || "",
-    temperature: 0.84,
-    topP: 0.93,
-    maxOutputTokens: 4096,
-    timeoutMs: Number(env.DREAM_TAROT_GEMINI_TIMEOUT_MS || env.PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS || 45000),
-  });
-
-  let markdown = "";
-  let formatWarning = false;
-
-  if (ai.ok) {
-    markdown = String(ai.text || "").trim();
-    formatWarning = !/^##\s+/m.test(markdown);
-    if (formatWarning) {
-      markdown = `## 꿈의 문을 여는 카드\n${markdown}`;
-    }
-  } else {
-    markdown = fallbackTarotConsultMarkdown({ dreamText: normalized.text, cards: cards.cards });
-    formatWarning = true;
-  }
+  const markdown = fallbackTarotConsultMarkdown({ dreamText: normalized.text, cards: cards.cards });
+  const formatWarning = true;
 
   const summary = firstMeaningfulLine(sectionText(markdown, "꿈의 문을 여는 카드"));
   const goldenAdvice = firstMeaningfulLine(sectionText(markdown, "마음 아래 흐르는 감정"));
@@ -648,53 +531,23 @@ async function handleTarotConsult(request, env) {
       summary,
       goldenAdvice,
       actionPlan,
-      source: ai.ok ? resolveDreamAiSource(ai) : "fallback",
-      model: ai.ok ? ai.model : "fallback/local",
+      source: "local",
+      model: "fallback/local",
       createdAt: new Date().toISOString(),
     },
-    message: ai.ok ? "ok" : ai.message,
+    message: "ok",
   });
 }
 
-function resolveDreamAiSource(ai) {
-  return String(ai?.provider || "gemini").trim();
-}
-
-async function callPsychoAnalysisAi(env, prompt) {
-  return dreamGeminiCaller(env, prompt, {
-    modelEnvKeys: ["PSYCHO_ANALYSIS_GEMINI_MODEL"],
-    workersAiOnly: true,
-    workersAiModel: env.PSYCHO_ANALYSIS_WORKERS_AI_MODEL || env.DREAM_WORKERS_AI_MODEL || "",
-    temperature: 0.88,
-    topP: 0.95,
-    maxOutputTokens: 8192,
-    timeoutMs: Number(env.PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS || 45000),
-  });
-}
-
-async function handlePsychoAnalysis(request, env) {
+async function handlePsychoAnalysis(request) {
   const body = await readJson(request);
   const normalized = normalizeDreamText(body);
   if (!normalized.ok) {
     return json({ ok: false, message: normalized.message }, { status: 400 });
   }
 
-  const prompt = psychoPrompt(normalized.text);
-  const ai = await callPsychoAnalysisAi(env, prompt);
-
-  let markdown = "";
-  let formatWarning = false;
-
-  if (ai.ok) {
-    markdown = String(ai.text || "").trim();
-    formatWarning = !/^##\s+/m.test(markdown);
-    if (formatWarning) {
-      markdown = `## 분석 결과\n${markdown}`;
-    }
-  } else {
-    markdown = fallbackMarkdown(normalized.text);
-    formatWarning = true;
-  }
+  const markdown = fallbackMarkdown(normalized.text);
+  const formatWarning = true;
 
   return json({
     ok: true,
@@ -703,22 +556,12 @@ async function handlePsychoAnalysis(request, env) {
     record: {
       id: `psycho-${Date.now()}`,
       markdown,
-      source: ai.ok ? resolveDreamAiSource(ai) : "fallback",
-      model: ai.ok ? ai.model : "fallback/local",
+      source: "local",
+      model: "fallback/local",
       createdAt: new Date().toISOString(),
     },
-    message: ai.ok ? "ok" : ai.message,
+    message: "ok",
   });
-}
-
-export function __setDreamGeminiCallerForTest(fn) {
-  if (typeof fn === "function") {
-    dreamGeminiCaller = fn;
-  }
-}
-
-export function __resetDreamGeminiCallerForTest() {
-  dreamGeminiCaller = callGeminiText;
 }
 
 export async function handleDreamRoutes(request, env) {

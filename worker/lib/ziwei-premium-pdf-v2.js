@@ -1,4 +1,4 @@
-import { generateWithGemini } from "./gemini-client.js";
+import { callLLM } from "../../lib/llm-client.ts";
 
 export const ZIWEI_PDF_FEATURE_KEY = "premium-ziwei-report";
 export const ZIWEI_PDF_CHAPTER_COUNT = 15;
@@ -1054,21 +1054,21 @@ function withTimeout(promise, timeoutMs) {
 async function callWorkersAi(env, prompt, options = {}) {
   const started = Date.now();
   try {
-    if (!env?.AI?.run) {
-      return { ok: false, provider: "workers-ai", errorCode: "workers_ai_not_configured", latencyMs: Date.now() - started };
-    }
-    const model = clean(env.ZIWEI_PREMIUM_WORKERS_AI_MODEL || env.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct");
-    const result = await withTimeout(env.AI.run(model, {
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: prompt },
-      ],
+    const result = await withTimeout(callLLM({
+      prompt,
+      systemPrompt: buildSystemPrompt(),
       temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
-      max_tokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
-    }), Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const rawText = cleanBlock(result?.response || result?.result?.response || result?.text || result?.content || "");
+      maxTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
+      taskType: "pdf",
+    }, env), Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const rawText = cleanBlock(result?.text || "");
     if (!rawText) return { ok: false, provider: "workers-ai", errorCode: "empty_response", latencyMs: Date.now() - started };
-    return { ok: true, provider: "workers-ai", rawText, usage: result?.usage, latencyMs: Date.now() - started };
+    return {
+      ok: true,
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
+      rawText,
+      latencyMs: Date.now() - started,
+    };
   } catch (error) {
     return {
       ok: false,
@@ -1084,27 +1084,21 @@ async function callWorkersAi(env, prompt, options = {}) {
 async function callGemini(env, prompt, options = {}) {
   const started = Date.now();
   try {
-    const result = await generateWithGemini(env, `${buildSystemPrompt()}\n\n${prompt}`, {
-      modelEnvKeys: ["ZIWEI_PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-      timeoutMs: Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS),
-      maxOutputTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_GEMINI_MAX_TOKENS || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
+    const result = await withTimeout(callLLM({
+      prompt,
+      systemPrompt: buildSystemPrompt(),
+      maxTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_GEMINI_MAX_TOKENS || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
       temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || 0.72),
-      requestId: options.requestId,
-      maxAttemptsPerPair: 3,
-    });
-    if (result?.ok === false) {
-      return {
-        ok: false,
-        provider: "gemini",
-        errorCode: clean(result.error || result.code || "gemini_failed"),
-        errorMessage: clean(result.message || "", 300),
-        status: Number(result.status || 0) || null,
-        latencyMs: Date.now() - started,
-      };
-    }
-    const rawText = cleanBlock(result?.text || result?.rawText || result?.content || result?.response || "");
+      taskType: "pdf",
+    }, env), Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const rawText = cleanBlock(result?.text || "");
     if (!rawText) return { ok: false, provider: "gemini", errorCode: "empty_response", latencyMs: Date.now() - started };
-    return { ok: true, provider: "gemini", rawText, usage: result?.usage, latencyMs: Date.now() - started };
+    return {
+      ok: true,
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
+      rawText,
+      latencyMs: Date.now() - started,
+    };
   } catch (error) {
     return {
       ok: false,

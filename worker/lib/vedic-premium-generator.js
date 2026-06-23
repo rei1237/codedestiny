@@ -15,15 +15,6 @@ export const VEDIC_PDF_CONFIG = Object.freeze({
   templateVersion: "2026-vedic-llm-only-v1",
 });
 export const VEDIC_ASTROLOGY_ASSEMBLY_VERSION = VEDIC_PDF_CONFIG.templateVersion;
-const VEDIC_LOCAL_ASSEMBLY_REMOVED_CODE = "VEDIC_LOCAL_ASSEMBLY_REMOVED";
-
-function createVedicLocalAssemblyRemovedError(details = null) {
-  const error = new Error("Vedic premium local manuscript assembly has been removed.");
-  error.code = VEDIC_LOCAL_ASSEMBLY_REMOVED_CODE;
-  error.status = 503;
-  if (details) error.details = details;
-  return error;
-}
 const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
 const VEDIC_SAFETY_REPLACEMENTS = Object.freeze([
   [/반드시\s*이혼한다/gi, "관계에서 현실적인 책임과 감정 소통을 꾸준히 조율해야 하는 흐름이다"],
@@ -1356,14 +1347,6 @@ function collectSignals(chapter, chartJson) {
   };
 }
 
-export function buildVedicLocalPremiumManuscript(chartJson, options = {}) {
-  throw createVedicLocalAssemblyRemovedError({
-    entrypoint: "buildVedicLocalPremiumManuscript",
-    chartReady: Boolean(chartJson?.chart),
-    hasOptions: Boolean(options),
-  });
-}
-
 function normalizeManuscriptError(error) {
   if (error instanceof Error) {
     return {
@@ -2549,14 +2532,6 @@ function validateChapterSchema(chapters) {
   return issues;
 }
 
-export function expandVedicLocalManuscript(chapters, chartJson) {
-  throw createVedicLocalAssemblyRemovedError({
-    entrypoint: "expandVedicLocalManuscript",
-    chapterCount: safeArray(chapters).length,
-    chartReady: Boolean(chartJson?.chart),
-  });
-}
-
 const VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS = Object.freeze(["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"]);
 const VEDIC_PREMIUM_BLOCKED_SOURCE_RE = /\b(?:fallback|basic|recovered|provided|client|cache|mock|sample|seed|safe-local|astronomy-engine-fallback)\b/i;
 const VEDIC_PREMIUM_TRUSTED_SOURCE_RE = /\b(?:swiss|external-vedic-api|server-vedic|premium-vedic)\b/i;
@@ -3108,14 +3083,6 @@ export function validateVedicFinalManuscript(input) {
   };
 }
 
-export function renderVedicPremiumPdf(chapters, payload) {
-  throw createVedicLocalAssemblyRemovedError({
-    entrypoint: "renderVedicPremiumPdf",
-    chapterCount: safeArray(chapters).length,
-    hasPayload: Boolean(payload),
-  });
-}
-
 export function validateVedicPdfCompletionPayload({ pdfReady = {}, chapters = [], payload = {}, requireDownloadUrl = false } = {}) {
   const issues = [];
   const normalizedChapters = safeArray(chapters).map((chapter, index) => ({
@@ -3227,98 +3194,6 @@ function buildSafeVedicRawInput(rawInput = {}, birthInput = {}, safeChartSource 
       chart: safeChartSource,
     },
   };
-}
-
-export async function generateVedicPremiumReport(env, rawInput = {}, options = {}) {
-  const log = typeof options.log === "function" ? options.log : () => {};
-
-  log("LocalCalculationStart", {
-    hasBirthDate: Boolean(clean(rawInput?.birthDate || rawInput?.user?.birthDate || rawInput?.birth?.date)),
-    hasBirthTime: Boolean(clean(rawInput?.birthTime || rawInput?.user?.birthTime || rawInput?.birth?.time)),
-  });
-
-  let workingInput = rawInput;
-  let localVedicChartJson;
-
-  try {
-    localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: true });
-  } catch (error) {
-    log("StrictChartBuildFailed", {
-      code: clean(error?.code || "VEDIC_CHART_SOURCE_INVALID"),
-      reason: clean(error?.message || error),
-    });
-    error.code = clean(error?.code || "VEDIC_CHART_SOURCE_INVALID");
-    error.status = Number(error?.status || 422);
-    throw error;
-  }
-  localVedicChartJson.pdfContext = normalizeVedicPdfContext(workingInput, localVedicChartJson);
-  localVedicChartJson.profile = {
-    name: clean(localVedicChartJson?.pdfContext?.profile?.name || "사용자"),
-  };
-  localVedicChartJson.user = {
-    name: clean(localVedicChartJson?.pdfContext?.profile?.name || "사용자"),
-    birthDate: clean(localVedicChartJson?.pdfContext?.profile?.birthDate),
-  };
-  const birthInput = localVedicChartJson.birthInput;
-  const birthValidation = validateVedicBirthInput(birthInput);
-  if (!birthValidation.ok) {
-    const error = new Error(birthValidation.message);
-    error.code = "BIRTH_INPUT_INVALID";
-    error.status = 400;
-    throw error;
-  }
-
-  const signalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
-  if (!signalValidation.ok) {
-    const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
-    error.code = "VEDIC_CHART_SOURCE_INVALID";
-    error.status = 422;
-    error.details = signalValidation;
-    throw error;
-  }
-  const chartSourceQuality = signalValidation.sourceQuality || validateVedicPremiumChartSourceQuality({ chartJson: localVedicChartJson });
-  localVedicChartJson.chartSourceQuality = chartSourceQuality;
-
-  if (clean(localVedicChartJson?.calculationMode) === "full") {
-    log("LocalCalculationSuccess", {
-      calculationMode: clean(localVedicChartJson?.calculationMode),
-      chartSourceQuality: chartSourceQuality.ok,
-      chartSource: clean(chartSourceQuality.source),
-      hasAyanamsa: Boolean(clean(localVedicChartJson.settings?.ayanamsa)),
-      hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
-      hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
-      hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
-    });
-  } else {
-    log("LocalCalculationRecovered", {
-      calculationMode: clean(localVedicChartJson?.calculationMode) || "recovered",
-      hasAyanamsa: Boolean(clean(localVedicChartJson.settings?.ayanamsa)),
-      hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
-      hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
-      hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
-    });
-  }
-
-  log("LocalAssemblyRemoved", {
-    generationMode: VEDIC_PDF_CONFIG.generationMode,
-    provider: VEDIC_PDF_CONFIG.provider,
-    chartSourceQuality: chartSourceQuality.ok,
-    hasLagna: Boolean(clean(localVedicChartJson.chart?.lagnaSign)),
-    hasMoonSign: Boolean(clean(localVedicChartJson.chart?.moonSign)),
-    hasNakshatra: Boolean(clean(localVedicChartJson.chart?.nakshatra?.name)),
-  });
-  const localAssemblyError = createVedicLocalAssemblyRemovedError({
-    entrypoint: "generateVedicPremiumReport",
-    chartSourceQuality: chartSourceQuality.ok,
-    nextEngine: "vedic-premium-llm-v2",
-  });
-  if (localAssemblyError) throw localAssemblyError;
-
-  const fallbackRemovalError = createVedicLocalAssemblyRemovedError({
-    entrypoint: "generateVedicPremiumReport:fallback",
-    chartSourceQuality: chartSourceQuality.ok,
-  });
-  if (fallbackRemovalError) throw fallbackRemovalError;
 }
 
 export function validateVedicPayloadForApi(rawInput = {}) {

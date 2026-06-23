@@ -1,4 +1,4 @@
-import { generateWithGemini } from "../../gemini-client.js";
+import { callLLM } from "../../../../lib/llm-client.ts";
 import { clean } from "./love-secret-premium.types.js";
 
 const PROVIDER_TIMEOUT_MS = 120000;
@@ -56,25 +56,20 @@ async function callWorkersAi(params, env) {
   const started = Date.now();
   const model = clean(params.model || env?.LOVE_SECRET_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct");
   try {
-    if (!env?.AI?.run) {
-      return { ok: false, provider: "workers-ai", model, errorCode: "workers_ai_not_configured", latencyMs: Date.now() - started };
-    }
-    const result = await withTimeout(env.AI.run(model, {
-      messages: [
-        { role: "system", content: params.systemPrompt },
-        { role: "user", content: params.userPrompt },
-      ],
+    const result = await withTimeout(callLLM({
+      prompt: params.userPrompt,
+      systemPrompt: params.systemPrompt,
       temperature: Number(params.temperature ?? env.LOVE_SECRET_PREMIUM_LLM_TEMPERATURE ?? 0.7),
-      max_tokens: Number(params.maxTokens || env.LOVE_SECRET_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-    }), Number(params.timeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const text = cleanBlock(result?.response || result?.result?.response || result?.text || result?.content || "");
+      maxTokens: Number(params.maxTokens || env.LOVE_SECRET_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
+      taskType: "pdf",
+    }, env), Number(params.timeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const text = cleanBlock(result?.text || "");
     if (!text) return { ok: false, provider: "workers-ai", model, errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
       text,
-      model,
-      provider: "workers-ai",
-      usage: result?.usage,
+      model: clean(result?.model || model),
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
       latencyMs: Date.now() - started,
     };
   } catch (error) {
@@ -92,31 +87,20 @@ async function callWorkersAi(params, env) {
 async function callGemini(params, env) {
   const started = Date.now();
   try {
-    const result = await withTimeout(generateWithGemini(env, `${params.systemPrompt}\n\n${params.userPrompt}`, {
+    const result = await withTimeout(callLLM({
+      prompt: params.userPrompt,
+      systemPrompt: params.systemPrompt,
       temperature: Number(params.temperature ?? env.LOVE_SECRET_PREMIUM_LLM_TEMPERATURE ?? 0.7),
-      topP: Number(params.topP ?? 0.95),
-      maxOutputTokens: Number(params.maxTokens || env.LOVE_SECRET_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-      timeoutMs: Number(params.timeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS),
-      totalTimeoutMs: Number(params.totalTimeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS),
-      modelEnvKeys: ["LOVE_SECRET_PREMIUM_GEMINI_MODEL", "LOVE_SECRET_GEMINI_MODEL"],
-      requestId: params.requestId,
-    }), Number(params.timeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const text = cleanBlock(result?.text || result?.response || "");
-    if (!result?.ok || !text) {
-      return {
-        ok: false,
-        provider: "gemini",
-        model: clean(result?.model || params.model),
-        errorCode: clean(result?.error || "empty_response"),
-        errorMessage: clean(result?.message, 300),
-        latencyMs: Date.now() - started,
-      };
-    }
+      maxTokens: Number(params.maxTokens || env.LOVE_SECRET_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
+      taskType: "pdf",
+    }, env), Number(params.timeoutMs || env.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const text = cleanBlock(result?.text || "");
+    if (!text) return { ok: false, provider: "gemini", model: clean(result?.model || params.model), errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
       text,
       model: clean(result.model || params.model || "gemini"),
-      provider: "gemini",
+      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
       latencyMs: Date.now() - started,
     };
   } catch (error) {

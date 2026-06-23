@@ -4292,40 +4292,11 @@ async function handleAdminDiag(request, env) {
 }
 
 function listGeminiKeyStatus(env) {
-  const keyNames = [
-    "PREMIUM_GEMINI_API_KEY0",
-    "PREMIUM_GEMINI_API_KEY1",
-    "PREMIUM_GEMINI_API_KEY2",
-    "PREMIUM_GEMINI_API_KEY3",
-    "PREMIUM_GEMINI_API_KEY4",
-    "PREMIUM_GEMINI_API_KEY5",
-    "PREMIUM_GEMINI_API_KEY6",
-    "PREMIUM_GEMINI_API_KEY7",
-    "PREMIUM_GEMINI_API_KEY8",
-    "GEMINI_API_KEY",
-    "GOOGLE_GEMINI_API_KEY",
-    "GOOGLE_GENERATIVE_AI_API_KEY",
-    "GOOGLE_AI_API_KEY",
-    "GOOGLE_API_KEY",
-    "GEMINIF_API_KEY0",
-    "GEMINIF_API_KEY1",
-    "GEMINIF_API_KEY2",
-    "GEMINIF_API_KEY3",
-    "GEMINIF_API_KEY4",
-    "GEMINIF_API_KEY5",
-    "GEMINIF_API_KEY6",
-    "GEMINIF_API_KEY7",
-    "GEMINIF_API_KEY8",
-  ];
-  const status = {};
-  let enabledCount = 0;
-  for (const name of keyNames) {
-    const usable = String(env?.[name] || "").trim().length > 0;
-    status[name] = usable;
-    if (usable) enabledCount += 1;
-  }
+  const status = {
+    AI: typeof env?.AI?.run === "function",
+  };
   return {
-    enabledCount,
+    enabledCount: status.AI ? 1 : 0,
     keyStatus: status,
   };
 }
@@ -4333,38 +4304,10 @@ function listGeminiKeyStatus(env) {
 async function runGeminiSmoke(env, requestId) {
   const prompt = `healthcheck:${requestId}`;
   const result = await callGeminiText(env, prompt, {
-    disableWorkersAiPrimary: true,
-    keyEnvKeys: [
-      "PREMIUM_GEMINI_API_KEY0",
-      "PREMIUM_GEMINI_API_KEY1",
-      "PREMIUM_GEMINI_API_KEY2",
-      "PREMIUM_GEMINI_API_KEY3",
-      "PREMIUM_GEMINI_API_KEY4",
-      "PREMIUM_GEMINI_API_KEY5",
-      "PREMIUM_GEMINI_API_KEY6",
-      "PREMIUM_GEMINI_API_KEY7",
-      "PREMIUM_GEMINI_API_KEY8",
-      "GEMINI_API_KEY",
-      "GOOGLE_GEMINI_API_KEY",
-      "GOOGLE_GENERATIVE_AI_API_KEY",
-      "GOOGLE_AI_API_KEY",
-      "GOOGLE_API_KEY",
-      "GEMINIF_API_KEY0",
-      "GEMINIF_API_KEY1",
-      "GEMINIF_API_KEY2",
-      "GEMINIF_API_KEY3",
-      "GEMINIF_API_KEY4",
-      "GEMINIF_API_KEY5",
-      "GEMINIF_API_KEY6",
-      "GEMINIF_API_KEY7",
-      "GEMINIF_API_KEY8",
-    ],
-    modelEnvKeys: ["PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
+    taskType: "general",
     temperature: 0,
-    topP: 0.9,
     maxOutputTokens: 80,
     timeoutMs: 12000,
-    maxAttemptsPerPair: 1,
   });
 
   return {

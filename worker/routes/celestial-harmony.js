@@ -342,31 +342,31 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     const cardIndex = index + 1;
     return [
       "[" + cardIndex + "] " + text(card?.planetKo || "") + " - " + text(card?.cardNameKo || "카드 " + cardIndex) + " / " + text(card?.orientation || "upright"),
-      "질문축=" + text(card?.planetTitle || ""),
+      "행성 질문축=" + text(card?.planetTitle || ""),
       "행성=" + text(card?.planetKo || card?.planetName || ""),
-      "행성원형=" + text(card?.planetMeaning || ""),
-      "카드키워드=" + toStringArray(card?.tarotKeywords, []).join(", "),
-      "의미=" + text(card?.cardMeaning || ""),
+      "행성 원형=" + text(card?.planetMeaning || ""),
+      "타로 키워드=" + toStringArray(card?.tarotKeywords, []).join(", "),
+      "카드 의미=" + text(card?.cardMeaning || ""),
       "원형 해석=" + text(card?.archetypeReading || ""),
       "의식 메시지=" + text(card?.consciousMessage || ""),
       "무의식 패턴=" + text(card?.unconsciousPattern || ""),
       "그림자 경고=" + text(card?.shadowWarning || ""),
       "영혼 과제=" + text(card?.soulLesson || ""),
-      "실천=" + text(card?.integrationPractice || "")
+      "현실 조율=" + text(card?.integrationPractice || ""),
     ].join(" | ");
   });
   const golden = goldenCard && typeof goldenCard === "object" ? goldenCard : {};
   const goldenLine = text(golden.n || golden.nameKo || golden.cardNameKo || golden.name || "")
-    ? `${text(golden.r || golden.code || "")} ${text(golden.n || golden.nameKo || golden.cardNameKo || golden.name || "")} ${text(golden.en || golden.nameEn || "")}`
+    ? text(golden.r || golden.code || "") + " " + text(golden.n || golden.nameKo || golden.cardNameKo || golden.name || "") + " " + text(golden.en || golden.nameEn || "")
     : "없음";
 
   return [
     "당신은 행성의 목소리와 타로 상징을 하나의 선율로 엮는 전문 오라클 리더입니다.",
-    "서비스명은 '천체의 선율 타로'입니다. 행성 11포지션과 타로 카드를 1:1로 결합해 각 행성의 질문, 그림자, 현실 조율이 살아 있는 리딩을 작성합니다.",
-    "반드시 한국어 한글로만 작성하세요. 문체는 전문적이고 신비로우며, 사용자를 불안하게 만들지 않고 실천 가능한 방향을 줍니다.",
-    "의료, 법률, 투자 확정 판단처럼 위험한 단정은 하지 마세요. 운명을 고정하지 말고 선택 가능성과 자기조율을 중심으로 말하세요.",
-    "출력은 설명 없는 유효한 JSON 객체 하나만 반환하세요. 마크다운 코드블록을 쓰지 마세요.",
-    "JSON 스키마:",
+    "서비스명은 '천체의 선율 타로'입니다. 입력된 11개 행성 포지션과 11장의 타로 카드를 1:1로 결합해, 사용자가 결제 후 바로 신뢰할 수 있는 깊은 상담 결과를 작성하세요.",
+    "반드시 한국어로만 작성합니다. 불안을 키우는 단정, 의료/법률/투자 확정 판단, 기능 설명 문체, 개발 문서 같은 표현은 쓰지 않습니다.",
+    "입력된 카드 순서, 행성명, 카드명, 정역방향은 절대 바꾸지 않습니다. 카드가 하나라도 누락되면 실패입니다.",
+    "출력은 설명 없는 유효한 JSON 객체 하나만 반환합니다. 마크다운, 코드블록, 주석, JSON 밖 문장은 금지합니다.",
+    "JSON 스키마는 아래 구조를 그대로 사용하세요.",
     JSON.stringify({
       spreadName: "천체의 선율 타로",
       cards: [{
@@ -382,17 +382,17 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
         cardNameEn: "The Star",
         tarotKeywords: ["희망", "회복"],
         planetKeywords: ["자아", "생명력"],
-        cardMeaning: "카드 핵심 의미 1~2문장",
-        planetMeaning: "행성 원형 의미 1~2문장",
-        archetypeReading: "행성 자리와 카드가 결합된 심층 해석 4~6문장",
-        consciousMessage: "의식 차원의 메시지 3~5문장",
-        unconsciousPattern: "무의식 반복 패턴 3~5문장",
-        shadowWarning: "그림자 경고와 조율법 3~5문장",
-        soulLesson: "영혼 과제 3~5문장",
-        integrationPractice: "오늘 실행할 수 있는 조율 의식 3~5문장"
+        cardMeaning: "카드 상징을 현재 상황에 연결한 1~2문장",
+        planetMeaning: "행성 원형의 의미를 풀어낸 1~2문장",
+        archetypeReading: "행성 질문과 카드 상징이 결합된 상담 해석 4~6문장",
+        consciousMessage: "사용자가 의식적으로 알아차려야 할 메시지 3~5문장",
+        unconsciousPattern: "반복되는 감정, 방어, 무의식 패턴 3~5문장",
+        shadowWarning: "불안을 키우지 않는 그림자 경고와 조율법 3~5문장",
+        soulLesson: "영혼 과제와 성장 방향 3~5문장",
+        integrationPractice: "오늘 실행할 수 있는 현실 조율 행동 3~5문장",
       }],
       summary: {
-        overallTheme: "전체 11장 흐름을 엮은 풍부한 종합 리딩",
+        overallTheme: "전체 11장 흐름을 하나의 선율로 묶은 종합 리딩",
         strongestPlanetSignal: "가장 강한 행성 신호",
         deepestShadow: "가장 깊은 그림자",
         soulLesson: "핵심 영혼 과제",
@@ -401,39 +401,39 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
         dominantSuit: "major|wands|cups|swords|pentacles",
         majorArcanaRatio: "예: 7/11",
         planetHighlights: ["행성별 핵심 신호"],
-        practices: ["실천 목록"],
-        ritualPlan: ["7일 의식 플랜"],
+        practices: ["오늘 실천할 조율 행동"],
+        ritualPlan: ["7일 조율 의식"],
         insightMatrix: {
-          love: "관계 해석",
-          work: "일/성과 해석",
-          money: "돈/자원 해석",
-          health: "회복/컨디션 해석"
+          love: "관계 흐름 해석",
+          work: "일과 성취 해석",
+          money: "돈과 자원 해석",
+          health: "회복과 컨디션 해석",
         },
-        finalOracle: "황금 카드까지 통합한 마지막 오라클",
+        finalOracle: "11장 전체를 통합한 마지막 오라클",
         closingFortune: {
           title: "오늘의 별빛 운세",
-          overall: "결제 후 결과의 가장 마지막에서 전문 타로 리더가 직접 봐주는 종합 운세 4~6문장",
-          love: "연애와 관계 운세 2~3문장",
-          work: "일과 성과 운세 2~3문장",
+          overall: "전문 타로 리더가 직접 말하는 종합 운세 4~6문장",
+          love: "관계 운세 2~3문장",
+          work: "일과 성취 운세 2~3문장",
           money: "돈과 자원 운세 2~3문장",
-          health: "회복과 컨디션 운세 2~3문장"
-        }
-      }
+          health: "회복과 컨디션 운세 2~3문장",
+        },
+      },
     }),
     "작성 조건:",
     "1) cards는 정확히 11개이며 입력 순서와 행성명을 유지합니다.",
-    "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정/역방향, 심리 패턴, 그림자, 실천을 모두 반영합니다.",
-    "3) summary.overallTheme은 전체 흐름을 충분히 엮고, finalOracle은 황금 카드까지 반영해 한 편의 완성된 오라클처럼 씁니다.",
-    "4) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작은 조율 의식으로 구체화합니다.",
-    "5) summary.closingFortune은 결제 후 결과의 가장 하단에서 전문 타로 리더가 직접 운세를 봐주는 문체로 씁니다. title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 작성합니다.",
-    "6) closingFortune에는 기능명이나 결과물을 주어로 삼는 제품 설명 어투를 쓰지 말고, 운세 상담가가 사용자에게 직접 말하는 자연스러운 문장만 사용합니다.",
+    "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정역방향, 심리 패턴, 그림자, 현실 실천을 모두 반영합니다.",
+    "3) summary.overallTheme은 전체 선율을 충분히 길게 읽고, finalOracle은 11장 전체를 통합한 마지막 오라클처럼 씁니다.",
+    "4) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작고 구체적인 조율 의식으로 씁니다.",
+    "5) summary.closingFortune.title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 씁니다.",
+    "6) closingFortune은 결과물이나 기능을 설명하지 말고, 타로 리더가 사용자에게 직접 말하는 자연스러운 운세 문장으로 씁니다.",
     "황금 통합 카드=" + goldenLine,
     "dominantLayer=" + (summary?.dominantLayer || ""),
     "strongestPlanetSignal=" + (summary?.strongestPlanetSignal || ""),
     "deepestShadow=" + (summary?.deepestShadow || ""),
     "soulLesson=" + (summary?.soulLesson || ""),
     "integrationPath=" + (summary?.integrationPath || ""),
-    "cards=" + cardLines.join("\n")
+    "cards=" + cardLines.join("\n"),
   ].join("\n");
 }
 
@@ -493,6 +493,14 @@ function preferText(value, fallback, minLength = 1) {
   return text(fallback);
 }
 
+function preferTextWithFallback(value, fallback, minLength = 1, field = "") {
+  const candidate = sanitizeCelestialMelodyText(value);
+  if (candidate.length >= minLength) {
+    return { value: candidate, fallbackUsed: false };
+  }
+  return { value: text(fallback), fallbackUsed: Boolean(field) };
+}
+
 function preferArray(value, fallback = []) {
   const arr = toStringArray(value, []);
   if (arr.length) return arr;
@@ -501,29 +509,36 @@ function preferArray(value, fallback = []) {
 
 function mergeAiCard(baseCard = {}, aiCard = {}) {
   const src = aiCard && typeof aiCard === "object" ? aiCard : {};
-  const orientation = text(src.orientation || baseCard.orientation || "upright").toLowerCase() === "reversed" ? "reversed" : "upright";
+  const fallbackFields = [];
+  const pickField = (field, minLength) => {
+    const picked = preferTextWithFallback(src[field], baseCard[field], minLength, field);
+    if (picked.fallbackUsed) fallbackFields.push(field);
+    return picked.value;
+  };
+
   return {
     ...baseCard,
-    order: Number(src.order || baseCard.order || 0) || baseCard.order,
-    planetId: text(src.planetId || baseCard.planetId),
-    planetKo: text(src.planetKo || baseCard.planetKo),
-    planetEn: text(src.planetEn || baseCard.planetEn),
-    planetSymbol: text(src.planetSymbol || baseCard.planetSymbol),
-    planetTitle: text(src.planetTitle || baseCard.planetTitle),
-    layer: text(src.layer || baseCard.layer),
-    orientation,
-    cardNameKo: text(src.cardNameKo || baseCard.cardNameKo),
-    cardNameEn: text(src.cardNameEn || baseCard.cardNameEn),
+    order: Number(baseCard.order || 0),
+    planetId: text(baseCard.planetId),
+    planetKo: text(baseCard.planetKo),
+    planetEn: text(baseCard.planetEn),
+    planetSymbol: text(baseCard.planetSymbol),
+    planetTitle: text(baseCard.planetTitle),
+    layer: text(baseCard.layer),
+    orientation: text(baseCard.orientation || "upright").toLowerCase() === "reversed" ? "reversed" : "upright",
+    cardNameKo: text(baseCard.cardNameKo),
+    cardNameEn: text(baseCard.cardNameEn),
     tarotKeywords: preferArray(src.tarotKeywords, baseCard.tarotKeywords),
     planetKeywords: preferArray(src.planetKeywords, baseCard.planetKeywords),
-    cardMeaning: preferText(src.cardMeaning, baseCard.cardMeaning, 20),
-    planetMeaning: preferText(src.planetMeaning, baseCard.planetMeaning, 20),
-    archetypeReading: preferText(src.archetypeReading, baseCard.archetypeReading, 120),
-    consciousMessage: preferText(src.consciousMessage, baseCard.consciousMessage, 90),
-    unconsciousPattern: preferText(src.unconsciousPattern, baseCard.unconsciousPattern, 90),
-    shadowWarning: preferText(src.shadowWarning, baseCard.shadowWarning, 90),
-    soulLesson: preferText(src.soulLesson, baseCard.soulLesson, 90),
-    integrationPractice: preferText(src.integrationPractice, baseCard.integrationPractice, 90),
+    cardMeaning: pickField("cardMeaning", 20),
+    planetMeaning: pickField("planetMeaning", 20),
+    archetypeReading: pickField("archetypeReading", 120),
+    consciousMessage: pickField("consciousMessage", 90),
+    unconsciousPattern: pickField("unconsciousPattern", 90),
+    shadowWarning: pickField("shadowWarning", 90),
+    soulLesson: pickField("soulLesson", 90),
+    integrationPractice: pickField("integrationPractice", 90),
+    _aiFallbackFields: fallbackFields,
   };
 }
 
@@ -565,11 +580,19 @@ function normalizeAiReadingCandidate(candidate, baseReading, model = "", provide
   const srcCards = Array.isArray(src.cards) ? src.cards : [];
   const cards = (Array.isArray(baseReading.cards) ? baseReading.cards : []).map((baseCard, idx) => mergeAiCard(baseCard, srcCards[idx] || {}));
   if (cards.length !== 11) return null;
+
+  const aiPartialFallbackFields = cards.flatMap((card) => (
+    Array.isArray(card._aiFallbackFields) && card._aiFallbackFields.length
+      ? card._aiFallbackFields.map((field) => String(card.order || "?") + ":" + field)
+      : []
+  ));
+  const cleanedCards = cards.map(({ _aiFallbackFields, ...card }) => card);
+
   return {
     ...baseReading,
-    spreadName: text(src.spreadName || baseReading.spreadName || "천체의 선율 타로"),
+    spreadName: text(src.spreadName || baseReading.spreadName || "??? ?? ??"),
     generatedAt: text(src.generatedAt || baseReading.generatedAt || toIso(Date.now())),
-    cards,
+    cards: cleanedCards,
     summary: mergeAiSummary(baseReading.summary || {}, src.summary || {}),
     payment: baseReading.payment || {},
     meta: {
@@ -579,6 +602,7 @@ function normalizeAiReadingCandidate(candidate, baseReading, model = "", provide
       aiSchema: "celestial-harmony-json-v1",
       aiModel: model,
       aiProvider: provider,
+      aiPartialFallbackFields,
     },
   };
 }
@@ -588,37 +612,47 @@ async function enrichCelestialReading(env, reading, goldenCard) {
 
   const ai = await callGeminiText(env, prompt, {
     modelEnvKeys: ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
-    workersAiOnly: true,
     workersAiModel: text(env.CELESTIAL_HARMONY_WORKERS_AI_MODEL || env.TAROT_WORKERS_AI_MODEL || ""),
     temperature: 0.72,
     topP: 0.95,
     topK: 40,
     maxOutputTokens: 8192,
-    timeoutMs: Number(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS || 22000),
+    timeoutMs: Number(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS || 30000),
   });
 
-  if (!ai.ok) return { used: false, message: ai.message || "" };
+  if (!ai.ok) {
+    return {
+      used: false,
+      message: ai.message || "",
+      result: {
+        ...reading,
+        meta: {
+          ...(reading.meta && typeof reading.meta === "object" ? reading.meta : {}),
+          apiUsed: false,
+          aiSchema: "celestial-harmony-local-fallback",
+          aiFallbackReason: text(ai.message || ai.error || "llm_failed"),
+        },
+      },
+    };
+  }
+
   const parsed = extractJsonObject(ai.text);
-  const provider = text(ai.provider || "workers-ai");
+  const provider = text(ai.provider || "gemini");
   const merged = parsed ? normalizeAiReadingCandidate(parsed, reading, text(ai.model), provider) : null;
   if (merged) return { used: true, result: merged, model: text(ai.model), provider };
 
-  const finalOracle = sanitizeCelestialMelodyText(ai.text);
-  if (!finalOracle) return { used: false, message: "" };
   return {
-    used: true,
+    used: false,
+    message: parsed ? "schema_invalid" : "json_parse_failed",
     result: {
       ...reading,
-      summary: {
-        ...reading.summary,
-        finalOracle,
-      },
       meta: {
         ...(reading.meta && typeof reading.meta === "object" ? reading.meta : {}),
-        apiUsed: true,
-        aiSchema: "celestial-harmony-text-fallback",
+        apiUsed: false,
+        aiSchema: "celestial-harmony-local-fallback",
         aiModel: text(ai.model),
         aiProvider: provider,
+        aiFallbackReason: parsed ? "schema_invalid" : "json_parse_failed",
       },
     },
     model: text(ai.model),

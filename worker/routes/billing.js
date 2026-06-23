@@ -1960,13 +1960,9 @@ function toArchiveBase(doc) {
     localDraftChapterCount: Number(archive.localDraftChapterCount || archive?.pdfReady?.localDraftChapterCount || chapters.length || 0),
     llmDraftChapterCount: Number(archive.llmDraftChapterCount || archive?.pdfReady?.llmDraftChapterCount || 0),
     manuscriptSource: cleanText(archive.manuscriptSource || archive?.pdfReady?.manuscriptSource || "", 80),
-    localAssemblyOnly: !(archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true)
-      && archive.localAssemblyOnly !== false
-      && archive?.pdfReady?.localAssemblyOnly !== false,
     llmAssemblyOnly: archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true,
     externalCallsAllowed: archive.externalCallsAllowed === true || archive?.pdfReady?.externalCallsAllowed === true,
     llmAssembly: resolveZiweiArchiveLlmAssembly({ metadata, archive, pdfReady: archive?.pdfReady }),
-    localAssembly: archive.localAssembly && typeof archive.localAssembly === "object" ? archive.localAssembly : archive?.pdfReady?.localAssembly,
     pdfCompletionValidation: archive.pdfCompletionValidation || archive?.pdfReady?.pdfCompletionValidation || null,
     pdfV2: archive.pdfV2 && typeof archive.pdfV2 === "object" ? archive.pdfV2 : archive?.payload?.pdfV2,
     pdfReady: archive.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : null,

@@ -729,7 +729,7 @@ function _isLifeBookGenerationBusy() {
           reject(message);
           return;
         }
-        var err = new Error(message || '인생의 책 로컬 생성 요청에 실패했습니다.');
+        var err = new Error(message || '인생의 책 LLM 생성 요청에 실패했습니다.');
         if (meta && typeof meta === 'object') {
           err.status = Number(meta.status || 0);
           err.code = String(meta.code || '').trim();
@@ -739,7 +739,7 @@ function _isLifeBookGenerationBusy() {
 
       function runNext() {
         if (idx >= endpoints.length) {
-          doneFail(lastErr || '인생의 책 로컬 생성 요청에 실패했습니다.');
+          doneFail(lastErr || '인생의 책 LLM 생성 요청에 실패했습니다.');
           return;
         }
 
@@ -1848,23 +1848,23 @@ function _isLifeBookGenerationBusy() {
     profile_check: '프로필 정보 확인 중',
     calculating_saju: '사주 원국 계산 중',
     daewoon_calc: '대운과 세운의 흐름 계산 중',
-    local_draft: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
-    local_chapters_start: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
-    local_writing: '인생의 책 원고를 정리하는 중',
-    writing_local: '인생의 책 원고를 정리하는 중',
-    calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
+    llm_draft: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    llm_chapters_start: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    llm_writing: '인생의 책 원고를 정리하는 중',
+    writing_llm: '인생의 책 원고를 정리하는 중',
+    calculation_validated: '사주 계산 완료 · LLM 원고 생성 시작',
     rendering_pdf: 'PDF 편집과 렌더링 중',
     done: '완료',
-    local_reinforce: '부족한 장을 보강하는 중',
+    llm_reinforce: '부족한 장을 보강하는 중',
   };
 
   Object.assign(_lbStateMessages, {
-    local_draft: 'LLM 전용 인생의 책 본문 생성 준비 중',
-    local_chapters_start: 'LLM 전용 인생의 책 본문 생성 준비 중',
-    local_writing: '인생의 책 원고를 LLM으로 정리하는 중',
-    writing_local: '인생의 책 원고를 LLM으로 정리하는 중',
+    llm_draft: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    llm_chapters_start: 'LLM 전용 인생의 책 본문 생성 준비 중',
+    llm_writing: '인생의 책 원고를 LLM으로 정리하는 중',
+    writing_llm: '인생의 책 원고를 LLM으로 정리하는 중',
     calculation_validated: '사주 계산 완료 · LLM 원고 생성 시작',
-    local_reinforce: '인생의 책 원고를 보강하는 중',
+    llm_reinforce: '인생의 책 원고를 보강하는 중',
   });
 
   window.generateLifeBook = function (options) {
@@ -2011,7 +2011,7 @@ function _isLifeBookGenerationBusy() {
       hasAccessGrant: Boolean(_lbCurrentAccessGrant),
     });
 
-    // 핵심 출생 정보가 유효할 때만 서버 로컬 계산 seed(JSON)로 생성 진행
+    // 핵심 출생 정보가 유효할 때만 서버 계산 seed(JSON)로 생성 진행
     var _hasBirthCore = Boolean(profile && profile.birth && profile.birth.year && profile.birth.month && profile.birth.day);
     if (!_hasBirthCore) {
       _clearLifeBookGenerationState();
@@ -2226,7 +2226,7 @@ function _isLifeBookGenerationBusy() {
         var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
         if (_stateKey) _setGenerationState(_stateKey);
         if (_status === 'running' || _status === 'queued' || _status === 'processing' || _status === 'generating') {
-          _setGenerationState('writing_local');
+          _setGenerationState('writing_llm');
         }
         if (Number.isFinite(_current) && _current > 0) {
           _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
@@ -2285,7 +2285,7 @@ function _isLifeBookGenerationBusy() {
     _data = _normalizeLifeBookDoneData(_data);
       if (_isLifeBookRunningData(_data) && _extractLifeBookChaptersFromData(_data).length !== LIFEBOOK_TOTAL_CHAPTERS) {
         _flowLog('LIFE_BOOK_BACKGROUND_STATUS_WAIT', { reportId: _lbReportId, sessionId: _sessionId });
-        _setGenerationState('local_writing');
+        _setGenerationState('llm_writing');
         _data = await _waitLifeBookStatusDone(
           _sessionId,
           _headers,
@@ -2358,7 +2358,7 @@ function _isLifeBookGenerationBusy() {
         await new Promise(function (r) { setTimeout(r, 90); });
       }
 
-      _setGenerationState('writing_local');
+      _setGenerationState('writing_llm');
       _flowLog('LIFE_BOOK_LLM_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
       _lifeBookLog('LlmManuscriptReady', { reportId: _lbReportId });
       var _llmAssembly = (_data && _data.llmAssembly && typeof _data.llmAssembly === 'object')

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { callLLM } from "@/lib/llm-client";
 import {
   LIFEBOOK_SYSTEM_PROMPT,
   LIFEBOOK_MIN_CHAPTER_CHARS,
@@ -19,126 +19,14 @@ import {
 export const maxDuration = 300;
 
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
-const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
 const LIFEBOOK_IN_FLIGHT = new Map();
 
 /**
  * 사용 가능한 Gemini API 키 목록 반환 (love-secret 패턴 동일)
  * → 환경변수에 등록된 모든 키를 순서대로 시도
  */
-function pickGeminiKeys() {
-  return [
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
-  ]
-    .map((v) => String(v || "").trim())
-    .filter(Boolean);
-}
-
-let geminiKeyCursor = 0;
-
-function rotateGeminiKeys(keys, seed = 0) {
-  if (!Array.isArray(keys) || keys.length === 0) return [];
-  const len = keys.length;
-  const base = Number.isFinite(Number(seed)) ? Number(seed) : 0;
-  const start = ((geminiKeyCursor + base) % len + len) % len;
-  geminiKeyCursor = (start + 1) % len;
-  return [...keys.slice(start), ...keys.slice(0, start)];
-}
-
-function hasVertexServiceAccountCreds() {
-  return [
-    process.env.VERTEX_SA_JSON,
-    process.env.GCP_SERVICE_ACCOUNT_JSON,
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
-    process.env.VERTEX_SA_JSON_BASE64,
-    process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64,
-    process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64,
-    process.env.VERTEX_SA_CLIENT_EMAIL,
-    process.env.VERTEX_SA_PRIVATE_KEY,
-  ]
-    .map((v) => String(v || "").trim())
-    .some(Boolean);
-}
-
-function isLifebookVertexEnabled() {
-  const value = String(process.env.LIFEBOOK_VERTEX_ENABLED || "").trim().toLowerCase();
-  return value === "1" || value === "true" || value === "yes";
-}
-
-function parseText(payload) {
-  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
-  for (const c of candidates) {
-    for (const p of (c?.content?.parts || [])) {
-      if (typeof p?.text === "string" && p.text.trim()) return p.text.trim();
-    }
-  }
-  return "";
-}
-
-function getFinishReason(payload) {
-  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
-  return candidates[0]?.finishReason || "";
-}
-
 function unique(values) {
   return Array.from(new Set(values.filter(Boolean)));
-}
-
-function pickLifebookModels() {
-  const configured = String(
-    process.env.LIFEBOOK_GEMINI_MODEL ||
-      process.env.VERTEX_GEMINI_MODEL ||
-      "gemini-2.5-flash"
-  )
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-
-  const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
-  return unique([...configured, ...defaults]);
-}
-
-function makeGenerationConfig(model) {
-  const isProModel = /gemini-2\.5-pro/i.test(model);
-  const isThinkingModel = /gemini-2\.5/i.test(model);
-  const generationConfig = {
-    maxOutputTokens: isProModel ? 65536 : 16384,
-    temperature: 1.0,
-  };
-  if (isThinkingModel) generationConfig.thinkingConfig = { thinkingBudget: 0 };
-  return generationConfig;
-}
-
-function getApiErrorMessage(status, payload) {
-  return String(payload?.error?.message || `Gemini 요청 실패 (${status})`);
-}
-
-function isQuotaError(status, message) {
-  if (Number(status) === 429) return true;
-  return /quota exceeded|rate limit|resource exhausted|too many requests/i.test(
-    String(message || "")
-  );
-}
-
-function isTokenLimitError(status, message) {
-  const s = Number(status);
-  if (s === 400 || s === 413) {
-    return /token|context length|prompt too long|input is too long|max input|too many tokens/i.test(
-      String(message || "")
-    );
-  }
-  return false;
-}
-
-function compactPromptText(text, maxLen = 12000) {
-  const t = String(text || "").trim();
-  if (t.length <= maxLen) return t;
-  return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
 }
 
 function normalizeSajuSourceData(body = {}) {
@@ -1311,34 +1199,19 @@ function shouldUse503FromCalendarError(body = {}) {
   return Boolean(body?.externalCalendarError) || Boolean(body?.calendarApiError);
 }
 
-async function callGeminiOnce({ endpoint, key, systemPrompt, userPrompt, model }) {
-  const response = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: makeGenerationConfig(model),
-    }),
+async function callLifebookLlm(userPrompt) {
+  const response = await callLLM({
+    prompt: userPrompt,
+    systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
+    maxTokens: 16384,
+    temperature: 1.0,
+    taskType: "pdf",
   });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    return {
-      ok: false,
-      status: response.status,
-      errorMessage: getApiErrorMessage(response.status, payload),
-      text: "",
-      finishReason: "",
-    };
-  }
 
   return {
     ok: true,
-    status: response.status,
-    errorMessage: "",
-    text: parseText(payload),
-    finishReason: getFinishReason(payload),
+    text: String(response?.text || "").trim(),
+    model: `${response.provider}/${response.model}`,
   };
 }
 
@@ -1489,200 +1362,66 @@ export async function POST(req) {
     );
     const userPrompt = buildChapterUserPrompt(promptPayload, canonicalSajuChart);
 
-    const geminiKeys = pickGeminiKeys();
-    const vertexEnabled = isLifebookVertexEnabled();
-    const hasVertexCred = vertexEnabled && hasVertexServiceAccountCreds();
-
-    if (!geminiKeys.length && !hasVertexCred) {
-      const missingKeyMessage = vertexEnabled
-        ? "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINIF_API_KEY1~4 환경변수를 확인해 주세요."
-        : "서버 API 키가 설정되지 않았습니다. GEMINIF_API_KEY1~4 환경변수를 확인해 주세요.";
-      return NextResponse.json(
-        { ok: false, message: missingKeyMessage },
-        { status: 500 }
-      );
-    }
-    const modelCandidates = pickLifebookModels();
-
     let lastError = null;
-    let lastErrorStatus = 500;
 
-    if (hasVertexCred) {
-      // 1) Vertex AI 우선 시도
-      try {
-        const vertexPrompt = `${LIFEBOOK_SYSTEM_PROMPT}\n\n${userPrompt}`;
-        const text = await callVertexGemini(vertexPrompt, {
-          temperature: 0.45,
-          maxOutputTokens: 12288,
+    try {
+      const primary = await callLifebookLlm(userPrompt);
+      const text = primary.text;
+      if (!text) {
+        throw new Error("모델 응답이 비어 있습니다.");
+      }
+
+      const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
+      if (!quality.isValid) {
+        const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
+        const retried = await callLifebookLlm(retryPrompt);
+        if (!retried.text) {
+          throw new Error(quality.errors.join(", "));
+        }
+        const retriedQuality = validateGeneratedChapterText(retried.text, promptPayload, canonicalSajuChart);
+        if (!retriedQuality.isValid) {
+          throw new Error(retriedQuality.errors.join(", "));
+        }
+        return NextResponse.json({
+          ok: true,
+          text: withSummaryTable(retried.text, canonicalSajuChart),
+          sessionId,
+          title: chapterMeta.title,
+          mode: chapterMeta.mode,
+          chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
+          minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+          model: `${retried.model}-retry`,
+          truncated: false,
+          canonicalSajuChart,
+          chapterPlan,
+          validation: canonicalValidation,
         });
-        const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
-        if (text && quality.isValid) {
-          return NextResponse.json({
-            ok: true,
-            text: withSummaryTable(text, canonicalSajuChart),
-            sessionId,
-            title: chapterMeta.title,
-            mode: chapterMeta.mode,
-            chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-            minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-            model: "vertex/service-account",
-            canonicalSajuChart,
-            chapterPlan,
-            validation: canonicalValidation,
-          });
-        }
-        if (text && text.length > 0) {
-          const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
-          const retried = await callVertexGemini(`${LIFEBOOK_SYSTEM_PROMPT}\n\n${retryPrompt}`, {
-            temperature: 0.35,
-            maxOutputTokens: 12288,
-          });
-          const retriedQuality = validateGeneratedChapterText(retried, promptPayload, canonicalSajuChart);
-          if (retried && retriedQuality.isValid) {
-            return NextResponse.json({
-              ok: true,
-              text: withSummaryTable(retried, canonicalSajuChart),
-              sessionId,
-              title: chapterMeta.title,
-              mode: chapterMeta.mode,
-              chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-              minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-              model: "vertex/service-account-retry",
-              canonicalSajuChart,
-              chapterPlan,
-              validation: canonicalValidation,
-            });
-          }
-          lastError = new Error(`Vertex AI 응답 품질 미달: ${quality.errors.join(", ") || "요건 불충족"}`);
-        }
-      } catch (e) {
-        lastError = e;
       }
-    }
 
-    // 2) Gemini API 키 + 모델 폴백
-    for (const model of modelCandidates) {
-      const geminiEndpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
-
-      const distributedKeys = rotateGeminiKeys(geminiKeys, sessionId);
-      for (const key of distributedKeys) {
-        try {
-          const primary = await callGeminiOnce({
-            endpoint: geminiEndpoint,
-            key,
-            systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
-            userPrompt,
-            model,
-          });
-
-          if (!primary.ok) {
-            if (isQuotaError(primary.status, primary.errorMessage)) lastErrorStatus = 429;
-            if (isTokenLimitError(primary.status, primary.errorMessage)) {
-              const compactTry = await callGeminiOnce({
-                endpoint: geminiEndpoint,
-                key,
-                systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
-                userPrompt: compactPromptText(userPrompt),
-                model,
-              });
-              if (compactTry.ok) {
-                const compactQuality = validateGeneratedChapterText(
-                  compactTry.text,
-                  promptPayload,
-                  canonicalSajuChart
-                );
-                if (compactQuality.isValid) {
-                  return NextResponse.json({
-                    ok: true,
-                    text: withSummaryTable(compactTry.text, canonicalSajuChart),
-                    sessionId,
-                    title: chapterMeta.title,
-                    mode: chapterMeta.mode,
-                    chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-                    minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-                    model,
-                    compactMode: true,
-                    truncated: compactTry.finishReason === "MAX_TOKENS",
-                    canonicalSajuChart,
-                    chapterPlan,
-                    validation: canonicalValidation,
-                  });
-                }
-              }
-            }
-
-            lastError = new Error(primary.errorMessage || "Gemini 호출 실패");
-            continue;
-          }
-
-          const text = primary.text;
-          if (!text) {
-            lastError = new Error("모델 응답이 비어 있습니다.");
-            continue;
-          }
-
-          const quality = validateGeneratedChapterText(text, promptPayload, canonicalSajuChart);
-          if (!quality.isValid) {
-            const retryPrompt = buildQualityRetryPrompt(userPrompt, quality.errors);
-            const retried = await callGeminiOnce({
-              endpoint: geminiEndpoint,
-              key,
-              systemPrompt: LIFEBOOK_SYSTEM_PROMPT,
-              userPrompt: retryPrompt,
-              model,
-            });
-            if (!retried.ok || !retried.text) {
-              lastError = new Error(quality.errors.join(", "));
-              continue;
-            }
-            const retriedQuality = validateGeneratedChapterText(retried.text, promptPayload, canonicalSajuChart);
-            if (!retriedQuality.isValid) {
-              lastError = new Error(retriedQuality.errors.join(", "));
-              continue;
-            }
-            return NextResponse.json({
-              ok: true,
-              text: withSummaryTable(retried.text, canonicalSajuChart),
-              sessionId,
-              title: chapterMeta.title,
-              mode: chapterMeta.mode,
-              chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-              minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-              model: `${model}-retry`,
-              truncated: retried.finishReason === "MAX_TOKENS",
-              canonicalSajuChart,
-              chapterPlan,
-              validation: canonicalValidation,
-            });
-          }
-
-          return NextResponse.json({
-            ok: true,
-            text: withSummaryTable(text, canonicalSajuChart),
-            sessionId,
-            title: chapterMeta.title,
-            mode: chapterMeta.mode,
-            chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
-            minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
-            model,
-            truncated: primary.finishReason === "MAX_TOKENS",
-            canonicalSajuChart,
-            chapterPlan,
-            validation: canonicalValidation,
-          });
-        } catch (e) {
-          lastError = e;
-        }
-      }
+      return NextResponse.json({
+        ok: true,
+        text: withSummaryTable(text, canonicalSajuChart),
+        sessionId,
+        title: chapterMeta.title,
+        mode: chapterMeta.mode,
+        chapterMinChars: LIFEBOOK_MIN_CHAPTER_CHARS,
+        minTotalChars: LIFEBOOK_MIN_TOTAL_CHARS,
+        model: primary.model,
+        truncated: false,
+        canonicalSajuChart,
+        chapterPlan,
+        validation: canonicalValidation,
+      });
+    } catch (e) {
+      lastError = e;
     }
 
     const defaultMessage = "챕터 생성에 실패했습니다.";
     const finalMessage = String(lastError?.message || defaultMessage);
-    const quotaHelp = "현재 모델 쿼터가 부족합니다. 잠시 후 다시 시도해 주세요.";
 
     return NextResponse.json(
-      { ok: false, message: lastErrorStatus === 429 ? `${finalMessage}\n${quotaHelp}` : finalMessage },
-      { status: lastErrorStatus }
+      { ok: false, message: finalMessage },
+      { status: 500 }
     );
   } catch (e) {
     return NextResponse.json(
