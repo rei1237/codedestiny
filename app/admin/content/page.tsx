@@ -24,6 +24,7 @@ import {
   Plus,
   Quote,
   RefreshCw,
+  Sparkles,
   RotateCcw,
   Save,
   Search,
