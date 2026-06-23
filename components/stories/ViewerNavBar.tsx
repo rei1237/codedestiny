@@ -47,6 +47,9 @@ export default function ViewerNavBar({
           <span>{chapterTitle}</span>
         </div>
         <div className={styles.navActions}>
+          <Link className={styles.iconButton} href="/" aria-label="메인 화면으로 이동">
+            홈
+          </Link>
           <button className={styles.iconButton} type="button" onClick={onToggleTheme} aria-label="테마 전환">
             {themeIcon(theme)}
           </button>

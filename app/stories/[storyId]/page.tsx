@@ -76,6 +76,7 @@ export default async function StoryDetailPage({ params }: StoryPageProps) {
             </div>
             <StoryProgressPanel chapters={chapters} story={story} />
             <div className={styles.actions}>
+              <Link href="/">홈 바로가기</Link>
               <Link href={firstHref}>처음부터 읽기</Link>
               <ContinueReadingButton fallbackHref={firstHref} story={story} />
             </div>

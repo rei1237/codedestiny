@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import StoriesIndex from "@/components/stories/StoriesIndex";
 import styles from "./stories.module.css";
 
@@ -14,6 +15,9 @@ export default function StoriesPage() {
   return (
     <main className={styles.page}>
       <div className={styles.inner}>
+        <Link className={styles.backLink} href="/">
+          홈 화면 바로가기
+        </Link>
         <StoriesIndex />
       </div>
     </main>
