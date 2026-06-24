@@ -34,11 +34,11 @@ function generateStars(count: number, seed = 42): Star[] {
     return {
       x: rng() * 100,
       y: rng() * 100,
-      size: sizeRoll < 0.15 ? 1.6 : sizeRoll < 0.5 ? 1 : 0.7,
-      opacity: 0.2 + rng() * 0.45,
-      twinkle: rng() < 0.2,
-      duration: 2.8 + rng() * 2.4,
-      delay: rng() * 2.8,
+      size: sizeRoll < 0.15 ? 1.8 : sizeRoll < 0.5 ? 1.1 : 0.7,
+      opacity: 0.18 + rng() * 0.5,
+      twinkle: rng() < 0.25,
+      duration: 2.5 + rng() * 3,
+      delay: rng() * 3,
     };
   });
 }
@@ -48,7 +48,7 @@ export default function StoriesIndex() {
   const [continueHref, setContinueHref] = useState("");
   const stories = getStories();
   const story = stories[0];
-  const stars = useMemo(() => generateStars(42), []);
+  const stars = useMemo(() => generateStars(55), []);
   const selectedFont = READER_BODY_FONT_OPTIONS.find((option) => option.id === settings.bodyFont) || READER_BODY_FONT_OPTIONS[0];
   const fontStyle = {
     "--story-font-display": READER_DISPLAY_FONT_STACK,
@@ -70,6 +70,7 @@ export default function StoriesIndex() {
 
   return (
     <div className={styles.stage} style={fontStyle}>
+      {/* ── Star Field ── */}
       <div className={styles.stars} aria-hidden="true">
         {stars.map((star, index) => (
           <span
@@ -89,6 +90,8 @@ export default function StoriesIndex() {
           />
         ))}
       </div>
+
+      {/* ── Hero Banner ── */}
       <header className={styles.hero}>
         <div className={styles.moonAmbient} aria-hidden="true" />
         <div className={styles.moonOrb} aria-hidden="true" />
@@ -98,7 +101,7 @@ export default function StoriesIndex() {
             <span>별빛 아래 펼쳐지는</span>
             <strong>Code Destiny Novel</strong>
           </h1>
-          <p>달빛의 결은 남기고, 읽는 피로는 덜어낸 화면으로 한 편씩 오래 머물 수 있게 정리했습니다.</p>
+          <p>달빛의 결은 남기고, 읽는 피로는 덜어낸 화면으로<br />한 편씩 오래 머물 수 있게 정리했습니다.</p>
           <div className={styles.divider} aria-hidden="true">
             <span />
             <b>◈</b>
@@ -110,19 +113,49 @@ export default function StoriesIndex() {
         </div>
       </header>
 
+      {/* ── Stats Strip ── */}
+      {story && (
+        <div className={styles.highlightStrip} aria-label="소설 현황">
+          <div className={styles.highlightItem}>
+            <div className={styles.highlightValue}>{story.totalChapters}화</div>
+            <div className={styles.highlightLabel}>공개 화수</div>
+          </div>
+          <div className={styles.highlightItem}>
+            <div className={styles.highlightValue}>무료</div>
+            <div className={styles.highlightLabel}>전편 공개</div>
+          </div>
+          <div className={styles.highlightItem}>
+            <div className={styles.highlightValue}>{sampleMinutes}분+</div>
+            <div className={styles.highlightLabel}>예상 독서</div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Featured / Grid ── */}
       {stories.length === 1 && story ? (
         <section className={styles.featuredLayout} aria-label="대표 웹소설">
           <article className={styles.featuredStoryCard}>
-            <span className={styles.featuredEyebrow}>대표 작품</span>
+            {/* Cover visual block */}
+            <div className={styles.storyCoverBlock} aria-hidden="true">
+              <div className={styles.storyCoverMoon} />
+              <div className={styles.storyCoverTitle}>
+                <div className={styles.storyCoverEyebrow}>대표 작품 · FEATURED</div>
+                <div className={styles.storyCoverName}>{story.title}</div>
+              </div>
+            </div>
+
+            <span className={styles.featuredEyebrow}>지금 연재 중</span>
             <h2>{story.title}</h2>
             <p>{story.description}</p>
             <div className={styles.featuredMeta}>
-              <span>{story.totalChapters}화 공개</span>
-              <span>무료 공개</span>
-              <span>예상 호흡 {sampleMinutes}분</span>
+              <span>📖 {story.totalChapters}화 공개</span>
+              <span>✨ 무료 전편</span>
+              <span>🌙 {sampleMinutes}분 독서</span>
             </div>
             <div className={styles.featuredActions}>
-              <Link href={continueHref || `/stories/${story.slug}`}>{continueHref ? "이어읽기" : "챕터 목록"}</Link>
+              <Link href={continueHref || `/stories/${story.slug}`}>
+                {continueHref ? "📖 이어읽기" : "목차 보기"}
+              </Link>
               <Link className={styles.secondaryAction} href={`/stories/${story.slug}/prologue`}>
                 프롤로그 열기
               </Link>
@@ -131,10 +164,13 @@ export default function StoriesIndex() {
 
           <aside className={styles.readerCard}>
             <div className={styles.readerCardHead}>
-              <span className={styles.readerCardEyebrow}>읽기 환경</span>
+              <span className={styles.readerCardEyebrow}>읽기 환경 설정</span>
               <strong>{selectedFont.label}</strong>
             </div>
-            <div className={styles.readerPreview} style={{ fontFamily: selectedFont.family, fontSize: `${settings.fontSize}px`, lineHeight: settings.lineHeight }}>
+            <div
+              className={styles.readerPreview}
+              style={{ fontFamily: selectedFont.family, fontSize: `${settings.fontSize}px`, lineHeight: settings.lineHeight }}
+            >
               별빛은 잔잔하게 흐르고, 문장은 오래 머무를수록 더 또렷해집니다.
             </div>
             <div className={styles.readerStats}>
@@ -169,7 +205,7 @@ export default function StoriesIndex() {
             </div>
             <div className={styles.readerScaleRow}>
               <button className={styles.readerScaleButton} type="button" onClick={() => updateSetting("fontSize", Math.max(14, settings.fontSize - 1))}>
-                A-
+                A−
               </button>
               <div className={styles.readerScaleTrack}>
                 <span style={{ width: `${((settings.fontSize - 14) / 10) * 100}%` }} />
