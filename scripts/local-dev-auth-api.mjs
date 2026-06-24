@@ -9,14 +9,16 @@ function cleanBearerToken(value) {
   return clean(value).replace(/^Bearer\s+/i, "");
 }
 
-function loadEnvFile(path) {
+function loadEnvFile(path, override = true) {
   if (!existsSync(path)) return;
   const text = readFileSync(path, "utf8");
   for (const line of text.split(/\r?\n/)) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    // = 뿐만 아니라 : 구분자도 파싱할 수 있도록 개선
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*[=:]\s*(.*)\s*$/);
     if (!match) continue;
     const key = match[1];
-    if (process.env[key]) continue;
+    // override가 false이고 기존 유효값이 있으면 건너뜀
+    if (!override && process.env[key] !== undefined && process.env[key] !== "") continue;
     let value = match[2].trim();
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
@@ -28,10 +30,10 @@ function loadEnvFile(path) {
   }
 }
 
-loadEnvFile(".env");
-loadEnvFile(".env.local");
-loadEnvFile(".env.cloudflare.local");
-loadEnvFile(".dev.vars");
+loadEnvFile(".env", true);
+loadEnvFile(".env.local", true);
+loadEnvFile(".env.cloudflare.local", true);
+loadEnvFile(".dev.vars", true);
 
 const worker = (await import("../worker/index.js")).default;
 
@@ -97,12 +99,6 @@ function createLocalWorkersAiBinding(env) {
       throw new Error(`local_workers_ai_failed:${lastError || "Workers AI authentication failed"}`);
     },
   };
-}
-
-// .env 파싱 실패 보완: MONGO_URI가 없을 때 .env.cloudflare.local에서 재파싱
-if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
-  loadEnvFile(".env.cloudflare.local");
-  loadEnvFile(".dev.vars");
 }
 
 const workerEnv = {
