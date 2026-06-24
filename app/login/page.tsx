@@ -150,11 +150,13 @@ export default function LoginPage() {
     clearAuthError();
     setLoginSubmitting(true);
     setLoginStatus("loading");
-    setPortalMessage("당신의 운명 데이터를 안전하게 불러오고 있습니다.");
+    setPortalMessage("별빛 포털에 연결하는 중...");
 
     try {
       const params = new URLSearchParams(window.location.search);
       const nextPath = resolveNextPathFromQuery(params);
+
+      setPortalMessage("당신의 운명 데이터를 안전하게 불러오고 있습니다.");
       const loginResult = await loginWithStore({
         email: normalizedId,
         password,
@@ -163,7 +165,15 @@ export default function LoginPage() {
       });
 
       setLoginStatus("success");
-      setPortalMessage("별빛 여정이 시작되었습니다.");
+      setPortalMessage("인증이 완료되었습니다. 프로필 카드를 불러오는 중...");
+      await new Promise((resolve) => setTimeout(resolve, 700));
+
+      setPortalMessage("별자리가 정렬되고 있습니다...");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      setPortalMessage("별빛 여정이 시작되었습니다. 메인 화면으로 이동합니다.");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const resolvedNextPath = sanitizeNextPath(loginResult.nextPath || null) || nextPath;
       if (IS_DEV) console.debug("[auth] redirect to home");
       redirectAfterAuth(resolvedNextPath, loginResult.user as LoginResult["user"]);

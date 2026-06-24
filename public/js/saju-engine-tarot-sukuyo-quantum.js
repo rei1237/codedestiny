@@ -1,4 +1,4 @@
-﻿/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
+/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
  * 로드 순서: js/saju-engine.js → (본 파일) → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js
  * 알고리즘/데이터는 원본과 동일하게 유지 (이동만). */
 var TAROT_DATA = [
@@ -378,6 +378,23 @@ function isMyeongriTarotThreeCardGateGranted(result) {
     || !!payload.accessGrant;
 }
 
+function _myeongriTarotExitFullscreenForPayment() {
+  var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+  if (!isFs) return Promise.resolve(false);
+  var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if (!exit) return Promise.resolve(false);
+  return exit.call(document).then(function() { return true; }).catch(function() { return false; });
+}
+
+function _myeongriTarotRestoreFullscreen() {
+  var overlay = document.getElementById('tarotModalOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  var w = window.innerWidth || document.documentElement.clientWidth;
+  if (w <= 768) return;
+  var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
+  if (req) req.call(overlay).catch(function() {});
+}
+
 function requireMyeongriTarotThreeCardPayment(onGranted) {
   if (myeongriTarotThreeCardPaymentPending) return true;
   if (typeof window._cdOpenPaidServiceGate !== 'function') {
@@ -391,19 +408,22 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
     finalBtn.disabled = true;
     finalBtn.textContent = '결제 확인 중';
   }
-  window._cdOpenPaidServiceGate({
-    title: MYEONGRI_TAROT_THREE_CARD_TITLE,
-    reason: MYEONGRI_TAROT_THREE_CARD_TITLE,
-    categoryKey: 'tarot',
-    subFeatureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
-    featureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
-    action: 'showTarotFinalInterpretation',
-    coinPrice: MYEONGRI_TAROT_THREE_CARD_COST,
-    cost: MYEONGRI_TAROT_THREE_CARD_COST,
-    amountKrw: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
-    paymentAmount: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
-    requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+  _myeongriTarotExitFullscreenForPayment().then(function() {
+    return window._cdOpenPaidServiceGate({
+      title: MYEONGRI_TAROT_THREE_CARD_TITLE,
+      reason: MYEONGRI_TAROT_THREE_CARD_TITLE,
+      categoryKey: 'tarot',
+      subFeatureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
+      featureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY,
+      action: 'showTarotFinalInterpretation',
+      coinPrice: MYEONGRI_TAROT_THREE_CARD_COST,
+      cost: MYEONGRI_TAROT_THREE_CARD_COST,
+      amountKrw: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
+      paymentAmount: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
+      requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+    });
   }).then(function(result) {
+    _myeongriTarotRestoreFullscreen();
     if (isMyeongriTarotThreeCardGateGranted(result)) {
       if (typeof onGranted === 'function') onGranted(result);
       return;
@@ -412,6 +432,7 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
       window.alert('5,000원 결제가 끝나야 세 장의 흐름이 열립니다.');
     }
   }).catch(function(error) {
+    _myeongriTarotRestoreFullscreen();
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
     window.alert(message);
   }).then(function() {

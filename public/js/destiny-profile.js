@@ -529,11 +529,10 @@
   ────────────────────────────────────────── */
   function _dpReadStoredAuthToken() {
     try {
-      localStorage.removeItem('fortune_auth_token');
-      sessionStorage.removeItem('fortune_auth_token');
+      return localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token') || '';
     } catch (e) {
+      return '';
     }
-    return '';
   }
 
   function _dpGetAuthToken() {

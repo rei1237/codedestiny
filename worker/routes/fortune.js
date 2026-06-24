@@ -715,10 +715,10 @@ async function findAIPromptDirectPaymentEvidence({ auth, featureKey, body, reque
 }
 
 async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost, env }) {
+  if (env) await connectDb(env);
   if (isAIPromptPassAccessPayload(body)) {
     const userId = String(auth?.userId || "").trim();
     if (!userId) return null;
-    if (env) await connectDb(env);
     const passUser = await User.findById(userId)
       .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
       .lean();
@@ -3247,6 +3247,7 @@ async function handleSajuAIPrompt(request, auth, env) {
   }
 
   const preflightRequestId = readAIPromptRequestId(body, "");
+  if (env) await connectDb(env);
   const preflightAccess = await findAIPromptPaidAccessEvidence({
     auth,
     featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
@@ -3395,6 +3396,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
     body,
     requestId: preflightRequestId,
     cost: ZIWEI_AI_PROMPT_PRICE,
+    env,
   });
   if (!preflightAccess) {
     return buildZiweiAIPromptError(

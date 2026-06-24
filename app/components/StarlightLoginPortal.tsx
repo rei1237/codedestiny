@@ -119,6 +119,30 @@ export default function StarlightLoginPortal({ status, message, error }: Starlig
         {status === "loading" ? (
           <p className="mt-4 text-xs font-semibold tracking-[0.16em] text-amber-200/85">STARLIGHT LOGIN PORTAL</p>
         ) : null}
+
+        {status === "success" ? (
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="flex w-full items-center gap-3 rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 backdrop-blur-sm">
+              <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-gradient-to-br from-violet-400/50 to-indigo-400/50" />
+              <div className="flex flex-1 flex-col items-start gap-1.5">
+                <div className="h-2.5 w-24 animate-pulse rounded-full bg-violet-300/40" />
+                <div className="h-2 w-16 animate-pulse rounded-full bg-violet-300/25" />
+              </div>
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-400/20">
+                <span className="text-xs text-emerald-300">✓</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-violet-300/60"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

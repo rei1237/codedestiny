@@ -36,7 +36,7 @@ loadEnvFile(".dev.vars");
 const worker = (await import("../worker/index.js")).default;
 
 const host = process.env.LOCAL_DEV_AUTH_API_HOST || "127.0.0.1";
-const port = Number(process.env.LOCAL_DEV_AUTH_API_PORT || process.env.PORT || 4000);
+const port = Number(process.env.LOCAL_DEV_AUTH_API_PORT || process.env.PORT || 8790);
 const frontendBase = process.env.LOCAL_DEV_AUTH_FRONTEND_BASE_URL || "http://127.0.0.1:3000";
 
 function createLocalWorkersAiBinding(env) {
@@ -97,6 +97,12 @@ function createLocalWorkersAiBinding(env) {
       throw new Error(`local_workers_ai_failed:${lastError || "Workers AI authentication failed"}`);
     },
   };
+}
+
+// .env 파싱 실패 보완: MONGO_URI가 없을 때 .env.cloudflare.local에서 재파싱
+if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+  loadEnvFile(".env.cloudflare.local");
+  loadEnvFile(".dev.vars");
 }
 
 const workerEnv = {
