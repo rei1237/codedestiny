@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DestinyIconName } from "./icons/DestinyIcon";
 import FeatureSymbol from "./icons/FeatureSymbol";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 type Badge = {
   text: string;
@@ -104,9 +105,13 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
     }
   };
 
+  const resolvedImage = item.image
+    ? getAssetUrlFromPublicPath(item.image, { fallbackPublicPath: item.image })
+    : undefined;
+
   return (
     <article
-      className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-slate-100/15 bg-[linear-gradient(160deg,rgba(8,18,42,0.94),rgba(16,31,62,0.92)_56%,rgba(27,29,62,0.92))] p-4 shadow-[0_14px_34px_rgba(5,11,29,0.45)] transition duration-300 hover:-translate-y-1 hover:border-sky-100/40 hover:shadow-[0_22px_48px_rgba(7,18,46,0.58)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-slate-100/15 bg-[linear-gradient(160deg,rgba(8,18,42,0.94),rgba(16,31,62,0.92)_56%,rgba(27,29,62,0.92))] p-4 shadow-[0_14px_34px_rgba(5,11,29,0.45)] transition duration-300 hover:-translate-y-1 hover:border-sky-100/40 hover:shadow-[0_22px_48px_rgba(7,18,46,0.58)]]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
     >
@@ -120,9 +125,13 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
         </h3>
       </div>
 
-      {item.image && (
+      {resolvedImage && (
         <div className="relative mb-3 overflow-hidden rounded-xl border border-slate-100/15">
-          <img src={item.image} alt={item.title} className="h-28 w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+          <img
+            src={resolvedImage}
+            alt={item.title}
+            className="h-28 w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+          />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 to-transparent" aria-hidden />
         </div>
       )}
