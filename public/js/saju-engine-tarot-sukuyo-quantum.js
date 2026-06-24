@@ -402,9 +402,6 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
     cost: MYEONGRI_TAROT_THREE_CARD_COST,
     amountKrw: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
     paymentAmount: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
-    allowedPaymentModes: ['direct'],
-    disablePassFirst: true,
-    disablePassChoice: true,
     requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
   }).then(function(result) {
     if (isMyeongriTarotThreeCardGateGranted(result)) {

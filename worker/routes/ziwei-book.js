@@ -4375,6 +4375,7 @@ async function handlePrepareSync(request, env) {
   }
   console.info("[ZiweiPremiumPDF][LocalCalculationSuccess]", { palaceCount: seed?.chart?.palaces?.length || 0 });
   const ziweiMasterJson = buildZiweiMasterJson(profile, seed, body);
+  const requestedChapterSpecs = safeArray(body?.chapterSpecs || body?.ziweiMasterJson?.chapterSpecs || ziweiMasterJson.chapterSpecs);
   const masterJsonValidation = validateZiweiMasterJson(ziweiMasterJson);
   console.info("[ZiweiBook][Flow] ZIWEI_CHAPTER_PLAN_LOADED", {
     chapterCount: CHAPTER_BLUEPRINTS.length,
@@ -4488,6 +4489,7 @@ async function handlePrepareSync(request, env) {
         sessionId,
         birthHash,
         featureKey,
+        chapterSpecs: requestedChapterSpecs,
         ziweiMasterJson,
         masterJsonValidation,
       });

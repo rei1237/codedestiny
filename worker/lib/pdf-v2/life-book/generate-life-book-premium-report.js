@@ -5,12 +5,18 @@ import {
   LIFE_BOOK_PREMIUM_WRITING_PIPELINE,
   buildLifeBookLlmAssembly,
   clean,
+  asArray,
   hashStable,
   logLifeBookPdfEvent,
   safeObject,
 } from "./life-book-premium.types.js";
 import { normalizeLifeBookPremiumInput } from "./life-book-premium.normalizer.js";
-import { assertLifeBookPremiumChapterPlan, lifeBookPremiumChapterPlanV1 } from "./life-book-premium.chapter-plan.js";
+import {
+  LIFE_BOOK_PREMIUM_CHAPTER_CONTRACT,
+  assertLifeBookPremiumChapterPlan,
+  getLifeBookPremiumChapterContractByChapterId,
+  lifeBookPremiumChapterPlanV1,
+} from "./life-book-premium.chapter-plan.js";
 import {
   LIFE_BOOK_PREMIUM_PROMPT_VERSION,
   buildLifeBookChapterPrompt,
@@ -48,13 +54,32 @@ async function writeChapterCache(env, key, value) {
   }
 }
 
-export function buildLifeBookPremiumChapterCacheKey({ normalizedInputHash, chapterId, modelName }) {
+async function invalidateChapterCache(env, key) {
+  CHAPTER_CACHE.delete(key);
+  const store = readCacheStore(env);
+  if (!store?.delete) return;
+  try {
+    await store.delete(key);
+  } catch (_) {}
+}
+
+function buildChapterContractHash(chapterContract = {}) {
+  return hashStable({
+    chapterId: clean(chapterContract.chapterId || chapterContract.id),
+    sectionIds: asArray(chapterContract.sections).map((item) => clean(item.sectionId)),
+    sectionTitles: asArray(chapterContract.sections).map((item) => clean(item.sectionTitle)),
+  });
+}
+
+export function buildLifeBookPremiumChapterCacheKey({ normalizedInputHash, chapterId, modelName, chapterContract }) {
+  const chapterContractHash = buildChapterContractHash(chapterContract);
   return `life-book-premium:${hashStable({
     serviceType: "life-book-premium",
     engineVersion: LIFE_BOOK_PREMIUM_ENGINE_VERSION,
     qualityVersion: LIFE_BOOK_PREMIUM_QUALITY_VERSION,
     chapterPlanVersion: lifeBookPremiumChapterPlanV1.version,
     promptVersion: LIFE_BOOK_PREMIUM_PROMPT_VERSION,
+    chapterContractVersion: chapterContractHash,
     modelName,
     normalizedInputHash,
     chapterId,
@@ -74,15 +99,27 @@ function buildChapterPlanSummary() {
     .join("\n");
 }
 
-async function generateChapter({ env, input, chapter, normalizedInputHash, modelName, jobId, userId, onProgress }) {
-  const cacheKey = buildLifeBookPremiumChapterCacheKey({ normalizedInputHash, chapterId: chapter.id, modelName });
+async function generateChapter({
+  env,
+  input,
+  chapter,
+  chapterContract = null,
+  normalizedInputHash,
+  modelName,
+  jobId,
+  userId,
+  onProgress,
+}) {
+  const chapterContractHash = buildChapterContractHash(chapterContract || chapter);
+  const cacheKey = buildLifeBookPremiumChapterCacheKey({ normalizedInputHash, chapterId: chapter.id, modelName, chapterContract });
   const cached = await readChapterCache(env, cacheKey);
   if (cached?.html) {
-    const validation = validateLifeBookPremiumChapterHtml(cached.html, chapter);
+    const validation = validateLifeBookPremiumChapterHtml(cached.html, chapterContract || chapter);
     const cacheValid = validation.ok
       && clean(cached.promptVersion) === LIFE_BOOK_PREMIUM_PROMPT_VERSION
       && clean(cached.chapterPlanVersion) === lifeBookPremiumChapterPlanV1.version
-      && clean(cached.qualityVersion) === LIFE_BOOK_PREMIUM_QUALITY_VERSION;
+      && clean(cached.qualityVersion) === LIFE_BOOK_PREMIUM_QUALITY_VERSION
+      && clean(cached.chapterContractHash) === chapterContractHash;
     logLifeBookPdfEvent("LIFE_BOOK_CHAPTER_SOURCE_CHECK", {
       jobId,
       userId,
@@ -93,21 +130,34 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
       promptVersion: LIFE_BOOK_PREMIUM_PROMPT_VERSION,
       chapterPlanVersion: lifeBookPremiumChapterPlanV1.version,
     });
+    if (!cacheValid) {
+      await invalidateChapterCache(env, cacheKey);
+    }
     if (cacheValid) {
-      const parsed = parseLifeBookPremiumChapterHtml(validation.html, chapter);
+      const parsed = parseLifeBookPremiumChapterHtml(validation.html, chapterContract || chapter);
       parsed.provider = cached.provider || "cache";
       parsed.cached = true;
-      return { ok: true, parsed, provider: parsed.provider, status: "cached", source: "llm-cache", attempts: [] };
+      parsed.contractHash = cached.chapterContractHash || chapterContractHash;
+      return {
+        ok: true,
+        parsed,
+        provider: parsed.provider,
+        model: clean(cached.modelName || modelName),
+        status: "cached",
+        source: "llm-cache",
+        attempts: [],
+      };
     }
   }
 
   const providers = resolveLifeBookLlmProviders(env);
-  const repairLimit = Math.max(0, Number(env?.LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT ?? 3));
+  const repairLimit = Math.min(2, Math.max(0, Number(env?.LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT ?? 2)));
   const attempts = [];
   let previousHtml = "";
   let prompt = buildLifeBookChapterPrompt({
     input,
     chapter,
+    chapterContract,
     chapterPlanSummary: buildChapterPlanSummary(),
   });
 
@@ -123,9 +173,12 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
   if (typeof onProgress === "function") onProgress({ stage: "llm", chapter });
 
   for (const provider of providers) {
+    const providerModelName = resolveLifeBookModelName(env, provider);
+    const activeModelName = providerModelName || modelName;
     prompt = buildLifeBookChapterPrompt({
       input,
       chapter,
+      chapterContract,
       chapterPlanSummary: buildChapterPlanSummary(),
     });
     for (let retry = 0; retry <= repairLimit; retry += 1) {
@@ -134,6 +187,7 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
         provider,
         systemPrompt: lifeBookSystemPrompt,
         userPrompt: prompt,
+        model: activeModelName,
         temperature: 0.68,
         maxTokens: Number(env?.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
         requestId: `${jobId}:${chapter.id}:${retry}`,
@@ -153,7 +207,7 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
           userId,
           chapterId: chapter.id,
           provider: result.provider || provider,
-          modelName: result.model || modelName,
+          modelName: result.model || activeModelName || modelName,
           status: "provider_failed",
           durationMs: attempt.durationMs,
           errorCode: attempt.errorCode,
@@ -164,41 +218,60 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
       }
 
       previousHtml = String(result.text || "").trim();
-      const validation = validateLifeBookPremiumChapterHtml(previousHtml, chapter);
+      const validation = validateLifeBookPremiumChapterHtml(previousHtml, chapterContract || chapter);
       if (validation.ok) {
         await writeChapterCache(env, cacheKey, {
           html: validation.html,
           provider: result.provider || provider,
-          modelName: result.model || modelName,
+          modelName: result.model || activeModelName || modelName,
           promptVersion: LIFE_BOOK_PREMIUM_PROMPT_VERSION,
           chapterPlanVersion: lifeBookPremiumChapterPlanV1.version,
+          chapterContractHash,
           qualityVersion: LIFE_BOOK_PREMIUM_QUALITY_VERSION,
           storedAt: new Date().toISOString(),
         });
-        const parsed = parseLifeBookPremiumChapterHtml(validation.html, chapter);
+        const parsed = parseLifeBookPremiumChapterHtml(validation.html, chapterContract || chapter);
         parsed.provider = result.provider || provider;
+        parsed.model = clean(result.model || activeModelName);
         parsed.cached = false;
+        parsed.contractHash = chapterContractHash;
         logLifeBookPdfEvent("LIFE_BOOK_LLM_GENERATION_COMPLETED", {
           jobId,
           userId,
           chapterId: chapter.id,
           status: "completed",
           provider: result.provider || provider,
-          modelName: result.model || modelName,
+          modelName: result.model || activeModelName || modelName,
           durationMs: attempt.durationMs,
         });
-        return { ok: true, parsed, provider: result.provider || provider, status: "completed", source: "llm", attempts };
+        return {
+          ok: true,
+          parsed,
+          provider: result.provider || provider,
+          model: clean(result.model || activeModelName || modelName),
+          status: "completed",
+          source: "llm",
+          attempts,
+        };
       }
 
       attempt.ok = false;
       attempt.errorCode = "validation_failed";
       attempt.issues = validation.issues;
+      attempt.validation = {
+        missingCategories: validation.missingCategories,
+        extraCategories: validation.extraCategories,
+        orderIssues: validation.orderIssues,
+        matchedCount: validation.matchedCount,
+        confidence: validation.confidence,
+        chapterContractHash,
+      };
       logLifeBookPdfEvent("LIFE_BOOK_VALIDATION_FAILED", {
         jobId,
         userId,
         chapterId: chapter.id,
         provider,
-        modelName: result.model || modelName,
+        modelName: result.model || activeModelName || modelName,
         status: "validation_failed",
         durationMs: attempt.durationMs,
         errorCode: "validation_failed",
@@ -210,14 +283,15 @@ async function generateChapter({ env, input, chapter, normalizedInputHash, model
           userId,
           chapterId: chapter.id,
           provider,
-          modelName: result.model || modelName,
+          modelName: result.model || activeModelName || modelName,
           status: "repair",
         });
         prompt = buildLifeBookRepairPrompt({
           input,
           chapter,
+          chapterContract,
           previousHtml,
-          validationErrors: validation.issues,
+          validationErrors: validation,
         });
       }
     }
@@ -244,17 +318,19 @@ export async function generateLifeBookPremiumReport(params = {}) {
     chapterPlanVersion: lifeBookPremiumChapterPlanV1.version,
   });
 
-  const modelName = resolveLifeBookModelName(env);
+  let modelName = resolveLifeBookModelName(env, "gemini");
+  let provider = "";
   const normalizedInputHash = normalizedInput.normalizedInputHash;
   const chapters = [];
   const chapterAttempts = [];
-  let provider = "";
 
   for (const chapter of lifeBookPremiumChapterPlanV1.chapters) {
+    const chapterContract = getLifeBookPremiumChapterContractByChapterId(chapter.id, LIFE_BOOK_PREMIUM_CHAPTER_CONTRACT) || null;
     const generated = await generateChapter({
       env,
       input: normalizedInput,
       chapter,
+      chapterContract,
       normalizedInputHash,
       modelName,
       jobId,
@@ -269,6 +345,7 @@ export async function generateLifeBookPremiumReport(params = {}) {
         details: generated,
       });
     }
+    modelName = clean(generated.model || modelName);
     provider = provider || generated.provider;
     chapters.push(generated.parsed);
   }

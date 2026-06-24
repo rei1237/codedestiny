@@ -207,8 +207,9 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
         storyTitle={story.title}
         theme={settings.theme}
       />
-      <ReadingProgressBar progress={lastPosition} />
-      <article className={styles.content}>
+      <section className={styles.readerCanvas}>
+        <ReadingProgressBar progress={lastPosition} />
+        <article className={styles.content}>
         <header className={styles.chapterHead}>
           <span className={styles.chapterKicker}>{formatChapterLabel(chapter.chapterNumber)}</span>
           <h1>{chapter.title}</h1>
@@ -249,7 +250,8 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
             </p>
           );
         })}
-      </article>
+        </article>
+      </section>
       <ViewerSettingsPanel
         onApplyPreset={applyPreset}
         onChange={updateSetting}

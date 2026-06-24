@@ -20,6 +20,43 @@ export interface IStory {
   updatedAt: string;
 }
 
+export type StoryAct = "1막" | "2막" | "3막" | "4막" | "5막";
+
+export interface SceneFixInput {
+  targetScene: string;
+  currentProblem: string;
+  causalLink: string;
+  targetTone: string;
+  misunderstanding: string;
+  delay: string;
+  fallout: string;
+  nextHook: string;
+  forbiddenChecks: string[];
+}
+
+export interface SceneFixCheck {
+  key: string;
+  label: string;
+  pass: boolean;
+  memo: string;
+}
+
+export interface SceneFixOutput {
+  revisedText: string;
+  reasonSummary: string[];
+  checks: SceneFixCheck[];
+}
+
+export interface SceneRevisionRecord {
+  sceneId: string;
+  chapterNumber: number;
+  sceneTitle: string;
+  act: StoryAct;
+  input: SceneFixInput;
+  output: SceneFixOutput;
+  actGuide: string;
+}
+
 export interface IChapter {
   _id: string;
   storyId: string;
@@ -31,6 +68,7 @@ export interface IChapter {
   viewCount: number;
   publishedAt: string;
   createdAt: string;
+  revision?: SceneRevisionRecord;
 }
 
 export interface ChapterNav {

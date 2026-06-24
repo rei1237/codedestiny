@@ -38,6 +38,12 @@
   animation: starlightDrift 18s ease-in-out infinite alternate;
 }
 
+.readerCanvas {
+  width: min(var(--reader-width), calc(100vw - 2.6rem));
+  margin: 0 auto;
+  padding: 88px 0 9rem;
+}
+
 @keyframes starlightDrift {
   from { background-position: 0 0, 0 0, 0 0, 0 0; }
   to { background-position: 28px 18px, -34px 22px, 18px -28px, 0 0; }
@@ -136,31 +142,35 @@
 }
 
 .progressWrap {
-  position: fixed;
-  top: 58px;
-  right: 0;
-  left: 0;
-  z-index: 35;
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  width: 100%;
+  margin: 0 0 0.9rem;
   padding: 0;
   background: transparent;
 }
 
 .progressTrack {
-  height: 3px;
+  height: 4px;
   background: color-mix(in srgb, var(--reader-accent) 12%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(196, 181, 253, 0.16);
 }
 
 .progressFill {
   height: 100%;
   background: linear-gradient(90deg, var(--reader-accent), color-mix(in srgb, var(--reader-accent) 72%, #e2d9f3));
   transition: width 160ms ease;
+  border-radius: inherit;
 }
 
 .content {
-  max-width: var(--reader-width);
+  max-width: 100%;
   min-height: 100dvh;
-  margin: 0 auto;
-  padding: 116px 1.5rem 9rem;
+  margin: 0;
+  padding: 0 0 9rem;
   color: var(--reader-text);
   font-family: var(--reader-body-font);
   font-size: var(--reader-font-size);
@@ -482,6 +492,12 @@
 }
 
 @media (max-width: 768px) {
+  .readerCanvas {
+    width: calc(100vw - 1.35rem);
+    padding-top: 74px;
+    padding-bottom: 8.5rem;
+  }
+
   .topNav {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 8px;

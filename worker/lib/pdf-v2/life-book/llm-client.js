@@ -48,13 +48,15 @@ export function resolveLifeBookLlmProviders(env = {}) {
   return unique;
 }
 
-export function resolveLifeBookModelName(env = {}) {
+export function resolveLifeBookModelName(env = {}, provider = "gemini") {
+  const normalizedProvider = clean(provider).toLowerCase();
+  if (normalizedProvider === "workers-ai" || normalizedProvider === "workersai") {
+    return clean(env?.LIFE_BOOK_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL);
+  }
   return clean(
-    env?.LIFE_BOOK_PREMIUM_WORKERS_AI_MODEL
-    || env?.WORKERS_AI_MODEL
-    || env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL
+    env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL
     || env?.GEMINI_MODEL
-    || "workers-ai-gemini",
+    || "gemini-2.5-flash",
   );
 }
 
@@ -73,6 +75,7 @@ async function callWorkersAi(params, env) {
     const result = await withTimeout(callLLM({
       prompt: params.userPrompt,
       systemPrompt: params.systemPrompt,
+      model: clean(params.model),
       temperature: Number(params.temperature ?? env.LIFE_BOOK_PREMIUM_LLM_TEMPERATURE ?? 0.68),
       maxTokens: Number(params.maxTokens || env.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
       taskType: "pdf",
@@ -104,6 +107,7 @@ async function callGemini(params, env) {
     const result = await withTimeout(callLLM({
       prompt: params.userPrompt,
       systemPrompt: params.systemPrompt,
+      model: clean(params.model || env?.LIFE_BOOK_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash"),
       maxTokens: Number(params.maxTokens || env?.LIFE_BOOK_PREMIUM_GEMINI_MAX_TOKENS || env?.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
       temperature: Number(params.temperature ?? env?.LIFE_BOOK_PREMIUM_LLM_TEMPERATURE ?? 0.68),
       taskType: "pdf",

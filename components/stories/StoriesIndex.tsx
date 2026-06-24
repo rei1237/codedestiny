@@ -104,6 +104,9 @@ export default function StoriesIndex() {
             <b>◈</b>
             <span />
           </div>
+          <div className={styles.entryRibbon} aria-label="달빛 서재 모드">
+            <span>입장부터 마지막 문장까지 별빛 가독성으로 다듬은 달빛 서재 모드</span>
+          </div>
         </div>
       </header>
 

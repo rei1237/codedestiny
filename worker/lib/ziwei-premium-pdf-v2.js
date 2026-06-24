@@ -1035,6 +1035,73 @@ function parseZiweiPremiumChapterHtml(html, chapterSpec) {
   };
 }
 
+function resolveZiweiPremiumChapterPlan(input = {}) {
+  const requestedPlan = safeArray(input?.chapterSpecs || input?.ziweiMasterJson?.chapterSpecs || []);
+  if (requestedPlan.length === 0) {
+    return {
+      ok: true,
+      source: "default",
+      specs: ZIWEI_PREMIUM_CHAPTERS_V2,
+      issues: [],
+    };
+  }
+
+  const expectedPlan = ZIWEI_PREMIUM_CHAPTERS_V2;
+  const issues = [];
+  if (requestedPlan.length !== expectedPlan.length) {
+    issues.push(`chapter_plan_count_mismatch.${requestedPlan.length}`);
+  }
+
+  const specs = [];
+  for (let index = 0; index < expectedPlan.length; index += 1) {
+    const expected = expectedPlan[index];
+    const chapterSpec = safeObject(requestedPlan[index]);
+    const sourceId = clean(chapterSpec.id || chapterSpec.chapterId || "");
+    const sourceTitle = clean(chapterSpec.title || chapterSpec.chapterTitle || "");
+    const rawSections = safeArray(chapterSpec.categories).length
+      ? safeArray(chapterSpec.categories)
+      : safeArray(chapterSpec.sections);
+    const sourceSections = rawSections
+      .map((section) => clean(typeof section === "string" ? section : section?.title || section?.name || ""))
+      .filter(Boolean);
+    const expectedSections = safeArray(expected.sections).map((item) => clean(item));
+
+    if (sourceId && clean(sourceId) !== clean(expected.id)) {
+      issues.push(`chapter_plan_id_mismatch.${index + 1}`);
+    }
+    if (sourceTitle && clean(sourceTitle) !== clean(expected.title)) {
+      issues.push(`chapter_plan_title_mismatch.${index + 1}`);
+    }
+    if (Array.isArray(chapterSpec.categories) && sourceSections.length !== expectedSections.length) {
+      issues.push(`chapter_plan_section_count_mismatch.${index + 1}`);
+    }
+    if (sourceSections.length === expectedSections.length) {
+      sourceSections.forEach((sectionTitle, sectionIndex) => {
+        if (clean(sectionTitle) !== clean(expectedSections[sectionIndex])) {
+          issues.push(`chapter_plan_section_mismatch.${index + 1}.${sectionIndex + 1}`);
+        }
+      });
+    }
+
+    const sections = sourceSections.length ? sourceSections : expectedSections;
+    specs.push({
+      ...expected,
+      id: clean(expected.id),
+      title: clean(sourceTitle) || clean(expected.title),
+      purpose: clean(chapterSpec.purpose || expected.purpose),
+      minLength: Number(chapterSpec.minLength || expected.minLength) || expected.minLength,
+      sections,
+    });
+  }
+
+  return {
+    ok: issues.length === 0,
+    source: issues.length === 0 ? "request-json" : "request-json-invalid",
+    specs,
+    issues,
+  };
+}
+
 function displayChapterTitle(value = "") {
   return clean(value).replace(/^제\s*\d+\s*장\s*/, "");
 }
@@ -1057,6 +1124,8 @@ async function callWorkersAi(env, prompt, options = {}) {
     const result = await withTimeout(callLLM({
       prompt,
       systemPrompt: buildSystemPrompt(),
+      model: options.model,
+      apiEndpoint: options.apiEndpoint,
       temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
       maxTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
       taskType: "pdf",
@@ -1087,6 +1156,8 @@ async function callGemini(env, prompt, options = {}) {
     const result = await withTimeout(callLLM({
       prompt,
       systemPrompt: buildSystemPrompt(),
+      model: options.model,
+      apiEndpoint: options.apiEndpoint,
       maxTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_GEMINI_MAX_TOKENS || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
       temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || 0.72),
       taskType: "pdf",
@@ -1204,7 +1275,7 @@ function resolveProviderModelName(env = {}, provider = "") {
     return clean(env?.ZIWEI_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct");
   }
   if (provider === "gemini") {
-    return clean(env?.ZIWEI_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini");
+    return clean(env?.ZIWEI_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
   }
   return clean(provider || "unknown");
 }
@@ -1235,9 +1306,15 @@ function logZiweiPdfEvent(event, data = {}) {
 }
 
 async function generateChapter(env, facts, chapterSpec, previousSummary) {
+  const geminiModelName = resolveProviderModelName(env, "gemini");
+  const geminiEndpoint = clean(
+    env?.ZIWEI_PREMIUM_GEMINI_ENDPOINT || env?.PREMIUM_GEMINI_ENDPOINT || "",
+  );
   const providers = resolveLlmProviders(env);
   for (const cacheProvider of providers) {
-    const cacheModelName = resolveProviderModelName(env, cacheProvider);
+    const cacheModelName = cacheProvider === "workers-ai"
+      ? geminiModelName
+      : resolveProviderModelName(env, cacheProvider);
     const cacheKey = buildCacheKey(facts, chapterSpec, `${cacheProvider}:${cacheModelName}`);
     const cached = await readCache(env, cacheKey);
     if (cached?.html) {
@@ -1280,14 +1357,31 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
   });
 
   for (const provider of providers) {
-    const modelName = resolveProviderModelName(env, provider);
+    const modelName = provider === "workers-ai" ? geminiModelName : resolveProviderModelName(env, provider);
+    const modelEndpoint = geminiEndpoint;
     const cacheKey = buildCacheKey(facts, chapterSpec, `${provider}:${modelName}`);
     let prompt = buildChapterPrompt({ facts, chapterSpec, previousSummary });
     let previousHtml = "";
     for (let retry = 0; retry <= repairLimit; retry += 1) {
       const result = provider === "workers-ai"
-        ? await callWorkersAi(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}` })
-        : await callGemini(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}` });
+        ? await callWorkersAi(
+          env,
+          prompt,
+          {
+            requestId: `${facts.requestId}:${chapterSpec.id}`,
+            model: modelName,
+            apiEndpoint: modelEndpoint,
+          },
+        )
+        : await callGemini(
+          env,
+          prompt,
+          {
+            requestId: `${facts.requestId}:${chapterSpec.id}`,
+            model: modelName,
+            apiEndpoint: modelEndpoint,
+          },
+        );
       const attempt = {
         provider,
         retry,
@@ -1653,6 +1747,14 @@ export function buildZiweiChapterQualityReport(chapters = []) {
 
 export async function generateZiweiPremiumReport(env = {}, input = {}, options = {}) {
   const facts = normalizeFacts(input);
+  const chapterPlan = resolveZiweiPremiumChapterPlan(input);
+  if (!chapterPlan.ok) {
+    throw Object.assign(new Error("자미두수 PDF 챕터 플랜 검증에 실패했습니다."), {
+      status: 422,
+      code: "ZIWEI_CHAPTER_PLAN_INVALID",
+      detail: chapterPlan,
+    });
+  }
   if (ZIWEI_PREMIUM_CHAPTERS_V2.length !== ZIWEI_PDF_CHAPTER_COUNT) {
     throw Object.assign(new Error("자미두수 PDF 챕터 구성이 완성되지 않았습니다."), {
       status: 500,
@@ -1665,7 +1767,7 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
   let previousSummary = "";
   const providerSet = new Set();
 
-  for (const chapterSpec of ZIWEI_PREMIUM_CHAPTERS_V2) {
+  for (const chapterSpec of chapterPlan.specs) {
     const result = await generateChapter(env, facts, chapterSpec, previousSummary);
     if (!result.ok) {
       failedChapters.push({
@@ -1726,6 +1828,7 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     enabled: true,
     source: ZIWEI_PDF_CONFIG.generationMode,
     provider,
+    chapterPlanSource: chapterPlan.source,
     templateVersion: ZIWEI_PDF_CONFIG.templateVersion,
     chapterCount: generated.length,
     expectedChapterCount: ZIWEI_PDF_CHAPTER_COUNT,
@@ -1775,6 +1878,7 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
     generationMode: ZIWEI_PDF_CONFIG.generationMode,
     provider,
+    chapterPlanSource: chapterPlan.source,
     writingPipeline: "ziwei-calculation-to-llm-authored-pdf",
     llmAssembly,
     llmDraftChapterCount: generated.length,

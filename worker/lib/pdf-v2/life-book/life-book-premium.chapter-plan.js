@@ -111,6 +111,44 @@ export const lifeBookPremiumChapterPlanV1 = Object.freeze({
   ]),
 });
 
+const chapterPlanContractVersion = "life-book-premium-chapter-contract-v1";
+
+export function buildLifeBookPremiumChapterContract(plan = lifeBookPremiumChapterPlanV1) {
+  const chapters = asArray(plan.chapters).map((chapter) => {
+    const chapterId = clean(chapter.id);
+    const focus = asArray(chapter.focus);
+    const sections = asArray(chapter.sections).map((section, index) => ({
+      chapterId,
+      sectionId: `${chapterId}-${String(index + 1).padStart(2, "0")}`,
+      sectionTitle: clean(section),
+      sectionIntent: clean(focus[index] || section, 200),
+      sectionOrder: index + 1,
+    }));
+    return {
+      chapterId,
+      chapterOrder: Number.isFinite(Number(chapter.order)) ? Number(chapter.order) : 0,
+      chapterTitle: clean(chapter.title),
+      chapterTitleIntent: clean(chapter.title),
+      sections,
+      contractSections: sections.length,
+    };
+  });
+  return Object.freeze({
+    contractVersion: chapterPlanContractVersion,
+    chapterPlanVersion: clean(plan.version),
+    language: clean(plan.language || "ko"),
+    chapterCount: chapters.length,
+    chapters: Object.freeze(chapters),
+  });
+}
+
+export const LIFE_BOOK_PREMIUM_CHAPTER_CONTRACT = buildLifeBookPremiumChapterContract(lifeBookPremiumChapterPlanV1);
+
+export function getLifeBookPremiumChapterContractByChapterId(chapterId, contract = LIFE_BOOK_PREMIUM_CHAPTER_CONTRACT) {
+  const target = clean(chapterId);
+  return asArray(contract.chapters).find((entry) => clean(entry.chapterId) === target) || null;
+}
+
 export function assertLifeBookPremiumChapterPlan(plan = lifeBookPremiumChapterPlanV1) {
   const chapters = asArray(plan.chapters);
   if (chapters.length !== 13) {

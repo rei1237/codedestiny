@@ -572,11 +572,50 @@ export default function SajuLifebookPage() {
           : (gateRaw?.consume && typeof gateRaw.consume === "object")
             ? gateRaw.consume
             : null;
+      const reportContextSessionId = String(
+        accessGrant?.sessionId
+        || accessGrant?.reportSessionId
+        || reportSessionId
+        || "",
+      ).trim();
+      const reportContextRequestId = requestId;
+      const reportContextPurchaseId = String(
+        accessGrant?.purchaseId
+        || accessGrant?.transactionId
+        || accessGrant?.sourceTransactionId
+        || payment?.purchaseId
+        || payment?.transactionId
+        || payment?.id
+        || payment?._id
+        || "",
+      ).trim();
+      const reportContextTransactionId = String(
+        payment?.transactionId
+        || payment?.id
+        || payment?._id
+        || payment?.receiptId
+        || payment?.pointHistoryId
+        || accessGrant?.transactionId
+        || accessGrant?.sourceTransactionId
+        || "",
+      ).trim();
+      const reportContext = {
+        reportId: String(accessGrant?.reportId || reportId || "").trim(),
+        sessionId: reportContextSessionId,
+        reportSessionId: reportContextSessionId,
+        requestId: reportContextRequestId,
+        purchaseId: reportContextPurchaseId,
+        sourceTransactionId: reportContextTransactionId,
+        transactionId: reportContextTransactionId,
+        featureKey: FEATURE_KEY,
+        reportType: "lifeBook",
+        premiumAccessToken: premiumAccessToken || undefined,
+      };
       setLastRequestContext({
         reportId: String(accessGrant?.reportId || reportId || "").trim(),
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         requestId,
-        purchaseId: String(accessGrant?.purchaseId || payment?.transactionId || "").trim(),
+        purchaseId: reportContextPurchaseId,
       });
 
       const clientEnginePayload = readClientLifeBookEnginePayload(localEngine);
@@ -594,7 +633,12 @@ export default function SajuLifebookPage() {
         premiumAccessToken: premiumAccessToken || undefined,
         accessGrant: accessGrant || undefined,
         payment: payment || undefined,
-        purchaseId: String(accessGrant?.purchaseId || payment?.transactionId || "").trim() || undefined,
+        purchaseId: String(reportContextPurchaseId).trim() || undefined,
+        paymentId: reportContextTransactionId || undefined,
+        transactionId: reportContextTransactionId || undefined,
+        sourceTransactionId: reportContextTransactionId || undefined,
+        _paymentContext: reportContext,
+        paymentContext: reportContext,
         requestId,
         name,
         gender: form.gender,

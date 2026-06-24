@@ -4,6 +4,9 @@ export interface LLMRequest {
   maxTokens?: number;
   temperature?: number;
   taskType?: "pdf" | "fortune" | "healing" | "general";
+  model?: string;
+  endpoint?: string;
+  apiEndpoint?: string;
   geminiParts?: Array<{
     text?: string;
     inline_data?: {
@@ -76,6 +79,31 @@ function normalizeRequest(request: LLMRequest): Required<Pick<LLMRequest, "promp
     prompt: String(request.prompt || "").trim(),
     taskType: request.taskType || "general",
   };
+}
+
+function resolveGeminiModel(request: LLMRequest, env?: CloudflareEnv): string {
+  const requested = String(request.model || "").trim();
+  if (requested) return requested;
+
+  const envModel = String(
+    (env as Record<string, unknown> | undefined)?.["GEMINI_MODEL"] || "",
+  ).trim();
+  if (envModel) return envModel;
+
+  return GEMINI_MODEL;
+}
+
+function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
+  const providedEndpoint = String(request.apiEndpoint || request.endpoint || "").trim();
+  if (!providedEndpoint) return `${GEMINI_ENDPOINT}`;
+
+  const safeModel = encodeURIComponent(String(model || GEMINI_MODEL).trim() || GEMINI_MODEL);
+  const endpointWithModel = providedEndpoint.includes("/models/")
+    ? providedEndpoint.replace(/\/models\/[^/?#\:]+(?=:generateContent|$)/, `/models/${safeModel}`)
+    : `${providedEndpoint.replace(/\/$/, "")}/models/${safeModel}:generateContent`;
+
+  if (endpointWithModel.includes(":generateContent")) return endpointWithModel;
+  return `${endpointWithModel}:generateContent`;
 }
 
 function createTimeoutSignal(timeoutMs = DEFAULT_TIMEOUT_MS): {
@@ -152,6 +180,8 @@ async function callGeminiPrimary(
 
   const apiKey = getGeminiApiKey(env);
   if (!apiKey) throw new Error("Gemini API key is not configured.");
+  const model = resolveGeminiModel(normalized, env);
+  const endpoint = resolveGeminiEndpoint(normalized, model);
 
   const parts = Array.isArray(normalized.geminiParts) && normalized.geminiParts.length
     ? normalized.geminiParts
@@ -173,7 +203,12 @@ async function callGeminiPrimary(
 
   const timeout = createTimeoutSignal();
   try {
-    const response = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(apiKey)}`, {
+    const endpointUrl = endpoint.startsWith("https://") || endpoint.startsWith("http://")
+      ? new URL(endpoint)
+      : new URL(endpoint, "https://generativelanguage.googleapis.com");
+    endpointUrl.searchParams.set("key", apiKey);
+
+    const response = await fetch(endpointUrl.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -191,7 +226,7 @@ async function callGeminiPrimary(
     return {
       text,
       provider: "gemini",
-      model: GEMINI_MODEL,
+      model,
     };
   } catch (error) {
     if (timeout.signal.aborted) throw new Error("Gemini request timed out after 30000ms.");
@@ -240,11 +275,14 @@ export async function callLLM(
   request: LLMRequest,
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
+  const requestModel = resolveGeminiModel(request, env);
   try {
     return await callGeminiPrimary(request, env);
   } catch (geminiError) {
     console.warn("[llm-client] Gemini primary failed. Falling back to Cloudflare Workers AI.", {
       error: getErrorMessage(geminiError),
+      model: requestModel,
+      apiEndpoint: String(request?.apiEndpoint || request?.endpoint || ""),
       taskType: request.taskType || "general",
     });
 

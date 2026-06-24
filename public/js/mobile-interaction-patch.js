@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-21a1cf962c4c').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-06e89936e1af').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +757,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-21a1cf962c4c'
+      'js/animal-totem-experience.js?v=build-06e89936e1af'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-21a1cf962c4c'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-21a1cf962c4c'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-21a1cf962c4c'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-06e89936e1af'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-06e89936e1af'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-06e89936e1af'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-21a1cf962c4c'],
-    openDreamModal: ['js/dream-ledger.js?v=build-21a1cf962c4c'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-06e89936e1af'],
+    openDreamModal: ['js/dream-ledger.js?v=build-06e89936e1af'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-21a1cf962c4c']
+    openSibylModal: ['js/sibyl-system.js?v=build-06e89936e1af']
   };
 
   function normalizeScriptSrc(src) {

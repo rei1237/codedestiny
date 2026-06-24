@@ -99,7 +99,7 @@
     "deploy:cf:all": "npm run deploy:cf",
     "build:worker": "npx wrangler deploy --config worker/wrangler.toml --dry-run",
     "deploy:worker": "npm run deploy:cf:worker",
-    "preview:worker": "npx wrangler dev --config worker/wrangler.toml",
+    "preview:worker": "node scripts/preview-worker.mjs",
     "deploy": "npm run deploy:cf",
     "start": "next start",
     "lint": "next lint",
