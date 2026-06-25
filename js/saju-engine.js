@@ -5645,10 +5645,6 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
     cost: 200,
     amountKrw: 20000,
     paymentAmount: 20000,
-    allowedPaymentModes: ['direct'],
-    disablePassFirst: true,
-    disablePassChoice: true,
-    forceDirectPayment: true,
     requestId: 'saju-ai-prompt:' + requestNonce,
     categoryKey: 'saju'
   }).then(function(gateResult) {

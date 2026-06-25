@@ -824,7 +824,7 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
     : (ctx.accessType || (isDirect ? "single_purchase" : "membership_credit"));
   const accessMethod = ctx.accessMethod || (isPass ? "PASS" : (isDirect ? "CARD" : "MONTHLY"));
   const paymentMode = ctx.paymentMode || (isPass ? "MEMBERSHIP_PASS" : (isDirect ? "DIRECT_KRW" : "MOONLIGHT_STONE"));
-  const chargedCoins = isPass
+  const chargedCoins = (isPass || isMonthlyCredit)
     ? 0
     : Math.max(0, Math.floor(Number(
       ctx.consume.chargedCoins
@@ -3305,29 +3305,38 @@ async function handleSajuAIPrompt(request, auth, env) {
   }
 
   const preflightRequestId = readAIPromptRequestId(body, "");
-  let directPayment = null;
+  let preflightAccess = null;
+  let preflightUser = null;
   try {
-    if (env) await connectDb(env);
-    directPayment = await findAIPromptDirectPaymentEvidence({
+    preflightAccess = await findAIPromptPaidAccessEvidence({
       auth,
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
       body,
       requestId: preflightRequestId,
       cost: SAJU_AI_PROMPT_PRICE,
+      env,
     });
+    if (preflightAccess) {
+      preflightUser = await User.findById(auth.userId)
+        .select("points profileSubscription unlockedFeatures")
+        .lean();
+    }
   } catch (error) {
     if (isSajuAIPromptDbUnavailableError(error)) {
       return buildSajuAIPromptPaidAccessRetryableError();
     }
-    console.error("[fortune][saju-ai-prompt] direct payment verification failed:", error);
+    console.error("[fortune][saju-ai-prompt] paid access verification failed:", error);
     return buildSajuAIPromptError(
       "PAYMENT_VERIFY_FAILED",
       "결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
-  if (!directPayment) {
+  if (!preflightAccess) {
     return buildSajuAIPromptPaymentRequiredError();
+  }
+  if (!preflightUser) {
+    return buildSajuAIPromptError("USER_NOT_FOUND", "User not found.", 404);
   }
 
   let builtPrompt = null;
@@ -3356,6 +3365,16 @@ async function handleSajuAIPrompt(request, auth, env) {
   const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
   const requestId = readAIPromptRequestId(body, fallbackRequestId);
   const promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
+  const verifiedConsumePayload = buildAIPromptVerifiedConsumePayload({
+    auth,
+    featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+    reason: "사주 AI 상담 결과 생성",
+    requestId,
+    cost: SAJU_AI_PROMPT_PRICE,
+    body,
+    evidence: preflightAccess,
+    subscriptionUser: preflightUser,
+  });
 
   try {
     const ai = await callGeminiText(env, buildSajuAIResultPrompt(builtPrompt), {
@@ -3375,20 +3394,19 @@ async function handleSajuAIPrompt(request, auth, env) {
       return buildSajuAILlmRetryableError();
     }
 
+    const balanceAfterRaw = Number(verifiedConsumePayload?.user?.points);
     return json({
-      ok: true,
-      resultText,
-      title: SAJU_AI_PROMPT_TITLE,
-      summaryIntent: builtPrompt.summaryIntent || "",
-      questionType: builtPrompt.questionType,
+      ...buildSajuAIPromptResultPayload({
+        builtPrompt,
+        resultText,
+        consumePayload: verifiedConsumePayload,
+        chargedCoins: Math.max(0, Number(verifiedConsumePayload?.chargedCoins || 0)),
+        balanceAfter: Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined,
+        requestId,
+        promptDigest,
+      }),
       domain: String(builtPrompt.domain || domain || "").trim() || undefined,
       amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
-      chargedCoins: SAJU_AI_PROMPT_PRICE,
-      paymentMode: "DIRECT_KRW",
-      accessMethod: "CARD",
-      featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-      requestId,
-      promptDigest,
       model: ai.model || undefined,
       provider: ai.provider || undefined,
     });
