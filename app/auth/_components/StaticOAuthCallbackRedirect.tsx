@@ -3,7 +3,7 @@ type StaticOAuthCallbackRedirectProps = {
 };
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
-const CONFIGURED_API_BASE = process.env.NEXT_PUBLIC_AUTH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const CONFIGURED_API_BASE = process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL || "";
 
 function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"]) {
   const providerLiteral = JSON.stringify(provider);
@@ -43,6 +43,28 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       }
     }
 
+    function isLocalBaseUrl(rawValue) {
+      const value = normalizeBaseUrl(rawValue);
+      if (!value) return false;
+      try {
+        const hostname = new URL(value).hostname.toLowerCase();
+        return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
+      } catch (e) {
+        return /^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\\[::1\\])(?::\\d+)?$/i.test(value);
+      }
+    }
+
+    function isWorkersDevBaseUrl(rawValue) {
+      const value = normalizeBaseUrl(rawValue);
+      if (!value) return false;
+      try {
+        const hostname = new URL(value).hostname.toLowerCase();
+        return hostname === "workers.dev" || hostname.endsWith(".workers.dev");
+      } catch (e) {
+        return /workers\\.dev/i.test(value);
+      }
+    }
+
     function resolveApiBase() {
       let runtimeBase = "";
       try {
@@ -51,12 +73,16 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         runtimeBase = "";
       }
 
-      if (runtimeBase) return runtimeBase;
+      const currentOrigin = normalizeBaseUrl(window.location.origin);
+      const currentHostIsWorkersDev = isWorkersDevBaseUrl(currentOrigin);
+
+      if (isLocalBaseUrl(currentOrigin)) return currentOrigin;
+      if (runtimeBase && !isLocalBaseUrl(runtimeBase)) return runtimeBase;
 
       const configured = normalizeBaseUrl(configuredApiBase);
-      if (configured) return configured;
+      if (configured && !isLocalBaseUrl(configured) && (!isWorkersDevBaseUrl(configured) || currentHostIsWorkersDev)) return configured;
 
-      return window.location.origin;
+      return currentOrigin || window.location.origin;
     }
 
     function sanitizeNextPath(rawNext) {

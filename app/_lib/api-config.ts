@@ -3,13 +3,20 @@
  *
  * In production the frontend should call same-origin /api/*. Cloudflare Pages
  * serves those routes from the deployed Worker output.
- * If same-origin routing is unavailable in a custom setup, set
- * NEXT_PUBLIC_AUTH_API_BASE_URL to an explicit Worker origin.
- * Local development can override this with NEXT_PUBLIC_API_BASE_URL or
- * window.CODE_DESTINY_API_BASE_URL.
+ * The production client reads only NEXT_PUBLIC_EFFECTIVE_API_BASE_URL so local
+ * API origins are filtered before bundle generation.
+ * Local development can override this with window.CODE_DESTINY_API_BASE_URL.
  */
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const API_BASE = process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL || "";
+
+if (process.env.NODE_ENV === "production" && !API_BASE) {
+  throw new Error(
+    "[code-destiny] NEXT_PUBLIC_API_URL is not set in production. " +
+    "Check Cloudflare Pages environment variables.",
+  );
+}
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
@@ -58,8 +65,7 @@ function isWorkersDevBaseUrl(baseUrl?: string | null): boolean {
 }
 
 export function getApiBaseUrl(): string {
-  const configuredBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
-  const configuredAuthBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL);
+  const configuredBase = normalizeBaseUrl(API_BASE);
 
   if (typeof window !== "undefined") {
     const runtimeBase = normalizeBaseUrl((window as RuntimeApiWindow).CODE_DESTINY_API_BASE_URL);
@@ -67,7 +73,7 @@ export function getApiBaseUrl(): string {
     const sameOriginBase = normalizeBaseUrl(window.location.origin);
     const currentHostIsWorkersDev = isWorkersDevBaseUrl(sameOriginBase);
     const runtimeIsWorkersDev = isWorkersDevBaseUrl(runtimeBase);
-    const configuredIsWorkersDev = isWorkersDevBaseUrl(configuredBase) || isWorkersDevBaseUrl(configuredAuthBase);
+    const configuredIsWorkersDev = isWorkersDevBaseUrl(configuredBase);
 
     if (isLocalDev) {
       return sameOriginBase;
@@ -84,17 +90,14 @@ export function getApiBaseUrl(): string {
     // In production custom domain, keep auth/API same-origin for stable secure cookies.
     if (!currentHostIsWorkersDev) {
       if (configuredBase && !isLocalBaseUrl(configuredBase) && !isWorkersDevBaseUrl(configuredBase)) return configuredBase;
-      if (configuredAuthBase && !isLocalBaseUrl(configuredAuthBase) && !isWorkersDevBaseUrl(configuredAuthBase)) return configuredAuthBase;
       return sameOriginBase;
     }
 
-    // In production/previews, prefer same-origin /api via Pages routing first.
-    // If routing is unavailable, configure NEXT_PUBLIC_AUTH_API_BASE_URL.
-    const previewBase = [configuredBase, configuredAuthBase].find((base) => base && !isLocalBaseUrl(base));
-    return previewBase || (configuredIsWorkersDev ? sameOriginBase : "");
+    if (configuredBase && !isLocalBaseUrl(configuredBase)) return configuredBase;
+    return configuredIsWorkersDev ? sameOriginBase : "";
   }
 
-  return configuredBase || configuredAuthBase;
+  return configuredBase;
 }
 
 export function getApiUrl(path: string): string {

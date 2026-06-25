@@ -43,6 +43,17 @@ function normalizeBaseUrl(rawValue) {
   }
 }
 
+function isLocalApiBase(rawValue) {
+  const baseUrl = normalizeBaseUrl(rawValue);
+  if (!baseUrl) return false;
+  try {
+    const hostname = new URL(baseUrl).hostname.toLowerCase();
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(baseUrl);
+  }
+}
+
 function resolveDevelopmentApiBase() {
   return firstNonEmpty([
     normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL),
@@ -55,6 +66,17 @@ function resolveDevelopmentApiBase() {
     normalizeBaseUrl(process.env.AUTH_URL),
     "http://localhost:4000",
   ]);
+}
+
+function resolvePublicApiBase() {
+  const apiBase = firstNonEmpty([
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_API_URL),
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL),
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL),
+  ]);
+  if (apiBase && !isLocalApiBase(apiBase)) return apiBase;
+  if (process.env.NODE_ENV === "production") return "https://code-destiny.com";
+  return "";
 }
 
 const buildAppVersion = firstNonEmpty([
@@ -71,6 +93,9 @@ const buildGitSha = firstNonEmpty([
   runGit(["rev-parse", "HEAD"]),
   "unknown",
 ]);
+
+const buildPublicApiBase = resolvePublicApiBase();
+process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL = buildPublicApiBase;
 
 const buildTime = firstNonEmpty([
   process.env.NEXT_PUBLIC_BUILD_TIME,
@@ -90,6 +115,7 @@ function createNextConfig(phase) {
       NEXT_PUBLIC_APP_VERSION: buildAppVersion,
       NEXT_PUBLIC_GIT_SHA: buildGitSha,
       NEXT_PUBLIC_BUILD_TIME: buildTime,
+      NEXT_PUBLIC_EFFECTIVE_API_BASE_URL: buildPublicApiBase,
     },
     productionBrowserSourceMaps: process.env.NEXT_PUBLIC_ENABLE_SOURCEMAPS === "1"
       || process.env.ENABLE_SOURCEMAPS === "1",

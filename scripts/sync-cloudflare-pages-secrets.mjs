@@ -7,6 +7,12 @@ const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
 const isDryRun = args.has("--dry-run");
 const skipEmpty = args.has("--skip-empty") || args.has("--allow-empty");
+const PRODUCTION_PUBLIC_API_BASE_URL = "https://code-destiny.com";
+const PUBLIC_API_SECRET_KEYS = new Set([
+  "NEXT_PUBLIC_API_URL",
+  "NEXT_PUBLIC_API_BASE_URL",
+  "NEXT_PUBLIC_AUTH_API_BASE_URL",
+]);
 
 const envFiles = [
   ".env.local",
@@ -31,6 +37,35 @@ function isUsableEnvValue(rawValue) {
   if (placeholderMarkers.some((marker) => upper.includes(marker))) return false;
 
   return true;
+}
+
+function normalizeOrigin(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+  try {
+    const parsed = new URL(value);
+    return parsed.origin.replace(/\/$/, "");
+  } catch {
+    return value.replace(/\/api\/?$/, "").replace(/\/$/, "");
+  }
+}
+
+function isLocalOrigin(rawValue) {
+  const value = normalizeOrigin(rawValue);
+  if (!value) return false;
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(value);
+  }
+}
+
+function normalizePagesSecretValue(key, rawValue) {
+  if (!PUBLIC_API_SECRET_KEYS.has(key)) return String(rawValue || "").trim();
+  const origin = normalizeOrigin(rawValue);
+  if (!origin || isLocalOrigin(origin)) return PRODUCTION_PUBLIC_API_BASE_URL;
+  return origin;
 }
 
 function loadEnvPreferUsable(filePath) {
@@ -115,6 +150,7 @@ const projectName =
   "code-destiny";
 
 const PAGES_SECRET_KEYS = [
+  "NEXT_PUBLIC_API_URL",
   "NEXT_PUBLIC_API_BASE_URL",
   "NEXT_PUBLIC_AUTH_API_BASE_URL",
   "NEXT_PUBLIC_ASSETS_BASE_URL",
@@ -132,8 +168,9 @@ function getSecretValue(key) {
   for (const candidate of candidates) {
     const raw = process.env[candidate];
     if (!isUsableEnvValue(raw)) continue;
-    return String(raw).trim();
+    return normalizePagesSecretValue(key, raw);
   }
+  if (PUBLIC_API_SECRET_KEYS.has(key)) return PRODUCTION_PUBLIC_API_BASE_URL;
   return "";
 }
 

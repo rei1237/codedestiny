@@ -29,6 +29,7 @@
 - Prefer consultation language such as "드러납니다", "흐릅니다", "가리킵니다", "비춥니다", "기울어 있습니다", "열립니다", "머무릅니다", "강하게 떠오릅니다", but do not force replacements when the original sentence is already natural and professional.
 - Before finishing any fortune-facing copy change, search the touched fortune content for mechanical labels such as "이 기능은", "이 결과는", "분석 결과는", and revise only sentences that read like product or implementation explanation.
 - New features should default to full-screen or header/footer-hidden layouts; do not introduce visible headers or footers unless explicitly requested.
+- When the user asks to modify fonts, use R2-hosted Code Destiny font assets first, including the `CodeDestinyBody`, `CodeDestinyDisplay`, `CodeDestinyPremium`, `CodeDestinyPlayful`, and `CodeDestinyDecorative` families declared in `styles/globals.css`.
 
 ## 1.25 동시 변경/원복 방지 운영 룰 (Must Follow)
 - 세션 단위로 변경을 허용한다. 같은 세션에서 동일/연관 파일을 수정할 때 원복 대신 증분 수정만 허용한다.

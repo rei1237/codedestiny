@@ -6,9 +6,17 @@ import {
   buildWebPageJsonLd,
   buildWebsiteJsonLd,
 } from "../lib/structured-data";
+import { buildMusicPublicUrl } from "../lib/r2-public-url";
 import styles from "./home-cosmic.module.css";
 
-const page = publicSeoPages.home;
+const sourcePage = publicSeoPages.home;
+const page = {
+  ...sourcePage,
+  title: "Code Destiny React 홈 | 프리미엄 운세·타로·사주 안내",
+  description:
+    "Code Destiny React 홈은 사주, 타로, 자미두수, 점성술, 숙요점, 이용권, 결제 전 환불 안내를 한 화면에서 신뢰감 있게 확인할 수 있는 프리미엄 운세 서비스 안내 페이지입니다.",
+  h1: "운명을 읽는 달빛 코드",
+};
 
 export const metadata = buildSeoMetadata({
   path: page.path,
@@ -17,37 +25,101 @@ export const metadata = buildSeoMetadata({
   keywords: page.keywords,
 });
 
+const BRAND_LOGO_URL = "https://assets.code-destiny.com/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=react-home-premium-20260625";
+const MAYA_IMAGE_URL = "https://assets.code-destiny.com/%EB%A7%88%EC%95%BC%EC%A0%90.webp";
+const FLOWER_IMAGE_URL = "https://code-destiny.com/fuctionassets/flower2.webp";
+const DEST1NOVA_IMAGE_URL = buildMusicPublicUrl("DEST1NOVA/DEST1NOVA.webp");
+
 const SERVICE_LINKS = [
-  { href: "/manse", label: "무료 만세력 사주 분석" },
-  { href: "/saju/basic", label: "사주 만세력 기본 해석" },
-  { href: "/tarot", label: "무료 타로 카드 리딩" },
-  { href: "/today", label: "오늘의 운세 보기" },
-  { href: "/saju/compatibility", label: "사주 궁합 해석" },
-  { href: "/ziwei", label: "자미두수 12궁 명반" },
-  { href: "/astrology", label: "점성술 출생차트" },
-  { href: "/sukuyo", label: "숙요점 27숙 궁합" },
-  { href: "/high-value", label: "운세 인사이트 가이드" },
+  {
+    href: "/manse",
+    title: "만세력 사주",
+    description: "생년월일과 출생시간으로 오행, 십성, 대운의 흐름을 차분하게 펼칩니다.",
+    meta: "무료 시작",
+  },
+  {
+    href: "/tarot",
+    title: "타로 리딩",
+    description: "질문과 마음의 결을 카드 상징으로 비추고, 선택의 방향을 부드럽게 정리합니다.",
+    meta: "무료/유료 혼합",
+  },
+  {
+    href: "/ziwei",
+    title: "자미두수 명반",
+    description: "12궁의 별 흐름으로 기질, 관계, 일의 방향을 입체적으로 살핍니다.",
+    meta: "기본 무료",
+  },
+  {
+    href: "/astrology",
+    title: "점성술 차트",
+    description: "태양, 달, 상승궁의 분위기를 연결해 오늘의 리듬을 읽습니다.",
+    meta: "코즈믹 리딩",
+  },
+  {
+    href: "/sukuyo",
+    title: "숙요점 궁합",
+    description: "27숙의 달빛 관계도를 통해 가까운 인연의 온도와 거리를 살핍니다.",
+    meta: "궁합 안내",
+  },
+  {
+    href: "/points",
+    title: "이용권·결제 관리",
+    description: "30일 이용권, 단건 결제, 월정석 보너스의 차이를 구매 전에 확인합니다.",
+    meta: "환불 안내 포함",
+  },
 ];
 
-const latestInsights = [
+const PASS_GUIDE = [
   {
-    href: "/high-value/complete-guide-to-saju",
-    category: "사주 입문",
-    title: "사주를 처음 읽는 순서",
-    excerpt: "명식, 오행, 십성, 대운을 어떤 순서로 살펴보면 좋은지 정리했습니다.",
+    title: "무료 리딩",
+    body: "사주와 타로의 기본 흐름은 부담 없이 시작할 수 있고, 유료 리딩은 결제 전 표시된 조건을 확인한 뒤 열립니다.",
   },
   {
-    href: "/high-value/how-tarot-actually-works",
-    category: "타로 리딩",
-    title: "타로가 작동하는 방식",
-    excerpt: "카드 상징을 질문과 행동으로 연결하는 안전한 리딩 방식을 설명합니다.",
+    title: "30일 이용권",
+    body: "원화 결제로 활성화되는 일회성 디지털 이용권입니다. 자동결제가 아니며 만료 후 직접 다시 구매합니다.",
   },
   {
-    href: "/high-value/top-10-signs-of-compatibility",
-    category: "궁합과 관계",
-    title: "관계 궁합에서 확인할 신호",
-    excerpt: "점수보다 중요한 소통 리듬, 갈등 회복, 경계 설정을 살펴봅니다.",
+    title: "단건 결제·PDF",
+    body: "상품별 원화 결제로 진행되며, 결과 생성 또는 PDF 렌더링이 시작되기 전 환불 요청 가능 여부를 확인할 수 있습니다.",
   },
+  {
+    title: "월정석",
+    body: "구매·충전 상품이 아니라 이용권 또는 이벤트로 제공되는 보너스 혜택이며, 현금 환불 대상 상품으로 보지 않습니다.",
+  },
+];
+
+const REFUND_GUIDE = [
+  {
+    title: "결제 전",
+    body: "결제 완료 전에는 언제든 취소할 수 있으며, 결제 화면에서 상품명과 환불 조건을 확인합니다.",
+  },
+  {
+    title: "결과 생성 전",
+    body: "결제 완료 후에도 결과 생성, PDF 렌더링, 유료 리딩 열람이 시작되지 않았다면 환불 요청이 가능합니다.",
+  },
+  {
+    title: "결과 생성 후",
+    body: "개인 맞춤형 디지털 콘텐츠가 생성되거나 열람이 시작된 뒤에는 단순 변심 환불이 제한될 수 있습니다.",
+  },
+  {
+    title: "오류·미제공",
+    body: "결제 후 결과가 제공되지 않았거나 시스템 오류로 정상 이용이 불가능하면 재생성 또는 환불 처리 대상입니다.",
+  },
+  {
+    title: "중복 결제",
+    body: "동일 상품의 중복 결제가 확인되면 결제수단과 결제대행사 정책에 따라 중복 결제분을 환불합니다.",
+  },
+  {
+    title: "이용권 사용분",
+    body: "이미 사용된 이용권 횟수, 기간, 월정석 혜택은 사용분을 기준으로 확인한 뒤 처리합니다.",
+  },
+];
+
+const POLICY_LINKS = [
+  { href: "/terms#refund-policy", label: "환불정책 상세" },
+  { href: "/terms", label: "이용약관" },
+  { href: "/privacy", label: "개인정보처리방침" },
+  { href: "/contact", label: "고객센터" },
 ];
 
 export default function HomePage() {
@@ -61,72 +133,124 @@ export default function HomePage() {
 
   return (
     <main className={styles.pageWrap}>
-      <div className={styles.pageGlow} aria-hidden />
+      <div className={styles.starLayer} aria-hidden />
 
-      <header className={`${styles.panel} ${styles.heroPanel}`}>
-        <span className={styles.heroKicker}>Code Destiny</span>
-        <h1 className={styles.heroTitle}>{page.h1}</h1>
-        <p className={styles.heroLead}>
-          사주팔자, 만세력, 타로, 자미두수, 점성술, 숙요점, 궁합, 오늘의 운세를 한곳에서 살펴볼 수 있습니다.
-          각 기능은 오락과 자기성찰을 위한 참고 정보로 제공되며, 중요한 판단은 현실의 정보와 함께 확인하도록 안내합니다.
-        </p>
-        <div className={styles.badgeRow}>
-          <Link className={styles.badge} href="/manse">무료 사주 보기</Link>
-          <Link className={styles.badge} href="/tarot">타로 카드 뽑기</Link>
-          <Link className={styles.badge} href="/today">오늘의 운세 보기</Link>
+      <section className={styles.heroSection} aria-labelledby="reactHomeHeroTitle">
+        <div className={styles.heroCopy}>
+          <p className={styles.heroKicker}>Code Destiny / 꿀꿀 운세</p>
+          <h1 id="reactHomeHeroTitle" className={styles.heroTitle}>{page.h1}</h1>
+          <p className={styles.heroLead}>
+            정적 메인 화면의 달빛 감성은 유지하면서, React 홈에서는 서비스 구조와 결제 전 확인 정보를 더 명확하게 정리했습니다.
+            사주, 타로, 별자리, 신탁 리딩을 탐색하고 이용권·환불 기준까지 한눈에 확인하세요.
+          </p>
+          <div className={styles.ctaRow}>
+            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/#inputPage" aria-label="정적 메인 운세 입력 화면으로 이동">
+              무료 운세 시작
+            </Link>
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/points" aria-label="이용권과 결제 안내 확인">
+              이용권 안내
+            </Link>
+            <Link className={styles.textLink} href="/terms#refund-policy" aria-label="환불정책 상세 보기">
+              환불정책 보기
+            </Link>
+          </div>
+          <dl className={styles.heroFacts} aria-label="React 홈 핵심 개선 정보">
+            <div>
+              <dt>폰트</dt>
+              <dd>R2 브랜드 폰트와 한글 fallback</dd>
+            </div>
+            <div>
+              <dt>결제</dt>
+              <dd>구매 전 환불 기준 노출</dd>
+            </div>
+            <div>
+              <dt>톤</dt>
+              <dd>달빛·꽃·별의 프리미엄 감성</dd>
+            </div>
+          </dl>
         </div>
-      </header>
 
-      <section className={`${styles.panel} ${styles.musicPanel}`} data-marker="react-home-dest1nova-music-v20260615">
-        <Link href="/music" className={styles.musicEntry} aria-label="DEST1NOVA 달빛 플레이리스트 감상하기">
-          <span className={styles.musicCovers} aria-hidden="true">
-            <span className={`${styles.musicAlbum} ${styles.musicAlbumNeo}`}>
-              <img src="https://music.code-destiny.com/neosong/%EB%84%A4%EC%98%A4%20%EB%8D%B0%EB%B7%94.webp" alt="" loading="lazy" decoding="async" />
-            </span>
-            <span className={`${styles.musicAlbum} ${styles.musicAlbumYeoni}`}>
-              <img src="https://music.code-destiny.com/yeonisong/%EA%BD%83%EB%8F%BC%EC%A7%80%201%EC%A7%91.webp" alt="" loading="lazy" decoding="async" />
-            </span>
-            <span className={`${styles.musicAlbum} ${styles.musicAlbumDest1nova}`}>
-              <img src="https://music.code-destiny.com/DEST1NOVA/DEST1NOVA.webp" alt="" loading="lazy" decoding="async" />
-            </span>
-          </span>
-          <span className={styles.musicCopy}>
-            <span className={styles.musicKicker}>MOON MUSIC</span>
-            <strong>달빛 아래, DEST1NOVA 2집까지 열린 플레이리스트</strong>
-            <span>DEST1NOVA의 새 별빛 20곡이 더해져 네오와 연이, 루나 블룸의 무드까지 이어집니다.</span>
-          </span>
-          <span className={styles.musicCta}>89곡 감상하기</span>
-        </Link>
+        <div className={styles.heroVisual} aria-label="Code Destiny 브랜드 자산 미리보기">
+          <div className={styles.logoPlate}>
+            <img src={BRAND_LOGO_URL} alt="Code Destiny 꿀꿀 운세 로고" width={136} height={136} decoding="async" fetchPriority="high" />
+          </div>
+          <div className={`${styles.assetTile} ${styles.assetTileLarge}`}>
+            <img src={MAYA_IMAGE_URL} alt="마야점 달력판 이미지" width={420} height={260} loading="eager" decoding="async" />
+            <span>운명의 시간 문양</span>
+          </div>
+          <div className={styles.assetTileRow}>
+            <div className={styles.assetTile}>
+              <img src={FLOWER_IMAGE_URL} alt="점성술 운명의 꽃 이미지" width={220} height={160} loading="lazy" decoding="async" />
+              <span>별자리 꽃</span>
+            </div>
+            <div className={styles.assetTile}>
+              <img src={DEST1NOVA_IMAGE_URL} alt="DEST1NOVA 음악 앨범 이미지" width={220} height={160} loading="lazy" decoding="async" />
+              <span>달빛 음악</span>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className={`${styles.panel} ${styles.sectionPanel}`}>
-        <h2 className={styles.sectionTitle}>주요 운세 서비스</h2>
-        <p className={styles.sectionLead}>
-          검색과 사용 흐름이 분명하도록 대표 기능을 주제별 랜딩 페이지로 연결했습니다.
-        </p>
+      <section className={styles.sectionBand} aria-labelledby="serviceHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Fortune Services</p>
+          <h2 id="serviceHeading" className={styles.sectionTitle}>운세와 상담 흐름을 주제별로 탐색</h2>
+          <p className={styles.sectionLead}>
+            무료로 시작할 수 있는 기본 리딩과 유료 심화 콘텐츠를 같은 카드 안에 섞지 않고, 사용자가 선택 전에 성격을 이해할 수 있게 정리했습니다.
+          </p>
+        </div>
         <div className={styles.serviceGrid}>
-          {SERVICE_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={styles.serviceLink}>
-              <span className={styles.serviceText}>{link.label}</span>
-              <span className={styles.serviceArrow} aria-hidden>→</span>
+          {SERVICE_LINKS.map((service) => (
+            <Link key={service.href} href={service.href} className={styles.serviceCard}>
+              <span className={styles.serviceMeta}>{service.meta}</span>
+              <strong>{service.title}</strong>
+              <span>{service.description}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className={`${styles.panel} ${styles.sectionPanel}`}>
-        <h2 className={styles.sectionTitle}>운세 인사이트</h2>
-        <p className={styles.sectionLead}>
-          처음 방문한 사용자도 각 운세 체계의 핵심 개념과 활용 방법을 먼저 이해할 수 있도록 공개 가이드를 제공합니다.
-        </p>
-        <div className={styles.insightGrid}>
-          {latestInsights.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.insightCard}>
-              <p className={styles.insightCategory}>{item.category}</p>
-              <h3 className={styles.insightTitle}>{item.title}</h3>
-              <p className={styles.insightExcerpt}>{item.excerpt}</p>
-            </Link>
+      <section className={styles.sectionBand} aria-labelledby="passHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Pass & Payment</p>
+          <h2 id="passHeading" className={styles.sectionTitle}>이용권·코인·월정석 안내를 구매 전 기준으로 정리</h2>
+          <p className={styles.sectionLead}>
+            결제 로직과 이용권 판별은 변경하지 않고, 사용자가 구매 전에 이해해야 할 운영 기준만 React 홈에서 먼저 확인할 수 있게 했습니다.
+          </p>
+        </div>
+        <div className={styles.passGrid}>
+          {PASS_GUIDE.map((item) => (
+            <article key={item.title} className={styles.infoCard}>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
           ))}
+        </div>
+      </section>
+
+      <section className={`${styles.sectionBand} ${styles.refundSection}`} aria-labelledby="refundHeading">
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionKicker}>Refund Notice</p>
+          <h2 id="refundHeading" className={styles.sectionTitle}>디지털 콘텐츠 환불 기준</h2>
+          <p className={styles.sectionLead}>
+            개인 맞춤형 결과 생성 또는 열람이 시작된 뒤에는 환불이 제한될 수 있습니다. 다만 서비스 오류, 중복 결제, 결제 후 콘텐츠 미제공은 재처리 또는 환불 대상입니다.
+          </p>
+        </div>
+        <div className={styles.refundGrid}>
+          {REFUND_GUIDE.map((item) => (
+            <article key={item.title} className={styles.refundCard}>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+        <div className={styles.policyStrip}>
+          <strong>결제 전 확인 링크</strong>
+          <nav aria-label="React 홈 정책 링크">
+            {POLICY_LINKS.map((link) => (
+              <Link key={link.href} href={link.href}>{link.label}</Link>
+            ))}
+          </nav>
         </div>
       </section>
 

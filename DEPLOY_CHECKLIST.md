@@ -9,6 +9,19 @@ Detailed cache/version runbook: [docs/deploy-cache.md](docs/deploy-cache.md)
 3. Confirm `dist/_headers` exists.
 4. Confirm `dist/version.json` exists and contains current commit hash.
 5. Confirm `dist/static/version.json` exists.
+6. Confirm `.next/static` does not contain local API origins: `rg "127\\.0\\.0\\.1:8790|localhost:8790" .next/static`.
+
+## 1.1) Required Cloudflare Pages environment variables
+
+Set these in Cloudflare Pages -> Settings -> Environment variables -> Production:
+
+```env
+NEXT_PUBLIC_API_URL=https://code-destiny.com
+NEXT_PUBLIC_API_BASE_URL=https://code-destiny.com
+NEXT_PUBLIC_AUTH_API_BASE_URL=https://code-destiny.com
+```
+
+Do not set any Production public API variable to `http://127.0.0.1:8790` or `http://localhost:8790`.
 
 ## 2) Cloudflare Pages deployment validation
 

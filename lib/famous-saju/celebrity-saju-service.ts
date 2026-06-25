@@ -1,4 +1,5 @@
 import { calculateLocalSaju, type LocalSajuResult, type SajuPillarLocal } from "../../app/saju/animal-destiny/engine/localSajuCalculator";
+import { getTwelveStagesForPillars } from "../../app/saju/animal-destiny/lib/twelveStages";
 import {
   categoryToSlug,
   famousSajuCategories,
@@ -110,6 +111,17 @@ type FamousSajuReliabilityLevel = "높음" | "보통" | "제한";
 const FAMOUS_SAJU_PUBLISHED_AT = "2026-06-04T00:00:00+09:00";
 const FAMOUS_SAJU_UPDATED_AT = "2026-06-11T00:00:00+09:00";
 const FAMOUS_SAJU_OG_IMAGE = "/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp";
+export const CELEBRITY_SAJU_MAGAZINE_PROMPT_VERSION = "celebrity-saju-magazine-prompt.v1";
+export const CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION = "celebrity-saju-magazine-json.v1";
+export const CELEBRITY_SAJU_MAGAZINE_PROMPT_CONTRACT = [
+  `promptVersion: ${CELEBRITY_SAJU_MAGAZINE_PROMPT_VERSION}`,
+  `schemaVersion: ${CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION}`,
+  "유명인 사주는 제공된 계산 JSON의 값만 해설한다.",
+  "LLM은 년주·월주·일주·시주, 오행, 십성, 신살, 12운성을 직접 계산하지 않는다.",
+  "생시 미상은 반드시 3주 기준으로 쓰고 시주를 추정하지 않는다.",
+  "공개 프로필과 공개 활동 밖의 사생활, 건강, 사고, 범죄, 연애, 가족 문제는 추측하지 않는다.",
+  "단정형 예언 대신 명리학적으로 읽을 수 있는 결, 흐름, 주의 신호로 부드럽게 쓴다.",
+].join("\n");
 
 type FamousSajuNatalAnalysis = {
   dayMaster?: unknown;
@@ -151,6 +163,97 @@ type FamousSajuElementProfile = {
   weakElement: string;
 };
 
+export type CelebritySajuMagazineStar = {
+  name: string;
+  category: string;
+  position: string;
+  reading: string;
+};
+
+export type CelebritySajuMagazinePillar = {
+  label: "년주" | "월주" | "일주" | "시주";
+  ganji: string;
+  stem: string;
+  stemTenGod: string;
+  branch: string;
+  branchTenGod: string;
+  hiddenStemCore: string;
+  twelveStage: string;
+  twelveGod: string;
+  majorStars: string;
+  isUnknown?: boolean;
+};
+
+export type CelebritySajuMagazineResult = {
+  schemaVersion: typeof CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION;
+  promptVersion: typeof CELEBRITY_SAJU_MAGAZINE_PROMPT_VERSION;
+  threePillarBasis: boolean;
+  profile: {
+    name: string;
+    displayName: string;
+    groupOrJob?: string;
+    birthDate: string;
+    calendarType: "solar" | "lunar";
+    birthTimeKnown: boolean;
+    birthTimeLabel: string;
+    sourceNote: string;
+  };
+  pillars: {
+    year: CelebritySajuMagazinePillar;
+    month: CelebritySajuMagazinePillar;
+    day: CelebritySajuMagazinePillar;
+    hour: CelebritySajuMagazinePillar | null;
+  };
+  summary: {
+    title: string;
+    subtitle: string;
+    coreMetaphor: string;
+    oneLineReading: string;
+    cautionNote: string;
+  };
+  fiveElements: {
+    wood: number;
+    fire: number;
+    earth: number;
+    metal: number;
+    water: number;
+    strongest: string[];
+    weakest: string[];
+    interpretation: string;
+  };
+  tenGods: {
+    highlights: Array<{
+      name: string;
+      meaning: string;
+      reading: string;
+    }>;
+  };
+  stars: {
+    goodStars: CelebritySajuMagazineStar[];
+    neutralStars: CelebritySajuMagazineStar[];
+    cautionStars: CelebritySajuMagazineStar[];
+  };
+  sections: Array<{
+    id: string;
+    title: string;
+    body: string;
+    cards?: Array<{
+      label: string;
+      title: string;
+      description: string;
+    }>;
+  }>;
+  faq: Array<{
+    question: string;
+    answer: string;
+  }>;
+  cta: {
+    title: string;
+    description: string;
+    buttonText: string;
+  };
+};
+
 export type FamousSajuCalculatedChart = {
   status: FamousSajuCalculationStatus;
   person: CelebritySajuSeed;
@@ -174,6 +277,7 @@ export type FamousSajuArticle = {
   person: CelebritySajuSeed;
   saju: FamousSajuEngineResult | null;
   calculationStatus: FamousSajuCalculationStatus;
+  magazine: CelebritySajuMagazineResult;
   dayElement: string;
   dayMasterLabel: string;
   hourText: string;
@@ -1379,6 +1483,374 @@ function buildReliabilityNotes(person: CelebritySajuSeed, saju: FamousSajuEngine
   ];
 }
 
+const pillarLabels: Record<"year" | "month" | "day" | "hour", CelebritySajuMagazinePillar["label"]> = {
+  year: "년주",
+  month: "월주",
+  day: "일주",
+  hour: "시주",
+};
+
+const tenGodMeaning: Record<string, string> = {
+  비견: "자기 기준과 독립성",
+  겁재: "경쟁심과 돌파력",
+  식신: "꾸준한 표현과 생산성",
+  상관: "개성 있는 표현과 변주",
+  편재: "대중성, 무대성, 현실 감각",
+  정재: "신뢰, 축적, 관리 감각",
+  편관: "압박을 견디는 승부성",
+  정관: "책임감과 자기관리",
+  편인: "독창적 관찰과 몰입",
+  정인: "학습, 보호, 정리하는 힘",
+};
+
+const elementMetaphor: Record<string, string> = {
+  목: "달빛 아래 곧게 피는 꽃나무",
+  화: "밤무대 위로 번지는 붉은 꽃빛",
+  토: "오래 머무는 정원의 흙빛 중심",
+  금: "은빛 달칼처럼 정교한 기준",
+  수: "별그림자를 품은 깊은 물결",
+};
+
+function buildUnknownMagazinePillar(label: CelebritySajuMagazinePillar["label"], text = "알 수 없음"): CelebritySajuMagazinePillar {
+  return {
+    label,
+    ganji: text,
+    stem: text,
+    stemTenGod: text,
+    branch: text,
+    branchTenGod: text,
+    hiddenStemCore: text,
+    twelveStage: text,
+    twelveGod: text,
+    majorStars: text,
+    isUnknown: true,
+  };
+}
+
+function getMagazineStructuredPillar(saju: FamousSajuEngineResult, key: "year" | "month" | "day" | "hour") {
+  const advanced = asRecord(saju.structuredAdvancedReport);
+  const fourPillars = asRecord(advanced.fourPillars);
+  return asRecord(fourPillars[key]);
+}
+
+function getMagazinePillarStarText(rows: Array<Record<string, unknown>>, key: "year" | "month" | "day" | "hour", pillar: SajuPillarLocal | null | undefined) {
+  if (!pillar) return "생시 미상으로 제외";
+  const keyHints = [key, pillarLabels[key], pillar.ganji, pillar.stem, pillar.branch].filter(Boolean);
+  const names = rows
+    .filter((row) => {
+      const position = recordString(row, "position");
+      return position && !position.includes("직접 확인되지") && keyHints.some((hint) => position.includes(String(hint)));
+    })
+    .map((row) => recordString(row, "shinsalName"))
+    .filter(Boolean);
+  return uniqueKeywords(names).slice(0, 3).join(" · ") || "알 수 없음";
+}
+
+function toMagazinePillar(
+  saju: FamousSajuEngineResult,
+  key: "year" | "month" | "day" | "hour",
+  activeShinsalRows: Array<Record<string, unknown>>,
+): CelebritySajuMagazinePillar | null {
+  const pillar = saju.pillars[key];
+  if (!pillar) return key === "hour" ? null : buildUnknownMagazinePillar(pillarLabels[key]);
+
+  const structured = getMagazineStructuredPillar(saju, key);
+  const hiddenStems = recordRows(structured, "hiddenStems");
+  const stages = getTwelveStagesForPillars(saju as unknown as Parameters<typeof getTwelveStagesForPillars>[0]);
+  const hiddenStemCore = hiddenStems
+    .slice(0, 3)
+    .map((row) => [recordString(row, "stem"), recordString(row, "tenGod") ? `(${recordString(row, "tenGod")})` : ""].join(""))
+    .filter(Boolean)
+    .join(" · ");
+  const branchTenGod = firstRecordText(hiddenStems[0] || {}, ["tenGod"], "알 수 없음");
+
+  return {
+    label: pillarLabels[key],
+    ganji: pillar.ganji,
+    stem: pillar.stem,
+    stemTenGod: key === "day" ? "일간" : recordString(structured, "tenGod", "알 수 없음"),
+    branch: pillar.branch,
+    branchTenGod,
+    hiddenStemCore: hiddenStemCore || "알 수 없음",
+    twelveStage: String(stages[key] || "알 수 없음"),
+    twelveGod: "알 수 없음",
+    majorStars: getMagazinePillarStarText(activeShinsalRows, key, pillar),
+  };
+}
+
+function classifyMagazineStars(rows: Array<Record<string, unknown>>) {
+  const goodNames = new Set(["천을귀인", "문창귀인", "태극귀인", "월덕귀인", "천덕귀인"]);
+  const cautionNames = new Set(["괴강살", "백호살", "양인살", "귀문관살", "원진살", "형살", "공망"]);
+  const toStar = (row: Record<string, unknown>): CelebritySajuMagazineStar => ({
+    name: recordString(row, "shinsalName", "알 수 없음"),
+    category: recordString(row, "category", "보조 신호"),
+    position: recordString(row, "position", "알 수 없음"),
+    reading: formatAccessibleFortuneTerms(firstRecordText(row, ["actualLifeManifestation", "natalMeaning"], "명리학적 보조 신호로만 살핍니다.")),
+  });
+  const activeRows = rows
+    .filter((row) => !recordString(row, "position").includes("직접 확인되지"))
+    .filter((row) => recordString(row, "shinsalName"));
+
+  return {
+    goodStars: activeRows.filter((row) => goodNames.has(recordString(row, "shinsalName"))).map(toStar).slice(0, 6),
+    neutralStars: activeRows.filter((row) => {
+      const name = recordString(row, "shinsalName");
+      return !goodNames.has(name) && !cautionNames.has(name);
+    }).map(toStar).slice(0, 6),
+    cautionStars: activeRows.filter((row) => cautionNames.has(recordString(row, "shinsalName"))).map(toStar).slice(0, 6),
+  };
+}
+
+function getElementExtremes(counts: Record<ElementKey, number>, mode: "max" | "min") {
+  const values = Object.entries(counts) as Array<[ElementKey, number]>;
+  const target = mode === "max"
+    ? Math.max(...values.map(([, count]) => count))
+    : Math.min(...values.map(([, count]) => count));
+  return values.filter(([, count]) => count === target).map(([element]) => element);
+}
+
+function buildMagazineTenGodHighlights(saju: FamousSajuEngineResult, person: CelebritySajuSeed) {
+  const visible = asRecord(asRecord(getNatalAnalysis(saju).tenGods).visible);
+  const highlights = Object.entries(visible)
+    .filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name]) => ({
+      name,
+      meaning: tenGodMeaning[name] || "명식 안에서 드러나는 재능의 작용",
+      reading: `${person.nameKo}의 공개 활동 키워드인 ${person.tags.slice(0, 2).join(" · ") || person.category}와 닿아, 명리학적으로는 ${tenGodMeaning[name] || "자기만의 작용"}이 활동 방식에 스며든 결로 읽을 수 있습니다.`,
+    }));
+
+  return highlights.length ? highlights : [
+    {
+      name: "십성 확인 필요",
+      meaning: "계산값 보강 필요",
+      reading: "드러난 십성 점수가 충분하지 않아, 공개 생년월일 기준의 원국만 조심스럽게 살핍니다.",
+    },
+  ];
+}
+
+function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: FamousSajuCalculatedChart): CelebritySajuMagazineResult {
+  const { saju, elementProfile } = chart;
+  const calendarType = chart.engineInput.calendarType || (person.calendarType === "lunar" ? "lunar" : "solar");
+  const birthTimeKnown = Boolean(chart.engineInput.hasTime && saju && !saju.timeUnknown);
+  const birthTimeLabel = birthTimeKnown && person.birthTime ? person.birthTime : "시 미상";
+  const sourceNote = birthTimeKnown
+    ? "공개 프로필 기준으로 계산한 명리학적 해석입니다. 실제 성격이나 미래를 단정하지 않습니다."
+    : "공개 프로필 기준으로 계산한 명리학적 해석입니다. 생시가 공개되지 않아 시주는 제외하며, 실제 성격이나 미래를 단정하지 않습니다.";
+
+  if (!saju) {
+    return {
+      schemaVersion: CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION,
+      promptVersion: CELEBRITY_SAJU_MAGAZINE_PROMPT_VERSION,
+      threePillarBasis: true,
+      profile: {
+        name: person.name,
+        displayName: person.nameKo,
+        groupOrJob: person.category,
+        birthDate: person.birthDate || "알 수 없음",
+        calendarType,
+        birthTimeKnown: false,
+        birthTimeLabel,
+        sourceNote,
+      },
+      pillars: {
+        year: buildUnknownMagazinePillar("년주"),
+        month: buildUnknownMagazinePillar("월주"),
+        day: buildUnknownMagazinePillar("일주"),
+        hour: null,
+      },
+      summary: {
+        title: `${person.nameKo} 사주, 공개 기준 확인이 필요한 결`,
+        subtitle: `${person.birthDate || "생년월일 미상"} · ${calendarType === "lunar" ? "음력" : "양력"} · ${birthTimeLabel}`,
+        coreMetaphor: "아직 닫혀 있는 달빛 기록",
+        oneLineReading: "확인되지 않은 명식은 꾸며 말하지 않고 비워 두는 편이 가장 정직합니다.",
+        cautionNote: sourceNote,
+      },
+      fiveElements: {
+        wood: 0,
+        fire: 0,
+        earth: 0,
+        metal: 0,
+        water: 0,
+        strongest: [],
+        weakest: [],
+        interpretation: "계산값이 충분하지 않아 오행 분포를 표시하지 않습니다.",
+      },
+      tenGods: { highlights: [] },
+      stars: { goodStars: [], neutralStars: [], cautionStars: [] },
+      sections: [
+        {
+          id: "calculation-needed",
+          title: "결론부터 — 명식 기준 확인 필요",
+          body: `${person.nameKo}의 공개 생년월일 또는 날짜 체계가 명식 기준으로 확정되지 않았습니다. 확인되지 않은 팔자와 격국, 신살을 꾸며 쓰지 않고 공개 자료로 확인 가능한 범위만 남깁니다.`,
+        },
+      ],
+      faq: [
+        {
+          question: `${person.nameKo}의 사주를 바로 단정할 수 있나요?`,
+          answer: "아직 계산 기준이 충분하지 않아 단정하지 않습니다. Code Destiny는 확인된 계산값만 해설합니다.",
+        },
+      ],
+      cta: {
+        title: "내 사주는 한 편의 이야기로 더 선명하게 열립니다",
+        description: "생년월일과 생시를 직접 입력하면 계산값에 맞춘 사주 흐름을 볼 수 있습니다.",
+        buttonText: "내 사주 보러가기",
+      },
+    };
+  }
+
+  const activeShinsalRows = recordRows(asRecord(saju.natalAnalysis.shinsalAnalysis), "activeRows");
+  const allShinsalRows = recordRows(asRecord(saju.natalAnalysis.shinsalAnalysis), "rows");
+  const magazineStars = classifyMagazineStars(allShinsalRows);
+  const year = toMagazinePillar(saju, "year", activeShinsalRows) || buildUnknownMagazinePillar("년주");
+  const month = toMagazinePillar(saju, "month", activeShinsalRows) || buildUnknownMagazinePillar("월주");
+  const day = toMagazinePillar(saju, "day", activeShinsalRows) || buildUnknownMagazinePillar("일주");
+  const hour = birthTimeKnown ? toMagazinePillar(saju, "hour", activeShinsalRows) : null;
+  const counts = elementProfile.counts;
+  const strongest = getElementExtremes(counts, "max");
+  const weakest = getElementExtremes(counts, "min");
+  const dayElement = elementByStem[saju.dayStem] || elementProfile.dominantElement;
+  const coreMetaphor = elementMetaphor[dayElement] || `${dayElement} 기운의 꽃`;
+  const categoryVoice = getFamousSajuCategoryVoice(person);
+  const tenGodHighlights = buildMagazineTenGodHighlights(saju, person);
+  const basisText = birthTimeKnown ? "시주까지 함께 놓고 보면" : "3주 기준으로 보면";
+  const strongestText = strongest.join("·") || "알 수 없음";
+  const weakestText = weakest.join("·") || "알 수 없음";
+  const starText = [...magazineStars.goodStars, ...magazineStars.neutralStars, ...magazineStars.cautionStars]
+    .map((star) => star.name)
+    .slice(0, 4)
+    .join(" · ") || "알 수 없음";
+  const stageText = [year, month, day, hour].filter(Boolean).map((pillar) => `${pillar?.label} ${pillar?.twelveStage}`).join(" · ");
+  const publicTags = person.tags.slice(0, 3).join(" · ") || person.category;
+  const dayPillar = `${saju.pillars.day.ganji}일주`;
+  const oneLineReading = `${basisText} ${person.nameKo}의 명식은 ${dayPillar}의 기준이 ${strongestText} 기운 위에서 자기 색을 차분히 세우는 흐름으로 읽을 수 있습니다.`;
+  const elementInterpretation = `${strongestText} 기운이 강하고 ${weakestText} 기운이 약하게 드러납니다. 명리학적으로는 강한 기운을 밀어붙이는 힘으로만 쓰기보다, 비어 있는 기운의 속도와 휴식을 함께 보완할 때 결이 더 부드럽게 열립니다.`;
+
+  return {
+    schemaVersion: CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION,
+    promptVersion: CELEBRITY_SAJU_MAGAZINE_PROMPT_VERSION,
+    threePillarBasis: !birthTimeKnown,
+    profile: {
+      name: person.name,
+      displayName: person.nameKo,
+      groupOrJob: person.subCategory || person.category,
+      birthDate: person.birthDate || "알 수 없음",
+      calendarType,
+      birthTimeKnown,
+      birthTimeLabel,
+      sourceNote,
+    },
+    pillars: {
+      year,
+      month,
+      day,
+      hour,
+    },
+    summary: {
+      title: `${person.nameKo} ${dayPillar}, ${coreMetaphor}의 결`,
+      subtitle: `${person.birthDate || "생년월일 미상"} · ${calendarType === "lunar" ? "음력" : "양력"} · ${birthTimeLabel}`,
+      coreMetaphor,
+      oneLineReading,
+      cautionNote: sourceNote,
+    },
+    fiveElements: {
+      wood: counts.목,
+      fire: counts.화,
+      earth: counts.토,
+      metal: counts.금,
+      water: counts.수,
+      strongest,
+      weakest,
+      interpretation: elementInterpretation,
+    },
+    tenGods: {
+      highlights: tenGodHighlights,
+    },
+    stars: magazineStars,
+    sections: [
+      {
+        id: "conclusion-first",
+        title: "결론부터 — 이 유명인의 핵심 사주 결",
+        body: oneLineReading,
+        cards: [
+          { label: "일주", title: dayPillar, description: `${dayElement} 일간이 ${saju.pillars.day.branch} 지지 위에 앉아 자기 기준을 세우는 자리입니다.` },
+          { label: "기준", title: birthTimeKnown ? "4주 기준" : "3주 기준", description: birthTimeKnown ? "공개된 생시를 포함해 계산했습니다." : "생시 미상으로 시주는 제외했습니다." },
+        ],
+      },
+      {
+        id: "day-pillar",
+        title: "일주 해석 — 일간과 일지의 만남",
+        body: `${saju.dayStem} 일간은 ${stemTone[saju.dayStem] || "자기만의 결을 따라 움직이는 힘이 있습니다."} 일지 ${saju.pillars.day.branch}는 이 기운이 현실에서 머무는 자리입니다. ${basisText} ${dayPillar}는 단정적인 성격표가 아니라, 공개 활동 속에서 반복되는 기준과 반응의 결을 읽는 중심축입니다.`,
+      },
+      {
+        id: "five-elements",
+        title: "오행 해석 — 강한 기운과 비어 있는 기운",
+        body: elementInterpretation,
+        cards: [
+          { label: "강한 오행", title: strongestText, description: "가장 많이 드러난 기운입니다." },
+          { label: "약한 오행", title: weakestText, description: "보완과 균형의 감각으로 살필 기운입니다." },
+        ],
+      },
+      {
+        id: "ten-gods",
+        title: "십성 해석 — 재능, 활동 방식, 관계성",
+        body: `${tenGodHighlights.map((item) => item.name).join(" · ")} 흐름이 먼저 보입니다. 십성은 재능을 고정하는 딱지가 아니라, 일간이 세상과 관계 맺는 방식을 보여 주는 언어입니다. ${person.nameKo}의 공개 활동에서는 ${publicTags}의 상징과 닿아 조심스럽게 읽을 수 있습니다.`,
+      },
+      {
+        id: "stars",
+        title: "신살 해석 — 창작성, 인기, 몰입, 주의 신호",
+        body: `주요 신살은 ${starText}로 정리됩니다. 신살은 단독 길흉이 아니라 원국과 오행, 십성 뒤에서 결을 보조하는 신호입니다. 주의 신호가 보이더라도 사고나 사건을 단정하지 않고, 몰입과 속도, 관계의 압력을 조율하는 힌트로만 읽습니다.`,
+      },
+      {
+        id: "twelve-stage",
+        title: "12운성 해석 — 기운을 쓰는 방식",
+        body: `12운성은 ${stageText || "알 수 없음"} 흐름으로 정리됩니다. 이는 일간이 각 지지에서 힘을 쓰는 방식을 보여 주는 기준입니다. ${birthTimeKnown ? "시주까지 포함해" : "3주 기준으로"} 급한 길흉보다 기운의 성숙도와 사용 방식을 차분히 살핍니다.`,
+      },
+      {
+        id: "activity-bridge",
+        title: "유명인의 활동 이미지와 사주의 연결",
+        body: `${person.nameKo}의 공개 활동에서 반복되는 키워드는 ${publicTags}입니다. ${categoryVoice.publicSignal}을 명식 위에 올리면, ${strongestText} 기운과 ${tenGodHighlights[0]?.name || "십성"}의 작용이 활동의 인상과 닿아 있습니다. 확인되지 않은 사생활은 비워 두고, 공개된 이름과 활동의 상징만 연결합니다.`,
+      },
+      {
+        id: "strength-caution",
+        title: "강점과 주의점",
+        body: `강점은 ${strongestText} 기운이 만드는 선명함과 ${tenGodHighlights[0]?.name || "주요 십성"}의 활동성에서 읽을 수 있습니다. 주의점은 ${weakestText} 기운이 비어 있을 때 속도와 감정의 회복이 늦어질 수 있다는 정도로만 봅니다. 이는 실제 성격이나 미래가 아니라 명리학적 균형의 언어입니다.`,
+        cards: [
+          { label: "강점", title: `${strongestText}의 추진`, description: "공개 활동에서 선명한 인상을 만드는 힘입니다." },
+          { label: "주의", title: `${weakestText}의 보완`, description: "휴식과 균형으로 다듬으면 더 부드러워지는 지점입니다." },
+        ],
+      },
+      {
+        id: "final-texture",
+        title: "그래서 이 사람의 사주는 어떤 결인가",
+        body: `${person.nameKo}의 사주는 ${coreMetaphor}처럼 자기 결을 조용히 세우는 명식으로 읽을 수 있습니다. ${basisText} ${dayPillar}와 ${strongestText} 기운, 그리고 ${tenGodHighlights[0]?.name || "주요 십성"}의 작용이 맞물려 공개 활동의 상징을 만듭니다. 이 해석은 팬 콘텐츠처럼 따뜻하게 읽되, 실제 성격이나 미래를 확정하지 않는 명리학적 이야기입니다.`,
+      },
+    ],
+    faq: [
+      {
+        question: `${person.nameKo}는 무슨 일주인가요?`,
+        answer: `공개 생년월일 기준 계산값으로는 ${dayPillar}입니다. 생시가 공개되지 않은 경우에는 시주를 제외한 3주 기준으로 읽습니다.`,
+      },
+      {
+        question: "생시 미상이어도 사주를 볼 수 있나요?",
+        answer: birthTimeKnown
+          ? "이 인물은 공개된 생시를 포함해 계산했습니다. 다만 공개 자료 기준의 상징 해석이므로 실제 성격이나 미래를 단정하지 않습니다."
+          : "볼 수 있지만 시주는 제외합니다. 오행 일부, 신살 일부, 후반 운의 세부 해석은 달라질 수 있어 3주 기준이라고 명확히 표시합니다.",
+      },
+      {
+        question: "유명인의 실제 성격을 말하는 글인가요?",
+        answer: "아닙니다. 공개 프로필과 공개 활동을 바탕으로 계산된 명리학적 상징을 읽는 콘텐츠입니다.",
+      },
+    ],
+    cta: {
+      title: "유명인처럼 내 사주도 한 편의 이야기로 읽어보세요",
+      description: "계산값을 바탕으로 내 일주, 오행, 십성의 결을 차분히 이어 볼 수 있습니다.",
+      buttonText: "내 사주 보러가기",
+    },
+  };
+}
+
 export function resolveFamousSajuSlug(rawSlug: string) {
   return getCelebrityBySlug(rawSlug)?.slug || null;
 }
@@ -1451,6 +1923,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const { saju, elementProfile } = calculatedChart;
   const timeNotice = buildContentNotice(person, saju, calculatedChart.failureReason);
   const engineInputSummary = formatEngineInput(calculatedChart);
+  const magazine = buildCelebritySajuMagazineResult(person, calculatedChart);
 
   if (!saju) {
     const heroCopy = `${person.nameKo}의 사주는 공개 생년월일 기준을 더 확인한 뒤 조심스럽게 읽어야 합니다.`;
@@ -1462,6 +1935,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       person,
       saju: null,
       calculationStatus: "needs_review",
+      magazine,
       dayElement: "확인 필요",
       dayMasterLabel: "명식 기준 확인 필요",
       hourText: "명식 기준 확인 필요",
@@ -1830,6 +2304,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     person,
     saju,
     calculationStatus: "calculated",
+    magazine,
     dayElement,
     dayMasterLabel,
     hourText,
