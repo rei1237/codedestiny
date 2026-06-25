@@ -22,6 +22,7 @@
   var SUKYO_LLM_MANUSCRIPT_SOURCE = 'llm-authored';
   var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LLM_MANUSCRIPT_SOURCE, 'llm-html-v2', 'llm-workers-ai', 'llm-gemini', 'llm-workers-ai+gemini'];
   var SUKYO_FLOATING_STYLE_ID = 'skFloatingWindowStyle';
+  var SUKYO_GENERATION_STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -35,6 +36,7 @@
   var _lastLoadingStep = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
+  var _resumeGenerationPromise = null;
   var SUKYO_GENERATION_STATE_KEY = 'cd:sukuyo:compat:generation:llm-v3';
 
   function _qs(id) { return document.getElementById(id); }
@@ -2158,11 +2160,171 @@
   }
 
   function _persistGenerationState(state) {
-    try { sessionStorage.setItem(SUKYO_GENERATION_STATE_KEY, JSON.stringify(state || {})); } catch (_) {}
+    var source = state && typeof state === 'object' ? state : {};
+    var now = Date.now();
+    var payload = {};
+    Object.keys(source).forEach(function (key) { payload[key] = source[key]; });
+    payload.featureKey = _clean(payload.featureKey || SUKYO_FEATURE_KEY);
+    payload.updatedAt = Number(payload.updatedAt || now) || now;
+    payload.expiresAt = Number(payload.expiresAt || 0) || (payload.updatedAt + SUKYO_GENERATION_STATE_TTL_MS);
+    var serialized = JSON.stringify(payload);
+    try { sessionStorage.setItem(SUKYO_GENERATION_STATE_KEY, serialized); } catch (_) {}
+    try { localStorage.setItem(SUKYO_GENERATION_STATE_KEY, serialized); } catch (_) {}
   }
 
   function _clearGenerationState() {
     try { sessionStorage.removeItem(SUKYO_GENERATION_STATE_KEY); } catch (_) {}
+    try { localStorage.removeItem(SUKYO_GENERATION_STATE_KEY); } catch (_) {}
+  }
+
+  function _normalizeGenerationState(raw) {
+    var source = raw && typeof raw === 'object' ? raw : {};
+    var status = _clean(source.status || source.serverStatus).toLowerCase();
+    if (status === 'success') status = 'completed';
+    if (status === 'pending' || status === 'running') status = 'generating';
+    var sessionId = _clean(source.sessionId || source.reportSessionId);
+    var reportId = _clean(source.reportId);
+    var now = Date.now();
+    var updatedAt = Number(source.updatedAt || 0) || now;
+    var expiresAt = Number(source.expiresAt || 0) || (updatedAt + SUKYO_GENERATION_STATE_TTL_MS);
+    var total = Math.max(1, Number(source.totalChapters || source.expectedChapterCount || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
+    var current = Math.max(0, Math.min(total, Number(source.currentChapterNo || source.chapterNo || source.step || 0) || 0));
+    if (!status || (!sessionId && !reportId) || expiresAt < now) return null;
+    if (status === 'completed' && !reportId) return null;
+    if (['preparing', 'generating', 'completed', 'failed'].indexOf(status) < 0) return null;
+    return {
+      isOpen: source.isOpen !== false,
+      status: status,
+      currentChapterIndex: Math.max(0, current - 1),
+      currentChapterNo: current || (status === 'completed' ? total : 1),
+      totalChapters: total,
+      completedChapters: Array.isArray(source.completedChapters) ? source.completedChapters.slice(0, total) : [],
+      failedChapters: Array.isArray(source.failedChapters) ? source.failedChapters.slice(0, total) : [],
+      reportId: reportId,
+      sessionId: sessionId,
+      featureKey: _clean(source.featureKey || SUKYO_FEATURE_KEY),
+      serverStatus: _clean(source.serverStatus || status),
+      qualityStatus: _clean(source.qualityStatus),
+      updatedAt: updatedAt,
+      expiresAt: expiresAt,
+    };
+  }
+
+  function _readGenerationStateFrom(storage) {
+    try {
+      var raw = storage && storage.getItem(SUKYO_GENERATION_STATE_KEY);
+      if (!raw) return null;
+      var normalized = _normalizeGenerationState(JSON.parse(raw));
+      if (!normalized && storage) storage.removeItem(SUKYO_GENERATION_STATE_KEY);
+      return normalized;
+    } catch (_) {
+      try { if (storage) storage.removeItem(SUKYO_GENERATION_STATE_KEY); } catch (__) {}
+      return null;
+    }
+  }
+
+  function _readGenerationState() {
+    var sessionState = null;
+    var localState = null;
+    try { sessionState = _readGenerationStateFrom(sessionStorage); } catch (_) {}
+    try { localState = _readGenerationStateFrom(localStorage); } catch (_) {}
+    if (sessionState && localState) {
+      return Number(sessionState.updatedAt || 0) >= Number(localState.updatedAt || 0) ? sessionState : localState;
+    }
+    return sessionState || localState || null;
+  }
+
+  function _isRecoverableGenerationState(state) {
+    var normalized = _normalizeGenerationState(state);
+    if (!normalized) return false;
+    if (normalized.status === 'completed') return !!normalized.reportId;
+    return !!(normalized.sessionId || normalized.reportId);
+  }
+
+  function _applyPersistedGenerationProgress(state) {
+    var normalized = _normalizeGenerationState(state);
+    if (!normalized) return;
+    var total = Math.max(1, Number(normalized.totalChapters || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
+    var step = Math.max(0, Math.min(total, Number(normalized.currentChapterNo || 0) || 0));
+    var isCompleted = normalized.status === 'completed';
+    var title = isCompleted
+      ? '숙요점 프리미엄 궁합 PDF 완료본을 다시 불러오는 중입니다.'
+      : '진행 중이던 숙요점 프리미엄 궁합 PDF를 다시 확인하는 중입니다.';
+    _lastLoadingStep = step;
+    _setLoadingStage(isCompleted ? '숙요점 PDF 결과를 불러오는 중' : '숙요점 PDF 생성 이어보기');
+    _setLoadingProgress(step, total, title);
+    _setLoadingNotice(isCompleted
+      ? '완료된 PDF 결과를 보관함에서 다시 여는 중입니다.'
+      : '저장된 생성 정보를 바탕으로 현재 진행 상태를 확인하고 있습니다.');
+  }
+
+  function _resumeSukuyoGenerationFromState(state) {
+    var normalized = _normalizeGenerationState(state);
+    if (!_isRecoverableGenerationState(normalized) || _resumeGenerationPromise) return false;
+    if (normalized.sessionId) _activeSessionId = normalized.sessionId;
+    if (normalized.reportId) _activeReportId = normalized.reportId;
+    _generating = normalized.status !== 'failed';
+    _setStartBusy(_generating);
+    _showScreen(normalized.status === 'failed' ? 'skErrorScreen' : 'skLoadingScreen');
+    if (normalized.status !== 'failed') _setGenerationWindowVisible(true);
+    _applyPersistedGenerationProgress(normalized);
+    if (normalized.status === 'failed') {
+      _setError('이전 숙요점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.');
+      return true;
+    }
+    _resumeGenerationPromise = _loadSukuyoGenerationFromStatus(normalized)
+      .catch(function (error) {
+        _logError(error, 'resume-generation');
+        if (normalized.reportId) {
+          return _fetchArchivedSukuyoReport(normalized.reportId).then(_handleCompletedSukuyoResponse).catch(function (archiveError) {
+            _logError(archiveError, 'resume-generation-archive');
+            _clearGenerationState();
+            _setGenerationWindowVisible(false);
+            _setError(_resolveSukuyoGenerationErrorMessage(archiveError || error));
+          });
+        }
+        _clearGenerationState();
+        _setGenerationWindowVisible(false);
+        _setError(_resolveSukuyoGenerationErrorMessage(error));
+      })
+      .finally(function () {
+        _resumeGenerationPromise = null;
+        _generating = false;
+        _setStartBusy(false);
+        if (_resultPayload && _clean(_resultPayload.serverStatus) === 'completed') {
+          _setGenerationWindowVisible(false);
+        }
+      });
+    return true;
+  }
+
+  function _loadSukuyoGenerationFromStatus(state) {
+    var normalized = _normalizeGenerationState(state);
+    if (!normalized) return Promise.reject(_createSukuyoError('저장된 숙요점 PDF 생성 정보를 확인할 수 없습니다.', { stage: 'resume-state' }));
+    return _getJson(_buildExecutionStatusPath(normalized.sessionId, normalized.reportId))
+      .then(function (data) {
+        var execution = data && data.execution || {};
+        var running = data && data.running && typeof data.running === 'object' ? data.running : null;
+        var nextSessionId = _clean(execution.sessionId || (running && running.sessionId) || normalized.sessionId);
+        var nextReportId = _clean(execution.reportId || (running && running.reportId) || normalized.reportId);
+        if (nextSessionId) _activeSessionId = nextSessionId;
+        if (nextReportId) _activeReportId = nextReportId;
+        if (_isSukuyoExecutionCompleted(execution)) {
+          var completedReport = _normalizeArchivedSukuyoReport(data && (data.report || data.payload || data.data || data));
+          if (_isSukyoReportReady(completedReport)) return _handleCompletedSukuyoResponse(completedReport);
+          return _fetchArchivedSukuyoReport(nextReportId, completedReport).then(_handleCompletedSukuyoResponse);
+        }
+        if (_isSukuyoExecutionFailed(execution)) {
+          throw _createSukuyoError(_clean(execution.reasonMessage) || '숙요점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
+            stage: 'resume-status-failed',
+            reportId: nextReportId,
+            sessionId: nextSessionId,
+            execution: _summarizeSukuyoPayload({ execution: execution }),
+          });
+        }
+        _applySukuyoServerProgress(running || normalized, 1);
+        return _pollSukuyoRunningResponse(running || normalized).then(_handleCompletedSukuyoResponse);
+      });
   }
 
   function _resetGenerationState(sessionId) {
@@ -2511,6 +2673,123 @@
     });
   }
 
+  function _cloneSukuyoSeedValue(value, depth) {
+    if (value == null) return value;
+    var type = typeof value;
+    if (type === 'string' || type === 'number' || type === 'boolean') return value;
+    if (type !== 'object' || depth > 6) return undefined;
+    if (Array.isArray(value)) {
+      return value.slice(0, 36).map(function (item) { return _cloneSukuyoSeedValue(item, depth + 1); }).filter(function (item) {
+        return typeof item !== 'undefined';
+      });
+    }
+    var out = {};
+    Object.keys(value).slice(0, 120).forEach(function (key) {
+      if (/^(?:element|node|ownerDocument|parentNode|innerHTML|outerHTML)$/i.test(key)) return;
+      var next = _cloneSukuyoSeedValue(value[key], depth + 1);
+      if (typeof next !== 'undefined') out[key] = next;
+    });
+    return out;
+  }
+
+  function _mansionSeedFromBasicResult(basic) {
+    var source = basic && typeof basic === 'object' ? basic : {};
+    var index = Number(source.mansionIdx);
+    var name = _clean(source.mansion || source.nameKo || source.syukuKorean);
+    if (!name && !Number.isFinite(index)) return null;
+    return {
+      index: Number.isFinite(index) ? index : undefined,
+      nameKo: name || undefined,
+      syukuKorean: name || undefined,
+      traits: source.traits && typeof source.traits === 'object' ? _cloneSukuyoSeedValue(source.traits, 0) : undefined,
+      guardian: source.guardian && typeof source.guardian === 'object' ? _cloneSukuyoSeedValue(source.guardian, 0) : undefined,
+    };
+  }
+
+  function _mansionSeedFromCompatibilityPartner(compat) {
+    var source = compat && typeof compat === 'object' ? compat : {};
+    var index = Number(source.partnerIdx);
+    var name = _clean(source.partnerMansion || source.partnerSyuku || source.partnerNameKo);
+    if (!name && !Number.isFinite(index)) return null;
+    return {
+      index: Number.isFinite(index) ? index : undefined,
+      nameKo: name || undefined,
+      syukuKorean: name || undefined,
+      traits: source.partnerTraits && typeof source.partnerTraits === 'object' ? _cloneSukuyoSeedValue(source.partnerTraits, 0) : undefined,
+    };
+  }
+
+  function _buildPremiumSukuyoLocalSeed(normalizedInput) {
+    var input = normalizedInput && typeof normalizedInput === 'object' ? normalizedInput : {};
+    var self = input.self && typeof input.self === 'object' ? input.self : {};
+    var partner = input.partner && typeof input.partner === 'object' ? input.partner : {};
+    var compat = null;
+    var basic = null;
+    try { compat = window._syLastCompat && typeof window._syLastCompat === 'object' ? _cloneSukuyoSeedValue(window._syLastCompat, 0) : null; } catch (_) { compat = null; }
+    try { basic = window._syLastSukuyoBasicResult && typeof window._syLastSukuyoBasicResult === 'object' ? _cloneSukuyoSeedValue(window._syLastSukuyoBasicResult, 0) : null; } catch (_) { basic = null; }
+    if (!compat && !basic) return null;
+
+    var enhanced = compat && compat.enhanced && typeof compat.enhanced === 'object' ? compat.enhanced : {};
+    var metrics = compat && compat.distanceMetrics && typeof compat.distanceMetrics === 'object' ? compat.distanceMetrics : {};
+    var chemistry = enhanced.chemistry && typeof enhanced.chemistry === 'object' ? enhanced.chemistry : {};
+    var selfSukuyo = _mansionSeedFromBasicResult(basic);
+    var partnerSukuyo = _mansionSeedFromCompatibilityPartner(compat);
+    var forwardDistance = Number(metrics.forwardDistance);
+    if (!Number.isFinite(forwardDistance)) forwardDistance = Number(compat && compat.myIdx != null && compat.partnerIdx != null ? ((Number(compat.partnerIdx) - Number(compat.myIdx) + 27) % 27) : NaN);
+    var reverseDistance = Number(metrics.reverseDistance);
+    if (!Number.isFinite(reverseDistance) && Number.isFinite(forwardDistance)) reverseDistance = (27 - forwardDistance) % 27;
+    var shortestDistance = Number(metrics.shortestDistance);
+    if (!Number.isFinite(shortestDistance) && Number.isFinite(forwardDistance) && Number.isFinite(reverseDistance)) shortestDistance = Math.min(forwardDistance, reverseDistance);
+
+    return {
+      source: 'client-basic-sukuyo',
+      personA: {
+        name: _clean(self.name) || '본인',
+        birth: { solarDate: _clean(self.birthDate) || undefined },
+        gender: _clean(self.gender) || undefined,
+        sukuyo: selfSukuyo || undefined,
+      },
+      personB: {
+        name: _clean(partner.name) || '상대',
+        birth: { solarDate: _clean(partner.birthDate) || undefined },
+        gender: _clean(partner.gender || compat && compat.partnerGender) || undefined,
+        sukuyo: partnerSukuyo || undefined,
+      },
+      compatibility: {
+        relationType: _clean(compat && (compat.relationType || compat.typeLabel) || enhanced.relationTypeKo),
+        distance: _clean(compat && compat.distanceLabel || enhanced.distanceKo),
+        distanceLabel: _clean(compat && compat.distanceLabel || enhanced.distanceKo),
+        relationshipName: _clean(enhanced.relationshipName),
+        relationVariant: _clean(compat && compat.relationVariant),
+        forwardDistance: Number.isFinite(forwardDistance) ? forwardDistance : undefined,
+        reverseDistance: Number.isFinite(reverseDistance) ? reverseDistance : undefined,
+        shortestDistance: Number.isFinite(shortestDistance) ? shortestDistance : undefined,
+        compatibilityIndex: Number(compat && (compat.compatibilityIndex || compat.score)) || undefined,
+        score: Number(compat && (compat.compatibilityIndex || compat.score)) || undefined,
+        magnetism: Number(compat && compat.magnetism || chemistry.physical) || undefined,
+        temperature: Number(compat && compat.temperature) || undefined,
+        chemistryScore: Number(chemistry.emotional) || undefined,
+        stabilityScore: Number(chemistry.longTermPotential) || undefined,
+        growthScore: Number(chemistry.recoveryPotential) || undefined,
+        communicationScore: Number(chemistry.communication) || undefined,
+        conflictScore: Number(chemistry.conflictRisk) || undefined,
+        distanceMetrics: metrics,
+        roleActionGuide: compat && compat.roleActionGuide || undefined,
+        elementHarmony: compat && compat.elementHarmony || undefined,
+        strengthShadowMap: compat && compat.strengthShadowMap || undefined,
+        enhanced: enhanced,
+        relationshipCategoryReadings: enhanced.relationshipCategoryReadings || undefined,
+        relationshipRiskRoutines: enhanced.relationshipRiskRoutines || undefined,
+        relationshipTiming: enhanced.relationshipTiming || undefined,
+        relationshipPrescriptions: enhanced.relationshipPrescriptions || undefined,
+        distanceDeep: enhanced.distanceDeep || undefined,
+        expertFinal: enhanced.expertFinal || undefined,
+        purposeReadings: enhanced.purposeReadings || undefined,
+        pastLife: enhanced.pastLife || undefined,
+      },
+    };
+  }
+
   function _buildPrepareBody(normalizedInput) {
     var scope = _getSukuyoGenerationScope();
     var sessionId = scope.sessionId;
@@ -2538,6 +2817,7 @@
     var accessGrant = paymentContext && paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
     var reportId = _clean(paymentContext && paymentContext.reportId || accessGrant && accessGrant.reportId || scope.reportId);
     if (paymentContext) paymentContext.reportId = reportId || paymentContext.reportId || undefined;
+    var localSukuyoSeed = _buildPremiumSukuyoLocalSeed(normalizedInput);
     return {
       sessionId: sessionId,
       reportSessionId: (paymentContext && paymentContext.reportSessionId) || sessionId,
@@ -2568,6 +2848,15 @@
       self: normalizedInput.self,
       partner: normalizedInput.partner,
       user: normalizedInput.self,
+      personA: normalizedInput.self,
+      personB: normalizedInput.partner,
+      consultationNames: {
+        selfName: _clean(normalizedInput.self && normalizedInput.self.name) || '본인',
+        partnerName: _clean(normalizedInput.partner && normalizedInput.partner.name) || '상대',
+      },
+      localSukuyoCompatibilityJson: localSukuyoSeed || undefined,
+      sukuyoCompatibilityJson: localSukuyoSeed || undefined,
+      compatibility: localSukuyoSeed && localSukuyoSeed.compatibility || undefined,
     };
   }
 
@@ -2578,7 +2867,8 @@
     if (safeReport.metadata && safeReport.metadata.archive && typeof safeReport.metadata.archive === 'object') safeReport = safeReport.metadata.archive;
     var ready = safeReport.pdfReady && typeof safeReport.pdfReady === 'object' ? safeReport.pdfReady : {};
     var payload = safeReport.payload && typeof safeReport.payload === 'object' ? safeReport.payload : {};
-    var reportId = _clean(safeReport.reportId);
+    var reportId = _clean(safeReport.reportId || ready.reportId || payload.reportId || safeReport.executionId);
+    var sessionId = _clean(safeReport.sessionId || safeReport.reportSessionId || ready.sessionId || payload.sessionId || _activeSessionId);
     var chapters = _resolveSukuyoCompletedChapters(safeReport);
     var pdfUrl = _withSukuyoArchiveFormat(_clean(safeReport.pdfUrl || ready.pdfUrl || safeReport.downloadUrl || ready.downloadUrl) || _buildSukuyoArchiveUrl(reportId, 'pdf'), 'pdf');
     var htmlUrl = _withSukuyoArchiveFormat(_clean(safeReport.htmlUrl || ready.htmlUrl) || _buildSukuyoArchiveUrl(reportId, 'html'), 'html');
@@ -2587,7 +2877,10 @@
     var llmDraftChapterCount = _firstFiniteNumber(NaN, safeReport.llmDraftChapterCount, payload.llmDraftChapterCount, ready.llmDraftChapterCount, llmAssembly.chapterCount);
     if (!Number.isFinite(llmDraftChapterCount)) llmDraftChapterCount = chapters.length;
     var llmAssemblyOnly = safeReport.llmAssemblyOnly === true || payload.llmAssemblyOnly === true || ready.llmAssemblyOnly === true || llmAssembly.externalGeneration === true;
-    var externalCallsAllowed = safeReport.externalCallsAllowed === true || payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
+    var externalCallsAllowed = safeReport.externalCallsAllowed === true || payload.externalCallsAllowed === true || ready.externalCallsAllowed === true || llmAssembly.externalCallsAllowed === true;
+    var archivePending = safeReport.archivePending === true
+      || ready.archivePending === true
+      || _clean(safeReport.archiveStatus || ready.archiveStatus) === 'pending';
     return {
       ok: true,
       serviceKey: 'sukuyo-premium',
@@ -2596,7 +2889,7 @@
       status: 'completed',
       serverStatus: 'completed',
       qualityStatus: 'passed',
-      sessionId: _activeSessionId,
+      sessionId: sessionId,
       featureKey: SUKYO_FEATURE_KEY,
       canonicalFeatureKey: SUKYO_FEATURE_KEY,
       aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
@@ -2609,9 +2902,12 @@
       llmAssembly: llmAssembly,
       chapters: chapters,
       payload: payload,
+      archivePending: archivePending,
+      archiveStatus: archivePending ? 'pending' : _clean(safeReport.archiveStatus || ready.archiveStatus || 'completed'),
       pdfReady: {
         ...(ready || {}),
         reportId: reportId,
+        sessionId: sessionId,
         filename: (_clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf')).replace(/\.html?$/i, '.pdf'),
         pdfUrl: pdfUrl,
         downloadUrl: pdfUrl,
@@ -2624,6 +2920,8 @@
         externalCallsAllowed: externalCallsAllowed,
         llmDraftChapterCount: llmDraftChapterCount,
         llmAssembly: llmAssembly,
+        archivePending: archivePending,
+        archiveStatus: archivePending ? 'pending' : _clean(safeReport.archiveStatus || ready.archiveStatus || 'completed'),
       },
       pdfUrl: pdfUrl,
       htmlUrl: htmlUrl,
@@ -2703,14 +3001,19 @@
     var running = runningResponse && typeof runningResponse === 'object' ? runningResponse : {};
     var sessionId = _clean(running.sessionId || _activeSessionId);
     var reportId = _clean(running.reportId || (_resultPayload && _resultPayload.reportId));
+    var progress = running.progress && typeof running.progress === 'object' ? running.progress : {};
+    var total = Math.max(1, Number(progress.totalChapters || progress.expectedChapterCount || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
+    var initialStep = Math.max(1, Math.min(total, Number(progress.currentChapterNo || progress.chapterNo || progress.step || 1) || 1));
+    var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice(0, total) : [];
     if (sessionId) _activeSessionId = sessionId;
+    if (reportId) _activeReportId = reportId;
     _persistGenerationState({
       isOpen: true,
       status: 'generating',
-      currentChapterIndex: 0,
-      currentChapterNo: 1,
-      totalChapters: SUKYO_TOTAL_CHAPTERS,
-      completedChapters: [],
+      currentChapterIndex: Math.max(0, initialStep - 1),
+      currentChapterNo: initialStep,
+      totalChapters: total,
+      completedChapters: completed,
       failedChapters: [],
       reportId: reportId || null,
       sessionId: sessionId,
@@ -2921,7 +3224,14 @@
 
     _log('[SukuyoBook][PdfRequestStart]', { chapterCount: response.chapterCount });
 
+    var completedSessionId = _clean(response.sessionId || response.reportSessionId || _activeSessionId);
+    var completedReportId = _clean(response.reportId || response.executionId || _activeReportId);
     response = _normalizeArchivedSukuyoReport(response);
+    if (completedSessionId) _activeSessionId = completedSessionId;
+    if (completedReportId) {
+      _activeReportId = completedReportId;
+      response.reportId = completedReportId;
+    }
     _resultPayload = response;
     _chapters = _resolveSukuyoCompletedChapters(response);
 
@@ -3010,12 +3320,15 @@
     } else {
       _renderProfileSummary(null);
     }
+    var savedGenerationState = _readGenerationState();
     if (_resultPayload && _chapters.length && _isSukyoReportReady(_resultPayload)) {
       _renderResult(_chapters, _resultPayload);
       _showScreen('skResultScreen');
     } else if (_generating) {
       _showScreen('skLoadingScreen');
       _setGenerationWindowVisible(true);
+    } else if (savedGenerationState && _resumeSukuyoGenerationFromState(savedGenerationState)) {
+      _refreshReadinessPanel();
     } else {
       _showScreen('skStartScreen');
     }
@@ -3162,7 +3475,6 @@
         _setStartBusy(false);
         if (_resultPayload && _clean(_resultPayload.serverStatus) === 'completed') {
           _setGenerationWindowVisible(false);
-          _clearGenerationState();
         }
       });
   };

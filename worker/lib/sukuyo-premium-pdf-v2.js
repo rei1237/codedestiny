@@ -8,10 +8,39 @@ export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 export const SUKYO_PDF_CONFIG = Object.freeze({
   generationMode: "llm-html-v2",
-  provider: "workers-ai-primary-gemini-fallback",
-  templateVersion: "sukuyo-premium-html-v2.2.0",
+  provider: "gemini-primary-workers-ai-fallback",
+  templateVersion: "sukuyo-premium-html-v2.3.0",
 });
-export const SUKYO_PDF_CHAPTERS = SUKYO_PREMIUM_CHAPTERS_V2;
+const SUKYO_PDF_CHAPTER_CATEGORY_BY_ORDER = Object.freeze({
+  1: { categoryKey: "core-map", categoryTitle: "Core compatibility map" },
+  2: { categoryKey: "native-syuku", categoryTitle: "Native syuku temperament" },
+  3: { categoryKey: "relation-structure", categoryTitle: "Relationship structure" },
+  4: { categoryKey: "attraction", categoryTitle: "Attraction opening" },
+  5: { categoryKey: "emotion", categoryTitle: "Emotional attachment" },
+  6: { categoryKey: "communication", categoryTitle: "Communication rhythm" },
+  7: { categoryKey: "conflict", categoryTitle: "Conflict recovery" },
+  8: { categoryKey: "practical-love", categoryTitle: "Practical love operation" },
+  9: { categoryKey: "long-term", categoryTitle: "Long-term partnership" },
+  10: { categoryKey: "growth", categoryTitle: "Complement and growth" },
+  11: { categoryKey: "reality", categoryTitle: "Money and daily reality" },
+  12: { categoryKey: "boundaries", categoryTitle: "Family and social boundaries" },
+  13: { categoryKey: "karma", categoryTitle: "Karmic relationship pattern" },
+  14: { categoryKey: "future-flow", categoryTitle: "Twelve-month relationship flow" },
+  15: { categoryKey: "final-prescription", categoryTitle: "Final relationship prescription" },
+});
+function withSukyoChapterCategory(chapter = {}) {
+  const order = Number(chapter.order || 0);
+  const category = SUKYO_PDF_CHAPTER_CATEGORY_BY_ORDER[order] || {
+    categoryKey: clean(chapter.key || chapter.id || `chapter-${order}`),
+    categoryTitle: clean(chapter.title || `Chapter ${order}`),
+  };
+  return Object.freeze({
+    ...chapter,
+    categoryKey: category.categoryKey,
+    categoryTitle: category.categoryTitle,
+  });
+}
+export const SUKYO_PDF_CHAPTERS = Object.freeze(SUKYO_PREMIUM_CHAPTERS_V2.map(withSukyoChapterCategory));
 
 const PROVIDER_TIMEOUT_MS = 45000;
 const CHAPTER_CACHE = new Map();
@@ -56,6 +85,12 @@ const FORBIDDEN_PDF_TOKENS = Object.freeze([
   "nan",
   "about:blank",
   "[object object]",
+  "personA",
+  "personB",
+  "상대 A",
+  "상대 B",
+  "A:",
+  "B:",
 ]);
 const DANGEROUS_HTML_RE = /<(script|iframe|object|embed|link|meta|base|form|input|button|textarea|select)\b[\s\S]*?<\/\1>|<(script|iframe|object|embed|link|meta|base|form|input|button|textarea|select)\b[^>]*\/?>/gi;
 const SUKYO_RELATION_GUIDES = Object.freeze({
@@ -238,6 +273,17 @@ function buildSukuyoForProfile(profile = {}) {
 
 function syukuLabel(sukuyo = {}) {
   const index = Number(sukuyo.index);
+  const raw = clean(sukuyo.syukuKorean || sukuyo.nameKo || sukuyo.syuku || sukuyo.mansion || sukuyo.label || "");
+  if (raw) {
+    const ko = raw.replace(/宿/g, "숙");
+    return {
+      index: Number.isFinite(index) ? index : null,
+      ko,
+      mixed: clean(sukuyo.nameHan || sukuyo.han || "") || raw.replace(/숙/g, "宿"),
+      element: clean(sukuyo.element || ""),
+      direction: clean(sukuyo.direction || ""),
+    };
+  }
   if (Number.isFinite(index) && SYUKU_LABELS[index]) {
     return {
       index,
@@ -247,7 +293,6 @@ function syukuLabel(sukuyo = {}) {
       direction: clean(sukuyo.direction || ""),
     };
   }
-  const raw = clean(sukuyo.syukuKorean || sukuyo.nameKo || sukuyo.syuku || "");
   const ko = raw ? raw.replace(/宿/g, "숙") : "본명숙";
   return {
     index: Number.isFinite(index) ? index : null,
@@ -531,6 +576,26 @@ function resolveCanonical(input = {}) {
   });
 }
 
+function resolveEnhancedCompatibilityData(compatibility = {}, seed = {}) {
+  const enhanced = compatibility?.enhanced && typeof compatibility.enhanced === "object" ? compatibility.enhanced : {};
+  const chemistry = enhanced.chemistry && typeof enhanced.chemistry === "object" ? enhanced.chemistry : {};
+  return {
+    enhanced,
+    chemistry,
+    categoryReadings: asArray(compatibility.relationshipCategoryReadings || enhanced.relationshipCategoryReadings),
+    riskRoutines: asArray(compatibility.relationshipRiskRoutines || enhanced.relationshipRiskRoutines),
+    timing: asArray(compatibility.relationshipTiming || enhanced.relationshipTiming),
+    prescriptions: asArray(compatibility.relationshipPrescriptions || enhanced.relationshipPrescriptions),
+    purposeReadings: asArray(compatibility.purposeReadings || enhanced.purposeReadings),
+    expertFinal: clean(compatibility.expertFinal || enhanced.expertFinal || seed.expertFinal || "", 900),
+    distanceDeep: compatibility.distanceDeep || enhanced.distanceDeep || null,
+    pastLife: compatibility.pastLife || enhanced.pastLife || null,
+    relationshipName: clean(compatibility.relationshipName || enhanced.relationshipName || "", 120),
+    roleA: clean(compatibility.roleA || enhanced.roleA || "", 240),
+    roleB: clean(compatibility.roleB || enhanced.roleB || "", 240),
+  };
+}
+
 function buildFacts(seed = {}) {
   const canonical = resolveCanonical(seed) || {};
   const userProfile = normalizeProfile(seed.userProfile || seed.self || seed.personA || seed.person1 || canonical.personA || {}, "본인");
@@ -538,6 +603,8 @@ function buildFacts(seed = {}) {
   const personA = canonical.personA || {};
   const personB = canonical.personB || {};
   const compatibility = canonical.compatibility || seed.compatibility || {};
+  const enhancedData = resolveEnhancedCompatibilityData(compatibility, seed);
+  const chemistry = enhancedData.chemistry || {};
   const aSyuku = syukuLabel(seed.userSukyo || personA.sukuyo || {});
   const bSyuku = syukuLabel(seed.partnerSukyo || personB.sukuyo || {});
   const forwardDistance = normalizeSukyoDistance(compatibility.forwardDistance ?? compatibility.distanceFromAToB);
@@ -547,17 +614,17 @@ function buildFacts(seed = {}) {
     reverseDistance,
     compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance,
   );
-  const relationType = relationLabelFromDistance(forwardDistance);
-  const distance = distanceLabel(shortestDistance, relationType);
+  const relationType = clean(compatibility.relationType || compatibility.relationTypeKo || compatibility.typeLabel || compatibility.type || enhancedData.enhanced?.relationTypeKo) || relationLabelFromDistance(forwardDistance);
+  const distance = clean(compatibility.distance || compatibility.distanceLabel || compatibility.distanceKo || enhancedData.enhanced?.distanceKo) || distanceLabel(shortestDistance, relationType);
   const score = Number(compatibility.compatibilityIndex ?? compatibility.score ?? seed.score);
   const rawMetrics = {
-    magnetism: compatibility.magnetism,
+    magnetism: compatibility.magnetism ?? chemistry.physical,
     temperature: compatibility.temperature,
-    chemistry: compatibility.chemistryScore,
-    stability: compatibility.stabilityScore,
-    growth: compatibility.growthScore,
-    conflict: compatibility.conflictScore,
-    communication: compatibility.communicationScore,
+    chemistry: compatibility.chemistryScore ?? chemistry.emotional,
+    stability: compatibility.stabilityScore ?? chemistry.longTermPotential,
+    growth: compatibility.growthScore ?? chemistry.recoveryPotential,
+    conflict: compatibility.conflictScore ?? chemistry.conflictRisk,
+    communication: compatibility.communicationScore ?? chemistry.communication,
   };
   const metrics = resolveCompatibilityMetrics(rawMetrics, { relationType, distance, score });
 
@@ -598,8 +665,20 @@ function buildFacts(seed = {}) {
       distanceGuide: distanceConsultationGuide(distance),
       aToB: clean(compatibility.directionFromAToB || ""),
       bToA: clean(compatibility.directionFromBToA || ""),
-      elementHarmony: clean(compatibility.elementHarmony?.relation || ""),
+      elementHarmony: clean(typeof compatibility.elementHarmony === "string" ? compatibility.elementHarmony : compatibility.elementHarmony?.relation || ""),
       metrics,
+      source: clean(canonical.source || seed.source || ""),
+      relationshipName: enhancedData.relationshipName,
+      roleA: enhancedData.roleA,
+      roleB: enhancedData.roleB,
+      categoryReadings: enhancedData.categoryReadings,
+      riskRoutines: enhancedData.riskRoutines,
+      timing: enhancedData.timing,
+      prescriptions: enhancedData.prescriptions,
+      purposeReadings: enhancedData.purposeReadings,
+      expertFinal: enhancedData.expertFinal,
+      distanceDeep: enhancedData.distanceDeep,
+      pastLife: enhancedData.pastLife,
     },
     calculation: {
       relationType,
@@ -614,6 +693,21 @@ function buildFacts(seed = {}) {
       reverseDistance: Number.isFinite(reverseDistance) ? reverseDistance : null,
       shortestDistance: Number.isFinite(shortestDistance) ? shortestDistance : null,
       metrics,
+    },
+    consultation: {
+      selfName: userProfile.name || clean(personA.name || "본인"),
+      partnerName: partnerProfile.name || clean(personB.name || "상대"),
+      tone: "최고 수준의 숙요점 상담가가 두 사람의 이름을 부르며 직접 상담하는 문체",
+      dataSource: clean(canonical.source || seed.source || "calculated"),
+      categoryReadings: enhancedData.categoryReadings,
+      riskRoutines: enhancedData.riskRoutines,
+      timing: enhancedData.timing,
+      prescriptions: enhancedData.prescriptions,
+      purposeReadings: enhancedData.purposeReadings,
+      expertFinal: enhancedData.expertFinal,
+      relationshipName: enhancedData.relationshipName,
+      roleA: enhancedData.roleA,
+      roleB: enhancedData.roleB,
     },
   };
 }
@@ -717,12 +811,23 @@ function extractSections(html) {
   return sections;
 }
 
+function findConsultationToneIssues(value = "") {
+  const text = stripTags(value);
+  const issues = [];
+  if (/(^|[\s"'“‘])(?:A|B)\s*[:：]/.test(text)) issues.push("tone.ab-speaker");
+  if (/(?:A와\s*B|B와\s*A|상대\s*[AB]|personA|personB)/i.test(text)) issues.push("tone.ab-label");
+  if (/(?:이 결과는|이 기능은|분석 결과는|데이터에 따르면|템플릿|자동 생성|검증|스키마)/.test(text)) issues.push("tone.mechanical");
+  return issues;
+}
+
 function validateSukyoPremiumChapterHtml(html, chapterSpec) {
   const issues = [];
   const source = cleanBlock(html);
   if (!source) issues.push("html.empty");
   const sourceForbiddenTokens = findForbiddenPdfTokens(source);
   if (sourceForbiddenTokens.length) issues.push(`html.forbidden-token:${sourceForbiddenTokens.join("|")}`);
+  const sourceToneIssues = findConsultationToneIssues(source);
+  if (sourceToneIssues.length) issues.push(...sourceToneIssues);
   if (DANGEROUS_HTML_RE.test(source)) issues.push("html.unsafe-tag");
   if (!new RegExp(`<article\\b[^>]*data-chapter-id=["']${chapterSpec.id}["']`, "i").test(source)) issues.push("chapter.id");
   const h1 = extractTag(source, "h1");
@@ -732,7 +837,7 @@ function validateSukyoPremiumChapterHtml(html, chapterSpec) {
   if (sections.length !== expected.length) issues.push("section.count");
   expected.forEach((title, index) => {
     const section = sections[index] || {};
-    if (clean(section.title) !== clean(title)) issues.push(`section.title.${index + 1}`);
+    if (!clean(section.title || title)) issues.push(`section.title.${index + 1}`);
     if (!clean(section.body) || clean(section.body).length < 120) issues.push(`section.body.${index + 1}`);
     const sectionForbiddenTokens = findForbiddenPdfTokens(section.body);
     if (sectionForbiddenTokens.length) issues.push(`section.forbidden.${index + 1}:${sectionForbiddenTokens.join("|")}`);
@@ -747,6 +852,10 @@ function parseSukyoPremiumChapterHtml(html, chapterSpec) {
   const source = cleanBlock(html);
   const sections = extractSections(source).map((section, index) => ({
     id: `${chapterSpec.id}-s${index + 1}`,
+    categoryKey: `${chapterSpec.categoryKey || chapterSpec.key || chapterSpec.id}-section-${index + 1}`,
+    categoryTitle: chapterSpec.sections[index] || section.title,
+    chapterCategoryKey: chapterSpec.categoryKey || "",
+    chapterCategoryTitle: chapterSpec.categoryTitle || "",
     heading: chapterSpec.sections[index] || section.title,
     title: chapterSpec.sections[index] || section.title,
     body: section.body,
@@ -757,6 +866,8 @@ function parseSukyoPremiumChapterHtml(html, chapterSpec) {
   return {
     key: chapterSpec.key || chapterSpec.id,
     id: chapterSpec.id,
+    categoryKey: chapterSpec.categoryKey || "",
+    categoryTitle: chapterSpec.categoryTitle || "",
     order: chapterSpec.order,
     chapterNo: chapterSpec.order,
     title: chapterSpec.title,
@@ -774,6 +885,8 @@ function parseSukyoPremiumChapterHtml(html, chapterSpec) {
 function buildSystemPrompt() {
   return [
     "너는 숙요점 27숙 궁합을 상담하는 전문 숙요점 상담가다.",
+    "두 사람을 A, B, personA, personB로 부르지 말고 제공된 이름으로 직접 부른다.",
+    "문장은 숙요점 전문가가 조용히 상담하듯 말하고, 기능 설명이나 결과 설명처럼 쓰지 않는다.",
     "계산은 절대 새로 하지 말고, 제공된 계산 요약만 사실 기준으로 삼아라.",
     "해석의 중심축은 본명숙, 관계분류, 근거리·중거리·원거리, 양방향 작용, 감정 회복 리듬이다.",
     "명·업태·영친·우쇠·안괴·성위/위성의 의미를 관계의 장점, 그림자, 조율법으로 풀어라.",
@@ -789,18 +902,45 @@ function buildSystemPrompt() {
 
 function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
   const sections = chapterSpec.sections.map((title) => `<section><h2>${escapeHtml(title)}</h2><p>...</p><p>...</p></section>`).join("\n");
+  const sectionCategories = chapterSpec.sections
+    .map((title, index) => `- ${chapterSpec.categoryKey || chapterSpec.key || chapterSpec.id}.section-${index + 1}: ${title}`)
+    .join("\n");
   const relationGuide = facts.compatibility.relationGuide || relationConsultationGuide(facts.compatibility.relationType);
   const distanceGuide = facts.compatibility.distanceGuide || distanceConsultationGuide(facts.compatibility.distance);
   const chapterFocus = SUKYO_CHAPTER_EXPERT_FOCUS[chapterSpec.order] || chapterSpec.purpose;
+  const selfName = clean(facts.consultation?.selfName || facts.personA.name || "본인", 80);
+  const partnerName = clean(facts.consultation?.partnerName || facts.personB.name || "상대", 80);
+  const categoryReadings = asArray(facts.consultation?.categoryReadings)
+    .slice(0, 8)
+    .map((item) => {
+      if (typeof item === "string") return `- ${item}`;
+      return `- ${clean(item.title || item.label || item.category || "관계 카테고리", 80)}: ${clean(item.text || item.reading || item.advice || item.summary || "", 260)}${Number.isFinite(Number(item.score)) ? ` (${Number(item.score)}점)` : ""}`;
+    })
+    .join("\n");
+  const riskRoutines = asArray(facts.consultation?.riskRoutines)
+    .slice(0, 6)
+    .map((item) => (typeof item === "string" ? `- ${item}` : `- ${clean(item.title || item.label || "회복 루틴", 80)}: ${clean(item.text || item.routine || item.advice || "", 240)}`))
+    .join("\n");
+  const timing = asArray(facts.consultation?.timing)
+    .slice(0, 6)
+    .map((item) => (typeof item === "string" ? `- ${item}` : `- ${clean(item.title || item.label || item.period || "시기 흐름", 80)}: ${clean(item.text || item.reading || item.advice || "", 240)}`))
+    .join("\n");
   return [
+    `Chapter category: ${chapterSpec.categoryKey || ""} / ${chapterSpec.categoryTitle || ""}`,
+    "Section categories:",
+    sectionCategories,
+    `Expert focus: ${chapterFocus}`,
+    "Forbidden tone keywords: A:, B:, A와 B, 상대 A, 상대 B, personA, personB, result, feature, analysis result, data-based, template, local, auto generated, validation, schema.",
     "아래 숙요 계산 요약과 상담 기준을 바탕으로 숙요점 프리미엄 궁합 PDF 한 장을 작성해 주세요.",
     "반드시 지정된 HTML 구조와 소제목을 그대로 사용해 주세요.",
     "소제목은 빠짐없이 모두 포함하고, 각 소제목마다 최소 2문단을 작성해 주세요.",
-    "각 문단은 숙요점 상담가가 직접 말하듯 자연스럽게 쓰고, 관계분류와 거리감이 실제 대화, 생활, 가족, 돈, 재회, 결혼 주제에서 어떻게 나타나는지 구체적으로 풀어 주세요.",
+    `각 문단은 숙요점 상담가가 ${selfName}님과 ${partnerName}님에게 직접 말하듯 자연스럽게 쓰고, 관계분류와 거리감이 실제 대화, 생활, 가족, 돈, 재회, 결혼 주제에서 어떻게 나타나는지 구체적으로 풀어 주세요.`,
+    `${selfName}님과 ${partnerName}님이라는 이름을 본문에 자연스럽게 반복해 주세요. A, B, 상대 A, 상대 B 같은 표기는 본문에 절대 쓰지 마세요.`,
+    "단순 일반론이 아니라 숙요점 전문가가 상담실에서 두 사람의 이름, 본명숙, 거리, 관계분류를 함께 짚어 주는 어조로 써 주세요.",
     previousSummary ? `앞 장의 마지막 흐름 요약: ${previousSummary}` : "",
     "",
-    `A: ${facts.personA.name} / ${facts.personA.syuku} / 생년월일 ${facts.personA.birthDate || "미상"} / 성별 ${facts.personA.gender || "미상"}`,
-    `B: ${facts.personB.name} / ${facts.personB.syuku} / 생년월일 ${facts.personB.birthDate || "미상"} / 성별 ${facts.personB.gender || "미상"}`,
+    `상담 대상 1: ${selfName} / ${facts.personA.syuku} / 생년월일 ${facts.personA.birthDate || "미상"} / 성별 ${facts.personA.gender || "미상"}`,
+    `상담 대상 2: ${partnerName} / ${facts.personB.syuku} / 생년월일 ${facts.personB.birthDate || "미상"} / 성별 ${facts.personB.gender || "미상"}`,
     `관계 분류: ${facts.compatibility.relationType}`,
     `관계분류 상담축: ${relationGuide.axis}`,
     `관계분류 강점: ${relationGuide.strength}`,
@@ -808,17 +948,22 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     `관계분류 조율법: ${relationGuide.counsel}`,
     `거리: ${facts.compatibility.distance}`,
     `거리 상담축: ${distanceGuide}`,
-    `A에서 B로 향하는 거리: ${facts.compatibility.forwardDistance ?? "미상"}`,
-    `B에서 A로 향하는 거리: ${facts.compatibility.reverseDistance ?? "미상"}`,
+    `${selfName}님에서 ${partnerName}님으로 향하는 거리: ${facts.compatibility.forwardDistance ?? "미상"}`,
+    `${partnerName}님에서 ${selfName}님으로 향하는 거리: ${facts.compatibility.reverseDistance ?? "미상"}`,
     `종합 점수: ${facts.compatibility.score ?? "미상"} / ${facts.compatibility.scoreLabel}`,
+    facts.compatibility.relationshipName ? `기본 숙요점 관계명: ${facts.compatibility.relationshipName}` : "",
     facts.compatibility.elementHarmony ? `오행 흐름: ${facts.compatibility.elementHarmony}` : "",
+    facts.consultation?.expertFinal ? `기본 숙요점 전문가 최종 소견: ${facts.consultation.expertFinal}` : "",
+    categoryReadings ? `기본 숙요점 카테고리 리딩:\n${categoryReadings}` : "",
+    riskRoutines ? `회복 루틴 근거:\n${riskRoutines}` : "",
+    timing ? `시기 흐름 근거:\n${timing}` : "",
     "",
     `현재 장: ${chapterSpec.order}. ${chapterSpec.title}`,
     `장 목적: ${chapterSpec.purpose}`,
     `전문 상담 초점: ${chapterFocus}`,
     `최소 본문 길이: 공백을 제외하고 ${Number(chapterSpec.minLength || 1600)}자 이상`,
-    "문체 기준: 기능 설명처럼 쓰지 말고 숙요점 상담가가 두 사람에게 직접 전하는 말로 쓴다.",
-    "금지 문체: 이 결과는, 이 기능은, 분석 결과는, 데이터에 따르면, 템플릿, 로컬, 자동 생성, 검증, 스키마.",
+    `문체 기준: 기능 설명처럼 쓰지 말고 숙요점 상담가가 ${selfName}님과 ${partnerName}님에게 직접 전하는 말로 쓴다.`,
+    "금지 문체: A:, B:, A와 B, 상대 A, 상대 B, personA, personB, 이 결과는, 이 기능은, 분석 결과는, 데이터에 따르면, 템플릿, 로컬, 자동 생성, 검증, 스키마.",
     "",
     "출력 형식:",
     `<article data-chapter-id="${chapterSpec.id}">`,
@@ -838,21 +983,63 @@ function buildRepairPrompt({ facts, chapterSpec, previousHtml, issues, previousS
   ].filter(Boolean).join("\n\n");
 }
 
+function resolvePremiumGeminiModelName(env = {}) {
+  return clean(env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
+}
+
+function resolveWorkersAiModelName(env = {}) {
+  return clean(env?.SUKYO_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast");
+}
+
+function extractWorkersAiText(result) {
+  if (typeof result === "string") return result;
+  if (!result || typeof result !== "object") return "";
+  const direct = result.response || result.text || result.output_text || result.result?.response || result.result?.text;
+  if (typeof direct === "string") return direct;
+  if (Array.isArray(result.choices)) {
+    return result.choices
+      .map((choice) => choice?.message?.content || choice?.text || "")
+      .filter(Boolean)
+      .join("\n");
+  }
+  if (Array.isArray(result.content)) {
+    return result.content
+      .map((item) => item?.text || "")
+      .filter(Boolean)
+      .join("\n");
+  }
+  return "";
+}
+
 async function callWorkersAi(env, prompt, options = {}) {
   const started = Date.now();
+  const modelName = resolveWorkersAiModelName(env);
   try {
-    const result = await withTimeout(callLLM({
-      prompt,
-      systemPrompt: buildSystemPrompt(),
+    if (!env?.AI?.run) {
+      return {
+        ok: false,
+        provider: "workers-ai",
+        modelName,
+        errorCode: "workers_ai_unavailable",
+        errorMessage: "Cloudflare Workers AI binding is not configured.",
+        latencyMs: Date.now() - started,
+      };
+    }
+    const messages = [
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: prompt },
+    ];
+    const result = await withTimeout(env.AI.run(modelName, {
+      messages,
+      max_tokens: Number(options.maxTokens || env.SUKYO_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
       temperature: Number(env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
-      maxTokens: Number(options.maxTokens || env.SUKYO_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-      taskType: "pdf",
-    }, env), Number(options.timeoutMs || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const rawText = cleanBlock(result?.text || "");
-    if (!rawText) return { ok: false, provider: "workers-ai", errorCode: "empty_response", latencyMs: Date.now() - started };
+    }), Number(options.timeoutMs || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
+    const rawText = cleanBlock(extractWorkersAiText(result));
+    if (!rawText) return { ok: false, provider: "workers-ai", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
-      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
+      provider: "workers-ai",
+      modelName,
       rawText,
       latencyMs: Date.now() - started,
     };
@@ -860,6 +1047,7 @@ async function callWorkersAi(env, prompt, options = {}) {
     return {
       ok: false,
       provider: "workers-ai",
+      modelName,
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
       latencyMs: Date.now() - started,
@@ -869,19 +1057,23 @@ async function callWorkersAi(env, prompt, options = {}) {
 
 async function callGemini(env, prompt, options = {}) {
   const started = Date.now();
+  const modelName = resolvePremiumGeminiModelName(env);
   try {
     const result = await withTimeout(callLLM({
       prompt,
       systemPrompt: buildSystemPrompt(),
+      model: modelName,
+      apiEndpoint: clean(env?.PREMIUM_GEMINI_API_ENDPOINT || env?.GEMINI_API_ENDPOINT || "https://generativelanguage.googleapis.com/v1beta"),
       maxTokens: Number(options.maxTokens || env.SUKYO_PREMIUM_GEMINI_MAX_TOKENS || env.SUKYO_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
       temperature: Number(env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
       taskType: "pdf",
     }, env), Number(options.timeoutMs || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
     const rawText = cleanBlock(result?.text || "");
-    if (!rawText) return { ok: false, provider: "gemini", errorCode: "empty_response", latencyMs: Date.now() - started };
+    if (!rawText) return { ok: false, provider: "gemini", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
     return {
       ok: true,
       provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
+      modelName: clean(result?.model || modelName),
       rawText,
       latencyMs: Date.now() - started,
     };
@@ -889,6 +1081,7 @@ async function callGemini(env, prompt, options = {}) {
     return {
       ok: false,
       provider: "gemini",
+      modelName,
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
       latencyMs: Date.now() - started,
@@ -938,19 +1131,28 @@ function buildCacheKey(facts, chapterSpec, providerModel = "") {
 }
 
 function resolveLlmProviders(env = {}) {
-  const providers = String(env?.SUKYO_PREMIUM_LLM_PROVIDERS || "workers-ai,gemini")
+  const providers = String(env?.SUKYO_PREMIUM_LLM_PROVIDERS || "gemini,workers-ai")
     .split(",")
     .map((item) => clean(item))
-    .filter(Boolean);
+    .filter((item) => item === "gemini" || item === "workers-ai");
   const unique = [];
   for (const provider of providers) {
     if (!unique.includes(provider)) unique.push(provider);
   }
-  if (!unique.includes("workers-ai")) unique.unshift("workers-ai");
-  if (clean(env?.SUKYO_PREMIUM_DISABLE_GEMINI_FALLBACK).toLowerCase() !== "true" && !unique.includes("gemini")) {
-    unique.push("gemini");
+  if (!unique.includes("gemini")) unique.unshift("gemini");
+  if (clean(env?.SUKYO_PREMIUM_DISABLE_WORKERS_AI_FALLBACK).toLowerCase() === "true") {
+    return unique.filter((provider) => provider !== "workers-ai");
+  }
+  if (!unique.includes("workers-ai")) {
+    unique.push("workers-ai");
   }
   return unique;
+}
+
+function buildProviderModelKey(env = {}, providers = []) {
+  return providers
+    .map((provider) => `${provider}:${provider === "workers-ai" ? resolveWorkersAiModelName(env) : resolvePremiumGeminiModelName(env)}`)
+    .join(",");
 }
 
 function logSukyoPdfEvent(event, data = {}) {
@@ -975,8 +1177,9 @@ function isRetryableProviderFailure(result = {}) {
 }
 
 async function generateChapter(env, facts, chapterSpec, previousSummary) {
-  const modelName = clean(env?.SUKYO_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || env?.SUKYO_PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "workers-ai-gemini");
-  const cacheKey = buildCacheKey(facts, chapterSpec, modelName);
+  const providers = resolveLlmProviders(env);
+  const providerModelKey = buildProviderModelKey(env, providers);
+  const cacheKey = buildCacheKey(facts, chapterSpec, providerModelKey);
   const cached = await readCache(env, cacheKey);
   if (cached?.html) {
     const validation = validateSukyoPremiumChapterHtml(cached.html, chapterSpec);
@@ -985,13 +1188,13 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
         ok: true,
         html: validation.html,
         provider: cached.provider || "cache",
+        modelName: cached.modelName || providerModelKey,
         cached: true,
         attempts: [],
       };
     }
   }
 
-  const providers = resolveLlmProviders(env);
   const repairLimit = Math.max(0, Number(env?.SUKYO_PREMIUM_LLM_REPAIR_LIMIT ?? 2));
   const attempts = [];
   logSukyoPdfEvent("ChapterGenerationStarted", {
@@ -1010,6 +1213,7 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
         : await callGemini(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}` });
       const attempt = {
         provider,
+        modelName: result.modelName || "",
         retry,
         ok: Boolean(result.ok),
         errorCode: result.errorCode || "",
@@ -1034,16 +1238,20 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
       previousHtml = cleanBlock(result.rawText);
       const validation = validateSukyoPremiumChapterHtml(previousHtml, chapterSpec);
       if (validation.ok) {
+        const actualProvider = clean(result.provider || provider);
+        const actualModelName = clean(result.modelName || providerModelKey);
         await writeCache(env, cacheKey, {
           html: validation.html,
-          provider,
+          provider: actualProvider,
+          modelName: actualModelName,
           promptVersion: SUKYO_PDF_CONFIG.templateVersion,
           storedAt: new Date().toISOString(),
         });
         return {
           ok: true,
           html: validation.html,
-          provider,
+          provider: actualProvider,
+          modelName: actualModelName,
           cached: false,
           attempts,
         };
@@ -1227,13 +1435,13 @@ function renderCalculationDashboard(facts = {}) {
         </div>
         <div>
           <span>본명숙 위치</span>
-          <strong>${escapeHtml(facts.personA?.syuku || "A")} · ${escapeHtml(facts.personB?.syuku || "B")}</strong>
+          <strong>${escapeHtml(facts.personA?.syuku || "본명숙")} · ${escapeHtml(facts.personB?.syuku || "상대 숙")}</strong>
           <p>${escapeHtml(`${facts.personA?.syukuIndex ?? "?"}번 숙 ↔ ${facts.personB?.syukuIndex ?? "?"}번 숙`)}</p>
         </div>
       </div>
       <div class="distance-graph">
-        ${distanceGraphBar(`${facts.personA?.name || "A"} → ${facts.personB?.name || "B"}`, facts.compatibility?.forwardDistance)}
-        ${distanceGraphBar(`${facts.personB?.name || "B"} → ${facts.personA?.name || "A"}`, facts.compatibility?.reverseDistance)}
+        ${distanceGraphBar(`${facts.personA?.name || "본인"} → ${facts.personB?.name || "상대"}`, facts.compatibility?.forwardDistance)}
+        ${distanceGraphBar(`${facts.personB?.name || "상대"} → ${facts.personA?.name || "본인"}`, facts.compatibility?.reverseDistance)}
       </div>
       <div class="metric-source">지표 기준: ${escapeHtml(metricSource)}</div>
       <div class="metric-grid">
@@ -1244,6 +1452,48 @@ function renderCalculationDashboard(facts = {}) {
             <b>${item.score}</b>
           </div>`).join("")}
       </div>
+    </section>`;
+}
+
+function renderBaseSukuyoCategoryTable(facts = {}) {
+  let readings = asArray(facts.consultation?.categoryReadings || facts.compatibility?.categoryReadings)
+    .slice(0, 8)
+    .map((item) => {
+      if (typeof item === "string") return { title: item, score: "", text: "" };
+      return {
+        title: clean(item.title || item.label || item.category || item.key || "관계 카테고리", 80),
+        score: Number.isFinite(Number(item.score)) ? String(Math.round(Number(item.score))) : "",
+        text: clean(item.text || item.reading || item.advice || item.summary || item.description || "", 260),
+      };
+    })
+    .filter((item) => item.title || item.text);
+  if (!readings.length) {
+    readings = metricDisplayRows(facts).slice(0, 6).map((item) => ({
+      title: item.label,
+      score: String(item.score),
+      text: `${facts.personA?.name || "본인"}님과 ${facts.personB?.name || "상대"}님의 ${item.label} 흐름을 관계분류와 거리감 안에서 함께 살핍니다.`,
+    }));
+  }
+  return `
+    <section class="base-sukuyo-chart-table" data-source="${escapeHtml(facts.consultation?.dataSource || facts.compatibility?.source || "calculated")}">
+      <h2>기본 숙요점 카테고리 지표</h2>
+      <table class="chapter-summary-table">
+        <thead>
+          <tr>
+            <th>카테고리</th>
+            <th>점수</th>
+            <th>상담 해석</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${readings.map((row) => `
+            <tr>
+              <td>${escapeHtml(row.title)}</td>
+              <td>${escapeHtml(row.score || "──")}</td>
+              <td>${escapeHtml(row.text || "두 사람의 실제 대화와 생활 리듬 안에서 조율점을 살핍니다.")}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
     </section>`;
 }
 
@@ -1262,8 +1512,8 @@ function renderSummaryTable(facts = {}) {
       <thead>
         <tr>
           <th>항목</th>
-          <th>${escapeHtml(facts.personA?.name || "A")}</th>
-          <th>${escapeHtml(facts.personB?.name || "B")}</th>
+          <th>${escapeHtml(facts.personA?.name || "본인")}</th>
+          <th>${escapeHtml(facts.personB?.name || "상대")}</th>
         </tr>
       </thead>
       <tbody>
@@ -1279,8 +1529,9 @@ function renderSummaryTable(facts = {}) {
 
 function renderDialogueBlocks(chapter = {}, facts = {}) {
   const text = asArray(chapter.sections).map((section) => section.body).join("\n");
-  const names = [facts.personA?.name || "A", facts.personB?.name || "B"].map((name) => clean(name, 30)).filter(Boolean);
-  const speakerPattern = [...names, "A", "B"].map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const names = [facts.personA?.name || "", facts.personB?.name || ""].map((name) => clean(name, 30)).filter(Boolean);
+  if (!names.length) return "";
+  const speakerPattern = names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const re = new RegExp(`(?:^|\\n)\\s*(${speakerPattern})\\s*[:：]\\s*["“]?([^"”\\n]{8,180})`, "g");
   const blocks = [];
   let match;
@@ -1385,6 +1636,9 @@ function renderReportHtml({ facts, chapters }) {
     .metric-item b{display:block;margin-top:4px;color:#e2e8f0;font-family:"Pretendard","Noto Sans KR",sans-serif;font-size:9pt;text-align:right}
     .score-gauge{display:inline-block;position:relative;height:var(--score-height);width:100%;min-width:70px;border-radius:999px;background:rgba(167,139,250,.15);overflow:hidden;vertical-align:middle}
     .score-gauge span{display:block;width:var(--score-fill);height:100%;border-radius:999px;background:var(--score-color)}
+    .base-sukuyo-chart-table{margin:18px auto 22px;max-width:760px;break-inside:avoid}
+    .base-sukuyo-chart-table h2{margin:0 0 10px;color:#c4b5fd;font-size:15px;text-align:center}
+    .base-sukuyo-chart-table td:nth-child(2){text-align:center;font-weight:800;color:#a7f3d0}
     .toc{break-after:page;padding:38px 0}
     .toc h1,.score-summary-page h1{margin:0 0 22px;color:#e2e8f0;font-size:24px;text-align:center}
     .toc ol{margin:0;padding:0 0 0 24px;columns:2;column-gap:36px}
@@ -1450,6 +1704,7 @@ function renderReportHtml({ facts, chapters }) {
         </div>
       </div>
       ${renderCalculationDashboard(facts)}
+      ${renderBaseSukuyoCategoryTable(facts)}
       <p class="cover-note">${escapeHtml(facts.personA.syuku)}과 ${escapeHtml(facts.personB.syuku)}의 달빛 결이 관계의 온도, 거리, 회복의 리듬으로 드러납니다.</p>
     </section>
     <section class="toc">
@@ -1495,10 +1750,13 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
   if (requireDownloadUrl && !clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl)) issues.push("pdfReady.url");
   const htmlForbiddenTokens = findForbiddenPdfTokens(html);
   if (htmlForbiddenTokens.length) issues.push(`pdfReady.forbidden-token:${htmlForbiddenTokens.join("|")}`);
+  const htmlToneIssues = findConsultationToneIssues(html);
+  if (htmlToneIssues.length) issues.push(`pdfReady.tone:${htmlToneIssues.join("|")}`);
   if (html) {
     if (!html.includes("class=\"calculation-dashboard\"")) issues.push("visual.calculation-dashboard");
     if (!html.includes("class=\"distance-graph\"")) issues.push("visual.distance-graph");
     if (!html.includes("class=\"metric-grid\"")) issues.push("visual.metric-grid");
+    if (!html.includes("class=\"base-sukuyo-chart-table\"")) issues.push("visual.base-sukuyo-chart-table");
     if (!html.includes("class=\"chapter-header__basis\"")) issues.push("visual.chapter-score-basis");
     if (!html.includes("class=\"score-summary-table\"")) issues.push("visual.score-summary-table");
     if (!/data-forward-distance="\d+"/.test(html) || !/data-reverse-distance="\d+"/.test(html)) issues.push("visual.distance-values");
@@ -1571,6 +1829,7 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
   const failedChapters = [];
   let previousSummary = "";
   const providerSet = new Set();
+  const modelSet = new Set();
 
   for (const chapterSpec of SUKYO_PDF_CHAPTERS) {
     const result = await generateChapter(env, facts, chapterSpec, previousSummary);
@@ -1586,9 +1845,11 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     }
     const parsed = parseSukyoPremiumChapterHtml(result.html, chapterSpec);
     parsed.provider = result.provider;
+    parsed.modelName = result.modelName || "";
     parsed.cached = Boolean(result.cached);
     generated.push(parsed);
     providerSet.add(result.provider);
+    if (clean(result.modelName)) modelSet.add(clean(result.modelName));
     previousSummary = clean(stripTags(result.html).slice(-800), 800);
   }
 
@@ -1615,10 +1876,14 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     : providerSet.has("gemini")
       ? "workers-ai-gemini"
       : "workers-ai";
+  const modelName = modelSet.size === 1
+    ? [...modelSet][0]
+    : [...modelSet].filter(Boolean).join(",") || resolvePremiumGeminiModelName(env);
   const llmAssembly = {
     enabled: true,
     source: SUKYO_PDF_CONFIG.generationMode,
     provider,
+    modelName,
     templateVersion: SUKYO_PDF_CONFIG.templateVersion,
     chapterCount: generated.length,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,

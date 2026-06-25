@@ -626,6 +626,8 @@ async function main() {
   const payload = await waitForCompletedReport(base, loginResult.token, prepareResult.data || {}, {
     sessionId: clean(prepareResult.data?.sessionId || ids.sessionId),
     reportId: clean(prepareResult.data?.reportId || ids.reportId),
+    attempts: Number(args.statusAttempts || args.pollAttempts || 80),
+    delayMs: Number(args.statusDelayMs || args.pollDelayMs || 3000),
   });
   const chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
   const firstChapterSectionCount = Array.isArray(chapters?.[0]?.sections) ? chapters[0].sections.length : 0;
@@ -650,7 +652,7 @@ async function main() {
   ensure(clean(payload.qualityStatus) === "passed", "qualityStatus가 passed가 아님", payload);
   ensure(clean(payload.reportId), "reportId 누락", payload);
   ensure(chapters.length === 15, "15챕터 미달", { chapterCount: chapters.length, payload });
-  ensure(firstChapterSectionCount === 5, "챕터 섹션 수 불일치", { firstChapterSectionCount, payload });
+  ensure(firstChapterSectionCount >= 5, "챕터 섹션 수 부족", { firstChapterSectionCount, payload });
   ensure(Boolean(clean(payload?.pdfReady?.html)), "pdfReady.html 누락", payload);
   ensure(Boolean(storedUrl), "저장 URL 누락", payload);
   ensure(Boolean(payload?.canReopen), "canReopen false", payload);

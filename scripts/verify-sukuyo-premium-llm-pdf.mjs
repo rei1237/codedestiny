@@ -1,4 +1,6 @@
 import {
+  SUKYO_PDF_CHAPTERS,
+  SUKYO_PDF_CONFIG,
   assertSukyoCompatibilityPdfComplete,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
@@ -17,34 +19,46 @@ function extract(pattern, text) {
 }
 
 const paragraph = [
-  "두 사람의 본명숙은 서로의 반응 속도와 감정의 문턱을 다르게 비추고, 이 관계는 가까워질수록 말의 순서와 휴식의 약속이 중요해집니다.",
-  "숙요점의 관계분류는 두 사람이 어떤 자리에서 서로를 살리고 어떤 자리에서 조율이 필요한지를 드러냅니다.",
-  "상대의 리듬을 단정하지 않고 먼저 확인하면 감정의 온도가 안정되고, 작은 차이도 관계를 키우는 배움으로 이어집니다.",
+  "하린님과 도윤님의 본명숙은 서로의 반응 속도와 감정의 문턱을 다르게 비추고, 이 관계는 가까워질수록 말의 순서와 휴식의 약속이 중요해집니다.",
+  "숙요점의 관계분류는 하린님이 어떤 자리에서 마음을 열고 도윤님이 어떤 자리에서 관계를 안정시키는지를 드러냅니다.",
+  "도윤님의 리듬을 단정하지 않고 하린님이 먼저 확인하면 감정의 온도가 안정되고, 작은 차이도 관계를 키우는 배움으로 이어집니다.",
 ].join(" ");
 
 const promptChecks = [];
+const geminiModel = "gemini-verify-premium";
+globalThis.fetch = async (url, options = {}) => {
+  const body = JSON.parse(String(options.body || "{}"));
+  const prompt = body.contents?.[0]?.parts?.map((part) => part?.text || "").join("\n") || "";
+  promptChecks.push({
+    modelInUrl: String(url).includes(geminiModel),
+    chapterCategory: prompt.includes("Chapter category:"),
+    sectionCategories: prompt.includes("Section categories:"),
+    chapterFocus: prompt.includes("Expert focus:"),
+    forbiddenTone: prompt.includes("Forbidden tone keywords:"),
+    nameInstruction: prompt.includes("하린님과 도윤님") && prompt.includes("상담 대상 1: 하린") && prompt.includes("상담 대상 2: 도윤"),
+    noSubjectAB: !/^\s*[AB]\s*:/m.test(prompt),
+  });
+  const id = extract(/<article data-chapter-id="([^"]+)">/, prompt);
+  const title = extract(/<h1>([^<]+)<\/h1>/, prompt);
+  const sections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>\.\.\.<\/p><p>\.\.\.<\/p><\/section>/g)]
+    .map((match) => match[1]);
+  const html = [
+    `<article data-chapter-id="${id}">`,
+    `<h1>${title}</h1>`,
+    ...sections.map((section) => `<section><h2>${section}</h2><p>${paragraph} ${paragraph}</p><p>${paragraph} ${paragraph}</p></section>`),
+    "</article>",
+  ].join("");
+  return new Response(JSON.stringify({
+    candidates: [{ content: { parts: [{ text: html }] } }],
+  }), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+};
 const env = {
-  AI: {
-    run: async (_model, payload) => {
-      const prompt = payload.messages[payload.messages.length - 1].content;
-      promptChecks.push({
-        relationAxis: prompt.includes("관계분류 상담축"),
-        chapterFocus: prompt.includes("전문 상담 초점"),
-        forbiddenTone: prompt.includes("금지 문체"),
-      });
-      const id = extract(/<article data-chapter-id="([^"]+)">/, prompt);
-      const title = extract(/<h1>([^<]+)<\/h1>/, prompt);
-      const sections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>\.\.\.<\/p><p>\.\.\.<\/p><\/section>/g)]
-        .map((match) => match[1]);
-      const html = [
-        `<article data-chapter-id="${id}">`,
-        `<h1>${title}</h1>`,
-        ...sections.map((section) => `<section><h2>${section}</h2><p>${paragraph} ${paragraph}</p><p>${paragraph} ${paragraph}</p></section>`),
-        "</article>",
-      ].join("");
-      return { response: html };
-    },
-  },
+  GEMINI_API_KEY: "test-gemini-key",
+  PREMIUM_GEMINI_MODEL: geminiModel,
+  SUKYO_PREMIUM_LLM_PROVIDERS: "gemini,workers-ai",
 };
 
 const seed = buildSukyoPdfSeed({
@@ -60,6 +74,9 @@ seed.canonical.compatibility = {
   forwardDistance: 3,
   reverseDistance: 24,
   shortestDistance: 3,
+  relationType: "안괴",
+  distance: "근거리",
+  distanceLabel: "근거리",
   compatibilityIndex: 83,
   magnetism: 91,
   temperature: 86,
@@ -68,13 +85,42 @@ seed.canonical.compatibility = {
   growthScore: 84,
   communicationScore: 76,
   conflictScore: 42,
+  relationshipName: "깊은 끌림을 조율하는 안괴",
+  relationshipCategoryReadings: [
+    { title: "감정 호흡", score: 88, reading: "하린님은 감정의 깊이를 먼저 느끼고 도윤님은 반응의 타이밍을 통해 안정감을 찾습니다." },
+    { title: "대화 회복", score: 76, reading: "도윤님이 결론을 늦추고 하린님이 감정의 이름을 정확히 말할수록 오해가 빠르게 풀립니다." },
+  ],
+  relationshipRiskRoutines: [
+    { title: "말의 간격", routine: "감정이 오른 날에는 결론보다 다음 대화 시간을 먼저 정합니다." },
+  ],
+  relationshipTiming: [
+    { title: "가까워지는 시기", reading: "약속을 작게 지키는 달에 관계의 신뢰가 빠르게 붙습니다." },
+  ],
+  enhanced: {
+    relationshipName: "깊은 끌림을 조율하는 안괴",
+    relationshipCategoryReadings: [
+      { title: "감정 호흡", score: 88, reading: "하린님과 도윤님의 감정 속도 차이가 관계의 중요한 조율점입니다." },
+    ],
+  },
 };
 
 const result = await generateSukyoPremiumReport(env, seed, { requestId: "verify-sukuyo-premium-llm-pdf" });
 assert(result.ok === true, "숙요 PDF 생성이 ok=true를 반환해야 합니다.");
 assert(result.chapters.length === 15, "15챕터가 모두 생성되어야 합니다.", result.chapters.length);
 assert(promptChecks.length === 15, "15개 LLM 프롬프트가 호출되어야 합니다.", promptChecks.length);
-assert(promptChecks.every((item) => item.relationAxis && item.chapterFocus && item.forbiddenTone), "모든 프롬프트에 숙요 전문축과 금지 문체가 포함되어야 합니다.", promptChecks);
+assert(
+  promptChecks.every((item) => item.modelInUrl && item.chapterCategory && item.sectionCategories && item.chapterFocus && item.forbiddenTone && item.nameInstruction && item.noSubjectAB),
+  "모든 프롬프트가 Gemini 모델, 챕터 카테고리, 섹션 카테고리, 전문 초점, 이름 기반 상담 지시, 금지 문체를 포함해야 합니다.",
+  promptChecks,
+);
+assert(SUKYO_PDF_CONFIG.provider === "gemini-primary-workers-ai-fallback", "숙요 PDF provider 설정은 Gemini 우선이어야 합니다.", SUKYO_PDF_CONFIG.provider);
+assert(result.llmAssembly?.provider === "gemini", "검증 생성은 Gemini provider로 완료되어야 합니다.", result.llmAssembly);
+assert(result.llmAssembly?.modelName === geminiModel, "llmAssembly.modelName이 PREMIUM_GEMINI_MODEL 기준이어야 합니다.", result.llmAssembly);
+assert(SUKYO_PDF_CHAPTERS.every((chapter) => chapter.categoryKey && chapter.categoryTitle), "챕터 manifest에 카테고리가 있어야 합니다.");
+assert(
+  result.chapters.every((chapter) => chapter.categoryKey && chapter.categoryTitle && chapter.sections.every((section) => section.categoryKey && section.categoryTitle)),
+  "생성 payload의 모든 챕터와 섹션에 카테고리가 있어야 합니다.",
+);
 
 assertSukyoCompatibilityPdfComplete({ chapters: result.chapters });
 const completion = validateSukyoPdfCompletionPayload({ pdfReady: result.pdfReady, chapters: result.chapters });
@@ -85,10 +131,13 @@ const requiredMarkers = [
   'class="calculation-dashboard"',
   'class="distance-graph"',
   'class="metric-grid"',
+  'class="base-sukuyo-chart-table"',
   'class="chapter-header__basis"',
   'class="score-summary-table"',
   "계산축",
   "제공 계산 지표",
+  "감정 호흡",
+  "대화 회복",
   "끌림",
   "소통",
   "긴장 완화",
@@ -118,6 +167,8 @@ const exactValueMarkers = [
 ];
 const missingExactValues = exactValueMarkers.filter((marker) => !html.includes(marker));
 assert(missingExactValues.length === 0, "시각화 data 값이 입력 계산값과 정확히 일치해야 합니다.", missingExactValues);
+assert(html.includes("하린님") && html.includes("도윤님"), "PDF 본문은 입력 이름을 사용해야 합니다.");
+assert(!/(^|[\s\"'“‘])(?:A|B)\s*[:：]/.test(html), "PDF 본문에 A/B speaker 표기가 남지 않아야 합니다.");
 
 const badCompletion = validateSukyoPdfCompletionPayload({
   pdfReady: { ...result.pdfReady, html: `${html}<p>localdraft 템플릿</p>` },
@@ -129,8 +180,20 @@ assert(
   badCompletion.issues,
 );
 
+const badToneCompletion = validateSukyoPdfCompletionPayload({
+  pdfReady: { ...result.pdfReady, html: `${html}<p>A: 마음을 더 열어야 합니다.</p>` },
+  chapters: result.chapters,
+});
+assert(
+  badToneCompletion.issues.some((issue) => issue.includes("pdfReady.forbidden-token") || issue.includes("pdfReady.tone")),
+  "A/B 호칭은 완료 검증에서 차단되어야 합니다.",
+  badToneCompletion.issues,
+);
+
 console.log("[verify-sukuyo-premium-llm-pdf] ok", {
   chapters: result.chapters.length,
   htmlLength: html.length,
+  provider: result.llmAssembly?.provider,
+  modelName: result.llmAssembly?.modelName,
   promptChecks: promptChecks.length,
 });

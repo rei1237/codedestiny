@@ -1088,6 +1088,7 @@ function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) 
   const premiumStatus = clean(doc.premiumStatus);
 
   if (status === "success" && premiumStatus === "completed" && isSukuyoCompletedPayloadReady(archive)) {
+    const links = buildSukuyoRunningLinks(request, sessionId, reportId);
     return {
       status: 200,
       payload: {
@@ -1099,6 +1100,8 @@ function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) 
         reportId,
         sessionId,
         featureKey,
+        archiveUrl: archive.archiveUrl || links.archiveUrl,
+        statusPollUrl: links.statusPollUrl,
         fromCache: true,
       },
     };
@@ -1535,7 +1538,10 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
   const nested = payload?.payload && typeof payload.payload === "object" ? payload.payload : {};
   const chapters = resolveSukuyoCompletedChaptersFromPayload(payload);
   const ready = resolveSukuyoReadyFromPayload(payload);
-  const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
+  const reportId = clean(payload?.reportId || ready?.reportId || nested?.reportId);
+  const hasInlineHtml = Boolean(clean(ready?.html || payload?.html || nested?.html));
+  const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl))
+    || Boolean(reportId && hasInlineHtml);
   const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource || nested.manuscriptSource);
   const llmAssembly = resolveSukuyoLlmAssemblyFromPayload(payload, ready);
   const llmDraftChapterCount = Number(
@@ -1573,7 +1579,7 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
       : null;
   const chapterQualityOk = !chapterQuality || chapterQuality.ok === true;
   return Boolean(
-    clean(payload?.reportId)
+    reportId
     && hasUrl
     && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
@@ -1632,10 +1638,10 @@ async function handleSukuyoPremiumPreflight(request) {
     dryRun: {
       selfStarReady: Boolean(clean(seed?.userSukyo?.nameKo)),
       partnerStarReady: Boolean(clean(seed?.partnerSukyo?.nameKo)),
-      relationType: clean(seed?.compatibility?.relationType || seed?.localSukuyoCompatibilityJson?.relation?.typeKo),
-      relationTypeHan: clean(seed?.compatibility?.relationTypeHan || seed?.localSukuyoCompatibilityJson?.relation?.typeHan),
-      distanceLabel: clean(seed?.compatibility?.distanceLabel || seed?.localSukuyoCompatibilityJson?.relation?.distanceLabel),
-      compatibilityIndex: Number(seed?.compatibility?.compatibilityIndex || seed?.localSukuyoCompatibilityJson?.relation?.compatibilityIndex || 0),
+      relationType: clean(seed?.compatibility?.relationType || seed?.canonical?.compatibility?.relationType || seed?.localSukuyoCompatibilityJson?.compatibility?.relationType || seed?.localSukuyoCompatibilityJson?.relation?.typeKo),
+      relationTypeHan: clean(seed?.compatibility?.relationTypeHan || seed?.canonical?.compatibility?.relationTypeHan || seed?.localSukuyoCompatibilityJson?.compatibility?.relationTypeHan || seed?.localSukuyoCompatibilityJson?.relation?.typeHan),
+      distanceLabel: clean(seed?.compatibility?.distanceLabel || seed?.canonical?.compatibility?.distanceLabel || seed?.localSukuyoCompatibilityJson?.compatibility?.distanceLabel || seed?.localSukuyoCompatibilityJson?.relation?.distanceLabel),
+      compatibilityIndex: Number(seed?.compatibility?.compatibilityIndex || seed?.canonical?.compatibility?.compatibilityIndex || seed?.localSukuyoCompatibilityJson?.compatibility?.compatibilityIndex || seed?.localSukuyoCompatibilityJson?.relation?.compatibilityIndex || 0),
       chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     },
   });
@@ -1778,8 +1784,8 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
     partnerBirthDate: Boolean(clean(input.partner.birthDate)),
     selfStarReady: Boolean(clean(dryRunSeed?.userSukyo?.nameKo)),
     partnerStarReady: Boolean(clean(dryRunSeed?.partnerSukyo?.nameKo)),
-    relationType: clean(dryRunSeed?.compatibility?.relationType),
-    distance: clean(dryRunSeed?.compatibility?.distanceLabel),
+    relationType: clean(dryRunSeed?.compatibility?.relationType || dryRunSeed?.canonical?.compatibility?.relationType),
+    distance: clean(dryRunSeed?.compatibility?.distanceLabel || dryRunSeed?.canonical?.compatibility?.distanceLabel),
   });
 
   try {
@@ -2366,36 +2372,49 @@ async function handleSukuyoPremiumStatus(request, env) {
   );
   const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
   if (reusableResponse?.status === 200) {
+    const completedReportId = clean(reusableResponse.payload?.reportId || reportId);
+    const completedSessionId = clean(reusableResponse.payload?.sessionId || sessionId);
+    const completedLinks = buildSukuyoRunningLinks(request, completedSessionId, completedReportId);
     return json({
       ok: true,
       execution: {
         status: "success",
         premiumStatus: "completed",
-        reportId: clean(reusableResponse.payload?.reportId || reportId),
-        sessionId: clean(reusableResponse.payload?.sessionId || sessionId),
+        reportId: completedReportId,
+        sessionId: completedSessionId,
         completedAt: new Date().toISOString(),
       },
+      archiveUrl: reusableResponse.payload?.archiveUrl || completedLinks.archiveUrl,
+      statusPollUrl: reusableResponse.payload?.statusPollUrl || completedLinks.statusPollUrl,
+      pdfReady: reusableResponse.payload?.pdfReady || reusableResponse.payload?.payload?.pdfReady || null,
       report: reusableResponse.payload,
     });
   }
   const lock = sukuyoPdfGenerationLocks.get(sessionId);
   if (lock?.status === "done" && lock.result && isSukuyoCompletedPayloadReady(lock.result)) {
+    const completedReportId = clean(lock.reportId || reportId);
+    const completedLinks = buildSukuyoRunningLinks(request, sessionId, completedReportId);
     return json({
       ok: true,
       execution: {
         status: "success",
         premiumStatus: "completed",
-        reportId: clean(lock.reportId || reportId),
+        reportId: completedReportId,
         sessionId,
         completedAt: new Date().toISOString(),
       },
+      archiveUrl: completedLinks.archiveUrl,
+      statusPollUrl: completedLinks.statusPollUrl,
+      pdfReady: lock.result.pdfReady || null,
       report: {
         ...lock.result,
         ok: true,
         status: "completed",
         serverStatus: "completed",
-        reportId: clean(lock.reportId || reportId),
+        reportId: completedReportId,
         sessionId,
+        archiveUrl: lock.result.archiveUrl || completedLinks.archiveUrl,
+        statusPollUrl: lock.result.statusPollUrl || completedLinks.statusPollUrl,
       },
     });
   }
@@ -2412,33 +2431,41 @@ async function handleSukuyoPremiumStatus(request, env) {
     });
   }
   if (["queued", "running"].includes(clean(lock?.status))) {
+    const runningPayload = buildSukuyoRunningResponse(request, {
+      sessionId,
+      reportId: clean(lock.reportId || reportId),
+      featureKey: clean(lock.featureKey || featureKey),
+      progress: lock.progress || null,
+      startedAt: lock.startedAt,
+    });
     return json({
       ok: true,
       execution: {
         status: "pending",
         premiumStatus: "generating",
-        reportId: clean(lock.reportId || reportId),
-        sessionId,
+        reportId: clean(runningPayload.reportId || reportId),
+        sessionId: clean(runningPayload.sessionId || sessionId),
       },
-      running: buildSukuyoRunningResponse(request, {
-        sessionId,
-        reportId: clean(lock.reportId || reportId),
-        featureKey: clean(lock.featureKey || featureKey),
-        progress: lock.progress || null,
-        startedAt: lock.startedAt,
-      }),
+      progress: runningPayload.progress || null,
+      archiveUrl: runningPayload.archiveUrl || "",
+      statusPollUrl: runningPayload.statusPollUrl || "",
+      running: runningPayload,
     }, { status: 202 });
   }
   if (reusableResponse?.status === 202) {
+    const runningPayload = reusableResponse.payload || {};
     return json({
       ok: true,
       execution: {
         status: "pending",
         premiumStatus: "generating",
-        reportId,
-        sessionId,
+        reportId: clean(runningPayload.reportId || reportId),
+        sessionId: clean(runningPayload.sessionId || sessionId),
       },
-      running: reusableResponse.payload,
+      progress: runningPayload.progress || null,
+      archiveUrl: runningPayload.archiveUrl || "",
+      statusPollUrl: runningPayload.statusPollUrl || "",
+      running: runningPayload,
     }, { status: 202 });
   }
   if (reusableResponse?.status === 409 && reusableResponse.payload?.code === "SUKUYO_EXECUTION_STALE") {
