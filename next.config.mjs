@@ -33,6 +33,30 @@ function readPackageVersion() {
   }
 }
 
+function normalizeBaseUrl(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+  try {
+    return new URL(value).origin.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function resolveDevelopmentApiBase() {
+  return firstNonEmpty([
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL),
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL),
+    normalizeBaseUrl(process.env.API_WORKER_ORIGIN),
+    normalizeBaseUrl(process.env.AUTH_API_BASE_URL),
+    normalizeBaseUrl(process.env.AUTH_API_BASE),
+    normalizeBaseUrl(process.env.CODE_DESTINY_API_URL),
+    normalizeBaseUrl(process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL),
+    normalizeBaseUrl(process.env.AUTH_URL),
+    "http://localhost:4000",
+  ]);
+}
+
 const buildAppVersion = firstNonEmpty([
   process.env.NEXT_PUBLIC_APP_VERSION,
   process.env.APP_VERSION,
@@ -59,7 +83,7 @@ function createNextConfig(phase) {
   const isDevelopmentServer = phase === PHASE_DEVELOPMENT_SERVER;
   const isProductionBuild = !isDevelopmentServer && process.env.NODE_ENV === "production";
 
-  return withBundleAnalyzer({
+  const config = {
     output: isProductionBuild ? "export" : undefined,
     compress: true,
     env: {
@@ -83,7 +107,21 @@ function createNextConfig(phase) {
       optimizePackageImports: ['lucide-react'],
     },
     trailingSlash: true,
-  });
+  };
+
+  if (isDevelopmentServer) {
+    config.rewrites = async () => {
+      const apiBase = resolveDevelopmentApiBase();
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${apiBase}/api/:path*`,
+        },
+      ];
+    };
+  }
+
+  return withBundleAnalyzer(config);
 }
 
 export default createNextConfig;
