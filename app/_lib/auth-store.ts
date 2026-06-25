@@ -455,6 +455,12 @@ async function loadMeFromServer() {
   }
 
   if (!response.ok) {
+    const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+    if (response.status >= 500 && cachedUser) {
+      latestAppliedMeSeq = requestSeq;
+      applyResolvedUser(cachedUser);
+      return cachedUser;
+    }
     if ([401, 403].includes(response.status)) {
       latestAppliedMeSeq = requestSeq;
       clearAuthStateHard();
@@ -464,12 +470,18 @@ async function loadMeFromServer() {
     throw new Error("auth_refresh_failed");
   }
 
-  const payload = (await response.json()) as { authenticated?: boolean; user?: AuthUser };
+  const payload = (await response.json()) as { authenticated?: boolean; degraded?: boolean; user?: AuthUser };
   if (requestAuthMutationSeq !== authMutationSeq) {
     return state.user;
   }
 
   if (payload?.authenticated === false) {
+    const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+    if (payload.degraded && cachedUser) {
+      latestAppliedMeSeq = requestSeq;
+      applyResolvedUser(cachedUser);
+      return cachedUser;
+    }
     latestAppliedMeSeq = requestSeq;
     clearAuthStateHard();
     publishAuthSync("logout");

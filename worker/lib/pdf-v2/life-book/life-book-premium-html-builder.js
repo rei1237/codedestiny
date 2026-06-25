@@ -43,11 +43,13 @@ function buildElementBars(input = {}) {
     "수": "수",
   };
   const source = input.chart?.elementBalance || {};
-  const entries = Object.entries(labels).filter(([key], index, list) => list.findIndex(([itemKey]) => labels[itemKey] === labels[key]) === index)
+  const entries = Object.entries(labels)
+    .filter(([key], index, list) => list.findIndex(([itemKey]) => labels[itemKey] === labels[key]) === index)
     .map(([key, label]) => [label, Number(source[key] ?? source[label] ?? 0)])
     .filter(([, value]) => Number.isFinite(value));
-  const max = Math.max(1, ...entries.map(([, value]) => value));
-  return `<div class="element-bars">${entries.map(([label, value]) => {
+  const normalizedEntries = entries.length ? entries : [["목", 0], ["화", 0], ["토", 0], ["금", 0], ["수", 0]];
+  const max = Math.max(1, ...normalizedEntries.map(([, value]) => value));
+  return `<div class="element-bars">${normalizedEntries.map(([label, value]) => {
     const width = Math.max(8, Math.round((value / max) * 100));
     return `<div class="element-row"><span>${escapeHtml(label)}</span><div class="element-track"><i style="width:${width}%"></i></div><b>${escapeHtml(value || 0)}</b></div>`;
   }).join("")}</div>`;
@@ -67,28 +69,70 @@ function buildTenGodTable(input = {}) {
 function cycleLabel(value = {}, limit = 100) {
   if (typeof value === "string" || typeof value === "number") return clean(value, limit);
   if (!value || typeof value !== "object") return "";
+  if (Array.isArray(value)) {
+    return value.map((item) => cycleLabel(item, 40)).filter(Boolean).slice(0, 3).join(" · ");
+  }
   return clean(value.ganji || value.label || value.pillar || value.summary || value.theme || value.name, limit);
+}
+
+function readableSignalValue(value, limit = 80) {
+  if (Array.isArray(value)) return value.map((item) => readableSignalValue(item, 40)).filter(Boolean).slice(0, 3).join(" · ");
+  if (value && typeof value === "object") {
+    return clean(value.label || value.name || value.element || value.ganji || value.summary || value.reason || value.value, limit);
+  }
+  return clean(value, limit);
+}
+
+function usefulGodLabel(value = {}) {
+  if (typeof value === "string" || typeof value === "number") return clean(value, 160);
+  if (!value || typeof value !== "object") return "";
+  const rows = [
+    ["용신", value.yongshin || value.yongsin || value.usefulGod || value.main],
+    ["희신", value.huisin || value.huiGod || value.joyGod || value.supportive],
+    ["기신", value.gisin || value.avoidGod || value.unfavorable || value.caution],
+  ]
+    .map(([label, item]) => {
+      const text = readableSignalValue(item, 60);
+      return text ? `${label} ${text}` : "";
+    })
+    .filter(Boolean);
+  return clean(rows.join(" · ") || readableSignalValue(value, 160), 160);
 }
 
 function buildCycleTimeline(input = {}) {
   const cycles = input.chart?.cycles || {};
   const rows = [
     ["현재 대운", cycleLabel(cycles.currentDaewoon, 80)],
-    ["대운 흐름", cycleLabel(cycles.daewoon, 100)],
-    ["분석 세운", cycleLabel(cycles.yearly, 80) || clean(input.targetYear, 80)],
+    ["다음 대운", cycleLabel(cycles.nextDaewoon, 80)],
+    ["대운의 흐름", cycleLabel(cycles.daewoon, 120)],
+    ["분석 세운", cycleLabel(cycles.yearly, 80) || clean(cycles.targetYearPillar || input.targetYear, 80)],
   ].filter(([, value]) => value);
-  const items = rows.length ? rows : [["운의 흐름", "계산 근거 안에서 확인되는 흐름을 중심으로 해석합니다."]];
+  const items = rows.length ? rows : [["삶의 흐름", "계산된 사주 근거 안에서 확인되는 흐름을 중심으로 읽습니다."]];
   return `<ol class="cycle-timeline">${items.map(([label, value]) => `<li><b>${escapeHtml(label)}</b><span>${escapeHtml(value)}</span></li>`).join("")}</ol>`;
+}
+
+function buildSignalTable(input = {}) {
+  const signals = input.chart?.sajuSignals || {};
+  const usefulGod = input.chart?.usefulGod || {};
+  const rows = [
+    ["사주의 중심 기운", clean(signals.dayMaster || input.chart?.pillars?.day?.stem || "")],
+    ["건강의 신호", clean(signals.johuType || signals.powerLabel || "")],
+    ["재물의 움직임", clean(signals.yearPillar || signals.dayPillar || "")],
+    ["관계에서의 흐름", clean(signals.relationshipFocus || signals.monthBranch || "")],
+    ["용신·희신·기신", usefulGodLabel(usefulGod)],
+  ];
+  return `<table class="lb-table"><thead><tr><th>항목</th><th>근거</th></tr></thead><tbody>${rows.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value || "사주 근거 안에서 보완 확인")}</td></tr>`).join("")}</tbody></table>`;
 }
 
 function buildVisualSummary(input = {}) {
   return `<section class="visual-summary">
     <h2>사주 핵심 시각 요약</h2>
     <div class="visual-grid">
-      <div class="viz-card"><h3>사주 네 기둥</h3>${buildPillarTable(input)}</div>
-      <div class="viz-card"><h3>오행 균형 그래프</h3>${buildElementBars(input)}</div>
+      <div class="viz-card"><h3>사주의 중심 기운</h3>${buildPillarTable(input)}</div>
+      <div class="viz-card"><h3>강하게 흐르는 오행</h3>${buildElementBars(input)}</div>
       <div class="viz-card"><h3>십성 분포</h3>${buildTenGodTable(input)}</div>
-      <div class="viz-card"><h3>운의 흐름</h3>${buildCycleTimeline(input)}</div>
+      <div class="viz-card"><h3>대운과 세운의 흐름</h3>${buildCycleTimeline(input)}</div>
+      <div class="viz-card viz-card--wide"><h3>건강의 신호와 재물의 움직임, 관계에서의 흐름</h3>${buildSignalTable(input)}</div>
     </div>
   </section>`;
 }
@@ -107,7 +151,7 @@ function buildChapterFlowVisual(chapter = {}) {
     return `<div class="chapter-flow-row"><span>${escapeHtml(title)}</span><div class="chapter-flow-track"><i style="width:${width}%"></i></div></div>`;
   }).join("");
   return `<aside class="chapter-flow" data-chapter-flow="${escapeHtml(chapter.id)}">
-    <h2>장별 흐름표</h2>
+    <h2>단계 흐름표</h2>
     <table class="lb-table chapter-flow-table"><thead><tr><th>순서</th><th>섹션</th><th>핵심 문장</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="chapter-flow-bars">${bars}</div>
   </aside>`;
@@ -150,6 +194,7 @@ export function assembleLifeBookPremiumHtml({ input = {}, chapters = [], reportI
     .visual-summary h2{margin:0 0 14px;color:#4c2f1a}
     .visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .viz-card{padding:14px;border:1px solid #ead9c3;border-radius:14px;background:#fff7eb}
+    .viz-card--wide{grid-column:1/-1}
     .viz-card h3{margin:0 0 10px;font-size:17px;color:#6b4428}
     .lb-table{width:100%;border-collapse:collapse;font-size:13px}
     .lb-table th,.lb-table td{border:1px solid #e2cfb8;padding:7px 8px;text-align:left;vertical-align:top}
@@ -180,7 +225,7 @@ export function assembleLifeBookPremiumHtml({ input = {}, chapters = [], reportI
     .closing{font-size:14px;color:#5c4433;text-align:center}
     @page{size:A4;margin:16mm 14mm 18mm}
     @media print{body{background:#fff}.page{padding:0}.cover,.meta,.toc,.visual-summary,article,.closing{box-shadow:none}article{break-before:page;page-break-before:always}article:first-of-type{break-before:auto;page-break-before:auto}}
-    @media (max-width:720px){.meta-grid,.visual-grid{grid-template-columns:1fr}.chapter-flow-row{grid-template-columns:1fr}.cover h1{font-size:30px}}
+    @media (max-width:720px){.meta-grid,.visual-grid{grid-template-columns:1fr}.viz-card--wide{grid-column:auto}.chapter-flow-row{grid-template-columns:1fr}.cover h1{font-size:30px}}
   </style>
 </head>
 <body>
@@ -188,7 +233,7 @@ export function assembleLifeBookPremiumHtml({ input = {}, chapters = [], reportI
     <section class="cover">
       <p>Code Destiny Premium</p>
       <h1>사주 인생의 책</h1>
-      <p>${escapeHtml(clean(profile.name || "사용자"))}님의 사주 원국과 운의 흐름을 한 권의 상담문으로 엮었습니다.</p>
+      <p>${escapeHtml(clean(profile.name || "사용자"))}님의 사주 원국과 삶의 흐름을 한 권의 상담문으로 엮었습니다.</p>
       <p>${escapeHtml(clean(profile.birthDate))} ${escapeHtml(clean(profile.birthTime))}</p>
     </section>
     <section class="meta">
@@ -204,7 +249,7 @@ export function assembleLifeBookPremiumHtml({ input = {}, chapters = [], reportI
     </section>
     ${visualSummary}
     ${chapterHtml}
-    <section class="closing">이 문서는 사주 원국과 운의 흐름을 바탕으로 삶의 방향과 선택의 때를 살피는 프리미엄 상담문입니다.</section>
+    <section class="closing">이 문서는 사주 원국과 운의 흐름을 바탕으로 삶의 방향과 선택의 태도를 살피는 프리미엄 상담문입니다.</section>
   </main>
 </body>
 </html>`;

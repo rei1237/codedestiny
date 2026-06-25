@@ -11,18 +11,48 @@ const { createPremiumAccessToken } = await import(`../worker/lib/premium-access-
 function makeMockChapterHtml(prompt = "") {
   const id = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "01";
   const title = (prompt.match(/<h1>([^<]+)<\/h1>/) || [])[1] || "사주 인생의 책";
-  const sections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>/g)].map((match) => match[1]);
+  const contractSections = [];
+  const seenSectionIds = new Set();
+  for (const match of prompt.matchAll(/<section\b[^>]*data-category-id="([^"]+)"[^>]*><h2>([^<]+)<\/h2><p>/g)) {
+    if (seenSectionIds.has(match[1])) continue;
+    seenSectionIds.add(match[1]);
+    contractSections.push({ id: match[1], title: match[2] });
+  }
+  const legacySections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>/g)]
+    .map((match, index) => ({ id: `${id}-${String(index + 1).padStart(2, "0")}`, title: match[1] }));
+  const sections = contractSections.length ? contractSections : legacySections;
   const tones = ["기본 구조", "생활 리듬", "관계 감각", "선택 기준", "회복 방향", "실행 전략"];
   const body = sections.map((section, index) => {
     const tone = tones[index % tones.length];
-    const p1 = `${section}에서는 ${tone}와 사주 원국의 중심 기운이 맞물리는 방식을 섬세하게 살피며 ${title} 안에서 이 대목이 어떤 선택의 기준으로 드러나는지 이어서 풀이합니다 ${section}의 흐름은 타고난 성향을 단정하지 않고 반복해서 나타나는 마음의 결을 비추며 현실에서 붙잡을 수 있는 기준을 선명하게 세워 줍니다 ${index + 1}번째 장면은 생활의 속도와 관계의 온도를 함께 조율하라는 고유한 신호로 읽힙니다`;
-    const p2 = `${section}의 ${tone}을 살릴 때는 이미 드러난 기운을 안정적으로 쓰는 태도가 중요하며 이 부분은 다른 섹션과 달리 ${section}만의 선택 감각을 중심에 둡니다 ${section}에서 강하게 흐르는 기운은 실행력으로 살리고 부족하게 느껴지는 부분은 사람과 습관의 보완으로 채우면 좋습니다 ${section}의 조언은 다음 계절로 넘어갈 때 흔들림을 줄이고 오늘의 선택이 오래 남는 방향으로 이어지게 합니다`;
-    return `<section><h2>${section}</h2><p>${p1}</p><p>${p2}</p></section>`;
+    const p1 = `${section.title}에서는 ${tone}와 사주 원국의 중심 기운이 맞물리는 방식을 섬세하게 살피며 ${title} 안에서 이 대목이 어떤 선택의 기준으로 드러나는지 이어서 풀이합니다 ${section.title}의 흐름은 타고난 성향을 단정하지 않고 반복해서 나타나는 마음의 결을 비추며 현실에서 붙잡을 수 있는 기준을 선명하게 세워 줍니다 ${index + 1}번째 장면은 생활의 속도와 관계의 온도를 함께 조율하라는 고유한 신호로 읽힙니다`;
+    const p2 = `${section.title}의 ${tone}을 살릴 때는 이미 드러난 기운을 안정적으로 쓰는 태도가 중요하며 이 부분은 다른 대목과 달리 ${section.title}만의 선택 감각을 중심에 둡니다 ${section.title}에서 강하게 흐르는 기운은 실행력으로 살리고 부족하게 느껴지는 부분은 사람과 습관의 보완으로 채우면 좋습니다 ${section.title}의 조언은 다음 계절로 넘어갈 때 흔들림을 줄이고 오늘의 선택이 오래 남는 방향으로 이어지게 합니다`;
+    return `<section data-category-id="${section.id}"><h2>${section.title}</h2><p>${p1}</p><p>${p2}</p></section>`;
   }).join("");
   return `<article data-chapter-id="${id}"><h1>${title}</h1>${body}</article>`;
 }
 
+const originalFetch = globalThis.fetch;
+let geminiFetchCount = 0;
+function installGeminiMockFetch() {
+  globalThis.fetch = async (url, init = {}) => {
+    geminiFetchCount += 1;
+    const body = JSON.parse(String(init.body || "{}"));
+    const prompt = body.contents?.[0]?.parts?.[0]?.text || "";
+    return new Response(JSON.stringify({
+      candidates: [{ content: { parts: [{ text: makeMockChapterHtml(prompt) }] } }],
+    }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+}
+installGeminiMockFetch();
+
 const env = {
+  LIFE_BOOK_PREMIUM_GEMINI_MODEL: "gemini-test",
+  GEMINIF_API_KEY: "AIzaTestGeminiPrimaryKey000000000000",
+  GEMINI_USE_SDK: "false",
+  PREMIUM_GEMINI_USE_SDK: "false",
   AI: {
     async run(model, payload) {
       const prompt = payload.messages?.find((message) => message.role === "user")?.content || "";
@@ -69,6 +99,7 @@ assert.equal(generated.llmAssembly?.externalGeneration, true, "LLM assembly must
 assert.equal(generated.llmAssembly?.fallbackUsed, false, "fallback must not be used");
 assert.equal(generated.llmAssembly?.chapterCount, lifeBookPremiumChapterPlanV1.chapters.length, "LLM assembly chapter count must match plan");
 assert.equal(generated.llmAssembly?.expectedChapterCount, lifeBookPremiumChapterPlanV1.chapters.length, "LLM assembly expected count must match plan");
+assert.equal(generated.provider, "gemini", "provider must be Gemini for primary generation");
 assert.ok(generated.downloadUrl, "downloadUrl must exist");
 assert.ok(generated.htmlUrl, "htmlUrl must exist");
 assert.ok(html, "pdfReady.html must exist");
@@ -89,29 +120,18 @@ assert.match(html, /class="[^"]*cycle-timeline/, "cycle timeline must render");
 assert.match(html, /class="[^"]*chapter-flow/, "chapter visual flow must render");
 assert.match(html, /class="[^"]*chapter-flow-bars/, "chapter visual bars must render");
 assert.equal((html.match(/data-chapter-flow=/g) || []).length, lifeBookPremiumChapterPlanV1.chapters.length, "each chapter must render one visual flow");
-for (const label of ["사주 네 기둥", "오행 균형 그래프", "십성 분포", "운의 흐름"]) {
+for (const label of ["사주의 중심 기운", "강하게 흐르는 오행", "건강의 신호", "재물의 움직임", "관계에서의 흐름"]) {
   assert.ok(html.includes(label), `visual label must render: ${label}`);
 }
 for (const chapter of lifeBookPremiumChapterPlanV1.chapters) {
   assert.ok(html.includes(`data-chapter-flow="${chapter.id}"`), `chapter visual flow must render: ${chapter.id}`);
 }
-assert.ok(html.includes("장별 흐름표"), "chapter flow table label must render");
+assert.ok(html.includes("단계 흐름표"), "chapter flow table label must render");
 assert.doesNotMatch(html, /local-assembled|localAssembly|undefined|null|NaN|\[object Object\]/i, "final HTML must not leak local/debug/empty values");
 assert.doesNotMatch(html, /\uFFFD|\?{3,}/, "final HTML must not contain replacement or mojibake placeholders");
 
-const originalFetch = globalThis.fetch;
-let geminiFetchCount = 0;
-globalThis.fetch = async (url, init = {}) => {
-  geminiFetchCount += 1;
-  const body = JSON.parse(String(init.body || "{}"));
-  const prompt = body.contents?.[0]?.parts?.[0]?.text || "";
-  return new Response(JSON.stringify({
-    candidates: [{ content: { parts: [{ text: makeMockChapterHtml(prompt) }] } }],
-  }), {
-    status: 200,
-    headers: { "content-type": "application/json" },
-  });
-};
+geminiFetchCount = 0;
+installGeminiMockFetch();
 try {
   const fallbackGenerated = await generateLifeBookPremiumPdfV2({
     userId: "507f1f77bcf86cd799439011",
@@ -150,24 +170,31 @@ try {
   assert.equal(fallbackGenerated.chapters.length, lifeBookPremiumChapterPlanV1.chapters.length, "Gemini fallback must generate all chapters");
   assert.ok(geminiFetchCount >= lifeBookPremiumChapterPlanV1.chapters.length, "Gemini fallback must call Gemini for each chapter");
 } finally {
-  globalThis.fetch = originalFetch;
+  installGeminiMockFetch();
 }
 
 const firstPlan = lifeBookPremiumChapterPlanV1.chapters[0];
 const firstSection = firstPlan.sections[0];
+const firstSectionId = `${firstPlan.id}-01`;
+function sectionIdForHeading(chapter, heading, index) {
+  const originalIndex = chapter.sections.findIndex((section) => section === heading);
+  if (originalIndex >= 0) return `${chapter.id}-${String(originalIndex + 1).padStart(2, "0")}`;
+  return `${chapter.id}-extra-${String(index + 1).padStart(2, "0")}`;
+}
 function makeValidatorArticle(chapter, headings = chapter.sections) {
   const sections = headings.map((heading, index) => {
-    const body = `${heading} validator section ${index + 1} keeps the chapter plan exact with a long enough authored passage that names the heading, follows the intended reading order, and prevents hidden extra sections from slipping into the final manuscript. The paragraph stays distinct for this heading so repetition checks continue to exercise meaningful content.`;
-    return `<section><h2>${heading}</h2><p>${body}</p></section>`;
+    const sectionId = sectionIdForHeading(chapter, heading, index);
+    const body = `${heading}에서는 사주 원국의 흐름이 삶의 장면 속에서 어떻게 드러나는지 차분하게 살핍니다. 이 대목은 타고난 기질을 단정하지 않고 이미 강하게 흐르는 기운과 보완이 필요한 리듬을 함께 비추며, 사용자가 현실에서 붙잡을 수 있는 선택의 기준을 또렷하게 세워 줍니다.`;
+    return `<section data-category-id="${sectionId}"><h2>${heading}</h2><p>${body}</p></section>`;
   }).join("");
   return `<article data-chapter-id="${chapter.id}"><h1>${chapter.title}</h1>${sections}</article>`;
 }
 const invalidCases = {
   rawJson: "{\"chapters\":[]}",
   codeFence: "```html\n<article data-chapter-id=\"01\"></article>\n```",
-  undefinedLeak: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>undefined</p></section></article>`,
-  internalKey: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>payload debug prompt</p></section></article>`,
-  mojibakePlaceholder: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section><h2>${firstSection}</h2><p>??? ??? ???</p></section></article>`,
+  undefinedLeak: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section data-category-id="${firstSectionId}"><h2>${firstSection}</h2><p>undefined</p></section></article>`,
+  internalKey: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section data-category-id="${firstSectionId}"><h2>${firstSection}</h2><p>payload debug prompt</p></section></article>`,
+  mojibakePlaceholder: `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1><section data-category-id="${firstSectionId}"><h2>${firstSection}</h2><p>??? ??? ???</p></section></article>`,
   extraSection: makeValidatorArticle(firstPlan, [...firstPlan.sections, "Unexpected section"]),
   wrongSectionOrder: makeValidatorArticle(firstPlan, [firstPlan.sections[1], firstPlan.sections[0], ...firstPlan.sections.slice(2)]),
 };
@@ -179,7 +206,7 @@ assert.ok(
   "extra sections must be rejected by exact chapter plan validation",
 );
 assert.ok(
-  validateLifeBookPremiumChapterHtml(invalidCases.wrongSectionOrder, firstPlan).issues.some((issue) => issue.startsWith("section.order.")),
+  validateLifeBookPremiumChapterHtml(invalidCases.wrongSectionOrder, firstPlan).issues.some((issue) => issue === "section.order" || issue.startsWith("section.order.")),
   "section order must be rejected by exact chapter plan validation",
 );
 
@@ -293,4 +320,5 @@ assert.equal(unauthResponse.status, 401, "prepare route must require auth before
 assert.notEqual(unauthResponse.status, 410, "prepare route must not return removed-local-assembly status");
 assert.notEqual(unauthBody.code, "LIFEBOOK_LOCAL_ASSEMBLY_REMOVED", "legacy local assembly removal code must not surface");
 
+globalThis.fetch = originalFetch;
 console.log("[verify-lifebook-llm-only-flow] PASS");

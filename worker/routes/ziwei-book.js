@@ -14,8 +14,8 @@ import {
   generateZiweiPremiumReport,
   validateZiweiPdfCompletionPayload as validateZiweiLlmPdfCompletionPayload,
   ZIWEI_PDF_CONFIG as ZIWEI_LLM_PDF_CONFIG,
-  ZIWEI_PREMIUM_CHAPTERS_V2,
-} from "../lib/ziwei-premium-pdf-v2.js";
+  ZIWEI_PREMIUM_CHAPTERS_V3,
+} from "../lib/ziwei-premium-pdf-v3.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium-ziwei-report";
@@ -74,7 +74,7 @@ const STRENGTH_LEGEND = Object.freeze({
   xianOrShi: "X",
 });
 
-const CHAPTER_BLUEPRINTS = ZIWEI_PREMIUM_CHAPTERS_V2.map((chapter) => ({
+const CHAPTER_BLUEPRINTS = ZIWEI_PREMIUM_CHAPTERS_V3.map((chapter) => ({
   id: chapter.id,
   roman: String(chapter.order).padStart(2, "0"),
   palaceKey: "ming",

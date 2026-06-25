@@ -27,7 +27,7 @@ function toFailure(error, fallbackError = "llm_failed") {
 }
 
 export function pickGeminiKeys() {
-  return [];
+  return ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
 }
 
 export function pickGeminiModels() {

@@ -33,7 +33,7 @@ function normalizeProviderErrorCode(error, fallback = "provider_exception") {
 }
 
 export function resolveLifeBookLlmProviders(env = {}) {
-  const providers = String(env?.LIFE_BOOK_PREMIUM_LLM_PROVIDERS || "workers-ai,gemini")
+  const providers = String(env?.LIFE_BOOK_PREMIUM_LLM_PROVIDERS || "gemini,workers-ai")
     .split(",")
     .map((item) => clean(item).toLowerCase())
     .filter(Boolean);
@@ -41,10 +41,11 @@ export function resolveLifeBookLlmProviders(env = {}) {
   for (const provider of providers) {
     if (!unique.includes(provider)) unique.push(provider);
   }
-  if (!unique.includes("workers-ai")) unique.unshift("workers-ai");
-  if (clean(env?.LIFE_BOOK_PREMIUM_DISABLE_GEMINI_FALLBACK).toLowerCase() !== "true" && !unique.includes("gemini")) {
-    unique.push("gemini");
+  const geminiDisabled = clean(env?.LIFE_BOOK_PREMIUM_DISABLE_GEMINI_FALLBACK).toLowerCase() === "true";
+  if (!geminiDisabled && !unique.includes("gemini")) {
+    unique.unshift("gemini");
   }
+  if (!unique.includes("workers-ai")) unique.push("workers-ai");
   return unique;
 }
 
@@ -134,7 +135,7 @@ async function callGemini(params, env) {
 }
 
 export async function generateLifeBookTextWithLlm(params, env = {}) {
-  const provider = clean(params.provider || "workers-ai").toLowerCase();
+  const provider = clean(params.provider || "gemini").toLowerCase();
   if (provider === "gemini") return callGemini(params, env);
   return callWorkersAi(params, env);
 }

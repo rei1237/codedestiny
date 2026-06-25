@@ -22,7 +22,7 @@ function extractSourceBlock(source, startMarker, endMarker) {
 }
 
 const sajuAIGateSource = extractSourceBlock(sajuEngineSource, "function _cdAIPromptGate(input) {", "function _sajuPromptClone(value) {");
-const sajuPromptRequestSource = extractSourceBlock(sajuEngineSource, "function _requestSajuQuestionPrompt(question, privacyOptions, domain)", "function _buildSajuQuestionPromptHtml() {");
+const sajuPromptRequestSource = extractSourceBlock(sajuEngineSource, "function _requestSajuQuestionPrompt(question, privacyOptions, domain, options)", "function _buildSajuQuestionPromptHtml() {");
 const astrologyPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleAstrologyAIPrompt(request, auth, env) {", "async function handleVedicAIPrompt(request, auth, env) {");
 const vedicPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleVedicAIPrompt(request, auth, env) {", "async function handleSajuAIPrompt(request, auth, env) {");
 const sajuPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSajuAIPrompt(request, auth, env) {", "async function handleZiweiAIPrompt(request, auth, env) {");
@@ -43,12 +43,19 @@ const promptFeatures = [
   "vedic_ai_prompt_generator",
 ];
 const freePromptFeatures = ["sukuyo_ai_prompt_generator"];
+const promptFeatureCosts = {
+  saju_ai_prompt_generator: 200,
+  ziwei_ai_prompt_generator: 100,
+  astrology_ai_prompt_generator: 100,
+  vedic_ai_prompt_generator: 100,
+};
 
 for (const featureKey of promptFeatures) {
+  const expectedCost = promptFeatureCosts[featureKey] || 100;
   assert.equal(
     FEATURE_KEY_PRICE_TABLE[featureKey]?.cost,
-    100,
-    `${featureKey} must stay priced by the server registry at 100 coins`,
+    expectedCost,
+    `${featureKey} must stay priced by the server registry at ${expectedCost} coins`,
   );
   assert.match(
     fortuneSource,
@@ -71,6 +78,7 @@ for (const featureKey of freePromptFeatures) {
 }
 
 const allPromptFeatures = [...promptFeatures, ...freePromptFeatures];
+const delegatedPaidAccessPromptFeatureCount = allPromptFeatures.length - 1;
 
 assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, "coin consume must require explicit forceDeduct");
 assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
@@ -101,19 +109,29 @@ assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "de
 assert.match(fortuneSource, /accessGrant: body\?\.accessGrant/, "prompt routes must forward accessGrant evidence");
 assert.equal(
   (allPromptRouteSource.match(/requireExistingPaidAccess: true/g) || []).length,
-  allPromptFeatures.length,
-  "all AI prompt routes must require pre-verified paid access",
+  delegatedPaidAccessPromptFeatureCount,
+  "all non-saju AI prompt routes must require pre-verified paid access",
 );
 assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
 assert.match(sajuAIGateSource, /window\._cdOpenPaidServiceGate/, "saju prompt gate must use the standard paid service gate");
-assert.doesNotMatch(sajuAIGateSource, /forcePassFirst|membershipCreditCost|amountKrw|paymentAmount/, "saju prompt gate must stay on the 1514371 fast evidence flow");
+assert.match(sajuAIGateSource, /amountKrw:\s*amountKrw/, "saju prompt gate must pass KRW amount into the standard paid gate");
+assert.match(sajuAIGateSource, /paymentAmount:\s*amountKrw/, "saju prompt gate must keep KRW payment amount aligned");
+assert.match(sajuAIGateSource, /allowedPaymentModes:\s*allowedPaymentModes/, "saju prompt gate must pass allowed payment modes");
+assert.match(sajuAIGateSource, /disablePassChoice:\s*opts\.disablePassChoice === true/, "saju prompt gate must support direct-only pass choice disabling");
 assert.match(sajuAIGateSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
 assert.match(sajuPromptRequestSource, /featureKey:\s*'saju_ai_prompt_generator'/, "saju question prompt must use the 1514371 feature key");
-assert.match(sajuPromptRequestSource, /_cdAIPromptRequestJson\('\/api\/fortune\/saju\/ai-prompt'/, "saju prompt must generate immediately after paid evidence");
-assert.match(sajuPromptRequestSource, /sajuResult:\s*_buildSajuAIPromptPayload\(privacyOptions\)/, "saju prompt must forward the current saju engine context payload");
-assert.doesNotMatch(sajuPromptRequestSource, /MISSING_PROFILE_ID|profileId|_sajuPromptPostWithPaidEvidence/, "saju prompt request must not block generation on profile execution state");
-assert.match(sajuPromptRouteSource, /requireExistingPaidAccess:\s*true/, "saju prompt route must require pre-verified paid access");
-assert.match(sajuPromptRouteSource, /reason:\s*"사주 AI 질문 프롬프트 생성"/, "saju prompt route must keep the 1514371 billing reason");
+assert.match(sajuPromptRequestSource, /cost:\s*200/, "saju prompt must charge 200 coins for the 20,000 KRW result");
+assert.match(sajuPromptRequestSource, /amountKrw:\s*20000/, "saju prompt must pass the 20,000 KRW amount");
+assert.match(sajuPromptRequestSource, /allowedPaymentModes:\s*\['direct'\]/, "saju prompt must allow only direct payment");
+assert.match(sajuPromptRequestSource, /disablePassChoice:\s*true/, "saju prompt must disable pass choice");
+assert.match(sajuPromptRequestSource, /_sajuPromptPostWithPaidEvidence\(requestNonce,\s*question,\s*privacyOptions,\s*domain,\s*evidence,\s*options\)/, "saju prompt must post with retryable paid evidence after direct payment");
+assert.match(sajuEngineSource, /sajuResult:\s*_buildSajuAIPromptPayload\(privacyOptions\)/, "saju prompt must forward the current saju engine context payload");
+assert.doesNotMatch(sajuPromptRequestSource, /MISSING_PROFILE_ID|profileId/, "saju prompt request must not block generation on profile execution state");
+assert.match(sajuPromptRouteSource, /findAIPromptDirectPaymentEvidence/, "saju prompt route must verify direct single-payment evidence");
+assert.doesNotMatch(sajuPromptRouteSource, /findAIPromptPaidAccessEvidence/, "saju prompt route must not accept pass or monthly evidence");
+assert.match(sajuPromptRouteSource, /callGeminiText/, "saju prompt route must generate the result through the LLM");
+assert.match(sajuPromptRouteSource, /resultText/, "saju prompt route must return resultText");
+assert.doesNotMatch(sajuPromptRouteSource, /prompt:\s*builtPrompt\.prompt|generatedPrompt:\s*builtPrompt/, "saju prompt route must not return the internal prompt");
 assert.match(sajuPromptRouteSource, /featureKey:\s*SAJU_AI_PROMPT_FEATURE_KEY/, "saju prompt route must use the canonical feature key constant");
 assert.doesNotMatch(sajuPromptRouteSource, /MISSING_PROFILE_ID|PaidExecutionRecord|readSajuAIPromptProfileId/, "saju prompt route must not require profile execution records after rollback");
 assert.match(sajuPromptLibSource, /export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";/, "saju prompt library must expose the 1514371 feature key");
@@ -121,8 +139,7 @@ assert.match(sajuPromptLibSource, /buildSajuAdvancedFactors/, "saju prompt libra
 assert.match(sajuPromptLibSource, /hiddenStemExposures/, "saju prompt library must retain hidden-stem exposure updates");
 assert.match(sajuPromptLibSource, /earthStorageOpenings/, "saju prompt library must retain earth storage opening updates");
 assert.match(sajuEngineSource, /engineContext:\s*_sajuPromptBuildEngineContext\(\)/, "saju prompt payload must retain the current hidden-stem engine context");
-assert.match(sajuPromptRequestSource, /accessDecision:\s*evidence\.accessDecision/, "saju prompt generation must forward accessDecision evidence");
-assert.match(sajuPromptRequestSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "saju prompt generation must forward pass evidence");
+assert.doesNotMatch(sajuPromptRequestSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "saju prompt direct-only request must not advertise pass evidence in the payment gate call");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");
@@ -134,17 +151,17 @@ assert.equal(
 );
 assert.equal(
   (allPromptRouteSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  allPromptFeatures.length,
-  "AI prompt generation routes must forward accessDecision into paid-access verification",
+  delegatedPaidAccessPromptFeatureCount,
+  "non-saju AI prompt generation routes must forward accessDecision into paid-access verification",
 );
 assert.equal(
   (allPromptRouteSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  allPromptFeatures.length,
-  "AI prompt generation routes must forward subscription pass evidence into paid-access verification",
+  delegatedPaidAccessPromptFeatureCount,
+  "non-saju AI prompt generation routes must forward subscription pass evidence into paid-access verification",
 );
 assert.doesNotMatch(
   sajuEngineSource,
-  /if \(code === 'PAYMENT_REQUIRED' \|\| code === 'INSUFFICIENT_COINS' \|\| result\.status === 402\) \{[\s\S]*?_openSajuPaidPaymentMode\(100, '사주 AI 질문문 생성', 'saju_ai_prompt_generator'\)/,
+  /if \(code === 'PAYMENT_REQUIRED' \|\| code === 'INSUFFICIENT_COINS' \|\| result\.status === 402\) \{[\s\S]*?_openSajuPaidPaymentMode\(200, '사주 AI 상담 결과 생성', 'saju_ai_prompt_generator'\)/,
   "saju prompt must not reopen the payment modal after a paid gate attempt fails verification",
 );
 assert.doesNotMatch(sajuEngineSource, /_openSajuPaidPaymentMode\(ASTROLOGY_AI_PROMPT_COST,[\s\S]*?astrology_ai_prompt_generator/, "astrology prompt must not reopen legacy payment after the standard paid gate");

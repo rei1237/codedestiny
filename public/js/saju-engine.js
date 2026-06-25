@@ -4908,6 +4908,14 @@ function _cdAIPromptGate(input) {
   var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
   var cost = Number(opts.cost || 100);
   if (!Number.isFinite(cost) || cost <= 0) cost = 100;
+  var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100))));
+  var allowedPaymentModes = Array.isArray(opts.allowedPaymentModes)
+    ? opts.allowedPaymentModes.map(function(mode) { return String(mode || '').trim(); }).filter(Boolean)
+    : undefined;
+  var directOnly = !!(allowedPaymentModes && allowedPaymentModes.length && allowedPaymentModes.every(function(mode) {
+    var normalized = String(mode || '').toLowerCase();
+    return normalized === 'direct' || normalized === 'card' || normalized === 'single' || normalized === 'single_purchase' || normalized === 'direct_krw';
+  }));
   function normalize(result) {
     var payload = result && result.payload ? result.payload : {};
     var data = _cdAIPromptPayloadData(payload);
@@ -4931,6 +4939,13 @@ function _cdAIPromptGate(input) {
       subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
       coinPrice: cost,
       cost: cost,
+      amountKrw: amountKrw,
+      amountKRW: amountKrw,
+      paymentAmount: amountKrw,
+      allowedPaymentModes: allowedPaymentModes,
+      disablePassFirst: opts.disablePassFirst === true,
+      disablePassChoice: opts.disablePassChoice === true,
+      forceDirectPayment: opts.forceDirectPayment === true,
       requestId: requestId
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
@@ -4956,6 +4971,18 @@ function _cdAIPromptGate(input) {
         }
       });
     });
+  }
+  if (directOnly) {
+    return Promise.resolve(normalize({
+      ok: false,
+      status: 402,
+      payload: {
+        code: 'PAYMENT_REQUIRED',
+        message: '20,000원 단건 결제 확인 후 사주 AI 상담 결과가 열립니다.',
+        requiredCoins: cost,
+        amountKRW: amountKrw
+      }
+    }));
   }
   return _cdAIPromptRequestJson('/api/billing/coin-gate', {
     method: 'POST',
@@ -5451,10 +5478,10 @@ function _confirmSajuQuestionPromptPurchase(domain, privacyOptions) {
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
   return window.confirm(
-    '10,000원으로 명식의 결을 담은 깊은 질문문을 엽니다.\n\n'
+    '20,000원으로 명식의 결을 담은 사주 AI 상담 결과를 엽니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
     + '개인정보 설정: ' + protectedText + '\n'
-    + '명식 계산값은 질문의 결을 맞추기 위해 함께 흐릅니다.'
+    + '명식 계산값은 상담의 흐름을 맞추기 위해 함께 흐릅니다.'
   );
 }
 
@@ -5505,6 +5532,7 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
     || status === 504
     || code === 'SERVICE_UNAVAILABLE'
     || code === 'PAID_ACCESS_VERIFY_RETRYABLE'
+    || code === 'LLM_GENERATION_RETRYABLE'
     || reason === 'DB_UNAVAILABLE'
     || /database is temporarily unavailable/i.test(message);
 }
@@ -5609,50 +5637,41 @@ function _sajuPromptResolveProfileId() {
   return '';
 }
 
-function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
+function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
-    reason: '사주 질문문 생성',
-    cost: 100,
+    reason: '사주 AI 상담 결과 생성',
+    cost: 200,
+    amountKrw: 20000,
+    paymentAmount: 20000,
+    allowedPaymentModes: ['direct'],
+    disablePassFirst: true,
+    disablePassChoice: true,
+    forceDirectPayment: true,
     requestId: 'saju-ai-prompt:' + requestNonce,
     categoryKey: 'saju'
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _cdAIPromptRequestJson('/api/fortune/saju/ai-prompt', {
-      method: 'POST',
-      headers: { 'idempotency-key': 'saju-ai:' + requestNonce },
-      body: JSON.stringify({
-        question: question,
-        domain: String(domain || '').trim(),
-        sajuResult: _buildSajuAIPromptPayload(privacyOptions),
-        requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
-        accessGrant: evidence.accessGrant,
-        accessDecision: evidence.accessDecision,
-        freeBySubscription: evidence.freeBySubscription,
-        consume: evidence.consume,
-        payment: evidence.payment,
-        _paymentContext: evidence._paymentContext
-      })
-    });
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options);
   });
 }
 
 function _buildSajuQuestionPromptHtml() {
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260617-context-quantum" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-llm-result-v20260625" style="margin:18px 0 0" data-saju-analysis-only="true">'
     + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.22),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(42,28,22,.97) 52%,rgba(243,236,218,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.22);padding:18px;">'
     +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.18),transparent 30%,rgba(255,255,255,.14) 100%);"></div>'
     +   '<div style="position:absolute;right:18px;bottom:-34px;width:132px;height:132px;border-radius:50%;opacity:.2;border:1px solid rgba(255,231,164,.42);background:radial-gradient(circle at 50% 26%,#cf2e2e 0 16%,transparent 17%),radial-gradient(circle at 50% 74%,#133e7c 0 16%,transparent 17%),linear-gradient(180deg,#cf2e2e 0 50%,#133e7c 50% 100%);filter:saturate(1.08);"></div>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
-    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Prompt Atelier</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">최고의 명리학자처럼 AI에게 물어볼 사주 질문문</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 남기면, 일간·월령·조후·십성의 결을 따라 AI에게 건넬 사주 전용 프롬프트가 드러납니다.</p></div></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">AI 질문 프롬프트 · 10,000원</span>'
+    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 남기면, 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">사주 AI 상담 · 20,000원</span>'
     +   '</div>'
     +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
     +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 AI 프롬프트 열림</span>'
+    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 상담문 생성</span>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:13px;">'
     +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
@@ -5672,11 +5691,10 @@ function _buildSajuQuestionPromptHtml() {
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-birth checked style="accent-color:#d9bd77;"> 원본 생년월일 제외</label>'
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
-    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 AI에게 건넬 질문 안에 남깁니다.</div>'
+    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 상담 생성에 남깁니다.</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">10,000원으로 AI 질문문 열기</button>'
-    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 열기</button>'
-    +     '<button data-saju-ai-copy type="button" style="display:none;background:#133e35;color:#ecfdf5;border:1px solid rgba(110,231,183,.38);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">AI 질문문 복사</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">20,000원으로 사주 AI 상담 받기</button>'
+    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
     +   '</div>'
     +   '<textarea data-saju-ai-output readonly style="position:relative;display:none;margin-top:12px;width:100%;min-height:220px;border-radius:8px;border:1px solid rgba(207,172,91,.42);background:rgba(255,252,243,.94);color:#1f2a19;padding:13px 14px;font-size:0.82rem;line-height:1.68;resize:vertical;box-sizing:border-box;"></textarea>'
     +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
@@ -5732,10 +5750,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var countEl = rootEl.querySelector('[data-saju-ai-count]');
   var generateBtn = rootEl.querySelector('[data-saju-ai-generate]');
   var regenerateBtn = rootEl.querySelector('[data-saju-ai-regenerate]');
-  var copyBtn = rootEl.querySelector('[data-saju-ai-copy]');
   var outputEl = rootEl.querySelector('[data-saju-ai-output]');
   var statusEl = rootEl.querySelector('[data-saju-ai-status]');
-  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !copyBtn || !outputEl || !statusEl) return;
+  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !statusEl) return;
 
   var isLoading = false;
   function updateCount() {
@@ -5749,7 +5766,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? 'AI 질문문의 결을 여는 중...' : '10,000원으로 AI 질문문 열기';
+    generateBtn.textContent = isLoading ? '사주 상담문의 결을 여는 중...' : '20,000원으로 사주 AI 상담 받기';
     updateCount();
   }
   function handleGenerate() {
@@ -5767,19 +5784,18 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     setLoading(true);
-    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 전용 AI 질문문을 엽니다.', 'info');
+    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 AI 상담문을 빚고 있습니다.', 'info');
     _requestSajuQuestionPrompt(question, privacyOptions, domain, {
       onRetry: function() {
-        _sajuPromptSetStatus(statusEl, '결제의 흔적은 남아 있고, 명식의 문을 다시 여는 중입니다.', 'info');
+        _sajuPromptSetStatus(statusEl, '결제는 확인되었고, 명식의 문을 다시 여는 중입니다.', 'info');
       }
     }).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
-      var promptText = String(payload.prompt || payload.generatedPrompt || '').trim();
-      if (result && result.ok && payload.ok === true && promptText) {
+      var resultText = String(payload.resultText || '').trim();
+      if (result && result.ok && payload.ok === true && resultText) {
         outputEl.style.display = 'block';
-        outputEl.value = promptText;
+        outputEl.value = resultText;
         outputEl.scrollTop = 0;
-        copyBtn.style.display = 'inline-flex';
         regenerateBtn.style.display = 'inline-flex';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
         var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
@@ -5787,12 +5803,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
         var paymentConfirmText = monthlyCreditCost > 0
           ? '월정석 ' + Math.floor(monthlyCreditCost).toLocaleString('ko-KR') + '개 결제 확인 완료. '
           : (chargedCoins > 0 ? '결제 확인 완료. ' : '');
-        _sajuPromptSetStatus(statusEl, paymentConfirmText + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 전용 AI 질문문이 열렸습니다.', 'success');
+        _sajuPromptSetStatus(statusEl, paymentConfirmText + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 AI 상담 결과가 열렸습니다.', 'success');
         return;
       }
 
       var code = String(payload.code || '').trim();
-      var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+      var message = String(payload.message || '').trim() || '상담문 생성 중 오류가 발생했습니다.';
       if (code === 'MISSING_PROFILE_ID') {
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
@@ -5817,15 +5833,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
   inputEl.addEventListener('input', updateCount);
   generateBtn.addEventListener('click', handleGenerate);
   regenerateBtn.addEventListener('click', handleGenerate);
-  copyBtn.addEventListener('click', function() {
-    _sajuPromptCopyText(outputEl.value).then(function() {
-      _sajuPromptSetStatus(statusEl, '프롬프트가 복사되었습니다.', 'success');
-    }).catch(function() {
-      _sajuPromptSetStatus(statusEl, '복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.', 'error');
-    });
-  });
   updateCount();
-  _sajuPromptSetStatus(statusEl, '질문을 남기면 10,000원 결제 확인 뒤 AI에게 건넬 사주 전용 질문문이 열립니다.', 'info');
+  _sajuPromptSetStatus(statusEl, '질문을 남기면 20,000원 단건 결제 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
 }
 
   function renderSpecialCharm(p, natal) {
@@ -11090,7 +11099,7 @@ function renderAstroInsightLegacyNeon() {
           }
 
           var code = String(payload.code || '').trim();
-          var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
+      var message = String(payload.message || '').trim() || '상담문 생성 중 오류가 발생했습니다.';
 
           if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
             _astroSetPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
@@ -15739,11 +15748,194 @@ function renderZiwei(p, natal, targetId) {
   }
 }
 
+    #ziweiModalSection .zw-dashboard {
+      gap: 16px;
+    }
+    #ziweiModalSection .zw-dashboard::before,
+    #ziweiModalSection .zw-dashboard::after {
+      opacity: 0.16;
+      animation: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] {
+      background:
+        linear-gradient(90deg, rgba(245, 158, 11, 0.16), transparent 18%, transparent 82%, rgba(14, 165, 233, 0.14)),
+        linear-gradient(180deg, #1f2937 0%, #111827 100%);
+      border: 1px solid rgba(217, 119, 6, 0.42);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 18px 38px rgba(2, 6, 23, 0.42), inset 0 0 0 1px rgba(255, 247, 237, 0.08);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"]::before,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"]::after {
+      display: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-grid {
+      gap: 6px;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell {
+      background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(241, 245, 249, 0.94));
+      border: 1px solid rgba(120, 53, 15, 0.24);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.52), 0 8px 16px rgba(15, 23, 42, 0.16);
+      color: #111827;
+      min-height: 108px;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell::before {
+      background: linear-gradient(180deg, rgba(146, 64, 14, 0.08), rgba(255,255,255,0));
+      opacity: 1;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell::after {
+      background: linear-gradient(90deg, rgba(120,53,15,0), rgba(120,53,15,0.38), rgba(120,53,15,0));
+      opacity: 0.58;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell.active {
+      background: linear-gradient(180deg, #fff7ed, #fef3c7);
+      border-color: rgba(180, 83, 9, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(254,243,199,0.8), 0 0 0 2px rgba(245,158,11,0.18), 0 12px 22px rgba(15,23,42,0.26);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-meng {
+      border-color: rgba(180, 83, 9, 0.82);
+      box-shadow: inset 0 0 0 1px rgba(254,243,199,0.9), 0 0 0 2px rgba(245,158,11,0.2), 0 12px 22px rgba(15,23,42,0.24);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-shen {
+      border-color: rgba(14, 116, 144, 0.58);
+      box-shadow: inset 0 0 0 1px rgba(224,242,254,0.78), 0 0 0 2px rgba(14,165,233,0.14), 0 10px 18px rgba(15,23,42,0.18);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-aura,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-starlane {
+      display: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-name {
+      color: #111827;
+      border-bottom-color: rgba(120, 53, 15, 0.24);
+      text-shadow: none;
+      font-weight: 900;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-branch-name,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-gan {
+      color: rgba(51, 65, 85, 0.72);
+      text-shadow: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-main {
+      color: #92400e;
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(180, 83, 9, 0.22);
+      text-shadow: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-main-borrowed {
+      color: #475569;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-aux {
+      color: #075985;
+      text-shadow: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-bad {
+      color: #991b1b;
+      text-shadow: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-empty {
+      color: #64748b;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-dahan {
+      color: #065f46;
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(5, 150, 105, 0.3);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-tag {
+      box-shadow: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel {
+      background:
+        radial-gradient(circle at 50% 22%, rgba(245, 158, 11, 0.18), transparent 55%),
+        linear-gradient(180deg, #fff7ed 0%, #e0f2fe 100%);
+      border: 1px solid rgba(120, 53, 15, 0.36);
+      color: #111827;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7), 0 10px 20px rgba(15,23,42,0.18);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel::before,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel::after,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-orbit {
+      display: none;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-seal {
+      color: #7c2d12;
+      border-color: rgba(180, 83, 9, 0.42);
+      background: linear-gradient(180deg, rgba(254,243,199,0.96), rgba(255,251,235,0.9));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.72), 0 8px 16px rgba(15,23,42,0.12);
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-title {
+      color: #7c2d12;
+      background: none;
+      -webkit-background-clip: initial;
+      background-clip: initial;
+      text-shadow: none;
+      letter-spacing: 0.04em;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-desc {
+      color: #334155;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-hint {
+      color: #475569;
+    }
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-chip,
+    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-legend-item {
+      background: rgba(255,255,255,0.66);
+      color: #334155;
+      border-color: rgba(120, 53, 15, 0.2);
+      box-shadow: none;
+    }
+    #ziweiModalSection .zw-detail-panel {
+      background:
+        linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(241, 245, 249, 0.97));
+      border-color: rgba(120, 53, 15, 0.18);
+      color: #1f2937;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.24), inset 0 0 0 1px rgba(255,255,255,0.6);
+    }
+    #ziweiModalSection .zw-detail-panel::before {
+      display: none;
+    }
+    #ziweiModalSection .zw-dp-header {
+      border-bottom-color: rgba(120, 53, 15, 0.18);
+    }
+    #ziweiModalSection .zw-dp-title {
+      color: #7c2d12;
+      text-shadow: none;
+    }
+    #ziweiModalSection .zw-dp-subtitle,
+    #ziweiModalSection .zw-rdesc {
+      color: #475569;
+    }
+    #ziweiModalSection .zw-rtitle {
+      color: #075985;
+    }
+    #ziweiModalSection .zw-report-section {
+      background: rgba(255,255,255,0.62);
+      border-left-color: #b45309;
+      border-top: 1px solid rgba(120, 53, 15, 0.1);
+      border-right: 1px solid rgba(120, 53, 15, 0.1);
+      border-bottom: 1px solid rgba(120, 53, 15, 0.1);
+    }
+    @media (hover: hover) {
+      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell:hover {
+        background: linear-gradient(180deg, #fff7ed, #fffbeb);
+        border-color: rgba(180, 83, 9, 0.66);
+        box-shadow: inset 0 0 0 1px rgba(254,243,199,0.9), 0 12px 20px rgba(15,23,42,0.22);
+      }
+    }
+    @media (max-width: 768px) {
+      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] {
+        padding: 8px;
+      }
+      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell {
+        min-height: 78px;
+        border-radius: 7px;
+      }
+    }
   </style>
 
   <div class="zw-dashboard">
     <!-- Left: Grid -->
-    <div class="zw-grid-wrap" data-zw-chart-ui="cosmic-chart-ui-v20260606">
+    <div class="zw-grid-wrap" data-zw-chart-ui="professional-chart-ui-v20260625" data-cd-marker="ziwei-basic-chart-polish-v20260625">
       <div class="zw-chart-mobile-note">명반을 좌우로 밀어 12궁의 별자리 흐름을 확인하세요.</div>
       <div class="zw-grid">
   `;
@@ -21452,21 +21644,65 @@ function renderZiwei(p, natal, targetId) {
           var msg = shell.querySelector('[data-zw-paid-gate-message]');
           if (msg) msg.textContent = unlocked ? '잠금 해제됨' : '';
         }
+        function zwSetBasicPaidGateChecking(shell, checking) {
+          if (!shell) return;
+          shell.classList.toggle('cd-section-gate--checking', !!checking);
+          if (checking) shell.classList.toggle('cd-section-gate--error', false);
+          var msg = shell.querySelector('[data-zw-paid-gate-message]');
+          if (msg) msg.textContent = checking ? '이용권을 확인하고 있습니다.' : '';
+        }
+        function zwSetBasicPaidGateError(shell) {
+          if (!shell || shell.classList.contains('cd-section-gate--unlocked')) return;
+          shell.classList.toggle('cd-section-gate--checking', false);
+          shell.classList.toggle('cd-section-gate--error', true);
+          var msg = shell.querySelector('[data-zw-paid-gate-message]');
+          if (msg) msg.textContent = '이용권 확인이 지연되고 있습니다. 버튼을 누르면 다시 확인합니다.';
+        }
+        function zwResolveCurrentProfileIdForGate() {
+          try {
+            var currentProfile = window.__cdCurrentDestinyProfile
+              || (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function'
+                ? window.DestinyProfileManager.storage.current()
+                : null);
+            var currentId = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || '').trim();
+            if (currentId) return currentId.slice(0, 80).replace(/\s+/g, '_');
+          } catch (_) {}
+          try {
+            var activeProfile = window.__cdActiveBirthProfile || window.__destinyFlowerSajuSnapshot || null;
+            var activeId = String((activeProfile && (activeProfile.profileId || activeProfile.id)) || '').trim();
+            if (activeId) return activeId.slice(0, 80).replace(/\s+/g, '_');
+          } catch (_) {}
+          return '';
+        }
         function zwCheckBasicPaidGateServer(shell) {
           if (!shell || shell.getAttribute('data-status-checked') === 'true') return;
           shell.setAttribute('data-status-checked', 'true');
           var key = String(shell.getAttribute('data-unlock-key') || '').trim();
-          if (!key || typeof window.fetchJsonWithAuth !== 'function') return;
+          if (!key || typeof window.fetchJsonWithAuth !== 'function') {
+            zwSetBasicPaidGateChecking(shell, false);
+            return;
+          }
           var params = new URLSearchParams();
           params.set('featureKey', key);
           params.set('serviceKey', 'ziwei');
+          var profileId = zwResolveCurrentProfileIdForGate();
+          if (profileId) params.set('profileId', profileId);
+          zwSetBasicPaidGateChecking(shell, true);
           window.fetchJsonWithAuth('/api/billing/unlock-status?' + params.toString(), { method:'GET' }).then(function(result) {
+            if (!shell.classList.contains('cd-section-gate--unlocked')) zwSetBasicPaidGateChecking(shell, false);
+            if (!result || result.ok === false) {
+              shell.removeAttribute('data-status-checked');
+              return;
+            }
             var payload = (result && result.payload) || {};
             var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
             var unlocked = !!(payload.unlocked || data.unlocked || data.canAccess || (data.accessDecision && data.accessDecision.accessGranted));
             if (!unlocked && data.unlockMap && data.unlockMap[key] === true) unlocked = true;
             if (unlocked) zwSetBasicPaidGateUnlocked(shell, true);
-          }).catch(function(){});
+          }).catch(function(){
+            shell.removeAttribute('data-status-checked');
+            zwSetBasicPaidGateError(shell);
+          });
         }
         function zwWatchBasicPaidGate(shell) {
           if (!shell) return;
@@ -21491,7 +21727,11 @@ function renderZiwei(p, natal, targetId) {
             zwSetBasicPaidGateUnlocked(shell, zwBasicPaidFeatureUnlocked(key));
             if (!shell.classList.contains('cd-section-gate--unlocked')) zwCheckBasicPaidGateServer(shell);
             var btn = shell.querySelector('[data-action="unlockPremiumFeature"]');
-            if (btn) btn.addEventListener('click', function() { zwWatchBasicPaidGate(shell); });
+            if (btn) btn.addEventListener('click', function() {
+              shell.removeAttribute('data-status-checked');
+              zwCheckBasicPaidGateServer(shell);
+              zwWatchBasicPaidGate(shell);
+            });
             window.setTimeout(function() {
               if (zwBasicPaidFeatureUnlocked(key)) zwSetBasicPaidGateUnlocked(shell, true);
             }, 900);
@@ -21501,7 +21741,7 @@ function renderZiwei(p, natal, targetId) {
           var color = accent || '#c4b5fd';
           var key = String(featureKey || '').trim();
           var safeId = 'zwBasicPaidGate_' + key.replace(/[^a-z0-9_]/gi, '_');
-          return '<div class="cd-section-gate zw-basic-paid-gate" id="'+safeId+'" data-cd-marker="ziwei-basic-paid-gate-v20260615" data-unlock-key="'+zwFlowEsc(key)+'" style="position:relative;min-height:174px;max-height:174px;border-radius:12px;overflow:hidden;">'
+          return '<div class="cd-section-gate zw-basic-paid-gate" id="'+safeId+'" data-cd-marker="ziwei-basic-paid-gate-v20260615" data-zw-lock-marker="ziwei-basic-lock-sync-v20260625" data-unlock-key="'+zwFlowEsc(key)+'" style="position:relative;min-height:174px;max-height:174px;border-radius:12px;overflow:hidden;">'
             +'<div class="cd-section-gate__overlay" style="gap:7px;padding:14px 13px;background:linear-gradient(180deg,rgba(10,4,28,0.86),rgba(9,6,28,0.95));">'
               +'<div class="cd-section-gate__icon" style="font-size:1.45rem;">🔒</div>'
               +'<p class="cd-section-gate__title" style="font-size:0.94rem;">'+zwFlowEsc(title)+'</p>'

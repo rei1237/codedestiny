@@ -8,7 +8,7 @@ import {
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
-export const SAJU_AI_PROMPT_PRICE = 100;
+export const SAJU_AI_PROMPT_PRICE = 200;
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 const QUESTION_TYPE_RULES = Object.freeze({

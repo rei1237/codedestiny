@@ -545,7 +545,7 @@
   }
 
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
-  var _DP_LOCAL_DEV_API_ORIGIN = 'http://127.0.0.1:8790';
+  var _DP_LOCAL_DEV_API_ORIGIN = '';
   var _DP_FETCH_TIMEOUT_MS = 9000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
@@ -682,11 +682,11 @@
 
     if (authSensitive) {
       if (isLocalDevHost) {
+        pushBase('');
+        try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
         try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
         try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
         try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
-        pushBase(_DP_LOCAL_DEV_API_ORIGIN);
-        try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
       }
       pushBase('');
       try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
@@ -699,12 +699,14 @@
       if (allowWorkerFallback) pushBase(_DP_DEFAULT_API_WORKER_ORIGIN);
     } else {
       if (isLocalDevHost) {
+        pushBase('');
+        try { pushBase((window && window.location && window.location.origin) || ''); } catch (_) {}
         try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
         try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
         try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}
-        pushBase(_DP_LOCAL_DEV_API_ORIGIN);
+      } else {
+        try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
       }
-      try { pushBase(localStorage.getItem('fortune_api_base_url') || ''); } catch (_) {}
       try { pushBase((window && window.__CD_API_BASE_URL) || ''); } catch (_) {}
       try { pushBase((window && window.CODE_DESTINY_API_BASE_URL) || ''); } catch (_) {}
       try { pushBase((window && window.__CF_PAGES_API_BASE_URL) || ''); } catch (_) {}

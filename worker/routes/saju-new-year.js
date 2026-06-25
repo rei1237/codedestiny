@@ -3412,7 +3412,14 @@ function buildNewYearMasterJson(seed = {}, body = {}) {
   const pillars = seed?.saju?.pillars || {};
   const annual = seed?.saju?.annualLuck || {};
   const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
+  const clientSajuBase = body?.sajuBase && typeof body.sajuBase === "object" ? body.sajuBase : null;
   const clientEvidence = body?.quantumMyeongriJson || body?.clientEngineEvidence || body?.clientMyeongriJson || null;
+  const clientSajuEvidence = compactNewYearObject({
+    usagePolicy: "supplemental_only_worker_engine_is_source_of_truth",
+    source: clientSajuBase ? "main-shell-basic-saju-engine" : undefined,
+    sajuBase: clientSajuBase ? cloneNewYearValue(clientSajuBase) : undefined,
+    runtimeEvidence: clientEvidence && typeof clientEvidence === "object" ? cloneNewYearValue(clientEvidence) : undefined,
+  });
   const masterJson = compactNewYearObject({
     schemaVersion: "saju-new-year-master-json.v1",
     calculationSource: "worker-saju-new-year-engine",
@@ -3472,10 +3479,11 @@ function buildNewYearMasterJson(seed = {}, body = {}) {
     structure: seed?.structure,
     derivedSignals: seed?.derivedSignals,
     chapterSpecs: seed?.chapterSpecs,
-    clientEngineEvidence: clientEvidence && typeof clientEvidence === "object"
+    clientSajuEvidence,
+    clientEngineEvidence: (clientSajuBase || (clientEvidence && typeof clientEvidence === "object"))
       ? {
           usagePolicy: "supplemental_only_worker_engine_is_source_of_truth",
-          snapshot: cloneNewYearValue(clientEvidence),
+          snapshot: cloneNewYearValue(clientSajuEvidence),
         }
       : undefined,
     qualityRules: {
@@ -4269,6 +4277,7 @@ function buildYearlySajuNormalizedData({ seed = {}, masterJson = {} } = {}) {
       birthTime: clean(profile.birthTime),
       calendarType: clean(profile.calendarType),
     },
+    clientSajuEvidence: masterJson.clientSajuEvidence || undefined,
     natal: {
       pillars: {
         year: pillarLabel(pillars.year),

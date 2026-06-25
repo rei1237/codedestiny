@@ -44004,7 +44004,7 @@ export const mockStories: IStory[] = [
     _id: "story-code-destiny",
     title: "Code Destiny",
     slug: "code-destiny",
-    description: "���ǰ� � ���谡 �����ϴ� ��� �ӿ��� ���̰� �������� ��Ģ�� ������ �տ��� �Բ� �ٷ�� �����Ѵ�.",
+    description: "달빛이 머무는 밤, 별의 결을 따라 운명의 문장이 조용히 열립니다.",
     genre: [],
     tags: [],
     author: "Code Destiny",
@@ -44836,4 +44836,3 @@ function buildSceneRevisionRecord(chapter: IChapter): SceneRevisionRecord {
 }
 
 export const codeDestinyRevisionPlanV1 = mockChapters.map((chapter) => buildSceneRevisionRecord(chapter));
-

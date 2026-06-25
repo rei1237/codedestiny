@@ -9,7 +9,6 @@
  * window.CODE_DESTINY_API_BASE_URL.
  */
 
-const FALLBACK_LOCAL_API_BASE_URL = "http://localhost:4000";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 type RuntimeApiWindow = Window & {
@@ -58,13 +57,6 @@ function isWorkersDevBaseUrl(baseUrl?: string | null): boolean {
   }
 }
 
-function pickPreferredLocalBase(candidates: Array<string>): string {
-  for (const candidate of candidates) {
-    if (isLocalBaseUrl(candidate)) return candidate;
-  }
-  return "";
-}
-
 export function getApiBaseUrl(): string {
   const configuredBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
   const configuredAuthBase = normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL);
@@ -78,28 +70,28 @@ export function getApiBaseUrl(): string {
     const configuredIsWorkersDev = isWorkersDevBaseUrl(configuredBase) || isWorkersDevBaseUrl(configuredAuthBase);
 
     if (isLocalDev) {
-      const localBase = pickPreferredLocalBase([
-        runtimeBase,
-        configuredAuthBase,
-        configuredBase,
-      ]);
-      return localBase || FALLBACK_LOCAL_API_BASE_URL;
+      return sameOriginBase;
     }
 
-    if (runtimeBase && (!runtimeIsWorkersDev || currentHostIsWorkersDev)) {
+    if (
+      runtimeBase
+      && !isLocalBaseUrl(runtimeBase)
+      && (!runtimeIsWorkersDev || currentHostIsWorkersDev)
+    ) {
       return runtimeBase;
     }
 
     // In production custom domain, keep auth/API same-origin for stable secure cookies.
     if (!currentHostIsWorkersDev) {
-      if (configuredBase && !isWorkersDevBaseUrl(configuredBase)) return configuredBase;
-      if (configuredAuthBase && !isWorkersDevBaseUrl(configuredAuthBase)) return configuredAuthBase;
+      if (configuredBase && !isLocalBaseUrl(configuredBase) && !isWorkersDevBaseUrl(configuredBase)) return configuredBase;
+      if (configuredAuthBase && !isLocalBaseUrl(configuredAuthBase) && !isWorkersDevBaseUrl(configuredAuthBase)) return configuredAuthBase;
       return sameOriginBase;
     }
 
     // In production/previews, prefer same-origin /api via Pages routing first.
     // If routing is unavailable, configure NEXT_PUBLIC_AUTH_API_BASE_URL.
-    return configuredBase || configuredAuthBase || (configuredIsWorkersDev ? sameOriginBase : "");
+    const previewBase = [configuredBase, configuredAuthBase].find((base) => base && !isLocalBaseUrl(base));
+    return previewBase || (configuredIsWorkersDev ? sameOriginBase : "");
   }
 
   return configuredBase || configuredAuthBase;

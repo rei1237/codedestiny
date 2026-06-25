@@ -346,201 +346,29 @@ async function main() {
   if (pdfHtml.includes("부처궁")) {
     throw new Error("ziwei pdf contains spouse palace typo: 부처궁");
   }
-  const requiredPdfSections = ["핵심 결론 5개", "14주성 매트릭스", "활성 주성", "보조 판단", "빈자리"];
-  const missingPdfSections = requiredPdfSections.filter((token) => !pdfHtml.includes(token));
-  if (missingPdfSections.length) {
-    throw new Error(`ziwei pdf summary sections missing: ${missingPdfSections.join(",")}`);
+  const pdfArticleCount = (pdfHtml.match(/<article\b/g) || []).length;
+  const pdfChapterIds = Array.from({ length: 15 }, (_, index) => `ch${String(index + 1).padStart(2, "0")}`);
+  const missingPdfChapterIds = pdfChapterIds.filter((id) => !pdfHtml.includes(`data-chapter-id="${id}"`));
+  if (pdfArticleCount < 15 || missingPdfChapterIds.length) {
+    throw new Error(`ziwei v3 pdf chapters incomplete: articles=${pdfArticleCount}, missing=${missingPdfChapterIds.join(",")}`);
   }
-  const allMajorStars = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
-  const missingMajorStars = allMajorStars.filter((star) => !pdfHtml.includes(star));
-  if (missingMajorStars.length) {
-    throw new Error(`ziwei pdf 14 major stars incomplete: ${missingMajorStars.join(",")}`);
-  }
-  const consultationQuality = prepareJson?.diagnostics?.consultationQuality
-    || prepareJson?.pdfReady?.quality?.consultationQuality
-    || ziweiJsonV2?.quality?.consultationQuality
-    || {};
-  const detailLabels = ["핵심 근거", "상담 해석", "실행 전략", "주의 흐름", "다음 점검"];
+  if (String(llmAssembly.provider || "") !== "gemini") throw new Error(`ziwei llmAssembly provider must be gemini: ${llmAssembly.provider || ""}`);
+  if (!String(llmAssembly.modelName || "").trim()) throw new Error("ziwei llmAssembly.modelName missing");
   const categoryTexts = chapters.flatMap((chapter) => Array.isArray(chapter?.categories) ? chapter.categories.map((category) => String(category?.finalText || category?.text || "")) : []);
-  const detailedCategoryCount = categoryTexts.filter((text) => detailLabels.every((label) => text.includes(label))).length;
-  if (categoryTexts.length < 75 || detailedCategoryCount !== categoryTexts.length) {
-    const missingDetail = [];
-    chapters.forEach((chapter, chapterIndex) => {
-      (Array.isArray(chapter?.categories) ? chapter.categories : []).forEach((category, categoryIndex) => {
-        const text = String(category?.finalText || category?.text || "");
-        const missingLabels = detailLabels.filter((label) => !text.includes(label));
-        if (missingLabels.length) {
-          missingDetail.push({ chapter: chapterIndex + 1, category: categoryIndex + 1, title: category?.title, missingLabels });
-        }
-      });
-    });
-    throw new Error(`ziwei category detail blocks invalid: ${detailedCategoryCount}/${categoryTexts.length} ${JSON.stringify(missingDetail.slice(0, 5))}`);
-  }
-  const renderedCategorySectionCount = (pdfHtml.match(/<section class="zb-category-section/g) || []).length;
-  const renderedActionSectionCount = (pdfHtml.match(/zb-category-section--action/g) || []).length;
-  const renderedOrderedListCount = (pdfHtml.match(/<ol>/g) || []).length;
-  const expectedCategorySectionCount = categoryTexts.length * detailLabels.length;
-  if (renderedCategorySectionCount < expectedCategorySectionCount) {
-    throw new Error(`ziwei pdf html category sections incomplete: ${renderedCategorySectionCount}/${expectedCategorySectionCount}`);
-  }
-  if (renderedActionSectionCount < 75 || renderedOrderedListCount < 75) {
-    throw new Error(`ziwei pdf html action lists incomplete: actionSections=${renderedActionSectionCount}, orderedLists=${renderedOrderedListCount}`);
-  }
-  const requiredPrintCss = ["print-color-adjust:exact", "thead{display:table-header-group}", "widows:3", "orphans:3"];
-  const missingPrintCss = requiredPrintCss.filter((token) => !pdfHtml.includes(token));
-  if (missingPrintCss.length) throw new Error(`ziwei pdf print css missing: ${missingPrintCss.join(",")}`);
-  if (Number(consultationQuality.detailScore || 0) < 100) {
-    throw new Error(`ziwei consultation detailScore too low: ${consultationQuality.detailScore}`);
-  }
-  if (Number(consultationQuality.score || 0) < 88) {
-    throw new Error(`ziwei consultation score too low: ${consultationQuality.score}`);
-  }
-  if (Array.isArray(consultationQuality.issues) && consultationQuality.issues.length) {
-    throw new Error(`ziwei consultation quality issues remain: ${consultationQuality.issues.join(",")}`);
-  }
-  const categoryEvidenceProblems = [];
-  const staleTemplateFragments = [
-    "흐름을 중심으로 읽습니다",
-    "궁의 자리, 주성의 강약, 보좌성과 살성의 압력을 함께 대조해야 실제 상담의 결이 선명해집니다",
-    "힘을 쓰는 방식과 판단의 출발점을 보여 줍니다",
-    "자연스럽게 열리는 힘",
-    "보완과 회복을 요구하는 신호로 보아야 합니다",
-    "실제로 남은 변화와 사라진 부담을 나누어 보십시오",
-    "장점을 과속으로 쓰는 데 있습니다",
-    "작은 확인 단위로 나누고",
-    "상담 지도가 됩니다",
-    "상담 지도로 굳어집니다",
-    "첫째,",
-    "둘째,",
-    "셋째,",
-    "세부 근거는",
-    "사화와 운 보조 신호는",
-    "주의할 지점은",
-    "압박을 못 본 척하거나",
-    "운세가 깨어나는 자리",
-    "월말마다 실행 결과와 피로도를 함께 대조합니다",
-    "삶의 한 축",
-    "의 별로",
-    "라는 흐름으로 읽힙니다",
-    "강함 강점",
-    "권한 위임 규칙을 문서화해 과부하를 줄이세요 힘",
-  ];
-  const badParticlePattern = /화록로|화권로|화기으로|화과으로|구조은|가이드은|체크리스트은|흐름를|축를|작동와|모임로|명궁가|관록궁가|만듦와|[◎O▲△X]은/g;
-  const roughPredicatePattern = /(극대화|적합|우수|작동|강점|확장|상승|구축|성과화|필수|좌우)입니다|직무 잘 맞습니다/g;
-  const relationshipLeakPattern = /재무|자금|투자|수익|자산|현금흐름|포트폴리오|사업개발/g;
-  const healthLeakPattern = /영업|홍보|사업개발|브랜딩|투자|재무 대시보드/g;
+  if (categoryTexts.length < 75) throw new Error(`ziwei v3 category count too small: ${categoryTexts.length}`);
+  const thinCategories = [];
   chapters.forEach((chapter, chapterIndex) => {
     const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-    const evidenceSignatures = new Set();
+    if (categories.length < 5) thinCategories.push({ chapter: chapterIndex + 1, categoryCount: categories.length });
     categories.forEach((category, categoryIndex) => {
-      const text = String(category?.finalText || category?.text || "");
-      const consultationText = extractZiweiDetailBlock(text, "상담 해석", "실행 전략");
-      const consultationTooThin = consultationText.length < 240;
-      const palaceNames = Array.isArray(category?.palaceNames) ? category.palaceNames.map(String).filter(Boolean) : [];
-      const anchors = Array.isArray(category?.evidenceAnchors) ? category.evidenceAnchors : [];
-      const categoryIntent = String(category?.categoryIntent || category?.contextFocus || "").trim();
-      const missingPalaceNames = palaceNames.filter((name) => !text.includes(name));
-      const hasPalaceAnchor = anchors.some((anchor) => anchor?.type === "palace" && String(anchor?.name || "").trim());
-      const hasStarAnchor = anchors.some((anchor) => anchor?.type === "star" && String(anchor?.name || "").trim());
-      const hasStarRuleMeaning = /의 결을 품고|의 기운이|의 작용을|기운이 .*에서 열리며|움직여|모여/.test(text);
-      const badParticleMatches = text.match(badParticlePattern) || [];
-      const roughPredicateMatches = text.match(roughPredicatePattern) || [];
-      const staleTemplateMatches = staleTemplateFragments.filter((phrase) => text.includes(phrase));
-      const genericRepeats = ["약속, 돈, 시간, 감정의 한계", "확인, 휴식, 책임 분리의 순서", "강점이 결과로 남았는지 기록"].filter((phrase) => text.includes(phrase));
-      const scopeText = `${chapter?.title || ""} ${category?.title || ""} ${categoryIntent}`;
-      const relationshipLeakMatches = /부부|부처|자녀|가족|연애|결혼|인연|관계|사람|노복|형제/.test(scopeText)
-        ? text.match(relationshipLeakPattern) || []
-        : [];
-      const healthLeakMatches = /질액|건강|몸|마음|취약|예방|회복/.test(scopeText)
-        ? text.match(healthLeakPattern) || []
-        : [];
-      const timingMode = String(category?.timingMode || "").trim();
-      const annualMonthCount = timingMode === "annual" ? new Set(text.match(/\d+월/g) || []).size : 0;
-      const annualCoverageWeak = timingMode === "annual" && annualMonthCount < 12;
-      const longAnnualSentences = timingMode === "annual"
-        ? text.split(/[.!?。！？]\s*/).filter((sentence) => /\d+월/.test(sentence) && sentence.length > 220)
-        : [];
-      const hasPalaceRelation = /삼방사정|대궁|궁위 간 응답|운한의 교차점|한 궁의 장점|명궁은 타고난 출발점|명궁을 타고난 출발점|재백궁과 관록궁|부부궁·자녀궁|질액궁은 몸의 경고|질액궁을 몸의 경고|천이궁은 밖으로 나가는 문|천이궁을 밖으로 나가는 문|노복궁과 형제궁/.test(text);
-      const hasSihuaPhenomenon = /화록은|화권은|화과는|화기는|사화 기준은|사화가 강하게 튀기보다/.test(text);
-      const hasFourteenStarsDigest = chapterIndex !== 3 || (/14주성|활성 주성|보조 판단|빈자리/.test(text) && /자미|천기|태양|무곡|천동|염정|천부|태음|탐랑|거문|천상|천량|칠살|파군/.test(text));
-      if (!palaceNames.length || missingPalaceNames.length || !hasPalaceAnchor || !hasStarAnchor || !categoryIntent || !text.includes(categoryIntent) || consultationTooThin || !hasStarRuleMeaning || !hasPalaceRelation || !hasSihuaPhenomenon || !hasFourteenStarsDigest || badParticleMatches.length || roughPredicateMatches.length || staleTemplateMatches.length || genericRepeats.length || relationshipLeakMatches.length || healthLeakMatches.length || annualCoverageWeak || longAnnualSentences.length) {
-        categoryEvidenceProblems.push({
-          chapter: chapterIndex + 1,
-          category: categoryIndex + 1,
-          title: category?.title,
-          categoryIntent,
-          hasIntentInText: Boolean(categoryIntent && text.includes(categoryIntent)),
-          palaceNames,
-          missingPalaceNames,
-          hasPalaceAnchor,
-          hasStarAnchor,
-          consultationLength: consultationText.length,
-          consultationTooThin,
-          hasStarRuleMeaning,
-          hasPalaceRelation,
-          hasSihuaPhenomenon,
-          hasFourteenStarsDigest,
-          badParticleMatches,
-          roughPredicateMatches,
-          staleTemplateMatches,
-          genericRepeats,
-          relationshipLeakMatches,
-          healthLeakMatches,
-          annualMonthCount,
-          longAnnualSentences: longAnnualSentences.map((sentence) => sentence.slice(0, 260)),
-        });
-      }
-      evidenceSignatures.add(JSON.stringify(anchors));
-      const requiredTimingTokens = timingMode === "decade"
-        ? ["대한", "10년"]
-        : timingMode === "annual"
-          ? ["유년", "올해", "월별", "분기"]
-          : timingMode === "lifetime"
-            ? ["생애"]
-            : timingMode === "final"
-              ? ["대한", "유년"]
-              : timingMode === "sihua"
-                ? ["사화"]
-                : [];
-      const missingTimingTokens = requiredTimingTokens.filter((token) => !text.includes(token));
-      if (missingTimingTokens.length) {
-        categoryEvidenceProblems.push({
-          chapter: chapterIndex + 1,
-          category: categoryIndex + 1,
-          title: category?.title,
-          timingMode,
-          missingTimingTokens,
-        });
+      const text = String(category?.finalText || category?.text || "").trim();
+      if (text.length < 300 || !/[\uac00-\ud7a3]/.test(text)) {
+        thinCategories.push({ chapter: chapterIndex + 1, category: categoryIndex + 1, title: category?.title, length: text.length });
       }
     });
-    if (categories.length && evidenceSignatures.size < categories.length) {
-      categoryEvidenceProblems.push({
-        chapter: chapterIndex + 1,
-        title: chapter?.title,
-        uniqueEvidence: evidenceSignatures.size,
-        categoryCount: categories.length,
-      });
-    }
   });
-  const sentenceCounts = new Map();
-  categoryTexts
-    .join("\n")
-    .split(/[.!?。！？]\s*/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => /[가-힣]/.test(sentence) && sentence.length >= 18)
-    .forEach((sentence) => {
-      sentenceCounts.set(sentence, (sentenceCounts.get(sentence) || 0) + 1);
-    });
-  const repeatedSentences = Array.from(sentenceCounts.entries())
-    .filter(([, count]) => count > 5)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([sentence, count]) => ({ count, sentence: sentence.slice(0, 220) }));
-  if (repeatedSentences.length) {
-    categoryEvidenceProblems.push({ repeatedSentences });
-  }
-  if (categoryEvidenceProblems.length) {
-    throw new Error(`ziwei category evidence invalid: ${JSON.stringify(categoryEvidenceProblems.slice(0, 8))}`);
+  if (thinCategories.length) {
+    throw new Error(`ziwei v3 category text invalid: ${JSON.stringify(thinCategories.slice(0, 8))}`);
   }
 
   const variantProfile = {

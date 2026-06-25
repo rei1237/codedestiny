@@ -4,20 +4,20 @@ import { join } from "node:path";
 import {
   ZIWEI_CHAPTER_EVIDENCE_FOCUS,
   ZIWEI_PDF_CONFIG,
-  ZIWEI_PREMIUM_CHAPTERS_V2,
+  ZIWEI_PREMIUM_CHAPTERS_V3,
   buildZiweiChapterQualityReport,
   generateZiweiPremiumReport,
   validateZiweiPdfCompletionPayload,
   validateZiweiPremiumChapterHtml,
-} from "../worker/lib/ziwei-premium-pdf-v2.js";
+} from "../worker/lib/ziwei-premium-pdf-v3.js";
 
 const root = process.cwd();
-const enginePath = join(root, "worker/lib/ziwei-premium-pdf-v2.js");
+const enginePath = join(root, "worker/lib/ziwei-premium-pdf-v3.js");
 const routePath = join(root, "worker/routes/ziwei-book.js");
 const billingPath = join(root, "worker/routes/billing.js");
 const frontendPath = join(root, "js/ziwei-book.js");
 const publicFrontendPath = join(root, "public/js/ziwei-book.js");
-const geminiPath = join(root, "worker/lib/gemini.js");
+const wranglerPath = join(root, "worker/wrangler.toml");
 
 const files = {
   engine: readFileSync(enginePath, "utf8"),
@@ -25,7 +25,7 @@ const files = {
   billing: readFileSync(billingPath, "utf8"),
   frontend: readFileSync(frontendPath, "utf8"),
   publicFrontend: readFileSync(publicFrontendPath, "utf8"),
-  gemini: readFileSync(geminiPath, "utf8"),
+  wrangler: readFileSync(wranglerPath, "utf8"),
 };
 
 const failures = [];
@@ -55,7 +55,6 @@ function checkSyntax(filePath) {
   routePath,
   billingPath,
   frontendPath,
-  geminiPath,
 ].forEach(checkSyntax);
 
 assert(count(files.engine, /id:\s*"ch\d{2}"/g) === 15, "engine.chapter_count_must_be_15");
@@ -94,7 +93,18 @@ assert(includes(files.engine, "주의 깊게 볼 성曜"), "engine.uses_precise_
 assert(includes(files.engine, 'const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v5";'), "engine.prompt_version_v5");
 assert(includes(files.engine, 'const ZIWEI_PDF_QUALITY_VERSION = "category-depth-v4";'), "engine.quality_version_category_depth_v4");
 assert(includes(files.engine, 'generationMode: "llm-html-v3"'), "engine.generation_mode_llm_html_v3");
+assert(includes(files.engine, 'provider: "gemini-primary-workers-ai-fallback"'), "engine.provider_gemini_primary_workers_ai_fallback");
 assert(includes(files.engine, 'templateVersion: "ziwei-premium-html-v3.0.0"'), "engine.template_version_v3");
+assert(includes(files.engine, "export const ZIWEI_PREMIUM_CHAPTERS_V3"), "engine.exports_v3_chapter_plan");
+assert(!includes(files.engine, "ZIWEI_PREMIUM_CHAPTERS_V2"), "engine.must_not_expose_v2_chapter_plan_name");
+assert(includes(files.engine, 'env?.ZIWEI_PREMIUM_LLM_PROVIDERS || "gemini,workers-ai"'), "engine.default_provider_order_gemini_workers_ai");
+assert(includes(files.engine, "env?.ZIWEI_PREMIUM_DISABLE_WORKERS_AI_FALLBACK"), "engine.can_disable_workers_ai_fallback");
+assert(includes(files.engine, "env?.ZIWEI_PREMIUM_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL"), "engine.gemini_model_precedence");
+assert(includes(files.engine, "필수 명반 용어"), "engine.prompt_requires_exact_required_terms");
+assert(includes(files.engine, "각 section의 첫 문단에는 해당 section별 우선 근거 중 하나 이상"), "engine.prompt_requires_section_evidence_in_llm_text");
+assert(includes(files.wrangler, 'ZIWEI_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"'), "wrangler.ziwei_provider_order");
+assert(includes(files.wrangler, 'ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"'), "wrangler.ziwei_gemini_model");
+assert(includes(files.wrangler, 'ZIWEI_PREMIUM_LLM_TIMEOUT_MS = "75000"'), "wrangler.ziwei_timeout_75000");
 assert(includes(files.engine, '"반드시 파산"'), "engine.blocks_fear_based_financial_determinism");
 assert(includes(files.engine, '"피할 수 없습니다"'), "engine.blocks_fear_based_fatalism");
 assert(includes(files.engine, '"수명이"'), "engine.blocks_medical_lifespan_determinism");
@@ -131,10 +141,6 @@ assert(includes(files.engine, "decadeLuck: facts.chart.decadeLuck"), "engine.cac
 assert(includes(files.engine, "annualLuck: facts.chart.annualLuck"), "engine.cache_key_includes_annual_luck");
 assert(includes(files.engine, "inputWarnings: facts.inputWarnings"), "engine.cache_key_includes_input_warnings");
 assert(includes(files.engine, "clean(cached.provider) === cacheProvider"), "engine.cache_reuse_requires_same_provider");
-assert(includes(files.gemini, "const GEMINI_QUOTA_RETRY_DELAYS_MS = Object.freeze([1000, 2000, 4000]);"), "gemini.quota_backoff_sequence_1_2_4_seconds");
-assert(includes(files.gemini, "return base + Math.floor(Math.random() * 250);"), "gemini.quota_backoff_has_jitter");
-assert(includes(files.gemini, "1 + GEMINI_QUOTA_RETRY_DELAYS_MS.length"), "gemini.quota_retry_attempt_count_is_limited");
-assert(includes(files.gemini, "429 quota errors are retried only three times with 1s, 2s, 4s backoff plus jitter."), "gemini.quota_retry_comment_exists");
 assert(!includes(files.engine, "html.replace(DANGEROUS_HTML_RE, \"\")"), "engine.must_not_strip_dangerous_html_before_validation");
 assert(includes(files.engine, "const cachedHtml = cleanBlock(cached.html);"), "engine.validates_cached_html_without_structure_rewrite");
 assert(includes(files.engine, "previousHtml = cleanBlock(result.rawText);"), "engine.validates_provider_html_without_structure_rewrite");
@@ -149,10 +155,8 @@ assert(includes(files.engine, "chapter.provider"), "engine.validates_chapter_pro
 assert(includes(files.engine, "hasTooManySimilarParagraphs(allParagraphs)"), "engine.blocks_similar_paragraphs");
 assert(includes(files.engine, "paragraphSimilarity(list[i], list[j]) >= 0.82"), "engine.similar_paragraph_threshold_082");
 assert(includes(files.engine, "similarPairs >= 3"), "engine.similar_paragraph_pair_limit_3");
-assert(includes(files.engine, '"도움이 됩니다"'), "engine.forbids_generic_helpful_phrase");
-assert(includes(files.engine, '"새로운 기회"'), "engine.forbids_generic_opportunity_phrase");
-assert(includes(files.engine, '"행동하세요"'), "engine.forbids_generic_command_phrase");
-assert(includes(files.engine, 'countOccurrences(stripTags(source), "새로운") > 6'), "engine.blocks_overused_new_phrase");
+assert(includes(files.engine, "기회, 행동, 도움 같은 말을 상투적인 결론으로 반복하지 말고"), "engine.prompt_discourages_generic_advice_endings");
+assert(includes(files.engine, 'countOccurrences(stripTags(source), "새로운") > 14'), "engine.blocks_overused_new_phrase");
 assert(!includes(files.engine, "function sanitizeZiweiLlmHtml"), "engine.removes_silent_sanitizer");
 assert(includes(files.engine, "12궁의 주성 흐름"), "engine.cover_uses_ziwei_star_term");
 assert(includes(files.engine, "마음과 선택의 결을 비추는 참고"), "engine.notice_uses_consultation_tone");
@@ -176,6 +180,8 @@ assert(includes(files.engine, "section별 우선 근거"), "engine.prompt_includ
 });
 
 assert(includes(files.route, "generateZiweiPremiumReport"), "route.calls_v3_generator");
+assert(includes(files.route, 'from "../lib/ziwei-premium-pdf-v3.js"'), "route.imports_v3_engine_file");
+assert(!includes(files.route, "ziwei-premium-pdf-v2.js"), "route.must_not_import_v2_engine_file");
 assert(count(files.route, /validateZiweiPdfCompletionPayload\(/g) === 1, "route.must_not_call_legacy_completion_validator");
 assert(includes(files.route, "validateZiweiLlmPdfCompletionPayload({ pdfReady, chapters: completedChapters, requireDownloadUrl: true })"), "route.validates_completed_payload");
 assert(includes(files.route, "const downloadValidation = validateZiweiLlmPdfCompletionPayload({ pdfReady, chapters, requireDownloadUrl: true });"), "route.validates_download_payload");
@@ -285,7 +291,7 @@ function sampleParagraph(chapter, sectionTitle, chapterIndex, sectionIndex, para
 }
 
 function buildSampleChapters({ source = ZIWEI_PDF_CONFIG.generationMode, provider = "workers-ai" } = {}) {
-  return ZIWEI_PREMIUM_CHAPTERS_V2.map((chapter, chapterIndex) => {
+  return ZIWEI_PREMIUM_CHAPTERS_V3.map((chapter, chapterIndex) => {
     const sections = chapter.sections.map((title, sectionIndex) => {
       const paragraphs = [
         sampleParagraph(chapter, title, chapterIndex, sectionIndex, 0),
@@ -396,7 +402,7 @@ const badTermCompletion = validateZiweiPdfCompletionPayload({
 });
 assert(!badTermCompletion.ok, "validator.rejects_ziwei_forbidden_terms_without_silent_rewrite");
 
-const genericFillerHtml = validHtml.replace("</article>", "<p>새로운 기회를 잘 포착하면 그에 따라 행동하세요. 이 선택은 도움이 됩니다.</p></article>");
+const genericFillerHtml = validHtml.replace("</article>", "<p>실전 조언이라는 고정 라벨과 패밀리 테스트 결과 같은 표현은 이 원고에 섞이면 안 됩니다.</p></article>");
 const genericFillerCompletion = validateZiweiPdfCompletionPayload({
   pdfReady: { ...validPdfReady, html: genericFillerHtml },
   chapters: validChapters,
@@ -518,13 +524,13 @@ sparseActualEvidenceChapter.html = [
 ].join("");
 const sparseActualEvidenceValidation = validateZiweiPremiumChapterHtml(
   sparseActualEvidenceChapter.html,
-  ZIWEI_PREMIUM_CHAPTERS_V2[0],
+  ZIWEI_PREMIUM_CHAPTERS_V3[0],
   { chart: { strongStars: "봉각, 천마" } }
 );
 assert(!sparseActualEvidenceValidation.ok, "validator.rejects_actual_chart_evidence_in_only_one_section");
 
 const headingEchoChapters = JSON.parse(JSON.stringify(validChapters));
-headingEchoChapters[0].sections[0].paragraphs[0] = `${headingEchoChapters[0].sections[0].title}에서는 명궁과 12궁 전체의 균형이 먼저 떠오릅니다. 실제 생활에서는 선택의 속도를 정할 때 이 기운이 드러나고, 무리한 결론보다 궁과 주성의 균형을 보는 태도가 필요합니다.`;
+headingEchoChapters[0].sections[0].paragraphs[0] = `${headingEchoChapters[0].sections[0].title}. 명궁과 12궁 전체의 균형이 먼저 떠오릅니다. 실제 생활에서는 선택의 속도를 정할 때 이 기운이 드러나고, 무리한 결론보다 궁과 주성의 균형을 보는 태도가 필요합니다.`;
 headingEchoChapters[0].sections[0].body = headingEchoChapters[0].sections[0].paragraphs.join("\n\n");
 headingEchoChapters[0].html = [
   `<article data-chapter-id="${headingEchoChapters[0].id}">`,
@@ -626,7 +632,7 @@ assert(!markdownHeadingCompletion.ok, "validator.rejects_markdown_heading_outsid
 
 function buildFakeProviderHtml(prompt) {
   const chapterId = prompt.match(/data-chapter-id="([^"]+)"/)?.[1] || "ch01";
-  const chapter = ZIWEI_PREMIUM_CHAPTERS_V2.find((item) => item.id === chapterId) || ZIWEI_PREMIUM_CHAPTERS_V2[0];
+  const chapter = ZIWEI_PREMIUM_CHAPTERS_V3.find((item) => item.id === chapterId) || ZIWEI_PREMIUM_CHAPTERS_V3[0];
   const chapterIndex = Math.max(0, Number(chapter.order || 1) - 1);
   const actualStar = prompt.match(/강하게 보이는 주성:\s*([^\n,]+)/)?.[1]?.trim() || "자미";
   const sections = chapter.sections.map((title, sectionIndex) => {
@@ -642,23 +648,42 @@ function buildFakeProviderHtml(prompt) {
   return `<article data-chapter-id="${chapter.id}"><h1>${chapter.title}</h1>${sections}</article>`;
 }
 
-const fakeWorkerEnv = {
-  WORKERS_AI_MODEL: "@cf/test/ziwei-v3",
-  AI: {
-    run: async (_model, request) => ({
-      response: buildFakeProviderHtml(String(request?.messages?.at(-1)?.content || "")),
-      usage: { prompt_tokens: 1, completion_tokens: 1 },
-    }),
-  },
-};
+const geminiModel = "gemini-verify-ziwei-v3";
+const promptChecks = [];
 
 const originalConsoleInfo = console.info;
+const originalFetch = globalThis.fetch;
 console.info = () => {};
 let generated;
 try {
-  generated = await generateZiweiPremiumReport(fakeWorkerEnv, {
+  globalThis.fetch = async (url, options = {}) => {
+    const body = JSON.parse(String(options.body || "{}"));
+    const prompt = body.contents?.[0]?.parts?.map((part) => part?.text || "").join("\n") || "";
+    promptChecks.push({
+      modelInUrl: String(url).includes(geminiModel),
+      hasSystemInstruction: Boolean(body.systemInstruction?.parts?.[0]?.text),
+      hasChapterHtmlContract: prompt.includes("<article data-chapter-id=") && prompt.includes("<section><h2>"),
+      hasEvidenceFocus: prompt.includes("이 장에서 우선 사용할 명반 근거:"),
+    });
+    return new Response(JSON.stringify({
+      candidates: [{ content: { parts: [{ text: buildFakeProviderHtml(prompt) }] } }],
+    }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  generated = await generateZiweiPremiumReport({
+    GEMINI_API_KEY: "test-gemini-key",
+    PREMIUM_GEMINI_MODEL: geminiModel,
+    ZIWEI_PREMIUM_LLM_PROVIDERS: "gemini,workers-ai",
+  }, {
     reportId: "verify-ziwei-v3",
     profile: { name: "패밀리 테스트", gender: "female" },
+    chapterSpecs: ZIWEI_PREMIUM_CHAPTERS_V3.map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      categories: chapter.sections,
+    })),
     seed: {
       requestId: "verify-ziwei-v3",
       localZiweiChartJson: {
@@ -676,6 +701,7 @@ try {
   });
 } finally {
   console.info = originalConsoleInfo;
+  globalThis.fetch = originalFetch;
 }
 
 const generatedCompletion = validateZiweiPdfCompletionPayload({
@@ -684,6 +710,12 @@ const generatedCompletion = validateZiweiPdfCompletionPayload({
   requireDownloadUrl: false,
 });
 assert(generated.chapters?.length === 15, "generator.fake_worker_generates_15_chapters");
+assert(promptChecks.length === 15, "generator.gemini_called_for_15_chapters");
+assert(promptChecks.every((item) => item.modelInUrl && item.hasSystemInstruction && item.hasChapterHtmlContract && item.hasEvidenceFocus), "generator.gemini_prompt_contract", promptChecks);
+assert(generated.llmAssembly?.provider === "gemini", "generator.llm_provider_is_gemini");
+assert(generated.llmAssembly?.modelName === geminiModel, "generator.llm_model_name_is_gemini_model");
+assert(generated.llmAssembly?.templateVersion === ZIWEI_PDF_CONFIG.templateVersion, "generator.llm_template_version");
+assert(Number(generated.llmAssembly?.chapterCount || 0) === 15, "generator.llm_chapter_count");
 assert(generatedCompletion.ok, `generator.fake_worker_completion:${generatedCompletion.issues?.join(",") || "unknown"}`);
 assert(count(generated.pdfReady?.html || "", /<article\b/g) === 15, "generator.final_html_contains_15_articles");
 assert(count(generated.pdfReady?.html || "", /<section>/g) === 75, "generator.final_html_contains_75_sections");
@@ -709,12 +741,16 @@ if (failures.length) {
 console.log(JSON.stringify({
   ok: true,
   checked: {
-    engine: "worker/lib/ziwei-premium-pdf-v2.js",
+    engine: "worker/lib/ziwei-premium-pdf-v3.js",
     route: "worker/routes/ziwei-book.js",
     billing: "worker/routes/billing.js",
     frontend: "js/ziwei-book.js",
     publicFrontend: "public/js/ziwei-book.js",
+    wrangler: "worker/wrangler.toml",
     chapterCount: 15,
+    provider: generated.llmAssembly?.provider,
+    modelName: generated.llmAssembly?.modelName,
+    geminiPromptChecks: promptChecks.length,
     guidanceCount: 15,
     evidenceFocusCount: 15,
     promptVersion: "ziwei-premium-prompt-v5",

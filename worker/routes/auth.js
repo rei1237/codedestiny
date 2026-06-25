@@ -518,6 +518,10 @@ function resolveLocalDevAuthUser(request, env, email, password) {
   if (String(email || "").trim().toLowerCase() !== config.email) return null;
   if (!config.password || !timingSafeTextEqual(password, config.password)) return null;
 
+  return buildLocalDevAuthUser(config);
+}
+
+function buildLocalDevAuthUser(config) {
   return {
     _id: config.userId,
     name: config.name,
@@ -950,6 +954,29 @@ function getRequestOrigin(request) {
   } catch (e) {
     return "";
   }
+}
+
+function isLocalOrigin(origin) {
+  try {
+    return isLocalHostname(new URL(origin).hostname);
+  } catch (e) {
+    return false;
+  }
+}
+
+function getHeaderOrigin(request, headerName) {
+  return normalizeOriginOnly(request.headers.get(headerName));
+}
+
+function getOAuthFrontendBaseUrl(request, env) {
+  const requestOrigin = getRequestOrigin(request);
+  const refererOrigin = getHeaderOrigin(request, "referer");
+
+  if (isLocalOrigin(requestOrigin) && isLocalOrigin(refererOrigin)) {
+    return refererOrigin;
+  }
+
+  return getFrontendBaseUrl(env);
 }
 
 function getAllowedAuthOrigins(request, env) {
@@ -1526,6 +1553,7 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
 
 async function createLocalDevAuthSuccessResponse(request, env, user, status = 200, nextPath = "/") {
   const accessToken = await signAuthToken(user, env);
+  const { refreshToken } = await issueRefreshTokenForUser(user._id, env);
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
 
   const response = json({
@@ -1542,14 +1570,7 @@ async function createLocalDevAuthSuccessResponse(request, env, user, status = 20
     source: "local-dev",
   }, { status });
 
-  const cookieOptions = buildAuthCookieOptions(request, env);
-  response.headers.append("Set-Cookie", buildCookieValue(ACCESS_COOKIE_NAME, accessToken, {
-    path: "/",
-    maxAge: cookieOptions.accessMaxAgeSec,
-    httpOnly: true,
-    secure: cookieOptions.secure,
-    sameSite: cookieOptions.sameSite,
-  }));
+  appendAuthCookies(response, request, env, accessToken, refreshToken);
   return response;
 }
 
@@ -1999,6 +2020,7 @@ async function handleMe(request, env) {
     if (isLocalDevAuthTokenUser(request, env, auth)) {
       return json({
         ok: true,
+        authenticated: true,
         message: "Authenticated user loaded.",
         user: buildTokenFallbackUser(auth),
         source: "local-dev-token",
@@ -2043,6 +2065,7 @@ async function handleMe(request, env) {
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);
         return json({
           ok: true,
+          authenticated: true,
           message: "Authenticated user loaded from token.",
           user: buildTokenFallbackUser(auth),
           source: "token",
@@ -2056,6 +2079,7 @@ async function handleMe(request, env) {
 
     return json({
       ok: true,
+      authenticated: true,
       message: "Authenticated user loaded.",
       user: {
         ...normalizeAuthUserResponse(user),
@@ -2236,10 +2260,48 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  await connectDb(env);
+  if (isLocalDevAuthEnabled(request, env)) {
+    const config = getLocalDevAuthConfig(env);
+    if (userId === config.userId) {
+      return await createLocalDevAuthSuccessResponse(request, env, buildLocalDevAuthUser(config), 200, "/");
+    }
+  }
+
+  try {
+    await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_refresh_connect_db");
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_db_degraded", error);
+      return json({
+        ok: false,
+        code: "AUTH_REFRESH_DEGRADED",
+        message: "Authentication refresh is temporarily unavailable.",
+        degraded: true,
+      }, { status: 503 });
+    }
+    throw error;
+  }
 
   const tokenHash = hashRefreshToken(refreshToken, env);
-  const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+  let session;
+  try {
+    session = await withAuthOpTimeout(
+      RefreshTokenSession.findOne({ tokenHash }).lean(),
+      getAuthOpTimeoutMs(env),
+      "auth_refresh_find_session",
+    );
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_session_degraded", error);
+      return json({
+        ok: false,
+        code: "AUTH_REFRESH_DEGRADED",
+        message: "Authentication refresh is temporarily unavailable.",
+        degraded: true,
+      }, { status: 503 });
+    }
+    throw error;
+  }
   if (!session) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
@@ -2615,10 +2677,7 @@ async function handleOAuthStart(request, env, provider) {
       referralShareToken: url.searchParams.get("referralShareToken") || url.searchParams.get("rs"),
       referralSource: url.searchParams.get("referralSource") || url.searchParams.get("via"),
     });
-    const requestOrigin = getRequestOrigin(request);
-    const frontendBase = requestOrigin && !isWorkersDevOrigin(requestOrigin)
-      ? requestOrigin
-      : getFrontendBaseUrl(env);
+    const frontendBase = getOAuthFrontendBaseUrl(request, env);
     const stateToken = await signSocialState({
       provider,
       nextPath,

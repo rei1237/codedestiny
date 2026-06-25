@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import LoadingProgressMotion, {
+  type LoadingMotionPhase,
+  type LoadingMotionTone,
+} from "./LoadingProgressMotion";
 import {
   FALLBACK_LOADING_MESSAGE,
   getCurrentLoadingLocale,
@@ -56,6 +60,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
   passApplied: string;
   delayed8s: string;
   delayed20s: string;
+  progressLabel: string;
+  passProgressSteps: readonly [string, string, string];
 }> = {
   ko: {
     secureLabel: "secure check",
@@ -64,6 +70,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "콘텐츠 문을 여는 중입니다.",
     delayed8s: "결제 확인이 조금 지연되고 있습니다. 곧 자동으로 이어집니다.",
     delayed20s: "확인이 길어지고 있습니다. 같은 창에서 계속 안전하게 재확인 중입니다.",
+    progressLabel: "이용권 확인 진행 상태",
+    passProgressSteps: ["이용권 확인", "혜택 적용", "결과 준비"],
   },
   en: {
     secureLabel: "secure check",
@@ -72,6 +80,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Opening the content for you.",
     delayed8s: "Payment confirmation is taking a little longer. It will continue automatically.",
     delayed20s: "Confirmation is still in progress. Please stay in this window while we keep checking safely.",
+    progressLabel: "Pass check progress",
+    passProgressSteps: ["Check pass", "Apply benefit", "Prepare result"],
   },
   ja: {
     secureLabel: "安全確認",
@@ -80,6 +90,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "コンテンツの扉を開いています。",
     delayed8s: "お支払い確認に少し時間がかかっています。まもなく自動で続きます。",
     delayed20s: "確認が長引いています。この画面のまま安全に確認を続けています。",
+    progressLabel: "利用券確認の進行状況",
+    passProgressSteps: ["利用券確認", "特典適用", "結果準備"],
   },
   "zh-CN": {
     secureLabel: "安全确认",
@@ -88,6 +100,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "正在为您打开内容。",
     delayed8s: "支付确认稍有延迟，系统会自动继续。",
     delayed20s: "确认仍在进行中。请停留在此窗口，我们会继续安全检查。",
+    progressLabel: "通行券确认进度",
+    passProgressSteps: ["确认通行券", "应用权益", "准备结果"],
   },
   "zh-TW": {
     secureLabel: "安全確認",
@@ -96,6 +110,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "正在為您開啟內容。",
     delayed8s: "付款確認稍有延遲，系統會自動繼續。",
     delayed20s: "確認仍在進行中。請停留在此視窗，我們會繼續安全檢查。",
+    progressLabel: "通行券確認進度",
+    passProgressSteps: ["確認通行券", "套用權益", "準備結果"],
   },
   vi: {
     secureLabel: "kiểm tra an toàn",
@@ -104,6 +120,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Đang mở nội dung cho bạn.",
     delayed8s: "Xác nhận thanh toán đang chậm hơn một chút. Hệ thống sẽ tự tiếp tục.",
     delayed20s: "Việc xác nhận vẫn đang diễn ra. Vui lòng ở lại cửa sổ này để chúng tôi kiểm tra an toàn.",
+    progressLabel: "Tiến trình kiểm tra vé",
+    passProgressSteps: ["Kiểm tra vé", "Áp dụng quyền", "Chuẩn bị kết quả"],
   },
   hi: {
     secureLabel: "सुरक्षित जाँच",
@@ -112,6 +130,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "आपके लिए सामग्री खोली जा रही है.",
     delayed8s: "भुगतान पुष्टि में थोड़ा समय लग रहा है. यह अपने आप आगे बढ़ेगा.",
     delayed20s: "पुष्टि अभी जारी है. कृपया इसी विंडो में रहें, हम सुरक्षित रूप से जाँच कर रहे हैं.",
+    progressLabel: "पास जाँच प्रगति",
+    passProgressSteps: ["पास जाँच", "लाभ लागू", "परिणाम तैयार"],
   },
   es: {
     secureLabel: "verificación segura",
@@ -120,6 +140,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Abriendo el contenido para ti.",
     delayed8s: "La confirmación del pago tarda un poco más. Continuará automáticamente.",
     delayed20s: "La confirmación sigue en curso. Permanece en esta ventana mientras verificamos con seguridad.",
+    progressLabel: "Progreso de verificación del pase",
+    passProgressSteps: ["Comprobar pase", "Aplicar beneficio", "Preparar resultado"],
   },
   fr: {
     secureLabel: "vérification sécurisée",
@@ -128,6 +150,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Ouverture du contenu en cours.",
     delayed8s: "La confirmation du paiement prend un peu plus de temps. La suite sera automatique.",
     delayed20s: "La confirmation est toujours en cours. Restez dans cette fenêtre pendant la vérification sécurisée.",
+    progressLabel: "Progression de vérification du pass",
+    passProgressSteps: ["Vérifier le pass", "Appliquer l'avantage", "Préparer le résultat"],
   },
   de: {
     secureLabel: "sichere Prüfung",
@@ -136,6 +160,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Der Inhalt wird für dich geöffnet.",
     delayed8s: "Die Zahlungsbestätigung dauert etwas länger. Es geht automatisch weiter.",
     delayed20s: "Die Bestätigung läuft noch. Bitte bleib in diesem Fenster, während wir sicher weiter prüfen.",
+    progressLabel: "Fortschritt der Passprüfung",
+    passProgressSteps: ["Pass prüfen", "Vorteil anwenden", "Ergebnis vorbereiten"],
   },
   nl: {
     secureLabel: "veilige controle",
@@ -144,6 +170,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "De inhoud wordt voor je geopend.",
     delayed8s: "De betaalbevestiging duurt iets langer. Het gaat automatisch verder.",
     delayed20s: "De bevestiging loopt nog. Blijf in dit venster terwijl we veilig blijven controleren.",
+    progressLabel: "Voortgang pascontrole",
+    passProgressSteps: ["Pas controleren", "Voordeel toepassen", "Resultaat voorbereiden"],
   },
   ms: {
     secureLabel: "semakan selamat",
@@ -152,6 +180,8 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     passApplied: "Membuka kandungan untuk anda.",
     delayed8s: "Pengesahan bayaran mengambil sedikit masa. Sistem akan teruskan secara automatik.",
     delayed20s: "Pengesahan masih berjalan. Sila kekal di tetingkap ini sementara kami menyemak dengan selamat.",
+    progressLabel: "Kemajuan semakan pas",
+    passProgressSteps: ["Semak pas", "Guna manfaat", "Sedia hasil"],
   },
 };
 
@@ -164,7 +194,7 @@ export default function PaymentLoading({
   stage,
   paymentType,
 }: PaymentLoadingProps) {
-  const [elapsedMs, setElapsedMs] = useState(0);
+  const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [locale, setLocale] = useState<LoadingLocale>("ko");
 
   useEffect(() => {
@@ -191,23 +221,28 @@ export default function PaymentLoading({
     setLocale(getCurrentLoadingLocale());
   }, [open]);
 
+  const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
+
   useEffect(() => {
     if (!open) {
-      setElapsedMs(0);
+      setLoadingPhase("fresh");
       return;
     }
 
-    const startedAt = Date.now();
-    const timer = window.setInterval(() => {
-      setElapsedMs(Date.now() - startedAt);
-    }, 1000);
+    setLoadingPhase("fresh");
+    if (isPaymentComplete) return;
 
-    return () => window.clearInterval(timer);
-  }, [open]);
+    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 8000);
+    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 20000);
+
+    return () => {
+      window.clearTimeout(warmTimer);
+      window.clearTimeout(slowTimer);
+    };
+  }, [isPaymentComplete, open]);
 
   if (!open) return null;
 
-  const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
   const isPassAppliedVariant = variant === "pass-applied";
   const variantContext = resolveLoadingContextFromVariant(variant);
   const resolvedStage = stage || variantContext?.stage;
@@ -239,9 +274,14 @@ export default function PaymentLoading({
     && cleanedStatus !== resolvedTitle
     && cleanedStatus !== resolvedDescription
     && cleanedStatus !== normalizedResolvedCopy;
-  const resolvedStatus = elapsedMs >= 20000
+  const loadingTone: LoadingMotionTone = isPassAppliedVariant || resolvedPaymentType === "pass"
+    ? "pass"
+    : isPaymentComplete
+      ? "result"
+      : "payment";
+  const resolvedStatus = loadingPhase === "slow"
     ? uiCopy.delayed20s
-    : elapsedMs >= 8000
+    : loadingPhase === "warming"
       ? uiCopy.delayed8s
       : isPassAppliedVariant
         ? statusMap[variant]
@@ -255,22 +295,27 @@ export default function PaymentLoading({
       role={isPassAppliedVariant ? "dialog" : "alertdialog"}
       aria-modal="true"
       aria-live={isPassAppliedVariant ? "polite" : "assertive"}
+      aria-busy="true"
       data-payment-loading-variant={variant}
+      data-loading-phase={loadingPhase}
       data-payment-loading-marker={UNIFIED_PAYMENT_MARKER}
       className="fixed inset-0 z-[2147483003] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
     >
       <div className={`relative w-full overflow-hidden rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-left text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6 ${isFamilyPassVariant ? "ring-1 ring-amber-200/30" : ""}`}>
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-        {isPassAppliedVariant ? (
-          <div className="pointer-events-none absolute inset-0 opacity-80">
-            <span className="absolute left-[18%] top-[18%] h-1 w-1 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,.8)]" />
-            <span className="absolute right-[22%] top-[24%] h-1.5 w-1.5 rounded-full bg-amber-100 shadow-[0_0_14px_rgba(253,230,138,.82)]" />
-            <span className="absolute bottom-[26%] left-[24%] h-1 w-1 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(207,250,254,.75)]" />
-            <span className="absolute bottom-[30%] right-[18%] h-1 w-1 rounded-full bg-fuchsia-100 shadow-[0_0_12px_rgba(250,232,255,.7)]" />
-          </div>
-        ) : null}
+        <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+          <span className="absolute left-[18%] top-[18%] h-1 w-1 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,.8)]" />
+          <span className="absolute right-[22%] top-[24%] h-1.5 w-1.5 rounded-full bg-amber-100 shadow-[0_0_14px_rgba(253,230,138,.82)]" />
+          <span className="absolute bottom-[26%] left-[24%] h-1 w-1 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(207,250,254,.75)]" />
+          <span className="absolute bottom-[30%] right-[18%] h-1 w-1 rounded-full bg-fuchsia-100 shadow-[0_0_12px_rgba(250,232,255,.7)]" />
+        </div>
 
         <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
+          <span className="absolute -inset-4 rounded-full border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: "12s" }} />
+          <span
+            className="absolute inset-2 rounded-full border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none"
+            style={{ animationDirection: "reverse", animationDuration: "4.2s" }}
+          />
           <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
           <div
             className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
@@ -284,6 +329,15 @@ export default function PaymentLoading({
         </div>
         {shouldShowDescription ? (
           <p className="mt-4 whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{resolvedDescription}</p>
+        ) : null}
+
+        {!isPaymentComplete ? (
+          <LoadingProgressMotion
+            phase={loadingPhase}
+            tone={loadingTone}
+            label={resolvedPaymentType === "pass" ? uiCopy.progressLabel : undefined}
+            labels={resolvedPaymentType === "pass" ? uiCopy.passProgressSteps : undefined}
+          />
         ) : null}
 
         {showSkeleton ? (

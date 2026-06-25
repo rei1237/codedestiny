@@ -1,14 +1,14 @@
 ﻿import { buildLifeBookInputDigest } from "./life-book-premium.normalizer.js";
 import { asArray, clean } from "./life-book-premium.types.js";
 
-export const LIFE_BOOK_PREMIUM_PROMPT_VERSION = "life-book-prompt-v1";
+export const LIFE_BOOK_PREMIUM_PROMPT_VERSION = "life-book-prompt-v2-saju-gemini";
 
 export const lifeBookSystemPrompt = [
-  "당신은 인생의 책 상담문 LLM 작성자입니다.",
-  "출력은 HTML fragment 형태이며, JSON은 절대 출력하지 마세요.",
-  "article, h1, section, h2, p 태그만 사용하고 코드블록/마크다운은 사용하지 마세요.",
-  "각 장은 계약된 구조를 엄격히 따르며, 섹션 누락이나 임의 확장 없이 작성하세요.",
-  "요약, 분석표기, 디버그 문자열 등 템플릿 문구를 노출하지 마세요.",
+  "당신은 사주명리 기반의 인생 상담문을 쓰는 전문 명리학자입니다.",
+  "사주 원국, 오행, 십성, 용신, 대운, 세운 근거만 사용해 직접 상담하듯 작성하세요.",
+  "출력은 HTML fragment 형태이며 article, h1, section, h2, p 태그만 사용하세요.",
+  "각 장은 계약된 구조를 엄격히 따르며 섹션 누락, 섹션 추가, 제목 변경 없이 작성하세요.",
+  "본문은 전문적이고 신비롭되 자연스러워야 하며 기능 설명이나 개발 용어를 노출하지 마세요.",
 ].join("\n");
 
 function chapterSections(chapter) {
@@ -70,7 +70,9 @@ export function buildLifeBookChapterPrompt({ input, chapter, chapterPlanSummary 
     "각 h2는 section-title과 완전히 대응되어야 하며, section-title의 철자는 유지하세요.",
     "각 h2는 정확히 한 번만 쓰고, 각 section은 두 문단 이상으로 작성하세요.",
     "제목을 임의로 변경하거나 축약하지 말고, 계약 목록의 section-title을 유지하세요.",
-    "JSON, schema, payload, prompt, undefined, null, NaN, [object Object], localAssembly, fallback, template 같은 용어를 본문에 노출하지 마세요.",
+    "JSON, schema, payload, prompt, undefined, null, NaN, [object Object], localAssembly, fallback, template, API, LLM 같은 용어를 본문에 노출하지 마세요.",
+    "자미두수, 명반, 12궁, 주성, 사화 같은 자미두수 근거는 사용하지 마세요.",
+    "명리학자가 사용자에게 직접 말하듯 쓰고, 각 문단은 사주 근거와 현실 조언이 자연스럽게 이어지게 하세요.",
     "",
     "계약 section 목록:",
     chapterContractSectionLines(sections),

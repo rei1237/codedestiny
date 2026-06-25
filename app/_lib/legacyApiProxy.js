@@ -16,6 +16,11 @@ function isLocalHostName(hostname) {
   return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1";
 }
 
+function isLocalBaseUrl(rawValue) {
+  const parsed = parseUrlSafe(rawValue);
+  return parsed ? isLocalHostName(parsed.hostname) : false;
+}
+
 function parseUrlSafe(rawValue) {
   try {
     return new URL(String(rawValue || ""));
@@ -42,6 +47,19 @@ function isEquivalentOrigin(a, b) {
 function resolveLegacyApiBase(request) {
   const incomingUrl = new URL(request.url);
   const incomingOrigin = incomingUrl.origin.replace(/\/$/, "");
+  const localPublicBase = normalizeBaseUrl(
+    process.env.NEXT_PUBLIC_AUTH_API_BASE_URL
+    || process.env.NEXT_PUBLIC_API_BASE_URL,
+  );
+  if (
+    isLocalHostName(incomingUrl.hostname)
+    && localPublicBase
+    && isLocalBaseUrl(localPublicBase)
+    && !isEquivalentOrigin(incomingOrigin, localPublicBase)
+  ) {
+    return localPublicBase;
+  }
+
   const configuredBase = normalizeBaseUrl(
     process.env.AUTH_API_BASE_URL
     || process.env.AUTH_API_BASE

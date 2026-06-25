@@ -35,9 +35,12 @@ MONGO_IP_FAMILY_AUTO_FALLBACK = "true"
 MONGODB_DB_NAME = "code_destiny"
 GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
+ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL = "gemini-2.5-flash"
-SUKYO_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
 PREMIUM_GEMINI_TIMEOUT_MS = "45000"
+ZIWEI_PREMIUM_LLM_TIMEOUT_MS = "75000"
+ZIWEI_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
+SUKYO_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
 PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
 # Worker-native route groups:
 # - /api/auth/*

@@ -20,6 +20,7 @@ import {
   generateSajuNewYearTextWithLlm,
   resolveSajuNewYearLlmProviders,
   resolveSajuNewYearModelName,
+  resolveSajuNewYearProviderModelKey,
 } from "./llm-client.js";
 import {
   parseAndValidateSajuNewYearChapterJson,
@@ -104,8 +105,8 @@ export function buildSajuNewYearLlmChapterCacheKey({ normalizedInputHash, chapte
   })}`;
 }
 
-async function generateChapter({ env, input, chapter, expectedChapters, normalizedInputHash, modelName, jobId, userId, onProgress }) {
-  const cacheKey = buildSajuNewYearLlmChapterCacheKey({ normalizedInputHash, chapterNo: chapter.no, modelName });
+async function generateChapter({ env, input, chapter, expectedChapters, normalizedInputHash, modelName, providerModelKey, jobId, userId, onProgress }) {
+  const cacheKey = buildSajuNewYearLlmChapterCacheKey({ normalizedInputHash, chapterNo: chapter.no, modelName: providerModelKey || modelName });
   const cached = await readChapterCache(env, cacheKey);
   if (cached?.chapter) {
     const cachedValidation = parseAndValidateSajuNewYearChapterJson(cached.rawJson || cached.chapter, {
@@ -123,6 +124,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
         monthlyFortunes: cachedValidation.monthlyFortunes,
         finalAdvice: cachedValidation.finalAdvice,
         provider: cached.provider || "cache",
+        modelName: clean(cached.modelName || providerModelKey || modelName),
         source: "llm-cache",
         attempts: [],
       };
@@ -161,6 +163,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
         provider,
         retry,
         ok: Boolean(result.ok),
+        modelName: clean(result.model),
         errorCode: clean(result.errorCode),
         status: result.status || null,
         durationMs: Number(result.latencyMs || Date.now() - started),
@@ -177,13 +180,15 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
         targetYear: input.targetYear,
       });
       if (validation.ok) {
+        const actualProvider = clean(result.provider || provider);
+        const actualModelName = clean(result.model || modelName);
         await writeChapterCache(env, cacheKey, {
           rawJson: validation.parsed,
           chapter: validation.chapter,
           monthlyFortunes: validation.monthlyFortunes,
           finalAdvice: validation.finalAdvice,
-          provider,
-          modelName: result.model || modelName,
+          provider: actualProvider,
+          modelName: actualModelName,
           promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
           schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
           qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
@@ -193,15 +198,16 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
           jobId,
           userId,
           chapterNo: chapter.no,
-          provider,
-          modelName: result.model || modelName,
+          provider: actualProvider,
+          modelName: actualModelName,
         });
         return {
           ok: true,
           chapter: validation.chapter,
           monthlyFortunes: validation.monthlyFortunes,
           finalAdvice: validation.finalAdvice,
-          provider,
+          provider: actualProvider,
+          modelName: actualModelName,
           source: "llm",
           attempts,
         };
@@ -286,9 +292,11 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
   const input = normalizeSajuNewYearLlmInput(normalized);
   const normalizedInputHash = hashStable(input);
   const modelName = resolveSajuNewYearModelName(env);
+  const providerModelKey = resolveSajuNewYearProviderModelKey(env);
   const chapters = [];
   const attempts = [];
   const providerSet = new Set();
+  const modelSet = new Set();
   let monthlyFortunes = [];
   let finalAdvice = null;
 
@@ -302,6 +310,7 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
       expectedChapters,
       normalizedInputHash,
       modelName,
+      providerModelKey,
       jobId,
       userId,
       onProgress: params.onProgress,
@@ -319,6 +328,7 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     if (Array.isArray(result.monthlyFortunes) && result.monthlyFortunes.length) monthlyFortunes = result.monthlyFortunes;
     if (result.finalAdvice?.body) finalAdvice = result.finalAdvice;
     providerSet.add(result.provider);
+    if (clean(result.modelName)) modelSet.add(clean(result.modelName));
   }
 
   const validation = validateSajuNewYearLlmReport({
@@ -342,11 +352,14 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     : providerSet.has("gemini")
       ? "gemini-workers-ai"
       : "workers-ai";
+  const actualModelName = modelSet.size === 1
+    ? [...modelSet][0]
+    : [...modelSet].filter(Boolean).join(",") || modelName;
   const llmAssembly = {
     enabled: true,
     source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
     provider,
-    modelName,
+    modelName: actualModelName,
     engineVersion: SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
     qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
     promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
@@ -364,7 +377,7 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     userId,
     status: "completed",
     provider,
-    modelName,
+    modelName: actualModelName,
     totalChars: validation.stats.totalChars,
   });
 
@@ -385,7 +398,7 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     normalizedInput: input,
     normalizedInputHash,
     provider,
-    modelName,
+    modelName: actualModelName,
     llmAssembly,
     llmAssemblyOnly: true,
     externalCallsAllowed: true,
@@ -396,6 +409,6 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
     qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
     engineVersion: SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
-    cacheDigest: hashStable({ normalizedInputHash, modelName, promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION, schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION }),
+    cacheDigest: hashStable({ normalizedInputHash, providerModelKey, promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION, schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION }),
   };
 }

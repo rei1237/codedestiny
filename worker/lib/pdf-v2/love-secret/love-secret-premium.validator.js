@@ -124,10 +124,17 @@ export function assertAllConfiguredChaptersIncluded({ html = "", chapters = [] }
 }
 
 export function assertNoRawJsonLeak(html = "") {
-  if (rawJsonPattern.test(String(html || "")) || internalPattern.test(String(html || ""))) {
+  const source = String(html || "");
+  const rawJsonMatch = source.match(rawJsonPattern);
+  const internalMatch = source.match(internalPattern);
+  if (rawJsonMatch || internalMatch) {
     const error = new Error("LOVE_SECRET_RAW_JSON_OR_INTERNAL_LEAK");
     error.code = "LOVE_SECRET_RAW_JSON_OR_INTERNAL_LEAK";
     error.status = 422;
+    error.detail = {
+      rawJsonMatch: rawJsonMatch?.[0] || "",
+      internalMatch: internalMatch?.[0] || "",
+    };
     throw error;
   }
   return true;

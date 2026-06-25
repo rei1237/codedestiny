@@ -25,7 +25,7 @@ const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
 const LOVE_SECRET_PDF_CONFIG = Object.freeze({
   generationMode: "llm-only",
-  provider: "workers-ai-gemini",
+  provider: "gemini-primary-workers-ai-fallback",
   templateVersion: "love-secret-premium-llm-v2",
   qualityMode: "premium",
 });
@@ -5455,7 +5455,7 @@ async function handleAccess(request, env) {
 }
 
 async function handleGenerateChapter(request, env) {
-      return buildApiError("LOVE_SECRET_LLM_PDF_ONLY", "?? ?? PDF? /prepare ?? /prepare-async?? LLM ?? ??????? ?????.", 410);
+      return buildApiError("LOVE_SECRET_LLM_PDF_ONLY", "연애 비책 PDF는 /prepare 또는 /prepare-async에서 결제 확인 후 LLM 원고를 생성합니다.", 410);
 }
 
 async function generateLoveSecretPremiumPdfFromRoute({
@@ -5950,7 +5950,7 @@ export async function handleSajuLoveSecretRoutes(request, env = {}, ctx = null) 
     const path = getRoutePath(request, "/api/love-secret");
 
     if (method === "POST" && (path === "" || path === "/" || path === "/generate-chapter")) {
-      return buildApiError("LOVE_SECRET_LLM_PDF_ONLY", "?? ?? PDF? /prepare ?? /prepare-async?? LLM ?? ??????? ?????.", 410);
+      return buildApiError("LOVE_SECRET_LLM_PDF_ONLY", "연애 비책 PDF는 /prepare 또는 /prepare-async에서 결제 확인 후 LLM 원고를 생성합니다.", 410);
     }
 
     if (method === "POST" && path === "/prepare") {

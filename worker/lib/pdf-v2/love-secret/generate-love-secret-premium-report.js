@@ -264,7 +264,9 @@ export async function generateLoveSecretPremiumReport({
     throw error;
   }
 
-  const provider = clean(chapters.find((chapter) => chapter.provider && chapter.provider !== "cache")?.provider || chapters[0]?.provider || "llm");
+  const providerChapter = chapters.find((chapter) => chapter.provider && chapter.provider !== "cache") || chapters[0] || {};
+  const provider = clean(providerChapter.provider || "llm");
+  const completedModelName = clean(providerChapter.modelName || modelName);
   const generated = {
     normalizedInput,
     normalizedInputHash,
@@ -274,7 +276,7 @@ export async function generateLoveSecretPremiumReport({
     manuscriptSource: "love-secret-premium-llm-only",
     generationMode: "llm-only",
     provider,
-    modelName,
+    modelName: completedModelName,
     promptVersion: LOVE_SECRET_PREMIUM_PROMPT_VERSION,
     chapterPlanVersion: plan.version,
     writingPipeline: "saju-love-calculation-to-llm-authored-pdf",
@@ -284,6 +286,8 @@ export async function generateLoveSecretPremiumReport({
       externalCallsAllowed: true,
       fallbackUsed: false,
       localFallback: false,
+      provider,
+      modelName: completedModelName,
       promptVersion: LOVE_SECRET_PREMIUM_PROMPT_VERSION,
       chapterPlanVersion: plan.version,
       chapterCount: chapters.length,

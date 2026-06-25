@@ -11,6 +11,10 @@ import {
 } from "react";
 
 import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
+import LoadingProgressMotion, {
+  type LoadingMotionPhase,
+  type LoadingMotionTone,
+} from "./common/LoadingProgressMotion";
 import {
   getCurrentLoadingLocale,
   resolveLoadingMessage,
@@ -99,6 +103,8 @@ type PaidGateUiCopy = {
   costSuffix: string;
   payAction: string;
   genericLabel: string;
+  progressLabel: string;
+  progressSteps: readonly [string, string, string];
 };
 
 const KOREAN_TEXT_PATTERN = /[가-힣]/;
@@ -214,18 +220,18 @@ const PAID_GATE_LOCALIZED_COPY: Record<Exclude<LoadingLocale, "ko">, Partial<Rec
 };
 
 const PAID_GATE_UI_COPY: Record<LoadingLocale, PaidGateUiCopy> = {
-  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중" },
-  en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking" },
-  ja: { closeLabel: "閉じる", costPrefix: "必要金額", costSuffix: "ウォン", payAction: "決済商品を見る", genericLabel: "確認中" },
-  "zh-CN": { closeLabel: "关闭", costPrefix: "所需金额", costSuffix: "韩元", payAction: "查看支付选项", genericLabel: "确认中" },
-  "zh-TW": { closeLabel: "關閉", costPrefix: "所需金額", costSuffix: "韓元", payAction: "查看付款選項", genericLabel: "確認中" },
-  vi: { closeLabel: "Đóng", costPrefix: "Số tiền cần", costSuffix: " KRW", payAction: "Xem lựa chọn thanh toán", genericLabel: "Đang kiểm tra" },
-  hi: { closeLabel: "बंद करें", costPrefix: "आवश्यक राशि", costSuffix: " KRW", payAction: "भुगतान विकल्प देखें", genericLabel: "जाँच जारी" },
-  es: { closeLabel: "Cerrar", costPrefix: "Importe requerido", costSuffix: " KRW", payAction: "Ver opciones de pago", genericLabel: "Comprobando" },
-  fr: { closeLabel: "Fermer", costPrefix: "Montant requis", costSuffix: " KRW", payAction: "Voir les options de paiement", genericLabel: "Vérification" },
-  de: { closeLabel: "Schließen", costPrefix: "Erforderlicher Betrag", costSuffix: " KRW", payAction: "Zahlungsoptionen ansehen", genericLabel: "Prüfung" },
-  nl: { closeLabel: "Sluiten", costPrefix: "Benodigd bedrag", costSuffix: " KRW", payAction: "Betaalopties bekijken", genericLabel: "Controleren" },
-  ms: { closeLabel: "Tutup", costPrefix: "Jumlah diperlukan", costSuffix: " KRW", payAction: "Lihat pilihan bayaran", genericLabel: "Menyemak" },
+  ko: { closeLabel: "닫기", costPrefix: "필요 금액", costSuffix: "원", payAction: "결제 상품 보기", genericLabel: "확인 중", progressLabel: "이용권 확인 진행 상태", progressSteps: ["권한 확인", "처리 진행", "결과 준비"] },
+  en: { closeLabel: "Close", costPrefix: "Required amount", costSuffix: " KRW", payAction: "View payment options", genericLabel: "Checking", progressLabel: "Access check progress", progressSteps: ["Check access", "Processing", "Prepare result"] },
+  ja: { closeLabel: "閉じる", costPrefix: "必要金額", costSuffix: "ウォン", payAction: "決済商品を見る", genericLabel: "確認中", progressLabel: "利用券確認の進行状況", progressSteps: ["権限確認", "処理中", "結果準備"] },
+  "zh-CN": { closeLabel: "关闭", costPrefix: "所需金额", costSuffix: "韩元", payAction: "查看支付选项", genericLabel: "确认中", progressLabel: "权限确认进度", progressSteps: ["确认权限", "处理中", "准备结果"] },
+  "zh-TW": { closeLabel: "關閉", costPrefix: "所需金額", costSuffix: "韓元", payAction: "查看付款選項", genericLabel: "確認中", progressLabel: "權限確認進度", progressSteps: ["確認權限", "處理中", "準備結果"] },
+  vi: { closeLabel: "Đóng", costPrefix: "Số tiền cần", costSuffix: " KRW", payAction: "Xem lựa chọn thanh toán", genericLabel: "Đang kiểm tra", progressLabel: "Tiến trình kiểm tra quyền", progressSteps: ["Kiểm tra quyền", "Đang xử lý", "Chuẩn bị kết quả"] },
+  hi: { closeLabel: "बंद करें", costPrefix: "आवश्यक राशि", costSuffix: " KRW", payAction: "भुगतान विकल्प देखें", genericLabel: "जाँच जारी", progressLabel: "पहुँच जाँच प्रगति", progressSteps: ["पहुँच जाँच", "प्रक्रिया", "परिणाम तैयार"] },
+  es: { closeLabel: "Cerrar", costPrefix: "Importe requerido", costSuffix: " KRW", payAction: "Ver opciones de pago", genericLabel: "Comprobando", progressLabel: "Progreso de verificación", progressSteps: ["Comprobar acceso", "Procesando", "Preparar resultado"] },
+  fr: { closeLabel: "Fermer", costPrefix: "Montant requis", costSuffix: " KRW", payAction: "Voir les options de paiement", genericLabel: "Vérification", progressLabel: "Progression de vérification", progressSteps: ["Vérifier l'accès", "Traitement", "Préparer le résultat"] },
+  de: { closeLabel: "Schließen", costPrefix: "Erforderlicher Betrag", costSuffix: " KRW", payAction: "Zahlungsoptionen ansehen", genericLabel: "Prüfung", progressLabel: "Fortschritt der Zugriffsprüfung", progressSteps: ["Zugriff prüfen", "Verarbeitung", "Ergebnis vorbereiten"] },
+  nl: { closeLabel: "Sluiten", costPrefix: "Benodigd bedrag", costSuffix: " KRW", payAction: "Betaalopties bekijken", genericLabel: "Controleren", progressLabel: "Voortgang toegangscontrole", progressSteps: ["Toegang checken", "Verwerken", "Resultaat voorbereiden"] },
+  ms: { closeLabel: "Tutup", costPrefix: "Jumlah diperlukan", costSuffix: " KRW", payAction: "Lihat pilihan bayaran", genericLabel: "Menyemak", progressLabel: "Kemajuan semakan akses", progressSteps: ["Semak akses", "Memproses", "Sedia hasil"] },
 };
 
 const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
@@ -480,6 +486,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [state, setState] = useState<PaidFeatureGateState>({
     open: false,
     status: "idle",
@@ -491,6 +498,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     seq: 0,
     startedAt: 0,
   });
+  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
 
   const close = useCallback((requestId?: string) => {
     setState((prev) => {
@@ -666,6 +674,22 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   }, [state.open]);
 
   useEffect(() => {
+    if (!state.open || !showSkeleton) {
+      setLoadingPhase("fresh");
+      return;
+    }
+
+    setLoadingPhase("fresh");
+    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 8000);
+    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 20000);
+
+    return () => {
+      window.clearTimeout(warmTimer);
+      window.clearTimeout(slowTimer);
+    };
+  }, [showSkeleton, state.open, state.status]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     type PaidGateWindow = Window & {
       __cdPaidFeatureGate?: {
@@ -703,7 +727,12 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
   const copy = resolvePaidGateCopy(state, locale);
   const gateUiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
-  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
+  const gateMotionTone: LoadingMotionTone =
+    state.status === "paymentProcessing" || state.status === "paymentPreparing" || state.status === "paymentWindowOpen"
+      ? "payment"
+      : state.status === "hasEntitlement" || state.status === "paymentSuccess" || state.status === "savingUnlock" || state.status === "unlockSaving"
+        ? "result"
+        : "pass";
   const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
 
   return (
@@ -715,11 +744,17 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
           aria-modal="true"
           aria-live="polite"
           data-paid-feature-gate-status={state.status}
+          data-loading-phase={loadingPhase}
           className="fixed inset-0 z-[2147483002] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
         >
           <div className="w-full rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6">
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
             <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
+              <span className="absolute -inset-4 rounded-full border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: "12s" }} />
+              <span
+                className="absolute inset-2 rounded-full border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none"
+                style={{ animationDirection: "reverse", animationDuration: "4.2s" }}
+              />
               <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
               <div
                 className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
@@ -743,6 +778,14 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
               </button>
             </div>
             <p className="whitespace-pre-line text-sm leading-[1.7] text-slate-200/90">{copy.message}</p>
+            {showSkeleton ? (
+              <LoadingProgressMotion
+                phase={loadingPhase}
+                tone={gateMotionTone}
+                label={gateUiCopy.progressLabel}
+                labels={gateUiCopy.progressSteps}
+              />
+            ) : null}
             {state.cost !== null ? (
               <p className="mt-3 inline-flex rounded-full border border-amber-200/30 bg-amber-300/10 px-3 py-1 text-xs font-extrabold text-amber-100">
                 {gateUiCopy.costPrefix} {formatPaidGateCost(state.cost, locale)}
