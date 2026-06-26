@@ -8,10 +8,11 @@ import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
 const LEGACY_FEATURE_KEY = "premium-naming-report";
-const AMOUNT_KRW = 20000;
-const COIN_PRICE = 200;
+const AMOUNT_KRW = 30000;
+const COIN_PRICE = 300;
 const CURRENCY = "KRW";
 const RESULT_VERSION = "naming-prompt-v20260626";
+const SAJU_EVIDENCE_SOURCE = "main-shell-saju-engine";
 const ALLOWED_FEATURE_KEYS = new Set([FEATURE_KEY, LEGACY_FEATURE_KEY, "naming_prompt", "namingPrompt", "premiumNamingPrompt"]);
 const PASS_ACCESS_TYPES = new Set(["membership_pass", "usage_pass", "subscription_pass", "family", "family_pass", "license_pass"]);
 
@@ -197,6 +198,93 @@ async function buildInputHash(input) {
   return sha256Hex(JSON.stringify(stable(input)));
 }
 
+async function buildSajuEvidenceHash(evidence) {
+  return sha256Hex(JSON.stringify(stable(evidence)));
+}
+
+async function buildNamingOrderHash(input, sajuEvidenceHash) {
+  return sha256Hex(JSON.stringify(stable({ input, sajuEvidenceHash })));
+}
+
+function jsonCloneLimited(value, maxLength = 80000) {
+  const text = JSON.stringify(value ?? null);
+  if (text.length > maxLength) {
+    throw createHttpError(400, "사주 계산 스냅샷이 너무 큽니다.", { code: "SAJU_EVIDENCE_TOO_LARGE" });
+  }
+  return JSON.parse(text);
+}
+
+function normalizeMainShellPillar(node = {}) {
+  return {
+    g: clean(node.g || node.stem, 10),
+    j: clean(node.j || node.branch, 10),
+    gE: clean(node.gE || node.stemElement, 20),
+    jE: clean(node.jE || node.branchElement, 20),
+  };
+}
+
+function normalizeMainShellPillars(raw = {}) {
+  return {
+    y: normalizeMainShellPillar(raw.y || raw.year),
+    m: normalizeMainShellPillar(raw.m || raw.month),
+    d: normalizeMainShellPillar(raw.d || raw.day),
+    h: normalizeMainShellPillar(raw.h || raw.hour),
+  };
+}
+
+function hasMainShellPillar(node = {}) {
+  return Boolean(clean(node.g, 10) && clean(node.j, 10));
+}
+
+function normalizeSajuEvidence(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw createHttpError(400, "사주 계산 기준을 먼저 확정해 주세요.", { code: "SAJU_EVIDENCE_REQUIRED" });
+  }
+  const source = clean(raw.source || raw.calculationSource, 80);
+  const evidence = {
+    source,
+    pillars: normalizeMainShellPillars(raw.pillars || {}),
+    natal: jsonCloneLimited(safeObject(raw.natal || {}), 20000),
+    power: jsonCloneLimited(safeObject(raw.power || {}), 20000),
+    johu: jsonCloneLimited(safeObject(raw.johu || {}), 16000),
+    jong: jsonCloneLimited(safeObject(raw.jong || {}), 16000),
+    tenGods: jsonCloneLimited(safeObject(raw.tenGods || {}), 16000),
+    kasiContext: jsonCloneLimited(safeObject(raw.kasiContext || {}), 24000),
+    timeCorrection: jsonCloneLimited(safeObject(raw.timeCorrection || {}), 12000),
+    activeBirthProfile: jsonCloneLimited(safeObject(raw.activeBirthProfile || {}), 16000),
+    engineVersion: clean(raw.engineVersion || raw.version || "", 120),
+    inputHash: clean(raw.inputHash || raw.baseInputHash, 160),
+    generatedAt: clean(raw.generatedAt, 80),
+  };
+  if (evidence.source !== SAJU_EVIDENCE_SOURCE) {
+    throw createHttpError(400, "기본 사주 화면의 계산 기준으로 작명 사주를 확정해 주세요.", { code: "SAJU_EVIDENCE_SOURCE_MISMATCH" });
+  }
+  if (!hasMainShellPillar(evidence.pillars.y) || !hasMainShellPillar(evidence.pillars.m) || !hasMainShellPillar(evidence.pillars.d)) {
+    throw createHttpError(400, "사주 원국 스냅샷이 완성되지 않았습니다.", { code: "SAJU_EVIDENCE_PILLARS_REQUIRED" });
+  }
+  if (!evidence.power || !Array.isArray(evidence.power.yongshin)) {
+    throw createHttpError(400, "용신 보정이 끝난 사주 스냅샷이 필요합니다.", { code: "SAJU_EVIDENCE_POWER_REQUIRED" });
+  }
+  if (!evidence.inputHash) {
+    throw createHttpError(400, "입력값과 연결된 사주 스냅샷이 필요합니다.", { code: "SAJU_EVIDENCE_INPUT_HASH_REQUIRED" });
+  }
+  return evidence;
+}
+
+async function resolveSajuEvidence(input, rawEvidence, claimedHash = "") {
+  const evidence = normalizeSajuEvidence(rawEvidence);
+  const baseInputHash = await buildInputHash(input);
+  if (evidence.inputHash && evidence.inputHash !== baseInputHash) {
+    throw createHttpError(409, "입력값과 사주 계산 기준이 일치하지 않습니다.", { code: "SAJU_EVIDENCE_INPUT_MISMATCH" });
+  }
+  const evidenceHash = await buildSajuEvidenceHash(evidence);
+  const expected = clean(claimedHash, 160);
+  if (expected && expected !== evidenceHash) {
+    throw createHttpError(409, "사주 계산 기준이 결제 전 스냅샷과 일치하지 않습니다.", { code: "SAJU_EVIDENCE_HASH_MISMATCH" });
+  }
+  return { evidence, evidenceHash, baseInputHash };
+}
+
 function formatList(value, fallback = "미입력") {
   if (Array.isArray(value)) return value.length ? value.join(", ") : fallback;
   const text = clean(value, 2000);
@@ -229,7 +317,95 @@ function asElementLabelList(values) {
   return source.map((key) => ELEMENT_LABELS[key] || clean(key, 20)).filter(Boolean);
 }
 
-function buildSajuContext(input) {
+function mainShellPillarText(pillar = {}) {
+  const stem = clean(pillar.g || pillar.stem, 10);
+  const branch = clean(pillar.j || pillar.branch, 10);
+  return stem || branch ? `${stem}${branch}` : "미상";
+}
+
+function elementDistributionText(source = {}) {
+  const ratios = source.ratios || source.percentages || source.scores || source.counts || {};
+  return ["wood", "fire", "earth", "metal", "water"]
+    .map((key) => `${ELEMENT_LABELS[key]} ${Math.round(Number(ratios[key] || 0))}`)
+    .join(" / ");
+}
+
+function labelElementList(values, fallback = "미상") {
+  const list = asElementLabelList(values);
+  return list.length ? list.join(", ") : fallback;
+}
+
+function buildPowerSummary(power = {}) {
+  if (typeof power.isStrong === "boolean") {
+    return `${power.isStrong ? "신강" : "신약"} 후보 / 억부 점수 ${Math.round(Number(power.score || 0))}`;
+  }
+  return "월령·통근·투간·오행 균형을 함께 보아 신강/신약 후보를 재검토";
+}
+
+function buildJohuSummary(johu = {}) {
+  return [
+    clean(johu.badgeTxt || johu.type, 80),
+    clean(johu.advice, 180),
+    clean(johu.moistAdvice, 120),
+  ].filter(Boolean).join(" / ") || "계절성과 조후 필요성을 별도로 검토";
+}
+
+function buildJongSummary(jong = {}) {
+  if (!jong || !Object.keys(jong).length) return "종격/가종격 특이 신호 없음";
+  if (jong.isJong) return `${jong.name || "종격"} 후보 / 주도 오행 ${labelElementList(jong.dominant, "미상")}`;
+  if (jong.isGaJong) return `${jong.name || "가종격"} 후보 / 재검토 필요`;
+  return "종격/가종격 특이 신호 없음";
+}
+
+function buildSajuContext(input, mainShellEvidence = null, sajuEvidenceHash = "") {
+  const fallback = buildFallbackSajuContext(input);
+  if (!mainShellEvidence) return fallback;
+  const pillars = mainShellEvidence.pillars || {};
+  const power = mainShellEvidence.power || {};
+  const johu = mainShellEvidence.johu || {};
+  const jong = mainShellEvidence.jong || {};
+  const finalYongshin = labelElementList(power.yongshin, "용신 후보 미상");
+  const eokbuYongshin = labelElementList(power.eokbuYongshin || power.yongshin, "억부용신 후보 미상");
+  const johuYongshin = labelElementList(power.johuYongshin, "조후용신 후보 미상");
+  const finalKijishin = labelElementList(power.kijishin, "기신 후보 미상");
+  const eokbuKijishin = labelElementList(power.eokbuKijishin || power.kijishin, "억부기신 후보 미상");
+  const johuKijishin = labelElementList(power.johuKijishin, "조후기신 후보 미상");
+
+  return {
+    ...fallback,
+    source: SAJU_EVIDENCE_SOURCE,
+    sajuEvidenceHash: clean(sajuEvidenceHash, 160),
+    engineVersion: clean(mainShellEvidence.engineVersion, 120) || "main-shell-saju-engine",
+    yearPillar: mainShellPillarText(pillars.y),
+    monthPillar: mainShellPillarText(pillars.m),
+    dayPillar: mainShellPillarText(pillars.d),
+    hourPillar: input.birthTimeUnknown ? "출생시간 미상으로 시주 미확정" : mainShellPillarText(pillars.h),
+    dayMaster: `${clean(pillars.d?.g, 10)}${pillars.d?.gE ? `(${ELEMENT_LABELS[pillars.d.gE] || pillars.d.gE})` : ""}` || fallback.dayMaster,
+    monthCommand: clean(pillars.m?.j, 10) || fallback.monthCommand,
+    fiveElementBalance: elementDistributionText(mainShellEvidence.natal || {}),
+    tenGodBalance: tenGodBalanceText(mainShellEvidence.tenGods || {}) || fallback.tenGodBalance,
+    strengthAnalysis: buildPowerSummary(power),
+    temperatureBalance: buildJohuSummary(johu),
+    usefulGodCandidates: finalYongshin,
+    supportiveGodCandidates: [eokbuYongshin, johuYongshin].filter((item) => item && item !== "조후용신 후보 미상").join(" / ") || fallback.supportiveGodCandidates,
+    unfavorableGodCandidates: finalKijishin,
+    recommendedNameElements: `용신·희신 우선: ${finalYongshin} / 조후 보완: ${johuYongshin}`,
+    avoidNameElements: `기신·과다 오행 회피: ${finalKijishin} / 조후 주의: ${johuKijishin}`,
+    eokbuYongshin,
+    johuYongshin,
+    finalYongshin,
+    eokbuKijishin,
+    johuKijishin,
+    finalKijishin,
+    jongAnalysis: buildJongSummary(jong),
+    raw: {
+      mainShellEvidence,
+      fallbackBuildSajuProfile: fallback.raw || null,
+    },
+  };
+}
+
+function buildFallbackSajuContext(input) {
   try {
     const profile = buildSajuProfile({
       name: input.currentName || input.familyName || "사용자",
@@ -347,6 +523,8 @@ function buildGeneratedPrompt(input, saju) {
 - 출생시간 정확도: ${input.birthTimeUnknown ? "출생시간 모름" : "사용자 입력 시간 기준"}
 
 [사주 계산 결과]
+- 계산 기준: ${saju.source}${saju.engineVersion ? ` / ${saju.engineVersion}` : ""}
+- 사주 스냅샷 해시: ${saju.sajuEvidenceHash || "보조 계산 기준"}
 - 년주: ${saju.yearPillar}
 - 월주: ${saju.monthPillar}
 - 일주: ${saju.dayPillar}
@@ -363,10 +541,21 @@ function buildGeneratedPrompt(input, saju) {
 - 이름으로 보완하면 좋은 오행: ${saju.recommendedNameElements}
 - 이름에서 피하면 좋은 오행: ${saju.avoidNameElements}
 
+[용신 판단 근거 분리]
+- 억부용신 후보: ${saju.eokbuYongshin || "메인 사주 계산 기준 확인"}
+- 조후용신 후보: ${saju.johuYongshin || "메인 사주 계산 기준 확인"}
+- 최종 보정 용신: ${saju.finalYongshin || saju.usefulGodCandidates}
+- 억부기신 후보: ${saju.eokbuKijishin || "메인 사주 계산 기준 확인"}
+- 조후기신 후보: ${saju.johuKijishin || "메인 사주 계산 기준 확인"}
+- 최종 주의 오행: ${saju.finalKijishin || saju.unfavorableGodCandidates}
+- 종격/가종격 검토: ${saju.jongAnalysis || "종격 특이 신호 없음"}
+- 이름 오행 적용 순서: 용신·희신 우선 → 조후 보완 → 과다·기신 회피 → 소리·자원·수리 균형 조정
+
 [한국 작명 기준]
 - 소리오행 기준: ${JSON.stringify(SOUND_FIVE_ELEMENTS)}
 - 한자는 실제 인명용 한자 여부, 부정 의미, 불용문자 가능성, 획수 데이터 유무를 확인해 주세요.
 - 확인할 수 없는 한자는 확정 추천하지 말고 "검증 필요"로 표시해주세요.
+- 한자 획수, 인명용 한자 여부, 법적 사용 가능성은 데이터가 확정되지 않으면 단정하지 말고 반드시 "검증 필요"로 표시해주세요.
 - 한자 의미는 실제 의미를 바탕으로 담백하게 해석하고 과장하지 마세요.
 - 원형이정 수리는 한자 획수 기준으로 원격·형격·이격·정격·총획, 초년운·청년운·장년운·말년운, 길수·흉수, 수리오행, 음양 배치를 함께 봐주세요.
 - 자원오행은 한자의 부수, 의미, 상징, 이름 전체 조합과 사주 보완 오행과의 관계를 함께 판단해주세요.
@@ -419,7 +608,7 @@ ${desiredNamesMarkdown(input.desiredNames)}
 ## 13. 실제 작명 선택 조언`;
 }
 
-function buildCheckoutPayload(inputHash) {
+function buildCheckoutPayload(inputHash, sajuEvidenceHash = "") {
   const requestId = `naming-prompt-${inputHash.slice(0, 16)}`;
   return {
     paymentType: "digital_content",
@@ -440,10 +629,14 @@ function buildCheckoutPayload(inputHash) {
     paymentMethod: "card_general",
     requestId,
     reportId: inputHash,
+    inputHash,
+    sajuEvidenceHash: clean(sajuEvidenceHash, 160),
     sessionId: requestId,
     idempotencyKey: requestId,
     passEligible: true,
     subscriptionEligible: true,
+    monthlyPassEligible: true,
+    singlePaymentOnly: false,
   };
 }
 
@@ -837,7 +1030,8 @@ async function handleCheckout(request, env) {
   const body = await readJson(request);
   const input = normalizeInput(body.input || body);
   validateInput(input);
-  const inputHash = await buildInputHash(input);
+  const sajuEvidence = await resolveSajuEvidence(input, body.sajuEvidence, body.sajuEvidenceHash);
+  const inputHash = await buildNamingOrderHash(input, sajuEvidence.evidenceHash);
   return json({
     ok: true,
     productType: PRODUCT_TYPE,
@@ -846,10 +1040,13 @@ async function handleCheckout(request, env) {
     currency: CURRENCY,
     coinPrice: COIN_PRICE,
     inputHash,
+    sajuEvidenceHash: sajuEvidence.evidenceHash,
     passEligible: true,
     subscriptionEligible: true,
+    monthlyPassEligible: true,
+    singlePaymentOnly: false,
     userId: String(auth.userId || ""),
-    checkoutPayload: buildCheckoutPayload(inputHash),
+    checkoutPayload: buildCheckoutPayload(inputHash, sajuEvidence.evidenceHash),
   });
 }
 
@@ -877,7 +1074,12 @@ async function handleGenerate(request, env) {
   const body = await readJson(request);
   const input = normalizeInput(body.input || {});
   validateInput(input);
-  const inputHash = clean(body.inputHash, 160) || await buildInputHash(input);
+  const sajuEvidence = await resolveSajuEvidence(input, body.sajuEvidence, body.sajuEvidenceHash);
+  const expectedInputHash = await buildNamingOrderHash(input, sajuEvidence.evidenceHash);
+  const inputHash = clean(body.inputHash, 160) || expectedInputHash;
+  if (inputHash !== expectedInputHash) {
+    throw createHttpError(409, "입력값과 사주 계산 기준이 결제 전 스냅샷과 일치하지 않습니다.", { code: "INPUT_HASH_MISMATCH" });
+  }
   const access = await verifyNamingAccess(env, auth, body, inputHash);
 
   const payment = access.payment || null;
@@ -898,7 +1100,7 @@ async function handleGenerate(request, env) {
     return json({ ok: true, idempotent: true, result: existingExecution });
   }
 
-  const sajuSnapshot = buildSajuContext(input);
+  const sajuSnapshot = buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash);
   const generatedPrompt = buildGeneratedPrompt(input, sajuSnapshot);
   const generatedAt = new Date();
   if (payment?._id) {
@@ -910,6 +1112,7 @@ async function handleGenerate(request, env) {
             version: RESULT_VERSION,
             productType: PRODUCT_TYPE,
             inputHash,
+            sajuEvidenceHash: sajuEvidence.evidenceHash,
             inputSnapshot: input,
             sajuSnapshot,
             generatedPrompt,

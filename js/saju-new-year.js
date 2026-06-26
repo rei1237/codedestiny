@@ -138,7 +138,8 @@
   }
 
   async function _fetchBillingJson(url) {
-    var response = await fetch(url, { method: 'GET', credentials: 'include', cache: 'no-store' });
+    var headers = _buildAuthHeaders();
+    var response = await fetch(url, { method: 'GET', credentials: 'include', headers: headers, cache: 'no-store' });
     var body = await response.json().catch(function () { return {}; });
     body._httpStatus = response.status;
     return body;
@@ -220,11 +221,22 @@
         failureType: _clean(error && error.failureType || safePayload.failureType) || undefined,
         message: _clean(error && error.message ? error.message : error) || 'unknown',
         status: Number(error && error.status || meta && meta.status || 0) || undefined,
+        requestUrl: _clean(error && error.requestUrl || meta && meta.requestUrl || safePayload.debugSafe && safePayload.debugSafe.requestUrl) || undefined,
+        httpStatus: Number(error && error.httpStatus || error && error.status || meta && meta.httpStatus || meta && meta.status || 0) || undefined,
+        responseCode: _clean(error && error.responseCode || safePayload.code || meta && meta.responseCode) || undefined,
+        responseMessage: _clean(error && error.responseMessage || safePayload.message || meta && meta.responseMessage) || undefined,
         reportId: _clean(error && error.reportId || safePayload.reportId || meta && meta.reportId || _resultPayload && _resultPayload.reportId) || undefined,
         sessionId: _clean(error && error.sessionId || meta && meta.sessionId || '') || undefined,
         executionId: _clean(error && error.executionId || safePayload.executionId || meta && meta.executionId) || undefined,
         missing: _toShortList(error && error.missing || safePayload.missing, 6),
+        missingFields: _toShortList(error && error.missingFields || safePayload.debugSafe && safePayload.debugSafe.missingFields, 8),
         issues: _toShortList(error && error.issues || safePayload.issues, 6),
+        hasCookie: typeof (error && error.hasCookie) === 'boolean' ? error.hasCookie : undefined,
+        hasAuthorization: typeof (error && error.hasAuthorization) === 'boolean' ? error.hasAuthorization : undefined,
+        credentialsIncluded: typeof (error && error.credentialsIncluded) === 'boolean' ? error.credentialsIncluded : undefined,
+        accessVerified: typeof (error && error.accessVerified) === 'boolean' ? error.accessVerified : undefined,
+        isComingSoonBlocked: typeof (error && error.isComingSoonBlocked) === 'boolean' ? error.isComingSoonBlocked : undefined,
+        authFailureReason: _clean(error && error.authFailureReason || safePayload.debugSafe && safePayload.debugSafe.authFailureReason) || undefined,
         causeMessage: _clean(error && error.causeMessage || error && error.cause && (error.cause.message || error.cause) || meta && meta.causeMessage) || undefined,
         payloadSafe: safePayload
       };
@@ -329,6 +341,77 @@
     if (!token) { try { token = String(sessionStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
     if (!token) { try { token = String(localStorage.getItem('cd_premium_access_token') || '').trim(); } catch (_) { token = ''; } }
     return token;
+  }
+
+  function _readAuthToken() {
+    var token = '';
+    try { token = String(localStorage.getItem('fortune_auth_token') || '').trim(); } catch (_) { token = ''; }
+    if (!token) { try { token = String(localStorage.getItem('cd_access_token') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('authToken') || '').trim(); } catch (_) { token = ''; } }
+    if (!token) { try { token = String(localStorage.getItem('cdToken') || '').trim(); } catch (_) { token = ''; } }
+    return token;
+  }
+
+  function _buildAuthHeaders(baseHeaders) {
+    var headers = Object.assign({}, baseHeaders || {});
+    var premiumToken = _readPremiumAccessToken();
+    var authToken = _readAuthToken();
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    if (authToken) headers.Authorization = 'Bearer ' + authToken;
+    return headers;
+  }
+
+  function _hasReadableCookie() {
+    try { return Boolean(document.cookie); } catch (_) { return false; }
+  }
+
+  function _requestDebug(url, headers) {
+    return {
+      requestUrl: _clean(url),
+      hasCookie: _hasReadableCookie(),
+      hasAuthorization: Boolean(headers && (headers.Authorization || headers.authorization)),
+      credentialsIncluded: true
+    };
+  }
+
+  function _stageForRequestUrl(url) {
+    var value = _clean(url).toLowerCase();
+    if (value.indexOf('/generate') >= 0) return 'generate';
+    if (value.indexOf('/status') >= 0) return 'status';
+    if (value.indexOf('/result') >= 0) return 'result';
+    if (value.indexOf('/billing/') >= 0) return 'billing';
+    return 'prepare';
+  }
+
+  function _responseCode(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    return _clean(data.code || data.errorCode || nested.code || nested.errorCode);
+  }
+
+  function _responseMessage(payload, fallback) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    return _clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage || fallback);
+  }
+
+  function _attachRequestDebug(error, url, status, payload, headers, stage) {
+    if (!error) return error;
+    var debugSafe = payload && payload.debugSafe && typeof payload.debugSafe === 'object' ? payload.debugSafe : {};
+    var requestDebug = _requestDebug(url, headers);
+    error.stage = _clean(stage || debugSafe.stage || error.stage) || error.stage;
+    error.requestUrl = _clean(debugSafe.requestUrl || requestDebug.requestUrl);
+    error.httpStatus = Number(debugSafe.httpStatus || status || error.status || 0) || undefined;
+    error.responseCode = _clean(debugSafe.responseCode || _responseCode(payload) || error.code);
+    error.responseMessage = _clean(debugSafe.responseMessage || _responseMessage(payload, error.message));
+    error.hasCookie = typeof debugSafe.hasCookie === 'boolean' ? debugSafe.hasCookie : requestDebug.hasCookie;
+    error.hasAuthorization = typeof debugSafe.hasAuthorization === 'boolean' ? debugSafe.hasAuthorization : requestDebug.hasAuthorization;
+    error.credentialsIncluded = typeof debugSafe.credentialsIncluded === 'boolean' ? debugSafe.credentialsIncluded : true;
+    error.accessVerified = typeof debugSafe.accessVerified === 'boolean' ? debugSafe.accessVerified : undefined;
+    error.isComingSoonBlocked = typeof debugSafe.isComingSoonBlocked === 'boolean' ? debugSafe.isComingSoonBlocked : undefined;
+    error.authFailureReason = _clean(debugSafe.authFailureReason);
+    error.missingFields = _toShortList(debugSafe.missingFields || debugSafe.missing || payload && payload.missing, 8);
+    return error;
   }
 
   function _persistPremiumAccessToken(token) {
@@ -1028,8 +1111,7 @@
     var requestId = 'saju-new-year:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
     var resolvedCost = _billingCost();
     var premiumToken = _readPremiumAccessToken();
-    var headers = { 'Content-Type': 'application/json' };
-    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    var headers = _buildAuthHeaders({ 'Content-Type': 'application/json' });
     _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       var gateResult = await new Promise(function(resolve) {
@@ -1151,9 +1233,7 @@
   }
 
   async function _postJson(url, payload) {
-    var token = _readPremiumAccessToken();
-    var headers = { 'Content-Type': 'application/json' };
-    if (token) headers['x-premium-access-token'] = token;
+    var headers = _buildAuthHeaders({ 'Content-Type': 'application/json' });
     var response = await fetch(url, {
       method: 'POST',
       credentials: 'include',
@@ -1165,6 +1245,7 @@
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
       _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
       var requestError = _buildPdfApiError(body, response.status, msg);
+      _attachRequestDebug(requestError, url, response.status, body, headers, _stageForRequestUrl(url));
       requestError.sessionId = _clean(body && body.debugSafe && body.debugSafe.sessionId);
       requestError.causeMessage = _clean(body && body.debugSafe && body.debugSafe.causeMessage);
       requestError.debugSafe = body && body.debugSafe;
@@ -1229,10 +1310,9 @@
   }
 
   async function _fetchJobStatus(pending) {
-    var token = _readPremiumAccessToken();
-    var headers = {};
-    if (token) headers['x-premium-access-token'] = token;
-    var response = await fetch(_statusQuery(pending), {
+    var headers = _buildAuthHeaders();
+    var url = _statusQuery(pending);
+    var response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
       headers: headers,
@@ -1240,16 +1320,22 @@
     });
     var body = await response.json().catch(function () { return {}; });
     if (!response.ok || body.ok === false) {
-      throw _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 생성 상태를 확인하지 못했습니다.');
+      throw _attachRequestDebug(
+        _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 생성 상태를 확인하지 못했습니다.'),
+        url,
+        response.status,
+        body,
+        headers,
+        'status'
+      );
     }
     return body;
   }
 
   async function _fetchJobResult(pending) {
-    var token = _readPremiumAccessToken();
-    var headers = {};
-    if (token) headers['x-premium-access-token'] = token;
-    var response = await fetch(_resultQuery(pending), {
+    var headers = _buildAuthHeaders();
+    var url = _resultQuery(pending);
+    var response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
       headers: headers,
@@ -1257,7 +1343,14 @@
     });
     var body = await response.json().catch(function () { return {}; });
     if (!response.ok || body.ok === false) {
-      throw _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 결과를 불러오지 못했습니다.');
+      throw _attachRequestDebug(
+        _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 결과를 불러오지 못했습니다.'),
+        url,
+        response.status,
+        body,
+        headers,
+        'result'
+      );
     }
     return body;
   }

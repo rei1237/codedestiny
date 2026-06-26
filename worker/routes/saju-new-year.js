@@ -5003,6 +5003,131 @@ function hasNewYearAuthMaterial(request) {
   );
 }
 
+function getNewYearBearerToken(request) {
+  const authorization = clean(request.headers.get("Authorization"));
+  return authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
+}
+
+function decodeNewYearJwtPayload(token) {
+  const parts = clean(token).split(".");
+  if (parts.length < 2) return null;
+  try {
+    const raw = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = raw + "=".repeat((4 - (raw.length % 4)) % 4);
+    return JSON.parse(atob(padded));
+  } catch (_) {
+    return null;
+  }
+}
+
+function classifyNewYearAuthFailure(request) {
+  const authorization = clean(request.headers.get("Authorization"));
+  const bearerToken = clean(getNewYearBearerToken(request));
+  const cookieHeader = clean(request.headers.get("Cookie"));
+  const accessCookieToken = clean(cookieValue(request, "fortune_auth_token"));
+  const refreshCookieToken = clean(cookieValue(request, "fortune_auth_refresh"));
+  const authToken = bearerToken || accessCookieToken || refreshCookieToken;
+  const missingFields = [];
+  if (!cookieHeader) missingFields.push("Cookie");
+  if (!accessCookieToken && !refreshCookieToken) missingFields.push("fortune_auth_token|fortune_auth_refresh");
+  if (!authorization) missingFields.push("Authorization");
+  if (authorization && !bearerToken) return { reason: "invalid_token", missingFields };
+  if (authToken) {
+    const payload = decodeNewYearJwtPayload(authToken);
+    const expMs = Number(payload?.exp || 0) * 1000;
+    if (Number.isFinite(expMs) && expMs > 0 && expMs <= Date.now()) {
+      return { reason: "expired_token", missingFields };
+    }
+    return { reason: "invalid_token", missingFields };
+  }
+  return { reason: cookieHeader ? "missing_authorization" : "missing_cookie", missingFields };
+}
+
+function newYearDebugSafe(request, stage, extras = {}) {
+  const featureKey = clean(extras.featureKey || FEATURE_KEY);
+  const responseCode = clean(extras.responseCode || extras.code);
+  const responseMessage = clean(extras.responseMessage || extras.message);
+  const missingFields = Array.isArray(extras.missingFields)
+    ? extras.missingFields.map((item) => clean(item)).filter(Boolean).slice(0, 8)
+    : undefined;
+  let requestUrl = "";
+  try {
+    requestUrl = new URL(request.url).pathname;
+  } catch (_) {
+    requestUrl = "";
+  }
+  const debug = {
+    stage: clean(stage || extras.stage || "prepare"),
+    requestUrl,
+    httpStatus: Number(extras.httpStatus || extras.status || 0) || undefined,
+    responseCode: responseCode || undefined,
+    responseMessage: responseMessage || undefined,
+    serviceKey: SERVICE_KEY,
+    featureKey,
+    billingFeatureKey: clean(extras.billingFeatureKey || FEATURE_KEY),
+    reportType: "sajuNewYear",
+    hasCookie: Boolean(clean(request.headers.get("Cookie"))),
+    hasAuthorization: Boolean(clean(request.headers.get("Authorization"))),
+    credentialsIncluded: extras.credentialsIncluded === false ? false : true,
+    accessVerified: extras.accessVerified === true,
+    isComingSoonBlocked: extras.isComingSoonBlocked === true,
+    authFailureReason: clean(extras.authFailureReason) || undefined,
+    missingFields,
+  };
+  if (clean(extras.reportId)) debug.reportId = clean(extras.reportId);
+  if (clean(extras.sessionId)) debug.sessionId = clean(extras.sessionId);
+  if (typeof extras.hasPaymentToken === "boolean") debug.hasPaymentToken = extras.hasPaymentToken;
+  if (clean(extras.originalCode)) debug.originalCode = clean(extras.originalCode);
+  if (clean(extras.causeMessage)) debug.causeMessage = clean(extras.causeMessage);
+  return debug;
+}
+
+function newYearAuthFailureResponse(request, stage = "prepare") {
+  const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+  const message = newYearPublicErrorMessage(code);
+  const authFailure = classifyNewYearAuthFailure(request);
+  const debugSafe = newYearDebugSafe(request, stage, {
+    httpStatus: 401,
+    responseCode: code,
+    responseMessage: message,
+    accessVerified: false,
+    isComingSoonBlocked: false,
+    authFailureReason: authFailure.reason,
+    missingFields: authFailure.missingFields,
+  });
+  console.warn("[NewYearPremiumPDF][AuthFailure]", debugSafe);
+  return json({ ok: false, serviceKey: SERVICE_KEY, code, message, debugSafe }, { status: 401 });
+}
+
+function newYearAccessFailureResponse(request, body, accessResult, stage = "prepare") {
+  const code = clean(accessResult?.code) || "ENTITLEMENT_REQUIRED";
+  const status = newYearErrorStatus(code, Number(accessResult?.status || 402));
+  const message = accessResult?.message || newYearPublicErrorMessage(code);
+  const missingFields = Array.isArray(accessResult?.missing)
+    ? accessResult.missing
+    : (Array.isArray(accessResult?.access?.missing) ? accessResult.access.missing : []);
+  const authFailureReason = status === 403 ? "feature_not_allowed" : "";
+  const debugSafe = newYearDebugSafe(request, stage, {
+    httpStatus: status,
+    responseCode: code,
+    responseMessage: message,
+    featureKey: normalizeFeatureKey(body?.featureKey),
+    accessVerified: false,
+    isComingSoonBlocked: false,
+    authFailureReason,
+    missingFields,
+  });
+  console.warn("[NewYearPremiumPDF][AccessFailure]", debugSafe);
+  return json({
+    ok: false,
+    serviceKey: SERVICE_KEY,
+    accessGranted: false,
+    code,
+    message,
+    debugSafe,
+  }, { status });
+}
+
 function newYearPublicErrorMessage(code) {
   switch (clean(code)) {
     case "AUTH_REQUIRED":
@@ -5029,7 +5154,7 @@ function newYearErrorStatus(code, fallback = 500) {
     case "SESSION_INVALID":
       return 401;
     case "ENTITLEMENT_REQUIRED":
-      return 402;
+      return Number(fallback || 402) >= 400 ? Number(fallback || 402) : 402;
     case "INVALID_INPUT":
       return 422;
     case "ENTITLEMENT_CHECK_FAILED":
@@ -6051,8 +6176,7 @@ async function handleVerifyAccess(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "prepare");
     }
     throw error;
   }
@@ -6061,13 +6185,7 @@ async function handleVerifyAccess(request, env) {
   if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
   const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
   if (!accessResult.ok) {
-    return json({
-      ok: false,
-      serviceKey: SERVICE_KEY,
-      accessGranted: false,
-      code: accessResult.code || "ENTITLEMENT_REQUIRED",
-      message: accessResult.message || newYearPublicErrorMessage(accessResult.code || "ENTITLEMENT_REQUIRED"),
-    }, { status: newYearErrorStatus(accessResult.code || "ENTITLEMENT_REQUIRED", accessResult.status || 402) });
+    return newYearAccessFailureResponse(request, body, accessResult, "prepare");
   }
   const reportId = clean(body?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
   const access = buildNewYearPdfAccess(accessResult.access, accessResult.method);
@@ -6103,8 +6221,7 @@ async function handleCreateJob(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "prepare");
     }
     throw error;
   }
@@ -6113,13 +6230,7 @@ async function handleCreateJob(request, env) {
   if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
   const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
   if (!accessResult.ok) {
-    return json({
-      ok: false,
-      serviceKey: SERVICE_KEY,
-      accessGranted: false,
-      code: accessResult.code || "ENTITLEMENT_REQUIRED",
-      message: accessResult.message || newYearPublicErrorMessage(accessResult.code || "ENTITLEMENT_REQUIRED"),
-    }, { status: newYearErrorStatus(accessResult.code || "ENTITLEMENT_REQUIRED", accessResult.status || 402) });
+    return newYearAccessFailureResponse(request, body, accessResult, "prepare");
   }
   const jobId = clean(body?.jobId || body?.reportId || body?.accessGrant?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || newYearPdfSessionId(jobId));
@@ -6170,8 +6281,7 @@ async function handleGenerateMock(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "generate");
     }
     throw error;
   }
@@ -6534,8 +6644,7 @@ async function handleResult(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "result");
     }
     throw error;
   }
@@ -6557,8 +6666,7 @@ async function handlePrepare(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "prepare");
     }
     throw error;
   }
@@ -6690,23 +6798,36 @@ async function handlePrepare(request, env) {
       });
     } catch (error) {
       newYearPdfLocks.delete(sessionKey);
+      const errorStatus = Number(error?.status || 500);
+      const code = errorStatus === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
+      const message = newYearPublicErrorMessage(code);
+      const debugSafe = newYearDebugSafe(request, "prepare", {
+        httpStatus: newYearErrorStatus(code, errorStatus),
+        responseCode: code,
+        responseMessage: message,
+        featureKey,
+        reportId,
+        sessionId: sessionKey,
+        accessVerified: false,
+        isComingSoonBlocked: false,
+        authFailureReason: errorStatus === 403 ? "feature_not_allowed" : "",
+        missingFields: Array.isArray(error?.missing) ? error.missing : [],
+        hasPaymentToken: Boolean(premiumAccessToken),
+        causeMessage: clean(error?.message || error),
+      });
       console.error("[NewYearPremiumPDF][EntitlementCheckFailed]", {
         featureKey,
         userId: auth.userId,
         message: clean(error?.message || error),
+        debugSafe,
       });
       return json({
         ok: false,
         serviceKey: SERVICE_KEY,
-        code: "ENTITLEMENT_CHECK_FAILED",
-        message: newYearPublicErrorMessage("ENTITLEMENT_CHECK_FAILED"),
-        debugSafe: {
-          reportId,
-          sessionId: sessionKey,
-          featureKey,
-          causeMessage: clean(error?.message || error),
-        },
-      }, { status: 500 });
+        code,
+        message,
+        debugSafe,
+      }, { status: newYearErrorStatus(code, errorStatus) });
     }
     if (!access?.ok) {
       const status = Number(access?.status || 402);
@@ -6714,7 +6835,21 @@ async function handlePrepare(request, env) {
       const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
       const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
       const hasPaymentToken = Boolean(premiumAccessToken);
-      const code = status === 401 ? "SESSION_INVALID" : status === 402 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
+      const code = status === 401 ? "SESSION_INVALID" : (status === 402 || status === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
+      const debugSafe = newYearDebugSafe(request, "prepare", {
+        httpStatus: newYearErrorStatus(code, status),
+        responseCode: code,
+        responseMessage: newYearPublicErrorMessage(code),
+        featureKey,
+        reportId,
+        sessionId: sessionKey,
+        accessVerified: false,
+        isComingSoonBlocked: false,
+        authFailureReason: status === 403 ? "feature_not_allowed" : "",
+        missingFields: Array.isArray(access?.missing) ? access.missing : [],
+        hasPaymentToken,
+        originalCode: clean(access?.code),
+      });
       newYearPdfLocks.delete(sessionKey);
       return json({
         ok: false,
@@ -6722,12 +6857,10 @@ async function handlePrepare(request, env) {
         code,
         message: newYearPublicErrorMessage(code),
         debugSafe: {
-          featureKey,
+          ...debugSafe,
           hasSessionId,
           hasPurchaseId,
           hasRequestId,
-          hasPaymentToken,
-          originalCode: clean(access?.code),
         },
       }, { status: newYearErrorStatus(code, status) });
     }
@@ -7188,8 +7321,7 @@ async function handleStatus(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
-      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+      return newYearAuthFailureResponse(request, "status");
     }
     throw error;
   }

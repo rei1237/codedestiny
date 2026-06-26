@@ -304,7 +304,7 @@
   window.cdGetCurrentLanguage = getSavedLang;
   window.cdTranslate = function (key, vars, fallback) {
     var lang = getSavedLang();
-    if (lang === 'ko') return typeof fallback === 'string' ? fallback : key;
+    if (lang === 'ko') return typeof fallback === 'string' ? interpolate(fallback, vars || {}) : key;
     if (!activeDictionary || activeDictionaryLang !== lang) return typeof fallback === 'string' ? interpolate(fallback, vars || {}) : missingText(lang);
     return interpolate(resolveValue(activeDictionary, key, lang, 'text'), vars || {});
   };
