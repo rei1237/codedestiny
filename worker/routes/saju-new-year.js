@@ -5322,6 +5322,7 @@ function buildNewYearPdfChapterJobs(targetYear) {
   const chapters = buildSajuNewYearChapterSpecs(targetYear);
   return chapters.map((chapter, index) => ({
     id: clean(chapter.id || `chapter-${index + 1}`),
+    chapterId: clean(chapter.id || `chapter-${index + 1}`),
     title: clean(chapter.title || `${index + 1}장`),
     order: Number(chapter.no || chapter.order || index + 1),
     status: "pending",
@@ -5389,12 +5390,14 @@ function buildNewYearPdfExecutionContextFromDoc(doc = {}) {
 function buildNewYearProviderSummary(job = {}) {
   const chapters = Array.isArray(job.chapters) ? job.chapters : [];
   const chapterProviders = chapters.map((chapter, index) => {
+    const chapterId = clean(chapter?.chapterId || chapter?.id);
     const isMock = chapter?.isMock !== false;
     const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
     const tokensUsed = isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0);
     const cost = isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0);
     return {
-      id: clean(chapter?.id),
+      id: chapterId,
+      chapterId,
       title: clean(chapter?.title),
       order: Number(chapter?.order || index + 1),
       status: clean(chapter?.status || "pending"),
@@ -5439,10 +5442,12 @@ function syncNewYearJobProviderSummary(job = {}) {
 }
 
 function safeNewYearPdfJobChapter(chapter = {}, includeContent = false) {
+  const chapterId = clean(chapter.chapterId || chapter.id);
   const isMock = chapter.isMock !== false;
   const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
   const item = {
-    id: clean(chapter.id),
+    id: chapterId,
+    chapterId,
     title: clean(chapter.title),
     order: Number(chapter.order || 0) || 0,
     status: clean(chapter.status || "pending"),
@@ -5780,7 +5785,7 @@ function resolveNewYearChapterProviderPlan(params = {}, env = {}) {
   else if (allowedById && !workersEnabled) reason = "workers_ai_disabled";
   else if (allowedById && !hasWorkersAiBinding) reason = "missing_ai_binding";
   else if (allowedById && maxCalls <= 0) reason = "max_calls_zero";
-  else if (allowedById && callsUsed >= maxCalls) reason = "max_calls_reached";
+  else if (allowedById && callsUsed >= maxCalls) reason = "max_calls_exceeded";
   else if (allowActual) reason = "real_llm_allowed";
   return {
     allowActual,
@@ -5790,6 +5795,29 @@ function resolveNewYearChapterProviderPlan(params = {}, env = {}) {
     allowedById,
     maxCalls,
     callsUsed,
+  };
+}
+
+function isNewYearExpectedChapterFallbackError(error) {
+  const code = clean(error?.code || error?.message);
+  return code !== "PDF_MOCK_CHAPTER_FAILED";
+}
+
+function buildNewYearFallbackChapterResult(params = {}, plan = {}, error = null) {
+  const fallbackReason = plan.allowActual === true
+    ? clean(error?.code || "real_llm_fallback")
+    : clean(plan.reason || "mock_fallback");
+  return {
+    chapterId: clean(params.chapterId),
+    title: clean(params.chapterTitle),
+    content: buildNewYearMockChapterMarkdown(params),
+    provider: "mock",
+    modelName: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    realLlmAllowed: plan.allowActual === true,
+    providerReason: fallbackReason,
   };
 }
 
@@ -5807,24 +5835,42 @@ async function generateNewYearPdfChapterContent(params = {}, env = {}) {
     willUseRealLLM: plan.allowActual,
     providerReason: plan.reason,
   });
-  const gatewayResult = await generatePdfChapterContent({
-    serviceType: "new_year_pdf",
-    jobId: params.jobId,
-    chapterId: params.chapterId,
-    chapterTitle: params.chapterTitle,
-    chapterOrder: params.chapterOrder,
-    totalChapters: params.totalChapters,
-    input: params.input,
-    context: {
-      ...(params.context || {}),
-      format: "markdown",
-      provider: plan.provider,
-      allowActual: plan.allowActual,
-    },
-  }, env);
+  let gatewayResult;
+  try {
+    gatewayResult = await generatePdfChapterContent({
+      serviceType: "new_year_pdf",
+      jobId: params.jobId,
+      chapterId: params.chapterId,
+      chapterTitle: params.chapterTitle,
+      chapterOrder: params.chapterOrder,
+      totalChapters: params.totalChapters,
+      input: params.input,
+      context: {
+        ...(params.context || {}),
+        format: "markdown",
+        provider: plan.provider,
+        allowActual: plan.allowActual,
+      },
+    }, env);
+  } catch (error) {
+    if (!isNewYearExpectedChapterFallbackError(error)) throw error;
+    const fallback = buildNewYearFallbackChapterResult(params, plan, error);
+    console.warn("[NewYearPremiumPDF][ChapterProviderFallback]", {
+      jobId: clean(params.jobId),
+      chapterId: fallback.chapterId,
+      chapterOrder: Number(params.chapterOrder || 0) || 0,
+      provider: fallback.provider,
+      isMock: fallback.isMock,
+      reason: fallback.providerReason,
+      errorCode: clean(error?.code || "PDF_CHAPTER_GENERATION_FALLBACK"),
+    });
+    return fallback;
+  }
   const provider = clean(gatewayResult?.provider || plan.provider || "mock").toLowerCase();
   const isMock = gatewayResult?.isMock !== false || provider === "mock";
   const result = {
+    chapterId: clean(params.chapterId),
+    title: clean(params.chapterTitle),
     content: isMock ? buildNewYearMockChapterMarkdown(params) : String(gatewayResult.content || "").replace(/\r/g, "").trim(),
     provider: isMock ? "mock" : provider,
     modelName: clean(gatewayResult?.modelName || gatewayResult?.model || provider),
@@ -5887,9 +5933,13 @@ function buildNewYearMockArchiveChapters(job = {}) {
     const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
     const tokensUsed = isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0);
     const cost = isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0);
+    const chapterId = clean(chapter.chapterId || chapter.id);
+    const text = sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n");
+    const content = String(chapter.content == null ? "" : chapter.content).replace(/\r/g, "").trim();
     return {
       no: Number(chapter.order || index + 1),
-      id: clean(chapter.id),
+      id: chapterId,
+      chapterId,
       title: clean(chapter.title),
       sections,
       categories: sections.map((section) => ({
@@ -5898,7 +5948,8 @@ function buildNewYearMockArchiveChapters(job = {}) {
         text: section.body,
         content: section.body,
       })),
-      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+      content: content || text,
+      text,
       provider,
       modelName: clean(chapter.modelName || chapter.model || provider),
       tokensUsed,
@@ -6211,6 +6262,8 @@ async function handleGenerateMock(request, env) {
       job.chapters[index] = {
         ...job.chapters[index],
         status: "completed",
+        chapterId: clean(result.chapterId || chapter.chapterId || chapter.id),
+        title: clean(result.title || chapter.title),
         content: result.content,
         provider: clean(result.provider || providerPlan.provider || "mock").toLowerCase(),
         modelName: clean(result.modelName || result.model || result.provider || providerPlan.provider || "mock"),
@@ -7271,6 +7324,9 @@ export const __sajuNewYearTestUtils = {
   stripForbiddenText,
   buildPdfReadyPayload: buildPdfReadyPayloadLlmOnly,
   buildPdfReadyPayloadLlmOnly,
+  resolveNewYearChapterProviderPlan,
+  generateNewYearPdfChapterContent,
+  buildNewYearMockArchiveChapters,
   prepareSajuNewYearLlmChaptersForRender,
   generateSajuNewYearPremiumReport,
   buildNewYearArchiveUrls,
