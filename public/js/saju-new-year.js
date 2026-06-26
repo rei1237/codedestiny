@@ -1,6 +1,6 @@
 /**
- * Saju New Year premium PDF flow.
- * Uses the existing saju screen profile/engine snapshot, then calls the worker-native PDF pipeline.
+ * Saju New Year AI consultation flow.
+ * Uses the existing saju screen profile/engine snapshot, then calls the worker-native LLM consultation route.
  */
 (function () {
   'use strict';
@@ -10,7 +10,8 @@
   var SERVICE_KEY = 'saju-new-year';
   var API_FEATURE_KEY = 'premium_pdf_saju_new_year';
   var BILLING_FEATURE_KEY = API_FEATURE_KEY;
-  var REASON = '사주 신년운세 PDF 리포트 생성';
+  var REASON = '사주 신년운세 AI 상담';
+  var AI_CONSULTATION_API = '/api/saju-new-year/ai-consultation';
   var VERIFY_ACCESS_API = '/api/saju-new-year/verify-access';
   var CREATE_JOB_API = '/api/saju-new-year/create-job';
   var GENERATE_MOCK_API = '/api/saju-new-year/generate-mock';
@@ -20,6 +21,18 @@
   var TOTAL_CHAPTERS = 10;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
+  var DEFAULT_QUESTION = '선택한 해에 제 직업운과 수입 흐름은 어떻게 될까요?';
+  var CATEGORY_QUESTIONS = {
+    '종합운': '올해 전반적인 신년운세와 가장 중요한 선택 기준을 알려주세요.',
+    '연애/재회': '올해 연애운과 재회 가능성, 관계에서 조심해야 할 흐름이 궁금해요.',
+    '직업/이직': '올해 직업운, 이직운, 커리어 전환 타이밍을 봐주세요.',
+    '재물/수입': '올해 재물운과 수입 흐름, 지출에서 조심할 시기를 알려주세요.',
+    '건강/멘탈': '올해 건강운과 멘탈 흐름에서 조심해야 할 부분을 봐주세요.',
+    '가족/인간관계': '올해 가족과 인간관계에서 좋은 흐름과 조심할 흐름을 알려주세요.',
+    '월별 흐름': '월별로 좋은 시기와 피해야 할 시기를 정리해 주세요.',
+    '조심해야 할 시기': '신년운세 기준으로 올해 특히 조심해야 할 시기와 이유를 알려주세요.',
+    '올해의 행동 전략': '올해 제 명식과 세운 흐름에 맞는 현실적인 행동 전략을 알려주세요.'
+  };
 
   var _generating = false;
   var _chapters = [];
@@ -29,6 +42,7 @@
   var _pendingGeneration = null;
   var _lastAccessGrant = null;
   var _lastPremiumToken = '';
+  var _selectedCategory = '종합운';
   var _billingSnapshot = {
     cost: COIN_COST,
     balance: null,
@@ -40,19 +54,17 @@
   var _billingSnapshotPromise = null;
 
   var LOADING_MESSAGES = [
-    '사주 원국과 대상 연도를 검증하는 중입니다',
-    '결제 및 접근 권한을 확인하는 중입니다',
-    '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
-    '10챕터 신년운세 상담문을 작성하는 중입니다',
-    '원고 품질을 검증하고 PDF를 준비하는 중입니다'
+    '명식과 올해의 세운을 읽고 있어요.',
+    '대운과 세운의 결을 맞춰보고 있어요.',
+    '질문에 맞는 올해의 흐름을 정리하고 있어요.'
   ];
 
   var STAGE_TITLES = {
-    lookup: '기존 리포트를 확인하는 중입니다',
+    lookup: '상담 질문을 확인하는 중입니다',
     billing: '결제 권한을 확인하는 중입니다',
     calculate: '사주 원국을 계산하는 중입니다',
-    write: '신년운세 상담문을 집필하는 중입니다',
-    archive: 'PDF를 준비하는 중입니다'
+    write: '질문에 맞는 올해의 흐름을 정리하는 중입니다',
+    archive: '상담 결과를 정리하는 중입니다'
   };
 
   var TOC_LABELS = ['총운', '커리어', '재물', '인간관계', '연애·가족', '건강·심리', '분기별 결정', '위험 관리', '12개월 지도', '최종 로드맵'];
@@ -131,7 +143,7 @@
     var tileBadge = _qs('nyTileCoinBadge');
     var generateCoin = _qs('nyGenerateCoin');
     var generateBtn = _qs('nyGenerateBtn');
-    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 10챕터 신년운세 PDF';
+    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 결제/이용권 확인 후 AI 상담 생성';
     if (tileBadge) tileBadge.textContent = '🪙 ' + costLabel + ' 기준';
     if (generateCoin) generateCoin.textContent = '🪙 ' + costLabel;
     if (generateBtn) generateBtn.setAttribute('data-coin-cost', String(_coinNumber(state.cost) || COIN_COST));
@@ -168,7 +180,7 @@
   }
 
   function _log(stage, meta) {
-    try { console.info('[NewYearPremiumPDF][' + String(stage || 'Unknown') + ']', meta || {}); } catch (_) {}
+    try { console.info('[NewYearAIConsultation][' + String(stage || 'Unknown') + ']', meta || {}); } catch (_) {}
   }
   function _toShortList(value, limit) {
     var source = Array.isArray(value) ? value : [];
@@ -193,7 +205,7 @@
   function _buildPdfApiError(payload, status, fallbackMessage) {
     var safe = _payloadSafe(payload);
     var msg = _clean(safe.message || fallbackMessage || ('HTTP ' + (status || '')));
-    var err = new Error(msg || '신년운세 PDF 요청에 실패했습니다.');
+    var err = new Error(msg || '신년운세 AI 상담 요청에 실패했습니다.');
     err.status = Number(status || 0) || undefined;
     err.code = _clean(safe.code) || 'SAJU_NEW_YEAR_REQUEST_FAILED';
     err.stage = _clean(safe.stage) || 'prepare';
@@ -241,26 +253,27 @@
         payloadSafe: safePayload
       };
       if (error && error.debugSafe && typeof error.debugSafe === 'object') safe.debugSafe = error.debugSafe;
-      console.error('[NewYearPremiumPDF][Error][' + safe.stage + ']', safe);
+      console.error('[NewYearAIConsultation][Error][' + safe.stage + ']', safe);
     } catch (_) {}
   }
 
   function _publicErrorMessage(error, fallback) {
     var code = _clean(error && (error.code || error.name)).toUpperCase();
     var messages = {
-      AUTH_REQUIRED: '신년운세 PDF 생성을 위해 먼저 로그인해 주세요.',
+      AUTH_REQUIRED: '신년운세 AI 상담을 위해 먼저 로그인해 주세요.',
       SESSION_INVALID: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
-      ENTITLEMENT_REQUIRED: '신년운세 PDF 생성 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
+      ENTITLEMENT_REQUIRED: '신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
       ENTITLEMENT_CHECK_FAILED: '결제 권한 확인 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.',
       INVALID_INPUT: '입력 정보를 확인해 주세요. 대상 연도와 생년월일은 필수입니다.',
-      GENERATION_FAILED: '신년운세 본문 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.',
-      PDF_RENDER_FAILED: '신년운세 PDF 렌더링 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'
+      GENERATION_FAILED: '신년운세 AI 상담 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.',
+      NEW_YEAR_AI_LLM_FAILED: '현재 신년운세 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      PDF_RENDER_FAILED: '신년운세 AI 상담 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'
     };
     if (messages[code]) return messages[code];
     var message = _clean(error && error.message ? error.message : error);
     if (/Authentication service error|retry login/i.test(message)) return messages.SESSION_INVALID;
     if (!message || message === '[object Object]' || /^HTTP\s*5\d\d/i.test(message)) {
-      return fallback || '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      return fallback || '신년운세 AI 상담 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
     return message;
   }
@@ -379,6 +392,7 @@
     if (value.indexOf('/generate') >= 0) return 'generate';
     if (value.indexOf('/status') >= 0) return 'status';
     if (value.indexOf('/result') >= 0) return 'result';
+    if (value.indexOf('/ai-consultation') >= 0) return 'ai-consultation';
     if (value.indexOf('/billing/') >= 0) return 'billing';
     return 'prepare';
   }
@@ -606,7 +620,7 @@
   function _setError(message, options) {
     var opts = options && typeof options === 'object' ? options : {};
     var el = _qs('nyErrorMsg');
-    if (el) el.textContent = _clean(message) || 'PDF 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    if (el) el.textContent = _clean(message) || '신년운세 AI 상담 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     var detail = _qs('nyErrorDetail');
     if (detail) {
       var detailText = _clean(opts.detail || '');
@@ -648,8 +662,9 @@
   }
 
   function _setProgress(done, message) {
-    var bounded = Math.max(0, Math.min(TOTAL_CHAPTERS, Number(done || 0)));
-    var percent = Math.round((bounded / Math.max(1, TOTAL_CHAPTERS)) * 100);
+    var totalSteps = LOADING_MESSAGES.length || 3;
+    var bounded = Math.max(0, Math.min(totalSteps, Number(done || 0)));
+    var percent = Math.round((bounded / Math.max(1, totalSteps)) * 100);
     var bar = _qs('nyProgressBar');
     var text = _qs('nyProgressText');
     var chapter = _qs('nyLoadingChapter');
@@ -659,10 +674,10 @@
       bar.style.width = percent + '%';
       bar.setAttribute('aria-valuenow', String(percent));
     }
-    if (text) text.textContent = percent + '% · ' + bounded + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
-    if (chapter) chapter.textContent = message || LOADING_MESSAGES[bounded % LOADING_MESSAGES.length] || '신년운세를 정리하는 중입니다';
+    if (text) text.textContent = percent + '% · AI 상담 생성 중';
+    if (chapter) chapter.textContent = message || LOADING_MESSAGES[bounded % LOADING_MESSAGES.length] || '신년운세 상담을 정리하는 중입니다';
     if (quote && message) quote.textContent = message;
-    if (num) num.textContent = bounded >= TOTAL_CHAPTERS ? '완성' : Math.max(1, bounded + 1) + '장';
+    if (num) num.textContent = bounded >= totalSteps ? '완성' : '상담 ' + Math.max(1, bounded + 1);
   }
 
   function _normalizeJobStatus(payload) {
@@ -822,10 +837,49 @@
     var el = _qs('nyProfileStatus');
     if (!el) return;
     if (profile && profile.birth && profile.birth.year) {
-      el.innerHTML = '<strong>상담 기준</strong> ' + _esc(_profileLabel(profile)) + '<br>대상 연도와 결제 조건을 확인한 뒤 PDF 생성을 시작합니다.';
+      el.innerHTML = '<strong>상담 기준</strong> ' + _esc(_profileLabel(profile)) + '<br>대상 연도와 질문을 확인한 뒤 신년운세 AI 상담을 시작합니다.';
       return;
     }
-    el.innerHTML = '<strong>사주 정보 필요</strong> 생년월일을 먼저 입력해야 신년운세 PDF를 정확하게 생성할 수 있습니다.';
+    el.innerHTML = '<strong>사주 정보 필요</strong> 생년월일을 먼저 입력해야 신년운세 AI 상담을 정확하게 생성할 수 있습니다.';
+  }
+
+  function _questionInput() {
+    return _qs('nyQuestion');
+  }
+
+  function _currentQuestion() {
+    var input = _questionInput();
+    return _clean(input && input.value) || '';
+  }
+
+  function _currentCategory() {
+    var active = document.querySelector('#sajuNewYearModal .ny-category-chip.is-active');
+    return _clean(active && active.getAttribute('data-ny-category')) || _selectedCategory || '종합운';
+  }
+
+  function _setCategory(category, fillQuestion) {
+    _selectedCategory = _clean(category) || '종합운';
+    var chips = document.querySelectorAll('#sajuNewYearModal .ny-category-chip');
+    Array.prototype.forEach.call(chips, function (chip) {
+      chip.classList.toggle('is-active', _clean(chip.getAttribute('data-ny-category')) === _selectedCategory);
+    });
+    var input = _questionInput();
+    if (input) {
+      input.placeholder = CATEGORY_QUESTIONS[_selectedCategory] || DEFAULT_QUESTION;
+      if (fillQuestion || !_clean(input.value)) input.value = CATEGORY_QUESTIONS[_selectedCategory] || DEFAULT_QUESTION;
+    }
+  }
+
+  function _bindQuestionControls() {
+    var chips = document.querySelectorAll('#sajuNewYearModal .ny-category-chip');
+    Array.prototype.forEach.call(chips, function (chip) {
+      if (chip.dataset.nyBound === '1') return;
+      chip.dataset.nyBound = '1';
+      chip.addEventListener('click', function () {
+        _setCategory(chip.getAttribute('data-ny-category'), true);
+      });
+    });
+    _setCategory(_selectedCategory || '종합운', false);
   }
 
   function _billingErrorOptions(gate) {
@@ -835,14 +889,14 @@
     if (status === 401 || code === 'AUTH_REQUIRED' || code === 'SESSION_INVALID' || code === 'UNAUTHORIZED') {
       return {
         showLogin: true,
-        detail: code === 'SESSION_INVALID' ? '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 PDF 생성을 이어갈 수 있습니다.' : '신년운세 PDF 생성을 위해 먼저 로그인이 필요합니다.',
+        detail: code === 'SESSION_INVALID' ? '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어갈 수 있습니다.' : '신년운세 AI 상담을 위해 먼저 로그인이 필요합니다.',
         retryText: '로그인 후 다시 시도'
       };
     }
     if (code === 'INVALID_INPUT') {
       return {
         showBirthInput: true,
-        detail: '생년월일과 대상 연도를 확인해 주세요. 대상 연도가 없으면 PDF 생성을 시작하지 않습니다.',
+        detail: '생년월일과 대상 연도를 확인해 주세요. 대상 연도가 없으면 AI 상담을 시작하지 않습니다.',
         retryText: '입력 다시 확인'
       };
     }
@@ -855,14 +909,14 @@
     if (status === 402 || code === 'ENTITLEMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || /잔액|이용권|결제|권한/.test(message)) {
       return {
         showCharge: true,
-        detail: '단건 결제, 월정석 크레딧, 이용권 중 하나의 권한이 필요합니다. 권한이 확인되기 전에는 PDF 생성이 시작되지 않습니다.',
+        detail: '단건 결제, 월정석 크레딧, 이용권 중 하나의 권한이 필요합니다. 권한이 확인되기 전에는 AI 상담이 시작되지 않습니다.',
         retryText: '권한 다시 확인'
       };
     }
     if (code === 'GENERATION_FAILED' || code === 'PDF_RENDER_FAILED') {
       return {
-        detail: '신년운세 PDF 생성이 완료되지 않았습니다. 실패 상태로 정리되었으니 같은 입력으로 다시 시도해 주세요.',
-        retryText: '생성 다시 시도'
+        detail: '신년운세 AI 상담이 완료되지 않았습니다. 같은 입력으로 다시 시도해 주세요.',
+        retryText: '상담 다시 시도'
       };
     }
     if (code === 'PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') {
@@ -970,6 +1024,25 @@
         premiumAccessToken: paymentToken || undefined
       };
     }
+    return payload;
+  }
+
+  function _buildAIConsultationPayload(pending, accessGrant, premiumToken) {
+    var payload = _buildPreparePayload(
+      pending.reportId,
+      pending.targetYear,
+      pending.profile,
+      pending.normalizedBirth,
+      accessGrant,
+      premiumToken || _readPremiumAccessToken()
+    );
+    payload.paymentPurpose = 'ai_consultation';
+    payload.entitlementKey = 'saju_new_year_pdf';
+    payload.question = pending.question;
+    payload.category = pending.category;
+    payload.questionCategory = pending.category;
+    payload.requestId = _clean(payload.requestId || accessGrant && accessGrant.requestId || ('saju-new-year-ai:' + pending.reportId));
+    payload.dryRun = false;
     return payload;
   }
 
@@ -1160,7 +1233,7 @@
             serviceType: SERVICE_KEY,
             productKey: API_FEATURE_KEY,
             entitlementKey: 'saju_new_year_pdf',
-            paymentPurpose: 'pdf_generation',
+            paymentPurpose: 'ai_consultation',
             allowedPaymentModes: ['direct', 'monthly', 'pass'],
             title: REASON,
             reason: REASON,
@@ -1200,7 +1273,7 @@
         serviceType: SERVICE_KEY,
         productKey: API_FEATURE_KEY,
         entitlementKey: 'saju_new_year_pdf',
-        paymentPurpose: 'pdf_generation',
+        paymentPurpose: 'ai_consultation',
         allowedPaymentModes: ['direct', 'monthly', 'pass'],
         reason: REASON,
         mode: 'saju-new-year',
@@ -1227,7 +1300,7 @@
         ok: false,
         status: response.status,
         code: _clean(payload.code || (payload.error && payload.error.code)),
-        message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.'
+        message: _clean(payload.message || (payload.error && payload.error.message)) || '신년운세 AI 상담을 위해 원화 결제 또는 이용권 확인이 필요합니다.'
       };
     }
     _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
@@ -1524,6 +1597,105 @@
     _updateChapterControls();
   }
 
+  function _textBlockHtml(value) {
+    var text = _clean(value);
+    if (!text) return '<p>상담문을 정리하지 못했습니다.</p>';
+    return text.split(/\n{2,}/).map(function (part) {
+      return '<p>' + _esc(part).replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
+  function _listBlockHtml(items) {
+    var list = Array.isArray(items) ? items.map(function (item) { return _clean(item); }).filter(Boolean) : [];
+    if (!list.length) return '';
+    return '<ul>' + list.map(function (item) { return '<li>' + _esc(item) + '</li>'; }).join('') + '</ul>';
+  }
+
+  function _timingBlockHtml(timing) {
+    var data = timing && typeof timing === 'object' ? timing : {};
+    var monthly = Array.isArray(data.monthlyNotes) ? data.monthlyNotes : [];
+    var html = '';
+    if (data.goodPeriods && data.goodPeriods.length) {
+      html += '<div class="ny-ai-period"><strong>좋은 시기</strong>' + _listBlockHtml(data.goodPeriods) + '</div>';
+    }
+    if (data.cautionPeriods && data.cautionPeriods.length) {
+      html += '<div class="ny-ai-period"><strong>조심할 시기</strong>' + _listBlockHtml(data.cautionPeriods) + '</div>';
+    }
+    if (monthly.length) {
+      html += '<div class="ny-ai-month-grid">' + monthly.map(function (item) {
+        return '<div class="ny-ai-month"><strong>' + _esc(item && item.month || '시기') + '</strong><span>' + _esc(item && item.note) + '</span></div>';
+      }).join('') + '</div>';
+    }
+    return html || '<p>월운 데이터가 충분하지 않아 구체 월별 단정보다는 분기와 계절 흐름 중심으로 상담합니다.</p>';
+  }
+
+  function _chapterSectionsHtml(sections) {
+    var list = Array.isArray(sections) ? sections : [];
+    if (!list.length) return '';
+    return '<div class="ny-ai-chapter-sections">' + list.map(function (section) {
+      var title = _clean(section && section.title);
+      var body = _clean(section && section.body);
+      if (!body) return '';
+      return '<section class="ny-ai-chapter-section">' + (title ? '<h5>' + _esc(title) + '</h5>' : '') + _textBlockHtml(body) + '</section>';
+    }).join('') + '</div>';
+  }
+
+  function _chapterConsultationsHtml(chapters) {
+    var list = Array.isArray(chapters) ? chapters : [];
+    if (!list.length) return '';
+    return '<section class="ny-ai-result-card ny-ai-result-card--chapters"><h4>신년운세 전체 상담</h4><div class="ny-ai-chapter-list">' + list.map(function (chapter, index) {
+      var no = Number(chapter && chapter.no || index + 1);
+      var title = _clean(chapter && chapter.title) || (no + '장 신년운세 상담');
+      var overview = _clean(chapter && chapter.overview);
+      var takeaways = Array.isArray(chapter && chapter.keyTakeaways) ? chapter.keyTakeaways : [];
+      var actions = Array.isArray(chapter && chapter.actionItems) ? chapter.actionItems : [];
+      return '<article class="ny-ai-chapter-card">'
+        + '<div class="ny-ai-chapter-kicker">' + _esc(no + '장') + '</div>'
+        + '<h5>' + _esc(title) + '</h5>'
+        + (overview ? _textBlockHtml(overview) : '')
+        + _chapterSectionsHtml(chapter && chapter.sections)
+        + (takeaways.length ? '<div class="ny-ai-chapter-notes"><strong>핵심 포인트</strong>' + _listBlockHtml(takeaways) + '</div>' : '')
+        + (actions.length ? '<div class="ny-ai-chapter-notes"><strong>행동 조언</strong>' + _listBlockHtml(actions) + '</div>' : '')
+        + '</article>';
+    }).join('') + '</div></section>';
+  }
+
+  function _renderAIConsultationResult(response, profile, targetYear) {
+    _resultPayload = response;
+    _pendingGeneration = null;
+    _chapters = [];
+    var result = response && response.result && typeof response.result === 'object' ? response.result : {};
+    var cards = _qs('nyConsultationResultCards');
+    var nameEl = _qs('nyResultName');
+    var dateEl = _qs('nyResultDate');
+    if (nameEl) nameEl.textContent = targetYear + ' 신년운세 AI 상담';
+    if (dateEl && profile && profile.birth) {
+      dateEl.textContent = (profile.name || '사용자') + ' · ' + profile.birth.year + '. ' + profile.birth.month + '. ' + profile.birth.day + ' 생 · ' + new Date().toLocaleDateString('ko-KR') + ' 상담';
+    }
+    if (!cards) return;
+    var followUps = Array.isArray(result.followUpQuestions) ? result.followUpQuestions : [];
+    cards.innerHTML = [
+      '<section class="ny-ai-result-card"><h4>상담 요약</h4>' + _textBlockHtml(result.summary) + '</section>',
+      '<section class="ny-ai-result-card"><h4>올해의 큰 흐름</h4>' + _textBlockHtml(result.yearlyFlow) + '</section>',
+      '<section class="ny-ai-result-card"><h4>질문 주제별 답변</h4>' + _textBlockHtml(result.topicAnswer || result.rawText) + '</section>',
+      '<section class="ny-ai-result-card"><h4>좋은 시기와 조심할 시기</h4>' + _timingBlockHtml(result.timing) + '</section>',
+      _chapterConsultationsHtml(result.chapterConsultations),
+      '<section class="ny-ai-result-card"><h4>현실적인 조언</h4>' + (_listBlockHtml(result.actionGuide) || _textBlockHtml(result.actionGuide)) + '</section>',
+      '<section class="ny-ai-result-card"><h4>마지막 한마디</h4>' + _textBlockHtml(result.closingMessage) + '</section>',
+      '<section class="ny-ai-result-card ny-ai-result-card--follow"><h4>이어 물어보기</h4>' + (followUps.length ? '<div class="ny-followup-list">' + followUps.map(function (item) { return '<button type="button" class="ny-followup-chip" data-ny-followup="' + _esc(item) + '">' + _esc(item) + '</button>'; }).join('') + '</div>' : '<p>올해 가장 궁금한 주제를 하나 더 좁혀 물어보면 흐름이 더 섬세하게 열립니다.</p>') + '</section>'
+    ].filter(Boolean).join('');
+    Array.prototype.forEach.call(cards.querySelectorAll('.ny-followup-chip'), function (btn) {
+      btn.addEventListener('click', function () {
+        var input = _questionInput();
+        if (input) {
+          input.value = btn.getAttribute('data-ny-followup') || '';
+          input.focus();
+        }
+        _showScreen('nyStartScreen');
+      });
+    });
+  }
+
   function _bindToc() {
     var toc = document.querySelector('#nyResultScreen .lb-toc');
     if (!toc || toc.dataset.nyBound === '1') return;
@@ -1579,7 +1751,15 @@
       _setError('정확한 신년운세 계산을 위해 생년월일 정보를 확인해 주세요.', {
         showBirthInput: true,
         hideRetry: true,
-        detail: '생년월일이 비어 있으면 PDF 생성 전에 원국 계산을 완료할 수 없습니다.'
+        detail: '생년월일이 비어 있으면 AI 상담 전에 원국 계산을 완료할 수 없습니다.'
+      });
+      return null;
+    }
+    var question = _currentQuestion();
+    if (question.length < 5) {
+      _setError('신년운세에서 궁금한 질문을 먼저 입력해 주세요.', {
+        hideRetry: true,
+        detail: '예: 선택한 해에 제 직업운과 수입 흐름은 어떻게 될까요?'
       });
       return null;
     }
@@ -1592,8 +1772,38 @@
       reportId: _buildReportId(targetYear),
       targetYear: targetYear,
       profile: profile,
-      normalizedBirth: normalizedBirth
+      normalizedBirth: normalizedBirth,
+      question: question,
+      category: _currentCategory()
     };
+  }
+
+  function _runAfterBillingAI(pending, accessGrant, premiumToken) {
+    _setStage('calculate');
+    _setProgress(2, '명식과 올해의 세운을 읽고 있어요.');
+    _rememberAccessGrant(pending, accessGrant, premiumToken);
+    _log('RequestReceived', {
+      reportId: pending.reportId,
+      targetYear: pending.targetYear,
+      category: pending.category,
+      questionLength: pending.question.length
+    });
+    var payload = _buildAIConsultationPayload(pending, accessGrant, premiumToken);
+    return _postJson(AI_CONSULTATION_API, payload).then(function (data) {
+      if (!data || data.ok === false || !data.result) {
+        throw _buildPdfApiError(data, 502, '신년운세 AI 상담 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+      _setStage('archive');
+      _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
+      _renderAIConsultationResult(data, pending.profile, pending.targetYear);
+      _showScreen('nyResultScreen');
+      _log('ConsultationCompleted', {
+        reportId: pending.reportId,
+        targetYear: pending.targetYear,
+        provider: _clean(data.provider),
+        isMock: data.isMock === true
+      });
+    });
   }
 
   function _runAfterBilling(pending, accessGrant, premiumToken) {
@@ -1695,23 +1905,24 @@
     _setStage('billing');
     _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
     if (_hasReusableAccessFor(pending)) {
-      _setProgress(1, '확인된 결제 권한으로 신년운세 PDF 생성을 다시 시작합니다');
-      return _runAfterBillingMock(pending, _lastAccessGrant, _lastPremiumToken);
+      _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
+      return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken);
     }
     return _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
       return _runCoinGate(pending.reportId);
     }).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
-        _setError(gate.message || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
+        _setError(gate.message || '신년운세 AI 상담을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
         return null;
       }
       _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken);
-      return _runAfterBillingMock(pending, gate.accessGrant, gate.premiumAccessToken);
+      return _runAfterBillingAI(pending, gate.accessGrant, gate.premiumAccessToken);
     });
   }
 
   function _restoreCurrentNewYearJob(profile) {
+    return false;
     var stored = _readCurrentJob();
     if (!stored || !stored.jobId) return false;
     var activeProfile = profile || _getActiveBirthProfile();
@@ -1761,6 +1972,7 @@
     var modal = _qs('sajuNewYearModal');
     if (!modal) return;
     _syncTargetYearBounds();
+    _bindQuestionControls();
     _refreshNewYearBillingSnapshot();
     var profile = _getActiveBirthProfile();
     _updateProfileStatus(profile);
@@ -1772,7 +1984,7 @@
       _setError('정확한 신년운세 계산을 위해 생년월일 정보를 확인해 주세요.', {
         showBirthInput: true,
         hideRetry: true,
-        detail: '신년운세 PDF는 사주 원국과 대상 연도의 흐름을 함께 계산하므로 생년월일 입력이 먼저 필요합니다.'
+        detail: '신년운세 AI 상담은 사주 원국과 대상 연도의 흐름을 함께 계산하므로 생년월일 입력이 먼저 필요합니다.'
       });
     }
     modal.style.display = 'flex';
@@ -1858,11 +2070,11 @@
         ? _billingErrorOptions(error)
         : {
           detail: _hasReusableAccessFor(pending)
-            ? '결제 내역은 확인되었습니다. 재결제 없이 같은 신년운세 PDF 생성을 다시 시도할 수 있습니다.'
-            : '결제 권한 확인 또는 생성 준비 중 문제가 생겼습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.',
-          retryText: _hasReusableAccessFor(pending) ? '재결제 없이 다시 생성' : '생성 다시 확인'
+            ? '결제 내역은 확인되었습니다. 재결제 없이 같은 신년운세 AI 상담을 다시 시도할 수 있습니다.'
+            : '결제 권한 확인 또는 상담 생성 준비 중 문제가 생겼습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.',
+          retryText: _hasReusableAccessFor(pending) ? '재결제 없이 다시 상담' : '상담 다시 확인'
         };
-      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
+      _setError(_publicErrorMessage(error, '신년운세 AI 상담 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
     }).finally(function () {
       _generating = false;
       _setBusy(false);
@@ -1879,9 +2091,9 @@
     _setBusy(true);
     _runBillingAndGeneration(pending).catch(function (error) {
       _logError(error, { stage: error && error.stage || 'generate', reportId: pending.reportId });
-      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), {
-        detail: '결제 권한이 확인된 뒤 생성 단계에서 문제가 생겼습니다. 다시 시도하면 기존 권한을 먼저 조회합니다.',
-        retryText: '생성 다시 확인'
+      _setError(_publicErrorMessage(error, '신년운세 AI 상담 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), {
+        detail: '결제 권한이 확인된 뒤 상담 생성 단계에서 문제가 생겼습니다. 다시 시도하면 기존 권한을 먼저 조회합니다.',
+        retryText: '상담 다시 확인'
       });
     }).finally(function () {
       _generating = false;

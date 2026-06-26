@@ -40,6 +40,7 @@ import {
   generateSajuNewYearPremiumReport,
 } from "../lib/pdf-v2/saju-new-year/generate-saju-new-year-premium-report.js";
 import { generatePdfChapterContent } from "../lib/pdf-v2/pdf-llm-gateway.js";
+import { callGeminiText } from "../lib/gemini.js";
 import {
   NEW_YEAR_LLM_VERSION,
   normalizeChapterPlan,
@@ -108,6 +109,31 @@ const ANNUAL_FORTUNE_RISK_REPLACEMENTS = Object.freeze([
   [/투자/gi, "큰돈을 쓰는 결정"],
 ]);
 const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
+const NEW_YEAR_AI_TITLE = "신년운세 AI 상담";
+const NEW_YEAR_AI_DEFAULT_CATEGORY = "종합운";
+const NEW_YEAR_AI_CATEGORIES = Object.freeze([
+  "종합운",
+  "연애/재회",
+  "직업/이직",
+  "재물/수입",
+  "건강/멘탈",
+  "가족/인간관계",
+  "월별 흐름",
+  "조심해야 할 시기",
+  "올해의 행동 전략",
+]);
+const NEW_YEAR_AI_RESULT_SYSTEM_PROMPT = [
+  "너는 명리학 기반 신년운세 상담가다.",
+  "사용자의 명식, 대운, 세운, 월운 데이터에 근거해서 답한다.",
+  "사용자의 질문에 직접 답한다.",
+  "모르는 정보는 지어내지 않는다.",
+  "월운 데이터가 없으면 정확한 월별 예측을 꾸며내지 않는다.",
+  "사용자를 불안하게 만들기 위한 단정적 표현을 피한다.",
+  "선택과 전략 중심으로 답한다.",
+  "결과는 한국어로 작성한다.",
+  "상담 문체는 따뜻하고 신비롭게 유지한다.",
+  "사주 용어는 쓰되, 일반 사용자도 이해할 수 있게 풀어쓴다.",
+].join("\n");
 const NEW_YEAR_MANUSCRIPT_SOURCE = Object.freeze({
   LLM_ONLY: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
 });
@@ -4458,6 +4484,284 @@ function monthListText(rows = []) {
   return rows.map((item) => `${Number(item.month || 0)}월 ${clean(item.pillar?.label || "")}`).filter(Boolean).join(", ");
 }
 
+function normalizeNewYearAIQuestion(body = {}) {
+  const question = clean(body.question || body.userQuestion || body.prompt || "");
+  if (question.length < 5) {
+    throw Object.assign(new Error("신년운세에서 궁금한 질문을 5자 이상 입력해 주세요."), {
+      code: "INVALID_QUESTION",
+      status: 422,
+    });
+  }
+  if (question.length > 1000) {
+    throw Object.assign(new Error("질문은 1000자 이내로 입력해 주세요."), {
+      code: "INVALID_QUESTION",
+      status: 422,
+    });
+  }
+  return question;
+}
+
+function normalizeNewYearAICategory(body = {}) {
+  const raw = clean(body.category || body.questionCategory || body.topic || NEW_YEAR_AI_DEFAULT_CATEGORY);
+  if (!raw) return NEW_YEAR_AI_DEFAULT_CATEGORY;
+  const matched = NEW_YEAR_AI_CATEGORIES.find((item) => item === raw);
+  return matched || raw.slice(0, 40);
+}
+
+function safeNewYearAILogMeta(meta = {}) {
+  const out = {
+    hasEnvAI: Boolean(meta.hasEnvAI),
+    providerName: clean(meta.providerName) || undefined,
+    isMock: meta.isMock === true,
+    dryRun: meta.dryRun === true,
+    targetYear: Number(meta.targetYear || 0) || undefined,
+    category: clean(meta.category) || undefined,
+    questionLength: Number(meta.questionLength || 0) || undefined,
+    hasBirthTime: typeof meta.hasBirthTime === "boolean" ? meta.hasBirthTime : undefined,
+    chartCalculated: typeof meta.chartCalculated === "boolean" ? meta.chartCalculated : undefined,
+    llmLatencyMs: Number(meta.llmLatencyMs || 0) || undefined,
+    errorCode: clean(meta.errorCode) || undefined,
+  };
+  return Object.fromEntries(Object.entries(out).filter(([, value]) => value !== undefined && value !== ""));
+}
+
+function logNewYearAIConsultation(marker, meta = {}) {
+  try {
+    console.info(`[NewYearAI Consultation] ${marker}`, safeNewYearAILogMeta(meta));
+  } catch (_) {}
+}
+
+function compactJsonForPrompt(value, maxChars = 9000) {
+  const compacted = compactNewYearObject(value);
+  let text = "";
+  try {
+    text = JSON.stringify(compacted, null, 2);
+  } catch (_) {
+    text = JSON.stringify({ unavailable: true });
+  }
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars)}\n...truncated`;
+}
+
+function buildNewYearAIChapterBlueprint(targetYear) {
+  const year = Number(targetYear || resolveDefaultTargetYear()) || resolveDefaultTargetYear();
+  return NEW_YEAR_CHAPTERS.map((chapter, index) => ({
+    no: Number(chapter.no || index + 1),
+    title: clean(chapter.title).replace(/\{YEAR\}/g, String(year)),
+    categories: Array.isArray(chapter.categories) ? chapter.categories.map((item) => clean(item)).filter(Boolean) : [],
+  }));
+}
+
+function buildNewYearAIContext({ normalized, yearlyNormalized, body = {}, question = "", category = "" } = {}) {
+  const seed = yearlyNormalized?.seed || {};
+  const saju = seed.saju || {};
+  const masterJson = yearlyNormalized?.masterJson || {};
+  const targetYear = yearlyNormalized?.targetYear || normalized?.targetYear;
+  return compactNewYearObject({
+    service: "new-year-ai-consultation",
+    targetYear,
+    question,
+    category,
+    consultationBlueprint: buildNewYearAIChapterBlueprint(targetYear),
+    profile: {
+      name: normalized?.birthInput?.name || yearlyNormalized?.profile?.name || "사용자",
+      gender: normalized?.birthInput?.gender || yearlyNormalized?.profile?.gender || "unknown",
+      calendarType: normalized?.birthInput?.calendarType || "solar",
+      hasBirthTime: normalized?.birthInput?.isTimeUnknown === false,
+      birthTimeKnown: normalized?.birthInput?.isTimeUnknown === false,
+      timezone: normalized?.birthInput?.timezone || "Asia/Seoul",
+      birthPlace: normalized?.birthInput?.birthPlace || "대한민국",
+    },
+    chart: {
+      pillars: saju.pillars || body.sajuBase?.pillars || null,
+      dayMaster: saju.dayMaster || body.sajuBase?.core?.dayMaster || masterJson.dayMaster || "",
+      elementBalance: saju.elementBalance || body.sajuBase?.elementBalance || masterJson.elementBalance || null,
+      tenGods: saju.tenGods || body.sajuBase?.tenGods || masterJson.tenGods || null,
+      strength: saju.strength || body.sajuBase?.strength || null,
+      johu: saju.johu || body.sajuBase?.johu || null,
+      yongshin: saju.yongshin || body.sajuBase?.yongshin || null,
+      specialStars: saju.specialStars || body.sajuBase?.specialStars || null,
+    },
+    luckFlow: {
+      luckCycle: saju.luckCycle || body.sajuBase?.timing?.daeun || null,
+      daewoon: saju.daewoon || saju.daeun || body.sajuBase?.timing?.daeun || body.quantumMyeongriJson?.daewun || null,
+      annualLuck: yearlyNormalized?.yearlyCalculation || saju.annualLuck || masterJson.yearlyFlow || null,
+      monthlyLuck: yearlyNormalized?.monthlyCalculation || saju.monthlyLuck || masterJson.monthlyFlow || [],
+      monthlyFortuneSections: yearlyNormalized?.monthlyFortuneSections || [],
+    },
+    engineSummary: {
+      normalizedData: yearlyNormalized?.normalizedData || null,
+      interpretationBlocks: yearlyNormalized?.interpretationBlocks || [],
+      masterJson,
+      quantumMyeongriJson: body.quantumMyeongriJson || null,
+      clientSajuBase: body.sajuBase || null,
+    },
+  });
+}
+
+function buildNewYearAIConsultationPrompt({ normalized, yearlyNormalized, body = {}, question = "", category = "" } = {}) {
+  const hasMonthly = Array.isArray(yearlyNormalized?.monthlyCalculation) && yearlyNormalized.monthlyCalculation.length > 0;
+  const context = buildNewYearAIContext({ normalized, yearlyNormalized, body, question, category });
+  const targetYear = yearlyNormalized?.targetYear || normalized?.targetYear || resolveDefaultTargetYear();
+  const chapterBlueprint = buildNewYearAIChapterBlueprint(targetYear);
+  return [
+    "아래 계산 데이터에 근거해 신년운세 AI 상담 결과를 작성한다.",
+    "질문에 직접 답하고, 계산 데이터에 없는 세부 날짜나 월운은 지어내지 않는다.",
+    "짧은 Q&A가 아니라 기존 10장 신년운세 구조를 활용한 풍부한 상담 카드로 작성한다.",
+    "답변 순서는 사용자 질문에 대한 핵심 답변을 먼저 열고, 이어서 10장 전체 상담, 월별/분기 흐름, 현실 행동 전략으로 이어간다.",
+    "사용자가 선택한 질문 카테고리는 해당 장과 관련 장에서 더 깊고 구체적으로 다룬다.",
+    "",
+    "[사용자 질문]",
+    question,
+    "",
+    "[질문 카테고리]",
+    category || NEW_YEAR_AI_DEFAULT_CATEGORY,
+    "",
+    "[분석 연도]",
+    String(yearlyNormalized?.targetYear || normalized?.targetYear || ""),
+    "",
+    "[10장 상담 설계도]",
+    compactJsonForPrompt(chapterBlueprint, 5000),
+    "",
+    "[계산된 명식/대운/세운/월운 context]",
+    compactJsonForPrompt(context, 16000),
+    "",
+    "[답변 형식]",
+    "반드시 JSON 객체 하나로만 답한다. JSON 앞뒤에 설명 문장을 붙이지 않는다.",
+    "필드: summary, yearlyFlow, topicAnswer, chapterConsultations, timing.goodPeriods, timing.cautionPeriods, timing.monthlyNotes, actionGuide, closingMessage, followUpQuestions.",
+    "summary/yearlyFlow/topicAnswer/closingMessage는 한국어 문자열이다.",
+    "actionGuide/followUpQuestions/goodPeriods/cautionPeriods는 한국어 문자열 배열이다.",
+    "monthlyNotes는 [{\"month\":\"1월\",\"note\":\"...\"}] 배열이다.",
+    "chapterConsultations는 반드시 10개를 작성한다.",
+    "각 chapterConsultations 항목은 {\"no\":1,\"title\":\"...\",\"overview\":\"...\",\"sections\":[{\"title\":\"...\",\"body\":\"...\"}],\"keyTakeaways\":[\"...\"],\"actionItems\":[\"...\"]} 형태다.",
+    "각 장의 title은 [10장 상담 설계도]의 title을 따른다.",
+    "각 장의 sections는 설계도의 categories 중 핵심 3~5개를 자연스럽게 풀어 쓴다.",
+    "각 장 overview는 2~4문장, 각 section body는 2~4문장으로 제한한다.",
+    "제1장은 총운·원국·세운·오행·십성의 큰 방향을 설명한다.",
+    "제2~6장은 커리어, 재물, 인간관계, 연애·가족, 건강·심리 리듬을 전반적으로 다룬다.",
+    "제7~9장은 분기별 판단, 위험관리, 월별 Go/Stop 흐름을 다룬다.",
+    "제10장은 최종 로드맵과 1년 실행 루틴으로 마무리한다.",
+    hasMonthly
+      ? "월운 데이터가 있으므로 월별 또는 분기별 흐름을 계산 근거와 함께 정리한다."
+      : "월운 데이터가 부족하면 정확한 월별 예측을 꾸며내지 말고 분기·계절 단위로만 설명한다.",
+    "무섭게 단정하지 말고 선택과 전략 중심으로 말한다.",
+  ].join("\n");
+}
+
+function extractNewYearAIJsonText(text = "") {
+  const source = clean(text).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  if (!source) return "";
+  const first = source.indexOf("{");
+  const last = source.lastIndexOf("}");
+  if (first < 0 || last <= first) return "";
+  return source.slice(first, last + 1);
+}
+
+function normalizeStringList(value, limit = 8) {
+  const list = Array.isArray(value) ? value : (typeof value === "string" ? value.split(/\n+|;|ㆍ|•/g) : []);
+  return list.map((item) => clean(item)).filter(Boolean).slice(0, limit);
+}
+
+function normalizeMonthlyNotes(value, limit = 12) {
+  const list = Array.isArray(value) ? value : [];
+  return list.map((item) => {
+    if (typeof item === "string") return { month: "", note: clean(item) };
+    return {
+      month: clean(item?.month || item?.label || ""),
+      note: clean(item?.note || item?.text || item?.summary || ""),
+    };
+  }).filter((item) => item.note).slice(0, limit);
+}
+
+function normalizeNewYearAISections(value, limit = 5) {
+  const list = Array.isArray(value) ? value : [];
+  return list.map((item) => {
+    if (typeof item === "string") return { title: "", body: clean(item) };
+    return {
+      title: clean(item?.title || item?.label || item?.name || ""),
+      body: clean(item?.body || item?.text || item?.summary || item?.content || ""),
+    };
+  }).filter((item) => item.body).slice(0, limit);
+}
+
+function normalizeNewYearAIChapterConsultations(value, targetYear, limit = 10) {
+  const blueprint = buildNewYearAIChapterBlueprint(targetYear);
+  const list = Array.isArray(value) ? value : [];
+  return list.map((item, index) => {
+    const no = Number(item?.no || item?.chapterNo || item?.chapter || index + 1) || index + 1;
+    const spec = blueprint.find((chapter) => Number(chapter.no) === no) || blueprint[index] || {};
+    const overview = clean(item?.overview || item?.summary || item?.body || item?.text || "");
+    const sections = normalizeNewYearAISections(item?.sections || item?.categories || item?.details, 5);
+    const keyTakeaways = normalizeStringList(item?.keyTakeaways || item?.takeaways || item?.highlights, 5);
+    const actionItems = normalizeStringList(item?.actionItems || item?.actions || item?.actionGuide, 5);
+    return {
+      no,
+      title: clean(item?.title) || clean(spec.title) || `${no}장 신년운세 상담`,
+      overview,
+      sections,
+      keyTakeaways,
+      actionItems,
+    };
+  }).filter((item) => item.overview || item.sections.length || item.keyTakeaways.length || item.actionItems.length).slice(0, limit);
+}
+
+function splitNewYearAIRawText(text = "") {
+  const rawText = clean(text);
+  const sentences = rawText.split(/(?<=[.!?。！？]|다\.|요\.)\s+/).map((item) => clean(item)).filter(Boolean);
+  return {
+    summary: sentences.slice(0, 4).join(" ") || rawText.slice(0, 500),
+    yearlyFlow: "",
+    topicAnswer: rawText,
+    chapterConsultations: [],
+    timing: {
+      goodPeriods: [],
+      cautionPeriods: [],
+      monthlyNotes: [],
+    },
+    actionGuide: [],
+    closingMessage: sentences.slice(-2).join(" ") || "올해의 흐름은 단정이 아니라 선택의 방향으로 열립니다. 지금 가장 중요한 질문을 다시 좁혀 물어보면 더 섬세하게 이어 볼 수 있습니다.",
+    followUpQuestions: [
+      "올해 직업운과 수입 흐름을 더 구체적으로 봐주세요.",
+      "월별로 좋은 시기와 조심할 시기를 정리해 주세요.",
+      "올해 인간관계에서 가장 조심해야 할 부분을 알려주세요.",
+    ],
+    rawText,
+  };
+}
+
+function normalizeNewYearAIResult(rawText = "", targetYear = resolveDefaultTargetYear()) {
+  const text = clean(rawText);
+  if (text.length < 80) {
+    throw Object.assign(new Error("신년운세 AI 상담 결과가 충분히 생성되지 않았습니다."), {
+      code: "NEW_YEAR_AI_RESULT_TOO_SHORT",
+      status: 502,
+    });
+  }
+  const jsonText = extractNewYearAIJsonText(text);
+  if (jsonText) {
+    try {
+      const parsed = JSON.parse(jsonText);
+      const timing = parsed?.timing && typeof parsed.timing === "object" ? parsed.timing : {};
+      return {
+        summary: clean(parsed.summary) || splitNewYearAIRawText(text).summary,
+        yearlyFlow: clean(parsed.yearlyFlow) || "",
+        topicAnswer: clean(parsed.topicAnswer) || "",
+        timing: {
+          goodPeriods: normalizeStringList(timing.goodPeriods, 8),
+          cautionPeriods: normalizeStringList(timing.cautionPeriods, 8),
+          monthlyNotes: normalizeMonthlyNotes(timing.monthlyNotes, 12),
+        },
+        chapterConsultations: normalizeNewYearAIChapterConsultations(parsed.chapterConsultations || parsed.chapters || parsed.chapterConsultation, parsed.targetYear || targetYear),
+        actionGuide: normalizeStringList(parsed.actionGuide, 8),
+        closingMessage: clean(parsed.closingMessage) || "",
+        followUpQuestions: normalizeStringList(parsed.followUpQuestions, 6),
+        rawText: text,
+      };
+    } catch (_) {}
+  }
+  return splitNewYearAIRawText(text);
+}
+
 function monthlyPhrase(pool = [], index = 0, seedKey = "") {
   if (!pool.length) return "";
   const offset = stableYearlyHash(seedKey);
@@ -6837,6 +7141,276 @@ async function handleResult(request, env) {
   return json(buildNewYearMockResultPayload(job, doc), { status: job.status === "completed" ? 200 : 202 });
 }
 
+async function handleNewYearAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const hasEnvAI = Boolean(env?.AI && typeof env.AI.run === "function");
+  let body = {};
+  let targetYear = 0;
+  let category = NEW_YEAR_AI_DEFAULT_CATEGORY;
+  let question = "";
+  let normalized = null;
+  let providerName = "";
+  const baseMeta = () => ({
+    hasEnvAI,
+    providerName,
+    isMock: false,
+    dryRun: false,
+    targetYear,
+    category,
+    questionLength: question.length,
+    hasBirthTime: normalized?.birthInput?.isTimeUnknown === false,
+  });
+
+  try {
+    body = await readJson(request);
+    category = normalizeNewYearAICategory(body);
+    question = normalizeNewYearAIQuestion(body);
+    targetYear = Number(body?.targetYear || body?.selectedYear || body?.fortuneYear || 0) || 0;
+    const dryRun = body?.dryRun === true || body?.dry_run === true || readBooleanFlag(env, "NEW_YEAR_AI_DRY_RUN", false);
+    logNewYearAIConsultation("request received", {
+      ...baseMeta(),
+      dryRun,
+      targetYear,
+      category,
+      questionLength: question.length,
+    });
+    if (dryRun) {
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code: "DRY_RUN_BLOCKED",
+        message: isNewYearProductionEnv(env)
+          ? "운영 환경에서는 dry_run 신년운세 AI 상담을 실행할 수 없습니다."
+          : "신년운세 AI 상담은 mock 또는 dry_run 결과를 성공으로 처리하지 않습니다.",
+      }, { status: isNewYearProductionEnv(env) ? 403 : 400 });
+    }
+
+    let auth;
+    try {
+      auth = await requireAuth(request, env);
+    } catch (error) {
+      if (Number(error?.status) === 401) {
+        return json({
+          ok: false,
+          serviceKey: SERVICE_KEY,
+          code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
+          message: hasNewYearAuthMaterial(request)
+            ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
+            : "신년운세 AI 상담을 위해 먼저 로그인해 주세요.",
+        }, { status: 401 });
+      }
+      throw error;
+    }
+
+    normalized = normalizeInput(body);
+    if (!normalized.ok) {
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code: clean(normalized.code) || "INVALID_INPUT",
+        message: clean(normalized.message).replace(/PDF\s*생성/g, "AI 상담") || "신년운세 AI 상담에 필요한 생년월일과 대상 연도를 확인해 주세요.",
+      }, { status: 422 });
+    }
+    targetYear = normalized.targetYear;
+
+    const featureKey = normalizeFeatureKey(body?.featureKey);
+    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-new-year-ai-${targetYear}-${Date.now().toString(36)}`);
+    const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
+    const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
+
+    let access;
+    try {
+      access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+        ...body,
+        featureKey,
+        reportType: "sajuNewYear",
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: "/api/saju-new-year/ai-consultation",
+      });
+    } catch (error) {
+      const status = Number(error?.status || 500);
+      const code = status === 403 || status === 402 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code,
+        message: code === "ENTITLEMENT_REQUIRED"
+          ? "신년운세 AI 상담 권한이 필요합니다. 단건 결제, 월정석 크레딧, 이용권 중 하나로 이용할 수 있습니다."
+          : "결제 권한 확인 중 서버 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      }, { status: newYearErrorStatus(code, status) });
+    }
+
+    if (!access?.ok) {
+      const status = Number(access?.status || 402);
+      const code = status === 401 ? "SESSION_INVALID" : (status === 402 || status === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code,
+        message: code === "ENTITLEMENT_REQUIRED"
+          ? "신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요."
+          : "결제 권한 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      }, { status: newYearErrorStatus(code, status) });
+    }
+    logNewYearAIConsultation("payment verified", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+    });
+
+    const yearlyNormalized = normalizeYearlySajuInput({
+      profile: normalized.profile,
+      targetYear,
+      body,
+    });
+    logNewYearAIConsultation("chart calculated", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+    });
+    logNewYearAIConsultation("luck flow calculated", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+    });
+
+    const prompt = buildNewYearAIConsultationPrompt({
+      normalized,
+      yearlyNormalized,
+      body,
+      question,
+      category,
+    });
+    logNewYearAIConsultation("prompt built", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+    });
+
+    logNewYearAIConsultation("LLM provider start", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+    });
+    const aiStartedAt = Date.now();
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: NEW_YEAR_AI_RESULT_SYSTEM_PROMPT,
+      taskType: "fortune",
+      temperature: 0.68,
+      maxOutputTokens: 8192,
+    });
+    const llmLatencyMs = Date.now() - aiStartedAt;
+    providerName = clean(ai?.provider || ai?.model || "");
+    if (!ai?.ok || !clean(ai.text)) {
+      logNewYearAIConsultation("LLM provider error", {
+        ...baseMeta(),
+        providerName,
+        targetYear,
+        category,
+        questionLength: question.length,
+        chartCalculated: true,
+        llmLatencyMs,
+        errorCode: clean(ai?.error || ai?.code) || "NEW_YEAR_AI_LLM_FAILED",
+      });
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code: "NEW_YEAR_AI_LLM_FAILED",
+        message: "현재 신년운세 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+        retryable: true,
+      }, { status: Number(ai?.status || 502) || 502 });
+    }
+
+    const result = normalizeNewYearAIResult(ai.text, targetYear);
+    logNewYearAIConsultation("LLM provider success", {
+      ...baseMeta(),
+      providerName,
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+      llmLatencyMs,
+    });
+
+    const consultationId = `saju-new-year-ai:${hashAnnualFortuneValue({
+      userId: auth.userId,
+      reportId,
+      sessionKey,
+      targetYear,
+      category,
+      question,
+      createdAtBucket: Math.floor(startedAt / 1000),
+    })}`;
+    const responsePayload = {
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      featureKey,
+      title: NEW_YEAR_AI_TITLE,
+      status: "completed",
+      targetYear,
+      category,
+      question,
+      result,
+      rawText: result.rawText || ai.text,
+      consultationId,
+      resultId: consultationId,
+      requestId: clean(body?.requestId || body?.accessGrant?.requestId || ""),
+      sessionId: sessionKey,
+      reportId,
+      billing: {
+        accessType: clean(access.accessType || access.type || ""),
+        accessMethod: clean(access.accessMethod || access.method || ""),
+        paymentMode: clean(access.paymentMode || access.method || ""),
+        chargedCoins: Number(access.chargedCoins || access.amountCoins || access.cost || 0) || undefined,
+      },
+      model: ai.model,
+      provider: ai.provider,
+      isMock: false,
+      chartCalculated: true,
+      luckFlowCalculated: true,
+      llmLatencyMs,
+    };
+    logNewYearAIConsultation("response returned", {
+      ...baseMeta(),
+      providerName,
+      targetYear,
+      category,
+      questionLength: question.length,
+      chartCalculated: true,
+      llmLatencyMs,
+    });
+    return json(responsePayload);
+  } catch (error) {
+    const status = Number(error?.status || 500);
+    const code = clean(error?.code || error?.name) || "NEW_YEAR_AI_CONSULTATION_FAILED";
+    logNewYearAIConsultation("LLM provider error", {
+      ...baseMeta(),
+      targetYear,
+      category,
+      questionLength: question.length,
+      errorCode: code,
+    });
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      code,
+      message: code === "INVALID_QUESTION"
+        ? clean(error?.message) || "신년운세 질문을 확인해 주세요."
+        : "현재 신년운세 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      retryable: status >= 500,
+    }, { status: status >= 400 ? status : 500 });
+  }
+}
+
 async function handlePrepare(request, env) {
   compactNewYearLocks();
   let auth;
@@ -7590,10 +8164,11 @@ export async function handleSajuNewYearRoutes(request, env = {}) {
     if (method === "POST" && (path === "/verify-access" || path === "verify-access")) return await handleVerifyAccess(request, env);
     if (method === "POST" && (path === "/create-job" || path === "create-job")) return await handleCreateJob(request, env);
     if (method === "POST" && (path === "/generate-mock" || path === "generate-mock")) return await handleGenerateMock(request, env);
+    if (method === "POST" && (path === "/ai-consultation" || path === "ai-consultation")) return await handleNewYearAIConsultation(request, env);
     if (method === "POST" && (String(path || "").startsWith("/retry/") || String(path || "").startsWith("retry/"))) return await handlePrepare(request, env);
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
-    return json({ ok: false, serviceKey: SERVICE_KEY, message: "지원하지 않는 사주 신년운세 PDF 경로입니다." }, { status: 404 });
+    return json({ ok: false, serviceKey: SERVICE_KEY, message: "지원하지 않는 사주 신년운세 경로입니다." }, { status: 404 });
   } catch (error) {
     console.error("[NewYearBook][Error]", normalizeNewYearBookError(error));
     return handleRouteError(error, "SajuNewYearRoutes");
@@ -7620,6 +8195,8 @@ export const __sajuNewYearTestUtils = {
   buildYearlySajuNormalizedData,
   buildYearlySajuPdfCacheKey,
   buildYearlySajuPdfCacheExecutionContext,
+  buildNewYearAIConsultationPrompt,
+  normalizeNewYearAIResult,
   buildNewYearReusableExecutionResponse,
   selectYearlyInterpretationBlocks,
   normalizeYearlySajuInput,

@@ -361,9 +361,11 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     : "없음";
 
   return [
-    "당신은 행성의 목소리와 타로 상징을 하나의 선율로 엮는 전문 오라클 리더입니다.",
+    "당신은 행성의 원형과 타로 상징을 하나의 선율로 엮어 상담하는 최고 수준의 타로 마스터입니다.",
     "서비스명은 '천체의 선율 타로'입니다. 입력된 11개 행성 포지션과 11장의 타로 카드를 1:1로 결합해, 사용자가 결제 후 바로 신뢰할 수 있는 깊은 상담 결과를 작성하세요.",
-    "반드시 한국어로만 작성합니다. 불안을 키우는 단정, 의료/법률/투자 확정 판단, 기능 설명 문체, 개발 문서 같은 표현은 쓰지 않습니다.",
+    "각 행성은 질문축이고, 각 카드는 그 질문에 응답하는 상징입니다. 행성명, 행성 질문축, 카드명, 정역방향을 모든 해석의 출발점으로 삼으세요.",
+    "반드시 한국어로만 작성합니다. 문장은 전문 타로 리더가 사용자에게 직접 말하는 상담체로 씁니다.",
+    "불안을 키우는 단정, 의료/법률/투자 확정 판단, 서비스 안내 문체, 생성 과정 소개, 개발 문서 같은 표현은 쓰지 않습니다.",
     "입력된 카드 순서, 행성명, 카드명, 정역방향은 절대 바꾸지 않습니다. 카드가 하나라도 누락되면 실패입니다.",
     "출력은 설명 없는 유효한 JSON 객체 하나만 반환합니다. 마크다운, 코드블록, 주석, JSON 밖 문장은 금지합니다.",
     "JSON 스키마는 아래 구조를 그대로 사용하세요.",
@@ -422,11 +424,12 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     }),
     "작성 조건:",
     "1) cards는 정확히 11개이며 입력 순서와 행성명을 유지합니다.",
-    "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정역방향, 심리 패턴, 그림자, 현실 실천을 모두 반영합니다.",
-    "3) summary.overallTheme은 전체 선율을 충분히 길게 읽고, finalOracle은 11장 전체를 통합한 마지막 오라클처럼 씁니다.",
-    "4) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작고 구체적인 조율 의식으로 씁니다.",
-    "5) summary.closingFortune.title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 씁니다.",
-    "6) closingFortune은 결과물이나 기능을 설명하지 말고, 타로 리더가 사용자에게 직접 말하는 자연스러운 운세 문장으로 씁니다.",
+    "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정역방향, 심리 패턴, 그림자, 영혼 과제, 현실 실천을 모두 반영합니다.",
+    "3) archetypeReading은 행성과 카드가 만나는 핵심 상담이고, consciousMessage/unconsciousPattern/shadowWarning/soulLesson/integrationPractice는 서로 다른 관점으로 분리해 씁니다.",
+    "4) summary.overallTheme은 전체 선율을 충분히 길게 읽고, finalOracle은 11장 전체를 통합한 마지막 오라클처럼 씁니다.",
+    "5) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작고 구체적인 조율 의식으로 씁니다.",
+    "6) summary.closingFortune.title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 씁니다.",
+    "7) closingFortune은 리딩 형식을 소개하지 말고, 타로 리더가 사용자에게 직접 말하는 자연스러운 운세 문장으로 씁니다.",
     "황금 통합 카드=" + goldenLine,
     "dominantLayer=" + (summary?.dominantLayer || ""),
     "strongestPlanetSignal=" + (summary?.strongestPlanetSignal || ""),
@@ -590,7 +593,7 @@ function normalizeAiReadingCandidate(candidate, baseReading, model = "", provide
 
   return {
     ...baseReading,
-    spreadName: text(src.spreadName || baseReading.spreadName || "??? ?? ??"),
+    spreadName: text(src.spreadName || baseReading.spreadName || "천체의 선율 타로"),
     generatedAt: text(src.generatedAt || baseReading.generatedAt || toIso(Date.now())),
     cards: cleanedCards,
     summary: mergeAiSummary(baseReading.summary || {}, src.summary || {}),

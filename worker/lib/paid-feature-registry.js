@@ -151,6 +151,7 @@ export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "숙요점 유명인 궁합": 100,
   "숙요점 궁합 분석": 100,
   "사주 신년운세 PDF 리포트 생성": 300,
+  "사주 신년운세 AI 상담": 300,
   "운명의 업 생성": 690,
 });
 
@@ -265,10 +266,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 연간 트랜짓 운세" },
   "premium-lifebook-report": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
   "premium_pdf_saju_life_book": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
-  "saju_new_year_pdf": { cost: 300, reason: "사주 신년운세 PDF 리포트 생성" },
-  "premium-saju-newyear-report": { cost: 300, reason: "사주 신년운세 PDF 리포트 생성" },
-  "premium_pdf_saju_new_year": { cost: 300, reason: "사주 신년운세 PDF 리포트 생성" },
-  "premium_pdf_saju_yearly": { cost: 300, reason: "사주 신년운세 PDF 리포트 생성" },
+  "saju_new_year_pdf": { cost: 300, reason: "사주 신년운세 AI 상담" },
+  "premium-saju-newyear-report": { cost: 300, reason: "사주 신년운세 AI 상담" },
+  "premium_pdf_saju_new_year": { cost: 300, reason: "사주 신년운세 AI 상담" },
+  "premium_pdf_saju_yearly": { cost: 300, reason: "사주 신년운세 AI 상담" },
   "premium_pdf_saju_love_secret": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
   "premium_pdf_saju_love_secret_compat": { cost: 400, reason: "사주 프리미엄 궁합 리포트 생성" },
   "premium-sibyl-dominator": { cost: 100, reason: "시빌라 도미네이터 리포트" },

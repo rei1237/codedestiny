@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import MoonIcon, { type MoonPhase } from "@/components/ui/MoonIcon";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
@@ -239,6 +240,8 @@ type PendingSubscriptionOrder = {
   durationMonths?: number;
   paymentMethod: string;
 };
+
+type PointStateStatus = "idle" | "loading" | "ready" | "error";
 
 type PaymentFailureReportPayload = {
   merchantUid?: string;
@@ -616,7 +619,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "모든 유료/PDF 서비스 이용 가능",
+    allPaidPdfPolicy: "모든 유료 서비스 이용 가능",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -639,39 +642,39 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       standard: {
         profile3: "프로필 최대 3개 생성",
         under3000: "3,000원 이하 유료 기능 이용 가능",
-        over3000Single: "3,000원 초과 기능은 상품별 원화 단건 결제",
-        pdfSingle: "PDF 서비스는 상품별 원화 단건 결제",
+        over3000Single: "30일 동안 스탠다드 혜택 유지",
+        pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "자동결제 상품 아님",
+        notAutoBilling: "월정석 또는 원화 구매 가능",
       },
       premium: {
         profile7: "프로필 최대 7개 생성",
         under5000: "5,000원 이하 유료 기능 이용 가능",
-        over5000Single: "5,000원 초과 기능은 상품별 원화 단건 결제",
-        pdfSingle: "PDF 서비스는 상품별 원화 단건 결제",
+        over5000Single: "30일 동안 프리미엄 혜택 유지",
+        pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "자동결제 상품 아님",
+        notAutoBilling: "월정석 또는 원화 구매 가능",
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
         under10000: "10,000원 이하 유료 기능 이용 가능",
-        over10000Single: "10,000원 초과 기능은 상품별 원화 단건 결제",
-        pdfSingle: "PDF 서비스는 상품별 원화 단건 결제",
+        over10000Single: "30일 동안 VVIP 혜택 유지",
+        pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "자동결제 상품 아님",
+        notAutoBilling: "월정석 또는 원화 구매 가능",
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "PDF 포함 모든 유료 기능 이용 가능",
-        familyIncluded: "원화 단건 결제 없이 Family 혜택 적용",
+        allPaidPdf: "모든 유료 서비스 이용 가능",
+        familyIncluded: "Family 전체 혜택 적용",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "자동결제 상품 아님",
+        notAutoBilling: "월정석 또는 원화 구매 가능",
       },
     },
     pointPackages: {
       directPaidService: {
-        title: "상품별 원화 단건 결제",
-        description: "이용권 한도 초과 또는 PDF 서비스는 상품별 원화 단건 결제로 진행됩니다.",
+        title: "상품별 혜택 안내",
+        description: "이용권별 혜택 범위와 PDF 조건은 결제 전 상품 안내에서 확인할 수 있습니다.",
       },
     },
     paymentMethods: {
@@ -693,7 +696,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     walletAria: "이용권 상점 안내",
     refundAgreement: "원화 결제된 30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
     passAlt: "달빛 이용권",
-    wonSinglePaymentAria: "원화 단건 결제 안내",
+    wonSinglePaymentAria: "원화 결제 안내",
     paymentFailureGuide: [
       "창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.",
       "한도 초과: 다른 카드/계좌이체 또는 금액을 낮춰 재시도해 주세요.",
@@ -712,9 +715,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     lowerTierBlocked: "상위 티어 사용 중 (구매 불가)",
     lowerTierBlockedHelp: "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.",
     activePassLabel: "30일 이용권 활성화",
-    activePassMessage: (expires) => `${expires}까지 혜택이 유지됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.`,
+    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 월정석 또는 원화로 다음 이용권을 다시 열 수 있습니다.`,
     activePassFooter: "결제 즉시 이용권 혜택이 활성화되며 30일 동안 유효합니다.",
-    activePassAutoRenewWarning: "이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.",
+    activePassAutoRenewWarning: "만료 후에는 월정석 또는 원화로 30일 혜택을 다시 열 수 있습니다.",
     coffeeBadge: "커피 2잔 값으로 30일",
   },
   en: {
@@ -722,7 +725,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "Member",
     duration30: "30 days",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "All paid/PDF services included",
+    allPaidPdfPolicy: "All paid services available",
     generalLimitPolicy: (value) => `General services up to ${value}`,
     familyValueLine: (duration) => `All Family benefits / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
@@ -745,39 +748,39 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       standard: {
         profile3: "Create up to 3 profiles",
         under3000: "Use paid features up to KRW 3,000",
-        over3000Single: "Features above KRW 3,000 require a separate KRW payment",
-        pdfSingle: "PDF services are billed separately in KRW",
+        over3000Single: "Standard benefits stay active for 30 days",
+        pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
-        notAutoBilling: "Not an auto-renewing product",
+        notAutoBilling: "Monthly credits or KRW purchase available",
       },
       premium: {
         profile7: "Create up to 7 profiles",
         under5000: "Use paid features up to KRW 5,000",
-        over5000Single: "Features above KRW 5,000 require a separate KRW payment",
-        pdfSingle: "PDF services are billed separately in KRW",
+        over5000Single: "Premium benefits stay active for 30 days",
+        pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
-        notAutoBilling: "Not an auto-renewing product",
+        notAutoBilling: "Monthly credits or KRW purchase available",
       },
       vvip: {
         profile15: "Create up to 15 profiles",
         under10000: "Use paid features up to KRW 10,000",
-        over10000Single: "Features above KRW 10,000 require a separate KRW payment",
-        pdfSingle: "PDF services are billed separately in KRW",
+        over10000Single: "VVIP benefits stay active for 30 days",
+        pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
-        notAutoBilling: "Not an auto-renewing product",
+        notAutoBilling: "Monthly credits or KRW purchase available",
       },
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
-        allPaidPdf: "All paid features including PDFs",
-        familyIncluded: "Family benefits apply without separate KRW payments",
+        allPaidPdf: "All paid services available",
+        familyIncluded: "Full Family benefits apply",
         activeImmediately: "30-day pass activates after payment",
-        notAutoBilling: "Not an auto-renewing product",
+        notAutoBilling: "Monthly credits or KRW purchase available",
       },
     },
     pointPackages: {
       directPaidService: {
-        title: "One-time KRW payment by product",
-        description: "Services above your pass limit or PDF services proceed as one-time KRW payments.",
+        title: "Benefit details by product",
+        description: "Pass benefits and PDF terms are shown in each product guide before purchase.",
       },
     },
     paymentMethods: {
@@ -799,7 +802,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     walletAria: "Pass shop guide",
     refundAgreement: "I understand that the 30-day KRW pass activates immediately after payment and refunds may be limited once paid features are used.",
     passAlt: "Moonlight pass",
-    wonSinglePaymentAria: "One-time KRW payment guide",
+    wonSinglePaymentAria: "KRW payment guide",
     paymentFailureGuide: [
       "Window closed/cancelled: payment is cancelled and pass access is not created.",
       "Limit exceeded: try another card, bank transfer, or a lower amount.",
@@ -818,9 +821,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     lowerTierBlocked: "Higher tier active",
     lowerTierBlockedHelp: "A higher-tier pass is active, so lower plans cannot be selected.",
     activePassLabel: "30-day pass active",
-    activePassMessage: (expires) => `Benefits stay active until ${expires}. This 30-day pass does not renew automatically; purchase again after expiration.`,
+    activePassMessage: (expires) => `30-day benefits stay active until ${expires}. You can open the next pass with monthly credits or KRW.`,
     activePassFooter: "Pass benefits activate immediately after payment and remain valid for 30 days.",
-    activePassAutoRenewWarning: "This 30-day pass is not auto-renewing. Purchase again after expiration.",
+    activePassAutoRenewWarning: "After expiration, you can open another 30-day pass with monthly credits or KRW.",
     coffeeBadge: "30 days for about two coffees",
   },
   ja: null as unknown as PointsPageCopy,
@@ -1464,7 +1467,7 @@ function SubscriptionSection({
             30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ded4ff]">
-            이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.
+            월정석 또는 원화 결제로 30일 혜택을 다시 열 수 있습니다.
           </p>
         </div>
 
@@ -1476,7 +1479,7 @@ function SubscriptionSection({
             </p>
             <p className="mt-1 text-[11.5px] text-orange-100/90">
               이용권 기간({expires}까지)은 유지되며,
-              추가 유료 콘텐츠는 상품별 단건 결제로 이용할 수 있습니다.
+              추가 유료 콘텐츠는 상품별 안내에 따라 이용할 수 있습니다.
             </p>
           </div>
         )}
@@ -1489,11 +1492,11 @@ function SubscriptionSection({
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 한도 초과 일반 유료 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 서비스를 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>월정석 또는 원화로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
@@ -1941,7 +1944,7 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
               </span>
             </div>
             <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
-              자동결제가 아닌 30일 이용권이며, 한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 진행됩니다.
+              월정석 또는 원화로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
             </p>
             <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
               월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
@@ -1954,9 +1957,536 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-  서브 컴포넌트: 단건 결제 상품 카드
+  서브 컴포넌트: 원화 결제 상품 카드
   클릭 시 결제 방법 모달로 이동합니다.
 ══════════════════════════════════════════════════════════════════ */
+
+const MOONLIGHT_TIER_LABELS: Record<SubscriptionTier, string> = {
+  free: "이용권 없음",
+  standard: "Standard 달빛 30일",
+  premium: "Premium 달빛 30일",
+  vvip: "VVIP 달빛 30일",
+  family: "Code Destiny Family 30일",
+};
+
+function getMoonlightDaysLeft(expiresAt: string | null | undefined) {
+  if (!expiresAt) return null;
+  const date = new Date(expiresAt);
+  if (!Number.isFinite(date.getTime())) return null;
+  return Math.max(0, Math.ceil((date.getTime() - Date.now()) / 86_400_000));
+}
+
+function getMoonlightExpiryLabel(expiresAt: string | null | undefined, formatLocale: string) {
+  if (!expiresAt) return "만료일 정보 없음";
+  const date = new Date(expiresAt);
+  if (!Number.isFinite(date.getTime())) return "만료일 정보 없음";
+  return date.toLocaleDateString(formatLocale, { year: "numeric", month: "long", day: "numeric" });
+}
+
+function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
+  const limit = subscription.profileLimit || getSubscriptionPolicyProfileLimit(subscription.tier);
+  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString("ko-KR")}개`;
+}
+
+function getMoonlightBenefitLabel(tier: SubscriptionTier) {
+  if (tier === "family") return "모든 유료 서비스 이용 가능";
+  if (tier === "vvip") return "1만원 이하 유료 무료";
+  if (tier === "premium") return "5천원 이하 유료 무료";
+  if (tier === "standard") return "3천원 이하 유료 무료";
+  return "30일 혜택 선택 가능";
+}
+
+function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
+  if (plan.tier === "family") return "full";
+  if (plan.tier === "vvip") return "gibbous";
+  if (plan.tier === "premium") return "half";
+  return "crescent";
+}
+
+function MoonlightShopHero() {
+  return (
+    <header className="moon-shop-hero -mx-4 px-4 py-7 sm:mx-0 sm:rounded-[28px] sm:px-8 sm:py-8">
+      <div className="moon-shop-stars" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+          <div className="moon-shop-visual" aria-hidden="true">
+            <span className="moon-shop-visual-ring moon-shop-visual-ring--one" />
+            <span className="moon-shop-visual-ring moon-shop-visual-ring--two" />
+            <MoonIcon phase="gibbous" className="moon-shop-visual-moon" />
+            <span className="moon-shop-visual-spark moon-shop-visual-spark--one" />
+            <span className="moon-shop-visual-spark moon-shop-visual-spark--two" />
+            <span className="moon-shop-visual-spark moon-shop-visual-spark--three" />
+          </div>
+          <div className="max-w-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[color:var(--moon-silver)]">연이의 달빛 이용권 상점</p>
+            <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
+            <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
+              달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+            </p>
+            <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
+              월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+            </p>
+          </div>
+        </div>
+        <div className="relative z-10 flex flex-col gap-2 sm:flex-row lg:flex-col">
+          <Link href="/" prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
+            홈 화면 바로가기
+          </Link>
+          <Link href="/points/history" className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
+            이용권 주문 내역
+          </Link>
+          <Link href="/" prefetch={false} className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
+            ← 서비스 화면으로
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function MoonlightActivePassCard({
+  subscription,
+  formatLocale,
+  isProcessing,
+  onCancelSubscription,
+}: {
+  subscription: SubscriptionStatus;
+  formatLocale: string;
+  isProcessing: boolean;
+  onCancelSubscription: (resume: boolean) => void;
+}) {
+  const isActivePass = subscription.isActive && subscription.tier !== "free";
+  const tier = isActivePass ? subscription.tier : "free";
+  const daysLeft = getMoonlightDaysLeft(subscription.expiresAt);
+  const daysLeftLabel = daysLeft === null ? "남은 기간 확인 중" : `${daysLeft}일 남음`;
+  const progress = isActivePass ? Math.max(0, Math.min(1, (daysLeft ?? 0) / 30)) : 0;
+  const expiryLabel = getMoonlightExpiryLabel(subscription.expiresAt, formatLocale);
+  const title = MOONLIGHT_TIER_LABELS[tier];
+  const benefits = [
+    { icon: "👤", label: getMoonlightProfileLabel(subscription) },
+    { icon: "✨", label: getMoonlightBenefitLabel(tier) },
+    { icon: "🌙", label: "월정석으로도 구매 가능" },
+    { icon: "🗝️", label: tier === "family" ? "모든 유료 서비스 이용 가능" : "한도 내 유료 리딩 혜택" },
+  ];
+
+  return (
+    <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label="현재 달빛 이용권">
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(167,139,250,0.12)] shadow-[0_0_28px_rgba(167,139,250,0.32)]">
+              <span className="text-2xl text-white" aria-hidden="true">∞</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 달빛 이용권 혜택</p>
+              <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--moon-teal)]">
+                <span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true" />
+                {isActivePass ? `${title} 이용 중 · 만료일까지 이용 가능` : "활성 이용권이 없습니다"}
+              </p>
+            </div>
+          </div>
+          <span className="moon-family-badge rounded-full px-3 py-1 text-[11px] font-black">
+            {tier === "family" ? "FAMILY" : tier === "free" ? "READY" : tier.toUpperCase()}
+          </span>
+        </div>
+
+        <div className="moon-phase-panel mt-5 rounded-[18px] p-4">
+          <div className="moon-phase-stars" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title="달빛 이용권 남은 기간" />
+              <div>
+                <p className="text-xs font-bold text-[color:var(--moon-mist)]">만료일</p>
+                <p className="mt-1 text-base font-black text-white">{isActivePass ? expiryLabel : "이용권 구매 후 표시됩니다"}</p>
+              </div>
+            </div>
+            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? daysLeftLabel : "0일 남음"}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {benefits.map((benefit) => (
+            <div key={benefit.label} className="moon-benefit-cell rounded-[16px] px-4 py-3">
+              <span className="mr-2" aria-hidden="true">{benefit.icon}</span>
+              <span className="text-sm font-black text-white">{benefit.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="text-sm font-black text-[color:var(--moon-glow)] underline-offset-4 hover:underline">
+            환불 요청 안내 보기 →
+          </a>
+          {isActivePass ? (
+            <button
+              type="button"
+              disabled={isProcessing}
+              onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
+              className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              이용권 상태 확인
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MoonlightMonthlyCreditCard({
+  balance,
+  ledgers,
+  copy,
+  formatLocale,
+  isLoading,
+  hasError,
+  onRetry,
+}: {
+  balance: number;
+  ledgers: MonthlyCreditLedgerItem[];
+  copy: PointsPageCopy;
+  formatLocale: string;
+  isLoading: boolean;
+  hasError: boolean;
+  onRetry: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
+            <h2 className="mt-2 text-2xl font-black text-white">월정석의 흐름을 불러오는 중이에요</h2>
+            <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
+              달빛 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
+            </p>
+          </div>
+          <div className="moonstone-counter flex min-h-[168px] min-w-[196px] flex-col items-center justify-center rounded-[22px] px-8 py-6 text-center">
+            <p className="moon-loading-orb moonstone-counter__symbol text-4xl font-black">✦</p>
+            <p className="moonstone-counter__label mt-3 text-sm font-black text-white">달빛 확인 중</p>
+            <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">잠시만 기다려 주세요</p>
+          </div>
+        </div>
+        <div className="mt-6 space-y-3 border-t border-[color:var(--moon-rim)] pt-5">
+          <div className="moon-loading-line h-4 w-40 rounded-full" />
+          <div className="moon-loading-line h-20 rounded-[18px]" />
+        </div>
+      </section>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
+        <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
+          <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 정보 대기" />
+          <p className="mt-3 text-base font-black text-white">월정석의 달빛이 잠시 흐려졌어요</p>
+          <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
+            잔량과 사용 내역은 곧 다시 확인할 수 있어요.
+          </p>
+          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
+            다시 확인하기
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
+          <h2 className="mt-2 text-2xl font-black text-white">월정석이란?</h2>
+          <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
+            특별한 날, 카카오톡 공유, 운영 이벤트를 통해서만 얻을 수 있는 보너스 재화입니다. 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {["특별한 날", "카카오톡 공유", "운영 이벤트"].map((source) => (
+              <span key={source} className="moonstone-source-pill rounded-full px-3 py-1 text-xs font-black">
+                ✦ {source}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="moonstone-counter flex min-h-[178px] min-w-[206px] flex-col items-center justify-center rounded-[24px] px-8 py-6 text-center">
+          <p className="moonstone-counter__symbol text-base font-black">✦</p>
+          <p className="moonstone-counter__value mt-1 text-5xl font-black leading-none">{Math.max(0, Math.floor(Number(balance || 0))).toLocaleString(formatLocale)}</p>
+          <p className="moonstone-counter__label mt-3 text-sm font-black text-white">현재 사용 가능</p>
+          <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">이벤트 전용 재화</p>
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-[color:var(--moon-rim)] pt-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-base font-black text-white">월정석 사용 내역</h3>
+          <span className="text-xs font-bold text-[color:var(--moon-mist)]">최근 {Math.min(ledgers.length, 8)}건</span>
+        </div>
+        {ledgers.length === 0 ? (
+          <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
+            <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 사용 내역 없음" />
+            <p className="mt-3 text-base font-black text-white">아직 달빛이 흐르지 않았어요</p>
+            <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
+              달빛 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {ledgers.slice(0, 8).map((entry) => {
+              const isSpend = entry.type === "MONTHLY_CREDIT_SPEND";
+              return (
+                <div key={entry.id} className="moonstone-ledger-row grid gap-2 rounded-[16px] px-4 py-3 text-sm text-[color:var(--moon-silver)] sm:grid-cols-[110px_1fr_auto]">
+                  <span className={`w-fit rounded-full border px-2 py-0.5 text-xs font-black ${isSpend ? "border-rose-300/50 text-rose-100" : "border-teal-300/50 text-teal-100"}`}>
+                    {formatMonthlyCreditLedgerType(entry.type)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-black text-white">{formatMonthlyCreditLedgerReason(entry)}</span>
+                    <span className="block text-xs text-[color:var(--moon-mist)]">
+                      {formatDateTime(entry.createdAt, formatLocale)} · {formatMonthlyCreditValue(Number(entry.afterBalance || 0), copy, formatLocale)}
+                    </span>
+                  </span>
+                  <span className={`font-black ${isSpend ? "text-rose-100" : "text-[color:var(--moon-teal)]"}`}>
+                    {formatMonthlyCreditLedgerAmount(entry, copy, formatLocale)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MoonlightShopPlans({
+  subscription,
+  onSubscribe,
+  onCancelSubscription,
+  isProcessing,
+  highlightedPlan,
+  copy,
+  formatLocale,
+}: {
+  subscription: SubscriptionStatus;
+  onSubscribe: (plan: SubscriptionPlan) => void;
+  onCancelSubscription: (resume: boolean) => void;
+  isProcessing: boolean;
+  highlightedPlan: "standard" | "premium" | "vvip" | "family" | null;
+  copy: PointsPageCopy;
+  formatLocale: string;
+}) {
+  const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
+
+  return (
+    <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
+      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
+          <h2 className="mt-2 text-2xl font-black text-white">판매 중인 달빛 이용권</h2>
+        </div>
+        {subscription.isActive && subscription.tier !== "free" ? (
+          <button
+            type="button"
+            disabled={isProcessing}
+            onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
+            className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            이용권 상태 확인
+          </button>
+        ) : null}
+      </div>
+
+      <div className="grid gap-4">
+        {SUBSCRIPTION_PLANS.map((plan) => {
+          const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
+          const isHighlighted = highlightedPlan === plan.tier;
+          const planTierRank = getSubscriptionTierRank(plan.tier);
+          const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
+          const ctaDisabled = isProcessing || lowerTierBlocked;
+          const features = plan.features.slice(0, 3).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
+
+          return (
+            <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
+              <div className="grid gap-4 sm:grid-cols-[82px_1fr_auto] sm:items-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-[20px] border border-[color:var(--moon-rim)] bg-[rgba(8,9,26,0.42)]">
+                  <MoonIcon phase={getMoonlightPlanPhase(plan)} className="h-16 w-16" title={copy.planTitles[plan.tier]} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-black text-white">{copy.planTitles[plan.tier]}</h3>
+                    {plan.badge && !isCurrentActive ? (
+                      <span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-family)]">
+                        {copy.planBadges[plan.badge] || plan.badge}
+                      </span>
+                    ) : null}
+                    {isCurrentActive ? (
+                      <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">월정석 또는 원화로 구매하는 30일 이용권</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
+                      {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
+                    </span>
+                    {features.map((feature) => (
+                      <span key={feature} className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-mist)]">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
+                  <p className="text-2xl font-black text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p>
+                  <button
+                    type="button"
+                    onClick={() => onSubscribe(plan)}
+                    disabled={ctaDisabled}
+                    className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  >
+                    {isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
+                  </button>
+                  {lowerTierBlocked ? (
+                    <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
+                  ) : null}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MoonlightOrderHistory({
+  payments,
+  cancelingPaymentId,
+  requestCancelPayment,
+  copy,
+  formatLocale,
+  isLoading,
+  hasError,
+  onRetry,
+}: {
+  payments: PaymentHistoryItem[];
+  cancelingPaymentId: string | null;
+  requestCancelPayment: (payment: PaymentHistoryItem) => void;
+  copy: PointsPageCopy;
+  formatLocale: string;
+  isLoading: boolean;
+  hasError: boolean;
+  onRetry: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <section className="moon-card rounded-[24px] p-5 sm:p-6">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
+          <span className="text-xs font-bold text-[color:var(--moon-mist)]">달빛 주문 기록 확인 중</span>
+        </div>
+        <div className="space-y-3">
+          <div className="moon-loading-line h-24 rounded-[18px]" />
+          <div className="moon-loading-line h-24 rounded-[18px]" />
+        </div>
+      </section>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <section className="moon-card rounded-[24px] p-5 sm:p-6">
+        <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
+          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 대기" />
+          <p className="mt-3 text-base font-black text-white">주문 내역의 달빛이 잠시 가려졌어요</p>
+          <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
+            결제 기능은 그대로 유지되며, 내역은 잠시 뒤 다시 확인할 수 있어요.
+          </p>
+          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
+            다시 확인하기
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="moon-card rounded-[24px] p-5 sm:p-6">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
+        <span className="text-xs font-bold text-[color:var(--moon-mist)]">주문시각 / 결제시각 / 승인번호 / 영수증</span>
+      </div>
+      {payments.length === 0 ? (
+        <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
+          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 없음" />
+          <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
+          <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
+            이용권 주문 내역이 이곳에 차분히 쌓입니다.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {payments.map((payment) => {
+            const statusMeta = mapPaymentStatusLabel(payment.status, copy);
+            const canCancel = payment.status === "success";
+            return (
+              <div key={payment.id} className="rounded-[18px] border border-[color:var(--moon-rim)] bg-[rgba(21,24,64,0.78)] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-base font-black text-white">{formatWon(payment.paymentAmount, copy, formatLocale)}</p>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusMeta.cls}`}>{statusMeta.label}</span>
+                </div>
+                <div className="mt-3 grid gap-1 text-xs font-semibold text-[color:var(--moon-mist)] sm:grid-cols-2">
+                  <p>주문시각: {formatDateTime(payment.createdAt || payment.updatedAt, formatLocale)}</p>
+                  <p>결제시각: {formatPaymentTimeLabel(payment, copy, formatLocale)}</p>
+                  <p>최근변경: {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt, formatLocale)}</p>
+                  <p>결제수단: {formatPaymentMethodLabel(payment, copy)}</p>
+                  <p>승인번호: {payment.approvalNumber || "-"}</p>
+                  <p>주문번호: {payment.merchantUid || "-"}</p>
+                  <p>결제ID: {payment.impUid || "-"}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {payment.receiptUrl ? (
+                    <a href={payment.receiptUrl} target="_blank" rel="noreferrer" className="btn-moonlight-ghost inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-black">
+                      영수증 보기
+                    </a>
+                  ) : (
+                    <span className="text-xs font-bold text-[color:var(--moon-mist)]">영수증 URL 미제공</span>
+                  )}
+                  <button
+                    type="button"
+                    disabled={!canCancel || cancelingPaymentId === payment.id}
+                    onClick={() => requestCancelPayment(payment)}
+                    className="inline-flex min-h-9 items-center rounded-lg border border-rose-300/45 bg-rose-400/10 px-3 text-xs font-black text-rose-100 transition-colors hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MoonlightPaymentNotice() {
+  return (
+    <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
+    </section>
+  );
+}
 
 function PackageCard({
   pkg,
@@ -2067,6 +2597,8 @@ export default function PointsPage() {
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
+  const [pointStateStatus, setPointStateStatus] = useState<PointStateStatus>("idle");
+  const [pointStateError, setPointStateError] = useState<string | null>(null);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -2334,10 +2866,16 @@ export default function PointsPage() {
   useEffect(() => {
     if (isBooting) return;
 
-    fetchMyPointState().catch((error) => {
-      pushToast("error", getErrorMessage(error, "결제 및 이용권 정보를 불러오지 못했습니다."));
+    setPointStateStatus("loading");
+    setPointStateError(null);
+    fetchMyPointState().then(() => {
+      setPointStateStatus("ready");
+    }).catch((error) => {
+      setPointStateStatus("error");
+      setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
+      console.warn("[points-page] shop summary unavailable", error);
     });
-  }, [fetchMyPointState, isBooting, pushToast]);
+  }, [fetchMyPointState, isBooting]);
 
   /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
@@ -2891,7 +3429,7 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      setProcessingStage("단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
+      setProcessingStage("원화 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
       await closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
@@ -3326,12 +3864,25 @@ export default function PointsPage() {
     ? calculateSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
     : 0;
   const canUseMonthlyCreditForPendingSubscription = pendingSubscriptionMonthlyCreditCost > 0 && monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost;
+  const pointStateIsLoading = pointStateStatus === "idle" || pointStateStatus === "loading";
+  const pointStateHasError = pointStateStatus === "error" || Boolean(pointStateError);
+  const retryPointState = () => {
+    setPointStateStatus("loading");
+    setPointStateError(null);
+    fetchMyPointState().then(() => {
+      setPointStateStatus("ready");
+    }).catch((error) => {
+      setPointStateStatus("error");
+      setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
+      console.warn("[points-page] shop summary retry failed", error);
+    });
+  };
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <main
-      className="relative min-h-screen overflow-hidden px-4 py-8 text-slate-100"
-      style={{ background: "linear-gradient(160deg, #071126 0%, #151a3d 38%, #261948 70%, #3e2d66 100%)" }}
+      className="moon-shop relative min-h-screen overflow-hidden px-4 py-8 text-slate-100"
+      style={{ background: "radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A" }}
     >
       {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -3385,7 +3936,7 @@ export default function PointsPage() {
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
               <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
-              <p className="mt-1 font-bold text-[#f3dd9a]">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
+              <p className="mt-1 font-bold text-[#f3dd9a]">월정석 또는 원화 결제로 30일 혜택을 활성화할 수 있습니다.</p>
               <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다.</p>
               <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
@@ -3413,7 +3964,7 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">원화 단건 결제</span>
+                <span className="block text-sm font-black">원화 결제</span>
                 <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
               </button>
               <button
@@ -3449,6 +4000,45 @@ export default function PointsPage() {
 
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
+        <MoonlightShopHero />
+        <MoonlightActivePassCard
+          subscription={subscription}
+          formatLocale={formatLocale}
+          isProcessing={isProcessing}
+          onCancelSubscription={handleSubscriptionCancel}
+        />
+        <MoonlightMonthlyCreditCard
+          balance={monthlyStoneBalance}
+          ledgers={monthlyCreditLedgers}
+          copy={copy}
+          formatLocale={formatLocale}
+          isLoading={pointStateIsLoading}
+          hasError={pointStateHasError}
+          onRetry={retryPointState}
+        />
+        <MoonlightShopPlans
+          subscription={subscription}
+          onSubscribe={setPendingSubscriptionPaymentPlan}
+          onCancelSubscription={handleSubscriptionCancel}
+          isProcessing={isProcessing}
+          highlightedPlan={landingPlanPreset}
+          copy={copy}
+          formatLocale={formatLocale}
+        />
+        <MoonlightPaymentNotice />
+        <MoonlightOrderHistory
+          payments={paymentHistory}
+          cancelingPaymentId={cancelingPaymentId}
+          requestCancelPayment={requestCancelPayment}
+          copy={copy}
+          formatLocale={formatLocale}
+          isLoading={pointStateIsLoading}
+          hasError={pointStateHasError}
+          onRetry={retryPointState}
+        />
+
+        {false && (
+        <>
 
         {/* ① 헤더 카드 */}
         <header className="overflow-hidden rounded-[24px] border border-white/16 bg-[#0b1028]/92 shadow-[0_18px_46px_rgba(7,10,28,0.42)] backdrop-blur">
@@ -3484,7 +4074,7 @@ export default function PointsPage() {
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
-                    모든 신규 판매 이용권은 자동결제가 아닌 30일 이용권입니다.
+                    월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -3545,7 +4135,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          일반 유료 서비스는 이용권 한도 이하일 때만 이용권으로 열립니다. 한도 초과 서비스와 PDF 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
@@ -3626,6 +4216,9 @@ export default function PointsPage() {
         </section>
 
         {/* ⑥ 섹션 구분선 — 계정 설정 */}
+        </>
+        )}
+
         <div className="flex items-center gap-3 px-1 pt-2">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent opacity-40" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500">

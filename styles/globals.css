@@ -411,3 +411,448 @@
 		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
 	}
 }
+
+.moon-shop {
+	--moon-void: #08091A;
+	--moon-deep: #0E1030;
+	--moon-surface: #151840;
+	--moon-rim: #2A2F6E;
+	--moon-silver: #C8CEFF;
+	--moon-mist: #7B82C4;
+	--moon-glow: #A78BFA;
+	--moon-gold: #F4C86A;
+	--moon-teal: #5EEAD4;
+	--moon-family: #818CF8;
+	background: var(--moon-void);
+	color: var(--moon-silver);
+	font-family: var(--font-body), var(--font-sans), system-ui, sans-serif;
+	letter-spacing: 0;
+}
+
+body:has(main.moon-shop) header:not(.moon-shop-hero),
+body:has(main.moon-shop) footer,
+body:has(main.moon-shop) [role="banner"],
+body:has(main.moon-shop) [role="contentinfo"],
+body:has(main.moon-shop) [role="note"] {
+	display: none !important;
+}
+
+.moon-shop h1,
+.moon-shop h2,
+.moon-shop h3,
+.moon-shop button,
+.moon-shop a {
+	font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+	letter-spacing: 0;
+}
+
+.moon-shop [class*="tracking-"] {
+	letter-spacing: 0 !important;
+}
+
+.moon-shop-hero h1 {
+	font-family: var(--font-decorative), var(--font-display), system-ui, sans-serif;
+	font-weight: 800;
+	text-shadow: 0 0 26px rgba(200, 206, 255, 0.28);
+}
+
+.moon-card h2,
+.moon-card h3,
+.moon-plan-card h3 {
+	font-family: var(--font-premium), var(--font-display), system-ui, sans-serif;
+}
+
+.moon-shop .moon-benefit-cell,
+.moon-shop .moon-family-badge,
+.moon-shop .btn-moonlight,
+.moon-shop .btn-moonlight-ghost {
+	font-family: var(--font-playful), var(--font-display), system-ui, sans-serif;
+}
+
+.moon-shop-hero {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(42, 47, 110, 0.86);
+	border-radius: 0 0 28px 28px;
+	background: radial-gradient(ellipse 120% 60% at 50% -10%, #1e1b60 0%, #08091A 70%);
+	box-shadow: 0 24px 70px rgba(3, 4, 18, 0.54);
+}
+
+.moon-shop-hero::after {
+	content: "";
+	position: absolute;
+	inset: auto 0 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.8), transparent);
+}
+
+.moon-shop-stars {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.moon-shop-stars span,
+.moon-phase-stars span {
+	position: absolute;
+	width: 3px;
+	height: 3px;
+	border-radius: 999px;
+	background: #C8CEFF;
+	box-shadow: 0 0 12px rgba(200, 206, 255, 0.86);
+	animation: moonStarFloat 4.8s ease-in-out infinite;
+}
+
+.moon-shop-stars span:nth-child(1) { left: 12%; top: 76%; animation-delay: 0s; }
+.moon-shop-stars span:nth-child(2) { left: 31%; top: 84%; animation-delay: 0.7s; }
+.moon-shop-stars span:nth-child(3) { left: 53%; top: 79%; animation-delay: 1.4s; }
+.moon-shop-stars span:nth-child(4) { left: 76%; top: 86%; animation-delay: 2.1s; }
+.moon-shop-stars span:nth-child(5) { left: 88%; top: 72%; animation-delay: 2.8s; }
+
+.moon-shop-visual {
+	position: relative;
+	display: grid;
+	width: 92px;
+	height: 92px;
+	flex: 0 0 auto;
+	place-items: center;
+	border-radius: 24px;
+	border: 1px solid rgba(200, 206, 255, 0.24);
+	background:
+		radial-gradient(circle at 35% 24%, rgba(248, 250, 255, 0.26), transparent 26%),
+		radial-gradient(circle at 62% 72%, rgba(94, 234, 212, 0.18), transparent 34%),
+		linear-gradient(145deg, rgba(21, 24, 64, 0.94), rgba(8, 9, 26, 0.92));
+	box-shadow:
+		0 18px 34px rgba(3, 4, 18, 0.36),
+		0 0 34px rgba(167, 139, 250, 0.24),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.moon-shop-visual-moon {
+	position: relative;
+	z-index: 2;
+	width: 66px;
+	height: 66px;
+	filter: drop-shadow(0 0 18px rgba(200, 206, 255, 0.46));
+	animation: moonVisualDrift 5.8s ease-in-out infinite;
+}
+
+.moon-shop-visual-ring {
+	position: absolute;
+	inset: 13px;
+	border-radius: 999px;
+	border: 1px solid rgba(167, 139, 250, 0.28);
+	animation: moonVisualSpin 16s linear infinite;
+}
+
+.moon-shop-visual-ring--two {
+	inset: 22px 10px;
+	border-color: rgba(94, 234, 212, 0.22);
+	animation-duration: 22s;
+	animation-direction: reverse;
+}
+
+.moon-shop-visual-spark {
+	position: absolute;
+	z-index: 3;
+	width: 5px;
+	height: 5px;
+	border-radius: 999px;
+	background: #F4C86A;
+	box-shadow: 0 0 14px rgba(244, 200, 106, 0.82);
+	animation: moonStarFloat 4.6s ease-in-out infinite;
+}
+
+.moon-shop-visual-spark--one { left: 18px; top: 17px; animation-delay: 0.2s; }
+.moon-shop-visual-spark--two { right: 15px; top: 30px; width: 4px; height: 4px; animation-delay: 1.3s; }
+.moon-shop-visual-spark--three { right: 25px; bottom: 17px; width: 3px; height: 3px; animation-delay: 2.4s; }
+
+.moon-card {
+	border: 1px solid rgba(42, 47, 110, 0.88);
+	background: linear-gradient(180deg, rgba(14, 16, 48, 0.98), rgba(9, 10, 31, 0.96));
+	box-shadow: 0 18px 46px rgba(3, 4, 18, 0.42);
+}
+
+.moon-active-card {
+	position: relative;
+	overflow: hidden;
+	border-color: rgba(129, 140, 248, 0.72);
+}
+
+.moon-active-card::before {
+	content: "";
+	position: absolute;
+	inset: -1px;
+	pointer-events: none;
+	background: linear-gradient(120deg, rgba(167, 139, 250, 0.18), transparent 34%, rgba(94, 234, 212, 0.1));
+}
+
+.moon-family-badge {
+	background: linear-gradient(135deg, rgba(129, 140, 248, 0.94), rgba(200, 206, 255, 0.9));
+	color: #08091A;
+	box-shadow: 0 0 18px rgba(129, 140, 248, 0.32);
+}
+
+.moon-phase-panel {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(42, 47, 110, 0.86);
+	background: radial-gradient(circle at 16% 24%, rgba(167, 139, 250, 0.2), transparent 32%), var(--moon-surface);
+}
+
+.moon-phase-stars span:nth-child(1) { right: 18%; top: 18%; animation-delay: 0s; }
+.moon-phase-stars span:nth-child(2) { right: 8%; top: 48%; animation-delay: 1.2s; }
+.moon-phase-stars span:nth-child(3) { right: 24%; bottom: 18%; animation-delay: 2.2s; }
+
+.moon-benefit-cell {
+	border: 1px solid var(--moon-rim);
+	background: rgba(21, 24, 64, 0.86);
+	transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.moon-benefit-cell:hover {
+	border-color: var(--moon-glow);
+	background: rgba(21, 24, 64, 0.98);
+	transform: translateY(-1px);
+}
+
+.moon-plan-card {
+	border: 1px solid rgba(42, 47, 110, 0.88);
+	background: linear-gradient(135deg, rgba(21, 24, 64, 0.98), rgba(14, 16, 48, 0.96));
+	transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.moon-plan-card:hover {
+	border-color: rgba(167, 139, 250, 0.76);
+	transform: translateY(-2px);
+	box-shadow: 0 20px 44px rgba(10, 11, 37, 0.48), 0 0 20px rgba(167, 139, 250, 0.16);
+}
+
+.moonstone-counter {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	background:
+		radial-gradient(circle at 50% 35%, rgba(255, 232, 151, 0.34) 0%, rgba(244, 200, 106, 0.12) 28%, transparent 52%),
+		radial-gradient(circle at 50% 100%, rgba(167, 139, 250, 0.24), transparent 52%),
+		linear-gradient(155deg, rgba(42, 31, 0, 0.96) 0%, rgba(14, 16, 48, 0.98) 70%);
+	border: 1px solid #F4C86A66;
+	box-shadow:
+		0 0 20px #F4C86A22,
+		0 18px 38px rgba(3, 4, 18, 0.36),
+		inset 0 1px 0 rgba(255, 255, 255, 0.14);
+	color: var(--moon-gold);
+}
+
+.moonstone-counter::before,
+.moonstone-counter::after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+
+.moonstone-counter::before {
+	inset: 14px;
+	z-index: -1;
+	border-radius: 999px;
+	border: 1px solid rgba(244, 200, 106, 0.2);
+	box-shadow: inset 0 0 26px rgba(244, 200, 106, 0.16);
+	animation: moonstoneHaloBreathe 3.8s ease-in-out infinite;
+}
+
+.moonstone-counter::after {
+	left: -18%;
+	top: -34%;
+	width: 72%;
+	height: 120%;
+	background: linear-gradient(110deg, transparent 12%, rgba(255, 255, 255, 0.18) 48%, transparent 76%);
+	transform: rotate(12deg);
+	animation: moonstoneSheen 5.6s ease-in-out infinite;
+}
+
+.moonstone-counter__symbol {
+	position: relative;
+	z-index: 1;
+	font-family: var(--font-decorative), var(--font-display), system-ui, sans-serif;
+	text-shadow: 0 0 18px rgba(244, 200, 106, 0.72);
+}
+
+.moonstone-counter__value {
+	position: relative;
+	z-index: 1;
+	font-family: var(--font-premium), var(--font-display), system-ui, sans-serif;
+	text-shadow:
+		0 0 16px rgba(244, 200, 106, 0.42),
+		0 0 34px rgba(167, 139, 250, 0.2);
+}
+
+.moonstone-counter__label,
+.moonstone-counter__note {
+	position: relative;
+	z-index: 1;
+}
+
+.moonstone-source-pill {
+	border: 1px solid rgba(244, 200, 106, 0.34);
+	background: linear-gradient(135deg, rgba(244, 200, 106, 0.13), rgba(167, 139, 250, 0.11));
+	color: #F8E8A9;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+	font-family: var(--font-playful), var(--font-display), system-ui, sans-serif;
+}
+
+.moonstone-ledger-row {
+	border: 1px solid rgba(42, 47, 110, 0.92);
+	background:
+		radial-gradient(circle at 6% 12%, rgba(244, 200, 106, 0.12), transparent 28%),
+		rgba(21, 24, 64, 0.74);
+	transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.moonstone-ledger-row:hover {
+	border-color: rgba(244, 200, 106, 0.54);
+	transform: translateY(-1px);
+	box-shadow: 0 14px 28px rgba(3, 4, 18, 0.26);
+}
+
+.moon-empty {
+	border: 1px dashed rgba(123, 130, 196, 0.48);
+	background: rgba(8, 9, 26, 0.44);
+}
+
+.moon-loading-line {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(42, 47, 110, 0.58);
+	background: linear-gradient(90deg, rgba(21, 24, 64, 0.72), rgba(42, 47, 110, 0.52), rgba(21, 24, 64, 0.72));
+	background-size: 220% 100%;
+	animation: moonLoadingSweep 1.8s ease-in-out infinite;
+}
+
+.moon-loading-orb {
+	color: var(--moon-gold);
+	text-shadow: 0 0 18px rgba(244, 200, 106, 0.62);
+	animation: moonLoadingPulse 1.8s ease-in-out infinite;
+}
+
+.btn-moonlight {
+	background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+	border: 1px solid #A78BFA44;
+	box-shadow: 0 0 12px #7C3AED44;
+	color: white;
+	transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-moonlight:hover:not(:disabled) {
+	box-shadow: 0 0 24px #7C3AED88;
+	transform: translateY(-1px);
+}
+
+.btn-moonlight-ghost {
+	background: transparent;
+	border: 1px solid #2A2F6E;
+	color: var(--moon-silver);
+	transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-moonlight-ghost:hover:not(:disabled) {
+	border-color: #A78BFA;
+	color: #A78BFA;
+	transform: translateY(-1px);
+}
+
+@keyframes moonStarFloat {
+	0%, 100% {
+		opacity: 0.26;
+		transform: translate3d(0, 0, 0) scale(0.82);
+	}
+	50% {
+		opacity: 1;
+		transform: translate3d(0, -8px, 0) scale(1.18);
+	}
+}
+
+@keyframes moonVisualDrift {
+	0%, 100% {
+		transform: translate3d(0, 0, 0) rotate(-2deg);
+	}
+	50% {
+		transform: translate3d(0, -4px, 0) rotate(2deg);
+	}
+}
+
+@keyframes moonVisualSpin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes moonLoadingSweep {
+	0%, 100% {
+		background-position: 0% 50%;
+		opacity: 0.68;
+	}
+	50% {
+		background-position: 100% 50%;
+		opacity: 1;
+	}
+}
+
+@keyframes moonLoadingPulse {
+	0%, 100% {
+		opacity: 0.54;
+		transform: scale(0.94);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.06);
+	}
+}
+
+@keyframes moonstoneHaloBreathe {
+	0%, 100% {
+		opacity: 0.48;
+		transform: scale(0.97);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.04);
+	}
+}
+
+@keyframes moonstoneSheen {
+	0%, 42%, 100% {
+		opacity: 0;
+		transform: translateX(-20%) rotate(12deg);
+	}
+	58% {
+		opacity: 1;
+		transform: translateX(160%) rotate(12deg);
+	}
+}
+
+@media (max-width: 640px) {
+	.moon-shop-hero {
+		border-radius: 0 0 22px 22px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moon-shop-stars span,
+	.moon-phase-stars span,
+	.moon-shop-visual-moon,
+	.moon-shop-visual-ring,
+	.moon-shop-visual-spark,
+	.moon-loading-line,
+	.moon-loading-orb,
+	.moonstone-counter::before,
+	.moonstone-counter::after,
+	.moon-benefit-cell,
+	.moonstone-ledger-row,
+	.moon-plan-card,
+	.btn-moonlight,
+	.btn-moonlight-ghost {
+		animation: none;
+		transition: none;
+	}
+}

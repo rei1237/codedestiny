@@ -201,19 +201,25 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       {
         featureKey: "saju_new_year_pdf",
-        reason: "사주 신년운세 PDF 리포트 생성",
+        reason: "사주 신년운세 AI 상담",
         minCost: 300,
         windowMinutes: 120,
       },
       {
         featureKey: "premium_pdf_saju_new_year",
-        reason: "사주 신년운세 PDF 리포트 생성",
+        reason: "사주 신년운세 AI 상담",
         minCost: 300,
         windowMinutes: 120,
       },
       {
         featureKey: "premium-saju-newyear-report",
-        reason: "사주 신년운세 PDF 리포트 생성",
+        reason: "사주 신년운세 AI 상담",
+        minCost: 300,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "사주 신년운세 AI 상담",
         minCost: 300,
         windowMinutes: 120,
       },
