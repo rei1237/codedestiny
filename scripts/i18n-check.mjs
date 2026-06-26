@@ -69,9 +69,29 @@ function findInvalidValues(flat) {
       if (typeof value !== "string") return false;
       if (!value.trim()) return true;
       if (value.includes("\uFFFD")) return true;
+      if (/__CD(?:ITEM|PH)\d*__/i.test(value)) return true;
+      if (/\?{2,}|\?\{|\}\?/.test(value)) return true;
       return /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(value);
     })
     .map(([key]) => key);
+}
+
+function extractPlaceholders(value) {
+  if (typeof value !== "string") return [];
+  return [...value.matchAll(/\{[A-Za-z0-9_.-]+\}/g)].map((match) => match[0]).sort();
+}
+
+function findPlaceholderMismatches(baseFlat, localeFlat) {
+  const mismatches = [];
+  for (const [key, baseValue] of Object.entries(baseFlat)) {
+    const basePlaceholders = extractPlaceholders(baseValue);
+    if (!basePlaceholders.length) continue;
+    const localePlaceholders = extractPlaceholders(localeFlat[key]);
+    if (basePlaceholders.join("\u0000") !== localePlaceholders.join("\u0000")) {
+      mismatches.push(key);
+    }
+  }
+  return mismatches;
 }
 
 function extractServiceMapLocalizedGaps(source) {
@@ -114,11 +134,13 @@ for (const fileName of localeFiles) {
   const missing = baseKeys.filter((key) => !(key in flat));
   const extra = keys.filter((key) => !(key in baseFlat));
   const invalid = findInvalidValues(flat);
+  const placeholderMismatches = findPlaceholderMismatches(baseFlat, flat);
   const missingNativeKeys = nativeMarkerKeys.filter((key) => typeof valueAtPath(json, key) !== "string");
 
   if (missing.length) failures.push(`${fileName} missing keys: ${missing.slice(0, 20).join(", ")}`);
   if (extra.length) failures.push(`${fileName} extra keys: ${extra.slice(0, 20).join(", ")}`);
   if (invalid.length) failures.push(`${fileName} invalid values: ${invalid.slice(0, 20).join(", ")}`);
+  if (placeholderMismatches.length) failures.push(`${fileName} placeholder mismatches: ${placeholderMismatches.slice(0, 20).join(", ")}`);
   if (missingNativeKeys.length) failures.push(`${fileName} missing native marker keys: ${missingNativeKeys.slice(0, 20).join(", ")}`);
 }
 

@@ -52,26 +52,26 @@
       "yeonStarHugMeta": "情緒星光練習",
       "nevilleName": "內維爾冥想",
       "nevilleMeta": "現實創造練習",
-      "tarotAria": "Go to Tarot",
-      "oracleAria": "Go to Oracles",
-      "astrologyAria": "Go to Astrology",
-      "ziweiAria": "Go to Zi Wei Dou Shu",
-      "vedicAria": "Go to Vedic Astrology",
-      "ichingAria": "Go to I Ching",
-      "sukuyoCalendarAria": "Go to the 27 Mansions calendar",
-      "sukuyoCalendarName": "27 Mansions Calendar",
-      "sukuyoCalendarMeta": "Daily Sukuyo flow",
-      "yeonStarHugAria": "Go to Yeoni's Heart Constellation",
-      "nevilleAria": "Go to Neville Meditation"
+      "tarotAria": "进入塔罗牌",
+      "oracleAria": "转到 Oracle",
+      "astrologyAria": "轉到占星術",
+      "ziweiAria": "前往紫微斗数",
+      "vedicAria": "前往吠陀占星学",
+      "ichingAria": "转到《易经》",
+      "sukuyoCalendarAria": "前往 27 宅邸日曆",
+      "sukuyoCalendarName": "27 豪宅日历",
+      "sukuyoCalendarMeta": "每日 Sukuyo 流量",
+      "yeonStarHugAria": "前往 Yeoni 的心星座",
+      "nevilleAria": "進行內維爾冥想"
     },
     "music": {
-      "title": "Moonlit playlist, now with DEST1NOVA Vol. 2",
-      "desc": "DEST1NOVA's 20 new starlit songs now flow with Neo, Yeoni, and Luna Bloom.",
-      "hint": "? 89 moonlit tracks",
-      "aria": "Code Destiny moon music player",
-      "coverAria": "Go to music listening mode",
-      "cta": "Music listening mode",
-      "filterAria": "Playlist filter"
+      "title": "Moonlit 播放列表，現在包含 DEST1NOVA Vol. 1。 2",
+      "desc": "DEST1NOVA 的 20 首新星歌曲現在由 Neo、Yeoni 和 Luna Bloom 演唱。",
+      "hint": "♪ 89 首月光下的曲目",
+      "aria": "代码命运月亮音乐播放器",
+      "coverAria": "進入音樂聆聽模式",
+      "cta": "音樂聆聽模式",
+      "filterAria": "播放清單過濾器"
     },
     "mapIntro": {
       "title": "月光地圖上，命運之門正緩緩開啟",
@@ -80,7 +80,7 @@
       "chipOracle": "神諭",
       "chipFlower": "花與夢",
       "chipPremium": "進階報告",
-      "kicker": "DESTINY CARD COLLECTION"
+      "kicker": "命運卡系列"
     },
     "input": {
       "title": "用八字讀懂此刻的流向",
@@ -107,7 +107,7 @@
       "kakaoEvent": "Kakao分享活動",
       "kakaoEventSub": "建立好友邀請連結",
       "referralNote": "可透過你的月光邀請連結邀請好友。",
-      "loadingKicker": "DESTINY CARD",
+      "loadingKicker": "命運卡",
       "loadingTitle": "正在照亮命運卡綻放的位置。",
       "loadingDesc": "正在對齊已儲存出生日期的星光。",
       "loadingAction": "正在開啟你的命運卡",
@@ -122,7 +122,7 @@
       "kakaoEventAria": "创建Kakao分享活动链接"
     },
     "startSection": {
-      "kicker": "TODAY CARDS",
+      "kicker": "今天卡",
       "title": "今日可以開啟的免費命運卡",
       "lead": "即使是第一次來到這裡，也可以從月光下最輕盈的一張牌開始。"
     },
@@ -143,11 +143,11 @@
       "sukuyoTitle": "宿曜",
       "sukuyoDesc": "先確認本命宿、氣質與今日可參考的月之節奏。",
       "sukuyoCta": "查看免費宿曜",
-      "freeBadge": "Collection No. {index} ? Free",
-      "ziweiAria": "Go to the Zi Wei Dou Shu chart",
-      "vedicAria": "Go to the Vedic reading",
-      "astrologyAria": "Go to the Western astrology birth chart",
-      "sukuyoAria": "Go to the Sukuyo reading"
+      "freeBadge": "收藏號 {index} · 免費",
+      "ziweiAria": "前往紫微鬥數圖",
+      "vedicAria": "閱讀吠陀經",
+      "astrologyAria": "前往西方占星出生圖",
+      "sukuyoAria": "前往 Sukuyo 閱讀"
     },
     "collectionHeaders": {
       "animal": {
@@ -155,56 +155,56 @@
         "subtitle": "喚醒你內在沉睡的野性本能",
         "lede": "結合臉型、性格與八字訊號，一次看見你的本能角色與關係能量。",
         "featureline": "AI動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印",
-        "aria": "Open Face Reading and Symbol Collection"
+        "aria": "開放式臉部閱讀和符號收集"
       },
       "meditation": {
         "title": "冥想合集",
         "subtitle": "用想像與潛意識整理今日能量",
         "lede": "以內維爾·戈達德式想像冥想穩定情緒，並把注意力安放在你想顯化的現實上。",
         "featureline": "內維爾冥想 · 專注呼吸 · 自我暗示 · 現實顯化觀想",
-        "aria": "Open Meditation Collection"
+        "aria": "開放冥想收藏"
       },
       "tarot": {
         "title": "塔羅解讀合集",
         "subtitle": "選擇需要的塔羅，現在開始解讀",
         "lede": "關係、療癒、自我信任、複合、年運與現實選擇，都可透過對應牌陣深入讀取。",
         "featureline": "關係6牌 · 療癒4牌 · 自我信任修復 · 複合運 · 生肖年運 · 命理塔羅",
-        "aria": "Open Tarot Reading Collection"
+        "aria": "開啟塔羅牌占卜寶典"
       },
       "oracle": {
         "title": "神諭與佔術合集",
         "subtitle": "古老智慧今日向你發聲",
         "lede": "放下一個問題，讓東西方象徵解讀交織，為今日整理清晰結論。",
         "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔 · 命運撲克",
-        "aria": "Open Oracle and Divination Collection"
+        "aria": "開放式甲骨文與占卜寶典"
       },
       "cosmic": {
         "title": "宇宙與星座合集",
         "subtitle": "星辰寫下的宇宙命運地圖",
         "lede": "連接行星、星座與宮位，以天體路徑讀取性格與時機。",
         "featureline": "西洋占星 · 紫微鬥數 · 吠陀占星 · 奧林匹斯星座神諭",
-        "aria": "Open Cosmic and Zodiac Collection"
+        "aria": "開放宇宙與黃道帶收藏"
       },
       "flower": {
         "title": "命運之花與夢境合集",
         "subtitle": "用宇宙語言綻放只屬於你的命運",
         "lede": "把八字、占星、紫微鬥數與宿曜結果編織成花的象徵，化為詩意命運報告。",
         "featureline": "命運之花工坊 · 占星花 · 紫微花 · 宿曜花 · 夢境塔羅 · 精神分析解夢",
-        "aria": "Open Destiny Flower and Dream Collection"
+        "aria": "開啟命運花夢收藏"
       },
       "vvip": {
         "title": "VVIP命運書庫",
         "subtitle": "將你的星盤、八字與緣分記錄匯集成一份秘密文檔。",
         "lede": "不只是輕輕看過的運勢，而是深入展開人生、愛情、金錢、關係與轉捩點的高級解讀合輯。",
         "featureline": "紫微鬥數 · 宿曜 · 占星 · 吠陀 · 靈魂業力",
-        "aria": "Open VVIP Destiny Archive"
+        "aria": "開啟 VVIP 命運檔案"
       },
       "misc": {
         "title": "其他佔術合集",
         "subtitle": "從心理測驗到八字FPTI，一次探索",
         "lede": "心理測驗、AI禦神簽、血型測驗、本命推運與八字FPTI，自然連結成一組卡片合集。",
         "featureline": "心理測驗中心 · AI禦神簽 · 血型測驗 · 本命推運 · 八字FPTI",
-        "aria": "Open Other Divination Collection"
+        "aria": "開啟其他占卜收藏"
       },
       "openHint": "點擊開啟"
     },
@@ -219,13 +219,13 @@
       "sajuGuardianDesc": "日柱、五行、六十甲子守護印與7日任務",
       "destinyEggTitle": "🥚 命運之蛋",
       "destinyEggDesc": "只屬於你的運勢夥伴",
-      "fortuneFishTitle": "🐟 Fortune Teller Fish",
+      "fortuneFishTitle": "🐟算命魚",
       "fortuneFishDesc": "免費魚形解讀與幸運護符收藏",
       "palmMapTitle": "🖐 手相地圖",
       "palmMapDesc": "讀取掌心裡的愛情、財富與職業流向。",
       "nevillePracticeTitle": "🧘 內維爾冥想練習",
       "nevillePracticeDesc": "想像創造專注指南",
-      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaTitle": "🪷 Divya 瑜伽",
       "divyaYogaDesc": "個人化冥想瑜珈流程",
       "cosmicSoulMeditationTitle": "🌌 宇宙靈魂冥想",
       "cosmicSoulMeditationDesc": "30/60分鐘現實渲染協議",
@@ -284,7 +284,7 @@
       "destinyFlowerTitle": "🌸 命運之花",
       "destinyFlowerDesc": "從八字綻放的你的花",
       "astrologyFlowerTitle": "✨ 占星之花",
-      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "astrologyFlowerDesc": "太陽·升起·月亮",
       "ziweiFlowerTitle": "🌺 紫微之花",
       "ziweiFlowerDesc": "命宮主星 · 星曜亮度",
       "sukuyoFlowerTitle": "🌙 宿曜之花",
@@ -292,7 +292,7 @@
       "dreamTarotTitle": "🌙 夢境塔羅",
       "dreamTarotDesc": "夢境餘韻3牌解讀",
       "psychoDreamTitle": "🕯️ 精神分析解夢",
-      "psychoDreamDesc": "Freud · British Study",
+      "psychoDreamDesc": "佛洛伊德英國研究",
       "sukuyoPremiumTitle": "宿曜高級合盤",
       "sukuyoPremiumDesc": "獨立於基礎合盤和精密擴展，生成15章諮詢PDF。",
       "ziweiPremiumTitle": "紫微鬥數高級PDF",
@@ -315,193 +315,193 @@
       "favoriteDestinyDesc": "照片卡情緒解讀",
       "sajuFptiTitle": "🔮 八字FPTI測試",
       "sajuFptiDesc": "五行與十神4軸性格分析",
-      "animalFaceAria": "Start AI animal face reading",
-      "animalFaceAlt": "AI animal face reading - face-shape physiognomy from a selfie",
-      "animalFaceBadge": "Face analysis",
-      "animalFacePrice": "Free ? Compatibility KRW 5,000",
-      "freeBadge": "Free",
-      "animalMbtiAria": "Start MBTI animal compatibility",
-      "animalMbtiAlt": "MBTI animal compatibility - 16 totem love matches",
-      "animalTotemAria": "Start animal totem reading",
-      "animalTotemAlt": "Animal totem reading - guardian animal message",
-      "animalTotemBadge": "Totem reading",
-      "animalTotemPrice": "KRW 3,000-6,000",
-      "sajuGuardianAria": "Start Saju Guardian summoning circle",
-      "sajuGuardianAlt": "Saju Guardian summoning circle - 60-gapja guardian seal opened by day, month, and hour branches",
-      "sajuGuardianBadge": "Guardian seal",
-      "sajuGuardianPrice": "Permanent unlock KRW 10,000",
-      "destinyEggAria": "Start Tamagotchi Destiny Egg",
-      "destinyEggAlt": "Tamagotchi Destiny Egg - raise your own saju character",
-      "destinyEggImgAlt": "Tamagotchi Destiny Egg",
-      "fortuneFishAria": "Start Fortune Teller Fish",
-      "fortuneFishAlt": "Fortune Teller Fish - red fish destiny reading in your palm",
-      "palmMapAria": "View the palm destiny map",
-      "palmMapAlt": "Palm destiny map - palm destiny pattern analysis",
-      "palmMapBadge": "View palm",
-      "palmMapMeta": "AI palm reading ? Eastern palmistry ? Destiny map",
-      "animalFaceImgAlt": "AI Animal Face Reading",
-      "animalMbtiImgAlt": "MBTI Animal Compatibility",
-      "animalTotemImgAlt": "Animal Totem",
-      "sajuGuardianImgAlt": "Saju Guardian Seal",
-      "fortuneFishImgAlt": "Fortune Teller Fish",
-      "palmMapImgAlt": "Palm Map",
-      "nevillePracticeAria": "Start Neville Meditation Practice",
-      "nevillePracticeAlt": "Neville Meditation Practice - Focused guide for imaginal creation",
-      "nevillePracticeImgAlt": "Neville Meditation Practice",
-      "divyaYogaAria": "Start Divya Yoga",
-      "divyaYogaAlt": "Divya Yoga - Personal meditation and yoga routine",
-      "divyaYogaImgAlt": "Divya Yoga",
-      "cosmicSoulMeditationAria": "Start Cosmic Soul Meditation",
-      "cosmicSoulMeditationAlt": "Cosmic Soul Meditation - 30 and 60 minute reality rendering protocol",
-      "cosmicSoulMeditationImgAlt": "Cosmic Soul Meditation",
-      "tarotLoveAria": "Start What Are We?",
-      "tarotLoveAlt": "What Are We? - The temperature between words and actions",
-      "tarotLoveImgAlt": "What Are We?",
-      "tarotHealingAria": "Start Warm Sun Healing Tarot",
-      "tarotHealingAlt": "Warm Sun Healing Tarot - Where the heart is tired, and today's light",
-      "tarotHealingImgAlt": "Warm Sun Healing Tarot",
-      "tarotSelfEsteemAria": "Start Self-Trust Recovery Tarot",
-      "tarotSelfEsteemAlt": "Self-Trust Recovery Tarot - 5-card heart-centered reading",
-      "tarotSelfEsteemImgAlt": "Self-Trust Recovery Tarot",
-      "tarotReunionAria": "Start Reunion Lighthouse Tarot",
-      "tarotReunionAlt": "Reunion Lighthouse Tarot - Remaining warmth and a safe distance",
-      "tarotReunionImgAlt": "Reunion Lighthouse Tarot",
-      "tarotPromptMakerAria": "Start Tarot Prompt Library",
-      "tarotPromptMakerAlt": "Tarot Prompt Library - Choose a spread, open cards, complete the reading text",
-      "tarotPromptMakerImgAlt": "Tarot Prompt Library",
-      "tarotYearAria": "Start Zodiac Year Tarot",
-      "tarotYearAlt": "Zodiac Year Tarot - Twelve months of guardian fortune",
-      "tarotYearImgAlt": "Zodiac Year Tarot",
-      "tarotNumerologyAria": "Start Numerology Tarot",
-      "tarotNumerologyAlt": "Numerology Tarot - Life number and day number 5-card reading",
-      "tarotNumerologyImgAlt": "Numerology Tarot",
-      "tarotCareerMoveAria": "Start Career Move Cards",
-      "tarotCareerMoveAlt": "Career Move Cards - 7 cards for what to keep and where to move",
-      "tarotCareerMoveImgAlt": "Career Move Cards",
-      "tarotMindscanAria": "Start Between Words and Actions",
-      "tarotMindscanAlt": "Between Words and Actions - 10 cards for the heart's temperature",
-      "tarotMindscanImgAlt": "Between Words and Actions",
-      "tarotCrystalSoulAria": "Start Crystal Soul Tarot",
-      "tarotCrystalSoulAlt": "Crystal Soul Tarot - Crystal energy reading",
-      "tarotCrystalSoulImgAlt": "Crystal Soul Tarot",
-      "celestialHarmonyAria": "Start Celestial Harmony",
-      "celestialHarmonyAlt": "Celestial Harmony - Tarot woven from the voices of 11 planets",
-      "celestialHarmonyImgAlt": "Celestial Harmony",
-      "sajuTarotAria": "Start Saju Tarot",
-      "sajuTarotAlt": "Saju Tarot - Choice guidance through cards and Ten Gods",
-      "sajuTarotImgAlt": "Saju Tarot",
-      "hwatuAria": "Start Hwatu Fortune",
-      "hwatuAlt": "Hwatu Fortune - Fortune through 12 months of flower cards",
-      "hwatuImgAlt": "Hwatu Fortune",
-      "egyptOracleAria": "Start 𓂀 Egyptian Oracle",
-      "egyptOracleAlt": "𓂀 Egyptian Oracle - Kemet oracle fortune",
-      "egyptOracleImgAlt": "𓂀 Egyptian Oracle",
-      "ifaOracleAria": "Start IFÀ Oracle",
-      "ifaOracleAlt": "IFÀ Oracle - Yoruba 256 Odu oracle",
-      "ifaOracleImgAlt": "IFÀ Oracle",
-      "ichingTurtleAria": "Start ️ I Ching Turtle Oracle",
-      "ichingTurtleAlt": "️ I Ching Turtle Oracle - 64 hexagrams and 3,000 years of wisdom",
-      "ichingTurtleImgAlt": "️ I Ching Turtle Oracle",
-      "runeOracleAria": "Start ᚠ Stonehenge Rune Oracle",
-      "runeOracleAlt": "ᚠ Stonehenge Rune Oracle - Ancient rune symbol reading",
-      "runeOracleImgAlt": "ᚠ Stonehenge Rune Oracle",
-      "geomancyAria": "Start ⟁ Geomancy Earth Oracle",
-      "geomancyAlt": "⟁ Geomancy Earth Oracle - 16 lines of signs from the earth",
-      "geomancyImgAlt": "⟁ Geomancy Earth Oracle",
-      "sikojenAria": "Start Finnish Pig Tin Oracle",
-      "sikojenAlt": "Finnish Pig Tin Oracle - A sweet New Year oracle with Yeoni and tin shadows",
-      "sikojenImgAlt": "Finnish Pig Tin Oracle",
-      "royalTeaAria": "Start Royal Tea Reading",
-      "royalTeaAlt": "Royal Tea Reading - Royal tasseography tea leaf reading",
-      "royalTeaImgAlt": "Royal Tea Reading",
-      "destinyPokerAria": "Start Destiny Poker",
-      "destinyPokerAlt": "Destiny Poker - A fate card duel with the gods",
-      "destinyPokerImgAlt": "Destiny Poker",
-      "westernAstrologyAria": "Start Basic Western Astrology Chart",
-      "westernAstrologyAlt": "Basic Western Astrology Chart - Free birth chart · Synastry compatibility 50 coins",
-      "westernAstrologyImgAlt": "Basic Western Astrology Chart",
-      "ziweiBasicAria": "Start Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - Free base chart · Compatibility optional expansion 50 coins",
-      "ziweiBasicImgAlt": "Zi Wei Dou Shu",
-      "ziweiAdvancedAria": "Start Advanced Zi Wei",
-      "ziweiAdvancedAlt": "Advanced Zi Wei - 12-palace life strategy · deep Ming Palace analysis",
-      "ziweiAdvancedImgAlt": "Advanced Zi Wei",
-      "vedicAstrologyAria": "Start Vedic Astrology",
-      "vedicAstrologyAlt": "Vedic Astrology - Free base chart · Compatibility 50 coins",
-      "vedicAstrologyImgAlt": "Vedic Astrology",
-      "olympusOracleAria": "Start Olympus Oracle",
-      "olympusOracleAlt": "Olympus Oracle - 12 gods and zodiac destiny reading",
-      "olympusOracleImgAlt": "Olympus Oracle",
-      "destinyFlowerAria": "Start Destiny Flower",
-      "destinyFlowerAlt": "Destiny Flower - The flower blooming from your Saju",
-      "destinyFlowerImgAlt": "Destiny Flower",
-      "astrologyFlowerAria": "Start Astrology Flower",
-      "astrologyFlowerAlt": "Astrology Flower - Sun · Rising · Moon",
-      "astrologyFlowerImgAlt": "Astrology Flower",
-      "ziweiFlowerAria": "Start Zi Wei Flower",
-      "ziweiFlowerAlt": "Zi Wei Flower - Ming Palace main star · star brightness",
-      "ziweiFlowerImgAlt": "Zi Wei Flower",
-      "sukuyoFlowerAria": "Start Sukuyo Flower",
-      "sukuyoFlowerAlt": "Sukuyo Flower - 27 mansions · moon phase",
-      "sukuyoFlowerImgAlt": "Sukuyo Flower",
-      "dreamTarotAria": "Start Dream Tarot",
-      "dreamTarotAlt": "Dream Tarot - 3-card reading of dream afterglow",
-      "dreamTarotImgAlt": "Dream Tarot",
-      "psychoDreamAria": "Start ️ Psychoanalytic Dream Reading",
-      "psychoDreamAlt": "️ Psychoanalytic Dream Reading - Freud · British Study",
-      "psychoDreamImgAlt": "️ Psychoanalytic Dream Reading",
-      "sukuyoPremiumAria": "Start Premium Sukuyo Compatibility",
-      "sukuyoPremiumAlt": "Premium Sukuyo Compatibility - Generate a 15-chapter consultation PDF separate from basic compatibility and detailed expansion.",
-      "sukuyoPremiumImgAlt": "Premium Sukuyo Compatibility",
-      "ziweiPremiumAria": "Start Zi Wei Premium PDF",
-      "ziweiPremiumAlt": "Zi Wei Premium PDF - Interpret the life palaces written in your Ming Palace and 12 palaces.",
-      "ziweiPremiumImgAlt": "Zi Wei Premium PDF",
-      "astroReportAria": "Start Astrology Cosmic Report",
-      "astroReportAlt": "Astrology Cosmic Report - Read turning points by layering Saturn, nodes, transits, and house flow over Sun, Moon, and Rising.",
-      "astroReportImgAlt": "Astrology Cosmic Report",
-      "vedicPremiumAria": "Start Vedic Premium PDF",
-      "vedicPremiumAlt": "Vedic Premium PDF - Open the soul direction spoken by Lagna and Nakshatra.",
-      "vedicPremiumImgAlt": "Vedic Premium PDF",
-      "soulKarmaAria": "Start Soul Karma",
-      "soulKarmaAlt": "Soul Karma - Where did you come from, and what did you arrive in this life to resolve?",
-      "soulKarmaImgAlt": "Soul Karma",
-      "psychotestHubAria": "Start Psychology Test Hub",
-      "psychotestHubAlt": "Psychology Test Hub - 14 themed tests",
-      "psychotestHubImgAlt": "Psychology Test Hub",
-      "aiOmikujiAria": "Start AI Emoi Omikuji",
-      "aiOmikujiAlt": "AI Emoi Omikuji - Emotional oracle reading",
+      "animalFaceAria": "启动AI动物读脸",
+      "animalFaceAlt": "AI動物讀臉－從自拍看臉型",
+      "animalFaceBadge": "臉部分析",
+      "animalFacePrice": "免費 · 相容性 5,000 韓元",
+      "freeBadge": "免費",
+      "animalMbtiAria": "啟動 MBTI 動物相容性",
+      "animalMbtiAlt": "MBTI 動物相容性 - 16 個圖騰愛情匹配",
+      "animalTotemAria": "開始動物圖騰閱讀",
+      "animalTotemAlt": "動物圖騰閱讀-守護動物訊息",
+      "animalTotemBadge": "圖騰閱讀",
+      "animalTotemPrice": "3,000-6,000 韓元",
+      "sajuGuardianAria": "啟動沙州守護者召喚陣",
+      "sajuGuardianAlt": "Saju Guardian 召喚法陣 - 按日、月、時分支打開的 60 個間隙守護印章",
+      "sajuGuardianBadge": "守護印章",
+      "sajuGuardianPrice": "永久解鎖 10,000 韓元",
+      "destinyEggAria": "啟動電子蛋命運蛋",
+      "destinyEggAlt": "Tamagotchi 命運蛋 - 培養你自己的 saju 角色",
+      "destinyEggImgAlt": "電子蛋命運蛋",
+      "fortuneFishAria": "啟動算命魚",
+      "fortuneFishAlt": "算命魚 - 紅魚在掌心讀命運",
+      "palmMapAria": "看掌紋命運圖",
+      "palmMapAlt": "掌紋圖-掌紋分析",
+      "palmMapBadge": "看手掌",
+      "palmMapMeta": "AI手相·東方手相·命運圖",
+      "animalFaceImgAlt": "AI 動物讀臉",
+      "animalMbtiImgAlt": "MBTI 動物相容性",
+      "animalTotemImgAlt": "動物圖騰",
+      "sajuGuardianImgAlt": "沙州守護印章",
+      "fortuneFishImgAlt": "算命魚",
+      "palmMapImgAlt": "棕櫚地圖",
+      "nevillePracticeAria": "開始內維爾冥想練習",
+      "nevillePracticeAlt": "Neville 冥想練習 - 想像創造的集中指南",
+      "nevillePracticeImgAlt": "內維爾冥想練習",
+      "divyaYogaAria": "開始 Divya 瑜伽",
+      "divyaYogaAlt": "Divya Yoga - 個人冥想與瑜珈常規",
+      "divyaYogaImgAlt": "Divya 瑜伽",
+      "cosmicSoulMeditationAria": "開始宇宙靈魂冥想",
+      "cosmicSoulMeditationAlt": "宇宙靈魂冥想 - 30 和 60 分鐘現實渲染協議",
+      "cosmicSoulMeditationImgAlt": "宇宙靈魂冥想",
+      "tarotLoveAria": "開始我們是什麼？",
+      "tarotLoveAlt": "我們是什麼？ - 言語與行動之間的溫度",
+      "tarotLoveImgAlt": "我們是什麼？",
+      "tarotHealingAria": "開始暖陽治癒塔羅牌",
+      "tarotHealingAlt": "暖陽治癒塔羅牌 - 心累的地方，今日的光明",
+      "tarotHealingImgAlt": "暖陽治癒塔羅牌",
+      "tarotSelfEsteemAria": "開始自信心恢復塔羅牌",
+      "tarotSelfEsteemAlt": "自信心恢復塔羅牌 - 5 張以心為中心的占卜",
+      "tarotSelfEsteemImgAlt": "自信心恢復塔羅牌",
+      "tarotReunionAria": "開始團圓燈塔塔羅牌",
+      "tarotReunionAlt": "留尼旺島燈塔塔羅牌 - 剩餘的溫暖與安全距離",
+      "tarotReunionImgAlt": "留尼旺島燈塔塔羅牌",
+      "tarotPromptMakerAria": "啟動塔羅牌提示庫",
+      "tarotPromptMakerAlt": "塔羅牌提示庫 - 選擇一張牌，開啟卡片，完成閱讀文字",
+      "tarotPromptMakerImgAlt": "塔羅牌提示庫",
+      "tarotYearAria": "開始生肖年塔羅牌",
+      "tarotYearAlt": "生肖塔羅牌 - 十二個月的守護運勢",
+      "tarotYearImgAlt": "生肖年塔羅牌",
+      "tarotNumerologyAria": "開始命理塔羅牌",
+      "tarotNumerologyAlt": "命理學塔羅牌 - 生命數字與日期數字5牌占卜",
+      "tarotNumerologyImgAlt": "命理塔羅牌",
+      "tarotCareerMoveAria": "開始職業變動卡",
+      "tarotCareerMoveAlt": "職業變動卡 - 7 張卡，用於說明要保留什麼以及要搬到哪裡",
+      "tarotCareerMoveImgAlt": "職業變動卡",
+      "tarotMindscanAria": "從言語和行動之間開始",
+      "tarotMindscanAlt": "言行之間 - 10張心臟溫度卡",
+      "tarotMindscanImgAlt": "言語與行動之間",
+      "tarotCrystalSoulAria": "開始水晶靈魂塔羅牌",
+      "tarotCrystalSoulAlt": "水晶靈魂塔羅牌 - 水晶能量解讀",
+      "tarotCrystalSoulImgAlt": "水晶靈魂塔羅牌",
+      "celestialHarmonyAria": "啟動天體和諧",
+      "celestialHarmonyAlt": "天體和諧 - 由11顆行星的聲音編織而成的塔羅牌",
+      "celestialHarmonyImgAlt": "天體和諧",
+      "sajuTarotAria": "開始沙州塔羅牌",
+      "sajuTarotAlt": "Saju Tarot - 透過卡片和十神進行選擇指導",
+      "sajuTarotImgAlt": "沙州塔羅牌",
+      "hwatuAria": "啟動華圖財富",
+      "hwatuAlt": "花圖財富 - 花卡12個月的財富",
+      "hwatuImgAlt": "華圖財富",
+      "egyptOracleAria": "啟動 𓂀 埃及甲骨文",
+      "egyptOracleAlt": "𓂀 埃及甲骨文 - Kemet 甲骨文財富",
+      "egyptOracleImgAlt": "𓂀 埃及甲骨文",
+      "ifaOracleAria": "啟動 IFÀ Oracle",
+      "ifaOracleAlt": "IFÀ 甲骨文 - 約魯巴語 256 Odu 甲骨文",
+      "ifaOracleImgAlt": "IFÀ 甲骨文",
+      "ichingTurtleAria": "開始️易經龜甲",
+      "ichingTurtleAlt": "️ 易經龜甲 - 64卦和3000年的智慧",
+      "ichingTurtleImgAlt": "️ 易經玳瑁",
+      "runeOracleAria": "開始 ᚠ 巨石陣符文神諭",
+      "runeOracleAlt": "ᚠ 巨石陣符文神諭 - 古代符文符號閱讀",
+      "runeOracleImgAlt": "ᚠ 巨石陣符文神諭",
+      "geomancyAria": "開始 ⟁ 風水土神諭",
+      "geomancyAlt": "⟁ 風水地神諭 - 來自地球的 16 行星座",
+      "geomancyImgAlt": "⟁ 風水土神諭",
+      "sikojenAria": "啟動芬蘭 Pig Tin Oracle",
+      "sikojenAlt": "芬蘭豬錫神諭 - 帶有 Yeoni 和錫陰影的甜蜜新年神諭",
+      "sikojenImgAlt": "芬蘭豬錫甲骨文",
+      "royalTeaAria": "開始皇家茶讀",
+      "royalTeaAlt": "皇家茶讀 - 皇家tasseography茶葉閱讀",
+      "royalTeaImgAlt": "皇家茶讀",
+      "destinyPokerAria": "開始命運撲克",
+      "destinyPokerAlt": "Destiny Poker - 與眾神的命運卡牌對決",
+      "destinyPokerImgAlt": "命運撲克",
+      "westernAstrologyAria": "開始基本西方占星圖",
+      "westernAstrologyAlt": "基本西方占星圖 - 免費出生圖 · Synastry 相容性 50 個硬幣",
+      "westernAstrologyImgAlt": "基本西方占星圖",
+      "ziweiBasicAria": "啟動紫微鬥數",
+      "ziweiBasicAlt": "紫微鬥數 - 免費底圖·相容性可選擴展 50金幣",
+      "ziweiBasicImgAlt": "紫微鬥數",
+      "ziweiAdvancedAria": "啟動高階紫微",
+      "ziweiAdvancedAlt": "進階紫微-十二宮命攻略·深明宮解析",
+      "ziweiAdvancedImgAlt": "高階紫微",
+      "vedicAstrologyAria": "開始吠陀占星學",
+      "vedicAstrologyAlt": "吠陀占星術 - 免費基礎圖表 · 相容性 50 個硬幣",
+      "vedicAstrologyImgAlt": "吠陀占星學",
+      "olympusOracleAria": "啟動 Olympus Oracle",
+      "olympusOracleAlt": "奧林匹斯神諭 - 12 神與十二生肖命運解讀",
+      "olympusOracleImgAlt": "奧林巴斯甲骨文",
+      "destinyFlowerAria": "啟動命運之花",
+      "destinyFlowerAlt": "命運之花 - 從你的 Saju 中綻放的花朵",
+      "destinyFlowerImgAlt": "命運之花",
+      "astrologyFlowerAria": "開始占星花",
+      "astrologyFlowerAlt": "占星花 - 太陽·上升·月亮",
+      "astrologyFlowerImgAlt": "占星花",
+      "ziweiFlowerAria": "啟動紫薇花",
+      "ziweiFlowerAlt": "紫微花-明宮主星·星輝",
+      "ziweiFlowerImgAlt": "紫薇花",
+      "sukuyoFlowerAria": "開始 Sukuyo 花",
+      "sukuyoFlowerAlt": "Sukuyo 花 - 27 宅月相",
+      "sukuyoFlowerImgAlt": "Sukuyo 花",
+      "dreamTarotAria": "開始夢想塔羅牌",
+      "dreamTarotAlt": "夢想塔羅牌 - 夢餘輝三卡解讀",
+      "dreamTarotImgAlt": "夢想塔羅牌",
+      "psychoDreamAria": "開始️ 精神分析夢閱讀",
+      "psychoDreamAlt": "️ 精神分析夢境解讀－佛洛伊德英國研究",
+      "psychoDreamImgAlt": "️ 精神分析夢解讀",
+      "sukuyoPremiumAria": "啟動進階 Sukuyo 相容性",
+      "sukuyoPremiumAlt": "進階 Sukuyo 相容性 - 產生一個 15 章的諮詢 PDF，與基本相容性和詳細擴充分開。",
+      "sukuyoPremiumImgAlt": "高級 Sukuyo 相容性",
+      "ziweiPremiumAria": "啟動紫微高階 PDF",
+      "ziweiPremiumAlt": "紫微高級PDF - 解讀你的明宮和十二宮中寫的命宮。",
+      "ziweiPremiumImgAlt": "紫薇高階 PDF",
+      "astroReportAria": "開始占星宇宙報告",
+      "astroReportAlt": "占星宇宙報告 - 透過分層土星、交點、過境和太陽、月亮和上升的宮位來解讀轉折點。",
+      "astroReportImgAlt": "占星宇宙報告",
+      "vedicPremiumAria": "啟動吠陀高階 PDF",
+      "vedicPremiumAlt": "吠陀高級 PDF - 打開 Lagna 和 Nakshatra 所說的靈魂方向。",
+      "vedicPremiumImgAlt": "吠陀進階 PDF",
+      "soulKarmaAria": "啟動靈魂業力",
+      "soulKarmaAlt": "靈魂業力 - 你從哪裡來，你此生要解決什麼？",
+      "soulKarmaImgAlt": "靈魂業力",
+      "psychotestHubAria": "啟動心理測驗中心",
+      "psychotestHubAlt": "心理測驗中心 - 14 個主題測驗",
+      "psychotestHubImgAlt": "心理測驗中心",
+      "aiOmikujiAria": "啟動 AI Emoi Omikuji",
+      "aiOmikujiAlt": "AI Emoi Omikuji - 情感甲骨文閱讀",
       "aiOmikujiImgAlt": "AI Emoi Omikuji",
-      "yeonStarHugTileAria": "Start Yeon's Heart Constellation",
-      "yeonStarHugTileAlt": "Yeon's Heart Constellation - A gentle hug for today's heart",
-      "yeonStarHugTileImgAlt": "Yeon's Heart Constellation",
-      "bloodTypeAria": "Start Blood Type Test",
-      "bloodTypeAlt": "Blood Type Test - Traits · compatibility · coaching",
-      "bloodTypeImgAlt": "Blood Type Test",
-      "favoriteDestinyAria": "Start Favorite-Person Destiny",
-      "favoriteDestinyAlt": "Favorite-Person Destiny - Photocard mood reading",
-      "favoriteDestinyImgAlt": "Favorite-Person Destiny",
-      "sajuFptiAria": "Start Saju FPTI Test",
-      "sajuFptiAlt": "Saju FPTI Test - Four-axis personality through elements and Ten Gods",
-      "sajuFptiImgAlt": "Saju FPTI Test",
-      "basicFreeBadge": "Basic free",
-      "price3000": "One time KRW 3,000",
-      "price5000": "One time KRW 5,000",
-      "price10000": "One time KRW 10,000",
-      "cosmicSoulPrice": "30 min KRW 10,000 ? 60 min KRW 20,000",
-      "compatibilityPrice": "Compatibility KRW 5,000",
-      "unlock50000": "Unlock KRW 50,000",
-      "unlock20000": "Unlock KRW 20,000",
-      "unlock10000": "Unlock KRW 10,000",
-      "relationshipRecoveryBadge": "Relationship recovery",
+      "yeonStarHugTileAria": "啟動妍的心星座",
+      "yeonStarHugTileAlt": "妍的心星座 - 溫柔擁抱今天的心",
+      "yeonStarHugTileImgAlt": "妍的心星座",
+      "bloodTypeAria": "開始血型測試",
+      "bloodTypeAlt": "血型測驗 - 特質·相容性·輔導",
+      "bloodTypeImgAlt": "血型測試",
+      "favoriteDestinyAria": "開始最喜歡的人的命運",
+      "favoriteDestinyAlt": "最喜歡的人的命運 - 照片卡心情閱讀",
+      "favoriteDestinyImgAlt": "最喜歡的人的命運",
+      "sajuFptiAria": "開始 Saju FPTI 測試",
+      "sajuFptiAlt": "Saju FPTI 測驗 - 透過元素和十神進行四軸人格",
+      "sajuFptiImgAlt": "Saju FPTI 測試",
+      "basicFreeBadge": "基本上免費",
+      "price3000": "一次 3,000 韓元",
+      "price5000": "一次 5,000 韓元",
+      "price10000": "一次 10,000 韓元",
+      "cosmicSoulPrice": "30 分钟 10,000 韩元 · 60 分钟 20,000 韩元",
+      "compatibilityPrice": "相容性 5,000 韓元",
+      "unlock50000": "解鎖 50,000 韓元",
+      "unlock20000": "解鎖 20,000 韓元",
+      "unlock10000": "解鎖 10,000 韓元",
+      "relationshipRecoveryBadge": "關係恢復",
       "mayaAria": "開始瑪雅占卜",
       "mayaAlt": "瑪雅占卜 — 金色曆盤與夜空時間紋樣",
       "mayaTitle": "瑪雅占卜",
       "mayaDesc": "用時間紋樣讀取今日流向",
-      "dreamPromptShortTitle": "Dream Prompt"
+      "dreamPromptShortTitle": "夢境提示"
     },
     "destinyFlowerStudio": {
       "closeAria": "關閉命運之花工坊",
-      "kicker": "Destiny Flower Atelier",
+      "kicker": "命運之花工作室",
       "title": "命運之花工坊",
       "sourceDesc": "依據日干、月令與五行平衡，與你此刻氣息最共鳴的開花紋理正在顯現。",
       "sourceTabsAria": "工坊占術切換",
@@ -674,187 +674,187 @@
       "fallbackActionFive": "写下最留在心里的牌面讯息，睡前再读一次。"
     },
     "splash": {
-      "heading": "Kkul-Kkul Fortune",
-      "subtitle": "Saju, tarot, fortune, compatibility, and astrology in one place",
-      "message": "The constellations are aligning toward you..."
+      "heading": "Kkul-Kkul 財富",
+      "subtitle": "Saju、塔罗牌、运势、兼容性和占星术集中在一处",
+      "message": "星座正在向你排列..."
     },
     "sectionNav": {
-      "aria": "Current section",
-      "title": "Map of Destiny"
+      "aria": "目前部分",
+      "title": "命運地圖"
     },
     "languageNav": {
-      "aria": "Language versions",
-      "label": "Language"
+      "aria": "語言版本",
+      "label": "語言"
     },
     "story": {
-      "aria": "Open the Destiny Stories web novel library",
-      "title": "Destiny Library",
-      "desc": "Continue free web novels woven with saju, tarot, and the stars.",
-      "cta": "Read web novels"
+      "aria": "開啟命運故事網路小說庫",
+      "title": "命運圖書館",
+      "desc": "继续提供与 Saju、塔罗牌和星星交织在一起的免费网络小说。",
+      "cta": "閱讀網路小說"
     },
     "collectionNav": {
-      "aria": "Moonlit destiny collection shortcuts"
+      "aria": "月光命運集合快速鍵"
     },
     "passMini": {
-      "aria": "Moonlight pass guide",
-      "kicker": "MOONLIGHT PASS",
-      "title": "Let your fortune routine flow more gently with a moonlight pass",
-      "desc": "Tarot, oracle, and saju readings you revisit often open faster within your pass, and today?s free fortune flows stay easy to follow at a glance.",
-      "toggle": "Open moonlight benefits",
-      "heroAria": "Check services available for free in the moonlight flow",
-      "heroTitle": "See the flows opening for free",
-      "heroSub": "View your pass range together with the currently free readings.",
-      "heroCta": "View",
-      "balanceLabel": "Monthly stone balance",
-      "balanceEmpty": "0 left",
-      "balanceHint": "Checking your monthly stone balance. Sharing on KakaoTalk adds more monthly stones.",
-      "primaryAction": "Find the pass that fits me",
-      "chipsAria": "Core pass benefits",
-      "chipIncluded": "Free within pass range",
-      "chipThirtyDays": "30-day pass",
-      "chipShareReward": "KakaoTalk share reward",
-      "plansAria": "Pass plan summary cards",
-      "standardName": "Standard Honey 30 days",
-      "standardPrice": "30 days ? KRW 9,900",
-      "standardLine": "Use features up to KRW 3,000",
-      "standardBenefit1": "Light tarot and oracle routines",
-      "standardBenefit2": "Up to 3 profiles",
-      "standardCta": "View Standard",
-      "recommendedAria": "Recommended plan",
-      "recommendedBadge": "Recommended",
-      "premiumName": "Premium Honey 30 days",
-      "premiumPrice": "30 days ? KRW 29,900",
-      "premiumLine": "Use features up to KRW 5,000",
-      "premiumBenefit1": "Balanced tarot, saju, and love readings",
-      "premiumBenefit2": "Up to 7 profiles",
-      "premiumCta": "View recommended plan",
-      "vvipName": "VVIP Honey Jar 30 days",
-      "vvipPrice": "30 days ? KRW 59,000",
-      "vvipLine": "Use features up to KRW 10,000",
-      "vvipBenefit1": "Deep premium fortune routine",
-      "vvipBenefit2": "Up to 15 profiles",
-      "vvipCta": "View VVIP benefits",
-      "familyName": "Code Destiny Family 30 days",
-      "familyPrice": "30 days ? KRW 300,000",
-      "familyLine": "Use all paid features",
-      "familyBenefit1": "No profile limit",
-      "familyBenefit2": "All Family benefits",
-      "familyCta": "View Family",
-      "premiumNote": "Premium fits best if you often use services up to KRW 5,000.",
-      "footnote": "New passes are sold only as 30-day passes. This 30-day pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product."
+      "aria": "月光通行證指南",
+      "kicker": "月光通行證",
+      "title": "让你的运程在月光下更加温柔地流动",
+      "desc": "您重新訪問的塔羅牌、甲骨文和 Saju 讀物通常會在您的通行證中更快地打開，並且今天的免費財富流一目了然。",
+      "toggle": "開放式月光福利",
+      "heroAria": "检查月光流中免费提供的服务",
+      "heroTitle": "免費查看開放的流程",
+      "heroSub": "查看您的通过范围以及当前的免费读数。",
+      "heroCta": "查看",
+      "balanceLabel": "每月寶石餘額",
+      "balanceEmpty": "剩下 0 個",
+      "balanceHint": "檢視您每個月的寶石餘額。在 KakaoTalk 上分享会增加更多每月宝石。",
+      "primaryAction": "找到適合我的通行證",
+      "chipsAria": "核心通行證優勢",
+      "chipIncluded": "在通過範圍內自由",
+      "chipThirtyDays": "30 天通行證",
+      "chipShareReward": "KakaoTalk 分享獎勵",
+      "plansAria": "透過計畫摘要卡",
+      "standardName": "標準蜂蜜 30 天",
+      "standardPrice": "30 天 · 9,900 韓元",
+      "standardLine": "使用最多 3,000 韓元的功能",
+      "standardBenefit1": "輕塔羅牌與神諭套路",
+      "standardBenefit2": "最多 3 個設定檔",
+      "standardCta": "查看標準",
+      "recommendedAria": "推薦計劃",
+      "recommendedBadge": "推薦",
+      "premiumName": "優質蜂蜜 30 天",
+      "premiumPrice": "30 天 · 29,900 韓元",
+      "premiumLine": "使用功能最高可達 5,000 韓元",
+      "premiumBenefit1": "平衡塔羅牌、saju 和愛情占卜",
+      "premiumBenefit2": "最多 7 個設定檔",
+      "premiumCta": "查看推薦計劃",
+      "vvipName": "VVIP 蜂蜜罐 30 天",
+      "vvipPrice": "30 天 · 59,000 韓元",
+      "vvipLine": "使用最多 10,000 韓元的功能",
+      "vvipBenefit1": "深度溢價運勢套路",
+      "vvipBenefit2": "最多 15 個設定檔",
+      "vvipCta": "查看 VVIP 福利",
+      "familyName": "代碼命運家庭 30 天",
+      "familyPrice": "30 天 · 300,000 韓元",
+      "familyLine": "使用所有付費功能",
+      "familyBenefit1": "無設定檔限制",
+      "familyBenefit2": "所有家庭福利",
+      "familyCta": "查看系列",
+      "premiumNote": "如果您經常使用 5,000 韓元以下的服務，則進階版最適合。",
+      "footnote": "新通行證僅以 30 天通行證出售。此 30 天通行證不是自動續訂訂閱。通行證範圍外的服務可透過以產品一次支付韓元的方式使用。"
     },
     "promptHub": {
-      "aria": "Go to comprehensive fortune prompts",
-      "alt": "Comprehensive fortune prompts",
-      "sr": "Comprehensive fortune prompts"
+      "aria": "進入綜合運勢提示",
+      "alt": "綜合算命提示",
+      "sr": "綜合算命提示"
     },
     "premiumArchive": {
-      "kicker": "VVIP DESTINY ARCHIVE",
-      "toggleHint": "Open sealed reports",
-      "pointsAria": "Key points",
-      "sukuyoPrice": "Premium PDF ? KRW 49,000",
-      "sukuyoPoint1": "Relationship structure through the 27 mansions",
-      "sukuyoPoint2": "Align both lunar bases before payment",
-      "sukuyoPoint3": "Archive link for PDF saving and re-download",
-      "compatibilityMeta": "Compatibility",
-      "total15Meta": "15 chapters",
-      "sukuyoCtaMeta": "Align lunar bases",
-      "ziweiPrice": "Premium PDF ? KRW 59,000",
-      "ziweiPoint1": "Core structure of Ming, Shen, and the 12 palaces",
-      "ziweiPoint2": "Signals from career, wealth, love, movement, and health palaces",
-      "ziweiPoint3": "Major cycle and annual turning-point reading",
-      "personalMeta": "Personal",
-      "ziweiCtaMeta": "View Zi Wei details",
-      "report39000Price": "Premium Report ? KRW 39,000",
-      "astroPoint1": "Core temperament from Sun, Moon, and Rising",
-      "astroPoint2": "House flow for love, work, money, and emotion",
-      "astroPoint3": "Saturn, Node, and transit turning points",
-      "total12Meta": "12 chapters",
-      "astroCtaMeta": "View astrology report details",
-      "vedicPoint1": "Lagna, Moon sign, and nakshatra reading",
-      "vedicPoint2": "Dasha cycles and karmic flow",
-      "vedicPoint3": "Practical advice for love, work, money, and recovery",
-      "vedicCtaMeta": "View Vedic details",
-      "report69000Price": "Premium Report ? KRW 69,000",
-      "soulPoint1": "Integrated story across saju, astrology, sukuyo, ziwei, and Vedic signs",
-      "soulPoint2": "Structure of recurring wounds and relational karma",
-      "soulPoint3": "Future release direction and practice declaration",
-      "soulCtaMeta": "Open my origin"
+      "kicker": "VVIP 命運檔案",
+      "toggleHint": "開啟密封報告",
+      "pointsAria": "重點",
+      "sukuyoPrice": "進階 PDF · 49,000 韓元",
+      "sukuyoPoint1": "27 座宅邸的關係結構",
+      "sukuyoPoint2": "付款前對齊兩個月球基地",
+      "sukuyoPoint3": "用於 PDF 保存和重新下載的存檔鏈接",
+      "compatibilityMeta": "相容性",
+      "total15Meta": "15 章",
+      "sukuyoCtaMeta": "對齊月球基地",
+      "ziweiPrice": "進階 PDF · 59,000 韓元",
+      "ziweiPoint1": "明、申、十二宮的核心結構",
+      "ziweiPoint2": "事業、財富、愛、運動、健康宮的信號",
+      "ziweiPoint3": "主要週期與年度轉捩點閱讀",
+      "personalMeta": "個人",
+      "ziweiCtaMeta": "看紫薇詳情",
+      "report39000Price": "進階報告 · 39,000 韓元",
+      "astroPoint1": "太陽、月亮與上升的核心氣質",
+      "astroPoint2": "愛情、工作、金錢和情感的宮位流向",
+      "astroPoint3": "土星、交點與凌日轉折點",
+      "total12Meta": "12 章",
+      "astroCtaMeta": "查看占星報告詳細信息",
+      "vedicPoint1": "Lagna、月亮星座和 nakshatra 閱讀",
+      "vedicPoint2": "Dasha 循環與業力流",
+      "vedicPoint3": "關於愛、工作、金錢和復原的實用建議",
+      "vedicCtaMeta": "查看吠陀詳細信息",
+      "report69000Price": "進階報告 · 69,000 韓元",
+      "soulPoint1": "涵蓋 Saju、占星學、sukuyo、紫微和吠陀標誌的綜合故事",
+      "soulPoint2": "重複傷害的結構與關係業力",
+      "soulPoint3": "未來的發佈方向與實務聲明",
+      "soulCtaMeta": "開啟我的起源"
     },
     "passFooter": {
-      "aria": "Pass footer guide",
-      "eyebrow": "Moonlight Pass",
-      "title": "Let your fortune routine continue more comfortably with a moonlight pass",
-      "desc": "Once your pass opens, frequently used readings and free public routines stay together in one place, so the flow you want continues faster into the next scene.",
-      "pointsAria": "Core pass guide",
-      "point1": "Check free public routines right away",
-      "point2": "Quick access to frequent readings",
-      "point3": "Check your pass range together",
-      "mascotAria": "View Kkul-Kkul pass benefits",
-      "mascotAlt": "Kkul-Kkul pass guide image",
-      "mascotKicker": "Honey Guide",
-      "mascotText": "Kkul-Kkul! Start with today?s free fortune routines, then continue straight into the pass flow that fits you.",
-      "cta": "Find the pass that fits me"
+      "aria": "透過頁尾指南",
+      "eyebrow": "月光通行證",
+      "title": "透過月光通行證讓您的算命程序更舒適地繼續",
+      "desc": "一旦您的通行證打開，常用的閱讀材料和免費的公共例程就會集中在一個地方，因此您想要的流程會更快地繼續進入下一個場景。",
+      "pointsAria": "核心通行證指南",
+      "point1": "立即檢查免費公共例程",
+      "point2": "快速存取常用閱讀內容",
+      "point3": "一起檢查您的通過範圍",
+      "mascotAria": "查看 Kkul-Kkul 通行證福利",
+      "mascotAlt": "Kkul-Kkul 通行證指南影像",
+      "mascotKicker": "蜂蜜指南",
+      "mascotText": "咕咕咕！從今天的免費財富例程開始，然後直接進入適合您的通行證流程。",
+      "cta": "找到適合我的通行證"
     },
     "dreamPrompt": {
-      "closeAria": "Close dream prompt",
-      "kicker": "Whispering Star-Library",
-      "title": "The Magic Shop of the Unconscious: Dream Prompt",
-      "subtitle": "Unfold your dream scene through tarot symbols, then leave only the prompt to give a dream-reading AI.",
-      "wizardLine": "Welcome, traveler of the unconscious. The starlit dream ledger quietly opens its first line.",
-      "entrancePrompt": "Write the clearest scene, the beings that appeared, and the feelings left after waking. The seed of the prompt will awaken.",
-      "inputLabel": "Dream scene",
-      "placeholder": "Example: I was flying through the sky, suddenly fell, and woke with both freedom and anxiety lingering.",
-      "cardCountAria": "Number of tarot cards to draw",
-      "cardCountLegend": "Number of tarot cards",
-      "cardCount1": "1 card",
-      "cardCount2": "2 cards",
-      "cardCount3": "3 cards",
-      "cardCount4": "4 cards",
-      "cardCount5": "5 cards",
-      "drawButton": "Draw cards",
-      "loading": "Weaving the tarot messages into a prompt...",
-      "cardsSummaryAria": "Drawn card summary",
-      "outputTitle": "Dream interpretation prompt for your dream",
-      "copyButton": "Copy prompt",
-      "resetButton": "Read another dream",
-      "copyHint": "Paste it into ChatGPT, Claude, or another AI to receive a professional dream interpretation."
+      "closeAria": "關閉夢境提示",
+      "kicker": "低語星圖書館",
+      "title": "無意識的魔法商店：夢境提示",
+      "subtitle": "透過塔羅符號展開你的夢境場景，然後只留下提示，給出解夢AI。",
+      "wizardLine": "歡迎，無意識的旅人。星光夢想帳本悄悄開啟第一行。",
+      "entrancePrompt": "寫出最清晰的場景，出現的眾生，以及醒來後留下的感受。提示的種子將會甦醒。",
+      "inputLabel": "夢境",
+      "placeholder": "範例：我在天空中飛翔，突然墜落，醒來時感到自由和焦慮揮之不去。",
+      "cardCountAria": "要抽的塔羅牌數量",
+      "cardCountLegend": "塔羅牌張數",
+      "cardCount1": "1 張卡",
+      "cardCount2": "2 張卡",
+      "cardCount3": "3 張卡片",
+      "cardCount4": "4 張卡片",
+      "cardCount5": "5 張卡片",
+      "drawButton": "抽卡",
+      "loading": "將塔羅牌資訊編織成提示......",
+      "cardsSummaryAria": "抽卡總結",
+      "outputTitle": "解夢提示你的夢",
+      "copyButton": "複製提示",
+      "resetButton": "讀另一個夢",
+      "copyHint": "將其貼到 ChatGPT、Claude 或其他 AI 中以獲得專業的夢境解析。"
     },
     "psychoDream": {
-      "closeAria": "Close psychoanalytic dream reading",
-      "kicker": "Freud's Study",
-      "title": "Psychoanalytic Dream Report",
-      "subtitle": "In an old London consulting room, your unconscious is arranged with formal care.",
-      "wizardLine": "Are you ready to receive Dr. Freud's opinion?",
-      "entrancePrompt": "Write here the story your unconscious is offering. Dr. Freud is waiting.",
-      "journalAria": "The Dream Journal",
-      "journalTitle": "The Dream Journal",
-      "placeholder": "Write here the story your unconscious is offering. Dr. Freud is waiting.",
-      "startButton": "Start psychoanalytic dream reading",
-      "loading": "Exploring the room of the unconscious...",
-      "reportAria": "Analysis Report",
-      "reportTitle": "Formal Psychoanalytic Report",
-      "homeAria": "Go directly to the home screen",
-      "homeButton": "Go home",
-      "shareButton": "Share analysis text",
-      "resetButton": "Interpret another dream"
+      "closeAria": "關閉精神分析夢閱讀",
+      "kicker": "佛洛伊德的研究",
+      "title": "精神分析夢報告",
+      "subtitle": "在倫敦的舊諮商室裡，你的無意識得到了正式的照顧。",
+      "wizardLine": "您準備好接受佛洛伊德醫師的意見了嗎？",
+      "entrancePrompt": "在此寫下您的潛意識所提供的故事。佛洛伊德博士正在等待。",
+      "journalAria": "夢想日記",
+      "journalTitle": "夢想日記",
+      "placeholder": "在此寫下您的潛意識所提供的故事。佛洛伊德博士正在等待。",
+      "startButton": "開始精神分析夢閱讀",
+      "loading": "探索無意識的房間......",
+      "reportAria": "分析報告",
+      "reportTitle": "正式精神分析報告",
+      "homeAria": "直接進入主畫面",
+      "homeButton": "回家",
+      "shareButton": "分享分析文本",
+      "resetButton": "解釋另一個夢"
     },
     "ichingTurtle": {
-      "homeAria": "Go home",
-      "homeButton": "Home",
-      "navTitle": "Tortoise Shell Divination",
-      "closePageAria": "Close this page",
-      "closePageButton": "Close this page",
-      "kicker": "Tortoise Shell Divination",
-      "title": "Tortoise Oracle - Heavenly Signs",
-      "quote": "The cracks in the shell speak the will of heaven.",
-      "note": "A fictional divination experience inspired by ancient turtle-shell rites and reimagined for today.",
-      "questionLabel": "Question - write the deep question in your heart",
-      "placeholder": "Example: Is it wise to start this business now?",
-      "statusReady": "Hold the turtle shell to let the heat pass through.",
-      "shellAria": "Cast the turtle shell oracle",
-      "shellLine1": "Press and hold",
-      "shellLine2": "Kindle the fire"
+      "homeAria": "回家",
+      "homeButton": "首頁",
+      "navTitle": "玳瑁占卜",
+      "closePageAria": "關閉此頁面",
+      "closePageButton": "關閉此頁面",
+      "kicker": "玳瑁占卜",
+      "title": "玳瑁 - 天象",
+      "quote": "贝壳上的裂缝诉说着天意。",
+      "note": "一种虚构的占卜体验，灵感来自古代龟甲仪式，并针对今天进行了重新想象。",
+      "questionLabel": "问题——写下你内心深处的问题",
+      "placeholder": "示例：现在开始这项业务明智吗？",
+      "statusReady": "握住龜殼，讓熱量通過。",
+      "shellAria": "鑄造龜甲神諭",
+      "shellLine1": "按住",
+      "shellLine2": "點燃火"
     },
     "sukuyo": {
       "title": "宿曜占",
@@ -880,100 +880,100 @@
       "question": "要用這份命運資料查看運勢嗎？"
     },
     "myeongriTarot": {
-      "title": "THE MYSTIC TAROT",
-      "subtitle": "Cards and ten gods open today’s choice together.",
-      "oneCardMode": "One-card reading",
-      "threeCardMode": "Three-card flow · 5,000 KRW",
+      "title": "神秘塔羅牌",
+      "subtitle": "卡牌和十神一起开启今天的选择。",
+      "oneCardMode": "一卡讀取",
+      "threeCardMode": "三卡流量·5,000韓元",
       "categories": {
-        "daily": "Today’s fortune",
-        "love": "Love fortune",
-        "reunion": "Reunion fortune",
-        "career": "Work and career",
-        "money": "Wealth fortune",
-        "health": "Health fortune",
-        "exam": "Exam and success",
-        "people": "Relationships"
+        "daily": "今天的運勢",
+        "love": "愛情運勢",
+        "reunion": "團圓福氣",
+        "career": "工作與職業",
+        "money": "財富運勢",
+        "health": "健康運勢",
+        "exam": "考試與成功",
+        "people": "關係"
       },
-      "ritualDefault": "Choose one doorway of concern, and the cards will unfold its texture.",
-      "cardAlt": "Tarot card",
-      "cardAlt1": "Tarot card 1",
-      "cardAlt2": "Tarot card 2",
-      "cardAlt3": "Tarot card 3",
-      "spreadGuideInitial": "Open the first card to see the flow so far.",
+      "ritualDefault": "选择一个关注的门口，卡片将展现其纹理。",
+      "cardAlt": "塔羅牌",
+      "cardAlt1": "塔羅牌 1",
+      "cardAlt2": "塔羅牌 2",
+      "cardAlt3": "塔羅牌 3",
+      "spreadGuideInitial": "開啟第一張卡片以查看目前的流程。",
       "slots": {
-        "past": "The flow so far",
-        "present": "The core energy now",
-        "next": "The next standard for choice"
+        "past": "到目前為止的流程",
+        "present": "現在的核心能量",
+        "next": "下一個選擇標準"
       },
-      "openFlowReading": "Open flow reading · 5,000 KRW",
-      "retryOtherConcern": "Spread another concern",
-      "aiPromptTitle": "Myeongri tarot prompt to ask AI next",
-      "afterPaymentBadge": "After payment reading",
-      "aiPromptBody": "The three cards and ten-god texture are preserved. Copy it and ask AI about the flow from today onward.",
-      "aiPromptAria": "Myeongri tarot AI prompt",
-      "copyPrompt": "Copy prompt",
-      "askAi": "Ask AI"
+      "openFlowReading": "開放流量閱讀 · 5,000 韓元",
+      "retryOtherConcern": "傳播另一個問題",
+      "aiPromptTitle": "明里塔羅牌提示下一步詢問AI",
+      "afterPaymentBadge": "付款閱讀後",
+      "aiPromptBody": "三張卡片和十神紋理被保留。複製下來，向AI詢問從今天開始的流程。",
+      "aiPromptAria": "明里塔羅牌AI提示",
+      "copyPrompt": "複製提示",
+      "askAi": "問 AI"
     },
     "tarotLove": {
-      "closeAria": "Close love tarot",
-      "title": "What are we to each other?",
-      "subtitle": "The warmth between words and actions, and the pace that should be met before naming the relationship, become clear. Six cards gently reveal attraction, hesitation, near flow, and the boundary to keep.",
-      "drawCta": "Draw cards",
-      "drawHeader": "Open the cards in order and feel the temperature of the relationship.",
-      "spreadGuideInitial": "Open the first card to see how you view the other person.",
-      "openReading": "Open relationship reading",
-      "resultTitle": "The temperature and pace between us",
-      "resultCardsAria": "Review drawn cards"
+      "closeAria": "親密愛情塔羅牌",
+      "title": "我們對彼此來說是什麼？",
+      "subtitle": "言語和行動之間的溫暖，以及在命名關係之前應達到的步調變得清晰。六張牌輕輕地揭示了吸引力、猶豫、接近流動和要保持的界限。",
+      "drawCta": "抽卡",
+      "drawHeader": "依序開啟卡片，感受感情的溫度。",
+      "spreadGuideInitial": "開啟第一張卡片，看看您如何看待對方。",
+      "openReading": "開放關係閱讀",
+      "resultTitle": "我們之間的溫度與步伐",
+      "resultCardsAria": "看抽取的牌"
     },
     "tarotReunion": {
-      "closeAria": "Close reunion tarot",
-      "title": "Before reaching again, what should be protected?",
-      "subtitle": "Five cards illuminate the remaining warmth, the other person’s emotional texture, why contact stopped, the safe distance for reaching out again, and the real conditions for protecting the relationship. Rather than a hurried answer, they find a steady standard and a gentle first sentence.",
-      "meditationAria": "Night sea meditation",
-      "meditationStart": "Start night sea meditation",
-      "startReading": "Light the relationship lighthouse",
-      "drawHeader": "Open the lighthouse beam in order, from remaining warmth to the boundary to keep.",
-      "spreadGuideInitial": "Open the first card to see the warmth left between you.",
-      "openReading": "Open lighthouse reading",
-      "resultTitle": "Relationship recovery lighthouse reading"
+      "closeAria": "親密團聚塔羅牌",
+      "title": "在再次到達之前，應該保護什麼？",
+      "subtitle": "五張卡片闡明了剩餘的溫暖、對方的情感紋理、為什麼停止聯繫、再次伸出援手的安全距離以及保護關係的真實條件。他們不會找到一個匆忙的答案，而是找到一個穩定的標準和溫和的第一句話。",
+      "meditationAria": "夜海冥想",
+      "meditationStart": "開始夜間海上冥想",
+      "startReading": "點亮關係燈塔",
+      "drawHeader": "依序開啟燈塔梁，從餘溫到要守的邊界。",
+      "spreadGuideInitial": "開啟第一張卡片，看看你們之間留下的溫暖。",
+      "openReading": "開放式燈塔閱讀",
+      "resultTitle": "關係恢復燈塔閱讀"
     },
     "tarotYear": {
-      "badge": "Twelve guardian spirits monthly fortune",
-      "title": "Twelve cards opening the texture of the year",
-      "subtitle": "From January to December, the monthly energy guarded by the twelve spirits unfolds. Wealth, relationships, work, and reputation are read through a different card each month.",
-      "openCta": "Open twelve-month fortune",
-      "loadingTitle": "Opening the twelve monthly cards",
-      "loadingBody": "The guardian energy and tarot cards are aligning the year’s flow. Please wait a moment.",
-      "resultTitle": "Zodiac heavenly reading — twelve months of fortune",
-      "resultHint": "Tap each monthly card to unfold wealth, relationships, work, and reputation for that month.",
-      "monthPlaceholder": "Tap a monthly card from January to December to see that month’s fortune.",
-      "monthDetailTitle": "January detailed fortune",
-      "monthCardAlt": "This month’s tarot card",
-      "monthCardNameFallback": "This month’s card",
-      "monthConsult": "Professional tarot reading",
-      "monthSpreadTitle": "This month’s fortune flow spread",
+      "badge": "十二守護神月運",
+      "title": "十二張卡片開啟當年的紋理",
+      "subtitle": "從一月到十二月，十二神守護的每月能量展開。每個月都會透過一張不同的卡片來解讀財富、人際關係、工作和聲譽。",
+      "openCta": "開啟十二個月運勢",
+      "loadingTitle": "開啟十二張月卡",
+      "loadingBody": "守護能量和塔羅牌正在調整今年的流程。請稍等。",
+      "resultTitle": "十二生肖天讀－十二個月的運程",
+      "resultHint": "點選每張月卡即可展現該月的財富、人際關係、工作和聲譽。",
+      "monthPlaceholder": "點擊一月至十二月的月卡即可查看該月的運勢。",
+      "monthDetailTitle": "一月詳細運勢",
+      "monthCardAlt": "本月塔羅牌",
+      "monthCardNameFallback": "本月卡片",
+      "monthConsult": "專業塔羅占卜",
+      "monthSpreadTitle": "本月財運擴散",
       "tabs": {
-        "general": "Core",
-        "relationship": "Relationships",
-        "money": "Money and work",
-        "health": "Health"
+        "general": "核心",
+        "relationship": "關係",
+        "money": "金錢與工作",
+        "health": "健康"
       },
-      "categoryTitle": "Overall theme reading",
-      "adviceTitle": "Oracle’s final note",
-      "share": "Share heavenly reading",
+      "categoryTitle": "整體主題閱讀",
+      "adviceTitle": "Oracle 的最後說明",
+      "share": "分享天堂閱讀",
       "zodiac": {
-        "rat": "Rat",
-        "ox": "Ox",
-        "tiger": "Tiger",
-        "rabbit": "Rabbit",
-        "dragon": "Dragon",
-        "snake": "Snake",
-        "horse": "Horse",
-        "goat": "Goat",
-        "monkey": "Monkey",
-        "rooster": "Rooster",
-        "dog": "Dog",
-        "pig": "Pig"
+        "rat": "大鼠",
+        "ox": "牛",
+        "tiger": "老虎",
+        "rabbit": "兔子",
+        "dragon": "龍",
+        "snake": "蛇",
+        "horse": "馬",
+        "goat": "山羊",
+        "monkey": "猴子",
+        "rooster": "公雞",
+        "dog": "狗",
+        "pig": "豬"
       }
     },
     "animalTotem": {
@@ -981,29 +981,29 @@
       "title": "動物圖騰神聖儀式",
       "subtitle": "神秘森林裡的動物映照你的心緒。透過守護動物牌，看見今天的能量與方向。可依當下感受選擇一張、三張或五張儀式。",
       "start": "開始儀式",
-      "modeBadge": "SACRED TOTEM CIRCLE",
+      "modeBadge": "神聖圖騰圈",
       "modeTitle": "選擇守護動物牌儀式",
       "modeHint": "請選擇符合當下情緒與能量的牌陣儀式。",
       "modes": {
         "one": {
-          "title": "One moonlit card",
-          "desc": "Core guidance from one guardian animal · 3,000 KRW"
+          "title": "一張月光卡",
+          "desc": "一隻守護動物的核心指引 · 3,000 韓元"
         },
         "three": {
-          "title": "Three forest paths",
-          "desc": "A gentle reading of past, present, and integration · 3,000 KRW"
+          "title": "三條林間小路",
+          "desc": "溫柔地解讀過去、現在與整合 · 3,000 韓元"
         },
         "five": {
-          "title": "Five constellation animals",
-          "desc": "A deeper look into emotion, shadow, gift, and action · 6,000 KRW"
+          "title": "五個星座動物",
+          "desc": "更深入了解情緒、陰影、禮物和行動 · 6,000 KRW"
         }
       },
       "drawCards": "召喚卡牌",
-      "drawBadge": "ARCANA FLIP RITUAL",
+      "drawBadge": "至寶翻轉儀式",
       "drawHeader": "按順序翻開直式塔羅牌，接收光的訊息。",
       "drawHint": "卡牌會以柔和的 3D 翻轉展開。",
       "resultTitle": "守護動物的訊息",
-      "resultCardsAria": "Drawn totem cards",
+      "resultCardsAria": "繪製的圖騰卡",
       "openingTitle": "開場訊息",
       "closingTitle": "療癒結語",
       "share": "分享到 KakaoTalk 星光",
@@ -1011,13 +1011,13 @@
     },
     "kemet": {
       "aria": "埃及神諭運勢",
-      "title": "THE ORACLE OF KEMET",
+      "title": "基美的神諭",
       "subtitle": "正在連接古埃及神秘的全視之眼網絡。",
       "sourceAria": "選擇資料來源",
       "sources": {
-        "all": "Integrated search [Eye of Horus cosmic web & Akashic records]",
-        "egypt": "Abyss search [Cairo underground & Saqqara secret archive]",
-        "global": "Satellite search [Global occult database]"
+        "all": "綜合搜尋[荷魯斯之眼宇宙網與阿卡西記錄]",
+        "egypt": "深淵搜尋【開羅地下&薩卡拉秘密檔案館】",
+        "global": "衛星搜尋[全球神秘資料庫]"
       },
       "placeholder": "請輸入具體問題，例如本月財運、復合可能、考試合格等。",
       "readingCta": "解讀神諭",
@@ -1025,7 +1025,7 @@
       "cardOracleTitle": "十二主神黃金神諭",
       "cardOracleHint": "洗牌後，選擇內心被吸引的三張牌。",
       "counterReady": "洗牌後開始",
-      "shuffle": "GOLDEN SHUFFLE",
+      "shuffle": "黃金洗牌",
       "shuffleHint": "按下 GOLDEN SHUFFLE 按鈕來洗牌。"
     },
     "insights": {
@@ -1037,28 +1037,28 @@
       "body": "這裡整理東西方命理的結構與模式。請選擇主題，繼續深入探索。",
       "topics": {
         "saju": {
-          "title": "Saju Myeongri",
-          "desc": "Four pillars and 60 stem-branches"
+          "title": "沙州明里",
+          "desc": "四柱六十乾枝"
         },
         "tarot": {
-          "title": "Tarot",
-          "desc": "Major and minor arcana"
+          "title": "塔羅牌",
+          "desc": "大阿卡那和小阿卡那"
         },
         "sukuyo": {
           "title": "Sukuyo",
-          "desc": "Moon and 27 lunar mansions"
+          "desc": "月亮與 27 月亮宮"
         },
         "vedic": {
-          "title": "Vedic astrology",
-          "desc": "Navagraha and rashi"
+          "title": "吠陀占星學",
+          "desc": "Navagraha 和 rashi"
         },
         "astrology": {
-          "title": "Western astrology",
-          "desc": "12 signs, planets, and basic chart"
+          "title": "西方占星學",
+          "desc": "12 星座、行星和基本星盤"
         },
         "ziwei": {
-          "title": "Zi Wei Dou Shu",
-          "desc": "Life palace and 12 houses"
+          "title": "紫微鬥數",
+          "desc": "命宮及12間房屋"
         }
       }
     },
@@ -1072,17 +1072,17 @@
       "searchAria": "搜尋名人",
       "filterAria": "分類篩選",
       "filters": {
-        "historic": "Historical figures",
-        "kstar": "K-stars",
-        "japan": "Japan",
-        "china": "China",
-        "us": "United States",
-        "music": "Music",
-        "acting": "Acting",
-        "sports": "Sports",
-        "business": "Business leaders",
-        "creator": "Directors and creators",
-        "politics": "Politicians"
+        "historic": "歷史人物",
+        "kstar": "K 明星",
+        "japan": "日本",
+        "china": "中國",
+        "us": "美國",
+        "music": "音樂",
+        "acting": "表演",
+        "sports": "體育",
+        "business": "商業領袖",
+        "creator": "導演與創作者",
+        "politics": "政治家"
       },
       "noscript": "提供國內外 50+ 名人四柱命理深度分析。",
       "detailTitle": "人物詳細分析",
@@ -1109,8 +1109,8 @@
       "membershipAria": "查看通行券和月訂閱餘額並展開月光權益"
     },
     "badges": {
-      "yogaGuru": "YOGA GURU",
-      "selfUp": "SELF UP",
+      "yogaGuru": "瑜珈大師",
+      "selfUp": "自我提升",
       "advanced": "進階"
     },
     "themeToggle": {
@@ -1228,9 +1228,9 @@
       "about": "關於我們",
       "faq": "常見問題",
       "contact": "聯絡我們",
-      "disclaimer": "Disclaimer",
-      "editorial": "Editorial Policy",
-      "advertising": "Advertising Policy"
+      "disclaimer": "免責聲明",
+      "editorial": "編輯政策",
+      "advertising": "廣告政策"
     },
     "refundPolicy": "高級硬幣（數位積分）購買後14天內未使用可依消費者保護法申請退款。已使用積分不可退。如需協助請聯絡客服。",
     "copyright": "© 2025 Code Destiny. 保留所有權利。本服務僅供娛樂與自我反思之用，不構成專業建議。",
@@ -1547,7 +1547,7 @@
       "title": "选择支付方式",
       "readyMessage": "请选择月定石或单次支付。",
       "directHint": "可使用银行卡或快捷支付直接付款。<br>支付将在 PortOne V2 KG Inicis 安全支付窗口中进行。",
-      "pgBadge": "PortOne V2 · KG Inicis",
+      "pgBadge": "PortOne V2·KG Inicis",
       "directTitle": "韩元单次支付 · {amount}",
       "amountLabel": "支付金额",
       "monthlyBasisLabel": "月定石基准",
@@ -1614,67 +1614,67 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
           "message": "正在确认持有的30天通行券是否可立即开启。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
-          "eyebrow": "HONEY FORTUNE PASS",
+          "eyebrow": "蜂蜜財富通行證",
           "title": "通行券已适用",
           "message": "此内容已通过持有通行券开启。",
           "meta": "无需额外支付即可继续。"
         },
         "paymentComplete": {
-          "eyebrow": "HONEY FORTUNE PAID",
+          "eyebrow": "蜂蜜財富支付",
           "title": "支付完成",
           "message": "支付已完成，正在开启阅览权限。",
           "meta": "即将前往内容。"
         },
         "card": {
-          "eyebrow": "SINGLE SECURE CHECKOUT",
+          "eyebrow": "單次安全結帳",
           "title": "准备单次支付",
           "message": "正在确认订单信息与认证流程。",
           "meta": "安全支付窗口打开后请继续认证。"
         },
         "checkout": {
-          "eyebrow": "CHECKOUT READY",
+          "eyebrow": "結帳就緒",
           "title": "准备单次支付",
           "message": "正在确认订单信息与认证流程。",
           "meta": "正在安全匹配订单号和支付金额。"
         },
         "confirm": {
-          "eyebrow": "PAYMENT VERIFICATION",
+          "eyebrow": "付款驗證",
           "title": "正在确认单次支付授权",
           "message": "正在同时确认授权信号和内容使用权限。",
           "meta": "确认完成后即可阅览。"
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "月光石檢查",
           "title": "正在确认月定石支付",
           "message": "正在用月定石余额开启内容使用权限。",
           "meta": "正在安全匹配月定石扣减与阅览权限。"
         },
         "subscription": {
-          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "eyebrow": "月光通行證激活",
           "title": "正在确认韩元基准通行券支付",
           "message": "正在确认通行券支付授权与激活。",
           "meta": "正在安全应用通行券等级与期限。"
         },
         "unlockSaving": {
-          "eyebrow": "ACCESS GRANT",
+          "eyebrow": "存取權限",
           "title": "正在应用解锁",
           "message": "正在应用内容解锁。",
           "meta": "正在保存资料权限和阅览状态。"
         },
         "refund": {
-          "eyebrow": "REFUND CHECK",
+          "eyebrow": "退款檢查",
           "title": "正在确认退款处理",
           "message": "正在确认支付记录和使用权限。",
           "meta": "将按未使用权限安全处理。"
         },
         "payment": {
-          "eyebrow": "PAYMENT CHECK",
+          "eyebrow": "付款支票",
           "title": "正在确认支付状态",
           "message": "正在确认支付状态和使用权限。",
           "meta": "正在依次确认支付认证与使用权限。"
@@ -1682,67 +1682,67 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "月光通行證檢查",
           "title": "正在确认通行券",
           "message": "正在确认持有的30天通行券是否可立即开启。",
           "meta": "如可使用，将无需打开支付窗口继续。"
         },
         "passApplied": {
-          "eyebrow": "HONEY FORTUNE PASS",
+          "eyebrow": "蜂蜜財富通行證",
           "title": "通行券已适用",
           "message": "此内容已通过持有通行券开启。",
           "meta": "无需额外支付即可继续。"
         },
         "paymentComplete": {
-          "eyebrow": "HONEY FORTUNE PAID",
+          "eyebrow": "蜂蜜財富支付",
           "title": "支付完成",
           "message": "支付已完成，正在开启阅览权限。",
           "meta": "即将前往内容。"
         },
         "card": {
-          "eyebrow": "SINGLE SECURE CHECKOUT",
+          "eyebrow": "單次安全結帳",
           "title": "准备单次支付",
           "message": "正在确认订单信息与认证流程。",
           "meta": "安全支付窗口打开后请继续认证。"
         },
         "checkout": {
-          "eyebrow": "CHECKOUT READY",
+          "eyebrow": "結帳就緒",
           "title": "准备单次支付",
           "message": "正在确认订单信息与认证流程。",
           "meta": "正在安全匹配订单号和支付金额。"
         },
         "confirm": {
-          "eyebrow": "PAYMENT VERIFICATION",
+          "eyebrow": "付款驗證",
           "title": "正在确认单次支付授权",
           "message": "正在同时确认授权信号和内容使用权限。",
           "meta": "确认完成后即可阅览。"
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "月光石檢查",
           "title": "正在确认月定石支付",
           "message": "正在用月定石余额开启内容使用权限。",
           "meta": "正在安全匹配月定石扣减与阅览权限。"
         },
         "subscription": {
-          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "eyebrow": "月光通行證激活",
           "title": "正在确认韩元基准通行券支付",
           "message": "正在确认通行券支付授权与激活。",
           "meta": "正在安全应用通行券等级与期限。"
         },
         "unlockSaving": {
-          "eyebrow": "ACCESS GRANT",
+          "eyebrow": "存取權限",
           "title": "正在应用解锁",
           "message": "正在应用内容解锁。",
           "meta": "正在保存资料权限和阅览状态。"
         },
         "refund": {
-          "eyebrow": "REFUND CHECK",
+          "eyebrow": "退款檢查",
           "title": "正在确认退款处理",
           "message": "正在确认支付记录和使用权限。",
           "meta": "将按未使用权限安全处理。"
         },
         "payment": {
-          "eyebrow": "PAYMENT CHECK",
+          "eyebrow": "付款支票",
           "title": "正在确认支付状态",
           "message": "正在确认支付状态和使用权限。",
           "meta": "正在依次确认支付认证与使用权限。"
@@ -1795,11 +1795,11 @@
     "signup": "✨ 註冊",
     "login": "🔐 登入",
     "loadingGreeting": "正在校準帳號星光",
-    "loadingChip": "SESSION SYNC",
+    "loadingChip": "會話同步",
     "loadingTitle": "正在讀取登入資訊",
     "loadingCopy": "稍後會顯示你的命運卡與已擁有的權益。",
     "passDelayGreeting": "使用券確認稍有延遲",
-    "passDelayChip": "PASS SYNC",
+    "passDelayChip": "透過同步",
     "passDelayNote": "確認準確會員等級後，將開啟登入卡片。",
     "retry": "重新確認",
     "adminSessionActive": "管理員工作階段已啟用",
@@ -1810,7 +1810,7 @@
     "userNameSuffix": "{name}",
     "logout": "🔓 登出",
     "adminSessionGreeting": "✦ 管理員工作階段",
-    "adminAccessChip": "ADMIN ACCESS",
+    "adminAccessChip": "管理員存取權限",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "管理員面板工作階段",
     "exit": "🔓 離開",
@@ -1837,1385 +1837,1385 @@
   "fortune": {
     "destinyFlower": {
       "common": {
-        "unknown": "Unknown"
+        "unknown": "未知"
       },
       "astro": {
         "elements": {
-          "Fire": "fire",
-          "Earth": "earth",
-          "Air": "air",
-          "Water": "water",
-          "Cosmic": "starlight"
+          "Fire": "火",
+          "Earth": "地球",
+          "Air": "空氣",
+          "Water": "水",
+          "Cosmic": "星光"
         },
-        "unknownSun": "Sun sign unknown",
-        "unknownRising": "Rising sign unknown",
-        "unknownMoon": "Moon sign unknown",
-        "stickerLabel": "Flower by astrology",
-        "sunSignBadge": "Sun sign {sign}",
-        "risingSignBadge": "Rising sign {sign}",
-        "moonSignBadge": "Moon sign {sign}",
-        "scenarioTitle": "Sun-sign centered blooming scenario",
-        "chartPending": "Waiting for chart data",
-        "ritualTip": "Tonight, steady your breath for three minutes and set one intention beneath a star.",
-        "relationshipTheme": "When relationships follow the rhythm of your main sign, friction softens.",
-        "careerTheme": "Bring the core drive of your sun sign into your work routine for steadier momentum.",
-        "growthCycle": "Star call ? orbit forming ? nebula blooming ? radiance spreading",
-        "fallbackNote": "Sun-sign data was unavailable, so the reading used the default air element.",
-        "ultimateTitle": "Ultimate Destiny Flower",
-        "ultimateConcept": "A hybrid bloom where Eastern {dayMaster} energy merges with Western {sunSign} starlight",
-        "verdict": "Through astrology, your destiny flower is {flowerName} ({scientificName}). The three axes of sun, rising, and moon signs show this flower resonating closely with you now.",
-        "narrative": "The {sunElement} spark rising from sun sign {sun} becomes the center of this flower choice. Rising sign {rising} ({risingElement}) shapes the visible tone, while moon sign {moon} ({moonElement}) adds emotional dew, letting the symbol of {flowerName}, ?{flowerSymbolism},? open clearly. The keyword ?{keyword}? is the starlight calling this flower forward."
+        "unknownSun": "太陽星座未知",
+        "unknownRising": "上升星座未知",
+        "unknownMoon": "月亮星座未知",
+        "stickerLabel": "占星花",
+        "sunSignBadge": "太陽星座 {sign}",
+        "risingSignBadge": "上升星座 {sign}",
+        "moonSignBadge": "月亮星座 {sign}",
+        "scenarioTitle": "以太陽星座為中心的開花場景",
+        "chartPending": "等待圖表數據",
+        "ritualTip": "今晚，穩定呼吸三分鐘，在星星下方設定目標。",
+        "relationshipTheme": "當人際關係遵循你的主要星座的節奏時，摩擦就會減弱。",
+        "careerTheme": "將太陽星座的核心驅動力帶入您的日常工作中，以獲得更穩定的動力。",
+        "growthCycle": "恆星稱為「軌道形成」星雲綻放→輻射擴散",
+        "fallbackNote": "太陽星座資料不可用，因此讀數使用預設的風元素。",
+        "ultimateTitle": "終極命運之花",
+        "ultimateConcept": "東方 {dayMaster} 能量與西方 {sunSign} 星光融合的混合綻放",
+        "verdict": "透過占星學，你的命運之花是 {flowerName} ({scientificName})。太陽、上升和月亮星座的三個軸表明這朵花現在與你密切共鳴。",
+        "narrative": "從太陽星座 {sun} 升起的 {sunElement} 火花成為此花選擇的中心。上升星座{rising} ({risingElement}) 塑造可見的基調，而月亮星座{moon} ({moonElement}) 加入情緒露水，讓{flowerName}、{flowerSymbolism}、？打開清楚。關鍵字「{keyword}」是召喚這朵花前進的星光。"
       },
       "ziwei": {
         "brightness": {
-          "miao": "Miao",
-          "wang": "Wang",
-          "li": "Li",
-          "de": "De",
-          "ping": "Ping",
-          "han": "Han",
-          "xian": "Xian"
+          "miao": "苗",
+          "wang": "王",
+          "li": "李",
+          "de": "德",
+          "ping": "平",
+          "han": "韓",
+          "xian": "西安"
         },
-        "coreFlow": "core fortune flow",
-        "coreEnergy": "expression of core energy",
-        "stickerLabel": "Flower by Ziwei",
-        "strongStarBadge": "Strong star today: {stars}",
-        "brightnessLabel": "Star brightness {brightness}",
-        "scenarioTitle": "Strong-star blooming scenario",
-        "ritualTip": "Core keyword today: {keyword}",
-        "relationshipTheme": "Let the strong-star temperament become your relational standard and harmony becomes clearer.",
-        "careerTheme": "When the main star?s strength takes the front, execution and positioning stabilize.",
-        "growthCycle": "Star alignment ? energy gathering ? seed ignition ? bloom",
-        "secondaryFallbackNote": "Composite main-star adjustment: {primaryStar} centered + {secondaryStar} scent blend",
-        "palaceFallbackNote": "Palace trait adjustment: {palace} ? {trait}",
-        "hybridHint": "Hybrid rendering available by blending Saju {dayMaster} energy with Ziwei main stars {stars}",
-        "verdict": "In Ziwei, the destiny flower read through today?s strongest star is {flowerName} ({scientificName}). Over the nature of {palace}, ?{palaceTrait},? the star quality ?{keyword}? from {stars} becomes clearest through brightness {brightness}.",
-        "narrativeWithSecondary": "{palace} governs ?{palaceEnergy}.? The {stars} combination rises here, setting {title} as the central flower. The main-star nature ?{personality}? is joined by the secondary star?s ?{secondaryKeyword}? texture. Because brightness {brightness} supports it steadily, {flowerName} translates the structure of this fortune most clearly.",
-        "narrativeSingle": "{palace} handles ?{palaceEnergy}.? Today?s strong star {star} places the quality ?{keyword}? and the nature ?{personality}? at the flower?s center. Brightness {brightness} holds that light steady, and {flowerName} resonates most deeply with your central energy.",
+        "coreFlow": "核心財富流程",
+        "coreEnergy": "核心能量表達",
+        "stickerLabel": "紫微之花",
+        "strongStarBadge": "今日強勢明星：{stars}",
+        "brightnessLabel": "恆星亮度 {brightness}",
+        "scenarioTitle": "強星綻放場景",
+        "ritualTip": "今日核心關鍵字：{keyword}",
+        "relationshipTheme": "讓強勢明星氣質成為你的人際關係標準，和諧變得更加清晰。",
+        "careerTheme": "當主星實力佔上風時，執行力和定位就穩定了。",
+        "growthCycle": "星星對準「能量聚集」種子點火→綻放",
+        "secondaryFallbackNote": "複合主星調整：{primaryStar} 置中 + {secondaryStar} 香味混合",
+        "palaceFallbackNote": "宮殿特質調整：{palace} · {trait}",
+        "hybridHint": "透過將 Saju {dayMaster} 能量與紫微主星 {stars} 混合來實現混合渲染",
+        "verdict": "紫微中，讀通今日最強星的命運花是{flowerName}（{scientificName}）。關於{palace}、{palaceTrait}、？ {stars} 的星光品質「{keyword}」透過亮度 {brightness} 變得最清晰。",
+        "narrativeWithSecondary": "{palace} 管轄{palaceEnergy}。 ？ {stars} 組合在這裡升起，將 {title} 設定為中心花。主星性質「{personality}」與次星的「{secondaryKeyword}」紋理連結在一起。因為亮度{brightness}穩定支持它，所以{flowerName}最清楚地翻譯了這個財富的結構。",
+        "narrativeSingle": "{palace} 句柄 {palaceEnergy}。 ？今天的強星{star}將品質「{keyword}」和性質「{personality}」置於花的中心。亮度 {brightness} 保持光線穩定，而 {flowerName} 與您的中心能量產生最深刻的共鳴。",
         "rules": {
           "peonyZiwei": {
-            "title": "Imperial Peony",
-            "keyword": "imperial poise",
-            "personality": "a leader who centers the field and restores order"
+            "title": "牡丹",
+            "keyword": "帝國風度",
+            "personality": "一位集中戰場並恢復秩序的領導者"
           },
           "thornyRoseGeneral": {
-            "title": "General?s Red Rose",
-            "keyword": "decisive breakthrough",
-            "personality": "a decisive force that advances even under pressure"
+            "title": "將軍的紅玫瑰",
+            "keyword": "決定性突破",
+            "personality": "即使在壓力下也能前進的決定性力量"
           },
           "thornyRosePioneer": {
-            "title": "Pioneer?s Red Rose",
-            "keyword": "the drive to reshape the field",
-            "personality": "an innovator who breaks the old frame and opens a new order"
+            "title": "先鋒紅玫瑰",
+            "keyword": "重塑領域的動力",
+            "personality": "打破舊框架、開啟新秩序的創新者"
           },
           "delicateWillow": {
-            "title": "Strategist?s Willow Flower",
-            "keyword": "gentle strategy",
-            "personality": "a strategist who reads the moment and finds the cleanest answer"
+            "title": "軍師的柳花",
+            "keyword": "溫和策略",
+            "personality": "一位善於洞察當下並找出最簡潔答案的策略家"
           },
           "sunflowerZiwei": {
-            "title": "Solar Sunflower",
-            "keyword": "expanding light",
-            "personality": "an executor who gathers energy toward visible results"
+            "title": "太陽能向日葵",
+            "keyword": "擴充光",
+            "personality": "為可見結果聚集能量的執行者"
           },
           "nightCereus": {
-            "title": "Moonlit Night-Blooming Cereus",
-            "keyword": "mystery that opens at night",
-            "personality": "a contemplative soul who reads the unseen current"
+            "title": "月夜盛開的仙人掌",
+            "keyword": "夜間揭開的謎團",
+            "personality": "一個沉思的靈魂，讀取看不見的電流"
           },
           "orchidTanlang": {
-            "title": "Peach-Blossom Orchid",
-            "keyword": "sensual magnetism",
-            "personality": "a magnetic type who leads through beauty, relationship, and expression"
+            "title": "桃花蘭",
+            "keyword": "感性磁力",
+            "personality": "一種磁性類型，引領美麗、關係和表達"
           }
         }
       },
       "sukuyo": {
         "moon": {
-          "full": "full moon",
-          "new": "dark moon",
-          "crescent": "crescent moon",
-          "gibbous": "waxing/waning moon"
+          "full": "滿月",
+          "new": "闇月",
+          "crescent": "新月",
+          "gibbous": "盈月/虧損月"
         },
-        "stickerLabel": "Flower by Sukuyo",
-        "moonPhaseLabel": "Moon phase {moon}",
-        "guardianLabel": "Guardian {guardian}",
-        "scenarioTitle": "27 mansions and moon-phase blooming scenario",
-        "ritualTip": "By a moonlit window, breathe 27 times and set today?s intention in one word.",
-        "relationshipTheme": "Following the texture of {group} softens tension and clarifies connection.",
-        "careerTheme": "When the rhythm of {guardian} is reflected in your work routine, results stabilize.",
-        "growthCycle": "Constellation linking ? moonlight gathering ? spirit ignition ? bloom",
-        "verdict": "Through Sukuyo?s moonlight texture, your destiny flower is {flowerName} ({scientificName}). The combination of {mansion}, {moon}, and {guardian} aligns delicately with the rhythm of relationship, emotion, and action now.",
-        "narrative": "The relational texture of {mansion} ({group}), the tide of moon phase {moon}, and the protective pattern of {guardian} meet in the night garden, deepening the quality of ?{symbolism}.? Read together, these three moonlit signals point to {flowerName} as your most precise destiny flower now."
+        "stickerLabel": "Sukuyo 的花",
+        "moonPhaseLabel": "月相 {moon}",
+        "guardianLabel": "監護人 {guardian}",
+        "scenarioTitle": "27宮與月相綻放場景",
+        "ritualTip": "在月光照射下的窗前，呼吸 27 次，用一個字表達今天的意圖。",
+        "relationshipTheme": "遵循 {group} 的紋理可以緩解緊張並澄清聯繫。",
+        "careerTheme": "當 {guardian} 的節奏反映在您的日常工作中時，結果就會穩定。",
+        "growthCycle": "星座連動「月光聚」靈火→綻放",
+        "verdict": "透過 Sukuyo 的月光紋理，你的命運之花是 {flowerName} ({scientificName})。 {mansion}、{moon} 和 {guardian} 的組合與現在的關係、情緒和行動的節奏微妙地一致。",
+        "narrative": "{mansion} ({group}) 的關係紋理、月相潮汐{moon} 和{guardian} 的保護圖案在夜花園中相遇，加深了{symbolism} 的品質。一起閱讀，這三個月光訊號顯示 {flowerName} 是你現在最精確的命運之花。"
       },
       "saju": {
         "scenarios": {
           "default": {
-            "title": "{dayMasterBadge} environment blooming????"
+            "title": "{dayMasterBadge}的環境中，命運之花正在綻放"
           },
           "jia": {
             "springWood": {
-              "title": "Jia Wood upright-leading blooming????"
+              "title": "甲木帶著筆直引領的力量綻放命運之花的走勢"
             },
             "autumnMetal": {
-              "title": "Jia Wood metal-tempering????"
+              "title": "甲木帶著metal-tempering scenario綻放命運之花的走勢"
             },
             "dryFire": {
-              "title": "Jia Wood dry-heat endurance????"
+              "title": "甲木帶著dry-heat endurance scenario綻放命運之花的走勢"
             }
           },
           "yi": {
             "metalWater": {
-              "title": "Yi Wood metal-water harmony????"
+              "title": "乙木帶著metal-water harmony scenario綻放命運之花的走勢"
             },
             "dryEarth": {
-              "title": "Yi Wood dry-soil survival????"
+              "title": "乙木帶著dry-soil survival scenario綻放命運之花的走勢"
             },
             "autumn": {
-              "title": "Yi Wood autumn refinement????"
+              "title": "乙木帶著autumn refinement scenario綻放命運之花的走勢"
             },
             "wetSpring": {
-              "title": "Yi Wood moist-spring expansion????"
+              "title": "乙木帶著moist-spring expansion scenario綻放命運之花的走勢"
             }
           },
           "bing": {
             "springWood": {
-              "title": "Bing Fire spring ignition????"
+              "title": "丙火帶著spring ignition scenario綻放命運之花的走勢"
             },
             "summerFire": {
-              "title": "Bing Fire summer expansion????"
+              "title": "丙火帶著summer expansion scenario綻放命運之花的走勢"
             },
             "waterControl": {
-              "title": "Bing Fire water-control????"
+              "title": "丙火帶著water-control scenario綻放命運之花的走勢"
             }
           },
           "ding": {
             "coldWet": {
-              "title": "Ding Fire cold-damp warmth????"
+              "title": "丁火帶著cold-damp warmth scenario綻放命運之花的走勢"
             },
             "autumnMetal": {
-              "title": "Ding Fire metal-refining????"
+              "title": "丁火帶著metal-refining scenario綻放命運之花的走勢"
             },
             "resonance": {
-              "title": "Ding Fire resonance blooming????"
+              "title": "丁火帶著resonance綻放命運之花的走勢"
             }
           },
           "wu": {
             "fireEarth": {
-              "title": "Wu Earth fire-earth achievement????"
+              "title": "戊土帶著fire-earth achievement scenario綻放命運之花的走勢"
             },
             "winterWater": {
-              "title": "Wu Earth winter foundation????"
+              "title": "戊土帶著winter foundation scenario綻放命運之花的走勢"
             },
             "center": {
-              "title": "Wu Earth center-building????"
+              "title": "戊土帶著center-building scenario綻放命運之花的走勢"
             }
           },
           "ji": {
             "wetEarth": {
-              "title": "Ji Earth cultivation expansion????"
+              "title": "己土帶著cultivation expansion scenario綻放命運之花的走勢"
             },
             "metalDesign": {
-              "title": "Ji Earth precision-design????"
+              "title": "己土帶著precision-design scenario綻放命運之花的走勢"
             },
             "balance": {
-              "title": "Ji Earth balance-tuning????"
+              "title": "己土帶著balance-tuning scenario綻放命運之花的走勢"
             }
           },
           "geng": {
             "metalEarth": {
-              "title": "Geng Metal principle-through????"
+              "title": "庚金帶著principle-through scenario綻放命運之花的走勢"
             },
             "fireTraining": {
-              "title": "Geng Metal fire-tempering????"
+              "title": "庚金帶著fire-tempering scenario綻放命運之花的走勢"
             },
             "clearJudgment": {
-              "title": "Geng Metal decisive-judgment????"
+              "title": "庚金帶著decisive-judgment scenario綻放命運之花的走勢"
             }
           },
           "xin": {
             "metalWater": {
-              "title": "Xin Metal metal-water refinement????"
+              "title": "辛金帶著metal-water refinement scenario綻放命運之花的走勢"
             },
             "springWood": {
-              "title": "Xin Metal wood-tuning????"
+              "title": "辛金帶著wood-tuning scenario綻放命運之花的走勢"
             },
             "completion": {
-              "title": "Xin Metal completion????"
+              "title": "辛金帶著completion scenario綻放命運之花的走勢"
             }
           },
           "ren": {
             "summerCooling": {
-              "title": "Ren Water summer-cooling????"
+              "title": "壬水帶著summer-cooling scenario綻放命運之花的走勢"
             },
             "winterCondensing": {
-              "title": "Ren Water winter-condensing????"
+              "title": "壬水帶著winter-condensing scenario綻放命運之花的走勢"
             },
             "nightIntuition": {
-              "title": "Ren Water night-intuition????"
+              "title": "壬水帶著night-intuition scenario綻放命運之花的走勢"
             }
           },
           "gui": {
             "coldWetPurifying": {
-              "title": "Gui Water cold-damp purification????"
+              "title": "癸水帶著cold-damp purification scenario綻放命運之花的走勢"
             },
             "summerEmpathy": {
-              "title": "Gui Water summer-empathy????"
+              "title": "癸水帶著summer-empathy scenario綻放命運之花的走勢"
             },
             "subtleSignal": {
-              "title": "Gui Water subtle-signal????"
+              "title": "癸水帶著subtle-signal scenario綻放命運之花的走勢"
             }
           }
         },
-        "stickerLabel": "Flower by Saju",
-        "dayMasterWaiting": "Waiting for day master reading",
-        "signalPending": "Waiting for core signals",
-        "scenarioTitleFallback": "{dayMasterBadge} blooming scenario",
-        "scenarioFallbackReason": "The blooming flow was read by integrating the day master and environment.",
-        "growthCycle": "Sprout (gathering energy) ? Growth (amplifying action) ? Bloom (results surfacing) ? Fruition (relationships and assets deepening)",
-        "fallbackNote": "Day master enrichment logic was applied.",
-        "verdict": "In your Saju reading, your flower is {flowerName} ({scientificName}).",
+        "stickerLabel": "Saju 的花",
+        "dayMasterWaiting": "等待日主閱讀",
+        "signalPending": "等待核心訊號",
+        "scenarioTitleFallback": "{dayMasterBadge} 開花場景",
+        "scenarioFallbackReason": "透過整合日主和環境來讀取綻放的流程。",
+        "growthCycle": "萌芽（聚集能量）「成長（放大行動）」綻放（結果浮現）→成果（關係與資產深化）",
+        "fallbackNote": "應用了日主豐富邏輯。",
+        "verdict": "在您的 Saju 閱讀中，您的花是 {flowerName} ({scientificName})。",
         "rationale": {
-          "verdict": "In your Saju reading, your destiny flower is {flowerName} ({scientificName}).",
-          "elements": "The Five Element reading shows {dominant} as your main energy and {support} as the supporting flow.",
-          "context": "The season of the current fortune is {season}, the energy density is {water}, and the life stage is read as {environment}.",
-          "dayMaster": "The day master is confirmed as {dayMasterBadge}, and the season-environment interaction around it was prioritized.",
-          "scenario": "Day master-environment scenario: {reason}",
-          "levels": "The element levels are {elementLevelLine}, and all five levels were weighted to confirm the destiny flower.",
-          "symbolism": "This flower symbolizes {symbolism}, reflecting the theme of this season most clearly.",
-          "description": "Destiny flower reading: {description}",
-          "vibe": "Blooming guide: {vibeMessage}",
-          "fallback": "Adjustment logic: {note}"
+          "verdict": "在您的 Saju 解讀中，您的命運之花是 {flowerName} ({scientificName})。",
+          "elements": "五元素讀數顯示 {dominant} 作為您的主要能量，{support} 作為支援流程。",
+          "context": "目前運勢季節為{season}，能量密度為{water}，生命階段讀作{environment}。",
+          "dayMaster": "日主被確認為 {dayMasterBadge}，並優先考慮圍繞它的季節-環境互動。",
+          "scenario": "天主環境場景：{reason}",
+          "levels": "元素等級為 {elementLevelLine}，所有五個等級均經過加權以確定命運之花。",
+          "symbolism": "這朵花象徵著{symbolism}，最清楚地反映了這個季節的主題。",
+          "description": "命運之花閱讀：{description}",
+          "vibe": "開花指南：{vibeMessage}",
+          "fallback": "調整邏輯：{note}"
         },
         "elements": {
-          "wood": "Wood",
-          "fire": "Fire",
-          "earth": "Earth",
-          "metal": "Metal",
-          "water": "Water"
+          "wood": "木材",
+          "fire": "火",
+          "earth": "地球",
+          "metal": "金屬",
+          "water": "水"
         },
         "seasons": {
-          "Spring": "spring",
-          "Summer": "summer",
-          "Autumn": "autumn",
-          "Winter": "winter"
+          "Spring": "春天",
+          "Summer": "夏天",
+          "Autumn": "秋天",
+          "Winter": "冬天"
         },
         "environments": {
-          "Forest": "forest",
-          "Garden": "garden",
-          "Pond": "pond",
-          "Lake": "lake",
-          "Rock": "rocky mountain",
-          "Desert": "desert",
-          "Field": "open field",
-          "Wetland": "wetland",
-          "NightSky": "night sky"
+          "Forest": "森林",
+          "Garden": "花園",
+          "Pond": "池塘",
+          "Lake": "湖",
+          "Rock": "落磯山",
+          "Desert": "沙漠",
+          "Field": "開放式場地",
+          "Wetland": "濕地",
+          "NightSky": "夜空"
         },
         "environmentTraits": {
-          "Forest": "the expansion of the forest",
-          "Garden": "the harmony of the garden",
-          "Pond": "the circulation of the pond",
-          "Lake": "the depth of the lake",
-          "Rock": "the concentration of stone",
-          "Desert": "the survival power of the desert",
-          "Field": "the openness of the field",
-          "Wetland": "the vitality of the wetland",
-          "NightSky": "the intuition of the night sky"
+          "Forest": "森林的擴張",
+          "Garden": "花園的和諧",
+          "Pond": "池塘的循環",
+          "Lake": "湖的深度",
+          "Rock": "石頭的濃度",
+          "Desert": "沙漠的生存力量",
+          "Field": "領域的開放性",
+          "Wetland": "濕地的活力",
+          "NightSky": "夜空的直覺"
         },
         "water": {
-          "low": "dry energy",
-          "balanced": "balanced energy",
-          "high": "moist and flexible energy"
+          "low": "幹能",
+          "balanced": "平衡能量",
+          "high": "濕潤靈活的能量"
         },
         "ritual": {
-          "Wood": "Open your Wood energy with ten minutes of stretching before sunrise.",
-          "Fire": "Receive five minutes of morning sunlight with intention and align your Fire energy.",
-          "Earth": "Tidy one area of your desk or home to recover the center of Earth energy.",
-          "Metal": "Write down three priorities for the day to strengthen Metal?s restraint.",
-          "Water": "Open the circulation of Water energy with a short walk and deep breathing."
+          "Wood": "在日出前進行十分鐘的伸展運動，打開您的木能量。",
+          "Fire": "有意識地接受五分鐘的早晨陽光並調整你的火能量。",
+          "Earth": "整理辦公桌或家中的一個區域以恢復地球能量的中心。",
+          "Metal": "寫下當天的三個優先事項，以加強金屬的克制。",
+          "Water": "透過短距離步行和深呼吸打開水能量的循環。"
         },
         "relationship": {
-          "Wood": "Respecting each other?s pace of growth steadies the relationship.",
-          "Fire": "When feelings are expressed honestly, the temperature of the relationship rises.",
-          "Earth": "A consistent attitude protects trust for longer.",
-          "Metal": "Clear boundaries and promises improve the quality of the relationship.",
-          "Water": "Empathy and listening create the turning point in the relationship."
+          "Wood": "尊重彼此的成長步伐可以穩定關係。",
+          "Fire": "當誠實地表達感情時，關係的溫度就會上升。",
+          "Earth": "一致的態度可以更長久地保護信任。",
+          "Metal": "清楚的界線和承諾可以提高關係的品質。",
+          "Water": "同理心和傾聽創造了關係的轉捩點。"
         },
         "career": {
-          "Wood": "Growth expands most strongly in expansion-oriented projects.",
-          "Fire": "Launches, promotion, and presentations suit you well when you stand at the front.",
-          "Earth": "Operations, management, and system-building bring out your strengths.",
-          "Metal": "Analysis, planning, and quality control turn precision into results.",
-          "Water": "Research, investigation, and content design let your depth shine."
+          "Wood": "在以擴張為導向的專案中成長最為強勁。",
+          "Fire": "當您站在最前面時，發布、促銷和演示非常適合您。",
+          "Earth": "營運、管理、系統建構發揮你的優勢。",
+          "Metal": "分析、規劃和品質控制將精度轉換為結果。",
+          "Water": "研究、調查和內容設計讓您的深度閃耀。"
         }
       },
       "flowers": {
         "anemone": {
-          "name": "Anemone",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Anemone???????????",
-          "description": "Anemone????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "海葵",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "海葵，此刻命運中綻放的花",
+          "description": "海葵映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "aster": {
-          "name": "Aster",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Aster???????????",
-          "description": "Aster????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫菀",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫菀，此刻命運中綻放的花",
+          "description": "紫菀映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "astro_lavender": {
-          "name": "Nebula Lavender",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Nebula Lavender???????????",
-          "description": "Nebula Lavender????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "星雲薰衣草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "星雲薰衣草，此刻命運中綻放的花",
+          "description": "星雲薰衣草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "azalea": {
-          "name": "Azalea",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Azalea???????????",
-          "description": "Azalea????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "杜鵑花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "杜鵑花，此刻命運中綻放的花",
+          "description": "杜鵑花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "begonia": {
-          "name": "Begonia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Begonia???????????",
-          "description": "Begonia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "海棠",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "海棠，此刻命運中綻放的花",
+          "description": "海棠映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "bellflower": {
-          "name": "Bellflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Bellflower???????????",
-          "description": "Bellflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "風鈴草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "風鈴草，此刻命運中綻放的花",
+          "description": "風鈴草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "bird_of_paradise": {
-          "name": "Bird of Paradise",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Bird of Paradise???????????",
-          "description": "Bird of Paradise????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "天堂鳥",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "天堂鳥，此刻命運中綻放的花",
+          "description": "天堂鳥映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "black_rose": {
-          "name": "Black Rose",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Black Rose???????????",
-          "description": "Black Rose????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "黑玫瑰",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "黑玫瑰，此刻命運中綻放的花",
+          "description": "黑玫瑰映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "blue_iris": {
-          "name": "Blue Iris",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Blue Iris???????????",
-          "description": "Blue Iris????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "藍色虹膜",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "藍色虹膜，此刻命運中綻放的花",
+          "description": "藍色虹膜映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "blue_lotus": {
-          "name": "Blue Lotus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Blue Lotus???????????",
-          "description": "Blue Lotus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "藍蓮花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "藍蓮花，此刻命運中綻放的花",
+          "description": "藍蓮花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "bluebell": {
-          "name": "Bluebell",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Bluebell???????????",
-          "description": "Bluebell????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "風信子",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "風信子，此刻命運中綻放的花",
+          "description": "風信子映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "cactus_flower": {
-          "name": "Cactus Flower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Cactus Flower???????????",
-          "description": "Cactus Flower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "仙人掌花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "仙人掌花，此刻命運中綻放的花",
+          "description": "仙人掌花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "camellia": {
-          "name": "Camellia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Camellia???????????",
-          "description": "Camellia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "茶花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "茶花，此刻命運中綻放的花",
+          "description": "茶花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "carnation": {
-          "name": "Carnation",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Carnation???????????",
-          "description": "Carnation????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "康乃馨",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "康乃馨，此刻命運中綻放的花",
+          "description": "康乃馨映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "cherry_blossom": {
-          "name": "Cherry Blossom",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Cherry Blossom???????????",
-          "description": "Cherry Blossom????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "櫻花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "櫻花，此刻命運中綻放的花",
+          "description": "櫻花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "chrysanthemum_gold": {
-          "name": "Golden Chrysanthemum",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Golden Chrysanthemum???????????",
-          "description": "Golden Chrysanthemum????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "金菊花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "金菊花，此刻命運中綻放的花",
+          "description": "金菊花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "cornflower": {
-          "name": "Cornflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Cornflower???????????",
-          "description": "Cornflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "矢車菊",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "矢車菊，此刻命運中綻放的花",
+          "description": "矢車菊映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "cosmos": {
-          "name": "Cosmos",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Cosmos???????????",
-          "description": "Cosmos????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "宇宙",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "宇宙，此刻命運中綻放的花",
+          "description": "宇宙映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "crocus": {
-          "name": "Crocus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Crocus???????????",
-          "description": "Crocus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "番紅花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "番紅花，此刻命運中綻放的花",
+          "description": "番紅花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "dahlia": {
-          "name": "Dahlia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Dahlia???????????",
-          "description": "Dahlia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "大麗花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "大麗花，此刻命運中綻放的花",
+          "description": "大麗花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "daisy": {
-          "name": "Daisy",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Daisy???????????",
-          "description": "Daisy????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "雛菊",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "雛菊，此刻命運中綻放的花",
+          "description": "雛菊映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "delicate_willow": {
-          "name": "Willow Flower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Willow Flower???????????",
-          "description": "Willow Flower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "柳花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "柳花，此刻命運中綻放的花",
+          "description": "柳花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "delphinium": {
-          "name": "Delphinium",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Delphinium???????????",
-          "description": "Delphinium????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "飛燕草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "飛燕草，此刻命運中綻放的花",
+          "description": "飛燕草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "edelweiss": {
-          "name": "Edelweiss",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Edelweiss???????????",
-          "description": "Edelweiss????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "雪絨花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "雪絨花，此刻命運中綻放的花",
+          "description": "雪絨花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "flame_tulip": {
-          "name": "Flame Tulip",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Flame Tulip???????????",
-          "description": "Flame Tulip????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "火焰鬱金香",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "火焰鬱金香，此刻命運中綻放的花",
+          "description": "火焰鬱金香映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "forsythia": {
-          "name": "Forsythia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Forsythia???????????",
-          "description": "Forsythia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "連翹",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "連翹，此刻命運中綻放的花",
+          "description": "連翹映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "foxglove": {
-          "name": "Foxglove",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Foxglove???????????",
-          "description": "Foxglove????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "毛地黃",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "毛地黃，此刻命運中綻放的花",
+          "description": "毛地黃映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "freesia": {
-          "name": "Freesia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Freesia???????????",
-          "description": "Freesia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "小蒼蘭",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "小蒼蘭，此刻命運中綻放的花",
+          "description": "小蒼蘭映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "gardenia": {
-          "name": "Gardenia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Gardenia???????????",
-          "description": "Gardenia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "梔子花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "梔子花，此刻命運中綻放的花",
+          "description": "梔子花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "gentian": {
-          "name": "Gentian",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Gentian???????????",
-          "description": "Gentian????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "龍膽草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "龍膽草，此刻命運中綻放的花",
+          "description": "龍膽草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "geranium": {
-          "name": "Geranium",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Geranium???????????",
-          "description": "Geranium????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "天竺葵",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "天竺葵，此刻命運中綻放的花",
+          "description": "天竺葵映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "glacier_bloom": {
-          "name": "Glacier Bloom",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Glacier Bloom???????????",
-          "description": "Glacier Bloom????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "冰河綻放",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "冰河綻放，此刻命運中綻放的花",
+          "description": "冰河綻放映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "heliotrope": {
-          "name": "Heliotrope",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Heliotrope???????????",
-          "description": "Heliotrope????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "天芥菜",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "天芥菜，此刻命運中綻放的花",
+          "description": "天芥菜映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "hibiscus": {
-          "name": "Hibiscus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Hibiscus???????????",
-          "description": "Hibiscus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "芙蓉",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "芙蓉，此刻命運中綻放的花",
+          "description": "芙蓉映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "honeysuckle": {
-          "name": "Honeysuckle",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Honeysuckle???????????",
-          "description": "Honeysuckle????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "金銀花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "金銀花，此刻命運中綻放的花",
+          "description": "金銀花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "hydrangea": {
-          "name": "Hydrangea",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Hydrangea???????????",
-          "description": "Hydrangea????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "繡球花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "繡球花，此刻命運中綻放的花",
+          "description": "繡球花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "iris": {
-          "name": "Iris",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Iris???????????",
-          "description": "Iris????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "虹膜",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "虹膜，此刻命運中綻放的花",
+          "description": "虹膜映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "ivy_bloom": {
-          "name": "Ivy Bloom",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Ivy Bloom???????????",
-          "description": "Ivy Bloom????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "常春藤花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "常春藤花，此刻命運中綻放的花",
+          "description": "常春藤花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "jasmine": {
-          "name": "Jasmine",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Jasmine???????????",
-          "description": "Jasmine????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "茉莉花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "茉莉花，此刻命運中綻放的花",
+          "description": "茉莉花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "larkspur": {
-          "name": "Larkspur",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Larkspur???????????",
-          "description": "Larkspur????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "拉克斯珀",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "拉克斯珀，此刻命運中綻放的花",
+          "description": "拉克斯珀映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lavender": {
-          "name": "Lavender",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Lavender???????????",
-          "description": "Lavender????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "薰衣草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "薰衣草，此刻命運中綻放的花",
+          "description": "薰衣草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lily": {
-          "name": "Lily",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Lily???????????",
-          "description": "Lily????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "莉莉",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "莉莉，此刻命運中綻放的花",
+          "description": "莉莉映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lotus": {
-          "name": "Lotus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Lotus???????????",
-          "description": "Lotus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "蓮花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "蓮花，此刻命運中綻放的花",
+          "description": "蓮花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lotus_golden": {
-          "name": "Golden Lotus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Golden Lotus???????????",
-          "description": "Golden Lotus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "金蓮花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "金蓮花，此刻命運中綻放的花",
+          "description": "金蓮花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lotus_pink": {
-          "name": "Pink Lotus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Pink Lotus???????????",
-          "description": "Pink Lotus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "粉紅蓮花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "粉紅蓮花，此刻命運中綻放的花",
+          "description": "粉紅蓮花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "lotus_white": {
-          "name": "White Lotus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "White Lotus???????????",
-          "description": "White Lotus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "白蓮花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "白蓮花，此刻命運中綻放的花",
+          "description": "白蓮花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "magnolia": {
-          "name": "Magnolia",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Magnolia???????????",
-          "description": "Magnolia????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "玉蘭",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "玉蘭，此刻命運中綻放的花",
+          "description": "玉蘭映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "marigold": {
-          "name": "Marigold",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Marigold???????????",
-          "description": "Marigold????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "萬壽菊",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "萬壽菊，此刻命運中綻放的花",
+          "description": "萬壽菊映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "moon_lily": {
-          "name": "Moon Lily",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Moon Lily???????????",
-          "description": "Moon Lily????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "月百合",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "月百合，此刻命運中綻放的花",
+          "description": "月百合映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "moon_narcissus": {
-          "name": "Moon Narcissus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Moon Narcissus???????????",
-          "description": "Moon Narcissus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "月亮水仙",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "月亮水仙，此刻命運中綻放的花",
+          "description": "月亮水仙映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "moonflower": {
-          "name": "Moonflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Moonflower???????????",
-          "description": "Moonflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "月花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "月花，此刻命運中綻放的花",
+          "description": "月花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "morning_glory": {
-          "name": "Morning Glory",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Morning Glory???????????",
-          "description": "Morning Glory????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "牽牛花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "牽牛花，此刻命運中綻放的花",
+          "description": "牽牛花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "mugunghwa": {
-          "name": "Mugunghwa",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Mugunghwa???????????",
-          "description": "Mugunghwa????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "木槿花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "木槿花，此刻命運中綻放的花",
+          "description": "木槿花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "narcissus": {
-          "name": "Narcissus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Narcissus???????????",
-          "description": "Narcissus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "水仙",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "水仙，此刻命運中綻放的花",
+          "description": "水仙映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "nemophila": {
-          "name": "Nemophila",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Nemophila???????????",
-          "description": "Nemophila????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "粉紅蝶屬",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "粉紅蝶屬，此刻命運中綻放的花",
+          "description": "粉紅蝶屬映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "night_cereus": {
-          "name": "Night-Blooming Cereus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Night-Blooming Cereus???????????",
-          "description": "Night-Blooming Cereus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "夜晚開花仙人掌",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "夜晚開花仙人掌，此刻命運中綻放的花",
+          "description": "夜晚開花仙人掌映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "orange_trumpet": {
-          "name": "Orange Trumpet Flower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Orange Trumpet Flower???????????",
-          "description": "Orange Trumpet Flower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "橘色喇叭花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "橘色喇叭花，此刻命運中綻放的花",
+          "description": "橘色喇叭花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "orchid": {
-          "name": "Orchid",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Orchid???????????",
-          "description": "Orchid????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "蘭花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "蘭花，此刻命運中綻放的花",
+          "description": "蘭花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "orchid_tanlang": {
-          "name": "Tanlang Orchid",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Tanlang Orchid???????????",
-          "description": "Tanlang Orchid????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "檀蘭蘭",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "檀蘭蘭，此刻命運中綻放的花",
+          "description": "檀蘭蘭映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "passionflower": {
-          "name": "Passionflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Passionflower???????????",
-          "description": "Passionflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "西番蓮",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "西番蓮，此刻命運中綻放的花",
+          "description": "西番蓮映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "peony": {
-          "name": "Peony",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Peony???????????",
-          "description": "Peony????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "牡丹",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "牡丹，此刻命運中綻放的花",
+          "description": "牡丹映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "peony_ziwei": {
-          "name": "Ziwei Peony",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Ziwei Peony???????????",
-          "description": "Ziwei Peony????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫微牡丹",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫微牡丹，此刻命運中綻放的花",
+          "description": "紫微牡丹映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "persian_buttercup": {
-          "name": "Persian Buttercup",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Persian Buttercup???????????",
-          "description": "Persian Buttercup????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "波斯毛茛",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "波斯毛茛，此刻命運中綻放的花",
+          "description": "波斯毛茛映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "plum_blossom": {
-          "name": "Plum Blossom",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Plum Blossom???????????",
-          "description": "Plum Blossom????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "梅花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "梅花，此刻命運中綻放的花",
+          "description": "梅花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "poppy": {
-          "name": "Poppy",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Poppy???????????",
-          "description": "Poppy????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "罌粟",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "罌粟，此刻命運中綻放的花",
+          "description": "罌粟映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "primrose": {
-          "name": "Primrose",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Primrose???????????",
-          "description": "Primrose????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "報春花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "報春花，此刻命運中綻放的花",
+          "description": "報春花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "queen_anne_lace": {
-          "name": "Queen Anne?s Lace",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Queen Anne?s Lace???????????",
-          "description": "Queen Anne?s Lace????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "安妮女王蕾絲",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "安妮女王蕾絲，此刻命運中綻放的花",
+          "description": "安妮女王蕾絲映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "ranunculus": {
-          "name": "Ranunculus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Ranunculus???????????",
-          "description": "Ranunculus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "毛茛屬植物",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "毛茛屬植物，此刻命運中綻放的花",
+          "description": "毛茛屬植物映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "red_lycoris": {
-          "name": "Red Lycoris",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Red Lycoris???????????",
-          "description": "Red Lycoris????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紅石蒜",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紅石蒜，此刻命運中綻放的花",
+          "description": "紅石蒜映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "red_spider_lily": {
-          "name": "Red Spider Lily",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Red Spider Lily???????????",
-          "description": "Red Spider Lily????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紅蜘蛛百合",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紅蜘蛛百合，此刻命運中綻放的花",
+          "description": "紅蜘蛛百合映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "resilient_rose": {
-          "name": "Classic Rose",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Classic Rose???????????",
-          "description": "Classic Rose????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "經典玫瑰",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "經典玫瑰，此刻命運中綻放的花",
+          "description": "經典玫瑰映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "rose": {
-          "name": "Rose",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Rose???????????",
-          "description": "Rose????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "玫瑰",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "玫瑰，此刻命運中綻放的花",
+          "description": "玫瑰映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "snapdragon": {
-          "name": "Snapdragon",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Snapdragon???????????",
-          "description": "Snapdragon????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "金魚草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "金魚草，此刻命運中綻放的花",
+          "description": "金魚草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "sunflower": {
-          "name": "Sunflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Sunflower???????????",
-          "description": "Sunflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "向日葵",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "向日葵，此刻命運中綻放的花",
+          "description": "向日葵映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "sunflower_ziwei": {
-          "name": "Ziwei Sunflower",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Ziwei Sunflower???????????",
-          "description": "Ziwei Sunflower????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫微向日葵",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫微向日葵，此刻命運中綻放的花",
+          "description": "紫微向日葵映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "sweet_pea": {
-          "name": "Sweet Pea",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Sweet Pea???????????",
-          "description": "Sweet Pea????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "甜豌豆",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "甜豌豆，此刻命運中綻放的花",
+          "description": "甜豌豆映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "thorny_rose": {
-          "name": "Thorned Rose",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Thorned Rose???????????",
-          "description": "Thorned Rose????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "帶刺玫瑰",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "帶刺玫瑰，此刻命運中綻放的花",
+          "description": "帶刺玫瑰映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "tiger_lily": {
-          "name": "Tiger Lily",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Tiger Lily???????????",
-          "description": "Tiger Lily????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "虎百合",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "虎百合，此刻命運中綻放的花",
+          "description": "虎百合映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "tulip": {
-          "name": "Tulip",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Tulip???????????",
-          "description": "Tulip????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "鬱金香",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "鬱金香，此刻命運中綻放的花",
+          "description": "鬱金香映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "violet": {
-          "name": "Violet",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Violet???????????",
-          "description": "Violet????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫羅蘭色",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫羅蘭色，此刻命運中綻放的花",
+          "description": "紫羅蘭色映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "violet_wisteria": {
-          "name": "Violet Wisteria",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Violet Wisteria???????????",
-          "description": "Violet Wisteria????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫藤",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫藤，此刻命運中綻放的花",
+          "description": "紫藤映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "water_anemone": {
-          "name": "Water Anemone",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Water Anemone???????????",
-          "description": "Water Anemone????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "水葵",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "水葵，此刻命運中綻放的花",
+          "description": "水葵映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "water_lily": {
-          "name": "Water Lily",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Water Lily???????????",
-          "description": "Water Lily????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "睡蓮",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "睡蓮，此刻命運中綻放的花",
+          "description": "睡蓮映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "water_narcissus": {
-          "name": "Water Narcissus",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Water Narcissus???????????",
-          "description": "Water Narcissus????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "水仙",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "水仙，此刻命運中綻放的花",
+          "description": "水仙映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "white_baby_breath": {
-          "name": "White Baby?s Breath",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "White Baby?s Breath???????????",
-          "description": "White Baby?s Breath????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "白色滿天星",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "白色滿天星，此刻命運中綻放的花",
+          "description": "白色滿天星映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "wild_chrysanthemum": {
-          "name": "Wild Chrysanthemum",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Wild Chrysanthemum???????????",
-          "description": "Wild Chrysanthemum????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "野菊花",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "野菊花，此刻命運中綻放的花",
+          "description": "野菊花映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "winter_plum": {
-          "name": "Winter Plum",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Winter Plum???????????",
-          "description": "Winter Plum????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "冬梅",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "冬梅，此刻命運中綻放的花",
+          "description": "冬梅映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "wisteria": {
-          "name": "Wisteria",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Wisteria???????????",
-          "description": "Wisteria????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "紫藤",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "紫藤，此刻命運中綻放的花",
+          "description": "紫藤映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         },
         "yarrow": {
-          "name": "Yarrow",
-          "symbolism": "blooming, harmony, inner rhythm",
-          "title": "Yarrow???????????",
-          "description": "Yarrow????????????????????????????",
-          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "name": "西洋蓍草",
+          "symbolism": "綻放、和諧、內在韻律",
+          "title": "西洋蓍草，此刻命運中綻放的花",
+          "description": "西洋蓍草映照出你此刻的能量，如何在安靜的時機與清晰的情緒中慢慢成形。",
+          "vibeMessage": "當您遵循這種節奏時，您的花朵會以更穩定的光線開放。",
           "keywords": {
-            "0": "Bloom",
-            "1": "Harmony",
-            "2": "Flow"
+            "0": "布魯姆",
+            "1": "和諧",
+            "2": "流程"
           }
         }
       }
@@ -3223,7 +3223,7 @@
   },
   "errors": {
     "notFound": {
-      "eyebrow": "ERROR 404",
+      "eyebrow": "錯誤 404",
       "title": "找不到頁面",
       "description": "地址可能已變更，或頁面尚未公開。請從下方連結查看相關的運勢指南與洞察。",
       "links": {
@@ -3291,7 +3291,7 @@
       "ukbuTitle": "抑扶與從格分析"
     },
     "ilju": {
-      "dashboard": "DAY PILLAR DASHBOARD",
+      "dashboard": "日支柱儀表板",
       "hanjaTitle": "日柱漢字標記",
       "balanceTitle": "五行平衡度",
       "summaryTitle": "三行摘要",
@@ -3311,35 +3311,35 @@
       "explainBody": "十神以出生之日為中心，用十種角色比喻其他字對你的作用。看清命盤中聚集的十神，能更容易理解隱藏性格、才能與戀愛風格。"
     },
     "premiumShowcase": {
-      "aria": "View details for three premium saju interpretations",
-      "eyebrow": "PREMIUM ANALYSIS",
-      "title": "Three deep readings for the larger flow of destiny",
-      "subtitle": "Daewun, full reading, and compatibility gather in one place so the texture of life becomes clearer.",
-      "expand": "Open three readings",
-      "permanent": "Permanent unlock",
+      "aria": "查看三種高級 saju 解釋的詳細信息",
+      "eyebrow": "進階分析",
+      "title": "三篇深讀，命運更大的流動",
+      "subtitle": "大文、充分閱讀、相容性集於一處，讓生活的質感變得更加清晰。",
+      "expand": "開啟三個讀數",
+      "permanent": "永久解鎖",
       "daewun": {
-        "title": "Daewun analysis",
-        "desc": "The ten-year daewun flow is integrated through support strength, seasonal balance, and following pattern. It shows when to move forward and when to hold steady.",
-        "point1": "Visualized life fortune graph by decade",
-        "point2": "Deep reading of favorable and unfavorable factors by daewun",
-        "point3": "Current daewun position and core strategy",
-        "point4": "Integrated support, season, and pattern judgment"
+        "title": "大文分析",
+        "desc": "十年大運流透過支持強度、季節性平衡和跟隨模式進行整合。它顯示了何時前進，何時保持穩定。",
+        "point1": "依十年可視化的人生財富圖",
+        "point2": "大文有利不利因素深讀",
+        "point3": "大文目前的定位與核心策略",
+        "point4": "綜合支撐、季節、形態判斷"
       },
       "summary": {
-        "title": "Full saju reading",
-        "desc": "A comprehensive saju report of about 20 A4 pages. Personality, career, love, health, wealth, benefactors, and lucky actions are interpreted in depth.",
-        "point1": "Innate personality and talent through eight characters",
-        "point2": "Promising career fields and strategy for the next decade",
-        "point3": "Love and marriage timing and relationship conditions",
-        "point4": "Wealth flow and how money gathers"
+        "title": "完整的 saju 閱讀",
+        "desc": "一份約 20 A4 頁的綜合 saju 報告。性格、事業、愛情、健康、財富、貴人、吉祥之舉都有深入解讀。",
+        "point1": "透過八個角色展現與生俱來的個性和才華",
+        "point2": "未來十年有前景的職業領域和策略",
+        "point3": "愛情和婚姻的時機和關係條件",
+        "point4": "財富流動與資金如何聚集"
       },
       "compat": {
-        "title": "Compatibility analysis",
-        "desc": "Love, business, and friendship compatibility are read through saju. It gently reveals whether the relationship becomes better together or needs care.",
-        "point1": "Five-element harmony and conflict score",
-        "point2": "Love, marriage, business, and friendship type reading",
-        "point3": "Good timing and caution periods",
-        "point4": "Personalized advice from the AI saju master"
+        "title": "相容性分析",
+        "desc": "愛情、事業、友誼的兼容性是透過saju來解讀的。它溫和地揭示了你們的關係是否變得更好或需要照顧。",
+        "point1": "五元素和諧與衝突得分",
+        "point2": "愛情、婚姻、事業、友誼類型閱讀",
+        "point3": "良好的時機與謹慎期",
+        "point4": "AI saju大師的個人化建議"
       }
     },
     "graph": {
@@ -3387,9 +3387,9 @@
       "runCta": "分析合盤"
     },
     "funCards": {
-      "celebTitle": "Which celebrity is my soul twin?",
-      "fourCutTitle": "Saju four-cut: destiny filter",
-      "dashboardTitle": "Fun saju content"
+      "celebTitle": "哪位名人是我的靈魂雙胞胎？",
+      "fourCutTitle": "Saju 四切：命運過濾器",
+      "dashboardTitle": "有趣的沙劇內容"
     },
     "letter": {
       "title": "💖 妍伊的信"
@@ -3431,18 +3431,18 @@
       "subtitle": "以四柱原局展開的人生地圖",
       "desc": "將原局、大運與歲運編成13章，把人生方向與選擇時機整理成PDF全書。",
       "features": {
-        "expert": "Created by a real Myeongri expert",
-        "chart": "Original eight-character chart reading",
-        "daewun": "Precise daewun analysis",
-        "strategy": "Yongshin and huishin strategy",
-        "mission": "Pattern and social calling",
-        "love": "Love and marriage analysis",
-        "wealth": "Wealth and career strategy",
-        "health": "Health and energy map",
-        "sinsal": "Sinsal and fortune-star reading",
-        "year": "Selected-year roadmap",
-        "panorama": "Life panorama",
-        "choice": "Final choice criteria"
+        "expert": "由真正的明里專家創建",
+        "chart": "原始八字圖表閱讀",
+        "daewun": "精確的大文分析",
+        "strategy": "永信與匯信策略",
+        "mission": "模式與社交召喚",
+        "love": "愛情婚姻分析",
+        "wealth": "財富與職業策略",
+        "health": "健康與能量圖",
+        "sinsal": "辛薩爾與福星閱讀",
+        "year": "選取年份路線圖",
+        "panorama": "生活全景",
+        "choice": "最終選擇標準"
       }
     },
     "loveSecret": {
@@ -3453,26 +3453,26 @@
       "subtitle": "用四柱讀取愛的紋理與緣分方向",
       "desc": "透過日干、日支、月支讀取反覆出現的戀愛流向，並整理成魅力、理想型、關係穩定策略PDF。",
       "features": {
-        "tendency": "Love tendency analysis",
-        "charm": "Charm point discovery",
-        "ideal": "Ideal type structure analysis",
-        "compat": "Compatibility structure analysis",
-        "stability": "Relationship stability strategy",
-        "action": "Action guide"
+        "tendency": "愛傾向分析",
+        "charm": "魅力點發現",
+        "ideal": "理想型別結構分析",
+        "compat": "相容性結構分析",
+        "stability": "關係穩定策略",
+        "action": "操作指南"
       },
       "ariaLabel": "恋爱秘策",
-      "kicker": "PREMIUM LOVE STRATEGY",
+      "kicker": "優質愛策略",
       "chapters": {
-        "1": "My love archetype",
-        "2": "Formula of attraction",
-        "3": "Relationship pattern analysis",
-        "4": "Expression and communication",
-        "5": "Anxiety and attachment in love",
-        "6": "Marriage and spouse fortune",
-        "7": "Breakup and reunion patterns",
-        "8": "Intimacy and chemistry through seasonal balance",
-        "9": "Timing and conditions for meeting good love",
-        "10": "Love master plan for me"
+        "1": "我的愛情原型",
+        "2": "吸引力公式",
+        "3": "關係模式分析",
+        "4": "表達與交流",
+        "5": "愛情中的焦慮與依戀",
+        "6": "婚姻及配偶運勢",
+        "7": "分手與重聚模式",
+        "8": "透過季節平衡建立親密關係和化學反應",
+        "9": "遇見美好愛的時機與條件",
+        "10": "愛我的總體規劃"
       },
       "badgeExpert": "👨‍🎓 真实命理专家设计",
       "badgeChapters": "💕 单身10章 · 合盘10章",
@@ -3484,60 +3484,60 @@
       "headlineStrong": "八个字静静照亮",
       "descriptionLine1": "用日柱、官星、桃花的语言读取反复出现的恋爱流向和理想型方向。",
       "descriptionLine2": "整理为单身10章、合盘10章PDF，深入呈现。",
-      "whyStructureTitle": "Your personal love structure",
-      "whyStructureBody": "Reads love patterns and repeated habits from the root of the day master and day branch emotional structure.",
-      "whyPartnerTitle": "Spouse star and ideal partner reading",
-      "whyPartnerBody": "Through officer and wealth star structure, it points to the element, temperament, and relationship style of a comfortable long-term partner.",
-      "whyTimingTitle": "Relationship adjustment and timing",
-      "whyTimingBody": "The temperature of conversation, the pace of connection, and the great/annual fortune flow that moves love are organized together.",
-      "whyCompatibilityTitle": "Complete compatibility and marriage timing",
-      "whyCompatibilityBody": "When the other person’s saju is entered, five-element harmony, day-pillar compatibility, and chemistry are compared with real saju data.",
-      "startDescPrefix": "The love algorithm hidden in the eight characters of your saju is",
-      "startDescStrongPrefix": "solo 10 chapters / compatibility 10 chapters, at least 36,000 characters, A4 page",
+      "whyStructureTitle": "您個人的愛情結構",
+      "whyStructureBody": "從日主和日支情緒結構的根源讀取愛情模式和重複習慣。",
+      "whyPartnerTitle": "配偶明星與理想伴侶讀物",
+      "whyPartnerBody": "透過官財星結構，指出舒適的長期伴侶的元素、氣質、關係風格。",
+      "whyTimingTitle": "關係調整與時機",
+      "whyTimingBody": "談話的溫度、連結的節奏、以及感動愛情的大/年運運都組織在一起。",
+      "whyCompatibilityTitle": "完全的相容性與結婚時機",
+      "whyCompatibilityBody": "當輸入對方的命數時，五行和諧、日柱相合、化學反應與真實命數資料進行比較。",
+      "startDescPrefix": "隱藏在你的 saju 八個字元中的愛情演算法是",
+      "startDescStrongPrefix": "獨唱10章/相容性10章，至少36,000字符，A4頁",
       "startDescStrongSuffix": "+",
-      "startDescSuffix": "decoded completely in a professional analysis.",
-      "recommendTitle": "✦ Strongly recommended for those who ✦",
+      "startDescSuffix": "透過專業分析完全解碼。",
+      "recommendTitle": "✦ 強烈推薦給那些 ✦",
       "recommend": {
-        "1": "“want to know why I keep failing in the same pattern”",
-        "2": "“want to confirm whether this person is my destined partner”",
-        "3": "“wonder when love may arrive this year”",
-        "4": "“need practical love strategy, not simple compatibility”"
+        "1": "“想知道為什麼我總是以相同的模式失敗”",
+        "2": "“想確認這個人是不是我命中註定的伴侶”",
+        "3": "“想知道今年愛情什麼時候會到來”",
+        "4": "“需要實用的愛情策略，而不是簡單的兼容性”"
       },
       "inputNotice": "⚠️ 分析约需2〜3分钟。输入出生日期后进入支付与生成。",
       "selectTypeCta": "选择恋爱秘策类型",
       "compatBadge": "💑 合盘分析 — 可选",
       "compatTitleLine1": "用对方四柱",
       "compatTitleLine2": "进行更精密的合盘分析",
-      "compatDescLine1": "Enter birth date and available birth time to analyze five-element harmony, day-pillar compatibility, emotional rhythm, and relationship adjustment.",
-      "compatDescLine2": "The analysis uses real saju data. If the time is unknown, it is interpreted conservatively.",
-      "compatCoinPrefix": "🪙 Compatibility PDF is generated after",
-      "compatCoinSuffix": "payment confirmation. If you skip partner info, you can proceed with the solo PDF.",
-      "partnerPreviewTitle": "✨ Real-time preview of the other person’s saju chart",
+      "compatDescLine1": "輸入出生日期及可用出生時間，分析五行和諧、日柱相合、情緒節奏、關係調整。",
+      "compatDescLine2": "分析使用真實的 saju 資料。若時間未知，則採保守解釋。",
+      "compatCoinPrefix": "🪙 相容性 PDF 產生後",
+      "compatCoinSuffix": "付款確認。如果您跳過合作夥伴訊息，則可以繼續處理單獨的 PDF。",
+      "partnerPreviewTitle": "✨ 即時預覽對方的命盤",
       "partnerNamePlaceholder": "对方姓名",
       "genderMale": "♂ 男性",
       "genderFemale": "♀ 女性",
       "yearPlaceholder": "年份 (例: 1995)",
       "hours": {
-        "0": "Zi hour (23:00-01:00)",
-        "1": "Chou hour (01:00-03:00)",
-        "2": "Yin hour (03:00-05:00)",
-        "3": "Mao hour (05:00-07:00)",
-        "4": "Chen hour (07:00-09:00)",
-        "5": "Si hour (09:00-11:00)",
-        "6": "Wu hour (11:00-13:00)",
-        "7": "Wei hour (13:00-15:00)",
-        "8": "Shen hour (15:00-17:00)",
-        "9": "You hour (17:00-19:00)",
-        "10": "Xu hour (19:00-21:00)",
-        "11": "Hai hour (21:00-23:00)",
-        "unknown": "Unknown time"
+        "0": "子時 (23:00-01:00)",
+        "1": "醜時 (01:00-03:00)",
+        "2": "陰時 (03:00-05:00)",
+        "3": "毛時 (05:00-07:00)",
+        "4": "陳時 (07:00-09:00)",
+        "5": "四小時 (09:00-11:00)",
+        "6": "午時 (11:00-13:00)",
+        "7": "未時 (13:00-15:00)",
+        "8": "申時 (15:00-17:00)",
+        "9": "你的時間 (17:00-19:00)",
+        "10": "徐時 (19:00-21:00)",
+        "11": "亥時 (21:00-23:00)",
+        "unknown": "未知時間"
       },
       "timeHint": "若不知道时间，将以正午为基准保守解读",
       "compatCtaSuffix": "生成合盘PDF",
       "soloCtaSuffix": "生成单身PDF",
       "loadingTitle": "正在撰写恋爱秘策",
       "loadingQuote": "四柱八字中藏着你会爱上之人的影子。",
-      "chapterProgressAria": "Chapter progress",
+      "chapterProgressAria": "章節進度",
       "progressInitial": "0 / 10 章完成",
       "resultLabel": "只为你而写的命运恋爱报告",
       "shareBonus": "💬 分享+1,000韩元",
@@ -3553,14 +3553,14 @@
       "subtitle": "用原局與歲運讀取所選年份的10章節策略",
       "desc": "將一年的大運、事業財富、關係心緒與12個月流向整理成新年策略PDF。",
       "features": {
-        "months": "Twelve-month flow map",
-        "strategy": "Daewun and yearly flow strategy",
-        "workMoney": "Work and wealth judgment",
-        "relationship": "Relationship and emotional rhythm",
-        "download": "PDF download"
+        "months": "十二個月流程圖",
+        "strategy": "大文與年度流量策略",
+        "workMoney": "工作與財富判斷",
+        "relationship": "關係與情緒節奏",
+        "download": "PDF 下載"
       },
       "ariaLabel": "四柱新年运势PDF",
-      "kicker": "PREMIUM NEW YEAR GUIDE",
+      "kicker": "高階新年指南",
       "badgeMonthly": "📅 12个月月度分析",
       "badgeTiming": "🎯 强弱时机追踪",
       "badgeStrategy": "🧭 10章执行策略",
@@ -3579,16 +3579,16 @@
       "whyTimingBody": "把需要决策的时间点整理成可快速参考的表格。",
       "chapterListTitle": "✦ 10章结构 ✦",
       "chapters": {
-        "1": "The year’s major fortune — overall New Year flow",
-        "2": "Your chart meets the target year — clash and harmony between natal chart and annual fortune",
-        "3": "Work and career fortune — achievement and direction changes",
-        "4": "Wealth fortune — money coming in and going out",
-        "5": "Love and relationship fortune — where the heart moves",
-        "6": "Family and social relationships — blessings and burdens through people",
-        "7": "Health and emotional fortune — rhythm of body and mind",
-        "8": "Monthly fortune — 12-month flow map",
-        "9": "Opportunities and risks of the year — what to catch and avoid",
-        "10": "Final New Year strategy — making the chosen year work for you"
+        "1": "年度大運－整體新年流程",
+        "2": "你的星盤符合目標年份－本命星盤與年度運勢的衝突與和諧",
+        "3": "工作與事業運勢－成就與方向的變化",
+        "4": "財運－錢進出",
+        "5": "愛情與關係運勢－心臟移動的地方",
+        "6": "家庭和社會關係－人帶來的祝福和負擔",
+        "7": "健康與情緒運勢－身心節奏",
+        "8": "每月運勢 — 12個月流程圖",
+        "9": "今年的機會和風險－要抓住和避免什麼",
+        "10": "最終新年策略－讓所選的年份適合你"
       },
       "startDescPrefix": "选择目标年份后，会基于四柱原局生成",
       "startDescStrong": "12个月节奏 + 月度执行路线图",
@@ -3604,15 +3604,15 @@
       "loadingChapter": "正在解读基于原局的年度策略...",
       "loadingQuote": "正在整理年度波动...",
       "chapterLabels": {
-        "1": "Chapter 1"
+        "1": "第 1 章"
       },
       "progressInitial": "0 / 10 章完成",
       "stages": {
-        "lookup": "Existing report",
-        "billing": "Payment check",
-        "calculate": "Saju calculation",
-        "write": "Manuscript writing",
-        "archive": "PDF preparation"
+        "lookup": "現有報告",
+        "billing": "付款支票",
+        "calculate": "Saju 計算",
+        "write": "手稿寫作",
+        "archive": "PDF 準備"
       },
       "resultLabel": "新年运势高级报告",
       "summaryTitle": "目标年份核心咨询摘要",
@@ -3620,22 +3620,22 @@
       "opportunityPeriod": "机会时期",
       "cautionPeriod": "注意时期",
       "toc": {
-        "1": "I Overview",
-        "2": "II Natal chart",
-        "3": "III Work",
-        "4": "IV Money",
-        "5": "V Love",
-        "6": "VI Relationships",
-        "7": "VII Health",
-        "8": "VIII Monthly",
-        "9": "IX Opportunity",
-        "10": "X Strategy"
+        "1": "I 概述",
+        "2": "II 本命盤",
+        "3": "III 工作",
+        "4": "IV 金錢",
+        "5": "V 愛",
+        "6": "VI 關係",
+        "7": "七健康",
+        "8": "VIII 每月",
+        "9": "九號機會",
+        "10": "X 策略"
       },
       "birthInputCta": "输入四柱信息"
     },
     "ziwei": {
       "ariaLabel": "紫微斗数高级PDF",
-      "kicker": "ZIWEI DESTINY BOOK",
+      "kicker": "紫薇命運簿",
       "title": "紫微斗数高级PDF",
       "subtitle": "由命宫与十二宫开启命运宫位",
       "noProfileTitle": "需要命运卡",
@@ -3665,41 +3665,41 @@
       "note": "支付完成后开始生成 · 约5〜10分钟后可保存PDF",
       "chapterListTitle": "15章结构",
       "chapters": {
-        "1": "Ziwei chart overview — the central map of destiny",
-        "2": "Life Palace and Body Palace — the born self and the becoming self",
-        "3": "Precise reading of the innate Four Transformations",
-        "4": "Complete reading of the 14 major stars",
-        "5": "Dynamics of support stars and challenging stars",
-        "6": "Wealth Palace and Career Palace — money and social achievement",
-        "7": "Spouse Palace and Children Palace — love and family rhythm",
-        "8": "Travel Palace and Property Palace — movement and foundations",
-        "9": "Friends Palace and Siblings Palace — networks and collaboration",
-        "10": "Fortune Palace and Parents Palace — inner recovery and roots",
-        "11": "Health Palace — vulnerable signals of body and mind",
-        "12": "Major decade analysis — direction of the 10-year cycle",
-        "13": "Annual roadmap — this year’s fortune flow",
-        "14": "Life master plan — turning points and long-term strategy",
-        "15": "Final strategic counsel from the Ziwei master"
+        "1": "紫微星盤概論－命運的中心圖",
+        "2": "命宮與身宮－本我與成我",
+        "3": "精讀先天四變",
+        "4": "14大明星全讀",
+        "5": "支持星與挑戰星的動態",
+        "6": "財富宮與事業宮－金錢與社會成就",
+        "7": "配偶宮、子女宮－愛與家庭節奏",
+        "8": "旅行宮與財產宮 — 運動與基礎",
+        "9": "朋友宮與兄弟姊妹宮 — 網路與協作",
+        "10": "福德宮與父母宮殿－內在恢復與根源",
+        "11": "健康宮－身體和心靈的脆弱訊號",
+        "12": "主要十年分析－10年周期的方向",
+        "13": "年度路線圖－今年的財富流向",
+        "14": "人生總體規劃－轉捩點與長期策略",
+        "15": "紫微大師的最終策略建議"
       },
       "loadingTitle": "正在整理紫微斗数命盘",
       "loadingChapter": "正在分析命宫核心气质...",
       "loadingQuote": "命宫，是天在此生刻下的第一缕星光。",
       "chapterTitles": {
-        "1": "Ch.1 Overview",
-        "2": "Ch.2 Life/Body Palace",
-        "3": "Ch.3 Four Transformations",
-        "4": "Ch.4 14 Major Stars",
-        "5": "Ch.5 Support/Challenge Stars",
-        "6": "Ch.6 Wealth/Career",
-        "7": "Ch.7 Spouse/Children",
-        "8": "Ch.8 Travel/Property",
-        "9": "Ch.9 Friends/Siblings",
-        "10": "Ch.10 Fortune/Parents",
-        "11": "Ch.11 Health",
-        "12": "Ch.12 Major Decade",
-        "13": "Ch.13 Annual Flow",
-        "14": "Ch.14 Master Plan",
-        "15": "Ch.15 Final Counsel"
+        "1": "第 1 章概述",
+        "2": "Ch.2 生命/身體宮",
+        "3": "Ch.3 四種轉變",
+        "4": "Ch.4 14 主星",
+        "5": "Ch.5 支持/挑戰明星",
+        "6": "第 6 章財富/事業",
+        "7": "Ch.7 配偶/子女",
+        "8": "第 8 章 旅行/財產",
+        "9": "Ch.9 朋友/兄弟姊妹",
+        "10": "第 10 章 財富/父母",
+        "11": "第 11 章 健康",
+        "12": "Ch.12 主要十年",
+        "13": "Ch.13 年流量",
+        "14": "Ch.14 總體規劃",
+        "15": "第 15 章 最後勸告"
       },
       "progressInitial": "0 / 15 章完成",
       "stageAria": "紫微斗数PDF生成阶段",
@@ -3713,7 +3713,7 @@
     },
     "astro": {
       "ariaLabel": "占星术宇宙报告",
-      "kicker": "COSMIC CHART PREMIUM",
+      "kicker": "宇宙圖進階版",
       "title": "✨ 占星术宇宙报告",
       "subtitle": "基于个人出生星盘的12章高级报告",
       "noProfileTitle": "需要出生信息",
@@ -3743,70 +3743,70 @@
       "chapterListTitle": "📖 12章结构",
       "chapters": {
         "1": {
-          "title": "Natal chart overview — my cosmic blueprint",
-          "body": "Integrates your chart’s core temperament and life themes."
+          "title": "本命盤概述 — 我的宇宙藍圖",
+          "body": "整合了你星盤的核心氣質與生活主題。"
         },
         "2": {
-          "title": "Big Three reading — Sun, Moon, Ascendant",
-          "body": "Cross-reads the axis between your inner life and outer expression."
+          "title": "三巨頭解讀－太陽、月亮、上升",
+          "body": "交叉解讀你的內在生活與外在表達之間的軸。"
         },
         "3": {
-          "title": "Complete reading of the 10 planets",
-          "body": "Analyzes each planet’s motivation and real-world operating pattern."
+          "title": "10 顆行星的完整閱讀",
+          "body": "分析每個星球的動機和現實世界的運作模式。"
         },
         "4": {
-          "title": "12-house analysis",
-          "body": "Reveals the destiny map of each life area in a structured way."
+          "title": "12 宮分析",
+          "body": "以結構化的方式揭示每個生命領域的命運圖譜。"
         },
         "5": {
-          "title": "Element and modality analysis",
-          "body": "Organizes temperament balance, excess, lack, and response style."
+          "title": "元素與模態分析",
+          "body": "組織氣質平衡、過度、缺乏和反應風格。"
         },
         "6": {
-          "title": "Aspect analysis",
-          "body": "Reads repeated patterns of tension and talent between planets."
+          "title": "面向分析",
+          "body": "解讀行星之間緊張和才能的重複模式。"
         },
         "7": {
-          "title": "Love and relationship fortune",
-          "body": "Presents romance, marriage, attraction points, and stability strategy."
+          "title": "愛與人際關係運勢",
+          "body": "呈現浪漫、婚姻、吸引力點和穩定策略。"
         },
         "8": {
-          "title": "Career, wealth, and success fortune",
-          "body": "Designs a strategy for social achievement and monetization."
+          "title": "事業、財富、成功運",
+          "body": "設計社會成就和貨幣化策略。"
         },
         "9": {
-          "title": "Psychology, unconscious, and wound analysis",
-          "body": "Clarifies inner shadows and recovery routines."
+          "title": "心理學、無意識與傷口分析",
+          "body": "闡明內部陰影和復原例程。"
         },
         "10": {
-          "title": "Health and lifestyle rhythm analysis",
-          "body": "Suggests energy management and daily rhythm optimization."
+          "title": "健康與生活方式節律分析",
+          "body": "建議能量管理和日常節奏優化。"
         },
         "11": {
-          "title": "Flow of fortune analysis",
-          "body": "Reveals the core flow of transits, progressions, and solar returns."
+          "title": "財富流向分析",
+          "body": "揭示行進、漸進和太陽返照的核心流程。"
         },
         "12": {
-          "title": "Final integrated report",
-          "body": "Finalizes your life roadmap and execution strategy."
+          "title": "最終綜合報告",
+          "body": "確定您的人生路線圖和執行策略。"
         }
       },
       "loadingTitle": "正在计算行星位置",
       "loadingChapter": "正在分析出生星盘总论...",
       "loadingQuote": "太阳是意识，月亮是无意识，上升是世界看见你的面容。",
       "chapterTitles": {
-        "1": "I. Natal Chart Overview",
-        "2": "II. Big Three Reading",
-        "3": "III. 10 Planets",
-        "4": "IV. 12 Houses",
-        "5": "V. Elements and Modalities",
-        "6": "VI. Aspects",
-        "7": "VII. Love and Relationships",
-        "8": "VIII. Career, Wealth, Success",
-        "9": "IX. Psychology and Wounds",
-        "10": "X. Health and Lifestyle Rhythm",
-        "11": "XI. Flow of Fortune",
-        "12": "XII. Final Integration"
+        "1": "I. 本命盤概述",
+        "2": "二。三巨頭閱讀",
+        "3": "三。 10 顆行星",
+        "4": "四。 12 棟房屋",
+        "5": "V. 要素與模式",
+        "6": "六．方面",
+        "7": "七．愛情與人際關係",
+        "8": "八．事業、財富、成功",
+        "9": "九。心理與創傷",
+        "10": "X. 健康與生活方式節奏",
+        "11": "十一。財富之流",
+        "12": "十二．最終整合"
       },
       "progressInitial": "0 / 12 章完成",
       "completeTitle": "占星术宇宙报告完成",
@@ -3814,7 +3814,7 @@
     },
     "sukuyo": {
       "ariaLabel": "宿曜占高级合盘报告",
-      "kicker": "SUKUYO 宿曜占 PREMIUM",
+      "kicker": "SUKUYO 宿曜佔 PREMIUM",
       "title": "宿曜占高级合盘PDF",
       "subtitle": "以27个月宿读取两人的缘分地图 · 15章报告",
       "noProfileTitle": "需要命运卡",
@@ -3874,11 +3874,11 @@
       "note": "生成约需5〜10分钟 · 完成后可保存PDF · 失败时按自动退款标准处理",
       "chapterListTitle": "📖 15章结构",
       "chapters": {
-        "1": "The couple’s basic Sukuyo map — first reading of both birth mansions",
-        "2": "Relationship type judgment — how this bond attracts",
-        "3": "Distance and temperature — felt experience of near, middle, and far distance",
-        "4": "First impression and attraction — why you respond to each other",
-        "15": "Final compatibility judgment — how to keep this bond alive"
+        "1": "這對夫妻的基本 Sukuyo 地圖 — 初讀兩座出生宅邸",
+        "2": "關係類型判斷－這種連結如何吸引",
+        "3": "距離與溫度－近、中、遠距離的感受體驗",
+        "4": "第一印象與吸引力 - 為什麼你互相回應",
+        "15": "最終相容性判斷－如何維持這種聯繫"
       },
       "loadingTitle": "宿曜占高级合盘PDF正在开启",
       "loadingChapter": "正在寻找两人的月宿",
@@ -3902,7 +3902,7 @@
       },
       "progressInitial": "0 / 15 章完成",
       "generationAria": "宿曜占PDF生成进度",
-      "generationKicker": "Sukuyo Premium PDF",
+      "generationKicker": "Sukuyo 進階 PDF",
       "generationTitle": "宿曜占高级合盘PDF正在开启",
       "preparing": "准备中",
       "generationChapter": "正在校准两人的月宿。",
@@ -3912,7 +3912,7 @@
     },
     "vedic": {
       "ariaLabel": "吠陀占星人生总览",
-      "kicker": "VEDIC JYOTISH PREMIUM",
+      "kicker": "吠陀喬蒂什高級",
       "title": "🪷 吠陀人生总览",
       "subtitle": "基于印度 Jyotish 的12章业力命运报告",
       "noProfileTitle": "需要命运卡",
@@ -3936,42 +3936,42 @@
       "note": "支付确认后立即生成 · 完成后可保存PDF",
       "chapterListTitle": "📖 12章结构",
       "chapters": {
-        "1": "Complete Vedic chart overview",
-        "2": "Lagna and the life design you were born with",
-        "3": "Moon sign and Nakshatra deep reading",
-        "4": "Sun and the direction of the self",
-        "5": "Talents and tendencies spoken by the planets",
-        "6": "Life areas seen through the houses",
-        "7": "Career and social success fortune",
-        "8": "Wealth and abundance flow",
-        "9": "Love and spouse fortune",
-        "10": "Flow of fortune through dasha",
-        "11": "Karma and spiritual growth direction",
-        "12": "Final Vedic master plan"
+        "1": "完整吠陀圖表概述",
+        "2": "Lagna 與你與生俱來的生活設計",
+        "3": "月亮星座與 Nakshatra 深度閱讀",
+        "4": "太陽與自我的方向",
+        "5": "行星所表達的才能和傾向",
+        "6": "透過房屋看到的生活區",
+        "7": "事業社會成功財富",
+        "8": "財富與豐富的流動",
+        "9": "愛與配偶運勢",
+        "10": "透過 dasha 的財富流動",
+        "11": "業力與靈性成長方向",
+        "12": "最終吠陀總體規劃"
       },
       "loadingTitle": "正在生成基于拉格纳与纳克沙特拉的PDF",
       "loadingChapter": "拉格纳 — 灵魂选择的第一扇门",
       "loadingQuote": "正在基于计算出的星盘构成12章咨询报告。",
       "chapterTitles": {
-        "1": "I. Lagna — the first gate chosen by the soul",
-        "2": "II. Moon and mind — the inner emotional map",
-        "3": "III. Nakshatra — the soul’s constellation code",
-        "4": "IV. Sun and self — what you seek to prove to the world",
-        "5": "V. Council of planets — talents and lacks spoken by the grahas",
-        "6": "VI. 12 houses — destiny structure by life stage",
-        "7": "VII. Love and marriage — how bonds are formed",
-        "8": "VIII. Career and calling — the direction of dharma",
-        "9": "IX. Money and reality sense — the flow of artha",
-        "10": "X. Karma and repeated patterns — lessons to transcend",
-        "11": "XI. Dasha and timing — the destiny gate opening now",
-        "12": "XII. Integrated counsel — turning star language into reality"
+        "1": "I. Lagna — 靈魂選擇的第一扇門",
+        "2": "二。月亮與心靈－內在情感地圖",
+        "3": "三。 Nakshatra — 靈魂的星座代碼",
+        "4": "四。太陽和自我－你想向世界證明什麼",
+        "5": "V. 行星理事會 — grahas 所說的人才和缺乏",
+        "6": "六． 12宮－不同人生階段的命運結構",
+        "7": "七．愛情與婚姻－紐帶是如何形成的",
+        "8": "八．事業與使命－佛法的方向",
+        "9": "九。金錢與現實感－artha的流動",
+        "10": "X. 業力與重複模式－超越的教訓",
+        "11": "十一。大煞與時機－命運之門即將開啟",
+        "12": "十二．綜合顧問－將明星語言變成現實"
       },
       "progressInitial": "0 / 12 章完成",
       "completeTitle": "吠陀高级PDF完成"
     },
     "lifeBook": {
       "ariaLabel": "人生之书",
-      "kicker": "PREMIUM SAJU ANALYSIS",
+      "kicker": "高階 SAJU 分析",
       "title": "📜 人生之书",
       "subtitle": "以四柱原局和大运写成的个人命运地图",
       "badgeStructure": "👨‍🎓 基于命理结构设计",
@@ -3992,26 +3992,26 @@
       "whyRoadmapBody": "在月度流向中同时整理财富、事业、关系的机会与负担。",
       "chapterListTitle": "✦ 13章结构 ✦",
       "chapters": {
-        "1": "🌌 Prologue — the core code of my life",
-        "2": "🏛️ Natal chart reading — the structure of the moment you were born",
-        "3": "🌿 Day master and month branch — how I naturally move through the world",
-        "4": "🌀 Five element balance — overflowing and lacking energies",
-        "5": "👑 Ten-star structure — patterns of personality, talent, and desire",
-        "6": "⚖️ Useful/favorable/unfavorable gods — directions that sustain you and flows to avoid",
-        "7": "🤝 Pattern and life frame — how your life tends to unfold",
-        "8": "💑 Love and relationships — patterns of love, marriage, and intimacy",
-        "9": "💰 Career and wealth — how money arrives and where work should move",
-        "10": "🏥 Health and lifestyle rhythm — caring for body and mind",
-        "11": "📅 Great fortune cycles — major seasonal changes in life",
-        "12": "🌅 Selected year and near future — practical counsel from annual and monthly fortune",
-        "13": "💌 Master plan — choices and execution strategy ahead"
+        "1": "🌌序言－我人生的核心代碼",
+        "2": "🏛️ 本命盤解讀－你出生那一刻的結構",
+        "3": "🌿 日主與月支 — 我如何自然地穿越世界",
+        "4": "🌀 五元素平衡－能量滿溢與缺乏",
+        "5": "👑 十顆星結構 — 個性、才能與慾望的模式",
+        "6": "⚖️ 有用/有利/不利的神－支持你並避免的方向",
+        "7": "🤝 模式與生活框架 — 你的生活傾向於如何展開",
+        "8": "💑 愛情與關係 — 愛、婚姻與親密關係的模式",
+        "9": "💰 事業與財富－金錢如何到達以及工作應該轉移到哪裡",
+        "10": "🏥 健康與生活節奏－關懷身心",
+        "11": "📅 大運勢週期－生命中的重大季節變化",
+        "12": "🌅 選定的年份和近期－年月運勢的實用建議",
+        "13": "💌 總體規劃 — 未來的選擇與執行策略"
       },
       "recommendTitle": "✦ 推荐给这样的你 ✦",
       "recommend": {
-        "1": "“want to know why this situation is happening and when it will change”",
-        "2": "“want to confirm suitable work or business through saju”",
-        "3": "“want to organize recurring relationship and career patterns through saju”",
-        "4": "“want analysis with practical strategy, not just simple fortune-telling”"
+        "1": "“想知道為什麼會發生這種情況以及何時會改變”",
+        "2": "“想透過 saju 確認合適的工作或業務”",
+        "3": "“想要透過 saju 組織經常性的關係和職業模式”",
+        "4": "“需要有實用策略的分析，而不僅僅是簡單的算命”"
       },
       "startDescPrefix": "基于四柱八字的八个字与大运、岁运流向，",
       "startDescStrong": "13章、约85,000字长篇咨询文",
@@ -4039,7 +4039,7 @@
       "copyReportId": "复制reportId"
     },
     "soulOrigin": {
-      "eyebrow": "SOUL ORIGIN KARMA REPORT",
+      "eyebrow": "靈魂本源業力報告",
       "title": "命運之業",
       "subtitle": "五種命運體系交疊成一則神話的12章報告",
       "badges": {
@@ -4072,7 +4072,7 @@
         "personalMyth": "我的神话"
       },
       "loadingTitle": "正在开启命运之业...",
-      "loadingEyebrow": "SOUL ORIGIN",
+      "loadingEyebrow": "靈魂起源",
       "loadingMessage": "正在展开你出生瞬间的时间与星辰。",
       "resultReady": "你的命運之業報告已開啟。",
       "actions": {
@@ -4087,14 +4087,14 @@
     "imageAlt": "Sibyl 系統",
     "partialFree": "部分免費",
     "deepReportPrice": "深度報告 10,000韓元",
-    "freeAnalysis": "FREE ANALYSIS",
+    "freeAnalysis": "免費分析",
     "title": "Sibyl 系統",
     "subtitle": "基於四柱八字的職業適性 × 命運風險係數分析",
     "tags": {
-      "hue": "Destiny hue color diagnosis",
-      "sector": "Aptitude sector assignment",
-      "risk": "Risk coefficient graph",
-      "dominator": "Dominator 10,000 KRW"
+      "hue": "命運色調色彩診斷",
+      "sector": "能力傾向部門分配",
+      "risk": "風險係數圖",
+      "dominator": "統治者 10,000 韓元"
     },
     "scanStart": "開始 SCAN",
     "basicFree": "基礎分析免費",
@@ -4103,25 +4103,25 @@
       "backButton": "← 返回"
     },
     "header": {
-      "systemTag": "SIBYL SYSTEM v3.14 — [ACTIVE]",
-      "title": "⚡ DESTINY SCANNER",
+      "systemTag": "SIBYL 系統 v3.14 — [正在使用中]",
+      "title": "⚡ 命運掃描儀",
       "subtitle": "以四柱八字推算职业适性 × 命运风险系数"
     },
     "profile": {
       "loading": "正在载入目标档案…",
-      "badge": "SCAN TARGET"
+      "badge": "掃描目標"
     },
     "noProfile": {
       "title": "请先完成四柱八字分析。",
       "body": "输入出生年月日时并开始四柱分析后，SIBYL 系统会自动收集数据。"
     },
     "scan": {
-      "title": "SCANNING DESTINY PROFILE…",
+      "title": "掃描命運概況…",
       "ohaeng": "五行分布",
-      "tenStar": "TEN-STAR ANALYSIS",
-      "risk": "RISK COEFFICIENT",
-      "aptitude": "APTITUDE VECTOR",
-      "hue": "DESTINY HUE"
+      "tenStar": "十星分析",
+      "risk": "風險係數",
+      "aptitude": "傾向向量",
+      "hue": "命運色調"
     },
     "pillars": {
       "title": "四柱原局",
@@ -4144,8 +4144,8 @@
     },
     "aptitude": {
       "title": "APTITUDE SECTOR — 职业适性分配",
-      "coefficient": "APTITUDE COEFFICIENT",
-      "preparing": "ANALYSIS PREPARING",
+      "coefficient": "傾向係數",
+      "preparing": "分析準備",
       "syncing": "正在同步数据。",
       "tenStarPreparing": "主导十神: 准备中"
     },
@@ -4156,21 +4156,21 @@
       "tenStar": "主导十神"
     },
     "premium": {
-      "lockedTitle": "DOMINATOR REPORT LOCKED",
+      "lockedTitle": "統治者報告已鎖定",
       "lockedDesc": "DOMINATOR 模式判定 · 10年风险系数图 · 专业报告（20,000字以上）· 开运处方",
       "lockedCost": "10,000韩元永久解锁",
       "unlockCta": "⚡ 执行 DOMINATOR — 10,000韩元",
-      "generatingTitle": "DOMINATOR EXECUTING…",
+      "generatingTitle": "統治者正在執行...",
       "generatingStatus": ">> 正在准备支付与生成…"
     },
     "error": {
       "default": "处理请求时发生问题。请稍后再试。"
     },
     "dominator": {
-      "modeTag": "MODE: NON-LETHAL PARALYZER",
+      "modeTag": "模式：非致命性麻痺器",
       "modeTitle": "稳定维持模式",
       "graphTitle": "10年风险系数图（岁运基准）",
-      "reportTitle": "◆ DOMINATOR REPORT",
+      "reportTitle": "◆ 支配者報告",
       "remedyTitle": "◆ 开运处方"
     }
   },
@@ -4191,36 +4191,36 @@
   },
   "business": {
     "companyLabel": "商号",
-    "companyValue": ": Code Destiny",
+    "companyValue": "：代碼命運",
     "representativeLabel": "代表人",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": "：樸秉河",
     "registrationLabel": "营业执照号",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "通信销售备案号",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": "：2026-Hwaseongho-0264",
     "contactLabel": "联系方式",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "邮箱",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": "：seongbae555@gmail.com",
     "addressLabel": "地址",
     "officeAddressLabel": "营业地址",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 京畿道華城市孝恆區飛峰面新飛峰東路 37 號 101-1207"
   },
   "kakaoReferral": {
     "preparingTitle": "正在准备星光邀请链接...",
     "preparingSubtitle": "请稍等",
-    "readyCopyFallback": "Your invitation link is ready. If KakaoTalk share does not open, copy the link.",
+    "readyCopyFallback": "您的邀請連結已準備就緒。如果 KakaoTalk 共享未打開，請複製連結。",
     "openLink": "打开邀请链接",
     "copyLink": "复制链接",
-    "shareText": "View a free Code Destiny fortune",
+    "shareText": "查看免費的命運代碼財富",
     "copySuccess": "邀请链接已复制。请粘贴到KakaoTalk分享。",
     "copyPrompt": "请粘贴到KakaoTalk分享。",
-    "nativeShareText": "Open the starlight fortune together.",
+    "nativeShareText": "一起開啟星光財富。",
     "shareWindowOpened": "分享窗口已打开。",
-    "rewardReady": "Invitation link is ready. Referral reward is paid when your friend completes signup.",
-    "kakaoTitle": "Code Destiny starlight fortune invitation",
-    "kakaoDescription": "Invite a friend with this Kakao share link.",
-    "kakaoButton": "View free fortune",
+    "rewardReady": "邀請連結已準備就緒。當您的朋友完成註冊時，將支付推薦獎勵。",
+    "kakaoTitle": "代碼命運星光發財邀請函",
+    "kakaoDescription": "使用此 Kakao 分享連結邀請朋友。",
+    "kakaoButton": "看免費財富",
     "kakaoWindowOpened": "Kakao分享窗口已打开。",
     "makeLinkFirst": "请先创建邀请链接。",
     "creatingLink": "正在创建星光邀请链接。请稍等。",
@@ -4533,25 +4533,25 @@
       }
     },
     "detail": {
-      "portraitAlt": "{name} saju symbolic image",
-      "cardIconAlt": "{name} saju icon",
-      "cardAria": "Open {name} saju reading",
-      "kicker": "Starlit birth chart portrait",
-      "birthLabel": "Birth",
-      "birthSummary": "{year}.{month}.{day} (solar calendar) ? The hour pillar is closed, and the reading follows the three pillars of year, month, and day.",
-      "chartTitle": "?? Saju chart (year, month, day pillars)",
-      "pillarHint": "The flow of the year, month, and day pillars is read through the seasonal threshold.",
-      "masterTitle": "?? Saju master summary",
-      "fiveTitle": "?? Five-element analysis",
-      "tenStarTitle": "{star} Ten Gods analysis",
-      "careerTitle": "?? Temperament & career fit",
-      "personalityLabel": "Temperament:",
-      "careerFitLabel": "Career fit:",
-      "flowTitle": "?? Fortune flow",
-      "adviceTitle": "? Today?s alignment",
-      "cardCta": "View saju reading",
-      "calculating": "? Calculating the saju chart...",
-      "engineLoading": "The saju calculation engine is still loading. Please click again shortly."
+      "portraitAlt": "{name} saju 符號影像",
+      "cardIconAlt": "{name} 沙朱圖標",
+      "cardAria": "開啟 {name} saju 閱讀",
+      "kicker": "星光出生圖肖像",
+      "birthLabel": "出生",
+      "birthSummary": "{year}.{month}.{day} （陽曆） · 時柱關閉，讀數遵循年、月、日三大柱。",
+      "chartTitle": "📜 Saju 圖表（年、月、日支柱）",
+      "pillarHint": "年、月、日支柱的流程是透過季節門檻讀取的。",
+      "masterTitle": "🔮 Saju大師總結",
+      "fiveTitle": "🌿 五元素分析",
+      "tenStarTitle": "{star} 十神分析",
+      "careerTitle": "💼 氣質與職業契合度",
+      "personalityLabel": "氣質：",
+      "careerFitLabel": "職業適合度：",
+      "flowTitle": "🌊 財富流",
+      "adviceTitle": "✨ 今天的排列",
+      "cardCta": "查看 saju 閱讀",
+      "calculating": "⏳ 計算 saju 圖...",
+      "engineLoading": "saju 計算引擎仍在載入。請稍後再點擊。"
     }
   }
 }
