@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Abschließender integrierter Bericht",
           "body": "Stellt Ihren Lebensplan und Ihre Umsetzungsstrategie fertig."
+        },
+        "13": {
+          "title": "90-Tage- und 1-Jahres-Flussanalyse",
+          "body": "Ordnet die Zeitpunkte naher zukünftiger Entscheidungen."
+        },
+        "14": {
+          "title": "3-Jahres-Roadmap",
+          "body": "Beleuchtet langfristiges Wachstum und Wendepunkte Schritt für Schritt."
+        },
+        "15": {
+          "title": "Abschließender Gesamtbericht",
+          "body": "Verbindet die Sprache der Sterne mit einer realistischen Umsetzungsstrategie."
         }
       },
       "loadingTitle": "Berechnung der Planetenplatzierungen",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psychologie und Wunden",
         "10": "X. Gesundheits- und Lebensstilrhythmus",
         "11": "XI. Glücksfluss",
-        "12": "XII. Endgültige Integration"
+        "12": "XII. Endgültige Integration",
+        "13": "XIII. 90-Tage- und 1-Jahres-Fluss",
+        "14": "XIV. 3-Jahres-Roadmap",
+        "15": "XV. Abschließende Synthese"
       },
       "progressInitial": "0 / 12 Kapitel abgeschlossen",
       "completeTitle": "Astrologie-Kosmischer Bericht abgeschlossen",

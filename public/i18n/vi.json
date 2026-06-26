@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Báo cáo tích hợp cuối cùng",
           "body": "Hoàn thiện lộ trình cuộc sống và chiến lược thực hiện của bạn."
+        },
+        "13": {
+          "title": "Phân tích dòng chảy 90 ngày và 1 năm",
+          "body": "Sắp xếp thời điểm lựa chọn trong tương lai gần."
+        },
+        "14": {
+          "title": "Lộ trình 3 năm",
+          "body": "Soi sáng sự trưởng thành dài hạn và các bước ngoặt theo từng giai đoạn."
+        },
+        "15": {
+          "title": "Báo cáo tổng hợp cuối cùng",
+          "body": "Kết nối ngôn ngữ của các vì sao với chiến lược hành động thực tế."
         }
       },
       "loadingTitle": "Tính toán vị trí các hành tinh",
@@ -3806,7 +3818,10 @@
         "9": "IX. Tâm lý và vết thương",
         "10": "X. Nhịp điệu sức khỏe và lối sống",
         "11": "XI. Dòng chảy may mắn",
-        "12": "XII. Tích hợp cuối cùng"
+        "12": "XII. Tích hợp cuối cùng",
+        "13": "XIII. Dòng chảy 90 ngày và 1 năm",
+        "14": "XIV. Lộ trình 3 năm",
+        "15": "XV. Tổng hợp cuối cùng"
       },
       "progressInitial": "0/12 chương đã hoàn thành",
       "completeTitle": "Báo cáo vũ trụ chiêm tinh đã hoàn thành",

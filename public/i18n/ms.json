@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Laporan bersepadu akhir",
           "body": "Memuktamadkan peta jalan hidup dan strategi pelaksanaan anda."
+        },
+        "13": {
+          "title": "Analisis aliran 90 hari dan 1 tahun",
+          "body": "Menyusun masa pilihan untuk masa terdekat."
+        },
+        "14": {
+          "title": "Peta jalan 3 tahun",
+          "body": "Menerangi pertumbuhan jangka panjang dan titik perubahan langkah demi langkah."
+        },
+        "15": {
+          "title": "Laporan sintesis akhir",
+          "body": "Mengikat bahasa bintang kepada strategi pelaksanaan yang nyata."
         }
       },
       "loadingTitle": "Mengira penempatan planet",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psikologi dan Luka",
         "10": "X. Irama Kesihatan dan Gaya Hidup",
         "11": "XI. Aliran Rezeki",
-        "12": "XII. Integrasi Akhir"
+        "12": "XII. Integrasi Akhir",
+        "13": "XIII. Aliran 90 hari dan 1 tahun",
+        "14": "XIV. Peta jalan 3 tahun",
+        "15": "XV. Sintesis akhir"
       },
       "progressInitial": "0 / 12 bab selesai",
       "completeTitle": "Laporan Kosmik Astrologi Selesai",

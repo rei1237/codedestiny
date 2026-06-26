@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Final integrated report",
           "body": "Finalizes your life roadmap and execution strategy."
+        },
+        "13": {
+          "title": "90-day and 1-year flow analysis",
+          "body": "Organizes the timing of choices in the near future."
+        },
+        "14": {
+          "title": "3-year roadmap",
+          "body": "Illuminates long-term growth and turning points step by step."
+        },
+        "15": {
+          "title": "Final synthesis report",
+          "body": "Binds the language of the stars into practical execution strategy."
         }
       },
       "loadingTitle": "Calculating planetary placements",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psychology and Wounds",
         "10": "X. Health and Lifestyle Rhythm",
         "11": "XI. Flow of Fortune",
-        "12": "XII. Final Integration"
+        "12": "XII. Final Integration",
+        "13": "XIII. 90-Day and 1-Year Flow",
+        "14": "XIV. 3-Year Roadmap",
+        "15": "XV. Final Synthesis"
       },
       "progressInitial": "0 / 12 chapters complete",
       "completeTitle": "Astrology Cosmic Report Complete",

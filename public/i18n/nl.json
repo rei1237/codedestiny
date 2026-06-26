@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Uiteindelijk geïntegreerd rapport",
           "body": "Voltooit uw levensroutekaart en uitvoeringsstrategie."
+        },
+        "13": {
+          "title": "Analyse van de 90-dagen- en 1-jaarsstroom",
+          "body": "Ordent de keuzemomenten in de nabije toekomst."
+        },
+        "14": {
+          "title": "Routekaart voor 3 jaar",
+          "body": "Belicht langetermijngroei en keerpunten stap voor stap."
+        },
+        "15": {
+          "title": "Eindrapport met synthese",
+          "body": "Verbindt de taal van de sterren met een praktische uitvoeringsstrategie."
         }
       },
       "loadingTitle": "Planetaire plaatsingen berekenen",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psychologie en wonden",
         "10": "X. Gezondheids- en levensstijlritme",
         "11": "XI. Stroom van fortuin",
-        "12": "XII. Laatste integratie"
+        "12": "XII. Laatste integratie",
+        "13": "XIII. 90-dagen- en 1-jaarsstroom",
+        "14": "XIV. Routekaart voor 3 jaar",
+        "15": "XV. Eindsynthese"
       },
       "progressInitial": "0 / 12 hoofdstukken voltooid",
       "completeTitle": "Astrologie kosmisch rapport voltooid",

@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Rapport final intégré",
           "body": "Finalise votre feuille de route de vie et votre stratégie d'exécution."
+        },
+        "13": {
+          "title": "Analyse du flux sur 90 jours et 1 an",
+          "body": "Organise le calendrier des choix dans le futur proche."
+        },
+        "14": {
+          "title": "Feuille de route sur 3 ans",
+          "body": "Éclaire la croissance à long terme et les tournants étape par étape."
+        },
+        "15": {
+          "title": "Rapport de synthèse final",
+          "body": "Relie le langage des étoiles à une stratégie d'action concrète."
         }
       },
       "loadingTitle": "Calcul des placements planétaires",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psychologie et blessures",
         "10": "X. Rythme de santé et de mode de vie",
         "11": "XI. Flux de fortune",
-        "12": "XII. Intégration finale"
+        "12": "XII. Intégration finale",
+        "13": "XIII. Flux sur 90 jours et 1 an",
+        "14": "XIV. Feuille de route sur 3 ans",
+        "15": "XV. Synthèse finale"
       },
       "progressInitial": "0/12 chapitres terminés",
       "completeTitle": "Rapport cosmique d’astrologie terminé",

@@ -3789,6 +3789,18 @@
         "12": {
           "title": "Informe integrado final",
           "body": "Finaliza la hoja de ruta de tu vida y la estrategia de ejecución."
+        },
+        "13": {
+          "title": "Análisis del flujo de 90 días y 1 año",
+          "body": "Ordena los momentos de elección en el futuro cercano."
+        },
+        "14": {
+          "title": "Hoja de ruta de 3 años",
+          "body": "Ilumina el crecimiento a largo plazo y los puntos de cambio paso a paso."
+        },
+        "15": {
+          "title": "Informe final de síntesis",
+          "body": "Une el lenguaje de las estrellas con una estrategia práctica de ejecución."
         }
       },
       "loadingTitle": "Calcular ubicaciones planetarias",
@@ -3806,7 +3818,10 @@
         "9": "IX. Psicología y heridas",
         "10": "X. Ritmo de salud y estilo de vida",
         "11": "XI. Flujo de fortuna",
-        "12": "XII. Integración final"
+        "12": "XII. Integración final",
+        "13": "XIII. Flujo de 90 días y 1 año",
+        "14": "XIV. Hoja de ruta de 3 años",
+        "15": "XV. Síntesis final"
       },
       "progressInitial": "0/12 capítulos completos",
       "completeTitle": "Informe Cósmico de Astrología completo",
