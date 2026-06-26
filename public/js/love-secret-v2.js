@@ -1,6 +1,6 @@
 /**
  * 연애 비책 v2 — 운명의 설계도
- * 사주 기반 AI 연애 전략 canonical 리포트 + PDF 다운로드
+ * 사주 기반 AI 연애 상담 결과
  * CODE-DESTINY Premium
  */
 (function () {
@@ -115,11 +115,11 @@
         '사랑의 원국을 정리하는 중입니다',
         '일지와 배우자궁의 흐름을 해석하는 중입니다',
         '연애 패턴과 표현 방식을 정리하는 중입니다',
-        '감정 표현과 소통 방식을 집필하는 중입니다',
+        '감정 표현과 소통 방식을 정리하는 중입니다',
         '연애의 불안과 집착 패턴을 진단하는 중입니다',
         '결혼운과 배우자궁을 해석하는 중입니다',
         '이별과 재회 패턴을 분석하는 중입니다',
-        '조후와 친밀감 속궁합을 집필하는 중입니다',
+        '조후와 친밀감의 리듬을 살피는 중입니다',
         '인연의 시기와 조건을 계산하는 중입니다',
         '연애 마스터플랜을 완성하는 중입니다'
       ],
@@ -220,7 +220,7 @@
         '이상형과 실제로 잘 맞는 사람의 결을 살피고 있습니다',
         '반복되는 연애 패턴과 상처의 원인을 분석하고 있습니다',
         '썸과 고백의 타이밍을 계산 흐름에 맞춰 정리하고 있습니다',
-        '관계가 깊어지는 대화법과 표현법을 집필하고 있습니다',
+        '관계가 깊어지는 대화법과 표현법을 정리하고 있습니다',
         '이별수·재회수·미련 정리법을 상담형 문장으로 다듬고 있습니다',
         '결혼운과 장기 연애 가능성을 살피고 있습니다',
         '시기별 연애운과 인연이 들어오는 흐름을 정리하고 있습니다',
@@ -374,8 +374,16 @@
   function _renderPreviewChapters(mode) {
     var wrap = document.querySelector('.ls-preview-chapters');
     if (!wrap) return;
-    var chapterSet = _getLoveSecretChapterSet(mode);
-    var titles = Array.isArray(chapterSet.titles) ? chapterSet.titles : [];
+    var titles = [
+      '상담 요약',
+      '내 연애 패턴',
+      '상대방과의 흐름',
+      '가능성과 장애물',
+      '연락·재회·진전 타이밍',
+      '지금 하면 좋은 행동',
+      '절대 피해야 할 행동',
+      '마지막 조언'
+    ];
     var html = [];
     for (var i = 0; i < titles.length; i++) {
       html.push('<div class="ls-chapter-item"><span class="ls-ch-num">' + _toRoman(i + 1) + '</span><span class="ls-ch-title">' + _escHtml(titles[i]) + '</span></div>');
@@ -398,8 +406,8 @@
     var labelEl = document.querySelector('.ls-result-label');
     if (!labelEl) return;
     labelEl.textContent = _normalizeLoveSecretMode(mode) === 'compatibility'
-      ? '두 사람을 위한 궁합 연애 리포트'
-      : '나만을 위한 운명의 연애 리포트';
+      ? '두 사람을 위한 연애 비책 AI 상담'
+      : '나를 위한 연애 비책 AI 상담';
   }
 
   function _prepareLoveSecretUi(mode) {
@@ -409,7 +417,9 @@
     _renderPreviewChapters(normalizedMode);
     _renderLoadPills(total);
     var progressText = _qs('lsProgressText');
-    if (progressText) progressText.textContent = '0 / ' + total + ' 챕터 완성';
+    if (progressText) progressText.textContent = '상담 준비 중';
+    var loadPills = _qs('lsLoadPills');
+    if (loadPills) loadPills.hidden = true;
     _syncResultLabel(normalizedMode);
   }
 
@@ -438,8 +448,8 @@
   };
   var LOVE_SECRET_INTERNAL_FEATURE_TYPE = 'saju_love_secret';
   var LOVE_SECRET_REASON_BY_MODE = {
-    solo: '사주 프리미엄 연애운 리포트 생성',
-    compatibility: '사주 프리미엄 궁합 리포트 생성'
+    solo: '연애 비책 AI 상담 생성',
+    compatibility: '연애 비책 궁합 AI 상담 생성'
   };
   var LOVE_SECRET_PRICE_FALLBACK_BY_MODE = {
     solo: 300,
@@ -449,17 +459,17 @@
   var LOVE_BOOK_GENERATION_MESSAGES = {
     loading_helper: '연애 비책을 펼칠 준비를 하고 있습니다.',
     checking_payment: '결제 정보를 확인하고 있습니다.',
-    payment_confirmed: '결제가 확인되었습니다. 생성 준비를 이어갑니다.',
+    payment_confirmed: '결제가 확인되었습니다. 상담 준비를 이어갑니다.',
     preparing_generation: '프로필 정보 확인 중',
     calculating_saju: '사랑의 원국을 정리하는 중입니다',
     validating_partner: '궁합 모드일 경우 상대방 사주 확인 중',
-    building_chapters: '연애 패턴과 표현 방식을 정리하는 중입니다',
-    writing_llm: '\uD504\uB9AC\uBBF8\uC5C4\uC5C4 \uC6D0\uACE0\uB97C \uC791\uC131\uD558\uB294 \uC911\uC785\uB2C8\uB2E4',
+    building_chapters: '연애 패턴과 질문의 핵심을 정리하는 중입니다',
+    writing_llm: '명식으로 관계의 흐름을 읽고 있습니다',
     validating_chapters: '대운과 세운의 연애 흐름을 반영하는 중입니다',
-    rendering_pdf: '연애 비책 PDF를 완성하고 있습니다.',
-    completed: '연애 비책 PDF가 준비되었습니다.',
-    llm_result_ready: '\uC800\uC7A5\uB41C PDF \uB9AC\uD3EC\uD2B8\uB97C \uC815\uB9AC\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4',
-    failed: '연애 비책 생성이 중단되었습니다.'
+    rendering_pdf: '상담 결과를 카드로 정리하고 있습니다.',
+    completed: '연애 비책 상담이 열렸습니다.',
+    llm_result_ready: '상담 결과를 정리하고 있습니다',
+    failed: '연애 비책 상담이 중단되었습니다.'
   };
 
   function _setLoveBookGenerationState(stateKey) {
@@ -697,6 +707,31 @@
     return _lsCleanText((option && (option.getAttribute('data-context') || option.textContent)) || el.value || fallback);
   }
 
+  var LOVE_SECRET_CATEGORY_QUESTIONS = {
+    reunion: '이 사람과 다시 이어질 가능성이 있을까요? 제가 먼저 연락해도 괜찮을까요?',
+    contact: '제가 먼저 연락해도 괜찮은 시기일까요? 어떤 톤으로 말하는 게 좋을까요?',
+    some: '이 썸이 실제 연애로 이어질 가능성이 있을까요?',
+    crush: '상대방에게 다가가도 괜찮을까요? 부담스럽지 않은 표현 방식이 궁금해요.',
+    dating: '지금 관계를 더 안정적으로 이어가려면 제가 무엇을 조심해야 할까요?',
+    burnout: '권태기처럼 느껴지는 이 흐름을 회복할 수 있을까요?',
+    marriage: '이 관계가 결혼이나 장기 관계로 이어질 수 있는 인연인지 보고 싶어요.',
+    newlove: '올해 새로운 인연 가능성과 제가 열어야 할 사랑의 방향이 궁금해요.',
+    breakup: '이 관계를 정리하는 게 맞을까요? 제 마음을 어떻게 지켜야 할까요?',
+    general: '제 연애가 반복해서 힘들어지는 이유와 지금 필요한 선택이 궁금해요.'
+  };
+
+  function _syncLoveSecretQuestionFromCategory(category, force) {
+    var key = String(category || 'general').trim() || 'general';
+    var question = LOVE_SECRET_CATEGORY_QUESTIONS[key] || LOVE_SECRET_CATEGORY_QUESTIONS.general;
+    var concernEl = _qs('lsLoveConcern');
+    if (concernEl && (force || !String(concernEl.value || '').trim())) {
+      concernEl.value = question;
+      concernEl.placeholder = question;
+    }
+    var statusEl = _qs('lsLoveStatus');
+    if (statusEl) statusEl.value = key;
+  }
+
   function _ensureLoveSecretContextPanel() {
     var existingPanel = _qs('lsLoveContextPanel');
     if (existingPanel && existingPanel.parentNode) existingPanel.parentNode.removeChild(existingPanel);
@@ -706,6 +741,7 @@
     var normalizedMode = _normalizeLoveSecretMode(mode);
     var isCompatibility = normalizedMode === 'compatibility';
     var partnerName = _lsCleanText((partnerBirthInput && partnerBirthInput.name) || _lsFieldValue('lsPsName') || '\uc0c1\ub300\ubc29');
+    var category = _lsCleanText((_qs('lsLoveStatus') || {}).value || 'general') || 'general';
     var loveStatus = _lsSelectedText('lsLoveStatus', isCompatibility
       ? '\uc0c1\ub300\uc640\uc758 \uad00\uacc4 \ud750\ub984, \uad81\ud569, \uac10\uc815\uc758 \uc628\ub3c4\uc640 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc'
       : '\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc');
@@ -714,7 +750,10 @@
     var idealType = _lsFieldValue('lsLoveIdealType') || (isCompatibility ? partnerName : '\uc0ac\uc8fc \uc6d0\uad6d\uacfc \uc624\ud589 \uade0\ud615\uc5d0 \ub9de\ub294 \uc790\uc5f0\uc2a4\ub7ec\uc6b4 \uc778\uc5f0');
     return {
       loveStatus: loveStatus,
+      category: category,
+      consultationCategory: loveStatus,
       currentConcern: concern,
+      question: concern,
       idealType: idealType,
       pastLovePattern: '\ubc18\ubcf5\ub418\ub294 \ub04c\ub9bc, \uac70\ub9ac\uac10, \ud0c0\uc774\ubc0d\uc744 \uc810\uac80\ud558\uace0 \uc2f6\uc740 \ud328\ud134',
       desiredOutcome: desiredOutcome,
@@ -822,7 +861,7 @@
     var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
     var safe = _lsPayloadSafe(payload);
     var message = String(safe.message || fallbackMessage || ('HTTP ' + (status || ''))).trim();
-    var err = new Error(message || '연애 비책 PDF 요청을 처리하지 못했습니다.');
+    var err = new Error(message || '연애 비책 AI 상담 요청을 처리하지 못했습니다.');
     err.status = status || undefined;
     err.code = String(safe.code || 'LOVE_SECRET_REQUEST_FAILED').trim();
     err.stage = String(safe.stage || (context && context.stage) || 'prepare').trim();
@@ -1224,6 +1263,87 @@
     }
     if (!out.length) return '';
     return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
+  }
+
+  function _lsArray(value) {
+    return Array.isArray(value) ? value.map(function (item) { return String(item || '').trim(); }).filter(Boolean) : [];
+  }
+
+  function _lsTextBlock(value) {
+    if (Array.isArray(value)) {
+      return '<ul class="ls-md-ul">' + _lsArray(value).map(function (item) {
+        return '<li class="ls-md-li">' + _escHtml(item) + '</li>';
+      }).join('') + '</ul>';
+    }
+    if (value && typeof value === 'object') {
+      return _lsTextBlock(Object.keys(value).map(function (key) {
+        var item = value[key];
+        if (Array.isArray(item)) return key + ': ' + item.join(', ');
+        if (item && typeof item === 'object') return key + ': ' + JSON.stringify(item);
+        return key + ': ' + String(item || '');
+      }));
+    }
+    return _md2html(String(value || '').trim());
+  }
+
+  function _renderLoveSecretAIConsultationResult(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var result = data.consultation || data.result || {};
+    var possibility = result.possibility && typeof result.possibility === 'object' ? result.possibility : {};
+    var timing = result.timing && typeof result.timing === 'object' ? result.timing : {};
+    var positiveSignals = _lsArray(possibility.positiveSignals);
+    var obstacles = _lsArray(possibility.obstacles);
+    var goodPeriods = _lsArray(timing.goodPeriods);
+    var cautionPeriods = _lsArray(timing.cautionPeriods);
+    var cards = [
+      { title: '상담 요약 — 지금 이 관계의 핵심', body: result.summary },
+      { title: '내 연애 패턴 — 명식이 보여주는 사랑 방식', body: result.myLovePattern },
+      { title: '상대방과의 흐름', body: result.relationshipFlow },
+      { title: '이 관계의 가능성 — 이어질 힘과 막히는 지점', body: [
+        positiveSignals.length ? '좋게 작용하는 신호: ' + positiveSignals.join(', ') : '',
+        obstacles.length ? '막히는 지점: ' + obstacles.join(', ') : '',
+        possibility.realisticView || ''
+      ].filter(Boolean).join('\n\n') },
+      { title: '연락·재회·진전 타이밍', body: [
+        timing.contactAdvice || '',
+        timing.reunionAdvice || '',
+        goodPeriods.length ? '열리는 흐름: ' + goodPeriods.join(', ') : '',
+        cautionPeriods.length ? '조심할 흐름: ' + cautionPeriods.join(', ') : ''
+      ].filter(Boolean).join('\n\n') },
+      { title: '지금 하면 좋은 행동', body: result.actionGuide },
+      { title: '절대 피해야 할 행동', body: result.avoidActions },
+      { title: '마지막 조언 — 사랑을 지키는 한 문장', body: result.closingMessage },
+      { title: '후속 질문 추천', body: result.followUpQuestions }
+    ].filter(function (card) {
+      if (Array.isArray(card.body)) return card.body.length > 0;
+      return String(card.body || '').trim();
+    });
+    if (!cards.length && result.rawText) {
+      cards.push({ title: '연애 비책 상담', body: result.rawText });
+    }
+
+    var content = _qs('lsChapterContent');
+    if (content) {
+      content.innerHTML = '<section class="ls-ai-result-intro"><h4>연애 비책 상담이 열렸습니다.</h4><p>아래 결과는 사주 원국, 관계 흐름, 대운과 세운을 바탕으로 생성된 AI 연애 상담입니다.</p></section>'
+        + cards.map(function (card) {
+          return '<article class="lb-result-article ls-ai-consult-card"><h3>' + _escHtml(card.title) + '</h3><div class="lb-result-article__section-body">' + _lsTextBlock(card.body) + '</div></article>';
+        }).join('');
+    }
+
+    var toc = document.querySelector('.ls-toc');
+    if (toc) toc.style.display = 'none';
+    var pdfBtn = _qs('lsPdfBtn');
+    if (pdfBtn) pdfBtn.style.display = 'none';
+    var epilogue = _qs('lsEpilogueBanner');
+    if (epilogue) epilogue.style.display = 'none';
+    var profile = window.__cdActiveBirthProfile || {};
+    var nameEl = _qs('lsResultName');
+    var dateEl = _qs('lsResultDate');
+    var labelEl = document.querySelector('.ls-result-label');
+    if (labelEl) labelEl.textContent = '연애 비책 상담이 열렸습니다.';
+    if (nameEl) nameEl.textContent = (profile.name || '사용자') + '님의 연애 비책 AI 상담';
+    if (dateEl) dateEl.textContent = '명식과 질문을 바탕으로 지금 필요한 관계 선택을 정리했습니다.';
+    _lsResultPayload = data;
   }
 
   function _collectSajuData() {
@@ -1637,6 +1757,15 @@
       if (el) el.addEventListener('input', _schedulePartnerPreview);
       if (el) el.addEventListener('change', _schedulePartnerPreview);
     });
+    var categoryButtons = document.querySelectorAll('[data-ls-love-category]');
+    Array.prototype.forEach.call(categoryButtons, function (btn) {
+      btn.addEventListener('click', function () {
+        var category = String(btn.getAttribute('data-ls-love-category') || 'general').trim() || 'general';
+        Array.prototype.forEach.call(categoryButtons, function (item) { item.classList.remove('active'); });
+        btn.classList.add('active');
+        _syncLoveSecretQuestionFromCategory(category, true);
+      });
+    });
     // 초기 상태 리셋
     var card = _qs('lsPsCard');
     if (card) card.classList.remove('visible');
@@ -1648,6 +1777,7 @@
     if (hourEl) hourEl.selectedIndex = 0;
     if (gf) { gf.classList.add('active'); }
     if (gm) { gm.classList.remove('active'); }
+    _syncLoveSecretQuestionFromCategory((_qs('lsLoveStatus') || {}).value || 'general', false);
   }
 
   function _bindPartnerSection() {
@@ -1863,12 +1993,10 @@
 
     var parsedTime = _lsParseFlexibleBirthTime(birth.birthTime || birth.time || raw.birthTime || raw.time, birth.hour, birth.minute);
     var isTimeUnknown = !!parsedTime.isUnknown;
-    var hour = isTimeUnknown ? null : _lsToInt(parsedTime.hour, null);
-    var minute = isTimeUnknown ? null : _lsToInt(parsedTime.minute, 0);
-    if (!isTimeUnknown) {
-      hour = Math.max(0, Math.min(23, hour));
-      minute = Math.max(0, Math.min(59, minute));
-    }
+    var hour = isTimeUnknown ? 12 : _lsToInt(parsedTime.hour, null);
+    var minute = isTimeUnknown ? 0 : _lsToInt(parsedTime.minute, 0);
+    hour = Math.max(0, Math.min(23, hour));
+    minute = Math.max(0, Math.min(59, minute));
 
     var location = raw.location || {};
     var lng = Number(location.lng);
@@ -1901,7 +2029,6 @@
   function _buildLoveSecretBirthInputFromProfile(rawProfile, fallbackName) {
     var profile = _lsNormalizeProfile(rawProfile || null);
     if (!profile || !profile.birth || !profile.birth.year || !profile.birth.month || !profile.birth.day) return null;
-    if (profile.birth.isTimeUnknown) return null;
     var birth = profile.birth;
     var location = profile.location || {};
     var birthDate = String(birth.year).padStart(4, '0') + '-' + String(birth.month).padStart(2, '0') + '-' + String(birth.day).padStart(2, '0');
@@ -1914,7 +2041,8 @@
       calendarType: String(birth.calType || 'solar').trim() || 'solar',
       timezone: String(location.tz || 'Asia/Seoul').trim() || 'Asia/Seoul',
       latitude: Number(location.lat),
-      longitude: Number(location.lng)
+      longitude: Number(location.lng),
+      unknownTime: profile.birth.isTimeUnknown === true
     };
   }
 
@@ -2414,11 +2542,11 @@
   function _setLoveSecretInputNotice(message) {
     var notice = _qs('lsInputNotice');
     if (!notice) return;
-    notice.textContent = String(message || '⚠️ 분석에는 약 2~3분이 소요됩니다. 생년월일 입력 후 결제와 생성으로 진행됩니다.');
+    notice.textContent = String(message || '상담에는 약 1~2분이 소요됩니다. 생년월일과 질문 확인 후 결제 또는 이용권으로 진행됩니다.');
   }
 
   function _showLoveSecretBirthRequiredNotice() {
-    _setLoveSecretInputNotice('생년월일을 먼저 입력해 주세요. 출생 시간을 모르면 낮 12시 기준으로 보수 해석합니다.');
+    _setLoveSecretInputNotice('생년월일을 먼저 입력해 주세요. 출생 시간을 모르면 시주를 단정하지 않고 가능한 범위에서 상담합니다.');
     _showScreen('lsStartScreen');
     var target = document.getElementById('birthDate') || document.getElementById('run-btn') || _qs('loveSecretModal');
     if (target) {
@@ -2443,7 +2571,7 @@
   }
 
   function _showLoveSecretInlineError(message) {
-    var text = String(message || '연애 비책 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    var text = String(message || '연애 비책 AI 상담 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     var msgEl = _qs('lsErrorMsg');
     if (msgEl) {
       msgEl.textContent = text;
@@ -2508,7 +2636,7 @@
     if (!year || !month || !day) {
       var missingEl = !year ? _qs('lsPsYear') : (!month ? _qs('lsPsMonth') : _qs('lsPsDay'));
       var infoEl = _qs('lsPsInfo');
-      if (infoEl) infoEl.textContent = '궁합 PDF 생성에는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.';
+      if (infoEl) infoEl.textContent = '궁합 상담에는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.';
       if (missingEl) {
         missingEl.focus();
         missingEl.style.borderColor = 'rgba(239,68,68,0.8)';
@@ -2663,9 +2791,9 @@
     function _setProgress(done) {
       var pct = totalChapters > 0 ? (done / totalChapters) * 100 : 0;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / ' + totalChapters + ' 챕터 완성';
+      if (progressText) progressText.textContent = done >= totalChapters ? '상담 결과 정리 중' : '상담 준비 중';
       if (chapterMsg && done < totalChapters) chapterMsg.textContent = _getLoveSecretLoadingMessage(done, _currentChapterMode);
-      if (chapterMsg && done >= totalChapters) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
+      if (chapterMsg && done >= totalChapters) chapterMsg.textContent = '상담 결과를 정리하고 있습니다.';
       _updateLoadPills(done);
       _logLoveSecretFlow('LocalDraftProgress', {
         mode: _currentChapterMode,
@@ -2720,6 +2848,7 @@
       var pastPattern = _clean(userContext.pastLovePattern) || '\ubc18\ubcf5\ub418\ub294 \ub04c\ub9bc, \uac70\ub9ac\uac10, \ud0c0\uc774\ubc0d\uc744 \uc810\uac80\ud558\uace0 \uc2f6\uc740 \ud328\ud134';
       var currentConcern = _clean(userContext.currentConcern) || (isCompatibility ? compatConcern : soloConcern);
       var loveStatus = _clean(userContext.loveStatus) || (isCompatibility ? compatLoveStatus : soloLoveStatus);
+      var category = _clean(userContext.category) || 'general';
       var desiredOutcome = _clean(userContext.desiredOutcome) || (isCompatibility
         ? '\uc11c\ub85c\uc5d0\uac8c \ub9de\ub294 \uc18c\ud1b5\uacfc \uad00\uacc4 \uc9c0\uc18d \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4'
         : '\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4');
@@ -2734,6 +2863,8 @@
       var baseContext = {
         mode: normalizedMode,
         targetYear: targetYear,
+        category: category,
+        consultationCategory: loveStatus,
         loveStatus: loveStatus,
         relationshipStatus: loveStatus,
         currentLoveStatus: loveStatus,
@@ -2791,7 +2922,7 @@
         missing: _lsContractCheck.errors,
         reportId: _lsCurrentReportId,
       });
-      _showLoveSecretInlineError('연애 비책 생성 정보가 충분하지 않아요. 관계의 흐름과 가장 궁금한 질문을 확인한 뒤 다시 시도해 주세요.');
+      _showLoveSecretInlineError('연애 비책 AI 상담 정보가 충분하지 않아요. 관계의 흐름과 가장 궁금한 질문을 확인한 뒤 다시 시도해 주세요.');
       return;
     }
 
@@ -2809,8 +2940,8 @@
     var lsTitle = _qs('lsLoadingTitle');
     if (lsTitle) {
       lsTitle.textContent = partnerBirthInput
-        ? '두 사람의 궁합과 연애 비책을 집필하는 중입니다'
-        : '연애 비책을 집필하는 중입니다';
+        ? '두 사람의 궁합과 관계 흐름을 읽고 있습니다'
+        : '명식으로 사랑의 흐름을 읽고 있습니다';
     }
     _setLoveBookGenerationState('calculating_saju');
     _logLoveSecretFlow('LocalCalculationStart', { mode: _currentChapterMode, totalChapters: totalChapters });
@@ -3246,6 +3377,74 @@
       };
       preparePayload = _attachLoveSecretGenerationContext(preparePayload, _lsGenerationContext);
 
+      (async function runLoveSecretAIConsultationFlow() {
+        var aiHeaders = { 'Content-Type': 'application/json' };
+        if (_lsPremiumToken) aiHeaders['x-premium-access-token'] = _lsPremiumToken;
+        var aiPayload = Object.assign({}, preparePayload, {
+          serviceType: 'love_secret_ai_consultation',
+          generationMode: 'ai-consultation',
+          category: _lsGenerationContext.category || 'general',
+          consultationCategory: _lsGenerationContext.consultationCategory || _lsGenerationContext.loveStatus || '',
+          question: _lsGenerationContext.question || _lsGenerationContext.currentConcern || '',
+          strictNoFallback: true
+        });
+        _setLoveBookGenerationState('building_chapters');
+        if (progressBar) progressBar.style.width = '36%';
+        if (progressText) progressText.textContent = '명식으로 관계 흐름을 읽는 중';
+        if (chapterMsg) chapterMsg.textContent = '당신의 명식에서 사랑의 패턴을 읽고 있어요.';
+        _logLoveSecretFlow('AIConsultationRequestStart', {
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          category: aiPayload.category
+        });
+        _setLoveBookGenerationState('writing_llm');
+        var aiRes = await fetch('/api/love-secret/ai-consultation', {
+          method: 'POST',
+          credentials: 'include',
+          headers: aiHeaders,
+          body: JSON.stringify(aiPayload),
+        });
+        if (progressBar) progressBar.style.width = '78%';
+        if (progressText) progressText.textContent = '상담 결과를 정리하는 중';
+        if (chapterMsg) chapterMsg.textContent = partnerBirthInput
+          ? '상대방과의 인연 흐름을 조심스럽게 맞춰보고 있어요.'
+          : '대운과 세운 속에서 관계의 타이밍을 찾고 있어요.';
+        var aiBody = await aiRes.json().catch(function () { return {}; });
+        if (!aiRes.ok || !aiBody || aiBody.ok === false) {
+          throw _buildLoveSecretApiError({ res: aiRes, json: aiBody }, (aiBody && aiBody.message) || ('HTTP ' + aiRes.status), {
+            stage: 'ai-consultation',
+            mode: _currentChapterMode,
+            reportId: _lsReportId,
+            sessionId: _lsSessionId
+          });
+        }
+        _lsResultPayload = aiBody;
+        _setLoveBookGenerationState('llm_result_ready');
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = '상담 결과 준비 완료';
+        if (chapterMsg) chapterMsg.textContent = '지금 필요한 연애의 선택을 정리했어요.';
+        _generating = false;
+        _stopLoadingAnimation();
+        _setLoveBookGenerationState('completed');
+        _showScreen('lsResultScreen');
+        _renderLoveSecretAIConsultationResult(aiBody);
+        _logLoveSecretFlow('AIConsultationRequestSuccess', {
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          provider: String(aiBody.metadata && aiBody.metadata.provider || '')
+        });
+      })().catch(function (error) {
+        var msg = String(error && error.message ? error.message : error || '연애 비책 AI 상담 중 오류가 발생했습니다.');
+        _logLoveSecretError(error, { stage: error && error.stage || 'ai-consultation', mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
+        _logLoveSecretFlow('Error', { mode: _currentChapterMode, message: msg, reportId: _lsReportId });
+        _generating = false;
+        _stopLoadingAnimation();
+        _setLoveBookGenerationState('failed');
+        if (chapterMsg) chapterMsg.textContent = msg;
+        _showLoveSecretInlineError(msg);
+      });
+      return;
+
       _setLoveBookGenerationState('building_chapters');
       _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId, flow: 'prepare-async' });
       var submitRes = await fetch('/api/love-secret/prepare-async', {
@@ -3334,8 +3533,12 @@
   }
 
   window.downloadLoveSecretPdf = function () {
+    if (_lsResultPayload && String(_lsResultPayload.serviceType || '') === 'love_secret_ai_consultation') {
+      _showLoveSecretInlineError('연애 비책 AI 상담 결과는 다운로드 없이 화면에서 바로 확인할 수 있습니다.');
+      return;
+    }
     if (!_chapters.some(Boolean)) {
-      _showLoveSecretInlineError('먼저 연애 비책을 생성해 주세요.');
+      _showLoveSecretInlineError('먼저 연애 비책 상담을 받아 주세요.');
       return;
     }
     var storedUrl = _resolveLoveSecretStoredUrl(_lsResultPayload);

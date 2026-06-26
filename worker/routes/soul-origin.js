@@ -9,15 +9,22 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
+import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
-import { getServiceExecution } from "../lib/service-execution-task.js";
+import {
+  completeServiceExecution,
+  failServiceExecution,
+  getServiceExecution,
+  startServiceExecution,
+} from "../lib/service-execution-task.js";
 import { soulOriginChapterPlanV1 } from "../lib/pdf-v2/soul-origin/soul-origin-premium.chapter-plan.js";
 import { normalizeSoulOriginCalculationInput } from "../lib/pdf-v2/soul-origin/soul-origin-premium.normalizer.js";
+import { buildKarmaIntegratedData } from "../lib/pdf-v2/soul-origin/karma-data-orchestrator.js";
 import {
   SOUL_ORIGIN_LLM_MANUSCRIPT_SOURCE,
   SOUL_ORIGIN_LLM_PROVIDER,
@@ -32,6 +39,10 @@ const SOUL_ORIGIN_DISPLAY_NAME = "운명의 업";
 const SOUL_ORIGIN_TITLE = "운명의 업 프리미엄 상담서";
 const SOUL_ORIGIN_REPORT_TYPE = "soulOriginKarma";
 const SOUL_ORIGIN_ARCHIVE_REPORT_TYPE = "soul_origin_karma";
+const SOUL_ORIGIN_AI_CONSULTATION_SERVICE_TYPE = "soul_origin_ai_consultation";
+const SOUL_ORIGIN_AI_CONSULTATION_SERVICE_KEY = "soul-origin-ai-consultation";
+const SOUL_ORIGIN_AI_DEFAULT_AMOUNT_COINS = 690;
+const KARMA_AI_CONSULTATION_MARKER = "[Karma AI Consultation]";
 const SOUL_ORIGIN_MANUSCRIPT_SOURCE = SOUL_ORIGIN_LLM_MANUSCRIPT_SOURCE;
 const SOUL_ORIGIN_PROVIDER = SOUL_ORIGIN_LLM_PROVIDER;
 const SOUL_ORIGIN_WRITING_PIPELINE = SOUL_ORIGIN_LLM_WRITING_PIPELINE;
@@ -48,6 +59,21 @@ const SOUL_ORIGIN_FEATURE_ALIASES = [
   "soul-origin",
   "premium-soul-origin-report",
 ];
+
+const KARMA_AI_CONSULTATION_CATEGORIES = Object.freeze({
+  general: "종합 업 리딩",
+  repeat_crisis: "반복되는 인생 고비",
+  relationship: "관계와 인연의 업",
+  family: "가족/부모와의 과제",
+  money: "돈과 성공의 막힘",
+  career: "직업과 사명의 방향",
+  love_attachment: "사랑과 집착의 패턴",
+  self_sabotage: "두려움과 자기방해",
+  liberation_timing: "전환점과 해방의 시기",
+  nodes: "라후/케투와 노드의 흐름",
+  timing_flow: "대운/다샤/트랜짓 통합 흐름",
+  choice: "지금의 선택",
+});
 
 const BIRTH_TIME_REQUIRED_MESSAGE = "운명의 업 PDF는 시주와 운의 흐름을 정밀하게 읽기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해 주세요.";
 
@@ -725,6 +751,939 @@ function buildCalculationSystemStatus(seed = {}) {
     ziwei: Boolean(seed.ziwei),
     sukuyo: Boolean(seed.sukyo),
   };
+}
+
+function isKarmaAIConsultationDryRun(env = {}) {
+  return truthyFlag(env?.SOUL_ORIGIN_AI_CONSULTATION_DRY_RUN || env?.KARMA_AI_CONSULTATION_DRY_RUN || env?.LLM_DRY_RUN || "");
+}
+
+function hasKarmaAIGeminiApiKey(env = {}) {
+  const keys = [
+    "GEMINIF_API_KEY",
+    "GEMINIF_API_KEY1",
+    "GEMINIF_API_KEY2",
+    "GEMINIF_API_KEY3",
+    "GEMINIF_API_KEY4",
+    "GEMINI_API_KEY",
+    "GOOGLE_GEMINI_API_KEY",
+  ];
+  if (keys.some((key) => clean(env?.[key]))) return true;
+  try {
+    return keys.some((key) => clean(process?.env?.[key]));
+  } catch (_) {
+    return false;
+  }
+}
+
+function logKarmaAIConsultation(marker, details = {}) {
+  const payload = {
+    hasEnvAI: details.hasEnvAI === true,
+    providerName: clean(details.providerName || ""),
+    isMock: details.isMock === true,
+    dryRun: details.dryRun === true,
+    category: clean(details.category || ""),
+    questionLength: Number(details.questionLength || 0),
+    hasBirthTime: details.hasBirthTime === true,
+    hasBirthPlace: details.hasBirthPlace === true,
+    timezoneResolved: details.timezoneResolved === true,
+    sajuCalculated: details.sajuCalculated === true,
+    vedicCalculated: details.vedicCalculated === true,
+    astrologyCalculated: details.astrologyCalculated === true,
+    hasDaeun: details.hasDaeun === true,
+    hasDasha: details.hasDasha === true,
+    hasTransit: details.hasTransit === true,
+    hasNodes: details.hasNodes === true,
+    integrationContextBuilt: details.integrationContextBuilt === true,
+    dataLimitations: asArray(details.dataLimitations).map((item) => clean(item)).filter(Boolean).slice(0, 8),
+    llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
+    errorCode: clean(details.errorCode || ""),
+  };
+  try {
+    console.info(`${KARMA_AI_CONSULTATION_MARKER} ${marker}`, payload);
+  } catch (_) {
+    console.info(`${KARMA_AI_CONSULTATION_MARKER} ${marker}`);
+  }
+}
+
+function buildKarmaAIError(code, message, status = 400, extra = {}) {
+  return json({
+    ok: false,
+    serviceType: SOUL_ORIGIN_AI_CONSULTATION_SERVICE_TYPE,
+    featureKey: SOUL_ORIGIN_FEATURE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    code,
+    message,
+    ...extra,
+  }, { status });
+}
+
+function parseKarmaAITimezoneOffsetToken(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+  const direct = Number(raw);
+  if (Number.isFinite(direct) && direct >= -14 && direct <= 14) return direct;
+  const token = raw.toLowerCase();
+  if (token === "utc" || token === "etc/utc" || token === "gmt") return 0;
+  if (token === "asia/seoul" || token === "asia/tokyo") return 9;
+  const match = raw.match(/^(?:utc|gmt)\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?$/i);
+  if (!match) return null;
+  const sign = match[1] === "-" ? -1 : 1;
+  const hour = Number(match[2]);
+  const minute = Number(match[3] || 0);
+  const offset = sign * (hour + (minute / 60));
+  return offset >= -14 && offset <= 14 ? offset : null;
+}
+
+function resolveKarmaAITimezoneOffset(timezoneValue, birthInput = {}) {
+  const direct = parseKarmaAITimezoneOffsetToken(timezoneValue);
+  if (Number.isFinite(direct)) return { ok: true, offset: direct };
+  const timezone = clean(timezoneValue);
+  if (!timezone) return { ok: false, offset: null };
+  try {
+    const hour = Number.isFinite(Number(birthInput.hour)) ? Number(birthInput.hour) : 12;
+    const minute = Number.isFinite(Number(birthInput.minute)) ? Number(birthInput.minute) : 0;
+    const referenceUtc = new Date(Date.UTC(Number(birthInput.year), Number(birthInput.month) - 1, Number(birthInput.day), hour, minute, 0));
+    const offsetParts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      timeZoneName: "shortOffset",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(referenceUtc);
+    const offsetName = clean(offsetParts.find((part) => part.type === "timeZoneName")?.value);
+    const parsedOffset = parseKarmaAITimezoneOffsetToken(offsetName);
+    if (Number.isFinite(parsedOffset)) return { ok: true, offset: parsedOffset };
+  } catch (_) {}
+  return { ok: false, offset: null };
+}
+
+function normalizeKarmaAIConsultationBirthInput(raw = {}) {
+  const src = raw && typeof raw === "object" ? raw : {};
+  const location = src.location && typeof src.location === "object" ? src.location : {};
+  const birthDateRaw = clean(src.birthDate || src.date || src.birthday || "");
+  const dateMatch = birthDateRaw.match(/(\d{4})[-./\s년](\d{1,2})[-./\s월](\d{1,2})/);
+  const year = dateMatch ? toInt(dateMatch[1], NaN) : toInt(src.year ?? src.birthYear, NaN);
+  const month = dateMatch ? toInt(dateMatch[2], NaN) : toInt(src.month ?? src.birthMonth, NaN);
+  const day = dateMatch ? toInt(dateMatch[3], NaN) : toInt(src.day ?? src.birthDay, NaN);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return { ok: false, code: "BIRTH_DATE_REQUIRED", message: "운명의 업 AI 상담을 위해 생년월일 정보가 필요합니다." };
+  }
+
+  const birthTimeUnknown = src.birthTimeUnknown === true
+    || src.isTimeUnknown === true
+    || src.unknownTime === true
+    || truthyFlag(src.birthTimeUnknown)
+    || truthyFlag(src.isTimeUnknown)
+    || truthyFlag(src.unknownTime);
+  const birthTimeRaw = clean(src.birthTime || src.time || "");
+  let hour = toInt(src.birthHour ?? src.hour, NaN);
+  let minute = toInt(src.birthMinute ?? src.minute, 0);
+  const timeMatch = birthTimeRaw.match(/(\d{1,2})\s*[:시]\s*(\d{1,2})?/);
+  if (timeMatch) {
+    hour = toInt(timeMatch[1], NaN);
+    minute = toInt(timeMatch[2], 0);
+  }
+
+  const hasBirthTime = !birthTimeUnknown && Number.isFinite(hour);
+  if (!hasBirthTime && !birthTimeUnknown) {
+    return { ok: false, code: "BIRTH_TIME_OR_UNKNOWN_REQUIRED", message: "출생시간을 입력하거나 출생시간 모름을 선택해 주세요." };
+  }
+  if (hasBirthTime && (hour < 0 || hour > 23 || minute < 0 || minute > 59)) {
+    return { ok: false, code: "BIRTH_INPUT_INVALID", message: "출생시간 형식을 확인해 주세요." };
+  }
+
+  const calendarRaw = clean(src.calendarType || src.calendar || src.calType || "solar").toLowerCase();
+  const calendarType = calendarRaw.includes("lunar") || calendarRaw.includes("음")
+    ? (calendarRaw.includes("leap") || calendarRaw.includes("윤") || src.isLeapMonth === true ? "lunar_leap" : "lunar")
+    : "solar";
+  if (!isValidBirthDateParts(year, month, day, calendarType)) {
+    return { ok: false, code: "BIRTH_INPUT_INVALID", message: "생년월일 형식을 확인해 주세요." };
+  }
+
+  const latitudeRaw = src.latitude ?? src.lat ?? location.lat ?? location.latitude;
+  const longitudeRaw = src.longitude ?? src.lng ?? src.lon ?? location.lng ?? location.lon ?? location.longitude;
+  const latitude = Number(latitudeRaw);
+  const longitude = Number(longitudeRaw);
+  const hasLocationCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const birthPlace = clean(
+    src.birthPlace
+    || src.birthplace
+    || src.place
+    || src.locationName
+    || location.label
+    || location.name
+    || location.city
+    || "",
+  );
+  const timezone = clean(src.timezone || location.tz || "Asia/Seoul") || "Asia/Seoul";
+  const timezoneResolution = resolveKarmaAITimezoneOffset(timezone, {
+    year,
+    month,
+    day,
+    hour: hasBirthTime ? hour : 12,
+    minute: hasBirthTime ? minute : 0,
+  });
+
+  return {
+    ok: true,
+    input: {
+      name: clean(src.name || "사용자") || "사용자",
+      gender: clean(src.gender || src.sex || "unknown") || "unknown",
+      birthDate: `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      birthTime: hasBirthTime ? `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}` : "",
+      birthPlace,
+      calendarType,
+      timezone,
+      timezoneOffset: Number.isFinite(timezoneResolution.offset) ? timezoneResolution.offset : safeNumber(src.timezoneOffset ?? location.tzOffset, 9),
+      latitude: hasLocationCoordinates ? latitude : undefined,
+      longitude: hasLocationCoordinates ? longitude : undefined,
+      year,
+      month,
+      day,
+      hour: hasBirthTime ? hour : null,
+      minute: hasBirthTime ? minute : 0,
+      birthHour: hasBirthTime ? hour : null,
+      birthMinute: hasBirthTime ? minute : 0,
+      birthTimeUnknown: !hasBirthTime,
+      isTimeUnknown: !hasBirthTime,
+      hasBirthTime,
+      hasBirthPlace: Boolean(birthPlace),
+      hasLocationCoordinates,
+      timezoneResolved: timezoneResolution.ok,
+    },
+  };
+}
+
+function cloneJsonSafe(value) {
+  try {
+    return JSON.parse(JSON.stringify(value || {}));
+  } catch (_) {
+    return {};
+  }
+}
+
+function toKarmaAICalculationBirthInput(birthInput = {}) {
+  const hasBirthTime = birthInput.hasBirthTime === true && Number.isFinite(Number(birthInput.hour));
+  const hour = hasBirthTime ? Number(birthInput.hour) : 12;
+  const minute = hasBirthTime && Number.isFinite(Number(birthInput.minute)) ? Number(birthInput.minute) : 0;
+  return {
+    ...birthInput,
+    hour,
+    minute,
+    birthHour: hour,
+    birthMinute: minute,
+    birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    _calculationTimePlaceholder: !hasBirthTime,
+  };
+}
+
+function maskKarmaAISajuUnknownBirthTime(saju = {}) {
+  const next = cloneJsonSafe(saju);
+  next.hourPillar = "";
+  if (next.pillars && typeof next.pillars === "object") {
+    next.pillars.hour = { stem: "", branch: "", ganji: "" };
+  }
+  const branches = [next?.pillars?.year?.branch, next?.pillars?.month?.branch, next?.pillars?.day?.branch].filter(Boolean);
+  next.branchRelations = detectBranchRelations(branches);
+  next.specialStars = calcSpecialStarsFromPillars(next.pillars || {});
+  next.twelveGrowthStages = asArray(next.twelveGrowthStages).filter((item) => clean(item?.pillar) !== "hour");
+  next.timeAccuracyNote = "출생시간이 없어 시주와 시주 기반 신호는 확정하지 않습니다.";
+  return next;
+}
+
+function maskKarmaAIVedicUnknownBirthTime(vedic = {}) {
+  const next = cloneJsonSafe(vedic);
+  next.lagna = "";
+  next.houses = [];
+  next.planets = asArray(next.planets).map((planet) => {
+    const item = { ...(planet || {}) };
+    delete item.house;
+    delete item.houseNumber;
+    return item;
+  });
+  next.dasha = {
+    ...(next.dasha || {}),
+    accuracyNote: "출생시간이 없어 라그나, 하우스, 다샤 경계는 제한적으로만 참고합니다.",
+  };
+  next.timeAccuracyNote = "출생시간이 없어 라그나와 하우스 해석은 확정하지 않습니다.";
+  return next;
+}
+
+function maskKarmaAIAstrologyUnknownBirthTime(astrology = {}) {
+  const next = cloneJsonSafe(astrology);
+  next.ascendant = "";
+  next.houses = [];
+  next.majorPlanets = asArray(next.majorPlanets).map((planet) => {
+    const item = { ...(planet || {}) };
+    delete item.house;
+    delete item.houseNumber;
+    return item;
+  });
+  next.timeAccuracyNote = "출생시간이 없어 상승궁, MC, 하우스 해석은 확정하지 않습니다.";
+  return next;
+}
+
+async function buildKarmaAIConsultationCalculationSeed(_env, birthInput) {
+  const dataLimitations = [];
+  const engineErrors = [];
+  const calculationBirthInput = toKarmaAICalculationBirthInput(birthInput);
+  const seed = {
+    birthInput,
+    saju: null,
+    ziwei: null,
+    astrology: null,
+    vedic: null,
+    sukyo: null,
+    generatedAt: new Date().toISOString(),
+  };
+
+  if (!birthInput.hasBirthTime) {
+    dataLimitations.push("출생시간이 없어 시주, 라그나, 상승궁, 하우스, 다샤 경계는 제한적으로만 볼 수 있습니다.");
+  }
+  if (!birthInput.hasBirthPlace) {
+    dataLimitations.push("출생지 이름이 없어 장소 해석의 맥락은 제한적으로만 반영됩니다.");
+  }
+  if (!birthInput.hasLocationCoordinates) {
+    dataLimitations.push("출생지 좌표가 없어 베다점과 서양 점성술의 위치 의존 차트는 생성하지 않았습니다.");
+  }
+  if (!birthInput.timezoneResolved) {
+    dataLimitations.push("시간대가 완전히 검증되지 않아 입력된 timezone 기준으로만 계산했습니다.");
+  }
+
+  try {
+    const saju = calculateSajuSnapshot(calculationBirthInput);
+    seed.saju = birthInput.hasBirthTime ? saju : maskKarmaAISajuUnknownBirthTime(saju);
+  } catch (error) {
+    engineErrors.push({ engine: "saju", error: normalizeError(error) });
+  }
+
+  if (birthInput.hasLocationCoordinates) {
+    try {
+      const astrology = calculateAstrologySnapshot(calculationBirthInput);
+      seed.astrology = birthInput.hasBirthTime ? astrology : maskKarmaAIAstrologyUnknownBirthTime(astrology);
+    } catch (error) {
+      engineErrors.push({ engine: "astrology", error: normalizeError(error) });
+    }
+
+    try {
+      const vedic = calculateVedicSnapshot(calculationBirthInput);
+      seed.vedic = birthInput.hasBirthTime ? vedic : maskKarmaAIVedicUnknownBirthTime(vedic);
+    } catch (error) {
+      engineErrors.push({ engine: "vedic", error: normalizeError(error) });
+    }
+  }
+
+  if (engineErrors.length || !seed.saju) {
+    console.error(`${KARMA_AI_CONSULTATION_MARKER} calculation error`, { engineErrors: engineErrors.map((item) => item.engine) });
+    const err = new Error("운명의 업 AI 상담에 필요한 계산을 완료하지 못했습니다. 출생 정보를 확인해 주세요.");
+    err.code = "KARMA_AI_CALCULATION_FAILED";
+    err.status = 422;
+    err.engineErrors = engineErrors;
+    err.dataLimitations = dataLimitations;
+    throw err;
+  }
+
+  seed.signals = deriveCrossSignals(seed);
+  seed.engineErrors = engineErrors;
+  return { seed, dataLimitations };
+}
+
+function buildKarmaAISystemStatus(seed = {}) {
+  const majorPlanets = asArray(seed?.astrology?.majorPlanets);
+  const hasAstroNodes = majorPlanets.some((planet) => /node|north|south|노드/i.test(clean(planet?.name || planet?.key || planet?.id || "")));
+  const hasVedicNodes = Boolean(clean(seed?.vedic?.rahu) || clean(seed?.vedic?.ketu));
+  return {
+    saju: Boolean(seed.saju),
+    vedic: Boolean(seed.vedic),
+    astrology: Boolean(seed.astrology),
+    sajuCalculated: Boolean(seed.saju),
+    vedicCalculated: Boolean(seed.vedic),
+    astrologyCalculated: Boolean(seed.astrology),
+    hasDaeun: asArray(seed?.saju?.daewoonCycles).length > 0 || Boolean(clean(seed?.saju?.currentDaewun)),
+    hasDasha: Boolean(clean(seed?.vedic?.dasha?.current) || clean(seed?.vedic?.dasha?.next)),
+    hasTransit: Boolean(seed?.astrology?.transits || seed?.vedic?.transits),
+    hasNodes: hasAstroNodes || hasVedicNodes,
+  };
+}
+
+function buildKarmaAICommonPatternHints(seed = {}) {
+  const hints = [];
+  const saju = seed.saju || {};
+  const vedic = seed.vedic || {};
+  const astrology = seed.astrology || {};
+  if (saju.dayMaster || saju.dominantElement || saju.deficientElement) {
+    hints.push(`사주: 일간 ${clean(saju.dayMaster) || "미상"}, 강한 오행 ${clean(saju.dominantElement) || "미상"}, 보완 오행 ${clean(saju.deficientElement) || "미상"}`);
+  }
+  if (Array.isArray(saju.branchRelations) && saju.branchRelations.length) {
+    hints.push(`사주 합충형파해: ${saju.branchRelations.slice(0, 5).join(", ")}`);
+  }
+  if (vedic.rahu || vedic.ketu || vedic.moonNakshatra || vedic.dasha?.current) {
+    hints.push(`베다점: 라후 ${clean(vedic.rahu) || "미제공"}, 케투 ${clean(vedic.ketu) || "미제공"}, 나크샤트라 ${clean(vedic.moonNakshatra) || "미제공"}, 현재 다샤 ${clean(vedic.dasha?.current) || "미제공"}`);
+  }
+  if (astrology.sun || astrology.moon || astrology.ascendant) {
+    hints.push(`서양 점성술: 태양 ${clean(astrology.sun) || "미제공"}, 달 ${clean(astrology.moon) || "미제공"}, 상승궁 ${clean(astrology.ascendant) || "미제공"}`);
+  }
+  return hints;
+}
+
+function compactKarmaAIJsonForPrompt(value, maxLength = 32000) {
+  const text = JSON.stringify(value || {}, null, 2);
+  return text.length > maxLength ? `${text.slice(0, maxLength)}\n...truncated` : text;
+}
+
+function buildKarmaAIConsultationSystemPrompt() {
+  return [
+    "너는 사주 명리학, 베다 점성술, 서양 점성술을 통합해 삶의 반복 패턴을 상담하는 전문가다.",
+    "사용자의 사주 원국, 대운/세운, 베다 차트, 라후/케투, 나크샤트라, 다샤, 서양 점성술 네이탈 차트, 노드, 토성, 명왕성, 트랜짓 데이터에 근거해서 답한다.",
+    "모든 운세 데이터는 반드시 제공된 계산 결과만 사용하고 임의로 지어내지 않는다.",
+    "출생시간 또는 출생지가 부족하면 정확도 제한을 명확히 설명한다.",
+    "업/카르마는 벌이나 저주가 아니라 반복되는 삶의 패턴과 성장 과제로 설명한다.",
+    "사용자의 질문에 직접 답하되, 공포를 조장하거나 운명론적으로 단정하지 않는다.",
+    "결과는 한국어로 작성한다.",
+    "전문 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+    "사용자가 실제로 선택하고 행동할 수 있는 전략을 제안한다.",
+    "건강, 법률, 재정 문제는 운세만으로 확정 진단하지 않는다.",
+  ].join("\n");
+}
+
+function buildKarmaAIConsultationPrompt({ question, category, categoryLabel, birthInput, integratedData, calculationSeed, commonPatternHints, dataLimitations }) {
+  return [
+    "아래 계산 결과만 근거로 운명의 업 AI 상담 결과를 작성하라.",
+    "사주, 베다점, 서양 점성술 데이터를 새로 추정하지 말라.",
+    "제공되지 않은 데이터는 제공되지 않았다고 말하고, 일반적인 심리 조언으로 덮어쓰지 말라.",
+    "전생, 업보, 카르마 표현은 상징적 언어로만 쓰고 사용자를 겁주거나 죄책감에 빠뜨리지 말라.",
+    "",
+    "[사용자 정보]",
+    `이름: ${clean(birthInput.name) || "사용자"}`,
+    `성별: ${clean(birthInput.gender) || "미입력"}`,
+    `생년월일: ${clean(birthInput.birthDate)}`,
+    `출생시간: ${birthInput.hasBirthTime ? clean(birthInput.birthTime) : "모름"}`,
+    `출생지: ${clean(birthInput.birthPlace) || "미입력"}`,
+    `시간대: ${clean(birthInput.timezone)}`,
+    `양력/음력: ${clean(birthInput.calendarType)}`,
+    `상담 카테고리: ${categoryLabel} (${category})`,
+    `사용자 질문: ${question}`,
+    "",
+    "[데이터 제한]",
+    dataLimitations.length ? dataLimitations.map((item) => `- ${item}`).join("\n") : "- 없음",
+    "",
+    "[세 체계의 공통 패턴 힌트]",
+    commonPatternHints.length ? commonPatternHints.map((item) => `- ${item}`).join("\n") : "- 공통 패턴은 계산 데이터 안에서만 제한적으로 판단한다.",
+    "",
+    "[통합 운세 데이터]",
+    compactKarmaAIJsonForPrompt(integratedData, 28000),
+    "",
+    "[원본 계산 seed]",
+    compactKarmaAIJsonForPrompt({
+      saju: calculationSeed.saju,
+      vedic: calculationSeed.vedic,
+      astrology: calculationSeed.astrology,
+      signals: calculationSeed.signals,
+    }, 28000),
+    "",
+    "아래 JSON 구조만 반환하라. markdown 코드블록은 쓰지 말라.",
+    JSON.stringify({
+      summary: "상담 요약 — 지금 질문의 핵심 답변",
+      coreKnot: {
+        title: "운명의 핵심 매듭",
+        interpretation: "반복되는 삶의 패턴",
+      },
+      sajuKarma: {
+        keyPatterns: ["사주 핵심 패턴 1", "사주 핵심 패턴 2"],
+        interpretation: "명식과 대운의 과제",
+      },
+      vedicKarma: {
+        keyPatterns: ["베다점 핵심 패턴 1", "베다점 핵심 패턴 2"],
+        interpretation: "라후/케투, 나크샤트라, 다샤의 카르마",
+      },
+      astrologyShadow: {
+        keyPatterns: ["점성술 핵심 패턴 1", "점성술 핵심 패턴 2"],
+        interpretation: "노드, 토성, 명왕성, 8/12하우스의 그림자",
+      },
+      commonMessages: ["세 체계가 함께 강조하는 메시지"],
+      liberationTiming: {
+        opportunities: ["가능한 전환 흐름"],
+        cautions: ["주의할 흐름"],
+        note: "시기 조언의 정확도 제한",
+      },
+      actionGuide: ["현실적인 행동 전략 1", "현실적인 행동 전략 2", "현실적인 행동 전략 3"],
+      releaseAndHold: {
+        release: ["내려놓아야 할 것"],
+        hold: ["붙잡아야 할 것"],
+      },
+      closingMessage: "운명의 매듭을 푸는 한 문장",
+      followUpQuestions: ["후속 질문 1", "후속 질문 2", "후속 질문 3"],
+      dataLimitations: ["데이터 제한 사항"],
+    }, null, 2),
+  ].join("\n");
+}
+
+function extractKarmaAIJsonText(text) {
+  const raw = clean(text);
+  if (!raw) return "";
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+  if (first >= 0 && last > first) return raw.slice(first, last + 1).trim();
+  return "";
+}
+
+function toKarmaAIList(value) {
+  if (Array.isArray(value)) return value.map((item) => clean(item)).filter(Boolean).slice(0, 10);
+  return clean(value)
+    .split(/\n+|(?:^|\s)[-*]\s+/)
+    .map((item) => clean(item.replace(/^\d+[.)]\s*/, "")))
+    .filter(Boolean)
+    .slice(0, 10);
+}
+
+function safeKarmaAIObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function extractKarmaAISection(rawText, title, nextTitles = []) {
+  const raw = String(rawText || "");
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const start = raw.search(new RegExp(escaped, "i"));
+  if (start < 0) return "";
+  let end = raw.length;
+  nextTitles.forEach((nextTitle) => {
+    const nextEscaped = nextTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const index = raw.slice(start + title.length).search(new RegExp(nextEscaped, "i"));
+    if (index >= 0) end = Math.min(end, start + title.length + index);
+  });
+  return clean(raw.slice(start, end).replace(new RegExp(`^\\s*\\d*[.)]?\\s*${escaped}\\s*[-—:：]?`, "i"), ""));
+}
+
+function normalizeKarmaAIResult(aiText, dataLimitations = []) {
+  const rawText = clean(aiText);
+  let parsed = null;
+  const jsonText = extractKarmaAIJsonText(rawText);
+  if (jsonText) {
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (_) {
+      parsed = null;
+    }
+  }
+  const source = safeKarmaAIObject(parsed);
+  const titles = [
+    "상담 요약",
+    "운명의 핵심 매듭",
+    "사주가 말하는 업",
+    "베다점이 말하는 카르마",
+    "점성술이 말하는 그림자",
+    "세 체계의 공통 메시지",
+    "해방의 시기와 전환점",
+    "현실적인 행동 전략",
+    "내려놓아야 할 것과 붙잡아야 할 것",
+    "마지막 조언",
+    "후속 질문 추천",
+  ];
+  const coreKnot = safeKarmaAIObject(source.coreKnot);
+  const sajuKarma = safeKarmaAIObject(source.sajuKarma);
+  const vedicKarma = safeKarmaAIObject(source.vedicKarma);
+  const astrologyShadow = safeKarmaAIObject(source.astrologyShadow);
+  const liberationTiming = safeKarmaAIObject(source.liberationTiming);
+  const releaseAndHold = safeKarmaAIObject(source.releaseAndHold);
+  const result = {
+    summary: clean(source.summary) || extractKarmaAISection(rawText, titles[0], titles.slice(1)),
+    coreKnot: {
+      title: clean(coreKnot.title) || "운명의 핵심 매듭",
+      interpretation: clean(coreKnot.interpretation) || extractKarmaAISection(rawText, titles[1], titles.slice(2)),
+    },
+    sajuKarma: {
+      keyPatterns: toKarmaAIList(sajuKarma.keyPatterns),
+      interpretation: clean(sajuKarma.interpretation) || extractKarmaAISection(rawText, titles[2], titles.slice(3)),
+    },
+    vedicKarma: {
+      keyPatterns: toKarmaAIList(vedicKarma.keyPatterns),
+      interpretation: clean(vedicKarma.interpretation) || extractKarmaAISection(rawText, titles[3], titles.slice(4)),
+    },
+    astrologyShadow: {
+      keyPatterns: toKarmaAIList(astrologyShadow.keyPatterns),
+      interpretation: clean(astrologyShadow.interpretation) || extractKarmaAISection(rawText, titles[4], titles.slice(5)),
+    },
+    commonMessages: toKarmaAIList(source.commonMessages || extractKarmaAISection(rawText, titles[5], titles.slice(6))),
+    liberationTiming: {
+      opportunities: toKarmaAIList(liberationTiming.opportunities),
+      cautions: toKarmaAIList(liberationTiming.cautions),
+      note: clean(liberationTiming.note) || extractKarmaAISection(rawText, titles[6], titles.slice(7)),
+    },
+    actionGuide: toKarmaAIList(source.actionGuide || extractKarmaAISection(rawText, titles[7], titles.slice(8))),
+    releaseAndHold: {
+      release: toKarmaAIList(releaseAndHold.release || extractKarmaAISection(rawText, "내려놓아야 할 것", ["붙잡아야 할 것"])),
+      hold: toKarmaAIList(releaseAndHold.hold || extractKarmaAISection(rawText, "붙잡아야 할 것", titles.slice(10))),
+    },
+    closingMessage: clean(source.closingMessage) || extractKarmaAISection(rawText, titles[9], titles.slice(10)),
+    followUpQuestions: toKarmaAIList(source.followUpQuestions || extractKarmaAISection(rawText, titles[10], [])),
+    dataLimitations: toKarmaAIList(source.dataLimitations).concat(asArray(dataLimitations).map((item) => clean(item)).filter(Boolean)).filter((item, index, arr) => item && arr.indexOf(item) === index).slice(0, 10),
+    rawText,
+  };
+  if (!result.summary && rawText) result.summary = rawText.slice(0, 700);
+  if (!result.coreKnot.interpretation && rawText) result.coreKnot.interpretation = rawText;
+  return result;
+}
+
+async function handleKarmaAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const dryRun = isKarmaAIConsultationDryRun(env);
+  const hasEnvAI = hasKarmaAIGeminiApiKey(env);
+  const question = clean(body?.question);
+  const rawCategory = clean(body?.category || "general").toLowerCase();
+  const category = KARMA_AI_CONSULTATION_CATEGORIES[rawCategory] ? rawCategory : "general";
+  const categoryLabel = KARMA_AI_CONSULTATION_CATEGORIES[category];
+  const baseLog = {
+    hasEnvAI,
+    providerName: hasEnvAI ? "gemini-api" : "",
+    isMock: false,
+    dryRun,
+    category,
+    questionLength: question.length,
+  };
+  logKarmaAIConsultation("request received", baseLog);
+
+  if (dryRun) {
+    return buildKarmaAIError("DRY_RUN_DISABLED", "운명의 업 AI 상담은 dry_run 상태에서 mock 결과를 반환하지 않습니다.", 409, {
+      dryRun: true,
+      isMock: false,
+    });
+  }
+  if (!hasEnvAI) {
+    return buildKarmaAIError("GEMINI_API_KEY_NOT_CONFIGURED", "운명의 업 AI 상담을 생성할 Gemini API key가 설정되지 않았습니다.", 503, {
+      dryRun: false,
+      isMock: false,
+      retryable: true,
+    });
+  }
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildKarmaAIError("QUESTION_INVALID", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 422);
+  }
+
+  const normalizedBirth = normalizeKarmaAIConsultationBirthInput(body?.birthInput || body?.input || {});
+  if (!normalizedBirth.ok) {
+    return buildKarmaAIError(normalizedBirth.code, normalizedBirth.message, 422);
+  }
+  const birthInput = normalizedBirth.input;
+  logKarmaAIConsultation("birth profile normalized", {
+    ...baseLog,
+    hasBirthTime: birthInput.hasBirthTime,
+    hasBirthPlace: birthInput.hasBirthPlace,
+    timezoneResolved: birthInput.timezoneResolved,
+  });
+
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `soul-origin-ai:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || `soul-origin-ai:${auth.userId}:${reportId}`);
+  const requestId = clean(body?.requestId || body?._paymentContext?.requestId || body?.payment?.requestId || makeReportId());
+  const featureKey = clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY;
+  const premiumAccessToken = getPremiumAccessToken(request, body);
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, SOUL_ORIGIN_REPORT_TYPE, {
+    ...body,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+    archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+    reportTypeAliases: SOUL_ORIGIN_REPORT_TYPE_ALIASES,
+    featureKey,
+    featureAliases: SOUL_ORIGIN_FEATURE_ALIASES,
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: "/api/soul-origin/ai-consultation",
+  });
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    return buildKarmaAIError(access?.code || "PAYMENT_REQUIRED", status === 401 ? "로그인이 필요합니다." : "운명의 업 AI 상담 이용 권한이 필요합니다.", status, {
+      reportId,
+      sessionId,
+      amountCoins: SOUL_ORIGIN_AI_DEFAULT_AMOUNT_COINS,
+      allowedPaymentModes: ["direct", "monthly", "membership_pass"],
+    });
+  }
+  logKarmaAIConsultation("payment verified", {
+    ...baseLog,
+    hasBirthTime: birthInput.hasBirthTime,
+    hasBirthPlace: birthInput.hasBirthPlace,
+    timezoneResolved: birthInput.timezoneResolved,
+  });
+
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: SOUL_ORIGIN_AI_CONSULTATION_SERVICE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId,
+    access,
+    body: { ...body, requestId, sessionId, reportId },
+    timeoutSeconds: Number(env?.SOUL_ORIGIN_AI_TIMEOUT_SECONDS || 900),
+  });
+  const startedExecution = await startServiceExecution(env, auth.userId, executionCtx);
+  if (!startedExecution?.ok) {
+    return buildKarmaAIError("SERVICE_EXECUTION_START_FAILED", "운명의 업 AI 상담 실행 상태를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.", Number(startedExecution?.status || 503), {
+      reportId,
+      sessionId,
+      requestId,
+    });
+  }
+
+  let calculationSeed = null;
+  let dataLimitations = [];
+  let systemStatus = {};
+  try {
+    const calculated = await buildKarmaAIConsultationCalculationSeed(env, birthInput);
+    calculationSeed = calculated.seed;
+    dataLimitations = calculated.dataLimitations;
+    systemStatus = buildKarmaAISystemStatus(calculationSeed);
+    logKarmaAIConsultation("saju calculated", { ...baseLog, ...systemStatus, hasBirthTime: birthInput.hasBirthTime, hasBirthPlace: birthInput.hasBirthPlace, timezoneResolved: birthInput.timezoneResolved, dataLimitations });
+    logKarmaAIConsultation("vedic chart calculated", { ...baseLog, ...systemStatus, hasBirthTime: birthInput.hasBirthTime, hasBirthPlace: birthInput.hasBirthPlace, timezoneResolved: birthInput.timezoneResolved, dataLimitations });
+    logKarmaAIConsultation("astrology chart calculated", { ...baseLog, ...systemStatus, hasBirthTime: birthInput.hasBirthTime, hasBirthPlace: birthInput.hasBirthPlace, timezoneResolved: birthInput.timezoneResolved, dataLimitations });
+
+    const commonPatternHints = buildKarmaAICommonPatternHints(calculationSeed);
+    const integratedData = buildKarmaIntegratedData({
+      input: {
+        question,
+        person: {
+          displayName: birthInput.name,
+          gender: birthInput.gender,
+          question,
+          birthSummary: birthInput,
+        },
+        calculation: calculationSeed,
+        calculationDigest: hashSoulOriginStable({
+          birthDate: birthInput.birthDate,
+          birthTime: birthInput.hasBirthTime ? birthInput.birthTime : "unknown",
+          birthPlace: birthInput.birthPlace,
+          timezone: birthInput.timezone,
+          category,
+          question,
+        }),
+      },
+      calculationSeed,
+    });
+    logKarmaAIConsultation("integration context built", {
+      ...baseLog,
+      ...systemStatus,
+      hasBirthTime: birthInput.hasBirthTime,
+      hasBirthPlace: birthInput.hasBirthPlace,
+      timezoneResolved: birthInput.timezoneResolved,
+      integrationContextBuilt: true,
+      dataLimitations,
+    });
+
+    const prompt = buildKarmaAIConsultationPrompt({
+      question,
+      category,
+      categoryLabel,
+      birthInput,
+      integratedData,
+      calculationSeed,
+      commonPatternHints,
+      dataLimitations,
+    });
+    logKarmaAIConsultation("prompt built", {
+      ...baseLog,
+      ...systemStatus,
+      hasBirthTime: birthInput.hasBirthTime,
+      hasBirthPlace: birthInput.hasBirthPlace,
+      timezoneResolved: birthInput.timezoneResolved,
+      integrationContextBuilt: true,
+      dataLimitations,
+    });
+
+    logKarmaAIConsultation("LLM provider start", {
+      ...baseLog,
+      ...systemStatus,
+      hasBirthTime: birthInput.hasBirthTime,
+      hasBirthPlace: birthInput.hasBirthPlace,
+      timezoneResolved: birthInput.timezoneResolved,
+      integrationContextBuilt: true,
+      dataLimitations,
+    });
+    const llmStart = Date.now();
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: buildKarmaAIConsultationSystemPrompt(),
+      taskType: "fortune",
+      model: clean(env?.SOUL_ORIGIN_AI_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash"),
+      temperature: 0.68,
+      maxOutputTokens: 6144,
+      timeoutMs: safeNumber(env?.SOUL_ORIGIN_AI_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS, 45000),
+      fallbackToWorkersAI: false,
+    });
+    const llmLatencyMs = Date.now() - llmStart;
+    if (!ai?.ok || !clean(ai?.text)) {
+      logKarmaAIConsultation("LLM provider error", {
+        ...baseLog,
+        ...systemStatus,
+        providerName: clean(ai?.provider || "gemini-api"),
+        hasBirthTime: birthInput.hasBirthTime,
+        hasBirthPlace: birthInput.hasBirthPlace,
+        timezoneResolved: birthInput.timezoneResolved,
+        integrationContextBuilt: true,
+        dataLimitations,
+        llmLatencyMs,
+        errorCode: clean(ai?.error || "LLM_PROVIDER_FAILED"),
+      });
+      const error = new Error("운명의 업 AI 상담 생성 중 LLM 호출에 실패했습니다. 결제 복구 정책에 따라 처리됩니다.");
+      error.code = "LLM_PROVIDER_FAILED";
+      error.status = 503;
+      error.retryable = true;
+      throw error;
+    }
+
+    const result = normalizeKarmaAIResult(ai.text, dataLimitations);
+    if (clean(result.rawText).length < 240) {
+      logKarmaAIConsultation("LLM provider error", {
+        ...baseLog,
+        ...systemStatus,
+        providerName: clean(ai?.provider),
+        hasBirthTime: birthInput.hasBirthTime,
+        hasBirthPlace: birthInput.hasBirthPlace,
+        timezoneResolved: birthInput.timezoneResolved,
+        integrationContextBuilt: true,
+        dataLimitations,
+        llmLatencyMs,
+        errorCode: "LLM_RESULT_TOO_SHORT",
+      });
+      const error = new Error("운명의 업 AI 상담 결과가 충분히 생성되지 않았습니다. 잠시 후 다시 시도해 주세요.");
+      error.code = "LLM_RESULT_TOO_SHORT";
+      error.status = 503;
+      error.retryable = true;
+      throw error;
+    }
+
+    logKarmaAIConsultation("LLM provider success", {
+      ...baseLog,
+      ...systemStatus,
+      providerName: clean(ai?.provider),
+      hasBirthTime: birthInput.hasBirthTime,
+      hasBirthPlace: birthInput.hasBirthPlace,
+      timezoneResolved: birthInput.timezoneResolved,
+      integrationContextBuilt: true,
+      dataLimitations,
+      llmLatencyMs,
+    });
+
+    const consultationId = requestId || `karma-ai:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+    await completeServiceExecution(env, auth.userId, {
+      ...executionCtx,
+      requestId: executionCtx.executionKey,
+      reportId,
+      sessionId,
+      metadata: {
+        ...(executionCtx.metadata || {}),
+        consultationId,
+        provider: clean(ai.provider || "unknown"),
+        model: clean(ai.model || ""),
+        serviceType: SOUL_ORIGIN_AI_CONSULTATION_SERVICE_TYPE,
+        category,
+        isMock: false,
+        dryRun: false,
+        systemStatus,
+        dataLimitations,
+      },
+    });
+
+    const responseBody = {
+      ok: true,
+      serviceType: SOUL_ORIGIN_AI_CONSULTATION_SERVICE_TYPE,
+      featureKey,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      provider: clean(ai.provider || "unknown"),
+      model: clean(ai.model) || undefined,
+      isMock: false,
+      dryRun: false,
+      consultationId,
+      reportId,
+      sessionId,
+      category,
+      categoryLabel,
+      dataLimitations,
+      systemStatus,
+      calculationSummary: {
+        commonPatternHints,
+        saju: {
+          dayMaster: clean(calculationSeed?.saju?.dayMaster),
+          currentDaewun: clean(calculationSeed?.saju?.currentDaewun),
+          currentYearPillar: clean(calculationSeed?.saju?.currentYearPillar),
+        },
+        vedic: {
+          lagna: clean(calculationSeed?.vedic?.lagna),
+          moonNakshatra: clean(calculationSeed?.vedic?.moonNakshatra),
+          currentDasha: clean(calculationSeed?.vedic?.dasha?.current),
+        },
+        astrology: {
+          sun: clean(calculationSeed?.astrology?.sun),
+          moon: clean(calculationSeed?.astrology?.moon),
+          ascendant: clean(calculationSeed?.astrology?.ascendant),
+        },
+      },
+      result,
+      billing: {
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        amountCoins: safeNumber(access?.chargedCoins || SOUL_ORIGIN_AI_DEFAULT_AMOUNT_COINS, SOUL_ORIGIN_AI_DEFAULT_AMOUNT_COINS),
+        accessVerified: true,
+      },
+      elapsedMs: Date.now() - startedAt,
+    };
+    logKarmaAIConsultation("response returned", {
+      ...baseLog,
+      ...systemStatus,
+      providerName: responseBody.provider,
+      hasBirthTime: birthInput.hasBirthTime,
+      hasBirthPlace: birthInput.hasBirthPlace,
+      timezoneResolved: birthInput.timezoneResolved,
+      integrationContextBuilt: true,
+      dataLimitations,
+      llmLatencyMs,
+    });
+    return json(responseBody);
+  } catch (error) {
+    try {
+      await failServiceExecution(env, auth.userId, {
+        ...executionCtx,
+        requestId: executionCtx.executionKey,
+        reportId,
+        sessionId,
+        reasonCode: clean(error?.code || "KARMA_AI_CONSULTATION_FAILED"),
+        reasonMessage: clean(error?.message || "운명의 업 AI 상담 생성에 실패했습니다."),
+        failureStage: clean(error?.failedStep || error?.code || "ai_consultation"),
+        failureReason: clean(error?.message || "운명의 업 AI 상담 생성에 실패했습니다."),
+        forceRefundOnClose: true,
+      });
+    } catch (failError) {
+      console.error(`${KARMA_AI_CONSULTATION_MARKER} fail execution error`, { errorCode: clean(failError?.code || "SERVICE_EXECUTION_FAIL_FAILED") });
+    }
+    if (clean(error?.code).indexOf("LLM") >= 0) {
+      logKarmaAIConsultation("LLM provider error", {
+        ...baseLog,
+        ...systemStatus,
+        hasBirthTime: birthInput.hasBirthTime,
+        hasBirthPlace: birthInput.hasBirthPlace,
+        timezoneResolved: birthInput.timezoneResolved,
+        integrationContextBuilt: Boolean(calculationSeed),
+        dataLimitations: asArray(error?.dataLimitations).length ? error.dataLimitations : dataLimitations,
+        errorCode: clean(error?.code || "LLM_PROVIDER_FAILED"),
+      });
+    }
+    return buildKarmaAIError(
+      clean(error?.code || "KARMA_AI_CONSULTATION_FAILED"),
+      clean(error?.message || "운명의 업 AI 상담 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."),
+      Number(error?.status || 500),
+      {
+        reportId,
+        sessionId,
+        retryable: error?.retryable === true || Number(error?.status || 0) >= 500,
+        paymentRecoveryApplied: true,
+        isMock: false,
+        dryRun: false,
+        dataLimitations: asArray(error?.dataLimitations).length ? error.dataLimitations : dataLimitations,
+      },
+    );
+  }
 }
 
 async function handleVerifyAccess(request, env) {
@@ -2096,6 +3055,11 @@ export async function handleSoulOriginRoutes(request, env = {}) {
     if (path === "" || path === "/") {
       if (method !== "POST") return methodNotAllowed();
       return await handlePrepare(request, env);
+    }
+
+    if (path === "/ai-consultation") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleKarmaAIConsultation(request, env);
     }
 
     if (path === "/verify-access") {

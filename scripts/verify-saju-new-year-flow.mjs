@@ -37,9 +37,9 @@ assert.ok(aiPrompt.includes("명식/대운/세운/월운 context"));
 assert.ok(aiPrompt.includes("직업/이직"));
 assert.ok(aiPrompt.includes("올해 직업운과 수입 흐름"));
 assert.ok(aiPrompt.includes("1장씩 순차 작성"));
-assert.ok(aiPrompt.includes("10장 상담 설계도"));
-assert.ok(aiPrompt.includes("제 1장. 2031년 총운과 세운의 문"));
-assert.ok(aiPrompt.includes("제 10장. 2031년 최종 신년 로드맵"));
+assert.ok(aiPrompt.includes("6장 상담 설계도"));
+assert.ok(aiPrompt.includes("제 1장. 2031년 올해의 큰 기운과 상담 요약"));
+assert.ok(aiPrompt.includes("제 6장. 2031년 좋은 시기와 행동 로드맵"));
 
 const chapterPrompt = __sajuNewYearTestUtils.buildNewYearAIChapterPrompt({
   normalized,
@@ -50,7 +50,7 @@ const chapterPrompt = __sajuNewYearTestUtils.buildNewYearAIChapterPrompt({
   chapterNo: 2,
 });
 assert.ok(chapterPrompt.includes("제 2장만 작성"));
-assert.ok(chapterPrompt.includes("전체 10장을 한 번에 쓰지 말고"));
+assert.ok(chapterPrompt.includes("전체 6장을 한 번에 쓰지 말고"));
 assert.ok(chapterPrompt.includes("chapter, resultPatch"));
 assert.ok(chapterPrompt.includes("fallbackToWorkersAI") === false);
 
@@ -69,7 +69,7 @@ const parsedAi = __sajuNewYearTestUtils.normalizeNewYearAIResult(JSON.stringify(
   summary: "올해는 방향을 좁히고 실행 기준을 세우는 흐름입니다. 무리한 확장보다 준비한 일을 밖으로 꺼내는 흐름이 강합니다.",
   yearlyFlow: "세운과 원국의 균형을 살피면 현실 감각과 책임의 기운이 중요하게 떠오릅니다.",
   topicAnswer: "직업운은 제안과 검증을 함께 보는 방식이 좋습니다.",
-  chapterConsultations: Array.from({ length: 10 }, (_, index) => ({
+  chapterConsultations: Array.from({ length: 6 }, (_, index) => ({
     no: index + 1,
     title: `${index + 1}장 신년운세 상담`,
     overview: "원국과 세운의 흐름을 함께 살피면 올해의 선택 기준이 차분히 드러납니다.",
@@ -88,7 +88,7 @@ const parsedAi = __sajuNewYearTestUtils.normalizeNewYearAIResult(JSON.stringify(
 }));
 assert.equal(parsedAi.timing.monthlyNotes[0].month, "3월");
 assert.equal(parsedAi.followUpQuestions.length, 1);
-assert.equal(parsedAi.chapterConsultations.length, 10);
+assert.equal(parsedAi.chapterConsultations.length, 6);
 assert.equal(parsedAi.chapterConsultations[0].sections[0].title, "핵심 흐름");
 
 const parsedChapter = __sajuNewYearTestUtils.normalizeNewYearAIChapterResponse(JSON.stringify({
@@ -128,6 +128,10 @@ assert.ok(routeSource.includes('path === "/ai-consultation/finalize"'));
 assert.ok(routeSource.includes("[NewYearAI Consultation]"));
 assert.ok(routeSource.includes("fallbackToWorkersAI: false"));
 assert.ok(routeSource.includes('provider: "gemini"'));
+assert.ok(routeSource.includes("NEW_YEAR_AI_CHAPTER_COUNT = 6"));
+assert.ok(routeSource.includes("consultationAccessToken"));
+assert.ok(routeSource.includes("verifyNewYearAIConsultationAccessToken"));
+assert.ok(routeSource.includes("createPremiumAccessToken"));
 assert.ok(!routeSource.includes("maxOutputTokens: 8192"));
 assert.ok(frontendSource.includes("AI_CONSULTATION_API = '/api/saju-new-year/ai-consultation'"));
 assert.ok(frontendSource.includes("AI_READY_API = AI_CONSULTATION_API + '/ready'"));
@@ -138,6 +142,9 @@ assert.ok(frontendSource.includes("AI_FINALIZE_API = AI_CONSULTATION_API + '/fin
 assert.ok(frontendSource.includes("function _runAfterBillingAI"));
 assert.ok(frontendSource.includes("function _runAIChapterWithRetry"));
 assert.ok(frontendSource.includes("function _runAIFocusWithRetry"));
+assert.ok(frontendSource.includes("function _buildPaidEvidence"));
+assert.ok(frontendSource.includes("TOTAL_CHAPTERS = 6"));
+assert.ok(frontendSource.includes("consultationAccessToken"));
 assert.ok(frontendSource.includes("function _chapterConsultationsHtml"));
 assert.ok(frontendSource.includes("신년운세 전체 상담"));
 assert.ok(frontendSource.includes("받은 질문을 중심으로 깊은 상담을 정리하고 있어요."));

@@ -196,6 +196,8 @@ function stripLeadingBom(buffer) {
 }
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
+const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-consultation";
+const ZIWEI_AI_CONSULTATION_CACHE_KEY = "20260627-ziwei-ai-consultation";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
@@ -378,9 +380,25 @@ function stripLegacyPublicBlocks(html) {
 function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
   const html = String(source || "");
   return html.replace(
-    /(\/js\/[^"'\s`)]+\.js\?v=)[a-zA-Z0-9_-]+/g,
-    `$1${buildTimestamp}`,
+    /(\/js\/[^"'\s`)]+\.js\?v=)([a-zA-Z0-9_-]+)/g,
+    (match, prefix) => {
+      if (prefix.includes("/js/vedic-ai-consultation.js?v=")) return `${prefix}${VEDIC_AI_CONSULTATION_CACHE_KEY}`;
+      if (prefix.includes("/js/ziwei-book.js?v=")) return `${prefix}${ZIWEI_AI_CONSULTATION_CACHE_KEY}`;
+      return `${prefix}${buildTimestamp}`;
+    },
   );
+}
+
+function preserveVedicAIConsultationCacheKey(source) {
+  return String(source || "")
+    .replace(
+      /(\/js\/vedic-ai-consultation\.js\?v=)[a-zA-Z0-9_-]+/g,
+      `$1${VEDIC_AI_CONSULTATION_CACHE_KEY}`,
+    )
+    .replace(
+      /(\/js\/ziwei-book\.js\?v=)[a-zA-Z0-9_-]+/g,
+      `$1${ZIWEI_AI_CONSULTATION_CACHE_KEY}`,
+    );
 }
 
 function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
@@ -624,7 +642,9 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   // Auto cache-bust all static asset query strings (?v=...)
   const buildTimestamp = resolveDeterministicCacheKey();
-  const cacheBustedIndexHtml = baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+  const cacheBustedIndexHtml = preserveVedicAIConsultationCacheKey(
+    baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+  );
   if (cacheBustedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = cacheBustedIndexHtml;
     console.log(`[sync-legacy-static-to-public] Auto cache-busted static assets with ${buildTimestamp}`);
@@ -633,7 +653,9 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const inlineRuntimePath = resolve(publicDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(inlineRuntimePath)) {
     let runtimeJs = readFileSync(inlineRuntimePath, "utf8");
-    const bustedRuntimeJs = runtimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    const bustedRuntimeJs = preserveVedicAIConsultationCacheKey(
+      runtimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+    );
     if (bustedRuntimeJs !== runtimeJs) {
       writeFileSync(inlineRuntimePath, bustedRuntimeJs);
       console.log(`[sync-legacy-static-to-public] Auto cache-busted index-inline-runtime.js with ${buildTimestamp}`);
@@ -698,7 +720,9 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(rootInlineRuntimePath)) {
     let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
-    const bustedRootRuntimeJs = rootRuntimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    const bustedRootRuntimeJs = preserveVedicAIConsultationCacheKey(
+      rootRuntimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+    );
     if (bustedRootRuntimeJs !== rootRuntimeJs) {
       writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
       console.log(`[sync-legacy-static-to-public] Updated root index-inline-runtime.js with ${buildTimestamp}`);
@@ -727,7 +751,9 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   if (existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
-    const bustedRootHtml = rootHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp);
+    const bustedRootHtml = preserveVedicAIConsultationCacheKey(
+      rootHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+    );
     if (bustedRootHtml !== rootHtml) {
       writeFileSync(rootIndexPath, bustedRootHtml);
       console.log(`[sync-legacy-static-to-public] Updated root index.html with ${buildTimestamp}`);

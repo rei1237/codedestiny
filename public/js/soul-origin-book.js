@@ -27,6 +27,9 @@
   ];
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
+  var AI_CONSULTATION_API = '/api/soul-origin/ai-consultation';
+  var AI_CONSULTATION_SERVICE_TYPE = 'soul_origin_ai_consultation';
+  var AI_CONSULTATION_MARKER = 'soul-origin-ai-consultation-v20260627';
   var VERIFY_ACCESS_API = '/api/soul-origin/verify-access';
   var CREATE_JOB_API = '/api/soul-origin/create-job';
   var GENERATE_MOCK_API = '/api/soul-origin/generate-mock';
@@ -60,16 +63,30 @@
   var _statusPreviewStop = null;
   var _isGenerating = false;
   var _resolvedCoinCost = COIN_COST;
+  var _selectedKarmaCategory = 'general';
+  var _questionTouched = false;
+
+  var KARMA_AI_CATEGORIES = [
+    { key: 'general', label: '종합 업 리딩', question: '왜 제 인생에는 비슷한 고비가 반복되는 것 같을까요? 제가 풀어야 할 운명의 업은 무엇인가요?' },
+    { key: 'repeat_crisis', label: '반복되는 고비', question: '제 삶에서 반복되는 고비의 뿌리와 지금 넘어설 수 있는 방향을 알려주세요.' },
+    { key: 'relationship', label: '관계의 업', question: '제 관계에서 반복되는 업이나 인연의 패턴을 사주, 베다점, 점성술로 함께 봐주세요.' },
+    { key: 'family', label: '가족의 과제', question: '가족과의 갈등이 제 운명에서 어떤 과제로 드러나는지 알고 싶어요.' },
+    { key: 'money', label: '돈의 막힘', question: '돈과 성공이 막히는 이유를 사주, 베다점, 점성술로 통합해서 봐주세요.' },
+    { key: 'career', label: '직업과 사명', question: '제 직업과 사명의 방향에서 반복되는 숙제와 해방 전략을 알려주세요.' },
+    { key: 'love_attachment', label: '사랑과 집착', question: '사랑에서 반복되는 집착이나 두려움의 패턴을 알고 싶어요.' },
+    { key: 'self_sabotage', label: '자기방해', question: '제가 스스로를 막는 방식과 그것을 넘어서는 현실적인 방향을 알려주세요.' },
+    { key: 'liberation_timing', label: '해방의 시기', question: '앞으로 언제쯤 삶의 흐름이 바뀔 수 있을지 가능한 범위에서 알려주세요.' },
+    { key: 'choice', label: '지금의 선택', question: '지금 제가 넘어서야 할 가장 큰 인생 숙제와 선택의 방향은 무엇인가요?' },
+  ];
 
   var SOUL_ORIGIN_BOOK_TEXT_TRANSLATIONS = {
     ko: {
       loadingTexts: [
-        '사주 원국과 대운에 반복되는 업의 결을 천천히 짚고 있습니다.',
-        '자미두수 명궁과 신궁에 남은 선택의 방향을 정리하고 있습니다.',
-        '서양 점성술의 태양·달·상승궁이 비추는 삶의 리듬을 살피고 있습니다.',
-        '베다 점성술의 라그나와 나크샤트라가 가리키는 영혼의 습관을 읽고 있습니다.',
-        '숙요점의 별자리 인연이 남긴 관계의 카르마를 조심스럽게 엮고 있습니다.',
-        '사주·자미두수·점성술·베다·숙요의 신호를 한 권의 상담서로 모으고 있습니다.',
+        '사주와 별의 흐름을 함께 읽고 있어요.',
+        '반복되는 삶의 패턴을 찾고 있어요.',
+        '라후와 케투, 노드의 방향을 살펴보고 있어요.',
+        '대운, 다샤, 트랜짓의 공통 주제를 정리하고 있어요.',
+        '당신이 넘어설 수 있는 운명의 매듭을 찾고 있어요.',
       ],
       oneTime: '1회',
       revisitAvailable: '결과 재열람 가능',
@@ -80,7 +97,7 @@
       qualityReviewing: '상담 검수 진행 중',
       qualitySummaryPrefix: '상담 검수',
       qualitySummarySuffix: '장별 근거와 실천 처방 확인',
-      practiceFallback: '오늘 바로 바꿀 수 있는 작은 선택부터 정리하고, 같은 반응이 반복되는 장면을 PDF의 장별 처방에 따라 하나씩 조정하세요.',
+      practiceFallback: '오늘 바로 바꿀 수 있는 작은 선택부터 정리하고, 같은 반응이 반복되는 장면을 하나씩 다르게 지나가 보세요.',
       symbolicSentence: '상징 문장',
       mainSymbolFallback: '운명의 핵심 상징',
       resultSummaryTitle: '상담 핵심 요약',
@@ -93,10 +110,10 @@
       practicePrescription: '실천 처방',
       selectedChapter: '선택 챕터',
       itemPrefix: '항목',
-      pdfDetailNotice: '전체 세부 상담은 PDF에서 확인할 수 있습니다.',
+      pdfDetailNotice: '계산 데이터가 열어준 범위 안에서 상담이 이어졌습니다.',
       paymentCanceled: '결제가 취소되었습니다.',
       krwPaymentFailed: '원화 결제 확인에 실패했습니다.',
-      paymentTitle: '운명의 업 리포트 생성',
+      paymentTitle: '운명의 업 AI 상담',
     },
     en: {
       loadingTexts: [
@@ -116,7 +133,7 @@
       qualityReviewing: 'consultation review in progress',
       qualitySummaryPrefix: 'consultation review',
       qualitySummarySuffix: 'chapter evidence and practice guidance checked',
-      practiceFallback: 'Begin with one small choice you can change today, then adjust repeated reactions one by one through the chapter prescriptions in the PDF.',
+      practiceFallback: 'Begin with one small choice you can change today, then adjust repeated reactions one by one.',
       symbolicSentence: 'symbolic sentence',
       mainSymbolFallback: 'core destiny symbol',
       resultSummaryTitle: 'Core Consultation Summary',
@@ -129,10 +146,10 @@
       practicePrescription: 'Practice Prescription',
       selectedChapter: 'Selected Chapter',
       itemPrefix: 'Item',
-      pdfDetailNotice: 'The full detailed consultation is available in the PDF.',
+      pdfDetailNotice: 'The consultation follows only the calculated data that was available.',
       paymentCanceled: 'Payment was canceled.',
       krwPaymentFailed: 'KRW payment verification failed.',
-      paymentTitle: 'Generate Karma of Destiny Report',
+      paymentTitle: 'Karma of Destiny AI Consultation',
     },
     ja: {
       loadingTexts: [
@@ -152,7 +169,7 @@
       qualityReviewing: '相談内容を検収中',
       qualitySummaryPrefix: '相談検収',
       qualitySummarySuffix: '章ごとの根拠と実践処方を確認',
-      practiceFallback: '今日すぐ変えられる小さな選択から整え、同じ反応が繰り返される場面をPDFの章別処方に沿って一つずつ調整してください。',
+      practiceFallback: '今日すぐ変えられる小さな選択から整え、同じ反応が繰り返される場面を一つずつ変えてみてください。',
       symbolicSentence: '象徴文',
       mainSymbolFallback: '運命の核心象徴',
       resultSummaryTitle: '相談の核心要約',
@@ -165,10 +182,10 @@
       practicePrescription: '実践処方',
       selectedChapter: '選択した章',
       itemPrefix: '項目',
-      pdfDetailNotice: '詳しい相談内容はPDFで確認できます。',
+      pdfDetailNotice: '計算されたデータの範囲内で相談が続きました。',
       paymentCanceled: '決済がキャンセルされました。',
       krwPaymentFailed: 'ウォン決済の確認に失敗しました。',
-      paymentTitle: '運命のカルマリポート生成',
+      paymentTitle: '運命のカルマAI相談',
     }
   };
 
@@ -339,9 +356,9 @@
   function soulOriginStageMessage(status) {
     var step = clean(status).toLowerCase();
     if (step === 'access_verifying') return '결제 검증 중입니다.';
-    if (step === 'access_verified') return '운명의 업 PDF 생성 준비 중입니다.';
-    if (step === 'created') return '운명의 업 PDF 생성 준비 중입니다.';
-    if (step === 'queued') return '운명의 업 PDF 생성 준비 중입니다.';
+    if (step === 'access_verified') return '운명의 업 상담을 준비하고 있습니다.';
+    if (step === 'created') return '운명의 업 상담을 준비하고 있습니다.';
+    if (step === 'queued') return '운명의 업 상담을 준비하고 있습니다.';
     if (step === 'pending') return '상담 원고를 열기 전, 결제 권한과 요청 정보를 차분히 맞추고 있습니다.';
     if (step === 'validating') return '태어난 시간과 기본 정보를 다시 맞추며 운명의 업 상담을 여는 중입니다.';
     if (step === 'calculating') return '사주 원국, 자미두수 명궁, 점성술 차트와 베다 라그나의 신호를 모으고 있습니다.';
@@ -350,7 +367,7 @@
     if (step === 'rendering') return 'PDF 문서를 렌더링하고 있습니다.';
     if (step === 'saving') return 'PDF 파일을 저장하고 있습니다.';
     if (step === 'completed') return '운명의 업 상담서가 완성되었습니다. 곧 결과를 열어드립니다.';
-    if (step === 'failed') return '운명의 업 PDF 생성 중 문제가 발생했습니다.';
+    if (step === 'failed') return '운명의 업 상담 생성 중 문제가 발생했습니다.';
     return '사주·자미두수·점성술·베다·숙요의 흐름을 한 권의 상담서로 엮고 있습니다.';
   }
 
@@ -711,6 +728,217 @@
     };
   }
 
+  function ensureSoulOriginAIStyles() {
+    if (document.getElementById('soAIConsultationStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'soAIConsultationStyles';
+    style.textContent = [
+      '.so-ai-panel{margin:18px 0;padding:18px;border:1px solid rgba(245,200,111,.24);border-radius:8px;background:rgba(15,23,42,.38);display:grid;gap:14px}',
+      '.so-ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
+      '.so-ai-field{display:grid;gap:6px;color:#f8fafc;font-size:.86rem}',
+      '.so-ai-field span{color:#fde68a;font-weight:800}',
+      '.so-ai-field input,.so-ai-field select,.so-ai-field textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:rgba(2,6,23,.42);color:#fff;padding:10px 11px;font:inherit;box-sizing:border-box}',
+      '.so-ai-field textarea{min-height:104px;resize:vertical;line-height:1.55}',
+      '.so-ai-inline{display:flex;align-items:center;gap:8px;color:#f8fafc;font-size:.86rem}',
+      '.so-ai-inline input{width:auto}',
+      '.so-ai-topic{display:flex;flex-wrap:wrap;gap:8px}',
+      '.so-ai-chip{border:1px solid rgba(245,200,111,.3);border-radius:999px;background:rgba(255,255,255,.06);color:#fff0c7;padding:8px 11px;font-weight:800;cursor:pointer}',
+      '.so-ai-chip.is-active{background:#f5c86f;color:#24150f;border-color:#f5c86f}',
+      '.so-ai-note{margin:0;color:#d1d5db;font-size:.82rem;line-height:1.6}',
+      '.so-ai-limitations{margin:0 0 14px;padding:12px 14px;border:1px solid rgba(245,158,11,.35);border-radius:8px;background:rgba(120,53,15,.24);color:#fde68a;line-height:1.6}',
+      '.so-ai-result-card{border:1px solid rgba(245,200,111,.18);border-radius:8px;background:rgba(15,23,42,.42);padding:16px;margin:0 0 12px;color:#f8fafc}',
+      '.so-ai-result-card h4{margin:0 0 8px;color:#fde68a;font-size:1rem;letter-spacing:0}',
+      '.so-ai-result-card p{margin:0;color:#e5e7eb;line-height:1.75;white-space:pre-wrap}',
+      '.so-ai-result-card ul{margin:8px 0 0;padding-left:18px;color:#e5e7eb;line-height:1.7}',
+      '@media(max-width:720px){.so-ai-grid{grid-template-columns:1fr}.so-ai-panel{padding:14px}.so-ai-chip{padding:7px 9px;font-size:.82rem}}',
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  function setSoulOriginCategory(categoryKey, forceQuestion) {
+    var key = clean(categoryKey) || 'general';
+    var selected = KARMA_AI_CATEGORIES.filter(function (item) { return item.key === key; })[0] || KARMA_AI_CATEGORIES[0];
+    _selectedKarmaCategory = selected.key;
+    try {
+      document.querySelectorAll('#soKarmaTopicChips .so-ai-chip').forEach(function (btn) {
+        btn.classList.toggle('is-active', clean(btn.getAttribute('data-karma-category')) === selected.key);
+      });
+    } catch (_) {}
+    var questionEl = $('soQuestionInput');
+    if (questionEl && (forceQuestion || !_questionTouched || !clean(questionEl.value))) {
+      questionEl.value = selected.question;
+      _questionTouched = false;
+    }
+  }
+
+  function ensureSoulOriginAIConsultationUI() {
+    ensureSoulOriginAIStyles();
+    var start = $('soStartScreen');
+    if (!start) return;
+    if (!document.getElementById('soAIInputPanel')) {
+      var panel = document.createElement('div');
+      panel.id = 'soAIInputPanel';
+      panel.className = 'so-ai-panel';
+      panel.setAttribute('data-cd-marker', AI_CONSULTATION_MARKER);
+      panel.innerHTML = [
+        '<div class="so-ai-grid">',
+          '<label class="so-ai-field"><span>이름 또는 닉네임</span><input id="soBirthName" type="text" autocomplete="name" placeholder="사용자"></label>',
+          '<label class="so-ai-field"><span>성별</span><select id="soBirthGender"><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option><option value="other">기타</option></select></label>',
+          '<label class="so-ai-field"><span>생년월일</span><input id="soBirthDate" type="date"></label>',
+          '<label class="so-ai-field"><span>출생시간</span><input id="soBirthTime" type="time"></label>',
+          '<label class="so-ai-field"><span>출생지</span><input id="soBirthPlace" type="text" placeholder="예: 서울, 대한민국"></label>',
+          '<label class="so-ai-field"><span>Timezone</span><input id="soBirthTimezone" type="text" placeholder="Asia/Seoul"></label>',
+          '<label class="so-ai-field"><span>위도</span><input id="soBirthLatitude" type="number" step="0.000001" placeholder="37.5665"></label>',
+          '<label class="so-ai-field"><span>경도</span><input id="soBirthLongitude" type="number" step="0.000001" placeholder="126.9780"></label>',
+          '<label class="so-ai-field"><span>양력/음력</span><select id="soCalendarType"><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력 윤달</option></select></label>',
+          '<label class="so-ai-inline"><input id="soBirthTimeUnknown" type="checkbox"> 출생시간 모름</label>',
+        '</div>',
+        '<div>',
+          '<p class="so-ai-note">출생시간 또는 출생지 정보가 부족한 경우 일부 해석은 제한적으로 제공됩니다. 없는 운세 데이터는 임의로 만들지 않습니다.</p>',
+        '</div>',
+        '<div id="soKarmaTopicChips" class="so-ai-topic"></div>',
+        '<label class="so-ai-field"><span>질문</span><textarea id="soQuestionInput" maxlength="1000" placeholder="예: 왜 제 인생에는 비슷한 고비가 반복되는 것 같을까요? 제가 풀어야 할 운명의 업은 무엇인가요?"></textarea></label>',
+      ].join('');
+      var profileBox = start.querySelector('.lb-start__profile-box');
+      if (profileBox && profileBox.parentNode) profileBox.parentNode.insertBefore(panel, profileBox.nextSibling);
+      else start.appendChild(panel);
+      var chips = $('soKarmaTopicChips');
+      if (chips) {
+        KARMA_AI_CATEGORIES.forEach(function (item) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'so-ai-chip';
+          btn.setAttribute('data-karma-category', item.key);
+          btn.textContent = item.label;
+          btn.onclick = function () { setSoulOriginCategory(item.key, !_questionTouched); };
+          chips.appendChild(btn);
+        });
+      }
+      var questionEl = $('soQuestionInput');
+      if (questionEl) {
+        questionEl.addEventListener('input', function () {
+          _questionTouched = true;
+        });
+      }
+      var unknownEl = $('soBirthTimeUnknown');
+      var timeEl = $('soBirthTime');
+      if (unknownEl && timeEl) {
+        unknownEl.addEventListener('change', function () {
+          timeEl.disabled = unknownEl.checked;
+          if (unknownEl.checked) timeEl.value = '';
+        });
+      }
+    }
+    var chapters = start.querySelector('.lb-start__chapters');
+    if (chapters) chapters.style.display = 'none';
+    var headline = start.querySelector('.lb-marketing-headline');
+    if (headline) headline.innerHTML = '반복되는 삶의 패턴, 이제는 <strong>읽고 넘어설 시간</strong>';
+    var sub = start.querySelector('.lb-marketing-sub');
+    if (sub) sub.textContent = '사주, 베다점, 서양 점성술의 공통 흐름을 바탕으로 삶에서 반복되는 과제와 해방의 방향을 상담해드립니다.';
+    var note = start.querySelector('.lb-start__note');
+    if (note) note.textContent = 'PDF를 기다리지 않아도 됩니다. 결제 확인 뒤 화면에서 바로 상담 결과를 확인합니다.';
+    var cta = start.querySelector('.lb-start__cta');
+    if (cta) cta.textContent = '운명의 업 상담 받기';
+    setSoulOriginCategory(_selectedKarmaCategory, false);
+  }
+
+  function setInputValue(id, value) {
+    var el = $(id);
+    if (el && !clean(el.value)) el.value = clean(value);
+  }
+
+  function prefillSoulOriginAIForm(profileRaw) {
+    ensureSoulOriginAIConsultationUI();
+    var profile = profileRaw || {};
+    setInputValue('soBirthName', profile.name || '사용자');
+    if ($('soBirthGender')) $('soBirthGender').value = clean(profile.gender || 'unknown') || 'unknown';
+    setInputValue('soBirthDate', profile.birthDate || '');
+    setInputValue('soBirthTime', profile.birthTime || '');
+    setInputValue('soBirthPlace', resolveSoulOriginBirthPlace(profile) || '');
+    setInputValue('soBirthTimezone', profile.timezone || 'Asia/Seoul');
+    if (Number.isFinite(Number(profile.latitude))) setInputValue('soBirthLatitude', String(Number(profile.latitude)));
+    if (Number.isFinite(Number(profile.longitude))) setInputValue('soBirthLongitude', String(Number(profile.longitude)));
+    if ($('soCalendarType')) $('soCalendarType').value = normalizeCalendarType(profile.calendarType || 'solar');
+    var unknownEl = $('soBirthTimeUnknown');
+    var timeEl = $('soBirthTime');
+    if (unknownEl && timeEl) {
+      if (clean(timeEl.value)) {
+        unknownEl.checked = false;
+        timeEl.disabled = false;
+      } else {
+        unknownEl.checked = true;
+        timeEl.disabled = true;
+      }
+    }
+  }
+
+  function readSoulOriginAIFormInput(profileRaw) {
+    ensureSoulOriginAIConsultationUI();
+    var profile = profileRaw || {};
+    var dateValue = clean(($('soBirthDate') && $('soBirthDate').value) || profile.birthDate || '');
+    var date = parseDateParts(dateValue);
+    if (!date) {
+      var dateError = new Error('생년월일을 입력해 주세요.');
+      dateError.code = 'BIRTH_DATE_REQUIRED';
+      throw dateError;
+    }
+    var timeValue = clean(($('soBirthTime') && $('soBirthTime').value) || profile.birthTime || '');
+    var unknown = Boolean($('soBirthTimeUnknown') && $('soBirthTimeUnknown').checked);
+    var time = timeValue ? parseTimeParts(timeValue) : null;
+    if (!unknown && !time) {
+      var timeError = new Error('출생시간을 입력하거나 출생시간 모름을 선택해 주세요.');
+      timeError.code = 'BIRTH_TIME_OR_UNKNOWN_REQUIRED';
+      throw timeError;
+    }
+    var calendarType = normalizeCalendarType((($('soCalendarType') && $('soCalendarType').value) || profile.calendarType || 'solar'));
+    if (!isValidBirthDateParts(date.year, date.month, date.day, calendarType)) {
+      var inputError = new Error('생년월일 형식을 확인해 주세요.');
+      inputError.code = 'BIRTH_INPUT_INVALID';
+      throw inputError;
+    }
+    var lat = Number(($('soBirthLatitude') && $('soBirthLatitude').value) || profile.latitude);
+    var lon = Number(($('soBirthLongitude') && $('soBirthLongitude').value) || profile.longitude);
+    var hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+    var birthInput = {
+      name: clean(($('soBirthName') && $('soBirthName').value) || profile.name || '사용자') || '사용자',
+      gender: clean(($('soBirthGender') && $('soBirthGender').value) || profile.gender || 'unknown') || 'unknown',
+      birthDate: [String(date.year).padStart(4, '0'), String(date.month).padStart(2, '0'), String(date.day).padStart(2, '0')].join('-'),
+      birthTime: unknown ? '' : [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
+      birthPlace: clean(($('soBirthPlace') && $('soBirthPlace').value) || resolveSoulOriginBirthPlace(profile) || ''),
+      calendarType: calendarType,
+      timezone: clean(($('soBirthTimezone') && $('soBirthTimezone').value) || profile.timezone || 'Asia/Seoul') || 'Asia/Seoul',
+      timezoneOffset: inferTimezoneOffsetHours((($('soBirthTimezone') && $('soBirthTimezone').value) || profile.timezone || 'Asia/Seoul')),
+      birthTimeUnknown: unknown,
+      isTimeUnknown: unknown,
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      hour: unknown ? null : time.hour,
+      minute: unknown ? 0 : time.minute,
+      birthHour: unknown ? null : time.hour,
+      birthMinute: unknown ? 0 : time.minute,
+    };
+    if (hasCoords) {
+      birthInput.latitude = lat;
+      birthInput.longitude = lon;
+    }
+    return birthInput;
+  }
+
+  function readSoulOriginAIQuestion() {
+    var value = clean(($('soQuestionInput') && $('soQuestionInput').value) || '');
+    if (!value) {
+      var selected = KARMA_AI_CATEGORIES.filter(function (item) { return item.key === _selectedKarmaCategory; })[0] || KARMA_AI_CATEGORIES[0];
+      value = selected.question;
+    }
+    if (value.length < 5 || value.length > 1000) {
+      var error = new Error('질문은 5자 이상 1000자 이하로 입력해 주세요.');
+      error.code = 'QUESTION_INVALID';
+      throw error;
+    }
+    return value;
+  }
+
   function withArchiveFormat(value, format) {
     var url = clean(value);
     var targetFormat = clean(format).toLowerCase();
@@ -839,7 +1067,7 @@
     return new Promise(function (resolve, reject) {
       function run() {
         if (idx >= endpoints.length) {
-          var error = lastError || new Error('운명의 업 PDF 생성 상태를 확인하지 못했습니다.');
+          var error = lastError || new Error('운명의 업 상담 상태를 확인하지 못했습니다.');
           error.code = clean(error.code) || 'SOUL_ORIGIN_STATUS_LOOKUP_FAILED';
           reject(error);
           return;
@@ -864,7 +1092,7 @@
               }
             }
             if (pack.data && isSoulOriginFailed(pack.data)) {
-              var failed = buildApiError(pack, clean(pack.data.message || pack.data.code) || '운명의 업 PDF 생성 중 문제가 발생했습니다.', {
+              var failed = buildApiError(pack, clean(pack.data.message || pack.data.code) || '운명의 업 상담 생성 중 문제가 발생했습니다.', {
                 stage: 'status',
                 reportId: clean(context && context.reportId),
                 sessionId: clean(context && context.sessionId)
@@ -912,7 +1140,7 @@
         return data;
       }
       if (isSoulOriginFailed(data)) {
-        var failed = buildApiError({ status: Number(data && data.statusCode || 500), data: data }, clean(data && (data.message || data.code)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.', {
+        var failed = buildApiError({ status: Number(data && data.statusCode || 500), data: data }, clean(data && (data.message || data.code)) || '운명의 업 상담 생성 중 문제가 발생했습니다.', {
           stage: 'status',
           reportId: clean(context && context.reportId),
           sessionId: clean(context && context.sessionId)
@@ -922,7 +1150,7 @@
       }
       delay = Math.min(SOUL_ORIGIN_STATUS_MAX_DELAY_MS, delay + 1000);
     }
-    var timeout = new Error('운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 다시 불러오기를 시도해 주세요.');
+    var timeout = new Error('운명의 업 상담 생성이 오래 걸리고 있습니다. 잠시 후 다시 시도해 주세요.');
     timeout.code = 'SOUL_ORIGIN_STATUS_TIMEOUT';
     throw timeout;
   }
@@ -933,7 +1161,7 @@
     var token = readPremiumToken();
     showScreen('loading');
     startLoadingTicker();
-    setLoadingMessage('저장된 운명의 업 PDF 생성 상태를 확인하는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+    setLoadingMessage('저장된 운명의 업 상담 상태를 확인하는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
     try {
       var statusData = await callStatusApi(saved, token);
       applySoulOriginGenerationStatus(statusData);
@@ -945,7 +1173,7 @@
       }
       if (isSoulOriginFailed(statusData)) {
         clearCurrentJob();
-        var failedMsg = clean(statusData && (statusData.message || statusData.errorMessage)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.';
+        var failedMsg = clean(statusData && (statusData.message || statusData.errorMessage)) || '운명의 업 상담 생성 중 문제가 발생했습니다.';
         var errEl = $('soErrorMsg');
         if (errEl) errEl.textContent = failedMsg;
         showScreen('error');
@@ -1306,7 +1534,103 @@
     return true;
   }
 
+  function isSoulOriginAIConsultationPayload(payload) {
+    return clean(payload && payload.serviceType) === AI_CONSULTATION_SERVICE_TYPE
+      || Boolean(payload && payload.result && (payload.result.summary || payload.result.rawText));
+  }
+
+  function appendSoulOriginAIList(parent, items) {
+    var list = Array.isArray(items) ? items.map(function (item) { return clean(item); }).filter(Boolean) : [];
+    if (!list.length) return;
+    var ul = document.createElement('ul');
+    list.forEach(function (item) {
+      var li = document.createElement('li');
+      li.textContent = item;
+      ul.appendChild(li);
+    });
+    parent.appendChild(ul);
+  }
+
+  function appendSoulOriginAICard(parent, title, body, items) {
+    if (!parent) return;
+    var bodyText = clean(body);
+    var list = Array.isArray(items) ? items.map(function (item) { return clean(item); }).filter(Boolean) : [];
+    if (!bodyText && !list.length) return;
+    var card = document.createElement('article');
+    card.className = 'so-ai-result-card';
+    var h4 = document.createElement('h4');
+    h4.textContent = title;
+    card.appendChild(h4);
+    if (bodyText) {
+      var p = document.createElement('p');
+      p.textContent = bodyText;
+      card.appendChild(p);
+    }
+    appendSoulOriginAIList(card, list);
+    parent.appendChild(card);
+  }
+
+  function renderAIConsultationResult(payload) {
+    _result = payload;
+    var result = payload && payload.result && typeof payload.result === 'object' ? payload.result : (payload || {});
+    var titleEl = $('soResultTitle');
+    var summaryEl = $('soResultSummary');
+    var listEl = $('soResultContent');
+    var limitations = Array.isArray(payload && payload.dataLimitations) ? payload.dataLimitations : (Array.isArray(result.dataLimitations) ? result.dataLimitations : []);
+
+    if (titleEl) titleEl.textContent = '운명의 업 상담이 열렸습니다.';
+    if (summaryEl) summaryEl.textContent = '아래 결과는 사주, 베다점, 서양 점성술의 계산 데이터를 바탕으로 생성된 AI 통합 상담입니다.';
+    setDisplay('soSymbolCards', 'none');
+    setDisplay('soMetricGraph', 'none');
+    setDisplay('soChapterNav', 'none');
+    setDisplay('soChapterPreview', 'none');
+    var openBtn = $('soOpenReportBtn');
+    var downloadBtn = $('soDownloadReportBtn');
+    if (openBtn) openBtn.style.display = 'none';
+    if (downloadBtn) downloadBtn.style.display = 'none';
+    try {
+      document.querySelectorAll('[onclick*="restoreSoulOriginReport"]').forEach(function (btn) {
+        btn.style.display = 'none';
+      });
+    } catch (_) {}
+
+    if (listEl) {
+      listEl.innerHTML = '';
+      if (limitations.length) {
+        var note = document.createElement('p');
+        note.className = 'so-ai-limitations';
+        note.textContent = limitations.map(function (item) { return clean(item); }).filter(Boolean).join(' ');
+        listEl.appendChild(note);
+      }
+      appendSoulOriginAICard(listEl, '상담 요약', result.summary);
+      appendSoulOriginAICard(listEl, clean(result.coreKnot && result.coreKnot.title) || '운명의 핵심 매듭', result.coreKnot && result.coreKnot.interpretation);
+      appendSoulOriginAICard(listEl, '사주가 말하는 업', result.sajuKarma && result.sajuKarma.interpretation, result.sajuKarma && result.sajuKarma.keyPatterns);
+      appendSoulOriginAICard(listEl, '베다점이 말하는 카르마', result.vedicKarma && result.vedicKarma.interpretation, result.vedicKarma && result.vedicKarma.keyPatterns);
+      appendSoulOriginAICard(listEl, '점성술이 말하는 그림자', result.astrologyShadow && result.astrologyShadow.interpretation, result.astrologyShadow && result.astrologyShadow.keyPatterns);
+      appendSoulOriginAICard(listEl, '세 체계의 공통 메시지', '', result.commonMessages);
+      var timing = result.liberationTiming || {};
+      appendSoulOriginAICard(listEl, '해방의 시기와 전환점', clean(timing.note), []
+        .concat(Array.isArray(timing.opportunities) ? timing.opportunities : [])
+        .concat(Array.isArray(timing.cautions) ? timing.cautions : []));
+      appendSoulOriginAICard(listEl, '현실적인 행동 전략', '', result.actionGuide);
+      var releaseAndHold = result.releaseAndHold || {};
+      appendSoulOriginAICard(listEl, '내려놓아야 할 것과 붙잡아야 할 것', '', []
+        .concat((Array.isArray(releaseAndHold.release) ? releaseAndHold.release : []).map(function (item) { return '내려놓기: ' + item; }))
+        .concat((Array.isArray(releaseAndHold.hold) ? releaseAndHold.hold : []).map(function (item) { return '붙잡기: ' + item; })));
+      appendSoulOriginAICard(listEl, '마지막 조언', result.closingMessage);
+      appendSoulOriginAICard(listEl, '후속 질문 추천', '', result.followUpQuestions);
+      if (!listEl.children.length && clean(result.rawText)) {
+        appendSoulOriginAICard(listEl, '운명의 업 상담', result.rawText);
+      }
+    }
+    showScreen('result');
+  }
+
   function renderResult(payload) {
+    if (isSoulOriginAIConsultationPayload(payload)) {
+      renderAIConsultationResult(payload);
+      return;
+    }
     _result = payload;
     var titleEl = $('soResultTitle');
     var summaryEl = $('soResultSummary');
@@ -1457,7 +1781,7 @@
     var raw = clean(error && error.message);
 
     if (status === 401 || code.indexOf('UNAUTHORIZED') >= 0 || code.indexOf('AUTH') >= 0) {
-      return '로그인 후 운명의 업 PDF를 생성할 수 있습니다.';
+      return '로그인 후 운명의 업 AI 상담을 받을 수 있습니다.';
     }
     if (code.indexOf('PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') >= 0) {
       return '결제는 확인되었습니다. 중복 차감 없이 생성 권한을 다시 연결 중이니 잠시 후 다시 시도해 주세요.';
@@ -1474,37 +1798,38 @@
       return '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (status === 402 || code.indexOf('PAYMENT_REQUIRED') >= 0 || code.indexOf('INSUFFICIENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('POINT') >= 0) {
-      return '운명의 업 PDF 생성을 위해 원화 결제 확인이 필요합니다.';
+      return '운명의 업 AI 상담을 위해 결제 또는 이용권 확인이 필요합니다.';
     }
     if (code.indexOf('BIRTH_') >= 0 || raw.indexOf('태어난 시간') >= 0 || raw.indexOf('생년월일') >= 0) {
       return '생년월일시 정보를 확인한 뒤 다시 시도해 주세요.';
     }
     if (code.indexOf('REPORT_SAVE_URL_MISSING') >= 0 || code.indexOf('SOUL_ORIGIN_REPORT_NOT_READY') >= 0) {
-      return 'PDF 저장 경로가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
+      return '상담 결과가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_PDF_COMPLETION_VALIDATION_FAILED') >= 0 || code.indexOf('SOUL_ORIGIN_QUALITY_VALIDATION_FAILED') >= 0) {
       return '상담서 품질 검수에서 통과하지 못해 PDF를 열지 않았습니다. 결제 내역은 보존되니 잠시 후 다시 불러와 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_STATUS_TIMEOUT') >= 0) {
-      return '운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 reportId로 다시 불러와 주세요.';
+      return '운명의 업 상담 생성이 오래 걸리고 있습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (code.indexOf('LLM_NOT_CONFIGURED') >= 0
       || code.indexOf('LLM_REQUEST_FAILED') >= 0
       || code.indexOf('LLM_TIMEOUT') >= 0
+      || code.indexOf('LLM_PROVIDER') >= 0
     ) {
-      return '운명의 업 상담 원고 생성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.';
+      return '운명의 업 AI 상담 생성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (code.indexOf('INVALID_LLM_RESPONSE') >= 0
       || code.indexOf('QUALITY_VALIDATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0
     ) {
-      return '운명의 업 상담서 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.';
+      return '운명의 업 AI 상담 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_ARCHIVE_URL_MISSING') >= 0) {
       return '상담 원고가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
-    return raw || '운명의 업 상담서를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    return raw || '운명의 업 AI 상담을 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
   }
 
   function normalizeAccessGrant(raw, reportId, requestId, sessionId) {
@@ -1592,7 +1917,7 @@
         body: JSON.stringify({
           categoryKey: 'premium-report',
           featureKey: FEATURE_KEY,
-          reason: '운명의 업 리포트 생성',
+          reason: '운명의 업 AI 상담',
           reportType: REPORT_TYPE,
           mode: 'soul-origin',
           reportId: reportId,
@@ -1750,8 +2075,8 @@
               coinPrice: resolvedCoinCost,
               cost: resolvedCoinCost,
               serviceKey: 'soul-origin',
-              actionType: 'pdf',
-              action: 'generateSoulOriginReport',
+              actionType: 'ai_consultation',
+              action: 'generateSoulOriginAIConsultation',
               reportType: REPORT_TYPE,
               reportId: reportId,
               sessionId: sessionId,
@@ -1819,7 +2144,7 @@
         logStage('CoinGateStart');
         var immediate = window._cdCoinGatePerUse(
           resolvedCoinCost,
-          '운명의 업 리포트 생성',
+          '운명의 업 AI 상담',
           function (transactionId, data) {
             logStage('CoinGateSuccess', {
               sessionId: clean((data && (data.sessionId || data.reportSessionId)) || readSessionValue(SESSION_ID_KEY)),
@@ -1842,8 +2167,8 @@
             subFeatureKey: FEATURE_KEY,
             reportType: REPORT_TYPE,
             serviceKey: 'soul-origin',
-            actionType: 'pdf',
-            action: 'generateSoulOriginReport',
+            actionType: 'ai_consultation',
+            action: 'generateSoulOriginAIConsultation',
             reportId: paymentReportId,
             sessionId: sessionId,
             reportSessionId: sessionId,
@@ -1969,15 +2294,15 @@
     writeSessionValue(SESSION_ID_KEY, sessionId);
 
     try {
+      ensureSoulOriginAIConsultationUI();
       var profileRaw = readActiveProfile();
-      var input = normalizeInput(profileRaw || {});
-      if (!input) {
-        throw new Error('운명의 업 PDF는 자미두수·베다점·점성술 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
-      }
+      var input = readSoulOriginAIFormInput(profileRaw || {});
+      var question = readSoulOriginAIQuestion();
+      var category = clean(_selectedKarmaCategory || 'general') || 'general';
 
       showScreen('loading');
       startLoadingTicker();
-      setLoadingMessage('운명의 업 프리미엄 금액과 생성 권한을 확인하는 중입니다.');
+      setLoadingMessage('운명의 업 AI 상담 금액과 이용 권한을 확인하는 중입니다.');
 
       logStage('ProductLookupStart', { requestId: requestId, sessionId: sessionId });
       if (!FEATURE_KEY || !REPORT_TYPE) {
@@ -1991,7 +2316,7 @@
       logStage('ProductLookupSuccess', { requestId: requestId, sessionId: sessionId });
 
       var resolvedCoinCost = await resolveSoulOriginCoinCost();
-      setLoadingMessage('결제 권한을 확인하고 상담서 생성을 준비하는 중입니다.');
+      setLoadingMessage('결제 권한을 확인하고 운명의 업 상담을 준비하고 있어요.');
       var payment = await ensurePayment(resolvedCoinCost);
       var token = clean((payment && (payment.premiumAccessToken || payment.accessToken || payment.token)) || readPremiumToken());
       var paymentRequestId = clean((payment && payment.requestId) || requestId);
@@ -2000,7 +2325,7 @@
       writeSessionValue(REQUEST_ID_KEY, paymentRequestId || requestId);
       writeSessionValue(SESSION_ID_KEY, paymentSessionId || sessionId);
 
-      var reportId = clean((accessGrant && accessGrant.reportId) || (payment && (payment.reportId || (payment.payment && payment.payment.reportId) || (payment._paymentContext && payment._paymentContext.reportId))) || '') || ('soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8));
+      var reportId = clean((accessGrant && accessGrant.reportId) || (payment && (payment.reportId || (payment.payment && payment.payment.reportId) || (payment._paymentContext && payment._paymentContext.reportId))) || '') || ('soul-origin-ai:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8));
       var paymentContext = buildPaymentContext(payment, accessGrant, token, reportId, paymentRequestId || requestId, paymentSessionId || sessionId);
       var sourceTransactionId = clean(paymentContext.sourceTransactionId || paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
       var toneSettings = readSoulOriginToneSettings();
@@ -2013,7 +2338,6 @@
         archiveReportType: ARCHIVE_REPORT_TYPE,
         reportTypeAliases: REPORT_TYPE_ALIASES.slice(),
         featureAliases: FEATURE_ALIASES.slice(),
-        expectedChapterCount: EXPECTED_CHAPTER_COUNT,
         requestId: paymentRequestId || requestId,
         sessionId: paymentSessionId || sessionId,
         reportSessionId: paymentSessionId || sessionId,
@@ -2023,6 +2347,8 @@
         purchaseId: paymentContext.purchaseId || undefined,
         input: input,
         birthInput: input,
+        category: category,
+        question: question,
         premiumAccessToken: token || undefined,
         _premiumAccessToken: token || undefined,
         accessGrant: accessGrant || undefined,
@@ -2045,80 +2371,20 @@
         },
       };
 
-      var statusContext = {
-        reportId: reportId,
-        sessionId: paymentSessionId || sessionId,
-        requestId: paymentRequestId || requestId,
-      };
-      logStage('AccessVerifyStart', { requestId: statusContext.requestId, sessionId: statusContext.sessionId, reportId: statusContext.reportId });
-      applySoulOriginGenerationStatus({ generationStatus: 'access_verifying', progressPercent: 5, totalChapters: EXPECTED_CHAPTER_COUNT, completedChapters: 0 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-      var accessData = await callApi(VERIFY_ACCESS_API, payload, token);
-      statusContext.reportId = clean(accessData && (accessData.reportId || accessData.jobId)) || statusContext.reportId;
-      statusContext.sessionId = clean(accessData && (accessData.sessionId || accessData.reportSessionId)) || statusContext.sessionId;
-      statusContext.requestId = clean(accessData && accessData.requestId) || statusContext.requestId;
-      payload.reportId = statusContext.reportId;
-      payload.sessionId = statusContext.sessionId;
-      payload.reportSessionId = statusContext.sessionId;
-      payload.requestId = statusContext.requestId;
-      persistCurrentJob(statusContext);
-      applySoulOriginGenerationStatus(Object.assign({}, accessData, { generationStatus: 'access_verified', progressPercent: 10, totalChapters: EXPECTED_CHAPTER_COUNT, completedChapters: 0 }), { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-
-      logStage('SessionCreateStart', { requestId: statusContext.requestId, sessionId: statusContext.sessionId, reportId: statusContext.reportId });
-      var jobData = await callApi(CREATE_JOB_API, payload, token);
-      statusContext.reportId = clean(jobData && (jobData.reportId || jobData.jobId)) || statusContext.reportId;
-      statusContext.sessionId = clean(jobData && (jobData.sessionId || jobData.reportSessionId)) || statusContext.sessionId;
-      persistCurrentJob(statusContext);
-      applySoulOriginGenerationStatus(jobData, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-
-      logStage('MasterAuthoringStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
-      logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
-      var data;
-      try {
-        startSoulOriginStatusPreview(statusContext, token);
-        data = await callApi(GENERATE_MOCK_API, {
-          jobId: statusContext.reportId,
-          reportId: statusContext.reportId,
-          sessionId: statusContext.sessionId,
-          reportSessionId: statusContext.sessionId,
-          requestId: statusContext.requestId,
-        }, token);
-      } catch (requestError) {
-        if (!shouldRecoverWithStatus(requestError)) throw requestError;
-        logStage('StatusRecoverStart', {
-          requestId: statusContext.requestId,
-          sessionId: statusContext.sessionId,
-          reportId: statusContext.reportId,
-          errorCode: clean(requestError && requestError.code) || 'REQUEST_FAILED',
-        });
-        stopSoulOriginStatusPreview();
-        setLoadingMessage('PDF 저장소 반영을 확인하는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-        data = await pollSoulOriginStatus(statusContext, token);
-      } finally {
-        stopSoulOriginStatusPreview();
-      }
-      if (isSoulOriginRunning(data)) {
-        statusContext.reportId = clean(data && (data.reportId || (data.data && data.data.reportId))) || statusContext.reportId;
-        statusContext.sessionId = clean(data && (data.sessionId || (data.data && data.data.sessionId))) || statusContext.sessionId;
-        setLoadingMessage('상담서 완성본을 불러오는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-        data = await pollSoulOriginStatus(statusContext, token);
-      }
-      if (!isSoulOriginReportReady(data)) {
-        var readyError = new Error('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
-        readyError.code = 'SOUL_ORIGIN_REPORT_NOT_READY';
-        throw readyError;
+      setLoadingMessage('사주와 별의 흐름을 함께 읽고 있어요.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+      logStage('AIConsultationStart', { requestId: payload.requestId, sessionId: payload.sessionId, reportId: payload.reportId });
+      var data = await callApi(AI_CONSULTATION_API, payload, token);
+      if (!data || data.ok !== true || !data.result) {
+        var resultError = new Error('운명의 업 AI 상담 결과가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        resultError.code = 'KARMA_AI_RESULT_MISSING';
+        throw resultError;
       }
       clearCurrentJob();
-      logStage('ServerLocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('MasterAuthoringSuccess', {
-        requestId: requestId,
-        sessionId: clean(data && data.sessionId) || sessionId,
-        chapterCount: Number(data && data.chapterCount || 0),
-        qualityStatus: clean(data && data.qualityStatus),
-      });
-      logStage('PDFRenderSuccess', {
-        requestId: requestId,
+      logStage('AIConsultationSuccess', {
+        requestId: payload.requestId,
         sessionId: clean(data && data.sessionId) || sessionId,
         reportId: clean(data && data.reportId) || reportId,
+        provider: clean(data && data.provider),
       });
       persistResult(data);
       renderResult(data);
@@ -2161,22 +2427,18 @@
     document.body.style.overflow = 'hidden';
     updateSoulOriginCoinCost(_resolvedCoinCost);
     resolveSoulOriginCoinCost().catch(function () {});
-
-    var currentJob = readCurrentJob();
-    if (currentJob) {
-      restoreCurrentSoulOriginJob(currentJob).catch(function () {
-        showScreen('start');
-      });
-    }
+    ensureSoulOriginAIConsultationUI();
+    clearCurrentJob();
 
     var persisted = readPersisted();
-    if (!currentJob && persisted && Array.isArray(persisted.chapters) && persisted.chapters.length) {
+    if (persisted && isSoulOriginAIConsultationPayload(persisted)) {
       renderResult(persisted);
-    } else if (!currentJob) {
+    } else {
       showScreen('start');
     }
 
     var rawProfile = readActiveProfile() || {};
+    prefillSoulOriginAIForm(rawProfile);
     var summaryEl = $('soProfileSummary');
     if (summaryEl) {
       if (rawProfile && clean(rawProfile.birthDate)) {
@@ -2185,10 +2447,10 @@
           clean(rawProfile.name || '사용자'),
           clean(rawProfile.birthDate),
           birthTimeText,
-          resolveSoulOriginBirthPlace(rawProfile) || '대한민국',
+          resolveSoulOriginBirthPlace(rawProfile) || '출생지 미입력',
         ].filter(Boolean).join(' · ');
       } else {
-        summaryEl.textContent = '프로필 카드의 생년월일시를 확인해주세요.';
+        summaryEl.textContent = '프로필을 선택하거나 아래에서 출생 정보를 직접 입력해 주세요.';
       }
     }
   }

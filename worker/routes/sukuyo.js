@@ -35,9 +35,14 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { callGeminiText } from "../lib/gemini.js";
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKUYO_EXECUTION_STALE_MS = 25 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
+const SUKYO_COMPAT_AI_TITLE = "숙요점 궁합 AI 상담";
+const SUKYO_COMPAT_AI_ROUTE = "/api/sukuyo/compatibility-ai-consultation";
+const SUKYO_COMPAT_AI_AMOUNT_KRW = 49000;
+const SUKYO_COMPAT_AI_PRICE_COINS = 490;
 const SUKYO_YEARLY_FORTUNE_PRICE_KRW = 10000;
 const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
@@ -45,6 +50,46 @@ const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
 const sukuyoPdfGenerationLocks = new Map();
 const SUKUYO_CALENDAR_TIMEZONE = "Asia/Seoul";
 const SUKUYO_CALENDAR_WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const SUKYO_COMPAT_AI_CATEGORY_LABELS = Object.freeze({
+  flirting: "썸",
+  crush: "짝사랑",
+  dating: "연애 중",
+  reunion: "이별 후 재회",
+  contact: "연락 타이밍",
+  burnout: "권태기",
+  marriage: "결혼/장기 관계",
+  secret: "비밀스러운 관계",
+  distant: "멀어진 관계",
+  new_connection: "새로 알게 된 인연",
+  ending: "나쁜 관계 정리",
+  general: "종합 궁합",
+});
+const SUKYO_COMPAT_AI_SYSTEM_PROMPT = [
+  "너는 숙요점 27숙 궁합을 깊이 이해한 연애 상담가다.",
+  "사용자와 상대방의 본명숙, 숙요 관계 유형, 거리감, 기존 엔진의 궁합 데이터를 바탕으로 답한다.",
+  "관계 유형은 반드시 제공된 계산 결과만 사용하고 임의로 지어내지 않는다.",
+  "근거리/중거리/원거리 정보가 비어 있으면 거리감 명칭을 새로 만들지 않는다.",
+  "상대방 마음을 확정하지 않는다.",
+  "사용자의 질문에 직접 답하되, 조작·집착·스토킹·압박을 유도하지 않는다.",
+  "상대방의 거절과 경계는 존중해야 한다.",
+  "무조건적인 재회 확정, 이별 확정, 결혼 확정 같은 단정 표현을 피한다.",
+  "결과는 한국어로 작성한다.",
+  "숙요점 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+  "사용자가 실제로 선택하고 행동할 수 있는 관계 전략을 제안한다.",
+  "PDF, 챕터, 다운로드, 리포트 렌더링 같은 표현은 쓰지 않는다.",
+].join("\n");
+const SUKYO_COMPAT_AI_FORBIDDEN_PATTERNS = [
+  /이\s*기능은/,
+  /이\s*결과는/,
+  /분석\s*결과는/,
+  /PDF/i,
+  /챕터/,
+  /다운로드/,
+  /렌더링/,
+  /mock/i,
+  /프롬프트/,
+  /내부\s*지시문/,
+];
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
@@ -385,6 +430,7 @@ function normalizePersonInput(raw = {}, fallbackName = "사용자") {
     name: clean(profile.name || profile.label || fallbackName),
     gender: normalizeGender(profile.gender || profile.sex),
     calendarType: normalizeCalendarType(profile.calendarType || profile.calType),
+    isLeapMonth: profile.isLeapMonth === true || profile.leapMonth === true || normalizeCalendarType(profile.calendarType || profile.calType) === "lunar_leap",
     birthDate,
     birthYear: date?.year ?? null,
     birthMonth: date?.month ?? null,
@@ -423,12 +469,12 @@ function toLunarBirth(person) {
     throw Object.assign(new Error("두 사람의 생년월일을 정확히 입력해 주세요."), { status: 400, code: "SUKUYO_MISSING_BIRTH" });
   }
 
-  if (person.calendarType === "lunar") {
+  if (person.calendarType === "lunar" || person.calendarType === "lunar_leap") {
     return {
       lunarYear: person.birthYear,
       lunarMonth: person.birthMonth,
       lunarDay: person.birthDay,
-      isLeapMonth: false,
+      isLeapMonth: person.calendarType === "lunar_leap" || person.isLeapMonth === true,
       source: "user-lunar-input",
     };
   }
@@ -511,6 +557,698 @@ function buildSukuyoSeedFromCompatibility(input = {}) {
     partnerSukyo: canonical.personB?.sukuyo,
     canonical,
   });
+}
+
+function buildSukyoCompatibilityAIError(code, message, status = 400, extra = {}) {
+  return json({
+    ok: false,
+    code: clean(code || "SUKYO_COMPAT_AI_FAILED"),
+    message: clean(message || "숙요점 궁합 AI 상담을 생성하지 못했습니다."),
+    ...extra,
+  }, { status });
+}
+
+function logSukyoCompatibilityAI(event, details = {}) {
+  const marker = `[SukyoCompatibility AI Consultation] ${event}`;
+  const payload = {
+    hasEnvAI: details.hasEnvAI === true,
+    providerName: clean(details.providerName || ""),
+    isMock: details.isMock === true,
+    dryRun: details.dryRun === true,
+    category: clean(details.category || ""),
+    questionLength: Math.max(0, Number(details.questionLength || 0)),
+    personAMansionCalculated: details.personAMansionCalculated === true,
+    personBMansionCalculated: details.personBMansionCalculated === true,
+    relationshipType: clean(details.relationshipType || ""),
+    distanceType: clean(details.distanceType || ""),
+    llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
+    errorCode: clean(details.errorCode || ""),
+  };
+  try {
+    console.info(marker, payload);
+  } catch {
+    console.info(marker);
+  }
+}
+
+function hasSukyoAIProviderEnv(env = {}) {
+  return Boolean(
+    env?.AI
+    || env?.GEMINI_API_KEY
+    || env?.GOOGLE_GENERATIVE_AI_API_KEY
+    || env?.GOOGLE_AI_API_KEY
+    || env?.AI_GATEWAY_TOKEN
+    || env?.OPENAI_API_KEY
+  );
+}
+
+function normalizeSukyoAIConsultationCategory(raw) {
+  const token = clean(raw).toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
+  const alias = {
+    some: "flirting",
+    flirting: "flirting",
+    썸: "flirting",
+    crush: "crush",
+    짝사랑: "crush",
+    dating: "dating",
+    love: "dating",
+    연애: "dating",
+    "연애_중": "dating",
+    reunion: "reunion",
+    재회: "reunion",
+    contact: "contact",
+    연락: "contact",
+    "연락_타이밍": "contact",
+    burnout: "burnout",
+    권태기: "burnout",
+    marriage: "marriage",
+    결혼: "marriage",
+    "장기_관계": "marriage",
+    secret: "secret",
+    "비밀스러운_관계": "secret",
+    distant: "distant",
+    "멀어진_관계": "distant",
+    new: "new_connection",
+    new_connection: "new_connection",
+    "새로운_인연": "new_connection",
+    "새로_알게_된_인연": "new_connection",
+    ending: "ending",
+    "나쁜_관계_정리": "ending",
+    general: "general",
+    "종합_궁합": "general",
+  };
+  const mapped = alias[token] || token;
+  return Object.prototype.hasOwnProperty.call(SUKYO_COMPAT_AI_CATEGORY_LABELS, mapped) ? mapped : "general";
+}
+
+function normalizeSukyoAIProfiles(body = {}) {
+  const selfSource = body.self || body.personA || body.user || body.userProfile || body.birthInput || {
+    name: body.name || body.userName || body.selfName,
+    gender: body.gender || body.selfGender,
+    birthDate: body.birthDate || body.selfBirthDate,
+    birthTime: body.birthTime || body.selfBirthTime,
+    calendarType: body.calendarType || body.selfCalendarType,
+    isLeapMonth: body.isLeapMonth || body.selfIsLeapMonth,
+  };
+  const partnerSource = body.partner || body.personB || body.partnerProfile || body.partnerInput || {
+    name: body.partnerName,
+    gender: body.partnerGender,
+    birthDate: body.partnerBirthDate,
+    birthTime: body.partnerBirthTime,
+    calendarType: body.partnerCalendarType,
+    isLeapMonth: body.partnerIsLeapMonth,
+  };
+  return normalizeCompatibilityInput({
+    mode: "compatibility",
+    self: selfSource,
+    partner: partnerSource,
+  });
+}
+
+function validateSukyoAIProfiles(input = {}) {
+  const missing = [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(clean(input?.self?.birthDate))) missing.push("self.birthDate");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(clean(input?.partner?.birthDate))) missing.push("partner.birthDate");
+  if (missing.length) {
+    throw Object.assign(new Error("두 사람의 생년월일을 정확히 입력해 주세요."), {
+      status: 400,
+      code: "SUKYO_COMPAT_AI_MISSING_BIRTH",
+      missing,
+    });
+  }
+}
+
+function sukyoMansionLabel(sukuyo = {}) {
+  const name = clean(sukuyo.nameKo || sukuyo.name || "");
+  if (!name) return "미산출";
+  return /숙$/.test(name) ? name : `${name}숙`;
+}
+
+function sukyoList(values, limit = 5) {
+  return (Array.isArray(values) ? values : [])
+    .map((value) => clean(value))
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function buildSukyoPersonContext(person = {}, sukuyo = {}) {
+  const keywords = sukyoList(sukuyo.keywords);
+  const strengths = sukyoList(sukuyo.strengths);
+  const shadows = sukyoList(sukuyo.shadows);
+  const mansion = sukyoMansionLabel(sukuyo);
+  const summary = [
+    clean(sukuyo.archetypeTitle),
+    keywords.length ? `키워드: ${keywords.join(", ")}` : "",
+    strengths.length ? `강점: ${strengths.join(", ")}` : "",
+    shadows.length ? `주의점: ${shadows.join(", ")}` : "",
+  ].filter(Boolean).join(" / ");
+  return {
+    name: clean(person.name || "") || "나",
+    gender: clean(person.gender || "unknown"),
+    birthDate: clean(person.birthDate),
+    calendarType: clean(person.calendarType || "solar"),
+    birthTimeKnown: person.isTimeUnknown !== true && Boolean(clean(person.birthTime)),
+    mansion,
+    mansionIndex: Number.isFinite(Number(sukuyo.index)) ? Number(sukuyo.index) : undefined,
+    mansionHanja: clean(sukuyo.nameHan || ""),
+    mansionJapanese: clean(sukuyo.nameJp || ""),
+    keywords,
+    strengths,
+    shadows,
+    relationshipPatternSummary: summary || `${mansion}의 기본 성향을 바탕으로 관계의 결을 살핍니다.`,
+  };
+}
+
+function firstCleanValue(...values) {
+  for (const value of values) {
+    const text = clean(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function buildSukyoRelationshipContext(canonical = {}) {
+  const compatibility = canonical?.compatibility || {};
+  const forwardDistance = Number(compatibility.forwardDistance ?? compatibility.distanceMetrics?.forwardDistance ?? 0);
+  const backwardDistance = Number(compatibility.backwardDistance ?? compatibility.distanceMetrics?.backwardDistance ?? ((27 - forwardDistance) % 27));
+  const relationType = normalizePastLifeRelation(compatibility.relationType || compatibility.relationshipType || "", forwardDistance);
+  const distanceLabel = normalizePastLifeDistance(compatibility.distanceLabel || compatibility.distanceType || "", relationType);
+  const direction = firstCleanValue(
+    compatibility.direction,
+    compatibility.directionLabel,
+    compatibility.relationDirection,
+    normalizePastLifeDirection(forwardDistance),
+  );
+  const compatibilityIndex = Number(compatibility.compatibilityIndex || compatibility.score || compatibility.totalScore || 0);
+  return {
+    name: relationType,
+    relationType,
+    relationTypeHan: clean(compatibility.relationTypeHan || ""),
+    direction,
+    forwardDistance: Number.isFinite(forwardDistance) ? forwardDistance : undefined,
+    backwardDistance: Number.isFinite(backwardDistance) ? backwardDistance : undefined,
+    distance: distanceLabel === "해당없음" ? "" : distanceLabel,
+    distanceLabel: distanceLabel === "해당없음" ? "" : distanceLabel,
+    compatibilityIndex: Number.isFinite(compatibilityIndex) && compatibilityIndex > 0 ? compatibilityIndex : undefined,
+    attraction: firstCleanValue(compatibility.attraction, compatibility.attractionText, compatibility.pull, compatibility.pullText),
+    stability: firstCleanValue(compatibility.stability, compatibility.stabilityText),
+    conflictPotential: firstCleanValue(compatibility.conflict, compatibility.conflictText, compatibility.risk, compatibility.riskText),
+    repeatPattern: firstCleanValue(compatibility.repeatPattern, compatibility.pattern, compatibility.rhythm),
+    cautions: sukyoList(compatibility.cautions || compatibility.warningSigns || compatibility.risks, 6),
+    summary: firstCleanValue(
+      compatibility.summary,
+      compatibility.oneLine,
+      compatibility.shortSummary,
+      `${relationType} 관계는 두 사람의 본명숙 사이에 형성된 기본 구조입니다.`,
+    ),
+  };
+}
+
+function buildSukyoCompatibilityAIContext({ body, input, selfSukuyo, partnerSukuyo, canonical }) {
+  const category = normalizeSukyoAIConsultationCategory(body?.category || body?.relationshipCategory || body?.consultationCategory);
+  const question = clean(body?.question || body?.relationshipQuestion || body?.prompt || "");
+  return {
+    service: SUKYO_COMPAT_AI_TITLE,
+    generatedAt: new Date().toISOString(),
+    personA: buildSukyoPersonContext(input.self, selfSukuyo),
+    personB: buildSukyoPersonContext(input.partner, partnerSukuyo),
+    relationship: buildSukyoRelationshipContext(canonical),
+    category,
+    categoryLabel: SUKYO_COMPAT_AI_CATEGORY_LABELS[category] || SUKYO_COMPAT_AI_CATEGORY_LABELS.general,
+    question,
+    safety: {
+      distanceMayBeEmpty: true,
+      noMindReading: true,
+      noManipulation: true,
+      respectBoundaries: true,
+    },
+  };
+}
+
+function buildSukyoCompatibilityAIPrompt(context = {}, repairReason = "") {
+  const resultShape = {
+    summary: "궁합 요약과 질문에 대한 직접 답변",
+    personA: { name: context.personA?.name || "나", mansion: context.personA?.mansion || "", loveStyle: "사랑 방식" },
+    personB: { name: context.personB?.name || "상대", mansion: context.personB?.mansion || "", loveStyle: "사랑 방식" },
+    relationshipType: { name: context.relationship?.relationType || "", direction: context.relationship?.direction || "", distance: context.relationship?.distance || "", interpretation: "관계 유형 해석" },
+    attractionAndDistance: "끌림과 거리감",
+    conflictPoints: ["반복되기 쉬운 오해"],
+    possibility: { positiveSignals: ["이어질 힘"], obstacles: ["현실적 변수"], realisticView: "현실적인 관점" },
+    situationAdvice: "선택한 관계 상황에 맞춘 답변",
+    actionGuide: ["지금 하면 좋은 행동"],
+    avoidActions: ["피해야 할 행동"],
+    closingMessage: "두 별이 이어지기 위한 한 문장",
+    followUpQuestions: ["후속 질문"],
+  };
+  return [
+    "아래 숙요점 계산 context만 근거로 숙요점 궁합 AI 상담 결과를 작성하라.",
+    "두 사람의 본명숙과 관계 유형은 이미 계산된 값이므로 바꾸거나 추정하지 마라.",
+    "distance 값이 비어 있으면 근거리/중거리/원거리 명칭을 만들지 말고, 거리 데이터가 제공되지 않았다고 자연스럽게 다뤄라.",
+    "상대방 마음을 확정하지 말고, 사용자가 선택할 수 있는 관계 전략을 제안하라.",
+    repairReason ? `이전 생성 보정 사유: ${repairReason}` : "",
+    "",
+    "[숙요점 계산 context]",
+    JSON.stringify(context, null, 2),
+    "",
+    "[결과 형식]",
+    "아래 JSON 객체 하나만 반환하라. 마크다운 코드블록은 쓰지 않아도 된다.",
+    JSON.stringify(resultShape, null, 2),
+  ].filter(Boolean).join("\n");
+}
+
+function normalizeSukyoAIText(text) {
+  return String(text || "").replace(/\r\n/g, "\n").trim();
+}
+
+function validateSukyoAIText(text) {
+  const normalized = normalizeSukyoAIText(text);
+  if (normalized.length < 500) {
+    return { ok: false, reason: "상담문이 충분히 깊게 생성되지 않았습니다." };
+  }
+  const forbidden = SUKYO_COMPAT_AI_FORBIDDEN_PATTERNS.find((pattern) => pattern.test(normalized));
+  if (forbidden) {
+    return { ok: false, reason: "상담문 안에 기계적인 표현이나 PDF 문구가 남아 있습니다." };
+  }
+  return { ok: true, text: normalized };
+}
+
+function parseSukyoAIJson(text) {
+  const normalized = normalizeSukyoAIText(text).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const start = normalized.indexOf("{");
+  const end = normalized.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(normalized.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+function toTextArray(value, fallback = []) {
+  if (Array.isArray(value)) return value.map((item) => clean(item)).filter(Boolean).slice(0, 8);
+  const text = clean(value);
+  if (!text) return fallback;
+  return text.split(/\n+|(?:^|\s)\d+\.\s+/).map((item) => clean(item)).filter(Boolean).slice(0, 8);
+}
+
+function buildSukyoAISections(result = {}) {
+  const possibility = result.possibility && typeof result.possibility === "object" ? result.possibility : {};
+  const relationshipType = result.relationshipType && typeof result.relationshipType === "object" ? result.relationshipType : {};
+  const personA = result.personA && typeof result.personA === "object" ? result.personA : {};
+  const personB = result.personB && typeof result.personB === "object" ? result.personB : {};
+  return [
+    { title: "궁합 요약 — 두 사람 관계의 핵심", body: clean(result.summary) },
+    { title: "두 사람의 본명숙 — 각자의 사랑 방식", body: [`${clean(personA.name || "나")} · ${clean(personA.mansion)}: ${clean(personA.loveStyle)}`, `${clean(personB.name || "상대")} · ${clean(personB.mansion)}: ${clean(personB.loveStyle)}`].filter((line) => clean(line).replace(/[·:\s]/g, "")).join("\n") },
+    { title: "관계 유형 — 이 인연의 기본 구조", body: [clean(relationshipType.name), clean(relationshipType.direction), clean(relationshipType.distance), clean(relationshipType.interpretation)].filter(Boolean).join("\n") },
+    { title: "끌림과 거리감 — 가까워지는 힘과 멀어지는 힘", body: clean(result.attractionAndDistance) },
+    { title: "갈등 포인트 — 반복되기 쉬운 오해", items: toTextArray(result.conflictPoints) },
+    { title: "관계 가능성 — 이어질 힘과 현실적 변수", body: clean(possibility.realisticView), groups: [
+      { label: "이어질 힘", items: toTextArray(possibility.positiveSignals) },
+      { label: "현실적 변수", items: toTextArray(possibility.obstacles) },
+    ] },
+    { title: "상황별 조언 — 선택한 관계 상황에 맞춘 답변", body: clean(result.situationAdvice) },
+    { title: "지금 하면 좋은 행동", items: toTextArray(result.actionGuide) },
+    { title: "피해야 할 행동", items: toTextArray(result.avoidActions) },
+    { title: "마지막 조언 — 두 별이 이어지기 위한 한 문장", body: clean(result.closingMessage) },
+    { title: "후속 질문 추천", items: toTextArray(result.followUpQuestions) },
+  ].filter((section) => clean(section.body) || (Array.isArray(section.items) && section.items.length) || (Array.isArray(section.groups) && section.groups.some((group) => group.items?.length)));
+}
+
+function normalizeSukyoAIResult(parsed, rawText, context) {
+  const source = parsed && typeof parsed === "object" ? parsed : {};
+  const relationship = context.relationship || {};
+  const result = {
+    summary: clean(source.summary) || normalizeSukyoAIText(rawText).slice(0, 900),
+    personA: {
+      name: clean(source.personA?.name) || context.personA?.name,
+      mansion: clean(source.personA?.mansion) || context.personA?.mansion,
+      loveStyle: clean(source.personA?.loveStyle) || context.personA?.relationshipPatternSummary,
+    },
+    personB: {
+      name: clean(source.personB?.name) || context.personB?.name,
+      mansion: clean(source.personB?.mansion) || context.personB?.mansion,
+      loveStyle: clean(source.personB?.loveStyle) || context.personB?.relationshipPatternSummary,
+    },
+    relationshipType: {
+      name: clean(source.relationshipType?.name) || relationship.relationType,
+      direction: clean(source.relationshipType?.direction) || relationship.direction,
+      distance: clean(source.relationshipType?.distance) || relationship.distance,
+      interpretation: clean(source.relationshipType?.interpretation) || relationship.summary,
+    },
+    attractionAndDistance: clean(source.attractionAndDistance),
+    conflictPoints: toTextArray(source.conflictPoints),
+    possibility: {
+      positiveSignals: toTextArray(source.possibility?.positiveSignals),
+      obstacles: toTextArray(source.possibility?.obstacles),
+      realisticView: clean(source.possibility?.realisticView),
+    },
+    situationAdvice: clean(source.situationAdvice),
+    actionGuide: toTextArray(source.actionGuide),
+    avoidActions: toTextArray(source.avoidActions),
+    closingMessage: clean(source.closingMessage),
+    followUpQuestions: toTextArray(source.followUpQuestions),
+    rawText: normalizeSukyoAIText(rawText),
+  };
+  result.sections = buildSukyoAISections(result);
+  return result;
+}
+
+async function verifySukyoCompatibilityAIAccess(request, env, auth, body, sessionId, reportId, featureKey) {
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  const pdfDbEnv = withPdfFastDbEnv(env);
+  const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, auth.userId, premiumAccessToken);
+  const paidFeatureAccess = signedTokenAccess
+    ? null
+    : await resolveSukuyoPaidFeatureAccess(pdfDbEnv, auth.userId, featureKey, reportId, sessionId);
+  let access = signedTokenAccess || paidFeatureAccess;
+  if (!access) {
+    try {
+      access = await requirePremiumReportAccess(
+        pdfDbEnv,
+        auth.userId,
+        "sookyoPremium",
+        {
+          ...body,
+          reportType: "sookyoPremium",
+          mode: "compatibility",
+          reportMode: "compatibility",
+          featureKey,
+          premiumAccessToken: premiumAccessToken || undefined,
+          _accessRoute: SUKYO_COMPAT_AI_ROUTE,
+        },
+      );
+    } catch (error) {
+      const status = Number(error?.status || 0);
+      if (status >= 500 && hasSukuyoButtonPaymentEvidence(body, sessionId, reportId)) {
+        return {
+          ok: true,
+          accessType: "button-payment-evidence",
+          accessMethod: "BUTTON_PAYMENT_EVIDENCE",
+          paymentMode: "single_purchase",
+          reportType: "sookyoPremium",
+          featureKey,
+          matchedTransactionId: clean(body?.transactionId || body?.sourceTransactionId || body?.purchaseId || body?.requestId),
+          reportId,
+          sessionId,
+        };
+      }
+      return {
+        ok: false,
+        status: status || 402,
+        code: clean(error?.code || "SUKYO_COMPAT_AI_PAYMENT_REQUIRED"),
+        message: "숙요점 궁합 AI 상담은 결제 또는 이용권 확인 후 열립니다.",
+      };
+    }
+  }
+  if (!access?.ok && Number(access?.status || 0) >= 500 && hasSukuyoButtonPaymentEvidence(body, sessionId, reportId)) {
+    return {
+      ok: true,
+      accessType: "button-payment-evidence",
+      accessMethod: "BUTTON_PAYMENT_EVIDENCE",
+      paymentMode: "single_purchase",
+      reportType: "sookyoPremium",
+      featureKey,
+      matchedTransactionId: clean(body?.transactionId || body?.sourceTransactionId || body?.purchaseId || body?.requestId),
+      reportId,
+      sessionId,
+    };
+  }
+  return access;
+}
+
+async function handleSukyoCompatibilityAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const hasEnvAI = hasSukyoAIProviderEnv(env);
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const category = normalizeSukyoAIConsultationCategory(body?.category || body?.relationshipCategory || body?.consultationCategory);
+  const question = clean(body?.question || body?.relationshipQuestion || body?.prompt || "");
+  const dryRun = body?.dryRun === true || body?.dry_run === true;
+  const baseLog = { hasEnvAI, dryRun, category, questionLength: question.length };
+
+  logSukyoCompatibilityAI("request received", baseLog);
+
+  if (dryRun) {
+    return buildSukyoCompatibilityAIError("DRY_RUN_BLOCKED", "숙요점 궁합 AI 상담은 실제 결제/이용권 확인과 LLM 호출로만 생성됩니다.", 400, { dryRun: true });
+  }
+  if (!question || question.length < 5 || question.length > 1200) {
+    return buildSukyoCompatibilityAIError("INVALID_QUESTION", "현재 관계 질문을 5자 이상 1200자 이하로 입력해 주세요.", 400);
+  }
+
+  const input = normalizeSukyoAIProfiles(body);
+  try {
+    validateSukyoAIProfiles(input);
+  } catch (error) {
+    return buildSukyoCompatibilityAIError(clean(error?.code || "INVALID_INPUT"), clean(error?.message), Number(error?.status) || 400, {
+      missing: Array.isArray(error?.missing) ? error.missing : undefined,
+    });
+  }
+
+  const sessionId = getSukuyoSessionId(body);
+  const reportId = resolveSukuyoReportId(body, sessionId);
+  const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
+  const access = await verifySukyoCompatibilityAIAccess(request, env, auth, body, sessionId, reportId, featureKey);
+  if (!access?.ok) {
+    return buildSukyoCompatibilityAIError(
+      clean(access?.code || "SUKYO_COMPAT_AI_PAYMENT_REQUIRED"),
+      clean(access?.message || "숙요점 궁합 AI 상담은 결제 또는 이용권 확인 후 열립니다."),
+      Number(access?.status) || 402,
+      {
+        featureKey: SUKYO_PDF_FEATURE_KEY,
+        aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+        amountKRW: SUKYO_COMPAT_AI_AMOUNT_KRW,
+        coinPrice: SUKYO_COMPAT_AI_PRICE_COINS,
+        allowedPaymentModes: ["direct", "monthly", "membership_pass"],
+      },
+    );
+  }
+  logSukyoCompatibilityAI("payment verified", { ...baseLog, providerName: clean(access.accessType || access.accessMethod) });
+
+  let selfSukuyo = null;
+  let partnerSukuyo = null;
+  let canonical = null;
+  try {
+    selfSukuyo = buildPersonSukuyo(input.self);
+    logSukyoCompatibilityAI("person A mansion calculated", { ...baseLog, personAMansionCalculated: Boolean(clean(selfSukuyo?.nameKo || selfSukuyo?.name)) });
+    partnerSukuyo = buildPersonSukuyo(input.partner);
+    logSukyoCompatibilityAI("person B mansion calculated", { ...baseLog, personAMansionCalculated: true, personBMansionCalculated: Boolean(clean(partnerSukuyo?.nameKo || partnerSukuyo?.name)) });
+    canonical = buildCanonicalSukuyoCompatibility({
+      reportType: "compatibility",
+      personAName: input.self.name,
+      personBName: input.partner.name,
+      personAInput: { year: input.self.birthYear, month: input.self.birthMonth, day: input.self.birthDay, hour: input.self.birthHour, minute: input.self.birthMinute },
+      personBInput: { year: input.partner.birthYear, month: input.partner.birthMonth, day: input.partner.birthDay, hour: input.partner.birthHour, minute: input.partner.birthMinute },
+      personASukuyo: selfSukuyo,
+      personBSukuyo: partnerSukuyo,
+      calendarSource: "lunar-javascript",
+      methodVersion: "sukyo-compat-ai-consultation-v1",
+    });
+    if (!canonical?.validation?.hasPersonAHost || !canonical?.validation?.hasPersonBHost || !canonical?.validation?.hasRelationType) {
+      throw Object.assign(new Error("숙요 관계 유형을 계산하지 못했습니다."), {
+        status: 422,
+        code: "SUKYO_RELATIONSHIP_CALC_FAILED",
+        missing: canonical?.validation?.missingFields || [],
+      });
+    }
+  } catch (error) {
+    logSukyoCompatibilityAI("LLM provider error", { ...baseLog, errorCode: clean(error?.code || "SUKYO_CALCULATION_FAILED") });
+    return buildSukyoCompatibilityAIError(clean(error?.code || "SUKYO_CALCULATION_FAILED"), clean(error?.message || "숙요 계산에 실패했습니다."), Number(error?.status) || 422, {
+      missing: Array.isArray(error?.missing) ? error.missing : undefined,
+    });
+  }
+
+  const context = buildSukyoCompatibilityAIContext({ body: { ...body, category, question }, input, selfSukuyo, partnerSukuyo, canonical });
+  logSukyoCompatibilityAI("relationship calculated", {
+    ...baseLog,
+    personAMansionCalculated: true,
+    personBMansionCalculated: true,
+    relationshipType: context.relationship?.relationType,
+    distanceType: context.relationship?.distance,
+  });
+
+  const prompt = buildSukyoCompatibilityAIPrompt(context);
+  logSukyoCompatibilityAI("prompt built", {
+    ...baseLog,
+    personAMansionCalculated: true,
+    personBMansionCalculated: true,
+    relationshipType: context.relationship?.relationType,
+    distanceType: context.relationship?.distance,
+  });
+
+  try {
+    logSukyoCompatibilityAI("LLM provider start", {
+      ...baseLog,
+      providerName: "callGeminiText",
+      personAMansionCalculated: true,
+      personBMansionCalculated: true,
+      relationshipType: context.relationship?.relationType,
+      distanceType: context.relationship?.distance,
+    });
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: SUKYO_COMPAT_AI_SYSTEM_PROMPT,
+      taskType: "fortune",
+      temperature: 0.68,
+      maxOutputTokens: 4096,
+    });
+    const providerName = clean(ai?.provider || ai?.model || "gemini");
+    const isMock = ai?.isMock === true || clean(ai?.provider).toLowerCase() === "mock" || clean(ai?.model).toLowerCase() === "mock";
+    const llmLatencyMs = Date.now() - startedAt;
+    if (!ai?.ok || isMock) {
+      throw Object.assign(new Error(clean(ai?.message || ai?.error || "LLM provider failed.")), {
+        status: 503,
+        code: isMock ? "SUKYO_COMPAT_AI_MOCK_BLOCKED" : "SUKYO_COMPAT_AI_LLM_FAILED",
+        providerName,
+        isMock,
+      });
+    }
+    const validation = validateSukyoAIText(ai.text);
+    if (!validation.ok) {
+      const repairAi = await callGeminiText(env, buildSukyoCompatibilityAIPrompt(context, validation.reason), {
+        systemPrompt: SUKYO_COMPAT_AI_SYSTEM_PROMPT,
+        taskType: "fortune",
+        temperature: 0.62,
+        maxOutputTokens: 4096,
+      });
+      const repairProviderName = clean(repairAi?.provider || repairAi?.model || providerName);
+      const repairIsMock = repairAi?.isMock === true || clean(repairAi?.provider).toLowerCase() === "mock" || clean(repairAi?.model).toLowerCase() === "mock";
+      const repairValidation = repairAi?.ok && !repairIsMock
+        ? validateSukyoAIText(repairAi.text)
+        : { ok: false, reason: clean(repairAi?.message || repairAi?.error || validation.reason) };
+      if (!repairValidation.ok) {
+        throw Object.assign(new Error(repairValidation.reason), {
+          status: 503,
+          code: repairIsMock ? "SUKYO_COMPAT_AI_MOCK_BLOCKED" : "SUKYO_COMPAT_AI_RESULT_INVALID",
+          providerName: repairProviderName,
+          isMock: repairIsMock,
+        });
+      }
+      const parsed = parseSukyoAIJson(repairValidation.text);
+      const result = normalizeSukyoAIResult(parsed, repairValidation.text, context);
+      logSukyoCompatibilityAI("LLM provider success", {
+        ...baseLog,
+        providerName: repairProviderName,
+        isMock: false,
+        personAMansionCalculated: true,
+        personBMansionCalculated: true,
+        relationshipType: context.relationship?.relationType,
+        distanceType: context.relationship?.distance,
+        llmLatencyMs: Date.now() - startedAt,
+      });
+      logSukyoCompatibilityAI("response returned", {
+        ...baseLog,
+        providerName: repairProviderName,
+        personAMansionCalculated: true,
+        personBMansionCalculated: true,
+        relationshipType: context.relationship?.relationType,
+        distanceType: context.relationship?.distance,
+        llmLatencyMs: Date.now() - startedAt,
+      });
+      return json({
+        ok: true,
+        status: "completed",
+        title: SUKYO_COMPAT_AI_TITLE,
+        featureKey: SUKYO_PDF_FEATURE_KEY,
+        aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+        amountKRW: SUKYO_COMPAT_AI_AMOUNT_KRW,
+        chargedCoins: Number(access.chargedCoins || body?.coinPrice || body?.cost || 0) || undefined,
+        accessType: clean(access.accessType || ""),
+        accessMethod: clean(access.accessMethod || ""),
+        paymentMode: clean(access.paymentMode || ""),
+        sessionId,
+        reportId,
+        category,
+        categoryLabel: context.categoryLabel,
+        calculation: {
+          personA: context.personA,
+          personB: context.personB,
+          relationship: context.relationship,
+        },
+        result,
+        consultation: result,
+        rawText: result.rawText,
+        provider: repairProviderName,
+        model: repairAi?.model || undefined,
+        isMock: false,
+        dryRun: false,
+        llmLatencyMs: Date.now() - startedAt,
+      });
+    }
+    const parsed = parseSukyoAIJson(validation.text);
+    const result = normalizeSukyoAIResult(parsed, validation.text, context);
+    logSukyoCompatibilityAI("LLM provider success", {
+      ...baseLog,
+      providerName,
+      isMock: false,
+      personAMansionCalculated: true,
+      personBMansionCalculated: true,
+      relationshipType: context.relationship?.relationType,
+      distanceType: context.relationship?.distance,
+      llmLatencyMs,
+    });
+    logSukyoCompatibilityAI("response returned", {
+      ...baseLog,
+      providerName,
+      personAMansionCalculated: true,
+      personBMansionCalculated: true,
+      relationshipType: context.relationship?.relationType,
+      distanceType: context.relationship?.distance,
+      llmLatencyMs,
+    });
+    return json({
+      ok: true,
+      status: "completed",
+      title: SUKYO_COMPAT_AI_TITLE,
+      featureKey: SUKYO_PDF_FEATURE_KEY,
+      aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+      amountKRW: SUKYO_COMPAT_AI_AMOUNT_KRW,
+      chargedCoins: Number(access.chargedCoins || body?.coinPrice || body?.cost || 0) || undefined,
+      accessType: clean(access.accessType || ""),
+      accessMethod: clean(access.accessMethod || ""),
+      paymentMode: clean(access.paymentMode || ""),
+      sessionId,
+      reportId,
+      category,
+      categoryLabel: context.categoryLabel,
+      calculation: {
+        personA: context.personA,
+        personB: context.personB,
+        relationship: context.relationship,
+      },
+      result,
+      consultation: result,
+      rawText: result.rawText,
+      provider: providerName,
+      model: ai?.model || undefined,
+      isMock: false,
+      dryRun: false,
+      llmLatencyMs,
+    });
+  } catch (error) {
+    logSukyoCompatibilityAI("LLM provider error", {
+      ...baseLog,
+      providerName: clean(error?.providerName || ""),
+      isMock: error?.isMock === true,
+      personAMansionCalculated: true,
+      personBMansionCalculated: true,
+      relationshipType: context.relationship?.relationType,
+      distanceType: context.relationship?.distance,
+      llmLatencyMs: Date.now() - startedAt,
+      errorCode: clean(error?.code || "SUKYO_COMPAT_AI_LLM_FAILED"),
+    });
+    return buildSukyoCompatibilityAIError(
+      clean(error?.code || "SUKYO_COMPAT_AI_LLM_FAILED"),
+      "결제는 확인되었지만 숙요점 궁합 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      Number(error?.status) || 503,
+      {
+        retryable: true,
+        paymentRetainedForRetry: true,
+        featureKey: SUKYO_PDF_FEATURE_KEY,
+        aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
+        sessionId,
+        reportId,
+      },
+    );
+  }
 }
 
 function buildSukuyoSeedErrorResponse(error, fallbackMessage = "숙요점 궁합 계산에 필요한 입력값을 확인해 주세요.") {
@@ -3729,6 +4467,11 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
     if (path === "/past-life-reading") {
       if (method !== "POST") return methodNotAllowed();
       return await handleSukuyoPastLifeReading(request, env);
+    }
+
+    if (path === "/compatibility-ai-consultation" || path === "/ai-compatibility") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleSukyoCompatibilityAIConsultation(request, env);
     }
 
     if (path === "/premium/chapters") {

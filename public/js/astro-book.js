@@ -1,12 +1,13 @@
 /**
- * Premium Astrology PDF (Cosmic Chart)
- * Local chart-first pipeline + worker premium prepare endpoint.
+ * Premium Astrology AI Consultation (Cosmic Chart)
+ * Local chart-first profile handling + worker AI consultation endpoint.
  */
 (function () {
   'use strict';
 
   var ASTRO_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_BILLING_FEATURE_KEY = 'premium-astrology-report';
+  var ASTRO_AI_CONSULTATION_API = '/api/astro/ai-consultation';
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
   var ASTRO_VERIFY_ACCESS_API = '/api/astro/premium/verify-access';
   var ASTRO_CREATE_JOB_API = '/api/astro/premium/create-job';
@@ -22,6 +23,26 @@
   var ASTRO_STATUS_POLL_MS = 1200;
   var ASTRO_MOCK_JOB_STORAGE_KEY = 'currentAstrologyPdfJobId';
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
+  var ASTRO_AI_DEFAULT_CATEGORY = 'general';
+  var ASTRO_AI_CATEGORIES = [
+    ['general', '종합 리딩', '제 네이탈 차트와 현재 흐름을 종합해서 지금 가장 중요한 방향을 알려주세요.'],
+    ['personality', '성격/재능', '제 차트에서 가장 강한 재능과 반복되는 성향 패턴은 무엇인가요?'],
+    ['career', '직업', '제 네이탈 차트 기준으로 앞으로 커리어가 어떻게 흘러갈까요?'],
+    ['money', '재물', '제 차트에서 돈이 열리는 방식과 주의할 재정 패턴을 알려주세요.'],
+    ['love', '연애/결혼', '올해 연애와 결혼운이 제 차트와 현재 흐름에서 어떻게 보이나요?'],
+    ['relationship', '인간관계', '제 관계 패턴이 반복되는 이유를 점성술로 알려주세요.'],
+    ['family', '감정 패턴', '제 감정 패턴과 안정감을 찾는 방식을 차트로 봐주세요.'],
+    ['yearly', '올해 운세', '앞으로 1년 동안 중요한 기회와 주의할 시기를 알려주세요.'],
+    ['transit', '현재 트랜짓', '요즘 인생이 막히는 이유를 현재 트랜짓으로 봐주세요.'],
+    ['turning_point', '전환점', '지금이 인생 전환점인지, 어떤 선택을 해야 할지 알려주세요.'],
+    ['choice', '지금의 선택', '지금 고민하는 선택에서 별의 흐름이 가리키는 방향을 알고 싶어요.']
+  ];
+  var ASTRO_AI_LOADING_LINES = [
+    '태어난 순간의 별 지도를 계산하고 있어요.',
+    '태양, 달, 상승궁의 균형을 읽고 있어요.',
+    '현재 행성의 흐름을 정리하고 있어요.',
+    '질문에 맞는 점성술 상담을 준비하고 있어요.'
+  ];
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -40,6 +61,7 @@
   var _currentAstroSessionId = '';
   var _currentAstroReportId = '';
   var _currentAstroPaymentRequestId = '';
+  var _selectedAstrologyAICategory = ASTRO_AI_DEFAULT_CATEGORY;
 
   function _qs(id) { return document.getElementById(id); }
   function _detachModalFromResultPage(modal) {
@@ -64,43 +86,43 @@
       male: '남성',
       dateYear: '년 ',
       dateDay: '일 ',
-      chapterProgress: function (step, total, done) { return step + ' / ' + total + ' 챕터 ' + (done ? '완성' : '진행'); },
-      loadingFallback: '점성술 코즈믹 리포트 PDF를 완성하는 중입니다',
-      birthDateRequired: '생년월일 정보가 확인되지 않아 점성술 PDF를 생성할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.',
-      birthTimeRequired: '점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.',
-      timezoneRequired: '점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요.',
-      birthplaceRequired: '점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요.',
+      chapterProgress: function (_step, _total, done) { return done ? '점성술 상담이 열렸습니다.' : '네이탈 차트와 현재 하늘을 읽고 있어요.'; },
+      loadingFallback: '점성술 AI 상담을 준비하는 중입니다',
+      birthDateRequired: '생년월일 정보가 확인되지 않아 점성술 AI 상담을 시작할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.',
+      birthTimeRequired: '출생시간이 없으면 상승궁과 하우스 해석은 제한됩니다. 모름 옵션으로 계속 진행할 수 있습니다.',
+      timezoneRequired: '점성술 AI 상담은 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요.',
+      birthplaceRequired: '점성술 AI 상담은 상승궁·하우스·천정점 계산을 위해 출생지가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요.',
       statusCheckFailed: '상태 확인 실패',
       progressLocal: '행성 좌표와 하우스의 삶의 장면을 정리하는 중입니다',
       progressSeed: '차트의 핵심 상징을 상담 목차로 엮는 중입니다',
-      progressWriting: '12개 챕터의 상담문을 차례로 엮는 중입니다',
-      progressValidated: '챕터 흐름과 문장 결을 마지막으로 살피는 중입니다',
-      progressRendering: '코즈믹 리포트 PDF를 편집하는 중입니다',
-      progressRendered: 'PDF 저장 경로를 확인하는 중입니다',
+      progressWriting: '질문에 맞는 상담 흐름을 엮는 중입니다',
+      progressValidated: '상담 문장의 결을 마지막으로 살피는 중입니다',
+      progressRendering: '점성술 상담 결과를 정리하는 중입니다',
+      progressRendered: '상담 결과를 여는 중입니다',
       progressFailed: '코즈믹 리포트 작성이 완료되지 않았습니다',
       completed: '완료',
-      progressPreparing: '점성술 코즈믹 리포트 PDF를 준비하는 중입니다',
-      animationTitles: ['출생 정보를 확인하는 중입니다', '리포트 세션을 여는 중입니다', '행성 좌표와 하우스를 계산하는 중입니다'],
+      progressPreparing: '점성술 AI 상담을 준비하는 중입니다',
+      animationTitles: ASTRO_AI_LOADING_LINES,
       checkingProfile: '프로필 정보 확인 중',
       preparingPayment: '결제 및 세션 준비 중',
       requestingChart: '출생 차트 계산 요청 중',
       manuscriptNotReady: '점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.',
-      resultNotSaved: '점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.',
-      emptyChapters: '점성술 챕터 데이터가 비어 있습니다.',
-      checkingPdfArchive: 'PDF 저장 정보를 확인하는 중입니다',
-      renderingPdf: 'PDF 편집/렌더링 중',
+      resultNotSaved: '점성술 상담 결과가 아직 완전히 열리지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      emptyChapters: '점성술 상담 결과가 비어 있습니다.',
+      checkingPdfArchive: '상담 결과를 확인하는 중입니다',
+      renderingPdf: '상담 결과 정리 중',
       generationFailed: '생성 실패',
-      statusGenerationFailed: '점성술 PDF 생성에 실패했습니다.',
-      generationTimeout: '점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.',
-      downloadUrlMissing: 'PDF 다운로드 URL이 아직 준비되지 않았습니다.',
-      downloadRequestFailed: function (status) { return 'PDF 다운로드 요청에 실패했습니다. HTTP ' + status; },
+      statusGenerationFailed: '점성술 AI 상담 생성에 실패했습니다.',
+      generationTimeout: '점성술 AI 상담 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.',
+      downloadUrlMissing: '상담 결과가 아직 준비되지 않았습니다.',
+      downloadRequestFailed: function (status) { return '상담 결과 요청에 실패했습니다. HTTP ' + status; },
       paymentModuleMissing: '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.',
-      premiumFeatureName: '점성술 프리미엄 PDF 리포트 생성',
+      premiumFeatureName: '점성술 AI 상담',
       paymentConfirmFailed: '결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
       paymentModuleUnavailable: '결제 모듈을 사용할 수 없습니다.',
-      downloadNotReady: '점성술 프리미엄 원고와 PDF 저장이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.',
-      downloadAuthFailed: 'PDF 다운로드 권한을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.',
-      reportUrlNotReady: '리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.'
+      downloadNotReady: '점성술 상담 결과가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      downloadAuthFailed: '상담 결과 권한을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.',
+      reportUrlNotReady: '상담 결과가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.'
     },
     en: {
       defaultLocation: 'South Korea (Seoul)',
@@ -143,7 +165,7 @@
       downloadUrlMissing: 'The PDF download URL is not ready yet.',
       downloadRequestFailed: function (status) { return 'PDF download request failed. HTTP ' + status; },
       paymentModuleMissing: 'The payment module could not be found. Please refresh the page and try again.',
-      premiumFeatureName: 'Astrology Premium PDF Report',
+      premiumFeatureName: 'Astrology AI Consultation',
       paymentConfirmFailed: 'A problem occurred while confirming payment. Please try again shortly.',
       paymentModuleUnavailable: 'Payment module is not available.',
       downloadNotReady: 'The premium astrology manuscript and PDF save are not complete yet. Please try again shortly.',
@@ -191,7 +213,7 @@
       downloadUrlMissing: 'PDFダウンロードURLがまだ準備されていません。',
       downloadRequestFailed: function (status) { return 'PDFダウンロードリクエストに失敗しました。HTTP ' + status; },
       paymentModuleMissing: '決済モジュールが見つかりません。ページを再読み込みしてからもう一度お試しください。',
-      premiumFeatureName: '占星術プレミアムPDFレポート生成',
+      premiumFeatureName: '占星術AI相談',
       paymentConfirmFailed: '決済確認中に問題が発生しました。しばらくしてからもう一度お試しください。',
       paymentModuleUnavailable: '決済モジュールを利用できません。',
       downloadNotReady: '占星術プレミアム原稿とPDF保存がまだ完了していません。しばらくしてからもう一度お試しください。',
@@ -239,7 +261,7 @@
       downloadUrlMissing: 'PDF 下载 URL 尚未准备好。',
       downloadRequestFailed: function (status) { return 'PDF 下载请求失败。HTTP ' + status; },
       paymentModuleMissing: '找不到支付模块。请刷新页面后重试。',
-      premiumFeatureName: '占星高级 PDF 报告生成',
+      premiumFeatureName: '占星 AI 咨询',
       paymentConfirmFailed: '确认支付时发生问题。请稍后再试。',
       paymentModuleUnavailable: '支付模块不可用。',
       downloadNotReady: '占星高级稿件与 PDF 保存尚未完成。请稍后再试。',
@@ -287,7 +309,7 @@
       downloadUrlMissing: 'PDF 下載 URL 尚未準備好。',
       downloadRequestFailed: function (status) { return 'PDF 下載請求失敗。HTTP ' + status; },
       paymentModuleMissing: '找不到付款模組。請重新整理頁面後再試。',
-      premiumFeatureName: '占星進階 PDF 報告生成',
+      premiumFeatureName: '占星 AI 諮詢',
       paymentConfirmFailed: '確認付款時發生問題。請稍後再試。',
       paymentModuleUnavailable: '付款模組無法使用。',
       downloadNotReady: '占星進階稿件與 PDF 儲存尚未完成。請稍後再試。',
@@ -438,7 +460,7 @@
       : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
     var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
     var safe = _payloadSafe(payload);
-    var err = new Error(_clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Astro PDF request failed.');
+    var err = new Error(_clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Astrology AI consultation request failed.');
     err.status = status || undefined;
     err.code = _clean(safe.code) || 'ASTRO_PREMIUM_REQUEST_FAILED';
     err.originalCode = _clean(safe.originalCode);
@@ -737,14 +759,8 @@
       var d = Number(dateParts && dateParts.day);
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
       var isFemale = !!(femaleEl && femaleEl.checked);
-      var locationData = _readAstroDomLocation() || {
-        label: _astroBookText().defaultLocation,
-        lat: 37.5665,
-        lon: 126.9780,
-        lng: 126.9780,
-        tzOffset: 9,
-        tz: 'Asia/Seoul',
-      };
+      var locationData = _readAstroDomLocation();
+      if (!locationData || !_clean(locationData.label) || !Number.isFinite(Number(locationData.lat)) || !Number.isFinite(Number(locationData.lon))) return null;
       return {
         name: (nameEl && nameEl.value && nameEl.value.trim()) || _astroBookText().defaultUser,
         gender: isFemale ? 'F' : 'M',
@@ -840,7 +856,7 @@
     } else if (/ASTRO_PAYMENT_CANCELLED|결제\s*취소|payment\s*cancel/i.test(raw)) {
       message = '결제가 완료되지 않았습니다. 결제 내역은 생성되지 않았으며, 원하실 때 다시 생성할 수 있습니다.';
     } else if (/internal\s*server\s*error|\bobject\b|ASTRO_PREMIUM|ASTRO_REPORT|ASTRO_CHART|PDF 결과|원고|검증|시간이 초과|생성 실패|생성 오류|HTTP\s*5/i.test(raw)) {
-      message = 'PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 보상 확인 대상이며, 잠시 후 결제 내역을 확인한 뒤 다시 시도해 주세요.';
+      message = '점성술 AI 상담이 완료되지 않았습니다. 결제 권한은 보존되며, 잠시 후 결제 내역을 확인한 뒤 다시 시도해 주세요.';
     }
     var el = _qs('abErrorMsg');
     if (el) el.textContent = message || '생성 중 오류가 발생했습니다.';
@@ -1158,6 +1174,14 @@
       && Number.isFinite(Number(birthInput && birthInput.birthDay));
     if (!hasBirthDate || !hasBirthYmd) {
       return { ok: false, message: _astroBookText().birthDateRequired };
+    }
+    if (!_clean(birthInput && birthInput.birthPlace)
+      || !Number.isFinite(Number(birthInput && birthInput.latitude))
+      || !Number.isFinite(Number(birthInput && birthInput.longitude))) {
+      return { ok: false, message: _astroBookText().birthplaceRequired };
+    }
+    if (!Number.isFinite(Number(birthInput && birthInput.timezoneOffsetHours))) {
+      return { ok: false, message: _astroBookText().timezoneRequired };
     }
     return { ok: true };
   }
@@ -1669,7 +1693,7 @@
 
     function run(resolve, reject, lastErr) {
       if (idx >= endpoints.length) {
-        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '점성술 PDF API 호출에 실패했습니다.'));
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '점성술 AI 상담 API 호출에 실패했습니다.'));
         return;
       }
       var url = endpoints[idx++];
@@ -2116,14 +2140,14 @@
     var gateOptions = {
       featureKey: ASTRO_BILLING_FEATURE_KEY,
       subFeatureKey: ASTRO_BILLING_FEATURE_KEY,
-      categoryKey: 'premium-pdf',
+      categoryKey: 'premium-consultation',
       allowedPaymentModes: ['pass', 'monthly', 'direct'],
       coinPrice: ASTRO_COIN_COST,
       cost: ASTRO_COIN_COST,
       reportType: 'westernAstrologyPremium',
       serviceKey: 'astro-premium',
-      actionType: 'pdf',
-      action: 'generateAstroPremiumPdf',
+      actionType: 'ai-consultation',
+      action: 'generateAstrologyAIConsultation',
       requestId: context.requestId,
       reportId: context.reportId,
       sessionId: context.sessionId,
@@ -2197,6 +2221,373 @@
     return _pendingPaymentPromise;
   };
 
+  function _removeAstroTransAttrs(node) {
+    if (!node || !node.removeAttribute) return;
+    node.removeAttribute('data-cd-trans');
+    node.removeAttribute('data-key');
+    node.removeAttribute('data-cd-trans-attr');
+  }
+
+  function _setAstroText(id, text) {
+    var el = _qs(id);
+    if (!el) return;
+    _removeAstroTransAttrs(el);
+    el.textContent = text;
+  }
+
+  function _installAstrologyAIStyle() {
+    if (document.getElementById('abAiConsultationStyle')) return;
+    var style = document.createElement('style');
+    style.id = 'abAiConsultationStyle';
+    style.textContent = [
+      '#astroBookModal[data-astro-ai-consultation="1"] .lb-start__chapters{display:none!important}',
+      '#astroBookModal[data-astro-ai-consultation="1"] .lb-ch-grid{display:none!important}',
+      '#astroBookModal[data-astro-ai-consultation="1"] #abPdfBtn{display:none!important}',
+      '.ab-ai-controls{margin:18px 0 4px;padding:18px;border:1px solid rgba(251,191,36,.24);background:rgba(18,16,38,.66);border-radius:14px}',
+      '.ab-ai-label{display:block;margin:0 0 10px;color:#f8e7b0;font-weight:800;font-size:.9rem}',
+      '.ab-ai-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}',
+      '.ab-ai-chip{border:1px solid rgba(251,191,36,.34);background:rgba(255,255,255,.06);color:#eadcff;border-radius:999px;padding:8px 12px;font-size:.82rem;cursor:pointer}',
+      '.ab-ai-chip.is-active{background:linear-gradient(135deg,rgba(251,191,36,.28),rgba(168,85,247,.26));color:#fff7d6;border-color:rgba(251,191,36,.68)}',
+      '.ab-ai-question{width:100%;min-height:118px;resize:vertical;border:1px solid rgba(196,181,253,.28);background:rgba(4,8,22,.72);color:#fff;border-radius:12px;padding:13px 14px;font-family:var(--font-body);line-height:1.65}',
+      '.ab-ai-help{margin:8px 0 0;color:rgba(229,221,255,.72);font-size:.8rem;line-height:1.55}',
+      '.ab-ai-result-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}',
+      '.ab-ai-result-card{border:1px solid rgba(251,191,36,.22);background:linear-gradient(180deg,rgba(20,18,42,.88),rgba(8,12,28,.86));border-radius:14px;padding:18px;color:#f8f4ff}',
+      '.ab-ai-result-card h4{margin:0 0 10px;color:#fde68a;font-size:1rem;font-weight:900}',
+      '.ab-ai-result-card p{margin:0;color:#ede7ff;line-height:1.78;white-space:pre-line}',
+      '.ab-ai-result-card ul{margin:10px 0 0;padding-left:18px;color:#ede7ff;line-height:1.72}',
+      '.ab-ai-chart-strip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}',
+      '.ab-ai-chart-strip span{border:1px solid rgba(196,181,253,.24);border-radius:999px;padding:6px 10px;color:#f6e6b9;background:rgba(255,255,255,.05);font-size:.82rem}',
+      '@media(max-width:640px){.ab-ai-controls{padding:14px}.ab-ai-chip{font-size:.78rem;padding:7px 10px}.ab-ai-result-card{padding:15px}}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  function _defaultAstrologyAIQuestion(category) {
+    for (var i = 0; i < ASTRO_AI_CATEGORIES.length; i += 1) {
+      if (ASTRO_AI_CATEGORIES[i][0] === category) return ASTRO_AI_CATEGORIES[i][2];
+    }
+    return ASTRO_AI_CATEGORIES[0][2];
+  }
+
+  function _ensureAstrologyAIControls() {
+    _installAstrologyAIStyle();
+    var existing = _qs('abConsultationControls');
+    if (existing) return existing;
+    var profileSummary = _qs('abProfileSummary');
+    var anchor = profileSummary && profileSummary.closest ? profileSummary.closest('.lb-start__profile-box') : null;
+    var startInfo = document.querySelector('#astroBookModal .lb-start-info');
+    var host = document.createElement('div');
+    host.id = 'abConsultationControls';
+    host.className = 'ab-ai-controls';
+    host.setAttribute('data-cd-marker', 'astrology-ai-consultation-controls-v20260627');
+    host.innerHTML = '<label class="ab-ai-label" for="abAiQuestion">상담 주제</label>'
+      + '<div class="ab-ai-chip-row" id="abAiCategoryRow">'
+      + ASTRO_AI_CATEGORIES.map(function (item) {
+        return '<button type="button" class="ab-ai-chip' + (item[0] === _selectedAstrologyAICategory ? ' is-active' : '') + '" data-ab-ai-category="' + _escapeHtml(item[0]) + '">' + _escapeHtml(item[1]) + '</button>';
+      }).join('')
+      + '</div>'
+      + '<label class="ab-ai-label" for="abAiQuestion">지금 묻고 싶은 질문</label>'
+      + '<textarea id="abAiQuestion" class="ab-ai-question" maxlength="1000" placeholder="예: 제 네이탈 차트 기준으로 올해 직업운과 연애운은 어떻게 흘러갈까요?"></textarea>'
+      + '<p class="ab-ai-help" id="abAiTimeNotice">출생시간을 모르면 상승궁, MC, 하우스 해석은 제한되어 열립니다.</p>';
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(host, anchor.nextSibling);
+    else if (startInfo && startInfo.parentNode) startInfo.parentNode.insertBefore(host, startInfo);
+    else {
+      var startScreen = _qs('abStartScreen');
+      if (startScreen) startScreen.appendChild(host);
+    }
+    var textarea = _qs('abAiQuestion');
+    if (textarea && !_clean(textarea.value)) textarea.value = _defaultAstrologyAIQuestion(_selectedAstrologyAICategory);
+    host.addEventListener('click', function (event) {
+      var button = event.target && event.target.closest ? event.target.closest('[data-ab-ai-category]') : null;
+      if (!button) return;
+      _selectedAstrologyAICategory = _clean(button.getAttribute('data-ab-ai-category')) || ASTRO_AI_DEFAULT_CATEGORY;
+      Array.prototype.forEach.call(host.querySelectorAll('[data-ab-ai-category]'), function (node) {
+        node.classList.toggle('is-active', node === button);
+      });
+      var q = _qs('abAiQuestion');
+      if (q && (!_clean(q.value) || ASTRO_AI_CATEGORIES.some(function (item) { return _clean(q.value) === item[2]; }))) {
+        q.value = _defaultAstrologyAIQuestion(_selectedAstrologyAICategory);
+      }
+    });
+    return host;
+  }
+
+  function _applyAstrologyAIConsultationCopy(profile) {
+    var modal = _qs('astroBookModal');
+    if (!modal) return;
+    _installAstrologyAIStyle();
+    modal.setAttribute('data-astro-ai-consultation', '1');
+    modal.setAttribute('data-cd-marker', 'astrology-ai-consultation-v20260627');
+    modal.setAttribute('aria-label', '점성술 AI 상담');
+    var headerKicker = modal.querySelector('.lb-header-title-en');
+    if (headerKicker) {
+      _removeAstroTransAttrs(headerKicker);
+      headerKicker.textContent = 'ASTROLOGY AI CONSULTATION';
+    }
+    var title = modal.querySelector('.lb-modal__title');
+    if (title) {
+      _removeAstroTransAttrs(title);
+      title.textContent = '점성술 AI 상담';
+    }
+    var subtitle = modal.querySelector('.lb-modal__subtitle');
+    if (subtitle) {
+      _removeAstroTransAttrs(subtitle);
+      subtitle.textContent = '태어난 순간의 별 지도와 현재 행성의 흐름을 바탕으로, 지금 가장 궁금한 질문에 답합니다.';
+    }
+    var badges = modal.querySelectorAll('#abStartScreen .lb-trust-badge');
+    ['네이탈 차트 계산', '태양·달·상승궁', '하우스·애스펙트·트랜짓', '39,000원 · 1회'].forEach(function (text, index) {
+      if (badges[index]) {
+        _removeAstroTransAttrs(badges[index]);
+        badges[index].textContent = text;
+      }
+    });
+    var headline = modal.querySelector('#abStartScreen .lb-marketing-headline');
+    if (headline) {
+      _removeAstroTransAttrs(headline);
+      headline.textContent = '태어난 순간의 별 지도가 지금의 질문에 답합니다';
+    }
+    var sub = modal.querySelector('#abStartScreen .lb-marketing-sub');
+    if (sub) {
+      _removeAstroTransAttrs(sub);
+      sub.textContent = '태양, 달, 상승궁, 하우스와 현재 트랜짓이 보여주는 삶의 방향을 화면에서 바로 확인하세요.';
+    }
+    var whyItems = modal.querySelectorAll('#abStartScreen .lb-why-item');
+    var whyCopy = [
+      ['네이탈 차트 기반 상담', '태양과 달, 상승궁이 삶의 중심성과 감정, 세상에 드러나는 방식을 비춥니다.'],
+      ['하우스와 애스펙트', '사랑, 일, 돈, 감정의 반복 패턴을 계산된 차트 데이터 위에서 읽습니다.'],
+      ['현재 하늘의 흐름', '지금 움직이는 행성의 주제를 질문과 연결해 현실적인 선택 방향으로 정리합니다.']
+    ];
+    Array.prototype.forEach.call(whyItems, function (item, index) {
+      var strong = item.querySelector('strong');
+      var span = item.querySelector('span:not(.lb-why-icon)');
+      if (strong && whyCopy[index]) {
+        _removeAstroTransAttrs(strong);
+        strong.textContent = whyCopy[index][0];
+      }
+      if (span && whyCopy[index]) {
+        _removeAstroTransAttrs(span);
+        span.textContent = whyCopy[index][1];
+      }
+    });
+    var desc = modal.querySelector('#abStartScreen .lb-start-desc');
+    if (desc) {
+      _removeAstroTransAttrs(desc);
+      desc.innerHTML = '네이탈 차트와 현재 하늘의 흐름을 바탕으로 <strong>질문에 직접 답하는 AI 상담</strong>이 열립니다.';
+    }
+    var coin = modal.querySelector('#abStartScreen .lb-coin-label');
+    if (coin) {
+      _removeAstroTransAttrs(coin);
+      coin.innerHTML = '<strong>39,000원</strong> · 결제 또는 이용권 확인 후 AI 상담 생성';
+    }
+    var cta = _qs('abStartBtn');
+    if (cta) {
+      _removeAstroTransAttrs(cta);
+      cta.innerHTML = '<span>점성술 상담 받기</span>';
+    }
+    var note = modal.querySelector('#abStartScreen .lb-start__note');
+    if (note) {
+      _removeAstroTransAttrs(note);
+      note.textContent = 'PDF를 기다리지 않아도 됩니다. 결제 확인 뒤 화면에서 바로 상담 결과를 확인합니다.';
+    }
+    _setAstroText('abLoadingChapterNum', 'AI 상담');
+    _setAstroText('abLoadingChapter', ASTRO_AI_LOADING_LINES[0]);
+    _setAstroText('abMysticQuote', ASTRO_AI_LOADING_LINES[1]);
+    _setAstroText('abProgressText', '네이탈 차트와 현재 하늘을 읽고 있어요.');
+    _setAstroText('abResultName', '');
+    _setAstroText('abResultDate', '');
+    var resultTitle = modal.querySelector('#abResultScreen .lb-result__title');
+    if (resultTitle) {
+      _removeAstroTransAttrs(resultTitle);
+      resultTitle.textContent = '점성술 상담이 열렸습니다.';
+    }
+    var toc = _qs('abToc');
+    if (toc) {
+      toc.setAttribute('aria-label', '점성술 상담 섹션');
+      _removeAstroTransAttrs(toc);
+    }
+    var copyBtn = _qs('abPdfBtn') || _qs('abCopyBtn');
+    if (copyBtn) {
+      copyBtn.id = 'abCopyBtn';
+      copyBtn.removeAttribute('onclick');
+      copyBtn.onclick = function () { window.copyAstroConsultationResult(); };
+      copyBtn.innerHTML = '<span>상담 결과 복사하기</span>';
+    }
+    _ensureAstrologyAIControls();
+    var timeNotice = _qs('abAiTimeNotice');
+    if (timeNotice && profile && profile.birth && !Number.isFinite(Number(profile.birth.hour))) {
+      timeNotice.textContent = '출생시간이 없어 상승궁, MC, 하우스 해석은 제한되어 열립니다.';
+    } else if (timeNotice) {
+      timeNotice.textContent = '출생시간과 출생지가 정확할수록 상승궁, MC, 하우스 해석이 선명해집니다.';
+    }
+  }
+
+  function _getAstrologyAIQuestion() {
+    var textarea = _qs('abAiQuestion');
+    return _clean(textarea && textarea.value) || _defaultAstrologyAIQuestion(_selectedAstrologyAICategory);
+  }
+
+  function _buildAstrologyAIRequestBody(profile, birthInput, paymentContext, accessResponse, astroBase, astroClientEvidenceJson) {
+    var context = _normalizePremiumPayment('', paymentContext || {});
+    var ids = _ensureCurrentAstroGenerationIds();
+    context.sessionId = _clean(context.sessionId || ids.sessionId) || undefined;
+    context.reportSessionId = _clean(context.reportSessionId || context.sessionId || ids.sessionId) || undefined;
+    context.reportId = _clean(context.reportId || ids.reportId) || undefined;
+    context.requestId = _clean(context.requestId || ids.requestId) || undefined;
+    context.premiumAccessToken = _readPremiumAccessToken() || context.premiumAccessToken || undefined;
+    var paymentGrant = context.accessGrant && typeof context.accessGrant === 'object' ? context.accessGrant : null;
+    var paymentConsume = context.consume && typeof context.consume === 'object' ? context.consume : {};
+    var sourceTransactionId = _clean(context.transactionId || context.purchaseId || context.requestId);
+    return {
+      featureKey: ASTRO_FEATURE_KEY,
+      reportType: 'westernAstrologyPremium',
+      serviceType: 'astrology_ai_consultation',
+      premiumAccessToken: context.premiumAccessToken || undefined,
+      sessionId: context.sessionId || ids.sessionId,
+      reportSessionId: context.reportSessionId || ids.sessionId,
+      reportId: context.reportId || ids.reportId,
+      requestId: context.requestId || ids.requestId,
+      transactionId: context.transactionId || undefined,
+      sourceTransactionId: sourceTransactionId || undefined,
+      purchaseId: context.purchaseId || undefined,
+      accessGrant: paymentGrant || (accessResponse && accessResponse.access) || undefined,
+      verifiedAccess: accessResponse && accessResponse.access || undefined,
+      consume: Object.assign({}, paymentConsume, {
+        featureKey: ASTRO_BILLING_FEATURE_KEY,
+        reportType: 'westernAstrologyPremium',
+        transactionId: paymentConsume.transactionId || context.transactionId || sourceTransactionId || undefined,
+        purchaseId: paymentConsume.purchaseId || context.purchaseId || undefined,
+        requestId: paymentConsume.requestId || context.requestId || ids.requestId || undefined,
+        sessionId: paymentConsume.sessionId || context.sessionId || ids.sessionId || undefined,
+        reportSessionId: paymentConsume.reportSessionId || context.reportSessionId || ids.sessionId || undefined,
+        reportId: paymentConsume.reportId || context.reportId || ids.reportId || undefined,
+        premiumAccessToken: context.premiumAccessToken || undefined,
+        accessGrant: paymentGrant || undefined
+      }),
+      payment: context,
+      _paymentContext: context,
+      paymentContext: context,
+      birthInput: birthInput,
+      profile: profile,
+      astroBase: astroBase && astroBase.chart ? astroBase : undefined,
+      astroClientEvidenceJson: astroClientEvidenceJson,
+      category: _selectedAstrologyAICategory || ASTRO_AI_DEFAULT_CATEGORY,
+      question: _getAstrologyAIQuestion(),
+      dryRun: false
+    };
+  }
+
+  function _postAstrologyAIConsultation(body) {
+    return _postAstrologyMockApi(ASTRO_AI_CONSULTATION_API, body, 'ai-consultation');
+  }
+
+  function _startAstrologyAILoading() {
+    _stopProgressAnimation();
+    var idx = 0;
+    var bar = _qs('abProgressBar');
+    var txt = _qs('abProgressText');
+    var num = _qs('abLoadingChapterNum');
+    var ch = _qs('abLoadingChapter');
+    var quote = _qs('abMysticQuote');
+    function tick() {
+      var pct = Math.min(92, 16 + idx * 14);
+      if (bar) bar.style.width = pct + '%';
+      if (txt) txt.textContent = ASTRO_AI_LOADING_LINES[idx % ASTRO_AI_LOADING_LINES.length];
+      if (num) num.textContent = idx < 2 ? '네이탈 차트' : 'AI 상담';
+      if (ch) ch.textContent = ASTRO_AI_LOADING_LINES[(idx + 1) % ASTRO_AI_LOADING_LINES.length];
+      if (quote) quote.textContent = ASTRO_AI_LOADING_LINES[(idx + 2) % ASTRO_AI_LOADING_LINES.length];
+      idx = (idx + 1) % ASTRO_AI_LOADING_LINES.length;
+    }
+    tick();
+    _progressTimer = setInterval(tick, 1700);
+  }
+
+  function _renderAstrologyAIList(items) {
+    var list = Array.isArray(items) ? items.map(_clean).filter(Boolean) : [];
+    if (!list.length) return '';
+    return '<ul>' + list.map(function (item) { return '<li>' + _escapeHtml(item) + '</li>'; }).join('') + '</ul>';
+  }
+
+  function _renderAstrologyAIParagraph(text) {
+    var value = _clean(text);
+    if (!value) return '';
+    return '<p>' + _renderAstroSectionBody(value) + '</p>';
+  }
+
+  function _buildAstrologyAISections(result) {
+    var r = result || {};
+    var core = r.chartCore || {};
+    var patterns = r.chartPatterns || {};
+    var transit = r.transitFlow || {};
+    var timing = r.timing || {};
+    return [
+      { title: '상담 요약', body: r.summary },
+      { title: '나의 별 지도 핵심', body: [core.sunSign ? '태양 ' + core.sunSign : '', core.moonSign ? '달 ' + core.moonSign : '', core.ascendant ? '상승궁 ' + core.ascendant : '', core.midheaven ? 'MC ' + core.midheaven : '', core.coreInterpretation || ''].filter(Boolean).join('\n') },
+      { title: '차트의 강한 패턴', body: patterns.interpretation, items: [].concat(patterns.dominantElements || [], patterns.dominantModes || [], patterns.majorAspects || []) },
+      { title: '현재 트랜짓 흐름', body: transit.interpretation, items: transit.highlights || [] },
+      { title: '질문 주제별 해석', body: r.topicAnswer },
+      { title: '기회와 주의할 시기', body: timing.note, items: [].concat(timing.opportunities || [], timing.cautions || []) },
+      { title: '현실적인 행동 전략', items: r.actionGuide || [] },
+      { title: '마지막 조언', body: r.closingMessage },
+      { title: '후속 질문 추천', items: r.followUpQuestions || [] }
+    ].filter(function (section) {
+      return _clean(section.body) || (Array.isArray(section.items) && section.items.length);
+    });
+  }
+
+  function _renderAstrologyAIConsultationResult(payload) {
+    _resultPayload = payload || {};
+    var result = _resultPayload.result || {};
+    var chartSummary = _resultPayload.chartSummary || {};
+    var core = chartSummary.coreSigns || {};
+    var profile = chartSummary.birthInfo || {};
+    var toc = _qs('abToc');
+    var content = _qs('abChapterContent');
+    var n = _qs('abResultName');
+    var d = _qs('abResultDate');
+    if (n) n.textContent = '점성술 상담이 열렸습니다.';
+    if (d) d.textContent = [profile.birthDate, profile.birthTimeKnown ? profile.birthTime : '출생시간 모름', _resultPayload.provider].filter(Boolean).join(' · ');
+    var sections = _buildAstrologyAISections(result);
+    if (!sections.length && _clean(result.rawText)) sections = [{ title: '점성술 AI 상담', body: result.rawText }];
+    var strip = '<div class="ab-ai-chart-strip">'
+      + (core.sunSign ? '<span>태양 ' + _escapeHtml(core.sunSign) + '</span>' : '')
+      + (core.moonSign ? '<span>달 ' + _escapeHtml(core.moonSign) + '</span>' : '')
+      + (core.ascendant ? '<span>상승궁 ' + _escapeHtml(core.ascendant) + '</span>' : '')
+      + (core.midheaven ? '<span>MC ' + _escapeHtml(core.midheaven) + '</span>' : '')
+      + (!profile.birthTimeKnown ? '<span>출생시간 미상 · 하우스 제한</span>' : '')
+      + '</div>';
+    if (toc) {
+      toc.innerHTML = sections.map(function (section, index) {
+        return '<button type="button" class="lb-toc-item' + (index === 0 ? ' active' : '') + '" data-ab-ai-section="' + index + '"><span>' + String(index + 1).padStart(2, '0') + '</span><strong>' + _escapeHtml(section.title) + '</strong></button>';
+      }).join('');
+    }
+    if (content) {
+      content.innerHTML = strip + '<div class="ab-ai-result-grid">' + sections.map(function (section, index) {
+        return '<article class="ab-ai-result-card" data-ab-ai-result-section="' + index + '"' + (index ? ' style="display:none;"' : '') + '><h4>' + _escapeHtml(section.title) + '</h4>'
+          + _renderAstrologyAIParagraph(section.body)
+          + _renderAstrologyAIList(section.items)
+          + '</article>';
+      }).join('') + '</div>';
+    }
+    if (toc) {
+      Array.prototype.forEach.call(toc.querySelectorAll('[data-ab-ai-section]'), function (button) {
+        button.addEventListener('click', function () {
+          var index = Number(button.getAttribute('data-ab-ai-section') || 0);
+          Array.prototype.forEach.call(toc.querySelectorAll('.lb-toc-item'), function (item) { item.classList.remove('active'); });
+          button.classList.add('active');
+          if (content) {
+            Array.prototype.forEach.call(content.querySelectorAll('[data-ab-ai-result-section]'), function (node) {
+              node.style.display = Number(node.getAttribute('data-ab-ai-result-section') || 0) === index ? '' : 'none';
+            });
+          }
+        });
+      });
+    }
+    var bar = _qs('abProgressBar');
+    var txt = _qs('abProgressText');
+    if (bar) bar.style.width = '100%';
+    if (txt) txt.textContent = '점성술 상담이 열렸습니다.';
+  }
+
   window.openAstroBookModal = function () {
     _logFlow('CARD_CLICK');
     _logStage('ModalOpen', {});
@@ -2219,9 +2610,11 @@
 
     if (profile && profile.birth && profile.birth.year) {
       window.__cdActiveBirthProfile = profile;
+      _applyAstrologyAIConsultationCopy(profile);
       _renderProfileSummary(profile);
       _showScreen('abStartScreen');
     } else {
+      _applyAstrologyAIConsultationCopy(null);
       _showScreen('abNoProfileScreen');
     }
 
@@ -2229,13 +2622,7 @@
     document.body.style.overflow = 'hidden';
     try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
 
-    _fetchCanonicalChapters().then(function (chapters) {
-      if (Array.isArray(chapters) && chapters.length) {
-        _canonicalChapters = chapters;
-        ASTRO_TOTAL_CHAPTERS = chapters.length;
-      }
-    }).catch(function () {});
-    _recoverAstrologyMockJob();
+    _canonicalChapters = [];
   };
 
   window.closeAstroBookModal = function () {
@@ -2286,59 +2673,29 @@
       return;
     }
 
-    var astroBase = _buildAstroBase(profile);
+    _applyAstrologyAIConsultationCopy(profile);
+    var question = _getAstrologyAIQuestion();
+    if (!_clean(question) || _clean(question).length < 5) {
+      _setError('지금 묻고 싶은 질문을 5자 이상 입력해 주세요.');
+      return;
+    }
+
+    var astroBase = birthInput.isTimeUnknown ? null : _buildAstroBase(profile);
     var astroClientEvidenceJson = _buildAstroClientEvidenceJson(profile, birthInput);
     var generationContext = _ensureCurrentAstroGenerationIds();
     var sessionId = generationContext.sessionId;
     var reportId = generationContext.reportId;
     var requestId = generationContext.requestId;
-    var total = _getTotalChapters();
 
     function buildRequestBody(paymentContext, accessResponse) {
-      var context = _normalizePremiumPayment('', paymentContext || {});
-      context.sessionId = _clean(context.sessionId || sessionId) || undefined;
-      context.reportSessionId = _clean(context.reportSessionId || context.sessionId || sessionId) || undefined;
-      context.reportId = _clean(context.reportId || reportId) || undefined;
-      context.requestId = _clean(context.requestId || requestId) || undefined;
-      context.premiumAccessToken = _readPremiumAccessToken() || context.premiumAccessToken || undefined;
-      var paymentGrant = context.accessGrant && typeof context.accessGrant === 'object' ? context.accessGrant : null;
-      var paymentConsume = context.consume && typeof context.consume === 'object' ? context.consume : {};
-      var sourceTransactionId = _clean(context.transactionId || context.purchaseId || context.requestId);
-      return {
-        featureKey: ASTRO_FEATURE_KEY,
-        reportType: 'westernAstrologyPremium',
-        premiumAccessToken: context.premiumAccessToken || undefined,
-        sessionId: sessionId,
-        reportSessionId: context.reportSessionId || sessionId,
-        jobId: reportId,
-        reportId: reportId,
-        transactionId: context.transactionId || undefined,
-        sourceTransactionId: sourceTransactionId || undefined,
-        purchaseId: context.purchaseId || undefined,
-        requestId: context.requestId || requestId,
-        accessGrant: paymentGrant || (accessResponse && accessResponse.access) || undefined,
-        verifiedAccess: accessResponse && accessResponse.access || undefined,
-        consume: Object.assign({}, paymentConsume, {
-          featureKey: ASTRO_BILLING_FEATURE_KEY,
-          reportType: 'westernAstrologyPremium',
-          transactionId: paymentConsume.transactionId || context.transactionId || sourceTransactionId || undefined,
-          purchaseId: paymentConsume.purchaseId || context.purchaseId || undefined,
-          requestId: paymentConsume.requestId || context.requestId || requestId || undefined,
-          sessionId: paymentConsume.sessionId || sessionId || undefined,
-          reportSessionId: paymentConsume.reportSessionId || context.reportSessionId || sessionId || undefined,
-          reportId: paymentConsume.reportId || reportId || undefined,
-          premiumAccessToken: context.premiumAccessToken || undefined,
-          accessGrant: paymentGrant || undefined
-        }),
-        payment: context,
-        _paymentContext: context,
-        paymentContext: context,
-        birthInput: birthInput,
-        profile: profile,
-        astroBase: astroBase && astroBase.chart ? astroBase : undefined,
-        astroClientEvidenceJson: astroClientEvidenceJson,
-        debugMockAccess: true,
-      };
+      var body = _buildAstrologyAIRequestBody(profile, birthInput, paymentContext, accessResponse, astroBase, astroClientEvidenceJson);
+      body.sessionId = _clean(body.sessionId || sessionId) || undefined;
+      body.reportSessionId = _clean(body.reportSessionId || sessionId) || undefined;
+      body.reportId = _clean(body.reportId || reportId) || undefined;
+      body.requestId = _clean(body.requestId || requestId) || undefined;
+      body.question = question;
+      body.category = _selectedAstrologyAICategory || ASTRO_AI_DEFAULT_CATEGORY;
+      return body;
     }
 
     function verifyAccess(paymentPayload) {
@@ -2353,11 +2710,11 @@
     }
 
     function verifyAccessWithPaymentFallback() {
-      _setLoadingProgress(0, total, '결제 검증 중입니다.', false, 5);
+      _setAstroText('abProgressText', '결제 권한을 확인하고 있어요.');
       return verifyAccess(null).catch(function (err) {
         var status = Number(err && err.status || 0);
         if (status !== 402) throw err;
-        _setLoadingProgress(0, total, _astroBookText().preparingPayment, false, 5);
+        _setAstroText('abProgressText', '결제 또는 이용권을 확인하고 있어요.');
         return _ensurePremiumPaymentAsync().then(function (payment) {
           return verifyAccess(payment);
         });
@@ -2367,49 +2724,23 @@
     _generating = true;
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
-    _setLoadingProgress(0, total, _astroBookText().checkingProfile, false, 0);
-    _renderAstrologyChapterStatusList([]);
-    _logStage('PaymentAndSessionStart', { totalChapters: total });
+    _startAstrologyAILoading();
+    _logStage('AIConsultationStart', { category: _selectedAstrologyAICategory, questionLength: question.length });
 
     verifyAccessWithPaymentFallback()
       .then(function (verified) {
         _markPremiumAccessVerified(25 * 60 * 1000);
-        _setLoadingProgress(0, total, '점성술 PDF 생성 준비 중입니다.', false, 10);
+        _setAstroText('abProgressText', '네이탈 차트로 상담을 준비하고 있어요.');
         _logStage('AccessVerified', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId, reportId: reportId });
-        return _postAstrologyCreateJob(verified.requestBody);
-      })
-      .then(function (createResponse) {
-        var statusData = _applyAstroStatusProgress(createResponse);
-        var jobId = _clean(statusData.jobId || statusData.id || createResponse.jobId || reportId);
-        if (!jobId) throw new Error('점성술 PDF Job ID가 확인되지 않았습니다.');
-        _saveAstrologyMockJobId(jobId);
-        if (statusData.status === 'completed') {
-          return _fetchAstrologyResult(jobId).then(function (resultPayload) {
-            var result = _statusData(resultPayload);
-            return result.result || result;
-          });
-        }
-        if (statusData.status === 'queued' || statusData.status === 'created' || statusData.status === 'access_verified') {
-          _postAstrologyGenerateMock(jobId).catch(function (err) {
-            _logError(err, { stage: 'generate-mock', reportId: jobId });
-          });
-        }
-        return _waitForAstrologyMockCompletion(jobId);
+        return _postAstrologyAIConsultation(verified.requestBody);
       })
       .then(function (response) {
-        total = _getTotalChapters();
-        if (!_isCompletedReportReady(response)) {
-          throw new Error(_astroBookText().resultNotSaved);
-        }
         _resultPayload = response;
-        _chapters = Array.isArray(response.chapters) ? response.chapters : [];
-        if (!_chapters.length) throw new Error(_astroBookText().emptyChapters);
-        ASTRO_TOTAL_CHAPTERS = _chapters.length;
-        total = _getTotalChapters();
-        _setLoadingProgress(total, total, '점성술 PDF가 완성되었습니다.', true, 100);
-        _renderAstrologyChapterStatusList(_chapters);
-        _renderResult(_chapters, response.payload || {});
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, provider: response.provider || 'mock' });
+        if (!response || response.ok === false || !response.result) throw new Error(_astroBookText().resultNotSaved);
+        _chapters = [];
+        _canonicalChapters = [];
+        _renderAstrologyAIConsultationResult(response);
+        _logStage('AIConsultationSuccess', { provider: response.provider || 'unknown', category: response.category || _selectedAstrologyAICategory });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {
@@ -2423,23 +2754,19 @@
       });
   };
 
-  window.downloadAstroBookPdf = function () {
-    if (!_isCompletedReportReady(_resultPayload)) {
+  window.copyAstroConsultationResult = function () {
+    var raw = _clean(_resultPayload && _resultPayload.result && (_resultPayload.result.rawText || _resultPayload.result.summary));
+    if (!raw) {
       _setError(_astroBookText().downloadNotReady);
       return;
     }
-    var url = _resolveAstroStoredUrl(_resultPayload);
-
-    if (url) {
-      var filename = ((_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.pdf').replace(/\.html?$/i, '.pdf');
-      _downloadAstroBookUrl(url, filename).catch(function (err) {
-        _logError(err, { stage: 'download' });
-        _setError(_astroBookText().downloadAuthFailed);
-      });
-      return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(raw).catch(function () {});
     }
+  };
 
-    alert(_astroBookText().reportUrlNotReady);
+  window.downloadAstroBookPdf = function () {
+    window.copyAstroConsultationResult();
   };
 
   document.addEventListener('click', function (e) {

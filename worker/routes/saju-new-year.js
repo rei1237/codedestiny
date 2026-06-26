@@ -1,6 +1,7 @@
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { createPremiumAccessToken, verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
@@ -60,6 +61,39 @@ import {
 
 const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
+const NEW_YEAR_AI_CHAPTER_COUNT = 6;
+const NEW_YEAR_AI_CHAPTER_BLUEPRINT = Object.freeze([
+  {
+    no: 1,
+    title: "제 1장. {YEAR}년 올해의 큰 기운과 상담 요약",
+    categories: ["총운", "원국과 세운", "오행 균형", "십성 흐름", "대운과 세운의 상호작용"],
+  },
+  {
+    no: 2,
+    title: "제 2장. {YEAR}년 일과 커리어의 흐름",
+    categories: ["직업운", "이직", "창업", "시험", "역할과 평가"],
+  },
+  {
+    no: 3,
+    title: "제 3장. {YEAR}년 재물과 수입의 결",
+    categories: ["재물운", "수입", "계약", "소비", "투자와 손실 관리"],
+  },
+  {
+    no: 4,
+    title: "제 4장. {YEAR}년 관계와 인연의 온도",
+    categories: ["인간관계", "연애", "재회", "가족", "협업과 거리감"],
+  },
+  {
+    no: 5,
+    title: "제 5장. {YEAR}년 건강과 마음의 위험관리",
+    categories: ["건강", "멘탈", "피로", "감정 기복", "생활 리듬"],
+  },
+  {
+    no: 6,
+    title: "제 6장. {YEAR}년 좋은 시기와 행동 로드맵",
+    categories: ["좋은 시기", "조심할 시기", "월별 Go/Stop", "분기별 전략", "올해의 실행 루틴"],
+  },
+]);
 
 export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
   generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
@@ -4587,6 +4621,61 @@ function assertNewYearAIGeminiReady(env = {}) {
   return readiness;
 }
 
+function readNewYearAIConsultationAccessToken(request, body = {}) {
+  return clean(
+    request.headers.get("x-new-year-ai-access-token")
+    || request.headers.get("x-consultation-access-token")
+    || body?.consultationAccessToken
+    || body?.consultationToken
+    || body?.newYearAIConsultationToken
+    || "",
+  );
+}
+
+function newYearAIConsultationTokenMatches(tokenPayload = {}, binding = {}) {
+  const tokenReportId = clean(tokenPayload.reportId);
+  const tokenSessionId = clean(tokenPayload.sessionId || tokenPayload.reportSessionId);
+  const tokenRequestId = clean(tokenPayload.requestId);
+  const requestReportId = clean(binding.reportId);
+  const requestSessionId = clean(binding.sessionKey || binding.sessionId);
+  const requestRequestId = clean(binding.requestId);
+  return Boolean(
+    tokenReportId && requestReportId && tokenReportId === requestReportId
+    || tokenSessionId && requestSessionId && tokenSessionId === requestSessionId
+    || tokenRequestId && requestRequestId && tokenRequestId === requestRequestId
+  );
+}
+
+async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, binding = {}) {
+  const token = readNewYearAIConsultationAccessToken(request, body);
+  if (!token) {
+    throw Object.assign(new Error("신년운세 AI 상담 세션 권한이 필요합니다. 결제 후 상담 생성을 다시 시작해 주세요."), {
+      code: "NEW_YEAR_AI_SESSION_TOKEN_REQUIRED",
+      status: 402,
+    });
+  }
+  const verified = await verifyPremiumAccessToken(token, env, {
+    userId: String(auth?.userId || ""),
+    reportType: "sajuNewYear",
+  });
+  if (!verified?.ok || !newYearAIConsultationTokenMatches(verified.payload, binding)) {
+    throw Object.assign(new Error("신년운세 AI 상담 세션 권한이 유효하지 않습니다. 결제 후 상담 생성을 다시 시작해 주세요."), {
+      code: "NEW_YEAR_AI_SESSION_TOKEN_INVALID",
+      status: 402,
+    });
+  }
+  const payload = verified.payload || {};
+  return {
+    ok: true,
+    accessType: "consultation_access_token",
+    reportType: "sajuNewYear",
+    matchedTransactionId: clean(payload.transactionId || payload.purchaseId || payload.requestId),
+    featureKey: clean(payload.featureKey || FEATURE_KEY),
+    chargedCoins: Math.max(0, Number(payload.chargedCoins || 0)),
+    tokenPayload: payload,
+  };
+}
+
 function compactJsonForPrompt(value, maxChars = 9000) {
   const compacted = compactNewYearObject(value);
   let text = "";
@@ -4601,7 +4690,7 @@ function compactJsonForPrompt(value, maxChars = 9000) {
 
 function buildNewYearAIChapterBlueprint(targetYear) {
   const year = Number(targetYear || resolveDefaultTargetYear()) || resolveDefaultTargetYear();
-  return NEW_YEAR_CHAPTERS.map((chapter, index) => ({
+  return NEW_YEAR_AI_CHAPTER_BLUEPRINT.map((chapter, index) => ({
     no: Number(chapter.no || index + 1),
     title: clean(chapter.title).replace(/\{YEAR\}/g, String(year)),
     categories: Array.isArray(chapter.categories) ? chapter.categories.map((item) => clean(item)).filter(Boolean) : [],
@@ -4663,7 +4752,7 @@ function buildNewYearAIConsultationPrompt({ normalized, yearlyNormalized, body =
   return [
     "아래 계산 데이터에 근거해 신년운세 AI 상담을 1장씩 순차 작성한다.",
     "질문에 직접 답하고, 계산 데이터에 없는 세부 날짜나 월운은 지어내지 않는다.",
-    "기존 10장 신년운세 구조는 전체 상담 설계도로만 사용한다.",
+    "기존 신년운세 목차는 6장 안정형 상담 설계도로 압축해 사용한다.",
     "실제 LLM 호출은 한 번에 한 장만 작성한다.",
     "사용자가 선택한 질문 카테고리는 해당 장과 관련 장에서 더 깊고 구체적으로 다룬다.",
     "",
@@ -4676,15 +4765,16 @@ function buildNewYearAIConsultationPrompt({ normalized, yearlyNormalized, body =
     "[분석 연도]",
     String(yearlyNormalized?.targetYear || normalized?.targetYear || ""),
     "",
-    "[10장 상담 설계도]",
+    "[6장 상담 설계도]",
     compactJsonForPrompt(chapterBlueprint, 5000),
     "",
     "[계산된 명식/대운/세운/월운 context]",
     compactJsonForPrompt(context, 16000),
     "",
     "[생성 방식]",
-    "ready, start, chapter, finalize 단계로 처리한다.",
+    "ready, start, focus, chapter, finalize 단계로 처리한다.",
     "chapter 단계에서는 선택된 chapterNo 한 장만 JSON으로 작성한다.",
+    "focus 단계에서는 사용자의 실제 질문을 가장 먼저 깊게 답한다.",
     hasMonthly
       ? "월운 데이터가 있으므로 월별 또는 분기별 흐름을 계산 근거와 함께 정리한다."
       : "월운 데이터가 부족하면 정확한 월별 예측을 꾸며내지 말고 분기·계절 단위로만 설명한다.",
@@ -4696,19 +4786,23 @@ function buildNewYearAIChapterPrompt({ normalized, yearlyNormalized, body = {}, 
   const context = buildNewYearAIContext({ normalized, yearlyNormalized, body, question, category });
   const targetYear = yearlyNormalized?.targetYear || normalized?.targetYear || resolveDefaultTargetYear();
   const chapterBlueprint = buildNewYearAIChapterBlueprint(targetYear);
-  const no = clamp(Number(chapterNo || 1) || 1, 1, chapterBlueprint.length || 10);
+  const no = clamp(Number(chapterNo || 1) || 1, 1, chapterBlueprint.length || NEW_YEAR_AI_CHAPTER_COUNT);
   const chapterSpec = chapterBlueprint.find((chapter) => Number(chapter.no) === no) || chapterBlueprint[no - 1] || {};
   const hasMonthly = Array.isArray(yearlyNormalized?.monthlyCalculation) && yearlyNormalized.monthlyCalculation.length > 0;
   const depthRule = no === 1
     ? "이 장은 총운·원국·세운·오행·십성의 큰 방향을 중심으로 쓴다."
-    : no >= 2 && no <= 6
-      ? "이 장은 커리어, 재물, 인간관계, 연애·가족, 건강·심리 중 해당 주제를 전반적으로 다룬다."
-      : no >= 7 && no <= 9
-        ? "이 장은 분기별 판단, 위험관리, 월별 Go/Stop 흐름을 다룬다."
-        : "이 장은 올해의 최종 로드맵과 1년 실행 루틴으로 마무리한다.";
+    : no === 2
+      ? "이 장은 일, 커리어, 이직, 창업, 시험, 역할과 평가를 다룬다."
+      : no === 3
+        ? "이 장은 재물, 수입, 계약, 소비, 투자와 손실 관리를 다룬다."
+        : no === 4
+          ? "이 장은 관계, 연애, 재회, 가족, 협업과 거리감을 다룬다."
+          : no === 5
+            ? "이 장은 건강, 멘탈, 피로, 감정 기복, 생활 리듬을 다룬다."
+            : "이 장은 좋은 시기, 조심할 시기, 월별 Go/Stop, 분기별 전략, 올해의 실행 루틴으로 마무리한다.";
   return [
     `아래 계산 데이터에 근거해 신년운세 AI 상담 제 ${no}장만 작성한다.`,
-    "전체 10장을 한 번에 쓰지 말고, 요청받은 한 장의 상담 카드만 작성한다.",
+    "전체 6장을 한 번에 쓰지 말고, 요청받은 한 장의 상담 카드만 작성한다.",
     "사용자의 질문에는 이 장의 주제 안에서 직접 답한다.",
     "계산 데이터에 없는 날짜, 사건, 월운은 지어내지 않는다.",
     "단정과 공포 표현을 피하고 선택과 전략 중심으로 말한다.",
@@ -4726,7 +4820,7 @@ function buildNewYearAIChapterPrompt({ normalized, yearlyNormalized, body = {}, 
     "[이번에 작성할 장]",
     compactJsonForPrompt(chapterSpec, 3000),
     "",
-    "[10장 전체 설계도]",
+    "[6장 전체 설계도]",
     compactJsonForPrompt(chapterBlueprint, 5000),
     "",
     "[계산된 명식/대운/세운/월운 context]",
@@ -4742,8 +4836,7 @@ function buildNewYearAIChapterPrompt({ normalized, yearlyNormalized, body = {}, 
     "resultPatch는 이 장에서 전체 결과에 보탤 요약 필드다.",
     "제1장은 resultPatch.summary와 resultPatch.yearlyFlow를 채운다.",
     "사용자 질문 카테고리와 관련된 장은 resultPatch.topicAnswer를 채운다.",
-    "제7~9장은 resultPatch.timing.goodPeriods, resultPatch.timing.cautionPeriods, resultPatch.timing.monthlyNotes 중 가능한 항목을 채운다.",
-    "제10장은 resultPatch.actionGuide, resultPatch.closingMessage, resultPatch.followUpQuestions를 채운다.",
+    "제6장은 resultPatch.timing.goodPeriods, resultPatch.timing.cautionPeriods, resultPatch.timing.monthlyNotes, resultPatch.actionGuide, resultPatch.closingMessage, resultPatch.followUpQuestions 중 가능한 항목을 채운다.",
     hasMonthly
       ? "월운 데이터가 있으므로 월별 흐름은 계산 근거가 있는 범위에서만 정리한다."
       : "월운 데이터가 부족하면 월별 예측을 꾸며내지 말고 분기·계절 단위로만 설명한다.",
@@ -4757,8 +4850,8 @@ function buildNewYearAIFocusPrompt({ normalized, yearlyNormalized, body = {}, qu
   const hasMonthly = Array.isArray(yearlyNormalized?.monthlyCalculation) && yearlyNormalized.monthlyCalculation.length > 0;
   return [
     "아래 계산 데이터에 근거해 사용자의 질문을 중심으로 신년운세 집중 상담을 작성한다.",
-    "이 상담은 10장 전체 상담과 별개로, 사용자가 실제로 물은 주제를 가장 깊게 다루는 답변이다.",
-    "10장 전체 내용을 반복하지 말고, 질문과 관련된 명식·대운·세운·월운 근거를 골라 직접 답한다.",
+    "이 상담은 6장 전체 상담과 별개로, 사용자가 실제로 물은 주제를 가장 깊게 다루는 답변이다.",
+    "6장 전체 내용을 반복하지 말고, 질문과 관련된 명식·대운·세운·월운 근거를 골라 직접 답한다.",
     "계산 데이터에 없는 날짜, 사건, 월운은 지어내지 않는다.",
     "무섭게 단정하지 말고 선택과 전략 중심으로 말한다.",
     "",
@@ -4771,7 +4864,7 @@ function buildNewYearAIFocusPrompt({ normalized, yearlyNormalized, body = {}, qu
     "[분석 연도]",
     String(targetYear),
     "",
-    "[10장 전체 설계도]",
+    "[6장 전체 설계도]",
     compactJsonForPrompt(chapterBlueprint, 5000),
     "",
     "[계산된 명식/대운/세운/월운 context]",
@@ -4827,7 +4920,7 @@ function normalizeNewYearAISections(value, limit = 5) {
   }).filter((item) => item.body).slice(0, limit);
 }
 
-function normalizeNewYearAIChapterConsultations(value, targetYear, limit = 10) {
+function normalizeNewYearAIChapterConsultations(value, targetYear, limit = NEW_YEAR_AI_CHAPTER_COUNT) {
   const blueprint = buildNewYearAIChapterBlueprint(targetYear);
   const list = Array.isArray(value) ? value : [];
   return list.map((item, index) => {
@@ -4912,6 +5005,7 @@ function normalizeNewYearAIResultPatch(value = {}) {
     summary: clean(source.summary),
     yearlyFlow: clean(source.yearlyFlow),
     topicAnswer: clean(source.topicAnswer),
+    questionFocus: clean(source.questionFocus || source.topicAnswer),
     timing: {
       goodPeriods: normalizeStringList(timing.goodPeriods, 8),
       cautionPeriods: normalizeStringList(timing.cautionPeriods, 8),
@@ -4983,7 +5077,10 @@ function normalizeNewYearAIFocusResponse(rawText = "") {
   }
   try {
     const parsed = JSON.parse(jsonText);
-    const resultPatch = normalizeNewYearAIResultPatch(parsed);
+    const resultPatch = normalizeNewYearAIResultPatch({
+      ...parsed,
+      questionFocus: parsed.questionFocus || parsed.topicAnswer,
+    });
     if (!clean(resultPatch.topicAnswer)) {
       throw new Error("topicAnswer missing");
     }
@@ -5014,7 +5111,7 @@ function uniqueNewYearAIStrings(values = [], limit = 12) {
 }
 
 function mergeNewYearAIConsultationResult({ chapters = [], patches = [], focusPatch = null, targetYear = resolveDefaultTargetYear(), rawTexts = [] } = {}) {
-  const chapterConsultations = normalizeNewYearAIChapterConsultations(chapters, targetYear, 10);
+  const chapterConsultations = normalizeNewYearAIChapterConsultations(chapters, targetYear, NEW_YEAR_AI_CHAPTER_COUNT);
   const normalizedFocusPatch = focusPatch ? normalizeNewYearAIResultPatch(focusPatch) : null;
   const normalizedPatches = [
     ...(Array.isArray(patches) ? patches : []).map(normalizeNewYearAIResultPatch),
@@ -5039,7 +5136,7 @@ function mergeNewYearAIConsultationResult({ chapters = [], patches = [], focusPa
     ...chapterTakeaways,
   ], 10);
   const closingMessage = firstPatchText("closingMessage")
-    || clean(chapterConsultations.find((chapter) => Number(chapter.no) === 10)?.overview)
+    || clean(chapterConsultations.find((chapter) => Number(chapter.no) === NEW_YEAR_AI_CHAPTER_COUNT)?.overview)
     || "새해의 흐름은 단정된 답보다 선택의 결에서 열립니다. 지금의 질문을 한 걸음 더 좁히면 올해의 길은 더 선명하게 드러납니다.";
   const followUpQuestions = uniqueNewYearAIStrings([
     ...normalizedPatches.flatMap((patch) => patch?.followUpQuestions || []),
@@ -5051,6 +5148,7 @@ function mergeNewYearAIConsultationResult({ chapters = [], patches = [], focusPa
     summary,
     yearlyFlow,
     topicAnswer,
+    questionFocus: clean(normalizedFocusPatch?.questionFocus || normalizedFocusPatch?.topicAnswer || topicAnswer),
     chapterConsultations,
     timing: {
       goodPeriods,
@@ -7527,35 +7625,45 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-new-year-ai-${targetYear}-${Date.now().toString(36)}`);
   const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
   const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
+  const requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || "");
+  const isStartRoute = /\/start$/.test(routePath);
 
   let access;
-  try {
-    access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
-      ...body,
-      featureKey,
-      reportType: "sajuNewYear",
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: routePath,
-    });
-  } catch (error) {
-    const status = Number(error?.status || 500);
-    const code = status === 403 || status === 402 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
-    throw Object.assign(new Error(code === "ENTITLEMENT_REQUIRED"
-      ? "신년운세 AI 상담 권한이 필요합니다. 단건 결제, 월정석 크레딧, 이용권 중 하나로 이용할 수 있습니다."
-      : "결제 권한 확인 중 서버 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."), {
-      code,
-      status: newYearErrorStatus(code, status),
-    });
-  }
+  if (isStartRoute) {
+    try {
+      access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+        ...body,
+        featureKey,
+        reportType: "sajuNewYear",
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: routePath,
+      });
+    } catch (error) {
+      const status = Number(error?.status || 500);
+      const code = status === 403 || status === 402 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
+      throw Object.assign(new Error(code === "ENTITLEMENT_REQUIRED"
+        ? "신년운세 AI 상담 권한이 필요합니다. 단건 결제, 월정석 크레딧, 이용권 중 하나로 이용할 수 있습니다."
+        : "결제 권한 확인 중 서버 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."), {
+        code,
+        status: newYearErrorStatus(code, status),
+      });
+    }
 
-  if (!access?.ok) {
-    const status = Number(access?.status || 402);
-    const code = status === 401 ? "SESSION_INVALID" : (status === 402 || status === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
-    throw Object.assign(new Error(code === "ENTITLEMENT_REQUIRED"
-      ? "신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요."
-      : "결제 권한 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."), {
-      code,
-      status: newYearErrorStatus(code, status),
+    if (!access?.ok) {
+      const status = Number(access?.status || 402);
+      const code = status === 401 ? "SESSION_INVALID" : (status === 402 || status === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
+      throw Object.assign(new Error(code === "ENTITLEMENT_REQUIRED"
+        ? "신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요."
+        : "결제 권한 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."), {
+        code,
+        status: newYearErrorStatus(code, status),
+      });
+    }
+  } else {
+    access = await verifyNewYearAIConsultationAccessToken(request, env, auth, body, {
+      reportId,
+      sessionKey,
+      requestId,
     });
   }
   logNewYearAIConsultation("payment verified", {
@@ -7659,6 +7767,23 @@ async function handleNewYearAIConsultationStart(request, env) {
       createdAtBucket: Math.floor(ctx.startedAt / 1000),
     })}`;
     const chapterBlueprint = buildNewYearAIChapterBlueprint(ctx.targetYear);
+    const requestId = clean(ctx.body?.requestId || ctx.body?.accessGrant?.requestId || ctx.body?._paymentContext?.requestId || "");
+    const purchaseId = clean(ctx.body?.purchaseId || ctx.body?.accessGrant?.purchaseId || ctx.body?._paymentContext?.purchaseId || ctx.access.matchedTransactionId || requestId);
+    const transactionId = clean(ctx.body?.transactionId || ctx.body?.accessGrant?.transactionId || ctx.body?.accessGrant?.sourceTransactionId || ctx.body?._paymentContext?.transactionId || ctx.access.matchedTransactionId || purchaseId);
+    const chargedCoins = Math.max(0, Number(ctx.access.chargedCoins || ctx.access.amountCoins || ctx.access.cost || 0));
+    const consultationAccessToken = await createPremiumAccessToken(env, {
+      userId: ctx.auth.userId,
+      reportType: "sajuNewYear",
+      featureKey: ctx.featureKey || FEATURE_KEY,
+      reason: "사주 신년운세 AI 상담",
+      transactionId,
+      reportId: ctx.reportId,
+      sessionId: ctx.sessionKey,
+      requestId,
+      purchaseId,
+      chargedCoins,
+      freeBySubscription: ctx.body?.freeBySubscription === true || /pass/i.test(clean(ctx.access.accessType || ctx.access.accessMethod || "")),
+    });
     return json({
       ok: true,
       serviceKey: SERVICE_KEY,
@@ -7669,7 +7794,8 @@ async function handleNewYearAIConsultationStart(request, env) {
       resultId: consultationId,
       reportId: ctx.reportId,
       sessionId: ctx.sessionKey,
-      requestId: clean(ctx.body?.requestId || ctx.body?.accessGrant?.requestId || ""),
+      requestId,
+      consultationAccessToken,
       targetYear: ctx.targetYear,
       category: ctx.category,
       question: ctx.question,
@@ -7685,7 +7811,7 @@ async function handleNewYearAIConsultationStart(request, env) {
         accessType: clean(ctx.access.accessType || ctx.access.type || ""),
         accessMethod: clean(ctx.access.accessMethod || ctx.access.method || ""),
         paymentMode: clean(ctx.access.paymentMode || ctx.access.method || ""),
-        chargedCoins: Number(ctx.access.chargedCoins || ctx.access.amountCoins || ctx.access.cost || 0) || undefined,
+        chargedCoins: chargedCoins || undefined,
       },
     });
   } catch (error) {
@@ -7709,7 +7835,7 @@ async function handleNewYearAIConsultationChapter(request, env) {
   try {
     const readiness = assertNewYearAIGeminiReady(env);
     ctx = await loadNewYearAIConsultationContext(request, env, "/api/saju-new-year/ai-consultation/chapter");
-    chapterNo = clamp(Number(ctx.body?.chapterNo || ctx.body?.chapter || ctx.body?.no || 0) || 0, 1, 10);
+    chapterNo = clamp(Number(ctx.body?.chapterNo || ctx.body?.chapter || ctx.body?.no || 0) || 0, 1, NEW_YEAR_AI_CHAPTER_COUNT);
     if (!chapterNo) {
       throw Object.assign(new Error("생성할 신년운세 상담 장 번호가 필요합니다."), {
         code: "INVALID_CHAPTER_NO",
@@ -7926,6 +8052,7 @@ async function handleNewYearAIConsultationFocus(request, env) {
           targetYear: ctx.targetYear,
           category: ctx.category,
           question: ctx.question,
+          questionFocus: parsed.resultPatch.questionFocus || parsed.resultPatch.topicAnswer,
           resultPatch: parsed.resultPatch,
           rawText: parsed.rawText,
           provider: "gemini",
@@ -7982,9 +8109,9 @@ async function handleNewYearAIConsultationFinalize(request, env) {
       ctx.body?.focusResult?.rawText,
       ctx.body?.focusedResult?.rawText,
     ];
-    const normalizedChapters = normalizeNewYearAIChapterConsultations(chapters, ctx.targetYear, 10);
-    if (normalizedChapters.length < 10) {
-      throw Object.assign(new Error("신년운세 AI 상담 10장이 모두 생성되지 않았습니다. 누락된 장을 먼저 생성해 주세요."), {
+    const normalizedChapters = normalizeNewYearAIChapterConsultations(chapters, ctx.targetYear, NEW_YEAR_AI_CHAPTER_COUNT);
+    if (normalizedChapters.length < NEW_YEAR_AI_CHAPTER_COUNT) {
+      throw Object.assign(new Error("신년운세 AI 상담 6장이 모두 생성되지 않았습니다. 누락된 장을 먼저 생성해 주세요."), {
         code: "NEW_YEAR_AI_INCOMPLETE_CHAPTERS",
         status: 422,
       });
@@ -8063,7 +8190,7 @@ async function handleNewYearAIConsultation(request, env) {
     ok: false,
     serviceKey: SERVICE_KEY,
     code: "NEW_YEAR_AI_PHASE_REQUIRED",
-    message: "신년운세 AI 상담은 1장씩 생성하도록 전환되었습니다. ready, start, chapter, finalize 경로를 사용해 주세요.",
+    message: "신년운세 AI 상담은 질문 집중 상담과 6장 상담을 순차 생성합니다. ready, start, focus, chapter, finalize 경로를 사용해 주세요.",
   }, { status: 409 });
 }
 

@@ -5,6 +5,7 @@ import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 import { buildLoveSecretReference } from "../lib/love-secret-reference.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { connectDb, mongoose } from "../lib/db.js";
+import { callGeminiText, pickGeminiKeys } from "../lib/gemini.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
@@ -36,6 +37,19 @@ const LOVE_SECRET_MANUSCRIPT_SOURCE = Object.freeze({
   PREMIUM: "love-secret-premium-llm-only",
 });
 const LOVE_SECRET_PRODUCT_ID = "love_secret";
+const LOVE_SECRET_AI_CONSULTATION_SYSTEM_PROMPT = [
+  "너는 사주 명리학과 궁합 해석을 깊이 이해한 연애 상담가다.",
+  "사용자의 사주 원국, 대운, 세운, 오행, 십성, 관계궁 데이터를 바탕으로 답한다.",
+  "상대방 정보가 있을 때만 궁합을 구체적으로 해석한다.",
+  "상대방 정보가 부족하면 상대 마음을 단정하지 않는다.",
+  "사용자의 질문에 직접 답하되, 조작·집착·스토킹·압박을 유도하지 않는다.",
+  "상대방의 거절과 경계는 존중해야 한다.",
+  "무조건적인 재회 확정, 이별 확정, 결혼 확정 같은 단정 표현을 피한다.",
+  "결과는 한국어로 작성한다.",
+  "사주 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+  "사용자가 실제로 선택하고 행동할 수 있는 연애 전략을 제안한다.",
+].join("\n");
+const LOVE_SECRET_AI_CONSULTATION_MIN_LENGTH = 480;
 
 const LOVE_SECRET_PDF_CACHE = new Map();
 const LOVE_SECRET_PDF_CACHE_MAX = 120;
@@ -1421,7 +1435,7 @@ function normalizeLoveSecretBirthInput(raw = {}, fallbackName = "사용자") {
   const src = raw && typeof raw === "object" ? raw : {};
   const birthDate = parseBirthDate(src.birthDate || src.date || src.solarDate || src.birth || "");
   if (!birthDate) {
-    return { ok: false, code: "BIRTH_DATE_REQUIRED", message: "연애 비책 PDF 생성을 위해 생년월일 정보가 필요합니다." };
+    return { ok: false, code: "BIRTH_DATE_REQUIRED", message: "연애 비책 AI 상담을 위해 생년월일 정보가 필요합니다." };
   }
 
   const isTimeUnknown = Boolean(src.unknownTime || src.isTimeUnknown || src.timeUnknown);
@@ -1430,7 +1444,7 @@ function normalizeLoveSecretBirthInput(raw = {}, fallbackName = "사용자") {
     timeInfo = { ok: true, hour: 12, minute: 0, birthTime: "12:00" };
   }
   if (!timeInfo.ok) {
-    return { ok: false, code: "BIRTH_TIME_REQUIRED", message: "연애 비책 PDF는 출생 시간이 필요합니다. 태어난 시간을 입력해 주세요." };
+    return { ok: false, code: "BIRTH_TIME_REQUIRED", message: "출생 시간을 모르면 시간 모름 옵션으로 연애 비책 AI 상담을 진행해 주세요." };
   }
 
   const [yearText, monthText, dayText] = birthDate.split("-");
@@ -5570,6 +5584,462 @@ function buildApiError(code, message, status = 400, debugSafe = null) {
   }, { status });
 }
 
+function hasLoveSecretAIProvider(env = {}) {
+  return pickGeminiKeys().some((key) => Boolean(clean(env?.[key])));
+}
+
+function loveSecretConsultationLog(marker, details = {}) {
+  console.info(`[LoveSecret AI Consultation] ${marker}`, compactLoveSecretObject(details));
+}
+
+function hasLoveSecretPartnerInput(body = {}) {
+  const partner = body?.partnerBirthInput && typeof body.partnerBirthInput === "object" ? body.partnerBirthInput : {};
+  const hasBirthDate = Boolean(
+    parseBirthDate(partner.birthDate || partner.date || partner.solarDate || partner.birth || "")
+    || (Number(partner.year || partner.birthYear) && Number(partner.month || partner.birthMonth) && Number(partner.day || partner.birthDay))
+  );
+  return hasBirthDate || Boolean(clean(body?.partnerData));
+}
+
+function resolveLoveSecretAIConsultationMode(body = {}) {
+  return hasLoveSecretPartnerInput(body) ? "compatibility" : "solo";
+}
+
+function readLoveSecretAIConsultationCategory(body = {}) {
+  return firstLoveSecretText(
+    body?.category,
+    body?.consultationCategory,
+    body?.loveCategory,
+    body?.loveStatus,
+    body?.relationshipStatus,
+    body?.currentLoveStatus,
+    body?.serviceContext?.category,
+    body?.serviceContext?.consultationCategory,
+    body?.userLoveContext?.category,
+    "종합 연애운",
+  ).slice(0, 80);
+}
+
+function readLoveSecretAIConsultationQuestion(body = {}) {
+  return firstLoveSecretText(
+    body?.question,
+    body?.currentConcern,
+    body?.concern,
+    body?.serviceContext?.question,
+    body?.serviceContext?.currentConcern,
+    body?.relationshipContext?.question,
+    body?.userLoveContext?.currentConcern,
+    body?.userLoveContext?.question,
+  ).slice(0, 1000);
+}
+
+function isLoveSecretDryRun(request, body = {}) {
+  let queryDryRun = "";
+  try {
+    queryDryRun = new URL(request.url).searchParams.get("dry_run") || "";
+  } catch (_) {}
+  const raw = firstLoveSecretText(body?.dry_run, body?.dryRun, body?.mock, queryDryRun).toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "mock";
+}
+
+function loveSecretPillarForAI(pillar, unknownTime = false) {
+  if (unknownTime) return undefined;
+  return compactLoveSecretObject({
+    gan: clean(pillar?.gan || pillar?.stem || pillar?.stemKo),
+    zhi: clean(pillar?.zhi || pillar?.branch || pillar?.branchKo),
+    raw: loveSecretPillarRaw(pillar),
+  });
+}
+
+function buildLoveSecretAIPersonContext(person = {}) {
+  const unknownTime = person?.user?.unknownTime === true;
+  return compactLoveSecretObject({
+    user: {
+      name: clean(person?.user?.name),
+      gender: clean(person?.user?.gender),
+      birthDate: clean(person?.user?.birthDate),
+      birthTimeKnown: !unknownTime && Boolean(clean(person?.user?.birthTime)),
+      birthTime: unknownTime ? undefined : clean(person?.user?.birthTime),
+      unknownTime,
+      calendarType: clean(person?.user?.calendarType),
+    },
+    pillars: {
+      year: loveSecretPillarForAI(person?.pillars?.year),
+      month: loveSecretPillarForAI(person?.pillars?.month),
+      day: loveSecretPillarForAI(person?.pillars?.day),
+      hour: loveSecretPillarForAI(person?.pillars?.hour, unknownTime),
+    },
+    core: person?.core,
+    elementBalance: person?.elementBalance,
+    tenGods: person?.tenGods,
+    strength: person?.strength,
+    yongshin: person?.yongshin,
+    specialStars: person?.specialStars,
+    timing: person?.timing,
+    loveSecretReference: person?.loveSecretReference,
+    hourPillarPolicy: unknownTime
+      ? "출생시간 불명: 시주는 확정 정보가 아니므로 구체 해석하지 않는다."
+      : "출생시간 제공: 시주를 참고할 수 있다.",
+  });
+}
+
+function buildLoveSecretAIConsultationContext({ base, masterJson, body, mode, category, question, targetYear }) {
+  const self = masterJson?.self || {};
+  const partner = mode === "compatibility" ? masterJson?.partner : null;
+  const facts = buildLoveSecretFacts(masterJson);
+  return compactLoveSecretObject({
+    service: "LoveSecret AI Consultation",
+    request: {
+      category,
+      question,
+      mode,
+      targetYear,
+      hasPartnerInfo: mode === "compatibility",
+      hasBirthTime: base?.user?.unknownTime !== true && Boolean(clean(base?.user?.birthTime)),
+      hasPartnerBirthTime: mode === "compatibility" && base?.partner?.user?.unknownTime !== true && Boolean(clean(base?.partner?.user?.birthTime)),
+    },
+    userInput: {
+      loveStatus: firstLoveSecretText(body?.loveStatus, body?.relationshipStatus, body?.currentLoveStatus, body?.serviceContext?.loveStatus),
+      desiredOutcome: firstLoveSecretText(body?.desiredOutcome, body?.serviceContext?.desiredOutcome, body?.relationshipContext?.desiredOutcome),
+      idealType: firstLoveSecretText(body?.idealType, body?.preferredPartner, body?.serviceContext?.idealType),
+      pastLovePattern: firstLoveSecretText(body?.pastLovePattern, body?.relationshipPattern, body?.serviceContext?.pastLovePattern),
+    },
+    self: buildLoveSecretAIPersonContext(self),
+    partner: mode === "compatibility" ? buildLoveSecretAIPersonContext(partner || {}) : undefined,
+    compatibility: mode === "compatibility" ? masterJson?.compatibility : undefined,
+    luckFlow: {
+      daeun: self?.timing?.daeun,
+      annualLuck: self?.timing?.annualLuck || self?.timing?.annualLuck2026,
+      monthlyWindows: self?.loveSecretReference?.monthlyWindows,
+    },
+    facts,
+    consultationEvidence: masterJson?.consultationEvidence,
+    qualityRules: {
+      useOnlyProvidedSajuData: true,
+      doNotInventMissingHourPillar: true,
+      doNotClaimPartnerMindWithoutPartnerData: mode !== "compatibility",
+      avoidManipulationPressureStalkingGuilt: true,
+      respectRefusalAndBoundaries: true,
+    },
+  });
+}
+
+function stringifyLoveSecretAIContext(context = {}) {
+  const text = JSON.stringify(compactLoveSecretObject(context), null, 2);
+  if (text.length <= 28000) return text;
+  const slim = {
+    ...context,
+    self: {
+      ...context.self,
+      loveSecretReference: undefined,
+      specialStars: undefined,
+    },
+    partner: context.partner ? {
+      ...context.partner,
+      loveSecretReference: undefined,
+      specialStars: undefined,
+    } : undefined,
+    facts: context.facts,
+  };
+  return JSON.stringify(compactLoveSecretObject(slim), null, 2);
+}
+
+function buildLoveSecretAIConsultationPrompt(context = {}) {
+  return [
+    "아래 계산 데이터만 근거로 연애 비책 AI 상담 결과를 작성하라.",
+    "상대방 정보가 없으면 상대방의 마음을 확정하지 말고, 내 명식과 질문 중심으로 가능한 흐름만 설명하라.",
+    "출생시간 불명으로 표시된 사람은 시주를 임의 확정하지 말고 가능한 범위에서만 말하라.",
+    "구체 날짜를 지어내지 말고, 월운 데이터가 부족하면 계절·분기·흐름 단위로 말하라.",
+    "출력은 가능하면 JSON 객체 하나로 작성하라. JSON이 어렵다면 같은 구조의 한국어 상담문으로 작성하라.",
+    "",
+    "필수 JSON 키:",
+    "summary, myLovePattern, relationshipFlow, possibility{positiveSignals, obstacles, realisticView}, timing{contactAdvice, reunionAdvice, goodPeriods, cautionPeriods}, actionGuide, avoidActions, closingMessage, followUpQuestions",
+    "",
+    "결과 구조:",
+    "1. 상담 요약 — 지금 이 관계의 핵심",
+    "2. 내 연애 패턴 — 명식이 보여주는 사랑 방식",
+    "3. 상대방과의 흐름 — 상대 정보가 있을 때만 구체 분석",
+    "4. 이 관계의 가능성 — 이어질 힘과 막히는 지점",
+    "5. 연락/재회/진전 타이밍 — 가능한 범위에서 시기 조언",
+    "6. 지금 하면 좋은 행동",
+    "7. 절대 피해야 할 행동",
+    "8. 마지막 조언 — 사랑을 지키는 한 문장",
+    "9. 후속 질문 추천",
+    "",
+    "계산 데이터:",
+    stringifyLoveSecretAIContext(context),
+  ].join("\n").trim();
+}
+
+function extractLoveSecretAIJson(text = "") {
+  const raw = clean(text);
+  if (!raw) return null;
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const source = clean(fenced?.[1] || raw);
+  const firstBrace = source.indexOf("{");
+  const lastBrace = source.lastIndexOf("}");
+  const jsonText = firstBrace >= 0 && lastBrace > firstBrace ? source.slice(firstBrace, lastBrace + 1) : source;
+  try {
+    return JSON.parse(jsonText);
+  } catch (_) {
+    return null;
+  }
+}
+
+function loveSecretAIList(value, limit = 8) {
+  if (Array.isArray(value)) return value.map((item) => clean(item)).filter(Boolean).slice(0, limit);
+  const text = clean(value);
+  if (!text) return [];
+  return text.split(/\n+|[;•]/).map((item) => clean(item.replace(/^[-*\d.)\s]+/, ""))).filter(Boolean).slice(0, limit);
+}
+
+function normalizeLoveSecretAIResult(rawJson, rawText) {
+  const src = rawJson && typeof rawJson === "object" ? rawJson : {};
+  const possibility = src.possibility && typeof src.possibility === "object" ? src.possibility : {};
+  const timing = src.timing && typeof src.timing === "object" ? src.timing : {};
+  const fallbackSummary = clean(rawText).split(/\n{2,}/)[0] || clean(rawText).slice(0, 420);
+  return compactLoveSecretObject({
+    summary: clean(src.summary) || fallbackSummary,
+    myLovePattern: clean(src.myLovePattern || src.my_love_pattern),
+    relationshipFlow: clean(src.relationshipFlow || src.relationship_flow),
+    possibility: {
+      positiveSignals: loveSecretAIList(possibility.positiveSignals || possibility.positive_signals),
+      obstacles: loveSecretAIList(possibility.obstacles),
+      realisticView: clean(possibility.realisticView || possibility.realistic_view || src.realisticView),
+    },
+    timing: {
+      contactAdvice: clean(timing.contactAdvice || timing.contact_advice),
+      reunionAdvice: clean(timing.reunionAdvice || timing.reunion_advice),
+      goodPeriods: loveSecretAIList(timing.goodPeriods || timing.good_periods, 6),
+      cautionPeriods: loveSecretAIList(timing.cautionPeriods || timing.caution_periods, 6),
+    },
+    actionGuide: loveSecretAIList(src.actionGuide || src.action_guide, 10),
+    avoidActions: loveSecretAIList(src.avoidActions || src.avoid_actions, 10),
+    closingMessage: clean(src.closingMessage || src.closing_message),
+    followUpQuestions: loveSecretAIList(src.followUpQuestions || src.follow_up_questions, 8),
+    rawText: clean(rawText),
+  });
+}
+
+function validateLoveSecretAIResult(result = {}) {
+  const rawText = clean(result?.rawText);
+  const combined = [
+    result?.summary,
+    result?.myLovePattern,
+    result?.relationshipFlow,
+    result?.possibility?.realisticView,
+    result?.timing?.contactAdvice,
+    result?.closingMessage,
+    rawText,
+  ].map(clean).join("\n");
+  if (combined.length < LOVE_SECRET_AI_CONSULTATION_MIN_LENGTH) {
+    return { ok: false, reason: "연애 비책 AI 상담 결과가 충분히 생성되지 않았습니다." };
+  }
+  if (/(이 기능은|분석 결과는|content block|internal prompt|내부 지시문)/i.test(combined)) {
+    return { ok: false, reason: "상담 결과 안에 기계적인 표현이 남아 있습니다." };
+  }
+  return { ok: true };
+}
+
+async function handleLoveSecretAIConsultation(request, env) {
+  const body = await readJson(request);
+  const category = readLoveSecretAIConsultationCategory(body);
+  const question = readLoveSecretAIConsultationQuestion(body);
+  const mode = resolveLoveSecretAIConsultationMode(body);
+  const hasEnvAI = hasLoveSecretAIProvider(env);
+  const dryRun = isLoveSecretDryRun(request, body);
+  const baseLog = {
+    hasEnvAI,
+    providerName: hasEnvAI ? "gemini-api" : "",
+    isMock: false,
+    dryRun,
+    category,
+    questionLength: question.length,
+    hasPartnerInfo: mode === "compatibility",
+  };
+
+  loveSecretConsultationLog("request received", baseLog);
+
+  if (!question || question.length < 5 || question.length > 1000) {
+    return buildApiError("INVALID_QUESTION", "연애 상황과 질문을 5자 이상 1000자 이하로 입력해 주세요.", 400, baseLog);
+  }
+  if (dryRun) {
+    return buildApiError("DRY_RUN_BLOCKED", "연애 비책 AI 상담은 dry_run 또는 mock 결과를 성공으로 처리하지 않습니다.", 400, baseLog);
+  }
+
+  const authz = await authorizeLoveSecret(request, env, { ...body, mode, reportMode: mode, question, category, _accessRoute: "/api/love-secret/ai-consultation" }, mode);
+  if (!authz.ok) return authz.response;
+  loveSecretConsultationLog("payment verified", { ...baseLog, featureKey: authz.featureKey });
+
+  if (!hasEnvAI) {
+    return buildApiError("AI_PROVIDER_NOT_CONFIGURED", "현재 연애 비책 AI 상담을 위한 LLM 설정이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.", 503, baseLog);
+  }
+
+  let base;
+  try {
+    base = normalizeSajuBase({ ...body, mode, reportMode: mode, question, category });
+  } catch (error) {
+    loveSecretConsultationLog("LLM provider error", { ...baseLog, errorCode: clean(error?.code || "CHART_CALCULATION_FAILED") });
+    return buildApiError("CHART_CALCULATION_FAILED", "사주 명식 계산 중 문제가 발생했습니다. 생년월일과 출생시간을 확인해 주세요.", 400, {
+      ...baseLog,
+      errorCode: clean(error?.code || "CHART_CALCULATION_FAILED"),
+    });
+  }
+
+  const valid = validateMinimumSaju(base);
+  if (!valid.ok) {
+    return buildApiError("MISSING_SAJU_DATA", "사주 명식 계산에 필요한 정보가 부족합니다. 생년월일 정보를 확인해 주세요.", 400, {
+      ...baseLog,
+      missing: valid.missing,
+    });
+  }
+
+  loveSecretConsultationLog("user chart calculated", {
+    ...baseLog,
+    hasBirthTime: base?.user?.unknownTime !== true && Boolean(clean(base?.user?.birthTime)),
+    userChartCalculated: true,
+  });
+
+  const partnerValid = validatePartnerMinimumSaju(base, mode);
+  if (!partnerValid.ok) {
+    return buildApiError("MISSING_PARTNER_SAJU", "상대방 정보가 부족합니다. 상대방 생년월일을 입력하거나 상대 정보 없이 상담을 진행해 주세요.", 400, {
+      ...baseLog,
+      missing: partnerValid.missing,
+    });
+  }
+
+  loveSecretConsultationLog("partner chart calculated", {
+    ...baseLog,
+    hasPartnerBirthTime: mode === "compatibility" && base?.partner?.user?.unknownTime !== true && Boolean(clean(base?.partner?.user?.birthTime)),
+    partnerChartCalculated: mode === "compatibility",
+  });
+
+  const targetYear = resolveLoveSecretTargetYear(body?.targetYear);
+  const masterJson = buildLoveSecretMasterJson({ base, mode, body: { ...body, question, category }, targetYear });
+  const compatibilityCalculated = mode === "compatibility" && Boolean(masterJson?.compatibility);
+  loveSecretConsultationLog("compatibility calculated", { ...baseLog, compatibilityCalculated });
+  loveSecretConsultationLog("luck flow calculated", {
+    ...baseLog,
+    hasDaeun: Array.isArray(masterJson?.self?.timing?.daeun) && masterJson.self.timing.daeun.length > 0,
+    hasMonthlyWindows: Boolean(masterJson?.self?.loveSecretReference?.monthlyWindows),
+  });
+
+  const consultationContext = buildLoveSecretAIConsultationContext({
+    base,
+    masterJson,
+    body,
+    mode,
+    category,
+    question,
+    targetYear,
+  });
+  const prompt = buildLoveSecretAIConsultationPrompt(consultationContext);
+  loveSecretConsultationLog("prompt built", { ...baseLog, promptLength: prompt.length });
+
+  const startedAt = Date.now();
+  loveSecretConsultationLog("LLM provider start", baseLog);
+  let ai;
+  try {
+    ai = await callGeminiText(env, prompt, {
+      systemPrompt: LOVE_SECRET_AI_CONSULTATION_SYSTEM_PROMPT,
+      taskType: "fortune",
+      model: "gemini-2.5-flash",
+      temperature: 0.7,
+      maxOutputTokens: 6144,
+      timeoutMs: 90000,
+      fallbackToWorkersAI: false,
+    });
+  } catch (error) {
+    const llmLatencyMs = Date.now() - startedAt;
+    loveSecretConsultationLog("LLM provider error", {
+      ...baseLog,
+      providerName: "gemini-api",
+      llmLatencyMs,
+      errorCode: clean(error?.code || error?.name || "LLM_PROVIDER_EXCEPTION"),
+    });
+    return buildApiError("LLM_PROVIDER_EXCEPTION", "연애 비책 AI 상담 호출 중 문제가 발생했습니다. 결제 권한은 보존되며 다시 시도할 수 있습니다.", 502, {
+      ...baseLog,
+      providerName: "gemini-api",
+      llmLatencyMs,
+      errorCode: clean(error?.code || error?.name || "LLM_PROVIDER_EXCEPTION"),
+      paymentRetainedForRetry: true,
+    });
+  }
+  const llmLatencyMs = Date.now() - startedAt;
+  if (!ai?.ok || !clean(ai?.text)) {
+    loveSecretConsultationLog("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider || "gemini-api"),
+      llmLatencyMs,
+      errorCode: clean(ai?.error || "LLM_GENERATION_FAILED"),
+    });
+    return buildApiError("LLM_GENERATION_FAILED", clean(ai?.message) || "연애 비책 AI 상담 생성에 실패했습니다. 결제 권한은 보존되며 다시 시도할 수 있습니다.", 502, {
+      ...baseLog,
+      providerName: clean(ai?.provider || "gemini-api"),
+      llmLatencyMs,
+      errorCode: clean(ai?.error || "LLM_GENERATION_FAILED"),
+      paymentRetainedForRetry: true,
+    });
+  }
+
+  const rawText = clean(ai.text);
+  const parsed = extractLoveSecretAIJson(rawText);
+  const result = normalizeLoveSecretAIResult(parsed, rawText);
+  const validation = validateLoveSecretAIResult(result);
+  if (!validation.ok) {
+    loveSecretConsultationLog("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider),
+      llmLatencyMs,
+      errorCode: "LLM_RESULT_VALIDATION_FAILED",
+    });
+    return buildApiError("LLM_RESULT_VALIDATION_FAILED", validation.reason, 502, {
+      ...baseLog,
+      providerName: clean(ai?.provider),
+      llmLatencyMs,
+      paymentRetainedForRetry: true,
+    });
+  }
+
+  loveSecretConsultationLog("LLM provider success", {
+    ...baseLog,
+    providerName: clean(ai?.provider),
+    llmLatencyMs,
+  });
+  loveSecretConsultationLog("response returned", {
+    ...baseLog,
+    providerName: clean(ai?.provider),
+    llmLatencyMs,
+  });
+
+  return json({
+    ok: true,
+    serviceType: "love_secret_ai_consultation",
+    mode,
+    category,
+    question,
+    result,
+    consultation: result,
+    rawText,
+    metadata: {
+      provider: clean(ai?.provider),
+      model: clean(ai?.model),
+      hasEnvAI,
+      isMock: false,
+      dryRun: false,
+      llmLatencyMs,
+      userChartCalculated: true,
+      partnerChartCalculated: mode === "compatibility",
+      compatibilityCalculated,
+    },
+    billing: {
+      featureKey: authz.featureKey,
+      accessType: clean(authz.access?.accessType),
+      accessMethod: clean(authz.access?.accessMethod || authz.access?.paymentMode),
+    },
+  });
+}
+
 function isLikelyDbUnavailableError(error) {
   const msg = clean(error?.message || error).toLowerCase();
   return msg.includes("database is temporarily unavailable")
@@ -5584,13 +6054,13 @@ function isLikelyDbUnavailableError(error) {
 
 function loveSecretAccessErrorMessage(code, status, fallback = "") {
   if (code === "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING") {
-    return "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.";
+    return "결제는 확인되었지만 상담 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.";
   }
   if (Number(status) === 402) {
-    return "프리미엄 연애 비책 생성 권한이 필요합니다.";
+    return "연애 비책 AI 상담 권한이 필요합니다.";
   }
   if (Number(status) === 401) {
-    return "로그인 후 연애 비책 PDF를 생성할 수 있습니다.";
+    return "로그인 후 연애 비책 AI 상담을 받을 수 있습니다.";
   }
   return clean(fallback) || "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 }
@@ -5601,7 +6071,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      return { ok: false, response: buildApiError("UNAUTHORIZED", "로그인 후 연애 비책 PDF를 생성할 수 있습니다.", 401) };
+      return { ok: false, response: buildApiError("UNAUTHORIZED", "로그인 후 연애 비책 AI 상담을 받을 수 있습니다.", 401) };
     }
     throw error;
   }
@@ -5629,11 +6099,11 @@ async function authorizeLoveSecret(request, env, body, mode) {
       ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING"
       : (access?.code || "UNAUTHORIZED");
     const message = isPaymentBindingMiss
-      ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+      ? "결제는 확인되었지만 상담 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
       : status === 402
-        ? "프리미엄 연애 비책 생성 권한이 필요합니다."
+        ? "연애 비책 AI 상담 권한이 필요합니다."
         : status === 401
-          ? "로그인 후 연애 비책 PDF를 생성할 수 있습니다."
+          ? "로그인 후 연애 비책 AI 상담을 받을 수 있습니다."
           : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     return {
       ok: false,
@@ -6250,6 +6720,10 @@ export async function handleSajuLoveSecretRoutes(request, env = {}, ctx = null) 
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/love-secret");
+
+    if (method === "POST" && (path === "/ai-consultation" || path === "/consultation")) {
+      return await handleLoveSecretAIConsultation(request, env);
+    }
 
     if (method === "POST" && (path === "" || path === "/" || path === "/generate-chapter")) {
       return buildApiError("LOVE_SECRET_LLM_PDF_ONLY", "연애 비책 PDF는 /prepare 또는 /prepare-async에서 결제 확인 후 LLM 원고를 생성합니다.", 410);

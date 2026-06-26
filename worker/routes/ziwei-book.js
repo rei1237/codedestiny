@@ -15,10 +15,30 @@ import {
   ZIWEI_PDF_CONFIG as ZIWEI_LLM_PDF_CONFIG,
   ZIWEI_PREMIUM_CHAPTERS_V3,
 } from "../lib/ziwei-premium-pdf-v3.js";
+import { callGeminiText } from "../lib/gemini.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium-ziwei-report";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
+const ZIWEI_AI_CONSULTATION_SERVICE_TYPE = "ziwei_ai_consultation";
+const ZIWEI_AI_CONSULTATION_ROUTE = "/api/ziwei-book/ai-consultation";
+const ZIWEI_AI_CONSULTATION_MARKER = "[Ziwei AI Consultation]";
+const ZIWEI_AI_CONSULTATION_CATEGORIES = Object.freeze({
+  general: "종합 자미두수 리딩",
+  core: "성격과 운명 구조",
+  career: "직업/커리어",
+  money: "재물/사업",
+  love: "연애/결혼",
+  relationship: "인간관계",
+  family: "가족/부모",
+  health: "건강/멘탈",
+  business: "이직/창업",
+  yearly: "올해의 운세",
+  luck: "대한/유년 흐름",
+  turning_point: "인생 전환점",
+  choice: "지금의 선택",
+  palace_deep: "궁별 심화 해석",
+});
 const ZIWEI_MASTER_JSON_SCHEMA_VERSION = "ziwei-premium-master-json.v1";
 const ZIWEI_PDF_CONFIG = ZIWEI_LLM_PDF_CONFIG;
 const CHAPTER_MIN_CHARS = 3200;
@@ -1514,6 +1534,559 @@ function validateSeed(seed) {
   if (!seed?.diagnostics?.hasMingGong) errors.push("mingGong");
   if (!seed?.diagnostics?.hasShenGong) errors.push("shenGong");
   return { ok: errors.length === 0, errors };
+}
+
+function normalizeZiweiAICategory(value) {
+  const key = clean(value || "general").toLowerCase().replace(/[^a-z0-9_ -]/g, "").replace(/[\s-]+/g, "_");
+  return ZIWEI_AI_CONSULTATION_CATEGORIES[key] ? key : "general";
+}
+
+function normalizeZiweiAIQuestion(body = {}) {
+  const question = clean(body.question || body.consultationQuestion || body.prompt || body.userQuestion || "");
+  if (question.length < 5) {
+    return { ok: false, code: "ZIWEI_AI_QUESTION_REQUIRED", message: "자미두수 AI 상담으로 묻고 싶은 질문을 5자 이상 입력해 주세요." };
+  }
+  if (question.length > 1000) {
+    return { ok: false, code: "ZIWEI_AI_QUESTION_TOO_LONG", message: "질문은 1000자 이내로 입력해 주세요." };
+  }
+  return { ok: true, question };
+}
+
+function isZiweiAIConsultationDryRun(env = {}, body = {}) {
+  const values = [
+    body?.dryRun,
+    body?.dry_run,
+    body?.mock,
+    env?.ZIWEI_AI_CONSULTATION_DRY_RUN,
+    env?.ZIWEI_AI_DRY_RUN,
+    env?.LLM_DRY_RUN,
+  ];
+  return values.some((value) => /^(1|true|yes|on|mock|dry_run)$/i.test(clean(value)));
+}
+
+function hasZiweiAIProviderEnv(env = {}) {
+  return Boolean(
+    clean(env?.GEMINIF_API_KEY)
+    || clean(env?.GEMINIF_API_KEY1)
+    || clean(env?.GEMINI_API_KEY)
+    || clean(env?.GOOGLE_GEMINI_API_KEY)
+    || env?.AI?.run,
+  );
+}
+
+function buildZiweiAIError(code, message, status = 400, extra = {}) {
+  return json({
+    ok: false,
+    serviceKey: ZIWEI_SERVICE_KEY,
+    serviceType: ZIWEI_AI_CONSULTATION_SERVICE_TYPE,
+    code,
+    message,
+    ...extra,
+  }, { status });
+}
+
+function logZiweiAIConsultation(stage, details = {}) {
+  const payload = {
+    hasEnvAI: Boolean(details.hasEnvAI),
+    providerName: clean(details.providerName || ""),
+    isMock: Boolean(details.isMock),
+    dryRun: Boolean(details.dryRun),
+    category: clean(details.category || ""),
+    questionLength: Number(details.questionLength || 0),
+    hasBirthTime: Boolean(details.hasBirthTime),
+    calendarType: clean(details.calendarType || ""),
+    chartCalculated: Boolean(details.chartCalculated),
+    hasLifePalace: Boolean(details.hasLifePalace),
+    hasBodyPalace: Boolean(details.hasBodyPalace),
+    hasPalaceData: Boolean(details.hasPalaceData),
+    hasTransformations: Boolean(details.hasTransformations),
+    hasDecadeLuck: Boolean(details.hasDecadeLuck),
+    hasAnnualLuck: Boolean(details.hasAnnualLuck),
+    llmLatencyMs: Number(details.llmLatencyMs || 0),
+    errorCode: clean(details.errorCode || ""),
+  };
+  try {
+    console.info(`${ZIWEI_AI_CONSULTATION_MARKER} ${stage}`, payload);
+  } catch (_) {
+    console.info(`${ZIWEI_AI_CONSULTATION_MARKER} ${stage}`);
+  }
+}
+
+function safeZiweiAIJson(value, maxLength = 16000) {
+  let text = "";
+  try {
+    text = JSON.stringify(value || {}, null, 2);
+  } catch (_) {
+    text = "{}";
+  }
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}\n...TRUNCATED`;
+}
+
+function summarizeZiweiAIStar(star) {
+  if (!star) return null;
+  if (typeof star === "string") return { name: clean(star) };
+  const item = safeObject(star);
+  const result = {
+    name: clean(item.nameKo || item.name || item.star || item.starName),
+    strengthName: clean(item.strengthName || item.strength || item.brightnessKo || item.brightness),
+    strengthSymbol: clean(item.strengthSymbol || item.symbol),
+    sihua: clean(item.sihua || item.transformation || item.transform || item.type || item.label),
+    borrowed: item.borrowed === true,
+  };
+  return result.name ? result : null;
+}
+
+function summarizeZiweiAIStars(value) {
+  return safeArray(value).map(summarizeZiweiAIStar).filter(Boolean).slice(0, 20);
+}
+
+function summarizeZiweiAIPalace(palace = {}) {
+  const p = safeObject(palace);
+  const mainStars = summarizeZiweiAIStars(p.mainStars || p.majorStars || p.stars);
+  const supportingStars = summarizeZiweiAIStars(p.auxStars || p.supportingStars || p.auxiliaryStars || p.minorStars || p.subStars);
+  const challengingStars = summarizeZiweiAIStars(p.maleficStars || p.challengingStars || p.badStars);
+  return {
+    key: clean(p.key || p.id || p.palaceKey),
+    palaceName: clean(p.nameKo || p.name || p.palace || p.palaceName),
+    branch: clean(p.branch || p.earthlyBranch || p.zhi),
+    mainStars,
+    supportingStars,
+    challengingStars,
+    transformations: safeArray(p.transformations || p.sihua || p.fourTransformations).map((item) => safeObject(item)).slice(0, 12),
+    decadeLuck: p.decadeLuck || null,
+    annualLuck: p.annualLuck || null,
+    isEmpty: mainStars.length === 0 && supportingStars.length === 0 && challengingStars.length === 0,
+  };
+}
+
+function buildZiweiAITopicPalaceKeys(category) {
+  const map = {
+    career: ["career", "ming", "travel", "wealth"],
+    business: ["career", "wealth", "travel", "property"],
+    money: ["wealth", "career", "property", "fortune"],
+    love: ["spouse", "ming", "fortune", "children"],
+    health: ["health", "fortune", "ming"],
+    relationship: ["friends", "siblings", "travel"],
+    family: ["parents", "siblings", "property"],
+    yearly: ["ming", "fortune", "career", "travel"],
+    luck: ["ming", "fortune", "career", "travel"],
+    turning_point: ["ming", "body", "career", "travel"],
+    choice: ["ming", "body", "career", "fortune"],
+    palace_deep: ["ming", "career", "wealth", "spouse", "fortune"],
+    core: ["ming", "body", "fortune", "career"],
+  };
+  return map[category] || ["ming", "body", "career", "wealth", "spouse", "fortune"];
+}
+
+function findZiweiAIPalaceByKey(palaces = [], key = "", chart = {}) {
+  if (key === "body") {
+    const bodyBranch = clean(chart.shenGong || chart.bodyPalace?.branch || "");
+    return palaces.find((p) => clean(p.key) === "body")
+      || palaces.find((p) => bodyBranch && clean(p.branch) === bodyBranch)
+      || safeObject(chart.bodyPalace);
+  }
+  const expectedName = PALACE_LABELS[key];
+  return palaces.find((p) => clean(p.key) === key)
+    || palaces.find((p) => expectedName && clean(p.nameKo || p.name) === expectedName)
+    || null;
+}
+
+function buildZiweiAIChartSummary(seed = {}, birthInput = {}, category = "general") {
+  const chart = safeObject(seed.chart);
+  const palaces = safeArray(chart.palaces);
+  const lifePalace = safeObject(chart.lifePalace || findZiweiAIPalaceByKey(palaces, "ming", chart));
+  const bodyPalace = safeObject(chart.bodyPalace || findZiweiAIPalaceByKey(palaces, "body", chart));
+  const topicPalaces = buildZiweiAITopicPalaceKeys(category)
+    .map((key) => findZiweiAIPalaceByKey(palaces, key, chart))
+    .filter(Boolean)
+    .map(summarizeZiweiAIPalace)
+    .filter((item, index, rows) => item.palaceName && rows.findIndex((row) => row.palaceName === item.palaceName) === index);
+  return {
+    hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
+    calendarType: clean(birthInput.calendarType || seed.birthProfile?.calendarType),
+    lifePalace: clean(lifePalace.nameKo || lifePalace.name || chart.mingGong),
+    lifePalaceBranch: clean(lifePalace.branch || lifePalace.earthlyBranch || chart.mingGong),
+    bodyPalace: clean(bodyPalace.nameKo || bodyPalace.name || chart.shenGong),
+    bodyPalaceBranch: clean(bodyPalace.branch || bodyPalace.earthlyBranch || chart.shenGong),
+    fiveElementClass: clean(chart.fiveElementBureau),
+    yearStemBranch: clean(chart.yearStemBranch),
+    palaceCount: palaces.length,
+    hasPalaceData: palaces.length >= 12,
+    hasTransformations: safeArray(chart.transformations).length > 0,
+    hasDecadeLuck: safeArray(chart.decadeLuck).length > 0,
+    hasAnnualLuck: safeArray(chart.annualLuck).length > 0,
+    topicPalaces,
+    palaces: palaces.map(summarizeZiweiAIPalace).filter((item) => item.palaceName).slice(0, 12),
+    transformations: safeArray(chart.transformations).slice(0, 24),
+    decadeLuck: safeArray(chart.decadeLuck).slice(0, 12),
+    annualLuck: safeArray(chart.annualLuck).slice(0, 12),
+  };
+}
+
+function buildZiweiAIConsultationSystemPrompt() {
+  return [
+    "너는 자미두수 명반 해석을 깊이 이해한 상담가다.",
+    "사용자의 명궁, 신궁, 12궁, 주성, 보성, 살성, 사화, 대한, 유년 데이터를 바탕으로 답한다.",
+    "명반 데이터는 반드시 제공된 계산 결과만 사용하고 임의로 지어내지 않는다.",
+    "출생시간이 부족하거나 불확실하면 명반 정확도 제한을 명확히 설명한다.",
+    "사용자의 질문에 직접 답하되, 공포를 조장하거나 운명론적으로 단정하지 않는다.",
+    "결과는 한국어로 작성한다.",
+    "자미두수 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+    "사용자가 실제로 선택하고 행동할 수 있는 전략을 제안한다.",
+  ].join("\n");
+}
+
+function buildZiweiAIConsultationPrompt({ birthInput, category, categoryLabel, question, seed, chartSummary }) {
+  const profile = safeObject(seed.birthProfile);
+  return [
+    "아래 자미두수 명반 계산 결과만 근거로 AI 상담 결과를 작성하라.",
+    "명궁, 신궁, 12궁, 주성, 보성, 살성, 사화, 대한, 유년은 제공된 데이터 밖에서 추정하거나 창작하지 말라.",
+    "없는 데이터는 없다고 말하고, 구체 월/날짜를 지어내지 말라.",
+    "화기는 불행 확정이 아니라 관리해야 할 핵심 과제로 설명하라.",
+    "건강, 법률, 재정 문제를 자미두수만으로 확정 진단하지 말라.",
+    "",
+    "[사용자 정보]",
+    `이름 또는 닉네임: ${clean(birthInput.name || "사용자")}`,
+    `성별: ${clean(birthInput.gender || profile.gender || "unknown")}`,
+    `생년월일: ${clean(birthInput.birthDate || profile.birthDate || "")}`,
+    `출생시간: ${chartSummary.hasBirthTime ? clean(birthInput.birthTime || profile.birthTime || "") : "출생시간 없음 또는 불확실"}`,
+    `달력: ${clean(birthInput.calendarType || profile.calendarType || "unknown")}`,
+    `상담 주제: ${categoryLabel} (${category})`,
+    `질문: ${question}`,
+    "",
+    "[검증된 명반 요약]",
+    safeZiweiAIJson(chartSummary, 24000),
+    "",
+    "[브라우저 자미두수 엔진 원본 요약]",
+    safeZiweiAIJson(seed.localZiweiChartJson || {}, 22000),
+    "",
+    "아래 JSON 구조로만 응답하라. JSON 외 설명 문장을 붙이지 말라.",
+    "{",
+    '  "summary": "상담 요약",',
+    '  "chartCore": { "lifePalace": "명궁", "bodyPalace": "신궁", "fiveElementClass": "오행국", "coreInterpretation": "명반 핵심" },',
+    '  "topicPalaces": [{ "palaceName": "궁 이름", "reason": "이 궁을 보는 이유", "interpretation": "궁별 해석" }],',
+    '  "starPatterns": { "majorStars": ["주성"], "supportingStars": ["보성/길성"], "challengingStars": ["살성/흉성"], "interpretation": "별 배치 해석" },',
+    '  "transformations": { "lu": "화록", "quan": "화권", "ke": "화과", "ji": "화기", "interpretation": "사화 작용" },',
+    '  "luckFlow": { "decadeLuck": "현재 대한", "annualLuck": "현재 유년", "interpretation": "대한과 유년 흐름" },',
+    '  "timing": { "opportunities": ["기회 흐름"], "cautions": ["주의 흐름"], "note": "시기 조언 제한" },',
+    '  "actionGuide": ["현실적인 행동 전략"],',
+    '  "closingMessage": "명반의 별이 건네는 한 문장",',
+    '  "followUpQuestions": ["후속 질문 추천"],',
+    '  "rawText": ""',
+    "}",
+  ].join("\n");
+}
+
+function extractZiweiAIJsonText(value = "") {
+  const text = clean(value);
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start >= 0 && end > start) return text.slice(start, end + 1);
+  return text;
+}
+
+function toZiweiAIStringList(value, max = 6) {
+  if (Array.isArray(value)) return value.map((item) => clean(typeof item === "string" ? item : JSON.stringify(item))).filter(Boolean).slice(0, max);
+  const text = clean(value);
+  return text ? [text] : [];
+}
+
+function extractZiweiAISection(rawText = "", title = "") {
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`(?:^|\\n)\\s*(?:\\d+\\.?\\s*)?${escaped}\\s*(?:[—:-]|\\n)([\\s\\S]*?)(?=\\n\\s*(?:\\d+\\.?\\s*)?[가-힣\\s]+\\s*(?:[—:-]|\\n)|$)`, "i");
+  return clean(rawText.match(pattern)?.[1] || "");
+}
+
+function normalizeZiweiAIConsultationResult(rawText = "", chartSummary = {}) {
+  const resultText = clean(rawText);
+  let parsed = {};
+  try {
+    parsed = safeObject(JSON.parse(extractZiweiAIJsonText(resultText)));
+  } catch (_) {
+    parsed = {};
+  }
+  const chartCore = safeObject(parsed.chartCore);
+  const starPatterns = safeObject(parsed.starPatterns);
+  const transformations = safeObject(parsed.transformations);
+  const luckFlow = safeObject(parsed.luckFlow);
+  const timing = safeObject(parsed.timing);
+  const fallbackSummary = extractZiweiAISection(resultText, "상담 요약") || resultText.slice(0, 420);
+  const fallbackCore = extractZiweiAISection(resultText, "명반 핵심");
+  const fallbackTopic = extractZiweiAISection(resultText, "질문과 연결된 궁");
+  const fallbackStars = extractZiweiAISection(resultText, "별의 배치");
+  const fallbackSihua = extractZiweiAISection(resultText, "사화의 작용");
+  const fallbackLuck = extractZiweiAISection(resultText, "대한과 유년 흐름");
+  const fallbackAction = extractZiweiAISection(resultText, "현실적인 행동 전략");
+  const fallbackClosing = extractZiweiAISection(resultText, "마지막 조언");
+  return {
+    summary: clean(parsed.summary || fallbackSummary),
+    chartCore: {
+      lifePalace: clean(chartCore.lifePalace || chartSummary.lifePalace || ""),
+      bodyPalace: clean(chartCore.bodyPalace || chartSummary.bodyPalace || ""),
+      fiveElementClass: clean(chartCore.fiveElementClass || chartSummary.fiveElementClass || ""),
+      coreInterpretation: clean(chartCore.coreInterpretation || fallbackCore),
+    },
+    topicPalaces: safeArray(parsed.topicPalaces).length
+      ? safeArray(parsed.topicPalaces).map((item) => ({
+        palaceName: clean(item?.palaceName || item?.name),
+        reason: clean(item?.reason),
+        interpretation: clean(item?.interpretation || item?.text),
+      })).filter((item) => item.palaceName || item.interpretation).slice(0, 8)
+      : safeArray(chartSummary.topicPalaces).slice(0, 4).map((item) => ({
+        palaceName: clean(item.palaceName),
+        reason: "선택한 상담 주제와 연결되는 궁입니다.",
+        interpretation: fallbackTopic || "제공된 명반 데이터 범위에서 이 궁의 별 배치를 중심으로 상담을 이어갑니다.",
+      })),
+    starPatterns: {
+      majorStars: toZiweiAIStringList(starPatterns.majorStars, 12),
+      supportingStars: toZiweiAIStringList(starPatterns.supportingStars, 12),
+      challengingStars: toZiweiAIStringList(starPatterns.challengingStars, 12),
+      interpretation: clean(starPatterns.interpretation || fallbackStars),
+    },
+    transformations: {
+      lu: clean(transformations.lu),
+      quan: clean(transformations.quan),
+      ke: clean(transformations.ke),
+      ji: clean(transformations.ji),
+      interpretation: clean(transformations.interpretation || fallbackSihua),
+    },
+    luckFlow: {
+      decadeLuck: clean(luckFlow.decadeLuck),
+      annualLuck: clean(luckFlow.annualLuck),
+      interpretation: clean(luckFlow.interpretation || fallbackLuck),
+    },
+    timing: {
+      opportunities: toZiweiAIStringList(timing.opportunities, 6),
+      cautions: toZiweiAIStringList(timing.cautions, 6),
+      note: clean(timing.note || extractZiweiAISection(resultText, "기회와 주의할 시기")),
+    },
+    actionGuide: toZiweiAIStringList(parsed.actionGuide || fallbackAction, 8),
+    closingMessage: clean(parsed.closingMessage || fallbackClosing),
+    followUpQuestions: toZiweiAIStringList(parsed.followUpQuestions, 6),
+    rawText: resultText,
+  };
+}
+
+async function handleZiweiAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const hasEnvAI = hasZiweiAIProviderEnv(env);
+  let body = {};
+  let category = "general";
+  let question = "";
+  let chartSummary = {};
+  try {
+    body = await readJson(request);
+    category = normalizeZiweiAICategory(body?.category);
+    const questionResult = normalizeZiweiAIQuestion(body);
+    question = questionResult.question || "";
+    const dryRun = isZiweiAIConsultationDryRun(env, body);
+    logZiweiAIConsultation("request received", {
+      hasEnvAI,
+      providerName: hasEnvAI ? "gemini-primary-workers-ai-fallback" : "",
+      dryRun,
+      category,
+      questionLength: question.length,
+    });
+    if (dryRun) {
+      return buildZiweiAIError("DRY_RUN_BLOCKED", "자미두수 AI 상담은 mock 또는 dry run 성공 처리로 생성할 수 없습니다.", 409, {
+        retryable: false,
+        dryRun: true,
+        isMock: false,
+      });
+    }
+    if (!questionResult.ok) {
+      return buildZiweiAIError(questionResult.code, questionResult.message, 422, { retryable: false });
+    }
+    let auth;
+    try {
+      auth = await requireAuth(request, env);
+    } catch (error) {
+      if (Number(error?.status) === 401) {
+        return buildZiweiAIError("UNAUTHORIZED", "자미두수 AI 상담을 위해 먼저 로그인해 주세요.", 401, { retryable: false });
+      }
+      throw error;
+    }
+    const normalized = normalizeInput(body);
+    if (!normalized.ok) {
+      const message = normalized.code === "BIRTH_TIME_REQUIRED"
+        ? "자미두수 AI 상담은 명궁과 12궁 계산을 위해 정확한 출생시간이 필요합니다. 출생시간을 입력한 뒤 다시 시도해 주세요."
+        : normalized.message;
+      return buildZiweiAIError(normalized.code || "INVALID_INPUT", message, 422, { retryable: false });
+    }
+    logZiweiAIConsultation("birth profile normalized", {
+      hasEnvAI,
+      providerName: "gemini-primary-workers-ai-fallback",
+      category,
+      questionLength: question.length,
+      hasBirthTime: Number.isFinite(Number(normalized.birthInput.birthHour)),
+      calendarType: normalized.birthInput.calendarType,
+    });
+    const premiumAccessToken = getZiweiAccessToken(request, body);
+    const featureKey = normalizeFeatureKey(body?.featureKey);
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
+      ...body,
+      featureKey,
+      reportType: "ziweiPremium",
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: ZIWEI_AI_CONSULTATION_ROUTE,
+    });
+    if (!access?.ok) {
+      return buildZiweiAIError(clean(access?.code || "PAYMENT_REQUIRED"), clean(access?.message || "자미두수 AI 상담 결제 또는 이용권 확인이 필요합니다."), Number(access?.status || 402), {
+        retryable: false,
+        billing: {
+          reportType: "ziweiPremium",
+          featureKey,
+          accessVerified: false,
+          reason: clean(access?.reason || ""),
+          missing: safeArray(access?.missing),
+        },
+      });
+    }
+    logZiweiAIConsultation("payment verified", {
+      hasEnvAI,
+      providerName: "gemini-primary-workers-ai-fallback",
+      category,
+      questionLength: question.length,
+      hasBirthTime: Number.isFinite(Number(normalized.birthInput.birthHour)),
+      calendarType: normalized.birthInput.calendarType,
+    });
+    const base = getZiweiBase(body);
+    if (!base) {
+      return buildZiweiAIError("MISSING_ZIWEI_ENGINE_RESULT", "자미두수 명반 계산 결과가 전달되지 않았습니다. 입력값을 확인한 뒤 다시 시도해 주세요.", 422, { retryable: false });
+    }
+    const seed = buildZiweiPdfSeed(normalized.profile, base);
+    const seedValidation = validateSeed(seed);
+    if (!seedValidation.ok) {
+      return buildZiweiAIError("INVALID_ZIWEI_CHART", "자미두수 명반의 명궁, 신궁, 12궁 데이터가 충분하지 않습니다. 출생 정보를 확인한 뒤 다시 시도해 주세요.", 422, {
+        retryable: false,
+        details: seedValidation.errors,
+      });
+    }
+    chartSummary = buildZiweiAIChartSummary(seed, normalized.birthInput, category);
+    const chartLog = {
+      hasEnvAI,
+      providerName: "gemini-primary-workers-ai-fallback",
+      category,
+      questionLength: question.length,
+      hasBirthTime: chartSummary.hasBirthTime,
+      calendarType: chartSummary.calendarType,
+      chartCalculated: true,
+      hasLifePalace: Boolean(chartSummary.lifePalace || chartSummary.lifePalaceBranch),
+      hasBodyPalace: Boolean(chartSummary.bodyPalace || chartSummary.bodyPalaceBranch),
+      hasPalaceData: chartSummary.hasPalaceData,
+      hasTransformations: chartSummary.hasTransformations,
+      hasDecadeLuck: chartSummary.hasDecadeLuck,
+      hasAnnualLuck: chartSummary.hasAnnualLuck,
+    };
+    logZiweiAIConsultation("chart calculated", chartLog);
+    logZiweiAIConsultation("palaces extracted", chartLog);
+    logZiweiAIConsultation("transformations extracted", chartLog);
+    logZiweiAIConsultation("luck flow calculated", chartLog);
+    const categoryLabel = ZIWEI_AI_CONSULTATION_CATEGORIES[category] || ZIWEI_AI_CONSULTATION_CATEGORIES.general;
+    const prompt = buildZiweiAIConsultationPrompt({
+      birthInput: normalized.birthInput,
+      category,
+      categoryLabel,
+      question,
+      seed,
+      chartSummary,
+    });
+    logZiweiAIConsultation("prompt built", chartLog);
+    if (!hasEnvAI) {
+      logZiweiAIConsultation("LLM provider error", { ...chartLog, errorCode: "LLM_PROVIDER_MISSING" });
+      return buildZiweiAIError("LLM_PROVIDER_MISSING", "자미두수 AI 상담을 생성할 LLM provider 설정이 없습니다.", 503, {
+        retryable: true,
+        paymentRetainedForRetry: true,
+        isMock: false,
+        dryRun: false,
+      });
+    }
+    const llmStartedAt = Date.now();
+    logZiweiAIConsultation("LLM provider start", chartLog);
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: buildZiweiAIConsultationSystemPrompt(),
+      taskType: "fortune",
+      temperature: 0.68,
+      maxOutputTokens: 4096,
+      timeoutMs: Number(env?.ZIWEI_AI_CONSULTATION_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    });
+    const llmLatencyMs = Date.now() - llmStartedAt;
+    const provider = clean(ai?.provider || "gemini-primary-workers-ai-fallback");
+    const model = clean(ai?.model || "");
+    const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    const aiText = clean(ai?.text || "");
+    if (!ai?.ok || isMock || aiText.length < 240) {
+      const errorCode = isMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.error || "LLM_GENERATION_FAILED");
+      logZiweiAIConsultation("LLM provider error", { ...chartLog, providerName: provider, isMock, llmLatencyMs, errorCode });
+      return buildZiweiAIError(errorCode, clean(ai?.message || "자미두수 AI 상담 생성이 일시적으로 실패했습니다. 결제 확인 상태는 유지되니 잠시 뒤 다시 시도해 주세요."), 503, {
+        retryable: true,
+        paymentRetainedForRetry: true,
+        provider,
+        model,
+        isMock,
+        dryRun: false,
+      });
+    }
+    const result = normalizeZiweiAIConsultationResult(aiText, chartSummary);
+    logZiweiAIConsultation("LLM provider success", { ...chartLog, providerName: provider, isMock: false, llmLatencyMs });
+    const consultationId = clean(body?.consultationId || body?.reportId || body?.reportSessionId || `ziwei-ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    const responsePayload = {
+      ok: true,
+      serviceKey: ZIWEI_SERVICE_KEY,
+      serviceType: ZIWEI_AI_CONSULTATION_SERVICE_TYPE,
+      consultationId,
+      featureKey,
+      provider,
+      model,
+      isMock: false,
+      dryRun: false,
+      category,
+      categoryLabel,
+      chartSummary,
+      result,
+      billing: {
+        reportType: "ziweiPremium",
+        featureKey,
+        accessVerified: true,
+        accessType: clean(access.accessType || ""),
+        chargedCoins: Number(access.chargedCoins || 590),
+        matchedTransactionId: clean(access.matchedTransactionId || ""),
+        paymentRetainedForRetry: false,
+      },
+      elapsedMs: Date.now() - startedAt,
+    };
+    logZiweiAIConsultation("response returned", { ...chartLog, providerName: provider, llmLatencyMs });
+    return json(responsePayload, { status: 200 });
+  } catch (error) {
+    const status = Number(error?.status || 503);
+    const responseStatus = status >= 400 && status < 600 ? status : 503;
+    const errorCode = clean(error?.code || "ZIWEI_AI_CONSULTATION_FAILED");
+    logZiweiAIConsultation("LLM provider error", {
+      hasEnvAI,
+      providerName: "gemini-primary-workers-ai-fallback",
+      category,
+      questionLength: question.length,
+      hasBirthTime: Boolean(chartSummary.hasBirthTime),
+      calendarType: chartSummary.calendarType,
+      chartCalculated: Boolean(chartSummary.hasPalaceData),
+      hasLifePalace: Boolean(chartSummary.lifePalace),
+      hasBodyPalace: Boolean(chartSummary.bodyPalace),
+      hasPalaceData: Boolean(chartSummary.hasPalaceData),
+      hasTransformations: Boolean(chartSummary.hasTransformations),
+      hasDecadeLuck: Boolean(chartSummary.hasDecadeLuck),
+      hasAnnualLuck: Boolean(chartSummary.hasAnnualLuck),
+      errorCode,
+    });
+    return buildZiweiAIError(errorCode, clean(error?.message || "자미두수 AI 상담 생성이 일시적으로 실패했습니다. 잠시 뒤 다시 시도해 주세요."), responseStatus, {
+      retryable: responseStatus >= 500,
+      paymentRetainedForRetry: responseStatus >= 500,
+      isMock: false,
+      dryRun: false,
+    });
+  }
 }
 
 function hasRequiredPalaceCoverage(seed) {
@@ -5429,6 +6002,9 @@ export async function handleZiweiBookRoutes(request, env = {}, ctx = null) {
     if (method === "GET" && (path === "/chapters" || path === "chapters")) return await handleChapters();
     if (method === "GET" && (path === "/download" || path === "download")) return await handleDownload(request, env);
     if (method === "GET" && (path === "/result" || path === "result")) return await handleResult(request, env);
+    if (method === "POST" && (path === "/ai-consultation" || path === "ai-consultation" || path === "/ai-reading" || path === "ai-reading" || path === "/consultation" || path === "consultation")) {
+      return await handleZiweiAIConsultation(request, env);
+    }
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env, ctx);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
     return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, message: "지원하지 않는 자미두수 PDF 경로입니다." }, { status: 404 });
@@ -5436,13 +6012,21 @@ export async function handleZiweiBookRoutes(request, env = {}, ctx = null) {
     console.error("[ZiweiPremiumPDF][Error]", normalizeZiweiError(error));
     const status = Number(error?.status || 500);
     const responseStatus = status >= 400 && status < 600 ? status : 500;
+    const failedPath = (() => {
+      try {
+        return getRoutePath(request, "/api/ziwei-book");
+      } catch (_) {
+        return "";
+      }
+    })();
+    const isAiRoute = /ai-consultation|ai-reading|consultation/.test(clean(failedPath));
     return json({
       ok: false,
       serviceKey: ZIWEI_SERVICE_KEY,
       code: clean(error?.code || (responseStatus >= 500 ? "ZIWEI_ROUTE_FAILED" : "ZIWEI_REQUEST_FAILED")),
       message: responseStatus >= 500
-        ? "자미두수 PDF 생성 서버가 응답하지 않았습니다. 잠시 후 다시 시도해 주세요."
-        : clean(error?.message || "자미두수 PDF 요청을 처리하지 못했습니다."),
+        ? (isAiRoute ? "자미두수 AI 상담 서버가 응답하지 않았습니다. 잠시 후 다시 시도해 주세요." : "자미두수 PDF 생성 서버가 응답하지 않았습니다. 잠시 후 다시 시도해 주세요.")
+        : clean(error?.message || (isAiRoute ? "자미두수 AI 상담 요청을 처리하지 못했습니다." : "자미두수 PDF 요청을 처리하지 못했습니다.")),
       status: "failed_retryable",
       retryable: responseStatus >= 500,
     }, { status: responseStatus });

@@ -23,7 +23,7 @@
   var STATUS_API = '/api/saju-new-year/status';
   var RESULT_API = '/api/saju-new-year/result';
   var JOB_STORAGE_KEY = 'currentNewYearPdfJobId';
-  var TOTAL_CHAPTERS = 10;
+  var TOTAL_CHAPTERS = 6;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
   var DEFAULT_QUESTION = '선택한 해에 제 직업운과 수입 흐름은 어떻게 될까요?';
@@ -47,6 +47,7 @@
   var _pendingGeneration = null;
   var _lastAccessGrant = null;
   var _lastPremiumToken = '';
+  var _lastPaidEvidence = null;
   var _selectedCategory = '종합운';
   var _billingSnapshot = {
     cost: COIN_COST,
@@ -449,6 +450,91 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _paymentPayloadData(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    if (source.data && typeof source.data === 'object') return source.data;
+    if (source.payload && typeof source.payload === 'object') return source.payload;
+    return source;
+  }
+
+  function _paymentPayloadLayers(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var data = _paymentPayloadData(source);
+    var layers = [];
+    function push(obj) {
+      if (obj && typeof obj === 'object' && layers.indexOf(obj) < 0) layers.push(obj);
+    }
+    push(source);
+    push(source.data);
+    push(source.payload);
+    push(data);
+    push(data.accessGrant);
+    push(data.accessDecision);
+    push(data.consume);
+    push(data.payment);
+    push(data._paymentContext);
+    return layers;
+  }
+
+  function _firstPaymentObject(layers, key) {
+    for (var i = 0; i < layers.length; i += 1) {
+      var value = layers[i] && layers[i][key];
+      if (value && typeof value === 'object') return value;
+    }
+    return {};
+  }
+
+  function _firstPaymentString(layers, keys) {
+    var list = Array.isArray(keys) ? keys : [keys];
+    for (var i = 0; i < layers.length; i += 1) {
+      for (var j = 0; j < list.length; j += 1) {
+        var value = _clean(layers[i] && layers[i][list[j]]);
+        if (value) return value;
+      }
+    }
+    return '';
+  }
+
+  function _buildPaidEvidence(rawPayload, reportId, fallbackRequestId) {
+    var data = _paymentPayloadData(rawPayload);
+    var layers = _paymentPayloadLayers(rawPayload);
+    var grant = _normalizeAccessGrant(data, reportId, fallbackRequestId) || _normalizeAccessGrant(rawPayload, reportId, fallbackRequestId);
+    var accessDecision = _firstPaymentObject(layers, 'accessDecision');
+    var consume = _firstPaymentObject(layers, 'consume');
+    var payment = _firstPaymentObject(layers, 'payment');
+    var context = _firstPaymentObject(layers, '_paymentContext');
+    var requestId = _clean(grant && grant.requestId) || _firstPaymentString(layers, ['requestId', 'idempotencyKey']) || fallbackRequestId;
+    var sessionId = _clean(grant && grant.sessionId) || _firstPaymentString(layers, ['sessionId', 'reportSessionId']) || ('saju-new-year:' + reportId);
+    var purchaseId = _clean(grant && grant.purchaseId) || _firstPaymentString(layers, ['purchaseId', 'transactionId', 'paymentId', 'ledgerId', 'evidenceId']) || requestId;
+    if (grant) {
+      grant.requestId = _clean(grant.requestId || requestId);
+      grant.sessionId = _clean(grant.sessionId || sessionId);
+      grant.reportSessionId = _clean(grant.reportSessionId || sessionId);
+      grant.reportId = _clean(grant.reportId || reportId);
+      grant.purchaseId = _clean(grant.purchaseId || purchaseId);
+      grant.featureKey = _clean(grant.featureKey || API_FEATURE_KEY) || API_FEATURE_KEY;
+    }
+    return {
+      requestId: requestId,
+      accessGrant: grant || {},
+      accessDecision: accessDecision,
+      consume: consume,
+      payment: payment,
+      freeBySubscription: data.freeBySubscription === true || accessDecision.accessGranted === true && /pass|subscription/i.test(_clean(accessDecision.reason || accessDecision.status || accessDecision.accessType)),
+      _paymentContext: Object.assign({}, context, {
+        requestId: requestId,
+        reportId: _clean(reportId),
+        sessionId: sessionId,
+        reportSessionId: sessionId,
+        purchaseId: purchaseId,
+        transactionId: _clean((grant && (grant.transactionId || grant.sourceTransactionId || grant.paymentId)) || _firstPaymentString(layers, ['transactionId', 'sourceTransactionId', 'paymentId', 'ledgerId', 'evidenceId']) || purchaseId),
+        accessType: _clean((grant && grant.accessType) || _firstPaymentString(layers, ['accessType', 'transactionType'])),
+        accessMethod: _clean((grant && grant.accessMethod) || _firstPaymentString(layers, ['accessMethod', 'paymentMethod'])),
+        paymentMode: _clean(_firstPaymentString(layers, ['paymentMode']))
+      })
+    };
   }
 
   function _parseSajuNewYearDateInput(value) {
@@ -1051,13 +1137,15 @@
     return payload;
   }
 
-  function _buildAIConsultationPayload(pending, accessGrant, premiumToken) {
+  function _buildAIConsultationPayload(pending, accessGrant, premiumToken, paidEvidence, consultationAccessToken) {
+    var evidence = paidEvidence && typeof paidEvidence === 'object' ? paidEvidence : null;
+    var grant = accessGrant || evidence && evidence.accessGrant;
     var payload = _buildPreparePayload(
       pending.reportId,
       pending.targetYear,
       pending.profile,
       pending.normalizedBirth,
-      accessGrant,
+      grant,
       premiumToken || _readPremiumAccessToken()
     );
     payload.paymentPurpose = 'ai_consultation';
@@ -1065,23 +1153,33 @@
     payload.question = pending.question;
     payload.category = pending.category;
     payload.questionCategory = pending.category;
-    payload.requestId = _clean(payload.requestId || accessGrant && accessGrant.requestId || ('saju-new-year-ai:' + pending.reportId));
+    payload.requestId = _clean(payload.requestId || evidence && evidence.requestId || grant && grant.requestId || ('saju-new-year-ai:' + pending.reportId));
+    if (evidence) {
+      payload.accessGrant = Object.assign({}, payload.accessGrant || {}, evidence.accessGrant || {});
+      payload.accessDecision = evidence.accessDecision || undefined;
+      payload.consume = evidence.consume || undefined;
+      payload.payment = evidence.payment || undefined;
+      payload.freeBySubscription = evidence.freeBySubscription === true;
+      payload._paymentContext = Object.assign({}, evidence._paymentContext || {}, {
+        requestId: payload.requestId,
+        reportId: pending.reportId,
+        sessionId: payload.sessionId,
+        reportSessionId: payload.reportSessionId || payload.sessionId
+      });
+    }
+    payload.consultationAccessToken = _clean(consultationAccessToken || pending.consultationAccessToken || evidence && evidence.consultationAccessToken);
     payload.dryRun = false;
     return payload;
   }
 
   function _newYearAIChapterMessage(chapterNo) {
     var messages = {
-      1: '제 1장 총운의 문을 읽고 있어요.',
-      2: '제 2장 커리어의 흐름을 살피고 있어요.',
+      1: '제 1장 올해의 큰 기운을 읽고 있어요.',
+      2: '제 2장 일과 커리어의 흐름을 살피고 있어요.',
       3: '제 3장 재물과 수입의 결을 보고 있어요.',
-      4: '제 4장 관계와 인연의 결을 살피고 있어요.',
-      5: '제 5장 사랑과 가족의 온도를 맞춰보고 있어요.',
-      6: '제 6장 몸과 마음의 리듬을 읽고 있어요.',
-      7: '제 7장 분기별 선택의 문을 열고 있어요.',
-      8: '제 8장 조심해야 할 시기를 정리하고 있어요.',
-      9: '제 9장 월별 Go/Stop 흐름을 펼치고 있어요.',
-      10: '제 10장 올해의 로드맵을 정리하고 있어요.'
+      4: '제 4장 관계와 인연의 온도를 맞춰보고 있어요.',
+      5: '제 5장 몸과 마음의 리듬을 읽고 있어요.',
+      6: '제 6장 좋은 시기와 올해의 로드맵을 정리하고 있어요.'
     };
     return messages[Number(chapterNo || 0)] || ('제 ' + chapterNo + '장을 읽고 있어요.');
   }
@@ -1190,9 +1288,12 @@
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
     var access = data.access && typeof data.access === 'object' ? data.access : {};
-    var featureKey = _clean(accessGrant.featureKey || consume.featureKey || access.featureKey || data.featureKey || API_FEATURE_KEY) || API_FEATURE_KEY;
-    var accessType = _clean(accessGrant.accessType || consume.accessType || access.accessType || data.accessType || data.transactionType);
-    var accessMethod = _clean(accessGrant.accessMethod || consume.accessMethod || access.accessMethod || data.accessMethod || data.paymentMethod);
+    var payment = data.payment && typeof data.payment === 'object' ? data.payment : {};
+    var context = data._paymentContext && typeof data._paymentContext === 'object' ? data._paymentContext : {};
+    var accessDecision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
+    var featureKey = _clean(accessGrant.featureKey || consume.featureKey || access.featureKey || payment.featureKey || context.featureKey || accessDecision.featureKey || data.featureKey || API_FEATURE_KEY) || API_FEATURE_KEY;
+    var accessType = _clean(accessGrant.accessType || consume.accessType || access.accessType || payment.accessType || context.accessType || accessDecision.accessType || data.accessType || data.transactionType);
+    var accessMethod = _clean(accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || access.accessMethod || payment.accessMethod || payment.paymentMethod || context.accessMethod || context.paymentMethod || accessDecision.accessMethod || accessDecision.paymentMethod || data.accessMethod || data.paymentMethod);
     var transactionId = _clean(
       accessGrant.transactionId
       || accessGrant.sourceTransactionId
@@ -1210,11 +1311,22 @@
       || access.sourceTransactionId
       || access.paymentId
       || access.evidenceId
+      || payment.transactionId
+      || payment.sourceTransactionId
+      || payment.paymentId
+      || payment.id
+      || payment._id
+      || context.transactionId
+      || context.ledgerId
+      || context.paymentId
+      || context.evidenceId
+      || accessDecision.transactionId
+      || accessDecision.ledgerId
     );
     var premiumAccessToken = _extractPremiumToken(data);
-    var normalizedReportId = _clean(accessGrant.reportId || data.reportId || reportId);
-    var sessionId = _clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || ('saju-new-year:' + normalizedReportId));
-    var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId);
+    var normalizedReportId = _clean(accessGrant.reportId || data.reportId || payment.reportId || context.reportId || reportId);
+    var sessionId = _clean(accessGrant.sessionId || accessGrant.reportSessionId || data.sessionId || data.reportSessionId || payment.sessionId || payment.reportSessionId || context.sessionId || context.reportSessionId || ('saju-new-year:' + normalizedReportId));
+    var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || payment.requestId || context.requestId || accessDecision.requestId || fallbackRequestId);
     var explicitPurchaseId = _clean(
       accessGrant.purchaseId
       || accessGrant.transactionId
@@ -1227,17 +1339,32 @@
       || access.purchaseId
       || access.transactionId
       || access.unlockId
+      || payment.purchaseId
+      || payment.transactionId
+      || payment.paymentId
+      || payment.id
+      || payment._id
+      || context.purchaseId
+      || context.transactionId
+      || context.ledgerId
+      || accessDecision.purchaseId
+      || accessDecision.transactionId
+      || accessDecision.ledgerId
     );
-    var statusText = _clean(data.status || accessGrant.status || consume.status || access.status).toLowerCase();
+    var statusText = _clean(data.status || accessGrant.status || consume.status || access.status || accessDecision.status || accessDecision.reason).toLowerCase();
     var accessOk = data.ok === true
       || data.accessGranted === true
       || data.granted === true
+      || data.canAccess === true
+      || data.unlocked === true
+      || data.freeBySubscription === true
       || accessGrant.ok === true
       || accessGrant.accessGranted === true
       || consume.ok === true
       || access.ok === true
       || access.accessGranted === true
-      || ['granted', 'success', 'succeeded', 'pass_applied', 'has_entitlement', 'completed', 'monthly_paid'].indexOf(statusText) >= 0;
+      || accessDecision.accessGranted === true
+      || ['granted', 'success', 'succeeded', 'pass_applied', 'pass_covered', 'pass_free', 'has_entitlement', 'completed', 'monthly_paid'].indexOf(statusText) >= 0;
     var purchaseId = explicitPurchaseId || (accessOk ? ('access:' + _clean(requestId || sessionId || normalizedReportId)) : '');
     if (!normalizedReportId || !purchaseId) return null;
     return {
@@ -1261,7 +1388,7 @@
     };
   }
 
-  function _rememberAccessGrant(pending, accessGrant, premiumToken) {
+  function _rememberAccessGrant(pending, accessGrant, premiumToken, paidEvidence) {
     if (!accessGrant) return;
     _lastAccessGrant = Object.assign({}, accessGrant, {
       reportId: pending && pending.reportId ? pending.reportId : accessGrant.reportId,
@@ -1269,6 +1396,7 @@
       reportSessionId: accessGrant.reportSessionId || accessGrant.sessionId || (pending && pending.reportId ? 'saju-new-year:' + pending.reportId : '')
     });
     _lastPremiumToken = _clean(premiumToken || accessGrant.premiumAccessToken || _readPremiumAccessToken());
+    if (paidEvidence && typeof paidEvidence === 'object') _lastPaidEvidence = paidEvidence;
     if (_lastPremiumToken) _persistPremiumAccessToken(_lastPremiumToken);
   }
 
@@ -1300,14 +1428,17 @@
           var token = _extractPremiumToken(raw);
           if (token) _persistPremiumAccessToken(token);
           _mergeBillingSnapshot(data, 'coin-gate');
-          var grant = _normalizeAccessGrant(data, reportId, requestId);
+          var evidence = _buildPaidEvidence(raw, reportId, requestId);
+          var grant = evidence.accessGrant && evidence.accessGrant.ok ? evidence.accessGrant : _normalizeAccessGrant(data, reportId, requestId);
           var grantToken = token || _clean(grant && grant.premiumAccessToken) || _readPremiumAccessToken();
           if (!grant) {
             resolve({ ok: false, status: 500, message: '결제 접근 권한을 확인하지 못했습니다.', requestId: requestId });
             return;
           }
           _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
-          resolve({ ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId });
+          evidence.accessGrant = grant;
+          evidence.requestId = _clean(evidence.requestId || requestId);
+          resolve({ ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId, paidEvidence: evidence });
         }
         function cancel() {
           if (settled) return;
@@ -1392,7 +1523,8 @@
     var token = _extractPremiumToken(payload);
     if (token) _persistPremiumAccessToken(token);
     _mergeBillingSnapshot(payload, 'coin-gate');
-    var grant = _normalizeAccessGrant(data, reportId, requestId);
+    var evidence = _buildPaidEvidence(payload, reportId, requestId);
+    var grant = evidence.accessGrant && evidence.accessGrant.ok ? evidence.accessGrant : _normalizeAccessGrant(data, reportId, requestId);
     var grantToken = token || _clean(grant && grant.premiumAccessToken) || _readPremiumAccessToken();
     if (!response.ok || payload.ok === false || !grant) {
       return {
@@ -1403,7 +1535,9 @@
       };
     }
     _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
-    return { ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId };
+    evidence.accessGrant = grant;
+    evidence.requestId = _clean(evidence.requestId || requestId);
+    return { ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId, paidEvidence: evidence };
   }
 
   async function _postJson(url, payload) {
@@ -1877,23 +2011,56 @@
     };
   }
 
-  async function _runAfterBillingAI(pending, accessGrant, premiumToken) {
+  async function _runAfterBillingAI(pending, accessGrant, premiumToken, paidEvidence) {
     _setStage('calculate');
     _setProgress(2, '명식과 올해의 세운을 읽고 있어요.');
-    _rememberAccessGrant(pending, accessGrant, premiumToken);
+    _rememberAccessGrant(pending, accessGrant, premiumToken, paidEvidence);
     _log('RequestReceived', {
       reportId: pending.reportId,
       targetYear: pending.targetYear,
       category: pending.category,
       questionLength: pending.question.length
     });
-    var payload = _buildAIConsultationPayload(pending, accessGrant, premiumToken);
+    var evidence = paidEvidence || _lastPaidEvidence || null;
+    var payload = _buildAIConsultationPayload(pending, accessGrant, premiumToken, evidence);
     var started = await _postJson(AI_START_API, payload);
     if (!started || started.ok === false || !Array.isArray(started.chapterBlueprint)) {
       throw _buildPdfApiError(started, 502, '신년운세 AI 상담 준비 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
     }
+    var consultationAccessToken = _clean(started.consultationAccessToken);
+    if (consultationAccessToken) {
+      pending.consultationAccessToken = consultationAccessToken;
+      payload.consultationAccessToken = consultationAccessToken;
+      if (evidence) evidence.consultationAccessToken = consultationAccessToken;
+    }
     var total = Number(started.totalChapters || started.chapterBlueprint.length || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
     var chapterResults = [];
+    var focusResult = await _runAIFocusWithRetry(payload, started);
+    if (!focusResult || focusResult.ok === false || !focusResult.resultPatch || !focusResult.resultPatch.topicAnswer) {
+      throw _buildPdfApiError(focusResult, 502, '질문 집중 상담 결과를 확인하지 못했습니다. 다시 시도해 주세요.');
+    }
+    _renderAIConsultationResult({
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      title: '신년운세 AI 상담',
+      status: 'focus_completed',
+      targetYear: pending.targetYear,
+      category: pending.category,
+      question: pending.question,
+      result: {
+        summary: '질문에 대한 핵심 흐름을 먼저 열었습니다. 전체 신년운세 상담은 이어서 장별로 정리하고 있어요.',
+        yearlyFlow: '명식과 세운의 큰 흐름을 바탕으로 질문에 가장 가까운 흐름부터 살피고 있습니다.',
+        topicAnswer: focusResult.resultPatch.topicAnswer,
+        timing: focusResult.resultPatch.timing || {},
+        chapterConsultations: [],
+        actionGuide: focusResult.resultPatch.actionGuide || [],
+        closingMessage: focusResult.resultPatch.closingMessage || '전체 상담이 완성되면 올해의 길이 더 선명하게 정리됩니다.',
+        followUpQuestions: focusResult.resultPatch.followUpQuestions || []
+      },
+      provider: 'gemini',
+      isMock: false
+    }, pending.profile, pending.targetYear);
+    _showScreen('nyResultScreen');
     for (var chapterNo = 1; chapterNo <= total; chapterNo += 1) {
       var chapterResult = await _runAIChapterWithRetry(payload, started, chapterNo);
       if (!chapterResult || chapterResult.ok === false || !chapterResult.chapter) {
@@ -1901,15 +2068,12 @@
       }
       chapterResults.push(chapterResult);
     }
-    var focusResult = await _runAIFocusWithRetry(payload, started);
-    if (!focusResult || focusResult.ok === false || !focusResult.resultPatch || !focusResult.resultPatch.topicAnswer) {
-      throw _buildPdfApiError(focusResult, 502, '질문 집중 상담 결과를 확인하지 못했습니다. 다시 시도해 주세요.');
-    }
     _setStage('archive');
     _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
     var finalPayload = Object.assign({}, payload, {
       consultationId: started.consultationId,
       resultId: started.resultId,
+      consultationAccessToken: consultationAccessToken,
       chapterResults: chapterResults,
       focusResult: focusResult,
       chapters: chapterResults.map(function (item) { return item.chapter; }),
@@ -2033,7 +2197,7 @@
       _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
       if (_hasReusableAccessFor(pending)) {
         _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
-        return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken);
+        return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken, _lastPaidEvidence);
       }
       return _refreshNewYearBillingSnapshot().catch(function () { return null; });
     }).then(function () {
@@ -2046,8 +2210,8 @@
         _setError(gate.message || '신년운세 AI 상담을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
         return null;
       }
-      _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken);
-      return _runAfterBillingAI(pending, gate.accessGrant, gate.premiumAccessToken);
+      _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken, gate.paidEvidence);
+      return _runAfterBillingAI(pending, gate.accessGrant, gate.premiumAccessToken, gate.paidEvidence);
     });
   }
 

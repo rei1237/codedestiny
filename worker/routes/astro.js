@@ -16,12 +16,14 @@ import { logAstrologyPdfEvent } from "../lib/pdf-v2/astrology/astrology-premium.
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
   VEDIC_PDF_CONFIG,
+  buildVedicAstrologyFacts,
   buildVedicLocalChartJson,
   normalizeVedicError,
   normalizeVedicPremiumBirthInput,
   validateVedicPremiumChartSourceQuality,
   validateVedicBirthInput,
 } from "../lib/vedic-premium-generator.js";
+import { callGeminiText } from "../lib/gemini.js";
 import { generateVedicPremiumPdfV2 } from "../lib/pdf-v2/vedic/create-vedic-premium-pdf-job.js";
 import { vedicPremiumChapterPlanV2 } from "../lib/pdf-v2/vedic/vedic-premium.chapter-plan.js";
 import {
@@ -2886,6 +2888,1387 @@ async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, request
   throw error;
 }
 
+const VEDIC_AI_CONSULTATION_SERVICE_TYPE = "vedic_ai_consultation";
+const VEDIC_AI_CONSULTATION_MARKER = "[Vedic AI Consultation]";
+const VEDIC_AI_CONSULTATION_CATEGORIES = Object.freeze({
+  general: "종합 베다 리딩",
+  career: "직업/커리어",
+  money: "재물/사업",
+  love: "연애/결혼",
+  relationship: "인간관계",
+  family: "가족/부모",
+  health: "건강/멘탈",
+  study: "공부/시험",
+  business: "이직/창업",
+  karma: "카르마와 삶의 방향",
+  dasha: "다샤 흐름",
+  yearly: "올해의 운세",
+  choice: "지금의 선택",
+});
+
+function isVedicAIConsultationDryRun(env = {}) {
+  return /^(1|true|yes|on)$/i.test(clean(env?.VEDIC_AI_CONSULTATION_DRY_RUN || env?.LLM_DRY_RUN || ""));
+}
+
+function hasVedicAIProviderEnv(env = {}) {
+  return Boolean(clean(env?.GEMINIF_API_KEY || env?.GEMINI_API_KEY || env?.GOOGLE_GEMINI_API_KEY) || env?.AI?.run);
+}
+
+function safeVedicAIObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function logVedicAIConsultation(marker, details = {}) {
+  const payload = {
+    hasEnvAI: Boolean(details.hasEnvAI),
+    providerName: clean(details.providerName),
+    isMock: details.isMock === true,
+    dryRun: details.dryRun === true,
+    category: clean(details.category),
+    questionLength: Number(details.questionLength || 0),
+    hasBirthTime: details.hasBirthTime === true,
+    hasBirthPlace: details.hasBirthPlace === true,
+    timezoneResolved: details.timezoneResolved === true,
+    chartCalculated: details.chartCalculated === true,
+    dashaCalculated: details.dashaCalculated === true,
+    hasLagna: details.hasLagna === true,
+    hasNakshatra: details.hasNakshatra === true,
+    llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
+    errorCode: clean(details.errorCode),
+  };
+  try {
+    console.info(`${VEDIC_AI_CONSULTATION_MARKER} ${marker}`, payload);
+  } catch (_) {
+    console.info(`${VEDIC_AI_CONSULTATION_MARKER} ${marker}`);
+  }
+}
+
+function buildVedicAIError(code, message, status = 400, extra = {}) {
+  return json({ ok: false, code, message, ...extra }, { status });
+}
+
+function readVedicAIRequestBirthSource(body = {}) {
+  const raw = safeVedicAIObject(body?.birthInput);
+  const timeUnknown = raw.birthTimeUnknown === true || raw.isTimeUnknown === true || body?.birthTimeUnknown === true || body?.isTimeUnknown === true;
+  return {
+    ...raw,
+    isTimeUnknown: timeUnknown,
+    birthTimeUnknown: timeUnknown,
+  };
+}
+
+function normalizeVedicAIConsultationBirthInput(body = {}) {
+  const birthSource = readVedicAIRequestBirthSource(body);
+  const normalized = normalizeVedicPremiumBirthInput({
+    ...body,
+    birthInput: birthSource,
+    isTimeUnknown: birthSource.isTimeUnknown === true,
+    birthTimeUnknown: birthSource.birthTimeUnknown === true,
+  });
+  if (birthSource.birthTimeUnknown === true || birthSource.isTimeUnknown === true) {
+    normalized.birthTime = "";
+    normalized.birthHour = null;
+    normalized.birthMinute = 0;
+    normalized.isTimeUnknown = true;
+  }
+  return normalized;
+}
+
+function validateVedicAIConsultationInput(body = {}, birthInput = {}) {
+  const question = clean(body?.question);
+  const rawBirth = readVedicAIRequestBirthSource(body);
+  const missing = [];
+  if (!question || question.length < 5 || question.length > 1000) missing.push("question");
+  if (!clean(rawBirth.birthDate || birthInput.birthDate)) missing.push("birthDate");
+  const timezoneResolution = resolveVedicAITimezoneOffset(rawBirth.timezone, birthInput);
+  if (!timezoneResolution.ok) missing.push("timezone");
+  if (!clean(rawBirth.birthPlace || birthInput.birthPlace)) missing.push("birthPlace");
+  if (!Number.isFinite(Number(rawBirth.latitude ?? birthInput.latitude))) missing.push("latitude");
+  if (!Number.isFinite(Number(rawBirth.longitude ?? birthInput.longitude))) missing.push("longitude");
+  const timeUnknown = rawBirth.birthTimeUnknown === true || rawBirth.isTimeUnknown === true || birthInput.isTimeUnknown === true;
+  if (!timeUnknown && !Number.isFinite(Number(rawBirth.birthHour ?? birthInput.birthHour))) missing.push("birthTime");
+  if (missing.length) {
+    return {
+      ok: false,
+      missing,
+      message: missing.includes("question")
+      ? "질문은 5자 이상 1000자 이하로 입력해 주세요."
+      : "베다점 AI 상담을 위해 생년월일, 출생시간 또는 모름 선택, 출생지, 유효한 시간대, 위도와 경도를 확인해 주세요.",
+    };
+  }
+  return { ok: true, timezoneOffset: timezoneResolution.offset };
+}
+
+function parseVedicTimezoneOffsetToken(timezoneValue) {
+  const raw = clean(timezoneValue);
+  if (!raw) return null;
+  const direct = Number(raw);
+  if (Number.isFinite(direct) && direct >= -14 && direct <= 14) return direct;
+  const token = raw.toLowerCase();
+  if (token === "utc" || token === "etc/utc" || token === "gmt") return 0;
+  if (token === "asia/seoul" || token === "asia/tokyo") return 9;
+  const match = raw.match(/^(?:utc|gmt)\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?$/i);
+  if (!match) return null;
+  const sign = match[1] === "-" ? -1 : 1;
+  const hour = Number(match[2]);
+  const minute = Number(match[3] || 0);
+  const offset = sign * (hour + (minute / 60));
+  return offset >= -14 && offset <= 14 ? offset : null;
+}
+
+function resolveVedicAITimezoneOffset(timezoneValue, birthInput = {}) {
+  const raw = clean(timezoneValue);
+  const tokenOffset = parseVedicTimezoneOffsetToken(raw);
+  if (Number.isFinite(tokenOffset)) return { ok: true, offset: tokenOffset };
+  if (!raw) return { ok: false, offset: null };
+  const year = Number(birthInput?.birthYear);
+  const month = Number(birthInput?.birthMonth);
+  const day = Number(birthInput?.birthDay);
+  const hour = Number.isFinite(Number(birthInput?.birthHour)) ? Number(birthInput.birthHour) : 12;
+  const minute = Number.isFinite(Number(birthInput?.birthMinute)) ? Number(birthInput.birthMinute) : 0;
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return { ok: false, offset: null };
+  try {
+    const referenceUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+    const offsetParts = new Intl.DateTimeFormat("en-US", {
+      timeZone: raw,
+      timeZoneName: "shortOffset",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(referenceUtc);
+    const offsetName = clean(offsetParts.find((part) => part.type === "timeZoneName")?.value);
+    const parsedOffset = parseVedicTimezoneOffsetToken(offsetName);
+    if (Number.isFinite(parsedOffset)) return { ok: true, offset: parsedOffset };
+    const parts = Object.fromEntries(offsetParts.map((part) => [part.type, part.value]));
+    const localAsUtc = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), 0);
+    const offset = (localAsUtc - referenceUtc.getTime()) / 3600000;
+    return Number.isFinite(offset) && offset >= -14 && offset <= 14
+      ? { ok: true, offset }
+      : { ok: false, offset: null };
+  } catch (_) {
+    return { ok: false, offset: null };
+  }
+}
+
+function toVedicAIConsultationSwissInput(birthInput = {}, timezoneOffset = null) {
+  const hasBirthTime = !birthInput?.isTimeUnknown && Number.isFinite(Number(birthInput?.birthHour));
+  return {
+    year: Number(birthInput?.birthYear),
+    month: Number(birthInput?.birthMonth),
+    day: Number(birthInput?.birthDay),
+    hour: hasBirthTime ? Number(birthInput.birthHour) : 12,
+    minute: hasBirthTime && Number.isFinite(Number(birthInput.birthMinute)) ? Number(birthInput.birthMinute) : 0,
+    timezone: Number.isFinite(Number(timezoneOffset)) ? Number(timezoneOffset) : toVedicTimezoneOffset(birthInput?.timezone),
+    lat: Number(birthInput?.latitude),
+    lon: Number(birthInput?.longitude),
+  };
+}
+
+function cloneJsonSafe(value) {
+  try {
+    return JSON.parse(JSON.stringify(value || {}));
+  } catch (_) {
+    return {};
+  }
+}
+
+function maskVedicUnknownBirthTimeFacts(facts = {}, localChart = {}) {
+  const safeFacts = cloneJsonSafe(facts);
+  const safeChart = cloneJsonSafe(localChart);
+  if (safeFacts.birthInfo) {
+    safeFacts.birthInfo.birthTime = "";
+    safeFacts.birthInfo.birthHour = null;
+    safeFacts.birthInfo.birthTimeConfidence = "unknown";
+  }
+  if (safeFacts.calculationBasis) {
+    safeFacts.calculationBasis.birthTimeConfidence = "unknown";
+  }
+  if (safeFacts.rashiChart) {
+    safeFacts.rashiChart.ascendant = {
+      note: "출생시간이 제공되지 않아 라그나와 하우스 해석은 확정하지 않습니다.",
+    };
+    safeFacts.rashiChart.housePlacements = [];
+    safeFacts.rashiChart.grahaPositions = Array.isArray(safeFacts.rashiChart.grahaPositions)
+      ? safeFacts.rashiChart.grahaPositions.map((planet) => {
+        const next = { ...planet };
+        delete next.house;
+        return next;
+      })
+      : [];
+  }
+  safeFacts.houseThemes = [];
+  safeFacts.avoidActions = [
+    "출생시간이 없어 라그나와 하우스의 정확도는 제한됩니다. 달, 나크샤트라, 행성 사인 중심으로 상담합니다.",
+    "다샤는 출생시간에 따라 경계가 달라질 수 있으므로 현재 계산값이 있더라도 정확도 제한을 함께 설명합니다.",
+  ];
+  if (safeFacts.currentDasha && typeof safeFacts.currentDasha === "object") {
+    safeFacts.currentDasha.accuracyNote = "출생시간 미입력으로 현재 다샤 경계와 세부 시점은 제한적으로만 참고합니다.";
+  }
+  if (safeChart.chart) {
+    safeChart.chart.lagnaSign = "";
+    safeChart.chart.lagnaSignEn = "";
+    safeChart.chart.houses = [];
+    if (safeChart.chart.dashas && typeof safeChart.chart.dashas === "object") {
+      safeChart.chart.dashas.accuracyNote = "출생시간 미입력으로 다샤 경계와 세부 시점은 제한적으로만 참고합니다.";
+    }
+    safeChart.chart.planets = Array.isArray(safeChart.chart.planets)
+      ? safeChart.chart.planets.map((planet) => {
+        const next = { ...planet };
+        delete next.house;
+        return next;
+      })
+      : [];
+  }
+  return { facts: safeFacts, localChart: safeChart };
+}
+
+function summarizeVedicAIChart(localChart = {}, facts = {}, birthInput = {}) {
+  const chart = safeVedicAIObject(localChart?.chart);
+  const nakshatra = safeVedicAIObject(chart?.nakshatra || facts?.nakshatra?.moonNakshatra);
+  const dashas = safeVedicAIObject(chart?.dashas);
+  const hasBirthTime = !birthInput?.isTimeUnknown && Number.isFinite(Number(birthInput?.birthHour));
+  return {
+    hasBirthTime,
+    hasBirthPlace: Boolean(clean(birthInput?.birthPlace)),
+    timezoneResolved: birthInput?._timezoneResolved === true,
+    hasLagna: hasBirthTime && Boolean(clean(chart?.lagnaSign)),
+    hasNakshatra: Boolean(clean(nakshatra?.name)),
+    dashaCalculated: Boolean(clean(dashas?.currentMahaDasha) || (Array.isArray(dashas?.periods) && dashas.periods.length)),
+    lagna: hasBirthTime ? clean(chart?.lagnaSign) || undefined : undefined,
+    moonSign: clean(chart?.moonSign) || undefined,
+    sunSign: clean(chart?.sunSign) || undefined,
+    nakshatra: clean(nakshatra?.name) || undefined,
+    currentMahadasha: clean(dashas?.currentMahaDasha || facts?.currentDasha?.mahadasha?.planet) || undefined,
+    currentAntardasha: clean(dashas?.currentAntarDasha || facts?.currentDasha?.antardasha?.planet) || undefined,
+  };
+}
+
+function compactJsonForPrompt(value, maxLength = 28000) {
+  const text = JSON.stringify(value || {}, null, 2);
+  return text.length > maxLength ? `${text.slice(0, maxLength)}\n...truncated` : text;
+}
+
+function buildVedicAIConsultationSystemPrompt() {
+  return [
+    "너는 베다 점성술/Vedic Astrology를 깊이 이해한 상담가다.",
+    "사용자의 라그나, 라시, 나크샤트라, 행성 배치, 하우스, 다샤, 고차라 데이터에 근거해서 답한다.",
+    "차트 데이터는 반드시 제공된 계산 결과만 사용하고 임의로 지어내지 않는다.",
+    "출생시간 또는 출생지가 부족하면 정확도 제한을 명확히 설명한다.",
+    "사용자의 질문에 직접 답하되, 공포를 조장하거나 운명론적으로 단정하지 않는다.",
+    "결과는 한국어로 작성한다.",
+    "베다 점성술 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+    "사용자가 실제로 선택하고 행동할 수 있는 전략을 제안한다.",
+    "건강, 법률, 재정 문제는 전문 상담을 대체한다고 말하지 않는다.",
+  ].join("\n");
+}
+
+function buildVedicAIConsultationPrompt({ question, category, categoryLabel, birthInput, chartSummary, facts, localChart }) {
+  return [
+    "아래 계산 결과만 근거로 베다점 AI 상담 결과를 작성하라.",
+    "라그나, 나크샤트라, 다샤, 행성 위치, 하우스, 요가, 도샤, 고차라를 새로 추정하지 말라.",
+    "제공되지 않은 데이터는 제공되지 않았다고 말하고, 일반 조언으로 덮어쓰지 말라.",
+    "출생시간을 모르는 경우 라그나와 하우스 해석을 확정하지 말라.",
+    "",
+    "[사용자 정보]",
+    `이름: ${clean(birthInput?.name) || "사용자"}`,
+    `성별: ${clean(birthInput?.gender) || "미입력"}`,
+    `생년월일: ${clean(birthInput?.birthDate)}`,
+    `출생시간: ${chartSummary.hasBirthTime ? clean(birthInput?.birthTime) : "모름"}`,
+    `출생지: ${clean(birthInput?.birthPlace)}`,
+    `시간대: ${clean(birthInput?.timezone)}`,
+    `상담 카테고리: ${categoryLabel} (${category})`,
+    `사용자 질문: ${question}`,
+    "",
+    "[계산 요약]",
+    compactJsonForPrompt(chartSummary, 4000),
+    "",
+    "[베다 점성술 계산 데이터]",
+    compactJsonForPrompt({ facts, localChart }, 32000),
+    "",
+    "아래 JSON 구조만 반환하라. markdown 코드블록은 쓰지 말라.",
+    JSON.stringify({
+      summary: "상담 요약",
+      chartCore: "라그나, 문, 태양, 나크샤트라, 핵심 행성 근거",
+      dashaFlow: "현재 다샤 흐름. 데이터가 없으면 제공되지 않았다고 말하기",
+      topicAnswer: "선택한 상담 주제에 대한 직접 답변",
+      timing: "기회와 주의할 시기. 근거가 부족하면 큰 흐름만 말하기",
+      actionGuide: ["현실적인 행동 전략 1", "현실적인 행동 전략 2", "현실적인 행동 전략 3"],
+      symbolicRitual: "종교 강요 없는 작은 정리 의식",
+      closingMessage: "지금의 하늘이 건네는 한 문장",
+      followUpQuestions: ["후속 질문 1", "후속 질문 2", "후속 질문 3"],
+    }, null, 2),
+  ].join("\n");
+}
+
+function extractVedicAIJsonText(text) {
+  const raw = clean(text);
+  if (!raw) return "";
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+  if (first >= 0 && last > first) return raw.slice(first, last + 1).trim();
+  return "";
+}
+
+function toVedicAIList(value) {
+  if (Array.isArray(value)) return value.map((item) => clean(item)).filter(Boolean).slice(0, 8);
+  return clean(value)
+    .split(/\n+|(?:^|\s)[-*]\s+/)
+    .map((item) => clean(item.replace(/^\d+[.)]\s*/, "")))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function extractVedicAISection(rawText, title, nextTitles = []) {
+  const raw = String(rawText || "");
+  const start = raw.search(new RegExp(`${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"));
+  if (start < 0) return "";
+  let end = raw.length;
+  nextTitles.forEach((nextTitle) => {
+    const index = raw.slice(start + title.length).search(new RegExp(`${nextTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"));
+    if (index >= 0) end = Math.min(end, start + title.length + index);
+  });
+  return clean(raw.slice(start, end).replace(new RegExp(`^\\s*\\d*[.)]?\\s*${title}\\s*[-—:：]?`, "i"), ""));
+}
+
+function normalizeVedicAIResult(aiText) {
+  const rawText = clean(aiText);
+  let parsed = null;
+  const jsonText = extractVedicAIJsonText(rawText);
+  if (jsonText) {
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (_) {
+      parsed = null;
+    }
+  }
+  const source = safeVedicAIObject(parsed);
+  const fallbackTitles = ["상담 요약", "나의 베다 차트 핵심", "현재 다샤 흐름", "질문 주제별 해석", "기회와 주의할 시기", "현실적인 행동 전략", "마음가짐과 상징적 리추얼", "마지막 조언", "후속 질문 추천"];
+  const result = {
+    summary: clean(source.summary) || extractVedicAISection(rawText, fallbackTitles[0], fallbackTitles.slice(1)),
+    chartCore: clean(source.chartCore) || extractVedicAISection(rawText, fallbackTitles[1], fallbackTitles.slice(2)),
+    dashaFlow: clean(source.dashaFlow) || extractVedicAISection(rawText, fallbackTitles[2], fallbackTitles.slice(3)),
+    topicAnswer: clean(source.topicAnswer) || extractVedicAISection(rawText, fallbackTitles[3], fallbackTitles.slice(4)),
+    timing: clean(source.timing) || extractVedicAISection(rawText, fallbackTitles[4], fallbackTitles.slice(5)),
+    actionGuide: toVedicAIList(source.actionGuide || extractVedicAISection(rawText, fallbackTitles[5], fallbackTitles.slice(6))),
+    symbolicRitual: clean(source.symbolicRitual) || extractVedicAISection(rawText, fallbackTitles[6], fallbackTitles.slice(7)),
+    closingMessage: clean(source.closingMessage) || extractVedicAISection(rawText, fallbackTitles[7], fallbackTitles.slice(8)),
+    followUpQuestions: toVedicAIList(source.followUpQuestions || extractVedicAISection(rawText, fallbackTitles[8], [])),
+    rawText,
+  };
+  if (!result.summary && rawText) result.summary = rawText.slice(0, 700);
+  if (!result.topicAnswer && rawText) result.topicAnswer = rawText;
+  return result;
+}
+
+async function handleVedicAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const dryRun = isVedicAIConsultationDryRun(env);
+  const hasEnvAI = hasVedicAIProviderEnv(env);
+  const question = clean(body?.question);
+  const rawCategory = clean(body?.category || "general").toLowerCase();
+  const category = VEDIC_AI_CONSULTATION_CATEGORIES[rawCategory] ? rawCategory : "general";
+  const categoryLabel = VEDIC_AI_CONSULTATION_CATEGORIES[category];
+  const baseLog = {
+    hasEnvAI,
+    providerName: hasEnvAI ? "gemini-primary-workers-ai-fallback" : "",
+    isMock: false,
+    dryRun,
+    category,
+    questionLength: question.length,
+  };
+  logVedicAIConsultation("request received", baseLog);
+
+  if (dryRun) {
+    return buildVedicAIError("DRY_RUN_DISABLED", "베다점 AI 상담은 dry_run 상태에서 mock 결과를 반환하지 않습니다.", 409, {
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+      dryRun: true,
+      isMock: false,
+    });
+  }
+
+  const birthInput = normalizeVedicAIConsultationBirthInput(body);
+  const validation = validateVedicAIConsultationInput(body, birthInput);
+  if (!validation.ok) {
+    return buildVedicAIError("VEDIC_AI_INPUT_INVALID", validation.message, 422, {
+      missing: validation.missing,
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+    });
+  }
+  birthInput._timezoneResolved = true;
+  birthInput._timezoneOffset = validation.timezoneOffset;
+  const hasBirthTime = !birthInput.isTimeUnknown && Number.isFinite(Number(birthInput.birthHour));
+  logVedicAIConsultation("birth profile normalized", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: Boolean(clean(birthInput.birthPlace)),
+    timezoneResolved: birthInput._timezoneResolved === true,
+  });
+
+  const featureKey = clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY;
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  const pdfDbEnv = withPdfFastDbEnv(env);
+  const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "vedicPremium", {
+    ...body,
+    reportType: "vedicPremium",
+    featureKey,
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: "/api/vedic/ai-consultation",
+  });
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    return buildVedicAIError(access?.code || "PAYMENT_REQUIRED", status === 401 ? "로그인이 필요합니다." : "베다점 AI 상담 이용 권한이 필요합니다.", status, {
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+      featureKey,
+      amountCoins: 390,
+      allowedPaymentModes: ["direct", "monthly", "membership_pass"],
+    });
+  }
+  logVedicAIConsultation("payment verified", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+  });
+
+  let localVedicChartJson = null;
+  let facts = null;
+  let chartSummary = null;
+  try {
+    const calculated = await getSwissVedicPlanets(env, toVedicAIConsultationSwissInput(birthInput, validation.timezoneOffset), { requestUrl: request.url });
+    const chartSource = normalizeVedicChartSourceForPdf(calculated, {
+      source: "swiss-wasm-local",
+      engineQuality: "swiss",
+    });
+    const chartSourceQuality = validateVedicPremiumChartSourceQuality({
+      chartSource,
+      requireTrustedSource: true,
+    });
+    if (!chartSourceQuality.ok) {
+      const error = new Error("베다 차트 계산 결과가 충분하지 않습니다. 출생 정보와 위치 정보를 다시 확인해 주세요.");
+      error.code = "VEDIC_CHART_SOURCE_QUALITY_INVALID";
+      error.status = 422;
+      error.details = chartSourceQuality;
+      throw error;
+    }
+    const chartBirthInput = hasBirthTime
+      ? birthInput
+      : { ...birthInput, birthTime: "12:00", birthHour: 12, birthMinute: 0, isTimeUnknown: false };
+    localVedicChartJson = buildVedicLocalChartJson({
+      ...body,
+      birthInput: chartBirthInput,
+      chart: chartSource,
+    }, { strictPremium: false });
+    if (!hasBirthTime) {
+      localVedicChartJson.birthInput = { ...birthInput, birthTime: "", birthHour: null, birthMinute: 0, isTimeUnknown: true };
+    }
+    facts = buildVedicAstrologyFacts(localVedicChartJson, { ...body, birthInput });
+    chartSummary = summarizeVedicAIChart(localVedicChartJson, facts, birthInput);
+    logVedicAIConsultation("chart calculated", {
+      ...baseLog,
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      chartCalculated: true,
+      dashaCalculated: chartSummary.dashaCalculated,
+      hasLagna: chartSummary.hasLagna,
+      hasNakshatra: chartSummary.hasNakshatra,
+    });
+    logVedicAIConsultation("dasha calculated", {
+      ...baseLog,
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      chartCalculated: true,
+      dashaCalculated: chartSummary.dashaCalculated,
+      hasLagna: chartSummary.hasLagna,
+      hasNakshatra: chartSummary.hasNakshatra,
+    });
+  } catch (error) {
+    logVedicAIConsultation("chart calculation error", {
+      ...baseLog,
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      errorCode: clean(error?.code || "VEDIC_CHART_CALCULATION_FAILED"),
+    });
+    return buildVedicAIError(
+      clean(error?.code || "VEDIC_CHART_CALCULATION_FAILED"),
+      clean(error?.message || "베다 차트 계산 중 오류가 발생했습니다. 출생 정보와 위치 정보를 확인해 주세요."),
+      Number(error?.status || 422),
+      { serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE },
+    );
+  }
+
+  let promptFacts = facts;
+  let promptChart = localVedicChartJson;
+  if (!hasBirthTime) {
+    const masked = maskVedicUnknownBirthTimeFacts(facts, localVedicChartJson);
+    promptFacts = masked.facts;
+    promptChart = masked.localChart;
+  }
+  const prompt = buildVedicAIConsultationPrompt({
+    question,
+    category,
+    categoryLabel,
+    birthInput,
+    chartSummary,
+    facts: promptFacts,
+    localChart: promptChart,
+  });
+  logVedicAIConsultation("prompt built", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    chartCalculated: true,
+    dashaCalculated: chartSummary.dashaCalculated,
+    hasLagna: chartSummary.hasLagna,
+    hasNakshatra: chartSummary.hasNakshatra,
+  });
+
+  logVedicAIConsultation("LLM provider start", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    chartCalculated: true,
+    dashaCalculated: chartSummary.dashaCalculated,
+    hasLagna: chartSummary.hasLagna,
+    hasNakshatra: chartSummary.hasNakshatra,
+  });
+  const llmStart = Date.now();
+  const ai = await callGeminiText(env, prompt, {
+    systemPrompt: buildVedicAIConsultationSystemPrompt(),
+    taskType: "fortune",
+    temperature: 0.68,
+    maxOutputTokens: 4096,
+  });
+  const llmLatencyMs = Date.now() - llmStart;
+  if (!ai?.ok || !clean(ai?.text)) {
+    logVedicAIConsultation("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider || "gemini-primary-workers-ai-fallback"),
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      chartCalculated: true,
+      dashaCalculated: chartSummary.dashaCalculated,
+      hasLagna: chartSummary.hasLagna,
+      hasNakshatra: chartSummary.hasNakshatra,
+      llmLatencyMs,
+      errorCode: clean(ai?.error || "LLM_PROVIDER_FAILED"),
+    });
+    return buildVedicAIError("LLM_PROVIDER_FAILED", "베다점 AI 상담 생성 중 LLM 호출에 실패했습니다. 결제 권한은 보존되며 잠시 후 다시 시도할 수 있습니다.", 503, {
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+      featureKey,
+      retryable: true,
+      paymentRetainedForRetry: true,
+      provider: clean(ai?.provider),
+      isMock: false,
+      dryRun: false,
+    });
+  }
+  const result = normalizeVedicAIResult(ai.text);
+  if (clean(result.rawText).length < 240) {
+    logVedicAIConsultation("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider),
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      chartCalculated: true,
+      dashaCalculated: chartSummary.dashaCalculated,
+      hasLagna: chartSummary.hasLagna,
+      hasNakshatra: chartSummary.hasNakshatra,
+      llmLatencyMs,
+      errorCode: "LLM_RESULT_TOO_SHORT",
+    });
+    return buildVedicAIError("LLM_RESULT_TOO_SHORT", "베다점 AI 상담 결과가 충분히 생성되지 않았습니다. 잠시 후 다시 시도해 주세요.", 503, {
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+      retryable: true,
+      paymentRetainedForRetry: true,
+    });
+  }
+  logVedicAIConsultation("LLM provider success", {
+    ...baseLog,
+    providerName: clean(ai?.provider),
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    chartCalculated: true,
+    dashaCalculated: chartSummary.dashaCalculated,
+    hasLagna: chartSummary.hasLagna,
+    hasNakshatra: chartSummary.hasNakshatra,
+    llmLatencyMs,
+  });
+
+  const consultationId = clean(body?.requestId) || `vedic-ai:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  const responseBody = {
+    ok: true,
+    serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+    featureKey,
+    provider: clean(ai.provider || "unknown"),
+    model: clean(ai.model) || undefined,
+    isMock: false,
+    dryRun: false,
+    consultationId,
+    category,
+    chartSummary,
+    result,
+    billing: {
+      reportType: "vedicPremium",
+      amountCoins: 390,
+      accessVerified: true,
+    },
+    elapsedMs: Date.now() - startedAt,
+  };
+  logVedicAIConsultation("response returned", {
+    ...baseLog,
+    providerName: responseBody.provider,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    chartCalculated: true,
+    dashaCalculated: chartSummary.dashaCalculated,
+    hasLagna: chartSummary.hasLagna,
+    hasNakshatra: chartSummary.hasNakshatra,
+    llmLatencyMs,
+  });
+  return json(responseBody);
+}
+
+const ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE = "astrology_ai_consultation";
+const ASTROLOGY_AI_CONSULTATION_MARKER = "[Astrology AI Consultation]";
+const ASTROLOGY_AI_CONSULTATION_CATEGORIES = Object.freeze({
+  general: "종합 점성술 리딩",
+  personality: "성격과 재능",
+  career: "직업/커리어",
+  money: "재물/사업",
+  love: "연애/결혼",
+  relationship: "인간관계",
+  family: "가족/감정 패턴",
+  health: "건강/멘탈",
+  business: "이직/창업",
+  yearly: "올해의 운세",
+  transit: "현재 트랜짓 흐름",
+  turning_point: "인생 전환점",
+  choice: "지금의 선택",
+});
+const ASTROLOGY_AI_SIGN_NAMES_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
+const ASTROLOGY_AI_TRANSIT_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "NorthNode", "SouthNode"];
+
+function isAstrologyAIConsultationDryRun(env = {}) {
+  return /^(1|true|yes|on)$/i.test(clean(env?.ASTROLOGY_AI_CONSULTATION_DRY_RUN || env?.ASTRO_AI_CONSULTATION_DRY_RUN || env?.LLM_DRY_RUN || ""));
+}
+
+function hasAstrologyAIProviderEnv(env = {}) {
+  return Boolean(clean(env?.GEMINIF_API_KEY || env?.GEMINI_API_KEY || env?.GOOGLE_GEMINI_API_KEY) || env?.AI?.run);
+}
+
+function logAstrologyAIConsultation(marker, details = {}) {
+  const payload = {
+    hasEnvAI: Boolean(details.hasEnvAI),
+    providerName: clean(details.providerName),
+    isMock: details.isMock === true,
+    dryRun: details.dryRun === true,
+    category: clean(details.category),
+    questionLength: Number(details.questionLength || 0),
+    hasBirthTime: details.hasBirthTime === true,
+    hasBirthPlace: details.hasBirthPlace === true,
+    timezoneResolved: details.timezoneResolved === true,
+    natalChartCalculated: details.natalChartCalculated === true,
+    transitCalculated: details.transitCalculated === true,
+    hasAscendant: details.hasAscendant === true,
+    hasHouseData: details.hasHouseData === true,
+    hasMajorAspects: details.hasMajorAspects === true,
+    llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
+    errorCode: clean(details.errorCode),
+  };
+  try {
+    console.info(`${ASTROLOGY_AI_CONSULTATION_MARKER} ${marker}`, payload);
+  } catch (_) {
+    console.info(`${ASTROLOGY_AI_CONSULTATION_MARKER} ${marker}`);
+  }
+}
+
+function buildAstrologyAIError(code, message, status = 400, extra = {}) {
+  return json({ ok: false, code, message, ...extra }, { status });
+}
+
+function normalizeAstrologyAIConsultationBirthInput(body = {}) {
+  const source = getAstroBirthInputSource(body);
+  const timeUnknown = source.birthTimeUnknown === true
+    || source.isTimeUnknown === true
+    || body?.birthTimeUnknown === true
+    || body?.isTimeUnknown === true
+    || body?.birthInput?.birthTimeUnknown === true
+    || body?.birthInput?.isTimeUnknown === true;
+  const normalized = normalizeAstroPremiumBirthInput({
+    ...body,
+    birthInput: {
+      ...source,
+      birthTime: timeUnknown ? "unknown" : source.birthTime,
+      birthTimeUnknown: timeUnknown,
+      isTimeUnknown: timeUnknown,
+    },
+  });
+  if (timeUnknown || normalized.isTimeUnknown === true) {
+    normalized.birthTime = "";
+    normalized.birthHour = null;
+    normalized.birthMinute = 0;
+    normalized.isTimeUnknown = true;
+  }
+  return normalized;
+}
+
+function validateAstrologyAIConsultationInput(body = {}, birthInput = {}) {
+  const question = clean(body?.question);
+  const missing = [];
+  if (!question || question.length < 5 || question.length > 1000) missing.push("question");
+  if (!clean(birthInput?.birthDate)) missing.push("birthDate");
+  if (!Number.isFinite(Number(birthInput?.birthYear)) || Number(birthInput.birthYear) < 1900 || Number(birthInput.birthYear) > 2100) missing.push("birthYear");
+  if (!Number.isFinite(Number(birthInput?.birthMonth)) || Number(birthInput.birthMonth) < 1 || Number(birthInput.birthMonth) > 12) missing.push("birthMonth");
+  if (!Number.isFinite(Number(birthInput?.birthDay)) || Number(birthInput.birthDay) < 1 || Number(birthInput.birthDay) > 31) missing.push("birthDay");
+  if (!birthInput?.isTimeUnknown && !Number.isFinite(Number(birthInput?.birthHour))) missing.push("birthTime");
+  if (!clean(birthInput?.birthPlace)) missing.push("birthPlace");
+  if (!Number.isFinite(Number(birthInput?.latitude)) || Number(birthInput.latitude) < -90 || Number(birthInput.latitude) > 90) missing.push("latitude");
+  if (!Number.isFinite(Number(birthInput?.longitude)) || Number(birthInput.longitude) < -180 || Number(birthInput.longitude) > 180) missing.push("longitude");
+  if (!Number.isFinite(Number(birthInput?.timezoneOffsetHours))) missing.push("timezone");
+  if (missing.length) {
+    return {
+      ok: false,
+      missing,
+      message: missing.includes("question")
+        ? "질문은 5자 이상 1000자 이하로 입력해 주세요."
+        : "점성술 AI 상담을 위해 생년월일, 출생시간 또는 모름 선택, 출생지, 유효한 시간대, 위도와 경도를 확인해 주세요.",
+    };
+  }
+  return { ok: true };
+}
+
+function toAstrologyAIConsultationSwissInput(birthInput = {}) {
+  const hasBirthTime = !birthInput?.isTimeUnknown && Number.isFinite(Number(birthInput?.birthHour));
+  return {
+    year: Number(birthInput?.birthYear),
+    month: Number(birthInput?.birthMonth),
+    day: Number(birthInput?.birthDay),
+    hour: hasBirthTime ? Number(birthInput.birthHour) : 12,
+    minute: hasBirthTime && Number.isFinite(Number(birthInput.birthMinute)) ? Number(birthInput.birthMinute) : 0,
+    timezone: Number(birthInput?.timezoneOffsetHours),
+    lat: Number(birthInput?.latitude),
+    lon: Number(birthInput?.longitude),
+  };
+}
+
+function toAstrologyAITransitSwissInput(birthInput = {}) {
+  const offset = Number.isFinite(Number(birthInput?.timezoneOffsetHours)) ? Number(birthInput.timezoneOffsetHours) : 0;
+  const localNow = new Date(Date.now() + offset * 3600000);
+  return {
+    year: localNow.getUTCFullYear(),
+    month: localNow.getUTCMonth() + 1,
+    day: localNow.getUTCDate(),
+    hour: localNow.getUTCHours(),
+    minute: localNow.getUTCMinutes(),
+    timezone: offset,
+    lat: Number(birthInput?.latitude),
+    lon: Number(birthInput?.longitude),
+  };
+}
+
+function astrologyAISignFromLongitude(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+  const normalized = ((n % 360) + 360) % 360;
+  return ASTROLOGY_AI_SIGN_NAMES_KO[Math.floor(normalized / 30)] || "";
+}
+
+function astrologyAISignFromNode(node) {
+  if (!node) return "";
+  if (typeof node === "string") return clean(node);
+  if (typeof node === "number") return ASTROLOGY_AI_SIGN_NAMES_KO[((Math.trunc(node) % 12) + 12) % 12] || "";
+  if (typeof node !== "object") return "";
+  const nodeName = clean(node.name);
+  const direct = clean(node.signKo || node.signName || node.value);
+  if (direct) return direct;
+  if (nodeName && ASTROLOGY_AI_SIGN_NAMES_KO.includes(nodeName)) return nodeName;
+  if (typeof node.sign === "string") return clean(node.sign);
+  if (typeof node.sign === "number") return ASTROLOGY_AI_SIGN_NAMES_KO[((Math.trunc(node.sign) % 12) + 12) % 12] || "";
+  if (node.sign && typeof node.sign === "object") return astrologyAISignFromNode(node.sign);
+  return astrologyAISignFromLongitude(node.longitude);
+}
+
+function normalizeAstrologyAIPlanetList(planets) {
+  if (Array.isArray(planets)) return planets;
+  if (!planets || typeof planets !== "object") return [];
+  return Object.keys(planets).map((name) => ({ name, ...(planets[name] || {}) }));
+}
+
+function formatAstrologyAIPlanet(planet = {}) {
+  return {
+    name: clean(planet.name || planet.planet || planet.id),
+    sign: astrologyAISignFromNode(planet) || clean(planet.sign),
+    degree: Number.isFinite(Number(planet.degree ?? planet.deg)) ? Math.round(Number(planet.degree ?? planet.deg) * 100) / 100 : undefined,
+    longitude: Number.isFinite(Number(planet.longitude)) ? Math.round(Number(planet.longitude) * 100) / 100 : undefined,
+    house: Number.isFinite(Number(planet.house)) ? Number(planet.house) : undefined,
+    retrograde: planet.retrograde === true || planet.retro === true,
+  };
+}
+
+function formatAstrologyAIAspect(aspect = {}) {
+  const planetA = clean(aspect.planetA || aspect.p1 || aspect.a);
+  const planetB = clean(aspect.planetB || aspect.p2 || aspect.b);
+  const type = clean(aspect.type || aspect.aspect);
+  const orb = Number.isFinite(Number(aspect.orb)) ? Math.round(Number(aspect.orb) * 10) / 10 : undefined;
+  return [planetA && planetB ? `${planetA}-${planetB}` : "", type, orb !== undefined ? `orb ${orb}` : ""].filter(Boolean).join(" ");
+}
+
+function summarizeAstrologyAITransit(transitChart = {}) {
+  const rawPlanets = normalizeAstrologyAIPlanetList(transitChart?.planets);
+  const planets = rawPlanets
+    .map(formatAstrologyAIPlanet)
+    .filter((planet) => planet.name && (ASTROLOGY_AI_TRANSIT_PLANETS.includes(planet.name) || /node/i.test(planet.name)))
+    .slice(0, 8);
+  const highlights = planets.map((planet) => [
+    planet.name,
+    planet.sign || astrologyAISignFromLongitude(planet.longitude),
+    planet.retrograde ? "역행" : "",
+  ].filter(Boolean).join(" ")).filter(Boolean);
+  return {
+    calculated: highlights.length > 0,
+    source: clean(transitChart?.source || transitChart?.chartSource || "western-transit-swiss"),
+    engineQuality: clean(transitChart?.engineQuality),
+    highlights,
+    planets,
+    note: highlights.length
+      ? "현재 행성 위치는 SWISS 계산 결과에서 제공된 값만 사용했습니다. 네이탈 행성과의 정밀 트랜짓 애스펙트가 제공되지 않은 경우 구체 각도는 단정하지 않습니다."
+      : "현재 트랜짓 데이터가 제공되지 않았다.",
+  };
+}
+
+function maskAstrologyAIUnknownBirthTimeContext(localChart = {}) {
+  const safe = cloneJsonSafe(localChart);
+  if (safe.birthInput) {
+    safe.birthInput.birthTime = "";
+    safe.birthInput.birthHour = null;
+    safe.birthInput.birthMinute = 0;
+    safe.birthInput.isTimeUnknown = true;
+  }
+  if (safe.chart) {
+    safe.chart.ascendantSign = "";
+    safe.chart.midheavenSign = "";
+    safe.chart.descendantSign = "";
+    safe.chart.icSign = "";
+    safe.chart.chartRuler = { note: "출생시간이 없어 차트 룰러를 확정하지 않습니다." };
+    safe.chart.angles = {};
+    safe.chart.houses = [];
+    safe.chart.planets = Array.isArray(safe.chart.planets)
+      ? safe.chart.planets.map((planet) => {
+        const next = { ...planet };
+        delete next.house;
+        return next;
+      })
+      : [];
+  }
+  return safe;
+}
+
+function summarizeAstrologyAIChart(localChart = {}, birthInput = {}, transit = null) {
+  const hasBirthTime = !birthInput?.isTimeUnknown && Number.isFinite(Number(birthInput?.birthHour));
+  const chart = asPlainObject(localChart?.chart);
+  const planets = normalizeAstrologyAIPlanetList(chart.planets).map(formatAstrologyAIPlanet).filter((planet) => planet.name).slice(0, 16);
+  const houses = hasBirthTime && Array.isArray(chart.houses)
+    ? chart.houses.map((house) => ({
+      house: Number(house.house),
+      sign: clean(house.sign),
+      cuspDegree: Number.isFinite(Number(house.cuspDegree)) ? Number(house.cuspDegree) : undefined,
+    })).filter((house) => Number.isFinite(house.house)).slice(0, 12)
+    : [];
+  const majorAspects = Array.isArray(chart.aspects) ? chart.aspects.map(formatAstrologyAIAspect).filter(Boolean).slice(0, 20) : [];
+  return {
+    birthInfo: {
+      name: clean(birthInput.name) || "사용자",
+      gender: clean(birthInput.gender) || "unknown",
+      birthDate: clean(birthInput.birthDate),
+      birthTime: hasBirthTime ? clean(birthInput.birthTime) : "모름",
+      birthTimeKnown: hasBirthTime,
+      birthPlace: clean(birthInput.birthPlace),
+      timezone: clean(birthInput.timezone) || String(birthInput.timezoneOffsetHours),
+      timezoneOffsetHours: Number(birthInput.timezoneOffsetHours),
+      accuracyNote: hasBirthTime ? "" : "출생시간이 제공되지 않아 상승궁, MC, 하우스, 차트 룰러 해석은 확정하지 않습니다.",
+    },
+    coreSigns: {
+      sunSign: clean(chart.sunSign),
+      moonSign: clean(chart.moonSign),
+      ascendant: hasBirthTime ? clean(chart.ascendantSign) : undefined,
+      midheaven: hasBirthTime ? clean(chart.midheavenSign) : undefined,
+      chartRuler: hasBirthTime ? chart.chartRuler : undefined,
+    },
+    planets,
+    houses,
+    nodes: chart.nodes || {},
+    majorAspects,
+    elementBalance: chart.elementBalance || {},
+    modalityBalance: chart.modalityBalance || {},
+    interpretationSeeds: localChart?.interpretationSeeds || {},
+    insights: localChart?.insights || [],
+    transit: transit || {
+      calculated: false,
+      highlights: [],
+      note: "현재 트랜짓 데이터가 제공되지 않았다.",
+    },
+    calculationQuality: {
+      calculationMode: clean(localChart.calculationMode),
+      chartSource: clean(localChart.chartSource || localChart.calculationSource),
+      engineQuality: clean(localChart.engineQuality),
+      houseSystem: clean(localChart.houseSystem),
+      fallbackUsed: localChart.fallbackUsed === true,
+    },
+  };
+}
+
+function buildAstrologyAIConsultationSystemPrompt() {
+  return [
+    "너는 서양 점성술/Western Astrology를 깊이 이해한 상담가다.",
+    "사용자의 네이탈 차트, 태양, 달, 상승궁, 하우스, 행성 배치, 애스펙트, 트랜짓 데이터에 근거해서 답한다.",
+    "차트 데이터는 반드시 제공된 계산 결과만 사용하고 임의로 지어내지 않는다.",
+    "출생시간 또는 출생지가 부족하면 상승궁, 하우스, MC 해석의 정확도 제한을 명확히 설명한다.",
+    "사용자의 질문에 직접 답하되, 공포를 조장하거나 운명론적으로 단정하지 않는다.",
+    "결과는 한국어로 작성한다.",
+    "점성술 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+    "사용자가 실제로 선택하고 행동할 수 있는 전략을 제안한다.",
+    "건강, 법률, 재정 문제를 점성술만으로 확정 진단하지 않는다.",
+  ].join("\n");
+}
+
+function buildAstrologyAIConsultationPrompt({ question, category, categoryLabel, birthInput, chartContext }) {
+  return [
+    "아래 계산 결과만 근거로 점성술 AI 상담 결과를 작성하라.",
+    "상승궁, MC, 하우스, 행성 위치, 애스펙트, 트랜짓을 새로 추정하지 말라.",
+    "제공되지 않은 데이터는 제공되지 않았다고 말하고, 일반 별자리 운세로 덮어쓰지 말라.",
+    "출생시간을 모르는 경우 상승궁, MC, 하우스, 차트 룰러를 확정하지 말라.",
+    "",
+    "[사용자 정보]",
+    `이름: ${clean(birthInput?.name) || "사용자"}`,
+    `성별: ${clean(birthInput?.gender) || "미입력"}`,
+    `생년월일: ${clean(birthInput?.birthDate)}`,
+    `출생시간: ${birthInput?.isTimeUnknown ? "모름" : clean(birthInput?.birthTime)}`,
+    `출생지: ${clean(birthInput?.birthPlace)}`,
+    `시간대: ${clean(birthInput?.timezone) || birthInput?.timezoneOffsetHours}`,
+    `상담 카테고리: ${categoryLabel} (${category})`,
+    `사용자 질문: ${question}`,
+    "",
+    "[점성술 계산 데이터]",
+    compactJsonForPrompt(chartContext, 36000),
+    "",
+    "아래 JSON 구조만 반환하라. markdown 코드블록은 쓰지 말라.",
+    JSON.stringify({
+      summary: "상담 요약 — 지금 질문의 핵심 답변",
+      chartCore: {
+        sunSign: "태양 사인",
+        moonSign: "달 사인",
+        ascendant: "상승궁. 출생시간 미상이면 빈 문자열",
+        midheaven: "MC. 출생시간 미상이면 빈 문자열",
+        coreInterpretation: "태양, 달, 상승궁/제한 사항 중심 해석",
+      },
+      chartPatterns: {
+        dominantElements: ["강한 원소"],
+        dominantModes: ["강한 모드"],
+        majorAspects: ["주요 애스펙트"],
+        interpretation: "하우스, 애스펙트, 원소 균형의 상담 해석",
+      },
+      transitFlow: {
+        highlights: ["현재 흐름"],
+        interpretation: "현재 트랜짓 데이터가 없으면 제공되지 않았다고 반영",
+      },
+      topicAnswer: "선택한 상담 주제에 대한 상세 답변",
+      timing: {
+        opportunities: ["기회 흐름"],
+        cautions: ["주의 흐름"],
+        note: "구체 날짜 근거가 없으면 큰 흐름만 설명",
+      },
+      actionGuide: ["현실적인 행동 전략 1", "현실적인 행동 전략 2", "현실적인 행동 전략 3"],
+      closingMessage: "지금의 별이 건네는 한 문장",
+      followUpQuestions: ["후속 질문 1", "후속 질문 2", "후속 질문 3"],
+    }, null, 2),
+  ].join("\n");
+}
+
+function extractAstrologyAIJsonText(text) {
+  const raw = clean(text);
+  if (!raw) return "";
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+  if (first >= 0 && last > first) return raw.slice(first, last + 1).trim();
+  return "";
+}
+
+function toAstrologyAIText(value) {
+  if (Array.isArray(value)) return value.map(clean).filter(Boolean).join("\n");
+  if (value && typeof value === "object") return "";
+  return clean(value);
+}
+
+function toAstrologyAIList(value) {
+  if (Array.isArray(value)) return value.map((item) => clean(item)).filter(Boolean).slice(0, 8);
+  return clean(value)
+    .split(/\n+|(?:^|\s)[-*]\s+/)
+    .map((item) => clean(item.replace(/^\d+[.)]\s*/, "")))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function extractAstrologyAISection(rawText, title, nextTitles = []) {
+  const raw = String(rawText || "");
+  const start = raw.search(new RegExp(`${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"));
+  if (start < 0) return "";
+  let end = raw.length;
+  nextTitles.forEach((nextTitle) => {
+    const index = raw.slice(start + title.length).search(new RegExp(`${nextTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"));
+    if (index >= 0) end = Math.min(end, start + title.length + index);
+  });
+  return clean(raw.slice(start, end).replace(new RegExp(`^\\s*\\d*[.)]?\\s*${title}\\s*[-—:：]?`, "i"), ""));
+}
+
+function normalizeAstrologyAIResult(aiText, chartSummary = {}) {
+  const rawText = clean(aiText);
+  let parsed = null;
+  const jsonText = extractAstrologyAIJsonText(rawText);
+  if (jsonText) {
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (_) {
+      parsed = null;
+    }
+  }
+  const source = asPlainObject(parsed);
+  const chartCore = asPlainObject(source.chartCore);
+  const chartPatterns = asPlainObject(source.chartPatterns);
+  const transitFlow = asPlainObject(source.transitFlow);
+  const timing = asPlainObject(source.timing);
+  const fallbackTitles = ["상담 요약", "나의 별 지도 핵심", "차트의 강한 패턴", "현재 트랜짓 흐름", "질문 주제별 해석", "기회와 주의할 시기", "현실적인 행동 전략", "마지막 조언", "후속 질문 추천"];
+  const result = {
+    summary: toAstrologyAIText(source.summary) || extractAstrologyAISection(rawText, fallbackTitles[0], fallbackTitles.slice(1)),
+    chartCore: {
+      sunSign: clean(chartCore.sunSign) || clean(chartSummary?.coreSigns?.sunSign) || undefined,
+      moonSign: clean(chartCore.moonSign) || clean(chartSummary?.coreSigns?.moonSign) || undefined,
+      ascendant: clean(chartCore.ascendant) || clean(chartSummary?.coreSigns?.ascendant) || undefined,
+      midheaven: clean(chartCore.midheaven) || clean(chartSummary?.coreSigns?.midheaven) || undefined,
+      coreInterpretation: toAstrologyAIText(chartCore.coreInterpretation) || toAstrologyAIText(source.chartCore) || extractAstrologyAISection(rawText, fallbackTitles[1], fallbackTitles.slice(2)),
+    },
+    chartPatterns: {
+      dominantElements: toAstrologyAIList(chartPatterns.dominantElements),
+      dominantModes: toAstrologyAIList(chartPatterns.dominantModes),
+      majorAspects: toAstrologyAIList(chartPatterns.majorAspects),
+      interpretation: toAstrologyAIText(chartPatterns.interpretation) || extractAstrologyAISection(rawText, fallbackTitles[2], fallbackTitles.slice(3)),
+    },
+    transitFlow: {
+      highlights: toAstrologyAIList(transitFlow.highlights),
+      interpretation: toAstrologyAIText(transitFlow.interpretation) || extractAstrologyAISection(rawText, fallbackTitles[3], fallbackTitles.slice(4)),
+    },
+    topicAnswer: toAstrologyAIText(source.topicAnswer) || extractAstrologyAISection(rawText, fallbackTitles[4], fallbackTitles.slice(5)),
+    timing: {
+      opportunities: toAstrologyAIList(timing.opportunities),
+      cautions: toAstrologyAIList(timing.cautions),
+      note: toAstrologyAIText(timing.note) || extractAstrologyAISection(rawText, fallbackTitles[5], fallbackTitles.slice(6)),
+    },
+    actionGuide: toAstrologyAIList(source.actionGuide || extractAstrologyAISection(rawText, fallbackTitles[6], fallbackTitles.slice(7))),
+    closingMessage: toAstrologyAIText(source.closingMessage) || extractAstrologyAISection(rawText, fallbackTitles[7], fallbackTitles.slice(8)),
+    followUpQuestions: toAstrologyAIList(source.followUpQuestions || extractAstrologyAISection(rawText, fallbackTitles[8], [])),
+    rawText,
+  };
+  if (!result.summary && rawText) result.summary = rawText.slice(0, 700);
+  if (!result.topicAnswer && rawText) result.topicAnswer = rawText;
+  return result;
+}
+
+async function handleAstrologyAIConsultation(request, env) {
+  const startedAt = Date.now();
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const dryRun = isAstrologyAIConsultationDryRun(env);
+  const hasEnvAI = hasAstrologyAIProviderEnv(env);
+  const question = clean(body?.question);
+  const rawCategory = clean(body?.category || "general").toLowerCase();
+  const category = ASTROLOGY_AI_CONSULTATION_CATEGORIES[rawCategory] ? rawCategory : "general";
+  const categoryLabel = ASTROLOGY_AI_CONSULTATION_CATEGORIES[category];
+  const baseLog = {
+    hasEnvAI,
+    providerName: hasEnvAI ? "gemini-primary-workers-ai-fallback" : "",
+    isMock: false,
+    dryRun,
+    category,
+    questionLength: question.length,
+  };
+  logAstrologyAIConsultation("request received", baseLog);
+
+  if (dryRun) {
+    return buildAstrologyAIError("DRY_RUN_DISABLED", "점성술 AI 상담은 dry_run 상태에서 mock 결과를 반환하지 않습니다.", 409, {
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+      dryRun: true,
+      isMock: false,
+    });
+  }
+
+  const birthInput = normalizeAstrologyAIConsultationBirthInput(body);
+  const validation = validateAstrologyAIConsultationInput(body, birthInput);
+  const hasBirthTime = !birthInput.isTimeUnknown && Number.isFinite(Number(birthInput.birthHour));
+  if (!validation.ok) {
+    return buildAstrologyAIError("ASTROLOGY_AI_INPUT_INVALID", validation.message, 422, {
+      missing: validation.missing,
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+    });
+  }
+  logAstrologyAIConsultation("birth profile normalized", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: Boolean(clean(birthInput.birthPlace)),
+    timezoneResolved: Number.isFinite(Number(birthInput.timezoneOffsetHours)),
+  });
+
+  const featureKey = clean(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY) || ASTRO_PREMIUM_FEATURE_KEY;
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  const pdfDbEnv = withPdfFastDbEnv(env);
+  const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "westernAstrologyPremium", {
+    ...body,
+    reportType: "westernAstrologyPremium",
+    featureKey,
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: "/api/astro/ai-consultation",
+  });
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    return buildAstrologyAIError(access?.code || "PAYMENT_REQUIRED", status === 401 ? "로그인이 필요합니다." : "점성술 AI 상담 이용 권한이 필요합니다.", status, {
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+      featureKey,
+      amountCoins: 390,
+      allowedPaymentModes: ["direct", "monthly", "membership_pass"],
+    });
+  }
+  logAstrologyAIConsultation("payment verified", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+  });
+
+  let localAstroChartJson = null;
+  let chartContext = null;
+  let transitSummary = null;
+  try {
+    const chartBirthInput = hasBirthTime
+      ? birthInput
+      : { ...birthInput, birthTime: "12:00", birthHour: 12, birthMinute: 0, isTimeUnknown: false };
+    const swissChart = await getSwissWesternChart(env, toAstrologyAIConsultationSwissInput(chartBirthInput), {
+      requestUrl: request.url,
+      strictSwiss: true,
+      allowFallback: false,
+      premium: true,
+    });
+    localAstroChartJson = buildAstroLocalChartJson(chartBirthInput, swissChart, null, { strictPremium: false });
+    if (!hasBirthTime) {
+      localAstroChartJson.birthInput = { ...birthInput, birthTime: "", birthHour: null, birthMinute: 0, isTimeUnknown: true };
+      localAstroChartJson = maskAstrologyAIUnknownBirthTimeContext(localAstroChartJson);
+    }
+    logAstrologyAIConsultation("natal chart calculated", {
+      ...baseLog,
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      natalChartCalculated: true,
+      hasAscendant: hasBirthTime && Boolean(clean(localAstroChartJson?.chart?.ascendantSign)),
+      hasHouseData: hasBirthTime && Array.isArray(localAstroChartJson?.chart?.houses) && localAstroChartJson.chart.houses.length >= 12,
+      hasMajorAspects: Array.isArray(localAstroChartJson?.chart?.aspects) && localAstroChartJson.chart.aspects.length > 0,
+    });
+  } catch (error) {
+    logAstrologyAIConsultation("natal chart error", {
+      ...baseLog,
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      errorCode: clean(error?.code || "ASTROLOGY_AI_NATAL_CHART_FAILED"),
+    });
+    return buildAstrologyAIError(
+      clean(error?.code || "ASTROLOGY_AI_NATAL_CHART_FAILED"),
+      clean(error?.message || "점성술 차트 계산 중 오류가 발생했습니다. 출생 정보와 위치 정보를 확인해 주세요."),
+      Number(error?.status || 422),
+      { serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE },
+    );
+  }
+
+  try {
+    const transitChart = await getSwissWesternChart(env, toAstrologyAITransitSwissInput(birthInput), {
+      requestUrl: request.url,
+      strictSwiss: true,
+      allowFallback: false,
+      premium: true,
+    });
+    transitSummary = summarizeAstrologyAITransit(transitChart);
+  } catch (error) {
+    transitSummary = {
+      calculated: false,
+      highlights: [],
+      note: "현재 트랜짓 데이터가 제공되지 않았다.",
+      errorCode: clean(error?.code || "ASTROLOGY_AI_TRANSIT_UNAVAILABLE") || "ASTROLOGY_AI_TRANSIT_UNAVAILABLE",
+    };
+  }
+  chartContext = summarizeAstrologyAIChart(localAstroChartJson, birthInput, transitSummary);
+  logAstrologyAIConsultation("transit calculated", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    natalChartCalculated: true,
+    transitCalculated: transitSummary?.calculated === true,
+    hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+    hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+    hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+    errorCode: transitSummary?.calculated ? "" : clean(transitSummary?.errorCode),
+  });
+
+  const prompt = buildAstrologyAIConsultationPrompt({
+    question,
+    category,
+    categoryLabel,
+    birthInput,
+    chartContext,
+  });
+  logAstrologyAIConsultation("prompt built", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    natalChartCalculated: true,
+    transitCalculated: transitSummary?.calculated === true,
+    hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+    hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+    hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+  });
+
+  logAstrologyAIConsultation("LLM provider start", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    natalChartCalculated: true,
+    transitCalculated: transitSummary?.calculated === true,
+    hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+    hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+    hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+  });
+  const llmStart = Date.now();
+  const ai = await callGeminiText(env, prompt, {
+    systemPrompt: buildAstrologyAIConsultationSystemPrompt(),
+    taskType: "fortune",
+    temperature: 0.68,
+    maxOutputTokens: 4096,
+  });
+  const llmLatencyMs = Date.now() - llmStart;
+  if (!ai?.ok || !clean(ai?.text)) {
+    logAstrologyAIConsultation("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider || "gemini-primary-workers-ai-fallback"),
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      natalChartCalculated: true,
+      transitCalculated: transitSummary?.calculated === true,
+      hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+      hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+      hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+      llmLatencyMs,
+      errorCode: clean(ai?.error || "LLM_PROVIDER_FAILED"),
+    });
+    return buildAstrologyAIError("LLM_PROVIDER_FAILED", "점성술 AI 상담 생성 중 LLM 호출에 실패했습니다. 결제 권한은 보존되며 잠시 후 다시 시도할 수 있습니다.", 503, {
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+      featureKey,
+      retryable: true,
+      paymentRetainedForRetry: true,
+      provider: clean(ai?.provider),
+      isMock: false,
+      dryRun: false,
+    });
+  }
+  const result = normalizeAstrologyAIResult(ai.text, chartContext);
+  if (clean(result.rawText).length < 240) {
+    logAstrologyAIConsultation("LLM provider error", {
+      ...baseLog,
+      providerName: clean(ai?.provider),
+      hasBirthTime,
+      hasBirthPlace: true,
+      timezoneResolved: true,
+      natalChartCalculated: true,
+      transitCalculated: transitSummary?.calculated === true,
+      hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+      hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+      hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+      llmLatencyMs,
+      errorCode: "LLM_RESULT_TOO_SHORT",
+    });
+    return buildAstrologyAIError("LLM_RESULT_TOO_SHORT", "점성술 AI 상담 결과가 충분히 생성되지 않았습니다. 잠시 후 다시 시도해 주세요.", 503, {
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+      retryable: true,
+      paymentRetainedForRetry: true,
+    });
+  }
+  logAstrologyAIConsultation("LLM provider success", {
+    ...baseLog,
+    providerName: clean(ai?.provider),
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    natalChartCalculated: true,
+    transitCalculated: transitSummary?.calculated === true,
+    hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+    hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+    hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+    llmLatencyMs,
+  });
+
+  const consultationId = clean(body?.requestId) || `astrology-ai:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  const responseBody = {
+    ok: true,
+    serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+    featureKey,
+    provider: clean(ai.provider || "unknown"),
+    model: clean(ai.model) || undefined,
+    isMock: false,
+    dryRun: false,
+    consultationId,
+    category,
+    chartSummary: chartContext,
+    result,
+    billing: {
+      reportType: "westernAstrologyPremium",
+      amountCoins: 390,
+      accessVerified: true,
+    },
+    elapsedMs: Date.now() - startedAt,
+  };
+  logAstrologyAIConsultation("response returned", {
+    ...baseLog,
+    providerName: responseBody.provider,
+    hasBirthTime,
+    hasBirthPlace: true,
+    timezoneResolved: true,
+    natalChartCalculated: true,
+    transitCalculated: transitSummary?.calculated === true,
+    hasAscendant: hasBirthTime && Boolean(clean(chartContext?.coreSigns?.ascendant)),
+    hasHouseData: hasBirthTime && Array.isArray(chartContext?.houses) && chartContext.houses.length >= 12,
+    hasMajorAspects: Array.isArray(chartContext?.majorAspects) && chartContext.majorAspects.length > 0,
+    llmLatencyMs,
+  });
+  return json(responseBody);
+}
+
 async function handleAstroPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
@@ -3891,6 +5274,10 @@ export async function handleAstroRoutes(request, env) {
           isMock: true,
         });
       }
+      if (path === "/ai-consultation") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleAstrologyAIConsultation(request, env);
+      }
       if (path === "/premium/verify-access") {
         if (method !== "POST") return methodNotAllowed();
         return await handleAstrologyMockVerifyAccess(request, env);
@@ -3988,6 +5375,10 @@ export async function handleAstroRoutes(request, env) {
       if (path === "/premium/status") {
         if (method !== "GET") return methodNotAllowed();
         return await handleVedicPremiumStatus(request, env);
+      }
+      if (path === "/ai-consultation") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleVedicAIConsultation(request, env);
       }
       if (path === "/planets") {
         if (method !== "POST") return methodNotAllowed();

@@ -5,6 +5,7 @@ import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 import { Solar } from "lunar-javascript";
+import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   failPremiumPdfExecution,
@@ -43,6 +44,64 @@ export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
 });
 const LIFEBOOK_AUTHORING_MODE = "llm-only";
 const LIFEBOOK_WRITING_STATE = "llm_generation";
+const LIFEBOOK_AI_READING_TOTAL_CHAPTERS = 8;
+const LIFEBOOK_AI_READING_SYSTEM_PROMPT = [
+  "너는 사주 명리학을 깊이 이해한 인생 리딩 상담가다.",
+  "사용자의 사주 원국, 대운, 세운, 오행, 십성 구조에 근거해서 답한다.",
+  "사용자의 삶을 한 권의 책처럼 해석하되, 과장하거나 공포를 조장하지 않는다.",
+  "없는 정보를 지어내지 않는다.",
+  "사주 용어는 사용하되 일반 사용자도 이해할 수 있게 풀어쓴다.",
+  "결과는 한국어로 작성한다.",
+  "사용자가 실제로 선택하고 행동할 수 있는 방향을 제안한다.",
+].join("\n");
+const LIFEBOOK_AI_READING_TOPICS = Object.freeze({
+  life_flow: {
+    label: "내 인생의 큰 흐름",
+    question: "제 인생 전체의 큰 흐름과 앞으로의 전환점을 알려주세요.",
+  },
+  talent_career: {
+    label: "타고난 재능과 직업 방향",
+    question: "저는 어떤 재능으로 살아야 가장 빛날까요?",
+  },
+  love_relationship: {
+    label: "사랑과 인연의 패턴",
+    question: "제 사랑과 인연에는 어떤 반복 흐름이 있는지 알고 싶어요.",
+  },
+  money_success: {
+    label: "돈과 성공의 흐름",
+    question: "제 명식 기준으로 돈과 성공은 어떤 방식으로 열리나요?",
+  },
+  crisis_growth: {
+    label: "반복되는 고비와 극복 과제",
+    question: "왜 제 인생에는 비슷한 고비가 반복되는지 알고 싶어요.",
+  },
+  next_10_years: {
+    label: "앞으로 10년의 전환점",
+    question: "앞으로 10년 동안 가장 중요한 선택과 조심할 시기를 알려주세요.",
+  },
+  current_choice: {
+    label: "지금 내 삶에서 가장 중요한 선택",
+    question: "지금 제 삶에서 가장 중요하게 붙잡아야 할 선택을 알려주세요.",
+  },
+  life_mission: {
+    label: "내 명식이 말하는 인생 사명",
+    question: "제 삶의 사명과 끝까지 붙잡아야 할 방향을 알고 싶어요.",
+  },
+  comprehensive: {
+    label: "종합 인생 리딩",
+    question: "제 명식이 품은 인생 전체의 서사를 종합적으로 읽어주세요.",
+  },
+});
+const LIFEBOOK_AI_READING_CHAPTERS = Object.freeze([
+  "서문 — 당신의 삶을 여는 첫 문장",
+  "제1장 — 타고난 기질과 삶의 기본 리듬",
+  "제2장 — 재능, 일, 돈이 열리는 방식",
+  "제3장 — 사랑과 인연에서 반복되는 패턴",
+  "제4장 — 인생에서 반복되는 고비와 배움",
+  "제5장 — 앞으로의 전환점과 기회의 시기",
+  "제6장 — 지금 붙잡아야 할 선택",
+  "마지막 장 — 명식이 건네는 한 문장",
+]);
 
 function isLifeBookDbPersistenceBypassed(env = {}) {
   return String(env?.LIFE_BOOK_PREMIUM_TEST_BYPASS_DB || "").trim().toLowerCase() === "true";
@@ -1508,6 +1567,261 @@ function normalizeInput(body = {}) {
   };
 }
 
+function clipLifeBookText(value, maxLength = 0) {
+  const text = clean(value);
+  return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function normalizeLifeBookAIReadingInput(body = {}) {
+  const name = clean(body.name) || "사용자";
+  const gender = normalizeGender(body.gender || body.sex);
+  const calendarType = normalizeCalendarType(body.calendarType || body.calendar);
+  const birthDate = parseBirthDateAny(body);
+  const birthTime = parseBirthTimeAny(body);
+  const year = birthDate.year;
+  const month = birthDate.month;
+  const day = birthDate.day;
+  const timeKnown = birthTime.timeKnown;
+  const hour = timeKnown ? birthTime.birthHour : 12;
+  const minute = timeKnown ? birthTime.birthMinute : 0;
+  const birthplace = clean(body.birthplace) || "대한민국";
+  const latitude = safeNumber(body.latitude ?? body.lat, 37.5665);
+  const longitude = safeNumber(body.longitude ?? body.lng, 126.978);
+  const timezone = clean(body.timezone) || "Asia/Seoul";
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return { ok: false, message: "생년월일은 필수입니다." };
+  }
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return { ok: false, message: "생년월일 형식이 올바르지 않습니다." };
+  }
+  if (timeKnown && (hour < 0 || hour > 23 || minute < 0 || minute > 59)) {
+    return { ok: false, message: "출생 시간 형식이 올바르지 않습니다." };
+  }
+  return {
+    ok: true,
+    birthInput: {
+      name,
+      gender,
+      calendarType,
+      birthDate: `${year}-${pad2(month)}-${pad2(day)}`,
+      birthYear: year,
+      birthMonth: month,
+      birthDay: day,
+      birthTime: `${pad2(hour)}:${pad2(minute)}`,
+      birthHour: hour,
+      birthMinute: minute,
+      timezone,
+      latitude,
+      longitude,
+      birthplace,
+      isTimeUnknown: !timeKnown,
+    },
+    profile: {
+      name,
+      gender,
+      calendarType,
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      timeKnown,
+      timezone,
+      latitude,
+      longitude,
+      birthplace,
+      birthIso: timeKnown ? `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(minute)}` : `${year}-${pad2(month)}-${pad2(day)} 시간 미상`,
+    },
+  };
+}
+
+function resolveLifeBookAIReadingTopic(body = {}) {
+  const raw = clean(body.category || body.topic || body.readingTopic || "comprehensive");
+  const key = LIFEBOOK_AI_READING_TOPICS[raw] ? raw : "comprehensive";
+  const topic = LIFEBOOK_AI_READING_TOPICS[key];
+  const question = clipLifeBookText(body.question || body.userQuestion || topic.question, 600);
+  return { key, label: topic.label, question };
+}
+
+function safeLifeBookAIReadingLogMeta(meta = {}) {
+  return {
+    hasEnvAI: Boolean(meta.hasEnvAI),
+    providerName: clean(meta.providerName),
+    isMock: meta.isMock === true,
+    dryRun: meta.dryRun === true,
+    category: clean(meta.category),
+    questionLength: Number(meta.questionLength || 0) || 0,
+    hasBirthTime: meta.hasBirthTime === true,
+    chartCalculated: meta.chartCalculated === true,
+    luckCalculated: meta.luckCalculated === true,
+    llmLatencyMs: Number(meta.llmLatencyMs || 0) || undefined,
+    errorCode: clean(meta.errorCode),
+  };
+}
+
+function logLifeBookAIReading(marker, meta = {}) {
+  console.info(`[LifeBook AI Reading] ${marker}`, safeLifeBookAIReadingLogMeta(meta));
+}
+
+function buildLifeBookAIReadingPrompt({ birthInput = {}, profile = {}, topic = {}, localSajuJson = {}, localSajuValidation = {}, jsonContractValidation = {}, signals = {}, targetYear = LIFEBOOK_LOCAL_TARGET_YEAR } = {}) {
+  const evidence = {
+    birth: {
+      name: birthInput.name,
+      gender: birthInput.gender,
+      calendarType: birthInput.calendarType,
+      birthDate: birthInput.birthDate,
+      birthTimeKnown: !birthInput.isTimeUnknown,
+      birthTimePolicy: birthInput.isTimeUnknown ? "출생시간 미상. 시주는 정오 기준 보수 계산으로만 참고하고, 시주·출생시각 기반 내용은 단정하지 않는다." : "사용자가 입력한 출생시간 기준으로 계산한다.",
+      timezone: birthInput.timezone,
+      birthplace: birthInput.birthplace,
+    },
+    topic: {
+      key: topic.key,
+      label: topic.label,
+      question: topic.question,
+    },
+    saju: {
+      pillars: localSajuJson.pillars || {},
+      dayMaster: localSajuJson.dayMaster,
+      fiveElements: localSajuJson.fiveElements || {},
+      elementBalance: localSajuJson.elementBalance || {},
+      tenGods: localSajuJson.tenGods || {},
+      tenGodsByPillar: localSajuJson.tenGodsByPillar || {},
+      strength: localSajuJson.strength || {},
+      johu: localSajuJson.johu || {},
+      yongshin: localSajuJson.yongshin || localSajuJson.usefulGods || {},
+      geokguk: localSajuJson.geokguk || {},
+      twelveGrowthStages: localSajuJson.twelveGrowthStages || [],
+      sinsal: localSajuJson.sinsal || [],
+      relationshipSignals: localSajuJson.relationshipSignals || {},
+      careerSignals: localSajuJson.careerSignals || {},
+      moneySignals: localSajuJson.moneySignals || {},
+      crisisSignals: localSajuJson.crisisSignals || {},
+    },
+    luckFlow: {
+      daeun: Array.isArray(localSajuJson.daeun) ? localSajuJson.daeun.slice(0, 12) : [],
+      currentDaeun: localSajuJson.currentDaeun || null,
+      nextDaeun: localSajuJson.nextDaeun || null,
+      yearlyFlow: localSajuJson.yearlyFlow || {},
+      targetYear,
+      currentDaewunText: signals.currentDaewun,
+      nextDaewunText: signals.nextDaewun,
+      currentYearPillar: signals.currentYearPillar,
+    },
+    validation: {
+      localSajuOk: localSajuValidation.ok === true,
+      jsonContractOk: jsonContractValidation.ok === true,
+      warnings: [
+        ...(Array.isArray(localSajuValidation.warnings) ? localSajuValidation.warnings : []),
+        ...(Array.isArray(jsonContractValidation.softWarnings) ? jsonContractValidation.softWarnings : []),
+      ].slice(0, 12),
+    },
+  };
+  return [
+    "아래 계산된 명리학 데이터만 근거로 사용해 인생의 책 AI 리딩을 작성하라.",
+    "없는 대운·세운·월운·합충형파해·공망·지장간 정보는 지어내지 말고, 데이터가 보이는 범위에서만 말하라.",
+    "불안을 팔거나 단정적 불행 예언을 하지 말고, 선택 기준과 회복 전략으로 정리하라.",
+    "반드시 JSON만 반환하라. 마크다운 코드블록은 쓰지 마라.",
+    "",
+    `사용자 질문: ${topic.question}`,
+    `리딩 주제: ${topic.label}`,
+    `기준 연도: ${targetYear}`,
+    "",
+    "계산 데이터:",
+    JSON.stringify(evidence, null, 2),
+    "",
+    "반환 JSON 형식:",
+    JSON.stringify({
+      prologue: "서문 전체 문장",
+      chapters: LIFEBOOK_AI_READING_CHAPTERS.map((title) => ({ title, subtitle: "", content: "3~6문단의 전문 리딩" })),
+      keyThemes: ["핵심 주제 1", "핵심 주제 2", "핵심 주제 3"],
+      turningPoints: [{ period: "시기 또는 대운", meaning: "의미", advice: "조언" }],
+      actionGuide: ["실행 조언 1", "실행 조언 2", "실행 조언 3"],
+      closingMessage: "따뜻하고 신비로운 마지막 문장",
+      followUpQuestions: ["후속 질문 1", "후속 질문 2", "후속 질문 3"],
+    }, null, 2),
+  ].join("\n");
+}
+
+function parseLifeBookAIReadingJson(rawText = "") {
+  const text = clean(rawText);
+  if (!text) return null;
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const source = fenced ? fenced[1] : text;
+  const start = source.indexOf("{");
+  const end = source.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(source.slice(start, end + 1));
+  } catch (_) {
+    return null;
+  }
+}
+
+function splitLifeBookAIReadingText(rawText = "") {
+  const text = clean(rawText);
+  if (!text) return [];
+  const escapedTitles = LIFEBOOK_AI_READING_CHAPTERS.map((title) => title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(?:^|\\n)\\s*(?:#{1,3}\\s*)?(${escapedTitles.join("|")}|서문|마지막 장|제\\s*[1-6]장[^\\n]*)\\s*\\n`, "g");
+  const matches = [];
+  let match;
+  while ((match = pattern.exec(text))) matches.push({ title: clean(match[1]), index: match.index + match[0].length });
+  if (matches.length >= 3) {
+    return matches.map((item, index) => {
+      const next = matches[index + 1]?.index ?? text.length;
+      return {
+        title: item.title,
+        subtitle: "",
+        content: clean(text.slice(item.index, next)),
+      };
+    }).filter((chapter) => clean(chapter.content).length >= 40).slice(0, LIFEBOOK_AI_READING_TOTAL_CHAPTERS);
+  }
+  const paragraphs = text.split(/\n{2,}/).map((item) => clean(item)).filter(Boolean);
+  const chunkSize = Math.max(1, Math.ceil(paragraphs.length / LIFEBOOK_AI_READING_TOTAL_CHAPTERS));
+  return LIFEBOOK_AI_READING_CHAPTERS.map((title, index) => ({
+    title,
+    subtitle: "",
+    content: paragraphs.slice(index * chunkSize, (index + 1) * chunkSize).join("\n\n"),
+  })).filter((chapter) => clean(chapter.content).length >= 40);
+}
+
+function normalizeLifeBookAIReadingResult(parsed, rawText = "") {
+  const source = parsed && typeof parsed === "object" ? parsed : {};
+  let chapters = Array.isArray(source.chapters)
+    ? source.chapters.map((chapter, index) => ({
+        title: clipLifeBookText(chapter?.title || LIFEBOOK_AI_READING_CHAPTERS[index] || `제${index + 1}장`, 120),
+        subtitle: clipLifeBookText(chapter?.subtitle || "", 180),
+        content: clean(chapter?.content || chapter?.body || chapter?.text),
+      })).filter((chapter) => chapter.content.length >= 40)
+    : [];
+  if (!chapters.length) chapters = splitLifeBookAIReadingText(rawText);
+  if (chapters.length < 4) {
+    throw Object.assign(new Error("인생의 책 AI 리딩 결과가 충분하지 않습니다."), {
+      code: "LIFEBOOK_AI_READING_RESULT_INVALID",
+      status: 502,
+    });
+  }
+  chapters = chapters.slice(0, LIFEBOOK_AI_READING_TOTAL_CHAPTERS).map((chapter, index) => ({
+    title: chapter.title || LIFEBOOK_AI_READING_CHAPTERS[index] || `제${index + 1}장`,
+    subtitle: chapter.subtitle || "",
+    content: chapter.content,
+  }));
+  return {
+    prologue: clean(source.prologue || chapters[0]?.content || ""),
+    chapters,
+    keyThemes: Array.isArray(source.keyThemes) ? source.keyThemes.map((item) => clipLifeBookText(item, 80)).filter(Boolean).slice(0, 6) : [],
+    turningPoints: Array.isArray(source.turningPoints) ? source.turningPoints.map((item) => ({
+      period: clipLifeBookText(item?.period, 80),
+      meaning: clipLifeBookText(item?.meaning, 260),
+      advice: clipLifeBookText(item?.advice, 260),
+    })).filter((item) => item.period || item.meaning || item.advice).slice(0, 6) : [],
+    actionGuide: Array.isArray(source.actionGuide) ? source.actionGuide.map((item) => clipLifeBookText(item, 180)).filter(Boolean).slice(0, 8) : [],
+    closingMessage: clean(source.closingMessage || ""),
+    followUpQuestions: Array.isArray(source.followUpQuestions) ? source.followUpQuestions.map((item) => clipLifeBookText(item, 120)).filter(Boolean).slice(0, 5) : [],
+    rawText,
+  };
+}
+
 
 
 
@@ -2729,6 +3043,287 @@ async function handleStatus(request, env, pathJobId = "") {
   }));
 }
 
+async function handleLifeBookAIReading(request, env) {
+  const baseMeta = {
+    hasEnvAI: Boolean(env?.AI && typeof env.AI.run === "function"),
+    providerName: "",
+    isMock: false,
+    dryRun: false,
+    category: "",
+    questionLength: 0,
+    hasBirthTime: false,
+    chartCalculated: false,
+    luckCalculated: false,
+  };
+  logLifeBookAIReading("request received", baseMeta);
+
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    logLifeBookAIReading("LLM provider error", { ...baseMeta, errorCode: clean(error?.code || "UNAUTHORIZED") });
+    if (Number(error?.status) === 401) {
+      return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "UNAUTHORIZED", message: "로그인이 필요합니다." }, { status: 401 });
+    }
+    throw error;
+  }
+
+  let body = {};
+  try {
+    body = await readJson(request);
+  } catch (_) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "INVALID_JSON", message: "Invalid request body." }, { status: 400 });
+  }
+
+  const dryRun = body?.dryRun === true || clean(body?.dry_run).toLowerCase() === "true" || clean(body?.generationMode).toLowerCase() === "mock";
+  const topic = resolveLifeBookAIReadingTopic(body);
+  const meta = {
+    ...baseMeta,
+    dryRun,
+    category: topic.key,
+    questionLength: topic.question.length,
+  };
+  if (dryRun) {
+    logLifeBookAIReading("LLM provider error", { ...meta, errorCode: "DRY_RUN_BLOCKED" });
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: "DRY_RUN_BLOCKED",
+      message: "인생의 책 AI 리딩은 실제 LLM 호출 없이 생성할 수 없습니다.",
+    }, { status: 400 });
+  }
+
+  body.targetYear = resolveLifeBookTargetYear(body);
+  body.analysisYear = body.targetYear;
+  const normalized = normalizeLifeBookAIReadingInput(body);
+  if (!normalized.ok) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(normalized.code || "INVALID_INPUT"),
+      message: normalized.message,
+    }, { status: 400 });
+  }
+
+  const profile = normalized.profile;
+  const birthInput = normalized.birthInput;
+  const hasBirthTime = birthInput.isTimeUnknown !== true;
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId)
+    || `life-book-ai:${auth.userId}:${birthInput.birthDate}:${hasBirthTime ? birthInput.birthTime : "unknown"}:${body.targetYear}`;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-ai-${Date.now()}`);
+  const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
+  const billingFeatureKey = toBillingFeatureKey(featureKey);
+  const pdfDbEnv = withPdfFastDbEnv(env);
+  const premiumAccessToken = clean(
+    request.headers.get("x-premium-access-token")
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessGrant?.premiumAccessToken
+    || body?.accessGrant?.token,
+  );
+
+  const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "lifeBook", {
+    ...body,
+    featureKey: billingFeatureKey,
+    reportType: "lifeBook",
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: "/api/premium/saju-lifebook/ai-reading",
+  });
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: status === 401 ? "UNAUTHORIZED" : "LIFEBOOK_ACCESS_DENIED",
+      message: status === 401 ? "로그인이 필요합니다." : "인생의 책 AI 리딩 결제 또는 이용권 확인이 필요합니다.",
+    }, { status });
+  }
+  logLifeBookAIReading("payment verified", {
+    ...meta,
+    hasBirthTime,
+    providerName: clean(access?.accessType || "premium-access"),
+  });
+
+  let localCalculation;
+  try {
+    localCalculation = calculateSajuLocally({ birthInput, profile, body, sessionId });
+  } catch (error) {
+    logLifeBookAIReading("LLM provider error", {
+      ...meta,
+      hasBirthTime,
+      errorCode: clean(error?.code || "CHART_CALCULATION_FAILED"),
+    });
+    throw error;
+  }
+  logLifeBookAIReading("chart calculated", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+  });
+  logLifeBookAIReading("luck flow calculated", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+    luckCalculated: Array.isArray(localCalculation.localSajuJson?.daeun) && localCalculation.localSajuJson.daeun.length > 0,
+  });
+
+  const prompt = buildLifeBookAIReadingPrompt({
+    birthInput,
+    profile,
+    topic,
+    localSajuJson: localCalculation.localSajuJson,
+    localSajuValidation: localCalculation.localSajuValidation,
+    jsonContractValidation: localCalculation.jsonContractValidation,
+    signals: localCalculation.signals,
+    targetYear: body.targetYear,
+  });
+  logLifeBookAIReading("prompt built", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+    luckCalculated: true,
+  });
+
+  const startedAt = Date.now();
+  logLifeBookAIReading("LLM provider start", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+    luckCalculated: true,
+    providerName: "gemini",
+  });
+  const ai = await callGeminiText(env, prompt, {
+    systemPrompt: LIFEBOOK_AI_READING_SYSTEM_PROMPT,
+    taskType: "fortune",
+    model: "gemini-2.5-flash",
+    temperature: 0.72,
+    maxOutputTokens: 8192,
+    fallbackToWorkersAI: false,
+  });
+  const llmLatencyMs = Date.now() - startedAt;
+  if (!ai?.ok || !clean(ai?.text)) {
+    logLifeBookAIReading("LLM provider error", {
+      ...meta,
+      hasBirthTime,
+      chartCalculated: true,
+      luckCalculated: true,
+      providerName: clean(ai?.provider || "gemini"),
+      llmLatencyMs,
+      errorCode: clean(ai?.error || "LLM_GENERATION_FAILED"),
+    });
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(ai?.error || "LLM_GENERATION_FAILED"),
+      message: clean(ai?.message || "인생의 책 AI 리딩 생성에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요."),
+    }, { status: Number(ai?.status || 502) || 502 });
+  }
+  if (clean(ai.provider).toLowerCase() !== "gemini") {
+    logLifeBookAIReading("LLM provider error", {
+      ...meta,
+      hasBirthTime,
+      chartCalculated: true,
+      luckCalculated: true,
+      providerName: clean(ai.provider || "unknown"),
+      llmLatencyMs,
+      errorCode: "GEMINI_PROVIDER_REQUIRED",
+    });
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: "GEMINI_PROVIDER_REQUIRED",
+      message: "인생의 책 AI 리딩은 Gemini API로만 생성됩니다. Gemini API 설정을 확인해 주세요.",
+    }, { status: 502 });
+  }
+
+  let result;
+  try {
+    result = normalizeLifeBookAIReadingResult(parseLifeBookAIReadingJson(ai.text), ai.text);
+  } catch (error) {
+    logLifeBookAIReading("LLM provider error", {
+      ...meta,
+      hasBirthTime,
+      chartCalculated: true,
+      luckCalculated: true,
+      providerName: clean(ai.provider || "gemini"),
+      llmLatencyMs,
+      errorCode: clean(error?.code || "RESULT_VALIDATION_FAILED"),
+    });
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(error?.code || "RESULT_VALIDATION_FAILED"),
+      message: clean(error?.message || "인생의 책 AI 리딩 결과 형식이 충분하지 않습니다. 다시 시도해 주세요."),
+    }, { status: Number(error?.status || 502) || 502 });
+  }
+
+  logLifeBookAIReading("LLM provider success", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+    luckCalculated: true,
+    providerName: clean(ai.provider || "gemini"),
+    llmLatencyMs,
+  });
+
+  const responseData = {
+    ok: true,
+    success: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    featureKey,
+    reportType: "lifeBook",
+    serviceType: "life_book_ai_reading",
+    status: "completed",
+    serverStatus: "completed",
+    generationMode: "ai-reading",
+    authoringMode: "llm-reading",
+    writingPipeline: "saju-calculation-to-life-book-ai-reading",
+    sessionId,
+    reportSessionId: sessionId,
+    reportId,
+    topic,
+    targetYear: body.targetYear,
+    result,
+    chapters: result.chapters,
+    chapterCount: result.chapters.length,
+    expectedChapterCount: LIFEBOOK_AI_READING_TOTAL_CHAPTERS,
+    llmAssembly: {
+      enabled: true,
+      externalGeneration: true,
+      fallbackUsed: false,
+      chapterCount: result.chapters.length,
+      expectedChapterCount: LIFEBOOK_AI_READING_TOTAL_CHAPTERS,
+      provider: clean(ai.provider || "gemini"),
+      modelName: clean(ai.model || ""),
+    },
+    provider: clean(ai.provider || "gemini"),
+    modelName: clean(ai.model || ""),
+    isMock: false,
+    dryRun: false,
+    canDownload: false,
+    canReopen: true,
+    calculatedContext: {
+      dayMaster: clean(localCalculation.localSajuJson?.dayMaster),
+      pillars: localCalculation.localSajuJson?.pillars || {},
+      fiveElements: localCalculation.localSajuJson?.fiveElements || {},
+      tenGods: localCalculation.localSajuJson?.tenGods || {},
+      currentDaeun: localCalculation.localSajuJson?.currentDaeun || null,
+      nextDaeun: localCalculation.localSajuJson?.nextDaeun || null,
+      yearlyFlow: localCalculation.localSajuJson?.yearlyFlow || {},
+      hasBirthTime,
+    },
+  };
+  logLifeBookAIReading("response returned", {
+    ...meta,
+    hasBirthTime,
+    chartCalculated: true,
+    luckCalculated: true,
+    providerName: responseData.provider,
+    llmLatencyMs,
+  });
+  return json({ ...responseData, data: responseData });
+}
+
 async function handlePrepareSync(request, env) {
   logLifeBookServer("RequestReceived", { route: "/api/premium/saju-lifebook/prepare", mode: "llm-only" });
   const pdfDbEnv = withPdfFastDbEnv(env);
@@ -3262,6 +3857,9 @@ export async function handleSajuLifebookRoutes(request, env = {}, ctx = null) {
     }
     if (method === "POST" && path === "/generate-mock") {
       return await handleGenerateMock(request, env);
+    }
+    if (method === "POST" && path === "/ai-reading") {
+      return await handleLifeBookAIReading(request, env);
     }
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {
       return await handlePrepare(request, env, ctx);
