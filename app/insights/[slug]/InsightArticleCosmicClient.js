@@ -427,7 +427,7 @@ export default function InsightArticleCosmicClient({
   const breadcrumbJsonLd = useMemo(
     () =>
       buildBreadcrumbJsonLd([
-        { name: "홈", path: "/" },
+        { name: "꿀꿀 운세 홈", path: "/" },
         { name: "운세 인사이트 허브", path: "/insights" },
         { name: String(item?.title || "인사이트 상세"), path: `/insights/${encodeURIComponent(String(item?.slug || slug || ""))}` },
       ]),
@@ -541,7 +541,7 @@ export default function InsightArticleCosmicClient({
 
       <section className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 md:px-6 md:py-10">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-xs text-slate-300/90">
-          <Link href="/" className="hover:text-amber-100">홈</Link>
+          <Link href="/" className="hover:text-amber-100">꿀꿀 운세 홈</Link>
           <span className="text-slate-500">/</span>
           <Link href="/insights" className="hover:text-amber-100">운세 인사이트 허브</Link>
           <span className="text-slate-500">/</span>

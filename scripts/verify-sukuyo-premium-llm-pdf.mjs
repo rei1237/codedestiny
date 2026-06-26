@@ -6,6 +6,7 @@ import {
   generateSukyoPremiumReport,
   validateSukyoPdfCompletionPayload,
 } from "../worker/lib/sukuyo-premium-pdf-v2.js";
+import { __sukuyoPremiumStatusTestUtils as statusUtils } from "../worker/routes/sukuyo.js";
 
 function assert(condition, message, detail = undefined) {
   if (condition) return;
@@ -135,6 +136,18 @@ const result = await generateSukyoPremiumReport(env, seed, {
 });
 assert(result.ok === true, "숙요 PDF 생성이 ok=true를 반환해야 합니다.");
 assert(result.chapters.length === 15, "15챕터가 모두 생성되어야 합니다.", result.chapters.length);
+assert(result.chapterCount === 15, "완료 payload chapterCount는 15여야 합니다.", result.chapterCount);
+assert(result.llmDraftChapterCount === 15, "완료 payload llmDraftChapterCount는 15여야 합니다.", result.llmDraftChapterCount);
+assert(result.llmAssemblyOnly === true, "완료 payload는 LLM assembly only 계약이어야 합니다.", result.llmAssemblyOnly);
+assert(result.externalCallsAllowed === true, "완료 payload는 외부 LLM 호출 허용 계약을 표시해야 합니다.", result.externalCallsAllowed);
+assert(result.llmAssembly?.enabled === true, "완료 payload llmAssembly.enabled가 true여야 합니다.", result.llmAssembly);
+assert(result.llmAssembly?.externalGeneration === true, "완료 payload llmAssembly.externalGeneration이 true여야 합니다.", result.llmAssembly);
+assert(result.llmAssembly?.externalCallsAllowed === true, "완료 payload llmAssembly.externalCallsAllowed가 true여야 합니다.", result.llmAssembly);
+assert(result.llmAssembly?.fallbackUsed === false, "완료 payload llmAssembly.fallbackUsed가 false여야 합니다.", result.llmAssembly);
+assert(result.llmAssembly?.chapterCount === 15, "완료 payload llmAssembly.chapterCount는 15여야 합니다.", result.llmAssembly);
+assert(result.pdfReady?.chapterCount === 15, "pdfReady.chapterCount는 15여야 합니다.", result.pdfReady);
+assert(result.pdfReady?.llmAssembly?.chapterCount === 15, "pdfReady.llmAssembly.chapterCount는 15여야 합니다.", result.pdfReady?.llmAssembly);
+assert(Array.isArray(result.payload?.chapters) && result.payload.chapters.length === 15, "nested payload.chapters는 15챕터여야 합니다.", result.payload);
 assert(promptChecks.length === 15, "15개 LLM 프롬프트가 호출되어야 합니다.", promptChecks.length);
 const initialPromptCount = promptChecks.length;
 const startedEvents = progressEvents.filter((event) => event.stage === "llm-chapter-started");
@@ -173,6 +186,59 @@ assert(
 assertSukyoCompatibilityPdfComplete({ chapters: result.chapters });
 const completion = validateSukyoPdfCompletionPayload({ pdfReady: result.pdfReady, chapters: result.chapters });
 assert(completion.ok === true, "PDF 완료 payload 검증이 통과해야 합니다.", completion.issues);
+
+const statusRequest = new Request("https://example.test/api/sukuyo/premium/status?reportId=verify-sukuyo-status-report");
+statusUtils.clearSukuyoGenerationLocks();
+const staleDbRunningPayload = statusUtils.buildSukuyoRunningResponse(statusRequest, {
+  sessionId: "stale-db-session",
+  reportId: "verify-sukuyo-status-report",
+  featureKey: "premium-sukuyo-report-compat",
+  progress: statusUtils.normalizeSukuyoGenerationProgress({
+    stage: "payment-verified",
+    currentChapterNo: 1,
+    currentChapterTitle: "결제 확인",
+    completedChapters: [],
+    completedChapterCount: 0,
+    totalChapters: 15,
+    progressPercent: 0,
+  }),
+  startedAt: "2026-06-26T00:00:00.000Z",
+});
+statusUtils.setSukuyoGenerationLock("live-status-session", {
+  sessionId: "live-status-session",
+  reportId: "verify-sukuyo-status-report",
+  featureKey: "premium-sukuyo-report-compat",
+  status: "running",
+  startedAt: "2026-06-26T00:00:05.000Z",
+  progress: statusUtils.normalizeSukuyoGenerationProgress({
+    stage: "llm-chapter-completed",
+    currentChapterNo: 6,
+    currentChapterTitle: "제6장",
+    completedChapters: [1, 2, 3, 4, 5, 6],
+    completedChapterCount: 6,
+    totalChapters: 15,
+    progressPercent: 40,
+  }),
+});
+const selectedRunningPayload = statusUtils.resolveSukuyoRunningStatusPayload(statusRequest, {
+  reportId: "verify-sukuyo-status-report",
+  reusableResponse: {
+    status: 202,
+    payload: staleDbRunningPayload,
+  },
+});
+const pendingStatusPayload = statusUtils.buildSukuyoPendingStatusPayload(selectedRunningPayload, {
+  reportId: "verify-sukuyo-status-report",
+});
+assert(selectedRunningPayload?.sessionId === "live-status-session", "status는 reportId 기반 live lock session을 우선해야 합니다.", selectedRunningPayload);
+assert(selectedRunningPayload?.progress?.currentChapterNo === 6, "status는 stale DB 1장이 아니라 live lock 6장을 반환해야 합니다.", selectedRunningPayload?.progress);
+assert(selectedRunningPayload?.progress?.completedChapterCount === 6, "status는 live lock 완료 챕터 수를 반환해야 합니다.", selectedRunningPayload?.progress);
+assert(pendingStatusPayload.execution?.status === "pending", "pending status execution 계약이 유지되어야 합니다.", pendingStatusPayload);
+assert(pendingStatusPayload.execution?.premiumStatus === "generating", "pending status premiumStatus 계약이 유지되어야 합니다.", pendingStatusPayload);
+assert(pendingStatusPayload.progress?.currentChapterNo === 6, "pending status top-level progress는 live lock 진행값이어야 합니다.", pendingStatusPayload.progress);
+assert(pendingStatusPayload.running?.status === "running", "pending status running.status 계약이 유지되어야 합니다.", pendingStatusPayload.running);
+assert(pendingStatusPayload.running?.statusPollUrl && pendingStatusPayload.running?.archiveUrl, "pending status running 링크가 유지되어야 합니다.", pendingStatusPayload.running);
+statusUtils.clearSukuyoGenerationLocks();
 
 const html = String(result.pdfReady.html || "");
 const subjectPlaceholderPattern = /(?:A가\s*B에게|B가\s*A에게|A에서\s*B로|B에서\s*A로|A의|B의|A가|B가|A를|B를)/;

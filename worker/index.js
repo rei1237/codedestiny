@@ -341,6 +341,7 @@ const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.
 const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstroRoutes");
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
+const handleSukyoPdfMockRoutes = createLazyRouteHandler("./routes/sukyo-pdf-mock.js", () => import("./routes/sukyo-pdf-mock.js"), "handleSukyoPdfMockRoutes", "api/pdf/sukyo");
 const handleSoulOriginRoutes = createLazyRouteHandler("./routes/soul-origin.js", () => import("./routes/soul-origin.js"), "handleSoulOriginRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
@@ -348,6 +349,7 @@ const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", ()
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
 const handleDestinyBiasRoutes = createLazyRouteHandler("./routes/destiny-bias.js", () => import("./routes/destiny-bias.js"), "handleDestinyBiasRoutes");
 const handleBillingRoutes = createLazyRouteHandler("./routes/billing.js", () => import("./routes/billing.js"), "handleBillingRoutes");
+const handleNamingPromptRoutes = createLazyRouteHandler("./routes/naming-prompt.js", () => import("./routes/naming-prompt.js"), "handleNamingPromptRoutes");
 const handleAccessRoutes = createLazyRouteHandler("./routes/access.js", () => import("./routes/access.js"), "handleAccessRoutes");
 const handleRpgRoutes = createLazyRouteHandler("./routes/rpg.js", () => import("./routes/rpg.js"), "handleRpgRoutes");
 const handleFptiRoutes = createLazyRouteHandler("./routes/fpti.js", () => import("./routes/fpti.js"), "handleFptiRoutes");
@@ -990,6 +992,10 @@ export default {
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
       }
 
+      if (url.pathname === "/api/naming-prompt" || url.pathname.startsWith("/api/naming-prompt/")) {
+        return withCorsHeaders(request, env, await handleNamingPromptRoutes(request, env));
+      }
+
       if (url.pathname === "/api/access" || url.pathname.startsWith("/api/access/")) {
         return withCorsHeaders(request, env, await handleAccessRoutes(request, env));
       }
@@ -1193,6 +1199,10 @@ export default {
           ? rewriteRequestPath(request, url.pathname.replace("/api/sukyo", "/api/sukuyo"))
           : request;
         return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env, ctx));
+      }
+
+      if (url.pathname === "/api/pdf/sukyo" || url.pathname.startsWith("/api/pdf/sukyo/")) {
+        return withCorsHeaders(request, env, await handleSukyoPdfMockRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/astrology" || url.pathname.startsWith("/api/astrology/")) {

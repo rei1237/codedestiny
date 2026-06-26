@@ -152,7 +152,7 @@ export default async function InsightArticlePage({ params }) {
     dateModified: article.updatedAt || article.publishedAt,
   });
   const breadcrumb = buildBreadcrumbJsonLd([
-    { name: "홈", path: "/" },
+    { name: "꿀꿀 운세 홈", path: "/" },
     { name: "운세 인사이트", path: "/insights" },
     { name: article.title, path: `/insights/${article.slug}` },
   ]);

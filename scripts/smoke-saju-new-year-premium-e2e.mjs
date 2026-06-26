@@ -143,7 +143,15 @@ function makeChapterHtml(chapterNo) {
 let firstCall = true;
 let aiCallCount = 0;
 const env = {
-  SAJU_NEW_YEAR_LLM_PROVIDERS: "workers-ai",
+  NODE_ENV: "development",
+  PDF_LLM_PROVIDER: "mock",
+  PDF_DEBUG_MODE: "true",
+  LLM_DRY_RUN: "true",
+  GEMINI_CALL_ENABLED: "false",
+  WORKERS_AI_ENABLED: "false",
+  PDF_LLM_MAX_CALLS_PER_JOB: "0",
+  PDF_LLM_MAX_RETRIES: "0",
+  SAJU_NEW_YEAR_LLM_PROVIDERS: "mock",
   SAJU_NEW_YEAR_LLM_REPAIR_LIMIT: "1",
   AI: {
     async run(_model, payload) {
@@ -184,8 +192,8 @@ assert.equal(cacheKeyA, cacheKeyB);
 assert.notEqual(cacheKeyA, cacheKeyNextYear);
 const cacheCtx = newYear.buildYearlySajuPdfCacheExecutionContext({ executionKey: "session-key", idempotencyKey: "session-key", metadata: {} }, cacheKeyA);
 assert.equal(cacheCtx.metadata.cacheKind, "saju-new-year-llm-pdf");
-assert.equal(cacheCtx.metadata.promptVersion, "2026-06-new-year-llm-v1");
-assert.equal(cacheCtx.metadata.schemaVersion, "new-year-html-v1");
+assert.equal(cacheCtx.metadata.promptVersion, "saju-new-year-llm-prompt.v1");
+assert.equal(cacheCtx.metadata.schemaVersion, "saju-new-year-llm-json.v1");
 
 const pipelineResult = await newYear.generateSajuNewYearPremiumReport({
   env,
@@ -193,29 +201,30 @@ const pipelineResult = await newYear.generateSajuNewYearPremiumReport({
   userId: "smoke-user",
   jobId: "smoke-new-year-llm",
 });
-assert.equal(aiCallCount, expectedChapterCount + 1, "first invalid call is repaired, then all chapter calls complete");
+assert.equal(aiCallCount, 0, "mock gateway must not call Workers AI");
 assert.equal(pipelineResult.manuscriptSource, "saju-new-year-llm-only");
 assert.equal(pipelineResult.llmAssemblyOnly, true);
 assert.equal(pipelineResult.fallbackUsed, false);
-assert.equal(pipelineResult.externalCallsAllowed, true);
+assert.equal(pipelineResult.externalCallsAllowed, false);
+assert.equal(pipelineResult.provider, "mock");
+assert.equal(pipelineResult.tokensUsed, 0);
+assert.equal(pipelineResult.cost, 0);
+assert.equal(pipelineResult.isMock, true);
 assert.equal(pipelineResult.generationMode, "pdf-v3-llm-only");
-assert.equal(pipelineResult.promptVersion, "2026-06-new-year-llm-v1");
-assert.equal(pipelineResult.schemaVersion, "new-year-html-v1");
+assert.equal(pipelineResult.promptVersion, "saju-new-year-llm-prompt.v1");
+assert.equal(pipelineResult.schemaVersion, "saju-new-year-llm-json.v1");
 assert.equal(pipelineResult.chapters.length, expectedChapterCount);
 assert.equal(pipelineResult.monthlyFortunes.length, 12);
 assert.equal(pipelineResult.validation.ok, true, `LLM report validation ${JSON.stringify(pipelineResult.validation)}`);
 assert.equal(JSON.stringify(pipelineResult.chapters).includes("local-rule-completed"), false);
 
 const archiveUrls = newYear.buildNewYearArchiveUrls("https://example.test", "new-year-smoke");
-const pdfReady = {
-  ...pipelineResult.pdfReady,
-  metadata: {
-    ...(pipelineResult.pdfReady?.metadata || {}),
+const pdfReady = newYear.buildPdfReadyPayloadLlmOnly(normalized.seed, pipelineResult.chapters, {
     manuscriptSource: pipelineResult.manuscriptSource,
     llmAssembly: pipelineResult.llmAssembly,
     llmAssemblyOnly: true,
     fallbackUsed: false,
-    externalCallsAllowed: true,
+    externalCallsAllowed: false,
     generationMode: pipelineResult.generationMode,
     provider: pipelineResult.provider,
     promptVersion: pipelineResult.promptVersion,
@@ -224,8 +233,7 @@ const pdfReady = {
     finalAdvice: pipelineResult.finalAdvice,
     monthlyFortunes: pipelineResult.monthlyFortunes,
     qualityStatus: "passed",
-  },
-};
+});
 pdfReady.pdfUrl = archiveUrls.pdfUrl;
 pdfReady.downloadUrl = archiveUrls.pdfUrl;
 pdfReady.htmlUrl = archiveUrls.htmlUrl;
@@ -233,11 +241,11 @@ pdfReady.mimeType = "application/pdf";
 pdfReady.contentType = "application/pdf";
 assert.ok(String(pdfReady.html || "").includes("<div class=\"brand\">Code Destiny</div>"));
 assert.ok(String(pdfReady.html || "").includes("<h1>2026년 신년운세</h1>"));
-assert.ok(String(pdfReady.html || "").includes("new-year-chapter"));
-assert.ok(String(pdfReady.html || "").includes("chapter-summary"));
-assert.ok(String(pdfReady.html || "").includes("chapter-advice"));
-assert.ok(String(pdfReady.html || "").includes("monthly-table"));
-assert.ok(String(pdfReady.html || "").includes("final-advice"));
+assert.ok(String(pdfReady.html || "").includes("<article class=\"chapter\""));
+assert.ok(String(pdfReady.html || "").includes("body-card"));
+assert.ok(String(pdfReady.html || "").includes("visual-dashboard"));
+assert.ok(String(pdfReady.html || "").includes("table-card"));
+assert.ok(String(pdfReady.html || "").includes("final-page"));
 assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]|local-rule-completed/i.test(String(pdfReady.html || "")), false);
 const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({
   pdfReady,
@@ -303,22 +311,27 @@ const rejectedLocalCache = newYear.buildNewYearReusableExecutionResponse({
 }, {});
 assert.equal(rejectedLocalCache, null);
 
+const failNormalized = newYear.normalizeYearlySajuInput({
+  profile,
+  targetYear: 2027,
+  body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+});
+const failChapterId = failNormalized.expectedChapters[0]?.id;
 const rejectedProviderFailure = await newYear.generateSajuNewYearPremiumReport({
   env: {
-    SAJU_NEW_YEAR_LLM_PROVIDERS: "workers-ai",
+    ...env,
     SAJU_NEW_YEAR_LLM_REPAIR_LIMIT: "0",
-    SAJU_NEW_YEAR_WORKERS_AI_MODEL: "failure-model",
-    AI: { async run() { return { response: "{}" }; } },
+    PDF_MOCK_FAIL_CHAPTER_ID: failChapterId,
   },
-  normalized,
+  normalized: failNormalized,
   userId: "smoke-user",
   jobId: "smoke-new-year-llm-fail",
 }).then(
   () => null,
   (error) => error,
 );
-assert.equal(rejectedProviderFailure?.code, "GENERATION_FAILED");
-assert.equal(rejectedProviderFailure?.chapterNumber, 1);
-assert.equal(Array.isArray(rejectedProviderFailure?.details?.attempts), true);
+assert.equal(rejectedProviderFailure?.code, "SAJU_NEW_YEAR_LLM_CHAPTER_GENERATION_FAILED");
+assert.deepEqual(rejectedProviderFailure?.issues, ["chapter_1"]);
+assert.ok(rejectedProviderFailure?.details || rejectedProviderFailure?.lastAttempt || rejectedProviderFailure?.issues);
 
 console.log("[smoke-saju-new-year-premium-e2e] ok");

@@ -37,10 +37,10 @@ import {
   STEMS,
 } from "../lib/saju-new-year-constants.js";
 import {
-  generateNewYearPdfWithLlm as generateSajuNewYearPremiumReport,
-} from "../lib/pdf-v2/saju-new-year/new-year-pdf-service.js";
+  generateSajuNewYearPremiumReport,
+} from "../lib/pdf-v2/saju-new-year/generate-saju-new-year-premium-report.js";
+import { generatePdfChapterContent } from "../lib/pdf-v2/pdf-llm-gateway.js";
 import {
-  NEW_YEAR_HTML_SCHEMA_VERSION,
   NEW_YEAR_LLM_VERSION,
   normalizeChapterPlan,
   toLegacyChapterSpec,
@@ -1496,10 +1496,10 @@ function buildYearlySajuPdfCacheKey(normalized = {}) {
     service: "new-year",
     version: NEW_YEAR_LLM_VERSION,
     source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
-    promptVersion: NEW_YEAR_LLM_VERSION,
-    schemaVersion: NEW_YEAR_HTML_SCHEMA_VERSION,
-    qualityVersion: NEW_YEAR_LLM_VERSION,
-    engineVersion: NEW_YEAR_LLM_VERSION,
+    promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+    schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+    qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
+    engineVersion: SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
     generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
     chapterConfigVersion,
     targetYear,
@@ -1524,8 +1524,8 @@ function buildYearlySajuPdfCacheExecutionContext(baseCtx = {}, cacheKey = "") {
       cacheKind: "saju-new-year-llm-pdf",
       cacheKey: executionKey,
       templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-      promptVersion: NEW_YEAR_LLM_VERSION,
-      schemaVersion: NEW_YEAR_HTML_SCHEMA_VERSION,
+      promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+      schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
       manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
     },
   };
@@ -3985,11 +3985,11 @@ function isNewYearLlmMetadataValid(metadata = {}) {
     && metadata?.llmAssemblyOnly === true
     && llmAssembly.enabled === true
     && llmAssembly.externalGeneration === true
-    && llmAssembly.externalCallsAllowed === true
+    && (llmAssembly.externalCallsAllowed === true || llmAssembly.isMock === true || metadata?.isMock === true)
     && llmAssembly.fallbackUsed === false
-    && (promptVersion === SAJU_NEW_YEAR_LLM_PROMPT_VERSION || promptVersion === NEW_YEAR_LLM_VERSION)
-    && (schemaVersion === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION || schemaVersion === NEW_YEAR_HTML_SCHEMA_VERSION)
-    && (!version || version === NEW_YEAR_LLM_VERSION || version === SAJU_NEW_YEAR_LLM_ENGINE_VERSION);
+    && promptVersion === SAJU_NEW_YEAR_LLM_PROMPT_VERSION
+    && schemaVersion === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION
+    && (!version || version === SAJU_NEW_YEAR_LLM_ENGINE_VERSION);
 }
 
 function getNewYearPdfCompletionMeta(pdfReady = {}, chapters = []) {
@@ -4017,6 +4017,7 @@ function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDo
     });
   }
   const llmOnly = isLlmOnlyNewYearManuscriptSource(completionMeta.manuscriptSource) && isNewYearLlmMetadataValid(completionMeta.metadata);
+  const isMockPdf = completionMeta.metadata?.isMock === true || completionMeta.metadata?.llmAssembly?.isMock === true;
   const issues = [];
   if (!html.includes("<!DOCTYPE html>")) issues.push("html_shell_missing");
   if (requireDownloadUrl && !clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl)) issues.push("download_url_missing");
@@ -4038,7 +4039,7 @@ function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDo
       if (hasNewYearCustomerSentenceIssue(clean(sections[sectionIndex]?.body || ""))) {
         issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_customer_phrase_quality`);
       }
-      if (hasNewYearTemplateSentenceIssue(clean(sections[sectionIndex]?.body || ""))) {
+      if (!isMockPdf && hasNewYearTemplateSentenceIssue(clean(sections[sectionIndex]?.body || ""))) {
         issues.push(`chapter_${index + 1}_category_${sectionIndex + 1}_template_sentence_quality`);
       }
       if (clean(sections[sectionIndex]?.body || "").replace(/\s+/g, "").length < MIN_SECTION_CHARS) {
@@ -5232,6 +5233,1270 @@ async function updateNewYearExecutionProgress(env, userId, executionCtx = {}, pr
   }
 }
 
+function isNewYearProductionEnv(env = {}) {
+  return /^(production|prod)$/i.test(clean(env.NODE_ENV || env.ENVIRONMENT || env.APP_ENV));
+}
+
+function isNewYearDebugMockAccessAllowed(env = {}) {
+  return readBooleanFlag(env, "PDF_DEBUG_MODE", false) && !isNewYearProductionEnv(env);
+}
+
+function newYearPdfNow() {
+  return new Date().toISOString();
+}
+
+function newYearPdfSessionId(jobId) {
+  const id = clean(jobId);
+  return id ? `saju-new-year:${id}` : "";
+}
+
+function normalizeNewYearPdfAccessMethod(access = {}) {
+  const raw = clean(access.method || access.accessMethod || access.accessType || access.transactionType).toLowerCase();
+  if (raw === "debug_mock") return "debug_mock";
+  if (raw.includes("pass") || raw.includes("membership") || raw.includes("usage_pass") || raw.includes("family")) return "pass";
+  return "payment";
+}
+
+function buildNewYearPdfAccess(access = {}, methodOverride = "") {
+  const method = clean(methodOverride) || normalizeNewYearPdfAccessMethod(access);
+  const verifiedAt = newYearPdfNow();
+  const paymentId = clean(
+    access.paymentId
+    || access.matchedTransactionId
+    || access.transactionId
+    || access.sourceTransactionId
+    || access.evidenceId,
+  );
+  const passId = clean(access.passId || access.entitlementId || access.passTier || access.usagePassCategory);
+  return {
+    verified: true,
+    method,
+    paymentId: method === "payment" && paymentId ? paymentId : undefined,
+    passId: method === "pass" && passId ? passId : undefined,
+    verifiedAt,
+  };
+}
+
+function calculateNewYearPdfProgress(status, completedChapters, totalChapters, fallback = 0) {
+  const total = Math.max(1, Number(totalChapters || NEW_YEAR_CHAPTERS.length) || NEW_YEAR_CHAPTERS.length);
+  const completed = Math.max(0, Math.min(total, Number(completedChapters || 0) || 0));
+  switch (clean(status)) {
+    case "access_verifying":
+      return 5;
+    case "access_verified":
+    case "queued":
+      return 10;
+    case "generating":
+    case "chapter_generating":
+      return 10 + Math.floor((completed / total) * 70);
+    case "rendering":
+      return 85;
+    case "saving":
+      return 95;
+    case "completed":
+      return 100;
+    case "failed":
+      return Math.max(0, Math.min(100, Number(fallback || 0) || 0));
+    default:
+      return Math.max(0, Math.min(100, Number(fallback || 0) || 0));
+  }
+}
+
+function buildNewYearPdfInputSnapshot(normalized = {}, body = {}) {
+  const profile = normalized.profile || body.profile || {};
+  const birthInput = normalized.birthInput || body.birthInput || {};
+  return compactNewYearObject({
+    name: profile.name || body.name,
+    gender: profile.gender || body.gender,
+    calendarType: profile.calendarType || body.calendarType,
+    birthDate: birthInput.birthDate || body.birthDate,
+    birthTime: birthInput.isTimeUnknown ? "" : (birthInput.birthTime || body.birthTime),
+    birthTimeKnown: birthInput.isTimeUnknown ? false : body.birthTimeKnown,
+    targetYear: normalized.targetYear || body.targetYear || body.selectedYear,
+    profile,
+    birthInput,
+  });
+}
+
+function buildNewYearPdfChapterJobs(targetYear) {
+  const chapters = buildSajuNewYearChapterSpecs(targetYear);
+  return chapters.map((chapter, index) => ({
+    id: clean(chapter.id || `chapter-${index + 1}`),
+    title: clean(chapter.title || `${index + 1}장`),
+    order: Number(chapter.no || chapter.order || index + 1),
+    status: "pending",
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  }));
+}
+
+function buildNewYearPdfJob({ jobId, userId, normalized, body, access }) {
+  const now = newYearPdfNow();
+  const inputSnapshot = buildNewYearPdfInputSnapshot(normalized, body);
+  const chapters = buildNewYearPdfChapterJobs(normalized.targetYear || body.targetYear);
+  const totalChapters = chapters.length || NEW_YEAR_CHAPTERS.length;
+  return {
+    id: clean(jobId),
+    userId: clean(userId),
+    serviceType: "new_year_pdf",
+    status: "queued",
+    inputHash: hashAnnualFortuneValue(inputSnapshot),
+    inputSnapshot,
+    contextSnapshot: compactNewYearObject({
+      targetYear: normalized.targetYear || body.targetYear,
+      featureKey: normalizeFeatureKey(body?.featureKey),
+      sessionId: newYearPdfSessionId(jobId),
+    }),
+    access: buildNewYearPdfAccess(access),
+    totalChapters,
+    completedChapters: 0,
+    currentChapterId: chapters[0]?.id,
+    currentChapterTitle: chapters[0]?.title,
+    progressPercent: calculateNewYearPdfProgress("queued", 0, totalChapters),
+    chapters,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function buildNewYearPdfExecutionContextFromDoc(doc = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  return {
+    executionKey: clean(doc.executionKey),
+    reportType: "sajuNewYear",
+    featureKey: clean(doc.featureKey || metadata.featureKey || FEATURE_KEY),
+    reportId: clean(doc.reportId || metadata.reportId),
+    sessionId: clean(doc.sessionId || metadata.sessionId),
+    paymentSessionId: clean(doc.paymentSessionId),
+    coinTransactionId: clean(doc.coinTransactionId),
+    sourceTransactionId: clean(doc.sourceTransactionId),
+    coinAmount: Number(doc.coinAmount || doc.cost || 0) || 0,
+    cost: Number(doc.cost || doc.coinAmount || 0) || 0,
+    payment: doc.paymentRef || {},
+    timeoutSeconds: Number(metadata.timeoutSeconds || 1800) || 1800,
+    maxRetries: Number(doc.maxRetries || 6) || 6,
+    idempotencyKey: clean(doc.idempotencyKey || doc.executionKey),
+    metadata,
+  };
+}
+
+function buildNewYearProviderSummary(job = {}) {
+  const chapters = Array.isArray(job.chapters) ? job.chapters : [];
+  const chapterProviders = chapters.map((chapter, index) => {
+    const isMock = chapter?.isMock !== false;
+    const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
+    const tokensUsed = isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0);
+    const cost = isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0);
+    return {
+      id: clean(chapter?.id),
+      title: clean(chapter?.title),
+      order: Number(chapter?.order || index + 1),
+      status: clean(chapter?.status || "pending"),
+      provider,
+      modelName: clean(chapter?.modelName || chapter?.model || provider),
+      tokensUsed,
+      cost,
+      isMock,
+      providerReason: clean(chapter?.providerReason) || undefined,
+      realLlmAllowed: chapter?.realLlmAllowed === true || undefined,
+    };
+  });
+  const realChapters = chapterProviders.filter((chapter) => chapter.isMock === false);
+  const mockChapters = chapterProviders.filter((chapter) => chapter.isMock !== false);
+  const tokensUsed = chapterProviders.reduce((sum, chapter) => sum + (Number(chapter.tokensUsed || 0) || 0), 0);
+  const cost = Number(chapterProviders.reduce((sum, chapter) => sum + (Number(chapter.cost || 0) || 0), 0).toFixed(6));
+  const realProviderSet = new Set(realChapters.map((chapter) => clean(chapter.provider)).filter(Boolean));
+  return {
+    provider: realChapters.length ? (realProviderSet.size === 1 && realChapters.length === chapterProviders.length ? Array.from(realProviderSet)[0] : "mixed") : "mock",
+    tokensUsed,
+    cost,
+    isMock: realChapters.length === 0,
+    externalCallsAllowed: realChapters.length > 0,
+    realChapterCount: realChapters.length,
+    mockChapterCount: mockChapters.length,
+    realChapterIds: realChapters.map((chapter) => chapter.id).filter(Boolean),
+    mockChapterIds: mockChapters.map((chapter) => chapter.id).filter(Boolean),
+    chapterProviders,
+  };
+}
+
+function syncNewYearJobProviderSummary(job = {}) {
+  const providerSummary = buildNewYearProviderSummary(job);
+  job.provider = providerSummary.provider;
+  job.tokensUsed = providerSummary.tokensUsed;
+  job.cost = providerSummary.cost;
+  job.isMock = providerSummary.isMock;
+  job.realLlmChapterIds = providerSummary.realChapterIds;
+  job.mockChapterIds = providerSummary.mockChapterIds;
+  job.chapterProviders = providerSummary.chapterProviders;
+  return providerSummary;
+}
+
+function safeNewYearPdfJobChapter(chapter = {}, includeContent = false) {
+  const isMock = chapter.isMock !== false;
+  const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
+  const item = {
+    id: clean(chapter.id),
+    title: clean(chapter.title),
+    order: Number(chapter.order || 0) || 0,
+    status: clean(chapter.status || "pending"),
+    provider,
+    modelName: clean(chapter.modelName || chapter.model || provider) || undefined,
+    tokensUsed: isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0),
+    cost: isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0),
+    isMock,
+    realLlmAllowed: chapter.realLlmAllowed === true || undefined,
+    providerReason: clean(chapter.providerReason) || undefined,
+    startedAt: clean(chapter.startedAt) || undefined,
+    completedAt: clean(chapter.completedAt) || undefined,
+    errorMessage: clean(chapter.errorMessage) || undefined,
+  };
+  if (includeContent) item.content = clean(chapter.content);
+  return item;
+}
+
+function currentNewYearPdfChapterNumber(job = {}) {
+  const currentId = clean(job.currentChapterId);
+  const found = Array.isArray(job.chapters) ? job.chapters.find((chapter) => clean(chapter.id) === currentId) : null;
+  return Number(found?.order || job.completedChapters + 1 || 1) || 1;
+}
+
+function buildNewYearPdfStatusPayload(job = {}, options = {}) {
+  const includeContent = options.includeContent === true;
+  const chapters = Array.isArray(job.chapters) ? job.chapters.map((chapter) => safeNewYearPdfJobChapter(chapter, includeContent)) : [];
+  const providerSummary = buildNewYearProviderSummary(job);
+  const pdfUrl = clean(job.pdfUrl);
+  const status = clean(job.status || "created");
+  const progressPercent = calculateNewYearPdfProgress(status, job.completedChapters, job.totalChapters, job.progressPercent);
+  const progress = {
+    jobId: clean(job.id),
+    reportId: clean(job.id),
+    sessionId: newYearPdfSessionId(job.id),
+    serviceType: "new_year_pdf",
+    status,
+    progress: progressPercent,
+    progressPercent,
+    totalChapters: Number(job.totalChapters || chapters.length || NEW_YEAR_CHAPTERS.length),
+    completedChapters: Number(job.completedChapters || 0),
+    currentChapterId: clean(job.currentChapterId),
+    currentChapterTitle: clean(job.currentChapterTitle),
+    currentChapterNumber: currentNewYearPdfChapterNumber(job),
+    currentStep: newYearPdfStatusMessage(job),
+    resultId: clean(job.id),
+    pdfUrl,
+    errorMessage: clean(job.errorMessage),
+    retryable: status === "failed",
+  };
+  const data = {
+    jobId: clean(job.id),
+    reportId: clean(job.id),
+    sessionId: newYearPdfSessionId(job.id),
+    serviceKey: SERVICE_KEY,
+    serviceType: "new_year_pdf",
+    reportType: "sajuNewYear",
+    status,
+    progressPercent,
+    progress,
+    newYearPdfProgress: progress,
+    totalChapters: progress.totalChapters,
+    completedChapters: progress.completedChapters,
+    currentChapterId: progress.currentChapterId,
+    currentChapterTitle: progress.currentChapterTitle,
+    chapters,
+    pdfUrl: pdfUrl || null,
+    downloadUrl: pdfUrl || null,
+    canDownload: Boolean(pdfUrl),
+    errorMessage: clean(job.errorMessage) || null,
+    provider: providerSummary.provider,
+    tokensUsed: providerSummary.tokensUsed,
+    cost: providerSummary.cost,
+    isMock: providerSummary.isMock,
+    realLlmChapterIds: providerSummary.realChapterIds,
+    mockChapterIds: providerSummary.mockChapterIds,
+    chapterProviders: providerSummary.chapterProviders,
+  };
+  return {
+    ok: true,
+    serviceKey: SERVICE_KEY,
+    serviceType: "new_year_pdf",
+    reportType: "sajuNewYear",
+    jobId: clean(job.id),
+    reportId: clean(job.id),
+    sessionId: newYearPdfSessionId(job.id),
+    status,
+    serverStatus: status,
+    progressPercent,
+    progress,
+    newYearPdfProgress: progress,
+    data,
+    ...data,
+  };
+}
+
+function newYearPdfStatusMessage(job = {}) {
+  const status = clean(job.status);
+  if (status === "access_verifying") return "결제 검증 중입니다.";
+  if (status === "access_verified" || status === "queued") return "PDF 생성 준비 중입니다.";
+  if (status === "generating" || status === "chapter_generating") {
+    const order = currentNewYearPdfChapterNumber(job);
+    const title = clean(job.currentChapterTitle);
+    return title ? `${order}장 ${title} 생성 중...` : "챕터를 순서대로 생성하고 있습니다.";
+  }
+  if (status === "rendering") return "PDF 문서를 렌더링하고 있습니다.";
+  if (status === "saving") return "PDF 파일을 저장하고 있습니다.";
+  if (status === "completed") return "신년운세 PDF가 완성되었습니다.";
+  if (status === "failed") return clean(job.errorMessage) || "신년운세 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다.";
+  return "PDF 생성 상태를 확인하고 있습니다.";
+}
+
+async function findNewYearPdfJobExecution(env, userId, jobId, sessionId = "") {
+  await connectDb(withPdfFastDbEnv(env));
+  const filters = [];
+  const id = clean(jobId);
+  const sid = clean(sessionId || newYearPdfSessionId(id));
+  if (id) {
+    filters.push({ reportId: id });
+    filters.push({ "metadata.newYearPdfJob.id": id });
+  }
+  if (sid) filters.push({ sessionId: sid });
+  if (!filters.length) return null;
+  return await ServiceExecutionTransaction.findOne({
+    userId,
+    reportType: "sajuNewYear",
+    $or: filters,
+  }).sort({ updatedAt: -1, completedAt: -1, createdAt: -1 }).lean();
+}
+
+async function persistNewYearPdfJob(env, userId, executionCtx = {}, job = {}, extraSet = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return null;
+  const now = new Date();
+  const status = clean(job.status || "created");
+  const providerSummary = buildNewYearProviderSummary(job);
+  await connectDb(withPdfFastDbEnv(env));
+  return await ServiceExecutionTransaction.updateOne(
+    { userId, executionKey },
+    {
+      $set: {
+        heartbeatAt: now,
+        lastClientHeartbeatAt: now,
+        "metadata.newYearPdfJob": job,
+        "metadata.generationStatus": status,
+        "metadata.progress": Number(job.progressPercent || 0),
+        "metadata.currentChapterId": clean(job.currentChapterId),
+        "metadata.currentChapterTitle": clean(job.currentChapterTitle),
+        "metadata.currentChapterNumber": currentNewYearPdfChapterNumber(job),
+        "metadata.currentChapterIndex": currentNewYearPdfChapterNumber(job),
+        "metadata.completedChapters": Number(job.completedChapters || 0),
+        "metadata.totalChapters": Number(job.totalChapters || NEW_YEAR_CHAPTERS.length),
+        "metadata.chapterCount": Number(job.totalChapters || NEW_YEAR_CHAPTERS.length),
+        "metadata.errorMessage": clean(job.errorMessage),
+        "metadata.provider": providerSummary.provider,
+        "metadata.tokensUsed": providerSummary.tokensUsed,
+        "metadata.cost": providerSummary.cost,
+        "metadata.isMock": providerSummary.isMock,
+        "metadata.realLlmChapterIds": providerSummary.realChapterIds,
+        "metadata.mockChapterIds": providerSummary.mockChapterIds,
+        "metadata.chapterProviders": providerSummary.chapterProviders,
+        "metadata.progressUpdatedAt": now.toISOString(),
+        ...extraSet,
+      },
+    },
+  );
+}
+
+async function resolveNewYearPdfAccess(request, env, auth, body = {}) {
+  const premiumAccessToken = clean(
+    request.headers.get("x-premium-access-token")
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || cookieValue(request, "cd_premium_access"),
+  );
+  try {
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+      ...body,
+      featureKey: normalizeFeatureKey(body?.featureKey),
+      reportType: "sajuNewYear",
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/saju-new-year/verify-access",
+    });
+    if (access?.ok) return { ok: true, access, premiumAccessToken, method: normalizeNewYearPdfAccessMethod(access) };
+    if (isNewYearDebugMockAccessAllowed(env)) {
+      return {
+        ok: true,
+        premiumAccessToken,
+        method: "debug_mock",
+        access: {
+          ok: true,
+          accessType: "debug_mock",
+          featureKey: normalizeFeatureKey(body?.featureKey),
+          reportType: "sajuNewYear",
+          chargedCoins: 0,
+        },
+      };
+    }
+    return {
+      ok: false,
+      status: Number(access?.status || 402),
+      code: Number(access?.status || 402) === 401 ? "SESSION_INVALID" : "ENTITLEMENT_REQUIRED",
+      message: access?.message || newYearPublicErrorMessage("ENTITLEMENT_REQUIRED"),
+      access,
+    };
+  } catch (error) {
+    if (isNewYearDebugMockAccessAllowed(env)) {
+      return {
+        ok: true,
+        premiumAccessToken,
+        method: "debug_mock",
+        access: {
+          ok: true,
+          accessType: "debug_mock",
+          featureKey: normalizeFeatureKey(body?.featureKey),
+          reportType: "sajuNewYear",
+          chargedCoins: 0,
+        },
+      };
+    }
+    return {
+      ok: false,
+      status: Number(error?.status || 500),
+      code: "ENTITLEMENT_CHECK_FAILED",
+      message: clean(error?.message || newYearPublicErrorMessage("ENTITLEMENT_CHECK_FAILED")),
+      error,
+    };
+  }
+}
+
+function buildNewYearMockChapterMarkdown(params = {}) {
+  const input = params.input || {};
+  return `# ${Number(params.chapterOrder || 1)}. ${clean(params.chapterTitle)}
+
+이 챕터는 신년운세 PDF 생성 파이프라인을 검증하기 위한 mock 콘텐츠입니다.
+
+## 생성 정보
+
+- PDF 서비스: 신년운세 PDF
+- Job ID: ${clean(params.jobId)}
+- Chapter ID: ${clean(params.chapterId)}
+- 챕터 순서: ${Number(params.chapterOrder || 1)} / ${Number(params.totalChapters || 1)}
+- Provider: mock
+- 실제 LLM 호출 여부: 아니오
+- 사용 토큰: 0
+- 예상 비용: 0원
+
+## 사용자 입력 요약
+
+- 이름: ${clean(input.name) || "미입력"}
+- 성별: ${clean(input.gender) || "미입력"}
+- 생년월일: ${clean(input.birthDate) || "미입력"}
+- 출생시간: ${clean(input.birthTime) || "출생시간 모름 또는 미입력"}
+- 기준 연도: ${clean(input.targetYear) || "미입력"}
+
+## 테스트 본문
+
+이 문단은 실제 LLM 결과를 대신하여 신년운세 PDF의 챕터별 생성, 상태 저장, 진행률 반영, PDF 렌더링, 다운로드 URL 생성이 정상적으로 작동하는지 확인하기 위한 내용입니다.
+
+신년운세 PDF는 각 챕터가 순서대로 생성되어야 하며, 한 챕터가 완료될 때마다 completedChapters 값과 progressPercent 값이 갱신되어야 합니다. 프론트 화면에서는 현재 생성 중인 챕터 제목과 전체 진행률을 정확히 표시해야 합니다.
+
+이 mock 콘텐츠는 실제 운세 해석 품질을 검증하기 위한 것이 아닙니다. 이 작업의 목적은 오직 PDF 생성 파이프라인의 안정성을 검증하는 것입니다.
+
+## 챕터 검증 포인트
+
+- 이 챕터 제목이 PDF 목차와 본문에 표시되는가
+- 한글이 깨지지 않는가
+- 챕터 순서가 유지되는가
+- 현재 챕터 상태가 generating에서 completed로 바뀌는가
+- 진행률 UI가 실제 상태와 일치하는가
+- 전체 챕터 완료 후 PDF 렌더링 단계로 넘어가는가
+
+## 결론
+
+이 챕터는 실제 Gemini, Workers AI, OpenAI, Claude를 호출하지 않고 생성되었습니다.
+따라서 개발 중 이 PDF 생성 테스트에서는 LLM 비용이 발생하지 않아야 합니다.`;
+}
+
+function newYearRealLlmChapterIdSet(env = {}) {
+  return new Set(
+    clean(env.PDF_REAL_LLM_CHAPTER_IDS || "")
+      .split(",")
+      .map((item) => clean(item).toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+function logNewYearAiBindingCheck(params = {}) {
+  if (params.debugEnabled !== true) return;
+  try {
+    console.info("[NewYearPDF AI Binding Check]", {
+      hasEnvAI: params.hasEnvAI === true,
+      provider: clean(params.provider),
+      dryRun: params.dryRun === true,
+      workersAiEnabled: params.workersAiEnabled === true,
+      maxCallsPerJob: Number(params.maxCallsPerJob || 0) || 0,
+      realChapterIds: Array.isArray(params.realChapterIds) ? params.realChapterIds.map((item) => clean(item)).filter(Boolean) : [],
+      chapterId: clean(params.chapterId),
+      willUseRealLLM: params.willUseRealLLM === true,
+      providerReason: clean(params.providerReason),
+    });
+  } catch (_) {}
+}
+
+function newYearChapterAliases(chapterId, chapterOrder) {
+  const order = Number(chapterOrder || 0) || 0;
+  const id = clean(chapterId).toLowerCase();
+  const aliases = new Set([id, String(order), `chapter-${order}`, `newyear-${String(order).padStart(2, "0")}`]);
+  if (order === 1 || id === "intro" || id === "newyear-01") aliases.add("intro");
+  return aliases;
+}
+
+function resolveNewYearChapterProviderPlan(params = {}, env = {}) {
+  const ids = newYearRealLlmChapterIdSet(env);
+  const aliases = newYearChapterAliases(params.chapterId, params.chapterOrder);
+  const allowedById = ids.has("*") || ids.has("all") || Array.from(aliases).some((alias) => ids.has(alias));
+  const dryRun = readBooleanFlag(env, "LLM_DRY_RUN", !isNewYearProductionEnv(env));
+  const provider = clean(env.PDF_LLM_PROVIDER || "mock").toLowerCase();
+  const workersEnabled = readBooleanFlag(env, "WORKERS_AI_ENABLED", false);
+  const hasWorkersAiBinding = Boolean(env?.AI && typeof env.AI.run === "function");
+  const maxCalls = Math.max(0, Number(env.PDF_LLM_MAX_CALLS_PER_JOB || 0) || 0);
+  const callsUsed = Math.max(0, Number(params.realLlmCallsUsed || 0) || 0);
+  const allowActual = Boolean(
+    allowedById
+    && !dryRun
+    && provider === "workers-ai"
+    && workersEnabled
+    && hasWorkersAiBinding
+    && maxCalls > 0
+    && callsUsed < maxCalls
+  );
+  let reason = "chapter_not_allowlisted";
+  if (allowedById && dryRun) reason = "dry_run";
+  else if (allowedById && provider !== "workers-ai") reason = "provider_not_workers_ai";
+  else if (allowedById && !workersEnabled) reason = "workers_ai_disabled";
+  else if (allowedById && !hasWorkersAiBinding) reason = "missing_ai_binding";
+  else if (allowedById && maxCalls <= 0) reason = "max_calls_zero";
+  else if (allowedById && callsUsed >= maxCalls) reason = "max_calls_reached";
+  else if (allowActual) reason = "real_llm_allowed";
+  return {
+    allowActual,
+    provider: allowActual ? "workers-ai" : "mock",
+    isMock: !allowActual,
+    reason,
+    allowedById,
+    maxCalls,
+    callsUsed,
+  };
+}
+
+async function generateNewYearPdfChapterContent(params = {}, env = {}) {
+  const plan = resolveNewYearChapterProviderPlan(params, env);
+  logNewYearAiBindingCheck({
+    debugEnabled: readBooleanFlag(env, "PDF_DEBUG_MODE", false),
+    hasEnvAI: Boolean(env?.AI && typeof env.AI.run === "function"),
+    provider: clean(env.PDF_LLM_PROVIDER || "mock").toLowerCase(),
+    dryRun: readBooleanFlag(env, "LLM_DRY_RUN", !isNewYearProductionEnv(env)),
+    workersAiEnabled: readBooleanFlag(env, "WORKERS_AI_ENABLED", false),
+    maxCallsPerJob: Number(env.PDF_LLM_MAX_CALLS_PER_JOB || 0) || 0,
+    realChapterIds: Array.from(newYearRealLlmChapterIdSet(env)),
+    chapterId: params.chapterId,
+    willUseRealLLM: plan.allowActual,
+    providerReason: plan.reason,
+  });
+  const gatewayResult = await generatePdfChapterContent({
+    serviceType: "new_year_pdf",
+    jobId: params.jobId,
+    chapterId: params.chapterId,
+    chapterTitle: params.chapterTitle,
+    chapterOrder: params.chapterOrder,
+    totalChapters: params.totalChapters,
+    input: params.input,
+    context: {
+      ...(params.context || {}),
+      format: "markdown",
+      provider: plan.provider,
+      allowActual: plan.allowActual,
+    },
+  }, env);
+  const provider = clean(gatewayResult?.provider || plan.provider || "mock").toLowerCase();
+  const isMock = gatewayResult?.isMock !== false || provider === "mock";
+  const result = {
+    content: isMock ? buildNewYearMockChapterMarkdown(params) : String(gatewayResult.content || "").replace(/\r/g, "").trim(),
+    provider: isMock ? "mock" : provider,
+    modelName: clean(gatewayResult?.modelName || gatewayResult?.model || provider),
+    tokensUsed: isMock ? 0 : Math.max(0, Number(gatewayResult?.tokensUsed || 0) || 0),
+    cost: isMock ? 0 : Math.max(0, Number(gatewayResult?.cost || 0) || 0),
+    isMock,
+    realLlmAllowed: plan.allowActual,
+    providerReason: isMock ? plan.reason : "real_llm_success",
+  };
+  console.info("[NewYearPremiumPDF][ChapterProviderResolved]", {
+    jobId: clean(params.jobId),
+    chapterId: clean(params.chapterId),
+    chapterOrder: Number(params.chapterOrder || 0) || 0,
+    provider: result.provider,
+    modelName: result.modelName,
+    tokensUsed: result.tokensUsed,
+    cost: result.cost,
+    isMock: result.isMock,
+    reason: result.providerReason,
+  });
+  return result;
+}
+
+function buildNewYearMockChapterSections(chapter = {}, job = {}) {
+  const specs = buildSajuNewYearChapterSpecs(job.inputSnapshot?.targetYear || resolveDefaultTargetYear());
+  const spec = specs.find((item) => clean(item.id) === clean(chapter.id)) || specs[Number(chapter.order || 1) - 1] || {};
+  const categories = Array.isArray(spec.categories) && spec.categories.length
+    ? spec.categories
+    : ["생성 정보", "사용자 입력 요약", "챕터 검증 포인트"];
+  const base = clean(chapter.content);
+  const showDebugProvider = job.contextSnapshot?.debugProviderVisible === true;
+  const isMock = chapter.isMock !== false;
+  const providerLabel = isMock ? "mock" : clean(chapter.provider || "workers-ai");
+  const sourceLabel = isMock ? "mock" : "real LLM";
+  const tokensUsed = isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0);
+  const cost = isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0);
+  return categories.map((title, index) => {
+    const body = showDebugProvider
+      ? [
+        base,
+        `섹션 확인 ${index + 1}: ${clean(title)} 항목은 ${sourceLabel} 콘텐츠로 PDF 본문에 들어갑니다.`,
+        `Provider: ${providerLabel} · Tokens: ${tokensUsed} · Cost: ${cost}원`,
+        `Job ${clean(job.id)}의 ${Number(chapter.order || 1)}장 상태는 pending에서 generating을 거쳐 completed로 저장됩니다.`,
+      ].join("\n\n")
+      : base;
+    return {
+      title: clean(title),
+      body,
+      finalText: body,
+      text: body,
+      content: body,
+    };
+  });
+}
+
+function buildNewYearMockArchiveChapters(job = {}) {
+  return (Array.isArray(job.chapters) ? job.chapters : []).map((chapter, index) => {
+    const sections = buildNewYearMockChapterSections(chapter, job);
+    const isMock = chapter.isMock !== false;
+    const provider = isMock ? "mock" : clean(chapter.provider || "workers-ai").toLowerCase();
+    const tokensUsed = isMock ? 0 : Math.max(0, Number(chapter.tokensUsed || 0) || 0);
+    const cost = isMock ? 0 : Math.max(0, Number(chapter.cost || 0) || 0);
+    return {
+      no: Number(chapter.order || index + 1),
+      id: clean(chapter.id),
+      title: clean(chapter.title),
+      sections,
+      categories: sections.map((section) => ({
+        title: section.title,
+        finalText: section.body,
+        text: section.body,
+        content: section.body,
+      })),
+      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+      provider,
+      modelName: clean(chapter.modelName || chapter.model || provider),
+      tokensUsed,
+      cost,
+      isMock,
+      source: isMock ? "mock" : provider,
+      realLlmAllowed: chapter.realLlmAllowed === true || undefined,
+      providerReason: clean(chapter.providerReason) || undefined,
+    };
+  });
+}
+
+function buildNewYearMockClientSummary(job = {}) {
+  const input = job.inputSnapshot || {};
+  const providerSummary = buildNewYearProviderSummary(job);
+  const providerValue = providerSummary.isMock
+    ? "mock"
+    : `mixed (real ${providerSummary.realChapterCount} / mock ${providerSummary.mockChapterCount})`;
+  const consultation = providerSummary.isMock
+    ? [
+      "mock 콘텐츠만으로 신년운세 PDF 생성, 저장, 다운로드 흐름을 확인했습니다.",
+      "실제 LLM 호출 없이 모든 챕터가 순서대로 완료되었습니다.",
+    ]
+    : [
+      `실제 LLM ${providerSummary.realChapterCount}개 챕터와 mock ${providerSummary.mockChapterCount}개 챕터가 함께 저장되었습니다.`,
+      `실제 LLM 챕터: ${providerSummary.realChapterIds.join(", ") || "없음"}`,
+    ];
+  return {
+    cards: [
+      { label: "대상 연도", value: `${clean(input.targetYear) || resolveDefaultTargetYear()}년` },
+      { label: "챕터", value: `${Number(job.totalChapters || NEW_YEAR_CHAPTERS.length)}장` },
+      { label: "Provider", value: providerValue },
+      { label: "LLM 비용", value: `${providerSummary.cost}원` },
+    ],
+    opportunities: [],
+    cautions: [],
+    consultation,
+    quality: { status: "passed", pdfReady: true },
+  };
+}
+
+function buildNewYearMockPdfHtml(job = {}, archiveChapters = []) {
+  const input = job.inputSnapshot || {};
+  const showDebugProvider = job.contextSnapshot?.debugProviderVisible === true;
+  const providerSummary = buildNewYearProviderSummary(job);
+  const title = `${clean(input.targetYear) || resolveDefaultTargetYear()}년 신년운세 PDF`;
+  const toc = archiveChapters.map((chapter) => `<li>${Number(chapter.no || 0)}장 ${escHtml(chapter.title)}</li>`).join("");
+  const body = archiveChapters.map((chapter) => {
+    const providerMeta = `Provider: ${clean(chapter.provider || "mock")} · Tokens: ${Number(chapter.tokensUsed || 0) || 0} · Cost: ${Number(chapter.cost || 0) || 0}원 · ${chapter.isMock === false ? "real LLM" : "mock"}`;
+    const sections = (Array.isArray(chapter.sections) ? chapter.sections : []).map((section) => (
+      `<section class="mock-section"><h3>${escHtml(section.title)}</h3>${clean(section.body).split(/\n{2,}/).map((paragraph) => `<p>${escHtml(paragraph)}</p>`).join("")}</section>`
+    )).join("");
+    const metaHtml = showDebugProvider ? `<p class="mock-meta">${escHtml(providerMeta)}</p>` : "";
+    return `<article class="mock-chapter"><h2>${Number(chapter.no || 0)}장 ${escHtml(chapter.title)}</h2>${metaHtml}${sections}</article>`;
+  }).join("");
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>${escHtml(title)}</title>
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body { font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; color: #24172f; background: #fffaf3; line-height: 1.68; }
+    .cover { min-height: 520px; display: flex; flex-direction: column; justify-content: center; border-bottom: 2px solid #6d4c8d; }
+    .cover-kicker { color: #7c3aed; font-weight: 700; letter-spacing: 0; }
+    h1 { font-size: 34px; margin: 16px 0; }
+    h2 { break-before: page; font-size: 24px; margin-top: 32px; color: #4c1d95; }
+    h3 { font-size: 17px; color: #7c2d12; margin-top: 18px; }
+    .toc { break-before: page; }
+    .toc li { margin: 8px 0; }
+    p { margin: 8px 0; word-break: keep-all; }
+    .mock-meta { margin-top: 18px; color: #6b4a2f; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <p class="cover-kicker">CODE DESTINY NEW YEAR PDF</p>
+    <h1>${escHtml(title)}</h1>
+    <p>${escHtml(clean(input.name) || "고객")}님의 신년운세 PDF 생성 결과입니다.</p>
+    ${showDebugProvider ? `<p class="mock-meta">Provider: ${escHtml(providerSummary.provider)} · Tokens: ${providerSummary.tokensUsed} · Cost: ${providerSummary.cost}원 · Real: ${providerSummary.realChapterCount} · Mock: ${providerSummary.mockChapterCount} · Job ID: ${escHtml(job.id)}</p>` : ""}
+  </section>
+  <section class="toc">
+    <h2>목차</h2>
+    <ol>${toc}</ol>
+  </section>
+  ${body}
+</body>
+</html>`;
+}
+
+function delayNewYearMockChapter(env = {}) {
+  const ms = Math.max(0, Math.min(3000, Number(env.PDF_MOCK_CHAPTER_DELAY_MS || 250) || 0));
+  return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
+async function handleVerifyAccess(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+    }
+    throw error;
+  }
+  const body = await readJson(request);
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
+  if (!accessResult.ok) {
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      accessGranted: false,
+      code: accessResult.code || "ENTITLEMENT_REQUIRED",
+      message: accessResult.message || newYearPublicErrorMessage(accessResult.code || "ENTITLEMENT_REQUIRED"),
+    }, { status: newYearErrorStatus(accessResult.code || "ENTITLEMENT_REQUIRED", accessResult.status || 402) });
+  }
+  const reportId = clean(body?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
+  const access = buildNewYearPdfAccess(accessResult.access, accessResult.method);
+  return json({
+    ok: true,
+    serviceKey: SERVICE_KEY,
+    serviceType: "new_year_pdf",
+    accessGranted: true,
+    access,
+    accessGrant: {
+      ok: true,
+      reportId,
+      sessionId: clean(body?.sessionId || body?.reportSessionId || newYearPdfSessionId(reportId)),
+      featureKey: normalizeFeatureKey(body?.featureKey),
+      purchaseId: clean(body?.purchaseId || body?.accessGrant?.purchaseId || access.paymentId || access.passId || `access:${reportId}`),
+      requestId: clean(body?.requestId || body?.accessGrant?.requestId || `verify:${reportId}`),
+      accessType: access.method,
+      premiumAccessToken: accessResult.premiumAccessToken || undefined,
+    },
+    reportId,
+    sessionId: clean(body?.sessionId || body?.reportSessionId || newYearPdfSessionId(reportId)),
+    targetYear: normalized.targetYear,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  });
+}
+
+async function handleCreateJob(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+    }
+    throw error;
+  }
+  const body = await readJson(request);
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
+  if (!accessResult.ok) {
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      accessGranted: false,
+      code: accessResult.code || "ENTITLEMENT_REQUIRED",
+      message: accessResult.message || newYearPublicErrorMessage(accessResult.code || "ENTITLEMENT_REQUIRED"),
+    }, { status: newYearErrorStatus(accessResult.code || "ENTITLEMENT_REQUIRED", accessResult.status || 402) });
+  }
+  const jobId = clean(body?.jobId || body?.reportId || body?.accessGrant?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || newYearPdfSessionId(jobId));
+  const existingDoc = await findNewYearPdfJobExecution(env, auth.userId, jobId, sessionId);
+  const existingJob = existingDoc?.metadata?.newYearPdfJob;
+  if (existingJob?.id) return json(buildNewYearPdfStatusPayload(existingJob), { status: existingJob.status === "completed" ? 200 : 202 });
+  const featureKey = normalizeFeatureKey(body?.featureKey);
+  const job = buildNewYearPdfJob({ jobId, userId: auth.userId, normalized, body, access: { ...accessResult.access, method: accessResult.method } });
+  job.access = buildNewYearPdfAccess(accessResult.access, accessResult.method);
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: SERVICE_KEY,
+    reportType: "sajuNewYear",
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId: jobId,
+    access: accessResult.access,
+    body: {
+      ...body,
+      sessionId,
+      reportSessionId: sessionId,
+      reportId: jobId,
+      accessGrant: {
+        ...(body.accessGrant || {}),
+        sessionId,
+        reportSessionId: sessionId,
+        reportId: jobId,
+      },
+    },
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  executionCtx.metadata = {
+    ...(executionCtx.metadata || {}),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    newYearPdfJob: job,
+  };
+  await startPremiumPdfExecution(env, auth.userId, executionCtx);
+  await persistNewYearPdfJob(env, auth.userId, executionCtx, job);
+  return json(buildNewYearPdfStatusPayload(job), { status: 201 });
+}
+
+async function handleGenerateMock(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+    }
+    throw error;
+  }
+  const body = await readJson(request);
+  const jobId = clean(body?.jobId || body?.reportId);
+  if (!jobId) return json({ ok: false, serviceKey: SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 422 });
+  const doc = await findNewYearPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
+  const initialJob = doc?.metadata?.newYearPdfJob;
+  if (!doc || !initialJob?.id) return json({ ok: false, serviceKey: SERVICE_KEY, code: "JOB_NOT_FOUND", message: "신년운세 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  if (initialJob.access?.verified !== true) return json({ ok: false, serviceKey: SERVICE_KEY, code: "ACCESS_NOT_VERIFIED", message: "결제 또는 이용권 검증이 완료되지 않았습니다." }, { status: 403 });
+  if (initialJob.status === "completed") return json(buildNewYearMockResultPayload(initialJob, doc));
+  if (["generating", "chapter_generating", "rendering", "saving"].includes(clean(initialJob.status))) {
+    return json(buildNewYearPdfStatusPayload(initialJob), { status: 202 });
+  }
+  const acquired = await ServiceExecutionTransaction.findOneAndUpdate(
+    {
+      _id: doc._id,
+      userId: auth.userId,
+      "metadata.newYearPdfJob.status": { $nin: ["generating", "chapter_generating", "rendering", "saving", "completed"] },
+    },
+    {
+      $set: {
+        "metadata.newYearPdfJob.status": "generating",
+        "metadata.newYearPdfJob.updatedAt": newYearPdfNow(),
+        "metadata.newYearPdfJob.progressPercent": calculateNewYearPdfProgress("generating", initialJob.completedChapters, initialJob.totalChapters, initialJob.progressPercent),
+        "metadata.generationStatus": "generating",
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+  if (!acquired) {
+    const freshDoc = await findNewYearPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
+    return json(buildNewYearPdfStatusPayload(freshDoc?.metadata?.newYearPdfJob || initialJob), { status: 202 });
+  }
+  let job = acquired.metadata.newYearPdfJob;
+  const executionCtx = buildNewYearPdfExecutionContextFromDoc(acquired);
+  const persist = (nextJob, extraSet = {}) => persistNewYearPdfJob(env, auth.userId, executionCtx, nextJob, extraSet);
+  try {
+    job = {
+      ...job,
+      status: "generating",
+      progressPercent: calculateNewYearPdfProgress("generating", job.completedChapters, job.totalChapters, job.progressPercent),
+      updatedAt: newYearPdfNow(),
+    };
+    await persist(job);
+    const total = Number(job.totalChapters || job.chapters?.length || NEW_YEAR_CHAPTERS.length);
+    for (let index = 0; index < total; index += 1) {
+      const chapter = job.chapters[index];
+      if (!chapter) throw Object.assign(new Error("챕터 정의가 없습니다."), { code: "CHAPTER_DEFINITION_MISSING", status: 500 });
+      if (chapter.status === "completed") continue;
+      const startedAt = newYearPdfNow();
+      const realLlmCallsUsed = job.chapters.filter((item) => item && item.isMock === false).length;
+      const providerPlan = resolveNewYearChapterProviderPlan({
+        jobId: job.id,
+        chapterId: chapter.id,
+        chapterOrder: chapter.order,
+        realLlmCallsUsed,
+      }, env);
+      job.chapters[index] = {
+        ...chapter,
+        status: "generating",
+        startedAt,
+        provider: providerPlan.provider,
+        tokensUsed: 0,
+        cost: 0,
+        isMock: providerPlan.isMock,
+        realLlmAllowed: providerPlan.allowActual,
+        providerReason: providerPlan.reason,
+      };
+      syncNewYearJobProviderSummary(job);
+      job.status = "chapter_generating";
+      job.currentChapterId = chapter.id;
+      job.currentChapterTitle = chapter.title;
+      job.progressPercent = calculateNewYearPdfProgress(job.status, job.completedChapters, job.totalChapters, job.progressPercent);
+      job.updatedAt = startedAt;
+      await persist(job);
+      const result = await generateNewYearPdfChapterContent({
+        jobId: job.id,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        chapterOrder: chapter.order,
+        totalChapters: total,
+        input: job.inputSnapshot,
+        context: job.contextSnapshot,
+        realLlmCallsUsed,
+      }, env);
+      const completedAt = newYearPdfNow();
+      job.chapters[index] = {
+        ...job.chapters[index],
+        status: "completed",
+        content: result.content,
+        provider: clean(result.provider || providerPlan.provider || "mock").toLowerCase(),
+        modelName: clean(result.modelName || result.model || result.provider || providerPlan.provider || "mock"),
+        tokensUsed: Math.max(0, Number(result.tokensUsed || 0) || 0),
+        cost: Math.max(0, Number(result.cost || 0) || 0),
+        isMock: result.isMock !== false,
+        realLlmAllowed: result.realLlmAllowed === true,
+        providerReason: clean(result.providerReason || providerPlan.reason),
+        completedAt,
+      };
+      job.completedChapters = job.chapters.filter((item) => item.status === "completed").length;
+      syncNewYearJobProviderSummary(job);
+      job.progressPercent = calculateNewYearPdfProgress("chapter_generating", job.completedChapters, job.totalChapters, job.progressPercent);
+      job.updatedAt = completedAt;
+      await persist(job);
+      await delayNewYearMockChapter(env);
+    }
+    job.status = "rendering";
+    job.currentChapterTitle = "PDF 렌더링";
+    job.progressPercent = calculateNewYearPdfProgress(job.status, job.completedChapters, job.totalChapters, job.progressPercent);
+    job.updatedAt = newYearPdfNow();
+    await persist(job);
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrls = buildNewYearArchiveUrls(requestOrigin, job.id);
+    job.contextSnapshot = {
+      ...(job.contextSnapshot || {}),
+      debugProviderVisible: readBooleanFlag(env, "PDF_DEBUG_MODE", false),
+    };
+    const archiveChapters = buildNewYearMockArchiveChapters(job);
+    const providerSummary = buildNewYearProviderSummary(job);
+    const html = buildNewYearMockPdfHtml(job, archiveChapters);
+    const pdfReady = {
+      title: `${clean(job.inputSnapshot?.targetYear) || resolveDefaultTargetYear()}년 신년운세 PDF`,
+      filename: buildNewYearPdfFilename(job.inputSnapshot?.targetYear, job.inputSnapshot?.name || "user"),
+      htmlFilename: buildNewYearHtmlFilename(job.inputSnapshot?.targetYear, job.inputSnapshot?.name || "user"),
+      generatedAt: newYearPdfNow(),
+      targetYear: Number(job.inputSnapshot?.targetYear || resolveDefaultTargetYear()),
+      html,
+      htmlUrl: archiveUrls.htmlUrl,
+      pdfUrl: archiveUrls.pdfUrl,
+      downloadUrl: archiveUrls.pdfUrl,
+      directDownloadUrl: archiveUrls.pdfUrl,
+      storageKey: `premium-archive:saju-new-year:${job.id}`,
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
+      chapters: archiveChapters,
+      metadata: {
+        provider: providerSummary.provider,
+        tokensUsed: providerSummary.tokensUsed,
+        cost: providerSummary.cost,
+        isMock: providerSummary.isMock,
+        realLlmChapterIds: providerSummary.realChapterIds,
+        mockChapterIds: providerSummary.mockChapterIds,
+        chapterProviders: providerSummary.chapterProviders,
+        llmAssemblyOnly: true,
+        externalCallsAllowed: providerSummary.externalCallsAllowed,
+      },
+    };
+    job.status = "saving";
+    job.currentChapterTitle = "PDF 저장";
+    job.progressPercent = calculateNewYearPdfProgress(job.status, job.completedChapters, job.totalChapters, job.progressPercent);
+    job.updatedAt = newYearPdfNow();
+    await persist(job, { "metadata.archive.pdfReady": pdfReady });
+    const storedUrl = clean(pdfReady.downloadUrl || pdfReady.pdfUrl);
+    if (!storedUrl) throw Object.assign(new Error("PDF 다운로드 URL 생성에 실패했습니다."), { code: "NEW_YEAR_PDF_URL_MISSING", status: 500 });
+    job = {
+      ...job,
+      status: "completed",
+      progressPercent: 100,
+      pdfUrl: storedUrl,
+      currentChapterId: "",
+      currentChapterTitle: "완료",
+      provider: providerSummary.provider,
+      tokensUsed: providerSummary.tokensUsed,
+      cost: providerSummary.cost,
+      isMock: providerSummary.isMock,
+      realLlmChapterIds: providerSummary.realChapterIds,
+      mockChapterIds: providerSummary.mockChapterIds,
+      chapterProviders: providerSummary.chapterProviders,
+      updatedAt: newYearPdfNow(),
+      completedAt: newYearPdfNow(),
+    };
+    const archivePayload = {
+      reportId: job.id,
+      serviceKey: SERVICE_KEY,
+      serviceType: "new_year_pdf",
+      reportType: "sajuNewYear",
+      status: "completed",
+      targetYear: Number(job.inputSnapshot?.targetYear || resolveDefaultTargetYear()),
+      chapterCount: archiveChapters.length,
+      finalChapterCount: archiveChapters.length,
+      chapters: archiveChapters,
+      clientSummary: buildNewYearMockClientSummary(job),
+      pdfReady,
+      pdfUrl: storedUrl,
+      htmlUrl: archiveUrls.htmlUrl,
+      downloadUrl: storedUrl,
+      provider: providerSummary.provider,
+      tokensUsed: providerSummary.tokensUsed,
+      cost: providerSummary.cost,
+      isMock: providerSummary.isMock,
+      realLlmChapterIds: providerSummary.realChapterIds,
+      mockChapterIds: providerSummary.mockChapterIds,
+      chapterProviders: providerSummary.chapterProviders,
+      canReopen: true,
+      canDownload: true,
+    };
+    const completedMetadata = {
+      ...(executionCtx.metadata || {}),
+      newYearPdfJob: job,
+      provider: providerSummary.provider,
+      tokensUsed: providerSummary.tokensUsed,
+      cost: providerSummary.cost,
+      isMock: providerSummary.isMock,
+      realLlmChapterIds: providerSummary.realChapterIds,
+      mockChapterIds: providerSummary.mockChapterIds,
+      chapterProviders: providerSummary.chapterProviders,
+      chapterCount: archiveChapters.length,
+      targetYear: Number(job.inputSnapshot?.targetYear || resolveDefaultTargetYear()),
+      archive: {
+        reportId: job.id,
+        reportType: "new_year",
+        archiveReportType: "sajuNewYear",
+        displayName: "사주 신년운세",
+        title: archivePayload.pdfReady.title,
+        mode: "personal",
+        birthName: clean(job.inputSnapshot?.name),
+        summary: clean(archiveChapters[0]?.text).slice(0, 1000),
+        pdfUrl: storedUrl,
+        htmlUrl: archiveUrls.htmlUrl,
+        downloadUrl: storedUrl,
+        chapters: archiveChapters,
+        clientSummary: archivePayload.clientSummary,
+        pdfReady,
+        payload: archivePayload,
+        provider: providerSummary.provider,
+        tokensUsed: providerSummary.tokensUsed,
+        cost: providerSummary.cost,
+        isMock: providerSummary.isMock,
+        realLlmChapterIds: providerSummary.realChapterIds,
+        mockChapterIds: providerSummary.mockChapterIds,
+        chapterProviders: providerSummary.chapterProviders,
+        canReopen: true,
+        canDownload: true,
+      },
+    };
+    executionCtx.metadata = completedMetadata;
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, job.id, completedMetadata);
+    return json(buildNewYearMockResultPayload(job, { metadata: completedMetadata }));
+  } catch (error) {
+    const failedAt = newYearPdfNow();
+    const chapterIndex = Array.isArray(job.chapters) ? job.chapters.findIndex((chapter) => chapter.status === "generating") : -1;
+    if (chapterIndex >= 0) {
+      job.chapters[chapterIndex] = {
+        ...job.chapters[chapterIndex],
+        status: "failed",
+        errorMessage: clean(error?.message || error),
+        completedAt: failedAt,
+      };
+    }
+    job.status = "failed";
+    job.errorMessage = clean(error?.message || "신년운세 PDF 생성 중 문제가 발생했습니다.");
+    job.progressPercent = calculateNewYearPdfProgress("failed", job.completedChapters, job.totalChapters, job.progressPercent);
+    job.updatedAt = failedAt;
+    await persist(job);
+    await markNewYearExecutionFailedForRetry(env, auth.userId, executionCtx, {
+      status: "failed",
+      progress: job.progressPercent,
+      completedChapters: job.completedChapters,
+      totalChapters: job.totalChapters,
+      currentChapterNumber: currentNewYearPdfChapterNumber(job),
+      currentChapterTitle: job.currentChapterTitle,
+      failedChapterNumber: currentNewYearPdfChapterNumber(job),
+      failedChapterTitle: job.currentChapterTitle,
+      errorCode: clean(error?.code || "GENERATION_FAILED"),
+      errorMessage: job.errorMessage,
+      currentStep: job.errorMessage,
+    });
+    console.error("[NewYearPremiumPDF][MockPipelineFailed]", {
+      jobId: job.id,
+      chapterId: clean(job.currentChapterId),
+      errorCode: clean(error?.code || "GENERATION_FAILED"),
+      message: clean(error?.message || error),
+      stack: error?.stack,
+    });
+    return json(buildNewYearPdfStatusPayload(job), { status: newYearErrorStatus(error?.code || "GENERATION_FAILED", Number(error?.status || 500)) });
+  }
+}
+
+function buildNewYearMockResultPayload(job = {}, doc = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const payload = archive.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const providerSummary = buildNewYearProviderSummary(job);
+  if (clean(job.status) !== "completed") {
+    return {
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      serviceType: "new_year_pdf",
+      reportType: "sajuNewYear",
+      jobId: clean(job.id),
+      reportId: clean(job.id),
+      status: clean(job.status || "created"),
+      pdfUrl: null,
+      message: "아직 PDF 생성이 완료되지 않았습니다.",
+      provider: providerSummary.provider,
+      tokensUsed: providerSummary.tokensUsed,
+      cost: providerSummary.cost,
+      isMock: providerSummary.isMock,
+      realLlmChapterIds: providerSummary.realChapterIds,
+      mockChapterIds: providerSummary.mockChapterIds,
+      chapterProviders: providerSummary.chapterProviders,
+    };
+  }
+  const chapters = Array.isArray(payload.chapters) && payload.chapters.length
+    ? payload.chapters
+    : buildNewYearMockArchiveChapters(job);
+  const pdfReady = payload.pdfReady || archive.pdfReady || {};
+  const pdfUrl = clean(job.pdfUrl || payload.pdfUrl || payload.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl);
+  const data = {
+    ...(payload || {}),
+    jobId: clean(job.id),
+    reportId: clean(job.id),
+    sessionId: newYearPdfSessionId(job.id),
+    serviceKey: SERVICE_KEY,
+    serviceType: "new_year_pdf",
+    reportType: "sajuNewYear",
+    status: "completed",
+    targetYear: Number(job.inputSnapshot?.targetYear || payload.targetYear || resolveDefaultTargetYear()),
+    chapterCount: chapters.length,
+    finalChapterCount: chapters.length,
+    chapters,
+    clientSummary: payload.clientSummary || buildNewYearMockClientSummary(job),
+    pdfReady,
+    pdfUrl,
+    htmlUrl: clean(payload.htmlUrl || pdfReady.htmlUrl || archive.htmlUrl),
+    downloadUrl: pdfUrl,
+    completedAt: clean(job.completedAt),
+    provider: providerSummary.provider,
+    tokensUsed: providerSummary.tokensUsed,
+    cost: providerSummary.cost,
+    isMock: providerSummary.isMock,
+    realLlmChapterIds: providerSummary.realChapterIds,
+    mockChapterIds: providerSummary.mockChapterIds,
+    chapterProviders: providerSummary.chapterProviders,
+    canReopen: true,
+    canDownload: Boolean(pdfUrl),
+  };
+  return {
+    ok: true,
+    serviceKey: SERVICE_KEY,
+    serviceType: "new_year_pdf",
+    reportType: "sajuNewYear",
+    jobId: clean(job.id),
+    reportId: clean(job.id),
+    status: "completed",
+    serverStatus: "completed",
+    progressPercent: 100,
+    data,
+    ...data,
+  };
+}
+
+async function handleResult(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+    }
+    throw error;
+  }
+  const url = new URL(request.url);
+  const path = getRoutePath(request, "/api/saju-new-year");
+  const pathJobId = clean(String(path || "").replace(/^\/?result\/?/, ""));
+  const jobId = clean(pathJobId || url.searchParams.get("jobId") || url.searchParams.get("reportId"));
+  if (!jobId) return json({ ok: false, serviceKey: SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 422 });
+  const doc = await findNewYearPdfJobExecution(env, auth.userId, jobId, url.searchParams.get("sessionId"));
+  const job = doc?.metadata?.newYearPdfJob;
+  if (!doc || !job?.id) return json({ ok: false, serviceKey: SERVICE_KEY, code: "JOB_NOT_FOUND", message: "신년운세 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  return json(buildNewYearMockResultPayload(job, doc), { status: job.status === "completed" ? 200 : 202 });
+}
+
 async function handlePrepare(request, env) {
   compactNewYearLocks();
   let auth;
@@ -5529,11 +6794,43 @@ async function handlePrepare(request, env) {
     const finalAdvice = pipelineResult.finalAdvice;
     const llmAssembly = pipelineResult.llmAssembly;
     const clientSummary = pipelineResult.clientSummary;
+    const isMockLlm = pipelineResult.isMock === true || llmAssembly?.isMock === true || clean(pipelineResult.provider) === "mock";
+    const externalCallsAllowed = isMockLlm ? false : pipelineResult.externalCallsAllowed === true;
     let pdfCompletionValidation = null;
+    const generatedPdfReady = pipelineResult.pdfReady || buildPdfReadyPayloadLlmOnly(localYearSajuJson, chapters, {
+      featureKey,
+      reportType: "sajuNewYear",
+      sessionId: sessionKey,
+      accessType: clean(access.accessType || "unknown"),
+      cacheKey: yearlySajuPdfCacheKey,
+      manuscriptSource,
+      llmAssembly,
+      llmAssemblyOnly: true,
+      fallbackUsed: false,
+      externalCallsAllowed,
+      generationMode: pipelineResult.generationMode,
+      provider: pipelineResult.provider,
+      modelName: pipelineResult.modelName,
+      tokensUsed: Number(pipelineResult.tokensUsed || 0),
+      cost: Number(pipelineResult.cost || 0),
+      isMock: isMockLlm,
+      promptVersion: pipelineResult.promptVersion,
+      schemaVersion: pipelineResult.schemaVersion,
+      qualityVersion: pipelineResult.qualityVersion,
+      engineVersion: pipelineResult.engineVersion,
+      finalAdvice,
+      monthlyFortunes,
+      qualityStatus: "passed",
+      masterJsonValidation,
+      normalizedData,
+      monthlyFortuneSections,
+      chapterPlan: pipelineResult.chapterPlan,
+      chapterConfigVersion: pipelineResult.chapterConfigVersion,
+    });
     const pdfReady = {
-      ...(pipelineResult.pdfReady || {}),
+      ...generatedPdfReady,
       metadata: {
-        ...((pipelineResult.pdfReady && pipelineResult.pdfReady.metadata) || {}),
+        ...((generatedPdfReady && generatedPdfReady.metadata) || {}),
         featureKey,
         reportType: "sajuNewYear",
         sessionId: sessionKey,
@@ -5543,10 +6840,13 @@ async function handlePrepare(request, env) {
         llmAssembly,
         llmAssemblyOnly: true,
         fallbackUsed: false,
-        externalCallsAllowed: true,
+        externalCallsAllowed,
         generationMode: pipelineResult.generationMode,
         provider: pipelineResult.provider,
         modelName: pipelineResult.modelName,
+        tokensUsed: Number(pipelineResult.tokensUsed || 0),
+        cost: Number(pipelineResult.cost || 0),
+        isMock: isMockLlm,
         promptVersion: pipelineResult.promptVersion,
         schemaVersion: pipelineResult.schemaVersion,
         qualityVersion: pipelineResult.qualityVersion,
@@ -5620,6 +6920,7 @@ async function handlePrepare(request, env) {
       llmAssembly,
       llmAssemblyOnly: true,
       fallbackUsed: false,
+      externalCallsAllowed,
       generationMode: pipelineResult.generationMode,
       provider: pipelineResult.provider,
       promptVersion: pipelineResult.promptVersion,
@@ -5658,6 +6959,7 @@ async function handlePrepare(request, env) {
         llmAssembly,
         llmAssemblyOnly: true,
         fallbackUsed: false,
+        externalCallsAllowed,
         generationMode: pipelineResult.generationMode,
         provider: pipelineResult.provider,
         promptVersion: pipelineResult.promptVersion,
@@ -5700,7 +7002,7 @@ async function handlePrepare(request, env) {
       localEngineUsed: false,
       llmAssembly,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed,
       fallbackUsed: false,
       writingPipeline: YEARLY_SAJU_PDF_CONFIG.templateVersion,
       assemblyVersion: ANNUAL_FORTUNE_ASSEMBLY_VERSION,
@@ -5908,6 +7210,10 @@ async function handleStatus(request, env) {
     });
   }
 
+  if (doc?.metadata?.newYearPdfJob?.id) {
+    return json(buildNewYearPdfStatusPayload(doc.metadata.newYearPdfJob));
+  }
+
   return json(buildNewYearStatusResponseFromExecution(doc, { reportId, sessionId }));
 }
 
@@ -5917,6 +7223,10 @@ export async function handleSajuNewYearRoutes(request, env = {}) {
     const path = getRoutePath(request, "/api/saju-new-year");
     if (method === "GET" && (path === "/chapters" || path === "chapters")) return await handleChapters();
     if (method === "GET" && (path === "/status" || path === "status" || String(path || "").startsWith("/status/") || String(path || "").startsWith("status/"))) return await handleStatus(request, env);
+    if (method === "GET" && (path === "/result" || path === "result" || String(path || "").startsWith("/result/") || String(path || "").startsWith("result/"))) return await handleResult(request, env);
+    if (method === "POST" && (path === "/verify-access" || path === "verify-access")) return await handleVerifyAccess(request, env);
+    if (method === "POST" && (path === "/create-job" || path === "create-job")) return await handleCreateJob(request, env);
+    if (method === "POST" && (path === "/generate-mock" || path === "generate-mock")) return await handleGenerateMock(request, env);
     if (method === "POST" && (String(path || "").startsWith("/retry/") || String(path || "").startsWith("retry/"))) return await handlePrepare(request, env);
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);

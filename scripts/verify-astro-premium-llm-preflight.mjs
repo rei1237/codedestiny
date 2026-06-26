@@ -93,11 +93,17 @@ function fixtureChart() {
 }
 
 function mockArticle(prompt) {
-  const chapterId = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "astro-01";
+  const chapterId = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "ch01";
   const title = (prompt.match(/\n제목: ([^\n]+)/) || prompt.match(/<h2>([\s\S]*?)<\/h2>/) || [])[1] || "점성술 챕터";
+  const grounding = ((prompt.match(/필수 근거 용어: ([^\n]+)/) || [])[1] || "태양 / 달 / 상승궁")
+    .split("/")
+    .map((item) => clean(item))
+    .filter(Boolean)
+    .slice(0, 6)
+    .join(", ");
   const bodyParagraphs = [
-    `${title}에서는 출생 차트의 Sun 물고기자리, Moon 천칭자리, 상승궁 천칭자리, MC 게자리 흐름을 중심으로 삶의 큰 방향을 읽습니다. 태양은 자기표현의 중심을, 달은 감정의 안전감을, 상승궁은 관계 안에서 처음 드러나는 태도를 비춥니다.`,
-    `이 차트는 Venus 양자리와 Mars 쌍둥이자리의 움직임이 사랑과 행동 방식에 또렷하게 닿아 있습니다. 금성은 관계에서 빠르게 마음이 열리는 지점을 보여 주고, 화성은 말과 배움, 이동성 안에서 추진력이 살아나는 패턴을 가리킵니다.`,
+    `${title}에서는 ${grounding}의 근거와 함께 출생 차트의 Sun 물고기자리, Moon 천칭자리, 상승궁 천칭자리, MC 게자리 흐름을 중심으로 삶의 큰 방향을 읽습니다. 태양은 자기표현의 중심을, 달은 감정의 안전감을, 상승궁은 관계 안에서 처음 드러나는 태도를 비춥니다.`,
+    `이 차트는 ${grounding}의 흐름 위에서 Venus 양자리와 Mars 쌍둥이자리의 움직임이 사랑과 행동 방식에 또렷하게 닿아 있습니다. 금성은 관계에서 빠르게 마음이 열리는 지점을 보여 주고, 화성은 말과 배움, 이동성 안에서 추진력이 살아나는 패턴을 가리킵니다.`,
     `하우스 배치를 함께 보면 5하우스의 태양과 1하우스의 달이 자기표현과 감정 반응을 강하게 연결합니다. 이 흐름은 사람들 앞에서 부드럽게 빛나고 싶어 하면서도, 가까운 관계에서는 균형과 공정함을 중요하게 여기는 심리로 드러납니다.`,
     `Sun-Moon trine과 Venus-Mars opposition은 조화와 긴장이 함께 움직이는 신호입니다. 장점은 감정과 의지가 비교적 자연스럽게 이어진다는 점이고, 주의점은 사랑과 선택의 속도가 빨라질 때 상대의 리듬을 놓칠 수 있다는 점입니다.`,
     `현재 트랜짓에서는 목성-태양 트라인과 토성-달 섹스타일 흐름이 성장과 정돈을 동시에 요구합니다. 지금은 관계와 창작의 가능성을 넓히되, 생활 리듬과 약속의 경계를 분명히 세울수록 운의 흐름이 안정적으로 열립니다.`,
@@ -105,7 +111,7 @@ function mockArticle(prompt) {
   return `<section class="astrology-chapter" data-chapter-id="${chapterId}">
   <h2>${title}</h2>
   <div class="chapter-summary">
-    <p>출생 차트의 태양, 달, 상승궁, 하우스, 어스펙트가 한 방향으로만 흐르지 않고 조화와 긴장을 함께 만듭니다. 제공된 계산 결과 안에서 확인되는 신호를 중심으로 현재의 선택 기준을 정리합니다. 이 장은 성향의 장점과 조율 지점을 현실 조언으로 연결합니다.</p>
+    <p>${grounding}을 중심으로 출생 차트의 태양, 달, 상승궁, 하우스, 어스펙트가 한 방향으로만 흐르지 않고 조화와 긴장을 함께 만듭니다. 제공된 계산 결과 안에서 확인되는 신호를 중심으로 현재의 선택 기준을 정리합니다. 이 장은 성향의 장점과 조율 지점을 현실 조언으로 연결합니다.</p>
   </div>
   <div class="chapter-body">${bodyParagraphs}</div>
   <div class="chapter-advice">

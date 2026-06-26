@@ -72,11 +72,19 @@ export function hashStable(value) {
   return (hash >>> 0).toString(36);
 }
 
-export function buildSoulOriginLlmAssembly(chapterCount = 12) {
+export function buildSoulOriginLlmAssembly(chapterCount = 12, metadata = {}) {
+  const provider = clean(metadata.provider || "");
+  const isMock = metadata.isMock === true || provider === "mock";
   return {
     enabled: true,
     externalGeneration: true,
+    externalCallsAllowed: isMock ? false : metadata.externalCallsAllowed !== false,
     fallbackUsed: false,
+    provider: provider || undefined,
+    modelName: clean(metadata.modelName || "") || undefined,
+    tokensUsed: Number(metadata.tokensUsed || 0),
+    cost: Number(metadata.cost || 0),
+    isMock,
     chapterCount,
     expectedChapterCount: chapterCount,
   };

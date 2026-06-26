@@ -15,7 +15,6 @@ import { siteSeo } from "../lib/seo/siteSeo";
 import {
   buildOrganizationJsonLd,
   buildWebPageJsonLd,
-  buildWebsiteJsonLd,
 } from "../lib/structured-data";
 
 const notoSansKRVariable = "font-noto-sans-kr-offline";
@@ -35,15 +34,24 @@ const ROOT_LAYOUT_COPY = {
   },
 };
 
+const ROOT_SEO = {
+  title: "꿀꿀 운세 | 무료 사주팔자·타로·궁합 — Code Destiny",
+  description:
+    "꿀꿀 운세(구 꿀꿀 만세력) — 생년월일 하나로 무료 사주팔자, 타로, 궁합, 자미두수, 신년운세까지. 코드 데스티니(Code Destiny).",
+  ogTitle: "꿀꿀 운세 | 무료 사주·타로·궁합 — Code Destiny",
+  ogDescription:
+    "꿀꿀 운세 — 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 재밌고 정확하게 보는 코드 데스티니 공식 서비스.",
+};
+
 export const metadata = {
   charset: "utf-8",
   metadataBase: new URL(siteSeo.siteUrl),
   applicationName: siteSeo.siteName,
   title: {
-    default: siteSeo.defaultTitle,
+    default: ROOT_SEO.title,
     template: siteSeo.titleTemplate,
   },
-  description: siteSeo.defaultDescription,
+  description: ROOT_SEO.description,
   keywords: SEO_CORE_KEYWORDS,
   creator: siteSeo.siteName,
   publisher: siteSeo.siteName,
@@ -89,8 +97,8 @@ export const metadata = {
     locale: "ko_KR",
     url: siteSeo.siteUrl,
     siteName: siteSeo.siteName,
-    title: siteSeo.defaultTitle,
-    description: siteSeo.defaultDescription,
+    title: ROOT_SEO.ogTitle,
+    description: ROOT_SEO.ogDescription,
     images: [
       {
         url: siteSeo.defaultOgImage,
@@ -102,8 +110,8 @@ export const metadata = {
   },
   twitter: {
     card: siteSeo.twitterCard,
-    title: siteSeo.defaultTitle,
-    description: siteSeo.defaultDescription,
+    title: ROOT_SEO.ogTitle,
+    description: ROOT_SEO.ogDescription,
     images: [siteSeo.defaultOgImage],
   },
   other: {
@@ -122,14 +130,31 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
+const BRAND_WEBSITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "꿀꿀 운세 — Code Destiny",
+  alternateName: ["꿀꿀 만세력", "코드 데스티니", "Code Destiny"],
+  url: "https://code-destiny.com",
+  description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://code-destiny.com/?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 const jsonLdGraph = {
   "@context": "https://schema.org",
   "@graph": [
     buildOrganizationJsonLd(),
-    buildWebsiteJsonLd(),
+    BRAND_WEBSITE_JSON_LD,
     buildWebPageJsonLd({
-      title: siteSeo.defaultTitle,
-      description: siteSeo.defaultDescription,
+      title: ROOT_SEO.title,
+      description: ROOT_SEO.description,
       path: "/",
     }),
   ],

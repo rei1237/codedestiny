@@ -8,6 +8,7 @@
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
   var RESULT_API = '/api/ziwei-book/result';
+  var CHAPTERS_API = '/api/ziwei-book/chapters';
   var DOWNLOAD_API = '/api/ziwei-book/download';
   var PAID_SESSION_STORAGE_KEY = 'premium:ziwei:paid-session:v1';
   var COVER_IMAGE = '/fuctionassets/jamipremiun.webp';
@@ -26,6 +27,9 @@
   var activeReportId = '';
   var activePaymentRequestId = '';
   var LAST_SEED = null;
+  var SERVER_CHAPTER_CONTRACT = null;
+  var SERVER_CHAPTER_CONTRACT_PROMISE = null;
+  var RESTORE_IN_FLIGHT = false;
   var RESULT_POLL_MAX_ATTEMPTS = 150;
   var RESULT_POLL_INTERVAL_MS = 4000;
   var ZIWEI_BOOK_TEXT_TRANSLATIONS = {
@@ -492,6 +496,115 @@
       && llmAssembly.fallbackUsed !== true
       && llmAssembly.localFallbackUsed !== true
       && chapterCount >= TOTAL_CHAPTERS;
+  }
+
+  function getZiweiContractSections(source){
+    var raw = source && Array.isArray(source.sections)
+      ? source.sections
+      : (source && Array.isArray(source.categories) ? source.categories : []);
+    return raw.map(function(section){
+      return text(typeof section === 'string' ? section : (section && (section.title || section.name || section.heading)));
+    }).filter(Boolean);
+  }
+
+  function normalizeZiweiContractSpec(chapter, index){
+    var sections = getZiweiContractSections(chapter);
+    return {
+      id: text(chapter && (chapter.id || chapter.chapterId)),
+      order: Number((chapter && (chapter.order || chapter.chapterNo)) || index + 1),
+      title: text(chapter && (chapter.title || chapter.chapterTitle)),
+      sections: sections.slice(),
+      categories: sections.map(function(title, sectionIndex){
+        return {
+          id: 'ch' + pad2(index + 1) + '-' + pad2(sectionIndex + 1),
+          order: sectionIndex + 1,
+          title: title
+        };
+      })
+    };
+  }
+
+  function validateZiweiChapterContract(chapters){
+    var list = Array.isArray(chapters) ? chapters : [];
+    var issues = [];
+    if(list.length !== TOTAL_CHAPTERS) issues.push('chapter.count');
+    var specs = [];
+    for(var i = 0; i < Math.min(list.length, TOTAL_CHAPTERS); i += 1){
+      var spec = normalizeZiweiContractSpec(list[i], i);
+      var expectedId = 'ch' + pad2(i + 1);
+      if(spec.id !== expectedId) issues.push('chapter.id.' + (i + 1));
+      if(!spec.title) issues.push('chapter.title.' + (i + 1));
+      if(spec.sections.length <= 0) issues.push('chapter.sections.' + (i + 1));
+      specs.push(spec);
+    }
+    return {
+      ok: issues.length === 0,
+      issues: issues,
+      specs: specs
+    };
+  }
+
+  async function loadZiweiChapterContract(){
+    if(SERVER_CHAPTER_CONTRACT && SERVER_CHAPTER_CONTRACT.ok) return SERVER_CHAPTER_CONTRACT;
+    if(SERVER_CHAPTER_CONTRACT_PROMISE) return SERVER_CHAPTER_CONTRACT_PROMISE;
+    SERVER_CHAPTER_CONTRACT_PROMISE = (async function(){
+      var fetched = await fetchZiweiApi(CHAPTERS_API, { method: 'GET' });
+      var res = fetched.res;
+      var json = fetched.json || {};
+      if(!res.ok || json.ok !== true || !Array.isArray(json.chapters)){
+        throw buildRetryableError('자미두수 PDF 챕터 구성을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.', 503, 'ZIWEI_CHAPTER_CONTRACT_UNAVAILABLE', 'generation');
+      }
+      var contract = validateZiweiChapterContract(json.chapters);
+      if(!contract.ok){
+        throw buildRetryableError('자미두수 PDF 챕터 구성이 맞지 않습니다. 잠시 후 다시 시도해 주세요.', 422, 'ZIWEI_CHAPTER_CONTRACT_INVALID', 'generation');
+      }
+      SERVER_CHAPTER_CONTRACT = contract;
+      logFlow('ChapterContractLoaded', {
+        chapterCount: contract.specs.length,
+        sectionCount: contract.specs.reduce(function(sum, spec){ return sum + spec.sections.length; }, 0)
+      });
+      return contract;
+    })();
+    SERVER_CHAPTER_CONTRACT_PROMISE = SERVER_CHAPTER_CONTRACT_PROMISE.finally(function(){
+      SERVER_CHAPTER_CONTRACT_PROMISE = null;
+    });
+    return SERVER_CHAPTER_CONTRACT_PROMISE;
+  }
+
+  function getZiweiResponseChapters(data){
+    var payload = data && typeof data === 'object' ? data : {};
+    var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    var nested = payload.payload && typeof payload.payload === 'object' ? payload.payload : {};
+    if(Array.isArray(payload.chapters)) return payload.chapters;
+    if(Array.isArray(nested.chapters)) return nested.chapters;
+    if(Array.isArray(ready.chapters)) return ready.chapters;
+    return [];
+  }
+
+  function hasZiweiChapterContractMatch(data, contract){
+    var activeContract = contract || SERVER_CHAPTER_CONTRACT;
+    if(!activeContract || !activeContract.ok) return true;
+    var chapters = getZiweiResponseChapters(data);
+    if(chapters.length !== TOTAL_CHAPTERS || activeContract.specs.length !== TOTAL_CHAPTERS) return false;
+    for(var i = 0; i < TOTAL_CHAPTERS; i += 1){
+      var expected = activeContract.specs[i] || {};
+      var chapter = chapters[i] || {};
+      var chapterId = text(chapter.id || chapter.key || chapter.chapterId);
+      var chapterTitle = text(chapter.title || chapter.chapterTitle);
+      if(chapterId !== expected.id) return false;
+      if(chapterTitle !== expected.title) return false;
+      if(getZiweiContractSections(chapter).length !== expected.sections.length) return false;
+    }
+    return true;
+  }
+
+  function assertZiweiCompletedContract(data, contract){
+    if(!hasZiweiV3LlmAssembly(data)){
+      throw buildRetryableError('자미두수 PDF 원고 생성 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', 422, 'ZIWEI_LLM_REPORT_REQUIRED', 'generation');
+    }
+    if(!hasZiweiChapterContractMatch(data, contract)){
+      throw buildRetryableError('자미두수 PDF 챕터 계약 검증을 통과하지 못했습니다. 다시 생성해 주세요.', 422, 'ZIWEI_CHAPTER_CONTRACT_MISMATCH', 'generation');
+    }
   }
 
   function getZiweiReportReadiness(data){
@@ -1753,6 +1866,29 @@
     return null;
   }
 
+  function requireZiweiPaymentContext(payment, birthHash){
+    var context = normalizePaymentContext(payment || {}, birthHash || '');
+    var token = text(context.premiumAccessToken || context.jobToken || payment && (payment.premiumAccessToken || payment.accessToken || payment.token || payment.jobToken));
+    var transactionOrRequest = text(context.transactionId || context.purchaseId || context.requestId || context.sourceTransactionId);
+    var sessionId = text(context.sessionId || context.reportSessionId);
+    var reportId = text(context.reportId);
+    var hash = text(context.birthHash || birthHash);
+    if(!token || !transactionOrRequest || !sessionId || !reportId || !hash){
+      throw buildRetryableError('생성 권한 정보가 누락되었습니다. 결제를 다시 확인해 주세요.', 403, 'PAYMENT_EVIDENCE_MISSING', 'payment');
+    }
+    return Object.assign({}, payment || {}, context, {
+      premiumAccessToken: token,
+      jobToken: text(context.jobToken || token),
+      requestId: text(context.requestId || transactionOrRequest),
+      transactionId: text(context.transactionId),
+      purchaseId: text(context.purchaseId),
+      sessionId: sessionId,
+      reportSessionId: text(context.reportSessionId || sessionId),
+      reportId: reportId,
+      birthHash: hash
+    });
+  }
+
   async function ensurePaymentOrRestore(birthInput, options){
     var reuseOnly = Boolean(options && options.reuseOnly);
     var birthHash = makeBirthHash(birthInput || {});
@@ -1809,6 +1945,10 @@
       clearPaidSession();
     }
 
+    if(reuseOnly){
+      throw buildRetryableError('저장된 결제 세션을 확인하지 못했습니다. 결제를 다시 확인해 주세요.', 402, 'PAYMENT_REUSE_UNVERIFIED', 'payment');
+    }
+
     if(typeof window._cdOpenPaidServiceGate !== 'function' && typeof window._cdCoinGatePerUse !== 'function'){
       throw buildRetryableError('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.', 503, 'PAYMENT_GATE_MISSING', 'payment');
     }
@@ -1830,8 +1970,8 @@
       featureKey: FEATURE_KEY,
       categoryKey: 'premium-pdf',
       subFeatureKey: FEATURE_KEY,
-      mode: 'compatibility',
-      reportMode: 'compatibility',
+      mode: 'personal',
+      reportMode: 'personal',
       reportType: 'ziweiPremium',
       serviceKey: 'ziwei-book',
       requestId: requestId,
@@ -1865,9 +2005,7 @@
 
       function finalizeGrant(result){
         var paymentContext = buildPaymentContext(result);
-        if(!hasPaymentEvidence(Object.assign({}, result || {}, paymentContext), birthHash)){
-          throw buildRetryableError('생성 권한 정보가 누락되었습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'PAYMENT_EVIDENCE_MISSING', 'generation');
-        }
+        paymentContext = requireZiweiPaymentContext(Object.assign({}, result || {}, paymentContext), birthHash);
 
         var sessionId = text(paymentContext.sessionId);
         var savedSession = writePaidSession(Object.assign({}, paymentContext, {
@@ -2040,12 +2178,15 @@
     if(!text(paymentContext.reportId) || !hasPaymentEvidence(Object.assign({}, paymentContext, { premiumAccessToken: token, accessGrant: accessGrant }), birthHash)){
       throw buildRetryableError('생성 권한 정보가 누락되었습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'INVALID_AUTHORIZATION', 'generation');
     }
+    var chapterContract = await loadZiweiChapterContract();
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     if(jobToken) headers['x-ziwei-job-token'] = jobToken;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
+      mode: 'personal',
+      reportMode: 'personal',
       sessionId: sessionId || undefined,
       reportSessionId: paymentContext.reportSessionId || sessionId || undefined,
       idempotencyKey: 'ziwei:' + sessionId + ':' + birthHash,
@@ -2085,6 +2226,7 @@
       calendarType: profile.calendarType,
       birthplace: profile.birthplace,
       ziweiClientEvidenceJson: buildZiweiClientEvidenceJson(seed, birthInput),
+      chapterSpecs: chapterContract.specs,
       ziweiBase: seed
     };
     var prepareDiagnostics = buildZiweiPrepareDiagnostics(profile, seed, paymentContext, birthInput, body, PREPARE_API);
@@ -2223,6 +2365,93 @@
     setDisplay('zbResultScreen','block');
     bindResultToc();
     ensureErrorActions();
+  }
+
+  function isRestorableZiweiSession(session){
+    var saved = session || {};
+    var status = text(saved.status);
+    return isZiweiFeatureKey(saved.featureKey)
+      && text(saved.reportType) === 'ziweiPremium'
+      && (status === 'generating' || status === 'paid')
+      && Boolean(text(saved.sessionId || saved.reportSessionId))
+      && Boolean(text(saved.reportId));
+  }
+
+  function showRestoredZiweiProgress(session){
+    setDisplay('zbStartScreen','none');
+    setDisplay('zbNoProfileScreen','none');
+    setDisplay('zbResultScreen','none');
+    setDisplay('zbErrorScreen','none');
+    setDisplay('zbLoadingScreen','block');
+    renderZiweiServerProgress({
+      status: 'generating',
+      reportId: text(session && session.reportId),
+      sessionId: text(session && (session.sessionId || session.reportSessionId)),
+      completedChapters: Number(session && session.completedChapters) || 0,
+      currentChapterNumber: Number(session && session.currentChapterNumber) || 1,
+      currentStepMessage: '자미두수 PDF를 생성하는 중입니다.'
+    });
+  }
+
+  function restoreZiweiOpenSession(session){
+    if(RESTORE_IN_FLIGHT) return;
+    RESTORE_IN_FLIGHT = true;
+    (async function(){
+      var saved = session || {};
+      try {
+        showRestoredZiweiProgress(saved);
+        var chapterContract = await loadZiweiChapterContract();
+        var recovered = await recoverPendingResult({
+          sessionId: text(saved.sessionId || saved.reportSessionId),
+          reportId: text(saved.reportId),
+          status: 'generating',
+          retryable: true
+        }, saved);
+        var readiness = getZiweiReportReadiness(recovered);
+        renderZiweiServerProgress(recovered);
+        if(readiness.completed){
+          assertZiweiCompletedContract(recovered, chapterContract);
+          RESULT = recovered;
+          writePaidSession({
+            featureKey: FEATURE_KEY,
+            reportType: 'ziweiPremium',
+            sessionId: text(recovered.sessionId || saved.sessionId || saved.reportSessionId),
+            reportSessionId: text(recovered.reportSessionId || recovered.sessionId || saved.reportSessionId || saved.sessionId),
+            reportId: text(recovered.reportId || saved.reportId),
+            premiumAccessToken: text(saved.premiumAccessToken || saved.accessToken || saved.jobToken),
+            jobToken: text(saved.jobToken || saved.premiumAccessToken || saved.accessToken),
+            transactionId: text(saved.transactionId),
+            requestId: text(saved.requestId),
+            birthHash: text(saved.birthHash),
+            paidAt: text(saved.paidAt),
+            status: 'completed'
+          });
+          renderResult(recovered);
+          return;
+        }
+        if(readiness.failed){
+          writePaidSession({
+            status: 'failed_retryable',
+            reportId: text(recovered.reportId || saved.reportId),
+            sessionId: text(recovered.sessionId || saved.sessionId || saved.reportSessionId)
+          });
+          RESULT = recovered;
+          showError(text(recovered.errorMessage || recovered.message) || '자미두수 PDF 생성이 중단되었습니다. 다시 생성해 주세요.', recovered);
+          return;
+        }
+        writePaidSession({
+          status: 'generating',
+          reportId: text(recovered.reportId || saved.reportId),
+          sessionId: text(recovered.sessionId || saved.sessionId || saved.reportSessionId)
+        });
+        RESULT = recovered;
+        showRestoredZiweiProgress(Object.assign({}, saved, recovered));
+      } catch(error) {
+        showError(mapErrorMessage(error), error);
+      } finally {
+        RESTORE_IN_FLIGHT = false;
+      }
+    })();
   }
 
   async function reopenPreviousReport(){
@@ -2413,7 +2642,19 @@
       hasBirthTime: Boolean(profile && profile.birthTime)
     });
 
-    if(!RESULT){
+    var paid = readPaidSession();
+    var shouldRestore = isRestorableZiweiSession(paid);
+    if(GENERATING){
+      setDisplay('zbStartScreen','none');
+      setDisplay('zbNoProfileScreen','none');
+      setDisplay('zbResultScreen','none');
+      setDisplay('zbErrorScreen','none');
+      setDisplay('zbLoadingScreen','block');
+      renderZiweiServerProgress(ZIWEI_GENERATION_STATE);
+    } else if(shouldRestore){
+      showRestoredZiweiProgress(paid);
+      restoreZiweiOpenSession(paid);
+    } else if(!RESULT){
       setDisplay('zbLoadingScreen','none');
       setDisplay('zbResultScreen','none');
       setZiweiPhase('prepare', '자미두수 명반을 정리하고 있습니다.');
@@ -2422,7 +2663,6 @@
     }
     ensureErrorActions();
 
-    var paid = readPaidSession();
     if(paid && text(paid.reportId)){
       var openPrev = $('zbOpenPreviousBtn');
       if(openPrev) openPrev.style.display = 'inline-flex';
@@ -2511,6 +2751,19 @@
         birthHour: resolved.birthInput.birthHour
       });
       logFlow('GenerationAuthorizeStart', { featureKey: FEATURE_KEY, reportId: generationScope.reportId, sessionId: generationScope.sessionId });
+      var chapterContract = await loadZiweiChapterContract();
+      setZiweiPhase('prepare', '결제 권한을 확인하고 있습니다.');
+      setGeneratingUiLock(true, '결제 확인 중...');
+      updateZiweiGenerationState({ status: 'authorizingGeneration' });
+      var payment = await ensurePaymentOrRestore(resolved.birthInput, { reuseOnly: usePaidSessionOnly === true });
+      payment = requireZiweiPaymentContext(payment, currentBirthHash);
+      setZiweiGenerationScope({
+        birthHash: text(payment.birthHash) || currentBirthHash,
+        sessionId: text(payment.sessionId || payment.reportSessionId),
+        reportId: text(payment.reportId) || generationScope.reportId,
+        requestId: text(payment.requestId) || generationScope.requestId
+      });
+      generationScope = getZiweiGenerationScope(currentBirthHash);
       setZiweiPhase('prepare', '자미두수 명반을 정리하고 있습니다.');
       setGeneratingUiLock(true, '생성 준비 중...');
       setDisplay('zbStartScreen','none');
@@ -2519,18 +2772,6 @@
       setDisplay('zbLoadingScreen','block');
       markChapter(-1);
       updateProgress(4, '자미두수 명반을 정리하고 있습니다.');
-      updateZiweiGenerationState({ status: 'authorizingGeneration' });
-      var payment = readAuthorizedZiweiContext(currentBirthHash);
-      if(!payment){
-        throw buildRetryableError('PDF 생성 권한을 확인하지 못했습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'INVALID_AUTHORIZATION', 'generation');
-      }
-      setZiweiGenerationScope({
-        birthHash: text(payment.birthHash) || currentBirthHash,
-        sessionId: text(payment.sessionId || payment.reportSessionId),
-        reportId: text(payment.reportId) || generationScope.reportId,
-        requestId: text(payment.requestId) || generationScope.requestId
-      });
-      generationScope = getZiweiGenerationScope(currentBirthHash);
       setZiweiPhase('calculate', '명궁과 12궁 흐름을 정리하고 있습니다.');
       setGeneratingUiLock(true, '명반 계산 중...');
       updateProgress(10, '명궁 12궁 계산을 위한 출생 정보를 정리하는 중입니다.');
@@ -2562,7 +2803,7 @@
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
-      var data = await postPrepare(profile, seed, Object.assign({}, payment, generationScope, { sessionId: sessionId }), resolved.birthInput);
+      var data = await postPrepare(profile, seed, Object.assign({}, payment, generationScope, { sessionId: sessionId, chapterContract: chapterContract }), resolved.birthInput);
       renderZiweiServerProgress(data);
       var readiness = getZiweiReportReadiness(data);
       if(!readiness.completed){
@@ -2594,9 +2835,7 @@
         RESULT = data;
         throw buildRetryableError('자미두수 PDF 생성이 완료되지 않았습니다. 잠시 후 다시 생성해 주세요.', 422, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
-      if(!hasZiweiV3LlmAssembly(data)){
-        throw buildRetryableError('자미두수 PDF 원고 생성 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', 422, 'ZIWEI_LLM_REPORT_REQUIRED', 'generation');
-      }
+      assertZiweiCompletedContract(data, chapterContract);
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         qualityStatus: text(data && data.qualityStatus)

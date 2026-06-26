@@ -146,7 +146,7 @@ function sectionTitleTokens(title = "") {
     .slice(0, 6);
 }
 
-export function parseAndValidateSajuNewYearChapterJson(rawText, { chapter, targetYear }) {
+export function parseAndValidateSajuNewYearChapterJson(rawText, { chapter, targetYear, allowMock = false } = {}) {
   let parsed;
   try {
     parsed = typeof rawText === "string" ? parseJsonStrict(rawText) : rawText;
@@ -168,7 +168,7 @@ export function parseAndValidateSajuNewYearChapterJson(rawText, { chapter, targe
   let chapterChars = 0;
   const chapterBodyText = sections.map((section) => section.body).join("\n");
   const domainTokens = CHAPTER_DOMAIN_TOKENS[Number(chapter?.no || 0)] || [];
-  if (countTokenMatches(chapterBodyText, domainTokens) < Math.min(2, domainTokens.length)) {
+  if (!allowMock && countTokenMatches(chapterBodyText, domainTokens) < Math.min(2, domainTokens.length)) {
     issues.push("chapter_domain_anchor_missing");
   }
   expectedSections.forEach((title, index) => {

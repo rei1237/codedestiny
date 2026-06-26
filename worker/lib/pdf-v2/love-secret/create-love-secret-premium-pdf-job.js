@@ -41,6 +41,7 @@ function buildDisplayName(input, mode) {
 
 function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId, featureKey, mode }) {
   const llmAssembly = generated.llmAssembly || {};
+  const externalCallsAllowed = generated.externalCallsAllowed !== false;
   const displayName = buildDisplayName(generated, mode);
   const title = mode === "compatibility" ? `${displayName} 궁합 연애 비책 PDF` : `${displayName} 연애 비책 PDF`;
   return {
@@ -65,7 +66,10 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId, featur
     expectedChapterCount: generated.expectedChapterCount,
     llmDraftChapterCount: generated.chapterCount,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true,
     chapters: generated.chapters,
     payload: {
       ok: true,
@@ -85,10 +89,13 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId, featur
       manuscriptSource: generated.manuscriptSource,
       generationMode: generated.generationMode,
       provider: generated.provider,
+      tokensUsed: Number(generated.tokensUsed || 0),
+      cost: Number(generated.cost || 0),
+      isMock: generated.isMock === true,
       writingPipeline: generated.writingPipeline,
       llmAssembly,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed,
       pdfReady,
       pdfUrl: pdfReady.pdfUrl,
       htmlUrl: pdfReady.htmlUrl,

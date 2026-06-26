@@ -34,11 +34,18 @@ export async function createKarmaIntegratedPdfJob(params = {}) {
   const llmAssembly = generated.llmAssembly || {
     enabled: true,
     externalGeneration: true,
+    externalCallsAllowed: generated.externalCallsAllowed !== false,
     fallbackUsed: false,
+    provider: generated.provider || SOUL_ORIGIN_LLM_PROVIDER,
+    modelName: generated.modelName,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true,
     chapterCount: generated.chapterCount,
     expectedChapterCount: generated.expectedChapterCount,
     engineVersion: KARMA_INTEGRATED_LLM_VERSION,
   };
+  const externalCallsAllowed = generated.externalCallsAllowed !== false;
   const pdfReady = {
     html: generated.html,
     filename: `${reportId}.pdf`,
@@ -56,10 +63,13 @@ export async function createKarmaIntegratedPdfJob(params = {}) {
     expectedChapterCount: generated.expectedChapterCount,
     llmDraftChapterCount: generated.chapterCount,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed,
     llmAssembly,
     provider: generated.provider || SOUL_ORIGIN_LLM_PROVIDER,
     modelName: generated.modelName,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true,
     generationMode: KARMA_INTEGRATED_GENERATION_MODE,
     canDownload: Boolean(links.downloadUrl),
   };
@@ -119,7 +129,7 @@ export async function createKarmaIntegratedPdfJob(params = {}) {
     writingPipeline: SOUL_ORIGIN_LLM_WRITING_PIPELINE,
     fallbackUsed: false,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed,
     llmAssembly,
     pdfReady,
     pdfCompletionValidation,

@@ -52,6 +52,7 @@ function validateCompletionPayload({ pdfReady = {}, chapters = [], chapterPlan =
 
 function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
   const llmAssembly = generated.llmAssembly || buildLifeBookLlmAssembly(generated.chapterCount, generated.expectedChapterCount);
+  const externalCallsAllowed = generated.externalCallsAllowed !== false;
   const displayName = clean(generated.normalizedInput?.userName || "고객", 80);
   return {
     reportId,
@@ -75,7 +76,10 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
     expectedChapterCount: generated.expectedChapterCount,
     llmDraftChapterCount: generated.chapterCount,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true,
     chapters: generated.chapters,
     chapterResults: generated.chapterResults,
     chapterAttempts: generated.chapterAttempts,
@@ -102,10 +106,13 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
       generationMode: generated.generationMode,
       provider: generated.provider,
       modelName: generated.modelName,
+      tokensUsed: Number(generated.tokensUsed || 0),
+      cost: Number(generated.cost || 0),
+      isMock: generated.isMock === true,
       writingPipeline: LIFE_BOOK_PREMIUM_WRITING_PIPELINE,
       llmAssembly,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed,
       pdfReady,
       pdfUrl: pdfReady.pdfUrl,
       htmlUrl: pdfReady.htmlUrl,
@@ -119,6 +126,9 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
     generationMode: generated.generationMode,
     provider: generated.provider,
     modelName: generated.modelName,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true,
     writingPipeline: LIFE_BOOK_PREMIUM_WRITING_PIPELINE,
     llmAssembly,
     pdfV2: {
@@ -164,6 +174,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
     });
     const links = buildArchiveLinks(params.requestUrl, reportId);
     const llmAssembly = generated.llmAssembly || buildLifeBookLlmAssembly(generated.chapterCount, generated.expectedChapterCount);
+    const externalCallsAllowed = generated.externalCallsAllowed !== false;
     const pdfReady = {
       html: fullHtml,
       filename: `${reportId}.pdf`,
@@ -183,6 +194,9 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
       writingPipeline: LIFE_BOOK_PREMIUM_WRITING_PIPELINE,
       provider: generated.provider,
       modelName: generated.modelName,
+      tokensUsed: Number(generated.tokensUsed || 0),
+      cost: Number(generated.cost || 0),
+      isMock: generated.isMock === true,
       chapterCount: generated.chapterCount,
       expectedChapterCount: generated.expectedChapterCount,
       chapters: generated.chapters,
@@ -193,7 +207,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
       chapterConfigVersion: generated.chapterConfigVersion,
       llmDraftChapterCount: generated.chapterCount,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed,
       llmAssembly,
       canDownload: Boolean(links.downloadUrl),
     };
@@ -225,6 +239,10 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
         generationMode: generated.generationMode,
         writingPipeline: generated.writingPipeline,
         llmAssembly,
+        externalCallsAllowed,
+        tokensUsed: Number(generated.tokensUsed || 0),
+        cost: Number(generated.cost || 0),
+        isMock: generated.isMock === true,
         pdfCompletionValidation: completionValidation,
         archive,
         pdfReady,
@@ -281,10 +299,13 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
       generationMode: generated.generationMode,
       provider: generated.provider,
       modelName: generated.modelName,
+      tokensUsed: Number(generated.tokensUsed || 0),
+      cost: Number(generated.cost || 0),
+      isMock: generated.isMock === true,
       writingPipeline: generated.writingPipeline,
       llmAssembly,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed,
       pdfCompletionValidation: completionValidation,
       archiveStatus: completedExecution ? "completed" : "skipped",
       completedExecutionStored: Boolean(completedExecution?.ok),

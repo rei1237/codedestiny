@@ -37,9 +37,13 @@ function limitationLines(input = {}) {
 }
 
 export function buildAstrologyChapterPrompt({ input, chapter, chapterPlan = [] } = {}) {
+  const groundingTerms = Array.isArray(chapter?.groundingTerms)
+    ? chapter.groundingTerms.filter(Boolean).join(" / ")
+    : "";
   return [
     `[전체 챕터 플랜]\n${chapterSummary(chapterPlan)}`,
     `[현재 작성 챕터]\nID: ${chapter.id}\n순서: ${chapter.order}\n카테고리: ${chapter.category}\n제목: ${chapter.title}\n목적: ${chapter.purpose}`,
+    `[필수 근거]\n필수 근거 용어: ${groundingTerms || "점성술 / 출생 차트 / 행성 / 하우스 / 어스펙트 / 트랜짓"}`,
     `[계산된 점성술 데이터]\n${stableStringify({
       service: "astrology",
       userName: input.userName,

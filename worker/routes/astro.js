@@ -24,6 +24,24 @@ import {
 } from "../lib/vedic-premium-generator.js";
 import { generateVedicPremiumPdfV2 } from "../lib/pdf-v2/vedic/create-vedic-premium-pdf-job.js";
 import { vedicPremiumChapterPlanV2 } from "../lib/pdf-v2/vedic/vedic-premium.chapter-plan.js";
+import {
+  VEDIC_PDF_CHAPTERS,
+  VEDIC_PDF_REPORT_TYPE,
+  VEDIC_PDF_SERVICE_KEY,
+  VEDIC_PDF_SERVICE_TYPE,
+  buildVedicArchiveUrls,
+  buildVedicMockArchiveChapters,
+  buildVedicMockPdfHtml,
+  buildVedicPdfAccess,
+  buildVedicPdfContext,
+  buildVedicPdfJob,
+  buildVedicPdfResultPayload,
+  buildVedicPdfStatusPayload,
+  calculateVedicPdfProgress,
+  generateVedicPdfChapterContent,
+  normalizeVedicPdfInput,
+  validateVedicPdfInput,
+} from "../lib/pdf-v2/vedic/vedic-mock-pipeline.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildPremiumExecutionContext,
@@ -38,6 +56,23 @@ const ASTRO_PREMIUM_LOCK_TTL_MS = 15 * 60 * 1000;
 const ASTRO_STATUS_RETRY_AFTER_MS = 4000;
 const astroPremiumGenerationLocks = new Map();
 const ASTRO_PREMIUM_CHAPTERS = astrologyPremiumPublicChapters;
+const ASTROLOGY_MOCK_STATUS_RETRY_AFTER_MS = 1200;
+const astrologyMockGenerationLocks = new Map();
+const ASTROLOGY_PDF_CHAPTERS = Object.freeze([
+  { id: "intro", order: 1, title: "점성술 리딩의 전체 흐름" },
+  { id: "natal-chart-summary", order: 2, title: "출생 차트와 기본 성향" },
+  { id: "sun-moon-ascendant", order: 3, title: "태양·달·상승궁의 핵심 의미" },
+  { id: "houses-life-areas", order: 4, title: "하우스가 보여주는 인생 영역" },
+  { id: "planetary-patterns", order: 5, title: "행성 배치와 내면의 힘" },
+  { id: "aspects", order: 6, title: "주요 애스펙트와 인생 패턴" },
+  { id: "love-relationship", order: 7, title: "연애운과 인간관계" },
+  { id: "career-money", order: 8, title: "직업운과 재물운" },
+  { id: "health-mind", order: 9, title: "건강운과 마음의 균형" },
+  { id: "yearly-transits", order: 10, title: "올해의 트랜짓 흐름" },
+  { id: "monthly-guide", order: 11, title: "월별 흐름과 주의점" },
+  { id: "action-guide", order: 12, title: "실천 조언과 성장 방향" },
+]);
+const ASTROLOGY_MOCK_ACTIVE_STATUSES = new Set(["created", "access_verifying", "access_verified", "queued", "generating", "chapter_generating", "rendering", "saving"]);
 const VEDIC_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const VEDIC_STATUS_RETRY_AFTER_MS = 4000;
 const vedicPremiumGenerationLocks = new Map();
@@ -543,6 +578,991 @@ function withPdfArchiveFormat(url, format) {
     return value.replace(/([?&]format=)[^&]+/i, `$1${encodeURIComponent(targetFormat)}`);
   }
   return `${value}${value.includes("?") ? "&" : "?"}format=${encodeURIComponent(targetFormat)}`;
+}
+
+function readAstrologyMockBool(env, key, fallback = false) {
+  const raw = env?.[key];
+  if (raw == null || raw === "") return fallback;
+  return /^(1|true|yes|on)$/i.test(String(raw).trim());
+}
+
+function readAstrologyMockNumber(env, key, fallback = 0) {
+  const n = Number(env?.[key]);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function isAstrologyMockProductionEnv(env) {
+  const value = clean(env?.NODE_ENV || env?.APP_ENV || env?.ENVIRONMENT || env?.CF_PAGES_BRANCH || "production").toLowerCase();
+  return value === "production" || value === "prod" || value === "main";
+}
+
+function isAstrologyMockDebugAccessAllowed(env) {
+  return readAstrologyMockBool(env, "PDF_DEBUG_MODE", false) && !isAstrologyMockProductionEnv(env);
+}
+
+function shouldBlockAstrologyRealLlm(env) {
+  const provider = clean(env?.PDF_LLM_PROVIDER || "").toLowerCase();
+  return provider === "mock"
+    || readAstrologyMockBool(env, "LLM_DRY_RUN", false)
+    || readAstrologyMockNumber(env, "PDF_LLM_MAX_CALLS_PER_JOB", 1) <= 0;
+}
+
+function normalizeAstrologyMockGender(value) {
+  const raw = clean(value).toLowerCase();
+  if (["m", "male", "남", "남성"].includes(raw)) return "male";
+  if (["f", "female", "여", "여성"].includes(raw)) return "female";
+  if (raw) return "other";
+  return undefined;
+}
+
+function stableAstrologyMockStringify(value) {
+  if (Array.isArray(value)) return `[${value.map((item) => stableAstrologyMockStringify(item)).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableAstrologyMockStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value ?? null);
+}
+
+function hashAstrologyMockInput(value) {
+  const text = stableAstrologyMockStringify(value);
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `astro_${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+function normalizeAstrologyPdfInput(body = {}) {
+  const source = getAstroBirthInputSource(body);
+  const birthInput = normalizeAstroPremiumBirthInput(source);
+  const rawBirthTime = clean(source.birthTime || birthInput.birthTime);
+  const birthTimeUnknown = source.birthTimeUnknown === true || source.isTimeUnknown === true || birthInput.isTimeUnknown === true;
+  const birthTime = birthTimeUnknown
+    ? undefined
+    : rawBirthTime || (Number.isFinite(Number(birthInput.birthHour))
+      ? `${String(Number(birthInput.birthHour)).padStart(2, "0")}:${String(Number(birthInput.birthMinute || 0)).padStart(2, "0")}`
+      : undefined);
+  return {
+    name: clean(source.name || source.userName || source.profile?.name || body?.profile?.name) || undefined,
+    gender: normalizeAstrologyMockGender(source.gender || source.profile?.gender),
+    birthDate: clean(source.birthDate || birthInput.birthDate),
+    birthTime,
+    birthTimeUnknown,
+    calendarType: clean(source.calendarType || "solar") === "lunar" ? "lunar" : "solar",
+    isLeapMonth: source.isLeapMonth === true,
+    birthPlace: clean(source.birthPlace || birthInput.birthPlace),
+    timezone: clean(source.timezone || birthInput.timezone) || undefined,
+    latitude: Number.isFinite(Number(source.latitude ?? birthInput.latitude)) ? Number(source.latitude ?? birthInput.latitude) : undefined,
+    longitude: Number.isFinite(Number(source.longitude ?? source.lng ?? birthInput.longitude)) ? Number(source.longitude ?? source.lng ?? birthInput.longitude) : undefined,
+    targetYear: Number.isFinite(Number(source.targetYear || body.targetYear)) ? Number(source.targetYear || body.targetYear) : new Date().getFullYear(),
+    readingType: clean(source.readingType || body.readingType || "natal") || "natal",
+    houseSystem: clean(source.houseSystem || body.houseSystem || "placidus") || "placidus",
+    zodiacType: clean(source.zodiacType || body.zodiacType || "tropical") || "tropical",
+    memo: clean(source.memo || body.memo) || undefined,
+  };
+}
+
+function validateAstrologyPdfInput(input = {}) {
+  if (!clean(input.birthDate)) {
+    return { ok: false, status: 422, code: "ASTROLOGY_PDF_INPUT_INVALID", message: "점성술 PDF 생성을 위해 생년월일이 필요합니다." };
+  }
+  return { ok: true };
+}
+
+function extractAstrologyMockContext(body = {}, input = {}) {
+  const chart = asPlainObject(body.localAstroChartJson || body.astrologyChart || body.astroBase?.chart || body.astroBase || body.chart);
+  const context = {
+    sunSign: clean(chart.sunSign || chart.sun?.signKo || chart.sun?.signName || chart.planets?.sun?.signKo || chart.planets?.sun?.signName) || "mock 또는 미계산",
+    moonSign: clean(chart.moonSign || chart.moon?.signKo || chart.moon?.signName || chart.planets?.moon?.signKo || chart.planets?.moon?.signName) || "mock 또는 미계산",
+    ascendant: clean(chart.ascendant || chart.ascSign || chart.ascendantSign || chart.angles?.ascendant?.signKo || chart.angles?.ascendant?.signName) || (input.birthTimeUnknown ? "출생시간 모름으로 제한" : "mock 또는 미계산"),
+    mc: clean(chart.mc || chart.midheaven || chart.angles?.mc?.signKo || chart.angles?.mc?.signName) || (input.birthTimeUnknown ? "출생시간 모름으로 제한" : "mock 또는 미계산"),
+    houses: chart.houses || null,
+    planets: chart.planets || null,
+    aspects: chart.aspects || null,
+    dominantElement: clean(chart.dominantElement || chart.element) || undefined,
+    dominantMode: clean(chart.dominantMode || chart.mode) || undefined,
+    natalChart: chart.natalChart || chart || null,
+    transitChart: chart.transitChart || null,
+    progressedChart: chart.progressedChart || null,
+    solarReturnChart: chart.solarReturnChart || null,
+    majorTransits: Array.isArray(chart.majorTransits) ? chart.majorTransits.slice(0, 8).map(clean).filter(Boolean) : ["mock 트랜짓"],
+    yearlyThemes: Array.isArray(chart.yearlyThemes) ? chart.yearlyThemes.slice(0, 8).map(clean).filter(Boolean) : ["mock 연간 흐름"],
+    calculatedAt: new Date().toISOString(),
+    source: Object.keys(chart).length ? "existing_engine" : "mock_context",
+  };
+  if (input.birthTimeUnknown) {
+    context.yearlyThemes = [
+      ...context.yearlyThemes,
+      "출생시간 모름이 선택되어 상승궁, 하우스, MC 기반 해석은 제한적으로 다룹니다.",
+    ];
+  }
+  return context;
+}
+
+function astrologyMockAccessMethod(access = {}) {
+  const type = clean(access.accessType || access.method).toLowerCase();
+  if (type === "debug_mock") return "debug_mock";
+  if (/pass|unlock|entitlement|already/.test(type)) return "pass";
+  return "payment";
+}
+
+async function resolveAstrologyMockAccess(request, env, auth, body = {}) {
+  if (isAstrologyMockDebugAccessAllowed(env) && body.debugMockAccess !== false) {
+    return {
+      ok: true,
+      method: "debug_mock",
+      access: {
+        ok: true,
+        accessType: "debug_mock",
+        reportType: "westernAstrologyPremium",
+        featureKey: ASTRO_PREMIUM_FEATURE_KEY,
+        chargedCoins: 0,
+      },
+    };
+  }
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "westernAstrologyPremium", {
+    ...body,
+    reportType: "westernAstrologyPremium",
+    featureKey: clean(body.featureKey || ASTRO_PREMIUM_FEATURE_KEY) || ASTRO_PREMIUM_FEATURE_KEY,
+    premiumAccessToken: readPremiumAccessToken(request, body) || undefined,
+    _accessRoute: "/api/astro/premium/verify-access",
+  });
+  if (!access?.ok) {
+    return {
+      ok: false,
+      status: Number(access?.status || 402),
+      code: clean(access?.code || "PAYMENT_REQUIRED") || "PAYMENT_REQUIRED",
+      message: clean(access?.message || "점성술 PDF 생성 권한이 확인되지 않았습니다."),
+      access,
+    };
+  }
+  return {
+    ok: true,
+    method: astrologyMockAccessMethod(access),
+    access,
+  };
+}
+
+function buildAstrologyMockAccessSnapshot(resolved = {}, body = {}) {
+  const access = resolved.access || {};
+  return {
+    verified: true,
+    method: resolved.method || astrologyMockAccessMethod(access),
+    paymentId: clean(body.paymentId || body.payment?.paymentId || body.payment?.merchantUid || body.payment?.impUid || body.transactionId || access.matchedTransactionId) || undefined,
+    passId: resolved.method === "pass" ? clean(access.entitlementId || access.passTier || access.featureKey) || undefined : undefined,
+    verifiedAt: new Date().toISOString(),
+  };
+}
+
+function buildAstrologyPendingChapters() {
+  return ASTROLOGY_PDF_CHAPTERS.map((chapter) => ({
+    ...chapter,
+    status: "pending",
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  }));
+}
+
+function computeAstrologyMockProgress(status, completedChapters, totalChapters) {
+  const completed = Math.max(0, Math.min(Number(totalChapters || 0), Math.trunc(Number(completedChapters || 0))));
+  const total = Math.max(1, Math.trunc(Number(totalChapters || ASTROLOGY_PDF_CHAPTERS.length)));
+  if (status === "access_verifying") return 5;
+  if (status === "access_verified" || status === "queued" || status === "created") return 10;
+  if (status === "generating" || status === "chapter_generating") return 10 + Math.floor((completed / total) * 70);
+  if (status === "rendering") return 85;
+  if (status === "saving") return 95;
+  if (status === "completed") return 100;
+  if (status === "failed" || status === "cancelled") return Math.max(10, 10 + Math.floor((completed / total) * 70));
+  return 0;
+}
+
+function resolveAstrologyMockOrigin(request) {
+  const url = new URL(request.url);
+  return `${url.protocol}//${url.host}`;
+}
+
+function buildAstrologyMockPdfLinks(request, jobId) {
+  const origin = resolveAstrologyMockOrigin(request);
+  const base = `${origin}/api/premium/pdf-archive/${encodeURIComponent(jobId)}`;
+  return {
+    pdfUrl: `${base}?format=pdf`,
+    htmlUrl: `${base}?format=html`,
+    downloadUrl: `${base}?format=pdf`,
+  };
+}
+
+function escapeAstrologyMockHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderAstrologyMockMarkdown(content = "") {
+  const lines = String(content || "").replace(/\r/g, "").split("\n");
+  let html = "";
+  let listOpen = false;
+  for (const lineRaw of lines) {
+    const line = lineRaw.trim();
+    if (!line) {
+      if (listOpen) {
+        html += "</ul>";
+        listOpen = false;
+      }
+      continue;
+    }
+    if (/^- /.test(line)) {
+      if (!listOpen) {
+        html += "<ul>";
+        listOpen = true;
+      }
+      html += `<li>${escapeAstrologyMockHtml(line.replace(/^- /, ""))}</li>`;
+      continue;
+    }
+    if (listOpen) {
+      html += "</ul>";
+      listOpen = false;
+    }
+    if (/^# /.test(line)) {
+      html += `<h2>${escapeAstrologyMockHtml(line.replace(/^# /, ""))}</h2>`;
+    } else if (/^## /.test(line)) {
+      html += `<h3>${escapeAstrologyMockHtml(line.replace(/^## /, ""))}</h3>`;
+    } else {
+      html += `<p>${escapeAstrologyMockHtml(line)}</p>`;
+    }
+  }
+  if (listOpen) html += "</ul>";
+  return html;
+}
+
+function buildAstrologyMockPdfHtml(job = {}) {
+  const input = job.inputSnapshot || {};
+  const context = job.contextSnapshot || {};
+  const chapters = Array.isArray(job.chapters) ? job.chapters : [];
+  const toc = chapters
+    .map((chapter) => `<li>${chapter.order}장 ${escapeAstrologyMockHtml(chapter.title)}</li>`)
+    .join("");
+  const chapterHtml = chapters
+    .map((chapter) => `
+      <article data-chapter-id="${escapeAstrologyMockHtml(chapter.id)}" class="chapter">
+        ${renderAstrologyMockMarkdown(chapter.content || `# ${chapter.order}. ${chapter.title}\n\nmock 콘텐츠가 아직 저장되지 않았습니다.`)}
+      </article>
+    `)
+    .join("");
+  return `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>점성술 PDF Mock 리포트</title>
+  <style>
+    body{font-family:Arial,"Noto Sans KR",sans-serif;margin:0;color:#241b35;background:#fbf8ff;line-height:1.72}
+    .cover{padding:56px 48px 34px;background:#2f2350;color:#fff}
+    .cover h1{margin:0 0 12px;font-size:32px}
+    .cover p{margin:4px 0;color:#e8ddff}
+    main{padding:36px 48px}
+    h2{margin:34px 0 12px;font-size:24px;color:#3b2870}
+    h3{margin:22px 0 8px;font-size:17px;color:#5b438a}
+    p{margin:8px 0}
+    ul{margin:8px 0 16px 20px;padding:0}
+    li{margin:5px 0}
+    .meta,.toc{padding:20px;border:1px solid #dfd4f2;background:#fff;border-radius:10px;margin:22px 0}
+    .chapter{page-break-before:always;padding-top:12px}
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>점성술 PDF Mock 리포트</h1>
+    <p>Job ID: ${escapeAstrologyMockHtml(job.id)}</p>
+    <p>Provider: mock · 실제 LLM 호출 없음 · tokensUsed 0 · cost 0</p>
+  </section>
+  <main>
+    <section class="meta">
+      <h2>입력 정보</h2>
+      <p>이름: ${escapeAstrologyMockHtml(input.name || "미입력")}</p>
+      <p>생년월일: ${escapeAstrologyMockHtml(input.birthDate || "미입력")}</p>
+      <p>출생시간: ${escapeAstrologyMockHtml(input.birthTimeUnknown ? "출생시간 모름" : input.birthTime || "미입력")}</p>
+      <p>출생지: ${escapeAstrologyMockHtml(input.birthPlace || "미입력")}</p>
+      <p>태양 별자리: ${escapeAstrologyMockHtml(context.sunSign || "mock 또는 미계산")} · 달 별자리: ${escapeAstrologyMockHtml(context.moonSign || "mock 또는 미계산")} · 상승궁: ${escapeAstrologyMockHtml(context.ascendant || "mock 또는 미계산")}</p>
+    </section>
+    <section class="toc">
+      <h2>목차</h2>
+      <ol>${toc}</ol>
+    </section>
+    ${chapterHtml}
+  </main>
+</body>
+</html>`;
+}
+
+function generateMockAstrologyChapterContent(params = {}) {
+  const input = params.input || {};
+  const context = params.context || {};
+  return `
+# ${params.chapterOrder}. ${params.chapterTitle}
+
+이 챕터는 점성술 PDF 생성 파이프라인을 검증하기 위한 mock 콘텐츠입니다.
+
+## 생성 정보
+
+- PDF 서비스: 점성술 PDF
+- Job ID: ${params.jobId}
+- Chapter ID: ${params.chapterId}
+- 챕터 순서: ${params.chapterOrder} / ${params.totalChapters}
+- Provider: mock
+- 실제 LLM 호출 여부: 아니오
+- 사용 토큰: 0
+- 예상 비용: 0원
+
+## 사용자 입력 요약
+
+- 이름: ${input.name ?? "미입력"}
+- 성별: ${input.gender ?? "미입력"}
+- 생년월일: ${input.birthDate ?? "미입력"}
+- 출생시간: ${input.birthTimeUnknown ? "출생시간 모름" : input.birthTime ?? "미입력"}
+- 출생지: ${input.birthPlace ?? "미입력"}
+- 시간대: ${input.timezone ?? "미입력"}
+- 기준 연도: ${input.targetYear ?? "미입력"}
+- 리딩 유형: ${input.readingType ?? "미입력"}
+- 하우스 시스템: ${input.houseSystem ?? "기본값 또는 미입력"}
+- 조디악 기준: ${input.zodiacType ?? "기본값 또는 미입력"}
+
+## 점성술 Context 요약
+
+- 태양 별자리: ${context.sunSign ?? "mock 또는 미계산"}
+- 달 별자리: ${context.moonSign ?? "mock 또는 미계산"}
+- 상승궁: ${context.ascendant ?? "mock 또는 미계산"}
+- MC: ${context.mc ?? "mock 또는 미계산"}
+- 우세 원소: ${context.dominantElement ?? "mock 또는 미계산"}
+- 우세 모드: ${context.dominantMode ?? "mock 또는 미계산"}
+- 주요 트랜짓: ${Array.isArray(context.majorTransits) && context.majorTransits.length ? context.majorTransits.join(", ") : "mock 또는 미계산"}
+- 계산 소스: ${context.source ?? "mock_context"}
+
+## 테스트 본문
+
+이 문단은 실제 LLM 결과를 대신하여 점성술 PDF의 챕터별 생성, 상태 저장, 진행률 반영, PDF 렌더링, 다운로드 URL 생성이 정상적으로 작동하는지 확인하기 위한 내용입니다.
+
+점성술 PDF는 각 챕터가 순서대로 생성되어야 하며, 한 챕터가 완료될 때마다 completedChapters 값과 progressPercent 값이 갱신되어야 합니다. 프론트 화면에서는 현재 생성 중인 챕터 제목과 전체 진행률을 정확히 표시해야 합니다.
+
+이 mock 콘텐츠는 실제 점성술 해석 품질을 검증하기 위한 것이 아닙니다. 이 작업의 목적은 오직 PDF 생성 파이프라인의 안정성을 검증하는 것입니다.
+
+## 점성술 PDF 검증 포인트
+
+- 태양, 달, 상승궁 context가 누락되어도 PDF가 끝까지 생성되는가
+- 출생시간 모름 상태에서도 파이프라인이 멈추지 않는가
+- 하우스와 MC 계산값이 없어도 오류 없이 mock PDF가 생성되는가
+- 챕터 제목이 PDF 목차와 본문에 표시되는가
+- 한글이 깨지지 않는가
+- 챕터 순서가 유지되는가
+- 현재 챕터 상태가 generating에서 completed로 바뀌는가
+- 진행률 UI가 실제 상태와 일치하는가
+- 전체 챕터 완료 후 PDF 렌더링 단계로 넘어가는가
+
+## 결론
+
+이 챕터는 실제 Gemini, Workers AI, OpenAI, Claude를 호출하지 않고 생성되었습니다.
+따라서 개발 중 이 PDF 생성 테스트에서는 LLM 비용이 발생하지 않아야 합니다.
+`.trim();
+}
+
+async function generateAstrologyPdfChapterContent(params = {}) {
+  return generateMockAstrologyChapterContent(params);
+}
+
+function buildAstrologyMockPublicJob(job = {}, { includeContent = false } = {}) {
+  const chapters = Array.isArray(job.chapters) ? job.chapters : [];
+  const currentChapter = chapters.find((chapter) => chapter.id === job.currentChapterId) || null;
+  return {
+    jobId: clean(job.id),
+    id: clean(job.id),
+    serviceType: "astrology_pdf",
+    status: clean(job.status || "created"),
+    progressPercent: Number(job.progressPercent || 0),
+    totalChapters: Number(job.totalChapters || ASTROLOGY_PDF_CHAPTERS.length),
+    completedChapters: Number(job.completedChapters || 0),
+    currentChapterId: clean(job.currentChapterId),
+    currentChapterTitle: clean(job.currentChapterTitle),
+    currentChapterOrder: Number(currentChapter?.order || 0),
+    chapters: chapters.map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      order: chapter.order,
+      status: chapter.status,
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      startedAt: chapter.startedAt,
+      completedAt: chapter.completedAt,
+      errorMessage: chapter.errorMessage,
+      ...(includeContent ? { content: chapter.content } : {}),
+    })),
+    pdfUrl: clean(job.pdfUrl) || null,
+    htmlUrl: clean(job.htmlUrl) || null,
+    downloadUrl: clean(job.downloadUrl || job.pdfUrl) || null,
+    errorMessage: clean(job.errorMessage) || null,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    inputHash: clean(job.inputHash),
+    inputSnapshot: job.inputSnapshot || null,
+    contextSnapshot: job.contextSnapshot || null,
+    access: job.access || null,
+    createdAt: clean(job.createdAt),
+    updatedAt: clean(job.updatedAt),
+    completedAt: clean(job.completedAt),
+    retryAfterMs: ASTROLOGY_MOCK_ACTIVE_STATUSES.has(clean(job.status)) ? ASTROLOGY_MOCK_STATUS_RETRY_AFTER_MS : undefined,
+  };
+}
+
+function buildAstrologyMockResult(job = {}) {
+  const publicJob = buildAstrologyMockPublicJob(job, { includeContent: true });
+  return {
+    ok: true,
+    success: true,
+    serviceKey: "astro-premium",
+    serviceType: "astrology_pdf",
+    featureKey: ASTRO_PREMIUM_FEATURE_KEY,
+    reportType: "westernAstrologyPremium",
+    status: "completed",
+    serverStatus: "completed",
+    jobId: publicJob.jobId,
+    reportId: publicJob.jobId,
+    sessionId: clean(job.sessionId || job.id),
+    chapterCount: publicJob.totalChapters,
+    expectedChapterCount: publicJob.totalChapters,
+    chapters: publicJob.chapters,
+    payload: {
+      user: {
+        name: job.inputSnapshot?.name || "",
+        birthDate: job.inputSnapshot?.birthDate || "",
+      },
+      input: job.inputSnapshot || {},
+      context: job.contextSnapshot || {},
+    },
+    pdfReady: {
+      ok: true,
+      status: "completed",
+      reportId: publicJob.jobId,
+      pdfUrl: publicJob.pdfUrl,
+      htmlUrl: publicJob.htmlUrl,
+      downloadUrl: publicJob.downloadUrl,
+      reportUrl: publicJob.downloadUrl,
+      html: job.pdfHtml || "",
+      renderFormat: "pdf-archive",
+      chapterCount: publicJob.totalChapters,
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      generatedAt: job.completedAt || job.updatedAt,
+    },
+    pdfUrl: publicJob.pdfUrl,
+    htmlUrl: publicJob.htmlUrl,
+    downloadUrl: publicJob.downloadUrl,
+    canReopen: true,
+    canDownload: true,
+    provider: "mock",
+    modelName: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    llmAssembly: {
+      enabled: true,
+      provider: "mock",
+      source: "astrology-pdf-mock",
+      externalGeneration: false,
+      externalCallsAllowed: false,
+      fallbackUsed: false,
+      chapterCount: publicJob.totalChapters,
+      expectedChapterCount: publicJob.totalChapters,
+    },
+    llmAssemblyOnly: true,
+    externalCallsAllowed: false,
+    completedAt: job.completedAt,
+    progress: {
+      stateKey: "completed",
+      progress: 100,
+      progressPercent: 100,
+      currentChapterNo: publicJob.totalChapters,
+      totalChapters: publicJob.totalChapters,
+      currentChapterTitle: "점성술 PDF가 완성되었습니다.",
+    },
+  };
+}
+
+function buildAstrologyMockArchive(job = {}) {
+  const result = job.status === "completed" ? buildAstrologyMockResult(job) : null;
+  return {
+    reportId: job.id,
+    sessionId: clean(job.sessionId || job.id),
+    reportType: "western_astrology_book",
+    archiveReportType: "astrology_pdf_mock",
+    serviceType: "astrology_pdf",
+    mode: "mock",
+    title: "점성술 PDF Mock 리포트",
+    displayName: "점성술 PDF Mock 리포트",
+    status: job.status,
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    completedAt: job.completedAt,
+    chapterCount: job.totalChapters,
+    chapters: (job.chapters || []).map((chapter) => ({
+      id: chapter.id,
+      title: chapter.title,
+      order: chapter.order,
+      status: chapter.status,
+      content: chapter.content || "",
+      finalText: chapter.content || "",
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+    })),
+    payload: result?.payload || { input: job.inputSnapshot || {}, context: job.contextSnapshot || {} },
+    pdfReady: result?.pdfReady || {
+      ok: false,
+      status: job.status,
+      reportId: job.id,
+      html: job.pdfHtml || "",
+      renderFormat: "pdf-archive",
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+    },
+    pdfUrl: job.pdfUrl || "",
+    htmlUrl: job.htmlUrl || "",
+    downloadUrl: job.downloadUrl || "",
+    canDownload: job.status === "completed" && Boolean(job.downloadUrl || job.pdfUrl),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    astrologyPdfJob: job,
+    result,
+  };
+}
+
+async function persistAstrologyMockJob(env, auth, job = {}) {
+  const now = new Date();
+  const dbEnv = withPdfFastDbEnv(env);
+  await connectDb(dbEnv);
+  const archive = buildAstrologyMockArchive(job);
+  const success = job.status === "completed";
+  const failed = job.status === "failed" || job.status === "cancelled";
+  const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+    {
+      userId: auth.userId,
+      executionKey: `astrology_pdf_mock:${auth.userId}:${job.id}`,
+    },
+    {
+      $set: {
+        reportType: "westernAstrologyPremium",
+        reportId: job.id,
+        sessionId: clean(job.sessionId || job.id),
+        featureKey: ASTRO_PREMIUM_FEATURE_KEY,
+        cost: Number(job.access?.method === "debug_mock" ? 0 : 390),
+        coinAmount: Number(job.access?.method === "debug_mock" ? 0 : 390),
+        status: success ? "success" : failed ? "failed" : "pending",
+        premiumStatus: success ? "completed" : failed ? "failed" : job.status === "queued" ? "paid" : "generating",
+        reasonCode: failed ? clean(job.errorCode || "ASTROLOGY_PDF_MOCK_FAILED") : "",
+        reasonMessage: failed ? clean(job.errorMessage || "점성술 PDF 생성 중 문제가 발생했습니다.") : "",
+        timeoutAt: new Date(now.getTime() + 30 * 60 * 1000),
+        nextRetryAt: now,
+        heartbeatAt: now,
+        generationStartedAt: job.startedAt ? new Date(job.startedAt) : now,
+        generationCompletedAt: success ? new Date(job.completedAt || job.updatedAt || now) : null,
+        generationFailedAt: failed ? new Date(job.updatedAt || now) : null,
+        completedAt: success ? new Date(job.completedAt || now) : null,
+        failureStage: failed ? clean(job.failureStage || "mock-generation") : "",
+        failureReason: failed ? clean(job.errorMessage || "점성술 PDF 생성 중 문제가 발생했습니다.") : "",
+        metadata: {
+          reportId: job.id,
+          sessionId: clean(job.sessionId || job.id),
+          reportType: "westernAstrologyPremium",
+          serviceKey: "astro-premium",
+          serviceType: "astrology_pdf",
+          featureKey: ASTRO_PREMIUM_FEATURE_KEY,
+          archive,
+        },
+        retentionUntil: new Date(now.getTime() + 14 * 86400000),
+      },
+      $setOnInsert: {
+        executionKey: `astrology_pdf_mock:${auth.userId}:${job.id}`,
+        userId: auth.userId,
+        maxRetries: 1,
+        idempotencyKey: `astrology_pdf_mock:${auth.userId}:${job.id}`,
+      },
+    },
+    { upsert: true, returnDocument: "after" },
+  ).lean();
+  return doc;
+}
+
+async function findAstrologyMockJob(env, auth, jobId) {
+  const id = clean(jobId);
+  if (!id) return null;
+  await connectDb(withPdfFastDbEnv(env));
+  const doc = await ServiceExecutionTransaction.findOne({
+    userId: auth.userId,
+    reportId: id,
+    reportType: "westernAstrologyPremium",
+    "metadata.serviceType": "astrology_pdf",
+  }).lean();
+  return doc?.metadata?.archive?.astrologyPdfJob || null;
+}
+
+async function failAstrologyMockJob(env, auth, job = {}, error, chapterId = "") {
+  const message = clean(error?.message || error || "점성술 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.");
+  const now = new Date().toISOString();
+  const next = {
+    ...job,
+    status: "failed",
+    errorCode: clean(error?.code || "ASTROLOGY_PDF_MOCK_FAILED"),
+    errorMessage: message,
+    failureStage: clean(error?.stage || "mock-generation"),
+    updatedAt: now,
+  };
+  if (chapterId) {
+    next.chapters = (job.chapters || []).map((chapter) => chapter.id === chapterId ? {
+      ...chapter,
+      status: "failed",
+      errorMessage: message,
+      completedAt: now,
+    } : chapter);
+  }
+  next.progressPercent = computeAstrologyMockProgress(next.status, next.completedChapters, next.totalChapters);
+  await persistAstrologyMockJob(env, auth, next);
+  console.error("[AstrologyPdfMock][failed]", {
+    jobId: clean(job.id),
+    chapterId: clean(chapterId),
+    code: next.errorCode,
+    message,
+    stack: clean(error?.stack || ""),
+  });
+  return next;
+}
+
+async function handleAstrologyMockVerifyAccess(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const input = normalizeAstrologyPdfInput(body);
+  const validation = validateAstrologyPdfInput(input);
+  if (!validation.ok) {
+    return json({ ok: false, ...validation }, { status: validation.status });
+  }
+  const resolved = await resolveAstrologyMockAccess(request, env, auth, body);
+  if (!resolved.ok) {
+    return json({
+      ok: false,
+      accessGranted: false,
+      code: resolved.code,
+      message: resolved.message,
+      status: "access_verifying",
+    }, { status: resolved.status });
+  }
+  return json({
+    ok: true,
+    accessGranted: true,
+    serviceType: "astrology_pdf",
+    status: "access_verified",
+    access: buildAstrologyMockAccessSnapshot(resolved, body),
+    chapters: ASTROLOGY_PDF_CHAPTERS,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  });
+}
+
+async function handleAstrologyMockCreateJob(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const input = normalizeAstrologyPdfInput(body);
+  const validation = validateAstrologyPdfInput(input);
+  if (!validation.ok) {
+    return json({ ok: false, ...validation }, { status: validation.status });
+  }
+  const resolved = await resolveAstrologyMockAccess(request, env, auth, body);
+  if (!resolved.ok) {
+    return json({
+      ok: false,
+      accessGranted: false,
+      code: resolved.code,
+      message: resolved.message,
+      status: "access_verifying",
+    }, { status: resolved.status });
+  }
+  const requestedId = clean(body.jobId || body.reportId || body.sessionId);
+  const id = requestedId || `astrology_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const existingJob = await findAstrologyMockJob(env, auth, id);
+  if (existingJob) {
+    const statusPayload = buildAstrologyMockPublicJob(existingJob);
+    return json({
+      ok: true,
+      deduped: true,
+      jobId: id,
+      job: statusPayload,
+      data: statusPayload,
+    }, { status: existingJob.status === "completed" ? 200 : 202 });
+  }
+  const now = new Date().toISOString();
+  const context = extractAstrologyMockContext(body, input);
+  const job = {
+    id,
+    sessionId: clean(body.sessionId || id),
+    userId: String(auth.userId || ""),
+    serviceType: "astrology_pdf",
+    status: "queued",
+    inputHash: hashAstrologyMockInput(input),
+    inputSnapshot: input,
+    contextSnapshot: context,
+    access: buildAstrologyMockAccessSnapshot(resolved, body),
+    totalChapters: ASTROLOGY_PDF_CHAPTERS.length,
+    completedChapters: 0,
+    currentChapterId: undefined,
+    currentChapterTitle: undefined,
+    progressPercent: computeAstrologyMockProgress("queued", 0, ASTROLOGY_PDF_CHAPTERS.length),
+    chapters: buildAstrologyPendingChapters(),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await persistAstrologyMockJob(env, auth, job);
+  const statusPayload = buildAstrologyMockPublicJob(job);
+  return json({
+    ok: true,
+    jobId: id,
+    job: statusPayload,
+    data: statusPayload,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  });
+}
+
+async function handleAstrologyMockStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const jobId = clean(url.searchParams.get("jobId") || url.searchParams.get("reportId"));
+  if (!jobId) {
+    return json({ ok: false, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 400 });
+  }
+  const job = await findAstrologyMockJob(env, auth, jobId);
+  if (!job) {
+    return json({ ok: false, code: "JOB_NOT_FOUND", message: "점성술 PDF Job을 찾을 수 없습니다.", jobId }, { status: 404 });
+  }
+  const statusPayload = buildAstrologyMockPublicJob(job);
+  return json({
+    ok: job.status !== "failed",
+    ...statusPayload,
+    data: statusPayload,
+  }, { status: ASTROLOGY_MOCK_ACTIVE_STATUSES.has(job.status) ? 202 : 200 });
+}
+
+async function handleAstrologyMockResult(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const jobId = clean(url.searchParams.get("jobId") || url.searchParams.get("reportId"));
+  if (!jobId) {
+    return json({ ok: false, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 400 });
+  }
+  const job = await findAstrologyMockJob(env, auth, jobId);
+  if (!job) {
+    return json({ ok: false, code: "JOB_NOT_FOUND", message: "점성술 PDF Job을 찾을 수 없습니다.", jobId }, { status: 404 });
+  }
+  if (job.status !== "completed") {
+    return json({
+      ok: true,
+      jobId,
+      status: job.status,
+      pdfUrl: null,
+      message: "아직 점성술 PDF 생성이 완료되지 않았습니다.",
+      data: buildAstrologyMockPublicJob(job),
+    }, { status: 202 });
+  }
+  const result = buildAstrologyMockResult(job);
+  return json({
+    ok: true,
+    ...result,
+    data: result,
+  });
+}
+
+function delayAstrologyMock(ms) {
+  const waitMs = Math.max(0, Math.min(2000, Number(ms || 0)));
+  if (!waitMs) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, waitMs));
+}
+
+async function handleAstrologyMockGenerate(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const jobId = clean(body.jobId || body.reportId);
+  if (!jobId) {
+    return json({ ok: false, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 400 });
+  }
+  let job = await findAstrologyMockJob(env, auth, jobId);
+  if (!job) {
+    return json({ ok: false, code: "JOB_NOT_FOUND", message: "점성술 PDF Job을 찾을 수 없습니다.", jobId }, { status: 404 });
+  }
+  if (job.access?.verified !== true) {
+    job = await failAstrologyMockJob(env, auth, job, Object.assign(new Error("점성술 PDF 생성 권한이 확인되지 않았습니다."), { code: "ACCESS_NOT_VERIFIED" }));
+    return json({ ok: false, data: buildAstrologyMockPublicJob(job), message: job.errorMessage }, { status: 403 });
+  }
+  if (job.status === "completed") {
+    const result = buildAstrologyMockResult(job);
+    return json({ ok: true, deduped: true, ...result, data: result });
+  }
+  if (ASTROLOGY_MOCK_ACTIVE_STATUSES.has(job.status) && astrologyMockGenerationLocks.has(jobId)) {
+    const statusPayload = buildAstrologyMockPublicJob(job);
+    return json({ ok: true, deduped: true, jobId, data: statusPayload, job: statusPayload }, { status: 202 });
+  }
+  if (["failed", "cancelled"].includes(job.status)) {
+    return json({ ok: false, jobId, data: buildAstrologyMockPublicJob(job), message: job.errorMessage || "점성술 PDF Job이 실패 상태입니다." }, { status: 409 });
+  }
+
+  astrologyMockGenerationLocks.set(jobId, true);
+  try {
+    const delayMs = readAstrologyMockNumber(env, "PDF_MOCK_CHAPTER_DELAY_MS", 120);
+    const failChapterId = clean(env?.PDF_MOCK_FAIL_CHAPTER_ID);
+    const now = new Date().toISOString();
+    job = {
+      ...job,
+      status: "generating",
+      progressPercent: computeAstrologyMockProgress("generating", job.completedChapters, job.totalChapters),
+      startedAt: job.startedAt || now,
+      updatedAt: now,
+    };
+    await persistAstrologyMockJob(env, auth, job);
+
+    for (const chapterDef of ASTROLOGY_PDF_CHAPTERS) {
+      const existing = (job.chapters || []).find((chapter) => chapter.id === chapterDef.id);
+      if (existing?.status === "completed" && clean(existing.content)) continue;
+      const startedAt = new Date().toISOString();
+      job = {
+        ...job,
+        status: "chapter_generating",
+        currentChapterId: chapterDef.id,
+        currentChapterTitle: chapterDef.title,
+        progressPercent: computeAstrologyMockProgress("chapter_generating", job.completedChapters, job.totalChapters),
+        updatedAt: startedAt,
+        chapters: (job.chapters || []).map((chapter) => chapter.id === chapterDef.id ? {
+          ...chapter,
+          status: "generating",
+          startedAt,
+          provider: "mock",
+          tokensUsed: 0,
+          cost: 0,
+          isMock: true,
+        } : chapter),
+      };
+      await persistAstrologyMockJob(env, auth, job);
+      await delayAstrologyMock(delayMs);
+
+      if (failChapterId && failChapterId === chapterDef.id) {
+        throw Object.assign(new Error(`PDF_MOCK_FAIL_CHAPTER_ID:${failChapterId}`), {
+          code: "PDF_MOCK_FAIL_CHAPTER_ID",
+          chapterId: chapterDef.id,
+        });
+      }
+
+      const content = await generateAstrologyPdfChapterContent({
+        jobId,
+        chapterId: chapterDef.id,
+        chapterTitle: chapterDef.title,
+        chapterOrder: chapterDef.order,
+        totalChapters: ASTROLOGY_PDF_CHAPTERS.length,
+        input: job.inputSnapshot,
+        context: job.contextSnapshot,
+      });
+      const completedAt = new Date().toISOString();
+      const nextCompleted = (job.chapters || []).filter((chapter) => chapter.status === "completed").length + 1;
+      job = {
+        ...job,
+        status: "chapter_generating",
+        completedChapters: nextCompleted,
+        progressPercent: computeAstrologyMockProgress("chapter_generating", nextCompleted, job.totalChapters),
+        updatedAt: completedAt,
+        chapters: (job.chapters || []).map((chapter) => chapter.id === chapterDef.id ? {
+          ...chapter,
+          status: "completed",
+          content,
+          completedAt,
+          provider: "mock",
+          tokensUsed: 0,
+          cost: 0,
+          isMock: true,
+        } : chapter),
+      };
+      await persistAstrologyMockJob(env, auth, job);
+    }
+
+    const renderingAt = new Date().toISOString();
+    job = {
+      ...job,
+      status: "rendering",
+      currentChapterId: undefined,
+      currentChapterTitle: "PDF 문서를 렌더링하고 있습니다.",
+      completedChapters: ASTROLOGY_PDF_CHAPTERS.length,
+      progressPercent: computeAstrologyMockProgress("rendering", ASTROLOGY_PDF_CHAPTERS.length, ASTROLOGY_PDF_CHAPTERS.length),
+      updatedAt: renderingAt,
+    };
+    await persistAstrologyMockJob(env, auth, job);
+    const pdfHtml = buildAstrologyMockPdfHtml(job);
+    await delayAstrologyMock(Math.min(delayMs, 200));
+
+    const savingAt = new Date().toISOString();
+    const links = buildAstrologyMockPdfLinks(request, jobId);
+    job = {
+      ...job,
+      status: "saving",
+      currentChapterTitle: "PDF 파일을 저장하고 있습니다.",
+      progressPercent: computeAstrologyMockProgress("saving", job.completedChapters, job.totalChapters),
+      pdfHtml,
+      pdfUrl: links.pdfUrl,
+      htmlUrl: links.htmlUrl,
+      downloadUrl: links.downloadUrl,
+      updatedAt: savingAt,
+    };
+    await persistAstrologyMockJob(env, auth, job);
+    await delayAstrologyMock(Math.min(delayMs, 200));
+
+    const completedAt = new Date().toISOString();
+    job = {
+      ...job,
+      status: "completed",
+      currentChapterTitle: "점성술 PDF가 완성되었습니다.",
+      completedChapters: ASTROLOGY_PDF_CHAPTERS.length,
+      progressPercent: 100,
+      updatedAt: completedAt,
+      completedAt,
+    };
+    await persistAstrologyMockJob(env, auth, job);
+    const result = buildAstrologyMockResult(job);
+    return json({ ok: true, ...result, data: result });
+  } catch (error) {
+    job = await failAstrologyMockJob(env, auth, job, error, clean(error?.chapterId || job.currentChapterId));
+    return json({
+      ok: false,
+      jobId,
+      code: clean(error?.code || "ASTROLOGY_PDF_MOCK_FAILED"),
+      message: job.errorMessage,
+      data: buildAstrologyMockPublicJob(job),
+    }, { status: 500 });
+  } finally {
+    astrologyMockGenerationLocks.delete(jobId);
+  }
 }
 
 function normalizeAstroError(error) {
@@ -1097,6 +2117,601 @@ export function buildVedicPremiumStatusLookupQuery({ userId = "", sessionId = ""
   };
 }
 
+function isVedicPdfProductionEnv(env = {}) {
+  const nodeEnv = clean(env?.NODE_ENV || env?.ENVIRONMENT || env?.CF_PAGES_BRANCH || "").toLowerCase();
+  return nodeEnv === "production" || nodeEnv === "prod" || nodeEnv === "main";
+}
+
+function isVedicPdfDebugMockAccessAllowed(env = {}) {
+  const enabled = /^(1|true|yes|on)$/i.test(clean(env?.PDF_DEBUG_MODE || (typeof process !== "undefined" ? process.env?.PDF_DEBUG_MODE : "")));
+  return enabled && !isVedicPdfProductionEnv(env);
+}
+
+function readVedicPdfRuntimeFlag(env = {}, key = "", fallback = "") {
+  const direct = env && Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
+  if (direct !== undefined && direct !== null && String(direct) !== "") return String(direct);
+  const processValue = typeof process !== "undefined" ? process.env?.[key] : undefined;
+  if (processValue !== undefined && processValue !== null && String(processValue) !== "") return String(processValue);
+  return fallback;
+}
+
+function isVedicPdfLlmDryRunForced(env = {}) {
+  const provider = readVedicPdfRuntimeFlag(env, "PDF_LLM_PROVIDER", "").toLowerCase();
+  const dryRun = /^(1|true|yes|on)$/i.test(readVedicPdfRuntimeFlag(env, "LLM_DRY_RUN", "false"));
+  const geminiDisabled = /^(0|false|no|off)$/i.test(readVedicPdfRuntimeFlag(env, "GEMINI_CALL_ENABLED", "true"));
+  const workersAiDisabled = /^(0|false|no|off)$/i.test(readVedicPdfRuntimeFlag(env, "WORKERS_AI_ENABLED", "true"));
+  const maxCalls = Number(readVedicPdfRuntimeFlag(env, "PDF_LLM_MAX_CALLS_PER_JOB", "1"));
+  return dryRun || provider === "mock" || geminiDisabled && workersAiDisabled || Number.isFinite(maxCalls) && maxCalls <= 0;
+}
+
+function normalizeVedicPdfAccessMethod(access = {}, fallback = "payment") {
+  const value = clean(access.method || access.accessMethod || access.accessType || fallback).toLowerCase();
+  if (value === "debug_mock") return "debug_mock";
+  if (value.includes("pass") || value.includes("membership") || value.includes("unlock")) return "pass";
+  return "payment";
+}
+
+function buildVedicPdfJobId(body = {}, inputHash = "") {
+  return clean(body?.jobId || body?.reportId || body?.accessGrant?.reportId || `vedic_${inputHash || Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
+}
+
+function buildVedicPdfSessionId(body = {}, jobId = "") {
+  return clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || `${jobId || "vedic"}:session`);
+}
+
+async function resolveVedicPdfAccess(request, env, auth, body = {}) {
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  try {
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, VEDIC_PDF_REPORT_TYPE, {
+      ...body,
+      reportType: VEDIC_PDF_REPORT_TYPE,
+      featureKey: clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY,
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/vedic/pdf/verify-access",
+    });
+    if (access?.ok) {
+      return {
+        ok: true,
+        access,
+        method: normalizeVedicPdfAccessMethod(access),
+        premiumAccessToken,
+      };
+    }
+    if (isVedicPdfDebugMockAccessAllowed(env)) {
+      return {
+        ok: true,
+        method: "debug_mock",
+        premiumAccessToken,
+        access: {
+          ok: true,
+          accessType: "debug_mock",
+          featureKey: clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY,
+          reportType: VEDIC_PDF_REPORT_TYPE,
+          chargedCoins: 0,
+        },
+      };
+    }
+    return {
+      ok: false,
+      status: Number(access?.status || 402),
+      code: Number(access?.status || 402) === 401 ? "AUTH_REQUIRED" : "PAYMENT_REQUIRED",
+      message: clean(access?.message || "베다점 PDF 생성 권한이 확인되지 않았습니다."),
+      access,
+    };
+  } catch (error) {
+    if (isVedicPdfDebugMockAccessAllowed(env)) {
+      return {
+        ok: true,
+        method: "debug_mock",
+        premiumAccessToken,
+        access: {
+          ok: true,
+          accessType: "debug_mock",
+          featureKey: clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY,
+          reportType: VEDIC_PDF_REPORT_TYPE,
+          chargedCoins: 0,
+        },
+      };
+    }
+    return {
+      ok: false,
+      status: Number(error?.status || 500),
+      code: "ACCESS_VERIFICATION_FAILED",
+      message: clean(error?.message || "베다점 PDF 결제 검증 중 문제가 발생했습니다."),
+      error,
+    };
+  }
+}
+
+async function findVedicPdfJobExecution(env, userId, jobId = "", sessionId = "") {
+  await connectDb(withPdfFastDbEnv(env));
+  const filters = [];
+  const safeJobId = clean(jobId);
+  const safeSessionId = clean(sessionId);
+  if (safeJobId) {
+    filters.push({ reportId: safeJobId });
+    filters.push({ "metadata.vedicPdfMockJob.id": safeJobId });
+    filters.push({ "metadata.archive.reportId": safeJobId });
+  }
+  if (safeSessionId) {
+    filters.push({ sessionId: safeSessionId });
+    filters.push({ "metadata.sessionId": safeSessionId });
+    filters.push({ "metadata.archive.sessionId": safeSessionId });
+  }
+  if (!filters.length) return null;
+  return await ServiceExecutionTransaction.findOne({
+    userId,
+    reportType: VEDIC_PDF_REPORT_TYPE,
+    $or: filters,
+  }).sort({ updatedAt: -1, completedAt: -1, createdAt: -1 }).lean();
+}
+
+async function persistVedicPdfJob(env, userId, executionCtx = {}, job = {}, extraSet = {}) {
+  if (!clean(executionCtx.executionKey)) return null;
+  const now = new Date();
+  await connectDb(withPdfFastDbEnv(env));
+  return await ServiceExecutionTransaction.updateOne(
+    { userId, executionKey: executionCtx.executionKey },
+    {
+      $set: {
+        heartbeatAt: now,
+        lastClientHeartbeatAt: now,
+        reportType: VEDIC_PDF_REPORT_TYPE,
+        reportId: clean(job.id),
+        sessionId: clean(executionCtx.sessionId),
+        "metadata.vedicPdfMockJob": job,
+        "metadata.generationStatus": clean(job.status || "created"),
+        "metadata.serviceType": VEDIC_PDF_SERVICE_TYPE,
+        "metadata.serviceKey": VEDIC_PDF_SERVICE_KEY,
+        "metadata.progress": Number(job.progressPercent || 0),
+        "metadata.currentChapterId": clean(job.currentChapterId),
+        "metadata.currentChapterTitle": clean(job.currentChapterTitle),
+        "metadata.completedChapters": Number(job.completedChapters || 0),
+        "metadata.totalChapters": Number(job.totalChapters || VEDIC_PDF_CHAPTERS.length),
+        "metadata.provider": "mock",
+        "metadata.tokensUsed": 0,
+        "metadata.cost": 0,
+        "metadata.isMock": true,
+        "metadata.progressUpdatedAt": now.toISOString(),
+        ...extraSet,
+      },
+    },
+  );
+}
+
+function buildVedicPdfExecutionContextFromDoc(doc = {}) {
+  return {
+    executionKey: clean(doc.executionKey),
+    reportType: clean(doc.reportType || VEDIC_PDF_REPORT_TYPE),
+    featureKey: clean(doc.featureKey || VEDIC_PREMIUM_FEATURE_KEY),
+    reportId: clean(doc.reportId),
+    sessionId: clean(doc.sessionId),
+    paymentSessionId: clean(doc.paymentSessionId),
+    coinTransactionId: clean(doc.coinTransactionId),
+    sourceTransactionId: clean(doc.sourceTransactionId),
+    coinAmount: Number(doc.coinAmount || 0),
+    cost: Number(doc.cost || 0),
+    payment: doc.paymentRef || null,
+    timeoutSeconds: Number(doc.timeoutSeconds || 1800),
+    maxRetries: Number(doc.maxRetries || 6),
+    idempotencyKey: clean(doc.idempotencyKey || doc.executionKey),
+    metadata: doc.metadata && typeof doc.metadata === "object" ? doc.metadata : {},
+  };
+}
+
+function delayVedicMockChapter(env = {}) {
+  const value = Number(env?.PDF_MOCK_CHAPTER_DELAY_MS || 220);
+  const ms = Number.isFinite(value) ? Math.max(0, Math.min(3000, value)) : 220;
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getVedicPdfPathId(request, segment = "status") {
+  const pathname = new URL(request.url).pathname;
+  const match = pathname.match(new RegExp(`/api/vedic/pdf/${segment}/([^/]+)$`));
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+async function handleVedicPdfVerifyAccess(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const input = normalizeVedicPdfInput(body);
+  const validation = validateVedicPdfInput(input);
+  if (!validation.ok) return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, ...validation }, { status: 422 });
+  const accessResult = await resolveVedicPdfAccess(request, env, auth, {
+    ...body,
+    input,
+    reportType: VEDIC_PDF_REPORT_TYPE,
+    featureKey: clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY,
+  });
+  if (!accessResult.ok) {
+    return json({
+      ok: false,
+      serviceKey: VEDIC_PDF_SERVICE_KEY,
+      accessGranted: false,
+      code: accessResult.code || "PAYMENT_REQUIRED",
+      message: accessResult.message || "베다점 PDF 생성 권한이 확인되지 않았습니다.",
+    }, { status: Number(accessResult.status || 402) });
+  }
+  return json({
+    ok: true,
+    serviceKey: VEDIC_PDF_SERVICE_KEY,
+    accessGranted: true,
+    method: accessResult.method,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    verifiedAt: new Date().toISOString(),
+  });
+}
+
+async function handleVedicPdfCreateJob(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const input = normalizeVedicPdfInput(body);
+  const validation = validateVedicPdfInput(input);
+  if (!validation.ok) return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, ...validation }, { status: 422 });
+
+  const accessResult = await resolveVedicPdfAccess(request, env, auth, {
+    ...body,
+    input,
+    reportType: VEDIC_PDF_REPORT_TYPE,
+    featureKey: clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY,
+  });
+  if (!accessResult.ok) {
+    return json({
+      ok: false,
+      serviceKey: VEDIC_PDF_SERVICE_KEY,
+      accessGranted: false,
+      code: accessResult.code || "PAYMENT_REQUIRED",
+      message: accessResult.message || "베다점 PDF 생성 권한이 확인되지 않았습니다.",
+    }, { status: Number(accessResult.status || 402) });
+  }
+
+  const context = buildVedicPdfContext(body, input);
+  const inputHash = `${hashCodeSafe(input.birthDate)}_${Date.now().toString(36)}`;
+  const jobId = buildVedicPdfJobId(body, inputHash);
+  const sessionId = buildVedicPdfSessionId(body, jobId);
+  const existingDoc = await findVedicPdfJobExecution(env, auth.userId, jobId, sessionId);
+  const existingJob = existingDoc?.metadata?.vedicPdfMockJob;
+  if (existingJob?.id) {
+    return json(buildVedicPdfStatusPayload(existingJob), { status: existingJob.status === "completed" ? 200 : 202 });
+  }
+
+  const featureKey = clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY;
+  const job = buildVedicPdfJob({
+    jobId,
+    userId: auth.userId,
+    input,
+    context,
+    access: buildVedicPdfAccess(accessResult.access, accessResult.method),
+  });
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: VEDIC_PDF_SERVICE_KEY,
+    reportType: VEDIC_PDF_REPORT_TYPE,
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId: job.id,
+    access: accessResult.access,
+    body: {
+      ...body,
+      input,
+      sessionId,
+      reportSessionId: sessionId,
+      reportId: job.id,
+      accessGrant: {
+        ...(body.accessGrant || {}),
+        sessionId,
+        reportSessionId: sessionId,
+        reportId: job.id,
+      },
+    },
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  executionCtx.metadata = {
+    ...(executionCtx.metadata || {}),
+    serviceType: VEDIC_PDF_SERVICE_TYPE,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    vedicPdfMockJob: job,
+  };
+  await startPremiumPdfExecution(withPdfFastDbEnv(env), auth.userId, executionCtx);
+  await persistVedicPdfJob(env, auth.userId, executionCtx, job);
+  return json(buildVedicPdfStatusPayload(job), { status: 201 });
+}
+
+function hashCodeSafe(value = "") {
+  let hash = 0;
+  const text = clean(value || Date.now());
+  for (let i = 0; i < text.length; i += 1) hash = (Math.imul(31, hash) + text.charCodeAt(i)) | 0;
+  return Math.abs(hash).toString(36);
+}
+
+async function handleVedicPdfGenerateMock(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const jobId = clean(body?.jobId || body?.reportId);
+  if (!jobId) return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 422 });
+  const doc = await findVedicPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
+  const initialJob = doc?.metadata?.vedicPdfMockJob;
+  if (!doc || !initialJob?.id) return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "JOB_NOT_FOUND", message: "베다점 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  if (initialJob.access?.verified !== true) return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "ACCESS_NOT_VERIFIED", message: "결제 또는 이용권 검증이 완료되지 않았습니다." }, { status: 403 });
+  if (initialJob.status === "completed") return json(buildVedicPdfResultPayload(initialJob, doc.metadata));
+  if (["generating", "chapter_generating", "rendering", "saving"].includes(clean(initialJob.status))) {
+    return json(buildVedicPdfStatusPayload(initialJob), { status: 202 });
+  }
+  if (["failed", "cancelled"].includes(clean(initialJob.status))) {
+    return json(buildVedicPdfStatusPayload(initialJob), { status: 409 });
+  }
+
+  const acquired = await ServiceExecutionTransaction.findOneAndUpdate(
+    {
+      _id: doc._id,
+      userId: auth.userId,
+      "metadata.vedicPdfMockJob.status": { $nin: ["generating", "chapter_generating", "rendering", "saving", "completed", "failed", "cancelled"] },
+    },
+    {
+      $set: {
+        "metadata.vedicPdfMockJob.status": "generating",
+        "metadata.vedicPdfMockJob.updatedAt": new Date().toISOString(),
+        "metadata.vedicPdfMockJob.progressPercent": calculateVedicPdfProgress("generating", initialJob.completedChapters, initialJob.totalChapters),
+        "metadata.generationStatus": "generating",
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+  if (!acquired) {
+    const freshDoc = await findVedicPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
+    return json(buildVedicPdfStatusPayload(freshDoc?.metadata?.vedicPdfMockJob || initialJob), { status: 202 });
+  }
+
+  let job = acquired.metadata.vedicPdfMockJob;
+  const executionCtx = buildVedicPdfExecutionContextFromDoc(acquired);
+  const persist = (nextJob, extraSet = {}) => persistVedicPdfJob(env, auth.userId, executionCtx, nextJob, extraSet);
+  try {
+    job = {
+      ...job,
+      status: "generating",
+      progressPercent: calculateVedicPdfProgress("generating", job.completedChapters, job.totalChapters),
+      updatedAt: new Date().toISOString(),
+    };
+    await persist(job);
+    const total = Number(job.totalChapters || job.chapters?.length || VEDIC_PDF_CHAPTERS.length);
+    for (let index = 0; index < total; index += 1) {
+      const chapter = job.chapters[index];
+      if (!chapter) throw Object.assign(new Error("챕터 정의가 없습니다."), { code: "CHAPTER_DEFINITION_MISSING", status: 500 });
+      if (chapter.status === "completed") continue;
+      const startedAt = new Date().toISOString();
+      job.chapters[index] = {
+        ...chapter,
+        status: "generating",
+        startedAt,
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+      };
+      job.status = "chapter_generating";
+      job.currentChapterId = chapter.id;
+      job.currentChapterTitle = chapter.title;
+      job.progressPercent = calculateVedicPdfProgress(job.status, job.completedChapters, job.totalChapters);
+      job.updatedAt = startedAt;
+      await persist(job);
+
+      const result = await generateVedicPdfChapterContent({
+        jobId: job.id,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        chapterOrder: chapter.order,
+        totalChapters: total,
+        input: job.inputSnapshot,
+        context: job.contextSnapshot,
+      }, env);
+      const completedAt = new Date().toISOString();
+      job.chapters[index] = {
+        ...job.chapters[index],
+        status: "completed",
+        content: result.content,
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+        completedAt,
+      };
+      job.completedChapters = job.chapters.filter((item) => item.status === "completed").length;
+      job.progressPercent = calculateVedicPdfProgress("chapter_generating", job.completedChapters, job.totalChapters);
+      job.updatedAt = completedAt;
+      await persist(job);
+      await delayVedicMockChapter(env);
+    }
+
+    job.status = "rendering";
+    job.currentChapterTitle = "PDF 문서를 렌더링하고 있습니다.";
+    job.progressPercent = calculateVedicPdfProgress(job.status, job.completedChapters, job.totalChapters);
+    job.updatedAt = new Date().toISOString();
+    await persist(job);
+
+    const requestOrigin = new URL(request.url).origin;
+    const archiveUrls = buildVedicArchiveUrls(requestOrigin, job.id);
+    const archiveChapters = buildVedicMockArchiveChapters(job);
+    const html = buildVedicMockPdfHtml(job, archiveChapters);
+    const pdfReady = {
+      title: `${clean(job.inputSnapshot?.name) || "사용자"} 베다점 PDF Mock Report`,
+      filename: `${job.id}.pdf`,
+      htmlFilename: `${job.id}.html`,
+      generatedAt: new Date().toISOString(),
+      html,
+      htmlUrl: archiveUrls.htmlUrl,
+      pdfUrl: archiveUrls.pdfUrl,
+      downloadUrl: archiveUrls.downloadUrl,
+      directDownloadUrl: archiveUrls.downloadUrl,
+      storageKey: `premium-archive:vedic-mock:${job.id}`,
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
+      chapters: archiveChapters,
+      chapterCount: archiveChapters.length,
+      expectedChapterCount: VEDIC_PDF_CHAPTERS.length,
+      metadata: {
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+        llmAssemblyOnly: true,
+        externalCallsAllowed: false,
+      },
+      canDownload: true,
+    };
+
+    job.status = "saving";
+    job.currentChapterTitle = "PDF 파일을 저장하고 있습니다.";
+    job.progressPercent = calculateVedicPdfProgress(job.status, job.completedChapters, job.totalChapters);
+    job.updatedAt = new Date().toISOString();
+    await persist(job, { "metadata.archive.pdfReady": pdfReady });
+
+    const storedUrl = clean(pdfReady.downloadUrl || pdfReady.pdfUrl);
+    if (!storedUrl) throw Object.assign(new Error("PDF 다운로드 URL 생성에 실패했습니다."), { code: "VEDIC_PDF_URL_MISSING", status: 500 });
+    const completedAt = new Date().toISOString();
+    job = {
+      ...job,
+      status: "completed",
+      progressPercent: 100,
+      pdfUrl: storedUrl,
+      currentChapterId: "",
+      currentChapterTitle: "베다점 PDF가 완성되었습니다.",
+      updatedAt: completedAt,
+      completedAt,
+    };
+    const archivePayload = {
+      reportId: job.id,
+      serviceKey: VEDIC_PDF_SERVICE_KEY,
+      serviceType: VEDIC_PDF_SERVICE_TYPE,
+      reportType: VEDIC_PDF_REPORT_TYPE,
+      status: "completed",
+      chapterCount: archiveChapters.length,
+      finalChapterCount: archiveChapters.length,
+      chapters: archiveChapters,
+      inputSnapshot: job.inputSnapshot,
+      contextSnapshot: job.contextSnapshot,
+      pdfReady,
+      pdfUrl: storedUrl,
+      htmlUrl: archiveUrls.htmlUrl,
+      downloadUrl: storedUrl,
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      canReopen: true,
+      canDownload: true,
+    };
+    const completedMetadata = {
+      ...(executionCtx.metadata || {}),
+      vedicPdfMockJob: job,
+      serviceType: VEDIC_PDF_SERVICE_TYPE,
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      chapterCount: archiveChapters.length,
+      archive: {
+        reportId: job.id,
+        sessionId: clean(executionCtx.sessionId),
+        reportType: "vedic_book",
+        archiveReportType: VEDIC_PDF_REPORT_TYPE,
+        displayName: "베다점 PDF",
+        title: pdfReady.title,
+        mode: "personal",
+        birthName: clean(job.inputSnapshot?.name),
+        summary: clean(archiveChapters[0]?.text, 1000),
+        pdfUrl: storedUrl,
+        htmlUrl: archiveUrls.htmlUrl,
+        downloadUrl: storedUrl,
+        chapters: archiveChapters,
+        pdfReady,
+        payload: archivePayload,
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+        canReopen: true,
+        canDownload: true,
+      },
+      pdfReady,
+      chapters: archiveChapters,
+    };
+    executionCtx.metadata = completedMetadata;
+    await completePremiumPdfExecution(withPdfFastDbEnv(env), auth.userId, executionCtx, job.id, completedMetadata);
+    return json(buildVedicPdfResultPayload(job, completedMetadata));
+  } catch (error) {
+    const failedAt = new Date().toISOString();
+    const chapterIndex = Array.isArray(job.chapters) ? job.chapters.findIndex((chapter) => chapter.status === "generating") : -1;
+    if (chapterIndex >= 0) {
+      job.chapters[chapterIndex] = {
+        ...job.chapters[chapterIndex],
+        status: "failed",
+        errorMessage: clean(error?.message || error),
+        completedAt: failedAt,
+      };
+    }
+    job.status = "failed";
+    job.errorMessage = clean(error?.message || "베다점 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.");
+    job.progressPercent = calculateVedicPdfProgress("failed", job.completedChapters, job.totalChapters, job.progressPercent);
+    job.updatedAt = failedAt;
+    await persist(job);
+    await failPremiumPdfExecution(
+      withPdfFastDbEnv(env),
+      auth.userId,
+      executionCtx,
+      clean(error?.code || "VEDIC_MOCK_GENERATION_FAILED"),
+      job.errorMessage,
+      "vedic-mock-generation",
+    );
+    console.error("[VedicPdfMock][PipelineFailed]", {
+      jobId: job.id,
+      chapterId: clean(job.currentChapterId),
+      errorCode: clean(error?.code || "VEDIC_MOCK_GENERATION_FAILED"),
+      message: clean(error?.message || error),
+      stack: error?.stack,
+    });
+    return json(buildVedicPdfStatusPayload(job), { status: Number(error?.status || 500) });
+  }
+}
+
+async function handleVedicPdfStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const jobId = clean(getVedicPdfPathId(request, "status") || url.searchParams.get("jobId") || url.searchParams.get("reportId"));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  if (!jobId && !sessionId) {
+    return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "MISSING_STATUS_KEY", message: "jobId 또는 sessionId가 필요합니다." }, { status: 422 });
+  }
+  const doc = await findVedicPdfJobExecution(env, auth.userId, jobId, sessionId);
+  const job = doc?.metadata?.vedicPdfMockJob;
+  if (!job?.id) {
+    return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "JOB_NOT_FOUND", message: "베다점 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  }
+  return json(buildVedicPdfStatusPayload(job), { status: ["completed", "failed", "cancelled"].includes(clean(job.status)) ? 200 : 202 });
+}
+
+async function handleVedicPdfResult(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const jobId = clean(getVedicPdfPathId(request, "result") || url.searchParams.get("jobId") || url.searchParams.get("reportId"));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  if (!jobId && !sessionId) {
+    return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "MISSING_RESULT_KEY", message: "jobId 또는 sessionId가 필요합니다." }, { status: 422 });
+  }
+  const doc = await findVedicPdfJobExecution(env, auth.userId, jobId, sessionId);
+  const job = doc?.metadata?.vedicPdfMockJob;
+  if (!job?.id) {
+    return json({ ok: false, serviceKey: VEDIC_PDF_SERVICE_KEY, code: "JOB_NOT_FOUND", message: "베다점 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  }
+  return json(buildVedicPdfResultPayload(job, doc.metadata || {}));
+}
+
 function toSafeVedicBirthLog(input = {}, chapterCount = 0) {
   return {
     hasBirthDate: Boolean(String(input.birthDate || "").trim()),
@@ -1281,6 +2896,20 @@ async function handleAstroPremiumPrepare(request, env) {
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
+    if (shouldBlockAstrologyRealLlm(env)) {
+      return json({
+        ok: false,
+        code: "ASTROLOGY_PDF_MOCK_CONTRACT_REQUIRED",
+        message: "개발 mock 설정에서는 /api/astro/premium/verify-access → create-job → generate-mock 계약만 사용할 수 있습니다.",
+        endpoints: {
+          verifyAccess: "/api/astro/premium/verify-access",
+          createJob: "/api/astro/premium/create-job",
+          generateMock: "/api/astro/premium/generate-mock",
+          status: "/api/astro/premium/status?jobId=...",
+          result: "/api/astro/premium/result?jobId=...",
+        },
+      }, { status: 409 });
+    }
     sessionId = getAstroSessionId({
       ...body,
       sessionId: clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId),
@@ -1691,6 +3320,18 @@ async function handleVedicPremiumPrepare(request, env) {
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
+    if (isVedicPdfLlmDryRunForced(env)) {
+      return json({
+        ok: false,
+        serviceKey: VEDIC_PDF_SERVICE_KEY,
+        code: "VEDIC_PREMIUM_PREPARE_DISABLED_IN_MOCK_MODE",
+        message: "현재 베다점 PDF는 mock 파이프라인만 사용할 수 있습니다. /api/vedic/pdf/verify-access, create-job, generate-mock 계약을 사용해 주세요.",
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+      }, { status: 409 });
+    }
     vedicSessionId = getVedicSessionId(body);
     reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const premiumAccessToken = readPremiumAccessToken(request, body);
@@ -2237,6 +3878,35 @@ export async function handleAstroRoutes(request, env) {
 
     if (pathname === "/api/astro" || pathname.startsWith("/api/astro/")) {
       const path = getRoutePath(request, "/api/astro");
+      if (path === "/premium/mock-chapters") {
+        if (method !== "GET") return methodNotAllowed();
+        return json({
+          ok: true,
+          serviceType: "astrology_pdf",
+          chapterCount: ASTROLOGY_PDF_CHAPTERS.length,
+          chapters: ASTROLOGY_PDF_CHAPTERS,
+          provider: "mock",
+          tokensUsed: 0,
+          cost: 0,
+          isMock: true,
+        });
+      }
+      if (path === "/premium/verify-access") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleAstrologyMockVerifyAccess(request, env);
+      }
+      if (path === "/premium/create-job") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleAstrologyMockCreateJob(request, env);
+      }
+      if (path === "/premium/generate-mock") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleAstrologyMockGenerate(request, env);
+      }
+      if (path === "/premium/result") {
+        if (method !== "GET") return methodNotAllowed();
+        return await handleAstrologyMockResult(request, env);
+      }
       if (path === "/premium/chapters") {
         if (method !== "GET") return methodNotAllowed();
         return json({
@@ -2252,6 +3922,10 @@ export async function handleAstroRoutes(request, env) {
       }
       if (path === "/premium/status") {
         if (method !== "GET") return methodNotAllowed();
+        const statusUrl = new URL(request.url);
+        if (clean(statusUrl.searchParams.get("jobId"))) {
+          return await handleAstrologyMockStatus(request, env);
+        }
         return await handleAstroPremiumStatus(request, env);
       }
       if (path === "/western-chart") {
@@ -2264,6 +3938,40 @@ export async function handleAstroRoutes(request, env) {
 
     if (pathname === "/api/vedic" || pathname.startsWith("/api/vedic/")) {
       const path = getRoutePath(request, "/api/vedic");
+      if (path === "/pdf/chapters") {
+        if (method !== "GET") return methodNotAllowed();
+        return json({
+          ok: true,
+          serviceKey: VEDIC_PDF_SERVICE_KEY,
+          serviceType: VEDIC_PDF_SERVICE_TYPE,
+          chapterCount: VEDIC_PDF_CHAPTERS.length,
+          chapters: VEDIC_PDF_CHAPTERS,
+          provider: "mock",
+          tokensUsed: 0,
+          cost: 0,
+          isMock: true,
+        });
+      }
+      if (path === "/pdf/verify-access") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleVedicPdfVerifyAccess(request, env);
+      }
+      if (path === "/pdf/create-job") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleVedicPdfCreateJob(request, env);
+      }
+      if (path === "/pdf/generate-mock") {
+        if (method !== "POST") return methodNotAllowed();
+        return await handleVedicPdfGenerateMock(request, env);
+      }
+      if (path === "/pdf/status" || String(path || "").startsWith("/pdf/status/")) {
+        if (method !== "GET") return methodNotAllowed();
+        return await handleVedicPdfStatus(request, env);
+      }
+      if (path === "/pdf/result" || String(path || "").startsWith("/pdf/result/")) {
+        if (method !== "GET") return methodNotAllowed();
+        return await handleVedicPdfResult(request, env);
+      }
       if (path === "/premium/chapters") {
         if (method !== "GET") return methodNotAllowed();
         return json({

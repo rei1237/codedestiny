@@ -123,7 +123,7 @@ export default async function InsightsPage() {
     path: "/insights",
   });
   const breadcrumb = buildBreadcrumbJsonLd([
-    { name: "홈", path: "/" },
+    { name: "꿀꿀 운세 홈", path: "/" },
     { name: "운세 인사이트 허브", path: "/insights" },
   ]);
 

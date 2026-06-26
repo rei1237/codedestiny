@@ -8,7 +8,7 @@ const INSIGHTS_VEDIC_PAGE_TEXT_TRANSLATIONS = {
     title: "베다점성술 인사이트 허브 · 라그나·다샤 해석 가이드 | Code Destiny",
     description: "베다점성술, 베다점, 라그나, 나크샤트라, 다샤 해석을 한국어로 정리한 베다점성술 허브입니다.",
     keywords: ["베다점성술", "베다점", "라그나", "나크샤트라", "다샤"],
-    breadcrumbs: ["홈", "운세 인사이트", "베다점성술 인사이트"],
+    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "베다점성술 인사이트"],
     archiveTitle: "베다점성술 인사이트 허브",
     intro: "라그나, 나크샤트라, 다샤 흐름을 한국어 사용자 기준으로 이해하기 쉽게 정리한 베다점 허브입니다.",
   },

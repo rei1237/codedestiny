@@ -5,6 +5,7 @@ import {
   assertNoForeignSystemTermsLeaked,
   assertNoRawJsonLeak,
   assertNoRepeatedHeadings,
+  assertNoUnexpectedForeignTokens,
   assertNoUndefinedValues,
   validateAstrologyFinalReportHtml,
 } from "./astrology-validator.js";
@@ -69,9 +70,37 @@ function buildAspectTable(aspects = []) {
   </table>`;
 }
 
+function buildBalanceGroup(balance = {}, labels = []) {
+  const values = labels.map(([key, label]) => {
+    const value = Number(balance?.[key] ?? 0);
+    return { label, value: Number.isFinite(value) ? Math.max(0, value) : 0 };
+  });
+  const max = Math.max(1, ...values.map((item) => item.value));
+  return values.map((item) => {
+    const width = Math.max(6, Math.round((item.value / max) * 100));
+    return `<div class="astro-balance-row"><span>${escapeHtml(item.label)}</span><b><i style="width:${width}%"></i></b><em>${escapeHtml(String(item.value))}</em></div>`;
+  }).join("");
+}
+
+function buildBalanceBars(chart = {}) {
+  return `<section class="astro-balance-bars">
+    <h3>원소와 양식 밸런스</h3>
+    <div class="astro-balance-columns">
+      <div>
+        <h4>원소</h4>
+        ${buildBalanceGroup(chart.elements, [["fire", "불"], ["earth", "흙"], ["air", "공기"], ["water", "물"]])}
+      </div>
+      <div>
+        <h4>양식</h4>
+        ${buildBalanceGroup(chart.modalities, [["cardinal", "활동"], ["fixed", "고정"], ["mutable", "변화"]])}
+      </div>
+    </div>
+  </section>`;
+}
+
 function buildTransitList(transits = []) {
   const items = asArray(transits).slice(0, 8);
-  return `<ol class="astro-transit-list">
+  return `<ol class="astro-transit-list astro-transit-timeline">
     ${(items.length ? items : [{ theme: "현재 트랜짓 정보는 제공된 계산 결과 안에서 제한적으로 확인합니다." }]).map((transit) => `<li>${valueText([
       transit.planet,
       transit.sign,
@@ -127,6 +156,7 @@ function buildCoreChartSummary(input = {}) {
     ${buildPlanetTable(chart.planets)}
     ${buildHouseTable(chart.houses)}
     ${buildAspectTable(chart.aspects)}
+    ${buildBalanceBars(chart)}
     <section class="astro-transit-panel">
       <h3>주요 트랜짓</h3>
       ${buildTransitList(chart.transits)}
@@ -182,6 +212,13 @@ export function assembleFinalHtml({ input = {}, chapters = [], chapterPlan = {},
     .astro-core-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0;}
     .astro-core-grid p{background:#fff;border:1px solid #e7dfef;padding:10px;margin:0;}
     .astro-core-grid strong{display:block;color:#604a7f;margin-bottom:4px;}
+    .astro-balance-bars{background:#fff;border:1px solid #e7dfef;margin:14px 0 18px;padding:14px;}
+    .astro-balance-bars h4{margin:6px 0 8px;color:#604a7f;font-size:12px;}
+    .astro-balance-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .astro-balance-row{display:grid;grid-template-columns:42px 1fr 28px;align-items:center;gap:8px;margin:7px 0;font-size:11.5px;}
+    .astro-balance-row b{display:block;height:8px;background:#eee7f7;border-radius:99px;overflow:hidden;}
+    .astro-balance-row i{display:block;height:100%;background:#7f5fb4;}
+    .astro-balance-row em{font-style:normal;text-align:right;color:#604a7f;}
     .astro-transit-list{background:#fff;border:1px solid #e7dfef;margin:8px 0 18px;padding:12px 12px 12px 28px;}
     .astro-note,.astro-disclaimer p{font-size:12px;color:#675d75;}
   </style>
@@ -210,6 +247,7 @@ export function assembleFinalHtml({ input = {}, chapters = [], chapterPlan = {},
   assertNoRawJsonLeak(fullHtml);
   assertNoUndefinedValues(fullHtml);
   assertNoForeignSystemTermsLeaked(fullHtml);
+  assertNoUnexpectedForeignTokens(fullHtml);
   assertAstrologyVisualBlocksIncluded(fullHtml);
   const validation = validateAstrologyFinalReportHtml(fullHtml, safeChapters, chapterPlan);
   if (!validation.ok) {

@@ -73,6 +73,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/", changeFrequency: "daily", priority: 1.0 },
 
   // ── 핵심 SEO 랜딩 페이지 (브랜드/일반 키워드 타겟) ─────────────
+  { path: "/kkul-kkul-unse", changeFrequency: "weekly", priority: 0.99 },
   { path: "/saju",          changeFrequency: "daily", priority: 0.98 },
   { path: "/saju/guide",    changeFrequency: "monthly", priority: 0.90 },
   { path: "/saju/ten-gods", changeFrequency: "monthly", priority: 0.89 },

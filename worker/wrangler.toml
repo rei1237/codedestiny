@@ -43,6 +43,12 @@ ZIWEI_PREMIUM_LLM_TIMEOUT_MS = "75000"
 ZIWEI_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
 SUKYO_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
 PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
+LLM_DRY_RUN = "false"
+PDF_LLM_PROVIDER = "workers-ai"
+WORKERS_AI_ENABLED = "true"
+PDF_LLM_MAX_CALLS_PER_JOB = "1"
+PDF_REAL_LLM_CHAPTER_IDS = "intro"
+PDF_DEBUG_MODE = "true"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*

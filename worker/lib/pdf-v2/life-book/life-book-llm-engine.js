@@ -270,12 +270,17 @@ async function generateChapterWithLlm({
       });
       const result = await generateLifeBookTextWithLlm({
         provider,
+        jobId,
         systemPrompt: lifeBookSystemPrompt,
         userPrompt: prompt,
         model: activeModel,
         temperature: Number(env?.LIFE_BOOK_LLM_TEMPERATURE ?? 0.64),
         maxTokens: Number(env?.LIFE_BOOK_CHAPTER_MAX_TOKENS || env?.LIFE_BOOK_PREMIUM_CHAPTER_MAX_TOKENS || 14000),
         requestId: `${jobId}:${chapter.id}:${provider}:${retry}`,
+        context: {
+          chapter,
+          totalChapters: chapterPlan.length,
+        },
       }, env);
       const attempt = {
         provider: clean(result.provider || provider),
@@ -343,6 +348,9 @@ async function generateChapterWithLlm({
           parsed,
           provider: parsed.provider,
           modelName: parsed.modelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: result.isMock === true || clean(result.provider || provider) === "mock",
           source: "llm",
           promptHash,
           promptVersion: LIFE_BOOK_PROMPT_VERSION,
@@ -394,6 +402,9 @@ export async function generateLifeBookPremiumReport(params = {}) {
   const chapterResults = [];
   let provider = "";
   let modelName = resolveLifeBookModelName(env, "gemini");
+  let tokensUsed = 0;
+  let cost = 0;
+  let isMock = false;
 
   if (typeof params.onProgress === "function") {
     params.onProgress({ status: "llm_chapters_start", progress: 10, currentChapterNo: 0, completedChapterCount: 0, totalChapters: chapterPlan.length });
@@ -454,6 +465,9 @@ export async function generateLifeBookPremiumReport(params = {}) {
     }
     modelName = clean(generated.modelName || modelName);
     provider = provider || clean(generated.provider);
+    tokensUsed += Number(generated.tokensUsed || 0);
+    cost += Number(generated.cost || 0);
+    isMock = isMock || generated.isMock === true || clean(generated.provider) === "mock";
     chapters.push(generated.parsed);
     chapterResults.push({
       chapterNumber: Number(chapter.order || index + 1),
@@ -463,6 +477,9 @@ export async function generateLifeBookPremiumReport(params = {}) {
       source: "llm",
       provider: generated.provider,
       modelName: generated.modelName,
+      tokensUsed: Number(generated.tokensUsed || 0),
+      cost: Number(generated.cost || 0),
+      isMock: generated.isMock === true || clean(generated.provider) === "mock",
       promptVersion: generated.promptVersion,
       promptHash: generated.promptHash,
       result: {
@@ -496,10 +513,19 @@ export async function generateLifeBookPremiumReport(params = {}) {
     generationMode: "llm-only",
     provider: provider || "llm",
     modelName,
+    tokensUsed,
+    cost,
+    isMock,
     writingPipeline: LIFE_BOOK_PREMIUM_WRITING_PIPELINE,
-    llmAssembly: buildLifeBookLlmAssembly(chapters.length, chapterPlan.length),
+    llmAssembly: buildLifeBookLlmAssembly(chapters.length, chapterPlan.length, {
+      provider: provider || "llm",
+      modelName,
+      tokensUsed,
+      cost,
+      isMock,
+    }),
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed: isMock ? false : true,
     chapterAttempts,
     chapterResults,
     pdfV2: {

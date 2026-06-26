@@ -4894,6 +4894,10 @@ async function handlePrepareSync(request, env) {
         provider: clean(llmResult?.provider || ""),
       });
       const llmAssembly = safeObject(llmResult?.llmAssembly || llmResult?.pdfReady?.llmAssembly);
+      const externalCallsAllowed = llmAssembly.externalCallsAllowed !== false && llmResult?.externalCallsAllowed !== false;
+      const isMock = llmAssembly.isMock === true || llmResult?.isMock === true || clean(llmResult?.provider || llmAssembly.provider) === "mock";
+      const tokensUsed = Number(llmResult?.tokensUsed || llmAssembly.tokensUsed || 0);
+      const cost = Number(llmResult?.cost || llmAssembly.cost || 0);
       const llmDraftChapterCount = completedChapters.length;
       const finalValidation = llmResult?.chapterQuality || { ok: true, issues: [], totalChars: clean(llmResult?.html || "").length };
       const finalBundleValidation = { ok: true, errors: [], mode: ZIWEI_PDF_CONFIG.generationMode };
@@ -4908,12 +4912,15 @@ async function handlePrepareSync(request, env) {
         accessType: clean(access.accessType || "unknown"),
         manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed,
         externalGeneration: true,
         fallbackAllowed: false,
         fallbackUsed: false,
         localFallbackUsed: false,
         llmAssembly,
+        tokensUsed,
+        cost,
+        isMock,
         consultationQuality,
         generationMode: ZIWEI_PDF_CONFIG.generationMode,
         provider: clean(llmResult?.provider || llmAssembly.provider || ZIWEI_PDF_CONFIG.provider),
@@ -4937,6 +4944,10 @@ async function handlePrepareSync(request, env) {
       pdfReady.contentType = "application/pdf";
       pdfReady.renderFormat = "pdf-archive";
       pdfReady.filename = buildPdfFilenameFromDate(pdfReady.generatedAt || new Date());
+      pdfReady.externalCallsAllowed = externalCallsAllowed;
+      pdfReady.tokensUsed = tokensUsed;
+      pdfReady.cost = cost;
+      pdfReady.isMock = isMock;
       pdfReady.quality = {
         status: "passed",
         consultationQuality,
@@ -4981,12 +4992,15 @@ async function handlePrepareSync(request, env) {
         manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
         chapterCount: completedChapters.length,
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed,
         externalGeneration: true,
         fallbackAllowed: false,
         fallbackUsed: false,
         localFallbackUsed: false,
         llmAssembly,
+        tokensUsed,
+        cost,
+        isMock,
         archive: {
           reportId,
           reportType: "ziwei_book",
@@ -5001,6 +5015,9 @@ async function handlePrepareSync(request, env) {
           directDownloadUrl: clean(pdfReady?.directDownloadUrl),
           chapters: completedChapters,
           payload: ziweiPayload,
+          tokensUsed,
+          cost,
+          isMock,
           ziweiMasterJson,
           masterJsonValidation,
           diagnostics: {
@@ -5052,12 +5069,15 @@ async function handlePrepareSync(request, env) {
         qualityStatus: "passed",
         manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed,
         externalGeneration: true,
         fallbackAllowed: false,
         fallbackUsed: false,
         localFallbackUsed: false,
         llmAssembly,
+        tokensUsed,
+        cost,
+        isMock,
         diagnostics: {
           masterJson: masterJsonValidation,
           manuscript: finalBundleValidation,

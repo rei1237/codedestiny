@@ -115,6 +115,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "premium-fpti-report",
   "premium_pdf_saju_love_secret",
   "premium_pdf_saju_love_secret_compat",
+  "premium-naming-prompt",
   "premium-naming-report",
   "premium-sukuyo-compat-extra",
   "premium-veda-compatibility-addon",
@@ -294,7 +295,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-soul-origin-report": { cost: 690, reason: "운명의 업 생성" },
   "premium-fpti-report": { cost: 200, reason: "FPTI 프리미엄 리포트 생성" },
   tetogen_deep_report: { cost: 100, reason: "테토 에겐 상세 리포트 해금" },
-  "premium-naming-report": { cost: 700, reason: "명운 프리미엄 작명 리포트 생성" },
+  "premium-naming-prompt": { cost: 200, amountKRW: 20000, reason: "사주 맞춤 작명 프롬프트 생성" },
+  "premium-naming-report": { cost: 200, amountKRW: 20000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 120, reason: "숙요점 정밀 궁합 확장 분석" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
   "destiny-bias-analyze": { cost: 50, reason: "최애운명 심화 분석" },
@@ -635,7 +637,14 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   gotoAstrologyPremium: "premium-astrology-report",
   gotoSukuyoPremium: "premium-sukuyo-report-compat",
   gotoVedicPremium: "premium-vedic-report",
-  gotoNamingPremium: "premium-naming-report",
+  gotoNamingPremium: "premium-naming-prompt",
+  openNamingPromptModal: "premium-naming-prompt",
+  naming_prompt: "premium-naming-prompt",
+  namingPrompt: "premium-naming-prompt",
+  premiumNamingPrompt: "premium-naming-prompt",
+  premium_naming_prompt: "premium-naming-prompt",
+  premium_naming_report: "premium-naming-prompt",
+  "premium-naming-report": "premium-naming-prompt",
 });
 
 const PAID_FEATURE_KEY_ALIAS_LOOKUP = Object.freeze(

@@ -9,7 +9,12 @@
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
+  var LIFEBOOK_API_VERIFY_ACCESS_PATH = '/api/premium/saju-lifebook/verify-access';
+  var LIFEBOOK_API_CREATE_JOB_PATH = '/api/premium/saju-lifebook/create-job';
+  var LIFEBOOK_API_GENERATE_MOCK_PATH = '/api/premium/saju-lifebook/generate-mock';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
+  var LIFEBOOK_API_RESULT_PATH = '/api/premium/saju-lifebook/result';
+  var LIFEBOOK_CURRENT_JOB_STORAGE_KEY = 'cd_lifebook_current_job_v1';
   var LIFEBOOK_TARGET_YEAR_MIN = 1900;
   var LIFEBOOK_TARGET_YEAR_MAX = 2099;
   var LIFE_BOOK_TEXT_TRANSLATIONS = {
@@ -478,6 +483,34 @@ function _clearLifeBookGenerationState() {
   _lbGenerationStartAt = 0;
 }
 
+function _persistLifeBookCurrentJob(job) {
+  if (!job || typeof job !== 'object') return;
+  try {
+    localStorage.setItem(LIFEBOOK_CURRENT_JOB_STORAGE_KEY, JSON.stringify({
+      jobId: String(job.jobId || job.reportId || '').trim(),
+      reportId: String(job.reportId || job.jobId || '').trim(),
+      sessionId: String(job.sessionId || job.reportSessionId || '').trim(),
+      profileKey: String(job.profileKey || '').trim(),
+      savedAt: new Date().toISOString()
+    }));
+  } catch (_) {}
+}
+
+function _readLifeBookCurrentJob(expectedProfileKey) {
+  try {
+    var raw = localStorage.getItem(LIFEBOOK_CURRENT_JOB_STORAGE_KEY) || '';
+    if (!raw) return null;
+    var record = JSON.parse(raw);
+    if (!record || (!record.jobId && !record.sessionId && !record.reportId)) return null;
+    if (expectedProfileKey && record.profileKey && record.profileKey !== expectedProfileKey) return null;
+    return record;
+  } catch (_) { return null; }
+}
+
+function _clearLifeBookCurrentJob() {
+  try { localStorage.removeItem(LIFEBOOK_CURRENT_JOB_STORAGE_KEY); } catch (_) {}
+}
+
 var _LB_LIFE_BOOK_BUSY_TIMEOUT_MS = 12 * 60 * 1000;
 
 function _isLifeBookGenerationBusy() {
@@ -786,6 +819,11 @@ function _isLifeBookGenerationBusy() {
     return _buildApiCandidates(LIFEBOOK_API_PREPARE_PATH);
   }
 
+  function _buildLifeBookResultCandidates(jobId) {
+    var _jid = encodeURIComponent(String(jobId || '').trim());
+    return _buildApiCandidates(LIFEBOOK_API_RESULT_PATH + '/' + _jid);
+  }
+
   function _buildLifeBookStatusCandidates(sessionId) {
     var _sid = encodeURIComponent(String(sessionId || '').trim());
     return _buildApiCandidates(LIFEBOOK_API_STATUS_PATH + '?sessionId=' + _sid);
@@ -800,6 +838,84 @@ function _isLifeBookGenerationBusy() {
       || code.indexOf('FORBIDDEN') >= 0
       || code.indexOf('PAYMENT') >= 0
       || code.indexOf('PREMIUM') >= 0;
+  }
+
+  function _postLifeBookWorkerEndpoint(pathname, payload, headers, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var endpoints = _buildApiCandidates(pathname);
+      var settled = false;
+      var idx = 0;
+      var lastErr = null;
+
+      function doneOk(out) {
+        if (settled) return;
+        settled = true;
+        resolve(out);
+      }
+
+      function doneFail(message, meta) {
+        if (settled) return;
+        settled = true;
+        if (message instanceof Error) {
+          reject(message);
+          return;
+        }
+        var err = new Error(message || '인생의 책 PDF 요청에 실패했습니다.');
+        if (meta && typeof meta === 'object') {
+          err.status = Number(meta.status || 0);
+          err.code = String(meta.code || '').trim();
+        }
+        reject(err);
+      }
+
+      function runNext() {
+        if (idx >= endpoints.length) {
+          doneFail(lastErr || '인생의 책 PDF 요청에 실패했습니다.');
+          return;
+        }
+        var endpoint = endpoints[idx++];
+        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var timerId = setTimeout(function () {
+          if (controller) {
+            try { controller.abort(); } catch (_) {}
+          }
+        }, Number(timeoutMs || 120000));
+        fetch(endpoint, {
+          method: 'POST',
+          headers: headers,
+          credentials: 'include',
+          body: JSON.stringify(payload),
+          signal: controller ? controller.signal : undefined,
+        })
+          .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (json) {
+              return { res: res, json: json, endpoint: endpoint };
+            });
+          })
+          .then(function (pack) {
+            clearTimeout(timerId);
+            if (pack.res && pack.res.ok && pack.json && pack.json.ok !== false) {
+              doneOk(pack);
+              return;
+            }
+            if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
+              var hardCode = String((pack.json && (pack.json.code || (pack.json.error && pack.json.error.code))) || '').trim();
+              var hardMessage = String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '프리미엄 결제 확인이 필요합니다.');
+              doneFail(_buildLifeBookApiError(pack, hardMessage), { status: Number(pack.res.status || 0), code: hardCode });
+              return;
+            }
+            lastErr = _buildLifeBookApiError(pack, String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || ('HTTP ' + (pack.res ? pack.res.status : 'ERR'))));
+            runNext();
+          })
+          .catch(function (err) {
+            clearTimeout(timerId);
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '요청이 중단되었습니다. 네트워크 상태를 확인하고 다시 시도해 주세요.'));
+            runNext();
+          });
+      }
+
+      runNext();
+    });
   }
 
   function _postLifeBookPrepare(payload, headers) {
@@ -971,6 +1087,79 @@ function _isLifeBookGenerationBusy() {
     });
   }
 
+  function _fetchLifeBookResult(jobId, headers) {
+    return new Promise(function (resolve, reject) {
+      var _jobId = String(jobId || '').trim();
+      if (!_jobId) {
+        resolve(null);
+        return;
+      }
+      var endpoints = _buildLifeBookResultCandidates(_jobId);
+      var settled = false;
+      var idx = 0;
+      var lastErr = null;
+
+      function doneOk(out) {
+        if (settled) return;
+        settled = true;
+        resolve(out);
+      }
+
+      function doneFail(message) {
+        if (settled) return;
+        settled = true;
+        if (message instanceof Error) {
+          reject(message);
+          return;
+        }
+        reject(new Error(message || '인생의 책 PDF 결과 조회에 실패했습니다.'));
+      }
+
+      function runNext() {
+        if (idx >= endpoints.length) {
+          doneFail(lastErr || '인생의 책 PDF 결과 조회에 실패했습니다.');
+          return;
+        }
+        var endpoint = endpoints[idx++];
+        var controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        var timerId = setTimeout(function () {
+          if (controller) {
+            try { controller.abort(); } catch (_) {}
+          }
+        }, 15000);
+
+        fetch(endpoint, {
+          method: 'GET',
+          headers: headers,
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined,
+        })
+          .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (json) {
+              return { res: res, json: json };
+            });
+          })
+          .then(function (pack) {
+            clearTimeout(timerId);
+            if (pack.res && pack.res.ok && pack.json && pack.json.ok !== false) {
+              doneOk(pack.json && pack.json.data ? pack.json.data : pack.json);
+              return;
+            }
+            lastErr = _buildLifeBookApiError(pack, String((pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + (pack.res ? pack.res.status : 'ERR'))));
+            runNext();
+          })
+          .catch(function (err) {
+            clearTimeout(timerId);
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '결과 조회 요청이 중단되었습니다.'));
+            runNext();
+          });
+      }
+
+      runNext();
+    });
+  }
+
   async function _pollLifeBookStatus(sessionId, headers, onProgress, shouldStop) {
     var _sid = String(sessionId || '').trim();
     if (!_sid) return;
@@ -1052,6 +1241,64 @@ function _isLifeBookGenerationBusy() {
       }
       await new Promise(function (r) { setTimeout(r, 1800); });
     }
+  }
+
+  async function _runLifeBookMockWorkerPipeline(payload, headers, onProgress, profileKey) {
+    var verifyPack = await _postLifeBookWorkerEndpoint(LIFEBOOK_API_VERIFY_ACCESS_PATH, payload, headers, 60000);
+    var verifyData = verifyPack && verifyPack.json && verifyPack.json.data ? verifyPack.json.data : {};
+    if (verifyData && typeof onProgress === 'function') {
+      onProgress({
+        status: 'access_verified',
+        progress: {
+          stateKey: 'access_verified',
+          percent: 10,
+          currentChapterNo: 0,
+          completedChapterCount: 0,
+          totalChapters: LIFEBOOK_TOTAL_CHAPTERS,
+          currentChapterTitle: '결제 검증이 완료되었습니다.'
+        }
+      });
+    }
+
+    var createPack = await _postLifeBookWorkerEndpoint(LIFEBOOK_API_CREATE_JOB_PATH, payload, headers, 60000);
+    var createData = createPack && createPack.json && createPack.json.data ? createPack.json.data : createPack.json;
+    var jobId = String((createData && (createData.jobId || createData.reportId)) || payload.reportId || '').trim();
+    var sessionId = String((createData && (createData.sessionId || createData.reportSessionId)) || payload.sessionId || payload.reportSessionId || '').trim();
+    if (!jobId && sessionId) jobId = sessionId;
+    _persistLifeBookCurrentJob({
+      jobId: jobId,
+      reportId: String((createData && createData.reportId) || payload.reportId || jobId).trim(),
+      sessionId: sessionId,
+      profileKey: profileKey || ''
+    });
+    if (createData && typeof onProgress === 'function') onProgress(createData);
+
+    var generatePayload = Object.assign({}, payload, {
+      jobId: jobId,
+      reportId: String((createData && createData.reportId) || payload.reportId || jobId),
+      sessionId: sessionId || payload.sessionId,
+      reportSessionId: sessionId || payload.reportSessionId
+    });
+    var generatePack = await _postLifeBookWorkerEndpoint(LIFEBOOK_API_GENERATE_MOCK_PATH, generatePayload, headers, 420000);
+    var generateData = generatePack && generatePack.json && generatePack.json.data ? generatePack.json.data : generatePack.json;
+    if (generateData && typeof onProgress === 'function') onProgress(generateData);
+
+    var normalized = _normalizeLifeBookDoneData(generateData);
+    var status = String((generateData && generateData.status) || normalized.status || '').toLowerCase();
+    if (status !== 'completed' && status !== 'done') {
+      normalized = await _waitLifeBookStatusDone(sessionId || jobId, headers, onProgress, function () { return _cancelGeneration; });
+    }
+    var resultData = await _fetchLifeBookResult(jobId || sessionId, headers).catch(function () { return null; });
+    if (resultData && String(resultData.status || '').toLowerCase() === 'completed') {
+      normalized = _normalizeLifeBookDoneData(resultData);
+    }
+    if (normalized && String(normalized.status || '').toLowerCase() === 'completed') {
+      _clearLifeBookCurrentJob();
+    }
+    return {
+      res: generatePack.res,
+      json: { ok: true, data: normalized }
+    };
   }
 
   function _buildResultOverviewHtml() {
@@ -1730,6 +1977,117 @@ function _isLifeBookGenerationBusy() {
     _lbEnsurePartialRegenerateControl();
   }
 
+  function _lbApplyServerResult(data, profile, modal) {
+    var normalized = _normalizeLifeBookDoneData(data);
+    var serverChapters = _extractLifeBookChaptersFromData(normalized);
+    if (!serverChapters || serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) return false;
+    _lbPendingPdfHtml = String((normalized && normalized.pdfReady && normalized.pdfReady.html) || '');
+    _lbPendingPdfUrl = _clean(
+      (normalized && normalized.pdfReady && typeof normalized.pdfReady === 'object' && (normalized.pdfReady.downloadUrl || normalized.pdfReady.pdfUrl || normalized.pdfReady.download_url || '')) ||
+      (normalized && normalized.downloadUrl) ||
+      (normalized && normalized.pdfUrl) ||
+      ''
+    );
+    _lbPendingHtmlUrl = _clean(
+      (normalized && normalized.pdfReady && typeof normalized.pdfReady === 'object' && (normalized.pdfReady.htmlUrl || '')) ||
+      (normalized && normalized.htmlUrl) ||
+      ''
+    );
+    _lbPendingReportUrl = _resolveLifeBookStoredUrl(normalized);
+    _lbCurrentReportId = String((normalized && (normalized.reportId || normalized.jobId)) || '').trim();
+    _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    for (var i = 0; i < LIFEBOOK_TOTAL_CHAPTERS; i++) {
+      var ch = serverChapters[i] || {};
+      var text = String(ch.text || ch.content || ch.contentMarkdown || '').trim();
+      if (!text && Array.isArray(ch.categories)) {
+        text = ch.categories.map(function (cat) {
+          var title = String((cat && cat.title) || '').trim();
+          var body = String((cat && (cat.finalText || cat.localSummary)) || '').trim();
+          if (!body) return '';
+          return title ? ('## ' + title + '\n' + body) : body;
+        }).filter(Boolean).join('\n\n');
+      }
+      _chapters[i] = text;
+      _chapterStructured[i] = (ch.chapterJson && typeof ch.chapterJson === 'object') ? ch.chapterJson : null;
+      _chapterMeta[i] = {
+        title: String(ch.title || CHAPTER_TITLES[i] || ('제' + (i + 1) + '장')),
+        subtitle: String(ch.subtitle || CHAPTER_SUBTITLES[i] || ''),
+        isSkeleton: false
+      };
+    }
+    _currentChapter = 1;
+    _showScreen('lbResultScreen');
+    _updateTocState();
+    _renderChapter(1);
+    _bindToc();
+    _lbEnsurePartialRegenerateControl();
+    _lbSaveResult(profile || {});
+    _clearLifeBookCurrentJob();
+    _clearLifeBookGenerationState();
+    if (modal) modal.style.display = 'flex';
+    return true;
+  }
+
+  async function _lbRestoreCurrentJob(profile, modal) {
+    var profileKey = _lbBuildProfileCacheKey(profile);
+    var current = _readLifeBookCurrentJob(profileKey);
+    if (!current) return false;
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    var key = String(current.sessionId || current.jobId || current.reportId || '').trim();
+    if (!key) return false;
+    _startLifeBookGenerationState();
+    _showScreen('lbLoadingScreen');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+    }
+    try {
+      var statusData = await _fetchLifeBookStatus(key, headers);
+      var status = String(statusData && statusData.status || '').toLowerCase();
+      if (status === 'completed' || status === 'done') {
+        var resultData = await _fetchLifeBookResult(current.jobId || current.reportId || key, headers).catch(function () { return statusData; });
+        return _lbApplyServerResult(resultData || statusData, profile, modal);
+      }
+      if (status === 'failed') {
+        _clearLifeBookGenerationState();
+        _clearLifeBookCurrentJob();
+        _showLifeBookError(String((statusData && (statusData.errorMessage || (statusData.error && statusData.error.message))) || '인생의 책 PDF 생성 중 문제가 발생했습니다.'), {
+          reportId: current.reportId,
+          sessionId: current.sessionId,
+          profileKey: profileKey
+        });
+        return true;
+      }
+      _pollLifeBookStatus(key, headers, function (nextStatus) {
+        var next = String(nextStatus && nextStatus.status || '').toLowerCase();
+        if (next === 'completed' || next === 'done') {
+          _fetchLifeBookResult(current.jobId || current.reportId || key, headers)
+            .then(function (resultData) { _lbApplyServerResult(resultData || nextStatus, profile, modal); })
+            .catch(function () { _lbApplyServerResult(nextStatus, profile, modal); });
+        }
+        if (next === 'failed') {
+          _clearLifeBookGenerationState();
+          _clearLifeBookCurrentJob();
+          _showLifeBookError(String((nextStatus && (nextStatus.errorMessage || (nextStatus.error && nextStatus.error.message))) || '인생의 책 PDF 생성 중 문제가 발생했습니다.'), {
+            reportId: current.reportId,
+            sessionId: current.sessionId,
+            profileKey: profileKey
+          });
+        }
+      }, function () { return !_isLifeBookGenerationBusy(); });
+      return true;
+    } catch (_) {
+      _clearLifeBookGenerationState();
+      return false;
+    }
+  }
+
   function _lbResolveActiveChapter() {
     var activeBtn = document.querySelector('.lb-toc .lb-toc-item.active[data-lb-chapter]');
     var byUi = activeBtn ? Number(activeBtn.getAttribute('data-lb-chapter')) : 0;
@@ -1864,6 +2222,18 @@ function _isLifeBookGenerationBusy() {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
+      return;
+    }
+
+    var currentJob = _readLifeBookCurrentJob(_lbBuildProfileCacheKey(profile));
+    if (currentJob) {
+      _lbRestoreCurrentJob(profile, modal).then(function (restored) {
+        if (restored) return;
+        _clearLifeBookCurrentJob();
+        _showScreen('lbStartScreen');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      });
       return;
     }
 
@@ -2333,9 +2703,9 @@ function _isLifeBookGenerationBusy() {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'llm-only',
+        generationMode: 'mock',
         calculationSource: 'local-saju-engine',
-        authoringMode: 'llm-only',
+        authoringMode: 'mock',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -2416,7 +2786,7 @@ function _isLifeBookGenerationBusy() {
 
       var _prepare;
       try {
-        _prepare = await _postLifeBookPrepare(_payload, _headers);
+        _prepare = await _runLifeBookMockWorkerPipeline(_payload, _headers, _handleStatusProgress, profileCacheKey);
       } catch (_prepareErr) {
         var _prepareStatus = Number(_prepareErr && _prepareErr.status || 0);
         var _prepareCode = String(_prepareErr && _prepareErr.code || '').toUpperCase();
@@ -2436,7 +2806,7 @@ function _isLifeBookGenerationBusy() {
         });
         await new Promise(function (r) { setTimeout(r, 600); });
         try {
-          _prepare = await _postLifeBookPrepare(_payload, _headers);
+          _prepare = await _runLifeBookMockWorkerPipeline(_payload, _headers, _handleStatusProgress, profileCacheKey);
         } catch (_retryErr) {
           _clearLifeBookAccessGrant();
           _clearPremiumAccessToken(_lbPremiumToken);

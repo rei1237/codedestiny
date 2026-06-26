@@ -14,7 +14,7 @@ import { assembleKarmaIntegratedFinalHtml, KARMA_INTEGRATED_DISCLAIMER } from ".
 import { validateKarmaIntegratedChapterHtml } from "./karma-validator.js";
 
 export const KARMA_INTEGRATED_LLM_VERSION = "2026-06-karma-integrated-llm-v1";
-export const KARMA_INTEGRATED_GENERATION_MODE = "karma-integrated-chapter-llm-html";
+export const KARMA_INTEGRATED_GENERATION_MODE = "karma-integrated-chapter-mock-html";
 
 const MEMORY_CHAPTER_CACHE = globalThis.__KARMA_INTEGRATED_CHAPTER_CACHE || new Map();
 if (!globalThis.__KARMA_INTEGRATED_CHAPTER_CACHE) {
@@ -75,12 +75,84 @@ async function notifyStatus(callback, payload = {}) {
     await callback({
       status: payload.status || "generating",
       progress: Number(payload.progress || 0),
+      progressPercent: Number(payload.progressPercent ?? payload.progress ?? 0),
       currentStep: clean(payload.currentStep || payload.status || ""),
       currentChapterId: clean(payload.currentChapterId || ""),
       currentChapterTitle: clean(payload.currentChapterTitle || ""),
+      totalChapters: Number(payload.totalChapters || 0),
+      completedChapters: Number(payload.completedChapters || 0),
+      chapters: Array.isArray(payload.chapters) ? payload.chapters : undefined,
       systemStatus: payload.systemStatus || undefined,
     });
   } catch (_) {}
+}
+
+function buildKarmaMockEnv(env = {}) {
+  return {
+    ...env,
+    PDF_LLM_PROVIDER: "mock",
+    PDF_DEBUG_MODE: "true",
+    LLM_DRY_RUN: "true",
+    GEMINI_CALL_ENABLED: "false",
+    WORKERS_AI_ENABLED: "false",
+    PDF_LLM_MAX_CALLS_PER_JOB: "0",
+    PDF_LLM_MAX_RETRIES: "0",
+  };
+}
+
+function buildChapterProgress(chapters = [], states = {}) {
+  return chapters.map((chapter) => {
+    const state = states[chapter.id] || {};
+    return {
+      id: chapter.id,
+      title: chapter.title,
+      order: chapter.order,
+      category: chapter.category,
+      status: clean(state.status || "pending"),
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      startedAt: clean(state.startedAt || "") || undefined,
+      completedAt: clean(state.completedAt || "") || undefined,
+      errorMessage: clean(state.errorMessage || "") || undefined,
+    };
+  });
+}
+
+export async function generateKarmaPdfChapterContent({
+  env = {},
+  jobId = "",
+  chapterId = "",
+  chapterTitle = "",
+  chapterOrder = 1,
+  totalChapters = 1,
+  chapterCategory = "",
+  input = {},
+  context = {},
+  prompt = "",
+} = {}) {
+  const chapter = {
+    ...(context.chapter && typeof context.chapter === "object" ? context.chapter : {}),
+    id: clean(chapterId),
+    title: clean(chapterTitle),
+    order: Number(chapterOrder || 1),
+    category: clean(chapterCategory),
+  };
+  return generateSoulOriginTextWithLlm({
+    jobId,
+    userPrompt: prompt,
+    requestId: `${jobId}:karma:${chapter.id}:mock`,
+    maxTokens: 0,
+    temperature: 0,
+    context: {
+      ...context,
+      format: "karma-integrated-html",
+      chapter,
+      totalChapters,
+      input,
+    },
+  }, buildKarmaMockEnv(env));
 }
 
 async function callChapterLlm({ env, input, chapter, chapterData, jobId, retry = 0, invalidHtml = "", errors = [] }) {
@@ -88,11 +160,17 @@ async function callChapterLlm({ env, input, chapter, chapterData, jobId, retry =
     ? buildKarmaChapterRepairPrompt({ input, chapter, chapterData, invalidHtml, errors })
     : buildKarmaChapterPrompt({ input, chapter, chapterData });
   const generated = await generateSoulOriginTextWithLlm({
+    jobId,
     systemPrompt: karmaIntegratedSystemPrompt,
     userPrompt: prompt,
     requestId: `${jobId}:karma:${chapter.id}:${retry}`,
     maxTokens: Number(env?.KARMA_INTEGRATED_CHAPTER_MAX_TOKENS || env?.SOUL_ORIGIN_LLM_MAX_TOKENS || 9000),
     temperature: Number(env?.KARMA_INTEGRATED_LLM_TEMPERATURE ?? env?.SOUL_ORIGIN_LLM_TEMPERATURE ?? 0.72),
+    context: {
+      format: "karma-integrated-html",
+      chapter,
+      chapterData,
+    },
   }, env);
   if (!generated.ok) {
     throw Object.assign(new Error(generated.errorCode || "LLM_REQUEST_FAILED"), {
@@ -111,7 +189,7 @@ async function generateValidatedChapter({ env, input, integratedData, chapterPla
   const chapterData = selectKarmaDataForChapter(chapter, integratedData);
   const cacheKey = buildKarmaIntegratedChapterCacheKey({ integratedData, chapter, chapterData, chapterPlan, modelName });
   const cached = await getCachedChapter(env, cacheKey);
-  if (cached?.html) {
+  if (cached?.html && (cached.isMock === true || clean(cached.provider) === "mock")) {
     const validation = validateKarmaIntegratedChapterHtml(cached.html, chapter, chapterData);
     if (validation.ok
       && clean(cached.version) === KARMA_INTEGRATED_LLM_VERSION
@@ -127,50 +205,88 @@ async function generateValidatedChapter({ env, input, integratedData, chapterPla
         cached: true,
         provider: cached.provider || "cache",
         modelName: cached.modelName || modelName,
+        tokensUsed: Number(cached.tokensUsed || 0),
+        cost: Number(cached.cost || 0),
+        isMock: cached.isMock === true || clean(cached.provider) === "mock",
       };
     }
   }
 
-  let invalidHtml = "";
   let errors = [];
-  const repairLimit = Math.max(0, Number(env?.KARMA_INTEGRATED_REPAIR_LIMIT ?? 2));
-  for (let retry = 0; retry <= repairLimit; retry += 1) {
-    logSoulOriginPdfEvent(retry === 0 ? "KARMA_CHAPTER_LLM_STARTED" : "KARMA_CHAPTER_REPAIR_STARTED", {
+  const prompt = buildKarmaChapterPrompt({ input, chapter, chapterData });
+  logSoulOriginPdfEvent("KARMA_CHAPTER_MOCK_STARTED", {
+    jobId,
+    userId,
+    chapterId: chapter.id,
+    status: "started",
+    provider: "mock",
+    modelName: "mock",
+  });
+  const generated = await generateKarmaPdfChapterContent({
+    env,
+    jobId,
+    chapterId: chapter.id,
+    chapterTitle: chapter.title,
+    chapterOrder: chapter.order,
+    totalChapters: chapterPlan.chapters.length,
+    chapterCategory: chapter.category,
+    input: integratedData,
+    context: {
+      chapter,
+      chapterData,
+    },
+    prompt,
+  });
+  if (!generated.ok) {
+    throw Object.assign(new Error(generated.errorCode || "MOCK_CHAPTER_GENERATION_FAILED"), {
+      code: generated.errorCode || "MOCK_CHAPTER_GENERATION_FAILED",
+      status: Number(generated.status || 503),
+      failedStep: "chapter_generating",
+      failedChapterId: chapter.id,
+      details: generated,
+    });
+  }
+  const validation = validateKarmaIntegratedChapterHtml(generated.text, chapter, chapterData);
+  if (validation.ok) {
+    const record = {
+      id: chapter.id,
+      order: chapter.order,
+      title: chapter.title,
+      category: chapter.category,
+      requiredSystems: chapter.requiredSystems,
+      html: validation.html,
+      cacheKey,
+      cached: false,
+      provider: "mock",
+      modelName: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+    };
+    await saveChapterCache(env, cacheKey, {
+      html: validation.html,
+      version: KARMA_INTEGRATED_LLM_VERSION,
+      promptVersion: KARMA_INTEGRATED_PROMPT_VERSION,
+      provider: record.provider,
+      modelName: record.modelName,
+      tokensUsed: record.tokensUsed,
+      cost: record.cost,
+      isMock: record.isMock,
+      storedAt: new Date().toISOString(),
+    });
+    return record;
+  }
+  errors = validation.errors;
+  logSoulOriginPdfEvent("KARMA_CHAPTER_MOCK_FAILED", {
       jobId,
       userId,
       chapterId: chapter.id,
-      status: "started",
-      provider: "gemini",
-      modelName,
-    });
-    const generated = await callChapterLlm({ env, input, chapter, chapterData, jobId, retry, invalidHtml, errors });
-    const validation = validateKarmaIntegratedChapterHtml(generated.text, chapter, chapterData);
-    if (validation.ok) {
-      const record = {
-        id: chapter.id,
-        order: chapter.order,
-        title: chapter.title,
-        category: chapter.category,
-        requiredSystems: chapter.requiredSystems,
-        html: validation.html,
-        cacheKey,
-        cached: false,
-        provider: generated.provider || SOUL_ORIGIN_LLM_PROVIDER,
-        modelName: generated.model || modelName,
-      };
-      await saveChapterCache(env, cacheKey, {
-        html: validation.html,
-        version: KARMA_INTEGRATED_LLM_VERSION,
-        promptVersion: KARMA_INTEGRATED_PROMPT_VERSION,
-        provider: record.provider,
-        modelName: record.modelName,
-        storedAt: new Date().toISOString(),
-      });
-      return record;
-    }
-    invalidHtml = generated.text;
-    errors = validation.errors;
-  }
+      status: "failed",
+      provider: "mock",
+      modelName: "mock",
+      errorCode: "KARMA_CHAPTER_VALIDATION_FAILED",
+      errorMessage: errors.join(","),
+  });
 
   throw Object.assign(new Error(`Karma integrated chapter generation failed: ${chapter.id}`), {
     code: "KARMA_CHAPTER_VALIDATION_FAILED",
@@ -182,48 +298,85 @@ async function generateValidatedChapter({ env, input, integratedData, chapterPla
 }
 
 export async function generateKarmaIntegratedReport({ env = {}, input = {}, calculationSeed = {}, userId = "", jobId = "", onStatus } = {}) {
-  await notifyStatus(onStatus, { status: "validating", progress: 5, currentStep: "validating" });
+  await notifyStatus(onStatus, { status: "queued", progress: 10, currentStep: "queued" });
   const chapterPlan = loadExistingKarmaChapterConfig({ logger: console });
   assertValidExistingChapterPlan(chapterPlan);
 
-  await notifyStatus(onStatus, { status: "calculating", progress: 25, currentStep: "calculating" });
+  await notifyStatus(onStatus, { status: "generating", progress: 10, currentStep: "generating", totalChapters: chapterPlan.chapters.length });
   const integratedData = buildKarmaIntegratedData({ input, calculationSeed });
 
   await notifyStatus(onStatus, {
     status: "generating",
-    progress: 30,
+    progress: 10,
     currentStep: "generating",
+    totalChapters: chapterPlan.chapters.length,
+    completedChapters: 0,
+    chapters: buildChapterProgress(chapterPlan.chapters),
     systemStatus: integratedData.systemStatus,
   });
 
   const chapterRecords = [];
   const total = chapterPlan.chapters.length;
+  const chapterStates = {};
   for (let index = 0; index < total; index += 1) {
     const chapter = chapterPlan.chapters[index];
+    chapterStates[chapter.id] = { status: "generating", startedAt: new Date().toISOString() };
     await notifyStatus(onStatus, {
-      status: "generating",
-      progress: Math.round(30 + (index / Math.max(1, total)) * 50),
-      currentStep: "generating",
+      status: "chapter_generating",
+      progress: 10 + Math.floor((index / Math.max(1, total)) * 70),
+      currentStep: "chapter_generating",
       currentChapterId: chapter.id,
       currentChapterTitle: chapter.title,
+      totalChapters: total,
+      completedChapters: index,
+      chapters: buildChapterProgress(chapterPlan.chapters, chapterStates),
       systemStatus: integratedData.systemStatus,
     });
-    const record = await generateValidatedChapter({
-      env,
-      input: integratedData,
-      integratedData,
-      chapterPlan,
-      chapter,
-      jobId,
-      userId,
-    });
-    chapterRecords.push(record);
+    try {
+      const record = await generateValidatedChapter({
+        env,
+        input: integratedData,
+        integratedData,
+        chapterPlan,
+        chapter,
+        jobId,
+        userId,
+      });
+      chapterRecords.push(record);
+      chapterStates[chapter.id] = {
+        status: "completed",
+        startedAt: chapterStates[chapter.id].startedAt,
+        completedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      chapterStates[chapter.id] = {
+        status: "failed",
+        startedAt: chapterStates[chapter.id]?.startedAt,
+        completedAt: new Date().toISOString(),
+        errorMessage: clean(error?.message || error),
+      };
+      await notifyStatus(onStatus, {
+        status: "failed",
+        progress: 10 + Math.floor((index / Math.max(1, total)) * 70),
+        currentStep: "chapter_generating",
+        currentChapterId: chapter.id,
+        currentChapterTitle: chapter.title,
+        totalChapters: total,
+        completedChapters: chapterRecords.length,
+        chapters: buildChapterProgress(chapterPlan.chapters, chapterStates),
+        systemStatus: integratedData.systemStatus,
+      });
+      throw error;
+    }
     await notifyStatus(onStatus, {
-      status: "generating",
-      progress: Math.round(30 + ((index + 1) / Math.max(1, total)) * 50),
-      currentStep: "generating",
+      status: "chapter_generating",
+      progress: 10 + Math.floor(((index + 1) / Math.max(1, total)) * 70),
+      currentStep: "chapter_generating",
       currentChapterId: chapter.id,
       currentChapterTitle: chapter.title,
+      totalChapters: total,
+      completedChapters: index + 1,
+      chapters: buildChapterProgress(chapterPlan.chapters, chapterStates),
       systemStatus: integratedData.systemStatus,
     });
   }
@@ -236,7 +389,15 @@ export async function generateKarmaIntegratedReport({ env = {}, input = {}, calc
     });
   }
 
-  await notifyStatus(onStatus, { status: "rendering", progress: 90, currentStep: "rendering", systemStatus: integratedData.systemStatus });
+  await notifyStatus(onStatus, {
+    status: "rendering",
+    progress: 85,
+    currentStep: "rendering",
+    totalChapters: total,
+    completedChapters: total,
+    chapters: buildChapterProgress(chapterPlan.chapters, chapterStates),
+    systemStatus: integratedData.systemStatus,
+  });
   const html = assembleKarmaIntegratedFinalHtml({
     integratedData,
     chapterPlan,
@@ -244,13 +405,27 @@ export async function generateKarmaIntegratedReport({ env = {}, input = {}, calc
     reportId: jobId,
     generatedAt: new Date().toISOString(),
   });
-  await notifyStatus(onStatus, { status: "rendering", progress: 95, currentStep: "rendering", systemStatus: integratedData.systemStatus });
+  await notifyStatus(onStatus, {
+    status: "saving",
+    progress: 95,
+    currentStep: "saving",
+    totalChapters: total,
+    completedChapters: total,
+    chapters: buildChapterProgress(chapterPlan.chapters, chapterStates),
+    systemStatus: integratedData.systemStatus,
+  });
 
   const summary = chapterRecords
     .map((record) => clean(stripHtml(record.html).slice(0, 260)))
     .filter(Boolean)
     .slice(0, 2)
     .join("\n\n");
+  const providerSet = new Set(chapterRecords.map((record) => clean(record.provider)).filter(Boolean));
+  const provider = providerSet.has("mock") ? "mock" : (providerSet.has("cache") && providerSet.size === 1 ? "cache" : SOUL_ORIGIN_LLM_PROVIDER);
+  const modelName = [...new Set(chapterRecords.map((record) => clean(record.modelName)).filter(Boolean))].join(",") || resolveSoulOriginModelName(env);
+  const tokensUsed = chapterRecords.reduce((sum, record) => sum + Number(record.tokensUsed || 0), 0);
+  const cost = chapterRecords.reduce((sum, record) => sum + Number(record.cost || 0), 0);
+  const isMock = chapterRecords.some((record) => record.isMock === true || clean(record.provider) === "mock") || provider === "mock";
 
   return {
     ok: true,
@@ -274,15 +449,26 @@ export async function generateKarmaIntegratedReport({ env = {}, input = {}, calc
       systemStatus: integratedData.systemStatus,
       warnings: integratedData.warnings,
     },
-    provider: SOUL_ORIGIN_LLM_PROVIDER,
-    modelName: resolveSoulOriginModelName(env),
+    provider,
+    modelName,
+    tokensUsed,
+    cost,
+    isMock,
     generationMode: KARMA_INTEGRATED_GENERATION_MODE,
     writingPipeline: SOUL_ORIGIN_LLM_WRITING_PIPELINE,
     manuscriptSource: SOUL_ORIGIN_LLM_MANUSCRIPT_SOURCE,
+    llmAssemblyOnly: true,
+    externalCallsAllowed: isMock ? false : true,
     llmAssembly: {
       enabled: true,
       externalGeneration: true,
+      externalCallsAllowed: isMock ? false : true,
       fallbackUsed: false,
+      provider,
+      modelName,
+      tokensUsed,
+      cost,
+      isMock,
       chapterCount: chapterRecords.length,
       expectedChapterCount: chapterPlan.chapters.length,
       engineVersion: KARMA_INTEGRATED_LLM_VERSION,

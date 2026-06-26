@@ -998,6 +998,94 @@ function inferLoveSecretModeFromReportId(reportId) {
   return value.includes("compat") || value.includes("couple") ? "compatibility" : "solo";
 }
 
+function loveSecretChapterDefinitionsForMode(mode) {
+  const normalizedMode = normalizeMode(mode);
+  const chapters = normalizedMode === "compatibility" ? LOVE_SECRET_COMPATIBILITY_CHAPTERS : LOVE_SECRET_SOLO_CHAPTERS;
+  return chapters.map((chapter, index) => ({
+    id: clean(chapter.id || `${normalizedMode}-${index + 1}`),
+    order: Number(chapter.order || index + 1),
+    title: clean(chapter.title || `연애비책 ${index + 1}장`),
+    mode: normalizedMode,
+  }));
+}
+
+function normalizeLoveSecretStoredChapter(chapter = {}, index = 0, mode = "solo") {
+  const normalizedMode = normalizeMode(chapter.mode || mode);
+  return {
+    id: clean(chapter.id || `${normalizedMode}-${index + 1}`),
+    order: Number(chapter.order || index + 1),
+    title: clean(chapter.title || `연애비책 ${index + 1}장`),
+    mode: normalizedMode,
+    status: clean(chapter.status || "pending"),
+    provider: clean(chapter.provider),
+    tokensUsed: Number(chapter.tokensUsed || 0),
+    cost: Number(chapter.cost || 0),
+    isMock: chapter.isMock === true || clean(chapter.provider) === "mock",
+  };
+}
+
+function buildLoveSecretChapterStatusList({
+  mode = "solo",
+  status = "pending",
+  completedChapters = 0,
+  currentChapterNumber = 0,
+  failedChapterNumber = 0,
+  storedChapters = [],
+  resultChapters = [],
+} = {}) {
+  const normalizedMode = normalizeMode(mode);
+  const resultList = Array.isArray(resultChapters) ? resultChapters : [];
+  if (resultList.length) {
+    return resultList.map((chapter, index) => normalizeLoveSecretStoredChapter({
+      ...chapter,
+      status: ["completed", "cached"].includes(clean(chapter.status)) ? "completed" : clean(chapter.status || status),
+    }, index, normalizedMode));
+  }
+
+  const storedList = Array.isArray(storedChapters) ? storedChapters : [];
+  if (storedList.length) {
+    const safeStatus = clean(status || "pending");
+    const completed = Math.max(0, Number(completedChapters || 0));
+    const current = Number(currentChapterNumber || 0) || completed + 1;
+    const failed = Number(failedChapterNumber || 0);
+    return storedList.map((chapter, index) => {
+      const normalized = normalizeLoveSecretStoredChapter(chapter, index, normalizedMode);
+      if (safeStatus === "completed" || normalized.order <= completed) {
+        return { ...normalized, status: "completed" };
+      }
+      if (safeStatus === "failed" && failed && normalized.order === failed) {
+        return { ...normalized, status: "failed" };
+      }
+      if (safeStatus === "generating" && normalized.order === current && normalized.order > completed) {
+        return { ...normalized, status: "generating" };
+      }
+      if (normalized.status === "generating" && normalized.order !== current) {
+        return { ...normalized, status: "pending" };
+      }
+      return normalized;
+    });
+  }
+
+  const safeStatus = clean(status || "pending");
+  const completed = Math.max(0, Number(completedChapters || 0));
+  const current = Number(currentChapterNumber || 0) || completed + 1;
+  const failed = Number(failedChapterNumber || 0);
+  return loveSecretChapterDefinitionsForMode(normalizedMode).map((chapter) => {
+    let chapterStatus = "pending";
+    if (safeStatus === "completed" || chapter.order <= completed) chapterStatus = "completed";
+    if (safeStatus === "failed" && failed && chapter.order === failed) chapterStatus = "failed";
+    if (safeStatus === "generating" && chapter.order === current && chapter.order > completed) chapterStatus = "generating";
+    return {
+      ...chapter,
+      status: chapterStatus,
+      provider: "",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: false,
+    };
+  });
+}
+
 const LOVE_SECRET_PHASE6_SOLO_CHAPTERS = Object.freeze([
   Object.freeze({ title: "프롤로그 — 내 사랑의 기본 코드", subtitle: "일간·일지·오행으로 읽는 사랑의 출발점" }),
   Object.freeze({ title: "연애 성향 — 나는 어떤 방식으로 사랑하는가", subtitle: "사랑을 시작하고 유지하는 나의 기본 방식" }),
@@ -5169,6 +5257,7 @@ async function markLoveSecretExecutionRetryableFailure(env, userId, executionCtx
 
 function toPublicJobPayload(job = {}) {
   const status = clean(job?.status) || "pending";
+  const mode = normalizeMode(job?.mode);
   const chapterCount = Number(job?.chapterCount || 0);
   const completedChapters = Number(job?.completedChapters || 0);
   const storedProgress = Number(job?.progress || 0);
@@ -5184,24 +5273,52 @@ function toPublicJobPayload(job = {}) {
     }
     return 0;
   })();
+  const result = job?.result && typeof job.result === "object" ? job.result : {};
+  const chapters = buildLoveSecretChapterStatusList({
+    mode,
+    status,
+    completedChapters,
+    currentChapterNumber: Number(job?.currentChapterNumber || 0),
+    failedChapterNumber: Number(job?.failedChapterNumber || 0),
+    storedChapters: job?.chapters,
+    resultChapters: result?.chapters,
+  });
+  const activeChapter = chapters.find((chapter) => chapter.status === "generating")
+    || chapters.find((chapter) => chapter.order === Number(job?.currentChapterNumber || 0))
+    || null;
+  const provider = clean(result?.provider || job?.provider || job?.lastProvider || activeChapter?.provider || "");
+  const tokensUsed = Number(result?.tokensUsed || job?.tokensUsed || chapters.reduce((sum, chapter) => sum + Number(chapter.tokensUsed || 0), 0));
+  const cost = Number(result?.cost || job?.cost || chapters.reduce((sum, chapter) => sum + Number(chapter.cost || 0), 0));
+  const isMock = result?.isMock === true || job?.isMock === true || provider === "mock" || chapters.some((chapter) => chapter.isMock === true);
   return {
     jobId: String(job?._id || ""),
+    serviceType: "love_secret_pdf",
     resultId: clean(job?.result?.reportId || job?.reportId),
     reportId: clean(job?.reportId),
-    mode: normalizeMode(job?.mode),
+    mode,
     status,
     totalChapters: chapterCount,
     chapterCount,
     completedChapters,
     progress,
+    progressPercent: progress,
+    chapters,
+    currentChapterId: clean(activeChapter?.id),
     currentStep: clean(job?.currentStep || job?.message),
     currentChapterNumber: Number(job?.currentChapterNumber || 0) || undefined,
-    currentChapterTitle: clean(job?.currentChapterTitle),
+    currentChapterTitle: clean(job?.currentChapterTitle || activeChapter?.title),
     message: clean(job?.message),
     errorCode: clean(job?.errorCode),
     errorMessage: clean(job?.errorMessage),
     failedChapterNumber: Number(job?.failedChapterNumber || 0) || undefined,
     failedChapterTitle: clean(job?.failedChapterTitle),
+    provider,
+    tokensUsed,
+    cost,
+    isMock,
+    pdfUrl: clean(result?.pdfUrl || result?.pdfReady?.pdfUrl),
+    htmlUrl: clean(result?.htmlUrl || result?.pdfReady?.htmlUrl),
+    downloadUrl: clean(result?.downloadUrl || result?.pdfReady?.downloadUrl),
     retryable: job?.retryable !== false,
     resultReady: status === "completed",
     failed: status === "failed",
@@ -5288,6 +5405,7 @@ async function runLoveSecretJob(env, jobId) {
           message: "명식과 관계 데이터를 정리하는 중입니다.",
           currentChapterNumber: 0,
           currentChapterTitle: "",
+          chapters: buildLoveSecretChapterStatusList({ mode, status: "generating", completedChapters: 0, currentChapterNumber: 1 }),
           updatedAt: new Date(),
         },
       },
@@ -5317,6 +5435,7 @@ async function runLoveSecretJob(env, jobId) {
         const currentTitle = clean(event.currentChapterTitle || event.currentChapter?.title || event.chapter?.title || event.completedChapter?.title);
         const phase = clean(event.phase || "");
         const isCompletedChapterEvent = Boolean(event.completedChapter);
+        const nextStatus = completed >= total && total > 0 ? "rendering" : "generating";
         const nextProgress = (() => {
           if (completed >= total && total > 0) return 90;
           if (isCompletedChapterEvent && total > 0) return 20 + (completed / Math.max(1, total)) * 60;
@@ -5331,8 +5450,8 @@ async function runLoveSecretJob(env, jobId) {
           { _id },
           {
             $set: {
-              status: completed >= total && total > 0 ? "rendering" : "generating",
-              stage: completed >= total && total > 0 ? "rendering" : "generating",
+              status: nextStatus,
+              stage: nextStatus,
               progress: clampLoveSecretProgress(nextProgress, 20, 90),
               currentStep,
               message: completed >= total && total > 0
@@ -5341,8 +5460,18 @@ async function runLoveSecretJob(env, jobId) {
               completedChapters: Math.max(0, Math.min(total || expectedChapterCount, completed)),
               currentChapterNumber: completed >= total && total > 0 ? total : Math.max(1, Math.min(total || currentNumber, currentNumber)),
               currentChapterTitle: currentTitle,
+              chapters: buildLoveSecretChapterStatusList({
+                mode,
+                status: nextStatus,
+                completedChapters: Math.max(0, Math.min(total || expectedChapterCount, completed)),
+                currentChapterNumber: completed >= total && total > 0 ? total : Math.max(1, Math.min(total || currentNumber, currentNumber)),
+              }),
               lastProgressPhase: phase,
               lastProvider: clean(event.provider),
+              provider: clean(event.provider),
+              tokensUsed: Number(event.tokensUsed || 0),
+              cost: Number(event.cost || 0),
+              isMock: event.isMock === true || clean(event.provider) === "mock",
               lastAttempt: Number(event.attempt || 0) || null,
               lastValidationErrors: Array.isArray(event.validationErrors) ? event.validationErrors.slice(0, 8) : [],
               updatedAt: new Date(),
@@ -5365,6 +5494,16 @@ async function runLoveSecretJob(env, jobId) {
           completedChapters: Number(llmJobResult?.chapterCount || expectedChapterCount),
           currentChapterNumber: Number(llmJobResult?.chapterCount || expectedChapterCount),
           currentChapterTitle: "",
+          chapters: buildLoveSecretChapterStatusList({
+            mode,
+            status: "completed",
+            completedChapters: Number(llmJobResult?.chapterCount || expectedChapterCount),
+            resultChapters: llmJobResult?.chapters,
+          }),
+          provider: clean(llmJobResult?.provider),
+          tokensUsed: Number(llmJobResult?.tokensUsed || 0),
+          cost: Number(llmJobResult?.cost || 0),
+          isMock: llmJobResult?.isMock === true || clean(llmJobResult?.provider) === "mock",
           manuscriptSource: clean(llmJobResult?.manuscriptSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.PREMIUM,
           result: llmJobResult,
           completedAt: new Date(),
@@ -5402,6 +5541,14 @@ async function runLoveSecretJob(env, jobId) {
           rawLlmError: error?.providerFailure && typeof error.providerFailure === "object" ? error.providerFailure : null,
           failedChapterNumber,
           failedChapterTitle,
+          chapters: buildLoveSecretChapterStatusList({
+            mode: normalizeMode(job?.mode || "solo"),
+            status: "failed",
+            completedChapters: Number(job?.completedChapters || 0),
+            currentChapterNumber: failedChapterNumber || Number(job?.currentChapterNumber || 0),
+            failedChapterNumber,
+            storedChapters: job?.chapters,
+          }),
           retryable: error?.retryable !== false,
           paymentContext,
           failedAt: new Date(),
@@ -5884,6 +6031,7 @@ async function handlePrepareAsync(request, env, ctx) {
       message: "연애 비책 생성 요청을 접수했습니다.",
       chapterCount: totalChapters,
       completedChapters: 0,
+      chapters: buildLoveSecretChapterStatusList({ mode, status: "pending", completedChapters: 0 }),
       requestBody: {
         reportId: clean(body?.reportId),
         sessionId,
@@ -6050,13 +6198,18 @@ async function handleJobResult(request, env) {
   const job = await coll.findOne({ _id, service: LOVE_SECRET_SERVICE_KEY, userId: String(auth.userId || "") });
   if (!job) return buildApiError("JOB_NOT_FOUND", "작업 정보를 찾을 수 없습니다.", 404);
   if (clean(job?.status) !== "completed") {
-    return buildApiError("JOB_NOT_READY", "아직 작업이 완료되지 않았습니다.", 409);
+    return json({
+      ok: true,
+      ...toPublicJobPayload(job),
+      pdfUrl: null,
+      message: clean(job?.message) || "아직 연애 비책 PDF 생성이 완료되지 않았습니다.",
+    }, { status: 202 });
   }
 
+  const payload = toPublicJobPayload(job);
   return json({
     ok: true,
-    jobId: String(job?._id || ""),
-    status: "completed",
+    ...payload,
     result: job?.result && typeof job.result === "object" ? job.result : null,
   });
 }

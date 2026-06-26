@@ -114,7 +114,7 @@ function verifyCacheKeys() {
   });
   assert.notEqual(soloKey, soloSecondKey);
   assert.notEqual(soloKey, compatibilityKey);
-  assert.match(soloKey, /^love-secret:2026-06-love-secret-llm-v1:chapter:/);
+  assert.match(soloKey, /^love-secret:2026-06-love-secret-llm-v2:chapter:/);
 }
 
 function verifyProgress() {

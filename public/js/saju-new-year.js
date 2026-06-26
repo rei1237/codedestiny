@@ -11,8 +11,12 @@
   var API_FEATURE_KEY = 'premium_pdf_saju_new_year';
   var BILLING_FEATURE_KEY = API_FEATURE_KEY;
   var REASON = '사주 신년운세 PDF 리포트 생성';
-  var PREPARE_API = '/api/saju-new-year/prepare';
+  var VERIFY_ACCESS_API = '/api/saju-new-year/verify-access';
+  var CREATE_JOB_API = '/api/saju-new-year/create-job';
+  var GENERATE_MOCK_API = '/api/saju-new-year/generate-mock';
   var STATUS_API = '/api/saju-new-year/status';
+  var RESULT_API = '/api/saju-new-year/result';
+  var JOB_STORAGE_KEY = 'currentNewYearPdfJobId';
   var TOTAL_CHAPTERS = 13;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
@@ -584,20 +588,26 @@
     var progress = data.progress && typeof data.progress === 'object'
       ? data.progress
       : (data.newYearPdfProgress && typeof data.newYearPdfProgress === 'object' ? data.newYearPdfProgress : data);
-    var status = _clean(progress.status || data.status || data.serverStatus).toLowerCase();
+    var status = _clean(progress.status || data.status || data.serverStatus || root.status || root.serverStatus).toLowerCase();
     if (status === 'done') status = 'completed';
-    if (status === 'queued' || status === 'processing' || status === 'running' || status === 'validating') status = 'generating';
+    if (status === 'processing' || status === 'running' || status === 'validating') status = 'generating';
     if (!status) status = 'pending';
-    var total = Number(progress.totalChapters || progress.chapterCount || data.totalChapters || data.chapterCount || TOTAL_CHAPTERS);
+    var chapters = Array.isArray(data.chapters)
+      ? data.chapters
+      : (Array.isArray(root.chapters) ? root.chapters : []);
+    var total = Number(progress.totalChapters || progress.chapterCount || data.totalChapters || data.chapterCount || chapters.length || TOTAL_CHAPTERS);
     if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
     total = Math.max(1, Math.trunc(total));
     var completed = Number(progress.completedChapters != null ? progress.completedChapters : progress.completedChapterCount);
+    if (!Number.isFinite(completed) && chapters.length) {
+      completed = chapters.filter(function (chapter) { return _clean(chapter && chapter.status).toLowerCase() === 'completed'; }).length;
+    }
     if (!Number.isFinite(completed)) completed = status === 'completed' ? total : 0;
     completed = Math.max(0, Math.min(total, Math.trunc(completed)));
     var current = Number(progress.currentChapterNumber || progress.currentChapterNo || progress.chapterIndex || data.currentChapterNumber || data.currentChapterNo);
     if (!Number.isFinite(current) || current <= 0) current = completed >= total ? total : completed + 1;
     current = Math.max(1, Math.min(total, Math.trunc(current)));
-    var percent = Number(progress.progress != null ? progress.progress : progress.percent);
+    var percent = Number(data.progressPercent != null ? data.progressPercent : (root.progressPercent != null ? root.progressPercent : (progress.progress != null ? progress.progress : progress.percent)));
     if (!Number.isFinite(percent)) {
       percent = status === 'completed'
         ? 100
@@ -623,11 +633,41 @@
       currentChapterTitle: title,
       totalChapters: total,
       completedChapters: completed,
+      chapters: chapters,
+      provider: _clean(data.provider || root.provider || 'mock'),
+      tokensUsed: Number(data.tokensUsed || root.tokensUsed || 0) || 0,
+      cost: Number(data.cost || root.cost || 0) || 0,
+      isMock: data.isMock === true || root.isMock === true || _clean(data.provider || root.provider) === 'mock',
       resultId: _clean(data.resultId || data.reportId || root.reportId),
       pdfUrl: _clean(data.pdfUrl || data.downloadUrl || (data.pdfReady && (data.pdfReady.pdfUrl || data.pdfReady.downloadUrl))),
       errorCode: _clean(progress.errorCode || data.errorCode || data.code),
       errorMessage: _clean(progress.errorMessage || data.errorMessage || data.message)
     };
+  }
+
+  function _chapterStatusLabel(status) {
+    var value = _clean(status).toLowerCase();
+    if (value === 'completed') return '완료';
+    if (value === 'generating' || value === 'chapter_generating') return '생성 중';
+    if (value === 'failed') return '실패';
+    return '대기';
+  }
+
+  function _renderChapterStatusList(job) {
+    var list = _qs('nyChapterStatusList');
+    if (!list) return;
+    var chapters = job && Array.isArray(job.chapters) ? job.chapters : [];
+    if (!chapters.length) {
+      list.innerHTML = '';
+      return;
+    }
+    list.innerHTML = chapters.map(function (chapter, index) {
+      var status = _clean(chapter && chapter.status).toLowerCase() || 'pending';
+      var title = _clean(chapter && chapter.title) || ((index + 1) + '장');
+      var order = Number(chapter && (chapter.order || chapter.no || chapter.chapter));
+      if (!Number.isFinite(order) || order <= 0) order = index + 1;
+      return '<div class="ny-chapter-status-item is-' + _esc(status) + '"><span>[' + _esc(_chapterStatusLabel(status)) + ']</span><strong>' + _esc(order + '장 ' + title) + '</strong></div>';
+    }).join('');
   }
 
   function _applyJobProgress(payload) {
@@ -650,9 +690,10 @@
     if (chapter) chapter.textContent = label;
     if (quote) quote.textContent = job.currentStep;
     if (num) num.textContent = job.status === 'completed' ? '완성' : (job.status === 'failed' ? '실패' : job.currentChapterNumber + '장');
-    if (job.status === 'rendering' || job.status === 'completed') _setStage('archive');
+    _renderChapterStatusList(job);
+    if (job.status === 'rendering' || job.status === 'saving' || job.status === 'completed') _setStage('archive');
     else if (job.completedChapters > 0 || job.currentChapterNumber > 1) _setStage('write');
-    else if (job.status === 'pending') _setStage('calculate');
+    else if (job.status === 'queued' || job.status === 'access_verified' || job.status === 'pending') _setStage('calculate');
     return job;
   }
 
@@ -866,6 +907,9 @@
       : (ready && ready.metadata && ready.metadata.llmAssembly && typeof ready.metadata.llmAssembly === 'object' ? ready.metadata.llmAssembly : {});
     var qualityStatus = _clean(payload && payload.qualityStatus || ready && ready.metadata && ready.metadata.qualityStatus).toLowerCase();
     var pdfUrl = _clean(payload && (payload.downloadUrl || payload.pdfUrl) || ready && (ready.downloadUrl || ready.pdfUrl));
+    var provider = _clean(payload && payload.provider || ready && ready.metadata && ready.metadata.provider).toLowerCase();
+    var isMock = payload && payload.isMock === true || ready && ready.metadata && ready.metadata.isMock === true || provider === 'mock';
+    if (isMock && provider === 'mock' && Number(payload && payload.tokensUsed || 0) === 0 && Number(payload && payload.cost || 0) === 0 && pdfUrl) return;
     if ((payload && payload.fallbackUsed) || manuscriptSource !== 'saju-new-year-llm-only' || llmAssembly.enabled !== true || llmAssembly.externalGeneration !== true || llmAssembly.fallbackUsed === true || qualityStatus !== 'passed' || !pdfUrl) {
       throw _buildPdfApiError(payload, 422, '신년운세 PDF가 고품질 원고 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요.');
     }
@@ -1106,11 +1150,11 @@
     return { ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId };
   }
 
-  async function _postPrepare(payload) {
+  async function _postJson(url, payload) {
     var token = _readPremiumAccessToken();
     var headers = { 'Content-Type': 'application/json' };
     if (token) headers['x-premium-access-token'] = token;
-    var response = await fetch(PREPARE_API, {
+    var response = await fetch(url, {
       method: 'POST',
       credentials: 'include',
       headers: headers,
@@ -1131,11 +1175,57 @@
 
   function _statusQuery(pending) {
     var source = pending && typeof pending === 'object' ? pending : {};
+    var jobId = _clean(source.jobId || source.reportId);
+    if (jobId) return STATUS_API + '/' + encodeURIComponent(jobId);
     var params = new URLSearchParams();
     if (source.reportId) params.set('reportId', source.reportId);
     if (source.sessionId) params.set('sessionId', source.sessionId);
     if (!source.sessionId && source.reportId) params.set('sessionId', 'saju-new-year:' + source.reportId);
     return STATUS_API + '?' + params.toString();
+  }
+
+  function _resultQuery(pending) {
+    var source = pending && typeof pending === 'object' ? pending : {};
+    var jobId = _clean(source.jobId || source.reportId);
+    if (jobId) return RESULT_API + '/' + encodeURIComponent(jobId);
+    return RESULT_API;
+  }
+
+  function _saveCurrentJob(pending) {
+    var source = pending && typeof pending === 'object' ? pending : {};
+    var jobId = _clean(source.jobId || source.reportId);
+    if (!jobId) return;
+    try {
+      localStorage.setItem(JOB_STORAGE_KEY, JSON.stringify({
+        jobId: jobId,
+        reportId: _clean(source.reportId || jobId),
+        sessionId: _clean(source.sessionId || ('saju-new-year:' + jobId)),
+        targetYear: source.targetYear || null
+      }));
+    } catch (_) {}
+  }
+
+  function _readCurrentJob() {
+    try {
+      var raw = localStorage.getItem(JOB_STORAGE_KEY);
+      if (!raw) return null;
+      if (raw.charAt(0) !== '{') return { jobId: raw, reportId: raw, sessionId: 'saju-new-year:' + raw };
+      var parsed = JSON.parse(raw);
+      var jobId = _clean(parsed && (parsed.jobId || parsed.reportId));
+      if (!jobId) return null;
+      return {
+        jobId: jobId,
+        reportId: _clean(parsed.reportId || jobId),
+        sessionId: _clean(parsed.sessionId || ('saju-new-year:' + jobId)),
+        targetYear: parsed.targetYear || null
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _clearCurrentJob() {
+    try { localStorage.removeItem(JOB_STORAGE_KEY); } catch (_) {}
   }
 
   async function _fetchJobStatus(pending) {
@@ -1151,6 +1241,23 @@
     var body = await response.json().catch(function () { return {}; });
     if (!response.ok || body.ok === false) {
       throw _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 생성 상태를 확인하지 못했습니다.');
+    }
+    return body;
+  }
+
+  async function _fetchJobResult(pending) {
+    var token = _readPremiumAccessToken();
+    var headers = {};
+    if (token) headers['x-premium-access-token'] = token;
+    var response = await fetch(_resultQuery(pending), {
+      method: 'GET',
+      credentials: 'include',
+      headers: headers,
+      cache: 'no-store'
+    });
+    var body = await response.json().catch(function () { return {}; });
+    if (!response.ok || body.ok === false) {
+      throw _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 결과를 불러오지 못했습니다.');
     }
     return body;
   }
@@ -1182,15 +1289,15 @@
     return null;
   }
 
-  async function _postPrepareUntilReady(payload) {
-    var data = await _postPrepare(payload);
-    if (!_isPrepareRunning(data)) return data;
-    _applyJobProgress(data);
-    var statusPayload = await _pollJobStatus({
-      reportId: payload.reportId,
-      sessionId: payload.sessionId || payload.reportSessionId
+  async function _startMockGeneration(payload) {
+    var jobId = _clean(payload && (payload.jobId || payload.reportId));
+    if (!jobId) throw _buildPdfApiError({ code: 'MISSING_JOB_ID', message: 'jobId가 필요합니다.' }, 422, 'jobId가 필요합니다.');
+    return _postJson(GENERATE_MOCK_API, {
+      jobId: jobId,
+      reportId: jobId,
+      sessionId: _clean(payload.sessionId || payload.reportSessionId || ('saju-new-year:' + jobId)),
+      reportSessionId: _clean(payload.sessionId || payload.reportSessionId || ('saju-new-year:' + jobId))
     });
-    return statusPayload || data;
   }
 
   function _mdToHtml(text) {
@@ -1426,13 +1533,75 @@
     });
   }
 
+  function _runAfterBillingMock(pending, accessGrant, premiumToken) {
+    _setStage('billing');
+    _setProgress(1, '결제 검증 중입니다.');
+    _rememberAccessGrant(pending, accessGrant, premiumToken);
+    _log('RequestReceived', { reportId: pending.reportId, targetYear: pending.targetYear });
+    _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY });
+    var basePayload = _buildPreparePayload(
+      pending.reportId,
+      pending.targetYear,
+      pending.profile,
+      pending.normalizedBirth,
+      accessGrant,
+      premiumToken || _readPremiumAccessToken()
+    );
+    pending.sessionId = basePayload.sessionId || basePayload.reportSessionId;
+    return _postJson(VERIFY_ACCESS_API, basePayload).then(function (verifyPayload) {
+      if (!verifyPayload || verifyPayload.accessGranted !== true) {
+        throw _buildPdfApiError(verifyPayload, 402, '신년운세 PDF 생성 권한을 확인하지 못했습니다.');
+      }
+      _setStage('calculate');
+      _setProgress(1, 'PDF 생성 준비 중입니다.');
+      var createPayload = Object.assign({}, basePayload, {
+        accessGrant: Object.assign({}, basePayload.accessGrant || {}, verifyPayload.accessGrant || {}),
+        verifiedAccess: verifyPayload.access || null
+      });
+      return _postJson(CREATE_JOB_API, createPayload);
+    }).then(function (createdPayload) {
+      var job = _applyJobProgress(createdPayload);
+      var jobId = _clean(job.jobId || createdPayload.jobId || createdPayload.reportId || pending.reportId);
+      pending.jobId = jobId;
+      pending.reportId = jobId;
+      pending.sessionId = _clean(createdPayload.sessionId || job.sessionId || pending.sessionId || ('saju-new-year:' + jobId));
+      _saveCurrentJob(pending);
+      var stopPolling = false;
+      var polling = _pollJobStatus(pending, function () { return stopPolling; });
+      var generating = _startMockGeneration({
+        jobId: jobId,
+        reportId: jobId,
+        sessionId: pending.sessionId,
+        reportSessionId: pending.sessionId
+      }).catch(function (error) {
+        if (!stopPolling) throw error;
+        return null;
+      });
+      return Promise.all([polling, generating]).then(function (results) {
+        var statusPayload = results[0] || results[1] || createdPayload;
+        var finalJob = _applyJobProgress(statusPayload);
+        if (finalJob.status !== 'completed') {
+          throw _buildPdfApiError(statusPayload, 422, '신년운세 PDF 생성이 아직 완료되지 않았습니다.');
+        }
+        return _fetchJobResult(pending);
+      }).finally(function () {
+        stopPolling = true;
+      });
+    }).then(function (resultPayload) {
+      _setStage('archive');
+      if (!_handlePrepareSuccess(resultPayload, pending.profile, pending.targetYear)) {
+        throw _buildPdfApiError(resultPayload, 422, '신년운세 PDF 생성 결과를 확인하지 못했습니다.');
+      }
+    });
+  }
+
   function _runBillingAndGeneration(pending) {
     _showScreen('nyLoadingScreen');
     _setStage('billing');
     _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
     if (_hasReusableAccessFor(pending)) {
       _setProgress(1, '확인된 결제 권한으로 신년운세 PDF 생성을 다시 시작합니다');
-      return _runAfterBilling(pending, _lastAccessGrant, _lastPremiumToken);
+      return _runAfterBillingMock(pending, _lastAccessGrant, _lastPremiumToken);
     }
     return _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
       return _runCoinGate(pending.reportId);
@@ -1443,8 +1612,53 @@
         return null;
       }
       _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken);
-      return _runAfterBilling(pending, gate.accessGrant, gate.premiumAccessToken);
+      return _runAfterBillingMock(pending, gate.accessGrant, gate.premiumAccessToken);
     });
+  }
+
+  function _restoreCurrentNewYearJob(profile) {
+    var stored = _readCurrentJob();
+    if (!stored || !stored.jobId) return false;
+    var activeProfile = profile || _getActiveBirthProfile();
+    var pending = {
+      jobId: stored.jobId,
+      reportId: stored.reportId || stored.jobId,
+      sessionId: stored.sessionId || ('saju-new-year:' + stored.jobId),
+      targetYear: stored.targetYear || _targetYear(),
+      profile: activeProfile,
+      normalizedBirth: activeProfile ? _normalizeBirthInput(activeProfile) : null
+    };
+    _pendingGeneration = pending;
+    _showScreen('nyLoadingScreen');
+    _setBusy(true);
+    _fetchJobStatus(pending).then(function (statusPayload) {
+      var job = _applyJobProgress(statusPayload);
+      if (job.status === 'completed') return _fetchJobResult(pending);
+      if (job.status === 'failed') {
+        throw _buildPdfApiError(statusPayload, 500, job.errorMessage || '신년운세 PDF 생성 중 문제가 발생했습니다.');
+      }
+      return _pollJobStatus(pending).then(function (finalStatusPayload) {
+        var finalJob = _applyJobProgress(finalStatusPayload);
+        if (finalJob.status === 'failed') {
+          throw _buildPdfApiError(finalStatusPayload, 500, finalJob.errorMessage || '신년운세 PDF 생성 중 문제가 발생했습니다.');
+        }
+        return _fetchJobResult(pending);
+      });
+    }).then(function (resultPayload) {
+      if (!_handlePrepareSuccess(resultPayload, pending.profile, pending.targetYear || _targetYear())) {
+        throw _buildPdfApiError(resultPayload, 422, '신년운세 PDF 결과를 복구하지 못했습니다.');
+      }
+    }).catch(function (error) {
+      _logError(error, { stage: 'restore', reportId: pending.reportId, sessionId: pending.sessionId });
+      if (Number(error && error.status || 0) === 404) _clearCurrentJob();
+      _setError(_publicErrorMessage(error, '신년운세 PDF 상태를 복구하지 못했습니다. 다시 시도해주세요.'), {
+        detail: '새로고침 후 저장된 jobId의 status/result 조회가 실패했습니다.',
+        retryText: '다시 확인'
+      });
+    }).finally(function () {
+      _setBusy(false);
+    });
+    return true;
   }
 
   window.openSajuNewYearModal = function () {
@@ -1458,7 +1672,7 @@
     if (profile && profile.birth) {
       window.__cdActiveBirthProfile = profile;
       _renderProfileSummary(profile);
-      _showScreen('nyStartScreen');
+      if (!_restoreCurrentNewYearJob(profile)) _showScreen('nyStartScreen');
     } else {
       _setError('정확한 신년운세 계산을 위해 생년월일 정보를 확인해 주세요.', {
         showBirthInput: true,

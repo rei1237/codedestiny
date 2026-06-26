@@ -22,6 +22,7 @@ import {
   SOUL_ORIGIN_LLM_MANUSCRIPT_SOURCE,
   SOUL_ORIGIN_LLM_PROVIDER,
   SOUL_ORIGIN_LLM_WRITING_PIPELINE,
+  hashStable as hashSoulOriginStable,
 } from "../lib/pdf-v2/soul-origin/soul-origin-premium.types.js";
 import { createSoulOriginPremiumPdfJob } from "../lib/pdf-v2/soul-origin/create-soul-origin-premium-pdf-job.js";
 
@@ -58,6 +59,11 @@ if (!globalThis.__SOUL_ORIGIN_REPORT_CACHE) {
 const SESSION_LOCKS = globalThis.__SOUL_ORIGIN_SESSION_LOCKS || new Map();
 if (!globalThis.__SOUL_ORIGIN_SESSION_LOCKS) {
   globalThis.__SOUL_ORIGIN_SESSION_LOCKS = SESSION_LOCKS;
+}
+
+const ACCESS_VERIFICATIONS = globalThis.__SOUL_ORIGIN_ACCESS_VERIFICATIONS || new Map();
+if (!globalThis.__SOUL_ORIGIN_ACCESS_VERIFICATIONS) {
+  globalThis.__SOUL_ORIGIN_ACCESS_VERIFICATIONS = ACCESS_VERIFICATIONS;
 }
 
 const STEM_KO_MAP = Object.freeze({
@@ -98,6 +104,10 @@ const ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신",
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
 }
 
 function safeNumber(value, fallback = 0) {
@@ -686,15 +696,24 @@ function updateSoulOriginSessionLock(sessionId, patch = {}) {
 }
 
 function soulOriginProgressFields(lock = {}) {
+  const publicStatus = publicSoulOriginJobStatus(lock);
   return {
     generationStatus: clean(lock.generationStatus || lock.currentStep || ""),
-    progress: Number.isFinite(Number(lock.progress)) ? Number(lock.progress) : 0,
+    progress: Number.isFinite(Number(lock.progress)) ? Number(lock.progress) : publicStatus.progressPercent,
+    progressPercent: publicStatus.progressPercent,
     currentStep: clean(lock.currentStep || ""),
     currentChapterId: clean(lock.currentChapterId || ""),
     currentChapterTitle: clean(lock.currentChapterTitle || ""),
+    totalChapters: publicStatus.totalChapters,
+    completedChapters: publicStatus.completedChapters,
+    chapters: publicStatus.chapters,
     systemStatus: lock.systemStatus && typeof lock.systemStatus === "object" ? lock.systemStatus : undefined,
     failedStep: clean(lock.failedStep || ""),
     failedChapterId: clean(lock.failedChapterId || ""),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
   };
 }
 
@@ -706,6 +725,509 @@ function buildCalculationSystemStatus(seed = {}) {
     ziwei: Boolean(seed.ziwei),
     sukuyo: Boolean(seed.sukyo),
   };
+}
+
+async function handleVerifyAccess(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const requestId = clean(body?.requestId || body?._paymentContext?.requestId || body?.payment?.requestId || makeReportId());
+  const normalizedBirth = normalizeBirthInput(body?.birthInput || body?.input || {});
+  if (!normalizedBirth.ok) {
+    return json({ ok: false, code: normalizedBirth.code, message: normalizedBirth.message }, { status: normalizedBirth.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
+  }
+
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || makeReportId());
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || `soul-origin:${auth.userId}:${reportId}`);
+  const featureKey = clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY;
+  const premiumAccessToken = getPremiumAccessToken(request, body);
+  const access = isDebugMockAccessAllowed(env)
+    ? {
+        ok: true,
+        accessType: "debug_mock",
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        featureKey,
+        chargedCoins: 0,
+      }
+    : await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, SOUL_ORIGIN_REPORT_TYPE, {
+        ...body,
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+        archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+        reportTypeAliases: SOUL_ORIGIN_REPORT_TYPE_ALIASES,
+        featureKey,
+        featureAliases: SOUL_ORIGIN_FEATURE_ALIASES,
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: "/api/soul-origin/verify-access",
+      });
+
+  if (!access?.ok) {
+    return json({
+      ok: false,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      code: access?.code || "PAYMENT_REQUIRED",
+      message: access?.message || "운명의 업 PDF 생성 권한이 필요합니다.",
+      reportId,
+      sessionId,
+    }, { status: Number(access?.status || 402) });
+  }
+
+  const verification = storeAccessVerification({
+    userId: auth.userId,
+    sessionId,
+    reportId,
+    requestId,
+    access,
+    body,
+    birthInput: normalizedBirth.input,
+  });
+
+  return json({
+    ok: true,
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    status: "access_verified",
+    reportId,
+    sessionId,
+    requestId,
+    access: {
+      verified: true,
+      method: verification.method,
+      paymentId: clean(access.matchedTransactionId || access.transactionId || "") || undefined,
+      passId: clean(access.passTier || access.entitlementId || "") || undefined,
+      verifiedAt: verification.verifiedAt,
+    },
+  });
+}
+
+async function handleCreateJob(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const normalizedBirth = normalizeBirthInput(body?.birthInput || body?.input || {});
+  if (!normalizedBirth.ok) {
+    return json({ ok: false, code: normalizedBirth.code, message: normalizedBirth.message }, { status: normalizedBirth.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
+  }
+
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || "");
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "");
+  const requestId = clean(body?.requestId || body?._paymentContext?.requestId || body?.payment?.requestId || "");
+  if (!reportId || !sessionId) {
+    return json({ ok: false, code: "MISSING_JOB_BINDING", message: "reportId와 sessionId가 필요합니다." }, { status: 400 });
+  }
+
+  const verification = findAccessVerification({ userId: auth.userId, sessionId, reportId });
+  if (!verification?.verified) {
+    return json({
+      ok: false,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      code: "ACCESS_NOT_VERIFIED",
+      message: "결제 검증이 완료된 뒤에만 운명의 업 PDF Job을 만들 수 있습니다.",
+      reportId,
+      sessionId,
+    }, { status: 403 });
+  }
+
+  const existing = SESSION_LOCKS.get(sessionId);
+  if (existing && clean(existing.userId) === clean(auth.userId) && clean(existing.reportId) === reportId) {
+    return json({
+      ok: true,
+      ...publicSoulOriginJobStatus(existing),
+    });
+  }
+
+  const featureKey = clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY;
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId,
+    access: verification.access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  await startPremiumPdfExecution(env, auth.userId, executionCtx);
+
+  const now = new Date().toISOString();
+  const lock = {
+    sessionId,
+    reportId,
+    requestId,
+    userId: auth.userId,
+    status: "created",
+    generationStatus: "created",
+    currentStep: "created",
+    progress: 10,
+    progressPercent: 10,
+    totalChapters: soulOriginChapterPlanV1.chapters.length,
+    completedChapters: 0,
+    chapters: initialSoulOriginChapters(),
+    inputHash: buildSoulOriginInputHash(normalizedBirth.input),
+    inputSnapshot: normalizedBirth.input,
+    bodySnapshot: body,
+    access: {
+      verified: true,
+      method: verification.method,
+      paymentId: clean(verification.access?.matchedTransactionId || verification.access?.transactionId || "") || undefined,
+      passId: clean(verification.access?.passTier || verification.access?.entitlementId || "") || undefined,
+      verifiedAt: verification.verifiedAt,
+    },
+    accessResult: verification.access,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    executionStarted: true,
+    createdAt: now,
+    startedAt: now,
+    updatedAt: now,
+  };
+  SESSION_LOCKS.set(sessionId, lock);
+
+  return json({
+    ok: true,
+    ...publicSoulOriginJobStatus(lock),
+  });
+}
+
+async function runSoulOriginMockGeneration({ request, env, auth, sessionId, reportId, requestId, body, lock } = {}) {
+  const featureKey = clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY;
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId,
+    access: lock.accessResult || lock.access,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  if (lock.executionStarted !== true) {
+    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+  }
+
+  updateSoulOriginSessionLock(sessionId, {
+    status: "running",
+    generationStatus: "queued",
+    currentStep: "queued",
+    progress: 10,
+    progressPercent: 10,
+    totalChapters: soulOriginChapterPlanV1.chapters.length,
+    completedChapters: 0,
+    chapters: lock.chapters?.length ? lock.chapters : initialSoulOriginChapters(),
+    updatedAt: new Date().toISOString(),
+  });
+
+  const birthInput = lock.inputSnapshot || normalizeBirthInput(body?.birthInput || body?.input || {}).input;
+  let calculationSeed = {};
+  try {
+    updateSoulOriginSessionLock(sessionId, {
+      generationStatus: "generating",
+      currentStep: "generating",
+      progress: 10,
+      progressPercent: 10,
+    });
+    calculationSeed = await buildSoulOriginCalculationSeed(env, birthInput);
+    const normalizedLlmInput = normalizeSoulOriginCalculationInput({
+      birthInput,
+      calculationSeed,
+      locale: "ko-KR",
+    });
+
+    const generatedReport = await createSoulOriginPremiumPdfJob({
+      env: buildSoulOriginMockEnv(env),
+      input: normalizedLlmInput,
+      calculationSeed,
+      userId: auth.userId,
+      reportId,
+      sessionId,
+      requestUrl: request.url,
+      onStatus: (state = {}) => {
+        updateSoulOriginSessionLock(sessionId, {
+          status: "running",
+          generationStatus: clean(state.status || state.currentStep || "generating"),
+          currentStep: clean(state.currentStep || state.status || "generating"),
+          progress: Number.isFinite(Number(state.progress)) ? Number(state.progress) : 0,
+          progressPercent: Number.isFinite(Number(state.progressPercent ?? state.progress)) ? Number(state.progressPercent ?? state.progress) : 0,
+          currentChapterId: clean(state.currentChapterId || ""),
+          currentChapterTitle: clean(state.currentChapterTitle || ""),
+          totalChapters: Number(state.totalChapters || soulOriginChapterPlanV1.chapters.length),
+          completedChapters: Number(state.completedChapters || 0),
+          chapters: Array.isArray(state.chapters) ? state.chapters : SESSION_LOCKS.get(sessionId)?.chapters,
+          systemStatus: state.systemStatus && typeof state.systemStatus === "object" ? state.systemStatus : buildCalculationSystemStatus(calculationSeed),
+          updatedAt: new Date().toISOString(),
+        });
+      },
+    });
+
+    const chapters = Array.isArray(generatedReport.chapters) ? generatedReport.chapters : [];
+    const qualityReport = generatedReport.qualityReport || { status: "passed", score: 100 };
+    const pdfReady = generatedReport.pdfReady || {};
+    const pdfCompletionValidation = generatedReport.pdfCompletionValidation || null;
+    const llmAssembly = generatedReport.llmAssembly || {
+      enabled: true,
+      externalGeneration: true,
+      externalCallsAllowed: false,
+      fallbackUsed: false,
+      provider: "mock",
+      modelName: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      chapterCount: chapters.length,
+      expectedChapterCount: soulOriginChapterPlanV1.chapters.length,
+    };
+    const generatedAt = generatedReport.generatedAt || new Date().toISOString();
+    const responseBody = {
+      ok: true,
+      status: "completed",
+      serverStatus: "completed",
+      generationStatus: "completed",
+      qualityStatus: clean(qualityReport.status) || "passed",
+      qualityReport,
+      manuscriptSource: SOUL_ORIGIN_MANUSCRIPT_SOURCE,
+      chapterAuthoringSource: SOUL_ORIGIN_MANUSCRIPT_SOURCE,
+      summarySource: SOUL_ORIGIN_MANUSCRIPT_SOURCE,
+      generationMode: generatedReport.generationMode || SOUL_ORIGIN_MANUSCRIPT_SOURCE,
+      provider: "mock",
+      modelName: "mock",
+      writingPipeline: generatedReport.writingPipeline || SOUL_ORIGIN_WRITING_PIPELINE,
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      fallbackUsed: false,
+      llmAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmAssembly,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      featureKey,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+      archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+      chapterCount: chapters.length,
+      expectedChapterCount: soulOriginChapterPlanV1.chapters.length,
+      totalChapters: soulOriginChapterPlanV1.chapters.length,
+      completedChapters: chapters.length,
+      progressPercent: 100,
+      reportId,
+      jobId: reportId,
+      sessionId,
+      title: clean(generatedReport.reportTitle || SOUL_ORIGIN_TITLE) || SOUL_ORIGIN_TITLE,
+      summary: clean(generatedReport.summary || ""),
+      finalMessage: clean(generatedReport.finalMessage || ""),
+      disclaimer: clean(generatedReport.disclaimer || ""),
+      birthInput,
+      calculationDigest: clean(normalizedLlmInput.calculationDigest || ""),
+      chapters,
+      pdfV2: generatedReport.pdfV2 || null,
+      pdfReady,
+      pdfCompletionValidation,
+      downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
+      pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
+      htmlUrl: clean(pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
+      canReopen: true,
+      canDownload: true,
+      createdAt: generatedAt,
+      completedAt: new Date().toISOString(),
+    };
+
+    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      manuscriptSource: responseBody.manuscriptSource,
+      chapterAuthoringSource: responseBody.chapterAuthoringSource,
+      summarySource: responseBody.summarySource,
+      generationMode: responseBody.generationMode,
+      provider: responseBody.provider,
+      modelName: responseBody.modelName,
+      writingPipeline: responseBody.writingPipeline,
+      tokensUsed: responseBody.tokensUsed,
+      cost: responseBody.cost,
+      isMock: responseBody.isMock,
+      fallbackUsed: false,
+      llmAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmAssembly,
+      chapterCount: chapters.length,
+      pdfCompletionValidation,
+      archive: {
+        reportId,
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+        archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+        qualityStatus: responseBody.qualityStatus,
+        manuscriptSource: responseBody.manuscriptSource,
+        chapterAuthoringSource: responseBody.chapterAuthoringSource,
+        summarySource: responseBody.summarySource,
+        generationMode: responseBody.generationMode,
+        provider: responseBody.provider,
+        modelName: responseBody.modelName,
+        writingPipeline: responseBody.writingPipeline,
+        tokensUsed: responseBody.tokensUsed,
+        cost: responseBody.cost,
+        isMock: responseBody.isMock,
+        fallbackUsed: false,
+        llmAssemblyOnly: true,
+        externalCallsAllowed: false,
+        llmAssembly,
+        displayName: SOUL_ORIGIN_DISPLAY_NAME,
+        title: responseBody.title,
+        qualityReport,
+        summary: responseBody.summary,
+        finalMessage: responseBody.finalMessage,
+        disclaimer: responseBody.disclaimer,
+        mode: "personal",
+        birthName: clean(birthInput.name),
+        chapterCount: chapters.length,
+        expectedChapterCount: soulOriginChapterPlanV1.chapters.length,
+        chapters,
+        calculationInput: normalizedLlmInput,
+        calculationDigest: responseBody.calculationDigest,
+        pdfV2: responseBody.pdfV2,
+        cacheKey: clean(generatedReport.cacheKey || ""),
+        pdfReady,
+        pdfCompletionValidation,
+        downloadUrl: responseBody.downloadUrl,
+        pdfUrl: responseBody.pdfUrl,
+        htmlUrl: responseBody.htmlUrl,
+        canReopen: true,
+        canDownload: true,
+      },
+    });
+
+    REPORT_CACHE.set(reportId, {
+      reportId,
+      userId: auth.userId,
+      payload: responseBody,
+    });
+
+    SESSION_LOCKS.set(sessionId, {
+      ...SESSION_LOCKS.get(sessionId),
+      sessionId,
+      reportId,
+      requestId,
+      userId: auth.userId,
+      status: "done",
+      generationStatus: "completed",
+      currentStep: "completed",
+      progress: 100,
+      progressPercent: 100,
+      totalChapters: soulOriginChapterPlanV1.chapters.length,
+      completedChapters: chapters.length,
+      chapters: slimSoulOriginChapters(chapters),
+      systemStatus: buildCalculationSystemStatus(calculationSeed),
+      pdfUrl: responseBody.pdfUrl,
+      downloadUrl: responseBody.downloadUrl,
+      completedAt: responseBody.completedAt,
+      updatedAt: responseBody.completedAt,
+      result: responseBody,
+    });
+
+    return responseBody;
+  } catch (error) {
+    try {
+      await failPremiumPdfExecution(
+        env,
+        auth.userId,
+        executionCtx,
+        clean(error?.code || "soul_origin_generation_failed"),
+        clean(error?.message || "운명의 업 리포트 생성 중 오류가 발생했습니다."),
+        clean(error?.failedStep || error?.step || "soul-origin-generation"),
+      );
+    } catch (failError) {
+      logFlow("FailExecutionError", {
+        requestId,
+        sessionId,
+        reportId,
+        errorCode: clean(failError?.code || "SOUL_ORIGIN_FAIL_EXECUTION_ERROR"),
+      });
+    }
+    const previous = SESSION_LOCKS.get(sessionId) || lock || {};
+    const failedChapters = slimSoulOriginChapters(previous.chapters?.length ? previous.chapters : initialSoulOriginChapters())
+      .map((chapter) => chapter.id === clean(error?.failedChapterId || error?.chapterId || previous.currentChapterId)
+        ? { ...chapter, status: "failed", errorMessage: clean(error?.message || "챕터 생성 실패") }
+        : chapter);
+    SESSION_LOCKS.set(sessionId, {
+      ...previous,
+      sessionId,
+      reportId,
+      requestId,
+      userId: auth.userId,
+      status: "failed",
+      generationStatus: "failed",
+      currentStep: clean(error?.failedStep || error?.step || "failed"),
+      progress: Number(previous.progress || 0),
+      progressPercent: Number(previous.progressPercent ?? previous.progress ?? 0),
+      chapters: failedChapters,
+      code: clean(error?.code || "SOUL_ORIGIN_GENERATION_FAILED"),
+      message: clean(error?.message || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
+      failedStep: clean(error?.failedStep || error?.step || "soul-origin-generation"),
+      failedChapterId: clean(error?.failedChapterId || error?.chapterId || previous.currentChapterId || ""),
+      httpStatus: Number(error?.status || 500),
+      updatedAt: new Date().toISOString(),
+      error: normalizeError(error),
+    });
+    throw error;
+  }
+}
+
+async function handleGenerateMock(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const reportId = clean(body?.jobId || body?.reportId || body?.accessGrant?.reportId || "");
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "");
+  const requestId = clean(body?.requestId || body?._paymentContext?.requestId || body?.payment?.requestId || "");
+  const found = findSoulOriginJobLock({ userId: auth.userId, sessionId, reportId });
+  if (!found?.lock) {
+    return json({
+      ok: false,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      code: "JOB_NOT_FOUND",
+      message: "운명의 업 PDF Job을 찾지 못했습니다.",
+      reportId,
+      sessionId,
+    }, { status: 404 });
+  }
+
+  const lock = found.lock;
+  const effectiveSessionId = found.sessionId;
+  if (lock.access?.verified !== true) {
+    return json({
+      ok: false,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      code: "ACCESS_NOT_VERIFIED",
+      message: "결제 검증이 완료된 Job만 생성할 수 있습니다.",
+      reportId: clean(lock.reportId || reportId),
+      sessionId: effectiveSessionId,
+    }, { status: 403 });
+  }
+
+  const currentStatus = clean(lock.generationStatus || lock.status).toLowerCase();
+  if (currentStatus === "completed" || lock.status === "done") {
+    return json(lock.result || { ok: true, ...publicSoulOriginJobStatus(lock) });
+  }
+  if (isSoulOriginJobActive(currentStatus)) {
+    return json({ ok: true, ...publicSoulOriginJobStatus(lock) });
+  }
+
+  try {
+    const responseBody = await runSoulOriginMockGeneration({
+      request,
+      env,
+      auth,
+      sessionId: effectiveSessionId,
+      reportId: clean(lock.reportId || reportId),
+      requestId: clean(lock.requestId || requestId),
+      body: lock.bodySnapshot || body,
+      lock,
+    });
+    return json(responseBody);
+  } catch (error) {
+    return json({
+      ok: false,
+      ...publicSoulOriginJobStatus(SESSION_LOCKS.get(effectiveSessionId) || lock),
+      code: clean(error?.code || "SOUL_ORIGIN_GENERATION_FAILED"),
+      message: "운명의 업 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.",
+    }, { status: Number(error?.status || 500) });
+  }
 }
 
 function getPremiumAccessToken(request, body = {}) {
@@ -723,6 +1245,170 @@ function getPremiumAccessToken(request, body = {}) {
     || cookieValue(request, "cd_premium_access_token")
     || "",
   );
+}
+
+function truthyFlag(value) {
+  const text = clean(value).toLowerCase();
+  return text === "true" || text === "1" || text === "yes" || text === "on";
+}
+
+function isProductionRuntime(env = {}) {
+  return clean(env?.NODE_ENV || env?.ENV).toLowerCase() === "production";
+}
+
+function isDebugMockAccessAllowed(env = {}) {
+  return !isProductionRuntime(env) && truthyFlag(env?.PDF_DEBUG_MODE);
+}
+
+function buildSoulOriginMockEnv(env = {}) {
+  return {
+    ...env,
+    PDF_LLM_PROVIDER: "mock",
+    PDF_DEBUG_MODE: "true",
+    LLM_DRY_RUN: "true",
+    GEMINI_CALL_ENABLED: "false",
+    WORKERS_AI_ENABLED: "false",
+    PDF_LLM_MAX_CALLS_PER_JOB: "0",
+    PDF_LLM_MAX_RETRIES: "0",
+  };
+}
+
+function buildAccessVerificationKey(userId = "", sessionId = "", reportId = "") {
+  return [clean(userId), clean(sessionId), clean(reportId)].join("::");
+}
+
+function accessMethodFromResult(access = {}) {
+  const type = clean(access.accessType || access.method).toLowerCase();
+  if (type.includes("debug")) return "debug_mock";
+  if (type.includes("pass")) return "pass";
+  return "payment";
+}
+
+function storeAccessVerification({ userId = "", sessionId = "", reportId = "", requestId = "", access = {}, body = {}, birthInput = {} } = {}) {
+  const verifiedAt = new Date().toISOString();
+  const record = {
+    userId: clean(userId),
+    sessionId: clean(sessionId),
+    reportId: clean(reportId),
+    requestId: clean(requestId),
+    verified: true,
+    method: accessMethodFromResult(access),
+    access,
+    bodySnapshot: body,
+    inputSnapshot: birthInput,
+    verifiedAt,
+  };
+  ACCESS_VERIFICATIONS.set(buildAccessVerificationKey(userId, sessionId, reportId), record);
+  return record;
+}
+
+function findAccessVerification({ userId = "", sessionId = "", reportId = "" } = {}) {
+  const direct = ACCESS_VERIFICATIONS.get(buildAccessVerificationKey(userId, sessionId, reportId));
+  if (direct?.verified) return direct;
+  for (const record of ACCESS_VERIFICATIONS.values()) {
+    if (clean(record.userId) !== clean(userId)) continue;
+    if (sessionId && clean(record.sessionId) !== clean(sessionId)) continue;
+    if (reportId && clean(record.reportId) !== clean(reportId)) continue;
+    if (record.verified) return record;
+  }
+  return null;
+}
+
+function initialSoulOriginChapters() {
+  return asArray(soulOriginChapterPlanV1.chapters).map((chapter, index) => ({
+    id: clean(chapter.id),
+    title: clean(chapter.title),
+    order: Number(chapter.order || chapter.chapterNumber || index + 1),
+    category: clean(chapter.category || "운명의 업"),
+    status: "pending",
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  }));
+}
+
+function slimSoulOriginChapters(chapters = []) {
+  return asArray(chapters).map((chapter, index) => ({
+    id: clean(chapter.id),
+    title: clean(chapter.title),
+    order: Number(chapter.order || chapter.chapterNumber || index + 1),
+    category: clean(chapter.category || ""),
+    status: clean(chapter.status || (chapter.html || chapter.content ? "completed" : "pending")),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    startedAt: clean(chapter.startedAt || "") || undefined,
+    completedAt: clean(chapter.completedAt || "") || undefined,
+    errorMessage: clean(chapter.errorMessage || "") || undefined,
+  }));
+}
+
+function findSoulOriginJobLock({ userId = "", sessionId = "", reportId = "" } = {}) {
+  if (sessionId) {
+    const lock = SESSION_LOCKS.get(sessionId);
+    if (lock && clean(lock.userId) === clean(userId)) return { sessionId, lock };
+  }
+  for (const [key, lock] of SESSION_LOCKS.entries()) {
+    if (clean(lock.userId) !== clean(userId)) continue;
+    if (reportId && clean(lock.reportId) !== clean(reportId)) continue;
+    return { sessionId: key, lock };
+  }
+  return null;
+}
+
+function isSoulOriginJobActive(status = "") {
+  return ["queued", "generating", "chapter_generating", "rendering", "saving", "running", "processing"].includes(clean(status).toLowerCase());
+}
+
+function buildSoulOriginInputHash(input = {}) {
+  return hashSoulOriginStable({
+    birthDate: input.birthDate,
+    birthTime: input.birthTime,
+    birthPlace: input.birthPlace,
+    timezone: input.timezone,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    calendarType: input.calendarType,
+  });
+}
+
+function publicSoulOriginJobStatus(lock = {}) {
+  const chapters = slimSoulOriginChapters(lock.chapters?.length ? lock.chapters : initialSoulOriginChapters());
+  const completedChapters = Number.isFinite(Number(lock.completedChapters))
+    ? Number(lock.completedChapters)
+    : chapters.filter((chapter) => chapter.status === "completed").length;
+  const totalChapters = Number(lock.totalChapters || chapters.length || soulOriginChapterPlanV1.chapters.length);
+  const progressPercent = Number.isFinite(Number(lock.progressPercent ?? lock.progress))
+    ? Number(lock.progressPercent ?? lock.progress)
+    : 0;
+  return {
+    jobId: clean(lock.reportId || ""),
+    reportId: clean(lock.reportId || ""),
+    sessionId: clean(lock.sessionId || ""),
+    serviceType: "destiny_karma_pdf",
+    status: clean(lock.generationStatus || lock.currentStep || lock.status || "created"),
+    serverStatus: clean(lock.status || ""),
+    progressPercent,
+    progress: progressPercent,
+    totalChapters,
+    completedChapters,
+    currentChapterId: clean(lock.currentChapterId || ""),
+    currentChapterTitle: clean(lock.currentChapterTitle || ""),
+    chapters,
+    pdfUrl: clean(lock.pdfUrl || lock.result?.pdfUrl || lock.result?.downloadUrl || ""),
+    downloadUrl: clean(lock.downloadUrl || lock.result?.downloadUrl || lock.result?.pdfUrl || ""),
+    errorMessage: clean(lock.message || ""),
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    access: lock.access?.verified ? lock.access : undefined,
+    createdAt: clean(lock.createdAt || lock.startedAt || ""),
+    updatedAt: clean(lock.updatedAt || ""),
+    completedAt: clean(lock.completedAt || ""),
+  };
 }
 
 async function handlePrepare(request, env) {
@@ -911,8 +1597,12 @@ async function handlePrepare(request, env) {
           generationStatus: clean(state.status || state.currentStep || "generating"),
           currentStep: clean(state.currentStep || state.status || "generating"),
           progress: Number.isFinite(Number(state.progress)) ? Number(state.progress) : 0,
+          progressPercent: Number.isFinite(Number(state.progressPercent ?? state.progress)) ? Number(state.progressPercent ?? state.progress) : 0,
           currentChapterId: clean(state.currentChapterId || ""),
           currentChapterTitle: clean(state.currentChapterTitle || ""),
+          totalChapters: Number(state.totalChapters || soulOriginChapterPlanV1.chapters.length),
+          completedChapters: Number(state.completedChapters || 0),
+          chapters: Array.isArray(state.chapters) ? state.chapters : SESSION_LOCKS.get(sessionId)?.chapters,
           systemStatus: state.systemStatus && typeof state.systemStatus === "object" ? state.systemStatus : buildCalculationSystemStatus(calculationSeed),
         });
       },
@@ -953,9 +1643,12 @@ async function handlePrepare(request, env) {
       provider: generatedReport.provider || SOUL_ORIGIN_PROVIDER,
       modelName: generatedReport.modelName || "",
       writingPipeline: generatedReport.writingPipeline || SOUL_ORIGIN_WRITING_PIPELINE,
+      tokensUsed: Number(generatedReport.tokensUsed || 0),
+      cost: Number(generatedReport.cost || 0),
+      isMock: generatedReport.isMock === true || clean(generatedReport.provider) === "mock",
       fallbackUsed: false,
       llmAssemblyOnly: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed: generatedReport.externalCallsAllowed !== false ? true : false,
       llmAssembly,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
@@ -964,6 +1657,9 @@ async function handlePrepare(request, env) {
       archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
       chapterCount: chapters.length,
       expectedChapterCount: soulOriginChapterPlanV1.chapters.length,
+      totalChapters: soulOriginChapterPlanV1.chapters.length,
+      completedChapters: chapters.length,
+      progressPercent: 100,
       reportId,
       sessionId,
       title: clean(generatedReport.reportTitle || SOUL_ORIGIN_TITLE) || SOUL_ORIGIN_TITLE,
@@ -1011,9 +1707,12 @@ async function handlePrepare(request, env) {
         provider: responseBody.provider,
         modelName: responseBody.modelName,
         writingPipeline: responseBody.writingPipeline,
+        tokensUsed: responseBody.tokensUsed,
+        cost: responseBody.cost,
+        isMock: responseBody.isMock,
         fallbackUsed: false,
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed: responseBody.externalCallsAllowed,
         llmAssembly,
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: responseBody.title,
@@ -1055,8 +1754,13 @@ async function handlePrepare(request, env) {
       generationStatus: "completed",
       currentStep: "completed",
       progress: 100,
+      progressPercent: 100,
+      totalChapters: soulOriginChapterPlanV1.chapters.length,
+      completedChapters: chapters.length,
+      chapters: slimSoulOriginChapters(chapters),
       systemStatus: buildCalculationSystemStatus(calculationSeed),
       startedAt: existingLock?.startedAt || new Date().toISOString(),
+      completedAt: new Date().toISOString(),
       result: responseBody,
     });
 
@@ -1219,10 +1923,10 @@ async function loadSoulOriginReportPayload(env, auth, reportId) {
   return { ok: true, payload };
 }
 
-async function handleReadReport(request, env) {
+async function handleReadReport(request, env, pathReportId = "") {
   const auth = await requireAuth(request, env);
   const url = new URL(request.url);
-  const reportId = clean(url.searchParams.get("reportId"));
+  const reportId = clean(pathReportId || url.searchParams.get("reportId"));
 
   if (!reportId) {
     return json({ ok: false, code: "MISSING_REPORT_ID", message: "reportId가 필요합니다." }, { status: 400 });
@@ -1235,7 +1939,7 @@ async function handleReadReport(request, env) {
   return json(loaded.payload);
 }
 
-async function handleStatus(request, env) {
+async function handleStatus(request, env, pathReportId = "") {
   let auth;
   try {
     auth = await requireAuth(request, env);
@@ -1252,7 +1956,7 @@ async function handleStatus(request, env) {
   }
 
   const url = new URL(request.url);
-  const reportId = clean(url.searchParams.get("reportId"));
+  const reportId = clean(pathReportId || url.searchParams.get("reportId"));
   const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
   const executionKey = clean(url.searchParams.get("executionKey") || url.searchParams.get("requestId"));
 
@@ -1394,14 +2098,39 @@ export async function handleSoulOriginRoutes(request, env = {}) {
       return await handlePrepare(request, env);
     }
 
+    if (path === "/verify-access") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleVerifyAccess(request, env);
+    }
+
+    if (path === "/create-job") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleCreateJob(request, env);
+    }
+
+    if (path === "/generate-mock") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleGenerateMock(request, env);
+    }
+
     if (path === "/report") {
       if (method !== "GET") return methodNotAllowed();
       return await handleReadReport(request, env);
     }
 
+    if (path.startsWith("/result/")) {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleReadReport(request, env, decodeURIComponent(path.slice("/result/".length)));
+    }
+
     if (path === "/status") {
       if (method !== "GET") return methodNotAllowed();
       return await handleStatus(request, env);
+    }
+
+    if (path.startsWith("/status/")) {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleStatus(request, env, decodeURIComponent(path.slice("/status/".length)));
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

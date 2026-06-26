@@ -1,7 +1,6 @@
 import { clean, hashStable } from "./saju-new-year-premium.types.js";
 
 export const NEW_YEAR_LLM_VERSION = "2026-06-new-year-llm-v1";
-export const NEW_YEAR_HTML_SCHEMA_VERSION = "new-year-html-v1";
 
 export const NEW_YEAR_DEFAULT_CHAPTERS = [
   {

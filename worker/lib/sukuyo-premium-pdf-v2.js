@@ -1,5 +1,5 @@
 import { Solar } from "lunar-javascript";
-import { callLLM } from "../../lib/llm-client.ts";
+import { generatePdfChapterTextResult } from "./pdf-v2/pdf-llm-gateway.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "./sukuyo-premium.js";
 import { SUKYO_PREMIUM_CHAPTERS_V2, SUKYO_PREMIUM_CHAPTER_PLAN_VERSION } from "./pdf-v2/sukyo-premium-chapter-plan.js";
 
@@ -42,7 +42,6 @@ function withSukyoChapterCategory(chapter = {}) {
 }
 export const SUKYO_PDF_CHAPTERS = Object.freeze(SUKYO_PREMIUM_CHAPTERS_V2.map(withSukyoChapterCategory));
 
-const PROVIDER_TIMEOUT_MS = 45000;
 const CHAPTER_CACHE = new Map();
 const LLM_CACHE_MODES = new Set(["off", "write-only", "readwrite"]);
 const SYUKU_LABELS = Object.freeze([
@@ -752,18 +751,6 @@ export function validateSukyoPdfInput(raw = {}) {
   };
 }
 
-function withTimeout(promise, timeoutMs) {
-  let timer = null;
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      timer = setTimeout(() => reject(Object.assign(new Error("provider_timeout"), { status: 504 })), Math.max(1000, Number(timeoutMs) || PROVIDER_TIMEOUT_MS));
-    }),
-  ]).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
-}
-
 function cleanBlock(value) {
   let html = block(value);
   html = html.replace(/^```(?:html)?/i, "").replace(/```$/i, "").trim();
@@ -1058,58 +1045,42 @@ function resolveWorkersAiModelName(env = {}) {
   return clean(env?.SUKYO_PREMIUM_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast");
 }
 
-function extractWorkersAiText(result) {
-  if (typeof result === "string") return result;
-  if (!result || typeof result !== "object") return "";
-  const direct = result.response || result.text || result.output_text || result.result?.response || result.result?.text;
-  if (typeof direct === "string") return direct;
-  if (Array.isArray(result.choices)) {
-    return result.choices
-      .map((choice) => choice?.message?.content || choice?.text || "")
-      .filter(Boolean)
-      .join("\n");
-  }
-  if (Array.isArray(result.content)) {
-    return result.content
-      .map((item) => item?.text || "")
-      .filter(Boolean)
-      .join("\n");
-  }
-  return "";
+async function callSukuyoPdfGateway(env, prompt, options = {}) {
+  const started = Date.now();
+  const chapterSpec = options.chapterSpec && typeof options.chapterSpec === "object" ? options.chapterSpec : {};
+  const result = await generatePdfChapterTextResult({
+    jobId: clean(options.requestId || "sukuyo"),
+    serviceType: "sukuyo",
+    chapterId: clean(chapterSpec.id || options.chapterId || options.requestId || "sukuyo-chapter"),
+    chapterTitle: clean(chapterSpec.title || options.chapterTitle || "숙요점"),
+    chapterOrder: Number(chapterSpec.order || options.chapterOrder || 1),
+    totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+    prompt,
+    context: {
+      format: "sukuyo-html",
+      chapterSpec,
+      chapter: chapterSpec,
+    },
+  }, env);
+  return {
+    ok: Boolean(result.ok),
+    provider: result.provider,
+    modelName: clean(result.modelName || result.model || options.modelName || "mock"),
+    rawText: result.text || result.rawText || "",
+    tokensUsed: Number(result.tokensUsed || 0),
+    cost: Number(result.cost || 0),
+    isMock: result.isMock === true || clean(result.provider) === "mock",
+    errorCode: clean(result.errorCode),
+    errorMessage: clean(result.errorMessage, 300),
+    status: result.status || null,
+    latencyMs: Number(result.latencyMs || Date.now() - started),
+  };
 }
 
 async function callWorkersAi(env, prompt, options = {}) {
-  const started = Date.now();
   const modelName = resolveWorkersAiModelName(env);
   try {
-    if (!env?.AI?.run) {
-      return {
-        ok: false,
-        provider: "workers-ai",
-        modelName,
-        errorCode: "workers_ai_unavailable",
-        errorMessage: "Cloudflare Workers AI binding is not configured.",
-        latencyMs: Date.now() - started,
-      };
-    }
-    const messages = [
-      { role: "system", content: buildSystemPrompt() },
-      { role: "user", content: prompt },
-    ];
-    const result = await withTimeout(env.AI.run(modelName, {
-      messages,
-      max_tokens: Number(options.maxTokens || env.SUKYO_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-      temperature: Number(env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
-    }), Number(options.timeoutMs || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const rawText = cleanBlock(extractWorkersAiText(result));
-    if (!rawText) return { ok: false, provider: "workers-ai", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
-    return {
-      ok: true,
-      provider: "workers-ai",
-      modelName,
-      rawText,
-      latencyMs: Date.now() - started,
-    };
+    return await callSukuyoPdfGateway(env, prompt, { ...options, modelName, provider: "workers-ai" });
   } catch (error) {
     return {
       ok: false,
@@ -1117,33 +1088,15 @@ async function callWorkersAi(env, prompt, options = {}) {
       modelName,
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
-      latencyMs: Date.now() - started,
+      latencyMs: 0,
     };
   }
 }
 
 async function callGemini(env, prompt, options = {}) {
-  const started = Date.now();
   const modelName = resolvePremiumGeminiModelName(env);
   try {
-    const result = await withTimeout(callLLM({
-      prompt,
-      systemPrompt: buildSystemPrompt(),
-      model: modelName,
-      apiEndpoint: clean(env?.PREMIUM_GEMINI_API_ENDPOINT || env?.GEMINI_API_ENDPOINT || "https://generativelanguage.googleapis.com/v1beta"),
-      maxTokens: Number(options.maxTokens || env.SUKYO_PREMIUM_GEMINI_MAX_TOKENS || env.SUKYO_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
-      temperature: Number(env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
-      taskType: "pdf",
-    }, env), Number(options.timeoutMs || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const rawText = cleanBlock(result?.text || "");
-    if (!rawText) return { ok: false, provider: "gemini", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
-    return {
-      ok: true,
-      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
-      modelName: clean(result?.model || modelName),
-      rawText,
-      latencyMs: Date.now() - started,
-    };
+    return await callSukuyoPdfGateway(env, prompt, { ...options, modelName, provider: "gemini" });
   } catch (error) {
     return {
       ok: false,
@@ -1151,7 +1104,7 @@ async function callGemini(env, prompt, options = {}) {
       modelName,
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
-      latencyMs: Date.now() - started,
+      latencyMs: 0,
     };
   }
 }
@@ -1281,6 +1234,9 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
         html: validation.html,
         provider: cached.provider || "cache",
         modelName: cached.modelName || providerModelKey,
+        tokensUsed: 0,
+        cost: 0,
+        isMock: clean(cached.provider) === "mock",
         cached: true,
         attempts: [],
       };
@@ -1301,8 +1257,8 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
     let previousHtml = "";
     for (let retry = 0; retry <= repairLimit; retry += 1) {
       const result = provider === "workers-ai"
-        ? await callWorkersAi(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}` })
-        : await callGemini(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}` });
+        ? await callWorkersAi(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}`, chapterSpec })
+        : await callGemini(env, prompt, { requestId: `${facts.requestId}:${chapterSpec.id}`, chapterSpec });
       const attempt = {
         provider,
         modelName: result.modelName || "",
@@ -1336,6 +1292,9 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
           html: validation.html,
           provider: actualProvider,
           modelName: actualModelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: result.isMock === true || actualProvider === "mock",
           promptVersion: SUKYO_PDF_CONFIG.templateVersion,
           storedAt: new Date().toISOString(),
         });
@@ -1344,6 +1303,9 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
           html: validation.html,
           provider: actualProvider,
           modelName: actualModelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: result.isMock === true || actualProvider === "mock",
           cached: false,
           attempts,
         };
@@ -1858,7 +1820,7 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
   if (chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
   if (llmAssembly.enabled !== true) issues.push("llmAssembly.enabled");
   if (llmAssembly.externalGeneration !== true) issues.push("llmAssembly.externalGeneration");
-  if (llmAssembly.externalCallsAllowed !== true) issues.push("llmAssembly.externalCallsAllowed");
+  if (llmAssembly.externalCallsAllowed !== true && llmAssembly.isMock !== true) issues.push("llmAssembly.externalCallsAllowed");
   if (llmAssembly.fallbackUsed === true) issues.push("llmAssembly.fallbackUsed");
   if (clean(llmAssembly.templateVersion) !== SUKYO_PDF_CONFIG.templateVersion) issues.push("llmAssembly.templateVersion");
   if (Number(llmAssembly.chapterCount || 0) !== SUKYO_PDF_CHAPTER_COUNT) issues.push("llmAssembly.chapterCount");
@@ -1924,6 +1886,9 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
   const providerSet = new Set();
   const modelSet = new Set();
   let cachedChapterCount = 0;
+  let tokensUsed = 0;
+  let cost = 0;
+  let isMock = false;
 
   for (const chapterSpec of SUKYO_PDF_CHAPTERS) {
     const displayChapterSpec = personalizeSukyoChapterSpec(chapterSpec, facts);
@@ -1960,11 +1925,17 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     const parsed = parseSukyoPremiumChapterHtml(result.html, displayChapterSpec);
     parsed.provider = result.provider;
     parsed.modelName = result.modelName || "";
+    parsed.tokensUsed = Number(result.tokensUsed || 0);
+    parsed.cost = Number(result.cost || 0);
+    parsed.isMock = result.isMock === true || clean(result.provider) === "mock";
     parsed.cached = Boolean(result.cached);
     if (parsed.cached) cachedChapterCount += 1;
     generated.push(parsed);
     providerSet.add(result.provider);
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
+    tokensUsed += Number(result.tokensUsed || 0);
+    cost += Number(result.cost || 0);
+    isMock = isMock || result.isMock === true || clean(result.provider) === "mock";
     previousSummary = clean(stripTags(result.html).slice(-800), 800);
     const completedAfter = generated.map((chapter) => Number(chapter.order || chapter.chapterNo || 0)).filter(Boolean);
     await emitSukyoProgress(onProgress, {
@@ -1996,7 +1967,9 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     });
   }
 
-  const provider = providerSet.has("gemini") && providerSet.size === 1
+  const provider = providerSet.has("mock")
+    ? "mock"
+    : providerSet.has("gemini") && providerSet.size === 1
     ? "gemini"
     : providerSet.has("gemini")
       ? "workers-ai-gemini"
@@ -2013,8 +1986,11 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     chapterCount: generated.length,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
     externalGeneration: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed: isMock ? false : true,
     fallbackUsed: false,
+    tokensUsed,
+    cost,
+    isMock,
     cacheMode: resolveLlmCacheMode(env),
     cachedChapterCount,
     liveChapterCount: generated.length - cachedChapterCount,
@@ -2058,11 +2034,14 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
     generationMode: SUKYO_PDF_CONFIG.generationMode,
     provider,
+    tokensUsed,
+    cost,
+    isMock,
     writingPipeline: "sukyo-calculation-to-llm-authored-pdf",
     llmAssembly,
     llmDraftChapterCount: generated.length,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed: isMock ? false : true,
     chapterQuality,
     pdfCompletionValidation,
     pdfReady,

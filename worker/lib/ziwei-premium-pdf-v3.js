@@ -1,3 +1,5 @@
+import { generatePdfChapterTextResult } from "./pdf-v2/pdf-llm-gateway.js";
+
 export const ZIWEI_PDF_FEATURE_KEY = "premium-ziwei-report";
 export const ZIWEI_PDF_CHAPTER_COUNT = 15;
 export const ZIWEI_PDF_CONFIG = Object.freeze({
@@ -6,8 +8,6 @@ export const ZIWEI_PDF_CONFIG = Object.freeze({
   templateVersion: "ziwei-premium-html-v3.0.0",
 });
 
-const PROVIDER_TIMEOUT_MS = 75000;
-const GEMINI_API_KEY_NAMES = Object.freeze(["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"]);
 const ZIWEI_PDF_ENGINE_VERSION = "pdf-v3-llm-only";
 const ZIWEI_PDF_CHAPTER_PLAN_VERSION = "ziwei-premium-chapter-plan-v3";
 const ZIWEI_PDF_PROMPT_VERSION = "ziwei-premium-prompt-v5";
@@ -1214,93 +1214,43 @@ function displayChapterTitle(value = "") {
   return clean(value).replace(/^제\s*\d+\s*장\s*/, "");
 }
 
-function withTimeout(promise, timeoutMs) {
-  let timer = null;
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      timer = setTimeout(() => reject(Object.assign(new Error("provider_timeout"), { status: 504 })), Math.max(1000, Number(timeoutMs) || PROVIDER_TIMEOUT_MS));
-    }),
-  ]).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
-}
-
-function readGeminiApiKey(env = {}) {
-  for (const key of GEMINI_API_KEY_NAMES) {
-    const value = clean(env?.[key] || "");
-    if (value) return value;
-  }
-  if (typeof process !== "undefined") {
-    for (const key of GEMINI_API_KEY_NAMES) {
-      const value = clean(process.env?.[key] || "");
-      if (value) return value;
-    }
-  }
-  return "";
-}
-
-function extractGeminiText(payload = {}) {
-  const parts = payload?.candidates?.[0]?.content?.parts;
-  if (!Array.isArray(parts)) return "";
-  return parts.map((part) => clean(part?.text || "")).filter(Boolean).join("\n");
-}
-
-function extractWorkersAiText(result = {}) {
-  if (typeof result === "string") return result;
-  const candidates = [
-    result?.response,
-    result?.text,
-    typeof result?.content === "string" ? result.content : "",
-    result?.result?.response,
-    result?.result?.text,
-    typeof result?.result?.content === "string" ? result.result.content : "",
-    result?.output_text,
-  ];
-  for (const candidate of candidates) {
-    const text = clean(candidate || "");
-    if (text) return text;
-  }
-  if (Array.isArray(result?.content)) {
-    return result.content.map((item) => (typeof item === "string" ? item : clean(item?.text || ""))).filter(Boolean).join("\n");
-  }
-  return "";
-}
-
-function resolveGeminiEndpoint(modelName = "", apiEndpoint = "") {
-  const base = clean(apiEndpoint || "https://generativelanguage.googleapis.com/v1beta");
-  const safeModel = encodeURIComponent(clean(modelName || "gemini-2.5-flash"));
-  if (base.includes("/models/")) {
-    const endpoint = base.replace(/\/models\/[^/?#:]+(?=:generateContent|$)/, `/models/${safeModel}`);
-    return endpoint.includes(":generateContent") ? endpoint : `${endpoint}:generateContent`;
-  }
-  return `${base.replace(/\/$/, "")}/models/${safeModel}:generateContent`;
+async function callZiweiPdfGateway(env, prompt, options = {}) {
+  const started = Date.now();
+  const chapterSpec = safeObject(options.chapterSpec);
+  const result = await generatePdfChapterTextResult({
+    jobId: clean(options.requestId || "ziwei"),
+    serviceType: "ziwei",
+    chapterId: clean(chapterSpec.id || options.chapterId || options.requestId || "ziwei-chapter"),
+    chapterTitle: clean(chapterSpec.title || options.chapterTitle || "자미두수"),
+    chapterOrder: Number(chapterSpec.order || options.chapterOrder || 1),
+    totalChapters: ZIWEI_PDF_CHAPTER_COUNT,
+    prompt,
+    context: {
+      format: "ziwei-html",
+      chapterSpec,
+      chapter: chapterSpec,
+      input: safeObject(options.facts),
+    },
+  }, env);
+  return {
+    ok: Boolean(result.ok),
+    provider: result.provider,
+    modelName: clean(result.modelName || result.model || options.model || "mock"),
+    rawText: result.text || result.rawText || "",
+    tokensUsed: Number(result.tokensUsed || 0),
+    cost: Number(result.cost || 0),
+    isMock: result.isMock === true || clean(result.provider) === "mock",
+    errorCode: clean(result.errorCode),
+    errorMessage: clean(result.errorMessage, 300),
+    status: result.status || null,
+    latencyMs: Number(result.latencyMs || Date.now() - started),
+  };
 }
 
 async function callWorkersAi(env, prompt, options = {}) {
-  const started = Date.now();
   const modelName = clean(options.model || resolveProviderModelName(env, "workers-ai"));
   try {
-    if (!env?.AI?.run) {
-      return { ok: false, provider: "workers-ai", modelName, errorCode: "workers_ai_unavailable", latencyMs: Date.now() - started };
-    }
-    const result = await withTimeout(env.AI.run(modelName, {
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
-      temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || env.SUKYO_PREMIUM_LLM_TEMPERATURE || 0.72),
-    }), Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.SUKYO_PREMIUM_LLM_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const rawText = cleanBlock(extractWorkersAiText(result));
-    if (!rawText) return { ok: false, provider: "workers-ai", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
-    return {
-      ok: true,
-      provider: "workers-ai",
-      modelName,
-      rawText,
-      latencyMs: Date.now() - started,
-    };
+    return await callZiweiPdfGateway(env, prompt, { ...options, model: modelName, provider: "workers-ai" });
   } catch (error) {
     return {
       ok: false,
@@ -1309,52 +1259,15 @@ async function callWorkersAi(env, prompt, options = {}) {
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
       status: Number(error?.status || 0) || null,
-      latencyMs: Date.now() - started,
+      latencyMs: 0,
     };
   }
 }
 
 async function callGemini(env, prompt, options = {}) {
-  const started = Date.now();
   const modelName = clean(options.model || resolveProviderModelName(env, "gemini"));
   try {
-    const apiKey = readGeminiApiKey(env);
-    if (!apiKey) return { ok: false, provider: "gemini", modelName, errorCode: "gemini_api_key_missing", latencyMs: Date.now() - started };
-    const url = new URL(resolveGeminiEndpoint(modelName, options.apiEndpoint || env?.ZIWEI_PREMIUM_GEMINI_ENDPOINT || env?.PREMIUM_GEMINI_ENDPOINT || env?.GEMINI_API_ENDPOINT || ""));
-    url.searchParams.set("key", apiKey);
-    const response = await withTimeout(fetch(url.toString(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
-        generationConfig: {
-          maxOutputTokens: Number(options.maxTokens || env.ZIWEI_PREMIUM_GEMINI_MAX_TOKENS || env.ZIWEI_PREMIUM_CHAPTER_MAX_TOKENS || 10000),
-          temperature: Number(env.ZIWEI_PREMIUM_LLM_TEMPERATURE || 0.72),
-        },
-      }),
-    }), Number(options.timeoutMs || env.ZIWEI_PREMIUM_LLM_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS));
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      return {
-        ok: false,
-        provider: "gemini",
-        modelName,
-        errorCode: "provider_exception",
-        errorMessage: clean(payload?.error?.message || `Gemini request failed (${response.status}).`, 300),
-        status: Number(response.status || 0) || null,
-        latencyMs: Date.now() - started,
-      };
-    }
-    const rawText = cleanBlock(extractGeminiText(payload));
-    if (!rawText) return { ok: false, provider: "gemini", modelName, errorCode: "empty_response", latencyMs: Date.now() - started };
-    return {
-      ok: true,
-      provider: "gemini",
-      modelName,
-      rawText,
-      latencyMs: Date.now() - started,
-    };
+    return await callZiweiPdfGateway(env, prompt, { ...options, model: modelName, provider: "gemini" });
   } catch (error) {
     return {
       ok: false,
@@ -1363,7 +1276,7 @@ async function callGemini(env, prompt, options = {}) {
       errorCode: "provider_exception",
       errorMessage: clean(error?.message || String(error), 300),
       status: Number(error?.status || 0) || null,
-      latencyMs: Date.now() - started,
+      latencyMs: 0,
     };
   }
 }
@@ -1529,7 +1442,17 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
           cacheKey,
           localFallbackUsed: false,
         });
-        return { ok: true, html: validation.html, provider: cacheProvider, modelName: cacheModelName, cached: true, attempts: [] };
+        return {
+          ok: true,
+          html: validation.html,
+          provider: cacheProvider,
+          modelName: cacheModelName,
+          tokensUsed: 0,
+          cost: 0,
+          isMock: cacheProvider === "mock",
+          cached: true,
+          attempts: [],
+        };
       }
     }
   }
@@ -1558,6 +1481,8 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
             requestId: `${facts.requestId}:${chapterSpec.id}`,
             model: modelName,
             apiEndpoint: modelEndpoint,
+            chapterSpec,
+            facts,
           },
         )
         : await callGemini(
@@ -1567,6 +1492,8 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
             requestId: `${facts.requestId}:${chapterSpec.id}`,
             model: modelName,
             apiEndpoint: modelEndpoint,
+            chapterSpec,
+            facts,
           },
         );
       const attempt = {
@@ -1607,6 +1534,9 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
           provider: actualProvider,
           source: "llm",
           localFallbackUsed: false,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: result.isMock === true || actualProvider === "mock",
           engineVersion: ZIWEI_PDF_ENGINE_VERSION,
           chapterPlanVersion: ZIWEI_PDF_CHAPTER_PLAN_VERSION,
           promptVersion: ZIWEI_PDF_PROMPT_VERSION,
@@ -1629,7 +1559,17 @@ async function generateChapter(env, facts, chapterSpec, previousSummary) {
           cacheKey,
           localFallbackUsed: false,
         });
-        return { ok: true, html: validation.html, provider: actualProvider, modelName: actualModelName, cached: false, attempts };
+        return {
+          ok: true,
+          html: validation.html,
+          provider: actualProvider,
+          modelName: actualModelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: result.isMock === true || actualProvider === "mock",
+          cached: false,
+          attempts,
+        };
       }
       attempt.ok = false;
       attempt.errorCode = "validation_failed";
@@ -1899,7 +1839,7 @@ export function validateZiweiPdfCompletionPayload({ pdfReady = {}, chapters = []
   if (clean(llmAssembly.source) !== ZIWEI_PDF_CONFIG.generationMode) issues.push("llmAssembly.source");
   if (!clean(llmAssembly.provider)) issues.push("llmAssembly.provider");
   if (llmAssembly.externalGeneration !== true) issues.push("llmAssembly.externalGeneration");
-  if (llmAssembly.externalCallsAllowed !== true) issues.push("llmAssembly.externalCallsAllowed");
+  if (llmAssembly.externalCallsAllowed !== true && llmAssembly.isMock !== true) issues.push("llmAssembly.externalCallsAllowed");
   if (llmAssembly.fallbackUsed !== false) issues.push("llmAssembly.fallbackUsed");
   if (llmAssembly.localFallbackUsed !== false) issues.push("llmAssembly.localFallbackUsed");
   if (clean(llmAssembly.templateVersion) !== ZIWEI_PDF_CONFIG.templateVersion) issues.push("llmAssembly.templateVersion");
@@ -1961,6 +1901,9 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
   let previousSummary = "";
   const providerSet = new Set();
   const modelSet = new Set();
+  let tokensUsed = 0;
+  let cost = 0;
+  let isMock = false;
   const callbacks = safeObject(input.callbacks || options.callbacks || {});
   const reusableDrafts = new Map(
     asArray(input.existingChapters || options.existingChapters)
@@ -1974,6 +1917,9 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
       generated.push(reusable);
       providerSet.add(reusable.provider);
       if (clean(reusable.modelName)) modelSet.add(clean(reusable.modelName));
+      tokensUsed += Number(reusable.tokensUsed || 0);
+      cost += Number(reusable.cost || 0);
+      isMock = isMock || reusable.isMock === true || clean(reusable.provider) === "mock";
       previousSummary = clean(stripTags(reusable.html).slice(-800), 800);
       await notifyZiweiProgress(callbacks, "onChapterComplete", {
         chapter: reusable,
@@ -2005,10 +1951,16 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     const parsed = parseZiweiPremiumChapterHtml(result.html, chapterSpec);
     parsed.provider = result.provider;
     parsed.modelName = result.modelName || "";
+    parsed.tokensUsed = Number(result.tokensUsed || 0);
+    parsed.cost = Number(result.cost || 0);
+    parsed.isMock = result.isMock === true || clean(result.provider) === "mock";
     parsed.cached = Boolean(result.cached);
     generated.push(parsed);
     providerSet.add(result.provider);
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
+    tokensUsed += Number(result.tokensUsed || 0);
+    cost += Number(result.cost || 0);
+    isMock = isMock || result.isMock === true || clean(result.provider) === "mock";
     previousSummary = clean(stripTags(result.html).slice(-800), 800);
     await notifyZiweiProgress(callbacks, "onChapterComplete", {
       chapter: parsed,
@@ -2051,7 +2003,9 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     });
   }
 
-  const provider = providerSet.has("gemini") && providerSet.size === 1
+  const provider = providerSet.has("mock")
+    ? "mock"
+    : providerSet.has("gemini") && providerSet.size === 1
     ? "gemini"
     : providerSet.has("gemini")
       ? "workers-ai-gemini"
@@ -2069,9 +2023,12 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     chapterCount: generated.length,
     expectedChapterCount: ZIWEI_PDF_CHAPTER_COUNT,
     externalGeneration: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed: isMock ? false : true,
     fallbackUsed: false,
     localFallbackUsed: false,
+    tokensUsed,
+    cost,
+    isMock,
   };
   const chapterQuality = buildChapterQuality(generated);
   const pdfReady = {
@@ -2114,12 +2071,15 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
     generationMode: ZIWEI_PDF_CONFIG.generationMode,
     provider,
+    tokensUsed,
+    cost,
+    isMock,
     chapterPlanSource: chapterPlan.source,
     writingPipeline: "ziwei-calculation-to-llm-authored-pdf",
     llmAssembly,
     llmDraftChapterCount: generated.length,
     llmAssemblyOnly: true,
-    externalCallsAllowed: true,
+    externalCallsAllowed: isMock ? false : true,
     chapterQuality,
     pdfCompletionValidation,
     pdfReady,

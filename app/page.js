@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { buildSeoMetadata } from "../lib/seo";
 import { publicSeoPages } from "../lib/seo/siteSeo";
 import {
   buildOrganizationJsonLd,
   buildWebPageJsonLd,
-  buildWebsiteJsonLd,
 } from "../lib/structured-data";
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
 import styles from "./home-cosmic.module.css";
@@ -60,20 +58,66 @@ function homePageText(key) {
 }
 
 const sourcePage = publicSeoPages.home;
-const page = {
-  ...sourcePage,
-  title: homePageText("homePage.title.001"),
+const HOME_SEO = {
+  title: "꿀꿀 운세 | 무료 사주팔자·타로·궁합 — Code Destiny",
   description:
-    "Code Destiny React 홈은 사주, 타로, 자미두수, 점성술, 숙요점, 이용권, 결제 전 환불 안내를 한 화면에서 신뢰감 있게 확인할 수 있는 프리미엄 운세 서비스 안내 페이지입니다.",
-  h1: "운명을 읽는 달빛 코드",
+    "꿀꿀 운세(구 꿀꿀 만세력) — 생년월일 하나로 무료 사주팔자, 타로, 궁합, 자미두수, 신년운세까지. 코드 데스티니(Code Destiny).",
+  ogTitle: "꿀꿀 운세 | 무료 사주·타로·궁합 — Code Destiny",
+  ogDescription:
+    "꿀꿀 운세 — 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 재밌고 정확하게 보는 코드 데스티니 공식 서비스.",
+  url: "https://code-destiny.com/",
+  image: "https://code-destiny.com/og/code-destiny-og.png",
 };
 
-export const metadata = buildSeoMetadata({
-  path: page.path,
-  title: page.title,
-  description: page.description,
+const page = {
+  ...sourcePage,
+  title: HOME_SEO.title,
+  description: HOME_SEO.description,
+  h1: "꿀꿀 운세 — 무료 사주·타로·궁합 통합 플랫폼",
+};
+
+export const metadata = {
+  metadataBase: new URL("https://code-destiny.com"),
+  title: { absolute: HOME_SEO.title },
+  description: HOME_SEO.description,
   keywords: page.keywords,
-});
+  alternates: {
+    canonical: HOME_SEO.url,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: HOME_SEO.url,
+    siteName: "Code Destiny",
+    title: HOME_SEO.ogTitle,
+    description: HOME_SEO.ogDescription,
+    images: [
+      {
+        url: HOME_SEO.image,
+        width: 1200,
+        height: 630,
+        alt: HOME_SEO.ogTitle,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_SEO.ogTitle,
+    description: HOME_SEO.ogDescription,
+    images: [HOME_SEO.image],
+  },
+};
 
 const BRAND_LOGO_URL = "https://assets.code-destiny.com/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=react-home-premium-20260625";
 const MAYA_IMAGE_URL = "https://assets.code-destiny.com/%EB%A7%88%EC%95%BC%EC%A0%90.webp";
@@ -174,7 +218,6 @@ const POLICY_LINKS = [
 
 export default function HomePage() {
   const orgJsonLd = buildOrganizationJsonLd();
-  const websiteJsonLd = buildWebsiteJsonLd();
   const webPageJsonLd = buildWebPageJsonLd({
     title: page.title,
     description: page.description,
@@ -190,12 +233,15 @@ export default function HomePage() {
           <p className={styles.heroKicker}>Code Destiny / 꿀꿀 운세</p>
           <h1 id="reactHomeHeroTitle" className={styles.heroTitle}>{page.h1}</h1>
           <p className={styles.heroLead}>
-            정적 메인 화면의 달빛 감성은 유지하면서, React 홈에서는 서비스 구조와 결제 전 확인 정보를 더 명확하게 정리했습니다.
-            사주, 타로, 별자리, 신탁 리딩을 탐색하고 이용권·환불 기준까지 한눈에 확인하세요.
+            꿀꿀 만세력으로 시작한 흐름 위에 사주, 타로, 자미두수, 궁합, 신년운세가 한곳에 모입니다.
+            생년월일 하나로 오늘 당신에게 열린 운의 결을 차분히 살펴보세요.
           </p>
           <div className={styles.ctaRow}>
             <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/#inputPage" aria-label="정적 메인 운세 입력 화면으로 이동">
               무료 운세 시작
+            </Link>
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/kkul-kkul-unse" aria-label="꿀꿀 운세 브랜드 안내 페이지로 이동">
+              꿀꿀 운세 홈
             </Link>
             <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/points" aria-label="이용권과 결제 안내 확인">
               이용권 안내
@@ -305,7 +351,6 @@ export default function HomePage() {
       </section>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
     </main>
   );

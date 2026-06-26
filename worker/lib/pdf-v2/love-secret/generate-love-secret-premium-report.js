@@ -109,7 +109,7 @@ function buildChapterPlanSummary(plan) {
     .join("\n");
 }
 
-function normalizeGeneratedChapter({ chapter, html, status, source, provider, modelName, validation }) {
+function normalizeGeneratedChapter({ chapter, html, status, source, provider, modelName, tokensUsed = 0, cost = 0, isMock = false, validation }) {
   const parsed = parseLoveSecretPremiumChapterHtml(html, chapter);
   return {
     id: chapter.id,
@@ -121,6 +121,9 @@ function normalizeGeneratedChapter({ chapter, html, status, source, provider, mo
     source,
     provider,
     modelName,
+    tokensUsed: Number(tokensUsed || 0),
+    cost: Number(cost || 0),
+    isMock: isMock === true || clean(provider) === "mock",
     sections: [{ title: parsed.h2 || chapter.title }],
     textLength: validation?.textLength || parsed.text.replace(/\s/g, "").length,
   };
@@ -144,7 +147,7 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
 
   await notify({
     phase: "chapter_started",
-    currentStep: `챕터 ${chapter.order}의 상담문을 LLM으로 생성 중입니다.`,
+    currentStep: `챕터 ${chapter.order}의 상담문을 생성하고 있습니다.`,
   });
 
   const cacheKey = buildLoveSecretPremiumChapterCacheKey({
@@ -165,12 +168,19 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         source: "llm-cache",
         provider: cached.provider || "cache",
         modelName: cached.modelName || modelName,
+        tokensUsed: 0,
+        cost: 0,
+        isMock: clean(cached.provider) === "mock",
         validation,
       });
       await notify({
         phase: "chapter_completed",
         completedChapter: completed,
         completedChapters: chapter.order,
+        provider: completed.provider,
+        tokensUsed: completed.tokensUsed,
+        cost: completed.cost,
+        isMock: completed.isMock,
         currentStep: `챕터 ${chapter.order} 검수와 저장이 완료되었습니다.`,
       });
       return completed;
@@ -179,7 +189,9 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
 
   const providers = resolveLoveSecretLlmProviders(env);
   const chapterPlanSummary = buildChapterPlanSummary(plan);
-  const maxRepairAttempts = Math.max(1, Number(env?.LOVE_SECRET_PREMIUM_REPAIR_ATTEMPTS || 3));
+  const maxRepairAttempts = env && Object.prototype.hasOwnProperty.call(env, "PDF_LLM_MAX_RETRIES")
+    ? Math.max(0, Number(env.PDF_LLM_MAX_RETRIES || 0))
+    : Math.max(1, Number(env?.LOVE_SECRET_PREMIUM_REPAIR_ATTEMPTS || 3));
   const expertPersona = "30년 경력의 사주 명리학자이자 현실적인 연애 상담사로서, 사주 신호를 고객이 이해할 수 있는 관계 언어로 풀어낸다.";
   let lastErrors = [];
   let lastHtml = "";
@@ -192,8 +204,8 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         provider,
         attempt: attempt + 1,
         currentStep: attempt === 0
-          ? `챕터 ${chapter.order}의 상담문을 LLM으로 생성 중입니다.`
-          : `챕터 ${chapter.order}의 상담문을 검수 기준에 맞게 다시 다듬고 있습니다.`,
+          ? `챕터 ${chapter.order}의 상담문을 생성하고 있습니다.`
+          : `챕터 ${chapter.order}의 상담문을 더 자연스럽게 다듬고 있습니다.`,
       });
       const userPrompt = attempt === 0
         ? buildLoveSecretChapterPrompt({ input, chapter, chapterPlanSummary, expertPersona, previousSummary })
@@ -201,6 +213,7 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
       const started = Date.now();
       const result = await generateLoveSecretTextWithLlm({
         provider,
+        jobId,
         model: modelName,
         systemPrompt: loveSecretSystemPrompt,
         userPrompt,
@@ -208,6 +221,11 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         maxTokens: Number(env?.LOVE_SECRET_PREMIUM_CHAPTER_MAX_TOKENS || 12000),
         timeoutMs: Number(env?.LOVE_SECRET_PREMIUM_LLM_TIMEOUT_MS || 120000),
         requestId: `${jobId || "love-secret"}:${chapter.id}:${attempt}`,
+        context: {
+          mode: input.mode,
+          chapter,
+          totalChapters: plan.chapters.length,
+        },
       }, env);
 
       if (!result?.ok) {
@@ -244,7 +262,7 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
           provider,
           attempt: attempt + 1,
           validationErrors: lastErrors,
-          currentStep: `챕터 ${chapter.order} 응답을 검수하고 보강하는 중입니다.`,
+          currentStep: `챕터 ${chapter.order}의 상담문을 보강하고 있습니다.`,
         });
         continue;
       }
@@ -256,6 +274,9 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         source: "llm",
         provider: result.provider || provider,
         modelName: result.model || modelName,
+        tokensUsed: Number(result.tokensUsed || 0),
+        cost: Number(result.cost || 0),
+        isMock: result.isMock === true || clean(result.provider || provider) === "mock",
         validation,
       });
       await writeChapterCache(env, cacheKey, {
@@ -279,6 +300,10 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         phase: "chapter_completed",
         completedChapter: completed,
         completedChapters: chapter.order,
+        provider: completed.provider,
+        tokensUsed: completed.tokensUsed,
+        cost: completed.cost,
+        isMock: completed.isMock,
         currentStep: `챕터 ${chapter.order} 검수와 저장이 완료되었습니다.`,
       });
       return completed;
@@ -353,6 +378,9 @@ export async function generateLoveSecretPremiumReport({
   const providerChapter = chapters.find((chapter) => chapter.provider && chapter.provider !== "cache") || chapters[0] || {};
   const provider = clean(providerChapter.provider || "llm");
   const completedModelName = clean(providerChapter.modelName || modelName);
+  const tokensUsed = chapters.reduce((sum, chapter) => sum + Number(chapter.tokensUsed || 0), 0);
+  const cost = chapters.reduce((sum, chapter) => sum + Number(chapter.cost || 0), 0);
+  const isMock = chapters.some((chapter) => chapter.isMock === true || clean(chapter.provider) === "mock") || provider === "mock";
   const generated = {
     normalizedInput,
     normalizedInputHash,
@@ -363,17 +391,23 @@ export async function generateLoveSecretPremiumReport({
     generationMode: "llm-only",
     provider,
     modelName: completedModelName,
+    tokensUsed,
+    cost,
+    isMock,
     promptVersion: LOVE_SECRET_PREMIUM_PROMPT_VERSION,
     chapterPlanVersion: plan.version,
     writingPipeline: "saju-love-calculation-to-llm-authored-pdf",
     llmAssembly: {
       enabled: true,
       externalGeneration: true,
-      externalCallsAllowed: true,
+      externalCallsAllowed: isMock ? false : true,
       fallbackUsed: false,
       localFallback: false,
       provider,
       modelName: completedModelName,
+      tokensUsed,
+      cost,
+      isMock,
       promptVersion: LOVE_SECRET_PREMIUM_PROMPT_VERSION,
       chapterPlanVersion: plan.version,
       chapterCount: chapters.length,
@@ -381,6 +415,8 @@ export async function generateLoveSecretPremiumReport({
       cacheHits: chapters.filter((chapter) => chapter.source === "llm-cache").length,
       inputHash: normalizedInputHash,
     },
+    llmAssemblyOnly: true,
+    externalCallsAllowed: isMock ? false : true,
     generationStats: {
       durationMs: Date.now() - started,
       inputHash: normalizedInputHash,

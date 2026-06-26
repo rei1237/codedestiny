@@ -1194,6 +1194,61 @@ function buildSukuyoRunningResponse(request, { sessionId = "", reportId = "", fe
   };
 }
 
+function resolveSukuyoGenerationLock(sessionId = "", reportId = "") {
+  const directSessionId = clean(sessionId);
+  if (directSessionId && sukuyoPdfGenerationLocks.has(directSessionId)) {
+    const lock = sukuyoPdfGenerationLocks.get(directSessionId);
+    return { sessionId: clean(lock?.sessionId || directSessionId), lock };
+  }
+
+  const targetReportId = clean(reportId);
+  if (!targetReportId) return { sessionId: directSessionId, lock: null };
+
+  for (const [key, lock] of sukuyoPdfGenerationLocks.entries()) {
+    if (clean(lock?.reportId) === targetReportId) {
+      return { sessionId: clean(lock?.sessionId || key), lock };
+    }
+  }
+
+  return { sessionId: directSessionId, lock: null };
+}
+
+function resolveSukuyoRunningStatusPayload(request, { sessionId = "", reportId = "", featureKey = SUKYO_PDF_FEATURE_KEY, reusableResponse = null } = {}) {
+  const active = resolveSukuyoGenerationLock(sessionId, reportId);
+  const lock = active.lock;
+  if (["queued", "running"].includes(clean(lock?.status))) {
+    return buildSukuyoRunningResponse(request, {
+      sessionId: clean(active.sessionId || sessionId),
+      reportId: clean(lock.reportId || reportId),
+      featureKey: clean(lock.featureKey || featureKey),
+      progress: lock.progress || null,
+      startedAt: lock.startedAt,
+    });
+  }
+
+  if (reusableResponse?.status === 202) return reusableResponse.payload || {};
+  return null;
+}
+
+function buildSukuyoPendingStatusPayload(runningPayload = {}, fallback = {}) {
+  const source = runningPayload && typeof runningPayload === "object" ? runningPayload : {};
+  const reportId = clean(source.reportId || fallback.reportId);
+  const sessionId = clean(source.sessionId || fallback.sessionId);
+  return {
+    ok: true,
+    execution: {
+      status: "pending",
+      premiumStatus: "generating",
+      reportId,
+      sessionId,
+    },
+    progress: source.progress || null,
+    archiveUrl: source.archiveUrl || "",
+    statusPollUrl: source.statusPollUrl || "",
+    running: source,
+  };
+}
+
 function normalizeSukuyoGenerationProgress(progress = {}) {
   const source = progress && typeof progress === "object" ? progress : {};
   const totalChapters = Math.max(1, Number(source.totalChapters || source.expectedChapterCount || SUKYO_PDF_CHAPTER_COUNT) || SUKYO_PDF_CHAPTER_COUNT);
@@ -1672,6 +1727,9 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     llmDraftChapterCount: llmContract.llmDraftChapterCount,
     llmAssemblyOnly: llmContract.llmAssemblyOnly,
     externalCallsAllowed: llmContract.externalCallsAllowed,
+    tokensUsed: llmContract.tokensUsed,
+    cost: llmContract.cost,
+    isMock: llmContract.isMock,
     llmAssembly: llmContract.llmAssembly,
     canDownload: true,
   };
@@ -1688,6 +1746,9 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
       llmDraftChapterCount: llmContract.llmDraftChapterCount,
       llmAssemblyOnly: llmContract.llmAssemblyOnly,
       externalCallsAllowed: llmContract.externalCallsAllowed,
+      tokensUsed: llmContract.tokensUsed,
+      cost: llmContract.cost,
+      isMock: llmContract.isMock,
       llmAssembly: llmContract.llmAssembly,
       chapters: generated.chapters,
       pdfReady: enhancedPdfReady,
@@ -1714,6 +1775,9 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     llmDraftChapterCount: llmContract.llmDraftChapterCount,
     llmAssemblyOnly: llmContract.llmAssemblyOnly,
     externalCallsAllowed: llmContract.externalCallsAllowed,
+    tokensUsed: llmContract.tokensUsed,
+    cost: llmContract.cost,
+    isMock: llmContract.isMock,
     chapters: generated.chapters,
     payload,
     sukuyoCompatibilityJson: generated?.payload?.sukuyoCompatibilityJson || generated?.payload,
@@ -1754,15 +1818,20 @@ function buildSukuyoLlmContract(generated = {}, pdfReady = {}) {
     chapterCount,
     expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
   };
-  const usesLlm = /^llm/i.test(llmAssembly.source) || /workers-ai|gemini/i.test(llmAssembly.provider);
+  const isMock = llmAssembly.isMock === true || /mock/i.test(llmAssembly.provider);
+  const usesLlm = /^llm/i.test(llmAssembly.source) || /workers-ai|gemini|mock/i.test(llmAssembly.provider);
   llmAssembly.externalGeneration = usesLlm ? true : false;
-  llmAssembly.externalCallsAllowed = usesLlm ? true : false;
+  llmAssembly.externalCallsAllowed = isMock ? false : (usesLlm ? true : false);
   llmAssembly.fallbackUsed = usesLlm ? false : true;
+  llmAssembly.isMock = isMock;
   return {
     chapterCount,
     llmDraftChapterCount: chapterCount,
     llmAssemblyOnly: usesLlm,
-    externalCallsAllowed: usesLlm,
+    externalCallsAllowed: isMock ? false : usesLlm,
+    tokensUsed: Number(llmAssembly.tokensUsed || generated?.tokensUsed || generated?.payload?.tokensUsed || 0),
+    cost: Number(llmAssembly.cost || generated?.cost || generated?.payload?.cost || 0),
+    isMock,
     llmAssembly,
   };
 }
@@ -1836,22 +1905,23 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     || ready?.llmAssemblyOnly === true
     || nested.llmAssemblyOnly === true
     || llmAssembly.externalGeneration === true;
+  const isMock = llmAssembly.isMock === true || /mock/i.test(clean(llmAssembly.provider));
   const externalCallsAllowed = payload?.externalCallsAllowed === true
     || ready?.externalCallsAllowed === true
     || nested.externalCallsAllowed === true
     || llmAssembly.externalCallsAllowed === true;
-  const sourceUsesLlm = /^llm/i.test(manuscriptSource) || /workers-ai|gemini/i.test(clean(llmAssembly.provider));
+  const sourceUsesLlm = /^llm/i.test(manuscriptSource) || /workers-ai|gemini|mock/i.test(clean(llmAssembly.provider));
   const llmAssemblyOk = llmAssembly.enabled === true
     && sourceUsesLlm
     && llmAssembly.externalGeneration === true
-    && llmAssembly.externalCallsAllowed === true
+    && (llmAssembly.externalCallsAllowed === true || isMock)
     && llmAssembly.fallbackUsed !== true
     && Number(llmAssembly.chapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
     && Number(llmAssembly.expectedChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
     && clean(llmAssembly.templateVersion) === SUKYO_PDF_CONFIG.templateVersion;
   const chapterCountContractOk = llmDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT
     && llmAssemblyOnly
-    && externalCallsAllowed;
+    && (externalCallsAllowed || isMock);
   const chapterQuality = payload?.chapterQuality && typeof payload.chapterQuality === "object"
     ? payload.chapterQuality
     : payload?.payload?.chapterQuality && typeof payload.payload.chapterQuality === "object"
@@ -2247,8 +2317,11 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
         chapterCount: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT),
         expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
         externalGeneration: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed: clean(generated?.provider || generated?.payload?.provider) === "mock" ? false : true,
         fallbackUsed: false,
+        tokensUsed: Number(generated?.tokensUsed || generated?.payload?.tokensUsed || 0),
+        cost: Number(generated?.cost || generated?.payload?.cost || 0),
+        isMock: clean(generated?.provider || generated?.payload?.provider) === "mock" || generated?.isMock === true || generated?.payload?.isMock === true,
       },
     };
     const llmContract = buildSukuyoLlmContract(generated, pdfReady);
@@ -2259,6 +2332,9 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       llmDraftChapterCount: llmContract.llmDraftChapterCount,
       llmAssemblyOnly: llmContract.llmAssemblyOnly,
       externalCallsAllowed: llmContract.externalCallsAllowed,
+      tokensUsed: llmContract.tokensUsed,
+      cost: llmContract.cost,
+      isMock: llmContract.isMock,
       llmAssembly: llmContract.llmAssembly,
       canDownload: true,
     });
@@ -2273,6 +2349,9 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
         llmDraftChapterCount: llmContract.llmDraftChapterCount,
         llmAssemblyOnly: llmContract.llmAssemblyOnly,
         externalCallsAllowed: llmContract.externalCallsAllowed,
+        tokensUsed: llmContract.tokensUsed,
+        cost: llmContract.cost,
+        isMock: llmContract.isMock,
         llmAssembly: llmContract.llmAssembly,
         serverStatus: "completed",
         qualityStatus: "passed",
@@ -2403,6 +2482,9 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       llmAssembly: llmContract.llmAssembly,
       llmAssemblyOnly: llmContract.llmAssemblyOnly,
       externalCallsAllowed: llmContract.externalCallsAllowed,
+      tokensUsed: llmContract.tokensUsed,
+      cost: llmContract.cost,
+      isMock: llmContract.isMock,
       llmPackaging: pdfPackagingResult,
       pdfCompletionValidation,
       archiveStatus,
@@ -2694,11 +2776,13 @@ async function handleSukuyoPremiumStatus(request, env) {
       report: reusableResponse.payload,
     }));
   }
-  const lock = sukuyoPdfGenerationLocks.get(sessionId);
+  const activeLock = resolveSukuyoGenerationLock(sessionId, reportId);
+  const lock = activeLock.lock;
+  const lockSessionId = clean(activeLock.sessionId || sessionId);
   if (lock?.status === "done" && lock.result && isSukuyoCompletedPayloadReady(lock.result)) {
     const completedReportId = clean(lock.reportId || reportId);
     return json(buildSukuyoCompletedStatusResponse(request, {
-      sessionId,
+      sessionId: lockSessionId,
       reportId: completedReportId,
       report: {
         ...lock.result,
@@ -2706,7 +2790,7 @@ async function handleSukuyoPremiumStatus(request, env) {
         status: "completed",
         serverStatus: "completed",
         reportId: completedReportId,
-        sessionId,
+        sessionId: lockSessionId,
       },
     }));
   }
@@ -2717,48 +2801,19 @@ async function handleSukuyoPremiumStatus(request, env) {
         status: "failed",
         premiumStatus: "validation_failed",
         reportId: clean(lock.reportId || reportId),
-        sessionId,
+        sessionId: lockSessionId,
         reasonMessage: "숙요점 PDF 완료 결과 검증이 끝나지 않았습니다. 다시 생성해 주세요.",
       },
     });
   }
-  if (["queued", "running"].includes(clean(lock?.status))) {
-    const runningPayload = buildSukuyoRunningResponse(request, {
-      sessionId,
-      reportId: clean(lock.reportId || reportId),
-      featureKey: clean(lock.featureKey || featureKey),
-      progress: lock.progress || null,
-      startedAt: lock.startedAt,
-    });
-    return json({
-      ok: true,
-      execution: {
-        status: "pending",
-        premiumStatus: "generating",
-        reportId: clean(runningPayload.reportId || reportId),
-        sessionId: clean(runningPayload.sessionId || sessionId),
-      },
-      progress: runningPayload.progress || null,
-      archiveUrl: runningPayload.archiveUrl || "",
-      statusPollUrl: runningPayload.statusPollUrl || "",
-      running: runningPayload,
-    }, { status: 202 });
-  }
-  if (reusableResponse?.status === 202) {
-    const runningPayload = reusableResponse.payload || {};
-    return json({
-      ok: true,
-      execution: {
-        status: "pending",
-        premiumStatus: "generating",
-        reportId: clean(runningPayload.reportId || reportId),
-        sessionId: clean(runningPayload.sessionId || sessionId),
-      },
-      progress: runningPayload.progress || null,
-      archiveUrl: runningPayload.archiveUrl || "",
-      statusPollUrl: runningPayload.statusPollUrl || "",
-      running: runningPayload,
-    }, { status: 202 });
+  const runningPayload = resolveSukuyoRunningStatusPayload(request, {
+    sessionId,
+    reportId,
+    featureKey,
+    reusableResponse,
+  });
+  if (runningPayload) {
+    return json(buildSukuyoPendingStatusPayload(runningPayload, { sessionId: lockSessionId || sessionId, reportId, featureKey }), { status: 202 });
   }
   if (reusableResponse?.status === 409 && reusableResponse.payload?.code === "SUKUYO_EXECUTION_STALE") {
     await markSukuyoStaleExecutionFailed(pdfDbEnv, reusableExecution, reusableResponse.payload.message);
@@ -3591,6 +3646,18 @@ export const __sukuyoYearlyTestUtils = {
   isSukuyoYearlyPointEvidence,
   relationFromSukuyoYearlyDistance,
   sukuyoYearlyContentKey,
+};
+
+export const __sukuyoPremiumStatusTestUtils = {
+  buildSukuyoPendingStatusPayload,
+  buildSukuyoRunningResponse,
+  clearSukuyoGenerationLocks: () => sukuyoPdfGenerationLocks.clear(),
+  normalizeSukuyoGenerationProgress,
+  resolveSukuyoGenerationLock,
+  resolveSukuyoRunningStatusPayload,
+  setSukuyoGenerationLock: (sessionId, lock) => {
+    sukuyoPdfGenerationLocks.set(clean(sessionId), lock);
+  },
 };
 
 async function handleSukuyoYearlyVerifyPayment(request, env) {

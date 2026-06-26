@@ -107,23 +107,38 @@ function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
   const totalChapters = Number(progress.totalChapters || data?.chapterCount || getLifeBookBlueprints().length);
   const currentChapterNo = Math.max(0, Math.min(totalChapters, Number(progress.currentChapterNo || (status === "completed" ? totalChapters : 0)) || 0));
   const completedChapterCount = Math.max(0, Math.min(totalChapters, Number(progress.completedChapterCount ?? (status === "completed" ? totalChapters : currentChapterNo)) || 0));
+  const statusChapters = normalizeLifeBookJobChapters(lock, data);
+  const progressPercent = computeLifeBookProgressPercent(status, completedChapterCount, totalChapters);
+  const currentChapter = statusChapters.find((chapter) => chapter.status === "generating")
+    || statusChapters.find((chapter) => Number(chapter.order) === currentChapterNo)
+    || null;
+  const pdfUrl = clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl);
   return {
     ok: true,
     serviceKey: LIFEBOOK_SERVICE_KEY,
     data: {
+      jobId: clean(lock.jobId || lock.reportId || fallback.jobId || fallback.reportId || data?.jobId || data?.reportId),
       sessionId: clean(lock.sessionId || fallback.sessionId),
       reportId: clean(lock.reportId || fallback.reportId || data?.reportId),
+      serviceType: "life_book_pdf",
       status,
       startedAt: clean(lock.startedAt || fallback.startedAt),
       completedAt: clean(fallback.completedAt || data?.completedAt),
       failedAt: clean(fallback.failedAt),
+      access: lock.access || data?.access || null,
+      totalChapters,
+      completedChapters: completedChapterCount,
+      currentChapterId: clean(progress.currentChapterId || currentChapter?.id),
+      currentChapterTitle: clean(progress.currentChapterTitle || currentChapter?.title),
+      progressPercent,
       progress: {
         stateKey: clean(progress.stateKey || (status === "completed" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_WRITING_STATE)),
-        percent: Math.max(0, Math.min(100, Number(progress.percent || progress.progress || (status === "completed" ? 100 : status === "failed" ? 0 : Math.round((currentChapterNo / Math.max(1, totalChapters)) * 70 + 10))) || 0)),
+        percent: Math.max(0, Math.min(100, Number(progress.percent || progress.progress || progressPercent) || 0)),
         currentChapterNo,
         completedChapterCount,
         totalChapters,
-        currentChapterTitle: clean(progress.currentChapterTitle),
+        currentChapterId: clean(progress.currentChapterId || currentChapter?.id),
+        currentChapterTitle: clean(progress.currentChapterTitle || currentChapter?.title),
         failedChapterNumber: Number(progress.failedChapterNumber || 0) || undefined,
         errorCode: clean(progress.errorCode),
         errorMessage: clean(progress.errorMessage),
@@ -131,14 +146,19 @@ function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
       },
       lifeBookPdfRecord: lock.lifeBookPdfRecord || data?.lifeBookPdfRecord || fallback.lifeBookPdfRecord || null,
       pdfReady: data?.pdfReady || fallback.pdfReady || null,
-      chapters: data?.chapters || data?.pdfReady?.chapters || fallback.chapters || [],
+      chapters: statusChapters,
       generationMode: clean(data?.generationMode || data?.pdfReady?.generationMode || fallback.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode),
       manuscriptSource: clean(data?.manuscriptSource || data?.pdfReady?.manuscriptSource || fallback.manuscriptSource),
       writingPipeline: clean(data?.writingPipeline || data?.pdfReady?.writingPipeline || fallback.writingPipeline),
       llmAssembly: data?.llmAssembly || data?.pdfReady?.llmAssembly || fallback.llmAssembly || null,
-      pdfUrl: clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl),
+      pdfUrl,
       htmlUrl: clean(data?.htmlUrl || data?.pdfReady?.htmlUrl),
-      canDownload: Boolean(data?.canDownload || clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl)),
+      canDownload: Boolean(data?.canDownload || pdfUrl),
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      errorMessage: clean(progress.errorMessage || lock.error?.message || fallback.errorMessage),
       error: lock.error || fallback.error || null,
     },
   };
@@ -328,6 +348,676 @@ function toBillingFeatureKey(featureKey) {
 
 function getLifeBookBlueprints() {
   return lifeBookPremiumChapterPlanV1.chapters;
+}
+
+function isLifeBookInFlightStatus(status = "") {
+  const key = clean(status);
+  return [
+    "created",
+    "access_verifying",
+    "access_verified",
+    "queued",
+    "running",
+    "generating",
+    "chapter_generating",
+    "rendering",
+    "saving",
+    "validating",
+    "llm_generation",
+    "llm_chapters_start",
+    "chapter_completed",
+    "reviewing",
+  ].includes(key);
+}
+
+function computeLifeBookProgressPercent(status = "", completedChapters = 0, totalChapters = 0) {
+  const key = clean(status);
+  const total = Math.max(1, Number(totalChapters || getLifeBookBlueprints().length) || 1);
+  const completed = Math.max(0, Math.min(total, Number(completedChapters || 0) || 0));
+  if (key === "access_verifying") return 5;
+  if (key === "access_verified" || key === "created" || key === "queued") return 10;
+  if (key === "generating" || key === "chapter_generating" || key === "llm_generation" || key === "llm_chapters_start" || key === "chapter_completed") {
+    return 10 + Math.floor((completed / total) * 70);
+  }
+  if (key === "rendering" || key === "reviewing") return 85;
+  if (key === "saving") return 95;
+  if (key === "completed" || key === "done") return 100;
+  if (key === "failed" || key === "cancelled") return Math.max(0, Math.min(100, 10 + Math.floor((completed / total) * 70)));
+  return Math.max(0, Math.min(100, 10 + Math.floor((completed / total) * 70)));
+}
+
+function buildInitialLifeBookJobChapters(chapterPlan = getLifeBookBlueprints()) {
+  return (Array.isArray(chapterPlan) ? chapterPlan : []).map((chapter, index) => ({
+    id: clean(chapter.id),
+    title: clean(chapter.title),
+    order: Number(chapter.order || index + 1),
+    category: clean(chapter.category),
+    status: "pending",
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  }));
+}
+
+function isLifeBookDebugMockAccessAllowed(env = {}) {
+  const nodeEnv = clean(env?.NODE_ENV || "development").toLowerCase();
+  const debugMode = ["true", "1", "yes"].includes(clean(env?.PDF_DEBUG_MODE || "").toLowerCase());
+  return debugMode && nodeEnv !== "production";
+}
+
+function resolveLifeBookAccessMethod(access = {}) {
+  const accessType = clean(access?.accessType || access?.accessSource || "").toLowerCase();
+  if (accessType.includes("pass") || accessType.includes("membership") || accessType.includes("family")) return "pass";
+  if (accessType.includes("debug")) return "debug_mock";
+  return "payment";
+}
+
+function buildLifeBookAccessSnapshot(access = {}, method = "") {
+  return {
+    verified: true,
+    method: clean(method || resolveLifeBookAccessMethod(access)) || "payment",
+    paymentId: clean(access?.matchedTransactionId || access?.transactionId || access?.paymentId || access?.purchaseId),
+    passId: clean(access?.passId || access?.passTier || access?.entitlementId),
+    verifiedAt: new Date().toISOString(),
+  };
+}
+
+function normalizeLifeBookJobBody(body = {}) {
+  const normalizedBody = { ...(body && typeof body === "object" ? body : {}) };
+  normalizedBody.targetYear = resolveLifeBookTargetYear(normalizedBody);
+  normalizedBody.analysisYear = normalizedBody.targetYear;
+  return normalizedBody;
+}
+
+async function readLifeBookJsonBody(request) {
+  try {
+    return normalizeLifeBookJobBody(await readJson(request));
+  } catch (_) {
+    throw Object.assign(new Error("Invalid request body."), { code: "INVALID_JSON", status: 400 });
+  }
+}
+
+async function requireLifeBookRouteAuth(request, env) {
+  try {
+    return await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      throw Object.assign(new Error("Login is required to generate the life book PDF."), { code: "UNAUTHORIZED", status: 401 });
+    }
+    throw error;
+  }
+}
+
+async function verifyLifeBookAccessForBody(request, env, auth, body = {}) {
+  const pdfDbEnv = withPdfFastDbEnv(env);
+  const premiumAccessToken = clean(
+    request.headers.get("x-premium-access-token")
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessGrant?.premiumAccessToken
+    || body?.accessGrant?.token,
+  );
+  if (isLifeBookDebugMockAccessAllowed(env) && !premiumAccessToken && !body?.accessGrant) {
+    return {
+      ok: true,
+      access: {
+        ok: true,
+        accessType: "debug_mock",
+        featureKey: LIFEBOOK_FEATURE_KEY,
+        reportType: "lifeBook",
+      },
+      accessSnapshot: buildLifeBookAccessSnapshot({ accessType: "debug_mock" }, "debug_mock"),
+      pdfDbEnv,
+    };
+  }
+  const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "lifeBook", {
+    ...body,
+    featureKey: toBillingFeatureKey(resolveLifeBookFeatureKey(body?.featureKey)),
+    reportType: "lifeBook",
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: "/api/premium/saju-lifebook/verify-access",
+  });
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    throw Object.assign(new Error(status === 401 ? "Login is required to generate the life book PDF." : "Premium PDF access is required."), {
+      code: status === 401 ? "UNAUTHORIZED" : "LIFEBOOK_ACCESS_DENIED",
+      status,
+    });
+  }
+  return {
+    ok: true,
+    access,
+    accessSnapshot: buildLifeBookAccessSnapshot(access),
+    pdfDbEnv,
+  };
+}
+
+function buildLifeBookMockContextSnapshot(localCalculation = {}) {
+  const localSajuJson = localCalculation.localSajuJson || {};
+  return {
+    saju: {
+      yearPillar: clean(localSajuJson?.pillars?.year?.ganji),
+      monthPillar: clean(localSajuJson?.pillars?.month?.ganji),
+      dayPillar: clean(localSajuJson?.pillars?.day?.ganji),
+      hourPillar: clean(localSajuJson?.pillars?.hour?.ganji),
+      dayMaster: clean(localSajuJson?.dayMaster),
+      fiveElements: localSajuJson?.fiveElements || localSajuJson?.elementBalance || {},
+      tenGods: localSajuJson?.tenGods || {},
+      usefulGodCandidates: Array.isArray(localSajuJson?.usefulGods?.usefulElements) ? localSajuJson.usefulGods.usefulElements : [],
+    },
+    lifeFlow: {
+      childhood: "mock context",
+      youth: "mock context",
+      adulthood: "mock context",
+      middleAge: "mock context",
+      laterYears: "mock context",
+      turningPoints: Array.isArray(localSajuJson?.daeun) ? localSajuJson.daeun.slice(0, 5).map((item) => clean(item?.label || item?.name || item)) : [],
+    },
+    themes: {
+      career: clean(localSajuJson?.careerSignals?.geokguk || localSajuJson?.careerSignals?.usefulElement),
+      money: clean(localSajuJson?.moneySignals?.supportElement),
+      love: clean(localSajuJson?.relationshipSignals?.focus),
+      relationship: clean(localSajuJson?.relationshipSignals?.caution),
+      health: clean(localSajuJson?.healthSignals?.weakestElement),
+      family: "",
+    },
+    integratedThemes: [
+      clean(localSajuJson?.strength?.label),
+      clean(localSajuJson?.johu?.summary),
+      clean(localSajuJson?.geokguk?.title),
+    ].filter(Boolean),
+    calculatedAt: new Date().toISOString(),
+    source: localCalculation.localSajuJson ? "existing_engine" : "mock_context",
+  };
+}
+
+async function handleVerifyAccess(request, env) {
+  const auth = await requireLifeBookRouteAuth(request, env);
+  const body = await readLifeBookJsonBody(request);
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(normalized.code || "INVALID_INPUT"),
+      message: normalized.message,
+    }, { status: normalized.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
+  }
+  const verified = await verifyLifeBookAccessForBody(request, env, auth, body);
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId)
+    || `life-book:${auth.userId}:${normalized.birthInput.birthDate}:${normalized.birthInput.birthTime || "unknown"}:${body.targetYear}`;
+  return json({
+    ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    data: {
+      verified: true,
+      jobCreated: false,
+      reportId,
+      sessionId,
+      access: verified.accessSnapshot,
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+    },
+  });
+}
+
+async function handleCreateJob(request, env) {
+  const auth = await requireLifeBookRouteAuth(request, env);
+  const body = await readLifeBookJsonBody(request);
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(normalized.code || "INVALID_INPUT"),
+      message: normalized.message,
+    }, { status: normalized.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
+  }
+  const verified = await verifyLifeBookAccessForBody(request, env, auth, body);
+  const profile = normalized.profile;
+  const birthInput = normalized.birthInput;
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId)
+    || `life-book:${auth.userId}:${birthInput.birthDate}:${birthInput.birthTime || "unknown"}:${body.targetYear}`;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
+  const existingLock = LIFEBOOK_SESSION_LOCKS.get(sessionId) || findLifeBookLockByJobId(reportId);
+  if (existingLock?.status === "done" || existingLock?.status === "completed") {
+    return json(buildLifeBookStatusPayload(existingLock, { sessionId, reportId }));
+  }
+  if (existingLock && isLifeBookInFlightStatus(existingLock.status)) {
+    return json(buildLifeBookStatusPayload(existingLock, { sessionId, reportId }), { status: 202 });
+  }
+  const createdAt = new Date().toISOString();
+  const jobChapters = buildInitialLifeBookJobChapters();
+  const lock = {
+    jobId: reportId,
+    sessionId,
+    reportId,
+    userId: auth.userId,
+    status: "access_verified",
+    startedAt: createdAt,
+    inputSnapshot: body,
+    normalizedInputSnapshot: birthInput,
+    profileSnapshot: profile,
+    access: verified.accessSnapshot,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+    jobChapters,
+    progress: {
+      stateKey: "access_verified",
+      percent: 10,
+      currentChapterNo: 0,
+      completedChapterCount: 0,
+      totalChapters: jobChapters.length,
+      updatedAt: createdAt,
+    },
+  };
+  LIFEBOOK_SESSION_LOCKS.set(sessionId, lock);
+  return json(buildLifeBookStatusPayload(lock, { sessionId, reportId }), { status: 201 });
+}
+
+async function handleGenerateMock(request, env) {
+  const auth = await requireLifeBookRouteAuth(request, env);
+  const body = await readLifeBookJsonBody(request);
+  const jobId = clean(body?.jobId || body?.reportId || body?.sessionId || body?.reportSessionId);
+  if (!jobId) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId is required." }, { status: 422 });
+  }
+  let lock = findLifeBookLockByJobId(jobId);
+  if (!lock) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "JOB_NOT_FOUND", message: "Life book PDF job was not found." }, { status: 404 });
+  }
+  if (clean(lock.userId) && clean(lock.userId) !== clean(auth.userId)) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "FORBIDDEN", message: "This job belongs to another user." }, { status: 403 });
+  }
+  if (lock.status === "done" || lock.status === "completed") {
+    return json(lock.result || buildLifeBookStatusPayload(lock, { sessionId: lock.sessionId, reportId: lock.reportId }));
+  }
+  if (["running", "validating", "llm_chapters_start", "generating", "chapter_generating", "chapter_completed", "rendering", "saving"].includes(clean(lock.status))) {
+    return json(buildLifeBookStatusPayload(lock, { sessionId: lock.sessionId, reportId: lock.reportId }), { status: 202 });
+  }
+  if (lock?.access?.verified !== true) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "LIFEBOOK_ACCESS_NOT_VERIFIED", message: "Premium PDF access must be verified before generation." }, { status: 403 });
+  }
+
+  const sessionId = clean(lock.sessionId);
+  const reportId = clean(lock.reportId || lock.jobId);
+  const rawBody = normalizeLifeBookJobBody(lock.inputSnapshot || body);
+  const normalized = normalizeInput(rawBody);
+  if (!normalized.ok) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(normalized.code || "INVALID_INPUT"),
+      message: normalized.message,
+    }, { status: normalized.code === "BIRTH_TIME_REQUIRED" ? 422 : 400 });
+  }
+
+  const profileId = resolveLifeBookProfileId(rawBody, normalized.profile);
+  const recordCreatedAt = lock.startedAt || new Date().toISOString();
+  const engineVersion = resolveLifeBookEngineVersion(env);
+  const updateLock = (patch = {}) => {
+    const current = LIFEBOOK_SESSION_LOCKS.get(sessionId) || lock;
+    lock = {
+      ...current,
+      ...patch,
+      progress: {
+        ...(current.progress || {}),
+        ...(patch.progress || {}),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+    LIFEBOOK_SESSION_LOCKS.set(sessionId, lock);
+  };
+  const updateChapter = (chapter = {}, status = "pending", extra = {}) => {
+    const chapters = Array.isArray(lock.jobChapters) ? lock.jobChapters.map((item) => ({ ...item })) : buildInitialLifeBookJobChapters();
+    const chapterId = clean(chapter.id || chapter.chapterId);
+    const index = chapters.findIndex((item) => clean(item.id) === chapterId);
+    if (index >= 0) {
+      chapters[index] = {
+        ...chapters[index],
+        status,
+        provider: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+        ...extra,
+      };
+    }
+    updateLock({ jobChapters: chapters });
+  };
+
+  try {
+    updateLock({
+      status: "generating",
+      progress: {
+        stateKey: "generating",
+        percent: 10,
+        currentChapterNo: 0,
+        completedChapterCount: 0,
+        totalChapters: getLifeBookBlueprints().length,
+      },
+    });
+    const localCalculation = calculateSajuLocally({
+      birthInput: normalized.birthInput,
+      profile: normalized.profile,
+      body: rawBody,
+      sessionId,
+    });
+    const contextSnapshot = buildLifeBookMockContextSnapshot(localCalculation);
+    updateLock({ contextSnapshot });
+    const generationInput = {
+      ...rawBody,
+      profile: normalized.profile,
+      birthInput: normalized.birthInput,
+      sessionId,
+      reportSessionId: sessionId,
+      reportId,
+      localSajuJson: localCalculation.localSajuJson,
+      localSajuValidation: localCalculation.localSajuValidation,
+      jsonContractValidation: localCalculation.jsonContractValidation,
+      signals: localCalculation.signals,
+      analysisSignals: localCalculation.signals,
+      generationMode: "mock",
+      authoringMode: "mock",
+      contextSnapshot,
+    };
+    const generated = await generateLifeBookPremiumPdfV2({
+      userId: auth.userId,
+      input: generationInput,
+      paymentContext: {
+        ...(rawBody?._paymentContext && typeof rawBody._paymentContext === "object" ? rawBody._paymentContext : {}),
+        ...(rawBody?.paymentContext && typeof rawBody.paymentContext === "object" ? rawBody.paymentContext : {}),
+        reportId,
+        sessionId,
+        reportSessionId: sessionId,
+        featureKey: LIFEBOOK_FEATURE_KEY,
+      },
+      env: {
+        ...env,
+        PDF_LLM_PROVIDER: "mock",
+        PDF_DEBUG_MODE: "true",
+        LLM_DRY_RUN: "true",
+        GEMINI_CALL_ENABLED: "false",
+        WORKERS_AI_ENABLED: "false",
+        PDF_LLM_MAX_CALLS_PER_JOB: "0",
+        PDF_LLM_MAX_RETRIES: "0",
+      },
+      pdfDbEnv: null,
+      executionContext: null,
+      requestUrl: request.url,
+      reportId,
+      sessionId,
+      onProgress: (progressEvent = {}) => {
+        const chapter = progressEvent.chapter || null;
+        const totalChapters = Number(progressEvent.totalChapters || getLifeBookBlueprints().length);
+        const currentChapterNo = Number(progressEvent.currentChapterNo ?? chapter?.order ?? 0);
+        const completedChapterCount = Number(progressEvent.completedChapterCount ?? 0);
+        const rawStatus = clean(progressEvent.status || "");
+        const stateKey = rawStatus === "reviewing" ? "rendering" : rawStatus === "rendering" ? "saving" : rawStatus;
+        if (chapter && rawStatus === "chapter_generating") {
+          updateChapter(chapter, "generating", { startedAt: new Date().toISOString() });
+        }
+        if (chapter && rawStatus === "chapter_completed") {
+          updateChapter(chapter, "completed", { completedAt: new Date().toISOString() });
+        }
+        updateLock({
+          status: stateKey === "completed" ? "done" : stateKey === "failed" ? "failed" : stateKey || "generating",
+          progress: {
+            stateKey: stateKey || "generating",
+            percent: computeLifeBookProgressPercent(stateKey || "generating", completedChapterCount, totalChapters),
+            currentChapterNo,
+            completedChapterCount,
+            currentChapterId: clean(chapter?.id),
+            currentChapterTitle: clean(chapter?.title || (stateKey === "rendering" ? "PDF 문서를 렌더링하고 있습니다." : stateKey === "saving" ? "PDF 파일을 저장하고 있습니다." : "")),
+            totalChapters,
+          },
+        });
+      },
+    });
+    if (!generated?.ok || generated.status === "failed" || !clean(generated.downloadUrl || generated.pdfReady?.downloadUrl)) {
+      throw Object.assign(new Error(clean(generated?.error || "LIFE_BOOK_MOCK_GENERATION_FAILED")), {
+        code: clean(generated?.code || "LIFE_BOOK_MOCK_GENERATION_FAILED"),
+        status: Number(generated?.statusCode || 500),
+        details: generated?.details || null,
+      });
+    }
+    const completedChapters = buildInitialLifeBookJobChapters(generated.chapterPlan).map((chapter, index) => ({
+      ...chapter,
+      status: "completed",
+      content: clean(generated.chapters?.[index]?.text || generated.chapters?.[index]?.html || ""),
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      completedAt: new Date().toISOString(),
+    }));
+    const completedRecord = buildLifeBookPdfRecord({
+      reportId,
+      userId: auth.userId,
+      profileId,
+      status: "completed",
+      chapterCount: generated.chapterCount,
+      htmlContent: generated.pdfReady?.html || "",
+      pdfUrl: generated.downloadUrl || generated.pdfUrl || generated.htmlUrl || "",
+      createdAt: recordCreatedAt,
+      engineVersion,
+    });
+    if (generated.pdfReady && typeof generated.pdfReady === "object") {
+      generated.pdfReady.lifeBookPdfRecord = completedRecord;
+    }
+    const resultData = {
+      ok: true,
+      success: true,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      featureKey: LIFEBOOK_FEATURE_KEY,
+      reportType: "lifeBook",
+      serviceType: "life_book_pdf",
+      status: "completed",
+      serverStatus: "completed",
+      sessionId,
+      reportSessionId: sessionId,
+      jobId: reportId,
+      reportId,
+      access: lock.access,
+      totalChapters: generated.expectedChapterCount,
+      completedChapters: generated.chapterCount,
+      progressPercent: 100,
+      currentChapterId: "",
+      currentChapterTitle: "",
+      chapterCount: generated.chapterCount,
+      expectedChapterCount: generated.expectedChapterCount,
+      chapters: completedChapters,
+      chapterResults: generated.chapterResults,
+      chapterAttempts: generated.chapterAttempts,
+      normalizedInput: generated.normalizedInput,
+      contextSnapshot,
+      manuscriptSource: generated.manuscriptSource,
+      generationMode: "mock",
+      authoringMode: "mock",
+      provider: "mock",
+      modelName: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      writingPipeline: generated.writingPipeline,
+      llmAssembly: {
+        ...(generated.llmAssembly || {}),
+        provider: "mock",
+        modelName: "mock",
+        tokensUsed: 0,
+        cost: 0,
+        isMock: true,
+        externalCallsAllowed: false,
+      },
+      externalCallsAllowed: false,
+      lifeBookPdfRecord: completedRecord,
+      pdfReady: generated.pdfReady,
+      pdfUrl: generated.pdfUrl,
+      htmlUrl: generated.htmlUrl,
+      downloadUrl: generated.downloadUrl,
+      canReopen: true,
+      canDownload: true,
+      completedAt: new Date().toISOString(),
+    };
+    const responseBody = { ...resultData, data: resultData };
+    updateLock({
+      status: "done",
+      completedAt: resultData.completedAt,
+      result: responseBody,
+      lifeBookPdfRecord: completedRecord,
+      jobChapters: completedChapters,
+      progress: {
+        stateKey: "completed",
+        percent: 100,
+        currentChapterNo: generated.chapterCount,
+        completedChapterCount: generated.chapterCount,
+        totalChapters: generated.expectedChapterCount,
+      },
+    });
+    return json(responseBody);
+  } catch (error) {
+    const current = LIFEBOOK_SESSION_LOCKS.get(sessionId) || lock;
+    const previousProgress = current?.progress || {};
+    const failedChapterId = clean(error?.chapterId || error?.details?.chapterId || previousProgress.currentChapterId);
+    const failedChapterTitle = clean(error?.chapterTitle || error?.details?.title || previousProgress.currentChapterTitle);
+    if (failedChapterId) updateChapter({ id: failedChapterId }, "failed", { errorMessage: clean(error?.message || error) });
+    const failedRecord = buildLifeBookPdfRecord({
+      reportId,
+      userId: auth.userId,
+      profileId,
+      status: "failed",
+      errorMessage: clean(error?.message || error),
+      createdAt: recordCreatedAt,
+      engineVersion,
+    });
+    updateLock({
+      status: "failed",
+      failedAt: new Date().toISOString(),
+      lifeBookPdfRecord: failedRecord,
+      error: normalizeLifeBookError(error),
+      progress: {
+        stateKey: "failed",
+        percent: computeLifeBookProgressPercent("failed", previousProgress.completedChapterCount || 0, previousProgress.totalChapters || getLifeBookBlueprints().length),
+        currentChapterNo: Number(previousProgress.currentChapterNo || 0),
+        completedChapterCount: Number(previousProgress.completedChapterCount || 0),
+        currentChapterId: failedChapterId,
+        currentChapterTitle: failedChapterTitle,
+        failedChapterNumber: Number(error?.chapterNumber || previousProgress.currentChapterNo || 0) || undefined,
+        errorCode: clean(error?.code || "LIFEBOOK_MOCK_GENERATION_FAILED"),
+        errorMessage: clean(error?.message || "Life book mock PDF generation failed."),
+        totalChapters: Number(previousProgress.totalChapters || getLifeBookBlueprints().length),
+      },
+    });
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: clean(error?.code || "LIFEBOOK_MOCK_GENERATION_FAILED"),
+      message: "인생의 책 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.",
+      data: buildLifeBookStatusPayload(LIFEBOOK_SESSION_LOCKS.get(sessionId), { sessionId, reportId }).data,
+    }, { status: Number(error?.status || error?.statusCode || 500) || 500 });
+  }
+}
+
+async function handleResult(request, env, pathJobId = "") {
+  await requireLifeBookRouteAuth(request, env);
+  const url = new URL(request.url);
+  const jobId = clean(pathJobId || url.searchParams.get("jobId") || url.searchParams.get("reportId") || url.searchParams.get("sessionId"));
+  if (!jobId) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId is required." }, { status: 422 });
+  }
+  const lock = findLifeBookLockByJobId(jobId);
+  if (!lock) {
+    return json({ ok: false, serviceKey: LIFEBOOK_SERVICE_KEY, code: "JOB_NOT_FOUND", message: "Life book PDF job was not found." }, { status: 404 });
+  }
+  if (lock.status === "done" || lock.status === "completed") {
+    const result = buildLifeBookResultFromLock(lock, { jobId });
+    return json({ ok: true, serviceKey: LIFEBOOK_SERVICE_KEY, data: result, ...result });
+  }
+  return json({
+    ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    data: {
+      jobId,
+      status: clean(lock.status) || "unknown",
+      pdfUrl: null,
+      message: "아직 인생의 책 PDF 생성이 완료되지 않았습니다.",
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+    },
+  }, { status: 202 });
+}
+
+function normalizeLifeBookJobChapters(lock = {}, data = null) {
+  const plan = getLifeBookBlueprints();
+  const statusChapters = Array.isArray(lock.jobChapters)
+    ? lock.jobChapters
+    : Array.isArray(lock.chapters)
+      ? lock.chapters
+      : Array.isArray(data?.chapterResults)
+        ? data.chapterResults
+        : Array.isArray(data?.chapters)
+          ? data.chapters
+          : [];
+  const byId = new Map(statusChapters.map((chapter) => [clean(chapter.id || chapter.chapterId), chapter]));
+  return plan.map((planned, index) => {
+    const found = byId.get(clean(planned.id)) || statusChapters[index] || {};
+    const status = clean(found.status) || "pending";
+    return {
+      id: clean(found.id || found.chapterId || planned.id),
+      title: clean(found.title || planned.title),
+      order: Number(found.order || found.chapterNumber || planned.order || index + 1),
+      category: clean(found.category || planned.category),
+      status: ["pending", "generating", "completed", "failed"].includes(status) ? status : "completed",
+      provider: "mock",
+      tokensUsed: 0,
+      cost: 0,
+      isMock: true,
+      content: found.content,
+      startedAt: clean(found.startedAt),
+      completedAt: clean(found.completedAt),
+      errorMessage: clean(found.errorMessage),
+    };
+  });
+}
+
+function findLifeBookLockByJobId(jobId = "") {
+  const key = clean(jobId);
+  if (!key) return null;
+  return LIFEBOOK_SESSION_LOCKS.get(key)
+    || Array.from(LIFEBOOK_SESSION_LOCKS.values()).find((item) => clean(item?.reportId) === key || clean(item?.jobId) === key)
+    || null;
+}
+
+function buildLifeBookResultFromLock(lock = {}, fallback = {}) {
+  const result = lock.result && typeof lock.result === "object" ? lock.result : null;
+  const data = result?.data && typeof result.data === "object" ? result.data : result;
+  const chapters = normalizeLifeBookJobChapters(lock, data);
+  const pdfReady = data?.pdfReady || fallback.pdfReady || null;
+  const pdfUrl = clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || pdfReady?.pdfUrl || pdfReady?.downloadUrl);
+  return {
+    jobId: clean(lock.jobId || lock.reportId || fallback.jobId || fallback.reportId),
+    sessionId: clean(lock.sessionId || fallback.sessionId),
+    reportId: clean(lock.reportId || fallback.reportId),
+    status: clean(data?.status || lock.status) === "done" ? "completed" : clean(data?.status || lock.status),
+    pdfUrl,
+    htmlUrl: clean(data?.htmlUrl || pdfReady?.htmlUrl),
+    downloadUrl: clean(data?.downloadUrl || pdfUrl),
+    completedAt: clean(lock.completedAt || data?.completedAt),
+    chapters,
+    pdfReady,
+    provider: "mock",
+    tokensUsed: 0,
+    cost: 0,
+    isMock: true,
+  };
 }
 
 
@@ -1920,7 +2610,7 @@ async function persistLifeBookPdfRecord(env, executionCtx, record = {}, extraMet
 
 
 
-async function handleStatus(request, env) {
+async function handleStatus(request, env, pathJobId = "") {
   let auth;
   try {
     auth = await requireAuth(request, env);
@@ -1937,8 +2627,9 @@ async function handleStatus(request, env) {
   }
 
   const url = new URL(request.url);
-  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
-  const reportId = clean(url.searchParams.get("reportId"));
+  const jobId = clean(pathJobId || url.searchParams.get("jobId"));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId") || jobId);
+  const reportId = clean(url.searchParams.get("reportId") || jobId);
   if (!sessionId && !reportId) {
     return json({
       ok: false,
@@ -1948,9 +2639,9 @@ async function handleStatus(request, env) {
     }, { status: 422 });
   }
 
-  const lock = sessionId
-    ? LIFEBOOK_SESSION_LOCKS.get(sessionId)
-    : Array.from(LIFEBOOK_SESSION_LOCKS.values()).find((item) => clean(item?.reportId) === reportId);
+  const lock = findLifeBookLockByJobId(jobId)
+    || (sessionId ? LIFEBOOK_SESSION_LOCKS.get(sessionId) : null)
+    || Array.from(LIFEBOOK_SESSION_LOCKS.values()).find((item) => clean(item?.reportId) === reportId);
   if (lock) return json(buildLifeBookStatusPayload(lock, { sessionId, reportId }));
 
   await connectDb(env);
@@ -2563,11 +3254,25 @@ export async function handleSajuLifebookRoutes(request, env = {}, ctx = null) {
       path = getRoutePath(request, "/api/lifebook");
     }
 
+    if (method === "POST" && path === "/verify-access") {
+      return await handleVerifyAccess(request, env);
+    }
+    if (method === "POST" && path === "/create-job") {
+      return await handleCreateJob(request, env);
+    }
+    if (method === "POST" && path === "/generate-mock") {
+      return await handleGenerateMock(request, env);
+    }
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {
       return await handlePrepare(request, env, ctx);
     }
-    if (method === "GET" && path === "/status") {
-      return await handleStatus(request, env);
+    if (method === "GET" && (path === "/status" || path.startsWith("/status/"))) {
+      const pathJobId = path.startsWith("/status/") ? path.slice("/status/".length) : "";
+      return await handleStatus(request, env, pathJobId);
+    }
+    if (method === "GET" && (path === "/result" || path.startsWith("/result/"))) {
+      const pathJobId = path.startsWith("/result/") ? path.slice("/result/".length) : "";
+      return await handleResult(request, env, pathJobId);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

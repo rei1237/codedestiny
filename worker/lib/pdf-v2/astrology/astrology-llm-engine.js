@@ -16,6 +16,7 @@ import {
   validateAstrologyChapterHtml,
 } from "./astrology-validator.js";
 
+const ASTROLOGY_PREMIUM_MANUSCRIPT_SOURCE = "astrology-premium-llm-only";
 const CHAPTER_CACHE = new Map();
 
 function readCacheStore(env = {}) {
@@ -381,10 +382,15 @@ async function generateOneChapter({ env, input, chapter, chapterPlan, modelName,
   }
 
   throw Object.assign(new Error(`Astrology chapter generation failed: ${chapter.id}`), {
-    code: "ASTROLOGY_CHAPTER_GENERATION_FAILED",
+    code: "ASTROLOGY_PREMIUM_CHAPTER_GENERATION_FAILED",
     status: 503,
     chapterId: chapter.id,
     attempts,
+    failedChapters: [{
+      id: chapter.id,
+      title: chapter.title,
+      attempts,
+    }],
   });
 }
 
@@ -406,9 +412,14 @@ export async function generateChaptersWithLLM({ env, input, chapterPlan, jobId, 
     const parsed = await generateOneChapter({ env, input, chapter, chapterPlan, modelName, jobId, userId });
     if (!clean(parsed.html)) {
       throw Object.assign(new Error(`Astrology chapter generation failed: ${chapter.id}`), {
-        code: "ASTROLOGY_CHAPTER_EMPTY",
+        code: "ASTROLOGY_PREMIUM_CHAPTER_GENERATION_FAILED",
         status: 503,
         chapterId: chapter.id,
+        failedChapters: [{
+          id: chapter.id,
+          title: chapter.title,
+          reason: "ASTROLOGY_CHAPTER_EMPTY",
+        }],
       });
     }
     chapters.push(parsed);
@@ -468,7 +479,7 @@ export async function generateAstrologyLlmReport(params = {}) {
       : "workers-ai";
   const llmAssembly = {
     enabled: true,
-    source: "astrology-llm-only",
+    source: ASTROLOGY_PREMIUM_MANUSCRIPT_SOURCE,
     provider,
     modelName: generated.modelName,
     engineVersion: ASTROLOGY_LLM_VERSION,
@@ -493,7 +504,7 @@ export async function generateAstrologyLlmReport(params = {}) {
     llmAssembly,
     llmAssemblyOnly: true,
     externalCallsAllowed: true,
-    manuscriptSource: "astrology-llm-only",
+    manuscriptSource: ASTROLOGY_PREMIUM_MANUSCRIPT_SOURCE,
     generationMode: "pdf-v3-llm-only",
     promptVersion: ASTROLOGY_PROMPT_VERSION,
     chapterPlanVersion: chapterPlan.version,

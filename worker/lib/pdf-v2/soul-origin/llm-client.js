@@ -1,78 +1,35 @@
-import { callLLM } from "../../../../lib/llm-client.ts";
+import { generatePdfChapterTextResult } from "../pdf-llm-gateway.js";
 import { clean } from "./soul-origin-premium.types.js";
 
-const PROVIDER_TIMEOUT_MS = 120000;
-
-function cleanBlock(value) {
-  return String(value || "")
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/```$/i, "")
-    .trim();
+function resolveConfiguredProvider(env = {}) {
+  const provider = clean(env?.PDF_LLM_PROVIDER || "mock").toLowerCase();
+  return provider === "gemini" || provider === "workers-ai" || provider === "mock" ? provider : "mock";
 }
 
 export function resolveSoulOriginModelName(env = {}) {
-  return clean(
-    env?.SOUL_ORIGIN_GEMINI_MODEL
-    || env?.SOUL_ORIGIN_LLM_MODEL
-    || env?.PREMIUM_GEMINI_MODEL
-    || env?.GEMINI_MODEL
-    || "gemini-2.5-flash",
-  );
-}
-
-function resolveSoulOriginTimeoutMs(env = {}) {
-  const value = Number(env?.SOUL_ORIGIN_LLM_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || PROVIDER_TIMEOUT_MS);
-  return Number.isFinite(value) && value > 0 ? value : PROVIDER_TIMEOUT_MS;
-}
-
-function classifySoulOriginLlmError(error) {
-  const message = clean(error?.message || error, 500);
-  const code = clean(error?.code || error?.name || "").toUpperCase();
-  if (code.includes("TIMEOUT") || /timed out|timeout|aborted/i.test(message)) return "LLM_TIMEOUT";
-  if (/api key is not configured|binding is not configured|not configured/i.test(message)) return "LLM_NOT_CONFIGURED";
-  return "LLM_REQUEST_FAILED";
+  const provider = resolveConfiguredProvider(env);
+  if (provider === "workers-ai") return clean(env?.SOUL_ORIGIN_WORKERS_AI_MODEL || env?.WORKERS_AI_MODEL || "mock");
+  if (provider === "gemini") return clean(env?.SOUL_ORIGIN_GEMINI_MODEL || env?.SOUL_ORIGIN_LLM_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "mock");
+  return "mock";
 }
 
 export async function generateSoulOriginTextWithLlm(params = {}, env = {}) {
-  const started = Date.now();
-  const modelName = resolveSoulOriginModelName(env);
-  try {
-    const result = await callLLM({
-      prompt: params.userPrompt,
-      systemPrompt: params.systemPrompt,
-      model: modelName,
-      maxTokens: Number(params.maxTokens || env?.SOUL_ORIGIN_GEMINI_MAX_TOKENS || env?.SOUL_ORIGIN_LLM_MAX_TOKENS || 24000),
-      temperature: Number(params.temperature ?? env?.SOUL_ORIGIN_LLM_TEMPERATURE ?? 0.72),
-      taskType: "pdf",
-      timeoutMs: Number(params.timeoutMs || resolveSoulOriginTimeoutMs(env)),
-    }, env);
-    const text = cleanBlock(result?.text || "");
-    if (!text) {
-      return {
-        ok: false,
-        provider: "gemini",
-        model: clean(result?.model || modelName),
-        errorCode: "LLM_REQUEST_FAILED",
-        errorMessage: "Empty LLM response.",
-        latencyMs: Date.now() - started,
-      };
-    }
-    return {
-      ok: true,
-      text,
-      provider: result?.provider === "cloudflare" ? "workers-ai" : clean(result?.provider || "gemini"),
-      model: clean(result?.model || modelName),
-      latencyMs: Date.now() - started,
-    };
-  } catch (error) {
-    const code = classifySoulOriginLlmError(error);
-    return {
-      ok: false,
-      provider: "gemini",
-      model: modelName,
-      errorCode: code,
-      errorMessage: clean(error?.message || error, 300),
-      latencyMs: Date.now() - started,
-    };
-  }
+  const context = params?.context && typeof params.context === "object" ? params.context : {};
+  const chapter = context.chapter && typeof context.chapter === "object" ? context.chapter : {};
+  const isKarmaChapter = clean(context.format).includes("karma")
+    || clean(params.requestId).includes(":karma:");
+  return generatePdfChapterTextResult({
+    jobId: clean(params.jobId || params.requestId || "soul-origin"),
+    serviceType: isKarmaChapter ? "karma-integrated" : "soul-origin",
+    chapterId: clean(chapter.id || params.chapterId || (isKarmaChapter ? "karma-chapter" : "full-report")),
+    chapterTitle: clean(chapter.title || params.chapterTitle || (isKarmaChapter ? "운명의 업" : "운명의 업 전체 리포트")),
+    chapterOrder: Number(chapter.order || chapter.no || params.chapterOrder || 1),
+    totalChapters: Number(context.totalChapters || params.totalChapters || 1),
+    prompt: params.userPrompt || "",
+    context: {
+      ...context,
+      format: isKarmaChapter ? "karma-integrated-html" : "soul-origin-json",
+      chapter,
+    },
+  }, env);
 }

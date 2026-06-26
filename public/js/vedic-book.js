@@ -6,9 +6,15 @@
   'use strict';
 
   var VEDIC_FEATURE_KEY = 'premium_pdf_vedic';
-  var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';
-  var VEDIC_STATUS_API = '/api/vedic/premium/status';
-  var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
+  var VEDIC_VERIFY_ACCESS_API = '/api/vedic/pdf/verify-access';
+  var VEDIC_CREATE_JOB_API = '/api/vedic/pdf/create-job';
+  var VEDIC_GENERATE_MOCK_API = '/api/vedic/pdf/generate-mock';
+  var VEDIC_STATUS_API = '/api/vedic/pdf/status';
+  var VEDIC_RESULT_API = '/api/vedic/pdf/result';
+  var VEDIC_CHAPTERS_API = '/api/vedic/pdf/chapters';
+  var VEDIC_CURRENT_JOB_STORAGE_KEY = 'currentVedicPdfJobId';
+  var VEDIC_CURRENT_SESSION_STORAGE_KEY = 'currentVedicPdfSessionId';
+  var VEDIC_PREPARE_API = VEDIC_CREATE_JOB_API;
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
@@ -680,6 +686,7 @@
       birthMonth: hasDate ? month : null,
       birthDay: hasDate ? day : null,
       birthTime: isTimeUnknown ? '' : [String(hour).padStart(2, '0'), String(minute).padStart(2, '0')].join(':'),
+      birthTimeUnknown: isTimeUnknown,
       birthHour: isTimeUnknown ? null : hour,
       birthMinute: minute,
       timezone: _clean(location.tz) || 'Asia/Seoul',
@@ -692,16 +699,10 @@
 
   function _validateBeforePayment(birthInput) {
     if (!_clean(birthInput && birthInput.birthDate)) {
-      var dateErr = new Error('베다점 PDF 생성을 위해 생년월일 정보가 필요합니다. 프로필 카드를 먼저 확인해주세요.');
+      var dateErr = new Error('베다점 PDF 생성에 필요한 생년월일을 확인해 주세요.');
       dateErr.code = 'BIRTH_DATE_REQUIRED';
       dateErr.status = 422;
       throw dateErr;
-    }
-    if (birthInput && (birthInput.isTimeUnknown || birthInput.birthHour == null)) {
-      var timeErr = new Error('베다점 PDF는 라그나와 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.');
-      timeErr.code = 'BIRTH_TIME_REQUIRED';
-      timeErr.status = 422;
-      throw timeErr;
     }
   }
 
@@ -1384,7 +1385,11 @@
     try { modal.setAttribute('aria-hidden', 'false'); } catch (_) {}
 
     _logStage('ModalOpen');
-    _resolveBirthProfile().then(function (profile) {
+    _restoreVedicPdfJobFromStorage().then(function (restored) {
+      if (restored) return null;
+      return _resolveBirthProfile();
+    }).then(function (profile) {
+      if (!profile) return;
       var normalizedProfile = _normalizeVedicProfileForPdf(profile);
       if (_hasValidBirthProfile(normalizedProfile)) {
         window.__cdActiveBirthProfile = normalizedProfile;
@@ -1582,6 +1587,382 @@
     }).catch(function (error) {
       _logError(error, { stage: 'resolve-profile' });
       _setError(String(error && error.message ? error.message : error || '생성 실패'));
+    });
+  };
+
+  function _vedicContractHeaders() {
+    var headers = { 'Content-Type': 'application/json' };
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
+    if (authToken) headers.Authorization = 'Bearer ' + authToken;
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    return headers;
+  }
+
+  function _vedicContractRequest(path, options) {
+    var endpoints = _buildApiCandidates(path);
+    var endpointIndex = 0;
+    var opts = options || {};
+    function run(resolve, reject, lastErr) {
+      if (endpointIndex >= endpoints.length) {
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '베다점 PDF 요청을 처리하지 못했습니다.'));
+        return;
+      }
+      var url = endpoints[endpointIndex++];
+      fetch(url, {
+        method: opts.method || 'GET',
+        headers: _vedicContractHeaders(),
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+        credentials: 'include',
+        cache: 'no-store',
+        keepalive: opts.keepalive === true
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json) {
+            _persistPremiumAccessToken(_extractPremiumToken(pack.json));
+            resolve(pack.json);
+            return;
+          }
+          var apiError = _buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: opts.stage || 'vedic-pdf-contract',
+            sessionId: _currentVedicSessionId,
+            reportId: _currentVedicReportId
+          });
+          apiError.permanent = pack.res.status === 401 || pack.res.status === 403 || pack.res.status === 422 || pack.res.status === 409;
+          reject(apiError);
+        })
+        .catch(function (error) {
+          if (error && error.permanent) {
+            reject(error);
+            return;
+          }
+          run(resolve, reject, error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패')));
+        });
+    }
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _postVedicContract(path, body, stage, keepalive) {
+    return _vedicContractRequest(path, { method: 'POST', body: body, stage: stage, keepalive: keepalive === true });
+  }
+
+  function _getVedicContract(path, stage) {
+    return _vedicContractRequest(path, { method: 'GET', stage: stage });
+  }
+
+  function _storeCurrentVedicJob(job) {
+    var jobId = _clean(job && (job.jobId || job.reportId || job.id)) || _currentVedicReportId;
+    var sessionId = _clean(job && (job.sessionId || job.reportSessionId)) || _currentVedicSessionId;
+    if (jobId) {
+      try { localStorage.setItem(VEDIC_CURRENT_JOB_STORAGE_KEY, jobId); } catch (_) {}
+    }
+    if (sessionId) {
+      try { localStorage.setItem(VEDIC_CURRENT_SESSION_STORAGE_KEY, sessionId); } catch (_) {}
+    }
+  }
+
+  function _readStoredVedicJob() {
+    var jobId = '';
+    var sessionId = '';
+    try { jobId = _clean(localStorage.getItem(VEDIC_CURRENT_JOB_STORAGE_KEY)); } catch (_) { jobId = ''; }
+    try { sessionId = _clean(localStorage.getItem(VEDIC_CURRENT_SESSION_STORAGE_KEY)); } catch (_) { sessionId = ''; }
+    return { jobId: jobId, sessionId: sessionId };
+  }
+
+  function _normalizeVedicJobStatus(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var data = source.data && typeof source.data === 'object' ? source.data : {};
+    var merged = {};
+    Object.keys(source).forEach(function (key) { if (key !== 'data') merged[key] = source[key]; });
+    Object.keys(data).forEach(function (key) { merged[key] = data[key]; });
+    merged.jobId = _clean(merged.jobId || merged.reportId || merged.id || _currentVedicReportId);
+    merged.reportId = _clean(merged.reportId || merged.jobId);
+    merged.sessionId = _clean(merged.sessionId || merged.reportSessionId || _currentVedicSessionId);
+    merged.status = _clean(merged.status || 'created').toLowerCase();
+    merged.totalChapters = Number(merged.totalChapters || (Array.isArray(merged.chapters) ? merged.chapters.length : VEDIC_TOTAL_CHAPTERS) || 12);
+    merged.completedChapters = Number(merged.completedChapters || 0);
+    merged.progressPercent = Math.max(0, Math.min(100, Number(merged.progressPercent || merged.progress || 0)));
+    merged.chapters = Array.isArray(merged.chapters) ? merged.chapters : [];
+    return merged;
+  }
+
+  function _vedicJobCurrentChapterNo(job) {
+    var chapters = Array.isArray(job && job.chapters) ? job.chapters : [];
+    var currentId = _clean(job && job.currentChapterId);
+    var active = chapters.filter(function (chapter) { return _clean(chapter.id) === currentId || _clean(chapter.status) === 'generating'; })[0];
+    if (active) return Number(active.order || chapters.indexOf(active) + 1) || 1;
+    return Math.max(1, Math.min(Number(job && job.totalChapters || VEDIC_TOTAL_CHAPTERS), Number(job && job.completedChapters || 0) + 1));
+  }
+
+  function _vedicJobMessage(job) {
+    var status = _clean(job && job.status);
+    if (status === 'access_verifying') return '결제 검증 중입니다.';
+    if (status === 'access_verified' || status === 'queued' || status === 'created') return '베다점 PDF 생성 준비 중입니다.';
+    if (status === 'generating' || status === 'chapter_generating') {
+      var order = _vedicJobCurrentChapterNo(job);
+      var title = _clean(job && job.currentChapterTitle) || '베다점 챕터';
+      return order + '장 ' + title + ' 생성 중...';
+    }
+    if (status === 'rendering') return 'PDF 문서를 렌더링하고 있습니다.';
+    if (status === 'saving') return 'PDF 파일을 저장하고 있습니다.';
+    if (status === 'completed') return '베다점 PDF가 완성되었습니다.';
+    if (status === 'failed') return _clean(job && job.errorMessage) || '베다점 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.';
+    return '베다점 PDF 상태를 확인하고 있습니다.';
+  }
+
+  function _ensureVedicChapterStatusList() {
+    var loading = _qs('vdLoadingScreen');
+    if (!loading) return null;
+    var list = _qs('vdChapterStatusList');
+    if (list) return list;
+    list = document.createElement('div');
+    list.id = 'vdChapterStatusList';
+    list.style.cssText = 'display:grid;gap:6px;margin:14px auto 0;max-width:520px;text-align:left;font-size:.84rem;line-height:1.45;color:#fff7ed;';
+    loading.appendChild(list);
+    return list;
+  }
+
+  function _renderVedicChapterStatusList(job) {
+    var list = _ensureVedicChapterStatusList();
+    if (!list) return;
+    var chapters = Array.isArray(job && job.chapters) ? job.chapters : [];
+    list.innerHTML = chapters.map(function (chapter) {
+      var status = _clean(chapter.status);
+      var label = status === 'completed' ? '완료' : status === 'generating' ? '생성 중' : status === 'failed' ? '실패' : '대기';
+      var color = status === 'completed' ? '#86efac' : status === 'generating' ? '#fde68a' : status === 'failed' ? '#fecdd3' : '#d6d3d1';
+      return '<div style="display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:start;"><b style="color:' + color + '">[' + label + ']</b><span>' + _escapeHtml(Number(chapter.order || 0) + '장 ' + _clean(chapter.title)) + '</span></div>';
+    }).join('');
+  }
+
+  function _applyVedicJobStatus(rawJob) {
+    var job = _normalizeVedicJobStatus(rawJob || {});
+    _storeCurrentVedicJob(job);
+    var pct = Math.max(0, Math.min(100, Math.round(Number(job.progressPercent || 0))));
+    var total = Number(job.totalChapters || VEDIC_TOTAL_CHAPTERS || 12);
+    var completed = Number(job.completedChapters || 0);
+    var currentNo = _vedicJobCurrentChapterNo(job);
+    var message = _vedicJobMessage(job);
+    var bar = _qs('vdProgressBar');
+    var text = _qs('vdProgressText');
+    var number = _qs('vdLoadingChapterNum');
+    var chapter = _qs('vdLoadingChapter');
+    if (bar) bar.style.width = pct + '%';
+    if (text) text.textContent = completed + ' / ' + total + ' 챕터 완료 · ' + pct + '%';
+    if (number) number.textContent = job.status === 'completed' ? '완료' : 'Chapter ' + currentNo;
+    if (chapter) chapter.textContent = message;
+    var dots = document.querySelectorAll('.vd-ch-dot');
+    Array.prototype.forEach.call(dots, function (dot) {
+      var dotNo = Number(dot.getAttribute('data-vdch'));
+      var chapterState = (job.chapters || []).filter(function (item) { return Number(item.order) === dotNo; })[0];
+      dot.classList.toggle('lb-ch-dot--active', dotNo === currentNo && job.status !== 'completed');
+      dot.classList.toggle('lb-ch-dot--done', chapterState && chapterState.status === 'completed');
+    });
+    _renderVedicChapterStatusList(job);
+    return job;
+  }
+
+  function _buildVedicContractBody(birthInput, paymentContext) {
+    var context = _ensureCurrentVedicGenerationIds();
+    var payment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment('', paymentContext || _lastPremiumPayment || {}));
+    payment.sessionId = _clean(payment.sessionId || context.sessionId) || undefined;
+    payment.reportSessionId = _clean(payment.reportSessionId || context.sessionId) || undefined;
+    payment.reportId = _clean(payment.reportId || context.reportId) || undefined;
+    payment.premiumAccessToken = _readPremiumAccessToken() || payment.premiumAccessToken || undefined;
+    _currentVedicReportId = _clean(payment.reportId || _currentVedicReportId || context.reportId);
+    _currentVedicSessionId = _clean(payment.sessionId || _currentVedicSessionId || context.sessionId);
+    return {
+      jobId: _currentVedicReportId,
+      reportId: _currentVedicReportId,
+      sessionId: _currentVedicSessionId,
+      reportSessionId: _currentVedicSessionId,
+      featureKey: VEDIC_FEATURE_KEY,
+      reportType: 'vedicPremium',
+      serviceType: 'vedic_pdf',
+      input: Object.assign({}, birthInput, {
+        birthTimeUnknown: birthInput.birthTimeUnknown === true || birthInput.isTimeUnknown === true,
+        readingType: birthInput.readingType || 'personal',
+        targetYear: birthInput.targetYear || new Date().getFullYear()
+      }),
+      birthInput: birthInput,
+      transactionId: payment.transactionId || undefined,
+      sourceTransactionId: payment.transactionId || payment.purchaseId || payment.requestId || undefined,
+      purchaseId: payment.purchaseId || undefined,
+      requestId: payment.requestId || undefined,
+      accessGrant: payment.accessGrant || undefined,
+      premiumAccessToken: payment.premiumAccessToken || undefined,
+      consume: payment.consume || undefined,
+      payment: payment,
+      _paymentContext: payment,
+      paymentContext: payment
+    };
+  }
+
+  function _verifyVedicAccessOrOpenPayment(baseBody) {
+    _applyVedicJobStatus({ status: 'access_verifying', totalChapters: VEDIC_TOTAL_CHAPTERS, completedChapters: 0, progressPercent: 5, chapters: _canonicalChapters });
+    return _postVedicContract(VEDIC_VERIFY_ACCESS_API, baseBody, 'verify-access').then(function (verified) {
+      if (verified && verified.accessGranted) return { body: baseBody, verified: verified };
+      throw new Error('베다점 PDF 생성 권한이 확인되지 않았습니다.');
+    }).catch(function (error) {
+      var status = Number(error && error.status);
+      if (status === 401 || (status && status !== 402 && status !== 403)) throw error;
+      return _ensurePremiumPaymentThenStart().then(function (paymentResult) {
+        var nextBody = _buildVedicContractBody(baseBody.input || baseBody.birthInput || {}, paymentResult);
+        _applyVedicJobStatus({ status: 'access_verifying', totalChapters: VEDIC_TOTAL_CHAPTERS, completedChapters: 0, progressPercent: 5, chapters: _canonicalChapters });
+        return _postVedicContract(VEDIC_VERIFY_ACCESS_API, nextBody, 'verify-access').then(function (verified) {
+          if (!verified || !verified.accessGranted) throw new Error('베다점 PDF 생성 권한이 확인되지 않았습니다.');
+          return { body: nextBody, verified: verified };
+        });
+      });
+    });
+  }
+
+  function _fetchVedicPdfResult(jobId, sessionId) {
+    var query = _queryString({ sessionId: sessionId, jobId: jobId, reportId: jobId });
+    return _getVedicContract(VEDIC_RESULT_API + '/' + encodeURIComponent(jobId) + query, 'result');
+  }
+
+  function _pollVedicPdfJob(seed) {
+    var jobId = _clean(seed && (seed.jobId || seed.reportId)) || _currentVedicReportId;
+    var sessionId = _clean(seed && (seed.sessionId || seed.reportSessionId)) || _currentVedicSessionId;
+    var attempts = 0;
+    function poll() {
+      attempts += 1;
+      var query = _queryString({ sessionId: sessionId, jobId: jobId, reportId: jobId });
+      return _getVedicContract(VEDIC_STATUS_API + '/' + encodeURIComponent(jobId) + query, 'status').then(function (payload) {
+        var job = _applyVedicJobStatus(payload || {});
+        if (job.status === 'completed') return _fetchVedicPdfResult(job.jobId || jobId, job.sessionId || sessionId);
+        if (job.status === 'failed' || job.status === 'cancelled') {
+          var err = new Error(_vedicJobMessage(job));
+          err.status = 500;
+          err.code = 'VEDIC_PDF_JOB_FAILED';
+          throw err;
+        }
+        if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) throw new Error('베다점 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
+        return _sleep(VEDIC_STATUS_POLL_MS).then(poll);
+      });
+    }
+    return poll();
+  }
+
+  function _renderVedicContractResult(response) {
+    var result = _normalizeVedicReportResponse(response || {});
+    var input = result.inputSnapshot || result.payload && result.payload.inputSnapshot || {};
+    var payload = result.payload || {};
+    payload.user = payload.user || {
+      name: input.name || '사용자',
+      birthDate: input.birthDate || '',
+      birthTime: input.birthTimeUnknown ? '출생시간 모름' : input.birthTime || '',
+      birthPlace: input.birthPlace || '',
+      timezone: input.timezone || ''
+    };
+    _resultPayload = result;
+    _chapters = Array.isArray(result.chapters) ? result.chapters : [];
+    if (!_chapters.length) throw new Error('베다점 PDF 챕터 데이터가 비어 있습니다.');
+    _applyVedicJobStatus(Object.assign({}, result, { status: 'completed', progressPercent: 100, completedChapters: _chapters.length, totalChapters: _chapters.length }));
+    _renderResult(_chapters, payload, result);
+    _showScreen('vdResultScreen');
+  }
+
+  function _restoreVedicPdfJobFromStorage() {
+    var stored = _readStoredVedicJob();
+    if (!stored.jobId) return Promise.resolve(false);
+    return _getVedicContract(VEDIC_STATUS_API + '/' + encodeURIComponent(stored.jobId) + _queryString({ sessionId: stored.sessionId, jobId: stored.jobId, reportId: stored.jobId }), 'restore-status')
+      .then(function (payload) {
+        var job = _applyVedicJobStatus(payload || {});
+        _currentVedicReportId = _clean(job.jobId || stored.jobId);
+        _currentVedicSessionId = _clean(job.sessionId || stored.sessionId);
+        if (job.status === 'completed') {
+          return _fetchVedicPdfResult(job.jobId, job.sessionId).then(function (result) {
+            _renderVedicContractResult(result);
+            return true;
+          });
+        }
+        if (job.status === 'failed' || job.status === 'cancelled') {
+          _setError(_vedicJobMessage(job));
+          return true;
+        }
+        if (['generating', 'chapter_generating', 'rendering', 'saving'].indexOf(job.status) >= 0) {
+          _generating = true;
+          _setStartBusy(true);
+          _showScreen('vdLoadingScreen');
+          return _pollVedicPdfJob(job).then(function (result) {
+            _renderVedicContractResult(result);
+            return true;
+          }).finally(function () {
+            _generating = false;
+            _setStartBusy(false);
+          });
+        }
+        return true;
+      })
+      .catch(function () { return false; });
+  }
+
+  window.generateVedicBook = function () {
+    if (_generating) return;
+    _resolveBirthProfile().then(function (profile) {
+      profile = _normalizeVedicProfileForPdf(profile);
+      if (!profile || !profile.birth) {
+        _showScreen('vdNoProfileScreen');
+        return;
+      }
+      var birthInput = _normalizeBirthInput(profile);
+      try {
+        _validateBeforePayment(birthInput);
+      } catch (error) {
+        _logError(error, { stage: 'ValidationBeforePayment' });
+        _setError(String(error && error.message ? error.message : error || '입력값 검증 실패'));
+        return;
+      }
+      _ensureCurrentVedicGenerationIds();
+      _generating = true;
+      _currentProgressStep = 0;
+      _setStartBusy(true);
+      _showScreen('vdLoadingScreen');
+      _stopProgressAnimation();
+      var baseBody = _buildVedicContractBody(birthInput, _lastPremiumPayment || {});
+      _applyVedicJobStatus({ status: 'access_verifying', totalChapters: VEDIC_TOTAL_CHAPTERS, completedChapters: 0, progressPercent: 5, chapters: _canonicalChapters });
+      _verifyVedicAccessOrOpenPayment(baseBody)
+        .then(function (verifiedPack) {
+          _applyVedicJobStatus({ status: 'access_verified', totalChapters: VEDIC_TOTAL_CHAPTERS, completedChapters: 0, progressPercent: 10, chapters: _canonicalChapters });
+          return _postVedicContract(VEDIC_CREATE_JOB_API, verifiedPack.body, 'create-job');
+        })
+        .then(function (jobPayload) {
+          var job = _applyVedicJobStatus(jobPayload || {});
+          _currentVedicReportId = _clean(job.jobId || job.reportId || _currentVedicReportId);
+          _currentVedicSessionId = _clean(job.sessionId || _currentVedicSessionId);
+          _storeCurrentVedicJob(job);
+          _postVedicContract(VEDIC_GENERATE_MOCK_API, {
+            jobId: _currentVedicReportId,
+            reportId: _currentVedicReportId,
+            sessionId: _currentVedicSessionId,
+            reportSessionId: _currentVedicSessionId
+          }, 'generate-mock', true).catch(function (error) {
+            _logError(error, { stage: 'generate-mock' });
+          });
+          return _pollVedicPdfJob(job);
+        })
+        .then(function (result) {
+          _renderVedicContractResult(result);
+        })
+        .catch(function (error) {
+          _logError(error, { stage: 'generate' });
+          _setError(String(error && error.message ? error.message : error || '베다점 PDF 생성에 실패했습니다.'));
+        })
+        .finally(function () {
+          _generating = false;
+          _setStartBusy(false);
+          _stopProgressAnimation();
+        });
+    }).catch(function (error) {
+      _logError(error, { stage: 'resolve-profile' });
+      _setError(String(error && error.message ? error.message : error || '베다점 PDF 생성에 실패했습니다.'));
     });
   };
 

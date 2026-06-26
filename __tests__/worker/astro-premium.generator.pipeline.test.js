@@ -80,24 +80,23 @@ function fixtureLiteral() {
 function mockArticleSource() {
   return String.raw`
 function buildMockArticle(prompt) {
-  const chapterId = (prompt.match(/<article data-chapter-id="([^"]+)"/) || [])[1] || "ch01";
-  const title = (prompt.match(/<h1>([\s\S]*?)<\/h1>/) || [])[1] || "점성술 챕터";
+  const chapterId = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "ch01";
+  const title = (prompt.match(/<h2>([\s\S]*?)<\/h2>/) || [])[1] || "점성술 챕터";
   const grounding = ((prompt.match(/필수 근거 용어: ([^\n]+)/) || [])[1] || "태양 / 달 / 상승궁")
     .split("/")
     .map((item) => item.trim())
     .filter(Boolean)
-    .slice(0, 4)
+    .slice(0, 6)
     .join(", ");
-  const outputFormat = prompt.slice(Math.max(0, prompt.lastIndexOf("[출력 형식]")));
-  const sections = Array.from(outputFormat.matchAll(/<h2>([\s\S]*?)<\/h2>/g)).map((match) => match[1]);
-  const body = sections.map((section, index) => {
-    const marker = " [장" + chapterId.replace("ch", "") + "-" + (index + 1) + "]";
-    const paragraphA = section + marker + "에서는 " + grounding + "의 근거와 함께 태양, 달, 상승궁, 하우스와 애스펙트가 만드는 흐름을 차분히 읽습니다. " + section + marker + "의 핵심은 계산된 차트에 있는 행성 배치와 현재 트랜짓을 현실의 감각으로 번역하는 데 있습니다. " + section + marker + "은 사용자가 반복해 선택하는 기준, 감정이 먼저 반응하는 방향, 관계 안에서 자연스럽게 취하는 태도를 하나씩 밝혀 줍니다.";
-    const paragraphB = section + marker + "의 조언은 단정적인 예언이 아니라 자기이해를 돕는 안내입니다. " + section + marker + "은 제공된 점성술 계산 결과를 기준으로 확인되는 신호만 다루며, 부족한 정보는 신중하게 제한을 밝힙니다. " + section + marker + "의 흐름은 관계, 일, 돈, 생활 리듬에서 지금 조정할 수 있는 행동을 부드럽게 가리킵니다.";
-    const paragraphC = section + marker + "을 현실에 적용할 때는 행성의 위치와 하우스의 무대가 겹치는 부분을 먼저 봅니다. " + section + marker + "은 당장 바꿀 수 있는 습관, 더 지켜봐야 할 변화, 타인과 대화로 풀어야 할 주제를 구분하게 합니다. " + section + marker + "의 마지막 조언은 오늘의 작은 선택을 차트의 큰 방향과 맞추는 데 있습니다.";
-    return "<section><h2>" + section + "</h2><p>" + paragraphA + "</p><p>" + paragraphB + "</p><p>" + paragraphC + "</p></section>";
-  }).join("");
-  return "<article data-chapter-id=\"" + chapterId + "\"><h1>" + title + "</h1>" + body + "</article>";
+  const marker = " [장" + chapterId.replace("ch", "") + "]";
+  const paragraphs = [
+    title + marker + "에서는 " + grounding + "의 근거와 함께 태양, 달, 상승궁, 하우스와 어스펙트가 만드는 흐름을 차분히 읽습니다. " + title + marker + "의 핵심은 계산된 출생 차트에 있는 행성 배치와 현재 트랜짓을 현실의 감각으로 번역하는 데 있습니다.",
+    title + marker + "은 Sun 물고기자리, Moon 천칭자리, Venus 양자리, Mars 쌍둥이자리처럼 제공된 차트 안의 행성 신호만 사용합니다. " + title + marker + "은 사용자가 반복해 선택하는 기준, 감정이 먼저 반응하는 방향, 관계 안에서 자연스럽게 취하는 태도를 하나씩 밝혀 줍니다.",
+    title + marker + "의 조언은 단정적인 예언이 아니라 자기이해를 돕는 안내입니다. " + title + marker + "은 점성술 계산 결과를 기준으로 확인되는 신호만 다루며, 부족한 정보는 신중하게 제한을 밝힙니다.",
+    title + marker + "을 현실에 적용할 때는 행성의 위치와 하우스의 무대가 겹치는 부분을 먼저 봅니다. " + title + marker + "은 당장 바꿀 수 있는 습관, 더 지켜봐야 할 변화, 타인과 대화로 풀어야 할 주제를 구분하게 합니다.",
+    title + marker + "의 마지막 조언은 현재 트랜짓이 건드리는 영역을 기록하면서 오늘의 작은 선택을 차트의 큰 방향과 맞추는 데 있습니다. " + title + marker + "은 관계, 일, 돈, 생활 리듬에서 지금 조정할 수 있는 행동을 부드럽게 가리킵니다.",
+  ].map((text) => "<p>" + text + "</p>").join("");
+  return "<section class=\"astrology-chapter\" data-chapter-id=\"" + chapterId + "\"><h2>" + title + "</h2><div class=\"chapter-summary\"><p>" + title + marker + "의 핵심은 " + grounding + "의 흐름을 계산된 차트 안에서 읽는 데 있습니다. 이 장은 성향과 현실 선택을 함께 정리합니다.</p></div><div class=\"chapter-body\">" + paragraphs + "</div><div class=\"chapter-advice\"><h3>별자리 처방</h3><ul><li>" + grounding + " 중 가장 강한 신호를 하루의 선택 기준으로 삼으세요.</li><li>하우스와 트랜짓이 겹치는 영역은 기록으로 리듬을 확인하세요.</li><li>태양과 달의 균형을 기준으로 관계와 일정을 조율하세요.</li></ul></div></section>";
 }
 `;
 }
@@ -139,8 +138,8 @@ describe("Astrology premium LLM-only PDF pipeline", () => {
       import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
       import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
       const chapter = astrologyPremiumChapterPlanV2.chapters[0];
-      const sections = chapter.sections.map((section) => "<section><h2>" + section + "</h2><p>이 문단은 충분히 길지만 구체적인 차트 근거 없이 좋은 선택과 마음의 균형만 반복해서 말합니다. 오늘의 태도와 관계의 방향을 부드럽게 살피라는 일반적인 안내를 이어 갑니다.</p><p>이 문단도 충분히 길지만 실제 행성이나 하우스 근거를 쓰지 않습니다. 그래서 프리미엄 리포트의 정확한 점성술 해석으로 보기 어렵습니다.</p></section>").join("");
-      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const body = Array.from({ length: 5 }, (_, index) => "<p>이 문단 " + (index + 1) + "은 충분히 길지만 구체적인 차트 근거 없이 좋은 선택과 마음의 균형만 반복해서 말합니다. 오늘의 태도와 관계의 방향을 부드럽게 살피라는 일반적인 안내를 이어 갑니다.</p>").join("");
+      const html = "<section class=\\"astrology-chapter\\" data-chapter-id=\\"" + chapter.id + "\\"><h2>" + chapter.title + "</h2><div class=\\"chapter-summary\\"><p>일반적인 안내입니다.</p></div><div class=\\"chapter-body\\">" + body + "</div><div class=\\"chapter-advice\\"><h3>별자리 처방</h3><ul><li>천천히 살피세요.</li><li>기록하세요.</li><li>대화하세요.</li></ul></div></section>";
       const validation = validateAstrologyPremiumChapterHtml(html, chapter);
       console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
     `);
@@ -153,11 +152,8 @@ describe("Astrology premium LLM-only PDF pipeline", () => {
       import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
       import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
       const chapter = astrologyPremiumChapterPlanV2.chapters.find((item) => item.id === "ch09");
-      const sections = chapter.sections.map((section, index) => {
-        const marker = " [재정초점누락-" + (index + 1) + "]";
-        return "<section><h2>" + section + "</h2><p>" + section + marker + "에서는 태양, 달, 상승궁, 애스펙트, 트랜짓의 일반 흐름을 충분히 길게 설명합니다. " + section + marker + "의 문장은 계산된 출생 차트를 바탕으로 자기이해를 돕는 상담처럼 이어지지만, 이 챕터가 요구하는 재정과 자원 중심의 핵심 근거는 의도적으로 제외합니다. " + section + marker + "은 독자가 현재의 선택을 차분히 바라보게 하는 일반적인 조언을 덧붙입니다.</p><p>" + section + marker + "의 두 번째 문단은 하우스라는 표현을 쓰지 않고 관계와 감정의 균형만 말합니다. " + section + marker + "은 충분한 길이를 채우되, 해당 챕터에 필요한 구체 근거가 없으면 통과하면 안 됩니다. " + section + marker + "은 프리미엄 리포트가 챕터마다 정확한 초점을 가져야 한다는 점을 검증합니다.</p></section>";
-      }).join("");
-      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const body = Array.from({ length: 5 }, (_, index) => "<p>재정초점누락 " + (index + 1) + "에서는 태양, 달, 상승궁, 어스펙트, 트랜짓의 일반 흐름을 충분히 길게 설명합니다. 이 문장은 계산된 출생 차트를 바탕으로 자기이해를 돕는 상담처럼 이어지지만, 이 챕터가 요구하는 핵심 근거는 의도적으로 제외합니다. 하우스의 일반 구조는 언급하지만 해당 장의 구체 근거가 없으면 통과하면 안 됩니다.</p>").join("");
+      const html = "<section class=\\"astrology-chapter\\" data-chapter-id=\\"" + chapter.id + "\\"><h2>" + chapter.title + "</h2><div class=\\"chapter-summary\\"><p>일반적인 점성술 흐름입니다.</p></div><div class=\\"chapter-body\\">" + body + "</div><div class=\\"chapter-advice\\"><h3>별자리 처방</h3><ul><li>태양의 리듬을 보세요.</li><li>달의 반응을 기록하세요.</li><li>상승궁의 태도를 점검하세요.</li></ul></div></section>";
       const validation = validateAstrologyPremiumChapterHtml(html, chapter);
       console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
     `);
@@ -170,11 +166,8 @@ describe("Astrology premium LLM-only PDF pipeline", () => {
       import { validateAstrologyPremiumChapterHtml } from "./worker/lib/pdf-v2/astrology/astrology-premium.validator.js";
       import { astrologyPremiumChapterPlanV2 } from "./worker/lib/pdf-v2/astrology/astrology-premium.chapter-plan.js";
       const chapter = astrologyPremiumChapterPlanV2.chapters[0];
-      const sections = chapter.sections.map((section, index) => {
-        const marker = " [외국어혼입-" + (index + 1) + "]";
-        return "<section><h2>" + section + "</h2><p>" + section + marker + "에서는 출생 차트, 태양, 달, 상승궁, 하우스와 애스펙트의 흐름을 충분히 구체적으로 읽습니다. " + section + marker + "은 원소와 모달리티가 만드는 기질의 균형을 차분히 살피며, 현재 트랜짓까지 함께 비춥니다. 그런데 이 문장에는 excellent strategy라는 외국어 표현이 섞여 있습니다.</p><p>" + section + marker + "의 두 번째 문단은 점성술 계산 결과를 바탕으로 현실적인 자기이해를 돕습니다. " + section + marker + "은 제공된 근거만 사용하고 부족한 정보는 신중하게 제한을 밝히며, 문단 길이도 충분히 유지합니다. " + section + marker + "은 한국어 리포트 안에 불필요한 외국어가 남으면 실패해야 함을 확인합니다.</p></section>";
-      }).join("");
-      const html = "<article data-chapter-id=\\"" + chapter.id + "\\"><h1>" + chapter.title + "</h1>" + sections + "</article>";
+      const body = Array.from({ length: 5 }, (_, index) => "<p>외국어혼입 " + (index + 1) + "에서는 출생 차트, 태양, 달, 상승궁, 하우스와 어스펙트의 흐름을 충분히 구체적으로 읽습니다. 원소와 양식이 만드는 기질의 균형을 차분히 살피며, 현재 트랜짓까지 함께 비춥니다. 그런데 이 문장에는 excellent strategy라는 외국어 표현이 섞여 있습니다.</p>").join("");
+      const html = "<section class=\\"astrology-chapter\\" data-chapter-id=\\"" + chapter.id + "\\"><h2>" + chapter.title + "</h2><div class=\\"chapter-summary\\"><p>출생 차트의 큰 흐름입니다.</p></div><div class=\\"chapter-body\\">" + body + "</div><div class=\\"chapter-advice\\"><h3>별자리 처방</h3><ul><li>출생 차트를 기준으로 보세요.</li><li>태양과 달을 구분하세요.</li><li>상승궁의 반응을 점검하세요.</li></ul></div></section>";
       const validation = validateAstrologyPremiumChapterHtml(html, chapter);
       console.log(JSON.stringify({ ok: validation.ok, issues: validation.issues }));
     `);
@@ -223,7 +216,7 @@ describe("Astrology premium LLM-only PDF pipeline", () => {
       const env = { AI: { run: async (_model, request) => {
         callCount += 1;
         const prompt = request.messages[1].content;
-        const chapterId = (prompt.match(/<article data-chapter-id="([^"]+)"/) || [])[1] || "unknown";
+        const chapterId = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "unknown";
         const seen = attemptsByChapter.get(chapterId) || 0;
         attemptsByChapter.set(chapterId, seen + 1);
         if (seen === 0) {

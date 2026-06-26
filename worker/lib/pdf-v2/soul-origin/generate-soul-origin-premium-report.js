@@ -74,10 +74,15 @@ async function callAndValidate({ env, input, prompt, jobId, userId, retry, previ
   const started = Date.now();
   const modelName = resolveSoulOriginModelName(env);
   const generated = await generateSoulOriginTextWithLlm({
+    jobId,
     systemPrompt: soulOriginSystemPrompt,
     userPrompt: prompt,
     requestId: `${jobId}:soul-origin:${retry}`,
     maxTokens: Number(env?.SOUL_ORIGIN_LLM_MAX_TOKENS || 24000),
+    context: {
+      format: "soul-origin-json",
+      chapterPlan: soulOriginChapterPlanV1.chapters,
+    },
   }, env);
   if (!generated.ok) {
     throw Object.assign(new Error(generated.errorCode || "LLM_REQUEST_FAILED"), {
@@ -119,6 +124,9 @@ async function callAndValidate({ env, input, prompt, jobId, userId, retry, previ
     qualityReport: validation.qualityReport,
     provider: generated.provider,
     modelName: generated.model || modelName,
+    tokensUsed: Number(generated.tokensUsed || 0),
+    cost: Number(generated.cost || 0),
+    isMock: generated.isMock === true || clean(generated.provider) === "mock",
     latencyMs: generated.latencyMs,
   };
 }
@@ -156,9 +164,18 @@ export async function generateSoulOriginLlmReport(params = {}) {
         provider: cached.provider || "cache",
         modelName: cached.modelName || modelName,
         writingPipeline: SOUL_ORIGIN_LLM_WRITING_PIPELINE,
-        llmAssembly: buildSoulOriginLlmAssembly(soulOriginChapterPlanV1.chapters.length),
+        tokensUsed: Number(cached.tokensUsed || 0),
+        cost: Number(cached.cost || 0),
+        isMock: cached.isMock === true || clean(cached.provider) === "mock",
+        llmAssembly: buildSoulOriginLlmAssembly(soulOriginChapterPlanV1.chapters.length, {
+          provider: cached.provider || "cache",
+          modelName: cached.modelName || modelName,
+          tokensUsed: Number(cached.tokensUsed || 0),
+          cost: Number(cached.cost || 0),
+          isMock: cached.isMock === true || clean(cached.provider) === "mock",
+        }),
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed: (cached.isMock === true || clean(cached.provider) === "mock") ? false : true,
         cacheKey,
         cached: true,
         pdfV2: {
@@ -194,6 +211,9 @@ export async function generateSoulOriginLlmReport(params = {}) {
         result: generated.result,
         provider: generated.provider,
         modelName: generated.modelName,
+        tokensUsed: generated.tokensUsed,
+        cost: generated.cost,
+        isMock: generated.isMock,
         promptVersion: SOUL_ORIGIN_LLM_PROMPT_VERSION,
         schemaVersion: SOUL_ORIGIN_LLM_SCHEMA_VERSION,
         chapterPlanVersion: soulOriginChapterPlanV1.version,
@@ -213,9 +233,18 @@ export async function generateSoulOriginLlmReport(params = {}) {
         provider: generated.provider,
         modelName: generated.modelName,
         writingPipeline: SOUL_ORIGIN_LLM_WRITING_PIPELINE,
-        llmAssembly: buildSoulOriginLlmAssembly(soulOriginChapterPlanV1.chapters.length),
+        tokensUsed: Number(generated.tokensUsed || 0),
+        cost: Number(generated.cost || 0),
+        isMock: generated.isMock === true,
+        llmAssembly: buildSoulOriginLlmAssembly(soulOriginChapterPlanV1.chapters.length, {
+          provider: generated.provider,
+          modelName: generated.modelName,
+          tokensUsed: Number(generated.tokensUsed || 0),
+          cost: Number(generated.cost || 0),
+          isMock: generated.isMock === true,
+        }),
         llmAssemblyOnly: true,
-        externalCallsAllowed: true,
+        externalCallsAllowed: generated.isMock === true ? false : true,
         cacheKey,
         cached: false,
         attempts,

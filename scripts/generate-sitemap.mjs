@@ -45,6 +45,7 @@ const excludedInsightCategories = new Set([
 
 const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
+  { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.99 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/today", changefreq: "daily", priority: 0.97 },

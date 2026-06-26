@@ -8,14 +8,19 @@
   var ASTRO_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_BILLING_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
+  var ASTRO_VERIFY_ACCESS_API = '/api/astro/premium/verify-access';
+  var ASTRO_CREATE_JOB_API = '/api/astro/premium/create-job';
+  var ASTRO_GENERATE_MOCK_API = '/api/astro/premium/generate-mock';
   var ASTRO_STATUS_API = '/api/astro/premium/status';
-  var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
+  var ASTRO_RESULT_API = '/api/astro/premium/result';
+  var ASTRO_CHAPTERS_API = '/api/astro/premium/mock-chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
   var ASTRO_TOTAL_CHAPTERS = 12;
   var ASTRO_COIN_COST = 390;
   var ASTRO_PREPARE_TIMEOUT_MS = 90000;
   var ASTRO_DOWNLOAD_TIMEOUT_MS = 60000;
-  var ASTRO_STATUS_POLL_MS = 4000;
+  var ASTRO_STATUS_POLL_MS = 1200;
+  var ASTRO_MOCK_JOB_STORAGE_KEY = 'currentAstrologyPdfJobId';
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
   var _chapters = [];
@@ -631,10 +636,10 @@
 
   function _ensureCurrentAstroGenerationIds() {
     if (!_currentAstroSessionId) {
-      _currentAstroSessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+      _currentAstroSessionId = 'astrology_session_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
     }
     if (!_currentAstroReportId) {
-      _currentAstroReportId = _currentAstroSessionId.replace(/^astro-premium:/, 'astro-report:');
+      _currentAstroReportId = _currentAstroSessionId.replace(/^astrology_session_/, 'astrology_');
     }
     if (!_currentAstroPaymentRequestId) {
       _currentAstroPaymentRequestId = _currentAstroSessionId + ':pay';
@@ -865,13 +870,19 @@
     var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
+    if (payload.isMock === true || _clean(payload.provider).toLowerCase() === 'mock') {
+      return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed';
+    }
     return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLlmOnlyReady(payload, total);
   }
 
   function _hasAstroLlmOnlyReady(payload, totalOverride) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
-    var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
+    if (p.isMock === true || ready.isMock === true || _clean(p.provider || ready.provider).toLowerCase() === 'mock') {
+      return Number(p.tokensUsed || ready.tokensUsed || 0) === 0 && Number(p.cost || ready.cost || 0) === 0;
+    }
+    var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 15);
     var llmAssembly = p.llmAssembly && typeof p.llmAssembly === 'object'
       ? p.llmAssembly
       : (ready.llmAssembly && typeof ready.llmAssembly === 'object' ? ready.llmAssembly : {});
@@ -1145,23 +1156,8 @@
     var hasBirthYmd = Number.isFinite(Number(birthInput && birthInput.birthYear))
       && Number.isFinite(Number(birthInput && birthInput.birthMonth))
       && Number.isFinite(Number(birthInput && birthInput.birthDay));
-    var hasBirthTime = Number.isFinite(Number(birthInput && birthInput.birthHour));
-    var hasTimezone = !!_clean(birthInput && birthInput.timezone);
-    var hasTimezoneOffset = Number.isFinite(Number(birthInput && birthInput.timezoneOffsetHours));
-    var hasBirthPlace = !!_clean(birthInput && birthInput.birthPlace);
-    var hasCoordinates = Number.isFinite(Number(birthInput && birthInput.latitude))
-      && Number.isFinite(Number(birthInput && birthInput.longitude));
     if (!hasBirthDate || !hasBirthYmd) {
       return { ok: false, message: _astroBookText().birthDateRequired };
-    }
-    if (!hasBirthTime || birthInput.isTimeUnknown) {
-      return { ok: false, message: _astroBookText().birthTimeRequired };
-    }
-    if (!hasTimezone || !hasTimezoneOffset) {
-      return { ok: false, message: _astroBookText().timezoneRequired };
-    }
-    if (!hasBirthPlace || !hasCoordinates) {
-      return { ok: false, message: _astroBookText().birthplaceRequired };
     }
     return { ok: true };
   }
@@ -1455,11 +1451,13 @@
     ].join(' · ');
   }
 
-  function _setLoadingProgress(step, total, title, done) {
+  function _setLoadingProgress(step, total, title, done, progressPercent) {
     var safeTotal = Math.max(1, Math.trunc(Number(total || 1)));
     var safeStep = Math.max(0, Math.min(safeTotal, Math.trunc(Number(step || 0))));
     var isDone = done === true;
-    var pct = Math.max(0, Math.min(100, Math.round((safeStep / safeTotal) * 100)));
+    var pct = Number.isFinite(Number(progressPercent))
+      ? Math.max(0, Math.min(100, Math.round(Number(progressPercent))))
+      : Math.max(0, Math.min(100, Math.round((safeStep / safeTotal) * 100)));
     if (!isDone) pct = Math.min(92, pct);
     var bar = _qs('abProgressBar');
     var txt = _qs('abProgressText');
@@ -1474,6 +1472,8 @@
     var dots = document.querySelectorAll('.ab-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
       var n = Number(dot.getAttribute('data-abch'));
+      if (!Number.isFinite(n)) return;
+      dot.style.display = n > safeTotal ? 'none' : '';
       dot.classList.toggle('lb-ch-dot--active', !isDone && n === Math.max(1, safeStep || 1));
       dot.classList.toggle('lb-ch-dot--done', isDone ? n <= safeStep : n < safeStep);
     });
@@ -1526,7 +1526,8 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'lb-toc-item loaded';
-        btn.textContent = chapter.roman + '. ' + _sanitizeText(chapter.title);
+        var tocLabel = _sanitizeText(chapter.roman || (String(chapter.order || (idx + 1)) + '장'));
+        btn.textContent = tocLabel + '. ' + _sanitizeText(chapter.title);
         btn.addEventListener('click', function () {
           var sec = document.getElementById('abChapter-' + (idx + 1));
           if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1538,13 +1539,19 @@
         var section = document.createElement('section');
         section.id = 'abChapter-' + (idx + 1);
         section.className = 'lb-chapter-card';
-        var html = '<h4 class="lb-chapter-title">' + chapter.roman + '. ' + _sanitizeText(chapter.title) + '</h4>';
+        var chapterLabel = _sanitizeText(chapter.roman || (String(chapter.order || (idx + 1)) + '장'));
+        var html = '<h4 class="lb-chapter-title">' + chapterLabel + '. ' + _sanitizeText(chapter.title) + '</h4>';
         var cats = Array.isArray(chapter.categories) ? chapter.categories : [];
         for (var i = 0; i < cats.length; i++) {
           var c = cats[i] || {};
           html += '<article class="lb-sub-card">'
             + '<h5 class="lb-sub-title">' + _sanitizeText(c.title || ('세부 카테고리 ' + (i + 1))) + '</h5>'
             + '<div class="lb-sub-body">' + _renderAstroSectionBody(c.text || c.localSummary || '') + '</div>'
+            + '</article>';
+        }
+        if (!cats.length && _clean(chapter.content)) {
+          html += '<article class="lb-sub-card">'
+            + '<div class="lb-sub-body">' + _renderAstroSectionBody(chapter.content) + '</div>'
             + '</article>';
         }
         section.innerHTML = html;
@@ -1653,6 +1660,99 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
+  function _postAstrologyMockApi(pathname, body, stage) {
+    var endpoints = _buildApiCandidates(pathname);
+    var idx = 0;
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
+
+    function run(resolve, reject, lastErr) {
+      if (idx >= endpoints.length) {
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '점성술 PDF API 호출에 실패했습니다.'));
+        return;
+      }
+      var url = endpoints[idx++];
+      var headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+
+      _fetchWithTimeout(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body || {}),
+      }, ASTRO_PREPARE_TIMEOUT_MS)
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json && pack.json.ok !== false) {
+            _persistPremiumAccessToken(_extractPremiumToken(pack.json));
+            resolve(pack.json);
+            return;
+          }
+          run(resolve, reject, _buildAstroApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), { stage: stage || 'mock-api' }));
+        })
+        .catch(function (err) {
+          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패')));
+        });
+    }
+
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _getAstrologyMockApi(pathname, query, stage) {
+    var suffix = [];
+    var params = query || {};
+    Object.keys(params).forEach(function (key) {
+      var value = _clean(params[key]);
+      if (value) suffix.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    });
+    var endpoints = _buildApiCandidates(pathname + (suffix.length ? '?' + suffix.join('&') : ''));
+    var idx = 0;
+    function run(resolve, reject, lastErr) {
+      if (idx >= endpoints.length) {
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || _astroBookText().statusCheckFailed));
+        return;
+      }
+      fetch(endpoints[idx++], { method: 'GET', headers: _astroStatusHeaders() })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json && pack.json.ok !== false) {
+            resolve(pack.json);
+            return;
+          }
+          run(resolve, reject, _buildAstroApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), { stage: stage || 'mock-status' }));
+        })
+        .catch(function (err) {
+          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || _astroBookText().statusCheckFailed)));
+        });
+    }
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _postAstrologyVerifyAccess(body) {
+    return _postAstrologyMockApi(ASTRO_VERIFY_ACCESS_API, body, 'verify-access');
+  }
+
+  function _postAstrologyCreateJob(body) {
+    return _postAstrologyMockApi(ASTRO_CREATE_JOB_API, body, 'create-job');
+  }
+
+  function _postAstrologyGenerateMock(jobId) {
+    return _postAstrologyMockApi(ASTRO_GENERATE_MOCK_API, { jobId: jobId }, 'generate-mock');
+  }
+
+  function _fetchAstrologyResult(jobId) {
+    return _getAstrologyMockApi(ASTRO_RESULT_API, { jobId: jobId }, 'result');
+  }
+
   function _astroStatusHeaders() {
     var headers = {};
     var authToken = '';
@@ -1663,7 +1763,11 @@
     return headers;
   }
 
-  function _fetchAstroStatus(sessionId, reportId) {
+  function _fetchAstroStatus(sessionId, reportId, jobId) {
+    var jid = _clean(jobId);
+    if (jid) {
+      return _getAstrologyMockApi(ASTRO_STATUS_API, { jobId: jid }, 'status');
+    }
     var sid = _clean(sessionId);
     var rid = _clean(reportId);
     if (!sid && !rid) return Promise.reject(new Error('점성술 생성 세션을 확인할 수 없습니다.'));
@@ -1711,10 +1815,73 @@
     return Math.min(10000, Math.max(1000, Math.trunc(ms)));
   }
 
+  function _saveAstrologyMockJobId(jobId) {
+    var value = _clean(jobId);
+    if (!value) return;
+    try { localStorage.setItem(ASTRO_MOCK_JOB_STORAGE_KEY, value); } catch (_) {}
+  }
+
+  function _readAstrologyMockJobId() {
+    try { return _clean(localStorage.getItem(ASTRO_MOCK_JOB_STORAGE_KEY)); } catch (_) { return ''; }
+  }
+
+  function _clearAstrologyMockJobId() {
+    try { localStorage.removeItem(ASTRO_MOCK_JOB_STORAGE_KEY); } catch (_) {}
+  }
+
+  function _chapterStatusLabel(status) {
+    var value = _clean(status).toLowerCase();
+    if (value === 'completed') return '완료';
+    if (value === 'generating') return '생성 중';
+    if (value === 'failed') return '실패';
+    return '대기';
+  }
+
+  function _ensureAstrologyChapterStatusList() {
+    var list = _qs('abChapterStatusList');
+    if (list) return list;
+    var progressText = _qs('abProgressText');
+    if (!progressText || !progressText.parentElement) return null;
+    list = document.createElement('div');
+    list.id = 'abChapterStatusList';
+    list.className = 'lb-progress-text';
+    list.setAttribute('aria-live', 'polite');
+    list.style.textAlign = 'left';
+    list.style.maxWidth = '520px';
+    list.style.margin = '14px auto 0';
+    list.style.lineHeight = '1.7';
+    progressText.parentElement.insertBefore(list, progressText.nextSibling);
+    return list;
+  }
+
+  function _renderAstrologyChapterStatusList(chapters) {
+    var list = _ensureAstrologyChapterStatusList();
+    if (!list) return;
+    var source = Array.isArray(chapters) ? chapters : [];
+    if (!source.length) {
+      list.textContent = '';
+      return;
+    }
+    list.innerHTML = '';
+    source.forEach(function (chapter) {
+      var row = document.createElement('div');
+      row.textContent = '[' + _chapterStatusLabel(chapter.status) + '] ' + Number(chapter.order || 0) + '장 ' + _sanitizeText(chapter.title || '');
+      list.appendChild(row);
+    });
+  }
+
   function _progressTitle(progress, statusData) {
     var state = _clean((progress && progress.stateKey) || (statusData && statusData.status));
     var title = _clean(progress && progress.currentChapterTitle);
     var copy = _astroBookText();
+    if (state === 'access_verifying') return '결제 검증 중입니다.';
+    if (state === 'access_verified' || state === 'queued') return '점성술 PDF 생성 준비 중입니다.';
+    if (state === 'generating' || state === 'chapter_generating') {
+      var order = Number((progress && progress.currentChapterOrder) || (statusData && statusData.currentChapterOrder) || 0);
+      return title ? ((Number.isFinite(order) && order > 0 ? order + '장 ' : '') + title + ' 생성 중...') : '점성술 PDF 챕터를 생성하는 중입니다.';
+    }
+    if (state === 'rendering') return 'PDF 문서를 렌더링하고 있습니다.';
+    if (state === 'saving') return 'PDF 파일을 저장하고 있습니다.';
     if (state === 'local_calculation') return copy.progressLocal;
     if (state === 'writing_seed') return copy.progressSeed;
     if (state === 'writing_llm') return title ? title : copy.progressWriting;
@@ -1728,8 +1895,28 @@
 
   function _applyAstroStatusProgress(statusPayload) {
     var data = _statusData(statusPayload);
+    if (data && (data.serviceType === 'astrology_pdf' || data.isMock === true)) {
+      var mockTotal = Number(data.totalChapters || ASTRO_TOTAL_CHAPTERS || 12);
+      var completed = Number(data.completedChapters || 0);
+      var mockProgress = {
+        stateKey: data.status,
+        currentChapterTitle: data.currentChapterTitle,
+        currentChapterOrder: data.currentChapterOrder,
+      };
+      if (Number.isFinite(mockTotal) && mockTotal > 0) ASTRO_TOTAL_CHAPTERS = Math.trunc(mockTotal);
+      if (Array.isArray(data.chapters) && data.chapters.length) _canonicalChapters = data.chapters;
+      _setLoadingProgress(
+        Number.isFinite(completed) ? completed : 0,
+        _getTotalChapters(),
+        _progressTitle(mockProgress, data),
+        data.status === 'completed',
+        data.progressPercent
+      );
+      _renderAstrologyChapterStatusList(data.chapters);
+      return data;
+    }
     var progress = data.progress && typeof data.progress === 'object' ? data.progress : {};
-    var total = Number(progress.totalChapters || data.chapterCount || ASTRO_TOTAL_CHAPTERS || 12);
+    var total = Number(progress.totalChapters || data.chapterCount || ASTRO_TOTAL_CHAPTERS || 15);
     var current = Number(progress.currentChapterNo || data.llmAssembly && data.llmAssembly.chapterCount || 0);
     var state = _clean(progress.stateKey || data.status);
     if (Number.isFinite(total) && total > 0) ASTRO_TOTAL_CHAPTERS = Math.trunc(total);
@@ -1777,6 +1964,72 @@
       });
     }
     return wait();
+  }
+
+  function _waitForAstrologyMockCompletion(jobId) {
+    var started = Date.now();
+    var timeoutMs = 12 * 60 * 1000;
+    function wait() {
+      return _fetchAstroStatus('', '', jobId).then(function (payload) {
+        var data = _applyAstroStatusProgress(payload);
+        if (data.status === 'completed') {
+          return _fetchAstrologyResult(jobId).then(function (resultPayload) {
+            var resultData = _statusData(resultPayload);
+            return resultData.result || resultData;
+          });
+        }
+        if (data.status === 'failed' || data.status === 'cancelled') {
+          throw _buildAstroApiError({ status: 500, body: data }, data.errorMessage || '점성술 PDF 생성 중 문제가 발생했습니다. 결제 내역은 보존됩니다. 다시 시도하거나 고객센터에 문의해주세요.', {
+            stage: 'status',
+            reportId: jobId
+          });
+        }
+        if (Date.now() - started > timeoutMs) throw new Error(_astroBookText().generationTimeout);
+        return new Promise(function (resolve) { setTimeout(resolve, _statusRetryDelay(data)); }).then(wait);
+      });
+    }
+    return wait();
+  }
+
+  function _recoverAstrologyMockJob() {
+    var jobId = _readAstrologyMockJobId();
+    if (!jobId || _generating) return Promise.resolve(false);
+    return _fetchAstroStatus('', '', jobId).then(function (payload) {
+      var data = _applyAstroStatusProgress(payload);
+      if (!data || !data.status || data.status === 'failed' || data.status === 'cancelled') {
+        if (data && (data.status === 'failed' || data.status === 'cancelled')) _setError(data.errorMessage || '점성술 PDF 생성 중 문제가 발생했습니다.');
+        return true;
+      }
+      if (data.status === 'completed') {
+        return _fetchAstrologyResult(jobId).then(function (resultPayload) {
+          var result = _statusData(resultPayload);
+          var response = result.result || result;
+          _resultPayload = response;
+          _chapters = Array.isArray(response.chapters) ? response.chapters : [];
+          ASTRO_TOTAL_CHAPTERS = _chapters.length || ASTRO_TOTAL_CHAPTERS;
+          _renderResult(_chapters, response.payload || {});
+          _showScreen('abResultScreen');
+          return true;
+        });
+      }
+      _generating = true;
+      _setStartBusy(true);
+      _showScreen('abLoadingScreen');
+      return _waitForAstrologyMockCompletion(jobId).then(function (response) {
+        _resultPayload = response;
+        _chapters = Array.isArray(response.chapters) ? response.chapters : [];
+        ASTRO_TOTAL_CHAPTERS = _chapters.length || ASTRO_TOTAL_CHAPTERS;
+        _renderResult(_chapters, response.payload || {});
+        _showScreen('abResultScreen');
+        return true;
+      }).finally(function () {
+        _generating = false;
+        _setStartBusy(false);
+        _stopProgressAnimation();
+      });
+    }).catch(function () {
+      return false;
+    });
   }
 
   function _downloadAstroBookUrl(url, filename) {
@@ -1864,6 +2117,7 @@
       featureKey: ASTRO_BILLING_FEATURE_KEY,
       subFeatureKey: ASTRO_BILLING_FEATURE_KEY,
       categoryKey: 'premium-pdf',
+      allowedPaymentModes: ['pass', 'monthly', 'direct'],
       coinPrice: ASTRO_COIN_COST,
       cost: ASTRO_COIN_COST,
       reportType: 'westernAstrologyPremium',
@@ -1981,6 +2235,7 @@
         ASTRO_TOTAL_CHAPTERS = chapters.length;
       }
     }).catch(function () {});
+    _recoverAstrologyMockJob();
   };
 
   window.closeAstroBookModal = function () {
@@ -1999,6 +2254,11 @@
 
   window.generateAstroBook = function () {
     if (_generating) return;
+    _clearAstrologyMockJobId();
+    _currentAstroSessionId = '';
+    _currentAstroReportId = '';
+    _currentAstroPaymentRequestId = '';
+
     var profile = _getActiveBirthProfile();
     _logStage('ProfileResolved', {
       hasBirthDate: !!(profile && profile.birth && profile.birth.year),
@@ -2012,15 +2272,6 @@
     }
 
     var birthInput = _normalizeAstroBirthInput(profile);
-    _logStage('BirthInputNormalized', {
-      hasBirthDate: !!_clean(birthInput.birthDate),
-      hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
-      birthHour: Number.isFinite(Number(birthInput.birthHour)) ? Number(birthInput.birthHour) : null,
-      hasTimezone: !!_clean(birthInput.timezone),
-      hasLocation: !!_clean(birthInput.birthPlace),
-      houseSystemUsed: true,
-    });
-
     var valid = _validateBirthInputBeforePayment(birthInput);
     _logStage('ValidationBeforePayment', {
       ok: !!valid.ok,
@@ -2038,96 +2289,127 @@
     var astroBase = _buildAstroBase(profile);
     var astroClientEvidenceJson = _buildAstroClientEvidenceJson(profile, birthInput);
     var generationContext = _ensureCurrentAstroGenerationIds();
+    var sessionId = generationContext.sessionId;
+    var reportId = generationContext.reportId;
+    var requestId = generationContext.requestId;
+    var total = _getTotalChapters();
+
+    function buildRequestBody(paymentContext, accessResponse) {
+      var context = _normalizePremiumPayment('', paymentContext || {});
+      context.sessionId = _clean(context.sessionId || sessionId) || undefined;
+      context.reportSessionId = _clean(context.reportSessionId || context.sessionId || sessionId) || undefined;
+      context.reportId = _clean(context.reportId || reportId) || undefined;
+      context.requestId = _clean(context.requestId || requestId) || undefined;
+      context.premiumAccessToken = _readPremiumAccessToken() || context.premiumAccessToken || undefined;
+      var paymentGrant = context.accessGrant && typeof context.accessGrant === 'object' ? context.accessGrant : null;
+      var paymentConsume = context.consume && typeof context.consume === 'object' ? context.consume : {};
+      var sourceTransactionId = _clean(context.transactionId || context.purchaseId || context.requestId);
+      return {
+        featureKey: ASTRO_FEATURE_KEY,
+        reportType: 'westernAstrologyPremium',
+        premiumAccessToken: context.premiumAccessToken || undefined,
+        sessionId: sessionId,
+        reportSessionId: context.reportSessionId || sessionId,
+        jobId: reportId,
+        reportId: reportId,
+        transactionId: context.transactionId || undefined,
+        sourceTransactionId: sourceTransactionId || undefined,
+        purchaseId: context.purchaseId || undefined,
+        requestId: context.requestId || requestId,
+        accessGrant: paymentGrant || (accessResponse && accessResponse.access) || undefined,
+        verifiedAccess: accessResponse && accessResponse.access || undefined,
+        consume: Object.assign({}, paymentConsume, {
+          featureKey: ASTRO_BILLING_FEATURE_KEY,
+          reportType: 'westernAstrologyPremium',
+          transactionId: paymentConsume.transactionId || context.transactionId || sourceTransactionId || undefined,
+          purchaseId: paymentConsume.purchaseId || context.purchaseId || undefined,
+          requestId: paymentConsume.requestId || context.requestId || requestId || undefined,
+          sessionId: paymentConsume.sessionId || sessionId || undefined,
+          reportSessionId: paymentConsume.reportSessionId || context.reportSessionId || sessionId || undefined,
+          reportId: paymentConsume.reportId || reportId || undefined,
+          premiumAccessToken: context.premiumAccessToken || undefined,
+          accessGrant: paymentGrant || undefined
+        }),
+        payment: context,
+        _paymentContext: context,
+        paymentContext: context,
+        birthInput: birthInput,
+        profile: profile,
+        astroBase: astroBase && astroBase.chart ? astroBase : undefined,
+        astroClientEvidenceJson: astroClientEvidenceJson,
+        debugMockAccess: true,
+      };
+    }
+
+    function verifyAccess(paymentPayload) {
+      var source = paymentPayload && paymentPayload.data ? paymentPayload.data : (paymentPayload || _lastPremiumPayment || {});
+      var body = buildRequestBody(source, null);
+      return _postAstrologyVerifyAccess(body).then(function (accessResponse) {
+        return {
+          accessResponse: accessResponse,
+          requestBody: buildRequestBody(source, accessResponse),
+        };
+      });
+    }
+
+    function verifyAccessWithPaymentFallback() {
+      _setLoadingProgress(0, total, '결제 검증 중입니다.', false, 5);
+      return verifyAccess(null).catch(function (err) {
+        var status = Number(err && err.status || 0);
+        if (status !== 402) throw err;
+        _setLoadingProgress(0, total, _astroBookText().preparingPayment, false, 5);
+        return _ensurePremiumPaymentAsync().then(function (payment) {
+          return verifyAccess(payment);
+        });
+      });
+    }
 
     _generating = true;
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
-    var total = _getTotalChapters();
-    _setLoadingProgress(0, total, _astroBookText().checkingProfile);
-    _startProgressAnimation();
-    _setLoadingProgress(0, total, _astroBookText().preparingPayment);
+    _setLoadingProgress(0, total, _astroBookText().checkingProfile, false, 0);
+    _renderAstrologyChapterStatusList([]);
     _logStage('PaymentAndSessionStart', { totalChapters: total });
 
-    _ensurePremiumPaymentAsync()
-      .then(function (payment) {
-        var paymentContext = _normalizePremiumPayment('', (payment && payment.data) || _lastPremiumPayment || {});
-        _logStage('SessionCreateStart', {
-          hasBirthDate: !!_clean(birthInput.birthDate),
-          hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
-        });
-        var sessionId = generationContext.sessionId;
-        var reportId = generationContext.reportId;
-        var requestId = generationContext.requestId;
-        paymentContext.sessionId = _clean(paymentContext.sessionId || sessionId) || undefined;
-        paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || sessionId) || undefined;
-        paymentContext.reportId = _clean(paymentContext.reportId || reportId) || undefined;
-        paymentContext.requestId = _clean(paymentContext.requestId || requestId) || undefined;
-        paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
-        var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
-        var paymentConsume = paymentContext.consume && typeof paymentContext.consume === 'object' ? paymentContext.consume : {};
-        var sourceTransactionId = _clean(paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
-        _logStage('SessionCreateSuccess', { sessionId: sessionId });
-        _setLoadingProgress(0, total, _astroBookText().requestingChart);
-        _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
-        return _postPrepare({
-          featureKey: ASTRO_FEATURE_KEY,
-          reportType: 'westernAstrologyPremium',
-          premiumAccessToken: paymentContext.premiumAccessToken || undefined,
-          sessionId: sessionId,
-          reportSessionId: paymentContext.reportSessionId || sessionId,
-          transactionId: paymentContext.transactionId || undefined,
-          sourceTransactionId: sourceTransactionId || undefined,
-          purchaseId: paymentContext.purchaseId || undefined,
-          requestId: paymentContext.requestId || undefined,
-          reportId: paymentContext.reportId || reportId || undefined,
-          accessGrant: paymentGrant || undefined,
-          consume: Object.assign({}, paymentConsume, {
-            featureKey: ASTRO_BILLING_FEATURE_KEY,
-            reportType: 'westernAstrologyPremium',
-            transactionId: paymentConsume.transactionId || paymentContext.transactionId || sourceTransactionId || undefined,
-            purchaseId: paymentConsume.purchaseId || paymentContext.purchaseId || undefined,
-            requestId: paymentConsume.requestId || paymentContext.requestId || undefined,
-            sessionId: paymentConsume.sessionId || sessionId || undefined,
-            reportSessionId: paymentConsume.reportSessionId || paymentContext.reportSessionId || sessionId || undefined,
-            reportId: paymentConsume.reportId || paymentContext.reportId || reportId || undefined,
-            premiumAccessToken: paymentContext.premiumAccessToken || undefined,
-            accessGrant: paymentGrant || undefined
-          }),
-          payment: paymentContext,
-          _paymentContext: paymentContext,
-          paymentContext: paymentContext,
-          birthInput: birthInput,
-          profile: profile,
-          astroBase: astroBase && astroBase.chart ? astroBase : undefined,
-          astroClientEvidenceJson: astroClientEvidenceJson,
-        }).then(function (response) {
-          if (response && response.status === 'running') {
-            return _waitForAstroCompletion(sessionId, response.reportId || paymentContext.reportId || reportId);
-          }
-          return response;
-        });
+    verifyAccessWithPaymentFallback()
+      .then(function (verified) {
+        _markPremiumAccessVerified(25 * 60 * 1000);
+        _setLoadingProgress(0, total, '점성술 PDF 생성 준비 중입니다.', false, 10);
+        _logStage('AccessVerified', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId, reportId: reportId });
+        return _postAstrologyCreateJob(verified.requestBody);
+      })
+      .then(function (createResponse) {
+        var statusData = _applyAstroStatusProgress(createResponse);
+        var jobId = _clean(statusData.jobId || statusData.id || createResponse.jobId || reportId);
+        if (!jobId) throw new Error('점성술 PDF Job ID가 확인되지 않았습니다.');
+        _saveAstrologyMockJobId(jobId);
+        if (statusData.status === 'completed') {
+          return _fetchAstrologyResult(jobId).then(function (resultPayload) {
+            var result = _statusData(resultPayload);
+            return result.result || result;
+          });
+        }
+        if (statusData.status === 'queued' || statusData.status === 'created' || statusData.status === 'access_verified') {
+          _postAstrologyGenerateMock(jobId).catch(function (err) {
+            _logError(err, { stage: 'generate-mock', reportId: jobId });
+          });
+        }
+        return _waitForAstrologyMockCompletion(jobId);
       })
       .then(function (response) {
-        if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
-        if (response && !_hasAstroLlmOnlyReady(response, total)) {
-          throw new Error(_astroBookText().manuscriptNotReady);
-        }
         if (!_isCompletedReportReady(response)) {
           throw new Error(_astroBookText().resultNotSaved);
         }
-        _markPremiumAccessVerified(25 * 60 * 1000);
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
         if (!_chapters.length) throw new Error(_astroBookText().emptyChapters);
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, _astroBookText().checkingPdfArchive);
-        _logStage('PdfRenderStart', { chapterCount: total });
-        _setLoadingProgress(total, total, _astroBookText().renderingPdf);
+        _setLoadingProgress(total, total, '점성술 PDF가 완성되었습니다.', true, 100);
+        _renderAstrologyChapterStatusList(_chapters);
         _renderResult(_chapters, response.payload || {});
-        _setLoadingProgress(total, total, _astroBookText().completed, true);
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, llmAssembly: response.llmAssembly || null });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, provider: response.provider || 'mock' });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {

@@ -71,13 +71,21 @@ export function withLifeBookArchiveFormat(url, format = "pdf") {
   return `${value}${value.includes("?") ? "&" : "?"}format=${encodeURIComponent(target)}`;
 }
 
-export function buildLifeBookLlmAssembly(chapterCount = 13, expectedChapterCount = 13) {
+export function buildLifeBookLlmAssembly(chapterCount = 13, expectedChapterCount = 13, metadata = {}) {
   const actualCount = Number.isFinite(Number(chapterCount)) ? Number(chapterCount) : 0;
   const plannedCount = Number.isFinite(Number(expectedChapterCount)) ? Number(expectedChapterCount) : 13;
+  const provider = clean(metadata.provider || "");
+  const isMock = metadata.isMock === true || provider === "mock";
   return {
     enabled: true,
     externalGeneration: true,
+    externalCallsAllowed: isMock ? false : metadata.externalCallsAllowed !== false,
     fallbackUsed: false,
+    provider: provider || undefined,
+    modelName: clean(metadata.modelName || "") || undefined,
+    tokensUsed: Number(metadata.tokensUsed || 0),
+    cost: Number(metadata.cost || 0),
+    isMock,
     chapterCount: actualCount,
     expectedChapterCount: plannedCount,
   };

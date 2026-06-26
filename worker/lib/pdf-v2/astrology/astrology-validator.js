@@ -23,6 +23,20 @@ const FORBIDDEN_TEXT = [
   "타로",
 ];
 
+const UNEXPECTED_FOREIGN_TOKENS = [
+  "excellent",
+  "strategy",
+  "generic",
+  "payload",
+  "json",
+  "schema",
+  "debug",
+  "placeholder",
+  "fallback",
+  "mock",
+  "template",
+];
+
 const ASTROLOGY_TERMS = [
   "점성술",
   "출생 차트",
@@ -82,6 +96,11 @@ function escapeRegExp(value) {
 function containsForbiddenText(value) {
   const source = String(value || "");
   return FORBIDDEN_TEXT.find((term) => new RegExp(escapeRegExp(term), "i").test(source)) || "";
+}
+
+function containsUnexpectedForeignToken(value) {
+  const source = String(value || "");
+  return UNEXPECTED_FOREIGN_TOKENS.find((term) => new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(source)) || "";
 }
 
 function findChapterSection(html, chapterId) {
@@ -178,6 +197,14 @@ function chartTermCount(text, input = {}) {
     .reduce((count, term) => count + (source.includes(term.toLowerCase()) ? 1 : 0), 0);
 }
 
+function chapterGroundingTermCount(text, chapter = {}) {
+  const source = String(text || "").toLowerCase();
+  return asArray(chapter.groundingTerms)
+    .map((term) => clean(term))
+    .filter(Boolean)
+    .reduce((count, term) => count + (source.includes(term.toLowerCase()) ? 1 : 0), 0);
+}
+
 function signKey(value) {
   const text = clean(value).toLowerCase();
   for (const [key, aliases] of Object.entries(SIGN_ALIASES)) {
@@ -268,6 +295,10 @@ export function validateAstrologyChapterHtml(html, chapter = {}, input = {}) {
   const bodyText = textFromParagraphs(body).join(" ");
   if (astrologyTermCount(bodyText) < 3) issues.push("body.astrology_terms");
   if (chartTermCount(bodyText, input) < 2) issues.push("body.chart_grounding");
+  if (asArray(chapter.groundingTerms).length && chapterGroundingTermCount(bodyText, chapter) < 2) {
+    issues.push("body.chapter_grounding_terms");
+  }
+  if (containsUnexpectedForeignToken(bodyText)) issues.push("body.foreign_tokens");
   if (repeatedSentenceIssue(plain)) issues.push("body.repetition");
   if (unprovidedPlanetSignIssue(bodyText, input)) issues.push("body.unprovided_planet_position");
 
@@ -341,6 +372,18 @@ export function assertNoForeignSystemTermsLeaked(fullHtml) {
   return true;
 }
 
+export function assertNoUnexpectedForeignTokens(fullHtml) {
+  const token = containsUnexpectedForeignToken(stripTags(fullHtml));
+  if (token) {
+    throw Object.assign(new Error("ASTROLOGY_PDF_UNEXPECTED_FOREIGN_TOKEN"), {
+      code: "ASTROLOGY_PDF_UNEXPECTED_FOREIGN_TOKEN",
+      status: 422,
+      token,
+    });
+  }
+  return true;
+}
+
 export function assertNoRepeatedHeadings(fullHtml) {
   const headings = Array.from(String(fullHtml || "").matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/gi))
     .map((match) => clean(stripTags(match[1])))
@@ -363,6 +406,8 @@ export function assertAstrologyVisualBlocksIncluded(fullHtml) {
     "astro-planet-table",
     "astro-house-table",
     "astro-aspect-table",
+    "astro-balance-bars",
+    "astro-transit-timeline",
     "astro-final-advice",
   ];
   for (const marker of required) {
@@ -377,10 +422,6 @@ export function assertAstrologyVisualBlocksIncluded(fullHtml) {
   return true;
 }
 
-export function assertNoUnexpectedForeignTokens() {
-  return true;
-}
-
 export function validateAstrologyFinalReportHtml(fullHtml, chapters = [], plan = {}) {
   const issues = [];
   try { assertAllConfiguredChaptersIncluded(fullHtml, plan.chapters || chapters); } catch (error) { issues.push(error.code || "chapter.include"); }
@@ -388,6 +429,7 @@ export function validateAstrologyFinalReportHtml(fullHtml, chapters = [], plan =
   try { assertNoRawJsonLeak(fullHtml); } catch (error) { issues.push(error.code || "raw_json"); }
   try { assertNoUndefinedValues(fullHtml); } catch (error) { issues.push(error.code || "undefined"); }
   try { assertNoForeignSystemTermsLeaked(fullHtml); } catch (error) { issues.push(error.code || "foreign_terms"); }
+  try { assertNoUnexpectedForeignTokens(fullHtml); } catch (error) { issues.push(error.code || "foreign_tokens"); }
   try { assertAstrologyVisualBlocksIncluded(fullHtml); } catch (error) { issues.push(error.code || "visual"); }
   if (asArray(chapters).length !== asArray(plan.chapters).length) issues.push("chapter.count");
   if (!String(fullHtml || "").includes("<!doctype html>")) issues.push("html.doctype");

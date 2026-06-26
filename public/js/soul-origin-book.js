@@ -27,8 +27,12 @@
   ];
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
+  var VERIFY_ACCESS_API = '/api/soul-origin/verify-access';
+  var CREATE_JOB_API = '/api/soul-origin/create-job';
+  var GENERATE_MOCK_API = '/api/soul-origin/generate-mock';
   var STATUS_API = '/api/soul-origin/status';
   var READ_API = '/api/soul-origin/report';
+  var RESULT_API = '/api/soul-origin/result';
   var SOUL_ORIGIN_FETCH_TIMEOUT_MS = 180000;
   var SOUL_ORIGIN_STATUS_TIMEOUT_MS = 360000;
   var SOUL_ORIGIN_STATUS_INITIAL_DELAY_MS = 2500;
@@ -36,6 +40,7 @@
   var SOUL_ORIGIN_LOADING_TICK_MS = 4800;
   var SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS = 5200;
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
+  var JOB_STORAGE_KEY = 'premium:soul-origin:current-job:v1';
   var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
   var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
   var TONE_PRESETS = {
@@ -333,13 +338,72 @@
 
   function soulOriginStageMessage(status) {
     var step = clean(status).toLowerCase();
+    if (step === 'access_verifying') return '결제 검증 중입니다.';
+    if (step === 'access_verified') return '운명의 업 PDF 생성 준비 중입니다.';
+    if (step === 'created') return '운명의 업 PDF 생성 준비 중입니다.';
+    if (step === 'queued') return '운명의 업 PDF 생성 준비 중입니다.';
     if (step === 'pending') return '상담 원고를 열기 전, 결제 권한과 요청 정보를 차분히 맞추고 있습니다.';
     if (step === 'validating') return '태어난 시간과 기본 정보를 다시 맞추며 운명의 업 상담을 여는 중입니다.';
     if (step === 'calculating') return '사주 원국, 자미두수 명궁, 점성술 차트와 베다 라그나의 신호를 모으고 있습니다.';
     if (step === 'generating') return '계산된 신호를 따라 운명의 업 상담사가 장별 원고를 집필하고 있습니다.';
-    if (step === 'rendering') return '완성된 원고를 검수하고 프리미엄 PDF로 정돈하고 있습니다.';
+    if (step === 'chapter_generating') return '기존 운명의 업 챕터 순서에 따라 장별 원고를 생성하고 있습니다.';
+    if (step === 'rendering') return 'PDF 문서를 렌더링하고 있습니다.';
+    if (step === 'saving') return 'PDF 파일을 저장하고 있습니다.';
     if (step === 'completed') return '운명의 업 상담서가 완성되었습니다. 곧 결과를 열어드립니다.';
+    if (step === 'failed') return '운명의 업 PDF 생성 중 문제가 발생했습니다.';
     return '사주·자미두수·점성술·베다·숙요의 흐름을 한 권의 상담서로 엮고 있습니다.';
+  }
+
+  function generationStatusLabel(status) {
+    var step = clean(status).toLowerCase();
+    if (step === 'completed') return '완료';
+    if (step === 'generating') return '생성 중';
+    if (step === 'chapter_generating') return '생성 중';
+    if (step === 'failed') return '실패';
+    if (step === 'rendering') return '렌더링';
+    if (step === 'saving') return '저장 중';
+    return '대기';
+  }
+
+  function ensureGenerationProgressEl() {
+    var screen = $('soLoadingScreen');
+    if (!screen) return null;
+    var box = $('soGenerationProgress');
+    if (box) return box;
+    box = document.createElement('div');
+    box.id = 'soGenerationProgress';
+    box.style.cssText = 'margin:18px auto 0;max-width:520px;text-align:left;color:#f8fafc;font-size:13px;line-height:1.6;';
+    box.innerHTML = '<div id="soProgressMeta" style="display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;color:#fde68a;"></div><div style="height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden;"><div id="soProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#facc15,#fb7185);transition:width .28s ease;"></div></div><div id="soChapterStatusList" style="margin-top:12px;display:grid;gap:5px;"></div>';
+    screen.appendChild(box);
+    return box;
+  }
+
+  function renderGenerationProgress(payload) {
+    var box = ensureGenerationProgressEl();
+    if (!box) return;
+    var progress = normalizePercent(statusPayloadValue(payload, 'progressPercent') || statusPayloadValue(payload, 'progress') || 0);
+    var total = Number(statusPayloadValue(payload, 'totalChapters') || statusPayloadValue(payload, 'chapterCount') || EXPECTED_CHAPTER_COUNT);
+    var completed = Number(statusPayloadValue(payload, 'completedChapters') || 0);
+    var chapters = statusPayloadValue(payload, 'chapters');
+    var meta = $('soProgressMeta');
+    var bar = $('soProgressBar');
+    var list = $('soChapterStatusList');
+    if (meta) {
+      meta.innerHTML = '<span>현재 상태 ' + generationStatusLabel(statusPayloadValue(payload, 'generationStatus') || statusPayloadValue(payload, 'status')) + '</span><span>' + Math.max(0, completed) + ' / ' + Math.max(0, total) + '장 · ' + progress + '%</span>';
+    }
+    if (bar) bar.style.width = progress + '%';
+    if (!list) return;
+    list.innerHTML = '';
+    if (!Array.isArray(chapters) || !chapters.length) return;
+    chapters.forEach(function (chapter, index) {
+      var item = document.createElement('div');
+      var status = clean(chapter && chapter.status).toLowerCase();
+      var label = status === 'completed' ? '완료' : (status === 'generating' ? '생성 중' : (status === 'failed' ? '실패' : '대기'));
+      var color = status === 'completed' ? '#bbf7d0' : (status === 'generating' ? '#fde68a' : (status === 'failed' ? '#fecaca' : '#cbd5e1'));
+      item.style.cssText = 'display:flex;gap:8px;align-items:flex-start;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 8px;background:rgba(15,23,42,.32);';
+      item.innerHTML = '<span style="min-width:56px;color:' + color + ';">[' + label + ']</span><span>' + (Number(chapter.order || index + 1)) + '장 ' + clean(chapter.title || ('챕터 ' + (index + 1))) + '</span>';
+      list.appendChild(item);
+    });
   }
 
   function applySoulOriginGenerationStatus(payload, options) {
@@ -348,9 +412,10 @@
     var progress = Number(statusPayloadValue(payload, 'progress') || 0);
     if (!status && !title && !progress) return false;
     var message = soulOriginStageMessage(status);
-    if (title) message += ' 지금은 "' + title + '" 장의 결을 다듬고 있습니다.';
+    if (title) message += ' 지금은 "' + title + '" 장을 생성 중입니다.';
     if (progress > 0 && progress < 100) message += ' ' + Math.max(1, Math.min(99, Math.round(progress))) + '%까지 이어졌습니다.';
     setLoadingMessage(message, { holdMs: Number(options && options.holdMs || SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS) });
+    renderGenerationProgress(payload);
     return true;
   }
 
@@ -725,7 +790,19 @@
     var data = payload && typeof payload === 'object' ? payload : {};
     var nested = data.data && typeof data.data === 'object' ? data.data : {};
     var status = clean(data.generationStatus || nested.generationStatus || data.status || data.serverStatus || nested.status).toLowerCase();
-    return status === 'running' || status === 'processing' || status === 'generating' || status === 'pending' || status === 'validating' || status === 'calculating' || status === 'rendering';
+    return status === 'running'
+      || status === 'processing'
+      || status === 'created'
+      || status === 'access_verifying'
+      || status === 'access_verified'
+      || status === 'queued'
+      || status === 'generating'
+      || status === 'chapter_generating'
+      || status === 'pending'
+      || status === 'validating'
+      || status === 'calculating'
+      || status === 'rendering'
+      || status === 'saving';
   }
 
   function isSoulOriginFailed(payload) {
@@ -850,6 +927,58 @@
     throw timeout;
   }
 
+  async function restoreCurrentSoulOriginJob(context) {
+    var saved = context || readCurrentJob();
+    if (!saved) return false;
+    var token = readPremiumToken();
+    showScreen('loading');
+    startLoadingTicker();
+    setLoadingMessage('저장된 운명의 업 PDF 생성 상태를 확인하는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+    try {
+      var statusData = await callStatusApi(saved, token);
+      applySoulOriginGenerationStatus(statusData);
+      if (isSoulOriginReportReady(statusData)) {
+        clearCurrentJob();
+        persistResult(statusData);
+        renderResult(statusData);
+        return true;
+      }
+      if (isSoulOriginFailed(statusData)) {
+        clearCurrentJob();
+        var failedMsg = clean(statusData && (statusData.message || statusData.errorMessage)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.';
+        var errEl = $('soErrorMsg');
+        if (errEl) errEl.textContent = failedMsg;
+        showScreen('error');
+        return true;
+      }
+      if (isSoulOriginRunning(statusData)) {
+        var nextContext = {
+          reportId: clean(statusData.reportId || saved.reportId),
+          jobId: clean(statusData.jobId || statusData.reportId || saved.reportId),
+          sessionId: clean(statusData.sessionId || saved.sessionId),
+          requestId: clean(statusData.requestId || saved.requestId),
+        };
+        persistCurrentJob(nextContext);
+        var completed = await pollSoulOriginStatus(nextContext, token);
+        clearCurrentJob();
+        persistResult(completed);
+        renderResult(completed);
+        return true;
+      }
+    } catch (error) {
+      var msg = mapSoulOriginUserMessage(error);
+      var target = $('soErrorMsg');
+      if (target) target.textContent = msg;
+      showScreen('error');
+      return true;
+    } finally {
+      stopLoadingTicker();
+    }
+    clearCurrentJob();
+    showScreen('start');
+    return false;
+  }
+
   function stopSoulOriginStatusPreview() {
     if (_statusPreviewStop) {
       try { _statusPreviewStop(); } catch (_) {}
@@ -920,6 +1049,43 @@
         payload: data || null,
       }));
     } catch (_) {}
+  }
+
+  function persistCurrentJob(data) {
+    try {
+      var payload = data && typeof data === 'object' ? data : {};
+      var reportId = clean(payload.reportId || payload.jobId);
+      var sessionId = clean(payload.sessionId || payload.reportSessionId);
+      if (!reportId || !sessionId) return;
+      localStorage.setItem(JOB_STORAGE_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        reportId: reportId,
+        jobId: reportId,
+        sessionId: sessionId,
+        reportSessionId: sessionId,
+        requestId: clean(payload.requestId || ''),
+      }));
+    } catch (_) {}
+  }
+
+  function clearCurrentJob() {
+    try { localStorage.removeItem(JOB_STORAGE_KEY); } catch (_) {}
+  }
+
+  function readCurrentJob() {
+    try {
+      var parsed = JSON.parse(localStorage.getItem(JOB_STORAGE_KEY) || 'null');
+      if (!parsed || !clean(parsed.reportId || parsed.jobId) || !clean(parsed.sessionId || parsed.reportSessionId)) return null;
+      return {
+        reportId: clean(parsed.reportId || parsed.jobId),
+        jobId: clean(parsed.jobId || parsed.reportId),
+        sessionId: clean(parsed.sessionId || parsed.reportSessionId),
+        reportSessionId: clean(parsed.reportSessionId || parsed.sessionId),
+        requestId: clean(parsed.requestId || ''),
+      };
+    } catch (_) {
+      return null;
+    }
   }
 
   function readPersisted() {
@@ -1784,9 +1950,19 @@
     });
   }
 
+  function setSoulOriginStartDisabled(disabled) {
+    try {
+      document.querySelectorAll('[onclick*="generateSoulOriginReport"]').forEach(function (btn) {
+        btn.disabled = !!disabled;
+        btn.setAttribute('aria-busy', disabled ? 'true' : 'false');
+      });
+    } catch (_) {}
+  }
+
   async function generateSoulOrigin() {
     if (_isGenerating) return;
     _isGenerating = true;
+    setSoulOriginStartDisabled(true);
     var requestId = makeRequestId();
     var sessionId = makeSessionId();
     writeSessionValue(REQUEST_ID_KEY, requestId);
@@ -1874,16 +2050,38 @@
         sessionId: paymentSessionId || sessionId,
         requestId: paymentRequestId || requestId,
       };
-      logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
-      applySoulOriginGenerationStatus({ generationStatus: 'validating', progress: 5 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
-      logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
-      applySoulOriginGenerationStatus({ generationStatus: 'calculating', progress: 10 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+      logStage('AccessVerifyStart', { requestId: statusContext.requestId, sessionId: statusContext.sessionId, reportId: statusContext.reportId });
+      applySoulOriginGenerationStatus({ generationStatus: 'access_verifying', progressPercent: 5, totalChapters: EXPECTED_CHAPTER_COUNT, completedChapters: 0 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+      var accessData = await callApi(VERIFY_ACCESS_API, payload, token);
+      statusContext.reportId = clean(accessData && (accessData.reportId || accessData.jobId)) || statusContext.reportId;
+      statusContext.sessionId = clean(accessData && (accessData.sessionId || accessData.reportSessionId)) || statusContext.sessionId;
+      statusContext.requestId = clean(accessData && accessData.requestId) || statusContext.requestId;
+      payload.reportId = statusContext.reportId;
+      payload.sessionId = statusContext.sessionId;
+      payload.reportSessionId = statusContext.sessionId;
+      payload.requestId = statusContext.requestId;
+      persistCurrentJob(statusContext);
+      applySoulOriginGenerationStatus(Object.assign({}, accessData, { generationStatus: 'access_verified', progressPercent: 10, totalChapters: EXPECTED_CHAPTER_COUNT, completedChapters: 0 }), { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+
+      logStage('SessionCreateStart', { requestId: statusContext.requestId, sessionId: statusContext.sessionId, reportId: statusContext.reportId });
+      var jobData = await callApi(CREATE_JOB_API, payload, token);
+      statusContext.reportId = clean(jobData && (jobData.reportId || jobData.jobId)) || statusContext.reportId;
+      statusContext.sessionId = clean(jobData && (jobData.sessionId || jobData.reportSessionId)) || statusContext.sessionId;
+      persistCurrentJob(statusContext);
+      applySoulOriginGenerationStatus(jobData, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+
       logStage('MasterAuthoringStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
       logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var data;
       try {
         startSoulOriginStatusPreview(statusContext, token);
-        data = await callApi(PREPARE_API, payload, token);
+        data = await callApi(GENERATE_MOCK_API, {
+          jobId: statusContext.reportId,
+          reportId: statusContext.reportId,
+          sessionId: statusContext.sessionId,
+          reportSessionId: statusContext.sessionId,
+          requestId: statusContext.requestId,
+        }, token);
       } catch (requestError) {
         if (!shouldRecoverWithStatus(requestError)) throw requestError;
         logStage('StatusRecoverStart', {
@@ -1909,6 +2107,7 @@
         readyError.code = 'SOUL_ORIGIN_REPORT_NOT_READY';
         throw readyError;
       }
+      clearCurrentJob();
       logStage('ServerLocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
       logStage('MasterAuthoringSuccess', {
         requestId: requestId,
@@ -1939,6 +2138,7 @@
       stopSoulOriginStatusPreview();
       stopLoadingTicker();
       _isGenerating = false;
+      setSoulOriginStartDisabled(false);
     }
   }
 
@@ -1962,10 +2162,17 @@
     updateSoulOriginCoinCost(_resolvedCoinCost);
     resolveSoulOriginCoinCost().catch(function () {});
 
+    var currentJob = readCurrentJob();
+    if (currentJob) {
+      restoreCurrentSoulOriginJob(currentJob).catch(function () {
+        showScreen('start');
+      });
+    }
+
     var persisted = readPersisted();
-    if (persisted && Array.isArray(persisted.chapters) && persisted.chapters.length) {
+    if (!currentJob && persisted && Array.isArray(persisted.chapters) && persisted.chapters.length) {
       renderResult(persisted);
-    } else {
+    } else if (!currentJob) {
       showScreen('start');
     }
 
@@ -1990,7 +2197,8 @@
     var reportId = clean(prompt('불러올 reportId를 입력해주세요.'));
     if (!reportId) return;
 
-    var endpoints = getApiBaseCandidates(READ_API + '?reportId=' + encodeURIComponent(reportId));
+    var endpoints = getApiBaseCandidates(RESULT_API + '/' + encodeURIComponent(reportId))
+      .concat(getApiBaseCandidates(READ_API + '?reportId=' + encodeURIComponent(reportId)));
     var idx = 0;
     function run() {
       if (idx >= endpoints.length) {
