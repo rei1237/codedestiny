@@ -42,6 +42,39 @@ const KKULKKUL_LOGO_PUBLIC_PATH =
 const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
 const UNIFIED_PAYMENT_MARKER = "cd-react-static-matched-payment-ui-v20260618";
 
+export function PaymentPigVisual({
+  tone = "payment",
+  className = "",
+}: {
+  tone?: LoadingMotionTone;
+  className?: string;
+}) {
+  const isPassTone = tone === "pass";
+  const isResultTone = tone === "result";
+
+  return (
+    <div
+      className={`saju-loader-visual relative mx-auto mb-4 h-[132px] w-[132px] sm:h-[148px] sm:w-[148px] ${className}`}
+      data-react-pig-visual={tone}
+      aria-hidden="true"
+    >
+      <div className="saju-loader-payment-core absolute inset-0 rounded-[32px] border border-white/15 bg-[linear-gradient(145deg,rgba(15,23,42,.76),rgba(30,41,59,.46))] shadow-[0_0_48px_rgba(251,191,36,.18),inset_0_1px_0_rgba(255,255,255,.18)]">
+        <span className="absolute -inset-3 rounded-[38px] border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: isPassTone ? "10.8s" : "12s" }} />
+        <span className="absolute inset-3 rounded-[28px] border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDirection: "reverse", animationDuration: isPassTone ? "5.4s" : "4.2s" }} />
+        <span className="absolute inset-6 rounded-[22px] bg-[radial-gradient(circle,rgba(254,243,199,.26),rgba(251,191,36,.08)_44%,transparent_70%)] motion-safe:animate-pulse motion-reduce:animate-none" />
+      </div>
+      <div className={`saju-loader-pass-moon absolute -right-1 top-5 h-11 w-11 rounded-full border border-amber-100/40 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.86),rgba(254,243,199,.72)_32%,rgba(251,191,36,.18)_72%,transparent)] shadow-[0_0_22px_rgba(254,243,199,.32)] transition-opacity ${isPassTone ? "opacity-100" : "opacity-60"}`} />
+      <div
+        className={`saju-loader-yeon-sprite absolute inset-[18px] rounded-[28px] bg-contain bg-center bg-no-repeat drop-shadow-[0_16px_24px_rgba(86,47,21,.24)] ${isResultTone ? "motion-safe:animate-bounce" : "motion-safe:animate-pulse"} motion-reduce:animate-none`}
+        style={{
+          backgroundImage: `url("${KKULKKUL_LOGO_URL}")`,
+          animationDuration: isResultTone ? "1.4s" : "2.8s",
+        }}
+      />
+    </div>
+  );
+}
+
 function resolveLoadingContextFromVariant(variant: NonNullable<PaymentLoadingProps["variant"]>): { stage: LoadingStage; paymentType: PaymentType } | null {
   if (variant === "pass-checking") return { stage: "access_check", paymentType: "pass" };
   if (variant === "pass-applied") return { stage: "result_loading", paymentType: "pass" };
@@ -310,18 +343,7 @@ export default function PaymentLoading({
           <span className="absolute bottom-[30%] right-[18%] h-1 w-1 rounded-full bg-fuchsia-100 shadow-[0_0_12px_rgba(250,232,255,.7)]" />
         </div>
 
-        <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
-          <span className="absolute -inset-4 rounded-full border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: "12s" }} />
-          <span
-            className="absolute inset-2 rounded-full border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none"
-            style={{ animationDirection: "reverse", animationDuration: "4.2s" }}
-          />
-          <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
-          <div
-            className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
-            style={{ backgroundImage: `url("${KKULKKUL_LOGO_URL}")` }}
-          />
-        </div>
+        <PaymentPigVisual tone={loadingTone} />
 
         <div>
           <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">{uiCopy.secureLabel}</p>

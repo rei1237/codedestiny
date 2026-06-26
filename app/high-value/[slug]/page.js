@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowRight, BookOpenText, FileText, ShieldCheck } from "lucide-react";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 import ShareWidget from "../../components/ShareWidget";
@@ -84,6 +85,10 @@ export default function HighValueDetailPage({ params }) {
 
   const relatedPages = HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug).slice(0, 3);
   const path = `/high-value/${page.slug}`;
+  const sectionAnchors = page.sections.map((section, index) => ({
+    id: `guide-section-${index + 1}`,
+    label: section.h2,
+  }));
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
@@ -107,78 +112,144 @@ export default function HighValueDetailPage({ params }) {
   });
 
   return (
-    <main className="cd-main-shell">
+    <main className="relative isolate min-h-screen overflow-hidden bg-[#070812] px-4 py-6 text-slate-100 md:px-6 md:py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <nav aria-label="breadcrumb" className="cd-chip-wrap">
-        <Link href="/" className="cd-chip">{highValueDetailText("home")}</Link>
-        <Link href="/high-value" className="cd-chip">{highValueDetailText("guide")}</Link>
-        <Link href={`/high-value/category/${page.categorySlug}`} className="cd-chip">{page.category}</Link>
-      </nav>
-
-      <article>
-        <header className="cd-main-header">
-          <p className="cd-muted">{page.category}</p>
-          <h1 className="cd-main-title">{page.title}</h1>
-          <p className="cd-main-intro">{page.summary}</p>
-          <p className="cd-muted">
-            {highValueDetailText("dateLine")(page.publishedAt, page.updatedAt, page.author)}
-          </p>
-        </header>
-
-        {page.sections.map((section) => (
-          <section key={section.h2} className="cd-card">
-            <h2>{section.h2}</h2>
-            {section.paragraphs.map((text) => (
-              <p key={text}>{text}</p>
-            ))}
-          </section>
-        ))}
-
-        <section className="cd-card">
-          <h2>{highValueDetailText("disclaimer")}</h2>
-          <p>{page.disclaimer}</p>
-        </section>
-
-        <section className="cd-card">
-          <h2>{highValueDetailText("faq")}</h2>
-          {page.faq.map((item) => (
-            <article key={item.question}>
-              <h3>{item.question}</h3>
-              <p>{item.answer}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className="cd-card">
-          <h2>{highValueDetailText("relatedServices")}</h2>
-          <div className="cd-chip-wrap">
-            {page.serviceLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="cd-chip">
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="cd-card">
-          <h2>{highValueDetailText("nextReads")}</h2>
-          <ul>
-            {relatedPages.map((item) => (
-              <li key={item.slug}>
-                <Link href={`/high-value/${item.slug}`}>{item.title}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </article>
-
-      <ShareWidget
-        title={page.title}
-        description={page.summary}
-        path={path}
-        contentType="article"
-        contentId={page.slug}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(145deg,rgba(7,8,18,1)_0%,rgba(17,24,39,.98)_45%,rgba(35,27,48,.9)_100%)]"
       />
+      <div className="mx-auto w-full max-w-6xl">
+        <nav aria-label="breadcrumb" className="flex flex-wrap gap-2 text-sm text-slate-300">
+          <Link href="/" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{highValueDetailText("home")}</Link>
+          <Link href="/high-value" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{highValueDetailText("guide")}</Link>
+          <Link href={`/high-value/category/${page.categorySlug}`} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{page.category}</Link>
+        </nav>
+
+        <article className="mt-8">
+          <header className="border-b border-white/10 pb-9 md:pb-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-100">{page.category}</p>
+            <h1 className="mt-4 max-w-4xl break-keep text-4xl font-semibold leading-tight text-slate-50 md:text-6xl">{page.title}</h1>
+            <p className="mt-5 max-w-3xl break-keep text-base leading-8 text-slate-200 md:text-lg">{page.summary}</p>
+            <p className="mt-5 break-keep text-sm leading-7 text-slate-400">
+              {highValueDetailText("dateLine")(page.publishedAt, page.updatedAt, page.author)}
+            </p>
+          </header>
+
+          <div className="mt-10 grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <aside className="lg:sticky lg:top-8 lg:self-start">
+              <div className="rounded-[8px] border border-white/10 bg-white/[0.035] p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-50">
+                  <BookOpenText className="h-4 w-4 text-amber-100" aria-hidden="true" />
+                  읽는 순서
+                </div>
+                <nav aria-label="문서 목차" className="mt-4 space-y-2">
+                  {sectionAnchors.map((item, index) => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-3 rounded-[8px] px-2 py-2 text-sm text-slate-300 transition hover:bg-white/[0.05] hover:text-amber-100"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-slate-50">{index + 1}</span>
+                      <span className="min-w-0 break-keep leading-6">{item.label}</span>
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+
+            <div className="min-w-0">
+              <div className="space-y-10">
+                {page.sections.map((section, index) => (
+                  <section
+                    key={section.h2}
+                    id={sectionAnchors[index].id}
+                    className="scroll-mt-24 border-t border-white/10 pt-8 first:border-t-0 first:pt-0"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-200/30 bg-amber-100/[0.08] text-sm font-semibold text-amber-100">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <h2 className="break-keep text-2xl font-semibold leading-snug text-slate-50">{section.h2}</h2>
+                        <div className="mt-4 space-y-4">
+                          {section.paragraphs.map((text) => (
+                            <p key={text} className="break-keep text-base leading-8 text-slate-200">{text}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                ))}
+              </div>
+
+              <section className="mt-10 rounded-[8px] border border-amber-200/25 bg-amber-100/[0.06] p-5">
+                <div className="flex items-center gap-2 text-lg font-semibold text-slate-50">
+                  <ShieldCheck className="h-5 w-5 text-amber-100" aria-hidden="true" />
+                  <h2>{highValueDetailText("disclaimer")}</h2>
+                </div>
+                <p className="mt-3 break-keep text-sm leading-7 text-slate-200">{page.disclaimer}</p>
+              </section>
+
+              <section className="mt-10">
+                <div className="flex items-center gap-2 text-2xl font-semibold text-slate-50">
+                  <FileText className="h-5 w-5 text-emerald-100" aria-hidden="true" />
+                  <h2>{highValueDetailText("faq")}</h2>
+                </div>
+                <div className="mt-4 divide-y divide-white/10 rounded-[8px] border border-white/10 bg-white/[0.035]">
+                  {page.faq.map((item) => (
+                    <details key={item.question} className="px-4 py-4">
+                      <summary className="cursor-pointer break-keep text-sm font-semibold text-slate-50">{item.question}</summary>
+                      <p className="mt-3 break-keep text-sm leading-7 text-slate-200">{item.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mt-10 grid gap-4 md:grid-cols-2">
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-50">{highValueDetailText("relatedServices")}</h2>
+                  <div className="mt-4 grid gap-3">
+                    {page.serviceLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="group flex min-h-[70px] items-center justify-between gap-4 rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-amber-200/50 hover:bg-amber-100/[0.06]"
+                      >
+                        <span className="min-w-0 break-keep">{link.label}</span>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-amber-100 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-semibold text-slate-50">{highValueDetailText("nextReads")}</h2>
+                  <div className="mt-4 grid gap-3">
+                    {relatedPages.map((item) => (
+                      <Link
+                        key={item.slug}
+                        href={`/high-value/${item.slug}`}
+                        className="group flex min-h-[70px] items-center justify-between gap-4 rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-emerald-200/50 hover:bg-emerald-100/[0.05]"
+                      >
+                        <span className="min-w-0 break-keep">{item.title}</span>
+                        <ArrowRight className="h-4 w-4 shrink-0 text-emerald-100 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <ShareWidget
+          title={page.title}
+          description={page.summary}
+          path={path}
+          contentType="article"
+          contentId={page.slug}
+        />
+      </div>
     </main>
   );
 }

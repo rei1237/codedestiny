@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=build-2d18cf90d088"></script>
+  <script src="/js/inline/canonical-redirect.js?v=build-46646a9a7374"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
-      <script src="/js/kill-switch.js?v=build-2d18cf90d088" defer></script>
+      <script src="/js/kill-switch.js?v=build-46646a9a7374" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -33,7 +33,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#080d24">
-<link rel="manifest" href="/manifest.json?v=build-2d18cf90d088">
+<link rel="manifest" href="/manifest.json?v=build-46646a9a7374">
 
 <!-- ═══ 성능 및 캐싱 최적화 ═══ -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -45,9 +45,9 @@
 <!-- ═══ DNS Prefetch 및 리소스 힌트 ═══ -->
 <link rel="dns-prefetch" href="https://cdn.example.com">
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
-<link rel="stylesheet" href="/styles/core-ui.css?v=build-2d18cf90d088">
-<link rel="stylesheet" href="/styles/fortune-ui.css?v=build-2d18cf90d088">
-<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-2d18cf90d088" media="(max-width: 1024px)">
+<link rel="stylesheet" href="/styles/core-ui.css?v=build-46646a9a7374">
+<link rel="stylesheet" href="/styles/fortune-ui.css?v=build-46646a9a7374">
+<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-46646a9a7374" media="(max-width: 1024px)">
 
 <title data-cd-trans="seo.homeTitle">무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 운세</title>
 
@@ -370,6 +370,224 @@
 }
   </style>
 
+  <style id="cd-main-shell-critical-v20260604">
+@font-face{font-family:'CodeDestinyBody';src:local('Pretendard'),local('Apple SD Gothic Neo'),local('Malgun Gothic');font-weight:400 900;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+@font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional}
+@font-face{font-family:'CodeDestinyPlayful';src:url('https://assets.code-destiny.com/netmarbleM.ttf') format('truetype');font-weight:500;font-style:normal;font-display:optional}
+:root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinyPremium',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
+body{margin:0;padding:0;background:#020617;color:#f8fafc;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%;display:block}
+img[width][height]{height:auto}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 32px}
+@media(min-width:768px){.wrap{padding:0 24px 48px}}
+.fsn-navbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;background:rgba(2,6,23,0.92);display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;padding:0 12px}
+body.neo-mode .logo-area{background:rgba(20,8,45,0.92);border-radius:24px;margin-bottom:16px;padding:40px 16px 36px;text-align:center}
+body.neo-mode .logo-area h1{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:800;color:#f4eeff;margin:.5rem 0}
+body.neo-mode .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-top:6px}
+@keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
+@-webkit-keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
+@keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
+@-webkit-keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
+.pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:154px;position:relative;padding-bottom:16px}
+.pig-svg-wrap::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:84px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(160,90,255,0.55) 0%,transparent 70%);animation:pig-shadow-anim 3.2s ease-in-out infinite;-webkit-animation:pig-shadow-anim 3.2s ease-in-out infinite;will-change:transform,opacity;pointer-events:none}
+.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover;animation:pig-float 3.2s ease-in-out infinite;-webkit-animation:pig-float 3.2s ease-in-out infinite;will-change:transform}
+.honeypig-logo-icon{border-radius:26px;object-fit:contain;background:radial-gradient(circle at 48% 34%,rgba(255,248,224,.2),rgba(167,139,250,.1) 58%,rgba(5,8,28,.12))}
+.feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+.tarot-tile__img-wrap{position:relative}
+.tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:.7rem;font-weight:900;line-height:1;letter-spacing:.03em;white-space:nowrap;background:rgba(10,5,30,.88);color:#ede9fe;border:1px solid rgba(160,120,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(120,80,220,.12);pointer-events:none}
+.tarot-tile__coin-badge::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1px solid rgba(255,200,50,.6);box-shadow:0 0 7px rgba(255,195,40,.65),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
+.tarot-tile__coin-badge--free{background:rgba(4,28,20,.92);border-color:rgba(52,211,153,.48);color:#34d399;font-weight:900}
+.tarot-tile__coin-badge--free::before{width:8px;height:8px;background:radial-gradient(circle at 33% 28%,#d1fae5 0%,#6ee7b7 50%,#059669 100%);border-color:rgba(110,231,183,.55);box-shadow:0 0 5px rgba(52,211,153,.35)}
+.tarot-tile__coin-badge--compat{top:36px;background:rgba(45,20,8,.9);border-color:rgba(251,191,36,.55);color:#fde68a;box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(180,120,30,.14)}
+.tarot-tile__coin-badge--compat::before{background:radial-gradient(circle at 33% 28%,#fff7da 0%,#fbbf24 52%,#b45309 100%);border-color:rgba(251,191,36,.58);box-shadow:0 0 7px rgba(245,158,11,.55),inset 0 1px 2px rgba(255,255,220,.45)}
+.tarot-tile__coin-badge--lock{background:rgba(10,5,30,.84);border-color:rgba(170,130,255,.52);color:#f1edff;box-shadow:0 2px 10px rgba(0,0,0,.48),0 0 0 1px rgba(160,100,255,.1)}
+.tarot-tile__lock-icon{position:absolute;bottom:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;background:rgba(10,5,30,.85);border:1.5px solid rgba(180,130,255,.45);display:none;align-items:center;justify-content:center;font-size:.85rem;line-height:1;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:none}
+.tarot-tile--tileLocked .tarot-tile__lock-icon{display:flex}
+.prem-card>div:first-child *{pointer-events:none}
+[data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
+button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.card.input-section:not(#destinyCardForm){background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
+.auth-quick-links{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+.auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
+.auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35);box-shadow:0 4px 18px rgba(124,58,237,0.35)}
+.auth-btn--signup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.5)}
+.auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
+.auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:999px;background:linear-gradient(140deg,rgba(30,12,62,0.95),rgba(54,22,98,0.88));border:1px solid rgba(206,169,255,0.34);color:#f2e8ff;font-weight:800;font-size:.88rem;letter-spacing:.01em;cursor:pointer;box-shadow:0 0 24px rgba(131,66,220,0.35),0 5px 16px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.14);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,filter .22s ease}
+.auth-btn--logout:hover{transform:translateY(-1px);border-color:rgba(248,172,255,0.62);box-shadow:0 0 30px rgba(176,92,255,0.48),0 9px 24px rgba(0,0,0,0.38),inset 0 1px 0 rgba(255,255,255,0.18);color:#fff;filter:brightness(1.06)}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(30,5,60,0.95),rgba(80,20,10,0.9));border:1px solid rgba(255,180,40,0.55);color:#fde68a;font-size:.82rem;font-weight:800;letter-spacing:.03em;box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12);animation:adminBadgePulse 3s ease-in-out infinite;flex-shrink:0}
+@keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
+.admin-badge__crown{font-style:normal;font-size:.9rem}
+.admin-badge__text{font-size:.76rem;font-weight:900;background:linear-gradient(90deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cd-preparing-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;border:1px solid rgba(245,158,11,.42);background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(168,85,247,.16));color:#fde68a;font-size:.64rem;font-weight:900;letter-spacing:.04em;line-height:1.25;white-space:nowrap;vertical-align:middle;box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,245,200,.15)}
+.cd-preparing-badge--inline{margin-left:8px}
+.cd-preparing-badge--cta{margin-left:6px;padding:2px 7px;font-size:.6rem}
+.cd-preparing-badge--headline{margin-left:12px;padding:7px 12px;border-radius:12px;font-size:1.12rem;font-weight:1000;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.cd-user-card{position:relative;margin-top:20px;padding:30px 16px 18px;border-radius:24px;background:radial-gradient(120% 90% at 50% -8%,rgba(199,160,255,0.32) 0%,rgba(89,45,174,0.34) 30%,transparent 58%),radial-gradient(130% 120% at 50% 0%,rgba(69,41,140,0.5) 0%,rgba(18,8,44,0.98) 44%,rgba(9,4,30,0.99) 100%);border:1px solid rgba(190,150,255,0.36);box-shadow:0 0 60px rgba(90,40,180,0.22),0 18px 52px rgba(0,0,0,0.54),inset 0 1px 0 rgba(236,214,255,0.22),inset 0 -24px 40px rgba(27,12,66,0.42);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;width:100%;overflow:hidden;transform:translateZ(0);-webkit-transform:translateZ(0)}
+.cd-user-card--loading{animation:cdPulseLoading 1.8s ease-in-out infinite;-webkit-animation:cdPulseLoading 1.8s ease-in-out infinite}
+.cd-user-card::before{content:'';position:absolute;top:-42%;left:50%;transform:translateX(-50%);width:300px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(159,95,255,0.32),rgba(126,66,220,0.12) 52%,transparent 76%);pointer-events:none;filter:blur(.5px)}
+.cd-user-card::after{content:'';position:absolute;bottom:-42%;left:50%;transform:translateX(-50%);width:360px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(62,153,255,0.22),rgba(43,94,202,0.08) 50%,transparent 74%);pointer-events:none}
+.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;-webkit-animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0;will-change:transform,opacity;transform:translateZ(0);-webkit-transform:translateZ(0)}
+@keyframes cdPulseLoading{0%,100%{opacity:0.85;transform:scale(1)}50%{opacity:0.65;transform:scale(0.995)}}
+@-webkit-keyframes cdPulseLoading{0%,100%{opacity:0.85;transform:scale(1)}50%{opacity:0.65;transform:scale(0.995)}}
+@keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
+@-webkit-keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
+.cd-user-card__avatar{position:relative;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 28% 25%,#efe6ff 0%,#8a66c8 36%,#4c2b90 70%,#1a0d39 100%);border:2px solid rgba(176,146,228,0.7);box-shadow:0 0 22px rgba(105,66,174,0.5),0 0 40px rgba(54,31,112,0.28),inset 0 3px 11px rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3.2s ease-in-out infinite;-webkit-animation:cdAvatarGlow 3.2s ease-in-out infinite;will-change:box-shadow;transform:translateZ(0);-webkit-transform:translateZ(0)}
+@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 20px rgba(106,68,180,0.42),0 0 38px rgba(54,31,112,0.22),inset 0 2px 8px rgba(255,255,255,0.16)}50%{box-shadow:0 0 30px rgba(137,96,210,0.7),0 0 54px rgba(81,49,172,0.3),inset 0 2px 10px rgba(255,255,255,0.2)}}
+@-webkit-keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 20px rgba(106,68,180,0.42),0 0 38px rgba(54,31,112,0.22),inset 0 2px 8px rgba(255,255,255,0.16)}50%{box-shadow:0 0 30px rgba(137,96,210,0.7),0 0 54px rgba(81,49,172,0.3),inset 0 2px 10px rgba(255,255,255,0.2)}}
+.cd-user-card__avatar-ring{position:absolute;inset:-10px;border-radius:50%;pointer-events:none;border:1.5px solid rgba(182,154,232,0.52);background:radial-gradient(circle at 50% 50%,transparent 61%,rgba(166,136,220,0.06) 64%,transparent 72%);box-shadow:0 0 12px rgba(118,85,190,0.34);transform:translateZ(0) rotate(-16deg) scaleX(1.34) scaleY(.72);-webkit-transform:translateZ(0) rotate(-16deg) scaleX(1.34) scaleY(.72);animation:cdPlanetRingDrift 5.4s ease-in-out infinite;-webkit-animation:cdPlanetRingDrift 5.4s ease-in-out infinite;will-change:transform}
+.cd-user-card__avatar-ring::before{content:'';position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fffdf7 0%,#dcc4ff 55%,#7f56d9 100%);box-shadow:52px -10px 0 rgba(145,108,219,0.88),-48px 12px 0 rgba(105,170,219,0.78),8px 30px 0 rgba(225,193,140,0.82),0 0 8px rgba(175,139,230,0.68);animation:cdPlanetLightOrbit 3.2s linear infinite;-webkit-animation:cdPlanetLightOrbit 3.2s linear infinite;transform-origin:0 0}
+@keyframes cdPlanetRingDrift{0%,100%{transform:translateZ(0) rotate(-16deg) scaleX(1.34) scaleY(.72)}50%{transform:translateZ(0) rotate(-8deg) scaleX(1.38) scaleY(.75)}}
+@-webkit-keyframes cdPlanetRingDrift{0%,100%{-webkit-transform:translateZ(0) rotate(-16deg) scaleX(1.34) scaleY(.72)}50%{-webkit-transform:translateZ(0) rotate(-8deg) scaleX(1.38) scaleY(.75)}}
+@keyframes cdPlanetLightOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@-webkit-keyframes cdPlanetLightOrbit{from{-webkit-transform:rotate(0deg)}to{-webkit-transform:rotate(360deg)}}
+.cd-user-card__initial{font-size:1.7rem;font-weight:900;color:#fff;text-shadow:0 0 14px rgba(255,255,255,0.72);line-height:1;letter-spacing:.01em}
+.cd-user-card__info{display:flex;flex-direction:column;gap:3px;align-items:center;position:relative;z-index:2;padding:0 8px}
+.cd-user-card__greeting{font-size:.86rem;color:rgba(201,174,255,0.94);font-weight:700;letter-spacing:.09em;text-transform:none}
+.cd-user-card__welcome-chip{display:inline-flex;align-items:center;justify-content:center;padding:5px 12px;border-radius:999px;border:1px solid rgba(213,184,255,0.56);background:linear-gradient(135deg,rgba(105,63,204,0.72),rgba(68,92,210,0.48));color:#f1e7ff;font-size:.68rem;font-weight:900;letter-spacing:.08em;box-shadow:0 0 18px rgba(131,90,236,0.28),inset 0 1px 0 rgba(255,255,255,.18)}
+.cd-user-card--active-pass .cd-user-card__welcome-chip{border-color:rgba(245,219,154,.68);background:linear-gradient(135deg,rgba(115,70,220,.76),rgba(178,125,255,.56),rgba(245,219,154,.22));color:#fff5d6;box-shadow:0 0 22px rgba(178,125,255,.36),0 0 14px rgba(245,219,154,.18),inset 0 1px 0 rgba(255,255,255,.22)}
+.cd-user-card__pass-line{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:3px;padding:7px 12px;border-radius:999px;border:1px solid rgba(245,219,154,.32);background:linear-gradient(135deg,rgba(17,10,42,.68),rgba(87,54,174,.38));color:#f8edc8;font-size:.76rem;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.22)}
+.cd-user-card__pass-line::before{content:'';width:7px;height:7px;border-radius:50%;background:#f7d878;box-shadow:0 0 10px rgba(247,216,120,.72)}
+.cd-user-card__name{font-size:1.48rem;font-weight:900;background:linear-gradient(92deg,#f3e8ff 0%,#d8b4fe 33%,#fbcfe8 72%,#e9d5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em;line-height:1.24;text-shadow:0 0 20px rgba(199,141,255,0.28)}
+.cd-user-card__points{display:inline-flex;align-items:center;justify-content:center;margin-top:4px;padding:4px 11px;border-radius:999px;border:1px solid rgba(255,206,120,0.48);background:linear-gradient(135deg,rgba(50,24,7,0.9),rgba(86,40,8,0.86));color:#ffe8a6;font-size:.76rem;font-weight:900;letter-spacing:.03em;box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,236,170,0.2);font-variant-numeric:tabular-nums}
+.cd-user-card__tagline{font-size:.8rem;color:rgba(194,174,236,0.8);font-weight:600;margin-top:2px;max-width:92%;line-height:1.56}
+.cd-user-card__actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:9px;padding-top:13px;border-top:1px solid rgba(176,125,255,0.2);width:100%;position:relative;z-index:2}
+.golden-grain-badge{position:absolute;top:14px;right:14px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;width:min(244px,calc(100% - 28px));min-height:48px;padding:6px 6px 6px 10px;border-radius:18px;border:1px solid rgba(186,230,253,0.32);background:linear-gradient(135deg,rgba(8,18,39,0.94),rgba(30,50,92,0.9) 50%,rgba(43,27,72,0.94));box-shadow:0 10px 28px rgba(0,0,0,0.46),0 0 20px rgba(56,189,248,0.14),inset 0 1px 0 rgba(255,255,255,0.16);color:#f3edff;font-weight:700;font-size:.84rem;letter-spacing:0;z-index:4;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;border-radius:11px;background:linear-gradient(145deg,#f8fafc 0%,#bae6fd 34%,#8b5cf6 74%,#172554 100%);border:1px solid rgba(224,242,254,0.68);box-shadow:0 0 16px rgba(56,189,248,0.28),0 0 9px rgba(196,181,253,0.22),inset 0 2px 6px rgba(255,255,255,0.46);transform:rotate(-7deg)}
+.golden-grain-badge__coin::before{content:'';position:absolute;inset:8px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.68);background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.08));box-shadow:inset 0 1px 2px rgba(255,255,255,.38)}
+.golden-grain-badge__coin::after{content:'';position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:50%;background:#fef3c7;box-shadow:9px 8px 0 rgba(224,242,254,.88),14px -1px 0 rgba(221,214,254,.72)}
+.golden-grain-badge__value{display:flex;min-width:0;flex-direction:column;line-height:1.12;font-variant-numeric:tabular-nums}
+.golden-grain-badge__label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.58rem;font-weight:800;color:rgba(221,214,254,0.88);letter-spacing:0}
+.golden-grain-badge__balance{font-size:.82rem;font-weight:900;color:#fff7cc;white-space:nowrap;text-shadow:0 0 10px rgba(196,181,253,0.4)}
+.golden-grain-badge__charge{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-left:0;border:none;border-radius:999px;padding:0 12px;background:linear-gradient(135deg,#9b5cf6,#ec4899);color:#fff;font-size:.69rem;font-weight:900;letter-spacing:0;white-space:nowrap;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 4px 14px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.2)}
+.golden-grain-badge__charge:hover{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 6px 18px rgba(168,85,247,0.52),inset 0 1px 0 rgba(255,255,255,0.2)}
+.golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;z-index:100002;background:radial-gradient(circle at 18% 12%,rgba(250,204,21,.16) 0%,rgba(124,58,237,.18) 26%,rgba(11,6,30,.78) 58%),rgba(8,5,22,.72);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.golden-grain-modal--open{display:flex}
+.golden-grain-modal__card{width:min(620px,96vw);max-height:calc(100vh - 28px);display:flex;flex-direction:column;border-radius:24px;padding:18px 14px 14px;border:1px solid rgba(221,214,254,0.5);background:linear-gradient(160deg,rgba(21,15,48,.98) 0%,rgba(42,24,78,.98) 48%,rgba(15,10,34,.98) 100%);box-shadow:0 26px 78px rgba(0,0,0,0.55),0 0 44px rgba(124,58,237,0.22),inset 0 1px 0 rgba(255,255,255,0.16);position:relative;overflow:hidden}
+.golden-grain-modal__card::before{content:'';position:absolute;inset:-26% auto auto -12%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(250,204,21,0.28) 0%,rgba(167,139,250,0.18) 42%,rgba(255,255,255,0) 72%);pointer-events:none}
+.golden-grain-modal__card::after{content:'';position:absolute;right:24px;top:24px;width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.95) 0%,rgba(252,211,77,.8) 20%,rgba(168,85,247,.12) 21%,rgba(168,85,247,0) 62%);opacity:.32;pointer-events:none}
+.golden-grain-modal__close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(221,214,254,0.36);background:rgba(22,15,50,0.78);color:#fef3c7;font-size:1.2rem;font-weight:700;cursor:pointer;z-index:2}
+.golden-grain-modal__head{position:relative;z-index:1;text-align:center;padding:4px 8px 8px}
+.golden-grain-modal__title{margin:0 0 6px;font-size:1.38rem;font-weight:900;color:#fef3c7;letter-spacing:0}
+.golden-grain-modal__title-btn{border:none;background:transparent;color:inherit;font:inherit;font-weight:inherit;line-height:inherit;letter-spacing:inherit;margin:0;padding:0;cursor:pointer}
+.golden-grain-modal__subtitle{margin:0;font-size:.91rem;color:#ddd6fe;line-height:1.45}
+.golden-grain-piggy{width:84px;height:84px;margin:0 auto 10px;border-radius:22px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#f8fafc 0%,#bae6fd 34%,#8b5cf6 74%,#172554 100%);border:1px solid rgba(224,242,254,0.7);box-shadow:inset 0 3px 10px rgba(255,255,255,0.45),0 0 28px rgba(56,189,248,0.3);transform:rotate(-6deg)}
+.golden-grain-piggy__img{position:relative;width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.62);background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,.1));display:block}
+.golden-grain-piggy__img::after{content:'';position:absolute;left:9px;top:9px;width:8px;height:8px;border-radius:999px;background:#fef3c7;box-shadow:16px 16px 0 rgba(224,242,254,.9),22px 1px 0 rgba(221,214,254,.78)}
+.golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
+@keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
+.golden-grain-modal__scroll{overflow-y:auto;overflow-x:hidden;padding:8px 6px 8px 4px;margin-top:8px;max-height:min(50vh,430px);scrollbar-width:thin;scrollbar-color:rgba(196,181,253,.55) rgba(30,20,65,.72)}
+.golden-grain-modal__scroll::-webkit-scrollbar{width:8px}
+.golden-grain-modal__scroll::-webkit-scrollbar-track{background:rgba(30,20,65,.72);border-radius:999px}
+.golden-grain-modal__scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#c4b5fd,#facc15);border-radius:999px}
+.golden-grain-history{margin-top:12px;border:1px solid rgba(221,214,254,.26);border-radius:14px;background:rgba(15,10,34,.54);padding:12px}
+.golden-grain-history__head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;color:#fef3c7;font-size:.86rem;font-weight:900}
+.golden-grain-history__empty{margin:0;color:#c4b5fd;font-size:.8rem;line-height:1.45}
+.golden-grain-history__list{display:grid;gap:7px}
+.golden-grain-history__item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:10px;background:rgba(255,255,255,.06)}
+.golden-grain-history__meta{min-width:0;color:#ddd6fe;font-size:.78rem;line-height:1.35}
+.golden-grain-history__reason{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f8fafc;font-weight:800}
+.golden-grain-history__date{display:block;margin-top:2px;color:#a78bfa;font-size:.72rem}
+.golden-grain-history__amount{color:#86efac;font-size:.82rem;font-weight:900;white-space:nowrap}
+.golden-grain-history__amount.is-spend{color:#fca5a5}
+.golden-grain-history__amount.is-refund{color:#67e8f9}
+.golden-grain-packages{display:grid;gap:10px}
+.golden-grain-package{position:relative;border:1px solid rgba(196,181,253,0.28);border-radius:16px;padding:13px 14px;background:linear-gradient(150deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04));cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;color:#f5f3ff;box-shadow:0 2px 10px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.08)}
+.golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(0,0,0,0.24),0 0 24px rgba(139,92,246,0.18)}
+.golden-grain-package.is-selected{border-color:rgba(250,204,21,0.78);box-shadow:0 14px 28px rgba(0,0,0,0.26),0 0 26px rgba(250,204,21,0.18);transform:translateY(-1px) scale(1.01);background:linear-gradient(150deg,rgba(250,204,21,0.15),rgba(139,92,246,0.14))}
+.golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.golden-grain-package__best{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:0;box-shadow:0 6px 14px rgba(139,92,246,0.34)}
+.golden-grain-package__name{font-weight:800;color:#fff7cc}
+.golden-grain-package__coin{font-weight:900;color:#fde68a;display:inline-flex;align-items:center;gap:3px}
+.golden-grain-package__meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:5px}
+.golden-grain-package__price{font-size:.86rem;color:#d8b4fe}
+.golden-grain-package__list{font-size:.76rem;color:rgba(221,214,254,.62);text-decoration:line-through;margin-right:6px}
+.golden-grain-package__sale{font-size:.72rem;font-weight:900;color:#fef3c7;background:rgba(250,204,21,.14);border:1px solid rgba(250,204,21,.28);border-radius:999px;padding:2px 7px}
+.golden-grain-package__total{font-size:.79rem;font-weight:800;color:#c4b5fd}
+.golden-grain-package__bonus{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(139,92,246,0.22),rgba(250,204,21,0.14));border:1px solid rgba(196,181,253,0.28);color:#fef3c7;font-size:.73rem;font-weight:800}
+.golden-grain-modal__cta{position:relative;z-index:1;margin-top:10px;padding:10px 4px 2px;background:linear-gradient(180deg,rgba(17,12,39,0) 0%,rgba(17,12,39,.76) 58%,rgba(17,12,39,.95) 100%)}
+.golden-grain-modal__charge-btn{margin-top:0;width:100%;border:none;border-radius:14px;padding:14px;background:linear-gradient(135deg,#8b5cf6,#ec4899,#facc15);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:0;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 10px 28px rgba(139,92,246,0.32)}
+.golden-grain-modal__charge-btn+.golden-grain-modal__charge-btn{margin-top:8px}
+.golden-grain-modal__charge-btn--monthly{background:linear-gradient(135deg,#0ea5e9,#6366f1,#a855f7);box-shadow:0 10px 28px rgba(14,165,233,0.25)}
+.golden-grain-modal__charge-btn:disabled{opacity:.46;cursor:not-allowed;box-shadow:none}
+.golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
+.golden-grain-modal__charge-btn:disabled:hover{transform:none;box-shadow:none}
+.golden-grain-modal__monthly-status{margin:0 0 8px;padding:9px 11px;border-radius:13px;border:1px solid rgba(125,211,252,.24);background:linear-gradient(135deg,rgba(8,47,73,.46),rgba(30,27,75,.36));color:#dbeafe;font-size:.78rem;font-weight:800;text-align:center}
+.golden-grain-modal__monthly-status[data-state=fresh]{border-color:rgba(110,231,183,.34);color:#d1fae5;background:linear-gradient(135deg,rgba(6,78,59,.38),rgba(30,41,59,.34))}
+.golden-grain-modal__monthly-status[data-state=error]{border-color:rgba(248,113,113,.36);color:#fee2e2;background:linear-gradient(135deg,rgba(127,29,29,.34),rgba(30,41,59,.34))}
+.golden-grain-modal__notice{margin-top:10px;text-align:center;color:#ddd6fe;font-weight:700;font-size:.78rem}
+.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#c4b5fd;font-weight:700;font-size:.82rem}
+.cd-section-gate{position:relative;overflow:hidden;border-radius:inherit;width:100%;box-sizing:border-box}
+.cd-section-gate:not(.cd-section-gate--unlocked){min-height:198px;max-height:198px}
+.cd-section-gate__body{filter:blur(6px) brightness(.92);pointer-events:none;user-select:none;transition:filter .35s}
+.cd-section-gate:not(.cd-section-gate--unlocked) .cd-section-gate__body{max-height:198px;overflow:hidden}
+.cd-section-gate--unlocked .cd-section-gate__body{filter:none;pointer-events:auto;user-select:auto}
+.cd-section-gate--checking .cd-section-gate__body{filter:blur(8px) brightness(.82)}
+.cd-section-gate--checking .cd-section-gate__icon{animation:cdAccessPulse 1.4s ease-in-out infinite}
+.cd-section-gate--checking .cd-section-gate__btn{opacity:.78;cursor:wait;pointer-events:none}
+.cd-section-gate--error .cd-section-gate__btn{background:linear-gradient(90deg,#fca5a5 0%,#f97316 100%)}
+@keyframes cdAccessPulse{0%,100%{opacity:.52;transform:scale(.98)}50%{opacity:1;transform:scale(1.04)}}
+.cd-section-gate__overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;width:100%;box-sizing:border-box;background:linear-gradient(180deg,rgba(5,2,18,.82) 0%,rgba(8,3,25,.92) 52%,rgba(6,2,20,.97) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:12px;padding:18px 18px 20px;text-align:center;border:1px solid rgba(160,100,255,.18)}
+.cd-section-gate--unlocked .cd-section-gate__overlay{display:none}
+.cd-section-gate__icon{font-size:2.1rem;line-height:1;filter:drop-shadow(0 0 14px rgba(255,200,50,.48))}
+.cd-section-gate__title{font-size:1.04rem;font-weight:900;color:#f0ebff;margin:0;letter-spacing:.02em;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.cd-section-gate__desc{display:-webkit-box;margin:0;max-width:320px;color:rgba(210,200,245,.85);font-size:.8rem;line-height:1.52;text-shadow:0 1px 6px rgba(0,0,0,.7);-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cd-section-gate__btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border:none;border-radius:10px;padding:11px 18px;background:linear-gradient(90deg,#ffd54f 0%,#ffaa00 50%,#ff8c00 100%);color:#1a0a3a;font-size:.84rem;font-weight:900;cursor:pointer;box-shadow:0 4px 22px rgba(255,160,0,.48),inset 0 1px 0 rgba(255,255,220,.38);transition:filter .2s,transform .2s;letter-spacing:.03em}
+.cd-section-gate__btn:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,160,0,.58)}
+.cd-section-gate__badge{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;border-radius:5px;background:rgba(14,8,2,.82);color:#fde68a;font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(250,204,21,.55);box-shadow:0 2px 10px rgba(0,0,0,.55)}
+.cd-section-gate__badge::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 46%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 7px rgba(255,195,40,.6),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
+.sec-tier-badge{display:inline-flex;align-items:center;vertical-align:middle;gap:4px;font-size:.58rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;border-radius:4px;padding:2px 7px;margin-left:7px;pointer-events:none;line-height:1.3}
+.sec-tier-badge--free{background:rgba(4,28,20,.9);color:#34d399;border:1px solid rgba(52,211,153,.42)}
+.sec-tier-badge--paid{background:rgba(14,8,2,.82);color:#fde68a;border:1px solid rgba(250,204,21,.5)}
+.sec-tier-badge--unlocked{background:rgba(6,78,59,.88)!important;color:#bbf7d0!important;border-color:rgba(52,211,153,.55)!important}
+.rpt-v2-block--locked{position:relative}
+.rpt-v2-block--unlocked{border-color:rgba(52,211,153,.48)!important;box-shadow:0 12px 34px rgba(6,78,59,.15),inset 0 0 0 1px rgba(52,211,153,.18)}
+.rpt-v2-block--unlocked .rpt-v2-toggle-btn{background:linear-gradient(135deg,#059669,#10b981)!important;color:#ecfdf5!important}
+.rpt-v2-block--unlocked .rpt-v2-price-badge{background:rgba(6,78,59,.9)!important;color:#bbf7d0!important;border-color:rgba(52,211,153,.55)!important}
+.golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
+.golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
+.golden-unlock-list{display:grid;gap:8px}
+.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease}
+.golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.animate-bounce{animation:goldenBounce .72s ease}
+@keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
+.pf-showcase{position:relative;overflow:hidden;padding:clamp(22px,3vw,30px) clamp(16px,2.4vw,24px) clamp(24px,3vw,34px);background:radial-gradient(circle at top,rgba(248,187,37,.12),transparent 42%),linear-gradient(160deg,#090719 0%,#10082c 55%,#0c0622 100%);border:1px solid rgba(248,187,37,.18);box-shadow:0 20px 70px rgba(7,5,18,.42),inset 0 1px 0 rgba(255,255,255,.05);isolation:isolate;--pf-title-color:#f7f2ff;--pf-sub-color:rgba(225,216,255,.88);--pf-title-emphasis-start:#ffe7a1;--pf-title-emphasis-end:#d89a33;--pf-title-shadow:0 3px 16px rgba(25,11,58,.42),0 1px 0 rgba(255,255,255,.15);--pf-sub-shadow:0 2px 10px rgba(18,7,44,.34)}
+body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,255,.94);--pf-title-emphasis-start:#fff2b3;--pf-title-emphasis-end:#dfaa39;--pf-title-shadow:0 4px 18px rgba(28,10,66,.45),0 1px 0 rgba(255,255,255,.16);--pf-sub-shadow:0 2px 10px rgba(18,7,44,.34)}
+.pf-showcase__header{display:grid;justify-items:center;gap:12px;text-align:center;margin-bottom:28px;padding:clamp(18px,3vw,26px) clamp(14px,2.5vw,26px);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 24px rgba(2,2,8,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pf-showcase__eyebrow{font-size:.72rem;font-weight:900;letter-spacing:.34em;color:#ffd96a;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:12px}
+.pf-showcase__eyebrow::before,.pf-showcase__eyebrow::after{content:'';display:inline-block;width:38px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,187,37,.9),transparent);flex-shrink:0}
+.pf-showcase__title{max-width:18ch;font-size:clamp(1.42rem,4.8vw,2.18rem);font-weight:950;color:var(--pf-title-color);margin:0;line-height:1.24;letter-spacing:-.024em;text-wrap:balance;text-shadow:var(--pf-title-shadow)}
+.pf-showcase__title-emphasis{display:inline-block;font-weight:980;background:linear-gradient(135deg,var(--pf-title-emphasis-start) 0%,var(--pf-title-emphasis-end) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 1px 0 rgba(17,10,32,.3))}
+.pf-showcase__sub{max-width:42rem;font-size:clamp(.95rem,2.25vw,1.06rem);font-weight:700;color:var(--pf-sub-color);margin:0;line-height:1.7;letter-spacing:.01em;text-wrap:balance;text-shadow:var(--pf-sub-shadow)}
+.pf-showcase__grid{display:grid;gap:18px}
+@media(min-width:680px){.pf-showcase__grid{grid-template-columns:repeat(3,1fr)}}
+.pf-card{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,rgba(14,8,32,.94) 0%,rgba(9,4,22,.97) 100%);border:1px solid rgba(140,90,255,.2);box-shadow:0 4px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s ease}
+.pf-card:hover{transform:translateY(-5px);box-shadow:0 20px 52px rgba(100,40,220,.42),0 0 0 1px rgba(180,140,255,.32),inset 0 1px 0 rgba(255,255,255,.1)}
+.pf-card__icon-wrap{font-size:2.5rem;padding:22px 20px 6px;line-height:1;text-align:center}
+.pf-card__body{padding:14px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.pf-card__badge{display:inline-flex;align-items:center;font-size:.6rem;font-weight:900;letter-spacing:.12em;color:#fde68a;background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(251,191,36,.08));border:1px solid rgba(250,204,21,.38);border-radius:20px;padding:3px 10px;text-transform:uppercase;width:max-content}
+.pf-card__title{font-size:1.1rem;font-weight:900;color:#f8f3ff;margin:0;letter-spacing:.02em}
+.pf-card__desc{font-size:.84rem;color:rgba(238,230,255,.93);line-height:1.66;margin:0}
+.pf-card__desc strong{color:#ddd6fe}
+.pf-card__points{margin:0;padding:0 0 0 2px;list-style:none;display:flex;flex-direction:column;gap:5px}
+.pf-card__points li{font-size:.8rem;color:rgba(232,223,255,.94);display:flex;gap:6px;align-items:flex-start;line-height:1.46}
+.pf-card__price-row{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:14px;border-top:1px solid rgba(140,90,255,.16)}
+.pf-card__price{display:flex;align-items:center;gap:8px;background:rgba(90,40,200,.12);border:1px solid rgba(140,90,255,.12);border-radius:10px;padding:8px 12px}
+.pf-coin-icon{display:inline-block;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 8px rgba(255,195,40,.55),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
+.pf-coin-amount{font-size:.95rem;font-weight:900;color:#fcd262;letter-spacing:.02em}
+.pf-coin-note{font-size:.74rem;color:rgba(210,190,255,.78);font-weight:500;margin-left:auto}
+.pf-card__cta{width:100%;border:none;border-radius:10px;padding:12px 14px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;letter-spacing:.04em;transition:filter .2s,transform .2s,box-shadow .2s;box-shadow:0 4px 18px rgba(109,40,217,.4),inset 0 1px 0 rgba(255,255,255,.18)}
+.pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
+.btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
+@media(max-width:768px){.golden-grain-badge{position:absolute;top:10px;right:10px;width:min(224px,calc(100% - 20px));min-height:44px;gap:7px;padding:5px 5px 5px 9px;border-radius:16px;transform-origin:top right;z-index:5}.golden-grain-badge__coin{width:28px;height:28px;border-radius:10px}.golden-grain-badge__label{font-size:.55rem}.golden-grain-badge__balance{font-size:.78rem}.golden-grain-badge__charge{min-height:32px;padding:0 10px;font-size:.66rem}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}.cd-section-gate__overlay{padding:28px 18px;border-radius:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.cd-section-gate__body{filter:blur(8px) brightness(.88)}.cd-section-gate__title{font-size:1.05rem;max-width:280px}.cd-section-gate__desc{font-size:.8rem;max-width:260px;line-height:1.55}.cd-section-gate__btn{padding:13px 24px;font-size:.88rem;width:100%;max-width:280px;justify-content:center}.cd-section-gate__icon{font-size:2.6rem}}
+@media(max-width:680px){.pf-showcase__header{padding:16px 12px 18px}.pf-showcase__title{font-size:clamp(1.28rem,6vw,1.72rem);line-height:1.28}.pf-showcase__sub{font-size:clamp(.9rem,3.7vw,1rem);line-height:1.68}}
+@media(max-width:600px){.cd-section-gate:not(.cd-section-gate--unlocked){min-height:214px;max-height:214px}.cd-section-gate:not(.cd-section-gate--unlocked) .cd-section-gate__body{max-height:214px}.cd-section-gate__overlay{padding:20px 14px;left:0;right:0;box-sizing:border-box}.cd-section-gate__btn{padding:12px 22px;font-size:.86rem;width:min(100%,280px)}}
+  </style>
+
   <style id="cd-main-celestial-collection-v20260611">
         body:not(.neo-mode) .logo-area{--cd-night:#070712;--cd-night-2:#151128;--cd-violet:167,139,250;--cd-violet-soft:196,181,253;--cd-pink:249,168,212;--cd-gold:253,230,138;--cd-mint:94,234,212;position:relative;isolation:isolate;overflow:hidden;padding:16px 18px 32px!important;border:1px solid rgba(255,255,255,.15)!important;background:radial-gradient(circle at 50% -6%,rgba(255,248,220,.18),transparent 26%),radial-gradient(circle at 82% 16%,rgba(var(--cd-gold),.14),transparent 30%),radial-gradient(circle at 16% 24%,rgba(var(--cd-pink),.13),transparent 28%),radial-gradient(circle at 52% 72%,rgba(var(--cd-violet-soft),.14),transparent 42%),linear-gradient(165deg,#080712 0%,#171228 36%,#231733 68%,#0c0a18 100%)!important;color:#f8fafc;box-shadow:0 34px 94px rgba(4,3,14,.66),0 0 0 1px rgba(253,230,138,.05),inset 0 1px 0 rgba(255,255,255,.15)!important}
         body:not(.neo-mode) .logo-area::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1px 1px at 8% 16%,rgba(255,255,255,.86),transparent),radial-gradient(1.5px 1.5px at 20% 34%,rgba(var(--cd-gold),.78),transparent),radial-gradient(1px 1px at 39% 12%,rgba(var(--cd-violet-soft),.76),transparent),radial-gradient(1.5px 1.5px at 63% 26%,rgba(255,255,255,.72),transparent),radial-gradient(1px 1px at 78% 56%,rgba(var(--cd-pink),.7),transparent),radial-gradient(1.5px 1.5px at 92% 18%,rgba(var(--cd-gold),.84),transparent),linear-gradient(108deg,rgba(255,255,255,.1),transparent 28%,rgba(var(--cd-violet),.08) 58%,rgba(var(--cd-mint),.06) 78%,transparent 90%),repeating-linear-gradient(135deg,rgba(255,255,255,.026) 0 1px,transparent 1px 28px);opacity:.78}
@@ -649,45 +867,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <script src="/js/inline/api-base-init.js?v=build-2d18cf90d088" defer></script>
+  <script src="/js/inline/api-base-init.js?v=build-46646a9a7374" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-2d18cf90d088">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-46646a9a7374">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-46646a9a7374"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-46646a9a7374"></noscript>
 
   <!-- cd-premium-pdf-cosmic-chapter-ui-v20260519 -->
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-2d18cf90d088"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-2d18cf90d088"></noscript>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-2d18cf90d088" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-2d18cf90d088"></noscript>
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-46646a9a7374"></noscript>
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-46646a9a7374"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-46646a9a7374" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-46646a9a7374"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -1652,7 +1870,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </div>
 </div>
 
-<script src="/js/splash.js?v=build-2d18cf90d088" defer></script>
+<script src="/js/splash.js?v=build-46646a9a7374" defer></script>
 
 <!-- 섹션 네비게이션 바 -->
 <div id="fsnNavBar" class="fsn-navbar fsn-pig" role="navigation" aria-label="현재 섹션" data-cd-trans-attr="aria-label:home.sectionNav.aria">
@@ -1983,8 +2201,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 id="honeypigLogo"
                 data-lcp-candidate="1"
                 class="honeypig-logo-icon"
-                src="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088"
-                srcset="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088 512w"
+                src="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374"
+                srcset="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374 512w"
                 sizes="(max-width: 768px) 82px, 130px"
                 width="130"
                 height="130"
@@ -2066,7 +2284,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <span class="moon-hero__spark moon-hero__spark--2" aria-hidden="true"></span>
           <span class="moon-hero__spark moon-hero__spark--3" aria-hidden="true"></span>
           <div class="moon-hero__picture moon-hero__picture--mascot" data-transparent-hero-asset="sleeping-yeon-v20260611">
-            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-2d18cf90d088" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async">
+            <img src="/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png?v=build-46646a9a7374" alt="" width="142" height="142" loading="lazy" fetchpriority="low" decoding="async">
             <span class="moon-hero__zzz" aria-hidden="true">zzz</span>
           </div>
           <div class="moon-hero__card-stack" data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612" aria-hidden="true">
@@ -2582,6 +2800,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         body:not(.neo-mode) .feat-collection--misc{background:radial-gradient(circle at 16% 16%,rgba(251,191,36,.2),transparent 35%),radial-gradient(circle at 84% 20%,rgba(56,189,248,.18),transparent 36%),linear-gradient(160deg,rgba(9,20,47,.92),rgba(16,35,72,.9))!important;border-color:rgba(125,211,252,.62)!important;box-shadow:0 16px 42px rgba(3,14,42,.45),0 0 0 1px rgba(56,189,248,.24) inset!important}
         body:not(.neo-mode) .feat-collection::before{background:none!important}
         body:not(.neo-mode) .feat-collection__header{background:transparent!important;border-color:rgba(253,230,138,.2)!important;box-shadow:none!important}
+        body:not(.neo-mode) .feat-collection__header,body:not(.neo-mode) .tarot-collection__header{display:block!important;width:100%!important;color:#fff7dd!important;text-align:center!important;white-space:normal!important;word-break:keep-all!important;line-height:1.48!important}
+        body:not(.neo-mode) .feat-collection__header *,body:not(.neo-mode) .tarot-collection__header *{word-break:keep-all!important}
         body:not(.neo-mode) .feat-collection--animal .feat-collection__header{border-bottom-color:rgba(167,243,208,.75)!important}
         body:not(.neo-mode) .feat-collection--oracle .feat-collection__header{border-bottom-color:rgba(253,224,71,.75)!important}
         body:not(.neo-mode) .feat-collection--cosmic .feat-collection__header{border-bottom-color:rgba(167,139,250,.8)!important}
@@ -2780,8 +3000,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </script>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-2d18cf90d088"
-            srcset="/icons/neo-96.webp?v=build-2d18cf90d088 96w, /icons/neo-130.webp?v=build-2d18cf90d088 130w, /icons/neo.webp?v=build-2d18cf90d088 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-46646a9a7374"
+            srcset="/icons/neo-96.webp?v=build-46646a9a7374 96w, /icons/neo-130.webp?v=build-46646a9a7374 130w, /icons/neo.webp?v=build-46646a9a7374 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="네오 모드 로고" data-cd-trans-attr="alt:auth.neoLogoAlt" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:var(--font-display);color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;" data-cd-trans="auth.neoTagline">네오의 팩폭 운세 플랫폼</p>
@@ -5355,7 +5575,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <div class="feature-card-grid">
 
         <a class="cd-comprehensive-prompt-entry" href="/fortune/prompt-hub" data-marker="comprehensive-prompt-entry-v20260621" aria-label="종합 운세 프롬프트로 이동" data-cd-trans-attr="aria-label:home.promptHub.aria">
-          <img src="/fuctionassets/comprehensive-fortune-prompt.webp?v=build-2d18cf90d088" alt="종합 운세 프롬프트" data-cd-trans-attr="alt:home.promptHub.alt" loading="lazy" decoding="async" width="1440" height="520">
+          <img src="/fuctionassets/comprehensive-fortune-prompt.webp?v=build-46646a9a7374" alt="종합 운세 프롬프트" data-cd-trans-attr="alt:home.promptHub.alt" loading="lazy" decoding="async" width="1440" height="520">
           <span class="cd-comprehensive-prompt-entry__sr" data-cd-trans data-key="home.promptHub.sr">종합 운세 프롬프트</span>
         </a>
 
@@ -5740,8 +5960,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
             <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
                aria-label="일의 문턱을 읽는 7카드 커리어 전환 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCareerMoveAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-2d18cf90d088" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-2d18cf90d088" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-46646a9a7374" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-46646a9a7374" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -5754,8 +5974,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
             <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
                aria-label="말과 행동 사이의 온도를 읽는 10카드 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotMindscanAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-2d18cf90d088" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-2d18cf90d088" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-46646a9a7374" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-46646a9a7374" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -5768,8 +5988,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
             <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
                aria-label="원석 소울 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCrystalSoulAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-2d18cf90d088" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-2d18cf90d088" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-46646a9a7374" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-46646a9a7374" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -5968,7 +6188,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/fortune/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-2d18cf90d088" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-46646a9a7374" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -6432,7 +6652,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                         data-feature-key="premium-soul-origin-report"
                         data-service-detail-href="/services/soul-origin"
                         aria-label="운명의 업 상세 보기" data-cd-trans-attr="aria-label:home.tiles.soulKarmaAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/soul-origin-cover.webp?v=build-2d18cf90d088" data-img-alt="운명의 업 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.soulKarmaAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/soul-origin-cover.webp?v=build-46646a9a7374" data-img-alt="운명의 업 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.soulKarmaAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🫖</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">ORIGIN</span>
                     <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.premiumArchive.report69000Price">Premium Report · 69,000원</span>
@@ -10513,12 +10733,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
   </footer>
 
-<script defer src="/js/destiny-profile.js?v=build-2d18cf90d088" data-marker="profile-card-date-input-v20260624"></script>
-<script data-cd-lazy-src="/js/mobile-interaction-patch.js?v=build-2d18cf90d088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script defer src="/js/destiny-profile.js?v=build-46646a9a7374" data-marker="profile-card-date-input-v20260624"></script>
+<script data-cd-lazy-src="/js/mobile-interaction-patch.js?v=build-46646a9a7374" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-2d18cf90d088" data-cd-saju-prompt-marker="saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-46646a9a7374" data-cd-saju-prompt-marker="saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -10701,8 +10921,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/share-reward.js?v=build-2d18cf90d088"></script>
-<script data-cd-noncritical-src="/js/share.js?v=build-2d18cf90d088"></script>
+<script data-cd-noncritical-src="/js/share-reward.js?v=build-46646a9a7374"></script>
+<script data-cd-noncritical-src="/js/share.js?v=build-46646a9a7374"></script>
 <script>
 (function(){
   var runVersionProbe = function () {
@@ -10741,7 +10961,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 <script data-cd-noncritical-src="/js/iching-engine.js"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=build-2d18cf90d088"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=build-46646a9a7374"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <!-- native language override disabled: core runtime handler provides immediate GT switching -->
@@ -13612,7 +13832,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       '.cd-paid-gate__handle{display:none;width:48px;height:5px;border-radius:999px;background:rgba(226,232,240,.34);margin:0 auto 16px}',
       '.cd-paid-gate__sprite{position:relative;width:96px;height:96px;margin:0 auto 16px;border-radius:999px;overflow:visible;border:0;background:transparent;box-shadow:0 0 34px rgba(251,191,36,.18);isolation:isolate}',
       '.cd-paid-gate__sprite::before{content:"";position:absolute;inset:-12px;border-radius:999px;background:radial-gradient(circle,rgba(254,243,199,.36),transparent 62%);filter:blur(1px)}',
-      '.cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url("/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088");background-repeat:no-repeat;background-size:contain;background-position:center;image-rendering:auto;transform:none;filter:drop-shadow(0 14px 22px rgba(86,47,21,.2))}',
+      '.cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url("/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374");background-repeat:no-repeat;background-size:contain;background-position:center;image-rendering:auto;transform:none;filter:drop-shadow(0 14px 22px rgba(86,47,21,.2))}',
       '.cd-paid-gate__top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}',
       '.cd-paid-gate__eyebrow{margin:0 0 6px;color:#a5f3fc;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}',
       '.cd-paid-gate__title{margin:0;font-size:22px;line-height:1.24;font-weight:900;letter-spacing:0}',
@@ -18135,7 +18355,7 @@ function updateBadge() {
       var _olympusScript = document.querySelector('script[src*="olympus-oracle.js"]');
       if (!_olympusScript) {
         var _olympusEl = document.createElement('script');
-        _olympusEl.src = '/js/olympus-oracle.js?v=build-2d18cf90d088';
+        _olympusEl.src = '/js/olympus-oracle.js?v=build-46646a9a7374';
         _olympusEl.defer = true;
         _olympusEl.onload = function() {
           var _loadedState = _openOlympus();
@@ -18182,13 +18402,13 @@ function updateBadge() {
 
     // 메인 프리미엄 컬렉션 카드 3종은 생성 모달 오픈을 최우선으로 보장한다.
     var _premiumSajuModalScripts = {
-      gotoAstrologyPremium: '/js/astro-book.js?v=build-2d18cf90d088',
-      openAstroBookModal: '/js/astro-book.js?v=build-2d18cf90d088',
-      openLifeBookModal: '/js/life-book.js?v=build-2d18cf90d088',
-      openLoveSecretModal: '/js/love-secret-v2.js?v=build-2d18cf90d088',
-      openSajuNewYearModal: '/js/saju-new-year.js?v=build-2d18cf90d088',
-      gotoSukuyoPremium: '/js/sukuyo-book.js?v=build-2d18cf90d088',
-      openSoulOriginModal: '/js/soul-origin-book.js?v=build-2d18cf90d088'
+      gotoAstrologyPremium: '/js/astro-book.js?v=build-46646a9a7374',
+      openAstroBookModal: '/js/astro-book.js?v=build-46646a9a7374',
+      openLifeBookModal: '/js/life-book.js?v=build-46646a9a7374',
+      openLoveSecretModal: '/js/love-secret-v2.js?v=build-46646a9a7374',
+      openSajuNewYearModal: '/js/saju-new-year.js?v=build-46646a9a7374',
+      gotoSukuyoPremium: '/js/sukuyo-book.js?v=build-46646a9a7374',
+      openSoulOriginModal: '/js/soul-origin-book.js?v=build-46646a9a7374'
     };
     if (_premiumSajuModalScripts[action]) {
       var _openPremiumModal = function () {
@@ -19629,30 +19849,30 @@ function updateBadge() {
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-2d18cf90d088" data-cd-mobile-delay="1"></script>
-<script src="/js/io-image-lazy-loader.js?v=build-2d18cf90d088" defer></script>
-<script src="/js/noncritical-defer-loader.js?v=build-2d18cf90d088" defer></script>
-<script src="/js/cd-lang-native.js?v=build-2d18cf90d088" defer></script>
-<script data-cd-noncritical-src="/js/love-secret-v2.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/life-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/astro-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/saju-new-year.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/vedic-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/soul-origin-book.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-46646a9a7374" data-cd-mobile-delay="1"></script>
+<script src="/js/io-image-lazy-loader.js?v=build-46646a9a7374" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=build-46646a9a7374" defer></script>
+<script src="/js/cd-lang-native.js?v=build-46646a9a7374" defer></script>
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/life-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/astro-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/saju-new-year.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/vedic-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1"></script>
+<script data-cd-noncritical-src="/js/soul-origin-book.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
-<script src="/js/dream-ledger.js?v=build-2d18cf90d088" defer></script>
-<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-2d18cf90d088" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script src="/js/dream-ledger.js?v=build-46646a9a7374" defer></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-46646a9a7374" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-2d18cf90d088" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-46646a9a7374" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-2d18cf90d088"></script>
+<script type="module" src="/js/app.js?v=build-46646a9a7374"></script>
 <!-- Feature Preview Panel v2 -->
 <div id="tilePvwOverlay" class="tile-pvw-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
@@ -19780,13 +20000,13 @@ function updateBadge() {
   }
 
   var scriptMap = {
-    gotoAstrologyPremium: '/js/astro-book.js?v=build-2d18cf90d088',
-    openAstroBookModal: '/js/astro-book.js?v=build-2d18cf90d088',
-    openLifeBookModal: '/js/life-book.js?v=build-2d18cf90d088',
-    openLoveSecretModal: '/js/love-secret-v2.js?v=build-2d18cf90d088',
-    openSajuNewYearModal: '/js/saju-new-year.js?v=build-2d18cf90d088',
-    gotoSukuyoPremium: '/js/sukuyo-book.js?v=build-2d18cf90d088',
-    openSoulOriginModal: '/js/soul-origin-book.js?v=build-2d18cf90d088'
+    gotoAstrologyPremium: '/js/astro-book.js?v=build-46646a9a7374',
+    openAstroBookModal: '/js/astro-book.js?v=build-46646a9a7374',
+    openLifeBookModal: '/js/life-book.js?v=build-46646a9a7374',
+    openLoveSecretModal: '/js/love-secret-v2.js?v=build-46646a9a7374',
+    openSajuNewYearModal: '/js/saju-new-year.js?v=build-46646a9a7374',
+    gotoSukuyoPremium: '/js/sukuyo-book.js?v=build-46646a9a7374',
+    openSoulOriginModal: '/js/soul-origin-book.js?v=build-46646a9a7374'
   };
 
   window.__cdOpenMainVvipModal = function(action, event, node){
@@ -19880,7 +20100,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-2d18cf90d088',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-46646a9a7374',fallbackCta:'운명 카드 만들기'},
     openLifeBookModal:{cat:'프리미엄 · 인생의 책',fallbackTitle:'📖 사주 인생의 책 PDF',tagline:'사주 원국과 대운의 흐름을 한 권의 생애 전서로 정리하는 프리미엄 리포트입니다.',feats:['50,000원 결제 전 금액 확인','정확한 출생 시·분 기반 원국·대운 계산','완료 후 PDF 재열람 가능','결제 권한 확인 실패 시 재시도 안내'],cost:'50,000원 · 결제 전 확인',ct:'paid',img:'/fuctionassets/lifebook.webp',fallbackCta:'결제 전 구성 확인'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 PDF',fallbackTitle:'자미두수 프리미엄 PDF',tagline:'명궁·신궁·12궁·사화·대한·유년 흐름을 15챕터 상담 리포트로 정리합니다.',feats:['59,000원 결제 전 구성과 소요 시간 확인','결제 완료 후 로컬 명반 계산과 PDF 생성 시작','명궁·재백·관록·부부·질액궁을 챕터별로 분리 해석','완료 후 PDF 저장과 결제 내역 기반 복구 지원'],cost:'59,000원 · 결제 전 확인',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'결제 전 구성 확인'},
     /* data-action="gotoNamingPremium" */
@@ -19925,7 +20145,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'✨ 메인에서 바로 입장',ct:'free',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-2d18cf90d088'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-46646a9a7374'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -21515,10 +21735,10 @@ if (document.readyState === 'loading') {
   var cb = document.getElementById('themeCheckbox');
   var lbl = document.getElementById('themeToggleLabel');
   var heroMascot = document.getElementById('honeypigLogo');
-  var pigLogoSrc = '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-2d18cf90d088';
+  var pigLogoSrc = '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-46646a9a7374';
   var pigLogoSrcset = pigLogoSrc + ' 96w, ' + pigLogoSrc + ' 130w, ' + pigLogoSrc + ' 512w';
-  var neoLogoSrc = '/icons/neo.webp?v=build-2d18cf90d088';
-  var neoLogoSrcset = '/icons/neo-96.webp?v=build-2d18cf90d088 96w, /icons/neo-130.webp?v=build-2d18cf90d088 130w, /icons/neo.webp?v=build-2d18cf90d088 512w';
+  var neoLogoSrc = '/icons/neo.webp?v=build-46646a9a7374';
+  var neoLogoSrcset = '/icons/neo-96.webp?v=build-46646a9a7374 96w, /icons/neo-130.webp?v=build-46646a9a7374 130w, /icons/neo.webp?v=build-46646a9a7374 512w';
 
   function themeCopy(key, fallback) {
     try {

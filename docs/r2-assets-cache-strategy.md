@@ -9,6 +9,77 @@
 - Music assets stay on `https://music.code-destiny.com`.
 - Do not place R2 account id, access key, or secret key in client code.
 
+## Subdomain Header Targets
+
+Use this `_headers` file in the Cloudflare Pages project that serves `assets.code-destiny.com`.
+
+```text
+https://assets.code-destiny.com/*.otf
+  Cache-Control: public, max-age=31536000, immutable
+
+https://assets.code-destiny.com/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+
+https://assets.code-destiny.com/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+```
+
+Use this `_headers` file in the Cloudflare Pages project that serves `music.code-destiny.com`.
+
+```text
+https://music.code-destiny.com/*.webp
+  Cache-Control: public, max-age=2592000
+
+https://music.code-destiny.com/*.jpg
+  Cache-Control: public, max-age=2592000
+
+https://music.code-destiny.com/*.png
+  Cache-Control: public, max-age=2592000
+```
+
+If the subdomains are served through Workers instead of Pages static assets, add the header after the origin or asset response is created.
+
+```js
+const FONT_CACHE_CONTROL = "public, max-age=31536000, immutable";
+const IMAGE_CACHE_CONTROL = "public, max-age=2592000";
+
+function getStaticCacheControl(pathname) {
+  const normalizedPath = pathname.toLowerCase();
+  if (/\.(?:otf|ttf|woff2)$/.test(normalizedPath)) return FONT_CACHE_CONTROL;
+  if (/\.(?:webp|jpg|png)$/.test(normalizedPath)) return IMAGE_CACHE_CONTROL;
+  return "";
+}
+
+function withStaticCacheControl(request, response) {
+  const cacheControl = getStaticCacheControl(new URL(request.url).pathname);
+  if (!cacheControl) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", cacheControl);
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+export default {
+  async fetch(request, env) {
+    const response = await env.ASSETS.fetch(request);
+    return withStaticCacheControl(request, response);
+  },
+};
+```
+
+## Filename Hash Strategy
+
+- Keep hashed build artifacts under `/_next/static/*`; Next.js already emits content-hashed filenames there.
+- Do not rely on stable names in `public/` or R2 for long-lived browser cache unless the object name changes when content changes.
+- For R2 uploads, generate names like `Mulmaru.6f2a9c8d4b11.woff2` and `DEST1NOVA.3a91d7f0c882.webp`.
+- Store a manifest that maps logical asset names to hashed object names, then resolve URLs from the manifest before rendering.
+- When replacing a font or album image, upload the new hashed file, update the manifest, deploy, then purge the old object later.
+
 ## Phase 0 Priority
 
 Move only assets with clear cache value first.
@@ -55,7 +126,13 @@ Recommended R2 object metadata:
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-Use for versioned or hash filenames.
+Use for fonts and versioned or hash filenames.
+
+```text
+Cache-Control: public, max-age=2592000
+```
+
+Use for music album images.
 
 ```text
 Cache-Control: public, max-age=604800
@@ -67,7 +144,7 @@ Use for normal stable filenames.
 Cache-Control: public, max-age=86400
 ```
 
-Use for images that may change.
+Use for images that may change quickly.
 
 ## Loading Rules
 
@@ -103,6 +180,25 @@ Validation:
 4. Confirm a request to `assets.code-destiny.com/assets/...` appears.
 5. Reload and repeat; confirm memory, disk, or Cloudflare edge cache is used.
 6. Check Cloudflare R2 Metrics for Class B operation changes after traffic settles.
+
+Header validation:
+
+```powershell
+curl.exe -I "https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf"
+curl.exe -I "https://assets.code-destiny.com/netmarbleM.ttf"
+curl.exe -I "https://assets.code-destiny.com/Galmuri11-Bold.woff2"
+curl.exe -I "https://assets.code-destiny.com/Mulmaru.woff2"
+curl.exe -I "https://music.code-destiny.com/lunabloom/LUNA%20BLOOM.webp"
+curl.exe -I "https://music.code-destiny.com/DEST1NOVA/DEST1NOVA.webp"
+curl.exe -I "https://music.code-destiny.com/yeonisong/%EA%BD%83%EB%96%BC%EC%A7%80%201%EC%A7%91.webp"
+curl.exe -I "https://music.code-destiny.com/neosong/%EB%84%A4%EC%98%A4%20%EB%8D%B0%EB%B7%94.webp"
+```
+
+Expected:
+
+- Fonts: `Cache-Control: public, max-age=31536000, immutable`
+- Images: `Cache-Control: public, max-age=2592000`
+- Repeat requests should show browser memory or disk cache in DevTools Network, or Cloudflare HIT after edge cache warms.
 
 ## Phase 2 Medium-Scope Service Registry Assets
 

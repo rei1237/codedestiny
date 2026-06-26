@@ -32,30 +32,30 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-2d18cf90d088'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-2d18cf90d088'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-46646a9a7374'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-46646a9a7374'),
   openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-2d18cf90d088')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-46646a9a7374')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-2d18cf90d088'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-2d18cf90d088'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-46646a9a7374'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-46646a9a7374'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-2d18cf90d088'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-2d18cf90d088'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-2d18cf90d088'),
-  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-2d18cf90d088'),
-  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-2d18cf90d088'),
-  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-2d18cf90d088'),
-  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-2d18cf90d088'),
-  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-2d18cf90d088'),
-  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-2d18cf90d088'),
-  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-2d18cf90d088'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-46646a9a7374'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-46646a9a7374'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-46646a9a7374'),
+  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-46646a9a7374'),
+  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-46646a9a7374'),
+  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-46646a9a7374'),
+  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-46646a9a7374'),
+  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-46646a9a7374'),
+  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-46646a9a7374'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-46646a9a7374'),
   openZiweiBookModal: () => __loadZiweiBookReady(),
   closeZiweiBookModal: () => __loadZiweiBookReady(),
   generateZiweiBook: () => __loadZiweiBookReady(),
@@ -65,32 +65,32 @@ const __lazyActionLoaders = {
     else if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
     return true;
   }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2d18cf90d088'),
-  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2d18cf90d088'),
-  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2d18cf90d088'),
-  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2d18cf90d088'),
-  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-2d18cf90d088'),
-  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-2d18cf90d088'),
-  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-2d18cf90d088'),
-  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-2d18cf90d088'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-2d18cf90d088'),
-  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2d18cf90d088'),
-  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2d18cf90d088'),
-  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2d18cf90d088'),
-  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2d18cf90d088'),
-  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2d18cf90d088'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2d18cf90d088'),
-  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2d18cf90d088'),
-  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2d18cf90d088'),
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-46646a9a7374'),
+  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-46646a9a7374'),
+  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-46646a9a7374'),
+  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-46646a9a7374'),
+  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-46646a9a7374'),
+  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-46646a9a7374'),
+  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-46646a9a7374'),
+  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-46646a9a7374'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-46646a9a7374'),
+  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-46646a9a7374'),
+  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-46646a9a7374'),
+  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-46646a9a7374'),
+  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-46646a9a7374'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-46646a9a7374'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-46646a9a7374'),
+  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-46646a9a7374'),
+  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-46646a9a7374'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-2d18cf90d088').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-46646a9a7374').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-2d18cf90d088')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-46646a9a7374')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -207,7 +207,7 @@ function __assertZiweiBookReady() {
 }
 
 function __loadZiweiBookReady() {
-  const src = '/js/ziwei-book.js?v=build-2d18cf90d088';
+  const src = '/js/ziwei-book.js?v=build-46646a9a7374';
   return __loadScriptOnce(src).then(() => {
     try {
       __assertZiweiBookReady();
@@ -387,8 +387,86 @@ function bindEventAction(root, eventName, attrName) {
   });
 }
 
-function __scheduleCollectionHydration(collection) {
-  const start = () => __hydrateCollectionImagesChunked(collection);
+const __COLLECTION_R2_ASSET_BASE = 'https://assets.code-destiny.com/';
+const __COLLECTION_LOCAL_ASSET_KEYS = new Set([
+  'saju-guardian-animal-v20260615.png'
+]);
+
+function __splitCollectionImagePath(src) {
+  const raw = String(src || '').trim();
+  const queryIndex = raw.indexOf('?');
+  const hashIndex = raw.indexOf('#');
+  let suffixIndex = -1;
+  if (queryIndex >= 0 && hashIndex >= 0) suffixIndex = Math.min(queryIndex, hashIndex);
+  else suffixIndex = Math.max(queryIndex, hashIndex);
+  if (suffixIndex < 0) return { path: raw, suffix: '' };
+  return { path: raw.slice(0, suffixIndex), suffix: raw.slice(suffixIndex) };
+}
+
+function __encodeCollectionAssetKey(objectKey) {
+  return String(objectKey || '').replace(/^\/+/, '').split('/').map((part) => {
+    try {
+      return encodeURIComponent(decodeURIComponent(part));
+    } catch {
+      return encodeURIComponent(part);
+    }
+  }).join('/');
+}
+
+function __buildR2CollectionAssetUrl(objectKey, suffix = '') {
+  let decodedKey = String(objectKey || '').replace(/^\/+/, '');
+  try {
+    decodedKey = decodeURIComponent(decodedKey);
+  } catch {}
+  if (__COLLECTION_LOCAL_ASSET_KEYS.has(decodedKey)) return '';
+  const encodedKey = __encodeCollectionAssetKey(objectKey);
+  if (!encodedKey) return '';
+  return `${__COLLECTION_R2_ASSET_BASE}${encodedKey}${suffix}`;
+}
+
+function __resolveCollectionImageSrc(src) {
+  const raw = String(src || '').trim();
+  if (!raw) return raw;
+  if (raw.startsWith(__COLLECTION_R2_ASSET_BASE)) return raw;
+  const { path, suffix } = __splitCollectionImagePath(raw);
+  if (path.startsWith('/fuctionassets/')) return __buildR2CollectionAssetUrl(path.slice('/fuctionassets/'.length), suffix) || raw;
+  if (path.startsWith('fuctionassets/')) return __buildR2CollectionAssetUrl(path.slice('fuctionassets/'.length), suffix) || raw;
+  if (path.startsWith('/images/')) return __buildR2CollectionAssetUrl(path.slice('/images/'.length), suffix) || raw;
+  if (path.startsWith('images/')) return __buildR2CollectionAssetUrl(path.slice('images/'.length), suffix) || raw;
+  try {
+    const url = new URL(raw, window.location.href);
+    if (url.origin === 'https://code-destiny.com' || url.origin === window.location.origin) {
+      if (url.pathname.startsWith('/fuctionassets/')) return __buildR2CollectionAssetUrl(url.pathname.slice('/fuctionassets/'.length), `${url.search}${url.hash}`) || raw;
+      if (url.pathname.startsWith('/images/')) return __buildR2CollectionAssetUrl(url.pathname.slice('/images/'.length), `${url.search}${url.hash}`) || raw;
+    }
+  } catch {}
+  return raw;
+}
+
+function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) {
+  if (!img) return;
+  if (fallbackSrc) img.setAttribute('data-cd-img-fallback-src', fallbackSrc);
+  else img.removeAttribute('data-cd-img-fallback-src');
+  if (skeleton) {
+    img.addEventListener('load', () => { skeleton.remove(); }, { once: true });
+  }
+  if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
+  if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
+  img.addEventListener('error', () => {
+    const fallback = img.getAttribute('data-cd-img-fallback-src') || '';
+    if (fallback) {
+      img.removeAttribute('data-cd-img-fallback-src');
+      img.src = fallback;
+      return;
+    }
+    if (skeleton) skeleton.remove();
+    img.remove();
+    if (placeholder) placeholder.style.display = '';
+  });
+}
+
+function __scheduleCollectionHydration(collection, forceHydrateAll = false) {
+  const start = () => __hydrateCollectionImagesChunked(collection, forceHydrateAll);
   if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
     window.requestIdleCallback(start, { timeout: 350 });
     return;
@@ -434,17 +512,29 @@ function __runChunked(listLike, fn, opts = {}) {
   });
 }
 
-function __hydrateCollectionImagesChunked(collection) {
+function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   if (!collection) return;
   const wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
   const ioEnabled = typeof IntersectionObserver !== 'undefined';
 
   const hydrateWrap = (wrap) => {
-    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
+    if (!wrap) return;
     const src = wrap.getAttribute('data-img-src');
     if (!src) return;
+    const resolvedSrc = __resolveCollectionImageSrc(src);
+    const fallbackSrc = resolvedSrc === src ? '' : src;
     const alt = wrap.getAttribute('data-img-alt') || '';
     const placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
+
+    const existingImg = wrap.querySelector('img.tarot-tile__img');
+    if (existingImg) {
+      const existingSrc = existingImg.getAttribute('src') || src;
+      const resolvedExistingSrc = __resolveCollectionImageSrc(existingSrc);
+      __bindCollectionImageFallback(existingImg, resolvedExistingSrc === existingSrc ? '' : existingSrc, placeholder, null);
+      if (resolvedExistingSrc && resolvedExistingSrc !== existingSrc) existingImg.src = resolvedExistingSrc;
+      return;
+    }
+
     if (placeholder) placeholder.style.display = 'none';
 
     const skeleton = document.createElement('div');
@@ -459,13 +549,12 @@ function __hydrateCollectionImagesChunked(collection) {
     img.width = 200;
     img.height = 150;
     img.alt = alt;
-    img.onload = () => { skeleton.remove(); };
-    img.onerror = () => { skeleton.remove(); };
-    img.src = src;
+    __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton);
+    img.src = resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   };
 
-  if (!ioEnabled) {
+  if (!ioEnabled || forceHydrateAll) {
     __runChunked(wraps, (wrap) => {
       hydrateWrap(wrap);
     }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
@@ -499,6 +588,24 @@ function __hydrateCollectionImagesChunked(collection) {
     if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
     observer.observe(wrap);
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
+}
+
+function __bindCollectionToggleHydration(root) {
+  if (!root || typeof root.addEventListener !== 'function') return;
+  if (typeof window !== 'undefined' && window.__cdUiCollectionToggleHydrationBound) return;
+  if (typeof window !== 'undefined') window.__cdUiCollectionToggleHydrationBound = true;
+  root.addEventListener('cd:collection-toggle', (event) => {
+    const detail = event && event.detail ? event.detail : {};
+    const targetId = String(detail.targetId || '').trim();
+    if (!targetId) return;
+    const collection = document.getElementById(targetId);
+    if (!collection) return;
+    if (detail.isOpen === true) {
+      __scheduleCollectionHydration(collection, true);
+    } else if (detail.isOpen === false) {
+      __releaseCollectionImagesChunked(collection);
+    }
+  });
 }
 
 function __releaseCollectionImagesChunked(collection) {
@@ -540,6 +647,8 @@ export function bindGlobalActions(root) {
     if (window.__codeDestinyGlobalActionsBound && window.__codeDestinyGlobalActionsBound !== 'uiBindings') return;
     window.__codeDestinyGlobalActionsBound = 'uiBindings';
   }
+
+  __bindCollectionToggleHydration(root);
 
   root.addEventListener('click', (event) => {
     const target = __resolveEventElement(event);

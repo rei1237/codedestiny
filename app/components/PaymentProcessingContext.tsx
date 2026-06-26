@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 
-import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
+import PaymentLoading, { PaymentPigVisual, type PaymentLoadingProps } from "./common/PaymentLoading";
 import LoadingProgressMotion, {
   type LoadingMotionPhase,
   type LoadingMotionTone,
@@ -22,7 +22,6 @@ import {
   type LoadingStage,
   type PaymentType,
 } from "@/constants/loadingMessages";
-import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -248,9 +247,6 @@ const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
   nl: "nl-NL",
   ms: "ms-MY",
 };
-
-const KKULKKUL_PAYMENT_LOGO_URL =
-  getAssetUrlFromPublicPath("/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate");
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
@@ -749,20 +745,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         >
           <div className="w-full rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6">
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-            <div className="relative mx-auto mb-4 h-24 w-24 rounded-full shadow-[0_0_34px_rgba(251,191,36,.18)] isolate">
-              <span className="absolute -inset-4 rounded-full border border-white/10 motion-safe:animate-spin motion-reduce:animate-none" style={{ animationDuration: "12s" }} />
-              <span
-                className="absolute inset-2 rounded-full border border-cyan-200/20 border-t-amber-200/80 motion-safe:animate-spin motion-reduce:animate-none"
-                style={{ animationDirection: "reverse", animationDuration: "4.2s" }}
-              />
-              <span className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(254,243,199,.36),transparent_62%)] blur-[1px]" />
-              <div
-                className="relative h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_14px_22px_rgba(86,47,21,.2)]"
-                style={{
-                  backgroundImage: `url("${KKULKKUL_PAYMENT_LOGO_URL}")`,
-                }}
-              />
-            </div>
+            <PaymentPigVisual tone={gateMotionTone} />
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">{copy.label}</p>

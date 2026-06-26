@@ -213,10 +213,19 @@
     return dictionaryCache[file];
   }
 
+  function shouldTranslateText(el) {
+    return !!(
+      el &&
+      (el.hasAttribute('data-cd-trans') ||
+        el.hasAttribute('data-key') ||
+        el.classList.contains('custom-trans'))
+    );
+  }
+
   function markNativeNodes() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
       el.classList.add('notranslate');
-      if (!el.hasAttribute('data-cd-origin-text')) {
+      if (shouldTranslateText(el) && !el.hasAttribute('data-cd-origin-text')) {
         el.setAttribute('data-cd-origin-text', el.textContent || '');
       }
       var attrSpec = el.getAttribute('data-cd-trans-attr') || '';
@@ -249,7 +258,7 @@
       activeDictionary = null;
       activeDictionaryLang = 'ko';
       Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
-        if (el.hasAttribute('data-cd-origin-text')) {
+        if (shouldTranslateText(el) && el.hasAttribute('data-cd-origin-text')) {
           el.textContent = el.getAttribute('data-cd-origin-text') || '';
         }
         var attrSpec = el.getAttribute('data-cd-trans-attr') || '';

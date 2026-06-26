@@ -11,21 +11,62 @@ async function triggerBlobDownload(blob: Blob, fileName: string) {
   }
 }
 
+const DESTINY_BIAS_CARD_EXPORT_ID = "destiny-bias-card-export";
+const DESTINY_BIAS_CARD_PREVIEW_ID = "destiny-bias-card-preview";
+
+function waitForImageEvent(image: HTMLImageElement) {
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      image.removeEventListener("load", done);
+      image.removeEventListener("error", done);
+      resolve();
+    };
+    image.addEventListener("load", done, { once: true });
+    image.addEventListener("error", done, { once: true });
+  });
+}
+
+async function waitForElementImages(element: HTMLElement) {
+  const images = Array.from(element.querySelectorAll("img"));
+  await Promise.all(images.map(async (image) => {
+    if (image.complete && image.naturalWidth > 0) return;
+    if (typeof image.decode === "function") {
+      try {
+        await image.decode();
+        return;
+      } catch {
+        if (image.complete) return;
+      }
+    }
+    if (image.complete) return;
+    await waitForImageEvent(image);
+  }));
+}
+
 async function createPngBlobFromPreviewElement(previewElement: HTMLElement) {
   const [{ toBlob }] = await Promise.all([
     import("html-to-image"),
     document.fonts?.ready ?? Promise.resolve(),
+    waitForElementImages(previewElement),
   ]);
 
   const rect = previewElement.getBoundingClientRect();
   const pixelRatio = Math.min(3, Math.max(2, typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2));
+  const width = Math.max(1, Math.round(rect.width));
+  const height = Math.max(1, Math.round(rect.height));
 
   return toBlob(previewElement, {
     cacheBust: true,
     pixelRatio,
     backgroundColor: "transparent",
-    canvasWidth: Math.max(1, Math.round(rect.width * pixelRatio)),
-    canvasHeight: Math.max(1, Math.round(rect.height * pixelRatio)),
+    canvasWidth: width,
+    canvasHeight: height,
+    width,
+    height,
+    style: {
+      transform: "none",
+      transformOrigin: "top left",
+    },
   });
 }
 
@@ -78,7 +119,7 @@ async function createPngBlobFromSvg(svgText: string) {
 
 export async function buildPngBlobFromDestinyBiasCard(svgText: string) {
   const previewElement = typeof document !== "undefined"
-    ? document.getElementById("destiny-bias-card-preview") as HTMLElement | null
+    ? (document.getElementById(DESTINY_BIAS_CARD_EXPORT_ID) || document.getElementById(DESTINY_BIAS_CARD_PREVIEW_ID)) as HTMLElement | null
     : null;
 
   if (previewElement) {
