@@ -12,6 +12,11 @@
   var BILLING_FEATURE_KEY = API_FEATURE_KEY;
   var REASON = '사주 신년운세 AI 상담';
   var AI_CONSULTATION_API = '/api/saju-new-year/ai-consultation';
+  var AI_READY_API = AI_CONSULTATION_API + '/ready';
+  var AI_START_API = AI_CONSULTATION_API + '/start';
+  var AI_CHAPTER_API = AI_CONSULTATION_API + '/chapter';
+  var AI_FOCUS_API = AI_CONSULTATION_API + '/focus';
+  var AI_FINALIZE_API = AI_CONSULTATION_API + '/finalize';
   var VERIFY_ACCESS_API = '/api/saju-new-year/verify-access';
   var CREATE_JOB_API = '/api/saju-new-year/create-job';
   var GENERATE_MOCK_API = '/api/saju-new-year/generate-mock';
@@ -680,6 +685,25 @@
     if (num) num.textContent = bounded >= totalSteps ? '완성' : '상담 ' + Math.max(1, bounded + 1);
   }
 
+  function _setChapterAIProgress(chapterNo, total, message) {
+    var safeTotal = Math.max(1, Number(total || TOTAL_CHAPTERS) || TOTAL_CHAPTERS);
+    var safeNo = Math.max(1, Math.min(safeTotal, Number(chapterNo || 1) || 1));
+    var percent = Math.round(((safeNo - 1) / safeTotal) * 100);
+    var bar = _qs('nyProgressBar');
+    var text = _qs('nyProgressText');
+    var chapter = _qs('nyLoadingChapter');
+    var num = _qs('nyLoadingChapterNum');
+    var quote = _qs('nyMysticQuote');
+    if (bar) {
+      bar.style.width = percent + '%';
+      bar.setAttribute('aria-valuenow', String(percent));
+    }
+    if (text) text.textContent = percent + '% · 신년운세 AI 상담 생성 중';
+    if (chapter) chapter.textContent = message || ('제 ' + safeNo + '장을 읽고 있어요.');
+    if (quote) quote.textContent = message || '명식과 세운의 결을 한 장씩 펼치고 있어요.';
+    if (num) num.textContent = safeNo + ' / ' + safeTotal;
+  }
+
   function _normalizeJobStatus(payload) {
     var root = payload && typeof payload === 'object' ? payload : {};
     var data = root.data && typeof root.data === 'object' ? root.data : root;
@@ -1044,6 +1068,81 @@
     payload.requestId = _clean(payload.requestId || accessGrant && accessGrant.requestId || ('saju-new-year-ai:' + pending.reportId));
     payload.dryRun = false;
     return payload;
+  }
+
+  function _newYearAIChapterMessage(chapterNo) {
+    var messages = {
+      1: '제 1장 총운의 문을 읽고 있어요.',
+      2: '제 2장 커리어의 흐름을 살피고 있어요.',
+      3: '제 3장 재물과 수입의 결을 보고 있어요.',
+      4: '제 4장 관계와 인연의 결을 살피고 있어요.',
+      5: '제 5장 사랑과 가족의 온도를 맞춰보고 있어요.',
+      6: '제 6장 몸과 마음의 리듬을 읽고 있어요.',
+      7: '제 7장 분기별 선택의 문을 열고 있어요.',
+      8: '제 8장 조심해야 할 시기를 정리하고 있어요.',
+      9: '제 9장 월별 Go/Stop 흐름을 펼치고 있어요.',
+      10: '제 10장 올해의 로드맵을 정리하고 있어요.'
+    };
+    return messages[Number(chapterNo || 0)] || ('제 ' + chapterNo + '장을 읽고 있어요.');
+  }
+
+  function _checkNewYearAIGeminiReady(pending) {
+    return _postJson(AI_READY_API, {
+      serviceKey: SERVICE_KEY,
+      featureKey: API_FEATURE_KEY,
+      reportId: pending && pending.reportId,
+      targetYear: pending && pending.targetYear,
+      dryRun: false
+    }).catch(function (error) {
+      error.stage = 'gemini-ready';
+      throw error;
+    });
+  }
+
+  function _runAIChapterWithRetry(basePayload, started, chapterNo) {
+    var total = Number(started && started.totalChapters || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
+    var payload = Object.assign({}, basePayload, {
+      consultationId: started && started.consultationId,
+      resultId: started && started.resultId,
+      chapterNo: chapterNo,
+      chapterBlueprint: started && started.chapterBlueprint
+    });
+    function attempt(tryNo) {
+      _setStage('write');
+      _setChapterAIProgress(chapterNo, total, _newYearAIChapterMessage(chapterNo));
+      return _postJson(AI_CHAPTER_API, payload).catch(function (error) {
+        if (tryNo < 1) {
+          _setChapterAIProgress(chapterNo, total, '제 ' + chapterNo + '장을 다시 다듬고 있어요.');
+          return attempt(tryNo + 1);
+        }
+        error.stage = 'chapter';
+        error.chapterNo = chapterNo;
+        throw error;
+      });
+    }
+    return attempt(0);
+  }
+
+  function _runAIFocusWithRetry(basePayload, started) {
+    var total = Number(started && started.totalChapters || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
+    var payload = Object.assign({}, basePayload, {
+      consultationId: started && started.consultationId,
+      resultId: started && started.resultId,
+      chapterBlueprint: started && started.chapterBlueprint
+    });
+    function attempt(tryNo) {
+      _setStage('write');
+      _setChapterAIProgress(total, total, '받은 질문을 중심으로 깊은 상담을 정리하고 있어요.');
+      return _postJson(AI_FOCUS_API, payload).catch(function (error) {
+        if (tryNo < 1) {
+          _setChapterAIProgress(total, total, '질문에 가장 가까운 흐름을 다시 다듬고 있어요.');
+          return attempt(tryNo + 1);
+        }
+        error.stage = 'focus';
+        throw error;
+      });
+    }
+    return attempt(0);
   }
 
   function _unwrapPreparePayload(data) {
@@ -1778,7 +1877,7 @@
     };
   }
 
-  function _runAfterBillingAI(pending, accessGrant, premiumToken) {
+  async function _runAfterBillingAI(pending, accessGrant, premiumToken) {
     _setStage('calculate');
     _setProgress(2, '명식과 올해의 세운을 읽고 있어요.');
     _rememberAccessGrant(pending, accessGrant, premiumToken);
@@ -1789,20 +1888,46 @@
       questionLength: pending.question.length
     });
     var payload = _buildAIConsultationPayload(pending, accessGrant, premiumToken);
-    return _postJson(AI_CONSULTATION_API, payload).then(function (data) {
-      if (!data || data.ok === false || !data.result) {
-        throw _buildPdfApiError(data, 502, '신년운세 AI 상담 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    var started = await _postJson(AI_START_API, payload);
+    if (!started || started.ok === false || !Array.isArray(started.chapterBlueprint)) {
+      throw _buildPdfApiError(started, 502, '신년운세 AI 상담 준비 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+    var total = Number(started.totalChapters || started.chapterBlueprint.length || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
+    var chapterResults = [];
+    for (var chapterNo = 1; chapterNo <= total; chapterNo += 1) {
+      var chapterResult = await _runAIChapterWithRetry(payload, started, chapterNo);
+      if (!chapterResult || chapterResult.ok === false || !chapterResult.chapter) {
+        throw _buildPdfApiError(chapterResult, 502, chapterNo + '장 상담 결과를 확인하지 못했습니다. 해당 장만 다시 시도해 주세요.');
       }
-      _setStage('archive');
-      _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
-      _renderAIConsultationResult(data, pending.profile, pending.targetYear);
-      _showScreen('nyResultScreen');
-      _log('ConsultationCompleted', {
-        reportId: pending.reportId,
-        targetYear: pending.targetYear,
-        provider: _clean(data.provider),
-        isMock: data.isMock === true
-      });
+      chapterResults.push(chapterResult);
+    }
+    var focusResult = await _runAIFocusWithRetry(payload, started);
+    if (!focusResult || focusResult.ok === false || !focusResult.resultPatch || !focusResult.resultPatch.topicAnswer) {
+      throw _buildPdfApiError(focusResult, 502, '질문 집중 상담 결과를 확인하지 못했습니다. 다시 시도해 주세요.');
+    }
+    _setStage('archive');
+    _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
+    var finalPayload = Object.assign({}, payload, {
+      consultationId: started.consultationId,
+      resultId: started.resultId,
+      chapterResults: chapterResults,
+      focusResult: focusResult,
+      chapters: chapterResults.map(function (item) { return item.chapter; }),
+      resultPatches: chapterResults.map(function (item) { return item.resultPatch; }).filter(Boolean),
+      rawTexts: chapterResults.map(function (item) { return item.rawText; }).filter(Boolean).concat(focusResult.rawText ? [focusResult.rawText] : [])
+    });
+    var data = await _postJson(AI_FINALIZE_API, finalPayload);
+    if (!data || data.ok === false || !data.result) {
+      throw _buildPdfApiError(data, 502, '신년운세 AI 상담 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+    _renderAIConsultationResult(data, pending.profile, pending.targetYear);
+    _showScreen('nyResultScreen');
+    _log('ConsultationCompleted', {
+      reportId: pending.reportId,
+      targetYear: pending.targetYear,
+      provider: _clean(data.provider),
+      isMock: data.isMock === true,
+      chapterCount: chapterResults.length
     });
   }
 
@@ -1903,14 +2028,19 @@
   function _runBillingAndGeneration(pending) {
     _showScreen('nyLoadingScreen');
     _setStage('billing');
-    _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
-    if (_hasReusableAccessFor(pending)) {
-      _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
-      return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken);
-    }
-    return _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
+    _setProgress(1, '제미나이 상담 생성 설정을 확인하는 중입니다');
+    return _checkNewYearAIGeminiReady(pending).then(function () {
+      _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
+      if (_hasReusableAccessFor(pending)) {
+        _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
+        return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken);
+      }
+      return _refreshNewYearBillingSnapshot().catch(function () { return null; });
+    }).then(function () {
+      if (_hasReusableAccessFor(pending)) return null;
       return _runCoinGate(pending.reportId);
     }).then(function (gate) {
+      if (!gate && _hasReusableAccessFor(pending)) return null;
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
         _setError(gate.message || '신년운세 AI 상담을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));

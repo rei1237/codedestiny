@@ -8,6 +8,7 @@ export interface LLMRequest {
   endpoint?: string;
   apiEndpoint?: string;
   timeoutMs?: number;
+  fallbackToWorkersAI?: boolean;
   geminiParts?: Array<{
     text?: string;
     inline_data?: {
@@ -285,6 +286,10 @@ export async function callLLM(
   try {
     return await callGeminiPrimary(request, env);
   } catch (geminiError) {
+    if (request.fallbackToWorkersAI === false) {
+      throw geminiError;
+    }
+
     console.warn("[llm-client] Gemini primary failed. Falling back to Cloudflare Workers AI.", {
       error: getErrorMessage(geminiError),
       model: requestModel,

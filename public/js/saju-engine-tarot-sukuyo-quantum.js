@@ -9296,7 +9296,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     </div>`;
 
     html += `</div>`;
+    if (typeof window.__cdParkSukuyoCalendarPanel === 'function') {
+      window.__cdParkSukuyoCalendarPanel();
+    }
     area.innerHTML = html;
+    if (typeof window.__cdPlaceSukuyoCalendarBelowWheel === 'function') {
+      window.__cdPlaceSukuyoCalendarBelowWheel();
+    }
 
     // 게이지 + 유명인 UI 초기화 (DOM 삽입 후 실행)
     const _renderMIdx = sData ? sData.mansionIdx : 0;

@@ -5,6 +5,7 @@
   var VISIBLE_CLS  = 'fate-scroll-section-visible';
   var INDICATOR_ID = 'fateScrollNextIndicator';
   var ENABLE_SCROLL_INDICATOR = true;
+  var DISABLE_INDICATOR_WHEN_RESULT_ACTIVE = true;
   /* resultPage 최상위 섹션 + reportDashboard 내부 블록 매핑 */
   var TOP_LEVEL_SEL = '.card, .destiny-section, .letter-box, .share-section';
   var FATE_SCROLL_REVEAL_COPY = {
@@ -128,7 +129,7 @@
   }
 
   function shouldShowIndicator() {
-    return isResultVisible() && !isLoadingVisible();
+    return isResultVisible() && !isLoadingVisible() && !DISABLE_INDICATOR_WHEN_RESULT_ACTIVE;
   }
 
   function hideIndicator() {

@@ -119,7 +119,7 @@ export const CELEBRITY_SAJU_DIRECT_READING_CONTRACT = [
   "유명인 사주 본문은 계산 엔진이 산출한 년주·월주·일주·시주, 오행, 십성, 신살, 12운성 값을 바탕으로 직접 구성한다.",
   "본문은 공개 생년월일과 로컬 사주 계산 결과 밖의 값을 임의로 채우지 않는다.",
   "생시 미상은 반드시 3주 기준으로 쓰고 시주를 추정하지 않는다.",
-  "공개 프로필과 공개 활동 밖의 사생활, 건강, 사고, 범죄, 연애, 가족 문제는 추측하지 않는다.",
+  "공개 생년월일과 로컬 계산값 밖의 건강, 사고, 범죄, 연애, 가족 문제는 추측하지 않는다.",
   "단정형 예언 대신 명리학적으로 읽을 수 있는 결, 흐름, 주의 신호로 부드럽게 쓴다.",
 ].join("\n");
 
@@ -329,24 +329,24 @@ const FAMOUS_SAJU_COPY_KO = {
   "magazine.cycles": "대운·세운",
   "magazine.selfReadingTitle": "내 사주는 한 편의 이야기로 더 선명하게 열립니다",
   "magazine.selfReadingDesc": "생년월일과 생시를 직접 입력하면 계산값에 맞춘 사주 흐름을 볼 수 있습니다.",
-  "magazine.thisChartIs": "이 사람의 명식은",
+  "magazine.thisChartIs": "[일주의 결]",
   "magazine.dayPillar": "일주",
-  "magazine.dayPillarMeeting": "일간과 일지의 만남",
-  "magazine.elementBalance": "강한 기운과 비어 있는 기운",
+  "magazine.dayPillarMeeting": "[일주의 결]",
+  "magazine.elementBalance": "[오행의 흐름]",
   "magazine.strongElement": "강한 오행",
-  "magazine.strongElementDesc": "가장 많이 드러난 기운입니다.",
+  "magazine.strongElementDesc": "먼저 몸을 일으키는 기질입니다.",
   "magazine.weakElement": "약한 오행",
-  "magazine.weakElementDesc": "보완과 균형의 감각으로 살필 기운입니다.",
-  "magazine.tenGodTalent": "십성이 비추는 재능의 결",
-  "magazine.sinsalTexture": "신살이 더하는 결",
-  "magazine.twelveStageSpeed": "12운성이 말하는 기운의 속도",
-  "magazine.publicActivity": "공개 활동과 명식의 연결",
-  "magazine.strengthCaution": "강점과 주의 신호",
+  "magazine.weakElementDesc": "의식적으로 숨을 고르게 해야 하는 기운입니다.",
+  "magazine.tenGodTalent": "[십성 해석]",
+  "magazine.sinsalTexture": "[신살의 결]",
+  "magazine.twelveStageSpeed": "[12운성과 기운의 성숙도]",
+  "magazine.publicActivity": "원국의 작동 방식",
+  "magazine.strengthCaution": "[오행의 흐름]",
   "magazine.strength": "강점",
-  "magazine.strengthDesc": "공개 활동에서 선명한 인상을 만드는 힘입니다.",
+  "magazine.strengthDesc": "원국에서 선명한 인상을 만드는 힘입니다.",
   "magazine.caution": "주의",
   "magazine.cautionDesc": "휴식과 균형으로 다듬으면 더 부드러워지는 지점입니다.",
-  "magazine.closingSentence": "이 명식이 남기는 문장",
+  "magazine.closingSentence": "[이 명식이 남기는 문장]",
   "magazine.personalStoryTitle": "유명인처럼 내 사주도 한 편의 이야기로 읽어보세요",
   "magazine.personalStoryDesc": "계산값을 바탕으로 내 일주, 오행, 십성의 결을 차분히 이어 볼 수 있습니다.",
   "magazine.chartStatus": "명식 상태",
@@ -389,24 +389,24 @@ const FAMOUS_SAJU_COPY_EN: Record<keyof typeof FAMOUS_SAJU_COPY_KO, string> = {
   "magazine.cycles": "Major and annual cycles",
   "magazine.selfReadingTitle": "Your own Saju opens more clearly as a story.",
   "magazine.selfReadingDesc": "Enter your birth date and time to see a reading aligned with your calculated chart.",
-  "magazine.thisChartIs": "This person's chart is",
+  "magazine.thisChartIs": "[Day Pillar Texture]",
   "magazine.dayPillar": "Day pillar",
-  "magazine.dayPillarMeeting": "Meeting of day stem and branch",
-  "magazine.elementBalance": "Strong and missing energies",
+  "magazine.dayPillarMeeting": "[Day Pillar Texture]",
+  "magazine.elementBalance": "[Element Flow]",
   "magazine.strongElement": "Strong element",
-  "magazine.strongElementDesc": "This is the energy that appears most strongly.",
+  "magazine.strongElementDesc": "The temperament that rises first.",
   "magazine.weakElement": "Weak element",
-  "magazine.weakElementDesc": "This is the energy to read through balance and replenishment.",
-  "magazine.tenGodTalent": "Talent texture shown by the Ten Gods",
-  "magazine.sinsalTexture": "Texture added by fortune stars",
-  "magazine.twelveStageSpeed": "Energy speed spoken by the twelve stages",
-  "magazine.publicActivity": "Connection between public activity and the chart",
-  "magazine.strengthCaution": "Strengths and caution signals",
+  "magazine.weakElementDesc": "The energy that needs conscious rhythm.",
+  "magazine.tenGodTalent": "[Ten Gods Reading]",
+  "magazine.sinsalTexture": "[Fortune Star Texture]",
+  "magazine.twelveStageSpeed": "[Twelve Stage Maturity]",
+  "magazine.publicActivity": "How the natal chart works",
+  "magazine.strengthCaution": "[Element Flow]",
   "magazine.strength": "Strength",
-  "magazine.strengthDesc": "A force that creates a clear impression in public activity.",
+  "magazine.strengthDesc": "A force that creates a clear impression in the natal chart.",
   "magazine.caution": "Caution",
   "magazine.cautionDesc": "A point that becomes softer with rest and balance.",
-  "magazine.closingSentence": "The sentence this chart leaves behind",
+  "magazine.closingSentence": "[The Sentence This Chart Leaves]",
   "magazine.personalStoryTitle": "Read your Saju as a story, just like a famous chart.",
   "magazine.personalStoryDesc": "Your day pillar, elements, and Ten Gods can be connected calmly from calculated values.",
   "magazine.chartStatus": "Chart status",
@@ -1099,7 +1099,7 @@ function buildFamousSajuSeoDescription(person: CelebritySajuSeed, article: Pick<
     return `${person.nameKo}의 공개 생년월일 기준이 확인되는 범위 안에서, 명식을 억지로 꾸미지 않고 조심스럽게 읽는 유명인 사주 분석입니다.`;
   }
 
-  return `${person.nameKo}의 ${article.dayMasterLabel}, ${article.dayElement} 일간, ${article.elementProfile.dominantElement} 오행 흐름을 바탕으로 공개 활동에 드러난 상징과 운의 리듬을 읽는 유명인 사주 분석입니다.`;
+  return `${person.nameKo}의 ${article.dayMasterLabel}, ${article.dayElement} 일간, ${article.elementProfile.dominantElement} 오행 흐름을 바탕으로 원국의 기질과 운의 리듬을 읽는 유명인 사주 분석입니다.`;
 }
 
 function hasFinalConsonant(value: string) {
@@ -1279,8 +1279,8 @@ function getFamousSajuCategoryVoice(person: CelebritySajuSeed): FamousSajuCatego
     hiddenRhythm: "겉으로 보이는 성취 뒤에도",
     firstImpressionFocus: "역할·선택·상징",
     careerTitle: "역할과 선택의 흐름",
-    careerAngle: "공개 활동과 반복되는 선택",
-    wealthAngle: "공개 활동의 신뢰와 지속성",
+    careerAngle: "사회적 역할과 반복되는 선택",
+    wealthAngle: "사회적 신뢰와 지속성",
     relationshipAngle: "공개 역할과 사적 거리의 균형",
     adviceTitle: "운을 조율하는 법",
     adviceFocus: "강한 기운과 회복의 균형",
@@ -1447,7 +1447,7 @@ function formatCareerChangeForCategory(categoryVoice: FamousSajuCategoryVoice, v
   return pickFamousVariant([
     `직업 흐름은 ${objectParticle(categoryVoice.careerAngle)} 통해 강한 ${dominantElement} 기운을 실제 역할과 성과로 묶는 방향입니다.`,
     `직업운은 ${categoryVoice.careerAngle}에서 강한 ${dominantElement} 기운이 반복된 선택과 책임으로 드러날 때 안정됩니다.`,
-    `직업과 역할은 ${objectParticle(categoryVoice.careerAngle)} 공개 활동의 기준으로 삼을 때 더 선명해집니다.`,
+    `직업과 역할은 ${objectParticle(categoryVoice.careerAngle)} 기준으로 삼을 때 더 선명해집니다.`,
   ], seed, 5);
 }
 
@@ -1661,6 +1661,90 @@ const elementMetaphor: Record<string, string> = {
   수: "별그림자를 품은 깊은 물결",
 };
 
+const elementSurgeTone: Record<ElementKey, string> = {
+  목: "목이 강하면 방향을 먼저 세운다. 새 가지가 빛을 찾아 뻗듯 생각이 빠르게 자라고, 멈춘 판에서도 새 길을 열려는 힘이 살아난다.",
+  화: "화가 강하면 존재가 먼저 밝아진다. 마음의 온도가 높고 반응이 빠르며, 한 번 불이 붙으면 장면 전체를 밀어 올리는 힘이 생긴다.",
+  토: "토가 강하면 중심을 잡고 버틴다. 흩어진 것을 한곳에 모아 결과로 굳히며, 느려 보여도 쉽게 무너지지 않는 지속성이 생긴다.",
+  금: "금이 강하면 기준이 선명하다. 판단이 빠르고 경계가 또렷하며, 거친 광석을 벼려 칼날로 만드는 듯 성과를 다듬는다.",
+  수: "수가 강하면 흐름을 먼저 읽는다. 겉으로 드러난 말보다 그 아래의 기류를 감지하고, 방향을 바꾸는 유연성이 깊다.",
+};
+
+const elementEmptyTone: Record<ElementKey, string> = {
+  목: "목이 약하면 시작의 방향을 오래 붙들기 어렵다. 싹이 트기 전 흙속에서 망설이듯, 결심은 있어도 첫 줄기를 세우는 데 시간이 걸린다.",
+  화: "화가 약하면 마음의 불씨가 안으로 숨어든다. 표현이 늦어지고 존재감을 드러내는 순간을 지나치기 쉬우므로, 스스로 온도를 올리는 의식이 필요하다.",
+  토: "토가 약하면 끝을 다지는 힘이 흔들린다. 많이 움직여도 결과를 저장하는 그릇이 얕아질 수 있어, 마무리와 반복의 리듬을 따로 세워야 한다.",
+  금: "금이 약하면 기준선이 흐려진다. 무엇을 남기고 무엇을 끊을지 늦게 정해지므로, 선택의 칼날을 의식적으로 벼리는 과정이 중요하다.",
+  수: "수가 약하면 멈추고 식히는 힘이 부족하다. 달리는 힘은 있어도 속도를 낮추는 내면의 물길이 얕아져, 회복의 시간을 배워야 한다.",
+};
+
+const tenGodReadingTone: Record<string, { nature: string; motion: string; caution: string }> = {
+  비견: {
+    nature: "비견은 같은 기운이 나란히 서는 힘이다. 자기 기준을 쉽게 넘기지 않고, 타인의 시선보다 스스로 세운 원칙을 먼저 붙든다.",
+    motion: "독립성이 강해 혼자 결정하고 혼자 책임지는 장면에서 힘이 살아난다.",
+    caution: "다만 비견이 지나치면 원칙이 고집으로 굳어 타인의 조언을 늦게 받아들일 수 있다.",
+  },
+  겁재: {
+    nature: "겁재는 나와 같은 힘이 경쟁의 얼굴로 나타난 십성이다. 밀리면 꺾이는 것이 아니라 더 날이 서고, 긴장 속에서 돌파력이 솟는다.",
+    motion: "비슷한 힘을 가진 상대와 부딪힐 때 승부 감각이 살아나며, 협상보다 직접 돌파를 고르는 기질이 강해진다.",
+    caution: "다만 겁재가 넘치면 나누어 쌓아야 할 것까지 한 번에 밀어붙이려는 압박이 생긴다.",
+  },
+  식신: {
+    nature: "식신은 일간이 밖으로 흘려보내는 안정된 표현이다. 급히 폭발하기보다 꾸준히 만들고 먹이고 기르는 생산성이 살아난다.",
+    motion: "말과 결과물이 반복을 통해 단단해지며, 실력은 과시보다 지속에서 드러난다.",
+    caution: "다만 식신이 약하게 받쳐지면 편안함에 머물러 더 큰 변화 앞에서 속도가 늦어질 수 있다.",
+  },
+  상관: {
+    nature: "상관은 규격 밖으로 튀어나오는 표현의 힘이다. 기존 틀을 그대로 따르기보다 비틀고 변주하며, 막힌 문장에 균열을 낸다.",
+    motion: "감각이 예리해 말과 행동에 개성이 생기고, 답답한 구조를 만나면 먼저 흔들어 깨우려 한다.",
+    caution: "다만 상관이 거칠어지면 필요한 질서까지 밀어내 관계와 약속의 선이 흔들릴 수 있다.",
+  },
+  편재: {
+    nature: "편재는 넓은 판을 보고 움직이는 현실 감각이다. 한곳에만 머물지 않고 흐르는 자원과 사람의 관심을 읽어 기회를 잡는다.",
+    motion: "빠른 판단과 외부 감각이 살아나며, 손에 쥔 것을 굴려 더 큰 흐름으로 바꾸려는 힘이 강하다.",
+    caution: "다만 편재가 넘치면 확장 속도가 빨라져 깊이 쌓기 전에 다음 판으로 넘어갈 수 있다.",
+  },
+  정재: {
+    nature: "정재는 쌓고 지키는 기운이다. 눈앞의 성과를 현실의 그릇에 담고, 약속과 신뢰를 반복으로 굳힌다.",
+    motion: "생활의 리듬과 관리 감각이 살아나며, 크고 화려한 한 번보다 안정적인 축적을 중시한다.",
+    caution: "다만 정재가 눌리면 지나친 계산과 부담 때문에 움직임이 조심스러워질 수 있다.",
+  },
+  편관: {
+    nature: "편관은 압박을 정면으로 받는 승부의 별이다. 어려운 조건이 오면 피하기보다 몸을 세우고, 위험한 자리에서 집중력이 선명해진다.",
+    motion: "긴장과 책임이 추진력으로 바뀌며, 불리한 판에서도 결단을 앞세우는 힘이 생긴다.",
+    caution: "다만 편관이 거칠면 스스로를 몰아붙이는 방식이 강해져 몸과 마음의 여백이 줄어든다.",
+  },
+  정관: {
+    nature: "정관은 질서와 책임의 십성이다. 기준을 세우고 그 기준 안에서 자신을 다스리며, 흐트러진 힘을 공적인 형식으로 정리한다.",
+    motion: "약속과 역할이 분명할수록 안정감이 커지고, 꾸준한 자기관리로 신뢰를 만든다.",
+    caution: "다만 정관이 무거워지면 바른길을 지키려는 마음이 부담으로 변해 유연성이 줄어들 수 있다.",
+  },
+  편인: {
+    nature: "편인은 비스듬히 보는 지성이다. 남들이 지나친 기호를 붙잡고, 낯선 생각 속으로 깊이 들어가 독창적인 해석을 만든다.",
+    motion: "혼자 몰입하는 시간이 길수록 감각이 깊어지며, 직선보다 우회로에서 답을 찾는 힘이 살아난다.",
+    caution: "다만 편인이 넘치면 생각이 안쪽으로만 감겨 현실의 실행 속도가 늦어질 수 있다.",
+  },
+  정인: {
+    nature: "정인은 배우고 받아들이며 보호하는 기운이다. 흩어진 경험을 지식과 의미로 정리하고, 안정된 바탕 위에서 자신을 키운다.",
+    motion: "신뢰할 만한 기준과 배움의 구조가 있을 때 마음이 편안해지고, 오래 익힌 것이 힘이 된다.",
+    caution: "다만 정인이 과하면 보호받는 자리에 머물러 직접 부딪히는 힘이 약해질 수 있다.",
+  },
+};
+
+const twelveStageTone: Record<string, { phase: "성장기" | "절정기" | "쇠퇴기"; text: string }> = {
+  장생: { phase: "성장기", text: "장생은 기운이 막 태어나 길을 여는 자리다. 시작의 힘이 싱싱하고, 낯선 환경에서도 살아나려는 생기가 강하다." },
+  목욕: { phase: "성장기", text: "목욕은 감각이 물 위로 올라오는 자리다. 재능이 눈에 띄게 흔들리며 드러나고, 외부 자극에 민감하게 반응한다." },
+  관대: { phase: "성장기", text: "관대는 몸을 세우고 밖으로 나가는 자리다. 아직 완성은 아니지만 자신을 드러내려는 의지가 선명하다." },
+  건록: { phase: "절정기", text: "건록은 자기 힘으로 서는 자리다. 일간의 뼈대가 단단해지고, 선택을 남에게 기대기보다 스스로 밀고 간다." },
+  제왕: { phase: "절정기", text: "제왕은 기운이 가장 크게 솟는 자리다. 장악력이 강하고, 한 번 중심을 잡으면 주변 흐름까지 끌어당긴다." },
+  쇠: { phase: "쇠퇴기", text: "쇠는 넘친 힘을 줄이고 핵심만 남기는 자리다. 화려한 확장보다 익은 힘을 절제해 쓰는 감각이 중요하다." },
+  병: { phase: "쇠퇴기", text: "병은 기운이 피로를 느끼는 자리다. 계속 밀어붙이기보다 회복과 조율을 배워야 흐름이 맑아진다." },
+  사: { phase: "쇠퇴기", text: "사는 한 흐름을 접고 다음 문을 준비하는 자리다. 겉의 움직임은 줄어도 안쪽 판단은 깊어진다." },
+  묘: { phase: "쇠퇴기", text: "묘는 힘을 안으로 저장하는 자리다. 밖으로 뻗기보다 간직하고 정리하며, 숨은 축적이 생긴다." },
+  절: { phase: "쇠퇴기", text: "절은 끊고 다시 잇는 자리다. 기존 흐름이 멈추는 듯 보여도 새 국면을 위한 전환의 칼날이 된다." },
+  태: { phase: "성장기", text: "태는 가능성이 씨앗처럼 맺히는 자리다. 아직 작지만 앞으로 자랄 기운이 안쪽에서 숨을 쉰다." },
+  양: { phase: "성장기", text: "양은 보호 속에서 기운을 기르는 자리다. 서두르기보다 바탕을 채울수록 다음 움직임이 안정된다." },
+};
+
 function buildUnknownMagazinePillar(label: CelebritySajuMagazinePillar["label"], text = "알 수 없음"): CelebritySajuMagazinePillar {
   return {
     label,
@@ -1759,25 +1843,129 @@ function getElementExtremes(counts: Record<ElementKey, number>, mode: "max" | "m
   return values.filter(([, count]) => count === target).map(([element]) => element);
 }
 
-function buildMagazineTenGodHighlights(saju: FamousSajuEngineResult, person: CelebritySajuSeed) {
+function buildElementFlowText(strongest: ElementKey[], weakest: ElementKey[]) {
+  if (!strongest.length) return "오행의 흐름이 아직 충분히 열리지 않았다. 계산된 원국이 부족하면 기운을 꾸며 붙이지 않고, 확인된 자리만 남기는 것이 명리의 바른 태도다.";
+  if (strongest.length === 5 && weakest.length === 5) {
+    return "오행이 한쪽으로 크게 쏠리지 않는다. 특정 기운 하나가 판을 독점하기보다 목·화·토·금·수가 서로 견제하며 명식의 호흡을 나눈다. 이런 원국은 속도가 폭발적으로 치솟기보다 상황에 맞춰 힘을 배분한다. 균형이 강점이다. 그러나 균형형 명식은 결정적인 순간에 어느 기운을 앞세울지 의식적으로 선택해야 더 선명해진다.";
+  }
+
+  const strongBody = strongest.map((element) => elementSurgeTone[element]).join(" ");
+  const weakBody = weakest.map((element) => elementEmptyTone[element]).join(" ");
+  return `${strongest.join("·")} 기운이 먼저 명식을 움직인다. ${strongBody} 그러나 ${weakest.join("·")} 기운이 약하면 흐름의 한쪽이 비어 속도와 균형 사이에 간극이 생긴다. ${weakBody} 이 원국의 조율은 강한 기운을 꺾는 데 있지 않고, 약한 기운이 맡아야 할 리듬을 생활 속에서 되살리는 데 있다.`;
+}
+
+function connectStemTone(text: string) {
+  return text
+    .replace(/합니다\.$/, "하며")
+    .replace(/습니다\.$/, "으며")
+    .replace(/입니다\.$/, "이며")
+    .replace(/[.。]\s*$/, "");
+}
+
+function buildDayPillarTexture(saju: FamousSajuEngineResult, dayPillar: string, dayElement: string) {
+  const branchElement = elementByBranch[saju.pillars.day.branch] || "지지";
+  const stemText = connectStemTone(stemTone[saju.dayStem] || `${dayElement} 일간은 자기 결을 따라 움직입니다.`);
+  return `${dayPillar}. ${stemText}, 일지 ${saju.pillars.day.branch}는 ${branchElement} 기운으로 그 성정을 현실의 자리와 감정의 온도에 묶어 둔다.`;
+}
+
+function findTenGodPositions(name: string, pillars: Array<CelebritySajuMagazinePillar | null>) {
+  const positions = pillars
+    .filter((pillar): pillar is CelebritySajuMagazinePillar => Boolean(pillar && !pillar.isUnknown))
+    .filter((pillar) => [pillar.stemTenGod, pillar.branchTenGod, pillar.hiddenStemCore].some((value) => String(value || "").includes(name)))
+    .map((pillar) => pillar.label);
+  return uniqueKeywords(positions).join("·") || "원국의 표면 점수";
+}
+
+function buildTenGodReading(name: string, positionText: string, dayElement: string, strongestText: string, weakestText: string) {
+  const tone = tenGodReadingTone[name] || {
+    nature: `${name}은 일간이 세상과 만나는 독자적인 작용이다. 단순한 성격표가 아니라 힘이 어디로 흐르고 무엇을 먼저 선택하는지를 가리킨다.`,
+    motion: "이 힘은 원국의 다른 오행과 섞이며 행동의 습관과 관계의 반응으로 드러난다.",
+    caution: "다만 약한 오행이 받쳐 주지 못하면 작용이 한쪽으로 기울어 조율이 필요하다.",
+  };
+
+  return `${tone.nature} ${tone.motion}\n\n이 명식에서 ${name}은 ${positionText}에 놓인다. ${dayElement} 일간이 ${strongestText} 기운 위에서 움직이므로 ${name}은 추상적 재능이 아니라 선택의 방식으로 드러난다. ${weakestText} 기운이 약하게 놓이면 ${tone.caution}`;
+}
+
+function buildMagazineTenGodHighlights(
+  saju: FamousSajuEngineResult,
+  pillars: Array<CelebritySajuMagazinePillar | null>,
+  dayElement: string,
+  strongestText: string,
+  weakestText: string,
+) {
   const visible = asRecord(asRecord(getNatalAnalysis(saju).tenGods).visible);
   const highlights = Object.entries(visible)
     .filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([name]) => ({
-      name,
-      meaning: tenGodMeaning[name] || "명식 안에서 드러나는 재능의 작용",
-      reading: `${person.nameKo}의 공개 활동 키워드인 ${person.tags.slice(0, 2).join(" · ") || person.category}와 닿아, 명리학적으로는 ${tenGodMeaning[name] || "자기만의 작용"}이 활동 방식에 스며든 결로 읽을 수 있습니다.`,
-    }));
+    .slice(0, 4)
+    .map(([name]) => {
+      const positionText = findTenGodPositions(name, pillars);
+      return {
+        name,
+        meaning: tenGodMeaning[name] || "명식 안에서 드러나는 재능의 작용",
+        reading: buildTenGodReading(name, positionText, dayElement, strongestText, weakestText),
+      };
+    });
 
   return highlights.length ? highlights : [
     {
       name: "십성 확인 필요",
       meaning: "계산값 보강 필요",
-      reading: "드러난 십성 점수가 충분하지 않아, 공개 생년월일 기준의 원국만 조심스럽게 살핍니다.",
+      reading: "십성 점수가 충분히 드러나지 않으면 작용을 꾸며 붙이지 않는다. 이 경우 일간과 오행의 흐름을 먼저 세우고, 십성은 확인된 자리 안에서만 낮게 읽는다.\n\n원국의 표면 점수가 열리지 않은 명식은 강한 단정 대신 구조를 남긴다. 일간이 어떤 오행 위에 서 있는지, 월령과 지지가 어떤 방향으로 힘을 주는지가 우선 기준이다.",
     },
   ];
+}
+
+function buildStarReading(name: string) {
+  if (name.includes("귀인")) return "귀인은 막힌 흐름에 숨통을 여는 별이다. 위기의 순간 기운이 완전히 끊기지 않고, 필요한 사람이나 조건이 옆에서 받쳐 주는 식으로 나타난다.";
+  if (name.includes("문창")) return "문창은 말과 글, 배움의 문을 밝히는 별이다. 생각을 정리해 형태로 남기는 힘이 살아나고, 지식이 품격으로 변한다.";
+  if (name.includes("도화")) return "도화는 시선을 모으는 꽃의 기운이다. 매력은 부드럽지만 주변의 반응을 크게 흔들 수 있어, 감각과 관계의 온도가 함께 올라간다.";
+  if (name.includes("역마")) return "역마는 머무는 기운보다 움직이는 기운이 강한 신살이다. 이동, 확장, 환경 변화 속에서 명식의 힘이 깨어난다.";
+  if (name.includes("화개")) return "화개는 화려함을 안쪽으로 접어 깊이를 만드는 별이다. 고독한 몰입과 전문성이 살아나며, 보이는 자리보다 혼자 닦은 시간이 힘이 된다.";
+  if (["괴강", "백호", "양인"].some((keyword) => name.includes(keyword))) return "날이 선 신살은 강한 압력과 결단의 기운을 품는다. 부드럽게 흐르기보다 한 번에 치고 나가는 힘이 강해, 원국의 속도를 더 날카롭게 만든다.";
+  if (name.includes("공망")) return "공망은 한 자리가 비어 있는 감각을 만든다. 비어 있음은 약점만이 아니라, 집착을 덜고 다른 방식으로 길을 여는 여백이 된다.";
+  return `${name}은 원국의 결을 한 겹 더 선명하게 만드는 신살이다. 이름 하나로 길흉을 정하지 않고, 오행과 십성의 흐름 속에서 어떤 색을 더하는지 보아야 한다.`;
+}
+
+function buildSinsalTextureText(stars: CelebritySajuMagazineStar[], strongestText: string, primaryTenGod: string) {
+  const activeStars = stars.filter((star) => star.name && star.name !== "알 수 없음").slice(0, 4);
+  if (!activeStars.length) {
+    return `원국에서 크게 앞서는 신살은 두드러지지 않는다. 이런 명식은 별의 이름보다 일간, 오행, 십성의 기본 구조가 해석의 중심이 된다. 신살이 약하게 잡히면 외부 표식보다 원국 자체의 균형이 더 중요해진다. ${strongestText} 기운과 ${primaryTenGod}의 작용을 먼저 읽어야 전체 결이 흐트러지지 않는다.`;
+  }
+
+  return activeStars
+    .map((star) => {
+      const position = star.position && star.position !== "알 수 없음" ? `${star.position}에서 ` : "";
+      return `${star.name}은 ${position}작동한다. ${buildStarReading(star.name)} 이 명식에서는 ${strongestText} 기운과 ${primaryTenGod}의 작용을 통과하므로, ${star.name}도 따로 떠 있는 표식이 아니라 원국의 속도와 관계의 압력을 조율하는 색으로 드러난다.`;
+    })
+    .join("\n\n");
+}
+
+function buildTwelveStageMaturityText(pillars: Array<CelebritySajuMagazinePillar | null>, birthTimeKnown: boolean) {
+  const rows = pillars
+    .filter((pillar): pillar is CelebritySajuMagazinePillar => Boolean(pillar && !pillar.isUnknown))
+    .map((pillar) => ({ label: pillar.label, stage: pillar.twelveStage, tone: twelveStageTone[pillar.twelveStage] }))
+    .filter((row) => row.stage && row.stage !== "알 수 없음");
+  if (!rows.length) return "12운성의 흐름이 충분히 열리지 않았다. 이럴 때는 성장과 절정, 쇠퇴를 임의로 꾸미지 않고 일간과 오행의 기본 힘을 먼저 본다.";
+
+  const counts = rows.reduce<Record<"성장기" | "절정기" | "쇠퇴기", number>>((acc, row) => {
+    const phase = row.tone?.phase || "성장기";
+    acc[phase] += 1;
+    return acc;
+  }, { 성장기: 0, 절정기: 0, 쇠퇴기: 0 });
+  const dominantPhase = (Object.entries(counts) as Array<["성장기" | "절정기" | "쇠퇴기", number]>).sort((a, b) => b[1] - a[1])[0][0];
+  const details = rows
+    .map((row) => `${row.label}의 ${row.stage}은 ${row.tone?.text || "일간의 힘이 해당 지지에서 쓰이는 방식을 보여 준다."}`)
+    .join("\n\n");
+
+  return `${details}\n\n${birthTimeKnown ? "4주 전체" : "3주 기준"}로 보면 이 명식은 ${dominantPhase} 흐름이 가장 뚜렷하다. 성장기는 시작과 감각을, 절정기는 자기 힘의 장악을, 쇠퇴기는 정리와 절제를 맡는다. 이 진단은 좋고 나쁨의 판정이 아니라 일간이 어느 속도로 힘을 쓰는지 보여 주는 성숙도의 지도다.`;
+}
+
+function buildSajuAnnotation(person: CelebritySajuSeed, birthTimeKnown: boolean) {
+  const basis = birthTimeKnown
+    ? "생시가 공개되어 시주를 포함한 4주(년·월·일·시주)"
+    : "생시가 공개되지 않아 시주를 제외한 3주(년·월·일주)";
+  return `${person.nameKo}의 ${basis} 기준으로 풀이했습니다. 이 풀이는 공개 생년월일 기준 명리학 이론으로 계산된 기질 분석이며, 당사자의 실제 성격·사생활·미래를 단정하지 않습니다.`;
 }
 
 function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: FamousSajuCalculatedChart): CelebritySajuMagazineResult {
@@ -1785,9 +1973,7 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
   const calendarType = chart.engineInput.calendarType || (person.calendarType === "lunar" ? "lunar" : "solar");
   const birthTimeKnown = Boolean(chart.engineInput.hasTime && saju && !saju.timeUnknown);
   const birthTimeLabel = birthTimeKnown && person.birthTime ? person.birthTime : "시 미상";
-  const sourceNote = birthTimeKnown
-    ? "공개 프로필 기준으로 계산한 명리학적 해석입니다. 실제 성격이나 미래를 단정하지 않습니다."
-    : "공개 프로필 기준으로 계산한 명리학적 해석입니다. 생시가 공개되지 않아 시주는 제외하며, 실제 성격이나 미래를 단정하지 않습니다.";
+  const sourceNote = buildSajuAnnotation(person, birthTimeKnown);
 
   if (!saju) {
     return {
@@ -1837,10 +2023,6 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
         },
       ],
       faq: [
-        {
-          question: `${person.nameKo}의 사주를 바로 단정할 수 있나요?`,
-          answer: "아직 계산 기준이 충분하지 않아 단정하지 않습니다. Code Destiny는 확인된 계산값만 해설합니다.",
-        },
       ],
       cta: {
         title: famousSajuCopy("magazine.selfReadingTitle"),
@@ -1862,20 +2044,21 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
   const weakest = getElementExtremes(counts, "min");
   const dayElement = elementByStem[saju.dayStem] || elementProfile.dominantElement;
   const coreMetaphor = elementMetaphor[dayElement] || `${dayElement} 기운의 꽃`;
-  const categoryVoice = getFamousSajuCategoryVoice(person);
-  const tenGodHighlights = buildMagazineTenGodHighlights(saju, person);
-  const basisText = birthTimeKnown ? "시주까지 함께 놓고 보면" : "3주 기준으로 보면";
   const strongestText = strongest.join("·") || "알 수 없음";
   const weakestText = weakest.join("·") || "알 수 없음";
-  const starText = [...magazineStars.goodStars, ...magazineStars.neutralStars, ...magazineStars.cautionStars]
-    .map((star) => star.name)
-    .slice(0, 4)
-    .join(" · ") || "알 수 없음";
-  const stageText = [year, month, day, hour].filter(Boolean).map((pillar) => `${pillar?.label} ${pillar?.twelveStage}`).join(" · ");
-  const publicTags = person.tags.slice(0, 3).join(" · ") || person.category;
+  const magazinePillars = [year, month, day, hour];
+  const tenGodHighlights = buildMagazineTenGodHighlights(saju, magazinePillars, dayElement, strongestText, weakestText);
+  const primaryTenGod = tenGodHighlights[0]?.name || "십성";
   const dayPillar = `${saju.pillars.day.ganji}일주`;
-  const oneLineReading = `${basisText} ${person.nameKo}의 명식은 ${dayPillar}의 중심이 ${strongestText} 기운 위에 놓이며, 드러난 재능을 오래 다듬어 자기만의 결로 세우는 흐름이 강하게 떠오릅니다.`;
-  const elementInterpretation = `${strongestText} 기운이 강하게 솟고 ${weakestText} 기운은 비어 있는 편입니다. 강한 기운은 추진력과 선명한 존재감으로 흐르지만, 부족한 기운을 의식적으로 보완할수록 명식의 균형이 한층 깊고 부드럽게 열립니다.`;
+  const oneLineReading = `${strongestText} 기운 위에 선 ${dayPillar}은 ${primaryTenGod}의 방식으로 자기 날을 세우는 명식이다.`;
+  const dayPillarTexture = buildDayPillarTexture(saju, dayPillar, dayElement);
+  const elementInterpretation = buildElementFlowText(strongest, weakest);
+  const sinsalTexture = buildSinsalTextureText(
+    [...magazineStars.goodStars, ...magazineStars.neutralStars, ...magazineStars.cautionStars],
+    strongestText,
+    primaryTenGod,
+  );
+  const twelveStageTexture = buildTwelveStageMaturityText(magazinePillars, birthTimeKnown);
 
   return {
     schemaVersion: CELEBRITY_SAJU_MAGAZINE_SCHEMA_VERSION,
@@ -1920,18 +2103,9 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
     stars: magazineStars,
     sections: [
       {
-        id: "conclusion-first",
+        id: "day-pillar-texture",
         title: famousSajuCopy("magazine.thisChartIs"),
-        body: oneLineReading,
-        cards: [
-          { label: famousSajuCopy("magazine.dayPillar"), title: dayPillar, description: `${dayElement} 일간이 ${saju.pillars.day.branch} 지지 위에 앉아 자기 기준을 세우는 자리입니다.` },
-          { label: famousSajuCopy("magazine.standard"), title: birthTimeKnown ? "4주 기준" : "3주 기준", description: birthTimeKnown ? "공개된 생시를 포함해 계산했습니다." : "생시 미상으로 시주는 제외했습니다." },
-        ],
-      },
-      {
-        id: "day-pillar",
-        title: famousSajuCopy("magazine.dayPillarMeeting"),
-        body: `${saju.dayStem} 일간은 ${stemTone[saju.dayStem] || "자기만의 결을 따라 움직이는 힘이 있습니다."} 일지 ${saju.pillars.day.branch}는 그 기운이 현실에 머무는 자리입니다. ${basisText} ${dayPillar}는 공개 활동 속에서 반복되는 선택의 기준과 반응의 온도를 읽는 중심축으로 드러납니다.`,
+        body: dayPillarTexture,
       },
       {
         id: "five-elements",
@@ -1945,54 +2119,35 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
       {
         id: "ten-gods",
         title: famousSajuCopy("magazine.tenGodTalent"),
-        body: `${tenGodHighlights.map((item) => item.name).join(" · ")} 흐름이 먼저 보입니다. 십성은 타고난 재능을 단정하는 이름표가 아니라, 일간이 세상과 관계 맺는 방식을 비추는 언어입니다. ${person.nameKo}의 공개 활동에서는 ${publicTags}의 상징과 맞물려 이 작용이 차분히 드러납니다.`,
+        body: `${tenGodHighlights.map((item) => item.name).join(" · ")}이 먼저 떠오른다. 십성은 일간이 세상과 부딪히고, 만들고, 지키고, 받아들이는 방식을 가리키는 명리의 언어다. 아래의 각 십성은 원국 안에서 놓인 자리와 오행의 힘을 함께 보아야 제 색을 드러낸다.`,
+        cards: tenGodHighlights.map((item) => ({
+          label: item.name,
+          title: item.meaning,
+          description: item.reading,
+        })),
       },
       {
         id: "stars",
         title: famousSajuCopy("magazine.sinsalTexture"),
-        body: `주요 신살은 ${starText}로 정리됩니다. 신살은 단독 길흉이 아니라 원국과 오행, 십성 뒤에서 결을 보조하는 신호입니다. 주의 신호가 떠오르더라도 사건을 단정하지 않고, 몰입과 속도, 관계의 압력을 조율하는 흐름으로만 읽습니다.`,
+        body: sinsalTexture,
       },
       {
         id: "twelve-stage",
         title: famousSajuCopy("magazine.twelveStageSpeed"),
-        body: `12운성은 ${stageText || "알 수 없음"} 흐름으로 정리됩니다. 이는 일간이 각 지지에서 힘을 쓰는 방식을 비춥니다. ${birthTimeKnown ? "시주까지 포함해" : "3주 기준으로"} 급한 길흉보다 기운의 성숙도와 사용 방식을 차분히 살핍니다.`,
-      },
-      {
-        id: "activity-bridge",
-        title: famousSajuCopy("magazine.publicActivity"),
-        body: `${person.nameKo}의 공개 활동에서 반복되는 키워드는 ${publicTags}입니다. ${categoryVoice.publicSignal}을 명식 위에 올리면, ${strongestText} 기운과 ${tenGodHighlights[0]?.name || "십성"}의 작용이 활동의 인상과 닿아 있습니다. 확인되지 않은 사생활은 비워 두고, 공개된 이름과 활동의 상징만 연결합니다.`,
-      },
-      {
-        id: "strength-caution",
-        title: famousSajuCopy("magazine.strengthCaution"),
-        body: `강점은 ${strongestText} 기운이 만드는 선명함과 ${tenGodHighlights[0]?.name || "주요 십성"}의 활동성에서 읽을 수 있습니다. 주의 신호는 ${weakestText} 기운이 비어 있을 때 속도와 회복의 리듬이 늦어질 수 있다는 정도로만 봅니다. 이는 실제 성격이나 미래가 아니라 명리학적 균형의 언어입니다.`,
-        cards: [
-          { label: famousSajuCopy("magazine.strength"), title: `${strongestText}의 추진`, description: famousSajuCopy("magazine.strengthDesc") },
-          { label: famousSajuCopy("magazine.caution"), title: `${weakestText}의 보완`, description: famousSajuCopy("magazine.cautionDesc") },
-        ],
+        body: twelveStageTexture,
       },
       {
         id: "final-texture",
         title: famousSajuCopy("magazine.closingSentence"),
-        body: `${person.nameKo}의 사주는 ${coreMetaphor}처럼 자기 결을 조용히 세우는 명식으로 비춥니다. ${basisText} ${dayPillar}와 ${strongestText} 기운, 그리고 ${tenGodHighlights[0]?.name || "주요 십성"}의 작용이 맞물려 공개 활동의 상징을 만듭니다. 확정되지 않은 삶의 영역은 비워 두고, 원국이 드러내는 기품과 균형만 차분히 읽습니다.`,
+        body: oneLineReading,
+      },
+      {
+        id: "annotation",
+        title: "[주석]",
+        body: sourceNote,
       },
     ],
-    faq: [
-      {
-        question: `${person.nameKo}는 무슨 일주인가요?`,
-        answer: `공개 생년월일 기준 계산값으로는 ${dayPillar}입니다. 생시가 공개되지 않은 경우에는 시주를 제외한 3주 기준으로 읽습니다.`,
-      },
-      {
-        question: "생시 미상이어도 사주를 볼 수 있나요?",
-        answer: birthTimeKnown
-          ? "이 인물은 공개된 생시를 포함해 계산했습니다. 다만 공개 자료 기준의 상징 해석이므로 실제 성격이나 미래를 단정하지 않습니다."
-          : "볼 수 있지만 시주는 제외합니다. 오행 일부, 신살 일부, 후반 운의 세부 해석은 달라질 수 있어 3주 기준이라고 명확히 표시합니다.",
-      },
-      {
-        question: "유명인의 실제 성격을 말하는 글인가요?",
-        answer: "아닙니다. 공개 프로필과 공개 활동을 바탕으로 계산된 명리학적 상징을 읽는 콘텐츠입니다.",
-      },
-    ],
+    faq: [],
     cta: {
       title: famousSajuCopy("magazine.personalStoryTitle"),
       description: famousSajuCopy("magazine.personalStoryDesc"),
@@ -2312,14 +2467,14 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     .replace(/^스타의 운은/, `${person.nameKo} 같은 스타의 운은`)
     .replace(/^운의 조언은/, `${person.nameKo}의 운 조언은`);
   const careerBody = pickFamousVariant([
-    `${person.nameKo}에게 ${person.category} 분야에서 공개적으로 읽히는 상징은 ${tagSummaryText}입니다. ${categoryVoice.careerAngle}을 중심에 놓고 보면 ${elementTone[elementProfile.dominantElement] || ""} 여기에 ${finalGyeokguk}의 결이 더해지면 이 상징은 단순한 인기보다 역할, 기준, 반복되는 선택의 방식으로 드러납니다. 직업 흐름은 ${careerChangeForBody} 재물의 흐름은 ${wealthChangeForBody} ${person.nameKo}의 실제 직업운을 단정하기보다, 공개 활동에서 드러난 상징적 강점만 조심스럽게 풀이합니다.`,
-    `${person.nameKo}의 공개 활동에서 먼저 보이는 표지는 ${tagSummaryText}입니다. 이 표지를 ${categoryVoice.careerAngle} 쪽으로 읽으면 ${elementProfile.dominantElement} 기운의 쓰임과 ${finalGyeokguk}의 결이 함께 살아납니다. 직업 흐름은 ${careerChangeForBody} 돈의 흐름은 ${wealthChangeForBody} 여기서는 ${person.nameKo}의 사적인 결과를 예단하지 않고, 이름 밖으로 드러난 역할의 방향만 살핍니다.`,
-    `대표 키워드인 ${tagSummaryText}의 흐름을 따라가면 ${person.nameKo}의 공개 이미지는 ${categoryVoice.careerAngle} 쪽으로 모입니다. 강한 ${elementProfile.dominantElement} 기운은 무대와 일의 방식에 선명한 색을 남기고, ${finalGyeokguk}의 문은 그 색을 반복되는 선택으로 굳힙니다. 대운의 직업 신호는 ${careerChangeForBody} 재물 신호는 ${wealthChangeForBody} 다만 ${person.nameKo}의 공개된 상징을 넘어 개인의 실제 선택까지 단정하지는 않습니다.`,
+    `${person.nameKo}에게 ${person.category} 분야에서 먼저 읽히는 명리 표지는 ${tagSummaryText}입니다. ${categoryVoice.careerAngle}을 중심에 놓고 보면 ${elementTone[elementProfile.dominantElement] || ""} 여기에 ${finalGyeokguk}의 결이 더해지면 이 표지는 단순한 인기보다 역할, 기준, 반복되는 선택의 방식으로 드러납니다. 직업 흐름은 ${careerChangeForBody} 재물의 흐름은 ${wealthChangeForBody} 강한 오행이 현실의 그릇을 만나 어떤 방식으로 성과를 빚는지가 핵심입니다.`,
+    `${person.nameKo}의 명식에서 먼저 보이는 표지는 ${tagSummaryText}입니다. 이 표지를 ${categoryVoice.careerAngle} 쪽으로 읽으면 ${elementProfile.dominantElement} 기운의 쓰임과 ${finalGyeokguk}의 결이 함께 살아납니다. 직업 흐름은 ${careerChangeForBody} 돈의 흐름은 ${wealthChangeForBody} 일간이 어떤 역할을 오래 붙들 때 힘이 맑아지는지가 중심입니다.`,
+    `대표 키워드인 ${tagSummaryText}의 흐름을 따라가면 ${person.nameKo}의 명리 표지는 ${categoryVoice.careerAngle} 쪽으로 모입니다. 강한 ${elementProfile.dominantElement} 기운은 무대와 일의 방식에 선명한 색을 남기고, ${finalGyeokguk}의 문은 그 색을 반복되는 선택으로 굳힙니다. 대운의 직업 신호는 ${careerChangeForBody} 재물 신호는 ${wealthChangeForBody} 강한 기운을 오래 쓰려면 보완 기운의 그릇이 함께 필요합니다.`,
   ], sectionVariantSeed, 1);
   const relationshipBody = pickFamousVariant([
     `관계성은 ${elementProfile.dominantElement}의 강한 흐름과 ${elementProfile.weakElement}의 보완 지점 사이에서 읽습니다. ${objectParticle(categoryVoice.relationshipAngle)} 중심에 놓으면 강한 기운은 선명한 인상을 만들고, 약한 기운은 거리와 속도를 조율하는 숙제로 나타납니다. ${softSentence(daewoonLoveChange)} 명식에는 ${structureSignalText}가 드러나므로, 사적인 결론보다 공개 명식의 관계 리듬만 조심스럽게 살핍니다.`,
     `${person.nameKo}의 관계 패턴은 강한 ${elementProfile.dominantElement} 기운이 먼저 앞서고, 약한 ${elementProfile.weakElement} 기운이 뒤에서 균형을 요구하는 모습으로 읽힙니다. ${objectParticle(categoryVoice.relationshipAngle)} 함께 보면 가까워지는 속도보다 신뢰가 머무는 방식이 중요합니다. ${softSentence(daewoonLoveChange)} 구조적으로는 ${structureSignalText}가 있으니, 관계운은 단정이 아니라 리듬의 해석으로 보는 편이 정확합니다.`,
-    `${person.nameKo}의 관계운은 사생활을 맞히는 영역이 아니라, 명식 안에서 반복되는 반응의 결을 읽는 일입니다. 이 명식에서는 강한 ${elementProfile.dominantElement} 기운이 인상을 선명하게 만들고, 약한 ${elementProfile.weakElement} 기운이 ${categoryVoice.relationshipAngle}의 조율점을 남깁니다. ${softSentence(daewoonLoveChange)} ${structureSignalText}까지 겹쳐 보되, 공개 자료 밖의 결론은 조심스럽게 비워 둡니다.`,
+    `${person.nameKo}의 관계운은 일간과 오행이 만드는 반응의 리듬이다. 이 명식에서는 강한 ${elementProfile.dominantElement} 기운이 인상을 선명하게 만들고, 약한 ${elementProfile.weakElement} 기운이 ${categoryVoice.relationshipAngle}의 조율점을 남깁니다. ${softSentence(daewoonLoveChange)} ${structureSignalText}까지 겹치면 가까워지는 속도보다 오래 머무는 방식이 더 중요해집니다.`,
   ], sectionVariantSeed, 8);
   const adviceBody = pickFamousVariant([
     `${person.nameKo}에게는 ${objectParticle(categoryVoice.adviceFocus)} 좋은 그릇에 담는 조율이 중요합니다. ${softSentence(daewoonHowToUse)} ${annualPrescriptionForBody} ${adviceLensForBody} ${person.nameKo}에게 대운은 삶의 배경을 바꾸고, 세운은 그 배경 위에 사건을 올립니다. 그러니 큰 선택은 대운의 방향으로, 당장의 대응은 ${person.nameKo}의 세운 결로 나누어 보면 운을 쓰는 손이 훨씬 부드러워집니다.`,
@@ -2447,7 +2602,32 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   ];
   const seoKeywords = uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, `${dayElement} 일간`, dayMasterLabel, `${person.nameKo} 유명인 사주`, saju.timeUnknown ? "출생 시간 미상 분석" : "사주팔자 분석"]);
   const craftedArticle = craftedFamousSajuArticles[person.slug];
-  const articleSections = ensureMandatoryDaewoonSection(craftedArticle?.sections, sections);
+  const magazineArticleSections: FamousSajuArticleSection[] = magazine.sections.map((section) => ({
+    title: section.title,
+    imageQuery: section.id === "five-elements"
+      ? "five elements saju cosmic balance"
+      : section.id === "ten-gods"
+        ? "mystical destiny chart ten gods"
+        : section.id === "stars"
+          ? "constellation stars purple night"
+          : section.id === "twelve-stage"
+            ? "moon phases cosmic road destiny"
+            : "mystical cosmos stars nebula night sky",
+    imageSection: "default",
+    body: [
+      section.body,
+      ...(section.cards || []).map((card) => `${card.label}\n${card.description}`),
+    ].filter(Boolean).join("\n\n"),
+  }));
+  const fallbackArticleSections = ensureMandatoryDaewoonSection(craftedArticle?.sections, sections);
+  const articleSections = magazineArticleSections.length ? magazineArticleSections : fallbackArticleSections;
+  const articleHeroCopy = magazine.sections.find((section) => section.id === "day-pillar-texture")?.body || craftedArticle?.heroCopy || heroCopy;
+  const articleSummary = magazine.sections
+    .filter((section) => section.id !== "annotation")
+    .slice(0, 3)
+    .map((section) => section.body)
+    .join(" ") || craftedArticle?.summary || summary;
+  const articleConclusion = magazine.summary.oneLineReading || craftedArticle?.conclusion || conclusion;
 
   return {
     celebrity: person,
@@ -2461,15 +2641,15 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     elementProfile,
     engineInputSummary,
     heroImageQuery: getFamousSajuImageMood(person),
-    heroCopy: craftedArticle?.heroCopy || heroCopy,
+    heroCopy: articleHeroCopy,
     coreKeywords,
     analysisBadge,
     timeNotice,
-    summary: craftedArticle?.summary || summary,
+    summary: articleSummary,
     sections: articleSections,
     insightCards,
     reliabilityNotes: calculatedChart.reliabilityNotes,
-    conclusion: craftedArticle?.conclusion || conclusion,
+    conclusion: articleConclusion,
     seoTitle: buildFamousSajuSeoTitle(person),
     seoDescription: buildFamousSajuSeoDescription(person, {
       dayMasterLabel,

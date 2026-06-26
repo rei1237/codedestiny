@@ -53,6 +53,10 @@ export async function callGeminiText(env, prompt, options = {}) {
       maxTokens: Number(options.maxOutputTokens || options.maxTokens) || undefined,
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: normalizeTaskType(options),
+      model: clean(options.model),
+      timeoutMs: Number(options.timeoutMs || 0) || undefined,
+      apiEndpoint: clean(options.apiEndpoint || options.endpoint),
+      fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
     }, env);
 
     return {

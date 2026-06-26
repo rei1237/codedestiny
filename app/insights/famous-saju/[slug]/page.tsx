@@ -17,7 +17,7 @@ const FAMOUS_SAJU_INSIGHT_TEXT_TRANSLATIONS = {
     "famousSajuInsight.003": "시주",
     "famousSajuInsight.004": "일주의 결",
     "famousSajuInsight.005": "오행 균형",
-    "famousSajuInsight.006": "활동 강점",
+    "famousSajuInsight.006": "십성의 작용",
     "famousSajuInsight.007": "십성 분석",
     "famousSajuInsight.008": "명식 안에서 먼저 떠오르는 작용",
     "famousSajuInsight.009": "귀인·강점",
@@ -149,6 +149,10 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
   );
 }
 
+function splitFortuneParagraphs(value: string) {
+  return value.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+}
+
 function CelebritySajuHero({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   const basis = magazine.threePillarBasis ? "3주 기준" : "4주 기준";
   const dayPillar = magazine.pillars.day.ganji;
@@ -173,11 +177,8 @@ function CelebritySajuHero({ magazine }: { magazine: CelebritySajuMagazineResult
 }
 
 function CelebritySajuNotice({ magazine }: { magazine: CelebritySajuMagazineResult }) {
-  return (
-    <section className="mx-auto mt-5 max-w-2xl rounded-lg border border-violet-300/25 bg-[#17102d] px-4 py-2 text-center text-xs leading-6 text-violet-100/75">
-      {magazine.threePillarBasis ? "3주 기준입니다. 생시가 공개되지 않아 시주는 제외했고, 오행 수치와 일부 신살은 달라질 수 있습니다." : "공개된 생시를 포함한 4주 기준입니다."} {magazine.summary.cautionNote}
-    </section>
-  );
+  void magazine;
+  return null;
 }
 
 function CelebritySajuPillarTable({ magazine }: { magazine: CelebritySajuMagazineResult }) {
@@ -276,7 +277,9 @@ function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineRes
             </div>
             <div>
               <h3 className="text-base font-semibold text-white">{item.name} - {item.meaning}</h3>
-              <p className="mt-2 text-sm leading-7 text-violet-100/75">{item.reading}</p>
+              <div className="mt-2 space-y-3 text-sm leading-7 text-violet-100/75">
+                {splitFortuneParagraphs(item.reading).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
             </div>
           </article>
         ))}
@@ -319,14 +322,18 @@ function MagazineSection({ section }: { section: CelebritySajuMagazineResult["se
   return (
     <section id={section.id} className="scroll-mt-24 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
       <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl">{section.title}</h2>
-      <p className="mt-4 text-sm leading-8 text-violet-100/75 sm:text-base">{section.body}</p>
+      <div className="mt-4 space-y-4 text-sm leading-8 text-violet-100/75 sm:text-base">
+        {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
       {section.cards?.length ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {section.cards.map((card) => (
             <div key={`${section.id}-${card.label}`} className="rounded-lg border border-violet-300/15 bg-[#17102d] p-4">
               <p className="text-xs text-violet-200/70">{card.label}</p>
               <h3 className="mt-2 font-semibold text-white">{card.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-violet-100/60">{card.description}</p>
+              <div className="mt-2 space-y-3 text-sm leading-6 text-violet-100/60">
+                {splitFortuneParagraphs(card.description).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              </div>
             </div>
           ))}
         </div>
@@ -336,17 +343,13 @@ function MagazineSection({ section }: { section: CelebritySajuMagazineResult["se
 }
 
 function CelebrityActivityInsightCard({ magazine }: { magazine: CelebritySajuMagazineResult }) {
-  const activity = magazine.sections.find((section) => section.id === "activity-bridge");
-  if (!activity) return null;
-  return (
-    <section className="mt-5 rounded-lg border border-amber-200/25 bg-[#1a122d] p-4 sm:p-5">
-      <p className="text-sm font-semibold text-amber-100">공개 활동과 명식의 연결</p>
-      <p className="mt-3 text-sm leading-8 text-violet-100/80 sm:text-base">{activity.body}</p>
-    </section>
-  );
+  void magazine;
+  return null;
 }
 
 function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) {
+  if (!faq.length) return null;
+
   return (
     <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.014")} title={famousSajuInsightText("famousSajuInsight.015")} />
@@ -516,13 +519,11 @@ body:has(main[data-famous-saju-detail]) {
       />
       <article className="mx-auto max-w-5xl px-4 pb-10 sm:px-6 sm:pb-14">
         <CelebritySajuHero magazine={magazine} />
-        <CelebritySajuNotice magazine={magazine} />
         <CelebritySajuPillarTable magazine={magazine} />
         <FiveElementBarChart magazine={magazine} />
         <CelebritySajuQuickSummaryCards magazine={magazine} />
         <TenGodHighlightCards magazine={magazine} />
         <SinsalBadgeGrid magazine={magazine} />
-        <CelebrityActivityInsightCard magazine={magazine} />
 
         <nav className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5" aria-label="명식 해석 순서">
           <SectionHeader label={famousSajuInsightText("famousSajuInsight.018")} title={famousSajuInsightText("famousSajuInsight.019")} />
