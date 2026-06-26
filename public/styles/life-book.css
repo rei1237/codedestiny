@@ -3532,6 +3532,28 @@ body.theme-pig .lb-ch-dot--pending {
   justify-content: center;
 }
 
+#sukuyoBookModal .lb-loading-screen {
+  align-items: center;
+  text-align: center;
+}
+
+#sukuyoBookModal .lb-loading-orb,
+#sukuyoBookModal .lb-loading-title,
+#sukuyoBookModal .lb-loading-chapter-box,
+#sukuyoBookModal .lb-mystic-wrap,
+#sukuyoBookModal .lb-ch-grid,
+#sukuyoBookModal .lb-loading-progress,
+#sukuyoBookModal .lb-progress-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#sukuyoBookModal .lb-mystic-wrap,
+#sukuyoBookModal .lb-ch-grid,
+#sukuyoBookModal .lb-loading-progress {
+  justify-content: center;
+}
+
 #astroBookModal {
   --lb-accent: #38bdf8;
   --lb-accent2: #0ea5e9;

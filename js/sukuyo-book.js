@@ -2546,25 +2546,7 @@
   }
 
   function _startSukuyoAssemblyProgress() {
-    var source = Array.isArray(_canonicalChapters) && _canonicalChapters.length ? _canonicalChapters : [];
-    var total = Math.max(SUKYO_TOTAL_CHAPTERS, 1);
-    var index15 = 0;
-    var apply15 = function () {
-      var step = Math.min(index15 + 1, total);
-      var chapter = source[step - 1] || {};
-      if (step >= total) {
-        _setLoadingProgress(total, total, 'PDF 저장본 확정 중입니다.');
-        _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
-        _setLoadingNotice('15장 원고를 확인했습니다. 저장 링크와 결과 화면을 여는 중입니다.');
-        return;
-      }
-      _setLoadingProgress(step, total, '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...');
-      _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
-      _setLoadingNotice('두 사람의 본명숙과 관계 거리를 따라 PDF 원고가 열리고 있습니다.');
-      index15 += 1;
-    };
-    apply15();
-    return setInterval(apply15, 2600);
+    return null;
   }
 
   function _stopSukuyoAssemblyProgress(timer) {
@@ -2576,25 +2558,35 @@
     var progress = payload.progress || (payload.running && payload.running.progress) || {};
     var total = Math.max(1, Number(progress.totalChapters || progress.expectedChapterCount || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
     var rawStep = Number(progress.currentChapterNo || progress.chapterNo || progress.step || 0);
-    var fallbackStep = Math.min(total - 1, Math.max(1, Math.floor((Number(attempts) || 1) / 2) + 1));
-    var step = Math.max(1, Math.min(total, rawStep || fallbackStep));
-    step = Math.max(step, _lastLoadingStep || 0);
     var stage = _clean(progress.stage || payload.status || '');
-    var chapter = _canonicalChapters[step - 1] || {};
-    var title = _sukuyoBookText('loading.chapterTitle', step, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), step)));
-    if (step >= total) title = _sukuyoBookText('loading.finalizingPdf');
+    var isPostChapterStage = stage === 'pdf-rendering' || stage === 'archive-completing';
+    var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice() : [];
+    completed = completed.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
+      return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
+    });
+    if (!completed.length && isPostChapterStage) {
+      for (var done = 1; done <= total; done += 1) completed.push(done);
+    }
+    var hasProgressSignal = (Number.isFinite(rawStep) && rawStep > 0) || completed.length > 0 || isPostChapterStage;
+    if (!hasProgressSignal) {
+      _setLoadingStage(_sukuyoBookText('loading.generatingStage'));
+      _setLoadingNotice(payload.message || _sukuyoBookText('loading.runningNotice'));
+      return;
+    }
+    var completedMax = completed.length ? Math.max.apply(Math, completed) : 0;
+    var step = Number.isFinite(rawStep) && rawStep > 0 ? Math.min(total, rawStep) : completedMax;
+    if (isPostChapterStage && step < total) step = total;
+    var chapter = step > 0 ? (_canonicalChapters[step - 1] || {}) : {};
+    var title = step > 0
+      ? _sukuyoBookText('loading.chapterTitle', step, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), step)))
+      : _sukuyoBookText('loading.runningNotice');
     if (stage === 'pdf-rendering') title = _sukuyoBookText('loading.renderingPdf');
     if (stage === 'archive-completing') title = _sukuyoBookText('loading.completingArchive');
-    var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice() : [];
-    if (!completed.length) {
-      var doneCount = (stage === 'pdf-rendering' || stage === 'archive-completing') ? total : Math.max(0, step - 1);
-      for (var done = 1; done <= doneCount; done += 1) completed.push(done);
-    }
-    _setLoadingStage(step >= total || stage === 'pdf-rendering' || stage === 'archive-completing'
+    _setLoadingStage(isPostChapterStage
       ? _sukuyoBookText('loading.savingStage')
       : _sukuyoBookText('loading.generatingStage'));
     _setLoadingProgress(step, total, title);
-    _setLoadingNotice(payload.message || (step >= total
+    _setLoadingNotice(payload.message || (isPostChapterStage
       ? _sukuyoBookText('loading.savedNotice')
       : _sukuyoBookText('loading.runningNotice')));
     _persistGenerationState({
@@ -3085,6 +3077,7 @@
       }));
     }
     var fallbackReady = _normalizeArchivedSukuyoReport(fallbackReport);
+    if (_isSukyoReportReady(fallbackReady)) return Promise.resolve(fallbackReady);
     var maxAttempts = 6;
     var delayMs = 1800;
     function run(attempt) {
@@ -3148,8 +3141,14 @@
     var reportId = _clean(running.reportId || (_resultPayload && _resultPayload.reportId));
     var progress = running.progress && typeof running.progress === 'object' ? running.progress : {};
     var total = Math.max(1, Number(progress.totalChapters || progress.expectedChapterCount || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
-    var initialStep = Math.max(1, Math.min(total, Number(progress.currentChapterNo || progress.chapterNo || progress.step || 1) || 1));
+    var initialRawStep = Number(progress.currentChapterNo || progress.chapterNo || progress.step || 0);
     var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice(0, total) : [];
+    var initialCompleted = completed.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
+      return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
+    });
+    var initialStep = Number.isFinite(initialRawStep) && initialRawStep > 0
+      ? Math.min(total, initialRawStep)
+      : (initialCompleted.length ? Math.max.apply(Math, initialCompleted) : 0);
     if (sessionId) _activeSessionId = sessionId;
     if (reportId) _activeReportId = reportId;
     _persistGenerationState({
@@ -3158,7 +3157,7 @@
       currentChapterIndex: Math.max(0, initialStep - 1),
       currentChapterNo: initialStep,
       totalChapters: total,
-      completedChapters: completed,
+      completedChapters: initialCompleted,
       failedChapters: [],
       reportId: reportId || null,
       sessionId: sessionId,
