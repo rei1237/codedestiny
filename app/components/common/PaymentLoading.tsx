@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import LoadingProgressMotion, {
   type LoadingMotionPhase,
   type LoadingMotionTone,
@@ -37,9 +36,10 @@ export type PaymentLoadingProps = {
 
 const DEFAULT_TITLE = FALLBACK_LOADING_MESSAGE.title;
 const DEFAULT_DESCRIPTION = FALLBACK_LOADING_MESSAGE.sub;
-const KKULKKUL_LOGO_PUBLIC_PATH =
+const KKULKKUL_LOGO_FALLBACK_URL =
   "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
-const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
+const KKULKKUL_LOGO_URL =
+  "https://assets.code-destiny.com/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
 const UNIFIED_PAYMENT_MARKER = "cd-react-static-matched-payment-ui-v20260618";
 
 export function PaymentPigVisual({
@@ -51,6 +51,7 @@ export function PaymentPigVisual({
 }) {
   const isPassTone = tone === "pass";
   const isResultTone = tone === "result";
+  const [logoSrc, setLogoSrc] = useState(KKULKKUL_LOGO_URL);
 
   return (
     <div
@@ -65,12 +66,24 @@ export function PaymentPigVisual({
       </div>
       <div className={`saju-loader-pass-moon absolute -right-1 top-5 h-11 w-11 rounded-full border border-amber-100/40 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.86),rgba(254,243,199,.72)_32%,rgba(251,191,36,.18)_72%,transparent)] shadow-[0_0_22px_rgba(254,243,199,.32)] transition-opacity ${isPassTone ? "opacity-100" : "opacity-60"}`} />
       <div
-        className={`saju-loader-yeon-sprite absolute inset-[18px] rounded-[28px] bg-contain bg-center bg-no-repeat drop-shadow-[0_16px_24px_rgba(86,47,21,.24)] ${isResultTone ? "motion-safe:animate-bounce" : "motion-safe:animate-pulse"} motion-reduce:animate-none`}
+        className={`saju-loader-yeon-sprite absolute inset-[18px] overflow-hidden rounded-[28px] bg-white/80 drop-shadow-[0_16px_24px_rgba(86,47,21,.24)] ${isResultTone ? "motion-safe:animate-bounce" : "motion-safe:animate-pulse"} motion-reduce:animate-none`}
         style={{
-          backgroundImage: `url("${KKULKKUL_LOGO_URL}")`,
           animationDuration: isResultTone ? "1.4s" : "2.8s",
         }}
-      />
+      >
+        <img
+          src={logoSrc}
+          alt=""
+          width={112}
+          height={112}
+          loading="eager"
+          decoding="async"
+          className="h-full w-full object-contain"
+          onError={() => {
+            if (logoSrc !== KKULKKUL_LOGO_FALLBACK_URL) setLogoSrc(KKULKKUL_LOGO_FALLBACK_URL);
+          }}
+        />
+      </div>
     </div>
   );
 }
