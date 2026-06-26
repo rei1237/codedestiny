@@ -359,8 +359,10 @@
         stack: error.stack,
         status: error.status,
         code: error.code,
+        originalCode: error.originalCode,
         stage: error.stage,
         payloadSafe: error.payloadSafe,
+        details: _safeDiagnosticValue(error.details || (error.payloadSafe && error.payloadSafe.details), 3),
       };
     }
     if (typeof error === 'object' && error !== null) {
@@ -378,12 +380,39 @@
     return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
   }
 
+  function _safeDiagnosticValue(value, depth) {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === 'string') {
+      var text = _clean(value);
+      return text ? text.slice(0, 500) : undefined;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') return value;
+    if (Array.isArray(value)) {
+      return value.slice(0, 12).map(function (item) {
+        return _safeDiagnosticValue(item, Math.max(0, Number(depth || 0) - 1));
+      }).filter(function (item) { return item !== undefined; });
+    }
+    if (typeof value === 'object') {
+      if (Number(depth || 0) <= 0) return '[object]';
+      var out = {};
+      Object.keys(value).slice(0, 24).forEach(function (key) {
+        var safeKey = _clean(key);
+        if (!safeKey || /(token|authorization|password|secret|api[_-]?key|access[_-]?grant)/i.test(safeKey)) return;
+        var safeValue = _safeDiagnosticValue(value[key], Number(depth || 0) - 1);
+        if (safeValue !== undefined) out[safeKey] = safeValue;
+      });
+      return Object.keys(out).length ? out : undefined;
+    }
+    return _clean(value) || undefined;
+  }
+
   function _payloadSafe(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
     var nested = data.error && typeof data.error === 'object' ? data.error : {};
     var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
     return {
       code: _clean(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      originalCode: _clean(data.originalCode || debugSafe.originalCode || nested.originalCode || data.errorCode || nested.errorCode) || undefined,
       message: _clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage) || undefined,
       stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
       failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
@@ -392,7 +421,8 @@
       executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
       missing: _shortList(data.missing || nested.missing || data.hardMissingFields, 6),
       issues: _shortList(data.issues || nested.issues || data.errors || nested.errors, 6),
-      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+      debugSafe: _safeDiagnosticValue(debugSafe, 3),
+      details: _safeDiagnosticValue(data.details || nested.details || data.debug || nested.debug || data.attempts || nested.attempts, 3)
     };
   }
 
@@ -406,6 +436,7 @@
     var err = new Error(_clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Astro PDF request failed.');
     err.status = status || undefined;
     err.code = _clean(safe.code) || 'ASTRO_PREMIUM_REQUEST_FAILED';
+    err.originalCode = _clean(safe.originalCode);
     err.stage = _clean(safe.stage || context && context.stage) || 'prepare';
     err.failureType = _clean(safe.failureType);
     err.reportId = _clean(safe.reportId || context && context.reportId);
@@ -413,6 +444,7 @@
     err.executionId = _clean(safe.executionId);
     err.missing = safe.missing;
     err.issues = safe.issues;
+    err.details = safe.details;
     err.payloadSafe = safe;
     err.payload = payload;
     return err;
@@ -438,6 +470,7 @@
         message: String(error && error.message ? error.message : error || 'unknown'),
         status: Number(error && error.status ? error.status : 0) || null,
         code: _clean(error && error.code || payloadSafe.code) || 'ASTRO_PREMIUM_CLIENT_ERROR',
+        originalCode: _clean(error && error.originalCode || payloadSafe.originalCode) || undefined,
         failureType: _clean(error && error.failureType || payloadSafe.failureType) || undefined,
         reportId: _clean(error && error.reportId || payloadSafe.reportId || meta && meta.reportId) || undefined,
         sessionId: _clean(error && error.sessionId || payloadSafe.sessionId || meta && meta.sessionId) || undefined,
@@ -445,8 +478,9 @@
         missing: _shortList(error && error.missing || payloadSafe.missing, 6),
         issues: _shortList(error && error.issues || payloadSafe.issues, 6),
         causeMessage: _clean(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        debugSafe: payloadSafe.debugSafe,
         payloadSafe: payloadSafe,
-        details: normalizeAstroError(error),
+        details: _safeDiagnosticValue(error && error.details || payloadSafe.details || normalizeAstroError(error), 3),
       });
     } catch (_) {}
   }

@@ -1,6 +1,6 @@
 import { asArray, clean, hashStable, safeObject } from "./life-book-premium.types.js";
 
-export const LIFE_BOOK_LLM_VERSION = "2026-06-life-book-llm-v1";
+export const LIFE_BOOK_LLM_VERSION = "2026-06-26-life-book-llm-v2";
 
 export const LIFE_BOOK_DEFAULT_CHAPTERS = Object.freeze([
   {
@@ -86,7 +86,7 @@ export const LIFE_BOOK_DEFAULT_CHAPTERS = Object.freeze([
 function looksCorrupt(value) {
   const text = clean(value, 4000);
   if (!text) return true;
-  return /\uFFFD|\?{2,}|[�]/.test(text);
+  return /\uFFFD|\?{2,}/.test(text);
 }
 
 function pickConfigChapters(config = {}) {

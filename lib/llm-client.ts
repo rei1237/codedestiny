@@ -7,6 +7,7 @@ export interface LLMRequest {
   model?: string;
   endpoint?: string;
   apiEndpoint?: string;
+  timeoutMs?: number;
   geminiParts?: Array<{
     text?: string;
     inline_data?: {
@@ -109,12 +110,17 @@ function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
 function createTimeoutSignal(timeoutMs = DEFAULT_TIMEOUT_MS): {
   signal: AbortSignal;
   clear: () => void;
+  timeoutMs: number;
 } {
+  const safeTimeoutMs = Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+    ? Number(timeoutMs)
+    : DEFAULT_TIMEOUT_MS;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), safeTimeoutMs);
   return {
     signal: controller.signal,
     clear: () => clearTimeout(timeoutId),
+    timeoutMs: safeTimeoutMs,
   };
 }
 
@@ -201,7 +207,7 @@ async function callGeminiPrimary(
     };
   }
 
-  const timeout = createTimeoutSignal();
+  const timeout = createTimeoutSignal(normalized.timeoutMs);
   try {
     const endpointUrl = endpoint.startsWith("https://") || endpoint.startsWith("http://")
       ? new URL(endpoint)
@@ -229,7 +235,7 @@ async function callGeminiPrimary(
       model,
     };
   } catch (error) {
-    if (timeout.signal.aborted) throw new Error("Gemini request timed out after 30000ms.");
+    if (timeout.signal.aborted) throw new Error(`Gemini request timed out after ${timeout.timeoutMs}ms.`);
     throw error;
   } finally {
     timeout.clear();

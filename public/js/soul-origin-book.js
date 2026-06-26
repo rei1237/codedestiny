@@ -33,6 +33,8 @@
   var SOUL_ORIGIN_STATUS_TIMEOUT_MS = 360000;
   var SOUL_ORIGIN_STATUS_INITIAL_DELAY_MS = 2500;
   var SOUL_ORIGIN_STATUS_MAX_DELAY_MS = 8000;
+  var SOUL_ORIGIN_LOADING_TICK_MS = 4800;
+  var SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS = 5200;
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
   var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
   var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
@@ -49,18 +51,20 @@
 
   var _result = null;
   var _loadingTimer = null;
+  var _loadingMessageHoldUntil = 0;
+  var _statusPreviewStop = null;
   var _isGenerating = false;
   var _resolvedCoinCost = COIN_COST;
 
   var SOUL_ORIGIN_BOOK_TEXT_TRANSLATIONS = {
     ko: {
       loadingTexts: [
-        '다섯 운세 흐름의 핵심 주제를 정리하는 중입니다.',
-        '사주 원국과 대운의 반복 패턴을 해석하는 중입니다.',
-        '자미두수 명궁과 신궁의 운명 구조를 정리하는 중입니다.',
-        '점성술과 베다점의 시기 흐름을 반영하는 중입니다.',
-        '숙요점 인연 카르마를 통합하는 중입니다.',
-        '운명의 업 프리미엄 리포트를 완성하는 중입니다.',
+        '사주 원국과 대운에 반복되는 업의 결을 천천히 짚고 있습니다.',
+        '자미두수 명궁과 신궁에 남은 선택의 방향을 정리하고 있습니다.',
+        '서양 점성술의 태양·달·상승궁이 비추는 삶의 리듬을 살피고 있습니다.',
+        '베다 점성술의 라그나와 나크샤트라가 가리키는 영혼의 습관을 읽고 있습니다.',
+        '숙요점의 별자리 인연이 남긴 관계의 카르마를 조심스럽게 엮고 있습니다.',
+        '사주·자미두수·점성술·베다·숙요의 신호를 한 권의 상담서로 모으고 있습니다.',
       ],
       oneTime: '1회',
       revisitAvailable: '결과 재열람 가능',
@@ -313,9 +317,41 @@
     setDisplay('soErrorScreen', name === 'error' ? '' : 'none');
   }
 
-  function setLoadingMessage(message) {
+  function setLoadingMessage(message, options) {
     var el = $('soLoadingMessage');
-    if (el && clean(message)) el.textContent = clean(message);
+    var text = clean(message);
+    if (el && text) el.textContent = text;
+    var holdMs = Number(options && options.holdMs || 0);
+    if (holdMs > 0) _loadingMessageHoldUntil = Date.now() + holdMs;
+  }
+
+  function statusPayloadValue(payload, key) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.data && typeof data.data === 'object' ? data.data : {};
+    return data[key] || nested[key];
+  }
+
+  function soulOriginStageMessage(status) {
+    var step = clean(status).toLowerCase();
+    if (step === 'pending') return '상담 원고를 열기 전, 결제 권한과 요청 정보를 차분히 맞추고 있습니다.';
+    if (step === 'validating') return '태어난 시간과 기본 정보를 다시 맞추며 운명의 업 상담을 여는 중입니다.';
+    if (step === 'calculating') return '사주 원국, 자미두수 명궁, 점성술 차트와 베다 라그나의 신호를 모으고 있습니다.';
+    if (step === 'generating') return '계산된 신호를 따라 운명의 업 상담사가 장별 원고를 집필하고 있습니다.';
+    if (step === 'rendering') return '완성된 원고를 검수하고 프리미엄 PDF로 정돈하고 있습니다.';
+    if (step === 'completed') return '운명의 업 상담서가 완성되었습니다. 곧 결과를 열어드립니다.';
+    return '사주·자미두수·점성술·베다·숙요의 흐름을 한 권의 상담서로 엮고 있습니다.';
+  }
+
+  function applySoulOriginGenerationStatus(payload, options) {
+    var status = clean(statusPayloadValue(payload, 'generationStatus') || statusPayloadValue(payload, 'currentStep') || statusPayloadValue(payload, 'status') || statusPayloadValue(payload, 'serverStatus'));
+    var title = clean(statusPayloadValue(payload, 'currentChapterTitle'));
+    var progress = Number(statusPayloadValue(payload, 'progress') || 0);
+    if (!status && !title && !progress) return false;
+    var message = soulOriginStageMessage(status);
+    if (title) message += ' 지금은 "' + title + '" 장의 결을 다듬고 있습니다.';
+    if (progress > 0 && progress < 100) message += ' ' + Math.max(1, Math.min(99, Math.round(progress))) + '%까지 이어졌습니다.';
+    setLoadingMessage(message, { holdMs: Number(options && options.holdMs || SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS) });
+    return true;
   }
 
   function getApiBaseCandidates(path) {
@@ -789,6 +825,7 @@
         reportId: clean(context && context.reportId),
       });
       var data = await callStatusApi(context, token);
+      applySoulOriginGenerationStatus(data);
       if (isSoulOriginReportReady(data)) {
         logStage('StatusPollSuccess', {
           requestId: clean(context && context.requestId),
@@ -811,6 +848,40 @@
     var timeout = new Error('운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 다시 불러오기를 시도해 주세요.');
     timeout.code = 'SOUL_ORIGIN_STATUS_TIMEOUT';
     throw timeout;
+  }
+
+  function stopSoulOriginStatusPreview() {
+    if (_statusPreviewStop) {
+      try { _statusPreviewStop(); } catch (_) {}
+      _statusPreviewStop = null;
+    }
+  }
+
+  function startSoulOriginStatusPreview(context, token) {
+    stopSoulOriginStatusPreview();
+    var stopped = false;
+    var timer = null;
+    var delay = SOUL_ORIGIN_STATUS_INITIAL_DELAY_MS;
+    function schedule() {
+      if (stopped) return;
+      timer = setTimeout(run, delay);
+      delay = Math.min(SOUL_ORIGIN_STATUS_MAX_DELAY_MS, delay + 1000);
+    }
+    async function run() {
+      if (stopped) return;
+      try {
+        var data = await callStatusApi(context, token);
+        applySoulOriginGenerationStatus(data);
+        if (isSoulOriginReportReady(data) || isSoulOriginFailed(data)) return;
+      } catch (_) {}
+      schedule();
+    }
+    schedule();
+    _statusPreviewStop = function () {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+    };
+    return _statusPreviewStop;
   }
 
   function shouldRecoverWithStatus(error) {
@@ -1135,6 +1206,7 @@
       clearInterval(_loadingTimer);
       _loadingTimer = null;
     }
+    _loadingMessageHoldUntil = 0;
   }
 
   function startLoadingTicker() {
@@ -1145,9 +1217,10 @@
     var loadingTexts = getSoulOriginBookCopy().loadingTexts;
     el.textContent = loadingTexts[0];
     _loadingTimer = setInterval(function () {
+      if (Date.now() < _loadingMessageHoldUntil) return;
       idx = (idx + 1) % loadingTexts.length;
       el.textContent = loadingTexts[idx];
-    }, 1700);
+    }, SOUL_ORIGIN_LOADING_TICK_MS);
   }
 
   function readPremiumToken() {
@@ -1796,20 +1869,20 @@
         },
       };
 
-      logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
-      setLoadingMessage('사주·자미두수·점성술·베다점의 핵심 신호를 정밀 산출하는 중입니다.');
-      logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
-      setLoadingMessage('운명의 업 마스터 상담사가 장별 해석을 집필하는 중입니다.');
-      logStage('MasterAuthoringStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
-      setLoadingMessage('상담 품질을 검수하고 프리미엄 PDF로 봉인하는 중입니다.');
-      logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var statusContext = {
         reportId: reportId,
         sessionId: paymentSessionId || sessionId,
         requestId: paymentRequestId || requestId,
       };
+      logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
+      applySoulOriginGenerationStatus({ generationStatus: 'validating', progress: 5 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+      logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
+      applySoulOriginGenerationStatus({ generationStatus: 'calculating', progress: 10 }, { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
+      logStage('MasterAuthoringStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
+      logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var data;
       try {
+        startSoulOriginStatusPreview(statusContext, token);
         data = await callApi(PREPARE_API, payload, token);
       } catch (requestError) {
         if (!shouldRecoverWithStatus(requestError)) throw requestError;
@@ -1819,13 +1892,16 @@
           reportId: statusContext.reportId,
           errorCode: clean(requestError && requestError.code) || 'REQUEST_FAILED',
         });
-        setLoadingMessage('PDF 저장소 반영을 확인하는 중입니다.');
+        stopSoulOriginStatusPreview();
+        setLoadingMessage('PDF 저장소 반영을 확인하는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
         data = await pollSoulOriginStatus(statusContext, token);
+      } finally {
+        stopSoulOriginStatusPreview();
       }
       if (isSoulOriginRunning(data)) {
         statusContext.reportId = clean(data && (data.reportId || (data.data && data.data.reportId))) || statusContext.reportId;
         statusContext.sessionId = clean(data && (data.sessionId || (data.data && data.data.sessionId))) || statusContext.sessionId;
-        setLoadingMessage('상담서 완성본을 불러오는 중입니다.');
+        setLoadingMessage('상담서 완성본을 불러오는 중입니다.', { holdMs: SOUL_ORIGIN_STATUS_MESSAGE_HOLD_MS });
         data = await pollSoulOriginStatus(statusContext, token);
       }
       if (!isSoulOriginReportReady(data)) {
@@ -1860,6 +1936,7 @@
       if (errEl) errEl.textContent = msg;
       showScreen('error');
     } finally {
+      stopSoulOriginStatusPreview();
       stopLoadingTicker();
       _isGenerating = false;
     }
@@ -1869,6 +1946,7 @@
     var modal = $('soulOriginModal');
     if (!modal) return;
     modal.style.display = 'none';
+    stopSoulOriginStatusPreview();
     stopLoadingTicker();
     document.body.classList.remove('lb-modal-open');
     document.body.style.overflow = '';

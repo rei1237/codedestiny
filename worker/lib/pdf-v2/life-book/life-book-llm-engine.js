@@ -112,25 +112,36 @@ export function normalizeLifeBookInput(raw = {}) {
     tenGods: chart.tenGods || local.tenGods || local.tenGodDistribution || local.sibseong || signals.tenGods || signals.tenGodCounts || {},
     hiddenStems: chart.hiddenStems || local.hiddenStems || local.jijanggan || signals.hiddenStems || {},
     twelveStages: chart.twelveStages || local.twelveStages || local.twelveGrowthStages || signals.twelveGrowthStages || [],
-    fiveElements: chart.fiveElements || local.fiveElements || local.elementBalance || local.elements || signals.elementBalance || signals.elementWeights || {},
+    fiveElements: chart.fiveElements || chart.elementsBalance || local.fiveElements || local.elementBalance || local.elements || signals.elementBalance || signals.elementWeights || {},
+    elementsBalance: chart.elementsBalance || chart.fiveElements || local.elementBalance || local.fiveElements || local.elements || signals.elementBalance || signals.elementWeights || {},
     combinations: chart.combinations || local.combinations || local.hap || signals.combinations || {},
     clashes: chart.clashes || local.clashes || local.chung || local.hyeongchunghaphae || signals.clashes || {},
     usefulGod: chart.usefulGod || local.usefulGod || local.usefulGods || local.yongshin || signals.usefulGod || signals.yongshinElements || {},
+    unfavorableGod: chart.unfavorableGod || local.unfavorableGod || local.gishin || signals.unfavorableGod || signals.gishinElements || {},
+    majorLuck: chart.majorLuck || chart.luckCycles || local.majorLuck || local.luckCycles || local.daewoon || signals.majorLuck || signals.daewoon || {},
+    yearlyLuck: chart.yearlyLuck || chart.annualLuck || local.yearlyLuck || local.annualLuck || local.yearly || local.sewoon || signals.yearlyLuck || signals.sewoon || {},
     structure: chart.structure || local.structure || local.geokguk || signals.structure || signals.geokguk || {},
   };
 
   const input = {
     service: "life-book",
+    userId: clean(body.userId || raw.userId || profile.userId || "", 120),
+    profileId: clean(body.profileId || raw.profileId || profile.profileId || profile.id || "", 120),
     userName: clean(body.userName || body.name || profile.name || birthInput.name || "고객", 80),
     gender: clean(body.gender || profile.gender || birthInput.gender || "미상", 40),
     birthDate: clean(birthInput.birthDate || body.birthDate || profile.birthDate, 40),
     birthTime,
     calendarType: clean(body.calendarType || profile.calendarType || birthInput.calendarType || "solar", 20),
+    timezone: clean(body.timezone || profile.timezone || birthInput.timezone || "Asia/Seoul", 80),
     birthPlace: clean(body.birthPlace || body.birthplace || profile.birthPlace || profile.birthplace || birthInput.birthPlace || birthInput.birthplace || "미상", 120),
+    selectedTheme: clean(body.selectedTheme || body.theme || body.topic || "인생 전반", 300),
+    userQuestion: clean(body.userQuestion || body.question || body.topic || "인생 전반의 흐름", 800),
     question: clean(body.question || body.userQuestion || body.topic || "인생 전반의 흐름", 800),
     sajuChart,
     luckCycles: body.luckCycles || local.luckCycles || local.daewoon || local.cycles?.daewoon || signals.daewoon || signals.daewunCycles || {},
+    majorLuck: body.majorLuck || body.luckCycles || local.majorLuck || local.luckCycles || local.daewoon || local.cycles?.daewoon || signals.majorLuck || signals.daewoon || signals.daewunCycles || {},
     annualLuck: body.annualLuck || local.annualLuck || local.yearly || local.sewoon || signals.sewoon || signals.annualLuck || {},
+    yearlyLuck: body.yearlyLuck || body.annualLuck || local.yearlyLuck || local.annualLuck || local.yearly || local.sewoon || signals.yearlyLuck || signals.sewoon || signals.annualLuck || {},
     categories: body.categories || raw.categories || null,
     calculationEvidence: {
       localSajuValidation: raw.localSajuValidation || body.localSajuValidation || null,
@@ -223,29 +234,15 @@ async function generateChapterWithLlm({
   modelName,
   jobId,
   userId,
+  previousChapterSummary = "",
 } = {}) {
   const cacheKey = buildLifeBookChapterCacheKey({ input, chapter, chapterConfigVersion, modelName });
-  const cached = await readChapterCache(env, cacheKey);
-  if (cached?.html) {
-    const validation = validateChapterHtml(cached.html, chapter);
-    if (
-      validation.ok
-      && clean(cached.version) === LIFE_BOOK_LLM_VERSION
-      && clean(cached.promptVersion) === LIFE_BOOK_PROMPT_VERSION
-      && clean(cached.chapterConfigVersion) === clean(chapterConfigVersion)
-    ) {
-      const parsed = parseLifeBookChapterHtml(validation.html, chapter);
-      parsed.cached = true;
-      parsed.provider = cached.provider || "cache";
-      parsed.modelName = cached.modelName || modelName;
-      return { ok: true, parsed, provider: parsed.provider, modelName: parsed.modelName, source: "cache", attempts: [] };
-    }
-    await deleteChapterCache(env, cacheKey);
-  }
 
   const providers = resolveLifeBookLlmProviders(env);
   const repairLimit = Math.min(2, Math.max(0, Number(env?.LIFE_BOOK_LLM_REPAIR_LIMIT ?? env?.LIFE_BOOK_PREMIUM_LLM_REPAIR_LIMIT ?? 2)));
   const attempts = [];
+  const chapterNumber = Number(chapter.order || 0);
+  let lastErrorMessage = "";
 
   for (const provider of providers) {
     const activeModel = resolveLifeBookModelName(env, provider) || modelName;
@@ -253,8 +250,14 @@ async function generateChapterWithLlm({
     let validationErrors = [];
     for (let retry = 0; retry <= repairLimit; retry += 1) {
       const prompt = retry === 0
-        ? buildLifeBookChapterPrompt({ input, chapter, chapterPlan })
-        : buildLifeBookRepairPrompt({ input, chapter, chapterPlan, previousHtml, validationErrors });
+        ? buildLifeBookChapterPrompt({ input, chapter, chapterPlan, previousChapterSummary })
+        : buildLifeBookRepairPrompt({ input, chapter, chapterPlan, previousHtml, validationErrors, previousChapterSummary });
+      const promptHash = hashStable({
+        prompt,
+        chapterId: chapter.id,
+        promptVersion: LIFE_BOOK_PROMPT_VERSION,
+        chapterConfigVersion,
+      });
       const started = Date.now();
       logLifeBookPdfEvent("LIFE_BOOK_LLM_CHAPTER_STARTED", {
         jobId,
@@ -280,14 +283,29 @@ async function generateChapterWithLlm({
         ok: Boolean(result.ok),
         modelName: clean(result.model || activeModel),
         errorCode: clean(result.errorCode),
+        errorMessage: clean(result.errorMessage, 500),
         status: result.status || null,
         durationMs: Number(result.latencyMs || Date.now() - started),
+        promptVersion: LIFE_BOOK_PROMPT_VERSION,
+        promptHash,
+        promptPreview: clean(prompt, 1400),
       };
       attempts.push(attempt);
 
       if (!result.ok) {
         validationErrors = [clean(result.errorCode || "llm.failed")];
+        lastErrorMessage = clean(result.errorMessage || result.errorCode || "LLM provider failed.", 500);
         previousHtml = "";
+        logLifeBookPdfEvent("LIFE_BOOK_LLM_CHAPTER_FAILED", {
+          jobId,
+          userId,
+          chapterId: chapter.id,
+          provider: clean(result.provider || provider),
+          modelName: clean(result.model || activeModel),
+          status: "failed",
+          errorCode: clean(result.errorCode || "llm.failed"),
+          errorMessage: lastErrorMessage,
+        });
         if (retry < repairLimit && isRetryableProviderFailure(result)) continue;
         break;
       }
@@ -299,6 +317,9 @@ async function generateChapterWithLlm({
         parsed.cached = false;
         parsed.provider = clean(result.provider || provider);
         parsed.modelName = clean(result.model || activeModel);
+        parsed.source = "llm";
+        parsed.promptVersion = LIFE_BOOK_PROMPT_VERSION;
+        parsed.promptHash = promptHash;
         await writeChapterCache(env, cacheKey, {
           html: validation.html,
           version: LIFE_BOOK_LLM_VERSION,
@@ -317,12 +338,22 @@ async function generateChapterWithLlm({
           status: "completed",
           durationMs: attempt.durationMs,
         });
-        return { ok: true, parsed, provider: parsed.provider, modelName: parsed.modelName, source: "llm", attempts };
+        return {
+          ok: true,
+          parsed,
+          provider: parsed.provider,
+          modelName: parsed.modelName,
+          source: "llm",
+          promptHash,
+          promptVersion: LIFE_BOOK_PROMPT_VERSION,
+          attempts,
+        };
       }
 
       attempt.ok = false;
       attempt.errorCode = "validation_failed";
       attempt.issues = validation.issues;
+      lastErrorMessage = `validation_failed:${validation.issues.join(",")}`;
       validationErrors = validation.issues;
       if (retry < repairLimit) continue;
     }
@@ -330,9 +361,11 @@ async function generateChapterWithLlm({
 
   return {
     ok: false,
+    chapterNumber,
     chapterId: clean(chapter.id),
     title: clean(chapter.title),
     errorCode: "LIFE_BOOK_CHAPTER_GENERATION_FAILED",
+    errorMessage: lastErrorMessage || "Life book chapter LLM generation failed.",
     attempts,
   };
 }
@@ -349,7 +382,7 @@ export async function generateLifeBookPremiumReport(params = {}) {
   const input = normalizeLifeBookInput(params.input || {});
   validateInput(input);
   if (typeof params.onProgress === "function") {
-    params.onProgress({ status: "validating", progress: 5, currentChapterNo: 0, totalChapters: 0 });
+    params.onProgress({ status: "validating", progress: 5, currentChapterNo: 0, completedChapterCount: 0, totalChapters: 0 });
   }
 
   const chapterConfig = loadLifeBookChapterConfig({ env, input: params.input || {} });
@@ -358,24 +391,27 @@ export async function generateLifeBookPremiumReport(params = {}) {
   const chapterConfigVersion = clean(chapterConfig.chapterConfigVersion || chapterConfig.version || LIFE_BOOK_LLM_VERSION);
   const chapters = [];
   const chapterAttempts = [];
+  const chapterResults = [];
   let provider = "";
   let modelName = resolveLifeBookModelName(env, "gemini");
 
   if (typeof params.onProgress === "function") {
-    params.onProgress({ status: "generating", progress: 10, currentChapterNo: 0, totalChapters: chapterPlan.length });
+    params.onProgress({ status: "llm_chapters_start", progress: 10, currentChapterNo: 0, completedChapterCount: 0, totalChapters: chapterPlan.length });
   }
 
   for (let index = 0; index < chapterPlan.length; index += 1) {
     const chapter = chapterPlan[index];
     if (typeof params.onProgress === "function") {
       params.onProgress({
-        status: "generating",
+        status: "chapter_generating",
         progress: progressPercent(index, chapterPlan.length),
         chapter,
-        currentChapterNo: index,
+        currentChapterNo: index + 1,
+        completedChapterCount: index,
         totalChapters: chapterPlan.length,
       });
     }
+    const previousChapterSummary = clean(chapters[index - 1]?.summary || chapters[index - 1]?.text || "", 900);
     const generated = await generateChapterWithLlm({
       env,
       input,
@@ -385,24 +421,63 @@ export async function generateLifeBookPremiumReport(params = {}) {
       modelName,
       jobId,
       userId,
+      previousChapterSummary,
     });
-    chapterAttempts.push({ chapterId: chapter.id, status: generated.status || (generated.ok ? "completed" : "failed"), attempts: generated.attempts });
+    const chapterAttemptRecord = {
+      chapterNumber: Number(chapter.order || index + 1),
+      chapterId: chapter.id,
+      title: chapter.title,
+      status: generated.status || (generated.ok ? "completed" : "failed"),
+      source: clean(generated.source || (generated.ok ? "llm" : "none")),
+      attempts: generated.attempts,
+    };
+    chapterAttempts.push(chapterAttemptRecord);
     if (!generated.ok) {
+      chapterResults.push({
+        chapterNumber: Number(chapter.order || index + 1),
+        chapterId: chapter.id,
+        title: chapter.title,
+        status: "failed",
+        source: "llm",
+        errorCode: clean(generated.errorCode || "LIFE_BOOK_CHAPTER_GENERATION_FAILED"),
+        errorMessage: clean(generated.errorMessage || "Life book chapter LLM generation failed.", 500),
+        attempts: generated.attempts,
+      });
       throw Object.assign(new Error("LIFE_BOOK_CHAPTER_GENERATION_FAILED"), {
         code: "LIFE_BOOK_CHAPTER_GENERATION_FAILED",
         status: 502,
+        chapterNumber: Number(chapter.order || index + 1),
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
         details: generated,
       });
     }
     modelName = clean(generated.modelName || modelName);
     provider = provider || clean(generated.provider);
     chapters.push(generated.parsed);
+    chapterResults.push({
+      chapterNumber: Number(chapter.order || index + 1),
+      chapterId: chapter.id,
+      title: chapter.title,
+      status: "completed",
+      source: "llm",
+      provider: generated.provider,
+      modelName: generated.modelName,
+      promptVersion: generated.promptVersion,
+      promptHash: generated.promptHash,
+      result: {
+        htmlLength: String(generated.parsed?.html || "").length,
+        textLength: String(generated.parsed?.text || "").length,
+        summary: clean(generated.parsed?.summary || "", 500),
+      },
+    });
     if (typeof params.onProgress === "function") {
       params.onProgress({
-        status: "generating",
+        status: "chapter_completed",
         progress: progressPercent(index + 1, chapterPlan.length),
         chapter,
         currentChapterNo: index + 1,
+        completedChapterCount: index + 1,
         totalChapters: chapterPlan.length,
       });
     }
@@ -426,6 +501,7 @@ export async function generateLifeBookPremiumReport(params = {}) {
     llmAssemblyOnly: true,
     externalCallsAllowed: true,
     chapterAttempts,
+    chapterResults,
     pdfV2: {
       engineVersion: LIFE_BOOK_PREMIUM_ENGINE_VERSION,
       qualityVersion: LIFE_BOOK_PREMIUM_QUALITY_VERSION,

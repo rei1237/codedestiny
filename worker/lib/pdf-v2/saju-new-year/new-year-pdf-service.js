@@ -115,7 +115,17 @@ export async function generateNewYearPdfWithLlm(params = {}) {
       errors: inputValidation.errors,
     });
   }
-  if (typeof params.onProgress === "function") await params.onProgress({ status: "validating", progress: 5 });
+  if (typeof params.onProgress === "function") {
+    await params.onProgress({
+      status: "validating",
+      progress: 5,
+      completedChapters: 0,
+      totalChapters: 0,
+      currentChapterNumber: 1,
+      currentChapterTitle: "사주 명식과 대상 연도 데이터 정리",
+      currentStep: "신년운세 리포트 준비 중입니다.",
+    });
+  }
 
   const chapterConfig = resolveChapterConfig(normalized, input);
   const planValidation = validateNewYearChapterPlan(chapterConfig);
@@ -137,7 +147,17 @@ export async function generateNewYearPdfWithLlm(params = {}) {
     onProgress: params.onProgress,
   });
 
-  if (typeof params.onProgress === "function") await params.onProgress({ status: "rendering", progress: 88 });
+  if (typeof params.onProgress === "function") {
+    await params.onProgress({
+      status: "rendering",
+      progress: 88,
+      completedChapters: generated.chapters.length,
+      totalChapters: chapterConfig.expectedChapterCount,
+      currentChapterNumber: chapterConfig.expectedChapterCount,
+      currentChapterTitle: "전체 리포트 검수",
+      currentStep: "전체 리포트 검수 중입니다.",
+    });
+  }
   const html = assembleFinalNewYearHtml({
     input,
     chapterPlan: chapterConfig.chapters,
@@ -180,7 +200,17 @@ export async function generateNewYearPdfWithLlm(params = {}) {
       errors: completionValidation.errors,
     });
   }
-  if (typeof params.onProgress === "function") await params.onProgress({ status: "rendering", progress: 95 });
+  if (typeof params.onProgress === "function") {
+    await params.onProgress({
+      status: "rendering",
+      progress: 95,
+      completedChapters: generated.chapters.length,
+      totalChapters: chapterConfig.expectedChapterCount,
+      currentChapterNumber: chapterConfig.expectedChapterCount,
+      currentChapterTitle: "PDF 렌더링",
+      currentStep: "PDF 렌더링 중입니다.",
+    });
+  }
 
   const llmAssembly = {
     enabled: true,

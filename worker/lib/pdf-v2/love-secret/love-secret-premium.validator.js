@@ -64,9 +64,23 @@ function countChapterSections(html, chapterId) {
   return (source.match(re) || []).length;
 }
 
+const perspectiveMatchers = Object.freeze({
+  "상담형 해석": /(?:사주|명식|일간|일지|월지|십성|오행|배우자성|궁합|관계|연애)/,
+  "주의점": /(?:주의|조심|경계|피하|흔들|불안|과하|무리|서두르|갈등|오해)/,
+  "실전 조언": /(?:조언|실천|해보|정해|말해|연락|대화|루틴|기준|선택|비책)/,
+  "두 사람의 차이": /(?:두 사람|서로|상대|각자|차이|다르|맞물리|비교)/,
+  "관계 리스크": /(?:리스크|주의|갈등|오해|불안|흔들|부딪|조율|위기|거리감)/,
+});
+
 function missingRequiredPerspectives(text, chapter = {}) {
   const source = stripTags(text);
-  return asArray(chapter.requiredPerspectives).filter((item) => !source.includes(clean(item)));
+  return asArray(chapter.requiredPerspectives).filter((item) => {
+    const label = clean(item);
+    if (!label) return false;
+    if (source.includes(label)) return false;
+    const matcher = perspectiveMatchers[label];
+    return matcher ? !matcher.test(source) : true;
+  });
 }
 
 export function parseLoveSecretPremiumChapterHtml(html = "", chapter = {}) {

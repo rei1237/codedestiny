@@ -126,6 +126,25 @@
     return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
   }
 
+  function _debugSafeValue(value, depth) {
+    if (value == null || depth < 0) return undefined;
+    if (Array.isArray(value)) {
+      return value.slice(0, 6).map(function (item) { return _debugSafeValue(item, depth - 1); });
+    }
+    if (typeof value === 'object') {
+      var out = {};
+      Object.keys(value).slice(0, 18).forEach(function (key) {
+        var safeKey = _clean(key);
+        if (!safeKey || /token|secret|password|authorization|cookie/i.test(safeKey)) return;
+        var safeValue = _debugSafeValue(value[key], depth - 1);
+        if (safeValue !== undefined) out[safeKey] = safeValue;
+      });
+      return out;
+    }
+    var text = _clean(value);
+    return text ? text.slice(0, 300) : value;
+  }
+
   function _payloadSafe(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
     var nested = data.error && typeof data.error === 'object' ? data.error : {};
@@ -140,6 +159,7 @@
       executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
       missing: _shortList(data.missing || nested.missing || data.hardMissingFields, 6),
       issues: _shortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      details: _debugSafeValue(data.details || nested.details || debugSafe.details, 3),
       debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
     };
   }
@@ -719,9 +739,15 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok !== false) { resolve(pack.json); return; }
+          _logError(_buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: 'planets-precalc',
+          }), { stage: 'planets-precalc', endpoint: url });
           run(resolve, (pack.json && (pack.json.message || pack.json.error || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
-        .catch(function (error) { run(resolve, String(error && error.message || error || '요청 실패')); });
+        .catch(function (error) {
+          _logError(error, { stage: 'planets-precalc', endpoint: url });
+          run(resolve, String(error && error.message || error || '요청 실패'));
+        });
     }
     return new Promise(function (resolve) { run(resolve, ''); });
   }
@@ -742,9 +768,14 @@
         planets: (chart && chart.planets) || {},
         retrograde: (chart && chart.retrograde) || {},
         ayanamsa: chart && chart.ayanamsa,
+        ayanamsaName: _clean(chart && chart.ayanamsaName) || 'Lahiri',
         ascendantSidereal: chart && chart.ascendantSidereal,
         source: _clean(chart && chart.source) || 'worker-vedic-planets',
+        engineQuality: _clean(chart && chart.engineQuality) || 'swiss',
+        fallbackUsed: chart && chart.fallbackUsed === true,
       },
+      chartSource: chart || null,
+      localVedicChartJson: chart && chart.localVedicChartJson && typeof chart.localVedicChartJson === 'object' ? chart.localVedicChartJson : null,
       location: {
         lat: Number(normalized.latitude != null ? normalized.latitude : 37.5665),
         lon: Number(normalized.longitude != null ? normalized.longitude : 126.9780),
@@ -1245,13 +1276,18 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) { _persistPremiumAccessToken(_extractPremiumToken(pack.json)); resolve(pack.json); return; }
-          run(resolve, reject, _buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+          var apiError = _buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
             stage: 'prepare',
             sessionId: body && body.sessionId,
             reportId: body && body.reportId
-          }));
+          });
+          _logError(apiError, { stage: 'prepare-response', endpoint: url });
+          run(resolve, reject, apiError);
         })
-        .catch(function (error) { run(resolve, reject, error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'))); });
+        .catch(function (error) {
+          _logError(error, { stage: 'prepare-network', endpoint: url });
+          run(resolve, reject, error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패')));
+        });
     }
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
@@ -1489,6 +1525,8 @@
           reportType: 'vedicPremium',
           mode: 'personal',
           vedicClientEvidenceJson: _buildVedicClientEvidenceJson(profile, birthInput, chart),
+          chartSource: chart || undefined,
+          localVedicChartJson: chart && chart.localVedicChartJson && typeof chart.localVedicChartJson === 'object' ? chart.localVedicChartJson : undefined,
           vedicBase: chart ? _buildVedicBase(profile, chart, birthInput) : null,
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {

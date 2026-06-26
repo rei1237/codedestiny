@@ -42,6 +42,35 @@ function includes(source, text) {
   return source.includes(text);
 }
 
+function extractBlockFromOpenBrace(source, openIndex) {
+  let depth = 0;
+  for (let index = openIndex; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === "{") depth += 1;
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(openIndex, index + 1);
+    }
+  }
+  return "";
+}
+
+function extractBraceBlock(source, marker) {
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) return "";
+  const openIndex = source.indexOf("{", markerIndex);
+  if (openIndex < 0) return "";
+  return extractBlockFromOpenBrace(source, openIndex);
+}
+
+function extractFunctionBlock(source, marker) {
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) return "";
+  const bodyIndex = source.indexOf(") {", markerIndex);
+  if (bodyIndex < 0) return "";
+  return extractBlockFromOpenBrace(source, bodyIndex + 2);
+}
+
 function checkSyntax(filePath) {
   try {
     execFileSync(process.execPath, ["--check", filePath], { stdio: "pipe" });
@@ -198,6 +227,16 @@ assert(includes(files.route, 'localFallbackUsed: false'), "route.records_local_f
 assert(includes(files.route, '자미두수 PDF 생성 서버가 응답하지 않았습니다. 잠시 후 다시 시도해 주세요.'), "route.server_failure_message_is_user_safe");
 assert(!includes(files.route, '? "Internal server error"'), "route.must_not_expose_internal_server_error_message");
 assert(!includes(files.route, ': "Internal server error"'), "route.must_not_return_internal_server_error_message");
+
+const progressPersistBlock = extractFunctionBlock(files.route, "async function persistZiweiPdfProgress");
+const progressSetOnInsertBlock = extractBraceBlock(progressPersistBlock, "update.$setOnInsert =");
+assert(includes(progressPersistBlock, '$set: {'), "route.progress_persist_uses_set_update");
+assert(includes(progressPersistBlock, 'reportType: "ziweiPremium"'), "route.progress_persist_sets_report_type");
+assert(includes(progressPersistBlock, "reportId: reportId || undefined"), "route.progress_persist_sets_report_id");
+assert(includes(progressPersistBlock, "sessionId: sessionId || undefined"), "route.progress_persist_sets_session_id");
+["reportType", "reportId", "sessionId"].forEach((key) => {
+  assert(!new RegExp(`\\b${key}:`).test(progressSetOnInsertBlock), `route.progress_upsert_set_on_insert_must_not_duplicate_${key}`);
+});
 
 assert(includes(files.billing, "function validateZiweiArchiveForDownload"), "billing.archive_guard_exists");
 assert(includes(files.billing, "function resolveZiweiArchiveLlmAssembly"), "billing.resolves_llm_assembly_from_archive_metadata");

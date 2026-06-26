@@ -1,6 +1,6 @@
-export const LOVE_SECRET_LLM_VERSION = "2026-06-love-secret-llm-v1";
+export const LOVE_SECRET_LLM_VERSION = "2026-06-love-secret-llm-v2";
 export const LOVE_SECRET_PREMIUM_ENGINE_VERSION = LOVE_SECRET_LLM_VERSION;
-export const LOVE_SECRET_PREMIUM_QUALITY_VERSION = "love-secret-llm-only-chapter-lock-v1";
+export const LOVE_SECRET_PREMIUM_QUALITY_VERSION = "love-secret-llm-only-chapter-lock-v2";
 export const LOVE_SECRET_PREMIUM_REPORT_TYPE = "loveSecret";
 export const LOVE_SECRET_PREMIUM_SERVICE_KEY = "saju-love-secret";
 export const LOVE_SECRET_PREMIUM_FEATURE_KEY = "premium_pdf_saju_love_secret";

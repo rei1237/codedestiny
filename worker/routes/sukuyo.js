@@ -43,6 +43,8 @@ const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
 const sukuyoPdfGenerationLocks = new Map();
+const SUKUYO_CALENDAR_TIMEZONE = "Asia/Seoul";
+const SUKUYO_CALENDAR_WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
@@ -63,6 +65,165 @@ function withSukuyoTimeout(promise, timeoutMs = 2500, fallback = null) {
 function toNumber(value, fallback = NaN) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function padSukuyoCalendar2(value) {
+  return String(Number(value)).padStart(2, "0");
+}
+
+function formatSukuyoCalendarDateKey(year, month, day) {
+  return `${String(Number(year)).padStart(4, "0")}-${padSukuyoCalendar2(month)}-${padSukuyoCalendar2(day)}`;
+}
+
+function readSukuyoCalendarKstDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SUKUYO_CALENDAR_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (type) => Number(parts.find((part) => part.type === type)?.value);
+  return {
+    year: get("year"),
+    month: get("month"),
+    day: get("day"),
+  };
+}
+
+function getSukuyoCalendarTodayKey(date = new Date()) {
+  const today = readSukuyoCalendarKstDateParts(date);
+  return formatSukuyoCalendarDateKey(today.year, today.month, today.day);
+}
+
+function normalizeSukuyoCalendarYearMonth(yearInput, monthInput) {
+  const year = Number(yearInput);
+  const month = Number(monthInput);
+  if (!Number.isInteger(year) || year < 1900 || year > 2100) {
+    throw new Error("연도는 1900년부터 2100년 사이로 입력해주세요.");
+  }
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new Error("월은 1월부터 12월 사이로 입력해주세요.");
+  }
+  return { year, month };
+}
+
+function getSukuyoCalendarDaysInMonth(year, month) {
+  return new Date(Date.UTC(year, month, 0, 0, 0, 0)).getUTCDate();
+}
+
+function getSukuyoCalendarWeekdayIndex(year, month, day) {
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0)).getUTCDay();
+}
+
+function formatSukuyoCalendarMansionName(sukuyo = {}) {
+  const name = clean(sukuyo.nameKo || sukuyo.name || "");
+  if (!name) return "미산출";
+  return /[수숙]$/.test(name) ? name : `${name}수`;
+}
+
+function buildSukuyoCalendarKeywords(sukuyo = {}) {
+  const values = []
+    .concat(Array.isArray(sukuyo.keywords) ? sukuyo.keywords : [])
+    .concat(Array.isArray(sukuyo.strengths) ? sukuyo.strengths : []);
+  return Array.from(new Set(values.map(clean).filter(Boolean))).slice(0, 4);
+}
+
+function buildSukuyoCalendarInterpretation(sukuyo = {}) {
+  const name = formatSukuyoCalendarMansionName(sukuyo);
+  const keywords = buildSukuyoCalendarKeywords(sukuyo);
+  const keyword = keywords[0] || "달빛 리듬";
+  const strength = clean(Array.isArray(sukuyo.strengths) ? sukuyo.strengths[0] : "") || keyword;
+  const shadow = clean(Array.isArray(sukuyo.shadows) ? sukuyo.shadows[0] : "") || "마음의 과속";
+  const archetype = clean(sukuyo.archetypeTitle) || `${name}의 달빛`;
+  return {
+    keywords,
+    core: `${archetype}이 떠오르는 날입니다. ${keyword}의 기운이 강하게 드러나며, 마음이 향해야 할 방향을 조용히 가리킵니다.`,
+    usagePoint: `${strength}을 살릴 때 흐름이 부드럽게 열립니다. 약속, 선택, 정리할 일을 한 가지 기준으로 묶어 보세요.`,
+    caution: `${shadow}으로 기울면 말과 판단이 급해질 수 있습니다. 잠시 숨을 고르고 사실과 감정을 나누어 보세요.`,
+    love: `관계에서는 ${keyword}의 결이 먼저 비춥니다. 다가갈 때는 온도를 낮추고, 물러설 때도 마음의 예의를 남기는 편이 좋습니다.`,
+    workMoney: `일과 금전은 ${strength}을 중심으로 흐릅니다. 새로 벌리기보다 오늘 잡히는 기준을 숫자와 일정으로 남기세요.`,
+    advice: `${name}의 달빛은 ${keyword}을 가리킵니다. 오늘은 크게 흔들기보다 한 가지 선택을 곱게 매듭지으세요.`,
+  };
+}
+
+function buildSukuyoCalendarDay(year, month, day, todayKey) {
+  const solar = Solar.fromYmdHms(year, month, day, 12, 0, 0);
+  const lunar = solar.getLunar();
+  const lunarMonthRaw = Number(lunar.getMonth());
+  const lunarMonth = Math.abs(lunarMonthRaw);
+  const lunarDay = Number(lunar.getDay());
+  const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
+    isLeapMonth: lunarMonthRaw < 0,
+    source: "lunar-javascript",
+  });
+  const mansionIndex = Number(sukuyo?.index);
+  if (!Number.isInteger(mansionIndex) || mansionIndex < 0 || mansionIndex > 26) {
+    throw new Error("숙요 계산값을 달력 표기로 연결하지 못했습니다.");
+  }
+  const date = formatSukuyoCalendarDateKey(year, month, day);
+  const weekdayIndex = getSukuyoCalendarWeekdayIndex(year, month, day);
+  const reading = buildSukuyoCalendarInterpretation(sukuyo);
+  return {
+    date,
+    day,
+    weekday: SUKUYO_CALENDAR_WEEKDAYS[weekdayIndex],
+    weekdayIndex,
+    mansionIndex,
+    mansionKey: `sukuyo-${String(mansionIndex + 1).padStart(2, "0")}`,
+    koreanName: formatSukuyoCalendarMansionName(sukuyo),
+    hanjaName: `${clean(sukuyo.nameHan || "")}宿`,
+    japaneseName: clean(sukuyo.nameJp || ""),
+    keywords: reading.keywords,
+    isToday: date === todayKey,
+    lunarDate: {
+      year: Number.isFinite(Number(lunar.getYear())) ? Number(lunar.getYear()) : null,
+      month: lunarMonth,
+      day: lunarDay,
+      isLeapMonth: lunarMonthRaw < 0,
+    },
+    core: reading.core,
+    usagePoint: reading.usagePoint,
+    caution: reading.caution,
+    love: reading.love,
+    workMoney: reading.workMoney,
+    advice: reading.advice,
+  };
+}
+
+function buildSukuyoCalendarMonth(yearInput, monthInput) {
+  const { year, month } = normalizeSukuyoCalendarYearMonth(yearInput, monthInput);
+  const today = getSukuyoCalendarTodayKey();
+  const daysInMonth = getSukuyoCalendarDaysInMonth(year, month);
+  const days = Array.from({ length: daysInMonth }, (_, index) =>
+    buildSukuyoCalendarDay(year, month, index + 1, today)
+  );
+  return {
+    year,
+    month,
+    timezone: SUKUYO_CALENDAR_TIMEZONE,
+    monthKey: `${String(year).padStart(4, "0")}-${padSukuyoCalendar2(month)}`,
+    today,
+    firstWeekdayIndex: getSukuyoCalendarWeekdayIndex(year, month, 1),
+    daysInMonth,
+    days,
+  };
+}
+
+async function handleSukuyoCalendar(request) {
+  try {
+    const url = new URL(request.url);
+    const calendar = buildSukuyoCalendarMonth(url.searchParams.get("year"), url.searchParams.get("month"));
+    return json({
+      ok: true,
+      ...calendar,
+    });
+  } catch (error) {
+    return json({
+      ok: false,
+      code: "SUKUYO_CALENDAR_FAILED",
+      error: error instanceof Error ? error.message : "숙요 달력을 불러오지 못했습니다.",
+    }, { status: 400 });
+  }
 }
 
 function normalizeSukuyoError(error) {
@@ -3477,6 +3638,11 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/sukuyo");
+
+    if (path === "/calendar") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleSukuyoCalendar(request);
+    }
 
     if (path === "/yearly-fortune") {
       if (method !== "GET") return methodNotAllowed();

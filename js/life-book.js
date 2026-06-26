@@ -208,7 +208,13 @@
       stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
       failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
       reportId: _clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      sessionId: _clean(data.sessionId || data.reportSessionId || debugSafe.sessionId || nested.sessionId) || undefined,
+      requestId: _clean(data.requestId || debugSafe.requestId || nested.requestId) || undefined,
       executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      chapterNumber: Number(data.chapterNumber || debugSafe.chapterNumber || nested.chapterNumber || 0) || undefined,
+      chapterTitle: _clean(data.chapterTitle || debugSafe.chapterTitle || nested.chapterTitle) || undefined,
+      errorCode: _clean(data.errorCode || debugSafe.errorCode || nested.errorCode) || undefined,
+      errorMessage: _clean(data.errorMessage || debugSafe.errorMessage || nested.errorMessage) || undefined,
       missing: _lifeBookShortList(data.missing || nested.missing || data.hardMissingFields, 6),
       issues: _lifeBookShortList(data.issues || nested.issues || data.errors || nested.errors, 6),
       debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
@@ -226,7 +232,13 @@
     err.stage = _clean(safe.stage) || 'prepare';
     err.failureType = _clean(safe.failureType);
     err.reportId = _clean(safe.reportId);
+    err.sessionId = _clean(safe.sessionId);
+    err.requestId = _clean(safe.requestId);
     err.executionId = _clean(safe.executionId);
+    err.chapterNumber = safe.chapterNumber;
+    err.chapterTitle = _clean(safe.chapterTitle);
+    err.errorCode = _clean(safe.errorCode);
+    err.errorMessage = _clean(safe.errorMessage);
     err.missing = safe.missing;
     err.issues = safe.issues;
     err.payloadSafe = safe;
@@ -986,7 +998,18 @@ function _isLifeBookGenerationBusy() {
   function _isLifeBookRunningData(data) {
     var source = data && typeof data === 'object' ? data : {};
     var status = String(source.status || source.serverStatus || (source.data && (source.data.status || source.data.serverStatus)) || '').toLowerCase();
-    return status === 'running' || status === 'queued' || status === 'processing' || status === 'generating' || status === 'pending';
+    return status === 'running'
+      || status === 'queued'
+      || status === 'processing'
+      || status === 'generating'
+      || status === 'pending'
+      || status === 'validating'
+      || status === 'llm_generation'
+      || status === 'llm_chapters_start'
+      || status === 'chapter_generating'
+      || status === 'chapter_completed'
+      || status === 'reviewing'
+      || status === 'rendering';
   }
 
   function _normalizeLifeBookDoneData(data) {
@@ -1397,13 +1420,32 @@ function _isLifeBookGenerationBusy() {
   function _normalizeLifeBookErrorMessage(error, fallback) {
     var raw = String(error && error.message ? error.message : error || '').trim();
     var defaultMsg = String(fallback || '요청 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    var payloadSafe = error && error.payloadSafe
+      ? error.payloadSafe
+      : _lifeBookPayloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+    var chapterNumber = Number(error && error.chapterNumber || payloadSafe.chapterNumber || 0) || 0;
+    var chapterTitle = _clean(error && error.chapterTitle || payloadSafe.chapterTitle);
+    var errorCode = _clean(error && (error.errorCode || error.code) || payloadSafe.errorCode || payloadSafe.code);
+    var errorMessage = _clean(error && error.errorMessage || payloadSafe.errorMessage);
+    if (chapterNumber) {
+      return '제 ' + chapterNumber + '장' + (chapterTitle ? ' "' + chapterTitle + '"' : '') + ' LLM 생성 중 문제가 발생했습니다.'
+        + (errorCode ? '\n오류 코드: ' + errorCode : '')
+        + (errorMessage && errorMessage !== raw ? '\n상세: ' + errorMessage : '')
+        + '\n이미 결제된 요청은 재결제 없이 다시 시도할 수 있습니다.';
+    }
     if (!raw) return defaultMsg;
     if (/abort|aborted|AbortError|without reason/i.test(raw)) return defaultMsg;
     if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
       return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
     }
+    if (errorCode && /^LIFE_BOOK_/i.test(errorCode)) {
+      return '인생의 책 LLM 생성 중 문제가 발생했습니다.'
+        + '\n오류 코드: ' + errorCode
+        + (errorMessage ? '\n상세: ' + errorMessage : '')
+        + '\n이미 결제된 요청은 재결제 없이 다시 시도할 수 있습니다.';
+    }
     if (/^[A-Z0-9_:-]+$/.test(raw) || /\b(SEED|JSON|PAYLOAD|SCHEMA|UNDEFINED|NULL|NAN)\b/i.test(raw)) {
-      return '인생의 책 원고를 완성하는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
+      return '인생의 책 LLM 원고 생성 중 문제가 발생했습니다. 이미 결제된 요청은 재결제 없이 다시 시도할 수 있습니다.';
     }
     return raw;
   }
@@ -1450,6 +1492,8 @@ function _isLifeBookGenerationBusy() {
     if (_clean(ctx.reportId || _lbCurrentReportId)) parts.push('reportId ' + _clean(ctx.reportId || _lbCurrentReportId));
     if (_clean(ctx.sessionId)) parts.push('sessionId ' + _clean(ctx.sessionId));
     if (_clean(ctx.requestId)) parts.push('requestId ' + _clean(ctx.requestId));
+    if (Number(ctx.chapterNumber || 0)) parts.push('chapter ' + Number(ctx.chapterNumber));
+    if (_clean(ctx.chapterTitle)) parts.push(_clean(ctx.chapterTitle));
     return parts.join(' · ');
   }
 
@@ -1934,6 +1978,14 @@ function _isLifeBookGenerationBusy() {
     llm_writing: '인생의 책 원고를 정리하는 중',
     writing_llm: '인생의 책 원고를 정리하는 중',
     calculation_validated: '사주 계산 완료 · LLM 원고 생성 시작',
+    validating: '사주 계산 결과 확인 중',
+    llm_generation: '인생의 책 본문 생성 준비 중',
+    chapter_generating: 'LLM으로 챕터를 생성하는 중',
+    chapter_completed: '챕터 원고 검증 완료',
+    reviewing: '전체 리포트 검수 중',
+    rendering: 'PDF 렌더링 중',
+    completed: '인생의 책 완성',
+    failed: '생성 중 문제가 발생했습니다',
     rendering_pdf: 'PDF 편집과 렌더링 중',
     done: '완료',
     llm_reinforce: '부족한 장을 보강하는 중',
@@ -1945,6 +1997,14 @@ function _isLifeBookGenerationBusy() {
     llm_writing: '인생의 책 원고를 LLM으로 정리하는 중',
     writing_llm: '인생의 책 원고를 LLM으로 정리하는 중',
     calculation_validated: '사주 계산 완료 · LLM 원고 생성 시작',
+    validating: '사주 계산 결과 확인 중',
+    llm_generation: '인생의 책 본문 생성 준비 중',
+    chapter_generating: 'LLM으로 챕터를 생성하는 중',
+    chapter_completed: '챕터 원고 검증 완료',
+    reviewing: '전체 리포트 검수 중',
+    rendering: 'PDF 렌더링 중',
+    completed: '인생의 책 완성',
+    failed: '생성 중 문제가 발생했습니다',
     llm_reinforce: '인생의 책 원고를 보강하는 중',
   });
 
@@ -2144,22 +2204,37 @@ function _isLifeBookGenerationBusy() {
     });
     if (chDots[0]) chDots[0].classList.add('lb-ch-dot--active');
 
-    function _setProgress(done) {
-      var pct = (done / LIFEBOOK_TOTAL_CHAPTERS) * 100;
+    function _setProgress(done, detail) {
+      var info = detail && typeof detail === 'object' ? detail : {};
+      var total = Number(info.totalChapters || LIFEBOOK_TOTAL_CHAPTERS);
+      if (!Number.isFinite(total) || total <= 0) total = LIFEBOOK_TOTAL_CHAPTERS;
+      var completed = Number(done || info.completedChapterCount || 0);
+      if (!Number.isFinite(completed)) completed = 0;
+      completed = Math.max(0, Math.min(total, completed));
+      var current = Number(info.currentChapterNo || (completed < total ? completed + 1 : total));
+      if (!Number.isFinite(current) || current < 0) current = completed < total ? completed + 1 : total;
+      current = Math.max(0, Math.min(total, current));
+      var pct = Number(info.percent);
+      if (!Number.isFinite(pct)) pct = (completed / total) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+      var title = String(info.currentChapterTitle || '').trim();
+      var stateKey = String(info.stateKey || '').trim();
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / ' + LIFEBOOK_TOTAL_CHAPTERS + ' 챕터 완성';
-      if (chapterMsg && done < LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
+      if (progressText) progressText.textContent = Math.round(pct) + '% · ' + completed + ' / ' + total + ' 챕터 완성';
+      if (chapterMsg && completed < total) {
+        chapterMsg.textContent = title || _lbStateMessages[stateKey] || LOADING_MSGS[Math.max(0, current - 1)] || '분석 중...';
+      }
+      if (chapterMsg && completed >= total) chapterMsg.textContent = title || '모든 챕터가 완성되었습니다 ✦';
       if (chapterNumEl) {
-        chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? ('제 ' + (done + 1) + '장') : '완료';
+        chapterNumEl.textContent = completed < total ? ('제 ' + Math.max(1, current) + '장') : '완료';
       }
       // 챕터 아이콘 업데이트
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-lbch'));
         var wasDone = d.classList.contains('lb-ch-dot--done');
-        d.classList.toggle('lb-ch-dot--done', ch <= done);
-        d.classList.toggle('lb-ch-dot--active', ch === done + 1 && done < LIFEBOOK_TOTAL_CHAPTERS);
-        if (!wasDone && ch <= done) {
+        d.classList.toggle('lb-ch-dot--done', ch <= completed);
+        d.classList.toggle('lb-ch-dot--active', ch === current && completed < total);
+        if (!wasDone && ch <= completed) {
           d.style.animation = 'none';
           requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});
         }
@@ -2301,18 +2376,30 @@ function _isLifeBookGenerationBusy() {
       var _statusPollingStop = false;
       var _handleStatusProgress = function (_statusData) {
         if (!_statusData || typeof _statusData !== 'object') return;
-        var _stateKey = String(((_statusData.progress || {}).stateKey) || '').trim();
+        var _progress = (_statusData.progress && typeof _statusData.progress === 'object') ? _statusData.progress : {};
+        var _stateKey = String(_progress.stateKey || '').trim();
         var _status = String(_statusData.status || '').trim();
-        var _current = Number(((_statusData.progress || {}).currentChapterNo) || 0);
-        var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
-        if (_stateKey) _setGenerationState(_stateKey);
-        if (_status === 'running' || _status === 'queued' || _status === 'processing' || _status === 'generating') {
+        var _current = Number(_progress.currentChapterNo || 0);
+        var _completed = Number(_progress.completedChapterCount || 0);
+        var _total = Number(_progress.totalChapters || LIFEBOOK_TOTAL_CHAPTERS);
+        var _percent = Number(_progress.percent);
+        if (_stateKey && !/^chapter_/i.test(_stateKey)) _setGenerationState(_stateKey);
+        if ((_status === 'running' || _status === 'queued' || _status === 'processing' || _status === 'generating') && !_stateKey) {
           _setGenerationState('writing_llm');
         }
-        if (Number.isFinite(_current) && _current > 0) {
-          _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
+        if (Number.isFinite(_percent) || Number.isFinite(_current) || Number.isFinite(_completed)) {
+          _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _completed)), {
+            percent: _percent,
+            currentChapterNo: _current,
+            completedChapterCount: _completed,
+            totalChapters: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
+            currentChapterTitle: String(_progress.currentChapterTitle || '').trim(),
+            stateKey: _stateKey,
+          });
           _lifeBookLog('LlmChapterProgress', {
-            chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
+            chapterNow: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
+            chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _completed)),
+            percent: Number.isFinite(_percent) ? _percent : undefined,
             total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
           });
         }
@@ -2433,13 +2520,17 @@ function _isLifeBookGenerationBusy() {
           subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
           isSkeleton: false,
         };
-        if (chapterMsg) chapterMsg.textContent = '제 ' + (_i + 1) + '장 정리 완료 · 다음 챕터를 준비하고 있습니다...';
-        _setProgress(_i + 1);
-        _lifeBookLog('LlmDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
-        await new Promise(function (r) { setTimeout(r, 90); });
       }
 
-      _setGenerationState('writing_llm');
+      _setProgress(LIFEBOOK_TOTAL_CHAPTERS, {
+        percent: 100,
+        currentChapterNo: LIFEBOOK_TOTAL_CHAPTERS,
+        completedChapterCount: LIFEBOOK_TOTAL_CHAPTERS,
+        totalChapters: LIFEBOOK_TOTAL_CHAPTERS,
+        currentChapterTitle: '인생의 책 완성',
+        stateKey: 'completed',
+      });
+      _setGenerationState('completed');
       _flowLog('LIFE_BOOK_LLM_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
       _lifeBookLog('LlmManuscriptReady', { reportId: _lbReportId });
       var _llmAssembly = (_data && _data.llmAssembly && typeof _data.llmAssembly === 'object')
@@ -2494,6 +2585,10 @@ function _isLifeBookGenerationBusy() {
       _clearLifeBookGenerationState();
       _showLifeBookError('인생의 책 생성 중 오류가 발생했습니다.\n\n' + errMsg + '\n\n잠시 후 다시 시도해 주세요.', {
         reportId: _lbCurrentReportId,
+        sessionId: _clean(error && error.sessionId) || _sessionId,
+        requestId: _clean(error && error.requestId) || _requestId,
+        chapterNumber: Number(error && error.chapterNumber || 0) || undefined,
+        chapterTitle: _clean(error && error.chapterTitle),
         profileKey: profileCacheKey,
       });
     }).finally(function () {

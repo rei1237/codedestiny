@@ -6167,8 +6167,85 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
     || /database is temporarily unavailable/i.test(message);
 }
 
+function _sajuPromptPendingStorageKey(profileId) {
+  return 'codeDestiny:sajuAiConsultation:pending:' + (String(profileId || '').trim() || 'default');
+}
+
+function _sajuPromptStorePendingJob(job) {
+  try {
+    var profileId = String((job && job.profileId) || '').trim();
+    localStorage.setItem(_sajuPromptPendingStorageKey(profileId), JSON.stringify(Object.assign({}, job, {
+      savedAt: Date.now()
+    })));
+  } catch (_) {}
+}
+
+function _sajuPromptReadPendingJob(profileId) {
+  try {
+    var raw = localStorage.getItem(_sajuPromptPendingStorageKey(profileId));
+    if (!raw) return null;
+    var job = JSON.parse(raw);
+    if (!job || typeof job !== 'object') return null;
+    if (Date.now() - Number(job.savedAt || 0) > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(_sajuPromptPendingStorageKey(profileId));
+      return null;
+    }
+    return job;
+  } catch (_) {
+    return null;
+  }
+}
+
+function _sajuPromptClearPendingJob(profileId) {
+  try { localStorage.removeItem(_sajuPromptPendingStorageKey(profileId)); } catch (_) {}
+}
+
+function _sajuPromptBuildQuery(params) {
+  var parts = [];
+  Object.keys(params || {}).forEach(function(key) {
+    var value = String(params[key] || '').trim();
+    if (value) parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+  });
+  return parts.length ? '?' + parts.join('&') : '';
+}
+
+function _sajuPromptRequestGet(path) {
+  var urls = _sajuPromptApiUrls(path);
+  function runAt(index) {
+    return _cdAIPromptRequestJson(urls[index], { method: 'GET' }).then(function(result) {
+      if ((result && result.ok) || index + 1 >= urls.length) return result;
+      return runAt(index + 1);
+    }).catch(function(error) {
+      if (index + 1 < urls.length) return runAt(index + 1);
+      throw error;
+    });
+  }
+  return runAt(0);
+}
+
+function _sajuPromptFetchStatus(job) {
+  var item = job && typeof job === 'object' ? job : {};
+  var jobId = String(item.jobId || item.executionId || '').trim();
+  var path = '/api/fortune/saju-ai-consultation/status' + (jobId ? '/' + encodeURIComponent(jobId) : '');
+  return _sajuPromptRequestGet(path + _sajuPromptBuildQuery({
+    requestId: item.requestId,
+    profileId: item.profileId
+  }));
+}
+
+function _sajuPromptFetchResult(job) {
+  var item = job && typeof job === 'object' ? job : {};
+  var resultId = String(item.resultId || '').trim();
+  var path = '/api/fortune/saju-ai-consultation/result' + (resultId ? '/' + encodeURIComponent(resultId) : '');
+  return _sajuPromptRequestGet(path + _sajuPromptBuildQuery({
+    jobId: item.jobId || item.executionId,
+    requestId: item.requestId,
+    profileId: item.profileId
+  }));
+}
+
 function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options) {
-  var urls = _sajuPromptApiUrls('/api/fortune/saju/ai-prompt');
+  var urls = _sajuPromptApiUrls('/api/fortune/saju-ai-consultation/create');
   var opts = options && typeof options === 'object' ? options : {};
   var profileId = String(opts.profileId || _sajuPromptResolveProfileId() || '').trim();
   var body = {
@@ -6192,6 +6269,18 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     payment: evidence.payment,
     _paymentContext: evidence._paymentContext
   };
+  if (typeof opts.onJobRequestReady === 'function') {
+    try {
+      opts.onJobRequestReady({
+        requestId: body.requestId,
+        profileId: profileId,
+        question: question,
+        domain: String(domain || '').trim(),
+        privacyOptions: privacyOptions,
+        paidEvidence: evidence
+      });
+    } catch (_) {}
+  }
   function runAt(index, attempt) {
     return _cdAIPromptRequestJson(urls[index], {
       method: 'POST',
@@ -6289,14 +6378,25 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     savedEvidence = _cdAIPromptGateEvidence(gateResult);
+    if (typeof opts.onPaidEvidence === 'function') {
+      try { opts.onPaidEvidence(savedEvidence); } catch (_) {}
+    }
     return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, savedEvidence, options);
   }).then(attachEvidence);
 }
 
 function _buildSajuQuestionPromptHtml() {
-  var steps = ['명식 정리', '질문 방향 읽기', 'AI 상담문 작성', '결과 다듬기'];
+  var steps = [
+    ['0', '결제 확인'],
+    ['15', '명식 로딩'],
+    ['30', '질문 해석'],
+    ['45', '구조 판독'],
+    ['65', '상담 생성'],
+    ['85', '결과 정리'],
+    ['100', '완료']
+  ];
   var stepHtml = steps.map(function(label, idx) {
-    return '<div data-saju-ai-step="' + idx + '" style="display:flex;align-items:center;gap:8px;border:1px solid rgba(230,196,112,.26);background:rgba(255,255,255,.07);border-radius:8px;padding:8px 9px;color:rgba(255,247,223,.68);font-size:0.72rem;font-weight:800;min-height:38px;box-sizing:border-box;"><span data-saju-ai-step-dot style="width:8px;height:8px;border-radius:50%;background:rgba(255,247,223,.34);box-shadow:0 0 0 0 rgba(253,230,138,0);"></span><span>' + label + '</span></div>';
+    return '<div data-saju-ai-step="' + idx + '" data-saju-ai-step-progress="' + label[0] + '" style="display:flex;align-items:center;gap:7px;border:1px solid rgba(230,196,112,.24);background:rgba(255,255,255,.06);border-radius:8px;padding:8px 8px;color:rgba(255,247,223,.66);font-size:0.68rem;font-weight:900;min-height:36px;box-sizing:border-box;"><span data-saju-ai-step-dot style="width:7px;height:7px;border-radius:50%;background:rgba(255,247,223,.34);box-shadow:0 0 0 0 rgba(253,230,138,0);"></span><span>' + label[1] + '</span></div>';
   }).join('');
   return ''
     + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260626" style="margin:18px 0 0" data-saju-analysis-only="true">'
@@ -6330,7 +6430,16 @@ function _buildSajuQuestionPromptHtml() {
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 상담 생성에 남깁니다.</div>'
-    +   '<div data-saju-ai-progress style="position:relative;display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:13px;">' + stepHtml + '</div>'
+    +   '<div data-saju-ai-progress-card style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(248,219,142,.48);background:radial-gradient(circle at 18% 12%,rgba(245,231,184,.2),transparent 26%),linear-gradient(145deg,rgba(12,15,30,.94),rgba(42,34,31,.94));box-shadow:0 18px 36px rgba(0,0,0,.24);padding:14px;">'
+    +     '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;">'
+    +       '<div><div style="font-size:0.7rem;color:#e8c778;font-weight:900;letter-spacing:.1em;">LLM CONSULTATION</div><strong data-saju-ai-progress-message style="display:block;margin-top:4px;color:#fff7df;font-size:0.92rem;line-height:1.45;">명식의 흐름을 읽고 있어요</strong><p style="margin:5px 0 0;color:rgba(255,247,223,.7);font-size:0.74rem;line-height:1.55;">결제 확인이 완료되면 질문과 명식을 바탕으로 새 상담문을 엮습니다.</p></div>'
+    +       '<div data-saju-ai-progress-percent style="flex:0 0 auto;color:#fde68a;font-size:1.28rem;font-weight:950;line-height:1;">0%</div>'
+    +     '</div>'
+    +     '<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-saju-ai-progress-track style="height:8px;border-radius:999px;background:rgba(255,247,223,.14);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);">'
+    +       '<div data-saju-ai-progress-bar style="width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg,#f7d46b,#fff7df,#9bdcff);box-shadow:0 0 18px rgba(253,230,138,.42);transition:width .55s ease;"></div>'
+    +     '</div>'
+    +     '<div data-saju-ai-progress-steps style="display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px;margin-top:10px;">' + stepHtml + '</div>'
+    +   '</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
     +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
@@ -6398,15 +6507,21 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var outputTextEl = rootEl.querySelector('[data-saju-ai-output-text]');
   var copyBtn = rootEl.querySelector('[data-saju-ai-copy-result]');
   var statusEl = rootEl.querySelector('[data-saju-ai-status]');
-  var progressEl = rootEl.querySelector('[data-saju-ai-progress]');
+  var progressEl = rootEl.querySelector('[data-saju-ai-progress-card]');
+  var progressBarEl = rootEl.querySelector('[data-saju-ai-progress-bar]');
+  var progressTrackEl = rootEl.querySelector('[data-saju-ai-progress-track]');
+  var progressPercentEl = rootEl.querySelector('[data-saju-ai-progress-percent]');
+  var progressMessageEl = rootEl.querySelector('[data-saju-ai-progress-message]');
   var stepEls = progressEl ? progressEl.querySelectorAll('[data-saju-ai-step]') : [];
   if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !statusEl) return;
 
   var isLoading = false;
   var progressTimer = null;
-  var progressIndex = 0;
+  var progressPercent = 0;
+  var pollTimer = null;
   var lastPaidEvidence = null;
   var lastPaidEvidenceKey = '';
+  var activePendingJob = null;
 
   function requestKey(question, domain) {
     return String(question || '').trim() + '::' + String(domain || '').trim();
@@ -6421,12 +6536,23 @@ function _bindSajuQuestionPromptCard(rootEl) {
     generateBtn.disabled = isLoading || len < 5;
     generateBtn.style.opacity = generateBtn.disabled ? '0.62' : '1';
   }
-  function setProgress(activeIndex, done) {
+  function setProgress(percent, message, done) {
     if (!progressEl) return;
-    progressEl.style.display = activeIndex >= 0 ? 'grid' : 'none';
+    if (Number(percent) < 0) {
+      progressEl.style.display = 'none';
+      return;
+    }
+    var nextPercent = Math.max(0, Math.min(100, Math.round(Number(percent || 0))));
+    progressPercent = nextPercent;
+    progressEl.style.display = nextPercent >= 0 ? 'block' : 'none';
+    if (progressBarEl) progressBarEl.style.width = nextPercent + '%';
+    if (progressTrackEl) progressTrackEl.setAttribute('aria-valuenow', String(nextPercent));
+    if (progressPercentEl) progressPercentEl.textContent = nextPercent + '%';
+    if (progressMessageEl) progressMessageEl.textContent = message || '명식의 흐름을 읽고 있어요';
     Array.prototype.forEach.call(stepEls, function(step, idx) {
       var dot = step.querySelector('[data-saju-ai-step-dot]');
-      var active = idx <= activeIndex;
+      var stepProgress = Number(step.getAttribute('data-saju-ai-step-progress') || 0);
+      var active = nextPercent >= stepProgress || (done && idx === stepEls.length - 1);
       step.style.borderColor = active ? 'rgba(253,230,138,.72)' : 'rgba(230,196,112,.26)';
       step.style.background = active ? 'rgba(255,247,223,.16)' : 'rgba(255,255,255,.07)';
       step.style.color = active ? '#fff7df' : 'rgba(255,247,223,.68)';
@@ -6438,16 +6564,21 @@ function _bindSajuQuestionPromptCard(rootEl) {
   }
   function startProgress() {
     clearInterval(progressTimer);
-    progressIndex = 0;
-    setProgress(progressIndex, false);
+    setProgress(Math.max(0, progressPercent || 0), '결제/이용권 확인 중', false);
     progressTimer = setInterval(function() {
-      progressIndex = Math.min(3, progressIndex + 1);
-      setProgress(progressIndex, false);
-    }, 1200);
+      var cap = activePendingJob ? 85 : 65;
+      var next = Math.min(cap, progressPercent + (progressPercent < 45 ? 5 : 3));
+      var message = next >= 65 ? 'AI 상담문 생성 중' : next >= 45 ? '명식 핵심 구조 해석 중' : next >= 30 ? '질문 의도 분석 중' : next >= 15 ? '사주 명식 불러오는 중' : '결제/이용권 확인 중';
+      setProgress(next, message, false);
+    }, 900);
   }
   function stopProgress() {
     clearInterval(progressTimer);
     progressTimer = null;
+  }
+  function stopPolling() {
+    clearTimeout(pollTimer);
+    pollTimer = null;
   }
   function setLoading(next) {
     isLoading = !!next;
@@ -6477,6 +6608,83 @@ function _bindSajuQuestionPromptCard(rootEl) {
     outputPanel.style.display = 'block';
     outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+  function rememberPendingJob(job) {
+    activePendingJob = Object.assign({}, activePendingJob || {}, job || {});
+    if (activePendingJob && activePendingJob.profileId == null) activePendingJob.profileId = _sajuPromptResolveProfileId();
+    _sajuPromptStorePendingJob(activePendingJob);
+  }
+  function markFailedForRetry(job, message, code) {
+    stopPolling();
+    stopProgress();
+    setLoading(false);
+    if (job) rememberPendingJob(job);
+    if (activePendingJob && activePendingJob.paidEvidence) {
+      lastPaidEvidence = activePendingJob.paidEvidence;
+      lastPaidEvidenceKey = requestKey(activePendingJob.question || inputEl.value, activePendingJob.domain || _sajuPromptReadDomain(rootEl));
+    }
+    regenerateBtn.style.display = 'inline-flex';
+    regenerateBtn.textContent = '추가 결제 없이 다시 생성';
+    setProgress(Math.max(progressPercent || 0, 85), '상담문 생성 중 문제가 발생했어요', false);
+    _sajuPromptSetStatus(statusEl, (message || '상담문 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 다시 생성할 수 있습니다.') + (code ? ' (' + code + ')' : ''), 'error');
+  }
+  function handleCompletedPayload(payload, pendingJob) {
+    var resultText = String(payload && payload.resultText || '').trim();
+    if (!resultText) return false;
+    renderResult(resultText);
+    regenerateBtn.style.display = 'inline-flex';
+    regenerateBtn.textContent = '다시 상담 받기';
+    if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
+    setProgress(100, '결과 준비 완료', true);
+    clearPaidEvidence();
+    stopPolling();
+    stopProgress();
+    _sajuPromptClearPendingJob((pendingJob && pendingJob.profileId) || _sajuPromptResolveProfileId());
+    activePendingJob = null;
+    _sajuPromptSetStatus(statusEl, paymentCompleteText(payload) + _sajuPromptDomainLabel(String(payload.domain || (pendingJob && pendingJob.domain) || '').trim()) + ' 주제의 사주 AI 상담 결과가 열렸습니다.', 'success');
+    return true;
+  }
+  function pollPendingJob(job, immediate) {
+    var pending = job && typeof job === 'object' ? job : activePendingJob;
+    if (!pending || (!pending.requestId && !pending.jobId && !pending.executionId)) return;
+    activePendingJob = pending;
+    stopPolling();
+    var delay = immediate ? 0 : 1500;
+    pollTimer = setTimeout(function() {
+      _sajuPromptFetchStatus(activePendingJob).then(function(result) {
+        var payload = result && result.payload ? result.payload : {};
+        if (payload.jobId || payload.executionId || payload.resultId) {
+          rememberPendingJob(Object.assign({}, activePendingJob, {
+            jobId: payload.jobId || payload.executionId || activePendingJob.jobId,
+            executionId: payload.executionId || payload.jobId || activePendingJob.executionId,
+            resultId: payload.resultId || activePendingJob.resultId,
+            requestId: payload.requestId || activePendingJob.requestId
+          }));
+        }
+        var status = String(payload.status || '').trim();
+        var percent = Number(payload.progress || (payload.progressState && payload.progressState.progress) || 0);
+        var stepMessage = String(payload.stepMessage || (payload.progressState && payload.progressState.stepMessage) || '명식의 흐름을 읽고 있어요');
+        if (status === 'completed') {
+          _sajuPromptFetchResult(activePendingJob).then(function(res) {
+            var resultPayload = res && res.payload ? res.payload : {};
+            if (!handleCompletedPayload(resultPayload, activePendingJob)) {
+              markFailedForRetry(activePendingJob, '결과 저장은 확인했지만 상담문을 불러오지 못했어요. 다시 조회해 주세요.', 'RESULT_EMPTY');
+            }
+          }).catch(function() {
+            markFailedForRetry(activePendingJob, '결과 저장은 확인했지만 상담문 조회에 실패했어요. 다시 시도해 주세요.', 'RESULT_FETCH_FAILED');
+          });
+          return;
+        }
+        if (status === 'failed') {
+          markFailedForRetry(activePendingJob, String(payload.errorMessage || '상담문 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 다시 생성할 수 있습니다.'), String(payload.errorCode || 'GENERATION_FAILED'));
+          return;
+        }
+        if (percent > 0) setProgress(percent, stepMessage, false);
+        pollPendingJob(activePendingJob, false);
+      }).catch(function() {
+        pollPendingJob(activePendingJob, false);
+      });
+    }, delay);
+  }
   function handleGenerate() {
     if (isLoading) return;
     var question = String(inputEl.value || '').trim();
@@ -6494,24 +6702,54 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     setLoading(true);
+    setProgress(0, '결제/이용권 확인 중', false);
+    var keepWaiting = false;
     _sajuPromptSetStatus(statusEl, reusePaidEvidence ? '확인된 결제 권한으로 상담문을 다시 열고 있습니다.' : '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 AI 상담문을 빚고 있습니다.', 'info');
     _requestSajuQuestionPrompt(question, privacyOptions, domain, {
       paidEvidence: reusePaidEvidence ? lastPaidEvidence : null,
+      onPaidEvidence: function(evidence) {
+        rememberPendingJob({
+          requestId: evidence && evidence.requestId,
+          profileId: _sajuPromptResolveProfileId(),
+          question: question,
+          domain: domain,
+          privacyOptions: privacyOptions,
+          paidEvidence: evidence
+        });
+      },
+      onJobRequestReady: function(job) {
+        rememberPendingJob(job);
+        setProgress(15, '사주 명식 불러오는 중', false);
+        pollPendingJob(activePendingJob, true);
+      },
       onRetry: function() {
-        setProgress(2, false);
+        setProgress(65, 'AI 상담문을 다시 가다듬는 중', false);
         _sajuPromptSetStatus(statusEl, '결제는 확인되었고, 명식의 문을 다시 여는 중입니다.', 'info');
       }
     }).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
       var resultText = String(payload.resultText || '').trim();
       if (result && result.ok && payload.ok === true && resultText) {
-        renderResult(resultText);
-        regenerateBtn.style.display = 'inline-flex';
-        regenerateBtn.textContent = '다시 상담 받기';
-        if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
-        setProgress(3, true);
-        clearPaidEvidence();
-        _sajuPromptSetStatus(statusEl, paymentCompleteText(payload) + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 AI 상담 결과가 열렸습니다.', 'success');
+        handleCompletedPayload(payload, activePendingJob || { profileId: _sajuPromptResolveProfileId(), domain: domain });
+        return;
+      }
+
+      var status = String(payload.status || '').trim();
+      if ((result && result.ok && (status === 'pending' || status === 'generating')) || result.status === 202) {
+        keepWaiting = true;
+        rememberPendingJob(Object.assign({}, activePendingJob || {}, {
+          jobId: payload.jobId || payload.executionId,
+          executionId: payload.executionId || payload.jobId,
+          resultId: payload.resultId,
+          requestId: payload.requestId || (activePendingJob && activePendingJob.requestId),
+          profileId: (activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId(),
+          question: question,
+          domain: domain,
+          privacyOptions: privacyOptions
+        }));
+        setProgress(Number(payload.progress || 30), payload.stepMessage || '명식의 흐름을 읽고 있어요', false);
+        pollPendingJob(activePendingJob, true);
+        _sajuPromptSetStatus(statusEl, payload.stepMessage || '결제 확인이 완료되었고, 지금 명식의 흐름을 읽고 있어요.', 'info');
         return;
       }
 
@@ -6520,8 +6758,21 @@ function _bindSajuQuestionPromptCard(rootEl) {
       if (result && result._sajuPaidEvidence && code === 'LLM_GENERATION_RETRYABLE' && payload.refundOk !== true) {
         lastPaidEvidence = result._sajuPaidEvidence;
         lastPaidEvidenceKey = key;
+        rememberPendingJob(Object.assign({}, activePendingJob || {}, {
+          jobId: payload.jobId || payload.executionId,
+          executionId: payload.executionId || payload.jobId,
+          resultId: payload.resultId,
+          requestId: payload.requestId || (activePendingJob && activePendingJob.requestId),
+          profileId: (activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId(),
+          question: question,
+          domain: domain,
+          privacyOptions: privacyOptions,
+          paidEvidence: result._sajuPaidEvidence
+        }));
         regenerateBtn.style.display = 'inline-flex';
         regenerateBtn.textContent = '추가 결제 없이 다시 생성';
+        markFailedForRetry(activePendingJob, message, code);
+        return;
       }
       if (code === 'MISSING_PROFILE_ID') {
         _sajuPromptSetStatus(statusEl, message, 'error');
@@ -6541,7 +6792,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }).catch(function() {
       _sajuPromptSetStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     }).finally(function() {
-      setLoading(false);
+      if (!keepWaiting) setLoading(false);
     });
   }
 
@@ -6561,6 +6812,24 @@ function _bindSajuQuestionPromptCard(rootEl) {
   updateCount();
   setProgress(-1, false);
   _sajuPromptSetStatus(statusEl, '질문을 남기면 결제, 월정석 크레딧, 멤버십 이용권 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
+  var restoredJob = _sajuPromptReadPendingJob(_sajuPromptResolveProfileId());
+  if (restoredJob && (restoredJob.requestId || restoredJob.jobId || restoredJob.executionId)) {
+    activePendingJob = restoredJob;
+    if (restoredJob.question) inputEl.value = restoredJob.question;
+    if (restoredJob.domain != null) {
+      var restoredDomain = rootEl.querySelector('[data-saju-ai-domain][value="' + String(restoredJob.domain || '').replace(/"/g, '\\"') + '"]');
+      if (restoredDomain) restoredDomain.checked = true;
+    }
+    if (restoredJob.paidEvidence) {
+      lastPaidEvidence = restoredJob.paidEvidence;
+      lastPaidEvidenceKey = requestKey(restoredJob.question || '', restoredJob.domain || '');
+    }
+    updateCount();
+    setProgress(15, '이전 상담 생성 상태를 다시 확인하고 있어요', false);
+    _sajuPromptSetStatus(statusEl, '새로고침 전 진행 중이던 상담문을 이어받고 있습니다.', 'info');
+    setLoading(true);
+    pollPendingJob(restoredJob, true);
+  }
 }
 
   function renderSpecialCharm(p, natal) {

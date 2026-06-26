@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { SukuyoCalendarDay, SukuyoCalendarMonth } from "@/lib/sukuyo-calendar";
 
 type CalendarResponse = SukuyoCalendarMonth & {
@@ -10,6 +10,261 @@ type CalendarResponse = SukuyoCalendarMonth & {
 };
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
+const GREAT_AUSPICIOUS_WORDS = ["성취", "보호", "창조", "결실", "명예", "리더십", "매력", "영감"];
+const AUSPICIOUS_WORDS = ["시작", "개척", "안정", "신뢰", "지혜", "조율", "연결", "교류", "재정", "약속", "공정"];
+const INAUSPICIOUS_WORDS = ["긴장", "경계", "비움", "거리", "전환", "몰입", "감정"];
+
+const MANSION_PROFILES = [
+  { direction: "동방 청룡", animal: "청룡", color: "청색" },
+  { direction: "북방 현무", animal: "현무", color: "흑색" },
+  { direction: "서방 백호", animal: "백호", color: "백색" },
+  { direction: "남방 주작", animal: "주작", color: "적색" },
+];
+
+const MOON_CALENDAR_STYLES = `
+.moon-calendar-page{
+  --moon-bg:#0d0b1a;
+  --moon-surface:#110f22;
+  --moon-card:#1e1840;
+  --moon-border:#2e2258;
+  --moon-today:#4a35a0;
+  --moon-inauspicious:#180f2a;
+  --moon-inauspicious-border:#4a2460;
+  --moon-text-primary:#c8b8f0;
+  --moon-text-secondary:#9980d0;
+  --moon-text-muted:#7060a8;
+  --moon-text-faint:#3d3468;
+  --moon-star:#e8d8ff;
+  --moon-auspicious:#c8a8f0;
+  --moon-accent-border:#6b4fc8;
+  min-height:100vh;
+  background:var(--moon-bg);
+  color:var(--moon-text-primary);
+  display:flex;
+  justify-content:center;
+  padding:18px 12px;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;
+}
+.moon-calendar-shell{
+  width:100%;
+  max-width:480px;
+  align-self:flex-start;
+  background:var(--moon-bg);
+  border:.5px solid var(--moon-border);
+  border-radius:16px;
+  overflow:hidden;
+}
+.moon-calendar-header{
+  min-height:64px;
+  background:var(--moon-surface);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  position:relative;
+}
+.moon-calendar-titleline{display:flex;align-items:center;gap:10px;min-width:0}
+.moon-calendar-crescent{width:24px;height:24px;color:var(--moon-star);opacity:0;animation:moonFadeIn 400ms ease forwards}
+.moon-calendar-month-label{display:flex;align-items:center;gap:8px}
+.moon-calendar-month-text{
+  color:var(--moon-text-primary);
+  font-family:var(--font-voice,"Noto Serif KR",serif);
+  font-size:15px;
+  line-height:1.25;
+}
+.moon-calendar-month-input{
+  width:86px;
+  border:0;
+  background:transparent;
+  color:var(--moon-text-muted);
+  font-size:10px;
+  color-scheme:dark;
+  outline:none;
+}
+.moon-calendar-subtitle{margin:3px 0 0;color:var(--moon-text-muted);font-size:11px;line-height:1.25}
+.moon-calendar-stars{position:absolute;inset:8px 74px auto auto;width:84px;height:36px;pointer-events:none}
+.moon-calendar-stars span{position:absolute;width:3px;height:3px;border-radius:999px;background:var(--moon-text-primary)}
+.moon-calendar-stars span:nth-child(1){left:6px;top:9px;opacity:.62;transform:scale(.7)}
+.moon-calendar-stars span:nth-child(2){left:32px;top:4px;opacity:.78;transform:scale(1)}
+.moon-calendar-stars span:nth-child(3){left:58px;top:15px;opacity:.48;transform:scale(.82)}
+.moon-calendar-stars span:nth-child(4){left:72px;top:2px;opacity:.68;transform:scale(.5)}
+.moon-calendar-stars span:nth-child(5){left:18px;top:28px;opacity:.42;transform:scale(.55)}
+.moon-calendar-nav{display:flex;align-items:center;gap:6px;z-index:1}
+.moon-calendar-nav-button{
+  width:24px;
+  height:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  color:var(--moon-text-primary);
+  cursor:pointer;
+  transition:background 120ms ease,transform 80ms ease,opacity 120ms ease;
+}
+.moon-calendar-nav-button:hover{background:var(--moon-card)}
+.moon-calendar-nav-button:active{transform:scale(.97)}
+.moon-calendar-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  background:#0f0d1e;
+  color:var(--moon-text-secondary);
+  font-size:11px;
+}
+.moon-calendar-weekdays span{height:30px;display:grid;place-items:center}
+.moon-calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:0;
+  background:var(--moon-bg);
+  animation:moonGridFade 150ms ease;
+}
+.moon-calendar-day{
+  min-height:66px;
+  border:0;
+  border-top:.5px solid var(--moon-border);
+  background:transparent;
+  color:var(--moon-text-primary);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+  padding:7px 5px;
+  text-align:left;
+  cursor:pointer;
+  transition:background 120ms ease,transform 80ms ease,border-color 120ms ease;
+}
+.moon-calendar-day:hover{background:var(--moon-card);border-radius:6px}
+.moon-calendar-day:active{transform:scale(.97)}
+.moon-calendar-day.day--selected{background:var(--moon-card);border-radius:8px}
+.moon-calendar-day.day--today{
+  background:var(--moon-card);
+  border:.5px solid var(--moon-accent-border);
+  border-radius:8px;
+}
+.moon-calendar-day.day--inauspicious{
+  background:var(--moon-inauspicious);
+  border:.5px solid var(--moon-inauspicious-border);
+  border-radius:6px;
+}
+.moon-calendar-day.day--other-month{
+  color:var(--moon-text-faint);
+  cursor:default;
+  pointer-events:none;
+}
+.moon-calendar-day__top{display:flex;align-items:center;gap:3px;min-height:24px}
+.moon-calendar-day__number{
+  position:relative;
+  min-width:18px;
+  height:18px;
+  display:inline-grid;
+  place-items:center;
+  color:var(--moon-text-primary);
+  font-size:13px;
+  font-weight:500;
+  line-height:1;
+}
+.moon-calendar-day__number span{position:relative;z-index:1}
+.day--today .moon-calendar-day__number{width:24px;height:24px;color:var(--moon-star)}
+.day--today .moon-calendar-day__number::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:999px;
+  background:var(--moon-today);
+}
+.moon-calendar-day__star{color:var(--moon-auspicious);font-size:8px;line-height:1}
+.moon-calendar-day__name{
+  color:var(--moon-text-muted);
+  font-family:"Noto Serif KR",serif;
+  font-size:9px;
+  line-height:1.25;
+}
+.day--today .moon-calendar-day__name{color:var(--moon-text-secondary)}
+.day--inauspicious .moon-calendar-day__name{color:#9060a8}
+.moon-calendar-day__badge{
+  margin-top:auto;
+  color:var(--moon-auspicious);
+  font-size:8px;
+  letter-spacing:.02em;
+  line-height:1;
+}
+.moon-calendar-day__badge.is-inauspicious{color:#7040a0}
+.moon-calendar-status{
+  min-height:252px;
+  grid-column:1/-1;
+  border-top:.5px solid var(--moon-border);
+  display:grid;
+  place-items:center;
+  padding:20px;
+  color:var(--moon-text-secondary);
+  font-size:12px;
+  text-align:center;
+}
+.moon-calendar-legend{
+  background:#0f0d1e;
+  border-top:.5px solid var(--moon-border);
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  color:var(--moon-text-secondary);
+  font-size:11px;
+}
+.moon-calendar-legend__items{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.moon-calendar-legend__item{display:inline-flex;align-items:center;gap:6px}
+.moon-calendar-legend__dot{width:12px;height:12px;border-radius:999px;background:var(--moon-today)}
+.moon-calendar-legend__square{width:12px;height:12px;border-radius:3px;background:var(--moon-card);border:.5px solid var(--moon-border)}
+.moon-calendar-legend__square.is-bad{background:var(--moon-inauspicious);border-color:var(--moon-inauspicious-border)}
+.moon-calendar-legend__square.is-plain{opacity:.45}
+.moon-calendar-legend__scale{margin:0;color:var(--moon-text-faint);font-size:10px;line-height:1.4}
+.moon-calendar-detail{
+  background:var(--moon-card);
+  border-top:.5px solid var(--moon-border);
+  padding:16px 20px;
+  border-radius:0 0 16px 16px;
+  animation:moonSlideUp 200ms ease-out;
+}
+.moon-calendar-detail__kicker{margin:0 0 5px;color:var(--moon-text-secondary);font-size:11px;line-height:1.3}
+.moon-calendar-detail h2{
+  margin:0;
+  color:var(--moon-text-primary);
+  font-family:var(--font-voice,"Noto Serif KR",serif);
+  font-size:18px;
+  line-height:1.35;
+}
+.moon-calendar-detail__meta{margin:5px 0 0;color:var(--moon-text-secondary);font-size:12px;line-height:1.55}
+.moon-calendar-cta{
+  margin-top:12px;
+  border:0;
+  border-radius:8px;
+  background:var(--moon-today);
+  color:var(--moon-star);
+  padding:10px 20px;
+  font-size:13px;
+  cursor:pointer;
+  transition:opacity 120ms ease,transform 120ms ease;
+}
+.moon-calendar-cta:hover{opacity:.85;transform:translateY(-1px)}
+.moon-calendar-notes{margin-top:14px;display:grid;gap:10px}
+.moon-calendar-note{border-top:.5px solid var(--moon-border);padding-top:10px}
+.moon-calendar-note h3{margin:0;color:var(--moon-text-secondary);font-size:12px;line-height:1.4}
+.moon-calendar-note p{margin:4px 0 0;color:var(--moon-text-primary);font-size:12px;line-height:1.7}
+@keyframes moonFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes moonSlideUp{from{opacity:.75;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes moonGridFade{from{opacity:0}to{opacity:1}}
+@media(max-width:479.98px){
+  .moon-calendar-page{padding:0}
+  .moon-calendar-shell{max-width:none;border-left:0;border-right:0;border-radius:0}
+  .moon-calendar-day{min-height:58px;padding:7px 5px}
+  .moon-calendar-day__name{display:none}
+  .moon-calendar-month-input{width:72px}
+}
+`;
 
 function classNames(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -41,6 +296,10 @@ function shiftMonth(year: number, month: number, delta: number) {
   };
 }
 
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
 function parseMonthInput(value: string) {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
   if (!match) return null;
@@ -52,6 +311,31 @@ function parseMonthInput(value: string) {
 
 function formatSelectedDate(day: SukuyoCalendarDay) {
   return `${day.date} ${day.weekday}요일`;
+}
+
+function formatMansionLabel(day: SukuyoCalendarDay) {
+  return `${day.koreanName.replace(/수$/, "숙")}(${day.hanjaName})`;
+}
+
+function getMansionProfile(day: SukuyoCalendarDay) {
+  if (day.mansionIndex >= 21) return MANSION_PROFILES[3];
+  return MANSION_PROFILES[Math.max(0, Math.floor(day.mansionIndex / 7))] || MANSION_PROFILES[0];
+}
+
+function getDayTone(day: SukuyoCalendarDay) {
+  const source = day.keywords.join(" ");
+  if (GREAT_AUSPICIOUS_WORDS.some((word) => source.includes(word))) return "great-auspicious";
+  if (INAUSPICIOUS_WORDS.some((word) => source.includes(word))) return "inauspicious";
+  if (AUSPICIOUS_WORDS.some((word) => source.includes(word))) return "auspicious";
+  return "plain";
+}
+
+function getDayBadge(day: SukuyoCalendarDay) {
+  const tone = getDayTone(day);
+  if (tone === "great-auspicious") return "대길 ★";
+  if (tone === "auspicious") return "길";
+  if (tone === "inauspicious") return "흉";
+  return "";
 }
 
 export default function SukuyoCalendarClient() {
@@ -131,9 +415,21 @@ export default function SukuyoCalendarClient() {
 
   const calendarCells = useMemo(() => {
     if (!calendar) return [];
-    const blanks = Array.from({ length: calendar.firstWeekdayIndex }, (_, index) => ({ type: "blank" as const, key: `blank-${index}` }));
+    const previous = shiftMonth(calendar.year, calendar.month, -1);
+    const previousDays = getDaysInMonth(previous.year, previous.month);
+    const leading = Array.from({ length: calendar.firstWeekdayIndex }, (_, index) => ({
+      type: "other" as const,
+      key: `prev-${index}`,
+      day: previousDays - calendar.firstWeekdayIndex + index + 1,
+    }));
     const days = calendar.days.map((day) => ({ type: "day" as const, key: day.date, day }));
-    return [...blanks, ...days];
+    const trailingLength = Math.max(0, 42 - leading.length - days.length);
+    const trailing = Array.from({ length: trailingLength }, (_, index) => ({
+      type: "other" as const,
+      key: `next-${index}`,
+      day: index + 1,
+    }));
+    return [...leading, ...days, ...trailing];
   }, [calendar]);
 
   const move = (delta: number) => {
@@ -153,190 +449,168 @@ export default function SukuyoCalendarClient() {
     setReloadKey((value) => value + 1);
   };
 
-  return (
-    <main className="min-h-screen bg-[#050817] text-slate-100">
-      <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-cyan-200">SUKUYO LUNAR CALENDAR</p>
-            <h1 className="text-2xl font-semibold tracking-normal text-white sm:text-3xl">27숙 달력</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              {cursor.year}년 {cursor.month}월, 날짜마다 머무는 숙의 기운을 달빛처럼 펼칩니다.
-            </p>
-          </div>
+  const selectedProfile = selectedDay ? getMansionProfile(selectedDay) : null;
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => move(-1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] text-slate-100 transition hover:border-cyan-200/70 hover:bg-cyan-300/10"
-              title="이전 달"
-              aria-label="이전 달"
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+  return (
+    <main className="moon-calendar-page">
+      <style>{MOON_CALENDAR_STYLES}</style>
+      <section className="moon-calendar-shell" aria-label="27숙 달력">
+        <header className="moon-calendar-header">
+          <div className="moon-calendar-titleline">
+            <svg className="moon-calendar-crescent" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M15.6 3.2c-3.9 1.4-6.7 5.1-6.7 9.4s2.8 8 6.7 9.4C8.8 22.2 3.4 17.8 3.4 12.6S8.8 3 15.6 3.2Z" />
+            </svg>
+            <div>
+              <label className="moon-calendar-month-label">
+                <span className="moon-calendar-month-text">
+                  {cursor.year}년 {pad2(cursor.month)}월
+                </span>
+                <input
+                  type="month"
+                  value={monthKey}
+                  min="1900-01"
+                  max="2100-12"
+                  onChange={(event) => handleMonthChange(event.target.value)}
+                  className="moon-calendar-month-input"
+                  aria-label="월 선택"
+                />
+              </label>
+              <p className="moon-calendar-subtitle">달이 머무는 자리 · 이달의 숙(宿)</p>
+            </div>
+          </div>
+          <div className="moon-calendar-stars" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="moon-calendar-nav">
+            <button type="button" onClick={() => move(-1)} className="moon-calendar-nav-button" aria-label="이전 달">
+              <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
             </button>
-            <label className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/[0.15] bg-white/[0.08] px-3 text-sm text-slate-100">
-              <CalendarDays className="h-4 w-4 text-cyan-200" aria-hidden="true" />
-              <input
-                type="month"
-                value={monthKey}
-                min="1900-01"
-                max="2100-12"
-                onChange={(event) => handleMonthChange(event.target.value)}
-                className="h-8 min-w-[124px] bg-transparent text-sm font-semibold text-white outline-none [color-scheme:dark]"
-                aria-label="달 선택"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => move(1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/[0.15] bg-white/[0.08] text-slate-100 transition hover:border-cyan-200/70 hover:bg-cyan-300/10"
-              title="다음 달"
-              aria-label="다음 달"
-            >
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={retry}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-amber-200/25 bg-amber-200/10 text-amber-100 transition hover:border-amber-200/70 hover:bg-amber-200/20"
-              title="새로고침"
-              aria-label="새로고침"
-            >
-              <RefreshCw className={classNames("h-4 w-4", loading && "animate-spin")} aria-hidden="true" />
+            <button type="button" onClick={() => move(1)} className="moon-calendar-nav-button" aria-label="다음 달">
+              <ChevronRight size={16} strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>
+        </header>
+
+        <div className="moon-calendar-weekdays" aria-hidden="true">
+          {WEEKDAY_LABELS.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
 
-        <div className="grid flex-1 gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)]">
-          <section className="rounded-lg border border-white/[0.12] bg-white/[0.055] p-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-4" aria-label="27숙 월간 달력">
-            <div className="grid grid-cols-7 gap-1 border-b border-white/10 pb-2 sm:gap-2">
-              {WEEKDAY_LABELS.map((label) => (
-                <div key={label} className="text-center text-xs font-semibold text-slate-400">
-                  {label}
-                </div>
-              ))}
-            </div>
-
-            {loading ? (
-              <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-2" aria-busy="true">
-                {Array.from({ length: 35 }, (_, index) => (
-                  <div key={index} className="min-h-[86px] rounded-lg border border-white/[0.08] bg-white/[0.045] sm:min-h-[112px]" />
-                ))}
-              </div>
-            ) : error ? (
-              <div className="mt-3 flex min-h-[420px] flex-col items-center justify-center rounded-lg border border-rose-300/20 bg-rose-950/20 p-6 text-center">
-                <p className="text-sm font-semibold text-rose-100">{error}</p>
-                <button
-                  type="button"
-                  onClick={retry}
-                  className="mt-4 rounded-lg border border-rose-200/30 bg-rose-200/10 px-4 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-200/20"
-                >
+        <div className="moon-calendar-grid" key={monthKey} aria-live="polite">
+          {loading ? (
+            Array.from({ length: 42 }, (_, index) => <span key={index} className="moon-calendar-day day--other-month" aria-hidden="true" />)
+          ) : error ? (
+            <div className="moon-calendar-status">
+              <div>
+                <p>{error}</p>
+                <button type="button" onClick={retry} className="moon-calendar-cta">
                   다시 보기
                 </button>
               </div>
-            ) : calendar && calendar.days.length ? (
-              <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-2">
-                {calendarCells.map((cell) =>
-                  cell.type === "blank" ? (
-                    <div key={cell.key} className="min-h-[86px] rounded-lg border border-transparent sm:min-h-[112px]" aria-hidden="true" />
-                  ) : (
-                    <button
-                      key={cell.key}
-                      type="button"
-                      onClick={() => setSelectedDate(cell.day.date)}
-                      className={classNames(
-                        "group flex min-h-[86px] flex-col items-start gap-1 rounded-lg border p-1.5 text-left transition sm:min-h-[112px] sm:p-2",
-                        cell.day.date === selectedDate
-                          ? "border-cyan-200/80 bg-cyan-300/[0.15] shadow-lg shadow-cyan-950/30"
-                          : "border-white/10 bg-slate-950/30 hover:border-cyan-200/40 hover:bg-white/[0.08]",
-                        cell.day.isToday && "ring-1 ring-amber-200/80"
-                      )}
-                      aria-pressed={cell.day.date === selectedDate}
-                    >
-                      <span className="flex w-full items-center justify-between gap-1">
-                        <span className="text-sm font-semibold text-white sm:text-base">{cell.day.day}</span>
-                        {cell.day.isToday ? (
-                          <span className="rounded-md border border-amber-200/40 bg-amber-200/[0.15] px-1.5 py-0.5 text-[10px] font-semibold text-amber-100">
-                            오늘
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="text-[11px] font-medium text-slate-400 sm:text-xs">{cell.day.weekday}요일</span>
-                      <span className="mt-1 text-sm font-semibold leading-tight text-cyan-100 sm:text-base">{cell.day.koreanName}</span>
-                      <span className="text-[11px] leading-tight text-slate-300 sm:text-xs">{cell.day.hanjaName}</span>
-                      <span className="mt-auto line-clamp-2 text-[10px] leading-4 text-slate-400 sm:text-xs">
-                        {cell.day.keywords.slice(0, 3).join(" · ")}
-                      </span>
-                    </button>
-                  )
-                )}
-              </div>
-            ) : (
-              <div className="mt-3 flex min-h-[420px] items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] p-6 text-center text-sm text-slate-300">
-                표시할 달빛 흐름이 없습니다.
-              </div>
-            )}
-          </section>
-
-          <aside className="rounded-lg border border-cyan-200/[0.18] bg-[linear-gradient(145deg,rgba(8,13,33,0.96),rgba(18,28,56,0.88)_48%,rgba(42,30,63,0.86))] p-4 shadow-2xl shadow-black/30 lg:sticky lg:top-5 lg:max-h-[calc(100vh-40px)] lg:overflow-auto" aria-label="선택한 날짜의 숙요 흐름">
-            {selectedDay ? (
-              <div className="flex flex-col gap-4">
-                <div className="border-b border-white/10 pb-4">
-                  <p className="text-xs font-semibold tracking-[0.18em] text-amber-100">SELECTED MOON</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-normal text-white">{selectedDay.koreanName}</h2>
-                  <p className="mt-1 text-sm text-slate-300">{selectedDay.hanjaName} · {selectedDay.japaneseName}</p>
-                  <p className="mt-3 text-sm font-medium text-cyan-100">{formatSelectedDate(selectedDay)}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedDay.keywords.map((keyword) => (
-                      <span key={keyword} className="rounded-md border border-white/[0.12] bg-white/[0.08] px-2.5 py-1 text-xs font-semibold text-slate-100">
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <DetailBlock title="숙의 핵심 성향" body={selectedDay.core} />
-                <DetailBlock title="오늘 사용 포인트" body={selectedDay.usagePoint} accent="cyan" />
-                <DetailBlock title="주의할 결" body={selectedDay.caution} accent="rose" />
-                <DetailBlock title="연애와 관계" body={selectedDay.love} accent="pink" />
-                <DetailBlock title="일과 금전" body={selectedDay.workMoney} accent="amber" />
-
-                <div className="border-t border-amber-200/25 pt-4">
-                  <p className="text-xs font-semibold tracking-[0.14em] text-amber-100">ONE LINE</p>
-                  <p className="mt-2 text-base font-semibold leading-7 text-white">{selectedDay.advice}</p>
-                </div>
-
-                <div className="border-t border-white/10 pt-3 text-xs leading-5 text-slate-400">
-                  음력 {selectedDay.lunarDate.isLeapMonth ? "윤" : ""}
-                  {selectedDay.lunarDate.month}월 {selectedDay.lunarDate.day}일 기준
-                </div>
-              </div>
-            ) : (
-              <div className="flex min-h-[320px] items-center justify-center text-center text-sm text-slate-300">
-                날짜를 고르면 숙의 흐름이 열립니다.
-              </div>
-            )}
-          </aside>
+            </div>
+          ) : calendar && calendar.days.length ? (
+            calendarCells.map((cell) => {
+              if (cell.type === "other") {
+                return (
+                  <span key={cell.key} className="moon-calendar-day day--other-month" aria-hidden="true">
+                    <span className="moon-calendar-day__number">
+                      <span>{cell.day}</span>
+                    </span>
+                  </span>
+                );
+              }
+              const tone = getDayTone(cell.day);
+              const badge = getDayBadge(cell.day);
+              return (
+                <button
+                  key={cell.key}
+                  type="button"
+                  onClick={() => setSelectedDate(cell.day.date)}
+                  className={classNames(
+                    "moon-calendar-day",
+                    `day--${tone}`,
+                    cell.day.isToday && "day--today",
+                    cell.day.date === selectedDate && "day--selected"
+                  )}
+                  aria-label={`${formatSelectedDate(cell.day)} ${formatMansionLabel(cell.day)}`}
+                  aria-pressed={cell.day.date === selectedDate}
+                >
+                  <span className="moon-calendar-day__top">
+                    <span className="moon-calendar-day__number">
+                      <span>{cell.day.day}</span>
+                    </span>
+                    {tone === "great-auspicious" ? <span className="moon-calendar-day__star">★</span> : null}
+                  </span>
+                  <span className="moon-calendar-day__name">{formatMansionLabel(cell.day)}</span>
+                  {badge ? <span className={classNames("moon-calendar-day__badge", tone === "inauspicious" && "is-inauspicious")}>{badge}</span> : null}
+                </button>
+              );
+            })
+          ) : (
+            <div className="moon-calendar-status">표시할 달빛 흐름이 없습니다.</div>
+          )}
         </div>
+
+        <footer className="moon-calendar-legend" aria-label="달력 범례">
+          <div className="moon-calendar-legend__items">
+            <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__dot" />오늘</span>
+            <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__square is-bad" />흉일</span>
+            <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__square is-plain" />평일</span>
+          </div>
+          <p className="moon-calendar-legend__scale">★ 대길 · 길 · 평 · 흉 · 대흉</p>
+        </footer>
+
+        <aside className="moon-calendar-detail" id="selected-sukuyo-reading" aria-label="선택한 날짜의 숙요 흐름">
+          {selectedDay && selectedProfile ? (
+            <>
+              <p className="moon-calendar-detail__kicker">{formatSelectedDate(selectedDay)}</p>
+              <h2>{formatMansionLabel(selectedDay)}</h2>
+              <p className="moon-calendar-detail__meta">
+                {selectedProfile.direction} · {selectedProfile.animal} · {selectedProfile.color} · {selectedDay.japaneseName}
+              </p>
+              <p className="moon-calendar-detail__meta">
+                음력 {selectedDay.lunarDate.isLeapMonth ? "윤" : ""}
+                {selectedDay.lunarDate.month}월 {selectedDay.lunarDate.day}일 기준
+              </p>
+              <button
+                type="button"
+                className="moon-calendar-cta"
+                onClick={() => document.getElementById("selected-sukuyo-reading")?.scrollIntoView({ block: "nearest", behavior: "smooth" })}
+              >
+                이날의 운세 보기
+              </button>
+              <div className="moon-calendar-notes">
+                <DetailBlock title="숙의 핵심 성향" body={selectedDay.core} />
+                <DetailBlock title="오늘 사용 포인트" body={selectedDay.usagePoint} />
+                <DetailBlock title="주의할 결" body={selectedDay.caution} />
+                <DetailBlock title="연애와 관계" body={selectedDay.love} />
+                <DetailBlock title="일과 금전" body={selectedDay.workMoney} />
+                <DetailBlock title="오늘의 조언" body={selectedDay.advice} />
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="moon-calendar-detail__kicker">Selected Moon</p>
+              <h2>날짜를 고르면 숙의 흐름이 열립니다.</h2>
+              <p className="moon-calendar-detail__meta">오늘의 달빛이 어느 별에 머무는지 차분히 비춥니다.</p>
+            </>
+          )}
+        </aside>
       </section>
     </main>
   );
 }
 
-function DetailBlock({ title, body, accent = "slate" }: { title: string; body: string; accent?: "slate" | "cyan" | "rose" | "pink" | "amber" }) {
-  const accentClass = {
-    slate: "border-white/10 text-slate-100",
-    cyan: "border-cyan-200/25 text-cyan-50",
-    rose: "border-rose-200/25 text-rose-50",
-    pink: "border-pink-200/25 text-pink-50",
-    amber: "border-amber-200/25 text-amber-50",
-  }[accent];
-
+function DetailBlock({ title, body }: { title: string; body: string }) {
   return (
-    <section className={classNames("border-t pt-4", accentClass)}>
-      <h3 className="text-sm font-semibold tracking-normal">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-200">{body}</p>
+    <section className="moon-calendar-note">
+      <h3>{title}</h3>
+      <p>{body}</p>
     </section>
   );
 }

@@ -407,6 +407,28 @@ export async function generateVedicPremiumReport(params = {}) {
       code: "VEDIC_PREMIUM_CHAPTER_GENERATION_FAILED",
       status: 503,
       failedChapters,
+      details: {
+        failedChapters: failedChapters.map((chapter) => ({
+          chapterId: clean(chapter.chapterId),
+          title: clean(chapter.title),
+          errorCode: clean(chapter.errorCode),
+          errors: Array.isArray(chapter.errors) ? chapter.errors.slice(0, 8).map((item) => clean(item)).filter(Boolean) : [],
+          attempts: Array.isArray(chapter.attempts)
+            ? chapter.attempts.slice(0, 8).map((attempt) => ({
+                provider: clean(attempt.provider),
+                modelName: clean(attempt.modelName),
+                retry: Number(attempt.retry || 0),
+                ok: attempt.ok === true,
+                status: attempt.status || null,
+                errorCode: clean(attempt.errorCode),
+                issues: Array.isArray(attempt.issues) ? attempt.issues.slice(0, 8).map((item) => clean(item)).filter(Boolean) : [],
+                durationMs: Number.isFinite(Number(attempt.durationMs)) ? Number(attempt.durationMs) : null,
+              }))
+            : [],
+        })),
+        chapterCount: chapters.length,
+        expectedChapterCount: totalChapters,
+      },
       chapterCount: chapters.length,
       expectedChapterCount: totalChapters,
     });

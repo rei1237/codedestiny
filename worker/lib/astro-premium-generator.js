@@ -71,6 +71,19 @@ function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function hasBatchim(value) {
+  const text = clean(value);
+  if (!text) return false;
+  const code = text.charCodeAt(text.length - 1);
+  return code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
+}
+
+function withJosa(value, withBatchim, withoutBatchim) {
+  const text = clean(value);
+  if (!text) return "";
+  return `${text}${hasBatchim(text) ? clean(withBatchim) : clean(withoutBatchim)}`;
+}
+
 function parseNum(value, fallback = null) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;

@@ -1,6 +1,6 @@
 import { asArray, stableStringify } from "./love-secret-premium.types.js";
 
-export const LOVE_SECRET_PREMIUM_PROMPT_VERSION = "2026-06-love-secret-llm-v1";
+export const LOVE_SECRET_PREMIUM_PROMPT_VERSION = "2026-06-love-secret-llm-v2";
 
 export const loveSecretSystemPrompt = `너는 30년 경력의 사주 명리학자이자, 현실적인 연애 상담을 잘하는 상담사다.
 사주 용어를 쓰되 고객이 이해하기 쉬운 말로 풀어준다.

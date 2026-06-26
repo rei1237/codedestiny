@@ -181,24 +181,61 @@ export async function generateChaptersWithLLM({ env, input, chapterPlan, chapter
   for (const chapter of chapterPlan) {
     const index = chapters.length;
     const progress = Math.round(10 + (index / Math.max(1, total)) * 70);
-    if (typeof onProgress === "function") await onProgress({ status: "generating", progress, chapterId: chapter.id, chapterIndex: index + 1, chapterCount: total });
+    if (typeof onProgress === "function") {
+      await onProgress({
+        status: "generating",
+        progress,
+        chapterId: chapter.id,
+        chapterIndex: index + 1,
+        chapterCount: total,
+        currentChapterNumber: index + 1,
+        currentChapterTitle: clean(chapter.title),
+        completedChapters: index,
+        totalChapters: total,
+        currentStep: `챕터 ${index + 1}: ${clean(chapter.title)} 생성 중입니다.`,
+      });
+    }
     const cacheKey = buildNewYearChapterCacheKey(input, chapter, { chapterConfigVersion, modelName });
     const result = await generateNewYearChapterWithLLM({ env, input, chapter, chapterPlan, cacheKey, jobId });
     attempts.push(...(result.attempts || []));
     if (!result.ok) {
-      throw new NewYearPdfGenerationError(`New year chapter generation failed: ${chapter.id}`, {
+      const error = new NewYearPdfGenerationError(`New year chapter generation failed: ${chapter.id}`, {
         code: "GENERATION_FAILED",
         status: 503,
         stage: "generating",
         errors: [`chapter:${chapter.id}`],
       });
+      error.chapterNumber = index + 1;
+      error.chapterTitle = clean(chapter.title);
+      error.details = {
+        chapterNumber: index + 1,
+        chapterTitle: clean(chapter.title),
+        chapterId: clean(chapter.id),
+        attempts: result.attempts || [],
+        errorCode: clean(result.errorCode || "GENERATION_FAILED"),
+      };
+      error.rawLlmError = JSON.stringify(result.attempts || []).slice(0, 2000);
+      throw error;
     }
     providerSet.add(result.provider);
     if (result.modelName) modelSet.add(result.modelName);
     chapterHtmlFragments.push(result.html);
     chapters.push(chapterHtmlToClientChapter(result.html, chapter, index));
     const doneProgress = Math.round(10 + ((index + 1) / Math.max(1, total)) * 70);
-    if (typeof onProgress === "function") await onProgress({ status: "generating", progress: doneProgress, chapterId: chapter.id, chapterIndex: index + 1, chapterCount: total });
+    if (typeof onProgress === "function") {
+      await onProgress({
+        status: "generating",
+        progress: doneProgress,
+        chapterId: chapter.id,
+        chapterIndex: index + 1,
+        chapterCount: total,
+        currentChapterNumber: Math.min(total, index + 2),
+        currentChapterTitle: clean(chapterPlan[Math.min(total - 1, index + 1)]?.title || chapter.title),
+        completedChapters: index + 1,
+        totalChapters: total,
+        currentStep: index + 1 >= total ? "전체 리포트 검수 중입니다." : `챕터 ${index + 1}: ${clean(chapter.title)} 생성이 완료되었습니다.`,
+      });
+    }
   }
 
   return {

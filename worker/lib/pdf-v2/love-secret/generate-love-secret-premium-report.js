@@ -59,6 +59,10 @@ function questionHash(input = {}) {
   });
 }
 
+function isChapterCacheEnabled(env = {}) {
+  return clean(env?.LOVE_SECRET_PREMIUM_ENABLE_CHAPTER_CACHE).toLowerCase() === "true";
+}
+
 export function buildLoveSecretPremiumChapterCacheKey({ normalizedInput = {}, chapterId, modelName, chapterPlanVersion }) {
   const common = {
     service: "love-secret",
@@ -123,13 +127,33 @@ function normalizeGeneratedChapter({ chapter, html, status, source, provider, mo
 }
 
 async function generateChapter({ env, input, chapter, plan, modelName, jobId, userId, previousSummary, onProgress }) {
+  const totalChapters = Array.isArray(plan?.chapters) ? plan.chapters.length : 0;
+  const notify = async (event = {}) => {
+    if (typeof onProgress !== "function") return;
+    await onProgress({
+      status: "generating",
+      chapter,
+      currentChapter: chapter,
+      currentChapterNumber: chapter.order,
+      currentChapterTitle: chapter.title,
+      completedChapters: Math.max(0, Number(chapter.order || 1) - 1),
+      totalChapters,
+      ...event,
+    });
+  };
+
+  await notify({
+    phase: "chapter_started",
+    currentStep: `챕터 ${chapter.order}의 상담문을 LLM으로 생성 중입니다.`,
+  });
+
   const cacheKey = buildLoveSecretPremiumChapterCacheKey({
     normalizedInput: input,
     chapterId: chapter.id,
     modelName,
     chapterPlanVersion: plan.version,
   });
-  const cached = await readChapterCache(env, cacheKey);
+  const cached = isChapterCacheEnabled(env) ? await readChapterCache(env, cacheKey) : null;
   if (cached?.html) {
     const validation = validateLoveSecretPremiumChapterHtml(cached.html, chapter);
     if (validation.ok) {
@@ -143,7 +167,12 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         modelName: cached.modelName || modelName,
         validation,
       });
-      if (typeof onProgress === "function") await onProgress({ chapter, completedChapter: completed });
+      await notify({
+        phase: "chapter_completed",
+        completedChapter: completed,
+        completedChapters: chapter.order,
+        currentStep: `챕터 ${chapter.order} 검수와 저장이 완료되었습니다.`,
+      });
       return completed;
     }
   }
@@ -158,6 +187,14 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
 
   for (const provider of providers) {
     for (let attempt = 0; attempt <= maxRepairAttempts; attempt += 1) {
+      await notify({
+        phase: attempt === 0 ? "chapter_llm_call" : "chapter_repair_call",
+        provider,
+        attempt: attempt + 1,
+        currentStep: attempt === 0
+          ? `챕터 ${chapter.order}의 상담문을 LLM으로 생성 중입니다.`
+          : `챕터 ${chapter.order}의 상담문을 검수 기준에 맞게 다시 다듬고 있습니다.`,
+      });
       const userPrompt = attempt === 0
         ? buildLoveSecretChapterPrompt({ input, chapter, chapterPlanSummary, expertPersona, previousSummary })
         : buildLoveSecretRepairPrompt({ input, chapter, previousHtml: lastHtml, validationErrors: lastErrors, expertPersona });
@@ -202,6 +239,13 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
           durationMs: Date.now() - started,
           errorCode: validation.errors.join("|").slice(0, 120),
         });
+        await notify({
+          phase: "chapter_validation_failed",
+          provider,
+          attempt: attempt + 1,
+          validationErrors: lastErrors,
+          currentStep: `챕터 ${chapter.order} 응답을 검수하고 보강하는 중입니다.`,
+        });
         continue;
       }
 
@@ -231,7 +275,12 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
         modelName: completed.modelName,
         durationMs: Date.now() - started,
       });
-      if (typeof onProgress === "function") await onProgress({ chapter, completedChapter: completed });
+      await notify({
+        phase: "chapter_completed",
+        completedChapter: completed,
+        completedChapters: chapter.order,
+        currentStep: `챕터 ${chapter.order} 검수와 저장이 완료되었습니다.`,
+      });
       return completed;
     }
   }
@@ -240,8 +289,11 @@ async function generateChapter({ env, input, chapter, plan, modelName, jobId, us
   error.code = "LOVE_SECRET_CHAPTER_GENERATION_FAILED";
   error.status = 502;
   error.chapterId = chapter.id;
+  error.chapterOrder = chapter.order;
+  error.chapterTitle = chapter.title;
   error.validationErrors = lastErrors;
   error.providerFailure = lastProviderFailure;
+  error.retryable = true;
   throw error;
 }
 

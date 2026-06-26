@@ -5001,6 +5001,8 @@ function buildLoveSecretReusableExecutionResponse(doc = {}, fallback = {}) {
   const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
   const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
   const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
+  const isRetryableLoveSecretFailure = metadata.loveSecretRetryableFailure === true
+    || clean(doc.premiumStatus) === "retryable_failed";
 
   if (isCompleted && storedUrl) {
     return {
@@ -5020,6 +5022,10 @@ function buildLoveSecretReusableExecutionResponse(doc = {}, fallback = {}) {
         loveSecretChapterPlans: payload.loveSecretChapterPlans,
       }),
     };
+  }
+
+  if (isRetryableLoveSecretFailure) {
+    return null;
   }
 
   if (isFailed) {
@@ -5103,31 +5109,100 @@ async function getLoveSecretJobsCollection(env) {
   return mongoose.connection.collection(LOVE_SECRET_JOB_COLLECTION);
 }
 
+function clampLoveSecretProgress(value, min = 0, max = 100) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.round(n)));
+}
+
+function extractLoveSecretPaymentContextFromJob(job = {}, executionCtx = {}) {
+  const body = job?.requestBody && typeof job.requestBody === "object" ? job.requestBody : {};
+  const payment = body.payment && typeof body.payment === "object" ? body.payment : {};
+  const rawPayment = body._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessGrant = body.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const metadata = executionCtx?.metadata && typeof executionCtx.metadata === "object" ? executionCtx.metadata : {};
+  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
+  const methodSource = clean(accessGrant.accessMethod || accessGrant.accessType || billing.accessMethod || billing.accessType || body.accessMethod).toLowerCase();
+  const method = methodSource.includes("pass")
+    ? "pass"
+    : (methodSource.includes("subscription") || methodSource.includes("monthly") || methodSource.includes("credit") ? "subscription" : "single_payment");
+  return {
+    paymentId: clean(payment.paymentId || payment.purchaseId || rawPayment.purchaseId || accessGrant.paymentId || accessGrant.purchaseId || metadata.purchaseId),
+    passUsageId: clean(rawPayment.passUsageId || accessGrant.passUsageId || body.passUsageId),
+    entitlementId: clean(accessGrant.entitlementId || rawPayment.entitlementId || body.entitlementId),
+    purchaseId: clean(body.purchaseId || rawPayment.purchaseId || accessGrant.purchaseId || metadata.purchaseId),
+    method,
+  };
+}
+
+async function markLoveSecretExecutionRetryableFailure(env, userId, executionCtx = {}, error = null) {
+  const executionKey = clean(executionCtx?.executionKey, 120);
+  if (!executionKey) return null;
+  try {
+    await connectDb(getLoveSecretFastDbEnv(env));
+    return await ServiceExecutionTransaction.updateOne(
+      { userId, executionKey },
+      {
+        $set: {
+          status: "pending",
+          premiumStatus: "retryable_failed",
+          reasonCode: "love_secret_generation_failed",
+          reasonMessage: clean(error?.message || "연애 비책 생성 실패", 500),
+          failureStage: "love-secret-generation",
+          failureReason: clean(error?.message || "연애 비책 생성 실패", 500),
+          heartbeatAt: new Date(),
+          lastClientHeartbeatAt: new Date(),
+          "metadata.loveSecretRetryableFailure": true,
+          "metadata.lastLoveSecretFailureAt": new Date(),
+          "metadata.lastLoveSecretFailureCode": clean(error?.code || "LOVE_SECRET_GENERATION_FAILED", 120),
+          "lock.token": "",
+          "lock.until": null,
+          "lock.acquiredAt": null,
+        },
+      },
+    );
+  } catch (markError) {
+    console.warn("[love-secret][retryable-execution-mark-failed]", clean(markError?.message || markError));
+    return null;
+  }
+}
+
 function toPublicJobPayload(job = {}) {
   const status = clean(job?.status) || "pending";
   const chapterCount = Number(job?.chapterCount || 0);
   const completedChapters = Number(job?.completedChapters || 0);
+  const storedProgress = Number(job?.progress || 0);
   const progress = (() => {
     if (status === "completed") return 100;
-    if (status === "failed") return Math.max(0, Math.min(95, Number(job?.progress || 0) || 0));
-    if (status === "validating") return 5;
-    if (status === "rendering") return Math.max(85, Math.min(95, Number(job?.progress || 90) || 90));
+    if (status === "failed") return clampLoveSecretProgress(storedProgress, 0, 95);
+    if (status === "validating") return clampLoveSecretProgress(storedProgress || 5, 5, 15);
+    if (status === "rendering") return clampLoveSecretProgress(storedProgress || 90, 85, 95);
     if (status === "generating") {
+      if (storedProgress > 0) return clampLoveSecretProgress(storedProgress, 10, 84);
       const ratio = chapterCount > 0 ? completedChapters / chapterCount : 0;
-      return Math.max(10, Math.min(80, Math.round(10 + ratio * 70)));
+      return clampLoveSecretProgress(10 + ratio * 70, 10, 80);
     }
     return 0;
   })();
   return {
     jobId: String(job?._id || ""),
+    resultId: clean(job?.result?.reportId || job?.reportId),
     reportId: clean(job?.reportId),
     mode: normalizeMode(job?.mode),
     status,
+    totalChapters: chapterCount,
     chapterCount,
     completedChapters,
     progress,
+    currentStep: clean(job?.currentStep || job?.message),
+    currentChapterNumber: Number(job?.currentChapterNumber || 0) || undefined,
+    currentChapterTitle: clean(job?.currentChapterTitle),
     message: clean(job?.message),
+    errorCode: clean(job?.errorCode),
     errorMessage: clean(job?.errorMessage),
+    failedChapterNumber: Number(job?.failedChapterNumber || 0) || undefined,
+    failedChapterTitle: clean(job?.failedChapterTitle),
+    retryable: job?.retryable !== false,
     resultReady: status === "completed",
     failed: status === "failed",
     updatedAt: job?.updatedAt || null,
@@ -5149,6 +5224,9 @@ async function runLoveSecretJob(env, jobId) {
     executionKey: clean(execRaw.executionKey, 120),
     sessionId: clean(execRaw.sessionId || sessionId, 180),
     reportId: clean(execRaw.reportId || job?.reportId, 120),
+    paymentSessionId: clean(execRaw.paymentSessionId || execRaw.metadata?.purchaseId, 180),
+    coinTransactionId: clean(execRaw.coinTransactionId || execRaw.metadata?.purchaseId, 120),
+    sourceTransactionId: clean(execRaw.sourceTransactionId || execRaw.metadata?.purchaseId, 120),
     metadata: execRaw.metadata && typeof execRaw.metadata === "object" ? execRaw.metadata : null,
   };
 
@@ -5205,8 +5283,11 @@ async function runLoveSecretJob(env, jobId) {
         $set: {
           status: "generating",
           stage: "generating",
-          progress: 10,
-          message: "연애 비책 PDF 본문을 LLM 전용 파이프라인으로 생성하고 있습니다.",
+          progress: 15,
+          currentStep: "명식과 관계 데이터를 정리하는 중입니다.",
+          message: "명식과 관계 데이터를 정리하는 중입니다.",
+          currentChapterNumber: 0,
+          currentChapterTitle: "",
           updatedAt: new Date(),
         },
       },
@@ -5226,21 +5307,44 @@ async function runLoveSecretJob(env, jobId) {
       config,
       sessionId,
       executionCtx,
-      onProgress: async ({ completedChapter }) => {
-        const completed = Number(completedChapter?.order || 0);
+      onProgress: async (event = {}) => {
+        const total = Number(event.totalChapters || expectedChapterCount || 0);
+        const completedFromEvent = Number(event.completedChapters || 0);
+        const completed = event.completedChapter
+          ? Number(event.completedChapter.order || completedFromEvent || 0)
+          : Math.max(0, completedFromEvent);
+        const currentNumber = Number(event.currentChapterNumber || event.currentChapter?.order || event.chapter?.order || completed + 1 || 1);
+        const currentTitle = clean(event.currentChapterTitle || event.currentChapter?.title || event.chapter?.title || event.completedChapter?.title);
+        const phase = clean(event.phase || "");
+        const isCompletedChapterEvent = Boolean(event.completedChapter);
+        const nextProgress = (() => {
+          if (completed >= total && total > 0) return 90;
+          if (isCompletedChapterEvent && total > 0) return 20 + (completed / Math.max(1, total)) * 60;
+          if (phase === "chapter_validation_failed") return 24 + ((Math.max(1, currentNumber) - 1) / Math.max(1, total || 1)) * 60;
+          return 20 + ((Math.max(1, currentNumber) - 1) / Math.max(1, total || 1)) * 60;
+        })();
+        const currentStep = clean(event.currentStep)
+          || (currentNumber > 0 && currentTitle
+            ? `챕터 ${currentNumber}: ${currentTitle} 상담문을 LLM으로 생성 중입니다.`
+            : "연애 비책 본문을 LLM으로 생성하고 있습니다.");
         await coll.updateOne(
           { _id },
           {
             $set: {
-              status: completed >= expectedChapterCount ? "rendering" : "generating",
-              stage: completed >= expectedChapterCount ? "rendering" : "generating",
-              progress: completed >= expectedChapterCount
-                ? 90
-                : Math.max(10, Math.min(80, Math.round(10 + (completed / Math.max(1, expectedChapterCount)) * 70))),
-              message: completed >= expectedChapterCount
+              status: completed >= total && total > 0 ? "rendering" : "generating",
+              stage: completed >= total && total > 0 ? "rendering" : "generating",
+              progress: clampLoveSecretProgress(nextProgress, 20, 90),
+              currentStep,
+              message: completed >= total && total > 0
                 ? "PDF 렌더링과 저장을 확인하고 있습니다."
-                : `연애 비책 ${completed}/${expectedChapterCount} 챕터 생성 중입니다.`,
-              completedChapters: Math.max(0, Math.min(expectedChapterCount, completed)),
+                : currentStep,
+              completedChapters: Math.max(0, Math.min(total || expectedChapterCount, completed)),
+              currentChapterNumber: completed >= total && total > 0 ? total : Math.max(1, Math.min(total || currentNumber, currentNumber)),
+              currentChapterTitle: currentTitle,
+              lastProgressPhase: phase,
+              lastProvider: clean(event.provider),
+              lastAttempt: Number(event.attempt || 0) || null,
+              lastValidationErrors: Array.isArray(event.validationErrors) ? event.validationErrors.slice(0, 8) : [],
               updatedAt: new Date(),
             },
           },
@@ -5256,8 +5360,11 @@ async function runLoveSecretJob(env, jobId) {
           cacheVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
           stage: "completed",
           progress: 100,
+          currentStep: "연애비책 완성",
           message: "연애 비책 PDF가 준비되었습니다.",
           completedChapters: Number(llmJobResult?.chapterCount || expectedChapterCount),
+          currentChapterNumber: Number(llmJobResult?.chapterCount || expectedChapterCount),
+          currentChapterTitle: "",
           manuscriptSource: clean(llmJobResult?.manuscriptSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.PREMIUM,
           result: llmJobResult,
           completedAt: new Date(),
@@ -5271,27 +5378,38 @@ async function runLoveSecretJob(env, jobId) {
 
   } catch (error) {
     console.error("[LoveBookPremiumPDF][Error]", normalizeLoveBookError(error));
+    const failedChapterNumber = Number(error?.chapterOrder || 0) || undefined;
+    const failedChapterTitle = clean(error?.chapterTitle || "");
+    const paymentContext = extractLoveSecretPaymentContextFromJob(job, executionCtx);
+    const failedProgress = failedChapterNumber && Number(job?.chapterCount || 0) > 0
+      ? 20 + ((failedChapterNumber - 1) / Math.max(1, Number(job.chapterCount || 1))) * 60
+      : 20;
     await coll.updateOne(
       { _id },
       {
         $set: {
           status: "failed",
           stage: "failed",
-          message: "연애 비책 생성이 중단되었습니다.",
+          progress: clampLoveSecretProgress(failedProgress, 0, 95),
+          currentStep: failedChapterNumber
+            ? `연애비책 챕터 ${failedChapterNumber} 생성 중 문제가 발생했어요.`
+            : "연애비책 생성 중 문제가 발생했어요.",
+          message: failedChapterNumber
+            ? `연애비책 챕터 ${failedChapterNumber} 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 재결제 없이 다시 생성할 수 있습니다.`
+            : "연애비책 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 재결제 없이 다시 생성할 수 있습니다.",
+          errorCode: clean(error?.code || "LOVE_SECRET_GENERATION_FAILED"),
           errorMessage: clean(error?.message || "알 수 없는 오류"),
+          rawLlmError: error?.providerFailure && typeof error.providerFailure === "object" ? error.providerFailure : null,
+          failedChapterNumber,
+          failedChapterTitle,
+          retryable: error?.retryable !== false,
+          paymentContext,
           failedAt: new Date(),
           updatedAt: new Date(),
         },
       },
     );
-    await failPremiumPdfExecution(
-      env,
-      String(job?.userId || ""),
-      executionCtx,
-      "love_secret_generation_failed",
-      clean(error?.message || "연애 비책 생성 실패"),
-      "love-secret-generation",
-    );
+    await markLoveSecretExecutionRetryableFailure(env, job?.userId, executionCtx, error);
     resolveLoveSecretLock(sessionId, "failed", String(_id));
   }
 }
@@ -5438,7 +5556,18 @@ async function handleAccess(request, env) {
     mode,
     featureKey: authz.featureKey,
   }) : null;
-  if (reusableResponse?.status === 409) return json(reusableResponse.payload, { status: reusableResponse.status });
+  if (reusableResponse?.status === 409) {
+    return json({
+      ok: true,
+      status: "available",
+      mode,
+      reportId,
+      sessionId,
+      featureKey: authz.featureKey,
+      accessGrant,
+      retryable: true,
+    });
+  }
 
   const completed = reusableResponse?.status === 200 && reusableResponse?.payload;
   return json({
@@ -5548,7 +5677,11 @@ async function handlePrepare(request, env) {
     mode,
     featureKey: authz.featureKey,
   }) : null;
-  if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+  if (reusableResponse?.status === 409) {
+    await markLoveSecretExecutionRetryableFailure(env, authz?.auth?.userId, executionCtx, new Error("LOVE_SECRET_PREVIOUS_GENERATION_FAILED"));
+  } else if (reusableResponse) {
+    return json(reusableResponse.payload, { status: reusableResponse.status });
+  }
 
   await startPremiumPdfExecution(env, authz?.auth?.userId, executionCtx);
   const executionLease = await acquireLoveSecretExecutionLease(env, authz?.auth?.userId, executionCtx);
@@ -5657,7 +5790,11 @@ async function handlePrepareAsync(request, env, ctx) {
     mode,
     featureKey: authz.featureKey,
   }) : null;
-  if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+  if (reusableResponse?.status === 409) {
+    await markLoveSecretExecutionRetryableFailure(env, authz?.auth?.userId, executionCtx, new Error("LOVE_SECRET_PREVIOUS_GENERATION_FAILED"));
+  } else if (reusableResponse) {
+    return json(reusableResponse.payload, { status: reusableResponse.status });
+  }
 
   let preflightJobsCollection = null;
   try {
@@ -5791,6 +5928,9 @@ async function handlePrepareAsync(request, env, ctx) {
         executionKey: executionCtx.executionKey,
         sessionId: executionCtx.sessionId,
         reportId: executionCtx.reportId,
+        paymentSessionId: executionCtx.paymentSessionId,
+        coinTransactionId: executionCtx.coinTransactionId,
+        sourceTransactionId: executionCtx.sourceTransactionId,
         metadata: executionCtx.metadata,
       },
       result: null,

@@ -77,6 +77,8 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
     llmAssemblyOnly: true,
     externalCallsAllowed: true,
     chapters: generated.chapters,
+    chapterResults: generated.chapterResults,
+    chapterAttempts: generated.chapterAttempts,
     payload: {
       ok: true,
       success: true,
@@ -92,6 +94,8 @@ function buildArchiveMetadata({ generated, pdfReady, reportId, sessionId }) {
       chapterConfigSource: generated.chapterConfigSource,
       chapterConfigVersion: generated.chapterConfigVersion,
       chapters: generated.chapters,
+      chapterResults: generated.chapterResults,
+      chapterAttempts: generated.chapterAttempts,
       chapterCount: generated.chapterCount,
       expectedChapterCount: generated.expectedChapterCount,
       manuscriptSource: generated.manuscriptSource,
@@ -138,7 +142,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
   try {
     logLifeBookPdfEvent("LIFE_BOOK_JOB_STARTED", { jobId: reportId, userId, status: "validating" });
     if (typeof params.onProgress === "function") {
-      params.onProgress({ status: "validating", progress: 5, currentChapterNo: 0, totalChapters: 0 });
+      params.onProgress({ status: "validating", progress: 5, currentChapterNo: 0, completedChapterCount: 0, totalChapters: 0 });
     }
 
     const generated = await generateLifeBookPremiumReport({
@@ -150,7 +154,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
     });
 
     if (typeof params.onProgress === "function") {
-      params.onProgress({ status: "rendering", progress: 85, currentChapterNo: generated.chapterCount, totalChapters: generated.expectedChapterCount });
+      params.onProgress({ status: "reviewing", progress: 85, currentChapterNo: generated.chapterCount, completedChapterCount: generated.chapterCount, totalChapters: generated.expectedChapterCount });
     }
     const fullHtml = assembleFinalHtml({
       input: generated.normalizedInput,
@@ -183,6 +187,8 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
       expectedChapterCount: generated.expectedChapterCount,
       chapters: generated.chapters,
       chapterPlan: generated.chapterPlan,
+      chapterResults: generated.chapterResults,
+      chapterAttempts: generated.chapterAttempts,
       chapterConfigSource: generated.chapterConfigSource,
       chapterConfigVersion: generated.chapterConfigVersion,
       llmDraftChapterCount: generated.chapterCount,
@@ -207,7 +213,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
     }
 
     if (typeof params.onProgress === "function") {
-      params.onProgress({ status: "rendering", progress: 95, currentChapterNo: generated.chapterCount, totalChapters: generated.expectedChapterCount });
+      params.onProgress({ status: "rendering", progress: 95, currentChapterNo: generated.chapterCount, completedChapterCount: generated.chapterCount, totalChapters: generated.expectedChapterCount });
     }
     const archive = buildArchiveMetadata({ generated, pdfReady, reportId, sessionId });
     let completedExecution = null;
@@ -223,6 +229,8 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
         archive,
         pdfReady,
         chapters: generated.chapters,
+        chapterResults: generated.chapterResults,
+        chapterAttempts: generated.chapterAttempts,
         downloadUrl: pdfReady.downloadUrl,
         htmlUrl: pdfReady.htmlUrl,
         pdfUrl: pdfReady.pdfUrl,
@@ -237,7 +245,7 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
     }
 
     if (typeof params.onProgress === "function") {
-      params.onProgress({ status: "completed", progress: 100, currentChapterNo: generated.chapterCount, totalChapters: generated.expectedChapterCount });
+      params.onProgress({ status: "completed", progress: 100, currentChapterNo: generated.chapterCount, completedChapterCount: generated.chapterCount, totalChapters: generated.expectedChapterCount });
     }
     logLifeBookPdfEvent("LIFE_BOOK_JOB_COMPLETED", {
       jobId: reportId,
@@ -266,6 +274,8 @@ export async function generateLifeBookPremiumPdfV2(params = {}) {
       chapterCount: generated.chapterCount,
       expectedChapterCount: generated.expectedChapterCount,
       chapters: generated.chapters,
+      chapterResults: generated.chapterResults,
+      chapterAttempts: generated.chapterAttempts,
       normalizedInput: generated.normalizedInput,
       manuscriptSource: generated.manuscriptSource,
       generationMode: generated.generationMode,

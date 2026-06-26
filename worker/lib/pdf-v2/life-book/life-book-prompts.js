@@ -1,6 +1,6 @@
 import { asArray, clean, stableStringify } from "./life-book-premium.types.js";
 
-export const LIFE_BOOK_PROMPT_VERSION = "2026-06-life-book-prompts-v1";
+export const LIFE_BOOK_PROMPT_VERSION = "2026-06-26-life-book-prompts-v2";
 
 export const lifeBookSystemPrompt = [
   "너는 30년 경력의 사주 명리학자이자 인생 상담 전문가다.",
@@ -20,11 +20,15 @@ export function buildLifeBookInputDigest(input = {}) {
   const chart = input.sajuChart || {};
   return [
     `이름: ${clean(input.userName || "고객")}`,
+    `userId: ${clean(input.userId || "미상")}`,
+    `profileId: ${clean(input.profileId || "미상")}`,
     `성별: ${clean(input.gender || "미상")}`,
     `출생: ${clean(input.birthDate)} ${clean(input.birthTime || "출생시간 미상")}`,
     `달력/장소: ${clean(input.calendarType || "solar")} / ${clean(input.birthPlace || "미상")}`,
+    `timezone: ${clean(input.timezone || "Asia/Seoul")}`,
     input.birthTime ? "" : "출생시간이 없으므로 시주와 시주 기반 해석은 단정하지 말고 출생시간 미상 기준으로 표현한다.",
-    `질문: ${clean(input.question || "인생 전반의 흐름", 600)}`,
+    `선택 테마: ${clean(input.selectedTheme || "인생 전반", 300)}`,
+    `질문: ${clean(input.userQuestion || input.question || "인생 전반의 흐름", 600)}`,
     `사주 팔자: ${clean(stableStringify({
       yearPillar: chart.yearPillar,
       monthPillar: chart.monthPillar,
@@ -38,34 +42,39 @@ export function buildLifeBookInputDigest(input = {}) {
     }), 2500)}`,
     `오행/용신/구조: ${clean(stableStringify({
       fiveElements: chart.fiveElements,
+      elementsBalance: chart.elementsBalance,
       usefulGod: chart.usefulGod,
+      unfavorableGod: chart.unfavorableGod,
       structure: chart.structure,
     }), 2500)}`,
     `합충형해: ${clean(stableStringify({
       combinations: chart.combinations,
       clashes: chart.clashes,
     }), 2000)}`,
-    `대운: ${clean(stableStringify(input.luckCycles || {}), 2500)}`,
-    `세운: ${clean(stableStringify(input.annualLuck || {}), 2500)}`,
+    `대운: ${clean(stableStringify(input.majorLuck || input.luckCycles || {}), 2500)}`,
+    `세운: ${clean(stableStringify(input.yearlyLuck || input.annualLuck || {}), 2500)}`,
     `계산 근거: ${clean(stableStringify(input.calculationEvidence || {}), 3500)}`,
   ].filter(Boolean).join("\n");
 }
 
-export function buildLifeBookChapterPrompt({ input, chapter, chapterPlan = [] } = {}) {
+export function buildLifeBookChapterPrompt({ input, chapter, chapterPlan = [], previousChapterSummary = "" } = {}) {
   return [
     "아래 한 챕터만 작성한다.",
+    `chapterNumber: ${Number(chapter.order || 0)}`,
     `chapterId: ${clean(chapter.id)}`,
     `chapterCategory: ${clean(chapter.category)}`,
     `chapterTitle: ${clean(chapter.title)}`,
     `chapterPurpose: ${clean(chapter.purpose || chapter.description)}`,
+    `previousChapterSummary: ${clean(previousChapterSummary || "첫 챕터이므로 이전 장 요약 없음", 900)}`,
     "",
     "전체 챕터 플랜:",
     formatChapterPlan(chapterPlan),
     "",
     "작성 기준:",
     "- 한국어 상담체로 사용자를 직접 상담하듯 작성한다.",
+    "- 표지, 목차, 결제 안내, 생성 안내 문구를 쓰지 않는다. 현재 챕터가 1장이어도 반드시 본문 상담문으로 집필한다.",
     "- 사주 구조 → 삶의 패턴 → 현실 조언 순서로 전개한다.",
-    "- 각 챕터에는 사주 구조 해석, 인생 상담식 풀이, 장점, 주의점, 실전 조언이 반드시 들어간다.",
+    "- 각 챕터에는 일간, 월령과 계절성, 오행 균형, 십성, 지장간, 통근/투출, 대운, 세운, 반복 패턴, 현실 조언이 필요한 만큼 들어간다.",
     "- 이미 계산된 사주 팔자, 십성, 지장간, 형충합해, 대운, 세운 데이터를 근거로 삼고 생년월일만 보고 임의 재계산하지 않는다.",
     "- 중요한 선택은 현실 자료와 전문가 상담, 본인의 판단을 함께 고려하라는 문장을 자연스럽게 포함한다.",
     "- 전문용어를 나열하지 말고 쉬운 설명으로 풀어낸다.",
@@ -100,7 +109,7 @@ export function buildLifeBookChapterPrompt({ input, chapter, chapterPlan = [] } 
   ].join("\n");
 }
 
-export function buildLifeBookRepairPrompt({ input, chapter, chapterPlan = [], previousHtml = "", validationErrors = [] } = {}) {
+export function buildLifeBookRepairPrompt({ input, chapter, chapterPlan = [], previousHtml = "", validationErrors = [], previousChapterSummary = "" } = {}) {
   return [
     "이전 응답은 검증을 통과하지 못했다. 같은 chapterId로 해당 챕터 전체를 다시 작성한다.",
     `chapterId: ${clean(chapter.id)}`,
@@ -110,6 +119,6 @@ export function buildLifeBookRepairPrompt({ input, chapter, chapterPlan = [], pr
     "이전 응답 일부:",
     clean(previousHtml, 2400),
     "",
-    buildLifeBookChapterPrompt({ input, chapter, chapterPlan }),
+    buildLifeBookChapterPrompt({ input, chapter, chapterPlan, previousChapterSummary }),
   ].join("\n");
 }

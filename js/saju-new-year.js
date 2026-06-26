@@ -12,6 +12,7 @@
   var BILLING_FEATURE_KEY = API_FEATURE_KEY;
   var REASON = '사주 신년운세 PDF 리포트 생성';
   var PREPARE_API = '/api/saju-new-year/prepare';
+  var STATUS_API = '/api/saju-new-year/status';
   var TOTAL_CHAPTERS = 13;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
@@ -22,6 +23,8 @@
   var _activeChapter = 1;
   var _progressTimer = null;
   var _pendingGeneration = null;
+  var _lastAccessGrant = null;
+  var _lastPremiumToken = '';
   var _billingSnapshot = {
     cost: COIN_COST,
     balance: null,
@@ -253,6 +256,11 @@
   function _isPrepareRunning(data) {
     var status = String(data && (data.status || data.serverStatus) || '').toLowerCase();
     return status === 'running';
+  }
+
+  function _isTerminalStatus(status) {
+    var value = String(status || '').toLowerCase();
+    return value === 'completed' || value === 'done' || value === 'failed';
   }
 
   function _resolveDefaultTargetYear() {
@@ -554,31 +562,102 @@
 
   function _setProgress(done, message) {
     var bounded = Math.max(0, Math.min(TOTAL_CHAPTERS, Number(done || 0)));
+    var percent = Math.round((bounded / Math.max(1, TOTAL_CHAPTERS)) * 100);
     var bar = _qs('nyProgressBar');
     var text = _qs('nyProgressText');
     var chapter = _qs('nyLoadingChapter');
     var num = _qs('nyLoadingChapterNum');
     var quote = _qs('nyMysticQuote');
-    if (bar) bar.style.width = (bounded / TOTAL_CHAPTERS * 100) + '%';
-    if (text) text.textContent = bounded + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
+    if (bar) {
+      bar.style.width = percent + '%';
+      bar.setAttribute('aria-valuenow', String(percent));
+    }
+    if (text) text.textContent = percent + '% · ' + bounded + ' / ' + TOTAL_CHAPTERS + ' 챕터 완성';
     if (chapter) chapter.textContent = message || LOADING_MESSAGES[bounded % LOADING_MESSAGES.length] || '신년운세를 정리하는 중입니다';
     if (quote && message) quote.textContent = message;
     if (num) num.textContent = bounded >= TOTAL_CHAPTERS ? '완성' : Math.max(1, bounded + 1) + '장';
   }
 
+  function _normalizeJobStatus(payload) {
+    var root = payload && typeof payload === 'object' ? payload : {};
+    var data = root.data && typeof root.data === 'object' ? root.data : root;
+    var progress = data.progress && typeof data.progress === 'object'
+      ? data.progress
+      : (data.newYearPdfProgress && typeof data.newYearPdfProgress === 'object' ? data.newYearPdfProgress : data);
+    var status = _clean(progress.status || data.status || data.serverStatus).toLowerCase();
+    if (status === 'done') status = 'completed';
+    if (status === 'queued' || status === 'processing' || status === 'running' || status === 'validating') status = 'generating';
+    if (!status) status = 'pending';
+    var total = Number(progress.totalChapters || progress.chapterCount || data.totalChapters || data.chapterCount || TOTAL_CHAPTERS);
+    if (!Number.isFinite(total) || total <= 0) total = TOTAL_CHAPTERS;
+    total = Math.max(1, Math.trunc(total));
+    var completed = Number(progress.completedChapters != null ? progress.completedChapters : progress.completedChapterCount);
+    if (!Number.isFinite(completed)) completed = status === 'completed' ? total : 0;
+    completed = Math.max(0, Math.min(total, Math.trunc(completed)));
+    var current = Number(progress.currentChapterNumber || progress.currentChapterNo || progress.chapterIndex || data.currentChapterNumber || data.currentChapterNo);
+    if (!Number.isFinite(current) || current <= 0) current = completed >= total ? total : completed + 1;
+    current = Math.max(1, Math.min(total, Math.trunc(current)));
+    var percent = Number(progress.progress != null ? progress.progress : progress.percent);
+    if (!Number.isFinite(percent)) {
+      percent = status === 'completed'
+        ? 100
+        : status === 'failed'
+          ? Math.max(0, Math.round((completed / total) * 80))
+          : Math.max(8, Math.min(95, Math.round((completed / total) * 70) + 15));
+    }
+    percent = Math.max(0, Math.min(100, Math.round(percent)));
+    var title = _clean(progress.currentChapterTitle || data.currentChapterTitle || '');
+    var step = _clean(progress.currentStep || progress.currentStepMessage || data.currentStep || data.currentStepMessage || data.message);
+    if (!step) {
+      if (status === 'rendering') step = 'PDF 렌더링 중입니다.';
+      else if (status === 'completed') step = '신년운세 PDF가 완성되었습니다.';
+      else if (status === 'failed') step = _clean(progress.errorMessage || data.errorMessage) || '신년운세 PDF 생성이 중단되었습니다.';
+      else step = '신년운세 PDF를 작성하고 있어요.';
+    }
+    return {
+      jobId: _clean(progress.jobId || data.jobId || data.reportId || root.reportId),
+      status: status,
+      progress: percent,
+      currentStep: step,
+      currentChapterNumber: current,
+      currentChapterTitle: title,
+      totalChapters: total,
+      completedChapters: completed,
+      resultId: _clean(data.resultId || data.reportId || root.reportId),
+      pdfUrl: _clean(data.pdfUrl || data.downloadUrl || (data.pdfReady && (data.pdfReady.pdfUrl || data.pdfReady.downloadUrl))),
+      errorCode: _clean(progress.errorCode || data.errorCode || data.code),
+      errorMessage: _clean(progress.errorMessage || data.errorMessage || data.message)
+    };
+  }
+
+  function _applyJobProgress(payload) {
+    var job = _normalizeJobStatus(payload);
+    var bar = _qs('nyProgressBar');
+    var text = _qs('nyProgressText');
+    var chapter = _qs('nyLoadingChapter');
+    var num = _qs('nyLoadingChapterNum');
+    var quote = _qs('nyMysticQuote');
+    if (bar) {
+      bar.style.width = job.progress + '%';
+      bar.setAttribute('aria-valuenow', String(job.progress));
+    }
+    if (text) text.textContent = job.progress + '% · ' + job.completedChapters + ' / ' + job.totalChapters + ' 챕터 완성';
+    var label = job.status === 'failed'
+      ? job.currentStep
+      : job.currentChapterTitle
+        ? '현재 챕터 ' + job.currentChapterNumber + ': ' + job.currentChapterTitle + ' 생성 중입니다.'
+        : job.currentStep;
+    if (chapter) chapter.textContent = label;
+    if (quote) quote.textContent = job.currentStep;
+    if (num) num.textContent = job.status === 'completed' ? '완성' : (job.status === 'failed' ? '실패' : job.currentChapterNumber + '장');
+    if (job.status === 'rendering' || job.status === 'completed') _setStage('archive');
+    else if (job.completedChapters > 0 || job.currentChapterNumber > 1) _setStage('write');
+    else if (job.status === 'pending') _setStage('calculate');
+    return job;
+  }
+
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var step = 2;
-    _progressTimer = setInterval(function () {
-      if (step < TOTAL_CHAPTERS - 1) {
-        step += 1;
-        if (step >= 4) _setStage('write');
-        _setProgress(step, '13챕터 신년운세 상담문 작성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
-        return;
-      }
-      _setStage('archive');
-      _setProgress(TOTAL_CHAPTERS - 1, '원고 품질과 PDF 저장 상태를 최종 확인하는 중입니다');
-    }, 1800);
   }
 
   function _stopProgressAnimation() {
@@ -694,7 +773,10 @@
     var paymentToken = _clean(premiumToken || (accessGrant && (accessGrant.premiumAccessToken || accessGrant._premiumAccessToken || accessGrant.accessToken || accessGrant.token)));
     var payload = {
       serviceKey: SERVICE_KEY,
+      serviceType: SERVICE_KEY,
       productKey: API_FEATURE_KEY,
+      entitlementKey: 'saju_new_year_pdf',
+      paymentPurpose: 'pdf_generation',
       featureKey: API_FEATURE_KEY,
       apiFeatureKey: API_FEATURE_KEY,
       billingFeatureKey: BILLING_FEATURE_KEY,
@@ -880,6 +962,24 @@
     };
   }
 
+  function _rememberAccessGrant(pending, accessGrant, premiumToken) {
+    if (!accessGrant) return;
+    _lastAccessGrant = Object.assign({}, accessGrant, {
+      reportId: pending && pending.reportId ? pending.reportId : accessGrant.reportId,
+      sessionId: accessGrant.sessionId || (pending && pending.reportId ? 'saju-new-year:' + pending.reportId : ''),
+      reportSessionId: accessGrant.reportSessionId || accessGrant.sessionId || (pending && pending.reportId ? 'saju-new-year:' + pending.reportId : '')
+    });
+    _lastPremiumToken = _clean(premiumToken || accessGrant.premiumAccessToken || _readPremiumAccessToken());
+    if (_lastPremiumToken) _persistPremiumAccessToken(_lastPremiumToken);
+  }
+
+  function _hasReusableAccessFor(pending) {
+    if (!_lastAccessGrant || !pending) return false;
+    var sameReport = _clean(_lastAccessGrant.reportId) === _clean(pending.reportId);
+    var hasEvidence = !!(_clean(_lastAccessGrant.purchaseId) || _clean(_lastAccessGrant.transactionId) || _clean(_lastAccessGrant.paymentId) || _lastPremiumToken);
+    return sameReport && hasEvidence;
+  }
+
   async function _runCoinGate(reportId) {
     var requestId = 'saju-new-year:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
     var resolvedCost = _billingCost();
@@ -931,6 +1031,10 @@
           var gate = window._cdOpenPaidServiceGate({
             categoryKey: 'premium-report',
             featureKey: BILLING_FEATURE_KEY,
+            serviceType: SERVICE_KEY,
+            productKey: API_FEATURE_KEY,
+            entitlementKey: 'saju_new_year_pdf',
+            paymentPurpose: 'pdf_generation',
             title: REASON,
             reason: REASON,
             coinPrice: resolvedCost,
@@ -966,6 +1070,10 @@
       body: JSON.stringify({
         categoryKey: 'premium-report',
         featureKey: BILLING_FEATURE_KEY,
+        serviceType: SERVICE_KEY,
+        productKey: API_FEATURE_KEY,
+        entitlementKey: 'saju_new_year_pdf',
+        paymentPurpose: 'pdf_generation',
         reason: REASON,
         mode: 'saju-new-year',
         reportId: reportId,
@@ -1021,23 +1129,68 @@
     return body;
   }
 
-  async function _postPrepareUntilReady(payload) {
+  function _statusQuery(pending) {
+    var source = pending && typeof pending === 'object' ? pending : {};
+    var params = new URLSearchParams();
+    if (source.reportId) params.set('reportId', source.reportId);
+    if (source.sessionId) params.set('sessionId', source.sessionId);
+    if (!source.sessionId && source.reportId) params.set('sessionId', 'saju-new-year:' + source.reportId);
+    return STATUS_API + '?' + params.toString();
+  }
+
+  async function _fetchJobStatus(pending) {
+    var token = _readPremiumAccessToken();
+    var headers = {};
+    if (token) headers['x-premium-access-token'] = token;
+    var response = await fetch(_statusQuery(pending), {
+      method: 'GET',
+      credentials: 'include',
+      headers: headers,
+      cache: 'no-store'
+    });
+    var body = await response.json().catch(function () { return {}; });
+    if (!response.ok || body.ok === false) {
+      throw _buildPdfApiError(body, response.status, _clean(body && body.message) || '신년운세 PDF 생성 상태를 확인하지 못했습니다.');
+    }
+    return body;
+  }
+
+  async function _pollJobStatus(pending, stop) {
     var attempts = 0;
-    var maxAttempts = 180;
-    while (true) {
-      var data = await _postPrepare(payload);
-      if (!_isPrepareRunning(data)) return data;
+    while (!stop || !stop()) {
       attempts += 1;
-      _setProgress(Math.max(1, TOTAL_CHAPTERS - 1), '동일 세션의 신년운세 원고가 생성 중입니다. 완료 결과를 확인하는 중입니다.');
-      if (attempts >= maxAttempts) {
+      try {
+        var payload = await _fetchJobStatus(pending);
+        var job = _applyJobProgress(payload);
+        if (job.status === 'failed') throw _buildPdfApiError({
+          code: job.errorCode || 'GENERATION_FAILED',
+          message: job.errorMessage || '신년운세 PDF 생성이 중단되었습니다.',
+          progress: job
+        }, 500, job.errorMessage || '신년운세 PDF 생성이 중단되었습니다.');
+        if (_isTerminalStatus(job.status)) return payload;
+      } catch (error) {
+        if (!stop || !stop()) throw error;
+      }
+      if (attempts >= 720) {
         var timeoutError = new Error('신년운세 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
         timeoutError.code = 'SAJU_NEW_YEAR_RUNNING_TIMEOUT';
-        timeoutError.stage = 'prepare';
+        timeoutError.stage = 'status';
         throw timeoutError;
       }
-      var waitMs = Number(data && data.retryAfterMs || 5000);
-      await _sleep(Math.max(2000, Math.min(10000, waitMs)));
+      await _sleep(2500);
     }
+    return null;
+  }
+
+  async function _postPrepareUntilReady(payload) {
+    var data = await _postPrepare(payload);
+    if (!_isPrepareRunning(data)) return data;
+    _applyJobProgress(data);
+    var statusPayload = await _pollJobStatus({
+      reportId: payload.reportId,
+      sessionId: payload.sessionId || payload.reportSessionId
+    });
+    return statusPayload || data;
   }
 
   function _mdToHtml(text) {
@@ -1244,22 +1397,32 @@
   function _runAfterBilling(pending, accessGrant, premiumToken) {
     _setStage('calculate');
     _setProgress(2, '사주 원국과 대상 연도의 흐름을 계산하는 중입니다');
-    _startProgressAnimation();
+    _rememberAccessGrant(pending, accessGrant, premiumToken);
     _log('RequestReceived', { reportId: pending.reportId, targetYear: pending.targetYear });
     _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY });
     _log('LocalEngineStarted', { targetYear: pending.targetYear });
-    return _postPrepareUntilReady(_buildPreparePayload(
+    var preparePayload = _buildPreparePayload(
       pending.reportId,
       pending.targetYear,
       pending.profile,
       pending.normalizedBirth,
       accessGrant,
       premiumToken || _readPremiumAccessToken()
-    )).then(function (data) {
+    );
+    pending.sessionId = preparePayload.sessionId || preparePayload.reportSessionId;
+    var stopPolling = false;
+    var polling = _pollJobStatus(pending, function () { return stopPolling; }).catch(function (error) {
+      if (!stopPolling) _logError(error, { stage: 'status', reportId: pending.reportId });
+      return null;
+    });
+    return _postPrepareUntilReady(preparePayload).then(function (data) {
       _setStage('archive');
       if (!_handlePrepareSuccess(data, pending.profile, pending.targetYear)) {
         throw _buildPdfApiError(data, 422, '신년운세 PDF 생성 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       }
+    }).finally(function () {
+      stopPolling = true;
+      polling.catch(function () {});
     });
   }
 
@@ -1267,6 +1430,10 @@
     _showScreen('nyLoadingScreen');
     _setStage('billing');
     _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
+    if (_hasReusableAccessFor(pending)) {
+      _setProgress(1, '확인된 결제 권한으로 신년운세 PDF 생성을 다시 시작합니다');
+      return _runAfterBilling(pending, _lastAccessGrant, _lastPremiumToken);
+    }
     return _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
       return _runCoinGate(pending.reportId);
     }).then(function (gate) {
@@ -1275,6 +1442,7 @@
         _setError(gate.message || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
         return null;
       }
+      _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken);
       return _runAfterBilling(pending, gate.accessGrant, gate.premiumAccessToken);
     });
   }
@@ -1368,32 +1536,24 @@
 
   window.generateSajuNewYear = function () {
     if (_generating) return;
-    var pending = _buildPendingGeneration();
+    var pending = _hasReusableAccessFor(_pendingGeneration) ? _pendingGeneration : _buildPendingGeneration();
     if (!pending) return;
     _pendingGeneration = pending;
     _refreshNewYearBillingSnapshot();
 
     _generating = true;
     _setBusy(true);
-    _showScreen('nyLoadingScreen');
-    _setStage('lookup');
-    _setProgress(0, '기존 신년운세 리포트를 확인하는 중입니다');
-
-    _postPrepareUntilReady(_buildPreparePayload(pending.reportId, pending.targetYear, pending.profile, pending.normalizedBirth, null, '', { preflightOnly: true })).then(function (data) {
-      if (_handlePrepareSuccess(data, pending.profile, pending.targetYear)) return true;
-      return false;
-    }).catch(function (error) {
-      if (Number(error && error.status || 0) === 402 || Number(error && error.status || 0) === 404 || /PAYMENT_REQUIRED|NOT_FOUND/i.test(String(error && error.code || ''))) return false;
-      throw error;
-    }).then(function (reused) {
-      if (reused) return null;
-      return _runBillingAndGeneration(pending);
-    }).catch(function (error) {
-      _logError(error, { stage: error && error.stage || 'preflight', reportId: pending.reportId });
+    _runBillingAndGeneration(pending).catch(function (error) {
+      _logError(error, { stage: error && error.stage || 'generate', reportId: pending.reportId });
       var options = Number(error && error.status || 0) === 401
         ? _billingErrorOptions(error)
-        : { detail: '결제 권한 확인 또는 생성 준비 중 문제가 생겼습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.' };
-      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
+        : {
+          detail: _hasReusableAccessFor(pending)
+            ? '결제 내역은 확인되었습니다. 재결제 없이 같은 신년운세 PDF 생성을 다시 시도할 수 있습니다.'
+            : '결제 권한 확인 또는 생성 준비 중 문제가 생겼습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.',
+          retryText: _hasReusableAccessFor(pending) ? '재결제 없이 다시 생성' : '생성 다시 확인'
+        };
+      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
     }).finally(function () {
       _generating = false;
       _setBusy(false);

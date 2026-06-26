@@ -111,10 +111,6 @@
     '앞으로의 선택 가이드를 완성하는 중입니다.'
   ];
 
-  var FINALIZE_PROGRESS_LINES = [
-    '명반 기반 15챕터를 최종 점검하는 중입니다.',
-    'PDF 문서로 정리하는 중입니다.'
-  ];
   var ZIWEI_PHASE_ORDER = ['prepare', 'calculate', 'write', 'archive'];
   var ZIWEI_PHASE_TITLES = {
     prepare: '자미두수 명반을 정리하고 있습니다.',
@@ -1088,8 +1084,10 @@
     var completed = Number(progress.completedChapters != null ? progress.completedChapters : payload.completedChapters);
     var current = Number(progress.currentChapterNumber != null ? progress.currentChapterNumber : payload.currentChapterNumber);
     var status = normalizeZiweiServerStatus(progress.status || payload.status || payload.serverStatus);
-    completed = Number.isFinite(completed) ? Math.max(0, Math.min(TOTAL_CHAPTERS, Math.trunc(completed))) : 0;
-    current = Number.isFinite(current) ? Math.max(1, Math.min(TOTAL_CHAPTERS, Math.trunc(current))) : Math.min(TOTAL_CHAPTERS, completed + 1);
+    var total = Number(progress.totalChapters != null ? progress.totalChapters : payload.totalChapters);
+    total = Number.isFinite(total) ? Math.max(1, Math.min(TOTAL_CHAPTERS, Math.trunc(total))) : TOTAL_CHAPTERS;
+    completed = Number.isFinite(completed) ? Math.max(0, Math.min(total, Math.trunc(completed))) : 0;
+    current = Number.isFinite(current) ? Math.max(1, Math.min(total, Math.trunc(current))) : Math.min(total, completed + 1);
     var title = text(progress.currentChapterTitle || payload.currentChapterTitle || CHAPTERS[current - 1] || '');
     var category = text(progress.currentCategory || payload.currentCategory || '');
     var message = text(progress.currentStepMessage || payload.currentStepMessage || payload.message || '');
@@ -1104,7 +1102,7 @@
     }
     return {
       status: status,
-      totalChapters: TOTAL_CHAPTERS,
+      totalChapters: total,
       completedChapters: completed,
       currentChapterNumber: current,
       currentChapterTitle: title,
@@ -1126,10 +1124,11 @@
       dot.classList.toggle('lb-ch-dot--pending', i >= completed && !(progress.status !== 'completed' && i === currentIndex));
       dot.setAttribute('aria-current', progress.status !== 'completed' && i === currentIndex ? 'step' : 'false');
     }
-    var countText = completed + ' / ' + TOTAL_CHAPTERS;
+    var total = Math.max(1, Number(progress.totalChapters) || TOTAL_CHAPTERS);
+    var countText = completed + ' / ' + total;
     var percent = progress.status === 'completed'
       ? 100
-      : Math.max(4, Math.min(96, Math.round((completed / TOTAL_CHAPTERS) * 82) + (progress.status === 'rendering' ? 86 : progress.status === 'uploading' ? 93 : 8)));
+      : (completed <= 0 ? 4 : Math.max(4, Math.min(100, Math.round((completed / total) * 100))));
     var phase = progress.status === 'rendering' || progress.status === 'uploading' || progress.status === 'completed' ? 'archive' : (completed <= 0 ? 'prepare' : 'write');
     setZiweiPhase(phase, progress.currentStepMessage);
     setText('zbLoadingChapterNum', '진행률 ' + countText);
@@ -2603,24 +2602,7 @@
         qualityStatus: text(data && data.qualityStatus)
       });
       var llmDraftCount = Number((data && data.llmDraftChapterCount) || (data && data.llmChapterCount) || 0);
-      var chapterProgressCount = Math.max(0, Math.min(TOTAL_CHAPTERS, llmDraftCount || Number((data && data.chapterCount) || 0)));
-      updateProgress(66, FINALIZE_PROGRESS_LINES[0]);
-      for(var i=0; i<chapterProgressCount; i++){
-        markChapter(i);
-        updateProgress(68 + Math.round(((i + 1) / TOTAL_CHAPTERS) * 12), getChapterProgressLine(i));
-        logFlow('LlmChapterProgress', { chapterDone: i + 1, chapterTotal: TOTAL_CHAPTERS });
-        logFlow('ChapterGenerated', {
-          birthHash: text(payment && payment.birthHash),
-          chapterCount: i + 1,
-          hasToken: Boolean(text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)))
-        });
-      }
-      setZiweiPhase('archive', '15챕터를 PDF 저장본으로 확정합니다.');
-      updateProgress(84, FINALIZE_PROGRESS_LINES[1]);
-      updateZiweiGenerationState({ status: 'enhancing' });
-      setZiweiPhase('archive', 'PDF 저장과 다운로드 준비를 마무리합니다.');
-      updateProgress(95, '생성된 리포트를 보관하는 중입니다.');
-      updateZiweiGenerationState({ status: 'savingPdf' });
+      renderZiweiServerProgress(data);
       RESULT = data;
       logFlow('PdfRequestSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,

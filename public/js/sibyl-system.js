@@ -410,19 +410,44 @@ function _sibylText(key) {
     return (hash >>> 0).toString(16);
   }
 
-  function _sibylProfileCacheKey(profile) {
+  function _sibylStableProfileCacheScope(profile) {
     if (!profile || !profile.birth) return '';
     var b = profile.birth || {};
-    var scope = [
+    return [
+      b.year || '', b.month || '', b.day || '', b.hour || '', b.minute || '',
+      profile.gender || ''
+    ].join('|');
+  }
+
+  function _sibylLegacyProfileCacheScope(profile) {
+    if (!profile || !profile.birth) return '';
+    var b = profile.birth || {};
+    return [
       profile.id || '',
       b.year || '', b.month || '', b.day || '', b.hour || '', b.minute || '',
       profile.gender || ''
     ].join('|');
-    return SIBYL_REPORT_CACHE_NS + ':' + _sibylHash(scope);
   }
 
-  function _loadSibylCachedReport(profile) {
-    var key = _sibylProfileCacheKey(profile);
+  function _sibylProfileCacheKey(profile) {
+    var scope = _sibylStableProfileCacheScope(profile);
+    return scope ? SIBYL_REPORT_CACHE_NS + ':' + _sibylHash(scope) : '';
+  }
+
+  function _sibylLegacyProfileCacheKey(profile) {
+    var scope = _sibylLegacyProfileCacheScope(profile);
+    return scope ? SIBYL_REPORT_CACHE_NS + ':' + _sibylHash(scope) : '';
+  }
+
+  function _sibylProfileCacheKeyCandidates(profile) {
+    var keys = [
+      _sibylProfileCacheKey(profile),
+      _sibylLegacyProfileCacheKey(profile)
+    ].filter(Boolean);
+    return keys.filter(function(key, idx) { return keys.indexOf(key) === idx; });
+  }
+
+  function _readSibylCachedReportByKey(key) {
     if (!key) return null;
     try {
       var raw = localStorage.getItem(key);
@@ -441,6 +466,15 @@ function _sibylText(key) {
     } catch (_) {
       return null;
     }
+  }
+
+  function _loadSibylCachedReport(profile) {
+    var keys = _sibylProfileCacheKeyCandidates(profile);
+    for (var i = 0; i < keys.length; i += 1) {
+      var cached = _readSibylCachedReportByKey(keys[i]);
+      if (cached) return cached;
+    }
+    return null;
   }
 
   function _saveSibylCachedReport(profile, reportData, analysisData) {
@@ -477,6 +511,13 @@ function _sibylText(key) {
   function _syncSibylUnlockButton(profile, unlockStatus) {
     var btn = _q('sbUnlockBtn');
     if (!btn) return;
+    var cached = _loadSibylCachedReport(profile);
+    if (cached) {
+      btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
+      btn.disabled = false;
+      return;
+    }
+
     if (unlockStatus && unlockStatus.ok) {
       if (unlockStatus.unlocked) {
         btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
@@ -488,12 +529,6 @@ function _sibylText(key) {
       return;
     }
 
-    var cached = _loadSibylCachedReport(profile);
-    if (cached) {
-      btn.textContent = '⚡ 저장된 DOMINATOR 리포트 열기';
-      btn.disabled = false;
-      return;
-    }
     btn.textContent = '⚡ EXECUTE DOMINATOR — 10,000원';
     btn.disabled = false;
   }
@@ -521,9 +556,22 @@ function _sibylText(key) {
   }
 
   async function _openCachedDominatorReportIfUnlocked(profile, fallbackAnalysis) {
-    if (_isAdminBypassUser()) {
-      return _openCachedDominatorReport(profile, fallbackAnalysis);
+    if (_openCachedDominatorReport(profile, fallbackAnalysis)) {
+      _syncSibylUnlockButton(profile, { ok: true, unlocked: true });
+      if (!_isAdminBypassUser()) {
+        _resolveSibylUnlockStatus().then(function(unlockStatus) {
+          _syncSibylUnlockButton(profile, unlockStatus);
+        }).catch(function(err) {
+          _sibylLogWarn('[SIBYL] unlock-state post-cache check failed', {
+            code: String(err && err.code || ''),
+            message: String(err && err.message || '')
+          });
+        });
+      }
+      return true;
     }
+
+    if (_isAdminBypassUser()) return false;
 
     var unlockStatus = await _resolveSibylUnlockStatus();
     _syncSibylUnlockButton(profile, unlockStatus);
@@ -3644,6 +3692,11 @@ function _sibylText(key) {
 
     var currentProfile = _getCurrentProfile();
     var currentData = window._sibylCurrentData || {};
+
+    if (_openCachedDominatorReport(currentProfile, currentData)) {
+      _restoreUnlockBtn();
+      return;
+    }
 
     var lockEl = _q('sbLockOverlay');
     if (lockEl) lockEl.classList.add('sb-hidden');

@@ -8,7 +8,6 @@ import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
-  failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import {
@@ -4803,6 +4802,19 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
       cacheKey,
       cacheHit: true,
     };
+    const progress = normalizeNewYearProgress({
+      status: "completed",
+      progress: 100,
+      completedChapters: data.chapterCount,
+      totalChapters: data.chapterCount || NEW_YEAR_CHAPTERS.length,
+      currentChapterNumber: data.chapterCount || NEW_YEAR_CHAPTERS.length,
+      currentChapterTitle: "완료",
+      currentStep: "신년운세 PDF가 완성되었습니다.",
+      resultId: reportId,
+      pdfUrl: storedUrl,
+    }, { reportId, sessionId, targetYear });
+    data.progress = progress;
+    data.newYearPdfProgress = progress;
     return {
       status: 200,
       payload: {
@@ -4811,6 +4823,8 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
         reportType: "sajuNewYear",
         status: "completed",
         serverStatus: "completed",
+        progress,
+        newYearPdfProgress: progress,
         qualityStatus: "passed",
         data,
         ...data,
@@ -4823,17 +4837,33 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
   }
 
   if (clean(doc.status) === "pending" || clean(doc.premiumStatus) === "generating") {
+    const progress = normalizeNewYearProgress(metadata, {
+      status: metadata.generationStatus || "generating",
+      reportId,
+      sessionId,
+      targetYear,
+    });
     return {
       status: 202,
       payload: {
         ok: true,
         serviceKey: SERVICE_KEY,
-        status: "running",
-        serverStatus: "running",
+        status: progress.status,
+        serverStatus: progress.status,
         reportId,
         sessionId,
         targetYear,
-        message: "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
+        progress,
+        newYearPdfProgress: progress,
+        data: {
+          reportId,
+          sessionId,
+          targetYear,
+          status: progress.status,
+          progress,
+          newYearPdfProgress: progress,
+        },
+        message: progress.currentStep || "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
       },
     };
   }
@@ -4875,6 +4905,92 @@ async function acquireNewYearExecutionLease(env, userId, executionCtx = {}) {
   } catch (error) {
     console.warn("[new-year][execution-lease-acquire-failed]", clean(error?.message || error));
     return { ok: false, error };
+  }
+}
+
+async function resetNewYearFailedExecutionForRetry(env, userId, executionCtx = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return null;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    return await ServiceExecutionTransaction.findOneAndUpdate(
+      {
+        userId,
+        executionKey,
+        status: "failed",
+      },
+      {
+        $set: {
+          status: "pending",
+          premiumStatus: "generating",
+          heartbeatAt: now,
+          lastClientHeartbeatAt: now,
+          generationStartedAt: now,
+          generationFailedAt: null,
+          reasonCode: "",
+          reasonMessage: "",
+          "metadata.generationStatus": "pending",
+          "metadata.progress": 0,
+          "metadata.currentStep": "결제 내역을 유지한 채 신년운세 PDF 생성을 다시 시작합니다.",
+          "metadata.retryable": true,
+          "metadata.retryStartedAt": now.toISOString(),
+          "lock.token": "",
+          "lock.until": null,
+          "lock.acquiredAt": null,
+        },
+        $inc: { retryCount: 1 },
+      },
+      { returnDocument: "after" },
+    ).lean();
+  } catch (error) {
+    console.warn("[new-year][failed-execution-retry-reset-failed]", clean(error?.message || error));
+    return null;
+  }
+}
+
+async function markNewYearExecutionFailedForRetry(env, userId, executionCtx = {}, progress = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return null;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    return await ServiceExecutionTransaction.updateOne(
+      { userId, executionKey },
+      {
+        $set: {
+          status: "failed",
+          premiumStatus: "failed",
+          generationFailedAt: now,
+          heartbeatAt: now,
+          reasonCode: clean(progress.errorCode || "GENERATION_FAILED"),
+          reasonMessage: clean(progress.errorMessage || "신년운세 PDF 생성에 실패했습니다.", 500),
+          refundStatus: "none",
+          refundReason: "",
+          "metadata.generationStatus": "failed",
+          "metadata.progress": Number(progress.progress || 0),
+          "metadata.currentChapterNumber": Number(progress.currentChapterNumber || 0),
+          "metadata.currentChapterIndex": Number(progress.currentChapterNumber || 0),
+          "metadata.currentChapterTitle": clean(progress.currentChapterTitle),
+          "metadata.completedChapters": Number(progress.completedChapters || 0),
+          "metadata.totalChapters": Number(progress.totalChapters || NEW_YEAR_CHAPTERS.length),
+          "metadata.currentStep": clean(progress.currentStep),
+          "metadata.errorCode": clean(progress.errorCode || "GENERATION_FAILED"),
+          "metadata.errorMessage": clean(progress.errorMessage || "신년운세 PDF 생성에 실패했습니다.", 500),
+          "metadata.failedChapterNumber": Number(progress.failedChapterNumber || 0) || 0,
+          "metadata.failedChapterTitle": clean(progress.failedChapterTitle),
+          "metadata.rawLlmError": clean(progress.rawLlmError || "", 2000),
+          "metadata.retryable": true,
+          "metadata.failedAt": now.toISOString(),
+          "lock.token": "",
+          "lock.until": null,
+          "lock.acquiredAt": null,
+        },
+      },
+    );
+  } catch (error) {
+    console.warn("[new-year][failed-execution-mark-failed]", clean(error?.message || error));
+    return null;
   }
 }
 
@@ -4931,12 +5047,160 @@ function normalizeNewYearPdfErrorCode(error) {
   return "GENERATION_FAILED";
 }
 
+function normalizeNewYearProgress(progress = {}, fallback = {}) {
+  const source = progress && typeof progress === "object" ? progress : {};
+  const statusRaw = clean(source.status || source.generationStatus || fallback.status || fallback.generationStatus || "pending");
+  const status = statusRaw === "done" ? "completed" : statusRaw === "validating" ? "pending" : statusRaw === "running" ? "generating" : statusRaw;
+  const totalChapters = Math.max(1, Math.trunc(Number(
+    source.totalChapters
+    || source.chapterCount
+    || fallback.totalChapters
+    || fallback.chapterCount
+    || NEW_YEAR_CHAPTERS.length,
+  ) || NEW_YEAR_CHAPTERS.length));
+  const completedChapters = Math.max(0, Math.min(totalChapters, Math.trunc(Number(
+    source.completedChapters
+    ?? source.completedChapterCount
+    ?? fallback.completedChapters
+    ?? fallback.completedChapterCount
+    ?? (status === "completed" ? totalChapters : 0),
+  ) || 0)));
+  const currentChapterNumber = Math.max(1, Math.min(totalChapters, Math.trunc(Number(
+    source.currentChapterNumber
+    || source.currentChapterNo
+    || source.currentChapterIndex
+    || source.chapterIndex
+    || fallback.currentChapterNumber
+    || fallback.currentChapterNo
+    || (completedChapters >= totalChapters ? totalChapters : completedChapters + 1),
+  ) || 1)));
+  const spec = NEW_YEAR_CHAPTERS[currentChapterNumber - 1] || NEW_YEAR_CHAPTERS[0] || {};
+  const currentChapterTitle = clean(
+    source.currentChapterTitle
+    || fallback.currentChapterTitle
+    || String(spec.title || "").replace("{YEAR}", clean(source.targetYear || fallback.targetYear || "")),
+  );
+  let progressPercent = Number(source.progress ?? source.percent ?? fallback.progress ?? fallback.percent);
+  if (!Number.isFinite(progressPercent)) {
+    progressPercent = status === "completed"
+      ? 100
+      : status === "failed"
+        ? Math.max(0, Math.round((completedChapters / totalChapters) * 80))
+        : Math.max(5, Math.min(95, Math.round((completedChapters / totalChapters) * 70) + 15));
+  }
+  progressPercent = Math.max(0, Math.min(100, Math.round(progressPercent)));
+  const currentStep = clean(
+    source.currentStep
+    || source.currentStepMessage
+    || fallback.currentStep
+    || fallback.currentStepMessage
+    || (status === "rendering"
+      ? "PDF 렌더링 중입니다."
+      : status === "completed"
+        ? "신년운세 PDF가 완성되었습니다."
+        : status === "failed"
+          ? "신년운세 PDF 생성이 중단되었습니다."
+          : currentChapterTitle
+            ? `챕터 ${currentChapterNumber}: ${currentChapterTitle} 생성 중입니다.`
+            : "신년운세 PDF를 작성하고 있어요."),
+  );
+  return {
+    jobId: clean(source.jobId || fallback.jobId || fallback.reportId || fallback.sessionId),
+    status: ["pending", "generating", "rendering", "completed", "failed"].includes(status) ? status : "generating",
+    progress: progressPercent,
+    currentStep,
+    currentChapterNumber,
+    currentChapterTitle,
+    totalChapters,
+    completedChapters,
+    resultId: clean(source.resultId || fallback.resultId || fallback.reportId),
+    pdfUrl: clean(source.pdfUrl || source.downloadUrl || fallback.pdfUrl || fallback.downloadUrl),
+    errorCode: clean(source.errorCode || fallback.errorCode),
+    errorMessage: clean(source.errorMessage || fallback.errorMessage),
+    failedChapterNumber: Number(source.failedChapterNumber || fallback.failedChapterNumber || 0) || undefined,
+    failedChapterTitle: clean(source.failedChapterTitle || fallback.failedChapterTitle),
+    retryable: source.retryable === true || fallback.retryable === true || status === "failed",
+  };
+}
+
+function buildNewYearStatusResponseFromExecution(doc = {}, fallback = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const payload = archive.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const pdfReady = archive.pdfReady || metadata.pdfReady || payload.pdfReady || null;
+  const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
+  const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
+  const progress = normalizeNewYearProgress({
+    status: isCompleted ? "completed" : isFailed ? "failed" : metadata.generationStatus,
+    progress: isCompleted ? 100 : metadata.progress,
+    currentChapterNumber: metadata.currentChapterNumber || metadata.currentChapterIndex,
+    currentChapterTitle: metadata.currentChapterTitle,
+    totalChapters: metadata.totalChapters || metadata.chapterCount || archive.chapterCount || payload.chapterCount,
+    completedChapters: isCompleted ? (archive.chapterCount || payload.chapterCount || NEW_YEAR_CHAPTERS.length) : metadata.completedChapters,
+    currentStep: metadata.currentStep,
+    resultId: doc.reportId,
+    pdfUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || archive.downloadUrl || payload.downloadUrl),
+    errorCode: metadata.errorCode || doc.reasonCode,
+    errorMessage: metadata.errorMessage || doc.reasonMessage,
+    failedChapterNumber: metadata.failedChapterNumber,
+    failedChapterTitle: metadata.failedChapterTitle,
+    retryable: isFailed,
+  }, {
+    reportId: clean(doc.reportId || fallback.reportId),
+    sessionId: clean(doc.sessionId || fallback.sessionId),
+    targetYear: fallback.targetYear,
+  });
+  const data = {
+    reportId: clean(doc.reportId || fallback.reportId),
+    sessionId: clean(doc.sessionId || fallback.sessionId),
+    serviceKey: SERVICE_KEY,
+    status: progress.status,
+    progress,
+    newYearPdfProgress: progress,
+    pdfReady,
+    chapters: archive.chapters || payload.chapters || pdfReady?.chapters || [],
+    pdfUrl: progress.pdfUrl,
+    downloadUrl: progress.pdfUrl,
+    canDownload: Boolean(progress.pdfUrl),
+    errorCode: progress.errorCode,
+    errorMessage: progress.errorMessage,
+  };
+  return {
+    ok: true,
+    serviceKey: SERVICE_KEY,
+    status: progress.status,
+    serverStatus: progress.status,
+    progress,
+    newYearPdfProgress: progress,
+    data,
+    ...data,
+  };
+}
+
 async function updateNewYearExecutionProgress(env, userId, executionCtx = {}, progress = {}) {
   const executionKey = clean(executionCtx.executionKey);
   if (!executionKey) return null;
+  const normalized = normalizeNewYearProgress(progress, {
+    jobId: clean(executionCtx.reportId || executionCtx.sessionId),
+    reportId: clean(executionCtx.reportId),
+    sessionId: clean(executionCtx.sessionId),
+  });
+  const sessionId = clean(executionCtx.sessionId);
+  if (sessionId) {
+    const existing = newYearPdfLocks.get(sessionId) || {};
+    newYearPdfLocks.set(sessionId, {
+      ...existing,
+      status: normalized.status === "completed" ? "done" : normalized.status === "failed" ? "failed" : "running",
+      reportId: clean(executionCtx.reportId || existing.reportId),
+      sessionId,
+      progress: normalized,
+      startedAtMs: existing.startedAtMs || Date.now(),
+      updatedAtMs: Date.now(),
+    });
+  }
   try {
     await connectDb(withPdfFastDbEnv(env));
-    const status = clean(progress.status || "generating");
+    const status = normalized.status;
     const now = new Date();
     return await ServiceExecutionTransaction.updateOne(
       { userId, executionKey },
@@ -4944,10 +5208,20 @@ async function updateNewYearExecutionProgress(env, userId, executionCtx = {}, pr
         $set: {
           heartbeatAt: now,
           "metadata.generationStatus": status,
-          "metadata.progress": Math.max(0, Math.min(100, Number(progress.progress || 0))),
+          "metadata.progress": normalized.progress,
           "metadata.currentChapterId": clean(progress.chapterId || ""),
-          "metadata.currentChapterIndex": Number(progress.chapterIndex || 0),
-          "metadata.chapterCount": Number(progress.chapterCount || 0),
+          "metadata.currentChapterIndex": normalized.currentChapterNumber,
+          "metadata.currentChapterNumber": normalized.currentChapterNumber,
+          "metadata.currentChapterTitle": normalized.currentChapterTitle,
+          "metadata.completedChapters": normalized.completedChapters,
+          "metadata.totalChapters": normalized.totalChapters,
+          "metadata.chapterCount": normalized.totalChapters,
+          "metadata.currentStep": normalized.currentStep,
+          "metadata.errorCode": normalized.errorCode,
+          "metadata.errorMessage": normalized.errorMessage,
+          "metadata.failedChapterNumber": normalized.failedChapterNumber,
+          "metadata.failedChapterTitle": normalized.failedChapterTitle,
+          "metadata.rawLlmError": clean(progress.rawLlmError || "", 2000),
           "metadata.progressUpdatedAt": now.toISOString(),
         },
       },
@@ -5081,6 +5355,7 @@ async function handlePrepare(request, env) {
   }
   newYearPdfLocks.set(sessionKey, { status: "running", startedAtMs: Date.now() });
   let activeExecutionCtx = null;
+  let lastProgress = normalizeNewYearProgress({ status: "pending", progress: 0 }, { reportId, sessionId: sessionKey, targetYear: normalized.targetYear });
 
   try {
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
@@ -5171,25 +5446,54 @@ async function handlePrepare(request, env) {
       newYearPdfLocks.delete(sessionKey);
       return json(cachedPdfResponse.payload, { status: cachedPdfResponse.status });
     }
+    await resetNewYearFailedExecutionForRetry(env, auth.userId, executionCtx);
+    const persistProgress = (progress) => {
+      lastProgress = normalizeNewYearProgress(progress, {
+        reportId,
+        sessionId: sessionKey,
+        targetYear: normalized.targetYear,
+      });
+      return updateNewYearExecutionProgress(env, auth.userId, executionCtx, lastProgress);
+    };
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
-    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "pending", progress: 0 });
+    await persistProgress({
+      status: "pending",
+      progress: 0,
+      completedChapters: 0,
+      totalChapters: NEW_YEAR_CHAPTERS.length,
+      currentChapterNumber: 1,
+      currentChapterTitle: "사주 명식과 대상 연도 데이터 정리",
+      currentStep: "결제 확인 완료",
+    });
     const executionLease = await acquireNewYearExecutionLease(env, auth.userId, executionCtx);
     if (!executionLease.ok && !executionLease.error) {
       newYearPdfLocks.delete(sessionKey);
+      const progress = normalizeNewYearProgress(lastProgress, { status: "generating", reportId, sessionId: sessionKey, targetYear: normalized.targetYear });
       return json({
         ok: true,
         serviceKey: SERVICE_KEY,
-        status: "running",
-        serverStatus: "running",
+        status: progress.status,
+        serverStatus: progress.status,
         sessionId: sessionKey,
         reportId,
         targetYear: normalized.targetYear,
-        message: "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
+        progress,
+        newYearPdfProgress: progress,
+        data: { sessionId: sessionKey, reportId, targetYear: normalized.targetYear, status: progress.status, progress, newYearPdfProgress: progress },
+        message: progress.currentStep || "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
       }, { status: 202 });
     }
 
     const yearlySajuPdfConfig = getYearlySajuPdfConfig(env);
-    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "validating", progress: 5 });
+    await persistProgress({
+      status: "pending",
+      progress: 5,
+      completedChapters: 0,
+      totalChapters: NEW_YEAR_CHAPTERS.length,
+      currentChapterNumber: 1,
+      currentChapterTitle: "사주 명식과 대상 연도 데이터 정리",
+      currentStep: "신년운세 리포트 준비 중입니다.",
+    });
 
     console.info("[NewYearPremiumPDF][YearlySajuLlmPipelineStarted]", {
       targetYear: normalized.targetYear,
@@ -5211,7 +5515,7 @@ async function handlePrepare(request, env) {
         cacheKey: yearlySajuPdfCacheKey,
         targetYear: normalized.targetYear,
       },
-      onProgress: (progress) => updateNewYearExecutionProgress(env, auth.userId, executionCtx, progress),
+      onProgress: persistProgress,
     });
     const localYearSajuJson = pipelineResult.localYearSajuJson;
     const newYearMasterJson = pipelineResult.newYearMasterJson;
@@ -5281,7 +5585,16 @@ async function handlePrepare(request, env) {
     pdfReady.contentType = "application/pdf";
     pdfReady.directDownloadUrl = archiveUrls.pdfUrl || archiveUrl;
     pdfReady.renderFormat = "pdf-archive";
-    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "rendering", progress: 95, chapterCount: chapters.length });
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, {
+      status: "rendering",
+      progress: 95,
+      completedChapters: chapters.length,
+      totalChapters: chapters.length,
+      currentChapterNumber: chapters.length,
+      currentChapterTitle: "PDF 렌더링",
+      currentStep: "PDF 렌더링 중입니다.",
+      chapterCount: chapters.length,
+    });
     pdfCompletionValidation = validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDownloadUrl: true });
     if (!pdfCompletionValidation.ok) {
       throw Object.assign(new Error("신년운세 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
@@ -5360,7 +5673,18 @@ async function handlePrepare(request, env) {
       },
       cacheKey: yearlySajuPdfCacheKey,
     });
-    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "completed", progress: 100, chapterCount: chapters.length });
+    const completedProgress = normalizeNewYearProgress({
+      status: "completed",
+      progress: 100,
+      completedChapters: chapters.length,
+      totalChapters: chapters.length,
+      currentChapterNumber: chapters.length,
+      currentChapterTitle: "완료",
+      currentStep: "신년운세 PDF가 완성되었습니다.",
+      resultId: reportId,
+      pdfUrl: storedUrl,
+    }, { reportId, sessionId: sessionKey, targetYear: localYearSajuJson.targetYear });
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, completedProgress);
 
     const responseData = {
       reportId,
@@ -5408,6 +5732,8 @@ async function handlePrepare(request, env) {
       pdfUrl: storedUrl,
       htmlUrl: clean(pdfReady.htmlUrl),
       downloadUrl: clean(pdfReady.downloadUrl || storedUrl),
+      progress: completedProgress,
+      newYearPdfProgress: completedProgress,
       canReopen: true,
       canDownload: true,
     };
@@ -5418,12 +5744,14 @@ async function handlePrepare(request, env) {
       reportType: "sajuNewYear",
       status: "completed",
       serverStatus: "completed",
+      progress: completedProgress,
+      newYearPdfProgress: completedProgress,
       qualityStatus: "passed",
       data: responseData,
       ...responseData,
     };
 
-    newYearPdfLocks.set(sessionKey, { status: "done", startedAtMs: Date.now(), result: responsePayload });
+    newYearPdfLocks.set(sessionKey, { status: "done", startedAtMs: Date.now(), result: responsePayload, progress: completedProgress, reportId, sessionId: sessionKey });
     return json(responsePayload);
   } catch (error) {
     const executionCtx = activeExecutionCtx || buildPremiumExecutionContext({
@@ -5437,17 +5765,27 @@ async function handlePrepare(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    try {
-      await failPremiumPdfExecution(
-        env,
-        auth.userId,
-        executionCtx,
-        "new_year_generation_failed",
-        clean(error?.message || "신년운세 PDF 생성에 실패했습니다."),
-        "new-year-generation",
-      );
-    } catch (_) {}
-    newYearPdfLocks.delete(sessionKey);
+    const failedChapterNumber = Number(error?.chapterNumber || error?.details?.chapterNumber || lastProgress.currentChapterNumber || 0) || undefined;
+    const failedChapterTitle = clean(error?.chapterTitle || error?.details?.chapterTitle || lastProgress.currentChapterTitle);
+    const rawLlmError = clean(error?.rawLlmError || JSON.stringify(error?.details || {}), 2000);
+    const failedProgress = normalizeNewYearProgress({
+      ...lastProgress,
+      status: "failed",
+      progress: lastProgress.progress,
+      currentChapterNumber: failedChapterNumber || lastProgress.currentChapterNumber,
+      currentChapterTitle: failedChapterTitle || lastProgress.currentChapterTitle,
+      failedChapterNumber,
+      failedChapterTitle,
+      errorCode: normalizeNewYearPdfErrorCode(error),
+      errorMessage: clean(error?.message || "신년운세 PDF 생성에 실패했습니다."),
+      currentStep: failedChapterNumber
+        ? `신년운세 PDF 챕터 ${failedChapterNumber} 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 재결제 없이 다시 생성할 수 있습니다.`
+        : "신년운세 PDF 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 재결제 없이 다시 생성할 수 있습니다.",
+      rawLlmError,
+      retryable: true,
+    }, { reportId, sessionId: sessionKey, targetYear: normalized.targetYear });
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { ...failedProgress, rawLlmError });
+    await markNewYearExecutionFailedForRetry(env, auth.userId, executionCtx, { ...failedProgress, rawLlmError });
     const rawMessage = clean(error?.message || "신년운세 PDF 생성 중 오류가 발생했습니다.");
     console.error("[NewYearPremiumPDF][Error][prepare]", normalizeNewYearBookError(error));
     const userMessage = rawMessage.includes("생년월일")
@@ -5471,8 +5809,14 @@ async function handlePrepare(request, env) {
         stage: clean(error?.stage || "prepare"),
         status: newYearErrorStatus(normalizeNewYearPdfErrorCode(error), Number(error?.status || 500)),
         causeMessage: clean(error?.cause?.message || error?.cause || error?.message || ""),
+        failedChapterNumber,
+        failedChapterTitle,
+        rawLlmError,
+        retryableWithoutPayment: true,
         errors: Array.isArray(error?.errors) ? error.errors.slice(0, 12) : undefined,
       },
+      progress: failedProgress,
+      newYearPdfProgress: failedProgress,
     }, { status: newYearErrorStatus(normalizeNewYearPdfErrorCode(error), Number(error?.status || 500)) });
   }
 }
@@ -5483,11 +5827,97 @@ async function handleChapters() {
   return json({ ok: true, serviceKey: SERVICE_KEY, targetYear, chapterCount: chapters.length, chapters });
 }
 
+async function handleStatus(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
+    }
+    throw error;
+  }
+
+  const url = new URL(request.url);
+  const path = getRoutePath(request, "/api/saju-new-year");
+  const pathJobId = clean(String(path || "").replace(/^\/?status\/?/, ""));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  const reportId = clean(url.searchParams.get("reportId") || url.searchParams.get("jobId") || pathJobId);
+  if (!sessionId && !reportId) {
+    return json({
+      ok: false,
+      serviceKey: SERVICE_KEY,
+      code: "MISSING_STATUS_KEY",
+      message: "신년운세 PDF 생성 상태 확인을 위해 sessionId 또는 reportId가 필요합니다.",
+    }, { status: 422 });
+  }
+
+  const lock = sessionId
+    ? newYearPdfLocks.get(sessionId)
+    : Array.from(newYearPdfLocks.values()).find((item) => clean(item?.reportId) === reportId);
+  if (lock?.result) return json(lock.result);
+  if (lock) {
+    const progress = normalizeNewYearProgress(lock.progress || {}, {
+      status: lock.status === "done" ? "completed" : lock.status === "failed" ? "failed" : "generating",
+      reportId: lock.reportId || reportId,
+      sessionId: lock.sessionId || sessionId,
+    });
+    return json({
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      status: progress.status,
+      serverStatus: progress.status,
+      reportId: clean(lock.reportId || reportId),
+      sessionId: clean(lock.sessionId || sessionId),
+      progress,
+      newYearPdfProgress: progress,
+      data: {
+        reportId: clean(lock.reportId || reportId),
+        sessionId: clean(lock.sessionId || sessionId),
+        status: progress.status,
+        progress,
+        newYearPdfProgress: progress,
+        errorCode: progress.errorCode,
+        errorMessage: progress.errorMessage,
+      },
+      message: progress.currentStep,
+    });
+  }
+
+  await connectDb(withPdfFastDbEnv(env));
+  const filters = [];
+  if (sessionId) filters.push({ sessionId });
+  if (reportId) filters.push({ reportId });
+  const doc = filters.length
+    ? await ServiceExecutionTransaction.findOne({ userId: auth.userId, reportType: "sajuNewYear", $or: filters }).sort({ updatedAt: -1, completedAt: -1, createdAt: -1 }).lean()
+    : null;
+  if (!doc) {
+    const progress = normalizeNewYearProgress({ status: "pending", progress: 0 }, { reportId, sessionId });
+    return json({
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      status: "pending",
+      serverStatus: "pending",
+      reportId,
+      sessionId,
+      progress,
+      newYearPdfProgress: progress,
+      data: { reportId, sessionId, status: "pending", progress, newYearPdfProgress: progress },
+      message: "신년운세 PDF 생성 job을 준비하고 있습니다.",
+    });
+  }
+
+  return json(buildNewYearStatusResponseFromExecution(doc, { reportId, sessionId }));
+}
+
 export async function handleSajuNewYearRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/saju-new-year");
     if (method === "GET" && (path === "/chapters" || path === "chapters")) return await handleChapters();
+    if (method === "GET" && (path === "/status" || path === "status" || String(path || "").startsWith("/status/") || String(path || "").startsWith("status/"))) return await handleStatus(request, env);
+    if (method === "POST" && (String(path || "").startsWith("/retry/") || String(path || "").startsWith("retry/"))) return await handlePrepare(request, env);
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
     if (!["GET", "POST"].includes(method)) return methodNotAllowed(["GET", "POST"]);
     return json({ ok: false, serviceKey: SERVICE_KEY, message: "지원하지 않는 사주 신년운세 PDF 경로입니다." }, { status: 404 });

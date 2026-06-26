@@ -1085,6 +1085,7 @@
   }
 
   function _qs(id) { return document.getElementById(id); }
+  function _clean(v) { return String(v || '').trim(); }
 
   function _buildApiCandidates(pathname, options) {
     var _path = String(pathname || '');
@@ -1356,7 +1357,6 @@
     var tenGodCounts = (window.G_POWER && window.G_POWER.groups) ? window.G_POWER.groups : {};
     var birth = profile.birth || snap.birth || {};
 
-    function _clean(v) { return String(v || '').trim(); }
     function _safeNum(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
     function _birthDate() {
       var y = Number(birth.year || 0);
@@ -2673,6 +2673,32 @@
         total: totalChapters,
       });
     }
+
+    function _applyServerJobStatus(body) {
+      var data = body && typeof body === 'object' ? body : {};
+      var serverTotal = Number(data.totalChapters || data.chapterCount || totalChapters || 0);
+      if (!Number.isFinite(serverTotal) || serverTotal <= 0) serverTotal = totalChapters;
+      var completed = Math.max(0, Math.min(serverTotal, Number(data.completedChapters || 0)));
+      var pct = Number(data.progress);
+      if (!Number.isFinite(pct)) pct = serverTotal > 0 ? (completed / serverTotal) * 100 : 0;
+      pct = Math.max(0, Math.min(100, Math.round(pct)));
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (progressText) progressText.textContent = pct + '% · ' + completed + ' / ' + serverTotal + ' 챕터 완성';
+      _updateLoadPills(completed);
+
+      var status = String(data.status || '').trim();
+      var currentNo = Number(data.currentChapterNumber || 0);
+      var currentTitle = String(data.currentChapterTitle || '').trim();
+      var step = String(data.currentStep || data.message || '').trim();
+      if (!step && currentNo > 0 && currentTitle) {
+        step = '현재 ' + currentNo + '챕터: ' + currentTitle + ' 상담문을 LLM으로 생성 중입니다.';
+      }
+      if (status === 'generating' && currentNo === 1 && !completed && currentTitle) {
+        step = step || '챕터 1의 상담문을 LLM으로 생성 중입니다. 응답 검수와 저장까지 완료되면 다음 챕터로 넘어갑니다.';
+      }
+      if (chapterMsg && step) chapterMsg.textContent = step;
+      if (status === 'rendering') _setLoveBookGenerationState('rendering_pdf');
+    }
     _setProgress(0);
 
     var _lsReportId = _lsCurrentReportId;
@@ -3035,10 +3061,7 @@
               }
 
               var body = pack.body;
-              var completed = Number(body.completedChapters || 0);
-              var stageMsg = String(body.message || '').trim();
-              _setProgress(completed);
-              if (chapterMsg && stageMsg) chapterMsg.textContent = stageMsg;
+              _applyServerJobStatus(body);
               transientFailures = 0;
 
               var status = String(body.status || '').trim();
@@ -3061,7 +3084,7 @@
               if (status === 'failed') {
                 _stop();
                 _setLoveBookGenerationState('failed');
-                reject(_buildLoveSecretApiError({ status: body.statusCode || 500, body: body }, String(body.errorMessage || body.message || '연애 비책 생성에 실패했습니다.'), {
+                reject(_buildLoveSecretApiError({ status: body.statusCode || 500, body: body }, String(body.message || body.errorMessage || '연애비책 생성 중 문제가 발생했어요. 결제 내역은 확인되었으니 재결제 없이 다시 생성할 수 있습니다.'), {
                   stage: 'status',
                   reportId: _lsReportId,
                   sessionId: _lsSessionId

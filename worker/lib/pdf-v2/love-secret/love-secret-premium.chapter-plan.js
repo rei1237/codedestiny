@@ -1,6 +1,6 @@
 import { asArray, clean, normalizeLoveSecretMode } from "./love-secret-premium.types.js";
 
-export const LOVE_SECRET_PREMIUM_CHAPTER_PLAN_VERSION = "2026-06-love-secret-llm-v1";
+export const LOVE_SECRET_PREMIUM_CHAPTER_PLAN_VERSION = "2026-06-love-secret-llm-v2";
 
 export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
   Object.freeze({
