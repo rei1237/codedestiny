@@ -3468,16 +3468,14 @@
     } else {
       _renderProfileSummary(null);
     }
-    var savedGenerationState = _readGenerationState();
     if (_resultPayload && _chapters.length && _isSukyoReportReady(_resultPayload)) {
       _renderResult(_chapters, _resultPayload);
       _showScreen('skResultScreen');
     } else if (_generating) {
       _showScreen('skLoadingScreen');
       _setGenerationWindowVisible(true);
-    } else if (savedGenerationState && _resumeSukuyoGenerationFromState(savedGenerationState)) {
-      _refreshReadinessPanel();
     } else {
+      _clearGenerationState();
       _showScreen('skStartScreen');
     }
     _refreshReadinessPanel();
