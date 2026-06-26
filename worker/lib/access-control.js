@@ -1064,7 +1064,7 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
 
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
-  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium";
+  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium" || normalizedReportType === "sajuNewYear";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
@@ -1304,12 +1304,14 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         logSajuAccessResolved(denied);
         return denied;
       }
-      await upsertPremiumContentEntitlementFromEvidence({
-        userId: user._id,
-        profileId,
-        featureKey: String(evidence?.featureKey || requiredRules[i]?.featureKey || receivedFeatureKey || ""),
-        evidence,
-      });
+      if (!isPerUsePdfReportType) {
+        await upsertPremiumContentEntitlementFromEvidence({
+          userId: user._id,
+          profileId,
+          featureKey: String(evidence?.featureKey || requiredRules[i]?.featureKey || receivedFeatureKey || ""),
+          evidence,
+        });
+      }
     }
   }
 

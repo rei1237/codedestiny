@@ -36,7 +36,7 @@ assert.equal(masterJson.schemaVersion, "saju-new-year-master-json.v1");
 assert.equal(masterJson.monthlyFlow.length, 12);
 
 const specs = newYear.buildSajuNewYearChapterSpecs(2026);
-assert.equal(specs.length, 13);
+assert.equal(specs.length, 10);
 const expectedChapterCount = specs.length;
 
 const paymentCheckIndex = handlePrepareSource.indexOf("const premiumAccessToken = clean");
@@ -210,6 +210,9 @@ assert.equal(pipelineResult.provider, "mock");
 assert.equal(pipelineResult.tokensUsed, 0);
 assert.equal(pipelineResult.cost, 0);
 assert.equal(pipelineResult.isMock, true);
+assert.equal(pipelineResult.actualChapterCount, 0);
+assert.equal(pipelineResult.actualCallAttemptCount, 0);
+assert.equal(pipelineResult.mockChapterCount, expectedChapterCount);
 assert.equal(pipelineResult.generationMode, "pdf-v3-llm-only");
 assert.equal(pipelineResult.promptVersion, "saju-new-year-llm-prompt.v1");
 assert.equal(pipelineResult.schemaVersion, "saju-new-year-llm-json.v1");

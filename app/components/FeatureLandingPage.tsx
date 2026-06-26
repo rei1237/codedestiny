@@ -248,6 +248,7 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/flower/astrology": { coins: "5,000원" },
   "/flower/jamidusu":  { coins: "5,000원" },
   "/flower/sukuyo":    { coins: "5,000원" },
+  "/dream/psycho":     { coins: "3,000원" },
   "/tarot/love": { coins: "5,000원" },
   "/tarot/reunion": { coins: "5,000원" },
   "/tarot/year": { coins: "3,000원" },

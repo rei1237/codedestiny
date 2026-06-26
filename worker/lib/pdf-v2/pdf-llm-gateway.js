@@ -59,14 +59,25 @@ function isMockFailureRequested(input = {}, env = {}) {
   return failList.includes(clean(input.chapterId));
 }
 
-function logGateway(message, input = {}, extra = {}) {
+function logGateway(message, input = {}, extra = {}, env = {}) {
+  if (!readBool(env, "PDF_DEBUG_MODE", false)) return;
+  const context = safeObject(input.context);
+  const callIndex = Number(extra.callIndex ?? context.callIndex ?? 0) || 0;
+  const tokensUsed = Number(extra.tokensUsed ?? 0) || 0;
   const payload = {
     jobId: clean(input.jobId, 160),
+    serviceKey: clean(input.serviceKey || context.serviceKey || input.serviceType, 80),
     serviceType: clean(input.serviceType, 80),
     chapterId: clean(input.chapterId, 120),
     provider: clean(extra.provider, 40),
     reason: clean(extra.reason, 160),
+    providerReason: clean(extra.providerReason || extra.reason, 160),
   };
+  if (typeof extra.allowed === "boolean") payload.allowed = extra.allowed;
+  if (callIndex > 0) payload.callIndex = callIndex;
+  if (typeof extra.aiRunCalled === "boolean") payload.aiRunCalled = extra.aiRunCalled;
+  if (clean(extra.modelName, 120)) payload.modelName = clean(extra.modelName, 120);
+  if (tokensUsed > 0) payload.tokensUsed = tokensUsed;
   try {
     console.info(message, payload);
   } catch (_) {}
@@ -83,6 +94,20 @@ function workersAiModelName(env = {}) {
 }
 
 function buildWorkersAiPrompt(input = {}) {
+  const context = safeObject(input.context);
+  const format = clean(context.format || inferFormat(input));
+  if (format === "saju-new-year-json" && block(input.prompt)) {
+    return [
+      `챕터 제목: ${clean(input.chapterTitle || input.chapterId)}`,
+      `챕터 순서: ${Number(input.chapterOrder || 1)} / ${Number(input.totalChapters || 1)}`,
+      `Job ID: ${clean(input.jobId, 160)}`,
+      `Chapter ID: ${clean(input.chapterId, 120)}`,
+      "",
+      "아래 지시문에 따라 JSON만 반환하세요.",
+      "",
+      block(input.prompt),
+    ].join("\n");
+  }
   const sourceInput = safeObject(input.input);
   return [
     `챕터 제목: ${clean(input.chapterTitle || input.chapterId)}`,
@@ -125,28 +150,43 @@ function extractWorkersAiText(result) {
 
 async function generateWorkersAiPdfChapter(input = {}, env = {}) {
   if (!env?.AI || typeof env.AI.run !== "function") {
-    const error = new Error("WORKERS_AI_BINDING_MISSING");
-    error.code = "WORKERS_AI_BINDING_MISSING";
+    const error = new Error("missing_ai_binding");
+    error.code = "missing_ai_binding";
     error.status = 503;
     throw error;
   }
   const modelName = workersAiModelName(env);
+  const context = safeObject(input.context);
+  const format = clean(context.format || inferFormat(input));
   const prompt = buildWorkersAiPrompt(input);
   const maxTokens = Math.max(256, Math.min(4096, readNumber(env, "PDF_WORKERS_AI_MAX_TOKENS", 1400)));
-  const raw = await env.AI.run(modelName, {
-    messages: [
-      {
-        role: "system",
-        content: "당신은 신년운세 PDF 원고를 쓰는 전문 명리 상담가입니다. 자연스러운 한국어 Markdown 본문만 작성합니다.",
-      },
-      { role: "user", content: prompt },
-    ],
-    max_tokens: maxTokens,
-  });
+  const systemContent = format === "saju-new-year-json"
+    ? block(input.systemPrompt) || "당신은 신년운세 PDF 원고를 쓰는 전문 명리 상담가입니다. 반드시 유효한 JSON만 반환합니다."
+    : "당신은 신년운세 PDF 원고를 쓰는 전문 명리 상담가입니다. 자연스러운 한국어 Markdown 본문만 작성합니다.";
+  let raw;
+  try {
+    raw = await env.AI.run(modelName, {
+      messages: [
+        {
+          role: "system",
+          content: systemContent,
+        },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: maxTokens,
+    });
+  } catch (cause) {
+    const error = new Error("workers_ai_run_failed");
+    error.code = "workers_ai_run_failed";
+    error.status = Number(cause?.status || cause?.statusCode || 502) || 502;
+    error.provider = "workers-ai";
+    error.causeMessage = clean(cause?.message || cause, 300);
+    throw error;
+  }
   const content = extractWorkersAiText(raw);
   if (!content) {
-    const error = new Error("WORKERS_AI_EMPTY_RESPONSE");
-    error.code = "WORKERS_AI_EMPTY_RESPONSE";
+    const error = new Error("workers_ai_empty_response");
+    error.code = "workers_ai_empty_response";
     error.status = 502;
     throw error;
   }
@@ -159,6 +199,7 @@ async function generateWorkersAiPdfChapter(input = {}, env = {}) {
     tokensUsed,
     cost: Number(((tokensUsed / 1000) * costPer1k).toFixed(6)),
     isMock: false,
+    providerReason: "real_llm_success",
   };
 }
 
@@ -592,48 +633,76 @@ export async function generatePdfChapterContent(input = {}, env = {}) {
     logGateway("[PDF LLM Gateway] blocked actual LLM call because LLM_DRY_RUN=true", input, {
       provider: effectiveProvider,
       reason: "dry_run",
-    });
-    logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, { provider: "mock" });
+      providerReason: "dry_run",
+      allowed: false,
+      aiRunCalled: false,
+    }, env);
+    logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, { provider: "mock", providerReason: "dry_run", allowed: false, aiRunCalled: false }, env);
     return generateMockPdfChapter(input, env);
   }
   if (effectiveProvider === "mock") {
-    logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, { provider: "mock" });
+    logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, { provider: "mock", providerReason: "mock_provider", allowed: false, aiRunCalled: false }, env);
     return generateMockPdfChapter(input, env);
   }
   if (effectiveProvider === "gemini" && !settings.geminiEnabled) {
     logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, {
       provider: "mock",
       reason: "gemini_disabled",
-    });
+      providerReason: "gemini_disabled",
+      allowed: false,
+      aiRunCalled: false,
+    }, env);
     return generateMockPdfChapter(input, env);
   }
   if (effectiveProvider === "workers-ai" && context.allowActual !== true) {
     logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, {
       provider: "mock",
       reason: "actual_not_allowed_for_chapter",
-    });
+      providerReason: "actual_not_allowed_for_chapter",
+      allowed: false,
+      aiRunCalled: false,
+    }, env);
     return generateMockPdfChapter(input, env);
   }
   if (effectiveProvider === "workers-ai" && !settings.workersAiEnabled) {
     logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, {
       provider: "mock",
       reason: "workers_ai_disabled",
-    });
+      providerReason: "workers_ai_disabled",
+      allowed: false,
+      aiRunCalled: false,
+    }, env);
     return generateMockPdfChapter(input, env);
   }
   if (settings.maxCallsPerJob <= 0) {
     logGateway("[PDF LLM Gateway] mock provider used. No actual LLM call.", input, {
       provider: "mock",
       reason: "max_calls_zero",
-    });
+      providerReason: "max_calls_zero",
+      allowed: false,
+      aiRunCalled: false,
+    }, env);
     return generateMockPdfChapter(input, env);
   }
   if (effectiveProvider === "workers-ai") {
     logGateway("[PDF LLM Gateway] Workers AI provider used for allowed chapter.", input, {
       provider: "workers-ai",
-      reason: "allowed_chapter",
-    });
-    return await generateWorkersAiPdfChapter(input, env);
+      reason: "real_llm_allowed",
+      providerReason: "real_llm_allowed",
+      allowed: true,
+      aiRunCalled: false,
+    }, env);
+    const result = await generateWorkersAiPdfChapter(input, env);
+    logGateway("[PDF LLM Gateway] Workers AI chapter completed.", input, {
+      provider: "workers-ai",
+      reason: result.providerReason || "real_llm_success",
+      providerReason: result.providerReason || "real_llm_success",
+      allowed: true,
+      aiRunCalled: true,
+      modelName: result.modelName,
+      tokensUsed: result.tokensUsed,
+    }, env);
+    return result;
   }
   throw new Error("Actual LLM calls are disabled during PDF development.");
 }
@@ -652,9 +721,11 @@ export async function generatePdfChapterTextResult(input = {}, env = {}) {
       tokensUsed: result.tokensUsed,
       cost: result.cost,
       isMock: result.isMock,
+      providerReason: result.providerReason || (result.isMock === true ? "mock_provider" : "real_llm_success"),
       latencyMs: Date.now() - started,
     };
   } catch (error) {
+    const errorCode = clean(error?.code || "PDF_LLM_GATEWAY_BLOCKED");
     return {
       ok: false,
       provider: "mock",
@@ -663,8 +734,10 @@ export async function generatePdfChapterTextResult(input = {}, env = {}) {
       tokensUsed: 0,
       cost: 0,
       isMock: true,
-      errorCode: clean(error?.code || "PDF_LLM_GATEWAY_BLOCKED"),
+      providerReason: errorCode,
+      errorCode,
       errorMessage: clean(error?.message || error, 500),
+      errorSummary: clean(error?.causeMessage || error?.message || error, 300),
       status: Number(error?.status || 503),
       latencyMs: Date.now() - started,
     };

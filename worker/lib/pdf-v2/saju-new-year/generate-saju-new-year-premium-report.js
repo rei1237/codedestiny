@@ -18,6 +18,7 @@ import {
 } from "./saju-new-year-premium.prompt-pack.js";
 import {
   generateSajuNewYearTextWithLlm,
+  resolveSajuNewYearChapterProviderPlan,
   resolveSajuNewYearLlmProviders,
   resolveSajuNewYearModelName,
   resolveSajuNewYearProviderModelKey,
@@ -105,7 +106,105 @@ export function buildSajuNewYearLlmChapterCacheKey({ normalizedInputHash, chapte
   })}`;
 }
 
-async function generateChapter({ env, input, chapter, expectedChapters, normalizedInputHash, modelName, providerModelKey, jobId, userId, onProgress }) {
+function stripTechnicalLlmFallbackText(value) {
+  return clean(value, 6000)
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/^#+\s*/gm, "")
+    .replace(/\b(?:fallback|payload|json|debug|internal\s*server\s*error|undefined|null|nan|object|calculationmode|recovered|about:blank|llm|api|engine|validation|retry|seed|skeleton|local|schema|prompt)\b/gi, " ")
+    .replace(/자동\s*복구\s*생성|데이터가\s*부족합니다|자동\s*생성|템플릿|계산\s*시그니처|내부\s*데이터|로컬\s*기반|생성\s*로직|챕터\s*생성기|카테고리\s*렌더러/g, " ")
+    .replace(/[{}[\]<>]/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function measuredTextLength(value) {
+  return clean(value).replace(/\s+/g, "").length;
+}
+
+function joinFallbackParagraphs(paragraphs = [], minLength = 1100) {
+  const source = paragraphs.map((paragraph) => clean(paragraph, 4000)).filter(Boolean);
+  let body = source.join("\n\n");
+  let guard = 0;
+  while (measuredTextLength(body) < minLength && guard < 3) {
+    guard += 1;
+    body = `${body}\n\n${source.slice(1).join("\n\n")}`.trim();
+  }
+  return clean(body, 20000);
+}
+
+function buildTextFallbackSectionBody({ rawText, chapterTitle, sectionTitle, targetYear, sectionIndex }) {
+  const safeRaw = stripTechnicalLlmFallbackText(rawText);
+  const intro = safeRaw
+    ? `먼저 떠오른 흐름은 이렇습니다. ${safeRaw}`
+    : `${sectionTitle}의 문이 조용히 열리며 ${targetYear}년의 기운이 원국 위에 내려앉습니다.`;
+  const monthA = ((Number(sectionIndex || 0) + 1) % 12) + 1;
+  const monthB = ((Number(sectionIndex || 0) + 5) % 12) + 1;
+  return joinFallbackParagraphs([
+    `${intro} 이 흐름은 ${chapterTitle} 안에서도 특히 ${sectionTitle}의 결을 선명하게 비춥니다. 총운과 대운의 바탕 위에 세운이 얹히며, 오행의 균형은 급한 결정보다 차분한 정리와 선택을 먼저 권합니다.`,
+    `${targetYear}년에는 원국이 품은 익숙한 기질과 바깥에서 들어오는 월운의 자극이 번갈아 강해집니다. 십성의 움직임은 사람, 일, 돈, 마음의 자리가 따로 움직이지 않고 서로를 밀어 올리는 모양입니다. 그래서 ${sectionTitle}에서는 한 번의 큰 변화보다 여러 번의 작은 조정이 더 깊은 힘을 냅니다.`,
+    `${monthA}월 무렵에는 이미 알고 있던 문제를 다른 시선으로 보게 되고, ${monthB}월 무렵에는 미뤄 둔 선택을 현실의 언어로 꺼내야 할 수 있습니다. 이때 중요한 것은 운이 좋고 나쁨을 단정하는 일이 아니라, 어느 자리에서 힘을 아끼고 어느 자리에서 마음을 열어야 하는지 알아차리는 일입니다.`,
+    `${sectionTitle}의 운은 겉으로 드러나는 성취보다 내면의 방향 전환을 먼저 가리킵니다. 말과 행동의 속도를 조금 늦추면 관계의 균열이 작아지고, 몸의 리듬을 살피면 기회가 들어오는 때를 더 분명히 느낄 수 있습니다. 재물과 일의 흐름도 결국 생활의 질서가 받쳐 줄 때 안정됩니다.`,
+    `조언을 드리자면, ${targetYear}년에는 새로운 길을 억지로 밀어붙이기보다 이미 손에 들어온 단서를 정갈하게 다듬는 편이 좋습니다. ${sectionTitle}의 자리에서는 기록, 약속, 건강한 거리감, 반복 가능한 루틴이 복을 담는 그릇이 됩니다. 마음이 흔들릴수록 기준을 낮추지 말고, 작은 약속을 지키는 쪽으로 운을 세우십시오.`,
+  ]);
+}
+
+function buildSajuNewYearLlmTextFallbackChapter({ rawText, chapter, targetYear, provider, modelName, tokensUsed, cost }) {
+  const title = clean(chapter?.title, 300).replace(/\{YEAR\}/g, String(targetYear));
+  const categories = (Array.isArray(chapter?.categories) ? chapter.categories : [])
+    .map((category) => clean(category, 300).replace(/\{YEAR\}/g, String(targetYear)))
+    .filter(Boolean);
+  const sections = categories.map((sectionTitle, sectionIndex) => {
+    const body = buildTextFallbackSectionBody({
+      rawText,
+      chapterTitle: title,
+      sectionTitle,
+      targetYear,
+      sectionIndex,
+    });
+    return {
+      title: sectionTitle,
+      body,
+      finalText: body,
+      text: body,
+      sajuEvidence: ["원국과 세운의 흐름", "월운과 오행의 균형"],
+      keyPoints: [`${sectionTitle}의 기준을 차분히 세웁니다.`],
+      actionGuide: ["작은 약속과 생활 리듬을 먼저 정돈합니다."],
+      checklist: ["말, 돈, 몸의 속도를 한 번 더 살핍니다."],
+      caution: ["급한 단정과 과한 확장은 피합니다."],
+    };
+  });
+  return {
+    no: Number(chapter?.no || 0),
+    id: String(chapter?.no || chapter?.id || ""),
+    title,
+    focus: `${title}의 첫 흐름`,
+    sections,
+    categories: sections.map((section) => ({
+      title: section.title,
+      finalText: section.body,
+      text: section.body,
+    })),
+    text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+    source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+    metadata: {
+      source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
+      schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+      provider: clean(provider || "workers-ai"),
+      modelName: clean(modelName),
+      tokensUsed: Number(tokensUsed || 0),
+      cost: Number(cost || 0),
+      isMock: false,
+      providerReason: "real_llm_text_fallback",
+    },
+  };
+}
+
+async function generateChapter({ env, input, chapter, expectedChapters, normalizedInputHash, modelName, providerModelKey, jobId, userId, realLlmCallsUsed, onProgress }) {
+  const providerPlan = resolveSajuNewYearChapterProviderPlan({
+    chapterId: chapter.id,
+    chapterOrder: chapter.no,
+    realLlmCallsUsed,
+  }, env);
   const cacheKey = buildSajuNewYearLlmChapterCacheKey({ normalizedInputHash, chapterNo: chapter.no, modelName: providerModelKey || modelName });
   const cached = await readChapterCache(env, cacheKey);
   if (cached?.chapter) {
@@ -118,7 +217,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
       && clean(cached.promptVersion) === SAJU_NEW_YEAR_LLM_PROMPT_VERSION
       && clean(cached.schemaVersion) === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION
       && clean(cached.qualityVersion) === SAJU_NEW_YEAR_LLM_QUALITY_VERSION;
-    if (cacheValid) {
+    if (cacheValid && !(providerPlan.allowActual === true && cached.isMock === true)) {
       return {
         ok: true,
         chapter: cachedValidation.chapter,
@@ -129,6 +228,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
         tokensUsed: Number(cached.tokensUsed || 0),
         cost: Number(cached.cost || 0),
         isMock: cached.isMock === true,
+        providerReason: clean(cached.providerReason || "llm-cache"),
         source: "llm-cache",
         attempts: [],
       };
@@ -139,6 +239,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
   const repairLimit = Math.max(0, Number(env?.SAJU_NEW_YEAR_LLM_REPAIR_LIMIT ?? 2));
   const attempts = [];
   const summary = chapterPlanSummary(expectedChapters);
+  let actualCallAttempted = false;
 
   if (typeof onProgress === "function") onProgress({ stage: "saju-new-year-llm", chapter });
 
@@ -146,17 +247,23 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
     let prompt = buildSajuNewYearChapterPrompt({ input, chapter, chapterPlanSummary: summary });
     let previousJsonText = "";
     for (let retry = 0; retry <= repairLimit; retry += 1) {
+      const attemptPlan = providerPlan.allowActual === true && actualCallAttempted === true
+        ? { ...providerPlan, allowActual: false, provider: "mock", isMock: true, reason: "max_calls_exceeded" }
+        : providerPlan;
+      const effectiveProvider = attemptPlan.allowActual === true ? provider : "mock";
       const started = Date.now();
       logSajuNewYearLlmEvent("CHAPTER_GENERATION_STARTED", {
         jobId,
         userId,
         chapterNo: chapter.no,
-        provider,
+        provider: effectiveProvider,
         retry,
+        providerReason: attemptPlan.reason,
         promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
       });
+      if (attemptPlan.allowActual === true) actualCallAttempted = true;
       const result = await generateSajuNewYearTextWithLlm({
-        provider,
+        provider: effectiveProvider,
         jobId,
         systemPrompt: sajuNewYearSystemPrompt,
         userPrompt: prompt,
@@ -168,22 +275,28 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
           targetYear: input.targetYear,
           schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
           totalChapters: expectedChapters.length,
+          provider: effectiveProvider,
+          allowActual: attemptPlan.allowActual,
+          providerReason: attemptPlan.reason,
         },
       }, env);
       const attempt = {
-        provider,
+        provider: effectiveProvider,
         retry,
         ok: Boolean(result.ok),
         modelName: clean(result.model),
         tokensUsed: Number(result.tokensUsed || 0),
         cost: Number(result.cost || 0),
         isMock: result.isMock === true,
+        allowActual: attemptPlan.allowActual === true,
+        providerReason: attemptPlan.reason,
         errorCode: clean(result.errorCode),
         status: result.status || null,
         durationMs: Number(result.latencyMs || Date.now() - started),
       };
       attempts.push(attempt);
       if (!result.ok) {
+        attempt.providerReason = clean(result.providerReason || result.errorCode || attemptPlan.reason);
         if (retry >= repairLimit || !isRetryableProviderFailure(result)) break;
         continue;
       }
@@ -197,6 +310,9 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
       if (validation.ok) {
         const actualProvider = clean(result.provider || provider);
         const actualModelName = clean(result.model || modelName);
+        const providerReason = result.isMock === true
+          ? attemptPlan.reason
+          : clean(result.providerReason || "real_llm_success");
         await writeChapterCache(env, cacheKey, {
           rawJson: validation.parsed,
           chapter: validation.chapter,
@@ -207,6 +323,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
           tokensUsed: Number(result.tokensUsed || 0),
           cost: Number(result.cost || 0),
           isMock: result.isMock === true,
+          providerReason,
           promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
           schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
           qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
@@ -229,7 +346,50 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
           tokensUsed: Number(result.tokensUsed || 0),
           cost: Number(result.cost || 0),
           isMock: result.isMock === true,
+          providerReason,
+          actualCallAttempted,
           source: "llm",
+          attempts,
+        };
+      }
+
+      if (attemptPlan.allowActual === true && result.isMock !== true && previousJsonText) {
+        const actualProvider = clean(result.provider || provider || "workers-ai");
+        const actualModelName = clean(result.model || modelName);
+        const textFallbackChapter = buildSajuNewYearLlmTextFallbackChapter({
+          rawText: previousJsonText,
+          chapter,
+          targetYear: input.targetYear,
+          provider: actualProvider,
+          modelName: actualModelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+        });
+        attempt.ok = true;
+        attempt.providerReason = "real_llm_text_fallback";
+        attempt.validationIssues = validation.issues.slice(0, 12);
+        logSajuNewYearLlmEvent("CHAPTER_TEXT_FALLBACK_USED", {
+          jobId,
+          userId,
+          chapterNo: chapter.no,
+          provider: actualProvider,
+          modelName: actualModelName,
+          providerReason: "real_llm_text_fallback",
+          issues: validation.issues.slice(0, 12),
+        });
+        return {
+          ok: true,
+          chapter: textFallbackChapter,
+          monthlyFortunes: [],
+          finalAdvice: null,
+          provider: actualProvider,
+          modelName: actualModelName,
+          tokensUsed: Number(result.tokensUsed || 0),
+          cost: Number(result.cost || 0),
+          isMock: false,
+          providerReason: "real_llm_text_fallback",
+          actualCallAttempted,
+          source: "llm-text-fallback",
           attempts,
         };
       }
@@ -241,7 +401,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
         jobId,
         userId,
         chapterNo: chapter.no,
-        provider,
+        provider: effectiveProvider,
         issues: validation.issues.slice(0, 12),
       });
       if (retry < repairLimit) {
@@ -261,6 +421,7 @@ async function generateChapter({ env, input, chapter, expectedChapters, normaliz
     title: chapter.title,
     errorCode: "SAJU_NEW_YEAR_LLM_CHAPTER_GENERATION_FAILED",
     attempts,
+    actualCallAttempted,
   };
 }
 
@@ -320,7 +481,10 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
   const modelSet = new Set();
   let tokensUsed = 0;
   let cost = 0;
-  let isMock = false;
+  let mockChapterCount = 0;
+  let actualChapterCount = 0;
+  let actualCallAttemptCount = 0;
+  let realLlmCallsUsed = 0;
   let monthlyFortunes = [];
   let finalAdvice = null;
 
@@ -337,6 +501,7 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
       providerModelKey,
       jobId,
       userId,
+      realLlmCallsUsed,
       onProgress: params.onProgress,
     });
     attempts.push(...(result.attempts || []));
@@ -355,7 +520,12 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
     tokensUsed += Number(result.tokensUsed || 0);
     cost += Number(result.cost || 0);
-    if (result.isMock === true) isMock = true;
+    if (result.actualCallAttempted === true) actualCallAttemptCount += 1;
+    if (result.isMock === true) mockChapterCount += 1;
+    else {
+      actualChapterCount += 1;
+    }
+    if (result.actualCallAttempted === true || result.isMock !== true) realLlmCallsUsed += 1;
   }
 
   const validation = validateSajuNewYearLlmReport({
@@ -374,13 +544,16 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     });
   }
 
-  const provider = providerSet.has("mock")
-    ? "mock"
-    : providerSet.has("gemini") && providerSet.size === 1
-    ? "gemini"
-    : providerSet.has("gemini")
-      ? "gemini-workers-ai"
-      : "workers-ai";
+  const isMock = actualChapterCount === 0;
+  const provider = providerSet.size === 1
+    ? [...providerSet][0]
+    : providerSet.has("workers-ai") && providerSet.has("mock")
+      ? "workers-ai-mock"
+      : providerSet.has("gemini") && providerSet.has("mock")
+        ? "gemini-mock"
+        : providerSet.has("gemini") && providerSet.has("workers-ai")
+          ? "gemini-workers-ai"
+          : [...providerSet].filter(Boolean).join("-") || "mock";
   const actualModelName = modelSet.size === 1
     ? [...modelSet][0]
     : [...modelSet].filter(Boolean).join(",") || modelName;
@@ -398,8 +571,11 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
     chapterCount: chapters.length,
     expectedChapterCount: expectedChapters.length,
+    actualChapterCount,
+    mockChapterCount,
+    actualCallAttemptCount,
     externalGeneration: true,
-    externalCallsAllowed: isMock ? false : true,
+    externalCallsAllowed: actualCallAttemptCount > 0,
     fallbackUsed: false,
   };
   const clientSummary = buildClientSummaryFromLlm({ input, chapters, monthlyFortunes, finalAdvice, validation });
@@ -434,9 +610,12 @@ export async function generateSajuNewYearPremiumReport(params = {}) {
     tokensUsed,
     cost,
     isMock,
+    actualChapterCount,
+    mockChapterCount,
+    actualCallAttemptCount,
     llmAssembly,
     llmAssemblyOnly: true,
-    externalCallsAllowed: isMock ? false : true,
+    externalCallsAllowed: actualCallAttemptCount > 0,
     fallbackUsed: false,
     manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
     generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,

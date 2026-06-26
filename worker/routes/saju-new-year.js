@@ -5877,6 +5877,32 @@ function logNewYearAiBindingCheck(params = {}) {
   } catch (_) {}
 }
 
+function logNewYearPdfFlow(env = {}, request = null, params = {}) {
+  if (!readBooleanFlag(env, "PDF_DEBUG_MODE", false)) return;
+  let requestUrl = "";
+  try {
+    if (request?.url) {
+      const url = new URL(request.url);
+      requestUrl = url.pathname;
+    }
+  } catch (_) {
+    requestUrl = "";
+  }
+  try {
+    console.info("[NewYearPDF Flow]", {
+      stage: clean(params.stage),
+      requestUrl,
+      httpStatus: Number(params.httpStatus || 0) || undefined,
+      jobId: clean(params.jobId),
+      hasAccess: params.hasAccess === true,
+      accessVerified: params.accessVerified === true,
+      createJobStarted: params.createJobStarted === true,
+      generateStarted: params.generateStarted === true,
+      statusPollingStarted: params.statusPollingStarted === true,
+    });
+  } catch (_) {}
+}
+
 function newYearChapterAliases(chapterId, chapterOrder) {
   const order = Number(chapterOrder || 0) || 0;
   const id = clean(chapterId).toLowerCase();
@@ -5929,8 +5955,9 @@ function isNewYearExpectedChapterFallbackError(error) {
 }
 
 function buildNewYearFallbackChapterResult(params = {}, plan = {}, error = null) {
+  const errorCode = clean(error?.code || "").toLowerCase();
   const fallbackReason = plan.allowActual === true
-    ? clean(error?.code || "real_llm_fallback")
+    ? clean(errorCode || "workers_ai_run_failed")
     : clean(plan.reason || "mock_fallback");
   return {
     chapterId: clean(params.chapterId),
@@ -5943,6 +5970,7 @@ function buildNewYearFallbackChapterResult(params = {}, plan = {}, error = null)
     isMock: true,
     realLlmAllowed: plan.allowActual === true,
     providerReason: fallbackReason,
+    errorSummary: clean(error?.causeMessage || error?.message || error, 300),
   };
 }
 
@@ -5963,6 +5991,7 @@ async function generateNewYearPdfChapterContent(params = {}, env = {}) {
   let gatewayResult;
   try {
     gatewayResult = await generatePdfChapterContent({
+      serviceKey: SERVICE_KEY,
       serviceType: "new_year_pdf",
       jobId: params.jobId,
       chapterId: params.chapterId,
@@ -5975,6 +6004,9 @@ async function generateNewYearPdfChapterContent(params = {}, env = {}) {
         format: "markdown",
         provider: plan.provider,
         allowActual: plan.allowActual,
+        providerReason: plan.reason,
+        callIndex: Number(plan.callsUsed || 0) + 1,
+        serviceKey: SERVICE_KEY,
       },
     }, env);
   } catch (error) {
@@ -6003,19 +6035,21 @@ async function generateNewYearPdfChapterContent(params = {}, env = {}) {
     cost: isMock ? 0 : Math.max(0, Number(gatewayResult?.cost || 0) || 0),
     isMock,
     realLlmAllowed: plan.allowActual,
-    providerReason: isMock ? plan.reason : "real_llm_success",
+    providerReason: isMock ? clean(gatewayResult?.providerReason || plan.reason) : clean(gatewayResult?.providerReason || "real_llm_success"),
   };
-  console.info("[NewYearPremiumPDF][ChapterProviderResolved]", {
-    jobId: clean(params.jobId),
-    chapterId: clean(params.chapterId),
-    chapterOrder: Number(params.chapterOrder || 0) || 0,
-    provider: result.provider,
-    modelName: result.modelName,
-    tokensUsed: result.tokensUsed,
-    cost: result.cost,
-    isMock: result.isMock,
-    reason: result.providerReason,
-  });
+  if (readBooleanFlag(env, "PDF_DEBUG_MODE", false)) {
+    console.info("[NewYearPremiumPDF][ChapterProviderResolved]", {
+      jobId: clean(params.jobId),
+      chapterId: clean(params.chapterId),
+      chapterOrder: Number(params.chapterOrder || 0) || 0,
+      provider: result.provider,
+      modelName: result.modelName,
+      tokensUsed: result.tokensUsed,
+      cost: result.cost,
+      isMock: result.isMock,
+      providerReason: result.providerReason,
+    });
+  }
   return result;
 }
 
@@ -6176,19 +6210,44 @@ async function handleVerifyAccess(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
+      logNewYearPdfFlow(env, request, {
+        stage: "verify-access/auth",
+        httpStatus: 401,
+        accessVerified: false,
+      });
       return newYearAuthFailureResponse(request, "prepare");
     }
     throw error;
   }
   const body = await readJson(request);
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  if (!normalized.ok) {
+    logNewYearPdfFlow(env, request, {
+      stage: "verify-access/input",
+      httpStatus: 422,
+      accessVerified: false,
+    });
+    return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  }
   const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
   if (!accessResult.ok) {
+    logNewYearPdfFlow(env, request, {
+      stage: "verify-access/access",
+      httpStatus: newYearErrorStatus(clean(accessResult?.code), Number(accessResult?.status || 402)),
+      hasAccess: false,
+      accessVerified: false,
+    });
     return newYearAccessFailureResponse(request, body, accessResult, "prepare");
   }
   const reportId = clean(body?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
   const access = buildNewYearPdfAccess(accessResult.access, accessResult.method);
+  logNewYearPdfFlow(env, request, {
+    stage: "verify-access/success",
+    httpStatus: 200,
+    jobId: reportId,
+    hasAccess: true,
+    accessVerified: access.verified === true,
+  });
   return json({
     ok: true,
     serviceKey: SERVICE_KEY,
@@ -6221,22 +6280,53 @@ async function handleCreateJob(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
+      logNewYearPdfFlow(env, request, {
+        stage: "create-job/auth",
+        httpStatus: 401,
+        createJobStarted: true,
+        accessVerified: false,
+      });
       return newYearAuthFailureResponse(request, "prepare");
     }
     throw error;
   }
   const body = await readJson(request);
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  if (!normalized.ok) {
+    logNewYearPdfFlow(env, request, {
+      stage: "create-job/input",
+      httpStatus: 422,
+      createJobStarted: true,
+      accessVerified: false,
+    });
+    return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
+  }
   const accessResult = await resolveNewYearPdfAccess(request, env, auth, body);
   if (!accessResult.ok) {
+    logNewYearPdfFlow(env, request, {
+      stage: "create-job/access",
+      httpStatus: newYearErrorStatus(clean(accessResult?.code), Number(accessResult?.status || 402)),
+      createJobStarted: true,
+      hasAccess: false,
+      accessVerified: false,
+    });
     return newYearAccessFailureResponse(request, body, accessResult, "prepare");
   }
   const jobId = clean(body?.jobId || body?.reportId || body?.accessGrant?.reportId || `ny_${normalized.targetYear}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || newYearPdfSessionId(jobId));
   const existingDoc = await findNewYearPdfJobExecution(env, auth.userId, jobId, sessionId);
   const existingJob = existingDoc?.metadata?.newYearPdfJob;
-  if (existingJob?.id) return json(buildNewYearPdfStatusPayload(existingJob), { status: existingJob.status === "completed" ? 200 : 202 });
+  if (existingJob?.id) {
+    logNewYearPdfFlow(env, request, {
+      stage: "create-job/existing",
+      httpStatus: existingJob.status === "completed" ? 200 : 202,
+      jobId: existingJob.id,
+      createJobStarted: true,
+      hasAccess: true,
+      accessVerified: existingJob.access?.verified === true,
+    });
+    return json(buildNewYearPdfStatusPayload(existingJob), { status: existingJob.status === "completed" ? 200 : 202 });
+  }
   const featureKey = normalizeFeatureKey(body?.featureKey);
   const job = buildNewYearPdfJob({ jobId, userId: auth.userId, normalized, body, access: { ...accessResult.access, method: accessResult.method } });
   job.access = buildNewYearPdfAccess(accessResult.access, accessResult.method);
@@ -6272,6 +6362,14 @@ async function handleCreateJob(request, env) {
   };
   await startPremiumPdfExecution(env, auth.userId, executionCtx);
   await persistNewYearPdfJob(env, auth.userId, executionCtx, job);
+  logNewYearPdfFlow(env, request, {
+    stage: "create-job/created",
+    httpStatus: 201,
+    jobId,
+    createJobStarted: true,
+    hasAccess: true,
+    accessVerified: job.access?.verified === true,
+  });
   return json(buildNewYearPdfStatusPayload(job), { status: 201 });
 }
 
@@ -6281,19 +6379,66 @@ async function handleGenerateMock(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
+      logNewYearPdfFlow(env, request, {
+        stage: "generate/auth",
+        httpStatus: 401,
+        generateStarted: true,
+        accessVerified: false,
+      });
       return newYearAuthFailureResponse(request, "generate");
     }
     throw error;
   }
   const body = await readJson(request);
   const jobId = clean(body?.jobId || body?.reportId);
+  if (!jobId) {
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/input",
+      httpStatus: 422,
+      generateStarted: true,
+    });
+  }
   if (!jobId) return json({ ok: false, serviceKey: SERVICE_KEY, code: "MISSING_JOB_ID", message: "jobId가 필요합니다." }, { status: 422 });
   const doc = await findNewYearPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
   const initialJob = doc?.metadata?.newYearPdfJob;
+  if (!doc || !initialJob?.id) {
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/job-not-found",
+      httpStatus: 404,
+      jobId,
+      generateStarted: true,
+    });
+  }
   if (!doc || !initialJob?.id) return json({ ok: false, serviceKey: SERVICE_KEY, code: "JOB_NOT_FOUND", message: "신년운세 PDF Job을 찾을 수 없습니다." }, { status: 404 });
+  if (initialJob.access?.verified !== true) {
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/access",
+      httpStatus: 403,
+      jobId,
+      generateStarted: true,
+      accessVerified: false,
+    });
+  }
   if (initialJob.access?.verified !== true) return json({ ok: false, serviceKey: SERVICE_KEY, code: "ACCESS_NOT_VERIFIED", message: "결제 또는 이용권 검증이 완료되지 않았습니다." }, { status: 403 });
+  if (initialJob.status === "completed") {
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/completed-existing",
+      httpStatus: 200,
+      jobId,
+      generateStarted: true,
+      accessVerified: true,
+    });
+  }
   if (initialJob.status === "completed") return json(buildNewYearMockResultPayload(initialJob, doc));
   if (["generating", "chapter_generating", "rendering", "saving"].includes(clean(initialJob.status))) {
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/in-progress",
+      httpStatus: 202,
+      jobId,
+      generateStarted: true,
+      accessVerified: true,
+      statusPollingStarted: true,
+    });
     return json(buildNewYearPdfStatusPayload(initialJob), { status: 202 });
   }
   const acquired = await ServiceExecutionTransaction.findOneAndUpdate(
@@ -6314,6 +6459,14 @@ async function handleGenerateMock(request, env) {
   ).lean();
   if (!acquired) {
     const freshDoc = await findNewYearPdfJobExecution(env, auth.userId, jobId, body?.sessionId || body?.reportSessionId);
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/acquire-existing",
+      httpStatus: 202,
+      jobId,
+      generateStarted: true,
+      accessVerified: true,
+      statusPollingStarted: true,
+    });
     return json(buildNewYearPdfStatusPayload(freshDoc?.metadata?.newYearPdfJob || initialJob), { status: 202 });
   }
   let job = acquired.metadata.newYearPdfJob;
@@ -6327,6 +6480,14 @@ async function handleGenerateMock(request, env) {
       updatedAt: newYearPdfNow(),
     };
     await persist(job);
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/started",
+      httpStatus: 202,
+      jobId: job.id,
+      generateStarted: true,
+      accessVerified: true,
+      statusPollingStarted: true,
+    });
     const total = Number(job.totalChapters || job.chapters?.length || NEW_YEAR_CHAPTERS.length);
     for (let index = 0; index < total; index += 1) {
       const chapter = job.chapters[index];
@@ -6523,6 +6684,15 @@ async function handleGenerateMock(request, env) {
     };
     executionCtx.metadata = completedMetadata;
     await completePremiumPdfExecution(env, auth.userId, executionCtx, job.id, completedMetadata);
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/completed",
+      httpStatus: 200,
+      jobId: job.id,
+      hasAccess: true,
+      accessVerified: true,
+      generateStarted: true,
+      statusPollingStarted: true,
+    });
     return json(buildNewYearMockResultPayload(job, { metadata: completedMetadata }));
   } catch (error) {
     const failedAt = newYearPdfNow();
@@ -6540,6 +6710,14 @@ async function handleGenerateMock(request, env) {
     job.progressPercent = calculateNewYearPdfProgress("failed", job.completedChapters, job.totalChapters, job.progressPercent);
     job.updatedAt = failedAt;
     await persist(job);
+    logNewYearPdfFlow(env, request, {
+      stage: "generate/failed",
+      httpStatus: Number(error?.status || 500) || 500,
+      jobId: job.id,
+      generateStarted: true,
+      accessVerified: true,
+      statusPollingStarted: true,
+    });
     await markNewYearExecutionFailedForRetry(env, auth.userId, executionCtx, {
       status: "failed",
       progress: job.progressPercent,

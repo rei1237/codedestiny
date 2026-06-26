@@ -731,6 +731,11 @@
     var overlay = $(OVERLAY_ID);
     if (!overlay) return;
 
+    var analyzeBtn = $("psychoDreamAnalyzeBtn");
+    if (analyzeBtn && analyzeBtn.getAttribute("data-pvw-bypass") !== "1" && typeof window.__cdRunPerUseCoinGateFromTile === "function") {
+      if (window.__cdRunPerUseCoinGateFromTile(analyzeBtn)) return;
+    }
+
     state.uiLocked = true;
     stopLoading();
     setError("");

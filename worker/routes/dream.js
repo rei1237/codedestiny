@@ -1,4 +1,22 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { callGeminiText } from "../lib/gemini.js";
+
+const DREAM_PSYCHO_GEMINI_MODEL_KEYS = Object.freeze([
+  "DREAM_PSYCHO_GEMINI_MODEL",
+  "PSYCHO_DREAM_GEMINI_MODEL",
+  "GEMINI_MODEL",
+]);
+
+let dreamGeminiCaller = callGeminiText;
+
+export function __setDreamGeminiCallerForTest(fn) {
+  dreamGeminiCaller = typeof fn === "function" ? fn : callGeminiText;
+}
+
+export function __resetDreamGeminiCallerForTest() {
+  dreamGeminiCaller = callGeminiText;
+}
+
 function normalizeDreamText(payload) {
   const text = String(payload?.dreamText || payload?.dreamContent || "").trim();
   if (!text) return { ok: false, message: "꿈의 장면을 입력해 주세요." };
@@ -539,28 +557,434 @@ async function handleTarotConsult(request) {
   });
 }
 
-async function handlePsychoAnalysis(request) {
+const PSYCHO_DREAM_REQUIRED_HEADERS = Object.freeze([
+  "Chapter 1. 꿈의 장면과 핵심 상징",
+  "Chapter 2. 정신분석적 해석 — 무의식의 소망과 갈등",
+  "Chapter 3. 융 심리학적 해석 — 내면의 원형과 통합",
+  "Chapter 4. 영적 상징 해몽 — 꿈이 전하는 신비한 메시지",
+  "Chapter 5. 현실 조언과 치유의 방향",
+]);
+
+const PSYCHO_DREAM_REQUIRED_PHRASES = Object.freeze([
+  "꿈의 핵심 장면 요약",
+  "프로이트식 소망 충족 관점",
+  "그림자와 아니마/아니무스의 작용",
+  "이 꿈이 건네는 신비로운 문장",
+  "오늘 할 수 있는 작은 행동",
+]);
+
+const PSYCHO_DREAM_POSITIVE_MARKERS = Object.freeze([
+  "행복",
+  "기쁨",
+  "축복",
+  "사랑",
+  "안도",
+  "평온",
+  "편안",
+  "따뜻",
+  "회복",
+  "치유",
+  "안정",
+  "희망",
+  "화해",
+  "기대",
+]);
+
+const PSYCHO_DREAM_HEALING_MARKERS = Object.freeze([
+  "위로",
+  "돌봄",
+  "다정",
+  "포근",
+  "휴식",
+  "숨",
+  "정리",
+  "부드럽",
+  "안식",
+  "조율",
+]);
+
+const PSYCHO_DREAM_ANXIOUS_MARKERS = Object.freeze([
+  "불안",
+  "공포",
+  "도망",
+  "추락",
+  "죽음",
+  "상실",
+  "분노",
+  "죄책감",
+  "압박",
+  "위기",
+  "혼란",
+  "붕괴",
+  "파국",
+  "경고",
+  "악몽",
+]);
+
+const PSYCHO_DREAM_LEAK_MARKERS = Object.freeze([
+  /fallback/i,
+  /payload/i,
+  /json/i,
+  /llm/i,
+  /api/i,
+]);
+
+function cleanPsychoText(value, fallback = "") {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text || fallback;
+}
+
+function parseJsonCandidate(text) {
+  const source = cleanPsychoText(text);
+  if (!source) return null;
+
+  const candidates = [source];
+  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) candidates.push(cleanPsychoText(fenced[1]));
+
+  const firstBrace = source.indexOf("{");
+  const lastBrace = source.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    candidates.push(source.slice(firstBrace, lastBrace + 1));
+  }
+
+  const firstBracket = source.indexOf("[");
+  const lastBracket = source.lastIndexOf("]");
+  if (firstBracket >= 0 && lastBracket > firstBracket) {
+    candidates.push(source.slice(firstBracket, lastBracket + 1));
+  }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch (_) {}
+  }
+
+  return null;
+}
+
+function firstPsychoText(values) {
+  for (const value of Array.isArray(values) ? values : []) {
+    const text = cleanPsychoText(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function countPsychoMarkerHits(text, markers) {
+  const source = String(text || "");
+  return (Array.isArray(markers) ? markers : []).reduce((count, marker) => {
+    if (!marker) return count;
+    return count + (source.includes(marker) ? 1 : 0);
+  }, 0);
+}
+
+function normalizePsychoTone(body, dreamText) {
+  const intake = body?.intake && typeof body.intake === "object" ? body.intake : {};
+  const source = [
+    dreamText,
+    body?.emotion,
+    body?.relationshipContext,
+    body?.recurringConcern,
+    body?.recentStressContext,
+    body?.desiredOutcome,
+    intake?.emotionalState,
+    intake?.relationshipContext,
+    intake?.recurringConcern,
+    intake?.recentStressContext,
+    intake?.desiredOutcome,
+    Array.isArray(body?.peopleInDream) ? body.peopleInDream.join(" ") : body?.peopleInDream,
+  ].map((value) => cleanPsychoText(value)).join(" ");
+
+  const happyScore = countPsychoMarkerHits(source, PSYCHO_DREAM_POSITIVE_MARKERS);
+  const healingScore = countPsychoMarkerHits(source, PSYCHO_DREAM_HEALING_MARKERS);
+  const anxiousScore = countPsychoMarkerHits(source, PSYCHO_DREAM_ANXIOUS_MARKERS);
+
+  let primary = "neutral";
+  if (happyScore > 0 || healingScore > 0) {
+    if (anxiousScore === 0) {
+      primary = happyScore >= healingScore ? "happy" : "healing";
+    } else if (anxiousScore > happyScore + healingScore) {
+      primary = "anxious";
+    } else {
+      primary = "mixed";
+    }
+  } else if (anxiousScore > 0) {
+    primary = "anxious";
+  }
+
+  const signals = uniqueList([
+    ...PSYCHO_DREAM_POSITIVE_MARKERS.filter((marker) => source.includes(marker)),
+    ...PSYCHO_DREAM_HEALING_MARKERS.filter((marker) => source.includes(marker)),
+    ...PSYCHO_DREAM_ANXIOUS_MARKERS.filter((marker) => source.includes(marker)),
+  ], 8);
+
+  return {
+    primary,
+    signals,
+    scores: {
+      happy: happyScore,
+      healing: healingScore,
+      anxious: anxiousScore,
+    },
+  };
+}
+
+function buildPsychoPrompt(body, dreamText, tone) {
+  const intake = body?.intake && typeof body.intake === "object" ? body.intake : {};
+  const people = Array.isArray(body?.peopleInDream)
+    ? uniqueList(body.peopleInDream, 8).join(", ")
+    : cleanPsychoText(body?.peopleInDream);
+  const places = Array.isArray(body?.placesInDream)
+    ? uniqueList(body.placesInDream, 8).join(", ")
+    : cleanPsychoText(body?.placesInDream);
+  const symbols = Array.isArray(body?.symbolsInDream)
+    ? uniqueList(body.symbolsInDream, 8).join(", ")
+    : cleanPsychoText(body?.symbolsInDream);
+
+  return [
+    "프로이트와 융의 시선을 함께 살려, 꿈의 장면을 다정하고 정밀하게 읽어주세요.",
+    "행복한 꿈이라면 불안과 경고를 억지로 덧씌우지 말고, 긴장된 꿈이라면 무의식의 소망과 방어를 균형 있게 비추세요.",
+    "",
+    "[상담 메타]",
+    "- 서비스: 정신분석 해몽",
+    "- 출력 형식: Markdown 5장 구조",
+    `- 핵심 톤: ${tone.primary}`,
+    "- 해석 원칙: 상징을 억지로 과장하지 말고, 꿈이 주는 정서의 결을 먼저 존중하세요.",
+    "",
+    "[꿈 감정 추정]",
+    `- primary: ${tone.primary}`,
+    `- signals: ${tone.signals.length ? tone.signals.join(", ") : "없음"}`,
+    "",
+    "[입력 정보]",
+    `- dreamText: ${dreamText}`,
+    `- emotion: ${firstPsychoText([body?.emotion, intake.emotionalState])}`,
+    `- recurringConcern: ${firstPsychoText([body?.recurringConcern, intake.recurringConcern])}`,
+    `- recentStressContext: ${firstPsychoText([body?.recentStressContext, intake.recentStressContext])}`,
+    `- desiredOutcome: ${firstPsychoText([body?.desiredOutcome, intake.desiredOutcome])}`,
+    `- relationshipContext: ${firstPsychoText([body?.relationshipContext, intake.relationshipContext])}`,
+    `- peopleInDream: ${people}`,
+    `- placesInDream: ${places}`,
+    `- symbolsInDream: ${symbols}`,
+    "",
+    "[출력 규칙]",
+    "- 반드시 다섯 장으로 나누어 쓰세요.",
+    "- Chapter 1부터 Chapter 5까지 순서와 제목을 지키세요.",
+    "- 각 장에는 짧은 소제목과 자연스러운 해석 문장을 함께 적으세요.",
+    "- 마지막 장에는 오늘 바로 할 수 있는 작은 행동을 반드시 넣으세요.",
+    "- 결과에는 시스템 메시지, JSON, API, LLM, payload, fallback 같은 말이 섞이지 않게 하세요.",
+  ].join("\n");
+}
+
+function buildPsychoFallbackMarkdown({ dreamText, tone, body }) {
+  const intake = body?.intake && typeof body.intake === "object" ? body.intake : {};
+  const snippet = cleanPsychoText(dreamText).slice(0, 180);
+  const relationContext = firstPsychoText([body?.relationshipContext, intake.relationshipContext]);
+  const peopleText = firstPsychoText([Array.isArray(body?.peopleInDream) ? body.peopleInDream.join(", ") : body?.peopleInDream]);
+  const desireText = firstPsychoText([body?.desiredOutcome, intake.desiredOutcome]);
+  const toneLabelMap = {
+    happy: "밝은 확신",
+    healing: "회복의 흐름",
+    mixed: "겹쳐 있는 감정",
+    anxious: "불안과 경계",
+    neutral: "조용한 관찰",
+  };
+  const openingMap = {
+    happy: "이 꿈은 기쁨과 관계의 확신이 부드럽게 떠오르는 장면입니다.",
+    healing: "이 꿈은 지친 마음이 스스로를 돌보려는 회복의 흐름을 품고 있습니다.",
+    mixed: "이 꿈은 끌림과 망설임이 함께 얽혀 있는 혼합된 감정의 장면입니다.",
+    anxious: "이 꿈은 불안과 경계가 먼저 올라오지만, 그 아래에는 지키고 싶은 마음이 함께 있습니다.",
+    neutral: "이 꿈은 아직 말로 다 닿지 않은 상징이 조용히 움직이고 있습니다.",
+  };
+  const closingMap = {
+    happy: "이 꿈은 마음이 이미 알고 있는 사랑과 기쁨을 다시 확인하려는 흐름으로 읽힙니다.",
+    healing: "이 꿈은 마음이 자신을 다시 품고, 천천히 회복의 숨을 고르려는 신호로 읽힙니다.",
+    mixed: "이 꿈은 끌림과 주저함이 함께 있어, 둘 사이의 균형을 다시 맞추라는 뜻으로 읽힙니다.",
+    anxious: "이 꿈은 불안을 밀어내기보다, 그 아래의 필요를 조용히 들어보라는 신호로 읽힙니다.",
+    neutral: "이 꿈은 상징을 조금 더 지켜보면, 내면의 방향이 서서히 드러날 흐름입니다.",
+  };
+  const toneLabel = toneLabelMap[tone?.primary] || toneLabelMap.neutral;
+  const opening = openingMap[tone?.primary] || openingMap.neutral;
+  const closing = closingMap[tone?.primary] || closingMap.neutral;
+
+  return [
+    "# 정신분석 해몽 보고서",
+    "",
+    `당신의 꿈은 ${toneLabel}의 결로 흘러갑니다. ${snippet ? `적어주신 "${snippet}" 장면을 따라` : "꿈의 결을 따라"} 무의식이 건네는 메시지를 조용히 정리합니다.`,
+    "무의식은 지금, 말보다 먼저 마음의 온도와 관계의 거리를 조심스럽게 비추고 있습니다.",
+    "",
+    "## Chapter 1. 꿈의 장면과 핵심 상징",
+    "### 1. 꿈의 핵심 장면 요약",
+    `${snippet || "꿈의 장면이 또렷이 남아 있습니다."} ${opening}`,
+    "### 2. 반복되는 이미지",
+    "반복되는 장면, 사람, 공간, 감정은 지금 마음이 가장 오래 붙들고 있는 주제를 가리킵니다. 같은 소재가 되풀이되면 그것은 우연보다 더 진한 신호일 수 있습니다.",
+    "### 3. 상징의 첫 인상",
+    `첫 인상은 대개 무의식이 가장 먼저 건네는 문장입니다. ${toneLabel}의 결이 강하다면 그 상징은 지키고 싶은 것, 다시 닿고 싶은 것, 혹은 아직 정리되지 않은 감정을 함께 담고 있을 가능성이 큽니다.`,
+    "",
+    "## Chapter 2. 정신분석적 해석 — 무의식의 소망과 갈등",
+    "### 1. 프로이트식 소망 충족 관점",
+    "프로이트식 소망 충족 관점에서는, 꿈이 겉으로 드러난 장면보다 더 깊은 바람을 대신 말해줍니다. 사랑, 인정, 안전, 통제, 해방 같은 욕구가 상징의 옷을 입고 나타납니다.",
+    "### 2. 억눌린 감정의 결",
+    relationContext
+      ? `억눌린 감정은 대개 서툰 문장으로 꿈속에 남습니다. 관계 맥락이 "${relationContext}"이라면, 그 감정은 더 안전하게 닿고 싶은 마음과 아직 말하지 못한 두려움 사이에서 흔들리고 있을 수 있습니다.`
+      : "억눌린 감정은 대개 서툰 문장으로 꿈속에 남습니다. 말하지 못한 욕구와 망설임이 함께 있을수록, 꿈은 더 진한 장면으로 감정을 대신 보여줍니다.",
+    "### 3. 반복 강박과 방어",
+    "반복 강박과 방어는 같은 장면을 다시 불러와, 아직 끝내지 못한 질문을 붙잡게 만듭니다. 그 방어가 서 있다고 해도, 마음이 안전을 찾으려는 방식이라고 이해하면 해석이 훨씬 부드러워집니다.",
+    "",
+    "## Chapter 3. 융 심리학적 해석 — 내면의 원형과 통합",
+    "### 1. 그림자와 아니마/아니무스의 작용",
+    peopleText
+      ? `그림자와 아니마/아니무스의 작용은 내가 아직 충분히 받아들이지 못한 내면의 얼굴을 드러냅니다. "${peopleText}" 같은 존재가 나온다면, 그 인물은 관계의 거리뿐 아니라 내 안의 미처 말하지 못한 감정도 함께 비추고 있을 수 있습니다.`
+      : "그림자와 아니마/아니무스의 작용은 내가 아직 충분히 받아들이지 못한 내면의 얼굴을 드러냅니다. 관계의 꿈일수록 이 작용은 더 분명해져, 끌림과 거리, 이상화와 두려움이 함께 떠오릅니다.",
+    "### 2. 자아와 전체성",
+    "자아와 전체성의 관점에서 보면, 꿈은 하나의 결론보다 통합의 방향을 보여줍니다. 내가 밀어낸 부분과 소중히 여기는 부분이 다시 만나야 비로소 마음이 넓게 숨을 쉽니다.",
+    "### 3. 내면의 대화",
+    "내면의 대화는 서로 다른 목소리가 싸우는 자리가 아니라, 각자의 필요를 알아듣는 자리입니다. 이 꿈은 지금 당신 안의 여러 층이 조용히 합의점을 찾으려는 순간일 수 있습니다.",
+    "",
+    "## Chapter 4. 영적 상징 해몽 — 꿈이 전하는 신비한 메시지",
+    "### 1. 이 꿈이 건네는 신비로운 문장",
+    `이 꿈이 건네는 신비로운 문장은 "${closing}"에 가깝습니다. 상징은 늘 정답을 외치기보다, 마음이 놓을 수 있는 방향을 조용히 가리킵니다.`,
+    "### 2. 관계와 운의 결",
+    "관계와 운의 결은 지금의 꿈이 누군가와의 거리, 혹은 나와 내 감정 사이의 간격을 다시 재고 있음을 보여줍니다. 가까워지고 싶은 마음이 있다면 서두르지 말고, 숨을 고르며 간격을 살펴보세요.",
+    "### 3. 상징이 가리키는 방향",
+    "상징이 가리키는 방향은 대개 단 하나의 결론이 아니라, 지금 손에 쥘 수 있는 다음 걸음입니다. 꿈이 밝게 흐를수록 그 방향은 더 다정하고 명료하게 열립니다.",
+    "",
+    "## Chapter 5. 현실 조언과 치유의 방향",
+    "### 1. 오늘 할 수 있는 작은 행동",
+    "- 꿈에서 가장 또렷했던 장면을 3줄로 적어 두세요.",
+    "- 그 장면에서 가장 강했던 감정을 한 단어로 붙여 보세요.",
+    "- 오늘 한 사람에게만, 너무 무겁지 않은 말로 마음을 건네세요.",
+    "### 2. 지금의 마음에 건넬 문장",
+    desireText
+      ? `${toneLabel}의 꿈은 나를 몰아붙이기보다, ${desireText}에 가까운 마음을 다시 만지게 합니다. 나는 서두르지 않아도 되고, 지금의 결을 그대로 바라볼 수 있습니다.`
+      : `${toneLabel}의 꿈은 나를 몰아붙이기보다, 내가 이미 알고 있던 마음을 다시 만지게 합니다. 나는 서두르지 않아도 되고, 지금의 결을 그대로 바라볼 수 있습니다.`,
+    "### 3. 다음 3일의 흐름",
+    "다음 3일은 결론을 서둘기보다, 반복되는 장면과 감정의 변화를 가볍게 기록하는 데 쓰세요. 기록은 무의식의 문장을 현실로 옮겨 오는 가장 부드러운 다리입니다.",
+    "",
+    `당신의 꿈은 ${opening} ${closing}`,
+  ].join("\n");
+}
+
+function evaluatePsychoMarkdownQuality(markdown, tone) {
+  const text = String(markdown || "").trim();
+  const warnings = [];
+
+  if (!text) warnings.push("empty_output");
+  if ((text.match(/Chapter\s+\d+\./g) || []).length < 5) warnings.push("chapter_count");
+
+  const missingHeaders = PSYCHO_DREAM_REQUIRED_HEADERS.filter((header) => !text.includes(header));
+  if (missingHeaders.length) warnings.push("missing_headers");
+
+  const missingPhrases = PSYCHO_DREAM_REQUIRED_PHRASES.filter((phrase) => !text.includes(phrase));
+  if (missingPhrases.length) warnings.push("missing_phrases");
+
+  if (PSYCHO_DREAM_LEAK_MARKERS.some((pattern) => pattern.test(text))) warnings.push("system_leak");
+  if (text.replace(/\s+/g, " ").length < 450) warnings.push("too_short");
+
+  const positiveHits = countPsychoMarkerHits(text, PSYCHO_DREAM_POSITIVE_MARKERS);
+  const healingHits = countPsychoMarkerHits(text, PSYCHO_DREAM_HEALING_MARKERS);
+  const anxiousHits = countPsychoMarkerHits(text, PSYCHO_DREAM_ANXIOUS_MARKERS);
+  if ((tone?.primary === "happy" || tone?.primary === "healing" || tone?.primary === "mixed") && anxiousHits >= 2 && positiveHits + healingHits < 2) {
+    warnings.push("tone_mismatch");
+  }
+
+  return {
+    ok: warnings.length === 0,
+    warnings,
+    positiveHits,
+    healingHits,
+    anxiousHits,
+  };
+}
+
+function extractPsychoMarkdownCandidate(aiResult) {
+  if (!aiResult || !aiResult.ok) return "";
+  const direct = cleanPsychoText(aiResult.text);
+  if (!direct) return "";
+
+  const parsed = parseJsonCandidate(direct);
+  if (!parsed) return direct;
+
+  const candidate = firstPsychoText([
+    parsed.markdown,
+    parsed.report,
+    parsed.analysis,
+    parsed.content,
+    parsed.text,
+    parsed.result,
+    parsed.message,
+  ]);
+  return candidate || direct;
+}
+
+async function handlePsychoAnalysis(request, env = {}) {
   const body = await readJson(request);
   const normalized = normalizeDreamText(body);
   if (!normalized.ok) {
     return json({ ok: false, message: normalized.message }, { status: 400 });
   }
 
-  const markdown = fallbackMarkdown(normalized.text);
-  const formatWarning = true;
+  const tone = normalizePsychoTone(body, normalized.text);
+  const prompt = buildPsychoPrompt(body, normalized.text, tone);
+  const systemPrompt = [
+    "당신은 정신분석 해몽가입니다.",
+    "말투는 전문적이되 지나치게 기술적이지 않게 유지하고, 꿈의 정서를 먼저 읽으세요.",
+    "행복한 꿈은 불안 템플릿으로 밀어 넣지 말고, 긴장된 꿈은 소망과 방어를 균형 있게 다루세요.",
+    "출력은 5장 구조의 Markdown으로 자연스럽게 정리하세요.",
+  ].join(" ");
+
+  const aiResult = await dreamGeminiCaller(env, prompt, {
+    systemPrompt,
+    modelEnvKeys: DREAM_PSYCHO_GEMINI_MODEL_KEYS,
+    temperature: 0.72,
+    maxOutputTokens: 6144,
+    timeoutMs: Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS || 55000),
+    totalTimeoutMs: Number(env.DREAM_PSYCHO_TOTAL_TIMEOUT_MS || 30000),
+  });
+
+  let markdown = extractPsychoMarkdownCandidate(aiResult);
+  const aiUsed = Boolean(aiResult?.ok && cleanPsychoText(aiResult?.text));
+  const aiSource = aiUsed ? "gemini" : "fallback";
+  const aiMessage = cleanPsychoText(aiResult?.message || aiResult?.error || "");
+  const qualityBeforeRepair = aiUsed ? evaluatePsychoMarkdownQuality(markdown, tone) : { ok: false, warnings: ["llm_unavailable"] };
+  const fallbackUsed = !aiUsed || !qualityBeforeRepair.ok;
+
+  if (fallbackUsed) {
+    markdown = buildPsychoFallbackMarkdown({
+      dreamText: normalized.text,
+      tone,
+      body,
+    });
+  }
+
+  const finalQuality = evaluatePsychoMarkdownQuality(markdown, tone);
 
   return json({
     ok: true,
     cached: false,
-    formatWarning,
+    formatWarning: fallbackUsed,
+    llm: {
+      used: aiUsed,
+      source: aiSource,
+      model: cleanPsychoText(aiResult?.model) || null,
+      error: aiUsed ? "" : (aiMessage || "gemini_unavailable"),
+    },
+    tone,
+    quality: {
+      ok: true,
+      originalOk: qualityBeforeRepair.ok,
+      fallbackUsed,
+      warnings: fallbackUsed ? qualityBeforeRepair.warnings : finalQuality.warnings,
+    },
     record: {
       id: `psycho-${Date.now()}`,
       markdown,
-      source: "local",
-      model: "fallback/local",
+      source: aiUsed ? "gemini" : "fallback",
+      model: cleanPsychoText(aiResult?.model) || (aiUsed ? "gemini" : "fallback/local"),
       createdAt: new Date().toISOString(),
     },
-    message: "ok",
+    message: aiUsed ? "ok" : "해몽 결과를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   });
 }
 

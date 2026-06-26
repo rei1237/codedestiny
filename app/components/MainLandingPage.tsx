@@ -156,6 +156,7 @@ const MAIN_LANDING_COPY_EN: MainLandingCopy = {
     "결제/멤버십 관리": "Payment and Membership Management",
     "멤버십과 결제 내역 관리": "Manage membership and payment history",
     "무료": "Free",
+    "1회 3,000원": "KRW 3,000 per reading",
     "기본 무료": "Basic Free",
     "추천": "Recommended",
     "인기": "Popular",
@@ -301,7 +302,7 @@ const MEDITATION_ITEMS_COPY: ServiceCardModel[] = [
   { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
   { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "5,000원~10,000원", tone: "coin" }] },
   { title: "드림 프롬프트", description: "꿈 문장 AI 프롬프트", href: "/dream/tarot", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
+  { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "1회 3,000원", tone: "coin" }] },
   { title: "심리테스트 허브", description: "성격·연애·직장 14종 모음", href: "/psychotest", emoji: "🧩", badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }] },
   { title: "힐링 타로 시작", description: "감정 온도 회복 리딩", href: "/tarot/healing", emoji: "💛", badges: [{ text: "무료", tone: "free" }] },
 ];

@@ -17,7 +17,7 @@
   var STATUS_API = '/api/saju-new-year/status';
   var RESULT_API = '/api/saju-new-year/result';
   var JOB_STORAGE_KEY = 'currentNewYearPdfJobId';
-  var TOTAL_CHAPTERS = 13;
+  var TOTAL_CHAPTERS = 10;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
 
@@ -43,7 +43,7 @@
     '사주 원국과 대상 연도를 검증하는 중입니다',
     '결제 및 접근 권한을 확인하는 중입니다',
     '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
-    '13챕터 신년운세 상담문을 작성하는 중입니다',
+    '10챕터 신년운세 상담문을 작성하는 중입니다',
     '원고 품질을 검증하고 PDF를 준비하는 중입니다'
   ];
 
@@ -55,7 +55,7 @@
     archive: 'PDF를 준비하는 중입니다'
   };
 
-  var TOC_LABELS = ['총론', '사주 구조', '직업', '재물', '연애와 결혼', '대인관계', '건강과 심리', '이동과 변화', '1분기', '2분기', '3분기', '4분기', '실전 처방'];
+  var TOC_LABELS = ['총운', '커리어', '재물', '인간관계', '연애·가족', '건강·심리', '분기별 결정', '위험 관리', '12개월 지도', '최종 로드맵'];
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -131,7 +131,7 @@
     var tileBadge = _qs('nyTileCoinBadge');
     var generateCoin = _qs('nyGenerateCoin');
     var generateBtn = _qs('nyGenerateBtn');
-    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 13챕터 신년운세 PDF';
+    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 10챕터 신년운세 PDF';
     if (tileBadge) tileBadge.textContent = '🪙 ' + costLabel + ' 기준';
     if (generateCoin) generateCoin.textContent = '🪙 ' + costLabel;
     if (generateBtn) generateBtn.setAttribute('data-coin-cost', String(_coinNumber(state.cost) || COIN_COST));
@@ -1161,6 +1161,7 @@
             productKey: API_FEATURE_KEY,
             entitlementKey: 'saju_new_year_pdf',
             paymentPurpose: 'pdf_generation',
+            allowedPaymentModes: ['direct', 'monthly', 'pass'],
             title: REASON,
             reason: REASON,
             coinPrice: resolvedCost,
@@ -1200,6 +1201,7 @@
         productKey: API_FEATURE_KEY,
         entitlementKey: 'saju_new_year_pdf',
         paymentPurpose: 'pdf_generation',
+        allowedPaymentModes: ['direct', 'monthly', 'pass'],
         reason: REASON,
         mode: 'saju-new-year',
         reportId: reportId,
