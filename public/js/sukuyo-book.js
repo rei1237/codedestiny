@@ -2564,9 +2564,6 @@
     completed = completed.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
       return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
     });
-    if (!completed.length && isPostChapterStage) {
-      for (var done = 1; done <= total; done += 1) completed.push(done);
-    }
     var hasProgressSignal = (Number.isFinite(rawStep) && rawStep > 0) || completed.length > 0 || isPostChapterStage;
     if (!hasProgressSignal) {
       _setLoadingStage(_sukuyoBookText('loading.generatingStage'));
@@ -2574,26 +2571,28 @@
       return;
     }
     var completedMax = completed.length ? Math.max.apply(Math, completed) : 0;
-    var step = Number.isFinite(rawStep) && rawStep > 0 ? Math.min(total, rawStep) : completedMax;
-    if (isPostChapterStage && step < total) step = total;
-    var chapter = step > 0 ? (_canonicalChapters[step - 1] || {}) : {};
-    var title = step > 0
-      ? _sukuyoBookText('loading.chapterTitle', step, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), step)))
+    var serverStep = Number.isFinite(rawStep) && rawStep > 0 ? Math.min(total, rawStep) : completedMax;
+    var waitingStep = Math.max(0, total - 1);
+    var displayStep = Math.min(waitingStep, Math.max(serverStep, isPostChapterStage ? waitingStep : 0));
+    var titleStep = serverStep > 0 ? serverStep : displayStep;
+    var chapter = titleStep > 0 ? (_canonicalChapters[titleStep - 1] || {}) : {};
+    var title = titleStep > 0
+      ? _sukuyoBookText('loading.chapterTitle', titleStep, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), titleStep)))
       : _sukuyoBookText('loading.runningNotice');
     if (stage === 'pdf-rendering') title = _sukuyoBookText('loading.renderingPdf');
     if (stage === 'archive-completing') title = _sukuyoBookText('loading.completingArchive');
     _setLoadingStage(isPostChapterStage
       ? _sukuyoBookText('loading.savingStage')
       : _sukuyoBookText('loading.generatingStage'));
-    _setLoadingProgress(step, total, title);
+    _setLoadingProgress(displayStep, total, title);
     _setLoadingNotice(payload.message || (isPostChapterStage
       ? _sukuyoBookText('loading.savedNotice')
       : _sukuyoBookText('loading.runningNotice')));
     _persistGenerationState({
       isOpen: true,
       status: 'generating',
-      currentChapterIndex: Math.max(0, step - 1),
-      currentChapterNo: step,
+      currentChapterIndex: Math.max(0, displayStep - 1),
+      currentChapterNo: displayStep,
       totalChapters: total,
       completedChapters: completed,
       failedChapters: [],
@@ -3149,6 +3148,7 @@
     var initialStep = Number.isFinite(initialRawStep) && initialRawStep > 0
       ? Math.min(total, initialRawStep)
       : (initialCompleted.length ? Math.max.apply(Math, initialCompleted) : 0);
+    initialStep = Math.min(Math.max(0, total - 1), initialStep);
     if (sessionId) _activeSessionId = sessionId;
     if (reportId) _activeReportId = reportId;
     _persistGenerationState({
