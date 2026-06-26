@@ -12,6 +12,24 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 const SESSION_CACHE = new Map();
+const CELESTIAL_HARMONY_ROUTE_TEXT_TRANSLATIONS = {
+  ko: {
+    reportNotFound: "복구 가능한 리딩이 없습니다.",
+    cardsRequired: "카드 데이터가 필요합니다.",
+    serverError: "서버 오류가 발생했습니다.",
+  },
+  en: {
+    reportNotFound: "No restorable reading was found.",
+    cardsRequired: "Card data is required.",
+    serverError: "A server error occurred.",
+  },
+  ja: {
+    reportNotFound: "復元できるリーディングが見つかりません。",
+    cardsRequired: "カードデータが必要です。",
+    serverError: "サーバーエラーが発生しました。",
+  },
+};
+const celestialHarmonyRouteCopy = CELESTIAL_HARMONY_ROUTE_TEXT_TRANSLATIONS.ko;
 
 function text(value) {
   return String(value || "").trim();
@@ -93,7 +111,7 @@ export async function GET(req) {
     || restorePaidCelestialSession(reportId || transactionId);
 
   if (!cached) {
-    return NextResponse.json({ ok: false, code: "REPORT_NOT_FOUND", message: "복구 가능한 리딩이 없습니다." }, { status: 404 });
+    return NextResponse.json({ ok: false, code: "REPORT_NOT_FOUND", message: celestialHarmonyRouteCopy.reportNotFound }, { status: 404 });
   }
   return NextResponse.json({ ok: true, source: "restore", result: cached });
 }
@@ -109,7 +127,7 @@ export async function POST(req) {
     if (!cards.length) {
       const restored = restorePaidCelestialSession(reportId || transactionId);
       if (restored) return NextResponse.json({ ok: true, source: "restored", result: restored });
-      return NextResponse.json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: celestialHarmonyRouteCopy.cardsRequired }, { status: 400 });
     }
 
     const local = buildCelestialMelodyReading({
@@ -147,6 +165,6 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("[celestial-harmony] Error:", error);
-    return NextResponse.json({ ok: false, message: "서버 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ ok: false, message: celestialHarmonyRouteCopy.serverError }, { status: 500 });
   }
 }

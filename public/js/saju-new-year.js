@@ -12,7 +12,7 @@
   var BILLING_FEATURE_KEY = API_FEATURE_KEY;
   var REASON = '사주 신년운세 PDF 리포트 생성';
   var PREPARE_API = '/api/saju-new-year/prepare';
-  var TOTAL_CHAPTERS = 10;
+  var TOTAL_CHAPTERS = 13;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
 
@@ -36,7 +36,7 @@
     '사주 원국과 대상 연도를 검증하는 중입니다',
     '결제 및 접근 권한을 확인하는 중입니다',
     '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
-    '10챕터 상담 원고를 집필하는 중입니다',
+    '13챕터 신년운세 상담문을 작성하는 중입니다',
     '원고 품질을 검증하고 PDF를 준비하는 중입니다'
   ];
 
@@ -48,7 +48,7 @@
     archive: 'PDF를 준비하는 중입니다'
   };
 
-  var TOC_LABELS = ['총운', '원국', '일', '돈', '연애', '관계', '건강', '월별', '기회', '전략'];
+  var TOC_LABELS = ['총론', '사주 구조', '직업', '재물', '연애와 결혼', '대인관계', '건강과 심리', '이동과 변화', '1분기', '2분기', '3분기', '4분기', '실전 처방'];
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -124,7 +124,7 @@
     var tileBadge = _qs('nyTileCoinBadge');
     var generateCoin = _qs('nyGenerateCoin');
     var generateBtn = _qs('nyGenerateBtn');
-    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 10챕터 신년 전략서 PDF';
+    if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 13챕터 신년운세 PDF';
     if (tileBadge) tileBadge.textContent = '🪙 ' + costLabel + ' 기준';
     if (generateCoin) generateCoin.textContent = '🪙 ' + costLabel;
     if (generateBtn) generateBtn.setAttribute('data-coin-cost', String(_coinNumber(state.cost) || COIN_COST));
@@ -227,7 +227,19 @@
   }
 
   function _publicErrorMessage(error, fallback) {
+    var code = _clean(error && (error.code || error.name)).toUpperCase();
+    var messages = {
+      AUTH_REQUIRED: '신년운세 PDF 생성을 위해 먼저 로그인해 주세요.',
+      SESSION_INVALID: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
+      ENTITLEMENT_REQUIRED: '신년운세 PDF 생성 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
+      ENTITLEMENT_CHECK_FAILED: '결제 권한 확인 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.',
+      INVALID_INPUT: '입력 정보를 확인해 주세요. 대상 연도와 생년월일은 필수입니다.',
+      GENERATION_FAILED: '신년운세 본문 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.',
+      PDF_RENDER_FAILED: '신년운세 PDF 렌더링 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.'
+    };
+    if (messages[code]) return messages[code];
     var message = _clean(error && error.message ? error.message : error);
+    if (/Authentication service error|retry login/i.test(message)) return messages.SESSION_INVALID;
     if (!message || message === '[object Object]' || /^HTTP\s*5\d\d/i.test(message)) {
       return fallback || '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
@@ -561,7 +573,7 @@
       if (step < TOTAL_CHAPTERS - 1) {
         step += 1;
         if (step >= 4) _setStage('write');
-        _setProgress(step, '10챕터 상담 원고 집필 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
+        _setProgress(step, '13챕터 신년운세 상담문 작성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
         return;
       }
       _setStage('archive');
@@ -617,18 +629,37 @@
     var status = Number(gate && gate.status || 0);
     var code = _clean(gate && (gate.code || gate.errorCode)).toUpperCase();
     var message = _clean(gate && gate.message);
-    if (status === 401 || code === 'AUTH_REQUIRED' || code === 'UNAUTHORIZED') {
+    if (status === 401 || code === 'AUTH_REQUIRED' || code === 'SESSION_INVALID' || code === 'UNAUTHORIZED') {
       return {
         showLogin: true,
-        detail: '로그인 후 같은 화면에서 다시 생성할 수 있습니다. 결제는 로그인과 권한 확인이 끝난 뒤에만 진행됩니다.',
+        detail: code === 'SESSION_INVALID' ? '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 PDF 생성을 이어갈 수 있습니다.' : '신년운세 PDF 생성을 위해 먼저 로그인이 필요합니다.',
         retryText: '로그인 후 다시 시도'
       };
     }
-    if (status === 402 || code === 'INSUFFICIENT_COINS' || /잔액|이용권|결제|권한/.test(message)) {
+    if (code === 'INVALID_INPUT') {
+      return {
+        showBirthInput: true,
+        detail: '생년월일과 대상 연도를 확인해 주세요. 대상 연도가 없으면 PDF 생성을 시작하지 않습니다.',
+        retryText: '입력 다시 확인'
+      };
+    }
+    if (code === 'ENTITLEMENT_CHECK_FAILED') {
+      return {
+        detail: '결제 권한 확인 서버 응답이 안정적으로 도착하지 않았습니다. 결제 내역을 보존한 상태로 다시 확인합니다.',
+        retryText: '권한 다시 확인'
+      };
+    }
+    if (status === 402 || code === 'ENTITLEMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || /잔액|이용권|결제|권한/.test(message)) {
       return {
         showCharge: true,
-        detail: '원화 결제 또는 이용권 상태를 확인한 뒤 다시 생성해 주세요. 권한이 확인되기 전에는 PDF 생성이 시작되지 않습니다.',
+        detail: '단건 결제, 월정석 크레딧, 이용권 중 하나의 권한이 필요합니다. 권한이 확인되기 전에는 PDF 생성이 시작되지 않습니다.',
         retryText: '권한 다시 확인'
+      };
+    }
+    if (code === 'GENERATION_FAILED' || code === 'PDF_RENDER_FAILED') {
+      return {
+        detail: '신년운세 PDF 생성이 완료되지 않았습니다. 실패 상태로 정리되었으니 같은 입력으로 다시 시도해 주세요.',
+        retryText: '생성 다시 시도'
       };
     }
     if (code === 'PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') {

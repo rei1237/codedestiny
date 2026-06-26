@@ -98,6 +98,7 @@
 - New payment/coin/auth logic must be implemented in worker-native routes (`worker/routes/**`).
 - Frontend must call worker-backed runtime endpoints (for example `/api/billing/*`) and avoid direct legacy server endpoints.
 - Feature pricing must be resolved server-side from registry, not hardcoded in frontend for final billing decision.
+- All paid feature payment flows must support single KRW payment, monthly credit, and membership pass access by default; direct-only payment gates are allowed only when the user explicitly requests that restriction.
 
 ## 6) PR Safety Checklist
 - No direct edits in mirror locales unless explicitly requested.

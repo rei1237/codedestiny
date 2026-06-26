@@ -1,6 +1,78 @@
 import { STAGE_KEY_TO_LABEL } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData, TwelveGrowthAnimalResult, TwelveStageKey } from "./types";
 
+type TwelveGrowthAnimalTextLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW";
+
+const TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS = {
+  ko: {
+    "section.core": "핵심 성향",
+    "section.strengthWeakness": "강점과 약점",
+    "section.loveRelations": "연애와 인간관계",
+    "section.workMoney": "일과 재물 감각",
+    "section.lifePattern": "반복 패턴",
+    "section.misunderstanding": "자주 생기는 오해",
+    "section.stress": "스트레스 패턴",
+    "section.today": "오늘의 실전 조언",
+    "section.compatible": "나와 잘 맞는 동반 에너지",
+    "section.mission": "성장 미션",
+  },
+  en: {
+    "section.core": "Core Tendency",
+    "section.strengthWeakness": "Strengths and Shadows",
+    "section.loveRelations": "Love and Relationships",
+    "section.workMoney": "Work and Wealth Sense",
+    "section.lifePattern": "Repeating Pattern",
+    "section.misunderstanding": "Common Misunderstanding",
+    "section.stress": "Stress Pattern",
+    "section.today": "Today's Practical Guidance",
+    "section.compatible": "Companion Energy That Fits You",
+    "section.mission": "Growth Mission",
+  },
+  ja: {
+    "section.core": "核心の性質",
+    "section.strengthWeakness": "強みと弱み",
+    "section.loveRelations": "恋愛と人間関係",
+    "section.workMoney": "仕事と金運感覚",
+    "section.lifePattern": "繰り返すパターン",
+    "section.misunderstanding": "起こりやすい誤解",
+    "section.stress": "ストレスの傾向",
+    "section.today": "今日の実践アドバイス",
+    "section.compatible": "相性のよい伴走エネルギー",
+    "section.mission": "成長ミッション",
+  },
+  "zh-CN": {
+    "section.core": "核心倾向",
+    "section.strengthWeakness": "优势与弱点",
+    "section.loveRelations": "恋爱与人际关系",
+    "section.workMoney": "事业与财富感知",
+    "section.lifePattern": "反复出现的模式",
+    "section.misunderstanding": "常见误解",
+    "section.stress": "压力模式",
+    "section.today": "今日实用建议",
+    "section.compatible": "与你契合的同行能量",
+    "section.mission": "成长课题",
+  },
+  "zh-TW": {
+    "section.core": "核心傾向",
+    "section.strengthWeakness": "優勢與弱點",
+    "section.loveRelations": "戀愛與人際關係",
+    "section.workMoney": "事業與財富感知",
+    "section.lifePattern": "反覆出現的模式",
+    "section.misunderstanding": "常見誤解",
+    "section.stress": "壓力模式",
+    "section.today": "今日實用建議",
+    "section.compatible": "與你契合的同行能量",
+    "section.mission": "成長課題",
+  },
+} as const;
+
+type TwelveGrowthAnimalTextKey = keyof typeof TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS.ko;
+
+function twelveGrowthAnimalResultText(key: TwelveGrowthAnimalTextKey, locale: TwelveGrowthAnimalTextLocale = "ko"): string {
+  const table = TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS[locale] || TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS.en;
+  return table[key] || TWELVE_GROWTH_ANIMAL_RESULT_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 type StageSeed = {
   animalTitle: string;
   keywords: string[];
@@ -329,11 +401,11 @@ type SectionItem = {
   content: string;
 };
 
-export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): SectionItem[] {
+export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult, locale: TwelveGrowthAnimalTextLocale = "ko"): SectionItem[] {
   return [
     {
       key: "core",
-      label: "핵심 성향",
+      label: twelveGrowthAnimalResultText("section.core", locale),
       content: [
         `${result.animalName}(${result.stageName})의 한 줄 정체성은 ${result.animalTitle}입니다.`,
         `${result.personality}`,
@@ -343,7 +415,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "strengthWeakness",
-      label: "강점과 약점",
+      label: twelveGrowthAnimalResultText("section.strengthWeakness", locale),
       content: [
         `강점은 ${result.strengths}`,
         `주의점은 ${result.shadows}`,
@@ -353,7 +425,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "loveRelations",
-      label: "연애와 인간관계",
+      label: twelveGrowthAnimalResultText("section.loveRelations", locale),
       content: [
         `${result.love}`,
         `${result.relationships}`,
@@ -363,7 +435,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "workMoney",
-      label: "일과 재물 감각",
+      label: twelveGrowthAnimalResultText("section.workMoney", locale),
       content: [
         `${result.workMoney}`,
         `이 운성은 단기 성과보다 누적 설계에서 강점을 보이므로, 한 번에 크게 벌기보다 재현 가능한 수익 구조를 만드는 접근이 유리합니다.`,
@@ -373,7 +445,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "lifePattern",
-      label: "반복 패턴",
+      label: twelveGrowthAnimalResultText("section.lifePattern", locale),
       content: [
         `${result.stageName} 기운은 같은 장면을 반복해서 만나게 하는 대신, 그 장면을 다루는 실력을 조금씩 깊게 만듭니다.`,
         `당신에게 자주 반복되는 흐름은 "끌림을 느낀다 → 역할을 맡는다 → 기준을 다시 세운다 → 나에게 맞는 거리로 조정한다"에 가깝습니다.`,
@@ -383,7 +455,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "misunderstanding",
-      label: "자주 생기는 오해",
+      label: twelveGrowthAnimalResultText("section.misunderstanding", locale),
       content: [
         `${result.animalName} 타입은 속마음보다 태도가 먼저 읽히는 순간이 많아, 실제 의도와 다르게 받아들여질 수 있습니다.`,
         `강점이 강하게 나올 때는 ${result.strengths} 흐름이 매력으로 보이지만, 피로가 쌓이면 같은 에너지가 ${result.shadows} 모습으로 비칠 수 있습니다.`,
@@ -393,7 +465,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "stress",
-      label: "스트레스 패턴",
+      label: twelveGrowthAnimalResultText("section.stress", locale),
       content: [
         `${result.stressPattern}`,
         `${result.recoveryGuide}`,
@@ -403,7 +475,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "today",
-      label: "오늘의 실전 조언",
+      label: twelveGrowthAnimalResultText("section.today", locale),
       content: [
         `${result.todayAction}`,
         `오늘의 포인트는 큰 결심이 아니라 작은 실행의 연속입니다.`,
@@ -413,7 +485,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "compatible",
-      label: "나와 잘 맞는 동물 에너지",
+      label: twelveGrowthAnimalResultText("section.compatible", locale),
       content: [
         `${result.compatibleEnergy}`,
         `${result.cautionEnergy}`,
@@ -423,7 +495,7 @@ export function buildTwelveAnimalSections(result: TwelveGrowthAnimalResult): Sec
     },
     {
       key: "mission",
-      label: "성장 미션",
+      label: twelveGrowthAnimalResultText("section.mission", locale),
       content: [
         `${result.growthMission}`,
         `미션은 완벽하게 해내는 과제가 아니라, 운의 방향을 바꾸는 작고 반복 가능한 행동이어야 합니다.`,

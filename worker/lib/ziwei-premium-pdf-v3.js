@@ -273,141 +273,150 @@ function hasDuplicateItems(items = []) {
   return false;
 }
 
+const ZIWEI_STANDARD_CHAPTER_SECTIONS = Object.freeze([
+  "핵심 요약",
+  "명반 근거",
+  "현실에서 드러나는 흐름",
+  "주의할 패턴",
+  "활용 전략",
+  "실천 조언",
+]);
+
 export const ZIWEI_PREMIUM_CHAPTERS_V3 = Object.freeze([
   {
     id: "ch01",
     order: 1,
-    title: "제1장 자미 명반 총론 — 운명의 중심 지도",
+    title: "자미 명반 총론 — 운명의 중심 지도",
     purpose: "명궁, 신궁, 12궁, 주성, 사화 흐름을 종합해 명반 전체의 중심 구조를 잡는다.",
     required: true,
     minLength: 1800,
-    sections: ["명반 전체 인상", "명궁과 신궁의 중심축", "12궁 배치가 드러내는 삶의 무대", "강하게 작동하는 주성과 사화", "이 명반을 읽는 핵심 기준"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch02",
     order: 2,
-    title: "제2장 명궁과 신궁 — 타고난 나와 완성되는 나",
+    title: "명궁과 신궁 — 타고난 나와 완성되는 나",
     purpose: "명궁의 선천 기질과 신궁의 후천적 완성 방향을 분리해 설명한다.",
     required: true,
     minLength: 1800,
-    sections: ["명궁이 보여 주는 타고난 성향", "신궁이 드러내는 후천적 변화", "선천 기질과 실제 행동의 차이", "나이가 들수록 강해지는 모습", "나를 안정시키는 운영법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch03",
     order: 3,
-    title: "제3장 선천 사화 정밀 해석",
+    title: "선천 사화 정밀 해석",
     purpose: "화록, 화권, 화과, 화기의 작용을 실제 궁과 주성·보좌성·살성 배치에 연결한다.",
     required: true,
     minLength: 1900,
-    sections: ["화록이 여는 기회와 매력", "화권이 요구하는 책임과 추진력", "화과가 비추는 평판과 인정", "화기가 알려 주는 집착과 막힘", "사화를 균형 있게 쓰는 방법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch04",
     order: 4,
-    title: "제4장 14주성 완전 해석",
+    title: "14주성 완전 해석",
     purpose: "실제 명반에 놓인 14주성을 중심으로 성향과 선택 패턴을 해석한다.",
     required: true,
     minLength: 1900,
-    sections: ["명반에서 직접 작동하는 주성", "주성의 강약과 현실 발현", "주성 조합이 만드는 장점", "주성 조합이 만드는 부담", "주성을 성과로 바꾸는 방법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch05",
     order: 5,
-    title: "제5장 보좌성과 살성의 역학 관계",
+    title: "보좌성과 살성의 역학 관계",
     purpose: "보좌성, 살성, 보조 성曜의 배치가 흐름을 돕거나 흔드는 방식을 설명한다.",
     required: true,
     minLength: 1900,
-    sections: ["보좌성이 더해 주는 보호와 지원", "살성이 만드는 긴장과 경계", "보조 성曜의 현실 작동 방식", "성曜 조합이 만드는 기회와 압박", "강한 성曜의 힘을 다루는 균형법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch06",
     order: 6,
-    title: "제6장 재백궁과 관록궁 — 돈과 사회적 성취",
+    title: "재백궁과 관록궁 — 돈과 사회적 성취",
     purpose: "재백궁과 관록궁을 통해 돈 버는 방식, 직업 방향, 사회적 성취 구조를 해석한다.",
     required: true,
     minLength: 1900,
-    sections: ["재백궁이 말하는 돈의 흐름", "관록궁이 비추는 직업 방향", "돈과 성취가 연결되는 방식", "현실에서 조심해야 할 재정 리듬", "성과를 오래 지키는 전략"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch07",
     order: 7,
-    title: "제7장 부부궁과 자녀궁 — 사랑과 가족 리듬",
+    title: "부부궁과 자녀궁 — 사랑과 가족 리듬",
     purpose: "부부궁과 자녀궁을 중심으로 연애, 배우자상, 가족 리듬을 현실적으로 풀이한다.",
     required: true,
     minLength: 1900,
-    sections: ["부부궁이 보여 주는 관계 패턴", "배우자상과 친밀감의 흐름", "가족 안에서 반복되는 감정 구조", "자녀궁이 말하는 창조성과 생활 리듬", "사랑을 안정시키는 관계 조언"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch08",
     order: 8,
-    title: "제8장 천이궁과 전택궁 — 이동과 기반의 운",
+    title: "천이궁과 전택궁 — 이동과 기반의 운",
     purpose: "천이궁과 전택궁으로 이동, 외부 활동, 이직, 주거, 기반을 분리해 해석한다.",
     required: true,
     minLength: 1800,
-    sections: ["천이궁이 여는 외부 기회", "전택궁이 말하는 주거와 기반", "이동과 변화가 강해지는 시기", "생활 공간에서 조심할 부분", "변화를 안정으로 바꾸는 방법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch09",
     order: 9,
-    title: "제9장 노복궁과 형제궁 — 인맥과 협업 운",
+    title: "노복궁과 형제궁 — 인맥과 협업 운",
     purpose: "노복궁과 형제궁을 통해 인맥, 협업, 친구, 동료의 도움과 부담을 설명한다.",
     required: true,
     minLength: 1800,
-    sections: ["노복궁이 보여 주는 인맥의 질", "협업에서 힘이 되는 사람", "형제궁이 말하는 가까운 관계", "관계에서 생기는 도움과 부담", "사람 운을 지키는 경계선"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch10",
     order: 10,
-    title: "제10장 복덕궁과 부모궁 — 내면 회복과 뿌리",
+    title: "복덕궁과 부모궁 — 내면 회복과 뿌리",
     purpose: "복덕궁과 부모궁으로 마음의 안정, 정서 회복, 부모 영향과 뿌리의 과제를 풀이한다.",
     required: true,
     minLength: 1800,
-    sections: ["복덕궁이 비추는 내면의 쉼터", "부모궁이 남긴 정서적 뿌리", "혼자 있을 때 회복되는 방식", "권위와 기대 앞에서 반복되는 반응", "마음을 지키는 생활 루틴"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch11",
     order: 11,
-    title: "제11장 질액궁 — 몸과 마음의 취약 신호",
-    purpose: "의학적 단정 없이 질액궁을 생활 리듬, 스트레스, 취약 신호 중심으로 설명한다.",
+    title: "질액궁 — 건강과 심리 리듬",
+    purpose: "의학적 단정 없이 질액궁을 생활 리듬, 스트레스, 심리 리듬 중심으로 설명한다.",
     required: true,
     minLength: 1800,
-    sections: ["질액궁이 알려 주는 몸의 신호", "스트레스가 쌓이는 방식", "생활 리듬에서 흔들리기 쉬운 부분", "회복력을 높이는 조건", "몸과 마음을 지키는 점검법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch12",
     order: 12,
-    title: "제12장 대한 정밀 분석 — 10년 주기의 방향",
-    purpose: "현재 대한의 방향, 기회, 과제를 장기 흐름으로 정리한다.",
+    title: "대한/대운 흐름 — 인생의 큰 전환점",
+    purpose: "대한과 대운의 방향, 기회, 과제를 장기 흐름으로 정리한다.",
     required: true,
     minLength: 1900,
-    sections: ["현재 대한의 중심 주제", "10년 주기에서 열리는 기회", "대한에서 조심해야 할 과제", "장기 선택의 우선순위", "대한을 전략으로 바꾸는 법"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch13",
     order: 13,
-    title: "제13장 유년 로드맵 — 올해의 운 흐름",
-    purpose: "올해 운의 흐름, 상반기와 하반기, 주의점과 실행 방향을 제시한다.",
+    title: "세운 흐름 — 올해와 가까운 미래",
+    purpose: "올해와 가까운 미래의 흐름, 주의점과 실행 방향을 제시한다.",
     required: true,
     minLength: 1900,
-    sections: ["올해 흐름의 전체 기조", "상반기에 붙잡아야 할 기회", "하반기에 조심해야 할 리듬", "올해 무리하지 말아야 할 부분", "유년 운을 현실로 쓰는 행동"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch14",
     order: 14,
-    title: "제14장 생애 마스터플랜 — 전환점과 장기 전략",
-    purpose: "초년, 중년, 말년, 전환점, 장기 전략을 명반 전체로 조망한다.",
+    title: "강점·위험 패턴·개운 전략",
+    purpose: "강점, 위험 패턴, 전환점, 개운 전략을 명반 전체로 조망한다.",
     required: true,
     minLength: 1900,
-    sections: ["초년에 강하게 드러나는 흐름", "중년에 확장되는 가능성", "말년에 안정되는 기반", "중요한 전환점과 선택의 문", "장기 인생 운영 전략"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
   {
     id: "ch15",
     order: 15,
-    title: "제15장 자미 거장의 최종 전략 제언",
+    title: "종합 상담문 — 앞으로의 선택 가이드",
     purpose: "전체 명반을 종합해 강점, 약점, 돈, 일, 관계, 운이 약할 때의 대처법을 정리한다.",
     required: true,
     minLength: 2000,
-    sections: ["명반 전체의 최종 핵심", "강점을 살리는 핵심 행동", "약할 때 피해야 할 위험 행동", "돈과 일과 관계를 함께 지키는 법", "마지막 전략 메시지"],
+    sections: ZIWEI_STANDARD_CHAPTER_SECTIONS,
   },
 ]);
 
@@ -870,6 +879,14 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     `${palace.name || "궁"} ${palace.branch || ""}: 주성 ${palace.mainStars || "확인 제한"} / 보좌성 ${palace.auxStars || "확인 제한"} / 살성 ${palace.maleficStars || "확인 제한"}`
   )).join("\n");
   const sections = chapterSpec.sections.map((title) => `<section><h2>${escapeHtml(title)}</h2><p>...</p><p>...</p></section>`).join("\n");
+  const profileJson = stableStringify({
+    name: reportName,
+    birthDate: facts.profile.birthDate || "",
+    birthTime: facts.profile.birthTime || "",
+    gender: facts.profile.gender || "",
+    calendarType: facts.profile.calendarType || "",
+  });
+  const consultationTrack = clean(facts.consultationTrack || facts.track || "자미두수 프리미엄 상담");
   const guidanceLines = asArray(ZIWEI_CHAPTER_EXPERT_GUIDANCE[chapterSpec.id])
     .map((line) => `- ${line}`)
     .join("\n");
@@ -885,17 +902,52 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
   const sectionEvidenceLines = buildSectionEvidenceHints(chapterSpec);
   const categoryQualityLines = buildCategoryQualityHints(chapterSpec);
   return [
-    "아래 자미두수 명반 요약을 바탕으로 현재 챕터만 작성하세요.",
+    "너는 30년 경력의 자미두수 전문가이자 프리미엄 운세 PDF 원고 작가다.",
+    "제공된 자미두수 명반 데이터를 바탕으로 실제 상담처럼 깊고 구체적인 해석을 작성한다.",
+    "불안 조장, 공포 마케팅, 근거 없는 단정, 과도한 예언은 금지한다.",
+    "반드시 제공된 명반 데이터 안에서만 해석한다.",
+    "사용자가 읽었을 때 내 명반을 보고 상담받고 있다는 느낌이 들게 작성한다.",
+    "",
+    `다음 자미두수 명반 데이터를 바탕으로 "${chapterSpec.title}" 챕터를 작성하세요.`,
+    "",
+    `사용자 정보:\n${profileJson}`,
+    "",
+    `상담 트랙:\n${consultationTrack}`,
+    "",
+    "전체 명반 요약:",
+    `명궁 ${facts.chart.mingGong || "명반 기준 확인"} / 신궁 ${facts.chart.shenGong || "명반 기준 확인"} / 오행국 ${facts.chart.fiveElementBureau || "명반 기준 확인"}`,
+    facts.chart.transformations.length ? `사화 흐름: ${facts.chart.transformations.join(", ")}` : "",
+    facts.chart.decadeLuck.length ? `대한/대운 정보: ${facts.chart.decadeLuck.join(", ")}` : "",
+    facts.chart.annualLuck.length ? `세운 정보: ${facts.chart.annualLuck.join(", ")}` : "",
+    "",
+    previousSummary ? `이전 챕터 요약:\n${previousSummary}` : "이전 챕터 요약:\n첫 챕터이므로 이번 장에서 명반의 첫 상담 흐름을 자연스럽게 여세요.",
+    "",
+    `이번 챕터에서 반드시 다룰 카테고리:\n${chapterSpec.sections.join(", ")}`,
+    "",
+    "작성 규칙:",
+    "- 한국어로 작성",
+    "- PDF 본문용 HTML 조각만 출력",
+    "- markdown 금지",
+    "- JSON 출력 금지",
+    "- 코드블록 금지",
+    "- 전체 html/body 태그 금지",
+    "- 챕터 제목만 반복 금지",
+    `- 최소 ${Math.max(1500, Number(chapterSpec.minLength) || 1500)}자 이상`,
+    "- 실제 자미두수 상담문처럼 자연스럽게 작성",
+    "- 궁, 별, 사화, 보좌성, 살성을 구체적으로 언급",
+    "- 같은 문장 구조 반복 금지",
+    "- 불안 조장 금지",
+    "- 마지막에는 현실적인 조언을 포함",
+    "",
     "각 section은 PDF의 독립 카테고리 하나입니다. 모든 카테고리는 최소 3문단 이상 작성하고, 같은 문장·같은 예시·같은 조언을 반복하지 마세요.",
     "각 section은 h2 하나와 p 세 개 이상으로 구성하고, section당 공백 제외 320자 이상의 충분한 상담 문장으로 작성하세요.",
-    "각 카테고리는 명반 근거, 자미두수적 의미, 현실 장면, 조심할 부분, 실행 방향이 한 흐름으로 이어져야 합니다.",
+    "각 카테고리는 핵심 요약, 명반 근거, 현실 흐름, 주의 패턴, 활용 전략, 실천 조언의 역할에 맞게 한 흐름으로 이어져야 합니다.",
     "각 section마다 명궁, 신궁, 궁 이름, 주성, 보좌성, 살성, 사화, 대한, 유년 중 제공된 근거를 하나 이상 자연스럽게 연결하세요.",
     "마지막 section도 명궁·신궁·궁·주성·사화·대한·유년 중 하나를 자연스럽게 포함해 챕터 전체가 자미두수 상담 원고처럼 읽히게 하세요.",
     "근거가 부족한 항목은 지어내지 말고 제공된 명반 데이터 기준에서는 확인이 제한된다고 신중하게 표현하세요.",
     "소제목을 본문 첫 문장에 그대로 반복하지 마세요.",
     "현실 장면, 생활 리듬, 돈, 일, 관계, 건강 관리, 이동, 가족 문제 중 챕터 목적에 맞는 구체적인 장면을 포함하세요.",
     "HTML fragment 외에는 아무것도 출력하지 마세요.",
-    previousSummary ? `이전 장 흐름 참고만 하기: ${previousSummary}` : "",
     "",
     "본문에서는 이름을 과도하게 반복하지 말고, 필요하면 본인이라는 표현을 자연스럽게 사용하세요.",
     `이름 표기: ${reportName}`,
@@ -1070,6 +1122,25 @@ function parseZiweiPremiumChapterHtml(html, chapterSpec) {
     html: source,
     source: ZIWEI_PDF_CONFIG.generationMode,
   };
+}
+
+function normalizeReusableZiweiChapterDraft(chapter = {}, chapterSpec = {}, facts = {}) {
+  const html = cleanBlock(chapter?.html || chapter?.sourceHtml || "");
+  if (!html) return null;
+  const validation = validateZiweiPremiumChapterHtml(html, chapterSpec, facts);
+  if (!validation.ok) return null;
+  const parsed = parseZiweiPremiumChapterHtml(validation.html, chapterSpec);
+  parsed.provider = clean(chapter?.provider || "stored-llm");
+  parsed.modelName = clean(chapter?.modelName || "");
+  parsed.cached = Boolean(chapter?.cached);
+  parsed.reused = true;
+  return parsed;
+}
+
+async function notifyZiweiProgress(callbacks = {}, eventName = "", payload = {}) {
+  const callback = callbacks && typeof callbacks[eventName] === "function" ? callbacks[eventName] : null;
+  if (!callback) return;
+  await callback(payload);
 }
 
 function resolveZiweiPremiumChapterPlan(input = {}) {
@@ -1890,8 +1961,36 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
   let previousSummary = "";
   const providerSet = new Set();
   const modelSet = new Set();
+  const callbacks = safeObject(input.callbacks || options.callbacks || {});
+  const reusableDrafts = new Map(
+    asArray(input.existingChapters || options.existingChapters)
+      .map((chapter) => [clean(chapter?.id || chapter?.key || chapter?.chapterId || ""), chapter])
+      .filter(([id]) => Boolean(id)),
+  );
 
   for (const chapterSpec of chapterPlan.specs) {
+    const reusable = normalizeReusableZiweiChapterDraft(reusableDrafts.get(chapterSpec.id), chapterSpec, facts);
+    if (reusable) {
+      generated.push(reusable);
+      providerSet.add(reusable.provider);
+      if (clean(reusable.modelName)) modelSet.add(clean(reusable.modelName));
+      previousSummary = clean(stripTags(reusable.html).slice(-800), 800);
+      await notifyZiweiProgress(callbacks, "onChapterComplete", {
+        chapter: reusable,
+        chapterSpec,
+        completedChapters: generated.length,
+        totalChapters: ZIWEI_PDF_CHAPTER_COUNT,
+        reused: true,
+      });
+      continue;
+    }
+
+    await notifyZiweiProgress(callbacks, "onChapterStart", {
+      chapterSpec,
+      completedChapters: generated.length,
+      totalChapters: ZIWEI_PDF_CHAPTER_COUNT,
+      currentCategory: chapterSpec.sections[0] || "",
+    });
     const result = await generateChapter(env, facts, chapterSpec, previousSummary);
     if (!result.ok) {
       failedChapters.push({
@@ -1911,6 +2010,13 @@ export async function generateZiweiPremiumReport(env = {}, input = {}, options =
     providerSet.add(result.provider);
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
     previousSummary = clean(stripTags(result.html).slice(-800), 800);
+    await notifyZiweiProgress(callbacks, "onChapterComplete", {
+      chapter: parsed,
+      chapterSpec,
+      completedChapters: generated.length,
+      totalChapters: ZIWEI_PDF_CHAPTER_COUNT,
+      reused: false,
+    });
   }
 
   if (failedChapters.length > 0 || generated.length !== ZIWEI_PDF_CHAPTER_COUNT) {

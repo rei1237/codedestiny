@@ -44,6 +44,252 @@
     { cardId: "M19", name: "The Sun", nameKr: "태양" },
   ];
 
+  function getTarotLoveLocale() {
+    try {
+      if (window.cdGetCurrentLanguage) return String(window.cdGetCurrentLanguage() || "ko");
+    } catch (_) {}
+    try {
+      return String(localStorage.getItem("cd_locale") || localStorage.getItem("codeDestinyLocale") || localStorage.getItem("lang") || "ko");
+    } catch (_) {}
+    return "ko";
+  }
+
+  var TAROT_LOVE_TEXT_TRANSLATIONS = {
+    ko: {
+      krw: "원",
+      paymentRequired: "결제가 필요합니다.",
+      openPayment: "결제 화면을 엽니다.",
+      checkingPayment: "결제를 확인하는 중입니다...",
+      checkoutFailed: "결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.",
+      gateUnavailable: "결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      loginConfirm: "🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?",
+      krwFailed: "원화 결제 확인에 실패했습니다.",
+      serverAccessFailed: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+      tarotCardAlt: "타로 카드",
+      reversedSuffix: " (역)",
+      allCardsRevealed: "모든 카드를 확인했습니다. 아래 버튼을 눌러 관계 리딩을 열어보세요.",
+      flipGuidePrefix: "✦ 별빛이 가리키는 카드: ",
+      flipGuideSuffix: "를 뒤집어 주세요",
+      accessDenied: "결제가 확인되지 않아 결과를 표시할 수 없습니다.",
+      currentTemperature: "🌙 관계의 현재 온도",
+      crossedHeart: "🔍 마음이 엇갈리는 지점",
+      nextChoice: "🧭 현실 흐름과 다음 선택",
+      positionReading: "🃏 포지션별 관계 해석",
+      uprightLabel: "정방향",
+      reversedLabel: "역방향",
+      coreSignal: "핵심 신호",
+      relationshipInterpretation: "관계 해석",
+      relationshipPsychology: "관계 심리",
+      todayChoice: "오늘의 선택",
+      cautionFlow: "조심할 흐름",
+      focusStandard: "🧭 지금 지켜야 할 기준",
+      instantMission: "⚡ 오늘 남길 한 문장",
+      conversationTemperature: "💬 대화의 온도",
+      relationshipBoundary: "🛡️ 내가 지킬 선",
+      sevenDayRhythm: "🌙 7일의 리듬",
+      positionFallback: "포지션",
+      unknownCard: "이름이 확인되지 않은 카드",
+      promptRole: "당신은 말의 온도와 침묵의 결을 섬세하게 읽는 연애 타로 리더입니다.",
+      promptInstruction: "아래 6장의 관계 스프레드와 이미 드러난 흐름을 바탕으로, 두 사람 사이의 감정 온도와 앞으로의 선택을 자연스럽게 읽어 주세요.",
+      promptCardFlow: "[카드 흐름]",
+      promptRevealedEnergy: "[이미 드러난 관계의 기운]",
+      promptCurrentTemperature: "현재 온도",
+      promptCrossedPoint: "엇갈리는 지점",
+      promptRealityFlow: "현실 흐름",
+      promptOneSentence: "오늘 남길 한 문장",
+      promptSevenDays: "7일의 리듬",
+      promptRequest: "[리딩 부탁]",
+      promptRequestLines: [
+        "두 사람의 관계 이름을 단정하기보다 지금 흐르는 감정, 망설임, 가까워질 수 있는 속도를 먼저 읽어 주세요.",
+        "상대의 마음을 확정적으로 말하지 말고, 카드가 비추는 가능성과 조심해야 할 흐름을 구분해 주세요.",
+        "마지막에는 오늘 건네기 좋은 한 문장과 앞으로 7일 동안 지키면 좋은 선택을 따뜻하게 남겨 주세요.",
+      ],
+      fallbackCurrentTemperature: "카드가 두 사람 사이에 남은 온도를 비춥니다.",
+      fallbackCrossedPoint: "말과 행동 사이에서 조심스럽게 확인해야 할 마음이 떠오릅니다.",
+      fallbackRealityFlow: "가까운 선택은 서두른 결론보다 대화의 리듬을 먼저 가리킵니다.",
+      fallbackOneSentence: "상대의 반응을 재촉하지 않고 내 마음을 차분히 건넵니다.",
+      fallbackSevenDays: "이번 7일은 결론보다 관계의 온도를 안정시키는 시간이 됩니다.",
+      aiPromptKicker: "AI Oracle Prompt",
+      aiPromptTitle: "✦ AI에게 건넬 연애운 질문문",
+      aiPromptLead: "방금 펼친 카드와 관계의 온도를 그대로 담았습니다. 필요한 AI에게 옮기면 오늘의 연애운을 더 깊게 이어 볼 수 있습니다.",
+      aiPromptAria: "우리는 무슨 사이 AI 연애운 질문문",
+      aiPromptCopy: "프롬프트 복사",
+      aiPromptIncluded: "결제된 관계 리딩에 포함된 질문문입니다.",
+      promptNotReady: "복사할 프롬프트가 아직 열리지 않았습니다.",
+      promptCopied: "프롬프트가 복사되었습니다.",
+      copyBlocked: "복사 권한이 막혀 직접 선택해 복사해 주세요.",
+      shareHeader: "💕 [우리는 무슨 사이?] 💕",
+      shareCta: "👉 무료 타로 보러가기: https://code-destiny.com",
+      shareTitle: "💕 우리는 무슨 사이?",
+    },
+    en: {
+      krw: " KRW",
+      paymentRequired: "Payment is required.",
+      openPayment: "Opening the payment screen.",
+      checkingPayment: "Checking your payment...",
+      checkoutFailed: "Payment could not be completed. Please check your payment method and try again.",
+      gateUnavailable: "The payment gate could not be loaded. Please refresh and try again.",
+      loginConfirm: "🔒 Login is required. Go to the login page?",
+      krwFailed: "KRW payment verification failed.",
+      serverAccessFailed: "Server access verification failed. Please check your payment history and try again.",
+      tarotCardAlt: "Tarot card",
+      reversedSuffix: " (Reversed)",
+      allCardsRevealed: "All cards are open. Tap the button below to reveal the relationship reading.",
+      flipGuidePrefix: "✦ The starlight points to: ",
+      flipGuideSuffix: ". Turn this card over.",
+      accessDenied: "Payment has not been verified, so the result cannot be displayed.",
+      currentTemperature: "🌙 Current Temperature of the Relationship",
+      crossedHeart: "🔍 Where the Hearts Miss Each Other",
+      nextChoice: "🧭 Reality Flow and Next Choice",
+      positionReading: "🃏 Relationship Reading by Position",
+      uprightLabel: "Upright",
+      reversedLabel: "Reversed",
+      coreSignal: "Core signal",
+      relationshipInterpretation: "Relationship reading",
+      relationshipPsychology: "Relationship psychology",
+      todayChoice: "Today’s choice",
+      cautionFlow: "Flow to watch",
+      focusStandard: "🧭 What to Keep Steady Now",
+      instantMission: "⚡ One sentence for today",
+      conversationTemperature: "💬 Conversation temperature",
+      relationshipBoundary: "🛡️ My boundary",
+      sevenDayRhythm: "🌙 Seven-day rhythm",
+      positionFallback: "Position",
+      unknownCard: "Card name unavailable",
+      promptRole: "You are a relationship tarot reader who reads the warmth of words and the texture of silence with care.",
+      promptInstruction: "Based on the six-card relationship spread below and the flow already revealed, read the emotional temperature between the two people and the choices ahead in a natural voice.",
+      promptCardFlow: "[Card Flow]",
+      promptRevealedEnergy: "[Already Revealed Relationship Energy]",
+      promptCurrentTemperature: "Current temperature",
+      promptCrossedPoint: "Where it crosses",
+      promptRealityFlow: "Reality flow",
+      promptOneSentence: "One sentence for today",
+      promptSevenDays: "Seven-day rhythm",
+      promptRequest: "[Reading Request]",
+      promptRequestLines: [
+        "Do not rush to name the relationship; first read the feelings, hesitation, and possible pace of closeness moving now.",
+        "Do not state the other person’s feelings as fixed facts. Separate the possibilities shown by the cards from the flows that need care.",
+        "Close with one warm sentence to send today and one choice to keep over the next seven days.",
+      ],
+      fallbackCurrentTemperature: "The cards show the warmth still held between the two people.",
+      fallbackCrossedPoint: "A feeling that needs careful checking rises between words and actions.",
+      fallbackRealityFlow: "The nearer choice points to a rhythm of conversation before a rushed conclusion.",
+      fallbackOneSentence: "I share my heart calmly without pressing for the other person’s reaction.",
+      fallbackSevenDays: "The next seven days are better for steadying the relationship’s temperature than forcing an answer.",
+      aiPromptKicker: "AI Oracle Prompt",
+      aiPromptTitle: "✦ Relationship question to give AI",
+      aiPromptLead: "This keeps the cards you just opened and the relationship temperature intact. Move it to the AI you need to continue today’s love reading more deeply.",
+      aiPromptAria: "AI relationship tarot prompt",
+      aiPromptCopy: "Copy Prompt",
+      aiPromptIncluded: "This prompt is included in the paid relationship reading.",
+      promptNotReady: "The prompt is not open yet.",
+      promptCopied: "Prompt copied.",
+      copyBlocked: "Copy permission is blocked. Please select and copy it manually.",
+      shareHeader: "💕 [What Are We?] 💕",
+      shareCta: "👉 Try a free tarot reading: https://code-destiny.com",
+      shareTitle: "💕 What Are We?",
+    },
+    ja: {
+      krw: "ウォン",
+      paymentRequired: "決済が必要です。",
+      openPayment: "決済画面を開きます。",
+      checkingPayment: "決済を確認しています...",
+      checkoutFailed: "決済を完了できませんでした。お支払い方法を確認して、もう一度お試しください。",
+      gateUnavailable: "決済ゲートを読み込めませんでした。更新してもう一度お試しください。",
+      loginConfirm: "🔒 ログインが必要です。ログインページへ移動しますか？",
+      krwFailed: "ウォン決済の確認に失敗しました。",
+      serverAccessFailed: "サーバー権限の検証に失敗しました。決済履歴を確認してからもう一度お試しください。",
+      tarotCardAlt: "タロットカード",
+      reversedSuffix: "（逆位置）",
+      allCardsRevealed: "すべてのカードを確認しました。下のボタンから関係リーディングを開いてください。",
+      flipGuidePrefix: "✦ 星明かりが示すカード: ",
+      flipGuideSuffix: "をめくってください",
+      accessDenied: "決済が確認できないため、結果を表示できません。",
+      currentTemperature: "🌙 関係の現在の温度",
+      crossedHeart: "🔍 心がすれ違うところ",
+      nextChoice: "🧭 現実の流れと次の選択",
+      positionReading: "🃏 ポジション別の関係リーディング",
+      uprightLabel: "正位置",
+      reversedLabel: "逆位置",
+      coreSignal: "核心サイン",
+      relationshipInterpretation: "関係の解釈",
+      relationshipPsychology: "関係心理",
+      todayChoice: "今日の選択",
+      cautionFlow: "注意したい流れ",
+      focusStandard: "🧭 今守りたい基準",
+      instantMission: "⚡ 今日残す一文",
+      conversationTemperature: "💬 会話の温度",
+      relationshipBoundary: "🛡️ 私が守る線",
+      sevenDayRhythm: "🌙 7日間のリズム",
+      positionFallback: "ポジション",
+      unknownCard: "名前を確認できないカード",
+      promptRole: "あなたは言葉の温度と沈黙の質感を繊細に読む恋愛タロットリーダーです。",
+      promptInstruction: "下の6枚の関係スプレッドと、すでに現れた流れをもとに、二人の感情の温度とこれからの選択を自然な言葉で読んでください。",
+      promptCardFlow: "[カードの流れ]",
+      promptRevealedEnergy: "[すでに現れた関係の気配]",
+      promptCurrentTemperature: "現在の温度",
+      promptCrossedPoint: "すれ違う点",
+      promptRealityFlow: "現実の流れ",
+      promptOneSentence: "今日残す一文",
+      promptSevenDays: "7日間のリズム",
+      promptRequest: "[リーディングのお願い]",
+      promptRequestLines: [
+        "二人の関係名を急いで決めず、今流れている感情、迷い、近づける速度を先に読んでください。",
+        "相手の気持ちを断定せず、カードが映す可能性と注意したい流れを分けて伝えてください。",
+        "最後に、今日伝えるとよい一文と、これから7日間守るとよい選択を温かく残してください。",
+      ],
+      fallbackCurrentTemperature: "カードは二人の間に残る温度を映しています。",
+      fallbackCrossedPoint: "言葉と行動の間で、そっと確かめたい気持ちが浮かびます。",
+      fallbackRealityFlow: "近い選択は、急ぐ結論より会話のリズムを先に整えることを示しています。",
+      fallbackOneSentence: "相手の反応を急がせず、自分の気持ちを落ち着いて届けます。",
+      fallbackSevenDays: "この7日間は結論よりも、関係の温度を安定させる時間です。",
+      aiPromptKicker: "AI Oracle Prompt",
+      aiPromptTitle: "✦ AIへ渡す恋愛運の質問文",
+      aiPromptLead: "いま開いたカードと関係の温度をそのまま込めました。必要なAIへ移すと、今日の恋愛運をさらに深く続けられます。",
+      aiPromptAria: "AI恋愛タロット質問文",
+      aiPromptCopy: "プロンプトをコピー",
+      aiPromptIncluded: "決済済みの関係リーディングに含まれる質問文です。",
+      promptNotReady: "コピーするプロンプトはまだ開いていません。",
+      promptCopied: "プロンプトをコピーしました。",
+      copyBlocked: "コピー権限がブロックされています。手動で選択してコピーしてください。",
+      shareHeader: "💕 [私たちはどんな関係？] 💕",
+      shareCta: "👉 無料タロットを見る: https://code-destiny.com",
+      shareTitle: "💕 私たちはどんな関係？",
+    }
+  };
+
+  function normalizeTarotLoveLocale() {
+    var value = String(getTarotLoveLocale() || "").trim().replace("_", "-").toLowerCase();
+    if (value.indexOf("ja") === 0) return "ja";
+    if (value.indexOf("en") === 0) return "en";
+    return "ko";
+  }
+
+  function getTarotLoveCopy() {
+    return TAROT_LOVE_TEXT_TRANSLATIONS[normalizeTarotLoveLocale()] || TAROT_LOVE_TEXT_TRANSLATIONS.ko;
+  }
+
+  function formatTarotLoveKrw(cost) {
+    var amount = Math.max(0, Number(cost || 0)) * 100;
+    var locale = normalizeTarotLoveLocale();
+    var formatLocale = locale === "en" ? "en-US" : locale === "ja" ? "ja-JP" : "ko-KR";
+    return amount.toLocaleString(formatLocale) + getTarotLoveCopy().krw;
+  }
+
+  function isTarotLoveReversed(label) {
+    var value = String(label || "").toLowerCase();
+    return value.indexOf("역") >= 0 || value.indexOf("逆") >= 0 || value.indexOf("reverse") >= 0;
+  }
+
+  function localizeTarotLoveOrientation(label) {
+    var copy = getTarotLoveCopy();
+    var value = String(label || "").trim();
+    if (!value) return copy.uprightLabel;
+    if (isTarotLoveReversed(value)) return copy.reversedLabel;
+    if (value.indexOf("정") >= 0 || value.indexOf("正") >= 0 || value.toLowerCase().indexOf("upright") >= 0) return copy.uprightLabel;
+    return value;
+  }
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -314,7 +560,8 @@
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + (Math.max(0, Number(cost || 0)) * 100).toLocaleString("ko-KR") + "원 결제가 필요합니다.\n결제 화면을 엽니다.");
+        var copy = getTarotLoveCopy();
+        window.alert("🪙 " + reason + "\n\n" + formatTarotLoveKrw(cost) + " " + copy.paymentRequired + "\n" + copy.openPayment);
         window.__cdOpenChargeModal();
         return;
       }
@@ -335,7 +582,7 @@
       }).then(function(choice) {
         if (choice === "pass" || choice === "pass_applied") return true;
         if (choice === "direct") {
-          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, (Math.max(0, Number(cost || 0)) * 100).toLocaleString("ko-KR") + "원 결제를 확인하는 중입니다...");
+          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, formatTarotLoveKrw(cost) + " " + getTarotLoveCopy().checkingPayment);
           return window._cdRunDirectKrwCheckout({
             coinPrice: cost,
             cost: cost,
@@ -349,14 +596,14 @@
         if (choice !== "monthly") return false;
         return consumeMonthlyCredit(cost, reason, featureKey, requestId);
       }).catch(function(error) {
-        window.alert(String(error && error.message || "결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
+        window.alert(String(error && error.message || getTarotLoveCopy().checkoutFailed));
         return false;
       }).finally(function() {
         if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(false);
       });
     }
 
-    window.alert("결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+    window.alert(getTarotLoveCopy().gateUnavailable);
     return Promise.resolve(false);
   }
 
@@ -367,7 +614,7 @@
     };
     if (token) consumeHeaders.Authorization = "Bearer " + token;
 
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, (Math.max(0, Number(cost || 0)) * 100).toLocaleString('ko-KR') + '원 결제를 확인하는 중입니다...');
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, formatTarotLoveKrw(cost) + ' ' + getTarotLoveCopy().checkingPayment);
     return fetch("/api/billing/coin-gate", {
       method: "POST",
       headers: consumeHeaders,
@@ -385,7 +632,7 @@
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) {
           if (res.status === 401) {
-            if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+            if (window.confirm(getTarotLoveCopy().loginConfirm)) {
               var next = encodeURIComponent(location.pathname + location.search);
               window.location.href = "/login?next=" + next;
             }
@@ -396,11 +643,11 @@
             return false;
           }
           if (!res.ok || data.ok === false) {
-            window.alert(String(data.message || "원화 결제 확인에 실패했습니다."));
+            window.alert(String(data.message || getTarotLoveCopy().krwFailed));
             return false;
           }
           if (typeof window._cdHasVerifiedServerAccess === "function" && !window._cdHasVerifiedServerAccess(data, featureKey)) {
-            window.alert("서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.");
+            window.alert(getTarotLoveCopy().serverAccessFailed);
             return false;
           }
           return true;
@@ -924,7 +1171,7 @@
 
       var img = document.createElement("img");
       img.className = "tarot-face-img";
-      img.alt = (card.nameKr || card.name || "").trim() || "타로 카드";
+      img.alt = (card.nameKr || card.name || "").trim() || getTarotLoveCopy().tarotCardAlt;
       img.loading = "lazy";
       img.decoding = "async";
       try {
@@ -937,7 +1184,7 @@
       var nameSpan = document.createElement("span");
       nameSpan.className = "tarot-love-card-name";
       nameSpan.textContent = (card.nameKr || card.name || "").trim();
-      if (card.orientation === "reversed") nameSpan.textContent += " (역)";
+      if (card.orientation === "reversed") nameSpan.textContent += getTarotLoveCopy().reversedSuffix;
       front.appendChild(nameSpan);
 
       cardEl.appendChild(back);
@@ -953,7 +1200,7 @@
     if (!guide) return;
     var step = state.revealedCount;
     if (step >= 6) {
-      guide.textContent = "모든 카드를 확인했습니다. 아래 버튼을 눌러 관계 리딩을 열어보세요.";
+      guide.textContent = getTarotLoveCopy().allCardsRevealed;
       updateGuideNextEffect();
       return;
     }
@@ -961,7 +1208,7 @@
     var cardIdx = order[step];
     var card = state.cards[cardIdx];
     var posLabel = card ? (POSITION_LABELS[card.position] || card.position) : "";
-    guide.textContent = "✦ 별빛이 가리키는 카드: " + posLabel + "를 뒤집어 주세요";
+    guide.textContent = getTarotLoveCopy().flipGuidePrefix + posLabel + getTarotLoveCopy().flipGuideSuffix;
     updateGuideNextEffect();
   }
 
@@ -1030,6 +1277,7 @@
 
     callTarotApi("love-reading", {
       cards: drawnForApi,
+      locale: getTarotLoveLocale(),
     })
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
@@ -1173,10 +1421,11 @@
     var container = byId("tarotLoveReadingContent");
     if (!container || !state.reading) return;
     if (!state.hasAccess) {
-      container.innerHTML = '<div class="tarot-love-section"><p class="tarot-love-section-text">결제가 확인되지 않아 결과를 표시할 수 없습니다.</p></div>';
+      container.innerHTML = '<div class="tarot-love-section"><p class="tarot-love-section-text">' + escapeHtml(getTarotLoveCopy().accessDenied) + '</p></div>';
       return;
     }
 
+    var copy = getTarotLoveCopy();
     var r = sanitizeRelationshipReading(state.reading);
     var overallVibe = r.overallVibe != null ? String(r.overallVibe) : "";
     var deepReading = r.deepReading != null ? String(r.deepReading) : "";
@@ -1188,33 +1437,34 @@
 
     if (overallVibe) {
       html += '<section class="tarot-love-section tarot-love-section--vibe">';
-      html += '<h4 class="tarot-love-section-title">🌙 관계의 현재 온도</h4>';
+      html += '<h4 class="tarot-love-section-title">' + escapeHtml(copy.currentTemperature) + '</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(overallVibe) + "</div>";
       html += "</section>";
     }
 
     if (deepReading) {
       html += '<section class="tarot-love-section tarot-love-section--insight">';
-      html += '<h4 class="tarot-love-section-title">🔍 마음이 엇갈리는 지점</h4>';
+      html += '<h4 class="tarot-love-section-title">' + escapeHtml(copy.crossedHeart) + '</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(deepReading) + "</div>";
       html += "</section>";
     }
 
     if (realityAndFuture) {
       html += '<section class="tarot-love-section tarot-love-section--future">';
-      html += '<h4 class="tarot-love-section-title">🧭 현실 흐름과 다음 선택</h4>';
+      html += '<h4 class="tarot-love-section-title">' + escapeHtml(copy.nextChoice) + '</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(realityAndFuture) + "</div>";
       html += "</section>";
     }
 
     if (positionBreakdown.length) {
       html += '<section class="tarot-love-section tarot-love-section--position">';
-      html += '<h4 class="tarot-love-section-title">🃏 포지션별 관계 해석</h4>';
+      html += '<h4 class="tarot-love-section-title">' + escapeHtml(copy.positionReading) + '</h4>';
       html += '<div class="tarot-love-position-grid">';
       positionBreakdown.forEach(function (item) {
         var title = item && item.positionTitle != null ? String(item.positionTitle) : "";
         var cardName = item && item.cardName != null ? String(item.cardName) : "";
-        var orientationLabel = item && item.orientationLabel != null ? String(item.orientationLabel) : "정방향";
+        var rawOrientationLabel = item && item.orientationLabel != null ? String(item.orientationLabel) : copy.uprightLabel;
+        var orientationLabel = localizeTarotLoveOrientation(rawOrientationLabel);
         var headline = item && item.headline != null ? String(item.headline) : "";
         var detail = item && item.detail != null ? String(item.detail) : "";
         var relationshipInsight = item && item.relationshipInsight != null ? String(item.relationshipInsight) : "";
@@ -1224,14 +1474,14 @@
         html += '<article class="tarot-love-position-card">';
         html += '<div class="tarot-love-position-head">';
         html += '<p class="tarot-love-position-title">' + escapeHtml(title) + "</p>";
-        html += '<span class="tarot-love-orientation-badge ' + (orientationLabel === "역방향" ? "is-reversed" : "is-upright") + '">' + escapeHtml(orientationLabel) + '</span>';
+        html += '<span class="tarot-love-orientation-badge ' + (isTarotLoveReversed(rawOrientationLabel) ? "is-reversed" : "is-upright") + '">' + escapeHtml(orientationLabel) + '</span>';
         html += '</div>';
         if (cardName) html += '<p class="tarot-love-position-cardname">' + escapeHtml(cardName) + "</p>";
-        if (headline) html += '<div class="tarot-love-position-keyline"><strong>핵심 신호:</strong> ' + escapeHtml(headline) + '</div>';
-        if (detail) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">관계 해석</p>' + formatReadingText(detail) + '</div>';
-        if (relationshipInsight) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">관계 심리</p>' + formatReadingText(relationshipInsight) + '</div>';
-        if (advice) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">오늘의 선택</p>' + formatReadingText(advice) + '</div>';
-        if (caution) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">조심할 흐름</p>' + formatReadingText(caution) + '</div>';
+        if (headline) html += '<div class="tarot-love-position-keyline"><strong>' + escapeHtml(copy.coreSignal) + ':</strong> ' + escapeHtml(headline) + '</div>';
+        if (detail) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">' + escapeHtml(copy.relationshipInterpretation) + '</p>' + formatReadingText(detail) + '</div>';
+        if (relationshipInsight) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">' + escapeHtml(copy.relationshipPsychology) + '</p>' + formatReadingText(relationshipInsight) + '</div>';
+        if (advice) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">' + escapeHtml(copy.todayChoice) + '</p>' + formatReadingText(advice) + '</div>';
+        if (caution) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">' + escapeHtml(copy.cautionFlow) + '</p>' + formatReadingText(caution) + '</div>';
         html += "</article>";
       });
       html += "</div>";
@@ -1239,12 +1489,12 @@
     }
 
     html += '<section class="tarot-love-section tarot-love-focus-section">';
-    html += '<h4 class="tarot-love-section-title">🧭 지금 지켜야 할 기준</h4>';
+    html += '<h4 class="tarot-love-section-title">' + escapeHtml(copy.focusStandard) + '</h4>';
     html += '<div class="tarot-love-final-advice-grid">';
-    html += '<article class="tarot-love-final-advice-item"><h5>⚡ 오늘 남길 한 문장</h5><p>' + escapeHtml(String(finalAdvice.instantMission || "")) + '</p></article>';
-    html += '<article class="tarot-love-final-advice-item"><h5>💬 대화의 온도</h5><p>' + escapeHtml(String(finalAdvice.conversationTip || "")) + '</p></article>';
-    html += '<article class="tarot-love-final-advice-item"><h5>🛡️ 내가 지킬 선</h5><p>' + escapeHtml(String(finalAdvice.relationshipBoundary || "")) + '</p></article>';
-    html += '<article class="tarot-love-final-advice-item"><h5>🌙 7일의 리듬</h5><p>' + escapeHtml(String(finalAdvice.nextSevenDays || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>' + escapeHtml(copy.instantMission) + '</h5><p>' + escapeHtml(String(finalAdvice.instantMission || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>' + escapeHtml(copy.conversationTemperature) + '</h5><p>' + escapeHtml(String(finalAdvice.conversationTip || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>' + escapeHtml(copy.relationshipBoundary) + '</h5><p>' + escapeHtml(String(finalAdvice.relationshipBoundary || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>' + escapeHtml(copy.sevenDayRhythm) + '</h5><p>' + escapeHtml(String(finalAdvice.nextSevenDays || "")) + '</p></article>';
     html += '</div>';
     html += '</section>';
 
@@ -1320,35 +1570,34 @@
   }
 
   function buildTarotLoveAiPromptText(reading, cards) {
+    var copy = getTarotLoveCopy();
     var r = reading && typeof reading === "object" ? reading : {};
     var finalAdvice = r.finalAdvice && typeof r.finalAdvice === "object" ? r.finalAdvice : {};
     var cardLines = (DISPLAY_ORDER || [0, 1, 2, 3, 4, 5]).map(function (idx) {
       var card = cards && cards[idx] ? cards[idx] : null;
       if (!card) return "";
-      var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
-      var name = String(card.nameKr || card.name || "이름이 확인되지 않은 카드").trim();
-      var orientation = card.orientation === "reversed" ? "역방향" : "정방향";
+      var label = POSITION_LABELS[card.position] || (copy.positionFallback + " " + String(idx + 1));
+      var name = String(card.nameKr || card.name || copy.unknownCard).trim();
+      var orientation = card.orientation === "reversed" ? copy.reversedLabel : copy.uprightLabel;
       return String(idx + 1) + ". " + label + ": " + name + " · " + orientation;
     }).filter(Boolean);
 
     return [
-      "당신은 말의 온도와 침묵의 결을 섬세하게 읽는 연애 타로 리더입니다.",
-      "아래 6장의 관계 스프레드와 이미 드러난 흐름을 바탕으로, 두 사람 사이의 감정 온도와 앞으로의 선택을 자연스럽게 읽어 주세요.",
+      copy.promptRole,
+      copy.promptInstruction,
       "",
-      "[카드 흐름]",
+      copy.promptCardFlow,
       cardLines.join("\n"),
       "",
-      "[이미 드러난 관계의 기운]",
-      "현재 온도: " + compactTarotLovePromptText(r.overallVibe, "카드가 두 사람 사이에 남은 온도를 비춥니다."),
-      "엇갈리는 지점: " + compactTarotLovePromptText(r.deepReading, "말과 행동 사이에서 조심스럽게 확인해야 할 마음이 떠오릅니다."),
-      "현실 흐름: " + compactTarotLovePromptText(r.realityAndFuture, "가까운 선택은 서두른 결론보다 대화의 리듬을 먼저 가리킵니다."),
-      "오늘 남길 한 문장: " + compactTarotLovePromptText(finalAdvice.instantMission, "상대의 반응을 재촉하지 않고 내 마음을 차분히 건넵니다."),
-      "7일의 리듬: " + compactTarotLovePromptText(finalAdvice.nextSevenDays, "이번 7일은 결론보다 관계의 온도를 안정시키는 시간이 됩니다."),
+      copy.promptRevealedEnergy,
+      copy.promptCurrentTemperature + ": " + compactTarotLovePromptText(r.overallVibe, copy.fallbackCurrentTemperature),
+      copy.promptCrossedPoint + ": " + compactTarotLovePromptText(r.deepReading, copy.fallbackCrossedPoint),
+      copy.promptRealityFlow + ": " + compactTarotLovePromptText(r.realityAndFuture, copy.fallbackRealityFlow),
+      copy.promptOneSentence + ": " + compactTarotLovePromptText(finalAdvice.instantMission, copy.fallbackOneSentence),
+      copy.promptSevenDays + ": " + compactTarotLovePromptText(finalAdvice.nextSevenDays, copy.fallbackSevenDays),
       "",
-      "[리딩 부탁]",
-      "두 사람의 관계 이름을 단정하기보다 지금 흐르는 감정, 망설임, 가까워질 수 있는 속도를 먼저 읽어 주세요.",
-      "상대의 마음을 확정적으로 말하지 말고, 카드가 비추는 가능성과 조심해야 할 흐름을 구분해 주세요.",
-      "마지막에는 오늘 건네기 좋은 한 문장과 앞으로 7일 동안 지키면 좋은 선택을 따뜻하게 남겨 주세요.",
+      copy.promptRequest,
+      copy.promptRequestLines.join("\n"),
     ].join("\n");
   }
 
@@ -1360,6 +1609,7 @@
 
     var promptText = buildTarotLoveAiPromptText(reading, state.cards);
     if (!promptText.trim()) return;
+    var copy = getTarotLoveCopy();
 
     var panel = document.createElement("section");
     panel.id = "tarotLoveAiPromptPanel";
@@ -1367,14 +1617,14 @@
     panel.setAttribute("data-marker", "tarot-love-ai-prompt-bottom-v20260621");
     panel.innerHTML =
       '<div class="tarot-love-ai-prompt-head">' +
-      '<span class="tarot-love-ai-prompt-kicker">AI Oracle Prompt</span>' +
-      '<h4 class="tarot-love-ai-prompt-title">✦ AI에게 건넬 연애운 질문문</h4>' +
-      '<p class="tarot-love-ai-prompt-lead">방금 펼친 카드와 관계의 온도를 그대로 담았습니다. 필요한 AI에게 옮기면 오늘의 연애운을 더 깊게 이어 볼 수 있습니다.</p>' +
+      '<span class="tarot-love-ai-prompt-kicker">' + escapeHtml(copy.aiPromptKicker) + '</span>' +
+      '<h4 class="tarot-love-ai-prompt-title">' + escapeHtml(copy.aiPromptTitle) + '</h4>' +
+      '<p class="tarot-love-ai-prompt-lead">' + escapeHtml(copy.aiPromptLead) + '</p>' +
       '</div>' +
-      '<textarea id="tarotLoveAiPromptOutput" class="tarot-love-ai-prompt-output" readonly aria-label="우리는 무슨 사이 AI 연애운 질문문">' + escapeHtml(promptText) + '</textarea>' +
+      '<textarea id="tarotLoveAiPromptOutput" class="tarot-love-ai-prompt-output" readonly aria-label="' + escapeHtml(copy.aiPromptAria) + '">' + escapeHtml(promptText) + '</textarea>' +
       '<div class="tarot-love-ai-prompt-actions">' +
-      '<button type="button" class="tarot-love-ai-prompt-copy" data-action="copyTarotLoveAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
-      '<span id="tarotLoveAiPromptStatus" class="tarot-love-ai-prompt-status">결제된 관계 리딩에 포함된 질문문입니다.</span>' +
+      '<button type="button" class="tarot-love-ai-prompt-copy" data-action="copyTarotLoveAiPrompt" data-action-pass-self="1">' + escapeHtml(copy.aiPromptCopy) + '</button>' +
+      '<span id="tarotLoveAiPromptStatus" class="tarot-love-ai-prompt-status">' + escapeHtml(copy.aiPromptIncluded) + '</span>' +
       '</div>';
     strip.insertAdjacentElement("afterend", panel);
   }
@@ -1430,7 +1680,7 @@
       status.setAttribute("data-tone", tone || "info");
     }
     if (!text) {
-      setStatus("복사할 프롬프트가 아직 열리지 않았습니다.", "warn");
+      setStatus(getTarotLoveCopy().promptNotReady, "warn");
       return;
     }
     function fallbackCopy() {
@@ -1445,29 +1695,30 @@
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
-        .then(function () { setStatus("프롬프트가 복사되었습니다.", "success"); })
+        .then(function () { setStatus(getTarotLoveCopy().promptCopied, "success"); })
         .catch(function () {
           var copied = fallbackCopy();
-          setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
+          setStatus(copied ? getTarotLoveCopy().promptCopied : getTarotLoveCopy().copyBlocked, copied ? "success" : "warn");
         });
       return;
     }
     var copied = fallbackCopy();
-    setStatus(copied ? "프롬프트가 복사되었습니다." : "복사 권한이 막혀 직접 선택해 복사해 주세요.", copied ? "success" : "warn");
+    setStatus(copied ? getTarotLoveCopy().promptCopied : getTarotLoveCopy().copyBlocked, copied ? "success" : "warn");
   }
 
   function shareTarotLoveResult() {
     var r = state.reading;
     if (!r) return;
 
-    var text = "💕 [우리는 무슨 사이?] 💕\n\n";
+    var copy = getTarotLoveCopy();
+    var text = copy.shareHeader + "\n\n";
     if (r.overallVibe) text += "🌙 " + r.overallVibe + "\n\n";
     if (r.deepReading) text += "🔍 " + r.deepReading.substring(0, 200) + "...\n\n";
-    text += "👉 무료 타로 보러가기: https://code-destiny.com";
+    text += copy.shareCta;
 
     if (navigator.share) {
       navigator.share({
-        title: "💕 우리는 무슨 사이?",
+        title: copy.shareTitle,
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

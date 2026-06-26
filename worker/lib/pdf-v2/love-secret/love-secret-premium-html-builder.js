@@ -110,7 +110,7 @@ function overviewVisualHtml(input = {}) {
 
 function chapterVisualHtml(input = {}, chapter = {}) {
   const metrics = visualMetrics(input, chapter);
-  return `<section class="chapter-visual" aria-label="챕터 시각 요약">
+  return `<div class="chapter-visual" aria-label="챕터 시각 요약">
     <div class="chapter-visual__head">
       <strong>${escapeHtml(String(chapter.order || "").padStart(2, "0"))}</strong>
       <span>${escapeHtml(chapter.title)}</span>
@@ -125,12 +125,12 @@ function chapterVisualHtml(input = {}, chapter = {}) {
         <table><tbody>${chapterVisualRows(input, chapter).map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join("")}</tbody></table>
       </div>
     </div>
-  </section>`;
+  </div>`;
 }
 
 function injectChapterVisual(html, visual) {
   const source = String(html || "");
-  if (/<\/h1>/i.test(source)) return source.replace(/<\/h1>/i, `</h1>${visual}`);
+  if (/<\/h2>/i.test(source)) return source.replace(/<\/h2>/i, `</h2>${visual}`);
   return `${visual}${source}`;
 }
 
@@ -149,7 +149,10 @@ export function assembleLoveSecretPremiumHtml({ input, chapters, reportId = "" }
     : "";
   const chapterHtml = safeChapters
     .map((chapter) => {
-      const baseHtml = String(chapter.html || "").replace("<article ", `<article id="${escapeHtml(chapter.id)}" `);
+      const baseHtml = String(chapter.html || "").replace(/<section\b([^>]*class=["'][^"']*\blove-secret-chapter\b[^"']*["'][^>]*)>/i, (match, attrs) => {
+        if (/\bid=["']/i.test(match)) return match;
+        return `<section id="${escapeHtml(chapter.id)}"${attrs}>`;
+      });
       return injectChapterVisual(baseHtml, chapterVisualHtml(input, chapter));
     })
     .join("\n");
@@ -163,7 +166,7 @@ export function assembleLoveSecretPremiumHtml({ input, chapters, reportId = "" }
     @page{size:A4;margin:14mm;}
     *{box-sizing:border-box;}
     body{margin:0;background:#fffaf7;color:#24151b;font-family:"Noto Serif KR","Malgun Gothic",serif;}
-    .cover{min-height:760px;padding:76px 58px;background:linear-gradient(145deg,#210a15,#71344b 58%,#1d1514);color:#fff;page-break-after:always;}
+    .cover{min-height:760px;padding:76px 58px;background:radial-gradient(circle at 78% 18%,rgba(255,243,217,.4),transparent 16%),radial-gradient(circle at 20% 82%,rgba(255,210,224,.36),transparent 18%),linear-gradient(145deg,#210a15,#71344b 58%,#1d1514);color:#fff;page-break-after:always;}
     .cover .brand{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#f8d7df;}
     .cover h1{margin:120px 0 18px;font-size:48px;line-height:1.2;letter-spacing:0;}
     .cover p{max-width:620px;font-size:17px;line-height:1.9;color:#ffe7ed;}
@@ -188,11 +191,17 @@ export function assembleLoveSecretPremiumHtml({ input, chapters, reportId = "" }
     .metric-track i{display:block;height:100%;background:linear-gradient(90deg,#9f345b,#d98aa3);border-radius:999px;}
     .metric-row strong{text-align:right;color:#7b2f4a;font-size:11px;}
     main{padding:0 54px 48px;background:#fff;}
-    article{page-break-before:always;padding-top:42px;}
-    article h1{margin:0 0 22px;padding-bottom:16px;border-bottom:1px solid #e8cbd2;color:#6f2c46;font-size:31px;line-height:1.35;letter-spacing:0;}
+    .love-secret-chapter{page-break-before:always;padding-top:42px;}
+    .love-secret-chapter>h2{margin:0 0 22px;padding-bottom:16px;border-bottom:1px solid #e8cbd2;color:#6f2c46;font-size:31px;line-height:1.35;letter-spacing:0;}
     section{page-break-inside:avoid;margin:0 0 24px;}
     section h2{font-size:19px;color:#8a3756;margin:0 0 10px;}
     p{font-size:14px;line-height:1.92;margin:0 0 12px;}
+    .chapter-summary{border-left:4px solid #d98aa3;background:#fff7f9;padding:16px 18px;margin:0 0 24px;}
+    .chapter-body{margin:0 0 24px;}
+    .chapter-advice{border:1px solid #ead2d8;background:#fffafc;border-radius:8px;padding:18px 20px;page-break-inside:avoid;}
+    .chapter-advice h3{margin:0 0 10px;color:#7b2f4a;font-size:17px;}
+    .chapter-advice ul{margin:0;padding-left:20px;}
+    .chapter-advice li{font-size:13px;line-height:1.75;margin:0 0 7px;}
     .chapter-visual{border:1px solid #ead2d8;background:#fff8fa;border-radius:10px;padding:16px;margin:0 0 26px;page-break-inside:avoid;}
     .chapter-visual__head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
     .chapter-visual__head strong{display:inline-flex;width:38px;height:38px;border-radius:50%;align-items:center;justify-content:center;background:#7b2f4a;color:#fff;font-size:13px;}
@@ -220,7 +229,7 @@ export function assembleLoveSecretPremiumHtml({ input, chapters, reportId = "" }
   ${overviewVisualHtml(input)}
   ${warnings}
   <main>${chapterHtml}</main>
-  <section class="closing"><h2>마지막 기준</h2><p>이 비책은 정해진 결말을 선언하지 않습니다. 다만 지금의 사주 신호와 관계 흐름 안에서, 마음을 덜 흔들고 더 선명하게 선택할 수 있는 기준을 남깁니다.</p></section>
+  <section class="closing"><h2>마지막 실천 조언</h2><p>이 비책은 정해진 결말을 선언하지 않습니다. 다만 지금의 사주 신호와 관계 흐름 안에서, 마음을 덜 흔들고 더 선명하게 선택할 수 있는 기준을 남깁니다. 오늘 바로 바꿀 수 있는 표현 하나, 지켜야 할 경계 하나, 관계를 살리는 행동 하나를 작게 정해 꾸준히 실천해 주세요.</p><p>본 리포트는 사주 명리학과 연애 상담 관점을 결합한 엔터테인먼트·자기이해 목적의 콘텐츠입니다. 중요한 관계 결정은 현실의 대화와 상황을 함께 고려해 주세요.</p></section>
 </body>
 </html>`;
 

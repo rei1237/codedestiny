@@ -1,8 +1,71 @@
+const ADSENSE_READY_ARTICLE_TEXT_TRANSLATIONS = {
+  ko: {
+    "adsenseArticle.title.001": "사주 보는 법 완전 입문: 초보도 따라하는 7단계 해석 순서",
+    "adsenseArticle.description.001": "사주 보는 법을 처음 접한 독자를 위해 만세력 확인부터 오행 해석까지 쉬운 언어로 정리한 실전 가이드입니다.",
+    "adsenseArticle.title.002": "내 운을 높이는 법: 하루 15분 운 상승 루틴 완전 가이드",
+    "adsenseArticle.description.002": "내 운을 높이는 법을 거창한 의식이 아니라 반복 가능한 생활 루틴으로 정리한 가이드입니다. 아침-낮-밤 5분 루틴과 사주 보는 법 연계 전략까지 포함합니다.",
+    "adsenseArticle.title.003": "만세력 보는 법 완전 가이드: 한자 몰라도 이해하는 핵심 해석법",
+    "adsenseArticle.description.003": "만세력 화면에서 무엇부터 봐야 하는지 초보자가 놓치기 쉬운 포인트를 안내합니다. 한자를 몰라도 쉽게 따라할 수 있는 만세력 활용 가이드입니다.",
+    "adsenseArticle.title.004": "오행 균형 완전 가이드: 목화토금수로 읽는 나만의 현실 보완 전략",
+    "adsenseArticle.description.004": "목화토금수 오행을 성격 라벨이 아니라 생활 전략으로 활용하는 방법을 풀어냈습니다. 오행 과부족을 파악하고 일상에서 균형을 맞추는 실전 가이드입니다.",
+    "adsenseArticle.title.005": "십성 해석 실전맵: 연애·일·돈에 바로 적용하는 사주 보는 법",
+    "adsenseArticle.description.005": "비겁 식상 재성 관성 인성을 생활 의사결정 언어로 바꿔 설명합니다. 십성 해석을 연애, 직장, 재물 상황에 즉시 적용하는 실전 가이드입니다.",
+    "adsenseArticle.title.006": "올해 운세 보는 법: 불안 없이 읽는 연간 운세 점검 완전 가이드",
+    "adsenseArticle.description.006": "연간 운세를 과장 없이 해석하고 현실 계획으로 연결하는 점검 프레임입니다. 사주 세운을 분기별 체크리스트로 변환하는 실용적 방법을 안내합니다.",
+    "adsenseArticle.title.007": "월간 운세 기록법: 맞고 틀림보다 성장률 높이는 피드백 루프",
+    "adsenseArticle.description.007": "운세 기록과 복기 루프로 실제 체감 변화를 만드는 방법을 소개합니다. 월간 사주 기록 템플릿을 활용해 내 운을 높이는 실전 가이드입니다.",
+    "adsenseArticle.title.008": "좋은 날짜 고르는 법: 미신 없이 실용적으로 택일하기",
+    "adsenseArticle.description.008": "중요 일정의 날짜를 선택할 때 운세와 현실 조건을 함께 반영하는 기준입니다. 이사, 면접, 계약 등 중요한 날을 잡을 때 활용하는 실용적 택일 가이드입니다.",
+    "adsenseArticle.title.009": "운이 막힐 때 리셋하는 법: 72시간 회복 프로토콜 완전판",
+    "adsenseArticle.description.009": "피로 구간에서 감정 소모를 줄이고 흐름을 회복하는 72시간 루틴입니다. 운이 안 좋을 때 빠르게 회복하는 내 운을 높이는 실전 가이드입니다.",
+    "adsenseArticle.title.010": "연애운 높이는 소통법: 궁합 점수보다 중요한 관계 운영 규칙",
+    "adsenseArticle.description.010": "궁합 점수 의존을 줄이고 관계 만족도를 높이는 운영 규칙을 제안합니다. 사주와 숙요점으로 읽는 연애운 활용 가이드입니다.",
+    "adsenseArticle.title.011": "재물운 높이는 습관: 사주 재성(財星)과 현실 가계부를 같이 쓰는 법",
+    "adsenseArticle.description.011": "재물운을 감각이 아니라 데이터와 루틴으로 관리하는 방법을 설명합니다. 사주 재성 해석을 실생활 재무 관리에 연결하는 실전 가이드입니다.",
+    "adsenseArticle.title.012": "취업운·시험운 높이는 준비법: 사주 세운과 실전 루틴 완전 가이드",
+    "adsenseArticle.description.012": "면접과 시험 시즌에 운세 해석을 준비 전략으로 바꾸는 방법을 안내합니다. 취업운과 시험운을 사주 보는 법으로 파악하고 현실 준비와 연결하는 실전 가이드입니다.",
+    "adsenseArticle.title.013": "수면과 운의 관계: 에너지 리듬을 회복하면 운이 달라지는 이유",
+    "adsenseArticle.description.013": "수면 습관이 운세 체감과 판단력에 미치는 영향을 생활 관점으로 풀어냈습니다. 수면 리듬이 내 운을 높이는 기반이 되는 이유와 7일 리셋 방법을 안내합니다.",
+    "adsenseArticle.title.014": "운세 질문 잘하는 법: 답의 질을 바꾸는 질문 설계 완전 가이드",
+    "adsenseArticle.description.014": "사주와 타로 해석 품질을 높이는 질문 설계 템플릿을 제공합니다. 사주 보는 법과 타로 리딩에서 구체적이고 실용적인 질문을 만드는 실전 가이드입니다.",
+    "adsenseArticle.title.015": "사주와 타로 함께 보는 법: 장기 흐름과 현재 선택을 연결하는 통합 프레임",
+    "adsenseArticle.description.015": "사주의 구조 해석과 타로의 상황 해석을 결합하는 통합 프레임워크입니다. 사주 보는 법과 타로 리딩을 함께 활용해 더 깊은 통찰을 얻는 실전 가이드입니다.",
+    "adsenseArticle.title.016": "애드센스 승인 친화 운세 글 구조: 정보성·신뢰성·가독성 완전 가이드",
+    "adsenseArticle.description.016": "운세 사이트가 애드센스 승인 확률을 높이기 위해 갖춰야 할 글 구조를 풀어냈습니다. 구글이 좋아하는 운세 콘텐츠 작성법과 SEO 최적화 방법을 단계별로 안내합니다.",
+    "adsenseArticle.title.017": "베다 점성술 12라시 완전 가이드: 메샤부터 미나까지 성격·운세·실전 해석",
+    "adsenseArticle.description.017": "인도 베다 점성술(조티쉬)의 12라시(황도 별자리)를 고객 눈높이로 완전 풀어냈습니다. 각 라시의 성격 특징, 강점과 약점, 관계·커리어 경향, 현실 활용법까지 초보자도 바로 이해할 수 있도록 안내합니다.",
+    "adsenseArticle.title.018": "사주팔자 기초 원리 완전 정리: 사주가 뭔지 처음부터 이해하기",
+    "adsenseArticle.description.018": "사주팔자의 구조와 해석 원리를 처음 접하는 분도 이해할 수 있도록 단계별로 설명합니다. 연·월·일·시 네 기둥, 천간 지지, 오행의 상호작용까지 기초를 완벽하게 잡아드립니다.",
+    "adsenseArticle.title.019": "오행(목화토금수) 완전 정리: 성질·상생·상극·실생활 적용법",
+    "adsenseArticle.description.019": "오행의 기본 성질부터 상생·상극 원리, 성격 분석, 건강·직업·관계에서의 실생활 적용법까지 완벽하게 풀어냈습니다.",
+    "adsenseArticle.title.020": "타로카드 대아르카나 22장 의미 완전 정리: 0번부터 21번까지",
+    "adsenseArticle.description.020": "타로 대아르카나 22장의 핵심 키워드, 정방향·역방향 해석, 연애·직업·성장별 활용법을 초보자도 바로 쓸 수 있도록 완벽 풀어냈습니다.",
+    "adsenseArticle.title.021": "자미두수란 무엇인가: 기초부터 명반 보는 법까지 완전 입문",
+    "adsenseArticle.description.021": "중국에서 가장 정밀한 운명 학문으로 손꼽히는 자미두수(紫微斗數)의 기원, 구조, 주요 별자리의 의미, 명반 읽는 법을 초보자 눈높이로 설명합니다.",
+    "adsenseArticle.title.022": "천간 지지 완벽 해설: 10천간 12지지 뜻·성질·실전 해석법",
+    "adsenseArticle.description.022": "갑을병정무기경신임계 10천간과 자축인묘진사오미신유술해 12지지의 오행 성질, 음양, 계절성, 실전 해석 포인트를 한 번에 정리합니다.",
+    "adsenseArticle.title.023": "신강 신약 판단법 완전 가이드: 내 사주의 강약을 정확히 읽는 법",
+    "adsenseArticle.description.023": "사주 해석의 핵심인 신강(身强)과 신약(身弱)을 판단하는 기준, 방법, 실전 예시를 단계별로 설명합니다. 신강 신약에 따른 용신 방향도 함께 안내합니다.",
+    "adsenseArticle.title.024": "용신 찾는 방법 실전 가이드: 신강 신약부터 용신 설정까지",
+    "adsenseArticle.description.024": "사주 해석의 핵심인 용신(用神)을 찾는 구체적인 방법을 신강 신약 판단부터 단계별로 완벽하게 설명합니다. 억부용신·조후용신·통관용신 개념도 포함합니다.",
+    "adsenseArticle.title.025": "궁합 보는 법 기초 완전 정리: 사주로 관계 이해하는 실전 가이드",
+    "adsenseArticle.description.025": "사주 궁합의 기본 원리, 일간 오행 비교, 십성 궁합, 납음 궁합 등 다양한 궁합 해석 방법과 실전 활용법을 초보자 눈높이로 설명합니다.",
+    "adsenseArticle.title.026": "일주별 성격 특징 총정리: 60갑자 일주 성향 완전 가이드",
+    "adsenseArticle.description.026": "사주에서 나 자신을 나타내는 일주(日柱)별 성격 특징을 10천간×12지지 구조에서 핵심만 정리합니다. 갑자부터 계해까지 주요 일주의 기질과 강점을 안내합니다.",
+    "adsenseArticle.title.027": "대운과 세운 읽는 법 완전 가이드: 시간의 흐름으로 운세 이해하기",
+    "adsenseArticle.description.027": "사주에서 대운(大運)과 세운(歲運)의 개념, 계산법, 해석 방법, 원국과의 상호작용까지 초보자도 이해할 수 있도록 완벽하게 정리합니다.",
+  },
+};
+
+function adsenseReadyArticleText(key) {
+  return ADSENSE_READY_ARTICLE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 export const ADSENSE_READY_ARTICLES = [
   {
     slug: 'saju-how-to-read-step-by-step-beginner-guide',
-    title: '사주 보는 법 완전 입문: 초보도 따라하는 7단계 해석 순서',
-    description: '사주 보는 법을 처음 접한 독자를 위해 만세력 확인부터 오행 해석까지 쉬운 언어로 정리한 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.001"),
+    description: adsenseReadyArticleText("adsenseArticle.description.001"),
     category: '사주 기초',
     updatedAt: '2026-04-05',
     keywords: ['사주 보는 법', '내 운을 높이는 법', '만세력 보는 법', '사주 입문', '사주 해석'],
@@ -35,8 +98,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'how-to-raise-luck-daily-routine-practical-guide',
-    title: '내 운을 높이는 법: 하루 15분 운 상승 루틴 완전 가이드',
-    description: '내 운을 높이는 법을 거창한 의식이 아니라 반복 가능한 생활 루틴으로 정리한 가이드입니다. 아침-낮-밤 5분 루틴과 사주 보는 법 연계 전략까지 포함합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.002"),
+    description: adsenseReadyArticleText("adsenseArticle.description.002"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['내 운을 높이는 법', '운 좋아지는 습관', '사주 보는 법', '운 상승 루틴', '생활 운세'],
@@ -69,8 +132,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'manseoryeok-reading-for-beginners-no-jargon',
-    title: '만세력 보는 법 완전 가이드: 한자 몰라도 이해하는 핵심 해석법',
-    description: '만세력 화면에서 무엇부터 봐야 하는지 초보자가 놓치기 쉬운 포인트를 안내합니다. 한자를 몰라도 쉽게 따라할 수 있는 만세력 활용 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.003"),
+    description: adsenseReadyArticleText("adsenseArticle.description.003"),
     category: '사주 기초',
     updatedAt: '2026-04-05',
     keywords: ['만세력 보는 법', '사주 보는 법', '내 운을 높이는 법', '만세력 해석', '사주 입문'],
@@ -103,8 +166,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'five-elements-balance-guide-for-real-life',
-    title: '오행 균형 완전 가이드: 목화토금수로 읽는 나만의 현실 보완 전략',
-    description: '목화토금수 오행을 성격 라벨이 아니라 생활 전략으로 활용하는 방법을 풀어냈습니다. 오행 과부족을 파악하고 일상에서 균형을 맞추는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.004"),
+    description: adsenseReadyArticleText("adsenseArticle.description.004"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['오행 균형', '사주 보는 법', '내 운을 높이는 법', '오행 해석', '목화토금수'],
@@ -137,8 +200,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'ten-gods-practical-map-love-work-money',
-    title: '십성 해석 실전맵: 연애·일·돈에 바로 적용하는 사주 보는 법',
-    description: '비겁 식상 재성 관성 인성을 생활 의사결정 언어로 바꿔 설명합니다. 십성 해석을 연애, 직장, 재물 상황에 즉시 적용하는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.005"),
+    description: adsenseReadyArticleText("adsenseArticle.description.005"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['십성 해석', '사주 보는 법', '내 운을 높이는 법', '십성 실전', '육친 해석'],
@@ -171,8 +234,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'annual-fortune-reading-checklist-no-fear',
-    title: '올해 운세 보는 법: 불안 없이 읽는 연간 운세 점검 완전 가이드',
-    description: '연간 운세를 과장 없이 해석하고 현실 계획으로 연결하는 점검 프레임입니다. 사주 세운을 분기별 체크리스트로 변환하는 실용적 방법을 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.006"),
+    description: adsenseReadyArticleText("adsenseArticle.description.006"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['올해 운세', '사주 보는 법', '내 운을 높이는 법', '연간 운세', '세운 해석'],
@@ -205,8 +268,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'monthly-fortune-journal-and-feedback-loop',
-    title: '월간 운세 기록법: 맞고 틀림보다 성장률 높이는 피드백 루프',
-    description: '운세 기록과 복기 루프로 실제 체감 변화를 만드는 방법을 소개합니다. 월간 사주 기록 템플릿을 활용해 내 운을 높이는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.007"),
+    description: adsenseReadyArticleText("adsenseArticle.description.007"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['월간 운세', '운세 기록', '내 운을 높이는 법', '사주 보는 법', '운세 피드백'],
@@ -239,8 +302,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'lucky-day-selection-without-superstition',
-    title: '좋은 날짜 고르는 법: 미신 없이 실용적으로 택일하기',
-    description: '중요 일정의 날짜를 선택할 때 운세와 현실 조건을 함께 반영하는 기준입니다. 이사, 면접, 계약 등 중요한 날을 잡을 때 활용하는 실용적 택일 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.008"),
+    description: adsenseReadyArticleText("adsenseArticle.description.008"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['택일', '좋은 날짜', '사주 보는 법', '내 운을 높이는 법', '이사 날짜'],
@@ -273,8 +336,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'reset-routine-when-luck-feels-stuck',
-    title: '운이 막힐 때 리셋하는 법: 72시간 회복 프로토콜 완전판',
-    description: '피로 구간에서 감정 소모를 줄이고 흐름을 회복하는 72시간 루틴입니다. 운이 안 좋을 때 빠르게 회복하는 내 운을 높이는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.009"),
+    description: adsenseReadyArticleText("adsenseArticle.description.009"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['운이 안 좋을 때', '내 운을 높이는 법', '사주 보는 법', '운 회복', '운이 막힐 때'],
@@ -307,8 +370,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'relationship-luck-and-communication-rules',
-    title: '연애운 높이는 소통법: 궁합 점수보다 중요한 관계 운영 규칙',
-    description: '궁합 점수 의존을 줄이고 관계 만족도를 높이는 운영 규칙을 제안합니다. 사주와 숙요점으로 읽는 연애운 활용 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.010"),
+    description: adsenseReadyArticleText("adsenseArticle.description.010"),
     category: '숙요점',
     updatedAt: '2026-04-05',
     keywords: ['연애운', '궁합', '내 운을 높이는 법', '사주 보는 법', '관계 운세'],
@@ -341,8 +404,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'money-luck-habits-and-saju-finance-rules',
-    title: '재물운 높이는 습관: 사주 재성(財星)과 현실 가계부를 같이 쓰는 법',
-    description: '재물운을 감각이 아니라 데이터와 루틴으로 관리하는 방법을 설명합니다. 사주 재성 해석을 실생활 재무 관리에 연결하는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.011"),
+    description: adsenseReadyArticleText("adsenseArticle.description.011"),
     category: '사주 심화',
     updatedAt: '2026-04-05',
     keywords: ['재물운', '돈복', '사주 보는 법', '내 운을 높이는 법', '재성 해석'],
@@ -375,8 +438,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'career-luck-interview-exam-prep-strategy',
-    title: '취업운·시험운 높이는 준비법: 사주 세운과 실전 루틴 완전 가이드',
-    description: '면접과 시험 시즌에 운세 해석을 준비 전략으로 바꾸는 방법을 안내합니다. 취업운과 시험운을 사주 보는 법으로 파악하고 현실 준비와 연결하는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.012"),
+    description: adsenseReadyArticleText("adsenseArticle.description.012"),
     category: '점성술',
     updatedAt: '2026-04-05',
     keywords: ['취업운', '시험운', '내 운을 높이는 법', '사주 보는 법', '면접 준비'],
@@ -409,8 +472,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'sleep-rhythm-energy-and-luck-connection',
-    title: '수면과 운의 관계: 에너지 리듬을 회복하면 운이 달라지는 이유',
-    description: '수면 습관이 운세 체감과 판단력에 미치는 영향을 생활 관점으로 풀어냈습니다. 수면 리듬이 내 운을 높이는 기반이 되는 이유와 7일 리셋 방법을 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.013"),
+    description: adsenseReadyArticleText("adsenseArticle.description.013"),
     category: '점성술',
     updatedAt: '2026-04-05',
     keywords: ['수면 루틴', '내 운을 높이는 법', '사주 보는 법', '에너지 관리', '생활 리듬'],
@@ -443,8 +506,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'how-to-ask-better-fortune-questions',
-    title: '운세 질문 잘하는 법: 답의 질을 바꾸는 질문 설계 완전 가이드',
-    description: '사주와 타로 해석 품질을 높이는 질문 설계 템플릿을 제공합니다. 사주 보는 법과 타로 리딩에서 구체적이고 실용적인 질문을 만드는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.014"),
+    description: adsenseReadyArticleText("adsenseArticle.description.014"),
     category: '타로 이론',
     updatedAt: '2026-04-05',
     keywords: ['운세 질문', '사주 보는 법', '내 운을 높이는 법', '타로 질문법', '운세 활용'],
@@ -477,8 +540,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'saju-and-tarot-combined-reading-framework',
-    title: '사주와 타로 함께 보는 법: 장기 흐름과 현재 선택을 연결하는 통합 프레임',
-    description: '사주의 구조 해석과 타로의 상황 해석을 결합하는 통합 프레임워크입니다. 사주 보는 법과 타로 리딩을 함께 활용해 더 깊은 통찰을 얻는 실전 가이드입니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.015"),
+    description: adsenseReadyArticleText("adsenseArticle.description.015"),
     category: '타로 이론',
     updatedAt: '2026-04-05',
     keywords: ['사주 보는 법', '타로 보는 법', '내 운을 높이는 법', '사주 타로 통합', '타로 리딩'],
@@ -511,8 +574,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'fortune-content-for-adsense-what-google-likes',
-    title: '애드센스 승인 친화 운세 글 구조: 정보성·신뢰성·가독성 완전 가이드',
-    description: '운세 사이트가 애드센스 승인 확률을 높이기 위해 갖춰야 할 글 구조를 풀어냈습니다. 구글이 좋아하는 운세 콘텐츠 작성법과 SEO 최적화 방법을 단계별로 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.016"),
+    description: adsenseReadyArticleText("adsenseArticle.description.016"),
     category: '점성술',
     updatedAt: '2026-04-05',
     keywords: ['애드센스 승인', '사주 보는 법', '내 운을 높이는 법', '운세 콘텐츠', '구글 SEO'],
@@ -545,8 +608,8 @@ export const ADSENSE_READY_ARTICLES = [
   },
   {
     slug: 'vedic-astrology-12-rasi-complete-personality-guide',
-    title: '베다 점성술 12라시 완전 가이드: 메샤부터 미나까지 성격·운세·실전 해석',
-    description: '인도 베다 점성술(조티쉬)의 12라시(황도 별자리)를 고객 눈높이로 완전 풀어냈습니다. 각 라시의 성격 특징, 강점과 약점, 관계·커리어 경향, 현실 활용법까지 초보자도 바로 이해할 수 있도록 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.017"),
+    description: adsenseReadyArticleText("adsenseArticle.description.017"),
     category: '베다점',
     updatedAt: '2026-04-05',
     keywords: ['베다 점성술', '베다 점성술 별자리', '조티쉬 라시', '베다 점성술 12개 별자리', '베다 점성술 운세', '인도 점성술 특징', '라시 궁합', '베다 점성술 성격'],
@@ -624,8 +687,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'saju-pallja-basic-principles-complete-guide',
-    title: '사주팔자 기초 원리 완전 정리: 사주가 뭔지 처음부터 이해하기',
-    description: '사주팔자의 구조와 해석 원리를 처음 접하는 분도 이해할 수 있도록 단계별로 설명합니다. 연·월·일·시 네 기둥, 천간 지지, 오행의 상호작용까지 기초를 완벽하게 잡아드립니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.018"),
+    description: adsenseReadyArticleText("adsenseArticle.description.018"),
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -660,8 +723,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'five-elements-ohang-complete-guide',
-    title: '오행(목화토금수) 완전 정리: 성질·상생·상극·실생활 적용법',
-    description: '오행의 기본 성질부터 상생·상극 원리, 성격 분석, 건강·직업·관계에서의 실생활 적용법까지 완벽하게 풀어냈습니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.019"),
+    description: adsenseReadyArticleText("adsenseArticle.description.019"),
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -700,8 +763,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'tarot-major-arcana-22-complete-meanings',
-    title: '타로카드 대아르카나 22장 의미 완전 정리: 0번부터 21번까지',
-    description: '타로 대아르카나 22장의 핵심 키워드, 정방향·역방향 해석, 연애·직업·성장별 활용법을 초보자도 바로 쓸 수 있도록 완벽 풀어냈습니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.020"),
+    description: adsenseReadyArticleText("adsenseArticle.description.020"),
     category: '타로 이론',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -736,8 +799,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'ziwei-doushu-complete-beginner-guide',
-    title: '자미두수란 무엇인가: 기초부터 명반 보는 법까지 완전 입문',
-    description: '중국에서 가장 정밀한 운명 학문으로 손꼽히는 자미두수(紫微斗數)의 기원, 구조, 주요 별자리의 의미, 명반 읽는 법을 초보자 눈높이로 설명합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.021"),
+    description: adsenseReadyArticleText("adsenseArticle.description.021"),
     category: '자미두수',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -768,8 +831,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'cheongan-jiji-complete-explanation',
-    title: '천간 지지 완벽 해설: 10천간 12지지 뜻·성질·실전 해석법',
-    description: '갑을병정무기경신임계 10천간과 자축인묘진사오미신유술해 12지지의 오행 성질, 음양, 계절성, 실전 해석 포인트를 한 번에 정리합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.022"),
+    description: adsenseReadyArticleText("adsenseArticle.description.022"),
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -800,8 +863,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'singang-sinyak-judgment-complete-guide',
-    title: '신강 신약 판단법 완전 가이드: 내 사주의 강약을 정확히 읽는 법',
-    description: '사주 해석의 핵심인 신강(身强)과 신약(身弱)을 판단하는 기준, 방법, 실전 예시를 단계별로 설명합니다. 신강 신약에 따른 용신 방향도 함께 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.023"),
+    description: adsenseReadyArticleText("adsenseArticle.description.023"),
     category: '사주 심화',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -832,8 +895,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'yongshin-finding-method-practical-guide',
-    title: '용신 찾는 방법 실전 가이드: 신강 신약부터 용신 설정까지',
-    description: '사주 해석의 핵심인 용신(用神)을 찾는 구체적인 방법을 신강 신약 판단부터 단계별로 완벽하게 설명합니다. 억부용신·조후용신·통관용신 개념도 포함합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.024"),
+    description: adsenseReadyArticleText("adsenseArticle.description.024"),
     category: '사주 심화',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -864,8 +927,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'goonghap-compatibility-basics-complete',
-    title: '궁합 보는 법 기초 완전 정리: 사주로 관계 이해하는 실전 가이드',
-    description: '사주 궁합의 기본 원리, 일간 오행 비교, 십성 궁합, 납음 궁합 등 다양한 궁합 해석 방법과 실전 활용법을 초보자 눈높이로 설명합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.025"),
+    description: adsenseReadyArticleText("adsenseArticle.description.025"),
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -896,8 +959,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'iljoo-personality-complete-guide-60-pillars',
-    title: '일주별 성격 특징 총정리: 60갑자 일주 성향 완전 가이드',
-    description: '사주에서 나 자신을 나타내는 일주(日柱)별 성격 특징을 10천간×12지지 구조에서 핵심만 정리합니다. 갑자부터 계해까지 주요 일주의 기질과 강점을 안내합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.026"),
+    description: adsenseReadyArticleText("adsenseArticle.description.026"),
     category: '사주 기초',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',
@@ -928,8 +991,8 @@ export const ADSENSE_READY_ARTICLES = [
 
   {
     slug: 'daewoon-sewoon-reading-complete-guide',
-    title: '대운과 세운 읽는 법 완전 가이드: 시간의 흐름으로 운세 이해하기',
-    description: '사주에서 대운(大運)과 세운(歲運)의 개념, 계산법, 해석 방법, 원국과의 상호작용까지 초보자도 이해할 수 있도록 완벽하게 정리합니다.',
+    title: adsenseReadyArticleText("adsenseArticle.title.027"),
+    description: adsenseReadyArticleText("adsenseArticle.description.027"),
     category: '사주 심화',
     publishedAt: '2026-04-05',
     updatedAt: '2026-04-05',

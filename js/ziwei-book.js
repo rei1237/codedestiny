@@ -28,6 +28,41 @@
   var LAST_SEED = null;
   var RESULT_POLL_MAX_ATTEMPTS = 150;
   var RESULT_POLL_INTERVAL_MS = 4000;
+  var ZIWEI_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      premiumPdfTitle: '자미두수 프리미엄 PDF',
+      premiumPdfReason: '자미두수 프리미엄 PDF 생성',
+      coverAlt: '자미두수 프리미엄 명반서 표지',
+    },
+    en: {
+      premiumPdfTitle: 'Zi Wei Premium PDF',
+      premiumPdfReason: 'Generate Zi Wei Premium PDF',
+      coverAlt: 'Zi Wei premium chart book cover',
+    },
+    ja: {
+      premiumPdfTitle: '紫微斗数プレミアムPDF',
+      premiumPdfReason: '紫微斗数プレミアムPDF生成',
+      coverAlt: '紫微斗数プレミアム命盤書の表紙',
+    }
+  };
+
+  function ziweiBookLocale(){
+    var value = '';
+    try { if (window.cdGetCurrentLanguage) value = String(window.cdGetCurrentLanguage() || ''); } catch (_) {}
+    if(!value){
+      try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
+    }
+    value = String(value || '').trim().replace('_', '-').toLowerCase();
+    if(value.indexOf('ja') === 0) return 'ja';
+    if(value.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function ziweiBookText(key){
+    var copy = ZIWEI_BOOK_TEXT_TRANSLATIONS[ziweiBookLocale()] || ZIWEI_BOOK_TEXT_TRANSLATIONS.ko;
+    return copy[key] || ZIWEI_BOOK_TEXT_TRANSLATIONS.ko[key] || '';
+  }
+
   var ZIWEI_GENERATION_STATE = {
     isOpen: false,
     status: 'idle',
@@ -41,21 +76,21 @@
   };
 
   var CHAPTERS = [
-    'Chapter 1. 자미 명반 총론 — 운명의 중심 지도',
-    'Chapter 2. 명궁과 신궁 — 타고난 나와 완성되는 나',
-    'Chapter 3. 선천 사화 정밀 해석',
-    'Chapter 4. 14주성 완전 해석',
-    'Chapter 5. 보좌성과 살성의 역학 관계',
-    'Chapter 6. 재백궁과 관록궁 — 돈과 사회적 성취',
-    'Chapter 7. 부부궁과 자녀궁 — 사랑과 가족 리듬',
-    'Chapter 8. 천이궁과 전택궁 — 이동과 기반의 운',
-    'Chapter 9. 노복궁과 형제궁 — 인맥과 협업 운',
-    'Chapter 10. 복덕궁과 부모궁 — 내면 회복과 뿌리',
-    'Chapter 11. 질액궁 — 몸과 마음의 취약 신호',
-    'Chapter 12. 대한 정밀 분석 — 10년 주기의 방향',
-    'Chapter 13. 유년 로드맵 — 올해의 운 흐름',
-    'Chapter 14. 생애 마스터플랜 — 전환점과 장기 전략',
-    'Chapter 15. 자미 거장의 최종 전략 제언'
+    '자미 명반 총론 — 운명의 중심 지도',
+    '명궁과 신궁 — 타고난 나와 완성되는 나',
+    '선천 사화 정밀 해석',
+    '14주성 완전 해석',
+    '보좌성과 살성의 역학 관계',
+    '재백궁과 관록궁 — 돈과 사회적 성취',
+    '부부궁과 자녀궁 — 사랑과 가족 리듬',
+    '천이궁과 전택궁 — 이동과 기반의 운',
+    '노복궁과 형제궁 — 인맥과 협업 운',
+    '복덕궁과 부모궁 — 내면 회복과 뿌리',
+    '질액궁 — 건강과 심리 리듬',
+    '대한/대운 흐름 — 인생의 큰 전환점',
+    '세운 흐름 — 올해와 가까운 미래',
+    '강점·위험 패턴·개운 전략',
+    '종합 상담문 — 앞으로의 선택 가이드'
   ];
 
   var CHAPTER_PROGRESS_LINES = [
@@ -69,24 +104,23 @@
     '천이궁과 전택궁의 이동·기반 운을 점검하는 중입니다.',
     '노복궁과 형제궁의 인맥 흐름을 읽는 중입니다.',
     '복덕궁과 부모궁의 내면 뿌리를 살피는 중입니다.',
-    '질액궁의 몸과 마음 신호를 부드럽게 정리하는 중입니다.',
-    '대한 10년 주기의 큰 방향을 해석하는 중입니다.',
-    '유년 흐름의 올해 전략을 다듬는 중입니다.',
-    '생애 전환점과 장기 전략을 엮는 중입니다.',
-    '15챕터 자미 거장의 최종 제언을 완성하는 중입니다.'
+    '질액궁의 건강과 심리 리듬을 부드럽게 정리하는 중입니다.',
+    '대한과 대운의 큰 전환점을 해석하는 중입니다.',
+    '올해와 가까운 미래의 흐름을 다듬는 중입니다.',
+    '강점과 위험 패턴, 개운 전략을 엮는 중입니다.',
+    '앞으로의 선택 가이드를 완성하는 중입니다.'
   ];
 
   var FINALIZE_PROGRESS_LINES = [
     '명반 기반 15챕터를 최종 점검하는 중입니다.',
     'PDF 문서로 정리하는 중입니다.'
   ];
-  var ZIWEI_PHASE_ORDER = ['profile', 'payment', 'calculate', 'write', 'archive'];
+  var ZIWEI_PHASE_ORDER = ['prepare', 'calculate', 'write', 'archive'];
   var ZIWEI_PHASE_TITLES = {
-    profile: '프로필 정보를 확인하고 있습니다.',
-    payment: '결제 확인 중입니다. 완료 후 생성이 시작됩니다.',
-    calculate: '결제가 확인되었습니다. 명궁과 12궁을 계산합니다.',
-    write: '15챕터 상담문을 정리하고 있습니다.',
-    archive: 'PDF 저장과 다운로드 준비를 마무리합니다.'
+    prepare: '자미두수 명반을 정리하고 있습니다.',
+    calculate: '명궁과 12궁 흐름을 정리하고 있습니다.',
+    write: '1챕터 상담문을 생성하고 있습니다.',
+    archive: 'PDF 원고를 조판하고 있습니다.'
   };
 
   var PALACE_KEY_BY_NAME = {
@@ -216,7 +250,7 @@
   }
 
   function setZiweiPhase(phase, title){
-    var safePhase = ZIWEI_PHASE_TITLES[phase] ? phase : 'profile';
+    var safePhase = ZIWEI_PHASE_TITLES[phase] ? phase : 'prepare';
     var activeIndex = ZIWEI_PHASE_ORDER.indexOf(safePhase);
     var phaseTitle = title || ZIWEI_PHASE_TITLES[safePhase];
     setText('zbLoadingTitle', phaseTitle);
@@ -337,7 +371,7 @@
 
   function isReusablePaidStatus(status){
     var s = text(status);
-    return s === 'paid' || s === 'generating' || s === 'failed_retryable';
+    return s === 'paid' || s === 'generating' || s === 'failed_retryable' || s === 'failed' || s === 'completed';
   }
 
   function isZiweiFeatureKey(value){
@@ -468,8 +502,9 @@
     var payload = data || {};
     var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
-    var status = text(payload.status);
-    var serverStatus = text(payload.serverStatus);
+    var progress = getZiweiProgressPayload(payload);
+    var status = normalizeZiweiServerStatus(payload.status || progress.status);
+    var serverStatus = normalizeZiweiServerStatus(payload.serverStatus || status);
     var hasSessionId = Boolean(text(payload.sessionId));
     var hasReportId = Boolean(text(payload.reportId));
     var hasPdfHtml = Boolean(text(ready.html));
@@ -487,22 +522,25 @@
     ));
     var ok = payload.ok === true;
     var retryable = payload.retryable === true;
-    var failedRetryable = serverStatus === 'failed_retryable' || status === 'failed_retryable';
-    var processing = status === 'processing' || serverStatus === 'processing' || retryable || failedRetryable;
-    var successCandidate = (ok || processing || retryable) && (hasReportId || hasSessionId);
+    var failed = status === 'failed' || serverStatus === 'failed';
+    var processing = !failed && (status === 'generating' || status === 'rendering' || status === 'uploading' || serverStatus === 'generating' || serverStatus === 'rendering' || serverStatus === 'uploading');
+    var successCandidate = (ok || processing || retryable || failed) && (hasReportId || hasSessionId);
     var llmReady = hasZiweiV3LlmAssembly(payload);
     return {
       ok: ok,
       processing: processing,
       retryable: retryable,
-      failedRetryable: failedRetryable,
+      failedRetryable: failed,
+      failed: failed,
       recoverable: processing && (hasReportId || hasSessionId),
       successCandidate: successCandidate,
       completed: ok && successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS && llmReady,
       llmReady: llmReady,
       hasPdfHtml: hasPdfHtml,
       hasStoredUrl: hasStoredUrl,
-      chapterCount: chapters.length,
+      chapterCount: Math.max(chapters.length, progress.completedChapters),
+      completedChapters: progress.completedChapters,
+      progress: progress,
       hasReportId: hasReportId,
       hasSessionId: hasSessionId
     };
@@ -999,8 +1037,8 @@
         pendingDot.setAttribute('aria-current', 'false');
       }
       setText('zbLoadingChapterNum', '진행률 0 / ' + TOTAL_CHAPTERS);
-      setText('zbLoadingChapter', '결제 완료 전에는 명반 생성이 시작되지 않습니다.');
-      setText('zbMysticQuote', '결제가 확인되면 명궁과 12궁 계산을 시작합니다.');
+      setText('zbLoadingChapter', '자미두수 명반을 정리하고 있습니다.');
+      setText('zbMysticQuote', '자미두수 명반을 정리하고 있습니다.');
       if($('zbChapterCount')) setText('zbChapterCount', '0 / ' + TOTAL_CHAPTERS);
       else setText('zbProgressText', '0 / ' + TOTAL_CHAPTERS);
       updateZiweiGenerationState({
@@ -1032,6 +1070,81 @@
       currentChapterNo: chapterNo,
       completedChapters: completed
     });
+  }
+
+  function normalizeZiweiServerStatus(value){
+    var status = text(value).toLowerCase();
+    if(status === 'processing' || status === 'queued' || status === 'running') return 'generating';
+    if(status === 'failed_retryable') return 'failed';
+    if(status === 'generating' || status === 'rendering' || status === 'uploading' || status === 'completed' || status === 'failed') return status;
+    return 'generating';
+  }
+
+  function getZiweiProgressPayload(data){
+    var payload = data && typeof data === 'object' ? data : {};
+    var progress = payload.ziweiPdfProgress && typeof payload.ziweiPdfProgress === 'object'
+      ? payload.ziweiPdfProgress
+      : (payload.progress && typeof payload.progress === 'object' ? payload.progress : payload);
+    var completed = Number(progress.completedChapters != null ? progress.completedChapters : payload.completedChapters);
+    var current = Number(progress.currentChapterNumber != null ? progress.currentChapterNumber : payload.currentChapterNumber);
+    var status = normalizeZiweiServerStatus(progress.status || payload.status || payload.serverStatus);
+    completed = Number.isFinite(completed) ? Math.max(0, Math.min(TOTAL_CHAPTERS, Math.trunc(completed))) : 0;
+    current = Number.isFinite(current) ? Math.max(1, Math.min(TOTAL_CHAPTERS, Math.trunc(current))) : Math.min(TOTAL_CHAPTERS, completed + 1);
+    var title = text(progress.currentChapterTitle || payload.currentChapterTitle || CHAPTERS[current - 1] || '');
+    var category = text(progress.currentCategory || payload.currentCategory || '');
+    var message = text(progress.currentStepMessage || payload.currentStepMessage || payload.message || '');
+    if(!message){
+      if(status === 'rendering') message = 'PDF 원고를 조판하고 있습니다.';
+      else if(status === 'uploading') message = 'PDF를 저장하고 있습니다.';
+      else if(status === 'completed') message = 'PDF 저장이 완료되었습니다.';
+      else if(status === 'failed') message = text(progress.errorMessage || payload.errorMessage) || '자미두수 상담문 생성이 중단되었습니다.';
+      else if(current === 6) message = '재백궁과 관록궁 흐름을 분석하고 있습니다.';
+      else if(completed <= 0) message = '자미두수 명반을 정리하고 있습니다.';
+      else message = current + '챕터 상담문을 생성하고 있습니다.';
+    }
+    return {
+      status: status,
+      totalChapters: TOTAL_CHAPTERS,
+      completedChapters: completed,
+      currentChapterNumber: current,
+      currentChapterTitle: title,
+      currentCategory: category,
+      currentStepMessage: message,
+      errorMessage: text(progress.errorMessage || payload.errorMessage || '')
+    };
+  }
+
+  function renderZiweiServerProgress(data){
+    var progress = getZiweiProgressPayload(data || {});
+    var currentIndex = Math.max(0, progress.currentChapterNumber - 1);
+    var completed = progress.completedChapters;
+    for(var i=0; i<TOTAL_CHAPTERS; i++){
+      var dot = $('zbChDot' + i);
+      if(!dot) continue;
+      dot.classList.toggle('lb-ch-dot--done', i < completed);
+      dot.classList.toggle('lb-ch-dot--active', progress.status !== 'completed' && i === currentIndex && i >= completed);
+      dot.classList.toggle('lb-ch-dot--pending', i >= completed && !(progress.status !== 'completed' && i === currentIndex));
+      dot.setAttribute('aria-current', progress.status !== 'completed' && i === currentIndex ? 'step' : 'false');
+    }
+    var countText = completed + ' / ' + TOTAL_CHAPTERS;
+    var percent = progress.status === 'completed'
+      ? 100
+      : Math.max(4, Math.min(96, Math.round((completed / TOTAL_CHAPTERS) * 82) + (progress.status === 'rendering' ? 86 : progress.status === 'uploading' ? 93 : 8)));
+    var phase = progress.status === 'rendering' || progress.status === 'uploading' || progress.status === 'completed' ? 'archive' : (completed <= 0 ? 'prepare' : 'write');
+    setZiweiPhase(phase, progress.currentStepMessage);
+    setText('zbLoadingChapterNum', '진행률 ' + countText);
+    setText('zbLoadingChapter', progress.currentStepMessage);
+    setText('zbMysticQuote', progress.currentStepMessage);
+    if($('zbChapterCount')) setText('zbChapterCount', countText);
+    else setText('zbProgressText', countText);
+    updateProgress(percent, progress.currentStepMessage);
+    updateZiweiGenerationState({
+      status: progress.status,
+      currentChapterNo: progress.currentChapterNumber,
+      completedChapters: Array.from({ length: completed }, function(_, index){ return index + 1; }),
+      message: progress.currentStepMessage
+    });
+    return progress;
   }
 
   function getField(ids){
@@ -1237,7 +1350,7 @@
     var placeText = text(engine.birthplace || merged.birthplace) || '대한민국';
     var notice = !hasDate
       ? '생년월일이 확인되어야 명반 계산을 시작할 수 있습니다.'
-      : (!hasTime ? '자미두수 PDF는 명궁과 12궁 계산을 위해 정확한 출생시가 필요합니다.' : '결제 전 분석 기준이 확인되었습니다.');
+      : (!hasTime ? '자미두수 PDF는 명궁과 12궁 계산을 위해 정확한 출생시가 필요합니다.' : '명반 계산 기준이 정리되었습니다.');
 
     if(summary){
       summary.innerHTML = ''
@@ -1575,7 +1688,8 @@
       }
       return '';
     }
-    var token = pick(['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token']) || getPremiumToken();
+    var token = pick(['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token', 'jobToken']) || getPremiumToken();
+    var jobToken = pick(['jobToken', 'premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token']);
     var transactionId = pick(['transactionId', 'paymentId', 'purchaseId', 'requestId']);
     var requestId = pick(['requestId', 'transactionId']) || transactionId;
     var purchaseId = pick(['purchaseId', 'paymentId', 'transactionId']) || transactionId;
@@ -1586,6 +1700,7 @@
       featureAliases: FEATURE_KEY_ALIASES.slice(),
       reportType: 'ziweiPremium',
       premiumAccessToken: token || undefined,
+      jobToken: jobToken || token || undefined,
       transactionId: transactionId || undefined,
       requestId: requestId || undefined,
       purchaseId: purchaseId || undefined,
@@ -1598,6 +1713,45 @@
     context.sourceTransactionId = text(pick(['sourceTransactionId']) || context.transactionId || context.purchaseId || context.requestId) || undefined;
     if(grant) context.accessGrant = grant;
     return context;
+  }
+
+  function readAuthorizedZiweiContext(birthHash){
+    var candidates = [];
+    try {
+      candidates.push(window.__ziweiBookAuthorizedContext);
+      candidates.push(window.__cdZiweiBookAuthorizedContext);
+      candidates.push(window.ziweiBookAuthorizedContext);
+    } catch(_) {}
+    candidates.push(readPaidSession());
+    for(var i = 0; i < candidates.length; i += 1){
+      var source = candidates[i];
+      if(!source || typeof source !== 'object') continue;
+      var savedStatus = text(source.status || 'paid');
+      if(source.featureKey && !isZiweiFeatureKey(source.featureKey)) continue;
+      if(source.reportType && text(source.reportType) !== 'ziweiPremium') continue;
+      if(text(source.birthHash) && text(source.birthHash) !== text(birthHash)) continue;
+      if(savedStatus && savedStatus !== 'completed' && !isReusablePaidStatus(savedStatus) && savedStatus !== 'failed') continue;
+      var context = normalizePaymentContext(source, birthHash);
+      context.reportId = text(source.reportId || context.reportId);
+      context.sessionId = text(source.sessionId || source.reportSessionId || context.sessionId);
+      context.reportSessionId = text(source.reportSessionId || source.sessionId || context.reportSessionId || context.sessionId);
+      context.requestId = text(source.requestId || context.requestId);
+      context.premiumAccessToken = text(source.premiumAccessToken || source.accessToken || source.jobToken || context.premiumAccessToken);
+      context.jobToken = text(source.jobToken || context.jobToken || context.premiumAccessToken);
+      context.transactionId = text(source.transactionId || context.transactionId);
+      context.purchaseId = text(source.purchaseId || context.purchaseId);
+      context.birthHash = text(birthHash);
+      if(source.accessGrant && typeof source.accessGrant === 'object') context.accessGrant = source.accessGrant;
+      if(text(context.reportId) && (text(context.sessionId) || text(context.jobToken) || text(context.premiumAccessToken) || context.accessGrant)){
+        return Object.assign({}, source, context, {
+          ok: true,
+          reused: true,
+          verified: true,
+          status: savedStatus || 'paid'
+        });
+      }
+    }
+    return null;
   }
 
   async function ensurePaymentOrRestore(birthInput, options){
@@ -1670,8 +1824,8 @@
 
     var requestId = scope.requestId || (FEATURE_KEY + '-ziwei-' + now + '-' + Math.random().toString(36).slice(2, 8));
     var requestSeed = {
-      title: '자미두수 프리미엄 PDF',
-      reason: '자미두수 프리미엄 PDF 생성',
+      title: ziweiBookText('premiumPdfTitle'),
+      reason: ziweiBookText('premiumPdfReason'),
       coinPrice: COIN_COST,
       cost: COIN_COST,
       featureKey: FEATURE_KEY,
@@ -1713,7 +1867,7 @@
       function finalizeGrant(result){
         var paymentContext = buildPaymentContext(result);
         if(!hasPaymentEvidence(Object.assign({}, result || {}, paymentContext), birthHash)){
-          throw buildRetryableError('결제 확인 정보가 누락되었습니다. 결제 상태를 확인한 뒤 다시 시도해 주세요.', 402, 'PAYMENT_EVIDENCE_MISSING', 'payment');
+          throw buildRetryableError('생성 권한 정보가 누락되었습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'PAYMENT_EVIDENCE_MISSING', 'generation');
         }
 
         var sessionId = text(paymentContext.sessionId);
@@ -1776,7 +1930,7 @@
           throw buildZiweiApiError({ status: 402, body: gateResult }, gateResult && gateResult.message || '결제가 취소되어 생성을 중단했습니다.', 'payment');
         }
         if(gateResult.ok === false){
-          throw buildZiweiApiError({ status: Number(gateResult.status || 402), body: gateResult }, gateResult.message || '결제 확인에 실패했습니다. 다시 시도해 주세요.', 'payment');
+          throw buildZiweiApiError({ status: Number(gateResult.status || 403), body: gateResult }, gateResult.message || '생성 권한 확인에 실패했습니다. 다시 시도해 주세요.', 'generation');
         }
 
         return finalizeGrant(gateResult);
@@ -1817,6 +1971,7 @@
     var json = fetched.json;
     if(!json) return null;
     var readiness = getZiweiReportReadiness(json);
+    if(readiness.failed) return json;
     if(!res.ok && res.status !== 202 && !readiness.processing && !readiness.recoverable) return null;
     if(json.ok !== true && !readiness.processing && !readiness.recoverable) return null;
     return json;
@@ -1835,11 +1990,11 @@
     }
     var latest = initial;
     for(var attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt++){
-      var percent = Math.min(92, 56 + Math.round((attempt / Math.max(1, RESULT_POLL_MAX_ATTEMPTS - 1)) * 34));
-      updateProgress(percent, '자미두수 원고와 PDF 저장 상태를 확인하는 중입니다.');
+      renderZiweiServerProgress(latest);
       var recovered = await fetchZiweiResult(baseSession, baseReport);
       if(recovered){
         latest = recovered;
+        renderZiweiServerProgress(latest);
         var recoveredReadiness = getZiweiReportReadiness(recovered);
         logFlow('ReportRecovered', {
           birthHash: text(payment && payment.birthHash),
@@ -1847,15 +2002,17 @@
           hasToken: Boolean(text(payment && payment.premiumAccessToken))
         });
         if(recoveredReadiness.completed) return recovered;
+        if(recoveredReadiness.failed) return recovered;
         if(!recoveredReadiness.processing && !recoveredReadiness.recoverable) break;
       }
-      await new Promise(function(resolve){ setTimeout(resolve, RESULT_POLL_INTERVAL_MS); });
+      var delay = Number((latest && (latest.pollAfterMs || latest.retryAfterMs)) || RESULT_POLL_INTERVAL_MS);
+      await new Promise(function(resolve){ setTimeout(resolve, Number.isFinite(delay) && delay > 0 ? delay : RESULT_POLL_INTERVAL_MS); });
     }
     var latestReadiness = getZiweiReportReadiness(latest);
     if(latestReadiness.successCandidate || readiness.successCandidate){
       return Object.assign({}, latest || initial, {
-        status: 'processing',
-        chapters: Array.isArray(latest && latest.chapters) ? latest.chapters : []
+        status: latestReadiness.failed ? 'failed' : 'generating',
+        chapters: latestReadiness.completed && Array.isArray(latest && latest.chapters) ? latest.chapters : []
       });
     }
     return latest || initial;
@@ -1872,18 +2029,21 @@
       requestId: text(payment && payment.requestId) || scope.requestId,
       birthHash: birthHash
     }), birthHash);
-    var token = text(paymentContext.premiumAccessToken) || (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
+    var token = text(paymentContext.premiumAccessToken || paymentContext.jobToken) || (payment && (payment.premiumAccessToken || payment.accessToken || payment.jobToken)) || getPremiumToken();
+    var jobToken = text(paymentContext.jobToken || payment && payment.jobToken || token);
     paymentContext.premiumAccessToken = token || undefined;
+    paymentContext.jobToken = jobToken || undefined;
     paymentContext.sessionId = text(paymentContext.sessionId) || sessionId;
     paymentContext.reportSessionId = text(paymentContext.reportSessionId) || paymentContext.sessionId || sessionId;
     paymentContext.reportId = text(paymentContext.reportId) || scope.reportId;
     paymentContext.requestId = text(paymentContext.requestId) || scope.requestId;
     var accessGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
-    if(!hasPaymentEvidence(Object.assign({}, paymentContext, { premiumAccessToken: token, accessGrant: accessGrant }), birthHash)){
-      throw buildRetryableError('결제 확인 정보가 누락되었습니다. 다시 결제를 진행해 주세요.', 402, 'PAYMENT_EVIDENCE_MISSING', 'payment');
+    if(!text(paymentContext.reportId) || !hasPaymentEvidence(Object.assign({}, paymentContext, { premiumAccessToken: token, accessGrant: accessGrant }), birthHash)){
+      throw buildRetryableError('생성 권한 정보가 누락되었습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'INVALID_AUTHORIZATION', 'generation');
     }
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
+    if(jobToken) headers['x-ziwei-job-token'] = jobToken;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
@@ -1892,6 +2052,7 @@
       idempotencyKey: 'ziwei:' + sessionId + ':' + birthHash,
       birthHash: birthHash,
       premiumAccessToken: token || '',
+      jobToken: jobToken || '',
       requestId: text(paymentContext.requestId) || undefined,
       purchaseId: text(paymentContext.purchaseId) || undefined,
       transactionId: text(paymentContext.transactionId) || undefined,
@@ -1908,6 +2069,7 @@
         sessionId: sessionId || undefined,
         reportSessionId: paymentContext.reportSessionId || sessionId || undefined,
         premiumAccessToken: token || undefined,
+        jobToken: jobToken || undefined,
         accessGrant: accessGrant || undefined
       },
       payment: paymentContext,
@@ -1948,12 +2110,13 @@
     var res = fetched.res;
     var json = fetched.json;
     if(!res.ok || !json.ok){
-      if(json && json.retryable && text(json.status) === 'processing' && (text(json.reportId) || text(json.sessionId) || Array.isArray(json.chapters))){
+      var readiness = getZiweiReportReadiness(json || {});
+      if(json && (readiness.processing || readiness.failed) && (text(json.reportId) || text(json.sessionId))){
         return json;
       }
       var code = text(json.code || json.error || 'ZIWEI_PREPARE_FAILED');
       var message = text(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
-      var apiError = buildZiweiApiError({ res: res, json: json }, message, (res.status === 401 || res.status === 402 || res.status === 403) ? 'payment' : ((res.status === 422 || res.status >= 500) ? 'generation' : 'request'));
+      var apiError = buildZiweiApiError({ res: res, json: json }, message, (code === 'invalid_authorization' || code === 'INVALID_AUTHORIZATION' || res.status === 403 || res.status === 422 || res.status >= 500) ? 'generation' : 'request');
       apiError.prepareDiagnostics = Object.assign({}, prepareDiagnostics, {
         apiEndpoint: text(fetched && fetched.endpoint) || prepareDiagnostics.apiEndpoint,
         responseStatus: res.status,
@@ -2018,7 +2181,7 @@
       header.appendChild(topActions);
     }
 
-    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="자미두수 프리미엄 명반서 표지"><div><p>PURPLE STAR ARCHIVE</p><h3>자미두수 프리미엄 PDF</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span>' + renderZiweiQualityBadge(data) + '</div></div>';
+    var cover = '<div class="zb-result-cover"><img src="' + esc(COVER_IMAGE) + '" alt="' + esc(ziweiBookText('coverAlt')) + '"><div><p>PURPLE STAR ARCHIVE</p><h3>' + esc(ziweiBookText('premiumPdfTitle')) + '</h3><span>' + esc(chapters.length) + '챕터 생성 완료</span>' + renderZiweiQualityBadge(data) + '</div></div>';
     var v3Ready = hasZiweiV3LlmAssembly(data);
     var html = chapters.map(function(chapter, index){
       if(v3Ready){
@@ -2086,7 +2249,7 @@
         reportId: text(recovered.reportId || saved.reportId),
         sessionId: text(recovered.sessionId || saved.sessionId)
       });
-      showError('결제는 확인되었습니다. PDF 저장이 아직 진행 중입니다. 잠시 후 다시 이어받아 주세요.', recovered);
+      showError('자미두수 PDF 생성이 아직 완료되지 않았습니다. 잠시 후 다시 이어받아 주세요.', recovered);
       return;
     }
     RESULT = recovered;
@@ -2104,18 +2267,17 @@
     var code = text(error && error.code);
     var msg = text(message || (error && error.message));
     if(code === 'ZIWEI_PROCESSING') return 'processing';
-    if(code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || code === 'ZIWEI_LLM_REPORT_REQUIRED' || code === 'ZIWEI_PREMIUM_GENERATION_FAILED' || code === 'ZIWEI_PDF_COMPLETION_INVALID' || kind === 'generation' || status >= 500) return 'generation';
+    if(code === 'invalid_authorization' || code === 'INVALID_AUTHORIZATION' || code === 'PAYMENT_EVIDENCE_MISSING' || code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || code === 'ZIWEI_LLM_REPORT_REQUIRED' || code === 'ZIWEI_PREMIUM_GENERATION_FAILED' || code === 'ZIWEI_PDF_COMPLETION_INVALID' || kind === 'generation' || status === 403 || status >= 500) return 'generation';
     if(/\ud504\ub85c\ud544|\ucd9c\uc0dd \uc2dc\uac04|\ucd9c\uc0dd\uc77c|\uc785\ub825\uac12/.test(msg)) return 'input';
-    if(kind === 'payment' || status === 401 || status === 402 || status === 403) return 'payment';
+    if(kind === 'payment' || status === 402) return 'payment';
     if(/\uacb0\uc81c(?:\s|\S){0,12}(\ud544\uc694|\uc2e4\ud328|\ucde8\uc18c|\ub204\ub77d)|\uc774\uc6a9\uad8c(?:\s|\S){0,12}(\ud544\uc694|\ubd80\uc871|\ub9cc\ub8cc)/.test(msg)) return 'payment';
     if(/프로필|출생 시간|출생시|생년월일|입력값/.test(msg)) return 'input';
-    if(kind === 'payment' || status === 401 || status === 402 || status === 403 || /결제|이용권/.test(msg)) return 'payment';
+    if(kind === 'payment' || status === 402 || /결제|이용권/.test(msg)) return 'payment';
     return 'general';
   }
 
   function resolveZiweiErrorTitle(kind){
     if(kind === 'input') return '\ud504\ub85c\ud544 \ubcf4\uc644\uc774 \ud544\uc694\ud569\ub2c8\ub2e4';
-    if(kind === 'payment') return '\uacb0\uc81c \ud655\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4';
     if(kind === 'processing') return 'PDF 생성이 진행 중입니다';
     if(kind === 'generation') return 'PDF 생성에 실패했습니다';
     if(kind === 'recovery') return '\uc0dd\uc131 \uc0c1\ud0dc\ub97c \uc774\uc5b4\ubc1b\uc744 \uc218 \uc788\uc2b5\ub2c8\ub2e4';
@@ -2131,17 +2293,10 @@
     var retryBtn = actions.querySelector('.lb-error__retry:not(#zbOpenPreviousBtn)');
     if(retryBtn){
       retryBtn.removeAttribute('onclick');
-      if(errorKind === 'input'){
-        retryBtn.textContent = '프로필 카드 보완하기';
-        retryBtn.onclick = function(){ window.goToZiweiProfileSetup(); };
-        retryBtn.textContent = '\ud504\ub85c\ud544 \uce74\ub4dc \ubcf4\uc644\ud558\uae30';
-      } else if(errorKind === 'payment'){
-        retryBtn.onclick = function(){ window.generateZiweiBook(false); };
-        retryBtn.textContent = '\uacb0\uc81c \ub2e4\uc2dc \ud655\uc778\ud558\uae30';
-      } else {
-        retryBtn.onclick = function(){ window.generateZiweiBook(false); };
-        retryBtn.textContent = '\uc0c8\ub85c \uc0dd\uc131\ud558\uae30';
-      }
+      var canRetry = errorKind === 'generation' || errorKind === 'processing' || text(error && (error.status || error.serverStatus)) === 'failed';
+      retryBtn.style.display = canRetry ? 'inline-flex' : 'none';
+      retryBtn.onclick = function(){ window.generateZiweiBook(true); };
+      retryBtn.textContent = '다시 생성하기';
     }
 
     var previousBtn = $('zbOpenPreviousBtn');
@@ -2170,8 +2325,8 @@
     if(code === 'ZIWEI_REPORT_RECOVERY_REQUIRED' || code === 'ZIWEI_LLM_REPORT_REQUIRED' || code === 'ZIWEI_PREMIUM_GENERATION_FAILED' || code === 'ZIWEI_PDF_COMPLETION_INVALID' || kind === 'generation' || status >= 500){
       return text(error && error.message) || '자미두수 PDF 생성이 완료되지 않았습니다. 잠시 후 다시 생성해 주세요.';
     }
-    if(kind === 'payment' || status === 401 || status === 402 || status === 403){
-      return '\uacb0\uc81c \ub610\ub294 \uc774\uc6a9\uad8c \ud655\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4. \ub85c\uadf8\uc778 \uc0c1\ud0dc\uc640 \uacb0\uc81c \ub0b4\uc5ed\uc744 \ud655\uc778\ud574 \uc8fc\uc138\uc694.';
+    if(code === 'invalid_authorization' || code === 'INVALID_AUTHORIZATION' || kind === 'payment' || status === 401 || status === 402 || status === 403){
+      return text(error && error.message) || 'PDF 생성 권한을 확인하지 못했습니다. 이전 생성 화면에서 다시 시도해 주세요.';
     }
     if(status === 422){
       return '자미두수 명반 또는 원고 검증 단계에서 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
@@ -2262,8 +2417,8 @@
     if(!RESULT){
       setDisplay('zbLoadingScreen','none');
       setDisplay('zbResultScreen','none');
-      setZiweiPhase('profile', '프로필 정보를 확인하고 있습니다.');
-      updateProgress(0, '자미두수 명반을 준비합니다.');
+      setZiweiPhase('prepare', '자미두수 명반을 정리하고 있습니다.');
+      updateProgress(0, '자미두수 명반을 정리하고 있습니다.');
       markChapter(-1);
     }
     ensureErrorActions();
@@ -2311,8 +2466,8 @@
     }
     GENERATING = true;
     ensureZiweiA11yState();
-    setZiweiPhase('profile', '프로필 정보를 확인하는 중입니다.');
-    setGeneratingUiLock(true, '프로필 확인 중...');
+    setZiweiPhase('prepare', '자미두수 명반을 정리하고 있습니다.');
+    setGeneratingUiLock(true, '생성 준비 중...');
     RESULT = null;
     resetZiweiGenerationState();
     try {
@@ -2351,24 +2506,24 @@
       }
       var generationScope = getZiweiGenerationScope(currentBirthHash);
       updateZiweiGenerationState({ status: 'birthInputValidated' });
-      logFlow('ValidationBeforePayment', {
+      logFlow('GenerationContextStart', {
         hasBirthDate: true,
         hasBirthTime: true,
         birthHour: resolved.birthInput.birthHour
       });
-      logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST, reportId: generationScope.reportId, sessionId: generationScope.sessionId });
-      setZiweiPhase('payment', '결제 확인 중입니다. 완료 후 생성이 시작됩니다.');
-      setGeneratingUiLock(true, '결제 확인 중...');
+      logFlow('GenerationAuthorizeStart', { featureKey: FEATURE_KEY, reportId: generationScope.reportId, sessionId: generationScope.sessionId });
+      setZiweiPhase('prepare', '자미두수 명반을 정리하고 있습니다.');
+      setGeneratingUiLock(true, '생성 준비 중...');
       setDisplay('zbStartScreen','none');
       setDisplay('zbResultScreen','none');
       setDisplay('zbErrorScreen','none');
       setDisplay('zbLoadingScreen','block');
       markChapter(-1);
-      updateProgress(4, '결제 완료 전에는 명반 생성이 시작되지 않습니다.');
-      updateZiweiGenerationState({ status: 'paymentChecking' });
-      var payment = await ensurePaymentOrRestore(resolved.birthInput, { reuseOnly: usePaidSessionOnly === true });
-      if(usePaidSessionOnly === true && !payment.reused){
-        throw buildRetryableError('결제 내역을 찾지 못했습니다. 먼저 결제를 완료해 주세요.', 402, 'PAYMENT_REUSE_MISSING', 'payment');
+      updateProgress(4, '자미두수 명반을 정리하고 있습니다.');
+      updateZiweiGenerationState({ status: 'authorizingGeneration' });
+      var payment = readAuthorizedZiweiContext(currentBirthHash);
+      if(!payment){
+        throw buildRetryableError('PDF 생성 권한을 확인하지 못했습니다. 이전 생성 화면에서 다시 시도해 주세요.', 403, 'INVALID_AUTHORIZATION', 'generation');
       }
       setZiweiGenerationScope({
         birthHash: text(payment.birthHash) || currentBirthHash,
@@ -2377,7 +2532,7 @@
         requestId: text(payment.requestId) || generationScope.requestId
       });
       generationScope = getZiweiGenerationScope(currentBirthHash);
-      setZiweiPhase('calculate', '결제가 확인되었습니다. 명궁과 12궁을 계산합니다.');
+      setZiweiPhase('calculate', '명궁과 12궁 흐름을 정리하고 있습니다.');
       setGeneratingUiLock(true, '명반 계산 중...');
       updateProgress(10, '명궁 12궁 계산을 위한 출생 정보를 정리하는 중입니다.');
       updateProgress(18, '명궁의 중심 흐름을 정리하는 중입니다.');
@@ -2391,28 +2546,39 @@
         reportSessionId: generationScope.reportSessionId,
         reportId: generationScope.reportId,
         requestId: generationScope.requestId,
-        premiumAccessToken: text(payment.premiumAccessToken || payment.accessToken || payment.token),
+        premiumAccessToken: text(payment.premiumAccessToken || payment.accessToken || payment.token || payment.jobToken),
+        jobToken: text(payment.jobToken || payment.premiumAccessToken || payment.accessToken || payment.token),
         transactionId: text(payment.transactionId),
         paidAt: text(payment.paidAt) || new Date().toISOString(),
         birthHash: text(payment.birthHash) || currentBirthHash,
         status: 'generating'
       });
-      logFlow('PaymentGateSuccess', {
-        hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken || payment.token))
+      logFlow('GenerationAuthorizeSuccess', {
+        hasJobToken: Boolean(payment && (payment.jobToken || payment.premiumAccessToken || payment.accessToken || payment.token))
       });
-      updateProgress(40, getChapterProgressLine(0));
-      updateProgress(52, getChapterProgressLine(1));
-      setZiweiPhase('write', '15챕터 상담문을 정리하고 있습니다.');
+      renderZiweiServerProgress({ status: 'generating', completedChapters: 0, currentChapterNumber: 1, currentStepMessage: '1챕터 상담문을 생성하고 있습니다.' });
+      setZiweiPhase('write', '1챕터 상담문을 생성하고 있습니다.');
       updateZiweiGenerationState({ status: 'drafting' });
       var sessionId = generationScope.sessionId;
       updateZiweiGenerationState({ status: 'generating', sessionId: sessionId, currentChapterNo: 1 });
       logFlow('SessionCreateStart', { endpoint: PREPARE_API, hasPaymentToken: Boolean(payment && (payment.premiumAccessToken || payment.accessToken)) });
       logFlow('PdfRequestStart', { endpoint: PREPARE_API, chapterTarget: TOTAL_CHAPTERS });
       var data = await postPrepare(profile, seed, Object.assign({}, payment, generationScope, { sessionId: sessionId }), resolved.birthInput);
+      renderZiweiServerProgress(data);
       var readiness = getZiweiReportReadiness(data);
       if(!readiness.completed){
         var recoveredData = await recoverPendingResult(data, payment);
         readiness = getZiweiReportReadiness(recoveredData);
+        renderZiweiServerProgress(recoveredData);
+        if(readiness.failed){
+          writePaidSession({
+            status: 'failed_retryable',
+            reportId: text(recoveredData.reportId || data.reportId),
+            sessionId: text(recoveredData.sessionId || sessionId)
+          });
+          RESULT = recoveredData;
+          throw buildRetryableError(text(recoveredData.errorMessage || recoveredData.message) || '자미두수 PDF 생성이 중단되었습니다. 다시 생성해 주세요.', 422, text(recoveredData.code || 'ZIWEI_PREMIUM_GENERATION_FAILED'), 'generation');
+        }
         if(readiness.processing){
           writePaidSession({
             status: 'generating',
@@ -2472,7 +2638,8 @@
         reportSessionId: text(data && (data.reportSessionId || data.sessionId)) || sessionId,
         reportId: text(data && data.reportId) || generationScope.reportId,
         requestId: generationScope.requestId,
-        premiumAccessToken: text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token)),
+        premiumAccessToken: text(payment && (payment.premiumAccessToken || payment.accessToken || payment.token || payment.jobToken)),
+        jobToken: text(payment && (payment.jobToken || payment.premiumAccessToken || payment.accessToken || payment.token)),
         transactionId: text(payment && payment.transactionId),
         birthHash: text(payment && payment.birthHash) || currentBirthHash,
         paidAt: text(payment && payment.paidAt) || new Date().toISOString(),
@@ -2536,7 +2703,7 @@
     var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
     var readiness = getZiweiReportReadiness(RESULT);
     if(chapters.length < TOTAL_CHAPTERS && !readiness.hasStoredUrl){
-      showError('아직 15챕터가 모두 준비되지 않았습니다. 결제 내역으로 이어받아 복구해 주세요.');
+      showError('아직 15챕터가 모두 준비되지 않았습니다. 생성 상태를 이어받아 다시 시도해 주세요.');
       return;
     }
     var reportId = text(RESULT && RESULT.reportId);

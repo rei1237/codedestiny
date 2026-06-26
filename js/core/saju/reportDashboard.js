@@ -1,14 +1,85 @@
 /* 리포트 대시보드 UI — 원본 saju-engine-continuation.js 에서 분리 (로직 동일)
  * 로드 순서: js/saju-engine.js → js/saju-engine-tarot-sukuyo-quantum.js → (본 파일) → js/saju-engine-continuation.js */
+var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
+  ko: {
+    "rd.title.001": "사주 십이운성 동물 테스트",
+    "rd.description.001": "내 사주의 십이운성 에너지가 동물 아키타입으로 열리며 성격 핵심·연애 패턴·직업 성향·관계 궁합·오늘의 행동 미션까지 한 번에 비춥니다.",
+    "rd.cta.001": "🐾 나의 수호 동물 소환",
+    "rd.title.002": "사주로 보는 인연의 장소",
+    "rd.description.002": "사주 오행/용신 흐름으로 인연이 열리는 장소, 국가, 시기, 운명의 아이템을 감성 리포트로 제안합니다.",
+    "rd.cta.002": "💞 내 인연의 장소 열기",
+    "rd.title.003": "LOVE CODE",
+    "rd.description.003": "사주 오행으로 상대방과 가장 닮은 연애 페르소나를 찾고, 선택형 데이트 시뮬레이션으로 케미를 확인합니다.",
+    "rd.cta.003": "💕 러브 코드 잠금 해제",
+    "rd.label.001": "나의 매력 클래스",
+    "rd.cta.004": "✨ 매력 분석 자세히 보기",
+    "rd.label.002": "퀀텀 명리 엔진",
+    "rd.cta.005": "⚡ 퀀텀 명리 전체 열기",
+    "rd.label.003": "명리 헬스 리포트",
+    "rd.cta.006": "💚 건강 리포트 확인하기",
+    "rd.label.004": "사주 AI 프롬프트",
+    "rd.cta.007": "🤖 무료 프롬프트 보기",
+    "rd.label.005": "인생 스킬 트리",
+    "rd.cta.008": "🎮 스킬 트리 펼쳐보기",
+    "rd.label.006": "극T 테스트",
+    "rd.cta.009": "🧊 극T 테스트 결과 보기",
+    "rd.label.007": "테토 vs 에겐",
+    "rd.cta.010": "❤️ 테토/에겐 분석 보기",
+    "rd.label.008": "사주로 보는 여행지",
+    "rd.cta.011": "🗺️ 여행지 리포트 보기",
+    "rd.label.009": "빌런 블랙리스트",
+    "rd.cta.012": "⚠️ 빌런 리포트 열기",
+    "rd.label.010": "퀀텀 로또 리포트",
+    "rd.cta.013": "퀀텀 로또 리포트 보기",
+    "rd.label.011": "사주 다이어리",
+    "rd.cta.014": "📔 사주 다이어리 열기",
+    "rd.label.012": "사주네컷 : 운명 필터",
+    "rd.cta.015": "📸 사주네컷 열기",
+    "rd.label.013": "시크릿 하우스 : 연애 시뮬",
+    "rd.cta.016": "🏠 시크릿 하우스 입장",
+    "rd.label.014": "운명필터",
+    "rd.title.004": "MZ 운명 필터 ON",
+    "rd.label.015": "러브DM",
+    "rd.title.005": "러브 시그널 네컷",
+    "rd.label.016": "갓생루틴",
+    "rd.title.006": "오늘의 갓생 체크인",
+    "rd.label.017": "흑역사방지",
+    "rd.title.007": "흑역사 방지 필터",
+    "rd.title.008": "1. 본캐 Vibe 능력치",
+    "rd.title.009": "2. 첫인상 vs 현인상",
+    "rd.title.010": "3. 머릿속 브레인맵",
+    "rd.title.011": "4. 오늘의 럭키비키",
+    "rd.title.012": "1. 호감 첫 컷",
+    "rd.title.013": "2. 플러팅 온도",
+    "rd.title.014": "3. 마음 브레인맵",
+    "rd.title.015": "4. 오늘의 러브 액션",
+    "rd.title.016": "1. 오늘의 시작 버튼",
+    "rd.title.017": "2. 일잘러 모드",
+    "rd.title.018": "3. 집중력 충전팩",
+    "rd.title.019": "4. 퇴근 전 럭키팩",
+    "rd.title.020": "1. 급발진 경보",
+    "rd.title.021": "2. 말실수 방지컷",
+    "rd.title.022": "3. 지출 잠금컷",
+    "rd.title.023": "4. 보호 주문",
+    "rd.aria-label.001": "사주네컷 버전 선택",
+    "rd.aria-label.002": "share hashtags",
+    "rd.title.024": "사주네컷 : 운명 필터",
+  }
+};
+
+function _reportDashboardText(key) {
+  return REPORT_DASHBOARD_TEXT_TRANSLATIONS.ko[key] || 'Translation pending';
+}
+
 
 /* ══════════════════════════════════════════════
    리포트 대시보드 — 10개 분석 기능 카드 UI
    ══════════════════════════════════════════════ */
 var SAJU_ANIMAL_TEST_FEATURE = {
   id: 'saju-animal-test',
-  title: '사주 십이운성 동물 테스트',
+  title: _reportDashboardText("rd.title.001"),
   shortTitle: '사주 동물 테스트',
-  description: '내 사주의 십이운성 에너지가 동물 아키타입으로 열리며 성격 핵심·연애 패턴·직업 성향·관계 궁합·오늘의 행동 미션까지 한 번에 비춥니다.',
+  description: _reportDashboardText("rd.description.001"),
   category: 'fun-saju',
   group: '재미있는 사주 콘텐츠',
   href: '/saju/animal-test',
@@ -18,7 +89,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   enabled: true,
   requiresLogin: false,
   requiresProfile: false,
-  cta: '🐾 나의 수호 동물 소환',
+  cta: _reportDashboardText("rd.cta.001"),
   lockKey: 'animal-destiny-unlock',
   coinCost: 100,
   thumb: '동물점테스트.webp',
@@ -28,9 +99,9 @@ var SAJU_ANIMAL_TEST_FEATURE = {
 
 var DESTINY_MEETING_PLACE_FEATURE = {
   id: 'destiny-meeting-place',
-  title: '사주로 보는 인연의 장소',
+  title: _reportDashboardText("rd.title.002"),
   shortTitle: '인연의 장소',
-  description: '사주 오행/용신 흐름으로 인연이 열리는 장소, 국가, 시기, 운명의 아이템을 감성 리포트로 제안합니다.',
+  description: _reportDashboardText("rd.description.002"),
   category: 'fun-saju',
   group: '재미있는 사주 콘텐츠',
   href: '/saju/destiny-meeting-place',
@@ -39,7 +110,7 @@ var DESTINY_MEETING_PLACE_FEATURE = {
   enabled: true,
   requiresLogin: false,
   requiresProfile: false,
-  cta: '💞 내 인연의 장소 열기',
+  cta: _reportDashboardText("rd.cta.002"),
   lockKey: 'destiny_meeting_place',
   coinCost: 100,
   mainLock: false,
@@ -50,9 +121,9 @@ var DESTINY_MEETING_PLACE_FEATURE = {
 
 var LOVE_CODE_FEATURE = {
   id: 'love-code',
-  title: 'LOVE CODE',
+  title: _reportDashboardText("rd.title.003"),
   shortTitle: '러브 코드',
-  description: '사주 오행으로 상대방과 가장 닮은 연애 페르소나를 찾고, 선택형 데이트 시뮬레이션으로 케미를 확인합니다.',
+  description: _reportDashboardText("rd.description.003"),
   category: 'fun-saju',
   group: '재미있는 사주 콘텐츠',
   href: '/saju/love-simulation',
@@ -61,7 +132,7 @@ var LOVE_CODE_FEATURE = {
   enabled: true,
   requiresLogin: true,
   requiresProfile: false,
-  cta: '💕 러브 코드 잠금 해제',
+  cta: _reportDashboardText("rd.cta.003"),
   lockKey: 'loveSimulation',
   coinCost: 100,
   thumb: 'love code.webp',
@@ -70,19 +141,19 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
-  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기', thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
-  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:100  },
-  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:'사주 AI 프롬프트',      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:'🤖 무료 프롬프트 보기',    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
-  { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
-  { id:'tbal',       thumb:'극T테스트.webp', label:'극T 테스트',            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:'🧊 극T 테스트 결과 보기',      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard',          coinCost:0   },
-  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:'테토 vs 에겐',          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:'❤️ 테토/에겐 분석 보기',      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section',coinCost:0  },
-  { id:'trip',       thumb:'사주로 보는 여행지.webp', label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
-  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
-  { id:'lotto',      thumb:'사주 로또.webp', label:'퀀텀 로또 리포트',       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:'퀀텀 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
-  { id:'godlife',    thumb:'사주 다이어리.webp', label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
-  { id:'4CUT',       thumb:'사주 네컷.webp', label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
-  { id:'secretHouse', thumb:'시크릿 하우스.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
+  { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
+  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:100  },
+  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
+  { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:_reportDashboardText("rd.label.005"),        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:_reportDashboardText("rd.cta.008"),        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
+  { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard',          coinCost:0   },
+  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section',coinCost:0  },
+  { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
+  { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
+  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:_reportDashboardText("rd.cta.013"),          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
+  { id:'godlife',    thumb:'사주 다이어리.webp', label:_reportDashboardText("rd.label.011"),          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:_reportDashboardText("rd.cta.014"),       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
+  { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
+  { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
   { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
@@ -278,10 +349,10 @@ var S4C_VARIANT_STORAGE_KEY = 'cd_saju_fourcut_variant_v20260617_mz';
 
 function _s4cGetVariantDefs() {
   return [
-    { id: 'vibe', label: '운명필터', title: 'MZ 운명 필터 ON', badge: '오늘 폼 체크', accent: '#ec4899', glow: 'rgba(236,72,153,.30)', icons: ['🪩', '🎭', '🧠', '🍀'] },
-    { id: 'love', label: '러브DM', title: '러브 시그널 네컷', badge: '답장 온도', accent: '#f43f5e', glow: 'rgba(244,63,94,.28)', icons: ['💌', '💘', '🫧', '🌙'] },
-    { id: 'routine', label: '갓생루틴', title: '오늘의 갓생 체크인', badge: '루틴 저장', accent: '#0ea5e9', glow: 'rgba(14,165,233,.28)', icons: ['📌', '⚡', '🧃', '🎧'] },
-    { id: 'anti', label: '흑역사방지', title: '흑역사 방지 필터', badge: '급발진 잠금', accent: '#7c3aed', glow: 'rgba(124,58,237,.30)', icons: ['🚧', '🫠', '🧯', '🪬'] }
+    { id: 'vibe', label: _reportDashboardText("rd.label.014"), title: _reportDashboardText("rd.title.004"), badge: '오늘 폼 체크', accent: '#ec4899', glow: 'rgba(236,72,153,.30)', icons: ['🪩', '🎭', '🧠', '🍀'] },
+    { id: 'love', label: _reportDashboardText("rd.label.015"), title: _reportDashboardText("rd.title.005"), badge: '답장 온도', accent: '#f43f5e', glow: 'rgba(244,63,94,.28)', icons: ['💌', '💘', '🫧', '🌙'] },
+    { id: 'routine', label: _reportDashboardText("rd.label.016"), title: _reportDashboardText("rd.title.006"), badge: '루틴 저장', accent: '#0ea5e9', glow: 'rgba(14,165,233,.28)', icons: ['📌', '⚡', '🧃', '🎧'] },
+    { id: 'anti', label: _reportDashboardText("rd.label.017"), title: _reportDashboardText("rd.title.007"), badge: '급발진 잠금', accent: '#7c3aed', glow: 'rgba(124,58,237,.30)', icons: ['🚧', '🫠', '🧯', '🪬'] }
   ];
 }
 
@@ -348,28 +419,28 @@ function _s4cEnsureExperienceStyles() {
 function _s4cBuildVariantPanels(id, data) {
   var common = {
     vibe: [
-      { icon: '🪩', title: '1. 본캐 Vibe 능력치', main: data.frame1, detail: data.frame1Detail, extra: 'radar', note: data.dayPillar + ' · ' + data.theme.name + ' 무드' },
-      { icon: '🎭', title: '2. 첫인상 vs 현인상', main: data.frame2, detail: data.frame2Detail, extra: 'compare', note: data.monthPillar + ' 분위기 리딩' },
-      { icon: '🧠', title: '3. 머릿속 브레인맵', main: data.frame3[0].name + ' ' + data.frame3[0].pct + '% · ' + data.frame3[1].name + ' ' + data.frame3[1].pct + '%', detail: data.frame3Detail, extra: 'brain', note: '생각이 많을수록 기준 하나가 빛납니다' },
-      { icon: '🍀', title: '4. 오늘의 럭키비키', main: data.frame4, detail: data.frame4Detail, extra: 'lucky', note: '한 줄 미션으로 갓생 스타트' }
+      { icon: '🪩', title: _reportDashboardText("rd.title.008"), main: data.frame1, detail: data.frame1Detail, extra: 'radar', note: data.dayPillar + ' · ' + data.theme.name + ' 무드' },
+      { icon: '🎭', title: _reportDashboardText("rd.title.009"), main: data.frame2, detail: data.frame2Detail, extra: 'compare', note: data.monthPillar + ' 분위기 리딩' },
+      { icon: '🧠', title: _reportDashboardText("rd.title.010"), main: data.frame3[0].name + ' ' + data.frame3[0].pct + '% · ' + data.frame3[1].name + ' ' + data.frame3[1].pct + '%', detail: data.frame3Detail, extra: 'brain', note: '생각이 많을수록 기준 하나가 빛납니다' },
+      { icon: '🍀', title: _reportDashboardText("rd.title.011"), main: data.frame4, detail: data.frame4Detail, extra: 'lucky', note: '한 줄 미션으로 갓생 스타트' }
     ],
     love: [
-      { icon: '💌', title: '1. 호감 첫 컷', main: data.firstNow.first + ' → ' + data.firstNow.now, detail: data.firstNow.mood + '. 마음은 천천히 열릴수록 더 오래 머무릅니다.', extra: 'compare', note: '답장 텐션 과몰입 금지' },
-      { icon: '💘', title: '2. 플러팅 온도', main: data.frame2, detail: '가벼운 농담보다 정확한 타이밍이 호감을 살립니다. 오늘은 한 번 덜 말하고 한 번 더 들어주는 쪽으로 운이 흐릅니다.', extra: '', note: data.monthPillar + ' 관계 무드' },
-      { icon: '🫧', title: '3. 마음 브레인맵', main: data.brain.biggest + ' ' + data.brain.biggestPct + '%', detail: '상대의 반응을 해석하기보다 내 리듬을 먼저 안정시키면 매력이 선명하게 남습니다.', extra: 'brain', note: data.brain.keyword },
-      { icon: '🌙', title: '4. 오늘의 러브 액션', main: '짧고 다정한 한 문장', detail: '긴 설명 대신 "오늘 이거 보고 네 생각났어"처럼 부드러운 신호가 좋습니다. 과한 확인은 잠시 접어두세요.', extra: '', note: data.stickerName + ' 감성 보호막' }
+      { icon: '💌', title: _reportDashboardText("rd.title.012"), main: data.firstNow.first + ' → ' + data.firstNow.now, detail: data.firstNow.mood + '. 마음은 천천히 열릴수록 더 오래 머무릅니다.', extra: 'compare', note: '답장 텐션 과몰입 금지' },
+      { icon: '💘', title: _reportDashboardText("rd.title.013"), main: data.frame2, detail: '가벼운 농담보다 정확한 타이밍이 호감을 살립니다. 오늘은 한 번 덜 말하고 한 번 더 들어주는 쪽으로 운이 흐릅니다.', extra: '', note: data.monthPillar + ' 관계 무드' },
+      { icon: '🫧', title: _reportDashboardText("rd.title.014"), main: data.brain.biggest + ' ' + data.brain.biggestPct + '%', detail: '상대의 반응을 해석하기보다 내 리듬을 먼저 안정시키면 매력이 선명하게 남습니다.', extra: 'brain', note: data.brain.keyword },
+      { icon: '🌙', title: _reportDashboardText("rd.title.015"), main: '짧고 다정한 한 문장', detail: '긴 설명 대신 "오늘 이거 보고 네 생각났어"처럼 부드러운 신호가 좋습니다. 과한 확인은 잠시 접어두세요.', extra: '', note: data.stickerName + ' 감성 보호막' }
     ],
     routine: [
-      { icon: '📌', title: '1. 오늘의 시작 버튼', main: data.frame1, detail: '가장 작은 일 하나를 먼저 닫으면 하루 전체의 흐름이 가볍게 열립니다.', extra: 'radar', note: '첫 25분이 운을 엽니다' },
-      { icon: '⚡', title: '2. 일잘러 모드', main: data.frame2, detail: data.frame2Detail, extra: '', note: '작업 순서 고정' },
-      { icon: '🧃', title: '3. 집중력 충전팩', main: data.frame3[0].name + ' 에너지', detail: '알림을 줄이고, 물 한 잔과 함께 할 일 2개만 남기면 산만한 기운이 가라앉습니다.', extra: 'brain', note: data.brain.keyword },
-      { icon: '🎧', title: '4. 퇴근 전 럭키팩', main: data.luckyPack.bgm, detail: data.frame4Detail, extra: 'lucky', note: data.luckyPack.spot }
+      { icon: '📌', title: _reportDashboardText("rd.title.016"), main: data.frame1, detail: '가장 작은 일 하나를 먼저 닫으면 하루 전체의 흐름이 가볍게 열립니다.', extra: 'radar', note: '첫 25분이 운을 엽니다' },
+      { icon: '⚡', title: _reportDashboardText("rd.title.017"), main: data.frame2, detail: data.frame2Detail, extra: '', note: '작업 순서 고정' },
+      { icon: '🧃', title: _reportDashboardText("rd.title.018"), main: data.frame3[0].name + ' 에너지', detail: '알림을 줄이고, 물 한 잔과 함께 할 일 2개만 남기면 산만한 기운이 가라앉습니다.', extra: 'brain', note: data.brain.keyword },
+      { icon: '🎧', title: _reportDashboardText("rd.title.019"), main: data.luckyPack.bgm, detail: data.frame4Detail, extra: 'lucky', note: data.luckyPack.spot }
     ],
     anti: [
-      { icon: '🚧', title: '1. 급발진 경보', main: data.brain.keyword, detail: '오늘은 바로 답하기보다 한 박자 늦게 보내는 쪽에 운이 머뭅니다. 속도보다 품격이 먼저입니다.', extra: 'brain', note: '보내기 전 3초 멈춤' },
-      { icon: '🫠', title: '2. 말실수 방지컷', main: data.firstNow.first + ' 오해 주의', detail: data.firstNow.mood + '. 장난처럼 던진 말도 깊게 남을 수 있으니 톤을 부드럽게 낮추세요.', extra: 'compare', note: '팩폭은 순화해서' },
-      { icon: '🧯', title: '3. 지출 잠금컷', main: data.luckyPack.item + '만 허용', detail: '충동 결제는 운의 구멍이 되기 쉽습니다. 필요한 것 하나만 고르면 재물 흐름이 단정해집니다.', extra: '', note: '장바구니 24시간 보류' },
-      { icon: '🪬', title: '4. 보호 주문', main: data.frame4, detail: '오늘의 작은 의식은 나를 지키는 경계가 됩니다. 마음이 급할수록 더 천천히 움직이세요.', extra: 'lucky', note: data.theme.name + ' 수호 모드' }
+      { icon: '🚧', title: _reportDashboardText("rd.title.020"), main: data.brain.keyword, detail: '오늘은 바로 답하기보다 한 박자 늦게 보내는 쪽에 운이 머뭅니다. 속도보다 품격이 먼저입니다.', extra: 'brain', note: '보내기 전 3초 멈춤' },
+      { icon: '🫠', title: _reportDashboardText("rd.title.021"), main: data.firstNow.first + ' 오해 주의', detail: data.firstNow.mood + '. 장난처럼 던진 말도 깊게 남을 수 있으니 톤을 부드럽게 낮추세요.', extra: 'compare', note: '팩폭은 순화해서' },
+      { icon: '🧯', title: _reportDashboardText("rd.title.022"), main: data.luckyPack.item + '만 허용', detail: '충동 결제는 운의 구멍이 되기 쉽습니다. 필요한 것 하나만 고르면 재물 흐름이 단정해집니다.', extra: '', note: '장바구니 24시간 보류' },
+      { icon: '🪬', title: _reportDashboardText("rd.title.023"), main: data.frame4, detail: '오늘의 작은 의식은 나를 지키는 경계가 됩니다. 마음이 급할수록 더 천천히 움직이세요.', extra: 'lucky', note: data.theme.name + ' 수호 모드' }
     ]
   };
   return common[id] || common.vibe;
@@ -942,7 +1013,7 @@ function renderSajuFourCutContent() {
     + '      <div><span class="s4c-v2-kicker">✦ ' + _s4cEscapeHtml(variant.badge) + ' · ' + _s4cEscapeHtml(data.dayPillar) + '</span><h4 class="s4c-v2-title">' + _s4cEscapeHtml(variant.title) + '</h4><p class="s4c-v2-sub">' + _s4cEscapeHtml(data.stickerEmoji + ' ' + data.stickerName + ' 무드와 ' + data.theme.name + ' 기운이 오늘의 네 컷 위로 떠오릅니다. 원하는 버전을 눌러 스토리 감성으로 바로 갈아입혀 보세요.') + '</p></div>'
     + '      <div class="s4c-v2-sticker" aria-hidden="true">' + _s4cEscapeHtml(data.stickerEmoji) + '</div>'
     + '    </div>'
-    + '    <div class="s4c-variant-row" aria-label="사주네컷 버전 선택">' + _s4cRenderVariantButtons(activeId) + '</div>'
+    + '    <div class="s4c-variant-row" aria-label=_reportDashboardText("rd.aria-label.001")>' + _s4cRenderVariantButtons(activeId) + '</div>'
     + '    <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1" data-s4c-variant="' + _s4cEscapeHtml(activeId) + '">'
     + '      <div class="s4c-capture-head"><div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div><div class="s4c-live-badge">' + _s4cEscapeHtml(variant.label) + '</div></div>'
     + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
@@ -952,7 +1023,7 @@ function renderSajuFourCutContent() {
     + '      </div>'
     + '    </div>'
     + '    <div class="s4c-sticker-dock" data-s4c-sticker-dock="1" data-next-sticker="💘"><span class="s4c-sticker-next">💘</span><button type="button" class="s4c-btn s4c-btn--sticker" onclick="addS4CSticker(this)">스티커 붙이기</button><small>스티커를 붙인 뒤 캡처 영역에서 드래그하면 내 네컷으로 완성됩니다.</small></div>'
-    + '    <div class="s4c-tags" aria-label="share hashtags">' + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('') + '</div>'
+    + '    <div class="s4c-tags" aria-label=_reportDashboardText("rd.aria-label.002")>' + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('') + '</div>'
     + '    <div class="s4c-actions"><button type="button" class="s4c-btn" onclick="saveSajuFourCutImage(this)">네컷 이미지 저장</button><button type="button" class="s4c-btn s4c-btn--kakao" onclick="shareSajuFourCutKakao(this)">공유 문구 보내기</button></div>'
     + '  </div>'
     + '</div>';
@@ -1001,7 +1072,7 @@ window.shareSajuFourCutKakao = function(btn) {
 
   if (navigator.share) {
     navigator.share({
-      title: '사주네컷 : 운명 필터',
+      title: _reportDashboardText("rd.title.024"),
       text: text,
       url: window.location.href
     }).catch(function(){});

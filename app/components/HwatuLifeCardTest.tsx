@@ -18,6 +18,21 @@ type KakaoLike = {
   };
 };
 
+const HWATU_LIFE_CARD_TEST_TEXT_TRANSLATIONS = {
+  ko: {
+    kakaoResultButton: "결과 보러 가기",
+    shareTitle: "화투 인생 패 테스트",
+  },
+  en: {
+    kakaoResultButton: "View Result",
+    shareTitle: "Hwatu Life Card Test",
+  },
+  ja: {
+    kakaoResultButton: "結果を見る",
+    shareTitle: "花札人生札テスト",
+  },
+} as const;
+
 function emptyScores(): TraitScores {
   return {
     leadership: 0,
@@ -179,7 +194,7 @@ export default function HwatuLifeCardTest() {
         },
         buttons: [
           {
-            title: "결과 보러 가기",
+            title: HWATU_LIFE_CARD_TEST_TEXT_TRANSLATIONS.ko.kakaoResultButton,
             link: {
               mobileWebUrl: window.location.href,
               webUrl: window.location.href,
@@ -192,7 +207,7 @@ export default function HwatuLifeCardTest() {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "화투 인생 패 테스트", text });
+        await navigator.share({ title: HWATU_LIFE_CARD_TEST_TEXT_TRANSLATIONS.ko.shareTitle, text });
         return;
       } catch (e) {
         // no-op

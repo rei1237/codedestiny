@@ -98,16 +98,42 @@ type MingriTarotProps = {
   subtitle?: string;
 };
 
+const MINGRI_TAROT_TEXT_TRANSLATIONS = {
+  ko: {
+    "mingriTarot.001": "연애/애정",
+    "mingriTarot.002": "재회운",
+    "mingriTarot.003": "우정/관계",
+    "mingriTarot.004": "사업운",
+    "mingriTarot.005": "재물운",
+    "mingriTarot.006": "계약/문서",
+    "mingriTarot.007": "이동/해외",
+    "mingriTarot.008": "창의/예술",
+    "mingriTarot.009": "건강/휴식",
+    "mingriTarot.010": "재물/사업",
+    "mingriTarot.011": "연애",
+    "mingriTarot.012": "관계",
+    "mingriTarot.013": "계약/일",
+    "mingriTarot.014": "건강/컨디션",
+    "mingriTarot.015": "리딩 모드",
+    "mingriTarot.016": "원카드",
+    "mingriTarot.017": "3카드",
+    "mingriTarot.018": "질문의 문",
+  },
+} as const;
+
+function mingriTarotText(key: keyof typeof MINGRI_TAROT_TEXT_TRANSLATIONS.ko) {
+  return MINGRI_TAROT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const CATEGORY_OPTIONS: Array<{ value: TarotCategory; label: string }> = [
-  { value: "love", label: "연애/애정" },
-  { value: "reunion", label: "재회운" },
-  { value: "friendship", label: "우정/관계" },
-  { value: "wealth", label: "사업운" },
-  { value: "loss", label: "재물운" },
-  { value: "contract", label: "계약/문서" },
-  { value: "travel", label: "이동/해외" },
-  { value: "creative", label: "창의/예술" },
-  { value: "health", label: "건강/휴식" },
+  { value: "love", label: mingriTarotText("mingriTarot.001") },
+  { value: "reunion", label: mingriTarotText("mingriTarot.002") },
+  { value: "friendship", label: mingriTarotText("mingriTarot.003") },
+  { value: "wealth", label: mingriTarotText("mingriTarot.004") },
+  { value: "loss", label: mingriTarotText("mingriTarot.005") },
+  { value: "contract", label: mingriTarotText("mingriTarot.006") },
+  { value: "travel", label: mingriTarotText("mingriTarot.007") },
+  { value: "creative", label: mingriTarotText("mingriTarot.008") },
+  { value: "health", label: mingriTarotText("mingriTarot.009") },
 ];
 
 function spreadTypeForMode(mode: TarotMode) {
@@ -144,7 +170,7 @@ const DOMAIN_BY_CATEGORY: Record<TarotCategory, QuestionDomain> = {
 
 const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
   wealthBusiness: {
-    label: "재물/사업",
+    label: mingriTarotText("mingriTarot.010"),
     anchor: "재물/사업",
     judgment: "수익의 크기보다 비용 구조와 회수 시점을 먼저 살필 때입니다.",
     reality: "계약서, 환불 조건, 정산일, 광고비, 고정비, 지분, 동업 조건이 실제 변수가 됩니다.",
@@ -156,7 +182,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "돈이 새는 구멍을 먼저 막을 때 다음 판이 단단해집니다.",
   },
   love: {
-    label: "연애",
+    label: mingriTarotText("mingriTarot.011"),
     anchor: "연애",
     judgment: "상대의 말보다 반복되는 행동 패턴을 기준으로 삼을 때입니다.",
     reality: "자존심 싸움, 비교심리, 숨은 감정, 집착, 회피가 관계의 온도를 바꿉니다.",
@@ -168,7 +194,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "사랑은 말의 온도보다 반복된 행동에서 더 선명해집니다.",
   },
   relationship: {
-    label: "관계",
+    label: mingriTarotText("mingriTarot.012"),
     anchor: "관계",
     judgment: "감정의 승패보다 거리와 역할을 다시 맞출 때입니다.",
     reality: "비교, 소유욕, 침묵, 책임 회피가 관계 안의 균열로 번질 수 있습니다.",
@@ -180,7 +206,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "관계의 힘은 가까움보다 지켜지는 선에서 살아납니다.",
   },
   career: {
-    label: "계약/일",
+    label: mingriTarotText("mingriTarot.013"),
     anchor: "계약/일",
     judgment: "밀어붙일지 고쳐 세울지부터 갈라야 합니다.",
     reality: "상사, 동료, 경쟁자, 계약, 평가, 일정 압박이 실제 사건의 형태로 드러납니다.",
@@ -192,7 +218,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "일의 흐름은 속도보다 책임의 위치가 분명할 때 안정됩니다.",
   },
   health: {
-    label: "건강/컨디션",
+    label: mingriTarotText("mingriTarot.014"),
     anchor: "건강/컨디션",
     judgment: "몸이 보내는 긴장 신호를 가볍게 넘기지 않을 때입니다.",
     reality: "과로, 수면 부족, 생활 리듬의 흐트러짐, 스트레스 반응이 컨디션을 흔들 수 있습니다.",
@@ -204,7 +230,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "회복은 큰 결심보다 몸의 작은 신호를 늦지 않게 돌보는 데서 시작됩니다.",
   },
   movement: {
-    label: "이동/해외",
+    label: mingriTarotText("mingriTarot.007"),
     anchor: "이동/해외",
     judgment: "새 길을 열기 전에 일정과 비용의 빈틈을 먼저 확인할 때입니다.",
     reality: "예약, 환불, 서류, 이동 시간, 현지 변수, 체력 배분이 흐름을 가릅니다.",
@@ -216,7 +242,7 @@ const DOMAIN_ADVICE: Record<QuestionDomain, DomainAdvice> = {
     oneLine: "멀리 가는 길일수록 작은 조건을 또렷하게 챙겨야 합니다.",
   },
   creative: {
-    label: "창의/예술",
+    label: mingriTarotText("mingriTarot.008"),
     anchor: "창의/예술",
     judgment: "영감보다 완성 구조와 공개 시점을 함께 다듬을 때입니다.",
     reality: "브랜딩, 표현 방식, 협업, 마감, 저작권, 피드백이 작품의 힘을 좌우합니다.",
@@ -1085,18 +1111,18 @@ export default function MingriTarot({
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
-              <span>리딩 모드</span>
+              <span>{mingriTarotText("mingriTarot.015")}</span>
               <select
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={mode}
                 onChange={(e) => setMode(e.target.value as TarotMode)}
               >
-                <option value="one">원카드</option>
-                <option value="three">3카드</option>
+                <option value="one">{mingriTarotText("mingriTarot.016")}</option>
+                <option value="three">{mingriTarotText("mingriTarot.017")}</option>
               </select>
             </label>
             <label className="flex flex-col gap-1 text-sm md:col-span-2">
-                <span>질문의 문</span>
+                <span>{mingriTarotText("mingriTarot.018")}</span>
               <select
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={category}

@@ -14,6 +14,7 @@ import {
   useTransition,
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import styles from "./moon-music-player.module.css";
@@ -28,13 +29,56 @@ type MusicPlaylistPanelProps = {
   onSelectTrack: (trackId: string) => void;
 };
 
-const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
+const PLAYLIST_TAB_LABELS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "yeoni", label: "Yeoni" },
   { key: "neo", label: "Neo" },
   { key: "dest1nova", label: "DEST1NOVA" },
   { key: "lunabloom", label: "Luna Bloom" },
   { key: "all", label: "All" },
 ];
+
+const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
+  ko: {
+    playlistAria: "음악 플레이리스트",
+    kicker: "Moon Library",
+    title: "Lunar Playlist",
+    tracksCount: (shown: number, total: number) => `${shown} / ${total}곡`,
+    filterAria: "플레이리스트 필터",
+    searchPlaceholder: "트랙 검색",
+    emptyTitle: "검색 결과가 없습니다",
+    emptyBody: "All을 선택하거나 검색어를 지워 보세요.",
+    shareLead: "Code Destiny 달빛 음악 라이브러리에서 들어보세요.",
+    mainLabel: "Code Destiny 메인",
+  },
+  en: {
+    playlistAria: "Music playlist",
+    kicker: "Moon Library",
+    title: "Lunar Playlist",
+    tracksCount: (shown: number, total: number) => `${shown} of ${total} tracks`,
+    filterAria: "Filter playlist",
+    searchPlaceholder: "Search tracks",
+    emptyTitle: "No tracks found",
+    emptyBody: "Try All or clear the search.",
+    shareLead: "Listen inside the Code Destiny moon library.",
+    mainLabel: "Code Destiny main",
+  },
+  ja: {
+    playlistAria: "音楽プレイリスト",
+    kicker: "Moon Library",
+    title: "Lunar Playlist",
+    tracksCount: (shown: number, total: number) => `${shown} / ${total}曲`,
+    filterAria: "プレイリストを絞り込む",
+    searchPlaceholder: "曲を検索",
+    emptyTitle: "曲が見つかりません",
+    emptyBody: "Allを選ぶか、検索語を消してください。",
+    shareLead: "Code Destinyの月明かり音楽ライブラリで聴いてください。",
+    mainLabel: "Code Destinyメイン",
+  },
+} as const;
+
+function musicPlaylistCopy(locale: LoadingLocale) {
+  return MUSIC_PLAYLIST_TEXT_TRANSLATIONS[locale as keyof typeof MUSIC_PLAYLIST_TEXT_TRANSLATIONS] || MUSIC_PLAYLIST_TEXT_TRANSLATIONS.en;
+}
 
 const PLAYLIST_OVERSCAN_COUNT = 8;
 const PLAYLIST_DEFAULT_ROW_STRIDE = 92;
@@ -222,7 +266,7 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
 });
 
 type PlaylistTabButtonProps = {
-  tab: (typeof PLAYLIST_TABS)[number];
+  tab: (typeof PLAYLIST_TAB_LABELS)[number];
   isActive: boolean;
   count: number;
   onSelectTab: (tabKey: PlaylistTab) => void;
@@ -263,6 +307,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const [query, setQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const copy = musicPlaylistCopy(locale);
   const sharedTrackResetTimerRef = useRef<number | null>(null);
   const playlistScrollRef = useRef<HTMLDivElement | null>(null);
   const normalizedQuery = normalizeSearchText(query);
@@ -361,8 +407,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     const mainUrl = buildShareUrl("/");
     const text = [
       `${artistName} - ${trackTitle}`,
-      "Listen inside the Code Destiny moon library.",
-      `Code Destiny main: ${mainUrl}`,
+      copy.shareLead,
+      `${copy.mainLabel}: ${mainUrl}`,
     ].join("\n");
     const copiedText = `${text}\n${trackUrl}`;
 
@@ -386,7 +432,18 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       } catch {
       }
     })();
-  }, [clearSharedTrackResetTimer, trackById]);
+  }, [clearSharedTrackResetTimer, copy.mainLabel, copy.shareLead, trackById]);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     if (playlistScrollRef.current) {
@@ -417,16 +474,16 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   }, [searchInput, startSearchTransition]);
 
   return (
-    <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label="Music playlist">
+    <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label={copy.playlistAria}>
       <details className={styles.playlistDetails} open>
         <summary className={styles.playlistHeaderButton}>
           <span className={styles.playlistHeaderText}>
             <span className={styles.playlistKicker}>
               <Moon size={13} aria-hidden />
-              Moon Library
+              {copy.kicker}
             </span>
-            <span className={styles.playlistTitle}>Lunar Playlist</span>
-            <span className={styles.playlistSubtitle}>{filteredTracks.length} of {tracks.length} tracks</span>
+            <span className={styles.playlistTitle}>{copy.title}</span>
+            <span className={styles.playlistSubtitle}>{copy.tracksCount(filteredTracks.length, tracks.length)}</span>
           </span>
           <span className={styles.playlistHeaderMeta}>
             <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
@@ -436,8 +493,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
         </summary>
 
         <div className={styles.playlistBody}>
-          <div className={styles.playlistTabs} role="tablist" aria-label="Filter playlist">
-            {PLAYLIST_TABS.map((tab) => (
+          <div className={styles.playlistTabs} role="tablist" aria-label={copy.filterAria}>
+            {PLAYLIST_TAB_LABELS.map((tab) => (
               <PlaylistTabButton
                 key={tab.key}
                 tab={tab}
@@ -453,7 +510,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
             <input
               type="search"
               value={searchInput}
-              placeholder="Search tracks"
+              placeholder={copy.searchPlaceholder}
               onChange={handleQueryChange}
             />
           </label>
@@ -493,8 +550,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
               </div>
             ) : (
               <div className={styles.playlistEmpty}>
-                <strong>No tracks found</strong>
-                <span>Try All or clear the search.</span>
+                <strong>{copy.emptyTitle}</strong>
+                <span>{copy.emptyBody}</span>
               </div>
             )}
           </div>

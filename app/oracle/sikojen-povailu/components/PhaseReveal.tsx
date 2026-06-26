@@ -4,11 +4,103 @@ import React, { useEffect, useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
+import { getCurrentLoadingLocale, type LoadingLocale } from '@/constants/loadingMessages';
+
+const SIKOJEN_REVEAL_TEXT_TRANSLATIONS = {
+  ko: {
+    loading: "형태 로드 중...",
+    formingTitle: "주석이 운명의 형상으로 굳어지고 있어요",
+    formingSubtitle: "연이가 마지막 별빛을 불어넣는 중...",
+    resultGuideAlt: "연이 결과 안내",
+    headerTitle: "연이가 읽어준 주석 형상 결과",
+    resultView: "Result View",
+    counselTitle: "연이의 결과 상담",
+    counselMessage: "겉으로 보인 뜻과 그림자 뜻을 같이 읽으면 더 정확해져. 내가 핵심 문장만 딱 집어서 알려줄게.",
+    shapeCode: "형상 코드",
+    category: "카테고리",
+    meaning: "🔮 의미",
+    advice: "💡 조언",
+    luckyNumber: "🍀 럭키 넘버",
+    luckyColor: "🎨 럭키 컬러",
+    yeonWord: "연이의 한마디",
+    mascotAlt: "연이 결과 마스코트",
+    shadowCta: "👁️ 영혼의 그림자 읽기",
+    nextCta: "✨ 다음으로 진행",
+    shadowTitle: "🌙 영혼의 그림자",
+    shadowLead: "이 형태의 숨겨진 의미는...",
+    confirm: "확인",
+  },
+  en: {
+    loading: "Loading the shape...",
+    formingTitle: "The tin is settling into a shape of destiny",
+    formingSubtitle: "Yeoni is breathing in the final starlight...",
+    resultGuideAlt: "Yeoni result guide",
+    headerTitle: "The tin-cast shape Yeoni read for you",
+    resultView: "Result View",
+    counselTitle: "Yeoni's Result Counsel",
+    counselMessage: "Read the visible meaning together with the shadow meaning, and it becomes clearer. I will point out the core sentence for you.",
+    shapeCode: "Shape code",
+    category: "Category",
+    meaning: "🔮 Meaning",
+    advice: "💡 Advice",
+    luckyNumber: "🍀 Lucky Number",
+    luckyColor: "🎨 Lucky Color",
+    yeonWord: "A Word from Yeoni",
+    mascotAlt: "Yeoni result mascot",
+    shadowCta: "👁️ Read the soul shadow",
+    nextCta: "✨ Continue",
+    shadowTitle: "🌙 Soul Shadow",
+    shadowLead: "The hidden meaning of this shape is...",
+    confirm: "Confirm",
+  },
+  ja: {
+    loading: "形を読み込んでいます...",
+    formingTitle: "錫が運命の形へ固まりつつあります",
+    formingSubtitle: "ヨニが最後の星明かりを吹き込んでいます...",
+    resultGuideAlt: "ヨニの結果案内",
+    headerTitle: "ヨニが読み解いた錫の形の結果",
+    resultView: "結果表示",
+    counselTitle: "ヨニの結果相談",
+    counselMessage: "表に出た意味と影の意味を一緒に読むと、もっと正確になります。大事な一文だけ、私がそっと拾ってあげます。",
+    shapeCode: "形コード",
+    category: "カテゴリー",
+    meaning: "🔮 意味",
+    advice: "💡 助言",
+    luckyNumber: "🍀 ラッキーナンバー",
+    luckyColor: "🎨 ラッキーカラー",
+    yeonWord: "ヨニのひと言",
+    mascotAlt: "ヨニ結果マスコット",
+    shadowCta: "👁️ 魂の影を読む",
+    nextCta: "✨ 次へ進む",
+    shadowTitle: "🌙 魂の影",
+    shadowLead: "この形に隠された意味は...",
+    confirm: "確認",
+  },
+} as const;
+
+function getSikojenRevealCopy(locale: LoadingLocale) {
+  return SIKOJEN_REVEAL_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || SIKOJEN_REVEAL_TEXT_TRANSLATIONS.ko;
+}
 
 export function PhaseReveal() {
   const { selectedShape, setPhase } = useSikojenpovailuContext();
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [showShadowReading, setShowShadowReading] = useState(false);
   const [showResultCard, setShowResultCard] = useState(false);
+  const copy = getSikojenRevealCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener('cd:locale-ready', syncLocale);
+    window.addEventListener('cd:locale-change', syncLocale);
+    window.addEventListener('storage', syncLocale);
+    return () => {
+      window.removeEventListener('cd:locale-ready', syncLocale);
+      window.removeEventListener('cd:locale-change', syncLocale);
+      window.removeEventListener('storage', syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -21,7 +113,7 @@ export function PhaseReveal() {
   }, []);
 
   if (!selectedShape) {
-    return <div className="min-h-screen flex items-center justify-center">형태 로드 중...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{copy.loading}</div>;
   }
 
   // 그림자 읽기 트리거
@@ -46,9 +138,9 @@ export function PhaseReveal() {
             <span className="text-5xl" style={{ animation: 'moltenPulse 1.2s ease-in-out infinite' }}>🫧</span>
           </div>
           <p className="mb-2 text-xl font-bold text-rose-700" style={{ fontFamily: "var(--font-playful)" }}>
-            주석이 운명의 형상으로 굳어지고 있어요
+            {copy.formingTitle}
           </p>
-          <p className="text-sm text-rose-600">연이가 마지막 별빛을 불어넣는 중...</p>
+          <p className="text-sm text-rose-600">{copy.formingSubtitle}</p>
           <div className="mt-6 h-2 w-56 overflow-hidden rounded-full bg-white/20">
             <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-yellow-200 via-pink-200 to-rose-200" style={{ animation: 'loadSweep 1.6s ease-in-out infinite' }} />
           </div>
@@ -67,25 +159,25 @@ export function PhaseReveal() {
                 <YeonSpriteAvatar
                   frames={[3, 2, 1, 2]}
                   size={44}
-                  alt="연이 결과 안내"
+                  alt={copy.resultGuideAlt}
                   ringClassName="from-rose-200 to-pink-200"
                   className="shrink-0"
                   intervalMs={920}
                 />
                 <div>
                   <p className="text-xs font-semibold tracking-wide text-rose-500">SIKOJEN POVAILU</p>
-                  <p className="text-sm font-bold text-rose-700">연이가 읽어준 주석 형상 결과</p>
+                  <p className="text-sm font-bold text-rose-700">{copy.headerTitle}</p>
                 </div>
               </div>
               <span className="rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-                Result View
+                {copy.resultView}
               </span>
             </div>
 
             <PigCounselBubble
               className="mb-4"
-              title="연이의 결과 상담"
-              message="겉으로 보인 뜻과 그림자 뜻을 같이 읽으면 더 정확해져. 내가 핵심 문장만 딱 집어서 알려줄게."
+              title={copy.counselTitle}
+              message={copy.counselMessage}
             />
 
             <div className="sikojen-reveal-card relative flex flex-col overflow-hidden rounded-3xl border-2 border-amber-200/80 bg-gradient-to-br from-amber-50 via-rose-50 to-yellow-50 shadow-[0_20px_42px_rgba(190,24,93,0.16)]">
@@ -109,10 +201,10 @@ export function PhaseReveal() {
                   </h2>
                   <div className="mb-2 flex items-center justify-center gap-2">
                     <span className="rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
-                      형상 코드: {selectedShape.id}
+                      {copy.shapeCode}: {selectedShape.id}
                     </span>
                     <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-                      카테고리: {selectedShape.category}
+                      {copy.category}: {selectedShape.category}
                     </span>
                   </div>
                   <p className="text-sm md:text-base text-amber-700 italic">{selectedShape.name_fi}</p>
@@ -122,24 +214,24 @@ export function PhaseReveal() {
                 <div className="relative z-10 h-1 rounded-full mb-6 bg-gradient-to-r from-amber-200 via-pink-300 to-rose-200" />
 
                 <div className="relative z-10 mb-6">
-                  <h3 className="mb-2 text-lg font-bold text-rose-600">🔮 의미</h3>
+                  <h3 className="mb-2 text-lg font-bold text-rose-600">{copy.meaning}</h3>
                   <p className="text-sm md:text-base leading-relaxed text-amber-800">{selectedShape.meaning_ko}</p>
                   <p className="mt-3 text-xs md:text-sm italic text-amber-700">&quot;{selectedShape.meaning_fi}&quot;</p>
                 </div>
 
                 <div className="relative z-10 mb-6 rounded-2xl border-2 border-amber-200 bg-gradient-to-r from-amber-100/60 to-orange-100/70 p-4">
-                  <h3 className="mb-2 text-lg font-bold text-amber-900">💡 조언</h3>
+                  <h3 className="mb-2 text-lg font-bold text-amber-900">{copy.advice}</h3>
                   <p className="text-sm md:text-base text-amber-800">{selectedShape.advice_ko}</p>
                   <p className="mt-2 text-xs md:text-sm italic text-amber-700">&quot;{selectedShape.advice_fi}&quot;</p>
                 </div>
 
                 <div className="relative z-10 mb-6 grid grid-cols-2 gap-3">
                   <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-yellow-50 to-amber-100 p-3 text-center">
-                    <p className="mb-1 text-xs font-bold text-amber-600">🍀 럭키 넘버</p>
+                    <p className="mb-1 text-xs font-bold text-amber-600">{copy.luckyNumber}</p>
                     <p className="text-2xl font-bold text-amber-800">{selectedShape.lucky_number}</p>
                   </div>
                   <div className="rounded-xl border-2 border-rose-200 bg-gradient-to-br from-pink-50 to-rose-100 p-3 text-center">
-                    <p className="mb-1 text-xs font-bold text-rose-600">🎨 럭키 컬러</p>
+                    <p className="mb-1 text-xs font-bold text-rose-600">{copy.luckyColor}</p>
                     <p className="text-xs font-semibold leading-tight text-rose-800">{selectedShape.lucky_color}</p>
                   </div>
                 </div>
@@ -147,7 +239,7 @@ export function PhaseReveal() {
                 <div className="relative z-10 mb-6 flex items-start gap-3 rounded-2xl border-2 border-pink-300 bg-gradient-to-r from-pink-100 to-rose-50 p-4">
                   <span className="text-2xl shrink-0">🐷</span>
                   <div>
-                    <p className="mb-1 text-xs font-bold text-pink-600">연이의 한마디</p>
+                    <p className="mb-1 text-xs font-bold text-pink-600">{copy.yeonWord}</p>
                     <p className="text-sm leading-relaxed text-rose-700">{selectedShape.yeon_message}</p>
                   </div>
                 </div>
@@ -157,7 +249,7 @@ export function PhaseReveal() {
                     <YeonSpriteAvatar
                       frames={[4, 5, 6, 5]}
                       size={92}
-                      alt="연이 결과 마스코트"
+                      alt={copy.mascotAlt}
                       ringClassName="from-rose-200 to-pink-200"
                       intervalMs={740}
                     />
@@ -173,14 +265,14 @@ export function PhaseReveal() {
                     className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 px-4 py-3 text-sm font-bold text-rose-900 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-rose-500 hover:via-pink-500 hover:to-amber-400 md:text-base"
                   >
                     <span className="absolute inset-0 -skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full" />
-                    <span className="relative">👁️ 영혼의 그림자 읽기</span>
+                    <span className="relative">{copy.shadowCta}</span>
                   </button>
 
                   <button
                     onClick={() => setPhase('sharing')}
                     className="w-full rounded-xl bg-gradient-to-r from-pink-300 via-rose-300 to-amber-200 px-4 py-3 text-sm font-bold text-amber-900 shadow-lg transition-all duration-300 hover:scale-105 hover:from-pink-400 hover:via-rose-400 hover:to-amber-300 md:text-base"
                   >
-                    ✨ 다음으로 진행
+                    {copy.nextCta}
                   </button>
                 </div>
               </div>
@@ -203,12 +295,12 @@ export function PhaseReveal() {
 
             <div className="relative z-10 text-center">
               <h3 className="mb-4 text-2xl font-bold text-rose-600" style={{ fontFamily: "var(--font-playful)" }}>
-                🌙 영혼의 그림자
+                {copy.shadowTitle}
               </h3>
               
               <div className="mb-6 space-y-3">
                 <p className="text-sm leading-relaxed text-rose-600">
-                  이 형태의 숨겨진 의미는...
+                  {copy.shadowLead}
                 </p>
                 <p className="text-base font-semibold text-rose-700">
                   {selectedShape.shadow_meaning_ko}
@@ -222,7 +314,7 @@ export function PhaseReveal() {
                 onClick={handleCloseShadow}
                 className="w-full rounded-lg bg-gradient-to-r from-rose-400 to-amber-300 px-4 py-2 text-sm font-bold text-rose-900 transition-all duration-300 hover:from-rose-500 hover:to-amber-400 hover:scale-[1.02]"
               >
-                확인
+                {copy.confirm}
               </button>
             </div>
           </div>

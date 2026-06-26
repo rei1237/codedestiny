@@ -5,14 +5,66 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 
 const PAGE_SIZE = 12;
+const INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS = {
+  ko: {
+    "insightsCosmic.001": "이순신 사주",
+    "insightsCosmic.002": "아이유 사주",
+    "insightsCosmic.003": "BTS RM 사주",
+    "insightsCosmic.004": "유명인 사주",
+    "insightsCosmic.005": "연예인 사주",
+    "insightsCosmic.006": "역사 인물 사주",
+    "insightsCosmic.007": "사주 사례 모음",
+    "insightsCosmic.008": "검색어를 입력하세요",
+    "insightsCosmic.009": "전체 카테고리",
+    "insightsCosmic.010": "전체 태그",
+    "insightsCosmic.011": "최신순",
+    "insightsCosmic.012": "인기순",
+    "insightsCosmic.013": "조건에 맞는 인사이트가 없습니다.",
+  },
+  en: {
+    "insightsCosmic.001": "Yi Sun-sin Saju",
+    "insightsCosmic.002": "IU Saju",
+    "insightsCosmic.003": "BTS RM Saju",
+    "insightsCosmic.004": "Celebrity Saju",
+    "insightsCosmic.005": "Entertainer Saju",
+    "insightsCosmic.006": "Historical Figure Saju",
+    "insightsCosmic.007": "Saju Case Collection",
+    "insightsCosmic.008": "Enter a search term",
+    "insightsCosmic.009": "All categories",
+    "insightsCosmic.010": "All tags",
+    "insightsCosmic.011": "Latest",
+    "insightsCosmic.012": "Popular",
+    "insightsCosmic.013": "No insights match these filters.",
+  },
+  ja: {
+    "insightsCosmic.001": "李舜臣の四柱推命",
+    "insightsCosmic.002": "IUの四柱推命",
+    "insightsCosmic.003": "BTS RMの四柱推命",
+    "insightsCosmic.004": "有名人の四柱推命",
+    "insightsCosmic.005": "芸能人の四柱推命",
+    "insightsCosmic.006": "歴史人物の四柱推命",
+    "insightsCosmic.007": "四柱推命ケース集",
+    "insightsCosmic.008": "検索語を入力してください",
+    "insightsCosmic.009": "すべてのカテゴリー",
+    "insightsCosmic.010": "すべてのタグ",
+    "insightsCosmic.011": "新着順",
+    "insightsCosmic.012": "人気順",
+    "insightsCosmic.013": "条件に合うインサイトがありません。",
+  },
+};
+
+function insightsCosmicClientText(key) {
+  return INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 const FAMOUS_SAJU_POPULAR_KEYWORDS = [
-  { label: "이순신 사주", href: "/insights/famous-saju/yi-sun-sin" },
-  { label: "아이유 사주", href: "/insights/famous-saju/iu" },
-  { label: "BTS 사주", href: "/insights/famous-saju/bts-rm" },
-  { label: "유명인 사주 분석", href: "/insights/famous-saju" },
-  { label: "연예인 사주", href: "/insights/famous-saju" },
-  { label: "역사 인물 사주", href: "/insights/famous-saju" },
-  { label: "일간별 유명인", href: "/insights/famous-saju" },
+  { label: insightsCosmicClientText("insightsCosmic.001"), href: "/insights/famous-saju/yi-sun-sin" },
+  { label: insightsCosmicClientText("insightsCosmic.002"), href: "/insights/famous-saju/iu" },
+  { label: insightsCosmicClientText("insightsCosmic.003"), href: "/insights/famous-saju/bts-rm" },
+  { label: insightsCosmicClientText("insightsCosmic.004"), href: "/insights/famous-saju" },
+  { label: insightsCosmicClientText("insightsCosmic.005"), href: "/insights/famous-saju" },
+  { label: insightsCosmicClientText("insightsCosmic.006"), href: "/insights/famous-saju" },
+  { label: insightsCosmicClientText("insightsCosmic.007"), href: "/insights/famous-saju" },
 ];
 const CATEGORY_PRIORITY = ["사주", "자미두수", "숙요점", "타로", "점성술", "베다점", "궁합", "오늘의 운세", "신년운세", "룬", "오미쿠지", "기타"];
 
@@ -568,7 +620,7 @@ export default function InsightsCosmicClient({
               onKeyDown={(event) => {
                 if (event.key === "Enter") setQuery(searchInput.trim());
               }}
-              placeholder="궁금한 운세 키워드를 입력하세요 · 예: 명궁, 궁합, 재물운, 속마음"
+              placeholder={insightsCosmicClientText("insightsCosmic.008")}
               className="md:col-span-5 rounded-xl border border-white/20 bg-[#1a1230] px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-amber-300/60 focus:outline-none"
             />
             <select
@@ -576,7 +628,7 @@ export default function InsightsCosmicClient({
               onChange={(event) => setCategory(event.target.value)}
               className="md:col-span-2 rounded-xl border border-white/20 bg-[#1a1230] px-3 py-2.5 text-sm text-slate-100 focus:border-amber-300/60 focus:outline-none"
             >
-              <option value="">카테고리 전체</option>
+              <option value="">{insightsCosmicClientText("insightsCosmic.009")}</option>
               {activeCategories.map((value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
@@ -586,7 +638,7 @@ export default function InsightsCosmicClient({
               onChange={(event) => setTag(event.target.value)}
               className="md:col-span-2 rounded-xl border border-white/20 bg-[#1a1230] px-3 py-2.5 text-sm text-slate-100 focus:border-amber-300/60 focus:outline-none"
             >
-              <option value="">태그 전체</option>
+              <option value="">{insightsCosmicClientText("insightsCosmic.010")}</option>
               {activeTags.map((value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
@@ -596,8 +648,8 @@ export default function InsightsCosmicClient({
               onChange={(event) => setSort(event.target.value)}
               className="md:col-span-2 rounded-xl border border-white/20 bg-[#1a1230] px-3 py-2.5 text-sm text-slate-100 focus:border-amber-300/60 focus:outline-none"
             >
-              <option value="latest">최신순</option>
-              <option value="popular">인기순</option>
+              <option value="latest">{insightsCosmicClientText("insightsCosmic.011")}</option>
+              <option value="popular">{insightsCosmicClientText("insightsCosmic.012")}</option>
             </select>
             <button
               type="button"
@@ -660,7 +712,7 @@ export default function InsightsCosmicClient({
 
           {!loading && activeItems.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-12 text-center text-sm text-slate-300">
-              <p>아직 이 조건에 맞는 별자리 문이 열리지 않았습니다.</p>
+              <p>{insightsCosmicClientText("insightsCosmic.013")}</p>
               <p className="mt-2 text-slate-400">검색어를 조금 넓히거나, 다른 카테고리의 인사이트를 살펴보세요.</p>
             </div>
           ) : null}

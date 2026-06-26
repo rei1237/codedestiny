@@ -12,6 +12,8 @@ import {
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import { generateLoveSecretPremiumPdfV2 } from "../lib/pdf-v2/love-secret/create-love-secret-premium-pdf-job.js";
+import { LOVE_SECRET_LLM_VERSION, normalizeLoveSecretMode } from "../lib/pdf-v2/love-secret/love-secret-premium.types.js";
+import { LOVE_SECRET_COMPATIBILITY_CHAPTERS, LOVE_SECRET_SOLO_CHAPTERS } from "../lib/pdf-v2/love-secret/love-secret-premium.chapter-plan.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
 const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
@@ -25,8 +27,8 @@ const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
 const LOVE_SECRET_PDF_CONFIG = Object.freeze({
   generationMode: "llm-only",
-  provider: "gemini-primary-workers-ai-fallback",
-  templateVersion: "love-secret-premium-llm-v2",
+  provider: "gemini-workers-ai-llm-retry",
+  templateVersion: LOVE_SECRET_LLM_VERSION,
   qualityMode: "premium",
 });
 const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
@@ -38,28 +40,10 @@ const LOVE_SECRET_PRODUCT_ID = "love_secret";
 const LOVE_SECRET_PDF_CACHE = new Map();
 const LOVE_SECRET_PDF_CACHE_MAX = 120;
 const LOVE_SECRET_SOLO_CHAPTER_IDS = Object.freeze([
-  "love_overview",
-  "attraction_pattern",
-  "relationship_pattern",
-  "love_expression",
-  "love_risk_pattern",
-  "ideal_partner_gap",
-  "breakup_risk",
-  "intimacy_pattern",
-  "love_luck_cycles",
-  "love_master_plan",
+  ...LOVE_SECRET_SOLO_CHAPTERS.map((chapter) => chapter.id),
 ]);
 const LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS = Object.freeze([
-  "couple_code",
-  "first_attraction",
-  "emotional_match",
-  "communication_match",
-  "conflict_match",
-  "reconciliation_match",
-  "reality_match",
-  "long_term_relation",
-  "current_year_flow",
-  "couple_master_plan",
+  ...LOVE_SECRET_COMPATIBILITY_CHAPTERS.map((chapter) => chapter.id),
 ]);
 
 
@@ -992,10 +976,12 @@ function getLoveSecretFastDbEnv(env = {}) {
   };
 }
 
-function normalizeMode(rawMode) {
-  const mode = clean(rawMode).toLowerCase();
-  if (mode === "compatibility" || mode === "compat" || mode === "couple") return "compatibility";
-  return "solo";
+function normalizeMode(rawMode, options = {}) {
+  return normalizeLoveSecretMode(rawMode, { allowDefault: options.allowDefault !== false });
+}
+
+function normalizeRequestMode(rawMode) {
+  return normalizeLoveSecretMode(rawMode, { allowDefault: false });
 }
 
 function toConfigMode(mode) {
@@ -2879,11 +2865,11 @@ function safeModeChapterConfig(mode) {
     return {
       ...config,
       title: "사주 궁합 비책",
-      totalChapters: 10,
-      minTotalChars: 36000,
+      totalChapters: 13,
+      minTotalChars: 19500,
       chapterMinDefault: 3000,
-      chapterMinByIndex: loveSecretChapterMins(10, 3000),
-      chapters: LOVE_SECRET_PHASE7_COMPAT_CHAPTERS,
+      chapterMinByIndex: loveSecretChapterMins(13, 1500),
+      chapters: LOVE_SECRET_COMPATIBILITY_CHAPTERS.map((chapter) => ({ title: chapter.title, subtitle: chapter.purpose })),
     };
   }
   if (key !== "solo") return config;
@@ -2891,7 +2877,10 @@ function safeModeChapterConfig(mode) {
     ...config,
     title: "사주 연애 비책",
     totalChapters: 10,
-    chapters: LOVE_SECRET_PHASE6_SOLO_CHAPTERS,
+    minTotalChars: 15000,
+    chapterMinDefault: 1500,
+    chapterMinByIndex: loveSecretChapterMins(10, 1500),
+    chapters: LOVE_SECRET_SOLO_CHAPTERS.map((chapter) => ({ title: chapter.title, subtitle: chapter.purpose })),
   };
 }
 
@@ -5118,6 +5107,17 @@ function toPublicJobPayload(job = {}) {
   const status = clean(job?.status) || "pending";
   const chapterCount = Number(job?.chapterCount || 0);
   const completedChapters = Number(job?.completedChapters || 0);
+  const progress = (() => {
+    if (status === "completed") return 100;
+    if (status === "failed") return Math.max(0, Math.min(95, Number(job?.progress || 0) || 0));
+    if (status === "validating") return 5;
+    if (status === "rendering") return Math.max(85, Math.min(95, Number(job?.progress || 90) || 90));
+    if (status === "generating") {
+      const ratio = chapterCount > 0 ? completedChapters / chapterCount : 0;
+      return Math.max(10, Math.min(80, Math.round(10 + ratio * 70)));
+    }
+    return 0;
+  })();
   return {
     jobId: String(job?._id || ""),
     reportId: clean(job?.reportId),
@@ -5125,7 +5125,7 @@ function toPublicJobPayload(job = {}) {
     status,
     chapterCount,
     completedChapters,
-    progress: chapterCount > 0 ? Math.max(0, Math.min(100, Math.round((completedChapters / chapterCount) * 100))) : 0,
+    progress,
     message: clean(job?.message),
     errorMessage: clean(job?.errorMessage),
     resultReady: status === "completed",
@@ -5156,9 +5156,10 @@ async function runLoveSecretJob(env, jobId) {
     { _id },
     {
       $set: {
-        status: "processing",
-        stage: "local_calculation",
-        message: "연애 사주 신호를 계산하고 있습니다.",
+        status: "validating",
+        stage: "validating",
+        progress: 5,
+        message: "입력값과 사주 신호를 확인하고 있습니다.",
         startedAt: new Date(),
         updatedAt: new Date(),
       },
@@ -5202,7 +5203,9 @@ async function runLoveSecretJob(env, jobId) {
       { _id },
       {
         $set: {
-          stage: "llm_generation",
+          status: "generating",
+          stage: "generating",
+          progress: 10,
           message: "연애 비책 PDF 본문을 LLM 전용 파이프라인으로 생성하고 있습니다.",
           updatedAt: new Date(),
         },
@@ -5229,10 +5232,13 @@ async function runLoveSecretJob(env, jobId) {
           { _id },
           {
             $set: {
-              status: "processing",
-              stage: completed >= expectedChapterCount ? "pdf_archive" : "llm_generation",
+              status: completed >= expectedChapterCount ? "rendering" : "generating",
+              stage: completed >= expectedChapterCount ? "rendering" : "generating",
+              progress: completed >= expectedChapterCount
+                ? 90
+                : Math.max(10, Math.min(80, Math.round(10 + (completed / Math.max(1, expectedChapterCount)) * 70))),
               message: completed >= expectedChapterCount
-                ? "PDF archive 저장을 확인하고 있습니다."
+                ? "PDF 렌더링과 저장을 확인하고 있습니다."
                 : `연애 비책 ${completed}/${expectedChapterCount} 챕터 생성 중입니다.`,
               completedChapters: Math.max(0, Math.min(expectedChapterCount, completed)),
               updatedAt: new Date(),
@@ -5249,6 +5255,7 @@ async function runLoveSecretJob(env, jobId) {
           cacheKey: llmPdfCacheKey,
           cacheVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
           stage: "completed",
+          progress: 100,
           message: "연애 비책 PDF가 준비되었습니다.",
           completedChapters: Number(llmJobResult?.chapterCount || expectedChapterCount),
           manuscriptSource: clean(llmJobResult?.manuscriptSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.PREMIUM,
@@ -5496,7 +5503,7 @@ async function generateLoveSecretPremiumPdfFromRoute({
 
 async function handlePrepare(request, env) {
   const body = await readJson(request);
-  const mode = normalizeMode(body?.mode || body?.reportMode);
+  const mode = normalizeRequestMode(body?.mode || body?.reportMode);
   console.info("[LoveBookPremiumPDF][RequestReceived]", { mode, endpoint: "prepare" });
   console.info("[LoveBookPremiumPDF][ModeValidated]", { mode });
   const authz = await authorizeLoveSecret(request, env, body, mode);
@@ -5594,7 +5601,7 @@ async function handlePrepare(request, env) {
 
 async function handlePrepareAsync(request, env, ctx) {
   const body = await readJson(request);
-  const mode = normalizeMode(body?.mode || body?.reportMode);
+  const mode = normalizeRequestMode(body?.mode || body?.reportMode);
   console.info("[LoveBookPremiumPDF][RequestReceived]", { mode, endpoint: "prepare-async" });
   console.info("[LoveBookPremiumPDF][ModeValidated]", { mode });
   const authz = await authorizeLoveSecret(request, env, body, mode);
@@ -5659,7 +5666,7 @@ async function handlePrepareAsync(request, env, ctx) {
       service: LOVE_SECRET_SERVICE_KEY,
       userId: String(authz?.auth?.userId || ""),
       "requestBody.sessionId": sessionId,
-      status: { $in: ["pending", "processing", "completed"] },
+      status: { $in: ["pending", "validating", "generating", "rendering", "processing", "completed"] },
     }, { sort: { updatedAt: -1, createdAt: -1 } });
     if (existingJob && clean(existingJob.status) === "completed" && existingJob.result) {
       resolveLoveSecretLock(sessionId, "done", String(existingJob?._id || ""));
@@ -5712,7 +5719,7 @@ async function handlePrepareAsync(request, env, ctx) {
       service: LOVE_SECRET_SERVICE_KEY,
       userId: String(authz?.auth?.userId || ""),
       "requestBody.sessionId": sessionId,
-      status: { $in: ["pending", "processing"] },
+      status: { $in: ["pending", "validating", "generating", "rendering", "processing"] },
     });
     if (runningJob) {
       resolveLoveSecretLock(sessionId, "running", String(runningJob?._id || ""));
@@ -5802,6 +5809,7 @@ async function handlePrepareAsync(request, env, ctx) {
         $set: {
           status: "pending",
           stage: "queued",
+          progress: 0,
           message: "백그라운드 생성 대기열에 등록되었습니다.",
           updatedAt: new Date(),
         },
@@ -5931,6 +5939,7 @@ export const __loveSecretTestUtils = Object.freeze({
   buildLoveSecretPdfCacheKey,
   getLoveSecretPdfMemoryCache,
   setLoveSecretPdfMemoryCache,
+  toPublicJobPayload,
   validateLoveSecretMasterJson,
   buildLoveSecretFacts,
   buildLoveSecretChapterPlans,

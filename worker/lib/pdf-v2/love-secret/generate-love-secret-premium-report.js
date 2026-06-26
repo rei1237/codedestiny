@@ -1,4 +1,5 @@
 import {
+  LOVE_SECRET_LLM_VERSION,
   LOVE_SECRET_PREMIUM_ENGINE_VERSION,
   LOVE_SECRET_PREMIUM_QUALITY_VERSION,
   clean,
@@ -45,18 +46,51 @@ async function writeChapterCache(env, key, value) {
   }
 }
 
-export function buildLoveSecretPremiumChapterCacheKey({ normalizedInputHash, chapterId, modelName, chapterPlanVersion }) {
-  return `love-secret-premium:${hashStable({
-    serviceType: "love-secret-premium",
+function inputHash(value) {
+  return hashStable(value || {});
+}
+
+function questionHash(input = {}) {
+  return hashStable({
+    question: input.love?.currentConcern,
+    relationshipStatus: input.love?.relationshipStatus,
+    relationshipType: input.love?.relationshipType,
+    desiredOutcome: input.love?.desiredOutcome,
+  });
+}
+
+export function buildLoveSecretPremiumChapterCacheKey({ normalizedInput = {}, chapterId, modelName, chapterPlanVersion }) {
+  const common = {
+    service: "love-secret",
+    version: LOVE_SECRET_LLM_VERSION,
     engineVersion: LOVE_SECRET_PREMIUM_ENGINE_VERSION,
     qualityVersion: LOVE_SECRET_PREMIUM_QUALITY_VERSION,
     chapterPlanVersion,
     promptVersion: LOVE_SECRET_PREMIUM_PROMPT_VERSION,
     modelName,
-    normalizedInputHash,
+    mode: normalizedInput.mode,
+    questionHash: questionHash(normalizedInput),
     chapterId,
     language: "ko",
-  })}`;
+  };
+  const descriptor = normalizedInput.mode === "compatibility"
+    ? {
+        ...common,
+        personABirthDataHash: inputHash(normalizedInput.userProfile),
+        personBBirthDataHash: inputHash(normalizedInput.partnerProfile),
+        personAChartHash: inputHash(normalizedInput.saju),
+        personBChartHash: inputHash(normalizedInput.compatibility?.partnerSaju),
+        relationshipStatusHash: inputHash({
+          relationshipStatus: normalizedInput.love?.relationshipStatus,
+          relationshipType: normalizedInput.love?.relationshipType,
+        }),
+      }
+    : {
+        ...common,
+        userBirthDataHash: inputHash(normalizedInput.userProfile),
+        sajuChartHash: inputHash(normalizedInput.saju),
+      };
+  return `love-secret:${LOVE_SECRET_LLM_VERSION}:chapter:${hashStable(descriptor)}`;
 }
 
 function isRetryableProviderFailure(result = {}) {
@@ -67,7 +101,7 @@ function isRetryableProviderFailure(result = {}) {
 
 function buildChapterPlanSummary(plan) {
   return plan.chapters
-    .map((chapter) => `${chapter.order}. ${chapter.title}: ${chapter.sections.join(" / ")}`)
+    .map((chapter) => `${chapter.order}. ${chapter.id} ${chapter.title}: ${chapter.purpose}`)
     .join("\n");
 }
 
@@ -78,18 +112,19 @@ function normalizeGeneratedChapter({ chapter, html, status, source, provider, mo
     order: chapter.order,
     title: chapter.title,
     html,
+    text: parsed.text,
     status,
     source,
     provider,
     modelName,
-    sections: parsed.h2.map((title) => ({ title })),
+    sections: [{ title: parsed.h2 || chapter.title }],
     textLength: validation?.textLength || parsed.text.replace(/\s/g, "").length,
   };
 }
 
-async function generateChapter({ env, input, chapter, plan, normalizedInputHash, modelName, jobId, userId, previousSummary, onProgress }) {
+async function generateChapter({ env, input, chapter, plan, modelName, jobId, userId, previousSummary, onProgress }) {
   const cacheKey = buildLoveSecretPremiumChapterCacheKey({
-    normalizedInputHash,
+    normalizedInput: input,
     chapterId: chapter.id,
     modelName,
     chapterPlanVersion: plan.version,
@@ -116,7 +151,7 @@ async function generateChapter({ env, input, chapter, plan, normalizedInputHash,
   const providers = resolveLoveSecretLlmProviders(env);
   const chapterPlanSummary = buildChapterPlanSummary(plan);
   const maxRepairAttempts = Math.max(1, Number(env?.LOVE_SECRET_PREMIUM_REPAIR_ATTEMPTS || 3));
-  const expertPersona = "명리학자로서 사주 신호를 연애 상담 언어로 풀어내되, 결론을 확정하지 않고 선택의 방향을 선명하게 제시한다.";
+  const expertPersona = "30년 경력의 사주 명리학자이자 현실적인 연애 상담사로서, 사주 신호를 고객이 이해할 수 있는 관계 언어로 풀어낸다.";
   let lastErrors = [];
   let lastHtml = "";
   let lastProviderFailure = null;
@@ -222,7 +257,7 @@ export async function generateLoveSecretPremiumReport({
 } = {}) {
   const started = Date.now();
   const normalizedInput = normalizeLoveSecretPremiumInput({ base, body, mode, config });
-  const plan = resolveLoveSecretPremiumChapterPlan({ mode: normalizedInput.mode, config });
+  const plan = resolveLoveSecretPremiumChapterPlan({ mode: normalizedInput.mode });
   assertLoveSecretPremiumChapterPlan(plan);
   const normalizedInputHash = hashStable(normalizedInput);
   const modelName = resolveLoveSecretModelName(env);
@@ -239,14 +274,13 @@ export async function generateLoveSecretPremiumReport({
   for (const chapter of plan.chapters) {
     const previousSummary = chapters
       .slice(-2)
-      .map((item) => `${item.title}: ${clean(item.sections?.map((section) => section.title).join(", "), 220)}`)
+      .map((item) => `${item.title}: ${clean(item.text, 220)}`)
       .join("\n");
     const completed = await generateChapter({
       env,
       input: normalizedInput,
       chapter,
       plan,
-      normalizedInputHash,
       modelName,
       jobId,
       userId,

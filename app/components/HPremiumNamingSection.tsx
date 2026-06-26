@@ -4,6 +4,24 @@ import { useMemo, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
+const H_PREMIUM_NAMING_TEXT_TRANSLATIONS = {
+  ko: {
+    "hPremiumNaming.invalidBirth": "출생 정보를 정확히 입력해 주세요.",
+    "hPremiumNaming.analysisError": "사주 분석 중 오류가 발생했습니다.",
+    "hPremiumNaming.analysisRequired": "먼저 사주 분석을 완료해 주세요.",
+    "hPremiumNaming.printTitle": "명운 프리미엄 작명 추천",
+    "hPremiumNaming.printBadge": "CODE : DESTINY · NAMING PREMIUM",
+    "hPremiumNaming.printHeading": "명운(命運) 프리미엄 작명 추천",
+    "hPremiumNaming.featureSaju": "사주 만세력 기반 용신 분석",
+    "hPremiumNaming.featureSuri": "원격·형격 수리 검증",
+    "hPremiumNaming.featureElements": "오행 상생 배치",
+    "hPremiumNaming.featureCandidates": "9개 최적 후보 추천",
+  },
+} as const;
+
+function hPremiumNamingText(key: keyof typeof H_PREMIUM_NAMING_TEXT_TRANSLATIONS.ko): string {
+  return H_PREMIUM_NAMING_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 
 type PremiumSectionProps = {
   showIntro?: boolean;
@@ -242,7 +260,7 @@ export default function HPremiumNamingSection({
     const d = Number(day);
     const h = Number(hour);
     if (!y || m < 1 || m > 12 || d < 1 || d > 31 || h < 0 || h > 23) {
-      setError("출생 정보를 정확히 입력해 주세요.");
+      setError(hPremiumNamingText("hPremiumNaming.invalidBirth"));
       return;
     }
 
@@ -267,7 +285,7 @@ export default function HPremiumNamingSection({
       }
       setAnalysis(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "사주 분석 중 오류가 발생했습니다.");
+      setError(e instanceof Error ? e.message : hPremiumNamingText("hPremiumNaming.analysisError"));
     } finally {
       setAnalyzing(false);
       stopProcessing();
@@ -277,7 +295,7 @@ export default function HPremiumNamingSection({
 
   const makeRecommendations = () => {
     if (!yongshinElement) {
-      setError("먼저 사주 분석을 완료해 주세요.");
+      setError(hPremiumNamingText("hPremiumNaming.analysisRequired"));
       return;
     }
     setError("");
@@ -300,7 +318,7 @@ export default function HPremiumNamingSection({
 </div>`;
     }).join("");
     const pillarsLine = analysis ? `년주 ${escH(analysis.pillars.year.gan)}${escH(analysis.pillars.year.zhi)} · 월주 ${escH(analysis.pillars.month.gan)}${escH(analysis.pillars.month.zhi)} · 일주 ${escH(analysis.pillars.day.gan)}${escH(analysis.pillars.day.zhi)} · 시주 ${escH(analysis.pillars.hour.gan)}${escH(analysis.pillars.hour.zhi)}` : "";
-    const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>명운 프리미엄 작명 추천</title><style>
+    const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>${hPremiumNamingText("hPremiumNaming.printTitle")}</title><style>
 @font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'CodeDestinyPremium','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;background:#07091a;color:#e2e8f0;padding:32px}
@@ -319,8 +337,8 @@ body{font-family:'CodeDestinyPremium','Apple SD Gothic Neo','Malgun Gothic',syst
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#07091a!important}}
 </style></head><body>
 <div class="cover">
-  <p class="cover-badge">CODE : DESTINY · NAMING PREMIUM</p>
-  <h1 class="cover-title">✨ 명운(明運) 프리미엄 작명 추천</h1>
+  <p class="cover-badge">${hPremiumNamingText("hPremiumNaming.printBadge")}</p>
+  <h1 class="cover-title">${hPremiumNamingText("hPremiumNaming.printHeading")}</h1>
   ${pillarsLine ? `<p class="cover-meta">${pillarsLine}</p>` : ""}
   ${analysis?.yongshin ? `<p class="cover-meta">용신: ${escH(analysis.yongshin)}</p>` : ""}
 </div>
@@ -348,10 +366,10 @@ body{font-family:'CodeDestinyPremium','Apple SD Gothic Neo','Malgun Gothic',syst
             </p>
             <div style={{ display:"grid", gap:8, marginBottom:16 }}>
               {[
-                { icon:"🧮", title:"사주 만세력 기반 용신 분석", desc:"AI 엔진으로 용신 오행 자동 계산" },
-                { icon:"🔢", title:"원격·형격 수리 검증", desc:"81수리 흉수 완전 필터링" },
-                { icon:"☯️", title:"오행 상생 배치", desc:"성씨·이름 오행 상생 원칙 준수" },
-                { icon:"📊", title:"9개 최적 후보 추천", desc:"점수 순 정렬, 한자·뜻 풀이 제공" },
+                { icon:"🧮", title:hPremiumNamingText("hPremiumNaming.featureSaju"), desc:"AI 엔진으로 용신 오행 자동 계산" },
+                { icon:"🔢", title:hPremiumNamingText("hPremiumNaming.featureSuri"), desc:"81수리 흉수 완전 필터링" },
+                { icon:"☯️", title:hPremiumNamingText("hPremiumNaming.featureElements"), desc:"성씨·이름 오행 상생 원칙 준수" },
+                { icon:"📊", title:hPremiumNamingText("hPremiumNaming.featureCandidates"), desc:"점수 순 정렬, 한자·뜻 풀이 제공" },
               ].map((f) => (
                 <div key={f.title} style={{ borderRadius:12, border:"1px solid rgba(212,175,55,0.2)", background:"rgba(2,12,30,0.55)", padding:"10px 12px", display:"flex", alignItems:"flex-start", gap:10 }}>
                   <span style={{ fontSize:"1.1rem", marginTop:1 }}>{f.icon}</span>

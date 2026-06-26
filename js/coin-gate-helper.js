@@ -7,6 +7,42 @@
 
   const LOVE_BOOK_FEATURE_KEY = 'saju_love_book_pdf';
   const COIN_GATE_TIMEOUT_MS = 25000;
+  const COIN_GATE_HELPER_TEXT_TRANSLATIONS = {
+    ko: {
+      premiumPdf: '프리미엄 PDF',
+      paymentCanceled: '결제가 취소되었습니다.',
+      gateUnavailable: '결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+      reportIdRequired: '리포트 ID가 필요합니다.',
+    },
+    en: {
+      premiumPdf: 'Premium PDF',
+      paymentCanceled: 'Payment was canceled.',
+      gateUnavailable: 'The payment gate could not be loaded. Please refresh and try again.',
+      reportIdRequired: 'Report ID is required.',
+    },
+    ja: {
+      premiumPdf: 'プレミアムPDF',
+      paymentCanceled: '決済がキャンセルされました。',
+      gateUnavailable: '決済ゲートを読み込めませんでした。更新してもう一度お試しください。',
+      reportIdRequired: 'レポートIDが必要です。',
+    },
+  };
+
+  function getCoinGateHelperLocale() {
+    var value = '';
+    try { if (globalThis.cdGetCurrentLanguage) value = String(globalThis.cdGetCurrentLanguage() || ''); } catch (_) {}
+    if (!value) {
+      try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
+    }
+    value = String(value || '').trim().replace('_', '-').toLowerCase();
+    if (value.indexOf('ja') === 0) return 'ja';
+    if (value.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function getCoinGateHelperCopy() {
+    return COIN_GATE_HELPER_TEXT_TRANSLATIONS[getCoinGateHelperLocale()] || COIN_GATE_HELPER_TEXT_TRANSLATIONS.ko;
+  }
 
   function normalizeApiBase(raw) {
     var value = String(raw || '').trim();
@@ -337,6 +373,7 @@
         }
 
         if (typeof globalThis._cdOpenPaidServiceGate === 'function') {
+          var gateCopy = getCoinGateHelperCopy();
           var gatePayload = await new Promise(function(resolve, reject) {
             var settled = false;
             function finish(payload) {
@@ -347,7 +384,7 @@
             function fail(error) {
               if (settled) return;
               settled = true;
-              reject(error || { status: 402, message: '결제가 취소되었습니다.' });
+              reject(error || { status: 402, message: gateCopy.paymentCanceled });
             }
             var gatePromise;
             try {
@@ -355,8 +392,8 @@
                 categoryKey: requestBody.categoryKey,
                 featureKey: requestBody.featureKey,
                 subFeatureKey: requestBody.subFeatureKey,
-                title: requestBody.reason || '프리미엄 PDF',
-                reason: requestBody.reason || '프리미엄 PDF',
+                title: requestBody.reason || gateCopy.premiumPdf,
+                reason: requestBody.reason || gateCopy.premiumPdf,
                 coinPrice: requestedCoinPrice,
                 cost: requestedCoinPrice,
                 requestId: requestBody.requestId,
@@ -380,7 +417,7 @@
             }
             if (gatePromise && typeof gatePromise.then === 'function') {
               gatePromise.then(function(payload) {
-                if (payload === null || payload === undefined) fail({ status: 402, message: '결제가 취소되었습니다.' });
+                if (payload === null || payload === undefined) fail({ status: 402, message: gateCopy.paymentCanceled });
                 else finish(payload);
               }).catch(fail);
             }
@@ -404,7 +441,7 @@
         return {
           ok: false,
           status: 503,
-          message: '결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+          message: getCoinGateHelperCopy().gateUnavailable,
           featureKey: requestedFeatureKey,
           accessGrant: null,
           purchaseId: '',
@@ -416,7 +453,7 @@
       async restorePurchase(input) {
         var reportId = String((input && input.reportId) || '').trim();
         if (!reportId) {
-          return { ok: false, status: 400, message: 'reportId is required', accessGrant: null };
+          return { ok: false, status: 400, message: getCoinGateHelperCopy().reportIdRequired, accessGrant: null };
         }
         var response = await requestJson('/api/love-secret/access?reportId=' + encodeURIComponent(reportId), {
           method: 'GET',

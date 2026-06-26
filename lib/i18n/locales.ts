@@ -5,6 +5,13 @@ export const PUBLIC_LOCALES = ["ja", "zh", "en"] as const;
 export const SEO_INDEXABLE_LOCALES = ["ko"] as const;
 export const LOCALE_NAVIGATION_LOCALES = LOCALES;
 
+const LOCALE_LABELS_TEXT_TRANSLATIONS = {
+  ko: "한국어",
+  ja: "日本語",
+  zh: "中文",
+  en: "English",
+} as const;
+
 export const LOCALE_CONFIG: Record<Locale, {
   label: string;
   htmlLang: string;
@@ -15,7 +22,7 @@ export const LOCALE_CONFIG: Record<Locale, {
   hrefLangAliases?: string[];
 }> = {
   ko: {
-    label: "한국어",
+    label: LOCALE_LABELS_TEXT_TRANSLATIONS.ko,
     htmlLang: "ko",
     pathPrefix: "",
     siteName: "Code Destiny",
@@ -24,7 +31,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     hrefLangAliases: ["ko-KR"],
   },
   ja: {
-    label: "日本語",
+    label: LOCALE_LABELS_TEXT_TRANSLATIONS.ja,
     htmlLang: "ja-JP",
     pathPrefix: "/ja",
     siteName: "Code Destiny Japan",
@@ -33,7 +40,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     hrefLangAliases: ["ja-JP"],
   },
   zh: {
-    label: "中文",
+    label: LOCALE_LABELS_TEXT_TRANSLATIONS.zh,
     htmlLang: "zh-CN",
     pathPrefix: "/zh",
     siteName: "Code Destiny China",
@@ -42,7 +49,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     hrefLangAliases: ["zh", "zh-Hans", "zh-TW", "zh-Hant"],
   },
   en: {
-    label: "English",
+    label: LOCALE_LABELS_TEXT_TRANSLATIONS.en,
     htmlLang: "en",
     pathPrefix: "/en",
     siteName: "Code Destiny",

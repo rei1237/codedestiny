@@ -7,7 +7,6 @@ import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
-  failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import {
@@ -27,6 +26,7 @@ const SECTION_MIN_CHARS = 700;
 const TOTAL_MIN_CHARS = 50000;
 const SESSION_LOCKS = new Map();
 const REPORT_CACHE = new Map();
+const ZIWEI_PROGRESS_POLL_MS = 4000;
 const ZIWEI_PRIMARY_STARS = Object.freeze([
   "자미",
   "천기",
@@ -1541,7 +1541,8 @@ function validateFinalManuscript({ birthInput, seed, chapters }) {
       const summary = clean(chapter?.summary || "");
       if (summary.length < 20) errors.push(`chapter_${index + 1}_summary_missing`);
       const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-      if (categories.length < 3 || categories.length > 5) errors.push(`chapter_${index + 1}_category_range`);
+      const expectedCategoryCount = Math.max(1, safeArray(CHAPTER_BLUEPRINTS[index]?.categories).length || 6);
+      if (categories.length !== expectedCategoryCount) errors.push(`chapter_${index + 1}_category_range`);
       categories.forEach((category, catIndex) => {
         const text = sanitizeCounselingText(category?.finalText || category?.text || "");
         if (!text) errors.push(`chapter_${index + 1}_category_${catIndex + 1}_empty_after_sanitize`);
@@ -4158,11 +4159,24 @@ function normalizeArchiveShapeFromExecution(doc = {}) {
     && Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl))
     && Array.isArray(chapters)
     && chapters.length >= CHAPTER_BLUEPRINTS.length;
+  const ziweiPdfProgress = normalizeZiweiProgress(metadata?.ziweiPdfProgress, {
+    status: canDownload ? "completed" : "generating",
+    completedChapters: canDownload ? CHAPTER_BLUEPRINTS.length : chapters.length,
+    reportId,
+    sessionId,
+  });
   return {
     ok: true,
     serviceKey: ZIWEI_SERVICE_KEY,
     reportId,
     sessionId,
+    totalChapters: ziweiPdfProgress.totalChapters,
+    completedChapters: ziweiPdfProgress.completedChapters,
+    currentChapterNumber: ziweiPdfProgress.currentChapterNumber,
+    currentChapterTitle: ziweiPdfProgress.currentChapterTitle,
+    currentCategory: ziweiPdfProgress.currentCategory,
+    currentStepMessage: ziweiPdfProgress.currentStepMessage,
+    ziweiPdfProgress,
     chapterCount: CHAPTER_BLUEPRINTS.length,
     chapters,
     qualityStatus: completionValidation.ok ? "passed" : "validation_failed",
@@ -4184,6 +4198,291 @@ function normalizeArchiveShapeFromExecution(doc = {}) {
     canReopen: true,
     canDownload,
   };
+}
+
+function clampZiweiChapterCount(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(CHAPTER_BLUEPRINTS.length, Math.trunc(n)));
+}
+
+function normalizeZiweiProgressStatus(value, fallback = "generating") {
+  const status = clean(value || fallback).toLowerCase();
+  if (status === "processing" || status === "queued" || status === "running") return "generating";
+  if (["generating", "rendering", "uploading", "completed", "failed"].includes(status)) return status;
+  return fallback;
+}
+
+function getZiweiProgressMessage(progress = {}) {
+  const status = normalizeZiweiProgressStatus(progress.status);
+  const completed = clampZiweiChapterCount(progress.completedChapters);
+  const current = Math.max(1, Math.min(CHAPTER_BLUEPRINTS.length, Number(progress.currentChapterNumber) || completed + 1));
+  if (status === "rendering") return "PDF 원고를 조판하고 있습니다.";
+  if (status === "uploading") return "PDF를 저장하고 있습니다.";
+  if (status === "completed") return "PDF 저장이 완료되었습니다.";
+  if (status === "failed") return "자미두수 상담문 생성이 중단되었습니다.";
+  if (current === 6) return "재백궁과 관록궁 흐름을 분석하고 있습니다.";
+  if (completed <= 0) return "자미두수 명반을 정리하고 있습니다.";
+  return `${current}챕터 상담문을 생성하고 있습니다.`;
+}
+
+function normalizeZiweiProgress(progress = {}, fallback = {}) {
+  const source = safeObject(progress);
+  const fallbackSource = safeObject(fallback);
+  const completedChapters = clampZiweiChapterCount(
+    source.completedChapters
+    ?? source.chapterCount
+    ?? fallbackSource.completedChapters
+    ?? fallbackSource.chapterCount
+    ?? 0,
+  );
+  const status = normalizeZiweiProgressStatus(source.status || fallbackSource.status, "generating");
+  const currentChapterNumber = Math.max(1, Math.min(
+    CHAPTER_BLUEPRINTS.length,
+    Number(source.currentChapterNumber || fallbackSource.currentChapterNumber || (completedChapters >= CHAPTER_BLUEPRINTS.length ? CHAPTER_BLUEPRINTS.length : completedChapters + 1)) || 1,
+  ));
+  const blueprint = CHAPTER_BLUEPRINTS[currentChapterNumber - 1] || CHAPTER_BLUEPRINTS[0] || {};
+  const currentCategory = clean(
+    source.currentCategory
+    || fallbackSource.currentCategory
+    || safeArray(blueprint.categories)[0]
+    || "",
+  );
+  const next = {
+    totalChapters: CHAPTER_BLUEPRINTS.length,
+    completedChapters,
+    currentChapterNumber,
+    currentChapterTitle: clean(source.currentChapterTitle || fallbackSource.currentChapterTitle || blueprint.title || ""),
+    currentCategory,
+    currentStepMessage: clean(source.currentStepMessage || fallbackSource.currentStepMessage || ""),
+    status,
+    errorMessage: clean(source.errorMessage || fallbackSource.errorMessage || ""),
+    startedAt: clean(source.startedAt || fallbackSource.startedAt || new Date().toISOString()),
+    updatedAt: clean(source.updatedAt || fallbackSource.updatedAt || new Date().toISOString()),
+  };
+  if (!next.currentStepMessage) next.currentStepMessage = getZiweiProgressMessage(next);
+  return next;
+}
+
+function buildZiweiProgressResponse(progress = {}, extras = {}) {
+  const normalized = normalizeZiweiProgress(progress, extras);
+  const failed = normalized.status === "failed";
+  return {
+    ok: normalized.status === "completed",
+    accepted: normalized.status !== "completed",
+    serviceKey: ZIWEI_SERVICE_KEY,
+    code: failed ? clean(extras.code || "ZIWEI_PREMIUM_GENERATION_FAILED") : "ZIWEI_PROCESSING",
+    status: normalized.status,
+    serverStatus: normalized.status,
+    retryable: normalized.status !== "completed",
+    retryAfterMs: Number(extras.retryAfterMs || ZIWEI_PROGRESS_POLL_MS),
+    pollAfterMs: Number(extras.pollAfterMs || ZIWEI_PROGRESS_POLL_MS),
+    reportId: clean(extras.reportId || normalized.reportId || ""),
+    sessionId: clean(extras.sessionId || normalized.sessionId || ""),
+    birthHash: clean(extras.birthHash || ""),
+    qualityStatus: failed ? "failed" : "processing",
+    errorMessage: clean(normalized.errorMessage || extras.errorMessage || ""),
+    message: clean(normalized.currentStepMessage || extras.message || ""),
+    totalChapters: normalized.totalChapters,
+    completedChapters: normalized.completedChapters,
+    currentChapterNumber: normalized.currentChapterNumber,
+    currentChapterTitle: normalized.currentChapterTitle,
+    currentCategory: normalized.currentCategory,
+    currentStepMessage: normalized.currentStepMessage,
+    llmDraftChapterCount: clampZiweiChapterCount(extras.llmDraftChapterCount ?? normalized.completedChapters),
+    chapterCount: normalized.totalChapters,
+    ziweiPdfProgress: normalized,
+  };
+}
+
+function initialZiweiProgress(extra = {}) {
+  return normalizeZiweiProgress({
+    status: "generating",
+    completedChapters: 0,
+    currentChapterNumber: 1,
+    currentChapterTitle: CHAPTER_BLUEPRINTS[0]?.title || "",
+    currentCategory: safeArray(CHAPTER_BLUEPRINTS[0]?.categories)[0] || "",
+    currentStepMessage: "자미두수 명반을 정리하고 있습니다.",
+    startedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...safeObject(extra),
+  });
+}
+
+function getZiweiProgressFromDoc(doc = {}, fallback = {}) {
+  return normalizeZiweiProgress(safeObject(doc?.metadata)?.ziweiPdfProgress, {
+    ...safeObject(fallback),
+    completedChapters: safeArray(safeObject(doc?.metadata)?.ziweiDraftChapters).length || fallback.completedChapters || 0,
+  });
+}
+
+function getZiweiDraftChaptersFromDoc(doc = {}) {
+  const metadata = safeObject(doc?.metadata);
+  return safeArray(metadata?.ziweiDraftChapters).filter((chapter) => chapter && typeof chapter === "object");
+}
+
+function getZiweiAccessToken(request, body = {}) {
+  return clean(
+    request.headers.get("x-premium-access-token")
+    || request.headers.get("x-ziwei-job-token")
+    || request.headers.get("x-job-token")
+    || body?.jobToken
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessToken
+    || cookieValue(request, "cd_premium_access")
+    || "",
+  );
+}
+
+function invalidZiweiAuthorizationResponse(status = 403, details = {}) {
+  return json({
+    ok: false,
+    serviceKey: ZIWEI_SERVICE_KEY,
+    code: "invalid_authorization",
+    status: "failed",
+    serverStatus: "failed",
+    retryable: false,
+    reportId: clean(details.reportId || ""),
+    sessionId: clean(details.sessionId || ""),
+    errorMessage: "생성 권한이 확인되지 않아 요청을 중단했습니다.",
+    message: "생성 권한이 확인되지 않아 요청을 중단했습니다.",
+  }, { status: status === 401 ? 401 : 403 });
+}
+
+async function findZiweiExecution(env, userId, keys = {}) {
+  const clauses = [];
+  const reportId = clean(keys.reportId || "");
+  const sessionId = clean(keys.sessionId || "");
+  const executionKey = clean(keys.executionKey || "");
+  if (executionKey) clauses.push({ executionKey });
+  if (reportId) clauses.push({ reportId });
+  if (sessionId) clauses.push({ sessionId });
+  if (!clauses.length) return null;
+  await connectDb(env);
+  return ServiceExecutionTransaction.findOne({
+    userId,
+    reportType: "ziweiPremium",
+    $or: clauses,
+  }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+}
+
+async function findCompletedZiweiReport(env, userId, keys = {}) {
+  const doc = await findZiweiExecution(env, userId, keys);
+  if (!doc || clean(doc.status) !== "success" || clean(doc.premiumStatus) !== "completed") return null;
+  const normalized = normalizeArchiveShapeFromExecution(doc);
+  if (!normalized.canDownload || safeArray(normalized.chapters).length < CHAPTER_BLUEPRINTS.length) return null;
+  if (clean(normalized.reportId)) REPORT_CACHE.set(clean(normalized.reportId), normalized);
+  return normalized;
+}
+
+async function persistZiweiPdfProgress(env, userId, options = {}) {
+  const executionCtx = safeObject(options.executionCtx);
+  const reportId = clean(options.reportId || executionCtx.reportId || "");
+  const sessionId = clean(options.sessionId || executionCtx.sessionId || "");
+  const draftChapters = safeArray(options.draftChapters);
+  const progress = normalizeZiweiProgress(options.progress, {
+    completedChapters: draftChapters.length,
+    reportId,
+    sessionId,
+  });
+  progress.updatedAt = new Date().toISOString();
+  const lockStatus = progress.status === "failed"
+    ? "failed_retryable"
+    : progress.status === "completed"
+      ? "completed"
+      : "running";
+  if (sessionId) {
+    SESSION_LOCKS.set(sessionId, {
+      status: lockStatus,
+      reportId,
+      progress,
+      failedAt: progress.status === "failed" ? Date.now() : undefined,
+      updatedAt: Date.now(),
+      code: progress.status === "failed" ? clean(options.code || "ZIWEI_PREMIUM_GENERATION_FAILED") : undefined,
+      error: clean(progress.errorMessage || ""),
+    });
+  }
+
+  const clauses = [];
+  if (clean(executionCtx.executionKey)) clauses.push({ executionKey: clean(executionCtx.executionKey) });
+  if (reportId) clauses.push({ reportId });
+  if (sessionId) clauses.push({ sessionId });
+  if (!clauses.length) return null;
+  const now = new Date();
+  const update = {
+    $set: {
+      reportType: "ziweiPremium",
+      reportId: reportId || undefined,
+      sessionId: sessionId || undefined,
+      status: "pending",
+      premiumStatus: "generating",
+      heartbeatAt: now,
+      lastClientHeartbeatAt: now,
+      "metadata.ziweiPdfProgress": progress,
+    },
+  };
+  if (draftChapters.length || options.draftChapters) {
+    update.$set["metadata.ziweiDraftChapters"] = draftChapters;
+  }
+  if (progress.status === "failed") {
+    update.$set.generationFailedAt = now;
+    update.$set.reasonCode = clean(options.code || "ziwei_generation_failed");
+    update.$set.reasonMessage = clean(progress.errorMessage || "자미두수 상담문 생성이 중단되었습니다.");
+  }
+  if (clean(executionCtx.executionKey)) {
+    update.$setOnInsert = {
+      userId,
+      executionKey: clean(executionCtx.executionKey),
+      featureKey: clean(executionCtx.featureKey || ZIWEI_FEATURE_KEY),
+      reportType: "ziweiPremium",
+      reportId: reportId || undefined,
+      sessionId: sessionId || undefined,
+      idempotencyKey: clean(executionCtx.idempotencyKey || executionCtx.executionKey),
+      timeoutAt: new Date(now.getTime() + (Number(executionCtx.timeoutSeconds || 1800) * 1000)),
+      nextRetryAt: now,
+      retryCount: 0,
+      maxRetries: Math.max(1, Number(executionCtx.maxRetries || 6)),
+      generationStartedAt: now,
+      retentionUntil: new Date(now.getTime() + (14 * 86400000)),
+    };
+  }
+  await connectDb(env);
+  return ServiceExecutionTransaction.findOneAndUpdate(
+    { userId, $or: clauses },
+    update,
+    { new: true, upsert: Boolean(clean(executionCtx.executionKey)), setDefaultsOnInsert: true },
+  ).lean();
+}
+
+async function markZiweiZeroProgressIfStale(env, userId, doc = {}, keys = {}) {
+  const draftChapters = getZiweiDraftChaptersFromDoc(doc);
+  const progress = getZiweiProgressFromDoc(doc, {
+    status: "generating",
+    completedChapters: draftChapters.length,
+    reportId: keys.reportId || doc.reportId,
+    sessionId: keys.sessionId || doc.sessionId,
+  });
+  if (progress.status === "failed" || progress.completedChapters > 0) return progress;
+  if (!["generating", "rendering", "uploading"].includes(progress.status)) return progress;
+  const timeoutMs = Math.max(30000, Number(env?.ZIWEI_ZERO_PROGRESS_TIMEOUT || env?.ZIWEI_ZERO_PROGRESS_TIMEOUT_MS || 180000));
+  const startedAt = Date.parse(progress.startedAt || doc.generationStartedAt || doc.createdAt || "");
+  if (!Number.isFinite(startedAt) || Date.now() - startedAt < timeoutMs) return progress;
+  const failedProgress = normalizeZiweiProgress(progress, {
+    status: "failed",
+    errorMessage: "ZIWEI_ZERO_PROGRESS_TIMEOUT",
+  });
+  failedProgress.status = "failed";
+  failedProgress.errorMessage = "ZIWEI_ZERO_PROGRESS_TIMEOUT";
+  failedProgress.currentStepMessage = "자미두수 상담문 생성이 중단되었습니다.";
+  await persistZiweiPdfProgress(env, userId, {
+    reportId: keys.reportId || doc.reportId,
+    sessionId: keys.sessionId || doc.sessionId,
+    progress: failedProgress,
+    draftChapters,
+    code: "ZIWEI_ZERO_PROGRESS_TIMEOUT",
+  });
+  return failedProgress;
 }
 
 function getValidatedZiweiReportCache(reportId = "") {
@@ -4300,6 +4599,30 @@ async function handlePrepareSync(request, env) {
     hasBirthProfile: Boolean(body?.birthProfile),
     hasZiweiBase: Boolean(body?.ziweiBase || body?.ziweiPdfSeed || body?.chartResult?.reportPayload),
   });
+  let precheckedAccess = null;
+  const earlyReportId = clean(body?.reportId || "");
+  const earlySessionId = clean(body?.reportSessionId || body?.sessionId || "");
+  if (earlyReportId || earlySessionId) {
+    const earlyFeatureKey = normalizeFeatureKey(body?.featureKey);
+    precheckedAccess = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
+      ...body,
+      featureKey: earlyFeatureKey,
+      reportType: "ziweiPremium",
+      premiumAccessToken: getZiweiAccessToken(request, body) || undefined,
+      _accessRoute: "/api/ziwei-book",
+    });
+    if (!precheckedAccess?.ok) {
+      return invalidZiweiAuthorizationResponse(Number(precheckedAccess?.status || 403), {
+        reportId: earlyReportId,
+        sessionId: earlySessionId,
+      });
+    }
+    const completedReport = await findCompletedZiweiReport(env, auth.userId, { reportId: earlyReportId, sessionId: earlySessionId });
+    if (completedReport) {
+      console.info("[ZiweiBook][Flow] ZIWEI_EXISTING_PDF_RETURNED", { reportId: earlyReportId, sessionId: earlySessionId, source: "prepare_fast_path" });
+      return json(completedReport, { status: 200 });
+    }
+  }
   const normalized = normalizeInput(body);
   if (!normalized.ok) return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: normalized.code || "INVALID_INPUT", message: normalized.message }, { status: 422 });
   console.info("[ZiweiBook][Flow] ZIWEI_PDF_PREPARE_COMPLETED", {
@@ -4326,18 +4649,11 @@ async function handlePrepareSync(request, env) {
     birthHash,
   });
 
-  let precheckedAccess = null;
   {
-    const premiumAccessTokenForAccess = clean(
-      request.headers.get("x-premium-access-token")
-      || body?.premiumAccessToken
-      || body?._premiumAccessToken
-      || cookieValue(request, "cd_premium_access")
-      || "",
-    );
+    const premiumAccessTokenForAccess = getZiweiAccessToken(request, body);
     const featureKeyForAccess = normalizeFeatureKey(body?.featureKey);
     console.info("[ZiweiBook][Flow] BILLING_PRECHECK_START", { featureKey: featureKeyForAccess, userId: auth.userId });
-    precheckedAccess = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
+    precheckedAccess = precheckedAccess || await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
       ...body,
       featureKey: featureKeyForAccess,
       reportType: "ziweiPremium",
@@ -4346,12 +4662,10 @@ async function handlePrepareSync(request, env) {
     });
     if (!precheckedAccess?.ok) {
       const status = Number(precheckedAccess?.status || 402);
-      return json({
-        ok: false,
-        serviceKey: ZIWEI_SERVICE_KEY,
-        code: precheckedAccess?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-        message: precheckedAccess?.message || "자미두수 프리미엄 PDF 접근 권한 확인이 필요합니다.",
-      }, { status });
+      return invalidZiweiAuthorizationResponse(status, {
+        reportId: clean(body?.reportId || ""),
+        sessionId: clean(body?.reportSessionId || body?.sessionId || ""),
+      });
     }
     console.info("[ZiweiBook][Flow] BILLING_PRECHECK_OK", { featureKey: featureKeyForAccess, accessType: clean(precheckedAccess.accessType || "") });
   }
@@ -4397,29 +4711,23 @@ async function handlePrepareSync(request, env) {
     }, { status: 422 });
   }
 
-  const premiumAccessToken = clean(
-    request.headers.get("x-premium-access-token")
-    || body?.premiumAccessToken
-    || body?._premiumAccessToken
-    || cookieValue(request, "cd_premium_access")
-    || "",
-  );
+  const premiumAccessToken = getZiweiAccessToken(request, body);
   const featureKey = normalizeFeatureKey(body?.featureKey);
   const sessionId = clean(body?.reportSessionId || body?.sessionId || `ziwei-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
   const reportId = clean(body?.reportId || `ziwei-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+  const completedReport = await findCompletedZiweiReport(env, auth.userId, { reportId, sessionId });
+  if (completedReport) {
+    console.info("[ZiweiBook][Flow] ZIWEI_EXISTING_PDF_RETURNED", { reportId, sessionId });
+    return json(completedReport, { status: 200 });
+  }
   const existingLock = SESSION_LOCKS.get(sessionId);
   if (clean(existingLock?.status) === "running") {
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: "ZIWEI_PROCESSING",
-      message: "결제는 확인되었습니다. 현재 자미두수 PDF 생성이 진행 중입니다.",
-      status: "processing",
-      retryable: true,
+    return json(buildZiweiProgressResponse(existingLock?.progress || initialZiweiProgress({ reportId, sessionId, birthHash }), {
       reportId,
       sessionId,
       birthHash,
-    }, { status: 202 });
+      llmDraftChapterCount: existingLock?.progress?.completedChapters || 0,
+    }), { status: 202 });
   }
   if (existingLock?.status === "completed" && existingLock?.reportId) {
     const cachedCompleted = getValidatedZiweiReportCache(existingLock.reportId);
@@ -4442,16 +4750,7 @@ async function handlePrepareSync(request, env) {
   });
   if (!access?.ok) {
     const status = Number(access?.status || 402);
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-      message: status === 401
-        ? "자미두수 PDF 생성을 위해 먼저 로그인해 주세요."
-        : status === 402
-          ? "프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다."
-          : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-    }, { status });
+    return invalidZiweiAuthorizationResponse(status, { reportId, sessionId });
   }
   console.info("[ZiweiBook][Flow] BILLING_CHECK_OK", { featureKey, accessType: clean(access.accessType || "") });
 
@@ -4467,7 +4766,15 @@ async function handlePrepareSync(request, env) {
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
   await startPremiumPdfExecution(env, auth.userId, executionCtx);
-  SESSION_LOCKS.set(sessionId, { status: "running", startedAt: Date.now(), reportId });
+  const startedProgress = initialZiweiProgress({ reportId, sessionId, birthHash });
+  await persistZiweiPdfProgress(env, auth.userId, {
+    executionCtx,
+    reportId,
+    sessionId,
+    progress: startedProgress,
+    draftChapters: [],
+  });
+  console.info("[ZiweiBook][Flow] ZIWEI_PROGRESS_STARTED", { reportId, sessionId, completedChapters: 0 });
 
   if (shouldForceZiweiSmokeFail(request, env)) {
     throw Object.assign(new Error("ziwei smoke forced failure"), {
@@ -4476,9 +4783,56 @@ async function handlePrepareSync(request, env) {
     });
   }
 
+  let draftChapters = [];
+  let lastProgress = startedProgress;
+  const storeProgress = async (progress, code = "") => {
+    lastProgress = normalizeZiweiProgress(progress, {
+      completedChapters: draftChapters.length,
+      reportId,
+      sessionId,
+    });
+    await persistZiweiPdfProgress(env, auth.userId, {
+      executionCtx,
+      reportId,
+      sessionId,
+      progress: lastProgress,
+      draftChapters,
+      code,
+    });
+    return lastProgress;
+  };
+  const upsertDraftChapter = (chapter, chapterSpec = {}) => {
+    if (!chapter || typeof chapter !== "object") return null;
+    const id = clean(chapter.id || chapter.chapterId || chapterSpec.id);
+    const order = Number(chapter.order || chapter.chapterNo || chapterSpec.order || 0);
+    const next = { ...chapter, id: id || chapter.id, order: order || chapter.order };
+    const index = draftChapters.findIndex((item) => clean(item?.id || item?.chapterId) === clean(next.id || next.chapterId));
+    if (index >= 0) draftChapters[index] = next;
+    else draftChapters.push(next);
+    draftChapters = draftChapters
+      .filter((item) => item && typeof item === "object")
+      .sort((a, b) => Number(a.order || a.chapterNo || 0) - Number(b.order || b.chapterNo || 0));
+    return next;
+  };
 
   try {
     {
+      const existingExecution = await findZiweiExecution(env, auth.userId, {
+        executionKey: executionCtx.executionKey,
+        reportId,
+        sessionId,
+      });
+      draftChapters = getZiweiDraftChaptersFromDoc(existingExecution);
+      if (draftChapters.length > 0) {
+        await storeProgress({
+          status: "generating",
+          completedChapters: draftChapters.length,
+          currentChapterNumber: Math.min(CHAPTER_BLUEPRINTS.length, draftChapters.length + 1),
+          currentChapterTitle: CHAPTER_BLUEPRINTS[Math.min(CHAPTER_BLUEPRINTS.length - 1, draftChapters.length)]?.title || "",
+          currentCategory: safeArray(CHAPTER_BLUEPRINTS[Math.min(CHAPTER_BLUEPRINTS.length - 1, draftChapters.length)]?.categories)[0] || "",
+          currentStepMessage: getZiweiProgressMessage({ status: "generating", completedChapters: draftChapters.length, currentChapterNumber: Math.min(CHAPTER_BLUEPRINTS.length, draftChapters.length + 1) }),
+        });
+      }
       console.info("[ZiweiPremiumPDF][LlmManuscriptBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
       console.info("[ZiweiBook][Flow] ZIWEI_WORKERS_AI_GENERATION_STARTED", { reportId, sessionId, chapterCount: CHAPTER_BLUEPRINTS.length });
       const llmResult = await generateZiweiPremiumReport(env, {
@@ -4492,8 +4846,50 @@ async function handlePrepareSync(request, env) {
         chapterSpecs: requestedChapterSpecs,
         ziweiMasterJson,
         masterJsonValidation,
+        existingChapters: draftChapters,
+        callbacks: {
+          onChapterStart: async ({ chapterSpec, completedChapters, currentCategory }) => {
+            const order = Number(chapterSpec?.order || completedChapters + 1 || 1);
+            await storeProgress({
+              status: "generating",
+              completedChapters: clampZiweiChapterCount(completedChapters),
+              currentChapterNumber: order,
+              currentChapterTitle: clean(chapterSpec?.title || CHAPTER_BLUEPRINTS[order - 1]?.title || ""),
+              currentCategory: clean(currentCategory || safeArray(chapterSpec?.sections || chapterSpec?.categories)[0] || ""),
+              currentStepMessage: order === 6 ? "재백궁과 관록궁 흐름을 분석하고 있습니다." : `${order}챕터 상담문을 생성하고 있습니다.`,
+            });
+          },
+          onChapterComplete: async ({ chapter, chapterSpec, completedChapters }) => {
+            upsertDraftChapter(chapter, chapterSpec);
+            const completed = Math.max(clampZiweiChapterCount(completedChapters), draftChapters.length);
+            const nextNumber = Math.min(CHAPTER_BLUEPRINTS.length, completed + 1);
+            await storeProgress({
+              status: completed >= CHAPTER_BLUEPRINTS.length ? "rendering" : "generating",
+              completedChapters: completed,
+              currentChapterNumber: nextNumber,
+              currentChapterTitle: CHAPTER_BLUEPRINTS[nextNumber - 1]?.title || "",
+              currentCategory: safeArray(CHAPTER_BLUEPRINTS[nextNumber - 1]?.categories)[0] || "",
+              currentStepMessage: completed >= CHAPTER_BLUEPRINTS.length ? "PDF 원고를 조판하고 있습니다." : getZiweiProgressMessage({ status: "generating", completedChapters: completed, currentChapterNumber: nextNumber }),
+            });
+            console.info("[ZiweiBook][Flow] ZIWEI_CHAPTER_PROGRESS_SAVED", {
+              reportId,
+              sessionId,
+              completedChapters: completed,
+              currentChapterNumber: nextNumber,
+            });
+          },
+        },
       });
       const completedChapters = safeArray(llmResult?.chapters);
+      draftChapters = completedChapters;
+      await storeProgress({
+        status: "rendering",
+        completedChapters: completedChapters.length,
+        currentChapterNumber: CHAPTER_BLUEPRINTS.length,
+        currentChapterTitle: CHAPTER_BLUEPRINTS[CHAPTER_BLUEPRINTS.length - 1]?.title || "",
+        currentCategory: "",
+        currentStepMessage: "PDF 원고를 조판하고 있습니다.",
+      });
       console.info("[ZiweiBook][Flow] ZIWEI_WORKERS_AI_GENERATION_COMPLETED", {
         reportId,
         sessionId,
@@ -4565,8 +4961,26 @@ async function handlePrepareSync(request, env) {
       console.info("[ZiweiBook][Flow] ZIWEI_ALL_CHAPTERS_COMPLETED", { reportId, sessionId, chapterCount: completedChapters.length });
       console.info("[ZiweiBook][Flow] ZIWEI_HTML_ASSEMBLED", { reportId, sessionId, hasHtml: Boolean(clean(pdfReady?.html)) });
       console.info("[ZiweiBook][Flow] ZIWEI_PDF_RENDER_COMPLETED", { reportId, sessionId, downloadUrl: Boolean(clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl)) });
+      await storeProgress({
+        status: "uploading",
+        completedChapters: completedChapters.length,
+        currentChapterNumber: CHAPTER_BLUEPRINTS.length,
+        currentChapterTitle: CHAPTER_BLUEPRINTS[CHAPTER_BLUEPRINTS.length - 1]?.title || "",
+        currentCategory: "",
+        currentStepMessage: "PDF를 저장하고 있습니다.",
+      });
+      const completedProgress = normalizeZiweiProgress({
+        status: "completed",
+        completedChapters: completedChapters.length,
+        currentChapterNumber: CHAPTER_BLUEPRINTS.length,
+        currentChapterTitle: CHAPTER_BLUEPRINTS[CHAPTER_BLUEPRINTS.length - 1]?.title || "",
+        currentCategory: "",
+        currentStepMessage: "PDF 저장이 완료되었습니다.",
+      });
 
       await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+        ziweiPdfProgress: completedProgress,
+        ziweiDraftChapters: completedChapters,
         manuscriptSource: ZIWEI_PDF_CONFIG.generationMode,
         chapterCount: completedChapters.length,
         llmAssemblyOnly: true,
@@ -4601,6 +5015,7 @@ async function handlePrepareSync(request, env) {
             llmAssembly,
           },
           pdfReady,
+          ziweiPdfProgress: completedProgress,
           canReopen: true,
           canDownload: true,
         },
@@ -4615,6 +5030,13 @@ async function handlePrepareSync(request, env) {
         reportId,
         sessionId,
         birthHash,
+        totalChapters: completedProgress.totalChapters,
+        completedChapters: completedProgress.completedChapters,
+        currentChapterNumber: completedProgress.currentChapterNumber,
+        currentChapterTitle: completedProgress.currentChapterTitle,
+        currentCategory: completedProgress.currentCategory,
+        currentStepMessage: completedProgress.currentStepMessage,
+        ziweiPdfProgress: completedProgress,
         chapterCount: CHAPTER_BLUEPRINTS.length,
         chapters: completedChapters,
         payload: ziweiPayload,
@@ -4656,52 +5078,50 @@ async function handlePrepareSync(request, env) {
         finalChapterCount: completedChapters.length,
       };
       REPORT_CACHE.set(reportId, responsePayload);
-      SESSION_LOCKS.set(sessionId, { status: "completed", completedAt: Date.now(), reportId });
+      SESSION_LOCKS.set(sessionId, { status: "completed", completedAt: Date.now(), reportId, progress: completedProgress });
       console.info("[ZiweiBook][Flow] ZIWEI_PDF_COMPLETED", { reportId, sessionId, chapterCount: completedChapters.length });
       return json(responsePayload);
     }
 
   } catch (error) {
-    await failPremiumPdfExecution(
-      env,
-      auth.userId,
-      executionCtx,
-      "ziwei_generation_failed",
-      clean(error?.message || "자미두수 PDF 생성에 실패했습니다."),
-      "ziwei-generation",
-    );
     const retryCode = clean(error?.code || "ZIWEI_PREPARE_FAILED_RETRYABLE");
     const retryStatus = Number(error?.status || 500);
     const errorDetail = safeObject(error?.detail);
-    SESSION_LOCKS.set(sessionId, { status: "failed_retryable", failedAt: Date.now(), reportId, error: clean(error?.message || ""), code: retryCode });
-    const retryable = {
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
+    const failedChapter = safeArray(errorDetail?.failedChapters || error?.failedChapters)[0] || {};
+    const failedOrder = Number(failedChapter.chapterNo || failedChapter.order || lastProgress.currentChapterNumber || draftChapters.length + 1 || 1);
+    const failedProgress = normalizeZiweiProgress({
+      status: "failed",
+      completedChapters: draftChapters.length,
+      currentChapterNumber: Math.max(1, Math.min(CHAPTER_BLUEPRINTS.length, failedOrder)),
+      currentChapterTitle: clean(failedChapter.title || CHAPTER_BLUEPRINTS[Math.max(0, Math.min(CHAPTER_BLUEPRINTS.length - 1, failedOrder - 1))]?.title || lastProgress.currentChapterTitle || ""),
+      currentCategory: clean(failedChapter.category || lastProgress.currentCategory || ""),
+      currentStepMessage: "자미두수 상담문 생성이 중단되었습니다.",
+      errorMessage: clean(error?.message || "자미두수 PDF 생성에 실패했습니다."),
+    });
+    await persistZiweiPdfProgress(env, auth.userId, {
+      executionCtx,
+      reportId,
+      sessionId,
+      progress: failedProgress,
+      draftChapters,
       code: retryCode,
-      message: retryStatus >= 500
-        ? "결제는 확인되었습니다. PDF 생성 서버가 응답하지 않아 재시도가 필요합니다."
-        : "결제는 확인되었습니다. 자미두수 원고 검증을 다시 진행해 주세요.",
-      status: "failed_retryable",
-      serverStatus: "failed_retryable",
-      retryable: true,
+    });
+    const retryable = buildZiweiProgressResponse(failedProgress, {
+      code: retryCode,
+      errorMessage: failedProgress.errorMessage,
       reportId,
       sessionId,
       birthHash,
-      chapterCount: CHAPTER_BLUEPRINTS.length,
-      chapters: [],
-      qualityStatus: "failed_retryable",
-      llmDraftChapterCount: 0,
-      llmChapterCount: 0,
-      finalChapterCount: 0,
-      chapterDiagnostics: errorDetail?.failedChapters || [],
-      detail: clean(error?.message || ""),
-      failureStage: "ziwei-generation",
-    };
+      llmDraftChapterCount: draftChapters.length,
+    });
+    retryable.chapterDiagnostics = errorDetail?.failedChapters || [];
+    retryable.detail = clean(error?.message || "");
+    retryable.failureStage = "ziwei-generation";
     console.warn("[ZiweiBook][Flow] PrepareFailedRetryable", {
       reportId,
       sessionId,
       birthHash,
-      chapterCount: 0,
+      chapterCount: draftChapters.length,
       hasToken: Boolean(premiumAccessToken),
       status: retryStatus,
       code: retryCode,
@@ -4736,6 +5156,31 @@ async function handlePrepare(request, env, ctx) {
     throw error;
   }
 
+  let precheckedAccess = null;
+  const earlyReportId = clean(body?.reportId || "");
+  const earlySessionId = clean(body?.reportSessionId || body?.sessionId || "");
+  if (earlyReportId || earlySessionId) {
+    const earlyFeatureKey = normalizeFeatureKey(body?.featureKey);
+    precheckedAccess = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
+      ...body,
+      featureKey: earlyFeatureKey,
+      reportType: "ziweiPremium",
+      premiumAccessToken: getZiweiAccessToken(request, body) || undefined,
+      _accessRoute: "/api/ziwei-book",
+    });
+    if (!precheckedAccess?.ok) {
+      return invalidZiweiAuthorizationResponse(Number(precheckedAccess?.status || 403), {
+        reportId: earlyReportId,
+        sessionId: earlySessionId,
+      });
+    }
+    const completedReport = await findCompletedZiweiReport(env, auth.userId, { reportId: earlyReportId, sessionId: earlySessionId });
+    if (completedReport) {
+      console.info("[ZiweiBook][Flow] ZIWEI_EXISTING_PDF_RETURNED", { reportId: earlyReportId, sessionId: earlySessionId, source: "prepare_async_fast_path" });
+      return json(completedReport, { status: 200 });
+    }
+  }
+
   const normalized = normalizeInput(body);
   if (!normalized.ok) return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: normalized.code || "INVALID_INPUT", message: normalized.message }, { status: 422 });
 
@@ -4744,15 +5189,9 @@ async function handlePrepare(request, env, ctx) {
     return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "MISSING_ZIWEI_ENGINE_RESULT", message: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요." }, { status: 422 });
   }
 
-  const premiumAccessToken = clean(
-    request.headers.get("x-premium-access-token")
-    || body?.premiumAccessToken
-    || body?._premiumAccessToken
-    || cookieValue(request, "cd_premium_access")
-    || "",
-  );
+  const premiumAccessToken = getZiweiAccessToken(request, body);
   const featureKey = normalizeFeatureKey(body?.featureKey);
-  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
+  const access = precheckedAccess || await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
     ...body,
     featureKey,
     reportType: "ziweiPremium",
@@ -4761,12 +5200,10 @@ async function handlePrepare(request, env, ctx) {
   });
   if (!access?.ok) {
     const status = Number(access?.status || 402);
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-      message: access?.message || "자미두수 프리미엄 PDF 접근 권한 확인이 필요합니다.",
-    }, { status });
+    return invalidZiweiAuthorizationResponse(status, {
+      reportId: clean(body?.reportId || ""),
+      sessionId: clean(body?.reportSessionId || body?.sessionId || ""),
+    });
   }
 
   const birthInput = normalized.birthInput;
@@ -4779,6 +5216,11 @@ async function handlePrepare(request, env, ctx) {
   }));
   const sessionId = clean(body?.reportSessionId || body?.sessionId || `ziwei-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
   const reportId = clean(body?.reportId || `ziwei-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+  const completedReport = await findCompletedZiweiReport(env, auth.userId, { reportId, sessionId });
+  if (completedReport) {
+    console.info("[ZiweiBook][Flow] ZIWEI_EXISTING_PDF_RETURNED", { reportId, sessionId, source: "prepare_async" });
+    return json(completedReport, { status: 200 });
+  }
   const existingLock = SESSION_LOCKS.get(sessionId);
   if (existingLock?.status === "completed" && existingLock?.reportId) {
     const cachedCompleted = getValidatedZiweiReportCache(existingLock.reportId);
@@ -4787,24 +5229,16 @@ async function handlePrepare(request, env, ctx) {
     }
   }
   if (["queued", "running"].includes(clean(existingLock?.status))) {
-    return json({
-      ok: true,
-      accepted: true,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: "ZIWEI_PROCESSING",
-      message: "결제가 확인되었습니다. 자미두수 PDF 생성이 진행 중입니다.",
-      status: "processing",
-      retryable: true,
+    return json(buildZiweiProgressResponse(existingLock?.progress || initialZiweiProgress({ reportId, sessionId, birthHash }), {
       reportId: clean(existingLock?.reportId || reportId),
       sessionId,
       birthHash,
-      chapterCount: CHAPTER_BLUEPRINTS.length,
-      qualityStatus: "processing",
-      pollAfterMs: 4000,
-    }, { status: 202 });
+      llmDraftChapterCount: existingLock?.progress?.completedChapters || 0,
+    }), { status: 202 });
   }
 
-  SESSION_LOCKS.set(sessionId, { status: "queued", startedAt: Date.now(), reportId });
+  const queuedProgress = initialZiweiProgress({ reportId, sessionId, birthHash });
+  SESSION_LOCKS.set(sessionId, { status: "queued", startedAt: Date.now(), reportId, progress: queuedProgress });
 
   const backgroundRequest = new Request(request, { body: bodyText });
   ctx.waitUntil(
@@ -4813,10 +5247,18 @@ async function handlePrepare(request, env, ctx) {
         try { await response?.text?.(); } catch (_) {}
       })
       .catch((error) => {
+        const failedProgress = normalizeZiweiProgress(queuedProgress, {
+          status: "failed",
+          errorMessage: clean(error?.message || error),
+        });
+        failedProgress.status = "failed";
+        failedProgress.currentStepMessage = "자미두수 상담문 생성이 중단되었습니다.";
+        failedProgress.errorMessage = clean(error?.message || error);
         SESSION_LOCKS.set(sessionId, {
           status: "failed_retryable",
           failedAt: Date.now(),
           reportId,
+          progress: failedProgress,
           error: clean(error?.message || error),
           code: clean(error?.code || "ZIWEI_PREPARE_BACKGROUND_FAILED"),
         });
@@ -4830,22 +5272,12 @@ async function handlePrepare(request, env, ctx) {
       }),
   );
 
-  return json({
-    ok: true,
-    accepted: true,
-    serviceKey: ZIWEI_SERVICE_KEY,
-    code: "ZIWEI_PROCESSING",
-    message: "결제가 확인되었습니다. 자미두수 PDF 생성이 시작되었습니다.",
-    status: "processing",
-    retryable: true,
+  return json(buildZiweiProgressResponse(queuedProgress, {
     reportId,
     sessionId,
     birthHash,
-    chapterCount: CHAPTER_BLUEPRINTS.length,
-    chapters: [],
-    qualityStatus: "processing",
-    pollAfterMs: 4000,
-  }, { status: 202 });
+    llmDraftChapterCount: 0,
+  }), { status: 202 });
 }
 
 async function handleResult(request, env) {
@@ -4874,30 +5306,27 @@ async function handleResult(request, env) {
 
   const lockBySession = sessionId ? SESSION_LOCKS.get(sessionId) : null;
   if (["queued", "running"].includes(clean(lockBySession?.status))) {
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: "ZIWEI_PROCESSING",
-      message: "결제는 확인되었습니다. 현재 자미두수 PDF 생성이 계속 진행 중입니다.",
-      status: "processing",
-      retryable: true,
-      reportId: clean(lockBySession.reportId || reportId),
-      sessionId,
-    }, { status: 202 });
-  }
-  if (clean(lockBySession?.status) === "failed_retryable") {
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: clean(lockBySession?.code || "ZIWEI_PREMIUM_GENERATION_FAILED"),
-      message: "결제는 확인되었지만 자미두수 PDF 생성이 완료되지 않았습니다. 잠시 후 다시 생성해 주세요.",
-      status: "failed_retryable",
-      serverStatus: "failed_retryable",
-      retryable: true,
+    return json(buildZiweiProgressResponse(lockBySession?.progress || initialZiweiProgress({
       reportId: clean(lockBySession?.reportId || reportId),
       sessionId,
-      failedAt: lockBySession?.failedAt || null,
-    }, { status: 503 });
+    }), {
+      reportId: clean(lockBySession?.reportId || reportId),
+      sessionId,
+      llmDraftChapterCount: lockBySession?.progress?.completedChapters || 0,
+    }), { status: 202 });
+  }
+  if (clean(lockBySession?.status) === "failed_retryable") {
+    return json(buildZiweiProgressResponse(lockBySession?.progress || {
+      status: "failed",
+      completedChapters: 0,
+      currentStepMessage: "자미두수 상담문 생성이 중단되었습니다.",
+      errorMessage: clean(lockBySession?.error || "자미두수 PDF 생성에 실패했습니다."),
+    }, {
+      code: clean(lockBySession?.code || "ZIWEI_PREMIUM_GENERATION_FAILED"),
+      reportId: clean(lockBySession?.reportId || reportId),
+      sessionId,
+      errorMessage: clean(lockBySession?.error || ""),
+    }), { status: 503 });
   }
   if (lockBySession?.reportId) {
     const cachedBySession = getValidatedZiweiReportCache(lockBySession.reportId);
@@ -4917,30 +5346,30 @@ async function handleResult(request, env) {
     doc = await ServiceExecutionTransaction.findOne({ userId: auth.userId, sessionId }).lean();
   }
   if (!doc) {
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: "RESULT_NOT_FOUND",
-      message: "결제는 확인되었습니다. 자미두수 PDF 결과를 확인하는 중입니다.",
-      status: "processing",
-      retryable: true,
+    return json(buildZiweiProgressResponse(initialZiweiProgress({
       reportId,
       sessionId,
-    }, { status: 404 });
+      currentStepMessage: "자미두수 명반을 정리하고 있습니다.",
+    }), {
+      code: "RESULT_NOT_FOUND",
+      reportId,
+      sessionId,
+    }), { status: 404 });
   }
 
   const normalized = normalizeArchiveShapeFromExecution(doc);
   if (!normalized.ok || !Array.isArray(normalized.chapters) || normalized.chapters.length < CHAPTER_BLUEPRINTS.length) {
-    return json({
-      ok: false,
-      serviceKey: ZIWEI_SERVICE_KEY,
-      code: "ZIWEI_RESULT_INCOMPLETE",
-      message: "결제는 확인되었습니다. 자미두수 PDF 저장 결과를 마무리하는 중입니다.",
-      status: "processing",
-      retryable: true,
+    const progress = await markZiweiZeroProgressIfStale(env, auth.userId, doc, {
       reportId: clean(normalized?.reportId || reportId),
       sessionId: clean(normalized?.sessionId || sessionId),
-    }, { status: 202 });
+    });
+    return json(buildZiweiProgressResponse(progress, {
+      code: progress.status === "failed" ? clean(progress.errorMessage || "ZIWEI_PREMIUM_GENERATION_FAILED") : "ZIWEI_RESULT_INCOMPLETE",
+      reportId: clean(normalized?.reportId || reportId),
+      sessionId: clean(normalized?.sessionId || sessionId),
+      errorMessage: progress.status === "failed" ? progress.errorMessage : "",
+      llmDraftChapterCount: progress.completedChapters,
+    }), { status: progress.status === "failed" ? 503 : 202 });
   }
 
   const resultValidation = validateZiweiLlmPdfCompletionPayload({
@@ -4953,9 +5382,9 @@ async function handleResult(request, env) {
       ok: false,
       serviceKey: ZIWEI_SERVICE_KEY,
       code: "ZIWEI_RESULT_VALIDATION_FAILED",
-      message: "결제는 확인되었습니다. 자미두수 PDF 원고 검증을 다시 진행해 주세요.",
-      status: "failed_retryable",
-      serverStatus: "failed_retryable",
+      message: "자미두수 PDF 원고 검증을 다시 진행해 주세요.",
+      status: "failed",
+      serverStatus: "failed",
       retryable: true,
       reportId: clean(normalized?.reportId || reportId),
       sessionId: clean(normalized?.sessionId || sessionId),
@@ -4965,7 +5394,12 @@ async function handleResult(request, env) {
 
   REPORT_CACHE.set(clean(normalized.reportId), normalized);
   if (clean(normalized.sessionId)) {
-    SESSION_LOCKS.set(clean(normalized.sessionId), { status: "completed", completedAt: Date.now(), reportId: clean(normalized.reportId) });
+    SESSION_LOCKS.set(clean(normalized.sessionId), {
+      status: "completed",
+      completedAt: Date.now(),
+      reportId: clean(normalized.reportId),
+      progress: normalized.ziweiPdfProgress,
+    });
   }
   console.info("[ZiweiBook][Flow] ReportRecovered", { reportId: clean(normalized.reportId), sessionId: clean(normalized.sessionId), source: "db_execution" });
   return json(normalized, { status: 200 });

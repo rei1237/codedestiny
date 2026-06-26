@@ -1,28 +1,258 @@
 (function () {
+  var DREAM_LEDGER_TEXT_TRANSLATIONS = {
+    ko: {
+      toneComfort: '위로',
+      toneMotivation: '동기부여',
+      toneCoaching: '코칭',
+      categoryAll: '전체',
+      categoryAnimal: '동물 관련',
+      categoryFruit: '과일 관련',
+      categoryPeople: '사람 관련',
+      categoryPositiveEmotion: '감정(긍정)',
+      categoryAngerEmotion: '감정(분노)',
+      categoryAnxietyEmotion: '감정(불안)',
+      categoryLossEmotion: '감정(상실)',
+      categoryRecoveryEmotion: '감정(회복)',
+      categoryPlace: '장소 키워드',
+      categoryObject: '사물 키워드',
+      categoryTaemong: '태몽',
+      categoryWealth: '재물운',
+      categorySuccess: '합격운',
+      categoryLove: '연애운',
+      categoryMarriage: '결혼운',
+      dreamPromptTitle: '꿈 프롬프트 생성서',
+      stageSceneTitle: '1장 · 꿈 장면 정리',
+      stageSymbolTitle: '2장 · 상징과 감정 단서',
+      stageQuestionTitle: '3장 · AI에게 건넬 질문',
+      inputGuide: '누가(무엇이) 어떤 행동을 했고, 어떤 감정을 느꼈는지 적어주세요.',
+      shareTitle: '무의식의 마법 상점: 드림 프롬프트',
+      tarotBackAria: '타로 카드 뒷면',
+      copiedPrompt: '꿈 프롬프트를 클립보드에 복사했습니다.',
+      shareUnsupported: '공유를 지원하지 않는 환경입니다.',
+      defaultShareText: '꿈 프롬프트를 확인해보세요.',
+      hiddenRoot: '숨겨진 근원',
+      currentMessage: '현재의 전언',
+      tomorrowGuidance: '내일의 지침',
+      sealedAdvice: '봉인 조언',
+      luckSpell: '행운 주문',
+      cardFallback: '카드',
+      reversed: '역방향'
+    },
+    en: {
+      toneComfort: 'Comfort',
+      toneMotivation: 'Motivation',
+      toneCoaching: 'Coaching',
+      categoryAll: 'All',
+      categoryAnimal: 'Animals',
+      categoryFruit: 'Fruit',
+      categoryPeople: 'People',
+      categoryPositiveEmotion: 'Emotion (positive)',
+      categoryAngerEmotion: 'Emotion (anger)',
+      categoryAnxietyEmotion: 'Emotion (anxiety)',
+      categoryLossEmotion: 'Emotion (loss)',
+      categoryRecoveryEmotion: 'Emotion (recovery)',
+      categoryPlace: 'Place keywords',
+      categoryObject: 'Object keywords',
+      categoryTaemong: 'Birth dream',
+      categoryWealth: 'Wealth fortune',
+      categorySuccess: 'Success fortune',
+      categoryLove: 'Love fortune',
+      categoryMarriage: 'Marriage fortune',
+      dreamPromptTitle: 'Dream Prompt Generator',
+      stageSceneTitle: 'Chapter 1 · Dream Scene Notes',
+      stageSymbolTitle: 'Chapter 2 · Symbols and Emotional Clues',
+      stageQuestionTitle: 'Chapter 3 · Questions for AI',
+      inputGuide: 'Please describe who or what acted, what happened, and what emotion you felt.',
+      shareTitle: 'Unconscious Magic Shop: Dream Prompt',
+      tarotBackAria: 'Tarot card back',
+      copiedPrompt: 'Dream prompt copied to clipboard.',
+      shareUnsupported: 'Sharing is not supported in this environment.',
+      defaultShareText: 'Review your dream prompt.',
+      hiddenRoot: 'Hidden root',
+      currentMessage: 'Current message',
+      tomorrowGuidance: 'Tomorrow guidance',
+      sealedAdvice: 'Sealed advice',
+      luckSpell: 'Luck spell',
+      cardFallback: 'Card',
+      reversed: 'Reversed'
+    },
+    ja: {
+      toneComfort: '慰め',
+      toneMotivation: '動機づけ',
+      toneCoaching: 'コーチング',
+      categoryAll: 'すべて',
+      categoryAnimal: '動物関連',
+      categoryFruit: '果物関連',
+      categoryPeople: '人物関連',
+      categoryPositiveEmotion: '感情(肯定)',
+      categoryAngerEmotion: '感情(怒り)',
+      categoryAnxietyEmotion: '感情(不安)',
+      categoryLossEmotion: '感情(喪失)',
+      categoryRecoveryEmotion: '感情(回復)',
+      categoryPlace: '場所キーワード',
+      categoryObject: '物キーワード',
+      categoryTaemong: '胎夢',
+      categoryWealth: '金運',
+      categorySuccess: '合格運',
+      categoryLove: '恋愛運',
+      categoryMarriage: '結婚運',
+      dreamPromptTitle: '夢プロンプト生成書',
+      stageSceneTitle: '第1章 · 夢の場面整理',
+      stageSymbolTitle: '第2章 · 象徴と感情の手がかり',
+      stageQuestionTitle: '第3章 · AIへ渡す質問',
+      inputGuide: '誰が、または何がどんな行動をし、どんな感情を感じたのかを書いてください。',
+      shareTitle: '無意識の魔法店: ドリームプロンプト',
+      tarotBackAria: 'タロットカード裏面',
+      copiedPrompt: '夢プロンプトをクリップボードにコピーしました。',
+      shareUnsupported: 'この環境では共有に対応していません。',
+      defaultShareText: '夢プロンプトを確認してください。',
+      hiddenRoot: '隠れた根源',
+      currentMessage: '現在の伝言',
+      tomorrowGuidance: '明日の指針',
+      sealedAdvice: '封印された助言',
+      luckSpell: '幸運の呪文',
+      cardFallback: 'カード',
+      reversed: '逆位置'
+    },
+    'zh-CN': {
+      toneComfort: '安慰',
+      toneMotivation: '激励',
+      toneCoaching: '教练式指引',
+      categoryAll: '全部',
+      categoryAnimal: '动物相关',
+      categoryFruit: '水果相关',
+      categoryPeople: '人物相关',
+      categoryPositiveEmotion: '情绪(积极)',
+      categoryAngerEmotion: '情绪(愤怒)',
+      categoryAnxietyEmotion: '情绪(焦虑)',
+      categoryLossEmotion: '情绪(失落)',
+      categoryRecoveryEmotion: '情绪(恢复)',
+      categoryPlace: '地点关键词',
+      categoryObject: '物品关键词',
+      categoryTaemong: '胎梦',
+      categoryWealth: '财运',
+      categorySuccess: '成功运',
+      categoryLove: '恋爱运',
+      categoryMarriage: '婚姻运',
+      dreamPromptTitle: '梦境提示词生成书',
+      stageSceneTitle: '第1章 · 整理梦境场景',
+      stageSymbolTitle: '第2章 · 象征与情绪线索',
+      stageQuestionTitle: '第3章 · 交给 AI 的问题',
+      inputGuide: '请写下谁或什么做了什么，以及你感受到了什么情绪。',
+      shareTitle: '无意识魔法商店：梦境提示词',
+      tarotBackAria: '塔罗牌背面',
+      copiedPrompt: '梦境提示词已复制到剪贴板。',
+      shareUnsupported: '当前环境不支持分享。',
+      defaultShareText: '请查看梦境提示词。',
+      hiddenRoot: '隐藏根源',
+      currentMessage: '当前讯息',
+      tomorrowGuidance: '明日指引',
+      sealedAdvice: '封印建议',
+      luckSpell: '幸运咒语',
+      cardFallback: '牌',
+      reversed: '逆位'
+    },
+    'zh-TW': {
+      toneComfort: '安慰',
+      toneMotivation: '激勵',
+      toneCoaching: '教練式指引',
+      categoryAll: '全部',
+      categoryAnimal: '動物相關',
+      categoryFruit: '水果相關',
+      categoryPeople: '人物相關',
+      categoryPositiveEmotion: '情緒(積極)',
+      categoryAngerEmotion: '情緒(憤怒)',
+      categoryAnxietyEmotion: '情緒(焦慮)',
+      categoryLossEmotion: '情緒(失落)',
+      categoryRecoveryEmotion: '情緒(恢復)',
+      categoryPlace: '地點關鍵詞',
+      categoryObject: '物品關鍵詞',
+      categoryTaemong: '胎夢',
+      categoryWealth: '財運',
+      categorySuccess: '成功運',
+      categoryLove: '戀愛運',
+      categoryMarriage: '婚姻運',
+      dreamPromptTitle: '夢境提示詞生成書',
+      stageSceneTitle: '第1章 · 整理夢境場景',
+      stageSymbolTitle: '第2章 · 象徵與情緒線索',
+      stageQuestionTitle: '第3章 · 交給 AI 的問題',
+      inputGuide: '請寫下誰或什麼做了什麼，以及你感受到了什麼情緒。',
+      shareTitle: '無意識魔法商店：夢境提示詞',
+      tarotBackAria: '塔羅牌背面',
+      copiedPrompt: '夢境提示詞已複製到剪貼簿。',
+      shareUnsupported: '目前環境不支援分享。',
+      defaultShareText: '請查看夢境提示詞。',
+      hiddenRoot: '隱藏根源',
+      currentMessage: '目前訊息',
+      tomorrowGuidance: '明日指引',
+      sealedAdvice: '封印建議',
+      luckSpell: '幸運咒語',
+      cardFallback: '牌',
+      reversed: '逆位'
+    }
+  };
+
+  function normalizeDreamLedgerLocale(value) {
+    var normalized = String(value || 'ko').trim().toLowerCase().replace('_', '-');
+    if (normalized === 'zh' || normalized === 'zh-cn' || normalized === 'zh-hans') return 'zh-CN';
+    if (normalized === 'zh-tw' || normalized === 'zh-hant' || normalized === 'zh-hk' || normalized === 'zh-mo') return 'zh-TW';
+    if (normalized === 'ja-jp') return 'ja';
+    if (normalized === 'en-us' || normalized === 'en-gb') return 'en';
+    if (normalized === 'ko' || normalized === 'en' || normalized === 'ja') return normalized;
+    return 'en';
+  }
+
+  function currentDreamLedgerLocale() {
+    try {
+      if (window.cdGetCurrentLanguage) return normalizeDreamLedgerLocale(window.cdGetCurrentLanguage());
+    } catch (_) {}
+    try {
+      var queryLang = new URLSearchParams(window.location.search || '').get('lang');
+      if (queryLang) return normalizeDreamLedgerLocale(queryLang);
+    } catch (_) {}
+    try {
+      var stored = window.localStorage && window.localStorage.getItem('cd_lang');
+      if (stored) return normalizeDreamLedgerLocale(stored);
+    } catch (_) {}
+    try {
+      var match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
+      if (match && match[1]) return normalizeDreamLedgerLocale(decodeURIComponent(match[1]));
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function dreamLedgerText(key) {
+    var locale = currentDreamLedgerLocale();
+    return (DREAM_LEDGER_TEXT_TRANSLATIONS[locale] && DREAM_LEDGER_TEXT_TRANSLATIONS[locale][key])
+      || (DREAM_LEDGER_TEXT_TRANSLATIONS.en && DREAM_LEDGER_TEXT_TRANSLATIONS.en[key])
+      || DREAM_LEDGER_TEXT_TRANSLATIONS.ko[key]
+      || '';
+  }
+
   var DREAM_ARCHIVE_KEY = 'dreamLedgerArchiveV1';
   var GOLDEN_TONE_LABELS = {
-    comfort: '위로',
-    motivation: '동기부여',
-    coaching: '코칭'
+    comfort: dreamLedgerText('toneComfort'),
+    motivation: dreamLedgerText('toneMotivation'),
+    coaching: dreamLedgerText('toneCoaching')
   };
   var DREAM_LIBRARY_PAGE_SIZE = 18;
   var DREAM_LIBRARY_CATEGORY_LABELS = {
-    all: '전체',
-    animal: '동물 관련',
-    fruit: '과일 관련',
-    people: '사람 관련',
-    emotion_positive: '감정(긍정)',
-    emotion_anger: '감정(분노)',
-    emotion_anxiety: '감정(불안)',
-    emotion_loss: '감정(상실)',
-    emotion_recovery: '감정(회복)',
-    place: '장소 키워드',
-    object: '사물 키워드',
-    taemong: '태몽',
-    wealth: '재물운',
-    success: '합격운',
-    love: '연애운',
-    marriage: '결혼운'
+    all: dreamLedgerText('categoryAll'),
+    animal: dreamLedgerText('categoryAnimal'),
+    fruit: dreamLedgerText('categoryFruit'),
+    people: dreamLedgerText('categoryPeople'),
+    emotion_positive: dreamLedgerText('categoryPositiveEmotion'),
+    emotion_anger: dreamLedgerText('categoryAngerEmotion'),
+    emotion_anxiety: dreamLedgerText('categoryAnxietyEmotion'),
+    emotion_loss: dreamLedgerText('categoryLossEmotion'),
+    emotion_recovery: dreamLedgerText('categoryRecoveryEmotion'),
+    place: dreamLedgerText('categoryPlace'),
+    object: dreamLedgerText('categoryObject'),
+    taemong: dreamLedgerText('categoryTaemong'),
+    wealth: dreamLedgerText('categoryWealth'),
+    success: dreamLedgerText('categorySuccess'),
+    love: dreamLedgerText('categoryLove'),
+    marriage: dreamLedgerText('categoryMarriage')
   };
   var state = {
     reading: null,
@@ -878,7 +1108,7 @@
 
     return {
       kind: 'dream_prompt',
-      title: '꿈 프롬프트 생성서',
+      title: dreamLedgerText('dreamPromptTitle'),
       summary: String(reading.summary || '꿈의 장면과 감정의 잔향이 AI에게 건넬 질문으로 모입니다.').trim(),
       scene: cards[0].message,
       symbol: cards[1].message,
@@ -1536,9 +1766,9 @@
 
   function stagePayload(s) {
     if (!state.reading) return { title: '', text: '' };
-    if (s === 1) return { title: '1장 · 꿈 장면 정리', text: state.reading.scene };
-    if (s === 2) return { title: '2장 · 상징과 감정 단서', text: state.reading.symbol };
-    return { title: '3장 · AI에게 건넬 질문', text: state.reading.echo };
+    if (s === 1) return { title: dreamLedgerText('stageSceneTitle'), text: state.reading.scene };
+    if (s === 2) return { title: dreamLedgerText('stageSymbolTitle'), text: state.reading.symbol };
+    return { title: dreamLedgerText('stageQuestionTitle'), text: state.reading.echo };
   }
 
   function normalizedFinalSpell(reading) {
@@ -2020,7 +2250,7 @@
       try {
         reading = ai.interpretDream(text, { goldenTone: state.goldenTone });
       } catch (err) {
-        var msg = err && err.message ? err.message : '누가(무엇이) 어떤 행동을 했고, 어떤 감정을 느꼈는지 적어주세요.';
+        var msg = err && err.message ? err.message : dreamLedgerText('inputGuide');
         setLoaderText(msg);
         setWizardLine('상징 공명이 흐려졌습니다. 입력을 다시 정돈해 주세요.');
         setTimeout(function () {
@@ -2332,16 +2562,16 @@
   };
 
   function buildShareText() {
-    if (!state.reading) return '꿈 프롬프트를 확인해보세요.';
+    if (!state.reading) return dreamLedgerText('defaultShareText');
     if (state.reading.promptText) return String(state.reading.promptText || '').trim();
     return [
       state.reading.title,
       state.reading.summary,
-      '[숨겨진 근원] ' + state.reading.scene,
-      '[현재의 전언] ' + state.reading.symbol,
-      '[내일의 지침] ' + state.reading.echo,
-      '[봉인 조언] ' + normalizedGoldenAdvice(state.reading),
-      '행운 주문: ' + normalizedFinalSpell(state.reading)
+      '[' + dreamLedgerText('hiddenRoot') + '] ' + state.reading.scene,
+      '[' + dreamLedgerText('currentMessage') + '] ' + state.reading.symbol,
+      '[' + dreamLedgerText('tomorrowGuidance') + '] ' + state.reading.echo,
+      '[' + dreamLedgerText('sealedAdvice') + '] ' + normalizedGoldenAdvice(state.reading),
+      dreamLedgerText('luckSpell') + ': ' + normalizedFinalSpell(state.reading)
     ].join('\n\n');
   }
 
@@ -2350,7 +2580,7 @@
 
     if (navigator.share) {
       navigator.share({
-        title: '무의식의 마법 상점: 드림 프롬프트',
+        title: dreamLedgerText('shareTitle'),
         text: shareText
       }).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
@@ -2361,9 +2591,9 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(shareText).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
-        alert('꿈 프롬프트를 클립보드에 복사했습니다.');
+        alert(dreamLedgerText('copiedPrompt'));
       }).catch(function () {
-        alert('공유를 지원하지 않는 환경입니다.');
+        alert(dreamLedgerText('shareUnsupported'));
       });
       return;
     }
@@ -2553,12 +2783,12 @@
     return [
       '<article class="dream-v2-card"' + delay + '>',
         '<div class="card-flip' + flipped + '">',
-          '<div class="card-back" aria-label="타로 카드 뒷면"><span></span></div>',
+          '<div class="card-back" aria-label="' + escapeHtml(dreamLedgerText('tarotBackAria')) + '"><span></span></div>',
           '<div class="card-front" data-reversed="' + reversed + '">',
             '<div class="dream-v2-card-art">' + image + '</div>',
             '<div class="dream-v2-card-info">',
-              '<strong class="dream-v2-card-name">' + escapeHtml(card.nameKo || card.name || ('카드 ' + (idx + 1))) + '</strong>',
-              entry.isReversed ? '<span class="reversed-badge">역방향</span>' : '',
+              '<strong class="dream-v2-card-name">' + escapeHtml(card.nameKo || card.name || (dreamLedgerText('cardFallback') + ' ' + (idx + 1))) + '</strong>',
+              entry.isReversed ? '<span class="reversed-badge">' + escapeHtml(dreamLedgerText('reversed')) + '</span>' : '',
               '<div class="dream-v2-keywords">' + keywords.map(function (kw) {
                 return '<span>' + escapeHtml(kw) + '</span>';
               }).join('') + '</div>',

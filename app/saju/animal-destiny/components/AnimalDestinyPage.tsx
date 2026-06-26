@@ -12,7 +12,23 @@ import TwelveAnimalInputCard from "./TwelveAnimalInputCard";
 import TwelveAnimalLoading from "./TwelveAnimalLoading";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 
+const ANIMAL_DESTINY_PAGE_SHELL_TEXT_TRANSLATIONS = {
+  ko: {
+    backAria: "뒤로가기",
+    homeAria: "홈으로 이동",
+  },
+  en: {
+    backAria: "Go back",
+    homeAria: "Go home",
+  },
+  ja: {
+    backAria: "戻る",
+    homeAria: "ホームへ移動",
+  },
+} as const;
+
 export default function AnimalDestinyPage() {
+  const shellCopy = ANIMAL_DESTINY_PAGE_SHELL_TEXT_TRANSLATIONS.ko;
   const pathname = usePathname() || "/";
   const shareCardRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLDivElement>(null);
@@ -102,7 +118,7 @@ export default function AnimalDestinyPage() {
         <button 
           onClick={handleHeaderBack}
           className="-ml-1 rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
-          aria-label="뒤로가기"
+          aria-label={shellCopy.backAria}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
@@ -115,7 +131,7 @@ export default function AnimalDestinyPage() {
         <a
           href="/"
           className="-mr-1 inline-flex items-center justify-center rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
-          aria-label="홈으로 이동"
+          aria-label={shellCopy.homeAria}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 11.2 12 4l9 7.2" />

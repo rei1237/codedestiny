@@ -76,6 +76,47 @@ function getAutoTranslateLang(request) {
   if (countryLang) return countryLang;
   return getTranslateLangFromAcceptLang(request.headers.get("accept-language") || "");
 }
+
+function normalizeRuntimeLang(value) {
+  const lang = String(value || "").trim().toLowerCase().replace("_", "-");
+  if (lang === "ko") return "ko";
+  if (lang === "en" || lang === "en-us") return "en";
+  if (lang === "ja" || lang === "ja-jp") return "ja";
+  if (lang === "zh" || lang === "zh-cn" || lang === "zh-hans") return "zh-CN";
+  if (lang === "zh-tw" || lang === "zh-hant") return "zh-TW";
+  if (["vi", "hi", "es", "fr", "de", "nl", "ms"].includes(lang)) return lang;
+  return "";
+}
+
+function getRuntimeLangFromPath(pathname) {
+  const normalized = normalizePathname(pathname);
+  const firstSegment = normalized.split("/").filter(Boolean)[0] || "";
+  return normalizeRuntimeLang(firstSegment);
+}
+
+function getRuntimeLangFromRequest(request) {
+  const queryLang = normalizeRuntimeLang(request.nextUrl.searchParams.get("lang"));
+  if (queryLang) return queryLang;
+  const pathLang = getRuntimeLangFromPath(request.nextUrl.pathname || "");
+  if (pathLang) return pathLang;
+  return normalizeRuntimeLang(request.cookies.get("cd_locale")?.value || "");
+}
+
+function attachLocaleCookies(response, lang) {
+  const runtimeLang = normalizeRuntimeLang(lang);
+  if (!runtimeLang) return response;
+  response.cookies.set("cd_locale", runtimeLang, {
+    path: "/",
+    maxAge: 315360000,
+    sameSite: "lax",
+  });
+  response.cookies.set("cd_locale_ack", "1", {
+    path: "/",
+    maxAge: 315360000,
+    sameSite: "lax",
+  });
+  return response;
+}
 const SEO_PUBLIC_PATHS = new Set([
   "/robots.txt",
   "/sitemap.xml",
@@ -192,6 +233,10 @@ function buildMainRedirectUrl(request, paramsPatchFn) {
   const url = request.nextUrl.clone();
   url.pathname = "/index.html";
   const params = new URLSearchParams(url.search || "");
+  const runtimeLang = getRuntimeLangFromRequest(request);
+  if (runtimeLang && runtimeLang !== "ko" && !params.has("lang")) {
+    params.set("lang", runtimeLang);
+  }
   paramsPatchFn(params);
   const q = params.toString();
   url.search = q ? `?${q}` : "";
@@ -365,12 +410,12 @@ export function middleware(request) {
         const targetLang = getAutoTranslateLang(request);
         if (targetLang) {
           url.searchParams.set("lang", targetLang);
-          return NextResponse.redirect(url, 307);
+          return attachLocaleCookies(NextResponse.redirect(url, 307), targetLang);
         }
       }
       url.pathname = "/index.html";
       url.search = search;
-      return NextResponse.rewrite(url);
+      return attachLocaleCookies(NextResponse.rewrite(url), getRuntimeLangFromRequest(request));
     }
 
     if (pathname === "/static" || pathname === "/static/" || pathname === "/static/index.html") {
@@ -423,14 +468,14 @@ export function middleware(request) {
 
   if (PROTECTED_AUTH_ROUTE_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`))) {
     if (!hasAuthSessionCookie(request)) {
-      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+      return attachLocaleCookies(NextResponse.redirect(buildLoginRedirectUrl(request), 307), getRuntimeLangFromRequest(request));
     }
   }
 
   const actionForRoute = SERVICE_ROUTE_ACTIONS.get(routePath);
   if (actionForRoute) {
     if (!hasAuthSessionCookie(request)) {
-      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+      return attachLocaleCookies(NextResponse.redirect(buildLoginRedirectUrl(request), 307), getRuntimeLangFromRequest(request));
     }
     const redirectUrl = buildMainRedirectUrl(request, (params) => {
       params.set("action", actionForRoute);
@@ -443,23 +488,23 @@ export function middleware(request) {
         });
       }
     });
-    return NextResponse.redirect(redirectUrl, 308);
+    return attachLocaleCookies(NextResponse.redirect(redirectUrl, 308), getRuntimeLangFromRequest(request));
   }
 
   const serviceParam = SERVICE_ROUTE_PARAMS.get(routePath);
   if (serviceParam) {
     if (!hasAuthSessionCookie(request)) {
-      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+      return attachLocaleCookies(NextResponse.redirect(buildLoginRedirectUrl(request), 307), getRuntimeLangFromRequest(request));
     }
     const redirectUrl = buildMainRedirectUrl(request, (params) => {
       params.set(serviceParam[0], serviceParam[1]);
     });
-    return NextResponse.redirect(redirectUrl, 308);
+    return attachLocaleCookies(NextResponse.redirect(redirectUrl, 308), getRuntimeLangFromRequest(request));
   }
 
   if (LANDING_ONLY_ROUTES.has(routePath)) {
     const redirectUrl = buildMainRedirectUrl(request, () => {});
-    return NextResponse.redirect(redirectUrl, 308);
+    return attachLocaleCookies(NextResponse.redirect(redirectUrl, 308), getRuntimeLangFromRequest(request));
   }
 
   const rawPath = request.nextUrl.pathname || "/";
@@ -506,7 +551,7 @@ export function middleware(request) {
       response.headers.set("Content-Security-Policy", mergeMusicCspForAudio(cspHeader));
     }
 
-    return response;
+    return attachLocaleCookies(response, getRuntimeLangFromRequest(request));
   } catch (error) {
     logMiddlewareError(request, error);
     // Fail-open for auth middleware errors so OAuth/login pages remain reachable.

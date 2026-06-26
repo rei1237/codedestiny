@@ -1,10 +1,28 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const SAJU_GUIDE_TEXT_TRANSLATIONS = {
+  ko: {
+    metaTitle: "사주 명리학 기본 가이드 | Code Destiny",
+    observe: "사주가 살피는 것",
+    inputs: "필요한 입력값",
+    useCases: "어떤 때 참고하면 좋은가",
+    access: "무료와 유료 범위",
+    flow: "해석 흐름",
+    resultItems: "결과에서 확인할 수 있는 항목",
+    sample: "짧은 예시 리딩",
+    caution: "해석 시 주의할 점",
+  },
+};
+
+function sajuGuideText(key) {
+  return SAJU_GUIDE_TEXT_TRANSLATIONS.ko[key];
+}
+
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/saju/guide",
-    title: "사주 명리학 기본 가이드 | Code Destiny",
+    title: sajuGuideText("metaTitle"),
     description:
       "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
     keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "Code Destiny"],
@@ -56,28 +74,28 @@ export default function SajuGuidePage() {
 
       <section className="cd-card-grid">
         <article className="cd-card">
-          <h2>사주가 살피는 것</h2>
+          <h2>{sajuGuideText("observe")}</h2>
           <p>
             사주는 성격 하나를 맞히는 도구가 아니라, 타고난 기질과 환경의 반응 방식, 관계에서 반복되는 태도, 일과 배움의 방향, 시기별로 강해지는 주제를 함께 읽습니다. 같은 오행을 가지고 있어도 계절과 배치가 다르면 전혀 다른 결로 드러납니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>필요한 입력값</h2>
+          <h2>{sajuGuideText("inputs")}</h2>
           <p>
             생년월일, 출생시간, 성별, 양력·음력 여부가 기본 입력값입니다. 출생시간은 시주를 세우기 위해 필요하고, 양력·음력 구분은 달의 흐름을 바르게 맞추기 위해 중요합니다. 입력값이 정확할수록 해석의 초점도 선명해집니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>어떤 때 참고하면 좋은가</h2>
+          <h2>{sajuGuideText("useCases")}</h2>
           <p>
             진로의 방향이 흐려질 때, 관계에서 반복되는 감정의 이유를 보고 싶을 때, 올해의 흐름을 차분히 정리하고 싶을 때 도움이 됩니다. 다만 결과가 선택을 대신하지는 않으며, 현실의 조건과 본인의 의지를 함께 살피는 태도가 필요합니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>무료와 유료 범위</h2>
+          <h2>{sajuGuideText("access")}</h2>
           <p>
             무료 영역은 기본 사주 구조, 핵심 오행, 간단한 성향과 주의점을 중심으로 안내합니다. 유료 리포트는 대운·세운, 관계와 일의 흐름, 세부 조언, 장문 해석처럼 더 깊은 맥락을 다룹니다. 결제 여부가 운의 좋고 나쁨을 바꾸지는 않습니다.
           </p>
@@ -85,7 +103,7 @@ export default function SajuGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>해석 흐름</h2>
+        <h2>{sajuGuideText("flow")}</h2>
         <ul>
           {readingItems.map((item) => (
             <li key={item}>{item}</li>
@@ -94,7 +112,7 @@ export default function SajuGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>결과에서 확인할 수 있는 항목</h2>
+        <h2>{sajuGuideText("resultItems")}</h2>
         <ul>
           {resultItems.map((item) => (
             <li key={item}>{item}</li>
@@ -103,14 +121,14 @@ export default function SajuGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>짧은 예시 리딩</h2>
+        <h2>{sajuGuideText("sample")}</h2>
         <p>
           목의 기운이 뚜렷하고 금의 기운이 균형을 잡아 주는 사주는 새로운 일을 시작하는 감각과 기준을 세우는 힘이 함께 드러납니다. 다만 계절의 열기가 강하면 마음이 앞서 지칠 수 있으니, 결정 전에는 일정과 체력을 먼저 정리하는 편이 안정적입니다.
         </p>
       </section>
 
       <section className="cd-card">
-        <h2>해석 시 주의할 점</h2>
+        <h2>{sajuGuideText("caution")}</h2>
         <p>
           사주는 의료 진단, 법률 판단, 투자 조언, 결혼과 이혼 결정, 소송 결과, 진로 선택의 유일한 근거가 아닙니다. 불안할수록 결과를 단정으로 붙잡기보다, 지금 확인할 수 있는 현실 정보와 전문가의 조언을 함께 두고 보아야 합니다.
         </p>

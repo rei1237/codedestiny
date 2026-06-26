@@ -12,19 +12,38 @@ interface ViewerSettingsPanelProps {
   onReset: () => void;
 }
 
+const VIEWER_SETTINGS_PANEL_TEXT_TRANSLATIONS = {
+  ko: {
+    closeSettingsAria: "읽기 설정 닫기",
+    title: "읽기 설정",
+    closeAria: "닫기",
+  },
+  en: {
+    closeSettingsAria: "Close reading settings",
+    title: "Reading Settings",
+    closeAria: "Close",
+  },
+  ja: {
+    closeSettingsAria: "読書設定を閉じる",
+    title: "読書設定",
+    closeAria: "閉じる",
+  },
+} as const;
+
 export default function ViewerSettingsPanel({ open, settings, onClose, onChange, onApplyPreset, onReset }: ViewerSettingsPanelProps) {
+  const copy = VIEWER_SETTINGS_PANEL_TEXT_TRANSLATIONS.ko;
   return (
     <>
       <button
         className={`${styles.drawerBackdrop} ${open ? styles.drawerBackdropOpen : ""}`}
         type="button"
-        aria-label="읽기 설정 닫기"
+        aria-label={copy.closeSettingsAria}
         onClick={onClose}
       />
       <aside className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`} aria-hidden={!open}>
         <div className={styles.drawerHead}>
-          <h2>읽기 설정</h2>
-          <button className={styles.iconButton} type="button" onClick={onClose} aria-label="닫기">
+          <h2>{copy.title}</h2>
+          <button className={styles.iconButton} type="button" onClick={onClose} aria-label={copy.closeAria}>
             ×
           </button>
         </div>

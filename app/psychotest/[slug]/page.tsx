@@ -15,6 +15,69 @@ type PageProps = {
   };
 };
 
+const PSYCHOTEST_DETAIL_METADATA_COPY = {
+  ko: {
+    fallbackTitle: "심리테스트",
+    titleSuffix: "무료 심리테스트",
+    descriptionSuffix(minutes: number) {
+      return `평균 ${minutes}분 내외로 가볍게 확인하고, 결과 해석 포인트까지 정리해 보세요.`;
+    },
+    freeKeyword: "무료 심리테스트",
+    categoryKeyword(category: string) {
+      return `${category} 테스트`;
+    },
+    durationFeature(minutes: number) {
+      return `평균 소요 ${minutes}분`;
+    },
+    relatedLinksFeature: "관련 테스트 내부 링크 제공",
+  },
+  en: {
+    fallbackTitle: "Psychological Test",
+    titleSuffix: "Free Psychological Test",
+    descriptionSuffix(minutes: number) {
+      return `Check it lightly in about ${minutes} minutes and review the key points in your result.`;
+    },
+    freeKeyword: "free psychological test",
+    categoryKeyword(category: string) {
+      return `${category} test`;
+    },
+    durationFeature(minutes: number) {
+      return `Average time: ${minutes} minutes`;
+    },
+    relatedLinksFeature: "Related internal test links",
+  },
+  ja: {
+    fallbackTitle: "心理テスト",
+    titleSuffix: "無料心理テスト",
+    descriptionSuffix(minutes: number) {
+      return `平均${minutes}分ほどで気軽に確認し、結果の解釈ポイントまで整理できます。`;
+    },
+    freeKeyword: "無料心理テスト",
+    categoryKeyword(category: string) {
+      return `${category}テスト`;
+    },
+    durationFeature(minutes: number) {
+      return `平均所要時間 ${minutes}分`;
+    },
+    relatedLinksFeature: "関連テストの内部リンク",
+  },
+  zh: {
+    fallbackTitle: "心理测试",
+    titleSuffix: "免费心理测试",
+    descriptionSuffix(minutes: number) {
+      return `约 ${minutes} 分钟即可轻松确认，并整理结果解读要点。`;
+    },
+    freeKeyword: "免费心理测试",
+    categoryKeyword(category: string) {
+      return `${category}测试`;
+    },
+    durationFeature(minutes: number) {
+      return `平均用时 ${minutes} 分钟`;
+    },
+    relatedLinksFeature: "相关测试内部链接",
+  },
+};
+
 export function generateStaticParams() {
   return PSYCHOTESTS.map((item) => ({ slug: item.slug }));
 }
@@ -23,20 +86,21 @@ export function generateMetadata({ params }: PageProps) {
   const test = getPsychotestBySlug(params.slug);
   if (!test) {
     return {
-      title: "심리테스트",
+      title: PSYCHOTEST_DETAIL_METADATA_COPY.ko.fallbackTitle,
       robots: { index: false, follow: false },
     };
   }
 
+  const copy = PSYCHOTEST_DETAIL_METADATA_COPY.ko;
   return generatePageMetadata({
     path: `/psychotest/${test.slug}`,
-    title: `${test.title} | ${test.category} 무료 심리테스트`,
-    description: `${test.summary}. 평균 ${test.estimatedMinutes}분 내외로 가볍게 확인하고, 결과 해석 포인트까지 정리해 보세요.`,
-    keywords: [...test.keywords, "무료 심리테스트", `${test.category} 테스트`, test.title],
+    title: `${test.title} | ${test.category} ${copy.titleSuffix}`,
+    description: `${test.summary}. ${copy.descriptionSuffix(test.estimatedMinutes)}`,
+    keywords: [...test.keywords, copy.freeKeyword, copy.categoryKeyword(test.category), test.title],
     featureList: [
-      `평균 소요 ${test.estimatedMinutes}분`,
+      copy.durationFeature(test.estimatedMinutes),
       `${test.focusPoints.join(" · ")}`,
-      "관련 테스트 내부 링크 제공",
+      copy.relatedLinksFeature,
     ],
     applicationCategory: "LifestyleApplication",
   });

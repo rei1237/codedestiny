@@ -8,6 +8,21 @@ const seo = publicSeoPages.highValue;
 
 export const metadata = buildSeoMetadata(seo);
 
+const HIGH_VALUE_PAGE_COPY = {
+  ko: {
+    categoryHeading: "카테고리",
+  },
+  en: {
+    categoryHeading: "Categories",
+  },
+  ja: {
+    categoryHeading: "カテゴリー",
+  },
+  zh: {
+    categoryHeading: "分类",
+  },
+};
+
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@graph": [
@@ -35,7 +50,7 @@ export default function HighValueHubPage() {
       </header>
 
       <section style={{ marginBottom: "18px" }}>
-        <h2>카테고리</h2>
+        <h2>{HIGH_VALUE_PAGE_COPY.ko.categoryHeading}</h2>
         <div className="cd-chip-wrap">
           {HIGH_VALUE_CATEGORIES.map((category) => (
             <Link key={category.slug} href={`/high-value/category/${category.slug}`} className="cd-chip">

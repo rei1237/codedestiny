@@ -38,8 +38,17 @@ import {
   STEMS,
 } from "../lib/saju-new-year-constants.js";
 import {
-  generateSajuNewYearPremiumReport,
-} from "../lib/pdf-v2/saju-new-year/generate-saju-new-year-premium-report.js";
+  generateNewYearPdfWithLlm as generateSajuNewYearPremiumReport,
+} from "../lib/pdf-v2/saju-new-year/new-year-pdf-service.js";
+import {
+  NEW_YEAR_HTML_SCHEMA_VERSION,
+  NEW_YEAR_LLM_VERSION,
+  normalizeChapterPlan,
+  toLegacyChapterSpec,
+} from "../lib/pdf-v2/saju-new-year/new-year-chapters.js";
+import {
+  validateFinalNewYearPdfPayload,
+} from "../lib/pdf-v2/saju-new-year/new-year-validator.js";
 import {
   SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
   SAJU_NEW_YEAR_LLM_GENERATION_MODE,
@@ -55,12 +64,12 @@ export { NEW_YEAR_CHAPTERS };
 export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
   generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
   provider: "saju-new-year-llm",
-  templateVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
+  templateVersion: NEW_YEAR_LLM_VERSION,
 });
 
 const ANNUAL_FORTUNE_PRODUCT_ID = "saju_annual_fortune";
 const ANNUAL_FORTUNE_ASSEMBLY_VERSION = YEARLY_SAJU_PDF_CONFIG.templateVersion;
-const ANNUAL_FORTUNE_ENGINE_VERSION = SAJU_NEW_YEAR_LLM_ENGINE_VERSION;
+const ANNUAL_FORTUNE_ENGINE_VERSION = NEW_YEAR_LLM_VERSION;
 const ANNUAL_FORTUNE_CHAPTER_ID_BY_NO = Object.freeze({
   1: "annual_overview",
   2: "career_business",
@@ -1306,14 +1315,17 @@ function buildNewYearProfessionalSectionParagraphs(ctx = {}) {
 
 function buildSajuNewYearChapterSpecs(targetYear) {
   const year = toInt(targetYear, resolveDefaultTargetYear());
-  const focusByChapterNo = new Map(ASSEMBLED_NEW_YEAR_CHAPTERS.map((chapter) => [Number(chapter.no), chapter.focus]));
-  return NEW_YEAR_CHAPTERS.map((chapter) => ({
-    no: chapter.no,
-    id: String(chapter.no),
-    title: humanizeNewYearCustomerText(chapter.title.replace(/\{YEAR\}/g, String(year))),
-    focus: focusByChapterNo.get(Number(chapter.no)) || clean(chapter.title).replace(/\{YEAR\}/g, String(year)),
-    categories: (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => humanizeNewYearCustomerText(category)),
-  }));
+  const plan = normalizeChapterPlan(NEW_YEAR_CHAPTERS, { targetYear: year });
+  return plan.chapters.map(toLegacyChapterSpec);
+}
+
+function buildSajuNewYearChapterConfig(targetYear) {
+  const year = toInt(targetYear, resolveDefaultTargetYear());
+  const plan = normalizeChapterPlan(NEW_YEAR_CHAPTERS, { targetYear: year });
+  return {
+    ...plan,
+    chapters: plan.chapters.map(toLegacyChapterSpec),
+  };
 }
 
 function clean(value) {
@@ -1474,24 +1486,30 @@ function hashAnnualFortuneValue(value) {
 
 function buildYearlySajuPdfCacheKey(normalized = {}) {
   const seed = normalized.seed || {};
-  const targetYear = Number(normalized.targetYear || seed.targetYear || 0) || resolveDefaultTargetYear();
+  const targetYear = Number(normalized.targetYear || seed.targetYear || 0) || 0;
   const profile = normalized.profile || seed.birthProfile || {};
   const natalCalculation = normalized.natalCalculation || seed.saju || {};
   const annualCalculation = normalized.yearlyCalculation || seed.saju?.annualLuck || {};
   const monthlyCalculation = normalized.monthlyCalculation || seed.saju?.monthlyLuck || [];
+  const chapterPlan = normalizeChapterPlan(normalized.expectedChapters || seed.chapterSpecs || NEW_YEAR_CHAPTERS, { targetYear });
+  const chapterConfigVersion = clean(normalized.chapterConfigVersion || chapterPlan.chapterConfigVersion);
   return `saju-new-year-llm-cache:${hashAnnualFortuneValue({
-    service: "saju-new-year",
+    service: "new-year",
+    version: NEW_YEAR_LLM_VERSION,
     source: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
-    promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
-    schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
-    qualityVersion: SAJU_NEW_YEAR_LLM_QUALITY_VERSION,
-    engineVersion: SAJU_NEW_YEAR_LLM_ENGINE_VERSION,
+    promptVersion: NEW_YEAR_LLM_VERSION,
+    schemaVersion: NEW_YEAR_HTML_SCHEMA_VERSION,
+    qualityVersion: NEW_YEAR_LLM_VERSION,
+    engineVersion: NEW_YEAR_LLM_VERSION,
     generationMode: SAJU_NEW_YEAR_LLM_GENERATION_MODE,
+    chapterConfigVersion,
     targetYear,
-    profile,
-    natalCalculationResultHash: hashAnnualFortuneValue(natalCalculation),
-    annualCalculationResultHash: hashAnnualFortuneValue(annualCalculation),
-    monthlyCalculationResultHash: hashAnnualFortuneValue(monthlyCalculation),
+    birthDataHash: hashAnnualFortuneValue(profile),
+    sajuChartHash: hashAnnualFortuneValue(natalCalculation),
+    luckCyclesHash: hashAnnualFortuneValue(seed.saju?.luckCycle || normalized.luckCycles || {}),
+    annualLuckHash: hashAnnualFortuneValue(annualCalculation),
+    monthlyLuckHash: hashAnnualFortuneValue(monthlyCalculation),
+    questionHash: hashAnnualFortuneValue(normalized.question || ""),
   })}`;
 }
 
@@ -1507,8 +1525,8 @@ function buildYearlySajuPdfCacheExecutionContext(baseCtx = {}, cacheKey = "") {
       cacheKind: "saju-new-year-llm-pdf",
       cacheKey: executionKey,
       templateVersion: YEARLY_SAJU_PDF_CONFIG.templateVersion,
-      promptVersion: SAJU_NEW_YEAR_LLM_PROMPT_VERSION,
-      schemaVersion: SAJU_NEW_YEAR_LLM_SCHEMA_VERSION,
+      promptVersion: NEW_YEAR_LLM_VERSION,
+      schemaVersion: NEW_YEAR_HTML_SCHEMA_VERSION,
       manuscriptSource: SAJU_NEW_YEAR_LLM_MANUSCRIPT_SOURCE,
     },
   };
@@ -2092,15 +2110,13 @@ function normalizeInput(body = {}) {
     directBirthInput.minute ?? directBirthInput.birthMinute ?? body.minute ?? body.birthMinute ?? birth.minute,
   );
 
-  const targetYear = toInt(
-    body.targetYear || body.selectedYear || body.fortuneYear || body.target_year,
-    resolveDefaultTargetYear(),
-  );
+  const targetYearRaw = body.targetYear ?? body.selectedYear ?? body.fortuneYear ?? body.target_year;
+  const targetYear = toInt(targetYearRaw, 0);
 
   if (!year || !month || !day) {
-    return { ok: false, code: "MISSING_BIRTH", message: "정확한 신년운세 계산을 위해 생년월일 정보를 확인해 주세요." };
+    return { ok: false, code: "INVALID_INPUT", message: "신년운세 PDF 생성을 위해 생년월일을 확인해 주세요." };
   }
-  if (!targetYear || targetYear < 1900 || targetYear > 2100) return { ok: false, code: "INVALID_TARGET_YEAR", message: "신년운세를 볼 대상 연도를 선택해 주세요." };
+  if (!targetYear || targetYear < 1900 || targetYear > 2100) return { ok: false, code: "INVALID_INPUT", message: "신년운세를 볼 대상 연도 targetYear를 입력해 주세요." };
 
   const name = clean(body.name || profile.name || profile.userName) || "사용자";
   const genderRaw = clean(body.gender || body.sex || profile.gender || profile.sex || "").toLowerCase();
@@ -3526,11 +3542,12 @@ function validateNewYearMasterJson(masterJson = {}) {
   });
   requireField(quantumMonthly.length === 12, "quantum_monthly_count");
   requireField((masterJson?.consultationEvidence?.sajuEvidence || []).length >= 6, "consultation_evidence_too_thin");
-  requireField(Array.isArray(masterJson?.chapterSpecs) && masterJson.chapterSpecs.length === 10, "chapter_specs_count");
+  const expectedChapterCount = buildSajuNewYearChapterSpecs(masterJson?.targetYear).length;
+  requireField(Array.isArray(masterJson?.chapterSpecs) && masterJson.chapterSpecs.length === expectedChapterCount, "chapter_specs_count");
   requireField(clean(masterJson?.annualFortuneFacts?.productId) === ANNUAL_FORTUNE_PRODUCT_ID, "annual_fortune_facts_product");
   requireField(Number(masterJson?.annualFortuneFacts?.targetYear) === Number(masterJson?.targetYear), "annual_fortune_facts_target_year");
   requireField(Array.isArray(masterJson?.annualFortuneFacts?.monthlyFlows) && masterJson.annualFortuneFacts.monthlyFlows.length === 12, "annual_fortune_facts_monthly_count");
-  requireField(Array.isArray(masterJson?.annualFortuneChapterPlans) && masterJson.annualFortuneChapterPlans.length === 10, "annual_fortune_chapter_plans_count");
+  requireField(Array.isArray(masterJson?.annualFortuneChapterPlans) && masterJson.annualFortuneChapterPlans.length === expectedChapterCount, "annual_fortune_chapter_plans_count");
 
   return { ok: errors.length === 0, errors };
 }
@@ -3962,14 +3979,18 @@ function isLlmOnlyNewYearManuscriptSource(value = "") {
 
 function isNewYearLlmMetadataValid(metadata = {}) {
   const llmAssembly = metadata?.llmAssembly && typeof metadata.llmAssembly === "object" ? metadata.llmAssembly : {};
+  const promptVersion = clean(metadata?.promptVersion || llmAssembly.promptVersion);
+  const schemaVersion = clean(metadata?.schemaVersion || llmAssembly.schemaVersion);
+  const version = clean(metadata?.version || metadata?.engineVersion || llmAssembly.version || llmAssembly.engineVersion);
   return isLlmOnlyNewYearManuscriptSource(metadata?.manuscriptSource || llmAssembly.source)
     && metadata?.llmAssemblyOnly === true
     && llmAssembly.enabled === true
     && llmAssembly.externalGeneration === true
     && llmAssembly.externalCallsAllowed === true
     && llmAssembly.fallbackUsed === false
-    && clean(metadata?.promptVersion || llmAssembly.promptVersion) === SAJU_NEW_YEAR_LLM_PROMPT_VERSION
-    && clean(metadata?.schemaVersion || llmAssembly.schemaVersion) === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION;
+    && (promptVersion === SAJU_NEW_YEAR_LLM_PROMPT_VERSION || promptVersion === NEW_YEAR_LLM_VERSION)
+    && (schemaVersion === SAJU_NEW_YEAR_LLM_SCHEMA_VERSION || schemaVersion === NEW_YEAR_HTML_SCHEMA_VERSION)
+    && (!version || version === NEW_YEAR_LLM_VERSION || version === SAJU_NEW_YEAR_LLM_ENGINE_VERSION);
 }
 
 function getNewYearPdfCompletionMeta(pdfReady = {}, chapters = []) {
@@ -3985,6 +4006,17 @@ function validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDo
   const html = clean(pdfReady?.html || "");
   const text = `${html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")}\n${collectSajuNewYearAssembledText(list)}`;
   const completionMeta = getNewYearPdfCompletionMeta(pdfReady, list);
+  const newHtmlEngine = clean(completionMeta.metadata?.version || completionMeta.metadata?.engineVersion) === NEW_YEAR_LLM_VERSION || html.includes("new-year-chapter");
+  if (newHtmlEngine) {
+    return validateFinalNewYearPdfPayload({
+      html,
+      chapters: list,
+      chapterPlan: completionMeta.metadata?.chapterPlan || expectedChapters,
+      targetYear: pdfReady?.targetYear || completionMeta.metadata?.targetYear,
+      requireDownloadUrl,
+      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl),
+    });
+  }
   const llmOnly = isLlmOnlyNewYearManuscriptSource(completionMeta.manuscriptSource) && isNewYearLlmMetadataValid(completionMeta.metadata);
   const issues = [];
   if (!html.includes("<!DOCTYPE html>")) issues.push("html_shell_missing");
@@ -4390,6 +4422,7 @@ function normalizeYearlySajuInput({ profile, targetYear, body = {}, natalCalcula
   const normalizedData = buildYearlySajuNormalizedData({ seed, masterJson });
   const interpretationBlocks = selectYearlyInterpretationBlocks(normalizedData);
   const monthlyFortuneSections = buildMonthlyFortuneSections({ seed });
+  const chapterConfig = buildSajuNewYearChapterConfig(seed.targetYear);
 
   return {
     profile: seed.birthProfile,
@@ -4403,7 +4436,9 @@ function normalizeYearlySajuInput({ profile, targetYear, body = {}, natalCalcula
     normalizedData,
     interpretationBlocks,
     monthlyFortuneSections,
-    expectedChapters: buildSajuNewYearChapterSpecs(seed.targetYear),
+    expectedChapters: chapterConfig.chapters,
+    chapterConfigSource: chapterConfig.source,
+    chapterConfigVersion: chapterConfig.chapterConfigVersion,
   };
 }
 
@@ -4843,6 +4878,86 @@ async function acquireNewYearExecutionLease(env, userId, executionCtx = {}) {
   }
 }
 
+function hasNewYearAuthMaterial(request) {
+  return Boolean(
+    clean(request.headers.get("Authorization"))
+    || clean(cookieValue(request, "fortune_auth_token"))
+    || clean(cookieValue(request, "fortune_auth_refresh"))
+  );
+}
+
+function newYearPublicErrorMessage(code) {
+  switch (clean(code)) {
+    case "AUTH_REQUIRED":
+      return "신년운세 PDF 생성을 위해 먼저 로그인해 주세요.";
+    case "SESSION_INVALID":
+      return "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 PDF를 생성해 주세요.";
+    case "ENTITLEMENT_REQUIRED":
+      return "신년운세 PDF 생성 권한이 필요합니다. 단건 결제, 월정석 크레딧, 이용권 중 하나로 이용할 수 있습니다.";
+    case "ENTITLEMENT_CHECK_FAILED":
+      return "결제 권한 확인 중 서버 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    case "INVALID_INPUT":
+      return "입력 정보를 확인해 주세요. 대상 연도와 생년월일은 필수입니다.";
+    case "PDF_RENDER_FAILED":
+      return "신년운세 PDF 렌더링 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.";
+    case "GENERATION_FAILED":
+    default:
+      return "신년운세 본문 생성 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.";
+  }
+}
+
+function newYearErrorStatus(code, fallback = 500) {
+  switch (clean(code)) {
+    case "AUTH_REQUIRED":
+    case "SESSION_INVALID":
+      return 401;
+    case "ENTITLEMENT_REQUIRED":
+      return 402;
+    case "INVALID_INPUT":
+      return 422;
+    case "ENTITLEMENT_CHECK_FAILED":
+    case "GENERATION_FAILED":
+    case "PDF_RENDER_FAILED":
+      return Number(fallback || 500) >= 400 ? Number(fallback || 500) : 500;
+    default:
+      return Number(fallback || 500);
+  }
+}
+
+function normalizeNewYearPdfErrorCode(error) {
+  const code = clean(error?.code || error?.name);
+  if (["AUTH_REQUIRED", "SESSION_INVALID", "ENTITLEMENT_REQUIRED", "ENTITLEMENT_CHECK_FAILED", "INVALID_INPUT", "GENERATION_FAILED", "PDF_RENDER_FAILED"].includes(code)) return code;
+  if (Number(error?.status || 0) === 422) return "INVALID_INPUT";
+  return "GENERATION_FAILED";
+}
+
+async function updateNewYearExecutionProgress(env, userId, executionCtx = {}, progress = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return null;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const status = clean(progress.status || "generating");
+    const now = new Date();
+    return await ServiceExecutionTransaction.updateOne(
+      { userId, executionKey },
+      {
+        $set: {
+          heartbeatAt: now,
+          "metadata.generationStatus": status,
+          "metadata.progress": Math.max(0, Math.min(100, Number(progress.progress || 0))),
+          "metadata.currentChapterId": clean(progress.chapterId || ""),
+          "metadata.currentChapterIndex": Number(progress.chapterIndex || 0),
+          "metadata.chapterCount": Number(progress.chapterCount || 0),
+          "metadata.progressUpdatedAt": now.toISOString(),
+        },
+      },
+    );
+  } catch (error) {
+    console.warn("[new-year][progress-update-failed]", clean(error?.message || error));
+    return null;
+  }
+}
+
 async function handlePrepare(request, env) {
   compactNewYearLocks();
   let auth;
@@ -4850,7 +4965,8 @@ async function handlePrepare(request, env) {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      return json({ ok: false, serviceKey: SERVICE_KEY, code: "UNAUTHORIZED", message: "신년운세 PDF 생성을 위해 먼저 로그인해 주세요." }, { status: 401 });
+      const code = hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED";
+      return json({ ok: false, serviceKey: SERVICE_KEY, code, message: newYearPublicErrorMessage(code) }, { status: 401 });
     }
     throw error;
   }
@@ -4858,7 +4974,7 @@ async function handlePrepare(request, env) {
   const body = await readJson(request);
   console.info("[NewYearPremiumPDF][RequestReceived]", { hasBody: Boolean(body) });
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: normalized.code, message: normalized.message }, { status: 422 });
+  if (!normalized.ok) return json({ ok: false, serviceKey: SERVICE_KEY, code: "INVALID_INPUT", message: normalized.message || newYearPublicErrorMessage("INVALID_INPUT") }, { status: 422 });
   console.info("[NewYearPremiumPDF][TargetYearValidated]", { targetYear: normalized.targetYear });
   console.info("[NewYearPremiumPDF][BirthInputValidated]", { birthDate: normalized.birthInput.birthDate, isTimeUnknown: normalized.birthInput.isTimeUnknown });
 
@@ -4970,40 +5086,57 @@ async function handlePrepare(request, env) {
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
     console.info("[NewYearPremiumPDF][PaymentVerificationStarted]", { featureKey, userId: auth.userId });
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
-      ...body,
-      featureKey,
-      reportType: "sajuNewYear",
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: "/api/saju-new-year/prepare",
-    });
+    let access;
+    try {
+      access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+        ...body,
+        featureKey,
+        reportType: "sajuNewYear",
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: "/api/saju-new-year/prepare",
+      });
+    } catch (error) {
+      newYearPdfLocks.delete(sessionKey);
+      console.error("[NewYearPremiumPDF][EntitlementCheckFailed]", {
+        featureKey,
+        userId: auth.userId,
+        message: clean(error?.message || error),
+      });
+      return json({
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code: "ENTITLEMENT_CHECK_FAILED",
+        message: newYearPublicErrorMessage("ENTITLEMENT_CHECK_FAILED"),
+        debugSafe: {
+          reportId,
+          sessionId: sessionKey,
+          featureKey,
+          causeMessage: clean(error?.message || error),
+        },
+      }, { status: 500 });
+    }
     if (!access?.ok) {
       const status = Number(access?.status || 402);
       const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
       const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
       const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
       const hasPaymentToken = Boolean(premiumAccessToken);
-      const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
+      const code = status === 401 ? "SESSION_INVALID" : status === 402 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED";
       newYearPdfLocks.delete(sessionKey);
       return json({
         ok: false,
         serviceKey: SERVICE_KEY,
-        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED")),
-        message: status === 401
-          ? "\uB85C\uADF8\uC778 \uD6C4 \uC2E0\uB144\uC6B4\uC138 PDF\uB97C \uC0DD\uC131\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-          : paymentConfirmedButMissing
-            ? "\uACB0\uC81C\uB294 \uD655\uC778\uB418\uC5C8\uC9C0\uB9CC \uC0DD\uC131 \uAD8C\uD55C \uC5F0\uACB0\uC774 \uC644\uB8CC\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694."
-            : status === 402
-            ? "\uD504\uB9AC\uBBF8\uC5C4 PDF \uC0DD\uC131 \uAD8C\uD55C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
-            : "\uACB0\uC81C \uD655\uC778 \uC911 \uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.",
+        code,
+        message: newYearPublicErrorMessage(code),
         debugSafe: {
           featureKey,
           hasSessionId,
           hasPurchaseId,
           hasRequestId,
           hasPaymentToken,
+          originalCode: clean(access?.code),
         },
-      }, { status });
+      }, { status: newYearErrorStatus(code, status) });
     }
     console.info("[NewYearPremiumPDF][PaymentVerificationPassed]", { featureKey, accessType: clean(access.accessType || "") });
 
@@ -5039,6 +5172,7 @@ async function handlePrepare(request, env) {
       return json(cachedPdfResponse.payload, { status: cachedPdfResponse.status });
     }
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "pending", progress: 0 });
     const executionLease = await acquireNewYearExecutionLease(env, auth.userId, executionCtx);
     if (!executionLease.ok && !executionLease.error) {
       newYearPdfLocks.delete(sessionKey);
@@ -5055,6 +5189,7 @@ async function handlePrepare(request, env) {
     }
 
     const yearlySajuPdfConfig = getYearlySajuPdfConfig(env);
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "validating", progress: 5 });
 
     console.info("[NewYearPremiumPDF][YearlySajuLlmPipelineStarted]", {
       targetYear: normalized.targetYear,
@@ -5074,7 +5209,9 @@ async function handlePrepare(request, env) {
         sessionId: sessionKey,
         accessType: clean(access.accessType || "unknown"),
         cacheKey: yearlySajuPdfCacheKey,
+        targetYear: normalized.targetYear,
       },
+      onProgress: (progress) => updateNewYearExecutionProgress(env, auth.userId, executionCtx, progress),
     });
     const localYearSajuJson = pipelineResult.localYearSajuJson;
     const newYearMasterJson = pipelineResult.newYearMasterJson;
@@ -5089,31 +5226,37 @@ async function handlePrepare(request, env) {
     const llmAssembly = pipelineResult.llmAssembly;
     const clientSummary = pipelineResult.clientSummary;
     let pdfCompletionValidation = null;
-    const pdfReady = buildPdfReadyPayloadLlmOnly(localYearSajuJson, chapters, {
-      featureKey,
-      reportType: "sajuNewYear",
-      sessionId: sessionKey,
-      accessType: clean(access.accessType || "unknown"),
-      cacheKey: yearlySajuPdfCacheKey,
-      manuscriptSource,
-      llmAssembly,
-      llmAssemblyOnly: true,
-      fallbackUsed: false,
-      externalCallsAllowed: true,
-      generationMode: pipelineResult.generationMode,
-      provider: pipelineResult.provider,
-      modelName: pipelineResult.modelName,
-      promptVersion: pipelineResult.promptVersion,
-      schemaVersion: pipelineResult.schemaVersion,
-      qualityVersion: pipelineResult.qualityVersion,
-      engineVersion: pipelineResult.engineVersion,
-      finalAdvice,
-      monthlyFortunes,
-      qualityStatus: "passed",
-      masterJsonValidation,
-      normalizedData,
-      monthlyFortuneSections,
-    });
+    const pdfReady = {
+      ...(pipelineResult.pdfReady || {}),
+      metadata: {
+        ...((pipelineResult.pdfReady && pipelineResult.pdfReady.metadata) || {}),
+        featureKey,
+        reportType: "sajuNewYear",
+        sessionId: sessionKey,
+        accessType: clean(access.accessType || "unknown"),
+        cacheKey: yearlySajuPdfCacheKey,
+        manuscriptSource,
+        llmAssembly,
+        llmAssemblyOnly: true,
+        fallbackUsed: false,
+        externalCallsAllowed: true,
+        generationMode: pipelineResult.generationMode,
+        provider: pipelineResult.provider,
+        modelName: pipelineResult.modelName,
+        promptVersion: pipelineResult.promptVersion,
+        schemaVersion: pipelineResult.schemaVersion,
+        qualityVersion: pipelineResult.qualityVersion,
+        engineVersion: pipelineResult.engineVersion,
+        finalAdvice,
+        monthlyFortunes,
+        qualityStatus: "passed",
+        masterJsonValidation,
+        normalizedData,
+        monthlyFortuneSections,
+        chapterPlan: pipelineResult.chapterPlan,
+        chapterConfigVersion: pipelineResult.chapterConfigVersion,
+      },
+    };
     const finalTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
     console.info("[NewYearPremiumPDF][YearlySajuLlmPipelineCompleted]", {
       chapterCount: chapters.length,
@@ -5138,10 +5281,11 @@ async function handlePrepare(request, env) {
     pdfReady.contentType = "application/pdf";
     pdfReady.directDownloadUrl = archiveUrls.pdfUrl || archiveUrl;
     pdfReady.renderFormat = "pdf-archive";
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "rendering", progress: 95, chapterCount: chapters.length });
     pdfCompletionValidation = validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters, requireDownloadUrl: true });
     if (!pdfCompletionValidation.ok) {
       throw Object.assign(new Error("신년운세 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
-        code: "SAJU_NEW_YEAR_PDF_COMPLETION_INVALID",
+        code: "PDF_RENDER_FAILED",
         status: 422,
       });
     }
@@ -5167,6 +5311,12 @@ async function handlePrepare(request, env) {
       provider: pipelineResult.provider,
       promptVersion: pipelineResult.promptVersion,
       schemaVersion: pipelineResult.schemaVersion,
+      qualityVersion: pipelineResult.qualityVersion,
+      engineVersion: pipelineResult.engineVersion,
+      version: pipelineResult.engineVersion,
+      chapterConfigVersion: pipelineResult.chapterConfigVersion,
+      chapterConfigSource: pipelineResult.chapterConfigSource,
+      chapterPlan: pipelineResult.chapterPlan,
       chapterCount: chapters.length,
       targetYear: localYearSajuJson.targetYear,
       archive: {
@@ -5200,11 +5350,17 @@ async function handlePrepare(request, env) {
         promptVersion: pipelineResult.promptVersion,
         schemaVersion: pipelineResult.schemaVersion,
         qualityVersion: pipelineResult.qualityVersion,
+        engineVersion: pipelineResult.engineVersion,
+        version: pipelineResult.engineVersion,
+        chapterConfigVersion: pipelineResult.chapterConfigVersion,
+        chapterConfigSource: pipelineResult.chapterConfigSource,
+        chapterPlan: pipelineResult.chapterPlan,
         canReopen: true,
         canDownload: true,
       },
       cacheKey: yearlySajuPdfCacheKey,
     });
+    await updateNewYearExecutionProgress(env, auth.userId, executionCtx, { status: "completed", progress: 100, chapterCount: chapters.length });
 
     const responseData = {
       reportId,
@@ -5231,6 +5387,9 @@ async function handlePrepare(request, env) {
       promptVersion: pipelineResult.promptVersion,
       schemaVersion: pipelineResult.schemaVersion,
       qualityVersion: pipelineResult.qualityVersion,
+      chapterConfigVersion: pipelineResult.chapterConfigVersion,
+      chapterConfigSource: pipelineResult.chapterConfigSource,
+      chapterPlan: pipelineResult.chapterPlan,
       cacheKey: yearlySajuPdfCacheKey,
       cacheHit: false,
       chapters,
@@ -5303,17 +5462,18 @@ async function handlePrepare(request, env) {
     return json({
       ok: false,
       serviceKey: SERVICE_KEY,
-      code: error?.code || "SAJU_NEW_YEAR_GENERATION_FAILED",
-      message: userMessage,
+      code: normalizeNewYearPdfErrorCode(error),
+      message: newYearPublicErrorMessage(normalizeNewYearPdfErrorCode(error)),
       debugSafe: {
         reportId,
         sessionId: sessionKey,
         originalCode: error?.code || "",
         stage: clean(error?.stage || "prepare"),
-        status: Number(error?.status || 500),
+        status: newYearErrorStatus(normalizeNewYearPdfErrorCode(error), Number(error?.status || 500)),
         causeMessage: clean(error?.cause?.message || error?.cause || error?.message || ""),
+        errors: Array.isArray(error?.errors) ? error.errors.slice(0, 12) : undefined,
       },
-    }, { status: Number(error?.status || 500) });
+    }, { status: newYearErrorStatus(normalizeNewYearPdfErrorCode(error), Number(error?.status || 500)) });
   }
 }
 

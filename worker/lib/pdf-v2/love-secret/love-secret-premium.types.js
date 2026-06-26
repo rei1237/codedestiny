@@ -1,9 +1,24 @@
-export const LOVE_SECRET_PREMIUM_ENGINE_VERSION = "pdf-v3-llm-only";
-export const LOVE_SECRET_PREMIUM_QUALITY_VERSION = "love-secret-no-local-v1";
+export const LOVE_SECRET_LLM_VERSION = "2026-06-love-secret-llm-v1";
+export const LOVE_SECRET_PREMIUM_ENGINE_VERSION = LOVE_SECRET_LLM_VERSION;
+export const LOVE_SECRET_PREMIUM_QUALITY_VERSION = "love-secret-llm-only-chapter-lock-v1";
 export const LOVE_SECRET_PREMIUM_REPORT_TYPE = "loveSecret";
 export const LOVE_SECRET_PREMIUM_SERVICE_KEY = "saju-love-secret";
 export const LOVE_SECRET_PREMIUM_FEATURE_KEY = "premium_pdf_saju_love_secret";
 export const LOVE_SECRET_PREMIUM_COMPAT_FEATURE_KEY = "premium_pdf_saju_love_secret_compat";
+
+const SOLO_MODE_ALIASES = new Set(["solo", "single", "alone"]);
+const COMPATIBILITY_MODE_ALIASES = new Set(["compatibility", "compat", "couple", "pair", "match"]);
+
+export function normalizeLoveSecretMode(rawMode, { allowDefault = false } = {}) {
+  const mode = clean(rawMode).toLowerCase();
+  if (!mode && allowDefault) return "solo";
+  if (SOLO_MODE_ALIASES.has(mode)) return "solo";
+  if (COMPATIBILITY_MODE_ALIASES.has(mode)) return "compatibility";
+  const error = new Error(`Invalid love secret mode: ${clean(rawMode) || "(empty)"}`);
+  error.code = "LOVE_SECRET_INVALID_MODE";
+  error.status = 400;
+  throw error;
+}
 
 export function clean(value, limit = 0) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();

@@ -5,6 +5,21 @@
  */
 import { SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
+const PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS = {
+  ko: {
+    operator: "운영자(개인정보처리자): Code Destiny / Operator / Data Controller: Code Destiny",
+    requiredInfoLabel: "운세 서비스 제공을 위한 필수 정보:",
+  },
+  en: {
+    operator: "Operator / Data Controller: Code Destiny",
+    requiredInfoLabel: "Required information for providing fortune services:",
+  },
+  ja: {
+    operator: "運営者（個人情報取扱者）: Code Destiny",
+    requiredInfoLabel: "占いサービス提供に必要な情報:",
+  },
+};
+
 export default function PrivacyPolicyContent() {
   return (
     <div className="policy-embed-body">
@@ -15,7 +30,7 @@ export default function PrivacyPolicyContent() {
         <p>
           Code Destiny(https://code-destiny.com, 이하 &ldquo;서비스&rdquo;)는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을 준수하기 위해 노력합니다. This Privacy Policy explains what data we process, why we process it, how long we keep it, and how you can exercise your rights.
         </p>
-        <p>운영자(개인정보처리자): Code Destiny / Operator / Data Controller: Code Destiny</p>
+        <p>{PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS.ko.operator}</p>
       </section>
 
       <section className="policy-embed-section">
@@ -28,7 +43,7 @@ export default function PrivacyPolicyContent() {
       <section className="policy-embed-section">
         <h3 className="policy-embed-h3">3. 수집하는 정보 항목 / Categories of Data We Process</h3>
         <p>
-          <strong>운세 서비스 제공을 위한 필수 정보:</strong> 생년월일, 출생시간, 성별. 이 정보는 사주·자미두수·타로·주역 등 개인 맞춤형 운세 결과 산정 목적에만 사용되며, 서버에 안전하게 저장됩니다. 해당 정보는 운세 풀이 이외의 다른 목적(ex: 마케팅, 제3자 판매 등)으로 이용하지 않습니다.
+          <strong>{PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS.ko.requiredInfoLabel}</strong> 생년월일, 출생시간, 성별. 이 정보는 사주·자미두수·타로·주역 등 개인 맞춤형 운세 결과 산정 목적에만 사용되며, 서버에 안전하게 저장됩니다. 해당 정보는 운세 풀이 이외의 다른 목적(ex: 마케팅, 제3자 판매 등)으로 이용하지 않습니다.
         </p>
         <p>
           추가 수집 항목: 접속기기 정보(IP, 브라우저/OS, 언어, 접속시간), 로그 정보, 쿠키/로컬스토리지 식별자, 문의 시 제공되는 이메일 및 메시지 내용이 포함될 수 있습니다. We do not intentionally collect sensitive personal data beyond what is required for the fortune analysis experience.

@@ -1,26 +1,40 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 
-export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/ziwei/chart",
+const ZIWEI_CHART_METADATA_COPY = {
+  ko: {
     title: "심화 자미두수 상담 · 12궁·사화·대한 해석",
     description:
       "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 정밀하게 엮어 내면의 방향과 현실의 선택을 읽는 심화 상담 리포트입니다.",
-    keywords: [
-      "자미두수",
-      "자미두수 명반",
-      "심화 자미두수 상담",
-      "12궁",
-      "명궁",
-      "신궁",
-      "사화",
-      "대한",
-      "자미두수 심화",
-      "12궁 심층 분석",
-      "ziwei chart",
-      "zi wei dou shu",
-    ],
+    keywords: ["자미두수", "자미두수 명반", "심화 자미두수 상담", "12궁", "명궁", "신궁", "사화", "대한", "자미두수 심화", "12궁 심층 분석", "ziwei chart", "zi wei dou shu"],
+  },
+  en: {
+    title: "Advanced Ziwei Dou Shu Consultation · 12 Palaces, Four Transformations, and Major Luck",
+    description:
+      "An advanced consultation report that weaves the 12 palaces, Ming and Shen palaces, Four Transformations, and major luck flow from a Ziwei Dou Shu chart.",
+    keywords: ["Ziwei Dou Shu", "Ziwei chart", "advanced Ziwei consultation", "12 palaces", "Ming palace", "Shen palace", "Four Transformations", "major luck", "advanced Ziwei", "12 palace analysis", "ziwei chart", "zi wei dou shu"],
+  },
+  ja: {
+    title: "深層紫微斗数相談 · 十二宮・四化・大限解釈",
+    description:
+      "紫微斗数命盤をもとに、十二宮・命宮・身宮・四化・大限の流れを精密に結び、内面の方向と現実の選択を読む深層相談リポートです。",
+    keywords: ["紫微斗数", "紫微斗数命盤", "深層紫微斗数相談", "十二宮", "命宮", "身宮", "四化", "大限", "紫微斗数深層", "十二宮深層分析", "ziwei chart", "zi wei dou shu"],
+  },
+  zh: {
+    title: "深度紫微斗数咨询 · 十二宫、四化与大限解读",
+    description:
+      "基于紫微斗数命盘，精密串联十二宫、命宫、身宫、四化与大限流向，解读内在方向与现实选择的深度咨询报告。",
+    keywords: ["紫微斗数", "紫微斗数命盘", "深度紫微斗数咨询", "十二宫", "命宫", "身宫", "四化", "大限", "紫微斗数深度", "十二宫深度分析", "ziwei chart", "zi wei dou shu"],
+  },
+};
+
+export function generateMetadata() {
+  const copy = ZIWEI_CHART_METADATA_COPY.ko;
+  return generatePageMetadata({
+    path: "/ziwei/chart",
+    title: copy.title,
+    description: copy.description,
+    keywords: copy.keywords,
   });
 }
 

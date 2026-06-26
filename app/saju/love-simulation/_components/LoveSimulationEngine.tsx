@@ -3,7 +3,7 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
-import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_SCENES, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
+import { INITIAL_STATS, LOVE_CHARACTERS, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
@@ -14,6 +14,204 @@ const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection
 
 type PartnerCalendarType = "solar" | "lunar" | "lunar_leap";
 type PartnerGender = "female" | "male";
+type LoveSimulationLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+type LoveSimulationRuntimeWindow = Window & {
+  cdGetCurrentLanguage?: () => string;
+};
+
+function normalizeLoveSimulationLocale(value?: string | null): LoveSimulationLocale {
+  const normalized = String(value || "ko").trim().toLowerCase().replace("_", "-");
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "ja-jp") return "ja";
+  if (normalized === "en-us" || normalized === "en-gb") return "en";
+  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(normalized)) return normalized as LoveSimulationLocale;
+  return "ko";
+}
+
+function readLoveSimulationCookie(name: string) {
+  const prefix = `${name}=`;
+  return String(document.cookie || "")
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix))
+    ?.slice(prefix.length) || "";
+}
+
+function resolveLoveSimulationLocale() {
+  if (typeof window === "undefined") return "ko";
+
+  const runtimeWindow = window as LoveSimulationRuntimeWindow;
+  try {
+    const runtimeLocale = runtimeWindow.cdGetCurrentLanguage?.();
+    if (runtimeLocale) return normalizeLoveSimulationLocale(runtimeLocale);
+  } catch {}
+
+  try {
+    const queryLang = new URLSearchParams(window.location.search || "").get("lang");
+    if (queryLang) return normalizeLoveSimulationLocale(queryLang);
+  } catch {}
+
+  try {
+    const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+    if (firstSegment) {
+      const pathLang = normalizeLoveSimulationLocale(firstSegment);
+      if (pathLang !== "ko" || firstSegment.toLowerCase() === "ko") return pathLang;
+    }
+  } catch {}
+
+  try {
+    const stored = window.localStorage.getItem("cd_lang");
+    if (stored) return normalizeLoveSimulationLocale(stored);
+  } catch {}
+
+  try {
+    const cookieLang = readLoveSimulationCookie("cd_locale");
+    if (cookieLang) return normalizeLoveSimulationLocale(decodeURIComponent(cookieLang));
+  } catch {}
+
+  return "ko";
+}
+
+type LoveSimulationCopy = {
+  preparingStoryLocation: string;
+  preparingStoryTitle: string;
+  preparingStorySituation: string;
+  preparingStoryDialogue: (name: string) => string;
+  matchFormAria: string;
+  partnerNamePlaceholder: string;
+  birthDateAria: string;
+  birthHourAria: string;
+  birthMinuteAria: string;
+  birthCountryAria: string;
+  countryOptions: {
+    seoul: string;
+    tokyo: string;
+    shanghai: string;
+    newYork: string;
+    paris: string;
+  };
+  backToIntro: string;
+  backToCharacterSelect: string;
+  sajuHint: string;
+  sajuHintAria: (name: string) => string;
+  finalRelationship: Record<"fateOpen" | "slowBond" | "needsTuning" | "learnLanguage" | "needsSpace", {
+    title: string;
+    body: string;
+  }>;
+};
+
+const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy> = {
+  ko: {
+    preparingStoryLocation: "Love Code",
+    preparingStoryTitle: "준비 중인 이야기",
+    preparingStorySituation: "이 캐릭터의 스토리를 준비하고 있어요.",
+    preparingStoryDialogue: (name: string) => `${name}의 이야기는 곧 더 깊게 열릴 예정입니다.`,
+    matchFormAria: "상대 정보 입력 매칭",
+    partnerNamePlaceholder: "이름을 입력하세요",
+    birthDateAria: "생년월일",
+    birthHourAria: "출생 시(시간)",
+    birthMinuteAria: "출생 분(분)",
+    birthCountryAria: "출생 국가",
+    countryOptions: {
+      seoul: "대한민국 · 서울 기준",
+      tokyo: "일본 · 도쿄 기준",
+      shanghai: "중국 · 상하이 기준",
+      newYork: "미국 · 뉴욕 기준",
+      paris: "프랑스 · 파리 기준",
+    },
+    backToIntro: "인트로로 돌아가기",
+    backToCharacterSelect: "캐릭터 선택으로 돌아가기",
+    sajuHint: "사주 힌트 보기",
+    sajuHintAria: (name: string) => `${name} 사주 힌트 펼치기`,
+    finalRelationship: {
+      fateOpen: {
+        title: "운명의 코드가 열린 관계",
+        body: "서로의 마음이 비교적 자연스럽게 맞물렸습니다. 끌림만 앞선 것이 아니라, 상대가 안심할 수 있는 리듬을 함께 만들어낸 흐름이에요.",
+      },
+      slowBond: {
+        title: "천천히 깊어지는 인연",
+        body: "빠르게 타오르기보다 오래 남는 쪽에 가까운 관계입니다. 작은 배려와 반복되는 진심이 둘 사이의 문을 조용히 열어주었어요.",
+      },
+      needsTuning: {
+        title: "설렘은 있지만 조율이 필요한 관계",
+        body: "분명한 끌림이 있었지만, 서로의 속도와 표현 방식에는 조금 더 섬세한 조율이 필요합니다. 설렘을 오래 지키려면 한 박자 느린 확인이 좋아요.",
+      },
+      learnLanguage: {
+        title: "서로의 언어를 배워야 하는 관계",
+        body: "마음은 움직였지만 표현의 결이 완전히 같지는 않았습니다. 상대가 어떤 방식으로 사랑을 느끼는지 배우는 순간, 관계의 분위기가 훨씬 부드러워질 수 있어요.",
+      },
+      needsSpace: {
+        title: "거리감 조절이 필요한 관계",
+        body: "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다.",
+      },
+    },
+  },
+  en: {
+    preparingStoryLocation: "Love Code",
+    preparingStoryTitle: "Story in preparation",
+    preparingStorySituation: "This character's story is still being prepared.",
+    preparingStoryDialogue: (name: string) => `${name}'s story will open more deeply soon.`,
+    matchFormAria: "Match by partner information",
+    partnerNamePlaceholder: "Enter a name",
+    birthDateAria: "Birth date",
+    birthHourAria: "Birth hour",
+    birthMinuteAria: "Birth minute",
+    birthCountryAria: "Birth country",
+    countryOptions: {
+      seoul: "Korea · Seoul time",
+      tokyo: "Japan · Tokyo time",
+      shanghai: "China · Shanghai time",
+      newYork: "United States · New York time",
+      paris: "France · Paris time",
+    },
+    backToIntro: "Back to intro",
+    backToCharacterSelect: "Back to character selection",
+    sajuHint: "View saju hints",
+    sajuHintAria: (name: string) => `Open saju hints for ${name}`,
+    finalRelationship: {
+      fateOpen: {
+        title: "A relationship where destiny's code opened",
+        body: "Your hearts met in a fairly natural rhythm. It was not only attraction leading the way; you also created a pace where the other person could feel safe.",
+      },
+      slowBond: {
+        title: "A bond that deepens slowly",
+        body: "This connection is closer to something that lasts than something that burns quickly. Small gestures and repeated sincerity quietly opened the door between you.",
+      },
+      needsTuning: {
+        title: "A spark that needs gentle tuning",
+        body: "There was clear attraction, but your pace and ways of expressing love still need delicate adjustment. A slower check-in will help the feeling last.",
+      },
+      learnLanguage: {
+        title: "A relationship learning each other's language",
+        body: "The heart moved, but your emotional textures were not fully the same. Once you learn how the other person feels loved, the air between you can soften.",
+      },
+      needsSpace: {
+        title: "A relationship that needs distance control",
+        body: "This connection asks you to sense distance before emotional temperature. Leave enough space for the other person to breathe instead of rushing closer.",
+      },
+    },
+  },
+};
+
+const LOVE_SIMULATION_COPY_FALLBACK_LOCALES: Record<Exclude<LoveSimulationLocale, "ko" | "en">, LoveSimulationCopy> = {
+  ja: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  "zh-CN": LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  "zh-TW": LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  vi: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  hi: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  es: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  fr: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  de: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  nl: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+  ms: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
+};
+
+function getLoveSimulationCopy(locale?: string | null): LoveSimulationCopy {
+  const activeLocale = normalizeLoveSimulationLocale(locale);
+  return LOVE_SIMULATION_COPY_TRANSLATIONS[activeLocale as keyof typeof LOVE_SIMULATION_COPY_TRANSLATIONS] || LOVE_SIMULATION_COPY_FALLBACK_LOCALES[activeLocale as Exclude<LoveSimulationLocale, "ko" | "en">] || LOVE_SIMULATION_COPY_TRANSLATIONS.en;
+}
+
 type PartnerMatchInput = {
   name: string;
   birthDate: string;
@@ -656,7 +854,7 @@ function ensureSceneChoices(scene: LoveScene, character: LoveCharacter): LoveSce
   };
 }
 
-function buildPlayableScenes(character: LoveCharacter | null, rawScenes: LoveScene[]) {
+function buildPlayableScenes(character: LoveCharacter | null, rawScenes: LoveScene[], copy: LoveSimulationCopy) {
   if (!character) return [];
   const sortedScenes = rawScenes
     .filter((scene) => scene.characterId === character.id)
@@ -669,10 +867,10 @@ function buildPlayableScenes(character: LoveCharacter | null, rawScenes: LoveSce
             id: `${character.id}-preparing-story`,
             characterId: character.id,
             chapter: 1,
-            location: "Love Code",
-            title: "준비 중인 이야기",
-            situation: "이 캐릭터의 스토리를 준비하고 있어요.",
-            dialogue: `${character.name}의 이야기는 곧 더 깊게 열릴 예정입니다.`,
+            location: copy.preparingStoryLocation,
+            title: copy.preparingStoryTitle,
+            situation: copy.preparingStorySituation,
+            dialogue: copy.preparingStoryDialogue(character.name),
             choices: [
               createFallbackChoice(character, 1, 1, "warm"),
               createFallbackChoice(character, 1, 2, "curious"),
@@ -770,41 +968,26 @@ type ChoiceAnalysis = {
   nextHint: string;
 };
 
-function resolveFinalRelationshipType(stats: LoveStats) {
+function resolveFinalRelationshipType(stats: LoveStats, copy: LoveSimulationCopy) {
   const warmth = Math.round((stats.affection + stats.trust + stats.chemistry + stats.stability - stats.tension * 0.45) / 4);
 
   if (stats.trust >= 78 && stats.chemistry >= 72 && stats.tension <= 42) {
-    return {
-      title: "운명의 코드가 열린 관계",
-      body: "서로의 마음이 비교적 자연스럽게 맞물렸습니다. 끌림만 앞선 것이 아니라, 상대가 안심할 수 있는 리듬을 함께 만들어낸 흐름이에요.",
-    };
+    return copy.finalRelationship.fateOpen;
   }
 
   if (stats.trust >= 68 && stats.stability >= 64) {
-    return {
-      title: "천천히 깊어지는 인연",
-      body: "빠르게 타오르기보다 오래 남는 쪽에 가까운 관계입니다. 작은 배려와 반복되는 진심이 둘 사이의 문을 조용히 열어주었어요.",
-    };
+    return copy.finalRelationship.slowBond;
   }
 
   if (stats.chemistry >= 72 || stats.affection >= 72) {
-    return {
-      title: "설렘은 있지만 조율이 필요한 관계",
-      body: "분명한 끌림이 있었지만, 서로의 속도와 표현 방식에는 조금 더 섬세한 조율이 필요합니다. 설렘을 오래 지키려면 한 박자 느린 확인이 좋아요.",
-    };
+    return copy.finalRelationship.needsTuning;
   }
 
   if (warmth >= 52) {
-    return {
-      title: "서로의 언어를 배워야 하는 관계",
-      body: "마음은 움직였지만 표현의 결이 완전히 같지는 않았습니다. 상대가 어떤 방식으로 사랑을 느끼는지 배우는 순간, 관계의 분위기가 훨씬 부드러워질 수 있어요.",
-    };
+    return copy.finalRelationship.learnLanguage;
   }
 
-  return {
-    title: "거리감 조절이 필요한 관계",
-    body: "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다.",
-  };
+  return copy.finalRelationship.needsSpace;
 }
 
 function analyzeChoiceLogs(choiceLog: ChoiceLog[]): ChoiceAnalysis {
@@ -1232,6 +1415,7 @@ function ResultCard({
 
 export const LoveSimulationEngine: React.FC = () => {
   const [screen, setScreen] = useState<"intro" | "select" | "play" | "result">("intro");
+  const [locale, setLocale] = useState<LoveSimulationLocale>("ko");
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
   const [entryMode, setEntryMode] = useState<"preset" | "sajuMatch">("preset");
   const [sceneIndex, setSceneIndex] = useState(0);
@@ -1254,11 +1438,28 @@ export const LoveSimulationEngine: React.FC = () => {
   const [isMatching, setIsMatching] = useState(false);
   const [initialCompatibilityNote, setInitialCompatibilityNote] = useState("");
 
+  useEffect(() => {
+    const syncLocale = (event?: Event) => {
+      const eventLocale = event instanceof CustomEvent && typeof event.detail?.lang === "string" ? event.detail.lang : "";
+      setLocale(normalizeLoveSimulationLocale(eventLocale || resolveLoveSimulationLocale()));
+    };
+
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale as EventListener);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale as EventListener);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
+
+  const copy = useMemo(() => getLoveSimulationCopy(locale), [locale]);
   const character = LOVE_CHARACTERS.find((item) => item.id === selectedId) ?? null;
-  const scenes = useMemo(() => buildPlayableScenes(character, LOVE_SCENES), [character]);
+  const localizedScenes = useMemo(() => getLocalizedLoveScenes(locale), [locale]);
+  const scenes = useMemo(() => buildPlayableScenes(character, localizedScenes, copy), [character, localizedScenes, copy]);
   const currentScene = scenes[sceneIndex] ?? null;
   const isShowingResponse = Boolean(selectedChoice);
-  const metrics = getRelationshipMetrics(stats);
+  const metrics = getRelationshipMetrics(stats, locale);
   const scenePrelude = useMemo(() => (character && currentScene ? buildScenePrelude(character, currentScene) : []), [character, currentScene]);
   const primaryMatch = matchResults[0] ?? null;
   const primaryMatchCharacter = useMemo(
@@ -1552,7 +1753,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 });
               }}
               className="rounded-lg border border-rose-100/20 bg-white/[0.09] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7"
-              aria-label="상대 정보 입력 매칭"
+              aria-label={copy.matchFormAria}
             >
               <div className="mb-5">
                 <span className="text-xs font-black uppercase tracking-[0.24em] text-rose-100/86">LOVE MATCH</span>
@@ -1568,7 +1769,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     type="text"
                     id="lovePartnerName"
                     name="partnerName"
-                    placeholder="이름을 입력하세요"
+                    placeholder={copy.partnerNamePlaceholder}
                     autoComplete="name"
                     inputMode="text"
                     enterKeyHint="next"
@@ -1584,7 +1785,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     type="text"
                     id="lovePartnerBirthDate"
                     name="partnerBirthDate"
-                    aria-label="생년월일"
+                    aria-label={copy.birthDateAria}
                     autoComplete="bday"
                     inputMode="numeric"
                     maxLength={8}
@@ -1623,7 +1824,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     <select
                       className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                       name="partnerHour"
-                      aria-label="출생 시(시간)"
+                      aria-label={copy.birthHourAria}
                       value={partnerHour}
                       onChange={(event) => {
                         setPartnerHour(event.target.value);
@@ -1639,7 +1840,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     <select
                       className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                       name="partnerMinute"
-                      aria-label="출생 분(분)"
+                      aria-label={copy.birthMinuteAria}
                       value={partnerMinute}
                       onChange={(event) => {
                         setPartnerMinute(event.target.value);
@@ -1663,15 +1864,15 @@ export const LoveSimulationEngine: React.FC = () => {
                     className="min-h-14 w-full rounded-lg border border-zinc-200 bg-white px-4 text-sm font-bold outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-200/45"
                     id="lovePartnerCountry"
                     name="partnerCountry"
-                    aria-label="출생 국가"
+                    aria-label={copy.birthCountryAria}
                     value={partnerCountry}
                     onChange={(event) => setPartnerCountry(event.target.value)}
                   >
-                    <option value="Asia/Seoul">대한민국 · 서울 기준</option>
-                    <option value="Asia/Tokyo">일본 · 도쿄 기준</option>
-                    <option value="Asia/Shanghai">중국 · 상하이 기준</option>
-                    <option value="America/New_York">미국 · 뉴욕 기준</option>
-                    <option value="Europe/Paris">프랑스 · 파리 기준</option>
+                    <option value="Asia/Seoul">{copy.countryOptions.seoul}</option>
+                    <option value="Asia/Tokyo">{copy.countryOptions.tokyo}</option>
+                    <option value="Asia/Shanghai">{copy.countryOptions.shanghai}</option>
+                    <option value="America/New_York">{copy.countryOptions.newYork}</option>
+                    <option value="Europe/Paris">{copy.countryOptions.paris}</option>
                   </select>
                   <p className="mt-3 text-xs font-bold leading-5 text-zinc-600">현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.</p>
                 </div>
@@ -1764,7 +1965,7 @@ export const LoveSimulationEngine: React.FC = () => {
             <button
               onClick={() => setScreen("intro")}
               className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition hover:bg-white/20"
-              aria-label="인트로로 돌아가기"
+              aria-label={copy.backToIntro}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -1903,7 +2104,7 @@ export const LoveSimulationEngine: React.FC = () => {
   }
 
   if (screen === "result" && character) {
-    const result = resolveResult(stats);
+    const result = resolveResult(stats, locale);
     const choiceAnalysis = analyzeChoiceLogs(choiceLog);
     const characterResultSummary = CHARACTER_RESULT_SUMMARIES[character.id];
     const customAdvice = buildCustomAdvice(character, choiceAnalysis);
@@ -1912,7 +2113,7 @@ export const LoveSimulationEngine: React.FC = () => {
     const sajuEntrySummary = buildSajuEntrySummary(entryMode, character);
     const sajuCompatibility = buildSajuCompatibilityVerdict(character, stats, entryMode, coupleCompatibility);
     const dateOutcome = buildDateOutcome(character, stats, choiceAnalysis, choiceLog);
-    const finalRelationshipType = resolveFinalRelationshipType(stats);
+    const finalRelationshipType = resolveFinalRelationshipType(stats, copy);
     const recentChoiceRecaps = buildRecentChoiceRecaps(choiceLog, scenes);
 
     return (
@@ -1922,7 +2123,7 @@ export const LoveSimulationEngine: React.FC = () => {
             <button
               onClick={resetToSelect}
               className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition hover:bg-white/20"
-              aria-label="캐릭터 선택으로 돌아가기"
+              aria-label={copy.backToCharacterSelect}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -2065,7 +2266,7 @@ export const LoveSimulationEngine: React.FC = () => {
             <button
               onClick={resetToSelect}
               className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-black/25 text-white backdrop-blur-md transition hover:bg-white/20"
-              aria-label="캐릭터 선택으로 돌아가기"
+              aria-label={copy.backToCharacterSelect}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -2090,7 +2291,7 @@ export const LoveSimulationEngine: React.FC = () => {
               <button
                 onClick={resetToSelect}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-white transition hover:bg-white/16 lg:hidden"
-                aria-label="캐릭터 선택으로 돌아가기"
+                aria-label={copy.backToCharacterSelect}
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
@@ -2137,9 +2338,9 @@ export const LoveSimulationEngine: React.FC = () => {
                 <details className="group mt-4 rounded-lg border border-rose-100/12 bg-black/18">
                   <summary
                     className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-rose-50/82"
-                    aria-label={`${character.name} 사주 힌트 펼치기`}
+                    aria-label={copy.sajuHintAria(character.name)}
                   >
-                    <span>사주 힌트 보기</span>
+                    <span>{copy.sajuHint}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-rose-100/66 transition group-open:rotate-90" />
                   </summary>
                   <div className="grid gap-3 border-t border-rose-100/10 px-3 py-3">

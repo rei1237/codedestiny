@@ -2,13 +2,41 @@ import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
+const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
+  ko: {
+    metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | Code Destiny",
+    metadataDescription: "Code Destiny의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
+    metadataKeywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "Code Destiny"],
+    privacy: "개인정보처리방침",
+    disclaimer: "면책 고지",
+    advertising: "광고 운영정책",
+  },
+  en: {
+    metadataTitle: "Content Creation and AI Use Notice | Code Destiny",
+    metadataDescription: "Learn how Code Destiny creates fortune content, uses AI support, reviews quality, separates ads from editorial decisions, and handles correction requests.",
+    metadataKeywords: ["content creation standards", "AI use notice", "fortune content", "editorial policy", "Code Destiny"],
+    privacy: "Privacy Policy",
+    disclaimer: "Disclaimer",
+    advertising: "Advertising Policy",
+  },
+  ja: {
+    metadataTitle: "コンテンツ制作とAI活用に関する告知 | Code Destiny",
+    metadataDescription: "Code Destinyの運勢コンテンツ制作原則、AI活用範囲、検収基準、広告と編集の独立性、訂正依頼手順をご案内します。",
+    metadataKeywords: ["コンテンツ制作基準", "AI活用告知", "運勢コンテンツ", "編集方針", "Code Destiny"],
+    privacy: "プライバシーポリシー",
+    disclaimer: "免責事項",
+    advertising: "広告運用ポリシー",
+  },
+};
+
+const editorialPolicyCopy = EDITORIAL_POLICY_TEXT_TRANSLATIONS.ko;
+
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/editorial-policy",
-    title: "콘텐츠 제작 및 AI 활용 고지 | Code Destiny",
-    description:
-      "Code Destiny의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
-    keywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "Code Destiny"],
+    title: editorialPolicyCopy.metadataTitle,
+    description: editorialPolicyCopy.metadataDescription,
+    keywords: editorialPolicyCopy.metadataKeywords,
   });
 }
 
@@ -101,9 +129,9 @@ export default function EditorialPolicyPage() {
       <section style={sectionStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 관련 정책</h2>
         <p style={paragraphStyle}>
-          개인정보와 쿠키는 <Link href="/privacy" style={linkStyle}>개인정보처리방침</Link>, 운세와 상담형 콘텐츠의 한계는{" "}
-          <Link href="/disclaimer" style={linkStyle}>면책 고지</Link>, 광고 운영 원칙은{" "}
-          <Link href="/advertising-policy" style={linkStyle}>광고 운영정책</Link>에서 함께 확인할 수 있습니다.
+          개인정보와 쿠키는 <Link href="/privacy" style={linkStyle}>{editorialPolicyCopy.privacy}</Link>, 운세와 상담형 콘텐츠의 한계는{" "}
+          <Link href="/disclaimer" style={linkStyle}>{editorialPolicyCopy.disclaimer}</Link>, 광고 운영 원칙은{" "}
+          <Link href="/advertising-policy" style={linkStyle}>{editorialPolicyCopy.advertising}</Link>에서 함께 확인할 수 있습니다.
         </p>
       </section>
     </main>

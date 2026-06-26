@@ -1,7 +1,33 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    "animalTotem.001": "예: 고양이, 늑대, 올빼미",
+  },
+  en: {
+    "animalTotem.001": "E.g. cat, wolf, owl",
+  },
+  ja: {
+    "animalTotem.001": "例: 猫、狼、フクロウ",
+  },
+  zh: {
+    "animalTotem.001": "例如：猫、狼、猫头鹰",
+  },
+} as const;
+
+function animalTotemPageText(key: keyof typeof ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS.ko): string {
+  return ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
+function getAnimalTotemPageCopy(locale: LoadingLocale) {
+  if (locale === "en" || locale === "ja") return ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS[locale];
+  if (locale === "zh-CN" || locale === "zh-TW") return ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS.zh;
+  return ANIMAL_TOTEM_PAGE_TEXT_TRANSLATIONS.ko;
+}
 
 type Totem = {
   id: string;
@@ -217,9 +243,22 @@ function pickDeck(pool: Totem[], size: number) {
 
 export default function AnimalTotem() {
   const deck = useMemo(() => pickDeck(TOTEMS, 5), []);
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
   const [selectedTotem, setSelectedTotem] = useState<Totem | null>(null);
   const [query, setQuery] = useState("");
+  const copy = getAnimalTotemPageCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
 
   const normalized = query.trim();
   const suggestedTotems = useMemo(() => {
@@ -370,7 +409,7 @@ export default function AnimalTotem() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="예: 고양이, 늑대, 올빼미"
+                placeholder={copy["animalTotem.001"] || animalTotemPageText("animalTotem.001")}
                 className="w-full rounded-2xl border border-violet-100/45 bg-slate-900/35 px-4 py-3 text-sm text-white placeholder:text-violet-100/70 outline-none transition-all duration-300 focus:border-pink-200/80 focus:ring-2 focus:ring-pink-200/55"
               />
 

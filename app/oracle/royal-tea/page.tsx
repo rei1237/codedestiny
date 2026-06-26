@@ -112,10 +112,34 @@ const SERVICE = {
   },
 };
 
+const ROYAL_TEA_METADATA_COPY = {
+  ko: {
+    title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩",
+    description:
+      "런던 로열 컵 문양을 기반으로 찻잎 패턴의 상징을 해석하는 영국 전통 홍차 점 오라클.",
+  },
+  en: {
+    title: "Tasseography Tea Leaf Oracle - London Royal Cup Symbol Reading",
+    description:
+      "A traditional British tea oracle that interprets the symbols in tea leaf patterns from the London Royal Cup.",
+  },
+  ja: {
+    title: "タセオグラフィー紅茶占い - ロンドンロイヤルカップ象徴リーディング",
+    description:
+      "ロンドンロイヤルカップの模様をもとに茶葉の象徴を読み解く、英国伝統の紅茶占いオラクルです。",
+  },
+  zh: {
+    title: "茶叶占卜 - 伦敦皇家杯纹样解读",
+    description:
+      "以伦敦皇家杯纹样为基础，解读茶叶图案象征的英式传统红茶神谕。",
+  },
+};
+
+const royalTeaMetadataCopy = ROYAL_TEA_METADATA_COPY.ko;
+
 export const metadata = withUniqueRouteMetadata("/oracle/royal-tea", {
-  title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩",
-  description:
-    "런던 로열 컵 문양을 기반으로 찻잎 패턴의 상징을 해석하는 영국 전통 홍차 점 오라클.",
+  title: royalTeaMetadataCopy.title,
+  description: royalTeaMetadataCopy.description,
 });
 
 export default function RoyalTeaLandingPage() {

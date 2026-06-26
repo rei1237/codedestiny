@@ -662,15 +662,50 @@ async function buildSoulOriginCalculationSeed(_env, birthInput) {
     const err = new Error("운명의 업 리포트 생성에 필요한 출생 정보 계산을 완료하지 못했습니다. 프로필 정보를 확인해 주세요.");
     err.code = "SOUL_ORIGIN_CALCULATION_FAILED";
     err.status = 422;
+    err.failedStep = "calculating";
+    err.engineErrors = engineErrors;
     throw err;
   }
 
   seed.signals = deriveCrossSignals(seed);
+  seed.engineErrors = engineErrors;
   return seed;
 }
 
 function makeReportId() {
   return `soul-origin-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function updateSoulOriginSessionLock(sessionId, patch = {}) {
+  const previous = SESSION_LOCKS.get(sessionId) || {};
+  SESSION_LOCKS.set(sessionId, {
+    ...previous,
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+function soulOriginProgressFields(lock = {}) {
+  return {
+    generationStatus: clean(lock.generationStatus || lock.currentStep || ""),
+    progress: Number.isFinite(Number(lock.progress)) ? Number(lock.progress) : 0,
+    currentStep: clean(lock.currentStep || ""),
+    currentChapterId: clean(lock.currentChapterId || ""),
+    currentChapterTitle: clean(lock.currentChapterTitle || ""),
+    systemStatus: lock.systemStatus && typeof lock.systemStatus === "object" ? lock.systemStatus : undefined,
+    failedStep: clean(lock.failedStep || ""),
+    failedChapterId: clean(lock.failedChapterId || ""),
+  };
+}
+
+function buildCalculationSystemStatus(seed = {}) {
+  return {
+    saju: Boolean(seed.saju),
+    vedic: Boolean(seed.vedic),
+    astrology: Boolean(seed.astrology),
+    ziwei: Boolean(seed.ziwei),
+    sukuyo: Boolean(seed.sukyo),
+  };
 }
 
 function getPremiumAccessToken(request, body = {}) {
@@ -728,6 +763,7 @@ async function handlePrepare(request, env) {
       ok: true,
       status: "running",
       serverStatus: "running",
+      ...soulOriginProgressFields(existingLock),
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       reportType: SOUL_ORIGIN_REPORT_TYPE,
       reportId: clean(existingLock.reportId || reportId),
@@ -738,6 +774,7 @@ async function handlePrepare(request, env) {
         reportId: clean(existingLock.reportId || reportId),
         sessionId,
         status: "running",
+        ...soulOriginProgressFields(existingLock),
         startedAt: existingLock.startedAt,
       },
     });
@@ -752,6 +789,9 @@ async function handlePrepare(request, env) {
     requestId,
     userId: auth.userId,
     status: "running",
+    generationStatus: "pending",
+    currentStep: "pending",
+    progress: 0,
     startedAt: new Date().toISOString(),
   });
 
@@ -824,10 +864,26 @@ async function handlePrepare(request, env) {
     });
 
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    updateSoulOriginSessionLock(sessionId, {
+      generationStatus: "validating",
+      currentStep: "validating",
+      progress: 5,
+    });
     logFlow("SessionCreateStart", { requestId, sessionId, reportId });
 
     logFlow("CalculationStart", { requestId, sessionId, reportId });
+    updateSoulOriginSessionLock(sessionId, {
+      generationStatus: "calculating",
+      currentStep: "calculating",
+      progress: 10,
+    });
     const calculationSeed = await buildSoulOriginCalculationSeed(env, birthInput);
+    updateSoulOriginSessionLock(sessionId, {
+      generationStatus: "calculating",
+      currentStep: "calculating",
+      progress: 25,
+      systemStatus: buildCalculationSystemStatus(calculationSeed),
+    });
     logFlow("CalculationSuccess", { requestId, sessionId, reportId });
 
     const normalizedLlmInput = normalizeSoulOriginCalculationInput({
@@ -837,13 +893,29 @@ async function handlePrepare(request, env) {
     });
 
     logFlow("LLMReportStart", { requestId, sessionId, reportId });
+    updateSoulOriginSessionLock(sessionId, {
+      generationStatus: "generating",
+      currentStep: "generating",
+      progress: 30,
+    });
     const generatedReport = await createSoulOriginPremiumPdfJob({
       env,
       input: normalizedLlmInput,
+      calculationSeed,
       userId: auth.userId,
       reportId,
       sessionId,
       requestUrl: request.url,
+      onStatus: (state = {}) => {
+        updateSoulOriginSessionLock(sessionId, {
+          generationStatus: clean(state.status || state.currentStep || "generating"),
+          currentStep: clean(state.currentStep || state.status || "generating"),
+          progress: Number.isFinite(Number(state.progress)) ? Number(state.progress) : 0,
+          currentChapterId: clean(state.currentChapterId || ""),
+          currentChapterTitle: clean(state.currentChapterTitle || ""),
+          systemStatus: state.systemStatus && typeof state.systemStatus === "object" ? state.systemStatus : buildCalculationSystemStatus(calculationSeed),
+        });
+      },
     });
     logFlow("LLMReportSuccess", {
       requestId,
@@ -980,6 +1052,10 @@ async function handlePrepare(request, env) {
       requestId,
       userId: auth.userId,
       status: "done",
+      generationStatus: "completed",
+      currentStep: "completed",
+      progress: 100,
+      systemStatus: buildCalculationSystemStatus(calculationSeed),
       startedAt: existingLock?.startedAt || new Date().toISOString(),
       result: responseBody,
     });
@@ -1030,8 +1106,13 @@ async function handlePrepare(request, env) {
       requestId,
       userId: auth.userId,
       status: "failed",
+      generationStatus: "failed",
+      currentStep: clean(error?.failedStep || error?.step || "failed"),
+      progress: Number(SESSION_LOCKS.get(sessionId)?.progress || 0),
       code: clean(error?.code || "SOUL_ORIGIN_GENERATION_FAILED"),
       message: clean(error?.message || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
+      failedStep: clean(error?.failedStep || error?.step || "soul-origin-generation"),
+      failedChapterId: clean(error?.failedChapterId || error?.chapterId || ""),
       httpStatus: Number(error?.status || 500),
       startedAt: new Date().toISOString(),
       error: normalizeError(error),
@@ -1053,6 +1134,8 @@ async function handlePrepare(request, env) {
         reportId,
         sessionId,
         stage: "soul-origin-generation",
+        failedStep: clean(error?.failedStep || error?.step || ""),
+        failedChapterId: clean(error?.failedChapterId || error?.chapterId || ""),
         manuscriptSource: SOUL_ORIGIN_MANUSCRIPT_SOURCE,
       },
     }, { status: Number(error?.status || 500) });
@@ -1194,6 +1277,7 @@ async function handleStatus(request, env) {
         ok: true,
         status: "running",
         serverStatus: "running",
+        ...soulOriginProgressFields(lock),
         serviceKey: SOUL_ORIGIN_SERVICE_KEY,
         reportType: SOUL_ORIGIN_REPORT_TYPE,
         reportId: clean(lock.reportId || reportId),
@@ -1211,6 +1295,7 @@ async function handleStatus(request, env) {
         reportType: SOUL_ORIGIN_REPORT_TYPE,
         reportId: clean(lock.reportId || reportId),
         sessionId,
+        ...soulOriginProgressFields(lock),
         code: clean(lock.code || "SOUL_ORIGIN_GENERATION_FAILED"),
         message: clean(lock.message || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
       }, { status: Number(lock.httpStatus || 500) });
@@ -1255,6 +1340,8 @@ async function handleStatus(request, env) {
       ok: true,
       status: "completed",
       serverStatus: "completed",
+      generationStatus: "completed",
+      progress: 100,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       reportType: SOUL_ORIGIN_REPORT_TYPE,
       reportId: finalReportId,
@@ -1270,6 +1357,8 @@ async function handleStatus(request, env) {
       ok: false,
       status: "failed",
       serverStatus: "failed",
+      generationStatus: "failed",
+      progress: 0,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       reportType: SOUL_ORIGIN_REPORT_TYPE,
       reportId: finalReportId,
@@ -1284,6 +1373,8 @@ async function handleStatus(request, env) {
     ok: true,
     status: "running",
     serverStatus: "running",
+    generationStatus: "generating",
+    progress: 30,
     serviceKey: SOUL_ORIGIN_SERVICE_KEY,
     reportType: SOUL_ORIGIN_REPORT_TYPE,
     reportId: finalReportId,

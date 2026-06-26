@@ -11,6 +11,45 @@ import { openPaidFeatureGate, purchaseFeature } from "../_lib/billing-client";
 import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
+const KKULKKUL_MANSERYUK_TEXT_TRANSLATIONS = {
+  ko: {
+    "manse.001": "이용권 확인 중",
+    "manse.002": "원화 기준 가치로 표시",
+    "manse.003": "사주 확장 콘텐츠 전체 해금",
+    "manse.004": "무료 항목을 제외한 사주 확장 서비스 전체를 한 번에 해금합니다.",
+    "manse.005": "RPG 캐릭터 리포트",
+    "manse.006": "사주 기반 능력치/직업/성장 루트를 RPG 캐릭터처럼 분석합니다.",
+    "manse.007": "사주로 보는 여행지",
+    "manse.008": "사주 에너지와 시기 흐름을 기준으로 운이 맞는 여행지와 피해야 할 타이밍을 제안합니다.",
+    "manse.009": "명리 헬스 리포트",
+    "manse.010": "오행 균형과 생활 패턴을 바탕으로 건강 리스크와 관리 루틴을 안내합니다.",
+    "manse.011": "사주 다이어리",
+    "manse.012": "운세 흐름 기록 템플릿과 월간 회고를 통해 내 패턴을 추적하는 다이어리 기능입니다.",
+    "manse.013": "시크릿 하우스 전체 에피소드",
+    "manse.014": "잠금된 스토리 루트, 멀티 엔딩, 확장 에피소드를 전체 해금합니다.",
+    "manse.015": "프리미엄 점술 패키지",
+    "manse.016": "자미두수·점성술·숙요·베다 심층 해석 리포트 묶음을 한 번에 이용할 수 있는 패키지입니다.",
+    "manse.017": "자미두수 전체 풀이",
+    "manse.018": "점성술 세부 차트",
+    "manse.019": "숙요점 심층 분석",
+    "manse.020": "베다점 심화 리포트",
+    "manse.021": "주역 거북점",
+    "manse.022": "이집트 신탁",
+    "manse.023": "지오맨시 흙점",
+    "manse.024": "스톤헨지 룬점",
+    "manse.025": "프리미엄 타로(회복 타로 제외)",
+    "manse.026": "VVIP 프리미엄 컬렉션 열기/닫기",
+    "manse.027": "명운 작명 프리미엄",
+    "manse.028": "이용권 혜택으로 운명 확인하기",
+    "manse.029": "원",
+    "manse.030": "원 상당",
+  },
+} as const;
+
+function kkulkkulManseryukText(key: keyof typeof KKULKKUL_MANSERYUK_TEXT_TRANSLATIONS.ko) {
+  return KKULKKUL_MANSERYUK_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type LockedSectionProps = {
   title: string;
   description: string;
@@ -22,11 +61,11 @@ type LockedSectionProps = {
 };
 
 function formatCoinValue(amount: number) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}${kkulkkulManseryukText("manse.029")}`;
 }
 
 function formatMonthlyCreditValue(amount: number | null) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}원 상당`;
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}${kkulkkulManseryukText("manse.030")}`;
 }
 
 function LockedSection({
@@ -35,7 +74,7 @@ function LockedSection({
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "이용권 혜택으로 운명 확인하기",
+  buttonLabel = kkulkkulManseryukText("manse.028"),
   children,
 }: LockedSectionProps) {
   const [isScrolling, setIsScrolling] = useState(false);
@@ -837,7 +876,7 @@ export default function KkulkkulManseryukMain() {
       featureKey,
       requestId,
       cost,
-      message: "이용권 확인 중",
+      message: kkulkkulManseryukText("manse.001"),
     });
     setPremiumGateLoading(service);
     try {
@@ -1107,7 +1146,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold text-amber-800">콘텐츠 가치 단위</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
                 <span aria-hidden="true">🌙</span>
-                <span>원화 기준 가치로 표시</span>
+                <span>{kkulkkulManseryukText("manse.002")}</span>
               </p>
               <div className="mt-2 grid gap-1 text-xs font-bold text-amber-900/80">
                 <span>보유 원화 가치: {formatCoinValue(currentCoins)}</span>
@@ -1133,8 +1172,8 @@ export default function KkulkkulManseryukMain() {
 
         {/* PAID: 무료 외 전체 사주 해금 번들 */}
         <LockedSection
-          title="사주 확장 콘텐츠 전체 해금"
-          description="무료 항목을 제외한 사주 확장 서비스 전체를 한 번에 해금합니다."
+          title={kkulkkulManseryukText("manse.003")}
+          description={kkulkkulManseryukText("manse.004")}
           cost={700}
           isUnlocked={unlockedFeatures.allPaidSaju}
           onUnlock={() =>
@@ -1149,8 +1188,8 @@ export default function KkulkkulManseryukMain() {
         <section className="grid gap-4 lg:grid-cols-2">
           {/* PAID 개별 해금 */}
           <LockedSection
-            title="RPG 캐릭터 리포트"
-            description="사주 기반 능력치/직업/성장 루트를 RPG 캐릭터처럼 분석합니다."
+            title={kkulkkulManseryukText("manse.005")}
+            description={kkulkkulManseryukText("manse.006")}
             cost={30}
             isUnlocked={unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("rpgCharacter", 30)}
@@ -1159,8 +1198,8 @@ export default function KkulkkulManseryukMain() {
           </LockedSection>
 
           <LockedSection
-            title="사주로 보는 여행지"
-            description="사주 에너지와 시기 흐름을 기준으로 운이 맞는 여행지와 피해야 할 타이밍을 제안합니다."
+            title={kkulkkulManseryukText("manse.007")}
+            description={kkulkkulManseryukText("manse.008")}
             cost={50}
             isUnlocked={unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("travelDestiny", 50)}
@@ -1169,8 +1208,8 @@ export default function KkulkkulManseryukMain() {
           </LockedSection>
 
           <LockedSection
-            title="명리 헬스 리포트"
-            description="오행 균형과 생활 패턴을 바탕으로 건강 리스크와 관리 루틴을 안내합니다."
+            title={kkulkkulManseryukText("manse.009")}
+            description={kkulkkulManseryukText("manse.010")}
             cost={100}
             isUnlocked={unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("healthReport", 100)}
@@ -1179,8 +1218,8 @@ export default function KkulkkulManseryukMain() {
           </LockedSection>
 
           <LockedSection
-            title="사주 다이어리"
-            description="운세 흐름 기록 템플릿과 월간 회고를 통해 내 패턴을 추적하는 다이어리 기능입니다."
+            title={kkulkkulManseryukText("manse.011")}
+            description={kkulkkulManseryukText("manse.012")}
             cost={100}
             isUnlocked={unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("sajuDiary", 100)}
@@ -1189,8 +1228,8 @@ export default function KkulkkulManseryukMain() {
           </LockedSection>
 
           <LockedSection
-            title="시크릿 하우스 전체 에피소드"
-            description="잠금된 스토리 루트, 멀티 엔딩, 확장 에피소드를 전체 해금합니다."
+            title={kkulkkulManseryukText("manse.013")}
+            description={kkulkkulManseryukText("manse.014")}
             cost={50}
             isUnlocked={unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("secretHouseEpisodes", 50)}
@@ -1199,17 +1238,17 @@ export default function KkulkkulManseryukMain() {
           </LockedSection>
 
           <LockedSection
-            title="프리미엄 점술 패키지"
-            description="자미두수·점성술·숙요·베다 심층 해석 리포트 묶음을 한 번에 이용할 수 있는 패키지입니다."
+            title={kkulkkulManseryukText("manse.015")}
+            description={kkulkkulManseryukText("manse.016")}
             cost={300}
             isUnlocked={unlockedFeatures.premiumDivinationPack}
             onUnlock={() => unlockByCoins("premiumDivinationPack", 300)}
           >
             <ul className="list-disc pl-5 text-sm text-neutral-700">
-              <li>자미두수 전체 풀이</li>
-              <li>점성술 세부 차트</li>
-              <li>숙요점 심층 분석</li>
-              <li>베다점 심화 리포트</li>
+              <li>{kkulkkulManseryukText("manse.017")}</li>
+              <li>{kkulkkulManseryukText("manse.018")}</li>
+              <li>{kkulkkulManseryukText("manse.019")}</li>
+              <li>{kkulkkulManseryukText("manse.020")}</li>
             </ul>
           </LockedSection>
         </section>
@@ -1223,11 +1262,11 @@ export default function KkulkkulManseryukMain() {
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { key: "turtleIChing" as const, title: "주역 거북점", cost: 30, note: "1회 3,000원" },
-              { key: "egyptOracle" as const, title: "이집트 신탁", cost: 30, note: "1회 3,000원" },
-              { key: "geomancy" as const, title: "지오맨시 흙점", cost: 50, note: "1회 5,000원" },
-              { key: "stonehengeRunes" as const, title: "스톤헨지 룬점", cost: 0, note: "배열별 3,000원/5,000원/7,000원/12,000원" },
-              { key: "premiumTarot" as const, title: "프리미엄 타로(회복 타로 제외)", cost: 100, note: "1회 10,000원" },
+              { key: "turtleIChing" as const, title: kkulkkulManseryukText("manse.021"), cost: 30, note: "1회 3,000원" },
+              { key: "egyptOracle" as const, title: kkulkkulManseryukText("manse.022"), cost: 30, note: "1회 3,000원" },
+              { key: "geomancy" as const, title: kkulkkulManseryukText("manse.023"), cost: 50, note: "1회 5,000원" },
+              { key: "stonehengeRunes" as const, title: kkulkkulManseryukText("manse.024"), cost: 0, note: "배열별 3,000원/5,000원/7,000원/12,000원" },
+              { key: "premiumTarot" as const, title: kkulkkulManseryukText("manse.025"), cost: 100, note: "1회 10,000원" },
             ].map((item) => (
               <article
                 key={item.key}
@@ -1296,7 +1335,7 @@ export default function KkulkkulManseryukMain() {
               borderBottom: premiumCollectionOpen ? "1px solid rgba(212,175,55,0.22)" : "none",
             }}
             aria-expanded={premiumCollectionOpen}
-            aria-label="VVIP 프리미엄 컬렉션 열기/닫기"
+            aria-label={kkulkkulManseryukText("manse.026")}
           >
             <div style={{ fontSize: "0.66rem", fontWeight: 900, letterSpacing: "0.18em", color: "#d4af37" }}>
               VVIP · PREMIUM COLLECTION
@@ -1344,7 +1383,7 @@ export default function KkulkkulManseryukMain() {
             }}
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
-              <img src="/fuctionassets/naming.webp" alt="명운 작명 프리미엄"
+              <img src="/fuctionassets/naming.webp" alt={kkulkkulManseryukText("manse.027")}
                 width={520}
                 height={390}
                 loading="lazy"

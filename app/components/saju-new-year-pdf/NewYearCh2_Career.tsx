@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterIICareer | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_2_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "II. 커리어 전략 - 성과가 나는 월/주의 월",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "II. Career Strategy - Productive Months and Caution Months",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "II. キャリア戦略 - 成果が出る月／注意の月",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyCareerOverview: "올해 직업운 총론",
   workOrgByGwansung: "관성으로 보는 직장·조직운",
@@ -27,8 +42,8 @@ export default function NewYearCh2_Career({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>II. 커리어 전략 - 성과가 나는 월/주의 월</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_2_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_2_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh2_Career({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "II. 커리어 전략 - 성과가 나는 월/주의 월"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_2_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

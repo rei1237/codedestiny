@@ -23,6 +23,25 @@ type MoodGuide = {
   recoveryLine: string;
 };
 
+const YEON_PROMPT_TEXT_TRANSLATIONS = {
+  ko: {
+    "yeonPrompt.001": "연이가 전하는 오늘의 정밀 위로",
+  },
+  en: {
+    "yeonPrompt.001": "Yeon's precise comfort for today",
+  },
+  ja: {
+    "yeonPrompt.001": "ヨニが届ける今日の繊細な慰め",
+  },
+  zh: {
+    "yeonPrompt.001": "缘伊送上的今日细腻安慰",
+  },
+} as const;
+
+function yeonPromptText(key: keyof typeof YEON_PROMPT_TEXT_TRANSLATIONS.ko): string {
+  return YEON_PROMPT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 const zodiacSignatureMap: Record<ZodiacSign, ZodiacSignature> = {
   양자리: {
     keyword: "추진력의 리듬",
@@ -262,7 +281,7 @@ function buildDynamicYeonMessage(input: AstrologyEngineInput): YeonMessageOutput
       first_sentence: opening,
     },
     yeon_is_hug: {
-      title: "연이가 전하는 오늘의 정밀 위로",
+      title: yeonPromptText("yeonPrompt.001"),
       message: hugLines,
     },
     small_joy: {

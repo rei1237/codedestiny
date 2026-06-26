@@ -9,7 +9,7 @@ type FeatureId = "flower" | "ziweiDeep" | "olympus";
 
 type UnlockFeature = {
   id: FeatureId;
-  subtitle: string;
+  eyebrow: string;
   href: string;
   accent: string;
   glow: string;
@@ -18,21 +18,21 @@ type UnlockFeature = {
 const premiumFeatures: UnlockFeature[] = [
   {
     id: "flower",
-    subtitle: "Flower of Destiny",
+    eyebrow: "Flower of Destiny",
     href: "/?action=openDestinyFlowerStudio",
     accent: "from-fuchsia-200 via-rose-200 to-amber-200",
     glow: "from-fuchsia-400/35 via-rose-300/20 to-amber-300/25",
   },
   {
     id: "ziweiDeep",
-    subtitle: "Advanced Zi Wei Dou Shu",
+    eyebrow: "Advanced Zi Wei Dou Shu",
     href: "/ziwei/chart",
     accent: "from-violet-200 via-indigo-200 to-cyan-200",
     glow: "from-violet-400/35 via-indigo-300/20 to-cyan-300/25",
   },
   {
     id: "olympus",
-    subtitle: "Olympus Oracle",
+    eyebrow: "Olympus Oracle",
     href: "/olympus",
     accent: "from-amber-200 via-yellow-200 to-orange-200",
     glow: "from-amber-400/35 via-yellow-300/20 to-orange-300/25",
@@ -223,7 +223,7 @@ export default function FeatureUnlockShowcase() {
 
                 <div className="relative z-10">
                   <p className={`inline-flex rounded-full bg-gradient-to-r ${feature.accent} bg-clip-text text-xs font-bold tracking-[0.14em] text-transparent`}>
-                    {feature.subtitle}
+                    {feature.eyebrow}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-lg font-black text-white">{featureCopy.title}</h3>

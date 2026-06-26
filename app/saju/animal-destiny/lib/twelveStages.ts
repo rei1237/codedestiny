@@ -11,6 +11,17 @@ import { STAGE_KEY_TO_HANJA, STAGE_KEY_TO_LABEL, STAGE_LABEL_TO_KEY } from "@/co
 
 const STEM_KO_LIST: StemKo[] = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCH_KO_LIST: BranchKo[] = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const TWELVE_STAGES_TEXT_TRANSLATIONS = {
+  ko: {
+    invalidStemBranch: "잘못된 천간/지지 입력입니다.",
+  },
+  en: {
+    invalidStemBranch: "Invalid heavenly stem or earthly branch input.",
+  },
+  ja: {
+    invalidStemBranch: "天干または地支の入力が正しくありません。",
+  },
+} as const;
 
 const STEM_HAN_TO_KO: Record<string, StemKo> = {
   甲: "갑",
@@ -276,7 +287,7 @@ export function validateTwelveStageInput(
   if (!stem || !normalizedBranch) {
     return {
       ok: false,
-      error: "잘못된 천간/지지 입력입니다.",
+      error: TWELVE_STAGES_TEXT_TRANSLATIONS.ko.invalidStemBranch,
     };
   }
 

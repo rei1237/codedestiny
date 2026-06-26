@@ -3,9 +3,105 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Gem, Heart, Orbit, Sparkles, Star } from "lucide-react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const orbitronClassName = "[font-family:'Orbitron','Rajdhani','Arial_Narrow',system-ui,sans-serif]";
 const notoKrClassName = "[font-family:'Noto_Sans_KR','Apple_SD_Gothic_Neo','Malgun_Gothic',system-ui,sans-serif]";
+
+const DESTINY_BIAS_STAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    sideEyebrow: "당신의 운명 속",
+    sideTitle: "✨ 최애를 만나는 순간 ✨",
+    loading: "DESTINY LOADING...",
+    fanLabel: "FAN",
+    idolLabel: "IDOL",
+    heroBadge: "⭐ 내 안의 운명 ✨ 최애와 연결되는 시간 ⭐",
+    heroTitle: "최애운명",
+    heroSubtitle: "✦ My Destiny Bias ✦",
+    featureHeading: "내 사주 에너지가 최애에게 닿는 방식",
+    favoriteAnalysisTitle: "최애 성향 분석",
+    favoriteAnalysisSubtitle: "Heart Gem Reading",
+    matchTitle: "운명 궁합 매칭",
+    matchSubtitle: "Stellar Match Signal",
+    reportTitle: "에너지 연결 리포트",
+    reportSubtitle: "Cosmic Orbit Report",
+  },
+  en: {
+    sideEyebrow: "Inside your destiny",
+    sideTitle: "✨ The moment you meet your bias ✨",
+    loading: "DESTINY LOADING...",
+    fanLabel: "FAN",
+    idolLabel: "IDOL",
+    heroBadge: "⭐ Inner Destiny ✨ Time to connect with your bias ⭐",
+    heroTitle: "Bias Destiny",
+    heroSubtitle: "✦ My Destiny Bias ✦",
+    featureHeading: "How your Saju energy reaches your bias",
+    favoriteAnalysisTitle: "Bias Personality Reading",
+    favoriteAnalysisSubtitle: "Heart Gem Reading",
+    matchTitle: "Destiny Match Signal",
+    matchSubtitle: "Stellar Match Signal",
+    reportTitle: "Energy Connection Report",
+    reportSubtitle: "Cosmic Orbit Report",
+  },
+  ja: {
+    sideEyebrow: "あなたの運命の中で",
+    sideTitle: "✨ 推しに出会う瞬間 ✨",
+    loading: "DESTINY LOADING...",
+    fanLabel: "FAN",
+    idolLabel: "IDOL",
+    heroBadge: "⭐ 内なる運命 ✨ 推しとつながる時間 ⭐",
+    heroTitle: "推し運命",
+    heroSubtitle: "✦ My Destiny Bias ✦",
+    featureHeading: "あなたの四柱エネルギーが推しへ届く方式",
+    favoriteAnalysisTitle: "推し性向分析",
+    favoriteAnalysisSubtitle: "Heart Gem Reading",
+    matchTitle: "運命相性マッチング",
+    matchSubtitle: "Stellar Match Signal",
+    reportTitle: "エネルギー接続レポート",
+    reportSubtitle: "Cosmic Orbit Report",
+  },
+  "zh-CN": {
+    sideEyebrow: "在你的命运之中",
+    sideTitle: "✨ 遇见本命的瞬间 ✨",
+    loading: "DESTINY LOADING...",
+    fanLabel: "FAN",
+    idolLabel: "IDOL",
+    heroBadge: "⭐ 我心中的命运 ✨ 与本命连接的时间 ⭐",
+    heroTitle: "本命命运",
+    heroSubtitle: "✦ My Destiny Bias ✦",
+    featureHeading: "你的四柱能量触达本命的方式",
+    favoriteAnalysisTitle: "本命性格分析",
+    favoriteAnalysisSubtitle: "Heart Gem Reading",
+    matchTitle: "命运合盘匹配",
+    matchSubtitle: "Stellar Match Signal",
+    reportTitle: "能量连接报告",
+    reportSubtitle: "Cosmic Orbit Report",
+  },
+  "zh-TW": {
+    sideEyebrow: "在你的命運之中",
+    sideTitle: "✨ 遇見本命的瞬間 ✨",
+    loading: "DESTINY LOADING...",
+    fanLabel: "FAN",
+    idolLabel: "IDOL",
+    heroBadge: "⭐ 我心中的命運 ✨ 與本命連結的時間 ⭐",
+    heroTitle: "本命命運",
+    heroSubtitle: "✦ My Destiny Bias ✦",
+    featureHeading: "你的四柱能量觸達本命的方式",
+    favoriteAnalysisTitle: "本命性格分析",
+    favoriteAnalysisSubtitle: "Heart Gem Reading",
+    matchTitle: "命運合盤匹配",
+    matchSubtitle: "Stellar Match Signal",
+    reportTitle: "能量連結報告",
+    reportSubtitle: "Cosmic Orbit Report",
+  },
+} as const;
+
+function getDestinyBiasStageCopy(locale: LoadingLocale) {
+  if (locale === "en" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
+    return DESTINY_BIAS_STAGE_TEXT_TRANSLATIONS[locale];
+  }
+  return DESTINY_BIAS_STAGE_TEXT_TRANSLATIONS.ko;
+}
 
 const shellVariants: Variants = {
   hidden: { opacity: 0 },
@@ -33,6 +129,8 @@ const childVariants: Variants = {
 
 export default function DestinyBiasStagePage() {
   const [progress, setProgress] = useState(0);
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getDestinyBiasStageCopy(locale);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -40,6 +138,13 @@ export default function DestinyBiasStagePage() {
     }, 38);
 
     return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    return () => window.removeEventListener("cd:locale-ready", syncLocale);
   }, []);
 
   const stars = useMemo(
@@ -57,22 +162,22 @@ export default function DestinyBiasStagePage() {
 
   const features = [
     {
-      title: "최애 성향 분석",
-      subtitle: "Heart Gem Reading",
+      title: copy.favoriteAnalysisTitle,
+      subtitle: copy.favoriteAnalysisSubtitle,
       icon: Gem,
       gradient: "from-pink-400 via-fuchsia-400 to-violet-400",
       glow: "shadow-[0_0_30px_rgba(236,72,153,0.58)]",
     },
     {
-      title: "운명 궁합 매칭",
-      subtitle: "Stellar Match Signal",
+      title: copy.matchTitle,
+      subtitle: copy.matchSubtitle,
       icon: Star,
       gradient: "from-violet-400 via-purple-400 to-indigo-400",
       glow: "shadow-[0_0_30px_rgba(167,139,250,0.58)]",
     },
     {
-      title: "에너지 연결 리포트",
-      subtitle: "Cosmic Orbit Report",
+      title: copy.reportTitle,
+      subtitle: copy.reportSubtitle,
       icon: Orbit,
       gradient: "from-cyan-400 via-sky-400 to-indigo-400",
       glow: "shadow-[0_0_30px_rgba(34,211,238,0.58)]",
@@ -125,8 +230,8 @@ export default function DestinyBiasStagePage() {
           variants={childVariants}
           className="self-start rounded-3xl border border-purple-400/50 bg-black/40 p-5 backdrop-blur-md shadow-[0_0_15px_rgba(192,132,252,0.5)]"
         >
-          <p className="text-xs tracking-[0.22em] text-purple-100/85">당신의 운명 속</p>
-          <p className="mt-1 text-sm font-semibold text-pink-200">✨ 최애를 만나는 순간 ✨</p>
+          <p className="text-xs tracking-[0.22em] text-purple-100/85">{copy.sideEyebrow}</p>
+          <p className="mt-1 text-sm font-semibold text-pink-200">{copy.sideTitle}</p>
 
           <div className="mt-6 flex items-center justify-center gap-4">
             <motion.div
@@ -155,7 +260,7 @@ export default function DestinyBiasStagePage() {
               animate={{ opacity: [0.42, 1, 0.5, 1] }}
               transition={{ duration: 1.9, repeat: Infinity }}
             >
-              DESTINY LOADING...
+              {copy.loading}
             </motion.p>
             <div className="h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-purple-300/35">
               <motion.div
@@ -190,7 +295,7 @@ export default function DestinyBiasStagePage() {
             <div className="absolute -bottom-5 h-5 w-20 rounded-full bg-pink-300/30 blur-md" />
             <div className="text-center">
               <Sparkles className="mx-auto h-6 w-6 text-pink-200 drop-shadow-[0_0_12px_rgba(244,114,182,0.96)]" />
-              <p className="mt-2 text-xs tracking-wide text-pink-100/90">IDOL</p>
+              <p className="mt-2 text-xs tracking-wide text-pink-100/90">{copy.idolLabel}</p>
             </div>
           </motion.div>
 
@@ -202,7 +307,7 @@ export default function DestinyBiasStagePage() {
             <div className="absolute -bottom-5 h-5 w-20 rounded-full bg-cyan-300/30 blur-md" />
             <div className="text-center">
               <Sparkles className="mx-auto h-6 w-6 text-cyan-100 drop-shadow-[0_0_12px_rgba(34,211,238,0.96)]" />
-              <p className="mt-2 text-xs tracking-wide text-cyan-100/90">FAN</p>
+              <p className="mt-2 text-xs tracking-wide text-cyan-100/90">{copy.fanLabel}</p>
             </div>
           </motion.div>
 
@@ -229,7 +334,7 @@ export default function DestinyBiasStagePage() {
             transition={{ duration: 2.1, repeat: Infinity }}
           >
             <Star className="h-4 w-4 fill-yellow-300 text-yellow-200" />
-            ⭐ 내 안의 운명 ✨ 최애와 연결되는 시간 ⭐
+            {copy.heroBadge}
           </motion.div>
 
           <div className="mt-5">
@@ -238,10 +343,10 @@ export default function DestinyBiasStagePage() {
               animate={{ opacity: [1, 0.86, 1, 0.9, 1] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
             >
-              최애운명
+              {copy.heroTitle}
             </motion.h1>
             <p className="mt-3 text-lg font-medium tracking-[0.28em] text-purple-100/90 drop-shadow-[0_0_12px_rgba(167,139,250,.9)]">
-              ✦ My Destiny Bias ✦
+              {copy.heroSubtitle}
             </p>
           </div>
 
@@ -252,7 +357,7 @@ export default function DestinyBiasStagePage() {
             <div className="mb-5 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-fuchsia-200 drop-shadow-[0_0_10px_rgba(236,72,153,.94)]" />
               <h2 className="text-sm font-semibold tracking-[0.08em] text-fuchsia-100">
-                내 사주 에너지가 최애에게 닿는 방식
+                {copy.featureHeading}
               </h2>
             </div>
 

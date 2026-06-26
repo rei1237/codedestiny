@@ -1,12 +1,31 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
-export function generateMetadata() {
-  const metadata = generatePageMetadata({
-    path: "/contact",
+const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
     title: "Contact Us | 문의하기 — Code Destiny",
     description: "Code Destiny 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
     keywords: ["Contact Us", "문의하기", "고객지원", "Code Destiny 문의"],
+  },
+  en: {
+    title: "Contact Us | Code Destiny",
+    description: "Contact Code Destiny by email or inquiry form for service support.",
+    keywords: ["Contact Us", "Support", "Customer Support", "Code Destiny Contact"],
+  },
+  ja: {
+    title: "お問い合わせ | Code Destiny",
+    description: "Code Destinyへのサービス関連のお問い合わせを、メールまたはフォームで受け付けています。",
+    keywords: ["お問い合わせ", "サポート", "カスタマーサポート", "Code Destiny お問い合わせ"],
+  },
+};
+
+export function generateMetadata() {
+  const copy = CONTACT_US_PAGE_TEXT_TRANSLATIONS.ko;
+  const metadata = generatePageMetadata({
+    path: "/contact",
+    title: copy.title,
+    description: copy.description,
+    keywords: copy.keywords,
   });
 
   return {

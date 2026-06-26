@@ -11,6 +11,28 @@ export type ZiweiTransformationType = TransformationType;
 export type ZiweiFourTransformation = FourTransformation;
 export type ZiweiFourTransformationSummary = FourTransformationSummary;
 
+const ZIWEI_TYPES_TEXT_TRANSLATIONS = {
+  ko: {
+    "ziweiTypes.001": "심화 자미두수 요약",
+    "ziweiTypes.002": "명궁·신궁",
+    "ziweiTypes.003": "형제궁",
+    "ziweiTypes.004": "부부궁",
+    "ziweiTypes.005": "자녀궁",
+    "ziweiTypes.006": "재백궁",
+    "ziweiTypes.007": "질액궁",
+    "ziweiTypes.008": "천이궁",
+    "ziweiTypes.009": "노복궁",
+    "ziweiTypes.010": "관록궁",
+    "ziweiTypes.011": "전택궁",
+    "ziweiTypes.012": "복덕궁",
+    "ziweiTypes.013": "부모궁",
+    "ziweiTypes.014": "사화·대한·운용 전략",
+  },
+} as const;
+
+function ziweiTypesText(key: keyof typeof ZIWEI_TYPES_TEXT_TRANSLATIONS.ko): string {
+  return ZIWEI_TYPES_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export type ZiweiPalaceId =
   | "ming"
   | "siblings"
@@ -321,18 +343,18 @@ export const ZIWEI_PALACE_NAME: Record<ZiweiPalaceId, string> = {
 };
 
 export const ZIWEI_SECTIONS: Array<{ id: ZiweiSectionId; title: string; palaceId?: ZiweiPalaceId }> = [
-  { id: "overview", title: "심화 자미두수 요약" },
-  { id: "ming", title: "명궁·신궁", palaceId: "ming" },
-  { id: "siblings", title: "형제궁", palaceId: "siblings" },
-  { id: "spouse", title: "부부궁", palaceId: "spouse" },
-  { id: "children", title: "자녀궁", palaceId: "children" },
-  { id: "wealth", title: "재백궁", palaceId: "wealth" },
-  { id: "health", title: "질액궁", palaceId: "health" },
-  { id: "travel", title: "천이궁", palaceId: "travel" },
-  { id: "friends", title: "노복궁", palaceId: "friends" },
-  { id: "career", title: "관록궁", palaceId: "career" },
-  { id: "property", title: "전택궁", palaceId: "property" },
-  { id: "fortune", title: "복덕궁", palaceId: "fortune" },
-  { id: "parents", title: "부모궁", palaceId: "parents" },
-  { id: "master", title: "사화·대한·운용 전략" },
+  { id: "overview", title: ziweiTypesText("ziweiTypes.001") },
+  { id: "ming", title: ziweiTypesText("ziweiTypes.002"), palaceId: "ming" },
+  { id: "siblings", title: ziweiTypesText("ziweiTypes.003"), palaceId: "siblings" },
+  { id: "spouse", title: ziweiTypesText("ziweiTypes.004"), palaceId: "spouse" },
+  { id: "children", title: ziweiTypesText("ziweiTypes.005"), palaceId: "children" },
+  { id: "wealth", title: ziweiTypesText("ziweiTypes.006"), palaceId: "wealth" },
+  { id: "health", title: ziweiTypesText("ziweiTypes.007"), palaceId: "health" },
+  { id: "travel", title: ziweiTypesText("ziweiTypes.008"), palaceId: "travel" },
+  { id: "friends", title: ziweiTypesText("ziweiTypes.009"), palaceId: "friends" },
+  { id: "career", title: ziweiTypesText("ziweiTypes.010"), palaceId: "career" },
+  { id: "property", title: ziweiTypesText("ziweiTypes.011"), palaceId: "property" },
+  { id: "fortune", title: ziweiTypesText("ziweiTypes.012"), palaceId: "fortune" },
+  { id: "parents", title: ziweiTypesText("ziweiTypes.013"), palaceId: "parents" },
+  { id: "master", title: ziweiTypesText("ziweiTypes.014") },
 ];

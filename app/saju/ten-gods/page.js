@@ -1,10 +1,28 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const TEN_GODS_GUIDE_TEXT_TRANSLATIONS = {
+  ko: {
+    metaTitle: "십성 해석 가이드 | Code Destiny",
+    observe: "십성이 살피는 것",
+    inputs: "필요한 입력값",
+    useCases: "어떤 때 참고하면 좋은가",
+    access: "무료와 유료 범위",
+    flow: "해석 흐름",
+    resultItems: "결과에서 확인할 수 있는 항목",
+    sample: "짧은 예시 리딩",
+    caution: "해석 시 주의할 점",
+  },
+};
+
+function tenGodsGuideText(key) {
+  return TEN_GODS_GUIDE_TEXT_TRANSLATIONS.ko[key];
+}
+
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/saju/ten-gods",
-    title: "십성 해석 가이드 | Code Destiny",
+    title: tenGodsGuideText("metaTitle"),
     description:
       "사주 십성이 관계, 일, 책임, 표현 방식을 어떻게 비추는지와 입력값, 해석 흐름, 샘플 리딩, 주의사항을 안내합니다.",
     keywords: ["십성", "사주 십성", "비견", "식상", "재성", "관성", "인성", "Code Destiny"],
@@ -56,28 +74,28 @@ export default function SajuTenGodsPage() {
 
       <section className="cd-card-grid">
         <article className="cd-card">
-          <h2>십성이 살피는 것</h2>
+          <h2>{tenGodsGuideText("observe")}</h2>
           <p>
             십성은 일간과 다른 글자의 관계에서 생겨납니다. 비견과 겁재는 자기 힘과 동료성, 식신과 상관은 표현과 창작, 편재와 정재는 현실 감각과 관리, 편관과 정관은 규칙과 책임, 편인과 정인은 배움과 보호를 비춥니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>필요한 입력값</h2>
+          <h2>{tenGodsGuideText("inputs")}</h2>
           <p>
             생년월일과 출생시간, 성별 입력이 기본입니다. 생년월일은 사주의 네 기둥을 세우고, 출생시간은 시주와 세부 십성 배치를 확인하는 데 필요합니다. 시간이 불확실하면 세부 해석의 확신도 낮아집니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>어떤 때 참고하면 좋은가</h2>
+          <h2>{tenGodsGuideText("useCases")}</h2>
           <p>
             관계에서 늘 맡게 되는 역할이 궁금할 때, 일에서 강하게 쓰는 재능과 부담을 구분하고 싶을 때, 돈과 책임을 대하는 태도를 차분히 보고 싶을 때 도움이 됩니다. 결과는 현실 선택을 대신하지 않고 자신을 더 분명히 이해하게 돕습니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>무료와 유료 범위</h2>
+          <h2>{tenGodsGuideText("access")}</h2>
           <p>
             무료 영역은 주요 십성의 기본 의미와 간단한 성향을 안내합니다. 유료 리포트는 십성의 위치, 과다와 부족, 대운에서 강해지는 역할, 관계와 일의 조언을 더 깊게 다룹니다. 결제 여부가 운을 바꾸지는 않습니다.
           </p>
@@ -85,7 +103,7 @@ export default function SajuTenGodsPage() {
       </section>
 
       <section className="cd-card">
-        <h2>해석 흐름</h2>
+        <h2>{tenGodsGuideText("flow")}</h2>
         <ul>
           {flowItems.map((item) => (
             <li key={item}>{item}</li>
@@ -94,7 +112,7 @@ export default function SajuTenGodsPage() {
       </section>
 
       <section className="cd-card">
-        <h2>결과에서 확인할 수 있는 항목</h2>
+        <h2>{tenGodsGuideText("resultItems")}</h2>
         <ul>
           {resultItems.map((item) => (
             <li key={item}>{item}</li>
@@ -103,14 +121,14 @@ export default function SajuTenGodsPage() {
       </section>
 
       <section className="cd-card">
-        <h2>짧은 예시 리딩</h2>
+        <h2>{tenGodsGuideText("sample")}</h2>
         <p>
           식상이 자연스럽게 살아 있고 관성이 함께 받쳐 준다면, 생각을 말과 결과물로 풀어내는 힘이 있으면서도 일정한 기준을 지키려는 마음이 함께 드러납니다. 이 흐름은 기획, 교육, 상담, 창작처럼 표현과 책임이 동시에 필요한 일에서 빛날 수 있습니다.
         </p>
       </section>
 
       <section className="cd-card">
-        <h2>해석 시 주의할 점</h2>
+        <h2>{tenGodsGuideText("caution")}</h2>
         <p>
           십성 해석은 엔터테인먼트와 자기 이해를 위한 참고 자료입니다. 직업, 투자, 결혼, 이혼, 소송, 건강처럼 중요한 결정은 십성 결과만으로 정하지 말고 실제 조건과 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>

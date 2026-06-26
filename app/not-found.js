@@ -1,6 +1,25 @@
+const NOT_FOUND_I18N = {
+  ko: {
+    metadata: {
+      title: "페이지를 찾을 수 없습니다 | Code Destiny",
+      description: "요청한 페이지를 찾을 수 없습니다. Code Destiny의 공개 운세 가이드와 주요 서비스로 이동할 수 있습니다.",
+    },
+    eyebrow: "ERROR 404",
+    title: "페이지를 찾을 수 없습니다",
+    description: "주소가 바뀌었거나 아직 공개되지 않은 페이지일 수 있습니다. 아래 링크에서 가까운 운세 가이드와 인사이트를 확인해 주세요.",
+    links: {
+      insights: "운세 인사이트 허브",
+      sajuGuide: "사주 명리학 기본 가이드",
+      tarotGuide: "타로 리딩 입문",
+      faq: "자주 묻는 질문",
+    },
+    home: "홈으로 돌아가기",
+    freeSaju: "무료 사주 분석 보기",
+  },
+};
+
 export const metadata = {
-  title: "페이지를 찾을 수 없습니다 | Code Destiny",
-  description: "요청한 페이지를 찾을 수 없습니다. Code Destiny의 공개 운세 가이드와 주요 서비스로 이동할 수 있습니다.",
+  ...NOT_FOUND_I18N.ko.metadata,
   robots: {
     index: false,
     follow: true,
@@ -8,10 +27,10 @@ export const metadata = {
 };
 
 const quickLinks = [
-  { href: "/insights", label: "운세 인사이트 허브" },
-  { href: "/saju/guide", label: "사주 명리학 기본 가이드" },
-  { href: "/tarot/guide", label: "타로 리딩 입문" },
-  { href: "/faq", label: "자주 묻는 질문" },
+  { href: "/insights", key: "errors.notFound.links.insights", fallback: NOT_FOUND_I18N.ko.links.insights },
+  { href: "/saju/guide", key: "errors.notFound.links.sajuGuide", fallback: NOT_FOUND_I18N.ko.links.sajuGuide },
+  { href: "/tarot/guide", key: "errors.notFound.links.tarotGuide", fallback: NOT_FOUND_I18N.ko.links.tarotGuide },
+  { href: "/faq", key: "errors.notFound.links.faq", fallback: NOT_FOUND_I18N.ko.links.faq },
 ];
 
 const linkStyle = {
@@ -55,19 +74,18 @@ export default function NotFound() {
         }}
       >
         <p style={{ margin: 0, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.08em", fontSize: "0.78rem" }}>
-          ERROR 404
+          <span data-cd-trans data-key="errors.notFound.eyebrow">{NOT_FOUND_I18N.ko.eyebrow}</span>
         </p>
         <h1 style={{ margin: "8px 0 10px", color: "#f8fafc", fontSize: "2.25rem", lineHeight: 1.2 }}>
-          페이지를 찾을 수 없습니다
+          <span data-cd-trans data-key="errors.notFound.title">{NOT_FOUND_I18N.ko.title}</span>
         </h1>
         <p style={{ margin: "0 auto", maxWidth: "520px", lineHeight: 1.7, color: "#cbd5e1" }}>
-          주소가 바뀌었거나 아직 공개되지 않은 페이지일 수 있습니다. 아래 링크에서 가까운 운세 가이드와
-          인사이트를 확인해 주세요.
+          <span data-cd-trans data-key="errors.notFound.description">{NOT_FOUND_I18N.ko.description}</span>
         </p>
         <div style={{ margin: "22px auto 0", display: "grid", gap: "10px", maxWidth: "520px" }}>
           {quickLinks.map((item) => (
             <a key={item.href} href={item.href} style={linkStyle}>
-              {item.label}
+              <span data-cd-trans data-key={item.key}>{item.fallback}</span>
             </a>
           ))}
         </div>
@@ -80,7 +98,7 @@ export default function NotFound() {
               color: "#0f172a",
             }}
           >
-            홈으로 돌아가기
+            <span data-cd-trans data-key="errors.notFound.home">{NOT_FOUND_I18N.ko.home}</span>
           </a>
           <a
             href="/saju/basic"
@@ -90,7 +108,7 @@ export default function NotFound() {
               color: "#111827",
             }}
           >
-            무료 사주 분석 보기
+            <span data-cd-trans data-key="errors.notFound.freeSaju">{NOT_FOUND_I18N.ko.freeSaju}</span>
           </a>
         </div>
       </section>

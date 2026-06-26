@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
@@ -73,15 +74,345 @@ declare global {
   }
 }
 
+type PointHistoryCopy = {
+  defaultUserName: string;
+  pointLoadFailed: string;
+  paymentLoadFailed: string;
+  subscriptionLoadFailed: string;
+  pointServerError: string;
+  paymentServerError: string;
+  subscriptionChecking: string;
+  loginRequired: string;
+  subscriptionUnavailable: string;
+  temporaryServerError: string;
+  subscriptionDegraded: string;
+  subscriptionFailed: string;
+  tierFree: string;
+  active: string;
+  inactive: string;
+  started: string;
+  expires: string;
+  daysLeft: (days: number) => string;
+  subscriptionSummary: (input: { tier: string; active: string; started: string; expires: string; daysLeft?: string }) => string;
+  monthlyCreditValue: (value: number, locale: string) => string;
+  won: (value: number, locale: string) => string;
+  paymentStatuses: Record<"refunded" | "cancelled" | "success", string>;
+  loadingPage: string;
+  headerEyebrow: string;
+  title: string;
+  subtitle: string;
+  backToPoints: string;
+  backToService: string;
+  contentUnitAria: string;
+  contentUnitLabel: string;
+  benefitBalance: string;
+  serverBalance: string;
+  pointLookupFailed: (message: string) => string;
+  retry: string;
+  userSummary: (name: string) => string;
+  ledgerNote: string;
+  currentMembership: string;
+  retrySubscription: string;
+  summaryAria: string;
+  currentBenefit: string;
+  spentBenefit: string;
+  remainingIcon: string;
+  usedIcon: string;
+  recentLimit: string;
+  flowAria: string;
+  flowTitle: string;
+  tabs: Record<TabId, string>;
+  loadingList: string;
+  emptyLedger: string;
+  spendLabel: string;
+  grantLabel: string;
+  spendIcon: string;
+  grantIcon: string;
+  afterBalance: string;
+  paymentsAria: string;
+  paymentsTitle: string;
+  retryPayments: string;
+  emptyPayments: string;
+  paymentAmount: (value: string) => string;
+  paidAt: (value: string) => string;
+  paymentMethod: (value: string) => string;
+  approvalNumber: (value: string) => string;
+  guideTitle: string;
+  guideItems: string[];
+};
+
+const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
+  ko: {
+    defaultUserName: "사용자",
+    pointLoadFailed: "이용권 혜택 내역을 불러오지 못했습니다.",
+    paymentLoadFailed: "결제 내역을 불러오지 못했습니다.",
+    subscriptionLoadFailed: "구독 상태를 불러오지 못했습니다.",
+    pointServerError: "이용권 혜택 서버 응답 오류입니다.",
+    paymentServerError: "결제 서버 응답 오류입니다.",
+    subscriptionChecking: "구독 상태 확인 중",
+    loginRequired: "로그인 필요",
+    subscriptionUnavailable: "구독 상태 조회 불가 (서버 일시 오류)",
+    temporaryServerError: "잠시 후 다시 시도해 주세요.",
+    subscriptionDegraded: "구독 정보 임시 조회 중 (서버 일시 불안정)",
+    subscriptionFailed: "구독 상태 조회 실패",
+    tierFree: "무료",
+    active: "활성",
+    inactive: "비활성",
+    started: "시작",
+    expires: "만료",
+    daysLeft: (days) => `${days}일 남음`,
+    subscriptionSummary: ({ tier, active, started, expires, daysLeft }) => `${tier} · ${active} · 시작 ${started} · 만료 ${expires}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    monthlyCreditValue: (value, locale) => `${value.toLocaleString(locale)}원 상당`,
+    won: (value, locale) => `${value.toLocaleString(locale)}원`,
+    paymentStatuses: {
+      refunded: "환불완료",
+      cancelled: "결제취소",
+      success: "결제완료",
+    },
+    loadingPage: "이용권 혜택 내역을 불러오는 중...",
+    headerEyebrow: "Payment Management",
+    title: "결제/멤버십 관리",
+    subtitle: "결제 내역과 멤버십 상태를 확인하세요.",
+    backToPoints: "← 달빛 이용권 관리",
+    backToService: "서비스 화면으로",
+    contentUnitAria: "콘텐츠 가치 단위 안내",
+    contentUnitLabel: "콘텐츠 가치 단위",
+    benefitBalance: "이용권 혜택",
+    serverBalance: "서버 기준 잔액",
+    pointLookupFailed: (message) => `이용권 정보 조회 실패: ${message}`,
+    retry: "다시 조회",
+    userSummary: (name) => `${name} 님의 결제 내역과 이용권 혜택을 확인하세요.`,
+    ledgerNote: "이용권 혜택 잔액과 이용 내역은 서버 원장 기준으로 표시됩니다.",
+    currentMembership: "현재 멤버십",
+    retrySubscription: "구독 상태 다시 조회",
+    summaryAria: "이용권 혜택 요약",
+    currentBenefit: "현재 이용권 혜택",
+    spentBenefit: "총 사용 이용권 혜택",
+    remainingIcon: "잔여",
+    usedIcon: "사용",
+    recentLimit: "최근 20건 기준",
+    flowAria: "이용권 혜택 흐름 내역",
+    flowTitle: "이용권 혜택 흐름 내역",
+    tabs: { all: "전체", grant: "지급", spend: "사용" },
+    loadingList: "내역을 불러오는 중...",
+    emptyLedger: "아직 이용권 혜택 내역이 없습니다.",
+    spendLabel: "이용권 혜택 사용",
+    grantLabel: "이용권 혜택 지급",
+    spendIcon: "사용",
+    grantIcon: "지급",
+    afterBalance: "반영 후 이용권 혜택",
+    paymentsAria: "결제 내역",
+    paymentsTitle: "결제 내역",
+    retryPayments: "결제 내역 다시 조회",
+    emptyPayments: "완료된 결제 내역이 없습니다.",
+    paymentAmount: (value) => `결제 금액 ${value}`,
+    paidAt: (value) => `결제시각: ${value}`,
+    paymentMethod: (value) => `결제수단: ${value}`,
+    approvalNumber: (value) => `승인번호: ${value}`,
+    guideTitle: "결제/멤버십 이용 안내",
+    guideItems: [
+      "이용권 혜택 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.",
+      "유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.",
+      "시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.",
+      "환불 처리는 결제 수단(카드)으로만 가능합니다.",
+      "콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.",
+      "콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.",
+      "달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.",
+      "이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.",
+      "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
+      "민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com",
+    ],
+  },
+  en: {
+    defaultUserName: "User",
+    pointLoadFailed: "Unable to load pass benefit history.",
+    paymentLoadFailed: "Unable to load payment history.",
+    subscriptionLoadFailed: "Unable to load subscription status.",
+    pointServerError: "The pass benefit server returned an invalid response.",
+    paymentServerError: "The payment server returned an invalid response.",
+    subscriptionChecking: "Checking subscription status",
+    loginRequired: "Login required",
+    subscriptionUnavailable: "Subscription status unavailable due to a temporary server issue",
+    temporaryServerError: "Please try again shortly.",
+    subscriptionDegraded: "Subscription information is being checked temporarily while the server stabilizes",
+    subscriptionFailed: "Subscription status check failed",
+    tierFree: "Free",
+    active: "Active",
+    inactive: "Inactive",
+    started: "Start",
+    expires: "Expires",
+    daysLeft: (days) => `${days} days left`,
+    subscriptionSummary: ({ tier, active, started, expires, daysLeft }) => `${tier} · ${active} · Start ${started} · Expires ${expires}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    monthlyCreditValue: (value, locale) => `Worth KRW ${value.toLocaleString(locale)}`,
+    won: (value, locale) => `KRW ${value.toLocaleString(locale)}`,
+    paymentStatuses: {
+      refunded: "Refunded",
+      cancelled: "Cancelled",
+      success: "Paid",
+    },
+    loadingPage: "Loading pass benefit history...",
+    headerEyebrow: "Payment Management",
+    title: "Payments & Membership",
+    subtitle: "Review your payment history and membership status.",
+    backToPoints: "← Moonlight Pass",
+    backToService: "Back to services",
+    contentUnitAria: "Content value unit guide",
+    contentUnitLabel: "Content Value Unit",
+    benefitBalance: "Pass benefits",
+    serverBalance: "Server balance",
+    pointLookupFailed: (message) => `Pass information failed to load: ${message}`,
+    retry: "Retry",
+    userSummary: (name) => `Review ${name}'s payments and pass benefits.`,
+    ledgerNote: "Pass benefit balances and usage history are shown from the server ledger.",
+    currentMembership: "Current membership",
+    retrySubscription: "Check subscription again",
+    summaryAria: "Pass benefit summary",
+    currentBenefit: "Current pass benefits",
+    spentBenefit: "Total pass benefits used",
+    remainingIcon: "Left",
+    usedIcon: "Used",
+    recentLimit: "Recent 20 records",
+    flowAria: "Pass benefit activity history",
+    flowTitle: "Pass Benefit Activity",
+    tabs: { all: "All", grant: "Granted", spend: "Used" },
+    loadingList: "Loading history...",
+    emptyLedger: "No pass benefit history yet.",
+    spendLabel: "Pass benefit used",
+    grantLabel: "Pass benefit granted",
+    spendIcon: "Used",
+    grantIcon: "Grant",
+    afterBalance: "Pass benefits after update",
+    paymentsAria: "Payment history",
+    paymentsTitle: "Payment History",
+    retryPayments: "Reload payment history",
+    emptyPayments: "No completed payments yet.",
+    paymentAmount: (value) => `Payment amount ${value}`,
+    paidAt: (value) => `Paid at: ${value}`,
+    paymentMethod: (value) => `Payment method: ${value}`,
+    approvalNumber: (value) => `Approval number: ${value}`,
+    guideTitle: "Payment & Membership Guide",
+    guideItems: [
+      "Pass benefit balances and usage history are shown from the server ledger.",
+      "Paid products are charged as one-time KRW payments, and access or result generation begins after payment is complete.",
+      "System errors, duplicate payments, or missing results are handled through regeneration or refund.",
+      "Refunds can only be returned to the original payment method.",
+      "Cancellation or refund requests are available before content generation begins.",
+      "Refunds may be limited once content generation has started or the result has been delivered normally.",
+      "Moonlight Pass is a 30-day product, not an auto-renewing subscription, and must be purchased again after expiration.",
+      "If no paid feature has been used after purchasing a pass, a refund request is available within 7 days of payment; refunds may be limited after usage begins.",
+      "Pass benefit activity and payment history show up to the latest 20 records. Contact support if you need older records.",
+      "Support contact: Byeongha Park (050-6664-7398) · seongbae555@gmail.com",
+    ],
+  },
+  ja: null as unknown as PointHistoryCopy,
+  "zh-CN": null as unknown as PointHistoryCopy,
+  "zh-TW": null as unknown as PointHistoryCopy,
+  vi: null as unknown as PointHistoryCopy,
+  hi: null as unknown as PointHistoryCopy,
+  es: null as unknown as PointHistoryCopy,
+  fr: null as unknown as PointHistoryCopy,
+  de: null as unknown as PointHistoryCopy,
+  nl: null as unknown as PointHistoryCopy,
+  ms: null as unknown as PointHistoryCopy,
+};
+
+POINT_HISTORY_COPY.ja = {
+  ...POINT_HISTORY_COPY.en,
+  defaultUserName: "ユーザー",
+  loadingPage: "利用券特典の履歴を読み込んでいます...",
+  title: "決済・メンバーシップ管理",
+  subtitle: "決済履歴とメンバーシップ状態を確認できます。",
+  backToPoints: "← 月明かり利用券管理",
+  backToService: "サービス画面へ",
+  currentMembership: "現在のメンバーシップ",
+  retrySubscription: "購読状態を再確認",
+  currentBenefit: "現在の利用券特典",
+  spentBenefit: "使用済み利用券特典",
+  recentLimit: "直近20件基準",
+  flowTitle: "利用券特典の履歴",
+  tabs: { all: "すべて", grant: "付与", spend: "使用" },
+  loadingList: "履歴を読み込んでいます...",
+  emptyLedger: "まだ利用券特典の履歴はありません。",
+  spendLabel: "利用券特典を使用",
+  grantLabel: "利用券特典を付与",
+  spendIcon: "使用",
+  grantIcon: "付与",
+  paymentsTitle: "決済履歴",
+  emptyPayments: "完了した決済履歴はありません。",
+  guideTitle: "決済・メンバーシップ利用案内",
+};
+
+POINT_HISTORY_COPY["zh-CN"] = {
+  ...POINT_HISTORY_COPY.en,
+  defaultUserName: "用户",
+  loadingPage: "正在加载通行证权益记录...",
+  title: "付款与会员管理",
+  subtitle: "查看付款记录和会员状态。",
+  backToPoints: "← 月光通行证管理",
+  backToService: "返回服务页面",
+  currentMembership: "当前会员",
+  retrySubscription: "重新查询订阅状态",
+  currentBenefit: "当前通行证权益",
+  spentBenefit: "已使用通行证权益",
+  recentLimit: "最近20条记录",
+  flowTitle: "通行证权益流水",
+  tabs: { all: "全部", grant: "发放", spend: "使用" },
+  loadingList: "正在加载记录...",
+  emptyLedger: "暂无通行证权益记录。",
+  spendLabel: "使用通行证权益",
+  grantLabel: "发放通行证权益",
+  spendIcon: "使用",
+  grantIcon: "发放",
+  paymentsTitle: "付款记录",
+  emptyPayments: "暂无已完成的付款记录。",
+  guideTitle: "付款与会员使用说明",
+};
+
+POINT_HISTORY_COPY["zh-TW"] = {
+  ...POINT_HISTORY_COPY["zh-CN"],
+  defaultUserName: "使用者",
+  loadingPage: "正在載入通行證權益紀錄...",
+  title: "付款與會員管理",
+  subtitle: "查看付款紀錄和會員狀態。",
+  backToPoints: "← 月光通行證管理",
+  backToService: "返回服務頁面",
+  retrySubscription: "重新查詢訂閱狀態",
+  currentBenefit: "目前通行證權益",
+  spentBenefit: "已使用通行證權益",
+  flowTitle: "通行證權益流水",
+  emptyLedger: "尚無通行證權益紀錄。",
+  paymentsTitle: "付款紀錄",
+  emptyPayments: "尚無已完成的付款紀錄。",
+};
+
+for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
+  POINT_HISTORY_COPY[locale] = POINT_HISTORY_COPY.en;
+}
+
+const FORMAT_LOCALE_BY_LANG: Record<LoadingLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
+  vi: "vi-VN",
+  hi: "hi-IN",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  nl: "nl-NL",
+  ms: "ms-MY",
+};
+
 /* ══════════════════════════════════════════════════════════════════
    유틸리티 함수
 ══════════════════════════════════════════════════════════════════ */
 
-function formatDateTime(raw?: string | null) {
+function formatDateTime(raw?: string | null, locale = "ko-KR") {
   if (!raw) return "-";
   const dt = new Date(raw);
   if (Number.isNaN(dt.getTime())) return "-";
-  return dt.toLocaleString("ko-KR", {
+  return dt.toLocaleString(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -90,22 +421,22 @@ function formatDateTime(raw?: string | null) {
   });
 }
 
-function formatMonthlyCredits(n: number) {
+function formatMonthlyCredits(n: number, copy: PointHistoryCopy, locale: string) {
   const abs = Math.abs(n);
-  return `${(abs * 10).toLocaleString("ko-KR")}원 상당`;
+  return copy.monthlyCreditValue(abs * 10, locale);
 }
 
-function formatWon(n: number) {
-  return `${Number(n || 0).toLocaleString("ko-KR")}원`;
+function formatWon(n: number, copy: PointHistoryCopy, locale: string) {
+  return copy.won(Number(n || 0), locale);
 }
 
-function paymentStatusView(status: PaymentHistoryItem["status"]) {
-  if (status === "refunded") return { label: "환불완료", cls: "bg-sky-100 text-sky-800 border-sky-300" };
-  if (status === "cancelled") return { label: "결제취소", cls: "bg-slate-100 text-slate-700 border-slate-300" };
-  return { label: "결제완료", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+function paymentStatusView(status: PaymentHistoryItem["status"], copy: PointHistoryCopy) {
+  if (status === "refunded") return { label: copy.paymentStatuses.refunded, cls: "bg-sky-100 text-sky-800 border-sky-300" };
+  if (status === "cancelled") return { label: copy.paymentStatuses.cancelled, cls: "bg-slate-100 text-slate-700 border-slate-300" };
+  return { label: copy.paymentStatuses.success, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
 }
 
-function normalizePointPayload(payload: MeResponse) {
+function normalizePointPayload(payload: MeResponse, copy: PointHistoryCopy) {
   const dataNode = payload?.data && typeof payload.data === "object" ? payload.data : {};
   const monthlyStoneBalance = resolveMonthlyStoneBalance(dataNode, payload?.user) ?? 0;
   const monthlyCreditLedgers = Array.isArray(dataNode.monthlyCreditLedgers)
@@ -113,7 +444,7 @@ function normalizePointPayload(payload: MeResponse) {
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
 
   return {
-    userName: payload?.user?.name || "사용자",
+    userName: payload?.user?.name || copy.defaultUserName,
     balance: monthlyStoneBalance,
     pointHistories: monthlyCreditLedgers,
     message: payload?.message || "",
@@ -136,18 +467,24 @@ function normalizePaymentPayload(payload: MeResponse) {
   };
 }
 
-function buildSubscriptionSummaryText(data?: SubscriptionStatusResponse | null) {
+function buildSubscriptionSummaryText(data: SubscriptionStatusResponse | null | undefined, copy: PointHistoryCopy, locale: string) {
   const tier = String(data?.tier || "free").toLowerCase();
   const isActive = !!data?.isActive;
-  const startedAt = data?.startedAt ? formatDateTime(data.startedAt) : "-";
-  const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
+  const startedAt = data?.startedAt ? formatDateTime(data.startedAt, locale) : "-";
+  const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt, locale) : "-";
   const expiresDate = data?.expiresAt ? new Date(data.expiresAt) : null;
   const daysLeft = expiresDate && Number.isFinite(expiresDate.getTime())
     ? Math.max(0, Math.ceil((expiresDate.getTime() - Date.now()) / 86_400_000))
     : null;
-  const tierLabel = tier === "free" ? "무료" : (data?.label || tier.toUpperCase());
-  const activeLabel = isActive ? "활성" : "비활성";
-  return `${tierLabel} · ${activeLabel} · 시작 ${startedAt} · 만료 ${expiresAt}${daysLeft !== null ? ` · ${daysLeft}일 남음` : ""}`;
+  const tierLabel = tier === "free" ? copy.tierFree : (data?.label || tier.toUpperCase());
+  const activeLabel = isActive ? copy.active : copy.inactive;
+  return copy.subscriptionSummary({
+    tier: tierLabel,
+    active: activeLabel,
+    started: startedAt,
+    expires: expiresAt,
+    daysLeft: daysLeft !== null ? copy.daysLeft(daysLeft) : undefined,
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -182,21 +519,35 @@ type TabId = "all" | "grant" | "spend";
 
 export default function PointHistoryPage() {
   const router = useRouter();
+  const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = POINT_HISTORY_COPY[lang] || POINT_HISTORY_COPY.ko;
+  const formatLocale = FORMAT_LOCALE_BY_LANG[lang] || FORMAT_LOCALE_BY_LANG.ko;
   const [isBooting, setIsBooting] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [pointsError, setPointsError] = useState<string | null>(null);
   const [paymentsError, setPaymentsError] = useState<string | null>(null);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [hasLoadedPoints, setHasLoadedPoints] = useState(false);
-  const [subscriptionSummary, setSubscriptionSummary] = useState("구독 상태 확인 중");
+  const [subscriptionSummary, setSubscriptionSummary] = useState(() => copy.subscriptionChecking);
 
-  const [userName, setUserName] = useState("사용자");
+  const [userName, setUserName] = useState(() => copy.defaultUserName);
   const [currentMonthlyStoneBalance, setCurrentMonthlyStoneBalance] = useState(0);
   const [histories, setHistories] = useState<MonthlyCreditLedgerItem[]>([]);
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("all");
 
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+
+  useEffect(() => {
+    const refreshLocale = () => setLang(getCurrentLoadingLocale());
+    refreshLocale();
+    window.addEventListener("cd:locale-ready", refreshLocale as EventListener);
+    window.addEventListener("storage", refreshLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", refreshLocale as EventListener);
+      window.removeEventListener("storage", refreshLocale);
+    };
+  }, []);
 
   const fetchPointsSection = useCallback(async () => {
     try {
@@ -216,15 +567,15 @@ export default function PointHistoryPage() {
       const ct = res.headers.get("content-type") ?? "";
       const isJson = ct.includes("application/json") || ct.includes("/json");
       if (!isJson) {
-        if (!res.ok) throw new Error(`잠시 후 다시 시도해 주세요. (HTTP ${res.status})`);
-        throw new Error("이용권 혜택 서버 응답 오류입니다.");
+        if (!res.ok) throw new Error(`${copy.temporaryServerError} (HTTP ${res.status})`);
+        throw new Error(copy.pointServerError);
       }
       const data: MeResponse = await res.json();
       if (!res.ok) {
         const msg = (data as { message?: string }).message || "";
-        throw new Error(msg || "이용권 혜택 내역을 불러오지 못했습니다.");
+        throw new Error(msg || copy.pointLoadFailed);
       }
-      const normalized = normalizePointPayload(data);
+      const normalized = normalizePointPayload(data, copy);
       setUserName(normalized.userName);
       setCurrentMonthlyStoneBalance(normalized.balance);
       setHistories(
@@ -235,9 +586,9 @@ export default function PointHistoryPage() {
       setHasLoadedPoints(true);
       setPointsError(null);
     } catch (e: unknown) {
-      setPointsError(e instanceof Error ? e.message : "이용권 혜택 내역을 불러오지 못했습니다.");
+      setPointsError(e instanceof Error ? e.message : copy.pointLoadFailed);
     }
-  }, [apiBase, router]);
+  }, [apiBase, copy, router]);
 
   const fetchPaymentsSection = useCallback(async () => {
     try {
@@ -257,13 +608,13 @@ export default function PointHistoryPage() {
       const ct = res.headers.get("content-type") ?? "";
       const isJson = ct.includes("application/json") || ct.includes("/json");
       if (!isJson) {
-        if (!res.ok) throw new Error(`잠시 후 다시 시도해 주세요. (HTTP ${res.status})`);
-        throw new Error("결제 서버 응답 오류입니다.");
+        if (!res.ok) throw new Error(`${copy.temporaryServerError} (HTTP ${res.status})`);
+        throw new Error(copy.paymentServerError);
       }
       const data: MeResponse = await res.json();
       if (!res.ok) {
         const msg = (data as { message?: string }).message || "";
-        throw new Error(msg || "결제 내역을 불러오지 못했습니다.");
+        throw new Error(msg || copy.paymentLoadFailed);
       }
       const normalized = normalizePaymentPayload(data);
       setPayments(
@@ -275,14 +626,14 @@ export default function PointHistoryPage() {
         ? normalized.subscriptions.find((sub) => sub?.isActive) || normalized.subscriptions[0]
         : null;
       if (activeSubscription) {
-        setSubscriptionSummary(buildSubscriptionSummaryText(activeSubscription));
+        setSubscriptionSummary(buildSubscriptionSummaryText(activeSubscription, copy, formatLocale));
         setSubscriptionError(null);
       }
       setPaymentsError(null);
     } catch (e: unknown) {
-      setPaymentsError(e instanceof Error ? e.message : "결제 내역을 불러오지 못했습니다.");
+      setPaymentsError(e instanceof Error ? e.message : copy.paymentLoadFailed);
     }
-  }, [apiBase, router]);
+  }, [apiBase, copy, formatLocale, router]);
 
   const fetchSubscriptionSection = useCallback(async () => {
     try {
@@ -295,38 +646,38 @@ export default function PointHistoryPage() {
         apiBase,
       });
       if (res.status === 401 || res.status === 403) {
-        setSubscriptionSummary("로그인 필요");
+        setSubscriptionSummary(copy.loginRequired);
         return;
       }
       const ct = res.headers.get("content-type") ?? "";
       const isJson = ct.includes("application/json") || ct.includes("/json");
       // JSON 응답이 아닌 경우: 상태 조회 실패로 처리하되 전체 페이지를 막지 않음
       if (!isJson) {
-        setSubscriptionSummary("구독 상태 조회 불가 (서버 일시 오류)");
-        setSubscriptionError("잠시 후 다시 시도해 주세요.");
+        setSubscriptionSummary(copy.subscriptionUnavailable);
+        setSubscriptionError(copy.temporaryServerError);
         return;
       }
       const data: SubscriptionStatusResponse & { degraded?: boolean; source?: string } = await res.json();
       // degraded 응답(DB 연결 일시 장애)은 실패로 처리하지 않고 안내 표시
       if ((data as { degraded?: boolean }).degraded) {
-        setSubscriptionSummary("구독 정보 임시 조회 중 (서버 일시 불안정)");
+        setSubscriptionSummary(copy.subscriptionDegraded);
         setSubscriptionError(null);
         return;
       }
       if (!res.ok) {
-        const msg = data.message || "구독 상태를 불러오지 못했습니다.";
+        const msg = data.message || copy.subscriptionLoadFailed;
         throw new Error(msg);
       }
       const tier = String(data?.tier || "free").toLowerCase();
       const isActive = !!data?.isActive;
-      const nextSummary = buildSubscriptionSummaryText({ ...data, tier, isActive });
-      setSubscriptionSummary((prev) => (!isActive && prev.includes(" · 활성 · ") ? prev : nextSummary));
+      const nextSummary = buildSubscriptionSummaryText({ ...data, tier, isActive }, copy, formatLocale);
+      setSubscriptionSummary((prev) => (!isActive && prev.includes(` · ${copy.active} · `) ? prev : nextSummary));
       setSubscriptionError(null);
     } catch (e: unknown) {
-      setSubscriptionError(e instanceof Error ? e.message : "구독 상태를 불러오지 못했습니다.");
-      setSubscriptionSummary("구독 상태 조회 실패");
+      setSubscriptionError(e instanceof Error ? e.message : copy.subscriptionLoadFailed);
+      setSubscriptionSummary(copy.subscriptionFailed);
     }
-  }, [apiBase]);
+  }, [apiBase, copy, formatLocale]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -374,7 +725,7 @@ export default function PointHistoryPage() {
       >
         <div className="text-center text-[#5C3A1E]">
           <div className="mb-3 text-5xl animate-bounce">🐷</div>
-          <p className="font-semibold">이용권 혜택 내역을 불러오는 중...</p>
+          <p className="font-semibold">{copy.loadingPage}</p>
         </div>
       </main>
     );
@@ -401,25 +752,25 @@ export default function PointHistoryPage() {
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">Payment Management</p>
+                <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">{copy.headerEyebrow}</p>
                 <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] leading-tight">
-                  🐷 결제/멤버십 관리
+                  🐷 {copy.title}
                 </h1>
-                <p className="mt-1 text-sm text-[#7A5230]">결제 내역과 멤버십 상태를 확인하세요.</p>
+                <p className="mt-1 text-sm text-[#7A5230]">{copy.subtitle}</p>
               </div>
               <div className="flex flex-col gap-2 self-start sm:items-end">
                 <Link
                   href="/points"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
                 >
-                  ← 달빛 이용권 관리
+                  {copy.backToPoints}
                 </Link>
                 <Link
                   href="/"
                   prefetch={false}
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:-translate-y-0.5"
                 >
-                  서비스 화면으로
+                  {copy.backToService}
                 </Link>
               </div>
             </div>
@@ -428,7 +779,7 @@ export default function PointHistoryPage() {
 
         {/* 콘텐츠 가치 단위 안내 */}
         <section
-          aria-label="콘텐츠 가치 단위 안내"
+          aria-label={copy.contentUnitAria}
           className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
         >
           <div
@@ -440,38 +791,38 @@ export default function PointHistoryPage() {
             className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
             style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
           >
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">콘텐츠 가치 단위</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800 mb-1">{copy.contentUnitLabel}</p>
             <div className="flex items-center gap-3">
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
-                이용권 혜택
-                <span className="ml-1.5 text-base font-bold text-amber-800">서버 기준 잔액</span>
+                {copy.benefitBalance}
+                <span className="ml-1.5 text-base font-bold text-amber-800">{copy.serverBalance}</span>
               </span>
             </div>
             {pointsError ? (
               <div className="mt-2 rounded-[10px] border border-rose-200 bg-rose-50 px-2.5 py-2">
-                <p className="text-[11px] font-bold text-rose-700">이용권 정보 조회 실패: {pointsError}</p>
+                <p className="text-[11px] font-bold text-rose-700">{copy.pointLookupFailed(pointsError)}</p>
                 <button
                   type="button"
                   onClick={() => { fetchPointsSection(); }}
                   className="mt-1 text-[11px] font-bold text-rose-600 underline"
                 >
-                  다시 조회
+                  {copy.retry}
                 </button>
               </div>
             ) : (
               <p className="mt-2 text-[11px] text-amber-800 font-semibold">
-                {userName} 님의 결제 내역과 이용권 혜택을 확인하세요.
+                {copy.userSummary(userName)}
               </p>
             )}
             <p className="mt-1 text-[11px] text-[#9B7040]">
-              이용권 혜택 잔액과 이용 내역은 서버 원장 기준으로 표시됩니다.
+              {copy.ledgerNote}
             </p>
           </div>
         </section>
 
         <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] px-4 py-3">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">현재 멤버십</p>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">{copy.currentMembership}</p>
           <p className="mt-1 text-sm font-semibold text-[#7A5230]">{subscriptionSummary}</p>
           {subscriptionError && (
             <button
@@ -479,19 +830,19 @@ export default function PointHistoryPage() {
               onClick={() => { fetchSubscriptionSection(); }}
               className="mt-1 text-[12px] font-bold text-rose-600 underline"
             >
-              구독 상태 다시 조회
+              {copy.retrySubscription}
             </button>
           )}
         </section>
 
         {/* 요약 통계 */}
         <section
-          aria-label="이용권 혜택 요약"
+          aria-label={copy.summaryAria}
           className="grid grid-cols-2 gap-3"
         >
             {[
-              { label: "현재 이용권 혜택", value: currentMonthlyStoneBalance, icon: "잔여", showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
-              { label: "총 사용 이용권 혜택", value: totalSpentMonthlyCredits, icon: "사용", showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
+              { label: copy.currentBenefit, value: currentMonthlyStoneBalance, icon: copy.remainingIcon, showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
+              { label: copy.spentBenefit, value: totalSpentMonthlyCredits, icon: copy.usedIcon, showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
             ].map((item) => (
             <div
               key={item.label}
@@ -501,28 +852,28 @@ export default function PointHistoryPage() {
               <div className="flex items-center gap-1.5">
                 {item.showCoin && <CoinIcon size="sm" />}
                 <span className={`text-[18px] font-black leading-none ${item.valcls}`}>
-                  {formatMonthlyCredits(item.value)}
+                  {formatMonthlyCredits(item.value, copy, formatLocale)}
                 </span>
               </div>
-              <p className="mt-1 text-[10px] text-neutral-400">최근 20건 기준</p>
+              <p className="mt-1 text-[10px] text-neutral-400">{copy.recentLimit}</p>
             </div>
           ))}
         </section>
 
         {/* 이용권 혜택 흐름 내역 */}
         <section
-          aria-label="이용권 혜택 흐름 내역"
+          aria-label={copy.flowAria}
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] overflow-hidden shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
           <div className="p-5 pb-0">
-            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">이용권 혜택 흐름 내역</h2>
+            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.flowTitle}</h2>
 
             {/* 탭 */}
             <div className="flex gap-2 mb-4">
               {([
-                { id: "all",    label: "전체" },
-                { id: "grant", label: "지급" },
-                { id: "spend", label: "사용" },
+                { id: "all", label: copy.tabs.all },
+                { id: "grant", label: copy.tabs.grant },
+                { id: "spend", label: copy.tabs.spend },
               ] as Array<{ id: TabId; label: string }>).map((tab) => (
                 <button
                   key={tab.id}
@@ -545,7 +896,7 @@ export default function PointHistoryPage() {
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-3xl animate-bounce">🐷</div>
-                <p className="ml-3 text-sm text-[#7A5230]">내역을 불러오는 중...</p>
+                <p className="ml-3 text-sm text-[#7A5230]">{copy.loadingList}</p>
               </div>
             ) : pointsError ? (
               <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
@@ -555,21 +906,21 @@ export default function PointHistoryPage() {
                   onClick={() => { fetchPointsSection(); }}
                   className="mt-2 text-[12px] font-bold text-rose-600 underline"
                 >
-                  다시 시도
+                  {copy.retry}
                 </button>
               </div>
             ) : filteredHistories.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-3xl mb-2">📭</p>
-                <p className="text-sm text-[#7A5230]">아직 이용권 혜택 내역이 없습니다.</p>
+                <p className="text-sm text-[#7A5230]">{copy.emptyLedger}</p>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {filteredHistories.map((entry) => {
                   const isSpend = entry.type === "MONTHLY_CREDIT_SPEND";
                   const kl = isSpend
-                    ? { text: "이용권 혜택 사용", cls: "bg-rose-100 text-rose-700 border-rose-300" }
-                    : { text: "이용권 혜택 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+                    ? { text: copy.spendLabel, cls: "bg-rose-100 text-rose-700 border-rose-300" }
+                    : { text: copy.grantLabel, cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
                   const dc = isSpend ? "text-rose-700" : "text-emerald-700";
                   const prefix = isSpend ? "-" : "+";
                   const displayReason = entry.reason || entry.serviceKey || "-";
@@ -578,11 +929,11 @@ export default function PointHistoryPage() {
                       key={entry.id}
                       className="rounded-[16px] border border-[#EFDCA8] bg-white/95 p-3.5 flex items-start gap-3"
                     >
-                      <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{isSpend ? "사용" : "지급"}</span>
+                      <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{isSpend ? copy.spendIcon : copy.grantIcon}</span>
                       <div className="flex-1 min-w-0">
                         {/* 날짜 */}
                         <p className="text-[11px] text-[#9B7040] mb-1 font-medium">
-                          {formatDateTime(entry.createdAt)}
+                          {formatDateTime(entry.createdAt, formatLocale)}
                         </p>
                         {/* 상품명 + 금액 */}
                         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -595,16 +946,16 @@ export default function PointHistoryPage() {
                             </span>
                           </div>
                           <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
-                            {prefix}{formatMonthlyCredits(entry.amount)}
+                            {prefix}{formatMonthlyCredits(entry.amount, copy, formatLocale)}
                           </span>
                         </div>
                         {/* 잔여 이용권 혜택 */}
                         <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
                           <CoinIcon size="sm" />
                           <p className="text-[12px] text-[#7A4A00] font-bold">
-                            반영 후 이용권 혜택&nbsp;
+                            {copy.afterBalance}&nbsp;
                             <span className="text-[13px] text-[#5C3A1E]">
-                              {formatMonthlyCredits(entry.afterBalance)}
+                              {formatMonthlyCredits(entry.afterBalance, copy, formatLocale)}
                             </span>
                           </p>
                         </div>
@@ -619,10 +970,10 @@ export default function PointHistoryPage() {
 
         {/* 결제 내역 (결제 성공 건) */}
         <section
-          aria-label="결제 내역"
+          aria-label={copy.paymentsAria}
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] p-5 shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
-          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">결제 내역</h2>
+          <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">{copy.paymentsTitle}</h2>
           {paymentsError ? (
             <div className="rounded-[14px] border border-rose-200 bg-rose-50 px-4 py-4">
               <p className="text-sm font-semibold text-rose-700">⚠️ {paymentsError}</p>
@@ -631,15 +982,15 @@ export default function PointHistoryPage() {
                 onClick={() => { fetchPaymentsSection(); }}
                 className="mt-2 text-[12px] font-bold text-rose-600 underline"
               >
-                결제 내역 다시 조회
+                {copy.retryPayments}
               </button>
             </div>
           ) : payments.length === 0 && !isLoading ? (
-            <p className="text-sm text-[#7A5230]">완료된 결제 내역이 없습니다.</p>
+            <p className="text-sm text-[#7A5230]">{copy.emptyPayments}</p>
           ) : (
             <div className="space-y-2.5">
               {payments.map((p) => {
-                const status = paymentStatusView(p.status);
+                const status = paymentStatusView(p.status, copy);
                 return (
                   <div
                     key={p.id}
@@ -647,16 +998,16 @@ export default function PointHistoryPage() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-bold text-[#5C3A1E]">
-                        결제 금액 {formatWon(p.paymentAmount)}
+                        {copy.paymentAmount(formatWon(p.paymentAmount, copy, formatLocale))}
                       </p>
                       <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${status.cls}`}>
                         {status.label}
                       </span>
                     </div>
                     <div className="mt-1.5 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
-                      <p>결제시각: {formatDateTime(p.paidAt)}</p>
-                      <p>결제수단: {p.paymentMethod || "-"}</p>
-                      {p.approvalNumber && <p className="sm:col-span-2">승인번호: {p.approvalNumber}</p>}
+                      <p>{copy.paidAt(formatDateTime(p.paidAt, formatLocale))}</p>
+                      <p>{copy.paymentMethod(p.paymentMethod || "-")}</p>
+                      {p.approvalNumber && <p className="sm:col-span-2">{copy.approvalNumber(p.approvalNumber)}</p>}
                     </div>
                   </div>
                 );
@@ -667,18 +1018,11 @@ export default function PointHistoryPage() {
 
         {/* 안내 */}
         <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
-          <h3 className="font-bold text-[#5C3A1E] mb-2">결제/멤버십 이용 안내</h3>
+          <h3 className="font-bold text-[#5C3A1E] mb-2">{copy.guideTitle}</h3>
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 이용권 혜택 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.</li>
-            <li>• 유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
-            <li>• 시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.</li>
-            <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
-            <li>• 콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.</li>
-            <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
-            <li>• 달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.</li>
-            <li>• 이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.</li>
-            <li>• 이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
-            <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
+            {copy.guideItems.map((item) => (
+              <li key={item}>• {item}</li>
+            ))}
           </ul>
         </section>
 

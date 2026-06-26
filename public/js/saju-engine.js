@@ -15,6 +15,636 @@ var __libReady = false;
 var __libLoading = false;
 var __pendingAutoCalculation = false;
 var __pendingAutoBirthSnapshot = null;
+var SAJU_ENGINE_TEXT_TRANSLATIONS = {
+  ko: {
+    "se_10026_prop_title": "일·공부",
+    "se_10027_prop_title": "연애·관계",
+    "se_10028_prop_title": "돈·생활",
+    "se_10029_prop_title": "사람·기회",
+    "se_10030_prop_title": "마음관리",
+    "se_11202_call_confirm": "로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?",
+    "se_11651_call_confirm": "🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.",
+    "se_11721_prop_label": "국가",
+    "se_11912_call_confirm": "🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.",
+    "se_1373_prop_title": "시원한 물(水) 기운 여행",
+    "se_1380_prop_title": "따스한 불(火) 기운 여행",
+    "se_1387_prop_title": "푸른 나무(木) 기운 여행",
+    "se_1394_prop_title": "깔끔한 금(金) 기운 여행",
+    "se_1401_prop_title": "포근한 토(土) 기운 여행",
+    "se_1516_prop_description": "곧게 뻗은 대나무의 목(木) 진동이 흩어진 의지를 다시 세우고, 답답한 생각을 위로 끌어올려 창작과 회복의 리듬을 되살리는 숲입니다.",
+    "se_1517_prop_description": "정돈된 정원과 살아 있는 습지의 목(木)이 함께 흐르며, 굳은 마음을 부드럽게 열고 새로운 관계와 아이디어를 싹트게 하는 공간입니다.",
+    "se_1518_prop_description": "오래된 비자나무의 깊은 목(木) 기운이 급한 성장보다 오래 버티는 생명력을 일깨워, 지친 호흡과 마음의 뿌리를 천천히 복원합니다.",
+    "se_1519_prop_description": "전나무가 만든 수직의 목(木) 축이 산만한 생각을 한 줄로 정렬시키고, 사찰길의 고요함이 내면의 성장 방향을 선명하게 비춰줍니다.",
+    "se_1520_prop_description": "편백의 부드러운 목(木) 향과 남해의 바람이 만나 예민해진 신경을 감싸고, 급한 마음을 완만한 회복 곡선으로 돌려놓는 숲입니다.",
+    "se_1521_prop_description": "보존림의 안정된 목(木) 구조가 흩어진 계획을 차분히 되살리고, 성장 에너지를 감정이 아니라 실천 가능한 루틴으로 바꿔주는 장소입니다.",
+    "se_1522_prop_description": "계절별 정원의 목(木) 기운이 감정의 마른 가지에 색을 입히며, 새로운 시작을 부담보다 설렘으로 체감하게 만드는 회복 정원입니다.",
+    "se_1523_prop_description": "짙은 편백림의 목(木)이 몸의 긴장을 풀고, 느린 숲길의 반복이 무너진 생활 리듬을 다시 자라나게 하는 산림 치유 좌표입니다.",
+    "se_1524_prop_description": "도시 한가운데의 목(木) 완충지가 빠른 생활 속 과열을 낮추고, 짧은 산책만으로도 생각의 방향을 다시 초록빛으로 돌려주는 공간입니다.",
+    "se_1525_prop_description": "연꽃과 물길이 어우러진 목(木)의 부드러운 성장성이 감정의 탁함을 걷어내고, 관계 안의 닫힌 마음을 천천히 열어줍니다.",
+    "se_1526_prop_description": "강의 흐름과 대숲의 목(木)이 함께 움직여 막힌 기운을 순환시키고, 멈춘 계획을 다시 밖으로 펼치게 돕는 개방형 정원입니다.",
+    "se_1527_prop_description": "나무다리와 호숫가 숲의 목(木)이 기억의 결을 부드럽게 정리해, 오래 묵은 마음을 억지로 끊지 않고 자연스럽게 다음 장으로 넘기게 합니다.",
+    "se_1528_prop_description": "대나무가 만든 높은 목(木)의 통로가 머릿속 소음을 위로 뽑아내고, 고도의 정적이 창작 에너지를 선명한 한 줄로 정렬합니다.",
+    "se_1529_prop_description": "거대한 침엽수림과 산악의 목(木)이 작은 걱정을 큰 풍경 속에 풀어내며, 인생의 다음 확장 방향을 몸으로 체감하게 합니다.",
+    "se_1530_prop_description": "짙고 깊은 숲의 목(木)이 빠른 성과보다 조용한 축적을 돕고, 마음속에 흩어진 가지들을 한 뿌리로 모아주는 공간입니다.",
+    "se_1531_prop_description": "높은 레드우드의 목(木)과 지열의 생명력이 만나, 처진 몸의 리듬을 다시 깨우고 회복을 행동 에너지로 바꾸는 숲입니다.",
+    "se_1532_prop_description": "수천 년을 버틴 거목의 목(木)이 짧은 불안을 압도하며, 오래 살아남는 힘과 큰 목표를 향한 담대한 성장을 일깨웁니다.",
+    "se_1533_prop_description": "초원과 계곡의 목(木)이 막힌 가슴을 넓히고, 폭포의 흐름이 성장 욕구를 부드럽게 깨워 자유로운 회복감을 줍니다.",
+    "se_1534_prop_description": "정원과 연못의 목(木)이 색채와 감각을 다시 피워 올리며, 굳어 있던 상상력을 부드러운 이미지와 문장으로 되살립니다.",
+    "se_1535_prop_description": "구릉과 정원의 목(木)이 생활 속 아름다움을 다시 느끼게 하며, 빠른 성취보다 꾸준히 자라는 삶의 감각을 회복시킵니다.",
+    "se_1536_prop_description": "열대의 짙은 목(木)과 논길의 생명력이 감각을 다시 열어, 몸의 긴장과 마음의 건조함을 창작적 회복으로 바꾸는 곳입니다.",
+    "se_1537_prop_description": "차가운 북방 숲의 목(木)이 과장된 감정을 걷어내고, 조용하지만 단단한 생명력으로 내면의 순수한 방향을 되찾게 합니다.",
+    "se_1538_prop_description": "운해와 숲이 만나는 아리산의 목(木)은 낮게 가라앉은 마음을 위로 들어 올리고, 하루의 시작을 새롭게 여는 상승 기운을 줍니다.",
+    "se_1539_prop_description": "도시의 질서와 열대 정원의 목(木)이 균형을 이루어, 지친 감각을 세련되게 깨우고 생활 속 성장 루틴을 다시 설계하게 합니다.",
+    "se_1541_prop_description": "동해의 수평선에서 올라오는 화(火)의 첫빛이 멈춰 있던 의지를 깨우고, 하루를 밀고 나갈 자신감의 불씨를 다시 붙입니다.",
+    "se_1542_prop_description": "가장 먼저 떠오르는 태양의 화(火)가 결심을 밖으로 밀어내며, 망설임을 줄이고 행동으로 옮기는 돌파 에너지를 강화합니다.",
+    "se_1543_prop_description": "화산의 기억과 일출의 화(火)가 겹쳐진 지형으로, 꺼진 의욕을 다시 점화하고 앞으로 치고 나갈 상승감을 몸에 새깁니다.",
+    "se_1544_prop_description": "바다 위에 반사되는 도시의 화(火)가 감정 표현을 환하게 열어주고, 차갑게 식은 관계 감각에 생동감 있는 온기를 넣어줍니다.",
+    "se_1545_prop_description": "검은 바다 위의 불빛이 화(火)를 부드럽게 반사해, 과격한 열정보다 오래 남는 설렘과 감정 표현의 온도를 회복시킵니다.",
+    "se_1546_prop_description": "도시를 내려다보는 높은 화(火)의 시야가 작아진 자신감을 되살리고, 앞으로 향할 목표를 밝은 점처럼 다시 보이게 합니다.",
+    "se_1547_prop_description": "오래된 별 관측의 상징에 밤빛이 더해져, 요란하지 않은 화(火)가 내면의 영감과 자기 표현의 불씨를 조용히 살립니다.",
+    "se_1548_prop_description": "수변 위로 번지는 현대 도시의 화(火)가 사회적 존재감을 깨우고, 커리어와 자기표현을 세련된 추진력으로 연결합니다.",
+    "se_1549_prop_description": "도심의 중심에서 빛나는 남산의 화(火)는 흩어진 시선을 한곳으로 모아, 존재감과 관계의 온도를 다시 밝히는 상징적 좌표입니다.",
+    "se_1550_prop_description": "바다로 내려앉는 노을의 화(火)가 과열된 감정을 부드럽게 식히며, 끝낼 것은 끝내고 남길 것은 따뜻하게 품는 결단을 돕습니다.",
+    "se_1551_prop_description": "간절곶의 새벽 화(火)는 이름처럼 간절한 마음에 빛을 넣어, 흐릿한 결심을 오늘 시작할 수 있는 행동 에너지로 바꿉니다.",
+    "se_1552_prop_description": "파도 소리 위로 떠오르는 화(火)가 가슴의 답답함을 흔들어 깨우고, 무기력한 아침을 살아 있는 리듬으로 전환합니다.",
+    "se_1553_prop_description": "강한 태양과 열린 해변의 화(火)가 몸의 리듬을 밝게 깨워, 위축된 자기표현과 즐거움을 다시 자연스럽게 끌어냅니다.",
+    "se_1554_prop_description": "가우디의 곡선과 지중해 태양이 만드는 화(火)가 잠든 표현력을 깨워, 나만의 색과 리듬을 과감히 드러내게 합니다.",
+    "se_1555_prop_description": "화산섬의 열기와 석양의 화(火)가 감정의 명도를 높여, 잊고 있던 낭만과 자기 매력을 다시 선명하게 느끼게 합니다.",
+    "se_1556_prop_description": "사막의 강한 화(火)는 불필요한 생각을 말려내고, 남겨야 할 욕망과 결심만 선명하게 드러내는 원초적 정화의 장입니다.",
+    "se_1557_prop_description": "화산암 대지 위로 떠오르는 열기구의 화(火)가 낮은 시야를 들어 올려, 모험심과 더 큰 선택을 향한 용기를 깨웁니다.",
+    "se_1558_prop_description": "붉은 대지와 태양의 화(火)가 존재의 중심을 강하게 깨워, 흔들린 자존감과 의지를 다시 땅 위에 세워줍니다.",
+    "se_1559_prop_description": "사막 위 인공 불빛의 화(火)가 숨은 무대감을 자극해, 자신을 더 크고 선명하게 표현하도록 밀어주는 강렬한 도시입니다.",
+    "se_1560_prop_description": "사막의 원초적 화(火)와 미래 도시의 불빛이 만나, 큰 스케일의 욕망을 깨우되 과열을 다스릴 때 확장 운으로 전환되는 장소입니다.",
+    "se_1561_prop_description": "광장과 유적에 남은 화(火)의 기억이 개인의 이야기를 더 큰 무대 위에 올려, 위축된 존재감을 당당한 서사로 바꿔줍니다.",
+    "se_1562_prop_description": "강한 햇살과 밝은 해변의 화(火)가 무뎌진 즐거움의 감각을 깨우고, 몸과 관계의 온도를 다시 따뜻하게 올려줍니다.",
+    "se_1563_prop_description": "야시장의 조명과 음식 향이 만든 화(火)가 감각을 즉시 깨워, 움츠린 사회성과 표현력을 즐거운 리듬으로 열어줍니다.",
+    "se_1564_prop_description": "지중해 햇살의 화(火)가 감정의 채도를 높이고, 자신을 조금 더 밝고 우아하게 드러내는 감각을 회복시켜 줍니다.",
+    "se_1566_prop_description": "천년 고도의 토(土)가 흩어진 일상을 긴 시간의 질서 안에 놓아주며, 흔들린 중심과 현실 감각을 차분히 회복시킵니다.",
+    "se_1567_prop_description": "백제의 부드러운 토(土) 기운이 급한 판단을 가라앉히고, 품격 있는 안정감으로 현실의 선택 기준을 다시 세워줍니다.",
+    "se_1568_prop_description": "강이 감싼 전통마을의 토(土)가 삶의 뿌리와 생활 감각을 안정시켜, 흔들린 관계와 일상의 기반을 다시 단단하게 만듭니다.",
+    "se_1569_prop_description": "한옥과 골목의 토(土)가 떠 있는 마음을 생활의 온도로 끌어내려, 먹고 걷고 쉬는 단순한 리듬 속에서 안정감을 회복시킵니다.",
+    "se_1570_prop_description": "성곽의 토(土)가 내 삶의 경계를 다시 느끼게 해, 지킬 것과 내어줄 것을 구분하는 현실 판단력을 강화합니다.",
+    "se_1571_prop_description": "정교하게 설계된 성곽의 토(土)가 생각을 구조로 바꾸고, 막연한 목표를 걸어서 확인 가능한 실행 계획으로 내려줍니다.",
+    "se_1572_prop_description": "오래된 골목의 토(土)가 지나온 시간을 발밑에 놓아주며, 흩어진 경험을 지금 써먹을 수 있는 현실 자산으로 정리합니다.",
+    "se_1573_prop_description": "복원과 시간이 겹친 미륵사지의 토(土)는 무너진 것을 다시 세우는 인내를 알려주며, 장기 계획의 중심을 차분히 붙잡게 합니다.",
+    "se_1574_prop_description": "거석의 오래된 토(土)가 생각을 묵직하게 가라앉혀, 불안을 줄이고 삶의 원점과 기본기를 다시 확인하게 합니다.",
+    "se_1575_prop_description": "완만한 화산토의 토(土)가 몸의 중심을 되찾게 하고, 무리하지 않는 상승을 통해 작은 성취감을 현실적으로 회복시킵니다.",
+    "se_1576_prop_description": "넓은 고원의 토(土)가 꽉 막힌 현실감을 넓게 펼쳐주며, 몸의 호흡과 생활 리듬을 안정적인 속도로 되돌립니다.",
+    "se_1577_prop_description": "한눈에 들어오는 지형의 토(土)가 복잡한 현실을 하나의 지도처럼 보이게 해, 부분에 매달린 마음을 전체 방향으로 돌려줍니다.",
+    "se_1578_prop_description": "사막과 신전에 응축된 토(土)가 수천 년의 시간을 몸으로 느끼게 하며, 무거운 책임을 견디는 내면의 기둥을 세워줍니다.",
+    "se_1579_prop_description": "고산 위 석조도시의 토(土)가 꿈을 공중에 띄우지 않고 발 딛는 성취로 바꾸며, 장기 목표를 견디는 힘을 줍니다.",
+    "se_1580_prop_description": "바위를 깎아 만든 도시의 토(土)가 막힌 현실에도 통로가 있음을 보여주며, 숨은 자산을 드러내는 인내심을 강화합니다.",
+    "se_1581_prop_description": "부드러운 암석이 삶의 공간으로 바뀐 괴레메의 토(土)는 주어진 현실을 새 방식으로 활용하는 적응력과 기반 재설계 능력을 깨웁니다.",
+    "se_1582_prop_description": "중원의 오래된 토(土)가 개인의 중심성과 권위를 되살려, 흔들린 커리어 기준과 기반 자산을 다시 점검하게 합니다.",
+    "se_1583_prop_description": "화산재에 보존된 도시의 토(土)는 지나간 시간의 교훈을 선명히 보여주며, 같은 실수를 반복하지 않는 현실 감각을 강화합니다.",
+    "se_1584_prop_description": "오래된 철학과 도시의 토(土)가 생각을 원칙으로 굳혀주며, 감정적 선택을 삶의 기준과 공동체 감각으로 정리하게 합니다.",
+    "se_1585_prop_description": "석조 사원과 정글이 겹친 토(土)가 인간의 시간과 자연의 시간을 함께 느끼게 하며, 성급함을 낮추고 신성한 기반감을 회복시킵니다.",
+    "se_1586_prop_description": "분지와 사원의 토(土)가 영적 감각을 공중에 띄우지 않고 생활 수행으로 내려주며, 매일 반복할 중심을 찾게 합니다.",
+    "se_1587_prop_description": "사막 도시와 궁전의 토(土)가 자기 가치를 단단한 형식으로 세워주며, 감각적 아름다움을 현실적 자신감으로 바꿉니다.",
+    "se_1588_prop_description": "끝없는 소금평원의 토(土)가 모든 소음을 비워내고, 하늘과 땅의 반영 속에서 지금의 현실을 거울처럼 마주하게 합니다.",
+    "se_1589_prop_description": "넓은 초원의 토(土)가 복잡한 욕심을 단순하게 만들고, 살아가는 데 필요한 기본 체력과 현실 감각을 다시 일깨웁니다.",
+    "se_1591_prop_description": "정제된 건축과 작품의 금(金)이 감각을 날카롭게 다듬어, 흐릿한 취향과 판단 기준을 세련된 안목으로 정리하게 합니다.",
+    "se_1592_prop_description": "한옥의 선과 갤러리의 금(金) 감각이 과한 감정을 덜어내고, 필요한 것만 남기는 절제된 아름다움을 회복시킵니다.",
+    "se_1593_prop_description": "유선형 금속 건축의 금(金)이 미래적 감각과 구조적 사고를 자극해, 흩어진 아이디어를 선명한 형태로 굳히게 합니다.",
+    "se_1594_prop_description": "해안 마천루의 금(金)이 목표를 높고 선명하게 보여주며, 느슨해진 성취 욕구를 세련된 긴장감으로 다시 조율합니다.",
+    "se_15958_prop_title": "자미 지도자",
+    "se_15959_prop_title": "염정 권력자",
+    "se_1595_prop_description": "계획도시의 금(金) 질서가 산만한 생활을 정돈하고, 미래 계획을 감정이 아닌 구조와 일정으로 바꾸게 합니다.",
+    "se_15960_prop_title": "천기 관찰자",
+    "se_15961_prop_title": "태음 관찰자",
+    "se_15962_prop_title": "태양 선도자",
+    "se_15963_prop_title": "무곡 집행자",
+    "se_1596_prop_description": "과학과 기술의 금(金)이 감정적 판단을 걷어내고, 문제를 객관적인 구조와 실험 가능한 아이디어로 재정렬합니다.",
+    "se_1597_prop_description": "현대미술의 금(金) 감각이 익숙한 해석을 잘라내고, 사물을 더 정밀하고 신선하게 보는 판단력을 깨웁니다.",
+    "se_1598_prop_description": "산과 건축이 만나는 금(金)의 절제가 불필요한 감각을 덜어내고, 하나의 선택에 깊게 집중할 수 있는 선명함을 줍니다.",
+    "se_1599_prop_description": "바다와 조각의 금(金)이 시선을 날카롭게 전환시켜, 막연한 감정을 형태 있는 표현과 분명한 취향으로 정리하게 합니다.",
+    "se_1600_prop_description": "절제된 건축과 작품의 금(金)이 감정의 장식을 덜어내고, 지금 정말 중요한 본질과 아름다움을 선명하게 보여줍니다.",
+    "se_1601_prop_description": "책과 건축의 금(金)이 생각을 문장과 구조로 다듬어, 흩어진 지식을 쓸 수 있는 콘텐츠와 계획으로 바꿔줍니다.",
+    "se_1602_prop_description": "복합문화공간의 금(金)이 다양한 감각을 하나의 형식으로 묶어주며, 아이디어를 작품과 실행 구조로 정리하게 합니다.",
+    "se_1603_prop_description": "정돈된 도시와 금융의 금(金)이 시간과 돈의 감각을 날카롭게 다듬어, 흐릿한 계획을 수치와 기준으로 정리하게 합니다.",
+    "se_1604_prop_description": "긴자의 금(金)은 과한 선택지를 세련된 기준으로 압축해, 나에게 맞는 취향과 브랜딩 감각을 분명하게 다듬습니다.",
+    "se_1605_prop_description": "미술관과 도시 선의 금(金)이 감각을 고급스럽게 정제해, 아름다움을 소비가 아니라 판단 기준으로 받아들이게 합니다.",
+    "se_1606_prop_description": "마천루와 금융가의 금(金)이 경쟁 속 기준을 선명하게 만들며, 성과를 향한 집중력과 결단의 날을 세워줍니다.",
+    "se_1607_prop_description": "전통과 현대가 겹친 런던의 금(金)은 기준의 무게를 알려주며, 일과 관계에서 오래갈 품격과 판단력을 회복시킵니다.",
+    "se_1608_prop_description": "정교한 도시 설계와 야경의 금(金)이 야망을 흐릿한 욕망이 아니라 관리 가능한 미래 계획으로 바꿔줍니다.",
+    "se_1609_prop_description": "금융가와 항구가 맞물린 금(金)이 빠른 판단과 거래 감각을 일깨워, 기회를 놓치지 않는 결단력을 훈련시킵니다.",
+    "se_1610_prop_description": "음악과 궁전의 금(金)이 감정을 절제된 형식 안에 담아, 과하지 않지만 깊이 있는 표현과 관계의 품격을 회복시킵니다.",
+    "se_1611_prop_description": "실용적 디자인과 정돈된 도시의 금(金)이 복잡한 생활을 단순하게 다듬고, 아름다움과 효율이 함께 가는 루틴을 보여줍니다.",
+    "se_1612_prop_description": "북유럽 미니멀리즘의 금(金)이 불필요한 장식을 걷어내고, 조용하지만 선명한 생활 기준과 집중력을 회복시킵니다.",
+    "se_1613_prop_description": "역사적 절단과 재구성의 금(金)이 지나간 상처를 새로운 구조와 표현으로 바꾸는 힘을 줍니다.",
+    "se_1614_prop_description": "미술관 지구의 금(金)이 감상과 해석을 정교하게 만들어, 감정적 취향을 깊이 있는 안목과 판단력으로 정돈합니다.",
+    "se_1616_prop_description": "섬 사이를 흐르는 수(水)의 낮은 진동이 과열된 마음을 식히고, 감정의 파동을 잔잔하게 만들어 깊은 몰입을 회복시킵니다.",
+    "se_1617_prop_description": "섬을 감싸는 수(水)와 동백숲의 부드러운 그늘이 감정의 막힌 흐름을 풀어, 말하지 못한 마음을 자연스럽게 순환시킵니다.",
+    "se_1618_prop_description": "안개 낀 다도해의 수(水)가 생각의 표면을 조용히 낮추고, 깊은 직관과 감정 안정의 결을 되찾게 합니다.",
+    "se_1619_prop_description": "화산 지하에서 솟는 맑은 수(水)가 탁해진 판단을 씻어내고, 과열된 감정을 투명하고 차분한 상태로 되돌립니다.",
+    "se_1620_prop_description": "넓은 바다의 수(水)와 달맞이길의 완만한 흐름이 감정을 급하게 밀어붙이지 않고, 관계의 온도를 부드럽게 조절해줍니다.",
+    "se_1621_prop_description": "호수와 바다가 가까운 수(水)의 이중 흐름이 반복되는 생각을 식히고, 판단을 더 유연하고 길게 보게 만듭니다.",
+    "se_1622_prop_description": "산과 호수가 마주한 영랑호의 수(水)는 마음의 진폭을 낮춰, 불안을 없애려 하기보다 안전하게 바라보는 힘을 줍니다.",
+    "se_1623_prop_description": "물안개와 호수길의 수(水)가 빠르게 굳은 생각을 천천히 풀어, 일상으로 돌아갈 수 있는 부드러운 흐름을 회복시킵니다.",
+    "se_1624_prop_description": "산자락에 담긴 호수의 수(水)가 감정의 압력을 낮추고, 짧은 체류만으로도 마음의 흐름을 다시 부드럽게 만듭니다.",
+    "se_1625_prop_description": "깊은 바다에 둘러싸인 섬의 수(水)가 외부 소음을 끊어내고, 내면 깊은 곳의 직관과 회복력을 강하게 끌어올립니다.",
+    "se_1626_prop_description": "남해의 잔잔한 수(水)가 생활의 긴장을 부드럽게 풀어주며, 낯선 마을 풍경 속에서 감정의 속도를 낮추게 합니다.",
+    "se_1627_prop_description": "섬과 다리가 이어진 선유도의 수(水)는 끊어진 감정 흐름을 다시 연결하게 하며, 관계의 거리감을 편안하게 조절해줍니다.",
+    "se_1628_prop_description": "빙하가 만든 깊은 수(水)의 협곡이 과열된 사고를 차갑게 식히고, 감정의 파동을 안정시켜 장기 판단력을 회복시키는 장소입니다.",
+    "se_1629_prop_description": "운하 도시의 수(水)가 직선적 사고를 부드럽게 휘게 만들며, 막힌 관계와 감정을 우회하고 연결하는 유연함을 줍니다.",
+    "se_1630_prop_description": "투명한 라군의 수(水)가 감정의 잔여물을 씻어내고, 몸의 긴장을 깊은 휴식 상태로 내려 치유력을 회복시킵니다.",
+    "se_1631_prop_description": "알프스 호수의 맑은 수(水)가 탁한 감정을 가라앉히고, 차분하지만 흔들리지 않는 판단의 투명도를 회복시킵니다.",
+    "se_1632_prop_description": "빙하가 녹아 만든 푸른 수(水)가 마음의 열을 낮추고, 깊은 몰입과 맑은 직관을 되살리는 고요한 호수 좌표입니다.",
+    "se_1633_prop_description": "층층이 흐르는 호수와 폭포의 수(水)가 멈춘 감정을 단계적으로 풀어내며, 상처를 억지로 지우지 않고 흘려보내게 합니다.",
+    "se_1634_prop_description": "수많은 호수의 낮은 수(水) 진동이 신경계를 고요하게 가라앉히고, 침묵 속에서 감정의 깊은 회복을 돕습니다.",
+    "se_1635_prop_description": "따뜻한 산호 바다의 수(水)가 차갑게 식히기보다 부드럽게 감싸며, 관계 피로와 마음의 긴장을 편안하게 풀어줍니다.",
+    "se_1636_prop_description": "맑은 호수와 운하의 수(水)가 감정을 투명하게 정리해, 과한 드라마 없이도 깊고 부드러운 낭만을 회복시킵니다.",
+    "se_1637_prop_description": "석회암 절벽과 에메랄드 바다의 수(水)가 갇힌 감정을 넓게 풀어주며, 몸과 마음을 더 유연한 상태로 이끕니다.",
+    "se_1638_prop_description": "폭포와 피오르드의 강력한 수(水)가 마음의 과열을 압도적으로 식히고, 깊은 정화와 직관의 고요를 되찾게 합니다.",
+    "se_1639_prop_description": "정돈된 해변과 라군의 수(水)가 강한 자극 없이 감정을 완충하고, 안전한 휴식 속에서 회복력을 천천히 채워줍니다.",
+    "se_17828_call_confirm": "🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.",
+    "se_1838_prop_title": "자미(紫微) — 지도자형",
+    "se_1839_prop_title": "탐랑(貪狼) — 매력·창조형",
+    "se_1840_prop_title": "거문(巨門) — 통찰·분석형",
+    "se_1841_prop_title": "천상(天相) — 조화·협력형",
+    "se_1842_prop_title": "천동(天同) — 평화·행복형",
+    "se_1843_prop_title": "염정(廉貞) — 열정·천기형",
+    "se_1844_prop_title": "천부(天府) — 풍요·안정형",
+    "se_1845_prop_title": "태음(太陰) — 감수성·직관형",
+    "se_1846_prop_title": "탐랑 변형 — 도전·개혁형",
+    "se_1847_prop_title": "무곡(武曲) — 독립·실행형",
+    "se_1848_prop_title": "파군(破軍) — 변혁·개척형",
+    "se_1849_prop_title": "천기(天機) — 지혜·천기형",
+    "se_1852_prop_title": "성장과 탐구에서 행복 찾기",
+    "se_1853_prop_title": "표현과 나눔에서 행복 찾기",
+    "se_1854_prop_title": "안정과 풍요에서 행복 찾기",
+    "se_1855_prop_title": "성취와 완성에서 행복 찾기",
+    "se_1856_prop_title": "교류와 감성에서 행복 찾기",
+    "se_1859_prop_title": "성장 분야에서 재물이 온다",
+    "se_1860_prop_title": "열정과 표현력이 재물로 연결된다",
+    "se_1861_prop_title": "부동산과 실물자산에서 복이 온다",
+    "se_1862_prop_title": "전문성과 규율에서 재물이 온다",
+    "se_1863_prop_title": "유통과 흐름에서 재물이 온다",
+    "se_1866_prop_title": "독립과 개척으로 성공",
+    "se_1867_prop_title": "협력과 신뢰로 성공",
+    "se_1868_prop_title": "한 분야 집중으로 정상에 선다",
+    "se_1871_prop_title": "다정하고 책임감 강한 배우자 인연",
+    "se_1872_prop_title": "신뢰와 책임감 있는 배우자 인연",
+    "se_1876_prop_title": "성장 지향형 부모·선배 인연",
+    "se_1879_prop_title": "활동적·사교적 부모·선배 인연",
+    "se_1882_prop_title": "안정·헌신형 부모·선배 인연",
+    "se_1885_prop_title": "원칙·엄격형 부모·선배 인연",
+    "se_1888_prop_title": "감성·지지형 부모·선배 인연",
+    "se_1893_prop_title": "성장·창의형 자녀·후배 인연",
+    "se_1896_prop_title": "활동적·리더형 자녀·후배 인연",
+    "se_1899_prop_title": "안정·현실형 자녀·후배 인연",
+    "se_1902_prop_title": "독립적·원칙형 자녀·후배 인연",
+    "se_1905_prop_title": "감수성·사려형 자녀·후배 인연",
+    "se_19205_prop_label": "⛰️ 토 (Earth) · 중축",
+    "se_19206_prop_label": "🌿 목 (Wood) · 동방",
+    "se_19207_prop_label": "🔥 화 (Fire) · 남방",
+    "se_19208_prop_label": "⚔️ 금 (Metal) · 서방",
+    "se_19209_prop_label": "💧 수 (Water) · 북방",
+    "se_20191_prop_label": "재물",
+    "se_20192_prop_label": "직업",
+    "se_20193_prop_label": "사랑",
+    "se_20194_prop_label": "회복",
+    "se_20195_prop_label": "이동",
+    "se_20524_prop_title": "BIRTH SEAL · 본명 인장",
+    "se_20533_prop_title": "BODY SEAL · 현실 인장",
+    "se_20542_prop_title": "SIHUA SEAL · 사화 인장",
+    "se_20543_prop_title": "SHADOW SEAL · 그림자 인장",
+    "se_20593_prop_label": "보수 해석",
+    "se_20594_prop_label": "정밀 보정",
+    "se_20856_prop_label": "대한 3년차",
+    "se_20857_prop_label": "대한 7년차",
+    "se_21084_call_confirm": "대한 타임라인 해금\\n\\n20,000원 결제로 인생 전체 운명 지도를 여시겠습니까?\\n\\n구매 후 영구 열람 가능합니다.",
+    "se_21291_prop_label": "사화 직접 작용 약함",
+    "se_22303_prop_title": "월령 해석",
+    "se_22398_prop_title": "월령 해석",
+    "se_23240_prop_label": "한국",
+    "se_23241_prop_label": "일본",
+    "se_23242_prop_label": "중국",
+    "se_23243_prop_label": "미국",
+    "se_23244_prop_label": "인도",
+    "se_23245_prop_label": "유럽",
+    "se_23269_prop_label": "남아공 프리토리아",
+    "se_23270_prop_label": "미국 뉴멕시코 앨버커키",
+    "se_23271_prop_label": "미국 뉴욕 화이트플레인스",
+    "se_23272_prop_label": "미국 네브래스카 오마하",
+    "se_23273_prop_label": "대만 타이난",
+    "se_23274_prop_label": "미국 미시간 랜싱",
+    "se_23275_prop_label": "러시아 모스크바",
+    "se_23276_prop_label": "미국 앨라배마 모빌",
+    "se_23277_prop_label": "미국 일리노이 시카고",
+    "se_23278_prop_label": "대만 타이난",
+    "se_23279_prop_label": "미국 뉴욕",
+    "se_23280_prop_label": "프랑스 루베",
+    "se_23281_prop_label": "인도 하이데라바드",
+    "se_23282_prop_label": "중국 항저우",
+    "se_23283_prop_label": "중국 산터우",
+    "se_23284_prop_label": "일본 사가",
+    "se_23285_prop_label": "미국 뉴욕",
+    "se_23286_prop_label": "미국 펜실베이니아 스크랜턴",
+    "se_23287_prop_label": "미국 하와이 호놀룰루",
+    "se_23288_prop_label": "미국 일리노이 시카고",
+    "se_23289_prop_label": "미국 캘리포니아 오클랜드",
+    "se_23290_prop_label": "중국 베이징",
+    "se_23291_prop_label": "러시아 상트페테르부르크",
+    "se_23292_prop_label": "프랑스 아미앵",
+    "se_23293_prop_label": "독일 오스나브뤼크",
+    "se_23294_prop_label": "영국 사우샘프턴",
+    "se_23295_prop_label": "독일 함부르크",
+    "se_23296_prop_label": "우크라이나 크리비리흐",
+    "se_23297_prop_label": "영국 그래섬",
+    "se_23298_prop_label": "일본 도쿄",
+    "se_23299_prop_label": "일본 도쿄",
+    "se_23300_prop_label": "인도 바드나가르",
+    "se_23638_call_confirm": "🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.",
+    "se_24078_prop_title": "감정 리듬",
+    "se_24079_prop_title": "갈등 스위치",
+    "se_24080_prop_title": "현실 운영",
+    "se_24081_prop_title": "장기 전망",
+    "se_25990_prop_label": "년지",
+    "se_25991_prop_label": "월지",
+    "se_25992_prop_label": "일지",
+    "se_25993_prop_label": "시지",
+    "se_26030_prop_label": "인·사·신 형살 축",
+    "se_26031_prop_label": "축·미·술 형살 축",
+    "se_26032_prop_label": "자·묘 형살 축",
+    "se_26043_prop_label": "년지",
+    "se_26044_prop_label": "월지",
+    "se_26045_prop_label": "일지",
+    "se_26046_prop_label": "시지",
+    "se_26479_prop_subtitle": "돈, 시간, 기회의 경계선을 흐리는 정산 교란 패턴",
+    "se_26503_prop_subtitle": "죄책감과 압박으로 선택권을 좁히는 감정 경보 패턴",
+    "se_26528_prop_subtitle": "말을 많이 만들수록 결론이 흐려지는 대화 교란 패턴",
+    "se_26552_prop_subtitle": "부탁과 기대기로 에너지를 천천히 소모시키는 돌봄 과부하 패턴",
+    "se_26576_prop_subtitle": "비교와 무임승차로 성과의 경계를 흐리는 경쟁 침투 패턴",
+    "se_26600_prop_subtitle": "애매한 신호와 감정 자극으로 관계 정의를 늦추는 로맨스 안개 패턴",
+    "se_26625_prop_subtitle": "규칙과 평가를 자기 유리하게 적용하는 통제 프레임 패턴",
+    "se_26649_prop_subtitle": "일의 무게는 넘기고 성과의 빛만 가져가는 회피 교란 패턴",
+    "se_26673_prop_subtitle": "관심과 간섭의 경계를 지우며 생활 리듬을 잠식하는 과잉 접근 패턴",
+    "se_2668_prop_label": "대한민국 (시/군 단위)",
+    "se_26697_prop_subtitle": "말을 끊고 온도를 낮춰 상대가 먼저 굽히게 만드는 냉각 압박 패턴",
+    "se_2669_prop_label": "대한민국 · 서울",
+    "se_2670_prop_label": "대한민국 · 부산",
+    "se_2671_prop_label": "대한민국 · 인천",
+    "se_2672_prop_label": "대한민국 · 대구",
+    "se_2673_prop_label": "대한민국 · 광주",
+    "se_2674_prop_label": "대한민국 · 대전",
+    "se_2675_prop_label": "대한민국 · 울산",
+    "se_2676_prop_label": "대한민국 · 경기도 · 성남시",
+    "se_2677_prop_label": "대한민국 · 경기도 · 용인시",
+    "se_2678_prop_label": "대한민국 · 경기도 · 고양시",
+    "se_2679_prop_label": "대한민국 · 경기도 · 화성시",
+    "se_2680_prop_label": "대한민국 · 경기도 · 양평군",
+    "se_2681_prop_label": "대한민국 · 경기도 · 가평군",
+    "se_2682_prop_label": "대한민국 · 강원특별자치도 · 춘천시",
+    "se_2683_prop_label": "대한민국 · 강원특별자치도 · 강릉시",
+    "se_2684_prop_label": "대한민국 · 강원특별자치도 · 평창군",
+    "se_2685_prop_label": "대한민국 · 수원",
+    "se_2686_prop_label": "대한민국 · 충청북도 · 청주시",
+    "se_2687_prop_label": "대한민국 · 충청북도 · 충주시",
+    "se_2688_prop_label": "대한민국 · 충청북도 · 제천시",
+    "se_2689_prop_label": "대한민국 · 충청남도 · 천안시",
+    "se_2690_prop_label": "대한민국 · 충청남도 · 공주시",
+    "se_2691_prop_label": "대한민국 · 충청남도 · 서산시",
+    "se_2692_prop_label": "대한민국 · 전주",
+    "se_2693_prop_label": "대한민국 · 전라북도 · 군산시",
+    "se_2694_prop_label": "대한민국 · 전라북도 · 남원시",
+    "se_2695_prop_label": "대한민국 · 전라남도 · 목포시",
+    "se_2696_prop_label": "대한민국 · 전라남도 · 여수시",
+    "se_2697_prop_label": "대한민국 · 전라남도 · 해남군",
+    "se_2698_prop_label": "대한민국 · 경상북도 · 포항시",
+    "se_2699_prop_label": "대한민국 · 경상북도 · 안동시",
+    "se_2700_prop_label": "대한민국 · 경상북도 · 경주시",
+    "se_2701_prop_label": "대한민국 · 경상남도 · 창원시",
+    "se_2702_prop_label": "대한민국 · 경상남도 · 진주시",
+    "se_2703_prop_label": "대한민국 · 경상남도 · 거창군",
+    "se_2704_prop_label": "대한민국 · 제주특별자치도 · 제주시",
+    "se_2705_prop_label": "대한민국 · 제주특별자치도 · 서귀포시",
+    "se_2706_prop_label": "대한민국 · 제주",
+    "se_2708_prop_label": "미국 (주/도시)",
+    "se_2709_prop_label": "미국 · 뉴욕주 · 뉴욕",
+    "se_2710_prop_label": "미국 · 매사추세츠주 · 보스턴",
+    "se_2711_prop_label": "미국 · 플로리다주 · 마이애미",
+    "se_2712_prop_label": "미국 · 조지아주 · 애틀랜타",
+    "se_2713_prop_label": "미국 · 일리노이주 · 시카고",
+    "se_2714_prop_label": "미국 · 텍사스주 · 댈러스",
+    "se_2715_prop_label": "미국 · 텍사스주 · 휴스턴",
+    "se_2716_prop_label": "미국 · 콜로라도주 · 덴버",
+    "se_2717_prop_label": "미국 · 애리조나주 · 피닉스",
+    "se_2718_prop_label": "미국 · 유타주 · 솔트레이크시티",
+    "se_2719_prop_label": "미국 · 캘리포니아주 · 로스앤젤레스",
+    "se_2720_prop_label": "미국 · 캘리포니아주 · 샌프란시스코",
+    "se_2721_prop_label": "미국 · 워싱턴주 · 시애틀",
+    "se_2722_prop_label": "미국 · 알래스카주 · 앵커리지",
+    "se_2723_prop_label": "미국 · 하와이주 · 호놀룰루",
+    "se_2725_prop_label": "캐나다 (주/도시)",
+    "se_2726_prop_label": "캐나다 · 온타리오주 · 토론토",
+    "se_2727_prop_label": "캐나다 · 퀘벡주 · 몬트리올",
+    "se_2728_prop_label": "캐나다 · 브리티시컬럼비아주 · 밴쿠버",
+    "se_2729_prop_label": "캐나다 · 앨버타주 · 캘거리",
+    "se_2730_prop_label": "캐나다 · 매니토바주 · 위니펙",
+    "se_2731_prop_label": "캐나다 · 노바스코샤주 · 핼리팩스",
+    "se_2733_prop_label": "동아시아/동남아시아",
+    "se_2734_prop_label": "일본 · 도쿄",
+    "se_2735_prop_label": "일본 · 오사카",
+    "se_2736_prop_label": "일본 · 삿포로",
+    "se_2737_prop_label": "중국 · 베이징",
+    "se_2738_prop_label": "중국 · 상하이",
+    "se_2739_prop_label": "중국 · 광저우",
+    "se_2740_prop_label": "대만 · 타이베이",
+    "se_2741_prop_label": "홍콩 · 홍콩섬",
+    "se_2742_prop_label": "싱가포르 · 싱가포르",
+    "se_2743_prop_label": "태국 · 방콕",
+    "se_2744_prop_label": "베트남 · 하노이",
+    "se_2745_prop_label": "베트남 · 호찌민",
+    "se_2746_prop_label": "인도네시아 · 자카르타",
+    "se_2747_prop_label": "인도네시아 · 발리(덴파사르)",
+    "se_2748_prop_label": "필리핀 · 마닐라",
+    "se_27496_prop_title": "오늘의 테토 미션",
+    "se_27504_prop_title": "오늘의 에겐 미션",
+    "se_2750_prop_label": "남아시아/중동",
+    "se_27512_prop_title": "오늘의 밸런스 미션",
+    "se_2751_prop_label": "인도 · 뉴델리",
+    "se_2752_prop_label": "인도 · 뭄바이",
+    "se_2753_prop_label": "인도 · 벵갈루루",
+    "se_2754_prop_label": "인도 · 콜카타",
+    "se_2755_prop_label": "파키스탄 · 카라치",
+    "se_2756_prop_label": "방글라데시 · 다카",
+    "se_2757_prop_label": "네팔 · 카트만두",
+    "se_2758_prop_label": "UAE · 두바이",
+    "se_2759_prop_label": "사우디 · 리야드",
+    "se_2760_prop_label": "이란 · 테헤란",
+    "se_2761_prop_label": "이스라엘 · 예루살렘",
+    "se_2762_prop_label": "터키 · 이스탄불",
+    "se_2764_prop_label": "유럽/오세아니아/중남미",
+    "se_2765_prop_label": "영국 · 런던",
+    "se_2766_prop_label": "프랑스 · 파리",
+    "se_2767_prop_label": "독일 · 베를린",
+    "se_2768_prop_label": "이탈리아 · 로마",
+    "se_2769_prop_label": "스페인 · 마드리드",
+    "se_2770_prop_label": "러시아 · 모스크바",
+    "se_2771_prop_label": "호주 · 시드니(NSW)",
+    "se_2772_prop_label": "호주 · 멜버른(VIC)",
+    "se_2773_prop_label": "호주 · 브리즈번(QLD)",
+    "se_2774_prop_label": "호주 · 퍼스(WA)",
+    "se_2775_prop_label": "호주 · 애들레이드(SA)",
+    "se_2776_prop_label": "호주 · 다윈(NT)",
+    "se_2777_prop_label": "뉴질랜드 · 오클랜드",
+    "se_2778_prop_label": "브라질 · 상파울루",
+    "se_2779_prop_label": "브라질 · 리우데자네이루",
+    "se_2780_prop_label": "아르헨티나 · 부에노스아이레스",
+    "se_2781_prop_label": "칠레 · 산티아고",
+    "se_2782_prop_label": "멕시코 · 멕시코시티",
+    "se_2783_prop_label": "페루 · 리마",
+    "se_28038_prop_message": "서양 점성술 기본 차트를 열려면 생년월일과 출생 시간을 먼저 설정해 주세요.",
+    "se_28060_prop_message": "정밀 차트 계산이 지연되고 있어요. 잠시 후 다시 열어 주세요.",
+    "se_28064_prop_message": "차트의 핵심 좌표가 아직 준비되지 않았어요. 출생시간과 지역을 확인한 뒤 다시 열어 주세요.",
+    "se_28172_prop_title": "상징을 언어와 이미지로 바꾸는 역할",
+    "se_28173_prop_title": "흩어진 요구를 구조화하는 역할",
+    "se_28174_prop_title": "사람과 관계 흐름을 조율하는 역할",
+    "se_28175_prop_title": "자료를 읽고 패턴을 검증하는 역할",
+    "se_28176_prop_title": "배움과 의미를 전달하는 역할",
+    "se_28177_prop_title": "기회를 열고 협상을 움직이는 역할",
+    "se_28178_prop_title": "취향과 감각을 설계하는 역할",
+    "se_28179_prop_title": "자원과 위험을 관리하는 역할",
+    "se_28180_prop_title": "반복을 시스템으로 고정하는 역할",
+    "se_28727_prop_label": "상승궁",
+    "se_3629_attr_label": "🌟 최고의 운",
+    "se_3630_attr_label": "😊 좋은 운",
+    "se_3631_attr_label": "🙂 보통 운",
+    "se_3632_attr_label": "⚠️ 주의 운",
+    "se_3633_attr_label": "🌧️ 역경 운",
+    "se_4959_prop_message": "이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.",
+    "se_4981_prop_message": "결제 확인 후 AI 상담 결과가 열립니다.",
+    "se_6148_prop_label": "내가 모르는 나의 유혹 습관",
+    "se_6149_prop_label": "사람들이 오해하는 포인트",
+    "se_6150_prop_label": "매력을 망치는 행동",
+    "se_6151_prop_label": "진짜 매력적으로 보이는 순간",
+    "se_6152_prop_label": "오늘부터 고칠 것",
+    "se_6176_prop_label": "연애 처방",
+    "se_6186_prop_label": "인간관계 처방",
+    "se_6190_prop_label": "비즈니스 처방",
+    "se_6200_prop_label": "스타일링 처방",
+    "se_6204_prop_label": "SNS 처방",
+    "se_6208_prop_label": "금전운 연결 처방",
+    "se_6218_prop_label": "피해야 할 환경",
+    "se_6222_prop_label": "오늘의 매력 미션",
+    "se_6234_prop_label": "매력 키워드",
+    "se_6235_prop_label": "잘 어울리는 분위기",
+    "se_6236_prop_label": "잘 어울리는 스타일",
+    "se_6237_prop_label": "사람들에게 주는 감정",
+    "se_6238_prop_label": "활용하기 좋은 분야",
+    "se_6278_prop_label": "기본 매력",
+    "se_6279_prop_label": "발동되는 상황",
+    "se_6280_prop_label": "강하게 먹히는 상대",
+    "se_6281_prop_label": "조심해야 할 오해",
+    "se_6282_prop_label": "현실 활용법",
+    "se_6292_prop_label": "기본 매력",
+    "se_6293_prop_label": "발동되는 상황",
+    "se_6294_prop_label": "강하게 먹히는 상대",
+    "se_6295_prop_label": "조심해야 할 오해",
+    "se_6296_prop_label": "현실 활용법",
+    "se_6306_prop_label": "기본 매력",
+    "se_6307_prop_label": "발동되는 상황",
+    "se_6308_prop_label": "강하게 먹히는 상대",
+    "se_6309_prop_label": "조심해야 할 오해",
+    "se_6310_prop_label": "현실 활용법",
+    "se_6323_prop_label": "첫인상 매력",
+    "se_6324_prop_label": "오래 볼수록 드러나는 매력",
+    "se_6325_prop_label": "사람들이 착각하기 쉬운 이미지",
+    "se_6378_prop_title": "소개팅/연애 초반",
+    "se_6380_prop_label": "발동되는 매력",
+    "se_6381_prop_label": "상대가 느끼는 인상",
+    "se_6382_prop_label": "잘 쓰는 방법",
+    "se_6383_prop_label": "조심할 점",
+    "se_6387_prop_title": "오래 알고 지낸 관계",
+    "se_6389_prop_label": "발동되는 매력",
+    "se_6390_prop_label": "상대가 느끼는 인상",
+    "se_6391_prop_label": "잘 쓰는 방법",
+    "se_6392_prop_label": "조심할 점",
+    "se_6396_prop_title": "일/비즈니스 환경",
+    "se_6398_prop_label": "발동되는 매력",
+    "se_6399_prop_label": "상대가 느끼는 인상",
+    "se_6400_prop_label": "잘 쓰는 방법",
+    "se_6401_prop_label": "조심할 점",
+    "se_6405_prop_title": "SNS/프로필/영상",
+    "se_6407_prop_label": "발동되는 매력",
+    "se_6408_prop_label": "상대가 느끼는 인상",
+    "se_6409_prop_label": "잘 쓰는 방법",
+    "se_6410_prop_label": "조심할 점",
+    "se_6414_prop_title": "모임/파티/커뮤니티",
+    "se_6416_prop_label": "발동되는 매력",
+    "se_6417_prop_label": "상대가 느끼는 인상",
+    "se_6418_prop_label": "잘 쓰는 방법",
+    "se_6419_prop_label": "조심할 점",
+    "se_6423_prop_title": "위기 상황 또는 갈등 상황",
+    "se_6425_prop_label": "발동되는 매력",
+    "se_6426_prop_label": "상대가 느끼는 인상",
+    "se_6427_prop_label": "잘 쓰는 방법",
+    "se_6428_prop_label": "조심할 점",
+    "se_6444_prop_title": "연애",
+    "se_6454_prop_title": "인간관계",
+    "se_6466_prop_title": "직업/비즈니스",
+    "se_6470_prop_title": "SNS/퍼스널 브랜딩",
+    "se_6474_prop_title": "창작/콘텐츠",
+    "se_6484_prop_title": "돈이 되는 활용법",
+    "se_6507_prop_title": "오늘은 신호를 고르는 날",
+    "se_6508_prop_subtitle": "모두에게 같은 온도를 주지 말고, 마음이 가는 곳에만 선명하게 빛을 남기세요.",
+    "se_6512_prop_title": "오늘은 장면을 바꾸는 날",
+    "se_6513_prop_subtitle": "새로운 공간과 움직임이 매력을 깨웁니다. 익숙한 루틴에 작은 이동을 넣어보세요.",
+    "se_6517_prop_title": "오늘은 깊이를 보여주는 날",
+    "se_6518_prop_subtitle": "조용한 취향과 생각이 당신의 아우라를 만듭니다. 한 문장만 더 진심으로 남겨보세요.",
+    "se_6522_prop_title": "오늘은 편안함을 선명하게 만드는 날",
+    "se_6523_prop_subtitle": "큰 어필보다 정돈된 태도와 작은 배려가 매력을 오래 남깁니다.",
+    "se_8709_prop_label": "태양",
+    "se_8711_prop_label": "수성",
+    "se_8712_prop_label": "금성",
+    "se_8713_prop_label": "화성",
+    "se_8714_prop_label": "목성",
+    "se_8715_prop_label": "토성",
+    "se_8716_prop_label": "천왕성",
+    "se_8717_prop_label": "해왕성",
+    "se_8718_prop_label": "명왕성",
+    "se_8723_prop_label": "트라인",
+    "se_8724_prop_label": "스퀘어",
+    "se_8725_prop_label": "섹스타일",
+    "se_9552_prop_label": "태양",
+    "se_9554_prop_label": "수성",
+    "se_9555_prop_label": "금성",
+    "se_9556_prop_label": "화성",
+    "se_9557_prop_label": "목성",
+    "se_9558_prop_label": "토성",
+    "se_9559_prop_label": "천왕성",
+    "se_9560_prop_label": "해왕성",
+    "se_9561_prop_label": "명왕성",
+    "se_9564_prop_label": "양자리",
+    "se_9565_prop_label": "황소자리",
+    "se_9566_prop_label": "쌍둥이자리",
+    "se_9567_prop_label": "게자리",
+    "se_9568_prop_label": "사자자리",
+    "se_9569_prop_label": "처녀자리",
+    "se_9570_prop_label": "천칭자리",
+    "se_9571_prop_label": "전갈자리",
+    "se_9572_prop_label": "사수자리",
+    "se_9573_prop_label": "염소자리",
+    "se_9574_prop_label": "물병자리",
+    "se_9575_prop_label": "물고기자리",
+    "se_9578_prop_title": "나 자신과 첫인상",
+    "se_9579_prop_title": "돈, 재능, 자존감",
+    "se_9580_prop_title": "말, 공부, 이동",
+    "se_9581_prop_title": "가족과 내면의 집",
+    "se_9582_prop_title": "연애와 창작",
+    "se_9583_prop_title": "일상과 건강",
+    "se_9584_prop_title": "관계와 파트너십",
+    "se_9585_prop_title": "깊은 연결과 변화",
+    "se_9586_prop_title": "철학과 확장",
+    "se_9587_prop_title": "직업과 명성",
+    "se_9588_prop_title": "친구와 미래 비전",
+    "se_9589_prop_title": "무의식과 회복",
+    "se_9593_prop_label": "육합",
+    "se_9594_prop_label": "직각",
+    "se_9595_prop_label": "삼합",
+    "se_9599_prop_title": "나의 기본 성향",
+    "se_9600_prop_title": "감정과 안정감",
+    "se_9601_prop_title": "사랑과 관계",
+    "se_9602_prop_title": "일과 사회적 방향",
+    "se_9603_prop_title": "돈과 재능",
+    "se_9604_prop_title": "성장과 인생 과제",
+    "se_9605_prop_title": "내면세계와 회복",
+    "se_9609_prop_label": "정보 없음",
+    "se_9610_prop_title": "계산 정보 없음",
+    "se_9646_prop_title": "계산 정보 없음",
+    "se_9647_prop_title": "계산 정보 없음",
+    "se_9666_prop_label": "태양",
+    "se_9668_prop_label": "상승궁",
+    "se_10474_attr_placeholder": "예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요.",
+    "se_11066_attr_placeholder": "예: 홍길동",
+    "se_11148_attr_placeholder": "이름 검색 (예: 테일러 스위프트, 아이유...)",
+    "se_17711_attr_placeholder": "질문을 입력해 주세요. (최소 5자, 최대 1000자)",
+    "se_18017_attr_aria_label": "'+dName+' 상세 해석 보기, 별 밀도 '+palacePower+'점",
+    "se_18017_attr_aria_label_score_suffix": "점",
+    "se_18064_attr_aria_label": "명반 범례",
+    "se_18255_attr_aria_label": "운명 포트폴리오",
+    "se_18269_attr_aria_label": "운명 포트폴리오 상세",
+    "se_18272_attr_aria_label": "닫기",
+    "se_20144_attr_aria_label": "잠재력 심층 지도",
+    "se_20539_attr_aria_label": "연애운 타이밍 신호",
+    "se_20544_attr_aria_label": "연애운 심층 해석",
+    "se_21090_attr_title": "자미두수 10년운 잠금",
+    "se_21890_prop_label": "차성",
+    "se_21891_prop_label": "보조성",
+    "se_21892_prop_label": "흉성",
+    "se_22015_attr_aria_label": "인생 3대 변곡점 나이 흐름",
+    "se_22041_attr_aria_label": "변곡점 발동 흐름",
+    "se_26658_prop_label": "홍염살(일주",
+    "se_27494_attr_aria_label": "' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' 실루엣",
+    "se_28691_attr_aria_label": "기존 결제로 잠금 해제됨",
+    "se_5146_attr_aria_label": "진태양시 자동 변환 적용",
+    "se_6277_attr_placeholder": "예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?",
+    "se_7940_attr_title": "에너지 절약 모드. 내면 지향적, 신중함.",
+    "se_7941_attr_title": "풀 가동 모드. 외향적, 열정적.",
+    "se_7952_attr_title": "깔끔한 미니멀리스트. 독립적, 맺고 끊음.",
+    "se_7953_attr_title": "함께 성장하는 정글. 친화력, 연결성.",
+    "se_8233_attr_aria_label": "오행 RPG 아바타",
+    "se_8358_attr_aria_label": "운명 스킬 별자리",
+    "se_8468_attr_aria_label": "인생 스킬 노드맵",
+    "se_9434_attr_aria_label": "정확한 네이탈 차트",
+  }
+};
+var __sajuEngineTextMissingLog = {};
+function _sajuEngineNormalizeLang(value) {
+  var normalized = String(value || "ko").trim().toLowerCase().replace("_", "-");
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "ja-jp") return "ja";
+  if (normalized === "en-us" || normalized === "en-gb") return "en";
+  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].indexOf(normalized) >= 0) return normalized;
+  return "ko";
+}
+function _sajuEngineCurrentLang() {
+  try {
+    if (window && typeof window.cdGetCurrentLanguage === "function") return _sajuEngineNormalizeLang(window.cdGetCurrentLanguage());
+  } catch (_) {}
+  try {
+    var queryLang = new URLSearchParams(window.location.search || "").get("lang");
+    if (queryLang) return _sajuEngineNormalizeLang(queryLang);
+  } catch (_) {}
+  try {
+    var firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+    if (firstSegment) {
+      var pathLang = _sajuEngineNormalizeLang(firstSegment);
+      if (pathLang !== "ko" || firstSegment.toLowerCase() === "ko") return pathLang;
+    }
+  } catch (_) {}
+  try {
+    var stored = window.localStorage && window.localStorage.getItem("cd_lang");
+    if (stored) return _sajuEngineNormalizeLang(stored);
+  } catch (_) {}
+  try {
+    var cookieLang = String(document.cookie || "").split(";").map(function(part) { return part.trim(); }).filter(function(part) { return part.indexOf("cd_locale=") === 0; })[0];
+    if (cookieLang) return _sajuEngineNormalizeLang(decodeURIComponent(cookieLang.slice("cd_locale=".length)));
+  } catch (_) {}
+  return "ko";
+}
+function _sajuEngineText(key) {
+  var lang = _sajuEngineCurrentLang();
+  var koText = SAJU_ENGINE_TEXT_TRANSLATIONS.ko[key] || "";
+  if (lang === "ko") return koText;
+  try {
+    if (window && typeof window.cdTranslate === "function") {
+      var translated = window.cdTranslate("sajuEngine." + key, {}, "");
+      if (translated && translated !== "Translation pending" && translated !== "sajuEngine." + key) return translated;
+    }
+  } catch (_) {}
+  var logKey = lang + ":" + key;
+  if (!__sajuEngineTextMissingLog[logKey]) {
+    __sajuEngineTextMissingLog[logKey] = true;
+    try {
+      if (window && window.location && window.location.hostname === "localhost") console.warn("[i18n:saju-engine] missing text", { lang: lang, key: key });
+    } catch (_) {}
+  }
+  return "Translation pending";
+}
+
 
 function _cdNormalizeBirthDateInput(value) {
   var raw = String(value || '').trim();
@@ -1370,35 +2000,35 @@ var GAEUN_TIPS={
 
 var TRAVEL_DB={
   water:{
-    title:'시원한 물(水) 기운 여행',
+    title:_sajuEngineText("se_1373_prop_title"),
     icon:'💧',
     vibe:'바다와 호수, 강가에서 몸과 마음을 식혀주는 여행',
     domestic:['제주 바다와 협재·함덕 해변 산책','강릉·속초 동해 바다 드라이브','가평·양평 북한강·남한강 수변 카페'],
     abroad:['발리·푸켓 등 동남아 휴양지','몰디브·괌 같은 리조트 여행','스위스 인터라켄 호수 전망 여행']
   },
   fire:{
-    title:'따스한 불(火) 기운 여행',
+    title:_sajuEngineText("se_1380_prop_title"),
     icon:'🔥',
     vibe:'햇살과 사람 온기가 느껴지는 도시·축제 여행',
     domestic:['서울·부산 야경 나들이와 야시장','여수·부산 밤바다 감성 여행','대구·광주 등 로컬 먹거리 탐방'],
     abroad:['도쿄·오사카 도시 야경 여행','스페인 바르셀로나·세비야 감성 여행','미국 라스베이거스·LA 야경 드라이브']
   },
   wood:{
-    title:'푸른 나무(木) 기운 여행',
+    title:_sajuEngineText("se_1387_prop_title"),
     icon:'🌿',
     vibe:'숲과 산, 초록 자연 속에서 재충전하는 여행',
     domestic:['지리산·설악산 국립공원 숲길 트레킹','강원도 평창·인제 숲속 펜션','제주 곶자왈·사려니숲길 산책'],
     abroad:['스위스 알프스 트레킹','캐나다 밴프·레이크루이스 숲과 호수 여행','뉴질랜드 자연 풍경 드라이브']
   },
   metal:{
-    title:'깔끔한 금(金) 기운 여행',
+    title:_sajuEngineText("se_1394_prop_title"),
     icon:'✨',
     vibe:'정리된 도시 풍경과 미술·건축을 즐기는 여행',
     domestic:['서울 성수·한남 감성 거리 산책','부산 해운대·센텀 현대적 도심 산책','판교·광교 호수공원과 카페 거리'],
     abroad:['일본 도쿄·교토 미술관 여행','싱가포르 도시 야경과 가든스 바이 더 베이','파리·런던 미술관 중심 시티투어']
   },
   earth:{
-    title:'포근한 토(土) 기운 여행',
+    title:_sajuEngineText("se_1401_prop_title"),
     icon:'🌏',
     vibe:'대지의 안정감이 느껴지는 한옥·사찰·온천 여행',
     domestic:['경주·전주 한옥마을 골목 여행','양산 통도사·합천 해인사 사찰 산책','덕구·석암 온천 등 온천 힐링 여행'],
@@ -1513,130 +2143,130 @@ function _energyCoordDestination(row){
 }
 
 var ENERGY_TRAVEL_DESTINATIONS=[
-  _energyCoordDestination({id:'wood-damyang-juknokwon',name:'담양 죽녹원',countryType:'domestic',element:'wood',emoji:'🎋',region:'전남 담양',latitude:35.3250,longitude:126.9864,terrainTags:['대나무숲','산책로','그늘'],energyKeywords:['성장','회복','창작'],recommendedFor:['정체감이 큰 사람','새 프로젝트를 시작하는 사람'],avoidFor:['습한 숲길에 약한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:'곧게 뻗은 대나무의 목(木) 진동이 흩어진 의지를 다시 세우고, 답답한 생각을 위로 끌어올려 창작과 회복의 리듬을 되살리는 숲입니다.',ritualTip:'입구에서 목표 한 문장을 정하고, 가장 곧은 대나무 앞에서 세 번 깊게 호흡하세요.'}),
-  _energyCoordDestination({id:'wood-suncheon-national-garden',name:'순천만 국가정원',countryType:'domestic',element:'wood',emoji:'🌷',region:'전남 순천',latitude:34.9298,longitude:127.5095,terrainTags:['정원','습지','초록 동선'],energyKeywords:['조화','재생','감각 회복'],recommendedFor:['번아웃 이후 감각을 회복하려는 사람','관계 리듬을 부드럽게 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'정돈된 정원과 살아 있는 습지의 목(木)이 함께 흐르며, 굳은 마음을 부드럽게 열고 새로운 관계와 아이디어를 싹트게 하는 공간입니다.',ritualTip:'마음에 드는 정원 한 곳을 골라 앞으로 키우고 싶은 감정 이름을 적어보세요.'}),
-  _energyCoordDestination({id:'wood-jeju-bijarim',name:'제주 비자림',countryType:'domestic',element:'wood',emoji:'🌲',region:'제주 구좌',latitude:33.4925,longitude:126.8115,terrainTags:['원시림','숲길','화산토'],energyKeywords:['장기 회복','근원력','호흡 정화'],recommendedFor:['기력이 오래 빠진 사람','조용한 재충전이 필요한 사람'],bestSeason:['사계절'],tripStyle:'retreat',description:'오래된 비자나무의 깊은 목(木) 기운이 급한 성장보다 오래 버티는 생명력을 일깨워, 지친 호흡과 마음의 뿌리를 천천히 복원합니다.',ritualTip:'가장 천천히 걸을 구간을 정하고, 발바닥 감각을 느끼며 침묵 산책을 해보세요.'}),
-  _energyCoordDestination({id:'wood-odaesan-fir-road',name:'평창 오대산 전나무숲길',countryType:'domestic',element:'wood',emoji:'🌲',region:'강원 평창',latitude:37.7895,longitude:128.5937,terrainTags:['전나무숲','사찰길','계곡'],energyKeywords:['정화','집중','내면 성장'],recommendedFor:['결정 전 마음을 정리해야 하는 사람','말보다 침묵이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'retreat',description:'전나무가 만든 수직의 목(木) 축이 산만한 생각을 한 줄로 정렬시키고, 사찰길의 고요함이 내면의 성장 방향을 선명하게 비춰줍니다.',ritualTip:'월정사로 향하는 길에서 해결하고 싶은 고민을 한 단어로 줄여보세요.'}),
-  _energyCoordDestination({id:'wood-namhae-cypress-forest',name:'남해 편백숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'경남 남해',latitude:34.7810,longitude:127.9291,terrainTags:['편백숲','해풍','숲길'],energyKeywords:['면역 회복','안정 성장','정서 완충'],recommendedFor:['예민함이 높아진 사람','느린 치유가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'편백의 부드러운 목(木) 향과 남해의 바람이 만나 예민해진 신경을 감싸고, 급한 마음을 완만한 회복 곡선으로 돌려놓는 숲입니다.',ritualTip:'편백 향이 진한 곳에서 어깨 힘을 내려놓고 5분간 코로만 호흡하세요.'}),
-  _energyCoordDestination({id:'wood-pocheon-korea-arboretum',name:'포천 국립수목원',countryType:'domestic',element:'wood',emoji:'🌿',region:'경기 포천',latitude:37.7540,longitude:127.1706,terrainTags:['수목원','보존림','산책로'],energyKeywords:['질서 있는 성장','연구력','회복'],recommendedFor:['공부와 기획을 다시 시작하는 사람','복잡한 계획을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'보존림의 안정된 목(木) 구조가 흩어진 계획을 차분히 되살리고, 성장 에너지를 감정이 아니라 실천 가능한 루틴으로 바꿔주는 장소입니다.',ritualTip:'보고 싶은 나무 이름 하나를 정하고, 그 나무처럼 키울 습관을 하나 적으세요.'}),
-  _energyCoordDestination({id:'wood-gapyeong-morning-calm',name:'가평 아침고요수목원',countryType:'domestic',element:'wood',emoji:'🌺',region:'경기 가평',latitude:37.7436,longitude:127.3527,terrainTags:['정원','꽃길','산자락'],energyKeywords:['감정 회복','아름다움','새 출발'],recommendedFor:['마음의 생기를 되찾고 싶은 사람','연애 감각을 부드럽게 열고 싶은 사람'],bestSeason:['봄','겨울 조명 시즌'],tripStyle:'romantic',description:'계절별 정원의 목(木) 기운이 감정의 마른 가지에 색을 입히며, 새로운 시작을 부담보다 설렘으로 체감하게 만드는 회복 정원입니다.',ritualTip:'가장 예쁜 색 하나를 골라 오늘의 마음 색으로 정하고 사진을 남기세요.'}),
-  _energyCoordDestination({id:'wood-jangseong-chukryeongsan',name:'장성 축령산 편백숲',countryType:'domestic',element:'wood',emoji:'🌲',region:'전남 장성',latitude:35.3016,longitude:126.7512,terrainTags:['편백숲','산림욕','능선'],energyKeywords:['심신 정화','체력 회복','장기 성장'],recommendedFor:['몸과 마음이 동시에 무거운 사람','일상 리듬을 재건해야 하는 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'짙은 편백림의 목(木)이 몸의 긴장을 풀고, 느린 숲길의 반복이 무너진 생활 리듬을 다시 자라나게 하는 산림 치유 좌표입니다.',ritualTip:'걷는 동안 들숨에는 회복, 날숨에는 피로라는 단어를 붙여보세요.'}),
-  _energyCoordDestination({id:'wood-seoul-forest',name:'서울숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'서울 성동',latitude:37.5444,longitude:127.0375,terrainTags:['도심숲','공원','산책로'],energyKeywords:['도시 회복','관계 환기','가벼운 재시작'],recommendedFor:['멀리 떠나기 어려운 사람','도심에서 에너지를 바꾸고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'도시 한가운데의 목(木) 완충지가 빠른 생활 속 과열을 낮추고, 짧은 산책만으로도 생각의 방향을 다시 초록빛으로 돌려주는 공간입니다.',ritualTip:'휴대폰을 10분만 가방에 넣고 나무 그림자를 따라 걸어보세요.'}),
-  _energyCoordDestination({id:'wood-yangpyeong-semiwon',name:'양평 세미원',countryType:'domestic',element:'wood',emoji:'🪷',region:'경기 양평',latitude:37.5389,longitude:127.3238,terrainTags:['연꽃정원','물길','정원'],energyKeywords:['감정 정화','부드러운 성장','관계 회복'],recommendedFor:['감정이 복잡한 사람','부드러운 대화가 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'romantic',description:'연꽃과 물길이 어우러진 목(木)의 부드러운 성장성이 감정의 탁함을 걷어내고, 관계 안의 닫힌 마음을 천천히 열어줍니다.',ritualTip:'연못 앞에서 미루던 사과나 감사의 말을 한 문장으로 정리하세요.'}),
-  _energyCoordDestination({id:'wood-ulsan-taehwagang-garden',name:'울산 태화강 국가정원',countryType:'domestic',element:'wood',emoji:'🌾',region:'울산 중구',latitude:35.5487,longitude:129.2961,terrainTags:['강변정원','대숲','산책로'],energyKeywords:['순환 성장','관계 확장','활력 회복'],recommendedFor:['새로운 사람과 접점이 필요한 사람','움직이며 생각해야 풀리는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'강의 흐름과 대숲의 목(木)이 함께 움직여 막힌 기운을 순환시키고, 멈춘 계획을 다시 밖으로 펼치게 돕는 개방형 정원입니다.',ritualTip:'강변을 걸으며 올해 넓히고 싶은 관계나 활동 반경을 세 가지 떠올리세요.'}),
-  _energyCoordDestination({id:'wood-andong-wolyeonggyo-forest',name:'안동 월영교 숲길',countryType:'domestic',element:'wood',emoji:'🌙',region:'경북 안동',latitude:36.5762,longitude:128.7677,terrainTags:['호숫가 숲길','목교','야간 산책'],energyKeywords:['감성 회복','기억 정리','느린 성장'],recommendedFor:['과거 감정을 정리해야 하는 사람','혼자 걷는 시간이 필요한 사람'],bestSeason:['봄','가을','초겨울'],tripStyle:'romantic',description:'나무다리와 호숫가 숲의 목(木)이 기억의 결을 부드럽게 정리해, 오래 묵은 마음을 억지로 끊지 않고 자연스럽게 다음 장으로 넘기게 합니다.',ritualTip:'다리 위에서 놓아줄 기억 하나와 새로 품을 마음 하나를 조용히 정하세요.'}),
-  _energyCoordDestination({id:'wood-japan-arashiyama',name:'일본 아라시야마 대나무숲',countryType:'global',element:'wood',emoji:'🎋',region:'일본 교토',latitude:35.0170,longitude:135.6720,terrainTags:['대나무숲','고도','산책로'],energyKeywords:['수직 성장','정신 정렬','창작'],recommendedFor:['생각이 흐트러진 사람','새로운 작품을 준비하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'대나무가 만든 높은 목(木)의 통로가 머릿속 소음을 위로 뽑아내고, 고도의 정적이 창작 에너지를 선명한 한 줄로 정렬합니다.',ritualTip:'숲길 초입에서 오늘 떠올릴 질문 하나만 정하고 끝까지 그 질문만 품고 걸으세요.'}),
-  _energyCoordDestination({id:'wood-canada-banff-forest',name:'캐나다 밴프 숲길',countryType:'global',element:'wood',emoji:'🏔️',region:'캐나다 앨버타',latitude:51.1784,longitude:-115.5708,terrainTags:['침엽수림','호수','산악'],energyKeywords:['큰 회복','확장','자연 몰입'],recommendedFor:['시야를 크게 넓히고 싶은 사람','장기 전환점에 선 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:'거대한 침엽수림과 산악의 목(木)이 작은 걱정을 큰 풍경 속에 풀어내며, 인생의 다음 확장 방향을 몸으로 체감하게 합니다.',ritualTip:'호수와 숲이 함께 보이는 곳에서 다음 1년의 큰 방향을 세 문장으로 적으세요.'}),
-  _energyCoordDestination({id:'wood-germany-black-forest',name:'독일 블랙 포레스트',countryType:'global',element:'wood',emoji:'🌲',region:'독일 바덴뷔르템베르크',latitude:48.2775,longitude:8.1850,terrainTags:['깊은 숲','전나무','산악마을'],energyKeywords:['내면 성장','침묵','장기 집중'],recommendedFor:['깊은 몰입이 필요한 사람','외부 자극을 줄여야 하는 사람'],bestSeason:['여름','가을'],tripStyle:'retreat',description:'짙고 깊은 숲의 목(木)이 빠른 성과보다 조용한 축적을 돕고, 마음속에 흩어진 가지들을 한 뿌리로 모아주는 공간입니다.',ritualTip:'숲속 마을에서 하루 한 번 말수를 줄이고 기록 시간을 길게 가져보세요.'}),
-  _energyCoordDestination({id:'wood-newzealand-rotorua-redwoods',name:'뉴질랜드 로토루아 레드우드 숲',countryType:'global',element:'wood',emoji:'🌲',region:'뉴질랜드 로토루아',latitude:-38.1568,longitude:176.2720,terrainTags:['레드우드','온천지대','숲길'],energyKeywords:['재생','활력 회복','큰 나무 기운'],recommendedFor:['기운이 낮아진 사람','몸을 움직이며 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:'높은 레드우드의 목(木)과 지열의 생명력이 만나, 처진 몸의 리듬을 다시 깨우고 회복을 행동 에너지로 바꾸는 숲입니다.',ritualTip:'가장 큰 나무를 올려다보며 작게 시작해도 오래 키울 일을 하나 정하세요.'}),
-  _energyCoordDestination({id:'wood-usa-sequoia',name:'미국 세쿼이아 국립공원',countryType:'global',element:'wood',emoji:'🌳',region:'미국 캘리포니아',latitude:36.4864,longitude:-118.5658,terrainTags:['거목숲','국립공원','산악'],energyKeywords:['장수','근원력','압도적 성장'],recommendedFor:['자신감이 약해진 사람','큰 목표 앞에서 작아진 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:'수천 년을 버틴 거목의 목(木)이 짧은 불안을 압도하며, 오래 살아남는 힘과 큰 목표를 향한 담대한 성장을 일깨웁니다.',ritualTip:'거목 앞에서 오래 버틴 내 장점 하나를 소리 내지 않고 인정하세요.'}),
-  _energyCoordDestination({id:'wood-switzerland-lauterbrunnen',name:'스위스 라우터브루넨 초원',countryType:'global',element:'wood',emoji:'🌿',region:'스위스 베른',latitude:46.5935,longitude:7.9091,terrainTags:['초원','계곡','폭포'],energyKeywords:['순수 회복','자유 성장','호흡 확장'],recommendedFor:['숨이 답답한 사람','삶의 여백이 필요한 사람'],bestSeason:['봄','여름'],tripStyle:'slow_trip',description:'초원과 계곡의 목(木)이 막힌 가슴을 넓히고, 폭포의 흐름이 성장 욕구를 부드럽게 깨워 자유로운 회복감을 줍니다.',ritualTip:'초원에서 목적 없이 걷는 시간을 30분 이상 확보하세요.'}),
-  _energyCoordDestination({id:'wood-france-giverny',name:'프랑스 지베르니 정원',countryType:'global',element:'wood',emoji:'🪷',region:'프랑스 노르망디',latitude:49.0754,longitude:1.5339,terrainTags:['정원','연못','예술가 마을'],energyKeywords:['창작','색채 회복','감성 성장'],recommendedFor:['예술적 감각을 되찾고 싶은 사람','마음의 색이 흐려진 사람'],bestSeason:['봄','여름'],tripStyle:'creative',description:'정원과 연못의 목(木)이 색채와 감각을 다시 피워 올리며, 굳어 있던 상상력을 부드러운 이미지와 문장으로 되살립니다.',ritualTip:'가장 끌리는 색을 하나 골라 그 색으로 떠오르는 단어 다섯 개를 적으세요.'}),
-  _energyCoordDestination({id:'wood-uk-cotswolds',name:'영국 코츠월드',countryType:'global',element:'wood',emoji:'🏡',region:'영국 잉글랜드',latitude:51.8330,longitude:-1.8433,terrainTags:['전원마을','정원','구릉'],energyKeywords:['느린 성장','생활 회복','관계 온기'],recommendedFor:['도시 피로가 큰 사람','일상 리듬을 아름답게 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'구릉과 정원의 목(木)이 생활 속 아름다움을 다시 느끼게 하며, 빠른 성취보다 꾸준히 자라는 삶의 감각을 회복시킵니다.',ritualTip:'마을 골목에서 마음에 드는 집 앞을 지나며 나의 이상적 일상 루틴을 상상하세요.'}),
-  _energyCoordDestination({id:'wood-indonesia-ubud',name:'인도네시아 우붓',countryType:'global',element:'wood',emoji:'🌴',region:'인도네시아 발리',latitude:-8.5069,longitude:115.2625,terrainTags:['열대숲','논길','요가'],energyKeywords:['영감','치유','창작 회복'],recommendedFor:['감각이 무뎌진 사람','몸과 마음을 함께 풀어야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'열대의 짙은 목(木)과 논길의 생명력이 감각을 다시 열어, 몸의 긴장과 마음의 건조함을 창작적 회복으로 바꾸는 곳입니다.',ritualTip:'아침 산책 후 떠오른 꿈이나 이미지를 바로 기록하세요.'}),
-  _energyCoordDestination({id:'wood-finland-lapland-forest',name:'핀란드 라플란드 숲',countryType:'global',element:'wood',emoji:'🌌',region:'핀란드 라플란드',latitude:67.9222,longitude:26.5046,terrainTags:['북방숲','설원','침엽수'],energyKeywords:['고요한 회복','내면 집중','순수성'],recommendedFor:['소음에서 멀어지고 싶은 사람','감정의 원형을 보고 싶은 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:'차가운 북방 숲의 목(木)이 과장된 감정을 걷어내고, 조용하지만 단단한 생명력으로 내면의 순수한 방향을 되찾게 합니다.',ritualTip:'밤하늘 아래에서 올해 지키고 싶은 조용한 약속 하나를 마음속으로 정하세요.'}),
-  _energyCoordDestination({id:'wood-taiwan-alishan',name:'대만 아리산',countryType:'global',element:'wood',emoji:'🌄',region:'대만 자이',latitude:23.5080,longitude:120.8050,terrainTags:['산림철도','운해','편백숲'],energyKeywords:['재시작','상승','정신 환기'],recommendedFor:['새벽 에너지가 필요한 사람','막힌 운을 깨우고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'운해와 숲이 만나는 아리산의 목(木)은 낮게 가라앉은 마음을 위로 들어 올리고, 하루의 시작을 새롭게 여는 상승 기운을 줍니다.',ritualTip:'일출을 보며 오늘부터 끊을 습관 하나와 키울 습관 하나를 정하세요.'}),
-  _energyCoordDestination({id:'wood-singapore-botanic-gardens',name:'싱가포르 보타닉 가든',countryType:'global',element:'wood',emoji:'🌺',region:'싱가포르 탕린',latitude:1.3138,longitude:103.8159,terrainTags:['열대정원','도심숲','난초원'],energyKeywords:['도시 속 성장','감각 회복','세련된 생기'],recommendedFor:['짧은 일정으로 회복하고 싶은 사람','도시와 자연을 함께 원하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'도시의 질서와 열대 정원의 목(木)이 균형을 이루어, 지친 감각을 세련되게 깨우고 생활 속 성장 루틴을 다시 설계하게 합니다.',ritualTip:'난초원에서 가장 마음에 드는 형태를 보고 지금 필요한 매력을 한 단어로 정하세요.'}),
+  _energyCoordDestination({id:'wood-damyang-juknokwon',name:'담양 죽녹원',countryType:'domestic',element:'wood',emoji:'🎋',region:'전남 담양',latitude:35.3250,longitude:126.9864,terrainTags:['대나무숲','산책로','그늘'],energyKeywords:['성장','회복','창작'],recommendedFor:['정체감이 큰 사람','새 프로젝트를 시작하는 사람'],avoidFor:['습한 숲길에 약한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1516_prop_description"),ritualTip:'입구에서 목표 한 문장을 정하고, 가장 곧은 대나무 앞에서 세 번 깊게 호흡하세요.'}),
+  _energyCoordDestination({id:'wood-suncheon-national-garden',name:'순천만 국가정원',countryType:'domestic',element:'wood',emoji:'🌷',region:'전남 순천',latitude:34.9298,longitude:127.5095,terrainTags:['정원','습지','초록 동선'],energyKeywords:['조화','재생','감각 회복'],recommendedFor:['번아웃 이후 감각을 회복하려는 사람','관계 리듬을 부드럽게 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1517_prop_description"),ritualTip:'마음에 드는 정원 한 곳을 골라 앞으로 키우고 싶은 감정 이름을 적어보세요.'}),
+  _energyCoordDestination({id:'wood-jeju-bijarim',name:'제주 비자림',countryType:'domestic',element:'wood',emoji:'🌲',region:'제주 구좌',latitude:33.4925,longitude:126.8115,terrainTags:['원시림','숲길','화산토'],energyKeywords:['장기 회복','근원력','호흡 정화'],recommendedFor:['기력이 오래 빠진 사람','조용한 재충전이 필요한 사람'],bestSeason:['사계절'],tripStyle:'retreat',description:_sajuEngineText("se_1518_prop_description"),ritualTip:'가장 천천히 걸을 구간을 정하고, 발바닥 감각을 느끼며 침묵 산책을 해보세요.'}),
+  _energyCoordDestination({id:'wood-odaesan-fir-road',name:'평창 오대산 전나무숲길',countryType:'domestic',element:'wood',emoji:'🌲',region:'강원 평창',latitude:37.7895,longitude:128.5937,terrainTags:['전나무숲','사찰길','계곡'],energyKeywords:['정화','집중','내면 성장'],recommendedFor:['결정 전 마음을 정리해야 하는 사람','말보다 침묵이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'retreat',description:_sajuEngineText("se_1519_prop_description"),ritualTip:'월정사로 향하는 길에서 해결하고 싶은 고민을 한 단어로 줄여보세요.'}),
+  _energyCoordDestination({id:'wood-namhae-cypress-forest',name:'남해 편백숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'경남 남해',latitude:34.7810,longitude:127.9291,terrainTags:['편백숲','해풍','숲길'],energyKeywords:['면역 회복','안정 성장','정서 완충'],recommendedFor:['예민함이 높아진 사람','느린 치유가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:_sajuEngineText("se_1520_prop_description"),ritualTip:'편백 향이 진한 곳에서 어깨 힘을 내려놓고 5분간 코로만 호흡하세요.'}),
+  _energyCoordDestination({id:'wood-pocheon-korea-arboretum',name:'포천 국립수목원',countryType:'domestic',element:'wood',emoji:'🌿',region:'경기 포천',latitude:37.7540,longitude:127.1706,terrainTags:['수목원','보존림','산책로'],energyKeywords:['질서 있는 성장','연구력','회복'],recommendedFor:['공부와 기획을 다시 시작하는 사람','복잡한 계획을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1521_prop_description"),ritualTip:'보고 싶은 나무 이름 하나를 정하고, 그 나무처럼 키울 습관을 하나 적으세요.'}),
+  _energyCoordDestination({id:'wood-gapyeong-morning-calm',name:'가평 아침고요수목원',countryType:'domestic',element:'wood',emoji:'🌺',region:'경기 가평',latitude:37.7436,longitude:127.3527,terrainTags:['정원','꽃길','산자락'],energyKeywords:['감정 회복','아름다움','새 출발'],recommendedFor:['마음의 생기를 되찾고 싶은 사람','연애 감각을 부드럽게 열고 싶은 사람'],bestSeason:['봄','겨울 조명 시즌'],tripStyle:'romantic',description:_sajuEngineText("se_1522_prop_description"),ritualTip:'가장 예쁜 색 하나를 골라 오늘의 마음 색으로 정하고 사진을 남기세요.'}),
+  _energyCoordDestination({id:'wood-jangseong-chukryeongsan',name:'장성 축령산 편백숲',countryType:'domestic',element:'wood',emoji:'🌲',region:'전남 장성',latitude:35.3016,longitude:126.7512,terrainTags:['편백숲','산림욕','능선'],energyKeywords:['심신 정화','체력 회복','장기 성장'],recommendedFor:['몸과 마음이 동시에 무거운 사람','일상 리듬을 재건해야 하는 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1523_prop_description"),ritualTip:'걷는 동안 들숨에는 회복, 날숨에는 피로라는 단어를 붙여보세요.'}),
+  _energyCoordDestination({id:'wood-seoul-forest',name:'서울숲',countryType:'domestic',element:'wood',emoji:'🌳',region:'서울 성동',latitude:37.5444,longitude:127.0375,terrainTags:['도심숲','공원','산책로'],energyKeywords:['도시 회복','관계 환기','가벼운 재시작'],recommendedFor:['멀리 떠나기 어려운 사람','도심에서 에너지를 바꾸고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1524_prop_description"),ritualTip:'휴대폰을 10분만 가방에 넣고 나무 그림자를 따라 걸어보세요.'}),
+  _energyCoordDestination({id:'wood-yangpyeong-semiwon',name:'양평 세미원',countryType:'domestic',element:'wood',emoji:'🪷',region:'경기 양평',latitude:37.5389,longitude:127.3238,terrainTags:['연꽃정원','물길','정원'],energyKeywords:['감정 정화','부드러운 성장','관계 회복'],recommendedFor:['감정이 복잡한 사람','부드러운 대화가 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'romantic',description:_sajuEngineText("se_1525_prop_description"),ritualTip:'연못 앞에서 미루던 사과나 감사의 말을 한 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'wood-ulsan-taehwagang-garden',name:'울산 태화강 국가정원',countryType:'domestic',element:'wood',emoji:'🌾',region:'울산 중구',latitude:35.5487,longitude:129.2961,terrainTags:['강변정원','대숲','산책로'],energyKeywords:['순환 성장','관계 확장','활력 회복'],recommendedFor:['새로운 사람과 접점이 필요한 사람','움직이며 생각해야 풀리는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1526_prop_description"),ritualTip:'강변을 걸으며 올해 넓히고 싶은 관계나 활동 반경을 세 가지 떠올리세요.'}),
+  _energyCoordDestination({id:'wood-andong-wolyeonggyo-forest',name:'안동 월영교 숲길',countryType:'domestic',element:'wood',emoji:'🌙',region:'경북 안동',latitude:36.5762,longitude:128.7677,terrainTags:['호숫가 숲길','목교','야간 산책'],energyKeywords:['감성 회복','기억 정리','느린 성장'],recommendedFor:['과거 감정을 정리해야 하는 사람','혼자 걷는 시간이 필요한 사람'],bestSeason:['봄','가을','초겨울'],tripStyle:'romantic',description:_sajuEngineText("se_1527_prop_description"),ritualTip:'다리 위에서 놓아줄 기억 하나와 새로 품을 마음 하나를 조용히 정하세요.'}),
+  _energyCoordDestination({id:'wood-japan-arashiyama',name:'일본 아라시야마 대나무숲',countryType:'global',element:'wood',emoji:'🎋',region:'일본 교토',latitude:35.0170,longitude:135.6720,terrainTags:['대나무숲','고도','산책로'],energyKeywords:['수직 성장','정신 정렬','창작'],recommendedFor:['생각이 흐트러진 사람','새로운 작품을 준비하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1528_prop_description"),ritualTip:'숲길 초입에서 오늘 떠올릴 질문 하나만 정하고 끝까지 그 질문만 품고 걸으세요.'}),
+  _energyCoordDestination({id:'wood-canada-banff-forest',name:'캐나다 밴프 숲길',countryType:'global',element:'wood',emoji:'🏔️',region:'캐나다 앨버타',latitude:51.1784,longitude:-115.5708,terrainTags:['침엽수림','호수','산악'],energyKeywords:['큰 회복','확장','자연 몰입'],recommendedFor:['시야를 크게 넓히고 싶은 사람','장기 전환점에 선 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1529_prop_description"),ritualTip:'호수와 숲이 함께 보이는 곳에서 다음 1년의 큰 방향을 세 문장으로 적으세요.'}),
+  _energyCoordDestination({id:'wood-germany-black-forest',name:'독일 블랙 포레스트',countryType:'global',element:'wood',emoji:'🌲',region:'독일 바덴뷔르템베르크',latitude:48.2775,longitude:8.1850,terrainTags:['깊은 숲','전나무','산악마을'],energyKeywords:['내면 성장','침묵','장기 집중'],recommendedFor:['깊은 몰입이 필요한 사람','외부 자극을 줄여야 하는 사람'],bestSeason:['여름','가을'],tripStyle:'retreat',description:_sajuEngineText("se_1530_prop_description"),ritualTip:'숲속 마을에서 하루 한 번 말수를 줄이고 기록 시간을 길게 가져보세요.'}),
+  _energyCoordDestination({id:'wood-newzealand-rotorua-redwoods',name:'뉴질랜드 로토루아 레드우드 숲',countryType:'global',element:'wood',emoji:'🌲',region:'뉴질랜드 로토루아',latitude:-38.1568,longitude:176.2720,terrainTags:['레드우드','온천지대','숲길'],energyKeywords:['재생','활력 회복','큰 나무 기운'],recommendedFor:['기운이 낮아진 사람','몸을 움직이며 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1531_prop_description"),ritualTip:'가장 큰 나무를 올려다보며 작게 시작해도 오래 키울 일을 하나 정하세요.'}),
+  _energyCoordDestination({id:'wood-usa-sequoia',name:'미국 세쿼이아 국립공원',countryType:'global',element:'wood',emoji:'🌳',region:'미국 캘리포니아',latitude:36.4864,longitude:-118.5658,terrainTags:['거목숲','국립공원','산악'],energyKeywords:['장수','근원력','압도적 성장'],recommendedFor:['자신감이 약해진 사람','큰 목표 앞에서 작아진 사람'],bestSeason:['여름','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1532_prop_description"),ritualTip:'거목 앞에서 오래 버틴 내 장점 하나를 소리 내지 않고 인정하세요.'}),
+  _energyCoordDestination({id:'wood-switzerland-lauterbrunnen',name:'스위스 라우터브루넨 초원',countryType:'global',element:'wood',emoji:'🌿',region:'스위스 베른',latitude:46.5935,longitude:7.9091,terrainTags:['초원','계곡','폭포'],energyKeywords:['순수 회복','자유 성장','호흡 확장'],recommendedFor:['숨이 답답한 사람','삶의 여백이 필요한 사람'],bestSeason:['봄','여름'],tripStyle:'slow_trip',description:_sajuEngineText("se_1533_prop_description"),ritualTip:'초원에서 목적 없이 걷는 시간을 30분 이상 확보하세요.'}),
+  _energyCoordDestination({id:'wood-france-giverny',name:'프랑스 지베르니 정원',countryType:'global',element:'wood',emoji:'🪷',region:'프랑스 노르망디',latitude:49.0754,longitude:1.5339,terrainTags:['정원','연못','예술가 마을'],energyKeywords:['창작','색채 회복','감성 성장'],recommendedFor:['예술적 감각을 되찾고 싶은 사람','마음의 색이 흐려진 사람'],bestSeason:['봄','여름'],tripStyle:'creative',description:_sajuEngineText("se_1534_prop_description"),ritualTip:'가장 끌리는 색을 하나 골라 그 색으로 떠오르는 단어 다섯 개를 적으세요.'}),
+  _energyCoordDestination({id:'wood-uk-cotswolds',name:'영국 코츠월드',countryType:'global',element:'wood',emoji:'🏡',region:'영국 잉글랜드',latitude:51.8330,longitude:-1.8433,terrainTags:['전원마을','정원','구릉'],energyKeywords:['느린 성장','생활 회복','관계 온기'],recommendedFor:['도시 피로가 큰 사람','일상 리듬을 아름답게 회복하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1535_prop_description"),ritualTip:'마을 골목에서 마음에 드는 집 앞을 지나며 나의 이상적 일상 루틴을 상상하세요.'}),
+  _energyCoordDestination({id:'wood-indonesia-ubud',name:'인도네시아 우붓',countryType:'global',element:'wood',emoji:'🌴',region:'인도네시아 발리',latitude:-8.5069,longitude:115.2625,terrainTags:['열대숲','논길','요가'],energyKeywords:['영감','치유','창작 회복'],recommendedFor:['감각이 무뎌진 사람','몸과 마음을 함께 풀어야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:_sajuEngineText("se_1536_prop_description"),ritualTip:'아침 산책 후 떠오른 꿈이나 이미지를 바로 기록하세요.'}),
+  _energyCoordDestination({id:'wood-finland-lapland-forest',name:'핀란드 라플란드 숲',countryType:'global',element:'wood',emoji:'🌌',region:'핀란드 라플란드',latitude:67.9222,longitude:26.5046,terrainTags:['북방숲','설원','침엽수'],energyKeywords:['고요한 회복','내면 집중','순수성'],recommendedFor:['소음에서 멀어지고 싶은 사람','감정의 원형을 보고 싶은 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:_sajuEngineText("se_1537_prop_description"),ritualTip:'밤하늘 아래에서 올해 지키고 싶은 조용한 약속 하나를 마음속으로 정하세요.'}),
+  _energyCoordDestination({id:'wood-taiwan-alishan',name:'대만 아리산',countryType:'global',element:'wood',emoji:'🌄',region:'대만 자이',latitude:23.5080,longitude:120.8050,terrainTags:['산림철도','운해','편백숲'],energyKeywords:['재시작','상승','정신 환기'],recommendedFor:['새벽 에너지가 필요한 사람','막힌 운을 깨우고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1538_prop_description"),ritualTip:'일출을 보며 오늘부터 끊을 습관 하나와 키울 습관 하나를 정하세요.'}),
+  _energyCoordDestination({id:'wood-singapore-botanic-gardens',name:'싱가포르 보타닉 가든',countryType:'global',element:'wood',emoji:'🌺',region:'싱가포르 탕린',latitude:1.3138,longitude:103.8159,terrainTags:['열대정원','도심숲','난초원'],energyKeywords:['도시 속 성장','감각 회복','세련된 생기'],recommendedFor:['짧은 일정으로 회복하고 싶은 사람','도시와 자연을 함께 원하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1539_prop_description"),ritualTip:'난초원에서 가장 마음에 드는 형태를 보고 지금 필요한 매력을 한 단어로 정하세요.'}),
 
-  _energyCoordDestination({id:'fire-gangneung-jeongdongjin',name:'강릉 정동진',countryType:'domestic',element:'fire',emoji:'🌅',region:'강원 강릉',latitude:37.6892,longitude:129.0336,terrainTags:['일출','해변','동해'],energyKeywords:['시작','활력','자신감'],recommendedFor:['새 출발이 필요한 사람','아침 에너지가 약한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'동해의 수평선에서 올라오는 화(火)의 첫빛이 멈춰 있던 의지를 깨우고, 하루를 밀고 나갈 자신감의 불씨를 다시 붙입니다.',ritualTip:'일출 전 정한 목표를 해가 뜬 뒤 한 문장으로 다시 말해보세요.'}),
-  _energyCoordDestination({id:'fire-pohang-homigot',name:'포항 호미곶',countryType:'domestic',element:'fire',emoji:'🔥',region:'경북 포항',latitude:36.0772,longitude:129.5683,terrainTags:['일출광장','해안','상징 조형물'],energyKeywords:['돌파','표현','양기 충전'],recommendedFor:['주저함을 끊고 싶은 사람','발표나 도전 전 에너지가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'가장 먼저 떠오르는 태양의 화(火)가 결심을 밖으로 밀어내며, 망설임을 줄이고 행동으로 옮기는 돌파 에너지를 강화합니다.',ritualTip:'상생의 손을 바라보며 지금 잡아야 할 기회 하나를 손바닥에 써보듯 떠올리세요.'}),
-  _energyCoordDestination({id:'fire-jeju-seongsan-ilchulbong',name:'제주 성산일출봉',countryType:'domestic',element:'fire',emoji:'🌋',region:'제주 성산',latitude:33.4581,longitude:126.9424,terrainTags:['화산지형','일출','오름'],energyKeywords:['재점화','활력','상승'],recommendedFor:['몸의 엔진이 꺼진 사람','강한 전환점이 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'adventure',description:'화산의 기억과 일출의 화(火)가 겹쳐진 지형으로, 꺼진 의욕을 다시 점화하고 앞으로 치고 나갈 상승감을 몸에 새깁니다.',ritualTip:'오르막에서 숨이 찰 때 포기하지 않고 한 걸음 더 가며 지금의 도전명을 마음속으로 부르세요.'}),
-  _energyCoordDestination({id:'fire-busan-gwangalli-night',name:'부산 광안리 야경',countryType:'domestic',element:'fire',emoji:'🌉',region:'부산 수영',latitude:35.1532,longitude:129.1189,terrainTags:['야경','해변','대교'],energyKeywords:['표현','관계 활력','도시 열기'],recommendedFor:['사람 에너지가 필요한 사람','연애와 사교 감각을 깨우고 싶은 사람'],bestSeason:['여름','가을'],tripStyle:'romantic',description:'바다 위에 반사되는 도시의 화(火)가 감정 표현을 환하게 열어주고, 차갑게 식은 관계 감각에 생동감 있는 온기를 넣어줍니다.',ritualTip:'불빛이 가장 예쁜 순간에 고마운 사람에게 짧은 메시지를 보내세요.'}),
-  _energyCoordDestination({id:'fire-yeosu-night-sea',name:'여수 밤바다',countryType:'domestic',element:'fire',emoji:'🎆',region:'전남 여수',latitude:34.7392,longitude:127.7406,terrainTags:['야경','바다','낭만 거리'],energyKeywords:['감정 온도','설렘','표현력'],recommendedFor:['감정 표현이 굳은 사람','관계에 다시 온기를 넣고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:'검은 바다 위의 불빛이 화(火)를 부드럽게 반사해, 과격한 열정보다 오래 남는 설렘과 감정 표현의 온도를 회복시킵니다.',ritualTip:'바다를 보며 지금 솔직하게 표현하고 싶은 마음을 한 문장으로 정리하세요.'}),
-  _energyCoordDestination({id:'fire-daegu-apsan-observatory',name:'대구 앞산 전망대',countryType:'domestic',element:'fire',emoji:'🌃',region:'대구 남구',latitude:35.8325,longitude:128.5811,terrainTags:['전망대','도시 야경','산길'],energyKeywords:['자신감','시야 확장','목표 점화'],recommendedFor:['목표가 흐려진 사람','내 위치를 다시 보고 싶은 사람'],bestSeason:['가을','겨울'],tripStyle:'day_trip',description:'도시를 내려다보는 높은 화(火)의 시야가 작아진 자신감을 되살리고, 앞으로 향할 목표를 밝은 점처럼 다시 보이게 합니다.',ritualTip:'전망대에서 가장 밝은 방향을 보고 다음 행동 하나를 바로 캘린더에 적으세요.'}),
-  _energyCoordDestination({id:'fire-gyeongju-cheomseongdae-night',name:'경주 첨성대 야경',countryType:'domestic',element:'fire',emoji:'🏮',region:'경북 경주',latitude:35.8347,longitude:129.2198,terrainTags:['야경','유적','초원'],energyKeywords:['영감','고요한 불빛','자기 표현'],recommendedFor:['차분한 방식으로 자신감을 얻고 싶은 사람','역사적 영감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'오래된 별 관측의 상징에 밤빛이 더해져, 요란하지 않은 화(火)가 내면의 영감과 자기 표현의 불씨를 조용히 살립니다.',ritualTip:'첨성대 앞에서 나만의 별자리처럼 올해의 핵심 키워드 세 개를 정하세요.'}),
-  _energyCoordDestination({id:'fire-incheon-songdo-night',name:'인천 송도 센트럴파크 야경',countryType:'domestic',element:'fire',emoji:'🏙️',region:'인천 연수',latitude:37.3927,longitude:126.6376,terrainTags:['도시공원','야경','수변'],energyKeywords:['현대적 활력','표현','사회적 자신감'],recommendedFor:['커리어 자극이 필요한 사람','도시적 추진력을 얻고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'수변 위로 번지는 현대 도시의 화(火)가 사회적 존재감을 깨우고, 커리어와 자기표현을 세련된 추진력으로 연결합니다.',ritualTip:'물에 비친 불빛을 보며 지금 드러내야 할 내 강점 하나를 적으세요.'}),
-  _energyCoordDestination({id:'fire-seoul-namsan-tower',name:'서울 남산타워',countryType:'domestic',element:'fire',emoji:'🗼',region:'서울 중구',latitude:37.5512,longitude:126.9882,terrainTags:['전망대','도심','야경'],energyKeywords:['중심 회복','존재감','관계 온도'],recommendedFor:['사람 앞에 서야 하는 사람','내 중심을 다시 잡고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'도심의 중심에서 빛나는 남산의 화(火)는 흩어진 시선을 한곳으로 모아, 존재감과 관계의 온도를 다시 밝히는 상징적 좌표입니다.',ritualTip:'전망을 보며 가장 먼저 연락하고 싶은 사람과 가장 먼저 해야 할 일을 구분해보세요.'}),
-  _energyCoordDestination({id:'fire-taean-kkotji-sunset',name:'태안 꽃지 해넘이',countryType:'domestic',element:'fire',emoji:'🌇',region:'충남 태안',latitude:36.5018,longitude:126.3376,terrainTags:['해넘이','해변','노을'],energyKeywords:['마무리','감정 정리','따뜻한 결단'],recommendedFor:['끝맺음이 필요한 사람','후회와 미련을 정리해야 하는 사람'],bestSeason:['가을','겨울'],tripStyle:'romantic',description:'바다로 내려앉는 노을의 화(火)가 과열된 감정을 부드럽게 식히며, 끝낼 것은 끝내고 남길 것은 따뜻하게 품는 결단을 돕습니다.',ritualTip:'해가 완전히 지기 전 놓아줄 감정 하나를 마음속으로 이름 붙이세요.'}),
-  _energyCoordDestination({id:'fire-ulsan-ganjeolgot',name:'울산 간절곶',countryType:'domestic',element:'fire',emoji:'🌅',region:'울산 울주',latitude:35.3607,longitude:129.3602,terrainTags:['일출','등대','해안'],energyKeywords:['희망','새벽 활력','결심'],recommendedFor:['의지가 약해진 사람','다시 시작할 신호가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:'간절곶의 새벽 화(火)는 이름처럼 간절한 마음에 빛을 넣어, 흐릿한 결심을 오늘 시작할 수 있는 행동 에너지로 바꿉니다.',ritualTip:'등대 근처에서 지금 가장 간절한 한 가지를 짧게 적고 바로 첫 행동을 정하세요.'}),
-  _energyCoordDestination({id:'fire-sokcho-yeonggeumjeong',name:'속초 영금정 일출',countryType:'domestic',element:'fire',emoji:'🌊',region:'강원 속초',latitude:38.2113,longitude:128.5996,terrainTags:['정자','일출','파도'],energyKeywords:['긴장 해소','새 아침','감정 점화'],recommendedFor:['답답한 감정을 풀고 싶은 사람','생각보다 몸을 먼저 깨워야 하는 사람'],bestSeason:['봄','겨울'],tripStyle:'day_trip',description:'파도 소리 위로 떠오르는 화(火)가 가슴의 답답함을 흔들어 깨우고, 무기력한 아침을 살아 있는 리듬으로 전환합니다.',ritualTip:'파도 세 번을 세고 난 뒤 오늘 반드시 움직일 일을 하나 정하세요.'}),
-  _energyCoordDestination({id:'fire-hawaii-waikiki',name:'하와이 와이키키',countryType:'global',element:'fire',emoji:'🌺',region:'미국 하와이',latitude:21.2767,longitude:-157.8263,terrainTags:['태양','해변','휴양도시'],energyKeywords:['자신감','표현','몸의 활력'],recommendedFor:['삶의 밝기를 되찾고 싶은 사람','자기 표현을 열고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'강한 태양과 열린 해변의 화(火)가 몸의 리듬을 밝게 깨워, 위축된 자기표현과 즐거움을 다시 자연스럽게 끌어냅니다.',ritualTip:'해변에서 맨발로 걸으며 지금 더 당당하게 드러낼 나의 모습 하나를 떠올리세요.'}),
-  _energyCoordDestination({id:'fire-spain-barcelona',name:'스페인 바르셀로나',countryType:'global',element:'fire',emoji:'🎨',region:'스페인 카탈루냐',latitude:41.3851,longitude:2.1734,terrainTags:['예술도시','지중해','건축'],energyKeywords:['창조성','열정','표현력'],recommendedFor:['창작 불씨가 필요한 사람','자신의 색을 드러내야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'가우디의 곡선과 지중해 태양이 만드는 화(火)가 잠든 표현력을 깨워, 나만의 색과 리듬을 과감히 드러내게 합니다.',ritualTip:'가장 강렬한 건축 디테일을 하나 고르고 내 작업에 적용할 색감이나 형태를 메모하세요.'}),
-  _energyCoordDestination({id:'fire-greece-santorini',name:'그리스 산토리니',countryType:'global',element:'fire',emoji:'🌅',region:'그리스 키클라데스',latitude:36.3932,longitude:25.4615,terrainTags:['화산섬','석양','절벽마을'],energyKeywords:['낭만','감정 온도','자기 매력'],recommendedFor:['연애 감각을 회복하고 싶은 사람','삶의 장면미가 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'romantic',description:'화산섬의 열기와 석양의 화(火)가 감정의 명도를 높여, 잊고 있던 낭만과 자기 매력을 다시 선명하게 느끼게 합니다.',ritualTip:'석양 앞에서 내 삶에서 다시 아름답게 만들고 싶은 장면 하나를 상상하세요.'}),
-  _energyCoordDestination({id:'fire-morocco-sahara',name:'모로코 사하라 사막',countryType:'global',element:'fire',emoji:'🏜️',region:'모로코 메르주가',latitude:31.0802,longitude:-4.0134,terrainTags:['사막','태양','모래언덕'],energyKeywords:['원초적 열기','결단','불순물 제거'],recommendedFor:['강한 결단이 필요한 사람','군더더기를 태워내고 싶은 사람'],avoidFor:['더위에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'adventure',description:'사막의 강한 화(火)는 불필요한 생각을 말려내고, 남겨야 할 욕망과 결심만 선명하게 드러내는 원초적 정화의 장입니다.',ritualTip:'모래 위에 버릴 생각 하나를 적고 발로 지운 뒤 물을 충분히 마시세요.'}),
-  _energyCoordDestination({id:'fire-turkiye-cappadocia',name:'터키 카파도키아',countryType:'global',element:'fire',emoji:'🎈',region:'튀르키예 네브셰히르',latitude:38.6431,longitude:34.8289,terrainTags:['열기구','화산암','일출'],energyKeywords:['상승','모험심','시야 확장'],recommendedFor:['낯선 도전이 필요한 사람','높은 관점이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'화산암 대지 위로 떠오르는 열기구의 화(火)가 낮은 시야를 들어 올려, 모험심과 더 큰 선택을 향한 용기를 깨웁니다.',ritualTip:'일출 시간에 지금보다 높은 관점에서 봐야 할 문제 하나를 적어보세요.'}),
-  _energyCoordDestination({id:'fire-australia-uluru',name:'호주 울루루',countryType:'global',element:'fire',emoji:'🟥',region:'호주 노던준주',latitude:-25.3444,longitude:131.0369,terrainTags:['붉은 암석','사막','성지'],energyKeywords:['태양력','근원 의지','존재감'],recommendedFor:['자존감이 낮아진 사람','삶의 중심을 회복해야 하는 사람'],avoidFor:['강한 일사에 민감한 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:'붉은 대지와 태양의 화(火)가 존재의 중심을 강하게 깨워, 흔들린 자존감과 의지를 다시 땅 위에 세워줍니다.',ritualTip:'일몰빛이 바위에 닿을 때 나를 지탱하는 핵심 가치 하나를 떠올리세요.'}),
-  _energyCoordDestination({id:'fire-usa-las-vegas',name:'미국 라스베이거스',countryType:'global',element:'fire',emoji:'🎰',region:'미국 네바다',latitude:36.1699,longitude:-115.1398,terrainTags:['야경','사막도시','공연'],energyKeywords:['무대감','표현','즉각 활력'],recommendedFor:['무대 공포를 넘고 싶은 사람','강한 자극으로 분위기를 바꿔야 하는 사람'],avoidFor:['충동 소비에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'creative',description:'사막 위 인공 불빛의 화(火)가 숨은 무대감을 자극해, 자신을 더 크고 선명하게 표현하도록 밀어주는 강렬한 도시입니다.',ritualTip:'쇼윈도 불빛 앞에서 과시가 아닌 표현으로 쓰고 싶은 내 강점을 하나 정하세요.'}),
-  _energyCoordDestination({id:'fire-dubai-desert',name:'두바이 사막',countryType:'global',element:'fire',emoji:'🐪',region:'아랍에미리트 두바이',latitude:25.2048,longitude:55.2708,terrainTags:['사막','태양','럭셔리 도시'],energyKeywords:['확장 욕구','결단','열기 조절'],recommendedFor:['사업적 확장감을 느끼고 싶은 사람','담대한 결정을 앞둔 사람'],avoidFor:['과열된 일정에 취약한 사람'],bestSeason:['겨울'],tripStyle:'adventure',description:'사막의 원초적 화(火)와 미래 도시의 불빛이 만나, 큰 스케일의 욕망을 깨우되 과열을 다스릴 때 확장 운으로 전환되는 장소입니다.',ritualTip:'사막에서는 욕망을 적고, 도시에서는 그 욕망을 현실로 만들 첫 비용과 시간을 계산하세요.'}),
-  _energyCoordDestination({id:'fire-italy-rome',name:'이탈리아 로마',countryType:'global',element:'fire',emoji:'🏛️',region:'이탈리아 라치오',latitude:41.9028,longitude:12.4964,terrainTags:['고대도시','광장','태양'],energyKeywords:['존재감','역사적 열기','표현'],recommendedFor:['자신의 이야기를 크게 보고 싶은 사람','무대감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'광장과 유적에 남은 화(火)의 기억이 개인의 이야기를 더 큰 무대 위에 올려, 위축된 존재감을 당당한 서사로 바꿔줍니다.',ritualTip:'가장 오래 남은 유적 앞에서 내 삶에서 오래 남기고 싶은 업적 하나를 적으세요.'}),
-  _energyCoordDestination({id:'fire-mexico-cancun',name:'멕시코 칸쿤',countryType:'global',element:'fire',emoji:'🏖️',region:'멕시코 킨타나로오',latitude:21.1619,longitude:-86.8515,terrainTags:['태양','해변','휴양'],energyKeywords:['즐거움','몸의 활력','관계 온도'],recommendedFor:['삶의 재미가 줄어든 사람','몸을 깨우는 휴식이 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:'강한 햇살과 밝은 해변의 화(火)가 무뎌진 즐거움의 감각을 깨우고, 몸과 관계의 온도를 다시 따뜻하게 올려줍니다.',ritualTip:'하루 한 번은 계획 없는 즐거운 선택을 해보고 몸의 반응을 기록하세요.'}),
-  _energyCoordDestination({id:'fire-thailand-bangkok-night-market',name:'태국 방콕 야시장',countryType:'global',element:'fire',emoji:'🍜',region:'태국 방콕',latitude:13.7563,longitude:100.5018,terrainTags:['야시장','도시 열기','음식 거리'],energyKeywords:['사회성','표현력','즉흥 활력'],recommendedFor:['사람 속 에너지가 필요한 사람','대화와 감각을 깨우고 싶은 사람'],bestSeason:['건기'],tripStyle:'creative',description:'야시장의 조명과 음식 향이 만든 화(火)가 감각을 즉시 깨워, 움츠린 사회성과 표현력을 즐거운 리듬으로 열어줍니다.',ritualTip:'처음 보는 음식을 하나 고르며 낯선 선택을 받아들이는 연습을 해보세요.'}),
-  _energyCoordDestination({id:'fire-france-nice',name:'프랑스 니스',countryType:'global',element:'fire',emoji:'☀️',region:'프랑스 코트다쥐르',latitude:43.7102,longitude:7.2620,terrainTags:['지중해','햇살','해변 산책'],energyKeywords:['밝기','자기 매력','감정 온도'],recommendedFor:['우울감이 짙어진 사람','밝은 자기 감각이 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:'지중해 햇살의 화(火)가 감정의 채도를 높이고, 자신을 조금 더 밝고 우아하게 드러내는 감각을 회복시켜 줍니다.',ritualTip:'해변 산책 중 가장 밝게 느껴지는 순간을 사진 대신 문장으로 남겨보세요.'}),
+  _energyCoordDestination({id:'fire-gangneung-jeongdongjin',name:'강릉 정동진',countryType:'domestic',element:'fire',emoji:'🌅',region:'강원 강릉',latitude:37.6892,longitude:129.0336,terrainTags:['일출','해변','동해'],energyKeywords:['시작','활력','자신감'],recommendedFor:['새 출발이 필요한 사람','아침 에너지가 약한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:_sajuEngineText("se_1541_prop_description"),ritualTip:'일출 전 정한 목표를 해가 뜬 뒤 한 문장으로 다시 말해보세요.'}),
+  _energyCoordDestination({id:'fire-pohang-homigot',name:'포항 호미곶',countryType:'domestic',element:'fire',emoji:'🔥',region:'경북 포항',latitude:36.0772,longitude:129.5683,terrainTags:['일출광장','해안','상징 조형물'],energyKeywords:['돌파','표현','양기 충전'],recommendedFor:['주저함을 끊고 싶은 사람','발표나 도전 전 에너지가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:_sajuEngineText("se_1542_prop_description"),ritualTip:'상생의 손을 바라보며 지금 잡아야 할 기회 하나를 손바닥에 써보듯 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-jeju-seongsan-ilchulbong',name:'제주 성산일출봉',countryType:'domestic',element:'fire',emoji:'🌋',region:'제주 성산',latitude:33.4581,longitude:126.9424,terrainTags:['화산지형','일출','오름'],energyKeywords:['재점화','활력','상승'],recommendedFor:['몸의 엔진이 꺼진 사람','강한 전환점이 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'adventure',description:_sajuEngineText("se_1543_prop_description"),ritualTip:'오르막에서 숨이 찰 때 포기하지 않고 한 걸음 더 가며 지금의 도전명을 마음속으로 부르세요.'}),
+  _energyCoordDestination({id:'fire-busan-gwangalli-night',name:'부산 광안리 야경',countryType:'domestic',element:'fire',emoji:'🌉',region:'부산 수영',latitude:35.1532,longitude:129.1189,terrainTags:['야경','해변','대교'],energyKeywords:['표현','관계 활력','도시 열기'],recommendedFor:['사람 에너지가 필요한 사람','연애와 사교 감각을 깨우고 싶은 사람'],bestSeason:['여름','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1544_prop_description"),ritualTip:'불빛이 가장 예쁜 순간에 고마운 사람에게 짧은 메시지를 보내세요.'}),
+  _energyCoordDestination({id:'fire-yeosu-night-sea',name:'여수 밤바다',countryType:'domestic',element:'fire',emoji:'🎆',region:'전남 여수',latitude:34.7392,longitude:127.7406,terrainTags:['야경','바다','낭만 거리'],energyKeywords:['감정 온도','설렘','표현력'],recommendedFor:['감정 표현이 굳은 사람','관계에 다시 온기를 넣고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1545_prop_description"),ritualTip:'바다를 보며 지금 솔직하게 표현하고 싶은 마음을 한 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'fire-daegu-apsan-observatory',name:'대구 앞산 전망대',countryType:'domestic',element:'fire',emoji:'🌃',region:'대구 남구',latitude:35.8325,longitude:128.5811,terrainTags:['전망대','도시 야경','산길'],energyKeywords:['자신감','시야 확장','목표 점화'],recommendedFor:['목표가 흐려진 사람','내 위치를 다시 보고 싶은 사람'],bestSeason:['가을','겨울'],tripStyle:'day_trip',description:_sajuEngineText("se_1546_prop_description"),ritualTip:'전망대에서 가장 밝은 방향을 보고 다음 행동 하나를 바로 캘린더에 적으세요.'}),
+  _energyCoordDestination({id:'fire-gyeongju-cheomseongdae-night',name:'경주 첨성대 야경',countryType:'domestic',element:'fire',emoji:'🏮',region:'경북 경주',latitude:35.8347,longitude:129.2198,terrainTags:['야경','유적','초원'],energyKeywords:['영감','고요한 불빛','자기 표현'],recommendedFor:['차분한 방식으로 자신감을 얻고 싶은 사람','역사적 영감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1547_prop_description"),ritualTip:'첨성대 앞에서 나만의 별자리처럼 올해의 핵심 키워드 세 개를 정하세요.'}),
+  _energyCoordDestination({id:'fire-incheon-songdo-night',name:'인천 송도 센트럴파크 야경',countryType:'domestic',element:'fire',emoji:'🏙️',region:'인천 연수',latitude:37.3927,longitude:126.6376,terrainTags:['도시공원','야경','수변'],energyKeywords:['현대적 활력','표현','사회적 자신감'],recommendedFor:['커리어 자극이 필요한 사람','도시적 추진력을 얻고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1548_prop_description"),ritualTip:'물에 비친 불빛을 보며 지금 드러내야 할 내 강점 하나를 적으세요.'}),
+  _energyCoordDestination({id:'fire-seoul-namsan-tower',name:'서울 남산타워',countryType:'domestic',element:'fire',emoji:'🗼',region:'서울 중구',latitude:37.5512,longitude:126.9882,terrainTags:['전망대','도심','야경'],energyKeywords:['중심 회복','존재감','관계 온도'],recommendedFor:['사람 앞에 서야 하는 사람','내 중심을 다시 잡고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:_sajuEngineText("se_1549_prop_description"),ritualTip:'전망을 보며 가장 먼저 연락하고 싶은 사람과 가장 먼저 해야 할 일을 구분해보세요.'}),
+  _energyCoordDestination({id:'fire-taean-kkotji-sunset',name:'태안 꽃지 해넘이',countryType:'domestic',element:'fire',emoji:'🌇',region:'충남 태안',latitude:36.5018,longitude:126.3376,terrainTags:['해넘이','해변','노을'],energyKeywords:['마무리','감정 정리','따뜻한 결단'],recommendedFor:['끝맺음이 필요한 사람','후회와 미련을 정리해야 하는 사람'],bestSeason:['가을','겨울'],tripStyle:'romantic',description:_sajuEngineText("se_1550_prop_description"),ritualTip:'해가 완전히 지기 전 놓아줄 감정 하나를 마음속으로 이름 붙이세요.'}),
+  _energyCoordDestination({id:'fire-ulsan-ganjeolgot',name:'울산 간절곶',countryType:'domestic',element:'fire',emoji:'🌅',region:'울산 울주',latitude:35.3607,longitude:129.3602,terrainTags:['일출','등대','해안'],energyKeywords:['희망','새벽 활력','결심'],recommendedFor:['의지가 약해진 사람','다시 시작할 신호가 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'day_trip',description:_sajuEngineText("se_1551_prop_description"),ritualTip:'등대 근처에서 지금 가장 간절한 한 가지를 짧게 적고 바로 첫 행동을 정하세요.'}),
+  _energyCoordDestination({id:'fire-sokcho-yeonggeumjeong',name:'속초 영금정 일출',countryType:'domestic',element:'fire',emoji:'🌊',region:'강원 속초',latitude:38.2113,longitude:128.5996,terrainTags:['정자','일출','파도'],energyKeywords:['긴장 해소','새 아침','감정 점화'],recommendedFor:['답답한 감정을 풀고 싶은 사람','생각보다 몸을 먼저 깨워야 하는 사람'],bestSeason:['봄','겨울'],tripStyle:'day_trip',description:_sajuEngineText("se_1552_prop_description"),ritualTip:'파도 세 번을 세고 난 뒤 오늘 반드시 움직일 일을 하나 정하세요.'}),
+  _energyCoordDestination({id:'fire-hawaii-waikiki',name:'하와이 와이키키',countryType:'global',element:'fire',emoji:'🌺',region:'미국 하와이',latitude:21.2767,longitude:-157.8263,terrainTags:['태양','해변','휴양도시'],energyKeywords:['자신감','표현','몸의 활력'],recommendedFor:['삶의 밝기를 되찾고 싶은 사람','자기 표현을 열고 싶은 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:_sajuEngineText("se_1553_prop_description"),ritualTip:'해변에서 맨발로 걸으며 지금 더 당당하게 드러낼 나의 모습 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-spain-barcelona',name:'스페인 바르셀로나',countryType:'global',element:'fire',emoji:'🎨',region:'스페인 카탈루냐',latitude:41.3851,longitude:2.1734,terrainTags:['예술도시','지중해','건축'],energyKeywords:['창조성','열정','표현력'],recommendedFor:['창작 불씨가 필요한 사람','자신의 색을 드러내야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1554_prop_description"),ritualTip:'가장 강렬한 건축 디테일을 하나 고르고 내 작업에 적용할 색감이나 형태를 메모하세요.'}),
+  _energyCoordDestination({id:'fire-greece-santorini',name:'그리스 산토리니',countryType:'global',element:'fire',emoji:'🌅',region:'그리스 키클라데스',latitude:36.3932,longitude:25.4615,terrainTags:['화산섬','석양','절벽마을'],energyKeywords:['낭만','감정 온도','자기 매력'],recommendedFor:['연애 감각을 회복하고 싶은 사람','삶의 장면미가 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1555_prop_description"),ritualTip:'석양 앞에서 내 삶에서 다시 아름답게 만들고 싶은 장면 하나를 상상하세요.'}),
+  _energyCoordDestination({id:'fire-morocco-sahara',name:'모로코 사하라 사막',countryType:'global',element:'fire',emoji:'🏜️',region:'모로코 메르주가',latitude:31.0802,longitude:-4.0134,terrainTags:['사막','태양','모래언덕'],energyKeywords:['원초적 열기','결단','불순물 제거'],recommendedFor:['강한 결단이 필요한 사람','군더더기를 태워내고 싶은 사람'],avoidFor:['더위에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'adventure',description:_sajuEngineText("se_1556_prop_description"),ritualTip:'모래 위에 버릴 생각 하나를 적고 발로 지운 뒤 물을 충분히 마시세요.'}),
+  _energyCoordDestination({id:'fire-turkiye-cappadocia',name:'터키 카파도키아',countryType:'global',element:'fire',emoji:'🎈',region:'튀르키예 네브셰히르',latitude:38.6431,longitude:34.8289,terrainTags:['열기구','화산암','일출'],energyKeywords:['상승','모험심','시야 확장'],recommendedFor:['낯선 도전이 필요한 사람','높은 관점이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1557_prop_description"),ritualTip:'일출 시간에 지금보다 높은 관점에서 봐야 할 문제 하나를 적어보세요.'}),
+  _energyCoordDestination({id:'fire-australia-uluru',name:'호주 울루루',countryType:'global',element:'fire',emoji:'🟥',region:'호주 노던준주',latitude:-25.3444,longitude:131.0369,terrainTags:['붉은 암석','사막','성지'],energyKeywords:['태양력','근원 의지','존재감'],recommendedFor:['자존감이 낮아진 사람','삶의 중심을 회복해야 하는 사람'],avoidFor:['강한 일사에 민감한 사람'],bestSeason:['겨울','초봄'],tripStyle:'retreat',description:_sajuEngineText("se_1558_prop_description"),ritualTip:'일몰빛이 바위에 닿을 때 나를 지탱하는 핵심 가치 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'fire-usa-las-vegas',name:'미국 라스베이거스',countryType:'global',element:'fire',emoji:'🎰',region:'미국 네바다',latitude:36.1699,longitude:-115.1398,terrainTags:['야경','사막도시','공연'],energyKeywords:['무대감','표현','즉각 활력'],recommendedFor:['무대 공포를 넘고 싶은 사람','강한 자극으로 분위기를 바꿔야 하는 사람'],avoidFor:['충동 소비에 약한 사람'],bestSeason:['가을','겨울','봄'],tripStyle:'creative',description:_sajuEngineText("se_1559_prop_description"),ritualTip:'쇼윈도 불빛 앞에서 과시가 아닌 표현으로 쓰고 싶은 내 강점을 하나 정하세요.'}),
+  _energyCoordDestination({id:'fire-dubai-desert',name:'두바이 사막',countryType:'global',element:'fire',emoji:'🐪',region:'아랍에미리트 두바이',latitude:25.2048,longitude:55.2708,terrainTags:['사막','태양','럭셔리 도시'],energyKeywords:['확장 욕구','결단','열기 조절'],recommendedFor:['사업적 확장감을 느끼고 싶은 사람','담대한 결정을 앞둔 사람'],avoidFor:['과열된 일정에 취약한 사람'],bestSeason:['겨울'],tripStyle:'adventure',description:_sajuEngineText("se_1560_prop_description"),ritualTip:'사막에서는 욕망을 적고, 도시에서는 그 욕망을 현실로 만들 첫 비용과 시간을 계산하세요.'}),
+  _energyCoordDestination({id:'fire-italy-rome',name:'이탈리아 로마',countryType:'global',element:'fire',emoji:'🏛️',region:'이탈리아 라치오',latitude:41.9028,longitude:12.4964,terrainTags:['고대도시','광장','태양'],energyKeywords:['존재감','역사적 열기','표현'],recommendedFor:['자신의 이야기를 크게 보고 싶은 사람','무대감이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1561_prop_description"),ritualTip:'가장 오래 남은 유적 앞에서 내 삶에서 오래 남기고 싶은 업적 하나를 적으세요.'}),
+  _energyCoordDestination({id:'fire-mexico-cancun',name:'멕시코 칸쿤',countryType:'global',element:'fire',emoji:'🏖️',region:'멕시코 킨타나로오',latitude:21.1619,longitude:-86.8515,terrainTags:['태양','해변','휴양'],energyKeywords:['즐거움','몸의 활력','관계 온도'],recommendedFor:['삶의 재미가 줄어든 사람','몸을 깨우는 휴식이 필요한 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:_sajuEngineText("se_1562_prop_description"),ritualTip:'하루 한 번은 계획 없는 즐거운 선택을 해보고 몸의 반응을 기록하세요.'}),
+  _energyCoordDestination({id:'fire-thailand-bangkok-night-market',name:'태국 방콕 야시장',countryType:'global',element:'fire',emoji:'🍜',region:'태국 방콕',latitude:13.7563,longitude:100.5018,terrainTags:['야시장','도시 열기','음식 거리'],energyKeywords:['사회성','표현력','즉흥 활력'],recommendedFor:['사람 속 에너지가 필요한 사람','대화와 감각을 깨우고 싶은 사람'],bestSeason:['건기'],tripStyle:'creative',description:_sajuEngineText("se_1563_prop_description"),ritualTip:'처음 보는 음식을 하나 고르며 낯선 선택을 받아들이는 연습을 해보세요.'}),
+  _energyCoordDestination({id:'fire-france-nice',name:'프랑스 니스',countryType:'global',element:'fire',emoji:'☀️',region:'프랑스 코트다쥐르',latitude:43.7102,longitude:7.2620,terrainTags:['지중해','햇살','해변 산책'],energyKeywords:['밝기','자기 매력','감정 온도'],recommendedFor:['우울감이 짙어진 사람','밝은 자기 감각이 필요한 사람'],bestSeason:['봄','초여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1564_prop_description"),ritualTip:'해변 산책 중 가장 밝게 느껴지는 순간을 사진 대신 문장으로 남겨보세요.'}),
 
-  _energyCoordDestination({id:'earth-gyeongju-historic-area',name:'경주 역사유적지구',countryType:'domestic',element:'earth',emoji:'🏯',region:'경북 경주',latitude:35.8347,longitude:129.2242,terrainTags:['유적','고도','왕릉'],energyKeywords:['안정','시간의 축적','현실감'],recommendedFor:['삶의 기준을 다시 세우려는 사람','루틴이 무너진 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'천년 고도의 토(土)가 흩어진 일상을 긴 시간의 질서 안에 놓아주며, 흔들린 중심과 현실 감각을 차분히 회복시킵니다.',ritualTip:'가장 오래된 유적 앞에서 오래 유지할 생활 규칙 하나를 정하세요.'}),
-  _energyCoordDestination({id:'earth-buyeo-baekje-cultural-land',name:'부여 백제문화단지',countryType:'domestic',element:'earth',emoji:'🏛️',region:'충남 부여',latitude:36.3058,longitude:126.9149,terrainTags:['역사단지','궁궐','평야'],energyKeywords:['품격','기반 회복','차분함'],recommendedFor:['마음이 산만한 사람','현실적 선택 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'백제의 부드러운 토(土) 기운이 급한 판단을 가라앉히고, 품격 있는 안정감으로 현실의 선택 기준을 다시 세워줍니다.',ritualTip:'궁궐 동선에서 지금 내 삶에 필요한 질서 세 가지를 적어보세요.'}),
-  _energyCoordDestination({id:'earth-andong-hahoe',name:'안동 하회마을',countryType:'domestic',element:'earth',emoji:'🛖',region:'경북 안동',latitude:36.5388,longitude:128.5183,terrainTags:['전통마을','흙길','강마을'],energyKeywords:['뿌리','가족성','생활 안정'],recommendedFor:['소속감이 약해진 사람','가족과 생활 기반을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'강이 감싼 전통마을의 토(土)가 삶의 뿌리와 생활 감각을 안정시켜, 흔들린 관계와 일상의 기반을 다시 단단하게 만듭니다.',ritualTip:'흙길을 걸으며 내가 지켜야 할 생활 기반을 집, 몸, 돈 중 하나로 정리하세요.'}),
-  _energyCoordDestination({id:'earth-jeonju-hanok-village',name:'전주 한옥마을',countryType:'domestic',element:'earth',emoji:'🏠',region:'전북 전주',latitude:35.8151,longitude:127.1530,terrainTags:['한옥','골목','전통음식'],energyKeywords:['생활 안정','감각적 현실감','관계 온기'],recommendedFor:['몸과 마음을 든든히 채우고 싶은 사람','느린 골목 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'one_night',description:'한옥과 골목의 토(土)가 떠 있는 마음을 생활의 온도로 끌어내려, 먹고 걷고 쉬는 단순한 리듬 속에서 안정감을 회복시킵니다.',ritualTip:'한 끼를 천천히 먹으며 내 몸이 편안해지는 속도를 관찰하세요.'}),
-  _energyCoordDestination({id:'earth-gongju-gongsanseong',name:'공주 공산성',countryType:'domestic',element:'earth',emoji:'🏰',region:'충남 공주',latitude:36.4620,longitude:127.1247,terrainTags:['성곽','언덕','역사길'],energyKeywords:['방어력','기반 구축','현실 판단'],recommendedFor:['경계가 약해진 사람','일과 관계의 선을 세워야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'성곽의 토(土)가 내 삶의 경계를 다시 느끼게 해, 지킬 것과 내어줄 것을 구분하는 현실 판단력을 강화합니다.',ritualTip:'성곽을 돌며 지금 지켜야 할 경계 하나와 열어도 되는 문 하나를 정하세요.'}),
-  _energyCoordDestination({id:'earth-suwon-hwaseong',name:'수원화성',countryType:'domestic',element:'earth',emoji:'🧱',region:'경기 수원',latitude:37.2879,longitude:127.0117,terrainTags:['성곽','도시 유산','걷기길'],energyKeywords:['구조화','계획성','지속력'],recommendedFor:['계획을 현실로 내려야 하는 사람','일정 관리가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'정교하게 설계된 성곽의 토(土)가 생각을 구조로 바꾸고, 막연한 목표를 걸어서 확인 가능한 실행 계획으로 내려줍니다.',ritualTip:'성곽 한 구간을 걸을 때 목표를 단계별로 쪼개는 생각만 해보세요.'}),
-  _energyCoordDestination({id:'earth-daegu-modern-alley',name:'대구 근대골목',countryType:'domestic',element:'earth',emoji:'🚶',region:'대구 중구',latitude:35.8694,longitude:128.5906,terrainTags:['골목','근대건축','도시 역사'],energyKeywords:['기억 정리','현실 감각','생활 서사'],recommendedFor:['과거 경험을 현재 자산으로 바꾸고 싶은 사람','혼자 걷는 정리가 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:'오래된 골목의 토(土)가 지나온 시간을 발밑에 놓아주며, 흩어진 경험을 지금 써먹을 수 있는 현실 자산으로 정리합니다.',ritualTip:'골목 카페에서 지난 3년의 경험 중 앞으로 남길 것 세 가지를 적어보세요.'}),
-  _energyCoordDestination({id:'earth-iksan-mireuksaji',name:'익산 미륵사지',countryType:'domestic',element:'earth',emoji:'🪨',region:'전북 익산',latitude:36.0129,longitude:127.0316,terrainTags:['사지','석탑','평지 유적'],energyKeywords:['중심 회복','인내','재건'],recommendedFor:['무너진 계획을 다시 세우는 사람','오래 걸리는 일을 시작하는 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'복원과 시간이 겹친 미륵사지의 토(土)는 무너진 것을 다시 세우는 인내를 알려주며, 장기 계획의 중심을 차분히 붙잡게 합니다.',ritualTip:'석탑을 바라보며 지금 다시 쌓아야 할 일의 첫 돌 하나를 정하세요.'}),
-  _energyCoordDestination({id:'earth-ganghwa-dolmen',name:'강화도 고인돌 유적',countryType:'domestic',element:'earth',emoji:'🪨',region:'인천 강화',latitude:37.7736,longitude:126.4356,terrainTags:['고인돌','평야','선사유적'],energyKeywords:['원초적 안정','뿌리','묵직함'],recommendedFor:['마음이 너무 가벼워 불안한 사람','원점으로 돌아가야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'거석의 오래된 토(土)가 생각을 묵직하게 가라앉혀, 불안을 줄이고 삶의 원점과 기본기를 다시 확인하게 합니다.',ritualTip:'고인돌 앞에서 지금 복잡한 문제를 가장 단순한 한 문장으로 줄여보세요.'}),
-  _energyCoordDestination({id:'earth-jeju-oreum',name:'제주 오름',countryType:'domestic',element:'earth',emoji:'⛰️',region:'제주 전역',latitude:33.4070,longitude:126.5312,terrainTags:['화산오름','초지','흙길'],energyKeywords:['몸의 중심','현실 착지','완만한 상승'],recommendedFor:['몸 감각이 흐려진 사람','천천히 성취감을 회복하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'완만한 화산토의 토(土)가 몸의 중심을 되찾게 하고, 무리하지 않는 상승을 통해 작은 성취감을 현실적으로 회복시킵니다.',ritualTip:'정상까지 속도를 내지 말고, 중간에 멈춰 발바닥 감각을 세 번 확인하세요.'}),
-  _energyCoordDestination({id:'earth-pyeongchang-daegwallyeong',name:'평창 대관령',countryType:'domestic',element:'earth',emoji:'🐑',region:'강원 평창',latitude:37.6884,longitude:128.7585,terrainTags:['고원','초지','목장'],energyKeywords:['넓은 안정','생활 리듬','호흡'],recommendedFor:['답답한 현실을 넓게 보고 싶은 사람','휴식과 걷기가 모두 필요한 사람'],bestSeason:['여름','가을','겨울'],tripStyle:'slow_trip',description:'넓은 고원의 토(土)가 꽉 막힌 현실감을 넓게 펼쳐주며, 몸의 호흡과 생활 리듬을 안정적인 속도로 되돌립니다.',ritualTip:'초지에서 가장 멀리 보이는 지점을 바라보며 이번 달 우선순위 하나를 정하세요.'}),
-  _energyCoordDestination({id:'earth-yeongwol-korean-peninsula',name:'영월 한반도지형',countryType:'domestic',element:'earth',emoji:'🏞️',region:'강원 영월',latitude:37.2194,longitude:128.3485,terrainTags:['전망대','하천 지형','산길'],energyKeywords:['큰 그림','현실 지도','중심 잡기'],recommendedFor:['삶의 방향 지도가 필요한 사람','부분보다 전체를 봐야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'한눈에 들어오는 지형의 토(土)가 복잡한 현실을 하나의 지도처럼 보이게 해, 부분에 매달린 마음을 전체 방향으로 돌려줍니다.',ritualTip:'전망대에서 내 삶의 현재 위치, 목적지, 다음 길을 각각 한 단어로 정하세요.'}),
-  _energyCoordDestination({id:'earth-egypt-luxor',name:'이집트 룩소르',countryType:'global',element:'earth',emoji:'🗿',region:'이집트 룩소르',latitude:25.6872,longitude:32.6396,terrainTags:['고대신전','사막','나일 유역'],energyKeywords:['시간 축적','권위','기반'],recommendedFor:['큰 책임을 앞둔 사람','삶의 무게를 견디는 힘이 필요한 사람'],bestSeason:['겨울','초봄'],tripStyle:'adventure',description:'사막과 신전에 응축된 토(土)가 수천 년의 시간을 몸으로 느끼게 하며, 무거운 책임을 견디는 내면의 기둥을 세워줍니다.',ritualTip:'신전 기둥 앞에서 내가 오래 책임질 가치가 있는 일을 하나만 정하세요.'}),
-  _energyCoordDestination({id:'earth-peru-machu-picchu',name:'페루 마추픽추',countryType:'global',element:'earth',emoji:'🏔️',region:'페루 쿠스코',latitude:-13.1631,longitude:-72.5450,terrainTags:['고산유적','석조도시','안데스'],energyKeywords:['정상성','장기 성취','현실의 성채'],recommendedFor:['높은 목표를 현실화하려는 사람','오래 준비한 일을 완성하고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:'고산 위 석조도시의 토(土)가 꿈을 공중에 띄우지 않고 발 딛는 성취로 바꾸며, 장기 목표를 견디는 힘을 줍니다.',ritualTip:'유적을 바라보며 지금 쌓고 있는 일의 마지막 모습을 구체적으로 상상하세요.'}),
-  _energyCoordDestination({id:'earth-jordan-petra',name:'요르단 페트라',countryType:'global',element:'earth',emoji:'🏜️',region:'요르단 마안',latitude:30.3285,longitude:35.4444,terrainTags:['암벽도시','협곡','사막유적'],energyKeywords:['숨은 자산','인내','현실 통로'],recommendedFor:['오래 숨겨둔 가능성을 꺼내야 하는 사람','막힌 길을 뚫고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'바위를 깎아 만든 도시의 토(土)가 막힌 현실에도 통로가 있음을 보여주며, 숨은 자산을 드러내는 인내심을 강화합니다.',ritualTip:'시크 협곡을 걸으며 지금 열어야 할 닫힌 문 하나를 떠올리세요.'}),
-  _energyCoordDestination({id:'earth-turkiye-goreme',name:'터키 괴레메',countryType:'global',element:'earth',emoji:'🎈',region:'튀르키예 카파도키아',latitude:38.6431,longitude:34.8289,terrainTags:['응회암','동굴마을','고원'],energyKeywords:['적응력','현실 변형','기반 재설계'],recommendedFor:['환경 변화에 적응해야 하는 사람','새 기반을 만드는 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'부드러운 암석이 삶의 공간으로 바뀐 괴레메의 토(土)는 주어진 현실을 새 방식으로 활용하는 적응력과 기반 재설계 능력을 깨웁니다.',ritualTip:'동굴 공간을 보며 지금 가진 자원 중 다르게 쓸 수 있는 것을 하나 적으세요.'}),
-  _energyCoordDestination({id:'earth-china-xian',name:'중국 시안',countryType:'global',element:'earth',emoji:'🐉',region:'중국 산시성',latitude:34.3416,longitude:108.9398,terrainTags:['고도','성벽','병마용'],energyKeywords:['중심 문명','권위','기반 자산'],recommendedFor:['커리어 중심을 세우고 싶은 사람','자기 권위를 회복해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'중원의 오래된 토(土)가 개인의 중심성과 권위를 되살려, 흔들린 커리어 기준과 기반 자산을 다시 점검하게 합니다.',ritualTip:'성벽 위에서 내 일의 중심 기준 하나를 문장으로 정리하세요.'}),
-  _energyCoordDestination({id:'earth-italy-pompeii',name:'이탈리아 폼페이',countryType:'global',element:'earth',emoji:'🏺',region:'이탈리아 캄파니아',latitude:40.7462,longitude:14.4989,terrainTags:['고대도시','화산재','유적'],energyKeywords:['기록','교훈','현실 경고'],recommendedFor:['반복 실수를 끊고 싶은 사람','지나간 사건에서 교훈을 얻어야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'화산재에 보존된 도시의 토(土)는 지나간 시간의 교훈을 선명히 보여주며, 같은 실수를 반복하지 않는 현실 감각을 강화합니다.',ritualTip:'유적을 보며 다시 반복하지 않을 패턴 하나를 구체적으로 적으세요.'}),
-  _energyCoordDestination({id:'earth-greece-athens',name:'그리스 아테네',countryType:'global',element:'earth',emoji:'🏛️',region:'그리스 아티카',latitude:37.9838,longitude:23.7275,terrainTags:['고대유적','언덕','도시'],energyKeywords:['철학적 기반','원칙','공동체 감각'],recommendedFor:['선택의 기준이 필요한 사람','생각을 원칙으로 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'오래된 철학과 도시의 토(土)가 생각을 원칙으로 굳혀주며, 감정적 선택을 삶의 기준과 공동체 감각으로 정리하게 합니다.',ritualTip:'아크로폴리스가 보이는 곳에서 지금 내 선택 원칙 세 가지를 적어보세요.'}),
-  _energyCoordDestination({id:'earth-cambodia-angkor-wat',name:'캄보디아 앙코르와트',countryType:'global',element:'earth',emoji:'🌄',region:'캄보디아 시엠립',latitude:13.4125,longitude:103.8670,terrainTags:['사원유적','석조','정글'],energyKeywords:['신성한 기반','인내','시간성'],recommendedFor:['마음의 중심 의식이 필요한 사람','오래 걸리는 회복 중인 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'석조 사원과 정글이 겹친 토(土)가 인간의 시간과 자연의 시간을 함께 느끼게 하며, 성급함을 낮추고 신성한 기반감을 회복시킵니다.',ritualTip:'사원 앞에서 지금 서두르지 않고 지켜야 할 일을 하나 떠올리세요.'}),
-  _energyCoordDestination({id:'earth-nepal-kathmandu',name:'네팔 카트만두',countryType:'global',element:'earth',emoji:'🛕',region:'네팔 바그마티',latitude:27.7172,longitude:85.3240,terrainTags:['분지','사원','골목'],energyKeywords:['영적 현실감','생활 수행','중심'],recommendedFor:['정신과 현실을 연결해야 하는 사람','생활 수행 루틴이 필요한 사람'],bestSeason:['가을','봄'],tripStyle:'retreat',description:'분지와 사원의 토(土)가 영적 감각을 공중에 띄우지 않고 생활 수행으로 내려주며, 매일 반복할 중심을 찾게 합니다.',ritualTip:'사원 근처에서 매일 10분 지속할 작은 수행 루틴을 정하세요.'}),
-  _energyCoordDestination({id:'earth-india-jaipur',name:'인도 자이푸르',countryType:'global',element:'earth',emoji:'🏰',region:'인도 라자스탄',latitude:26.9124,longitude:75.7873,terrainTags:['궁전','사막도시','핑크시티'],energyKeywords:['왕성한 기반','현실 감각','색채 안정'],recommendedFor:['자기 가치를 현실적으로 높이고 싶은 사람','감각과 생활을 함께 정리하려는 사람'],bestSeason:['겨울'],tripStyle:'creative',description:'사막 도시와 궁전의 토(土)가 자기 가치를 단단한 형식으로 세워주며, 감각적 아름다움을 현실적 자신감으로 바꿉니다.',ritualTip:'궁전에서 가장 마음에 드는 색이나 문양을 골라 내 생활에 적용할 방식 하나를 정하세요.'}),
-  _energyCoordDestination({id:'earth-bolivia-uyuni',name:'볼리비아 우유니',countryType:'global',element:'earth',emoji:'🪞',region:'볼리비아 포토시',latitude:-20.1338,longitude:-67.4891,terrainTags:['소금평원','고원','반영'],energyKeywords:['비움','현실 거울','재정렬'],recommendedFor:['복잡한 마음을 비워야 하는 사람','삶의 방향을 반사해 보고 싶은 사람'],bestSeason:['우기','건기'],tripStyle:'retreat',description:'끝없는 소금평원의 토(土)가 모든 소음을 비워내고, 하늘과 땅의 반영 속에서 지금의 현실을 거울처럼 마주하게 합니다.',ritualTip:'수평선 앞에서 지금 내려놓을 집착 하나와 남길 기준 하나를 적으세요.'}),
-  _energyCoordDestination({id:'earth-mongolia-steppe',name:'몽골 초원',countryType:'global',element:'earth',emoji:'🐎',region:'몽골 중앙 초원',latitude:47.8864,longitude:106.9057,terrainTags:['초원','고원','흙길'],energyKeywords:['넓은 기반','단순함','생존력'],recommendedFor:['삶이 과하게 복잡해진 사람','기본으로 돌아가야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:'넓은 초원의 토(土)가 복잡한 욕심을 단순하게 만들고, 살아가는 데 필요한 기본 체력과 현실 감각을 다시 일깨웁니다.',ritualTip:'초원에서 꼭 필요한 것과 있으면 좋은 것을 구분해 여행 가방처럼 삶도 정리해보세요.'}),
+  _energyCoordDestination({id:'earth-gyeongju-historic-area',name:'경주 역사유적지구',countryType:'domestic',element:'earth',emoji:'🏯',region:'경북 경주',latitude:35.8347,longitude:129.2242,terrainTags:['유적','고도','왕릉'],energyKeywords:['안정','시간의 축적','현실감'],recommendedFor:['삶의 기준을 다시 세우려는 사람','루틴이 무너진 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1566_prop_description"),ritualTip:'가장 오래된 유적 앞에서 오래 유지할 생활 규칙 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-buyeo-baekje-cultural-land',name:'부여 백제문화단지',countryType:'domestic',element:'earth',emoji:'🏛️',region:'충남 부여',latitude:36.3058,longitude:126.9149,terrainTags:['역사단지','궁궐','평야'],energyKeywords:['품격','기반 회복','차분함'],recommendedFor:['마음이 산만한 사람','현실적 선택 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1567_prop_description"),ritualTip:'궁궐 동선에서 지금 내 삶에 필요한 질서 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-andong-hahoe',name:'안동 하회마을',countryType:'domestic',element:'earth',emoji:'🛖',region:'경북 안동',latitude:36.5388,longitude:128.5183,terrainTags:['전통마을','흙길','강마을'],energyKeywords:['뿌리','가족성','생활 안정'],recommendedFor:['소속감이 약해진 사람','가족과 생활 기반을 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1568_prop_description"),ritualTip:'흙길을 걸으며 내가 지켜야 할 생활 기반을 집, 몸, 돈 중 하나로 정리하세요.'}),
+  _energyCoordDestination({id:'earth-jeonju-hanok-village',name:'전주 한옥마을',countryType:'domestic',element:'earth',emoji:'🏠',region:'전북 전주',latitude:35.8151,longitude:127.1530,terrainTags:['한옥','골목','전통음식'],energyKeywords:['생활 안정','감각적 현실감','관계 온기'],recommendedFor:['몸과 마음을 든든히 채우고 싶은 사람','느린 골목 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'one_night',description:_sajuEngineText("se_1569_prop_description"),ritualTip:'한 끼를 천천히 먹으며 내 몸이 편안해지는 속도를 관찰하세요.'}),
+  _energyCoordDestination({id:'earth-gongju-gongsanseong',name:'공주 공산성',countryType:'domestic',element:'earth',emoji:'🏰',region:'충남 공주',latitude:36.4620,longitude:127.1247,terrainTags:['성곽','언덕','역사길'],energyKeywords:['방어력','기반 구축','현실 판단'],recommendedFor:['경계가 약해진 사람','일과 관계의 선을 세워야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1570_prop_description"),ritualTip:'성곽을 돌며 지금 지켜야 할 경계 하나와 열어도 되는 문 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-suwon-hwaseong',name:'수원화성',countryType:'domestic',element:'earth',emoji:'🧱',region:'경기 수원',latitude:37.2879,longitude:127.0117,terrainTags:['성곽','도시 유산','걷기길'],energyKeywords:['구조화','계획성','지속력'],recommendedFor:['계획을 현실로 내려야 하는 사람','일정 관리가 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1571_prop_description"),ritualTip:'성곽 한 구간을 걸을 때 목표를 단계별로 쪼개는 생각만 해보세요.'}),
+  _energyCoordDestination({id:'earth-daegu-modern-alley',name:'대구 근대골목',countryType:'domestic',element:'earth',emoji:'🚶',region:'대구 중구',latitude:35.8694,longitude:128.5906,terrainTags:['골목','근대건축','도시 역사'],energyKeywords:['기억 정리','현실 감각','생활 서사'],recommendedFor:['과거 경험을 현재 자산으로 바꾸고 싶은 사람','혼자 걷는 정리가 필요한 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:_sajuEngineText("se_1572_prop_description"),ritualTip:'골목 카페에서 지난 3년의 경험 중 앞으로 남길 것 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-iksan-mireuksaji',name:'익산 미륵사지',countryType:'domestic',element:'earth',emoji:'🪨',region:'전북 익산',latitude:36.0129,longitude:127.0316,terrainTags:['사지','석탑','평지 유적'],energyKeywords:['중심 회복','인내','재건'],recommendedFor:['무너진 계획을 다시 세우는 사람','오래 걸리는 일을 시작하는 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:_sajuEngineText("se_1573_prop_description"),ritualTip:'석탑을 바라보며 지금 다시 쌓아야 할 일의 첫 돌 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-ganghwa-dolmen',name:'강화도 고인돌 유적',countryType:'domestic',element:'earth',emoji:'🪨',region:'인천 강화',latitude:37.7736,longitude:126.4356,terrainTags:['고인돌','평야','선사유적'],energyKeywords:['원초적 안정','뿌리','묵직함'],recommendedFor:['마음이 너무 가벼워 불안한 사람','원점으로 돌아가야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1574_prop_description"),ritualTip:'고인돌 앞에서 지금 복잡한 문제를 가장 단순한 한 문장으로 줄여보세요.'}),
+  _energyCoordDestination({id:'earth-jeju-oreum',name:'제주 오름',countryType:'domestic',element:'earth',emoji:'⛰️',region:'제주 전역',latitude:33.4070,longitude:126.5312,terrainTags:['화산오름','초지','흙길'],energyKeywords:['몸의 중심','현실 착지','완만한 상승'],recommendedFor:['몸 감각이 흐려진 사람','천천히 성취감을 회복하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1575_prop_description"),ritualTip:'정상까지 속도를 내지 말고, 중간에 멈춰 발바닥 감각을 세 번 확인하세요.'}),
+  _energyCoordDestination({id:'earth-pyeongchang-daegwallyeong',name:'평창 대관령',countryType:'domestic',element:'earth',emoji:'🐑',region:'강원 평창',latitude:37.6884,longitude:128.7585,terrainTags:['고원','초지','목장'],energyKeywords:['넓은 안정','생활 리듬','호흡'],recommendedFor:['답답한 현실을 넓게 보고 싶은 사람','휴식과 걷기가 모두 필요한 사람'],bestSeason:['여름','가을','겨울'],tripStyle:'slow_trip',description:_sajuEngineText("se_1576_prop_description"),ritualTip:'초지에서 가장 멀리 보이는 지점을 바라보며 이번 달 우선순위 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-yeongwol-korean-peninsula',name:'영월 한반도지형',countryType:'domestic',element:'earth',emoji:'🏞️',region:'강원 영월',latitude:37.2194,longitude:128.3485,terrainTags:['전망대','하천 지형','산길'],energyKeywords:['큰 그림','현실 지도','중심 잡기'],recommendedFor:['삶의 방향 지도가 필요한 사람','부분보다 전체를 봐야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1577_prop_description"),ritualTip:'전망대에서 내 삶의 현재 위치, 목적지, 다음 길을 각각 한 단어로 정하세요.'}),
+  _energyCoordDestination({id:'earth-egypt-luxor',name:'이집트 룩소르',countryType:'global',element:'earth',emoji:'🗿',region:'이집트 룩소르',latitude:25.6872,longitude:32.6396,terrainTags:['고대신전','사막','나일 유역'],energyKeywords:['시간 축적','권위','기반'],recommendedFor:['큰 책임을 앞둔 사람','삶의 무게를 견디는 힘이 필요한 사람'],bestSeason:['겨울','초봄'],tripStyle:'adventure',description:_sajuEngineText("se_1578_prop_description"),ritualTip:'신전 기둥 앞에서 내가 오래 책임질 가치가 있는 일을 하나만 정하세요.'}),
+  _energyCoordDestination({id:'earth-peru-machu-picchu',name:'페루 마추픽추',countryType:'global',element:'earth',emoji:'🏔️',region:'페루 쿠스코',latitude:-13.1631,longitude:-72.5450,terrainTags:['고산유적','석조도시','안데스'],energyKeywords:['정상성','장기 성취','현실의 성채'],recommendedFor:['높은 목표를 현실화하려는 사람','오래 준비한 일을 완성하고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:_sajuEngineText("se_1579_prop_description"),ritualTip:'유적을 바라보며 지금 쌓고 있는 일의 마지막 모습을 구체적으로 상상하세요.'}),
+  _energyCoordDestination({id:'earth-jordan-petra',name:'요르단 페트라',countryType:'global',element:'earth',emoji:'🏜️',region:'요르단 마안',latitude:30.3285,longitude:35.4444,terrainTags:['암벽도시','협곡','사막유적'],energyKeywords:['숨은 자산','인내','현실 통로'],recommendedFor:['오래 숨겨둔 가능성을 꺼내야 하는 사람','막힌 길을 뚫고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1580_prop_description"),ritualTip:'시크 협곡을 걸으며 지금 열어야 할 닫힌 문 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'earth-turkiye-goreme',name:'터키 괴레메',countryType:'global',element:'earth',emoji:'🎈',region:'튀르키예 카파도키아',latitude:38.6431,longitude:34.8289,terrainTags:['응회암','동굴마을','고원'],energyKeywords:['적응력','현실 변형','기반 재설계'],recommendedFor:['환경 변화에 적응해야 하는 사람','새 기반을 만드는 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1581_prop_description"),ritualTip:'동굴 공간을 보며 지금 가진 자원 중 다르게 쓸 수 있는 것을 하나 적으세요.'}),
+  _energyCoordDestination({id:'earth-china-xian',name:'중국 시안',countryType:'global',element:'earth',emoji:'🐉',region:'중국 산시성',latitude:34.3416,longitude:108.9398,terrainTags:['고도','성벽','병마용'],energyKeywords:['중심 문명','권위','기반 자산'],recommendedFor:['커리어 중심을 세우고 싶은 사람','자기 권위를 회복해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1582_prop_description"),ritualTip:'성벽 위에서 내 일의 중심 기준 하나를 문장으로 정리하세요.'}),
+  _energyCoordDestination({id:'earth-italy-pompeii',name:'이탈리아 폼페이',countryType:'global',element:'earth',emoji:'🏺',region:'이탈리아 캄파니아',latitude:40.7462,longitude:14.4989,terrainTags:['고대도시','화산재','유적'],energyKeywords:['기록','교훈','현실 경고'],recommendedFor:['반복 실수를 끊고 싶은 사람','지나간 사건에서 교훈을 얻어야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1583_prop_description"),ritualTip:'유적을 보며 다시 반복하지 않을 패턴 하나를 구체적으로 적으세요.'}),
+  _energyCoordDestination({id:'earth-greece-athens',name:'그리스 아테네',countryType:'global',element:'earth',emoji:'🏛️',region:'그리스 아티카',latitude:37.9838,longitude:23.7275,terrainTags:['고대유적','언덕','도시'],energyKeywords:['철학적 기반','원칙','공동체 감각'],recommendedFor:['선택의 기준이 필요한 사람','생각을 원칙으로 정리해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1584_prop_description"),ritualTip:'아크로폴리스가 보이는 곳에서 지금 내 선택 원칙 세 가지를 적어보세요.'}),
+  _energyCoordDestination({id:'earth-cambodia-angkor-wat',name:'캄보디아 앙코르와트',countryType:'global',element:'earth',emoji:'🌄',region:'캄보디아 시엠립',latitude:13.4125,longitude:103.8670,terrainTags:['사원유적','석조','정글'],energyKeywords:['신성한 기반','인내','시간성'],recommendedFor:['마음의 중심 의식이 필요한 사람','오래 걸리는 회복 중인 사람'],bestSeason:['건기'],tripStyle:'retreat',description:_sajuEngineText("se_1585_prop_description"),ritualTip:'사원 앞에서 지금 서두르지 않고 지켜야 할 일을 하나 떠올리세요.'}),
+  _energyCoordDestination({id:'earth-nepal-kathmandu',name:'네팔 카트만두',countryType:'global',element:'earth',emoji:'🛕',region:'네팔 바그마티',latitude:27.7172,longitude:85.3240,terrainTags:['분지','사원','골목'],energyKeywords:['영적 현실감','생활 수행','중심'],recommendedFor:['정신과 현실을 연결해야 하는 사람','생활 수행 루틴이 필요한 사람'],bestSeason:['가을','봄'],tripStyle:'retreat',description:_sajuEngineText("se_1586_prop_description"),ritualTip:'사원 근처에서 매일 10분 지속할 작은 수행 루틴을 정하세요.'}),
+  _energyCoordDestination({id:'earth-india-jaipur',name:'인도 자이푸르',countryType:'global',element:'earth',emoji:'🏰',region:'인도 라자스탄',latitude:26.9124,longitude:75.7873,terrainTags:['궁전','사막도시','핑크시티'],energyKeywords:['왕성한 기반','현실 감각','색채 안정'],recommendedFor:['자기 가치를 현실적으로 높이고 싶은 사람','감각과 생활을 함께 정리하려는 사람'],bestSeason:['겨울'],tripStyle:'creative',description:_sajuEngineText("se_1587_prop_description"),ritualTip:'궁전에서 가장 마음에 드는 색이나 문양을 골라 내 생활에 적용할 방식 하나를 정하세요.'}),
+  _energyCoordDestination({id:'earth-bolivia-uyuni',name:'볼리비아 우유니',countryType:'global',element:'earth',emoji:'🪞',region:'볼리비아 포토시',latitude:-20.1338,longitude:-67.4891,terrainTags:['소금평원','고원','반영'],energyKeywords:['비움','현실 거울','재정렬'],recommendedFor:['복잡한 마음을 비워야 하는 사람','삶의 방향을 반사해 보고 싶은 사람'],bestSeason:['우기','건기'],tripStyle:'retreat',description:_sajuEngineText("se_1588_prop_description"),ritualTip:'수평선 앞에서 지금 내려놓을 집착 하나와 남길 기준 하나를 적으세요.'}),
+  _energyCoordDestination({id:'earth-mongolia-steppe',name:'몽골 초원',countryType:'global',element:'earth',emoji:'🐎',region:'몽골 중앙 초원',latitude:47.8864,longitude:106.9057,terrainTags:['초원','고원','흙길'],energyKeywords:['넓은 기반','단순함','생존력'],recommendedFor:['삶이 과하게 복잡해진 사람','기본으로 돌아가야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:_sajuEngineText("se_1589_prop_description"),ritualTip:'초원에서 꼭 필요한 것과 있으면 좋은 것을 구분해 여행 가방처럼 삶도 정리해보세요.'}),
 
-  _energyCoordDestination({id:'metal-seoul-leeum-hannam',name:'서울 한남동·리움미술관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'서울 용산',latitude:37.5385,longitude:126.9990,terrainTags:['미술관','도시','건축'],energyKeywords:['감각 정제','안목','절제'],recommendedFor:['취향과 기준을 정리해야 하는 사람','미적 영감이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'정제된 건축과 작품의 금(金)이 감각을 날카롭게 다듬어, 흐릿한 취향과 판단 기준을 세련된 안목으로 정리하게 합니다.',ritualTip:'가장 오래 시선이 머문 작품 앞에서 내 선택 기준 한 문장을 적어보세요.'}),
-  _energyCoordDestination({id:'metal-seoul-bukchon-samcheong',name:'서울 북촌·삼청동',countryType:'domestic',element:'metal',emoji:'🏘️',region:'서울 종로',latitude:37.5826,longitude:126.9836,terrainTags:['한옥길','갤러리','골목'],energyKeywords:['절제된 아름다움','선택 정리','감각'],recommendedFor:['복잡한 취향을 정돈하고 싶은 사람','가볍게 걷고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'한옥의 선과 갤러리의 금(金) 감각이 과한 감정을 덜어내고, 필요한 것만 남기는 절제된 아름다움을 회복시킵니다.',ritualTip:'골목에서 가장 단정하다고 느낀 장면을 보고 오늘 비울 물건 하나를 정하세요.'}),
-  _energyCoordDestination({id:'metal-seoul-ddp',name:'서울 DDP',countryType:'domestic',element:'metal',emoji:'🛸',region:'서울 중구',latitude:37.5665,longitude:127.0090,terrainTags:['현대건축','메탈릭','디자인'],energyKeywords:['미래감','결단','구조화'],recommendedFor:['아이디어를 형태로 만들고 싶은 사람','일의 구조를 새로 잡아야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'유선형 금속 건축의 금(金)이 미래적 감각과 구조적 사고를 자극해, 흩어진 아이디어를 선명한 형태로 굳히게 합니다.',ritualTip:'건물 곡선을 따라 걸으며 지금 만들고 싶은 결과물의 형태를 스케치하세요.'}),
-  _energyCoordDestination({id:'metal-busan-marine-city',name:'부산 마린시티',countryType:'domestic',element:'metal',emoji:'🌉',region:'부산 해운대',latitude:35.1568,longitude:129.1455,terrainTags:['마천루','해안도시','야경'],energyKeywords:['성취감','도시 감각','목표 정렬'],recommendedFor:['커리어 자극이 필요한 사람','높은 목표를 다시 보고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'해안 마천루의 금(金)이 목표를 높고 선명하게 보여주며, 느슨해진 성취 욕구를 세련된 긴장감으로 다시 조율합니다.',ritualTip:'야경을 보며 지금 올라가고 싶은 단계와 그 단계의 기준을 적어보세요.'}),
-  _energyCoordDestination({id:'metal-incheon-songdo',name:'인천 송도',countryType:'domestic',element:'metal',emoji:'🏙️',region:'인천 연수',latitude:37.3828,longitude:126.6560,terrainTags:['계획도시','고층건축','수변공원'],energyKeywords:['정리','미래 계획','업무 감각'],recommendedFor:['새 업무 시스템이 필요한 사람','삶을 현대적으로 정돈하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'계획도시의 금(金) 질서가 산만한 생활을 정돈하고, 미래 계획을 감정이 아닌 구조와 일정으로 바꾸게 합니다.',ritualTip:'센트럴파크 주변에서 다음 주 할 일 3개를 우선순위대로 정렬하세요.'}),
-  _energyCoordDestination({id:'metal-daejeon-expo-science-park',name:'대전 엑스포 과학공원',countryType:'domestic',element:'metal',emoji:'🔬',region:'대전 유성',latitude:36.3768,longitude:127.3890,terrainTags:['과학공원','기술','전망탑'],energyKeywords:['논리','기술 감각','미래 설계'],recommendedFor:['기술적 판단이 필요한 사람','문제를 객관화해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'과학과 기술의 금(金)이 감정적 판단을 걷어내고, 문제를 객관적인 구조와 실험 가능한 아이디어로 재정렬합니다.',ritualTip:'한빛탑 주변에서 해결할 문제를 가설, 실험, 결과 세 칸으로 나눠 적어보세요.'}),
-  _energyCoordDestination({id:'metal-cheongju-mmca',name:'청주 국립현대미술관',countryType:'domestic',element:'metal',emoji:'🖼️',region:'충북 청주',latitude:36.6468,longitude:127.4914,terrainTags:['미술관','현대미술','도시'],energyKeywords:['감각 정밀화','해석력','정리'],recommendedFor:['생각을 정교하게 다듬고 싶은 사람','새 관점이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'현대미술의 금(金) 감각이 익숙한 해석을 잘라내고, 사물을 더 정밀하고 신선하게 보는 판단력을 깨웁니다.',ritualTip:'이해 안 되는 작품 하나를 골라 내 방식으로 제목을 새로 붙여보세요.'}),
-  _energyCoordDestination({id:'metal-wonju-museum-san',name:'원주 뮤지엄 산',countryType:'domestic',element:'metal',emoji:'⛰️',region:'강원 원주',latitude:37.4133,longitude:127.8236,terrainTags:['미술관','건축','산지'],energyKeywords:['비움','절제','감각 집중'],recommendedFor:['마음을 비우고 기준을 세우려는 사람','혼자 집중 시간이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:'산과 건축이 만나는 금(金)의 절제가 불필요한 감각을 덜어내고, 하나의 선택에 깊게 집중할 수 있는 선명함을 줍니다.',ritualTip:'제임스 터렐 공간처럼 빛을 느끼는 순간, 지금 남길 일 하나만 정하세요.'}),
-  _energyCoordDestination({id:'metal-gangneung-haslla-art-world',name:'강릉 하슬라아트월드',countryType:'domestic',element:'metal',emoji:'🎭',region:'강원 강릉',latitude:37.6945,longitude:129.0486,terrainTags:['미술공간','해안절벽','조각'],energyKeywords:['감각 전환','표현 정리','시선'],recommendedFor:['익숙한 관점을 바꾸고 싶은 사람','예술적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'바다와 조각의 금(金)이 시선을 날카롭게 전환시켜, 막연한 감정을 형태 있는 표현과 분명한 취향으로 정리하게 합니다.',ritualTip:'조각 작품 하나를 골라 내 마음의 현재 형태라고 상상하고 이름을 붙이세요.'}),
-  _energyCoordDestination({id:'metal-jeju-bontae-museum',name:'제주 본태박물관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'제주 서귀포',latitude:33.3021,longitude:126.3920,terrainTags:['미술관','건축','제주 풍경'],energyKeywords:['본질','절제된 아름다움','감각 정리'],recommendedFor:['본질을 보고 싶은 사람','감정 과잉을 줄여야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'절제된 건축과 작품의 금(金)이 감정의 장식을 덜어내고, 지금 정말 중요한 본질과 아름다움을 선명하게 보여줍니다.',ritualTip:'관람 후 마음에 남은 것과 남지 않은 것을 나눠 내 취향의 기준을 적어보세요.'}),
-  _energyCoordDestination({id:'metal-paju-book-city',name:'파주 출판도시',countryType:'domestic',element:'metal',emoji:'📚',region:'경기 파주',latitude:37.7086,longitude:126.6861,terrainTags:['출판단지','책방','건축'],energyKeywords:['언어 정리','지식 구조','집중'],recommendedFor:['문장과 기획을 정리해야 하는 사람','생각을 콘텐츠로 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'책과 건축의 금(金)이 생각을 문장과 구조로 다듬어, 흩어진 지식을 쓸 수 있는 콘텐츠와 계획으로 바꿔줍니다.',ritualTip:'책방에서 첫눈에 들어온 문장 하나를 오늘의 기준 문장으로 삼으세요.'}),
-  _energyCoordDestination({id:'metal-gwangju-acc',name:'광주 국립아시아문화전당',countryType:'domestic',element:'metal',emoji:'🎬',region:'광주 동구',latitude:35.1469,longitude:126.9199,terrainTags:['복합문화공간','현대건축','전시'],energyKeywords:['문화 감각','판단력','표현 구조'],recommendedFor:['작업의 형식을 찾는 사람','복합적 아이디어를 정리해야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:'복합문화공간의 금(金)이 다양한 감각을 하나의 형식으로 묶어주며, 아이디어를 작품과 실행 구조로 정리하게 합니다.',ritualTip:'전시 관람 후 지금 내 프로젝트에 필요한 형식 하나를 골라보세요.'}),
-  _energyCoordDestination({id:'metal-switzerland-zurich',name:'스위스 취리히',countryType:'global',element:'metal',emoji:'⌚',region:'스위스 취리히',latitude:47.3769,longitude:8.5417,terrainTags:['금융도시','호수도시','정돈된 거리'],energyKeywords:['정밀함','재정 감각','결단'],recommendedFor:['돈과 시간 관리를 정리해야 하는 사람','삶의 기준을 세련되게 다듬고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'정돈된 도시와 금융의 금(金)이 시간과 돈의 감각을 날카롭게 다듬어, 흐릿한 계획을 수치와 기준으로 정리하게 합니다.',ritualTip:'호숫가에서 앞으로 줄일 지출 하나와 키울 투자 하나를 적으세요.'}),
-  _energyCoordDestination({id:'metal-japan-tokyo-ginza',name:'일본 도쿄 긴자',countryType:'global',element:'metal',emoji:'💎',region:'일본 도쿄',latitude:35.6717,longitude:139.7650,terrainTags:['상업지구','디자인','고급 거리'],energyKeywords:['취향 정제','선택력','브랜딩'],recommendedFor:['브랜드 감각이 필요한 사람','선택 피로를 줄이고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'creative',description:'긴자의 금(金)은 과한 선택지를 세련된 기준으로 압축해, 나에게 맞는 취향과 브랜딩 감각을 분명하게 다듬습니다.',ritualTip:'쇼윈도에서 사고 싶은 것보다 왜 끌리는지를 세 단어로 분석하세요.'}),
-  _energyCoordDestination({id:'metal-france-paris',name:'프랑스 파리',countryType:'global',element:'metal',emoji:'🗼',region:'프랑스 일드프랑스',latitude:48.8566,longitude:2.3522,terrainTags:['미술관','건축','도시 산책'],energyKeywords:['안목','미감','절제'],recommendedFor:['아름다움의 기준을 다시 세우고 싶은 사람','감각적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'미술관과 도시 선의 금(金)이 감각을 고급스럽게 정제해, 아름다움을 소비가 아니라 판단 기준으로 받아들이게 합니다.',ritualTip:'루브르나 오르세에서 가장 오래 본 작품의 공통점을 내 취향 키워드로 적으세요.'}),
-  _energyCoordDestination({id:'metal-usa-manhattan',name:'미국 뉴욕 맨해튼',countryType:'global',element:'metal',emoji:'🏙️',region:'미국 뉴욕',latitude:40.7831,longitude:-73.9712,terrainTags:['마천루','미술관','금융가'],energyKeywords:['성과','결단','도시 집중력'],recommendedFor:['커리어 승부수가 필요한 사람','높은 밀도의 자극이 필요한 사람'],avoidFor:['소음과 속도에 약한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'마천루와 금융가의 금(金)이 경쟁 속 기준을 선명하게 만들며, 성과를 향한 집중력과 결단의 날을 세워줍니다.',ritualTip:'스카이라인을 보며 내 커리어에서 반드시 이길 영역 하나를 정하세요.'}),
-  _energyCoordDestination({id:'metal-uk-london',name:'영국 런던',countryType:'global',element:'metal',emoji:'🎩',region:'영국 잉글랜드',latitude:51.5072,longitude:-0.1276,terrainTags:['박물관','금융도시','클래식 건축'],energyKeywords:['전통과 기준','품격','판단력'],recommendedFor:['일의 품격을 높이고 싶은 사람','오래가는 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'전통과 현대가 겹친 런던의 금(金)은 기준의 무게를 알려주며, 일과 관계에서 오래갈 품격과 판단력을 회복시킵니다.',ritualTip:'박물관에서 오래 남은 물건 하나를 보며 내 일에서 오래 남길 기준을 정하세요.'}),
-  _energyCoordDestination({id:'metal-singapore-marina-bay',name:'싱가포르 마리나베이',countryType:'global',element:'metal',emoji:'🌃',region:'싱가포르 마리나베이',latitude:1.2834,longitude:103.8607,terrainTags:['현대건축','수변도시','야경'],energyKeywords:['정돈된 야망','미래 설계','도시 감각'],recommendedFor:['야망을 현실 계획으로 바꿔야 하는 사람','효율적 휴식이 필요한 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:'정교한 도시 설계와 야경의 금(金)이 야망을 흐릿한 욕망이 아니라 관리 가능한 미래 계획으로 바꿔줍니다.',ritualTip:'야경을 보며 내가 원하는 삶의 운영 시스템을 세 가지로 나눠 적으세요.'}),
-  _energyCoordDestination({id:'metal-hongkong-central',name:'홍콩 센트럴',countryType:'global',element:'metal',emoji:'🏦',region:'홍콩 센트럴',latitude:22.2796,longitude:114.1588,terrainTags:['금융가','고층건축','항구도시'],energyKeywords:['빠른 판단','거래 감각','결단'],recommendedFor:['비즈니스 감각을 깨우고 싶은 사람','빠른 의사결정 훈련이 필요한 사람'],bestSeason:['가을','겨울'],tripStyle:'creative',description:'금융가와 항구가 맞물린 금(金)이 빠른 판단과 거래 감각을 일깨워, 기회를 놓치지 않는 결단력을 훈련시킵니다.',ritualTip:'센트럴을 걸으며 지금 협상해야 할 것과 포기해야 할 것을 각각 하나씩 정하세요.'}),
-  _energyCoordDestination({id:'metal-austria-vienna',name:'오스트리아 빈',countryType:'global',element:'metal',emoji:'🎻',region:'오스트리아 빈',latitude:48.2082,longitude:16.3738,terrainTags:['음악도시','궁전','미술관'],energyKeywords:['격식','균형감','정제된 감성'],recommendedFor:['감정을 품격 있게 표현하고 싶은 사람','관계의 예의를 회복해야 하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'음악과 궁전의 금(金)이 감정을 절제된 형식 안에 담아, 과하지 않지만 깊이 있는 표현과 관계의 품격을 회복시킵니다.',ritualTip:'클래식 음악을 들으며 지금 정중하게 전해야 할 마음을 한 문장으로 써보세요.'}),
-  _energyCoordDestination({id:'metal-denmark-copenhagen',name:'덴마크 코펜하겐',countryType:'global',element:'metal',emoji:'🚲',region:'덴마크 수도권',latitude:55.6761,longitude:12.5683,terrainTags:['디자인도시','항구','자전거길'],energyKeywords:['실용미','정리된 생활','균형'],recommendedFor:['생활 디자인을 바꾸고 싶은 사람','단순하고 좋은 루틴이 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'slow_trip',description:'실용적 디자인과 정돈된 도시의 금(金)이 복잡한 생활을 단순하게 다듬고, 아름다움과 효율이 함께 가는 루틴을 보여줍니다.',ritualTip:'좋아 보이는 생활 장면 하나를 골라 내 방이나 일정에 적용할 방법을 정하세요.'}),
-  _energyCoordDestination({id:'metal-finland-helsinki',name:'핀란드 헬싱키',countryType:'global',element:'metal',emoji:'🏛️',region:'핀란드 우시마',latitude:60.1699,longitude:24.9384,terrainTags:['디자인','항구도시','미니멀 건축'],energyKeywords:['미니멀','선명한 기준','차분한 집중'],recommendedFor:['과한 자극을 줄이고 싶은 사람','단정한 생활 감각이 필요한 사람'],bestSeason:['여름','겨울'],tripStyle:'retreat',description:'북유럽 미니멀리즘의 금(金)이 불필요한 장식을 걷어내고, 조용하지만 선명한 생활 기준과 집중력을 회복시킵니다.',ritualTip:'하루 동안 사지 않을 것, 말하지 않을 것, 미룰 것을 각각 하나씩 정하세요.'}),
-  _energyCoordDestination({id:'metal-germany-berlin',name:'독일 베를린',countryType:'global',element:'metal',emoji:'🧱',region:'독일 베를린',latitude:52.5200,longitude:13.4050,terrainTags:['현대사','갤러리','도시건축'],energyKeywords:['절단과 재구성','새 기준','표현 구조'],recommendedFor:['과거와 현재를 새롭게 연결해야 하는 사람','작업의 날것과 구조가 모두 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'creative',description:'역사적 절단과 재구성의 금(金)이 지나간 상처를 새로운 구조와 표현으로 바꾸는 힘을 줍니다.',ritualTip:'벽의 흔적을 보며 내가 끊어야 할 경계와 다시 연결할 가능성을 적어보세요.'}),
-  _energyCoordDestination({id:'metal-netherlands-amsterdam-museum-quarter',name:'네덜란드 암스테르담 미술관 지구',countryType:'global',element:'metal',emoji:'🖼️',region:'네덜란드 암스테르담',latitude:52.3584,longitude:4.8811,terrainTags:['미술관','운하도시','광장'],energyKeywords:['안목','해석력','감각 정돈'],recommendedFor:['예술과 사고의 기준을 다듬고 싶은 사람','차분한 도시 산책이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:'미술관 지구의 금(金)이 감상과 해석을 정교하게 만들어, 감정적 취향을 깊이 있는 안목과 판단력으로 정돈합니다.',ritualTip:'세 작품을 골라 공통으로 끌린 점을 찾아 내 취향의 문장으로 남기세요.'}),
+  _energyCoordDestination({id:'metal-seoul-leeum-hannam',name:'서울 한남동·리움미술관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'서울 용산',latitude:37.5385,longitude:126.9990,terrainTags:['미술관','도시','건축'],energyKeywords:['감각 정제','안목','절제'],recommendedFor:['취향과 기준을 정리해야 하는 사람','미적 영감이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1591_prop_description"),ritualTip:'가장 오래 시선이 머문 작품 앞에서 내 선택 기준 한 문장을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-seoul-bukchon-samcheong',name:'서울 북촌·삼청동',countryType:'domestic',element:'metal',emoji:'🏘️',region:'서울 종로',latitude:37.5826,longitude:126.9836,terrainTags:['한옥길','갤러리','골목'],energyKeywords:['절제된 아름다움','선택 정리','감각'],recommendedFor:['복잡한 취향을 정돈하고 싶은 사람','가볍게 걷고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1592_prop_description"),ritualTip:'골목에서 가장 단정하다고 느낀 장면을 보고 오늘 비울 물건 하나를 정하세요.'}),
+  _energyCoordDestination({id:'metal-seoul-ddp',name:'서울 DDP',countryType:'domestic',element:'metal',emoji:'🛸',region:'서울 중구',latitude:37.5665,longitude:127.0090,terrainTags:['현대건축','메탈릭','디자인'],energyKeywords:['미래감','결단','구조화'],recommendedFor:['아이디어를 형태로 만들고 싶은 사람','일의 구조를 새로 잡아야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1593_prop_description"),ritualTip:'건물 곡선을 따라 걸으며 지금 만들고 싶은 결과물의 형태를 스케치하세요.'}),
+  _energyCoordDestination({id:'metal-busan-marine-city',name:'부산 마린시티',countryType:'domestic',element:'metal',emoji:'🌉',region:'부산 해운대',latitude:35.1568,longitude:129.1455,terrainTags:['마천루','해안도시','야경'],energyKeywords:['성취감','도시 감각','목표 정렬'],recommendedFor:['커리어 자극이 필요한 사람','높은 목표를 다시 보고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:_sajuEngineText("se_1594_prop_description"),ritualTip:'야경을 보며 지금 올라가고 싶은 단계와 그 단계의 기준을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-incheon-songdo',name:'인천 송도',countryType:'domestic',element:'metal',emoji:'🏙️',region:'인천 연수',latitude:37.3828,longitude:126.6560,terrainTags:['계획도시','고층건축','수변공원'],energyKeywords:['정리','미래 계획','업무 감각'],recommendedFor:['새 업무 시스템이 필요한 사람','삶을 현대적으로 정돈하고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1595_prop_description"),ritualTip:'센트럴파크 주변에서 다음 주 할 일 3개를 우선순위대로 정렬하세요.'}),
+  _energyCoordDestination({id:'metal-daejeon-expo-science-park',name:'대전 엑스포 과학공원',countryType:'domestic',element:'metal',emoji:'🔬',region:'대전 유성',latitude:36.3768,longitude:127.3890,terrainTags:['과학공원','기술','전망탑'],energyKeywords:['논리','기술 감각','미래 설계'],recommendedFor:['기술적 판단이 필요한 사람','문제를 객관화해야 하는 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1596_prop_description"),ritualTip:'한빛탑 주변에서 해결할 문제를 가설, 실험, 결과 세 칸으로 나눠 적어보세요.'}),
+  _energyCoordDestination({id:'metal-cheongju-mmca',name:'청주 국립현대미술관',countryType:'domestic',element:'metal',emoji:'🖼️',region:'충북 청주',latitude:36.6468,longitude:127.4914,terrainTags:['미술관','현대미술','도시'],energyKeywords:['감각 정밀화','해석력','정리'],recommendedFor:['생각을 정교하게 다듬고 싶은 사람','새 관점이 필요한 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1597_prop_description"),ritualTip:'이해 안 되는 작품 하나를 골라 내 방식으로 제목을 새로 붙여보세요.'}),
+  _energyCoordDestination({id:'metal-wonju-museum-san',name:'원주 뮤지엄 산',countryType:'domestic',element:'metal',emoji:'⛰️',region:'강원 원주',latitude:37.4133,longitude:127.8236,terrainTags:['미술관','건축','산지'],energyKeywords:['비움','절제','감각 집중'],recommendedFor:['마음을 비우고 기준을 세우려는 사람','혼자 집중 시간이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'retreat',description:_sajuEngineText("se_1598_prop_description"),ritualTip:'제임스 터렐 공간처럼 빛을 느끼는 순간, 지금 남길 일 하나만 정하세요.'}),
+  _energyCoordDestination({id:'metal-gangneung-haslla-art-world',name:'강릉 하슬라아트월드',countryType:'domestic',element:'metal',emoji:'🎭',region:'강원 강릉',latitude:37.6945,longitude:129.0486,terrainTags:['미술공간','해안절벽','조각'],energyKeywords:['감각 전환','표현 정리','시선'],recommendedFor:['익숙한 관점을 바꾸고 싶은 사람','예술적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1599_prop_description"),ritualTip:'조각 작품 하나를 골라 내 마음의 현재 형태라고 상상하고 이름을 붙이세요.'}),
+  _energyCoordDestination({id:'metal-jeju-bontae-museum',name:'제주 본태박물관',countryType:'domestic',element:'metal',emoji:'🏛️',region:'제주 서귀포',latitude:33.3021,longitude:126.3920,terrainTags:['미술관','건축','제주 풍경'],energyKeywords:['본질','절제된 아름다움','감각 정리'],recommendedFor:['본질을 보고 싶은 사람','감정 과잉을 줄여야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1600_prop_description"),ritualTip:'관람 후 마음에 남은 것과 남지 않은 것을 나눠 내 취향의 기준을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-paju-book-city',name:'파주 출판도시',countryType:'domestic',element:'metal',emoji:'📚',region:'경기 파주',latitude:37.7086,longitude:126.6861,terrainTags:['출판단지','책방','건축'],energyKeywords:['언어 정리','지식 구조','집중'],recommendedFor:['문장과 기획을 정리해야 하는 사람','생각을 콘텐츠로 만들고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1601_prop_description"),ritualTip:'책방에서 첫눈에 들어온 문장 하나를 오늘의 기준 문장으로 삼으세요.'}),
+  _energyCoordDestination({id:'metal-gwangju-acc',name:'광주 국립아시아문화전당',countryType:'domestic',element:'metal',emoji:'🎬',region:'광주 동구',latitude:35.1469,longitude:126.9199,terrainTags:['복합문화공간','현대건축','전시'],energyKeywords:['문화 감각','판단력','표현 구조'],recommendedFor:['작업의 형식을 찾는 사람','복합적 아이디어를 정리해야 하는 사람'],bestSeason:['사계절'],tripStyle:'creative',description:_sajuEngineText("se_1602_prop_description"),ritualTip:'전시 관람 후 지금 내 프로젝트에 필요한 형식 하나를 골라보세요.'}),
+  _energyCoordDestination({id:'metal-switzerland-zurich',name:'스위스 취리히',countryType:'global',element:'metal',emoji:'⌚',region:'스위스 취리히',latitude:47.3769,longitude:8.5417,terrainTags:['금융도시','호수도시','정돈된 거리'],energyKeywords:['정밀함','재정 감각','결단'],recommendedFor:['돈과 시간 관리를 정리해야 하는 사람','삶의 기준을 세련되게 다듬고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1603_prop_description"),ritualTip:'호숫가에서 앞으로 줄일 지출 하나와 키울 투자 하나를 적으세요.'}),
+  _energyCoordDestination({id:'metal-japan-tokyo-ginza',name:'일본 도쿄 긴자',countryType:'global',element:'metal',emoji:'💎',region:'일본 도쿄',latitude:35.6717,longitude:139.7650,terrainTags:['상업지구','디자인','고급 거리'],energyKeywords:['취향 정제','선택력','브랜딩'],recommendedFor:['브랜드 감각이 필요한 사람','선택 피로를 줄이고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'creative',description:_sajuEngineText("se_1604_prop_description"),ritualTip:'쇼윈도에서 사고 싶은 것보다 왜 끌리는지를 세 단어로 분석하세요.'}),
+  _energyCoordDestination({id:'metal-france-paris',name:'프랑스 파리',countryType:'global',element:'metal',emoji:'🗼',region:'프랑스 일드프랑스',latitude:48.8566,longitude:2.3522,terrainTags:['미술관','건축','도시 산책'],energyKeywords:['안목','미감','절제'],recommendedFor:['아름다움의 기준을 다시 세우고 싶은 사람','감각적 자극이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1605_prop_description"),ritualTip:'루브르나 오르세에서 가장 오래 본 작품의 공통점을 내 취향 키워드로 적으세요.'}),
+  _energyCoordDestination({id:'metal-usa-manhattan',name:'미국 뉴욕 맨해튼',countryType:'global',element:'metal',emoji:'🏙️',region:'미국 뉴욕',latitude:40.7831,longitude:-73.9712,terrainTags:['마천루','미술관','금융가'],energyKeywords:['성과','결단','도시 집중력'],recommendedFor:['커리어 승부수가 필요한 사람','높은 밀도의 자극이 필요한 사람'],avoidFor:['소음과 속도에 약한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1606_prop_description"),ritualTip:'스카이라인을 보며 내 커리어에서 반드시 이길 영역 하나를 정하세요.'}),
+  _energyCoordDestination({id:'metal-uk-london',name:'영국 런던',countryType:'global',element:'metal',emoji:'🎩',region:'영국 잉글랜드',latitude:51.5072,longitude:-0.1276,terrainTags:['박물관','금융도시','클래식 건축'],energyKeywords:['전통과 기준','품격','판단력'],recommendedFor:['일의 품격을 높이고 싶은 사람','오래가는 기준이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1607_prop_description"),ritualTip:'박물관에서 오래 남은 물건 하나를 보며 내 일에서 오래 남길 기준을 정하세요.'}),
+  _energyCoordDestination({id:'metal-singapore-marina-bay',name:'싱가포르 마리나베이',countryType:'global',element:'metal',emoji:'🌃',region:'싱가포르 마리나베이',latitude:1.2834,longitude:103.8607,terrainTags:['현대건축','수변도시','야경'],energyKeywords:['정돈된 야망','미래 설계','도시 감각'],recommendedFor:['야망을 현실 계획으로 바꿔야 하는 사람','효율적 휴식이 필요한 사람'],bestSeason:['사계절'],tripStyle:'romantic',description:_sajuEngineText("se_1608_prop_description"),ritualTip:'야경을 보며 내가 원하는 삶의 운영 시스템을 세 가지로 나눠 적으세요.'}),
+  _energyCoordDestination({id:'metal-hongkong-central',name:'홍콩 센트럴',countryType:'global',element:'metal',emoji:'🏦',region:'홍콩 센트럴',latitude:22.2796,longitude:114.1588,terrainTags:['금융가','고층건축','항구도시'],energyKeywords:['빠른 판단','거래 감각','결단'],recommendedFor:['비즈니스 감각을 깨우고 싶은 사람','빠른 의사결정 훈련이 필요한 사람'],bestSeason:['가을','겨울'],tripStyle:'creative',description:_sajuEngineText("se_1609_prop_description"),ritualTip:'센트럴을 걸으며 지금 협상해야 할 것과 포기해야 할 것을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'metal-austria-vienna',name:'오스트리아 빈',countryType:'global',element:'metal',emoji:'🎻',region:'오스트리아 빈',latitude:48.2082,longitude:16.3738,terrainTags:['음악도시','궁전','미술관'],energyKeywords:['격식','균형감','정제된 감성'],recommendedFor:['감정을 품격 있게 표현하고 싶은 사람','관계의 예의를 회복해야 하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:_sajuEngineText("se_1610_prop_description"),ritualTip:'클래식 음악을 들으며 지금 정중하게 전해야 할 마음을 한 문장으로 써보세요.'}),
+  _energyCoordDestination({id:'metal-denmark-copenhagen',name:'덴마크 코펜하겐',countryType:'global',element:'metal',emoji:'🚲',region:'덴마크 수도권',latitude:55.6761,longitude:12.5683,terrainTags:['디자인도시','항구','자전거길'],energyKeywords:['실용미','정리된 생활','균형'],recommendedFor:['생활 디자인을 바꾸고 싶은 사람','단순하고 좋은 루틴이 필요한 사람'],bestSeason:['여름','초가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1611_prop_description"),ritualTip:'좋아 보이는 생활 장면 하나를 골라 내 방이나 일정에 적용할 방법을 정하세요.'}),
+  _energyCoordDestination({id:'metal-finland-helsinki',name:'핀란드 헬싱키',countryType:'global',element:'metal',emoji:'🏛️',region:'핀란드 우시마',latitude:60.1699,longitude:24.9384,terrainTags:['디자인','항구도시','미니멀 건축'],energyKeywords:['미니멀','선명한 기준','차분한 집중'],recommendedFor:['과한 자극을 줄이고 싶은 사람','단정한 생활 감각이 필요한 사람'],bestSeason:['여름','겨울'],tripStyle:'retreat',description:_sajuEngineText("se_1612_prop_description"),ritualTip:'하루 동안 사지 않을 것, 말하지 않을 것, 미룰 것을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'metal-germany-berlin',name:'독일 베를린',countryType:'global',element:'metal',emoji:'🧱',region:'독일 베를린',latitude:52.5200,longitude:13.4050,terrainTags:['현대사','갤러리','도시건축'],energyKeywords:['절단과 재구성','새 기준','표현 구조'],recommendedFor:['과거와 현재를 새롭게 연결해야 하는 사람','작업의 날것과 구조가 모두 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'creative',description:_sajuEngineText("se_1613_prop_description"),ritualTip:'벽의 흔적을 보며 내가 끊어야 할 경계와 다시 연결할 가능성을 적어보세요.'}),
+  _energyCoordDestination({id:'metal-netherlands-amsterdam-museum-quarter',name:'네덜란드 암스테르담 미술관 지구',countryType:'global',element:'metal',emoji:'🖼️',region:'네덜란드 암스테르담',latitude:52.3584,longitude:4.8811,terrainTags:['미술관','운하도시','광장'],energyKeywords:['안목','해석력','감각 정돈'],recommendedFor:['예술과 사고의 기준을 다듬고 싶은 사람','차분한 도시 산책이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'creative',description:_sajuEngineText("se_1614_prop_description"),ritualTip:'세 작품을 골라 공통으로 끌린 점을 찾아 내 취향의 문장으로 남기세요.'}),
 
-  _energyCoordDestination({id:'water-tongyeong-hallyeosudo',name:'통영 한려수도',countryType:'domestic',element:'water',emoji:'🏝️',region:'경남 통영',latitude:34.8406,longitude:128.4302,terrainTags:['다도해','섬','잔잔한 바다'],energyKeywords:['감정 안정','몰입','치유'],recommendedFor:['감정 파동이 큰 사람','조용한 회복이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'섬 사이를 흐르는 수(水)의 낮은 진동이 과열된 마음을 식히고, 감정의 파동을 잔잔하게 만들어 깊은 몰입을 회복시킵니다.',ritualTip:'바다를 보며 오늘은 답을 내리지 않을 질문 하나를 정하고 그대로 두세요.'}),
-  _energyCoordDestination({id:'water-yeosu-odongdo',name:'여수 오동도',countryType:'domestic',element:'water',emoji:'🌊',region:'전남 여수',latitude:34.7447,longitude:127.7666,terrainTags:['섬 산책','해안','동백숲'],energyKeywords:['정서 순환','부드러운 치유','관계 회복'],recommendedFor:['감정이 막힌 사람','가볍게 걷고 싶은 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:'섬을 감싸는 수(水)와 동백숲의 부드러운 그늘이 감정의 막힌 흐름을 풀어, 말하지 못한 마음을 자연스럽게 순환시킵니다.',ritualTip:'섬길을 한 바퀴 돌며 마음속에서 아직 돌고 있는 감정을 이름 붙여보세요.'}),
-  _energyCoordDestination({id:'water-boseong-goheung-dadohae',name:'보성·고흥 다도해',countryType:'domestic',element:'water',emoji:'🚢',region:'전남 보성·고흥',latitude:34.6047,longitude:127.2757,terrainTags:['다도해','안개 항구','해안길'],energyKeywords:['직관','정서 안정','깊은 회복'],recommendedFor:['생각보다 느낌을 믿어야 하는 사람','낮은 자극의 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'안개 낀 다도해의 수(水)가 생각의 표면을 조용히 낮추고, 깊은 직관과 감정 안정의 결을 되찾게 합니다.',ritualTip:'안개나 바다빛을 보며 설명보다 먼저 떠오르는 느낌 하나를 기록하세요.'}),
-  _energyCoordDestination({id:'water-jeju-sehwa-seongsan-spring',name:'제주 세화·성산 용천수',countryType:'domestic',element:'water',emoji:'💧',region:'제주 동부',latitude:33.5268,longitude:126.8583,terrainTags:['용천수','해변','올레길'],energyKeywords:['정화','감정 세척','맑은 판단'],recommendedFor:['생각이 탁해진 사람','가벼운 도보 회복이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'화산 지하에서 솟는 맑은 수(水)가 탁해진 판단을 씻어내고, 과열된 감정을 투명하고 차분한 상태로 되돌립니다.',ritualTip:'용천수 근처에서 손을 씻고 오늘 놓아줄 감정 한 가지를 마음속으로 흘려보내세요.'}),
-  _energyCoordDestination({id:'water-busan-haeundae-dalmaji',name:'부산 해운대·달맞이길',countryType:'domestic',element:'water',emoji:'🌙',region:'부산 해운대',latitude:35.1587,longitude:129.1604,terrainTags:['해변','달맞이길','카페'],energyKeywords:['감정 완충','휴식','관계 온도 조절'],recommendedFor:['관계 피로가 큰 사람','바다와 도시를 함께 원하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:'넓은 바다의 수(水)와 달맞이길의 완만한 흐름이 감정을 급하게 밀어붙이지 않고, 관계의 온도를 부드럽게 조절해줍니다.',ritualTip:'달맞이길에서 말하고 싶은 마음과 아직 기다릴 마음을 구분해보세요.'}),
-  _energyCoordDestination({id:'water-gangneung-gyeongpoho',name:'강릉 경포호',countryType:'domestic',element:'water',emoji:'🏞️',region:'강원 강릉',latitude:37.7956,longitude:128.8961,terrainTags:['호수','해변 인접','자전거길'],energyKeywords:['생각 정리','감정 안정','유연함'],recommendedFor:['머리가 과열된 사람','반복 생각을 끊고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'호수와 바다가 가까운 수(水)의 이중 흐름이 반복되는 생각을 식히고, 판단을 더 유연하고 길게 보게 만듭니다.',ritualTip:'호수 한 바퀴 중 절반은 생각하고 절반은 아무 결론도 내리지 않고 걸어보세요.'}),
-  _energyCoordDestination({id:'water-sokcho-yeongnangho',name:'속초 영랑호',countryType:'domestic',element:'water',emoji:'🌫️',region:'강원 속초',latitude:38.2135,longitude:128.5914,terrainTags:['석호','산 전망','호수길'],energyKeywords:['내면 안정','깊은 호흡','감정 관찰'],recommendedFor:['불안이 올라오는 사람','혼자 차분히 걷고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:'산과 호수가 마주한 영랑호의 수(水)는 마음의 진폭을 낮춰, 불안을 없애려 하기보다 안전하게 바라보는 힘을 줍니다.',ritualTip:'호수 위에 비친 산을 보며 내 감정과 현실을 따로 적어보세요.'}),
-  _energyCoordDestination({id:'water-chuncheon-uiamho',name:'춘천 의암호',countryType:'domestic',element:'water',emoji:'🚣',region:'강원 춘천',latitude:37.8806,longitude:127.6945,terrainTags:['호수','자전거길','물안개'],energyKeywords:['휴식','흐름 회복','관계 완충'],recommendedFor:['가까운 물가 휴식이 필요한 사람','일상 속 몰입을 회복하려는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:'물안개와 호수길의 수(水)가 빠르게 굳은 생각을 천천히 풀어, 일상으로 돌아갈 수 있는 부드러운 흐름을 회복시킵니다.',ritualTip:'호수길에서 속도를 낮추고 이번 주 미룰 일과 할 일을 각각 하나씩 정하세요.'}),
-  _energyCoordDestination({id:'water-gapyeong-cheongpyeongho',name:'가평 청평호',countryType:'domestic',element:'water',emoji:'🛶',region:'경기 가평',latitude:37.7256,longitude:127.4201,terrainTags:['호수','수상 레저','산자락'],energyKeywords:['감정 순환','가벼운 휴식','직관'],recommendedFor:['짧은 물가 전환이 필요한 사람','감정의 답답함을 풀고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:'산자락에 담긴 호수의 수(水)가 감정의 압력을 낮추고, 짧은 체류만으로도 마음의 흐름을 다시 부드럽게 만듭니다.',ritualTip:'호수 근처에서 지금 마음을 무겁게 하는 일을 물 위에 띄운다고 상상하세요.'}),
-  _energyCoordDestination({id:'water-ulleungdo',name:'울릉도',countryType:'domestic',element:'water',emoji:'🌊',region:'경북 울릉',latitude:37.4844,longitude:130.9057,terrainTags:['섬','절벽해안','깊은 바다'],energyKeywords:['고립 회복','깊은 직관','정화'],recommendedFor:['세상 소음에서 떨어지고 싶은 사람','강한 물 기운이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'깊은 바다에 둘러싸인 섬의 수(水)가 외부 소음을 끊어내고, 내면 깊은 곳의 직관과 회복력을 강하게 끌어올립니다.',ritualTip:'파도가 크게 들리는 곳에서 지금 나에게 진짜 필요한 말 한 문장을 떠올리세요.'}),
-  _energyCoordDestination({id:'water-namhae-german-village-coast',name:'남해 독일마을 해안길',countryType:'domestic',element:'water',emoji:'🏖️',region:'경남 남해',latitude:34.7994,longitude:128.0397,terrainTags:['해안길','마을','남해 바다'],energyKeywords:['감정 완충','느린 휴식','생활 회복'],recommendedFor:['부드러운 해안 산책이 필요한 사람','삶의 속도를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:'남해의 잔잔한 수(水)가 생활의 긴장을 부드럽게 풀어주며, 낯선 마을 풍경 속에서 감정의 속도를 낮추게 합니다.',ritualTip:'해안길에서 걷는 속도를 일부러 절반으로 낮추고 숨의 길이를 관찰하세요.'}),
-  _energyCoordDestination({id:'water-gunsan-seonyudo',name:'군산 선유도',countryType:'domestic',element:'water',emoji:'🏝️',region:'전북 군산',latitude:35.8111,longitude:126.4117,terrainTags:['섬','해수욕장','다리'],energyKeywords:['관계 흐름','휴식','감정 정리'],recommendedFor:['가벼운 섬 여행이 필요한 사람','답답한 관계를 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:'섬과 다리가 이어진 선유도의 수(水)는 끊어진 감정 흐름을 다시 연결하게 하며, 관계의 거리감을 편안하게 조절해줍니다.',ritualTip:'다리를 건너며 다시 연결할 관계와 거리를 둘 관계를 각각 하나씩 떠올리세요.'}),
-  _energyCoordDestination({id:'water-norway-geirangerfjord',name:'노르웨이 게이랑에르 피요르드',countryType:'global',element:'water',emoji:'🏔️',region:'노르웨이 뫼레오그롬스달',latitude:62.1015,longitude:7.2056,terrainTags:['피요르드','폭포','빙하 협곡'],energyKeywords:['깊은 회복','장기 판단','감정 정화'],recommendedFor:['큰 결정을 앞둔 사람','마음의 깊이를 회복해야 하는 사람'],bestSeason:['여름'],tripStyle:'adventure',description:'빙하가 만든 깊은 수(水)의 협곡이 과열된 사고를 차갑게 식히고, 감정의 파동을 안정시켜 장기 판단력을 회복시키는 장소입니다.',ritualTip:'폭포를 보며 지금 당장 답하지 않아도 되는 문제를 하나 내려놓으세요.'}),
-  _energyCoordDestination({id:'water-italy-venice',name:'이탈리아 베네치아',countryType:'global',element:'water',emoji:'🛶',region:'이탈리아 베네토',latitude:45.4408,longitude:12.3155,terrainTags:['운하','섬도시','다리'],energyKeywords:['유연함','관계 흐름','감성'],recommendedFor:['막힌 대화를 풀고 싶은 사람','감정의 유연함이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:'운하 도시의 수(水)가 직선적 사고를 부드럽게 휘게 만들며, 막힌 관계와 감정을 우회하고 연결하는 유연함을 줍니다.',ritualTip:'다리 하나를 건널 때마다 고집 하나를 내려놓는다고 상상하세요.'}),
-  _energyCoordDestination({id:'water-maldives',name:'몰디브',countryType:'global',element:'water',emoji:'🏝️',region:'몰디브 인도양',latitude:3.2028,longitude:73.2207,terrainTags:['산호초','라군','휴양섬'],energyKeywords:['완전 휴식','감정 세척','치유'],recommendedFor:['강한 휴식이 필요한 사람','몸과 마음을 비워야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'투명한 라군의 수(水)가 감정의 잔여물을 씻어내고, 몸의 긴장을 깊은 휴식 상태로 내려 치유력을 회복시킵니다.',ritualTip:'바다에 들어가기 전 오늘은 아무것도 증명하지 않겠다고 마음속으로 선언하세요.'}),
-  _energyCoordDestination({id:'water-switzerland-lake-lucerne',name:'스위스 루체른 호수',countryType:'global',element:'water',emoji:'🏞️',region:'스위스 루체른',latitude:47.0502,longitude:8.3093,terrainTags:['호수','알프스','구시가지'],energyKeywords:['맑은 판단','차분함','감정 균형'],recommendedFor:['생각을 차갑고 맑게 정리해야 하는 사람','고요한 여행이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:'알프스 호수의 맑은 수(水)가 탁한 감정을 가라앉히고, 차분하지만 흔들리지 않는 판단의 투명도를 회복시킵니다.',ritualTip:'호수 앞에서 지금 감정과 사실을 각각 한 줄씩 나눠 적어보세요.'}),
-  _energyCoordDestination({id:'water-canada-lake-louise',name:'캐나다 레이크 루이스',countryType:'global',element:'water',emoji:'💎',region:'캐나다 앨버타',latitude:51.4254,longitude:-116.1773,terrainTags:['빙하호','산악','숲'],energyKeywords:['깊은 몰입','맑은 직관','회복'],recommendedFor:['생각의 깊이가 필요한 사람','감정 과열을 식혀야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:'빙하가 녹아 만든 푸른 수(水)가 마음의 열을 낮추고, 깊은 몰입과 맑은 직관을 되살리는 고요한 호수 좌표입니다.',ritualTip:'호수 색을 오래 바라보며 지금 가장 맑게 보고 싶은 문제를 하나 정하세요.'}),
-  _energyCoordDestination({id:'water-croatia-plitvice',name:'크로아티아 플리트비체',countryType:'global',element:'water',emoji:'💦',region:'크로아티아 리카센',latitude:44.8654,longitude:15.5820,terrainTags:['계단식 호수','폭포','숲'],energyKeywords:['정화','흐름 회복','감정 순환'],recommendedFor:['감정이 정체된 사람','상처를 부드럽게 흘려보내고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:'층층이 흐르는 호수와 폭포의 수(水)가 멈춘 감정을 단계적으로 풀어내며, 상처를 억지로 지우지 않고 흘려보내게 합니다.',ritualTip:'폭포 소리를 들으며 놓아줄 감정을 단계별로 세 가지 떠올리세요.'}),
-  _energyCoordDestination({id:'water-finland-lakeland',name:'핀란드 호수 지대',countryType:'global',element:'water',emoji:'🛶',region:'핀란드 레이크랜드',latitude:61.9241,longitude:25.7482,terrainTags:['호수군','숲','사우나'],energyKeywords:['침묵 회복','감정 안정','깊은 휴식'],recommendedFor:['말보다 침묵이 필요한 사람','신경계 휴식이 필요한 사람'],bestSeason:['여름'],tripStyle:'retreat',description:'수많은 호수의 낮은 수(水) 진동이 신경계를 고요하게 가라앉히고, 침묵 속에서 감정의 깊은 회복을 돕습니다.',ritualTip:'사우나와 호수 휴식 사이에 하루 한 번 아무 말도 하지 않는 시간을 두세요.'}),
-  _energyCoordDestination({id:'water-japan-okinawa',name:'일본 오키나와',countryType:'global',element:'water',emoji:'🐠',region:'일본 오키나와',latitude:26.2124,longitude:127.6809,terrainTags:['섬','산호바다','남국 해변'],energyKeywords:['부드러운 치유','감정 완충','휴식'],recommendedFor:['따뜻한 물 기운이 필요한 사람','관계 피로를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:'따뜻한 산호 바다의 수(水)가 차갑게 식히기보다 부드럽게 감싸며, 관계 피로와 마음의 긴장을 편안하게 풀어줍니다.',ritualTip:'바다색을 보며 지금 나를 편하게 해주는 관계와 지치게 하는 관계를 구분하세요.'}),
-  _energyCoordDestination({id:'water-france-annecy',name:'프랑스 안시',countryType:'global',element:'water',emoji:'🏞️',region:'프랑스 오트사부아',latitude:45.8992,longitude:6.1294,terrainTags:['호수','운하마을','알프스'],energyKeywords:['맑은 감성','휴식','관계 순환'],recommendedFor:['고요한 낭만이 필요한 사람','생각을 예쁘게 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:'맑은 호수와 운하의 수(水)가 감정을 투명하게 정리해, 과한 드라마 없이도 깊고 부드러운 낭만을 회복시킵니다.',ritualTip:'운하 옆에서 내 마음을 가장 맑게 만드는 사람이나 일을 한 줄로 적어보세요.'}),
-  _energyCoordDestination({id:'water-thailand-krabi',name:'태국 끄라비',countryType:'global',element:'water',emoji:'⛵',region:'태국 끄라비',latitude:8.0863,longitude:98.9063,terrainTags:['석회암 해안','섬','에메랄드 바다'],energyKeywords:['감정 해방','휴식','유연함'],recommendedFor:['갇힌 기분을 풀고 싶은 사람','몸을 물처럼 느슨하게 만들고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:'석회암 절벽과 에메랄드 바다의 수(水)가 갇힌 감정을 넓게 풀어주며, 몸과 마음을 더 유연한 상태로 이끕니다.',ritualTip:'배 이동 중 멀어지는 해안을 보며 지금 벗어나고 싶은 압박 하나를 떠올리세요.'}),
-  _energyCoordDestination({id:'water-newzealand-milford-sound',name:'뉴질랜드 밀포드사운드',countryType:'global',element:'water',emoji:'🌧️',region:'뉴질랜드 피오르드랜드',latitude:-44.6414,longitude:167.8974,terrainTags:['피오르드','폭포','우림'],energyKeywords:['깊은 정화','압도적 고요','직관'],recommendedFor:['큰 감정 정화가 필요한 사람','자연 앞에서 작아지는 휴식이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:'폭포와 피오르드의 강력한 수(水)가 마음의 과열을 압도적으로 식히고, 깊은 정화와 직관의 고요를 되찾게 합니다.',ritualTip:'비나 물안개를 맞는 순간 지금 씻겨 내려가도 되는 감정을 하나 정하세요.'}),
-  _energyCoordDestination({id:'water-indonesia-bali-nusa-dua',name:'인도네시아 발리 누사두아',countryType:'global',element:'water',emoji:'🌴',region:'인도네시아 발리',latitude:-8.8000,longitude:115.2290,terrainTags:['휴양해변','라군','리조트'],energyKeywords:['안전한 휴식','감정 완충','회복'],recommendedFor:['안정적인 물가 휴식이 필요한 사람','무리 없는 회복 여행을 원하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:'정돈된 해변과 라군의 수(水)가 강한 자극 없이 감정을 완충하고, 안전한 휴식 속에서 회복력을 천천히 채워줍니다.',ritualTip:'하루 첫 일정은 바다를 보는 침묵 시간으로 시작하고 그 뒤에만 계획을 붙이세요.'})
+  _energyCoordDestination({id:'water-tongyeong-hallyeosudo',name:'통영 한려수도',countryType:'domestic',element:'water',emoji:'🏝️',region:'경남 통영',latitude:34.8406,longitude:128.4302,terrainTags:['다도해','섬','잔잔한 바다'],energyKeywords:['감정 안정','몰입','치유'],recommendedFor:['감정 파동이 큰 사람','조용한 회복이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1616_prop_description"),ritualTip:'바다를 보며 오늘은 답을 내리지 않을 질문 하나를 정하고 그대로 두세요.'}),
+  _energyCoordDestination({id:'water-yeosu-odongdo',name:'여수 오동도',countryType:'domestic',element:'water',emoji:'🌊',region:'전남 여수',latitude:34.7447,longitude:127.7666,terrainTags:['섬 산책','해안','동백숲'],energyKeywords:['정서 순환','부드러운 치유','관계 회복'],recommendedFor:['감정이 막힌 사람','가볍게 걷고 싶은 사람'],bestSeason:['겨울','봄'],tripStyle:'romantic',description:_sajuEngineText("se_1617_prop_description"),ritualTip:'섬길을 한 바퀴 돌며 마음속에서 아직 돌고 있는 감정을 이름 붙여보세요.'}),
+  _energyCoordDestination({id:'water-boseong-goheung-dadohae',name:'보성·고흥 다도해',countryType:'domestic',element:'water',emoji:'🚢',region:'전남 보성·고흥',latitude:34.6047,longitude:127.2757,terrainTags:['다도해','안개 항구','해안길'],energyKeywords:['직관','정서 안정','깊은 회복'],recommendedFor:['생각보다 느낌을 믿어야 하는 사람','낮은 자극의 여행이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1618_prop_description"),ritualTip:'안개나 바다빛을 보며 설명보다 먼저 떠오르는 느낌 하나를 기록하세요.'}),
+  _energyCoordDestination({id:'water-jeju-sehwa-seongsan-spring',name:'제주 세화·성산 용천수',countryType:'domestic',element:'water',emoji:'💧',region:'제주 동부',latitude:33.5268,longitude:126.8583,terrainTags:['용천수','해변','올레길'],energyKeywords:['정화','감정 세척','맑은 판단'],recommendedFor:['생각이 탁해진 사람','가벼운 도보 회복이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1619_prop_description"),ritualTip:'용천수 근처에서 손을 씻고 오늘 놓아줄 감정 한 가지를 마음속으로 흘려보내세요.'}),
+  _energyCoordDestination({id:'water-busan-haeundae-dalmaji',name:'부산 해운대·달맞이길',countryType:'domestic',element:'water',emoji:'🌙',region:'부산 해운대',latitude:35.1587,longitude:129.1604,terrainTags:['해변','달맞이길','카페'],energyKeywords:['감정 완충','휴식','관계 온도 조절'],recommendedFor:['관계 피로가 큰 사람','바다와 도시를 함께 원하는 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'romantic',description:_sajuEngineText("se_1620_prop_description"),ritualTip:'달맞이길에서 말하고 싶은 마음과 아직 기다릴 마음을 구분해보세요.'}),
+  _energyCoordDestination({id:'water-gangneung-gyeongpoho',name:'강릉 경포호',countryType:'domestic',element:'water',emoji:'🏞️',region:'강원 강릉',latitude:37.7956,longitude:128.8961,terrainTags:['호수','해변 인접','자전거길'],energyKeywords:['생각 정리','감정 안정','유연함'],recommendedFor:['머리가 과열된 사람','반복 생각을 끊고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1621_prop_description"),ritualTip:'호수 한 바퀴 중 절반은 생각하고 절반은 아무 결론도 내리지 않고 걸어보세요.'}),
+  _energyCoordDestination({id:'water-sokcho-yeongnangho',name:'속초 영랑호',countryType:'domestic',element:'water',emoji:'🌫️',region:'강원 속초',latitude:38.2135,longitude:128.5914,terrainTags:['석호','산 전망','호수길'],energyKeywords:['내면 안정','깊은 호흡','감정 관찰'],recommendedFor:['불안이 올라오는 사람','혼자 차분히 걷고 싶은 사람'],bestSeason:['봄','가을','겨울'],tripStyle:'day_trip',description:_sajuEngineText("se_1622_prop_description"),ritualTip:'호수 위에 비친 산을 보며 내 감정과 현실을 따로 적어보세요.'}),
+  _energyCoordDestination({id:'water-chuncheon-uiamho',name:'춘천 의암호',countryType:'domestic',element:'water',emoji:'🚣',region:'강원 춘천',latitude:37.8806,longitude:127.6945,terrainTags:['호수','자전거길','물안개'],energyKeywords:['휴식','흐름 회복','관계 완충'],recommendedFor:['가까운 물가 휴식이 필요한 사람','일상 속 몰입을 회복하려는 사람'],bestSeason:['봄','가을'],tripStyle:'day_trip',description:_sajuEngineText("se_1623_prop_description"),ritualTip:'호수길에서 속도를 낮추고 이번 주 미룰 일과 할 일을 각각 하나씩 정하세요.'}),
+  _energyCoordDestination({id:'water-gapyeong-cheongpyeongho',name:'가평 청평호',countryType:'domestic',element:'water',emoji:'🛶',region:'경기 가평',latitude:37.7256,longitude:127.4201,terrainTags:['호수','수상 레저','산자락'],energyKeywords:['감정 순환','가벼운 휴식','직관'],recommendedFor:['짧은 물가 전환이 필요한 사람','감정의 답답함을 풀고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:_sajuEngineText("se_1624_prop_description"),ritualTip:'호수 근처에서 지금 마음을 무겁게 하는 일을 물 위에 띄운다고 상상하세요.'}),
+  _energyCoordDestination({id:'water-ulleungdo',name:'울릉도',countryType:'domestic',element:'water',emoji:'🌊',region:'경북 울릉',latitude:37.4844,longitude:130.9057,terrainTags:['섬','절벽해안','깊은 바다'],energyKeywords:['고립 회복','깊은 직관','정화'],recommendedFor:['세상 소음에서 떨어지고 싶은 사람','강한 물 기운이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1625_prop_description"),ritualTip:'파도가 크게 들리는 곳에서 지금 나에게 진짜 필요한 말 한 문장을 떠올리세요.'}),
+  _energyCoordDestination({id:'water-namhae-german-village-coast',name:'남해 독일마을 해안길',countryType:'domestic',element:'water',emoji:'🏖️',region:'경남 남해',latitude:34.7994,longitude:128.0397,terrainTags:['해안길','마을','남해 바다'],energyKeywords:['감정 완충','느린 휴식','생활 회복'],recommendedFor:['부드러운 해안 산책이 필요한 사람','삶의 속도를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1626_prop_description"),ritualTip:'해안길에서 걷는 속도를 일부러 절반으로 낮추고 숨의 길이를 관찰하세요.'}),
+  _energyCoordDestination({id:'water-gunsan-seonyudo',name:'군산 선유도',countryType:'domestic',element:'water',emoji:'🏝️',region:'전북 군산',latitude:35.8111,longitude:126.4117,terrainTags:['섬','해수욕장','다리'],energyKeywords:['관계 흐름','휴식','감정 정리'],recommendedFor:['가벼운 섬 여행이 필요한 사람','답답한 관계를 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'one_night',description:_sajuEngineText("se_1627_prop_description"),ritualTip:'다리를 건너며 다시 연결할 관계와 거리를 둘 관계를 각각 하나씩 떠올리세요.'}),
+  _energyCoordDestination({id:'water-norway-geirangerfjord',name:'노르웨이 게이랑에르 피요르드',countryType:'global',element:'water',emoji:'🏔️',region:'노르웨이 뫼레오그롬스달',latitude:62.1015,longitude:7.2056,terrainTags:['피요르드','폭포','빙하 협곡'],energyKeywords:['깊은 회복','장기 판단','감정 정화'],recommendedFor:['큰 결정을 앞둔 사람','마음의 깊이를 회복해야 하는 사람'],bestSeason:['여름'],tripStyle:'adventure',description:_sajuEngineText("se_1628_prop_description"),ritualTip:'폭포를 보며 지금 당장 답하지 않아도 되는 문제를 하나 내려놓으세요.'}),
+  _energyCoordDestination({id:'water-italy-venice',name:'이탈리아 베네치아',countryType:'global',element:'water',emoji:'🛶',region:'이탈리아 베네토',latitude:45.4408,longitude:12.3155,terrainTags:['운하','섬도시','다리'],energyKeywords:['유연함','관계 흐름','감성'],recommendedFor:['막힌 대화를 풀고 싶은 사람','감정의 유연함이 필요한 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1629_prop_description"),ritualTip:'다리 하나를 건널 때마다 고집 하나를 내려놓는다고 상상하세요.'}),
+  _energyCoordDestination({id:'water-maldives',name:'몰디브',countryType:'global',element:'water',emoji:'🏝️',region:'몰디브 인도양',latitude:3.2028,longitude:73.2207,terrainTags:['산호초','라군','휴양섬'],energyKeywords:['완전 휴식','감정 세척','치유'],recommendedFor:['강한 휴식이 필요한 사람','몸과 마음을 비워야 하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:_sajuEngineText("se_1630_prop_description"),ritualTip:'바다에 들어가기 전 오늘은 아무것도 증명하지 않겠다고 마음속으로 선언하세요.'}),
+  _energyCoordDestination({id:'water-switzerland-lake-lucerne',name:'스위스 루체른 호수',countryType:'global',element:'water',emoji:'🏞️',region:'스위스 루체른',latitude:47.0502,longitude:8.3093,terrainTags:['호수','알프스','구시가지'],energyKeywords:['맑은 판단','차분함','감정 균형'],recommendedFor:['생각을 차갑고 맑게 정리해야 하는 사람','고요한 여행이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'slow_trip',description:_sajuEngineText("se_1631_prop_description"),ritualTip:'호수 앞에서 지금 감정과 사실을 각각 한 줄씩 나눠 적어보세요.'}),
+  _energyCoordDestination({id:'water-canada-lake-louise',name:'캐나다 레이크 루이스',countryType:'global',element:'water',emoji:'💎',region:'캐나다 앨버타',latitude:51.4254,longitude:-116.1773,terrainTags:['빙하호','산악','숲'],energyKeywords:['깊은 몰입','맑은 직관','회복'],recommendedFor:['생각의 깊이가 필요한 사람','감정 과열을 식혀야 하는 사람'],bestSeason:['여름','초가을'],tripStyle:'adventure',description:_sajuEngineText("se_1632_prop_description"),ritualTip:'호수 색을 오래 바라보며 지금 가장 맑게 보고 싶은 문제를 하나 정하세요.'}),
+  _energyCoordDestination({id:'water-croatia-plitvice',name:'크로아티아 플리트비체',countryType:'global',element:'water',emoji:'💦',region:'크로아티아 리카센',latitude:44.8654,longitude:15.5820,terrainTags:['계단식 호수','폭포','숲'],energyKeywords:['정화','흐름 회복','감정 순환'],recommendedFor:['감정이 정체된 사람','상처를 부드럽게 흘려보내고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1633_prop_description"),ritualTip:'폭포 소리를 들으며 놓아줄 감정을 단계별로 세 가지 떠올리세요.'}),
+  _energyCoordDestination({id:'water-finland-lakeland',name:'핀란드 호수 지대',countryType:'global',element:'water',emoji:'🛶',region:'핀란드 레이크랜드',latitude:61.9241,longitude:25.7482,terrainTags:['호수군','숲','사우나'],energyKeywords:['침묵 회복','감정 안정','깊은 휴식'],recommendedFor:['말보다 침묵이 필요한 사람','신경계 휴식이 필요한 사람'],bestSeason:['여름'],tripStyle:'retreat',description:_sajuEngineText("se_1634_prop_description"),ritualTip:'사우나와 호수 휴식 사이에 하루 한 번 아무 말도 하지 않는 시간을 두세요.'}),
+  _energyCoordDestination({id:'water-japan-okinawa',name:'일본 오키나와',countryType:'global',element:'water',emoji:'🐠',region:'일본 오키나와',latitude:26.2124,longitude:127.6809,terrainTags:['섬','산호바다','남국 해변'],energyKeywords:['부드러운 치유','감정 완충','휴식'],recommendedFor:['따뜻한 물 기운이 필요한 사람','관계 피로를 낮추고 싶은 사람'],bestSeason:['봄','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1635_prop_description"),ritualTip:'바다색을 보며 지금 나를 편하게 해주는 관계와 지치게 하는 관계를 구분하세요.'}),
+  _energyCoordDestination({id:'water-france-annecy',name:'프랑스 안시',countryType:'global',element:'water',emoji:'🏞️',region:'프랑스 오트사부아',latitude:45.8992,longitude:6.1294,terrainTags:['호수','운하마을','알프스'],energyKeywords:['맑은 감성','휴식','관계 순환'],recommendedFor:['고요한 낭만이 필요한 사람','생각을 예쁘게 정리하고 싶은 사람'],bestSeason:['봄','여름','가을'],tripStyle:'romantic',description:_sajuEngineText("se_1636_prop_description"),ritualTip:'운하 옆에서 내 마음을 가장 맑게 만드는 사람이나 일을 한 줄로 적어보세요.'}),
+  _energyCoordDestination({id:'water-thailand-krabi',name:'태국 끄라비',countryType:'global',element:'water',emoji:'⛵',region:'태국 끄라비',latitude:8.0863,longitude:98.9063,terrainTags:['석회암 해안','섬','에메랄드 바다'],energyKeywords:['감정 해방','휴식','유연함'],recommendedFor:['갇힌 기분을 풀고 싶은 사람','몸을 물처럼 느슨하게 만들고 싶은 사람'],bestSeason:['건기'],tripStyle:'adventure',description:_sajuEngineText("se_1637_prop_description"),ritualTip:'배 이동 중 멀어지는 해안을 보며 지금 벗어나고 싶은 압박 하나를 떠올리세요.'}),
+  _energyCoordDestination({id:'water-newzealand-milford-sound',name:'뉴질랜드 밀포드사운드',countryType:'global',element:'water',emoji:'🌧️',region:'뉴질랜드 피오르드랜드',latitude:-44.6414,longitude:167.8974,terrainTags:['피오르드','폭포','우림'],energyKeywords:['깊은 정화','압도적 고요','직관'],recommendedFor:['큰 감정 정화가 필요한 사람','자연 앞에서 작아지는 휴식이 필요한 사람'],bestSeason:['봄','여름','가을'],tripStyle:'adventure',description:_sajuEngineText("se_1638_prop_description"),ritualTip:'비나 물안개를 맞는 순간 지금 씻겨 내려가도 되는 감정을 하나 정하세요.'}),
+  _energyCoordDestination({id:'water-indonesia-bali-nusa-dua',name:'인도네시아 발리 누사두아',countryType:'global',element:'water',emoji:'🌴',region:'인도네시아 발리',latitude:-8.8000,longitude:115.2290,terrainTags:['휴양해변','라군','리조트'],energyKeywords:['안전한 휴식','감정 완충','회복'],recommendedFor:['안정적인 물가 휴식이 필요한 사람','무리 없는 회복 여행을 원하는 사람'],bestSeason:['건기'],tripStyle:'retreat',description:_sajuEngineText("se_1639_prop_description"),ritualTip:'하루 첫 일정은 바다를 보는 침묵 시간으로 시작하고 그 뒤에만 계획을 붙이세요.'})
 ];
 
 ENERGY_COORD_DB=(function(meta,destinations){
@@ -1835,74 +2465,74 @@ var GAEUN_DB={
 
 /* ─── 자미두수 12궁 데이터 ─── */
 var MING_GONG={
-  '寅':{title:'자미(紫微) — 지도자형',desc:'뛰어난 카리스마와 주체성을 타고났습니다. 어떤 상황에서도 중심을 잡는 리더십이 자연스럽게 발휘되며, 사람들은 무의식적으로 당신에게 기대고 싶어합니다. 완고함이 인간관계의 장벽이 될 수 있으니 부드러움을 배울 때 진정한 어른이 됩니다.',tags:['지도자','카리스마','독립심']},
-  '卯':{title:'탐랑(貪狼) — 매력·창조형',desc:'넘치는 감각과 예술적 재능이 당신의 무기입니다. 사람을 자연스럽게 끌어당기는 매력이 있고 새로운 것을 탐구하는 에너지가 강합니다. 즐거움을 좇다 방향성을 잃을 수 있으니 목표의식을 함께 가지는 것이 핵심입니다.',tags:['매력','탐구심','창조성']},
-  '辰':{title:'거문(巨門) — 통찰·분석형',desc:'깊은 사고력과 예리한 통찰력을 지닌 분석가입니다. 진실을 꿰뚫는 언어와 글쓰기에 재능이 있으며 한번 믿음이 쌓이면 평생의 신뢰 관계를 만들어냅니다. 의심이 많아 좋은 기회를 흘려보낼 수 있으니 직관도 함께 믿어주세요.',tags:['통찰','분석','언어력']},
-  '巳':{title:'천상(天相) — 조화·협력형',desc:'사람과 사람을 잇는 뛰어난 조화로움이 있습니다. 공정하고 따뜻한 성품으로 모든 이에게 신뢰를 받으며 갈등을 중재하는 능력이 탁월합니다. 남을 위해 자신을 희생하는 경향이 있으니 자신의 경계를 지키는 연습이 필요합니다.',tags:['조화','공정함','배려']},
-  '午':{title:'천동(天同) — 평화·행복형',desc:'삶의 행복과 감사를 자연스럽게 느끼는 특별한 능력을 가졌습니다. 낙천적인 기운으로 주변을 밝히며 순수함이 평생의 매력 포인트입니다. 안주하려는 성향이 있어 때로는 스스로를 더 밀어붙이는 용기가 필요합니다.',tags:['평화','낙천성','순수함']},
-  '未':{title:'염정(廉貞) — 열정·천기형',desc:'강렬한 열정과 냉철한 천기가 공존하는 독특한 조합입니다. 목표를 향한 집념이 강하고 불의에 맞서는 용기가 있습니다. 흑백논리가 강해 관계에서 상처를 주고받을 수 있으니 유연함을 키워가세요.',tags:['열정','천기','추진력']},
-  '申':{title:'천부(天府) — 풍요·안정형',desc:'자연스럽게 풍요를 끌어당기는 복의 기운을 타고났습니다. 현실적인 판단력이 뛰어나고 재물을 다루는 감각이 좋습니다. 변화보다 안정을 선호하는 보수적 성향이 있어 새로운 기회 앞에서 용기 있는 한 걸음이 필요합니다.',tags:['풍요','안정','현실감각']},
-  '酉':{title:'태음(太陰) — 감수성·직관형',desc:'섬세한 감수성과 깊은 내면세계를 가진 분입니다. 아름다움을 발견하는 눈이 탁월하고 강한 직관으로 상황의 본질을 꿰뚫습니다. 감정의 파도가 클 수 있으니 자신의 감정을 창의적으로 표현하는 출구를 만들어두세요.',tags:['감수성','직관','심미안']},
-  '戌':{title:'탐랑 변형 — 도전·개혁형',desc:'기존 틀을 깨는 혁신적인 에너지가 넘칩니다. 새로운 분야에 대한 탐구심과 도전 정신이 강하며 예상치 못한 방향에서 성공을 거두는 경우가 많습니다. 끈기를 기른다면 독보적인 위치를 만들 수 있습니다.',tags:['도전','혁신','탐구']},
-  '亥':{title:'무곡(武曲) — 독립·실행형',desc:'강인한 의지와 독립적인 실행력을 타고난 행동파입니다. 말보다 행동으로 증명하는 스타일이며 한번 결심하면 끝까지 밀고 나가는 뚝심이 있습니다. 고집이 세어 도움을 거절하는 경향이 있으니 때로는 타인의 손을 잡는 여유를 가져보세요.',tags:['독립심','실행력','뚝심']},
-  '子':{title:'파군(破軍) — 변혁·개척형',desc:'현 상태에 안주하지 않는 강렬한 개척자의 기질이 있습니다. 낡은 것을 부수고 새로운 세계를 여는 선구자 타입으로 인생의 굵직한 변환점에서 빛나는 분입니다. 파괴적인 에너지를 창조적으로 전환하는 법을 익힐 때 진가를 발휘합니다.',tags:['개척','변혁','선구자']},
-  '丑':{title:'천기(天機) — 지혜·천기형',desc:'민첩한 두뇌와 뛰어난 천기적 사고를 가진 분입니다. 다양한 분야에 폭넓은 지식을 갖추고 상황 변화에 빠르게 적응합니다. 생각이 너무 많아 산만해 보일 수 있으니 집중하고 싶은 한 가지를 깊게 파고드는 시간이 필요합니다.',tags:['지혜','민첩성','천기']}
+  '寅':{title:_sajuEngineText("se_1838_prop_title"),desc:'뛰어난 카리스마와 주체성을 타고났습니다. 어떤 상황에서도 중심을 잡는 리더십이 자연스럽게 발휘되며, 사람들은 무의식적으로 당신에게 기대고 싶어합니다. 완고함이 인간관계의 장벽이 될 수 있으니 부드러움을 배울 때 진정한 어른이 됩니다.',tags:['지도자','카리스마','독립심']},
+  '卯':{title:_sajuEngineText("se_1839_prop_title"),desc:'넘치는 감각과 예술적 재능이 당신의 무기입니다. 사람을 자연스럽게 끌어당기는 매력이 있고 새로운 것을 탐구하는 에너지가 강합니다. 즐거움을 좇다 방향성을 잃을 수 있으니 목표의식을 함께 가지는 것이 핵심입니다.',tags:['매력','탐구심','창조성']},
+  '辰':{title:_sajuEngineText("se_1840_prop_title"),desc:'깊은 사고력과 예리한 통찰력을 지닌 분석가입니다. 진실을 꿰뚫는 언어와 글쓰기에 재능이 있으며 한번 믿음이 쌓이면 평생의 신뢰 관계를 만들어냅니다. 의심이 많아 좋은 기회를 흘려보낼 수 있으니 직관도 함께 믿어주세요.',tags:['통찰','분석','언어력']},
+  '巳':{title:_sajuEngineText("se_1841_prop_title"),desc:'사람과 사람을 잇는 뛰어난 조화로움이 있습니다. 공정하고 따뜻한 성품으로 모든 이에게 신뢰를 받으며 갈등을 중재하는 능력이 탁월합니다. 남을 위해 자신을 희생하는 경향이 있으니 자신의 경계를 지키는 연습이 필요합니다.',tags:['조화','공정함','배려']},
+  '午':{title:_sajuEngineText("se_1842_prop_title"),desc:'삶의 행복과 감사를 자연스럽게 느끼는 특별한 능력을 가졌습니다. 낙천적인 기운으로 주변을 밝히며 순수함이 평생의 매력 포인트입니다. 안주하려는 성향이 있어 때로는 스스로를 더 밀어붙이는 용기가 필요합니다.',tags:['평화','낙천성','순수함']},
+  '未':{title:_sajuEngineText("se_1843_prop_title"),desc:'강렬한 열정과 냉철한 천기가 공존하는 독특한 조합입니다. 목표를 향한 집념이 강하고 불의에 맞서는 용기가 있습니다. 흑백논리가 강해 관계에서 상처를 주고받을 수 있으니 유연함을 키워가세요.',tags:['열정','천기','추진력']},
+  '申':{title:_sajuEngineText("se_1844_prop_title"),desc:'자연스럽게 풍요를 끌어당기는 복의 기운을 타고났습니다. 현실적인 판단력이 뛰어나고 재물을 다루는 감각이 좋습니다. 변화보다 안정을 선호하는 보수적 성향이 있어 새로운 기회 앞에서 용기 있는 한 걸음이 필요합니다.',tags:['풍요','안정','현실감각']},
+  '酉':{title:_sajuEngineText("se_1845_prop_title"),desc:'섬세한 감수성과 깊은 내면세계를 가진 분입니다. 아름다움을 발견하는 눈이 탁월하고 강한 직관으로 상황의 본질을 꿰뚫습니다. 감정의 파도가 클 수 있으니 자신의 감정을 창의적으로 표현하는 출구를 만들어두세요.',tags:['감수성','직관','심미안']},
+  '戌':{title:_sajuEngineText("se_1846_prop_title"),desc:'기존 틀을 깨는 혁신적인 에너지가 넘칩니다. 새로운 분야에 대한 탐구심과 도전 정신이 강하며 예상치 못한 방향에서 성공을 거두는 경우가 많습니다. 끈기를 기른다면 독보적인 위치를 만들 수 있습니다.',tags:['도전','혁신','탐구']},
+  '亥':{title:_sajuEngineText("se_1847_prop_title"),desc:'강인한 의지와 독립적인 실행력을 타고난 행동파입니다. 말보다 행동으로 증명하는 스타일이며 한번 결심하면 끝까지 밀고 나가는 뚝심이 있습니다. 고집이 세어 도움을 거절하는 경향이 있으니 때로는 타인의 손을 잡는 여유를 가져보세요.',tags:['독립심','실행력','뚝심']},
+  '子':{title:_sajuEngineText("se_1848_prop_title"),desc:'현 상태에 안주하지 않는 강렬한 개척자의 기질이 있습니다. 낡은 것을 부수고 새로운 세계를 여는 선구자 타입으로 인생의 굵직한 변환점에서 빛나는 분입니다. 파괴적인 에너지를 창조적으로 전환하는 법을 익힐 때 진가를 발휘합니다.',tags:['개척','변혁','선구자']},
+  '丑':{title:_sajuEngineText("se_1849_prop_title"),desc:'민첩한 두뇌와 뛰어난 천기적 사고를 가진 분입니다. 다양한 분야에 폭넓은 지식을 갖추고 상황 변화에 빠르게 적응합니다. 생각이 너무 많아 산만해 보일 수 있으니 집중하고 싶은 한 가지를 깊게 파고드는 시간이 필요합니다.',tags:['지혜','민첩성','천기']}
 };
 var BODEOK={
-  wood:{star:'천기성(天機星)',title:'성장과 탐구에서 행복 찾기',desc:'새로운 지식을 습득하고 자연과 가까이할 때 가장 큰 정신적 충만함을 느끼는 유형입니다. 독서, 여행, 배움의 연속이 당신의 영혼을 살찌웁니다. 정체되어 있다고 느낄 때가 가장 힘든 시기이므로 항상 성장의 방향을 향해 있어야 합니다.'},
-  fire:{star:'태양성(太陽星)',title:'표현과 나눔에서 행복 찾기',desc:'자신의 생각과 열정을 표현하고 주변에 에너지를 나눌 때 행복을 느끼는 유형입니다. 무대나 무언가를 이끄는 역할에서 생동감이 솟구칩니다. 인정받고 싶은 욕구가 강하니 그 에너지를 긍정적 방향으로 활용하세요.'},
-  earth:{star:'천부성(天府星)',title:'안정과 풍요에서 행복 찾기',desc:'실질적인 안정감과 물질적 풍요에서 정신적 평화를 얻는 현실주의형입니다. 가족과 함께하는 일상, 맛있는 음식, 안락한 공간이 당신에게 가장 소중한 행복입니다. 무리한 모험보다 꾸준한 축적이 삶을 빛나게 합니다.'},
-  metal:{star:'무곡성(武曲星)',title:'성취와 완성에서 행복 찾기',desc:'목표를 달성하고 자신이 세운 기준에 도달했을 때 가장 큰 만족감을 느끼는 유형입니다. 명예와 성과에 대한 욕구가 강하며, 자신이 만든 것에 자부심을 갖습니다. 과정보다 결과에 집착하는 경향이 있으니 여정 자체도 즐기는 연습이 필요합니다.'},
-  water:{star:'천동성(天同星)',title:'교류와 감성에서 행복 찾기',desc:'사람들과의 깊은 감정적 교류와 예술적 감수성에서 정신적 행복을 찾는 유형입니다. 음악, 문학, 영화가 당신의 영혼에 깊이 닿습니다. 고독을 즐길 줄 알면서도 진심으로 연결되는 관계 하나하나가 소중한 보물입니다.'}
+  wood:{star:'천기성(天機星)',title:_sajuEngineText("se_1852_prop_title"),desc:'새로운 지식을 습득하고 자연과 가까이할 때 가장 큰 정신적 충만함을 느끼는 유형입니다. 독서, 여행, 배움의 연속이 당신의 영혼을 살찌웁니다. 정체되어 있다고 느낄 때가 가장 힘든 시기이므로 항상 성장의 방향을 향해 있어야 합니다.'},
+  fire:{star:'태양성(太陽星)',title:_sajuEngineText("se_1853_prop_title"),desc:'자신의 생각과 열정을 표현하고 주변에 에너지를 나눌 때 행복을 느끼는 유형입니다. 무대나 무언가를 이끄는 역할에서 생동감이 솟구칩니다. 인정받고 싶은 욕구가 강하니 그 에너지를 긍정적 방향으로 활용하세요.'},
+  earth:{star:'천부성(天府星)',title:_sajuEngineText("se_1854_prop_title"),desc:'실질적인 안정감과 물질적 풍요에서 정신적 평화를 얻는 현실주의형입니다. 가족과 함께하는 일상, 맛있는 음식, 안락한 공간이 당신에게 가장 소중한 행복입니다. 무리한 모험보다 꾸준한 축적이 삶을 빛나게 합니다.'},
+  metal:{star:'무곡성(武曲星)',title:_sajuEngineText("se_1855_prop_title"),desc:'목표를 달성하고 자신이 세운 기준에 도달했을 때 가장 큰 만족감을 느끼는 유형입니다. 명예와 성과에 대한 욕구가 강하며, 자신이 만든 것에 자부심을 갖습니다. 과정보다 결과에 집착하는 경향이 있으니 여정 자체도 즐기는 연습이 필요합니다.'},
+  water:{star:'천동성(天同星)',title:_sajuEngineText("se_1856_prop_title"),desc:'사람들과의 깊은 감정적 교류와 예술적 감수성에서 정신적 행복을 찾는 유형입니다. 음악, 문학, 영화가 당신의 영혼에 깊이 닿습니다. 고독을 즐길 줄 알면서도 진심으로 연결되는 관계 하나하나가 소중한 보물입니다.'}
 };
 var JAEBAEK={
-  wood:{star:'탐랑성(貪狼星)',title:'성장 분야에서 재물이 온다',desc:'교육, 문화, 바이오, 친환경 분야에서 부를 창출하는 운입니다. 장기적 관점으로 키워나가는 사업이나 투자가 맞으며, 단기 투기는 피하는 것이 좋습니다. 지식과 네트워크가 돈이 되는 구조입니다.'},
-  fire:{star:'태양성(太陽星)',title:'열정과 표현력이 재물로 연결된다',desc:'IT, 에너지, 미디어, 엔터테인먼트 분야에서 큰 수익을 낼 수 있는 운입니다. 자신의 능력을 적극적으로 알리고 브랜드화하는 것이 부의 핵심 천기입니다. 리더십을 발휘할 때 재물이 따라옵니다.'},
-  earth:{star:'천부성(天府星)',title:'부동산과 실물자산에서 복이 온다',desc:'부동산, 식품, 건설, 농업 관련 분야에서 안정적인 수익을 기대할 수 있는 운입니다. 급격한 투기보다 착실한 저축과 실물 자산 축적이 진정한 부를 만들어줍니다.'},
-  metal:{star:'무곡성(武曲星)',title:'전문성과 규율에서 재물이 온다',desc:'금융, 법률, 의료, 정밀 기술 분야에서 두각을 나타내는 운입니다. 전문 자격증과 신뢰가 가장 강력한 수입원이 됩니다. 계약과 법적 근거를 철저히 확인하는 습관이 재산 보호의 핵심입니다.'},
-  water:{star:'천동성(天同星)',title:'유통과 흐름에서 재물이 온다',desc:'유통, 무역, 관광, 콘텐츠 플랫폼 분야에서 수익 기회가 많습니다. 돈의 흐름을 읽는 감각이 뛰어나며, 적절한 현금 유동성 수호가 재물의 핵심입니다. 인맥이 재물로 이어지는 구조입니다.'}
+  wood:{star:'탐랑성(貪狼星)',title:_sajuEngineText("se_1859_prop_title"),desc:'교육, 문화, 바이오, 친환경 분야에서 부를 창출하는 운입니다. 장기적 관점으로 키워나가는 사업이나 투자가 맞으며, 단기 투기는 피하는 것이 좋습니다. 지식과 네트워크가 돈이 되는 구조입니다.'},
+  fire:{star:'태양성(太陽星)',title:_sajuEngineText("se_1860_prop_title"),desc:'IT, 에너지, 미디어, 엔터테인먼트 분야에서 큰 수익을 낼 수 있는 운입니다. 자신의 능력을 적극적으로 알리고 브랜드화하는 것이 부의 핵심 천기입니다. 리더십을 발휘할 때 재물이 따라옵니다.'},
+  earth:{star:'천부성(天府星)',title:_sajuEngineText("se_1861_prop_title"),desc:'부동산, 식품, 건설, 농업 관련 분야에서 안정적인 수익을 기대할 수 있는 운입니다. 급격한 투기보다 착실한 저축과 실물 자산 축적이 진정한 부를 만들어줍니다.'},
+  metal:{star:'무곡성(武曲星)',title:_sajuEngineText("se_1862_prop_title"),desc:'금융, 법률, 의료, 정밀 기술 분야에서 두각을 나타내는 운입니다. 전문 자격증과 신뢰가 가장 강력한 수입원이 됩니다. 계약과 법적 근거를 철저히 확인하는 습관이 재산 보호의 핵심입니다.'},
+  water:{star:'천동성(天同星)',title:_sajuEngineText("se_1863_prop_title"),desc:'유통, 무역, 관광, 콘텐츠 플랫폼 분야에서 수익 기회가 많습니다. 돈의 흐름을 읽는 감각이 뛰어나며, 적절한 현금 유동성 수호가 재물의 핵심입니다. 인맥이 재물로 이어지는 구조입니다.'}
 };
 var GWALROK={
-  strong:{star:'칠살성(七殺星)',title:'독립과 개척으로 성공',desc:'강한 주체성을 가진 당신은 남의 지시를 받기보다 자신만의 영역을 구축할 때 진정한 능력을 발휘합니다. 창업, 프리랜서, 전문직이 맞으며 자신의 이름을 건 사업에서 빛납니다. 강한 에너지를 사회로 발산하는 구조가 최고의 성공 공식입니다.'},
-  weak:{star:'태음성(太陰星)',title:'협력과 신뢰로 성공',desc:'뛰어난 공감 능력과 섬세한 감수성이 당신의 직업적 무기입니다. 팀워크와 협력 구조 안에서 조력자를 만날 때 성과가 극대화됩니다. 상담, 교육, 예술, 서비스직에서 천재성을 발휘합니다.'},
-  jong:{star:'자미성(紫微星)',title:'한 분야 집중으로 정상에 선다',desc:'한 가지 오행이 압도적으로 지배하는 종격 사주는 그 방향으로만 집중할 때 최고의 성과를 냅니다. 분산하지 말고 자신이 타고난 강점 한 가지를 극한까지 발전시키세요. 역발상과 전문성이 당신을 정상에 세울 것입니다.'}
+  strong:{star:'칠살성(七殺星)',title:_sajuEngineText("se_1866_prop_title"),desc:'강한 주체성을 가진 당신은 남의 지시를 받기보다 자신만의 영역을 구축할 때 진정한 능력을 발휘합니다. 창업, 프리랜서, 전문직이 맞으며 자신의 이름을 건 사업에서 빛납니다. 강한 에너지를 사회로 발산하는 구조가 최고의 성공 공식입니다.'},
+  weak:{star:'태음성(太陰星)',title:_sajuEngineText("se_1867_prop_title"),desc:'뛰어난 공감 능력과 섬세한 감수성이 당신의 직업적 무기입니다. 팀워크와 협력 구조 안에서 조력자를 만날 때 성과가 극대화됩니다. 상담, 교육, 예술, 서비스직에서 천재성을 발휘합니다.'},
+  jong:{star:'자미성(紫微星)',title:_sajuEngineText("se_1868_prop_title"),desc:'한 가지 오행이 압도적으로 지배하는 종격 사주는 그 방향으로만 집중할 때 최고의 성과를 냅니다. 분산하지 말고 자신이 타고난 강점 한 가지를 극한까지 발전시키세요. 역발상과 전문성이 당신을 정상에 세울 것입니다.'}
 };
 var BUCHEO={
-  F:{star:'정관성(正官星)',title:'다정하고 책임감 강한 배우자 인연',desc:'여성의 부부궁에는 믿음직스럽고 사회적으로 안정된 배우자 인연이 흐릅니다. 처음 만났을 때 설레기보다 시간이 지날수록 더 소중해지는 타입의 인연입니다. 인연은 예상치 못한 일상 속에서 자연스럽게 찾아옵니다.'},
-  M:{star:'정관성(正官星)',title:'신뢰와 책임감 있는 배우자 인연',desc:'남성의 부부궁에는 자신을 현실적으로 지지해주고 안정감을 주는 배우자 인연이 흐릅니다. 도덕적이고 예의 바른 분이 나타날 가능성이 높습니다. 너무 이상형에 집착하기보다 꾸준히 곁에서 성장하는 관계를 소중히 여기세요.'}
+  F:{star:'정관성(正官星)',title:_sajuEngineText("se_1871_prop_title"),desc:'여성의 부부궁에는 믿음직스럽고 사회적으로 안정된 배우자 인연이 흐릅니다. 처음 만났을 때 설레기보다 시간이 지날수록 더 소중해지는 타입의 인연입니다. 인연은 예상치 못한 일상 속에서 자연스럽게 찾아옵니다.'},
+  M:{star:'정관성(正官星)',title:_sajuEngineText("se_1872_prop_title"),desc:'남성의 부부궁에는 자신을 현실적으로 지지해주고 안정감을 주는 배우자 인연이 흐릅니다. 도덕적이고 예의 바른 분이 나타날 가능성이 높습니다. 너무 이상형에 집착하기보다 꾸준히 곁에서 성장하는 관계를 소중히 여기세요.'}
 };
 
 var BUMOGUN={
-  wood:{star:'천기성(天機星)',title:'성장 지향형 부모·선배 인연',
+  wood:{star:'천기성(天機星)',title:_sajuEngineText("se_1876_prop_title"),
     desc:'부모님과 선배로부터 지식, 교육, 성장 기회를 받는 유형입니다. 배움을 중시하고 새로운 가능성을 열어주는 귀인이 나타납니다. 부모님은 자녀의 독립심과 자율성을 존중하는 편이며, 적절한 시기에 중요한 조언을 건네줍니다. 선배들과의 관계에서도 멘토-멘티의 긍정적인 에너지가 흐르며, 위로부터의 지원이 성장의 발판이 됩니다.',
     note:'부모·선배와의 관계에서 받는 가르침을 소중히 여기고 적극 흡수할 것을 권합니다.'},
-  fire:{star:'태양성(太陽星)',title:'활동적·사교적 부모·선배 인연',
+  fire:{star:'태양성(太陽星)',title:_sajuEngineText("se_1879_prop_title"),
     desc:'부모님과 선배로부터 열정과 사회성을 물려받는 유형입니다. 사교적이고 활동적인 부모님 덕분에 다양한 인맥과 기회를 접하게 됩니다. 집안 분위기가 활기차고 대외적으로 인정받는 경우가 많습니다. 선배들은 진취적인 도전 정신을 자극해주는 존재입니다. 다만 부모님의 기대가 높을 수 있어 때로는 압박을 느낄 수 있습니다.',
     note:'부모님의 사회적 인맥이 당신에게 중요한 기회가 됩니다. 긍정적으로 활용하세요.'},
-  earth:{star:'천부성(天府星)',title:'안정·헌신형 부모·선배 인연',
+  earth:{star:'천부성(天府星)',title:_sajuEngineText("se_1882_prop_title"),
     desc:'부모님과 선배로부터 헌신과 안정의 기운을 받는 유형입니다. 부모님은 현실적이고 실용적인 지원을 아끼지 않으며, 물질적·정서적으로 든든한 버팀목이 됩니다. 가업을 잇거나 부모님의 기반을 계승하는 경우도 있습니다. 선배들과의 관계에서는 신뢰와 안정을 기반으로 한 장기적인 유대감이 형성됩니다.',
     note:'부모님의 실질적인 도움이 인생의 중요한 자원이 됩니다. 효도와 감사를 잊지 마세요.'},
-  metal:{star:'무곡성(武曲星)',title:'원칙·엄격형 부모·선배 인연',
+  metal:{star:'무곡성(武曲星)',title:_sajuEngineText("se_1885_prop_title"),
     desc:'부모님과 선배로부터 엄격함과 원칙을 배우는 유형입니다. 다소 엄격한 가정환경에서 자란 경우가 많으며, 이것이 강한 자기 수호 능력과 책임감의 원천이 됩니다. 부모님의 높은 기준이 부담스러울 수 있지만, 결국 사회에서 빛나는 경쟁력으로 이어집니다. 선배들과는 공식적이고 수직적인 관계에서 성장합니다.',
     note:'부모님의 엄격한 가르침이 오히려 당신을 강하게 만든 힘입니다.'},
-  water:{star:'천동성(天同星)',title:'감성·지지형 부모·선배 인연',
+  water:{star:'천동성(天同星)',title:_sajuEngineText("se_1888_prop_title"),
     desc:'부모님과 선배로부터 감성적 공감과 정서적 지지를 받는 유형입니다. 부모님은 자녀의 감정을 세심하게 살피고 마음의 짐을 함께 나누는 타입입니다. 예술적 감수성이나 창의성을 인정받고 자란 경우가 많습니다. 선배들과의 관계에서도 감정적 유대가 깊고, 힘든 시기에 진심어린 위로를 받는 인연이 따릅니다.',
     note:'부모님의 정서적 지지가 당신의 큰 힘입니다. 마음을 열고 소통하면 더 큰 사랑을 받습니다.'}
 };
 var JANYEOGUN_DATA={
-  wood:{star:'탐랑성(貪狼星)',title:'성장·창의형 자녀·후배 인연',
+  wood:{star:'탐랑성(貪狼星)',title:_sajuEngineText("se_1893_prop_title"),
     desc:'자녀 및 후배는 호기심이 왕성하고 창의적인 유형이 인연으로 연결됩니다. 새로운 것을 탐구하고 자유롭게 성장하도록 지지해주는 것이 좋습니다. 자녀는 교육, 예술, 창작 분야에서 뛰어난 잠재력을 보일 수 있습니다. 후배들과의 관계에서는 당신의 경험을 나누고 함께 성장하는 동반자적 유대가 형성됩니다.',
     note:'자녀와 후배의 창의성을 억누르지 말고 다양한 경험의 기회를 열어주세요.'},
-  fire:{star:'태양성(太陽星)',title:'활동적·리더형 자녀·후배 인연',
+  fire:{star:'태양성(太陽星)',title:_sajuEngineText("se_1896_prop_title"),
     desc:'자녀 및 후배는 활발하고 리더십 기질을 타고난 경우가 많습니다. 사교성이 뛰어나고 주변의 주목을 받는 타입과 인연을 맺습니다. 자녀가 사회적으로 두각을 나타낼 가능성이 높으며, 든든한 지원자가 되어주면 그 빛이 더욱 발합니다. 후배들에게는 활력 넘치는 멘토로 기억될 것입니다.',
     note:'자녀·후배의 에너지를 긍정적으로 활용하고 사회 진출을 지원해주세요.'},
-  earth:{star:'천부성(天府星)',title:'안정·현실형 자녀·후배 인연',
+  earth:{star:'천부성(天府星)',title:_sajuEngineText("se_1899_prop_title"),
     desc:'자녀 및 후배는 현실적이고 성실한 성격의 유형이 인연으로 다가옵니다. 안정을 추구하고 착실하게 성장하는 스타일이며, 일찍부터 실용적인 가치관을 형성합니다. 자녀는 부모의 현실적 지원 덕분에 탄탄한 기반을 갖출 수 있습니다. 후배들과는 믿음직스럽고 신뢰를 바탕으로 한 관계가 이어집니다.',
     note:'자녀·후배에게 안정적인 환경과 실질적인 지원을 아끼지 마세요.'},
-  metal:{star:'무곡성(武曲星)',title:'독립적·원칙형 자녀·후배 인연',
+  metal:{star:'무곡성(武曲星)',title:_sajuEngineText("se_1902_prop_title"),
     desc:'자녀 및 후배는 독립심이 강하고 원칙에 철저한 유형이 많습니다. 자기 주관이 뚜렷하여 간섭보다는 믿음과 존중으로 접근해야 합니다. 경쟁적인 환경에서 빛나는 성취욕을 가진 자녀가 인연으로 연결됩니다. 후배들에게는 명확한 기준과 공정한 태도로 대하면 진심 어린 신뢰를 얻게 됩니다.',
     note:'자녀·후배의 독립심을 존중하되, 필요할 때 원칙과 방향을 제시해주세요.'},
-  water:{star:'천동성(天同星)',title:'감수성·사려형 자녀·후배 인연',
+  water:{star:'천동성(天同星)',title:_sajuEngineText("se_1905_prop_title"),
     desc:'자녀 및 후배는 감수성이 풍부하고 배려심 깊은 유형과 인연을 맺습니다. 예술적 재능이나 공감 능력이 뛰어난 자녀가 연결될 가능성이 높습니다. 감정적으로 섬세하니 따뜻하고 지지적인 환경을 만들어주는 것이 중요합니다. 후배들과의 관계에서는 정서적 유대가 깊고 진심 어린 소통이 이루어집니다.',
     note:'자녀·후배의 감수성과 내면세계를 존중하고 정서적 지원을 충분히 해주세요.'}
 };
@@ -2665,122 +3295,122 @@ function resolveBirthTimezoneOffset(year, month, day, hour, minute, tz, baseOffs
 
 // 출생지 선택 정확도 향상: 국가 단위가 아닌 주/도시 단위 IANA 타임존 적용
 var BIRTH_PLACE_GROUPS = [
-  { label:'대한민국 (시/군 단위)', places:[
-    {label:'대한민국 · 서울', tz:'Asia/Seoul', lon:126.9780, lat:37.5665, tzOff:9, def:true},
-    {label:'대한민국 · 부산', tz:'Asia/Seoul', lon:129.0756, lat:35.1796, tzOff:9},
-    {label:'대한민국 · 인천', tz:'Asia/Seoul', lon:126.7052, lat:37.4563, tzOff:9},
-    {label:'대한민국 · 대구', tz:'Asia/Seoul', lon:128.6014, lat:35.8714, tzOff:9},
-    {label:'대한민국 · 광주', tz:'Asia/Seoul', lon:126.8526, lat:35.1595, tzOff:9},
-    {label:'대한민국 · 대전', tz:'Asia/Seoul', lon:127.3845, lat:36.3504, tzOff:9},
-    {label:'대한민국 · 울산', tz:'Asia/Seoul', lon:129.3114, lat:35.5384, tzOff:9},
-    {label:'대한민국 · 경기도 · 성남시', tz:'Asia/Seoul', lon:127.1267, lat:37.4200, tzOff:9},
-    {label:'대한민국 · 경기도 · 용인시', tz:'Asia/Seoul', lon:127.1776, lat:37.2411, tzOff:9},
-    {label:'대한민국 · 경기도 · 고양시', tz:'Asia/Seoul', lon:126.8320, lat:37.6584, tzOff:9},
-    {label:'대한민국 · 경기도 · 화성시', tz:'Asia/Seoul', lon:126.8312, lat:37.1995, tzOff:9},
-    {label:'대한민국 · 경기도 · 양평군', tz:'Asia/Seoul', lon:127.4870, lat:37.4918, tzOff:9},
-    {label:'대한민국 · 경기도 · 가평군', tz:'Asia/Seoul', lon:127.5107, lat:37.8315, tzOff:9},
-    {label:'대한민국 · 강원특별자치도 · 춘천시', tz:'Asia/Seoul', lon:127.7298, lat:37.8813, tzOff:9},
-    {label:'대한민국 · 강원특별자치도 · 강릉시', tz:'Asia/Seoul', lon:128.8761, lat:37.7519, tzOff:9},
-    {label:'대한민국 · 강원특별자치도 · 평창군', tz:'Asia/Seoul', lon:128.3904, lat:37.3705, tzOff:9},
-    {label:'대한민국 · 수원', tz:'Asia/Seoul', lon:127.0286, lat:37.2636, tzOff:9},
-    {label:'대한민국 · 충청북도 · 청주시', tz:'Asia/Seoul', lon:127.4890, lat:36.6424, tzOff:9},
-    {label:'대한민국 · 충청북도 · 충주시', tz:'Asia/Seoul', lon:127.9259, lat:36.9910, tzOff:9},
-    {label:'대한민국 · 충청북도 · 제천시', tz:'Asia/Seoul', lon:128.1940, lat:37.1326, tzOff:9},
-    {label:'대한민국 · 충청남도 · 천안시', tz:'Asia/Seoul', lon:127.1522, lat:36.8151, tzOff:9},
-    {label:'대한민국 · 충청남도 · 공주시', tz:'Asia/Seoul', lon:127.1190, lat:36.4465, tzOff:9},
-    {label:'대한민국 · 충청남도 · 서산시', tz:'Asia/Seoul', lon:126.4522, lat:36.7849, tzOff:9},
-    {label:'대한민국 · 전주', tz:'Asia/Seoul', lon:127.1480, lat:35.8242, tzOff:9},
-    {label:'대한민국 · 전라북도 · 군산시', tz:'Asia/Seoul', lon:126.7368, lat:35.9677, tzOff:9},
-    {label:'대한민국 · 전라북도 · 남원시', tz:'Asia/Seoul', lon:127.3903, lat:35.4164, tzOff:9},
-    {label:'대한민국 · 전라남도 · 목포시', tz:'Asia/Seoul', lon:126.3922, lat:34.8118, tzOff:9},
-    {label:'대한민국 · 전라남도 · 여수시', tz:'Asia/Seoul', lon:127.6622, lat:34.7604, tzOff:9},
-    {label:'대한민국 · 전라남도 · 해남군', tz:'Asia/Seoul', lon:126.5989, lat:34.5742, tzOff:9},
-    {label:'대한민국 · 경상북도 · 포항시', tz:'Asia/Seoul', lon:129.3435, lat:36.0190, tzOff:9},
-    {label:'대한민국 · 경상북도 · 안동시', tz:'Asia/Seoul', lon:128.7294, lat:36.5684, tzOff:9},
-    {label:'대한민국 · 경상북도 · 경주시', tz:'Asia/Seoul', lon:129.2247, lat:35.8562, tzOff:9},
-    {label:'대한민국 · 경상남도 · 창원시', tz:'Asia/Seoul', lon:128.6811, lat:35.2285, tzOff:9},
-    {label:'대한민국 · 경상남도 · 진주시', tz:'Asia/Seoul', lon:128.1076, lat:35.1799, tzOff:9},
-    {label:'대한민국 · 경상남도 · 거창군', tz:'Asia/Seoul', lon:127.9099, lat:35.6867, tzOff:9},
-    {label:'대한민국 · 제주특별자치도 · 제주시', tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9},
-    {label:'대한민국 · 제주특별자치도 · 서귀포시', tz:'Asia/Seoul', lon:126.5600, lat:33.2541, tzOff:9},
-    {label:'대한민국 · 제주', tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9}
+  { label:_sajuEngineText("se_2668_prop_label"), places:[
+    {label:_sajuEngineText("se_2669_prop_label"), tz:'Asia/Seoul', lon:126.9780, lat:37.5665, tzOff:9, def:true},
+    {label:_sajuEngineText("se_2670_prop_label"), tz:'Asia/Seoul', lon:129.0756, lat:35.1796, tzOff:9},
+    {label:_sajuEngineText("se_2671_prop_label"), tz:'Asia/Seoul', lon:126.7052, lat:37.4563, tzOff:9},
+    {label:_sajuEngineText("se_2672_prop_label"), tz:'Asia/Seoul', lon:128.6014, lat:35.8714, tzOff:9},
+    {label:_sajuEngineText("se_2673_prop_label"), tz:'Asia/Seoul', lon:126.8526, lat:35.1595, tzOff:9},
+    {label:_sajuEngineText("se_2674_prop_label"), tz:'Asia/Seoul', lon:127.3845, lat:36.3504, tzOff:9},
+    {label:_sajuEngineText("se_2675_prop_label"), tz:'Asia/Seoul', lon:129.3114, lat:35.5384, tzOff:9},
+    {label:_sajuEngineText("se_2676_prop_label"), tz:'Asia/Seoul', lon:127.1267, lat:37.4200, tzOff:9},
+    {label:_sajuEngineText("se_2677_prop_label"), tz:'Asia/Seoul', lon:127.1776, lat:37.2411, tzOff:9},
+    {label:_sajuEngineText("se_2678_prop_label"), tz:'Asia/Seoul', lon:126.8320, lat:37.6584, tzOff:9},
+    {label:_sajuEngineText("se_2679_prop_label"), tz:'Asia/Seoul', lon:126.8312, lat:37.1995, tzOff:9},
+    {label:_sajuEngineText("se_2680_prop_label"), tz:'Asia/Seoul', lon:127.4870, lat:37.4918, tzOff:9},
+    {label:_sajuEngineText("se_2681_prop_label"), tz:'Asia/Seoul', lon:127.5107, lat:37.8315, tzOff:9},
+    {label:_sajuEngineText("se_2682_prop_label"), tz:'Asia/Seoul', lon:127.7298, lat:37.8813, tzOff:9},
+    {label:_sajuEngineText("se_2683_prop_label"), tz:'Asia/Seoul', lon:128.8761, lat:37.7519, tzOff:9},
+    {label:_sajuEngineText("se_2684_prop_label"), tz:'Asia/Seoul', lon:128.3904, lat:37.3705, tzOff:9},
+    {label:_sajuEngineText("se_2685_prop_label"), tz:'Asia/Seoul', lon:127.0286, lat:37.2636, tzOff:9},
+    {label:_sajuEngineText("se_2686_prop_label"), tz:'Asia/Seoul', lon:127.4890, lat:36.6424, tzOff:9},
+    {label:_sajuEngineText("se_2687_prop_label"), tz:'Asia/Seoul', lon:127.9259, lat:36.9910, tzOff:9},
+    {label:_sajuEngineText("se_2688_prop_label"), tz:'Asia/Seoul', lon:128.1940, lat:37.1326, tzOff:9},
+    {label:_sajuEngineText("se_2689_prop_label"), tz:'Asia/Seoul', lon:127.1522, lat:36.8151, tzOff:9},
+    {label:_sajuEngineText("se_2690_prop_label"), tz:'Asia/Seoul', lon:127.1190, lat:36.4465, tzOff:9},
+    {label:_sajuEngineText("se_2691_prop_label"), tz:'Asia/Seoul', lon:126.4522, lat:36.7849, tzOff:9},
+    {label:_sajuEngineText("se_2692_prop_label"), tz:'Asia/Seoul', lon:127.1480, lat:35.8242, tzOff:9},
+    {label:_sajuEngineText("se_2693_prop_label"), tz:'Asia/Seoul', lon:126.7368, lat:35.9677, tzOff:9},
+    {label:_sajuEngineText("se_2694_prop_label"), tz:'Asia/Seoul', lon:127.3903, lat:35.4164, tzOff:9},
+    {label:_sajuEngineText("se_2695_prop_label"), tz:'Asia/Seoul', lon:126.3922, lat:34.8118, tzOff:9},
+    {label:_sajuEngineText("se_2696_prop_label"), tz:'Asia/Seoul', lon:127.6622, lat:34.7604, tzOff:9},
+    {label:_sajuEngineText("se_2697_prop_label"), tz:'Asia/Seoul', lon:126.5989, lat:34.5742, tzOff:9},
+    {label:_sajuEngineText("se_2698_prop_label"), tz:'Asia/Seoul', lon:129.3435, lat:36.0190, tzOff:9},
+    {label:_sajuEngineText("se_2699_prop_label"), tz:'Asia/Seoul', lon:128.7294, lat:36.5684, tzOff:9},
+    {label:_sajuEngineText("se_2700_prop_label"), tz:'Asia/Seoul', lon:129.2247, lat:35.8562, tzOff:9},
+    {label:_sajuEngineText("se_2701_prop_label"), tz:'Asia/Seoul', lon:128.6811, lat:35.2285, tzOff:9},
+    {label:_sajuEngineText("se_2702_prop_label"), tz:'Asia/Seoul', lon:128.1076, lat:35.1799, tzOff:9},
+    {label:_sajuEngineText("se_2703_prop_label"), tz:'Asia/Seoul', lon:127.9099, lat:35.6867, tzOff:9},
+    {label:_sajuEngineText("se_2704_prop_label"), tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9},
+    {label:_sajuEngineText("se_2705_prop_label"), tz:'Asia/Seoul', lon:126.5600, lat:33.2541, tzOff:9},
+    {label:_sajuEngineText("se_2706_prop_label"), tz:'Asia/Seoul', lon:126.5312, lat:33.4996, tzOff:9}
   ]},
-  { label:'미국 (주/도시)', places:[
-    {label:'미국 · 뉴욕주 · 뉴욕', tz:'America/New_York', lon:-74.0060, lat:40.7128, tzOff:-5},
-    {label:'미국 · 매사추세츠주 · 보스턴', tz:'America/New_York', lon:-71.0589, lat:42.3601, tzOff:-5},
-    {label:'미국 · 플로리다주 · 마이애미', tz:'America/New_York', lon:-80.1918, lat:25.7617, tzOff:-5},
-    {label:'미국 · 조지아주 · 애틀랜타', tz:'America/New_York', lon:-84.3880, lat:33.7490, tzOff:-5},
-    {label:'미국 · 일리노이주 · 시카고', tz:'America/Chicago', lon:-87.6298, lat:41.8781, tzOff:-6},
-    {label:'미국 · 텍사스주 · 댈러스', tz:'America/Chicago', lon:-96.7970, lat:32.7767, tzOff:-6},
-    {label:'미국 · 텍사스주 · 휴스턴', tz:'America/Chicago', lon:-95.3698, lat:29.7604, tzOff:-6},
-    {label:'미국 · 콜로라도주 · 덴버', tz:'America/Denver', lon:-104.9903, lat:39.7392, tzOff:-7},
-    {label:'미국 · 애리조나주 · 피닉스', tz:'America/Phoenix', lon:-112.0740, lat:33.4484, tzOff:-7},
-    {label:'미국 · 유타주 · 솔트레이크시티', tz:'America/Denver', lon:-111.8910, lat:40.7608, tzOff:-7},
-    {label:'미국 · 캘리포니아주 · 로스앤젤레스', tz:'America/Los_Angeles', lon:-118.2437, lat:34.0522, tzOff:-8},
-    {label:'미국 · 캘리포니아주 · 샌프란시스코', tz:'America/Los_Angeles', lon:-122.4194, lat:37.7749, tzOff:-8},
-    {label:'미국 · 워싱턴주 · 시애틀', tz:'America/Los_Angeles', lon:-122.3321, lat:47.6062, tzOff:-8},
-    {label:'미국 · 알래스카주 · 앵커리지', tz:'America/Anchorage', lon:-149.9003, lat:61.2181, tzOff:-9},
-    {label:'미국 · 하와이주 · 호놀룰루', tz:'Pacific/Honolulu', lon:-157.8583, lat:21.3069, tzOff:-10}
+  { label:_sajuEngineText("se_2708_prop_label"), places:[
+    {label:_sajuEngineText("se_2709_prop_label"), tz:'America/New_York', lon:-74.0060, lat:40.7128, tzOff:-5},
+    {label:_sajuEngineText("se_2710_prop_label"), tz:'America/New_York', lon:-71.0589, lat:42.3601, tzOff:-5},
+    {label:_sajuEngineText("se_2711_prop_label"), tz:'America/New_York', lon:-80.1918, lat:25.7617, tzOff:-5},
+    {label:_sajuEngineText("se_2712_prop_label"), tz:'America/New_York', lon:-84.3880, lat:33.7490, tzOff:-5},
+    {label:_sajuEngineText("se_2713_prop_label"), tz:'America/Chicago', lon:-87.6298, lat:41.8781, tzOff:-6},
+    {label:_sajuEngineText("se_2714_prop_label"), tz:'America/Chicago', lon:-96.7970, lat:32.7767, tzOff:-6},
+    {label:_sajuEngineText("se_2715_prop_label"), tz:'America/Chicago', lon:-95.3698, lat:29.7604, tzOff:-6},
+    {label:_sajuEngineText("se_2716_prop_label"), tz:'America/Denver', lon:-104.9903, lat:39.7392, tzOff:-7},
+    {label:_sajuEngineText("se_2717_prop_label"), tz:'America/Phoenix', lon:-112.0740, lat:33.4484, tzOff:-7},
+    {label:_sajuEngineText("se_2718_prop_label"), tz:'America/Denver', lon:-111.8910, lat:40.7608, tzOff:-7},
+    {label:_sajuEngineText("se_2719_prop_label"), tz:'America/Los_Angeles', lon:-118.2437, lat:34.0522, tzOff:-8},
+    {label:_sajuEngineText("se_2720_prop_label"), tz:'America/Los_Angeles', lon:-122.4194, lat:37.7749, tzOff:-8},
+    {label:_sajuEngineText("se_2721_prop_label"), tz:'America/Los_Angeles', lon:-122.3321, lat:47.6062, tzOff:-8},
+    {label:_sajuEngineText("se_2722_prop_label"), tz:'America/Anchorage', lon:-149.9003, lat:61.2181, tzOff:-9},
+    {label:_sajuEngineText("se_2723_prop_label"), tz:'Pacific/Honolulu', lon:-157.8583, lat:21.3069, tzOff:-10}
   ]},
-  { label:'캐나다 (주/도시)', places:[
-    {label:'캐나다 · 온타리오주 · 토론토', tz:'America/Toronto', lon:-79.3832, lat:43.6532, tzOff:-5},
-    {label:'캐나다 · 퀘벡주 · 몬트리올', tz:'America/Montreal', lon:-73.5673, lat:45.5017, tzOff:-5},
-    {label:'캐나다 · 브리티시컬럼비아주 · 밴쿠버', tz:'America/Vancouver', lon:-123.1207, lat:49.2827, tzOff:-8},
-    {label:'캐나다 · 앨버타주 · 캘거리', tz:'America/Edmonton', lon:-114.0719, lat:51.0447, tzOff:-7},
-    {label:'캐나다 · 매니토바주 · 위니펙', tz:'America/Winnipeg', lon:-97.1384, lat:49.8951, tzOff:-6},
-    {label:'캐나다 · 노바스코샤주 · 핼리팩스', tz:'America/Halifax', lon:-63.5752, lat:44.6488, tzOff:-4}
+  { label:_sajuEngineText("se_2725_prop_label"), places:[
+    {label:_sajuEngineText("se_2726_prop_label"), tz:'America/Toronto', lon:-79.3832, lat:43.6532, tzOff:-5},
+    {label:_sajuEngineText("se_2727_prop_label"), tz:'America/Montreal', lon:-73.5673, lat:45.5017, tzOff:-5},
+    {label:_sajuEngineText("se_2728_prop_label"), tz:'America/Vancouver', lon:-123.1207, lat:49.2827, tzOff:-8},
+    {label:_sajuEngineText("se_2729_prop_label"), tz:'America/Edmonton', lon:-114.0719, lat:51.0447, tzOff:-7},
+    {label:_sajuEngineText("se_2730_prop_label"), tz:'America/Winnipeg', lon:-97.1384, lat:49.8951, tzOff:-6},
+    {label:_sajuEngineText("se_2731_prop_label"), tz:'America/Halifax', lon:-63.5752, lat:44.6488, tzOff:-4}
   ]},
-  { label:'동아시아/동남아시아', places:[
-    {label:'일본 · 도쿄', tz:'Asia/Tokyo', lon:139.6917, lat:35.6895, tzOff:9},
-    {label:'일본 · 오사카', tz:'Asia/Tokyo', lon:135.5023, lat:34.6937, tzOff:9},
-    {label:'일본 · 삿포로', tz:'Asia/Tokyo', lon:141.3545, lat:43.0618, tzOff:9},
-    {label:'중국 · 베이징', tz:'Asia/Shanghai', lon:116.4074, lat:39.9042, tzOff:8},
-    {label:'중국 · 상하이', tz:'Asia/Shanghai', lon:121.4737, lat:31.2304, tzOff:8},
-    {label:'중국 · 광저우', tz:'Asia/Shanghai', lon:113.2644, lat:23.1291, tzOff:8},
-    {label:'대만 · 타이베이', tz:'Asia/Taipei', lon:121.5654, lat:25.0330, tzOff:8},
-    {label:'홍콩 · 홍콩섬', tz:'Asia/Hong_Kong', lon:114.1694, lat:22.3193, tzOff:8},
-    {label:'싱가포르 · 싱가포르', tz:'Asia/Singapore', lon:103.8198, lat:1.3521, tzOff:8},
-    {label:'태국 · 방콕', tz:'Asia/Bangkok', lon:100.5018, lat:13.7563, tzOff:7},
-    {label:'베트남 · 하노이', tz:'Asia/Ho_Chi_Minh', lon:105.8342, lat:21.0278, tzOff:7},
-    {label:'베트남 · 호찌민', tz:'Asia/Ho_Chi_Minh', lon:106.6297, lat:10.8231, tzOff:7},
-    {label:'인도네시아 · 자카르타', tz:'Asia/Jakarta', lon:106.8456, lat:-6.2088, tzOff:7},
-    {label:'인도네시아 · 발리(덴파사르)', tz:'Asia/Makassar', lon:115.2167, lat:-8.6500, tzOff:8},
-    {label:'필리핀 · 마닐라', tz:'Asia/Manila', lon:120.9842, lat:14.5995, tzOff:8}
+  { label:_sajuEngineText("se_2733_prop_label"), places:[
+    {label:_sajuEngineText("se_2734_prop_label"), tz:'Asia/Tokyo', lon:139.6917, lat:35.6895, tzOff:9},
+    {label:_sajuEngineText("se_2735_prop_label"), tz:'Asia/Tokyo', lon:135.5023, lat:34.6937, tzOff:9},
+    {label:_sajuEngineText("se_2736_prop_label"), tz:'Asia/Tokyo', lon:141.3545, lat:43.0618, tzOff:9},
+    {label:_sajuEngineText("se_2737_prop_label"), tz:'Asia/Shanghai', lon:116.4074, lat:39.9042, tzOff:8},
+    {label:_sajuEngineText("se_2738_prop_label"), tz:'Asia/Shanghai', lon:121.4737, lat:31.2304, tzOff:8},
+    {label:_sajuEngineText("se_2739_prop_label"), tz:'Asia/Shanghai', lon:113.2644, lat:23.1291, tzOff:8},
+    {label:_sajuEngineText("se_2740_prop_label"), tz:'Asia/Taipei', lon:121.5654, lat:25.0330, tzOff:8},
+    {label:_sajuEngineText("se_2741_prop_label"), tz:'Asia/Hong_Kong', lon:114.1694, lat:22.3193, tzOff:8},
+    {label:_sajuEngineText("se_2742_prop_label"), tz:'Asia/Singapore', lon:103.8198, lat:1.3521, tzOff:8},
+    {label:_sajuEngineText("se_2743_prop_label"), tz:'Asia/Bangkok', lon:100.5018, lat:13.7563, tzOff:7},
+    {label:_sajuEngineText("se_2744_prop_label"), tz:'Asia/Ho_Chi_Minh', lon:105.8342, lat:21.0278, tzOff:7},
+    {label:_sajuEngineText("se_2745_prop_label"), tz:'Asia/Ho_Chi_Minh', lon:106.6297, lat:10.8231, tzOff:7},
+    {label:_sajuEngineText("se_2746_prop_label"), tz:'Asia/Jakarta', lon:106.8456, lat:-6.2088, tzOff:7},
+    {label:_sajuEngineText("se_2747_prop_label"), tz:'Asia/Makassar', lon:115.2167, lat:-8.6500, tzOff:8},
+    {label:_sajuEngineText("se_2748_prop_label"), tz:'Asia/Manila', lon:120.9842, lat:14.5995, tzOff:8}
   ]},
-  { label:'남아시아/중동', places:[
-    {label:'인도 · 뉴델리', tz:'Asia/Kolkata', lon:77.1025, lat:28.7041, tzOff:5.5},
-    {label:'인도 · 뭄바이', tz:'Asia/Kolkata', lon:72.8777, lat:19.0760, tzOff:5.5},
-    {label:'인도 · 벵갈루루', tz:'Asia/Kolkata', lon:77.5946, lat:12.9716, tzOff:5.5},
-    {label:'인도 · 콜카타', tz:'Asia/Kolkata', lon:88.3639, lat:22.5726, tzOff:5.5},
-    {label:'파키스탄 · 카라치', tz:'Asia/Karachi', lon:67.0011, lat:24.8607, tzOff:5},
-    {label:'방글라데시 · 다카', tz:'Asia/Dhaka', lon:90.4125, lat:23.8103, tzOff:6},
-    {label:'네팔 · 카트만두', tz:'Asia/Kathmandu', lon:85.3240, lat:27.7172, tzOff:5.75},
-    {label:'UAE · 두바이', tz:'Asia/Dubai', lon:55.2708, lat:25.2048, tzOff:4},
-    {label:'사우디 · 리야드', tz:'Asia/Riyadh', lon:46.6753, lat:24.7136, tzOff:3},
-    {label:'이란 · 테헤란', tz:'Asia/Tehran', lon:51.3890, lat:35.6892, tzOff:3.5},
-    {label:'이스라엘 · 예루살렘', tz:'Asia/Jerusalem', lon:35.2137, lat:31.7683, tzOff:2},
-    {label:'터키 · 이스탄불', tz:'Europe/Istanbul', lon:28.9784, lat:41.0082, tzOff:3}
+  { label:_sajuEngineText("se_2750_prop_label"), places:[
+    {label:_sajuEngineText("se_2751_prop_label"), tz:'Asia/Kolkata', lon:77.1025, lat:28.7041, tzOff:5.5},
+    {label:_sajuEngineText("se_2752_prop_label"), tz:'Asia/Kolkata', lon:72.8777, lat:19.0760, tzOff:5.5},
+    {label:_sajuEngineText("se_2753_prop_label"), tz:'Asia/Kolkata', lon:77.5946, lat:12.9716, tzOff:5.5},
+    {label:_sajuEngineText("se_2754_prop_label"), tz:'Asia/Kolkata', lon:88.3639, lat:22.5726, tzOff:5.5},
+    {label:_sajuEngineText("se_2755_prop_label"), tz:'Asia/Karachi', lon:67.0011, lat:24.8607, tzOff:5},
+    {label:_sajuEngineText("se_2756_prop_label"), tz:'Asia/Dhaka', lon:90.4125, lat:23.8103, tzOff:6},
+    {label:_sajuEngineText("se_2757_prop_label"), tz:'Asia/Kathmandu', lon:85.3240, lat:27.7172, tzOff:5.75},
+    {label:_sajuEngineText("se_2758_prop_label"), tz:'Asia/Dubai', lon:55.2708, lat:25.2048, tzOff:4},
+    {label:_sajuEngineText("se_2759_prop_label"), tz:'Asia/Riyadh', lon:46.6753, lat:24.7136, tzOff:3},
+    {label:_sajuEngineText("se_2760_prop_label"), tz:'Asia/Tehran', lon:51.3890, lat:35.6892, tzOff:3.5},
+    {label:_sajuEngineText("se_2761_prop_label"), tz:'Asia/Jerusalem', lon:35.2137, lat:31.7683, tzOff:2},
+    {label:_sajuEngineText("se_2762_prop_label"), tz:'Europe/Istanbul', lon:28.9784, lat:41.0082, tzOff:3}
   ]},
-  { label:'유럽/오세아니아/중남미', places:[
-    {label:'영국 · 런던', tz:'Europe/London', lon:-0.1276, lat:51.5074, tzOff:0},
-    {label:'프랑스 · 파리', tz:'Europe/Paris', lon:2.3522, lat:48.8566, tzOff:1},
-    {label:'독일 · 베를린', tz:'Europe/Berlin', lon:13.4050, lat:52.5200, tzOff:1},
-    {label:'이탈리아 · 로마', tz:'Europe/Rome', lon:12.4964, lat:41.9028, tzOff:1},
-    {label:'스페인 · 마드리드', tz:'Europe/Madrid', lon:-3.7038, lat:40.4168, tzOff:1},
-    {label:'러시아 · 모스크바', tz:'Europe/Moscow', lon:37.6173, lat:55.7558, tzOff:3},
-    {label:'호주 · 시드니(NSW)', tz:'Australia/Sydney', lon:151.2093, lat:-33.8688, tzOff:10},
-    {label:'호주 · 멜버른(VIC)', tz:'Australia/Melbourne', lon:144.9631, lat:-37.8136, tzOff:10},
-    {label:'호주 · 브리즈번(QLD)', tz:'Australia/Brisbane', lon:153.0251, lat:-27.4698, tzOff:10},
-    {label:'호주 · 퍼스(WA)', tz:'Australia/Perth', lon:115.8605, lat:-31.9505, tzOff:8},
-    {label:'호주 · 애들레이드(SA)', tz:'Australia/Adelaide', lon:138.6007, lat:-34.9285, tzOff:9.5},
-    {label:'호주 · 다윈(NT)', tz:'Australia/Darwin', lon:130.8456, lat:-12.4634, tzOff:9.5},
-    {label:'뉴질랜드 · 오클랜드', tz:'Pacific/Auckland', lon:174.7633, lat:-36.8485, tzOff:12},
-    {label:'브라질 · 상파울루', tz:'America/Sao_Paulo', lon:-46.6333, lat:-23.5505, tzOff:-3},
-    {label:'브라질 · 리우데자네이루', tz:'America/Sao_Paulo', lon:-43.1729, lat:-22.9068, tzOff:-3},
-    {label:'아르헨티나 · 부에노스아이레스', tz:'America/Argentina/Buenos_Aires', lon:-58.3816, lat:-34.6037, tzOff:-3},
-    {label:'칠레 · 산티아고', tz:'America/Santiago', lon:-70.6693, lat:-33.4489, tzOff:-4},
-    {label:'멕시코 · 멕시코시티', tz:'America/Mexico_City', lon:-99.1332, lat:19.4326, tzOff:-6},
-    {label:'페루 · 리마', tz:'America/Lima', lon:-77.0428, lat:-12.0464, tzOff:-5}
+  { label:_sajuEngineText("se_2764_prop_label"), places:[
+    {label:_sajuEngineText("se_2765_prop_label"), tz:'Europe/London', lon:-0.1276, lat:51.5074, tzOff:0},
+    {label:_sajuEngineText("se_2766_prop_label"), tz:'Europe/Paris', lon:2.3522, lat:48.8566, tzOff:1},
+    {label:_sajuEngineText("se_2767_prop_label"), tz:'Europe/Berlin', lon:13.4050, lat:52.5200, tzOff:1},
+    {label:_sajuEngineText("se_2768_prop_label"), tz:'Europe/Rome', lon:12.4964, lat:41.9028, tzOff:1},
+    {label:_sajuEngineText("se_2769_prop_label"), tz:'Europe/Madrid', lon:-3.7038, lat:40.4168, tzOff:1},
+    {label:_sajuEngineText("se_2770_prop_label"), tz:'Europe/Moscow', lon:37.6173, lat:55.7558, tzOff:3},
+    {label:_sajuEngineText("se_2771_prop_label"), tz:'Australia/Sydney', lon:151.2093, lat:-33.8688, tzOff:10},
+    {label:_sajuEngineText("se_2772_prop_label"), tz:'Australia/Melbourne', lon:144.9631, lat:-37.8136, tzOff:10},
+    {label:_sajuEngineText("se_2773_prop_label"), tz:'Australia/Brisbane', lon:153.0251, lat:-27.4698, tzOff:10},
+    {label:_sajuEngineText("se_2774_prop_label"), tz:'Australia/Perth', lon:115.8605, lat:-31.9505, tzOff:8},
+    {label:_sajuEngineText("se_2775_prop_label"), tz:'Australia/Adelaide', lon:138.6007, lat:-34.9285, tzOff:9.5},
+    {label:_sajuEngineText("se_2776_prop_label"), tz:'Australia/Darwin', lon:130.8456, lat:-12.4634, tzOff:9.5},
+    {label:_sajuEngineText("se_2777_prop_label"), tz:'Pacific/Auckland', lon:174.7633, lat:-36.8485, tzOff:12},
+    {label:_sajuEngineText("se_2778_prop_label"), tz:'America/Sao_Paulo', lon:-46.6333, lat:-23.5505, tzOff:-3},
+    {label:_sajuEngineText("se_2779_prop_label"), tz:'America/Sao_Paulo', lon:-43.1729, lat:-22.9068, tzOff:-3},
+    {label:_sajuEngineText("se_2780_prop_label"), tz:'America/Argentina/Buenos_Aires', lon:-58.3816, lat:-34.6037, tzOff:-3},
+    {label:_sajuEngineText("se_2781_prop_label"), tz:'America/Santiago', lon:-70.6693, lat:-33.4489, tzOff:-4},
+    {label:_sajuEngineText("se_2782_prop_label"), tz:'America/Mexico_City', lon:-99.1332, lat:19.4326, tzOff:-6},
+    {label:_sajuEngineText("se_2783_prop_label"), tz:'America/Lima', lon:-77.0428, lat:-12.0464, tzOff:-5}
   ]}
 ];
 
@@ -3626,11 +4256,11 @@ function evalDaewun(ganChar,zhiChar){
   score = Math.max(0, Math.min(100, Math.round(score)));
 
   var label,cls,tagCls,emoji;
-  if(score>=80){label='🌟 최고의 운';cls='excellent';tagCls='tag-best';emoji='🌟';}
-  else if(score>=60){label='😊 좋은 운';cls='good';tagCls='tag-good';emoji='😊';}
-  else if(score>=40){label='🙂 보통 운';cls='neutral';tagCls='tag-ok';emoji='🙂';}
-  else if(score>=20){label='⚠️ 주의 운';cls='caution';tagCls='tag-caut';emoji='⚠️';}
-  else{label='🌧️ 역경 운';cls='bad';tagCls='tag-bad';emoji='🌧️';}
+  if(score>=80){label=_sajuEngineText("se_3629_attr_label");cls='excellent';tagCls='tag-best';emoji='🌟';}
+  else if(score>=60){label=_sajuEngineText("se_3630_attr_label");cls='good';tagCls='tag-good';emoji='😊';}
+  else if(score>=40){label=_sajuEngineText("se_3631_attr_label");cls='neutral';tagCls='tag-ok';emoji='🙂';}
+  else if(score>=20){label=_sajuEngineText("se_3632_attr_label");cls='caution';tagCls='tag-caut';emoji='⚠️';}
+  else{label=_sajuEngineText("se_3633_attr_label");cls='bad';tagCls='tag-bad';emoji='🌧️';}
 
   var evalSummary = "";
   if(jg && jg.isJong) {
@@ -4545,7 +5175,7 @@ async function calculate(){
 
     var timeCorrectionStr = "";
     if(correctionMsg) {
-      timeCorrectionStr = `<section class="hero-correction-card" aria-label="진태양시 자동 변환 적용">
+      timeCorrectionStr = `<section class="hero-correction-card" aria-label="${_sajuEngineText("se_5146_attr_aria_label")}">
                             <h4 class="hero-correction-title"><i class="fa fa-clock-o" aria-hidden="true"></i> 진태양시 자동 변환 적용</h4>
                             <ul class="hero-correction-list">${correctionMsg}</ul>
                            </section>`;
@@ -4956,7 +5586,7 @@ function _cdAIPromptGate(input) {
         status: 402,
         payload: {
           code: 'PAYMENT_REQUIRED',
-          message: '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
+          message: _sajuEngineText("se_4959_prop_message"),
           requiredCoins: cost
         }
       });
@@ -4978,7 +5608,7 @@ function _cdAIPromptGate(input) {
       status: 402,
       payload: {
         code: 'PAYMENT_REQUIRED',
-        message: '20,000원 단건 결제 확인 후 사주 AI 상담 결과가 열립니다.',
+        message: _sajuEngineText("se_4981_prop_message"),
         requiredCoins: cost,
         amountKRW: amountKrw
       }
@@ -5478,7 +6108,7 @@ function _confirmSajuQuestionPromptPurchase(domain, privacyOptions) {
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
   return window.confirm(
-    '20,000원으로 명식의 결을 담은 사주 AI 상담 결과를 엽니다.\n\n'
+    '사주 AI 상담 결과를 엽니다. 결제, 월정석 크레딧, 멤버십 이용권 중 사용 가능한 방식으로 확인됩니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
     + '개인정보 설정: ' + protectedText + '\n'
     + '명식 계산값은 상담의 흐름을 맞추기 위해 함께 흐릅니다.'
@@ -5565,7 +6195,7 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
   function runAt(index, attempt) {
     return _cdAIPromptRequestJson(urls[index], {
       method: 'POST',
-      headers: { 'idempotency-key': 'saju-ai:' + requestNonce },
+      headers: { 'idempotency-key': evidence.requestId || ('saju-ai:' + requestNonce) },
       body: JSON.stringify(body)
     }).then(function(result) {
       if (result && result.ok) return result;
@@ -5638,7 +6268,16 @@ function _sajuPromptResolveProfileId() {
 }
 
 function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
+  var opts = options && typeof options === 'object' ? options : {};
   var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  var savedEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
+  function attachEvidence(result) {
+    if (result && typeof result === 'object' && savedEvidence) result._sajuPaidEvidence = savedEvidence;
+    return result;
+  }
+  if (savedEvidence) {
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, savedEvidence, options).then(attachEvidence);
+  }
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
     reason: '사주 AI 상담 결과 생성',
@@ -5649,22 +6288,25 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
     categoryKey: 'saju'
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-    var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options);
-  });
+    savedEvidence = _cdAIPromptGateEvidence(gateResult);
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, savedEvidence, options);
+  }).then(attachEvidence);
 }
 
 function _buildSajuQuestionPromptHtml() {
+  var steps = ['명식 정리', '질문 방향 읽기', 'AI 상담문 작성', '결과 다듬기'];
+  var stepHtml = steps.map(function(label, idx) {
+    return '<div data-saju-ai-step="' + idx + '" style="display:flex;align-items:center;gap:8px;border:1px solid rgba(230,196,112,.26);background:rgba(255,255,255,.07);border-radius:8px;padding:8px 9px;color:rgba(255,247,223,.68);font-size:0.72rem;font-weight:800;min-height:38px;box-sizing:border-box;"><span data-saju-ai-step-dot style="width:8px;height:8px;border-radius:50%;background:rgba(255,247,223,.34);box-shadow:0 0 0 0 rgba(253,230,138,0);"></span><span>' + label + '</span></div>';
+  }).join('');
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-llm-result-v20260625" style="margin:18px 0 0" data-saju-analysis-only="true">'
-    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.22),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(42,28,22,.97) 52%,rgba(243,236,218,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.22);padding:18px;">'
-    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.18),transparent 30%,rgba(255,255,255,.14) 100%);"></div>'
-    +   '<div style="position:absolute;right:18px;bottom:-34px;width:132px;height:132px;border-radius:50%;opacity:.2;border:1px solid rgba(255,231,164,.42);background:radial-gradient(circle at 50% 26%,#cf2e2e 0 16%,transparent 17%),radial-gradient(circle at 50% 74%,#133e7c 0 16%,transparent 17%),linear-gradient(180deg,#cf2e2e 0 50%,#133e7c 50% 100%);filter:saturate(1.08);"></div>'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260626" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.2),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(33,28,26,.97) 56%,rgba(60,42,27,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.18);padding:18px;">'
+    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.14),transparent 32%,rgba(255,255,255,.1) 100%);"></div>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
-    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 남기면, 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">사주 AI 상담 · 20,000원</span>'
+    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">고민을 남기면 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">결제 · 월정석 · 이용권</span>'
     +   '</div>'
-    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
+    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="' + _sajuEngineText("se_6277_attr_placeholder") + '" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
     +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
     +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 상담문 생성</span>'
@@ -5688,11 +6330,16 @@ function _buildSajuQuestionPromptHtml() {
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 상담 생성에 남깁니다.</div>'
+    +   '<div data-saju-ai-progress style="position:relative;display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:13px;">' + stepHtml + '</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">20,000원으로 사주 AI 상담 받기</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
     +   '</div>'
-    +   '<textarea data-saju-ai-output readonly style="position:relative;display:none;margin-top:12px;width:100%;min-height:220px;border-radius:8px;border:1px solid rgba(207,172,91,.42);background:rgba(255,252,243,.94);color:#1f2a19;padding:13px 14px;font-size:0.82rem;line-height:1.68;resize:vertical;box-sizing:border-box;"></textarea>'
+    +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.97),rgba(255,247,223,.94));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
+    +     '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(113,63,18,.16);padding:11px 13px;background:rgba(120,53,15,.06);"><strong style="font-size:0.82rem;color:#2a2117;">명식이 열어 준 상담문</strong><button data-saju-ai-copy-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">복사</button></div>'
+    +     '<pre data-saju-ai-output-text style="white-space:pre-wrap;margin:0;padding:14px;color:#1f2a19;font-size:0.84rem;line-height:1.78;font-family:inherit;word-break:keep-all;"></pre>'
+    +   '</div>'
+    +   '<textarea data-saju-ai-output readonly style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;"></textarea>'
     +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
     + '</div>'
     + '</div>';
@@ -5747,23 +6394,88 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var generateBtn = rootEl.querySelector('[data-saju-ai-generate]');
   var regenerateBtn = rootEl.querySelector('[data-saju-ai-regenerate]');
   var outputEl = rootEl.querySelector('[data-saju-ai-output]');
+  var outputPanel = rootEl.querySelector('[data-saju-ai-output-panel]');
+  var outputTextEl = rootEl.querySelector('[data-saju-ai-output-text]');
+  var copyBtn = rootEl.querySelector('[data-saju-ai-copy-result]');
   var statusEl = rootEl.querySelector('[data-saju-ai-status]');
-  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !statusEl) return;
+  var progressEl = rootEl.querySelector('[data-saju-ai-progress]');
+  var stepEls = progressEl ? progressEl.querySelectorAll('[data-saju-ai-step]') : [];
+  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !statusEl) return;
 
   var isLoading = false;
+  var progressTimer = null;
+  var progressIndex = 0;
+  var lastPaidEvidence = null;
+  var lastPaidEvidenceKey = '';
+
+  function requestKey(question, domain) {
+    return String(question || '').trim() + '::' + String(domain || '').trim();
+  }
+  function clearPaidEvidence() {
+    lastPaidEvidence = null;
+    lastPaidEvidenceKey = '';
+  }
   function updateCount() {
     var len = String(inputEl.value || '').trim().length;
     countEl.textContent = len + ' / 1000';
     generateBtn.disabled = isLoading || len < 5;
     generateBtn.style.opacity = generateBtn.disabled ? '0.62' : '1';
   }
+  function setProgress(activeIndex, done) {
+    if (!progressEl) return;
+    progressEl.style.display = activeIndex >= 0 ? 'grid' : 'none';
+    Array.prototype.forEach.call(stepEls, function(step, idx) {
+      var dot = step.querySelector('[data-saju-ai-step-dot]');
+      var active = idx <= activeIndex;
+      step.style.borderColor = active ? 'rgba(253,230,138,.72)' : 'rgba(230,196,112,.26)';
+      step.style.background = active ? 'rgba(255,247,223,.16)' : 'rgba(255,255,255,.07)';
+      step.style.color = active ? '#fff7df' : 'rgba(255,247,223,.68)';
+      if (dot) {
+        dot.style.background = active ? (done && idx === stepEls.length - 1 ? '#86efac' : '#fde68a') : 'rgba(255,247,223,.34)';
+        dot.style.boxShadow = active ? '0 0 0 5px rgba(253,230,138,.12)' : '0 0 0 0 rgba(253,230,138,0)';
+      }
+    });
+  }
+  function startProgress() {
+    clearInterval(progressTimer);
+    progressIndex = 0;
+    setProgress(progressIndex, false);
+    progressTimer = setInterval(function() {
+      progressIndex = Math.min(3, progressIndex + 1);
+      setProgress(progressIndex, false);
+    }, 1200);
+  }
+  function stopProgress() {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
   function setLoading(next) {
     isLoading = !!next;
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? '사주 상담문의 결을 여는 중...' : '20,000원으로 사주 AI 상담 받기';
+    generateBtn.textContent = isLoading ? '상담문을 여는 중...' : '사주 AI 상담 받기';
+    if (isLoading) startProgress(); else stopProgress();
     updateCount();
+  }
+  function paymentCompleteText(payload) {
+    var consume = payload && payload.consume && typeof payload.consume === 'object' ? payload.consume : {};
+    var mode = String((payload && payload.paymentMode) || consume.paymentMode || '').toUpperCase();
+    var method = String((payload && payload.accessMethod) || consume.accessMethod || consume.paymentMethod || '').toUpperCase();
+    var monthlyCreditCost = Math.max(0, Number((payload && payload.membershipCreditCost) || consume.membershipCreditCost || consume.requiredMonthlyCredits || 0));
+    var chargedCoins = Math.max(0, Number((payload && payload.chargedCoins) || consume.chargedCoins || 0));
+    if (monthlyCreditCost > 0 || mode === 'MOONLIGHT_STONE' || mode === 'MONTHLY_CREDIT' || method === 'MONTHLY') {
+      return '월정석 ' + Math.floor(monthlyCreditCost || chargedCoins).toLocaleString('ko-KR') + '개 확인 완료. ';
+    }
+    if ((payload && payload.freeBySubscription === true) || mode === 'MEMBERSHIP_PASS' || method === 'PASS') return '이용권 확인 완료. ';
+    if (mode === 'DIRECT_KRW' || method === 'CARD') return '단건 결제 확인 완료. ';
+    return chargedCoins > 0 ? '결제 확인 완료. ' : '이용 권한 확인 완료. ';
+  }
+  function renderResult(text) {
+    outputEl.value = text;
+    outputTextEl.textContent = text;
+    outputPanel.style.display = 'block';
+    outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function handleGenerate() {
     if (isLoading) return;
@@ -5775,36 +6487,42 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }
     var domain = _sajuPromptReadDomain(rootEl);
     var privacyOptions = _sajuPromptReadPrivacy(rootEl);
-    if (!_confirmSajuQuestionPromptPurchase(domain, privacyOptions)) {
+    var key = requestKey(question, domain);
+    var reusePaidEvidence = lastPaidEvidence && lastPaidEvidenceKey === key;
+    if (!reusePaidEvidence && !_confirmSajuQuestionPromptPurchase(domain, privacyOptions)) {
       _sajuPromptSetStatus(statusEl, '생성을 취소했습니다. 결제 전 설정을 다시 확인할 수 있습니다.', 'info');
       return;
     }
     setLoading(true);
-    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 AI 상담문을 빚고 있습니다.', 'info');
+    _sajuPromptSetStatus(statusEl, reusePaidEvidence ? '확인된 결제 권한으로 상담문을 다시 열고 있습니다.' : '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 AI 상담문을 빚고 있습니다.', 'info');
     _requestSajuQuestionPrompt(question, privacyOptions, domain, {
+      paidEvidence: reusePaidEvidence ? lastPaidEvidence : null,
       onRetry: function() {
+        setProgress(2, false);
         _sajuPromptSetStatus(statusEl, '결제는 확인되었고, 명식의 문을 다시 여는 중입니다.', 'info');
       }
     }).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
       var resultText = String(payload.resultText || '').trim();
       if (result && result.ok && payload.ok === true && resultText) {
-        outputEl.style.display = 'block';
-        outputEl.value = resultText;
-        outputEl.scrollTop = 0;
+        renderResult(resultText);
         regenerateBtn.style.display = 'inline-flex';
+        regenerateBtn.textContent = '다시 상담 받기';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
-        var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-        var monthlyCreditCost = Math.max(0, Number(payload.membershipCreditCost || (payload.consume && payload.consume.membershipCreditCost) || 0));
-        var paymentConfirmText = monthlyCreditCost > 0
-          ? '월정석 ' + Math.floor(monthlyCreditCost).toLocaleString('ko-KR') + '개 결제 확인 완료. '
-          : (chargedCoins > 0 ? '결제 확인 완료. ' : '');
-        _sajuPromptSetStatus(statusEl, paymentConfirmText + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 AI 상담 결과가 열렸습니다.', 'success');
+        setProgress(3, true);
+        clearPaidEvidence();
+        _sajuPromptSetStatus(statusEl, paymentCompleteText(payload) + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 AI 상담 결과가 열렸습니다.', 'success');
         return;
       }
 
       var code = String(payload.code || '').trim();
       var message = String(payload.message || '').trim() || '상담문 생성 중 오류가 발생했습니다.';
+      if (result && result._sajuPaidEvidence && code === 'LLM_GENERATION_RETRYABLE' && payload.refundOk !== true) {
+        lastPaidEvidence = result._sajuPaidEvidence;
+        lastPaidEvidenceKey = key;
+        regenerateBtn.style.display = 'inline-flex';
+        regenerateBtn.textContent = '추가 결제 없이 다시 생성';
+      }
       if (code === 'MISSING_PROFILE_ID') {
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
@@ -5815,6 +6533,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         return;
       }
       if (code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || result.status === 402) {
+        clearPaidEvidence();
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
       }
@@ -5826,11 +6545,22 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   }
 
-  inputEl.addEventListener('input', updateCount);
+  inputEl.addEventListener('input', function() {
+    clearPaidEvidence();
+    updateCount();
+  });
   generateBtn.addEventListener('click', handleGenerate);
   regenerateBtn.addEventListener('click', handleGenerate);
+  copyBtn.addEventListener('click', function() {
+    _sajuPromptCopyText(outputEl.value).then(function() {
+      _sajuPromptSetStatus(statusEl, '상담문을 복사했습니다.', 'success');
+    }).catch(function() {
+      _sajuPromptSetStatus(statusEl, '복사에 실패했습니다. 상담문을 직접 선택해 주세요.', 'error');
+    });
+  });
   updateCount();
-  _sajuPromptSetStatus(statusEl, '질문을 남기면 20,000원 단건 결제 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
+  setProgress(-1, false);
+  _sajuPromptSetStatus(statusEl, '질문을 남기면 결제, 월정석 크레딧, 멤버십 이용권 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
 }
 
   function renderSpecialCharm(p, natal) {
@@ -6045,11 +6775,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     };
     var factCopy = axisFactPack[charmAxis] || axisFactPack.balance;
     var bombs = [
-      {label:'내가 모르는 나의 유혹 습관', text:factCopy.habit},
-      {label:'사람들이 오해하는 포인트', text:factCopy.misread + ' ' + (elementCaution[dominant] || elementCaution.earth)},
-      {label:'매력을 망치는 행동', text:factCopy.damage},
-      {label:'진짜 매력적으로 보이는 순간', text:factCopy.shine},
-      {label:'오늘부터 고칠 것', text:factCopy.fix}
+      {label:_sajuEngineText("se_6148_prop_label"), text:factCopy.habit},
+      {label:_sajuEngineText("se_6149_prop_label"), text:factCopy.misread + ' ' + (elementCaution[dominant] || elementCaution.earth)},
+      {label:_sajuEngineText("se_6150_prop_label"), text:factCopy.damage},
+      {label:_sajuEngineText("se_6151_prop_label"), text:factCopy.shine},
+      {label:_sajuEngineText("se_6152_prop_label"), text:factCopy.fix}
     ];
 
     var stylePrescription = {
@@ -6073,7 +6803,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     };
     var strategies = [
       {
-        label:'연애 처방',
+        label:_sajuEngineText("se_6176_prop_label"),
         text:(charmAxis==='tao'
           ? '첫 만남에서는 이미 절반의 인상이 남습니다. 그래서 더 많이 어필하기보다 상대가 궁금해할 여백을 남기는 것이 좋습니다. 마음에 드는 사람에게만 시선을 오래 두고, 관계가 시작된 뒤에는 꾸준한 관심 표현으로 도화의 지속력을 만들어야 합니다.'
           : charmAxis==='yem'
@@ -6083,11 +6813,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '상대가 편안하게 다가올 수 있는 안정감이 강점입니다. 다만 너무 담백하면 호감이 약해 보일 수 있으니, 좋아하는 사람에게는 반응을 한 단계 선명하게 표현하세요. 오래 가는 관계에서는 꾸준함이 가장 큰 무기입니다.')
       },
       {
-        label:'인간관계 처방',
+        label:_sajuEngineText("se_6186_prop_label"),
         text:'모두에게 같은 온도를 주기보다 관계의 깊이에 따라 표현을 조절하는 것이 좋습니다. 가까운 사람에게는 더 자주 확인의 말을 주고, 가벼운 관계에는 적당한 거리감을 남기세요. 당신의 매력은 경계가 선명할수록 더 고급스럽게 보입니다.'
       },
       {
-        label:'비즈니스 처방',
+        label:_sajuEngineText("se_6190_prop_label"),
         text:(taoPct>=40 || dominant==='fire'
           ? '사람 앞에 서는 일이 강한 브랜드 자산이 됩니다. 발표, 상담, 영업, 영상, 라이브처럼 당신이라는 사람이 신뢰도를 높이는 구조에 잘 맞습니다. 말투와 표정, 화면 구성을 하나의 이미지로 정리하면 성과가 더 좋아집니다.'
           : yemPct>=40
@@ -6097,15 +6827,15 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '운영, 고객관리, 멘토링, 교육처럼 오래 신뢰를 쌓는 일에 강합니다. 즉흥적인 화제성보다 안정적인 관계 관리가 성과로 이어집니다. 꾸준함을 시스템으로 만들면 당신의 매력이 실력처럼 보입니다.')
       },
       {
-        label:'스타일링 처방',
+        label:_sajuEngineText("se_6200_prop_label"),
         text:stylePrescription[dominant] || stylePrescription.earth
       },
       {
-        label:'SNS 처방',
+        label:_sajuEngineText("se_6204_prop_label"),
         text:(snsPrescription[charmAxis] || snsPrescription.balance) + ' 개발자용 설명처럼 기능을 나열하기보다, 당신의 분위기와 취향이 먼저 느껴지게 구성하세요.'
       },
       {
-        label:'금전운 연결 처방',
+        label:_sajuEngineText("se_6208_prop_label"),
         text:(taoPct>=40 || dominant==='fire' || dominant==='water'
           ? '얼굴, 분위기, 말투, 취향이 곧 브랜드가 될 수 있습니다. 영상 콘텐츠, 상담형 서비스, 강연, 라이브, SNS 브랜딩처럼 사람 자체가 신뢰를 만드는 구조에 잘 맞습니다. 특히 궁금해서 계속 보게 되는 콘텐츠를 만들면 매력이 수익으로 이어집니다.'
           : dominant==='metal'
@@ -6115,11 +6845,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '성장감과 신뢰가 돈이 되는 구조에 잘 맞습니다. 교육, 커뮤니티, 자기계발 콘텐츠, 상담형 서비스처럼 사람을 좋은 방향으로 움직이는 분야가 유리합니다. 꾸준한 기록과 후기 축적이 금전운을 키웁니다.')
       },
       {
-        label:'피해야 할 환경',
+        label:_sajuEngineText("se_6218_prop_label"),
         text:'당신의 매력은 억압적이고 평가만 많은 환경에서 죽습니다. 자유롭게 표현할 수 있고, 취향과 개성을 보여줄 수 있는 곳에서 훨씬 강하게 살아납니다. 특히 감정과 리듬을 계속 숨겨야 하는 관계나 일터에서는 매력이 아니라 피로감만 쌓일 수 있습니다.'
       },
       {
-        label:'오늘의 매력 미션',
+        label:_sajuEngineText("se_6222_prop_label"),
         text:missionText[charmAxis] || missionText.balance
       }
     ];
@@ -6131,11 +6861,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
       var isActive = (e===dominant || e===dayEl);
       var lvl = m.pct>=33?'🔥 강함':m.pct>=20?'활성':m.pct>=10?'기본':'잠재';
       var magDetails = [
-        {label:'매력 키워드', text:m.keyword},
-        {label:'잘 어울리는 분위기', text:m.mood},
-        {label:'잘 어울리는 스타일', text:m.style},
-        {label:'사람들에게 주는 감정', text:m.feeling},
-        {label:'활용하기 좋은 분야', text:m.field}
+        {label:_sajuEngineText("se_6234_prop_label"), text:m.keyword},
+        {label:_sajuEngineText("se_6235_prop_label"), text:m.mood},
+        {label:_sajuEngineText("se_6236_prop_label"), text:m.style},
+        {label:_sajuEngineText("se_6237_prop_label"), text:m.feeling},
+        {label:_sajuEngineText("se_6238_prop_label"), text:m.field}
       ].map(function(item){
         return '<div class="cs-mag-item">'+
           '<div class="cs-mag-head"><span class="cs-mag-name">'+item.label+'</span></div>'+
@@ -6175,11 +6905,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
         bar:'cs-bar-taohua',
         keyword:'치명적 존재감 · 시선 집중 · 유혹 · 인기 · 연예인 기질',
         details:[
-          {label:'기본 매력', text:'가만히 있어도 사람의 시선을 끌어당기는 흡입력이 있습니다. 단순히 예쁘다, 잘생겼다의 문제가 아니라 분위기가 남는 사람에 가깝습니다.'},
-          {label:'발동되는 상황', text:'사진, 영상, 첫 만남, 소개팅, SNS, 발표 자리처럼 시선이 집중되는 환경에서 특히 강하게 작동합니다.'},
-          {label:'강하게 먹히는 상대', text:'감각적이고 분위기를 중요하게 보는 사람, 첫인상에 민감한 사람, 은근한 설렘을 좋아하는 사람에게 강합니다.'},
-          {label:'조심해야 할 오해', text:'친절함이 플러팅처럼 보이거나, 가벼운 리액션이 관심 표현으로 과해석될 수 있습니다.'},
-          {label:'현실 활용법', text:'프로필 사진, 영상 콘텐츠, 브랜딩, 소개팅, 영업, 상담, 강연, SNS 운영에 활용하면 좋습니다.'}
+          {label:_sajuEngineText("se_6278_prop_label"), text:'가만히 있어도 사람의 시선을 끌어당기는 흡입력이 있습니다. 단순히 예쁘다, 잘생겼다의 문제가 아니라 분위기가 남는 사람에 가깝습니다.'},
+          {label:_sajuEngineText("se_6279_prop_label"), text:'사진, 영상, 첫 만남, 소개팅, SNS, 발표 자리처럼 시선이 집중되는 환경에서 특히 강하게 작동합니다.'},
+          {label:_sajuEngineText("se_6280_prop_label"), text:'감각적이고 분위기를 중요하게 보는 사람, 첫인상에 민감한 사람, 은근한 설렘을 좋아하는 사람에게 강합니다.'},
+          {label:_sajuEngineText("se_6281_prop_label"), text:'친절함이 플러팅처럼 보이거나, 가벼운 리액션이 관심 표현으로 과해석될 수 있습니다.'},
+          {label:_sajuEngineText("se_6282_prop_label"), text:'프로필 사진, 영상 콘텐츠, 브랜딩, 소개팅, 영업, 상담, 강연, SNS 운영에 활용하면 좋습니다.'}
         ]
       },
       {
@@ -6189,11 +6919,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
         bar:'cs-bar-yemma',
         keyword:'역동적 에너지 · 활력 · 개척자 · 글로벌 감각 · 모험',
         details:[
-          {label:'기본 매력', text:'한곳에 고여 있지 않는 생동감이 매력입니다. 새로운 장소, 새로운 사람, 새로운 일을 만날수록 존재감이 살아납니다.'},
-          {label:'발동되는 상황', text:'여행, 이동, 외부 미팅, 행사, 커뮤니티, 해외 관련 일, 새로운 프로젝트에서 매력이 커집니다.'},
-          {label:'강하게 먹히는 상대', text:'반복되는 일상에 지친 사람, 새로운 자극을 원하는 사람, 활동적인 사람에게 강하게 어필합니다.'},
-          {label:'조심해야 할 오해', text:'자유로워 보이는 만큼 안정감이 부족해 보일 수 있습니다. 중요한 사람에게는 머무를 마음을 말로 확인해주는 편이 좋습니다.'},
-          {label:'현실 활용법', text:'여행 콘텐츠, 영업, 외부 활동, 글로벌 서비스, 이벤트 운영, 커뮤니티 리더 역할에 좋습니다.'}
+          {label:_sajuEngineText("se_6292_prop_label"), text:'한곳에 고여 있지 않는 생동감이 매력입니다. 새로운 장소, 새로운 사람, 새로운 일을 만날수록 존재감이 살아납니다.'},
+          {label:_sajuEngineText("se_6293_prop_label"), text:'여행, 이동, 외부 미팅, 행사, 커뮤니티, 해외 관련 일, 새로운 프로젝트에서 매력이 커집니다.'},
+          {label:_sajuEngineText("se_6294_prop_label"), text:'반복되는 일상에 지친 사람, 새로운 자극을 원하는 사람, 활동적인 사람에게 강하게 어필합니다.'},
+          {label:_sajuEngineText("se_6295_prop_label"), text:'자유로워 보이는 만큼 안정감이 부족해 보일 수 있습니다. 중요한 사람에게는 머무를 마음을 말로 확인해주는 편이 좋습니다.'},
+          {label:_sajuEngineText("se_6296_prop_label"), text:'여행 콘텐츠, 영업, 외부 활동, 글로벌 서비스, 이벤트 운영, 커뮤니티 리더 역할에 좋습니다.'}
         ]
       },
       {
@@ -6203,11 +6933,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
         bar:'cs-bar-hwagae',
         keyword:'예술적 고독 · 신비로움 · 철학 · 직관 · 묘한 끌림',
         details:[
-          {label:'기본 매력', text:'쉽게 읽히지 않는 깊이와 고독한 분위기가 매력입니다. 조용한데 이상하게 존재감이 남는 타입입니다.'},
-          {label:'발동되는 상황', text:'혼자 집중하는 모습, 예술적 취향, 글쓰기, 상담, 철학적 대화, 야간 분위기, 감성적인 공간에서 강해집니다.'},
-          {label:'강하게 먹히는 상대', text:'가벼운 사람보다 깊은 사람을 좋아하는 상대, 취향과 세계관을 중요하게 보는 사람에게 강합니다.'},
-          {label:'조심해야 할 오해', text:'신비로움이 지나치면 차갑거나 벽이 있는 사람처럼 보일 수 있습니다.'},
-          {label:'현실 활용법', text:'글쓰기, 예술, 상담, 브랜딩, 타로/사주/심리 콘텐츠, 고급스러운 개인 브랜드에 좋습니다.'}
+          {label:_sajuEngineText("se_6306_prop_label"), text:'쉽게 읽히지 않는 깊이와 고독한 분위기가 매력입니다. 조용한데 이상하게 존재감이 남는 타입입니다.'},
+          {label:_sajuEngineText("se_6307_prop_label"), text:'혼자 집중하는 모습, 예술적 취향, 글쓰기, 상담, 철학적 대화, 야간 분위기, 감성적인 공간에서 강해집니다.'},
+          {label:_sajuEngineText("se_6308_prop_label"), text:'가벼운 사람보다 깊은 사람을 좋아하는 상대, 취향과 세계관을 중요하게 보는 사람에게 강합니다.'},
+          {label:_sajuEngineText("se_6309_prop_label"), text:'신비로움이 지나치면 차갑거나 벽이 있는 사람처럼 보일 수 있습니다.'},
+          {label:_sajuEngineText("se_6310_prop_label"), text:'글쓰기, 예술, 상담, 브랜딩, 타로/사주/심리 콘텐츠, 고급스러운 개인 브랜드에 좋습니다.'}
         ]
       }
     ].map(function(s){
@@ -6220,9 +6950,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }).join('');
 
     var coreRows = [
-      {label:'첫인상 매력', text:coreCopy.first},
-      {label:'오래 볼수록 드러나는 매력', text:coreCopy.deep},
-      {label:'사람들이 착각하기 쉬운 이미지', text:coreCopy.misread}
+      {label:_sajuEngineText("se_6323_prop_label"), text:coreCopy.first},
+      {label:_sajuEngineText("se_6324_prop_label"), text:coreCopy.deep},
+      {label:_sajuEngineText("se_6325_prop_label"), text:coreCopy.misread}
     ].map(function(item){
       return '<div class="cs-mag-item cs-active">'+
         '<div class="cs-mag-head">'+
@@ -6275,57 +7005,57 @@ function _bindSajuQuestionPromptCard(rootEl) {
     };
     var situationRows = [
       {
-        title:'소개팅/연애 초반',
+        title:_sajuEngineText("se_6378_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.love},
-          {label:'상대가 느끼는 인상', text:'처음부터 어딘가 더 알고 싶고, 대화가 끝난 뒤에도 표정과 말투가 한 번 더 떠오르는 사람으로 남습니다.'},
-          {label:'잘 쓰는 방법', text:'마음에 드는 사람에게만 신호를 선명하게 주고, 리액션보다 질문과 눈맞춤의 밀도를 조절하세요.'},
-          {label:'조심할 점', text:'너무 많은 리액션은 상대가 빠르게 착각하게 만들 수 있으니, 모두에게 같은 온도를 주지 않는 편이 좋습니다.'}
+          {label:_sajuEngineText("se_6380_prop_label"), text:situationTone.love},
+          {label:_sajuEngineText("se_6381_prop_label"), text:'처음부터 어딘가 더 알고 싶고, 대화가 끝난 뒤에도 표정과 말투가 한 번 더 떠오르는 사람으로 남습니다.'},
+          {label:_sajuEngineText("se_6382_prop_label"), text:'마음에 드는 사람에게만 신호를 선명하게 주고, 리액션보다 질문과 눈맞춤의 밀도를 조절하세요.'},
+          {label:_sajuEngineText("se_6383_prop_label"), text:'너무 많은 리액션은 상대가 빠르게 착각하게 만들 수 있으니, 모두에게 같은 온도를 주지 않는 편이 좋습니다.'}
         ]
       },
       {
-        title:'오래 알고 지낸 관계',
+        title:_sajuEngineText("se_6387_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.long},
-          {label:'상대가 느끼는 인상', text:'처음보다 시간이 지나면서 더 편해지고, 문득 생각나는 디테일이 많은 사람으로 느껴집니다.'},
-          {label:'잘 쓰는 방법', text:'익숙한 관계일수록 작은 취향, 챙김, 솔직한 감정을 조금씩 보여주면 매력이 다시 살아납니다.'},
-          {label:'조심할 점', text:'너무 편해진 태도는 무관심처럼 보일 수 있어, 고마움과 호감은 가볍게라도 표현하는 것이 좋습니다.'}
+          {label:_sajuEngineText("se_6389_prop_label"), text:situationTone.long},
+          {label:_sajuEngineText("se_6390_prop_label"), text:'처음보다 시간이 지나면서 더 편해지고, 문득 생각나는 디테일이 많은 사람으로 느껴집니다.'},
+          {label:_sajuEngineText("se_6391_prop_label"), text:'익숙한 관계일수록 작은 취향, 챙김, 솔직한 감정을 조금씩 보여주면 매력이 다시 살아납니다.'},
+          {label:_sajuEngineText("se_6392_prop_label"), text:'너무 편해진 태도는 무관심처럼 보일 수 있어, 고마움과 호감은 가볍게라도 표현하는 것이 좋습니다.'}
         ]
       },
       {
-        title:'일/비즈니스 환경',
+        title:_sajuEngineText("se_6396_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.business},
-          {label:'상대가 느끼는 인상', text:'설명, 발표, 상담, 영업처럼 사람이 신뢰도를 높이는 자리에서 기억에 남는 인상을 줍니다.'},
-          {label:'잘 쓰는 방법', text:'결과물만 보여주기보다 당신의 관점, 말투, 문제 해결 방식을 함께 보여주면 설득력이 커집니다.'},
-          {label:'조심할 점', text:'매력이 앞서면 실력보다 이미지로만 평가될 수 있으니, 근거와 약속 이행을 함께 남기세요.'}
+          {label:_sajuEngineText("se_6398_prop_label"), text:situationTone.business},
+          {label:_sajuEngineText("se_6399_prop_label"), text:'설명, 발표, 상담, 영업처럼 사람이 신뢰도를 높이는 자리에서 기억에 남는 인상을 줍니다.'},
+          {label:_sajuEngineText("se_6400_prop_label"), text:'결과물만 보여주기보다 당신의 관점, 말투, 문제 해결 방식을 함께 보여주면 설득력이 커집니다.'},
+          {label:_sajuEngineText("se_6401_prop_label"), text:'매력이 앞서면 실력보다 이미지로만 평가될 수 있으니, 근거와 약속 이행을 함께 남기세요.'}
         ]
       },
       {
-        title:'SNS/프로필/영상',
+        title:_sajuEngineText("se_6405_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.profile},
-          {label:'상대가 느끼는 인상', text:'단순한 셀카보다 취향과 세계관이 보일 때 더 오래 보고 싶은 사람으로 남습니다.'},
-          {label:'잘 쓰는 방법', text:'프로필 사진, 짧은 영상, 스토리형 콘텐츠에 표정·목소리·공간의 결을 함께 담으세요.'},
-          {label:'조심할 점', text:'과한 연출은 오히려 진짜 매력을 흐릴 수 있으니, 가장 자연스러운 장면을 선명하게 고르는 편이 좋습니다.'}
+          {label:_sajuEngineText("se_6407_prop_label"), text:situationTone.profile},
+          {label:_sajuEngineText("se_6408_prop_label"), text:'단순한 셀카보다 취향과 세계관이 보일 때 더 오래 보고 싶은 사람으로 남습니다.'},
+          {label:_sajuEngineText("se_6409_prop_label"), text:'프로필 사진, 짧은 영상, 스토리형 콘텐츠에 표정·목소리·공간의 결을 함께 담으세요.'},
+          {label:_sajuEngineText("se_6410_prop_label"), text:'과한 연출은 오히려 진짜 매력을 흐릴 수 있으니, 가장 자연스러운 장면을 선명하게 고르는 편이 좋습니다.'}
         ]
       },
       {
-        title:'모임/파티/커뮤니티',
+        title:_sajuEngineText("se_6414_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.group},
-          {label:'상대가 느끼는 인상', text:'처음엔 분위기에 섞여 있어도 어느 순간 대화의 중심이나 기억나는 사람으로 남습니다.'},
-          {label:'잘 쓰는 방법', text:'모두에게 잘 보이려 하기보다 결이 맞는 사람과 깊이를 만들면 매력의 밀도가 올라갑니다.'},
-          {label:'조심할 점', text:'관심이 분산되면 가볍게 보일 수 있으니, 중요한 연결에는 후속 연락과 약속을 분명히 하세요.'}
+          {label:_sajuEngineText("se_6416_prop_label"), text:situationTone.group},
+          {label:_sajuEngineText("se_6417_prop_label"), text:'처음엔 분위기에 섞여 있어도 어느 순간 대화의 중심이나 기억나는 사람으로 남습니다.'},
+          {label:_sajuEngineText("se_6418_prop_label"), text:'모두에게 잘 보이려 하기보다 결이 맞는 사람과 깊이를 만들면 매력의 밀도가 올라갑니다.'},
+          {label:_sajuEngineText("se_6419_prop_label"), text:'관심이 분산되면 가볍게 보일 수 있으니, 중요한 연결에는 후속 연락과 약속을 분명히 하세요.'}
         ]
       },
       {
-        title:'위기 상황 또는 갈등 상황',
+        title:_sajuEngineText("se_6423_prop_title"),
         items:[
-          {label:'발동되는 매력', text:situationTone.conflict},
-          {label:'상대가 느끼는 인상', text:'감정이 흔들리는 순간의 태도에서 진짜 품격과 신뢰도가 드러나는 사람으로 보입니다.'},
-          {label:'잘 쓰는 방법', text:'바로 결론을 내기보다 감정 확인 한 문장, 사실 정리, 다음 행동 제안 순서로 말하면 매력이 보호됩니다.'},
-          {label:'조심할 점', text:'침묵은 차가움으로, 과한 설명은 변명으로 보일 수 있으니 짧고 진심 있는 표현을 남기세요.'}
+          {label:_sajuEngineText("se_6425_prop_label"), text:situationTone.conflict},
+          {label:_sajuEngineText("se_6426_prop_label"), text:'감정이 흔들리는 순간의 태도에서 진짜 품격과 신뢰도가 드러나는 사람으로 보입니다.'},
+          {label:_sajuEngineText("se_6427_prop_label"), text:'바로 결론을 내기보다 감정 확인 한 문장, 사실 정리, 다음 행동 제안 순서로 말하면 매력이 보호됩니다.'},
+          {label:_sajuEngineText("se_6428_prop_label"), text:'침묵은 차가움으로, 과한 설명은 변명으로 보일 수 있으니 짧고 진심 있는 표현을 남기세요.'}
         ]
       }
     ].map(function(section){
@@ -6341,7 +7071,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }).join('');
     var stageRows = [
       {
-        title:'연애',
+        title:_sajuEngineText("se_6444_prop_title"),
         text:(charmAxis==='tao'
           ? '당신의 매력은 처음부터 강하게 꽂히는 타입입니다. 그래서 억지로 어필하기보다, 상대가 궁금해할 여백을 남기는 것이 더 효과적입니다. 마음에 드는 사람에게는 애매한 신호보다 꾸준한 관심 표현을 주는 것이 관계 지속에 좋습니다.'
           : charmAxis==='yem'
@@ -6351,7 +7081,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '당신의 매력은 편안하게 가까워지는 데 있습니다. 처음부터 강하게 밀어붙이기보다, 안정적인 대화와 꾸준한 반응이 더 좋은 흐름을 만듭니다. 마음에 드는 사람에게는 작은 배려를 반복해 신뢰를 쌓는 방식이 잘 맞습니다.')
       },
       {
-        title:'인간관계',
+        title:_sajuEngineText("se_6454_prop_title"),
         text:(dominant==='wood'
           ? '사람들과의 관계에서는 자연스럽고 다정한 태도가 가장 큰 장점입니다. 누군가를 성장하게 만들거나 분위기를 부드럽게 푸는 역할에 잘 맞습니다. 다만 모두를 챙기려 하면 에너지가 흩어질 수 있으니, 오래 갈 사람에게 더 깊게 마음을 쓰는 편이 좋습니다.'
           : dominant==='fire'
@@ -6363,15 +7093,15 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '사람들과의 관계에서는 깊이 듣고 오래 기억하는 힘이 강점입니다. 상대는 당신과 대화할 때 쉽게 말하지 못한 감정까지 꺼내게 될 수 있습니다. 다만 혼자 생각이 깊어지면 오해가 커질 수 있으니, 중요한 관계에서는 추측보다 확인 질문이 좋습니다.')
       },
       {
-        title:'직업/비즈니스',
+        title:_sajuEngineText("se_6466_prop_title"),
         text:(situationTone.business + ' 설명, 발표, 상담, 영업, 운영처럼 사람 자체가 결과의 신뢰도를 높이는 일에 잘 맞습니다. 당신의 말투와 태도, 문제를 바라보는 방식까지 함께 보여주면 단순한 실무자를 넘어 기억되는 사람으로 남습니다.')
       },
       {
-        title:'SNS/퍼스널 브랜딩',
+        title:_sajuEngineText("se_6470_prop_title"),
         text:(situationTone.profile + ' 단순히 예쁘게 보이는 것보다 어떤 분위기의 사람인지 드러나는 프로필이 더 잘 맞습니다. 짧은 영상, 스토리, 고정된 색감, 반복되는 말투처럼 사람들이 알아볼 수 있는 시그니처를 만들면 매력이 브랜드가 됩니다.')
       },
       {
-        title:'창작/콘텐츠',
+        title:_sajuEngineText("se_6474_prop_title"),
         text:(hwaPct>=40 || dominant==='water'
           ? '창작에서는 감정적 여운과 세계관을 남기는 콘텐츠에 강합니다. 짧은 글, 상담형 콘텐츠, 타로/사주/심리 해석, 에세이처럼 보는 사람이 자기 이야기를 투영하는 형식이 잘 맞습니다. 설명을 많이 하기보다 한 장면, 한 문장, 한 분위기를 선명하게 남기는 방식이 효과적입니다.'
           : taoPct>=40 || dominant==='fire'
@@ -6381,7 +7111,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
           : '창작에서는 편안하고 신뢰 가는 정보형 콘텐츠에 강합니다. 루틴, 자기계발, 상담형 글, 관계 조언처럼 오래 저장하고 싶은 주제가 잘 맞습니다. 과한 자극보다 꾸준히 다시 찾게 되는 안정적인 톤을 만드는 것이 좋습니다.')
       },
       {
-        title:'돈이 되는 활용법',
+        title:_sajuEngineText("se_6484_prop_title"),
         text:((taoPct>=40 || dominant==='fire' || dominant==='water')
           ? '얼굴, 분위기, 말투, 취향이 곧 브랜드가 될 수 있습니다. 영상 콘텐츠, 상담형 서비스, 강연, 라이브, SNS 브랜딩처럼 사람 자체가 신뢰를 만드는 구조에 잘 맞습니다. 특히 도화와 수 기운이 함께 살아 있으면 궁금해서 계속 보게 되는 콘텐츠에 강점이 있습니다.'
           : dominant==='metal'
@@ -6404,23 +7134,23 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }
     var missionPack = {
       tao: {
-        title:'오늘은 신호를 고르는 날',
-        subtitle:'모두에게 같은 온도를 주지 말고, 마음이 가는 곳에만 선명하게 빛을 남기세요.',
+        title:_sajuEngineText("se_6507_prop_title"),
+        subtitle:_sajuEngineText("se_6508_prop_subtitle"),
         tasks:['프로필 사진이나 첫 화면에서 가장 분위기 있는 한 장을 골라보세요.','관심 있는 사람에게만 짧고 분명한 리액션을 남겨보세요.','오늘 받은 시선과 반응 중 기분 좋은 순간을 하나 기록하세요.']
       },
       yem: {
-        title:'오늘은 장면을 바꾸는 날',
-        subtitle:'새로운 공간과 움직임이 매력을 깨웁니다. 익숙한 루틴에 작은 이동을 넣어보세요.',
+        title:_sajuEngineText("se_6512_prop_title"),
+        subtitle:_sajuEngineText("se_6513_prop_subtitle"),
         tasks:['평소와 다른 길, 카페, 자리에서 하루의 리듬을 시작해보세요.','대화 중 하나는 새로운 제안으로 열어보세요.','움직임이 느껴지는 사진이나 짧은 기록을 남겨보세요.']
       },
       hwa: {
-        title:'오늘은 깊이를 보여주는 날',
-        subtitle:'조용한 취향과 생각이 당신의 아우라를 만듭니다. 한 문장만 더 진심으로 남겨보세요.',
+        title:_sajuEngineText("se_6517_prop_title"),
+        subtitle:_sajuEngineText("se_6518_prop_subtitle"),
         tasks:['좋아하는 음악, 문장, 이미지 중 하나를 골라 오늘의 분위기로 정하세요.','가벼운 답장 대신 진심이 담긴 한 문장을 보내보세요.','혼자 몰입하는 모습을 콘텐츠나 기록으로 남겨보세요.']
       },
       balance: {
-        title:'오늘은 편안함을 선명하게 만드는 날',
-        subtitle:'큰 어필보다 정돈된 태도와 작은 배려가 매력을 오래 남깁니다.',
+        title:_sajuEngineText("se_6522_prop_title"),
+        subtitle:_sajuEngineText("se_6523_prop_subtitle"),
         tasks:['오늘 입는 색감이나 향을 하나만 정해 분위기를 통일해보세요.','고마운 사람에게 짧은 인정의 말을 보내보세요.','내가 편안해지는 루틴 하나를 사진이나 메모로 남겨보세요.']
       }
     };
@@ -7239,8 +7969,8 @@ function renderJohu(johu) {
         <div style="display: flex; flex-direction: column; gap: 24px; background: #FAFAFA; padding: 20px; border-radius: 16px; border: 1px solid #EEE;">
             <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 0.9rem;">
-                    <span style="color: #1976D2; display: flex; align-items: center; gap: 4px;" title=" 에너지 절약 모드. 내면 지향적, 신중함."><span style="font-size: 1.1rem;"></span> 차가움 (寒)</span>
-                    <span style="color: #E53935; display: flex; align-items: center; gap: 4px;" title=" 풀 가동 모드. 외향적, 열정적.">뜨거움 (暖) <span style="font-size: 1.1rem;"></span></span>
+                    <span style="color: #1976D2; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7940_attr_title") + '"><span style="font-size: 1.1rem;"></span> 차가움 (寒)</span>
+                    <span style="color: #E53935; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7941_attr_title") + '">뜨거움 (暖) <span style="font-size: 1.1rem;"></span></span>
                 </div>
                 <div style="position: relative; height: 16px; background: linear-gradient(to right, #64B5F6 0%, #E0E0E0 50%, #EF5350 100%); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                     <div style="position: absolute; left: calc(${tempPct}% - 4px); top: 0; bottom: 0; width: 8px; background: #FFF; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.5); border: 2px solid #333; z-index: 2; transition: left 1s ease-out;"></div>
@@ -7251,8 +7981,8 @@ function renderJohu(johu) {
             </div>
             <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 0.9rem;">
-                    <span style="color: #F57F17; display: flex; align-items: center; gap: 4px;" title=" 깔끔한 미니멀리스트. 독립적, 맺고 끊음."><span style="font-size: 1.1rem;"></span> 건조함 (燥)</span>
-                    <span style="color: #388E3C; display: flex; align-items: center; gap: 4px;" title=" 함께 성장하는 정글. 친화력, 연결성.">촉촉함 (濕) <span style="font-size: 1.1rem;"></span></span>
+                    <span style="color: #F57F17; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7952_attr_title") + '"><span style="font-size: 1.1rem;"></span> 건조함 (燥)</span>
+                    <span style="color: #388E3C; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7953_attr_title") + '">촉촉함 (濕) <span style="font-size: 1.1rem;"></span></span>
                 </div>
                 <div style="position: relative; height: 16px; background: linear-gradient(to right, #FFB74D 0%, #E0E0E0 50%, #81C784 100%); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                     <div style="position: absolute; left: calc(${humidPct}% - 4px); top: 0; bottom: 0; width: 8px; background: #FFF; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.5); border: 2px solid #333; z-index: 2; transition: left 1s ease-out;"></div>
@@ -7532,7 +8262,7 @@ function _buildHeroSVG(elColor){
   var id='skHero'+String(elColor||'void').replace(/[^a-z0-9]/gi,'');
   return '<div class="sk-hero-wrap">'
     +'<div class="sk-hero-glow" style="background:'+c+'"></div>'
-    +'<svg class="sk-hero-svg" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="오행 RPG 아바타">'
+    +'<svg class="sk-hero-svg" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + _sajuEngineText("se_8233_attr_aria_label") + '">'
     +'<defs>'
     +'<linearGradient id="'+id+'Armor" x1="22" y1="22" x2="78" y2="82"><stop offset="0" stop-color="'+c2+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset="1" stop-color="'+c3+'"/></linearGradient>'
     +'<linearGradient id="'+id+'Steel" x1="64" y1="6" x2="82" y2="70"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#c8d6df"/><stop offset="1" stop-color="#596b76"/></linearGradient>'
@@ -7657,7 +8387,7 @@ function renderSkillTree(p, natal){
       +'<div class="sk-stat-val">'+pct+'%</div>'
       +'</div>';
   });
-  var orbitHtml='<div class="sk-orbit-map" aria-label="운명 스킬 별자리">'
+  var orbitHtml='<div class="sk-orbit-map" aria-label="' + _sajuEngineText("se_8358_attr_aria_label") + '">'
     +'<div class="sk-orbit-core">운명의<br>힘</div>'
     +['metal','wood','water','fire','earth'].map(function(el){
       var pct=Math.round(natal.ratios[el]||0);
@@ -7767,7 +8497,7 @@ function renderSkillTree(p, natal){
     +'</div>'
     +orbitHtml
     +innateHtml
-    +'<div class="sk-tree-wrap" aria-label="인생 스킬 노드맵">'
+    +'<div class="sk-tree-wrap" aria-label="' + _sajuEngineText("se_8468_attr_aria_label") + '">'
     +'<div class="sk-tree-section sk-tree-section--master">'
     +'<div class="sk-tree-label">⭐ MASTER NODE</div>'
     +'<div class="sk-item sk-master sk-node sk-node--master"><span class="sk-icon sk-node-icon">'+masterSk.i+'</span><div><div class="sk-name">'+masterSk.n+' <span class="sk-type-badge">'+(masterSk.tp||'ACTIVE')+'</span></div><div class="sk-desc">'+masterSk.d+'</div></div></div>'
@@ -8606,23 +9336,23 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
   var SIGN_KO = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
   var SIGN_GLYPH = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
   var PLANET_META = [
-    { key: 'Sun', label: '태양', glyph: '☉', source: 'sun' },
+    { key: 'Sun', label: _sajuEngineText("se_8709_prop_label"), glyph: '☉', source: 'sun' },
     { key: 'Moon', label: '달', glyph: '☽', source: 'moon' },
-    { key: 'Mercury', label: '수성', glyph: '☿', source: 'planet' },
-    { key: 'Venus', label: '금성', glyph: '♀', source: 'planet' },
-    { key: 'Mars', label: '화성', glyph: '♂', source: 'planet' },
-    { key: 'Jupiter', label: '목성', glyph: '♃', source: 'planet' },
-    { key: 'Saturn', label: '토성', glyph: '♄', source: 'planet' },
-    { key: 'Uranus', label: '천왕성', glyph: '♅', source: 'planet' },
-    { key: 'Neptune', label: '해왕성', glyph: '♆', source: 'planet' },
-    { key: 'Pluto', label: '명왕성', glyph: '♇', source: 'planet' }
+    { key: 'Mercury', label: _sajuEngineText("se_8711_prop_label"), glyph: '☿', source: 'planet' },
+    { key: 'Venus', label: _sajuEngineText("se_8712_prop_label"), glyph: '♀', source: 'planet' },
+    { key: 'Mars', label: _sajuEngineText("se_8713_prop_label"), glyph: '♂', source: 'planet' },
+    { key: 'Jupiter', label: _sajuEngineText("se_8714_prop_label"), glyph: '♃', source: 'planet' },
+    { key: 'Saturn', label: _sajuEngineText("se_8715_prop_label"), glyph: '♄', source: 'planet' },
+    { key: 'Uranus', label: _sajuEngineText("se_8716_prop_label"), glyph: '♅', source: 'planet' },
+    { key: 'Neptune', label: _sajuEngineText("se_8717_prop_label"), glyph: '♆', source: 'planet' },
+    { key: 'Pluto', label: _sajuEngineText("se_8718_prop_label"), glyph: '♇', source: 'planet' }
   ];
   var ASPECT_META = {
     conjunction: { label: '합', color: 'rgba(226,232,240,0.54)' },
     opposition: { label: '충', color: 'rgba(251,146,60,0.52)' },
-    trine: { label: '트라인', color: 'rgba(56,189,248,0.52)' },
-    square: { label: '스퀘어', color: 'rgba(248,113,113,0.5)' },
-    sextile: { label: '섹스타일', color: 'rgba(52,211,153,0.5)' }
+    trine: { label: _sajuEngineText("se_8723_prop_label"), color: 'rgba(56,189,248,0.52)' },
+    square: { label: _sajuEngineText("se_8724_prop_label"), color: 'rgba(248,113,113,0.5)' },
+    sextile: { label: _sajuEngineText("se_8725_prop_label"), color: 'rgba(52,211,153,0.5)' }
   };
 
   if (!chart || !chart.asc) {
@@ -8733,7 +9463,7 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
   var rAspect = 86;
 
   var svg = [];
-  svg.push('<svg viewBox="0 0 420 420" role="img" aria-label="정확한 네이탈 차트" class="astro-wheel-svg">');
+  svg.push('<svg viewBox="0 0 420 420" role="img" aria-label="' + _sajuEngineText("se_9434_attr_aria_label") + '" class="astro-wheel-svg">');
   svg.push('<defs>');
   svg.push('<radialGradient id="astroWheelBg" cx="50%" cy="45%" r="68%"><stop offset="0%" stop-color="rgba(17,24,39,0.96)"/><stop offset="100%" stop-color="rgba(3,7,18,0.98)"/></radialGradient>');
   svg.push('<radialGradient id="astroWheelCore" cx="50%" cy="50%" r="70%"><stop offset="0%" stop-color="rgba(30,41,59,0.95)"/><stop offset="100%" stop-color="rgba(8,12,24,0.96)"/></radialGradient>');
@@ -9449,65 +10179,65 @@ function renderAstroInsightLegacyNeon() {
     var ascHousePair = _housePairText(chart.asc);
 
     var PLANET_MEANINGS = {
-      Sun:{ label:'태양', icon:'☀️', meaning:'자아, 삶의 방향성, 의식적 목표, 내가 빛나는 방식', simple:'인생에서 내가 어떤 모습으로 살고 싶은지를 보여주는 중심 에너지', question:'나는 어떤 사람으로 빛나고 싶은가?', keywords:['자아','방향성','존재감','의식'] },
+      Sun:{ label:_sajuEngineText("se_9552_prop_label"), icon:'☀️', meaning:'자아, 삶의 방향성, 의식적 목표, 내가 빛나는 방식', simple:'인생에서 내가 어떤 모습으로 살고 싶은지를 보여주는 중심 에너지', question:'나는 어떤 사람으로 빛나고 싶은가?', keywords:['자아','방향성','존재감','의식'] },
       Moon:{ label:'달', icon:'🌙', meaning:'감정, 안정감, 무의식적 반응, 마음의 습관', simple:'혼자 있을 때의 진짜 마음과 안정감을 느끼는 방식을 보여줌', question:'나는 무엇을 해야 마음이 편안해지는가?', keywords:['감정','안정감','습관','회복'] },
-      Mercury:{ label:'수성', icon:'☿', meaning:'생각, 말, 공부, 커뮤니케이션, 판단 방식', simple:'머리를 쓰는 방식과 말하는 스타일', question:'나는 어떻게 생각하고 표현하는가?', keywords:['생각','말','학습','표현'] },
-      Venus:{ label:'금성', icon:'♀', meaning:'사랑, 취향, 매력, 관계, 즐거움', simple:'내가 끌리는 것, 사랑을 주고받는 방식', question:'나는 무엇을 아름답다고 느끼고 어떻게 사랑하는가?', keywords:['사랑','취향','매력','관계'] },
-      Mars:{ label:'화성', icon:'♂', meaning:'행동력, 욕망, 추진력, 분노, 경쟁', simple:'내가 원하는 것을 얻기 위해 움직이는 방식', question:'나는 어떻게 도전하고 싸우는가?', keywords:['행동','추진력','도전','에너지'] },
-      Jupiter:{ label:'목성', icon:'♃', meaning:'확장, 행운, 성장, 철학, 기회', simple:'인생에서 기회가 커지는 방향', question:'나는 어디에서 성장하고 운이 트이는가?', keywords:['확장','성장','기회','신념'] },
-      Saturn:{ label:'토성', icon:'♄', meaning:'책임, 한계, 숙제, 성숙, 장기적 성취', simple:'어렵지만 결국 나를 단단하게 만드는 인생 과제', question:'나는 어떤 부분에서 성숙해져야 하는가?', keywords:['책임','구조','숙제','성취'] },
-      Uranus:{ label:'천왕성', icon:'♅', meaning:'변화, 독립, 혁신, 자유, 갑작스러운 전환', simple:'남들과 다르게 깨어나는 지점', question:'나는 어디에서 자유롭고 독특해지는가?', keywords:['혁신','독립','변화','자유'] },
-      Neptune:{ label:'해왕성', icon:'♆', meaning:'꿈, 영감, 환상, 직관, 영성', simple:'이상과 상상력이 흐르는 영역', question:'나는 무엇을 꿈꾸고 어디에서 경계가 흐려지는가?', keywords:['직관','꿈','상상력','영성'] },
-      Pluto:{ label:'명왕성', icon:'♇', meaning:'집착, 변화, 재탄생, 권력, 깊은 심리', simple:'삶에서 강렬한 변화를 겪고 새롭게 태어나는 지점', question:'나는 어디에서 완전히 변해야 하는가?', keywords:['변화','집중','재탄생','심층'] }
+      Mercury:{ label:_sajuEngineText("se_9554_prop_label"), icon:'☿', meaning:'생각, 말, 공부, 커뮤니케이션, 판단 방식', simple:'머리를 쓰는 방식과 말하는 스타일', question:'나는 어떻게 생각하고 표현하는가?', keywords:['생각','말','학습','표현'] },
+      Venus:{ label:_sajuEngineText("se_9555_prop_label"), icon:'♀', meaning:'사랑, 취향, 매력, 관계, 즐거움', simple:'내가 끌리는 것, 사랑을 주고받는 방식', question:'나는 무엇을 아름답다고 느끼고 어떻게 사랑하는가?', keywords:['사랑','취향','매력','관계'] },
+      Mars:{ label:_sajuEngineText("se_9556_prop_label"), icon:'♂', meaning:'행동력, 욕망, 추진력, 분노, 경쟁', simple:'내가 원하는 것을 얻기 위해 움직이는 방식', question:'나는 어떻게 도전하고 싸우는가?', keywords:['행동','추진력','도전','에너지'] },
+      Jupiter:{ label:_sajuEngineText("se_9557_prop_label"), icon:'♃', meaning:'확장, 행운, 성장, 철학, 기회', simple:'인생에서 기회가 커지는 방향', question:'나는 어디에서 성장하고 운이 트이는가?', keywords:['확장','성장','기회','신념'] },
+      Saturn:{ label:_sajuEngineText("se_9558_prop_label"), icon:'♄', meaning:'책임, 한계, 숙제, 성숙, 장기적 성취', simple:'어렵지만 결국 나를 단단하게 만드는 인생 과제', question:'나는 어떤 부분에서 성숙해져야 하는가?', keywords:['책임','구조','숙제','성취'] },
+      Uranus:{ label:_sajuEngineText("se_9559_prop_label"), icon:'♅', meaning:'변화, 독립, 혁신, 자유, 갑작스러운 전환', simple:'남들과 다르게 깨어나는 지점', question:'나는 어디에서 자유롭고 독특해지는가?', keywords:['혁신','독립','변화','자유'] },
+      Neptune:{ label:_sajuEngineText("se_9560_prop_label"), icon:'♆', meaning:'꿈, 영감, 환상, 직관, 영성', simple:'이상과 상상력이 흐르는 영역', question:'나는 무엇을 꿈꾸고 어디에서 경계가 흐려지는가?', keywords:['직관','꿈','상상력','영성'] },
+      Pluto:{ label:_sajuEngineText("se_9561_prop_label"), icon:'♇', meaning:'집착, 변화, 재탄생, 권력, 깊은 심리', simple:'삶에서 강렬한 변화를 겪고 새롭게 태어나는 지점', question:'나는 어디에서 완전히 변해야 하는가?', keywords:['변화','집중','재탄생','심층'] }
     };
     var SIGN_MEANINGS = [
-      { label:'양자리', element:'불', modality:'활동궁', keywords:['시작','용기','직진','승부욕'], simple:'빠르게 결정하고 먼저 움직이는 불꽃 같은 에너지', strength:'먼저 시작하는 용기와 추진력이 강합니다.', caution:'속도가 빠를수록 확인 절차를 짧게라도 두면 안정적입니다.' },
-      { label:'황소자리', element:'흙', modality:'고정궁', keywords:['안정','감각','지속성','현실감'], simple:'천천히 가더라도 확실하게 쌓아가는 땅의 에너지', strength:'꾸준함과 현실 감각으로 신뢰를 만듭니다.', caution:'변화가 필요할 때 작은 실험부터 시작하면 유연성이 살아납니다.' },
-      { label:'쌍둥이자리', element:'공기', modality:'변통궁', keywords:['호기심','말','정보','유연함'], simple:'다양한 생각과 대화를 통해 세상을 이해하는 바람의 에너지', strength:'정보를 빠르게 연결해 답을 찾는 능력이 뛰어납니다.', caution:'우선순위를 2~3개로 좁히면 산만함을 줄일 수 있습니다.' },
-      { label:'게자리', element:'물', modality:'활동궁', keywords:['감정','보호','가족','기억'], simple:'마음의 안전지대와 정서적 연결을 중요하게 여기는 에너지', strength:'관계의 온도와 배려를 섬세하게 읽습니다.', caution:'감정이 커질 때는 반응보다 회복 시간을 먼저 확보하면 좋습니다.' },
-      { label:'사자자리', element:'불', modality:'고정궁', keywords:['표현','자존감','창조성','존재감'], simple:'자신만의 빛을 세상에 보여주고 싶어하는 에너지', strength:'자신감을 바탕으로 분위기를 이끄는 힘이 큽니다.', caution:'인정 욕구가 부담될 땐 작은 성취를 자주 확인해 주세요.' },
-      { label:'처녀자리', element:'흙', modality:'변통궁', keywords:['분석','정리','실용성','개선'], simple:'삶을 더 나은 방향으로 다듬고 정돈하는 에너지', strength:'문제를 세밀하게 개선해 실력을 만듭니다.', caution:'완벽보다 완료를 목표로 하면 효율이 더 좋아집니다.' },
-      { label:'천칭자리', element:'공기', modality:'활동궁', keywords:['균형','관계','미감','조화'], simple:'사람들과의 관계 속에서 아름다운 균형을 찾는 에너지', strength:'관계를 조율하고 합의를 만드는 능력이 좋습니다.', caution:'결정이 늦어질 때는 기한을 정해 선택하면 편해집니다.' },
-      { label:'전갈자리', element:'물', modality:'고정궁', keywords:['깊이','집중','비밀','변화'], simple:'겉모습보다 마음 깊은 곳의 진실을 파고드는 에너지', strength:'강한 집중력으로 본질을 꿰뚫습니다.', caution:'강도가 높아질수록 신뢰 가능한 대화 창구를 만들어 두세요.' },
-      { label:'사수자리', element:'불', modality:'변통궁', keywords:['자유','확장','여행','철학'], simple:'더 넓은 세계와 의미를 찾아 나아가는 에너지', strength:'시야를 넓히고 가능성을 크게 보는 능력이 큽니다.', caution:'큰 목표는 실행 단위로 쪼개면 실제 성과가 빨라집니다.' },
-      { label:'염소자리', element:'흙', modality:'활동궁', keywords:['책임','목표','구조','성취'], simple:'오래 걸리더라도 결과를 만들어내는 현실적 에너지', strength:'꾸준한 실행으로 신뢰와 결과를 동시에 만듭니다.', caution:'휴식 계획을 일정에 넣으면 지속 가능성이 높아집니다.' },
-      { label:'물병자리', element:'공기', modality:'고정궁', keywords:['독창성','미래','자유','공동체'], simple:'기존 틀에서 벗어나 새로운 가능성을 찾는 에너지', strength:'새로운 관점으로 판을 바꾸는 아이디어가 좋습니다.', caution:'아이디어를 문서화해 공유하면 실행력이 높아집니다.' },
-      { label:'물고기자리', element:'물', modality:'변통궁', keywords:['감수성','직관','공감','상상력'], simple:'보이지 않는 감정과 분위기를 섬세하게 느끼는 에너지', strength:'공감과 직관을 통해 사람의 결을 잘 읽습니다.', caution:'경계가 흐려질 때는 나의 기준 시간을 따로 확보해 주세요.' }
+      { label:_sajuEngineText("se_9564_prop_label"), element:'불', modality:'활동궁', keywords:['시작','용기','직진','승부욕'], simple:'빠르게 결정하고 먼저 움직이는 불꽃 같은 에너지', strength:'먼저 시작하는 용기와 추진력이 강합니다.', caution:'속도가 빠를수록 확인 절차를 짧게라도 두면 안정적입니다.' },
+      { label:_sajuEngineText("se_9565_prop_label"), element:'흙', modality:'고정궁', keywords:['안정','감각','지속성','현실감'], simple:'천천히 가더라도 확실하게 쌓아가는 땅의 에너지', strength:'꾸준함과 현실 감각으로 신뢰를 만듭니다.', caution:'변화가 필요할 때 작은 실험부터 시작하면 유연성이 살아납니다.' },
+      { label:_sajuEngineText("se_9566_prop_label"), element:'공기', modality:'변통궁', keywords:['호기심','말','정보','유연함'], simple:'다양한 생각과 대화를 통해 세상을 이해하는 바람의 에너지', strength:'정보를 빠르게 연결해 답을 찾는 능력이 뛰어납니다.', caution:'우선순위를 2~3개로 좁히면 산만함을 줄일 수 있습니다.' },
+      { label:_sajuEngineText("se_9567_prop_label"), element:'물', modality:'활동궁', keywords:['감정','보호','가족','기억'], simple:'마음의 안전지대와 정서적 연결을 중요하게 여기는 에너지', strength:'관계의 온도와 배려를 섬세하게 읽습니다.', caution:'감정이 커질 때는 반응보다 회복 시간을 먼저 확보하면 좋습니다.' },
+      { label:_sajuEngineText("se_9568_prop_label"), element:'불', modality:'고정궁', keywords:['표현','자존감','창조성','존재감'], simple:'자신만의 빛을 세상에 보여주고 싶어하는 에너지', strength:'자신감을 바탕으로 분위기를 이끄는 힘이 큽니다.', caution:'인정 욕구가 부담될 땐 작은 성취를 자주 확인해 주세요.' },
+      { label:_sajuEngineText("se_9569_prop_label"), element:'흙', modality:'변통궁', keywords:['분석','정리','실용성','개선'], simple:'삶을 더 나은 방향으로 다듬고 정돈하는 에너지', strength:'문제를 세밀하게 개선해 실력을 만듭니다.', caution:'완벽보다 완료를 목표로 하면 효율이 더 좋아집니다.' },
+      { label:_sajuEngineText("se_9570_prop_label"), element:'공기', modality:'활동궁', keywords:['균형','관계','미감','조화'], simple:'사람들과의 관계 속에서 아름다운 균형을 찾는 에너지', strength:'관계를 조율하고 합의를 만드는 능력이 좋습니다.', caution:'결정이 늦어질 때는 기한을 정해 선택하면 편해집니다.' },
+      { label:_sajuEngineText("se_9571_prop_label"), element:'물', modality:'고정궁', keywords:['깊이','집중','비밀','변화'], simple:'겉모습보다 마음 깊은 곳의 진실을 파고드는 에너지', strength:'강한 집중력으로 본질을 꿰뚫습니다.', caution:'강도가 높아질수록 신뢰 가능한 대화 창구를 만들어 두세요.' },
+      { label:_sajuEngineText("se_9572_prop_label"), element:'불', modality:'변통궁', keywords:['자유','확장','여행','철학'], simple:'더 넓은 세계와 의미를 찾아 나아가는 에너지', strength:'시야를 넓히고 가능성을 크게 보는 능력이 큽니다.', caution:'큰 목표는 실행 단위로 쪼개면 실제 성과가 빨라집니다.' },
+      { label:_sajuEngineText("se_9573_prop_label"), element:'흙', modality:'활동궁', keywords:['책임','목표','구조','성취'], simple:'오래 걸리더라도 결과를 만들어내는 현실적 에너지', strength:'꾸준한 실행으로 신뢰와 결과를 동시에 만듭니다.', caution:'휴식 계획을 일정에 넣으면 지속 가능성이 높아집니다.' },
+      { label:_sajuEngineText("se_9574_prop_label"), element:'공기', modality:'고정궁', keywords:['독창성','미래','자유','공동체'], simple:'기존 틀에서 벗어나 새로운 가능성을 찾는 에너지', strength:'새로운 관점으로 판을 바꾸는 아이디어가 좋습니다.', caution:'아이디어를 문서화해 공유하면 실행력이 높아집니다.' },
+      { label:_sajuEngineText("se_9575_prop_label"), element:'물', modality:'변통궁', keywords:['감수성','직관','공감','상상력'], simple:'보이지 않는 감정과 분위기를 섬세하게 느끼는 에너지', strength:'공감과 직관을 통해 사람의 결을 잘 읽습니다.', caution:'경계가 흐려질 때는 나의 기준 시간을 따로 확보해 주세요.' }
     ];
     var HOUSE_MEANINGS = {
-      1:{ label:'1H', title:'나 자신과 첫인상', lifeArea:'정체성', keywords:['자기표현','시작','외적 분위기'], simple:'사람들이 나를 처음 봤을 때 느끼는 이미지와 삶을 시작하는 방식', advice:'첫인상과 내 페이스를 스스로 디자인하면 흐름이 안정됩니다.' },
-      2:{ label:'2H', title:'돈, 재능, 자존감', lifeArea:'재정', keywords:['재능','소유','자기 가치'], simple:'내가 가진 것, 돈을 버는 방식, 스스로의 가치를 느끼는 방식', advice:'가치 기준을 수치화하면 재정 의사결정이 선명해집니다.' },
-      3:{ label:'3H', title:'말, 공부, 이동', lifeArea:'소통', keywords:['학습','대화','정보'], simple:'생각하고 말하고 배우는 방식', advice:'짧은 기록 루틴이 말과 실행의 정확도를 높입니다.' },
-      4:{ label:'4H', title:'가족과 내면의 집', lifeArea:'기반', keywords:['가정','뿌리','안정감'], simple:'마음이 쉴 수 있는 공간과 어린 시절의 정서', advice:'안정적인 생활 리듬을 만들면 외부 성과도 따라옵니다.' },
-      5:{ label:'5H', title:'연애와 창작', lifeArea:'표현', keywords:['연애','창작','즐거움'], simple:'내가 즐겁게 빛나는 방식과 사랑을 표현하는 방식', advice:'즐거운 활동을 일정에 넣으면 자신감이 빠르게 회복됩니다.' },
-      6:{ label:'6H', title:'일상과 건강', lifeArea:'루틴', keywords:['건강','습관','업무'], simple:'매일 반복되는 루틴과 몸을 관리하는 방식', advice:'루틴을 단순화하면 성과와 컨디션이 함께 좋아집니다.' },
-      7:{ label:'7H', title:'관계와 파트너십', lifeArea:'관계', keywords:['협력','결혼','계약'], simple:'내가 끌리는 사람과 관계를 맺는 방식', advice:'관계의 룰을 미리 합의하면 긴장보다 시너지가 커집니다.' },
-      8:{ label:'8H', title:'깊은 연결과 변화', lifeArea:'전환', keywords:['심리','공동자산','변화'], simple:'쉽게 드러나지 않는 깊은 감정과 인생의 전환점', advice:'숨은 리스크를 먼저 점검하면 큰 전환이 훨씬 안정적입니다.' },
-      9:{ label:'9H', title:'철학과 확장', lifeArea:'성장', keywords:['여행','학문','신념'], simple:'더 넓은 세계를 배우고 삶의 의미를 찾는 방식', advice:'새로운 배움 한 가지를 실천하면 운의 폭이 커집니다.' },
-      10:{ label:'10H', title:'직업과 명성', lifeArea:'커리어', keywords:['직업','목표','사회적 위치'], simple:'사회에서 어떤 모습으로 인정받고 싶은지', advice:'보여줄 결과물을 정기적으로 공개하면 성장 속도가 빨라집니다.' },
-      11:{ label:'11H', title:'친구와 미래 비전', lifeArea:'네트워크', keywords:['공동체','미래','연결'], simple:'사람들과 함께 꿈꾸는 미래와 사회적 네트워크', advice:'혼자보다 팀과 함께할 때 성과가 크게 확장됩니다.' },
-      12:{ label:'12H', title:'무의식과 회복', lifeArea:'내면', keywords:['치유','고독','영성'], simple:'혼자 있을 때 깊어지는 내면세계와 보이지 않는 감정', advice:'의도적인 휴식 루틴이 장기 성과를 지켜줍니다.' }
+      1:{ label:'1H', title:_sajuEngineText("se_9578_prop_title"), lifeArea:'정체성', keywords:['자기표현','시작','외적 분위기'], simple:'사람들이 나를 처음 봤을 때 느끼는 이미지와 삶을 시작하는 방식', advice:'첫인상과 내 페이스를 스스로 디자인하면 흐름이 안정됩니다.' },
+      2:{ label:'2H', title:_sajuEngineText("se_9579_prop_title"), lifeArea:'재정', keywords:['재능','소유','자기 가치'], simple:'내가 가진 것, 돈을 버는 방식, 스스로의 가치를 느끼는 방식', advice:'가치 기준을 수치화하면 재정 의사결정이 선명해집니다.' },
+      3:{ label:'3H', title:_sajuEngineText("se_9580_prop_title"), lifeArea:'소통', keywords:['학습','대화','정보'], simple:'생각하고 말하고 배우는 방식', advice:'짧은 기록 루틴이 말과 실행의 정확도를 높입니다.' },
+      4:{ label:'4H', title:_sajuEngineText("se_9581_prop_title"), lifeArea:'기반', keywords:['가정','뿌리','안정감'], simple:'마음이 쉴 수 있는 공간과 어린 시절의 정서', advice:'안정적인 생활 리듬을 만들면 외부 성과도 따라옵니다.' },
+      5:{ label:'5H', title:_sajuEngineText("se_9582_prop_title"), lifeArea:'표현', keywords:['연애','창작','즐거움'], simple:'내가 즐겁게 빛나는 방식과 사랑을 표현하는 방식', advice:'즐거운 활동을 일정에 넣으면 자신감이 빠르게 회복됩니다.' },
+      6:{ label:'6H', title:_sajuEngineText("se_9583_prop_title"), lifeArea:'루틴', keywords:['건강','습관','업무'], simple:'매일 반복되는 루틴과 몸을 관리하는 방식', advice:'루틴을 단순화하면 성과와 컨디션이 함께 좋아집니다.' },
+      7:{ label:'7H', title:_sajuEngineText("se_9584_prop_title"), lifeArea:'관계', keywords:['협력','결혼','계약'], simple:'내가 끌리는 사람과 관계를 맺는 방식', advice:'관계의 룰을 미리 합의하면 긴장보다 시너지가 커집니다.' },
+      8:{ label:'8H', title:_sajuEngineText("se_9585_prop_title"), lifeArea:'전환', keywords:['심리','공동자산','변화'], simple:'쉽게 드러나지 않는 깊은 감정과 인생의 전환점', advice:'숨은 리스크를 먼저 점검하면 큰 전환이 훨씬 안정적입니다.' },
+      9:{ label:'9H', title:_sajuEngineText("se_9586_prop_title"), lifeArea:'성장', keywords:['여행','학문','신념'], simple:'더 넓은 세계를 배우고 삶의 의미를 찾는 방식', advice:'새로운 배움 한 가지를 실천하면 운의 폭이 커집니다.' },
+      10:{ label:'10H', title:_sajuEngineText("se_9587_prop_title"), lifeArea:'커리어', keywords:['직업','목표','사회적 위치'], simple:'사회에서 어떤 모습으로 인정받고 싶은지', advice:'보여줄 결과물을 정기적으로 공개하면 성장 속도가 빨라집니다.' },
+      11:{ label:'11H', title:_sajuEngineText("se_9588_prop_title"), lifeArea:'네트워크', keywords:['공동체','미래','연결'], simple:'사람들과 함께 꿈꾸는 미래와 사회적 네트워크', advice:'혼자보다 팀과 함께할 때 성과가 크게 확장됩니다.' },
+      12:{ label:'12H', title:_sajuEngineText("se_9589_prop_title"), lifeArea:'내면', keywords:['치유','고독','영성'], simple:'혼자 있을 때 깊어지는 내면세계와 보이지 않는 감정', advice:'의도적인 휴식 루틴이 장기 성과를 지켜줍니다.' }
     };
     var ASPECT_MEANINGS = {
       '딱 맞는 각(합)':{ label:'합', type:'집중', easyMeaning:'두 행성이 같은 무대에서 강하게 결합되는 흐름', strength:'집중력이 높고 결과가 빠르게 드러날 수 있습니다.', caution:'강도가 높아 과열되기 쉬우니 균형이 중요합니다.', advice:'가장 중요한 목표 하나에 에너지를 모아보세요.' },
-      '도움 각(육합)':{ label:'육합', type:'협력', easyMeaning:'자연스럽게 손이 맞고 협력이 쉬운 흐름', strength:'부드럽게 풀리는 영역에서 재능이 잘 발휘됩니다.', caution:'당연하게 느껴 과소평가하기 쉽습니다.', advice:'잘 되는 패턴을 기록해 반복 가능한 루틴으로 만드세요.' },
-      '긴장 각(직각)':{ label:'직각', type:'성장 과제', easyMeaning:'불편하지만 성장 동력이 되는 긴장 흐름', strength:'잘 다루면 강한 추진력과 실행력을 줍니다.', caution:'성급하면 충돌과 피로가 커질 수 있습니다.', advice:'감정이 커졌을 때는 결론을 하루 미루면 안정적입니다.' },
-      '편한 각(삼합)':{ label:'삼합', type:'조화', easyMeaning:'무리 없이 흘러가는 자연스러운 재능 흐름', strength:'에너지 소모가 적고 성과가 꾸준합니다.', caution:'도전이 줄면 정체감을 느낄 수 있습니다.', advice:'편한 영역에 작은 도전을 섞어 성장 폭을 넓혀보세요.' },
+      '도움 각(육합)':{ label:_sajuEngineText("se_9593_prop_label"), type:'협력', easyMeaning:'자연스럽게 손이 맞고 협력이 쉬운 흐름', strength:'부드럽게 풀리는 영역에서 재능이 잘 발휘됩니다.', caution:'당연하게 느껴 과소평가하기 쉽습니다.', advice:'잘 되는 패턴을 기록해 반복 가능한 루틴으로 만드세요.' },
+      '긴장 각(직각)':{ label:_sajuEngineText("se_9594_prop_label"), type:'성장 과제', easyMeaning:'불편하지만 성장 동력이 되는 긴장 흐름', strength:'잘 다루면 강한 추진력과 실행력을 줍니다.', caution:'성급하면 충돌과 피로가 커질 수 있습니다.', advice:'감정이 커졌을 때는 결론을 하루 미루면 안정적입니다.' },
+      '편한 각(삼합)':{ label:_sajuEngineText("se_9595_prop_label"), type:'조화', easyMeaning:'무리 없이 흘러가는 자연스러운 재능 흐름', strength:'에너지 소모가 적고 성과가 꾸준합니다.', caution:'도전이 줄면 정체감을 느낄 수 있습니다.', advice:'편한 영역에 작은 도전을 섞어 성장 폭을 넓혀보세요.' },
       '마주보는 각(충)':{ label:'충', type:'균형', easyMeaning:'관계 속에서 균형과 보완을 배우는 흐름', strength:'다른 관점을 통해 성장하는 힘이 큽니다.', caution:'투사와 오해가 생기기 쉬운 각도입니다.', advice:'상대를 해석하기 전에 내 욕구를 먼저 확인해 보세요.' }
     };
     var LIFE_AREA_MAPPINGS = [
-      { key:'identity', title:'나의 기본 성향', planets:['Sun','Mercury'], houses:[1,5,10], fallback:'내 기본 에너지는 자아 표현과 실행 리듬의 균형에서 드러납니다.' },
-      { key:'emotion', title:'감정과 안정감', planets:['Moon','Venus'], houses:[4,6,12], fallback:'감정 회복은 안전한 루틴과 관계의 온도에서 강화됩니다.' },
-      { key:'love', title:'사랑과 관계', planets:['Venus','Mars','Moon'], houses:[5,7,8], fallback:'관계는 끌림의 강도보다 리듬 조율이 오래 갑니다.' },
-      { key:'career', title:'일과 사회적 방향', planets:['Sun','Saturn','Jupiter'], houses:[6,10,11], fallback:'일의 성과는 꾸준한 루틴과 사회적 연결에서 커집니다.' },
-      { key:'money', title:'돈과 재능', planets:['Venus','Jupiter','Saturn'], houses:[2,8,10], fallback:'돈의 흐름은 재능의 가치화와 장기 전략에서 안정됩니다.' },
-      { key:'growth', title:'성장과 인생 과제', planets:['Jupiter','Saturn','Pluto'], houses:[9,10,12], fallback:'성장은 확장과 책임의 균형을 맞출 때 오래 갑니다.' },
-      { key:'healing', title:'내면세계와 회복', planets:['Moon','Neptune','Pluto'], houses:[4,8,12], fallback:'회복은 감정 정리와 깊은 휴식 루틴에서 시작됩니다.' }
+      { key:'identity', title:_sajuEngineText("se_9599_prop_title"), planets:['Sun','Mercury'], houses:[1,5,10], fallback:'내 기본 에너지는 자아 표현과 실행 리듬의 균형에서 드러납니다.' },
+      { key:'emotion', title:_sajuEngineText("se_9600_prop_title"), planets:['Moon','Venus'], houses:[4,6,12], fallback:'감정 회복은 안전한 루틴과 관계의 온도에서 강화됩니다.' },
+      { key:'love', title:_sajuEngineText("se_9601_prop_title"), planets:['Venus','Mars','Moon'], houses:[5,7,8], fallback:'관계는 끌림의 강도보다 리듬 조율이 오래 갑니다.' },
+      { key:'career', title:_sajuEngineText("se_9602_prop_title"), planets:['Sun','Saturn','Jupiter'], houses:[6,10,11], fallback:'일의 성과는 꾸준한 루틴과 사회적 연결에서 커집니다.' },
+      { key:'money', title:_sajuEngineText("se_9603_prop_title"), planets:['Venus','Jupiter','Saturn'], houses:[2,8,10], fallback:'돈의 흐름은 재능의 가치화와 장기 전략에서 안정됩니다.' },
+      { key:'growth', title:_sajuEngineText("se_9604_prop_title"), planets:['Jupiter','Saturn','Pluto'], houses:[9,10,12], fallback:'성장은 확장과 책임의 균형을 맞출 때 오래 갑니다.' },
+      { key:'healing', title:_sajuEngineText("se_9605_prop_title"), planets:['Moon','Neptune','Pluto'], houses:[4,8,12], fallback:'회복은 감정 정리와 깊은 휴식 루틴에서 시작됩니다.' }
     ];
 
     function _planetMeta(k){ return PLANET_MEANINGS[k] || { label:(planetKr[k] || k), icon:'✦', meaning:'복합 에너지', simple:'현재 결과에서 복합적으로 작동하는 에너지', question:'이 에너지를 어디에 쓰면 좋을까?', keywords:['복합','에너지'] }; }
-    function _signMeta(idx){ return (idx != null && SIGN_MEANINGS[idx]) ? SIGN_MEANINGS[idx] : { label:'정보 없음', element:'-', modality:'-', keywords:['정보 없음'], simple:'이 항목은 현재 결과에 포함되지 않았어요.', strength:'계산 정보가 충분할 때 더 정확해집니다.', caution:'입력값을 다시 확인하면 도움이 됩니다.' }; }
-    function _houseMeta(h){ return (h && HOUSE_MEANINGS[h]) ? HOUSE_MEANINGS[h] : { label:'-', title:'계산 정보 없음', lifeArea:'정보 없음', keywords:['정보 없음'], simple:'이 항목은 현재 결과에 포함되지 않았어요.', advice:'입력 시간/도시를 확인하면 해석 정확도가 올라갑니다.' }; }
+    function _signMeta(idx){ return (idx != null && SIGN_MEANINGS[idx]) ? SIGN_MEANINGS[idx] : { label:_sajuEngineText("se_9609_prop_label"), element:'-', modality:'-', keywords:['정보 없음'], simple:'이 항목은 현재 결과에 포함되지 않았어요.', strength:'계산 정보가 충분할 때 더 정확해집니다.', caution:'입력값을 다시 확인하면 도움이 됩니다.' }; }
+    function _houseMeta(h){ return (h && HOUSE_MEANINGS[h]) ? HOUSE_MEANINGS[h] : { label:'-', title:_sajuEngineText("se_9610_prop_title"), lifeArea:'정보 없음', keywords:['정보 없음'], simple:'이 항목은 현재 결과에 포함되지 않았어요.', advice:'입력 시간/도시를 확인하면 해석 정확도가 올라갑니다.' }; }
     function _houseTopicText(h){ return _houseMeta(h).title; }
     function _planetHouseOneLine(hp, hw){
       return 'Placidus ' + (hp ? hp + 'H' : '계산 정보 없음') + ' · Whole Sign ' + (hw ? hw + 'H' : '계산 정보 없음');
@@ -9543,8 +10273,8 @@ function renderAstroInsightLegacyNeon() {
       var b = parts[1] || '-';
       var aNum = Number((a.match(/(\d+)H/) || [])[1]);
       var bNum = Number((b.match(/(\d+)H/) || [])[1]);
-      var aTitle = Number.isFinite(aNum) ? _houseMeta(aNum).title : '계산 정보 없음';
-      var bTitle = Number.isFinite(bNum) ? _houseMeta(bNum).title : '계산 정보 없음';
+      var aTitle = Number.isFinite(aNum) ? _houseMeta(aNum).title : _sajuEngineText("se_9646_prop_title");
+      var bTitle = Number.isFinite(bNum) ? _houseMeta(bNum).title : _sajuEngineText("se_9647_prop_title");
       return text + ' (체감: ' + aTitle + ' / 큰 흐름: ' + bTitle + ')';
     }
 
@@ -9563,9 +10293,9 @@ function renderAstroInsightLegacyNeon() {
       : '상승궁 계산 정보 없음';
 
     var birthMapSummaryChips = [
-      { label:'태양', icon:'☀️', value:sunSign + ' · ' + sunHousePair },
+      { label:_sajuEngineText("se_9666_prop_label"), icon:'☀️', value:sunSign + ' · ' + sunHousePair },
       { label:'달', icon:'🌙', value:moonSign + ' · ' + moonHousePair },
-      { label:'상승궁', icon:'⬆️', value:ascChipValue }
+      { label:_sajuEngineText("se_9668_prop_label"), icon:'⬆️', value:ascChipValue }
     ].map(function(chip){
       return '<span class="astro-birth-chip"><b>'+chip.icon+' '+chip.label+'</b> '+chip.value+'</span>';
     }).join('');
@@ -9773,7 +10503,7 @@ function renderAstroInsightLegacyNeon() {
       + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
       + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">10,000원 · 궁합 결과 반영 가능</span>'
       + '</div>'
-      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
       + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
@@ -9923,11 +10653,11 @@ function renderAstroInsightLegacyNeon() {
       : '물 2잔 + 5분 스트레칭으로 멘탈 배터리 리부팅하기';
     function clampBriefScore(v){ return Math.max(55, Math.min(98, Math.round(v))); }
     var astroCategoryData = [
-      { icon:'🔥', title:'일·공부', score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
-      { icon:'💘', title:'연애·관계', score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
-      { icon:'💸', title:'돈·생활', score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
-      { icon:'🫂', title:'사람·기회', score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
-      { icon:'🧠', title:'마음관리', score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
+      { icon:'🔥', title:_sajuEngineText("se_10026_prop_title"), score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
+      { icon:'💘', title:_sajuEngineText("se_10027_prop_title"), score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
+      { icon:'💸', title:_sajuEngineText("se_10028_prop_title"), score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
+      { icon:'🫂', title:_sajuEngineText("se_10029_prop_title"), score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
+      { icon:'🧠', title:_sajuEngineText("se_10030_prop_title"), score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
     ];
     var astroCategoryCardsHtml = astroCategoryData.map(function(item){
       return ''
@@ -10365,7 +11095,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
         +'<div style="flex:1;min-width:130px;">'
         +'<label class="astro-label">상대방 이름 (선택)</label>'
-        +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off">'
+        +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="' + _sajuEngineText("se_11066_attr_placeholder") + '" autocomplete="off">'
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
         +'<label class="astro-label">생년월일</label>'
@@ -10447,7 +11177,7 @@ function renderAstroInsightLegacyNeon() {
         +'<div id="astroCatTabs" class="astro-neon-tab-row"></div>'
         /* 검색 */
         +'<div style="position:relative;margin-bottom:8px;">'
-        +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" style="padding-right:34px;">'
+        +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="' + _sajuEngineText("se_11148_attr_placeholder") + '" autocomplete="off" style="padding-right:34px;">'
         +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
         +'</div>'
         /* 유명인 버튼 목록 */
@@ -11099,7 +11829,7 @@ function renderAstroInsightLegacyNeon() {
 
           if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
             _astroSetPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
-            if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
+            if (window.confirm(_sajuEngineText("se_11202_call_confirm"))) {
               var next = getSajuEncodedReturnPath('saju-login-return-path');
               window.location.href = '/login?next=' + next;
             }
@@ -11548,7 +12278,7 @@ function renderAstroInsightLegacyNeon() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+          if (window.confirm(_sajuEngineText("se_11651_call_confirm"))) {
             window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
           }
           return;
@@ -11618,7 +12348,7 @@ function renderAstroInsightLegacyNeon() {
                 var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[(celebRec || {}).nationality]) ? COUNTRY_CONFIG[(celebRec || {}).nationality].flag + ' ' : '';
                 var geoMetaText = hasExactGeo
                   ? ('📍 ' + (g.label || '출생도시') + ' 좌표 적용')
-                  : ('📍 ' + ((COUNTRY_CONFIG[nat] && COUNTRY_CONFIG[nat].label) ? COUNTRY_CONFIG[nat].label : '국가') + ' 대표도시 좌표 적용');
+                  : ('📍 ' + ((COUNTRY_CONFIG[nat] && COUNTRY_CONFIG[nat].label) ? COUNTRY_CONFIG[nat].label : _sajuEngineText("se_11721_prop_label")) + ' 대표도시 좌표 적용');
                 var myAscIdx = _sySignIdx(chart, 'Sun') != null ? ascIndex : null;
                 var celebAscIdx = celebChart.asc && celebChart.asc.idx != null ? celebChart.asc.idx : null;
                 var overlayMySunToTheir = _syWsHouseOf(sunIndex, celebAscIdx);
@@ -11809,7 +12539,7 @@ function renderAstroInsightLegacyNeon() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+          if (window.confirm(_sajuEngineText("se_11912_call_confirm"))) {
             window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
           }
           return;
@@ -15744,194 +16474,11 @@ function renderZiwei(p, natal, targetId) {
   }
 }
 
-    #ziweiModalSection .zw-dashboard {
-      gap: 16px;
-    }
-    #ziweiModalSection .zw-dashboard::before,
-    #ziweiModalSection .zw-dashboard::after {
-      opacity: 0.16;
-      animation: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] {
-      background:
-        linear-gradient(90deg, rgba(245, 158, 11, 0.16), transparent 18%, transparent 82%, rgba(14, 165, 233, 0.14)),
-        linear-gradient(180deg, #1f2937 0%, #111827 100%);
-      border: 1px solid rgba(217, 119, 6, 0.42);
-      border-radius: 14px;
-      padding: 12px;
-      box-shadow: 0 18px 38px rgba(2, 6, 23, 0.42), inset 0 0 0 1px rgba(255, 247, 237, 0.08);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"]::before,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"]::after {
-      display: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-grid {
-      gap: 6px;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell {
-      background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(241, 245, 249, 0.94));
-      border: 1px solid rgba(120, 53, 15, 0.24);
-      border-radius: 8px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.52), 0 8px 16px rgba(15, 23, 42, 0.16);
-      color: #111827;
-      min-height: 108px;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell::before {
-      background: linear-gradient(180deg, rgba(146, 64, 14, 0.08), rgba(255,255,255,0));
-      opacity: 1;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell::after {
-      background: linear-gradient(90deg, rgba(120,53,15,0), rgba(120,53,15,0.38), rgba(120,53,15,0));
-      opacity: 0.58;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell.active {
-      background: linear-gradient(180deg, #fff7ed, #fef3c7);
-      border-color: rgba(180, 83, 9, 0.72);
-      box-shadow: inset 0 0 0 1px rgba(254,243,199,0.8), 0 0 0 2px rgba(245,158,11,0.18), 0 12px 22px rgba(15,23,42,0.26);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-meng {
-      border-color: rgba(180, 83, 9, 0.82);
-      box-shadow: inset 0 0 0 1px rgba(254,243,199,0.9), 0 0 0 2px rgba(245,158,11,0.2), 0 12px 22px rgba(15,23,42,0.24);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-shen {
-      border-color: rgba(14, 116, 144, 0.58);
-      box-shadow: inset 0 0 0 1px rgba(224,242,254,0.78), 0 0 0 2px rgba(14,165,233,0.14), 0 10px 18px rgba(15,23,42,0.18);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell-aura,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-starlane {
-      display: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-name {
-      color: #111827;
-      border-bottom-color: rgba(120, 53, 15, 0.24);
-      text-shadow: none;
-      font-weight: 900;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-branch-name,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-palace-gan {
-      color: rgba(51, 65, 85, 0.72);
-      text-shadow: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-main {
-      color: #92400e;
-      background: rgba(245, 158, 11, 0.1);
-      border-color: rgba(180, 83, 9, 0.22);
-      text-shadow: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-main-borrowed {
-      color: #475569;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-aux {
-      color: #075985;
-      text-shadow: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-star-bad {
-      color: #991b1b;
-      text-shadow: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-empty {
-      color: #64748b;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-dahan {
-      color: #065f46;
-      background: rgba(16, 185, 129, 0.12);
-      border-color: rgba(5, 150, 105, 0.3);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-tag {
-      box-shadow: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel {
-      background:
-        radial-gradient(circle at 50% 22%, rgba(245, 158, 11, 0.18), transparent 55%),
-        linear-gradient(180deg, #fff7ed 0%, #e0f2fe 100%);
-      border: 1px solid rgba(120, 53, 15, 0.36);
-      color: #111827;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7), 0 10px 20px rgba(15,23,42,0.18);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel::before,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-panel::after,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-orbit {
-      display: none;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-seal {
-      color: #7c2d12;
-      border-color: rgba(180, 83, 9, 0.42);
-      background: linear-gradient(180deg, rgba(254,243,199,0.96), rgba(255,251,235,0.9));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.72), 0 8px 16px rgba(15,23,42,0.12);
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-title {
-      color: #7c2d12;
-      background: none;
-      -webkit-background-clip: initial;
-      background-clip: initial;
-      text-shadow: none;
-      letter-spacing: 0.04em;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-desc {
-      color: #334155;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-hint {
-      color: #475569;
-    }
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-chip,
-    #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-center-legend-item {
-      background: rgba(255,255,255,0.66);
-      color: #334155;
-      border-color: rgba(120, 53, 15, 0.2);
-      box-shadow: none;
-    }
-    #ziweiModalSection .zw-detail-panel {
-      background:
-        linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(241, 245, 249, 0.97));
-      border-color: rgba(120, 53, 15, 0.18);
-      color: #1f2937;
-      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.24), inset 0 0 0 1px rgba(255,255,255,0.6);
-    }
-    #ziweiModalSection .zw-detail-panel::before {
-      display: none;
-    }
-    #ziweiModalSection .zw-dp-header {
-      border-bottom-color: rgba(120, 53, 15, 0.18);
-    }
-    #ziweiModalSection .zw-dp-title {
-      color: #7c2d12;
-      text-shadow: none;
-    }
-    #ziweiModalSection .zw-dp-subtitle,
-    #ziweiModalSection .zw-rdesc {
-      color: #475569;
-    }
-    #ziweiModalSection .zw-rtitle {
-      color: #075985;
-    }
-    #ziweiModalSection .zw-report-section {
-      background: rgba(255,255,255,0.62);
-      border-left-color: #b45309;
-      border-top: 1px solid rgba(120, 53, 15, 0.1);
-      border-right: 1px solid rgba(120, 53, 15, 0.1);
-      border-bottom: 1px solid rgba(120, 53, 15, 0.1);
-    }
-    @media (hover: hover) {
-      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell:hover {
-        background: linear-gradient(180deg, #fff7ed, #fffbeb);
-        border-color: rgba(180, 83, 9, 0.66);
-        box-shadow: inset 0 0 0 1px rgba(254,243,199,0.9), 0 12px 20px rgba(15,23,42,0.22);
-      }
-    }
-    @media (max-width: 768px) {
-      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] {
-        padding: 8px;
-      }
-      #ziweiModalSection [data-cd-marker="ziwei-basic-chart-polish-v20260625"] .zw-cell {
-        min-height: 78px;
-        border-radius: 7px;
-      }
-    }
   </style>
 
   <div class="zw-dashboard">
     <!-- Left: Grid -->
-    <div class="zw-grid-wrap" data-zw-chart-ui="professional-chart-ui-v20260625" data-cd-marker="ziwei-basic-chart-polish-v20260625">
+    <div class="zw-grid-wrap" data-zw-chart-ui="cosmic-chart-ui-v20260606">
       <div class="zw-chart-mobile-note">명반을 좌우로 밀어 12궁의 별자리 흐름을 확인하세요.</div>
       <div class="zw-grid">
   `;
@@ -16038,12 +16585,12 @@ function renderZiwei(p, natal, targetId) {
   };
 
   var ZW_PORTFOLIO_MAIN_TITLE = {
-    '자미': { title: '자미 지도자', slogan: '권위를 품고 판을 설계하는 중심 태양', symbol: '☀' },
-    '염정': { title: '염정 권력자', slogan: '관계와 권력을 읽고 주도권을 쥐는 전략가', symbol: '✦' },
-    '천기': { title: '천기 관찰자', slogan: '먼저 읽고 나중에 움직여 승률을 높이는 설계형', symbol: '✧' },
-    '태음': { title: '태음 관찰자', slogan: '조용히 읽고 깊게 축적하는 달빛 기획자', symbol: '☾' },
-    '태양': { title: '태양 선도자', slogan: '무대를 밝히며 주변을 끌어당기는 확장형', symbol: '✺' },
-    '무곡': { title: '무곡 집행자', slogan: '판단을 실행으로 전환하는 결과 중심형', symbol: '✹' }
+    '자미': { title: _sajuEngineText("se_15958_prop_title"), slogan: '권위를 품고 판을 설계하는 중심 태양', symbol: '☀' },
+    '염정': { title: _sajuEngineText("se_15959_prop_title"), slogan: '관계와 권력을 읽고 주도권을 쥐는 전략가', symbol: '✦' },
+    '천기': { title: _sajuEngineText("se_15960_prop_title"), slogan: '먼저 읽고 나중에 움직여 승률을 높이는 설계형', symbol: '✧' },
+    '태음': { title: _sajuEngineText("se_15961_prop_title"), slogan: '조용히 읽고 깊게 축적하는 달빛 기획자', symbol: '☾' },
+    '태양': { title: _sajuEngineText("se_15962_prop_title"), slogan: '무대를 밝히며 주변을 끌어당기는 확장형', symbol: '✺' },
+    '무곡': { title: _sajuEngineText("se_15963_prop_title"), slogan: '판단을 실행으로 전환하는 결과 중심형', symbol: '✹' }
   };
 
   function _zwPortfolioEscapeHtml(v) {
@@ -17193,7 +17740,7 @@ function renderZiwei(p, natal, targetId) {
       + '  <div style="font-size:0.74rem;line-height:1.58;color:#fef3c7;background:rgba(120,53,15,0.3);border:1px solid rgba(251,191,36,0.32);border-radius:10px;padding:8px 10px;margin-bottom:10px">'
       + '    생성된 프롬프트에는 생년월일·출생시간·명반 요약이 포함될 수 있습니다. 외부 AI에 붙여 넣기 전 필요한 정보만 남겨 사용하세요.'
       + '  </div>'
-      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="질문을 입력해 주세요. (최소 5자, 최대 1000자)" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
       + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
       + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
       + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
@@ -17499,7 +18046,7 @@ function renderZiwei(p, natal, targetId) {
       : (pZhi === palace.meng ? 'rgba(250,204,21,0.5)' : (pZhi === palace.shen ? 'rgba(125,211,252,0.46)' : 'rgba(196,181,253,0.34)'));
     let cellStyle = '--zw-cell-score:' + palacePower + ';--zw-cell-glow:' + glowColor + '; animation-delay: '+(i*0.06)+'s;';
 
-    html += '<div class="zw-cell zw-cell-'+i+' '+palacePowerClass+roleClass+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기, 별 밀도 '+palacePower+'점" style="'+cellStyle+'" onclick="window._handleZwClick('+i+', this)">';
+    html += '<div class="zw-cell zw-cell-'+i+' '+palacePowerClass+roleClass+'" role="button" tabindex="0" aria-label="' + dName + ' ' + _sajuEngineText("se_18017_attr_aria_label") + ', ' + palacePower + _sajuEngineText("se_18017_attr_aria_label_score_suffix") + '" style="'+cellStyle+'" onclick="window._handleZwClick('+i+', this)">';
     html += '<div class="zw-cell-aura" aria-hidden="true"></div>';
     html += '<div class="zw-palace-starlane" aria-hidden="true"></div>';
     html += '<div class="zw-palace-name">' + dName + '</div>';
@@ -17546,7 +18093,7 @@ function renderZiwei(p, natal, targetId) {
     html += '<span style="font-size:0.68rem;color:#94a3b8;display:block;margin-top:6px">기준: 음력 '+palace.calcMeta.lunarMonth+'월 '+palace.calcMeta.lunarDay+'일 · 시지 '+palace.calcMeta.hourBranch+'</span>';
   }
   html += '<span class="zw-center-hint">별빛이 강한 궁일수록 현재 명반에서 선명하게 작동하는 운명의 축입니다.</span>';
-  html += '<div class="zw-center-legend" aria-label="명반 범례">';
+  html += '<div class="zw-center-legend" aria-label="' + _sajuEngineText("se_18064_attr_aria_label") + '">';
   html += '<span class="zw-center-legend-item">금빛: 명궁</span>';
   html += '<span class="zw-center-legend-item">청빛: 신궁</span>';
   html += '<span class="zw-center-legend-item">붉은빛: 화기 주의</span>';
@@ -17737,7 +18284,7 @@ function renderZiwei(p, natal, targetId) {
       }).join('');
 
       mount.innerHTML = ''
-        + '<section class="zwp-wrap" aria-label="운명 포트폴리오">'
+        + '<section class="zwp-wrap" aria-label="' + _sajuEngineText("se_18255_attr_aria_label") + '">'
         + '  <div class="zwp-starfield">' + starfieldHtml + '</div>'
         + '  <div class="zwp-cta"><b>클릭 가이드</b> · 각 카드를 눌러 궁별 성향, 근거, 실행 전략을 확인하세요. 모바일에서는 상단 시트로 바로 열립니다.</div>'
         + '  <div class="zwp-grid">'
@@ -17751,10 +18298,10 @@ function renderZiwei(p, natal, targetId) {
         + '    </div>'
         + '  </div>'
         + '  <div class="zwp-modal-overlay" aria-hidden="true">'
-        + '    <div class="zwp-modal" role="dialog" aria-modal="true" aria-label="운명 포트폴리오 상세" onclick="event.stopPropagation()">'
+        + '    <div class="zwp-modal" role="dialog" aria-modal="true" aria-label="' + _sajuEngineText("se_18269_attr_aria_label") + '" onclick="event.stopPropagation()">'
         + '      <div class="zwp-modal-head">'
         + '        <div class="zwp-modal-title">운명 포트폴리오</div>'
-        + '        <button type="button" class="zwp-modal-close" aria-label="닫기" onclick="window._closeZwPortfolioModal(\'' + targetId + '\')">✶</button>'
+        + '        <button type="button" class="zwp-modal-close" aria-label="' + _sajuEngineText("se_18272_attr_aria_label") + '" onclick="window._closeZwPortfolioModal(\'' + targetId + '\')">✶</button>'
         + '      </div>'
         + '      <div class="zwp-modal-body"></div>'
         + '    </div>'
@@ -17908,7 +18455,7 @@ function renderZiwei(p, natal, targetId) {
       var token = '';
       try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
       if (!token) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+        if (window.confirm(_sajuEngineText("se_17828_call_confirm"))) {
           window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
         }
         return;
@@ -19285,11 +19832,11 @@ function renderZiwei(p, natal, targetId) {
 
         var elementOrder = ['earth','wood','fire','metal','water'];
         var elementMeta = {
-          earth:{icon:'⛰️',name:'토',label:'⛰️ 토 (Earth) · 중축'},
-          wood:{icon:'🌿',name:'목',label:'🌿 목 (Wood) · 동방'},
-          fire:{icon:'🔥',name:'화',label:'🔥 화 (Fire) · 남방'},
-          metal:{icon:'⚔️',name:'금',label:'⚔️ 금 (Metal) · 서방'},
-          water:{icon:'💧',name:'수',label:'💧 수 (Water) · 북방'}
+          earth:{icon:'⛰️',name:'토',label:_sajuEngineText("se_19205_prop_label")},
+          wood:{icon:'🌿',name:'목',label:_sajuEngineText("se_19206_prop_label")},
+          fire:{icon:'🔥',name:'화',label:_sajuEngineText("se_19207_prop_label")},
+          metal:{icon:'⚔️',name:'금',label:_sajuEngineText("se_19208_prop_label")},
+          water:{icon:'💧',name:'수',label:_sajuEngineText("se_19209_prop_label")}
         };
         var rawVals = elementOrder.map(function(k){ return rawElementScores[k]; });
         var rawMin = Math.min.apply(null, rawVals);
@@ -19626,7 +20173,7 @@ function renderZiwei(p, natal, targetId) {
                 +'<p><b>상세 풀이:</b> '+growthDetail+'</p>'
               +'</article>'
             +'</div>'
-            +'<div class="zw-oracle-grid" aria-label="잠재력 심층 지도">'
+            +'<div class="zw-oracle-grid" aria-label="' + _sajuEngineText("se_20144_attr_aria_label") + '">'
               +'<article class="zw-oracle-card zw-oracle-card--gold"><div class="zw-oracle-card__title">재능 원형</div><b>'+potentialArchetype+'</b><br>현재 명반에서 가장 강하게 반복되는 잠재력 축은 '+dominantTrack.k+'입니다.</article>'
               +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">돈이 되는 방식</div>'+potentialMoneyPath+'</article>'
               +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">관계에서 쓰이는 힘</div>'+potentialRelationshipUse+'</article>'
@@ -20021,12 +20568,12 @@ function renderZiwei(p, natal, targetId) {
           var val = loveDestinyMetrics[item.key] || 0;
           return '<div class="zw-love-metric-item"><span>'+item.icon+' <b>'+item.name+'</b></span><span style="color:#fde68a;font-weight:900;">'+val+'%</span></div>';
         }).join('');
-        var loveTimingRibbon = '<div class="zw-timing-ribbon" aria-label="연애운 타이밍 신호">'
+        var loveTimingRibbon = '<div class="zw-timing-ribbon" aria-label="' + _sajuEngineText("se_20539_attr_aria_label") + '">'
           +'<span class="zw-timing-chip">인연 유입: '+(loveHeat >= 68 ? '강한 끌림이 먼저 열린다' : '천천히 신뢰를 쌓을 때 열린다')+'</span>'
           +'<span class="zw-timing-chip">정착 운: '+(commitment >= 68 ? '약속과 생활 설계에 강함' : '관계 규칙을 먼저 맞춰야 안정')+'</span>'
           +'<span class="zw-timing-chip">주의 운: '+(flirtRiskScore >= 66 ? '외부 자극·경계선 관리' : '작은 서운함의 조기 공유')+'</span>'
         +'</div>';
-        var loveDeepOracle = '<div class="zw-oracle-grid" aria-label="연애운 심층 해석">'
+        var loveDeepOracle = '<div class="zw-oracle-grid" aria-label="' + _sajuEngineText("se_20544_attr_aria_label") + '">'
           +'<article class="zw-oracle-card zw-oracle-card--rose"><div class="zw-oracle-card__title">인연이 들어오는 문</div>'+magnetConflict+'</article>'
           +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">장기 관계의 핵심</div>'+spouseProfile+'</article>'
           +'<article class="zw-oracle-card zw-oracle-card--gold"><div class="zw-oracle-card__title">공식화 방향</div>'+loveTimingShortText+'</article>'
@@ -20271,11 +20818,11 @@ function renderZiwei(p, natal, targetId) {
           '헤르메스의 검은 서판': { icon:'📜', realm:'비밀 서고', virtue:'말·의심·숨은 진실' }
         };
         var ZW_FLOW_DOMAIN_META = {
-          money:{ label:'재물', good:'수익 회수와 자산 고정화가 열립니다.', care:'지출, 보증, 과욕성 투자를 조심하세요.' },
-          career:{ label:'직업', good:'역할 확대와 공개 성과에 유리합니다.', care:'권한 충돌과 일정 과부하를 조율하세요.' },
-          love:{ label:'사랑', good:'마음을 드러내면 관계의 온도가 살아납니다.', care:'오해를 방치하면 감정 빚이 커집니다.' },
-          health:{ label:'회복', good:'회복 루틴을 만들면 기력이 안정됩니다.', care:'수면, 긴장, 피로 신호를 부드럽게 살피세요.' },
-          move:{ label:'이동', good:'이직, 이사, 외부 제안의 문이 열립니다.', care:'서류와 동선의 착오를 두 번 확인하세요.' }
+          money:{ label:_sajuEngineText("se_20191_prop_label"), good:'수익 회수와 자산 고정화가 열립니다.', care:'지출, 보증, 과욕성 투자를 조심하세요.' },
+          career:{ label:_sajuEngineText("se_20192_prop_label"), good:'역할 확대와 공개 성과에 유리합니다.', care:'권한 충돌과 일정 과부하를 조율하세요.' },
+          love:{ label:_sajuEngineText("se_20193_prop_label"), good:'마음을 드러내면 관계의 온도가 살아납니다.', care:'오해를 방치하면 감정 빚이 커집니다.' },
+          health:{ label:_sajuEngineText("se_20194_prop_label"), good:'회복 루틴을 만들면 기력이 안정됩니다.', care:'수면, 긴장, 피로 신호를 부드럽게 살피세요.' },
+          move:{ label:_sajuEngineText("se_20195_prop_label"), good:'이직, 이사, 외부 제안의 문이 열립니다.', care:'서류와 동선의 착오를 두 번 확인하세요.' }
         };
         function zwFlowEsc(value) {
           return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
@@ -20572,7 +21119,7 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="자미두수 10년운 잠금" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 10,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 10,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
@@ -20604,7 +21151,7 @@ function renderZiwei(p, natal, targetId) {
         var natalSihuaSeal = natalOlympus.sihuaSeal || zwFlowSihuaSeal(natalOlympusSignal);
         var natalShadowSeal = natalOlympus.shadowSeal || zwFlowShadowSeal(natalOlympusSignal);
         var olympusSealEntries = [
-          { title:'BIRTH SEAL · 본명 인장', seal:{
+          { title:_sajuEngineText("se_20524_prop_title"), seal:{
             name:natalOlympus.god,
             god:natalOlympus.realm,
             icon:natalOlympus.icon,
@@ -20613,7 +21160,7 @@ function renderZiwei(p, natal, targetId) {
             oracle:natalOlympus.oracle,
             basis:natalOlympus.basis
           }, accent:'#fde68a', basisLabel:'명궁 근거' },
-          { title:'BODY SEAL · 현실 인장', seal:{
+          { title:_sajuEngineText("se_20533_prop_title"), seal:{
             name:natalRealityOlympus.god,
             god:natalRealityOlympus.realm,
             icon:natalRealityOlympus.icon,
@@ -20622,8 +21169,8 @@ function renderZiwei(p, natal, targetId) {
             oracle:natalRealityOlympus.oracle,
             basis:natalRealityOlympus.basis
           }, accent:'#93c5fd', basisLabel:'신궁/관록 근거' },
-          { title:'SIHUA SEAL · 사화 인장', seal:natalSihuaSeal, accent:'#c4b5fd', basisLabel:'사화 근거' },
-          { title:'SHADOW SEAL · 그림자 인장', seal:natalShadowSeal, accent:'#fca5a5', basisLabel:'주의 근거' }
+          { title:_sajuEngineText("se_20542_prop_title"), seal:natalSihuaSeal, accent:'#c4b5fd', basisLabel:'사화 근거' },
+          { title:_sajuEngineText("se_20543_prop_title"), seal:natalShadowSeal, accent:'#fca5a5', basisLabel:'주의 근거' }
         ];
         var olympusSealSeen = {};
         var olympusSealCardsHtml = '';
@@ -20673,8 +21220,8 @@ function renderZiwei(p, natal, targetId) {
           ? '출생시간 미상 또는 정오 기본값으로 계산된 경우 명궁·신궁·12궁 배치가 달라질 수 있어, 성향 중심으로 보수 해석합니다.'
           : '입력 생시와 도시 기반 진태양시 보정을 반영해 명궁·신궁·12궁 배치를 계산했습니다.';
         var ziweiPrecisionTone = ziweiTimeUnknown
-          ? { label:'보수 해석', color:'#fde68a', border:'rgba(251,191,36,0.46)', bg:'rgba(120,53,15,0.24)' }
-          : { label:'정밀 보정', color:'#bbf7d0', border:'rgba(110,231,183,0.38)', bg:'rgba(6,78,59,0.22)' };
+          ? { label:_sajuEngineText("se_20593_prop_label"), color:'#fde68a', border:'rgba(251,191,36,0.46)', bg:'rgba(120,53,15,0.24)' }
+          : { label:_sajuEngineText("se_20594_prop_label"), color:'#bbf7d0', border:'rgba(110,231,183,0.38)', bg:'rgba(6,78,59,0.22)' };
         var ziweiPrecisionNotice = '<div data-cd-marker="ziwei-precision-notice-v20260615" style="background:rgba(15,23,42,0.74);border:1px solid '+ziweiPrecisionTone.border+';border-radius:12px;padding:11px 12px;margin-bottom:14px;color:#dbeafe;font-size:0.8rem;line-height:1.65;">'
           +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:5px;">'
             +'<b style="color:'+ziweiPrecisionTone.color+';">해석 정확도</b>'
@@ -20936,8 +21483,8 @@ function renderZiwei(p, natal, targetId) {
             var isCurrentDahan = currentKoreanAge > 0 && currentKoreanAge >= Number(dh.startAge) && currentKoreanAge <= Number(dh.endAge);
             var headline = dhTheme.icon+' '+dh.palaceName+' 대한, '+(dhMain[0] || '공궁')+'이 여는 '+dhTheme.kw;
             var keyYears = [
-              { label:'대한 3년차', event:(dahanSihua['화록'] ? dahanSihua['화록'].palaceName+' 화록이 기회와 수입 채널을 여는 시점입니다.' : '초기 기반이 잡히며 방향을 선명하게 정하는 시점입니다.') },
-              { label:'대한 7년차', event:(dahanSihua['화기'] ? dahanSihua['화기'].palaceName+' 화기의 누적 과제를 정리해야 하는 시점입니다.' : '성과와 관계 구조를 재정렬해 다음 구간을 준비하는 시점입니다.') }
+              { label:_sajuEngineText("se_20856_prop_label"), event:(dahanSihua['화록'] ? dahanSihua['화록'].palaceName+' 화록이 기회와 수입 채널을 여는 시점입니다.' : '초기 기반이 잡히며 방향을 선명하게 정하는 시점입니다.') },
+              { label:_sajuEngineText("se_20857_prop_label"), event:(dahanSihua['화기'] ? dahanSihua['화기'].palaceName+' 화기의 누적 과제를 정리해야 하는 시점입니다.' : '성과와 관계 구조를 재정렬해 다음 구간을 준비하는 시점입니다.') }
             ];
             var sections = zwDahanBuildSections({
               dh:dh,
@@ -21164,7 +21711,7 @@ function renderZiwei(p, natal, targetId) {
                 zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
                 return;
               }
-              if (!window.confirm('대한 타임라인 해금\n\n20,000원 결제로 인생 전체 운명 지도를 여시겠습니까?\n\n구매 후 영구 열람 가능합니다.')) return;
+              if (!window.confirm(_sajuEngineText("se_21084_call_confirm"))) return;
               shell.classList.add('cd-section-gate--checking');
               btn.disabled = true;
               btn.textContent = '별의 흐름을 여는 중...';
@@ -21371,10 +21918,10 @@ function renderZiwei(p, natal, targetId) {
             dhSihua.forEach(function(s){
               tags.push({ label:s.star+' '+s.info.type+' → '+dh.palaceName, tone:s.info.type === '화기' ? 'risk' : 'good' });
             });
-            if (!dhSihua.length) tags.push({ label:'사화 직접 작용 약함', tone:'muted' });
-            if (dhBorrowed.length) tags.push({ label:'차성 '+dhBorrowed.slice(0,2).join(' · ')+' 보정', tone:'support' });
-            if (dhAux.length) tags.push({ label:'보조성 '+dhAux.slice(0,2).join(' · ')+' 가세', tone:'support' });
-            if (dhBad.length) tags.push({ label:'흉성 '+dhBad.slice(0,2).join(' · ')+' 압박', tone:'risk' });
+            if (!dhSihua.length) tags.push({ label:_sajuEngineText("se_21291_prop_label"), tone:'muted' });
+            if (dhBorrowed.length) tags.push({ label:_sajuEngineText("se_21890_prop_label")+' '+dhBorrowed.slice(0,2).join(' · ')+' 보정', tone:'support' });
+            if (dhAux.length) tags.push({ label:_sajuEngineText("se_21891_prop_label")+' '+dhAux.slice(0,2).join(' · ')+' 가세', tone:'support' });
+            if (dhBad.length) tags.push({ label:_sajuEngineText("se_21892_prop_label")+' '+dhBad.slice(0,2).join(' · ')+' 압박', tone:'risk' });
 
             var flowSteps = [
               { key:'전조기', text:dh.palaceName+' 주제가 서서히 의식 위로 떠오름' },
@@ -21497,7 +22044,7 @@ function renderZiwei(p, natal, targetId) {
         }
         var pivotAxisHtml = '';
         if (selectedPivots.length) {
-          pivotAxisHtml = '<div class="zw-pivot-axis" aria-label="인생 3대 변곡점 나이 흐름">'
+          pivotAxisHtml = '<div class="zw-pivot-axis" aria-label="' + _sajuEngineText("se_22015_attr_aria_label") + '">'
             +'<div class="zw-pivot-axis-track"><span></span><span></span><span></span></div>'
             +'<div class="zw-pivot-axis-points">';
           selectedPivots.slice(0,3).forEach(function(p, i){
@@ -21523,7 +22070,7 @@ function renderZiwei(p, natal, targetId) {
             ? p.coreStars.split(' · ').map(function(s){ return '<span class="zw-pv-star-tag support">★ '+zwFlowEsc(s)+'</span>'; }).join('')
             : '<span class="zw-pv-star-tag muted">공궁(空宮)</span>';
           var sihuaTags = (p.tags || []).map(zwPivotTagHtml).join('');
-          var phaseRailHtml = '<div class="zw-pv-phase-rail" aria-label="변곡점 발동 흐름">'
+          var phaseRailHtml = '<div class="zw-pv-phase-rail" aria-label="' + _sajuEngineText("se_22041_attr_aria_label") + '">'
             +(p.flowSteps || []).map(function(step){
               return '<div class="zw-pv-phase-step"><b>'+zwFlowEsc(step.key)+'</b><span>'+zwFlowEsc(step.text)+'</span></div>';
             }).join('')
@@ -22383,7 +22930,7 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
     return {
       monthCommand: null,
       reading: {
-        title: '월령 해석',
+        title: _sajuEngineText("se_22303_prop_title"),
         summary: noDataMsg,
         seasonalEnergy: noDataMsg,
         relationToDayMaster: '일간 데이터 미확인',
@@ -22478,7 +23025,7 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
       advice: advice
     },
     reading: {
-      title: '월령 해석',
+      title: _sajuEngineText("se_22398_prop_title"),
       summary: summary,
       seasonalEnergy: seasonalEnergy,
       relationToDayMaster: relationText,
@@ -23320,12 +23867,12 @@ var CELEB_CAT_ICONS={
 
 // ── 국가 설정 (Config-driven, 새 국가는 여기에만 추가하면 됨) ─────────────────
 const COUNTRY_CONFIG = {
-  'KR': { label: '한국',  flag: '🇰🇷', order: 1 },
-  'JP': { label: '일본',  flag: '🇯🇵', order: 2 },
-  'CN': { label: '중국',  flag: '🇨🇳', order: 3 },
-  'US': { label: '미국',  flag: '🇺🇸', order: 4 },
-  'IN': { label: '인도',  flag: '🇮🇳', order: 5 },
-  'EU': { label: '유럽',  flag: '🌍', order: 6 }
+  'KR': { label: _sajuEngineText("se_23240_prop_label"),  flag: '🇰🇷', order: 1 },
+  'JP': { label: _sajuEngineText("se_23241_prop_label"),  flag: '🇯🇵', order: 2 },
+  'CN': { label: _sajuEngineText("se_23242_prop_label"),  flag: '🇨🇳', order: 3 },
+  'US': { label: _sajuEngineText("se_23243_prop_label"),  flag: '🇺🇸', order: 4 },
+  'IN': { label: _sajuEngineText("se_23244_prop_label"),  flag: '🇮🇳', order: 5 },
+  'EU': { label: _sajuEngineText("se_23245_prop_label"),  flag: '🌍', order: 6 }
 };
 
 // ── Nationality Backfill: 기존 항목에 nationality 기본값 'KR' 할당 ────────────
@@ -23349,38 +23896,38 @@ const COUNTRY_CONFIG = {
 
   // 출생도시 개별 좌표(정밀도 우선). 미등록 인물은 국가 대표도시 fallback 사용.
   var _geo = {
-    '일론 머스크': { label:'남아공 프리토리아', lat:-25.7479, lon:28.2293, tz:2 },
-    '제프 베이조스': { label:'미국 뉴멕시코 앨버커키', lat:35.0844, lon:-106.6504, tz:-7 },
-    '마크 저커버그': { label:'미국 뉴욕 화이트플레인스', lat:41.0330, lon:-73.7629, tz:-5 },
-    '워런 버핏': { label:'미국 네브래스카 오마하', lat:41.2565, lon:-95.9345, tz:-6 },
-    '젠슨 황': { label:'대만 타이난', lat:22.9999, lon:120.2270, tz:8 },
-    '래리 페이지': { label:'미국 미시간 랜싱', lat:42.7325, lon:-84.5555, tz:-5 },
-    '세르게이 브린': { label:'러시아 모스크바', lat:55.7558, lon:37.6173, tz:3 },
-    '팀 쿡': { label:'미국 앨라배마 모빌', lat:30.6954, lon:-88.0399, tz:-6 },
-    '샘 올트먼': { label:'미국 일리노이 시카고', lat:41.8781, lon:-87.6298, tz:-6 },
-    '리사 수': { label:'대만 타이난', lat:22.9999, lon:120.2270, tz:8 },
-    '래리 엘리슨': { label:'미국 뉴욕', lat:40.7128, lon:-74.0060, tz:-5 },
-    '베르나르 아르노': { label:'프랑스 루베', lat:50.6927, lon:3.1778, tz:1 },
-    '사티아 나델라': { label:'인도 하이데라바드', lat:17.3850, lon:78.4867, tz:5.5 },
-    '잭 마': { label:'중국 항저우', lat:30.2741, lon:120.1551, tz:8 },
-    '마화텅': { label:'중국 산터우', lat:23.3535, lon:116.6819, tz:8 },
-    '손정의': { label:'일본 사가', lat:33.2494, lon:130.2988, tz:9 },
-    '도널드 트럼프': { label:'미국 뉴욕', lat:40.7128, lon:-74.0060, tz:-5 },
-    '조 바이든': { label:'미국 펜실베이니아 스크랜턴', lat:41.4089, lon:-75.6624, tz:-5 },
-    '버락 오바마': { label:'미국 하와이 호놀룰루', lat:21.3069, lon:-157.8583, tz:-10 },
-    '힐러리 클린턴': { label:'미국 일리노이 시카고', lat:41.8781, lon:-87.6298, tz:-6 },
-    '카말라 해리스': { label:'미국 캘리포니아 오클랜드', lat:37.8044, lon:-122.2711, tz:-8 },
-    '시진핑': { label:'중국 베이징', lat:39.9042, lon:116.4074, tz:8 },
-    '블라디미르 푸틴': { label:'러시아 상트페테르부르크', lat:59.9311, lon:30.3609, tz:3 },
-    '에마뉘엘 마크롱': { label:'프랑스 아미앵', lat:49.8941, lon:2.2958, tz:1 },
-    '올라프 숄츠': { label:'독일 오스나브뤼크', lat:52.2799, lon:8.0472, tz:1 },
-    '리시 수낵': { label:'영국 사우샘프턴', lat:50.9097, lon:-1.4044, tz:0 },
-    '앙겔라 메르켈': { label:'독일 함부르크', lat:53.5511, lon:9.9937, tz:1 },
-    '볼로디미르 젤렌스키': { label:'우크라이나 크리비리흐', lat:47.9105, lon:33.3918, tz:2 },
-    '마거릿 대처': { label:'영국 그래섬', lat:52.9115, lon:-0.6411, tz:0 },
-    '기시다 후미오': { label:'일본 도쿄', lat:35.6762, lon:139.6503, tz:9 },
-    '아베 신조': { label:'일본 도쿄', lat:35.6762, lon:139.6503, tz:9 },
-    '나렌드라 모디': { label:'인도 바드나가르', lat:23.7863, lon:72.6380, tz:5.5 }
+    '일론 머스크': { label:_sajuEngineText("se_23269_prop_label"), lat:-25.7479, lon:28.2293, tz:2 },
+    '제프 베이조스': { label:_sajuEngineText("se_23270_prop_label"), lat:35.0844, lon:-106.6504, tz:-7 },
+    '마크 저커버그': { label:_sajuEngineText("se_23271_prop_label"), lat:41.0330, lon:-73.7629, tz:-5 },
+    '워런 버핏': { label:_sajuEngineText("se_23272_prop_label"), lat:41.2565, lon:-95.9345, tz:-6 },
+    '젠슨 황': { label:_sajuEngineText("se_23273_prop_label"), lat:22.9999, lon:120.2270, tz:8 },
+    '래리 페이지': { label:_sajuEngineText("se_23274_prop_label"), lat:42.7325, lon:-84.5555, tz:-5 },
+    '세르게이 브린': { label:_sajuEngineText("se_23275_prop_label"), lat:55.7558, lon:37.6173, tz:3 },
+    '팀 쿡': { label:_sajuEngineText("se_23276_prop_label"), lat:30.6954, lon:-88.0399, tz:-6 },
+    '샘 올트먼': { label:_sajuEngineText("se_23277_prop_label"), lat:41.8781, lon:-87.6298, tz:-6 },
+    '리사 수': { label:_sajuEngineText("se_23278_prop_label"), lat:22.9999, lon:120.2270, tz:8 },
+    '래리 엘리슨': { label:_sajuEngineText("se_23279_prop_label"), lat:40.7128, lon:-74.0060, tz:-5 },
+    '베르나르 아르노': { label:_sajuEngineText("se_23280_prop_label"), lat:50.6927, lon:3.1778, tz:1 },
+    '사티아 나델라': { label:_sajuEngineText("se_23281_prop_label"), lat:17.3850, lon:78.4867, tz:5.5 },
+    '잭 마': { label:_sajuEngineText("se_23282_prop_label"), lat:30.2741, lon:120.1551, tz:8 },
+    '마화텅': { label:_sajuEngineText("se_23283_prop_label"), lat:23.3535, lon:116.6819, tz:8 },
+    '손정의': { label:_sajuEngineText("se_23284_prop_label"), lat:33.2494, lon:130.2988, tz:9 },
+    '도널드 트럼프': { label:_sajuEngineText("se_23285_prop_label"), lat:40.7128, lon:-74.0060, tz:-5 },
+    '조 바이든': { label:_sajuEngineText("se_23286_prop_label"), lat:41.4089, lon:-75.6624, tz:-5 },
+    '버락 오바마': { label:_sajuEngineText("se_23287_prop_label"), lat:21.3069, lon:-157.8583, tz:-10 },
+    '힐러리 클린턴': { label:_sajuEngineText("se_23288_prop_label"), lat:41.8781, lon:-87.6298, tz:-6 },
+    '카말라 해리스': { label:_sajuEngineText("se_23289_prop_label"), lat:37.8044, lon:-122.2711, tz:-8 },
+    '시진핑': { label:_sajuEngineText("se_23290_prop_label"), lat:39.9042, lon:116.4074, tz:8 },
+    '블라디미르 푸틴': { label:_sajuEngineText("se_23291_prop_label"), lat:59.9311, lon:30.3609, tz:3 },
+    '에마뉘엘 마크롱': { label:_sajuEngineText("se_23292_prop_label"), lat:49.8941, lon:2.2958, tz:1 },
+    '올라프 숄츠': { label:_sajuEngineText("se_23293_prop_label"), lat:52.2799, lon:8.0472, tz:1 },
+    '리시 수낵': { label:_sajuEngineText("se_23294_prop_label"), lat:50.9097, lon:-1.4044, tz:0 },
+    '앙겔라 메르켈': { label:_sajuEngineText("se_23295_prop_label"), lat:53.5511, lon:9.9937, tz:1 },
+    '볼로디미르 젤렌스키': { label:_sajuEngineText("se_23296_prop_label"), lat:47.9105, lon:33.3918, tz:2 },
+    '마거릿 대처': { label:_sajuEngineText("se_23297_prop_label"), lat:52.9115, lon:-0.6411, tz:0 },
+    '기시다 후미오': { label:_sajuEngineText("se_23298_prop_label"), lat:35.6762, lon:139.6503, tz:9 },
+    '아베 신조': { label:_sajuEngineText("se_23299_prop_label"), lat:35.6762, lon:139.6503, tz:9 },
+    '나렌드라 모디': { label:_sajuEngineText("se_23300_prop_label"), lat:23.7863, lon:72.6380, tz:5.5 }
   };
   var _knownTime = {
     '힐러리 클린턴': true,
@@ -23718,7 +24265,7 @@ async function runCompat(){
       compatRunBtn.disabled = false;
       compatRunBtn.style.opacity = '';
     }
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+    if (window.confirm(_sajuEngineText("se_23638_call_confirm"))) {
       window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
     }
     return;
@@ -24158,10 +24705,10 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
         ? '매력은 있지만 운영 난도가 있는 관계입니다. 갈등 이후 복구 방식이 정착되지 않으면 감정 소모가 반복될 수 있습니다.'
         : '초반 끌림과 별개로 장기 운용에는 체력과 합의가 많이 필요한 관계입니다. 경계선과 기대치를 분명히 해야 손실을 줄일 수 있습니다.';
   var detailCardsHtml = [
-    { title:'감정 리듬', body: emotionalSummary },
-    { title:'갈등 스위치', body: conflictSummary },
-    { title:'현실 운영', body: practicalSummary },
-    { title:'장기 전망', body: longTermSummary }
+    { title:_sajuEngineText("se_24078_prop_title"), body: emotionalSummary },
+    { title:_sajuEngineText("se_24079_prop_title"), body: conflictSummary },
+    { title:_sajuEngineText("se_24080_prop_title"), body: practicalSummary },
+    { title:_sajuEngineText("se_24081_prop_title"), body: longTermSummary }
   ].map(function(card){
     return '<div style="background:rgba(255,255,255,0.72);border:1px solid rgba(216,27,96,0.12);border-radius:14px;padding:14px;">'
       +'<div style="font-size:.82rem;font-weight:900;color:#c2185b;margin-bottom:6px;">'+card.title+'</div>'
@@ -26070,10 +26617,10 @@ function _sajuVillainBuildTenGodDistribution(p) {
 
 function _sajuVillainBuildBranchRelations(p) {
   var slots = [
-    { key:'year', label:'년지', branch:p && p.y && p.y.j },
-    { key:'month', label:'월지', branch:p && p.m && p.m.j },
-    { key:'day', label:'일지', branch:p && p.d && p.d.j },
-    { key:'hour', label:'시지', branch:p && p.h && p.h.j }
+    { key:'year', label:_sajuEngineText("se_25990_prop_label"), branch:p && p.y && p.y.j },
+    { key:'month', label:_sajuEngineText("se_25991_prop_label"), branch:p && p.m && p.m.j },
+    { key:'day', label:_sajuEngineText("se_25992_prop_label"), branch:p && p.d && p.d.j },
+    { key:'hour', label:_sajuEngineText("se_25993_prop_label"), branch:p && p.h && p.h.j }
   ].filter(function(row) { return !!row.branch; });
   var chongMap = {'子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳'};
   var wonjinMap = {'子':'未','未':'子','丑':'午','午':'丑','寅':'酉','酉':'寅','卯':'申','申':'卯','辰':'亥','亥':'辰','巳':'戌','戌':'巳'};
@@ -26110,9 +26657,9 @@ function _sajuVillainBuildBranchRelations(p) {
       return slots.some(function(row) { return row.branch === branch; });
     });
   }
-  if (hasAll(['寅','巳','申'])) conflict.push({ type:'형', branches:['寅','巳','申'], positions:['원국'], label:'인·사·신 형살 축' });
-  if (hasAll(['丑','未','戌'])) conflict.push({ type:'형', branches:['丑','未','戌'], positions:['원국'], label:'축·미·술 형살 축' });
-  if (hasAll(['子','卯'])) conflict.push({ type:'형', branches:['子','卯'], positions:['원국'], label:'자·묘 형살 축' });
+  if (hasAll(['寅','巳','申'])) conflict.push({ type:'형', branches:['寅','巳','申'], positions:['원국'], label:_sajuEngineText("se_26030_prop_label") });
+  if (hasAll(['丑','未','戌'])) conflict.push({ type:'형', branches:['丑','未','戌'], positions:['원국'], label:_sajuEngineText("se_26031_prop_label") });
+  if (hasAll(['子','卯'])) conflict.push({ type:'형', branches:['子','卯'], positions:['원국'], label:_sajuEngineText("se_26032_prop_label") });
   ['辰','午','酉','亥'].forEach(function(branch) {
     var repeated = slots.filter(function(row) { return row.branch === branch; });
     if (repeated.length >= 2) conflict.push({ type:'형', branches:[branch], positions:repeated.map(function(row){return row.label;}), label:branch + ' 자형 반복' });
@@ -26123,10 +26670,10 @@ function _sajuVillainBuildBranchRelations(p) {
 
 function _sajuVillainExtractMajorSinsal(p) {
   var branches = [
-    { label:'년지', branch:p && p.y && p.y.j },
-    { label:'월지', branch:p && p.m && p.m.j },
-    { label:'일지', branch:p && p.d && p.d.j },
-    { label:'시지', branch:p && p.h && p.h.j }
+    { label:_sajuEngineText("se_26043_prop_label"), branch:p && p.y && p.y.j },
+    { label:_sajuEngineText("se_26044_prop_label"), branch:p && p.m && p.m.j },
+    { label:_sajuEngineText("se_26045_prop_label"), branch:p && p.d && p.d.j },
+    { label:_sajuEngineText("se_26046_prop_label"), branch:p && p.h && p.h.j }
   ].filter(function(row) { return !!row.branch; });
   var dayPillar = (p && p.d && p.d.g ? p.d.g : '') + (p && p.d && p.d.j ? p.d.j : '');
   var result = [];
@@ -26140,7 +26687,7 @@ function _sajuVillainExtractMajorSinsal(p) {
   pushByBranches('yeokma', '역마살', ['寅','申','巳','亥']);
   pushByBranches('hwagae', '화개살', ['辰','戌','丑','未']);
   if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(dayPillar) >= 0) {
-    result.push({ id:'hongyeom', name:'홍염살', positions:['일주'], label:'홍염살(일주 ' + dayPillar + ')' });
+    result.push({ id:'hongyeom', name:'홍염살', positions:['일주'], label:_sajuEngineText("se_26658_prop_label") + ' ' + dayPillar + ')' });
   }
   return result;
 }
@@ -26559,7 +27106,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'profit-drain',
     codeName:'DRAIN BROKER',
     koreanName:'손익 흡혈형',
-    subtitle:'돈, 시간, 기회의 경계선을 흐리는 정산 교란 패턴',
+    subtitle:_sajuEngineText("se_26479_prop_subtitle"),
     montage:'항상 사정은 급하고 정산 이야기는 뒤로 밀립니다. 처음에는 작은 부탁처럼 보이지만, 시간이 지나면 돈·기회·노동의 경계가 한꺼번에 흐려지는 분위기를 만듭니다.',
     approachPattern:'이 유형은 “우리 사이에 이 정도는 괜찮지?”라는 말로 들어옵니다. 호의와 거래를 섞어 판단을 흐리게 만들기 때문에, 초반부터 금액·기한·증빙을 분리해야 합니다.',
     redFlags:['정산 날짜를 계속 미루며 분위기로 넘어가려 합니다.','공동구매·투자·기회 제안을 빠르게 결정하라고 재촉합니다.','내가 낸 돈과 상대가 낸 돈의 기준을 흐립니다.','성과가 나오면 자기 역할을 크게 말하고 손실은 함께 나누려 합니다.','계약서, 영수증, 이체 내역 이야기를 불편해합니다.'],
@@ -26583,7 +27130,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'emotional-pressure',
     codeName:'GUILT PRESS',
     koreanName:'감정 협박형',
-    subtitle:'죄책감과 압박으로 선택권을 좁히는 감정 경보 패턴',
+    subtitle:_sajuEngineText("se_26503_prop_subtitle"),
     montage:'대화의 온도가 갑자기 올라가고, 거절하는 순간 내가 나쁜 사람이 된 듯한 공기가 만들어집니다. 핵심은 분노가 아니라 죄책감으로 판단을 흔드는 방식입니다.',
     approachPattern:'처음에는 서운함을 말하는 것처럼 다가오지만, 곧 “네가 나를 이해해야 한다”는 방향으로 기울어집니다. 즉답하지 않고 감정과 사실을 분리하면 휘둘림이 줄어듭니다.',
     redFlags:['거절하면 서운함을 크게 키워 죄책감을 줍니다.','감정이 올라온 상태에서 즉시 답을 요구합니다.','사과를 했는데도 같은 사건을 반복해서 꺼냅니다.','관계를 위계처럼 만들고 내 선택을 평가합니다.','분노 뒤에 “널 위해서 그랬다”는 말을 붙입니다.'],
@@ -26608,7 +27155,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'verbal-confuser',
     codeName:'NOISE CUTTER',
     koreanName:'말빨 교란형',
-    subtitle:'말을 많이 만들수록 결론이 흐려지는 대화 교란 패턴',
+    subtitle:_sajuEngineText("se_26528_prop_subtitle"),
     montage:'말은 빠르고 분위기는 그럴듯하지만, 대화가 끝나면 무엇을 합의했는지 남지 않습니다. 핵심은 설득력이 아니라 결론을 흐리는 속도입니다.',
     approachPattern:'처음에는 재치와 정보력으로 끌어당깁니다. 하지만 논점이 자주 바뀐다면 대화를 멈추고 “그래서 결론이 무엇인지” 텍스트로 다시 잡아야 합니다.',
     redFlags:['방금 한 말을 상황에 따라 다르게 설명합니다.','질문에 답하지 않고 내 태도를 문제 삼습니다.','대화가 길어질수록 처음 주제가 사라집니다.','책임 소재를 농담이나 분위기로 넘깁니다.','기록으로 남기자고 하면 갑자기 불편해합니다.'],
@@ -26632,7 +27179,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'dependency-drain',
     codeName:'VELVET LEECH',
     koreanName:'의존 기생형',
-    subtitle:'부탁과 기대기로 에너지를 천천히 소모시키는 돌봄 과부하 패턴',
+    subtitle:_sajuEngineText("se_26552_prop_subtitle"),
     montage:'큰 사건 없이도 계속 피곤합니다. 작은 부탁, 감정 하소연, 대신 결정해달라는 요청이 누적되며 내 하루의 여백을 가져갑니다.',
     approachPattern:'처음에는 보호해주고 싶은 마음을 자극합니다. 하지만 반복 부탁이 생활 리듬을 침범한다면, 친절보다 시간표와 한도를 먼저 세워야 합니다.',
     redFlags:['비슷한 부탁이 형태만 바뀌어 반복됩니다.','스스로 결정할 수 있는 일도 계속 확인받으려 합니다.','내가 바쁜 시간에도 감정 응답을 기대합니다.','도와주지 않으면 관계가 식은 것처럼 반응합니다.','문제를 해결하기보다 계속 붙잡아두는 대화를 합니다.'],
@@ -26656,7 +27203,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'competition-theft',
     codeName:'MIRROR JACKER',
     koreanName:'경쟁 탈취형',
-    subtitle:'비교와 무임승차로 성과의 경계를 흐리는 경쟁 침투 패턴',
+    subtitle:_sajuEngineText("se_26576_prop_subtitle"),
     montage:'처음에는 비슷한 관심사로 가까워집니다. 시간이 지나면 비교, 은근한 깎아내림, 성과 가로채기가 섞이며 관계가 경쟁장처럼 변합니다.',
     approachPattern:'동료감과 친밀감을 앞세워 내부 정보에 접근합니다. 협업 초반부터 역할, 자료 출처, 발표 범위를 나눠두면 불필요한 감정전을 줄일 수 있습니다.',
     redFlags:['내 아이디어를 자기 말처럼 다시 포장합니다.','비교 농담으로 자존감을 건드립니다.','힘든 일은 같이 하자고 하고 결과물은 먼저 가져갑니다.','공개 자리에서 은근히 나를 낮춥니다.','역할이 모호한 상태를 유리하게 이용합니다.'],
@@ -26680,7 +27227,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'romance-chaos',
     codeName:'MOONLIGHT FOG',
     koreanName:'로맨스 혼란형',
-    subtitle:'애매한 신호와 감정 자극으로 관계 정의를 늦추는 로맨스 안개 패턴',
+    subtitle:_sajuEngineText("se_26600_prop_subtitle"),
     montage:'설렘은 있는데 관계의 이름이 늦게 붙습니다. 다정한 말과 갑작스러운 거리두기가 반복되면 마음은 커지는데 기준은 흐려질 수 있습니다.',
     approachPattern:'강한 호감 신호로 시작하지만 책임 있는 행동은 늦게 옵니다. 감정의 속도를 따라가기보다 만남의 일관성, 약속 이행, 관계 정의를 차분히 확인해야 합니다.',
     redFlags:['연락은 뜨겁지만 약속은 자주 흔들립니다.','관계 정의를 꺼내면 분위기를 바꿉니다.','질투를 유발하면서 책임 있는 선택은 피합니다.','갑자기 가까워졌다가 이유 없이 멀어집니다.','말은 로맨틱하지만 행동의 반복성이 낮습니다.'],
@@ -26705,7 +27252,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'authority-control',
     codeName:'IRON FRAME',
     koreanName:'권위 갑질형',
-    subtitle:'규칙과 평가를 자기 유리하게 적용하는 통제 프레임 패턴',
+    subtitle:_sajuEngineText("se_26625_prop_subtitle"),
     montage:'규칙을 말하지만 모두에게 같은 기준은 아닙니다. 평가, 지시, 권한의 언어로 내 선택 범위를 좁히는 공기가 만들어집니다.',
     approachPattern:'처음에는 책임감과 기준을 강조하며 들어옵니다. 그러나 권한 범위가 불명확한 요구가 반복된다면 공식 채널과 제3자 기준을 사용해야 합니다.',
     redFlags:['자기에게 유리한 규칙만 강조합니다.','요청 범위보다 책임을 크게 떠넘깁니다.','평가권이 있는 것처럼 말하며 압박합니다.','공식 절차보다 개인 지시를 우선하라고 합니다.','문서화를 요청하면 예민하게 반응합니다.'],
@@ -26729,7 +27276,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'responsibility-dodge',
     codeName:'PINGPONG SHADOW',
     koreanName:'책임 전가형',
-    subtitle:'일의 무게는 넘기고 성과의 빛만 가져가는 회피 교란 패턴',
+    subtitle:_sajuEngineText("se_26649_prop_subtitle"),
     montage:'처음에는 유연한 협업처럼 보이지만, 중요한 순간마다 책임의 화살표가 조용히 당신 쪽으로 돌아옵니다. 말은 가볍고 결과는 무거워지는 흐름입니다.',
     approachPattern:'이 유형은 “일단 같이 해보자”는 말로 시작해 역할과 마감을 흐립니다. 사주에서 식상·재성의 흐름이 기신으로 눌릴 때 특히 말과 실무의 무게가 어긋나기 쉽습니다.',
     redFlags:['결정은 같이 했다고 말하면서 실패 책임은 내 쪽으로 둡니다.','마감 직전에 역할 설명이 바뀝니다.','승인받지 않은 일을 이미 합의된 것처럼 말합니다.','성과가 보이면 앞에 서고 문제가 생기면 사라집니다.','자료 출처와 결정권자를 흐리게 말합니다.'],
@@ -26753,7 +27300,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'boundary-invasion',
     codeName:'BORDER RAID',
     koreanName:'경계 침범형',
-    subtitle:'관심과 간섭의 경계를 지우며 생활 리듬을 잠식하는 과잉 접근 패턴',
+    subtitle:_sajuEngineText("se_26673_prop_subtitle"),
     montage:'처음에는 걱정과 친밀감처럼 다가오지만, 어느새 당신의 시간표와 사생활이 상대의 확인 대상이 됩니다. 친절의 얼굴을 한 침범입니다.',
     approachPattern:'비겁·인성의 기운이 과하거나 기신으로 흐를 때, 가까운 사람이라는 명분이 경계선을 약하게 만듭니다. 묻지 않은 조언과 확인 요구를 초반부터 구분해야 합니다.',
     redFlags:['일정, 연락, 만남을 지나치게 확인하려 합니다.','거절하면 서운함보다 배신감을 크게 말합니다.','내 선택을 걱정이라는 이름으로 계속 수정하려 합니다.','개인 공간과 물건을 가볍게 넘나듭니다.','친밀함을 이유로 비밀 공유를 강요합니다.'],
@@ -26777,7 +27324,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     id:'cold-silence',
     codeName:'FROST LOCK',
     koreanName:'침묵 처벌형',
-    subtitle:'말을 끊고 온도를 낮춰 상대가 먼저 굽히게 만드는 냉각 압박 패턴',
+    subtitle:_sajuEngineText("se_26697_prop_subtitle"),
     montage:'대화가 필요할수록 공기가 차가워지고, 답 없는 침묵이 벌처럼 내려앉습니다. 문제를 푸는 대신 당신이 먼저 불안해지도록 만드는 방식입니다.',
     approachPattern:'금·수 기운이 기신으로 차갑게 흐르거나 관성·인성이 과하면 감정 표현보다 차단이 먼저 나옵니다. 침묵을 해석하려 애쓰기보다 확인 기한을 정해야 합니다.',
     redFlags:['중요한 대화 직후 갑자기 연락을 끊습니다.','무슨 일인지 묻는 순간 더 차가워집니다.','침묵 뒤에 먼저 사과하길 기다립니다.','답을 주지 않으면서 관계 주도권은 놓지 않습니다.','대화를 피한 뒤 아무 일 없었다는 듯 돌아옵니다.'],
@@ -26976,7 +27523,7 @@ function _sajuVillainSilhouetteSvg(profile) {
     shadow:'<circle cx="124" cy="55" r="27" fill="#c084fc" opacity=".3"/>'
   }[variant] || '';
 
-  return '<svg class="villain-silhouette-svg villain-silhouette-svg--' + _sajuVillainEscapeHtml(variant) + '" viewBox="0 0 160 160" role="img" aria-label="' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' 실루엣">'
+  return '<svg class="villain-silhouette-svg villain-silhouette-svg--' + _sajuVillainEscapeHtml(variant) + '" viewBox="0 0 160 160" role="img" aria-label="' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' ' + _sajuEngineText("se_27494_attr_aria_label") + '">'
     + '<circle cx="78" cy="80" r="68" fill="#2e1065" opacity=".78"/>'
     + '<circle cx="78" cy="80" r="54" fill="none" stroke="#facc15" stroke-width="2" stroke-dasharray="3 8" opacity=".45"/>'
     + '<path d="M26 118c12-30 31-45 54-45s42 15 54 45c5 12-2 24-16 24H42c-14 0-21-12-16-24z" fill="#13091f"/>'
@@ -27576,7 +28123,7 @@ function renderHormoneVibe(p, power) {
 
   var missionByResult = {
     teto: {
-      title: '오늘의 테토 미션',
+      title: _sajuEngineText("se_27496_prop_title"),
       tasks: [
         '결론 말하기 전, 상대 말 20초 끝까지 듣기',
         '할 일 3개 중 1개는 위임해서 에너지 분산하기',
@@ -27584,7 +28131,7 @@ function renderHormoneVibe(p, power) {
       ]
     },
     egen: {
-      title: '오늘의 에겐 미션',
+      title: _sajuEngineText("se_27504_prop_title"),
       tasks: [
         '공감 후 즉시 다음 행동 1줄 붙이기',
         '과몰입 신호 오면 3분 호흡으로 감정 리셋',
@@ -27592,7 +28139,7 @@ function renderHormoneVibe(p, power) {
       ]
     },
     neutral: {
-      title: '오늘의 밸런스 미션',
+      title: _sajuEngineText("se_27512_prop_title"),
       tasks: [
         '오전은 테토 모드(결정), 오후는 에겐 모드(관계)로 운영',
         '말하기 전 팩트/감정을 구분해 전달하기',
@@ -28118,7 +28665,7 @@ function showQuantumResult() {
 
   function _astroCounselBuildChart() {
     var birth = window._astroBirth || window._ziweiBirth || null;
-    if (!birth || !birth.year || !birth.month || !birth.day) return { ok:false, message:'서양 점성술 기본 차트를 열려면 생년월일과 출생 시간을 먼저 설정해 주세요.' };
+    if (!birth || !birth.year || !birth.month || !birth.day) return { ok:false, message:_sajuEngineText("se_28038_prop_message") };
     var hour = birth.hour != null ? Number(birth.hour) : 12;
     var minute = birth.minute != null ? Number(birth.minute) : 0;
     var lat = birth.lat || 37.6;
@@ -28140,11 +28687,11 @@ function showQuantumResult() {
           window.ASTRO_STRICT_PRECISION = strict;
         }
       } catch (fallbackErr) {
-        return { ok:false, message:'정밀 차트 계산이 지연되고 있어요. 잠시 후 다시 열어 주세요.' };
+        return { ok:false, message:_sajuEngineText("se_28060_prop_message") };
       }
     }
     if (!chart || !chart.sun || !chart.moon || !chart.asc) {
-      return { ok:false, message:'차트의 핵심 좌표가 아직 준비되지 않았어요. 출생시간과 지역을 확인한 뒤 다시 열어 주세요.' };
+      return { ok:false, message:_sajuEngineText("se_28064_prop_message") };
     }
     return { ok:true, chart:chart, birth:birth, mode:mode, houseSystem:houseSystem };
   }
@@ -28173,7 +28720,7 @@ function showQuantumResult() {
     var unlocked = _astroCounselIsUnlocked(key);
     var gateClass = 'cd-section-gate astro-counsel-paid-gate' + (unlocked ? ' cd-section-gate--unlocked' : '');
     var buttonText = unlocked ? '잠금 해제됨' : ('🪙 ' + (Number(cost || 0) * 100).toLocaleString('ko-KR') + '원으로 열기');
-    var buttonAttrs = unlocked ? ' disabled aria-label="기존 결제로 잠금 해제됨"' : '';
+    var buttonAttrs = unlocked ? ' disabled aria-label="' + _sajuEngineText("se_28691_attr_aria_label") + '"' : '';
     return '<div class="' + gateClass + '" id="' + _astroCounselEscape(safeId) + '" data-unlock-key="' + _astroCounselEscape(key) + '" style="position:relative;min-height:210px;border-radius:12px;overflow:hidden;">'
       + '<div class="cd-section-gate__overlay" style="gap:7px;padding:16px 14px;background:linear-gradient(180deg,rgba(9,6,28,.88),rgba(5,12,30,.96));">'
       + '<div class="cd-section-gate__icon" style="font-size:1.5rem;">🔒</div>'
@@ -28252,15 +28799,15 @@ function showQuantumResult() {
 
   function _astroCounselJobScores(ctx) {
     var scores = [
-      { title:'상징을 언어와 이미지로 바꾸는 역할', score:0, reason:'' },
-      { title:'흩어진 요구를 구조화하는 역할', score:0, reason:'' },
-      { title:'사람과 관계 흐름을 조율하는 역할', score:0, reason:'' },
-      { title:'자료를 읽고 패턴을 검증하는 역할', score:0, reason:'' },
-      { title:'배움과 의미를 전달하는 역할', score:0, reason:'' },
-      { title:'기회를 열고 협상을 움직이는 역할', score:0, reason:'' },
-      { title:'취향과 감각을 설계하는 역할', score:0, reason:'' },
-      { title:'자원과 위험을 관리하는 역할', score:0, reason:'' },
-      { title:'반복을 시스템으로 고정하는 역할', score:0, reason:'' }
+      { title:_sajuEngineText("se_28172_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28173_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28174_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28175_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28176_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28177_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28178_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28179_prop_title"), score:0, reason:'' },
+      { title:_sajuEngineText("se_28180_prop_title"), score:0, reason:'' }
     ];
     function bump(index, value) { scores[index].score += value; }
     function byElement(idx) {
@@ -28807,7 +29354,7 @@ function showQuantumResult() {
     var houseAscIdx = ascIdx == null ? 0 : ascIdx;
     var sun = _astroCounselPlacement(chart, 'Sun', houseAscIdx);
     var moon = _astroCounselPlacement(chart, 'Moon', houseAscIdx);
-    var asc = { label:'상승궁', sign:_astroCounselSignName(chart.asc), signIdx:ascIdx, house:1, topic:HOUSE_TOPICS[1] };
+    var asc = { label:_sajuEngineText("se_28727_prop_label"), sign:_astroCounselSignName(chart.asc), signIdx:ascIdx, house:1, topic:HOUSE_TOPICS[1] };
     var mc = { label:'MC', sign:_astroCounselSignName(chart.mc), signIdx:_astroCounselSignIdx(chart.mc) };
     var basis = _astroCounselDataBasis(pack);
     var axisHtml = ''

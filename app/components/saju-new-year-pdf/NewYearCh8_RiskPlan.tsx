@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterVIIIRiskPlan | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_8_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "VIII. 리스크 시나리오와 대응 플랜",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "VIII. Risk Scenarios and Response Plan",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "VIII. リスクシナリオと対応プラン",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   biggestRiskOfYear: "올해 최대 리스크",
   natalAndYearCollisionPoint: "원국-세운 충돌 지점",
@@ -27,8 +42,8 @@ export default function NewYearCh8_RiskPlan({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>VIII. 리스크 시나리오와 대응 플랜</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_8_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_8_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh8_RiskPlan({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "VIII. 리스크 시나리오와 대응 플랜"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_8_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

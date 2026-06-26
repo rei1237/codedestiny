@@ -12,6 +12,18 @@ import {
 } from "./auth-storage";
 import { resolveMonthlyStoneBalance } from "./monthly-stone";
 
+const AUTH_STORE_TEXT_TRANSLATIONS = {
+  ko: {
+    loginFailed: "로그인 처리 중 오류가 발생했어요.",
+  },
+  en: {
+    loginFailed: "An error occurred while processing login.",
+  },
+  ja: {
+    loginFailed: "ログイン処理中にエラーが発生しました。",
+  },
+} as const;
+
 export type AuthUser = ClientAuthUser & {
   id?: string;
   name?: string;
@@ -667,7 +679,7 @@ export async function login(credentials: LoginCredentials) {
       nextPath: String(payload.nextPath || nextPath || "/"),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "로그인 처리 중 오류가 발생했어요.";
+    const message = error instanceof Error ? error.message : AUTH_STORE_TEXT_TRANSLATIONS.ko.loginFailed;
     setState({ error: message });
     throw error;
   } finally {

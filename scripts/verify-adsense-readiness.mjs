@@ -454,7 +454,7 @@ function getMetaContent(html, name) {
 }
 
 function getTitleContent(html) {
-  return (html.match(/<title>([^<]*)<\/title>/i) || [])[1] || "";
+  return (html.match(/<title\b[^>]*>([^<]*)<\/title>/i) || [])[1] || "";
 }
 
 function getCanonical(html) {

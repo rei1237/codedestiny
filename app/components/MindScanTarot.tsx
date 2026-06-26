@@ -7,6 +7,31 @@ import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
+const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {
+  ko: {
+    "mindScanTarot.001": "겉말",
+    "mindScanTarot.002": "마음결",
+    "mindScanTarot.003": "멈춤",
+    "mindScanTarot.004": "바람",
+    "mindScanTarot.005": "현실",
+    "mindScanTarot.006": "말과 행동 사이 타로",
+    "mindScanTarot.007": "예: 요즘 말과 행동이 달라졌는데, 지금은 어떤 거리와 속도로 다가가야 할까요?",
+    "mindScanTarot.008": "말과 행동 사이 타로 리딩",
+    "mindScanTarot.009": "리딩 열기",
+    "mindScanTarot.010": "📷 이미지 저장",
+    "mindScanTarot.011": "🔗 공유",
+    "mindScanTarot.012": "📋 리딩 문장 복사",
+    "mindScanTarot.013": "💛 카카오톡 공유",
+    "mindScanTarot.014": "🏠 홈으로 가기",
+    "mindScanTarot.015": "말과 행동 사이 타로 AI 질문문",
+    "mindScanTarot.016": "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
+    "mindScanTarot.017": "오류가 발생했습니다. 다시 시도해주세요.",
+  },
+} as const;
+
+function mindScanTarotText(key: keyof typeof MIND_SCAN_TAROT_TEXT_TRANSLATIONS.ko): string {
+  return MIND_SCAN_TAROT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 type Stage = "intro" | "picking" | "spread" | "result";
 type PickRound = "main" | "sub";
 
@@ -89,11 +114,11 @@ interface ReadingResult {
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
 const POSITIONS: TarotPos[] = [
-  { id: "top",    label: "겉말",   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
-  { id: "left",   label: "마음결", meaning: "남은 감정의 결",           icon: "💓", col: 1, row: 2 },
-  { id: "center", label: "멈춤",   meaning: "멈춰 선 이유",             icon: "🧱", col: 2, row: 2, isCenter: true },
-  { id: "right",  label: "바람",   meaning: "말하지 못한 바람",         icon: "🫧", col: 3, row: 2 },
-  { id: "bottom", label: "현실",   meaning: "관계의 현실 판단",         icon: "⚖️", col: 2, row: 3 },
+  { id: "top",    label: mindScanTarotText("mindScanTarot.001"),   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
+  { id: "left",   label: mindScanTarotText("mindScanTarot.002"), meaning: "남은 감정의 결",           icon: "💓", col: 1, row: 2 },
+  { id: "center", label: mindScanTarotText("mindScanTarot.003"),   meaning: "멈춰 선 이유",             icon: "🧱", col: 2, row: 2, isCenter: true },
+  { id: "right",  label: mindScanTarotText("mindScanTarot.004"),   meaning: "말하지 못한 바람",         icon: "🫧", col: 3, row: 2 },
+  { id: "bottom", label: mindScanTarotText("mindScanTarot.005"),   meaning: "관계의 현실 판단",         icon: "⚖️", col: 2, row: 3 },
 ];
 
 const DECK_SIZE = 78;
@@ -350,7 +375,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/fuctionassets/mindscantaro.webp"
-              alt="말과 행동 사이 타로"
+              alt={mindScanTarotText("mindScanTarot.006")}
               className="w-full h-full object-cover"
               width={520}
               height={520}
@@ -688,7 +713,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                   <textarea
                     value={question}
                     onChange={(event) => onQuestionChange(event.target.value)}
-                    placeholder="예: 요즘 말과 행동이 달라졌는데, 지금은 어떤 거리와 속도로 다가가야 할까요?"
+                    placeholder={mindScanTarotText("mindScanTarot.007")}
                     rows={3}
                     className="w-full resize-none rounded-2xl border border-fuchsia-200/20 bg-slate-900/70 px-4 py-3 text-sm leading-relaxed text-white outline-none transition focus:border-fuchsia-300/45 focus:bg-slate-900"
                   />
@@ -873,7 +898,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "말과 행동 사이 타로 리딩", text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
+      try { await navigator.share({ title: mindScanTarotText("mindScanTarot.008"), text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
     }
     try { await navigator.clipboard.writeText(buildText()); showMsg("리딩 문장이 복사되었습니다."); } catch (e) { showMsg("공유 실패"); }
   }, [reading, buildText]);
@@ -920,7 +945,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           },
           buttons: [{
-            title: "리딩 열기",
+            title: mindScanTarotText("mindScanTarot.009"),
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           }],
         });
@@ -1347,11 +1372,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           initial={{ opacity: 0 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0 }}>
           {[
-            { label: "📷 이미지 저장", fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
-            { label: "🔗 공유",       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
-            { label: "📋 리딩 문장 복사", fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
-            { label: "💛 카카오톡 공유", fn: handleKakaoShare, cls: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100 hover:bg-yellow-300/22" },
-            { label: "🏠 홈으로 가기", fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
+            { label: mindScanTarotText("mindScanTarot.010"), fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
+            { label: mindScanTarotText("mindScanTarot.011"),       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
+            { label: mindScanTarotText("mindScanTarot.012"), fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
+            { label: mindScanTarotText("mindScanTarot.013"), fn: handleKakaoShare, cls: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100 hover:bg-yellow-300/22" },
+            { label: mindScanTarotText("mindScanTarot.014"), fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
           ].map(b => (
             <button key={b.label} type="button" onClick={b.fn}
               className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border transition-colors ${b.cls}`}>
@@ -1384,7 +1409,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             className="min-h-[230px] max-h-[44dvh] w-full resize-y rounded-2xl border border-amber-200/22 bg-black/28 p-3 text-[12px] sm:text-[13px] leading-7 text-stone-100/90 outline-none focus:border-amber-200/48 focus:ring-2 focus:ring-amber-200/18"
             value={aiPromptText}
             readOnly
-            aria-label="말과 행동 사이 타로 AI 질문문"
+            aria-label={mindScanTarotText("mindScanTarot.015")}
           />
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-[max-content_1fr] items-center gap-2.5">
             <button
@@ -1551,7 +1576,7 @@ export default function MindScanTarot() {
           await executeReading();
           if (chargedCoins <= 0 && requiredCoins > 0) {
             showSubscriptionIncludedNotice({
-              message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
+              message: mindScanTarotText("mindScanTarot.016"),
               reason: "말과 행동 사이 타로",
             });
             return;
@@ -1586,7 +1611,7 @@ export default function MindScanTarot() {
         }
       }
     } catch (e) {
-      setReadingError(e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해주세요.");
+      setReadingError(e instanceof Error ? e.message : mindScanTarotText("mindScanTarot.017"));
     } finally {
       setReadingLoading(false);
     }

@@ -14,6 +14,192 @@
 (function (w) {
   'use strict';
 
+  var ENTERTAIN_ENGINE_TEXT_TRANSLATIONS = {
+    ko: {
+      "ee_1523_prop_title": "매력 운영 가이드: 테토 드라이브형",
+      "ee_1533_prop_title": "매력 운영 가이드: 에겐 공감형",
+      "ee_1543_prop_title": "매력 운영 가이드: 하이브리드 밸런서",
+      "ee_1553_prop_title": "매력 운영 가이드: 저자극 관찰자형",
+      "ee_1563_prop_title": "매력 운영 가이드: 과몰입 변신형",
+      "ee_1576_prop_title": "숨겨진 본성: 냉각형 전략가",
+      "ee_1585_prop_title": "숨겨진 본성: 로직 중심 조율자",
+      "ee_1594_prop_title": "숨겨진 본성: 듀얼 코어 해석자",
+      "ee_1603_prop_title": "숨겨진 본성: 감정 민감 관찰자",
+      "ee_1657_prop_title": "당신이 놓치고 있는 진실",
+      "ee_1663_prop_title": "관계에서 반복되는 패턴",
+      "ee_1669_prop_title": "이 에너지가 독이 될 때",
+      "ee_1677_prop_title": "당신이 놓치고 있는 진실",
+      "ee_1682_prop_title": "관계에서 반복되는 패턴",
+      "ee_1687_prop_title": "이 에너지가 독이 될 때",
+      "ee_1694_prop_title": "당신이 놓치고 있는 진실",
+      "ee_1699_prop_title": "관계에서 반복되는 패턴",
+      "ee_1704_prop_title": "이 에너지가 독이 될 때",
+      "ee_1714_prop_title": "내가 진짜 원하는 걸 힘으로 밀어붙이는 습관",
+      "ee_1720_prop_title": "가까운 사람이 헷갈리는 이유",
+      "ee_1726_prop_title": "추진력이 번아웃으로 바뀌는 순간",
+      "ee_1734_prop_title": "내가 진짜 원하는 걸 숨기는 습관",
+      "ee_1740_prop_title": "가까운 사람이 헷갈리는 이유",
+      "ee_1746_prop_title": "배려가 과몰입으로 바뀌는 순간",
+      "ee_1754_prop_title": "내가 진짜 원하는 걸 숨기는 습관",
+      "ee_1760_prop_title": "가까운 사람이 헷갈리는 이유",
+      "ee_1766_prop_title": "균형감이 우유부단함으로 바뀌는 순간",
+      "ee_1774_prop_title": "내가 진짜 원하는 걸 너무 늦게 보여주는 습관",
+      "ee_1780_prop_title": "가까운 사람이 헷갈리는 이유",
+      "ee_1786_prop_title": "절제가 기회 지연으로 바뀌는 순간",
+      "ee_1794_prop_title": "내가 진짜 원하는 걸 순간 감정으로 덮는 습관",
+      "ee_1800_prop_title": "가까운 사람이 헷갈리는 이유",
+      "ee_1806_prop_title": "분위기 반전이 피로로 바뀌는 순간",
+      "ee_1899_prop_title": "테토 우세형 🔥",
+      "ee_1910_prop_title": "에겐 우세형 ✨",
+      "ee_1921_prop_title": "저자극 관찰자형 🌙",
+      "ee_1932_prop_title": "과몰입 변신형 ⚡",
+      "ee_1942_prop_title": "하이브리드 밸런서 🌀",
+      "ee_1966_prop_label": "재성",
+      "ee_1972_prop_label": "식상/상관",
+      "ee_1978_prop_label": "편인",
+      "ee_1984_prop_label": "관성",
+      "ee_1990_prop_label": "비겁",
+      "ee_2015_prop_title": "연애 모드",
+      "ee_2024_prop_title": "인간관계 모드",
+      "ee_2033_prop_title": "커리어 모드",
+      "ee_2042_prop_title": "혼자 있을 때 모드",
+      "ee_2211_prop_label": "재성",
+      "ee_2217_prop_label": "식상/상관",
+      "ee_2223_prop_label": "편인",
+      "ee_2229_prop_label": "관성",
+      "ee_2235_prop_label": "비겁",
+      "ee_2275_prop_title": "연애 모드",
+      "ee_2284_prop_title": "인간관계 모드",
+      "ee_2293_prop_title": "커리어 모드",
+      "ee_2302_prop_title": "혼자 있을 때 모드",
+      "ee_2599_prop_title": "테토 에겐 상세 리포트",
+      "ee_2757_prop_title": "성장과 회복 리듬",
+      "ee_2778_prop_title": "활력과 순환 리듬",
+      "ee_2799_prop_title": "소화와 안정 리듬",
+      "ee_2820_prop_title": "호흡과 정리 리듬",
+      "ee_2841_prop_title": "수면과 회복 리듬",
+      "ee_2886_prop_title": "금(金)이 목(木)을 압박하는 흐름",
+      "ee_2887_prop_title": "목(木)이 토(土)를 압박하는 흐름",
+      "ee_2888_prop_title": "토(土)가 수(水)를 압박하는 흐름",
+      "ee_2889_prop_title": "수(水)가 화(火)를 압박하는 흐름",
+      "ee_2890_prop_title": "화(火)가 금(金)을 압박하는 흐름",
+      "ee_2894_prop_label": "비겁",
+      "ee_2895_prop_label": "식상",
+      "ee_2896_prop_label": "재성",
+      "ee_2897_prop_label": "관성",
+      "ee_2898_prop_label": "인성",
+      "ee_2902_prop_title": "큰 나무형 회복 리듬",
+      "ee_2903_prop_title": "덩굴형 유연 회복 리듬",
+      "ee_2904_prop_title": "태양형 활력 리듬",
+      "ee_2905_prop_title": "촛불형 감성 리듬",
+      "ee_2906_prop_title": "산형 안정 리듬",
+      "ee_2907_prop_title": "밭형 돌봄 리듬",
+      "ee_2908_prop_title": "큰 쇠형 정리 리듬",
+      "ee_2909_prop_title": "보석형 섬세 리듬",
+      "ee_2910_prop_title": "큰 물형 회복 리듬",
+      "ee_2911_prop_title": "비와 안개형 섬세 회복 리듬",
+      "ee_2915_prop_title": "목(木)이 살아나는 계절",
+      "ee_2916_prop_label": "여름",
+      "ee_2917_prop_label": "환절기·토왕절",
+      "ee_2918_prop_label": "가을",
+      "ee_2919_prop_label": "겨울",
+      "ee_3404_prop_label": "주의 조율",
+      "ee_3405_prop_label": "균형 조율",
+      "ee_3406_prop_label": "안정 관리",
+      "ee_3762_prop_label": "열기 조율형",
+      "ee_3764_prop_title": "위로 솟는 기운을 차분히 식히는 결",
+      "ee_3774_prop_label": "한기 보온형",
+      "ee_3776_prop_title": "가라앉은 기운에 온기와 움직임을 더하는 결",
+      "ee_3786_prop_label": "중화 조율형",
+      "ee_3788_prop_title": "큰 치우침보다 강약의 순서를 살피는 결",
+      "ee_3800_prop_label": "건조 완화",
+      "ee_3801_prop_title": "마른 기운에 수분과 여백을 더하는 결",
+      "ee_3809_prop_label": "습기 순환",
+      "ee_3810_prop_title": "머무는 기운을 가볍게 흐르게 하는 결",
+      "ee_3818_prop_label": "건습 안정",
+      "ee_3819_prop_title": "수분과 온도가 크게 흔들리지 않는 결",
+      "ee_4003_prop_title": "오늘",
+      "ee_4014_prop_title": "이번 주",
+      "ee_4025_prop_title": "이번 달",
+      "ee_4036_prop_title": "계절 전환기",
+      "ee_4101_prop_label": "생조 보완",
+      "ee_4113_prop_label": "설기 절제",
+      "ee_4119_prop_label": "극 완화",
+      "ee_4125_prop_label": "공간·마음 개운",
+      "ee_4147_prop_label": "일간 리듬",
+      "ee_4488_prop_lead": "오늘은 타고난 체질의 강약을 먼저 보는 편이 좋습니다. 몸이 익숙하게 쓰는 힘과 쉽게 지치는 자리를 나누어 살피겠습니다.",
+      "ee_515_prop_label": "Lv.3 비밀 운세 해금",
+      "ee_516_prop_label": "Lv.5 성향 칭호 해금",
+      "ee_517_prop_label": "Lv.7 고유 패시브 확장",
+      "ee_518_prop_label": "Lv.10 운명 직업군 확장",
+      "ee_519_prop_label": "Lv.15 30일 성장 리포트 미리보기",
+      "ee_520_prop_label": "Lv.20 마스터 스킬 강화 문구",
+      "ee_79_prop_label": "子午",
+      "ee_80_prop_label": "丑未",
+      "ee_81_prop_label": "寅申",
+      "ee_82_prop_label": "卯酉",
+      "ee_83_prop_label": "辰戌",
+      "ee_84_prop_label": "巳亥",
+      "ee_859_prop_description": "운명 기록이 열리기 전에도 오늘의 성장 방향을 먼저 확인할 수 있습니다.",
+      "ee_870_prop_description": "완료 경험을 쌓아 캐릭터 시트의 성장 흐름을 선명하게 만듭니다.",
+      "ee_881_prop_description": "일간의 중심 기운을 기준으로 판단과 행동을 정렬합니다.",
+    }
+  };
+  var __eeMissingTextLog = {};
+  function _entertainTextNormalizeLang(value) {
+    var normalized = String(value || "ko").trim().toLowerCase().replace("_", "-");
+    if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+    if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+    if (normalized === "ja-jp") return "ja";
+    if (normalized === "en-us" || normalized === "en-gb") return "en";
+    if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].indexOf(normalized) >= 0) return normalized;
+    return "ko";
+  }
+  function _entertainTextCurrentLang() {
+    try {
+      if (w && typeof w.cdGetCurrentLanguage === "function") return _entertainTextNormalizeLang(w.cdGetCurrentLanguage());
+    } catch (_) {}
+    try {
+      var queryLang = new URLSearchParams(w.location.search || "").get("lang");
+      if (queryLang) return _entertainTextNormalizeLang(queryLang);
+    } catch (_) {}
+    try {
+      var firstSegment = w.location.pathname.split("/").filter(Boolean)[0];
+      if (firstSegment) {
+        var pathLang = _entertainTextNormalizeLang(firstSegment);
+        if (pathLang !== "ko" || firstSegment.toLowerCase() === "ko") return pathLang;
+      }
+    } catch (_) {}
+    try {
+      var stored = w.localStorage && w.localStorage.getItem("cd_lang");
+      if (stored) return _entertainTextNormalizeLang(stored);
+    } catch (_) {}
+    try {
+      var cookieLang = String(w.document.cookie || "").split(";").map(function(part) { return part.trim(); }).filter(function(part) { return part.indexOf("cd_locale=") === 0; })[0];
+      if (cookieLang) return _entertainTextNormalizeLang(decodeURIComponent(cookieLang.slice("cd_locale=".length)));
+    } catch (_) {}
+    return "ko";
+  }
+  function _entertainText(key) {
+    var lang = _entertainTextCurrentLang();
+    var koText = ENTERTAIN_ENGINE_TEXT_TRANSLATIONS.ko[key] || "";
+    if (lang === "ko") return koText;
+    try {
+      if (w && typeof w.cdTranslate === "function") {
+        var translated = w.cdTranslate("entertainEngine." + key, {}, "");
+        if (translated && translated !== "Translation pending" && translated !== "entertainEngine." + key) return translated;
+      }
+    } catch (_) {}
+    var logKey = lang + ":" + key;
+    if (!__eeMissingTextLog[logKey]) {
+      __eeMissingTextLog[logKey] = true;
+      try {
+        if (w && w.location && w.location.hostname === "localhost") console.warn("[i18n:entertainEngine] missing text", { lang: lang, key: key });
+      } catch (_) {}
+    }
+    return "Translation pending";
+  }
+
   /* ════════════════════════════════════════════════════════
      §0  유틸리티 함수
      ════════════════════════════════════════════════════════ */
@@ -76,12 +262,12 @@
 
   // 지지충 (충돌 스트레스) — 해당 오행의 안정성을 저하시킴
   var ZHI_CHUNG = [
-    { pair: ['子', '午'], impacts: { water: 1.4, fire: 1.4 }, label: '子午' },
-    { pair: ['丑', '未'], impacts: { earth: 1.6 },              label: '丑未' },
-    { pair: ['寅', '申'], impacts: { wood: 1.2, metal: 1.2 },   label: '寅申' },
-    { pair: ['卯', '酉'], impacts: { wood: 1.2, metal: 1.2 },   label: '卯酉' },
-    { pair: ['辰', '戌'], impacts: { earth: 1.7 },              label: '辰戌' },
-    { pair: ['巳', '亥'], impacts: { fire: 1.2, water: 1.2 },   label: '巳亥' }
+    { pair: ['子', '午'], impacts: { water: 1.4, fire: 1.4 }, label: _entertainText("ee_79_prop_label") },
+    { pair: ['丑', '未'], impacts: { earth: 1.6 },              label: _entertainText("ee_80_prop_label") },
+    { pair: ['寅', '申'], impacts: { wood: 1.2, metal: 1.2 },   label: _entertainText("ee_81_prop_label") },
+    { pair: ['卯', '酉'], impacts: { wood: 1.2, metal: 1.2 },   label: _entertainText("ee_82_prop_label") },
+    { pair: ['辰', '戌'], impacts: { earth: 1.7 },              label: _entertainText("ee_83_prop_label") },
+    { pair: ['巳', '亥'], impacts: { fire: 1.2, water: 1.2 },   label: _entertainText("ee_84_prop_label") }
   ];
 
   // 천간합 파트너
@@ -512,12 +698,12 @@
     water: { icon: '💧', label: '수', short: '회복' }
   };
   var RPG_LEVEL_REWARD_DEFS = [
-    { level: 3, key: 'secret_fortune_level_3', label: 'Lv.3 비밀 운세 해금', desc: '첫 번째 비밀 운세가 해금됩니다.' },
-    { level: 5, key: 'personality_title_level_5', label: 'Lv.5 성향 칭호 해금', desc: '성향을 드러내는 칭호 1개가 해금됩니다.' },
-    { level: 7, key: 'passive_expand_level_7', label: 'Lv.7 고유 패시브 확장', desc: '나의 고유 패시브 설명이 더 깊어집니다.' },
-    { level: 10, key: 'job_class_expand_level_10', label: 'Lv.10 운명 직업군 확장', desc: '나의 운명 직업군 해석이 확장됩니다.' },
-    { level: 15, key: 'growth_report_preview_level_15', label: 'Lv.15 30일 성장 리포트 미리보기', desc: '30일 성장 리포트의 일부를 미리 볼 수 있습니다.' },
-    { level: 20, key: 'master_skill_phrase_level_20', label: 'Lv.20 마스터 스킬 강화 문구', desc: '마스터 스킬을 더 강하게 만드는 문구가 해금됩니다.' }
+    { level: 3, key: 'secret_fortune_level_3', label: _entertainText("ee_515_prop_label"), desc: '첫 번째 비밀 운세가 해금됩니다.' },
+    { level: 5, key: 'personality_title_level_5', label: _entertainText("ee_516_prop_label"), desc: '성향을 드러내는 칭호 1개가 해금됩니다.' },
+    { level: 7, key: 'passive_expand_level_7', label: _entertainText("ee_517_prop_label"), desc: '나의 고유 패시브 설명이 더 깊어집니다.' },
+    { level: 10, key: 'job_class_expand_level_10', label: _entertainText("ee_518_prop_label"), desc: '나의 운명 직업군 해석이 확장됩니다.' },
+    { level: 15, key: 'growth_report_preview_level_15', label: _entertainText("ee_519_prop_label"), desc: '30일 성장 리포트의 일부를 미리 볼 수 있습니다.' },
+    { level: 20, key: 'master_skill_phrase_level_20', label: _entertainText("ee_520_prop_label"), desc: '마스터 스킬을 더 강하게 만드는 문구가 해금됩니다.' }
   ];
   var RPG_LOCAL_STORAGE_MARKER = 'rpg-local-progress-v20260617';
   var RPG_LOCAL_STORAGE_PREFIX = 'cd_rpg_local_progress_v20260617';
@@ -856,7 +1042,7 @@
         element: elements[0],
         expReward: 10,
         text: getRpgElementLabel(elements[0]) + ' 기운을 깨우는 작은 행동 하나 정하기',
-        description: '운명 기록이 열리기 전에도 오늘의 성장 방향을 먼저 확인할 수 있습니다.',
+        description: _entertainText("ee_859_prop_description"),
         reason: '부족한 기운을 작게 보완하면 하루의 리듬이 안정됩니다.',
         afterCompleteMessage: '작은 선택이 운의 결을 다시 세웁니다.'
       },
@@ -867,7 +1053,7 @@
         element: elements[1],
         expReward: 15,
         text: '오늘 미룬 일 하나를 끝까지 닫기',
-        description: '완료 경험을 쌓아 캐릭터 시트의 성장 흐름을 선명하게 만듭니다.',
+        description: _entertainText("ee_870_prop_description"),
         reason: '마무리된 행동은 흩어진 기운을 한곳으로 모읍니다.',
         afterCompleteMessage: '끝낸 일 하나가 다음 레벨의 문을 두드립니다.'
       },
@@ -878,7 +1064,7 @@
         element: elements[2],
         expReward: 20,
         text: getRpgElementLabel(dayElement) + ' 코어에 맞는 오늘의 기준 세우기',
-        description: '일간의 중심 기운을 기준으로 판단과 행동을 정렬합니다.',
+        description: _entertainText("ee_881_prop_description"),
         reason: '나의 중심 기운을 의식하면 선택의 흔들림이 줄어듭니다.',
         afterCompleteMessage: '중심을 세운 하루는 운의 방향을 잃지 않습니다.'
       }
@@ -1520,7 +1706,7 @@
 
   var TETO_EGEN_GUIDE = {
     teto: {
-      title: '매력 운영 가이드: 테토 드라이브형',
+      title: _entertainText("ee_1523_prop_title"),
       desc: '결정력과 추진력이 매력의 중심축입니다. 다만 속도감이 관계의 온도를 앞지르면 오해가 생길 수 있어, 강도 조절이 핵심 포인트입니다.',
       tips: [
         '핵심 결론은 짧게, 감정 피드백은 한 문장 더 길게 전달하기',
@@ -1530,7 +1716,7 @@
       tags: ['주도권', '속도전', '결정력']
     },
     egen: {
-      title: '매력 운영 가이드: 에겐 공감형',
+      title: _entertainText("ee_1533_prop_title"),
       desc: '관계 감지력과 정서 공명이 강점입니다. 다만 감정 과몰입이 피로로 전환되지 않도록 경계선을 명확히 잡아야 매력이 오래갑니다.',
       tips: [
         '공감 표현 후 바로 다음 액션 1개를 제시해 실행력 연결하기',
@@ -1540,7 +1726,7 @@
       tags: ['공감력', '관계센스', '유연성']
     },
     neutral: {
-      title: '매력 운영 가이드: 하이브리드 밸런서',
+      title: _entertainText("ee_1543_prop_title"),
       desc: '테토/에겐 모드를 상황에 따라 전환할 수 있는 멀티형입니다. 강점이 넓은 대신, 모드 기준이 없으면 피로가 누적될 수 있습니다.',
       tips: [
         '오전/오후처럼 시간대별 기본 모드를 고정해 의사결정 피로 줄이기',
@@ -1550,7 +1736,7 @@
       tags: ['균형감', '전환력', '적응력']
     },
     observer: {
-      title: '매력 운영 가이드: 저자극 관찰자형',
+      title: _entertainText("ee_1553_prop_title"),
       desc: '신중함과 절제가 매력의 중심입니다. 반응이 늦어 보일 수 있지만, 충분히 본 뒤 움직일수록 선택의 밀도가 높아지는 타입입니다.',
       tips: [
         '좋고 싫음은 크게 말하지 않아도 짧은 신호로 먼저 남기기',
@@ -1560,7 +1746,7 @@
       tags: ['신중함', '관찰력', '절제']
     },
     transformer: {
-      title: '매력 운영 가이드: 과몰입 변신형',
+      title: _entertainText("ee_1563_prop_title"),
       desc: '식상과 상관 축이 살아나면 순간 반응성과 표현력이 확 올라옵니다. 분위기를 바꾸는 힘이 있지만, 몰입의 출구를 정해야 매력이 오래갑니다.',
       tips: [
         '몰입이 올라올 때 말의 결론을 먼저 정하고 표현하기',
@@ -1573,7 +1759,7 @@
 
   var XT_HIDDEN_PROFILE = {
     ultra: {
-      title: '숨겨진 본성: 냉각형 전략가',
+      title: _entertainText("ee_1576_prop_title"),
       summary: '감정 노이즈를 최소화하고 구조를 먼저 보는 타입입니다. 위기 상황에서 판단 품질이 올라가는 강점이 뚜렷합니다.',
       cues: [
         '문제 발생 시 감정 반응보다 원인 트리 분해가 먼저 작동함',
@@ -1582,7 +1768,7 @@
       ]
     },
     high: {
-      title: '숨겨진 본성: 로직 중심 조율자',
+      title: _entertainText("ee_1585_prop_title"),
       summary: '합리성과 현실 감각이 강하며, 감정 흐름도 실용적으로 정리하는 타입입니다. 냉정함과 실행력이 균형을 이룹니다.',
       cues: [
         '갈등 상황에서 정리·중재 역할을 자연스럽게 맡는 편',
@@ -1591,7 +1777,7 @@
       ]
     },
     hybrid: {
-      title: '숨겨진 본성: 듀얼 코어 해석자',
+      title: _entertainText("ee_1594_prop_title"),
       summary: '논리와 감성을 번갈아 사용하는 하이브리드형입니다. 상황 판단 폭이 넓고, 전환 타이밍만 잡으면 매우 강력해집니다.',
       cues: [
         '업무에서는 분석, 관계에서는 공감으로 모드를 전환함',
@@ -1600,7 +1786,7 @@
       ]
     },
     empath: {
-      title: '숨겨진 본성: 감정 민감 관찰자',
+      title: _entertainText("ee_1603_prop_title"),
       summary: '정서 신호를 빠르게 감지하고 배려 반응이 먼저 나오는 타입입니다. 타인 감정의 파동을 잘 읽는 것이 핵심 능력입니다.',
       cues: [
         '관계 온도 변화에 즉각 반응하며 분위기 조절 능력이 좋음',
@@ -1654,19 +1840,19 @@
     teto: [
       {
         icon: '🪞',
-        title: '당신이 놓치고 있는 진실',
+        title: _entertainText("ee_1657_prop_title"),
         text: '강한 인상과 진짜 강함은 다릅니다. 주도권이 없으면 불안해지는 순간, 그것은 리더십보다 불안 관리 모드에 가깝습니다.',
         action: '오늘 한 번은 "내가 모를 수도 있다"를 먼저 말해보세요. 취약함을 드러낼 때 신뢰가 올라갑니다.'
       },
       {
         icon: '💔',
-        title: '관계에서 반복되는 패턴',
+        title: _entertainText("ee_1663_prop_title"),
         text: '먼저 크게 주고, 뒤늦게 지쳐서 선을 긋는 패턴이 보입니다. 문제는 배려가 아니라 기대를 숨긴 채 소진되는 흐름입니다.',
         action: '도와주기 전에 기대치를 한 줄로 합의하세요. 관계는 통제보다 조율이 오래갑니다.'
       },
       {
         icon: '🔥',
-        title: '이 에너지가 독이 될 때',
+        title: _entertainText("ee_1669_prop_title"),
         text: '승부욕이 과열되면 번아웃을 넘어 자멸로 이어질 수 있습니다. 이기기 위한 전투와 성장하기 위한 전투는 완전히 다른 게임입니다.',
         action: '오늘은 "반드시 이긴다" 대신 "다음 판에서 더 좋아진다"를 목표로 잡아보세요. 회복력이 성과를 지켜줍니다.'
       }
@@ -1674,34 +1860,34 @@
     egen: [
       {
         icon: '🌊',
-        title: '당신이 놓치고 있는 진실',
+        title: _entertainText("ee_1677_prop_title"),
         text: '감수성이 뛰어나다는 것이 때로는 경계를 잃는 것을 의미합니다. 모두를 보살피다 정작 자신을 돌보지 못하고 있지는 않나요? 당신이 먼저 채워져야 다른 사람에게도 줄 수 있습니다. 산소마스크는 본인부터 착용해야 합니다.'
       },
       {
         icon: '🌱',
-        title: '관계에서 반복되는 패턴',
+        title: _entertainText("ee_1682_prop_title"),
         text: '"왜 나는 항상 이렇게 맞춰주는가" 싶을 때가 있을 것입니다. 그것은 사랑이기도 하지만, 거절하지 못하는 두려움이기도 합니다. NO라고 말하는 연습 — 당신에게 가장 필요한 자기 존중의 언어입니다.'
       },
       {
         icon: '✨',
-        title: '이 에너지가 독이 될 때',
+        title: _entertainText("ee_1687_prop_title"),
         text: '감정에 과몰입하면 객관적인 판단력이 흐려집니다. 감정을 충분히 느끼되 그 감정에 지배당하지 않는 메타인지 훈련이 당신에게 가장 필요한 성장 과제입니다. 관찰자의 눈으로 자신을 바라보는 연습을 시작하세요.'
       }
     ],
     neutral: [
       {
         icon: '⚖️',
-        title: '당신이 놓치고 있는 진실',
+        title: _entertainText("ee_1694_prop_title"),
         text: '양면성은 분명 강점입니다. 하지만 때로는 내 안의 진짜 욕구가 무엇인지 스스로도 모르는 상황이 생깁니다. "나는 지금 진짜 뭘 원하는가" — 이 질문을 일주일에 한 번은 진지하게 물어보세요.'
       },
       {
         icon: '🌀',
-        title: '관계에서 반복되는 패턴',
+        title: _entertainText("ee_1699_prop_title"),
         text: '상황에 따라 다른 면을 보여주는 것이 영리해 보이지만, 가까운 사람이 "당신의 진짜 모습을 모르겠다"고 느낄 수 있습니다. 무방비 상태의 진짜 모습을 한 명에게라도 보여주는 용기가 관계의 깊이를 만듭니다.'
       },
       {
         icon: '🔮',
-        title: '이 에너지가 독이 될 때',
+        title: _entertainText("ee_1704_prop_title"),
         text: '균형을 유지하려는 욕구가 과잉되면 아무 결정도 내리지 못하는 우유부단함이 됩니다. 완벽한 균형은 존재하지 않습니다. 선택하고 책임지는 용기 — 그것이 당신을 한 단계 성장시키는 유일한 방법입니다.'
       }
     ]
@@ -1711,19 +1897,19 @@
     var common = {
       teto: [
         {
-          title: '내가 진짜 원하는 걸 힘으로 밀어붙이는 습관',
+          title: _entertainText("ee_1714_prop_title"),
           punch: '강하게 보이는 것과 원하는 것을 정확히 말하는 것은 다릅니다.',
           why: '주도권이 흔들릴 때 바로 결론을 내리면 상대는 설득보다 압박을 먼저 느낄 수 있습니다.',
           fix: '결론을 말하기 전, 원하는 것과 양보 가능한 것을 한 문장씩 분리해 말해보세요.'
         },
         {
-          title: '가까운 사람이 헷갈리는 이유',
+          title: _entertainText("ee_1720_prop_title"),
           punch: '도와주는 마음이 커도 말투가 날카로우면 통제로 읽힙니다.',
           why: '테토 에너지는 해결 속도가 빠른 대신, 상대의 감정 온도를 건너뛰기 쉽습니다.',
           fix: '해결책 앞에 "네 입장에서는 그럴 수 있겠다" 한 문장만 붙이면 체감 온도가 달라집니다.'
         },
         {
-          title: '추진력이 번아웃으로 바뀌는 순간',
+          title: _entertainText("ee_1726_prop_title"),
           punch: '다 이기려는 마음이 계속되면 결국 나 자신과도 싸우게 됩니다.',
           why: '승부욕은 성과를 만들지만, 회복 없이 쓰면 관계와 컨디션을 동시에 태웁니다.',
           fix: '오늘은 반드시 이기는 목표 1개와 힘을 빼도 되는 목표 1개를 따로 정하세요.'
@@ -1731,19 +1917,19 @@
       ],
       egen: [
         {
-          title: '내가 진짜 원하는 걸 숨기는 습관',
+          title: _entertainText("ee_1734_prop_title"),
           punch: '다 맞춰주는 것처럼 보여도 속으로는 이미 여러 번 서운했을 수 있습니다.',
           why: '에겐 에너지는 분위기를 살피는 힘이 강해서 자기 욕구를 뒤로 미루기 쉽습니다.',
           fix: '거절 대신 침묵하지 말고, "이번엔 어렵지만 다음엔 가능해"처럼 경계가 있는 문장을 써보세요.'
         },
         {
-          title: '가까운 사람이 헷갈리는 이유',
+          title: _entertainText("ee_1740_prop_title"),
           punch: '마음은 깊은데 표현 기준이 들쭉날쭉하면 상대는 확신을 못 잡습니다.',
           why: '감정 신호를 많이 읽는 만큼, 스스로도 상대 반응에 맞춰 계속 톤을 바꾸기 때문입니다.',
           fix: '좋으면 좋다고, 불편하면 불편하다고 짧게라도 표시하세요. 선명함이 관계를 편하게 만듭니다.'
         },
         {
-          title: '배려가 과몰입으로 바뀌는 순간',
+          title: _entertainText("ee_1746_prop_title"),
           punch: '상대 감정을 다 책임지려는 순간, 다정함은 피로가 됩니다.',
           why: '공감력이 높을수록 남의 감정을 내 숙제처럼 들고 오기 쉽습니다.',
           fix: '대화 후 바로 3분만 혼자 호흡하며 "내 감정/상대 감정"을 분리해 적어보세요.'
@@ -1751,19 +1937,19 @@
       ],
       neutral: [
         {
-          title: '내가 진짜 원하는 걸 숨기는 습관',
+          title: _entertainText("ee_1754_prop_title"),
           punch: '당신은 균형 잡힌 사람처럼 보이지만, 사실은 선택을 미루기 위해 균형이라는 말을 쓰는 순간이 있습니다.',
           why: '테토와 에겐을 모두 쓸 수 있어서 장점이 넓지만, 그만큼 "지금은 어느 쪽으로 가야 하지?"라는 판단 피로가 생깁니다.',
           fix: '완벽한 중간값을 찾기보다 오늘은 60점짜리 선택이라도 먼저 해보세요.'
         },
         {
-          title: '가까운 사람이 헷갈리는 이유',
+          title: _entertainText("ee_1760_prop_title"),
           punch: '상황마다 다른 얼굴을 보여주는 능력이 좋지만, 가까운 사람은 진짜 속마음을 놓칠 수 있습니다.',
           why: '겉으로는 부드럽게 맞추다가도 속으로는 실속과 기준을 계산하기 때문에 신호가 엇갈릴 때가 있습니다.',
           fix: '중요한 관계에서는 "나는 지금 조심스럽지만 마음은 있다"처럼 현재 모드를 직접 말해주세요.'
         },
         {
-          title: '균형감이 우유부단함으로 바뀌는 순간',
+          title: _entertainText("ee_1766_prop_title"),
           punch: '모두를 이해하려다 보면 결국 내 선택만 늦어질 수 있습니다.',
           why: '양쪽 입장을 다 보는 힘은 좋지만, 결론을 내리는 책임까지 미루면 에너지가 흩어집니다.',
           fix: '팩트 2개, 감정 1개, 오늘의 결론 1개만 적고 그 기준으로 움직이세요.'
@@ -1771,19 +1957,19 @@
       ],
       observer: [
         {
-          title: '내가 진짜 원하는 걸 너무 늦게 보여주는 습관',
+          title: _entertainText("ee_1774_prop_title"),
           punch: '조용함이 매력이어도, 아무 신호도 없으면 무관심처럼 보일 수 있습니다.',
           why: '신중하게 관찰하는 시간이 길어질수록 상대는 당신의 마음이 어디에 있는지 읽기 어려워집니다.',
           fix: '오늘은 좋은 것 하나, 싫은 것 하나를 짧게라도 먼저 말해보세요.'
         },
         {
-          title: '가까운 사람이 헷갈리는 이유',
+          title: _entertainText("ee_1780_prop_title"),
           punch: '속으로는 많이 보고 있는데 겉으로 표현이 적으면 상대는 거리를 느낍니다.',
           why: '반응을 아끼는 방식이 자기 보호에는 좋지만, 관계에서는 정보 부족으로 읽힐 수 있습니다.',
           fix: '대답이 늦어질 때는 "생각 중이야"라는 중간 신호를 먼저 남기세요.'
         },
         {
-          title: '절제가 기회 지연으로 바뀌는 순간',
+          title: _entertainText("ee_1786_prop_title"),
           punch: '더 확실해질 때까지 기다리다 보면 좋은 타이밍이 지나갈 수 있습니다.',
           why: '관찰력은 강점이지만, 작은 선택까지 완벽한 근거를 찾으면 움직임이 무거워집니다.',
           fix: '오늘은 70% 확신이 생긴 일 하나를 작게 실행해보세요.'
@@ -1791,19 +1977,19 @@
       ],
       transformer: [
         {
-          title: '내가 진짜 원하는 걸 순간 감정으로 덮는 습관',
+          title: _entertainText("ee_1794_prop_title"),
           punch: '몰입이 올라온 순간의 말은 매력적이지만, 결론이 없으면 소음처럼 남을 수 있습니다.',
           why: '식상과 상관 축이 강하면 반응이 빠르고 표현이 살아나지만, 감정의 속도가 판단보다 앞설 수 있습니다.',
           fix: '말하기 전 "내가 지금 원하는 결론은 무엇인가"를 한 문장으로 먼저 정하세요.'
         },
         {
-          title: '가까운 사람이 헷갈리는 이유',
+          title: _entertainText("ee_1800_prop_title"),
           punch: '평소와 몰입했을 때의 온도차가 커서 상대는 갑자기 사람이 바뀐 것처럼 느낄 수 있습니다.',
           why: '표현성이 특정 상황에서 확 켜지면, 주변은 그 반전의 이유를 바로 따라잡지 못합니다.',
           fix: '반응이 커진 뒤에는 "방금 내가 꽂혀서 말이 빨라졌어"처럼 상황 설명을 붙이세요.'
         },
         {
-          title: '분위기 반전이 피로로 바뀌는 순간',
+          title: _entertainText("ee_1806_prop_title"),
           punch: '계속 강한 리액션으로 판을 끌고 가면 나중에는 내가 먼저 지칩니다.',
           why: '반응성은 분위기를 살리지만, 회수 시간 없이 쓰면 말맛이 예민함으로 바뀔 수 있습니다.',
           fix: '몰입 대화 뒤에는 10분만 알림을 끄고 에너지를 다시 회수하세요.'
@@ -1896,7 +2082,7 @@
     if (type === 'teto') {
       return {
         key: 'teto',
-        title: '테토 우세형 🔥',
+        title: _entertainText("ee_1899_prop_title"),
         sub: '추진력과 결정력으로 흐름을 먼저 정리하는 현실 감각형 캐릭터',
         summary: '테토 점수가 더 선명하게 올라와 있습니다. 고민이 길어질 때도 결국은 실행, 효율, 손익을 기준으로 판을 정리하는 쪽에 가깝습니다. 다만 리드가 강해질수록 상대가 따라올 시간을 조금 남겨두면 매력이 더 안정적으로 보입니다.',
         badges: ['추진력', '결정력', '현실 감각', '리드'],
@@ -1907,7 +2093,7 @@
     if (type === 'egen') {
       return {
         key: 'egen',
-        title: '에겐 우세형 ✨',
+        title: _entertainText("ee_1910_prop_title"),
         sub: '관계 감각과 유연함으로 분위기를 조율하는 감정 센스형 캐릭터',
         summary: '에겐 점수가 더 자연스럽게 드러납니다. 사람의 말투, 표정, 공기의 변화를 빨리 읽고 그 흐름에 맞춰 부드럽게 움직이는 편입니다. 배려가 길어질수록 내 기준을 늦게 말할 수 있으니, 중요한 선은 초반에 가볍게 밝혀두는 것이 좋습니다.',
         badges: ['관계 감각', '유연함', '분위기 조율', '감정 센스'],
@@ -1918,7 +2104,7 @@
     if (type === 'observer') {
       return {
         key: 'observer',
-        title: '저자극 관찰자형 🌙',
+        title: _entertainText("ee_1921_prop_title"),
         sub: '신중함과 절제로 천천히 존재감이 올라오는 늦게 뜨는 매력형 캐릭터',
         summary: '테토와 에겐 에너지가 모두 과하게 튀기보다 낮은 온도로 깔려 있습니다. 처음부터 강하게 표현하기보다는 관찰하고, 재고, 확신이 생긴 뒤 움직이는 쪽입니다. 조용해서 약한 타입은 아니고, 타이밍을 고를수록 매력이 선명해지는 편입니다.',
         badges: ['신중함', '관찰력', '절제', '늦게 뜨는 매력'],
@@ -1929,7 +2115,7 @@
     if (type === 'transformer') {
       return {
         key: 'transformer',
-        title: '과몰입 변신형 ⚡',
+        title: _entertainText("ee_1932_prop_title"),
         sub: '표현성과 반응성이 살아 있어 순간 몰입으로 분위기를 뒤집는 캐릭터',
         summary: '식상이나 상관 축이 또렷하게 잡히면 평소에는 잠잠해 보여도 특정 주제, 사람, 상황 앞에서 반응성이 확 올라옵니다. 말맛과 표정 변화가 빠르고, 몰입하는 순간에는 주변 분위기를 예상 밖으로 바꾸는 힘이 있습니다. 다만 즉흥 반응이 길어지면 피로가 쌓이니, 끝맺는 타이밍을 정해두면 좋습니다.',
         badges: ['순간 몰입', '분위기 반전', '반응성', '예측불가 매력'],
@@ -1939,7 +2125,7 @@
 
     return {
       key: 'neutral',
-      title: '하이브리드 밸런서 🌀',
+      title: _entertainText("ee_1942_prop_title"),
       sub: '테토와 에겐 사이를 자유롭게 오가는 상황 적응형 캐릭터',
       summary: '당신은 한쪽으로 딱 잘라 분류하기 어려운 하이브리드형입니다. 테토의 현실 감각과 에겐의 부드러운 적응력이 동시에 섞여 있어, 상황에 따라 분위기를 바꾸는 능력이 좋습니다. 밀어붙일 때와 스며들 때를 본능적으로 구분하는 편입니다.',
       badges: ['전환력', '적응력', '균형감', '다중 페르소나'],
@@ -1963,31 +2149,31 @@
     var cnt = (vibe && vibe.cnt) || {};
     var rows = [
       {
-        label: '재성',
+        label: _entertainText("ee_1966_prop_label"),
         count: Number(vibe && vibe.jaesung || 0),
         tags: '현실 감각 · 계산력 · 실속 · 소유욕',
         text: '재성이 ' + Number(vibe && vibe.jaesung || 0) + '칸이라 현실 감각은 꽤 살아 있습니다. 단순히 감정으로만 움직이기보다 "이게 나한테 실속이 있나?"를 은근히 계산하는 편입니다.'
       },
       {
-        label: '식상/상관',
+        label: _entertainText("ee_1972_prop_label"),
         count: Number(vibe && vibe.siksang || 0),
         tags: '표현력 · 센스 · 반응성 · 말맛',
         text: '식상 축은 ' + Number(vibe && vibe.siksang || 0) + '칸이고, 상관은 ' + Number(cnt['상관'] || 0) + '칸입니다. 그래서 조용해 보여도 말맛, 센스, 반응 속도가 묘하게 살아납니다.'
       },
       {
-        label: '편인',
+        label: _entertainText("ee_1978_prop_label"),
         count: Number(cnt['편인'] || 0),
         tags: '독특한 감각 · 관찰력 · 내면 세계',
         text: '편인이 ' + Number(cnt['편인'] || 0) + '칸이라 남들이 쉽게 이해하지 못하는 취향과 관찰 포인트가 있습니다. 평범한 답보다 "나만 아는 결"을 더 신뢰하는 쪽입니다.'
       },
       {
-        label: '관성',
+        label: _entertainText("ee_1984_prop_label"),
         count: Number(vibe && vibe.gwansung || 0),
         tags: '책임감 · 기준 · 사회적 페르소나',
         text: '관성이 ' + Number(vibe && vibe.gwansung || 0) + '칸이라 완전히 자유분방한 사람은 아닙니다. 겉으로는 편해 보여도, 속에는 지켜야 하는 기준과 체면 감각이 있습니다.'
       },
       {
-        label: '비겁',
+        label: _entertainText("ee_1990_prop_label"),
         count: Number(vibe && vibe.bigyuk || 0),
         tags: '자기 주장 · 경쟁심 · 독립성',
         text: '비겁은 ' + Number(vibe && vibe.bigyuk || 0) + '칸입니다. 자기 주장이 과하게 튀는 타입은 아니어도, 중요한 순간에는 "내 방식"을 지키려는 독립성이 올라옵니다.'
@@ -2012,7 +2198,7 @@
     var modes = [
       {
         icon: '💘',
-        title: '연애 모드',
+        title: _entertainText("ee_2015_prop_title"),
         seen: isTeto ? '마음이 생기면 행동으로 빠르게 보여주려 합니다.' : (isEgen ? '상대의 기분과 신호를 먼저 살피며 천천히 스며듭니다.' : '처음부터 확 불타기보다는 상대를 관찰하며 천천히 마음을 엽니다.'),
         inner: isTeto ? '내 사람이 되면 확실히 챙기고 싶습니다.' : (isEgen ? '좋아할수록 더 조심스러워지고 표현 타이밍을 재게 됩니다.' : '신뢰가 생기면 은근히 오래 가고, 상대의 생활 패턴까지 챙기는 실속형 애정 표현이 나옵니다.'),
         strength: isTeto ? '확신을 주는 행동력' : (isEgen ? '상대 마음을 편하게 만드는 섬세함' : '편안함과 실속을 같이 주는 애정 방식'),
@@ -2021,7 +2207,7 @@
       },
       {
         icon: '👥',
-        title: '인간관계 모드',
+        title: _entertainText("ee_2024_prop_title"),
         seen: isTeto ? '필요한 말은 빠르게 하고 관계의 방향을 정리합니다.' : (isEgen ? '분위기를 읽고 불편한 공기를 부드럽게 낮춥니다.' : '상대에 따라 거리감과 친밀도를 꽤 유연하게 조절합니다.'),
         inner: isTeto ? '시간을 낭비하는 관계에는 에너지를 덜 쓰고 싶습니다.' : (isEgen ? '상대가 상처받지 않도록 표현을 많이 고릅니다.' : '맞춰주고 있지만 속으로는 실속과 피로도를 함께 계산합니다.'),
         strength: isTeto ? '관계 정리력' : (isEgen ? '공감과 분위기 조율' : '너무 들이대지도, 너무 밀어내지도 않는 균형감'),
@@ -2030,7 +2216,7 @@
       },
       {
         icon: '💼',
-        title: '커리어 모드',
+        title: _entertainText("ee_2033_prop_title"),
         seen: isTeto ? '결론, 성과, 우선순위를 빠르게 잡습니다.' : (isEgen ? '협업 분위기와 디테일을 살려 팀의 마찰을 줄입니다.' : '혼자 조용히 판단한 뒤 필요한 순간에 실속 있는 의견을 냅니다.'),
         inner: isTeto ? '결국 결과로 증명해야 마음이 편합니다.' : (isEgen ? '사람들이 편해야 일도 잘 풀린다고 느낍니다.' : '머릿속으로는 이미 손익과 가능성을 계산하고 있습니다.'),
         strength: isTeto ? '추진력과 결정 속도' : (isEgen ? '협업 감각과 사용자 관점' : '관찰 후 정확히 움직이는 실속형 판단'),
@@ -2039,7 +2225,7 @@
       },
       {
         icon: '🧘',
-        title: '혼자 있을 때 모드',
+        title: _entertainText("ee_2042_prop_title"),
         seen: isTeto ? '혼자 있을 때도 다음 목표와 할 일을 정리합니다.' : (isEgen ? '감정과 분위기를 곱씹으며 마음을 정돈합니다.' : '겉으로는 조용하지만 머릿속에서는 여러 가능성을 시뮬레이션합니다.'),
         inner: isTeto ? '멈추면 뒤처질까 봐 쉬는 것도 과제처럼 느껴질 수 있습니다.' : (isEgen ? '사소한 말과 표정까지 다시 떠올리며 의미를 찾습니다.' : '지금은 움직일 때인지, 더 지켜볼 때인지 계속 저울질합니다.'),
         strength: isTeto ? '자기 관리와 목표 회복력' : (isEgen ? '내면 감정 정리와 직감' : '관찰력과 자기 조율 능력'),
@@ -2208,31 +2394,31 @@
   function getTetogenIngredientRows(data) {
     return [
       {
-        label: '재성',
+        label: _entertainText("ee_2211_prop_label"),
         count: data.jaesung,
         tags: '현실 감각 · 계산력 · 실속 · 소유욕',
         text: data.jaesung > 0 ? '재성이 ' + data.jaesung + '칸이라 현실 감각은 꽤 살아 있습니다. 감정만으로 움직이기보다 "이 선택이 내 생활에 어떤 이득을 주나"를 은근히 따져보는 편입니다.' : '재성 축은 강하게 드러나지 않습니다. 대신 실속 판단이 필요할 때는 주변 흐름을 먼저 보고 천천히 결론을 내는 편입니다.'
       },
       {
-        label: '식상/상관',
+        label: _entertainText("ee_2217_prop_label"),
         count: data.siksang,
         tags: '표현력 · 센스 · 반응성 · 말맛',
         text: data.siksang > 0 ? '식상 축은 ' + data.siksang + '칸, 상관은 ' + getTetogenSafeNumber(data.cnt['상관']) + '칸입니다. 말맛과 센스가 붙으면 조용한 사람처럼 보여도 한마디가 묘하게 오래 남습니다.' : '표현 축 데이터가 약하게 잡힙니다. 말을 많이 하기보다 필요한 순간에만 반응을 꺼내는 쪽으로 보입니다.'
       },
       {
-        label: '편인',
+        label: _entertainText("ee_2223_prop_label"),
         count: getTetogenSafeNumber(data.cnt['편인']),
         tags: '독특한 감각 · 관찰력 · 내면 세계',
         text: getTetogenSafeNumber(data.cnt['편인']) > 0 ? '편인이 ' + getTetogenSafeNumber(data.cnt['편인']) + '칸이라 남들이 쉽게 지나치는 결을 잘 봅니다. 취향도 평범한 정답보다 "내가 꽂힌 이유"가 더 중요한 쪽입니다.' : '편인 신호는 약하게 보입니다. 독특함을 과하게 드러내기보다 현실 흐름에 맞춰 감각을 조율하는 편입니다.'
       },
       {
-        label: '관성',
+        label: _entertainText("ee_2229_prop_label"),
         count: data.gwansung,
         tags: '책임감 · 기준 · 사회적 페르소나',
         text: data.gwansung > 0 ? '관성이 ' + data.gwansung + '칸이라 겉으로 편해 보여도 마음속에는 지켜야 하는 기준이 있습니다. 그래서 관계와 일에서 선을 넘는 순간에는 표정이 달라집니다.' : '관성 축은 강하게 드러나지 않습니다. 고정된 규칙보다 상황의 흐름을 보고 기준을 세우는 쪽이 자연스럽습니다.'
       },
       {
-        label: '비겁',
+        label: _entertainText("ee_2235_prop_label"),
         count: data.bigyuk,
         tags: '자기 주장 · 경쟁심 · 독립성',
         text: data.bigyuk > 0 ? '비겁은 ' + data.bigyuk + '칸입니다. 평소에는 튀지 않아도 중요한 순간에는 "이건 내 방식대로 가야 한다"는 독립성이 올라옵니다.' : '비겁 축은 낮게 잡힙니다. 강하게 부딪히기보다 관찰과 조율로 자기 자리를 확보하는 편입니다.'
@@ -2272,7 +2458,7 @@
     var modes = [
       {
         icon: '💘',
-        title: '연애 모드',
+        title: _entertainText("ee_2275_prop_title"),
         seen: isTeto ? '마음이 생기면 행동으로 빠르게 보여주려 합니다.' : (isEgen ? '상대의 기분과 신호를 먼저 살피며 천천히 스며듭니다.' : '처음부터 확 불타기보다는 상대를 관찰하며 천천히 마음을 엽니다.'),
         inner: isTeto ? '내 사람이 되면 확실히 챙기고 싶습니다.' : (isEgen ? '좋아할수록 더 조심스러워지고 표현 타이밍을 재게 됩니다.' : '신뢰가 생기면 은근히 오래 가고, 상대의 생활 패턴까지 챙기는 실속형 애정 표현이 나옵니다.'),
         strength: isTeto ? '확신을 주는 행동력' : (isEgen ? '상대 마음을 편하게 만드는 섬세함' : '편안함과 실속을 같이 주는 애정 방식'),
@@ -2281,7 +2467,7 @@
       },
       {
         icon: '👥',
-        title: '인간관계 모드',
+        title: _entertainText("ee_2284_prop_title"),
         seen: isTeto ? '필요한 말은 빠르게 하고 관계의 방향을 정리합니다.' : (isEgen ? '분위기를 읽고 불편한 공기를 부드럽게 낮춥니다.' : '상대에 따라 거리감과 친밀도를 꽤 유연하게 조절합니다.'),
         inner: isTeto ? '시간을 낭비하는 관계에는 에너지를 덜 쓰고 싶습니다.' : (isEgen ? '상대가 상처받지 않도록 표현을 많이 고릅니다.' : '맞춰주고 있지만 속으로는 실속과 피로도를 함께 계산합니다.'),
         strength: isTeto ? '관계 정리력' : (isEgen ? '공감과 분위기 조율' : '너무 들이대지도, 너무 밀어내지도 않는 균형감'),
@@ -2290,7 +2476,7 @@
       },
       {
         icon: '💼',
-        title: '커리어 모드',
+        title: _entertainText("ee_2293_prop_title"),
         seen: isTeto ? '결론, 성과, 우선순위를 빠르게 잡습니다.' : (isEgen ? '협업 분위기와 디테일을 살려 팀의 마찰을 줄입니다.' : '혼자 조용히 판단한 뒤 필요한 순간에 실속 있는 의견을 냅니다.'),
         inner: isTeto ? '결국 결과로 증명해야 마음이 편합니다.' : (isEgen ? '사람들이 편해야 일도 잘 풀린다고 느낍니다.' : '머릿속으로는 이미 손익과 가능성을 계산하고 있습니다.'),
         strength: isTeto ? '추진력과 결정 속도' : (isEgen ? '협업 감각과 사용자 관점' : '관찰 후 정확히 움직이는 실속형 판단'),
@@ -2299,7 +2485,7 @@
       },
       {
         icon: '🧘',
-        title: '혼자 있을 때 모드',
+        title: _entertainText("ee_2302_prop_title"),
         seen: isTeto ? '혼자 있을 때도 다음 목표와 할 일을 정리합니다.' : (isEgen ? '감정과 분위기를 곱씹으며 마음을 정돈합니다.' : '겉으로는 조용하지만 머릿속에서는 여러 가능성을 시뮬레이션합니다.'),
         inner: isTeto ? '멈추면 뒤처질까 봐 쉬는 것도 과제처럼 느껴질 수 있습니다.' : (isEgen ? '사소한 말과 표정까지 다시 떠올리며 의미를 찾습니다.' : '지금은 움직일 때인지, 더 지켜볼 때인지 계속 저울질합니다.'),
         strength: isTeto ? '자기 관리와 목표 회복력' : (isEgen ? '내면 감정 정리와 직감' : '관찰력과 자기 조율 능력'),
@@ -2596,7 +2782,7 @@
 
       var requestId = 'tetogen-deep-report-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       Promise.resolve(w._cdOpenPaidServiceGate({
-        title: '테토 에겐 상세 리포트',
+        title: _entertainText("ee_2599_prop_title"),
         reason: '테토 에겐 상세 리포트 해금',
         featureKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,
         serviceKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,
@@ -2754,7 +2940,7 @@
     wood: {
       hanja: '木',
       koreanName: '목',
-      title: '성장과 회복 리듬',
+      title: _entertainText("ee_2757_prop_title"),
       symbolicOrganRhythm: '간담 리듬',
       bodyKeywords: ['눈의 피로감', '목·어깨 긴장', '근육 긴장', '활동 리듬', '회복 시작점'],
       mindKeywords: ['계획', '성장 욕구', '답답함', '분노 조절', '시작 에너지'],
@@ -2775,7 +2961,7 @@
     fire: {
       hanja: '火',
       koreanName: '화',
-      title: '활력과 순환 리듬',
+      title: _entertainText("ee_2778_prop_title"),
       symbolicOrganRhythm: '심장·소장 리듬',
       bodyKeywords: ['활력', '순환감', '열감', '얼굴빛', '수면 리듬'],
       mindKeywords: ['기쁨', '표현력', '흥분', '집중력', '사회적 에너지'],
@@ -2796,7 +2982,7 @@
     earth: {
       hanja: '土',
       koreanName: '토',
-      title: '소화와 안정 리듬',
+      title: _entertainText("ee_2799_prop_title"),
       symbolicOrganRhythm: '비위 리듬',
       bodyKeywords: ['소화 리듬', '복부 안정감', '무거움', '식사 시간', '생활 중심'],
       mindKeywords: ['걱정', '생각 과다', '안정 욕구', '책임감', '현실 감각'],
@@ -2817,7 +3003,7 @@
     metal: {
       hanja: '金',
       koreanName: '금',
-      title: '호흡과 정리 리듬',
+      title: _entertainText("ee_2820_prop_title"),
       symbolicOrganRhythm: '폐·대장 리듬',
       bodyKeywords: ['호흡', '피부 컨디션', '목·어깨 압박', '정리 리듬', '건조감'],
       mindKeywords: ['기준', '완벽주의', '절제', '거리감', '판단력'],
@@ -2838,7 +3024,7 @@
     water: {
       hanja: '水',
       koreanName: '수',
-      title: '수면과 회복 리듬',
+      title: _entertainText("ee_2841_prop_title"),
       symbolicOrganRhythm: '신장·방광 리듬',
       bodyKeywords: ['수면', '회복력', '하체 온기', '휴식', '저장 에너지'],
       mindKeywords: ['불안', '깊은 생각', '직감', '두려움', '내면 안정'],
@@ -2883,40 +3069,40 @@
     '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water', '임': 'water', '계': 'water', '해': 'water', '자': 'water'
   };
   var HEALTH_TENSION_RULES = [
-    { controller: 'metal', target: 'wood', title: '금(金)이 목(木)을 압박하는 흐름', bodySignal: '목·어깨 긴장, 눈 피로, 몸의 유연성 저하로 느껴질 수 있습니다.', mindSignal: '완벽주의와 기준이 강해져 시작 에너지가 위축될 수 있습니다.', carePoint: '기준을 낮추고 가벼운 산책과 스트레칭으로 목(木)의 생장 리듬을 살려주세요.' },
-    { controller: 'wood', target: 'earth', title: '목(木)이 토(土)를 압박하는 흐름', bodySignal: '계획과 압박이 커지면서 소화 리듬과 생활 중심이 흔들리기 쉽습니다.', mindSignal: '해야 할 일이 많아지고 조급함이 안정감을 밀어낼 수 있습니다.', carePoint: '일정을 줄이고 따뜻하고 단순한 식사로 토(土)의 중심을 먼저 세워주세요.' },
-    { controller: 'earth', target: 'water', title: '토(土)가 수(水)를 압박하는 흐름', bodySignal: '몸이 무겁고 회복감이 늦게 올라오는 생활 신호가 나타날 수 있습니다.', mindSignal: '걱정과 책임감이 깊은 휴식을 방해할 수 있습니다.', carePoint: '잠들기 전 고민을 정리하고 하체를 따뜻하게 해 수(水)의 회복 리듬을 도와주세요.' },
-    { controller: 'water', target: 'fire', title: '수(水)가 화(火)를 압박하는 흐름', bodySignal: '활력이 낮아지고 몸이 차분하다 못해 무기력하게 느껴질 수 있습니다.', mindSignal: '생각이 깊어지면서 표현력과 추진력이 줄어들 수 있습니다.', carePoint: '햇빛, 따뜻한 차, 가벼운 리듬 운동으로 화(火)의 온기를 살려주세요.' },
-    { controller: 'fire', target: 'metal', title: '화(火)가 금(金)을 압박하는 흐름', bodySignal: '열기와 흥분이 올라와 호흡과 정리 리듬이 흐트러지기 쉽습니다.', mindSignal: '감정과 일정이 과열되어 판단이 급해질 수 있습니다.', carePoint: '자극을 줄이고 깊은 호흡과 공간 정리로 금(金)의 차분한 질서를 회복하세요.' }
+    { controller: 'metal', target: 'wood', title: _entertainText("ee_2886_prop_title"), bodySignal: '목·어깨 긴장, 눈 피로, 몸의 유연성 저하로 느껴질 수 있습니다.', mindSignal: '완벽주의와 기준이 강해져 시작 에너지가 위축될 수 있습니다.', carePoint: '기준을 낮추고 가벼운 산책과 스트레칭으로 목(木)의 생장 리듬을 살려주세요.' },
+    { controller: 'wood', target: 'earth', title: _entertainText("ee_2887_prop_title"), bodySignal: '계획과 압박이 커지면서 소화 리듬과 생활 중심이 흔들리기 쉽습니다.', mindSignal: '해야 할 일이 많아지고 조급함이 안정감을 밀어낼 수 있습니다.', carePoint: '일정을 줄이고 따뜻하고 단순한 식사로 토(土)의 중심을 먼저 세워주세요.' },
+    { controller: 'earth', target: 'water', title: _entertainText("ee_2888_prop_title"), bodySignal: '몸이 무겁고 회복감이 늦게 올라오는 생활 신호가 나타날 수 있습니다.', mindSignal: '걱정과 책임감이 깊은 휴식을 방해할 수 있습니다.', carePoint: '잠들기 전 고민을 정리하고 하체를 따뜻하게 해 수(水)의 회복 리듬을 도와주세요.' },
+    { controller: 'water', target: 'fire', title: _entertainText("ee_2889_prop_title"), bodySignal: '활력이 낮아지고 몸이 차분하다 못해 무기력하게 느껴질 수 있습니다.', mindSignal: '생각이 깊어지면서 표현력과 추진력이 줄어들 수 있습니다.', carePoint: '햇빛, 따뜻한 차, 가벼운 리듬 운동으로 화(火)의 온기를 살려주세요.' },
+    { controller: 'fire', target: 'metal', title: _entertainText("ee_2890_prop_title"), bodySignal: '열기와 흥분이 올라와 호흡과 정리 리듬이 흐트러지기 쉽습니다.', mindSignal: '감정과 일정이 과열되어 판단이 급해질 수 있습니다.', carePoint: '자극을 줄이고 깊은 호흡과 공간 정리로 금(金)의 차분한 질서를 회복하세요.' }
   ];
 
   var TEN_GOD_HEALTH_MAP = {
-    bigeop: { label: '비겁', title: '자기 에너지와 경쟁 리듬', coreTheme: '나 자신, 독립성, 경쟁심, 버티는 힘', stressPattern: '비겁이 강하게 작동하면 혼자 버티려는 마음이 강해지고, 몸의 긴장을 늦게 알아차리기 쉽습니다.', bodySignal: '어깨와 턱 주변의 힘, 무리한 활동 후 피로 누적, 휴식 타이밍 지연으로 나타날 수 있습니다.', mindSignal: '도움을 요청하기보다 혼자 해결하려는 마음이 커질 수 있습니다.', carePoint: '오늘은 모든 것을 혼자 처리하려 하지 말고, 역할을 나누는 것이 회복운을 살립니다.', routine: ['도움 요청하기', '어깨 힘 빼기', '혼자만의 부담 줄이기', '이완 중심'] },
-    siksang: { label: '식상', title: '표현과 배출 리듬', coreTheme: '표현, 창작, 말, 결과물, 배출', stressPattern: '식상이 강하게 작동하면 말과 생각이 많아지고, 에너지가 밖으로 계속 빠져나가기 쉽습니다.', bodySignal: '목의 피로감, 말이 많아진 뒤의 소모감, 식사 리듬의 흔들림으로 느껴질 수 있습니다.', mindSignal: '표현하고 싶은 욕구가 커지지만 동시에 쉽게 지칠 수 있습니다.', carePoint: '오늘은 표현도 좋지만, 말과 콘텐츠 소비량을 줄여 에너지를 회수하는 시간이 필요합니다.', routine: ['말수 줄이는 시간', '콘텐츠 디톡스', '따뜻한 식사', '짧은 기록 후 휴식'] },
-    jaeseong: { label: '재성', title: '현실 관리와 소모 리듬', coreTheme: '돈, 일, 관리, 책임, 현실 감각', stressPattern: '재성이 강하게 작동하면 처리해야 할 현실 문제가 많아지고, 몸보다 책임감이 앞서기 쉽습니다.', bodySignal: '식사 지연, 복부 긴장, 피로가 쌓였는데도 계속 움직이는 패턴으로 나타날 수 있습니다.', mindSignal: '돈, 일정, 성과, 관리 문제에 마음이 빼앗기기 쉽습니다.', carePoint: '오늘은 현실 문제를 모두 해결하려 하기보다 우선순위를 줄이고 식사 시간을 지키는 것이 좋습니다.', routine: ['우선순위 3개만 정하기', '식사 시간 고정', '돈 걱정 메모 후 닫기', '가벼운 산책'] },
-    gwanseong: { label: '관성', title: '압박과 질서 리듬', coreTheme: '규칙, 책임, 평가, 직장, 사회적 압박', stressPattern: '관성이 강하게 작동하면 기준과 책임감이 커져 몸이 경직되고 긴장 상태가 이어질 수 있습니다.', bodySignal: '목·어깨 긴장, 얕은 호흡, 일정 압박에 따른 피로감으로 느껴질 수 있습니다.', mindSignal: '실수하면 안 된다는 마음, 평가에 대한 부담이 커질 수 있습니다.', carePoint: '오늘은 완벽한 수행보다 중간 휴식과 호흡을 일정에 넣는 것이 중요합니다.', routine: ['업무 사이 호흡', '일정 사이 여백', '완벽주의 낮추기', '퇴근 후 긴장 이완'] },
-    inseong: { label: '인성', title: '생각과 보호 리듬', coreTheme: '학습, 생각, 보호, 회복, 내면 안정', stressPattern: '인성이 강하게 작동하면 생각이 많아지고 몸보다 머리가 먼저 피로해지기 쉽습니다.', bodySignal: '오래 앉아 있는 패턴, 수면 전 생각 과다, 몸의 순환감 저하로 느껴질 수 있습니다.', mindSignal: '정보를 더 모아야 안심되는 마음이 커질 수 있습니다.', carePoint: '오늘은 더 알아보는 것보다 몸을 움직여 생각을 순환시키는 것이 회복에 좋습니다.', routine: ['정보 섭취 줄이기', '산책', '잠들기 전 화면 끄기', '생각을 글로 비우기'] }
+    bigeop: { label: _entertainText("ee_2894_prop_label"), title: '자기 에너지와 경쟁 리듬', coreTheme: '나 자신, 독립성, 경쟁심, 버티는 힘', stressPattern: '비겁이 강하게 작동하면 혼자 버티려는 마음이 강해지고, 몸의 긴장을 늦게 알아차리기 쉽습니다.', bodySignal: '어깨와 턱 주변의 힘, 무리한 활동 후 피로 누적, 휴식 타이밍 지연으로 나타날 수 있습니다.', mindSignal: '도움을 요청하기보다 혼자 해결하려는 마음이 커질 수 있습니다.', carePoint: '오늘은 모든 것을 혼자 처리하려 하지 말고, 역할을 나누는 것이 회복운을 살립니다.', routine: ['도움 요청하기', '어깨 힘 빼기', '혼자만의 부담 줄이기', '이완 중심'] },
+    siksang: { label: _entertainText("ee_2895_prop_label"), title: '표현과 배출 리듬', coreTheme: '표현, 창작, 말, 결과물, 배출', stressPattern: '식상이 강하게 작동하면 말과 생각이 많아지고, 에너지가 밖으로 계속 빠져나가기 쉽습니다.', bodySignal: '목의 피로감, 말이 많아진 뒤의 소모감, 식사 리듬의 흔들림으로 느껴질 수 있습니다.', mindSignal: '표현하고 싶은 욕구가 커지지만 동시에 쉽게 지칠 수 있습니다.', carePoint: '오늘은 표현도 좋지만, 말과 콘텐츠 소비량을 줄여 에너지를 회수하는 시간이 필요합니다.', routine: ['말수 줄이는 시간', '콘텐츠 디톡스', '따뜻한 식사', '짧은 기록 후 휴식'] },
+    jaeseong: { label: _entertainText("ee_2896_prop_label"), title: '현실 관리와 소모 리듬', coreTheme: '돈, 일, 관리, 책임, 현실 감각', stressPattern: '재성이 강하게 작동하면 처리해야 할 현실 문제가 많아지고, 몸보다 책임감이 앞서기 쉽습니다.', bodySignal: '식사 지연, 복부 긴장, 피로가 쌓였는데도 계속 움직이는 패턴으로 나타날 수 있습니다.', mindSignal: '돈, 일정, 성과, 관리 문제에 마음이 빼앗기기 쉽습니다.', carePoint: '오늘은 현실 문제를 모두 해결하려 하기보다 우선순위를 줄이고 식사 시간을 지키는 것이 좋습니다.', routine: ['우선순위 3개만 정하기', '식사 시간 고정', '돈 걱정 메모 후 닫기', '가벼운 산책'] },
+    gwanseong: { label: _entertainText("ee_2897_prop_label"), title: '압박과 질서 리듬', coreTheme: '규칙, 책임, 평가, 직장, 사회적 압박', stressPattern: '관성이 강하게 작동하면 기준과 책임감이 커져 몸이 경직되고 긴장 상태가 이어질 수 있습니다.', bodySignal: '목·어깨 긴장, 얕은 호흡, 일정 압박에 따른 피로감으로 느껴질 수 있습니다.', mindSignal: '실수하면 안 된다는 마음, 평가에 대한 부담이 커질 수 있습니다.', carePoint: '오늘은 완벽한 수행보다 중간 휴식과 호흡을 일정에 넣는 것이 중요합니다.', routine: ['업무 사이 호흡', '일정 사이 여백', '완벽주의 낮추기', '퇴근 후 긴장 이완'] },
+    inseong: { label: _entertainText("ee_2898_prop_label"), title: '생각과 보호 리듬', coreTheme: '학습, 생각, 보호, 회복, 내면 안정', stressPattern: '인성이 강하게 작동하면 생각이 많아지고 몸보다 머리가 먼저 피로해지기 쉽습니다.', bodySignal: '오래 앉아 있는 패턴, 수면 전 생각 과다, 몸의 순환감 저하로 느껴질 수 있습니다.', mindSignal: '정보를 더 모아야 안심되는 마음이 커질 수 있습니다.', carePoint: '오늘은 더 알아보는 것보다 몸을 움직여 생각을 순환시키는 것이 회복에 좋습니다.', routine: ['정보 섭취 줄이기', '산책', '잠들기 전 화면 끄기', '생각을 글로 비우기'] }
   };
 
   var DAY_MASTER_HEALTH_VIEW = {
-    '갑': { element: 'wood', title: '큰 나무형 회복 리듬', tendency: '갑목 일간은 앞으로 뻗어나가려는 힘이 강해 목표와 방향성이 컨디션에 큰 영향을 줍니다.', stressSignal: '막힘이 생기면 목·어깨 긴장, 답답함, 조급함으로 생활 신호가 나타나기 쉽습니다.', recoveryKey: '큰 목표를 한 번에 밀어붙이기보다 오늘 할 수 있는 작은 성장 루틴 하나를 정하는 것이 좋습니다.' },
-    '을': { element: 'wood', title: '덩굴형 유연 회복 리듬', tendency: '을목 일간은 환경의 영향을 섬세하게 받으며, 부드럽게 적응할 때 컨디션이 살아납니다.', stressSignal: '관계나 환경의 압박이 커지면 몸이 쉽게 굳고 마음이 예민해질 수 있습니다.', recoveryKey: '부드러운 스트레칭, 자연 이미지, 작은 공간 정리가 회복 리듬을 도와줍니다.' },
-    '병': { element: 'fire', title: '태양형 활력 리듬', tendency: '병화 일간은 밝은 에너지와 표현력이 강해 사람과 활동 속에서 기운을 얻기 쉽습니다.', stressSignal: '과열되면 수면 리듬이 흐트러지고 감정이 쉽게 달아오를 수 있습니다.', recoveryKey: '낮에는 햇빛과 활동을 살리고, 밤에는 조명과 자극을 줄이는 균형이 중요합니다.' },
-    '정': { element: 'fire', title: '촛불형 감성 리듬', tendency: '정화 일간은 감정의 온도와 집중력이 컨디션에 큰 영향을 줍니다.', stressSignal: '마음이 오래 타오르면 피로가 누적되고, 작은 말에도 예민해질 수 있습니다.', recoveryKey: '감정을 억누르기보다 짧게 기록하고 따뜻한 휴식으로 마음의 불빛을 안정시키는 것이 좋습니다.' },
-    '무': { element: 'earth', title: '산형 안정 리듬', tendency: '무토 일간은 버티는 힘이 강하지만, 한 번 무거워지면 회복 속도가 늦어질 수 있습니다.', stressSignal: '책임이 쌓이면 몸이 무겁고 움직임이 둔해지는 생활 신호가 나타날 수 있습니다.', recoveryKey: '일을 더 쌓기보다 한 구역 정리, 따뜻한 식사, 느린 산책으로 중심을 회복하세요.' },
-    '기': { element: 'earth', title: '밭형 돌봄 리듬', tendency: '기토 일간은 섬세하게 돌보고 정리하는 힘이 있지만 걱정이 많아지면 몸의 중심이 흔들리기 쉽습니다.', stressSignal: '생각 과다, 식사 불규칙, 복부 불편감 같은 생활 신호로 나타날 수 있습니다.', recoveryKey: '오늘은 복잡한 고민보다 규칙적인 식사와 단순한 루틴을 먼저 챙기는 것이 좋습니다.' },
-    '경': { element: 'metal', title: '큰 쇠형 정리 리듬', tendency: '경금 일간은 기준과 결단력이 강해 목표를 향해 밀고 가는 힘이 좋습니다.', stressSignal: '기준이 과해지면 몸이 경직되고 호흡이 얕아지는 느낌이 생길 수 있습니다.', recoveryKey: '완벽하게 자르기보다 부드럽게 내려놓는 연습, 어깨 이완과 깊은 호흡이 필요합니다.' },
-    '신': { element: 'metal', title: '보석형 섬세 리듬', tendency: '신금 일간은 감각과 기준이 섬세해 작은 변화에도 민감하게 반응할 수 있습니다.', stressSignal: '예민함, 완벽주의, 건조한 환경에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '공간을 정돈하되 기준을 낮추고, 호흡과 습도 관리로 몸의 여백을 만들어주세요.' },
-    '임': { element: 'water', title: '큰 물형 회복 리듬', tendency: '임수 일간은 생각의 폭이 넓고 흐름을 읽는 힘이 좋지만, 과하면 깊은 생각에 잠기기 쉽습니다.', stressSignal: '밤 시간 고민, 수면 리듬 흔들림, 몸이 무겁게 가라앉는 느낌이 나타날 수 있습니다.', recoveryKey: '생각을 계속 확장하기보다 따뜻한 루틴과 일정한 수면 시간으로 회복감을 채우는 것이 좋습니다.' },
-    '계': { element: 'water', title: '비와 안개형 섬세 회복 리듬', tendency: '계수 일간은 감수성과 직감이 섬세해 주변 분위기의 영향을 많이 받을 수 있습니다.', stressSignal: '불안, 차가운 느낌, 작은 변화에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '하체를 따뜻하게 하고, 조용한 음악과 수면 루틴으로 내면의 물결을 안정시키는 것이 좋습니다.' }
+    '갑': { element: 'wood', title: _entertainText("ee_2902_prop_title"), tendency: '갑목 일간은 앞으로 뻗어나가려는 힘이 강해 목표와 방향성이 컨디션에 큰 영향을 줍니다.', stressSignal: '막힘이 생기면 목·어깨 긴장, 답답함, 조급함으로 생활 신호가 나타나기 쉽습니다.', recoveryKey: '큰 목표를 한 번에 밀어붙이기보다 오늘 할 수 있는 작은 성장 루틴 하나를 정하는 것이 좋습니다.' },
+    '을': { element: 'wood', title: _entertainText("ee_2903_prop_title"), tendency: '을목 일간은 환경의 영향을 섬세하게 받으며, 부드럽게 적응할 때 컨디션이 살아납니다.', stressSignal: '관계나 환경의 압박이 커지면 몸이 쉽게 굳고 마음이 예민해질 수 있습니다.', recoveryKey: '부드러운 스트레칭, 자연 이미지, 작은 공간 정리가 회복 리듬을 도와줍니다.' },
+    '병': { element: 'fire', title: _entertainText("ee_2904_prop_title"), tendency: '병화 일간은 밝은 에너지와 표현력이 강해 사람과 활동 속에서 기운을 얻기 쉽습니다.', stressSignal: '과열되면 수면 리듬이 흐트러지고 감정이 쉽게 달아오를 수 있습니다.', recoveryKey: '낮에는 햇빛과 활동을 살리고, 밤에는 조명과 자극을 줄이는 균형이 중요합니다.' },
+    '정': { element: 'fire', title: _entertainText("ee_2905_prop_title"), tendency: '정화 일간은 감정의 온도와 집중력이 컨디션에 큰 영향을 줍니다.', stressSignal: '마음이 오래 타오르면 피로가 누적되고, 작은 말에도 예민해질 수 있습니다.', recoveryKey: '감정을 억누르기보다 짧게 기록하고 따뜻한 휴식으로 마음의 불빛을 안정시키는 것이 좋습니다.' },
+    '무': { element: 'earth', title: _entertainText("ee_2906_prop_title"), tendency: '무토 일간은 버티는 힘이 강하지만, 한 번 무거워지면 회복 속도가 늦어질 수 있습니다.', stressSignal: '책임이 쌓이면 몸이 무겁고 움직임이 둔해지는 생활 신호가 나타날 수 있습니다.', recoveryKey: '일을 더 쌓기보다 한 구역 정리, 따뜻한 식사, 느린 산책으로 중심을 회복하세요.' },
+    '기': { element: 'earth', title: _entertainText("ee_2907_prop_title"), tendency: '기토 일간은 섬세하게 돌보고 정리하는 힘이 있지만 걱정이 많아지면 몸의 중심이 흔들리기 쉽습니다.', stressSignal: '생각 과다, 식사 불규칙, 복부 불편감 같은 생활 신호로 나타날 수 있습니다.', recoveryKey: '오늘은 복잡한 고민보다 규칙적인 식사와 단순한 루틴을 먼저 챙기는 것이 좋습니다.' },
+    '경': { element: 'metal', title: _entertainText("ee_2908_prop_title"), tendency: '경금 일간은 기준과 결단력이 강해 목표를 향해 밀고 가는 힘이 좋습니다.', stressSignal: '기준이 과해지면 몸이 경직되고 호흡이 얕아지는 느낌이 생길 수 있습니다.', recoveryKey: '완벽하게 자르기보다 부드럽게 내려놓는 연습, 어깨 이완과 깊은 호흡이 필요합니다.' },
+    '신': { element: 'metal', title: _entertainText("ee_2909_prop_title"), tendency: '신금 일간은 감각과 기준이 섬세해 작은 변화에도 민감하게 반응할 수 있습니다.', stressSignal: '예민함, 완벽주의, 건조한 환경에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '공간을 정돈하되 기준을 낮추고, 호흡과 습도 관리로 몸의 여백을 만들어주세요.' },
+    '임': { element: 'water', title: _entertainText("ee_2910_prop_title"), tendency: '임수 일간은 생각의 폭이 넓고 흐름을 읽는 힘이 좋지만, 과하면 깊은 생각에 잠기기 쉽습니다.', stressSignal: '밤 시간 고민, 수면 리듬 흔들림, 몸이 무겁게 가라앉는 느낌이 나타날 수 있습니다.', recoveryKey: '생각을 계속 확장하기보다 따뜻한 루틴과 일정한 수면 시간으로 회복감을 채우는 것이 좋습니다.' },
+    '계': { element: 'water', title: _entertainText("ee_2911_prop_title"), tendency: '계수 일간은 감수성과 직감이 섬세해 주변 분위기의 영향을 많이 받을 수 있습니다.', stressSignal: '불안, 차가운 느낌, 작은 변화에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '하체를 따뜻하게 하고, 조용한 음악과 수면 루틴으로 내면의 물결을 안정시키는 것이 좋습니다.' }
   };
 
   var SEASONAL_HEALTH_VIEW = {
-    spring: { label: '봄', mainElement: 'wood', title: '목(木)이 살아나는 계절', tendency: '봄은 목(木)의 생장성이 강해지는 시기입니다. 시작, 계획, 움직임이 늘어나지만 조급함도 함께 올라오기 쉽습니다.', riskWhenExcessive: '계획이 과해지면 목·어깨 긴장, 눈 피로, 감정적 답답함으로 생활 신호가 나타날 수 있습니다.', careElement: ['earth', 'water'], careRoutine: ['계획 줄이기', '따뜻한 식사', '눈 휴식', '가벼운 산책'] },
-    summer: { label: '여름', mainElement: 'fire', title: '화(火)가 왕성한 계절', tendency: '여름은 화(火)의 활력과 표현력이 강해지는 시기입니다. 활동성과 교류가 늘지만 과열 관리가 필요합니다.', riskWhenExcessive: '흥분과 일정이 과하면 수면 리듬이 흔들리고 피로가 빠르게 누적될 수 있습니다.', careElement: ['water', 'metal'], careRoutine: ['수면 시간 확보', '카페인 줄이기', '호흡', '자극적인 일정 줄이기'] },
-    lateSummer: { label: '환절기·토왕절', mainElement: 'earth', title: '토(土)가 중심을 잡는 시기', tendency: '환절기는 토(土)의 중심성이 중요해지는 시기입니다. 식사, 수면, 생활 루틴의 안정이 컨디션을 좌우합니다.', riskWhenExcessive: '생각이 많고 몸이 무거워지기 쉬우며, 생활 리듬이 흐트러지면 피로가 커질 수 있습니다.', careElement: ['wood', 'water'], careRoutine: ['규칙적 식사', '방 정리', '느린 산책', '걱정 메모 후 내려놓기'] },
-    autumn: { label: '가을', mainElement: 'metal', title: '금(金)이 정리되는 계절', tendency: '가을은 금(金)의 수렴성과 정리력이 강해지는 시기입니다. 기준과 판단이 선명해지지만 경직되기 쉽습니다.', riskWhenExcessive: '완벽주의, 건조감, 호흡의 답답함, 목·어깨 긴장이 생활 신호로 나타날 수 있습니다.', careElement: ['water', 'wood'], careRoutine: ['환기와 습도 관리', '호흡', '기준 낮추기', '부드러운 스트레칭'] },
-    winter: { label: '겨울', mainElement: 'water', title: '수(水)가 저장되는 계절', tendency: '겨울은 수(水)의 저장성과 회복력이 중요해지는 시기입니다. 깊은 휴식이 필요하지만 침잠도 쉬워집니다.', riskWhenExcessive: '생각이 깊어지고 몸이 무겁게 느껴질 수 있으며, 수면 리듬이 흔들리면 회복감이 줄어들 수 있습니다.', careElement: ['fire', 'earth'], careRoutine: ['하체 보온', '따뜻한 식사', '햇빛 보기', '수면 루틴 고정'] }
+    spring: { label: '봄', mainElement: 'wood', title: _entertainText("ee_2915_prop_title"), tendency: '봄은 목(木)의 생장성이 강해지는 시기입니다. 시작, 계획, 움직임이 늘어나지만 조급함도 함께 올라오기 쉽습니다.', riskWhenExcessive: '계획이 과해지면 목·어깨 긴장, 눈 피로, 감정적 답답함으로 생활 신호가 나타날 수 있습니다.', careElement: ['earth', 'water'], careRoutine: ['계획 줄이기', '따뜻한 식사', '눈 휴식', '가벼운 산책'] },
+    summer: { label: _entertainText("ee_2916_prop_label"), mainElement: 'fire', title: '화(火)가 왕성한 계절', tendency: '여름은 화(火)의 활력과 표현력이 강해지는 시기입니다. 활동성과 교류가 늘지만 과열 관리가 필요합니다.', riskWhenExcessive: '흥분과 일정이 과하면 수면 리듬이 흔들리고 피로가 빠르게 누적될 수 있습니다.', careElement: ['water', 'metal'], careRoutine: ['수면 시간 확보', '카페인 줄이기', '호흡', '자극적인 일정 줄이기'] },
+    lateSummer: { label: _entertainText("ee_2917_prop_label"), mainElement: 'earth', title: '토(土)가 중심을 잡는 시기', tendency: '환절기는 토(土)의 중심성이 중요해지는 시기입니다. 식사, 수면, 생활 루틴의 안정이 컨디션을 좌우합니다.', riskWhenExcessive: '생각이 많고 몸이 무거워지기 쉬우며, 생활 리듬이 흐트러지면 피로가 커질 수 있습니다.', careElement: ['wood', 'water'], careRoutine: ['규칙적 식사', '방 정리', '느린 산책', '걱정 메모 후 내려놓기'] },
+    autumn: { label: _entertainText("ee_2918_prop_label"), mainElement: 'metal', title: '금(金)이 정리되는 계절', tendency: '가을은 금(金)의 수렴성과 정리력이 강해지는 시기입니다. 기준과 판단이 선명해지지만 경직되기 쉽습니다.', riskWhenExcessive: '완벽주의, 건조감, 호흡의 답답함, 목·어깨 긴장이 생활 신호로 나타날 수 있습니다.', careElement: ['water', 'wood'], careRoutine: ['환기와 습도 관리', '호흡', '기준 낮추기', '부드러운 스트레칭'] },
+    winter: { label: _entertainText("ee_2919_prop_label"), mainElement: 'water', title: '수(水)가 저장되는 계절', tendency: '겨울은 수(水)의 저장성과 회복력이 중요해지는 시기입니다. 깊은 휴식이 필요하지만 침잠도 쉬워집니다.', riskWhenExcessive: '생각이 깊어지고 몸이 무겁게 느껴질 수 있으며, 수면 리듬이 흔들리면 회복감이 줄어들 수 있습니다.', careElement: ['fire', 'earth'], careRoutine: ['하체 보온', '따뜻한 식사', '햇빛 보기', '수면 루틴 고정'] }
   };
 
   var HEALTH_REPORT_DISCLAIMER = '명리학적 관점에서 오행 균형, 생활 리듬, 컨디션 흐름을 살핀 운세 콘텐츠입니다. 의학적 진단이나 치료를 대체하지 않으며, 실제 건강 문제가 있거나 지속적인 통증·불편감이 있다면 반드시 전문 의료진과 상담하세요.';
@@ -3401,9 +3587,9 @@
   function getHealthConditionGrade(riskKeys, ratios, controlImpacts) {
     var pressureCount = (riskKeys || []).filter(function (el) { return getHealthState(el, ratios, controlImpacts) === 'pressure'; }).length;
     var excessCount = (riskKeys || []).filter(function (el) { return getHealthState(el, ratios, controlImpacts) === 'excess'; }).length;
-    if (pressureCount >= 2) return { label: '주의 조율', body: '압박받는 축이 겹쳐 오늘은 회복 루틴을 먼저 배치하면 좋습니다.' };
-    if (pressureCount || excessCount >= 2) return { label: '균형 조율', body: '강한 기운이 빠르게 올라올 수 있어 자극을 낮추는 하루가 어울립니다.' };
-    return { label: '안정 관리', body: '큰 흔들림보다 작은 리듬을 유지하는 쪽이 컨디션을 살립니다.' };
+    if (pressureCount >= 2) return { label: _entertainText("ee_3404_prop_label"), body: '압박받는 축이 겹쳐 오늘은 회복 루틴을 먼저 배치하면 좋습니다.' };
+    if (pressureCount || excessCount >= 2) return { label: _entertainText("ee_3405_prop_label"), body: '강한 기운이 빠르게 올라올 수 있어 자극을 낮추는 하루가 어울립니다.' };
+    return { label: _entertainText("ee_3406_prop_label"), body: '큰 흔들림보다 작은 리듬을 유지하는 쪽이 컨디션을 살립니다.' };
   }
 
   function renderHealthPill(label, value, el) {
@@ -3759,9 +3945,9 @@
 
     var tempMap = {
       hot: {
-        label: '열기 조율형',
+        label: _entertainText("ee_3762_prop_label"),
         shortLabel: '열기 조율',
-        title: '위로 솟는 기운을 차분히 식히는 결',
+        title: _entertainText("ee_3764_prop_title"),
         summary: '화(火)와 목(木)의 상승성이 빨라져 몸과 마음이 쉽게 달아오르는 흐름입니다.',
         bodySignal: '늦은 시간까지 생각과 감정이 활발해지고, 수면 리듬이 얕아지는 생활 신호가 떠오를 수 있습니다.',
         mindSignal: '빨리 해내고 싶은 마음이 앞서며 판단과 말의 속도가 함께 빨라지기 쉽습니다.',
@@ -3771,9 +3957,9 @@
         routine: ['카페인 줄이기', '조명 낮추기', '깊은 호흡', '밤 화면 쉬기']
       },
       cold: {
-        label: '한기 보온형',
+        label: _entertainText("ee_3774_prop_label"),
         shortLabel: '한기 보온',
-        title: '가라앉은 기운에 온기와 움직임을 더하는 결',
+        title: _entertainText("ee_3776_prop_title"),
         summary: '수(水)와 금(金)의 수렴성이 깊어져 몸의 속도가 느려지고 회복감이 늦게 올라오는 흐름입니다.',
         bodySignal: '몸이 무겁고 차분하다 못해 처지는 느낌, 시작이 늦어지는 생활 신호가 드러날 수 있습니다.',
         mindSignal: '생각이 깊어지며 표현과 추진이 늦어지고, 혼자 머무르려는 마음이 커지기 쉽습니다.',
@@ -3783,9 +3969,9 @@
         routine: ['따뜻한 차', '햇빛 보기', '하체 보온', '가벼운 산책']
       },
       neutral: {
-        label: '중화 조율형',
+        label: _entertainText("ee_3786_prop_label"),
         shortLabel: '중화 조율',
-        title: '큰 치우침보다 강약의 순서를 살피는 결',
+        title: _entertainText("ee_3788_prop_title"),
         summary: '조후의 온도는 극단으로 치우치지 않고, 원국의 강약과 오늘의 일진이 회복 순서를 비춥니다.',
         bodySignal: '특정 신호 하나보다 식사, 수면, 움직임의 기본 리듬이 컨디션의 중심으로 떠오릅니다.',
         mindSignal: '새로운 관리를 크게 늘리기보다 이미 흐트러진 습관 하나를 바로잡는 쪽이 편안합니다.',
@@ -3797,8 +3983,8 @@
     };
     var moistureMap = {
       dry: {
-        label: '건조 완화',
-        title: '마른 기운에 수분과 여백을 더하는 결',
+        label: _entertainText("ee_3800_prop_label"),
+        title: _entertainText("ee_3801_prop_title"),
         summary: '금(金)의 수렴성과 화(火)의 열감이 겹치면 호흡, 피부 컨디션, 목·어깨의 긴장이 쉽게 굳어질 수 있습니다.',
         carePoint: '수분, 습도, 호흡, 부드러운 스트레칭이 마른 기운을 촉촉하게 풀어줍니다.',
         support: ['water', 'wood'],
@@ -3806,8 +3992,8 @@
         routine: ['따뜻한 물', '실내 습도', '어깨 이완', '기준 낮추기']
       },
       damp: {
-        label: '습기 순환',
-        title: '머무는 기운을 가볍게 흐르게 하는 결',
+        label: _entertainText("ee_3809_prop_label"),
+        title: _entertainText("ee_3810_prop_title"),
         summary: '수(水)와 토(土)의 머무름이 깊어지면 몸이 무겁고 생각이 오래 고이는 생활 신호가 떠오를 수 있습니다.',
         carePoint: '가벼운 걷기, 단순한 식사, 공간 정리가 정체된 기운을 천천히 움직입니다.',
         support: ['wood', 'fire'],
@@ -3815,8 +4001,8 @@
         routine: ['식후 걷기', '단순한 식사', '책상 정리', '햇빛 보기']
       },
       balanced: {
-        label: '건습 안정',
-        title: '수분과 온도가 크게 흔들리지 않는 결',
+        label: _entertainText("ee_3818_prop_label"),
+        title: _entertainText("ee_3819_prop_title"),
         summary: '건조와 습기가 크게 치우치지 않아 오늘은 취약 오행의 보완 순서가 더 선명하게 떠오릅니다.',
         carePoint: '과한 보정 대신 지금 필요한 오행 하나를 정해 반복 가능한 루틴으로 이어가면 좋습니다.',
         support: [],
@@ -4000,7 +4186,7 @@
     var strongInfo = getHealthKnowledge(strongestEl);
     return [
       {
-        title: '오늘',
+        title: _entertainText("ee_4003_prop_title"),
         value: todayName + ' 기운',
         body: '오늘은 ' + todayName + ' 쪽 반응이 먼저 올라옵니다. 컨디션을 몰아붙이기보다 일하는 중간에 물 한 잔, 3분 스트레칭처럼 작게 끊어 쉬는 편이 좋습니다.',
         routine: routine,
@@ -4011,7 +4197,7 @@
         ]
       },
       {
-        title: '이번 주',
+        title: _entertainText("ee_4014_prop_title"),
         value: targetName + ' 보완',
         body: '이번 주는 억부상 비어 있는 ' + targetObject + ' 생활 속에서 천천히 채우는 때입니다. 식사와 잠드는 시간을 크게 흔들지 않으면 몸의 중심이 훨씬 편해집니다.',
         routine: '식사·수면 시간 맞추기',
@@ -4022,7 +4208,7 @@
         ]
       },
       {
-        title: '이번 달',
+        title: _entertainText("ee_4025_prop_title"),
         value: avoidName + ' 절제',
         body: '이번 달은 ' + avoidName + ' 쪽 자극이 쉽게 커집니다. 늦은 밤까지 버티는 습관, 한 번에 몰아치는 일정을 줄이면 피로가 덜 쌓입니다.',
         routine: '밤 시간 자극 줄이기',
@@ -4033,7 +4219,7 @@
         ]
       },
       {
-        title: '계절 전환기',
+        title: _entertainText("ee_4036_prop_title"),
         value: strongName + ' 조율',
         body: '계절이 바뀔 때는 원국에서 강한 ' + strongName + '이 먼저 반응합니다. 늘 해오던 방식만 고집하기보다 부족한 오행을 조금씩 채워야 몸이 덜 흔들립니다.',
         routine: '부족한 리듬 보완',
@@ -4098,7 +4284,7 @@
       : avoidName + '의 힘이 강하면 ' + pressureTargetName + ' 쪽 생활 리듬이 눌릴 수 있습니다. 오늘은 자극을 키우기보다 기준을 낮추고 회복 시간을 먼저 두세요.';
     return [
       {
-        label: '생조 보완',
+        label: _entertainText("ee_4101_prop_label"),
         body: supportName + '는 ' + getHealthElementWithParticle(targetEl, 'object') + ' 생합니다. ' + getHealthElementWithParticle(targetEl, 'subject') + ' 약하거나 눌릴 때는 먼저 ' + supportName + '의 바탕을 세워야 회복이 부드럽게 이어집니다.',
         details: [supportRest, ((supportInfo.recommendedTea || [])[0] || '따뜻한 물') + '를 천천히 마시기', targetName + ' 루틴은 한 번에 늘리지 말고 작게 시작하기'],
         tags: [supportName + ' 생조', targetName + ' 보완', targetInfo.symbolicOrganRhythm]
@@ -4110,19 +4296,19 @@
         tags: [targetName, targetInfo.title, '오늘 보완']
       },
       {
-        label: '설기 절제',
+        label: _entertainText("ee_4113_prop_label"),
         body: avoidName + '의 자극은 억누르기보다 ' + drainName + ' 쪽으로 가볍게 흘려보내면 과열이 덜합니다. 강한 기운을 무리하게 막지 말고 안전한 출구를 만들어주세요.',
         details: [drainMove, avoidPattern + ' 줄이기', ((drainInfo.recommendedRest || [])[0] || '짧은 휴식') + '로 마무리하기'],
         tags: [avoidName + ' 절제', drainName + ' 설기', '과열 낮추기']
       },
       {
-        label: '극 완화',
+        label: _entertainText("ee_4119_prop_label"),
         body: getHealthElementWithParticle(avoidEl, 'subject') + ' ' + getHealthElementWithParticle(pressureTargetEl, 'object') + ' 누르는 자리까지 함께 봅니다. 균형이면 질서가 되지만 오늘처럼 피로가 있으면 압박으로 느껴질 수 있습니다.',
         details: [pressureBody, ((getHealthKnowledge(pressureTargetEl).recoveryFocus || [])[0] || targetRest), '해야 할 일을 하나 줄이고 몸의 반응을 먼저 보기'],
         tags: [avoidName + ' 극', pressureTargetName + ' 보호', '긴장 완화']
       },
       {
-        label: '공간·마음 개운',
+        label: _entertainText("ee_4125_prop_label"),
         body: '개운은 큰 의식보다 몸이 편해지는 환경에서 먼저 살아납니다. 오늘은 ' + getHealthElementWithParticle(targetEl, 'object') + ' 살리는 공간을 만들고, ' + getHealthElementWithParticle(avoidEl, 'object') + ' 키우는 자극을 눈앞에서 치우세요.',
         details: [HEALTH_ENV_PLAN[targetEl] || HEALTH_ENV_PLAN.earth, HEALTH_AVOID_PLAN[avoidEl] || HEALTH_AVOID_PLAN.earth, '침대 주변을 단순하게 비우고 잠들기 전 시야를 낮추기'],
         tags: ['공간 정돈', '자극 낮추기', '회복 여백']
@@ -4144,7 +4330,7 @@
   }
 
   function renderTodayHealthSummaryCard(condition, grade, axes, routineFocus, strongestEl, controlImpacts, dayMaster) {
-    dayMaster = dayMaster || { element: strongestEl, label: '일간 리듬' };
+    dayMaster = dayMaster || { element: strongestEl, label: _entertainText("ee_4147_prop_label") };
     var pressureText = controlImpacts && controlImpacts.length
       ? EL_NAME[controlImpacts[0].target] + ' 압박 / ' + EL_NAME[controlImpacts[0].controller] + ' 과열'
       : EL_NAME[strongestEl] + ' 강점 오행';
@@ -4485,7 +4671,7 @@
     var condition = getTodayConditionCopyV2(todayEl, axes.targetEl, axes.avoidEl, strongestEl);
     if (!hasTodayElement) {
       condition = {
-        lead: '오늘은 타고난 체질의 강약을 먼저 보는 편이 좋습니다. 몸이 익숙하게 쓰는 힘과 쉽게 지치는 자리를 나누어 살피겠습니다.',
+        lead: _entertainText("ee_4488_prop_lead"),
         second: '조후와 억부를 함께 놓으면, 강한 오행을 더 쓰기보다 비어 있는 오행을 생활 속에서 천천히 채우는 쪽이 좋습니다.'
       };
     }

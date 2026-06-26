@@ -4,6 +4,27 @@ import { motion } from "framer-motion";
 import type { AnimalDestinyData, TwelveStage } from "../lib/types";
 import type { TwelveGrowthAnimalResult } from "../lib/types";
 
+const TWELVE_ANIMAL_RESULT_CARD_TEXT_TRANSLATIONS = {
+  ko: {
+    "twelveAnimalResult.001": "새싹 모드",
+    "twelveAnimalResult.002": "달빛 모드",
+    "twelveAnimalResult.003": "리본 모드",
+    "twelveAnimalResult.004": "수호 모드",
+    "twelveAnimalResult.005": "태양 모드",
+    "twelveAnimalResult.006": "현자 모드",
+    "twelveAnimalResult.007": "구름 모드",
+    "twelveAnimalResult.008": "나비 모드",
+    "twelveAnimalResult.009": "보물 모드",
+    "twelveAnimalResult.010": "밤문 모드",
+    "twelveAnimalResult.011": "별알 모드",
+    "twelveAnimalResult.012": "솜구름 모드",
+    "twelveAnimalResult.013": "운성 무드",
+  },
+} as const;
+
+function twelveAnimalResultCardText(key: keyof typeof TWELVE_ANIMAL_RESULT_CARD_TEXT_TRANSLATIONS.ko): string {
+  return TWELVE_ANIMAL_RESULT_CARD_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const STAGE_BADGE: Record<TwelveStage, string> = {
   장생: "성장 시작",
   목욕: "감정 확장",
@@ -35,18 +56,18 @@ const ANIMAL_EMOJI: Record<TwelveStage, string> = {
 };
 
 const STAGE_TONE: Record<TwelveStage, { label: string; action: string }> = {
-  장생: { label: "새싹 모드", action: "처음은 작게 열고, 칭찬은 바로 저장하세요." },
-  목욕: { label: "달빛 모드", action: "감정은 숨기지 말고 부드럽게 이름 붙이세요." },
-  관대: { label: "리본 모드", action: "보여 줄 장면을 하나 정하면 존재감이 살아납니다." },
-  건록: { label: "수호 모드", action: "오늘의 약속 하나를 끝까지 지키면 운이 단단해집니다." },
-  제왕: { label: "태양 모드", action: "크게 결정하되, 한 번은 숨을 고르고 확인하세요." },
-  쇠: { label: "현자 모드", action: "정리한 기준 하나가 내일의 손실을 막아줍니다." },
-  병: { label: "구름 모드", action: "무리한 친절보다 회복 시간을 먼저 챙기세요." },
-  사: { label: "나비 모드", action: "끝낼 것과 살릴 것을 나누면 새 문이 열립니다." },
-  묘: { label: "보물 모드", action: "작은 자원을 기록하면 숨은 복이 보입니다." },
-  절: { label: "밤문 모드", action: "끊어야 할 한 가지를 정하면 길이 또렷해집니다." },
-  태: { label: "별알 모드", action: "완성보다 실험 하나를 먼저 부화시키세요." },
-  양: { label: "솜구름 모드", action: "돌봄은 나에게도 나누어 줄 때 복이 자랍니다." },
+  장생: { label: twelveAnimalResultCardText("twelveAnimalResult.001"), action: "처음은 작게 열고, 칭찬은 바로 저장하세요." },
+  목욕: { label: twelveAnimalResultCardText("twelveAnimalResult.002"), action: "감정은 숨기지 말고 부드럽게 이름 붙이세요." },
+  관대: { label: twelveAnimalResultCardText("twelveAnimalResult.003"), action: "보여 줄 장면을 하나 정하면 존재감이 살아납니다." },
+  건록: { label: twelveAnimalResultCardText("twelveAnimalResult.004"), action: "오늘의 약속 하나를 끝까지 지키면 운이 단단해집니다." },
+  제왕: { label: twelveAnimalResultCardText("twelveAnimalResult.005"), action: "크게 결정하되, 한 번은 숨을 고르고 확인하세요." },
+  쇠: { label: twelveAnimalResultCardText("twelveAnimalResult.006"), action: "정리한 기준 하나가 내일의 손실을 막아줍니다." },
+  병: { label: twelveAnimalResultCardText("twelveAnimalResult.007"), action: "무리한 친절보다 회복 시간을 먼저 챙기세요." },
+  사: { label: twelveAnimalResultCardText("twelveAnimalResult.008"), action: "끝낼 것과 살릴 것을 나누면 새 문이 열립니다." },
+  묘: { label: twelveAnimalResultCardText("twelveAnimalResult.009"), action: "작은 자원을 기록하면 숨은 복이 보입니다." },
+  절: { label: twelveAnimalResultCardText("twelveAnimalResult.010"), action: "끊어야 할 한 가지를 정하면 길이 또렷해집니다." },
+  태: { label: twelveAnimalResultCardText("twelveAnimalResult.011"), action: "완성보다 실험 하나를 먼저 부화시키세요." },
+  양: { label: twelveAnimalResultCardText("twelveAnimalResult.012"), action: "돌봄은 나에게도 나누어 줄 때 복이 자랍니다." },
 };
 
 function compactText(text: string, max = 82) {
@@ -64,7 +85,7 @@ type Props = {
 export default function TwelveAnimalResultCard({ animal, result, representativeStage }: Props) {
   const stageTone = STAGE_TONE[representativeStage];
   const quickNotes = [
-    { label: "운성 무드", title: stageTone.label, body: stageTone.action },
+    { label: twelveAnimalResultCardText("twelveAnimalResult.013"), title: stageTone.label, body: stageTone.action },
     { label: "오늘 실천", title: "작은 발자국", body: compactText(result.todayAction) },
     { label: "회복 힌트", title: "마음 충전", body: compactText(result.recoveryGuide) },
   ];

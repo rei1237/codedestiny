@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterIIIWealth | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_3_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "III. 재물 흐름 - 수익/지출 관리 타이밍",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "III. Wealth Flow - Timing for Income and Spending",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "III. 財運の流れ - 収益／支出管理のタイミング",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyWealthOverview: "올해 재물운 총론",
   regularWealthAnalysis: "정재 흐름 분석",
@@ -27,8 +42,8 @@ export default function NewYearCh3_Wealth({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>III. 재물 흐름 - 수익/지출 관리 타이밍</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_3_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_3_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh3_Wealth({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "III. 재물 흐름 - 수익/지출 관리 타이밍"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_3_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

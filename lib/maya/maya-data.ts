@@ -1,3 +1,25 @@
+const MAYA_DATA_TEXT_TRANSLATIONS = {
+  ko: {
+    "mayaData.toneTitle01": "시작의 씨앗",
+    "mayaData.toneTitle02": "선택의 균형",
+    "mayaData.toneTitle03": "첫 움직임",
+    "mayaData.toneTitle04": "안정의 구조",
+    "mayaData.toneTitle05": "중심의 추진력",
+    "mayaData.toneTitle06": "조율의 흐름",
+    "mayaData.toneTitle07": "거울의 전환점",
+    "mayaData.toneTitle08": "정렬의 책임",
+    "mayaData.toneTitle09": "성장의 파동",
+    "mayaData.toneTitle10": "현실화의 형태",
+    "mayaData.toneTitle11": "비움의 정화",
+    "mayaData.toneTitle12": "이해의 통합",
+    "mayaData.toneTitle13": "완성과 다음 주기",
+  },
+} as const;
+
+function mayaDataText(key: keyof typeof MAYA_DATA_TEXT_TRANSLATIONS.ko): string {
+  return MAYA_DATA_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 export type MayaDaySign = {
   index: number;
   name: string;
@@ -307,91 +329,91 @@ export const MAYA_DAY_SIGNS: MayaDaySign[] = [
 export const MAYA_TONES: MayaTone[] = [
   {
     number: 1,
-    title: "시작의 씨앗",
+    title: mayaDataText("mayaData.toneTitle01"),
     keywords: ["시작", "씨앗", "발의"],
     meaning: "1수는 아직 작지만 분명한 시작의 점입니다. 방향을 완전히 증명하기보다 첫 의도를 세우는 흐름입니다.",
     advice: "오늘의 의도를 한 문장으로 정하세요.",
   },
   {
     number: 2,
-    title: "선택의 균형",
+    title: mayaDataText("mayaData.toneTitle02"),
     keywords: ["선택", "균형", "분리"],
     meaning: "2수는 두 갈래를 마주하며 균형을 찾는 단계입니다. 차이를 인정할수록 선택이 맑아집니다.",
     advice: "비교보다 기준을 먼저 세우세요.",
   },
   {
     number: 3,
-    title: "첫 움직임",
+    title: mayaDataText("mayaData.toneTitle03"),
     keywords: ["움직임", "실험", "첫 실행"],
     meaning: "3수는 생각이 몸을 얻는 흐름입니다. 완벽한 준비보다 작게 움직이는 실험이 길을 엽니다.",
     advice: "30분 안에 가능한 첫 실행을 남기세요.",
   },
   {
     number: 4,
-    title: "안정의 구조",
+    title: mayaDataText("mayaData.toneTitle04"),
     keywords: ["구조", "안정", "기준"],
     meaning: "4수는 흩어진 것을 네 방향으로 세우는 단계입니다. 기준과 루틴이 운을 받치는 바닥이 됩니다.",
     advice: "오늘의 규칙을 단순하게 정리하세요.",
   },
   {
     number: 5,
-    title: "중심의 추진력",
+    title: mayaDataText("mayaData.toneTitle05"),
     keywords: ["중심", "추진력", "집중"],
     meaning: "5수는 가운데 힘이 살아나는 흐름입니다. 무엇에 힘을 실을지 정하면 일이 빠르게 움직입니다.",
     advice: "가장 중요한 한 가지에 에너지를 모으세요.",
   },
   {
     number: 6,
-    title: "조율의 흐름",
+    title: mayaDataText("mayaData.toneTitle06"),
     keywords: ["조율", "관계", "흐름"],
     meaning: "6수는 관계와 리듬을 맞추는 단계입니다. 혼자 밀기보다 흐름에 맞춘 움직임이 편안합니다.",
     advice: "상대의 속도와 내 속도를 함께 살피세요.",
   },
   {
     number: 7,
-    title: "거울의 전환점",
+    title: mayaDataText("mayaData.toneTitle07"),
     keywords: ["전환점", "거울", "균형"],
     meaning: "7수는 한가운데에서 흐름을 비춰 보는 자리입니다. 선택의 의미를 다시 확인하면 방향이 선명해집니다.",
     advice: "잠시 멈추고 지금의 선택이 나를 어디로 데려가는지 보세요.",
   },
   {
     number: 8,
-    title: "정렬의 책임",
+    title: mayaDataText("mayaData.toneTitle08"),
     keywords: ["정렬", "책임", "질서"],
     meaning: "8수는 흐름을 바르게 세우는 단계입니다. 마음과 행동이 같은 방향으로 놓일 때 신뢰가 커집니다.",
     advice: "말한 것과 행동한 것을 맞추는 데 집중하세요.",
   },
   {
     number: 9,
-    title: "성장의 파동",
+    title: mayaDataText("mayaData.toneTitle09"),
     keywords: ["확장", "성장", "감정의 파동"],
     meaning: "9수는 안쪽에서 바깥으로 넓어지는 흐름입니다. 감정의 파동을 통해 더 큰 성장을 알아차립니다.",
     advice: "마음이 흔들린 지점에서 필요한 배움을 찾으세요.",
   },
   {
     number: 10,
-    title: "현실화의 형태",
+    title: mayaDataText("mayaData.toneTitle10"),
     keywords: ["결과", "형태", "현실화"],
     meaning: "10수는 보이지 않던 것이 형태를 얻는 단계입니다. 결과를 통해 다음 조정점도 함께 드러납니다.",
     advice: "완성된 형태를 확인하고 보완할 한 곳만 고르세요.",
   },
   {
     number: 11,
-    title: "비움의 정화",
+    title: mayaDataText("mayaData.toneTitle11"),
     keywords: ["해체", "정화", "비움"],
     meaning: "11수는 낡은 구조를 풀어내는 흐름입니다. 덜어내야 새 질서가 들어올 자리가 생깁니다.",
     advice: "더 하지 말고 하나를 덜어내세요.",
   },
   {
     number: 12,
-    title: "이해의 통합",
+    title: mayaDataText("mayaData.toneTitle12"),
     keywords: ["이해", "통합", "공유"],
     meaning: "12수는 경험을 이해로 묶는 단계입니다. 혼자만의 깨달음이 나눌 수 있는 지혜로 바뀝니다.",
     advice: "배운 것을 누군가에게 쉽게 설명해 보세요.",
   },
   {
     number: 13,
-    title: "완성과 다음 주기",
+    title: mayaDataText("mayaData.toneTitle13"),
     keywords: ["완성", "상승", "다음 주기"],
     meaning: "13수는 한 주기의 문이 닫히고 다음 문이 열리는 자리입니다. 마무리와 새로운 상승이 함께 흐릅니다.",
     advice: "완성된 것을 인정하고 다음 시작을 위한 여백을 남기세요.",

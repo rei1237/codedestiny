@@ -6,6 +6,29 @@
   var ticking = false;
   var resultObserver = null;
   var loadingObserver = null;
+  var FATE_SCROLL_TOP_COPY = {
+    ko: { label: '맨 위로 이동' },
+    en: { label: 'Back to top' },
+    ja: { label: '一番上へ戻る' },
+    zh: { label: '返回顶部' }
+  };
+
+  function getFateScrollTopLocale() {
+    try {
+      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      if (!raw && window.localStorage) raw = localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || '';
+      raw = String(raw || '').toLowerCase();
+      if (raw.indexOf('ja') === 0) return 'ja';
+      if (raw.indexOf('zh') === 0) return 'zh';
+      if (raw.indexOf('en') === 0) return 'en';
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function getFateScrollTopCopy() {
+    return FATE_SCROLL_TOP_COPY[getFateScrollTopLocale()] || FATE_SCROLL_TOP_COPY.ko;
+  }
 
   function isDisplayed(el) {
     return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== 'none');
@@ -24,9 +47,10 @@
     topIndicatorEl = document.createElement('div');
     topIndicatorEl.id = TOP_INDICATOR_ID;
     topIndicatorEl.className = 'fate-scroll-next-indicator fate-scroll-top-indicator';
+    var copy = getFateScrollTopCopy();
     topIndicatorEl.innerHTML =
-      '<button class="fate-scroll-next-arrow" id="fateTopArrow" aria-label="맨 위로 이동">&#8593;</button>' +
-      '<span class="fate-scroll-next-label">맨 위로 이동</span>';
+      '<button class="fate-scroll-next-arrow" id="fateTopArrow" aria-label="' + copy.label + '">&#8593;</button>' +
+      '<span class="fate-scroll-next-label">' + copy.label + '</span>';
 
     document.body.appendChild(topIndicatorEl);
 

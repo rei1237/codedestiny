@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 const SAMPLE_DATA = [
   { age: 6, stem: "己", branch: "丑", score: -60, status: "주의" },
@@ -202,12 +203,84 @@ export function resolveLifeFortuneCurrentAge(result, fallbackBirthDate) {
   return getCurrentAge(fallbackBirthDate);
 }
 
+const LIFE_FORTUNE_GRAPH_COPY = {
+  ko: {
+    title: "인생 길흉 그래프 (억부+조후+종격 통합)",
+    sampleFlow: "샘플 흐름",
+    good: "길",
+    neutral: "중립",
+    bad: "흉",
+    current: "현재",
+    goodLuck: "길운",
+    badTrend: "흉경향",
+    statusLabels: { 최고: "최고", 길: "길", 흉: "흉", 주의: "주의", 중립: "중립" },
+    ageLabel(age) { return `${age}세`; },
+    ageFromLabel(age) { return `${age}세~`; },
+    scoreLabel(score) { return `${score > 0 ? `+${score}` : score}점`; },
+  },
+  en: {
+    title: "Life Fortune Graph (Strength, Season, and Special Pattern)",
+    sampleFlow: "Sample flow",
+    good: "Good",
+    neutral: "Neutral",
+    bad: "Low",
+    current: "Now",
+    goodLuck: "Favorable luck",
+    badTrend: "Challenging trend",
+    statusLabels: { 최고: "Peak", 길: "Good", 흉: "Difficult", 주의: "Caution", 중립: "Neutral" },
+    ageLabel(age) { return `Age ${age}`; },
+    ageFromLabel(age) { return `Age ${age}+`; },
+    scoreLabel(score) { return `${score > 0 ? `+${score}` : score} pts`; },
+  },
+  ja: {
+    title: "人生運勢グラフ（抑扶・調候・従格の統合）",
+    sampleFlow: "サンプルの流れ",
+    good: "吉",
+    neutral: "中立",
+    bad: "凶",
+    current: "現在",
+    goodLuck: "吉運",
+    badTrend: "凶の傾向",
+    statusLabels: { 최고: "最高", 길: "吉", 흉: "凶", 주의: "注意", 중립: "中立" },
+    ageLabel(age) { return `${age}歳`; },
+    ageFromLabel(age) { return `${age}歳〜`; },
+    scoreLabel(score) { return `${score > 0 ? `+${score}` : score}点`; },
+  },
+  zh: {
+    title: "人生吉凶図（抑扶・調候・従格の統合）",
+    sampleFlow: "示例流向",
+    good: "吉",
+    neutral: "中性",
+    bad: "凶",
+    current: "现在",
+    goodLuck: "吉运",
+    badTrend: "凶向",
+    statusLabels: { 최고: "最佳", 길: "吉", 흉: "凶", 주의: "注意", 중립: "中性" },
+    ageLabel(age) { return `${age}岁`; },
+    ageFromLabel(age) { return `${age}岁起`; },
+    scoreLabel(score) { return `${score > 0 ? `+${score}` : score}分`; },
+  },
+};
+
+function getLifeFortuneGraphCopy(locale) {
+  if (locale === "en" || locale === "ja") return LIFE_FORTUNE_GRAPH_COPY[locale];
+  if (locale === "zh-CN" || locale === "zh-TW") return LIFE_FORTUNE_GRAPH_COPY.zh;
+  return LIFE_FORTUNE_GRAPH_COPY.ko;
+}
+
+function getLifeFortuneStatusLabel(status, copy) {
+  return copy.statusLabels[String(status || "").trim()] || String(status || "");
+}
+
 export default function LifeFortuneGraph({
   data,
   currentAge,
-  title = "인생 길흉 그래프 (억부+조후+종격 통합)",
+  title,
   preview = false,
 }) {
+  const [locale, setLocale] = useState(() => getCurrentLoadingLocale());
+  const copy = getLifeFortuneGraphCopy(locale);
+  const displayTitle = title || copy.title;
   const gradientId = useId().replace(/:/g, "");
   const normalizedData = useMemo(() => normalizeData(data), [data]);
   const visibleData = normalizedData.length ? normalizedData : normalizeData(SAMPLE_DATA);
@@ -230,6 +303,17 @@ export default function LifeFortuneGraph({
     [activeAge, visibleData],
   );
   const isPreview = preview || !normalizedData.length;
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
 
   return (
     <section
@@ -255,7 +339,7 @@ export default function LifeFortuneGraph({
               boxShadow: "0 0 0 2px rgba(255,255,255,.7) inset",
             }}
           />
-          <h2 style={{ margin: 0, color: "#6f5a4b", fontSize: 18, fontWeight: 700 }}>{title}</h2>
+          <h2 style={{ margin: 0, color: "#6f5a4b", fontSize: 18, fontWeight: 700 }}>{displayTitle}</h2>
         </div>
         {isPreview ? (
           <span
@@ -269,13 +353,13 @@ export default function LifeFortuneGraph({
               fontWeight: 700,
             }}
           >
-            샘플 흐름
+            {copy.sampleFlow}
           </span>
         ) : null}
       </div>
 
       <div style={{ padding: "0 12px 16px" }}>
-        <svg viewBox="0 0 960 320" role="img" aria-label={title} style={{ width: "100%", height: "auto", display: "block" }}>
+        <svg viewBox="0 0 960 320" role="img" aria-label={displayTitle} style={{ width: "100%", height: "auto", display: "block" }}>
           <defs>
             <linearGradient id={`${gradientId}-top`} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor="rgba(169, 224, 183, 0.42)" />
@@ -313,13 +397,13 @@ export default function LifeFortuneGraph({
           <line x1={frame.left} x2={frame.right} y1={frame.neutralY} y2={frame.neutralY} stroke="rgba(214, 186, 166, 0.92)" strokeDasharray="6 7" strokeWidth="1.2" />
 
           <text x="44" y={frame.top + 8} fill="#88a06f" fontSize="15" fontWeight="700">
-            길
+            {copy.good}
           </text>
           <text x="29" y={frame.neutralY + 5} fill="#c7a18b" fontSize="13" fontWeight="700">
-            중립
+            {copy.neutral}
           </text>
           <text x="44" y={frame.bottom - 8} fill="#c67a8a" fontSize="15" fontWeight="700">
-            흉
+            {copy.bad}
           </text>
 
           {currentLineX != null ? (
@@ -327,7 +411,7 @@ export default function LifeFortuneGraph({
               <line x1={currentLineX} x2={currentLineX} y1={frame.top - 8} y2={frame.bottom} stroke="#8b5cf6" strokeDasharray="7 6" strokeWidth="2" opacity="0.9" />
               <rect x={currentLineX - 23} y={frame.top - 28} width="46" height="22" rx="10" fill="#8b5cf6" />
               <text x={currentLineX} y={frame.top - 13} fill="#ffffff" fontSize="12" fontWeight="700" textAnchor="middle">
-                현재
+                {copy.current}
               </text>
             </g>
           ) : null}
@@ -360,7 +444,7 @@ export default function LifeFortuneGraph({
 
           {points.map((point) => (
             <text key={`age-${point.key}`} x={point.x} y={frame.bottom + 18} textAnchor="middle" fill="#9b8f86" fontSize="13" fontWeight="700">
-              {point.age}세
+              {copy.ageLabel(point.age)}
             </text>
           ))}
         </svg>
@@ -379,19 +463,19 @@ export default function LifeFortuneGraph({
         >
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 9, height: 9, borderRadius: 999, background: "#4aa56f" }} />
-            길운
+            {copy.goodLuck}
           </span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 9, height: 9, borderRadius: 999, background: "#e9a23d" }} />
-            중립
+            {copy.neutral}
           </span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 9, height: 9, borderRadius: 999, background: "#d95f76" }} />
-            흉경향
+            {copy.badTrend}
           </span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 9, height: 9, borderRadius: 999, background: "#8b5cf6" }} />
-            현재
+            {copy.current}
           </span>
         </div>
 
@@ -420,7 +504,7 @@ export default function LifeFortuneGraph({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 6, alignItems: "center" }}>
-                  <span style={{ color: "#ff7e9a", fontWeight: 700, fontSize: 11 }}>{point.age}세~</span>
+                  <span style={{ color: "#ff7e9a", fontWeight: 700, fontSize: 11 }}>{copy.ageFromLabel(point.age)}</span>
                   <span
                     style={{
                       borderRadius: 999,
@@ -431,12 +515,12 @@ export default function LifeFortuneGraph({
                       fontWeight: 700,
                     }}
                   >
-                    {current ? "현재" : point.status}
+                    {current ? copy.current : getLifeFortuneStatusLabel(point.status, copy)}
                   </span>
                 </div>
                 <div style={{ marginTop: 12, color: "#4d4a46", fontSize: 34, lineHeight: 1, fontWeight: 700 }}>{point.stem}</div>
                 <div style={{ marginTop: 8, color: "#5e5b57", fontSize: 30, lineHeight: 1, fontWeight: 700 }}>{point.branch}</div>
-                <div style={{ marginTop: 12, color: "#9a8a7d", fontSize: 12, fontWeight: 600 }}>{point.score > 0 ? `+${point.score}` : point.score}점</div>
+                <div style={{ marginTop: 12, color: "#9a8a7d", fontSize: 12, fontWeight: 600 }}>{copy.scoreLabel(point.score)}</div>
               </article>
             );
           })}

@@ -24,15 +24,15 @@ type Props = {
 };
 
 const COUNTRY_OPTIONS = [
-  { value: "Asia/Seoul", label: "South Korea (Seoul)" },
-  { value: "Asia/Tokyo", label: "Japan (Tokyo)" },
-  { value: "Asia/Shanghai", label: "China (Shanghai)" },
-  { value: "America/New_York", label: "United States (New York)" },
-  { value: "Europe/London", label: "United Kingdom (London)" },
-  { value: "Europe/Berlin", label: "Germany (Berlin)" },
-  { value: "Asia/Kuala_Lumpur", label: "Malaysia (Kuala Lumpur)" },
-  { value: "Asia/Bangkok", label: "Thailand (Bangkok)" },
-  { value: "Asia/Kolkata", label: "India (Kolkata)" },
+  { value: "Asia/Seoul" },
+  { value: "Asia/Tokyo" },
+  { value: "Asia/Shanghai" },
+  { value: "America/New_York" },
+  { value: "Europe/London" },
+  { value: "Europe/Berlin" },
+  { value: "Asia/Kuala_Lumpur" },
+  { value: "Asia/Bangkok" },
+  { value: "Asia/Kolkata" },
 ];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
@@ -407,7 +407,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             >
               {COUNTRY_OPTIONS.map((c) => (
-                <option key={c.value} value={c.value}>{copy.countries[c.value] || c.label}</option>
+                <option key={c.value} value={c.value}>{copy.countries[c.value] || c.value}</option>
               ))}
             </select>
           </label>

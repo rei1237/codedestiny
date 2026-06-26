@@ -1,6 +1,480 @@
 /* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
  * 로드 순서: js/saju-engine.js → (본 파일) → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js
  * 알고리즘/데이터는 원본과 동일하게 유지 (이동만). */
+var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
+  ko: {
+    "sq_10033_prop_title": "오래된 약속처럼 남는 인연",
+    "sq_10034_prop_subtitle": "미완의 숙제와 설명하기 어려운 익숙함",
+    "sq_10047_prop_title": "강하게 끌리지만 경계가 필요한 인연",
+    "sq_10048_prop_subtitle": "흔들림과 방향 전환이 함께 일어나는 관계",
+    "sq_10061_prop_title": "나를 거울처럼 비추는 인연",
+    "sq_10062_prop_subtitle": "닮은 영혼과 반복되는 패턴",
+    "sq_10075_prop_title": "오래된 품처럼 편안한 인연",
+    "sq_10076_prop_subtitle": "보호와 돌봄이 자연스럽게 흐르는 관계",
+    "sq_10089_prop_title": "서로 다른 온도를 배우는 인연",
+    "sq_10090_prop_subtitle": "속도 차이와 보완이 함께 흐르는 관계",
+    "sq_10103_prop_title": "서로를 밀어 올리는 성장 계약형 인연",
+    "sq_10104_prop_subtitle": "목표와 현실 과제가 관계를 움직이는 구조",
+    "sq_10378_attr_aria_label": "숙요 전생 인연 AI 질문문",
+    "sq_10638_prop_title": "거울형 인연",
+    "sq_10639_prop_subtitle": "나와 닮은 결이 빠르게 맞닿는 관계",
+    "sq_10650_prop_title": "전생형 인연",
+    "sq_10651_prop_subtitle": "설명하기 어려운 익숙함과 여운이 남는 관계",
+    "sq_10662_prop_title": "안정형 인연",
+    "sq_10663_prop_subtitle": "편안함과 보호감이 생활 속에 자라는 관계",
+    "sq_10674_prop_title": "배움형 인연",
+    "sq_10675_prop_subtitle": "속도와 온도 차이를 조율하는 관계",
+    "sq_10686_prop_title": "강렬형 인연",
+    "sq_10687_prop_subtitle": "끌림과 흔들림이 함께 올라오는 관계",
+    "sq_10698_prop_title": "성장형 인연",
+    "sq_10699_prop_subtitle": "목표와 역할이 서로를 밀어 올리는 관계",
+    "sq_11303_prop_title": "첫 만남의 끌림",
+    "sq_11304_prop_title": "관계의 발전 양상",
+    "sq_11305_prop_title": "주의할 점과 극복법",
+    "sq_11349_prop_label": "연애",
+    "sq_11350_prop_label": "결혼",
+    "sq_11351_prop_label": "재회",
+    "sq_11352_prop_label": "썸·연락",
+    "sq_11353_prop_label": "일·사업",
+    "sq_11449_prop_label": "끌림 지수",
+    "sq_11450_prop_label": "안정감 지수",
+    "sq_11451_prop_label": "대화 지수",
+    "sq_11452_prop_label": "신뢰 지수",
+    "sq_11453_prop_label": "갈등 회복력",
+    "sq_11454_prop_label": "집착·소모 가능성",
+    "sq_11455_prop_label": "장기 지속력",
+    "sq_11456_prop_label": "결혼 적합도",
+    "sq_11457_prop_label": "재회 가능성",
+    "sq_11458_prop_label": "현실 조화력",
+    "sq_11494_prop_title": "1구간 · 온도 맞추기",
+    "sq_11503_prop_title": "2구간 · 마음 열기",
+    "sq_11512_prop_title": "3구간 · 흔들림 조율",
+    "sq_11521_prop_title": "4구간 · 약속 정리",
+    "sq_11594_prop_title": "앞으로 30일 관계 타이밍",
+    "sq_11615_prop_title": "강한 파동을 경계선으로 다루는 관계",
+    "sq_11621_prop_title": "정서의 온도를 꾸준히 쌓는 관계",
+    "sq_11627_prop_title": "목표와 감정을 함께 정렬하는 관계",
+    "sq_11633_prop_title": "안정 속에 새로움을 심는 관계",
+    "sq_11639_prop_title": "거울처럼 반응하는 관계",
+    "sq_11645_prop_title": "오래된 인연감을 현실로 내리는 관계",
+    "sq_11651_prop_title": "속도와 진심을 조율하는 관계",
+    "sq_11669_prop_title": "마음 열기",
+    "sq_11677_prop_title": "관계 정의",
+    "sq_11685_prop_title": "서운함 전달",
+    "sq_11693_prop_title": "갈등 직후",
+    "sq_11701_prop_title": "거리 조율",
+    "sq_11709_prop_title": "재접속",
+    "sq_11724_prop_title": "첫 문장",
+    "sq_11725_prop_title": "중간 문장",
+    "sq_11726_prop_title": "마무리 문장",
+    "sq_11745_prop_title": "강렬한 끌림이 시험으로 변하는 순간",
+    "sq_11750_prop_title": "편안함 뒤에 서운함이 고이는 순간",
+    "sq_11755_prop_title": "목표는 맞지만 마음이 밀리는 순간",
+    "sq_11760_prop_title": "안정이 당연함으로 변하는 순간",
+    "sq_11765_prop_title": "상대가 내 그림자를 비추는 순간",
+    "sq_11770_prop_title": "운명감이 현실 책임을 흐리는 순간",
+    "sq_11775_prop_title": "마음 읽기 기대가 커지는 순간",
+    "sq_11794_prop_title": "확인 욕구가 사랑의 증거처럼 느껴질 때",
+    "sq_11800_prop_title": "침묵이 휴식이 아니라 벌처럼 쓰일 때",
+    "sq_11806_prop_title": "역할 피로가 쌓일 때",
+    "sq_11812_prop_title": "거리감이 상상으로 채워질 때",
+    "sq_11845_prop_title": "헤어짐을 협박처럼 쓰기",
+    "sq_11846_prop_title": "상대의 침묵을 마음 없음으로 단정하기",
+    "sq_11847_prop_title": "과거 상처를 한꺼번에 소환하기",
+    "sq_11848_prop_title": "연락 빈도로 사랑을 채점하기",
+    "sq_11897_prop_title": "연애",
+    "sq_11905_prop_title": "결혼",
+    "sq_11913_prop_title": "재회",
+    "sq_11921_prop_title": "비밀연애",
+    "sq_11929_prop_title": "장거리",
+    "sq_11937_prop_title": "협업",
+    "sq_1196_prop_label": "비견",
+    "sq_1197_prop_label": "겁재",
+    "sq_11984_prop_title": "관계 온도 기록",
+    "sq_11985_prop_title": "연락 기준 정리",
+    "sq_11986_prop_title": "감정 한 문장 전달",
+    "sq_11987_prop_title": "작은 약속 실행",
+    "sq_11988_prop_title": "금기 행동 차단",
+    "sq_11989_prop_title": "현실 합의",
+    "sq_1198_prop_label": "식신",
+    "sq_11990_prop_title": "다음 리듬 결정",
+    "sq_11993_prop_title": "숙요점 전문가 종합판정",
+    "sq_11999_prop_title": "관계 조율",
+    "sq_1199_prop_label": "상관",
+    "sq_1200_prop_label": "편재",
+    "sq_1201_prop_label": "정재",
+    "sq_1202_prop_label": "편관",
+    "sq_1203_prop_label": "정관",
+    "sq_1204_prop_label": "편인",
+    "sq_1205_prop_label": "정인",
+    "sq_12083_attr_aria_label": "숙요점 1년운 전체 해석 잠금 해제",
+    "sq_12360_prop_title": "숙요점 1년운 전체 해석 잠금 해제",
+    "sq_12405_attr_aria_label": "숙요점 1년운 조회 연도",
+    "sq_12453_prop_title": "연도별 관계 흐름",
+    "sq_12456_prop_label": "3년 보기",
+    "sq_12457_prop_label": "5년 보기",
+    "sq_12458_prop_label": "10년 보기",
+    "sq_12518_prop_title": "끝내지 못한 연서",
+    "sq_12519_prop_title": "궁정의 라이벌",
+    "sq_12520_prop_title": "전장의 전사와 치유자",
+    "sq_12521_prop_title": "승려와 공주의 약속",
+    "sq_12522_prop_title": "별을 읽는 점성가와 오라클",
+    "sq_12523_prop_title": "상인과 유목민",
+    "sq_12524_prop_title": "왕과 책사",
+    "sq_12525_prop_title": "배신한 자와 남겨진 자",
+    "sq_12526_prop_title": "수호자와 길 잃은 아이",
+    "sq_12527_prop_title": "도망친 신부와 추적자",
+    "sq_12528_prop_title": "갈라진 쌍둥이 불꽃",
+    "sq_12529_prop_title": "스승과 제자",
+    "sq_12530_prop_title": "선장과 등대지기",
+    "sq_12531_prop_title": "패장과 노래꾼",
+    "sq_12532_prop_title": "신전의 사제와 금지된 손님",
+    "sq_12533_prop_title": "사막의 맹세",
+    "sq_12534_prop_title": "달궁의 기억",
+    "sq_12535_prop_title": "마을의 어린 시절",
+    "sq_12536_prop_title": "처형 날의 후회",
+    "sq_12537_prop_title": "옛 수도의 서점",
+    "sq_12538_prop_title": "무당과 상처 입은 영혼",
+    "sq_12539_prop_title": "적국의 첩자",
+    "sq_12540_prop_title": "왕실 근위대와 숨겨진 후계자",
+    "sq_12541_prop_title": "엇갈린 여행자",
+    "sq_13115_prop_message": "프롬프트를 생성할 수 없습니다.",
+    "sq_13210_prop_message": "기본 숙요점 결과를 먼저 계산해 주세요.",
+    "sq_13221_prop_message": "궁합·재회·이별 질문은 숙요 궁합 계산을 먼저 만든 뒤 프롬프트를 생성해 주세요.",
+    "sq_14399_attr_placeholder": "예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?",
+    "sq_14916_prop_label": "년주",
+    "sq_14917_prop_label": "월주",
+    "sq_14918_prop_label": "일주",
+    "sq_14919_prop_label": "시주",
+    "sq_1493_prop_label": "오늘의 운세",
+    "sq_1506_prop_label": "연애운",
+    "sq_1519_prop_label": "재회운",
+    "sq_1532_prop_label": "직장·커리어운",
+    "sq_1545_prop_label": "재물운",
+    "sq_1558_prop_label": "건강운",
+    "sq_1571_prop_label": "시험·합격운",
+    "sq_1584_prop_label": "대인관계운",
+    "sq_1967_attr_label": "혼합 조율",
+    "sq_1970_attr_label": "한 기운 집중",
+    "sq_1973_attr_label": "생조와 전환",
+    "sq_1976_attr_label": "충돌과 조율",
+    "sq_2672_prop_title": "⚡ 극대 극의 발복 조화",
+    "sq_2677_prop_title": "⚡ 과유불급 경고",
+    "sq_2681_prop_title": "✨ 용신 충전",
+    "sq_2689_prop_title": "🤝 지지합",
+    "sq_3024_prop_label": "봄(3~5월)",
+    "sq_3025_prop_label": "여름(6~7월)",
+    "sq_3026_prop_label": "환절(8~9월)",
+    "sq_3027_prop_label": "가을(10~11월)",
+    "sq_3028_prop_label": "겨울(12~2월)",
+    "sq_3287_prop_label": "깊은 회복의 달",
+    "sq_3288_prop_label": "새싹이 트는 달",
+    "sq_3289_prop_label": "성장문이 열리는 달",
+    "sq_3290_prop_label": "중심을 고르는 달",
+    "sq_3291_prop_label": "빛이 번지는 달",
+    "sq_3292_prop_label": "활력이 솟는 달",
+    "sq_3293_prop_label": "숨을 고르는 달",
+    "sq_3294_prop_label": "정리의 문이 서는 달",
+    "sq_3295_prop_label": "결실을 고르는 달",
+    "sq_3296_prop_label": "깊이가 돌아오는 달",
+    "sq_3297_prop_label": "내면이 깊어지는 달",
+    "sq_3298_prop_label": "한 해를 봉하는 달",
+    "sq_4052_prop_title": "오늘의 미션",
+    "sq_4202_prop_headline": "따뜻한 반응형",
+    "sq_4218_prop_title": "[친구 관계] 편을 먼저 들어주는 사람",
+    "sq_4219_prop_title": "[연애 관계] 다정함이 기본 장착된 타입",
+    "sq_4220_prop_title": "[가족 관계] 익숙할수록 더 많이 참는 편",
+    "sq_4221_prop_title": "[직장/팀 관계] 분위기를 부드럽게 만드는 사람",
+    "sq_4222_prop_title": "[말투 위험 구간] 너무 괜찮은 척하는 버릇",
+    "sq_4223_prop_title": "[관계 회로 디버깅] 조심하면 좋아지는 포인트",
+    "sq_4228_prop_title": "좋아하는 사람 앞에서의 태도",
+    "sq_4229_prop_title": "연락 스타일",
+    "sq_4230_prop_title": "서운함을 처리하는 방식",
+    "sq_4231_prop_title": "싸울 때의 패턴",
+    "sq_4232_prop_title": "상대가 느끼는 장점",
+    "sq_4233_prop_title": "상대가 느끼는 단점",
+    "sq_4234_prop_title": "연애 조언",
+    "sq_4239_prop_title": "업무 스타일",
+    "sq_4240_prop_title": "돈 관리 성향",
+    "sq_4241_prop_title": "위기 대응",
+    "sq_4242_prop_title": "결정력과 루틴",
+    "sq_4243_prop_title": "너무 계산적으로 보일 수 있는 지점",
+    "sq_4248_prop_title": "감정 번역 오류",
+    "sq_4249_prop_title": "말투 과냉각 현상",
+    "sq_4250_prop_title": "결정 지연 또는 과잉 분석",
+    "sq_4251_prop_title": "공감 타이밍 누락",
+    "sq_4252_prop_title": "혼자 결론 내리는 습관",
+    "sq_4257_prop_title": "오늘 바로 해볼 것",
+    "sq_4258_prop_title": "대화할 때 조심할 것",
+    "sq_4259_prop_title": "연애에서 써먹을 것",
+    "sq_4260_prop_title": "일할 때 써먹을 것",
+    "sq_4261_prop_title": "멘탈이 흔들릴 때 쓸 것",
+    "sq_4264_prop_title": "공감형 방화벽 미션",
+    "sq_4271_prop_headline": "하이브리드 분석형",
+    "sq_4287_prop_title": "[친구 관계] 공감도 하고 정리도 해주는 친구",
+    "sq_4288_prop_title": "[연애 관계] 좋아할수록 생각이 많아지는 타입",
+    "sq_4289_prop_title": "[가족 관계] 이해와 현실 체크를 번갈아 쓰는 편",
+    "sq_4290_prop_title": "[직장/팀 관계] 조율자이자 정리자",
+    "sq_4291_prop_title": "[말투 위험 구간] 완충어 뒤에 팩트가 바로 오는 패턴",
+    "sq_4292_prop_title": "[관계 회로 디버깅] 조심하면 좋아지는 포인트",
+    "sq_4297_prop_title": "좋아하는 사람 앞에서의 태도",
+    "sq_4298_prop_title": "연락 스타일",
+    "sq_4299_prop_title": "서운함을 처리하는 방식",
+    "sq_4300_prop_title": "싸울 때의 패턴",
+    "sq_4301_prop_title": "상대가 느끼는 장점",
+    "sq_4302_prop_title": "상대가 느끼는 단점",
+    "sq_4303_prop_title": "연애 조언",
+    "sq_4308_prop_title": "업무 스타일",
+    "sq_4309_prop_title": "돈 관리 성향",
+    "sq_4310_prop_title": "위기 대응",
+    "sq_4311_prop_title": "결정력과 루틴",
+    "sq_4312_prop_title": "너무 계산적으로 보일 수 있는 지점",
+    "sq_4317_prop_title": "감정 번역 오류",
+    "sq_4318_prop_title": "말투 과냉각 현상",
+    "sq_4319_prop_title": "결정 지연 또는 과잉 분석",
+    "sq_4320_prop_title": "공감 타이밍 누락",
+    "sq_4321_prop_title": "혼자 결론 내리는 습관",
+    "sq_4326_prop_title": "오늘 바로 해볼 것",
+    "sq_4327_prop_title": "대화할 때 조심할 것",
+    "sq_4328_prop_title": "연애에서 써먹을 것",
+    "sq_4329_prop_title": "일할 때 써먹을 것",
+    "sq_4330_prop_title": "멘탈이 흔들릴 때 쓸 것",
+    "sq_4333_prop_title": "하이브리드 미션",
+    "sq_4340_prop_headline": "현실 조율형",
+    "sq_4356_prop_title": "[친구 관계] 공감도 현실도 챙기는 중재형",
+    "sq_4357_prop_title": "[연애 관계] 따뜻하지만 허술하진 않은 타입",
+    "sq_4358_prop_title": "[가족 관계] 애정과 기준이 함께 있는 편",
+    "sq_4359_prop_title": "[직장/팀 관계] 신뢰감 있는 실무형 조율자",
+    "sq_4360_prop_title": "[말투 위험 구간] 부드럽지만 판단은 분명한 문장",
+    "sq_4361_prop_title": "[관계 회로 디버깅] 조심하면 좋아지는 포인트",
+    "sq_4366_prop_title": "좋아하는 사람 앞에서의 태도",
+    "sq_4367_prop_title": "연락 스타일",
+    "sq_4368_prop_title": "서운함을 처리하는 방식",
+    "sq_4369_prop_title": "싸울 때의 패턴",
+    "sq_4370_prop_title": "상대가 느끼는 장점",
+    "sq_4371_prop_title": "상대가 느끼는 단점",
+    "sq_4372_prop_title": "연애 조언",
+    "sq_4377_prop_title": "업무 스타일",
+    "sq_4378_prop_title": "돈 관리 성향",
+    "sq_4379_prop_title": "위기 대응",
+    "sq_4380_prop_title": "결정력과 루틴",
+    "sq_4381_prop_title": "너무 계산적으로 보일 수 있는 지점",
+    "sq_4386_prop_title": "감정 번역 오류",
+    "sq_4387_prop_title": "말투 과냉각 현상",
+    "sq_4388_prop_title": "결정 지연 또는 과잉 분석",
+    "sq_4389_prop_title": "공감 타이밍 누락",
+    "sq_4390_prop_title": "혼자 결론 내리는 습관",
+    "sq_4395_prop_title": "오늘 바로 해볼 것",
+    "sq_4396_prop_title": "대화할 때 조심할 것",
+    "sq_4397_prop_title": "연애에서 써먹을 것",
+    "sq_4398_prop_title": "일할 때 써먹을 것",
+    "sq_4399_prop_title": "멘탈이 흔들릴 때 쓸 것",
+    "sq_4402_prop_title": "현실 밸런스 미션",
+    "sq_4409_prop_headline": "고정밀 해결형",
+    "sq_4425_prop_title": "[친구 관계] 현실 조언이 먼저 나오는 친구",
+    "sq_4426_prop_title": "[연애 관계] 좋아할수록 더 허술하지 않으려는 사람",
+    "sq_4427_prop_title": "[가족 관계] 챙김과 통제가 붙어 보일 수 있음",
+    "sq_4428_prop_title": "[직장/팀 관계] 기준을 세워주는 실전형",
+    "sq_4429_prop_title": "[말투 위험 구간] 사실 확인이 차단 통보처럼 들리는 순간",
+    "sq_4430_prop_title": "[관계 회로 디버깅] 조심하면 좋아지는 포인트",
+    "sq_4435_prop_title": "좋아하는 사람 앞에서의 태도",
+    "sq_4436_prop_title": "연락 스타일",
+    "sq_4437_prop_title": "서운함을 처리하는 방식",
+    "sq_4438_prop_title": "싸울 때의 패턴",
+    "sq_4439_prop_title": "상대가 느끼는 장점",
+    "sq_4440_prop_title": "상대가 느끼는 단점",
+    "sq_4441_prop_title": "연애 조언",
+    "sq_4446_prop_title": "업무 스타일",
+    "sq_4447_prop_title": "돈 관리 성향",
+    "sq_4448_prop_title": "위기 대응",
+    "sq_4449_prop_title": "결정력과 루틴",
+    "sq_4450_prop_title": "너무 계산적으로 보일 수 있는 지점",
+    "sq_4455_prop_title": "감정 번역 오류",
+    "sq_4456_prop_title": "말투 과냉각 현상",
+    "sq_4457_prop_title": "결정 지연 또는 과잉 분석",
+    "sq_4458_prop_title": "공감 타이밍 누락",
+    "sq_4459_prop_title": "혼자 결론 내리는 습관",
+    "sq_4464_prop_title": "오늘 바로 해볼 것",
+    "sq_4465_prop_title": "대화할 때 조심할 것",
+    "sq_4466_prop_title": "연애에서 써먹을 것",
+    "sq_4467_prop_title": "일할 때 써먹을 것",
+    "sq_4468_prop_title": "멘탈이 흔들릴 때 쓸 것",
+    "sq_4471_prop_title": "로직 밸런스 미션",
+    "sq_4478_prop_headline": "극한 냉정형",
+    "sq_4494_prop_title": "[친구 관계] 위기에서 가장 믿음직한 사람",
+    "sq_4495_prop_title": "[연애 관계] 좋아할수록 더 현실 검증이 심해지는 타입",
+    "sq_4496_prop_title": "[가족 관계] 책임감이 통제로 읽힐 수 있음",
+    "sq_4497_prop_title": "[직장/팀 관계] 냉정한 수습형 리더 자질",
+    "sq_4498_prop_title": "[말투 위험 구간] 사실은 맞지만 체감은 너무 셈",
+    "sq_4499_prop_title": "[관계 회로 디버깅] 조심하면 좋아지는 포인트",
+    "sq_4504_prop_title": "좋아하는 사람 앞에서의 태도",
+    "sq_4505_prop_title": "연락 스타일",
+    "sq_4506_prop_title": "서운함을 처리하는 방식",
+    "sq_4507_prop_title": "싸울 때의 패턴",
+    "sq_4508_prop_title": "상대가 느끼는 장점",
+    "sq_4509_prop_title": "상대가 느끼는 단점",
+    "sq_4510_prop_title": "연애 조언",
+    "sq_4515_prop_title": "업무 스타일",
+    "sq_4516_prop_title": "돈 관리 성향",
+    "sq_4517_prop_title": "위기 대응",
+    "sq_4518_prop_title": "결정력과 루틴",
+    "sq_4519_prop_title": "너무 계산적으로 보일 수 있는 지점",
+    "sq_4524_prop_title": "감정 번역 오류",
+    "sq_4525_prop_title": "말투 과냉각 현상",
+    "sq_4526_prop_title": "결정 지연 또는 과잉 분석",
+    "sq_4527_prop_title": "공감 타이밍 누락",
+    "sq_4528_prop_title": "혼자 결론 내리는 습관",
+    "sq_4533_prop_title": "오늘 바로 해볼 것",
+    "sq_4534_prop_title": "대화할 때 조심할 것",
+    "sq_4535_prop_title": "연애에서 써먹을 것",
+    "sq_4536_prop_title": "일할 때 써먹을 것",
+    "sq_4537_prop_title": "멘탈이 흔들릴 때 쓸 것",
+    "sq_4540_prop_title": "냉정 모드 디버깅 미션",
+    "sq_4743_prop_label": "심한 결핍",
+    "sq_4744_prop_label": "결핍 경향",
+    "sq_4745_prop_label": "심한 과다",
+    "sq_4746_prop_label": "과다 경향",
+    "sq_4747_prop_label": "중화 범위",
+    "sq_5062_prop_label": "壬癸水 파동",
+    "sq_5063_prop_label": "丙丁火 파동",
+    "sq_5064_prop_label": "甲乙木 파동",
+    "sq_5065_prop_label": "庚辛金 파동",
+    "sq_5066_prop_label": "戊己土 파동",
+    "sq_5221_prop_title": "달빛 럭키 리추얼 리포트",
+    "sq_5224_prop_title": "이번 주 금전운 컨디션",
+    "sq_5242_prop_title": "나의 이번 주 수리 파동",
+    "sq_5243_prop_subtitle": "사주 오행과 수리 상징으로 보는 재미용 행운 루틴",
+    "sq_5265_attr_aria_label": "달빛 럭키 리추얼 리포트",
+    "sq_5400_prop_title": "Code Destiny 달빛 럭키 리추얼",
+    "sq_6315_prop_label": "보름달",
+    "sq_6316_prop_label": "상현달",
+    "sq_6317_prop_label": "반달",
+    "sq_6318_prop_label": "초승달",
+    "sq_6319_prop_label": "그믐달",
+    "sq_6446_prop_label": "명(命)",
+    "sq_6447_prop_label": "업(業)",
+    "sq_6448_prop_label": "태(胎)",
+    "sq_6449_prop_label": "영(榮)",
+    "sq_6450_prop_label": "친(親)",
+    "sq_6451_prop_label": "우(友)",
+    "sq_6452_prop_label": "쇠(衰)",
+    "sq_6453_prop_label": "안(安)",
+    "sq_6454_prop_label": "괴(壞)",
+    "sq_6455_prop_label": "성(成)",
+    "sq_6456_prop_label": "위(危)",
+    "sq_6457_prop_label": "우(友)",
+    "sq_6461_prop_label": "관계 미상",
+    "sq_6506_attr_aria_label": "27숙 원형 차트",
+    "sq_6721_call_confirm": "로그인이 필요한 선택 확장입니다.\\n로그인 후 이용해 주세요.",
+    "sq_7378_prop_label": "달빛 흐름",
+    "sq_7444_prop_title": "나의 본명숙 리딩",
+    "sq_7445_prop_subtitle": "태어난 날의 본명숙을 중심으로 기질, 관계 성향, 오늘의 참고 리듬을 읽어드립니다.",
+    "sq_7450_prop_label": "나의 본명숙",
+    "sq_7451_prop_label": "달의 기질",
+    "sq_7452_prop_label": "관계 성향",
+    "sq_7453_prop_label": "오늘 참고 키워드",
+    "sq_7463_prop_label": "연인",
+    "sq_7464_prop_label": "친구",
+    "sq_7465_prop_label": "동료",
+    "sq_7466_prop_label": "가족",
+    "sq_7467_prop_label": "주의",
+    "sq_7471_prop_label": "영친",
+    "sq_7480_prop_label": "업태",
+    "sq_7489_prop_label": "우쇠",
+    "sq_7498_prop_label": "위성",
+    "sq_7507_prop_label": "안괴",
+    "sq_7774_attr_aria_label": "기본 숙요점 결과 보기",
+    "sq_8402_attr_aria_label": "숙요 본성 심화 해석",
+    "sq_8669_attr_placeholder": "예: 민서",
+    "sq_8673_attr_placeholder": "선택 입력",
+    "sq_8704_attr_placeholder": "예: 민서",
+    "sq_8708_attr_placeholder": "선택 입력",
+    "sq_8943_prop_label": "동숙(同宿)",
+    "sq_8944_prop_label": "근거리(Near)",
+    "sq_8945_prop_label": "중거리(Middle)",
+    "sq_8946_prop_label": "원거리(Far)",
+    "sq_8976_prop_label": "영혼의 거울",
+    "sq_8977_prop_label": "카르마의 불꽃",
+    "sq_8978_prop_label": "황금빛 정원",
+    "sq_8979_prop_label": "고요한 달의 호수",
+    "sq_8980_prop_label": "평행선 위의 성채",
+    "sq_8981_prop_label": "강한 자극의 관계",
+    "sq_9307_prop_label": "영적 동력",
+    "sq_9308_prop_label": "현실적 보완",
+    "sq_9309_prop_label": "심리적 위안",
+    "sq_9334_prop_label": "영적 동력",
+    "sq_9335_prop_label": "현실적 보완",
+    "sq_9336_prop_label": "심리적 위안",
+    "sq_9363_prop_label": "영적 동력",
+    "sq_9364_prop_label": "현실적 보완",
+    "sq_9365_prop_label": "심리적 위안",
+    "sq_9390_prop_label": "영적 동력",
+    "sq_9391_prop_label": "현실적 보완",
+    "sq_9392_prop_label": "심리적 위안",
+    "sq_9417_prop_label": "영적 동력",
+    "sq_9418_prop_label": "현실적 보완",
+    "sq_9419_prop_label": "심리적 위안",
+    "sq_9451_prop_label": "영적 동력 (파괴적 혁신)",
+    "sq_9454_prop_label": "현실적 보완 (자극의 경제학)",
+    "sq_9457_prop_label": "심리적 위안 (역설의 위안)",
+    "sq_9794_attr_aria_label": "숙요 인연 레이더 차트",
+  }
+};
+var __sajuQuantumTextMissingLog = {};
+function _sajuQuantumNormalizeLang(value) {
+  var normalized = String(value || "ko").trim().toLowerCase().replace("_", "-");
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "ja-jp") return "ja";
+  if (normalized === "en-us" || normalized === "en-gb") return "en";
+  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].indexOf(normalized) >= 0) return normalized;
+  return "ko";
+}
+function _sajuQuantumCurrentLang() {
+  try {
+    if (window && typeof window.cdGetCurrentLanguage === "function") return _sajuQuantumNormalizeLang(window.cdGetCurrentLanguage());
+  } catch (_) {}
+  try {
+    var queryLang = new URLSearchParams(window.location.search || "").get("lang");
+    if (queryLang) return _sajuQuantumNormalizeLang(queryLang);
+  } catch (_) {}
+  try {
+    var firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+    if (firstSegment) {
+      var pathLang = _sajuQuantumNormalizeLang(firstSegment);
+      if (pathLang !== "ko" || firstSegment.toLowerCase() === "ko") return pathLang;
+    }
+  } catch (_) {}
+  try {
+    var stored = window.localStorage && window.localStorage.getItem("cd_lang");
+    if (stored) return _sajuQuantumNormalizeLang(stored);
+  } catch (_) {}
+  try {
+    var cookieLang = String(document.cookie || "").split(";").map(function(part) { return part.trim(); }).filter(function(part) { return part.indexOf("cd_locale=") === 0; })[0];
+    if (cookieLang) return _sajuQuantumNormalizeLang(decodeURIComponent(cookieLang.slice("cd_locale=".length)));
+  } catch (_) {}
+  return "ko";
+}
+function _sajuQuantumText(key) {
+  var lang = _sajuQuantumCurrentLang();
+  var koText = SAJU_QUANTUM_TEXT_TRANSLATIONS.ko[key] || "";
+  if (lang === "ko") return koText;
+  try {
+    if (window && typeof window.cdTranslate === "function") {
+      var translated = window.cdTranslate("sajuQuantum." + key, {}, "");
+      if (translated && translated !== "Translation pending" && translated !== "sajuQuantum." + key) return translated;
+    }
+  } catch (_) {}
+  var logKey = lang + ":" + key;
+  if (!__sajuQuantumTextMissingLog[logKey]) {
+    __sajuQuantumTextMissingLog[logKey] = true;
+    try {
+      if (window && window.location && window.location.hostname === "localhost") console.warn("[i18n:saju-quantum] missing text", { lang: lang, key: key });
+    } catch (_) {}
+  }
+  return "Translation pending";
+}
+
 var TAROT_DATA = [
   {id:'ar00', name:'The Fool', name_kr:'바보', short:'thefool', type:'major', sipsinTag:'식상',
    desc:'벼랑 끝에서 한 발을 내딛는 자. 주머니 속에는 아무것도 없지만 눈빛에는 세상 전부가 담겨 있다. 식상(食傷)의 순수한 파동 — 계획 없이 떠나는 그 무모함이 때로는 운명의 가장 짧은 지름길이 된다. 두려움이 아니라 설렘으로 첫 발을 내딛을 때, 우주는 기꺼이 발판이 된다.'},
@@ -1193,16 +1667,16 @@ var SUIT_TEN_GOD_AFFINITY = {
 };
 
 var TEN_GOD_DETAILS = {
-  '비견': { group: 'self', label: '비견', meaning: '자기주장, 독립성, 동등한 관계', shadow: '고집과 경쟁심으로 혼자 버티려는 경향이 커질 수 있습니다.' },
-  '겁재': { group: 'self', label: '겁재', meaning: '경쟁, 돌파, 생존 본능', shadow: '불안정한 욕심과 비교심으로 손실을 키울 수 있습니다.' },
-  '식신': { group: 'output', label: '식신', meaning: '표현, 창작, 결과물, 꾸준한 생산성', shadow: '안일함과 미루기로 실행력이 분산될 수 있습니다.' },
-  '상관': { group: 'output', label: '상관', meaning: '말, 개성, 창의적 돌파', shadow: '말실수와 충돌, 권위와의 마찰이 생기기 쉽습니다.' },
-  '편재': { group: 'wealth', label: '편재', meaning: '기회, 확장, 사람과 돈의 흐름', shadow: '산만함과 과욕, 관계의 거래화로 흐를 수 있습니다.' },
-  '정재': { group: 'wealth', label: '정재', meaning: '안정, 계획, 관리, 꾸준한 수익', shadow: '계산적 태도와 과도한 안정 집착이 생길 수 있습니다.' },
-  '편관': { group: 'officer', label: '편관', meaning: '압박 속 책임, 위기 대응, 승부 본능', shadow: '불안과 강박, 과긴장으로 소진될 수 있습니다.' },
-  '정관': { group: 'officer', label: '정관', meaning: '질서, 평판, 직업 구조, 신뢰', shadow: '경직, 눈치, 자기 억압이 강해질 수 있습니다.' },
-  '편인': { group: 'resource', label: '편인', meaning: '직관, 연구, 고독, 비주류 감각', shadow: '의심과 고립, 현실 회피로 흐를 수 있습니다.' },
-  '정인': { group: 'resource', label: '정인', meaning: '회복, 학습, 보호, 내면의 안전감', shadow: '의존, 미루기, 수동성으로 에너지가 가라앉을 수 있습니다.' }
+  '비견': { group: 'self', label: _sajuQuantumText("sq_1196_prop_label"), meaning: '자기주장, 독립성, 동등한 관계', shadow: '고집과 경쟁심으로 혼자 버티려는 경향이 커질 수 있습니다.' },
+  '겁재': { group: 'self', label: _sajuQuantumText("sq_1197_prop_label"), meaning: '경쟁, 돌파, 생존 본능', shadow: '불안정한 욕심과 비교심으로 손실을 키울 수 있습니다.' },
+  '식신': { group: 'output', label: _sajuQuantumText("sq_1198_prop_label"), meaning: '표현, 창작, 결과물, 꾸준한 생산성', shadow: '안일함과 미루기로 실행력이 분산될 수 있습니다.' },
+  '상관': { group: 'output', label: _sajuQuantumText("sq_1199_prop_label"), meaning: '말, 개성, 창의적 돌파', shadow: '말실수와 충돌, 권위와의 마찰이 생기기 쉽습니다.' },
+  '편재': { group: 'wealth', label: _sajuQuantumText("sq_1200_prop_label"), meaning: '기회, 확장, 사람과 돈의 흐름', shadow: '산만함과 과욕, 관계의 거래화로 흐를 수 있습니다.' },
+  '정재': { group: 'wealth', label: _sajuQuantumText("sq_1201_prop_label"), meaning: '안정, 계획, 관리, 꾸준한 수익', shadow: '계산적 태도와 과도한 안정 집착이 생길 수 있습니다.' },
+  '편관': { group: 'officer', label: _sajuQuantumText("sq_1202_prop_label"), meaning: '압박 속 책임, 위기 대응, 승부 본능', shadow: '불안과 강박, 과긴장으로 소진될 수 있습니다.' },
+  '정관': { group: 'officer', label: _sajuQuantumText("sq_1203_prop_label"), meaning: '질서, 평판, 직업 구조, 신뢰', shadow: '경직, 눈치, 자기 억압이 강해질 수 있습니다.' },
+  '편인': { group: 'resource', label: _sajuQuantumText("sq_1204_prop_label"), meaning: '직관, 연구, 고독, 비주류 감각', shadow: '의심과 고립, 현실 회피로 흐를 수 있습니다.' },
+  '정인': { group: 'resource', label: _sajuQuantumText("sq_1205_prop_label"), meaning: '회복, 학습, 보호, 내면의 안전감', shadow: '의존, 미루기, 수동성으로 에너지가 가라앉을 수 있습니다.' }
 };
 
 var TEN_GOD_REALITY_TEMPLATES = {
@@ -1490,7 +1964,7 @@ var MYEONGRI_CATEGORY_TEN_GOD_CONTEXTS = {
 
 var MYEONGRI_CATEGORY_FRAMES = {
   daily: {
-    label: '오늘의 운세',
+    label: _sajuQuantumText("sq_1493_prop_label"),
     theme: '오늘 하루의 흐름과 주의할 변수',
     question: '오늘 하루에서 먼저 살펴야 할 변수는 무엇인가',
     focus: '카드의 색채와 인물 행동을 오늘의 기분, 결정, 일상 변수로 옮깁니다.',
@@ -1503,7 +1977,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '처럼 오늘을 한 칸 낮추세요.'; }
   },
   love: {
-    label: '연애운',
+    label: _sajuQuantumText("sq_1506_prop_label"),
     theme: '감정의 흐름과 관계의 온도',
     question: '마음을 확인하기 전에 어떤 속도로 다가가야 하는가',
     focus: '인물의 거리, 시선, 손의 방향을 감정 온도와 관계 행동으로 옮깁니다.',
@@ -1516,7 +1990,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '의 속도로 마음을 전하세요.'; }
   },
   reunion: {
-    label: '재회운',
+    label: _sajuQuantumText("sq_1519_prop_label"),
     theme: '다시 연결될 조건과 마음의 온도',
     question: '연락보다 먼저 회복되어야 할 기준은 무엇인가',
     focus: '귀환, 부활, 분리, 재결합의 상징을 상대의 마음과 내면 정리로 옮깁니다.',
@@ -1529,7 +2003,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '의 문은 천천히 여세요.'; }
   },
   career: {
-    label: '직장·커리어운',
+    label: _sajuQuantumText("sq_1532_prop_label"),
     theme: '성과, 관계, 커리어 선택 기준',
     question: '지금 성과로 남겨야 할 일은 무엇인가',
     focus: '노동, 권위, 여정, 성취 상징을 업무 성과와 커리어 판단으로 옮깁니다.',
@@ -1542,7 +2016,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '처럼 성과를 남기세요.'; }
   },
   money: {
-    label: '재물운',
+    label: _sajuQuantumText("sq_1545_prop_label"),
     theme: '수입, 지출, 투자와 사업 타이밍',
     question: '지금 돈을 늘릴 때인가, 지킬 때인가',
     focus: '물질, 교환, 풍요, 결핍 상징을 금전 관리와 타이밍으로 옮깁니다.',
@@ -1555,7 +2029,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '의 금전문은 기준으로 여세요.'; }
   },
   health: {
-    label: '건강운',
+    label: _sajuQuantumText("sq_1558_prop_label"),
     theme: '몸과 마음의 에너지와 회복 방향',
     question: '지금 몸과 마음이 요구하는 회복 방식은 무엇인가',
     focus: '자세, 색채, 주변 환경을 열, 냉기, 긴장, 회복 리듬으로 옮깁니다.',
@@ -1568,7 +2042,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '의 리듬으로 몸을 쉬게 하세요.'; }
   },
   exam: {
-    label: '시험·합격운',
+    label: _sajuQuantumText("sq_1571_prop_label"),
     theme: '준비도, 시험 흐름, 결과 가능성',
     question: '지금 점수로 이어질 준비는 무엇인가',
     focus: '집중, 승리, 좌절, 여정 상징을 시험 준비와 멘탈 관리로 옮깁니다.',
@@ -1581,7 +2055,7 @@ var MYEONGRI_CATEGORY_FRAMES = {
     oneLine: function(cardName) { return cardName + '처럼 실수를 줄이세요.'; }
   },
   people: {
-    label: '대인관계운',
+    label: _sajuQuantumText("sq_1584_prop_label"),
     theme: '갈등, 화해, 새로운 인연의 흐름',
     question: '지금 관계에서 어떤 말과 거리를 선택해야 하는가',
     focus: '인물 수, 거리, 손짓을 갈등, 화해, 새 인연의 신호로 옮깁니다.',
@@ -1964,16 +2438,16 @@ function analyzeMyeongriTenGodFlow(readings) {
     if (supportMap[a] && supportMap[a][b]) steps.push(supportMap[a][b]);
     else if (tensionMap[a] && tensionMap[a][b]) steps.push(tensionMap[a][b]);
   }
-  var label = '혼합 조율';
+  var label = _sajuQuantumText("sq_1967_attr_label");
   var detail = '서로 다른 기운이 한 번에 움직이므로 우선순위를 정해야 합니다.';
   if (Object.keys(uniqueGroups).length === 1) {
-    label = '한 기운 집중';
+    label = _sajuQuantumText("sq_1970_attr_label");
     detail = getTenGodGroupLabel(groups[0]) + '이 반복되어 장점은 강하지만 과해지면 시야가 좁아질 수 있습니다.';
   } else if (steps.some(function(step) { return step.indexOf('생조') >= 0 || step.indexOf('생산') >= 0 || step.indexOf('회수') >= 0; })) {
-    label = '생조와 전환';
+    label = _sajuQuantumText("sq_1973_attr_label");
     detail = steps.join(' · ') + '입니다. 흐름을 살리려면 앞 카드의 기운을 다음 행동으로 넘겨야 합니다.';
   } else if (steps.some(function(step) { return step.indexOf('충돌') >= 0 || step.indexOf('압박') >= 0; })) {
-    label = '충돌과 조율';
+    label = _sajuQuantumText("sq_1976_attr_label");
     detail = steps.join(' · ') + '입니다. 바로 밀어붙이기보다 기준, 말, 돈, 책임을 분리해 다뤄야 합니다.';
   }
   return {
@@ -2669,16 +3143,16 @@ function analyzeFortuneGZ(gz, p, label){
 
   var adviceItems=[];
   chungBonusAlerts.forEach(function(b){
-    adviceItems.push({type:'good',title:'⚡ 극대 극의 발복 조화',body:b});
+    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2672_prop_title"),body:b});
   });
   if(isGi && chungBonusAlerts.length===0){
     adviceItems.push({
       type:'warn',
-      title:'⚡ 과유불급 경고',
+      title:_sajuQuantumText("sq_2677_prop_title"),
       body:'오늘 들어오는 기운('+incomingElText+')이 원국의 기신(忌神) '+overlappedGiText+'와(과) 겹칩니다. 고집·손재수·충돌로 이어질 수 있으니 큰 결정을 미루세요.'
     });
   }else if(isYong){
-    adviceItems.push({type:'good',title:'✨ 용신 충전',body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 당신에게 필요한 용신과 맞아떨어집니다. 도전·협상·투자에 길한 날입니다.'});
+    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 당신에게 필요한 용신과 맞아떨어집니다. 도전·협상·투자에 길한 날입니다.'});
   }
   hyungAlerts.forEach(function(h){
     adviceItems.push({type:'warn',title:'🔺 형살 발생 — '+h.split(' — ')[0],body:h.split(' — ')[1]||h});
@@ -2686,7 +3160,7 @@ function analyzeFortuneGZ(gz, p, label){
   chungAlerts.forEach(function(c){
     adviceItems.push({type:'warn',title:'💢 충·입묘 — '+c.split(' — ')[0],body:c.split(' — ').slice(1).join(' — ')});
   });
-  if(heInfo)adviceItems.push({type:'good',title:'🤝 지지합',body:heInfo});
+  if(heInfo)adviceItems.push({type:'good',title:_sajuQuantumText("sq_2689_prop_title"),body:heInfo});
 
   var LUCKY_TIPS={
     wood:{color:'초록·민트 계열',action:'동쪽 방향 외출, 나무·식물과 가까이'},
@@ -3021,11 +3495,11 @@ function renderEnergyCoord(natal){
 
   var today = new Date();
   function getSeasonNeed(month){
-    if(month>=3&&month<=5) return {el:'wood',label:'봄(3~5월)',note:'생장·확장 기운이 강해 목(木) 보강 효율이 높습니다.'};
-    if(month>=6&&month<=7) return {el:'fire',label:'여름(6~7월)',note:'활동·발산 기운이 강해 화(火) 조절/보강이 중요합니다.'};
-    if(month>=8&&month<=9) return {el:'earth',label:'환절(8~9월)',note:'중심·소화·안정 기운이 핵심이라 토(土) 보정이 효과적입니다.'};
-    if(month>=10&&month<=11) return {el:'metal',label:'가을(10~11월)',note:'정리·결단 기운이 올라가 금(金) 보강이 성과로 이어집니다.'};
-    return {el:'water',label:'겨울(12~2월)',note:'저장·회복 기운이 커져 수(水) 보강 체감이 큽니다.'};
+    if(month>=3&&month<=5) return {el:'wood',label:_sajuQuantumText("sq_3024_prop_label"),note:'생장·확장 기운이 강해 목(木) 보강 효율이 높습니다.'};
+    if(month>=6&&month<=7) return {el:'fire',label:_sajuQuantumText("sq_3025_prop_label"),note:'활동·발산 기운이 강해 화(火) 조절/보강이 중요합니다.'};
+    if(month>=8&&month<=9) return {el:'earth',label:_sajuQuantumText("sq_3026_prop_label"),note:'중심·소화·안정 기운이 핵심이라 토(土) 보정이 효과적입니다.'};
+    if(month>=10&&month<=11) return {el:'metal',label:_sajuQuantumText("sq_3027_prop_label"),note:'정리·결단 기운이 올라가 금(金) 보강이 성과로 이어집니다.'};
+    return {el:'water',label:_sajuQuantumText("sq_3028_prop_label"),note:'저장·회복 기운이 커져 수(水) 보강 체감이 큽니다.'};
   }
   var seasonNeed = getSeasonNeed(today.getMonth()+1);
   var primaryNeedText = elText(target);
@@ -3284,18 +3758,18 @@ function renderEnergyCoord(natal){
     return '<li style="margin:2px 0;">'+item+'</li>';
   }).join('');
   var monthlyTravelPlans=[
-    {month:1,el:'water',label:'깊은 회복의 달',tone:'차가운 물기운이 마음을 낮추고, 긴 호흡의 휴식 좌표가 잘 열립니다.',styles:['retreat','slow_trip'],time:'해 질 무렵, 조용한 물가나 실내 온기 사이를 천천히 오가는 일정',mission:'물가나 창가에서 올해 놓을 짐 하나를 적고 접어두세요.'},
-    {month:2,el:'wood',label:'새싹이 트는 달',tone:'목(木)의 첫 숨이 올라오며, 산책과 정원 동선에서 다시 시작할 힘이 돋아납니다.',styles:['day_trip','slow_trip','creative'],time:'오전 9~11시, 빛이 부드러운 숲길과 수목원',mission:'여행 노트 첫 장에 새로 키울 계획 한 줄을 남기세요.'},
-    {month:3,el:'wood',label:'성장문이 열리는 달',tone:'초록의 결이 강해져 관계, 공부, 창작의 방향이 또렷하게 자랍니다.',styles:['slow_trip','creative'],time:'오전 산책 뒤 오후 카페나 서점으로 이어지는 동선',mission:'새로 만나고 싶은 사람, 배우고 싶은 주제, 키우고 싶은 습관을 하나씩 적으세요.'},
-    {month:4,el:'earth',label:'중심을 고르는 달',tone:'흙의 기운이 몸의 리듬을 붙들어 생활과 마음의 중심을 다시 세웁니다.',styles:['one_night','slow_trip'],time:'식사와 산책 시간이 흔들리지 않는 1박 2일 일정',mission:'걷는 속도를 늦추고, 이번 달 반드시 지킬 루틴 하나를 정하세요.'},
-    {month:5,el:'fire',label:'빛이 번지는 달',tone:'화(火)의 온기가 자신감과 표현력을 데우니, 밝은 전망과 활기 있는 풍경이 운을 깨웁니다.',styles:['romantic','creative','day_trip'],time:'일출 직후 또는 해 질 무렵, 빛의 방향이 선명한 자리',mission:'하고 싶은 말을 한 문장으로 정리하고 마음속으로 또렷하게 읽으세요.'},
-    {month:6,el:'fire',label:'활력이 솟는 달',tone:'뜨거운 기운이 강해지는 만큼, 빛과 물 휴식을 함께 둔 여행이 가장 맑게 흐릅니다.',styles:['romantic','adventure','day_trip'],time:'낮 일정은 짧게, 저녁 풍경은 선명하게 여는 코스',mission:'즐거운 일정 하나를 고르고, 그 뒤에는 반드시 조용한 회복 시간을 붙이세요.'},
-    {month:7,el:'earth',label:'숨을 고르는 달',tone:'여름의 열이 흙으로 내려앉으며, 온천·한옥·오래된 골목에서 안정감이 차오릅니다.',styles:['retreat','one_night','slow_trip'],time:'오전 10시~오후 2시, 식사와 산책을 안정적으로 묶는 일정',mission:'휴식 시간을 일정표에 먼저 넣고 나머지 동선을 맞추세요.'},
-    {month:8,el:'metal',label:'정리의 문이 서는 달',tone:'금(金)의 선명함이 올라와 미술관, 건축, 전망 좌표에서 판단의 칼날이 맑아집니다.',styles:['creative','day_trip','slow_trip'],time:'오후 2~5시, 감각과 기준이 또렷한 시간',mission:'여행 사진은 9장만 남기고, 이번 달 덜어낼 일 하나를 고르세요.'},
-    {month:9,el:'metal',label:'결실을 고르는 달',tone:'차분한 정리 기운이 짙어져, 복잡한 마음을 단순한 기준으로 되돌리기 좋습니다.',styles:['creative','retreat','day_trip'],time:'사람이 적은 평일 오후, 조용한 전시와 전망 동선',mission:'나에게 남길 것과 보낼 것을 각각 한 가지씩 적으세요.'},
-    {month:10,el:'water',label:'깊이가 돌아오는 달',tone:'수(水)의 기운이 차오르며, 강과 바다와 호수에서 마음의 파동이 낮아집니다.',styles:['retreat','slow_trip'],time:'해 질 무렵부터 초저녁, 말수를 줄이고 오래 머무는 일정',mission:'감정 한 줄과 사실 한 줄을 나누어 기록하세요.'},
-    {month:11,el:'water',label:'내면이 깊어지는 달',tone:'저장과 통찰의 흐름이 짙어져, 조용한 체류와 물가 산책이 직관을 비춥니다.',styles:['retreat','slow_trip','romantic'],time:'초저녁 물가 산책 뒤 따뜻한 차로 마무리하는 코스',mission:'결론을 서두르지 말고 마음이 가라앉는 시간을 먼저 주세요.'},
-    {month:12,el:'earth',label:'한 해를 봉하는 달',tone:'흩어진 기운을 흙으로 다시 모으며, 오래된 장소와 따뜻한 체류가 운의 바닥을 다집니다.',styles:['one_night','retreat','slow_trip'],time:'짧은 이동, 따뜻한 식사, 충분한 수면이 이어지는 일정',mission:'올해 고마웠던 장소나 사람을 하나 떠올리고 조용히 감사의 마음을 남기세요.'}
+    {month:1,el:'water',label:_sajuQuantumText("sq_3287_prop_label"),tone:'차가운 물기운이 마음을 낮추고, 긴 호흡의 휴식 좌표가 잘 열립니다.',styles:['retreat','slow_trip'],time:'해 질 무렵, 조용한 물가나 실내 온기 사이를 천천히 오가는 일정',mission:'물가나 창가에서 올해 놓을 짐 하나를 적고 접어두세요.'},
+    {month:2,el:'wood',label:_sajuQuantumText("sq_3288_prop_label"),tone:'목(木)의 첫 숨이 올라오며, 산책과 정원 동선에서 다시 시작할 힘이 돋아납니다.',styles:['day_trip','slow_trip','creative'],time:'오전 9~11시, 빛이 부드러운 숲길과 수목원',mission:'여행 노트 첫 장에 새로 키울 계획 한 줄을 남기세요.'},
+    {month:3,el:'wood',label:_sajuQuantumText("sq_3289_prop_label"),tone:'초록의 결이 강해져 관계, 공부, 창작의 방향이 또렷하게 자랍니다.',styles:['slow_trip','creative'],time:'오전 산책 뒤 오후 카페나 서점으로 이어지는 동선',mission:'새로 만나고 싶은 사람, 배우고 싶은 주제, 키우고 싶은 습관을 하나씩 적으세요.'},
+    {month:4,el:'earth',label:_sajuQuantumText("sq_3290_prop_label"),tone:'흙의 기운이 몸의 리듬을 붙들어 생활과 마음의 중심을 다시 세웁니다.',styles:['one_night','slow_trip'],time:'식사와 산책 시간이 흔들리지 않는 1박 2일 일정',mission:'걷는 속도를 늦추고, 이번 달 반드시 지킬 루틴 하나를 정하세요.'},
+    {month:5,el:'fire',label:_sajuQuantumText("sq_3291_prop_label"),tone:'화(火)의 온기가 자신감과 표현력을 데우니, 밝은 전망과 활기 있는 풍경이 운을 깨웁니다.',styles:['romantic','creative','day_trip'],time:'일출 직후 또는 해 질 무렵, 빛의 방향이 선명한 자리',mission:'하고 싶은 말을 한 문장으로 정리하고 마음속으로 또렷하게 읽으세요.'},
+    {month:6,el:'fire',label:_sajuQuantumText("sq_3292_prop_label"),tone:'뜨거운 기운이 강해지는 만큼, 빛과 물 휴식을 함께 둔 여행이 가장 맑게 흐릅니다.',styles:['romantic','adventure','day_trip'],time:'낮 일정은 짧게, 저녁 풍경은 선명하게 여는 코스',mission:'즐거운 일정 하나를 고르고, 그 뒤에는 반드시 조용한 회복 시간을 붙이세요.'},
+    {month:7,el:'earth',label:_sajuQuantumText("sq_3293_prop_label"),tone:'여름의 열이 흙으로 내려앉으며, 온천·한옥·오래된 골목에서 안정감이 차오릅니다.',styles:['retreat','one_night','slow_trip'],time:'오전 10시~오후 2시, 식사와 산책을 안정적으로 묶는 일정',mission:'휴식 시간을 일정표에 먼저 넣고 나머지 동선을 맞추세요.'},
+    {month:8,el:'metal',label:_sajuQuantumText("sq_3294_prop_label"),tone:'금(金)의 선명함이 올라와 미술관, 건축, 전망 좌표에서 판단의 칼날이 맑아집니다.',styles:['creative','day_trip','slow_trip'],time:'오후 2~5시, 감각과 기준이 또렷한 시간',mission:'여행 사진은 9장만 남기고, 이번 달 덜어낼 일 하나를 고르세요.'},
+    {month:9,el:'metal',label:_sajuQuantumText("sq_3295_prop_label"),tone:'차분한 정리 기운이 짙어져, 복잡한 마음을 단순한 기준으로 되돌리기 좋습니다.',styles:['creative','retreat','day_trip'],time:'사람이 적은 평일 오후, 조용한 전시와 전망 동선',mission:'나에게 남길 것과 보낼 것을 각각 한 가지씩 적으세요.'},
+    {month:10,el:'water',label:_sajuQuantumText("sq_3296_prop_label"),tone:'수(水)의 기운이 차오르며, 강과 바다와 호수에서 마음의 파동이 낮아집니다.',styles:['retreat','slow_trip'],time:'해 질 무렵부터 초저녁, 말수를 줄이고 오래 머무는 일정',mission:'감정 한 줄과 사실 한 줄을 나누어 기록하세요.'},
+    {month:11,el:'water',label:_sajuQuantumText("sq_3297_prop_label"),tone:'저장과 통찰의 흐름이 짙어져, 조용한 체류와 물가 산책이 직관을 비춥니다.',styles:['retreat','slow_trip','romantic'],time:'초저녁 물가 산책 뒤 따뜻한 차로 마무리하는 코스',mission:'결론을 서두르지 말고 마음이 가라앉는 시간을 먼저 주세요.'},
+    {month:12,el:'earth',label:_sajuQuantumText("sq_3298_prop_label"),tone:'흩어진 기운을 흙으로 다시 모으며, 오래된 장소와 따뜻한 체류가 운의 바닥을 다집니다.',styles:['one_night','retreat','slow_trip'],time:'짧은 이동, 따뜻한 식사, 충분한 수면이 이어지는 일정',mission:'올해 고마웠던 장소나 사람을 하나 떠올리고 조용히 감사의 마음을 남기세요.'}
   ];
   function getMonthlyTravelPlan(month){
     var m=parseInt(month,10);
@@ -4049,7 +4523,7 @@ function renderTTest(p, natal, johu, pw) {
 
     if (builtResult) {
       var stats = builtResult.stats || {};
-      var mission = builtResult.mission || { title: '오늘의 미션', items: [] };
+      var mission = builtResult.mission || { title: _sajuQuantumText("sq_4052_prop_title"), items: [] };
       var sajuRows = Array.isArray(builtResult.sajuRows) ? builtResult.sajuRows : [];
 
       var missionHtmlFromBuilder = '<section class="t-mission-card">'
@@ -4199,7 +4673,7 @@ function renderTTest(p, natal, johu, pw) {
     empathy_first: {
       typeName: '말랑공감형 감성 OS',
       stateMessage: '공감 회로 우세 · 감정 수신 감도 높음',
-      headline: '따뜻한 반응형',
+      headline: _sajuQuantumText("sq_4202_prop_headline"),
       catchphrase: function(ctx) {
         return ctx.isColdDry
           ? '당신은 기본값이 다정한 사람입니다. 다만 마음을 오래 끌어안다가 지치면 갑자기 차가워질 만큼, 감정의 무게를 깊게 받아들이는 타입입니다.'
@@ -4215,60 +4689,60 @@ function renderTTest(p, natal, johu, pw) {
       },
       relationshipRows: function(ctx) {
         return [
-          { title:'[친구 관계] 편을 먼저 들어주는 사람', text:'친구가 힘들다고 하면 원인보다 기분부터 받아줍니다. 그래서 사람들은 당신 앞에서 유난히 마음을 쉽게 풀지만, 정작 당신은 타인의 감정을 오래 떠안아 피곤해질 수 있습니다.' },
-          { title:'[연애 관계] 다정함이 기본 장착된 타입', text:'좋아하는 사람에게는 티를 크게 안 내도 분위기와 감정을 세심하게 챙깁니다. 다만 상대가 서운할까 봐 싫은 것을 늦게 말해, 오히려 마음이 쌓이는 패턴이 생길 수 있습니다.' },
-          { title:'[가족 관계] 익숙할수록 더 많이 참는 편', text:'가족에게는 내 감정보다 집안 분위기를 먼저 생각하는 경우가 많습니다. 그래서 속상해도 넘기다가 한 번 지치면 갑자기 거리를 두는 식의 반응이 나올 수 있습니다.' },
-          { title:'[직장/팀 관계] 분위기를 부드럽게 만드는 사람', text:'팀에서는 갈등 완충 장치 역할을 잘합니다. 다만 기준을 강하게 세우는 사람 옆에 있으면 본인 의견을 뒤로 미루는 일이 생길 수 있으니, 필요한 순간엔 선명한 말도 연습해야 합니다.' },
-          { title:'[말투 위험 구간] 너무 괜찮은 척하는 버릇', text:'상대 기분을 생각해 괜찮다고 넘기지만, 그 말이 반복되면 당신 속마음은 아무도 모르게 됩니다. 따뜻함이 침묵으로 굳어지지 않게 주의할 필요가 있습니다.' },
-          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'공감은 이미 충분합니다. 이제는 "나는 이 부분이 힘들어"라는 자기 감정 문장을 한 줄 더하는 것이 관계를 더 건강하게 만듭니다.' }
+          { title:_sajuQuantumText("sq_4218_prop_title"), text:'친구가 힘들다고 하면 원인보다 기분부터 받아줍니다. 그래서 사람들은 당신 앞에서 유난히 마음을 쉽게 풀지만, 정작 당신은 타인의 감정을 오래 떠안아 피곤해질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4219_prop_title"), text:'좋아하는 사람에게는 티를 크게 안 내도 분위기와 감정을 세심하게 챙깁니다. 다만 상대가 서운할까 봐 싫은 것을 늦게 말해, 오히려 마음이 쌓이는 패턴이 생길 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4220_prop_title"), text:'가족에게는 내 감정보다 집안 분위기를 먼저 생각하는 경우가 많습니다. 그래서 속상해도 넘기다가 한 번 지치면 갑자기 거리를 두는 식의 반응이 나올 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4221_prop_title"), text:'팀에서는 갈등 완충 장치 역할을 잘합니다. 다만 기준을 강하게 세우는 사람 옆에 있으면 본인 의견을 뒤로 미루는 일이 생길 수 있으니, 필요한 순간엔 선명한 말도 연습해야 합니다.' },
+          { title:_sajuQuantumText("sq_4222_prop_title"), text:'상대 기분을 생각해 괜찮다고 넘기지만, 그 말이 반복되면 당신 속마음은 아무도 모르게 됩니다. 따뜻함이 침묵으로 굳어지지 않게 주의할 필요가 있습니다.' },
+          { title:_sajuQuantumText("sq_4223_prop_title"), text:'공감은 이미 충분합니다. 이제는 "나는 이 부분이 힘들어"라는 자기 감정 문장을 한 줄 더하는 것이 관계를 더 건강하게 만듭니다.' }
         ];
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생기면 배려가 먼저 커집니다. 잘해주고 싶고 편하게 해주고 싶지만, 본인 마음을 선명하게 드러내는 데는 시간이 걸립니다.' },
-          { title:'연락 스타일', text:'연락은 성실하고 다정한 편입니다. 다만 상대 리듬에 맞추려다 본인 페이스를 잃으면, 나중에 혼자 지쳐버릴 수 있습니다.' },
-          { title:'서운함을 처리하는 방식', text:'서운해도 곧바로 따지기보다 스스로 정리하려고 합니다. 그 과정에서 "내가 예민한가?"를 먼저 의심해 감정을 늦게 꺼낼 가능성이 큽니다.' },
-          { title:'싸울 때의 패턴', text:'크게 몰아붙이기보다 속으로 오래 앓습니다. 겉으로는 괜찮아 보여도 마음속 로그는 계속 쌓이기 때문에, 나중에 한꺼번에 터질 수 있습니다.' },
-          { title:'상대가 느끼는 장점', text:'함께 있으면 편안하고, 판단받는 느낌이 적습니다. 상대 감정을 세심하게 받아주는 힘이 커서 정서적 안정감을 주는 연애를 합니다.' },
-          { title:'상대가 느끼는 단점', text:'좋고 싫음의 기준이 늦게 드러나서, 상대는 당신 속마음을 읽기 어렵다고 느낄 수 있습니다. 결국 문제는 차가움이 아니라 표현 지연입니다.' },
-          { title:'연애 조언', text:'상대를 배려하는 마음만큼 자기 감정도 같은 비중으로 다뤄주세요. 당신이 솔직해질수록 연애는 더 편안하고 오래 갑니다.' }
+          { title:_sajuQuantumText("sq_4228_prop_title"), text:'호감이 생기면 배려가 먼저 커집니다. 잘해주고 싶고 편하게 해주고 싶지만, 본인 마음을 선명하게 드러내는 데는 시간이 걸립니다.' },
+          { title:_sajuQuantumText("sq_4229_prop_title"), text:'연락은 성실하고 다정한 편입니다. 다만 상대 리듬에 맞추려다 본인 페이스를 잃으면, 나중에 혼자 지쳐버릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4230_prop_title"), text:'서운해도 곧바로 따지기보다 스스로 정리하려고 합니다. 그 과정에서 "내가 예민한가?"를 먼저 의심해 감정을 늦게 꺼낼 가능성이 큽니다.' },
+          { title:_sajuQuantumText("sq_4231_prop_title"), text:'크게 몰아붙이기보다 속으로 오래 앓습니다. 겉으로는 괜찮아 보여도 마음속 로그는 계속 쌓이기 때문에, 나중에 한꺼번에 터질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4232_prop_title"), text:'함께 있으면 편안하고, 판단받는 느낌이 적습니다. 상대 감정을 세심하게 받아주는 힘이 커서 정서적 안정감을 주는 연애를 합니다.' },
+          { title:_sajuQuantumText("sq_4233_prop_title"), text:'좋고 싫음의 기준이 늦게 드러나서, 상대는 당신 속마음을 읽기 어렵다고 느낄 수 있습니다. 결국 문제는 차가움이 아니라 표현 지연입니다.' },
+          { title:_sajuQuantumText("sq_4234_prop_title"), text:'상대를 배려하는 마음만큼 자기 감정도 같은 비중으로 다뤄주세요. 당신이 솔직해질수록 연애는 더 편안하고 오래 갑니다.' }
         ];
       },
       workMoneyRows: function(ctx) {
         return [
-          { title:'업무 스타일', text:'일에서는 사람을 고려한 조율 능력이 강합니다. 다만 기준보다 분위기를 먼저 보면 본인 에너지가 예상보다 빨리 빠질 수 있습니다.' },
-          { title:'돈 관리 성향', text:'돈도 현실적으로 아예 못 보는 편은 아니지만, 사람 마음이나 상황을 고려하다 지출 기준이 흐려질 수 있습니다. 특히 부탁에 약해질 가능성을 봐야 합니다.' },
-          { title:'위기 대응', text:'위기 때도 감정이 먼저 흔들리기보다, 주변 사람 상태를 먼저 챙기는 쪽으로 움직입니다. 그만큼 본인 회복은 뒤로 밀릴 수 있습니다.' },
-          { title:'결정력과 루틴', text:'결정은 가능하지만 충분히 납득될 때 더 잘 움직입니다. 루틴은 "나를 위한 규칙"보다 "지켜야 하는 약속"이 있을 때 더 강해집니다.' },
-          { title:'너무 계산적으로 보일 수 있는 지점', text:'이 구간은 계산적으로 보이기보다 오히려 너무 양보하는 쪽이 문제입니다. 손해를 봐도 티를 늦게 내는 습관이 더 큰 리스크가 됩니다.' }
+          { title:_sajuQuantumText("sq_4239_prop_title"), text:'일에서는 사람을 고려한 조율 능력이 강합니다. 다만 기준보다 분위기를 먼저 보면 본인 에너지가 예상보다 빨리 빠질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4240_prop_title"), text:'돈도 현실적으로 아예 못 보는 편은 아니지만, 사람 마음이나 상황을 고려하다 지출 기준이 흐려질 수 있습니다. 특히 부탁에 약해질 가능성을 봐야 합니다.' },
+          { title:_sajuQuantumText("sq_4241_prop_title"), text:'위기 때도 감정이 먼저 흔들리기보다, 주변 사람 상태를 먼저 챙기는 쪽으로 움직입니다. 그만큼 본인 회복은 뒤로 밀릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4242_prop_title"), text:'결정은 가능하지만 충분히 납득될 때 더 잘 움직입니다. 루틴은 "나를 위한 규칙"보다 "지켜야 하는 약속"이 있을 때 더 강해집니다.' },
+          { title:_sajuQuantumText("sq_4243_prop_title"), text:'이 구간은 계산적으로 보이기보다 오히려 너무 양보하는 쪽이 문제입니다. 손해를 봐도 티를 늦게 내는 습관이 더 큰 리스크가 됩니다.' }
         ];
       },
       bugRows: function(ctx) {
         return [
-          { title:'감정 번역 오류', text:'남의 감정은 잘 읽는데 자기 감정은 늦게 번역합니다. 그래서 괜찮다고 넘긴 뒤 뒤늦게 지치는 일이 생깁니다.' },
-          { title:'말투 과냉각 현상', text:'평소엔 거의 없지만, 참을 만큼 참은 뒤에는 갑자기 말이 짧아지고 차가워질 수 있습니다. 상대는 온도차 때문에 더 놀라게 됩니다.' },
-          { title:'결정 지연 또는 과잉 분석', text:'상대 입장까지 다 고려하느라 결정이 늦어질 수 있습니다. 모두를 덜 다치게 하려다 오히려 본인만 지치는 패턴입니다.' },
-          { title:'공감 타이밍 누락', text:'공감은 충분하지만 자기 감정을 설명하는 타이밍이 자주 누락됩니다. 당신 마음이 빠지면 관계는 한쪽만 편안해집니다.' },
-          { title:'혼자 결론 내리는 습관', text:'상대를 배려하느라 "내가 그냥 참자"로 결론 내릴 수 있습니다. 이 결론은 조용하지만 오래 가는 피로를 남깁니다.' }
+          { title:_sajuQuantumText("sq_4248_prop_title"), text:'남의 감정은 잘 읽는데 자기 감정은 늦게 번역합니다. 그래서 괜찮다고 넘긴 뒤 뒤늦게 지치는 일이 생깁니다.' },
+          { title:_sajuQuantumText("sq_4249_prop_title"), text:'평소엔 거의 없지만, 참을 만큼 참은 뒤에는 갑자기 말이 짧아지고 차가워질 수 있습니다. 상대는 온도차 때문에 더 놀라게 됩니다.' },
+          { title:_sajuQuantumText("sq_4250_prop_title"), text:'상대 입장까지 다 고려하느라 결정이 늦어질 수 있습니다. 모두를 덜 다치게 하려다 오히려 본인만 지치는 패턴입니다.' },
+          { title:_sajuQuantumText("sq_4251_prop_title"), text:'공감은 충분하지만 자기 감정을 설명하는 타이밍이 자주 누락됩니다. 당신 마음이 빠지면 관계는 한쪽만 편안해집니다.' },
+          { title:_sajuQuantumText("sq_4252_prop_title"), text:'상대를 배려하느라 "내가 그냥 참자"로 결론 내릴 수 있습니다. 이 결론은 조용하지만 오래 가는 피로를 남깁니다.' }
         ];
       },
       prescriptionRows: function(ctx) {
         return [
-          { title:'오늘 바로 해볼 것', text:'오늘 한 번만 "괜찮아" 대신 "나는 이 부분이 조금 걸려"라고 말해보세요. 당신의 감정도 같은 무게로 다뤄져야 합니다.' },
-          { title:'대화할 때 조심할 것', text:'상대 입장만 정리하지 말고, 내 입장도 한 문장으로 붙이세요. 배려가 자기 소거로 이어지면 관계 균형이 무너집니다.' },
-          { title:'연애에서 써먹을 것', text:'서운함이 생기면 참다가 식지 말고, "나는 이런 상황에서 불안해져"라고 감정 언어로 먼저 설명하세요.' },
-          { title:'일할 때 써먹을 것', text:'도와주기 전에 내 시간과 에너지를 먼저 확인하세요. 당신의 친절은 기준이 있을 때 더 오래 갑니다.' },
-          { title:'멘탈이 흔들릴 때 쓸 것', text:'감정이 과하게 쌓이면 바로 결정하지 말고, 지금 내 기분을 세 줄로 적어보세요. 당신은 감정을 글로 정리할 때 스스로를 더 잘 지킬 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4257_prop_title"), text:'오늘 한 번만 "괜찮아" 대신 "나는 이 부분이 조금 걸려"라고 말해보세요. 당신의 감정도 같은 무게로 다뤄져야 합니다.' },
+          { title:_sajuQuantumText("sq_4258_prop_title"), text:'상대 입장만 정리하지 말고, 내 입장도 한 문장으로 붙이세요. 배려가 자기 소거로 이어지면 관계 균형이 무너집니다.' },
+          { title:_sajuQuantumText("sq_4259_prop_title"), text:'서운함이 생기면 참다가 식지 말고, "나는 이런 상황에서 불안해져"라고 감정 언어로 먼저 설명하세요.' },
+          { title:_sajuQuantumText("sq_4260_prop_title"), text:'도와주기 전에 내 시간과 에너지를 먼저 확인하세요. 당신의 친절은 기준이 있을 때 더 오래 갑니다.' },
+          { title:_sajuQuantumText("sq_4261_prop_title"), text:'감정이 과하게 쌓이면 바로 결정하지 말고, 지금 내 기분을 세 줄로 적어보세요. 당신은 감정을 글로 정리할 때 스스로를 더 잘 지킬 수 있습니다.' }
         ];
       },
-      mission: { title:'공감형 방화벽 미션', items:['오늘 한 번은 괜찮다는 말 대신 내 기분을 정확히 말하기', '부탁 하나에는 바로 답하지 말고 생각할 시간을 두기', '감정 소모가 큰 대화 뒤에는 혼자 회복 시간 10분 확보'] },
+      mission: { title:_sajuQuantumText("sq_4264_prop_title"), items:['오늘 한 번은 괜찮다는 말 대신 내 기분을 정확히 말하기', '부탁 하나에는 바로 답하지 말고 생각할 시간을 두기', '감정 소모가 큰 대화 뒤에는 혼자 회복 시간 10분 확보'] },
       summaryTip: '내 감정도 상대 감정만큼 같은 무게로 말하기.',
       summaryMood: '따뜻하지만 쉽게 지치는 편'
     },
     hybrid: {
       typeName: '듀얼 코어 해석자',
       stateMessage: '이성/감성 병렬 처리 · 내부 회의 많음',
-      headline: '하이브리드 분석형',
+      headline: _sajuQuantumText("sq_4271_prop_headline"),
       catchphrase: function(ctx) {
         return ctx.warmDriven
           ? '당신은 공감도 하고 분석도 합니다. 다만 두 회로가 동시에 돌아가서, 남들은 모르게 속으로 더 많은 생각을 하는 사람입니다.'
@@ -4284,60 +4758,60 @@ function renderTTest(p, natal, johu, pw) {
       },
       relationshipRows: function(ctx) {
         return [
-          { title:'[친구 관계] 공감도 하고 정리도 해주는 친구', text:'친구 입장에서는 가장 만능형에 가깝습니다. 위로도 해주고, 필요할 때는 현실적인 조언도 주기 때문에 오래 찾게 되는 사람입니다.' },
-          { title:'[연애 관계] 좋아할수록 생각이 많아지는 타입', text:'감정이 커질수록 더 가볍게 굴지 않으려 합니다. 그래서 표현은 느려질 수 있지만, 함부로 대하지 않는다는 점에서 신뢰를 줍니다.' },
-          { title:'[가족 관계] 이해와 현실 체크를 번갈아 쓰는 편', text:'가족에게는 감정적으로 받아주다가도 생활 습관, 돈, 건강 문제에서는 의외로 현실적인 말을 꺼냅니다. 그래서 다정한데도 한마디는 세다는 인상을 줄 수 있습니다.' },
-          { title:'[직장/팀 관계] 조율자이자 정리자', text:'팀에서는 분위기를 깨지 않으면서도 기준을 세울 줄 압니다. 다만 모두를 만족시키려다 본인 판단을 늦추면 리더십이 흐려질 수 있습니다.' },
-          { title:'[말투 위험 구간] 완충어 뒤에 팩트가 바로 오는 패턴', text:'"이해는 하는데" 뒤에 현실 판단이 바로 붙으면 상대는 앞 문장을 거의 못 듣습니다. 순서를 조금만 바꾸면 훨씬 부드럽게 전달됩니다.' },
-          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'이성과 감성 둘 다 챙기려 할수록 답이 늦어질 수 있습니다. 지금 장면에서 먼저 필요한 것이 공감인지 판단인지 하나만 먼저 정하면 훨씬 매끄러워집니다.' }
+          { title:_sajuQuantumText("sq_4287_prop_title"), text:'친구 입장에서는 가장 만능형에 가깝습니다. 위로도 해주고, 필요할 때는 현실적인 조언도 주기 때문에 오래 찾게 되는 사람입니다.' },
+          { title:_sajuQuantumText("sq_4288_prop_title"), text:'감정이 커질수록 더 가볍게 굴지 않으려 합니다. 그래서 표현은 느려질 수 있지만, 함부로 대하지 않는다는 점에서 신뢰를 줍니다.' },
+          { title:_sajuQuantumText("sq_4289_prop_title"), text:'가족에게는 감정적으로 받아주다가도 생활 습관, 돈, 건강 문제에서는 의외로 현실적인 말을 꺼냅니다. 그래서 다정한데도 한마디는 세다는 인상을 줄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4290_prop_title"), text:'팀에서는 분위기를 깨지 않으면서도 기준을 세울 줄 압니다. 다만 모두를 만족시키려다 본인 판단을 늦추면 리더십이 흐려질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4291_prop_title"), text:'"이해는 하는데" 뒤에 현실 판단이 바로 붙으면 상대는 앞 문장을 거의 못 듣습니다. 순서를 조금만 바꾸면 훨씬 부드럽게 전달됩니다.' },
+          { title:_sajuQuantumText("sq_4292_prop_title"), text:'이성과 감성 둘 다 챙기려 할수록 답이 늦어질 수 있습니다. 지금 장면에서 먼저 필요한 것이 공감인지 판단인지 하나만 먼저 정하면 훨씬 매끄러워집니다.' }
         ];
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 살핍니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
-          { title:'연락 스타일', text:'연락은 감정형처럼 완전히 흘러가지도, T형처럼 기능적이지도 않습니다. 다정함과 효율이 섞여 있어 답장 톤이 상황 따라 달라질 수 있습니다.' },
-          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 바로 터뜨리기보다 해석을 먼저 합니다. 그래서 말을 꺼내는 데 시간이 걸리고, 그 사이 상대는 당신 마음을 헷갈릴 수 있습니다.' },
-          { title:'싸울 때의 패턴', text:'싸울 때도 감정만 밀어붙이지 않고 왜 이런 패턴이 반복되는지 보려 합니다. 다만 너무 중간 지점을 찾다 보면 결정적인 문제를 흐릴 수 있습니다.' },
-          { title:'상대가 느끼는 장점', text:'함께 있으면 차갑지 않은데, 필요할 때는 똑똑하게 정리해주는 안정감이 있습니다. 관계를 가볍게 소비하지 않는다는 신뢰도 큽니다.' },
-          { title:'상대가 느끼는 단점', text:'속으로 생각이 많아 반응이 늦을 수 있고, 뚜렷한 입장을 바로 안 보여 답답하게 느껴질 수 있습니다.' },
-          { title:'연애 조언', text:'모든 걸 한 번에 맞추려 하지 말고, 지금은 공감 모드인지 판단 모드인지 먼저 정하세요. 그 구분만 있어도 연애 피로가 훨씬 줄어듭니다.' }
+          { title:_sajuQuantumText("sq_4297_prop_title"), text:'편안하게 대해주면서도 속으로는 상대 반응을 세심하게 살핍니다. 마음이 커질수록 감정도 보지만 현실성 체크도 같이 늘어납니다.' },
+          { title:_sajuQuantumText("sq_4298_prop_title"), text:'연락은 감정형처럼 완전히 흘러가지도, T형처럼 기능적이지도 않습니다. 다정함과 효율이 섞여 있어 답장 톤이 상황 따라 달라질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4299_prop_title"), text:'서운함이 생기면 바로 터뜨리기보다 해석을 먼저 합니다. 그래서 말을 꺼내는 데 시간이 걸리고, 그 사이 상대는 당신 마음을 헷갈릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4300_prop_title"), text:'싸울 때도 감정만 밀어붙이지 않고 왜 이런 패턴이 반복되는지 보려 합니다. 다만 너무 중간 지점을 찾다 보면 결정적인 문제를 흐릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4301_prop_title"), text:'함께 있으면 차갑지 않은데, 필요할 때는 똑똑하게 정리해주는 안정감이 있습니다. 관계를 가볍게 소비하지 않는다는 신뢰도 큽니다.' },
+          { title:_sajuQuantumText("sq_4302_prop_title"), text:'속으로 생각이 많아 반응이 늦을 수 있고, 뚜렷한 입장을 바로 안 보여 답답하게 느껴질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4303_prop_title"), text:'모든 걸 한 번에 맞추려 하지 말고, 지금은 공감 모드인지 판단 모드인지 먼저 정하세요. 그 구분만 있어도 연애 피로가 훨씬 줄어듭니다.' }
         ];
       },
       workMoneyRows: function(ctx) {
         return [
-          { title:'업무 스타일', text:'일에서는 해석력과 조율력이 같이 작동합니다. 문제를 풀면서도 사람 반응을 고려하기 때문에, 혼자 하는 일보다 협업에서 강점이 잘 드러납니다.' },
-          { title:'돈 관리 성향', text:'돈은 현실적으로 보려고 하지만, 완전 냉정하게만 굴지는 않습니다. 가치 있는 소비와 정서적 소비 사이에서 나름의 기준을 만들 필요가 있습니다.' },
-          { title:'위기 대응', text:'위기 상황에서는 생각이 많아지지만 쉽게 무너지지는 않습니다. 상황 파악과 정서 조절을 동시에 하려 하기 때문에 초반 반응이 약간 느릴 수 있습니다.' },
-          { title:'결정력과 루틴', text:'결정은 늦을 수 있어도 한 번 정하면 꽤 단단히 갑니다. 루틴은 "왜 이걸 해야 하는지"가 납득될 때 더 오래 유지됩니다.' },
-          { title:'너무 계산적으로 보일 수 있는 지점', text:'이 구간의 문제는 계산적임보다 애매함입니다. 모두를 반영하려다 명확한 메시지가 늦어지는 것이 더 큰 리스크입니다.' }
+          { title:_sajuQuantumText("sq_4308_prop_title"), text:'일에서는 해석력과 조율력이 같이 작동합니다. 문제를 풀면서도 사람 반응을 고려하기 때문에, 혼자 하는 일보다 협업에서 강점이 잘 드러납니다.' },
+          { title:_sajuQuantumText("sq_4309_prop_title"), text:'돈은 현실적으로 보려고 하지만, 완전 냉정하게만 굴지는 않습니다. 가치 있는 소비와 정서적 소비 사이에서 나름의 기준을 만들 필요가 있습니다.' },
+          { title:_sajuQuantumText("sq_4310_prop_title"), text:'위기 상황에서는 생각이 많아지지만 쉽게 무너지지는 않습니다. 상황 파악과 정서 조절을 동시에 하려 하기 때문에 초반 반응이 약간 느릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4311_prop_title"), text:'결정은 늦을 수 있어도 한 번 정하면 꽤 단단히 갑니다. 루틴은 "왜 이걸 해야 하는지"가 납득될 때 더 오래 유지됩니다.' },
+          { title:_sajuQuantumText("sq_4312_prop_title"), text:'이 구간의 문제는 계산적임보다 애매함입니다. 모두를 반영하려다 명확한 메시지가 늦어지는 것이 더 큰 리스크입니다.' }
         ];
       },
       bugRows: function(ctx) {
         return [
-          { title:'감정 번역 오류', text:'상대 마음도 이해하고 문제도 보이는데, 어느 쪽부터 말해야 할지 망설이다 타이밍을 놓칠 수 있습니다.' },
-          { title:'말투 과냉각 현상', text:'평소엔 부드럽지만 기준을 세워야 할 순간에는 말이 갑자기 딱딱해질 수 있습니다. 이 온도차가 상대를 당황하게 만듭니다.' },
-          { title:'결정 지연 또는 과잉 분석', text:'공감과 현실을 동시에 만족시키려다 내부 회의가 길어집니다. 그래서 결정 미루기가 반복되면 스스로도 피곤해집니다.' },
-          { title:'공감 타이밍 누락', text:'공감 능력은 있지만, 설명과 공감이 동시에 나오다 보니 상대가 감정을 충분히 받았다고 느끼지 못할 수 있습니다.' },
-          { title:'혼자 결론 내리는 습관', text:'혼자 생각을 많이 정리한 뒤 말하기 때문에, 상대는 당신의 중간 과정을 몰라 갑자기 결론만 통보받는 느낌을 받을 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4317_prop_title"), text:'상대 마음도 이해하고 문제도 보이는데, 어느 쪽부터 말해야 할지 망설이다 타이밍을 놓칠 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4318_prop_title"), text:'평소엔 부드럽지만 기준을 세워야 할 순간에는 말이 갑자기 딱딱해질 수 있습니다. 이 온도차가 상대를 당황하게 만듭니다.' },
+          { title:_sajuQuantumText("sq_4319_prop_title"), text:'공감과 현실을 동시에 만족시키려다 내부 회의가 길어집니다. 그래서 결정 미루기가 반복되면 스스로도 피곤해집니다.' },
+          { title:_sajuQuantumText("sq_4320_prop_title"), text:'공감 능력은 있지만, 설명과 공감이 동시에 나오다 보니 상대가 감정을 충분히 받았다고 느끼지 못할 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4321_prop_title"), text:'혼자 생각을 많이 정리한 뒤 말하기 때문에, 상대는 당신의 중간 과정을 몰라 갑자기 결론만 통보받는 느낌을 받을 수 있습니다.' }
         ];
       },
       prescriptionRows: function(ctx) {
         return [
-          { title:'오늘 바로 해볼 것', text:'오늘 미뤄둔 결정 하나에 마감 시간을 붙이세요. 생각의 품질보다 실행 시점을 정하는 것이 지금의 당신에게 더 큰 디버깅입니다.' },
-          { title:'대화할 때 조심할 것', text:'공감과 판단을 한 문장에 같이 넣지 말고 순서를 분리하세요. 먼저 받아주고, 그다음 정리하면 훨씬 전달력이 좋아집니다.' },
-          { title:'연애에서 써먹을 것', text:'서운함이 생기면 혼자 결론 내리기 전에 "나는 지금 생각이 많아졌어"라고 먼저 알려주세요. 상대는 당신의 침묵을 덜 불안하게 느낍니다.' },
-          { title:'일할 때 써먹을 것', text:'회의나 협업에서는 내 기준을 한 줄로 먼저 말한 뒤 조율을 시작하세요. 당신의 장점은 조율력이지 자기 기준 소거가 아닙니다.' },
-          { title:'멘탈이 흔들릴 때 쓸 것', text:'지금 장면에서 가장 중요한 한 가지를 적어보세요. 모든 요소를 한 번에 만족시키려는 압박을 줄이는 것이 핵심입니다.' }
+          { title:_sajuQuantumText("sq_4326_prop_title"), text:'오늘 미뤄둔 결정 하나에 마감 시간을 붙이세요. 생각의 품질보다 실행 시점을 정하는 것이 지금의 당신에게 더 큰 디버깅입니다.' },
+          { title:_sajuQuantumText("sq_4327_prop_title"), text:'공감과 판단을 한 문장에 같이 넣지 말고 순서를 분리하세요. 먼저 받아주고, 그다음 정리하면 훨씬 전달력이 좋아집니다.' },
+          { title:_sajuQuantumText("sq_4328_prop_title"), text:'서운함이 생기면 혼자 결론 내리기 전에 "나는 지금 생각이 많아졌어"라고 먼저 알려주세요. 상대는 당신의 침묵을 덜 불안하게 느낍니다.' },
+          { title:_sajuQuantumText("sq_4329_prop_title"), text:'회의나 협업에서는 내 기준을 한 줄로 먼저 말한 뒤 조율을 시작하세요. 당신의 장점은 조율력이지 자기 기준 소거가 아닙니다.' },
+          { title:_sajuQuantumText("sq_4330_prop_title"), text:'지금 장면에서 가장 중요한 한 가지를 적어보세요. 모든 요소를 한 번에 만족시키려는 압박을 줄이는 것이 핵심입니다.' }
         ];
       },
-      mission: { title:'하이브리드 미션', items:['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록'] },
+      mission: { title:_sajuQuantumText("sq_4333_prop_title"), items:['감정/논리 중 오늘의 우선 모드 하나 고정', '결정 지연 과제 1건은 데드라인 설정', '좋은 판단 1건을 자기 피드백으로 기록'] },
       summaryTip: '공감과 판단을 한 문장에 동시에 넣지 않기.',
       summaryMood: '따뜻하지만 속으로 계산이 많은 편'
     },
     balanced_realist: {
       typeName: '현실형 팩트 밸런서',
       stateMessage: '공감과 현실 판단 균형 · 상황 적응형',
-      headline: '현실 조율형',
+      headline: _sajuQuantumText("sq_4340_prop_headline"),
       catchphrase: function(ctx) {
         return ctx.expressiveDriven
           ? '당신은 부드럽게 웃고 있어도 속에서는 이미 사실, 우선순위, 손해 여부를 동시에 정리하고 있는 사람입니다.'
@@ -4353,60 +4827,60 @@ function renderTTest(p, natal, johu, pw) {
       },
       relationshipRows: function(ctx) {
         return [
-          { title:'[친구 관계] 공감도 현실도 챙기는 중재형', text:'친구들 사이에서는 정리자이자 중재자 역할을 자주 맡습니다. 한쪽 편만 들기보다 전체 그림을 보며 분위기를 정리하는 능력이 좋습니다.' },
-          { title:'[연애 관계] 따뜻하지만 허술하진 않은 타입', text:'좋아하는 사람에게는 다정하지만, 관계의 현실성도 함께 봅니다. 그래서 설렘만으로 달리지 않고 오래 갈 수 있는지를 같이 체크합니다.' },
-          { title:'[가족 관계] 애정과 기준이 함께 있는 편', text:'가족에게도 마음은 따뜻하지만, 반복되는 문제는 그냥 넘기지 않습니다. 그래서 챙김과 잔소리 사이를 오가는 인상으로 읽힐 수 있습니다.' },
-          { title:'[직장/팀 관계] 신뢰감 있는 실무형 조율자', text:'팀에서는 감정 정리와 실무 정리를 동시에 할 수 있어 유용한 사람으로 보입니다. 다만 모두를 잘 맞추려다 본인 피로가 누적될 수 있습니다.' },
-          { title:'[말투 위험 구간] 부드럽지만 판단은 분명한 문장', text:'완곡하게 말해도 결론이 분명한 편이라, 듣는 사람은 생각보다 세게 받아들일 수 있습니다. 톤보다 내용의 직선성을 점검할 필요가 있습니다.' },
-          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'당신은 이미 균형이 좋은 편입니다. 다만 상황 적응이 빠른 만큼, 내 기준을 한 번 더 말해줘야 상대가 당신을 더 안정적으로 이해합니다.' }
+          { title:_sajuQuantumText("sq_4356_prop_title"), text:'친구들 사이에서는 정리자이자 중재자 역할을 자주 맡습니다. 한쪽 편만 들기보다 전체 그림을 보며 분위기를 정리하는 능력이 좋습니다.' },
+          { title:_sajuQuantumText("sq_4357_prop_title"), text:'좋아하는 사람에게는 다정하지만, 관계의 현실성도 함께 봅니다. 그래서 설렘만으로 달리지 않고 오래 갈 수 있는지를 같이 체크합니다.' },
+          { title:_sajuQuantumText("sq_4358_prop_title"), text:'가족에게도 마음은 따뜻하지만, 반복되는 문제는 그냥 넘기지 않습니다. 그래서 챙김과 잔소리 사이를 오가는 인상으로 읽힐 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4359_prop_title"), text:'팀에서는 감정 정리와 실무 정리를 동시에 할 수 있어 유용한 사람으로 보입니다. 다만 모두를 잘 맞추려다 본인 피로가 누적될 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4360_prop_title"), text:'완곡하게 말해도 결론이 분명한 편이라, 듣는 사람은 생각보다 세게 받아들일 수 있습니다. 톤보다 내용의 직선성을 점검할 필요가 있습니다.' },
+          { title:_sajuQuantumText("sq_4361_prop_title"), text:'당신은 이미 균형이 좋은 편입니다. 다만 상황 적응이 빠른 만큼, 내 기준을 한 번 더 말해줘야 상대가 당신을 더 안정적으로 이해합니다.' }
         ];
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생기면 감정 표현도 하지만, 관계가 현실적으로 건강한지도 함께 봅니다. 그래서 설레면서도 쉽게 무너지지 않는 연애를 지향합니다.' },
-          { title:'연락 스타일', text:'연락은 적당히 따뜻하고 적당히 실용적입니다. 필요한 때는 센스 있게 챙기고, 의미 없는 소모전에는 잘 안 빠집니다.' },
-          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 바로 감정으로만 반응하지 않고, 왜 그런지 해석하려 합니다. 덕분에 대화는 비교적 성숙하지만 감정의 생생함은 살짝 늦게 나올 수 있습니다.' },
-          { title:'싸울 때의 패턴', text:'싸울 때도 문제 해결과 관계 유지 두 축을 같이 봅니다. 그래서 감정이 폭주하기보다, 무엇을 조정해야 하는지 찾는 방향으로 흘러가기 쉽습니다.' },
-          { title:'상대가 느끼는 장점', text:'함께 있을 때 편안한데도 흐트러지지 않는 안정감이 있습니다. 감정만 있는 사람도 아니고, 차갑기만 한 사람도 아니라 오래 만날수록 신뢰가 커집니다.' },
-          { title:'상대가 느끼는 단점', text:'생각보다 현실 감각이 분명해서, 마냥 로맨틱한 흐름만 기대한 상대에게는 "의외로 냉정하다"는 인상을 줄 수 있습니다.' },
-          { title:'연애 조언', text:'지금처럼 균형감은 큰 장점입니다. 다만 관계가 애매해질 때는 너무 잘 조율하려 하기보다, 내 마음의 방향을 조금 더 선명하게 말해주는 편이 좋습니다.' }
+          { title:_sajuQuantumText("sq_4366_prop_title"), text:'호감이 생기면 감정 표현도 하지만, 관계가 현실적으로 건강한지도 함께 봅니다. 그래서 설레면서도 쉽게 무너지지 않는 연애를 지향합니다.' },
+          { title:_sajuQuantumText("sq_4367_prop_title"), text:'연락은 적당히 따뜻하고 적당히 실용적입니다. 필요한 때는 센스 있게 챙기고, 의미 없는 소모전에는 잘 안 빠집니다.' },
+          { title:_sajuQuantumText("sq_4368_prop_title"), text:'서운함이 생기면 바로 감정으로만 반응하지 않고, 왜 그런지 해석하려 합니다. 덕분에 대화는 비교적 성숙하지만 감정의 생생함은 살짝 늦게 나올 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4369_prop_title"), text:'싸울 때도 문제 해결과 관계 유지 두 축을 같이 봅니다. 그래서 감정이 폭주하기보다, 무엇을 조정해야 하는지 찾는 방향으로 흘러가기 쉽습니다.' },
+          { title:_sajuQuantumText("sq_4370_prop_title"), text:'함께 있을 때 편안한데도 흐트러지지 않는 안정감이 있습니다. 감정만 있는 사람도 아니고, 차갑기만 한 사람도 아니라 오래 만날수록 신뢰가 커집니다.' },
+          { title:_sajuQuantumText("sq_4371_prop_title"), text:'생각보다 현실 감각이 분명해서, 마냥 로맨틱한 흐름만 기대한 상대에게는 "의외로 냉정하다"는 인상을 줄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4372_prop_title"), text:'지금처럼 균형감은 큰 장점입니다. 다만 관계가 애매해질 때는 너무 잘 조율하려 하기보다, 내 마음의 방향을 조금 더 선명하게 말해주는 편이 좋습니다.' }
         ];
       },
       workMoneyRows: function(ctx) {
         return [
-          { title:'업무 스타일', text:'현실 판단과 협업 감각이 모두 좋아 실무형 밸런서로 강합니다. 감정 소모 없이도 사람을 불편하게 만들지 않는 편이라 조직 적응력이 좋습니다.' },
-          { title:'돈 관리 성향', text:'돈은 감정 소비보다 기준을 세우는 편에 가깝습니다. 다만 너무 빡빡하게 조이지 않아, 필요한 곳에는 잘 쓰는 현실형 소비 패턴으로 읽힙니다.' },
-          { title:'위기 대응', text:'위기가 오면 감정에 휩쓸리지 않고 우선순위를 세웁니다. 동시에 사람 상태도 보기 때문에, 수습 과정에서 신뢰를 얻기 쉽습니다.' },
-          { title:'결정력과 루틴', text:'결정은 무난하게 안정적이고, 루틴도 지나치게 경직되지 않게 유지합니다. 꾸준함과 유연함을 같이 가져갈 수 있는 편입니다.' },
-          { title:'너무 계산적으로 보일 수 있는 지점', text:'균형이 좋을수록 때로는 계산적으로 보이기보다 "감정선이 분명하진 않다"는 인상을 줄 수 있습니다. 그래서 진심 표현을 살짝 더해주면 더 좋습니다.' }
+          { title:_sajuQuantumText("sq_4377_prop_title"), text:'현실 판단과 협업 감각이 모두 좋아 실무형 밸런서로 강합니다. 감정 소모 없이도 사람을 불편하게 만들지 않는 편이라 조직 적응력이 좋습니다.' },
+          { title:_sajuQuantumText("sq_4378_prop_title"), text:'돈은 감정 소비보다 기준을 세우는 편에 가깝습니다. 다만 너무 빡빡하게 조이지 않아, 필요한 곳에는 잘 쓰는 현실형 소비 패턴으로 읽힙니다.' },
+          { title:_sajuQuantumText("sq_4379_prop_title"), text:'위기가 오면 감정에 휩쓸리지 않고 우선순위를 세웁니다. 동시에 사람 상태도 보기 때문에, 수습 과정에서 신뢰를 얻기 쉽습니다.' },
+          { title:_sajuQuantumText("sq_4380_prop_title"), text:'결정은 무난하게 안정적이고, 루틴도 지나치게 경직되지 않게 유지합니다. 꾸준함과 유연함을 같이 가져갈 수 있는 편입니다.' },
+          { title:_sajuQuantumText("sq_4381_prop_title"), text:'균형이 좋을수록 때로는 계산적으로 보이기보다 "감정선이 분명하진 않다"는 인상을 줄 수 있습니다. 그래서 진심 표현을 살짝 더해주면 더 좋습니다.' }
         ];
       },
       bugRows: function(ctx) {
         return [
-          { title:'감정 번역 오류', text:'감정은 이해하지만, 때로는 너무 빠르게 정리하려 들어 상대가 "내 기분이 충분히 머물지 못했다"고 느낄 수 있습니다.' },
-          { title:'말투 과냉각 현상', text:'극단적으로 차갑진 않지만, 기준을 세워야 할 장면에서는 문장이 예상보다 딱 떨어질 수 있습니다.' },
-          { title:'결정 지연 또는 과잉 분석', text:'기본적으로는 안정적이지만, 모두에게 무난한 답을 찾으려다 선택이 늦어질 수 있습니다.' },
-          { title:'공감 타이밍 누락', text:'공감은 있으나 짧게 지나가고 바로 정리 단계로 넘어갈 수 있습니다. 상대가 정서적으로는 덜 받아들여졌다고 느낄 수 있습니다.' },
-          { title:'혼자 결론 내리는 습관', text:'상황 판단이 빠른 편이라, 속으로는 이미 방향을 정했는데 대화는 아직 그 단계에 못 온 경우가 있습니다.' }
+          { title:_sajuQuantumText("sq_4386_prop_title"), text:'감정은 이해하지만, 때로는 너무 빠르게 정리하려 들어 상대가 "내 기분이 충분히 머물지 못했다"고 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4387_prop_title"), text:'극단적으로 차갑진 않지만, 기준을 세워야 할 장면에서는 문장이 예상보다 딱 떨어질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4388_prop_title"), text:'기본적으로는 안정적이지만, 모두에게 무난한 답을 찾으려다 선택이 늦어질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4389_prop_title"), text:'공감은 있으나 짧게 지나가고 바로 정리 단계로 넘어갈 수 있습니다. 상대가 정서적으로는 덜 받아들여졌다고 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4390_prop_title"), text:'상황 판단이 빠른 편이라, 속으로는 이미 방향을 정했는데 대화는 아직 그 단계에 못 온 경우가 있습니다.' }
         ];
       },
       prescriptionRows: function(ctx) {
         return [
-          { title:'오늘 바로 해볼 것', text:'오늘 한 번은 결론을 말하기 전에 "이 부분에서 네가 어떤 기분이었는지 알 것 같아"를 먼저 붙여보세요.' },
-          { title:'대화할 때 조심할 것', text:'너무 빨리 정리해주려 하지 마세요. 당신의 해석력은 이미 충분하니, 감정이 머무를 틈을 조금만 더 주면 훨씬 좋습니다.' },
-          { title:'연애에서 써먹을 것', text:'상대가 서운함을 말할 때 해결책보다 "그럴 만했어"를 먼저 주면, 당신의 현실 감각이 더 따뜻하게 받아들여집니다.' },
-          { title:'일할 때 써먹을 것', text:'중간 조율을 잘하는 만큼, 최종 결론도 명확히 말해주는 연습이 필요합니다. 균형감이 리더십으로 이어지는 지점입니다.' },
-          { title:'멘탈이 흔들릴 때 쓸 것', text:'사람과 현실을 동시에 챙기느라 피곤해지면, 지금 당장 내가 책임질 것과 아닌 것을 구분해서 적어보세요.' }
+          { title:_sajuQuantumText("sq_4395_prop_title"), text:'오늘 한 번은 결론을 말하기 전에 "이 부분에서 네가 어떤 기분이었는지 알 것 같아"를 먼저 붙여보세요.' },
+          { title:_sajuQuantumText("sq_4396_prop_title"), text:'너무 빨리 정리해주려 하지 마세요. 당신의 해석력은 이미 충분하니, 감정이 머무를 틈을 조금만 더 주면 훨씬 좋습니다.' },
+          { title:_sajuQuantumText("sq_4397_prop_title"), text:'상대가 서운함을 말할 때 해결책보다 "그럴 만했어"를 먼저 주면, 당신의 현실 감각이 더 따뜻하게 받아들여집니다.' },
+          { title:_sajuQuantumText("sq_4398_prop_title"), text:'중간 조율을 잘하는 만큼, 최종 결론도 명확히 말해주는 연습이 필요합니다. 균형감이 리더십으로 이어지는 지점입니다.' },
+          { title:_sajuQuantumText("sq_4399_prop_title"), text:'사람과 현실을 동시에 챙기느라 피곤해지면, 지금 당장 내가 책임질 것과 아닌 것을 구분해서 적어보세요.' }
         ];
       },
-      mission: { title:'현실 밸런스 미션', items:['오늘 대화 1회는 공감 후 결론 순서로 말하기', '미뤄둔 현실 체크 1건을 오늘 안에 정리하기', '내 입장을 한 문장으로 먼저 말해보기'] },
+      mission: { title:_sajuQuantumText("sq_4402_prop_title"), items:['오늘 대화 1회는 공감 후 결론 순서로 말하기', '미뤄둔 현실 체크 1건을 오늘 안에 정리하기', '내 입장을 한 문장으로 먼저 말해보기'] },
       summaryTip: '공감 뒤에 결론을 두는 순서 지키기.',
       summaryMood: '차분하지만 과냉각은 아닌 편'
     },
     logic_first: {
       typeName: '냉정한 문제 해결자',
       stateMessage: '논리 우선형 · 효율/팩트 체크 강함',
-      headline: '고정밀 해결형',
+      headline: _sajuQuantumText("sq_4409_prop_headline"),
       catchphrase: function(ctx) {
         return ctx.gwanDriven
           ? '당신은 아무 말 없이 지나치지 않습니다. 기준이 무너질 것 같으면, 관계가 어색해져도 현실적인 답을 먼저 꺼내는 사람입니다.'
@@ -4422,60 +4896,60 @@ function renderTTest(p, natal, johu, pw) {
       },
       relationshipRows: function(ctx) {
         return [
-          { title:'[친구 관계] 현실 조언이 먼저 나오는 친구', text:'친구가 힘들다고 하면 위로만 하기보다 왜 반복되는지와 어디서 끊어야 하는지부터 짚어줍니다. 그래서 진짜 도움은 되지만, 타이밍이 어긋나면 차갑게 들릴 수 있습니다.' },
-          { title:'[연애 관계] 좋아할수록 더 허술하지 않으려는 사람', text:'감정이 커질수록 더 신중해지고, 관계를 망치지 않으려 현실 체크를 많이 합니다. 그래서 표현은 느릴 수 있어도 관계를 가볍게 다루지는 않습니다.' },
-          { title:'[가족 관계] 챙김과 통제가 붙어 보일 수 있음', text:'가족에게는 책임감이 강해서 생활, 돈, 건강 문제를 그냥 지나치지 못합니다. 당신은 걱정이지만, 듣는 사람은 잔소리나 통제로 느낄 수 있습니다.' },
-          { title:'[직장/팀 관계] 기준을 세워주는 실전형', text:'팀에서는 역할, 마감, 우선순위를 선명하게 보며 수습 능력도 좋습니다. 덕분에 신뢰를 얻지만, 속도가 빠를수록 상대 의견을 덜 들었다는 인상도 생길 수 있습니다.' },
-          { title:'[말투 위험 구간] 사실 확인이 차단 통보처럼 들리는 순간', text:'"그래서 결론이 뭐야", "그건 비효율적이야", "애초에 그렇게 하면 안 됐어" 같은 문장은 당신에게는 정리지만, 상대에게는 감정 차단처럼 들릴 수 있습니다.' },
-          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'해결 능력은 이미 충분합니다. 이제는 결론 전에 감정 확인 한 문장만 붙이면, 같은 말도 훨씬 덜 차갑고 더 신뢰감 있게 전달됩니다.' }
+          { title:_sajuQuantumText("sq_4425_prop_title"), text:'친구가 힘들다고 하면 위로만 하기보다 왜 반복되는지와 어디서 끊어야 하는지부터 짚어줍니다. 그래서 진짜 도움은 되지만, 타이밍이 어긋나면 차갑게 들릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4426_prop_title"), text:'감정이 커질수록 더 신중해지고, 관계를 망치지 않으려 현실 체크를 많이 합니다. 그래서 표현은 느릴 수 있어도 관계를 가볍게 다루지는 않습니다.' },
+          { title:_sajuQuantumText("sq_4427_prop_title"), text:'가족에게는 책임감이 강해서 생활, 돈, 건강 문제를 그냥 지나치지 못합니다. 당신은 걱정이지만, 듣는 사람은 잔소리나 통제로 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4428_prop_title"), text:'팀에서는 역할, 마감, 우선순위를 선명하게 보며 수습 능력도 좋습니다. 덕분에 신뢰를 얻지만, 속도가 빠를수록 상대 의견을 덜 들었다는 인상도 생길 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4429_prop_title"), text:'"그래서 결론이 뭐야", "그건 비효율적이야", "애초에 그렇게 하면 안 됐어" 같은 문장은 당신에게는 정리지만, 상대에게는 감정 차단처럼 들릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4430_prop_title"), text:'해결 능력은 이미 충분합니다. 이제는 결론 전에 감정 확인 한 문장만 붙이면, 같은 말도 훨씬 덜 차갑고 더 신뢰감 있게 전달됩니다.' }
         ];
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'호감이 생길수록 더 가볍게 굴지 않습니다. 마음이 커질수록 말과 행동을 더 신중히 고르고, 괜한 기대를 주지 않으려 현실적인 태도를 유지합니다.' },
-          { title:'연락 스타일', text:'연락은 의미 없이 길게 끌기보다 내용이 분명한 쪽을 선호합니다. 필요한 순간 챙김은 분명하지만, 감정적인 잡담만 오래 이어가는 건 피로하게 느낄 수 있습니다.' },
-          { title:'서운함을 처리하는 방식', text:'서운하면 바로 울컥하기보다 왜 서운했는지 내부 정리부터 합니다. 그래서 말이 늦어지고, 그 사이 상대는 갑자기 차가워졌다고 느낄 수 있습니다.' },
-          { title:'싸울 때의 패턴', text:'말다툼이 시작되면 감정전보다 반복 패턴, 원인, 해결 조건을 먼저 찾습니다. 그래서 싸움이 보고서처럼 흘러가 상대가 심문받는 느낌을 받을 수 있습니다.' },
-          { title:'상대가 느끼는 장점', text:'흔들리지 않고, 말한 것을 행동으로 옮기는 신뢰감이 큽니다. 연애를 운영의 문제로도 보기 때문에 막상 만나면 생각보다 든든하고 책임감 있다는 인상을 줍니다.' },
-          { title:'상대가 느끼는 단점', text:'마음을 표현하기 전에 정리부터 해서 거리감 있게 보일 수 있습니다. 특히 과열된 감정을 바로 받아주지 않으면 "나보다 문제 해결이 더 중요하나?"라는 오해를 만들 수 있습니다.' },
-          { title:'연애 조언', text:'당신의 논리는 충분히 매력적입니다. 다만 그 논리가 사랑으로 전달되려면, 먼저 "나는 네 편이야"라는 감정 문장이 앞에 와야 합니다.' }
+          { title:_sajuQuantumText("sq_4435_prop_title"), text:'호감이 생길수록 더 가볍게 굴지 않습니다. 마음이 커질수록 말과 행동을 더 신중히 고르고, 괜한 기대를 주지 않으려 현실적인 태도를 유지합니다.' },
+          { title:_sajuQuantumText("sq_4436_prop_title"), text:'연락은 의미 없이 길게 끌기보다 내용이 분명한 쪽을 선호합니다. 필요한 순간 챙김은 분명하지만, 감정적인 잡담만 오래 이어가는 건 피로하게 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4437_prop_title"), text:'서운하면 바로 울컥하기보다 왜 서운했는지 내부 정리부터 합니다. 그래서 말이 늦어지고, 그 사이 상대는 갑자기 차가워졌다고 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4438_prop_title"), text:'말다툼이 시작되면 감정전보다 반복 패턴, 원인, 해결 조건을 먼저 찾습니다. 그래서 싸움이 보고서처럼 흘러가 상대가 심문받는 느낌을 받을 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4439_prop_title"), text:'흔들리지 않고, 말한 것을 행동으로 옮기는 신뢰감이 큽니다. 연애를 운영의 문제로도 보기 때문에 막상 만나면 생각보다 든든하고 책임감 있다는 인상을 줍니다.' },
+          { title:_sajuQuantumText("sq_4440_prop_title"), text:'마음을 표현하기 전에 정리부터 해서 거리감 있게 보일 수 있습니다. 특히 과열된 감정을 바로 받아주지 않으면 "나보다 문제 해결이 더 중요하나?"라는 오해를 만들 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4441_prop_title"), text:'당신의 논리는 충분히 매력적입니다. 다만 그 논리가 사랑으로 전달되려면, 먼저 "나는 네 편이야"라는 감정 문장이 앞에 와야 합니다.' }
         ];
       },
       workMoneyRows: function(ctx) {
         return [
-          { title:'업무 스타일', text:'일할 때는 감정보다 구조를 먼저 봅니다. 순서, 기준, 리스크, 반복 오류를 빨리 읽어내기 때문에 엉킨 일을 정리하는 역할에 강합니다.' },
-          { title:'돈 관리 성향', text:'돈은 기분보다 구조로 관리하려는 편입니다. "지금 좋다"보다 "지속 가능한가"를 먼저 따져, 소비에도 나름의 기준과 선이 분명합니다.' },
-          { title:'위기 대응', text:'위기 상황일수록 오히려 더 또렷해집니다. 감정 소음을 줄이고 수습 순서를 짜는 능력이 강해, 남들이 흔들릴 때 중심축 역할을 하기 쉽습니다.' },
-          { title:'결정력과 루틴', text:'결정은 느려 보여도 기준이 잡히면 빠릅니다. 루틴과 계획도 한 번 설정하면 쉽게 무너지지 않아 장기전에서 강합니다.' },
-          { title:'너무 계산적으로 보일 수 있는 지점', text:'당신은 계산만 하는 사람이 아니라 손해를 줄이는 사람에 가깝습니다. 다만 감정이 섞인 자리에서도 효율 언어를 그대로 쓰면, 배려보다 계산이 먼저인 사람처럼 보일 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4446_prop_title"), text:'일할 때는 감정보다 구조를 먼저 봅니다. 순서, 기준, 리스크, 반복 오류를 빨리 읽어내기 때문에 엉킨 일을 정리하는 역할에 강합니다.' },
+          { title:_sajuQuantumText("sq_4447_prop_title"), text:'돈은 기분보다 구조로 관리하려는 편입니다. "지금 좋다"보다 "지속 가능한가"를 먼저 따져, 소비에도 나름의 기준과 선이 분명합니다.' },
+          { title:_sajuQuantumText("sq_4448_prop_title"), text:'위기 상황일수록 오히려 더 또렷해집니다. 감정 소음을 줄이고 수습 순서를 짜는 능력이 강해, 남들이 흔들릴 때 중심축 역할을 하기 쉽습니다.' },
+          { title:_sajuQuantumText("sq_4449_prop_title"), text:'결정은 느려 보여도 기준이 잡히면 빠릅니다. 루틴과 계획도 한 번 설정하면 쉽게 무너지지 않아 장기전에서 강합니다.' },
+          { title:_sajuQuantumText("sq_4450_prop_title"), text:'당신은 계산만 하는 사람이 아니라 손해를 줄이는 사람에 가깝습니다. 다만 감정이 섞인 자리에서도 효율 언어를 그대로 쓰면, 배려보다 계산이 먼저인 사람처럼 보일 수 있습니다.' }
         ];
       },
       bugRows: function(ctx) {
         return [
-          { title:'감정 번역 오류', text:'상대의 "속상해"를 감정 신호보다 문제 제기로 받아들여, 공감보다 원인 분석 단계로 먼저 넘어갈 가능성이 큽니다.' },
-          { title:'말투 과냉각 현상', text:'금 기운이 살아 있고 논리 회로가 빨라질수록 문장은 짧고 선명해집니다. 문제는 그 선명함이 피곤한 날에는 칼날처럼 들릴 수 있다는 점입니다.' },
-          { title:'결정 지연 또는 과잉 분석', text:'빠른 결론형처럼 보여도, 속에서는 이미 여러 경우의 수를 오래 돌렸을 수 있습니다. 그래서 확신 없는 장면에서는 오히려 더 깊게 파고듭니다.' },
-          { title:'공감 타이밍 누락', text:'공감 능력이 없는 것이 아니라, 말의 순서에서 밀리는 것입니다. 한마디만 먼저 붙였어도 덜 차가웠을 장면이 많습니다.' },
-          { title:'혼자 결론 내리는 습관', text:'책임감과 기준 의식이 강할수록 "내가 정리해야 한다"는 압박으로 혼자 판단을 완료할 수 있습니다. 그 결과 상대는 대화에서 이미 배제됐다고 느낄 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4455_prop_title"), text:'상대의 "속상해"를 감정 신호보다 문제 제기로 받아들여, 공감보다 원인 분석 단계로 먼저 넘어갈 가능성이 큽니다.' },
+          { title:_sajuQuantumText("sq_4456_prop_title"), text:'금 기운이 살아 있고 논리 회로가 빨라질수록 문장은 짧고 선명해집니다. 문제는 그 선명함이 피곤한 날에는 칼날처럼 들릴 수 있다는 점입니다.' },
+          { title:_sajuQuantumText("sq_4457_prop_title"), text:'빠른 결론형처럼 보여도, 속에서는 이미 여러 경우의 수를 오래 돌렸을 수 있습니다. 그래서 확신 없는 장면에서는 오히려 더 깊게 파고듭니다.' },
+          { title:_sajuQuantumText("sq_4458_prop_title"), text:'공감 능력이 없는 것이 아니라, 말의 순서에서 밀리는 것입니다. 한마디만 먼저 붙였어도 덜 차가웠을 장면이 많습니다.' },
+          { title:_sajuQuantumText("sq_4459_prop_title"), text:'책임감과 기준 의식이 강할수록 "내가 정리해야 한다"는 압박으로 혼자 판단을 완료할 수 있습니다. 그 결과 상대는 대화에서 이미 배제됐다고 느낄 수 있습니다.' }
         ];
       },
       prescriptionRows: function(ctx) {
         return [
-          { title:'오늘 바로 해볼 것', text:'대화 한 번만이라도 해결책보다 "그때 많이 답답했겠다"를 먼저 붙이세요. 당신의 논리는 그 한 문장 뒤에 나올 때 훨씬 덜 차갑고 더 설득력 있어집니다.' },
-          { title:'대화할 때 조심할 것', text:'"그래서", "근데", "현실적으로"를 문장 첫머리에 바로 올리지 마세요. 먼저 상대 감정이나 의도를 한 줄로 받아주면 같은 내용도 훨씬 부드럽게 전해집니다.' },
-          { title:'연애에서 써먹을 것', text:'서운할 때는 분석을 시작하기 전에 "나는 지금 서운해서 말이 차가워질 수 있어"라고 먼저 알려주세요. 그 한마디가 상대를 방어 모드로 보내지 않게 해줍니다.' },
-          { title:'일할 때 써먹을 것', text:'지적이나 수정 요청을 할 때는 기준만 말하지 말고, "이렇게 하면 더 좋아진다"는 방향까지 함께 주세요. 당신의 냉정함이 신뢰로 남는 방식입니다.' },
-          { title:'멘탈이 흔들릴 때 쓸 것', text:'마음이 메마른 느낌이 들면 바로 결론 내리지 말고, 물 한 잔과 10분 호흡 뒤에 다시 판단하세요. 건조한 상태의 논리는 정확해 보여도 관계를 더 차갑게 만들 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4464_prop_title"), text:'대화 한 번만이라도 해결책보다 "그때 많이 답답했겠다"를 먼저 붙이세요. 당신의 논리는 그 한 문장 뒤에 나올 때 훨씬 덜 차갑고 더 설득력 있어집니다.' },
+          { title:_sajuQuantumText("sq_4465_prop_title"), text:'"그래서", "근데", "현실적으로"를 문장 첫머리에 바로 올리지 마세요. 먼저 상대 감정이나 의도를 한 줄로 받아주면 같은 내용도 훨씬 부드럽게 전해집니다.' },
+          { title:_sajuQuantumText("sq_4466_prop_title"), text:'서운할 때는 분석을 시작하기 전에 "나는 지금 서운해서 말이 차가워질 수 있어"라고 먼저 알려주세요. 그 한마디가 상대를 방어 모드로 보내지 않게 해줍니다.' },
+          { title:_sajuQuantumText("sq_4467_prop_title"), text:'지적이나 수정 요청을 할 때는 기준만 말하지 말고, "이렇게 하면 더 좋아진다"는 방향까지 함께 주세요. 당신의 냉정함이 신뢰로 남는 방식입니다.' },
+          { title:_sajuQuantumText("sq_4468_prop_title"), text:'마음이 메마른 느낌이 들면 바로 결론 내리지 말고, 물 한 잔과 10분 호흡 뒤에 다시 판단하세요. 건조한 상태의 논리는 정확해 보여도 관계를 더 차갑게 만들 수 있습니다.' }
         ];
       },
-      mission: { title:'로직 밸런스 미션', items:['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정'] },
+      mission: { title:_sajuQuantumText("sq_4471_prop_title"), items:['팩트 2개 + 배려 문장 1개 조합으로 말하기', '불필요한 논쟁 1건 스킵해 에너지 절약', '피로 누적 시 10분 산책 후 의사결정'] },
       summaryTip: '결론보다 공감 한 문장을 먼저 두기.',
       summaryMood: '차분한 냉정형'
     },
     extreme_t: {
       typeName: '빙결 논리 절대자',
       stateMessage: '극T 고농도 · 감정도 분석 대상으로 처리',
-      headline: '극한 냉정형',
+      headline: _sajuQuantumText("sq_4478_prop_headline"),
       catchphrase: function(ctx) {
         return ctx.metalDriven
           ? '당신은 차갑게 보이지만, 사실은 무너진 상황을 가장 빨리 복구하기 위해 감정보다 구조를 먼저 세우는 사람입니다.'
@@ -4491,53 +4965,53 @@ function renderTTest(p, natal, johu, pw) {
       },
       relationshipRows: function(ctx) {
         return [
-          { title:'[친구 관계] 위기에서 가장 믿음직한 사람', text:'친구가 무너질 때 감정에 같이 휩쓸리기보다, 지금 뭘 해야 하는지부터 빠르게 정리합니다. 그래서 진짜 필요할 때 가장 찾게 되는 친구가 되지만, 위로가 필요한 날에는 너무 차갑게 느껴질 수 있습니다.' },
-          { title:'[연애 관계] 좋아할수록 더 현실 검증이 심해지는 타입', text:'감정이 클수록 오히려 더 분석적으로 움직입니다. 관계가 오래 갈 수 있는지, 감정이 아니라 실제로 맞는 사람인지까지 같이 보려 하기 때문입니다.' },
-          { title:'[가족 관계] 책임감이 통제로 읽힐 수 있음', text:'가족 문제를 보면 그냥 지나치지 못합니다. 당신에게는 관리와 보호지만, 듣는 사람에게는 판단과 간섭으로 느껴질 가능성이 큽니다.' },
-          { title:'[직장/팀 관계] 냉정한 수습형 리더 자질', text:'팀에서는 문제가 커질수록 더 강해집니다. 감정에 휘둘리지 않고 우선순위를 세우는 능력이 탁월해, 어려운 상황에서 중심축 역할을 맡기 쉽습니다.' },
-          { title:'[말투 위험 구간] 사실은 맞지만 체감은 너무 셈', text:'당신의 말은 대체로 틀리지 않습니다. 다만 맞는 말이 곧바로 받아들여지는 것은 아니며, 상대는 내용보다 온도 때문에 먼저 다칠 수 있습니다.' },
-          { title:'[관계 회로 디버깅] 조심하면 좋아지는 포인트', text:'정답을 바로 주는 능력은 큰 장점입니다. 하지만 관계에서는 정답보다 먼저 "나는 네 감정을 무시하지 않는다"는 신호가 필요합니다.' }
+          { title:_sajuQuantumText("sq_4494_prop_title"), text:'친구가 무너질 때 감정에 같이 휩쓸리기보다, 지금 뭘 해야 하는지부터 빠르게 정리합니다. 그래서 진짜 필요할 때 가장 찾게 되는 친구가 되지만, 위로가 필요한 날에는 너무 차갑게 느껴질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4495_prop_title"), text:'감정이 클수록 오히려 더 분석적으로 움직입니다. 관계가 오래 갈 수 있는지, 감정이 아니라 실제로 맞는 사람인지까지 같이 보려 하기 때문입니다.' },
+          { title:_sajuQuantumText("sq_4496_prop_title"), text:'가족 문제를 보면 그냥 지나치지 못합니다. 당신에게는 관리와 보호지만, 듣는 사람에게는 판단과 간섭으로 느껴질 가능성이 큽니다.' },
+          { title:_sajuQuantumText("sq_4497_prop_title"), text:'팀에서는 문제가 커질수록 더 강해집니다. 감정에 휘둘리지 않고 우선순위를 세우는 능력이 탁월해, 어려운 상황에서 중심축 역할을 맡기 쉽습니다.' },
+          { title:_sajuQuantumText("sq_4498_prop_title"), text:'당신의 말은 대체로 틀리지 않습니다. 다만 맞는 말이 곧바로 받아들여지는 것은 아니며, 상대는 내용보다 온도 때문에 먼저 다칠 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4499_prop_title"), text:'정답을 바로 주는 능력은 큰 장점입니다. 하지만 관계에서는 정답보다 먼저 "나는 네 감정을 무시하지 않는다"는 신호가 필요합니다.' }
         ];
       },
       loveRows: function(ctx) {
         return [
-          { title:'좋아하는 사람 앞에서의 태도', text:'감정이 커질수록 더 허술해지고 싶지 않아, 오히려 말과 행동을 더 조심합니다. 그래서 좋아하는데도 무심하거나 냉정해 보일 수 있습니다.' },
-          { title:'연락 스타일', text:'연락은 기능적이고 분명한 편입니다. 의미 없는 감정 소모를 줄이려 하고, 필요한 순간 챙김은 확실하지만 일상적인 감정 교류는 생략될 수 있습니다.' },
-          { title:'서운함을 처리하는 방식', text:'서운함이 생기면 감정에 잠기기보다 이유와 패턴을 먼저 찾습니다. 그래서 마음이 식은 게 아니라 분석 중인데, 상대는 이미 멀어졌다고 오해할 수 있습니다.' },
-          { title:'싸울 때의 패턴', text:'싸우면 감정전보다 구조 분석으로 들어갑니다. 무엇이 반복됐는지, 어느 부분이 비효율적인지 정리하다 보니 상대는 사랑싸움이 아니라 평가받는 느낌을 받을 수 있습니다.' },
-          { title:'상대가 느끼는 장점', text:'불필요하게 흔들리지 않고, 문제를 실제로 해결해주는 힘이 큽니다. 감정이 지나간 뒤에도 관계를 운영할 수 있는 현실감이 강한 편입니다.' },
-          { title:'상대가 느끼는 단점', text:'따뜻함이 없어서가 아니라, 따뜻함이 잘 보이지 않는 방식으로 표현됩니다. 상대는 "나를 좋아하는데 왜 이렇게 분석적이지?"라는 혼란을 느낄 수 있습니다.' },
-          { title:'연애 조언', text:'당신의 사랑은 깊지만 표현 방식이 너무 구조적일 수 있습니다. 사랑하는 사람 앞에서는 해결보다 공감, 분석보다 안심을 먼저 주는 연습이 필요합니다.' }
+          { title:_sajuQuantumText("sq_4504_prop_title"), text:'감정이 커질수록 더 허술해지고 싶지 않아, 오히려 말과 행동을 더 조심합니다. 그래서 좋아하는데도 무심하거나 냉정해 보일 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4505_prop_title"), text:'연락은 기능적이고 분명한 편입니다. 의미 없는 감정 소모를 줄이려 하고, 필요한 순간 챙김은 확실하지만 일상적인 감정 교류는 생략될 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4506_prop_title"), text:'서운함이 생기면 감정에 잠기기보다 이유와 패턴을 먼저 찾습니다. 그래서 마음이 식은 게 아니라 분석 중인데, 상대는 이미 멀어졌다고 오해할 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4507_prop_title"), text:'싸우면 감정전보다 구조 분석으로 들어갑니다. 무엇이 반복됐는지, 어느 부분이 비효율적인지 정리하다 보니 상대는 사랑싸움이 아니라 평가받는 느낌을 받을 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4508_prop_title"), text:'불필요하게 흔들리지 않고, 문제를 실제로 해결해주는 힘이 큽니다. 감정이 지나간 뒤에도 관계를 운영할 수 있는 현실감이 강한 편입니다.' },
+          { title:_sajuQuantumText("sq_4509_prop_title"), text:'따뜻함이 없어서가 아니라, 따뜻함이 잘 보이지 않는 방식으로 표현됩니다. 상대는 "나를 좋아하는데 왜 이렇게 분석적이지?"라는 혼란을 느낄 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4510_prop_title"), text:'당신의 사랑은 깊지만 표현 방식이 너무 구조적일 수 있습니다. 사랑하는 사람 앞에서는 해결보다 공감, 분석보다 안심을 먼저 주는 연습이 필요합니다.' }
         ];
       },
       workMoneyRows: function(ctx) {
         return [
-          { title:'업무 스타일', text:'문제 해결, 효율, 팩트 체크 능력이 매우 강합니다. 복잡한 일을 쪼개고 다시 묶는 능력이 뛰어나 실무나 리더 역할에서 강한 편입니다.' },
-          { title:'돈 관리 성향', text:'돈은 거의 감정보다 구조와 지속성으로 판단합니다. 손익 계산이 빠르고 낭비를 싫어해, 재정 관리에서는 상당히 안정적인 편입니다.' },
-          { title:'위기 대응', text:'위기 상황일수록 감정이 아니라 시스템이 켜집니다. 그래서 혼란한 자리에서 가장 침착한 사람으로 보이기 쉽습니다.' },
-          { title:'결정력과 루틴', text:'기준이 명확해지면 결정이 빠르고, 계획도 크게 흔들리지 않습니다. 꾸준함과 통제력이 강해 장기 실행력에서도 장점이 큽니다.' },
-          { title:'너무 계산적으로 보일 수 있는 지점', text:'당신은 계산적이라기보다 손실 관리가 빠른 사람입니다. 다만 감정의 장면에서도 같은 언어를 쓰면, 인간적인 결이 빠진 사람처럼 보일 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4515_prop_title"), text:'문제 해결, 효율, 팩트 체크 능력이 매우 강합니다. 복잡한 일을 쪼개고 다시 묶는 능력이 뛰어나 실무나 리더 역할에서 강한 편입니다.' },
+          { title:_sajuQuantumText("sq_4516_prop_title"), text:'돈은 거의 감정보다 구조와 지속성으로 판단합니다. 손익 계산이 빠르고 낭비를 싫어해, 재정 관리에서는 상당히 안정적인 편입니다.' },
+          { title:_sajuQuantumText("sq_4517_prop_title"), text:'위기 상황일수록 감정이 아니라 시스템이 켜집니다. 그래서 혼란한 자리에서 가장 침착한 사람으로 보이기 쉽습니다.' },
+          { title:_sajuQuantumText("sq_4518_prop_title"), text:'기준이 명확해지면 결정이 빠르고, 계획도 크게 흔들리지 않습니다. 꾸준함과 통제력이 강해 장기 실행력에서도 장점이 큽니다.' },
+          { title:_sajuQuantumText("sq_4519_prop_title"), text:'당신은 계산적이라기보다 손실 관리가 빠른 사람입니다. 다만 감정의 장면에서도 같은 언어를 쓰면, 인간적인 결이 빠진 사람처럼 보일 수 있습니다.' }
         ];
       },
       bugRows: function(ctx) {
         return [
-          { title:'감정 번역 오류', text:'상대의 감정 신호를 곧바로 해결 과제로 바꿔 읽기 쉽습니다. 그래서 감정이 충분히 머물기 전에 수리 모드로 넘어갑니다.' },
-          { title:'말투 과냉각 현상', text:'문장이 짧고 선명해질수록 상대는 칼날을 먼저 느낍니다. 당신에게는 정리지만, 상대에게는 판정처럼 들릴 수 있습니다.' },
-          { title:'결정 지연 또는 과잉 분석', text:'겉으로는 결론이 빨라 보여도, 속에서는 이미 많은 시뮬레이션을 돌립니다. 그래서 확신이 부족한 장면에서는 오히려 분석이 길어질 수 있습니다.' },
-          { title:'공감 타이밍 누락', text:'공감이 없는 것이 아니라 순서에서 밀립니다. 문제를 너무 빨리 봉합하려다, 관계 회복에 필요한 감정 확인이 생략될 수 있습니다.' },
-          { title:'혼자 결론 내리는 습관', text:'내가 더 빨리 구조를 볼 수 있다는 자신감이 커질수록, 대화 없이 결론을 완료할 가능성도 커집니다. 상대는 이해받기보다 관리당한다고 느낄 수 있습니다.' }
+          { title:_sajuQuantumText("sq_4524_prop_title"), text:'상대의 감정 신호를 곧바로 해결 과제로 바꿔 읽기 쉽습니다. 그래서 감정이 충분히 머물기 전에 수리 모드로 넘어갑니다.' },
+          { title:_sajuQuantumText("sq_4525_prop_title"), text:'문장이 짧고 선명해질수록 상대는 칼날을 먼저 느낍니다. 당신에게는 정리지만, 상대에게는 판정처럼 들릴 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4526_prop_title"), text:'겉으로는 결론이 빨라 보여도, 속에서는 이미 많은 시뮬레이션을 돌립니다. 그래서 확신이 부족한 장면에서는 오히려 분석이 길어질 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4527_prop_title"), text:'공감이 없는 것이 아니라 순서에서 밀립니다. 문제를 너무 빨리 봉합하려다, 관계 회복에 필요한 감정 확인이 생략될 수 있습니다.' },
+          { title:_sajuQuantumText("sq_4528_prop_title"), text:'내가 더 빨리 구조를 볼 수 있다는 자신감이 커질수록, 대화 없이 결론을 완료할 가능성도 커집니다. 상대는 이해받기보다 관리당한다고 느낄 수 있습니다.' }
         ];
       },
       prescriptionRows: function(ctx) {
         return [
-          { title:'오늘 바로 해볼 것', text:'오늘 대화 한 번만이라도 해결책보다 공감 한 줄을 먼저 출력하세요. "그랬구나" 한 문장이 당신의 논리를 차갑지 않게 만들어줍니다.' },
-          { title:'대화할 때 조심할 것', text:'맞는 말을 바로 던지기 전에 상대 감정을 먼저 확인하세요. 정답은 이미 충분하니, 지금 필요한 건 전달 순서의 조정입니다.' },
-          { title:'연애에서 써먹을 것', text:'서운할 때는 원인 분석 전에 "나는 지금 네 마음이 먼저 궁금해"라는 문장을 써보세요. 그 한 문장이 관계의 체감 온도를 바꿉니다.' },
-          { title:'일할 때 써먹을 것', text:'기준을 제시할 때 상대가 따라올 이유도 같이 말해주세요. 냉정한 기준이 설명을 만나면 더 강한 리더십이 됩니다.' },
-          { title:'멘탈이 흔들릴 때 쓸 것', text:'머릿속 시뮬레이션이 과열되면 결론을 잠시 보류하고, 사실/추측/감정을 나눠 적어보세요. 당신은 분리해서 볼 때 훨씬 안정됩니다.' }
+          { title:_sajuQuantumText("sq_4533_prop_title"), text:'오늘 대화 한 번만이라도 해결책보다 공감 한 줄을 먼저 출력하세요. "그랬구나" 한 문장이 당신의 논리를 차갑지 않게 만들어줍니다.' },
+          { title:_sajuQuantumText("sq_4534_prop_title"), text:'맞는 말을 바로 던지기 전에 상대 감정을 먼저 확인하세요. 정답은 이미 충분하니, 지금 필요한 건 전달 순서의 조정입니다.' },
+          { title:_sajuQuantumText("sq_4535_prop_title"), text:'서운할 때는 원인 분석 전에 "나는 지금 네 마음이 먼저 궁금해"라는 문장을 써보세요. 그 한 문장이 관계의 체감 온도를 바꿉니다.' },
+          { title:_sajuQuantumText("sq_4536_prop_title"), text:'기준을 제시할 때 상대가 따라올 이유도 같이 말해주세요. 냉정한 기준이 설명을 만나면 더 강한 리더십이 됩니다.' },
+          { title:_sajuQuantumText("sq_4537_prop_title"), text:'머릿속 시뮬레이션이 과열되면 결론을 잠시 보류하고, 사실/추측/감정을 나눠 적어보세요. 당신은 분리해서 볼 때 훨씬 안정됩니다.' }
         ];
       },
-      mission: { title:'냉정 모드 디버깅 미션', items:['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회'] },
+      mission: { title:_sajuQuantumText("sq_4540_prop_title"), items:['대화 1회는 해결책 대신 공감 한 줄 먼저 출력', '피드백에 좋았던 점 1개를 먼저 제시', '결론 제시 전 상대 의도 확인 질문 1회'] },
       summaryTip: '정답보다 먼저 감정 확인 한 줄 붙이기.',
       summaryMood: '차갑고 선명한 편'
     }
@@ -4740,11 +5214,11 @@ function renderHealthReport(p, natal, johu, pw, jg) {
   var CONTROL_REL = { wood:'earth', fire:'metal', earth:'water', metal:'wood', water:'fire' };
 
   function classifyEl(v) {
-    if (v <= 11) return { state: 'deficient', label: '심한 결핍', color: '#c0392b' };
-    if (v < 16) return { state: 'deficient', label: '결핍 경향', color: '#d35400' };
-    if (v >= 34) return { state: 'excess', label: '심한 과다', color: '#8e44ad' };
-    if (v > 28) return { state: 'excess', label: '과다 경향', color: '#9b59b6' };
-    return { state: 'balanced', label: '중화 범위', color: '#2e7d32' };
+    if (v <= 11) return { state: 'deficient', label: _sajuQuantumText("sq_4743_prop_label"), color: '#c0392b' };
+    if (v < 16) return { state: 'deficient', label: _sajuQuantumText("sq_4744_prop_label"), color: '#d35400' };
+    if (v >= 34) return { state: 'excess', label: _sajuQuantumText("sq_4745_prop_label"), color: '#8e44ad' };
+    if (v > 28) return { state: 'excess', label: _sajuQuantumText("sq_4746_prop_label"), color: '#9b59b6' };
+    return { state: 'balanced', label: _sajuQuantumText("sq_4747_prop_label"), color: '#2e7d32' };
   }
 
   var sortedByRatio = els.slice().sort(function(a,b){ return (ratios[b]||0) - (ratios[a]||0); });
@@ -5059,11 +5533,11 @@ var LOTTO_POOL={
   earth:[5,10,15,20,25,30,35,40,45]
 };
 var LOTTO_EL_TAG={
-  water:{label:'壬癸水 파동',bg:'rgba(59,130,246,.12)',color:'#60a5fa'},
-  fire:{label:'丙丁火 파동',bg:'rgba(239,68,68,.12)',color:'#f87171'},
-  wood:{label:'甲乙木 파동',bg:'rgba(34,197,94,.12)',color:'#4ade80'},
-  metal:{label:'庚辛金 파동',bg:'rgba(148,163,184,.15)',color:'#cbd5e1'},
-  earth:{label:'戊己土 파동',bg:'rgba(234,179,8,.12)',color:'#fbbf24'}
+  water:{label:_sajuQuantumText("sq_5062_prop_label"),bg:'rgba(59,130,246,.12)',color:'#60a5fa'},
+  fire:{label:_sajuQuantumText("sq_5063_prop_label"),bg:'rgba(239,68,68,.12)',color:'#f87171'},
+  wood:{label:_sajuQuantumText("sq_5064_prop_label"),bg:'rgba(34,197,94,.12)',color:'#4ade80'},
+  metal:{label:_sajuQuantumText("sq_5065_prop_label"),bg:'rgba(148,163,184,.15)',color:'#cbd5e1'},
+  earth:{label:_sajuQuantumText("sq_5066_prop_label"),bg:'rgba(234,179,8,.12)',color:'#fbbf24'}
 };
 var LOTTO_PAIR={water:'fire',fire:'water',wood:'metal',metal:'wood',earth:'fire'};
 var LOTTO_REASON={
@@ -5218,10 +5692,10 @@ function buildLottoRitualReport(state){
   });
   var ritualSummary=(luckyColorMap[element]||luckyColorMap.water)+'을 곁에 두고, 복권은 정해둔 한도 안에서 소액으로만 즐기기';
   return {
-    title:'달빛 럭키 리추얼 리포트',
+    title:_sajuQuantumText("sq_5221_prop_title"),
     priceCoins:50,
     moneyCondition:{
-      title:'이번 주 금전운 컨디션',
+      title:_sajuQuantumText("sq_5224_prop_title"),
       body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 짚습니다.',
       points:['충동 지출은 메모 후 하루 미루기','작은 기회는 크게 기대하지 않고 관찰하기','정리해야 할 소비 패턴 하나만 고르기']
     },
@@ -5239,8 +5713,8 @@ function buildLottoRitualReport(state){
       '기대감에 휘둘리지 않고 재미로 즐겼는가?'
     ],
     shareCard:{
-      title:'나의 이번 주 수리 파동',
-      subtitle:'사주 오행과 수리 상징으로 보는 재미용 행운 루틴',
+      title:_sajuQuantumText("sq_5242_prop_title"),
+      subtitle:_sajuQuantumText("sq_5243_prop_subtitle"),
       luckyElement:elementName,
       luckyNumbers:nums,
       ritualSummary:ritualSummary,
@@ -5262,7 +5736,7 @@ function renderLottoRitualReport(state){
   var saved=lottoFindSavedReport(source.weekKey);
   area.hidden=false;
   area.innerHTML=
-    '<section class="lr-wrap" aria-label="달빛 럭키 리추얼 리포트">'+
+    '<section class="lr-wrap" aria-label="' + _sajuQuantumText("sq_5265_attr_aria_label") + '">'+
       '<div class="lr-head">'+
         '<span class="lr-kicker">5,000원 디지털 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
@@ -5397,7 +5871,7 @@ window.shareLottoRitualText=function(){
     '오락용 콘텐츠 · 당첨 비보장'
   ].join('\n');
   if(navigator.share){
-    navigator.share({title:'Code Destiny 달빛 럭키 리추얼',text:text}).catch(function(){});
+    navigator.share({title:_sajuQuantumText("sq_5400_prop_title"),text:text}).catch(function(){});
     return;
   }
   if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -6312,11 +6786,11 @@ function getDailyKarmicGuidance(lunarObj, m) {
     }
 
     function moonPhase(score) {
-        if (score >= 93) return {emoji:'🌕', label:'보름달', desc:'상징 리듬이 크게 차오른 날입니다. 결과를 단정하기보다 이미 잡은 방향을 정돈하기 좋습니다.'};
-        if (score >= 83) return {emoji:'🌔', label:'상현달', desc:'기운이 차오르는 흐름입니다. 새 일을 확정하기보다 준비를 한 걸음 앞으로 밀기 좋습니다.'};
-        if (score >= 73) return {emoji:'🌓', label:'반달', desc:'빛과 그림자가 균형을 이루는 흐름입니다. 비교와 조율을 차분히 다루기 좋습니다.'};
-        if (score >= 63) return {emoji:'🌒', label:'초승달', desc:'작은 시작의 리듬입니다. 부담 없는 계획과 루틴을 조용히 심기 좋습니다.'};
-        return               {emoji:'🌑', label:'그믐달', desc:'내면을 돌아보는 정화의 리듬입니다. 쉬고 비우며 다음 흐름을 기다리기 좋습니다.'};
+        if (score >= 93) return {emoji:'🌕', label:_sajuQuantumText("sq_6315_prop_label"), desc:'상징 리듬이 크게 차오른 날입니다. 결과를 단정하기보다 이미 잡은 방향을 정돈하기 좋습니다.'};
+        if (score >= 83) return {emoji:'🌔', label:_sajuQuantumText("sq_6316_prop_label"), desc:'기운이 차오르는 흐름입니다. 새 일을 확정하기보다 준비를 한 걸음 앞으로 밀기 좋습니다.'};
+        if (score >= 73) return {emoji:'🌓', label:_sajuQuantumText("sq_6317_prop_label"), desc:'빛과 그림자가 균형을 이루는 흐름입니다. 비교와 조율을 차분히 다루기 좋습니다.'};
+        if (score >= 63) return {emoji:'🌒', label:_sajuQuantumText("sq_6318_prop_label"), desc:'작은 시작의 리듬입니다. 부담 없는 계획과 루틴을 조용히 심기 좋습니다.'};
+        return               {emoji:'🌑', label:_sajuQuantumText("sq_6319_prop_label"), desc:'내면을 돌아보는 정화의 리듬입니다. 쉬고 비우며 다음 흐름을 기다리기 좋습니다.'};
     }
 
     const insightPool = [
@@ -6443,22 +6917,22 @@ function syWheelMansion(index) {
 
 function syWheelRelationFromDistance(distance) {
   var d = ((Number(distance) % 27) + 27) % 27;
-  if (d === 0) return { short: '명', label: '명(命)', color: 'rgba(250,204,21,0.45)' };
-  if (d === 9) return { short: '업', label: '업(業)', color: 'rgba(248,113,113,0.45)' };
-  if (d === 18) return { short: '태', label: '태(胎)', color: 'rgba(251,146,60,0.45)' };
-  if ([1, 10, 19].indexOf(d) >= 0) return { short: '영', label: '영(榮)', color: 'rgba(16,185,129,0.42)' };
-  if ([8, 17, 26].indexOf(d) >= 0) return { short: '친', label: '친(親)', color: 'rgba(34,197,94,0.42)' };
-  if ([2, 11, 20].indexOf(d) >= 0) return { short: '우', label: '우(友)', color: 'rgba(56,189,248,0.42)' };
-  if ([7, 16, 25].indexOf(d) >= 0) return { short: '쇠', label: '쇠(衰)', color: 'rgba(96,165,250,0.42)' };
-  if ([3, 12, 21].indexOf(d) >= 0) return { short: '안', label: '안(安)', color: 'rgba(244,114,182,0.42)' };
-  if ([6, 15, 24].indexOf(d) >= 0) return { short: '괴', label: '괴(壞)', color: 'rgba(239,68,68,0.42)' };
-  if ([4, 13, 22].indexOf(d) >= 0) return { short: '성', label: '성(成)', color: 'rgba(167,139,250,0.42)' };
-  if ([5, 14, 23].indexOf(d) >= 0) return { short: '위', label: '위(危)', color: 'rgba(129,140,248,0.42)' };
-  return { short: '우', label: '우(友)', color: 'rgba(56,189,248,0.4)' };
+  if (d === 0) return { short: '명', label: _sajuQuantumText("sq_6446_prop_label"), color: 'rgba(250,204,21,0.45)' };
+  if (d === 9) return { short: '업', label: _sajuQuantumText("sq_6447_prop_label"), color: 'rgba(248,113,113,0.45)' };
+  if (d === 18) return { short: '태', label: _sajuQuantumText("sq_6448_prop_label"), color: 'rgba(251,146,60,0.45)' };
+  if ([1, 10, 19].indexOf(d) >= 0) return { short: '영', label: _sajuQuantumText("sq_6449_prop_label"), color: 'rgba(16,185,129,0.42)' };
+  if ([8, 17, 26].indexOf(d) >= 0) return { short: '친', label: _sajuQuantumText("sq_6450_prop_label"), color: 'rgba(34,197,94,0.42)' };
+  if ([2, 11, 20].indexOf(d) >= 0) return { short: '우', label: _sajuQuantumText("sq_6451_prop_label"), color: 'rgba(56,189,248,0.42)' };
+  if ([7, 16, 25].indexOf(d) >= 0) return { short: '쇠', label: _sajuQuantumText("sq_6452_prop_label"), color: 'rgba(96,165,250,0.42)' };
+  if ([3, 12, 21].indexOf(d) >= 0) return { short: '안', label: _sajuQuantumText("sq_6453_prop_label"), color: 'rgba(244,114,182,0.42)' };
+  if ([6, 15, 24].indexOf(d) >= 0) return { short: '괴', label: _sajuQuantumText("sq_6454_prop_label"), color: 'rgba(239,68,68,0.42)' };
+  if ([4, 13, 22].indexOf(d) >= 0) return { short: '성', label: _sajuQuantumText("sq_6455_prop_label"), color: 'rgba(167,139,250,0.42)' };
+  if ([5, 14, 23].indexOf(d) >= 0) return { short: '위', label: _sajuQuantumText("sq_6456_prop_label"), color: 'rgba(129,140,248,0.42)' };
+  return { short: '우', label: _sajuQuantumText("sq_6457_prop_label"), color: 'rgba(56,189,248,0.4)' };
 }
 
 function syWheelRelationByIndex(myIdx, targetIdx) {
-  if (myIdx == null || targetIdx == null) return { short: '-', label: '관계 미상', color: 'rgba(148,163,184,0.36)' };
+  if (myIdx == null || targetIdx == null) return { short: '-', label: _sajuQuantumText("sq_6461_prop_label"), color: 'rgba(148,163,184,0.36)' };
   var d = (targetIdx - myIdx + 27) % 27;
   return syWheelRelationFromDistance(d);
 }
@@ -6503,7 +6977,7 @@ function syRenderWheelCard(wheelState, compatInfo) {
   var centerR = 80;
 
   var svg = [];
-  svg.push('<svg class="sy-wheel-svg" viewBox="0 0 420 420" role="img" aria-label="27숙 원형 차트">');
+  svg.push('<svg class="sy-wheel-svg" viewBox="0 0 420 420" role="img" aria-label="' + _sajuQuantumText("sq_6506_attr_aria_label") + '">');
   svg.push('<defs>');
   svg.push('<radialGradient id="syWheelBg" cx="50%" cy="46%" r="72%"><stop offset="0%" stop-color="rgba(30,41,59,0.94)"/><stop offset="100%" stop-color="rgba(2,6,23,0.98)"/></radialGradient>');
   svg.push('<radialGradient id="syWheelCenter" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="rgba(79,70,229,0.24)"/><stop offset="100%" stop-color="rgba(15,23,42,0.95)"/></radialGradient>');
@@ -6718,7 +7192,7 @@ function syRequirePaidSukuyoFeature(feature, onGranted) {
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('로그인이 필요한 선택 확장입니다.\n로그인 후 이용해 주세요.')) {
+    if (window.confirm(_sajuQuantumText("sq_6721_call_confirm"))) {
       window.location.href = '/login?next=%2F';
     }
     return true;
@@ -7375,7 +7849,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
 
   var natal = canonicalData && canonicalData.natalSukuyo ? canonicalData.natalSukuyo : {};
   var traits = sData.traits || {};
-  var moon = daily.moon || { emoji: '🌙', label: '달빛 흐름', desc: '' };
+  var moon = daily.moon || { emoji: '🌙', label: _sajuQuantumText("sq_7378_prop_label"), desc: '' };
   var coreTokens = syCanonicalTokenize(traits.core || traits.desc, '고요하지만 오래가는 빛을 가진 별입니다.');
   var hiddenTokens = syCanonicalTokenize(traits.hidden || traits.desc, '조용한 시간에 감정 리듬이 더 또렷해집니다.');
   var karmaTokens = syCanonicalTokenize(traits.karma || traits.love, '좋은 인연은 작은 배려에서 자라납니다.');
@@ -7441,16 +7915,16 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
 
   var reading = {
     hero: {
-      title: '나의 본명숙 리딩',
-      subtitle: '태어난 날의 본명숙을 중심으로 기질, 관계 성향, 오늘의 참고 리듬을 읽어드립니다.',
+      title: _sajuQuantumText("sq_7444_prop_title"),
+      subtitle: _sajuQuantumText("sq_7445_prop_subtitle"),
       mansionLabel: mansionLabel,
       moonLabel: moon.label || '달빛 흐름'
     },
     summaryCards: [
-      { label: '나의 본명숙', value: mansionLabel, tone: '타고난 별', note: syComposeFromTokens(coreTokens, '당신의 중심성이 오늘의 방향을 정합니다.') },
-      { label: '달의 기질', value: syFirstToken(coreTokens, '고요한 집중형'), tone: syScoreBand(daily.overall), note: syComposeFromTokens(hiddenTokens, '내면의 리듬을 지키면 안정이 커집니다.') },
-      { label: '관계 성향', value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
-      { label: '오늘 참고 키워드', value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
+      { label: _sajuQuantumText("sq_7450_prop_label"), value: mansionLabel, tone: '타고난 별', note: syComposeFromTokens(coreTokens, '당신의 중심성이 오늘의 방향을 정합니다.') },
+      { label: _sajuQuantumText("sq_7451_prop_label"), value: syFirstToken(coreTokens, '고요한 집중형'), tone: syScoreBand(daily.overall), note: syComposeFromTokens(hiddenTokens, '내면의 리듬을 지키면 안정이 커집니다.') },
+      { label: _sajuQuantumText("sq_7452_prop_label"), value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
+      { label: _sajuQuantumText("sq_7453_prop_label"), value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
     ],
     moonProfile: {
       firstImpression: syComposeFromTokens(coreTokens, '첫인상에서 고요한 신뢰를 남기는 별입니다.'),
@@ -7460,15 +7934,15 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
       recoveryPattern: syComposeFromTokens(recoveryTokens, '짧은 휴식과 호흡 루틴이 회복 속도를 높입니다.')
     },
     relationshipTabs: [
-      { key: 'love', label: '연인', title: '사랑의 온도', body: loveTabBody },
-      { key: 'friend', label: '친구', title: '우정의 결', body: friendTabBody },
-      { key: 'work', label: '동료', title: '함께 일할 때', body: workTabBody },
-      { key: 'family', label: '가족', title: '가까운 관계', body: familyTabBody },
-      { key: 'care', label: '주의', title: '지켜볼 포인트', body: careTabBody }
+      { key: 'love', label: _sajuQuantumText("sq_7463_prop_label"), title: '사랑의 온도', body: loveTabBody },
+      { key: 'friend', label: _sajuQuantumText("sq_7464_prop_label"), title: '우정의 결', body: friendTabBody },
+      { key: 'work', label: _sajuQuantumText("sq_7465_prop_label"), title: '함께 일할 때', body: workTabBody },
+      { key: 'family', label: _sajuQuantumText("sq_7466_prop_label"), title: '가까운 관계', body: familyTabBody },
+      { key: 'care', label: _sajuQuantumText("sq_7467_prop_label"), title: '지켜볼 포인트', body: careTabBody }
     ],
     relationMiniMap: [
       {
-        label: '영친',
+        label: _sajuQuantumText("sq_7471_prop_label"),
         han: '榮親',
         essence: '서로를 살리고 돌보는 번영과 보호의 인연입니다.',
         light: '응원, 신뢰, 생활의 안정감이 자연스럽게 자라납니다.',
@@ -7477,7 +7951,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
         tone: 'bloom'
       },
       {
-        label: '업태',
+        label: _sajuQuantumText("sq_7480_prop_label"),
         han: '業胎',
         essence: '전생의 숙제처럼 반복되는 배움과 성장의 인연입니다.',
         light: '같은 과제를 마주하며 서로의 성숙을 빠르게 깨웁니다.',
@@ -7486,7 +7960,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
         tone: 'karma'
       },
       {
-        label: '우쇠',
+        label: _sajuQuantumText("sq_7489_prop_label"),
         han: '友衰',
         essence: '친구 같은 위로와 섬세한 정서 교감의 인연입니다.',
         light: '취향, 대화, 쉼의 리듬이 맞아 마음을 부드럽게 풉니다.',
@@ -7495,7 +7969,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
         tone: 'moon'
       },
       {
-        label: '위성',
+        label: _sajuQuantumText("sq_7498_prop_label"),
         han: '危成',
         essence: '서로 다른 관점이 현실의 성취를 자극하는 인연입니다.',
         light: '일, 목표, 생활 기반을 함께 다룰 때 서로의 부족한 면을 보완합니다.',
@@ -7504,7 +7978,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
         tone: 'axis'
       },
       {
-        label: '안괴',
+        label: _sajuQuantumText("sq_7507_prop_label"),
         han: '安壞',
         essence: '강한 끌림과 흔들림이 동시에 오는 각성의 인연입니다.',
         light: '오래 묵은 패턴을 깨고 변화를 시작하게 만듭니다.',
@@ -7771,7 +8245,7 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '</div>'
     + validationMsg
     + '<p class="sy-canon-footnote">달빛 위에 굳어진 본명숙의 골격은 27숙으로 흐릅니다. 관계와 금전, 오늘의 리듬은 흐름의 신호로 이어지는 참조 해석입니다.</p>'
-    + '<div class="sy-canon-tabs" role="tablist" aria-label="기본 숙요점 결과 보기">'
+    + '<div class="sy-canon-tabs" role="tablist" aria-label="' + _sajuQuantumText("sq_7774_attr_aria_label") + '">'
     + '<button type="button" class="sy-canon-tab active" id="syCanonTabOverview" role="tab" aria-selected="true" aria-controls="syCanonPanelOverview" data-sycanon="overview">기본 요약</button>'
     + '<button type="button" class="sy-canon-tab" id="syCanonTabRhythm" role="tab" aria-selected="false" aria-controls="syCanonPanelRhythm" data-sycanon="rhythm">성향·생활 패턴</button>'
     + '<button type="button" class="sy-canon-tab" id="syCanonTabMoon" role="tab" aria-selected="false" aria-controls="syCanonPanelMoon" data-sycanon="moon">참고 리듬</button>'
@@ -8399,7 +8873,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <span class="sy-moon-chip rounded-full border border-indigo-300/30 bg-indigo-900/30 px-3 py-1 text-[11px] tracking-[0.04em] text-indigo-100"><span class="sy-moon-chip-dot"></span>${syCanonicalEsc(moonToneLabel)}</span>
                 <span class="sy-moon-chip rounded-full border border-cyan-300/30 bg-cyan-900/20 px-3 py-1 text-[11px] tracking-[0.04em] text-cyan-100"><span class="sy-moon-chip-dot"></span>달 결 ${syCanonicalEsc(moonToneDesc)}</span>
               </div>
-            <div class="sy-natal-tab-bar" role="tablist" aria-label="숙요 본성 심화 해석">
+            <div class="sy-natal-tab-bar" role="tablist" aria-label="' + _sajuQuantumText("sq_8402_attr_aria_label") + '">
               <button class="sy-ntab active" id="syNTabCore" role="tab" aria-selected="true" aria-controls="sy-panel-core" data-ntab="core"><span class="sy-ntab-glyph"></span><span>천성의 빛</span></button>
               <button class="sy-ntab" id="syNTabHidden" role="tab" aria-selected="false" aria-controls="sy-panel-hidden" data-ntab="hidden"><span class="sy-ntab-glyph sy-ntab-glyph--hidden"></span><span>달의 이면</span></button>
               <button class="sy-ntab" id="syNTabKarma" role="tab" aria-selected="false" aria-controls="sy-panel-karma" data-ntab="karma"><span class="sy-ntab-glyph sy-ntab-glyph--karma"></span><span>인연의 궤도</span></button>
@@ -8666,11 +9140,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
           </div>
           <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="' + _sajuQuantumText("sq_8669_attr_placeholder") + '" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-radar-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
             <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-radar-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="선택 입력"></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="' + _sajuQuantumText("sq_8673_attr_placeholder") + '"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-radar-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
           </div>
           <button type="submit" class="sy-radar-submit">인연 레이더 분석하기</button>
@@ -8701,11 +9175,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
           </div>
           <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="' + _sajuQuantumText("sq_8704_attr_placeholder") + '" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-past-life-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
             <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-past-life-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="선택 입력"></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="' + _sajuQuantumText("sq_8708_attr_placeholder") + '"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-past-life-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
           </div>
           <button type="submit" class="sy-past-life-submit">전생 인연 리딩 열기</button>
@@ -8940,10 +9414,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 거리 구간 계산: 1~4 근거리 / 5~10 중거리 / 11~13 원거리
     function calcDistance(D) {
       var raw = D <= 13 ? D : 27 - D; // 최단 거리
-      if (raw === 0) return { label: '동숙(同宿)', tier: 'same', raw: 0 };
-      if (raw <= 4)  return { label: '근거리(Near)',   tier: 'near',   raw: raw };
-      if (raw <= 10) return { label: '중거리(Middle)', tier: 'middle', raw: raw };
-      return            { label: '원거리(Far)',    tier: 'far',    raw: raw };
+      if (raw === 0) return { label: _sajuQuantumText("sq_8943_prop_label"), tier: 'same', raw: 0 };
+      if (raw <= 4)  return { label: _sajuQuantumText("sq_8944_prop_label"),   tier: 'near',   raw: raw };
+      if (raw <= 10) return { label: _sajuQuantumText("sq_8945_prop_label"), tier: 'middle', raw: raw };
+      return            { label: _sajuQuantumText("sq_8946_prop_label"),    tier: 'far',    raw: raw };
     }
 
     // 인연의 온도 계산 (0~100 → 체감 온도 문자열)
@@ -8973,12 +9447,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // ── 비주얼 테마 반환 ──
     function visualTheme(typeKey) {
       var themes = {
-        mirror:  { label: '영혼의 거울', concept: '끝없는 은하수와 두 별이 서로를 비추는 보랏빛 심연. 당신과 상대는 서로의 반사체 — 은하의 중심에서 두 개의 별이 같은 주기로 회전하며 공명하는 장면.', color1: '#6c5ce7', color2: '#a29bfe', bg: 'rgba(108,92,231,0.08)', border: 'rgba(108,92,231,0.35)', glowColor: '#6c5ce7' },
-        karma:   { label: '카르마의 불꽃', concept: '칠흑 같은 밤바다 위로 번개가 치고, 그 자리에서 영원히 타는 불꽃. 두 사람은 폭풍 그 자체 — 허리케인의 눈 속에서 마주친 두 개의 화염.', color1: '#e17055', color2: '#fd79a8', bg: 'rgba(225,112,85,0.08)', border: 'rgba(225,112,85,0.3)', glowColor: '#e17055' },
-        golden:  { label: '황금빛 정원', concept: '따스한 햇살 아래 황금빛 꽃들이 만개한 정원. 바람이 닿는 곳마다 번영이 자라고, 두 사람이 함께 서면 왕국이 완성된다.', color1: '#00b894', color2: '#55efc4', bg: 'rgba(0,184,148,0.08)', border: 'rgba(0,184,148,0.3)', glowColor: '#00b894' },
-        lake:    { label: '고요한 달의 호수', concept: '보름달이 완벽하게 반영되는 잔잔한 호수. 물결 하나 일지 않는 고요 속에서 두 영혼이 서로의 이름을 속삭이는 정경.', color1: '#74b9ff', color2: '#a29bfe', bg: 'rgba(116,185,255,0.08)', border: 'rgba(116,185,255,0.3)', glowColor: '#74b9ff' },
-        castle:  { label: '평행선 위의 성채', concept: '서로 다른 방향을 향하지만 정교하게 맞물린 기하학적 건축물. 두 탑은 결코 만나지 않는 듯 보이지만, 그 사이의 공간이 가장 아름다운 다리가 된다.', color1: '#0984e3', color2: '#74b9ff', bg: 'rgba(9,132,227,0.08)', border: 'rgba(9,132,227,0.3)', glowColor: '#0984e3' },
-        storm:   { label: '강한 자극의 관계', concept: '서로의 기준을 빠르게 흔드는 강한 자극의 흐름입니다. 감정의 속도를 조절하면 변화의 힘을 성장으로 돌릴 수 있습니다.', color1: '#d63031', color2: '#ff7675', bg: 'rgba(214,48,49,0.08)', border: 'rgba(214,48,49,0.3)', glowColor: '#d63031' }
+        mirror:  { label: _sajuQuantumText("sq_8976_prop_label"), concept: '끝없는 은하수와 두 별이 서로를 비추는 보랏빛 심연. 당신과 상대는 서로의 반사체 — 은하의 중심에서 두 개의 별이 같은 주기로 회전하며 공명하는 장면.', color1: '#6c5ce7', color2: '#a29bfe', bg: 'rgba(108,92,231,0.08)', border: 'rgba(108,92,231,0.35)', glowColor: '#6c5ce7' },
+        karma:   { label: _sajuQuantumText("sq_8977_prop_label"), concept: '칠흑 같은 밤바다 위로 번개가 치고, 그 자리에서 영원히 타는 불꽃. 두 사람은 폭풍 그 자체 — 허리케인의 눈 속에서 마주친 두 개의 화염.', color1: '#e17055', color2: '#fd79a8', bg: 'rgba(225,112,85,0.08)', border: 'rgba(225,112,85,0.3)', glowColor: '#e17055' },
+        golden:  { label: _sajuQuantumText("sq_8978_prop_label"), concept: '따스한 햇살 아래 황금빛 꽃들이 만개한 정원. 바람이 닿는 곳마다 번영이 자라고, 두 사람이 함께 서면 왕국이 완성된다.', color1: '#00b894', color2: '#55efc4', bg: 'rgba(0,184,148,0.08)', border: 'rgba(0,184,148,0.3)', glowColor: '#00b894' },
+        lake:    { label: _sajuQuantumText("sq_8979_prop_label"), concept: '보름달이 완벽하게 반영되는 잔잔한 호수. 물결 하나 일지 않는 고요 속에서 두 영혼이 서로의 이름을 속삭이는 정경.', color1: '#74b9ff', color2: '#a29bfe', bg: 'rgba(116,185,255,0.08)', border: 'rgba(116,185,255,0.3)', glowColor: '#74b9ff' },
+        castle:  { label: _sajuQuantumText("sq_8980_prop_label"), concept: '서로 다른 방향을 향하지만 정교하게 맞물린 기하학적 건축물. 두 탑은 결코 만나지 않는 듯 보이지만, 그 사이의 공간이 가장 아름다운 다리가 된다.', color1: '#0984e3', color2: '#74b9ff', bg: 'rgba(9,132,227,0.08)', border: 'rgba(9,132,227,0.3)', glowColor: '#0984e3' },
+        storm:   { label: _sajuQuantumText("sq_8981_prop_label"), concept: '서로의 기준을 빠르게 흔드는 강한 자극의 흐름입니다. 감정의 속도를 조절하면 변화의 힘을 성장으로 돌릴 수 있습니다.', color1: '#d63031', color2: '#ff7675', bg: 'rgba(214,48,49,0.08)', border: 'rgba(214,48,49,0.3)', glowColor: '#d63031' }
       };
       return themes[typeKey] || themes.mirror;
     }
@@ -9304,9 +9778,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: '🪞',
           pastLife: { role: '전생의 쌍둥이 영혼', karma: '분리될 수 없었던 자아의 두 반쪽' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: '말 한 마디, 눈빛 하나로 수천 단어가 전달된다. 언어 이전의 주파수가 일치하는 유일한 인연.' },
-            { icon: '🧠', label: '현실적 보완', text: '상대가 모르는 분야를 당신이 알고, 당신이 두려운 선택을 상대가 먼저 한다. 서로의 블라인드 스팟을 자연스럽게 채운다.' },
-            { icon: '💜', label: '심리적 위안', text: '혼자면 두려운 결정도, 이 사람 곁에서는 용기가 된다. 세상 가장 강한 심리적 안전망.' }
+            { icon: '🌌', label: _sajuQuantumText("sq_9307_prop_label"), text: '말 한 마디, 눈빛 하나로 수천 단어가 전달된다. 언어 이전의 주파수가 일치하는 유일한 인연.' },
+            { icon: '🧠', label: _sajuQuantumText("sq_9308_prop_label"), text: '상대가 모르는 분야를 당신이 알고, 당신이 두려운 선택을 상대가 먼저 한다. 서로의 블라인드 스팟을 자연스럽게 채운다.' },
+            { icon: '💜', label: _sajuQuantumText("sq_9309_prop_label"), text: '혼자면 두려운 결정도, 이 사람 곁에서는 용기가 된다. 세상 가장 강한 심리적 안전망.' }
           ],
           archiveStory: '수천 년 전, 하나의 별이 두 조각으로 분리되었다. 한 조각은 동쪽 하늘로, 다른 한 조각은 서쪽 하늘로 흩어졌다. 수만 번의 윤회를 거쳐 두 조각은 같은 시대, 같은 땅 위에 인간으로 태어났다. 처음 눈이 마주치는 순간 — 설명할 수 없는 기시감(旣視感)이 전신을 훑는다. 그것은 기억이 아니라, 존재의 인식이다.',
           mission: '현재의 조우에서 두 사람은 이미 서로를 알아본다. 문제는 "너무 잘 안다"는 착각이다. 미래의 과제는 명확하다 — 서로를 거울이 아닌 독립된 별로 보는 법을 배우는 것. 그것이 이 인연의 완성이다.',
@@ -9331,9 +9805,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: isDebtor ? '⛓️' : '👑',
           pastLife: { role: isDebtor ? '은인과 빚진 자' : '헌신자와 수혜자', karma: isDebtor ? '갚지 못한 전생의 목숨값' : '돌려받지 못한 전생의 희생' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: isDebtor ? '이 인연 앞에서 영혼이 저절로 낮아진다. 이기적 자아가 녹아내리며 진정한 헌신의 근육이 자란다.' : '당신의 존재 자체가 상대에게 성장의 에너지가 된다. 아무것도 하지 않아도 상대를 앞으로 나아가게 만드는 힘.' },
-            { icon: '💼', label: '현실적 보완', text: isDebtor ? '상대는 당신이 막혀 있는 문을 열어준다. 이 인연을 통해 당신의 경력, 기회, 인맥이 비약적으로 성장한다.' : '당신 주변에는 늘 당신을 위해 준비된 사람들이 있다. 이 인연이 그 문을 여는 열쇠가 된다.' },
-            { icon: '💜', label: '심리적 위안', text: isDebtor ? '아무 이유 없이 상대 곁에 있으면 마음이 안정된다. 그것이 전생의 빚이 주는 의외의 선물 — 조건 없는 포용감.' : '당신의 가치를 가장 먼저 알아보는 눈. 세상이 외면해도 이 사람만큼은 당신 편이다.' }
+            { icon: '🌌', label: _sajuQuantumText("sq_9334_prop_label"), text: isDebtor ? '이 인연 앞에서 영혼이 저절로 낮아진다. 이기적 자아가 녹아내리며 진정한 헌신의 근육이 자란다.' : '당신의 존재 자체가 상대에게 성장의 에너지가 된다. 아무것도 하지 않아도 상대를 앞으로 나아가게 만드는 힘.' },
+            { icon: '💼', label: _sajuQuantumText("sq_9335_prop_label"), text: isDebtor ? '상대는 당신이 막혀 있는 문을 열어준다. 이 인연을 통해 당신의 경력, 기회, 인맥이 비약적으로 성장한다.' : '당신 주변에는 늘 당신을 위해 준비된 사람들이 있다. 이 인연이 그 문을 여는 열쇠가 된다.' },
+            { icon: '💜', label: _sajuQuantumText("sq_9336_prop_label"), text: isDebtor ? '아무 이유 없이 상대 곁에 있으면 마음이 안정된다. 그것이 전생의 빚이 주는 의외의 선물 — 조건 없는 포용감.' : '당신의 가치를 가장 먼저 알아보는 눈. 세상이 외면해도 이 사람만큼은 당신 편이다.' }
           ],
           archiveStory: isDebtor
             ? '전생의 어느 전쟁터, 당신은 부상으로 쓰러진 채 죽음을 기다렸다. 상대가 자신의 목숨을 걸고 당신을 구했다. 당신은 그 빚을 갚을 기회도 없이 먼저 세상을 떠났다. 수백 년이 흘러 현생에 다시 태어난 두 사람 — 당신의 영혼은 기억하지 못해도, 가슴 깊은 곳에서 이 사람 앞에 무릎이 저절로 꺾이는 이유가 있다.'
@@ -9360,9 +9834,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: '🌟',
           pastLife: { role: '전생의 번영 공동체', karma: '함께 세상에 아낌없이 나눈 선행의 총합' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: '두 사람이 함께 있을 때 서로의 가능성을 더 쉽게 끌어내는 흐름입니다. 안정감과 응원이 잠재력을 현실로 옮기는 힘이 됩니다.' },
-            { icon: '💼', label: '현실적 보완', text: '경제적·사회적 흐름이 함께 살아날 가능성이 드러납니다. 이 인연을 통해 인맥이 넓어지고 서로의 기회가 자연스럽게 맞물릴 수 있으나, 공동의 일은 현실적인 계획과 꾸준한 조율이 더해질 때 안정적인 궤도에 오르기 쉽습니다.' },
-            { icon: '💜', label: '심리적 위안', text: '상대 앞에서는 마음의 경계가 조금씩 부드러워집니다. 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 더 자연스러운 자신에게 가까워질 수 있습니다.' }
+            { icon: '🌌', label: _sajuQuantumText("sq_9363_prop_label"), text: '두 사람이 함께 있을 때 서로의 가능성을 더 쉽게 끌어내는 흐름입니다. 안정감과 응원이 잠재력을 현실로 옮기는 힘이 됩니다.' },
+            { icon: '💼', label: _sajuQuantumText("sq_9364_prop_label"), text: '경제적·사회적 흐름이 함께 살아날 가능성이 드러납니다. 이 인연을 통해 인맥이 넓어지고 서로의 기회가 자연스럽게 맞물릴 수 있으나, 공동의 일은 현실적인 계획과 꾸준한 조율이 더해질 때 안정적인 궤도에 오르기 쉽습니다.' },
+            { icon: '💜', label: _sajuQuantumText("sq_9365_prop_label"), text: '상대 앞에서는 마음의 경계가 조금씩 부드러워집니다. 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 더 자연스러운 자신에게 가까워질 수 있습니다.' }
           ],
           archiveStory: '전생의 황금기, 두 사람은 같은 마을의 이웃이었다. 수확의 시절에는 먼저 이웃에게 곡식을 나눴고, 가뭄의 해에는 서로의 우물을 공유했다. 그 수십 년의 선업(善業)이 하늘에 쌓여 현생에 \"복의 카르마\"로 결실을 맺었다. 이 인연이 기쁜 것은, 우연이 아니라 당신들이 쌓아온 빛의 결과이기 때문이다.',
           mission: '현생에서 이 인연의 과제는 번영의 에너지를 세상으로 확장하는 데 있습니다. 두 사람만의 화원에 갇히지 말고, 주변 사람들에게도 동일한 따스함을 전파할 때 이 인연은 오래 맑게 이어지기 쉽습니다.',
@@ -9387,9 +9861,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: '🌙',
           pastLife: { role: '세상을 등진 은둔 예술가', karma: '책임 없이 순수했던 전생의 교감' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: '이 사람 곁에 있으면 세상의 소음이 전부 꺼진다. 우주적 고요함이 마음 깊은 곳의 불안을 잠재운다. 두 사람만의 주파수가 세상 가장 평온한 공간을 만든다.' },
-            { icon: '💼', label: '현실적 보완', text: '취향과 미적 감각이 절묘하게 맞는다. 함께하는 모든 활동에서 완전한 \"취향 일치\"를 경험하며, 서로의 창의력이 시너지를 일으키는 관계.' },
-            { icon: '💜', label: '심리적 위안', text: '판단 없이 들어주는 귀. 세상 어디에도 없는 완전한 공감의 에너지. 이 인연 안에서 두 사람은 진정한 \"쉼\"을 얻는다.' }
+            { icon: '🌌', label: _sajuQuantumText("sq_9390_prop_label"), text: '이 사람 곁에 있으면 세상의 소음이 전부 꺼진다. 우주적 고요함이 마음 깊은 곳의 불안을 잠재운다. 두 사람만의 주파수가 세상 가장 평온한 공간을 만든다.' },
+            { icon: '💼', label: _sajuQuantumText("sq_9391_prop_label"), text: '취향과 미적 감각이 절묘하게 맞는다. 함께하는 모든 활동에서 완전한 \"취향 일치\"를 경험하며, 서로의 창의력이 시너지를 일으키는 관계.' },
+            { icon: '💜', label: _sajuQuantumText("sq_9392_prop_label"), text: '판단 없이 들어주는 귀. 세상 어디에도 없는 완전한 공감의 에너지. 이 인연 안에서 두 사람은 진정한 \"쉼\"을 얻는다.' }
           ],
           archiveStory: '전생의 어느 시대, 두 사람은 깊은 산속에서 붓과 먹으로 세상을 담았다. 권력도, 재물도 없었지만 서로의 예술에서 우주를 보았다. 현실의 책임에서 달아난 그 순수한 시절의 기억이 현생에서 \"이 사람 곁이면 무조건 편안하다\"는 본능으로 남아있다.',
           mission: '이 인연의 미래 과제는 \"현실로 내려오는 것\"이다. 아름다운 판타지에만 머물면 두 사람은 서로에게 영원한 \"환상 속 존재\"가 된다. 현실의 불편함을 함께 겪어낼 때, 달의 호수는 생명력 있는 강이 된다.',
@@ -9414,9 +9888,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: isDriving ? '🏛️' : '🗝️',
           pastLife: { role: isDriving ? '제국을 건설한 군주와 책사' : '설계자와 시공자', karma: '거대한 목표를 완성하기 위한 역할의 결합' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: isDriving ? '당신의 비전이 상대를 통해 현실이 된다. 말로만 존재하던 꿈이 이 인연을 통해 물질 세계로 내려온다.' : '상대의 지도 아래 당신의 숨겨진 재능이 비로소 무대를 얻는다. 혼자였다면 평생 몰랐을 당신의 진짜 능력이 드러난다.' },
-            { icon: '💼', label: '현실적 보완', text: '완벽한 역할 분담이 이뤄진다. ' + (isDriving ? '당신의 방향 설정 능력과 상대의 실행력이 결합하여 1+1=11이 되는 시너지.' : '상대의 장기 기획력과 당신의 디테일한 실행이 맞물려 최고의 결과물을 만든다.') },
-            { icon: '💜', label: '심리적 위안', text: '서로에게 \"가장 믿을 수 있는 사람\"이 된다. 이 관계 안에서 능력 있는 자신의 모습을 발견하며 자존감이 자란다.' }
+            { icon: '🌌', label: _sajuQuantumText("sq_9417_prop_label"), text: isDriving ? '당신의 비전이 상대를 통해 현실이 된다. 말로만 존재하던 꿈이 이 인연을 통해 물질 세계로 내려온다.' : '상대의 지도 아래 당신의 숨겨진 재능이 비로소 무대를 얻는다. 혼자였다면 평생 몰랐을 당신의 진짜 능력이 드러난다.' },
+            { icon: '💼', label: _sajuQuantumText("sq_9418_prop_label"), text: '완벽한 역할 분담이 이뤄진다. ' + (isDriving ? '당신의 방향 설정 능력과 상대의 실행력이 결합하여 1+1=11이 되는 시너지.' : '상대의 장기 기획력과 당신의 디테일한 실행이 맞물려 최고의 결과물을 만든다.') },
+            { icon: '💜', label: _sajuQuantumText("sq_9419_prop_label"), text: '서로에게 \"가장 믿을 수 있는 사람\"이 된다. 이 관계 안에서 능력 있는 자신의 모습을 발견하며 자존감이 자란다.' }
           ],
           archiveStory: '전생의 어느 위대한 왕국, 두 사람은 함께 미완의 제국을 완성시켰다. ' + (isDriving ? '당신은 방향을 잡았고, 상대는 그 방향대로 세상을 조각했다.' : '상대가 제국의 청사진을 그렸고, 당신이 그것을 현실로 만들었다.') + ' 감정 없이, 순수한 목표만으로 달린 그 시절의 에너지가 현생에서 \"이 사람과 함께라면 무엇이든 될 것 같다\"는 근거 있는 확신으로 나타난다.',
           mission: '이 인연의 최대 과제는 \"목표 없이도 함께할 수 있는가\"이다. 공동의 프로젝트가 끝나면 두 사람의 관계도 흔들린다. 역할을 넘어 서로를 \"사람\"으로 보는 연습이 이 동맹을 영원하게 만든다.',
@@ -9448,13 +9922,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           distTier: tier,
           pastLife: { role: '전생의 숙적이자 연인', karma: '끝내지 못한 감정의 핏빛 기억' },
           advantages: [
-            { icon: '🌌', label: '영적 동력 (파괴적 혁신)', text: isAn
+            { icon: '🌌', label: _sajuQuantumText("sq_9451_prop_label"), text: isAn
               ? '상대의 에너지가 익숙한 방식을 흔들 수 있습니다. 그 자극을 잘 다루면 미뤄 둔 변화와 성장을 시작하는 계기가 됩니다.'
               : '당신의 존재 자체가 상대에게 혁명을 일으킨다. 당신이 닿는 곳에서 변화가 시작되고, 그 변화는 상대를 더 높은 차원으로 끌어올린다.' },
-            { icon: '💼', label: '현실적 보완 (자극의 경제학)', text: tier === 'near'
+            { icon: '💼', label: _sajuQuantumText("sq_9454_prop_label"), text: tier === 'near'
               ? '이 인연을 통해 당신은 안전지대 밖으로 강제로 끌려나간다. 그 불편한 성장이 커리어와 경제적 도약을 만든다.'
               : '상대는 당신이 생각지도 못한 각도에서 문제를 해결한다. 그 이질적인 접근이 당신의 사고를 확장시키는 최고의 자산이다.' },
-            { icon: '💜', label: '심리적 위안 (역설의 위안)', text: '상처를 주지만 진심을 다하는 유일한 존재. 이 사람만큼 당신을 알면서도 그 앎으로 당신을 뒤흔드는 이는 없다. 극한의 자극이 역설적으로 살아있음을 증명한다.' }
+            { icon: '💜', label: _sajuQuantumText("sq_9457_prop_label"), text: '상처를 주지만 진심을 다하는 유일한 존재. 이 사람만큼 당신을 알면서도 그 앎으로 당신을 뒤흔드는 이는 없다. 극한의 자극이 역설적으로 살아있음을 증명한다.' }
           ],
           archiveStory: tier === 'near'
             ? '전생의 핏빛 왕조, 두 사람은 왕위를 다투는 경쟁자였다. 서로에게 치명상을 입히고, 그러면서도 서로를 인정하는 모순된 감정 속에서 생을 마감했다. 그 미완의 감정이 현생에서 \"처음 만냐는데 왜 이렇게 강렬한 느낌\"으로 나타난다. 끌림의 정체는 미완의 전쟁이고, 그 전쟁을 끝내는 것이 현생의 과제다.'
@@ -9791,7 +10265,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return '<text x="' + (cx + Math.cos(rad) * 94).toFixed(1) + '" y="' + (cy + Math.sin(rad) * 94).toFixed(1) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.9)" font-size="11" font-weight="800">' + syCanonicalEsc(item[0]) + '</text>';
       }).join('');
       var dataPoints = points.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-      return '<svg viewBox="0 0 220 220" role="img" aria-label="숙요 인연 레이더 차트" style="width:100%;max-width:220px;height:auto;display:block;">'
+      return '<svg viewBox="0 0 220 220" role="img" aria-label="' + _sajuQuantumText("sq_9794_attr_aria_label") + '" style="width:100%;max-width:220px;height:auto;display:block;">'
         + '<defs><radialGradient id="syRadarGlow" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="rgba(196,181,253,0.36)"/><stop offset="100%" stop-color="rgba(147,197,253,0.02)"/></radialGradient></defs>'
         + '<circle cx="' + cx + '" cy="' + cy + '" r="92" fill="url(#syRadarGlow)" stroke="rgba(196,181,253,0.18)"/>'
         + grid + axes
@@ -10030,8 +10504,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     };
     var RELATION_META = {
       '업태': {
-        title: '오래된 약속처럼 남는 인연',
-        subtitle: '미완의 숙제와 설명하기 어려운 익숙함',
+        title: _sajuQuantumText("sq_10033_prop_title"),
+        subtitle: _sajuQuantumText("sq_10034_prop_subtitle"),
         theme: '감정보다 현실의 약속을 확인해야 하는 전생형 여운',
         summary: '이 관계에는 처음부터 오래 알고 지낸 사람처럼 느껴지는 기운이 짙게 머뭅니다. 다만 익숙함이 곧 안정성을 뜻하지는 않으니, 마음의 깊이보다 지금의 태도와 약속을 먼저 보아야 합니다.',
         first: '낯선 사람인데도 말투와 분위기가 어딘가 익숙하게 닿습니다. 오래된 기억처럼 남는 장면이 생기고, 짧은 만남 뒤에도 해석이 길어질 수 있습니다.',
@@ -10044,8 +10518,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         oneLine: '오래된 인연처럼 느껴질수록, 지금 지켜지는 약속을 먼저 보세요.'
       },
       '안괴': {
-        title: '강하게 끌리지만 경계가 필요한 인연',
-        subtitle: '흔들림과 방향 전환이 함께 일어나는 관계',
+        title: _sajuQuantumText("sq_10047_prop_title"),
+        subtitle: _sajuQuantumText("sq_10048_prop_subtitle"),
         theme: '강한 끌림 속에서 경계와 안전을 다시 배우는 전생형 자극',
         summary: '이 관계는 처음부터 감정의 파도가 크게 일어날 수 있습니다. 전생의 기억처럼 강렬하게 느껴져도 현재의 동의, 경계, 안전이 가장 앞에 와야 합니다.',
         first: '시선이 빠르게 묶이고 상대의 작은 반응에도 마음이 크게 움직입니다. 익숙함보다 충격에 가까운 끌림이 먼저 떠오를 수 있습니다.',
@@ -10058,8 +10532,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         oneLine: '강하게 끌릴수록 관계를 지키는 것은 감정의 크기가 아니라 안전한 경계입니다.'
       },
       '명': {
-        title: '나를 거울처럼 비추는 인연',
-        subtitle: '닮은 영혼과 반복되는 패턴',
+        title: _sajuQuantumText("sq_10061_prop_title"),
+        subtitle: _sajuQuantumText("sq_10062_prop_subtitle"),
         theme: '닮은 점이 빠른 이해와 같은 약점을 함께 비추는 거울형 서사',
         summary: '이 관계는 서로를 오래 알던 사람처럼 빠르게 이해하게 합니다. 하지만 닮은 결은 위로가 되면서도 같은 약점이 반복되는 통로가 될 수 있습니다.',
         first: '취향, 반응, 말의 속도가 비슷하게 맞아 처음부터 부담이 덜합니다. 상대를 보며 내 모습을 보는 듯한 감각이 올라옵니다.',
@@ -10072,8 +10546,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         oneLine: '거울처럼 닮은 인연일수록, 반복되는 습관을 함께 멈추는 힘이 필요합니다.'
       },
       '영친': {
-        title: '오래된 품처럼 편안한 인연',
-        subtitle: '보호와 돌봄이 자연스럽게 흐르는 관계',
+        title: _sajuQuantumText("sq_10075_prop_title"),
+        subtitle: _sajuQuantumText("sq_10076_prop_subtitle"),
         theme: '편안함과 돌봄이 깊어지지만 표현을 잊지 않아야 하는 보호형 서사',
         summary: '이 관계는 전생의 품처럼 편안하게 느껴질 수 있습니다. 함께 있을수록 안정이 깊어지지만, 익숙함 속에서 표현이 줄어들지 않게 살펴야 합니다.',
         first: '처음부터 과한 긴장보다 안도감이 먼저 올라옵니다. 생활 리듬과 마음의 온도가 자연스럽게 맞는 장면이 생깁니다.',
@@ -10086,8 +10560,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         oneLine: '편안한 인연은 저절로 오래 가는 것이 아니라, 표현을 통해 더 깊어집니다.'
       },
       '우쇠': {
-        title: '서로 다른 온도를 배우는 인연',
-        subtitle: '속도 차이와 보완이 함께 흐르는 관계',
+        title: _sajuQuantumText("sq_10089_prop_title"),
+        subtitle: _sajuQuantumText("sq_10090_prop_subtitle"),
         theme: '다른 속도를 통해 사랑과 배려의 언어를 배우는 배움형 서사',
         summary: '이 관계는 전생의 미완 수업처럼 서로의 속도 차이를 비춥니다. 한쪽은 더 가까워지고 싶고, 다른 한쪽은 숨 쉴 공간을 원할 수 있습니다.',
         first: '끌림은 있지만 표현 방식이 다르게 느껴질 수 있습니다. 상대의 거리감이 차가움인지 신중함인지 천천히 확인해야 합니다.',
@@ -10100,8 +10574,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         oneLine: '온도 차이가 있는 인연일수록, 같은 사랑을 다른 방식으로 표현할 수 있음을 기억하세요.'
       },
       '성위': {
-        title: '서로를 밀어 올리는 성장 계약형 인연',
-        subtitle: '목표와 현실 과제가 관계를 움직이는 구조',
+        title: _sajuQuantumText("sq_10103_prop_title"),
+        subtitle: _sajuQuantumText("sq_10104_prop_subtitle"),
         theme: '성장과 자극이 깊지만 감정의 안전감을 먼저 챙겨야 하는 계약형 서사',
         summary: '이 관계는 전생의 약속처럼 서로를 성장시키는 자극을 품고 있습니다. 함께 있으면 목표가 선명해지지만, 관계가 평가처럼 느껴지면 피로가 커질 수 있습니다.',
         first: '상대에게서 나를 더 나아가게 하는 기운을 느낄 수 있습니다. 호감과 존중, 경쟁심이 묘하게 섞여 올라옵니다.',
@@ -10375,7 +10849,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return '<section class="sy-past-life-ai" data-sy-past-life-ai>'
         + '<div class="sy-past-life-ai-head"><div><p class="sy-past-life-ai-kicker">달빛 질문문</p><h6 class="sy-past-life-ai-title">AI에게 이어 묻는 숙요 전생 인연 질문</h6></div><span class="sy-paid-status is-unlocked">리딩 포함</span></div>'
         + '<p class="sy-past-life-ai-copy">방금 열린 두 사람의 숙요 결을 그대로 담았습니다. 필요한 AI에게 옮기면 관계의 매듭과 다음 대화를 더 깊게 이어 볼 수 있습니다.</p>'
-        + '<textarea class="sy-past-life-ai-output" data-sy-past-life-ai-output readonly aria-label="숙요 전생 인연 AI 질문문">' + syCanonicalEsc(promptText) + '</textarea>'
+        + '<textarea class="sy-past-life-ai-output" data-sy-past-life-ai-output readonly aria-label="' + _sajuQuantumText("sq_10378_attr_aria_label") + '">' + syCanonicalEsc(promptText) + '</textarea>'
         + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button><button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open>ChatGPT로 열기</button><span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 전생 리딩 안에 함께 열렸습니다.</span></div>'
         + '</section>';
     }
@@ -10635,8 +11109,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     };
     var RELATION_META = {
       '명': {
-        title: '거울형 인연',
-        subtitle: '나와 닮은 결이 빠르게 맞닿는 관계',
+        title: _sajuQuantumText("sq_10638_prop_title"),
+        subtitle: _sajuQuantumText("sq_10639_prop_subtitle"),
         keywords: ['거울', '동질감', '반복 패턴'],
         summary: '이 숙은 당신에게 거울처럼 다가오는 인연입니다. 비슷한 감각으로 빠르게 가까워질 수 있지만, 서로의 약점도 비슷하게 반복될 수 있습니다. 오래 가려면 닮은 점에 기대기보다 반복되는 패턴을 함께 관리해야 합니다.',
         love: '연애에서는 익숙함이 설렘을 빠르게 열어 줍니다. 다만 같은 불안이 동시에 올라오면 확인과 서운함이 반복될 수 있으니 감정의 이름을 천천히 나누는 편이 좋습니다.',
@@ -10647,8 +11121,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         strategy: '닮은 지점은 인정하고, 결정권과 회복 시간은 따로 남겨 두세요.'
       },
       '업태': {
-        title: '전생형 인연',
-        subtitle: '설명하기 어려운 익숙함과 여운이 남는 관계',
+        title: _sajuQuantumText("sq_10650_prop_title"),
+        subtitle: _sajuQuantumText("sq_10651_prop_subtitle"),
         keywords: ['잔상', '미완', '의미감'],
         summary: '이 숙은 설명하기 어려운 익숙함과 여운을 남기는 인연입니다. 처음부터 오래 알던 사람처럼 느껴질 수 있지만, 관계가 불분명하면 감정의 잔상이 길어질 수 있습니다. 의미에 빠지기보다 현실에서 약속과 태도가 이어지는지를 봐야 합니다.',
         love: '연애에서는 마음의 깊이가 빠르게 커질 수 있습니다. 기다림만 길어지지 않도록 관계의 이름과 만남의 리듬을 현실에 세워야 합니다.',
@@ -10659,8 +11133,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         strategy: '감정의 깊이를 확인하기보다 실제로 지켜지는 약속을 천천히 보세요.'
       },
       '영친': {
-        title: '안정형 인연',
-        subtitle: '편안함과 보호감이 생활 속에 자라는 관계',
+        title: _sajuQuantumText("sq_10662_prop_title"),
+        subtitle: _sajuQuantumText("sq_10663_prop_subtitle"),
         keywords: ['안정', '보호', '생활 궁합'],
         summary: '이 숙은 당신에게 편안함과 안정감을 주기 쉬운 인연입니다. 함께 있을수록 생활 리듬이 맞고, 감정적으로 기대기 쉬운 구조입니다. 다만 너무 익숙해지면 표현이 줄어들 수 있으니 고마움과 애정을 의식적으로 표현해야 합니다.',
         love: '연애에서는 자극보다 신뢰가 먼저 자랍니다. 큰 이벤트보다 꾸준한 안부와 다정한 표현이 관계의 온도를 살립니다.',
@@ -10671,8 +11145,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         strategy: '작은 감사, 정해진 연락, 생활 배려를 의식적으로 반복하세요.'
       },
       '우쇠': {
-        title: '배움형 인연',
-        subtitle: '속도와 온도 차이를 조율하는 관계',
+        title: _sajuQuantumText("sq_10674_prop_title"),
+        subtitle: _sajuQuantumText("sq_10675_prop_subtitle"),
         keywords: ['온도차', '보완', '거리감'],
         summary: '이 숙은 서로의 속도와 감정 온도가 다르게 느껴질 수 있는 인연입니다. 한쪽은 더 가까워지고 싶고, 다른 한쪽은 거리를 두고 싶어질 수 있습니다. 같은 방식의 애정을 요구하기보다 서로의 표현 차이를 이해하는 것이 중요합니다.',
         love: '연애에서는 애정 표현의 방식이 다르게 나타날 수 있습니다. 늦은 반응을 애정 없음으로 단정하지 말고 원하는 표현을 구체적으로 나누세요.',
@@ -10683,8 +11157,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         strategy: '연락, 만남, 돈, 시간의 기준을 말로 합의하세요.'
       },
       '안괴': {
-        title: '강렬형 인연',
-        subtitle: '끌림과 흔들림이 함께 올라오는 관계',
+        title: _sajuQuantumText("sq_10686_prop_title"),
+        subtitle: _sajuQuantumText("sq_10687_prop_subtitle"),
         keywords: ['강한 끌림', '경계', '감정 소모'],
         summary: '이 숙은 강하게 끌리지만 서로의 약한 부분을 건드리기 쉬운 인연입니다. 끌림은 빠르게 올라가지만 안정감은 천천히 만들어야 합니다. 감정 확인을 반복하거나 상대를 시험하는 방식으로 가면 소모도가 커지므로, 경계와 약속을 분명히 해야 합니다.',
         love: '연애에서는 설렘과 불안이 함께 커질 수 있습니다. 시험, 잠수, 통제로 마음을 확인하려는 흐름은 멈추고 약속과 경계를 먼저 세워야 합니다.',
@@ -10695,8 +11169,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         strategy: '경계, 회복 시간, 연락 규칙, 돈의 기준을 처음부터 분명히 두세요.'
       },
       '성위': {
-        title: '성장형 인연',
-        subtitle: '목표와 역할이 서로를 밀어 올리는 관계',
+        title: _sajuQuantumText("sq_10698_prop_title"),
+        subtitle: _sajuQuantumText("sq_10699_prop_subtitle"),
         keywords: ['성장', '목표', '동기부여'],
         summary: '이 숙은 당신을 성장시키고 자극하는 인연입니다. 함께 있으면 목표 의식이 강해지고 현실적인 동기부여가 생길 수 있습니다. 다만 관계가 평가나 경쟁처럼 느껴지면 피로해질 수 있으니, 성과보다 감정의 안전감을 먼저 챙겨야 합니다.',
         love: '연애에서는 서로의 목표를 응원할 때 빛납니다. 조언이 평가처럼 들리지 않도록 다정한 확인을 먼저 두세요.',
@@ -11300,9 +11774,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       distanceBadge: distCopy.label + ' - ' + distCopy.badgeDesc,
       lead: relCopy.lead + (variantLine ? ' ' + variantLine : ''),
       stages: [
-        { icon: '✨', title: '첫 만남의 끌림', text: relCopy.firstMeet + ' ' + distCopy.firstMeetAddon },
-        { icon: '🌙', title: '관계의 발전 양상', text: relCopy.development + ' ' + distCopy.developmentAddon },
-        { icon: '🧭', title: '주의할 점과 극복법', text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine + guideLine }
+        { icon: '✨', title: _sajuQuantumText("sq_11303_prop_title"), text: relCopy.firstMeet + ' ' + distCopy.firstMeetAddon },
+        { icon: '🌙', title: _sajuQuantumText("sq_11304_prop_title"), text: relCopy.development + ' ' + distCopy.developmentAddon },
+        { icon: '🧭', title: _sajuQuantumText("sq_11305_prop_title"), text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine + guideLine }
       ]
     };
   }
@@ -11346,11 +11820,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         : '중거리 흐름에서는 급하게 확정하기보다 안정적인 반복과 현실 조율이 관계를 깊게 만듭니다.');
 
     return [
-      { key: 'love', label: '연애', title: '연애 궁합', band: syPurposeBand(ctx.emotionalChemistry), body: copy.love + ' ' + distanceLine },
-      { key: 'marriage', label: '결혼', title: '결혼 궁합', band: syPurposeBand(ctx.longTermPotential), body: copy.marriage + ' 장기성은 ' + syPurposeBand(ctx.longTermPotential) + '으로 읽히며, 생활 합의가 관계의 실제 안정감을 좌우합니다.' },
-      { key: 'reunion', label: '재회', title: '재회 궁합', band: syPurposeBand(ctx.recoveryPotential), body: copy.reunion + ' 회복력은 ' + syPurposeBand(ctx.recoveryPotential) + ' 흐름이므로, 감정의 크기보다 달라진 행동을 먼저 보세요.' },
-      { key: 'flirting', label: '썸·연락', title: '썸과 연락 궁합', band: syPurposeBand(ctx.communicationChemistry), body: copy.flirting + ' 연락은 관계를 증명하는 시험이 아니라 온도를 조율하는 신호로 쓰는 편이 좋습니다.' },
-      { key: 'business', label: '일·사업', title: '일과 사업 궁합', band: syPurposeBand(ctx.dailyLifeChemistry), body: copy.business + ' 돈과 책임이 얽히는 일은 초반에 기준을 세울수록 신뢰가 오래 갑니다.' }
+      { key: 'love', label: _sajuQuantumText("sq_11349_prop_label"), title: '연애 궁합', band: syPurposeBand(ctx.emotionalChemistry), body: copy.love + ' ' + distanceLine },
+      { key: 'marriage', label: _sajuQuantumText("sq_11350_prop_label"), title: '결혼 궁합', band: syPurposeBand(ctx.longTermPotential), body: copy.marriage + ' 장기성은 ' + syPurposeBand(ctx.longTermPotential) + '으로 읽히며, 생활 합의가 관계의 실제 안정감을 좌우합니다.' },
+      { key: 'reunion', label: _sajuQuantumText("sq_11351_prop_label"), title: '재회 궁합', band: syPurposeBand(ctx.recoveryPotential), body: copy.reunion + ' 회복력은 ' + syPurposeBand(ctx.recoveryPotential) + ' 흐름이므로, 감정의 크기보다 달라진 행동을 먼저 보세요.' },
+      { key: 'flirting', label: _sajuQuantumText("sq_11352_prop_label"), title: '썸과 연락 궁합', band: syPurposeBand(ctx.communicationChemistry), body: copy.flirting + ' 연락은 관계를 증명하는 시험이 아니라 온도를 조율하는 신호로 쓰는 편이 좋습니다.' },
+      { key: 'business', label: _sajuQuantumText("sq_11353_prop_label"), title: '일과 사업 궁합', band: syPurposeBand(ctx.dailyLifeChemistry), body: copy.business + ' 돈과 책임이 얽히는 일은 초반에 기준을 세울수록 신뢰가 오래 갑니다.' }
     ];
   }
 
@@ -11446,16 +11920,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var reality = syCompatClamp(stability * 0.46 + conversation * 0.26 + longTerm * 0.28, 20, 99);
 
     return [
-      { key: 'attraction', label: '끌림 지수', score: attraction, band: syIndicatorBand(attraction), body: '서로에게 시선이 돌아가는 힘입니다. 높을수록 관계 진입은 빠르지만, 결정은 감정 온도가 내려간 뒤에 하는 편이 좋습니다.' },
-      { key: 'stability', label: '안정감 지수', score: stability, band: syIndicatorBand(stability), body: '함께 있을 때 마음과 생활 리듬이 얼마나 편안해지는지 봅니다. 안정감은 데이트보다 평일 루틴에서 더 정확히 드러납니다.' },
-      { key: 'conversation', label: '대화 지수', score: conversation, band: syIndicatorBand(conversation), body: '오해를 줄이고 마음을 설명하는 능력입니다. 낮게 느껴질수록 추측보다 확인 질문이 먼저 필요합니다.' },
-      { key: 'trust', label: '신뢰 지수', score: trust, band: syIndicatorBand(trust), body: '말과 행동이 반복될 때 믿음으로 쌓이는 힘입니다. 약속의 크기보다 지키는 빈도가 이 지표를 키웁니다.' },
-      { key: 'recovery', label: '갈등 회복력', score: recovery, band: syIndicatorBand(recovery), body: '다툼 뒤 다시 연결되는 힘입니다. 회복력이 높아도 사과, 요약, 다음 행동 합의가 없으면 같은 상처가 반복됩니다.' },
-      { key: 'drain', label: '집착·소모 가능성', score: drain, band: syRiskBand(drain), body: '강한 끌림이 불안으로 바뀔 때 생기는 소모입니다. 높게 나올수록 연락 시험, 침묵 테스트, 결론 강요를 피해야 합니다.' },
-      { key: 'longTerm', label: '장기 지속력', score: longTerm, band: syIndicatorBand(longTerm), body: '감정이 지나간 뒤에도 관계를 운영할 수 있는 힘입니다. 생활, 돈, 일정, 가족 이야기를 피하지 않을수록 올라갑니다.' },
-      { key: 'marriage', label: '결혼 적합도', score: marriage, band: syIndicatorBand(marriage), body: '함께 살 때의 책임감과 현실 조화를 봅니다. 설렘보다 생활 규칙과 감정 점검의 균형이 핵심입니다.' },
-      { key: 'reunion', label: '재회 가능성', score: reunion, band: syIndicatorBand(reunion), body: '끊어진 뒤 다시 이어질 수 있는 감정 잔상과 회복 여지를 봅니다. 그리움보다 달라진 행동이 있어야 안정됩니다.' },
-      { key: 'reality', label: '현실 조화력', score: reality, band: syIndicatorBand(reality), body: '관계가 실제 생활 속에서 무리 없이 굴러가는 힘입니다. 서로의 우선순위와 시간 사용법을 맞추면 체감 궁합이 좋아집니다.' }
+      { key: 'attraction', label: _sajuQuantumText("sq_11449_prop_label"), score: attraction, band: syIndicatorBand(attraction), body: '서로에게 시선이 돌아가는 힘입니다. 높을수록 관계 진입은 빠르지만, 결정은 감정 온도가 내려간 뒤에 하는 편이 좋습니다.' },
+      { key: 'stability', label: _sajuQuantumText("sq_11450_prop_label"), score: stability, band: syIndicatorBand(stability), body: '함께 있을 때 마음과 생활 리듬이 얼마나 편안해지는지 봅니다. 안정감은 데이트보다 평일 루틴에서 더 정확히 드러납니다.' },
+      { key: 'conversation', label: _sajuQuantumText("sq_11451_prop_label"), score: conversation, band: syIndicatorBand(conversation), body: '오해를 줄이고 마음을 설명하는 능력입니다. 낮게 느껴질수록 추측보다 확인 질문이 먼저 필요합니다.' },
+      { key: 'trust', label: _sajuQuantumText("sq_11452_prop_label"), score: trust, band: syIndicatorBand(trust), body: '말과 행동이 반복될 때 믿음으로 쌓이는 힘입니다. 약속의 크기보다 지키는 빈도가 이 지표를 키웁니다.' },
+      { key: 'recovery', label: _sajuQuantumText("sq_11453_prop_label"), score: recovery, band: syIndicatorBand(recovery), body: '다툼 뒤 다시 연결되는 힘입니다. 회복력이 높아도 사과, 요약, 다음 행동 합의가 없으면 같은 상처가 반복됩니다.' },
+      { key: 'drain', label: _sajuQuantumText("sq_11454_prop_label"), score: drain, band: syRiskBand(drain), body: '강한 끌림이 불안으로 바뀔 때 생기는 소모입니다. 높게 나올수록 연락 시험, 침묵 테스트, 결론 강요를 피해야 합니다.' },
+      { key: 'longTerm', label: _sajuQuantumText("sq_11455_prop_label"), score: longTerm, band: syIndicatorBand(longTerm), body: '감정이 지나간 뒤에도 관계를 운영할 수 있는 힘입니다. 생활, 돈, 일정, 가족 이야기를 피하지 않을수록 올라갑니다.' },
+      { key: 'marriage', label: _sajuQuantumText("sq_11456_prop_label"), score: marriage, band: syIndicatorBand(marriage), body: '함께 살 때의 책임감과 현실 조화를 봅니다. 설렘보다 생활 규칙과 감정 점검의 균형이 핵심입니다.' },
+      { key: 'reunion', label: _sajuQuantumText("sq_11457_prop_label"), score: reunion, band: syIndicatorBand(reunion), body: '끊어진 뒤 다시 이어질 수 있는 감정 잔상과 회복 여지를 봅니다. 그리움보다 달라진 행동이 있어야 안정됩니다.' },
+      { key: 'reality', label: _sajuQuantumText("sq_11458_prop_label"), score: reality, band: syIndicatorBand(reality), body: '관계가 실제 생활 속에서 무리 없이 굴러가는 힘입니다. 서로의 우선순위와 시간 사용법을 맞추면 체감 궁합이 좋아집니다.' }
     ];
   }
 
@@ -11491,7 +11965,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var phaseDefs = [
       {
         key: 'observe',
-        title: '1구간 · 온도 맞추기',
+        title: _sajuQuantumText("sq_11494_prop_title"),
         start: 0,
         end: 6,
         score: emotional * 0.34 + attraction * 0.28 + stability * 0.2 + (100 - conflict) * 0.18 + distanceBias,
@@ -11500,7 +11974,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'open',
-        title: '2구간 · 마음 열기',
+        title: _sajuQuantumText("sq_11503_prop_title"),
         start: 7,
         end: 13,
         score: conversation * 0.38 + emotional * 0.24 + recovery * 0.18 + longTerm * 0.2,
@@ -11509,7 +11983,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'adjust',
-        title: '3구간 · 흔들림 조율',
+        title: _sajuQuantumText("sq_11512_prop_title"),
         start: 14,
         end: 20,
         score: recovery * 0.36 + stability * 0.24 + (100 - conflict) * 0.26 + conversation * 0.14,
@@ -11518,7 +11992,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'settle',
-        title: '4구간 · 약속 정리',
+        title: _sajuQuantumText("sq_11521_prop_title"),
         start: 21,
         end: 29,
         score: longTerm * 0.34 + stability * 0.3 + conversation * 0.2 + recovery * 0.16 + distanceBias,
@@ -11591,7 +12065,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var bestPhase = phaseRows.slice().sort(function(a, b) { return b.score - a.score; })[0] || phaseRows[0];
     var cautionPhase = phaseRows.slice().sort(function(a, b) { return a.score - b.score; })[0] || phaseRows[2];
     return {
-      title: '앞으로 30일 관계 타이밍',
+      title: _sajuQuantumText("sq_11594_prop_title"),
       summary: relationTiming[relationKey] || relationTiming.default,
       bestWindow: bestPhase ? bestPhase.range + ' · ' + bestPhase.title : '',
       cautionWindow: cautionPhase ? cautionPhase.range + ' · ' + cautionPhase.title : '',
@@ -11612,43 +12086,43 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var roleB = String(ctx.roleB || '상대');
     var styleMap = {
       ankai: {
-        title: '강한 파동을 경계선으로 다루는 관계',
+        title: _sajuQuantumText("sq_11615_prop_title"),
         tone: '짧고 분명하게, 결론은 하루 뒤로 미루는 말투가 좋습니다.',
         avoid: '시험하듯 묻기, 침묵으로 벌주기, 헤어짐을 압박 카드로 쓰기',
         close: '이 관계는 뜨겁게 붙잡는 힘보다 멈출 줄 아는 힘이 운을 살립니다.'
       },
       usei: {
-        title: '정서의 온도를 꾸준히 쌓는 관계',
+        title: _sajuQuantumText("sq_11621_prop_title"),
         tone: '부드럽게 확인하고, 서운함을 오래 숨기지 않는 말투가 좋습니다.',
         avoid: '괜찮다고 말해놓고 마음속 장부에 쌓아두기',
         close: '이 관계는 작은 표현을 반복할수록 깊어지고, 표현이 사라지면 천천히 멀어집니다.'
       },
       seongwi: {
-        title: '목표와 감정을 함께 정렬하는 관계',
+        title: _sajuQuantumText("sq_11627_prop_title"),
         tone: '감정 설명 뒤에 현실 제안을 붙이는 말투가 좋습니다.',
         avoid: '성과, 일정, 책임 이야기만 하고 마음을 생략하기',
         close: '이 관계는 역할을 나눌 때 강해지지만, 마음 점검을 빼면 건조해집니다.'
       },
       yeongchin: {
-        title: '안정 속에 새로움을 심는 관계',
+        title: _sajuQuantumText("sq_11633_prop_title"),
         tone: '편안한 인정과 작은 새 제안을 함께 건네는 말투가 좋습니다.',
         avoid: '가족처럼 편하다는 이유로 설렘과 예의를 생략하기',
         close: '이 관계는 익숙함이 복이지만, 새 빛을 넣어야 오래 따뜻합니다.'
       },
       life: {
-        title: '거울처럼 반응하는 관계',
+        title: _sajuQuantumText("sq_11639_prop_title"),
         tone: '상대 평가보다 내 반응을 먼저 고백하는 말투가 좋습니다.',
         avoid: '닮은 약점을 공격하거나, 상대를 통해 자기 불안을 해결하려 하기',
         close: '이 관계는 서로를 고치려 들 때 흔들리고, 스스로를 알아차릴 때 깊어집니다.'
       },
       taegeuk: {
-        title: '오래된 인연감을 현실로 내리는 관계',
+        title: _sajuQuantumText("sq_11645_prop_title"),
         tone: '큰 운명론보다 오늘 가능한 행동을 약속하는 말투가 좋습니다.',
         avoid: '인연이라는 말로 현실 책임을 흐리기',
         close: '이 관계는 묵은 감정을 아름답게 말하되, 현재의 행동으로 증명해야 살아납니다.'
       },
       default: {
-        title: '속도와 진심을 조율하는 관계',
+        title: _sajuQuantumText("sq_11651_prop_title"),
         tone: '부드럽게 말하되, 원하는 행동은 선명하게 요청하는 말투가 좋습니다.',
         avoid: '마음 읽기를 기대하고 직접 말하지 않기',
         close: '이 관계는 운보다 대화의 순서가 품질을 바꿉니다.'
@@ -11666,7 +12140,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var scripts = [
       {
         key: 'first',
-        title: '마음 열기',
+        title: _sajuQuantumText("sq_11669_prop_title"),
         when: '호감은 있지만 관계의 이름이 아직 흐릴 때',
         say: '나는 너와 있을 때 마음이 자연스럽게 열려. 급하게 정답을 내리기보다, 우리 리듬을 조금 더 알아가고 싶어.',
         avoid: '그래서 우리는 대체 무슨 사이야?',
@@ -11674,7 +12148,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'define',
-        title: '관계 정의',
+        title: _sajuQuantumText("sq_11677_prop_title"),
         when: '썸, 재회, 애매한 관계의 방향을 정해야 할 때',
         say: '나는 이 관계를 가볍게 흘려보내고 싶지 않아. 네 마음의 속도도 존중하고 싶으니, 우리가 어디까지 같은 마음인지 차분히 확인하고 싶어.',
         avoid: '지금 당장 확실히 말해.',
@@ -11682,7 +12156,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'hurt',
-        title: '서운함 전달',
+        title: _sajuQuantumText("sq_11685_prop_title"),
         when: '기대가 어긋났지만 싸움으로 키우고 싶지 않을 때',
         say: '네가 틀렸다는 말이 아니라, 나는 그 순간 조금 멀어진 느낌을 받았어. 다음에는 이렇게 해주면 훨씬 안심될 것 같아.',
         avoid: '너는 항상 이런 식이야.',
@@ -11690,7 +12164,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'conflict',
-        title: '갈등 직후',
+        title: _sajuQuantumText("sq_11693_prop_title"),
         when: '말이 날카로워졌거나 서로 방어가 올라왔을 때',
         say: '지금은 서로를 설득하기보다 상처를 키우지 않는 게 먼저인 것 같아. 잠깐 쉬고, 다시 말할 시간을 정하자.',
         avoid: '됐어, 네 마음 다 알겠어.',
@@ -11698,7 +12172,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'distance',
-        title: '거리 조율',
+        title: _sajuQuantumText("sq_11701_prop_title"),
         when: '연락 빈도, 만남 간격, 개인 시간이 불편해졌을 때',
         say: '나는 가까워지고 싶은 마음과 내 시간을 지키고 싶은 마음이 같이 있어. 우리 둘 다 편한 간격을 정해보면 좋겠어.',
         avoid: '왜 이렇게 연락이 안 돼?',
@@ -11706,7 +12180,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'reconnect',
-        title: '재접속',
+        title: _sajuQuantumText("sq_11709_prop_title"),
         when: '잠시 멀어졌거나 다시 말을 걸어야 할 때',
         say: '그때의 감정을 그냥 덮고 싶지는 않아. 다만 다시 싸우고 싶은 것도 아니야. 지금의 마음으로 한 번만 차분히 이야기해보고 싶어.',
         avoid: '나 없으니까 어때?',
@@ -11721,9 +12195,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       roleLine: '현재 역할 흐름은 나 ' + roleA + ', 상대 ' + roleB + '입니다. 이 역할은 고정된 운명이 아니라 대화 순간마다 바뀌는 반응의 옷입니다.',
       diagnostic: [talkMode, conflictMode, recoveryMode].join(' '),
       rituals: [
-        { title: '첫 문장', body: '비난 없이 내 감정부터 말하세요. “너 때문에”보다 “나는 이렇게 느꼈어”가 관계 운을 열어줍니다.' },
-        { title: '중간 문장', body: '상대가 이해한 내용을 한 번 확인하세요. 서로 다른 해석을 같은 사실로 착각하지 않는 것이 중요합니다.' },
-        { title: '마무리 문장', body: '다음 행동 하나를 정하세요. 사과만 있고 행동이 없으면 같은 파동이 되돌아옵니다.' }
+        { title: _sajuQuantumText("sq_11724_prop_title"), body: '비난 없이 내 감정부터 말하세요. “너 때문에”보다 “나는 이렇게 느꼈어”가 관계 운을 열어줍니다.' },
+        { title: _sajuQuantumText("sq_11725_prop_title"), body: '상대가 이해한 내용을 한 번 확인하세요. 서로 다른 해석을 같은 사실로 착각하지 않는 것이 중요합니다.' },
+        { title: _sajuQuantumText("sq_11726_prop_title"), body: '다음 행동 하나를 정하세요. 사과만 있고 행동이 없으면 같은 파동이 되돌아옵니다.' }
       ],
       scripts: scripts
     };
@@ -11742,37 +12216,37 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var roleB = String(ctx.roleB || '공진자');
     var relationRisk = {
       ankai: {
-        title: '강렬한 끌림이 시험으로 변하는 순간',
+        title: _sajuQuantumText("sq_11745_prop_title"),
         summary: '감정의 불이 빨리 붙는 만큼, 확인 욕구와 상처 주는 말이 동시에 올라오기 쉽습니다. 이 관계의 위험은 사랑이 없는 데 있지 않고, 사랑을 증명하려다 서로를 지치게 하는 데 있습니다.',
         ban: '최후통첩, 질투 유도, 일부러 늦게 답하기'
       },
       usei: {
-        title: '편안함 뒤에 서운함이 고이는 순간',
+        title: _sajuQuantumText("sq_11750_prop_title"),
         summary: '겉으로는 부드럽지만 마음속 기대가 조용히 쌓일 수 있습니다. 이 관계의 위험은 갑작스러운 충돌보다 누적입니다.',
         ban: '괜찮은 척하기, 돌려 말하기, 혼자 결론 내리기'
       },
       seongwi: {
-        title: '목표는 맞지만 마음이 밀리는 순간',
+        title: _sajuQuantumText("sq_11755_prop_title"),
         summary: '현실적인 합은 강하지만 감정 확인이 뒤로 밀리면 관계가 과제처럼 느껴질 수 있습니다. 이 관계의 위험은 효율이 친밀함을 밀어내는 데 있습니다.',
         ban: '성과로 마음을 대신하기, 일정만 정하고 감정은 생략하기'
       },
       yeongchin: {
-        title: '안정이 당연함으로 변하는 순간',
+        title: _sajuQuantumText("sq_11760_prop_title"),
         summary: '서로를 편하게 여기는 힘은 크지만, 익숙함이 예의를 덮으면 서운함이 늦게 드러납니다. 이 관계의 위험은 권태와 무심함입니다.',
         ban: '고마움을 생략하기, 설렘을 방치하기, 상대의 돌봄을 당연시하기'
       },
       life: {
-        title: '상대가 내 그림자를 비추는 순간',
+        title: _sajuQuantumText("sq_11765_prop_title"),
         summary: '닮은 점이 많을수록 위로도 빠르지만 방어도 빠르게 올라옵니다. 이 관계의 위험은 상대를 고치려다 자기 상처를 공격하는 데 있습니다.',
         ban: '상대를 내 불안의 증거로 삼기, 닮은 약점을 찌르기'
       },
       taegeuk: {
-        title: '운명감이 현실 책임을 흐리는 순간',
+        title: _sajuQuantumText("sq_11770_prop_title"),
         summary: '깊은 인연감이 강하게 느껴지지만, 현실의 약속이 없으면 감정만 오래 맴돌 수 있습니다. 이 관계의 위험은 말보다 행동이 늦어지는 데 있습니다.',
         ban: '인연이라는 말로 책임을 미루기, 오래 기다리게 하기'
       },
       default: {
-        title: '마음 읽기 기대가 커지는 순간',
+        title: _sajuQuantumText("sq_11775_prop_title"),
         summary: '서로의 속도를 확인하지 않으면 작은 오해가 관계의 방향처럼 보일 수 있습니다. 이 관계의 위험은 직접 말하지 않고 알아주길 바라는 데 있습니다.',
         ban: '추측으로 결론 내리기, 확인 없이 거리 두기'
       }
@@ -11791,25 +12265,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         : '적당한 거리는 장점이지만, 애매함이 길어지면 마음의 방향이 흐려질 수 있습니다.');
     var redFlags = [
       {
-        title: '확인 욕구가 사랑의 증거처럼 느껴질 때',
+        title: _sajuQuantumText("sq_11794_prop_title"),
         level: boundaryScore >= 78 ? '강한 주의' : '주의',
         body: '상대의 답장 속도, 말투, 표정 하나로 마음 전체를 판단하려는 흐름입니다. 이때는 질문을 늘리기보다 내 불안을 먼저 이름 붙여야 합니다.',
         remedy: '“내가 지금 불안해서 확인하고 싶어졌어”라고 말한 뒤, 답을 강요하지 않습니다.'
       },
       {
-        title: '침묵이 휴식이 아니라 벌처럼 쓰일 때',
+        title: _sajuQuantumText("sq_11800_prop_title"),
         level: conflict >= 78 ? '강한 주의' : '관리',
         body: '말하지 않는 시간이 관계를 쉬게 하는 것이 아니라 상대를 흔드는 도구가 되는 순간입니다. 침묵이 길어질수록 오해는 운처럼 굳어집니다.',
         remedy: '쉬는 시간을 정하고, 돌아올 시간을 함께 말하세요.'
       },
       {
-        title: '역할 피로가 쌓일 때',
+        title: _sajuQuantumText("sq_11806_prop_title"),
         level: stability <= 58 ? '주의' : '관찰',
         body: '나 ' + roleA + ', 상대 ' + roleB + '의 흐름이 한쪽 책임으로 굳어지는 신호입니다. 한 사람이 계속 달래거나 밀어붙이면 관계의 균형이 기울어집니다.',
         remedy: '이번에는 누가 먼저 사과하고, 누가 다음 행동을 맡을지 나눠 정하세요.'
       },
       {
-        title: '거리감이 상상으로 채워질 때',
+        title: _sajuQuantumText("sq_11812_prop_title"),
         level: distanceKo === '원거리' ? '주의' : '관찰',
         body: distanceHint,
         remedy: '다음 연락 시간, 다음 만남, 답이 늦을 때의 기준을 구체적으로 정하세요.'
@@ -11842,10 +12316,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
     ];
     var taboos = [
-      { title: '헤어짐을 협박처럼 쓰기', why: '관계의 뿌리에 공포가 남아 이후의 대화가 모두 방어적으로 변합니다.', replace: '결론 유예 시간을 정하고 감정이 내려간 뒤 다시 말하세요.' },
-      { title: '상대의 침묵을 마음 없음으로 단정하기', why: '상대의 회복 방식과 애정의 크기를 혼동하게 됩니다.', replace: '침묵의 의미를 묻기 전에 돌아올 시간을 먼저 정하세요.' },
-      { title: '과거 상처를 한꺼번에 소환하기', why: '현재 문제의 문이 닫히고 오래된 방어만 깨어납니다.', replace: '오늘의 사건 하나만 다루세요.' },
-      { title: '연락 빈도로 사랑을 채점하기', why: '확인 욕구가 커질수록 관계의 자연스러운 호흡이 사라집니다.', replace: '연락 기준을 합의하고 예외 상황을 미리 정하세요.' },
+      { title: _sajuQuantumText("sq_11845_prop_title"), why: '관계의 뿌리에 공포가 남아 이후의 대화가 모두 방어적으로 변합니다.', replace: '결론 유예 시간을 정하고 감정이 내려간 뒤 다시 말하세요.' },
+      { title: _sajuQuantumText("sq_11846_prop_title"), why: '상대의 회복 방식과 애정의 크기를 혼동하게 됩니다.', replace: '침묵의 의미를 묻기 전에 돌아올 시간을 먼저 정하세요.' },
+      { title: _sajuQuantumText("sq_11847_prop_title"), why: '현재 문제의 문이 닫히고 오래된 방어만 깨어납니다.', replace: '오늘의 사건 하나만 다루세요.' },
+      { title: _sajuQuantumText("sq_11848_prop_title"), why: '확인 욕구가 커질수록 관계의 자연스러운 호흡이 사라집니다.', replace: '연락 기준을 합의하고 예외 상황을 미리 정하세요.' },
       { title: profile.ban, why: '이 관계의 고유한 약점이 가장 빠르게 깨어나는 금기입니다.', replace: '상대의 반응을 시험하기보다 내가 원하는 행동을 직접 요청하세요.' }
     ];
     return {
@@ -11894,7 +12368,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var rows = [
       {
         key: 'love',
-        title: '연애',
+        title: _sajuQuantumText("sq_11897_prop_title"),
         score: attraction * 0.3 + emotional * 0.28 + conversation * 0.2 + recovery * 0.12 + stability * 0.1 + relBoost.love + jitter(2),
         body: '감정의 온도와 서로에게 끌리는 힘을 중심으로 봅니다. 설렘이 빠르게 올라올수록 관계의 이름보다 리듬을 먼저 맞추는 것이 좋습니다.',
         action: '고백이나 확답보다 다음 만남의 질을 높이세요.',
@@ -11902,7 +12376,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'marriage',
-        title: '결혼',
+        title: _sajuQuantumText("sq_11905_prop_title"),
         score: longTerm * 0.38 + stability * 0.3 + recovery * 0.18 + conversation * 0.14 + relBoost.marriage + jitter(4),
         body: '생활 리듬, 회복력, 책임의 분담을 중심으로 봅니다. 설렘보다 함께 지킬 수 있는 규칙이 결혼운을 안정시킵니다.',
         action: '돈, 가족, 일정, 갈등 후 회복법을 구체적으로 말해보세요.',
@@ -11910,7 +12384,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'reunion',
-        title: '재회',
+        title: _sajuQuantumText("sq_11913_prop_title"),
         score: recovery * 0.38 + emotional * 0.25 + conversation * 0.22 + (100 - conflict) * 0.15 + relBoost.reunion + jitter(6),
         body: '그리움의 크기보다 달라진 대화 방식과 반복을 끊는 힘을 봅니다. 같은 상처가 반복되면 운은 다시 닫힙니다.',
         action: '사과, 변화 증거, 다음 약속을 한 묶음으로 보여주세요.',
@@ -11918,7 +12392,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'secret',
-        title: '비밀연애',
+        title: _sajuQuantumText("sq_11921_prop_title"),
         score: attraction * 0.32 + emotional * 0.25 + (100 - stability) * 0.15 + conversation * 0.1 + (100 - conflict) * 0.18 + relBoost.secret + jitter(8),
         body: '강한 끌림과 숨겨진 감정의 압력을 함께 봅니다. 은밀함은 몰입을 키우지만, 기준이 없으면 관계를 빠르게 소모시킵니다.',
         action: '비밀로 둘 범위, 공개 시점, 감정 책임을 먼저 정하세요.',
@@ -11926,7 +12400,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'distance',
-        title: '장거리',
+        title: _sajuQuantumText("sq_11929_prop_title"),
         score: conversation * 0.3 + recovery * 0.24 + longTerm * 0.22 + stability * 0.16 + emotional * 0.08 + relBoost.distance + jitter(10),
         body: '물리적 거리보다 연락 기준과 재접속 능력을 봅니다. 장거리는 마음의 크기보다 일정의 선명도가 중요합니다.',
         action: '다음 만남, 연락 시간, 답이 늦을 때의 기준을 숫자로 정하세요.',
@@ -11934,7 +12408,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         key: 'business',
-        title: '협업',
+        title: _sajuQuantumText("sq_11937_prop_title"),
         score: conversation * 0.26 + stability * 0.24 + longTerm * 0.24 + recovery * 0.14 + (100 - conflict) * 0.12 + relBoost.business + jitter(12),
         body: '감정보다 역할 분담, 신뢰, 목표 정렬을 중심으로 봅니다. 좋은 협업은 친밀함보다 책임의 경계가 분명할 때 오래 갑니다.',
         action: '역할, 마감, 결정권, 감정 이슈를 다루는 방식을 먼저 합의하세요.',
@@ -11981,22 +12455,22 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       default: '이 인연은 선택과 조율에 따라 품질이 달라집니다. 속도보다 대화의 순서를 잘 잡는 것이 핵심입니다.'
     };
     var sevenDays = [
-      { day: '1일차', title: '관계 온도 기록', body: '오늘 느낀 끌림, 불안, 편안함을 각각 한 문장으로 적습니다.' },
-      { day: '2일차', title: '연락 기준 정리', body: '서로가 편한 연락 시간과 답이 늦을 때의 기준을 정합니다.' },
-      { day: '3일차', title: '감정 한 문장 전달', body: '비난 없이 “나는 이렇게 느껴”로 시작하는 문장을 하나 건넵니다.' },
-      { day: '4일차', title: '작은 약속 실행', body: '큰 고백보다 지킬 수 있는 작은 약속 하나를 실제로 지킵니다.' },
-      { day: '5일차', title: '금기 행동 차단', body: '시험, 침묵, 과거 소환 중 가장 자주 쓰는 패턴 하나를 멈춥니다.' },
-      { day: '6일차', title: '현실 합의', body: '만남, 돈, 일정, 공개 범위 중 하나를 구체적으로 맞춥니다.' },
-      { day: '7일차', title: '다음 리듬 결정', body: '이번 주에 좋았던 방식 하나와 줄여야 할 방식 하나를 함께 정합니다.' }
+      { day: '1일차', title: _sajuQuantumText("sq_11984_prop_title"), body: '오늘 느낀 끌림, 불안, 편안함을 각각 한 문장으로 적습니다.' },
+      { day: '2일차', title: _sajuQuantumText("sq_11985_prop_title"), body: '서로가 편한 연락 시간과 답이 늦을 때의 기준을 정합니다.' },
+      { day: '3일차', title: _sajuQuantumText("sq_11986_prop_title"), body: '비난 없이 “나는 이렇게 느껴”로 시작하는 문장을 하나 건넵니다.' },
+      { day: '4일차', title: _sajuQuantumText("sq_11987_prop_title"), body: '큰 고백보다 지킬 수 있는 작은 약속 하나를 실제로 지킵니다.' },
+      { day: '5일차', title: _sajuQuantumText("sq_11988_prop_title"), body: '시험, 침묵, 과거 소환 중 가장 자주 쓰는 패턴 하나를 멈춥니다.' },
+      { day: '6일차', title: _sajuQuantumText("sq_11989_prop_title"), body: '만남, 돈, 일정, 공개 범위 중 하나를 구체적으로 맞춥니다.' },
+      { day: '7일차', title: _sajuQuantumText("sq_11990_prop_title"), body: '이번 주에 좋았던 방식 하나와 줄여야 할 방식 하나를 함께 정합니다.' }
     ];
     return {
-      title: '숙요점 전문가 종합판정',
+      title: _sajuQuantumText("sq_11993_prop_title"),
       score: total,
       level: level,
       bestCategory: best ? best.title + ' · ' + best.band : '관계 조율',
       weakestCategory: weakest ? weakest.title + ' · ' + weakest.band : '속도 조절',
       summary: relationAdvice[relationKey] || relationAdvice.default,
-      core: '핵심 운은 ' + (best ? best.title : '관계 조율') + '에서 가장 잘 열리고, ' + (weakest ? weakest.title : '속도 조절') + '에서는 더 섬세한 합의가 필요합니다.',
+      core: '핵심 운은 ' + (best ? best.title : _sajuQuantumText("sq_11999_prop_title")) + '에서 가장 잘 열리고, ' + (weakest ? weakest.title : '속도 조절') + '에서는 더 섬세한 합의가 필요합니다.',
       priority: attraction >= 78 && conflict >= 76 ? '끌림을 증명하려 하지 말고 관계의 안전장치를 먼저 세우세요.' : (recovery >= 72 ? '갈등을 피하기보다 회복 순서를 정할 때 관계가 강해집니다.' : '관계의 속도를 낮추고 작은 약속을 반복해 신뢰를 먼저 쌓으세요.'),
       distanceNote: distanceKo === '원거리' ? '원거리 흐름은 약속의 구체성이 곧 애정의 체감입니다.' : (distanceKo === '근거리' ? '근거리 흐름은 가까운 만큼 감정 반응을 늦추는 기술이 필요합니다.' : '중거리 흐름은 개인 시간과 만남의 균형이 관계 품질을 좌우합니다.'),
       riskNote: risk && risk.riskBand ? '현재 위험 압력은 ' + risk.riskBand + '로 읽힙니다.' : '위험 압력은 대화 방식에 따라 달라집니다.',
@@ -12080,7 +12554,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">' + keywords.map(function(key) { return '<span class="sy-paid-status">' + syCanonicalEsc(key) + '</span>'; }).join('') + '</div>'
         + '<p style="color:#fef3c7;">' + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 ' + syCanonicalEsc(summary['natal宿'] || '') + '</p>'
         + '<p>' + syCanonicalEsc((preview.totalFortunePreview && preview.totalFortunePreview.text) || '') + '</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="숙요점 1년운 전체 해석 잠금 해제">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
       + '</div>'
       + '</div>'
       + '<div class="sy-month-preview-grid">'
@@ -12357,7 +12831,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         if (typeof window._cdOpenPaidServiceGate !== 'function') throw new Error('결제 모듈을 불러오지 못했습니다.');
         var billing = payload.billing && payload.billing.payload ? payload.billing.payload : {};
         return window._cdOpenPaidServiceGate(Object.assign({}, billing, {
-          title: '숙요점 1년운 전체 해석 잠금 해제',
+          title: _sajuQuantumText("sq_12360_prop_title"),
           reason: '숙요점 1년운 전체 해석 잠금 해제',
           featureKey: 'sukyo_yearly_fortune_unlock',
           contentKey: payload.contentKey,
@@ -12402,7 +12876,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           + '<h4>숙요점 1년운</h4>'
           + '<p class="sy-lunar-month-copy">원하는 연도를 직접 열어 본명숙의 12개월 달빛 흐름을 비춥니다.</p>'
         + '</div>'
-        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="숙요점 1년운 조회 연도" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
       + '</div>'
       + '<div id="syYearlyFortuneContent"><div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요.</div></div>'
       + '</div>';
@@ -12450,12 +12924,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       });
     }
     return {
-      title: '연도별 관계 흐름',
+      title: _sajuQuantumText("sq_12453_prop_title"),
       summary: '올해부터 10년까지 두 사람의 관계가 어떤 국면으로 움직이는지 봅니다. 3년은 가까운 선택, 5년은 장기 흐름, 10년은 인연의 큰 궤도를 살핍니다.',
       views: [
-        { label: '3년 보기', body: years.slice(0, 3).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
-        { label: '5년 보기', body: years.slice(0, 5).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
-        { label: '10년 보기', body: years.map(function(v) { return v.year + ' ' + v.band; }).join(' · ') }
+        { label: _sajuQuantumText("sq_12456_prop_label"), body: years.slice(0, 3).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
+        { label: _sajuQuantumText("sq_12457_prop_label"), body: years.slice(0, 5).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
+        { label: _sajuQuantumText("sq_12458_prop_label"), body: years.map(function(v) { return v.year + ' ' + v.band; }).join(' · ') }
       ],
       years: years
     };
@@ -12515,30 +12989,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     ];
 
     var archiveMeta = {
-      unfinished_lovers: { title: '끝내지 못한 연서', subtitle: '마지막 장면에서 멈춘 두 사람' },
-      rivals_in_palace: { title: '궁정의 라이벌', subtitle: '권력과 감정이 엉킨 밤' },
-      warrior_and_healer: { title: '전장의 전사와 치유자', subtitle: '피와 약초의 기억' },
-      monk_and_princess: { title: '승려와 공주의 약속', subtitle: '금기와 자비 사이' },
-      astronomer_and_oracle: { title: '별을 읽는 점성가와 오라클', subtitle: '하늘의 신호를 해독하던 동료' },
-      merchant_and_nomad: { title: '상인과 유목민', subtitle: '길 위에서 쌓인 신뢰' },
-      king_and_strategist: { title: '왕과 책사', subtitle: '제국을 설계한 관계' },
-      betrayer_and_betrayed: { title: '배신한 자와 남겨진 자', subtitle: '침묵으로 봉인된 사건' },
-      guardian_and_lost_child: { title: '수호자와 길 잃은 아이', subtitle: '지켜야 했던 생명' },
-      runaway_bride_and_pursuer: { title: '도망친 신부와 추적자', subtitle: '멈출 수 없던 추적' },
-      twin_flames_separated: { title: '갈라진 쌍둥이 불꽃', subtitle: '서로를 찾던 궤도' },
-      teacher_and_disciple: { title: '스승과 제자', subtitle: '배움으로 맺어진 업' },
-      sea_captain_and_lighthouse_keeper: { title: '선장과 등대지기', subtitle: '폭풍 속 신호' },
-      fallen_general_and_songstress: { title: '패장과 노래꾼', subtitle: '몰락 후 남은 위로' },
-      temple_priest_and_forbidden_guest: { title: '신전의 사제와 금지된 손님', subtitle: '경계 밖의 만남' },
-      desert_promise: { title: '사막의 맹세', subtitle: '물 한 모금의 신뢰' },
-      moon_palace_memory: { title: '달궁의 기억', subtitle: '달빛 아래의 재회' },
-      village_childhood_bond: { title: '마을의 어린 시절', subtitle: '익숙함의 뿌리' },
-      execution_day_regret: { title: '처형 날의 후회', subtitle: '한마디를 놓친 관계' },
-      bookstore_in_old_capital: { title: '옛 수도의 서점', subtitle: '책장 사이의 약속' },
-      shaman_and_wounded_soul: { title: '무당과 상처 입은 영혼', subtitle: '치유 의식의 기억' },
-      enemy_spies: { title: '적국의 첩자', subtitle: '거짓과 진심의 경계' },
-      royal_guard_and_hidden_heir: { title: '왕실 근위대와 숨겨진 후계자', subtitle: '정체를 지킨 맹세' },
-      star_crossed_travelers: { title: '엇갈린 여행자', subtitle: '한 번씩 스쳐간 별자리' }
+      unfinished_lovers: { title: _sajuQuantumText("sq_12518_prop_title"), subtitle: '마지막 장면에서 멈춘 두 사람' },
+      rivals_in_palace: { title: _sajuQuantumText("sq_12519_prop_title"), subtitle: '권력과 감정이 엉킨 밤' },
+      warrior_and_healer: { title: _sajuQuantumText("sq_12520_prop_title"), subtitle: '피와 약초의 기억' },
+      monk_and_princess: { title: _sajuQuantumText("sq_12521_prop_title"), subtitle: '금기와 자비 사이' },
+      astronomer_and_oracle: { title: _sajuQuantumText("sq_12522_prop_title"), subtitle: '하늘의 신호를 해독하던 동료' },
+      merchant_and_nomad: { title: _sajuQuantumText("sq_12523_prop_title"), subtitle: '길 위에서 쌓인 신뢰' },
+      king_and_strategist: { title: _sajuQuantumText("sq_12524_prop_title"), subtitle: '제국을 설계한 관계' },
+      betrayer_and_betrayed: { title: _sajuQuantumText("sq_12525_prop_title"), subtitle: '침묵으로 봉인된 사건' },
+      guardian_and_lost_child: { title: _sajuQuantumText("sq_12526_prop_title"), subtitle: '지켜야 했던 생명' },
+      runaway_bride_and_pursuer: { title: _sajuQuantumText("sq_12527_prop_title"), subtitle: '멈출 수 없던 추적' },
+      twin_flames_separated: { title: _sajuQuantumText("sq_12528_prop_title"), subtitle: '서로를 찾던 궤도' },
+      teacher_and_disciple: { title: _sajuQuantumText("sq_12529_prop_title"), subtitle: '배움으로 맺어진 업' },
+      sea_captain_and_lighthouse_keeper: { title: _sajuQuantumText("sq_12530_prop_title"), subtitle: '폭풍 속 신호' },
+      fallen_general_and_songstress: { title: _sajuQuantumText("sq_12531_prop_title"), subtitle: '몰락 후 남은 위로' },
+      temple_priest_and_forbidden_guest: { title: _sajuQuantumText("sq_12532_prop_title"), subtitle: '경계 밖의 만남' },
+      desert_promise: { title: _sajuQuantumText("sq_12533_prop_title"), subtitle: '물 한 모금의 신뢰' },
+      moon_palace_memory: { title: _sajuQuantumText("sq_12534_prop_title"), subtitle: '달빛 아래의 재회' },
+      village_childhood_bond: { title: _sajuQuantumText("sq_12535_prop_title"), subtitle: '익숙함의 뿌리' },
+      execution_day_regret: { title: _sajuQuantumText("sq_12536_prop_title"), subtitle: '한마디를 놓친 관계' },
+      bookstore_in_old_capital: { title: _sajuQuantumText("sq_12537_prop_title"), subtitle: '책장 사이의 약속' },
+      shaman_and_wounded_soul: { title: _sajuQuantumText("sq_12538_prop_title"), subtitle: '치유 의식의 기억' },
+      enemy_spies: { title: _sajuQuantumText("sq_12539_prop_title"), subtitle: '거짓과 진심의 경계' },
+      royal_guard_and_hidden_heir: { title: _sajuQuantumText("sq_12540_prop_title"), subtitle: '정체를 지킨 맹세' },
+      star_crossed_travelers: { title: _sajuQuantumText("sq_12541_prop_title"), subtitle: '한 번씩 스쳐간 별자리' }
     };
 
     var relationToneMap = {
@@ -13112,7 +13586,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           status: 402,
           payload: {
             code: 'PAYMENT_REQUIRED',
-            message: '프롬프트를 생성할 수 없습니다.',
+            message: _sajuQuantumText("sq_13115_prop_message"),
             requiredCoins: cost
           }
         });
@@ -13207,7 +13681,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return Promise.resolve({
         ok: false,
         status: 400,
-        payload: { code: 'MISSING_BASIC_RESULT', message: '기본 숙요점 결과를 먼저 계산해 주세요.' }
+        payload: { code: 'MISSING_BASIC_RESULT', message: _sajuQuantumText("sq_13210_prop_message") }
       });
     }
     var compatibilityResult = syGetPromptCompatibilityResult(basicResult, !!opts.preferCompatibility);
@@ -13218,7 +13692,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         status: 400,
         payload: {
           code: 'MISSING_COMPATIBILITY_RESULT',
-          message: '궁합·재회·이별 질문은 숙요 궁합 계산을 먼저 만든 뒤 프롬프트를 생성해 주세요.'
+          message: _sajuQuantumText("sq_13221_prop_message")
         }
       });
     }
@@ -14396,7 +14870,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
                 <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 담아, AI에게 이어 묻기 좋은 프롬프트를 무료로 정리합니다.</div>
-                <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+                <textarea data-sy-ai-question maxlength="1000" placeholder="' + _sajuQuantumText("sq_14399_attr_placeholder") + '" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
@@ -14913,10 +15387,10 @@ function renderQuantumStrategy(p, natal, bazi){
     '</div>';
   }).join('');
   var pillarMatrix=[
-    {key:'y',label:'년주'},
-    {key:'m',label:'월주'},
-    {key:'d',label:'일주'},
-    {key:'h',label:'시주'}
+    {key:'y',label:_sajuQuantumText("sq_14916_prop_label")},
+    {key:'m',label:_sajuQuantumText("sq_14917_prop_label")},
+    {key:'d',label:_sajuQuantumText("sq_14918_prop_label")},
+    {key:'h',label:_sajuQuantumText("sq_14919_prop_label")}
   ].map(function(meta){
     var item=p[meta.key]||{};
     var g=item.g||'', j=item.j||'';

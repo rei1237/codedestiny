@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
   MEIHUA_MODES,
   RELATIONSHIP_TYPES,
@@ -194,7 +195,7 @@ function MoonLotusDecoration({ idPrefix, wrapperClassName = "", svgClassName = "
   );
 }
 
-const CATEGORIES: CategoryOption[] = [
+const CATEGORIES_COPY: CategoryOption[] = [
   { id: "all", label: "종합", accent: "from-fuchsia-300 to-cyan-200", note: "여러 상징을 한 흐름으로 엮어 읽습니다." },
   { id: "saju", label: "사주/명리학", accent: "from-amber-200 to-violet-200", note: "오행과 십성의 균형을 중심에 둡니다." },
   { id: "dangsaju", label: "당사주", accent: "from-amber-200 to-rose-200", note: "초년부터 말년까지 이어지는 12성 흐름을 정리합니다." },
@@ -257,7 +258,7 @@ const MEIHUA_UI_COPY = {
   emptyQuestion: "질문을 입력해주세요. 매화역수는 하나의 흐름을 괘로 세울 때 가장 안정적입니다.",
 };
 
-const MEIHUA_INFO_SECTIONS = [
+const MEIHUA_INFO_SECTIONS_COPY = [
   {
     title: "01 이 카테고리에서 다루는 것",
     body: "매화역수 기본 해석, 지정일 해석, 궁합 해석 주제를 선택하고 생년월일, 날짜, 질문 정보를 정리해 바로 붙여넣기 좋은 리딩 프롬프트를 만드세요. 현재 흐름, 관계 맥락, 반복되는 선택 패턴을 중심으로 방향과 전환점을 확인합니다.",
@@ -291,7 +292,7 @@ const DANGSAJU_UI_COPY = {
   emptyQuestion: "질문을 입력해주세요. 당사주는 하나의 주제를 중심으로 초년·청년·중년·말년 흐름을 읽을 때 더 안정적입니다.",
 };
 
-const DANGSAJU_INFO_SECTIONS = [
+const DANGSAJU_INFO_SECTIONS_COPY = [
   {
     title: "01 이 카테고리에서 다루는 것",
     body: "당사주 기본차트 해석과 당사주 궁합 주제를 선택하고 생년월일, 날짜, 질문 정보를 정리해 바로 붙여넣기 좋은 리딩 프롬프트를 만드세요. 현재 흐름, 관계 맥락, 반복되는 선택 패턴을 중심으로 초년부터 말년까지의 흐름을 확인합니다.",
@@ -333,7 +334,7 @@ const KUSEI_UI_COPY = {
   caution: "구성기학 리딩은 자기 이해와 방향 정리를 위한 참고 자료입니다. 의료, 법률, 재무, 계약처럼 손실이 큰 결정은 반드시 현실적인 검토와 전문가 상담을 함께 진행하세요.",
 };
 
-const KUSEI_INFO_SECTIONS = [
+const KUSEI_INFO_SECTIONS_COPY = [
   {
     title: "01 무엇을 확인하나요",
     body: "생년월일을 기준으로 본명성, 월명성, 오행 기질, 현재 연운·월운의 흐름을 정리합니다. 결과는 단정형 예언이 아니라 반복 패턴과 다음 행동 후보를 확인하는 방식으로 구성됩니다.",
@@ -371,7 +372,7 @@ const PSYCH_UI_COPY = {
   emptyState: "심리테스트를 먼저 완료하면 주요 유형, 보조 유형, 문항별 단서가 담긴 복사용 프롬프트가 표시됩니다.",
 };
 
-const PSYCH_INFO_SECTIONS = [
+const PSYCH_INFO_SECTIONS_COPY = [
   {
     title: "01 먼저 무엇을 보나요",
     body: "사용자가 고른 답변에서 반복되는 마음의 방향을 살핍니다. 관계의 거리감, 일의 리듬, 감정 회복 방식, 선택 앞의 불안을 각각 다른 테스트로 정리합니다.",
@@ -386,7 +387,7 @@ const PSYCH_INFO_SECTIONS = [
   },
 ];
 
-const PREMIUM_HUB_NAV = [
+const PREMIUM_HUB_NAV_COPY = [
   { id: "generic", label: "종합 프롬프트", note: "맞춤형" },
   { id: "yukhyo", label: "육효", note: "삼전기괘" },
   { id: "psych", label: "심리테스트", note: "마음결" },
@@ -397,7 +398,7 @@ const PREMIUM_HUB_NAV = [
   { id: "lite", label: "기본 운세", note: "4종" },
 ] as const;
 
-type PremiumPromptToolId = (typeof PREMIUM_HUB_NAV)[number]["id"];
+type PremiumPromptToolId = (typeof PREMIUM_HUB_NAV_COPY)[number]["id"];
 
 const ACTIVE_TOOL_STAGE_COPY: Record<PremiumPromptToolId, { title: string; description: string; flow: string }> = {
   generic: {
@@ -540,7 +541,7 @@ type ToolConfig = {
 const RESPONSE_TONES = ["차분한 상담", "따뜻한 위로", "현실적인 조언", "상징적인 문장", "간결한 정리"];
 const RESPONSE_DEPTHS = ["핵심만 짧게", "균형 있게", "깊고 자세하게"];
 
-const COMMON_FIELDS: FieldConfig[] = [
+const COMMON_FIELDS_COPY: FieldConfig[] = [
   { id: "topic", label: "상담 주제", type: "text", required: true, placeholder: "예: 올해의 일과 사랑 흐름" },
   { id: "question", label: "구체적인 질문", type: "textarea", required: true, rows: 4, placeholder: "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요." },
   { id: "context", label: "상황 설명", type: "textarea", rows: 4, placeholder: "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요." },
@@ -551,7 +552,7 @@ const COMMON_FIELDS: FieldConfig[] = [
 
 const BIRTH_PRIVACY_HINT = "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요.";
 
-const BIRTH_FIELDS: FieldConfig[] = [
+const BIRTH_FIELDS_COPY: FieldConfig[] = [
   { id: "calendarType", label: "양력/음력", type: "select", options: ["양력", "음력"] },
   { id: "birthDate", label: "생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
   { id: "birthTime", label: "출생 시각", type: "time", help: "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.", privacyHint: BIRTH_PRIVACY_HINT },
@@ -560,7 +561,7 @@ const BIRTH_FIELDS: FieldConfig[] = [
   { id: "birthTimeUnknown", label: "출생 시각 모름", type: "checkbox", advanced: true },
 ];
 
-const toolRegistry: ToolConfig[] = [
+const TOOL_REGISTRY_COPY: ToolConfig[] = [
   {
     id: "comprehensive",
     label: "종합 프롬프트",
@@ -570,7 +571,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "✦",
     theme: { accent: "#a13f5d", accentStrong: "#7f1d3a", accentSoft: "#ffe4ed", surface: "#fff8f1", text: "#24151b", motif: "얇은 궤도와 달빛 점선" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "타로", "점성술", "수비학", "꿈/상징", "숙요점"] },
       { id: "period", label: "상담 기간", type: "select", options: ["오늘", "이번 주", "이번 달", "3개월", "올해"] },
       { id: "birthInfo", label: "출생 정보", type: "textarea", rows: 3, placeholder: "알고 있는 생년월일, 출생시각, 출생지를 적어 주세요.", privacyHint: BIRTH_PRIVACY_HINT },
@@ -603,7 +604,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "☼",
     theme: { accent: "#256b8f", accentStrong: "#164e63", accentSoft: "#dff4ff", surface: "#fffaf0", text: "#122633", motif: "해와 달의 주기, 캘린더" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "targetDate", label: "확인할 날짜 또는 기간", type: "text", required: true, placeholder: "예: 2026년 7월, 이번 주말" },
       { id: "focusArea", label: "관심 영역", type: "multiselect", options: ["일", "연애", "돈", "건강", "관계", "학업"] },
     ],
@@ -632,7 +633,7 @@ const toolRegistry: ToolConfig[] = [
     detail: "한지 위에 명식을 기록하듯 생년월일, 시각, 지역을 정리해 오행과 십성의 흐름을 읽는 프롬프트를 만듭니다.",
     icon: "印",
     theme: { accent: "#b5482b", accentStrong: "#7c2d12", accentSoft: "#ffe5d5", surface: "#fbf6ea", text: "#231915", motif: "오행, 천간지지, 인장" },
-    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "focusPillar", label: "중점 영역", type: "select", options: ["성향", "일과 재능", "관계", "재물", "대운 흐름"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "focusPillar", label: "중점 영역", type: "select", options: ["성향", "일과 재능", "관계", "재물", "대운 흐름"] }],
     exampleValues: {
       topic: "일과 관계의 균형",
       question: "내 사주에서 지금 일에 힘을 실어도 좋은 시기인지 알고 싶습니다.",
@@ -662,7 +663,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "☷",
     theme: { accent: "#9a3412", accentStrong: "#1f2937", accentSoft: "#fef3c7", surface: "#f8f3e8", text: "#171717", motif: "음효·양효 선과 괘" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "drawMethod", label: "괘를 얻은 방식", type: "select", options: ["동전", "숫자", "시간", "직접 입력"] },
       { id: "sixLines", label: "여섯 효 또는 동전 결과", type: "textarea", rows: 4, placeholder: "아래에서 위 순서로 적어 주세요. 예: 소양, 노음, 소음..." },
       { id: "questionTime", label: "질문 시각", type: "datetime-local" },
@@ -693,7 +694,7 @@ const toolRegistry: ToolConfig[] = [
     detail: "12성의 배치를 중심으로 초년부터 말년까지 이어지는 리듬과 지금 질문의 자리를 정리합니다.",
     icon: "⑫",
     theme: { accent: "#b0892f", accentStrong: "#27215f", accentSoft: "#f8e7b0", surface: "#f5f1e8", text: "#17172f", motif: "12궁 원형 궤도" },
-    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "lifeArea", label: "중점 영역", type: "select", options: ["전체 흐름", "초년", "중년", "말년", "관계", "일"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "lifeArea", label: "중점 영역", type: "select", options: ["전체 흐름", "초년", "중년", "말년", "관계", "일"] }],
     exampleValues: {
       topic: "관계와 일의 흐름",
       question: "올해 사람들과의 협업이 내게 어떤 방향으로 열릴까요?",
@@ -722,8 +723,8 @@ const toolRegistry: ToolConfig[] = [
     icon: "九",
     theme: { accent: "#2f7f78", accentStrong: "#164e63", accentSoft: "#d8f3ee", surface: "#f3f8f2", text: "#132927", motif: "구궁 격자와 나침반" },
     fields: [
-      ...COMMON_FIELDS,
-      ...BIRTH_FIELDS,
+      ...COMMON_FIELDS_COPY,
+      ...BIRTH_FIELDS_COPY,
       { id: "baseDate", label: "분석 기준일", type: "date", required: true },
       { id: "directionQuestion", label: "이동·방향·거주 질문", type: "textarea", rows: 3, placeholder: "예: 이사 방향, 출장 시기, 자리 이동" },
     ],
@@ -755,7 +756,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "◇",
     theme: { accent: "#8b5cf6", accentStrong: "#5b3aa4", accentSoft: "#efe5ff", surface: "#f8f5ff", text: "#24143f", motif: "말풍선과 선택 카드" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "testTheme", label: "테스트 주제", type: "text", required: true, placeholder: "예: 관계에서 내가 피곤해지는 순간" },
       { id: "audience", label: "대상", type: "select", options: ["나 자신", "연인", "친구", "팀", "콘텐츠 독자"] },
       { id: "questionCount", label: "문항 수", type: "number", min: 4, max: 20 },
@@ -789,7 +790,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "✷",
     theme: { accent: "#b9974b", accentStrong: "#21143f", accentSoft: "#efe4ff", surface: "#f3eefb", text: "#170f2f", motif: "카드 프레임, 별, 태양과 달" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "spread", label: "스프레드 종류", type: "select", required: true, options: ["원 카드", "3카드", "켈틱 크로스", "관계 스프레드", "직접 지정"] },
       { id: "cardCount", label: "카드 수", type: "number", min: 1, max: 12 },
       { id: "drawnCards", label: "직접 뽑은 카드 및 정·역방향", type: "textarea", rows: 4, placeholder: "예: 1. The Star 정방향, 2. Two of Cups 역방향" },
@@ -820,7 +821,7 @@ const toolRegistry: ToolConfig[] = [
     detail: "출생 차트와 행성의 관계를 정리해, 우주적인 상징과 분석적인 해석이 함께 흐르는 프롬프트를 만듭니다.",
     icon: "♄",
     theme: { accent: "#4f8fd9", accentStrong: "#12294f", accentSoft: "#deecff", surface: "#eef4ff", text: "#101b33", motif: "출생 차트와 행성 궤도" },
-    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "analysisArea", label: "분석 영역", type: "select", options: ["성향", "관계", "커리어", "시기", "트랜짓"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "analysisArea", label: "분석 영역", type: "select", options: ["성향", "관계", "커리어", "시기", "트랜짓"] }],
     exampleValues: {
       topic: "커리어 전환",
       question: "올해 직업 방향을 바꾸는 선택이 내 차트에서 어떻게 보일까요?",
@@ -848,7 +849,7 @@ const toolRegistry: ToolConfig[] = [
     detail: "사프란빛 만다라처럼 출생 정보와 라그나, 나크샤트라 단서를 정리해 깊고 차분한 프롬프트를 만듭니다.",
     icon: "◈",
     theme: { accent: "#c77720", accentStrong: "#0f5753", accentSoft: "#ffe7bd", surface: "#fff4df", text: "#1f2418", motif: "절제된 만다라와 사각 차트" },
-    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "vedicTopic", label: "분석 주제", type: "select", options: ["라그나", "나크샤트라", "다샤", "관계", "커리어"] }, { id: "advancedSettings", label: "고급 설정", type: "textarea", rows: 3, advanced: true, placeholder: "알고 있는 라그나, 나크샤트라, 아야남샤 설정" }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "vedicTopic", label: "분석 주제", type: "select", options: ["라그나", "나크샤트라", "다샤", "관계", "커리어"] }, { id: "advancedSettings", label: "고급 설정", type: "textarea", rows: 3, advanced: true, placeholder: "알고 있는 라그나, 나크샤트라, 아야남샤 설정" }],
     exampleValues: {
       topic: "다샤 흐름과 일",
       question: "지금의 일 방향이 장기적으로 이어질 힘이 있는지 알고 싶습니다.",
@@ -876,7 +877,7 @@ const toolRegistry: ToolConfig[] = [
     detail: "명궁 격자에 별을 놓듯 생년월일과 분석 궁을 정리해 권위 있고 섬세한 상담 프롬프트를 만듭니다.",
     icon: "紫",
     theme: { accent: "#9a5baf", accentStrong: "#5b1b6f", accentSoft: "#f0ddff", surface: "#fbf3ff", text: "#241029", motif: "명궁 격자와 별" },
-    fields: [...COMMON_FIELDS, ...BIRTH_FIELDS, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
     exampleValues: {
       topic: "직업 방향과 재능",
       question: "내가 오래 가져갈 수 있는 일의 결이 무엇인지 알고 싶습니다.",
@@ -905,7 +906,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "☾",
     theme: { accent: "#6b8fc7", accentStrong: "#24335f", accentSoft: "#e4efff", surface: "#f6f8ff", text: "#14213d", motif: "달의 위상과 숙의 배열" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "birthDate", label: "내 생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
       { id: "partnerBirthDate", label: "상대 생년월일", type: "date", privacyHint: BIRTH_PRIVACY_HINT },
       { id: "relationshipType", label: "관계 유형", type: "select", options: ["연애", "부부", "썸", "친구", "동료", "가족"] },
@@ -937,7 +938,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "9",
     theme: { accent: "#2f76d2", accentStrong: "#1f2937", accentSoft: "#dbeafe", surface: "#f8fafc", text: "#111827", motif: "숫자 그리드와 기하학적 선" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "birthDate", label: "생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
       { id: "includeName", label: "이름을 함께 반영", type: "checkbox", privacyHint: "이름은 숫자 진동을 정리하는 단서로만 프롬프트에 포함됩니다. 공유 전 이니셜로 바꿔도 좋습니다." },
       { id: "name", label: "이름", type: "text", advanced: true },
@@ -1008,7 +1009,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "◎",
     theme: { accent: "#b87333", accentStrong: "#172554", accentSoft: "#ffe2c5", surface: "#f8f0e4", text: "#171b2e", motif: "시계, 좌표, 점성 차트" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "horaryQuestion", label: "하나의 명확한 질문", type: "textarea", required: true, rows: 3, help: "예/아니오로 좁힐 수 있을 만큼 선명한 질문이 좋습니다." },
       { id: "questionDateTime", label: "질문이 떠오른 날짜·시각", type: "datetime-local", required: true },
       { id: "questionPlace", label: "질문 장소", type: "text", required: true, placeholder: "예: 서울 강남구" },
@@ -1040,7 +1041,7 @@ const toolRegistry: ToolConfig[] = [
     icon: "梅",
     theme: { accent: "#c65777", accentStrong: "#1f2937", accentSoft: "#ffe1ea", surface: "#f7f3eb", text: "#18181b", motif: "매화, 숫자, 괘" },
     fields: [
-      ...COMMON_FIELDS,
+      ...COMMON_FIELDS_COPY,
       { id: "eventDateTime", label: "사건이나 징후가 발생한 시각", type: "datetime-local", required: true },
       { id: "numberOrSign", label: "숫자 또는 계기", type: "text", required: true, placeholder: "예: 떠오른 숫자 37, 시계 11:11, 문득 본 매화" },
       { id: "observation", label: "관찰한 징후", type: "textarea", rows: 3 },
@@ -1065,7 +1066,7 @@ const toolRegistry: ToolConfig[] = [
   },
 ];
 
-const toolConfigById = toolRegistry.reduce<Record<ToolId, ToolConfig>>((acc, config) => {
+const toolConfigById = TOOL_REGISTRY_COPY.reduce<Record<ToolId, ToolConfig>>((acc, config) => {
   acc[config.id] = config;
   return acc;
 }, {} as Record<ToolId, ToolConfig>);
@@ -1077,6 +1078,320 @@ const toolIdAliases: Record<string, ToolId> = {
   psychotest: "psych",
   psychology: "psych",
   meiha: "meihua",
+};
+
+type PromptHubCopy = {
+  mainHomeAria: string;
+  mainHome: string;
+  currentTool: string;
+  ready: string;
+  preparing: string;
+  open: string;
+  pending: string;
+  toolsTitle: string;
+  toolsHint: string;
+  exploreTitle: string;
+  exploreHint: string;
+  formEyebrow: string;
+  inputSuffix: string;
+  requiredBadge: string;
+  requiredCount: string;
+  requiredInputMessage: string;
+  advancedSettings: string;
+  generatingPrompt: string;
+  exampleInput: string;
+  reset: string;
+  resultEyebrow: string;
+  lastGenerated: string;
+  waitingForInput: string;
+  copyDone: string;
+  copyPrompt: string;
+  regenerate: string;
+  editInput: string;
+  collapse: string;
+  expandAll: string;
+  emptyPromptTitle: string;
+  requiredInputPrefix: string;
+  mobileToolAria: string;
+  missingTranslation: string;
+  text: Record<string, string>;
+};
+
+const PROMPT_HUB_COPY_EN: PromptHubCopy = {
+  mainHomeAria: "Go to the service home",
+  mainHome: "Home",
+  currentTool: "Current Tool",
+  ready: "Ready to generate",
+  preparing: "Preparing",
+  open: "Open",
+  pending: "Pending",
+  toolsTitle: "Prompt Atelier Tools",
+  toolsHint: "Selecting any card opens the same tool.",
+  exploreTitle: "Browse Fortune Tools",
+  exploreHint: "Choosing a tool updates the form and result together.",
+  formEyebrow: "Input",
+  inputSuffix: "Input",
+  requiredBadge: "Required",
+  requiredCount: "{count} required",
+  requiredInputMessage: "{label} is required.",
+  advancedSettings: "Advanced Settings",
+  generatingPrompt: "Arranging the prompt...",
+  exampleInput: "Use Example",
+  reset: "Reset",
+  resultEyebrow: "Moonlight Result",
+  lastGenerated: "Last generated {time}",
+  waitingForInput: "Waiting for {tool} input.",
+  copyDone: "Copied",
+  copyPrompt: "Copy Prompt",
+  regenerate: "Generate Again",
+  editInput: "Edit Input",
+  collapse: "Collapse",
+  expandAll: "Expand All",
+  emptyPromptTitle: "No prompt has been generated yet",
+  requiredInputPrefix: "Required inputs:",
+  mobileToolAria: "Select mobile tool",
+  missingTranslation: "Translation unavailable",
+  text: {
+    "종합": "All",
+    "사주/명리학": "Saju and Myeongli",
+    "당사주": "Dangsaju",
+    "구성기학": "Nine Star Ki",
+    "심리테스트": "Psychology Test",
+    "타로": "Tarot",
+    "점성술": "Astrology",
+    "베다점": "Vedic Astrology",
+    "자미두수": "Zi Wei Dou Shu",
+    "숙요점": "Sukuyo",
+    "수비학": "Numerology",
+    "꿈/상징": "Dreams and Symbols",
+    "호라리": "Horary",
+    "매화역수": "Meihua Yi Shu",
+    "종합 프롬프트": "Comprehensive Prompt",
+    "기본 운세": "Basic Fortune",
+    "상담 주제": "Reading Topic",
+    "구체적인 질문": "Specific Question",
+    "상황 설명": "Context",
+    "원하는 답변 어조": "Preferred Tone",
+    "원하는 답변 깊이": "Preferred Depth",
+    "피하고 싶은 표현": "Expressions to Avoid",
+    "양력/음력": "Solar or Lunar Calendar",
+    "생년월일": "Date of Birth",
+    "출생 시각": "Birth Time",
+    "출생 지역": "Birthplace",
+    "윤달 여부": "Leap Month",
+    "출생 시각 모름": "Birth Time Unknown",
+    "활용할 운세 체계": "Fortune Systems to Use",
+    "상담 기간": "Reading Period",
+    "출생 정보": "Birth Information",
+    "확인할 날짜 또는 기간": "Date or Period to Check",
+    "관심 영역": "Area of Interest",
+    "중점 영역": "Focus Area",
+    "괘를 얻은 방식": "Hexagram Drawing Method",
+    "여섯 효 또는 동전 결과": "Six Lines or Coin Results",
+    "질문 시각": "Question Time",
+    "분석 기준일": "Reference Date",
+    "이동·방향·거주 질문": "Move, Direction, or Residence Question",
+    "테스트 주제": "Test Theme",
+    "대상": "Audience",
+    "문항 수": "Number of Questions",
+    "결과 유형": "Result Type",
+    "스프레드 종류": "Spread Type",
+    "카드 수": "Number of Cards",
+    "직접 뽑은 카드 및 정·역방향": "Drawn Cards and Upright/Reversed Direction",
+    "분석 영역": "Analysis Area",
+    "분석 주제": "Analysis Topic",
+    "고급 설정": "Advanced Settings",
+    "분석 궁": "Palace to Read",
+    "내 생년월일": "My Date of Birth",
+    "상대 생년월일": "Partner's Date of Birth",
+    "관계 유형": "Relationship Type",
+    "이름을 함께 반영": "Include Name",
+    "이름": "Name",
+    "분석 숫자 또는 관심 주제": "Number or Topic to Read",
+    "꿈의 내용": "Dream Content",
+    "주요 장면": "Main Scenes",
+    "등장 인물": "People in the Dream",
+    "깨어난 뒤 감정": "Feeling After Waking",
+    "반복된 상징": "Repeated Symbols",
+    "최근 상황": "Recent Context",
+    "하나의 명확한 질문": "One Clear Question",
+    "질문이 떠오른 날짜·시각": "Date and Time the Question Arose",
+    "질문 장소": "Question Location",
+    "사건이나 징후가 발생한 시각": "Time of the Event or Sign",
+    "숫자 또는 계기": "Number or Trigger",
+    "관찰한 징후": "Observed Sign",
+    "여러 운세 체계를 한데 엮어 질문의 결을 정돈합니다.": "Gathers several fortune systems into one clear thread for your question.",
+    "오늘이나 특정 기간의 흐름을 부담 없이 살핍니다.": "Gently reads the flow of today or a chosen period.",
+    "시간과 오행의 구조로 질문의 뿌리를 살핍니다.": "Reads the root of your question through time and the five elements.",
+    "여섯 효의 변화로 지금 질문의 판단점을 세웁니다.": "Finds the decision point of your question through the movement of six lines.",
+    "열두 자리와 생시의 흐름으로 삶의 결을 살핍니다.": "Reads the texture of life through the twelve seats and birth hour.",
+    "방향과 시기의 질서를 공간적으로 살핍니다.": "Reads direction and timing through the order of space.",
+    "가볍게 자신을 탐색하는 질문을 만듭니다.": "Creates gentle questions for self-discovery.",
+    "상징이 담긴 카드로 질문의 흐름을 읽습니다.": "Reads the flow of a question through symbolic cards.",
+    "행성과 별자리의 관계를 차트처럼 읽습니다.": "Reads planets and signs as a living chart.",
+    "전통적인 베다 점성 체계로 흐름을 살핍니다.": "Reads the flow through a traditional Vedic astrology frame.",
+    "별과 명궁의 배치를 정밀하게 살핍니다.": "Reads the placement of stars and the life palace with care.",
+    "달의 숙과 관계의 흐름을 섬세하게 봅니다.": "Gently reads lunar mansions and the rhythm of relationship.",
+    "숫자에 담긴 반복과 패턴을 논리적으로 봅니다.": "Reads the repetitions and patterns held in numbers.",
+    "꿈속 장면과 감정의 상징을 기록합니다.": "Records the symbols in dream scenes and emotions.",
+    "질문이 떠오른 순간의 시간과 하늘을 봅니다.": "Reads the time and sky of the moment your question arose.",
+    "시간, 수, 자연의 징후로 변화를 관찰합니다.": "Observes change through time, numbers, and natural signs.",
+    "예: 올해의 일과 사랑 흐름": "Example: This year's work and love flow",
+    "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요.": "Write the one direction your heart most wants to understand now.",
+    "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요.": "Write recent events, the background of your concern, or scenes that stayed with you.",
+    "예: 겁을 주는 말, 단정적인 예언": "Example: frightening words, absolute predictions",
+    "예: 서울": "Example: Seoul",
+    "알고 있는 생년월일, 출생시각, 출생지를 적어 주세요.": "Enter any birth date, birth time, and birthplace you know.",
+    "예: 2026년 7월, 이번 주말": "Example: July 2026, this weekend",
+    "아래에서 위 순서로 적어 주세요. 예: 소양, 노음, 소음...": "Write from bottom to top. Example: young yang, old yin, young yin...",
+    "예: 이사 방향, 출장 시기, 자리 이동": "Example: moving direction, business trip timing, changing seats",
+    "예: 관계에서 내가 피곤해지는 순간": "Example: when I get tired in relationships",
+    "예: 1. The Star 정방향, 2. Two of Cups 역방향": "Example: 1. The Star upright, 2. Two of Cups reversed",
+    "알고 있는 라그나, 나크샤트라, 아야남샤 설정": "Known lagna, nakshatra, or ayanamsha settings",
+    "예: 라이프패스, 7이 반복됨, 이직 시기": "Example: life path, repeating 7s, timing for a job change",
+    "꿈에서 기억나는 장면을 순서대로 적어 주세요.": "Write the dream scenes you remember in order.",
+    "예: 물가, 닫힌 문, 오래된 집": "Example: waterside, closed door, old house",
+    "예: 낯선 사람, 가족, 예전 친구": "Example: stranger, family, old friend",
+    "예: 물, 열쇠, 계단, 새": "Example: water, key, stairs, bird",
+    "예: 서울 강남구": "Example: Gangnam-gu, Seoul",
+    "예: 떠오른 숫자 37, 시계 11:11, 문득 본 매화": "Example: the number 37, 11:11 on a clock, a plum blossom you suddenly noticed",
+    "차분한 상담": "Calm reading",
+    "따뜻한 위로": "Warm comfort",
+    "현실적인 조언": "Practical advice",
+    "신비로운 문장": "Mystical wording",
+    "단호한 정리": "Clear summary",
+    "상징적인 문장": "Symbolic wording",
+    "간결한 정리": "Concise summary",
+    "핵심만 짧게": "Brief key points",
+    "균형 있게": "Balanced",
+    "깊고 자세하게": "Deep and detailed",
+    "시간은 HH:mm 형식으로 입력해주세요.": "Enter the time in HH:mm format.",
+    "시간 범위를 다시 확인해주세요.": "Please check the time range again.",
+    "입력값을 다시 확인해주세요.": "Please check your input again.",
+    "구성기학 계산값을 정리하지 못했습니다. 입력값을 다시 확인해 주세요.": "The Nine Star Ki calculation could not be prepared. Please check your input again.",
+    "심리테스트 답변을 다시 확인해 주세요.": "Please check your psychology test answers again.",
+    "지금 가장 알고 싶은 마음의 방향을 적어 주세요.": "Write the direction your heart most wants to understand now.",
+    "생년월일, 출생시간, 출생지처럼 알고 있는 정보를 적어 주세요.": "Write any birth date, birth time, and birthplace you know.",
+    "생성된 종합 운세 프롬프트": "Generated comprehensive fortune prompt",
+    "예: 이번 계약을 지금 진행해도 괜찮을까요? 상대가 실제로 협조할 마음이 있는지 보고 싶습니다.": "Example: Is it okay to move forward with this contract now? I want to see whether the other side truly intends to cooperate.",
+    "무료 육효 상담 프롬프트": "Free Yukhyo reading prompt",
+    "예: 지금 이 관계에서 내가 줄여야 할 반응과 더 솔직해져도 되는 지점을 알고 싶어요.": "Example: In this relationship, I want to know what reactions to soften and where I can be more honest.",
+    "생성된 심리테스트 기반 AI 상담 프롬프트": "Generated AI reading prompt based on the psychology test",
+    "남자": "Male",
+    "여자": "Female",
+    "양력": "Solar",
+    "음력": "Lunar",
+    "예: 관계와 일 흐름에서 지금 줄여야 할 태도는 무엇일까요?": "Example: What attitude should I soften now in relationships and work?",
+    "생성된 구성기학 리딩 프롬프트": "Generated Nine Star Ki reading prompt",
+    "이번 달 안에 그 사람에게서 먼저 연락이 올까?": "Will that person contact me first within this month?",
+    "생성된 호라리 프롬프트": "Generated horary prompt",
+    "예: 달빛": "Example: Moonlight",
+    "선택 안 함": "Not selected",
+    "여성": "Female",
+    "남성": "Male",
+    "기타/비공개": "Other or private",
+    "예: 지금 시작하려는 일이 나에게 맞는 흐름일까?": "Example: Is what I am about to begin aligned with my current flow?",
+    "예: 이 관계를 다시 이어가도 서로에게 안정적일까?": "Example: Would reconnecting this relationship be stable for both of us?",
+    "생성된 매화역수 프롬프트": "Generated Meihua Yi Shu prompt",
+    "기타": "Other",
+    "음력 윤달": "Lunar leap month",
+    "A 정보": "A Information",
+    "B 정보": "B Information",
+    "이름 또는 별칭": "Name or nickname",
+    "성별 선택 안 함": "Gender not selected",
+    "예: 앞으로 일과 재물 흐름에서 내가 조심해야 할 반복 패턴은 무엇일까?": "Example: What repeating pattern should I watch in my future work and money flow?",
+    "생성된 당사주 프롬프트": "Generated Dangsaju prompt",
+    "예: 달궁은 계산하지 못했습니다. 기존 차트에서 금성이 강하다는 말을 들었습니다.": "Example: I could not calculate the moon palace. I was told Venus is strong in my existing chart.",
+    "예: 앞으로 일과 관계에서 내가 가장 조심해야 할 흐름은 무엇일까?": "Example: What flow should I be most careful with in work and relationships going forward?",
+    "생성된 무료 기본 운세 프롬프트": "Generated free basic fortune prompt",
+  },
+};
+
+const PROMPT_HUB_COPY_KO: PromptHubCopy = {
+  ...PROMPT_HUB_COPY_EN,
+  mainHomeAria: "서비스 메인 화면으로 이동",
+  mainHome: "메인 화면",
+  currentTool: "현재 도구",
+  ready: "바로 생성 가능",
+  preparing: "준비 중",
+  open: "열림",
+  pending: "준비",
+  toolsTitle: "프롬프트 도구",
+  toolsHint: "어느 카드에서 선택해도 같은 도구가 열립니다.",
+  exploreTitle: "운세 도구 탐색",
+  exploreHint: "선택하면 폼과 결과가 함께 바뀝니다.",
+  formEyebrow: "입력 정리",
+  inputSuffix: "입력",
+  requiredBadge: "필수",
+  requiredCount: "{count}개 필수",
+  requiredInputMessage: "{label} 입력이 필요합니다.",
+  advancedSettings: "고급 설정",
+  generatingPrompt: "프롬프트를 정돈하는 중...",
+  exampleInput: "예시 입력",
+  reset: "초기화",
+  resultEyebrow: "Moonlight Result",
+  lastGenerated: "마지막 생성 {time}",
+  waitingForInput: "{tool} 입력을 기다리고 있습니다.",
+  copyDone: "복사 완료",
+  copyPrompt: "프롬프트 복사",
+  regenerate: "다시 생성",
+  editInput: "입력 수정",
+  collapse: "접기",
+  expandAll: "전체 펼치기",
+  emptyPromptTitle: "아직 생성된 프롬프트가 없습니다",
+  requiredInputPrefix: "필수 입력:",
+  mobileToolAria: "모바일 도구 선택",
+  missingTranslation: "번역 문구를 확인해주세요",
+  text: {},
+};
+
+const PROMPT_HUB_COPY: Record<LoadingLocale, PromptHubCopy> = {
+  ko: PROMPT_HUB_COPY_KO,
+  en: PROMPT_HUB_COPY_EN,
+  ja: PROMPT_HUB_COPY_EN,
+  "zh-CN": PROMPT_HUB_COPY_EN,
+  "zh-TW": PROMPT_HUB_COPY_EN,
+  vi: PROMPT_HUB_COPY_EN,
+  hi: PROMPT_HUB_COPY_EN,
+  es: PROMPT_HUB_COPY_EN,
+  fr: PROMPT_HUB_COPY_EN,
+  de: PROMPT_HUB_COPY_EN,
+  nl: PROMPT_HUB_COPY_EN,
+  ms: PROMPT_HUB_COPY_EN,
+};
+
+function getPromptHubCopy(locale: LoadingLocale) {
+  return PROMPT_HUB_COPY[locale] || PROMPT_HUB_COPY.en;
+}
+
+function getPromptHubDateLocale(locale: LoadingLocale) {
+  if (locale === "ko") return "ko-KR";
+  if (locale === "ja") return "ja-JP";
+  if (locale === "zh-CN" || locale === "zh-TW") return locale;
+  return "en-US";
+}
+
+function hasPromptHubLocalCopy(value: string) {
+  return /[가-힣ぁ-ゟァ-ヿ一-龯]/u.test(value);
+}
+
+function translatePromptHubText(value: string | undefined, locale: LoadingLocale) {
+  if (!value || locale === "ko") return value || "";
+  const copy = getPromptHubCopy(locale);
+  const translated = copy.text[value] || PROMPT_HUB_COPY.en.text[value];
+  if (translated) return translated;
+  if (hasPromptHubLocalCopy(value)) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[i18n:prompt-hub] missing text translation", { locale, value });
+    }
+    return copy.missingTranslation;
+  }
+  return value;
+}
+
+const PROMPT_HUB_STATIC_ERROR_COPY = {
+  timeFormat: "시간은 HH:mm 형식으로 입력해주세요.",
+  timeRange: "시간 범위를 다시 확인해주세요.",
 };
 
 function normalizeToolId(value: string | null | undefined): ToolId {
@@ -1143,7 +1458,7 @@ function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft) {
 }
 
 function getInitialDraftsByToolId() {
-  return toolRegistry.reduce<Record<ToolId, ToolDraft>>((acc, config) => {
+  return TOOL_REGISTRY_COPY.reduce<Record<ToolId, ToolDraft>>((acc, config) => {
     acc[config.id] = getDefaultDraft(config);
     return acc;
   }, {} as Record<ToolId, ToolDraft>);
@@ -1453,11 +1768,11 @@ function parseTimeInput(value: string, fallbackHour = 0, fallbackMinute = 0) {
   const trimmed = value.trim();
   if (!trimmed) return { hour24: fallbackHour, minute: fallbackMinute, value: "", error: "" };
   const match = /^(\d{2}):(\d{2})$/.exec(trimmed);
-  if (!match) return { hour24: fallbackHour, minute: fallbackMinute, value: "", error: "시간은 HH:mm 형식으로 입력해주세요." };
+  if (!match) return { hour24: fallbackHour, minute: fallbackMinute, value: "", error: PROMPT_HUB_STATIC_ERROR_COPY.timeFormat };
   const hour24 = Number(match[1]);
   const minute = Number(match[2]);
   if (hour24 < 0 || hour24 > 23 || minute < 0 || minute > 59) {
-    return { hour24: fallbackHour, minute: fallbackMinute, value: "", error: "시간 범위를 다시 확인해주세요." };
+    return { hour24: fallbackHour, minute: fallbackMinute, value: "", error: PROMPT_HUB_STATIC_ERROR_COPY.timeRange };
   }
   return { hour24, minute, value: trimmed, error: "" };
 }
@@ -1499,25 +1814,28 @@ async function copyTextToClipboard(text: string) {
 }
 
 export default function ComprehensivePromptHubPage() {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getPromptHubCopy(locale);
+  const tx = useCallback((value: string | undefined) => translatePromptHubText(value, locale), [locale]);
   const [activeToolId, setActiveToolId] = useState<ToolId>("comprehensive");
   const [draftsByToolId, setDraftsByToolId] = useState<Record<ToolId, ToolDraft>>(getInitialDraftsByToolId);
   const [resultsByToolId, setResultsByToolId] = useState<Record<ToolId, { prompt: string; generatedAt: string } | null>>(
     () =>
-      toolRegistry.reduce<Record<ToolId, { prompt: string; generatedAt: string } | null>>((acc, config) => {
+      TOOL_REGISTRY_COPY.reduce<Record<ToolId, { prompt: string; generatedAt: string } | null>>((acc, config) => {
         acc[config.id] = null;
         return acc;
       }, {} as Record<ToolId, { prompt: string; generatedAt: string } | null>),
   );
   const [validationAttemptedByToolId, setValidationAttemptedByToolId] = useState<Record<ToolId, boolean>>(
     () =>
-      toolRegistry.reduce<Record<ToolId, boolean>>((acc, config) => {
+      TOOL_REGISTRY_COPY.reduce<Record<ToolId, boolean>>((acc, config) => {
         acc[config.id] = false;
         return acc;
       }, {} as Record<ToolId, boolean>),
   );
   const [expandedResultsByToolId, setExpandedResultsByToolId] = useState<Record<ToolId, boolean>>(
     () =>
-      toolRegistry.reduce<Record<ToolId, boolean>>((acc, config) => {
+      TOOL_REGISTRY_COPY.reduce<Record<ToolId, boolean>>((acc, config) => {
         acc[config.id] = false;
         return acc;
       }, {} as Record<ToolId, boolean>),
@@ -1639,12 +1957,12 @@ export default function ComprehensivePromptHubPage() {
   const currentResult = resultsByToolId[activeToolId];
   const missingRequiredFields = currentTool.fields.filter((field) => field.required && !formatDraftValue(currentDraft[field.id]));
   const disabledReason = missingRequiredFields.length
-    ? `${missingRequiredFields.map((field) => field.label).join(", ")} 입력이 필요합니다.`
+    ? copy.requiredInputMessage.replace("{label}", missingRequiredFields.map((field) => tx(field.label)).join(", "))
     : "";
   const showValidationErrors = validationAttemptedByToolId[activeToolId];
   const isCurrentResultExpanded = expandedResultsByToolId[activeToolId] || false;
   const activeTool = ACTIVE_TOOL_STAGE_COPY[activePromptTool];
-  const category = CATEGORIES.find((item) => item.id === selectedCategory) || CATEGORIES[0];
+  const category = CATEGORIES_COPY.find((item) => item.id === selectedCategory) || CATEGORIES_COPY[0];
   const selectedMeihuaMode = MEIHUA_MODES.find((item) => item.id === meihuaMode) || MEIHUA_MODES[0];
   const selectedDangsajuMode = DANGSAJU_MODES.find((item) => item.id === dangsajuMode) || DANGSAJU_MODES[0];
   const selectedLiteMode = LITE_PROMPT_MODES.find((item) => item.id === liteMode) || LITE_PROMPT_MODES[0];
@@ -1674,6 +1992,17 @@ export default function ComprehensivePromptHubPage() {
     syncToolFromUrl();
     window.addEventListener("popstate", syncToolFromUrl);
     return () => window.removeEventListener("popstate", syncToolFromUrl);
+  }, []);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
   }, []);
 
   useEffect(() => {
@@ -1750,7 +2079,7 @@ export default function ComprehensivePromptHubPage() {
         ...prev,
         [toolId]: {
           prompt: buildStructuredFortunePrompt(config, draft),
-          generatedAt: new Intl.DateTimeFormat("ko-KR", {
+          generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(locale), {
             dateStyle: "medium",
             timeStyle: "short",
           }).format(new Date()),
@@ -1803,13 +2132,13 @@ export default function ComprehensivePromptHubPage() {
               className="h-4 w-4 rounded border-slate-300"
               style={{ accentColor: currentTool.theme.accent }}
             />
-            {field.label}
+            {tx(field.label)}
           </label>
         ) : (
           <label htmlFor={inputId} className="grid gap-2 text-sm font-bold text-slate-900">
             <span className="flex flex-wrap items-center gap-2">
-              {field.label}
-              {field.required ? <span className="text-xs font-black" style={{ color: currentTool.theme.accent }}>필수</span> : null}
+              {tx(field.label)}
+              {field.required ? <span className="text-xs font-black" style={{ color: currentTool.theme.accent }}>{copy.requiredBadge}</span> : null}
             </span>
             {field.type === "textarea" ? (
               <textarea
@@ -1817,7 +2146,7 @@ export default function ComprehensivePromptHubPage() {
                 value={String(value || "")}
                 onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
                 rows={field.rows || 3}
-                placeholder={field.placeholder}
+                placeholder={tx(field.placeholder)}
                 aria-invalid={hasError}
                 aria-describedby={`${inputId}-hint`}
                 className={`${inputClass} min-h-[112px] resize-y py-3 leading-6`}
@@ -1835,7 +2164,7 @@ export default function ComprehensivePromptHubPage() {
               >
                 {(field.options || []).map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {tx(option)}
                   </option>
                 ))}
               </select>
@@ -1859,7 +2188,7 @@ export default function ComprehensivePromptHubPage() {
                       } as React.CSSProperties}
                     >
                       {selected ? <Check size={14} /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
-                      {option}
+                      {tx(option)}
                     </button>
                   );
                 })}
@@ -1872,7 +2201,7 @@ export default function ComprehensivePromptHubPage() {
                 min={field.min}
                 max={field.max}
                 onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
-                placeholder={field.placeholder}
+                placeholder={tx(field.placeholder)}
                 aria-invalid={hasError}
                 aria-describedby={`${inputId}-hint`}
                 className={inputClass}
@@ -1883,11 +2212,11 @@ export default function ComprehensivePromptHubPage() {
         )}
         <div id={`${inputId}-hint`} className="mt-1.5 min-h-[18px] text-xs font-medium leading-5 text-slate-600">
           {hasError ? (
-            <span className="font-bold text-rose-700">{field.label} 입력이 필요합니다.</span>
+            <span className="font-bold text-rose-700">{copy.requiredInputMessage.replace("{label}", tx(field.label))}</span>
           ) : field.privacyHint ? (
-            <span>{field.privacyHint}</span>
+            <span>{tx(field.privacyHint)}</span>
           ) : field.help ? (
-            <span>{field.help}</span>
+            <span>{tx(field.help)}</span>
           ) : null}
         </div>
       </div>
@@ -2215,7 +2544,7 @@ export default function ComprehensivePromptHubPage() {
       setDangsajuError("");
       setDangsajuCopied(false);
     } catch (error) {
-      setDangsajuError(error instanceof Error ? error.message : "입력값을 다시 확인해주세요.");
+      setDangsajuError(error instanceof Error ? error.message : tx("입력값을 다시 확인해주세요."));
     }
   }
 
@@ -2282,7 +2611,7 @@ export default function ComprehensivePromptHubPage() {
       setLiteError("");
       setLiteCopied(false);
     } catch (error) {
-      setLiteError(error instanceof Error ? error.message : "입력값을 다시 확인해주세요.");
+      setLiteError(error instanceof Error ? error.message : tx("입력값을 다시 확인해주세요."));
     }
   }
 
@@ -2331,7 +2660,7 @@ export default function ComprehensivePromptHubPage() {
       setKuseiError("");
       setKuseiCopied(false);
     } catch (error) {
-      setKuseiError(error instanceof Error ? error.message : "구성기학 계산값을 정리하지 못했습니다. 입력값을 다시 확인해 주세요.");
+      setKuseiError(error instanceof Error ? error.message : tx("구성기학 계산값을 정리하지 못했습니다. 입력값을 다시 확인해 주세요."));
     }
   }
 
@@ -2384,7 +2713,7 @@ export default function ComprehensivePromptHubPage() {
       setPsychError("");
       setPsychCopied(false);
     } catch (error) {
-      setPsychError(error instanceof Error ? error.message : "심리테스트 답변을 다시 확인해 주세요.");
+      setPsychError(error instanceof Error ? error.message : tx("심리테스트 답변을 다시 확인해 주세요."));
     }
   }
 
@@ -2574,10 +2903,10 @@ export default function ComprehensivePromptHubPage() {
             href="/"
             className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-rose-200/80 bg-white/86 px-3 py-2 text-sm font-black text-rose-900 shadow-[0_12px_30px_rgba(244,114,182,0.16)] transition hover:bg-white/94 focus:outline-none focus:ring-2"
             style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
-            aria-label="서비스 메인 화면으로 이동"
+            aria-label={copy.mainHomeAria}
           >
             <Home size={15} />
-            메인 화면
+            {copy.mainHome}
           </Link>
         </div>
         <div
@@ -2605,30 +2934,30 @@ export default function ComprehensivePromptHubPage() {
                   Moonlight Prompt Atelier
                 </div>
                 <h1 className="atelier-heading mt-4 max-w-3xl text-2xl leading-tight text-slate-950 sm:text-4xl">
-                  {currentTool.label}
+                  {tx(currentTool.label)}
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-slate-800 sm:text-base">{currentTool.description}</p>
-                <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-700">{currentTool.detail}</p>
+                <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-slate-800 sm:text-base">{tx(currentTool.description)}</p>
+                <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-700">{tx(currentTool.detail)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="rounded-full border bg-white/80 px-3 py-1 text-xs font-bold text-slate-700" style={{ borderColor: currentTool.theme.accentSoft }}>
-                    {currentTool.theme.motif}
+                    {tx(currentTool.theme.motif)}
                   </span>
                   {currentTool.keywords.slice(0, 4).map((keyword) => (
                     <span key={keyword} className="rounded-full bg-white/68 px-3 py-1 text-xs font-bold text-slate-600">
-                      {keyword}
+                      {tx(keyword)}
                     </span>
                   ))}
                 </div>
               </div>
               <div className="rounded-[22px] border bg-white/76 p-4" style={{ borderColor: currentTool.theme.accentSoft }}>
-                <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>Current Tool</p>
+                 <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.currentTool}</p>
                 <div className="mt-3 flex items-center gap-3">
                   <span className="grid h-12 w-12 place-items-center rounded-2xl text-xl font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]" style={{ background: currentTool.theme.accentStrong }}>
                     {currentTool.icon}
                   </span>
                   <div>
-                    <p className="text-base font-black text-slate-950">{currentTool.shortLabel}</p>
-                    <p className="text-xs font-bold text-slate-600">{currentTool.ready === "ready" ? "바로 생성 가능" : "준비 중"}</p>
+                    <p className="text-base font-black text-slate-950">{tx(currentTool.shortLabel)}</p>
+                    <p className="text-xs font-bold text-slate-600">{currentTool.ready === "ready" ? copy.ready : copy.preparing}</p>
                   </div>
                 </div>
                 <select
@@ -2636,11 +2965,11 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => selectTool(event.target.value as ToolId)}
                   className="mt-4 min-h-[46px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2"
                   style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
-                  aria-label="모바일 도구 선택"
+                  aria-label={copy.mobileToolAria}
                 >
-                  {toolRegistry.map((tool) => (
+                  {TOOL_REGISTRY_COPY.map((tool) => (
                     <option key={tool.id} value={tool.id}>
-                      {tool.label}
+                      {tx(tool.label)}
                     </option>
                   ))}
                 </select>
@@ -2650,11 +2979,11 @@ export default function ComprehensivePromptHubPage() {
 
           <div className="mt-4 rounded-[22px] border border-slate-200/70 bg-white/72 p-3">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">Prompt Atelier Tools</p>
-              <p className="text-xs font-bold text-slate-500">어느 카드에서 선택해도 같은 도구가 열립니다.</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.toolsTitle}</p>
+              <p className="text-xs font-bold text-slate-500">{copy.toolsHint}</p>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {toolRegistry.map((tool) => {
+              {TOOL_REGISTRY_COPY.map((tool) => {
                 const isActive = tool.id === activeToolId;
                 return (
                   <button
@@ -2675,8 +3004,8 @@ export default function ComprehensivePromptHubPage() {
                       {isActive ? <Check size={16} /> : tool.icon}
                     </span>
                     <span>
-                      <span className="block">{tool.shortLabel}</span>
-                      <span className="block text-[11px] font-bold opacity-75">{tool.ready === "ready" ? "열림" : "준비"}</span>
+                      <span className="block">{tx(tool.shortLabel)}</span>
+                      <span className="block text-[11px] font-bold opacity-75">{tool.ready === "ready" ? copy.open : copy.pending}</span>
                     </span>
                   </button>
                 );
@@ -2688,12 +3017,12 @@ export default function ComprehensivePromptHubPage() {
             <aside className="rounded-[22px] border border-slate-200/70 bg-white/82 p-4">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">운세 도구 탐색</p>
-                  <p className="mt-1 text-xs font-medium text-slate-500">선택하면 폼과 결과가 함께 바뀝니다.</p>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.exploreTitle}</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">{copy.exploreHint}</p>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-1">
-                {toolRegistry.map((tool) => {
+                {TOOL_REGISTRY_COPY.map((tool) => {
                   const isActive = tool.id === activeToolId;
                   return (
                     <button
@@ -2713,8 +3042,8 @@ export default function ComprehensivePromptHubPage() {
                         {isActive ? <Check size={16} /> : tool.icon}
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-sm font-black text-slate-950">{tool.shortLabel}</span>
-                        <span className="line-clamp-1 block text-xs font-semibold text-slate-500">{tool.description}</span>
+                        <span className="block text-sm font-black text-slate-950">{tx(tool.shortLabel)}</span>
+                        <span className="line-clamp-1 block text-xs font-semibold text-slate-500">{tx(tool.description)}</span>
                       </span>
                     </button>
                   );
@@ -2725,12 +3054,12 @@ export default function ComprehensivePromptHubPage() {
             <section id="tool-form-card" className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>입력 정리</p>
-                  <h2 className="mt-1 text-xl font-black text-slate-950">{currentTool.label} 입력</h2>
-                  <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">{currentTool.emptyState}</p>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.formEyebrow}</p>
+                  <h2 className="mt-1 text-xl font-black text-slate-950">{tx(currentTool.label)} {copy.inputSuffix}</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">{tx(currentTool.emptyState)}</p>
                 </div>
                 <span className="rounded-full px-3 py-1 text-xs font-black" style={{ background: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
-                  {currentTool.fields.filter((field) => field.required).length}개 필수
+                  {copy.requiredCount.replace("{count}", String(currentTool.fields.filter((field) => field.required).length))}
                 </span>
               </div>
 
@@ -2747,7 +3076,7 @@ export default function ComprehensivePromptHubPage() {
 
                 {currentTool.fields.some((field) => field.advanced) ? (
                   <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                    <summary className="cursor-pointer text-sm font-black text-slate-800">고급 설정</summary>
+                    <summary className="cursor-pointer text-sm font-black text-slate-800">{copy.advancedSettings}</summary>
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       {currentTool.fields.filter((field) => field.advanced).map(renderToolField)}
                     </div>
@@ -2766,10 +3095,10 @@ export default function ComprehensivePromptHubPage() {
                     disabled={Boolean(disabledReason) || isGeneratingToolPrompt}
                     className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 text-sm font-black text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-55"
                     style={{ background: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
-                    title={disabledReason || currentTool.generateLabel}
+                    title={disabledReason || tx(currentTool.generateLabel)}
                   >
                     <WandSparkles size={17} />
-                    {isGeneratingToolPrompt ? "프롬프트를 정돈하는 중..." : currentTool.generateLabel}
+                    {isGeneratingToolPrompt ? copy.generatingPrompt : tx(currentTool.generateLabel)}
                   </button>
                   <button
                     type="button"
@@ -2778,7 +3107,7 @@ export default function ComprehensivePromptHubPage() {
                     style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                   >
                     <Sparkles size={16} />
-                    예시 입력
+                    {copy.exampleInput}
                   </button>
                   <button
                     type="button"
@@ -2787,7 +3116,7 @@ export default function ComprehensivePromptHubPage() {
                     style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                   >
                     <RotateCcw size={16} />
-                    초기화
+                    {copy.reset}
                   </button>
                 </div>
               </form>
@@ -2796,10 +3125,12 @@ export default function ComprehensivePromptHubPage() {
             <section ref={resultPanelRef} className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5" aria-live="polite">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>Moonlight Result</p>
-                  <h2 className="mt-1 text-lg font-black text-slate-950">{currentTool.resultLabel}</h2>
+                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.resultEyebrow}</p>
+                  <h2 className="mt-1 text-lg font-black text-slate-950">{tx(currentTool.resultLabel)}</h2>
                   <p className="mt-1 text-xs font-bold text-slate-500">
-                    {currentResult?.generatedAt ? `마지막 생성 ${currentResult.generatedAt}` : `${currentTool.shortLabel} 입력을 기다리고 있습니다.`}
+                    {currentResult?.generatedAt
+                      ? copy.lastGenerated.replace("{time}", currentResult.generatedAt)
+                      : copy.waitingForInput.replace("{tool}", tx(currentTool.shortLabel))}
                   </p>
                 </div>
                 <span className="grid h-11 w-11 place-items-center rounded-2xl text-lg font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
@@ -2817,7 +3148,7 @@ export default function ComprehensivePromptHubPage() {
                       style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                     >
                       <Copy size={16} />
-                      {copiedToolId === activeToolId ? "복사 완료" : "프롬프트 복사"}
+                      {copiedToolId === activeToolId ? copy.copyDone : copy.copyPrompt}
                     </button>
                     <button
                       type="button"
@@ -2826,7 +3157,7 @@ export default function ComprehensivePromptHubPage() {
                       style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                     >
                       <WandSparkles size={16} />
-                      다시 생성
+                      {copy.regenerate}
                     </button>
                     <button
                       type="button"
@@ -2834,7 +3165,7 @@ export default function ComprehensivePromptHubPage() {
                       className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
                       style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                     >
-                      입력 수정
+                      {copy.editInput}
                     </button>
                     <button
                       type="button"
@@ -2842,7 +3173,7 @@ export default function ComprehensivePromptHubPage() {
                       className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
                       style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                     >
-                      {isCurrentResultExpanded ? "접기" : "전체 펼치기"}
+                      {isCurrentResultExpanded ? copy.collapse : copy.expandAll}
                     </button>
                   </div>
                   <pre
@@ -2857,10 +3188,10 @@ export default function ComprehensivePromptHubPage() {
                     <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl text-xl font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
                       {currentTool.icon}
                     </div>
-                    <p className="mt-4 text-base font-black text-slate-950">아직 생성된 프롬프트가 없습니다</p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{currentTool.emptyState}</p>
+                    <p className="mt-4 text-base font-black text-slate-950">{copy.emptyPromptTitle}</p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{tx(currentTool.emptyState)}</p>
                     <p className="mt-3 text-xs font-bold text-slate-500">
-                      필수 입력: {currentTool.fields.filter((field) => field.required).map((field) => field.label).join(", ")}
+                      {copy.requiredInputPrefix} {currentTool.fields.filter((field) => field.required).map((field) => tx(field.label)).join(", ")}
                     </p>
                   </div>
                 </div>
@@ -2875,10 +3206,10 @@ export default function ComprehensivePromptHubPage() {
               disabled={Boolean(disabledReason) || isGeneratingToolPrompt}
               className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
               style={{ background: currentTool.theme.accentStrong }}
-              title={disabledReason || currentTool.generateLabel}
+              title={disabledReason || tx(currentTool.generateLabel)}
             >
               <WandSparkles size={17} />
-              {isGeneratingToolPrompt ? "프롬프트를 정돈하는 중..." : currentTool.generateLabel}
+              {isGeneratingToolPrompt ? copy.generatingPrompt : tx(currentTool.generateLabel)}
             </button>
           </div>
         </div>
@@ -2945,7 +3276,7 @@ export default function ComprehensivePromptHubPage() {
         </motion.div>
       </section>
 
-      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8" aria-label="프롬프트 기능 선택">
+      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8" aria-label={tx("프롬프트 기능 선택")}>
         <div className="lunar-glass rounded-[30px] border border-white/85 bg-white/78 p-3 shadow-[0_24px_80px_rgba(148,84,117,0.14)] backdrop-blur-2xl sm:p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/75">Prompt Atelier Tools</p>
@@ -2954,14 +3285,14 @@ export default function ComprehensivePromptHubPage() {
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {PREMIUM_HUB_NAV.map((item) => {
+            {PREMIUM_HUB_NAV_COPY.map((item) => {
               const isActive = activePromptTool === item.id;
               return (
                 <button
                   key={item.id}
                   type="button"
                   aria-pressed={isActive}
-                  aria-label={`${item.label} 창 열기 - ${item.note}`}
+                  aria-label={`${tx(item.label)} - ${tx(item.note)}`}
                   onClick={() => setActivePromptTool(item.id)}
                   className={`group relative min-h-[72px] rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-rose-300/60 ${
                     isActive
@@ -2988,7 +3319,7 @@ export default function ComprehensivePromptHubPage() {
         </div>
       </section>
 
-      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8" aria-label="선택된 프롬프트 작업 창">
+      <section aria-hidden="true" className="!hidden relative mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8" aria-label={tx("선택된 프롬프트 작업 창")}>
         <div className="lunar-glass rounded-[34px] border border-white/85 bg-white/82 p-3 shadow-[0_30px_100px_rgba(148,84,117,0.16)] backdrop-blur-2xl sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-white/80 bg-white/68 px-4 py-3 sm:px-5">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-900/72">현재 창</p>
@@ -3044,7 +3375,7 @@ export default function ComprehensivePromptHubPage() {
           <div className="mt-5">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-900/75">운세 주제 선택</p>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {CATEGORIES.map((item) => (
+              {CATEGORIES_COPY.map((item) => (
                 <button
                   key={item.id}
                   type="button"
@@ -3078,7 +3409,7 @@ export default function ComprehensivePromptHubPage() {
                   value={topic}
                   onChange={(event) => setTopic(event.target.value)}
                   className="min-h-[50px] rounded-2xl border border-rose-100/90 bg-white/94 px-4 text-sm font-medium text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
-                  placeholder="예: 올해의 일과 사랑 흐름"
+                  placeholder={tx("예: 올해의 일과 사랑 흐름")}
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold text-rose-950">
@@ -3104,7 +3435,7 @@ export default function ComprehensivePromptHubPage() {
                 onChange={(event) => setQuestion(event.target.value)}
                 rows={3}
                 className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
-                placeholder="지금 가장 알고 싶은 마음의 방향을 적어 주세요."
+                placeholder={tx("지금 가장 알고 싶은 마음의 방향을 적어 주세요.")}
               />
             </label>
 
@@ -3116,7 +3447,7 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setContext(event.target.value)}
                   rows={4}
                   className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
-                  placeholder="최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+                  placeholder={tx("최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요.")}
                 />
               </label>
               <label className="grid gap-2 text-sm font-semibold text-rose-950">
@@ -3126,7 +3457,7 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setBirthInfo(event.target.value)}
                   rows={4}
                   className="rounded-2xl border border-rose-100/90 bg-white/94 px-4 py-3 text-sm font-medium leading-6 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] transition placeholder:text-slate-400 focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
-                  placeholder="생년월일, 출생시간, 출생지처럼 알고 있는 정보를 적어 주세요."
+                  placeholder={tx("생년월일, 출생시간, 출생지처럼 알고 있는 정보를 적어 주세요.")}
                 />
               </label>
             </div>
@@ -3185,7 +3516,7 @@ export default function ComprehensivePromptHubPage() {
                   exit={{ opacity: 0, y: -8 }}
                   value={generatedPrompt}
                   className="min-h-[320px] w-full resize-y rounded-[24px] border border-rose-100/90 bg-white/94 p-4 text-sm font-medium leading-7 text-slate-950 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus:border-rose-300/90 focus:ring-2 focus:ring-rose-200/45"
-                  aria-label="생성된 종합 운세 프롬프트"
+                  aria-label={tx("생성된 종합 운세 프롬프트")}
                 />
               ) : (
                 <motion.div
@@ -3245,7 +3576,7 @@ export default function ComprehensivePromptHubPage() {
                 }}
                 rows={5}
                 className="rounded-2xl border border-white/[0.12] bg-black/[0.26] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-100/60"
-                placeholder="예: 이번 계약을 지금 진행해도 괜찮을까요? 상대가 실제로 협조할 마음이 있는지 보고 싶습니다."
+                placeholder={tx("예: 이번 계약을 지금 진행해도 괜찮을까요? 상대가 실제로 협조할 마음이 있는지 보고 싶습니다.")}
               />
             </label>
 
@@ -3358,7 +3689,7 @@ export default function ComprehensivePromptHubPage() {
                 readOnly
                 value={yukHyoPrompt}
                 className="min-h-[300px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-                aria-label="무료 육효 상담 프롬프트"
+                aria-label={tx("무료 육효 상담 프롬프트")}
               />
             </div>
           </div>
@@ -3389,7 +3720,7 @@ export default function ComprehensivePromptHubPage() {
             </div>
 
             <div className="mt-5 grid gap-3">
-              {PSYCH_INFO_SECTIONS.map((item) => (
+              {PSYCH_INFO_SECTIONS_COPY.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-white/[0.09] bg-black/[0.18] p-4">
                   <h3 className="text-sm font-black text-fuchsia-100">{item.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{item.body}</p>
@@ -3447,7 +3778,7 @@ export default function ComprehensivePromptHubPage() {
                 onChange={(event) => setPsychQuestion(event.target.value)}
                 rows={3}
                 className="rounded-2xl border border-white/[0.12] bg-black/[0.26] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-fuchsia-100/60"
-                placeholder="예: 지금 이 관계에서 내가 줄여야 할 반응과 더 솔직해져도 되는 지점을 알고 싶어요."
+                placeholder={tx("예: 지금 이 관계에서 내가 줄여야 할 반응과 더 솔직해져도 되는 지점을 알고 싶어요.")}
               />
             </label>
 
@@ -3555,7 +3886,7 @@ export default function ComprehensivePromptHubPage() {
               readOnly
               value={psychPrompt || "심리테스트 결과 기반 프롬프트 생성 후 표시됩니다."}
               className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-              aria-label="생성된 심리테스트 기반 AI 상담 프롬프트"
+              aria-label={tx("생성된 심리테스트 기반 AI 상담 프롬프트")}
             />
           </div>
         </div>
@@ -3594,7 +3925,7 @@ export default function ComprehensivePromptHubPage() {
             </div>
 
             <div className="mt-5 grid gap-3">
-              {KUSEI_INFO_SECTIONS.map((item) => (
+              {KUSEI_INFO_SECTIONS_COPY.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-white/[0.09] bg-black/[0.18] p-4">
                   <h2 className="text-sm font-black text-cyan-100">{item.title}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{item.body}</p>
@@ -3632,8 +3963,8 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setKuseiGender(event.target.value as KuseiGender)}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-cyan-100/60"
                 >
-                  <option value="male">남자</option>
-                  <option value="female">여자</option>
+                  <option value="male">{tx("남자")}</option>
+                  <option value="female">{tx("여자")}</option>
                 </select>
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-cyan-100">
@@ -3656,8 +3987,8 @@ export default function ComprehensivePromptHubPage() {
                   }}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-cyan-100/60"
                 >
-                  <option value="solar">양력</option>
-                  <option value="lunar">음력</option>
+                  <option value="solar">{tx("양력")}</option>
+                  <option value="lunar">{tx("음력")}</option>
                 </select>
               </label>
               <label className="inline-flex min-h-[72px] items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
@@ -3668,7 +3999,7 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setKuseiIsLeapMonth(event.target.checked)}
                   className="h-4 w-4 accent-cyan-200 disabled:opacity-40"
                 />
-                음력 윤달
+                {tx("음력 윤달")}
               </label>
             </div>
 
@@ -3737,7 +4068,7 @@ export default function ComprehensivePromptHubPage() {
                   value={kuseiQuestion}
                   onChange={(event) => setKuseiQuestion(event.target.value)}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-100/60"
-                  placeholder="예: 관계와 일 흐름에서 지금 줄여야 할 태도는 무엇일까요?"
+                  placeholder={tx("예: 관계와 일 흐름에서 지금 줄여야 할 태도는 무엇일까요?")}
                 />
               </label>
             </div>
@@ -3822,7 +4153,7 @@ export default function ComprehensivePromptHubPage() {
               readOnly
               value={kuseiResult?.prompt || "구성기학 리딩 프롬프트 생성 후 표시됩니다."}
               className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-              aria-label="생성된 구성기학 리딩 프롬프트"
+              aria-label={tx("생성된 구성기학 리딩 프롬프트")}
             />
           </div>
         </div>
@@ -3866,7 +4197,7 @@ export default function ComprehensivePromptHubPage() {
                 }}
                 rows={4}
                 className="rounded-2xl border border-white/[0.12] bg-black/[0.26] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-sky-100/60"
-                placeholder="이번 달 안에 그 사람에게서 먼저 연락이 올까?"
+                placeholder={tx("이번 달 안에 그 사람에게서 먼저 연락이 올까?")}
               />
             </label>
 
@@ -4019,7 +4350,7 @@ export default function ComprehensivePromptHubPage() {
                 readOnly
                 value={horaryResult?.prompt || "호라리 프롬프트 생성 후 표시됩니다."}
                 className="min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-                aria-label="생성된 호라리 프롬프트"
+                aria-label={tx("생성된 호라리 프롬프트")}
               />
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -4100,7 +4431,7 @@ export default function ComprehensivePromptHubPage() {
             </div>
 
             <div className="mt-5 grid gap-2">
-              {MEIHUA_INFO_SECTIONS.map((item) => (
+              {MEIHUA_INFO_SECTIONS_COPY.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-white/[0.1] bg-white/[0.05] p-3">
                   <p className="text-xs font-black text-amber-100">{item.title}</p>
                   <p className="mt-1 text-xs leading-5 text-slate-300">{item.body}</p>
@@ -4117,7 +4448,7 @@ export default function ComprehensivePromptHubPage() {
                       value={meihuaName}
                       onChange={(event) => setMeihuaName(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-black/[0.26] px-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-100/60"
-                      placeholder="예: 달빛"
+                      placeholder={tx("예: 달빛")}
                     />
                   </label>
                   <label className="grid gap-1.5 text-sm font-bold text-amber-100">
@@ -4127,10 +4458,10 @@ export default function ComprehensivePromptHubPage() {
                       onChange={(event) => setMeihuaGender(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-black/[0.26] px-3 text-sm text-white outline-none transition focus:border-amber-100/60"
                     >
-                      <option value="">선택 안 함</option>
-                      <option value="여성">여성</option>
-                      <option value="남성">남성</option>
-                      <option value="기타/비공개">기타/비공개</option>
+                      <option value="">{tx("선택 안 함")}</option>
+                      <option value="여성">{tx("여성")}</option>
+                      <option value="남성">{tx("남성")}</option>
+                      <option value="기타/비공개">{tx("기타/비공개")}</option>
                     </select>
                   </label>
                 </div>
@@ -4178,8 +4509,8 @@ export default function ComprehensivePromptHubPage() {
                       }}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-black/[0.26] px-3 text-sm text-white outline-none transition focus:border-amber-100/60"
                     >
-                      <option value="양력">양력</option>
-                      <option value="음력">음력</option>
+                      <option value="양력">{tx("양력")}</option>
+                      <option value="음력">{tx("음력")}</option>
                     </select>
                   </label>
                   <label className="mt-7 inline-flex w-fit items-center gap-2 text-xs font-bold text-slate-300">
@@ -4190,7 +4521,7 @@ export default function ComprehensivePromptHubPage() {
                       disabled={meihuaCalendarType !== "음력"}
                       className="h-4 w-4 rounded border-white/[0.2] bg-black/[0.3] disabled:opacity-40"
                     />
-                    음력 윤달
+                    {tx("음력 윤달")}
                   </label>
                 </div>
 
@@ -4205,7 +4536,7 @@ export default function ComprehensivePromptHubPage() {
                     }}
                     rows={3}
                     className="rounded-2xl border border-white/[0.12] bg-black/[0.26] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-100/60"
-                    placeholder="예: 지금 시작하려는 일이 나에게 맞는 흐름일까?"
+                    placeholder={tx("예: 지금 시작하려는 일이 나에게 맞는 흐름일까?")}
                   />
                 </label>
 
@@ -4332,10 +4663,10 @@ export default function ComprehensivePromptHubPage() {
                       onChange={(event) => setMeihuaAGender(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-black/[0.26] px-3 text-sm text-white outline-none transition focus:border-amber-100/60"
                     >
-                      <option value="">선택 안 함</option>
-                      <option value="여성">여성</option>
-                      <option value="남성">남성</option>
-                      <option value="기타/비공개">기타/비공개</option>
+                      <option value="">{tx("선택 안 함")}</option>
+                      <option value="여성">{tx("여성")}</option>
+                      <option value="남성">{tx("남성")}</option>
+                      <option value="기타/비공개">{tx("기타/비공개")}</option>
                     </select>
                   </label>
                   <label className="grid gap-1.5 text-sm font-bold text-amber-100">
@@ -4345,10 +4676,10 @@ export default function ComprehensivePromptHubPage() {
                       onChange={(event) => setMeihuaBGender(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-black/[0.26] px-3 text-sm text-white outline-none transition focus:border-amber-100/60"
                     >
-                      <option value="">선택 안 함</option>
-                      <option value="여성">여성</option>
-                      <option value="남성">남성</option>
-                      <option value="기타/비공개">기타/비공개</option>
+                      <option value="">{tx("선택 안 함")}</option>
+                      <option value="여성">{tx("여성")}</option>
+                      <option value="남성">{tx("남성")}</option>
+                      <option value="기타/비공개">{tx("기타/비공개")}</option>
                     </select>
                   </label>
                 </div>
@@ -4388,7 +4719,7 @@ export default function ComprehensivePromptHubPage() {
                     }}
                     rows={3}
                     className="rounded-2xl border border-white/[0.12] bg-black/[0.26] px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-100/60"
-                    placeholder="예: 이 관계를 다시 이어가도 서로에게 안정적일까?"
+                    placeholder={tx("예: 이 관계를 다시 이어가도 서로에게 안정적일까?")}
                   />
                 </label>
               </div>
@@ -4513,7 +4844,7 @@ export default function ComprehensivePromptHubPage() {
                 readOnly
                 value={meihuaPrompt || "매화역수 프롬프트 생성 후 표시됩니다."}
                 className="min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-                aria-label="생성된 매화역수 프롬프트"
+                aria-label={tx("생성된 매화역수 프롬프트")}
               />
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -4599,7 +4930,7 @@ export default function ComprehensivePromptHubPage() {
             </div>
 
             <div className="mt-5 grid gap-3">
-              {DANGSAJU_INFO_SECTIONS.map((item) => (
+              {DANGSAJU_INFO_SECTIONS_COPY.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-white/[0.09] bg-black/[0.18] p-4">
                   <h2 className="text-sm font-black text-amber-100">{item.title}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{item.body}</p>
@@ -4638,7 +4969,7 @@ export default function ComprehensivePromptHubPage() {
                       value={dangsajuName}
                       onChange={(event) => setDangsajuName(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-amber-100/60"
-                      placeholder="예: 달빛"
+                      placeholder={tx("예: 달빛")}
                     />
                   </label>
                   <label className="grid gap-1.5 text-sm font-semibold text-amber-100">
@@ -4648,10 +4979,10 @@ export default function ComprehensivePromptHubPage() {
                       onChange={(event) => setDangsajuGender(event.target.value)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-amber-100/60"
                     >
-                      <option value="">선택 안 함</option>
-                      <option value="male">남자</option>
-                      <option value="female">여자</option>
-                      <option value="other">기타</option>
+                      <option value="">{tx("선택 안 함")}</option>
+                      <option value="male">{tx("남자")}</option>
+                      <option value="female">{tx("여자")}</option>
+                      <option value="other">{tx("기타")}</option>
                     </select>
                   </label>
                 </div>
@@ -4672,9 +5003,9 @@ export default function ComprehensivePromptHubPage() {
                       onChange={(event) => setDangsajuCalendarType(event.target.value as DangsajuCalendarType)}
                       className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-amber-100/60"
                     >
-                      <option value="solar">양력</option>
-                      <option value="lunar">음력</option>
-                      <option value="lunarLeap">음력 윤달</option>
+                      <option value="solar">{tx("양력")}</option>
+                      <option value="lunar">{tx("음력")}</option>
+                      <option value="lunarLeap">{tx("음력 윤달")}</option>
                     </select>
                   </label>
                   <label className="grid gap-1.5 text-sm font-semibold text-amber-100">
@@ -4712,7 +5043,7 @@ export default function ComprehensivePromptHubPage() {
               <div className="grid gap-4">
                 {[
                   {
-                    title: "A 정보",
+                    title: tx("A 정보"),
                     name: dangsajuAName,
                     setName: setDangsajuAName,
                     gender: dangsajuAGender,
@@ -4727,7 +5058,7 @@ export default function ComprehensivePromptHubPage() {
                     setTimeUnknown: setDangsajuATimeUnknown,
                   },
                   {
-                    title: "B 정보",
+                    title: tx("B 정보"),
                     name: dangsajuBName,
                     setName: setDangsajuBName,
                     gender: dangsajuBGender,
@@ -4749,17 +5080,17 @@ export default function ComprehensivePromptHubPage() {
                         value={person.name}
                         onChange={(event) => person.setName(event.target.value)}
                         className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-amber-100/60"
-                        placeholder="이름 또는 별칭"
+                        placeholder={tx("이름 또는 별칭")}
                       />
                       <select
                         value={person.gender}
                         onChange={(event) => person.setGender(event.target.value)}
                         className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-amber-100/60"
                       >
-                        <option value="">성별 선택 안 함</option>
-                        <option value="male">남자</option>
-                        <option value="female">여자</option>
-                        <option value="other">기타</option>
+                        <option value="">{tx("성별 선택 안 함")}</option>
+                        <option value="male">{tx("남자")}</option>
+                        <option value="female">{tx("여자")}</option>
+                        <option value="other">{tx("기타")}</option>
                       </select>
                       <input
                         type="date"
@@ -4772,9 +5103,9 @@ export default function ComprehensivePromptHubPage() {
                         onChange={(event) => person.setCalendarType(event.target.value as DangsajuCalendarType)}
                         className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-amber-100/60"
                       >
-                        <option value="solar">양력</option>
-                        <option value="lunar">음력</option>
-                        <option value="lunarLeap">음력 윤달</option>
+                        <option value="solar">{tx("양력")}</option>
+                        <option value="lunar">{tx("음력")}</option>
+                        <option value="lunarLeap">{tx("음력 윤달")}</option>
                       </select>
                       <input
                         type="time"
@@ -4833,7 +5164,7 @@ export default function ComprehensivePromptHubPage() {
                 }}
                 rows={4}
                 className="rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-500 focus:border-amber-100/60"
-                placeholder="예: 앞으로 일과 재물 흐름에서 내가 조심해야 할 반복 패턴은 무엇일까?"
+                placeholder={tx("예: 앞으로 일과 재물 흐름에서 내가 조심해야 할 반복 패턴은 무엇일까?")}
               />
             </label>
             {dangsajuQuestionNotice ? <p className="mt-2 text-xs leading-5 text-amber-100">{dangsajuQuestionNotice}</p> : null}
@@ -4920,7 +5251,7 @@ export default function ComprehensivePromptHubPage() {
               readOnly
               value={dangsajuPrompt || "당사주 프롬프트 생성 후 표시됩니다."}
               className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-              aria-label="생성된 당사주 프롬프트"
+              aria-label={tx("생성된 당사주 프롬프트")}
             />
             <p className="mt-2 text-xs leading-5 text-slate-400">서비스 내부 기준으로 계산한 참고용 당사주 리딩입니다.</p>
           </div>
@@ -5000,7 +5331,7 @@ export default function ComprehensivePromptHubPage() {
                   value={liteName}
                   onChange={(event) => setLiteName(event.target.value)}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-100/60"
-                  placeholder="예: 달빛"
+                  placeholder={tx("예: 달빛")}
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-cyan-100">
@@ -5010,10 +5341,10 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setLiteGender(event.target.value)}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-cyan-100/60"
                 >
-                  <option value="">선택 안 함</option>
-                  <option value="남자">남자</option>
-                  <option value="여자">여자</option>
-                  <option value="기타">기타</option>
+                  <option value="">{tx("선택 안 함")}</option>
+                  <option value="남자">{tx("남자")}</option>
+                  <option value="여자">{tx("여자")}</option>
+                  <option value="기타">{tx("기타")}</option>
                 </select>
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-cyan-100">
@@ -5032,9 +5363,9 @@ export default function ComprehensivePromptHubPage() {
                   onChange={(event) => setLiteCalendarType(event.target.value as LiteCalendarType)}
                   className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none focus:border-cyan-100/60"
                 >
-                  <option value="solar">양력</option>
-                  <option value="lunar">음력</option>
-                  <option value="lunarLeap">음력 윤달</option>
+                  <option value="solar">{tx("양력")}</option>
+                  <option value="lunar">{tx("음력")}</option>
+                  <option value="lunarLeap">{tx("음력 윤달")}</option>
                 </select>
               </label>
               <label className="grid gap-1.5 text-sm font-semibold text-cyan-100">
@@ -5066,7 +5397,7 @@ export default function ComprehensivePromptHubPage() {
                     value={liteBirthPlace}
                     onChange={(event) => setLiteBirthPlace(event.target.value)}
                     className="min-h-[46px] rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-100/60"
-                    placeholder="예: 서울"
+                    placeholder={tx("예: 서울")}
                   />
                 </label>
                 <label className="grid gap-1.5 text-sm font-semibold text-cyan-100">
@@ -5085,7 +5416,7 @@ export default function ComprehensivePromptHubPage() {
                     onChange={(event) => setLiteKnownChartFacts(event.target.value)}
                     rows={3}
                     className="rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-500 focus:border-cyan-100/60"
-                    placeholder="예: 달궁은 계산하지 못했습니다. 기존 차트에서 금성이 강하다는 말을 들었습니다."
+                    placeholder={tx("예: 달궁은 계산하지 못했습니다. 기존 차트에서 금성이 강하다는 말을 들었습니다.")}
                   />
                 </label>
               </div>
@@ -5101,7 +5432,7 @@ export default function ComprehensivePromptHubPage() {
                 }}
                 rows={4}
                 className="rounded-xl border border-white/[0.12] bg-[#080b18]/90 px-3 py-3 text-sm leading-6 text-white outline-none placeholder:text-slate-500 focus:border-cyan-100/60"
-                placeholder="예: 앞으로 일과 관계에서 내가 가장 조심해야 할 흐름은 무엇일까?"
+                placeholder={tx("예: 앞으로 일과 관계에서 내가 가장 조심해야 할 흐름은 무엇일까?")}
               />
             </label>
             {liteQuestionNotice ? <p className="mt-2 text-xs leading-5 text-cyan-100">{liteQuestionNotice}</p> : null}
@@ -5161,7 +5492,7 @@ export default function ComprehensivePromptHubPage() {
               readOnly
               value={liteResult?.prompt || "무료 기본 운세 프롬프트 생성 후 표시됩니다."}
               className="mt-4 min-h-[320px] w-full resize-y rounded-2xl border border-white/10 bg-black/[0.28] p-4 text-sm leading-7 text-slate-100 outline-none"
-              aria-label="생성된 무료 기본 운세 프롬프트"
+              aria-label={tx("생성된 무료 기본 운세 프롬프트")}
             />
           </div>
         </div>

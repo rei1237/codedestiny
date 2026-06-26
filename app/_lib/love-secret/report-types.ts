@@ -8,10 +8,42 @@ export type LoveChapterSpec = {
   categories: string[];
 };
 
+const LOVE_SECRET_REPORT_TEXT_TRANSLATIONS = {
+  ko: {
+    "loveSecretReport.001": "나의 사랑 원형",
+    "loveSecretReport.002": "끌림의 공식",
+    "loveSecretReport.003": "연애 패턴 분석",
+    "loveSecretReport.004": "표현과 소통",
+    "loveSecretReport.005": "연애에서의 불안과 집착",
+    "loveSecretReport.006": "결혼운과 배우자운",
+    "loveSecretReport.007": "이별과 재회 패턴",
+    "loveSecretReport.008": "조후로 보는 친밀감과 속궁합",
+    "loveSecretReport.009": "좋은 인연을 만나는 시기와 조건",
+    "loveSecretReport.010": "나를 위한 연애 마스터플랜",
+    "loveSecretReport.011": "두 사람의 관계 설계도",
+    "loveSecretReport.012": "일간 궁합 — 서로를 바라보는 본질",
+    "loveSecretReport.013": "일지와 배우자궁 — 오래 갈 수 있는 관계인가",
+    "loveSecretReport.014": "월지와 생활 리듬 — 함께 살 때 드러나는 차이",
+    "loveSecretReport.015": "오행 보완 궁합 — 부족함을 채우는가, 과잉을 키우는가",
+    "loveSecretReport.016": "십성 관계 궁합 — 사랑, 책임, 의존, 통제의 구조",
+    "loveSecretReport.017": "끌림과 케미 — 왜 서로에게 반응하는가",
+    "loveSecretReport.018": "표현과 소통 궁합 — 말이 통하는 관계인가",
+    "loveSecretReport.019": "갈등과 권력 구조 — 싸움이 반복되는 지점",
+    "loveSecretReport.020": "결혼 현실성 — 사랑이 생활로 이어질 수 있는가",
+    "loveSecretReport.021": "조후로 보는 친밀감과 속궁합 — 온도, 습도, 리듬의 조화",
+    "loveSecretReport.022": "신살·12운성으로 보는 숨은 인연 코드",
+    "loveSecretReport.023": "대운·세운으로 보는 관계의 타이밍",
+    "loveSecretReport.024": "두 사람을 위한 최종 관계 전략서",
+  },
+} as const;
+
+function loveSecretReportText(key: keyof typeof LOVE_SECRET_REPORT_TEXT_TRANSLATIONS.ko) {
+  return LOVE_SECRET_REPORT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export const SOLO_LOVE_CHAPTER_SPECS = [
   {
     number: "I",
-    title: "나의 사랑 원형",
+    title: loveSecretReportText("loveSecretReport.001"),
     categories: [
       "일간으로 보는 사랑에서의 자아",
       "일지 배우자궁이 말하는 관계 본능",
@@ -27,7 +59,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "II",
-    title: "끌림의 공식",
+    title: loveSecretReportText("loveSecretReport.002"),
     categories: [
       "내가 강하게 끌리는 사람의 오행",
       "내가 반응하는 십성 유형",
@@ -43,7 +75,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "III",
-    title: "연애 패턴 분석",
+    title: loveSecretReportText("loveSecretReport.003"),
     categories: [
       "연애를 시작하는 방식",
       "호감이 생겼을 때의 행동 패턴",
@@ -59,7 +91,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "IV",
-    title: "표현과 소통",
+    title: loveSecretReportText("loveSecretReport.004"),
     categories: [
       "감정을 표현하는 기본 방식",
       "식상으로 보는 말과 표현력",
@@ -75,7 +107,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "V",
-    title: "연애에서의 불안과 집착",
+    title: loveSecretReportText("loveSecretReport.005"),
     categories: [
       "불안이 올라오는 사주적 조건",
       "관계에서 집착이 생기는 패턴",
@@ -91,7 +123,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "VI",
-    title: "결혼운과 배우자운",
+    title: loveSecretReportText("loveSecretReport.006"),
     categories: [
       "배우자성의 위치와 강약",
       "배우자궁의 안정성",
@@ -107,7 +139,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "VII",
-    title: "이별과 재회 패턴",
+    title: loveSecretReportText("loveSecretReport.007"),
     categories: [
       "이별이 발생하기 쉬운 관계 구조",
       "내가 마음이 식는 방식",
@@ -123,7 +155,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "VIII",
-    title: "조후로 보는 친밀감과 속궁합",
+    title: loveSecretReportText("loveSecretReport.008"),
     categories: [
       "한난조습으로 보는 나의 친밀감 온도",
       "차가운 기운과 뜨거운 기운이 애정 표현에 주는 영향",
@@ -139,7 +171,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "IX",
-    title: "좋은 인연을 만나는 시기와 조건",
+    title: loveSecretReportText("loveSecretReport.009"),
     categories: [
       "좋은 인연이 들어오기 쉬운 대운",
       "연애운이 강해지는 세운",
@@ -155,7 +187,7 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
   },
   {
     number: "X",
-    title: "나를 위한 연애 마스터플랜",
+    title: loveSecretReportText("loveSecretReport.010"),
     categories: [
       "내 연애의 핵심 한 문장",
       "반드시 살려야 할 매력",
@@ -172,20 +204,20 @@ export const SOLO_LOVE_CHAPTER_SPECS = [
 ] satisfies LoveChapterSpec[];
 
 export const COMPATIBILITY_LOVE_CHAPTER_SPECS = [
-  { number: "I", title: "두 사람의 관계 설계도", categories: [] },
-  { number: "II", title: "일간 궁합 — 서로를 바라보는 본질", categories: [] },
-  { number: "III", title: "일지와 배우자궁 — 오래 갈 수 있는 관계인가", categories: [] },
-  { number: "IV", title: "월지와 생활 리듬 — 함께 살 때 드러나는 차이", categories: [] },
-  { number: "V", title: "오행 보완 궁합 — 부족함을 채우는가, 과잉을 키우는가", categories: [] },
-  { number: "VI", title: "십성 관계 궁합 — 사랑, 책임, 의존, 통제의 구조", categories: [] },
-  { number: "VII", title: "끌림과 케미 — 왜 서로에게 반응하는가", categories: [] },
-  { number: "VIII", title: "표현과 소통 궁합 — 말이 통하는 관계인가", categories: [] },
-  { number: "IX", title: "갈등과 권력 구조 — 싸움이 반복되는 지점", categories: [] },
-  { number: "X", title: "결혼 현실성 — 사랑이 생활로 이어질 수 있는가", categories: [] },
-  { number: "XI", title: "조후로 보는 친밀감과 속궁합 — 온도, 습도, 리듬의 조화", categories: [] },
-  { number: "XII", title: "신살·12운성으로 보는 숨은 인연 코드", categories: [] },
-  { number: "XIII", title: "대운·세운으로 보는 관계의 타이밍", categories: [] },
-  { number: "XIV", title: "두 사람을 위한 최종 관계 전략서", categories: [] },
+  { number: "I", title: loveSecretReportText("loveSecretReport.011"), categories: [] },
+  { number: "II", title: loveSecretReportText("loveSecretReport.012"), categories: [] },
+  { number: "III", title: loveSecretReportText("loveSecretReport.013"), categories: [] },
+  { number: "IV", title: loveSecretReportText("loveSecretReport.014"), categories: [] },
+  { number: "V", title: loveSecretReportText("loveSecretReport.015"), categories: [] },
+  { number: "VI", title: loveSecretReportText("loveSecretReport.016"), categories: [] },
+  { number: "VII", title: loveSecretReportText("loveSecretReport.017"), categories: [] },
+  { number: "VIII", title: loveSecretReportText("loveSecretReport.018"), categories: [] },
+  { number: "IX", title: loveSecretReportText("loveSecretReport.019"), categories: [] },
+  { number: "X", title: loveSecretReportText("loveSecretReport.020"), categories: [] },
+  { number: "XI", title: loveSecretReportText("loveSecretReport.021"), categories: [] },
+  { number: "XII", title: loveSecretReportText("loveSecretReport.022"), categories: [] },
+  { number: "XIII", title: loveSecretReportText("loveSecretReport.023"), categories: [] },
+  { number: "XIV", title: loveSecretReportText("loveSecretReport.024"), categories: [] },
 ] satisfies LoveChapterSpec[];
 
 export interface LoveSecretPersonBirth {

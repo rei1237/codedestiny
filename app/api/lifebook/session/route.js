@@ -15,6 +15,34 @@ import {
   withSummaryTable,
 } from "@/app/_lib/lifebook/canonical";
 
+const LIFEBOOK_SESSION_TEXT_TRANSLATIONS = {
+  ko: {
+    "lifebookSession.001": "사주 원국 완전 해설 — 팔자 8글자의 비밀",
+    "lifebookSession.002": "나의 설계도 — 월지일간조후와 기질의 뿌리",
+    "lifebookSession.003": "숨겨진 무기 — 용신희신과 나만의 필살기",
+    "lifebookSession.004": "대운(大運) 정밀 분석 — 내 인생의 큰 파도",
+    "lifebookSession.005": "격국과 사회적 소명 — 나의 성공 방정식",
+    "lifebookSession.006": "관계의 전략 — 인연의 법칙과 전략적 파트너십",
+    "lifebookSession.007": "연애결혼 완전 분석 — 사주가 말하는 나의 사랑",
+    "lifebookSession.008": "재물직업 완전 전략 — 부의 그릇을 키우는 천기",
+    "lifebookSession.009": "건강심신 에너지 완전 분석 — 오행이 말하는 신체 지도",
+    "lifebookSession.010": "신살12운성퀀텀 명리 — 사주의 숨겨진 비밀 코드",
+    "lifebookSession.011": "2026 丙午年 실전 로드맵 — 12개월 행동 지침",
+    "lifebookSession.012": "생애 마스터플랜 — 대운별 인생 파노라마",
+    "lifebookSession.013": "거장의 최종 전략 제언 — 운명을 이기는 의지의 설계",
+    "lifebookSession.014": "로그인이 필요한 서비스입니다.",
+    "lifebookSession.015": "인증에 실패했습니다. 다시 로그인해 주세요.",
+    "lifebookSession.016": "인생의 책 생성은 /api/premium-report/prepare 경유 요청만 허용됩니다.",
+    "lifebookSession.017": "외부 음력/절기 API 장애로 사주 계산을 완료할 수 없습니다.",
+    "lifebookSession.018": "이미 생성 중인 요청이 있습니다.",
+    "lifebookSession.019": "사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다",
+    "lifebookSession.020": "챕터 메타데이터를 찾을 수 없습니다.",
+  },
+};
+
+function lifebookSessionText(key) {
+  return LIFEBOOK_SESSION_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 // Next.js 루트 최대 실행 시간 (초) — 12챕터 장문 생성 대응
 export const maxDuration = 300;
 
@@ -166,7 +194,7 @@ const SESSION_CONFIGS = [
   {
     id: 1,
     emoji: "🌌",
-    title: "사주 원국 완전 해설 — 팔자 8글자의 비밀",
+    title: lifebookSessionText("lifebookSession.001"),
     prompt: (d) => `## 🌌 제1장 — 사주 원국 완전 해설: 팔자 8글자의 비밀
 
 아래 사주 정보를 토대로 이 사람만을 위한 제1장을 **5,000자 이상**, 명리학 거장의 날카롭고 품격 있는 현대 한국어로 작성하라. 고어체(~하노라, ~이니라)는 금지한다.
@@ -245,7 +273,7 @@ ${d}`,
   {
     id: 2,
     emoji: "🏛️",
-    title: "나의 설계도 — 월지일간조후와 기질의 뿌리",
+    title: lifebookSessionText("lifebookSession.002"),
     prompt: (d) => `## 🏛️ 제2장 — 나의 설계도: 월지일간조후와 기질의 뿌리
 
 아래 사주 정보를 토대로 이 사람만을 위한 제2장을 **5,000자 이상**, 날카롭고 신비로운 거장의 문체로 작성하라.
@@ -311,7 +339,7 @@ ${d}`,
   {
     id: 3,
     emoji: "⚔️",
-    title: "숨겨진 무기 — 용신희신과 나만의 필살기",
+    title: lifebookSessionText("lifebookSession.003"),
     prompt: (d) => `## ⚔️ 제3장 — 숨겨진 무기: 용신희신과 나만의 필살기
 
 아래 사주 정보를 토대로 이 사람만을 위한 제3장을 **5,000자 이상**, 날카롭고 카리스마 있는 거장의 문체로 작성하라.
@@ -405,7 +433,7 @@ ${d}`,
   {
     id: 4,
     emoji: "🌀",
-    title: "대운(大運) 정밀 분석 — 내 인생의 큰 파도",
+    title: lifebookSessionText("lifebookSession.004"),
     prompt: (d) => `## 🌀 제4장 — 대운(大運) 정밀 분석: 내 인생의 큰 파도
 
 아래 사주 정보를 토대로 이 사람만을 위한 제4장을 **5,000자 이상**, 명리학 거장의 날카롭고 신비로운 문체로 작성하라. 반드시 **실제 대운 글자**를 명시하라.
@@ -475,7 +503,7 @@ ${d}`,
   {
     id: 5,
     emoji: "👑",
-    title: "격국과 사회적 소명 — 나의 성공 방정식",
+    title: lifebookSessionText("lifebookSession.005"),
     prompt: (d) => `## 👑 제5장 — 격국과 사회적 소명: 나의 성공 방정식
 
 아래 사주 정보를 토대로 이 사람만을 위한 제5장을 **5,000자 이상**, 거장의 날카롭고 카리스마 있는 문체로 작성하라.
@@ -543,7 +571,7 @@ ${d}`,
   {
     id: 6,
     emoji: "🤝",
-    title: "관계의 전략 — 인연의 법칙과 전략적 파트너십",
+    title: lifebookSessionText("lifebookSession.006"),
     prompt: (d) => `## 🤝 제6장 — 관계의 전략: 인연의 법칙과 전략적 파트너십
 
 아래 사주 정보를 토대로 이 사람만을 위한 제6장을 **5,000자 이상**, 날카롭고 신비로운 거장의 문체로 작성하라.
@@ -606,7 +634,7 @@ ${d}`,
   {
     id: 7,
     emoji: "💑",
-    title: "연애결혼 완전 분석 — 사주가 말하는 나의 사랑",
+    title: lifebookSessionText("lifebookSession.007"),
     prompt: (d) => `## 💑 제7장 — 연애결혼 완전 분석: 사주가 말하는 나의 사랑
 
 아래 사주 정보를 토대로 이 사람만을 위한 제7장을 **5,000자 이상**, 신비롭고 날카로운 거장의 문체로 작성하라.
@@ -676,7 +704,7 @@ ${d}`,
   {
     id: 8,
     emoji: "💰",
-    title: "재물직업 완전 전략 — 부의 그릇을 키우는 천기",
+    title: lifebookSessionText("lifebookSession.008"),
     prompt: (d) => `## 💰 제8장 — 재물직업 완전 전략: 부의 그릇을 키우는 천기
 
 아래 사주 정보를 토대로 이 사람만을 위한 제8장을 **5,000자 이상**, 날카롭고 실전적인 거장의 문체로 작성하라.
@@ -752,7 +780,7 @@ ${d}`,
   {
     id: 9,
     emoji: "🏥",
-    title: "건강심신 에너지 완전 분석 — 오행이 말하는 신체 지도",
+    title: lifebookSessionText("lifebookSession.009"),
     prompt: (d) => `## 🏥 제9장 — 건강심신 에너지 완전 분석: 오행이 말하는 신체 지도
 
 아래 사주 정보를 토대로 이 사람만을 위한 제9장을 **5,000자 이상**, 날카롭고 경계심을 일깨우는 거장의 문체로 작성하라.
@@ -828,7 +856,7 @@ ${d}`,
   {
     id: 10,
     emoji: "🔮",
-    title: "신살12운성퀀텀 명리 — 사주의 숨겨진 비밀 코드",
+    title: lifebookSessionText("lifebookSession.010"),
     prompt: (d) => `## 🔮 제10장 — 신살12운성퀀텀 명리: 사주의 숨겨진 비밀 코드
 
 아래 사주 정보를 토대로 이 사람만을 위한 제10장을 **5,000자 이상**, 신비롭고 날카로운 거장의 문체로 작성하라.
@@ -897,7 +925,7 @@ ${d}`,
   {
     id: 11,
     emoji: "📅",
-    title: "2026 丙午年 실전 로드맵 — 12개월 행동 지침",
+    title: lifebookSessionText("lifebookSession.011"),
     prompt: (d) => `## 📅 제11장 — 2026 丙午年 실전 로드맵: 12개월 행동 지침
 
 아래 사주 정보를 토대로 이 사람만을 위한 제11장을 **5,000자 이상**, 날카롭고 실전적인 거장의 문체로 작성하라.
@@ -977,7 +1005,7 @@ ${d}`,
   {
     id: 12,
     emoji: "🌅",
-    title: "생애 마스터플랜 — 대운별 인생 파노라마",
+    title: lifebookSessionText("lifebookSession.012"),
     prompt: (d) => `## 🌅 제12장 — 생애 마스터플랜: 대운별 인생 파노라마
 
 아래 사주 정보를 토대로 이 사람만을 위한 제12장을 **5,000자 이상**, 거장의 깊고 통찰력 있는 문체로 작성하라.
@@ -1050,7 +1078,7 @@ ${d}`,
   {
     id: 13,
     emoji: "💌",
-    title: "거장의 최종 전략 제언 — 운명을 이기는 의지의 설계",
+    title: lifebookSessionText("lifebookSession.013"),
     prompt: (d) => `## 💌 제13장 — 거장의 최종 전략 제언: 운명을 이기는 의지의 설계
 
 아래 사주 정보를 토대로 이 사람만을 위한 마지막 장을 **5,500자 이상**, 거장의 가장 날카롭고 따뜻한 문체로 작성하라. 이 챕터는 이 사람이 전 챕터를 읽은 후 받는 **명리학 거장의 최후 봉서(封書)**다.
@@ -1238,7 +1266,7 @@ export async function POST(req) {
       : "";
     if (!bearerToken) {
       return NextResponse.json(
-        { ok: false, message: "로그인이 필요한 서비스입니다." },
+        { ok: false, message: lifebookSessionText("lifebookSession.014") },
         { status: 401 }
       );
     }
@@ -1249,7 +1277,7 @@ export async function POST(req) {
       decodedToken = jwt.verify(bearerToken, jwtSecret);
     } catch (_jwtErr) {
       return NextResponse.json(
-        { ok: false, message: "인증에 실패했습니다. 다시 로그인해 주세요." },
+        { ok: false, message: lifebookSessionText("lifebookSession.015") },
         { status: 401 }
       );
     }
@@ -1264,7 +1292,7 @@ export async function POST(req) {
         {
           ok: false,
           code: "FORBIDDEN",
-          message: "인생의 책 생성은 /api/premium-report/prepare 경유 요청만 허용됩니다.",
+          message: lifebookSessionText("lifebookSession.016"),
         },
         { status: 403 }
       );
@@ -1284,7 +1312,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           ok: false,
-          message: "외부 음력/절기 API 장애로 사주 계산을 완료할 수 없습니다.",
+          message: lifebookSessionText("lifebookSession.017"),
           code: "KASI_UNAVAILABLE",
         },
         { status: 503 }
@@ -1294,7 +1322,7 @@ export async function POST(req) {
     inFlightKey = buildInFlightKey(decodedToken?.userId || decodedToken?.id || "user", sessionId);
     if (LIFEBOOK_IN_FLIGHT.has(inFlightKey)) {
       return NextResponse.json(
-        { ok: false, message: "이미 생성 중인 요청이 있습니다.", code: "DUPLICATE_IN_FLIGHT" },
+        { ok: false, message: lifebookSessionText("lifebookSession.018"), code: "DUPLICATE_IN_FLIGHT" },
         { status: 409 }
       );
     }
@@ -1326,7 +1354,7 @@ export async function POST(req) {
         {
           ok: false,
           code: "SAJU_CANONICAL_VALIDATION_FAILED",
-          message: "사주 계산 데이터가 부족해 인생의 책을 생성할 수 없습니다",
+          message: lifebookSessionText("lifebookSession.019"),
           missingFields: canonicalValidation.missingFields,
           canonicalSajuChart,
         },
@@ -1338,7 +1366,7 @@ export async function POST(req) {
     const chapterMeta = chapterPlan.find((meta) => Number(meta.id) === sessionId);
     if (!chapterMeta) {
       return NextResponse.json(
-        { ok: false, message: "챕터 메타데이터를 찾을 수 없습니다." },
+        { ok: false, message: lifebookSessionText("lifebookSession.020") },
         { status: 400 }
       );
     }

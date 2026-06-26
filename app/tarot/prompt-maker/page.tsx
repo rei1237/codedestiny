@@ -1832,20 +1832,45 @@ const LENORMAND_CARD_POOL: OracleCardPick[] = LENORMAND_CARD_DATA.map(([number, 
   };
 });
 
+const PROMPT_MAKER_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    "promptMaker.001": "레노먼드 6장 흐름",
+    "promptMaker.002": "현재 상황",
+    "promptMaker.003": "지금 질문의 표면에 드러난 중심 흐름",
+    "promptMaker.004": "가까운 배경",
+    "promptMaker.005": "이 흐름을 만든 최근 조건과 주변 분위기",
+    "promptMaker.006": "반복 신호",
+    "promptMaker.007": "계속 되풀이되는 패턴과 확인할 포인트",
+    "promptMaker.008": "전환 단서",
+    "promptMaker.009": "흐름이 바뀌거나 열리는 계기",
+    "promptMaker.010": "행동 단서",
+    "promptMaker.011": "줄이거나 늘려야 할 현실 행동",
+    "promptMaker.012": "다음 흐름",
+    "promptMaker.013": "가까운 다음 장면과 정리 메시지",
+    "promptMaker.014": "타로 프롬프트",
+    "promptMaker.015": "질문, 스프레드, 카드의 방향을 하나의 섬세한 AI 타로 상담 프롬프트로 엮습니다.",
+    "promptMaker.016": "레노먼드 프롬프트",
+    "promptMaker.017": "질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.",
+  },
+} as const;
+
+function promptMakerPageText(key: keyof typeof PROMPT_MAKER_PAGE_TEXT_TRANSLATIONS.ko): string {
+  return PROMPT_MAKER_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const LENORMAND_SPREAD: TarotSpread = {
   id: "lenormand-six-flow",
-  title: "레노먼드 6장 흐름",
+  title: promptMakerPageText("promptMaker.001"),
   category: "special",
   cardCount: 6,
   difficulty: "easy",
   purpose: "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다.",
   positions: [
-    { index: 1, label: "현재 상황", description: "지금 질문의 표면에 드러난 중심 흐름", x: 20, y: 30, rotate: -8 },
-    { index: 2, label: "가까운 배경", description: "이 흐름을 만든 최근 조건과 주변 분위기", x: 50, y: 18, rotate: 0 },
-    { index: 3, label: "반복 신호", description: "계속 되풀이되는 패턴과 확인할 포인트", x: 80, y: 30, rotate: 8 },
-    { index: 4, label: "전환 단서", description: "흐름이 바뀌거나 열리는 계기", x: 20, y: 70, rotate: -8 },
-    { index: 5, label: "행동 단서", description: "줄이거나 늘려야 할 현실 행동", x: 50, y: 82, rotate: 0, emphasis: true },
-    { index: 6, label: "다음 흐름", description: "가까운 다음 장면과 정리 메시지", x: 80, y: 70, rotate: 8 },
+    { index: 1, label: promptMakerPageText("promptMaker.002"), description: promptMakerPageText("promptMaker.003"), x: 20, y: 30, rotate: -8 },
+    { index: 2, label: promptMakerPageText("promptMaker.004"), description: promptMakerPageText("promptMaker.005"), x: 50, y: 18, rotate: 0 },
+    { index: 3, label: promptMakerPageText("promptMaker.006"), description: promptMakerPageText("promptMaker.007"), x: 80, y: 30, rotate: 8 },
+    { index: 4, label: promptMakerPageText("promptMaker.008"), description: promptMakerPageText("promptMaker.009"), x: 20, y: 70, rotate: -8 },
+    { index: 5, label: promptMakerPageText("promptMaker.010"), description: promptMakerPageText("promptMaker.011"), x: 50, y: 82, rotate: 0, emphasis: true },
+    { index: 6, label: promptMakerPageText("promptMaker.012"), description: promptMakerPageText("promptMaker.013"), x: 80, y: 70, rotate: 8 },
   ],
   interpretationGuide: [
     "카드를 한 장씩 고립하지 않고 인접 카드와 조합해 문장처럼 읽습니다.",
@@ -1868,9 +1893,9 @@ const LENORMAND_INFO_ITEMS = [
 
 const ORACLE_MODE_META: Record<OracleDeckMode, { title: string; eyebrow: string; description: string; drawLabel: string; deckLabel: string; deckCaption: string; promptLabel: string; outputLabel: string }> = {
   tarot: {
-    title: "타로 프롬프트",
+    title: promptMakerPageText("promptMaker.014"),
     eyebrow: "타로",
-    description: "질문, 스프레드, 카드의 방향을 하나의 섬세한 AI 타로 상담 프롬프트로 엮습니다.",
+    description: promptMakerPageText("promptMaker.015"),
     drawLabel: "✦ 카드 뽑기 시작",
     deckLabel: "Tarot Deck",
     deckCaption: "78장 덱에서 한 장씩 뽑아보세요.",
@@ -1878,9 +1903,9 @@ const ORACLE_MODE_META: Record<OracleDeckMode, { title: string; eyebrow: string;
     outputLabel: "AI 오라클 프롬프트",
   },
   lenormand: {
-    title: "레노먼드 프롬프트",
+    title: promptMakerPageText("promptMaker.016"),
     eyebrow: "레노먼드",
-    description: "질문을 적으면 그 주제에 맞는 프롬프트와 해석 흐름이 바로 열립니다.",
+    description: promptMakerPageText("promptMaker.017"),
     drawLabel: "레노먼드 6장 뽑기",
     deckLabel: "Lenormand Deck",
     deckCaption: "36장 레노먼드 덱에서 6장을 뽑아 흐름과 행동 단서를 봅니다.",

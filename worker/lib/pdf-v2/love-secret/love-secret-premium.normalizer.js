@@ -1,4 +1,4 @@
-import { asArray, clean, compactObject, safeObject } from "./love-secret-premium.types.js";
+import { asArray, clean, compactObject, normalizeLoveSecretMode, safeObject } from "./love-secret-premium.types.js";
 
 function firstClean(...values) {
   for (const value of values) {
@@ -21,14 +21,15 @@ function pillarText(row = {}) {
 function normalizeProfile(baseUser = {}, raw = {}) {
   const user = safeObject(baseUser);
   const body = safeObject(raw);
-  const birthInput = safeObject(body.birthInput || body.profile);
+  const personA = safeObject(body.personA);
+  const birthInput = safeObject(body.birthInput || body.profile || personA);
   return compactObject({
-    name: firstClean(user.name, birthInput.name, body.name, "의뢰인"),
-    gender: firstClean(user.gender, birthInput.gender, body.gender),
-    birthDate: firstClean(user.birthDate, birthInput.birthDate, birthInput.date, body.birthDate),
-    birthTime: firstClean(user.birthTime, birthInput.birthTime, birthInput.time, body.birthTime),
-    calendarType: firstClean(user.calendarType, birthInput.calendarType, birthInput.calendar),
-    birthPlace: firstClean(user.birthPlace, birthInput.birthPlace, birthInput.place),
+    name: firstClean(user.name, birthInput.name, personA.name, body.userName, body.name, "의뢰인"),
+    gender: firstClean(user.gender, birthInput.gender, personA.gender, body.gender),
+    birthDate: firstClean(user.birthDate, birthInput.birthDate, birthInput.date, personA.birthDate, body.birthDate),
+    birthTime: firstClean(user.birthTime, birthInput.birthTime, birthInput.time, personA.birthTime, body.birthTime),
+    calendarType: firstClean(user.calendarType, birthInput.calendarType, birthInput.calendar, personA.calendarType),
+    birthPlace: firstClean(user.birthPlace, birthInput.birthPlace, birthInput.place, personA.birthPlace),
   });
 }
 
@@ -36,14 +37,15 @@ function normalizePartnerProfile(basePartner = {}, raw = {}) {
   const partner = safeObject(basePartner);
   const user = safeObject(partner.user || partner.profile || partner);
   const body = safeObject(raw);
-  const birthInput = safeObject(body.partnerBirthInput || body.partnerProfile || body.partner);
+  const personB = safeObject(body.personB);
+  const birthInput = safeObject(body.partnerBirthInput || body.partnerProfile || body.partner || personB);
   return compactObject({
-    name: firstClean(user.name, birthInput.name, body.partnerName, "상대"),
-    gender: firstClean(user.gender, birthInput.gender, body.partnerGender),
-    birthDate: firstClean(user.birthDate, birthInput.birthDate, birthInput.date, body.partnerBirthDate),
-    birthTime: firstClean(user.birthTime, birthInput.birthTime, birthInput.time, body.partnerBirthTime),
-    calendarType: firstClean(user.calendarType, birthInput.calendarType, birthInput.calendar),
-    birthPlace: firstClean(user.birthPlace, birthInput.birthPlace, birthInput.place),
+    name: firstClean(user.name, birthInput.name, personB.name, body.partnerName, "상대"),
+    gender: firstClean(user.gender, birthInput.gender, personB.gender, body.partnerGender),
+    birthDate: firstClean(user.birthDate, birthInput.birthDate, birthInput.date, personB.birthDate, body.partnerBirthDate),
+    birthTime: firstClean(user.birthTime, birthInput.birthTime, birthInput.time, personB.birthTime, body.partnerBirthTime),
+    calendarType: firstClean(user.calendarType, birthInput.calendarType, birthInput.calendar, personB.calendarType),
+    birthPlace: firstClean(user.birthPlace, birthInput.birthPlace, birthInput.place, personB.birthPlace),
   });
 }
 
@@ -71,7 +73,7 @@ function normalizeElementBalance(value = {}) {
 }
 
 function normalizeSaju(base = {}) {
-  const source = safeObject(base);
+  const source = safeObject(safeObject(base).sajuChart || base);
   const core = safeObject(source.core);
   const stars = safeObject(source.specialStars || source.stars);
   const timing = safeObject(source.timing || source.luck);
@@ -123,7 +125,8 @@ function normalizeLoveContext(raw = {}, base = {}, mode = "solo") {
 }
 
 function normalizeLuck(base = {}) {
-  const timing = safeObject(base.timing || base.luck);
+  const source = safeObject(safeObject(base).sajuChart || base);
+  const timing = safeObject(source.timing || source.luck || safeObject(base).luckCycles);
   return compactObject({
     majorLuck: firstClean(timing.majorLuck, timing.daewoon, timing.decade),
     yearLuck: firstClean(timing.yearLuck, timing.saeun, timing.year),
@@ -135,8 +138,10 @@ function normalizeLuck(base = {}) {
 
 function normalizeCompatibility(base = {}, raw = {}, mode = "solo") {
   if (mode !== "compatibility") return undefined;
-  const partner = safeObject(base.partner);
   const body = safeObject(raw);
+  const partner = Object.keys(safeObject(base.partner)).length
+    ? safeObject(base.partner)
+    : safeObject(body.personB?.sajuChart || body.personB);
   return compactObject({
     partnerProfile: normalizePartnerProfile(partner, body),
     partnerSaju: normalizeSaju(partner),
@@ -178,16 +183,26 @@ function buildRawResultSummary({ base, mode, compatibility }) {
 }
 
 export function normalizeLoveSecretPremiumInput({ base = {}, body = {}, mode = "solo", config = null } = {}) {
-  const normalizedMode = clean(mode).toLowerCase() === "compatibility" ? "compatibility" : "solo";
-  const sourceBase = safeObject(base);
   const sourceBody = safeObject(body);
+  const normalizedMode = normalizeLoveSecretMode(mode || sourceBody.mode || sourceBody.reportMode, { allowDefault: true });
+  const sourceBase = Object.keys(safeObject(base)).length
+    ? safeObject(base)
+    : safeObject(sourceBody.personA?.sajuChart || sourceBody.personA);
   const compatibility = normalizeCompatibility(sourceBase, sourceBody, normalizedMode);
+  const userProfile = normalizeProfile(sourceBase.user, sourceBody);
+  const partnerProfile = normalizedMode === "compatibility" ? compatibility?.partnerProfile : undefined;
+  if (normalizedMode === "compatibility" && (!clean(userProfile.birthDate) || !clean(partnerProfile?.birthDate))) {
+    const error = new Error("LOVE_SECRET_COMPATIBILITY_INPUT_MISSING");
+    error.code = "LOVE_SECRET_COMPATIBILITY_INPUT_MISSING";
+    error.status = 400;
+    throw error;
+  }
   const warnings = buildWarnings({ base: sourceBase, mode: normalizedMode, compatibility });
   return compactObject({
     schemaVersion: "love-secret-premium-input.v2",
     mode: normalizedMode,
-    userProfile: normalizeProfile(sourceBase.user, sourceBody),
-    partnerProfile: normalizedMode === "compatibility" ? compatibility?.partnerProfile : undefined,
+    userProfile,
+    partnerProfile,
     saju: normalizeSaju(sourceBase),
     love: normalizeLoveContext(sourceBody, sourceBase, normalizedMode),
     luck: normalizeLuck(sourceBase),

@@ -6,6 +6,72 @@
 (function () {
   'use strict';
 
+const LUCK_SYNC_DIARY_TEXT_TRANSLATIONS = {
+  ko: {
+    "lsd.placeholder.001": "카드 닉네임 (선택)",
+    "lsd.placeholder.002": "카드 하단 한 줄 멘트 (선택)",
+    "lsd.placeholder.003": "오늘 기억하고 싶은 흐름, 만남, 선택을 짧게 남겨보세요.",
+    "lsd.placeholder.004": "상대 이름",
+    "lsd.placeholder.005": "연도(보조)",
+    "lsd.label.001": "본성 코드",
+    "lsd.label.002": "운기 요약",
+    "lsd.label.003": "강점 리딩",
+    "lsd.label.004": "하루 균형",
+    "lsd.aria-label.001": "본성 코드 차트",
+    "lsd.aria-label.002": "강점 리딩 차트",
+    "lsd.title.001": "선천 기질 인사이트 ·",
+    "lsd.title.002": "오늘의 운기 요약 ·",
+    "lsd.title.003": "강점 활용 리딩",
+    "lsd.lead.001": "오늘 흐름에서 힘을 받는 네 축, 집중·통찰·관계·완성의 빛이 서로 다른 높이로 떠오릅니다.",
+    "lsd.title.004": "하루 균형 리딩",
+    "lsd.lead.002": "휴식·완성·성장·시작·정비의 다섯 결 사이에서 오늘 머물 중심 리듬이 비춥니다.",
+    "lsd.label.005": "재물",
+    "lsd.label.006": "애정",
+    "lsd.label.007": "명예",
+    "lsd.label.008": "건강",
+    "lsd.label.009": "학습",
+    "lsd.label.010": "재물 흐름 설계",
+    "lsd.label.011": "관계 기운 정돈",
+    "lsd.label.012": "회복력 강화",
+    "lsd.label.013": "집중/성과 모드",
+    "lsd.label.014": "LoFi 집중",
+    "lsd.label.015": "Theta 안정",
+    "lsd.alt.001": "썸네일",
+    "lsd.label.016": "보통",
+    "lsd.label.017": "좋은 날",
+    "lsd.label.018": "양호",
+    "lsd.label.019": "보통",
+    "lsd.label.020": "강함",
+    "lsd.label.021": "아주강함",
+    "lsd.label.022": "재물",
+    "lsd.label.023": "관계",
+    "lsd.label.024": "성과",
+    "lsd.label.025": "회복",
+    "lsd.label.026": "집중",
+    "lsd.label.027": "재물",
+    "lsd.label.028": "애정",
+    "lsd.label.029": "명예",
+    "lsd.label.030": "건강",
+    "lsd.label.031": "학습",
+    "lsd.aria-label.003": "닫기",
+    "lsd.aria-label.004": "운기 다이어리 탭",
+    "lsd.aria-label.005": "오늘 운기 미니 카드",
+    "lsd.placeholder.006": "예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다.",
+    "lsd.placeholder.007": "예: 중요한 미팅에서 긴장해 말이 꼬였다.",
+    "lsd.placeholder.008": "예: 차분하게 핵심을 전달했고, 상대가 미소로 고개를 끄덕였다.",
+    "lsd.aria-label.006": "명상 플레이리스트 모드",
+    "lsd.title.005": "SATS YouTube Player",
+    "lsd.placeholder.009": "위 문장을 타이핑하거나 소리 내어 읽어보세요.",
+    "lsd.aria-label.007": "이전 달",
+    "lsd.aria-label.008": "다음 달",
+    "lsd.aria-label.009": "달력 보기 전환",
+  },
+};
+
+function _lsdText(key) {
+  return LUCK_SYNC_DIARY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
   function normalizeLsdBirthDate(value) {
     var raw = String(value || '').trim();
     if (!raw) return '';
@@ -816,14 +882,14 @@
         + '  <span style="font-size:.68rem;color:#6b7280">세로형 공유 카드 규격</span>'
         + '</div>'
         + '<div class="lsd-grid-2" style="margin-top:8px">'
-        + '  <input id="lsdShareNick" type="text" placeholder="카드 닉네임 (선택)" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
+        + '  <input id="lsdShareNick" type="text" placeholder="' + _lsdText("lsd.placeholder.001") + '" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
         + '  <select id="lsdShareTheme" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
         + '    <option value="vivid">Vivid 팝</option>'
         + '    <option value="soft">Soft 파스텔</option>'
         + '    <option value="night">Night 글로우</option>'
         + '  </select>'
         + '</div>'
-        + '<textarea id="lsdShareCaption" class="lsd-note-box" style="min-height:58px;margin-top:8px" placeholder="카드 하단 한 줄 멘트 (선택)"></textarea>'
+        + '<textarea id="lsdShareCaption" class="lsd-note-box" style="min-height:58px;margin-top:8px" placeholder="' + _lsdText("lsd.placeholder.002") + '"></textarea>'
         + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.7rem;color:#4b5563">'
         + '  <label><input id="lsdShareStickerOn" type="checkbox" checked> 스티커 포함</label>'
         + '  <label><input id="lsdShareBadgeOn" type="checkbox" checked> 배지 포함</label>'
@@ -863,12 +929,12 @@
       h.className = 'lsd-mz-card';
       h.innerHTML = ''
         + '<p class="lsd-mz-title">나만의 운기 메모</p>'
-        + '<textarea id="lsdMemoInput" class="lsd-note-box" placeholder="오늘 기억하고 싶은 흐름, 만남, 선택을 짧게 남겨보세요."></textarea>'
+        + '<textarea id="lsdMemoInput" class="lsd-note-box" placeholder="' + _lsdText("lsd.placeholder.003") + '"></textarea>'
         + '<div style="margin-top:8px"><button id="lsdSaveMemoBtn" type="button" class="lsd-plain-btn">메모 저장</button></div>'
         + '<hr style="border:none;border-top:1px solid #eef2ff;margin:12px 0">'
         + '<p class="lsd-mz-title" style="margin-top:0">관계 흐름 메모</p>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-        + '  <input id="lsdPartnerName" type="text" placeholder="상대 이름" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <input id="lsdPartnerName" type="text" placeholder="' + _lsdText("lsd.placeholder.004") + '" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '  <input id="lsdPartnerBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" style="width:150px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '  <input id="lsdPartnerBirthTime" type="time" value="12:00" style="width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '</div>'
@@ -879,7 +945,7 @@
         + '  <select id="lsdCompatType" style="width:132px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '    <option value="love">연애</option><option value="friend">친구</option><option value="business">비즈니스</option>'
         + '  </select>'
-        + '  <input id="lsdPartnerYear" type="number" min="1900" max="2100" placeholder="연도(보조)" style="width:110px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <input id="lsdPartnerYear" type="number" min="1900" max="2100" placeholder="' + _lsdText("lsd.placeholder.005") + '" style="width:110px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '  <button id="lsdCompatBtn" type="button" class="lsd-plain-btn">관계 메모 정리</button>'
         + '</div>'
         + '<div id="lsdCompatResult" class="lsd-mini-box" style="margin-top:8px">상대 정보를 입력하면 관계 흐름을 조용히 메모로 정리합니다.</div>';
@@ -950,10 +1016,10 @@
 
   var _lsdSajuInsightTab = 'dna';
   var LSD_SAJU_TABS = [
-    { id: 'dna', label: '본성 코드' },
-    { id: 'basic', label: '운기 요약' },
-    { id: 'competency', label: '강점 리딩' },
-    { id: 'balance', label: '하루 균형' }
+    { id: 'dna', label: _lsdText("lsd.label.001") },
+    { id: 'basic', label: _lsdText("lsd.label.002") },
+    { id: 'competency', label: _lsdText("lsd.label.003") },
+    { id: 'balance', label: _lsdText("lsd.label.004") }
   ];
   var LSD_TRAIT_BY_ELEM = {
     wood: {
@@ -1066,7 +1132,7 @@
     var rings = [36, 62, 88, 108];
     var colors = ['#4c1d95', '#7c3aed', '#a21caf', '#db2777', '#f59e0b', '#14b8a6', '#8b5cf6', '#be185d'];
     var html = '';
-    html += '<svg class="lsd-saju-orbit" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="190" aria-label="본성 코드 차트">';
+    html += '<svg class="lsd-saju-orbit" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="190" aria-label="' + _lsdText("lsd.aria-label.001") + '">';
     html += '<circle cx="' + cx + '" cy="' + cy + '" r="118" fill="rgba(255,250,252,.72)" stroke="rgba(226,196,238,.85)" stroke-width="1.2"></circle>';
     rings.forEach(function (r) {
       html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="rgba(168,85,247,.18)" stroke-width="1.25"></circle>';
@@ -1102,7 +1168,7 @@
     var rings = [36, 62, 88, 108];
     var colors = ['#7c3aed', '#0ea5e9', '#14b8a6', '#db2777'];
     var html = '';
-    html += '<svg class="lsd-saju-orbit" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="190" aria-label="강점 리딩 차트">';
+    html += '<svg class="lsd-saju-orbit" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="190" aria-label="' + _lsdText("lsd.aria-label.002") + '">';
     html += '<circle cx="' + cx + '" cy="' + cy + '" r="118" fill="rgba(255,250,252,.72)" stroke="rgba(226,196,238,.85)" stroke-width="1.2"></circle>';
     rings.forEach(function (r) {
       html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="rgba(168,85,247,.18)" stroke-width="1.25"></circle>';
@@ -1196,7 +1262,7 @@
       tabBar: LSD_SAJU_TABS,
       tabs: {
         dna: {
-          title: '선천 기질 인사이트 · ' + dayStem,
+          title: _lsdText("lsd.title.001") + " " + dayStem,
           lead: (GAN_KO[dayStem] || dayStem) + ' 일간을 중심으로 타고난 기질의 결이 차분히 드러납니다. ' + tenLine,
           tags: ['#본성코드', '#운기감각', '#오늘리딩'],
           points: [
@@ -1207,14 +1273,14 @@
           chartHtml: _buildDnaWheelSvg(stems, stemValues, dayStem)
         },
         basic: {
-          title: '오늘의 운기 요약 · ' + (trait.type || '균형형'),
+          title: _lsdText("lsd.title.002") + " " + (trait.type || '균형형'),
           lead: trait.summary,
           points: trait.points,
           chartHtml: '<div class="lsd-saju-chart-wrap"><div class="lsd-saju-pie" style="background:' + basicPie + '"></div></div>'
         },
         competency: {
-          title: '강점 활용 리딩',
-          lead: '오늘 흐름에서 힘을 받는 네 축, 집중·통찰·관계·완성의 빛이 서로 다른 높이로 떠오릅니다.',
+          title: _lsdText("lsd.title.003"),
+          lead: _lsdText("lsd.lead.001"),
           points: [
             '가장 높은 축: ' + competencyLabels[competencyValues.indexOf(Math.max.apply(null, competencyValues))],
             '약한 축은 시간을 고정해 짧게 반복하면 회복 속도가 빠릅니다.',
@@ -1223,8 +1289,8 @@
           chartHtml: _buildCompetencyWheelSvg(competencyValues, competencyLabels)
         },
         balance: {
-          title: '하루 균형 리딩',
-          lead: '휴식·완성·성장·시작·정비의 다섯 결 사이에서 오늘 머물 중심 리듬이 비춥니다.',
+          title: _lsdText("lsd.title.004"),
+          lead: _lsdText("lsd.lead.002"),
           chip: '#' + balanceKeyword,
           points: [
             '현재 중심 유형은 ' + balanceKeyword + '입니다. 높은 축은 유지하고 낮은 축은 1개만 보강하세요.',
@@ -1452,11 +1518,11 @@
     var useBadge = !entry || entry.shareUseBadge !== false;
     var scoreMap = (_lsdCtx && _lsdCtx.scores) || {};
     var scoreRows = [
-      { label: '재물', value: Number(scoreMap.wealth) || 0 },
-      { label: '애정', value: Number(scoreMap.love) || 0 },
-      { label: '명예', value: Number(scoreMap.fame) || 0 },
-      { label: '건강', value: Number(scoreMap.health) || 0 },
-      { label: '학습', value: Number(scoreMap.study) || 0 },
+      { label: _lsdText("lsd.label.005"), value: Number(scoreMap.wealth) || 0 },
+      { label: _lsdText("lsd.label.006"), value: Number(scoreMap.love) || 0 },
+      { label: _lsdText("lsd.label.007"), value: Number(scoreMap.fame) || 0 },
+      { label: _lsdText("lsd.label.008"), value: Number(scoreMap.health) || 0 },
+      { label: _lsdText("lsd.label.009"), value: Number(scoreMap.study) || 0 },
     ];
     var scoreAvg = Math.round(scoreRows.reduce(function (sum, row) { return sum + row.value; }, 0) / scoreRows.length);
 
@@ -1841,10 +1907,10 @@
   }
 
   var BLUEPRINT_THEMES = [
-    { id: 'wealth', label: '재물 흐름 설계', icon: '💰' },
-    { id: 'love', label: '관계 기운 정돈', icon: '💞' },
-    { id: 'health', label: '회복력 강화', icon: '🫀' },
-    { id: 'focus', label: '집중/성과 모드', icon: '🎯' }
+    { id: 'wealth', label: _lsdText("lsd.label.010"), icon: '💰' },
+    { id: 'love', label: _lsdText("lsd.label.011"), icon: '💞' },
+    { id: 'health', label: _lsdText("lsd.label.012"), icon: '🫀' },
+    { id: 'focus', label: _lsdText("lsd.label.013"), icon: '🎯' }
   ];
 
   function calcNightEffort(entry) {
@@ -1982,8 +2048,8 @@
   var _lsdSatsPlayer = null;
   var _lsdSatsPlayerBoundVideo = '';
   var LSD_SATS_SOURCE_META = {
-    lofi: { label: 'LoFi 집중', query: 'creative commons lofi meditation instrumental free to use license -live -radio' },
-    theta: { label: 'Theta 안정', query: 'creative commons theta binaural beats meditation free to use license -live -radio' }
+    lofi: { label: _lsdText("lsd.label.014"), query: 'creative commons lofi meditation instrumental free to use license -live -radio' },
+    theta: { label: _lsdText("lsd.label.015"), query: 'creative commons theta binaural beats meditation free to use license -live -radio' }
   };
   var LSD_SATS_FAILED_KEY = 'cd.luckSyncDiary.failedSatsVideos';
   var _lsdSatsFailedVideos = {};
@@ -2392,7 +2458,7 @@
     list.innerHTML = safeItems.map(function (item, idx) {
       var active = _lsdSatsNowPlaying.videoId === item.videoId ? ' is-playing' : '';
       var thumbHtml = item.thumb
-        ? ('<img class="lsd-sats-thumb" src="' + escHtml(item.thumb) + '" alt="썸네일" loading="lazy">')
+        ? ('<img class="lsd-sats-thumb" src="' + escHtml(item.thumb) + '" alt="' + _lsdText("lsd.alt.001") + '" loading="lazy">')
         : '<div class="lsd-sats-thumb lsd-sats-thumb--blank">♪</div>';
       return ''
         + '<div class="lsd-sats-track' + active + '" data-sats-video="' + escHtml(item.videoId) + '">'
@@ -2733,22 +2799,22 @@
     var goodness = _clamp(Math.round(normalizedBase + elementTune + relationTune), 8, 96);
     var badness = _clamp(100 - goodness, 5, 90);
     var tone = 'normal';
-    var label = '보통';
+    var label = '' + _lsdText("lsd.label.016") + '';
     if (goodness >= 76) {
       tone = 'very-good';
-      label = '좋은 날';
+      label = '' + _lsdText("lsd.label.017") + '';
     } else if (goodness >= 62) {
       tone = 'good';
-      label = '양호';
+      label = '' + _lsdText("lsd.label.018") + '';
     } else if (goodness >= 47) {
       tone = 'normal';
-      label = '보통';
+      label = '' + _lsdText("lsd.label.019") + '';
     } else if (goodness >= 33) {
       tone = 'bad';
-      label = '강함';
+      label = '' + _lsdText("lsd.label.020") + '';
     } else {
       tone = 'very-bad';
-      label = '아주강함';
+      label = '' + _lsdText("lsd.label.021") + '';
     }
     return {
       tone: tone,
@@ -3213,11 +3279,11 @@
     var container = document.getElementById('lsdScoreBars');
     if (!container) return;
     var items = [
-      { key: 'wealth', label: '재물', color: '#f59e0b' },
-      { key: 'love',   label: '관계', color: '#ec4899' },
-      { key: 'fame',   label: '성과', color: '#8b5cf6' },
-      { key: 'health', label: '회복', color: '#10b981' },
-      { key: 'study',  label: '집중', color: '#3b82f6' }
+      { key: 'wealth', label: _lsdText("lsd.label.022"), color: '#f59e0b' },
+      { key: 'love',   label: _lsdText("lsd.label.023"), color: '#ec4899' },
+      { key: 'fame',   label: _lsdText("lsd.label.024"), color: '#8b5cf6' },
+      { key: 'health', label: _lsdText("lsd.label.025"), color: '#10b981' },
+      { key: 'study',  label: _lsdText("lsd.label.026"), color: '#3b82f6' }
     ];
     var total = 0;
     items.forEach(function (item) { total += Number(scores && scores[item.key]) || 0; });
@@ -3264,11 +3330,11 @@
       water: '21:00-23:30'
     };
     var keyMap = {
-      wealth: { label: '재물', action: '결제/지출 결정을 오전에 처리하고, 지출 1건은 보류해보세요.', time: '09:00-11:00' },
-      love: { label: '애정', action: '짧아도 진심 메시지 1개를 보내면 관계운이 빠르게 반응해요.', time: '19:00-21:00' },
-      fame: { label: '명예', action: '오늘 할 일 중 가장 어려운 1개를 먼저 끝내 평판운을 올리세요.', time: '08:00-10:00' },
-      health: { label: '건강', action: '20분 걷기나 스트레칭으로 기운 순환을 먼저 열어주세요.', time: '06:30-08:00' },
-      study: { label: '학습', action: '집중 25분 1회만 해도 인성운이 살아나며 흐름이 안정됩니다.', time: '21:00-22:30' }
+      wealth: { label: _lsdText("lsd.label.027"), action: '결제/지출 결정을 오전에 처리하고, 지출 1건은 보류해보세요.', time: '09:00-11:00' },
+      love: { label: _lsdText("lsd.label.028"), action: '짧아도 진심 메시지 1개를 보내면 관계운이 빠르게 반응해요.', time: '19:00-21:00' },
+      fame: { label: _lsdText("lsd.label.029"), action: '오늘 할 일 중 가장 어려운 1개를 먼저 끝내 평판운을 올리세요.', time: '08:00-10:00' },
+      health: { label: _lsdText("lsd.label.030"), action: '20분 걷기나 스트레칭으로 기운 순환을 먼저 열어주세요.', time: '06:30-08:00' },
+      study: { label: _lsdText("lsd.label.031"), action: '집중 25분 1회만 해도 인성운이 살아나며 흐름이 안정됩니다.', time: '21:00-22:30' }
     };
 
     var bestKey = 'wealth';
@@ -3629,7 +3695,7 @@
     modal.innerHTML = [
       '<div class="lsd-shell">',
       '<div class="lsd-drag-handle"><span></span></div>',
-      '<button class="lsd-close-btn" data-action="closeLuckSyncDiary" aria-label="닫기">✕</button>',
+      '<button class="lsd-close-btn" data-action="closeLuckSyncDiary" aria-label="' + _lsdText("lsd.aria-label.003") + '">✕</button>',
       '<header class="lsd-hero">',
       '<div class="lsd-hero-grid">',
       '<div class="lsd-hero-main">',
@@ -3646,7 +3712,7 @@
       '<div class="lsd-hero-note">나의 하루가 내일의 운을 빚습니다.</div>',
       '</div>',
       '</div></header>',
-      '<nav class="lsd-tabs" role="tablist" aria-label="운기 다이어리 탭">',
+      '<nav class="lsd-tabs" role="tablist" aria-label="' + _lsdText("lsd.aria-label.004") + '">',
       '<button type="button" class="lsd-tab is-active" role="tab" id="lsdTabDashboard" data-tab="dashboard" aria-selected="true" aria-controls="lsdPanelDashboard" tabindex="0">☀ 오늘 운기</button>',
       '<button type="button" class="lsd-tab" role="tab" id="lsdTabChallenge" data-tab="challenge" aria-selected="false" aria-controls="lsdPanelChallenge" tabindex="-1">✓ 운기 루틴</button>',
       '<button type="button" class="lsd-tab" role="tab" id="lsdTabNight" data-tab="night" aria-selected="false" aria-controls="lsdPanelNight" tabindex="-1">◐ 밤 회고</button>',
@@ -3656,7 +3722,7 @@
       '<div class="lsd-scroll-area">',
       '<section class="lsd-panel" id="lsdPanelDashboard" role="tabpanel" aria-labelledby="lsdTabDashboard" aria-hidden="false" style="display:block">',
       '<div class="lsd-panel-intro">오늘의 운기가 조용히 펼쳐집니다. 일진, 일간, 오행, 십성의 결을 작고 선명한 카드로 남겨보세요.</div>',
-      '<div class="lsd-mini-grid" aria-label="오늘 운기 미니 카드">',
+      '<div class="lsd-mini-grid" aria-label="' + _lsdText("lsd.aria-label.005") + '">',
       '<div class="lsd-mini-card"><span>일진</span><b id="lsdMiniIljin">—</b><small id="lsdMiniIljinSub">오늘의 천간·지지</small></div>',
       '<div class="lsd-mini-card"><span>십성</span><b id="lsdMiniTenstar">—</b><small id="lsdMiniTenstarSub">일간 기준 흐름</small></div>',
       '<div class="lsd-mini-card"><span>행운 오행</span><b id="lsdMiniLuckyElement">—</b><small id="lsdMiniLuckySub">오늘 보충할 기운</small></div>',
@@ -3748,7 +3814,7 @@
       '</div>',
       '<div>',
       '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">오늘 가장 잘한 것</p>',
-      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다."></textarea>',
+      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="' + _lsdText("lsd.placeholder.006") + '"></textarea>',
       '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:.69rem;color:#94a3b8"><span id="lsdPracticeCharCount">0</span>/500</div>',
       '</div>',
       '<div>',
@@ -3775,9 +3841,9 @@
       '<div class="lsd-meditation-card">',
       '<p class="lsd-meditation-title">Revision</p>',
       '<label class="lsd-mini-label" for="lsdRevisionOriginal">오늘의 부정적 사건</label>',
-      '<textarea id="lsdRevisionOriginal" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="예: 중요한 미팅에서 긴장해 말이 꼬였다."></textarea>',
+      '<textarea id="lsdRevisionOriginal" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="' + _lsdText("lsd.placeholder.007") + '"></textarea>',
       '<label class="lsd-mini-label" for="lsdRevisionImagined">원하는 전개로 수정한 장면</label>',
-      '<textarea id="lsdRevisionImagined" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="예: 차분하게 핵심을 전달했고, 상대가 미소로 고개를 끄덕였다."></textarea>',
+      '<textarea id="lsdRevisionImagined" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="' + _lsdText("lsd.placeholder.008") + '"></textarea>',
       '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">',
       '<button id="lsdStartRevisionTimer" type="button" class="lsd-plain-btn" style="border-color:#22d3ee;color:#0c4a6e">⏱️ 1분 상상 시작</button>',
       '<span id="lsdRevisionCountdown" style="font-size:.74rem;font-weight:800;color:#0f172a">01:00</span>',
@@ -3794,7 +3860,7 @@
       '</div>',
       '<div id="lsdSatsScene" class="lsd-sats-scene">당신이 이미 원하는 결과를 이룬 단 하나의 장면이 표시됩니다.</div>',
       '<div class="lsd-sats-breath" id="lsdSatsBreathText">당신은 이미 이루어진 상태입니다. 소리, 촉감, 기분에만 집중하세요.</div>',
-      '<div class="lsd-sats-tabs" id="lsdSatsTabs" role="tablist" aria-label="명상 플레이리스트 모드">',
+      '<div class="lsd-sats-tabs" id="lsdSatsTabs" role="tablist" aria-label="' + _lsdText("lsd.aria-label.006") + '">',
       '<button type="button" class="lsd-sats-tab is-on" data-sats-tab="lofi" role="tab" aria-selected="true">LoFi 집중</button>',
       '<button type="button" class="lsd-sats-tab" data-sats-tab="theta" role="tab" aria-selected="false">Theta 안정</button>',
       '</div>',
@@ -3813,7 +3879,7 @@
       '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.</div>',
       '<div class="lsd-sats-player" style="margin-top:8px">',
       '<div id="lsdSatsPlayerPlaceholder" class="lsd-sats-player-placeholder">재생 버튼을 누르기 전까지 소리는 나오지 않습니다.<br>목록에서 원하는 트랙의 ▶ 재생을 눌러주세요.</div>',
-      '<iframe id="lsdSatsYoutubeFrame" title="SATS YouTube Player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
+      '<iframe id="lsdSatsYoutubeFrame" title="' + _lsdText("lsd.title.005") + '" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
       '</div>',
       '<div id="lsdSatsNowPlayingTitle" class="lsd-sats-now">재생 대기 중 · 원하는 트랙을 선택해 주세요</div>',
       '<div style="display:flex;justify-content:flex-end;margin-top:4px">',
@@ -3827,7 +3893,7 @@
       '<div class="lsd-meditation-card">',
       '<p class="lsd-meditation-title">I AM 선언</p>',
       '<div id="lsdIamCard" class="lsd-iam-card">나는 오늘 운의 흐름을 선택하는 사람이다.</div>',
-      '<input id="lsdIamInput" type="text" class="lsd-meditation-input" placeholder="위 문장을 타이핑하거나 소리 내어 읽어보세요.">',
+      '<input id="lsdIamInput" type="text" class="lsd-meditation-input" placeholder="' + _lsdText("lsd.placeholder.009") + '">',
       '<div style="display:flex;gap:8px;flex-wrap:wrap">',
       '<button id="lsdRegenerateIam" type="button" class="lsd-plain-btn">🔁 문구 새로고침</button>',
       '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:#34d399;color:#065f46">선언 완료</button>',
@@ -3851,11 +3917,11 @@
       '<div class="lsd-panel-intro">저장된 하루들이 조용한 기록장이 됩니다.</div>',
       '<div class="lsd-month-card">',
       '<div class="lsd-month-head">',
-      '<button id="lsdPrevMonthBtn" type="button" class="lsd-month-nav" aria-label="이전 달">‹</button>',
+      '<button id="lsdPrevMonthBtn" type="button" class="lsd-month-nav" aria-label="' + _lsdText("lsd.aria-label.007") + '">‹</button>',
       '<div class="lsd-month-title" id="lsdMonthLabel">26년 5월</div>',
-      '<button id="lsdNextMonthBtn" type="button" class="lsd-month-nav" aria-label="다음 달">›</button>',
+      '<button id="lsdNextMonthBtn" type="button" class="lsd-month-nav" aria-label="' + _lsdText("lsd.aria-label.008") + '">›</button>',
       '</div>',
-      '<div class="lsd-month-mode-toggle" role="group" aria-label="달력 보기 전환">',
+      '<div class="lsd-month-mode-toggle" role="group" aria-label="' + _lsdText("lsd.aria-label.009") + '">',
       '<button type="button" class="lsd-month-mode-btn is-active" data-lsd-calendar-mode="diary" aria-pressed="true">다이어리 모드</button>',
       '<button type="button" class="lsd-month-mode-btn" data-lsd-calendar-mode="ganzhi" aria-pressed="false">일진 달력</button>',
       '</div>',

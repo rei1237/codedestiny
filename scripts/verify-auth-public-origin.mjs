@@ -22,12 +22,17 @@ function assertEqual(actual, expected, label) {
   }
 }
 
-async function assertOAuthStartFrontendBase({ requestUrl, headers, env, expectedFrontendBase, label }) {
+async function assertOAuthStartFrontendBase({ requestUrl, headers, env, expectedFrontendBase, expectedRedirectUri, label }) {
   const response = await handleAuthRoutes(new Request(requestUrl, { headers }), env);
   const location = response.headers.get("location") || "";
   assertEqual(response.status, 302, `${label}.status`);
   const state = readStateFromLocation(location);
   assertEqual(state.frontendBase, expectedFrontendBase, `${label}.frontendBase`);
+  if (expectedRedirectUri) {
+    const redirectUri = new URL(location).searchParams.get("redirect_uri") || "";
+    assertEqual(redirectUri, expectedRedirectUri, `${label}.redirect_uri`);
+    assertEqual(state.redirectUri, expectedRedirectUri, `${label}.state_redirectUri`);
+  }
 }
 
 function getSetCookieHeaders(response) {
@@ -115,6 +120,7 @@ await assertOAuthStartFrontendBase({
     AUTH_API_BASE_URL: "http://127.0.0.1:8790",
   },
   expectedFrontendBase: "http://localhost:3000",
+  expectedRedirectUri: "https://code-destiny.com/api/auth/oauth/google/callback",
 });
 
 await assertLocalDevRefreshFlow({
@@ -128,9 +134,9 @@ await assertLocalDevRefreshFlow({
 
 await assertOAuthStartFrontendBase({
   label: "production",
-  requestUrl: "https://api.code-destiny.com/api/auth/oauth/google/start?flow=login&next=%2F",
+  requestUrl: "https://code-destiny.com/api/auth/oauth/google/start?flow=login&next=%2F",
   headers: {
-    host: "api.code-destiny.com",
+    host: "code-destiny.com",
     referer: "https://code-destiny.com/login/",
   },
   env: {
@@ -142,13 +148,22 @@ await assertOAuthStartFrontendBase({
     NEXTAUTH_URL: "https://code-destiny.com",
   },
   expectedFrontendBase: "https://code-destiny.com",
+  expectedRedirectUri: "https://code-destiny.com/api/auth/oauth/google/callback",
 });
 
+const workerConfig = readFileSync("worker/wrangler.toml", "utf8");
+if (!workerConfig.includes('pattern = "code-destiny.com/api/*"')) {
+  throw new Error("worker.same_origin_api_route_missing");
+}
+
 const apiConfig = readFileSync("app/_lib/api-config.ts", "utf8");
-if (!apiConfig.includes("if (isLocalDev) {\n      return sameOriginBase;\n    }")) {
+if (!/if\s*\(\s*isLocalDev\s*\)\s*\{\s*return\s+sameOriginBase\s*;\s*\}/.test(apiConfig)) {
   throw new Error("api-config.local_same_origin_guard_missing");
 }
-if (!apiConfig.includes("!isLocalBaseUrl(configuredBase)") || !apiConfig.includes("!isLocalBaseUrl(configuredAuthBase)")) {
+if (
+  !/if\s*\(\s*!currentHostIsWorkersDev\s*\)/.test(apiConfig)
+  || !/configuredBase\s*&&\s*!isLocalBaseUrl\(configuredBase\)\s*&&\s*!isWorkersDevBaseUrl\(configuredBase\)/.test(apiConfig)
+) {
   throw new Error("api-config.production_localhost_guard_missing");
 }
 

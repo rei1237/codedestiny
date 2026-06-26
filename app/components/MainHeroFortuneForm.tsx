@@ -5,6 +5,28 @@ import { useRouter } from "next/navigation";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits, normalizeBirthDateInput } from "@/lib/birthDateInput";
 import MobileStepFortuneForm from "./MobileStepFortuneForm";
 
+const MAIN_HERO_FORTUNE_FORM_TEXT_TRANSLATIONS = {
+  ko: {
+    "mainHeroForm.001": "대한민국 (서울)",
+    "mainHeroForm.002": "일본 (도쿄)",
+    "mainHeroForm.003": "중국 (상하이)",
+    "mainHeroForm.004": "미국 (뉴욕)",
+    "mainHeroForm.005": "영국 (런던)",
+    "mainHeroForm.006": "독일 (베를린)",
+    "mainHeroForm.007": "말레이시아 (쿠알라룸푸르)",
+    "mainHeroForm.008": "태국 (방콕)",
+    "mainHeroForm.009": "인도 (콜카타)",
+    "mainHeroForm.010": "이름과 생년월일을 먼저 입력해 주세요.",
+    "mainHeroForm.011": "개인정보 동의가 필요합니다.",
+    "mainHeroForm.012": "이름 · 생년월일 · 시간 · 출생지 · 성별 · 동의",
+    "mainHeroForm.013": "이름을 입력하세요",
+    "mainHeroForm.014": "개인정보 처리 및 운세 계산 이용에 동의합니다.",
+  },
+} as const;
+
+function mainHeroFortuneFormText(key: keyof typeof MAIN_HERO_FORTUNE_FORM_TEXT_TRANSLATIONS.ko): string {
+  return MAIN_HERO_FORTUNE_FORM_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 type FormState = {
   name: string;
   birthDate: string;
@@ -21,15 +43,15 @@ type Props = {
 };
 
 const COUNTRY_OPTIONS = [
-  { value: "Asia/Seoul", label: "대한민국 (서울)" },
-  { value: "Asia/Tokyo", label: "일본 (도쿄)" },
-  { value: "Asia/Shanghai", label: "중국 (상하이)" },
-  { value: "America/New_York", label: "미국 (뉴욕)" },
-  { value: "Europe/London", label: "영국 (런던)" },
-  { value: "Europe/Berlin", label: "독일 (베를린)" },
-  { value: "Asia/Kuala_Lumpur", label: "말레이시아 (쿠알라룸푸르)" },
-  { value: "Asia/Bangkok", label: "태국 (방콕)" },
-  { value: "Asia/Kolkata", label: "인도 (콜카타)" },
+  { value: "Asia/Seoul", label: mainHeroFortuneFormText("mainHeroForm.001") },
+  { value: "Asia/Tokyo", label: mainHeroFortuneFormText("mainHeroForm.002") },
+  { value: "Asia/Shanghai", label: mainHeroFortuneFormText("mainHeroForm.003") },
+  { value: "America/New_York", label: mainHeroFortuneFormText("mainHeroForm.004") },
+  { value: "Europe/London", label: mainHeroFortuneFormText("mainHeroForm.005") },
+  { value: "Europe/Berlin", label: mainHeroFortuneFormText("mainHeroForm.006") },
+  { value: "Asia/Kuala_Lumpur", label: mainHeroFortuneFormText("mainHeroForm.007") },
+  { value: "Asia/Bangkok", label: mainHeroFortuneFormText("mainHeroForm.008") },
+  { value: "Asia/Kolkata", label: mainHeroFortuneFormText("mainHeroForm.009") },
 ];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
@@ -71,11 +93,11 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
   const handleSubmit = () => {
     const normalizedBirthDate = normalizeBirthDateInput(state.birthDate);
     if (!state.name || !normalizedBirthDate) {
-      setError("이름과 생년월일을 먼저 입력해 주세요.");
+      setError(mainHeroFortuneFormText("mainHeroForm.010"));
       return;
     }
     if (!state.agreed) {
-      setError("개인정보 동의가 필요합니다.");
+      setError(mainHeroFortuneFormText("mainHeroForm.011"));
       return;
     }
 
@@ -98,7 +120,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
 
       <div className="mb-3 hidden items-center gap-2 text-xs text-violet-900 md:flex">
         <span className="inline-flex rounded-full border border-violet-300/40 bg-violet-200/70 px-2 py-0.5 font-semibold text-violet-900">필수 입력</span>
-        <span>이름 · 생년월일 · 시간 · 출생지 · 성별 · 동의</span>
+        <span>{mainHeroFortuneFormText("mainHeroForm.012")}</span>
       </div>
 
       <div className="hidden md:block">
@@ -109,7 +131,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
               value={state.name}
               onChange={(e) => setField("name", e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
-              placeholder="이름을 입력하세요"
+              placeholder={mainHeroFortuneFormText("mainHeroForm.013")}
             />
           </label>
 
@@ -219,7 +241,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
             onChange={(e) => setField("agreed", e.target.checked)}
             className="mt-0.5"
           />
-          <span>개인정보 처리 및 운세 계산 이용에 동의합니다.</span>
+          <span>{mainHeroFortuneFormText("mainHeroForm.014")}</span>
         </label>
 
         <button

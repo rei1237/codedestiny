@@ -1,15 +1,55 @@
 "use client";
 
+"use client";
+
+import { useEffect, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
 interface Props {
   className?: string;
 }
 
+const COSMIC_SIGIL_COPY = {
+  ko: {
+    ariaLabel: "우주 운명 시길",
+  },
+  en: {
+    ariaLabel: "Cosmic destiny sigil",
+  },
+  ja: {
+    ariaLabel: "宇宙の運命シジル",
+  },
+  zh: {
+    ariaLabel: "宇宙命运印记",
+  },
+};
+
+function getCosmicSigilCopy(locale: LoadingLocale) {
+  if (locale === "en" || locale === "ja") return COSMIC_SIGIL_COPY[locale];
+  if (locale === "zh-CN" || locale === "zh-TW") return COSMIC_SIGIL_COPY.zh;
+  return COSMIC_SIGIL_COPY.ko;
+}
+
 export default function CosmicSigil({ className }: Props) {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getCosmicSigilCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
+
   return (
     <svg
       viewBox="0 0 600 600"
       role="img"
-      aria-label="Cosmic destiny sigil"
+      aria-label={copy.ariaLabel}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >

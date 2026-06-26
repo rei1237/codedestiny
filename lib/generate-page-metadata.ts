@@ -12,10 +12,10 @@
  *   export async function generateMetadata() {
  *     return generatePageMetadata({
  *       path: "/saju/basic",
- *       title: "무료 사주 풀이 | 사주팔자 기초",
- *       description: "생년월일·시간으로 보는 정확한 사주팔자 무료 풀이.",
- *       keywords: ["무료 사주", "사주팔자", "사주 풀이"],
- *       featureList: ["사주팔자 기초 분석", "오행 균형 해석", "10개 언어 지원"],
+ *       title: pageCopy.title,
+ *       description: pageCopy.description,
+ *       keywords: pageCopy.keywords,
+ *       featureList: pageCopy.featureList,
  *     });
  *   }
  */

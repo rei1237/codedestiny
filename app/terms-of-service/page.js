@@ -1,13 +1,40 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
-export function generateMetadata() {
-  const metadata = generatePageMetadata({
-    path: "/terms",
+const TERMS_OF_SERVICE_METADATA_COPY = {
+  ko: {
     title: "Terms of Service | 이용약관 — Code Destiny",
     description:
       "Code Destiny 이용약관 페이지입니다. 서비스 이용 규칙, 면책, 책임 제한, 환불 정책 및 분쟁 처리 원칙을 안내합니다.",
     keywords: ["Terms of Service", "이용약관", "서비스 책임 제한", "면책", "환불 정책"],
+  },
+  en: {
+    title: "Terms of Service | Code Destiny",
+    description:
+      "Code Destiny's terms of service explain service rules, disclaimers, liability limits, refund policy, and dispute handling principles.",
+    keywords: ["Terms of Service", "service rules", "liability limits", "disclaimer", "refund policy"],
+  },
+  ja: {
+    title: "利用規約 | Code Destiny",
+    description:
+      "Code Destinyの利用規約です。サービス利用ルール、免責、責任制限、返金ポリシー、紛争処理の原則を案内します。",
+    keywords: ["利用規約", "サービス利用ルール", "責任制限", "免責", "返金ポリシー"],
+  },
+  zh: {
+    title: "服务条款 | Code Destiny",
+    description:
+      "Code Destiny 服务条款说明服务使用规则、免责声明、责任限制、退款政策与争议处理原则。",
+    keywords: ["服务条款", "使用规则", "责任限制", "免责声明", "退款政策"],
+  },
+};
+
+export function generateMetadata() {
+  const copy = TERMS_OF_SERVICE_METADATA_COPY.ko;
+  const metadata = generatePageMetadata({
+    path: "/terms",
+    title: copy.title,
+    description: copy.description,
+    keywords: copy.keywords,
   });
 
   return {

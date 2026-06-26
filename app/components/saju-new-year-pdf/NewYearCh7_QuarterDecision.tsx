@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterVIIQuarterDecision | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_7_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "VII. 분기별 핵심 의사결정 포인트",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "VII. Key Decision Points by Quarter",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "VII. 四半期別の核心意思決定ポイント",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   q1OverallFlow: "1분기 전체 흐름",
   q1ShouldChoose: "1분기 선택할 것",
@@ -27,8 +42,8 @@ export default function NewYearCh7_QuarterDecision({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>VII. 분기별 핵심 의사결정 포인트</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_7_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_7_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh7_QuarterDecision({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "VII. 분기별 핵심 의사결정 포인트"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_7_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

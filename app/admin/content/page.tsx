@@ -32,6 +32,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { uploadInsightImage } from "../insights/_lib/imageUpload";
 import { sanitizeInsightHtml } from "../insights/_lib/sanitizeContent";
@@ -164,37 +165,355 @@ type FormState = {
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-const CONTENT_TYPES: Array<{ value: ContentType; label: string }> = [
-  { value: "fortune_insight", label: "운세 인사이트" },
-  { value: "saju", label: "사주" },
-  { value: "tarot", label: "타로" },
-  { value: "astrology", label: "점성술" },
-  { value: "jamidusu", label: "자미두수" },
-  { value: "sookyo", label: "숙요" },
-  { value: "vedic", label: "베다 점성술" },
-  { value: "palmistry", label: "손금" },
-  { value: "physiognomy", label: "관상" },
-  { value: "notice", label: "공지" },
-  { value: "landing", label: "랜딩" },
-  { value: "seo_page", label: "SEO 페이지" },
-  { value: "general", label: "일반" },
+type AdminContentCopy = {
+  types: Record<ContentType, string>;
+  filters: Record<FilterStatus, string>;
+  states: Record<ContentStatus, string>;
+  sort: Record<SortKey, string>;
+  allTypes: string;
+  searchHint: string;
+  search: string;
+  scheduledAt: string;
+  titleHint: string;
+  subtitleHint: string;
+  categoryHint: string;
+  tagsHint: string;
+  summaryHint: string;
+  imageUrlHint: string;
+  imageAltHint: string;
+  restore: string;
+  logout: string;
+  linkUrl: string;
+  featuredImageFallback: string;
+  bodyImageAltPrompt: string;
+  bodyImageAltFallback: string;
+  bodyImageAltSuffix: string;
+  uploadInProgress: string;
+  botOps: string;
+  publish: string;
+  saveDraft: string;
+  privateState: string;
+  archive: string;
+  publicationSection: string;
+  publicationCheck: string;
+  publicationOk: string;
+  needsCheck: string;
+  publicUrl: string;
+  versionSection: string;
+  refresh: string;
+  noRevisions: string;
+  noTitle: string;
+  seoOk: string;
+  seoCheckCountSuffix: string;
+  featured: string;
+  errors: {
+    loginRequired: string;
+    permissionRequired: string;
+    listLoadFailed: string;
+    listNetworkFailed: string;
+    detailLoadFailed: string;
+    detailNetworkFailed: string;
+    imageUploadFailed: string;
+    imageInsertFailed: string;
+    titleRequired: string;
+    editorNotReady: string;
+    scheduleRequired: string;
+    scheduleFutureRequired: string;
+    saveFailed: string;
+    saveNetworkFailed: string;
+    restoreFailed: string;
+    restoreNetworkFailed: string;
+  };
+  notices: {
+    featuredUploaded: string;
+    bodyInserted: string;
+    publishedVerified: string;
+    publishedCheckNeeded: string;
+    scheduledSaved: string;
+    archived: string;
+    privateSaved: string;
+    draftSaved: string;
+    restoreConfirm: string;
+    restored: string;
+  };
+};
+
+const ADMIN_CONTENT_COPY_EN: AdminContentCopy = {
+  types: {
+    fortune_insight: "Fortune Insight",
+    saju: "Saju",
+    tarot: "Tarot",
+    astrology: "Astrology",
+    jamidusu: "Zi Wei",
+    sookyo: "Sukuyo",
+    vedic: "Vedic Astrology",
+    palmistry: "Palmistry",
+    physiognomy: "Face Reading",
+    notice: "Notice",
+    landing: "Landing",
+    seo_page: "SEO Page",
+    general: "General",
+  },
+  filters: {
+    all: "All",
+    draft: "Draft",
+    scheduled: "Scheduled",
+    published: "Published",
+    private: "Private",
+    archived: "Archived",
+    trash: "Trash",
+  },
+  states: {
+    draft: "Draft",
+    scheduled: "Scheduled",
+    published: "Published",
+    archived: "Archived",
+    private: "Private",
+    trash: "Trash",
+  },
+  sort: {
+    updated: "Recently updated",
+    published: "Recently published",
+    ["title"]: "Title",
+    views: "Views",
+  },
+  allTypes: "All types",
+  searchHint: "Title, slug, tags",
+  search: "Search",
+  scheduledAt: "Scheduled publish time",
+  titleHint: "Title",
+  subtitleHint: "Subtitle",
+  categoryHint: "Category",
+  tagsHint: "Tags, comma-separated",
+  summaryHint: "Summary",
+  imageUrlHint: "Image URL",
+  imageAltHint: "Alt text",
+  restore: "Restore",
+  logout: "Log out",
+  linkUrl: "Link URL",
+  featuredImageFallback: "Featured image",
+  bodyImageAltPrompt: "Body image description",
+  bodyImageAltFallback: "Body image",
+  bodyImageAltSuffix: " related image",
+  uploadInProgress: "Uploading...",
+  botOps: "Chatbot Operations",
+  publish: "Publish",
+  saveDraft: "Save Draft",
+  privateState: "Private",
+  archive: "Archive",
+  publicationSection: "Publication Check",
+  publicationCheck: "Check Reflection",
+  publicationOk: "Public reflection complete",
+  needsCheck: "Needs check",
+  publicUrl: "Public URL",
+  versionSection: "Versions",
+  refresh: "Refresh",
+  noRevisions: "No saved previous versions.",
+  noTitle: "Untitled",
+  seoOk: "Good",
+  seoCheckCountSuffix: " checks",
+  featured: "Featured",
+  errors: {
+    loginRequired: "Admin login is required.",
+    permissionRequired: "Admin permission is required.",
+    listLoadFailed: "Could not load the article list.",
+    listNetworkFailed: "A network error prevented loading the article list.",
+    detailLoadFailed: "Could not load the article.",
+    detailNetworkFailed: "A network error prevented loading the article.",
+    imageUploadFailed: "Image upload failed.",
+    imageInsertFailed: "Image insertion failed.",
+    titleRequired: "Enter a title.",
+    editorNotReady: "The editor is not ready yet.",
+    scheduleRequired: "Select a scheduled publish time.",
+    scheduleFutureRequired: "The scheduled publish time must be in the future.",
+    saveFailed: "Could not save.",
+    saveNetworkFailed: "A network error prevented saving.",
+    restoreFailed: "Could not restore the version.",
+    restoreNetworkFailed: "A network error prevented restoring the version.",
+  },
+  notices: {
+    featuredUploaded: "Featured image uploaded.",
+    bodyInserted: "Body image inserted.",
+    publishedVerified: "Published and public reflection confirmed.",
+    publishedCheckNeeded: "Published. Please check public reflection status.",
+    scheduledSaved: "Saved as scheduled publication.",
+    archived: "Moved to archive.",
+    privateSaved: "Saved as private.",
+    draftSaved: "Draft saved.",
+    restoreConfirm: "Restore the selected version? Current content will be kept as a new revision.",
+    restored: "Restored the selected version.",
+  },
+};
+
+const ADMIN_CONTENT_COPY_KO: AdminContentCopy = {
+  ...ADMIN_CONTENT_COPY_EN,
+  types: {
+    fortune_insight: "운세 인사이트",
+    saju: "사주",
+    tarot: "타로",
+    astrology: "점성술",
+    jamidusu: "자미두수",
+    sookyo: "숙요",
+    vedic: "베다 점성술",
+    palmistry: "손금",
+    physiognomy: "관상",
+    notice: "공지",
+    landing: "랜딩",
+    seo_page: "SEO 페이지",
+    general: "일반",
+  },
+  filters: {
+    all: "전체",
+    draft: "임시저장",
+    scheduled: "예약",
+    published: "발행",
+    private: "비공개",
+    archived: "보관",
+    trash: "휴지통",
+  },
+  states: {
+    draft: "임시저장",
+    scheduled: "예약",
+    published: "발행",
+    archived: "보관",
+    private: "비공개",
+    trash: "휴지통",
+  },
+  sort: {
+    updated: "최근 수정",
+    published: "최근 발행",
+    ["title"]: "제목순",
+    views: "조회순",
+  },
+  allTypes: "전체 유형",
+  searchHint: "제목, slug, 태그",
+  search: "검색",
+  scheduledAt: "예약 발행 시간",
+  titleHint: "제목",
+  subtitleHint: "부제목",
+  categoryHint: "카테고리",
+  tagsHint: "태그, 쉼표로 구분",
+  summaryHint: "요약",
+  imageUrlHint: "이미지 URL",
+  imageAltHint: "alt 텍스트",
+  restore: "복구",
+  logout: "로그아웃",
+  linkUrl: "링크 URL",
+  featuredImageFallback: "대표 이미지",
+  bodyImageAltPrompt: "본문 이미지 설명",
+  bodyImageAltFallback: "본문 이미지",
+  bodyImageAltSuffix: " 관련 이미지",
+  uploadInProgress: "업로드 중...",
+  botOps: "챗봇 운영",
+  publish: "발행",
+  saveDraft: "임시저장",
+  privateState: "비공개",
+  archive: "보관",
+  publicationSection: "발행 확인",
+  publicationCheck: "반영 확인",
+  publicationOk: "공개 반영 완료",
+  needsCheck: "확인 필요",
+  publicUrl: "공개 URL",
+  versionSection: "버전",
+  refresh: "새로고침",
+  noRevisions: "저장된 이전 버전이 없습니다.",
+  noTitle: "제목 없음",
+  seoOk: "정상",
+  seoCheckCountSuffix: "개 점검",
+  featured: "추천 글",
+  errors: {
+    loginRequired: "관리자 로그인이 필요합니다.",
+    permissionRequired: "관리자 권한이 필요합니다.",
+    listLoadFailed: "글 목록을 불러오지 못했습니다.",
+    listNetworkFailed: "네트워크 오류로 글 목록을 불러오지 못했습니다.",
+    detailLoadFailed: "글을 불러오지 못했습니다.",
+    detailNetworkFailed: "네트워크 오류로 글을 불러오지 못했습니다.",
+    imageUploadFailed: "이미지 업로드에 실패했습니다.",
+    imageInsertFailed: "이미지 삽입에 실패했습니다.",
+    titleRequired: "제목을 입력해 주세요.",
+    editorNotReady: "편집기가 아직 준비되지 않았습니다.",
+    scheduleRequired: "예약 발행 시간을 선택해 주세요.",
+    scheduleFutureRequired: "예약 발행 시간은 현재 이후여야 합니다.",
+    saveFailed: "저장에 실패했습니다.",
+    saveNetworkFailed: "네트워크 오류로 저장하지 못했습니다.",
+    restoreFailed: "버전 복구에 실패했습니다.",
+    restoreNetworkFailed: "네트워크 오류로 버전을 복구하지 못했습니다.",
+  },
+  notices: {
+    featuredUploaded: "대표 이미지를 업로드했습니다.",
+    bodyInserted: "본문 이미지를 삽입했습니다.",
+    publishedVerified: "발행했고 공개 반영까지 확인했습니다.",
+    publishedCheckNeeded: "발행했습니다. 공개 반영 상태를 확인해 주세요.",
+    scheduledSaved: "예약 발행으로 저장했습니다.",
+    archived: "보관으로 이동했습니다.",
+    privateSaved: "비공개로 저장했습니다.",
+    draftSaved: "임시저장했습니다.",
+    restoreConfirm: "선택한 버전으로 복구할까요? 현재 내용은 새 리비전으로 보관됩니다.",
+    restored: "선택한 버전으로 복구했습니다.",
+  },
+};
+
+const ADMIN_CONTENT_COPY: Record<LoadingLocale, AdminContentCopy> = {
+  ko: ADMIN_CONTENT_COPY_KO,
+  en: ADMIN_CONTENT_COPY_EN,
+  ja: ADMIN_CONTENT_COPY_EN,
+  "zh-CN": ADMIN_CONTENT_COPY_EN,
+  "zh-TW": ADMIN_CONTENT_COPY_EN,
+  vi: ADMIN_CONTENT_COPY_EN,
+  hi: ADMIN_CONTENT_COPY_EN,
+  es: ADMIN_CONTENT_COPY_EN,
+  fr: ADMIN_CONTENT_COPY_EN,
+  de: ADMIN_CONTENT_COPY_EN,
+  nl: ADMIN_CONTENT_COPY_EN,
+  ms: ADMIN_CONTENT_COPY_EN,
+};
+
+const ADMIN_CONTENT_DATE_LOCALES: Record<LoadingLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
+  vi: "vi-VN",
+  hi: "hi-IN",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  nl: "nl-NL",
+  ms: "ms-MY",
+};
+
+const CONTENT_TYPES: Array<{ value: ContentType }> = [
+  { value: "fortune_insight" },
+  { value: "saju" },
+  { value: "tarot" },
+  { value: "astrology" },
+  { value: "jamidusu" },
+  { value: "sookyo" },
+  { value: "vedic" },
+  { value: "palmistry" },
+  { value: "physiognomy" },
+  { value: "notice" },
+  { value: "landing" },
+  { value: "seo_page" },
+  { value: "general" },
 ];
 
-const STATUS_OPTIONS: Array<{ value: FilterStatus; label: string }> = [
-  { value: "all", label: "전체" },
-  { value: "draft", label: "임시저장" },
-  { value: "scheduled", label: "예약" },
-  { value: "published", label: "발행" },
-  { value: "private", label: "비공개" },
-  { value: "archived", label: "보관" },
-  { value: "trash", label: "휴지통" },
+const STATUS_OPTIONS: Array<{ value: FilterStatus }> = [
+  { value: "all" },
+  { value: "draft" },
+  { value: "scheduled" },
+  { value: "published" },
+  { value: "private" },
+  { value: "archived" },
+  { value: "trash" },
 ];
 
-const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
-  { value: "updated", label: "최근 수정" },
-  { value: "published", label: "최근 발행" },
-  { value: "title", label: "제목순" },
-  { value: "views", label: "조회순" },
+const SORT_OPTIONS: Array<{ value: SortKey }> = [
+  { value: "updated" },
+  { value: "published" },
+  { value: "title" },
+  { value: "views" },
 ];
 
 const EMPTY_FORM: FormState = {
@@ -310,11 +629,15 @@ function stripHtml(value: string): string {
     .trim();
 }
 
-function formatDate(value?: string | null): string {
+function getAdminContentCopy(locale: LoadingLocale) {
+  return ADMIN_CONTENT_COPY[locale] || ADMIN_CONTENT_COPY.en;
+}
+
+function formatDate(value: string | null | undefined, locale: LoadingLocale): string {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString("ko-KR", {
+  return date.toLocaleString(ADMIN_CONTENT_DATE_LOCALES[locale] || ADMIN_CONTENT_DATE_LOCALES.en, {
     year: "2-digit",
     month: "2-digit",
     day: "2-digit",
@@ -336,13 +659,9 @@ function fromDateTimeLocalValue(value: string): string {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
-function statusLabel(status?: string): string {
-  if (status === "published") return "발행";
-  if (status === "scheduled") return "예약";
-  if (status === "archived") return "보관";
-  if (status === "private") return "비공개";
-  if (status === "trash") return "휴지통";
-  return "임시저장";
+function statusLabel(status: string | undefined, copy: AdminContentCopy): string {
+  const key = String(status || "draft") as ContentStatus;
+  return key in copy.states ? copy.states[key] : copy.states.draft;
 }
 
 function statusBadgeClass(status?: string): string {
@@ -417,6 +736,8 @@ export default function AdminContentPage() {
 
   const featuredInputRef = useRef<HTMLInputElement | null>(null);
   const bodyImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getAdminContentCopy(locale);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [pagination, setPagination] = useState<Pagination>(EMPTY_PAGINATION);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -470,6 +791,17 @@ export default function AdminContentPage() {
   const resolvedMetaDescription = form.metaDescription.trim() || resolvedSummary;
   const publicUrl = resolvedSlug ? `/insights/${resolvedSlug}` : "";
 
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
+
   const redirectToLogin = useCallback(() => {
     clearAdminToken();
     const next = typeof window === "undefined" ? "/admin/content" : `${window.location.pathname}${window.location.search}`;
@@ -478,12 +810,12 @@ export default function AdminContentPage() {
 
   const handleAuthFailure = useCallback((status: number) => {
     if (status === 401 || status === 403) {
-      setError(status === 401 ? "관리자 로그인이 필요합니다." : "관리자 권한이 필요합니다.");
+      setError(status === 401 ? copy.errors.loginRequired : copy.errors.permissionRequired);
       redirectToLogin();
       return true;
     }
     return false;
-  }, [redirectToLogin]);
+  }, [copy.errors.loginRequired, copy.errors.permissionRequired, redirectToLogin]);
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
@@ -506,7 +838,7 @@ export default function AdminContentPage() {
       const data = await res.json().catch(() => ({}));
       if (handleAuthFailure(res.status)) return;
       if (!res.ok) {
-        setError(String(data?.message || "글 목록을 불러오지 못했습니다."));
+        setError(String(data?.message || copy.errors.listLoadFailed));
         setItems([]);
         setPagination(EMPTY_PAGINATION);
         return;
@@ -520,13 +852,13 @@ export default function AdminContentPage() {
         totalPages: Math.max(1, Number(data?.pagination?.totalPages || 1) || 1),
       });
     } catch {
-      setError("네트워크 오류로 글 목록을 불러오지 못했습니다.");
+      setError(copy.errors.listNetworkFailed);
       setItems([]);
       setPagination(EMPTY_PAGINATION);
     } finally {
       setLoadingList(false);
     }
-  }, [endpointBase, filterStatus, handleAuthFailure, query, requestCredentials, sort, typeFilter]);
+  }, [copy.errors.listLoadFailed, copy.errors.listNetworkFailed, endpointBase, filterStatus, handleAuthFailure, query, requestCredentials, sort, typeFilter]);
 
   const loadRevisions = useCallback(async (contentId: string) => {
     if (!contentId) {
@@ -563,7 +895,7 @@ export default function AdminContentPage() {
       const data = await res.json().catch(() => ({}));
       if (handleAuthFailure(res.status)) return;
       if (!res.ok) {
-        setError(String(data?.message || "글을 불러오지 못했습니다."));
+        setError(String(data?.message || copy.errors.detailLoadFailed));
         return;
       }
 
@@ -581,11 +913,11 @@ export default function AdminContentPage() {
 
       await loadRevisions(nextForm.id);
     } catch {
-      setError("네트워크 오류로 글을 불러오지 못했습니다.");
+      setError(copy.errors.detailNetworkFailed);
     } finally {
       setLoadingDetail(false);
     }
-  }, [editor, endpointBase, handleAuthFailure, loadRevisions, requestCredentials]);
+  }, [copy.errors.detailLoadFailed, copy.errors.detailNetworkFailed, editor, endpointBase, handleAuthFailure, loadRevisions, requestCredentials]);
 
   useEffect(() => {
     void loadList();
@@ -636,7 +968,7 @@ export default function AdminContentPage() {
         apiBase,
         file,
         usage: "featured",
-        alt: form.featuredImageAlt || form.title || "대표 이미지",
+        alt: form.featuredImageAlt || form.title || copy.featuredImageFallback,
         adminToken: getFlowerAdminTokenClient(),
       });
       setForm((prev) => ({
@@ -647,9 +979,9 @@ export default function AdminContentPage() {
         featuredImageHeight: uploaded.height || 0,
         ogImage: prev.ogImage || uploaded.url,
       }));
-      setMessage("대표 이미지를 업로드했습니다.");
+      setMessage(copy.notices.featuredUploaded);
     } catch (uploadError) {
-      setError(String((uploadError as Error)?.message || "이미지 업로드에 실패했습니다."));
+      setError(String((uploadError as Error)?.message || copy.errors.imageUploadFailed));
     } finally {
       setUploading("");
     }
@@ -661,7 +993,7 @@ export default function AdminContentPage() {
     setError("");
     setMessage("");
     try {
-      const alt = window.prompt("본문 이미지 설명", form.title ? `${form.title} 관련 이미지` : "본문 이미지") || "";
+      const alt = window.prompt(copy.bodyImageAltPrompt, form.title ? `${form.title}${copy.bodyImageAltSuffix}` : copy.bodyImageAltFallback) || "";
       const uploaded = await uploadInsightImage({
         apiBase,
         file,
@@ -679,9 +1011,9 @@ export default function AdminContentPage() {
           height: uploaded.height > 0 ? uploaded.height : undefined,
         })
         .run();
-      setMessage("본문 이미지를 삽입했습니다.");
+      setMessage(copy.notices.bodyInserted);
     } catch (uploadError) {
-      setError(String((uploadError as Error)?.message || "이미지 삽입에 실패했습니다."));
+      setError(String((uploadError as Error)?.message || copy.errors.imageInsertFailed));
     } finally {
       setUploading("");
     }
@@ -742,21 +1074,21 @@ export default function AdminContentPage() {
 
   function validateBeforeSave(status: ContentStatus): boolean {
     if (!form.title.trim()) {
-      setError("제목을 입력해 주세요.");
+      setError(copy.errors.titleRequired);
       return false;
     }
     if (!editor) {
-      setError("편집기가 아직 준비되지 않았습니다.");
+      setError(copy.errors.editorNotReady);
       return false;
     }
     if (status === "scheduled") {
       const scheduledAt = fromDateTimeLocalValue(form.scheduledAt);
       if (!scheduledAt) {
-        setError("예약 발행 시간을 선택해 주세요.");
+        setError(copy.errors.scheduleRequired);
         return false;
       }
       if (new Date(scheduledAt).getTime() <= Date.now()) {
-        setError("예약 발행 시간은 현재 이후여야 합니다.");
+        setError(copy.errors.scheduleFutureRequired);
         return false;
       }
     }
@@ -809,7 +1141,7 @@ export default function AdminContentPage() {
       const data = await res.json().catch(() => ({}));
       if (handleAuthFailure(res.status)) return;
       if (!res.ok) {
-        setError(String(data?.message || "저장에 실패했습니다."));
+        setError(String(data?.message || copy.errors.saveFailed));
         return;
       }
 
@@ -822,18 +1154,18 @@ export default function AdminContentPage() {
 
       if (status === "published") {
         const check = await runPublicationCheck(nextForm.id);
-        setMessage(check?.ok ? "발행했고 공개 반영까지 확인했습니다." : "발행했습니다. 공개 반영 상태를 확인해 주세요.");
+        setMessage(check?.ok ? copy.notices.publishedVerified : copy.notices.publishedCheckNeeded);
       } else if (status === "scheduled") {
-        setMessage("예약 발행으로 저장했습니다.");
+        setMessage(copy.notices.scheduledSaved);
       } else if (status === "archived") {
-        setMessage("보관으로 이동했습니다.");
+        setMessage(copy.notices.archived);
       } else if (status === "private") {
-        setMessage("비공개로 저장했습니다.");
+        setMessage(copy.notices.privateSaved);
       } else {
-        setMessage("임시저장했습니다.");
+        setMessage(copy.notices.draftSaved);
       }
     } catch {
-      setError("네트워크 오류로 저장하지 못했습니다.");
+      setError(copy.errors.saveNetworkFailed);
     } finally {
       setSaving("");
     }
@@ -841,7 +1173,7 @@ export default function AdminContentPage() {
 
   async function restoreRevision(revisionId: string) {
     if (!form.id || !revisionId) return;
-    if (!window.confirm("선택한 버전으로 복구할까요? 현재 내용은 새 리비전으로 보관됩니다.")) return;
+    if (!window.confirm(copy.notices.restoreConfirm)) return;
 
     setRestoringRevisionId(revisionId);
     setError("");
@@ -857,7 +1189,7 @@ export default function AdminContentPage() {
       const data = await res.json().catch(() => ({}));
       if (handleAuthFailure(res.status)) return;
       if (!res.ok) {
-        setError(String(data?.message || "버전 복구에 실패했습니다."));
+        setError(String(data?.message || copy.errors.restoreFailed));
         return;
       }
       const item = data?.item as ContentItem;
@@ -869,9 +1201,9 @@ export default function AdminContentPage() {
       }
       await loadRevisions(getItemId(item || {}));
       await loadList();
-      setMessage("선택한 버전으로 복구했습니다.");
+      setMessage(copy.notices.restored);
     } catch {
-      setError("네트워크 오류로 버전을 복구하지 못했습니다.");
+      setError(copy.errors.restoreNetworkFailed);
     } finally {
       setRestoringRevisionId("");
     }
@@ -897,7 +1229,7 @@ export default function AdminContentPage() {
               <button type="button" onClick={startNewPost} className={editorButtonClass()} title="새 글">
                 <Plus className="h-4 w-4" />
               </button>
-              <button type="button" onClick={redirectToLogin} className={editorButtonClass()} title="로그아웃">
+              <button type="button" onClick={redirectToLogin} className={editorButtonClass()} title={copy.logout}>
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
@@ -917,10 +1249,10 @@ export default function AdminContentPage() {
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
                   className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2 pl-9 pr-3 text-sm outline-none focus:border-violet-500"
-                  placeholder="제목, slug, 태그"
+                  placeholder={copy.searchHint}
                 />
               </div>
-              <button type="submit" className={editorButtonClass()} title="검색">
+              <button type="submit" className={editorButtonClass()} title={copy.search}>
                 <Search className="h-4 w-4" />
               </button>
             </form>
@@ -931,7 +1263,7 @@ export default function AdminContentPage() {
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
               >
                 {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value}>{copy.filters[option.value]}</option>
                 ))}
               </select>
               <select
@@ -939,9 +1271,9 @@ export default function AdminContentPage() {
                 onChange={(event) => setTypeFilter(event.target.value as "all" | ContentType)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
               >
-                <option value="all">전체 유형</option>
+                <option value="all">{copy.allTypes}</option>
                 {CONTENT_TYPES.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value}>{copy.types[option.value]}</option>
                 ))}
               </select>
               <select
@@ -950,14 +1282,14 @@ export default function AdminContentPage() {
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
               >
                 {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value}>{copy.sort[option.value]}</option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="space-y-2 border-b border-slate-800 bg-slate-900/40 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">챗봇 운영</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">{copy.botOps}</p>
             <Link
               href="/admin/insights?service=saju#adminPromptLab"
               className="group block rounded-xl border border-amber-700 bg-gradient-to-br from-amber-950/80 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-400 hover:from-amber-900/80 hover:to-amber-900/40"
@@ -996,14 +1328,14 @@ export default function AdminContentPage() {
                       className={`w-full px-4 py-3 text-left hover:bg-slate-900 ${active ? "bg-slate-900" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="line-clamp-2 text-sm font-medium text-slate-100">{item.title || "제목 없음"}</p>
+                        <p className="line-clamp-2 text-sm font-medium text-slate-100">{item.title || copy.noTitle}</p>
                         <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-[11px] ${statusBadgeClass(item.status)}`}>
-                          {statusLabel(item.status)}
+                          {statusLabel(item.status, copy)}
                         </span>
                       </div>
                       <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">
                         <span className="truncate">/{item.slug || "-"}</span>
-                        <span>{formatDate(item.updatedAt || item.createdAt)}</span>
+                        <span>{formatDate(item.updatedAt || item.createdAt, locale)}</span>
                       </div>
                     </button>
                   );
@@ -1019,7 +1351,7 @@ export default function AdminContentPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={`rounded-lg border px-2 py-0.5 text-xs ${statusBadgeClass(form.status)}`}>
-                    {statusLabel(form.status)}
+                    {statusLabel(form.status, copy)}
                   </span>
                   {selectedId ? <span className="text-xs text-slate-500">ID {selectedId}</span> : <span className="text-xs text-slate-500">새 글</span>}
                   {loadingDetail ? <span className="text-xs text-slate-500">불러오는 중...</span> : null}
@@ -1047,7 +1379,7 @@ export default function AdminContentPage() {
                 </button>
                 <button type="button" onClick={() => { void saveWithStatus("published"); }} disabled={Boolean(saving)} className={commandButtonClass("primary")}>
                   <Send className="h-4 w-4" />
-                  발행
+                    {copy.publish}
                 </button>
               </div>
             </div>
@@ -1065,7 +1397,7 @@ export default function AdminContentPage() {
                     className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
                   >
                     {CONTENT_TYPES.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
+                      <option key={option.value} value={option.value}>{copy.types[option.value]}</option>
                     ))}
                   </select>
                   <input
@@ -1073,19 +1405,19 @@ export default function AdminContentPage() {
                     value={form.scheduledAt}
                     onChange={(event) => updateForm("scheduledAt", event.target.value)}
                     className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    aria-label="예약 발행 시간"
+                    aria-label={copy.scheduledAt}
                   />
                   <input
                     value={form.title}
                     onChange={(event) => updateTitle(event.target.value)}
                     className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-2xl font-semibold outline-none focus:border-violet-500"
-                    placeholder="제목"
+                    placeholder={copy.titleHint}
                   />
                   <input
                     value={form.subtitle}
                     onChange={(event) => updateForm("subtitle", event.target.value)}
                     className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="부제목"
+                    placeholder={copy.subtitleHint}
                   />
                   <input
                     value={form.slug}
@@ -1100,19 +1432,19 @@ export default function AdminContentPage() {
                     value={form.category}
                     onChange={(event) => updateForm("category", event.target.value)}
                     className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="카테고리"
+                    placeholder={copy.categoryHint}
                   />
                   <input
                     value={form.tagsText}
                     onChange={(event) => updateForm("tagsText", event.target.value)}
                     className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="태그, 쉼표로 구분"
+                    placeholder={copy.tagsHint}
                   />
                   <textarea
                     value={form.summary}
                     onChange={(event) => updateForm("summary", event.target.value)}
                     className="md:col-span-2 min-h-[84px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="요약"
+                    placeholder={copy.summaryHint}
                   />
                 </div>
               </section>
@@ -1208,7 +1540,7 @@ export default function AdminContentPage() {
                     event.currentTarget.value = "";
                   }}
                 />
-                {uploading === "featured" ? <p className="mt-3 text-xs text-slate-400">업로드 중...</p> : null}
+                {uploading === "featured" ? <p className="mt-3 text-xs text-slate-400">{copy.uploadInProgress}</p> : null}
                 {form.featuredImageUrl ? (
                   <Image
                     src={form.featuredImageUrl}
@@ -1224,13 +1556,13 @@ export default function AdminContentPage() {
                     value={form.featuredImageUrl}
                     onChange={(event) => updateForm("featuredImageUrl", event.target.value)}
                     className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="이미지 URL"
+                    placeholder={copy.imageUrlHint}
                   />
                   <input
                     value={form.featuredImageAlt}
                     onChange={(event) => updateForm("featuredImageAlt", event.target.value)}
                     className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                    placeholder="alt 텍스트"
+                    placeholder={copy.imageAltHint}
                   />
                 </div>
               </section>
@@ -1238,7 +1570,7 @@ export default function AdminContentPage() {
               <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
                 <button type="button" onClick={() => setSeoOpen((open) => !open)} className="flex w-full items-center justify-between text-left text-sm font-semibold">
                   SEO
-                  <span className="text-xs text-slate-400">{seoWarnings.length ? `${seoWarnings.length}개 점검` : "정상"}</span>
+                  <span className="text-xs text-slate-400">{seoWarnings.length ? `${seoWarnings.length}${copy.seoCheckCountSuffix}` : copy.seoOk}</span>
                 </button>
                 {seoWarnings.length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -1262,59 +1594,59 @@ export default function AdminContentPage() {
                     </label>
                     <label className="flex items-center gap-2 text-sm text-slate-300">
                       <input type="checkbox" checked={form.isFeatured} onChange={(event) => updateForm("isFeatured", event.target.checked)} />
-                      추천 글
+                      {copy.featured}
                     </label>
                   </div>
                 ) : null}
               </section>
 
               <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
-                <h2 className="text-sm font-semibold">발행 확인</h2>
+                <h2 className="text-sm font-semibold">{copy.publicationSection}</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" onClick={() => { if (form.id) void runPublicationCheck(form.id); }} disabled={!form.id} className={commandButtonClass()}>
                     <RefreshCw className="h-4 w-4" />
-                    반영 확인
+                    {copy.publicationCheck}
                   </button>
                   <button type="button" onClick={() => { void saveWithStatus("private"); }} disabled={Boolean(saving)} className={commandButtonClass()}>
                     <Archive className="h-4 w-4" />
-                    비공개
+                    {copy.privateState}
                   </button>
                   <button type="button" onClick={() => { void saveWithStatus("archived"); }} disabled={Boolean(saving)} className={commandButtonClass("warn")}>
                     <Archive className="h-4 w-4" />
-                    보관
+                    {copy.archive}
                   </button>
                 </div>
                 {publicationCheck ? (
                   <div className={`mt-3 rounded-lg border p-3 text-xs ${publicationCheck.ok ? "border-emerald-700 bg-emerald-950 text-emerald-200" : "border-amber-700 bg-amber-950 text-amber-200"}`}>
-                    <p className="font-semibold">{publicationCheck.ok ? "공개 반영 완료" : "확인 필요"}</p>
-                    <p className="mt-1">API {publicationCheck.apiStatus?.status || "-"} · 페이지 {publicationCheck.pageStatus?.status || "-"} · 캐시 {publicationCheck.purgeStatus || "-"}</p>
-                    {publicationCheck.publicUrl ? <a className="mt-2 inline-flex underline" href={publicationCheck.publicUrl} target="_blank" rel="noreferrer">공개 URL</a> : null}
+                    <p className="font-semibold">{publicationCheck.ok ? copy.publicationOk : copy.needsCheck}</p>
+                    <p className="mt-1">API {publicationCheck.apiStatus?.status || "-"} · Page {publicationCheck.pageStatus?.status || "-"} · Cache {publicationCheck.purgeStatus || "-"}</p>
+                    {publicationCheck.publicUrl ? <a className="mt-2 inline-flex underline" href={publicationCheck.publicUrl} target="_blank" rel="noreferrer">{copy.publicUrl}</a> : null}
                   </div>
                 ) : null}
               </section>
 
               <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold">버전</h2>
-                  <button type="button" onClick={() => { void loadRevisions(form.id); }} disabled={!form.id} className={editorButtonClass()} title="새로고침">
+                  <h2 className="text-sm font-semibold">{copy.versionSection}</h2>
+                  <button type="button" onClick={() => { void loadRevisions(form.id); }} disabled={!form.id} className={editorButtonClass()} title={copy.refresh}>
                     <History className="h-4 w-4" />
                   </button>
                 </div>
                 <div className="mt-3 space-y-2">
                   {revisions.length === 0 ? (
-                    <p className="text-xs text-slate-500">저장된 이전 버전이 없습니다.</p>
+                    <p className="text-xs text-slate-500">{copy.noRevisions}</p>
                   ) : revisions.map((revision) => (
                     <div key={revision.id} className="flex items-center justify-between gap-2 border-b border-slate-800 py-2 last:border-b-0">
                       <div className="min-w-0">
-                        <p className="truncate text-xs text-slate-200">v{revision.revision} · {revision.title || "제목 없음"}</p>
-                        <p className="text-[11px] text-slate-500">{formatDate(revision.savedAt)}</p>
+                        <p className="truncate text-xs text-slate-200">v{revision.revision} · {revision.title || copy.noTitle}</p>
+                        <p className="text-[11px] text-slate-500">{formatDate(revision.savedAt, locale)}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => { void restoreRevision(revision.id); }}
                         disabled={restoringRevisionId === revision.id}
                         className={editorButtonClass()}
-                        title="복구"
+                        title={copy.restore}
                       >
                         <RotateCcw className="h-4 w-4" />
                       </button>

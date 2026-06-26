@@ -94,7 +94,7 @@ function countMatches(source, re) {
 }
 
 function extractNativeMarkerTags(source) {
-  return source.match(/<(?=\/?[A-Za-z])[^>]*(?:\bdata-cd-trans\b|\bcustom-trans\b)[^>]*>/g) || [];
+  return source.match(/<(?=\/?[A-Za-z])[^>]*(?:\bdata-cd-trans(?:=|\s|>)|\bdata-cd-trans-attr\b|\bcustom-trans\b)[^>]*>/g) || [];
 }
 
 function valueAtPath(source, path) {
@@ -107,7 +107,7 @@ function valueAtPath(source, path) {
 function extractNativeMarkerKeys(html) {
   const tags = extractNativeMarkerTags(html);
 
-  return tags.map((tag) => {
+  const textKeys = tags.map((tag) => {
     const dataKey = tag.match(/\bdata-key=["']([^"']+)["']/);
     if (dataKey && dataKey[1]) return dataKey[1];
 
@@ -115,7 +115,17 @@ function extractNativeMarkerKeys(html) {
     if (cdTransKey && cdTransKey[1]) return cdTransKey[1];
 
     return "";
+  }).filter(Boolean);
+  const attrKeys = tags.flatMap((tag) => {
+    const attrSpec = tag.match(/\bdata-cd-trans-attr=["']([^"']+)["']/)?.[1] || "";
+    return attrSpec
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => item.split(":").slice(1).join(":").trim())
+      .filter(Boolean);
   });
+  return [...textKeys, ...attrKeys];
 }
 
 function extractNativeScriptSrc(html) {

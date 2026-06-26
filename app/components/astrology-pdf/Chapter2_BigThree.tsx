@@ -5,6 +5,21 @@ type Props = {
   chapter: AstroPremiumReportData["chapters"]["II"] | null | undefined;
 };
 
+const ASTROLOGY_CHAPTER_2_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "II. 빅3 해석 — 태양·달·상승궁",
+    empty: "챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "II. Big Three Reading — Sun, Moon, and Rising Sign",
+    empty: "Chapter data is not ready, so the basic summary mode is shown.",
+  },
+  ja: {
+    title: "II. ビッグ3解釈 — 太陽・月・上昇宮",
+    empty: "チャプターデータが未準備のため、基本要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Array<{ key: keyof AstroPremiumReportData["chapters"]["II"]["sections"]; label: string }> = [
   { key: "sunSign", label: "태양 별자리 해석" },
   { key: "sunHouse", label: "태양 하우스 해석" },
@@ -22,8 +37,8 @@ export default function Chapter2_BigThree({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>II. 빅3 해석 — 태양·달·상승궁</h2>
-        <p>챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.</p>
+        <h2>{ASTROLOGY_CHAPTER_2_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{ASTROLOGY_CHAPTER_2_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -34,7 +49,7 @@ export default function Chapter2_BigThree({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "II. 빅3 해석 — 태양·달·상승궁"}</h2>
+      <h2>{chapter.title || ASTROLOGY_CHAPTER_2_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row}>{row}</p>
       ))}

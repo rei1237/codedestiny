@@ -14,6 +14,18 @@ let refreshInFlight: Promise<RefreshSessionState> | null = null;
 let meRequestInFlight: Promise<Response> | null = null;
 let logoutInFlight: Promise<void> | null = null;
 
+const AUTH_CLIENT_TEXT_TRANSLATIONS = {
+  ko: {
+    refreshUnavailable: "인증 갱신을 잠시 사용할 수 없습니다. 다시 시도해 주세요.",
+  },
+  en: {
+    refreshUnavailable: "Authentication refresh is temporarily unavailable. Please retry.",
+  },
+  ja: {
+    refreshUnavailable: "認証の更新は一時的に利用できません。もう一度お試しください。",
+  },
+} as const;
+
 const AUTH_LOCAL_STORAGE_KEYS = [
   "fortune_auth_token",
   "fortune_auth_user",
@@ -45,7 +57,7 @@ function buildRefreshTransientResponse(originalStatus: number) {
     JSON.stringify({
       ok: false,
       code: "AUTH_REFRESH_TEMPORARY_FAILURE",
-      message: "Authentication refresh is temporarily unavailable. Please retry.",
+      message: AUTH_CLIENT_TEXT_TRANSLATIONS.en.refreshUnavailable,
       originalStatus,
     }),
     {

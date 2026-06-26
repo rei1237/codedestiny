@@ -8,8 +8,20 @@ type PigCounselBubbleProps = {
   className?: string;
 };
 
+const PIG_COUNSEL_BUBBLE_TEXT_TRANSLATIONS = {
+  ko: {
+    defaultTitle: '연이의 상담 메모',
+  },
+  en: {
+    defaultTitle: "Yeon-i’s Counsel Note",
+  },
+  ja: {
+    defaultTitle: 'ヨンの相談メモ',
+  },
+} as const;
+
 export function PigCounselBubble({
-  title = '연이의 상담 메모',
+  title = PIG_COUNSEL_BUBBLE_TEXT_TRANSLATIONS.ko.defaultTitle,
   message,
   className = '',
 }: PigCounselBubbleProps) {

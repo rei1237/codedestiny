@@ -44,6 +44,7 @@ export const SUKYO_PDF_CHAPTERS = Object.freeze(SUKYO_PREMIUM_CHAPTERS_V2.map(wi
 
 const PROVIDER_TIMEOUT_MS = 45000;
 const CHAPTER_CACHE = new Map();
+const LLM_CACHE_MODES = new Set(["off", "write-only", "readwrite"]);
 const SYUKU_LABELS = Object.freeze([
   "각숙", "항숙", "저숙", "방숙", "심숙", "미숙", "기숙", "두숙", "여숙",
   "허숙", "위숙", "실숙", "벽숙", "규숙", "루숙", "위숙", "묘숙", "필숙",
@@ -1090,6 +1091,7 @@ async function callGemini(env, prompt, options = {}) {
 }
 
 async function readCache(env, key) {
+  if (resolveLlmCacheMode(env) !== "readwrite") return null;
   const cached = CHAPTER_CACHE.get(key);
   if (cached) return cached;
   const kv = env?.SUKYO_PREMIUM_LLM_CACHE || env?.PDF_V2_CACHE || env?.REPORT_CACHE;
@@ -1104,11 +1106,19 @@ async function readCache(env, key) {
 }
 
 async function writeCache(env, key, value) {
+  if (resolveLlmCacheMode(env) === "off") return;
   CHAPTER_CACHE.set(key, value);
   const kv = env?.SUKYO_PREMIUM_LLM_CACHE || env?.PDF_V2_CACHE || env?.REPORT_CACHE;
   if (kv?.put) {
     await kv.put(key, JSON.stringify(value), { expirationTtl: 60 * 60 * 24 * 30 });
   }
+}
+
+function resolveLlmCacheMode(env = {}) {
+  if (clean(env?.SUKYO_PREMIUM_DISABLE_LLM_CACHE).toLowerCase() === "true") return "off";
+  if (clean(env?.SUKYO_PREMIUM_ALLOW_LLM_CACHE).toLowerCase() === "true") return "readwrite";
+  const mode = clean(env?.SUKYO_PREMIUM_LLM_CACHE_MODE || "write-only").toLowerCase();
+  return LLM_CACHE_MODES.has(mode) ? mode : "write-only";
 }
 
 function buildCacheKey(facts, chapterSpec, providerModel = "") {
@@ -1830,6 +1840,7 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
   let previousSummary = "";
   const providerSet = new Set();
   const modelSet = new Set();
+  let cachedChapterCount = 0;
 
   for (const chapterSpec of SUKYO_PDF_CHAPTERS) {
     const result = await generateChapter(env, facts, chapterSpec, previousSummary);
@@ -1847,6 +1858,7 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     parsed.provider = result.provider;
     parsed.modelName = result.modelName || "";
     parsed.cached = Boolean(result.cached);
+    if (parsed.cached) cachedChapterCount += 1;
     generated.push(parsed);
     providerSet.add(result.provider);
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
@@ -1890,6 +1902,9 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     externalGeneration: true,
     externalCallsAllowed: true,
     fallbackUsed: false,
+    cacheMode: resolveLlmCacheMode(env),
+    cachedChapterCount,
+    liveChapterCount: generated.length - cachedChapterCount,
   };
   const chapterQuality = buildChapterQuality(generated);
   const pdfReady = {

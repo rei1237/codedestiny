@@ -36,6 +36,62 @@ import {
 } from "@/lib/yeon/astroSignal";
 import { getYeonSpriteFrame } from "@/lib/yeon/yeonSpriteMood";
 
+const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
+  ko: {
+    "yeonStar.label.001": "행복해",
+    "yeonStar.label.002": "편안해",
+    "yeonStar.label.003": "지쳤어",
+    "yeonStar.label.004": "걱정돼",
+    "yeonStar.label.005": "설레어",
+    "yeonStar.label.006": "우울해",
+    "yeonStar.label.007": "태양의 날",
+    "yeonStar.label.008": "달의 날",
+    "yeonStar.label.009": "화성의 날",
+    "yeonStar.label.010": "수성의 날",
+    "yeonStar.label.011": "목성의 날",
+    "yeonStar.label.012": "금성의 날",
+    "yeonStar.label.013": "토성의 날",
+    "yeonStar.label.014": "신월(New Moon)",
+    "yeonStar.label.015": "초승(Waxing Crescent)",
+    "yeonStar.label.016": "상현(First Quarter)",
+    "yeonStar.label.017": "차는달(Waxing Gibbous)",
+    "yeonStar.label.018": "망(Full Moon)",
+    "yeonStar.label.019": "기울달(Waning Gibbous)",
+    "yeonStar.label.020": "하현(Last Quarter)",
+    "yeonStar.label.021": "그믐(Waning Crescent)",
+    "yeonStar.label.022": "합(0°)",
+    "yeonStar.label.023": "육분(60°)",
+    "yeonStar.label.024": "직각(90°)",
+    "yeonStar.label.025": "삼분(120°)",
+    "yeonStar.label.026": "대립(180°)",
+    "yeonStar.label.027": "중립 각도",
+    "yeonStar.label.028": "동일 원소 공명",
+    "yeonStar.label.029": "상보 원소 시너지",
+    "yeonStar.label.030": "긴장 원소 조율",
+    "yeonStar.aria-label.001": "연이의 마음 카드 SVG",
+    "yeonStar.text.001": "YEON CHEER CARD",
+    "yeonStar.text.002": "연이의 응원 카드",
+    "yeonStar.text.003": "연이의 스프라이트 컷",
+    "yeonStar.text.004": "연이가 전하는 오늘의 한 문장",
+    "yeonStar.text.005": "오늘의 행운 상징",
+    "yeonStar.text.006": "연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.",
+    "yeonStar.text.007": "Code Destiny · Yeon Cheer Card",
+    "yeonStar.title.001": "연이의 마음 별자리",
+    "yeonStar.title.002": "연이의 마음 별자리",
+    "yeonStar.alt.001": "연이의 마음 별자리 아트",
+    "yeonStar.placeholder.001": "예: 연이",
+    "yeonStar.aria-label.002": "별자리 선택",
+    "yeonStar.placeholder.002": "예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요.",
+    "yeonStar.aria-label.003": "고민 입력",
+    "yeonStar.aria-label.004": "SVG 행운 상징 카드 미리보기",
+    "yeonStar.aria-label.005": "기능 요약 배지",
+  },
+} as const;
+
+function yeonStarHugText(key: keyof typeof YEON_STAR_HUG_TEXT_TRANSLATIONS.ko) {
+  return YEON_STAR_HUG_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
   | "양자리"
@@ -154,12 +210,12 @@ const SPRITE_IMAGE_WIDTH = SPRITE_CELL_SIZE * SPRITE_GRID_COLS;
 const SPRITE_IMAGE_HEIGHT = SPRITE_CELL_SIZE * SPRITE_GRID_ROWS;
 
 const EMOTIONS: EmotionOption[] = [
-  { key: "happy", label: "행복해", Icon: Smile, tone: "from-pink-300 to-orange-200" },
-  { key: "calm", label: "편안해", Icon: Cloud, tone: "from-cyan-200 to-purple-200" },
-  { key: "tired", label: "지쳤어", Icon: BatteryLow, tone: "from-amber-200 to-rose-200" },
-  { key: "worried", label: "걱정돼", Icon: CloudRain, tone: "from-blue-200 to-purple-200" },
-  { key: "flutter", label: "설레어", Icon: Sparkles, tone: "from-pink-200 to-fuchsia-200" },
-  { key: "blue", label: "우울해", Icon: Moon, tone: "from-indigo-200 to-blue-200" },
+  { key: "happy", label: yeonStarHugText("yeonStar.label.001"), Icon: Smile, tone: "from-pink-300 to-orange-200" },
+  { key: "calm", label: yeonStarHugText("yeonStar.label.002"), Icon: Cloud, tone: "from-cyan-200 to-purple-200" },
+  { key: "tired", label: yeonStarHugText("yeonStar.label.003"), Icon: BatteryLow, tone: "from-amber-200 to-rose-200" },
+  { key: "worried", label: yeonStarHugText("yeonStar.label.004"), Icon: CloudRain, tone: "from-blue-200 to-purple-200" },
+  { key: "flutter", label: yeonStarHugText("yeonStar.label.005"), Icon: Sparkles, tone: "from-pink-200 to-fuchsia-200" },
+  { key: "blue", label: yeonStarHugText("yeonStar.label.006"), Icon: Moon, tone: "from-indigo-200 to-blue-200" },
 ];
 
 const EMOTION_LABEL: Record<EmotionKey, string> = {
@@ -464,13 +520,13 @@ const DOMAIN_INDEX: Record<ConcernDomain, number> = {
 };
 
 const WEEKDAY_RULER: Array<{ label: string; summary: string; scoreBias: { overall: number; love: number; money: number } }> = [
-  { label: "태양의 날", summary: "자기표현과 자신감이 올라가는 흐름", scoreBias: { overall: 0.4, love: 0.2, money: 0 } },
-  { label: "달의 날", summary: "감정 공감과 관계 회복에 유리한 흐름", scoreBias: { overall: 0.2, love: 0.5, money: -0.1 } },
-  { label: "화성의 날", summary: "행동력은 강하지만 말의 온도 조절이 중요한 흐름", scoreBias: { overall: 0.2, love: -0.1, money: 0.1 } },
-  { label: "수성의 날", summary: "대화, 학습, 실무 정리에 강한 흐름", scoreBias: { overall: 0.3, love: 0.1, money: 0.2 } },
-  { label: "목성의 날", summary: "기회 포착과 확장 판단에 힘이 실리는 흐름", scoreBias: { overall: 0.4, love: 0.1, money: 0.5 } },
-  { label: "금성의 날", summary: "관계 조율, 호감, 미적 감각이 살아나는 흐름", scoreBias: { overall: 0.3, love: 0.7, money: 0.1 } },
-  { label: "토성의 날", summary: "현실 점검과 구조화에 유리한 흐름", scoreBias: { overall: 0.1, love: -0.1, money: 0.4 } },
+  { label: yeonStarHugText("yeonStar.label.007"), summary: "자기표현과 자신감이 올라가는 흐름", scoreBias: { overall: 0.4, love: 0.2, money: 0 } },
+  { label: yeonStarHugText("yeonStar.label.008"), summary: "감정 공감과 관계 회복에 유리한 흐름", scoreBias: { overall: 0.2, love: 0.5, money: -0.1 } },
+  { label: yeonStarHugText("yeonStar.label.009"), summary: "행동력은 강하지만 말의 온도 조절이 중요한 흐름", scoreBias: { overall: 0.2, love: -0.1, money: 0.1 } },
+  { label: yeonStarHugText("yeonStar.label.010"), summary: "대화, 학습, 실무 정리에 강한 흐름", scoreBias: { overall: 0.3, love: 0.1, money: 0.2 } },
+  { label: yeonStarHugText("yeonStar.label.011"), summary: "기회 포착과 확장 판단에 힘이 실리는 흐름", scoreBias: { overall: 0.4, love: 0.1, money: 0.5 } },
+  { label: yeonStarHugText("yeonStar.label.012"), summary: "관계 조율, 호감, 미적 감각이 살아나는 흐름", scoreBias: { overall: 0.3, love: 0.7, money: 0.1 } },
+  { label: yeonStarHugText("yeonStar.label.013"), summary: "현실 점검과 구조화에 유리한 흐름", scoreBias: { overall: 0.1, love: -0.1, money: 0.4 } },
 ];
 
 const STAR_DOTS = [
@@ -800,27 +856,27 @@ function getMoonSnapshot(date: Date): MoonSnapshot {
   const illumination = (1 - Math.cos((age / synodicMonth) * 2 * Math.PI)) / 2;
 
   if (age < 1.85) {
-    return { age, illumination, phaseKey: "new-moon", label: "신월(New Moon)", scoreBias: { overall: 0.1, love: 0.1, money: 0.2 } };
+    return { age, illumination, phaseKey: "new-moon", label: yeonStarHugText("yeonStar.label.014"), scoreBias: { overall: 0.1, love: 0.1, money: 0.2 } };
   }
   if (age < 5.54) {
-    return { age, illumination, phaseKey: "waxing-crescent", label: "초승(Waxing Crescent)", scoreBias: { overall: 0.4, love: 0.3, money: 0.2 } };
+    return { age, illumination, phaseKey: "waxing-crescent", label: yeonStarHugText("yeonStar.label.015"), scoreBias: { overall: 0.4, love: 0.3, money: 0.2 } };
   }
   if (age < 9.23) {
-    return { age, illumination, phaseKey: "first-quarter", label: "상현(First Quarter)", scoreBias: { overall: 0.3, love: 0.2, money: 0.4 } };
+    return { age, illumination, phaseKey: "first-quarter", label: yeonStarHugText("yeonStar.label.016"), scoreBias: { overall: 0.3, love: 0.2, money: 0.4 } };
   }
   if (age < 12.92) {
-    return { age, illumination, phaseKey: "waxing-gibbous", label: "차는달(Waxing Gibbous)", scoreBias: { overall: 0.5, love: 0.4, money: 0.3 } };
+    return { age, illumination, phaseKey: "waxing-gibbous", label: yeonStarHugText("yeonStar.label.017"), scoreBias: { overall: 0.5, love: 0.4, money: 0.3 } };
   }
   if (age < 16.61) {
-    return { age, illumination, phaseKey: "full-moon", label: "망(Full Moon)", scoreBias: { overall: 0.2, love: 0.6, money: 0.1 } };
+    return { age, illumination, phaseKey: "full-moon", label: yeonStarHugText("yeonStar.label.018"), scoreBias: { overall: 0.2, love: 0.6, money: 0.1 } };
   }
   if (age < 20.3) {
-    return { age, illumination, phaseKey: "waning-gibbous", label: "기울달(Waning Gibbous)", scoreBias: { overall: 0.1, love: 0.2, money: 0.4 } };
+    return { age, illumination, phaseKey: "waning-gibbous", label: yeonStarHugText("yeonStar.label.019"), scoreBias: { overall: 0.1, love: 0.2, money: 0.4 } };
   }
   if (age < 23.99) {
-    return { age, illumination, phaseKey: "last-quarter", label: "하현(Last Quarter)", scoreBias: { overall: 0, love: -0.1, money: 0.5 } };
+    return { age, illumination, phaseKey: "last-quarter", label: yeonStarHugText("yeonStar.label.020"), scoreBias: { overall: 0, love: -0.1, money: 0.5 } };
   }
-  return { age, illumination, phaseKey: "waning-crescent", label: "그믐(Waning Crescent)", scoreBias: { overall: 0.1, love: 0, money: 0.3 } };
+  return { age, illumination, phaseKey: "waning-crescent", label: yeonStarHugText("yeonStar.label.021"), scoreBias: { overall: 0.1, love: 0, money: 0.3 } };
 }
 
 function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): AspectSnapshot {
@@ -830,7 +886,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 0) {
     return {
       distance,
-      label: "합(0°)",
+      label: yeonStarHugText("yeonStar.label.022"),
       summary: "오늘 태양과 네 별자리가 같은 축에 있어 집중력이 또렷해.",
       scoreBias: 0.8,
     };
@@ -838,7 +894,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 2) {
     return {
       distance,
-      label: "육분(60°)",
+      label: yeonStarHugText("yeonStar.label.023"),
       summary: "작은 기회가 자연스럽게 연결되는 날의 각도야.",
       scoreBias: 0.5,
     };
@@ -846,7 +902,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 3) {
     return {
       distance,
-      label: "직각(90°)",
+      label: yeonStarHugText("yeonStar.label.024"),
       summary: "마찰이 있지만 방향 수정으로 성과를 만드는 각도야.",
       scoreBias: -0.6,
     };
@@ -854,7 +910,7 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 4) {
     return {
       distance,
-      label: "삼분(120°)",
+      label: yeonStarHugText("yeonStar.label.025"),
       summary: "흐름이 부드럽게 이어지는 행운의 각도야.",
       scoreBias: 0.9,
     };
@@ -862,14 +918,14 @@ function getAspectSnapshot(userSign: ZodiacSign, todaySunSign: ZodiacSign): Aspe
   if (distance === 6) {
     return {
       distance,
-      label: "대립(180°)",
+      label: yeonStarHugText("yeonStar.label.026"),
       summary: "상대 시선을 통해 균형을 회복하는 조율 각도야.",
       scoreBias: -0.7,
     };
   }
   return {
     distance,
-    label: "중립 각도",
+    label: yeonStarHugText("yeonStar.label.027"),
     summary: "큰 충돌 없이 루틴을 안정화하기 좋은 각도야.",
     scoreBias: 0.1,
   };
@@ -992,7 +1048,7 @@ function getElementRelation(
 ): { label: string; scoreBias: number; detail: string } {
   if (userElement === sunElement) {
     return {
-      label: "동일 원소 공명",
+      label: yeonStarHugText("yeonStar.label.028"),
       scoreBias: 0.55,
       detail: `${userElement} 원소가 같은 축으로 공명해 의사결정의 일관성이 높아져.`,
     };
@@ -1006,14 +1062,14 @@ function getElementRelation(
 
   if (supportive) {
     return {
-      label: "상보 원소 시너지",
+      label: yeonStarHugText("yeonStar.label.029"),
       scoreBias: 0.28,
       detail: `${userElement}·${sunElement} 조합은 실행과 감정 균형을 자연스럽게 맞춰줘.`,
     };
   }
 
   return {
-    label: "긴장 원소 조율",
+    label: yeonStarHugText("yeonStar.label.030"),
     scoreBias: -0.22,
     detail: `${userElement}·${sunElement} 조합은 속도 차가 커서 우선순위 조율이 중요해.`,
   };
@@ -1463,7 +1519,7 @@ function buildHeartCardSvg(
     : "감정 중심 리딩";
 
   return `
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="연이의 마음 카드 SVG">
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label={yeonStarHugText("yeonStar.aria-label.001")}>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffe8f5"/>
@@ -1534,23 +1590,23 @@ function buildHeartCardSvg(
   </g>
 
   <rect x="86" y="92" width="388" height="58" rx="29" fill="#ffffff"/>
-  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">YEON CHEER CARD</text>
+  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.001")}</text>
 
-  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">연이의 응원 카드</text>
+  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">{yeonStarHugText("yeonStar.text.002")}</text>
   <text x="86" y="268" fill="#6b7280" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(consultation.sign)} · ${escapeXml(emotionLabel)}</text>
 
   <rect x="830" y="152" width="146" height="146" rx="32" fill="#fff7fb" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonMainClip)">
     <image href="${SPRITE_SHEET}" x="${mainSpriteX}" y="${mainSpriteY}" width="${SPRITE_IMAGE_WIDTH * mainScale}" height="${SPRITE_IMAGE_HEIGHT * mainScale}" preserveAspectRatio="none"/>
   </g>
-  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 스프라이트 컷</text>
+  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.003")}</text>
 
   <rect x="86" y="336" width="908" height="446" rx="30" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이가 전하는 오늘의 한 문장</text>
+  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.004")}</text>
   ${messageText}
 
   <rect x="86" y="814" width="908" height="266" rx="30" fill="#ffffff" stroke="#f9a8d4"/>
-  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 행운 상징</text>
+  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.005")}</text>
   <circle cx="222" cy="952" r="72" fill="#fffdf6" stroke="#fde68a"/>
   ${renderHeartSymbolGlyph(heartSymbol.id, 222, 952)}
   <text x="324" y="930" fill="#be185d" font-size="35" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(heartSymbol.name)}</text>
@@ -1561,8 +1617,8 @@ function buildHeartCardSvg(
   <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(safeLuckyItem)}</text>
 
   <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.</text>
-  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">Code Destiny · Yeon Cheer Card</text>
+  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.006")}</text>
+  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">{yeonStarHugText("yeonStar.text.007")}</text>
 
   <rect x="842" y="1180" width="118" height="118" rx="26" fill="#ffffff" fill-opacity="0.5" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonSubClip)">
@@ -1806,7 +1862,7 @@ export default function YeonStarHugPage() {
       const shareText = `${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`;
       if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [svgFile] })) {
         await navigator.share({
-          title: "연이의 마음 별자리",
+          title: yeonStarHugText("yeonStar.title.001"),
           text: shareText,
           files: [svgFile],
         });
@@ -1817,7 +1873,7 @@ export default function YeonStarHugPage() {
           const pngFile = new File([pngBlob], svgFileName.replace(".svg", ".png"), { type: "image/png" });
           if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [pngFile] })) {
             await navigator.share({
-              title: "연이의 마음 별자리",
+              title: yeonStarHugText("yeonStar.title.002"),
               text: shareText,
               files: [pngFile],
             });
@@ -1894,7 +1950,7 @@ export default function YeonStarHugPage() {
             {!heroError ? (
               <Image
                 src={HERO_IMAGE}
-                alt="연이의 마음 별자리 아트"
+                alt={yeonStarHugText("yeonStar.alt.001")}
                 width={900}
                 height={620}
                 className="h-full max-h-[360px] w-full max-w-full rounded-2xl object-contain"
@@ -1950,7 +2006,7 @@ export default function YeonStarHugPage() {
                   type="text"
                   value={profileNameInput}
                   onChange={(event) => setProfileNameInput(event.target.value.slice(0, 30))}
-                  placeholder="예: 연이"
+                  placeholder={yeonStarHugText("yeonStar.placeholder.001")}
                   className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
@@ -2014,7 +2070,7 @@ export default function YeonStarHugPage() {
               value={selectedSign}
               onChange={(event) => setSelectedSign(event.target.value as ZodiacSign)}
               className="mt-1 min-h-11 w-full appearance-none rounded-xl border border-white/35 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
-              aria-label="별자리 선택"
+              aria-label={yeonStarHugText("yeonStar.aria-label.002")}
             >
               {ZODIAC_SIGNS.map((item) => (
                 <option key={item.sign} value={item.sign}>{`${item.sign} (${item.period})`}</option>
@@ -2026,9 +2082,9 @@ export default function YeonStarHugPage() {
               id="yeon-concern-input"
               value={concernText}
               onChange={(event) => setConcernText(event.target.value)}
-              placeholder="예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요."
+              placeholder={yeonStarHugText("yeonStar.placeholder.002")}
               className="mt-1 min-h-32 w-full resize-y rounded-xl border border-white/35 bg-white/90 px-3 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
-              aria-label="고민 입력"
+              aria-label={yeonStarHugText("yeonStar.aria-label.003")}
             />
 
             <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
@@ -2198,7 +2254,7 @@ export default function YeonStarHugPage() {
                   <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
                     <div
                       className="mx-auto aspect-[4/5] w-full max-w-[420px] overflow-hidden rounded-xl border border-pink-100 bg-white [&_svg]:h-full [&_svg]:w-full"
-                        aria-label="SVG 행운 상징 카드 미리보기"
+                        aria-label={yeonStarHugText("yeonStar.aria-label.004")}
                       dangerouslySetInnerHTML={{ __html: cardSvg }}
                     />
                   </div>
@@ -2280,7 +2336,7 @@ export default function YeonStarHugPage() {
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.4 }}
           className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4"
-          aria-label="기능 요약 배지"
+          aria-label={yeonStarHugText("yeonStar.aria-label.005")}
         >
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
             <Heart className="h-4 w-4" /> 감정 + 고민 입력

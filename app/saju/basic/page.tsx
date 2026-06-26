@@ -1,9 +1,12 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
-const SERVICE = {
+const SAJU_BASIC_PAGE_TEXT_TRANSLATIONS = {
   h1: "사주 만세력 기본 해석",
+  metadataTitle: "사주 만세력 기본 해석 | 오행·십성·명식 분석",
   description:
+    "사주 명식의 네 기둥, 오행 균형, 십성의 의미를 초보자도 이해할 수 있도록 단계별로 설명하고 현재 선택에 참고할 해석 포인트와 주의점을 정리합니다.",
+  metadataDescription:
     "사주 명식의 네 기둥, 오행 균형, 십성의 의미를 초보자도 이해할 수 있도록 단계별로 설명하고 현재 선택에 참고할 해석 포인트와 주의점을 정리합니다.",
   ogImage: "/fuctionassets/saju.webp",
   landingPoints: ["사주 명식 구조 확인", "오행 균형 분석", "십성 흐름 해석"],
@@ -197,11 +200,10 @@ const SERVICE = {
 };
 
 export const metadata = withUniqueRouteMetadata("/saju/basic", {
-  title: "사주 만세력 기본 해석 | 오행·십성·명식 분석",
-  description:
-    "사주 명식의 네 기둥, 오행 균형, 십성의 의미를 초보자도 이해할 수 있도록 단계별로 설명하고 현재 선택에 참고할 해석 포인트와 주의점을 정리합니다.",
+  title: SAJU_BASIC_PAGE_TEXT_TRANSLATIONS.metadataTitle,
+  description: SAJU_BASIC_PAGE_TEXT_TRANSLATIONS.metadataDescription,
 });
 
 export default function SajuBasicLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return <FeatureLandingPage service={SAJU_BASIC_PAGE_TEXT_TRANSLATIONS} />;
 }

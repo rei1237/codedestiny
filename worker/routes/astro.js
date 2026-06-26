@@ -23,6 +23,7 @@ import {
   validateVedicBirthInput,
 } from "../lib/vedic-premium-generator.js";
 import { generateVedicPremiumPdfV2 } from "../lib/pdf-v2/vedic/create-vedic-premium-pdf-job.js";
+import { vedicPremiumChapterPlanV2 } from "../lib/pdf-v2/vedic/vedic-premium.chapter-plan.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildPremiumExecutionContext,
@@ -40,6 +41,8 @@ const ASTRO_PREMIUM_CHAPTERS = astrologyPremiumPublicChapters;
 const VEDIC_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const VEDIC_STATUS_RETRY_AFTER_MS = 4000;
 const vedicPremiumGenerationLocks = new Map();
+const VEDIC_ACTIVE_STATUSES = new Set(["pending", "validating", "generating", "rendering", "running"]);
+const VEDIC_PREMIUM_STATUS_CHAPTERS = vedicPremiumChapterPlanV2.chapters;
 const BASIC_ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 const BASIC_SIGN_ELEMENTS = ["Fire", "Earth", "Air", "Water", "Fire", "Earth", "Air", "Water", "Fire", "Earth", "Air", "Water"];
 const BASIC_SIGN_MODES = ["Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable", "Cardinal", "Fixed", "Mutable"];
@@ -629,14 +632,30 @@ function buildAstroStatusPayload(lock = {}, fallback = {}) {
   const result = lock.result && typeof lock.result === "object" ? lock.result : null;
   const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
   const rawStatus = clean(lock.status || fallback.status || "");
-  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
+  const status = rawStatus === "done" || rawStatus === "completed"
+    ? "completed"
+    : rawStatus === "failed"
+      ? "failed"
+      : rawStatus === "not_found"
+        ? "not_found"
+        : rawStatus === "pending"
+          ? "pending"
+          : "generating";
+  const isActive = !["completed", "failed", "not_found"].includes(status);
   const totalChapters = Number(progress.totalChapters || result?.chapterCount || ASTRO_PREMIUM_CHAPTERS.length);
   const currentChapterNo = clampAstroChapterNo(
-    progress.currentChapterNo || (status === "done" ? totalChapters : 0),
+    progress.currentChapterNo || (status === "completed" ? totalChapters : 0),
     totalChapters,
   );
+  const progressPercent = Number.isFinite(Number(progress.progressPercent ?? progress.progress))
+    ? Math.max(0, Math.min(100, Math.round(Number(progress.progressPercent ?? progress.progress))))
+    : status === "completed"
+      ? 100
+      : status === "failed"
+        ? 100
+        : Math.max(0, Math.min(95, Math.round((currentChapterNo / Math.max(1, totalChapters)) * 70) + 10));
   return {
-    ok: true,
+    ok: status !== "failed",
     serviceKey: "astro-premium",
     data: {
       sessionId: clean(lock.sessionId || fallback.sessionId),
@@ -646,18 +665,20 @@ function buildAstroStatusPayload(lock = {}, fallback = {}) {
       completedAt: clean(lock.completedAt || result?.completedAt),
       failedAt: clean(lock.failedAt || fallback.failedAt),
       progress: {
-        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : status === "not_found" ? "not_found" : "writing_seed")),
+        stateKey: clean(progress.stateKey || (status === "completed" ? "completed" : status === "failed" ? "failed" : status === "not_found" ? "not_found" : status)),
+        progress: progressPercent,
+        progressPercent,
         currentChapterNo,
         totalChapters,
         currentChapterTitle: clean(progress.currentChapterTitle),
         manuscriptSource: clean(progress.manuscriptSource || result?.manuscriptSource),
         updatedAt: clean(progress.updatedAt),
       },
-      result: status === "done" ? result : null,
+      result: status === "completed" ? result : null,
       pdfReady: result?.pdfReady || null,
       canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
       error: lock.error || fallback.error || null,
-      retryAfterMs: status === "running" ? ASTRO_STATUS_RETRY_AFTER_MS : undefined,
+      retryAfterMs: isActive ? ASTRO_STATUS_RETRY_AFTER_MS : undefined,
     },
   };
 }
@@ -794,6 +815,8 @@ async function handleAstroPremiumStatus(request, env) {
         failedAt: new Date().toISOString(),
         progress: {
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterNo: 0,
           totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
           currentChapterTitle: "PDF 생성 세션을 찾지 못했습니다",
@@ -866,28 +889,66 @@ function compactVedicPremiumLocks(now = Date.now()) {
 
 function clampVedicChapterNo(value, total) {
   const n = Number(value || 0);
-  const max = Math.max(1, Number(total || VEDIC_PREMIUM_CHAPTERS.length || 12));
+  const max = Math.max(1, Number(total || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length || 12));
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(max, Math.trunc(n)));
+}
+
+function normalizeVedicRuntimeStatus(value = "") {
+  const status = clean(value).toLowerCase();
+  if (status === "done") return "completed";
+  if (status === "running") return "generating";
+  if (status === "payment_verification" || status === "local_calculation") return "validating";
+  if (status === "llm_generation" || status === "writing_seed" || status === "writing_llm") return "generating";
+  if (status === "pdf_rendering" || status === "pdf_rendered") return "rendering";
+  if (["pending", "validating", "generating", "rendering", "completed", "failed", "not_found"].includes(status)) return status;
+  return status || "pending";
+}
+
+function resolveVedicProgressPercent(status, currentChapterNo = 0, totalChapters = VEDIC_PREMIUM_STATUS_CHAPTERS.length, provided) {
+  const direct = Number(provided);
+  if (Number.isFinite(direct)) return Math.max(0, Math.min(100, Math.round(direct)));
+  const normalized = normalizeVedicRuntimeStatus(status);
+  if (normalized === "completed" || normalized === "failed") return 100;
+  if (normalized === "pending") return 0;
+  if (normalized === "validating") return 5;
+  if (normalized === "rendering") return 90;
+  if (normalized === "generating") {
+    const total = Math.max(1, Number(totalChapters || VEDIC_PREMIUM_STATUS_CHAPTERS.length || 1));
+    const current = clampVedicChapterNo(currentChapterNo, total);
+    return Math.max(10, Math.min(80, 10 + Math.round((current / total) * 70)));
+  }
+  return 0;
 }
 
 function updateVedicSessionProgress(sessionId, progress = {}) {
   const key = clean(sessionId);
   if (!key || !vedicPremiumGenerationLocks.has(key)) return;
   const lock = vedicPremiumGenerationLocks.get(key) || {};
+  const stateKey = clean(progress.stateKey || progress.status || progress.stage || lock.progress?.stateKey || lock.status || "pending");
+  const status = normalizeVedicRuntimeStatus(progress.status || progress.stage || stateKey);
+  const totalChapters = Number(progress.totalChapters || lock.progress?.totalChapters || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length);
+  const currentChapterNo = clampVedicChapterNo(progress.currentChapterNo || progress.completedChapters || lock.progress?.currentChapterNo || 0, totalChapters);
+  const progressPercent = resolveVedicProgressPercent(status, currentChapterNo, totalChapters, progress.progress ?? progress.progressPercent);
   vedicPremiumGenerationLocks.set(key, {
     ...lock,
+    status,
+    stage: status,
     progress: {
       ...(lock.progress || {}),
       ...progress,
-      totalChapters: Number(progress.totalChapters || lock.progress?.totalChapters || VEDIC_PREMIUM_CHAPTERS.length),
+      stateKey: status,
+      progress: progressPercent,
+      progressPercent,
+      currentChapterNo,
+      totalChapters,
       updatedAt: new Date().toISOString(),
     },
   });
 }
 
 function buildVedicProgressPatch(stage, payload = {}) {
-  const totalChapters = VEDIC_PREMIUM_CHAPTERS.length;
+  const totalChapters = VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length;
   const chapterNo = clampVedicChapterNo(payload?.chapterNo || payload?.chapter || payload?.completed, totalChapters);
   switch (stage) {
     case "LocalCalculationJsonPrepared":
@@ -913,12 +974,13 @@ function buildVedicStatusPayload(lock = {}, fallback = {}) {
   const result = lock.result && typeof lock.result === "object" ? lock.result : null;
   const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
   const rawStatus = clean(lock.status || fallback.status || "");
-  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
-  const totalChapters = Number(progress.totalChapters || result?.chapterCount || VEDIC_PREMIUM_CHAPTERS.length);
+  const status = normalizeVedicRuntimeStatus(rawStatus || progress.stateKey || "pending");
+  const totalChapters = Number(progress.totalChapters || result?.expectedChapterCount || result?.chapterCount || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length);
   const currentChapterNo = clampVedicChapterNo(
-    progress.currentChapterNo || (status === "done" ? totalChapters : 0),
+    progress.currentChapterNo || (status === "completed" ? totalChapters : 0),
     totalChapters,
   );
+  const progressPercent = resolveVedicProgressPercent(status, currentChapterNo, totalChapters, progress.progress ?? progress.progressPercent);
   return {
     ok: true,
     serviceKey: "vedic-premium",
@@ -930,14 +992,16 @@ function buildVedicStatusPayload(lock = {}, fallback = {}) {
       completedAt: clean(lock.completedAt || result?.completedAt),
       failedAt: clean(lock.failedAt || fallback.failedAt),
       progress: {
-        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : status === "not_found" ? "not_found" : "writing_seed")),
+        stateKey: clean(progress.stateKey || status),
+        progress: progressPercent,
+        progressPercent,
         currentChapterNo,
         totalChapters,
         currentChapterTitle: clean(progress.currentChapterTitle),
         manuscriptSource: clean(progress.manuscriptSource || result?.manuscriptSource),
         updatedAt: clean(progress.updatedAt),
       },
-      result: status === "done" ? result : null,
+      result: status === "completed" ? result : null,
       pdfReady: result?.pdfReady || null,
       canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
       error: lock.error || fallback.error || null,
@@ -961,7 +1025,7 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     featureKey: VEDIC_PREMIUM_FEATURE_KEY,
     status: "completed",
     sessionId: resolvedSessionId,
-    chapterCount: Number(archive.chapterCount || chapters.length || VEDIC_PREMIUM_CHAPTERS.length),
+    chapterCount: Number(archive.chapterCount || chapters.length || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
     llmAssembly,
     llmAssemblyOnly: archive.llmAssemblyOnly === true || pdfReady.llmAssemblyOnly === true,
     externalCallsAllowed: archive.externalCallsAllowed === true || pdfReady.externalCallsAllowed === true,
@@ -985,8 +1049,10 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     finalChapterCount: chapters.length,
     progress: {
       stateKey: "completed",
-      currentChapterNo: VEDIC_PREMIUM_CHAPTERS.length,
-      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      progress: 100,
+      progressPercent: 100,
+      currentChapterNo: Number(archive.expectedChapterCount || archive.chapterCount || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
+      totalChapters: Number(archive.expectedChapterCount || archive.chapterCount || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
       currentChapterTitle: "완료",
       manuscriptSource,
     },
@@ -1205,7 +1271,7 @@ async function handleAstroPremiumPrepare(request, env) {
       return json({
         ok: true,
         deduped: true,
-        status: "running",
+        status: "generating",
         sessionId,
         startedAt: existingLock.startedAt,
         progress: buildAstroStatusPayload(existingLock).data.progress,
@@ -1215,7 +1281,7 @@ async function handleAstroPremiumPrepare(request, env) {
       return json({
         ...existingLock.result,
         deduped: true,
-        serverStatus: "done",
+        serverStatus: "completed",
         sessionId,
         progress: buildAstroStatusPayload(existingLock).data.progress,
       });
@@ -1231,6 +1297,8 @@ async function handleAstroPremiumPrepare(request, env) {
       stage: "request-received",
       progress: {
         stateKey: "payment_verification",
+        progress: 0,
+        progressPercent: 0,
         currentChapterNo: 0,
         totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
         currentChapterTitle: "결제 및 세션 확인",
@@ -1327,7 +1395,8 @@ async function handleAstroPremiumPrepare(request, env) {
     await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
 
     const validation = validateAstroPayloadForApi({ birthInput });
-    if (!validation.ok) {
+    const hasProvidedAstrologyChart = Boolean(body?.localAstroChartJson || body?.astrologyChart || body?.astroBase || body?.chart);
+    if (!validation.ok && !hasProvidedAstrologyChart) {
       const missingTime = validation.missing.includes("birthHour");
       const missingLocation = ["birthPlace", "latitude", "longitude"].some((key) => validation.missing.includes(key));
       const missingTimezone = ["timezone", "timezoneOffsetHours"].some((key) => validation.missing.includes(key));
@@ -1368,6 +1437,8 @@ async function handleAstroPremiumPrepare(request, env) {
         stage: "birth-input-invalid",
         progress: {
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterNo: 0,
           totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
           currentChapterTitle: "출생 정보 확인 실패",
@@ -1384,17 +1455,12 @@ async function handleAstroPremiumPrepare(request, env) {
     console.info("[AstroPremiumPDF][BirthInputValidated]", toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length));
     console.info("[AstroPremiumPDF][LocalCalculationStart]", toSafeBirthLog(birthInput));
     updateAstroSessionProgress(sessionId, {
-      stateKey: "local_calculation",
+      stateKey: "validating",
+      progress: 5,
+      progressPercent: 5,
       currentChapterNo: 0,
       totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-      currentChapterTitle: "출생 차트 계산",
-    });
-
-    updateAstroSessionProgress(sessionId, {
-      stateKey: "llm_generation",
-      currentChapterNo: 0,
-      totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-      currentChapterTitle: "점성술 리포트 본문 생성",
+      currentChapterTitle: "입력과 차트 데이터 검증",
     });
 
     const generated = await generateAstrologyPremiumPdfV2({
@@ -1420,13 +1486,17 @@ async function handleAstroPremiumPrepare(request, env) {
       requestUrl: request.url,
       reportId,
       sessionId,
-      onProgress: ({ chapter } = {}) => {
-        if (!chapter) return;
+      onProgress: (event = {}) => {
+        const chapter = event.chapter || {};
+        const totalChapters = Number(event.totalChapters || ASTRO_PREMIUM_CHAPTERS.length);
         updateAstroSessionProgress(sessionId, {
-          stateKey: "llm_generation",
-          currentChapterNo: Number(chapter.order || 0),
-          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-          currentChapterTitle: clean(chapter.title || "점성술 챕터 생성"),
+          stateKey: clean(event.stateKey || event.status || "generating"),
+          progress: Number.isFinite(Number(event.progress)) ? Number(event.progress) : undefined,
+          progressPercent: Number.isFinite(Number(event.progress)) ? Number(event.progress) : undefined,
+          currentChapterNo: Number.isFinite(Number(event.currentChapterNo)) ? Number(event.currentChapterNo) : Number(chapter.order || 0),
+          totalChapters,
+          currentChapterTitle: clean(event.currentChapterTitle || chapter.title || "점성술 챕터 생성"),
+          updatedAt: new Date().toISOString(),
         });
       },
     });
@@ -1483,8 +1553,10 @@ async function handleAstroPremiumPrepare(request, env) {
       stage: "completed",
       progress: {
         stateKey: "completed",
-        currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
-        totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+        progress: 100,
+        progressPercent: 100,
+        currentChapterNo: Number(generated.chapterCount || ASTRO_PREMIUM_CHAPTERS.length),
+        totalChapters: Number(generated.expectedChapterCount || ASTRO_PREMIUM_CHAPTERS.length),
         currentChapterTitle: "완료",
         manuscriptSource: generated.manuscriptSource,
         updatedAt: new Date().toISOString(),
@@ -1536,6 +1608,8 @@ async function handleAstroPremiumPrepare(request, env) {
         progress: {
           ...(previousLock.progress || {}),
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterTitle: "생성 오류",
           updatedAt: new Date().toISOString(),
         },
@@ -1598,20 +1672,21 @@ async function handleVedicPremiumPrepare(request, env) {
 
     compactVedicPremiumLocks();
     const existingLock = vedicPremiumGenerationLocks.get(vedicSessionId);
-    if (existingLock?.status === "running") {
+    if (existingLock && VEDIC_ACTIVE_STATUSES.has(normalizeVedicRuntimeStatus(existingLock?.status))) {
+      const payload = buildVedicStatusPayload(existingLock).data;
       return json({
         ok: true,
         deduped: true,
-        status: "running",
+        status: payload.status,
         sessionId: vedicSessionId,
         reportId: clean(existingLock.reportId || reportId),
         startedAt: existingLock.startedAt,
-        stage: clean(existingLock.stage || "running"),
-        progress: buildVedicStatusPayload(existingLock).data.progress,
+        stage: clean(payload.status),
+        progress: payload.progress,
         retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
       }, { status: 202 });
     }
-    if (existingLock?.status === "done" && existingLock?.result) {
+    if (["done", "completed"].includes(clean(existingLock?.status)) && existingLock?.result) {
       return json({
         ...existingLock.result,
         deduped: true,
@@ -1625,14 +1700,16 @@ async function handleVedicPremiumPrepare(request, env) {
       sessionId: vedicSessionId,
       reportId,
       userId: auth.userId,
-      status: "running",
+      status: "pending",
       startedAt: new Date().toISOString(),
       startedAtMs: Date.now(),
-      stage: "request-received",
+      stage: "pending",
       progress: {
-        stateKey: "payment_verification",
+        stateKey: "pending",
+        progress: 0,
+        progressPercent: 0,
         currentChapterNo: 0,
-        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
         currentChapterTitle: "결제 및 세션 확인",
         updatedAt: new Date().toISOString(),
       },
@@ -1661,8 +1738,10 @@ async function handleVedicPremiumPrepare(request, env) {
         stage: "birth-input-invalid",
         progress: {
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterNo: 0,
-          totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+          totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
           currentChapterTitle: "출생 정보 확인 실패",
           updatedAt: new Date().toISOString(),
         },
@@ -1685,6 +1764,13 @@ async function handleVedicPremiumPrepare(request, env) {
     }
 
     console.info("[VedicPremiumPDF][BirthInputValidated]", toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length));
+    updateVedicSessionProgress(vedicSessionId, {
+      stateKey: "validating",
+      progress: 5,
+      currentChapterNo: 0,
+      totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "결제 권한 확인",
+    });
 
     const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "vedicPremium", {
       ...body,
@@ -1718,8 +1804,10 @@ async function handleVedicPremiumPrepare(request, env) {
         stage: "access-denied",
         progress: {
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterNo: 0,
-          totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+          totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
           currentChapterTitle: "결제 권한 확인 실패",
           updatedAt: new Date().toISOString(),
         },
@@ -1760,9 +1848,10 @@ async function handleVedicPremiumPrepare(request, env) {
     });
     await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
     updateVedicSessionProgress(vedicSessionId, {
-      stateKey: "local_calculation",
+      stateKey: "validating",
+      progress: 5,
       currentChapterNo: 0,
-      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
       currentChapterTitle: "베다 차트 계산",
     });
 
@@ -1782,9 +1871,10 @@ async function handleVedicPremiumPrepare(request, env) {
     }
 
     updateVedicSessionProgress(vedicSessionId, {
-      stateKey: "llm_generation",
+      stateKey: "generating",
+      progress: 10,
       currentChapterNo: 0,
-      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
       currentChapterTitle: "베다점 리포트 본문 생성",
     });
 
@@ -1819,13 +1909,14 @@ async function handleVedicPremiumPrepare(request, env) {
       requestUrl: request.url,
       reportId,
       sessionId: vedicSessionId,
-      onProgress: ({ chapter } = {}) => {
-        if (!chapter) return;
+      onProgress: ({ stage, status, progress, chapter, completedChapters, totalChapters } = {}) => {
+        const stateKey = normalizeVedicRuntimeStatus(status || stage || (chapter ? "generating" : ""));
         updateVedicSessionProgress(vedicSessionId, {
-          stateKey: "llm_generation",
-          currentChapterNo: Number(chapter.order || 0),
-          totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
-          currentChapterTitle: clean(chapter.title || "베다점 챕터 생성"),
+          stateKey,
+          progress,
+          currentChapterNo: Number(chapter?.order || completedChapters || 0),
+          totalChapters: Number(totalChapters || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
+          currentChapterTitle: clean(chapter?.title || (stateKey === "rendering" ? "PDF 편집/렌더링" : stateKey === "validating" ? "베다 차트 검증" : "베다점 챕터 생성")),
         });
       },
     });
@@ -1877,15 +1968,17 @@ async function handleVedicPremiumPrepare(request, env) {
       sessionId: vedicSessionId,
       reportId,
       userId: auth.userId,
-      status: "done",
+      status: "completed",
       startedAt: vedicPremiumGenerationLocks.get(vedicSessionId)?.startedAt || new Date().toISOString(),
       startedAtMs: vedicPremiumGenerationLocks.get(vedicSessionId)?.startedAtMs || Date.now(),
       completedAt: new Date().toISOString(),
       stage: "completed",
       progress: {
         stateKey: "completed",
-        currentChapterNo: VEDIC_PREMIUM_CHAPTERS.length,
-        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        progress: 100,
+        progressPercent: 100,
+        currentChapterNo: Number(generated.expectedChapterCount || generated.chapterCount || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
+        totalChapters: Number(generated.expectedChapterCount || generated.chapterCount || VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
         currentChapterTitle: "완료",
         manuscriptSource: generated.manuscriptSource,
         updatedAt: new Date().toISOString(),
@@ -1941,6 +2034,8 @@ async function handleVedicPremiumPrepare(request, env) {
         progress: {
           ...(previousLock.progress || {}),
           stateKey: "failed",
+          progress: 100,
+          progressPercent: 100,
           currentChapterTitle: "생성 오류",
           updatedAt: new Date().toISOString(),
         },
@@ -1993,13 +2088,13 @@ async function handleVedicPremiumStatus(request, env) {
     ? vedicPremiumGenerationLocks.get(sessionId)
     : Array.from(vedicPremiumGenerationLocks.values()).find((state) => clean(state?.result?.reportId) === reportId);
   if (lock?.userId && lock.userId !== auth.userId) lock = null;
-  if (lock?.status === "running") {
+  if (lock && VEDIC_ACTIVE_STATUSES.has(normalizeVedicRuntimeStatus(lock.status))) {
     return json({
       ...buildVedicStatusPayload(lock, { sessionId, reportId }),
       retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
     }, { status: 202 });
   }
-  if (lock?.status === "done" && lock?.result) {
+  if (["done", "completed"].includes(clean(lock?.status)) && lock?.result) {
     return json({
       ...lock.result,
       deduped: true,
@@ -2045,8 +2140,10 @@ async function handleVedicPremiumStatus(request, env) {
       message: "베다점 PDF 결과를 찾지 못했습니다. 결제 완료 후 다시 생성해 주세요.",
       progress: {
         stateKey: "not_found",
+        progress: 100,
+        progressPercent: 100,
         currentChapterNo: 0,
-        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
         currentChapterTitle: "PDF 결과를 찾지 못했습니다",
       },
     }, { status: 404 });
@@ -2069,8 +2166,10 @@ async function handleVedicPremiumStatus(request, env) {
       failureStage: clean(doc.failureStage || doc.reasonCode || "generation"),
       progress: {
         stateKey: "failed",
+        progress: 100,
+        progressPercent: 100,
         currentChapterNo: 0,
-        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
         currentChapterTitle: "PDF 생성에 실패했습니다",
       },
       message: clean(doc.reasonMessage || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
@@ -2086,9 +2185,11 @@ async function handleVedicPremiumStatus(request, env) {
     reportId: clean(doc.reportId || reportId),
     stage: clean(doc.premiumStatus || "generating"),
     progress: {
-      stateKey: clean(doc.premiumStatus || "generating"),
+      stateKey: normalizeVedicRuntimeStatus(doc.premiumStatus || "generating"),
+      progress: resolveVedicProgressPercent(doc.premiumStatus || "generating", 0, VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
+      progressPercent: resolveVedicProgressPercent(doc.premiumStatus || "generating", 0, VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length),
       currentChapterNo: 0,
-      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      totalChapters: VEDIC_PREMIUM_STATUS_CHAPTERS.length || VEDIC_PREMIUM_CHAPTERS.length,
       currentChapterTitle: "PDF 결과를 확인하는 중입니다",
     },
     retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
@@ -2138,8 +2239,8 @@ export async function handleAstroRoutes(request, env) {
         return json({
           ok: true,
           featureKey: VEDIC_PREMIUM_FEATURE_KEY,
-          chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
-          chapters: VEDIC_PREMIUM_CHAPTERS,
+          chapterCount: VEDIC_PREMIUM_STATUS_CHAPTERS.length,
+          chapters: VEDIC_PREMIUM_STATUS_CHAPTERS,
         });
       }
       if (path === "/premium/prepare") {

@@ -2,10 +2,12 @@ import { asArray, clean, safeObject, stripTags } from "./love-secret-premium.typ
 
 const unsafeValuePattern = /\b(?:undefined|null|NaN|\[object Object\])\b/i;
 const markdownPattern = /```|^\s{0,3}#{1,6}\s|\*\*[^*]+\*\*/m;
-const internalPattern = /\b(?:schema|json|payload|debug|prompt|api|rawResultSummary|calculationMode|localAssembly|fallback|templateParagraphBuilder|renderRawJsonReport|Workers AI|Gemini|provider|modelName)\b/i;
+const internalPattern = /\b(?:schema|json|payload|debug|prompt|api|rawResultSummary|calculationMode|localAssembly|fallback|templateParagraphBuilder|renderRawJsonReport|Workers AI|Gemini|provider|modelName|AI로 생성된|AI 생성)\b/i;
+const jsonOnlyPattern = /^\s*(?:\{[\s\S]*\}|\[[\s\S]*\])\s*$/;
 const rawJsonPattern = /^\s*[\[{]|"[^"]+"\s*:/m;
-const brokenEncodingPattern = /�|\?[\u3131-\uD7A3]|(?:Ã|Â|ì|ë|í|ê|ð|濡|怨|媛|\?쒖|\?곗|\?앹)/;
-const overCertaintyPattern = /(?:100\s*%|무조건|반드시|절대|필연적으로|운명적으로)\s*(?:재회|결혼|이별|이어진다|헤어진다|만난다)|(?:결혼|재회|이별)\s*(?:확정|보장)/;
+const forbiddenSamplePattern = /(?:Lorem ipsum|샘플|예시 텍스트|sample chapter|mock|placeholder)/i;
+const brokenEncodingPattern = /占?\?[\u3131-\uD7A3]|(?:횄|횂|챙|챘|챠|챗|챨|嚥|揶|�)/;
+const overCertaintyPattern = /(?:100\s*%|무조건|반드시\s*(?:결혼|이별|헤어|재회|만난다|끝난다)|망한다|저주|파멸)/i;
 
 function escapeRegExp(value) {
   return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -30,10 +32,6 @@ function extractTagTexts(html, tag) {
   return texts;
 }
 
-function sectionTitle(value) {
-  return clean(value?.title || value?.name || value);
-}
-
 function duplicateItems(items, minLength = 18) {
   const seen = new Map();
   const duplicates = [];
@@ -47,29 +45,47 @@ function duplicateItems(items, minLength = 18) {
   return duplicates;
 }
 
-function countSections(html) {
-  return (String(html || "").match(/<section\b/gi) || []).length;
+function findChapterSection(html, chapterId) {
+  const id = escapeRegExp(chapterId);
+  const source = String(html || "");
+  const re = new RegExp(`<section\\b(?=[^>]*class=["'][^"']*\\blove-secret-chapter\\b[^"']*["'])(?=[^>]*data-chapter-id=["']${id}["'])[^>]*>[\\s\\S]*?<\\/section>`, "i");
+  const match = source.match(re);
+  return match ? match[0] : "";
 }
 
-function countParagraphs(html) {
-  return (String(html || "").match(/<p\b/gi) || []).length;
+function hasClass(html, className) {
+  return new RegExp(`class=["'][^"']*\\b${escapeRegExp(className)}\\b[^"']*["']`, "i").test(String(html || ""));
 }
 
-function hasArticleId(html, chapterId) {
-  return new RegExp(`<article\\b[^>]*data-chapter-id=["']${escapeRegExp(chapterId)}["']`, "i").test(String(html || ""));
+function countChapterSections(html, chapterId) {
+  const id = escapeRegExp(chapterId);
+  const source = String(html || "");
+  const re = new RegExp(`<section\\b(?=[^>]*class=["'][^"']*\\blove-secret-chapter\\b[^"']*["'])(?=[^>]*data-chapter-id=["']${id}["'])`, "gi");
+  return (source.match(re) || []).length;
+}
+
+function missingRequiredPerspectives(text, chapter = {}) {
+  const source = stripTags(text);
+  return asArray(chapter.requiredPerspectives).filter((item) => !source.includes(clean(item)));
 }
 
 export function parseLoveSecretPremiumChapterHtml(html = "", chapter = {}) {
   const source = String(html || "").trim();
+  const chapterId = clean(chapter.id);
+  const section = findChapterSection(source, chapterId);
   return {
     html: source,
-    text: stripTags(source),
-    h1: clean(extractFirstTagText(source, "h1")),
-    h2: extractTagTexts(source, "h2").map((item) => clean(item)).filter(Boolean),
-    paragraphs: extractTagTexts(source, "p").map((item) => clean(item)).filter(Boolean),
-    hasArticle: hasArticleId(source, clean(chapter.id)),
-    sectionCount: countSections(source),
-    paragraphCount: countParagraphs(source),
+    chapterSectionHtml: section,
+    text: stripTags(section || source),
+    h2: clean(extractFirstTagText(section || source, "h2")),
+    h3: extractTagTexts(section || source, "h3").map((item) => clean(item)).filter(Boolean),
+    paragraphs: extractTagTexts(section || source, "p").map((item) => clean(item)).filter(Boolean),
+    listItems: extractTagTexts(section || source, "li").map((item) => clean(item)).filter(Boolean),
+    hasChapterSection: Boolean(section),
+    hasSummary: hasClass(section, "chapter-summary"),
+    hasBody: hasClass(section, "chapter-body"),
+    hasAdvice: hasClass(section, "chapter-advice"),
+    chapterSectionCount: countChapterSections(source, chapterId),
   };
 }
 
@@ -78,27 +94,28 @@ export function validateLoveSecretPremiumChapterHtml(html = "", chapter = {}) {
   const source = String(html || "");
   const parsed = parseLoveSecretPremiumChapterHtml(source, chapter);
   const title = clean(chapter.title);
-  const sections = asArray(chapter.sections).map(sectionTitle).filter(Boolean);
   const textLength = clean(parsed.text).replace(/\s/g, "").length;
 
   if (!clean(source)) errors.push("empty_html");
   if (markdownPattern.test(source)) errors.push("markdown_or_code_fence");
-  if (rawJsonPattern.test(source)) errors.push("raw_json_like_output");
+  if (jsonOnlyPattern.test(source) || rawJsonPattern.test(source)) errors.push("raw_json_like_output");
   if (internalPattern.test(source)) errors.push("internal_key_leak");
   if (unsafeValuePattern.test(source)) errors.push("unsafe_value_leak");
+  if (forbiddenSamplePattern.test(source)) errors.push("sample_or_placeholder_text");
   if (brokenEncodingPattern.test(source)) errors.push("broken_encoding_noise");
   if (overCertaintyPattern.test(source)) errors.push("over_certain_love_claim");
-  if (!parsed.hasArticle) errors.push("article_id_missing");
-  if (parsed.h1 !== title) errors.push("h1_title_mismatch");
-  for (const section of sections) {
-    const count = parsed.h2.filter((item) => item === section).length;
-    if (count !== 1) errors.push(`h2_missing_or_duplicated:${section}`);
-  }
-  if (parsed.sectionCount < sections.length) errors.push("section_missing");
-  if (parsed.paragraphCount < sections.length * 2) errors.push("section_paragraph_missing");
-  if (textLength < Number(chapter.minLength || 1200)) errors.push("chapter_too_short");
-  if (duplicateItems(parsed.h2, 8).length) errors.push("repeated_heading");
+  if (!parsed.hasChapterSection) errors.push("chapter_section_missing");
+  if (parsed.chapterSectionCount !== 1) errors.push(`chapter_section_count:${parsed.chapterSectionCount}`);
+  if (parsed.h2 !== title) errors.push("h2_title_mismatch");
+  if (!parsed.hasSummary) errors.push("chapter_summary_missing");
+  if (!parsed.hasBody) errors.push("chapter_body_missing");
+  if (!parsed.hasAdvice) errors.push("chapter_advice_missing");
+  if (parsed.paragraphs.length < 5) errors.push("paragraph_count_too_low");
+  if (parsed.listItems.length < 3) errors.push("advice_list_too_low");
+  if (textLength < Number(chapter.minLength || 1500)) errors.push("chapter_too_short");
   if (duplicateItems(parsed.paragraphs, 32).length) errors.push("repeated_paragraph");
+  const missingPerspectives = missingRequiredPerspectives(parsed.text, chapter);
+  if (missingPerspectives.length) errors.push(`required_perspective_missing:${missingPerspectives.join("|")}`);
 
   return {
     ok: errors.length === 0,
@@ -110,14 +127,18 @@ export function validateLoveSecretPremiumChapterHtml(html = "", chapter = {}) {
 
 export function assertAllConfiguredChaptersIncluded({ html = "", chapters = [] } = {}) {
   const missing = [];
+  const duplicated = [];
   for (const chapter of asArray(chapters)) {
-    if (!hasArticleId(html, clean(chapter.id))) missing.push(clean(chapter.id));
+    const count = countChapterSections(html, clean(chapter.id));
+    if (count === 0) missing.push(clean(chapter.id));
+    if (count > 1) duplicated.push(`${clean(chapter.id)}:${count}`);
   }
-  if (missing.length) {
-    const error = new Error(`LOVE_SECRET_CHAPTERS_MISSING:${missing.join(",")}`);
-    error.code = "LOVE_SECRET_CHAPTERS_MISSING";
+  if (missing.length || duplicated.length) {
+    const error = new Error(`LOVE_SECRET_CHAPTER_RENDER_INVALID:${missing.join(",")}:${duplicated.join(",")}`);
+    error.code = "LOVE_SECRET_CHAPTER_RENDER_INVALID";
     error.status = 422;
     error.missing = missing;
+    error.duplicated = duplicated;
     throw error;
   }
   return true;
@@ -125,7 +146,7 @@ export function assertAllConfiguredChaptersIncluded({ html = "", chapters = [] }
 
 export function assertNoRawJsonLeak(html = "") {
   const source = String(html || "");
-  const rawJsonMatch = source.match(rawJsonPattern);
+  const rawJsonMatch = source.match(jsonOnlyPattern) || source.match(rawJsonPattern);
   const internalMatch = source.match(internalPattern);
   if (rawJsonMatch || internalMatch) {
     const error = new Error("LOVE_SECRET_RAW_JSON_OR_INTERNAL_LEAK");
@@ -152,7 +173,8 @@ export function assertNoUndefinedValues(html = "") {
 
 export function assertNoForeignSystemTermsLeaked(html = "") {
   const source = String(html || "");
-  if (markdownPattern.test(source) || brokenEncodingPattern.test(source) || overCertaintyPattern.test(source)) {
+  const text = stripTags(source);
+  if (markdownPattern.test(source) || forbiddenSamplePattern.test(text) || brokenEncodingPattern.test(text) || overCertaintyPattern.test(text)) {
     const error = new Error("LOVE_SECRET_FOREIGN_OR_UNSAFE_TEXT_LEAK");
     error.code = "LOVE_SECRET_FOREIGN_OR_UNSAFE_TEXT_LEAK";
     error.status = 422;
@@ -164,24 +186,23 @@ export function assertNoForeignSystemTermsLeaked(html = "") {
 export function validateLoveSecretFinalReportHtml({ html = "", chapters = [] } = {}) {
   const errors = [];
   const source = String(html || "");
+  const text = stripTags(source);
   if (!clean(source)) errors.push("empty_html");
   if (!/<html\b/i.test(source) || !/<body\b/i.test(source)) errors.push("document_shell_missing");
   if (markdownPattern.test(source)) errors.push("markdown_or_code_fence");
-  if (rawJsonPattern.test(source)) errors.push("raw_json_like_output");
+  if (jsonOnlyPattern.test(source) || rawJsonPattern.test(source)) errors.push("raw_json_like_output");
   if (internalPattern.test(source)) errors.push("internal_key_leak");
   if (unsafeValuePattern.test(source)) errors.push("unsafe_value_leak");
-  if (brokenEncodingPattern.test(source)) errors.push("broken_encoding_noise");
-  if (overCertaintyPattern.test(source)) errors.push("over_certain_love_claim");
+  if (forbiddenSamplePattern.test(text)) errors.push("sample_or_placeholder_text");
+  if (brokenEncodingPattern.test(text)) errors.push("broken_encoding_noise");
+  if (overCertaintyPattern.test(text)) errors.push("over_certain_love_claim");
   for (const chapter of asArray(chapters)) {
-    if (!hasArticleId(source, clean(chapter.id))) errors.push(`chapter_missing:${clean(chapter.id)}`);
-    for (const section of asArray(chapter.sections).map(sectionTitle).filter(Boolean)) {
-      if (!new RegExp(`<h2\\b[^>]*>\\s*${escapeRegExp(section)}\\s*<\\/h2>`, "i").test(source)) {
-        errors.push(`section_missing:${clean(chapter.id)}:${section}`);
-      }
-    }
+    const count = countChapterSections(source, clean(chapter.id));
+    if (count !== 1) errors.push(`chapter_render_count:${clean(chapter.id)}:${count}`);
+    const section = findChapterSection(source, clean(chapter.id));
+    const validation = validateLoveSecretPremiumChapterHtml(section, chapter);
+    if (!validation.ok) errors.push(...validation.errors.map((error) => `chapter:${clean(chapter.id)}:${error}`));
   }
-  const chapterHeadings = extractTagTexts(source, "h1");
-  if (duplicateItems(chapterHeadings, 8).length) errors.push("repeated_heading");
   if (duplicateItems(extractTagTexts(source, "p"), 36).length) errors.push("repeated_paragraph");
   return { ok: errors.length === 0, errors };
 }
@@ -195,7 +216,7 @@ export function validateLoveSecretPdfCompletionPayload(payload = {}) {
   const errors = [];
 
   if (!chapters.length) errors.push("chapters_empty");
-  if (expectedChapterCount > 0 && chapters.length < expectedChapterCount) errors.push("chapter_count_mismatch");
+  if (expectedChapterCount > 0 && chapters.length !== expectedChapterCount) errors.push("chapter_count_mismatch");
   if (chapters.some((chapter) => !["completed", "cached"].includes(clean(chapter.status)))) errors.push("chapter_not_completed");
   if (chapters.some((chapter) => !["llm", "llm-cache"].includes(clean(chapter.source)))) errors.push("chapter_source_not_llm");
   if (llmAssembly.enabled !== true || llmAssembly.externalGeneration !== true) errors.push("llm_assembly_not_external");

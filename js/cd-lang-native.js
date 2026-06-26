@@ -30,7 +30,24 @@
     nl: 'nl',
     ms: 'ms'
   };
+  var MISSING_TEXT_BY_LANG = {
+    ko: '번역을 준비 중입니다',
+    en: 'Translation pending',
+    ja: '翻訳を準備しています',
+    'zh-CN': '翻译准备中',
+    'zh-TW': '翻譯準備中',
+    vi: 'Đang chuẩn bị bản dịch',
+    hi: 'अनुवाद तैयार हो रहा है',
+    es: 'Traducción en preparación',
+    fr: 'Traduction en préparation',
+    de: 'Übersetzung wird vorbereitet',
+    nl: 'Vertaling wordt voorbereid',
+    ms: 'Terjemahan sedang disediakan'
+  };
   var dictionaryCache = {};
+  var activeDictionary = null;
+  var activeDictionaryLang = 'ko';
+  var missingKeyLog = {};
   var applying = false;
 
   function isSupportedLang(lang) {
@@ -55,6 +72,18 @@
     return '';
   }
 
+  function readCookie(name) {
+    try {
+      var prefix = name + '=';
+      var parts = String(document.cookie || '').split(';');
+      for (var i = 0; i < parts.length; i += 1) {
+        var item = parts[i].trim();
+        if (item.indexOf(prefix) === 0) return decodeURIComponent(item.slice(prefix.length));
+      }
+    } catch (_) {}
+    return '';
+  }
+
   function getSavedLang() {
     var urlLang = getUrlLang();
     if (urlLang) return urlLang;
@@ -62,11 +91,14 @@
       var stored = localStorage.getItem('cd_lang');
       if (stored) return normalizeLang(stored);
     } catch (_) {}
+    var cookieLang = readCookie('cd_locale');
+    if (cookieLang) return normalizeLang(cookieLang);
     return 'ko';
   }
 
   function setSavedLang(lang) {
     try { localStorage.setItem('cd_lang', lang); } catch (_) {}
+    writeCookie('cd_locale', lang, 315360000);
   }
 
   function writeCookie(name, value, maxAge) {
@@ -88,6 +120,7 @@
   function updateLanguageUi(lang) {
     if (document.documentElement) {
       document.documentElement.setAttribute('data-cd-lang', lang);
+      document.documentElement.setAttribute('lang', lang === 'zh-CN' ? 'zh-CN' : lang === 'zh-TW' ? 'zh-TW' : lang);
     }
     var label = document.getElementById('langLabel') || document.getElementById('translateLangLabel');
     if (label) label.textContent = LABEL_BY_LANG[lang] || lang.toUpperCase();
@@ -126,6 +159,44 @@
     }, source);
   }
 
+  function interpolate(value, vars) {
+    if (!vars || typeof vars !== 'object') return value;
+    return String(value || '').replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}|\{\s*([a-zA-Z0-9_.-]+)\s*\}/g, function (_, doubleKey, singleKey) {
+      var key = doubleKey || singleKey;
+      return Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : '';
+    });
+  }
+
+  function readVars(el) {
+    var raw = el && el.getAttribute && el.getAttribute('data-cd-vars');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function missingText(lang) {
+    return MISSING_TEXT_BY_LANG[lang] || MISSING_TEXT_BY_LANG.en;
+  }
+
+  function reportMissingKey(lang, key, attrName) {
+    var id = [lang, key, attrName || 'text'].join('|');
+    if (missingKeyLog[id]) return;
+    missingKeyLog[id] = true;
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[cd-i18n-missing]', { lang: lang, key: key, attr: attrName || 'text' });
+    }
+  }
+
+  function resolveValue(dictionary, key, lang, attrName) {
+    var value = valueAtPath(dictionary, key);
+    if (typeof value === 'string') return value;
+    reportMissingKey(lang, key, attrName);
+    return missingText(lang);
+  }
+
   function loadDictionary(lang) {
     var file = I18N_FILE_BY_LANG[lang];
     if (!file) return Promise.resolve(null);
@@ -143,31 +214,63 @@
   }
 
   function markNativeNodes() {
-    Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], .custom-trans'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
       el.classList.add('notranslate');
       if (!el.hasAttribute('data-cd-origin-text')) {
         el.setAttribute('data-cd-origin-text', el.textContent || '');
       }
+      var attrSpec = el.getAttribute('data-cd-trans-attr') || '';
+      attrSpec.split(',').map(function (item) { return item.trim(); }).filter(Boolean).forEach(function (item) {
+        var attrName = item.split(':')[0].trim();
+        if (!attrName) return;
+        var originName = 'data-cd-origin-attr-' + attrName.replace(/[^a-zA-Z0-9_-]/g, '-');
+        if (!el.hasAttribute(originName)) {
+          el.setAttribute(originName, el.getAttribute(attrName) || '');
+        }
+      });
+    });
+  }
+
+  function applyAttributeTranslations(el, dictionary, lang, vars) {
+    var attrSpec = el.getAttribute('data-cd-trans-attr') || '';
+    attrSpec.split(',').map(function (item) { return item.trim(); }).filter(Boolean).forEach(function (item) {
+      var parts = item.split(':');
+      var attrName = String(parts.shift() || '').trim();
+      var attrKey = String(parts.join(':') || '').trim();
+      if (!attrName || !attrKey) return;
+      var value = interpolate(resolveValue(dictionary, attrKey, lang, attrName), vars);
+      el.setAttribute(attrName, value);
     });
   }
 
   function applyNativeTranslations(lang) {
     markNativeNodes();
     if (lang === 'ko') {
-      Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], .custom-trans'), function (el) {
+      activeDictionary = null;
+      activeDictionaryLang = 'ko';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
         if (el.hasAttribute('data-cd-origin-text')) {
           el.textContent = el.getAttribute('data-cd-origin-text') || '';
         }
+        var attrSpec = el.getAttribute('data-cd-trans-attr') || '';
+        attrSpec.split(',').map(function (item) { return item.trim(); }).filter(Boolean).forEach(function (item) {
+          var attrName = item.split(':')[0].trim();
+          if (!attrName) return;
+          var originName = 'data-cd-origin-attr-' + attrName.replace(/[^a-zA-Z0-9_-]/g, '-');
+          if (el.hasAttribute(originName)) el.setAttribute(attrName, el.getAttribute(originName) || '');
+        });
       });
       return Promise.resolve();
     }
     return loadDictionary(lang).then(function (dictionary) {
-      if (!dictionary) return;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], .custom-trans'), function (el) {
+      if (!dictionary) dictionary = {};
+      activeDictionary = dictionary;
+      activeDictionaryLang = lang;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
         var key = el.getAttribute('data-key') || el.getAttribute('data-cd-trans');
-        if (!key) return;
-        var value = valueAtPath(dictionary, key);
-        if (typeof value === 'string') el.textContent = value;
+        var vars = readVars(el);
+        if (key) el.textContent = interpolate(resolveValue(dictionary, key, lang, 'text'), vars);
+        applyAttributeTranslations(el, dictionary, lang, vars);
       });
     });
   }
@@ -189,6 +292,13 @@
 
   window.changeLanguage = nativeChangeLanguage;
   window.cdApplyNativeTranslations = applyNativeTranslations;
+  window.cdGetCurrentLanguage = getSavedLang;
+  window.cdTranslate = function (key, vars, fallback) {
+    var lang = getSavedLang();
+    if (lang === 'ko') return typeof fallback === 'string' ? fallback : key;
+    if (!activeDictionary || activeDictionaryLang !== lang) return typeof fallback === 'string' ? interpolate(fallback, vars || {}) : missingText(lang);
+    return interpolate(resolveValue(activeDictionary, key, lang, 'text'), vars || {});
+  };
   window.__cdShouldSkipGoogleTranslate = shouldSkipGoogleTranslate;
   window.__cdNativeLangBound = true;
   window.__cdNativeIncludedLanguages = INCLUDED_GT_LANGUAGES;

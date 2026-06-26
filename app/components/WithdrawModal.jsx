@@ -84,7 +84,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
       const data = await res.json();
       csrfTokenRef.current = data.csrfToken || "";
     } catch (e) {
-      setError("보안 토큰을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(withdrawModalText("withdrawModal.001"));
     }
   }, [apiBase]);
 
@@ -126,19 +126,19 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
 
     // 클라이언트 사전 검증
     if (!agreeIrreversible || !agreeDataDeletion) {
-      setError("모든 동의 항목을 체크해 주세요.");
+      setError(withdrawModalText("withdrawModal.002"));
       return;
     }
     if (confirmText.trim() !== "회원탈퇴") {
-      setError('"회원탈퇴"를 정확히 입력해 주세요.');
+      setError(withdrawModalText("withdrawModal.003"));
       return;
     }
     if (hasLocalAuth && password.length < 8) {
-      setError("현재 비밀번호를 입력해 주세요. (8자 이상)");
+      setError(withdrawModalText("withdrawModal.004"));
       return;
     }
     if (!csrfTokenRef.current) {
-      setError("보안 토큰이 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.");
+      setError(withdrawModalText("withdrawModal.005"));
       return;
     }
 
@@ -187,7 +187,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
         window.location.replace("/");
       }, 3000);
     } catch (err) {
-      setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(withdrawModalText("withdrawModal.006"));
       console.error("[WithdrawModal] 제출 오류:", err);
     } finally {
       setIsSubmitting(false);
@@ -238,7 +238,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
               ref={closeButtonRef}
               onClick={onClose}
               className="text-white/80 hover:text-white transition-colors"
-              aria-label="모달 닫기"
+              aria-label={withdrawModalText("withdrawModal.007")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -284,9 +284,9 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
                   탈퇴 전 반드시 확인하세요
                 </p>
                 <ul className="text-xs text-red-600 dark:text-red-400 space-y-1 list-disc list-inside">
-                  <li>보유 포인트 및 모든 데이터가 <strong>즉시 영구 삭제</strong>됩니다.</li>
-                  <li>탈퇴 후 동일 이메일로 재가입 시 이전 데이터는 <strong>복구 불가</strong>합니다.</li>
-                  <li>법적 의무에 따라 결제 거래 기록은 5년간 익명화 보관됩니다.</li>
+                  <li>{withdrawModalText("withdrawModal.008")} <strong>{withdrawModalText("withdrawModal.009")}</strong>{withdrawModalText("withdrawModal.010")}</li>
+                  <li>{withdrawModalText("withdrawModal.011")} <strong>{withdrawModalText("withdrawModal.012")}</strong>{withdrawModalText("withdrawModal.013")}</li>
+                  <li>{withdrawModalText("withdrawModal.014")}</li>
                 </ul>
               </div>
 
@@ -306,7 +306,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="현재 비밀번호를 입력하세요"
+                    placeholder={withdrawModalText("withdrawModal.015")}
                     disabled={isSubmitting}
                     className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                     required
@@ -332,7 +332,7 @@ export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) 
                   autoComplete="off"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  placeholder="회원탈퇴"
+                  placeholder={withdrawModalText("withdrawModal.016")}
                   disabled={isSubmitting}
                   className="w-full px-4 py-2.5 text-sm border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                   required

@@ -15,6 +15,37 @@ import TwelveAnimalResultCard from "./TwelveAnimalResultCard";
 import TwelveAnimalShareCard from "./TwelveAnimalShareCard";
 import TwelveAnimalTabs from "./TwelveAnimalTabs";
 
+const ANIMAL_RESULT_SCREEN_TEXT_TRANSLATIONS = {
+  ko: {
+    "animalResult.001": "본질 성격",
+    "animalResult.002": "연애 흐름",
+    "animalResult.003": "일과 진로",
+    "animalResult.004": "재물 감각",
+    "animalResult.005": "관계 방식",
+    "animalResult.006": "오늘의 개운",
+    "animalResult.007": "연주",
+    "animalResult.008": "바깥 인상",
+    "animalResult.009": "월주",
+    "animalResult.010": "사회 운영",
+    "animalResult.011": "일주",
+    "animalResult.012": "본질과 친밀감",
+    "animalResult.013": "시주",
+    "animalResult.014": "잠재력",
+    "animalResult.015": "피어나는 운",
+    "animalResult.016": "기회와 표현",
+    "animalResult.017": "밖으로 나가 말하고 보여 줄수록 운이 선명해지는 축입니다.",
+    "animalResult.018": "다듬는 운",
+    "animalResult.019": "정리와 회복",
+    "animalResult.020": "속도를 낮추고 기준을 세울수록 실속과 회복력이 커지는 축입니다.",
+    "animalResult.021": "새로 여는 운",
+    "animalResult.022": "전환과 양육",
+    "animalResult.023": "비우고 준비하고 돌보는 과정을 통해 다음 가능성이 열리는 축입니다.",
+  },
+} as const;
+
+function animalResultScreenText(key: keyof typeof ANIMAL_RESULT_SCREEN_TEXT_TRANSLATIONS.ko) {
+  return ANIMAL_RESULT_SCREEN_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 type Props = {
   animal: AnimalDestinyData;
   twelveStages: TwelveStagePillars;
@@ -33,12 +64,12 @@ type StageRhythmKey = "expand" | "refine" | "renew";
 
 const PILLAR_ORDER: PillarKey[] = ["year", "month", "day", "hour"];
 const DETAILED_REPORT_SECTIONS = [
-  { key: "personality", title: "본질 성격" },
-  { key: "love", title: "연애 흐름" },
-  { key: "career", title: "일과 진로" },
-  { key: "wealth", title: "재물 감각" },
-  { key: "relationship", title: "관계 방식" },
-  { key: "today", title: "오늘의 개운" },
+  { key: "personality", title: animalResultScreenText("animalResult.001") },
+  { key: "love", title: animalResultScreenText("animalResult.002") },
+  { key: "career", title: animalResultScreenText("animalResult.003") },
+  { key: "wealth", title: animalResultScreenText("animalResult.004") },
+  { key: "relationship", title: animalResultScreenText("animalResult.005") },
+  { key: "today", title: animalResultScreenText("animalResult.006") },
 ] as const;
 
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
@@ -46,26 +77,26 @@ const DETAILED_REPORT_SECTIONS = [
 
 const PILLAR_META: Record<PillarKey, { label: string; title: string; meaning: string; focus: string }> = {
   year: {
-    label: "연주",
-    title: "바깥 인상",
+    label: animalResultScreenText("animalResult.007"),
+    title: animalResultScreenText("animalResult.008"),
     meaning: "사회적 첫인상, 어린 시절의 분위기, 넓은 인간관계",
     focus: "처음 만나는 사람 앞에서 어떤 에너지로 기억되는지 보여줍니다.",
   },
   month: {
-    label: "월주",
-    title: "사회 운영",
+    label: animalResultScreenText("animalResult.009"),
+    title: animalResultScreenText("animalResult.010"),
     meaning: "직업성, 성장 환경, 실무 감각, 현실 대응 방식",
     focus: "일과 책임을 맡을 때 어떤 방식으로 성과를 만드는지 보여줍니다.",
   },
   day: {
-    label: "일주",
-    title: "본질과 친밀감",
+    label: animalResultScreenText("animalResult.011"),
+    title: animalResultScreenText("animalResult.012"),
     meaning: "나의 본질, 연애 방식, 배우자궁, 가까운 관계",
     focus: "대표 동물을 정하는 핵심 축이며, 마음을 여는 방식과 가장 깊게 연결됩니다.",
   },
   hour: {
-    label: "시주",
-    title: "잠재력",
+    label: animalResultScreenText("animalResult.013"),
+    title: animalResultScreenText("animalResult.014"),
     meaning: "미래 방향, 창의성, 후반 운, 깊은 욕망",
     focus: "시간 정보가 있을 때 숨은 재능과 후반부 성장 방향을 보완합니다.",
   },
@@ -74,22 +105,22 @@ const PILLAR_META: Record<PillarKey, { label: string; title: string; meaning: st
 const STAGE_RHYTHM_ORDER: StageRhythmKey[] = ["expand", "refine", "renew"];
 const STAGE_RHYTHM_META: Record<StageRhythmKey, { label: string; title: string; stages: string; message: string }> = {
   expand: {
-    label: "피어나는 운",
-    title: "기회와 표현",
+    label: animalResultScreenText("animalResult.015"),
+    title: animalResultScreenText("animalResult.016"),
     stages: "장생·목욕·관대·건록·제왕",
-    message: "밖으로 나가 말하고 보여 줄수록 운이 선명해지는 축입니다.",
+    message: animalResultScreenText("animalResult.017"),
   },
   refine: {
-    label: "다듬는 운",
-    title: "정리와 회복",
+    label: animalResultScreenText("animalResult.018"),
+    title: animalResultScreenText("animalResult.019"),
     stages: "쇠·병·사·묘",
-    message: "속도를 낮추고 기준을 세울수록 실속과 회복력이 커지는 축입니다.",
+    message: animalResultScreenText("animalResult.020"),
   },
   renew: {
-    label: "새로 여는 운",
-    title: "전환과 양육",
+    label: animalResultScreenText("animalResult.021"),
+    title: animalResultScreenText("animalResult.022"),
     stages: "절·태·양",
-    message: "비우고 준비하고 돌보는 과정을 통해 다음 가능성이 열리는 축입니다.",
+    message: animalResultScreenText("animalResult.023"),
   },
 };
 

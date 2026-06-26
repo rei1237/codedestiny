@@ -34,6 +34,21 @@ const SUBSCRIPTION_NOTICE_COPY: Record<LoadingLocale, {
   ms: { tierPremium: "Premium", tierStandard: "Standard", tierDefault: "Pas", defaultMessage: "Manfaat pas anda telah membuka bacaan ini dalam aliran cahaya bulan. Cahaya bintang memberkati perjalanan ini dengan lembut.", defaultReason: "Bacaan premium", title: "Manfaat pas digunakan", tierLabel: "Tahap pas", benefitLabel: "Manfaat digunakan", benefitValue: "Manfaat pas digunakan", serviceLabel: "Servis", button: "Teruskan bacaan kosmik" },
 };
 
+const SUBSCRIPTION_NOTICE_BADGE_COPY: Record<LoadingLocale, string> = {
+  ko: "COSMIC PASS ACTIVE",
+  en: "COSMIC PASS ACTIVE",
+  ja: "COSMIC PASS ACTIVE",
+  "zh-CN": "COSMIC PASS ACTIVE",
+  "zh-TW": "COSMIC PASS ACTIVE",
+  vi: "COSMIC PASS ACTIVE",
+  hi: "COSMIC PASS ACTIVE",
+  es: "COSMIC PASS ACTIVE",
+  fr: "COSMIC PASS ACTIVE",
+  de: "COSMIC PASS ACTIVE",
+  nl: "COSMIC PASS ACTIVE",
+  ms: "COSMIC PASS ACTIVE",
+};
+
 export function getSubscriptionTierLabel(tierRaw?: unknown, localeRaw: LoadingLocale = "ko"): string {
   const copy = SUBSCRIPTION_NOTICE_COPY[localeRaw] || SUBSCRIPTION_NOTICE_COPY.ko;
   let tier = String(tierRaw || "").trim().toLowerCase();
@@ -67,6 +82,7 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
 
   const locale = getCurrentLoadingLocale();
   const copy = SUBSCRIPTION_NOTICE_COPY[locale] || SUBSCRIPTION_NOTICE_COPY.ko;
+  const badgeCopy = SUBSCRIPTION_NOTICE_BADGE_COPY[locale] || SUBSCRIPTION_NOTICE_BADGE_COPY.ko;
   const message = String(
     options.message
       || copy.defaultMessage
@@ -161,7 +177,7 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
   title.style.zIndex = "1";
   title.innerHTML = ""
     + '<div style="display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(56,189,248,0.14);border:1px solid rgba(125,211,252,0.36);font-size:11px;font-weight:800;letter-spacing:.1em;color:#bae6fd;">'
-    + "<span>✦</span><span>COSMIC PASS ACTIVE</span></div>"
+    + `<span>✦</span><span>${badgeCopy}</span></div>`
     + `<h3 style="margin:14px 0 8px;font-size:26px;line-height:1.28;color:#f8fafc;letter-spacing:-.02em;">${copy.title}</h3>`
     + `<p style="margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.65;">${message}</p>`;
 

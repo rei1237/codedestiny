@@ -28,6 +28,52 @@ import {
 } from "../_lib/ziwei-types";
 import { transformationTypeToLabel } from "../_lib/ziwei-advanced-normalization";
 
+const ADVANCED_ZIWEI_TEXT_TRANSLATIONS = {
+  ko: {
+    "advancedZiwei.title.001": "종합·인생 흐름",
+    "advancedZiwei.title.002": "직업·진로",
+    "advancedZiwei.title.003": "재물·사업",
+    "advancedZiwei.title.004": "연애·배우자",
+    "advancedZiwei.title.005": "인간관계",
+    "advancedZiwei.title.006": "가족·자녀",
+    "advancedZiwei.title.007": "건강·생활 리듬",
+    "advancedZiwei.title.008": "대운·세운·시기",
+    "advancedZiwei.title.009": "지금 가장 중요한 상담 결론",
+    "advancedZiwei.title.010": "명반이 보여주는 이유",
+    "advancedZiwei.title.011": "현실에서 나타나는 모습",
+    "advancedZiwei.title.012": "반복되는 패턴과 원인",
+    "advancedZiwei.title.013": "현재 시기의 흐름",
+    "advancedZiwei.title.014": "고객을 위한 실행 조언",
+    "advancedZiwei.title.015": "상담 마무리",
+    "advancedZiwei.title.016": "명궁 ↔ 관록궁",
+    "advancedZiwei.title.017": "명궁 ↔ 부부궁",
+    "advancedZiwei.title.018": "재백궁 ↔ 관록궁",
+    "advancedZiwei.title.019": "부부궁 ↔ 복덕궁",
+    "advancedZiwei.title.020": "전택궁 ↔ 재백궁",
+    "advancedZiwei.title.021": "노복궁 ↔ 관록궁",
+    "advancedZiwei.label.001": "화록",
+    "advancedZiwei.label.002": "화권",
+    "advancedZiwei.label.003": "화과",
+    "advancedZiwei.label.004": "화기",
+    "advancedZiwei.placeholder.001": "예: 홍길동",
+    "advancedZiwei.text.001": "여성",
+    "advancedZiwei.text.002": "남성",
+    "advancedZiwei.text.003": "양력",
+    "advancedZiwei.text.004": "음력",
+    "advancedZiwei.placeholder.002": "예: 대한민국 서울",
+    "advancedZiwei.label.005": "핵심 강점",
+    "advancedZiwei.label.006": "주의 신호",
+    "advancedZiwei.label.007": "7일 루틴",
+    "advancedZiwei.title.022": "지금 시도할 행동",
+    "advancedZiwei.title.023": "줄이거나 조절할 행동",
+    "advancedZiwei.title.024": "유지할 기준",
+  },
+} as const;
+
+function advancedZiweiText(key: keyof typeof ADVANCED_ZIWEI_TEXT_TRANSLATIONS.ko) {
+  return ADVANCED_ZIWEI_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type Step = "form" | "computing" | "result";
 
 interface AdvancedZiweiSectionProps {
@@ -219,7 +265,7 @@ interface ZiweiCounselingTrackConfig {
 const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   {
     key: "life",
-    title: "종합·인생 흐름",
+    title: advancedZiweiText("advancedZiwei.title.001"),
     shortTitle: "종합",
     purpose: "명궁과 신궁을 중심으로 삶의 방향, 선택 습관, 반복 패턴을 통합해서 봅니다.",
     primaryPalaces: ["ming", "fortune", "career"],
@@ -232,7 +278,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "career",
-    title: "직업·진로",
+    title: advancedZiweiText("advancedZiwei.title.002"),
     shortTitle: "직업",
     purpose: "관록궁을 중심으로 일하는 방식, 성과가 나는 역할, 소진되는 환경을 구분합니다.",
     primaryPalaces: ["career", "ming", "wealth"],
@@ -245,7 +291,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "wealth",
-    title: "재물·사업",
+    title: advancedZiweiText("advancedZiwei.title.003"),
     shortTitle: "재물",
     purpose: "재백궁을 중심으로 수입화 방식, 관리 습관, 위험 선호와 누수 패턴을 읽습니다.",
     primaryPalaces: ["wealth", "career", "property"],
@@ -258,7 +304,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "love",
-    title: "연애·배우자",
+    title: advancedZiweiText("advancedZiwei.title.004"),
     shortTitle: "연애",
     purpose: "부부궁을 중심으로 끌리는 관계 유형, 애정 표현, 갈등과 회복 방식을 봅니다.",
     primaryPalaces: ["spouse", "ming", "fortune"],
@@ -271,7 +317,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "relationships",
-    title: "인간관계",
+    title: advancedZiweiText("advancedZiwei.title.005"),
     shortTitle: "관계",
     purpose: "교우궁과 형제궁을 중심으로 신뢰 형성, 협업, 경쟁, 경계 설정을 읽습니다.",
     primaryPalaces: ["friends", "siblings", "travel"],
@@ -284,7 +330,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "family",
-    title: "가족·자녀",
+    title: advancedZiweiText("advancedZiwei.title.006"),
     shortTitle: "가족",
     purpose: "부모궁, 형제궁, 자녀궁으로 가족 안의 역할과 정서적 거리, 책임 패턴을 읽습니다.",
     primaryPalaces: ["parents", "siblings", "children"],
@@ -297,7 +343,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "health",
-    title: "건강·생활 리듬",
+    title: advancedZiweiText("advancedZiwei.title.007"),
     shortTitle: "리듬",
     purpose: "질액궁과 복덕궁을 중심으로 스트레스 반응, 소진 신호, 회복 루틴을 봅니다.",
     primaryPalaces: ["health", "fortune", "ming"],
@@ -310,7 +356,7 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "timing",
-    title: "대운·세운·시기",
+    title: advancedZiweiText("advancedZiwei.title.008"),
     shortTitle: "시기",
     purpose: "원국과 제공된 운한 데이터를 대조해 지금 집중할 일과 보수적으로 접근할 일을 구분합니다.",
     primaryPalaces: ["ming", "career", "wealth"],
@@ -904,49 +950,49 @@ function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackCo
   const consultationFlow: ZiweiTrackFlowStage[] = [
     {
       stage: "1",
-      title: "지금 가장 중요한 상담 결론",
+      title: advancedZiweiText("advancedZiwei.title.009"),
       content: `${track.title}의 결론은 ${strongest?.palace.name || "핵심 궁"}의 힘을 먼저 쓰고 ${weakest?.palace.name || "관리 궁"}의 반복 피로를 줄이는 것입니다. ${summary}`,
       evidence: strongest ? buildPalaceEvidenceLines(strongest) : [],
       actions: [`${strongest?.palace.name || "강한 궁"}과 관련된 선택을 이번 주 우선순위로 올리세요.`, `${weakest?.palace.name || "관리 궁"}의 과부하 신호를 하루 한 번 기록하세요.`],
     },
     {
       stage: "2",
-      title: "명반이 보여주는 이유",
+      title: advancedZiweiText("advancedZiwei.title.010"),
       content: `${track.interpretationPriorities.join(" / ")} 순서로 보면 트랙의 초점이 흐려지지 않습니다. 전문 용어는 근거로 남기고, 실제 판단은 행동 기준으로 바꿉니다.`,
       evidence: keyPalaces.flatMap((item) => buildPalaceEvidenceLines(item)).slice(0, 8),
       actions: track.keyQuestions.slice(0, 2),
     },
     {
       stage: "3",
-      title: "현실에서 나타나는 모습",
+      title: advancedZiweiText("advancedZiwei.title.011"),
       content: `${strongest?.reality || "핵심 궁의 현실 반응을 확인합니다."} ${second?.reality || ""}`,
       evidence: [strongest?.palace.name, second?.palace.name].filter(Boolean) as string[],
       actions: [track.actionGuideType, ...strongestTrackAdvice.slice(0, 1), weakest?.advice || "관리 궁의 루틴을 먼저 세우세요."],
     },
     {
       stage: "4",
-      title: "반복되는 패턴과 원인",
+      title: advancedZiweiText("advancedZiwei.title.012"),
       content: `${strongest?.palace.name || "강한 궁"}이 빠르게 앞서가고 ${weakest?.palace.name || "관리 궁"}이 뒤에서 피로를 만드는 구도가 반복될 수 있습니다. 이 차이는 좋고 나쁨보다 속도 차이로 읽어야 합니다.`,
       evidence: [strongest ? `${strongest.palace.name} ${palaceForceLabel(strongest.energy)}` : "", weakest ? `${weakest.palace.name} ${palaceForceLabel(weakest.energy)}` : ""].filter(Boolean),
       actions: ["강한 궁은 확장 기준으로, 약한 궁은 점검표로 분리하세요."],
     },
     {
       stage: "5",
-      title: "현재 시기의 흐름",
+      title: advancedZiweiText("advancedZiwei.title.013"),
       content: timing.currentTheme,
       evidence: timing.evidence,
       actions: [...timing.opportunities.slice(0, 1), ...timing.cautions.slice(0, 1)],
     },
     {
       stage: "6",
-      title: "고객을 위한 실행 조언",
+      title: advancedZiweiText("advancedZiwei.title.014"),
       content: `${track.actionGuideType} 조언은 명반의 중심 궁과 관리 궁을 연결해 현실에서 바로 점검할 수 있게 정리했습니다.`,
       evidence: keyPalaces.slice(0, 3).map((item) => `${item.palace.name}: ${item.keywords.join(" · ") || "키워드 제한"}`),
       actions: [strongest?.advice, ...strongestTrackAdvice.slice(0, 2), ...weakestTrackAdvice.slice(0, 1)].filter(Boolean) as string[],
     },
     {
       stage: "7",
-      title: "상담 마무리",
+      title: advancedZiweiText("advancedZiwei.title.015"),
       content: `${track.title}의 흐름은 사용자를 규정하기보다, 강한 축을 어떻게 쓰고 약한 축을 어떻게 돌볼지 알려줍니다. 지금은 ${strongest?.palace.name || "강점"}을 믿되 ${weakest?.palace.name || "조절점"}을 방치하지 않는 태도가 중요합니다.`,
       evidence: track.keyQuestions,
       actions: track.keyQuestions.slice(0, 3),
@@ -1231,12 +1277,12 @@ export default function AdvancedZiweiSectionV2({
   const palaceLinks = useMemo(() => {
     const byId = Object.fromEntries(palaceCounseling.map((row) => [row.palace.id, row] as const));
     const pairs: Array<{ left: ZiweiPalaceId; right: ZiweiPalaceId; title: string; lens: string }> = [
-      { left: "ming", right: "career", title: "명궁 ↔ 관록궁", lens: "타고난 성향이 커리어 성공 방식으로 연결되는 축" },
-      { left: "ming", right: "spouse", title: "명궁 ↔ 부부궁", lens: "자기 기질이 관계 패턴으로 드러나는 축" },
-      { left: "wealth", right: "career", title: "재백궁 ↔ 관록궁", lens: "일의 성과가 수입 구조로 번역되는 축" },
-      { left: "spouse", right: "fortune", title: "부부궁 ↔ 복덕궁", lens: "관계의 안정이 내면 평온으로 이어지는 축" },
-      { left: "property", right: "wealth", title: "전택궁 ↔ 재백궁", lens: "기반 자산이 현금흐름 안정으로 이어지는 축" },
-      { left: "friends", right: "career", title: "노복궁 ↔ 관록궁", lens: "협업 네트워크가 커리어를 확장시키는 축" },
+      { left: "ming", right: "career", title: advancedZiweiText("advancedZiwei.title.016"), lens: "타고난 성향이 커리어 성공 방식으로 연결되는 축" },
+      { left: "ming", right: "spouse", title: advancedZiweiText("advancedZiwei.title.017"), lens: "자기 기질이 관계 패턴으로 드러나는 축" },
+      { left: "wealth", right: "career", title: advancedZiweiText("advancedZiwei.title.018"), lens: "일의 성과가 수입 구조로 번역되는 축" },
+      { left: "spouse", right: "fortune", title: advancedZiweiText("advancedZiwei.title.019"), lens: "관계의 안정이 내면 평온으로 이어지는 축" },
+      { left: "property", right: "wealth", title: advancedZiweiText("advancedZiwei.title.020"), lens: "기반 자산이 현금흐름 안정으로 이어지는 축" },
+      { left: "friends", right: "career", title: advancedZiweiText("advancedZiwei.title.021"), lens: "협업 네트워크가 커리어를 확장시키는 축" },
     ];
 
     return pairs
@@ -1258,10 +1304,10 @@ export default function AdvancedZiweiSectionV2({
   const sihuaInsights = useMemo(() => {
     if (!chart) return [] as string[];
     const byType = [
-      { label: "화록", star: chart.sihua.hualu },
-      { label: "화권", star: chart.sihua.huaquan },
-      { label: "화과", star: chart.sihua.huake },
-      { label: "화기", star: chart.sihua.huaji },
+      { label: advancedZiweiText("advancedZiwei.label.001"), star: chart.sihua.hualu },
+      { label: advancedZiweiText("advancedZiwei.label.002"), star: chart.sihua.huaquan },
+      { label: advancedZiweiText("advancedZiwei.label.003"), star: chart.sihua.huake },
+      { label: advancedZiweiText("advancedZiwei.label.004"), star: chart.sihua.huaji },
     ].filter((row) => Boolean(row.star)) as Array<{ label: "화록" | "화권" | "화과" | "화기"; star: string }>;
 
     return byType.map((row) => {
@@ -1647,7 +1693,7 @@ export default function AdvancedZiweiSectionV2({
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-0 placeholder:text-slate-500"
-                  placeholder="예: 홍길동"
+                  placeholder={advancedZiweiText("advancedZiwei.placeholder.001")}
                 />
               </label>
               <label className="space-y-2">
@@ -1657,8 +1703,8 @@ export default function AdvancedZiweiSectionV2({
                   onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as ZiweiGender }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
                 >
-                  <option value="F">여성</option>
-                  <option value="M">남성</option>
+                  <option value="F">{advancedZiweiText("advancedZiwei.text.001")}</option>
+                  <option value="M">{advancedZiweiText("advancedZiwei.text.002")}</option>
                 </select>
               </label>
               <label className="space-y-2">
@@ -1723,8 +1769,8 @@ export default function AdvancedZiweiSectionV2({
                   onChange={(e) => setForm((prev) => ({ ...prev, calendarType: e.target.value as "solar" | "lunar" }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
                 >
-                  <option value="solar">양력</option>
-                  <option value="lunar">음력</option>
+                  <option value="solar">{advancedZiweiText("advancedZiwei.text.003")}</option>
+                  <option value="lunar">{advancedZiweiText("advancedZiwei.text.004")}</option>
                 </select>
               </label>
               <label className="space-y-2">
@@ -1733,7 +1779,7 @@ export default function AdvancedZiweiSectionV2({
                   value={form.birthPlace}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthPlace: e.target.value }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
-                  placeholder="예: 대한민국 서울"
+                  placeholder={advancedZiweiText("advancedZiwei.placeholder.002")}
                 />
               </label>
               <label className="space-y-2 md:col-span-2">
@@ -2154,9 +2200,9 @@ export default function AdvancedZiweiSectionV2({
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {[
-                { label: "핵심 강점", value: activeChapter.strengths.slice(0, 2).join(" · ") || "흐름을 다시 고르게 세울 힘" },
-                { label: "주의 신호", value: activeChapter.cautions.slice(0, 2).join(" · ") || "과속할 때 균형을 잃는 지점" },
-                { label: "7일 루틴", value: activeChapter.routine7Days.slice(0, 2).join(" · ") || "매일 10분씩 같은 질문을 적기" },
+                { label: advancedZiweiText("advancedZiwei.label.005"), value: activeChapter.strengths.slice(0, 2).join(" · ") || "흐름을 다시 고르게 세울 힘" },
+                { label: advancedZiweiText("advancedZiwei.label.006"), value: activeChapter.cautions.slice(0, 2).join(" · ") || "과속할 때 균형을 잃는 지점" },
+                { label: advancedZiweiText("advancedZiwei.label.007"), value: activeChapter.routine7Days.slice(0, 2).join(" · ") || "매일 10분씩 같은 질문을 적기" },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-xs font-semibold text-slate-300">{item.label}</p>
@@ -2412,9 +2458,9 @@ export default function AdvancedZiweiSectionV2({
             <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">8. {activeTrack.title} 실천 가이드</p>
             <div className="mt-4 grid gap-3 lg:grid-cols-3">
               {[
-                { title: "지금 시도할 행동", lines: trackAnalysis.actionPlan.start },
-                { title: "줄이거나 조절할 행동", lines: trackAnalysis.actionPlan.reduce },
-                { title: "유지할 기준", lines: trackAnalysis.actionPlan.maintain },
+                { title: advancedZiweiText("advancedZiwei.title.022"), lines: trackAnalysis.actionPlan.start },
+                { title: advancedZiweiText("advancedZiwei.title.023"), lines: trackAnalysis.actionPlan.reduce },
+                { title: advancedZiweiText("advancedZiwei.title.024"), lines: trackAnalysis.actionPlan.maintain },
               ].map((group) => (
                 <section key={group.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm font-black text-white">{group.title}</p>

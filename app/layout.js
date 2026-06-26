@@ -6,6 +6,7 @@ import { PaymentProcessingProvider } from "./components/PaymentProcessingContext
 import { Suspense } from "react";
 import DeferredAdsense from "./components/DeferredAdsense";
 import LegacyAuthTokenCleanup from "./components/LegacyAuthTokenCleanup";
+import LocaleRuntimeBridge from "./components/LocaleRuntimeBridge";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
 import DevPaymentTester from "./components/DevPaymentTester";
@@ -18,6 +19,21 @@ import {
 } from "../lib/structured-data";
 
 const notoSansKRVariable = "font-noto-sans-kr-offline";
+
+const ROOT_LAYOUT_COPY = {
+  ko: {
+    insightsRssTitle: "Code Destiny Insights RSS",
+  },
+  en: {
+    insightsRssTitle: "Code Destiny Insights RSS",
+  },
+  ja: {
+    insightsRssTitle: "Code Destiny Insights RSS",
+  },
+  zh: {
+    insightsRssTitle: "Code Destiny Insights RSS",
+  },
+};
 
 export const metadata = {
   charset: "utf-8",
@@ -123,7 +139,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
-        <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
+        <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
         <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
         <meta property="og:site_name" content={siteSeo.siteName} />
@@ -135,6 +151,7 @@ export default function RootLayout({ children }) {
           <Suspense>
             <NavigationProvider>
               <DeferredAdsense />
+              <LocaleRuntimeBridge />
               <LegacyAuthTokenCleanup />
               <BuildInfoLogger />
               <AppVersionGuard />

@@ -30,6 +30,19 @@ export const STAGE_TO_ANIMAL: Record<TwelveStage, AnimalId> = {
   양: "fawn",
 };
 
+const ANIMAL_COMPATIBILITY_MAPPING_TEXT_TRANSLATIONS = {
+  ko: {
+    overall: "종합 궁합",
+    emotionCommunication: "감정 및 소통 궁합",
+    valueLifestyle: "가치관 및 생활 패턴",
+    practicalAdvice: "사주 고수의 실전 조언",
+  },
+};
+
+function animalCompatibilityMappingText(key: keyof typeof ANIMAL_COMPATIBILITY_MAPPING_TEXT_TRANSLATIONS.ko) {
+  return ANIMAL_COMPATIBILITY_MAPPING_TEXT_TRANSLATIONS.ko[key];
+}
+
 function relationByDistance(distance: number) {
   if (distance <= 1) return { relationType: "환상" as const, baseScore: 92 };
   if (distance <= 2) return { relationType: "좋음" as const, baseScore: 82 };
@@ -71,28 +84,28 @@ function buildDefaultBreakdown(myAnimal: string, partnerAnimal: string, relation
 
   return {
     overall: {
-      title: "종합 궁합",
+      title: animalCompatibilityMappingText("overall"),
       body: [
         `${myAnimal}와 ${partnerAnimal}는 ${relationLine}입니다. 사주 궁합의 본질은 감정의 강약보다 에너지 운용 방식의 합에 있습니다.`,
         "처음의 끌림이 강할수록 관계 설계를 생략하기 쉽지만, 장기적으로는 생활 루틴과 갈등 복구 방식의 합의가 궁합 점수를 좌우합니다.",
       ],
     },
     emotionCommunication: {
-      title: "감정 및 소통 궁합",
+      title: animalCompatibilityMappingText("emotionCommunication"),
       body: [
         "감정의 온도와 표현 속도가 다를 수 있어, 오해는 대개 의도보다 전달 방식에서 발생합니다.",
         "감정 해석보다 사실 확인을 먼저 하고, 감정은 짧고 명료한 문장으로 확인하는 습관이 관계 피로를 줄입니다.",
       ],
     },
     valueLifestyle: {
-      title: "가치관 및 생활 패턴",
+      title: animalCompatibilityMappingText("valueLifestyle"),
       body: [
         "생활 리듬, 휴식 방식, 돈과 시간의 우선순위에서 차이가 드러날 가능성이 큽니다.",
         "루틴을 강요하기보다 각자의 회복 방식과 일상 템포를 존중하면, 다른 성향이 갈등이 아니라 시너지로 바뀝니다.",
       ],
     },
     practicalAdvice: {
-      title: "사주 고수의 실전 조언",
+      title: animalCompatibilityMappingText("practicalAdvice"),
       body: [
         "관계의 핵심은 감정 토론의 길이가 아니라 점검의 주기입니다.",
         "월 1회 고정된 타이밍에 감정 온도, 생활 합의, 다음 한 달의 역할 분담을 함께 점검하면 궁합의 안정도가 눈에 띄게 올라갑니다.",
@@ -173,7 +186,7 @@ export function calculateAnimalCompatibility(myAnimalId: AnimalId, partnerAnimal
       ],
       breakdown: {
         overall: {
-          title: "종합 궁합",
+          title: animalCompatibilityMappingText("overall"),
           body: [
             "명리학적으로 건록(建祿)의 현실적인 에너지와 사(死)의 정신적이고 직관적인 에너지가 만난 구조입니다.",
             "별빛 강아지(건록)가 관계의 뼈대를 세우고 현실적인 안정을 책임진다면, 신비 나비(사)는 메마르기 쉬운 강아지의 내면에 정신적인 영감과 쉼터를 제공합니다.",
@@ -181,7 +194,7 @@ export function calculateAnimalCompatibility(myAnimalId: AnimalId, partnerAnimal
           ],
         },
         emotionCommunication: {
-          title: "감정 및 소통 궁합",
+          title: animalCompatibilityMappingText("emotionCommunication"),
           body: [
             "별빛 강아지는 행동과 결과로 애정을 증명하려 하고, 신비 나비는 언어 이면의 감정과 분위기로 소통하려 합니다.",
             "강아지 입장에서는 나비의 생각이 뜬구름 잡는 것처럼 보일 수 있고, 나비는 강아지가 너무 현실적이라고 느낄 수 있습니다.",
@@ -189,7 +202,7 @@ export function calculateAnimalCompatibility(myAnimalId: AnimalId, partnerAnimal
           ],
         },
         valueLifestyle: {
-          title: "가치관 및 생활 패턴",
+          title: animalCompatibilityMappingText("valueLifestyle"),
           body: [
             "루틴과 규칙을 중시하는 별빛 강아지의 곁에서 신비 나비는 안정감을 느낍니다.",
             "다만 생활 리듬에 있어 강아지가 자신의 템포를 나비에게 강요하기 시작하면 관계에 균열이 생깁니다.",
@@ -197,7 +210,7 @@ export function calculateAnimalCompatibility(myAnimalId: AnimalId, partnerAnimal
           ],
         },
         practicalAdvice: {
-          title: "사주 고수의 실전 조언",
+          title: animalCompatibilityMappingText("practicalAdvice"),
           body: [
             "이 궁합의 핵심은 '적당한 거리감'과 '역할의 분리'입니다.",
             "모든 것을 함께 하려 하기보다, 현실적인 결정(재무, 계획)은 건록인 별빛 강아지가 주도하고, 관계의 분위기와 정서적인 방향성은 사(死)인 신비 나비가 이끌도록 하세요.",

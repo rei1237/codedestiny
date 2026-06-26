@@ -22,6 +22,11 @@ function normalizeOriginOnly(rawValue, label) {
   }
 }
 
+function hasRoutePattern(configText, pattern) {
+  const escaped = String(pattern || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`pattern\\s*=\\s*"${escaped}"`).test(configText);
+}
+
 const rootDir = process.cwd();
 const envFiles = [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"];
 
@@ -67,6 +72,14 @@ try {
   const configuredFrontendBase = configText.match(/^\s*AUTH_FRONTEND_BASE_URL\s*=\s*"([^"]+)"\s*$/m)?.[1] || "";
   if (configuredFrontendBase && normalizeOriginOnly(configuredFrontendBase, "AUTH_FRONTEND_BASE_URL") !== configuredFrontendBase) {
     console.error("[deploy-worker] AUTH_FRONTEND_BASE_URL must be origin-only (no path/query/hash). Example: https://code-destiny.com");
+    process.exit(1);
+  }
+
+  if (
+    configuredApiBase === "https://code-destiny.com"
+    && !hasRoutePattern(configText, "code-destiny.com/api/*")
+  ) {
+    console.error("[deploy-worker] AUTH_API_BASE_URL=https://code-destiny.com requires Worker route pattern code-destiny.com/api/* so auth cookies stay same-origin.");
     process.exit(1);
   }
 } catch (error) {

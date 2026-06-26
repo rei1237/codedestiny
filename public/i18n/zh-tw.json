@@ -17,7 +17,8 @@
       "lead": "八字、塔羅、紫微鬥數、占星、宿曜、合盤與今日運勢，都在這裡靜靜展開。輸入出生資訊，或把此刻的問題交給牌面與星象，讓下一步的方向漸漸清晰。",
       "primaryCta": "用八字免費占算",
       "tarotCta": "抽塔羅牌",
-      "todayCta": "開啟今日運勢"
+      "todayCta": "開啟今日運勢",
+      "logoAlt": "Honey Pig Yeoni 標誌"
     },
     "nav": {
       "home": "首頁",
@@ -30,7 +31,9 @@
       "flowerDream": "花與夢",
       "vvip": "VVIP書庫",
       "oracle": "神諭",
-      "brandAlias": "蜜豚運勢"
+      "brandAlias": "蜜豚運勢",
+      "brandAria": "前往 Code Destiny 首頁",
+      "mainAria": "主要服務快捷入口"
     },
     "previewCards": {
       "tarotName": "塔羅",
@@ -48,12 +51,27 @@
       "yeonStarHugName": "Yeoni心之星座",
       "yeonStarHugMeta": "情緒星光練習",
       "nevilleName": "內維爾冥想",
-      "nevilleMeta": "現實創造練習"
+      "nevilleMeta": "現實創造練習",
+      "tarotAria": "Go to Tarot",
+      "oracleAria": "Go to Oracles",
+      "astrologyAria": "Go to Astrology",
+      "ziweiAria": "Go to Zi Wei Dou Shu",
+      "vedicAria": "Go to Vedic Astrology",
+      "ichingAria": "Go to I Ching",
+      "sukuyoCalendarAria": "Go to the 27 Mansions calendar",
+      "sukuyoCalendarName": "27 Mansions Calendar",
+      "sukuyoCalendarMeta": "Daily Sukuyo flow",
+      "yeonStarHugAria": "Go to Yeoni's Heart Constellation",
+      "nevilleAria": "Go to Neville Meditation"
     },
     "music": {
-      "title": "月光下，花豬1號播放列表",
-      "desc": "進入由Neo與花豬1號感性聲線交織而成的月光節奏。",
-      "hint": "✦ 月光播放列表"
+      "title": "Moonlit playlist, now with DEST1NOVA Vol. 2",
+      "desc": "DEST1NOVA's 20 new starlit songs now flow with Neo, Yeoni, and Luna Bloom.",
+      "hint": "? 89 moonlit tracks",
+      "aria": "Code Destiny moon music player",
+      "coverAria": "Go to music listening mode",
+      "cta": "Music listening mode",
+      "filterAria": "Playlist filter"
     },
     "mapIntro": {
       "title": "月光地圖上，命運之門正緩緩開啟",
@@ -61,7 +79,8 @@
       "chipTarot": "塔羅",
       "chipOracle": "神諭",
       "chipFlower": "花與夢",
-      "chipPremium": "進階報告"
+      "chipPremium": "進階報告",
+      "kicker": "DESTINY CARD COLLECTION"
     },
     "input": {
       "title": "用八字讀懂此刻的流向",
@@ -87,7 +106,20 @@
       "saveOptional": "可選",
       "kakaoEvent": "Kakao分享活動",
       "kakaoEventSub": "建立好友邀請連結",
-      "referralNote": "可透過你的月光邀請連結邀請好友。"
+      "referralNote": "可透過你的月光邀請連結邀請好友。",
+      "loadingKicker": "DESTINY CARD",
+      "loadingTitle": "正在照亮命運卡綻放的位置。",
+      "loadingDesc": "正在對齊已儲存出生日期的星光。",
+      "loadingAction": "正在開啟你的命運卡",
+      "profileListAria": "個人資料列表",
+      "profileSheetTitle": "✦ 我的命運星座",
+      "namePlaceholder": "請輸入姓名",
+      "calendarTypeAria": "曆法類型",
+      "birthHourLabel": "出生小時",
+      "birthMinuteLabel": "出生分鐘",
+      "birthTimeUnknownAria": "如果不知道出生時間，則設為中午12點",
+      "birthCountryAria": "出生國家",
+      "kakaoEventAria": "创建Kakao分享活动链接"
     },
     "startSection": {
       "kicker": "TODAY CARDS",
@@ -110,57 +142,71 @@
       "sukuyoBadge": "Collection No. 04 · 推薦",
       "sukuyoTitle": "宿曜",
       "sukuyoDesc": "先確認本命宿、氣質與今日可參考的月之節奏。",
-      "sukuyoCta": "查看免費宿曜"
+      "sukuyoCta": "查看免費宿曜",
+      "freeBadge": "Collection No. {index} ? Free",
+      "ziweiAria": "Go to the Zi Wei Dou Shu chart",
+      "vedicAria": "Go to the Vedic reading",
+      "astrologyAria": "Go to the Western astrology birth chart",
+      "sukuyoAria": "Go to the Sukuyo reading"
     },
     "collectionHeaders": {
       "animal": {
         "title": "動物與面相合集",
         "subtitle": "喚醒你內在沉睡的野性本能",
         "lede": "結合臉型、性格與八字訊號，一次看見你的本能角色與關係能量。",
-        "featureline": "AI動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印"
+        "featureline": "AI動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印",
+        "aria": "Open Face Reading and Symbol Collection"
       },
       "meditation": {
         "title": "冥想合集",
         "subtitle": "用想像與潛意識整理今日能量",
         "lede": "以內維爾·戈達德式想像冥想穩定情緒，並把注意力安放在你想顯化的現實上。",
-        "featureline": "內維爾冥想 · 專注呼吸 · 自我暗示 · 現實顯化觀想"
+        "featureline": "內維爾冥想 · 專注呼吸 · 自我暗示 · 現實顯化觀想",
+        "aria": "Open Meditation Collection"
       },
       "tarot": {
         "title": "塔羅解讀合集",
         "subtitle": "選擇需要的塔羅，現在開始解讀",
         "lede": "關係、療癒、自我信任、複合、年運與現實選擇，都可透過對應牌陣深入讀取。",
-        "featureline": "關係6牌 · 療癒4牌 · 自我信任修復 · 複合運 · 生肖年運 · 命理塔羅"
+        "featureline": "關係6牌 · 療癒4牌 · 自我信任修復 · 複合運 · 生肖年運 · 命理塔羅",
+        "aria": "Open Tarot Reading Collection"
       },
       "oracle": {
         "title": "神諭與佔術合集",
         "subtitle": "古老智慧今日向你發聲",
         "lede": "放下一個問題，讓東西方象徵解讀交織，為今日整理清晰結論。",
-        "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔 · 命運撲克"
+        "featureline": "花牌佔 · 埃及神諭 · IFÀ · 易經64卦 · 符文 · 土佔 · 茶葉佔 · 命運撲克",
+        "aria": "Open Oracle and Divination Collection"
       },
       "cosmic": {
         "title": "宇宙與星座合集",
         "subtitle": "星辰寫下的宇宙命運地圖",
         "lede": "連接行星、星座與宮位，以天體路徑讀取性格與時機。",
-        "featureline": "西洋占星 · 紫微鬥數 · 吠陀占星 · 奧林匹斯星座神諭"
+        "featureline": "西洋占星 · 紫微鬥數 · 吠陀占星 · 奧林匹斯星座神諭",
+        "aria": "Open Cosmic and Zodiac Collection"
       },
       "flower": {
         "title": "命運之花與夢境合集",
         "subtitle": "用宇宙語言綻放只屬於你的命運",
         "lede": "把八字、占星、紫微鬥數與宿曜結果編織成花的象徵，化為詩意命運報告。",
-        "featureline": "命運之花工坊 · 占星花 · 紫微花 · 宿曜花 · 夢境塔羅 · 精神分析解夢"
+        "featureline": "命運之花工坊 · 占星花 · 紫微花 · 宿曜花 · 夢境塔羅 · 精神分析解夢",
+        "aria": "Open Destiny Flower and Dream Collection"
       },
       "vvip": {
         "title": "VVIP命運書庫",
         "subtitle": "將你的星盤、八字與緣分記錄匯集成一份秘密文檔。",
         "lede": "不只是輕輕看過的運勢，而是深入展開人生、愛情、金錢、關係與轉捩點的高級解讀合輯。",
-        "featureline": "紫微鬥數 · 宿曜 · 占星 · 吠陀 · 靈魂業力"
+        "featureline": "紫微鬥數 · 宿曜 · 占星 · 吠陀 · 靈魂業力",
+        "aria": "Open VVIP Destiny Archive"
       },
       "misc": {
         "title": "其他佔術合集",
         "subtitle": "從心理測驗到八字FPTI，一次探索",
         "lede": "心理測驗、AI禦神簽、血型測驗、本命推運與八字FPTI，自然連結成一組卡片合集。",
-        "featureline": "心理測驗中心 · AI禦神簽 · 血型測驗 · 本命推運 · 八字FPTI"
-      }
+        "featureline": "心理測驗中心 · AI禦神簽 · 血型測驗 · 本命推運 · 八字FPTI",
+        "aria": "Open Other Divination Collection"
+      },
+      "openHint": "點擊開啟"
     },
     "tiles": {
       "animalFaceTitle": "🎭 AI動物面相",
@@ -268,7 +314,813 @@
       "favoriteDestinyTitle": "✨ 本命推運",
       "favoriteDestinyDesc": "照片卡情緒解讀",
       "sajuFptiTitle": "🔮 八字FPTI測試",
-      "sajuFptiDesc": "五行與十神4軸性格分析"
+      "sajuFptiDesc": "五行與十神4軸性格分析",
+      "animalFaceAria": "Start AI animal face reading",
+      "animalFaceAlt": "AI animal face reading - face-shape physiognomy from a selfie",
+      "animalFaceBadge": "Face analysis",
+      "animalFacePrice": "Free ? Compatibility KRW 5,000",
+      "freeBadge": "Free",
+      "animalMbtiAria": "Start MBTI animal compatibility",
+      "animalMbtiAlt": "MBTI animal compatibility - 16 totem love matches",
+      "animalTotemAria": "Start animal totem reading",
+      "animalTotemAlt": "Animal totem reading - guardian animal message",
+      "animalTotemBadge": "Totem reading",
+      "animalTotemPrice": "KRW 3,000-6,000",
+      "sajuGuardianAria": "Start Saju Guardian summoning circle",
+      "sajuGuardianAlt": "Saju Guardian summoning circle - 60-gapja guardian seal opened by day, month, and hour branches",
+      "sajuGuardianBadge": "Guardian seal",
+      "sajuGuardianPrice": "Permanent unlock KRW 10,000",
+      "destinyEggAria": "Start Tamagotchi Destiny Egg",
+      "destinyEggAlt": "Tamagotchi Destiny Egg - raise your own saju character",
+      "destinyEggImgAlt": "Tamagotchi Destiny Egg",
+      "fortuneFishAria": "Start Fortune Teller Fish",
+      "fortuneFishAlt": "Fortune Teller Fish - red fish destiny reading in your palm",
+      "palmMapAria": "View the palm destiny map",
+      "palmMapAlt": "Palm destiny map - palm destiny pattern analysis",
+      "palmMapBadge": "View palm",
+      "palmMapMeta": "AI palm reading ? Eastern palmistry ? Destiny map",
+      "animalFaceImgAlt": "AI Animal Face Reading",
+      "animalMbtiImgAlt": "MBTI Animal Compatibility",
+      "animalTotemImgAlt": "Animal Totem",
+      "sajuGuardianImgAlt": "Saju Guardian Seal",
+      "fortuneFishImgAlt": "Fortune Teller Fish",
+      "palmMapImgAlt": "Palm Map",
+      "nevillePracticeAria": "Start Neville Meditation Practice",
+      "nevillePracticeAlt": "Neville Meditation Practice - Focused guide for imaginal creation",
+      "nevillePracticeImgAlt": "Neville Meditation Practice",
+      "divyaYogaAria": "Start Divya Yoga",
+      "divyaYogaAlt": "Divya Yoga - Personal meditation and yoga routine",
+      "divyaYogaImgAlt": "Divya Yoga",
+      "cosmicSoulMeditationAria": "Start Cosmic Soul Meditation",
+      "cosmicSoulMeditationAlt": "Cosmic Soul Meditation - 30 and 60 minute reality rendering protocol",
+      "cosmicSoulMeditationImgAlt": "Cosmic Soul Meditation",
+      "tarotLoveAria": "Start What Are We?",
+      "tarotLoveAlt": "What Are We? - The temperature between words and actions",
+      "tarotLoveImgAlt": "What Are We?",
+      "tarotHealingAria": "Start Warm Sun Healing Tarot",
+      "tarotHealingAlt": "Warm Sun Healing Tarot - Where the heart is tired, and today's light",
+      "tarotHealingImgAlt": "Warm Sun Healing Tarot",
+      "tarotSelfEsteemAria": "Start Self-Trust Recovery Tarot",
+      "tarotSelfEsteemAlt": "Self-Trust Recovery Tarot - 5-card heart-centered reading",
+      "tarotSelfEsteemImgAlt": "Self-Trust Recovery Tarot",
+      "tarotReunionAria": "Start Reunion Lighthouse Tarot",
+      "tarotReunionAlt": "Reunion Lighthouse Tarot - Remaining warmth and a safe distance",
+      "tarotReunionImgAlt": "Reunion Lighthouse Tarot",
+      "tarotPromptMakerAria": "Start Tarot Prompt Library",
+      "tarotPromptMakerAlt": "Tarot Prompt Library - Choose a spread, open cards, complete the reading text",
+      "tarotPromptMakerImgAlt": "Tarot Prompt Library",
+      "tarotYearAria": "Start Zodiac Year Tarot",
+      "tarotYearAlt": "Zodiac Year Tarot - Twelve months of guardian fortune",
+      "tarotYearImgAlt": "Zodiac Year Tarot",
+      "tarotNumerologyAria": "Start Numerology Tarot",
+      "tarotNumerologyAlt": "Numerology Tarot - Life number and day number 5-card reading",
+      "tarotNumerologyImgAlt": "Numerology Tarot",
+      "tarotCareerMoveAria": "Start Career Move Cards",
+      "tarotCareerMoveAlt": "Career Move Cards - 7 cards for what to keep and where to move",
+      "tarotCareerMoveImgAlt": "Career Move Cards",
+      "tarotMindscanAria": "Start Between Words and Actions",
+      "tarotMindscanAlt": "Between Words and Actions - 10 cards for the heart's temperature",
+      "tarotMindscanImgAlt": "Between Words and Actions",
+      "tarotCrystalSoulAria": "Start Crystal Soul Tarot",
+      "tarotCrystalSoulAlt": "Crystal Soul Tarot - Crystal energy reading",
+      "tarotCrystalSoulImgAlt": "Crystal Soul Tarot",
+      "celestialHarmonyAria": "Start Celestial Harmony",
+      "celestialHarmonyAlt": "Celestial Harmony - Tarot woven from the voices of 11 planets",
+      "celestialHarmonyImgAlt": "Celestial Harmony",
+      "sajuTarotAria": "Start Saju Tarot",
+      "sajuTarotAlt": "Saju Tarot - Choice guidance through cards and Ten Gods",
+      "sajuTarotImgAlt": "Saju Tarot",
+      "hwatuAria": "Start Hwatu Fortune",
+      "hwatuAlt": "Hwatu Fortune - Fortune through 12 months of flower cards",
+      "hwatuImgAlt": "Hwatu Fortune",
+      "egyptOracleAria": "Start 𓂀 Egyptian Oracle",
+      "egyptOracleAlt": "𓂀 Egyptian Oracle - Kemet oracle fortune",
+      "egyptOracleImgAlt": "𓂀 Egyptian Oracle",
+      "ifaOracleAria": "Start IFÀ Oracle",
+      "ifaOracleAlt": "IFÀ Oracle - Yoruba 256 Odu oracle",
+      "ifaOracleImgAlt": "IFÀ Oracle",
+      "ichingTurtleAria": "Start ️ I Ching Turtle Oracle",
+      "ichingTurtleAlt": "️ I Ching Turtle Oracle - 64 hexagrams and 3,000 years of wisdom",
+      "ichingTurtleImgAlt": "️ I Ching Turtle Oracle",
+      "runeOracleAria": "Start ᚠ Stonehenge Rune Oracle",
+      "runeOracleAlt": "ᚠ Stonehenge Rune Oracle - Ancient rune symbol reading",
+      "runeOracleImgAlt": "ᚠ Stonehenge Rune Oracle",
+      "geomancyAria": "Start ⟁ Geomancy Earth Oracle",
+      "geomancyAlt": "⟁ Geomancy Earth Oracle - 16 lines of signs from the earth",
+      "geomancyImgAlt": "⟁ Geomancy Earth Oracle",
+      "sikojenAria": "Start Finnish Pig Tin Oracle",
+      "sikojenAlt": "Finnish Pig Tin Oracle - A sweet New Year oracle with Yeoni and tin shadows",
+      "sikojenImgAlt": "Finnish Pig Tin Oracle",
+      "royalTeaAria": "Start Royal Tea Reading",
+      "royalTeaAlt": "Royal Tea Reading - Royal tasseography tea leaf reading",
+      "royalTeaImgAlt": "Royal Tea Reading",
+      "destinyPokerAria": "Start Destiny Poker",
+      "destinyPokerAlt": "Destiny Poker - A fate card duel with the gods",
+      "destinyPokerImgAlt": "Destiny Poker",
+      "westernAstrologyAria": "Start Basic Western Astrology Chart",
+      "westernAstrologyAlt": "Basic Western Astrology Chart - Free birth chart · Synastry compatibility 50 coins",
+      "westernAstrologyImgAlt": "Basic Western Astrology Chart",
+      "ziweiBasicAria": "Start Zi Wei Dou Shu",
+      "ziweiBasicAlt": "Zi Wei Dou Shu - Free base chart · Compatibility optional expansion 50 coins",
+      "ziweiBasicImgAlt": "Zi Wei Dou Shu",
+      "ziweiAdvancedAria": "Start Advanced Zi Wei",
+      "ziweiAdvancedAlt": "Advanced Zi Wei - 12-palace life strategy · deep Ming Palace analysis",
+      "ziweiAdvancedImgAlt": "Advanced Zi Wei",
+      "vedicAstrologyAria": "Start Vedic Astrology",
+      "vedicAstrologyAlt": "Vedic Astrology - Free base chart · Compatibility 50 coins",
+      "vedicAstrologyImgAlt": "Vedic Astrology",
+      "olympusOracleAria": "Start Olympus Oracle",
+      "olympusOracleAlt": "Olympus Oracle - 12 gods and zodiac destiny reading",
+      "olympusOracleImgAlt": "Olympus Oracle",
+      "destinyFlowerAria": "Start Destiny Flower",
+      "destinyFlowerAlt": "Destiny Flower - The flower blooming from your Saju",
+      "destinyFlowerImgAlt": "Destiny Flower",
+      "astrologyFlowerAria": "Start Astrology Flower",
+      "astrologyFlowerAlt": "Astrology Flower - Sun · Rising · Moon",
+      "astrologyFlowerImgAlt": "Astrology Flower",
+      "ziweiFlowerAria": "Start Zi Wei Flower",
+      "ziweiFlowerAlt": "Zi Wei Flower - Ming Palace main star · star brightness",
+      "ziweiFlowerImgAlt": "Zi Wei Flower",
+      "sukuyoFlowerAria": "Start Sukuyo Flower",
+      "sukuyoFlowerAlt": "Sukuyo Flower - 27 mansions · moon phase",
+      "sukuyoFlowerImgAlt": "Sukuyo Flower",
+      "dreamTarotAria": "Start Dream Tarot",
+      "dreamTarotAlt": "Dream Tarot - 3-card reading of dream afterglow",
+      "dreamTarotImgAlt": "Dream Tarot",
+      "psychoDreamAria": "Start ️ Psychoanalytic Dream Reading",
+      "psychoDreamAlt": "️ Psychoanalytic Dream Reading - Freud · British Study",
+      "psychoDreamImgAlt": "️ Psychoanalytic Dream Reading",
+      "sukuyoPremiumAria": "Start Premium Sukuyo Compatibility",
+      "sukuyoPremiumAlt": "Premium Sukuyo Compatibility - Generate a 15-chapter consultation PDF separate from basic compatibility and detailed expansion.",
+      "sukuyoPremiumImgAlt": "Premium Sukuyo Compatibility",
+      "ziweiPremiumAria": "Start Zi Wei Premium PDF",
+      "ziweiPremiumAlt": "Zi Wei Premium PDF - Interpret the life palaces written in your Ming Palace and 12 palaces.",
+      "ziweiPremiumImgAlt": "Zi Wei Premium PDF",
+      "astroReportAria": "Start Astrology Cosmic Report",
+      "astroReportAlt": "Astrology Cosmic Report - Read turning points by layering Saturn, nodes, transits, and house flow over Sun, Moon, and Rising.",
+      "astroReportImgAlt": "Astrology Cosmic Report",
+      "vedicPremiumAria": "Start Vedic Premium PDF",
+      "vedicPremiumAlt": "Vedic Premium PDF - Open the soul direction spoken by Lagna and Nakshatra.",
+      "vedicPremiumImgAlt": "Vedic Premium PDF",
+      "soulKarmaAria": "Start Soul Karma",
+      "soulKarmaAlt": "Soul Karma - Where did you come from, and what did you arrive in this life to resolve?",
+      "soulKarmaImgAlt": "Soul Karma",
+      "psychotestHubAria": "Start Psychology Test Hub",
+      "psychotestHubAlt": "Psychology Test Hub - 14 themed tests",
+      "psychotestHubImgAlt": "Psychology Test Hub",
+      "aiOmikujiAria": "Start AI Emoi Omikuji",
+      "aiOmikujiAlt": "AI Emoi Omikuji - Emotional oracle reading",
+      "aiOmikujiImgAlt": "AI Emoi Omikuji",
+      "yeonStarHugTileAria": "Start Yeon's Heart Constellation",
+      "yeonStarHugTileAlt": "Yeon's Heart Constellation - A gentle hug for today's heart",
+      "yeonStarHugTileImgAlt": "Yeon's Heart Constellation",
+      "bloodTypeAria": "Start Blood Type Test",
+      "bloodTypeAlt": "Blood Type Test - Traits · compatibility · coaching",
+      "bloodTypeImgAlt": "Blood Type Test",
+      "favoriteDestinyAria": "Start Favorite-Person Destiny",
+      "favoriteDestinyAlt": "Favorite-Person Destiny - Photocard mood reading",
+      "favoriteDestinyImgAlt": "Favorite-Person Destiny",
+      "sajuFptiAria": "Start Saju FPTI Test",
+      "sajuFptiAlt": "Saju FPTI Test - Four-axis personality through elements and Ten Gods",
+      "sajuFptiImgAlt": "Saju FPTI Test",
+      "basicFreeBadge": "Basic free",
+      "price3000": "One time KRW 3,000",
+      "price5000": "One time KRW 5,000",
+      "price10000": "One time KRW 10,000",
+      "cosmicSoulPrice": "30 min KRW 10,000 ? 60 min KRW 20,000",
+      "compatibilityPrice": "Compatibility KRW 5,000",
+      "unlock50000": "Unlock KRW 50,000",
+      "unlock20000": "Unlock KRW 20,000",
+      "unlock10000": "Unlock KRW 10,000",
+      "relationshipRecoveryBadge": "Relationship recovery",
+      "mayaAria": "開始瑪雅占卜",
+      "mayaAlt": "瑪雅占卜 — 金色曆盤與夜空時間紋樣",
+      "mayaTitle": "瑪雅占卜",
+      "mayaDesc": "用時間紋樣讀取今日流向",
+      "dreamPromptShortTitle": "Dream Prompt"
+    },
+    "destinyFlowerStudio": {
+      "closeAria": "關閉命運之花工坊",
+      "kicker": "Destiny Flower Atelier",
+      "title": "命運之花工坊",
+      "sourceDesc": "依據日干、月令與五行平衡，與你此刻氣息最共鳴的開花紋理正在顯現。",
+      "sourceTabsAria": "工坊占術切換",
+      "tabSaju": "查看八字之花",
+      "tabAstrology": "查看占星之花",
+      "tabZiwei": "查看紫微之花",
+      "tabSukuyo": "查看宿曜之花",
+      "sajuBadgesAria": "八字核心分析徽章",
+      "badgeStrength": "身強/身弱",
+      "waiting": "等待判定",
+      "badgeYongshin": "用神",
+      "badgeJohu": "調候",
+      "narrative": "正在依據八字五行解讀，確定代表你命運之花的故事。",
+      "imageAlt": "命運之花工坊預覽",
+      "defaultFlowerName": "蓮花",
+      "daymasterWaiting": "等待日干判讀",
+      "symbolism": "從八字來看，你的花是蓮花，象徵在濁水中依然清澈綻放的再生力量。",
+      "panelsAria": "命運之花解讀面板",
+      "paletteTitle": "個人色彩調色盤",
+      "particleTitle": "粒子氛圍",
+      "particle": "建議使用以花瓣為基礎的柔和擴散氛圍。",
+      "guidanceTitle": "今日園藝一句話",
+      "guidance": "只要多添一個小習慣，花就會更快綻放。",
+      "dataTitle": "花朵資料表",
+      "dataSummary": "正在整理日干與環境的開花情境。",
+      "dataRitual": "正在計算日常實踐儀式。",
+      "dataThemes": "正在分析關係、工作與修復主題。",
+      "sourceMatrixAria": "依來源劃分的生態解讀項目",
+      "sourceSoil": "土壤成分：等待分析",
+      "sourceRoot": "根的深度：等待分析",
+      "sourceNutrient": "園丁營養劑：等待分析",
+      "journalTitle": "園丁觀察日記",
+      "journal": "正在讀取花園的細微紋理，記錄今日的開花流向。",
+      "recipeTitle": "秘密配方",
+      "recipe": "正在細化具體行動配方，讓此刻的花更好盛開。",
+      "flowerLanguageTitle": "命運花語",
+      "flowerLanguage": "正在解讀這一時期專屬的花語。",
+      "synergyTitle": "協同調色盤",
+      "synergy": "正在計算適合一起搭配的顏色與材質。",
+      "gardenerTitle": "園丁給這朵花的一句話",
+      "gardenerWord": "今天的花園，只靠一個小習慣也足以明亮起來。",
+      "promptTitle": "AI花朵藝術提示詞",
+      "promptGuide": "將自動生成提示詞，讓不同運勢的象徵花能以合適調性繪製成圖。",
+      "mainPrompt": "主提示詞",
+      "mainPromptAria": "AI花朵插畫主提示詞",
+      "negativePrompt": "負面提示詞",
+      "negativePromptAria": "AI花朵插畫負面提示詞",
+      "copyMainPrompt": "複製主提示詞",
+      "copyPromptPack": "複製提示詞套組",
+      "askAi": "去問AI",
+      "historyAria": "命運之花記錄庫",
+      "historyTitle": "我的開花紀錄",
+      "save": "儲存",
+      "kakaoShare": "Kakao分享",
+      "copySummary": "複製摘要",
+      "clearAll": "全部刪除",
+      "emptyHistory": "尚未儲存任何開花紀錄。",
+      "close": "關閉",
+      "home": "前往首頁",
+      "keywords": "四柱判定 • 重生 • 純淨 • 流動"
+    },
+    "tarotSelfEsteem": {
+      "levelUp": "你的標準又清晰了一格",
+      "closeAria": "關閉自我標準恢復塔羅",
+      "title": "重新相信自己標準的塔羅",
+      "subtitle": "五張牌會依次照見開始看人臉色的時刻、難以拒絕的原因、此刻被消耗的心、保護自己的話語，以及需要重新建立的標準。牌面越打開，內心的中心越清晰，最後會連到今天就能練習的恢復行動。",
+      "start": "開始自尊心解讀",
+      "drawHeader": "5張牌牌陣 · 從看人臉色到恢復自己的標準",
+      "heartPower": "心的力量",
+      "spreadGuide": "請打開第一張牌，確認內心的起點。",
+      "openReading": "打開自我標準解讀",
+      "resultTitle": "自我標準恢復解讀",
+      "share": "分享結果",
+      "retry": "重新解讀",
+      "home": "回到首頁",
+      "positions": {
+        "past_debuff": "我學會降低自我價值的原因",
+        "inner_monster": "為什麼拒絕讓我覺得困難",
+        "current_damage": "討好他人正在消耗我的地方",
+        "mind_shield": "面對他人期待時保護自己的方法",
+        "levelup_mastery": "重新把自己的心放在第一位的方法"
+      },
+      "guides": [
+        "請翻開第一張牌。",
+        "請翻開第二張牌。",
+        "請翻開第三張牌。",
+        "請翻開第四張牌。",
+        "請翻開第五張牌。"
+      ],
+      "guideComplete": "所有牌都已打開。它們的光照亮了你的內在標準。",
+      "guideDefault": "请翻开一张牌。",
+      "positionFallback": "位置 {number}",
+      "cardFallback": "牌 {number}",
+      "selectedCard": "已选择的牌",
+      "upright": "正位",
+      "reversed": "逆位",
+      "keywordsLabel": "关键词",
+      "messageLabel": "讯息",
+      "todayRecoveryLabel": "今日标准修复",
+      "promptIntro": "请根据下面的自我标准修复塔罗流程，更深入地解读我如何再次站回自己这一边。",
+      "promptTone": "请像平静可靠的塔罗咨询师一样说话。不要把他人的反应断定为命运，而要聚焦让我标准动摇的感受，以及可以恢复的选择。",
+      "promptOpening": "最先显现的画面",
+      "promptFlow": "五张牌的流动",
+      "promptCorePattern": "核心模式",
+      "promptRootCause": "动摇的原因",
+      "promptRecoveryKey": "修复钥匙",
+      "promptCards": "展开的牌",
+      "promptGuide": "自我标准修复指引",
+      "promptQuest": "7天修复练习",
+      "promptTodayAction": "今日实践",
+      "promptClosing": "请在这段流动中，平静地指出我为了迎合他人而交出去的标准、需要归还给自己的情绪与责任，以及今天能守住的小边界。最后请给我三句重建标准的短宣言，以及今晚可以进行的修复仪式。",
+      "promptOpeningFallback": "请从我的心需要取回自我标准的画面开始。",
+      "promptFlowFallback": "请串联牌面显示的修复流动。",
+      "aiPromptKicker": "交给 AI 的自我标准问题",
+      "aiPromptTitle": "加深帮助我重新站回自己身边的话语",
+      "aiPromptLead": "发送下面的文字，就能基于今天的牌与修复流动继续更深的解读。",
+      "copyPrompt": "复制提示词",
+      "copySuccess": "已複製。",
+      "copyManual": "請手動選取並複製。",
+      "openingMessage": "开场讯息",
+      "recoveryGuide": "自我标准修复指引",
+      "todayRecoveryPractice": "今日修复实践",
+      "summaryTitle": "今日自我标准摘要",
+      "fiveCardFlow": "五张牌的流动",
+      "corePatternField": "核心流动",
+      "rootCauseField": "内心开始动摇的地方",
+      "mainDamageField": "最消耗能量的地方",
+      "recoveryKeyField": "修复钥匙",
+      "automaticThoughtField": "需要留意的内心结论",
+      "todayActionField": "今日修复行动",
+      "questionLabel": "问题",
+      "cardLabel": "牌",
+      "directionLabel": "方向",
+      "fieldQuickAnswer": "一眼看见的答案",
+      "fieldPatternReason": "这个模式形成的原因",
+      "fieldRealLife": "它在生活中的表现",
+      "fieldSignal": "这张牌映出的重复信号",
+      "fieldImpact": "留在心里的影响",
+      "fieldRecovery": "修复方向",
+      "fieldPractice": "今日练习",
+      "fieldCaution": "需要留意的内心结论",
+      "fieldInnerSentence": "内在句子",
+      "fieldHealingSentence": "修复句子",
+      "flowField": "五张牌的流动",
+      "rootPatternField": "内心开始动摇的地方",
+      "woundStoryField": "反复出现的心事",
+      "recoveryPathField": "修复顺序",
+      "boundaryPracticeField": "自我标准练习",
+      "sevenDayQuestTitle": "7天修复练习",
+      "practiceSentenceField": "今日练习句",
+      "questFallbackTitle": "修复实践",
+      "difficultyLabel": "实践强度",
+      "purposeLabel": "目的",
+      "actionLabel": "行动",
+      "completionLabel": "完成确认",
+      "difficultyEasy": "轻柔",
+      "difficultyNormal": "稳定",
+      "difficultyHard": "深入",
+      "shareTitle": "自我标准修复塔罗",
+      "shareOpeningLabel": "内心最初的画面",
+      "shareMasteryLabel": "今日修复句子",
+      "shareLinkLabel": "查看自我标准修复塔罗",
+      "shareCopySuccess": "無法開啟 KakaoTalk 或正在使用電腦，已複製到剪貼簿。",
+      "fallbackOpening": "五张牌引导你取回自己的标准。它们映出读空气的旧习惯、现在心累的位置，以及重新站回自己这一边的路。",
+      "fallbackGuidance": "五张牌都已打开。你的标准不是靠一次巨大的决心回来，而是靠被温柔守住的小选择。今天守住一个小边界，让中心慢慢回来。",
+      "fallbackActionOne": "今天遇到沉重的请求时，先暂停回答，并请对方给你思考时间。",
+      "fallbackActionTwo": "写下一句你真正想要的事，并从这个标准出发选择。",
+      "fallbackActionThree": "在猜测对方心情之前，先给自己的感受命名。",
+      "fallbackActionFour": "看着镜子说三次：我值得被尊重。",
+      "fallbackActionFive": "写下最留在心里的牌面讯息，睡前再读一次。"
+    },
+    "splash": {
+      "heading": "Kkul-Kkul Fortune",
+      "subtitle": "Saju, tarot, fortune, compatibility, and astrology in one place",
+      "message": "The constellations are aligning toward you..."
+    },
+    "sectionNav": {
+      "aria": "Current section",
+      "title": "Map of Destiny"
+    },
+    "languageNav": {
+      "aria": "Language versions",
+      "label": "Language"
+    },
+    "story": {
+      "aria": "Open the Destiny Stories web novel library",
+      "title": "Destiny Library",
+      "desc": "Continue free web novels woven with saju, tarot, and the stars.",
+      "cta": "Read web novels"
+    },
+    "collectionNav": {
+      "aria": "Moonlit destiny collection shortcuts"
+    },
+    "passMini": {
+      "aria": "Moonlight pass guide",
+      "kicker": "MOONLIGHT PASS",
+      "title": "Let your fortune routine flow more gently with a moonlight pass",
+      "desc": "Tarot, oracle, and saju readings you revisit often open faster within your pass, and today?s free fortune flows stay easy to follow at a glance.",
+      "toggle": "Open moonlight benefits",
+      "heroAria": "Check services available for free in the moonlight flow",
+      "heroTitle": "See the flows opening for free",
+      "heroSub": "View your pass range together with the currently free readings.",
+      "heroCta": "View",
+      "balanceLabel": "Monthly stone balance",
+      "balanceEmpty": "0 left",
+      "balanceHint": "Checking your monthly stone balance. Sharing on KakaoTalk adds more monthly stones.",
+      "primaryAction": "Find the pass that fits me",
+      "chipsAria": "Core pass benefits",
+      "chipIncluded": "Free within pass range",
+      "chipThirtyDays": "30-day pass",
+      "chipShareReward": "KakaoTalk share reward",
+      "plansAria": "Pass plan summary cards",
+      "standardName": "Standard Honey 30 days",
+      "standardPrice": "30 days ? KRW 9,900",
+      "standardLine": "Use features up to KRW 3,000",
+      "standardBenefit1": "Light tarot and oracle routines",
+      "standardBenefit2": "Up to 3 profiles",
+      "standardCta": "View Standard",
+      "recommendedAria": "Recommended plan",
+      "recommendedBadge": "Recommended",
+      "premiumName": "Premium Honey 30 days",
+      "premiumPrice": "30 days ? KRW 29,900",
+      "premiumLine": "Use features up to KRW 5,000",
+      "premiumBenefit1": "Balanced tarot, saju, and love readings",
+      "premiumBenefit2": "Up to 7 profiles",
+      "premiumCta": "View recommended plan",
+      "vvipName": "VVIP Honey Jar 30 days",
+      "vvipPrice": "30 days ? KRW 59,000",
+      "vvipLine": "Use features up to KRW 10,000",
+      "vvipBenefit1": "Deep premium fortune routine",
+      "vvipBenefit2": "Up to 15 profiles",
+      "vvipCta": "View VVIP benefits",
+      "familyName": "Code Destiny Family 30 days",
+      "familyPrice": "30 days ? KRW 300,000",
+      "familyLine": "Use all paid features",
+      "familyBenefit1": "No profile limit",
+      "familyBenefit2": "All Family benefits",
+      "familyCta": "View Family",
+      "premiumNote": "Premium fits best if you often use services up to KRW 5,000.",
+      "footnote": "New passes are sold only as 30-day passes. This 30-day pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product."
+    },
+    "promptHub": {
+      "aria": "Go to comprehensive fortune prompts",
+      "alt": "Comprehensive fortune prompts",
+      "sr": "Comprehensive fortune prompts"
+    },
+    "premiumArchive": {
+      "kicker": "VVIP DESTINY ARCHIVE",
+      "toggleHint": "Open sealed reports",
+      "pointsAria": "Key points",
+      "sukuyoPrice": "Premium PDF ? KRW 49,000",
+      "sukuyoPoint1": "Relationship structure through the 27 mansions",
+      "sukuyoPoint2": "Align both lunar bases before payment",
+      "sukuyoPoint3": "Archive link for PDF saving and re-download",
+      "compatibilityMeta": "Compatibility",
+      "total15Meta": "15 chapters",
+      "sukuyoCtaMeta": "Align lunar bases",
+      "ziweiPrice": "Premium PDF ? KRW 59,000",
+      "ziweiPoint1": "Core structure of Ming, Shen, and the 12 palaces",
+      "ziweiPoint2": "Signals from career, wealth, love, movement, and health palaces",
+      "ziweiPoint3": "Major cycle and annual turning-point reading",
+      "personalMeta": "Personal",
+      "ziweiCtaMeta": "View Zi Wei details",
+      "report39000Price": "Premium Report ? KRW 39,000",
+      "astroPoint1": "Core temperament from Sun, Moon, and Rising",
+      "astroPoint2": "House flow for love, work, money, and emotion",
+      "astroPoint3": "Saturn, Node, and transit turning points",
+      "total12Meta": "12 chapters",
+      "astroCtaMeta": "View astrology report details",
+      "vedicPoint1": "Lagna, Moon sign, and nakshatra reading",
+      "vedicPoint2": "Dasha cycles and karmic flow",
+      "vedicPoint3": "Practical advice for love, work, money, and recovery",
+      "vedicCtaMeta": "View Vedic details",
+      "report69000Price": "Premium Report ? KRW 69,000",
+      "soulPoint1": "Integrated story across saju, astrology, sukuyo, ziwei, and Vedic signs",
+      "soulPoint2": "Structure of recurring wounds and relational karma",
+      "soulPoint3": "Future release direction and practice declaration",
+      "soulCtaMeta": "Open my origin"
+    },
+    "passFooter": {
+      "aria": "Pass footer guide",
+      "eyebrow": "Moonlight Pass",
+      "title": "Let your fortune routine continue more comfortably with a moonlight pass",
+      "desc": "Once your pass opens, frequently used readings and free public routines stay together in one place, so the flow you want continues faster into the next scene.",
+      "pointsAria": "Core pass guide",
+      "point1": "Check free public routines right away",
+      "point2": "Quick access to frequent readings",
+      "point3": "Check your pass range together",
+      "mascotAria": "View Kkul-Kkul pass benefits",
+      "mascotAlt": "Kkul-Kkul pass guide image",
+      "mascotKicker": "Honey Guide",
+      "mascotText": "Kkul-Kkul! Start with today?s free fortune routines, then continue straight into the pass flow that fits you.",
+      "cta": "Find the pass that fits me"
+    },
+    "dreamPrompt": {
+      "closeAria": "Close dream prompt",
+      "kicker": "Whispering Star-Library",
+      "title": "The Magic Shop of the Unconscious: Dream Prompt",
+      "subtitle": "Unfold your dream scene through tarot symbols, then leave only the prompt to give a dream-reading AI.",
+      "wizardLine": "Welcome, traveler of the unconscious. The starlit dream ledger quietly opens its first line.",
+      "entrancePrompt": "Write the clearest scene, the beings that appeared, and the feelings left after waking. The seed of the prompt will awaken.",
+      "inputLabel": "Dream scene",
+      "placeholder": "Example: I was flying through the sky, suddenly fell, and woke with both freedom and anxiety lingering.",
+      "cardCountAria": "Number of tarot cards to draw",
+      "cardCountLegend": "Number of tarot cards",
+      "cardCount1": "1 card",
+      "cardCount2": "2 cards",
+      "cardCount3": "3 cards",
+      "cardCount4": "4 cards",
+      "cardCount5": "5 cards",
+      "drawButton": "Draw cards",
+      "loading": "Weaving the tarot messages into a prompt...",
+      "cardsSummaryAria": "Drawn card summary",
+      "outputTitle": "Dream interpretation prompt for your dream",
+      "copyButton": "Copy prompt",
+      "resetButton": "Read another dream",
+      "copyHint": "Paste it into ChatGPT, Claude, or another AI to receive a professional dream interpretation."
+    },
+    "psychoDream": {
+      "closeAria": "Close psychoanalytic dream reading",
+      "kicker": "Freud's Study",
+      "title": "Psychoanalytic Dream Report",
+      "subtitle": "In an old London consulting room, your unconscious is arranged with formal care.",
+      "wizardLine": "Are you ready to receive Dr. Freud's opinion?",
+      "entrancePrompt": "Write here the story your unconscious is offering. Dr. Freud is waiting.",
+      "journalAria": "The Dream Journal",
+      "journalTitle": "The Dream Journal",
+      "placeholder": "Write here the story your unconscious is offering. Dr. Freud is waiting.",
+      "startButton": "Start psychoanalytic dream reading",
+      "loading": "Exploring the room of the unconscious...",
+      "reportAria": "Analysis Report",
+      "reportTitle": "Formal Psychoanalytic Report",
+      "homeAria": "Go directly to the home screen",
+      "homeButton": "Go home",
+      "shareButton": "Share analysis text",
+      "resetButton": "Interpret another dream"
+    },
+    "ichingTurtle": {
+      "homeAria": "Go home",
+      "homeButton": "Home",
+      "navTitle": "Tortoise Shell Divination",
+      "closePageAria": "Close this page",
+      "closePageButton": "Close this page",
+      "kicker": "Tortoise Shell Divination",
+      "title": "Tortoise Oracle - Heavenly Signs",
+      "quote": "The cracks in the shell speak the will of heaven.",
+      "note": "A fictional divination experience inspired by ancient turtle-shell rites and reimagined for today.",
+      "questionLabel": "Question - write the deep question in your heart",
+      "placeholder": "Example: Is it wise to start this business now?",
+      "statusReady": "Hold the turtle shell to let the heat pass through.",
+      "shellAria": "Cast the turtle shell oracle",
+      "shellLine1": "Press and hold",
+      "shellLine2": "Kindle the fire"
+    },
+    "sukuyo": {
+      "title": "宿曜占",
+      "noProfileTitle": "需要命運卡",
+      "noProfileBody": "查看宿曜占前，請先在主畫面設定你的命運卡。",
+      "setupCardCta": "設定命運卡"
+    },
+    "astro": {
+      "title": "西洋占星基礎星盤",
+      "noProfileTitle": "需要出生資訊",
+      "noProfileBody": "開啟西洋占星基礎出生星盤前，請先設定出生日期、時間與地點。",
+      "setupCardCta": "前往設定卡片",
+      "chartTitle": "西洋占星出生星盤"
+    },
+    "ziwei": {
+      "title": "紫微斗數",
+      "noProfileTitle": "需要命運卡",
+      "noProfileBody": "查看紫微斗數命盤前，請先建立你的命運卡。",
+      "createCardCta": "建立命運卡"
+    },
+    "destinySwitch": {
+      "dialogAria": "確認切換命運資料",
+      "question": "要用這份命運資料查看運勢嗎？"
+    },
+    "myeongriTarot": {
+      "title": "THE MYSTIC TAROT",
+      "subtitle": "Cards and ten gods open today’s choice together.",
+      "oneCardMode": "One-card reading",
+      "threeCardMode": "Three-card flow · 5,000 KRW",
+      "categories": {
+        "daily": "Today’s fortune",
+        "love": "Love fortune",
+        "reunion": "Reunion fortune",
+        "career": "Work and career",
+        "money": "Wealth fortune",
+        "health": "Health fortune",
+        "exam": "Exam and success",
+        "people": "Relationships"
+      },
+      "ritualDefault": "Choose one doorway of concern, and the cards will unfold its texture.",
+      "cardAlt": "Tarot card",
+      "cardAlt1": "Tarot card 1",
+      "cardAlt2": "Tarot card 2",
+      "cardAlt3": "Tarot card 3",
+      "spreadGuideInitial": "Open the first card to see the flow so far.",
+      "slots": {
+        "past": "The flow so far",
+        "present": "The core energy now",
+        "next": "The next standard for choice"
+      },
+      "openFlowReading": "Open flow reading · 5,000 KRW",
+      "retryOtherConcern": "Spread another concern",
+      "aiPromptTitle": "Myeongri tarot prompt to ask AI next",
+      "afterPaymentBadge": "After payment reading",
+      "aiPromptBody": "The three cards and ten-god texture are preserved. Copy it and ask AI about the flow from today onward.",
+      "aiPromptAria": "Myeongri tarot AI prompt",
+      "copyPrompt": "Copy prompt",
+      "askAi": "Ask AI"
+    },
+    "tarotLove": {
+      "closeAria": "Close love tarot",
+      "title": "What are we to each other?",
+      "subtitle": "The warmth between words and actions, and the pace that should be met before naming the relationship, become clear. Six cards gently reveal attraction, hesitation, near flow, and the boundary to keep.",
+      "drawCta": "Draw cards",
+      "drawHeader": "Open the cards in order and feel the temperature of the relationship.",
+      "spreadGuideInitial": "Open the first card to see how you view the other person.",
+      "openReading": "Open relationship reading",
+      "resultTitle": "The temperature and pace between us",
+      "resultCardsAria": "Review drawn cards"
+    },
+    "tarotReunion": {
+      "closeAria": "Close reunion tarot",
+      "title": "Before reaching again, what should be protected?",
+      "subtitle": "Five cards illuminate the remaining warmth, the other person’s emotional texture, why contact stopped, the safe distance for reaching out again, and the real conditions for protecting the relationship. Rather than a hurried answer, they find a steady standard and a gentle first sentence.",
+      "meditationAria": "Night sea meditation",
+      "meditationStart": "Start night sea meditation",
+      "startReading": "Light the relationship lighthouse",
+      "drawHeader": "Open the lighthouse beam in order, from remaining warmth to the boundary to keep.",
+      "spreadGuideInitial": "Open the first card to see the warmth left between you.",
+      "openReading": "Open lighthouse reading",
+      "resultTitle": "Relationship recovery lighthouse reading"
+    },
+    "tarotYear": {
+      "badge": "Twelve guardian spirits monthly fortune",
+      "title": "Twelve cards opening the texture of the year",
+      "subtitle": "From January to December, the monthly energy guarded by the twelve spirits unfolds. Wealth, relationships, work, and reputation are read through a different card each month.",
+      "openCta": "Open twelve-month fortune",
+      "loadingTitle": "Opening the twelve monthly cards",
+      "loadingBody": "The guardian energy and tarot cards are aligning the year’s flow. Please wait a moment.",
+      "resultTitle": "Zodiac heavenly reading — twelve months of fortune",
+      "resultHint": "Tap each monthly card to unfold wealth, relationships, work, and reputation for that month.",
+      "monthPlaceholder": "Tap a monthly card from January to December to see that month’s fortune.",
+      "monthDetailTitle": "January detailed fortune",
+      "monthCardAlt": "This month’s tarot card",
+      "monthCardNameFallback": "This month’s card",
+      "monthConsult": "Professional tarot reading",
+      "monthSpreadTitle": "This month’s fortune flow spread",
+      "tabs": {
+        "general": "Core",
+        "relationship": "Relationships",
+        "money": "Money and work",
+        "health": "Health"
+      },
+      "categoryTitle": "Overall theme reading",
+      "adviceTitle": "Oracle’s final note",
+      "share": "Share heavenly reading",
+      "zodiac": {
+        "rat": "Rat",
+        "ox": "Ox",
+        "tiger": "Tiger",
+        "rabbit": "Rabbit",
+        "dragon": "Dragon",
+        "snake": "Snake",
+        "horse": "Horse",
+        "goat": "Goat",
+        "monkey": "Monkey",
+        "rooster": "Rooster",
+        "dog": "Dog",
+        "pig": "Pig"
+      }
+    },
+    "animalTotem": {
+      "closeAria": "關閉動物圖騰",
+      "title": "動物圖騰神聖儀式",
+      "subtitle": "神秘森林裡的動物映照你的心緒。透過守護動物牌，看見今天的能量與方向。可依當下感受選擇一張、三張或五張儀式。",
+      "start": "開始儀式",
+      "modeBadge": "SACRED TOTEM CIRCLE",
+      "modeTitle": "選擇守護動物牌儀式",
+      "modeHint": "請選擇符合當下情緒與能量的牌陣儀式。",
+      "modes": {
+        "one": {
+          "title": "One moonlit card",
+          "desc": "Core guidance from one guardian animal · 3,000 KRW"
+        },
+        "three": {
+          "title": "Three forest paths",
+          "desc": "A gentle reading of past, present, and integration · 3,000 KRW"
+        },
+        "five": {
+          "title": "Five constellation animals",
+          "desc": "A deeper look into emotion, shadow, gift, and action · 6,000 KRW"
+        }
+      },
+      "drawCards": "召喚卡牌",
+      "drawBadge": "ARCANA FLIP RITUAL",
+      "drawHeader": "按順序翻開直式塔羅牌，接收光的訊息。",
+      "drawHint": "卡牌會以柔和的 3D 翻轉展開。",
+      "resultTitle": "守護動物的訊息",
+      "resultCardsAria": "Drawn totem cards",
+      "openingTitle": "開場訊息",
+      "closingTitle": "療癒結語",
+      "share": "分享到 KakaoTalk 星光",
+      "restart": "重新開始儀式"
+    },
+    "kemet": {
+      "aria": "埃及神諭運勢",
+      "title": "THE ORACLE OF KEMET",
+      "subtitle": "正在連接古埃及神秘的全視之眼網絡。",
+      "sourceAria": "選擇資料來源",
+      "sources": {
+        "all": "Integrated search [Eye of Horus cosmic web & Akashic records]",
+        "egypt": "Abyss search [Cairo underground & Saqqara secret archive]",
+        "global": "Satellite search [Global occult database]"
+      },
+      "placeholder": "請輸入具體問題，例如本月財運、復合可能、考試合格等。",
+      "readingCta": "解讀神諭",
+      "loading": "正在連接埃及圖書館伺服器...",
+      "cardOracleTitle": "十二主神黃金神諭",
+      "cardOracleHint": "洗牌後，選擇內心被吸引的三張牌。",
+      "counterReady": "洗牌後開始",
+      "shuffle": "GOLDEN SHUFFLE",
+      "shuffleHint": "按下 GOLDEN SHUFFLE 按鈕來洗牌。"
+    },
+    "insights": {
+      "openAria": "開啟運勢洞察中心",
+      "closeAria": "關閉運勢洞察中心",
+      "imageAlt": "運勢洞察中心 — 東西方命理檔案",
+      "title": "宇宙神秘圖書館",
+      "subtitle": "四柱、塔羅、宿曜、吠陀占星、西洋占星與紫微斗數核心原理檔案",
+      "body": "這裡整理東西方命理的結構與模式。請選擇主題，繼續深入探索。",
+      "topics": {
+        "saju": {
+          "title": "Saju Myeongri",
+          "desc": "Four pillars and 60 stem-branches"
+        },
+        "tarot": {
+          "title": "Tarot",
+          "desc": "Major and minor arcana"
+        },
+        "sukuyo": {
+          "title": "Sukuyo",
+          "desc": "Moon and 27 lunar mansions"
+        },
+        "vedic": {
+          "title": "Vedic astrology",
+          "desc": "Navagraha and rashi"
+        },
+        "astrology": {
+          "title": "Western astrology",
+          "desc": "12 signs, planets, and basic chart"
+        },
+        "ziwei": {
+          "title": "Zi Wei Dou Shu",
+          "desc": "Life palace and 12 houses"
+        }
+      }
+    },
+    "famousArchive": {
+      "openAria": "開啟名人四柱分析檔案",
+      "closeAria": "關閉名人四柱分析檔案",
+      "imageAlt": "名人四柱分析檔案封面圖",
+      "title": "名人四柱分析檔案",
+      "subtitle": "歷史人物、K-star 與全球名人 50+ 的四柱命理深度分析",
+      "searchPlaceholder": "按姓名搜尋，例如李舜臣、Taylor",
+      "searchAria": "搜尋名人",
+      "filterAria": "分類篩選",
+      "filters": {
+        "historic": "Historical figures",
+        "kstar": "K-stars",
+        "japan": "Japan",
+        "china": "China",
+        "us": "United States",
+        "music": "Music",
+        "acting": "Acting",
+        "sports": "Sports",
+        "business": "Business leaders",
+        "creator": "Directors and creators",
+        "politics": "Politicians"
+      },
+      "noscript": "提供國內外 50+ 名人四柱命理深度分析。",
+      "detailTitle": "人物詳細分析",
+      "notice": "學術與教育目的 — 本內容用於介紹東方命理理論，不構成對真實人物的價值判斷或預測；出生時間不明者以正午三柱為基準分析。"
+    },
+    "emailSubscription": {
+      "aria": "首頁郵件訂閱",
+      "pigTitle": "個人運勢郵件訂閱",
+      "neoTitle": "策略報告郵件訂閱",
+      "pigDesc": "完成四柱分析後，可以透過郵件接收 Yeoni 溫暖的每日運勢。",
+      "neoDesc": "完成四柱分析後，可以透過郵件接收 Neo 的策略報告。",
+      "dailyLabel": "接收每日運勢郵件",
+      "dailyNote": "將同時寄送今日日運與本月背景流向。",
+      "placeholder": "輸入電子郵件地址",
+      "pigSubmit": "訂閱",
+      "neoSubmit": "訂閱"
+    },
+    "heroTrust": {
+      "free": "可免費開始",
+      "freeAria": "前往免費命運卡",
+      "insights": "運勢洞察",
+      "insightsAria": "前往塔羅、四柱與占星集合",
+      "membership": "通行券與月訂閱說明",
+      "membershipAria": "查看通行券和月訂閱餘額並展開月光權益"
+    },
+    "badges": {
+      "yogaGuru": "YOGA GURU",
+      "selfUp": "SELF UP",
+      "advanced": "進階"
+    },
+    "themeToggle": {
+      "pigMode": "🌸 花豬延伊模式",
+      "neoMode": "🦁 白獅子尼奧模式",
+      "aria": "切換花豬延伊與白獅子尼奧模式",
+      "yeoni": "延伊",
+      "neo": "尼奧",
+      "pigLogoAlt": "蜜糖延伊標誌",
+      "neoLogoAlt": "尼奧模式標誌"
     }
   },
   "terms": {
@@ -375,7 +1227,10 @@
       "refund": "退款政策",
       "about": "關於我們",
       "faq": "常見問題",
-      "contact": "聯絡我們"
+      "contact": "聯絡我們",
+      "disclaimer": "Disclaimer",
+      "editorial": "Editorial Policy",
+      "advertising": "Advertising Policy"
     },
     "refundPolicy": "高級硬幣（數位積分）購買後14天內未使用可依消費者保護法申請退款。已使用積分不可退。如需協助請聯絡客服。",
     "copyright": "© 2025 Code Destiny. 保留所有權利。本服務僅供娛樂與自我反思之用，不構成專業建議。",
@@ -384,7 +1239,10 @@
       "resources": "資源",
       "legal": "法律",
       "support": "支援"
-    }
+    },
+    "privacyNotice": "本服务仅在提供四柱、运势结果及相关客户支持所需范围内收集和使用出生日期、出生时间、性别信息。收集目的达成或服务结束时会立即销毁；如法律要求保存，则在规定期间内另行保管后销毁。",
+    "policyLinksAria": "政策和咨询链接",
+    "hostingNotice": "托管服务提供方: Cloudflare, Inc. 所有交易、退款和咨询由Code Destiny负责。"
   },
   "branches": {
     "자수": {
@@ -566,5 +1424,3134 @@
         "popular": false
       }
     ]
+  },
+  "common": {
+    "cancel": "取消",
+    "close": "關閉",
+    "home": "返回首頁",
+    "closePage": "關閉此頁",
+    "kakaoShare": "分享到 KakaoTalk",
+    "kakaoShareShort": "Kakao 分享",
+    "back": "返回",
+    "no": "否",
+    "yes": "是",
+    "kakaoShareResult": "分享到 KakaoTalk",
+    "retryReading": "重新解讀",
+    "goHomeScreen": "返回首頁",
+    "shareResult": "分享結果",
+    "retryReadingShort": "重新解讀",
+    "homeIcon": "首頁",
+    "retryFortune": "重新占卜",
+    "startOver": "重新開始",
+    "returnHome": "返回首頁",
+    "reset": "重置",
+    "tapToOpen": "點擊開啟",
+    "noSearchResults": "沒有搜尋結果",
+    "all": "全部",
+    "solar": "陽曆",
+    "lunarRegular": "陰曆（平月）",
+    "lunarLeap": "陰曆（閏月）",
+    "retry": "重試",
+    "share": "💬 分享",
+    "contact": "咨询",
+    "optionalParen": "(可选)",
+    "requiredStar": "* 必填",
+    "monthShort": "月",
+    "dayShort": "日",
+    "download": "下載"
+  },
+  "privacy": {
+    "consentTitle": "同意蒐集與使用個人資訊",
+    "collectedItemsLabel": "蒐集項目:",
+    "collectedItemsBody": "出生日期、出生时间、性别（用于四柱和万年历计算的必要信息）",
+    "collectionPurposeLabel": "蒐集與使用目的:",
+    "collectionPurposeBody": "提供个性化四柱、紫微斗数、易经占卜和运势结果",
+    "retentionLabel": "保存與使用期間:",
+    "retentionBody": "本服務不會將你輸入的資訊儲存在伺服器。重新整理或關閉頁面時會立即刪除。若使用本機儲存，可能會保留到你刪除瀏覽器資料為止。",
+    "refusalNotice": "你有权拒绝同意，但拒绝后运势解读服务可能会受到限制。",
+    "agreeAndViewResult": "同意並查看結果"
+  },
+  "payment": {
+    "loader": {
+      "eyebrow": "月光付款確認",
+      "title": "正在安全確認付款狀態",
+      "processing": "付款正在進行中。",
+      "meta": "正在依序確認付款驗證與使用權限。"
+    },
+    "wait": {
+      "pg_processing": {
+        "subscription": {
+          "title": "月度方案付款中",
+          "sub": "月光的紋理正在安靜對齊"
+        },
+        "single": {
+          "title": "正在準備單次付款",
+          "sub": "訂單資訊與驗證流程正在對齊"
+        },
+        "pass": {
+          "title": "正在準備付款"
+        }
+      },
+      "result_loading": {
+        "subscription": {
+          "title": "月度方案付款已完成",
+          "sub": "馬上可以使用"
+        },
+        "single": {
+          "title": "付款已完成",
+          "sub": "正在載入結果"
+        },
+        "pass": {
+          "title": "使用券已確認",
+          "sub": "正在載入結果"
+        }
+      },
+      "access_check": {
+        "subscription": {
+          "title": "正在準備月度方案付款",
+          "sub": "正在先確認月光的紋理"
+        },
+        "single": {
+          "title": "正在確認餘額"
+        },
+        "pass": {
+          "title": "正在確認使用券"
+        }
+      }
+    },
+    "pending": {
+      "default": "付款正在進行中。",
+      "refund": "正在確認付款紀錄並準備退款。",
+      "passCheck": "正在確認使用券。",
+      "monthly": "月度方案付款正在進行中。月光的紋理正在安靜對齊。",
+      "direct": "正在準備單次付款。",
+      "unlockSaving": "正在準備解鎖內容。",
+      "passChecking": "正在確認使用券權限。",
+      "subscriptionPrepare": "正在準備韓元基準的使用券付款資訊。",
+      "subscriptionConfirm": "正在確認使用券付款核准與啟用。",
+      "confirm": "正在伺服器驗證付款核准。",
+      "purchase": "正在確認付款核准與使用權限。"
+    },
+    "price5000": "5,000韓元",
+    "permanentUnlockApprox5000": "永久解鎖 · 約5,000韓元",
+    "viewNow": "立即查看 →",
+    "permanentUnlock5000": "5,000韓元永久解鎖",
+    "unlockWith5000": "用5,000韓元解鎖",
+    "krwPayment": "韩元支付",
+    "history": "确认支付记录",
+    "currency": {
+      "krw": "{amount}韓元",
+      "monthlyCredits": "{count}個"
+    },
+    "directModal": {
+      "title": "选择支付方式",
+      "readyMessage": "请选择月定石或单次支付。",
+      "directHint": "可使用银行卡或快捷支付直接付款。<br>支付将在 PortOne V2 KG Inicis 安全支付窗口中进行。",
+      "pgBadge": "PortOne V2 · KG Inicis",
+      "directTitle": "韩元单次支付 · {amount}",
+      "amountLabel": "支付金额",
+      "monthlyBasisLabel": "月定石基准",
+      "monthlyBadge": "持有月定石",
+      "monthlyTitle": "月定石支付",
+      "requiredMonthly": "所需月定石",
+      "currentMonthly": "当前余额",
+      "subtitle": {
+        "withPass": "显示金额与月定石基准相同。可使用通行券或银行卡单次支付开启此内容。",
+        "directOnly": "显示金额与月定石基准相同。可继续银行卡单次支付。"
+      },
+      "note": {
+        "basis": "月定石基准 · {amount}",
+        "withPass": "一般付费服务在限额内可用通行券开启，PDF和超出限额的服务按商品使用韩元单次支付。",
+        "directOnly": "此操作将通过韩元单次支付确认。"
+      },
+      "passBadge": "月光通行券",
+      "passStoreTitle": "月光通行券商店",
+      "passRetryTitle": "重新检查通行券",
+      "passHint": {
+        "store": "前往月光通行券商店购买所需通行券。",
+        "retry": "服务器将重新检查持有通行券是否可免支付开启。"
+      },
+      "applyMethod": {
+        "label": "适用方式",
+        "store": "前往商店",
+        "instant": "立即适用"
+      },
+      "passLimit": {
+        "label": "通行券上限",
+        "default": "按方案确认",
+        "allPaid": "可使用所有付费功能",
+        "upTo": "可使用 {amount} 以下",
+        "checking": "正在确认通行券范围"
+      },
+      "monthlyHint": {
+        "use": "使用持有月定石余额并立即开启。",
+        "insufficient": "月定石余额不足。可继续韩元单次支付。",
+        "checking": "需要确认月定石余额。仍可使用韩元单次支付。"
+      },
+      "monthlyBalance": {
+        "needCheck": "需要确认",
+        "ready": "月定石余额确认完成 · 当前 {balance}",
+        "checking": "正在确认月定石余额。",
+        "refresh": "重新查询月定石",
+        "refreshing": "正在重新查询月定石余额。",
+        "refreshed": "已重新确认月定石余额。当前为 {balance}。",
+        "notFound": "尚未确认到有效的月定石/通行券。请在支付完成后重新查询。"
+      }
+    },
+    "overlay": {
+      "unlockPreparing": {
+        "title": "正在准备保存权限",
+        "message": "正在准备保存阅览权限。"
+      },
+      "unlockSaving": {
+        "title": "正在保存阅览权限",
+        "message": "正在保存阅览权限。",
+        "safeMessage": "正在安全保存使用权限。"
+      },
+      "failed": {
+        "title": "支付确认失败",
+        "message": "支付或通行券确认失败。"
+      },
+      "clean": {
+        "pass": {
+          "eyebrow": "MOONLIGHT PASS CHECK",
+          "title": "正在确认通行券",
+          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "meta": "如可使用，将无需打开支付窗口继续。"
+        },
+        "passApplied": {
+          "eyebrow": "HONEY FORTUNE PASS",
+          "title": "通行券已适用",
+          "message": "此内容已通过持有通行券开启。",
+          "meta": "无需额外支付即可继续。"
+        },
+        "paymentComplete": {
+          "eyebrow": "HONEY FORTUNE PAID",
+          "title": "支付完成",
+          "message": "支付已完成，正在开启阅览权限。",
+          "meta": "即将前往内容。"
+        },
+        "card": {
+          "eyebrow": "SINGLE SECURE CHECKOUT",
+          "title": "准备单次支付",
+          "message": "正在确认订单信息与认证流程。",
+          "meta": "安全支付窗口打开后请继续认证。"
+        },
+        "checkout": {
+          "eyebrow": "CHECKOUT READY",
+          "title": "准备单次支付",
+          "message": "正在确认订单信息与认证流程。",
+          "meta": "正在安全匹配订单号和支付金额。"
+        },
+        "confirm": {
+          "eyebrow": "PAYMENT VERIFICATION",
+          "title": "正在确认单次支付授权",
+          "message": "正在同时确认授权信号和内容使用权限。",
+          "meta": "确认完成后即可阅览。"
+        },
+        "monthly": {
+          "eyebrow": "MOONLIGHT STONE CHECK",
+          "title": "正在确认月定石支付",
+          "message": "正在用月定石余额开启内容使用权限。",
+          "meta": "正在安全匹配月定石扣减与阅览权限。"
+        },
+        "subscription": {
+          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "title": "正在确认韩元基准通行券支付",
+          "message": "正在确认通行券支付授权与激活。",
+          "meta": "正在安全应用通行券等级与期限。"
+        },
+        "unlockSaving": {
+          "eyebrow": "ACCESS GRANT",
+          "title": "正在应用解锁",
+          "message": "正在应用内容解锁。",
+          "meta": "正在保存资料权限和阅览状态。"
+        },
+        "refund": {
+          "eyebrow": "REFUND CHECK",
+          "title": "正在确认退款处理",
+          "message": "正在确认支付记录和使用权限。",
+          "meta": "将按未使用权限安全处理。"
+        },
+        "payment": {
+          "eyebrow": "PAYMENT CHECK",
+          "title": "正在确认支付状态",
+          "message": "正在确认支付状态和使用权限。",
+          "meta": "正在依次确认支付认证与使用权限。"
+        }
+      },
+      "default": {
+        "pass": {
+          "eyebrow": "MOONLIGHT PASS CHECK",
+          "title": "正在确认通行券",
+          "message": "正在确认持有的30天通行券是否可立即开启。",
+          "meta": "如可使用，将无需打开支付窗口继续。"
+        },
+        "passApplied": {
+          "eyebrow": "HONEY FORTUNE PASS",
+          "title": "通行券已适用",
+          "message": "此内容已通过持有通行券开启。",
+          "meta": "无需额外支付即可继续。"
+        },
+        "paymentComplete": {
+          "eyebrow": "HONEY FORTUNE PAID",
+          "title": "支付完成",
+          "message": "支付已完成，正在开启阅览权限。",
+          "meta": "即将前往内容。"
+        },
+        "card": {
+          "eyebrow": "SINGLE SECURE CHECKOUT",
+          "title": "准备单次支付",
+          "message": "正在确认订单信息与认证流程。",
+          "meta": "安全支付窗口打开后请继续认证。"
+        },
+        "checkout": {
+          "eyebrow": "CHECKOUT READY",
+          "title": "准备单次支付",
+          "message": "正在确认订单信息与认证流程。",
+          "meta": "正在安全匹配订单号和支付金额。"
+        },
+        "confirm": {
+          "eyebrow": "PAYMENT VERIFICATION",
+          "title": "正在确认单次支付授权",
+          "message": "正在同时确认授权信号和内容使用权限。",
+          "meta": "确认完成后即可阅览。"
+        },
+        "monthly": {
+          "eyebrow": "MOONLIGHT STONE CHECK",
+          "title": "正在确认月定石支付",
+          "message": "正在用月定石余额开启内容使用权限。",
+          "meta": "正在安全匹配月定石扣减与阅览权限。"
+        },
+        "subscription": {
+          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "title": "正在确认韩元基准通行券支付",
+          "message": "正在确认通行券支付授权与激活。",
+          "meta": "正在安全应用通行券等级与期限。"
+        },
+        "unlockSaving": {
+          "eyebrow": "ACCESS GRANT",
+          "title": "正在应用解锁",
+          "message": "正在应用内容解锁。",
+          "meta": "正在保存资料权限和阅览状态。"
+        },
+        "refund": {
+          "eyebrow": "REFUND CHECK",
+          "title": "正在确认退款处理",
+          "message": "正在确认支付记录和使用权限。",
+          "meta": "将按未使用权限安全处理。"
+        },
+        "payment": {
+          "eyebrow": "PAYMENT CHECK",
+          "title": "正在确认支付状态",
+          "message": "正在确认支付状态和使用权限。",
+          "meta": "正在依次确认支付认证与使用权限。"
+        }
+      }
+    },
+    "passShop": {
+      "monthlyStatus": "月定石支付中。月光余额正静静对齐。",
+      "chargeButton": "前往 {amount} 支付页面",
+      "chargeNotice": "月定石基准 {credits} · 支付金额 {price} · 这是30天通行券，不是自动续费商品。",
+      "best": "BEST",
+      "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
+      "profileUnlimited": "不限资料",
+      "profileLimit": "{count}个资料",
+      "allFeatures": "可使用全部功能",
+      "upTo": "可使用 {amount} 以下",
+      "benefits": "权益一览",
+      "closeAria": "关闭月光通行券商店说明",
+      "openAria": "打开月光通行券商店说明",
+      "title": "月光通行券商店说明",
+      "subtitle": "查看月光停留的30天通行券与月定石流程。",
+      "footerNotice": "此30天通行券不是自动续费商品。到期后需要重新购买。",
+      "packages": {
+        "standard": {
+          "name": "标准蜂蜜30天",
+          "desc": "30天 · 3,000韩元以下功能 · 3个资料"
+        },
+        "premium": {
+          "name": "高级蜂蜜30天",
+          "desc": "30天 · 5,000韩元以下功能 · 7个资料"
+        },
+        "vvip": {
+          "name": "VVIP蜂蜜罐30天",
+          "desc": "30天 · 10,000韩元以下功能 · 15个资料"
+        },
+        "family": {
+          "name": "Code Destiny Family 30天",
+          "desc": "30天 · 所有付费功能 · 不限资料"
+        }
+      }
+    },
+    "access": {
+      "passAppliedContinue": "已使用通行券開啟。"
+    }
+  },
+  "auth": {
+    "neoLogoAlt": "Neo 模式標誌",
+    "neoTagline": "Neo 的直球運勢平台",
+    "neoSubline": "不加情緒，只留下事實。",
+    "signup": "✨ 註冊",
+    "login": "🔐 登入",
+    "loadingGreeting": "正在校準帳號星光",
+    "loadingChip": "SESSION SYNC",
+    "loadingTitle": "正在讀取登入資訊",
+    "loadingCopy": "稍後會顯示你的命運卡與已擁有的權益。",
+    "passDelayGreeting": "使用券確認稍有延遲",
+    "passDelayChip": "PASS SYNC",
+    "passDelayNote": "確認準確會員等級後，將開啟登入卡片。",
+    "retry": "重新確認",
+    "adminSessionActive": "管理員工作階段已啟用",
+    "adminSessionTagline": "管理員工作階段已啟用。",
+    "memberTaglineWithSubscription": "{subscription} · 今天也繼續探索命運星座",
+    "memberTagline": "今天也繼續探索命運星座",
+    "greeting": "✦ 你好",
+    "userNameSuffix": "{name}",
+    "logout": "🔓 登出",
+    "adminSessionGreeting": "✦ 管理員工作階段",
+    "adminAccessChip": "ADMIN ACCESS",
+    "adminName": "ADMIN",
+    "adminPanelSessionTitle": "管理員面板工作階段",
+    "exit": "🔓 離開",
+    "loginKeyword": "登录",
+    "providers": {
+      "kakao": "Kakao",
+      "google": "Google",
+      "naver": "Naver"
+    },
+    "loginModal": {
+      "eyebrow": "需要登入",
+      "title": "若要開啟安靜的解讀，請先登入。",
+      "description": "快速登入後，可繼續使用冥想內容與高級解讀。",
+      "loginButton": "登入並繼續",
+      "signupButton": "註冊"
+    }
+  },
+  "seo": {
+    "homeTitle": "免費四柱、塔羅與今日運勢 | Code Destiny 蜜豬運勢",
+    "rssTitle": "Code Destiny & 蜜豬運勢 RSS",
+    "description": "依出生日期查看免費四柱、塔羅、合盤、新年運、土亭秘訣與 MBTI 相性。Code Destiny 蜜豬運勢也可透過舊名蜜豬萬年曆搜尋。",
+    "keywords": "四柱, 免費四柱, 萬年曆, 塔羅, 今日運勢, 合盤, 新年運, 土亭秘訣, 面相, 財運, 復合運, MBTI相性, 解夢, 宿曜占, 龜卜, 周易, 埃及神諭, Kemet Oracle, 紫微斗數, 占星, Code Destiny, 蜜豬運勢, 蜜豬萬年曆"
+  },
+  "fortune": {
+    "destinyFlower": {
+      "common": {
+        "unknown": "Unknown"
+      },
+      "astro": {
+        "elements": {
+          "Fire": "fire",
+          "Earth": "earth",
+          "Air": "air",
+          "Water": "water",
+          "Cosmic": "starlight"
+        },
+        "unknownSun": "Sun sign unknown",
+        "unknownRising": "Rising sign unknown",
+        "unknownMoon": "Moon sign unknown",
+        "stickerLabel": "Flower by astrology",
+        "sunSignBadge": "Sun sign {sign}",
+        "risingSignBadge": "Rising sign {sign}",
+        "moonSignBadge": "Moon sign {sign}",
+        "scenarioTitle": "Sun-sign centered blooming scenario",
+        "chartPending": "Waiting for chart data",
+        "ritualTip": "Tonight, steady your breath for three minutes and set one intention beneath a star.",
+        "relationshipTheme": "When relationships follow the rhythm of your main sign, friction softens.",
+        "careerTheme": "Bring the core drive of your sun sign into your work routine for steadier momentum.",
+        "growthCycle": "Star call ? orbit forming ? nebula blooming ? radiance spreading",
+        "fallbackNote": "Sun-sign data was unavailable, so the reading used the default air element.",
+        "ultimateTitle": "Ultimate Destiny Flower",
+        "ultimateConcept": "A hybrid bloom where Eastern {dayMaster} energy merges with Western {sunSign} starlight",
+        "verdict": "Through astrology, your destiny flower is {flowerName} ({scientificName}). The three axes of sun, rising, and moon signs show this flower resonating closely with you now.",
+        "narrative": "The {sunElement} spark rising from sun sign {sun} becomes the center of this flower choice. Rising sign {rising} ({risingElement}) shapes the visible tone, while moon sign {moon} ({moonElement}) adds emotional dew, letting the symbol of {flowerName}, ?{flowerSymbolism},? open clearly. The keyword ?{keyword}? is the starlight calling this flower forward."
+      },
+      "ziwei": {
+        "brightness": {
+          "miao": "Miao",
+          "wang": "Wang",
+          "li": "Li",
+          "de": "De",
+          "ping": "Ping",
+          "han": "Han",
+          "xian": "Xian"
+        },
+        "coreFlow": "core fortune flow",
+        "coreEnergy": "expression of core energy",
+        "stickerLabel": "Flower by Ziwei",
+        "strongStarBadge": "Strong star today: {stars}",
+        "brightnessLabel": "Star brightness {brightness}",
+        "scenarioTitle": "Strong-star blooming scenario",
+        "ritualTip": "Core keyword today: {keyword}",
+        "relationshipTheme": "Let the strong-star temperament become your relational standard and harmony becomes clearer.",
+        "careerTheme": "When the main star?s strength takes the front, execution and positioning stabilize.",
+        "growthCycle": "Star alignment ? energy gathering ? seed ignition ? bloom",
+        "secondaryFallbackNote": "Composite main-star adjustment: {primaryStar} centered + {secondaryStar} scent blend",
+        "palaceFallbackNote": "Palace trait adjustment: {palace} ? {trait}",
+        "hybridHint": "Hybrid rendering available by blending Saju {dayMaster} energy with Ziwei main stars {stars}",
+        "verdict": "In Ziwei, the destiny flower read through today?s strongest star is {flowerName} ({scientificName}). Over the nature of {palace}, ?{palaceTrait},? the star quality ?{keyword}? from {stars} becomes clearest through brightness {brightness}.",
+        "narrativeWithSecondary": "{palace} governs ?{palaceEnergy}.? The {stars} combination rises here, setting {title} as the central flower. The main-star nature ?{personality}? is joined by the secondary star?s ?{secondaryKeyword}? texture. Because brightness {brightness} supports it steadily, {flowerName} translates the structure of this fortune most clearly.",
+        "narrativeSingle": "{palace} handles ?{palaceEnergy}.? Today?s strong star {star} places the quality ?{keyword}? and the nature ?{personality}? at the flower?s center. Brightness {brightness} holds that light steady, and {flowerName} resonates most deeply with your central energy.",
+        "rules": {
+          "peonyZiwei": {
+            "title": "Imperial Peony",
+            "keyword": "imperial poise",
+            "personality": "a leader who centers the field and restores order"
+          },
+          "thornyRoseGeneral": {
+            "title": "General?s Red Rose",
+            "keyword": "decisive breakthrough",
+            "personality": "a decisive force that advances even under pressure"
+          },
+          "thornyRosePioneer": {
+            "title": "Pioneer?s Red Rose",
+            "keyword": "the drive to reshape the field",
+            "personality": "an innovator who breaks the old frame and opens a new order"
+          },
+          "delicateWillow": {
+            "title": "Strategist?s Willow Flower",
+            "keyword": "gentle strategy",
+            "personality": "a strategist who reads the moment and finds the cleanest answer"
+          },
+          "sunflowerZiwei": {
+            "title": "Solar Sunflower",
+            "keyword": "expanding light",
+            "personality": "an executor who gathers energy toward visible results"
+          },
+          "nightCereus": {
+            "title": "Moonlit Night-Blooming Cereus",
+            "keyword": "mystery that opens at night",
+            "personality": "a contemplative soul who reads the unseen current"
+          },
+          "orchidTanlang": {
+            "title": "Peach-Blossom Orchid",
+            "keyword": "sensual magnetism",
+            "personality": "a magnetic type who leads through beauty, relationship, and expression"
+          }
+        }
+      },
+      "sukuyo": {
+        "moon": {
+          "full": "full moon",
+          "new": "dark moon",
+          "crescent": "crescent moon",
+          "gibbous": "waxing/waning moon"
+        },
+        "stickerLabel": "Flower by Sukuyo",
+        "moonPhaseLabel": "Moon phase {moon}",
+        "guardianLabel": "Guardian {guardian}",
+        "scenarioTitle": "27 mansions and moon-phase blooming scenario",
+        "ritualTip": "By a moonlit window, breathe 27 times and set today?s intention in one word.",
+        "relationshipTheme": "Following the texture of {group} softens tension and clarifies connection.",
+        "careerTheme": "When the rhythm of {guardian} is reflected in your work routine, results stabilize.",
+        "growthCycle": "Constellation linking ? moonlight gathering ? spirit ignition ? bloom",
+        "verdict": "Through Sukuyo?s moonlight texture, your destiny flower is {flowerName} ({scientificName}). The combination of {mansion}, {moon}, and {guardian} aligns delicately with the rhythm of relationship, emotion, and action now.",
+        "narrative": "The relational texture of {mansion} ({group}), the tide of moon phase {moon}, and the protective pattern of {guardian} meet in the night garden, deepening the quality of ?{symbolism}.? Read together, these three moonlit signals point to {flowerName} as your most precise destiny flower now."
+      },
+      "saju": {
+        "scenarios": {
+          "default": {
+            "title": "{dayMasterBadge} environment blooming????"
+          },
+          "jia": {
+            "springWood": {
+              "title": "Jia Wood upright-leading blooming????"
+            },
+            "autumnMetal": {
+              "title": "Jia Wood metal-tempering????"
+            },
+            "dryFire": {
+              "title": "Jia Wood dry-heat endurance????"
+            }
+          },
+          "yi": {
+            "metalWater": {
+              "title": "Yi Wood metal-water harmony????"
+            },
+            "dryEarth": {
+              "title": "Yi Wood dry-soil survival????"
+            },
+            "autumn": {
+              "title": "Yi Wood autumn refinement????"
+            },
+            "wetSpring": {
+              "title": "Yi Wood moist-spring expansion????"
+            }
+          },
+          "bing": {
+            "springWood": {
+              "title": "Bing Fire spring ignition????"
+            },
+            "summerFire": {
+              "title": "Bing Fire summer expansion????"
+            },
+            "waterControl": {
+              "title": "Bing Fire water-control????"
+            }
+          },
+          "ding": {
+            "coldWet": {
+              "title": "Ding Fire cold-damp warmth????"
+            },
+            "autumnMetal": {
+              "title": "Ding Fire metal-refining????"
+            },
+            "resonance": {
+              "title": "Ding Fire resonance blooming????"
+            }
+          },
+          "wu": {
+            "fireEarth": {
+              "title": "Wu Earth fire-earth achievement????"
+            },
+            "winterWater": {
+              "title": "Wu Earth winter foundation????"
+            },
+            "center": {
+              "title": "Wu Earth center-building????"
+            }
+          },
+          "ji": {
+            "wetEarth": {
+              "title": "Ji Earth cultivation expansion????"
+            },
+            "metalDesign": {
+              "title": "Ji Earth precision-design????"
+            },
+            "balance": {
+              "title": "Ji Earth balance-tuning????"
+            }
+          },
+          "geng": {
+            "metalEarth": {
+              "title": "Geng Metal principle-through????"
+            },
+            "fireTraining": {
+              "title": "Geng Metal fire-tempering????"
+            },
+            "clearJudgment": {
+              "title": "Geng Metal decisive-judgment????"
+            }
+          },
+          "xin": {
+            "metalWater": {
+              "title": "Xin Metal metal-water refinement????"
+            },
+            "springWood": {
+              "title": "Xin Metal wood-tuning????"
+            },
+            "completion": {
+              "title": "Xin Metal completion????"
+            }
+          },
+          "ren": {
+            "summerCooling": {
+              "title": "Ren Water summer-cooling????"
+            },
+            "winterCondensing": {
+              "title": "Ren Water winter-condensing????"
+            },
+            "nightIntuition": {
+              "title": "Ren Water night-intuition????"
+            }
+          },
+          "gui": {
+            "coldWetPurifying": {
+              "title": "Gui Water cold-damp purification????"
+            },
+            "summerEmpathy": {
+              "title": "Gui Water summer-empathy????"
+            },
+            "subtleSignal": {
+              "title": "Gui Water subtle-signal????"
+            }
+          }
+        },
+        "stickerLabel": "Flower by Saju",
+        "dayMasterWaiting": "Waiting for day master reading",
+        "signalPending": "Waiting for core signals",
+        "scenarioTitleFallback": "{dayMasterBadge} blooming scenario",
+        "scenarioFallbackReason": "The blooming flow was read by integrating the day master and environment.",
+        "growthCycle": "Sprout (gathering energy) ? Growth (amplifying action) ? Bloom (results surfacing) ? Fruition (relationships and assets deepening)",
+        "fallbackNote": "Day master enrichment logic was applied.",
+        "verdict": "In your Saju reading, your flower is {flowerName} ({scientificName}).",
+        "rationale": {
+          "verdict": "In your Saju reading, your destiny flower is {flowerName} ({scientificName}).",
+          "elements": "The Five Element reading shows {dominant} as your main energy and {support} as the supporting flow.",
+          "context": "The season of the current fortune is {season}, the energy density is {water}, and the life stage is read as {environment}.",
+          "dayMaster": "The day master is confirmed as {dayMasterBadge}, and the season-environment interaction around it was prioritized.",
+          "scenario": "Day master-environment scenario: {reason}",
+          "levels": "The element levels are {elementLevelLine}, and all five levels were weighted to confirm the destiny flower.",
+          "symbolism": "This flower symbolizes {symbolism}, reflecting the theme of this season most clearly.",
+          "description": "Destiny flower reading: {description}",
+          "vibe": "Blooming guide: {vibeMessage}",
+          "fallback": "Adjustment logic: {note}"
+        },
+        "elements": {
+          "wood": "Wood",
+          "fire": "Fire",
+          "earth": "Earth",
+          "metal": "Metal",
+          "water": "Water"
+        },
+        "seasons": {
+          "Spring": "spring",
+          "Summer": "summer",
+          "Autumn": "autumn",
+          "Winter": "winter"
+        },
+        "environments": {
+          "Forest": "forest",
+          "Garden": "garden",
+          "Pond": "pond",
+          "Lake": "lake",
+          "Rock": "rocky mountain",
+          "Desert": "desert",
+          "Field": "open field",
+          "Wetland": "wetland",
+          "NightSky": "night sky"
+        },
+        "environmentTraits": {
+          "Forest": "the expansion of the forest",
+          "Garden": "the harmony of the garden",
+          "Pond": "the circulation of the pond",
+          "Lake": "the depth of the lake",
+          "Rock": "the concentration of stone",
+          "Desert": "the survival power of the desert",
+          "Field": "the openness of the field",
+          "Wetland": "the vitality of the wetland",
+          "NightSky": "the intuition of the night sky"
+        },
+        "water": {
+          "low": "dry energy",
+          "balanced": "balanced energy",
+          "high": "moist and flexible energy"
+        },
+        "ritual": {
+          "Wood": "Open your Wood energy with ten minutes of stretching before sunrise.",
+          "Fire": "Receive five minutes of morning sunlight with intention and align your Fire energy.",
+          "Earth": "Tidy one area of your desk or home to recover the center of Earth energy.",
+          "Metal": "Write down three priorities for the day to strengthen Metal?s restraint.",
+          "Water": "Open the circulation of Water energy with a short walk and deep breathing."
+        },
+        "relationship": {
+          "Wood": "Respecting each other?s pace of growth steadies the relationship.",
+          "Fire": "When feelings are expressed honestly, the temperature of the relationship rises.",
+          "Earth": "A consistent attitude protects trust for longer.",
+          "Metal": "Clear boundaries and promises improve the quality of the relationship.",
+          "Water": "Empathy and listening create the turning point in the relationship."
+        },
+        "career": {
+          "Wood": "Growth expands most strongly in expansion-oriented projects.",
+          "Fire": "Launches, promotion, and presentations suit you well when you stand at the front.",
+          "Earth": "Operations, management, and system-building bring out your strengths.",
+          "Metal": "Analysis, planning, and quality control turn precision into results.",
+          "Water": "Research, investigation, and content design let your depth shine."
+        }
+      },
+      "flowers": {
+        "anemone": {
+          "name": "Anemone",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Anemone???????????",
+          "description": "Anemone????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "aster": {
+          "name": "Aster",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Aster???????????",
+          "description": "Aster????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "astro_lavender": {
+          "name": "Nebula Lavender",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Nebula Lavender???????????",
+          "description": "Nebula Lavender????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "azalea": {
+          "name": "Azalea",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Azalea???????????",
+          "description": "Azalea????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "begonia": {
+          "name": "Begonia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Begonia???????????",
+          "description": "Begonia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "bellflower": {
+          "name": "Bellflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Bellflower???????????",
+          "description": "Bellflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "bird_of_paradise": {
+          "name": "Bird of Paradise",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Bird of Paradise???????????",
+          "description": "Bird of Paradise????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "black_rose": {
+          "name": "Black Rose",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Black Rose???????????",
+          "description": "Black Rose????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "blue_iris": {
+          "name": "Blue Iris",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Blue Iris???????????",
+          "description": "Blue Iris????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "blue_lotus": {
+          "name": "Blue Lotus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Blue Lotus???????????",
+          "description": "Blue Lotus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "bluebell": {
+          "name": "Bluebell",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Bluebell???????????",
+          "description": "Bluebell????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "cactus_flower": {
+          "name": "Cactus Flower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Cactus Flower???????????",
+          "description": "Cactus Flower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "camellia": {
+          "name": "Camellia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Camellia???????????",
+          "description": "Camellia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "carnation": {
+          "name": "Carnation",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Carnation???????????",
+          "description": "Carnation????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "cherry_blossom": {
+          "name": "Cherry Blossom",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Cherry Blossom???????????",
+          "description": "Cherry Blossom????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "chrysanthemum_gold": {
+          "name": "Golden Chrysanthemum",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Golden Chrysanthemum???????????",
+          "description": "Golden Chrysanthemum????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "cornflower": {
+          "name": "Cornflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Cornflower???????????",
+          "description": "Cornflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "cosmos": {
+          "name": "Cosmos",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Cosmos???????????",
+          "description": "Cosmos????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "crocus": {
+          "name": "Crocus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Crocus???????????",
+          "description": "Crocus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "dahlia": {
+          "name": "Dahlia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Dahlia???????????",
+          "description": "Dahlia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "daisy": {
+          "name": "Daisy",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Daisy???????????",
+          "description": "Daisy????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "delicate_willow": {
+          "name": "Willow Flower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Willow Flower???????????",
+          "description": "Willow Flower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "delphinium": {
+          "name": "Delphinium",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Delphinium???????????",
+          "description": "Delphinium????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "edelweiss": {
+          "name": "Edelweiss",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Edelweiss???????????",
+          "description": "Edelweiss????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "flame_tulip": {
+          "name": "Flame Tulip",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Flame Tulip???????????",
+          "description": "Flame Tulip????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "forsythia": {
+          "name": "Forsythia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Forsythia???????????",
+          "description": "Forsythia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "foxglove": {
+          "name": "Foxglove",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Foxglove???????????",
+          "description": "Foxglove????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "freesia": {
+          "name": "Freesia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Freesia???????????",
+          "description": "Freesia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "gardenia": {
+          "name": "Gardenia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Gardenia???????????",
+          "description": "Gardenia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "gentian": {
+          "name": "Gentian",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Gentian???????????",
+          "description": "Gentian????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "geranium": {
+          "name": "Geranium",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Geranium???????????",
+          "description": "Geranium????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "glacier_bloom": {
+          "name": "Glacier Bloom",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Glacier Bloom???????????",
+          "description": "Glacier Bloom????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "heliotrope": {
+          "name": "Heliotrope",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Heliotrope???????????",
+          "description": "Heliotrope????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "hibiscus": {
+          "name": "Hibiscus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Hibiscus???????????",
+          "description": "Hibiscus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "honeysuckle": {
+          "name": "Honeysuckle",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Honeysuckle???????????",
+          "description": "Honeysuckle????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "hydrangea": {
+          "name": "Hydrangea",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Hydrangea???????????",
+          "description": "Hydrangea????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "iris": {
+          "name": "Iris",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Iris???????????",
+          "description": "Iris????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "ivy_bloom": {
+          "name": "Ivy Bloom",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Ivy Bloom???????????",
+          "description": "Ivy Bloom????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "jasmine": {
+          "name": "Jasmine",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Jasmine???????????",
+          "description": "Jasmine????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "larkspur": {
+          "name": "Larkspur",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Larkspur???????????",
+          "description": "Larkspur????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lavender": {
+          "name": "Lavender",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Lavender???????????",
+          "description": "Lavender????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lily": {
+          "name": "Lily",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Lily???????????",
+          "description": "Lily????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lotus": {
+          "name": "Lotus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Lotus???????????",
+          "description": "Lotus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lotus_golden": {
+          "name": "Golden Lotus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Golden Lotus???????????",
+          "description": "Golden Lotus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lotus_pink": {
+          "name": "Pink Lotus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Pink Lotus???????????",
+          "description": "Pink Lotus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "lotus_white": {
+          "name": "White Lotus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "White Lotus???????????",
+          "description": "White Lotus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "magnolia": {
+          "name": "Magnolia",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Magnolia???????????",
+          "description": "Magnolia????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "marigold": {
+          "name": "Marigold",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Marigold???????????",
+          "description": "Marigold????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "moon_lily": {
+          "name": "Moon Lily",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Moon Lily???????????",
+          "description": "Moon Lily????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "moon_narcissus": {
+          "name": "Moon Narcissus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Moon Narcissus???????????",
+          "description": "Moon Narcissus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "moonflower": {
+          "name": "Moonflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Moonflower???????????",
+          "description": "Moonflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "morning_glory": {
+          "name": "Morning Glory",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Morning Glory???????????",
+          "description": "Morning Glory????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "mugunghwa": {
+          "name": "Mugunghwa",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Mugunghwa???????????",
+          "description": "Mugunghwa????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "narcissus": {
+          "name": "Narcissus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Narcissus???????????",
+          "description": "Narcissus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "nemophila": {
+          "name": "Nemophila",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Nemophila???????????",
+          "description": "Nemophila????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "night_cereus": {
+          "name": "Night-Blooming Cereus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Night-Blooming Cereus???????????",
+          "description": "Night-Blooming Cereus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "orange_trumpet": {
+          "name": "Orange Trumpet Flower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Orange Trumpet Flower???????????",
+          "description": "Orange Trumpet Flower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "orchid": {
+          "name": "Orchid",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Orchid???????????",
+          "description": "Orchid????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "orchid_tanlang": {
+          "name": "Tanlang Orchid",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Tanlang Orchid???????????",
+          "description": "Tanlang Orchid????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "passionflower": {
+          "name": "Passionflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Passionflower???????????",
+          "description": "Passionflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "peony": {
+          "name": "Peony",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Peony???????????",
+          "description": "Peony????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "peony_ziwei": {
+          "name": "Ziwei Peony",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Ziwei Peony???????????",
+          "description": "Ziwei Peony????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "persian_buttercup": {
+          "name": "Persian Buttercup",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Persian Buttercup???????????",
+          "description": "Persian Buttercup????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "plum_blossom": {
+          "name": "Plum Blossom",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Plum Blossom???????????",
+          "description": "Plum Blossom????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "poppy": {
+          "name": "Poppy",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Poppy???????????",
+          "description": "Poppy????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "primrose": {
+          "name": "Primrose",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Primrose???????????",
+          "description": "Primrose????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "queen_anne_lace": {
+          "name": "Queen Anne?s Lace",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Queen Anne?s Lace???????????",
+          "description": "Queen Anne?s Lace????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "ranunculus": {
+          "name": "Ranunculus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Ranunculus???????????",
+          "description": "Ranunculus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "red_lycoris": {
+          "name": "Red Lycoris",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Red Lycoris???????????",
+          "description": "Red Lycoris????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "red_spider_lily": {
+          "name": "Red Spider Lily",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Red Spider Lily???????????",
+          "description": "Red Spider Lily????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "resilient_rose": {
+          "name": "Classic Rose",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Classic Rose???????????",
+          "description": "Classic Rose????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "rose": {
+          "name": "Rose",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Rose???????????",
+          "description": "Rose????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "snapdragon": {
+          "name": "Snapdragon",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Snapdragon???????????",
+          "description": "Snapdragon????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "sunflower": {
+          "name": "Sunflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Sunflower???????????",
+          "description": "Sunflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "sunflower_ziwei": {
+          "name": "Ziwei Sunflower",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Ziwei Sunflower???????????",
+          "description": "Ziwei Sunflower????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "sweet_pea": {
+          "name": "Sweet Pea",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Sweet Pea???????????",
+          "description": "Sweet Pea????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "thorny_rose": {
+          "name": "Thorned Rose",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Thorned Rose???????????",
+          "description": "Thorned Rose????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "tiger_lily": {
+          "name": "Tiger Lily",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Tiger Lily???????????",
+          "description": "Tiger Lily????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "tulip": {
+          "name": "Tulip",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Tulip???????????",
+          "description": "Tulip????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "violet": {
+          "name": "Violet",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Violet???????????",
+          "description": "Violet????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "violet_wisteria": {
+          "name": "Violet Wisteria",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Violet Wisteria???????????",
+          "description": "Violet Wisteria????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "water_anemone": {
+          "name": "Water Anemone",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Water Anemone???????????",
+          "description": "Water Anemone????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "water_lily": {
+          "name": "Water Lily",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Water Lily???????????",
+          "description": "Water Lily????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "water_narcissus": {
+          "name": "Water Narcissus",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Water Narcissus???????????",
+          "description": "Water Narcissus????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "white_baby_breath": {
+          "name": "White Baby?s Breath",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "White Baby?s Breath???????????",
+          "description": "White Baby?s Breath????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "wild_chrysanthemum": {
+          "name": "Wild Chrysanthemum",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Wild Chrysanthemum???????????",
+          "description": "Wild Chrysanthemum????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "winter_plum": {
+          "name": "Winter Plum",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Winter Plum???????????",
+          "description": "Winter Plum????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "wisteria": {
+          "name": "Wisteria",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Wisteria???????????",
+          "description": "Wisteria????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        },
+        "yarrow": {
+          "name": "Yarrow",
+          "symbolism": "blooming, harmony, inner rhythm",
+          "title": "Yarrow???????????",
+          "description": "Yarrow????????????????????????????",
+          "vibeMessage": "When you honor this rhythm, your flower opens with steadier light.",
+          "keywords": {
+            "0": "Bloom",
+            "1": "Harmony",
+            "2": "Flow"
+          }
+        }
+      }
+    }
+  },
+  "errors": {
+    "notFound": {
+      "eyebrow": "ERROR 404",
+      "title": "找不到頁面",
+      "description": "地址可能已變更，或頁面尚未公開。請從下方連結查看相關的運勢指南與洞察。",
+      "links": {
+        "insights": "運勢洞察中心",
+        "sajuGuide": "四柱命理基礎指南",
+        "tarotGuide": "塔羅閱讀入門",
+        "faq": "常見問題"
+      },
+      "home": "返回首頁",
+      "freeSaju": "查看免費四柱分析"
+    },
+    "tryAgainLater": "請稍後再試。"
+  },
+  "result": {
+    "sajuGuide": {
+      "kicker": "太極的初始之氣",
+      "title": "白光與黑光的太極照亮命盤中心。",
+      "desc": "命盤中的氣會依序流經日柱、十神、調候與抑扶。更深的運勢之門，會在需要之處安靜開啟。",
+      "navAria": "前往免費四柱解讀",
+      "nav": {
+        "manse": "命盤",
+        "ilju": "日柱",
+        "tenGods": "十神",
+        "johu": "調候",
+        "ukbu": "抑扶"
+      }
+    },
+    "quantum": {
+      "title": "今日宇宙命運",
+      "subtitle": "打開卡牌，解讀星象流動。",
+      "openCard": "打開星之卡",
+      "elementSignal": "元素訊號",
+      "backDesc": "卡牌開啟後，今日宇宙五行流動將展開。",
+      "skyLabel": "天干 (Sky)",
+      "earthLabel": "地支 (Earth)",
+      "placeholder": "分析後的運勢資料將顯示在這裡。",
+      "constellationTitle": "元素星群",
+      "elements": {
+        "wood": "綠色／木之氣 · 代表成長與新的開始。",
+        "fire": "紅色／火之氣 · 代表熱情與擴展。",
+        "earth": "黃色／土之氣 · 代表穩定與包容。",
+        "metal": "白色／金之氣 · 代表收成與決斷。",
+        "water": "黑色／水之氣 · 代表智慧與靈活。"
+      },
+      "lifeGuideTitle": "今日宇宙生活指南",
+      "guides": {
+        "relationship": "關係與戀愛流動",
+        "money": "財富與事業流動",
+        "action": "開運顏色與行動"
+      }
+    },
+    "dailyFortune": {
+      "myeongriTitle": "命理解讀",
+      "actionTitle": "行動指南與注意事項",
+      "luckyColor": "幸運顏色",
+      "luckyNumber": "幸運數字",
+      "luckyDirection": "幸運方位",
+      "monthlyScoreTitle": "月度運勢分數走勢"
+    },
+    "sections": {
+      "sajuTitle": "四柱命盤",
+      "iljuTitle": "我的日柱輪廓",
+      "tenGodsTitle": "擁有的十神 — 點擊查看詳情",
+      "johuTitle": "寒暖燥濕調候分析",
+      "ukbuTitle": "抑扶與從格分析"
+    },
+    "ilju": {
+      "dashboard": "DAY PILLAR DASHBOARD",
+      "hanjaTitle": "日柱漢字標記",
+      "balanceTitle": "五行平衡度",
+      "summaryTitle": "三行摘要",
+      "showDetail": "查看詳細分析 ▼",
+      "detailTitle": "詳細分析",
+      "adviceTitle": "專屬建議"
+    },
+    "elements": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "tenGods": {
+      "explainTitle": "什麼是十神？",
+      "explainBody": "十神以出生之日為中心，用十種角色比喻其他字對你的作用。看清命盤中聚集的十神，能更容易理解隱藏性格、才能與戀愛風格。"
+    },
+    "premiumShowcase": {
+      "aria": "View details for three premium saju interpretations",
+      "eyebrow": "PREMIUM ANALYSIS",
+      "title": "Three deep readings for the larger flow of destiny",
+      "subtitle": "Daewun, full reading, and compatibility gather in one place so the texture of life becomes clearer.",
+      "expand": "Open three readings",
+      "permanent": "Permanent unlock",
+      "daewun": {
+        "title": "Daewun analysis",
+        "desc": "The ten-year daewun flow is integrated through support strength, seasonal balance, and following pattern. It shows when to move forward and when to hold steady.",
+        "point1": "Visualized life fortune graph by decade",
+        "point2": "Deep reading of favorable and unfavorable factors by daewun",
+        "point3": "Current daewun position and core strategy",
+        "point4": "Integrated support, season, and pattern judgment"
+      },
+      "summary": {
+        "title": "Full saju reading",
+        "desc": "A comprehensive saju report of about 20 A4 pages. Personality, career, love, health, wealth, benefactors, and lucky actions are interpreted in depth.",
+        "point1": "Innate personality and talent through eight characters",
+        "point2": "Promising career fields and strategy for the next decade",
+        "point3": "Love and marriage timing and relationship conditions",
+        "point4": "Wealth flow and how money gathers"
+      },
+      "compat": {
+        "title": "Compatibility analysis",
+        "desc": "Love, business, and friendship compatibility are read through saju. It gently reveals whether the relationship becomes better together or needs care.",
+        "point1": "Five-element harmony and conflict score",
+        "point2": "Love, marriage, business, and friendship type reading",
+        "point3": "Good timing and caution periods",
+        "point4": "Personalized advice from the AI saju master"
+      }
+    },
+    "graph": {
+      "good": "吉運",
+      "neutral": "中立",
+      "hard": "逆境",
+      "current": "目前"
+    },
+    "dailyMonthly": {
+      "title": "今日運勢與本月運勢",
+      "dailyTab": "日運（今日）",
+      "monthlyTab": "月運（本月）"
+    },
+    "premiumGates": {
+      "daewun": {
+        "sectionTitle": "大運 — 抑扶、調候、從格綜合判斷",
+        "title": "大運分析 — 高級內容",
+        "desc": "查看抑扶、調候、從格綜合大運流向與人生吉凶圖，需要支付5,000韓元。",
+        "notice": "僅憑萬歲曆的數理資料，無法完全界定一個人的立體命運。本分析基於命理傾向，請作為閱讀並準備人生流向的策略參考。",
+        "graphTitle": "人生吉凶圖（抑扶+調候+從格綜合）"
+      },
+      "summary": {
+        "sectionTitle": "綜合四柱解讀",
+        "title": "綜合四柱解讀 — 高級內容",
+        "desc": "查看約A4 20頁的性格、事業、戀愛、健康、財富、貴人與開運深度解讀，需要支付5,000韓元。"
+      },
+      "compat": {
+        "title": "合盤分析 — 高級內容",
+        "desc": "查看基於四柱的戀愛、事業、朋友合盤分析結果，需要支付5,000韓元。"
+      }
+    },
+    "compat": {
+      "sectionTitle": "查看合盤（戀愛 · 事業 · 朋友）",
+      "nameLabel": "對方姓名",
+      "namePlaceholder": "請輸入對方姓名",
+      "typeLabel": "合盤類型",
+      "types": {
+        "love": "戀愛/結婚",
+        "business": "事業/合作",
+        "friend": "朋友/同事"
+      },
+      "typeDesc": "選擇類型後，將顯示適合該關係的分析文案與建議重點。",
+      "celebLabel": "選擇名人",
+      "birthLabel": "對方出生日期與時間",
+      "runCta": "分析合盤"
+    },
+    "funCards": {
+      "celebTitle": "Which celebrity is my soul twin?",
+      "fourCutTitle": "Saju four-cut: destiny filter",
+      "dashboardTitle": "Fun saju content"
+    },
+    "letter": {
+      "title": "💖 妍伊的信"
+    },
+    "share": {
+      "title": "📤 分享四柱结果",
+      "kakao": "KakaoTalk分享",
+      "instagram": "Instagram DM"
+    },
+    "actions": {
+      "newSaju": "✨ 查看新的四柱"
+    }
+  },
+  "premiumPdf": {
+    "common": {
+      "prepareCta": "確認內容並準備生成PDF →",
+      "profileLabel": "分析对象档案",
+      "profileLoading": "正在读取出生日期...",
+      "tocAria": "章节目录",
+      "savePdf": "📥 保存为 PDF",
+      "errorTitle": "请确认生成状态",
+      "errorBody": "请稍后再试。",
+      "regenerate": "重新生成",
+      "shortGenerationNote": "生成约需5〜10分钟 · 完成后可保存PDF",
+      "generationErrorTitle": "生成过程中发生错误",
+      "downloadPdf": "下载PDF",
+      "generationStageAria": "生成阶段",
+      "prevChapter": "上一章",
+      "nextChapter": "下一章",
+      "viewStructureAgain": "重新查看结构",
+      "savePdfShort": "保存PDF",
+      "viewPreviousComplete": "查看之前完成版"
+    },
+    "lifebook": {
+      "aria": "人生之書 — 為你定製的高級四柱深度分析",
+      "alt": "人生之書 — 為你定製的高級四柱深度分析",
+      "title": "人生之書",
+      "priceBadge": "生成時 50,000韓元",
+      "subtitle": "以四柱原局展開的人生地圖",
+      "desc": "將原局、大運與歲運編成13章，把人生方向與選擇時機整理成PDF全書。",
+      "features": {
+        "expert": "Created by a real Myeongri expert",
+        "chart": "Original eight-character chart reading",
+        "daewun": "Precise daewun analysis",
+        "strategy": "Yongshin and huishin strategy",
+        "mission": "Pattern and social calling",
+        "love": "Love and marriage analysis",
+        "wealth": "Wealth and career strategy",
+        "health": "Health and energy map",
+        "sinsal": "Sinsal and fortune-star reading",
+        "year": "Selected-year roadmap",
+        "panorama": "Life panorama",
+        "choice": "Final choice criteria"
+      }
+    },
+    "loveSecret": {
+      "aria": "戀愛秘策 — 用四柱讀取戀愛策略",
+      "title": "戀愛秘策",
+      "pricePrefix": "生成時",
+      "compatPdf": "合盤PDF",
+      "subtitle": "用四柱讀取愛的紋理與緣分方向",
+      "desc": "透過日干、日支、月支讀取反覆出現的戀愛流向，並整理成魅力、理想型、關係穩定策略PDF。",
+      "features": {
+        "tendency": "Love tendency analysis",
+        "charm": "Charm point discovery",
+        "ideal": "Ideal type structure analysis",
+        "compat": "Compatibility structure analysis",
+        "stability": "Relationship stability strategy",
+        "action": "Action guide"
+      },
+      "ariaLabel": "恋爱秘策",
+      "kicker": "PREMIUM LOVE STRATEGY",
+      "chapters": {
+        "1": "My love archetype",
+        "2": "Formula of attraction",
+        "3": "Relationship pattern analysis",
+        "4": "Expression and communication",
+        "5": "Anxiety and attachment in love",
+        "6": "Marriage and spouse fortune",
+        "7": "Breakup and reunion patterns",
+        "8": "Intimacy and chemistry through seasonal balance",
+        "9": "Timing and conditions for meeting good love",
+        "10": "Love master plan for me"
+      },
+      "badgeExpert": "👨‍🎓 真实命理专家设计",
+      "badgeChapters": "💕 单身10章 · 合盘10章",
+      "badgeManuscript": "✍️ 至少36,000字",
+      "badgeIlju": "🔮 日柱·日支深度解读",
+      "badgePricePrefix": "🪙 单身",
+      "badgePriceMiddle": "· 合盘",
+      "headlinePrefix": "爱情中反复出现的纹理，由四柱",
+      "headlineStrong": "八个字静静照亮",
+      "descriptionLine1": "用日柱、官星、桃花的语言读取反复出现的恋爱流向和理想型方向。",
+      "descriptionLine2": "整理为单身10章、合盘10章PDF，深入呈现。",
+      "whyStructureTitle": "Your personal love structure",
+      "whyStructureBody": "Reads love patterns and repeated habits from the root of the day master and day branch emotional structure.",
+      "whyPartnerTitle": "Spouse star and ideal partner reading",
+      "whyPartnerBody": "Through officer and wealth star structure, it points to the element, temperament, and relationship style of a comfortable long-term partner.",
+      "whyTimingTitle": "Relationship adjustment and timing",
+      "whyTimingBody": "The temperature of conversation, the pace of connection, and the great/annual fortune flow that moves love are organized together.",
+      "whyCompatibilityTitle": "Complete compatibility and marriage timing",
+      "whyCompatibilityBody": "When the other person’s saju is entered, five-element harmony, day-pillar compatibility, and chemistry are compared with real saju data.",
+      "startDescPrefix": "The love algorithm hidden in the eight characters of your saju is",
+      "startDescStrongPrefix": "solo 10 chapters / compatibility 10 chapters, at least 36,000 characters, A4 page",
+      "startDescStrongSuffix": "+",
+      "startDescSuffix": "decoded completely in a professional analysis.",
+      "recommendTitle": "✦ Strongly recommended for those who ✦",
+      "recommend": {
+        "1": "“want to know why I keep failing in the same pattern”",
+        "2": "“want to confirm whether this person is my destined partner”",
+        "3": "“wonder when love may arrive this year”",
+        "4": "“need practical love strategy, not simple compatibility”"
+      },
+      "inputNotice": "⚠️ 分析约需2〜3分钟。输入出生日期后进入支付与生成。",
+      "selectTypeCta": "选择恋爱秘策类型",
+      "compatBadge": "💑 合盘分析 — 可选",
+      "compatTitleLine1": "用对方四柱",
+      "compatTitleLine2": "进行更精密的合盘分析",
+      "compatDescLine1": "Enter birth date and available birth time to analyze five-element harmony, day-pillar compatibility, emotional rhythm, and relationship adjustment.",
+      "compatDescLine2": "The analysis uses real saju data. If the time is unknown, it is interpreted conservatively.",
+      "compatCoinPrefix": "🪙 Compatibility PDF is generated after",
+      "compatCoinSuffix": "payment confirmation. If you skip partner info, you can proceed with the solo PDF.",
+      "partnerPreviewTitle": "✨ Real-time preview of the other person’s saju chart",
+      "partnerNamePlaceholder": "对方姓名",
+      "genderMale": "♂ 男性",
+      "genderFemale": "♀ 女性",
+      "yearPlaceholder": "年份 (例: 1995)",
+      "hours": {
+        "0": "Zi hour (23:00-01:00)",
+        "1": "Chou hour (01:00-03:00)",
+        "2": "Yin hour (03:00-05:00)",
+        "3": "Mao hour (05:00-07:00)",
+        "4": "Chen hour (07:00-09:00)",
+        "5": "Si hour (09:00-11:00)",
+        "6": "Wu hour (11:00-13:00)",
+        "7": "Wei hour (13:00-15:00)",
+        "8": "Shen hour (15:00-17:00)",
+        "9": "You hour (17:00-19:00)",
+        "10": "Xu hour (19:00-21:00)",
+        "11": "Hai hour (21:00-23:00)",
+        "unknown": "Unknown time"
+      },
+      "timeHint": "若不知道时间，将以正午为基准保守解读",
+      "compatCtaSuffix": "生成合盘PDF",
+      "soloCtaSuffix": "生成单身PDF",
+      "loadingTitle": "正在撰写恋爱秘策",
+      "loadingQuote": "四柱八字中藏着你会爱上之人的影子。",
+      "chapterProgressAria": "Chapter progress",
+      "progressInitial": "0 / 10 章完成",
+      "resultLabel": "只为你而写的命运恋爱报告",
+      "shareBonus": "💬 分享+1,000韩元",
+      "epilogueTitle": "你的爱情故事现在开始",
+      "epilogueLine1": "如今你已握住天空刻给你的爱情地图，",
+      "epilogueLine2": "愿未来所有缘分都为你带来闪耀的幸福 💖"
+    },
+    "newYear": {
+      "aria": "四柱新年運勢 — 10章節高級PDF報告",
+      "alt": "四柱新年運勢高級PDF",
+      "title": "四柱新年運勢",
+      "priceBadge": "生成時 30,000韓元",
+      "subtitle": "用原局與歲運讀取所選年份的10章節策略",
+      "desc": "將一年的大運、事業財富、關係心緒與12個月流向整理成新年策略PDF。",
+      "features": {
+        "months": "Twelve-month flow map",
+        "strategy": "Daewun and yearly flow strategy",
+        "workMoney": "Work and wealth judgment",
+        "relationship": "Relationship and emotional rhythm",
+        "download": "PDF download"
+      },
+      "ariaLabel": "四柱新年运势PDF",
+      "kicker": "PREMIUM NEW YEAR GUIDE",
+      "badgeMonthly": "📅 12个月月度分析",
+      "badgeTiming": "🎯 强弱时机追踪",
+      "badgeStrategy": "🧭 10章执行策略",
+      "badgeServerPrice": "🪙 服务器基准支付确认",
+      "headlinePrefix": "请不要只是",
+      "headlinePredict": "预测",
+      "headlineMiddle": "选定年份，而要",
+      "headlineDesign": "设计",
+      "headlineSuffix": "它",
+      "description": "事业、财富、关系与健康的月度波动被整理成可立即参考的新年行动计划。",
+      "whyStartTitle": "抢先制定年初策略",
+      "whyStartBody": "提前区分适合强推的月份和需要保守经营的月份。",
+      "whyMonthlyTitle": "按领域的月度指南",
+      "whyMonthlyBody": "将工作、金钱、关系、健康按月份拆分并给出执行优先级。",
+      "whyTimingTitle": "Go/Stop时机表",
+      "whyTimingBody": "把需要决策的时间点整理成可快速参考的表格。",
+      "chapterListTitle": "✦ 10章结构 ✦",
+      "chapters": {
+        "1": "The year’s major fortune — overall New Year flow",
+        "2": "Your chart meets the target year — clash and harmony between natal chart and annual fortune",
+        "3": "Work and career fortune — achievement and direction changes",
+        "4": "Wealth fortune — money coming in and going out",
+        "5": "Love and relationship fortune — where the heart moves",
+        "6": "Family and social relationships — blessings and burdens through people",
+        "7": "Health and emotional fortune — rhythm of body and mind",
+        "8": "Monthly fortune — 12-month flow map",
+        "9": "Opportunities and risks of the year — what to catch and avoid",
+        "10": "Final New Year strategy — making the chosen year work for you"
+      },
+      "startDescPrefix": "选择目标年份后，会基于四柱原局生成",
+      "startDescStrong": "12个月节奏 + 月度执行路线图",
+      "startDescSuffix": "。",
+      "profileChecking": "正在确认四柱输入信息。",
+      "targetYearLabel": "目标年份",
+      "targetYearAria": "新年运势目标年份",
+      "serverBased": "服务器基准",
+      "coinNotice": "· 支付前权限确认 · 10章新年策略书PDF",
+      "checkPrice": "🪙 确认价格",
+      "generateCta": "生成新年运势PDF →",
+      "loadingTitle": "正在撰写新年运势",
+      "loadingChapter": "正在解读基于原局的年度策略...",
+      "loadingQuote": "正在整理年度波动...",
+      "chapterLabels": {
+        "1": "Chapter 1"
+      },
+      "progressInitial": "0 / 10 章完成",
+      "stages": {
+        "lookup": "Existing report",
+        "billing": "Payment check",
+        "calculate": "Saju calculation",
+        "write": "Manuscript writing",
+        "archive": "PDF preparation"
+      },
+      "resultLabel": "新年运势高级报告",
+      "summaryTitle": "目标年份核心咨询摘要",
+      "summaryPreparing": "咨询书准备中",
+      "opportunityPeriod": "机会时期",
+      "cautionPeriod": "注意时期",
+      "toc": {
+        "1": "I Overview",
+        "2": "II Natal chart",
+        "3": "III Work",
+        "4": "IV Money",
+        "5": "V Love",
+        "6": "VI Relationships",
+        "7": "VII Health",
+        "8": "VIII Monthly",
+        "9": "IX Opportunity",
+        "10": "X Strategy"
+      },
+      "birthInputCta": "输入四柱信息"
+    },
+    "ziwei": {
+      "ariaLabel": "紫微斗数高级PDF",
+      "kicker": "ZIWEI DESTINY BOOK",
+      "title": "紫微斗数高级PDF",
+      "subtitle": "由命宫与十二宫开启命运宫位",
+      "noProfileTitle": "需要命运卡",
+      "noProfileLine1": "若要生成紫微斗数高级PDF，",
+      "noProfileLine2": "请先设置你的命运卡。",
+      "createProfileCta": "创建命运卡",
+      "badgeChapters": "15章深度结构",
+      "badgePalaces": "🏛️ 十二宫·命宫·身宫分析",
+      "badgeStrategy": "大限·流年综合策略",
+      "badgePrice": "🪙 59,000韩元 · 单次",
+      "headlinePrefix": "将紫微斗数命盘整理成",
+      "headlineStrong": "可执行的人生策略书",
+      "headlineSuffix": "。",
+      "description": "不仅解读先天结构，也将事业、财富、关系与健康整理成能用于实际决策的PDF。",
+      "whyIdentityTitle": "以命宫/身宫为中心解读性情",
+      "whyIdentityBody": "结构化掌握核心气质、潜力与长期优势。",
+      "whyStrategyTitle": "官禄·财帛·夫妻宫策略",
+      "whyStrategyBody": "指出事业、金钱与关系中何时应更果断行动。",
+      "whyTimingTitle": "大限与流年同步分析",
+      "whyTimingBody": "结合10年大势与近期时机，确定行动优先级。",
+      "startDescPrefix": "基于紫微命盘核心数据，",
+      "startDescStrong": "15章定制执行建议",
+      "startDescSuffix": "将一次开启。",
+      "price": "59,000韩元",
+      "coinNotice": "· 支付完成后生成PDF",
+      "generateCta": "生成紫微斗数PDF",
+      "note": "支付完成后开始生成 · 约5〜10分钟后可保存PDF",
+      "chapterListTitle": "15章结构",
+      "chapters": {
+        "1": "Ziwei chart overview — the central map of destiny",
+        "2": "Life Palace and Body Palace — the born self and the becoming self",
+        "3": "Precise reading of the innate Four Transformations",
+        "4": "Complete reading of the 14 major stars",
+        "5": "Dynamics of support stars and challenging stars",
+        "6": "Wealth Palace and Career Palace — money and social achievement",
+        "7": "Spouse Palace and Children Palace — love and family rhythm",
+        "8": "Travel Palace and Property Palace — movement and foundations",
+        "9": "Friends Palace and Siblings Palace — networks and collaboration",
+        "10": "Fortune Palace and Parents Palace — inner recovery and roots",
+        "11": "Health Palace — vulnerable signals of body and mind",
+        "12": "Major decade analysis — direction of the 10-year cycle",
+        "13": "Annual roadmap — this year’s fortune flow",
+        "14": "Life master plan — turning points and long-term strategy",
+        "15": "Final strategic counsel from the Ziwei master"
+      },
+      "loadingTitle": "正在整理紫微斗数命盘",
+      "loadingChapter": "正在分析命宫核心气质...",
+      "loadingQuote": "命宫，是天在此生刻下的第一缕星光。",
+      "chapterTitles": {
+        "1": "Ch.1 Overview",
+        "2": "Ch.2 Life/Body Palace",
+        "3": "Ch.3 Four Transformations",
+        "4": "Ch.4 14 Major Stars",
+        "5": "Ch.5 Support/Challenge Stars",
+        "6": "Ch.6 Wealth/Career",
+        "7": "Ch.7 Spouse/Children",
+        "8": "Ch.8 Travel/Property",
+        "9": "Ch.9 Friends/Siblings",
+        "10": "Ch.10 Fortune/Parents",
+        "11": "Ch.11 Health",
+        "12": "Ch.12 Major Decade",
+        "13": "Ch.13 Annual Flow",
+        "14": "Ch.14 Master Plan",
+        "15": "Ch.15 Final Counsel"
+      },
+      "progressInitial": "0 / 15 章完成",
+      "stageAria": "紫微斗数PDF生成阶段",
+      "stages": {
+        "prepare": "命盘整理",
+        "calculate": "命盘计算",
+        "write": "咨询文生成",
+        "archive": "PDF排版"
+      },
+      "completeTitle": "紫微斗数高级PDF完成"
+    },
+    "astro": {
+      "ariaLabel": "占星术宇宙报告",
+      "kicker": "COSMIC CHART PREMIUM",
+      "title": "✨ 占星术宇宙报告",
+      "subtitle": "基于个人出生星盘的12章高级报告",
+      "noProfileTitle": "需要出生信息",
+      "noProfileLine1": "若要生成占星术宇宙报告，",
+      "noProfileLine2": "请先设置出生日期、时间与地点。",
+      "profileCta": "← 前往设置卡片",
+      "badgeChapters": "✨ 12章宇宙分析",
+      "badgeBigThree": "☀ 太阳·月亮·上升三轴",
+      "badgeHouses": "🪐 12宫人生场景",
+      "badgePrice": "🪙 39,000韩元 · 单次",
+      "headlinePrefix": "将天空坐标转化为",
+      "headlineStrong": "你的人生决策地图",
+      "headlineSuffix": "。",
+      "description": "不止说明基本性格，也会结合宫位、土星、交点与行运，按章节整理关系、事业与财务的转折点。",
+      "whyBigThreeTitle": "核心三轴精密诊断",
+      "whyBigThreeBody": "一眼看清太阳、月亮与上升如何相互牵引。",
+      "whyHousesTitle": "12宫现实应用",
+      "whyHousesBody": "整理爱情、职业、财富与健康在哪些人生场景中更强。",
+      "whyTransitTitle": "交点/行运流向指引",
+      "whyTransitBody": "将反复出现的课题与重要选择时机结构化成章节。",
+      "startDescPrefix": "基于真实行星坐标，",
+      "startDescStrong": "12章咨询式解读",
+      "startDescSuffix": "将开启。",
+      "price": "39,000韩元",
+      "coinNotice": "· 保存宇宙报告PDF",
+      "generateCta": "✨ 生成占星术宇宙报告",
+      "chapterListTitle": "📖 12章结构",
+      "chapters": {
+        "1": {
+          "title": "Natal chart overview — my cosmic blueprint",
+          "body": "Integrates your chart’s core temperament and life themes."
+        },
+        "2": {
+          "title": "Big Three reading — Sun, Moon, Ascendant",
+          "body": "Cross-reads the axis between your inner life and outer expression."
+        },
+        "3": {
+          "title": "Complete reading of the 10 planets",
+          "body": "Analyzes each planet’s motivation and real-world operating pattern."
+        },
+        "4": {
+          "title": "12-house analysis",
+          "body": "Reveals the destiny map of each life area in a structured way."
+        },
+        "5": {
+          "title": "Element and modality analysis",
+          "body": "Organizes temperament balance, excess, lack, and response style."
+        },
+        "6": {
+          "title": "Aspect analysis",
+          "body": "Reads repeated patterns of tension and talent between planets."
+        },
+        "7": {
+          "title": "Love and relationship fortune",
+          "body": "Presents romance, marriage, attraction points, and stability strategy."
+        },
+        "8": {
+          "title": "Career, wealth, and success fortune",
+          "body": "Designs a strategy for social achievement and monetization."
+        },
+        "9": {
+          "title": "Psychology, unconscious, and wound analysis",
+          "body": "Clarifies inner shadows and recovery routines."
+        },
+        "10": {
+          "title": "Health and lifestyle rhythm analysis",
+          "body": "Suggests energy management and daily rhythm optimization."
+        },
+        "11": {
+          "title": "Flow of fortune analysis",
+          "body": "Reveals the core flow of transits, progressions, and solar returns."
+        },
+        "12": {
+          "title": "Final integrated report",
+          "body": "Finalizes your life roadmap and execution strategy."
+        }
+      },
+      "loadingTitle": "正在计算行星位置",
+      "loadingChapter": "正在分析出生星盘总论...",
+      "loadingQuote": "太阳是意识，月亮是无意识，上升是世界看见你的面容。",
+      "chapterTitles": {
+        "1": "I. Natal Chart Overview",
+        "2": "II. Big Three Reading",
+        "3": "III. 10 Planets",
+        "4": "IV. 12 Houses",
+        "5": "V. Elements and Modalities",
+        "6": "VI. Aspects",
+        "7": "VII. Love and Relationships",
+        "8": "VIII. Career, Wealth, Success",
+        "9": "IX. Psychology and Wounds",
+        "10": "X. Health and Lifestyle Rhythm",
+        "11": "XI. Flow of Fortune",
+        "12": "XII. Final Integration"
+      },
+      "progressInitial": "0 / 12 章完成",
+      "completeTitle": "占星术宇宙报告完成",
+      "errorTitle": "生成过程中发生错误"
+    },
+    "sukuyo": {
+      "ariaLabel": "宿曜占高级合盘报告",
+      "kicker": "SUKUYO 宿曜占 PREMIUM",
+      "title": "宿曜占高级合盘PDF",
+      "subtitle": "以27个月宿读取两人的缘分地图 · 15章报告",
+      "noProfileTitle": "需要命运卡",
+      "noProfileLine1": "若要生成宿曜占高级合盘PDF，",
+      "noProfileLine2": "请先设置你的命运卡。",
+      "badgeChapters": "💫 15章月光合盘",
+      "badgePrecheck": "🌙 支付前月宿校准",
+      "badgePdf": "🪷 PDF保存链接",
+      "badgePrice": "🪙 49,000韩元 · 单次",
+      "headline": "49,000韩元专属入口会先校准两人的宿曜月宿",
+      "description": "两人的本命宿、关系类型、距离感、冲突修复与长期经营策略，会安静落入15章咨询文档中。",
+      "whyPremiumTitle": "49,000韩元专属高级PDF",
+      "whyPremiumBody": "它会作为独立于基础合盘和精密扩展的保存型咨询文档留下。",
+      "whyPrecheckTitle": "支付前月宿基准校准",
+      "whyPrecheckBody": "保存的命运卡与对方出生日期基准对齐后，支付入口才会开启。",
+      "whyGuideTitle": "15章关系经营指南",
+      "whyGuideBody": "吸引、冲突、距离调整、修复流程与最终策略会形成一个完整脉络。",
+      "selfInfo": "💫 我的信息",
+      "reportModeTitle": "💞 报告模式",
+      "reportModeBody": "当对方的月光信息叠加在你保存的命运卡上，两人的缘分地图会开启。",
+      "partnerSectionTitle": "✦ 输入对方月光信息",
+      "form": {
+        "nameLabel": "姓名/称呼",
+        "selfNamePlaceholder": "例: 我、自己的名字",
+        "genderLabel": "性别",
+        "male": "男",
+        "female": "女",
+        "birthDateLabel": "出生日期",
+        "solar": "阳历",
+        "lunar": "阴历(平月)",
+        "lunarLeap": "阴历(闰月)",
+        "birthTimeLabel": "出生时间",
+        "timeUnknownHint": "不知道可留空",
+        "timeUnknownCheck": "我不清楚准确出生时间",
+        "nameSummary": "姓名",
+        "partnerNamePlaceholder": "例: 恋人、伴侣、对方名字",
+        "partnerNameHelp": "输入关系中的称呼，正文称谓会更自然。",
+        "partnerGenderLabel": "对方性别",
+        "partnerTimeHelp": "若没有时间，将以日期为中心进行合盘，时间细节会保守反映。"
+      },
+      "startDescPrefix": "两人的本命宿、关系距离与冲突修复流向，会在",
+      "startDescStrong": "15章宿曜占PDF",
+      "startDescSuffix": "中安静显现。",
+      "precheckTitle": "✦ 支付前月宿基准校准",
+      "precheckBody": "输入对方的出生日期与性别后，27宿之门会在支付前先开启。",
+      "readiness": {
+        "self": "我的基准",
+        "partner": "对方基准",
+        "pendingBirth": "出生日期确认前",
+        "scope": "PDF咨询范围",
+        "pendingScope": "15章咨询文待命",
+        "notice": "支付后，本命宿、关系类型、距离感与冲突修复流程会串成一条咨询脉络。"
+      },
+      "price": "49,000韩元",
+      "coinNotice": "· 输入验证后支付 · PDF保存/重新下载",
+      "generateCta": "校准月宿基准并支付49,000韩元后打开PDF",
+      "note": "生成约需5〜10分钟 · 完成后可保存PDF · 失败时按自动退款标准处理",
+      "chapterListTitle": "📖 15章结构",
+      "chapters": {
+        "1": "The couple’s basic Sukuyo map — first reading of both birth mansions",
+        "2": "Relationship type judgment — how this bond attracts",
+        "3": "Distance and temperature — felt experience of near, middle, and far distance",
+        "4": "First impression and attraction — why you respond to each other",
+        "15": "Final compatibility judgment — how to keep this bond alive"
+      },
+      "loadingTitle": "宿曜占高级合盘PDF正在开启",
+      "loadingChapter": "正在寻找两人的月宿",
+      "loadingQuote": "两人的本命宿与关系距离，正慢慢连成15章咨询文字。",
+      "chapterLabels": {
+        "1": "第1章",
+        "2": "第2章",
+        "3": "第3章",
+        "4": "第4章",
+        "5": "第5章",
+        "6": "第6章",
+        "7": "第7章",
+        "8": "第8章",
+        "9": "第9章",
+        "10": "第10章",
+        "11": "第11章",
+        "12": "第12章",
+        "13": "第13章",
+        "14": "第14章",
+        "15": "第15章"
+      },
+      "progressInitial": "0 / 15 章完成",
+      "generationAria": "宿曜占PDF生成进度",
+      "generationKicker": "Sukuyo Premium PDF",
+      "generationTitle": "宿曜占高级合盘PDF正在开启",
+      "preparing": "准备中",
+      "generationChapter": "正在校准两人的月宿。",
+      "generationNotice": "请不要关闭窗口，稍等片刻。",
+      "completeTitle": "宿曜占高级合盘PDF完成",
+      "downloadNotice": "如果PDF保存链接出现较晚，可以先领取临时HTML文稿。"
+    },
+    "vedic": {
+      "ariaLabel": "吠陀占星人生总览",
+      "kicker": "VEDIC JYOTISH PREMIUM",
+      "title": "🪷 吠陀人生总览",
+      "subtitle": "基于印度 Jyotish 的12章业力命运报告",
+      "noProfileTitle": "需要命运卡",
+      "noProfileLine1": "若要生成吠陀人生总览，",
+      "noProfileLine2": "请先设置你的命运卡。",
+      "badgePrice": "🪙 39,000韩元 · 单次",
+      "headline": "吠陀占星高级PDF",
+      "description": "以拉格纳与纳克沙特拉读取灵魂星座报告",
+      "whyLagnaTitle": "拉格纳与月亮纳克沙特拉",
+      "whyLagnaBody": "灵魂选择的第一扇门与心灵星座代码会一起开启。",
+      "whyDashaTitle": "行星·宫位·大运整合",
+      "whyDashaBody": "吠陀占星引擎会将计算出的星盘展开为12章咨询报告。",
+      "whyPracticalTitle": "面向现实选择的建议",
+      "whyPracticalBody": "以实用语言整理性情、关系、才能、金钱、业力与时机流动。",
+      "startDescPrefix": "基于吠陀占星引擎计算的星盘，",
+      "startDescStrong": "性情、关系、才能、人生流向与大运方向",
+      "startDescSuffix": "会被展开成12章。",
+      "price": "39,000韩元",
+      "coinNotice": "· 生成后立即保存PDF",
+      "generateCta": "📥 生成吠陀PDF",
+      "note": "支付确认后立即生成 · 完成后可保存PDF",
+      "chapterListTitle": "📖 12章结构",
+      "chapters": {
+        "1": "Complete Vedic chart overview",
+        "2": "Lagna and the life design you were born with",
+        "3": "Moon sign and Nakshatra deep reading",
+        "4": "Sun and the direction of the self",
+        "5": "Talents and tendencies spoken by the planets",
+        "6": "Life areas seen through the houses",
+        "7": "Career and social success fortune",
+        "8": "Wealth and abundance flow",
+        "9": "Love and spouse fortune",
+        "10": "Flow of fortune through dasha",
+        "11": "Karma and spiritual growth direction",
+        "12": "Final Vedic master plan"
+      },
+      "loadingTitle": "正在生成基于拉格纳与纳克沙特拉的PDF",
+      "loadingChapter": "拉格纳 — 灵魂选择的第一扇门",
+      "loadingQuote": "正在基于计算出的星盘构成12章咨询报告。",
+      "chapterTitles": {
+        "1": "I. Lagna — the first gate chosen by the soul",
+        "2": "II. Moon and mind — the inner emotional map",
+        "3": "III. Nakshatra — the soul’s constellation code",
+        "4": "IV. Sun and self — what you seek to prove to the world",
+        "5": "V. Council of planets — talents and lacks spoken by the grahas",
+        "6": "VI. 12 houses — destiny structure by life stage",
+        "7": "VII. Love and marriage — how bonds are formed",
+        "8": "VIII. Career and calling — the direction of dharma",
+        "9": "IX. Money and reality sense — the flow of artha",
+        "10": "X. Karma and repeated patterns — lessons to transcend",
+        "11": "XI. Dasha and timing — the destiny gate opening now",
+        "12": "XII. Integrated counsel — turning star language into reality"
+      },
+      "progressInitial": "0 / 12 章完成",
+      "completeTitle": "吠陀高级PDF完成"
+    },
+    "lifeBook": {
+      "ariaLabel": "人生之书",
+      "kicker": "PREMIUM SAJU ANALYSIS",
+      "title": "📜 人生之书",
+      "subtitle": "以四柱原局和大运写成的个人命运地图",
+      "badgeStructure": "👨‍🎓 基于命理结构设计",
+      "badgeChapters": "📜 13章咨询文",
+      "badgeManuscript": "✍️ 约85,000字原稿",
+      "badgeStars": "🔮 神煞·运星解读",
+      "badgePrice": "🪙 生成时50,000韩元",
+      "headlinePrefix": "四柱原局诉说",
+      "headlineStrong": "只属于你的人生全书",
+      "description": "沿着八字与大运的流向，将人生方向与选择时机编织成深度而精炼的咨询文字。",
+      "whyEightTitle": "八字8字精密解读",
+      "whyEightBody": "从年柱、月柱、日柱、时柱到调候与强弱，安静读取原局纹理。",
+      "whyDaewoonTitle": "大运精密分析",
+      "whyDaewoonBody": "以当前10年大运为中心，整理人生流向与转折标准。",
+      "whyUsefulGodTitle": "基于用神·喜神的选择标准",
+      "whyUsefulGodBody": "以现实语言整理用神五行被唤醒的环境和需要谨慎的流向。",
+      "whyRoadmapTitle": "选择年份实战路线图",
+      "whyRoadmapBody": "在月度流向中同时整理财富、事业、关系的机会与负担。",
+      "chapterListTitle": "✦ 13章结构 ✦",
+      "chapters": {
+        "1": "🌌 Prologue — the core code of my life",
+        "2": "🏛️ Natal chart reading — the structure of the moment you were born",
+        "3": "🌿 Day master and month branch — how I naturally move through the world",
+        "4": "🌀 Five element balance — overflowing and lacking energies",
+        "5": "👑 Ten-star structure — patterns of personality, talent, and desire",
+        "6": "⚖️ Useful/favorable/unfavorable gods — directions that sustain you and flows to avoid",
+        "7": "🤝 Pattern and life frame — how your life tends to unfold",
+        "8": "💑 Love and relationships — patterns of love, marriage, and intimacy",
+        "9": "💰 Career and wealth — how money arrives and where work should move",
+        "10": "🏥 Health and lifestyle rhythm — caring for body and mind",
+        "11": "📅 Great fortune cycles — major seasonal changes in life",
+        "12": "🌅 Selected year and near future — practical counsel from annual and monthly fortune",
+        "13": "💌 Master plan — choices and execution strategy ahead"
+      },
+      "recommendTitle": "✦ 推荐给这样的你 ✦",
+      "recommend": {
+        "1": "“want to know why this situation is happening and when it will change”",
+        "2": "“want to confirm suitable work or business through saju”",
+        "3": "“want to organize recurring relationship and career patterns through saju”",
+        "4": "“want analysis with practical strategy, not just simple fortune-telling”"
+      },
+      "startDescPrefix": "基于四柱八字的八个字与大运、岁运流向，",
+      "startDescStrong": "13章、约85,000字长篇咨询文",
+      "startDescSuffix": "将整理人生方向与选择标准。",
+      "targetYearLabel": "基准年份",
+      "targetYearAria": "人生之书基准年份",
+      "price": "50,000韩元",
+      "coinNotice": "· 支付前确认金额 · 完成后可重新查看PDF",
+      "paymentCheckTitle": "支付前确认",
+      "paymentCheckLine1": "以50,000韩元开始一次PDF撰写。",
+      "paymentCheckLine2": "需要准确出生时分；出生时间未知或中午12点保守计算档案会在生成前被阻止。",
+      "paymentCheckLine3": "若支付授权确认中断，可确认支付记录后重试。",
+      "priceBadge": "🪙 50,000韩元",
+      "generateCta": "确认支付后开始撰写PDF →",
+      "loadingTitle": "正在撰写命运记录",
+      "loadingChapter": "正在分析四柱原局...",
+      "loadingQuote": "正在解读八字的秘密...",
+      "progressInitial": "0 / 13 章完成",
+      "resultLabel": "只为你而写的命运报告",
+      "saveHtml": "保存HTML阅读本",
+      "epilogueTitle": "你的人生设计图已经完成",
+      "epilogueLine1": "天空从一开始就在你这一边。",
+      "epilogueLine2": "愿这本书中的智慧，为你的人生召来丰盛、幸福与闪耀的缘分。",
+      "epilogueLine3": "衷心祝愿 🙏✨",
+      "copyReportId": "复制reportId"
+    },
+    "soulOrigin": {
+      "eyebrow": "SOUL ORIGIN KARMA REPORT",
+      "title": "命運之業",
+      "subtitle": "五種命運體系交疊成一則神話的12章報告",
+      "badges": {
+        "originStory": "12章起源叙事",
+        "systems": "四柱 · 占星 · 宿曜 · 紫微 · 吠陀",
+        "patterns": "重复模式 + 解放方向"
+      },
+      "priceBadge": "69,000韓元 · 1次",
+      "headline": "让你的人生凝成一则神话般的宣言",
+      "description": "四柱、星座、宿曜、紫微斗数与吠陀的象征会被编织在一起，照见你的起源与反复出现的命运模式。",
+      "profileLabel": "分析对象资料",
+      "profileLoading": "正在确认出生日期与时间...",
+      "startDescription": "那些反复出现的场景不会被读成惩罚，而会被读成方向，并为此刻的生活指出可实践的解放语句。",
+      "priceNotice": "69,000韓元 · 可再次查看結果",
+      "startCta": "开启我的起源",
+      "durationNote": "生成约需1-3分钟",
+      "chapterLabel": "📖 12章结构",
+      "chapters": {
+        "birthGate": "出生瞬间之门",
+        "originCode": "我的起源代码",
+        "karmaPattern": "重复的业力模式",
+        "emotionalMemory": "旧情绪的记忆",
+        "relationshipKarma": "关系之业",
+        "familyTask": "家族与血脉课题",
+        "painTalent": "痛苦转化为才能之处",
+        "lifeTest": "此生的考验",
+        "repeatCycle": "命运重复周期",
+        "releaseKarma": "需要释放的业",
+        "liberationDirection": "解放的方向",
+        "personalMyth": "我的神话"
+      },
+      "loadingTitle": "正在开启命运之业...",
+      "loadingEyebrow": "SOUL ORIGIN",
+      "loadingMessage": "正在展开你出生瞬间的时间与星辰。",
+      "resultReady": "你的命運之業報告已開啟。",
+      "actions": {
+        "openReport": "查看 PDF/HTML",
+        "restoreReport": "通过 reportId 恢复"
+      },
+      "errorTitle": "開啟命運之業時發生問題"
+    }
+  },
+  "sibyl": {
+    "entryAria": "開啟 Sibyl 四柱系統",
+    "imageAlt": "Sibyl 系統",
+    "partialFree": "部分免費",
+    "deepReportPrice": "深度報告 10,000韓元",
+    "freeAnalysis": "FREE ANALYSIS",
+    "title": "Sibyl 系統",
+    "subtitle": "基於四柱八字的職業適性 × 命運風險係數分析",
+    "tags": {
+      "hue": "Destiny hue color diagnosis",
+      "sector": "Aptitude sector assignment",
+      "risk": "Risk coefficient graph",
+      "dominator": "Dominator 10,000 KRW"
+    },
+    "scanStart": "開始 SCAN",
+    "basicFree": "基礎分析免費",
+    "modal": {
+      "backAria": "返回",
+      "backButton": "← 返回"
+    },
+    "header": {
+      "systemTag": "SIBYL SYSTEM v3.14 — [ACTIVE]",
+      "title": "⚡ DESTINY SCANNER",
+      "subtitle": "以四柱八字推算职业适性 × 命运风险系数"
+    },
+    "profile": {
+      "loading": "正在载入目标档案…",
+      "badge": "SCAN TARGET"
+    },
+    "noProfile": {
+      "title": "请先完成四柱八字分析。",
+      "body": "输入出生年月日时并开始四柱分析后，SIBYL 系统会自动收集数据。"
+    },
+    "scan": {
+      "title": "SCANNING DESTINY PROFILE…",
+      "ohaeng": "五行分布",
+      "tenStar": "TEN-STAR ANALYSIS",
+      "risk": "RISK COEFFICIENT",
+      "aptitude": "APTITUDE VECTOR",
+      "hue": "DESTINY HUE"
+    },
+    "pillars": {
+      "title": "四柱原局",
+      "year": "年柱",
+      "month": "月柱",
+      "day": "日柱",
+      "hour": "时柱"
+    },
+    "hue": {
+      "title": "DESTINY HUE — 五行分布色彩诊断",
+      "defaultName": "深海蓝 · 水",
+      "readyStatus": "▶ 正在准备 SIBYL 扫描…"
+    },
+    "elements": {
+      "wood": "木 Wood",
+      "fire": "火 Fire",
+      "earth": "土 Earth",
+      "metal": "金 Metal",
+      "water": "水 Water"
+    },
+    "aptitude": {
+      "title": "APTITUDE SECTOR — 职业适性分配",
+      "coefficient": "APTITUDE COEFFICIENT",
+      "preparing": "ANALYSIS PREPARING",
+      "syncing": "正在同步数据。",
+      "tenStarPreparing": "主导十神: 准备中"
+    },
+    "metrics": {
+      "currentRisk": "当前风险系数",
+      "aptitude": "适性系数",
+      "risk": "风险系数",
+      "tenStar": "主导十神"
+    },
+    "premium": {
+      "lockedTitle": "DOMINATOR REPORT LOCKED",
+      "lockedDesc": "DOMINATOR 模式判定 · 10年风险系数图 · 专业报告（20,000字以上）· 开运处方",
+      "lockedCost": "10,000韩元永久解锁",
+      "unlockCta": "⚡ 执行 DOMINATOR — 10,000韩元",
+      "generatingTitle": "DOMINATOR EXECUTING…",
+      "generatingStatus": ">> 正在准备支付与生成…"
+    },
+    "error": {
+      "default": "处理请求时发生问题。请稍后再试。"
+    },
+    "dominator": {
+      "modeTag": "MODE: NON-LETHAL PARALYZER",
+      "modeTitle": "稳定维持模式",
+      "graphTitle": "10年风险系数图（岁运基准）",
+      "reportTitle": "◆ DOMINATOR REPORT",
+      "remedyTitle": "◆ 开运处方"
+    }
+  },
+  "admin": {
+    "flowerButton": "花按钮"
+  },
+  "emailSubscription": {
+    "ariaLabel": "邮件订阅",
+    "warmTitle": "💌 定制运势邮件申请",
+    "strategyTitle": "⚠️ 策略报告邮件申请",
+    "warmDescription": "根据刚刚计算的四柱原局，通过邮件接收妍伊温暖的每日运势。",
+    "strategyDescription": "根据刚刚计算的四柱原局，通过邮件接收Neo的策略报告。",
+    "dailyLabel": "接收每日运势邮件",
+    "dailyNote": "我们会一起发送今日日辰和本月背景流向。",
+    "placeholder": "输入邮箱地址",
+    "submitWarm": "申请 🌸",
+    "submitStrategy": "申请 🦁"
+  },
+  "business": {
+    "companyLabel": "商号",
+    "companyValue": ": Code Destiny",
+    "representativeLabel": "代表人",
+    "representativeValue": ": Park Byeong-ha",
+    "registrationLabel": "营业执照号",
+    "registrationValue": ": 372-23-02329",
+    "mailOrderLabel": "通信销售备案号",
+    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "contactLabel": "联系方式",
+    "contactValue": ": 050-6664-7398",
+    "emailLabel": "邮箱",
+    "emailValue": ": seongbae555@gmail.com",
+    "addressLabel": "地址",
+    "officeAddressLabel": "营业地址",
+    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+  },
+  "kakaoReferral": {
+    "preparingTitle": "正在准备星光邀请链接...",
+    "preparingSubtitle": "请稍等",
+    "readyCopyFallback": "Your invitation link is ready. If KakaoTalk share does not open, copy the link.",
+    "openLink": "打开邀请链接",
+    "copyLink": "复制链接",
+    "shareText": "View a free Code Destiny fortune",
+    "copySuccess": "邀请链接已复制。请粘贴到KakaoTalk分享。",
+    "copyPrompt": "请粘贴到KakaoTalk分享。",
+    "nativeShareText": "Open the starlight fortune together.",
+    "shareWindowOpened": "分享窗口已打开。",
+    "rewardReady": "Invitation link is ready. Referral reward is paid when your friend completes signup.",
+    "kakaoTitle": "Code Destiny starlight fortune invitation",
+    "kakaoDescription": "Invite a friend with this Kakao share link.",
+    "kakaoButton": "View free fortune",
+    "kakaoWindowOpened": "Kakao分享窗口已打开。",
+    "makeLinkFirst": "请先创建邀请链接。",
+    "creatingLink": "正在创建星光邀请链接。请稍等。",
+    "loginRequired": "使用Kakao分享活动需要登录。",
+    "createFailed": "无法创建Kakao分享链接。",
+    "genericError": "处理Kakao分享时发生错误。",
+    "timeout": "邀请链接生成响应延迟。请稍后再试。",
+    "loginConfirm": "要前往登录页面吗?"
+  },
+  "preview": {
+    "featuresLabel": "主要功能",
+    "audienceLabel": "推薦對象",
+    "chapterPreviewLabel": "章節預覽",
+    "requiredInfoLabel": "生成前所需資訊",
+    "outcomesLabel": "結果中可查看的內容",
+    "startNow": "立即開始 →"
+  },
+  "mbti": {
+    "compat": {
+      "title": "ESFJ 與其他 MBTI 配對",
+      "guideMain": "請先選擇你的本命 MBTI",
+      "guideSub": "可先透過 GOOD、SOSO、BAD 顏色查看配對提示。",
+      "legendAria": "配對顏色圖例",
+      "showResult": "查看配對",
+      "back": "← 重新選擇"
+    }
+  },
+  "features": {
+    "special": {
+      "quantumTitle": "⚡ 量子命理策略報告 — 專業 v3 判定",
+      "mysticTabsAria": "神秘標籤系統",
+      "villainTitle": "💀 重點警惕反派黑名單",
+      "skillTreeTitle": "🎮 四柱 RPG 角色 — 命運職業表",
+      "energyTitle": "🧭 能量遠征報告 — 四柱能量座標",
+      "healthTitle": "命理健康報告",
+      "lottoTitle": "🎱 量子樂透報告 — 數理能量共鳴號碼",
+      "egyptTitle": "𓂀 古埃及神諭 (Eye of Horus)",
+      "hormoneTitle": "🧬 用四柱看 Teto VS Egen 測試",
+      "tTestTitle": "The Frozen Logic — 極T測試"
+    }
+  },
+  "featurePreview": {
+    "cta": {
+      "destinyCardForm": "製作命運卡",
+      "openLifeBookModal": "付款前查看內容",
+      "gotoZiweiPremium": "付款前查看內容",
+      "gotoSukuyoPremium": "校準兩個人的月光基準",
+      "openSajuGuardianPage": "以 10,000 韓元永久解鎖",
+      "openSajuAnimalPage": "以 10,000 韓元永久解鎖",
+      "passPrefix": "✅ {label}",
+      "passStart": "✅ 使用通行券立即開始",
+      "passUnlock": "✅ 使用通行券永久解鎖",
+      "payAndStart": "以 {amount} 開始",
+      "namingStart": "✍️ 開始高級命名",
+      "unlockWithAmount": "🔓 以 {amount} 永久解鎖"
+    },
+    "paywall": {
+      "passActiveSingleTitle": "可使用高級通行券",
+      "passActiveSingleDesc": "你正在使用高級通行券，無需單次付款即可使用。",
+      "singleTitle": "單次 {amount} · 立即查看結果",
+      "singleDesc": "每次使用都需要韓元單次付款。付款前請在付款管理頁面確認。",
+      "namingDesc": "付款 70,000 韓元後，將開啟基於服務萬年曆引擎、精密反映用神、五行與數理的高級命名報告。",
+      "passActiveUnlockTitle": "可用高級通行券永久解鎖",
+      "passActiveUnlockDesc": "你正在使用高級通行券，無需單次付款即可永久解鎖。",
+      "unlockTitle": "永久解鎖：{amount}",
+      "unlockDesc": "解鎖一次後即可持續使用，也可以透過高級通行券解鎖。"
+    }
+  },
+  "famousSaju": {
+    "periods": {
+      "p0": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p1": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p2": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p3": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p4": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p5": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p6": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p7": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p8": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p9": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p10": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p11": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p12": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p13": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p14": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p15": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p16": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p17": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p18": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p19": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p20": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p21": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p22": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p23": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p24": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p25": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p26": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p27": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p28": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p29": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p30": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p31": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p32": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p33": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p34": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p35": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p36": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p37": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p38": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p39": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p40": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p41": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p42": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p43": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p44": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p45": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p46": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      },
+      "p47": {
+        "l0": "早期階段",
+        "l1": "鼎盛階段",
+        "l2": "傳承階段"
+      }
+    },
+    "detail": {
+      "portraitAlt": "{name} saju symbolic image",
+      "cardIconAlt": "{name} saju icon",
+      "cardAria": "Open {name} saju reading",
+      "kicker": "Starlit birth chart portrait",
+      "birthLabel": "Birth",
+      "birthSummary": "{year}.{month}.{day} (solar calendar) ? The hour pillar is closed, and the reading follows the three pillars of year, month, and day.",
+      "chartTitle": "?? Saju chart (year, month, day pillars)",
+      "pillarHint": "The flow of the year, month, and day pillars is read through the seasonal threshold.",
+      "masterTitle": "?? Saju master summary",
+      "fiveTitle": "?? Five-element analysis",
+      "tenStarTitle": "{star} Ten Gods analysis",
+      "careerTitle": "?? Temperament & career fit",
+      "personalityLabel": "Temperament:",
+      "careerFitLabel": "Career fit:",
+      "flowTitle": "?? Fortune flow",
+      "adviceTitle": "? Today?s alignment",
+      "cardCta": "View saju reading",
+      "calculating": "? Calculating the saju chart...",
+      "engineLoading": "The saju calculation engine is still loading. Please click again shortly."
+    }
   }
 }

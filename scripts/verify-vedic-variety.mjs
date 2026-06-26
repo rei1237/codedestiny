@@ -47,29 +47,21 @@ function extractPromptValue(prompt, label) {
 function fakeChapterHtml(prompt) {
   const id = extractPromptValue(prompt, "ID") || "vedic_soul_map";
   const title = extractPromptValue(prompt, "제목") || "베다점 프리미엄 리포트";
-  const sectionLine = extractPromptValue(prompt, "필수 소제목");
-  const sections = sectionLine.split("/").map((item) => item.trim()).filter(Boolean).slice(0, 5);
-  const body = sections.map((section, sectionIndex) => {
-    const paragraphs = Array.from({ length: 4 }).map((_, paragraphIndex) => {
-      return `<p>${section}의 흐름은 베다점 계산 결과 안에서 라그나와 문사인, 그라하의 배치를 함께 살필 때 또렷해집니다. ${sectionIndex + 1}-${paragraphIndex + 1}번째 상담 문장은 조티쉬의 라시 차트와 다샤가 비추는 삶의 방향을 차분히 풀어내며, 제공되지 않은 정보는 단정하지 않습니다. 사용자는 이 대목을 통해 관계, 일, 재물, 내면의 리듬을 현실적인 선택으로 옮길 수 있습니다.</p>`;
-    }).join("");
-    return `<section><h2>${section}</h2>${paragraphs}</section>`;
-  }).join("");
-  return `<article data-chapter-id="${id}"><h1>${title}</h1>${body}</article>`;
+  const body = Array.from({ length: 5 }).map((_, paragraphIndex) => (
+    `<p>${title}의 흐름은 베다점 계산 결과 안에서 라그나와 문사인, 그라하의 배치를 함께 살필 때 또렷해집니다. ${paragraphIndex + 1}번째 상담 문장은 조티쉬의 라시 차트와 다샤가 비추는 삶의 방향을 차분히 풀어내며, 제공되지 않은 정보는 단정하지 않습니다. 사용자는 이 대목을 통해 관계, 일, 재물, 내면의 리듬을 현실적인 선택으로 옮길 수 있습니다.</p>`
+  )).join("");
+  return `<section class="vedic-chapter" data-chapter-id="${id}"><h2>${title}</h2><div class="chapter-summary"><p>라그나와 나크샤트라가 삶의 큰 방향을 비춥니다. 제공된 다샤와 그라하 흐름만 바탕으로 상담합니다. 확인되지 않은 계산값은 단정하지 않습니다.</p></div><div class="chapter-body">${body}</div><div class="chapter-advice"><h3>베다 처방</h3><ul><li>감정의 반응을 기록하세요.</li><li>일과 관계의 기준을 먼저 세우세요.</li><li>작은 루틴으로 운의 흐름을 살리세요.</li></ul></div></section>`;
 }
 
 function fakeVedicChapterHtmlV2(prompt) {
   const id = extractPromptValue(prompt, "ID") || "vedic_soul_map";
   const chapter = vedicPremiumChapterPlanV2.chapters.find((item) => item.id === id) || vedicPremiumChapterPlanV2.chapters[0];
   const tones = ["차분한 통찰", "깊은 상담", "현실적인 조언", "내면의 정리", "카르마적 맥락", "다르마의 방향"];
-  const body = chapter.sections.map((section, sectionIndex) => {
-    const paragraphs = Array.from({ length: 4 }).map((_, paragraphIndex) => {
-      const tone = tones[(sectionIndex + paragraphIndex) % tones.length];
-      return `<p>${chapter.title}의 ${section} 대목은 ${tone}을 바탕으로 라그나 라시 차트 나바암샤 나크샤트라 다샤 그라하와 하우스 신호를 함께 살핍니다 ${chapter.id} ${sectionIndex + 1} ${paragraphIndex + 1}번째 문단은 제공된 계산 결과 안에서만 해석하며 확인되지 않은 행성 하우스 다샤 요가 나크샤트라를 덧붙이지 않습니다 이 흐름은 사용자의 반복되는 선택 습관 관계의 온도 일의 리듬 회복 방식과 자기이해의 방향을 차분하게 비추며 유료 리포트에 어울리는 밀도로 정리됩니다</p>`;
-    }).join("");
-    return `<section><h2>${section}</h2>${paragraphs}</section>`;
+  const body = Array.from({ length: 5 }).map((_, paragraphIndex) => {
+    const tone = tones[paragraphIndex % tones.length];
+    return `<p>${chapter.title}의 ${paragraphIndex + 1}번째 대목은 ${tone}을 바탕으로 라그나 라시 차트 나바암샤 나크샤트라 다샤 그라하와 하우스 신호를 함께 살핍니다 ${chapter.id} ${paragraphIndex + 1}번째 문단은 제공된 계산 결과 안에서만 해석하며 확인되지 않은 행성 하우스 다샤 요가 나크샤트라를 덧붙이지 않습니다 이 흐름은 사용자의 반복되는 선택 습관 관계의 온도 일의 리듬 회복 방식과 자기이해의 방향을 차분하게 비추며 유료 리포트에 어울리는 밀도로 정리됩니다</p>`;
   }).join("");
-  return `<article data-chapter-id="${chapter.id}"><h1>${chapter.title}</h1>${body}</article>`;
+  return `<section class="vedic-chapter" data-chapter-id="${chapter.id}"><h2>${chapter.title}</h2><div class="chapter-summary"><p>${chapter.category}에서는 라그나와 달, 태양, 그라하의 배치가 삶의 방향을 드러냅니다. 제공된 나크샤트라와 다샤 흐름이 지금의 심리와 현실 과제를 비춥니다. 이 장은 계산된 베다 차트 안에서만 상담합니다.</p></div><div class="chapter-body">${body}</div><div class="chapter-advice"><h3>베다 처방</h3><ul><li>지금 강해진 행성의 리듬을 하루 루틴으로 낮추세요.</li><li>반복되는 감정 패턴은 다샤 흐름과 함께 기록하세요.</li><li>관계와 일에서는 결론보다 기준을 먼저 정하세요.</li></ul></div></section>`;
 }
 
 function buildFakeEnv() {
@@ -137,6 +129,7 @@ const localPdfPath = new URL("../worker/pdf-v2/vedic-local-pdf.js", import.meta.
 const generatorSource = readFileSync(new URL("../worker/lib/vedic-premium-generator.js", import.meta.url), "utf8");
 const browserSource = readFileSync(new URL("../js/vedic-book.js", import.meta.url), "utf8");
 const newEngineSource = readFileSync(new URL("../worker/lib/pdf-v2/vedic/create-vedic-premium-pdf-job.js", import.meta.url), "utf8");
+const newPdfServiceSource = readFileSync(new URL("../worker/lib/pdf-v2/vedic/vedic-pdf-service.js", import.meta.url), "utf8");
 const swissCallIndex = routeSource.indexOf("const calculated = await getSwissVedicPlanets");
 const providedLookupIndex = routeSource.indexOf("const provided = extractProvidedVedicBase");
 const legacyLocalPdfEntrypoints = [
@@ -158,20 +151,20 @@ const serviceFlowChecks = {
   providedChartEnvGate: routeSource.includes("allowProvidedVedicPremiumChartSource") && routeSource.includes("VEDIC_PREMIUM_ALLOW_PROVIDED_CHART"),
   trustedChartQualityGuard: routeSource.includes("validateVedicPremiumChartSourceQuality"),
   pdfDbStart: routeSource.includes("startPremiumPdfExecution(pdfDbEnv"),
-  pdfDbComplete: newEngineSource.includes("completePremiumPdfExecution("),
+  pdfDbComplete: newPdfServiceSource.includes("completePremiumPdfExecution("),
   pdfDbFail: routeSource.includes("failPremiumPdfExecution("),
   statusProgress: routeSource.includes("buildVedicStatusPayload") && routeSource.includes("updateVedicSessionProgress"),
   localPdfDeleted: !existsSync(localPdfPath),
   oldLocalRenderNotUsed: !legacyLocalPdfEntrypoints.slice(0, 2).some((name) => routeSource.includes(`${name}(`)),
   llmOnlyConfig: generatorSource.includes('generationMode: "vedic-premium-llm-only"'),
   legacyEntrypointsDeleted: !legacyLocalPdfEntrypoints.some((name) => generatorSource.includes(`${name}(`)),
-  noLocalPipelineContract: !newEngineSource.includes("local-calculation-to-local-assembled-pdf"),
+  noLocalPipelineContract: !`${newEngineSource}\n${newPdfServiceSource}`.includes("local-calculation-to-local-assembled-pdf"),
 };
 
 assert.equal(reports.every((report) => report.calculationMode === "full"), true, "premium chart calculation mode must be full");
 assert.equal(reports.every((report) => report.chartSourceQualityOk), true, "premium chart source quality must pass");
 assert.equal(reports.every((report) => report.chapterCount === vedicPremiumChapterPlanV2.chapters.length), true, "every report must keep all configured chapters");
-assert.equal(reports.every((report) => report.sectionCount === 60), true, "every report must keep 60 sections");
+assert.equal(reports.every((report) => report.sectionCount === vedicPremiumChapterPlanV2.chapters.length * 3), true, "every report must keep new section blocks");
 assert.equal(reports.every((report) => report.llmAssembly.enabled === true), true, "llm assembly enabled");
 assert.equal(reports.every((report) => report.llmAssembly.externalGeneration === true), true, "external generation enabled");
 assert.equal(reports.every((report) => report.llmAssembly.fallbackUsed === false), true, "no fallback");

@@ -15,27 +15,229 @@
 
   var refs = {};
   var TAP_THRESHOLD = 12;
+  var ANIMAL_TOTEM_TEXT_TRANSLATIONS = {
+    ko: {
+      billing: {
+        reasonBasic: "애니멀 토템 리딩",
+        reasonDeep: "애니멀 토템 심화 리딩",
+        oneLabel: "달빛 한 장",
+        threeLabel: "숲의 세 길",
+        fiveLabel: "별자리 다섯 동물"
+      },
+      overlay: {
+        checkingTitle: "결제를 확인 중입니다...",
+        checkingStatus: "잠시만 기다려 주세요.",
+        processing: "결제를 진행 중입니다.",
+        checkingPayment: "결제를 확인 중입니다..."
+      },
+      auth: {
+        requiredReason: "로그인 후 이용할 수 있는 기능입니다.",
+        confirm: "로그인이 필요합니다. 로그인 페이지로 이동할까요?"
+      },
+      payment: {
+        openShop: "단건 결제가 필요합니다. 결제 상점을 열겠습니다.",
+        retryAfterPayment: "단건 결제가 필요합니다. 결제 후 다시 시도해 주세요.",
+        krwFailed: "원화 결제 확인에 실패했습니다.",
+        processError: "결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+        gateLoadFailed: "결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요."
+      },
+      slots: {
+        today_guide: "오늘의 수호 메시지",
+        past_wound: "과거 상처",
+        present_energy: "현재 에너지",
+        integration_path: "통합 방향",
+        mind: "이성/사고",
+        heart: "감정/욕구",
+        shadow: "그림자",
+        gift: "잠재 선물",
+        next_action: "다음 행동"
+      },
+      cardFlip: "{slot} 카드 뒤집기",
+      guidance: {
+        essence: "수호의 본질",
+        whisper: "오늘의 속삭임",
+        action: "작은 실천",
+        ritual: "짧은 치유 리추얼"
+      },
+      errors: {
+        engineMissing: "애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.",
+        drawFailed: "카드 소환 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+      },
+      share: {
+        title: "🧸 애니멀 토템 심층 리딩",
+        cta: "👉 무료 리딩 보러가기: https://code-destiny.com",
+        copied: "카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬"
+      }
+    },
+    en: {
+      billing: {
+        reasonBasic: "Animal Totem Reading",
+        reasonDeep: "Deep Animal Totem Reading",
+        oneLabel: "One Moonlit Card",
+        threeLabel: "Three Paths in the Forest",
+        fiveLabel: "Five Constellation Animals"
+      },
+      overlay: {
+        checkingTitle: "Checking your payment...",
+        checkingStatus: "Please wait a moment.",
+        processing: "Processing your payment.",
+        checkingPayment: "Checking your payment..."
+      },
+      auth: {
+        requiredReason: "Please log in to use this feature.",
+        confirm: "Login is required. Go to the login page?"
+      },
+      payment: {
+        openShop: "A one-time payment is needed. Opening the payment shop.",
+        retryAfterPayment: "A one-time payment is needed. Please pay and try again.",
+        krwFailed: "We could not confirm the KRW payment.",
+        processError: "An error occurred while processing payment. Please try again shortly.",
+        gateLoadFailed: "Could not load the payment gate. Refresh the page and try again."
+      },
+      slots: {
+        today_guide: "Today's Guardian Message",
+        past_wound: "Past Wound",
+        present_energy: "Present Energy",
+        integration_path: "Path of Integration",
+        mind: "Mind / Thought",
+        heart: "Heart / Desire",
+        shadow: "Shadow",
+        gift: "Hidden Gift",
+        next_action: "Next Action"
+      },
+      cardFlip: "Flip the {slot} card",
+      guidance: {
+        essence: "Essence of Protection",
+        whisper: "Today's Whisper",
+        action: "Small Practice",
+        ritual: "Short Healing Ritual"
+      },
+      errors: {
+        engineMissing: "The Animal Totem engine could not be loaded. Please refresh the page.",
+        drawFailed: "An error occurred while summoning the cards. Please try again shortly."
+      },
+      share: {
+        title: "🧸 Deep Animal Totem Reading",
+        cta: "👉 Try a free reading: https://code-destiny.com",
+        copied: "KakaoTalk is not available or you are on PC, so the link was copied. Paste it into KakaoTalk 💬"
+      }
+    },
+    ja: {
+      billing: {
+        reasonBasic: "アニマルトーテムリーディング",
+        reasonDeep: "アニマルトーテム深層リーディング",
+        oneLabel: "月明かりの一枚",
+        threeLabel: "森の三つの道",
+        fiveLabel: "星座の五つの動物"
+      },
+      overlay: {
+        checkingTitle: "お支払いを確認しています...",
+        checkingStatus: "少しだけお待ちください。",
+        processing: "お支払いを処理しています。",
+        checkingPayment: "お支払いを確認しています..."
+      },
+      auth: {
+        requiredReason: "ログイン後に利用できる機能です。",
+        confirm: "ログインが必要です。ログインページへ移動しますか？"
+      },
+      payment: {
+        openShop: "単回決済が必要です。決済ショップを開きます。",
+        retryAfterPayment: "単回決済が必要です。お支払い後にもう一度お試しください。",
+        krwFailed: "ウォン決済を確認できませんでした。",
+        processError: "お支払い処理中にエラーが発生しました。しばらくしてからもう一度お試しください。",
+        gateLoadFailed: "決済ゲートを読み込めませんでした。ページを再読み込みしてもう一度お試しください。"
+      },
+      slots: {
+        today_guide: "今日の守護メッセージ",
+        past_wound: "過去の傷",
+        present_energy: "現在のエネルギー",
+        integration_path: "統合の道",
+        mind: "理性・思考",
+        heart: "感情・欲求",
+        shadow: "影",
+        gift: "潜在する贈り物",
+        next_action: "次の行動"
+      },
+      cardFlip: "{slot}のカードをめくる",
+      guidance: {
+        essence: "守護の本質",
+        whisper: "今日のささやき",
+        action: "小さな実践",
+        ritual: "短い癒しのリチュアル"
+      },
+      errors: {
+        engineMissing: "アニマルトーテムエンジンを読み込めませんでした。ページを再読み込みしてください。",
+        drawFailed: "カード召喚中にエラーが発生しました。しばらくしてからもう一度お試しください。"
+      },
+      share: {
+        title: "🧸 アニマルトーテム深層リーディング",
+        cta: "👉 無料リーディングを見る: https://code-destiny.com",
+        copied: "KakaoTalkアプリがない、またはPCのためリンクをコピーしました。KakaoTalkに貼り付けてください 💬"
+      }
+    }
+  };
+
+  function animalTotemLocale() {
+    try {
+      var stored = global.localStorage && (
+        localStorage.getItem("cd_locale")
+        || localStorage.getItem("codeDestinyLocale")
+        || localStorage.getItem("lang")
+      );
+      if (stored) return normalizeAnimalTotemLocale(stored);
+    } catch (_) {}
+    try {
+      var cookieLang = String(document.cookie || "").split(";").map(function(part) { return part.trim(); }).filter(function(part) { return part.indexOf("cd_locale=") === 0; })[0];
+      if (cookieLang) return normalizeAnimalTotemLocale(decodeURIComponent(cookieLang.slice("cd_locale=".length)));
+    } catch (_) {}
+    var attrLang = document.documentElement && (document.documentElement.getAttribute("data-cd-lang") || document.documentElement.lang);
+    return normalizeAnimalTotemLocale(attrLang);
+  }
+
+  function normalizeAnimalTotemLocale(locale) {
+    var value = String(locale || "ko").trim().toLowerCase();
+    if (value.indexOf("ja") === 0) return "ja";
+    if (value.indexOf("en") === 0) return "en";
+    return "ko";
+  }
+
+  function getAnimalTotemCopy() {
+    return ANIMAL_TOTEM_TEXT_TRANSLATIONS[animalTotemLocale()] || ANIMAL_TOTEM_TEXT_TRANSLATIONS.ko;
+  }
+
+  function animalTotemText(path, vars) {
+    var parts = String(path || "").split(".");
+    var value = getAnimalTotemCopy();
+    for (var i = 0; i < parts.length; i += 1) {
+      value = value && value[parts[i]];
+    }
+    if (typeof value !== "string") return path;
+    return Object.keys(vars || {}).reduce(function(text, key) {
+      return text.replace(new RegExp("\\{" + key + "\\}", "g"), String(vars[key]));
+    }, value);
+  }
+
   var ANIMAL_TOTEM_BILLING_BY_MODE = {
     one: {
       subFeatureKey: "basic",
       featureKey: "animal-totem-basic",
       cost: 30,
-      reason: "애니멀 토템 리딩",
-      label: "달빛 한 장"
+      reasonKey: "billing.reasonBasic",
+      labelKey: "billing.oneLabel"
     },
     three: {
       subFeatureKey: "basic",
       featureKey: "animal-totem-basic",
       cost: 30,
-      reason: "애니멀 토템 리딩",
-      label: "숲의 세 길"
+      reasonKey: "billing.reasonBasic",
+      labelKey: "billing.threeLabel"
     },
     five: {
       subFeatureKey: "deep",
       featureKey: "animal-totem-deep",
       cost: 60,
-      reason: "애니멀 토템 심화 리딩",
-      label: "별자리 다섯 동물"
+      reasonKey: "billing.reasonDeep",
+      labelKey: "billing.fiveLabel"
     }
   };
 
@@ -47,7 +249,11 @@
   };
 
   function getBillingSpec(mode) {
-    return ANIMAL_TOTEM_BILLING_BY_MODE[mode] || ANIMAL_TOTEM_BILLING_BY_MODE.three;
+    var base = ANIMAL_TOTEM_BILLING_BY_MODE[mode] || ANIMAL_TOTEM_BILLING_BY_MODE.three;
+    return Object.assign({}, base, {
+      reason: animalTotemText(base.reasonKey),
+      label: animalTotemText(base.labelKey)
+    });
   }
 
   function ensureLocalPaymentOverlay() {
@@ -82,7 +288,7 @@
       "text-align:center",
       "color:#ecfeff"
     ].join(";");
-    card.innerHTML = '<p style="margin:0;font-size:15px;font-weight:800">결제를 확인 중입니다...</p><p id="animalTotemPaymentOverlayStatus" style="margin:8px 0 0;font-size:12px;opacity:.92">잠시만 기다려 주세요.</p>';
+    card.innerHTML = '<p style="margin:0;font-size:15px;font-weight:800">' + animalTotemText("overlay.checkingTitle") + '</p><p id="animalTotemPaymentOverlayStatus" style="margin:8px 0 0;font-size:12px;opacity:.92">' + animalTotemText("overlay.checkingStatus") + '</p>';
     overlay.appendChild(card);
 
     var computed = host === document.body ? null : global.getComputedStyle(host);
@@ -96,7 +302,7 @@
   }
 
   function togglePaymentOverlay(show, message) {
-    var text = String(message || "").trim() || "결제를 진행 중입니다.";
+    var text = String(message || "").trim() || animalTotemText("overlay.processing");
     if (typeof global._cdSetCoinGateOverlay === "function") {
       global._cdSetCoinGateOverlay(!!show, text);
       return;
@@ -110,23 +316,23 @@
   function openAuthRequiredUi() {
     if (typeof global.__cdOpenLoginRequiredModal === "function") {
       global.__cdOpenLoginRequiredModal({
-        reason: "로그인 후 이용할 수 있는 기능입니다.",
+        reason: animalTotemText("auth.requiredReason"),
         redirectTo: global.location.pathname + global.location.search + global.location.hash
       });
       return;
     }
-    if (global.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+    if (global.confirm(animalTotemText("auth.confirm"))) {
       global.location.href = "/login?next=" + encodeURIComponent(global.location.pathname + global.location.search);
     }
   }
 
   function openInsufficientCoinsUi() {
     if (typeof global.__cdOpenChargeModal === "function") {
-      global.alert("단건 결제가 필요합니다. 결제 상점을 열겠습니다.");
+      global.alert(animalTotemText("payment.openShop"));
       global.__cdOpenChargeModal();
       return;
     }
-    global.alert("단건 결제가 필요합니다. 결제 후 다시 시도해 주세요.");
+    global.alert(animalTotemText("payment.retryAfterPayment"));
   }
 
   async function consumeAnimalTotemViaCommonGate(spec) {
@@ -178,7 +384,7 @@
           openInsufficientCoinsUi();
           return false;
         }
-        var errorMessage = String(result.message || (result.error && result.error.message) || "원화 결제 확인에 실패했습니다.");
+        var errorMessage = String(result.message || (result.error && result.error.message) || animalTotemText("payment.krwFailed"));
         global.alert(errorMessage);
         return false;
       }
@@ -187,7 +393,7 @@
       return true;
     } catch (error) {
       console.error("[animal-totem][common-coin-gate]", error);
-      global.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      global.alert(animalTotemText("payment.processError"));
       return false;
     } finally {
       togglePaymentOverlay(false);
@@ -229,14 +435,14 @@
 
     var commonGateResult = await consumeAnimalTotemViaCommonGate(spec);
     if (commonGateResult !== null) return commonGateResult;
-    global.alert("결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+    global.alert(animalTotemText("payment.gateLoadFailed"));
     return false;
 
     var token = "";
     try { token = String(localStorage.getItem("fortune_auth_token") || ""); } catch (_) {}
     var headers = { "Content-Type": "application/json" };
     if (token) headers.Authorization = "Bearer " + token;
-    togglePaymentOverlay(true, "결제를 확인 중입니다...");
+    togglePaymentOverlay(true, animalTotemText("overlay.checkingPayment"));
 
     try {
       var response = await fetch("/api/billing/coin-gate", {
@@ -274,7 +480,7 @@
         var message = String(
           (payload && payload.error && payload.error.message)
           || (payload && payload.message)
-          || "원화 결제 확인에 실패했습니다."
+          || animalTotemText("payment.krwFailed")
         );
         global.alert(message);
         return false;
@@ -284,7 +490,7 @@
       return true;
     } catch (error) {
       console.error("[animal-totem][billing]", error);
-      global.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      global.alert(animalTotemText("payment.processError"));
       return false;
     } finally {
       togglePaymentOverlay(false);
@@ -571,18 +777,7 @@
   }
 
   function slotLabel(slot) {
-    var map = {
-      today_guide: "오늘의 수호 메시지",
-      past_wound: "과거 상처",
-      present_energy: "현재 에너지",
-      integration_path: "통합 방향",
-      mind: "이성/사고",
-      heart: "감정/욕구",
-      shadow: "그림자",
-      gift: "잠재 선물",
-      next_action: "다음 행동"
-    };
-    return map[slot] || slot;
+    return animalTotemText("slots." + slot) || slot;
   }
 
   function getTouchPoint(e) {
@@ -649,7 +844,7 @@
       btn.setAttribute("data-action", "revealAnimalTotemCard");
       btn.setAttribute("data-action-pass-self", "1");
       btn.setAttribute("data-action-args", String(idx));
-      btn.setAttribute("aria-label", slotLabel(entry.slot) + " 카드 뒤집기");
+      btn.setAttribute("aria-label", animalTotemText("cardFlip", { slot: slotLabel(entry.slot) }));
       /* 동물별 컬러 테마 CSS 변수 주입 */
       var ct = entry.card.color_theme || {};
       if (ct.glow) btn.style.setProperty("--card-glow", ct.glow);
@@ -783,10 +978,10 @@
           '<div class="totem-guidance-animal">' + entry.animal.emoji + "</div>" +
           '<div><p class="totem-guidance-slot">' + slotLabel(entry.slot) + '</p><h3 class="totem-guidance-name">' + entry.animal.name_ko + "</h3></div>" +
         "</div>" +
-        '<section class="totem-guidance-section"><h4>수호의 본질</h4><p>' + essence + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>오늘의 속삭임</h4><p>' + message + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>작은 실천</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
-        '<details class="totem-ritual-toggle"><summary>짧은 치유 리추얼</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
+        '<section class="totem-guidance-section"><h4>' + animalTotemText("guidance.essence") + '</h4><p>' + essence + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>' + animalTotemText("guidance.whisper") + '</h4><p>' + message + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>' + animalTotemText("guidance.action") + '</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
+        '<details class="totem-ritual-toggle"><summary>' + animalTotemText("guidance.ritual") + '</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
       refs.readingPanels.appendChild(p);
     });
   }
@@ -894,7 +1089,7 @@
     ensureRefs();
     if (state.isFlowBusy) return;
     if (!global.AnimalTotemContentEngine) {
-      alert("애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
+      alert(animalTotemText("errors.engineMissing"));
       return;
     }
     setFlowBusy(true);
@@ -914,7 +1109,7 @@
     }).catch(function(error) {
       console.error("[animal-totem][draw]", error);
       setFlowBusy(false);
-      alert("카드 소환 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      alert(animalTotemText("errors.drawFailed"));
     });
   }
 
@@ -955,16 +1150,16 @@
   function shareAnimalTotemResult() {
     if (!state.consultation) return;
     var titles = state.consultation.cards.map(function(c) { return c.animal.emoji + " " + c.animal.name_ko; }).join(" · ");
-    var text = "🧸 애니멀 토템 심층 리딩\n" + titles + "\n\n" + (state.consultation.opening_message || "") + "\n\n👉 무료 리딩 보러가기: https://code-destiny.com";
+    var text = animalTotemText("share.title") + "\n" + titles + "\n\n" + (state.consultation.opening_message || "") + "\n\n" + animalTotemText("share.cta");
     var encoded = encodeURIComponent(text);
     var a = document.createElement("a");
     a.href = "kakaotalk://send?text=" + encoded;
     a.click();
     setTimeout(function() {
       if (typeof copyToClipboard === "function") {
-        copyToClipboard(text, "카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬");
+        copyToClipboard(text, animalTotemText("share.copied"));
       } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() { alert("카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬"); }).catch(function() { alert(text); });
+        navigator.clipboard.writeText(text).then(function() { alert(animalTotemText("share.copied")); }).catch(function() { alert(text); });
       } else {
         alert(text);
       }

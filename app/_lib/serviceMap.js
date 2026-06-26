@@ -924,6 +924,15 @@ export const SERVICE_MAP = {
     seoText: "AI 동물 관상에서는 얼굴 이미지 위로 동물상 비유와 해석의 포인트가 자연스럽게 떠오릅니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20animal.webp",
     landingPoints: ["셀카 기반 얼굴형 분석", "동물상 비유 해석", "가볍게 즐기는 성향 리포트"],
+    localized: {
+      en: {
+        title: "AI Animal Face Reading - selfie-based face analysis",
+        h1: "AI Animal Face Reading",
+        description: "The shape and impression held in your selfie are read as a gentle flow of temperament and aura.",
+        seoText: "AI Animal Face Reading brings animal archetype metaphors and key interpretation points to the surface of your face image.",
+        landingPoints: ["Selfie-based face analysis", "Animal archetype interpretation", "Light temperament report"],
+      },
+    },
     keywords: [
       "AI 동물 관상",
       "관상",
@@ -941,6 +950,15 @@ export const SERVICE_MAP = {
     seoText: "MBTI 동물 궁합에서는 16유형 조합 속 관계 포인트와 소통의 결이 동물 토템처럼 선명하게 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20face.webp",
     landingPoints: ["16유형 조합 분석", "연애/친구 케미 포인트", "관계 소통 팁"],
+    localized: {
+      en: {
+        title: "MBTI Animal Compatibility - sixteen totem chemistry types",
+        h1: "MBTI Animal Compatibility",
+        description: "MBTI combinations are reflected through animal totem symbols, revealing relationship chemistry and communication texture.",
+        seoText: "MBTI Animal Compatibility shows relationship points and communication rhythms inside the sixteen type combinations with animal totem clarity.",
+        landingPoints: ["Sixteen-type combination analysis", "Love and friendship chemistry points", "Relationship communication tips"],
+      },
+    },
     keywords: [
       "MBTI 궁합",
       "MBTI 동물",
@@ -957,6 +975,15 @@ export const SERVICE_MAP = {
     seoText: "애니멀 토템은 지금의 감정 상태와 방향성을 상징 메시지로 풀어줍니다.",
     ogImage: "https://code-destiny.com/fuctionassets/animaltotem.webp",
     landingPoints: ["수호 동물 메시지", "카드 기반 직관 리딩", "현재 상태 점검"],
+    localized: {
+      en: {
+        title: "Animal Totem Card Reading",
+        h1: "Animal Totem Reading",
+        description: "The message of the guardian animal beside you now shines like a card reading, pointing toward warning and luck.",
+        seoText: "Animal Totem translates your current emotional state and direction into symbolic guidance.",
+        landingPoints: ["Guardian animal message", "Card-based intuitive reading", "Current-state check"],
+      },
+    },
     keywords: [
       "애니멀 토템",
       "토템 카드",
@@ -973,6 +1000,15 @@ export const SERVICE_MAP = {
     seoText: "자존감 레벨업 타로는 낮아진 자기 확신을 부드럽게 회복하도록 내면의 강점과 오늘의 실천 문장을 정리합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/jajongam.webp",
     landingPoints: ["눈치 보는 패턴", "내면의 강점 확인", "오늘의 회복 미션"],
+    localized: {
+      en: {
+        title: "Self-Esteem Level-Up Tarot - five cards to rebuild yourself",
+        h1: "Self-Esteem Level-Up Tarot",
+        description: "Five cards read the pattern that makes you shrink, the strengths still alive within you, and a small mission you can recover today.",
+        seoText: "Self-Esteem Level-Up Tarot gathers your inner strengths and today’s practice sentence so softened confidence can rise again.",
+        landingPoints: ["People-pleasing pattern", "Inner strength check", "Today’s recovery mission"],
+      },
+    },
     keywords: [
       "자존감 타로",
       "5카드 타로",
@@ -989,6 +1025,15 @@ export const SERVICE_MAP = {
     seoText: "재회운 등대 타로는 남은 마음의 온도와 연락을 막는 현실 파도를 분리해, 다시 닿기 전의 안전 기준을 정리합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/reunion.webp",
     landingPoints: ["남은 마음의 온도", "연락을 막는 파도", "부담 없는 첫 문장"],
+    localized: {
+      en: {
+        title: "Reunion Lighthouse Tarot - a safe distance before reaching out again",
+        h1: "Reunion Lighthouse Tarot",
+        description: "Five cards read the safe distance, timing, and first sentence between longing and reality before you reach out again.",
+        seoText: "Reunion Lighthouse Tarot separates the warmth that remains from the real waves blocking contact, then clarifies a safe standard before reconnecting.",
+        landingPoints: ["Temperature of remaining feelings", "Waves blocking contact", "A gentle first sentence"],
+      },
+    },
     keywords: [
       "재회운 타로",
       "재회 타로",
@@ -1005,6 +1050,15 @@ export const SERVICE_MAP = {
     seoText: "십이지신 천운 타로는 월별 수호 리듬과 카드 상징을 연결해 한 해의 흐름과 조율 포인트를 정리합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/12animals.webp",
     landingPoints: ["열두 달의 수호 리듬", "상승과 속도 조절의 달", "월별 선택의 작은 의식"],
+    localized: {
+      en: {
+        title: "Twelve Zodiac Heavenly Luck Tarot - guardian rhythm for the year",
+        h1: "Twelve Zodiac Heavenly Luck Tarot",
+        description: "Twelve guardian energies and twelve cards reveal the rising months, the months that need pace control, and monthly choices for the year.",
+        seoText: "Twelve Zodiac Heavenly Luck Tarot connects monthly guardian rhythms with card symbols to organize the flow of the year and its adjustment points.",
+        landingPoints: ["Guardian rhythm of twelve months", "Months of rise and pace control", "Small monthly choice ritual"],
+      },
+    },
     keywords: [
       "십이지신",
       "천운 타로",
@@ -1021,6 +1075,15 @@ export const SERVICE_MAP = {
     seoText: "화투점은 한국 전통 상징을 현대적으로 해석한 운세 콘텐츠입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/tazza.webp",
     landingPoints: ["전통 화투 상징 해석", "12달 흐름 점검", "간편 운세 콘텐츠"],
+    localized: {
+      en: {
+        title: "Hwatu Oracle of Gamblers - twelve-month card fortune",
+        h1: "Hwatu Oracle",
+        description: "Korean hwatu symbols reveal the force of each month and the currents you may want to watch with care.",
+        seoText: "Hwatu Oracle is a modern fortune reading experience based on traditional Korean card symbols.",
+        landingPoints: ["Traditional hwatu symbol reading", "Twelve-month flow check", "Simple fortune content"],
+      },
+    },
     keywords: [
       "화투점",
       "타짜 화투",
@@ -1037,6 +1100,15 @@ export const SERVICE_MAP = {
     seoText: "이집트 신탁에서는 케멧의 상징이 질문에 응답하며, 지금 붙잡아야 할 메시지를 조용히 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/egypt.webp",
     landingPoints: ["오라클 상징 리딩", "질문 중심 해석", "직관 메시지"],
+    localized: {
+      en: {
+        title: "Ancient Egyptian Oracle - Kemet Oracle",
+        h1: "Ancient Egyptian Oracle",
+        description: "The symbols of the Kemet Oracle illuminate the message hidden inside your question and the answer you need now.",
+        seoText: "In the Egyptian Oracle, Kemet symbols respond to your question and quietly reveal the message to hold onto now.",
+        landingPoints: ["Oracle symbol reading", "Question-centered interpretation", "Intuitive message"],
+      },
+    },
     keywords: [
       "이집트 신탁",
       "케멧 오라클",
@@ -1053,6 +1125,15 @@ export const SERVICE_MAP = {
     seoText: "주역 거북점에서는 고전 괘상의 흐름을 따라 선택 앞에 놓인 의사결정의 힌트가 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/juyuk.webp",
     landingPoints: ["64괘 상징 해석", "상황 판단 힌트", "고전 기반 리딩"],
+    localized: {
+      en: {
+        title: "I Ching Turtle Oracle - sixty-four hexagram reading",
+        h1: "I Ching Turtle Oracle",
+        description: "The symbolic system of the sixty-four I Ching hexagrams calmly points to the signs surrounding your present flow and choice.",
+        seoText: "I Ching Turtle Oracle follows the classical hexagram flow to reveal decision-making hints before a choice.",
+        landingPoints: ["Sixty-four hexagram symbolism", "Situation judgment hint", "Classical oracle reading"],
+      },
+    },
     keywords: [
       "주역",
       "64괘",
@@ -1069,6 +1150,15 @@ export const SERVICE_MAP = {
     seoText: "숙요 인연 레이더는 두 사람의 본명숙과 27숙 관계를 바탕으로 끌림, 안정감, 소모도, 장기 인연 가능성을 비춥니다.",
     ogImage: "https://code-destiny.com/fuctionassets/sukyo.webp",
     landingPoints: ["27숙 관계 타입", "인연 레이더 지수", "관계 목적별 조언"],
+    localized: {
+      en: {
+        title: "Sukuyo Bond Radar | Code Destiny",
+        h1: "Sukuyo Bond Radar",
+        description: "Enter the other person’s birth date to read your Sukuyo relationship, attraction, stability, energy drain, and long-term bond potential.",
+        seoText: "Sukuyo Bond Radar uses each person’s birth mansion and the twenty-seven mansion relationship to reveal attraction, stability, drain, and long-term bond potential.",
+        landingPoints: ["Twenty-seven mansion relationship type", "Bond radar index", "Advice by relationship purpose"],
+      },
+    },
     keywords: [
       "숙요점",
       "숙요 궁합",
@@ -1090,6 +1180,15 @@ export const SERVICE_MAP = {
     seoText: "스톤헨지 룬 오라클에서는 1/3/5/12 룬 스프레드 위로 상황별 통찰과 실행 힌트가 떠오릅니다.",
     ogImage: "https://code-destiny.com/fuctionassets/rune.webp",
     landingPoints: ["1/3/5/12 룬 스프레드", "정·역방향 룬 해석", "연간 흐름 리딩"],
+    localized: {
+      en: {
+        title: "Stonehenge Rune Oracle",
+        h1: "Stonehenge Rune Oracle",
+        description: "Ancient rune symbols read your present flow and yearly fortune through the Stonehenge Rune oracle.",
+        seoText: "Stonehenge Rune Oracle brings situational insight and action hints through 1, 3, 5, and 12-rune spreads.",
+        landingPoints: ["1, 3, 5, and 12-rune spreads", "Upright and reversed rune meanings", "Yearly flow reading"],
+      },
+    },
     keywords: [
       "룬 점",
       "스톤헨지 룬",
@@ -1106,6 +1205,15 @@ export const SERVICE_MAP = {
     seoText: "베다 점성술은 인도 점성술 전통의 별자리·주기 체계를 해석에 활용합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/veda.webp",
     landingPoints: ["낙샤트라/다샤 해석", "베다 전통 차트", "장기 흐름 점검"],
+    localized: {
+      en: {
+        title: "Vedic Astrology - Jyotish Chart",
+        h1: "Vedic Astrology (Jyotish)",
+        description: "Nakshatra and dasha currents reveal long life cycles and the threads of coming transitions.",
+        seoText: "Vedic Astrology uses the constellation and cycle systems of Indian astrological tradition for interpretation.",
+        landingPoints: ["Nakshatra and dasha reading", "Traditional Vedic chart", "Long-term flow check"],
+      },
+    },
     keywords: [
       "베다 점성술",
       "Jyotish",
@@ -1123,6 +1231,15 @@ export const SERVICE_MAP = {
     seoText: "운명의 꽃 아틀리에는 네 가지 운세의 기운을 꽃, 팔레트, 해석 패널로 피워 올립니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower.webp",
     landingPoints: ["4개 운세 소스 탭 전환", "소스별 꽃·키워드·해석 패널", "프롬프트/저장/공유 도구"],
+    localized: {
+      en: {
+        title: "Flower of Destiny - Integrated Atelier",
+        h1: "Flower of Destiny Atelier",
+        description: "Open Saju, astrology, Zi Wei Dou Shu, and Sukuyo in source tabs, then watch your flower of destiny and palette bloom.",
+        seoText: "Flower of Destiny Atelier blossoms four fortune energies into flowers, palettes, and interpretation panels.",
+        landingPoints: ["Switch four fortune-source tabs", "Flowers, keywords, and panels by source", "Prompt, save, and share tools"],
+      },
+    },
     keywords: [
       "운명의 꽃",
       "사주 꽃",
@@ -1140,6 +1257,15 @@ export const SERVICE_MAP = {
     seoText: "점성술 운명의 꽃에서는 태양궁의 꽃 위로 상승궁과 달궁의 분위기가 은은하게 겹칩니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower2.webp",
     landingPoints: ["태양궁 중심 꽃 매핑", "상승궁·달궁 보조 시그널", "성운 테마 시각화/공유"],
+    localized: {
+      en: {
+        title: "Astrology Flower of Destiny",
+        h1: "Astrology Flower of Destiny",
+        description: "The core energy of your sun sign is joined by ascendant and moon-sign signals, letting your astrology flower bloom like a nebula.",
+        seoText: "Astrology Flower of Destiny layers ascendant and moon-sign moods over the flower of your sun sign.",
+        landingPoints: ["Sun-sign flower mapping", "Ascendant and moon support signals", "Nebula-theme visualization and sharing"],
+      },
+    },
     keywords: [
       "점성술 운명의 꽃",
       "네온 성운",
@@ -1155,6 +1281,15 @@ export const SERVICE_MAP = {
     seoText: "자미두수 운명의 꽃에서는 명궁의 힌트와 주성의 빛이 꽃 팔레트와 해석으로 번집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower3.webp",
     landingPoints: ["명궁/주성 기반 꽃 산출", "밝기 강도 반영 테마", "자미두수 해석 패널"],
+    localized: {
+      en: {
+        title: "Zi Wei Flower of Destiny",
+        h1: "Zi Wei Flower of Destiny",
+        description: "The life palace, main star, and brightness energy overlap, blooming into a Zi Wei flower and theme like a destiny garden.",
+        seoText: "Zi Wei Flower of Destiny spreads life-palace clues and main-star light into a flower palette and interpretation.",
+        landingPoints: ["Flower from life palace and main star", "Theme reflecting brightness intensity", "Zi Wei interpretation panel"],
+      },
+    },
     keywords: [
       "자미두수 꽃",
       "紫微 꽃",
@@ -1170,6 +1305,15 @@ export const SERVICE_MAP = {
     seoText: "숙요 운명의 꽃에서는 27수의 별빛과 월상의 그림자가 꽃, 키워드, 의식으로 이어집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower4.webp",
     landingPoints: ["27수 기반 꽃 매칭", "달 위상 보정 시각화", "숙요 해석/가이드 패널"],
+    localized: {
+      en: {
+        title: "Sukuyo Flower of Destiny",
+        h1: "Sukuyo Flower of Destiny",
+        description: "The twenty-seven Sukuyo mansions and lunar phase currents open your moonlit flower and a small ritual of your own.",
+        seoText: "Sukuyo Flower of Destiny connects the starlight of the twenty-seven mansions and the shadow of the lunar phase to flowers, keywords, and rituals.",
+        landingPoints: ["Flower match by twenty-seven mansions", "Lunar-phase adjusted visualization", "Sukuyo guide and interpretation panel"],
+      },
+    },
     keywords: [
       "숙요 꽃",
       "27숙",
@@ -1185,6 +1329,15 @@ export const SERVICE_MAP = {
     seoText: "드림 프롬프트는 꿈속 장면, 감정의 잔향, 반복 상징을 카드의 언어로 모아 AI에게 건넬 질문으로 봉인합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/heamong.webp",
     landingPoints: ["꿈 장면 정리", "깨어난 뒤 감정의 잔향", "AI에게 건넬 질문"],
+    localized: {
+      en: {
+        title: "Dream Prompt - seal dream echoes into AI consultation language",
+        h1: "Dream Prompt",
+        description: "Dream scenes and waking emotions rest on three symbol cards, then become a quiet consultation prompt for AI.",
+        seoText: "Dream Prompt gathers dream scenes, emotional echoes, and repeating symbols into the language of cards, then seals them as a question for AI.",
+        landingPoints: ["Organize dream scenes", "Read waking emotional echoes", "Create a question for AI"],
+      },
+    },
     keywords: [
       "드림 프롬프트",
       "꿈 프롬프트",
@@ -1201,6 +1354,15 @@ export const SERVICE_MAP = {
     seoText: "정신분석 해몽은 무의식 상징을 중심으로 심리적 맥락을 읽어줍니다.",
     ogImage: "https://code-destiny.com/fuctionassets/phydream.webp",
     landingPoints: ["프로이트 관점 해석", "무의식 상징 분석", "심리 맥락 리포트"],
+    localized: {
+      en: {
+        title: "Psychoanalytic Dream Reading - Freud Study",
+        h1: "Psychoanalytic Dream Reading",
+        description: "Follow dream scenes and unconscious symbols through a Freudian lens to read the hidden context of the mind.",
+        seoText: "Psychoanalytic Dream Reading centers unconscious symbols to reveal psychological context.",
+        landingPoints: ["Freudian interpretation", "Unconscious symbol analysis", "Psychological context report"],
+      },
+    },
     keywords: [
       "정신분석 해몽",
       "프로이트",
@@ -1218,6 +1380,15 @@ export const SERVICE_MAP = {
     seoText: "화투 인생 패 테스트는 7문항 심리테스트로 삼광·고도리·청단·똑광 아키타입을 찾아드립니다.",
     ogImage: "https://code-destiny.com/fuctionassets/tazza.webp",
     landingPoints: ["7문항 심리테스트", "화투 인생 패 아키타입 파악", "조건별 선택 패턴 분석"],
+    localized: {
+      en: {
+        title: "Hwatu Life Card Test - seven-question personality test",
+        h1: "Hwatu Life Card Test",
+        description: "A personality test that finds your hwatu life-card archetype through your choices around money, love, and crisis.",
+        seoText: "Hwatu Life Card Test uses seven questions to reveal archetypes such as Samgwang, Godori, Cheongdan, and Ttokgwang.",
+        landingPoints: ["Seven-question personality test", "Find your hwatu life-card archetype", "Analyze choice patterns by condition"],
+      },
+    },
     keywords: [
       "화투",
       "화투 인생 패",
@@ -1236,6 +1407,15 @@ export const SERVICE_MAP = {
       "핀란드 주석점에서는 5단계 의식 속에 굳어지는 주석의 형상이 지금의 그림자와 선택의 실마리를 비춥니다.",
     ogImage: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
     landingPoints: ["5단계 인터랙티브 의식", "낙 형태 상징 해석", "Shadow Reading"],
+    localized: {
+      en: {
+        title: "Finnish Tin Casting Sikojen Povailu",
+        h1: "Finnish Tin Casting",
+        description: "Experience a free Finnish tin-casting ritual: a five-step interactive oracle that reads the future through the shape of tin hardening in water.",
+        seoText: "In Finnish Tin Casting, the shape that hardens during a five-step ritual reflects today’s shadow and the clue of choice.",
+        landingPoints: ["Five-step interactive ritual", "Symbol reading from cast shape", "Shadow Reading"],
+      },
+    },
     keywords: [
       "핀란드 주석점",
       "Sikojen Povailu",
@@ -1254,6 +1434,15 @@ export const SERVICE_MAP = {
       "IFA 오라클에서는 상징 조합과 질문의 맥락이 맞물리며 연애, 재물, 건강의 흐름이 신탁처럼 드러납니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ifafortune.webp",
     landingPoints: ["256 오두 전통 해석", "질문 맥락형 오라클", "회차당 3,000원 리딩"],
+    localized: {
+      en: {
+        title: "IFA Oracle - Yoruba 256 Odu divination",
+        h1: "IFA Oracle",
+        description: "Over the flow of the Yoruba 256 Odu tradition, the root of your question and the answer needed now quietly rise.",
+        seoText: "In the IFA Oracle, symbolic combinations meet the context of your question and reveal love, wealth, and health currents like divination.",
+        landingPoints: ["Traditional 256 Odu interpretation", "Question-context oracle", "KRW 3,000 per reading"],
+      },
+    },
     keywords: [
       "IFA 오라클",
       "이파 점술",
@@ -1272,6 +1461,15 @@ export const SERVICE_MAP = {
       "타세오그래피에서는 찻잔 안에 남은 잎의 패턴이 미래의 작은 징후와 마음의 방향을 비춥니다.",
     ogImage: "/fuctionassets/london.webp",
     landingPoints: ["런던 로열 컵 문양 리딩", "영국 홍차 전통 점술", "상징 해석 오라클"],
+    localized: {
+      en: {
+        title: "Tasseography Tea Leaf Oracle - London Royal Cup pattern reading",
+        h1: "Tasseography Tea Leaf Oracle",
+        description: "Follow the tea leaf patterns left in the London Royal Cup to read symbolic flow and approaching signs.",
+        seoText: "In tasseography, the pattern of leaves remaining in the teacup illuminates small signs of the future and the direction of the heart.",
+        landingPoints: ["London Royal Cup pattern reading", "British tea divination tradition", "Symbol interpretation oracle"],
+      },
+    },
     keywords: [
       "타세오그래피",
       "찻잎 점",
@@ -1294,6 +1492,19 @@ export const SERVICE_MAP = {
       "오행·일간 기반 페르소나 생성",
       "데이트 코스 선택지 시뮬레이션",
     ],
+    localized: {
+      en: {
+        title: "LOVE CODE - Saju Love Simulation",
+        h1: "LOVE CODE Saju Love Simulation",
+        description: "Analyze the other person’s birth date with Saju, create a persona character, and preview their tastes and temperament through date-course choices.",
+        seoText: "In LOVE CODE, the other person’s five elements, day stem, and MBTI become the texture of romantic response and open a dating scenario flow.",
+        landingPoints: [
+          "Saju analysis from the other person’s birth date",
+          "Persona generation from elements and day stem",
+          "Date-course choice simulation",
+        ],
+      },
+    },
     keywords: [
       "연애 시뮬레이션",
       "사주 연애",

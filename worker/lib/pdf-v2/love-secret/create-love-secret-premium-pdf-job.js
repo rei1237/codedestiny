@@ -6,6 +6,7 @@ import {
   LOVE_SECRET_PREMIUM_QUALITY_VERSION,
   clean,
   logLoveSecretPdfEvent,
+  normalizeLoveSecretMode,
   withLoveSecretArchiveFormat,
 } from "./love-secret-premium.types.js";
 import { generateLoveSecretPremiumReport } from "./generate-love-secret-premium-report.js";
@@ -25,9 +26,7 @@ function buildArchiveLinks(requestUrl, reportId) {
 }
 
 function resolveMode(input = {}, paymentContext = {}) {
-  return clean(input.mode || input.body?.mode || input.body?.reportMode || paymentContext.mode).toLowerCase() === "compatibility"
-    ? "compatibility"
-    : "solo";
+  return normalizeLoveSecretMode(input.mode || input.body?.mode || input.body?.reportMode || paymentContext.mode, { allowDefault: true });
 }
 
 function resolveFeatureKey(mode, paymentContext = {}) {

@@ -110,6 +110,35 @@ type BasicChart = {
   elementScores: Record<ElementKey, number>;
 };
 
+const FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS = {
+  ko: {
+    "favoriteDestiny.001": "요약",
+    "favoriteDestiny.002": "운명 스테이지 요약",
+    "favoriteDestiny.003": "핵심 케미",
+    "favoriteDestiny.004": "케미",
+    "favoriteDestiny.005": "사주 케미 해설",
+    "favoriteDestiny.006": "사주 케미 근거",
+    "favoriteDestiny.007": "감정",
+    "favoriteDestiny.008": "강하게 끌리는 포인트",
+    "favoriteDestiny.009": "감정선 & 덕심 분석",
+    "favoriteDestiny.010": "팬심",
+    "favoriteDestiny.011": "팬심 몰입도",
+    "favoriteDestiny.012": "덕심 포인트",
+    "favoriteDestiny.013": "안정",
+    "favoriteDestiny.014": "오래가는 힘",
+    "favoriteDestiny.015": "장기 지속력",
+    "favoriteDestiny.016": "주의",
+    "favoriteDestiny.017": "조심해야 할 감정 패턴",
+    "favoriteDestiny.018": "과몰입 주의보",
+    "favoriteDestiny.019": "조언",
+    "favoriteDestiny.020": "✨ 오늘의 덕질/관계 조언",
+    "favoriteDestiny.021": "실행 포인트",
+  },
+} as const;
+
+function favoriteDestinyReadingText(key: keyof typeof FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS.ko) {
+  return FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"] as const;
 const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"] as const;
 
@@ -559,13 +588,13 @@ export function buildFavoriteDestinyFromSaju(
   const tabs: FavoriteDestinyTabResult[] = [
     {
       id: "summary",
-      label: "요약",
-      shortLabel: "요약",
-      title: "운명 스테이지 요약",
+      label: favoriteDestinyReadingText("favoriteDestiny.001"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.001"),
+      title: favoriteDestinyReadingText("favoriteDestiny.002"),
       keywords,
       sections: [
         {
-          title: "핵심 케미",
+          title: favoriteDestinyReadingText("favoriteDestiny.003"),
           usedSignals: [dayMasterRelation, branchRelationText],
           text: `${ELEMENT_LABEL[userChart.dayElement]}-${ELEMENT_LABEL[favoriteChart.dayElement]} 축은 ${elementPairMeme(userChart.dayElement, favoriteChart.dayElement)}으로 읽혀요. 지금 조합은 ${chemistryType}이고 궁합은 ${scores.total}점. 첫인상 한방보다 볼수록 스며들어 코어팬 모드가 켜지는 타입입니다.`,
         },
@@ -573,13 +602,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "chemistry",
-      label: "케미",
-      shortLabel: "케미",
-      title: "사주 케미 해설",
+      label: favoriteDestinyReadingText("favoriteDestiny.004"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.004"),
+      title: favoriteDestinyReadingText("favoriteDestiny.005"),
       keywords,
       sections: [
         {
-          title: "사주 케미 근거",
+          title: favoriteDestinyReadingText("favoriteDestiny.006"),
           usedSignals: [dayMasterRelation, `일지:${branchRelationText}`, fiveElementBalance, `십성:${tenGodRelation}`],
           text: `일간은 ${dayMasterRelation}, 일지는 ${branchRelationText}, 오행은 ${fiveElementBalance} 결입니다. ${harmonySignals.length > 0 ? "초반부터 합이 잘 맞는 라이브형" : "처음엔 낯가리다 후반에 폭발하는 역주행형"}이라 입덕 포인트가 뒤로 갈수록 커져요.`,
         },
@@ -587,13 +616,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "emotion",
-      label: "감정",
-      shortLabel: "감정",
-      title: "강하게 끌리는 포인트",
+      label: favoriteDestinyReadingText("favoriteDestiny.007"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.007"),
+      title: favoriteDestinyReadingText("favoriteDestiny.008"),
       keywords,
       sections: [
         {
-          title: "감정선 & 덕심 분석",
+          title: favoriteDestinyReadingText("favoriteDestiny.009"),
           usedSignals: conflictSignals.length ? conflictSignals : ["완충 신호"],
           text: `감정 ${scores.emotion}점, 설렘 ${scores.excitement}점이라 덕통사고와 안정 코어팬 지수가 동시에 들어와요. ${conflictSignals.length ? "치명적인 텐션 때문에 뇌피셜이 과열되기 쉬운 조합" : "잔광이 길게 남아 현생 중에도 계속 생각나는 조합"}이라 시간과 애정이 자연스럽게 몰립니다.`,
         },
@@ -601,13 +630,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "fanBias",
-      label: "팬심",
-      shortLabel: "팬심",
-      title: "팬심 몰입도",
+      label: favoriteDestinyReadingText("favoriteDestiny.010"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.010"),
+      title: favoriteDestinyReadingText("favoriteDestiny.011"),
       keywords,
       sections: [
         {
-          title: "덕심 포인트",
+          title: favoriteDestinyReadingText("favoriteDestiny.012"),
           usedSignals: charmSignals.length ? charmSignals : ["기본 매력 신호"],
           text: `팬심 ${scores.fanBias}점. ${charmSignals.length ? "도화/화개 포인트가 살아 있어서 직캠 1개만 봐도 도파민이 바로 치솟는 타입" : "자극보다 여운으로 스며드는 타입이라 N회차 후 코어팬 확정"}입니다.`,
           action: "오늘 덕질 로그에 최애 레전드 순간 1개만 저장하고, 내일 다시 보면 입덕 포인트가 더 선명해져요 📌",
@@ -616,13 +645,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "stability",
-      label: "안정",
-      shortLabel: "안정",
-      title: "오래가는 힘",
+      label: favoriteDestinyReadingText("favoriteDestiny.013"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.013"),
+      title: favoriteDestinyReadingText("favoriteDestiny.014"),
       keywords,
       sections: [
         {
-          title: "장기 지속력",
+          title: favoriteDestinyReadingText("favoriteDestiny.015"),
           usedSignals: longTermSignals.length ? longTermSignals : ["루틴 보완 필요"],
           text: `안정 ${scores.stability}점은 꾸준한 코어팬 지수, 장기 ${scores.longTerm}점은 덕질 지속력입니다. ${longTermSignals.length ? "현생-덕질 밸런스를 잘 타서 길게 달릴수록 더 맛이 나는 궁합" : "단기 과열보다 일정한 루틴이 붙을 때 진가가 터지는 궁합"}이에요.`,
           action: "주 2~3회 '짧고 굵게' 덕질 타임을 잡으면 만족도랑 지속력이 같이 올라갑니다 🔥",
@@ -631,13 +660,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "caution",
-      label: "주의",
-      shortLabel: "주의",
-      title: "조심해야 할 감정 패턴",
+      label: favoriteDestinyReadingText("favoriteDestiny.016"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.016"),
+      title: favoriteDestinyReadingText("favoriteDestiny.017"),
       keywords,
       sections: [
         {
-          title: "과몰입 주의보",
+          title: favoriteDestinyReadingText("favoriteDestiny.018"),
           usedSignals: conflictSignals.length ? conflictSignals : ["갈등 과열 낮음"],
           text: `${conflictSignals.length ? "🚨 텐션 과열 구간! ${branchRelationText} 신호가 강하게 들어오면 혼자 떡밥 세계관 확장하다 멘탈이 털릴 수 있어요." : "🚨 큰 충돌은 약하지만, 입덕 부정기 모드에서 혼자 상상 서사를 과하게 돌리면 에너지가 훅 빠질 수 있어요."}`,
           action: "떡밥 없는 날엔 과감히 현생 1퀘스트 클리어하고 돌아오면 케미 밸런스가 다시 살아납니다 🎯",
@@ -646,13 +675,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     {
       id: "advice",
-      label: "조언",
-      shortLabel: "조언",
-      title: "✨ 오늘의 덕질/관계 조언",
+      label: favoriteDestinyReadingText("favoriteDestiny.019"),
+      shortLabel: favoriteDestinyReadingText("favoriteDestiny.019"),
+      title: favoriteDestinyReadingText("favoriteDestiny.020"),
       keywords,
       sections: [
         {
-          title: "실행 포인트",
+          title: favoriteDestinyReadingText("favoriteDestiny.021"),
           usedSignals: [dayMasterRelation, `소통:${scores.communication}`],
           text: `오늘의 승부수는 소통 ${scores.communication}점 라인을 살리는 것. 길게 앓기보다 한 번 제대로 도파민 채우는 덕질이 이 조합에 더 잘 맞아요.`,
           action: "오늘의 미션: 최애 레전드 직캠 1개만 보고 깔끔하게 종료! 굵고 짧은 덕질이 오늘 운을 최상으로 끌어올립니다 🚀",

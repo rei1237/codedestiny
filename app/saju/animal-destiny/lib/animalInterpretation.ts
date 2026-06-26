@@ -3,23 +3,38 @@ import type { FourPillarStageItem } from "./twelveStages";
 
 type PillarKey = "year" | "month" | "day" | "hour";
 
+const ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS = {
+  ko: {
+    pillars: {
+      year: { label: "연주", meaning: "사회적 첫인상, 바깥 이미지, 어린 시절의 분위기, 넓은 인간관계" },
+      month: { label: "월주", meaning: "직업성, 사회생활, 실무 능력, 현실 감각, 성장 환경" },
+      day: { label: "일주", meaning: "나의 본질, 연애 방식, 배우자궁, 친밀한 관계" },
+      hour: { label: "시주", meaning: "잠재력, 미래 방향, 창의성, 후반부 운, 깊은 욕망" },
+    },
+  },
+  en: {
+    pillars: {
+      year: { label: "Year pillar", meaning: "social first impression, outer image, childhood atmosphere, wider relationships" },
+      month: { label: "Month pillar", meaning: "career nature, social life, practical ability, realism, growth environment" },
+      day: { label: "Day pillar", meaning: "core self, love style, spouse palace, intimate relationships" },
+      hour: { label: "Hour pillar", meaning: "potential, future direction, creativity, later-life fortune, deep desire" },
+    },
+  },
+  ja: {
+    pillars: {
+      year: { label: "年柱", meaning: "社会的な第一印象、外側のイメージ、幼少期の雰囲気、広い人間関係" },
+      month: { label: "月柱", meaning: "職業性、社会生活、実務能力、現実感覚、成長環境" },
+      day: { label: "日柱", meaning: "自分の本質、恋愛スタイル、配偶者宮、親密な関係" },
+      hour: { label: "時柱", meaning: "潜在力、未来の方向、創造性、後半運、深い欲求" },
+    },
+  },
+};
+
 export const PILLAR_INFO: Record<PillarKey, { label: string; meaning: string }> = {
-  year: {
-    label: "연주",
-    meaning: "사회적 첫인상, 바깥 이미지, 어린 시절의 분위기, 넓은 인간관계",
-  },
-  month: {
-    label: "월주",
-    meaning: "직업성, 사회생활, 실무 능력, 현실 감각, 성장 환경",
-  },
-  day: {
-    label: "일주",
-    meaning: "나의 본질, 연애 방식, 배우자궁, 친밀한 관계",
-  },
-  hour: {
-    label: "시주",
-    meaning: "잠재력, 미래 방향, 창의성, 후반부 운, 깊은 욕망",
-  },
+  year: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.year,
+  month: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.month,
+  day: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.day,
+  hour: ANIMAL_INTERPRETATION_TEXT_TRANSLATIONS.ko.pillars.hour,
 };
 
 const STAGE_KEYWORDS: Record<TwelveStage, string[]> = {

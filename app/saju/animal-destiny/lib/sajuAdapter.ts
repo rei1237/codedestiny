@@ -15,12 +15,29 @@ type ResolveInput = AnimalDestinyInput | ExistingSajuResult;
 
 const RESULT_CACHE = new Map<string, Promise<SajuEngineResult>>();
 const DEFAULT_SAJU_TIMEOUT_MS = 9000;
+const SAJU_ADAPTER_TEXT_TRANSLATIONS = {
+  ko: {
+    invalidBirthDate: "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)",
+    checkSajuInput: "사주 계산 정보를 다시 확인해 주세요. (생년월일/시간/양력·음력)",
+    mappingFailed: "운명 동물 매핑을 완료하지 못했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.",
+  },
+  en: {
+    invalidBirthDate: "The birth date format is invalid. (YYYY-MM-DD)",
+    checkSajuInput: "Please check the saju calculation information again. (birth date/time, solar/lunar calendar)",
+    mappingFailed: "Could not complete the destiny animal mapping. Please check the input and try again.",
+  },
+  ja: {
+    invalidBirthDate: "生年月日の形式が正しくありません。 (YYYY-MM-DD)",
+    checkSajuInput: "四柱計算情報をもう一度確認してください。（生年月日/時刻/陽暦・陰暦）",
+    mappingFailed: "運命動物のマッピングを完了できませんでした。入力情報を確認してもう一度お試しください。",
+  },
+} as const;
 
 function parseBirthDate(input: string) {
   const raw = String(input || "").trim();
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) {
-    throw new Error("생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
+    throw new Error(SAJU_ADAPTER_TEXT_TRANSLATIONS.ko.invalidBirthDate);
   }
 
   return {
@@ -240,7 +257,7 @@ export async function resolveAnimalTwelveResult(input: ResolveInput): Promise<An
         representativeStage: null,
         allStages: [],
         profile: null,
-        error: "사주 계산 정보를 다시 확인해 주세요. (생년월일/시간/양력·음력)",
+        error: SAJU_ADAPTER_TEXT_TRANSLATIONS.ko.checkSajuInput,
       };
     }
 
@@ -256,7 +273,7 @@ export async function resolveAnimalTwelveResult(input: ResolveInput): Promise<An
         representativeStage,
         allStages: stageResults,
         profile: null,
-        error: "운명 동물 매핑을 완료하지 못했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.",
+        error: SAJU_ADAPTER_TEXT_TRANSLATIONS.ko.mappingFailed,
       };
     }
 

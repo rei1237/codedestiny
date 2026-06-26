@@ -4,6 +4,21 @@ import React from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 
+const SIKOJEN_WELCOMING_TEXT_TRANSLATIONS = {
+  ko: {
+    backHomeAria: "메인으로 돌아가기",
+    spriteAlt: "연이 스프라이트",
+  },
+  en: {
+    backHomeAria: "Return to main",
+    spriteAlt: "Yeon-i sprite",
+  },
+  ja: {
+    backHomeAria: "メインへ戻る",
+    spriteAlt: "ヨンのスプライト",
+  },
+} as const;
+
 export function PhaseWelcoming() {
   const { setPhase } = useSikojenpovailuContext();
 
@@ -35,7 +50,7 @@ export function PhaseWelcoming() {
       <a
         href="/"
         className="absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-rose-200 text-rose-500 text-sm font-bold shadow-md hover:bg-rose-50 hover:text-rose-700 transition-all duration-200 hover:scale-105 active:scale-95"
-        aria-label="메인으로 돌아가기"
+        aria-label={SIKOJEN_WELCOMING_TEXT_TRANSLATIONS.ko.backHomeAria}
       >
         <span className="text-base">✕</span>
         <span className="hidden sm:inline">닫기</span>
@@ -70,7 +85,7 @@ export function PhaseWelcoming() {
             <YeonSpriteAvatar
               frames={[1, 2, 3, 4, 3, 2, 5, 6]}
               size={200}
-              alt="연이 스프라이트"
+              alt={SIKOJEN_WELCOMING_TEXT_TRANSLATIONS.ko.spriteAlt}
               ringClassName="from-rose-300 to-pink-300"
               intervalMs={780}
             />

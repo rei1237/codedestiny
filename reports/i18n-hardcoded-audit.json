@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-26T05:35:52.966Z",
+  "targets": [
+    "app",
+    "components",
+    "hooks",
+    "lib",
+    "js",
+    "index.html"
+  ],
+  "scannedFiles": 789,
+  "totalFindings": 0,
+  "byFile": {},
+  "findings": []
+}

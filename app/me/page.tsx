@@ -139,6 +139,26 @@ type PortOnePaymentRequest = {
   noticeUrls?: string[];
 };
 
+const ME_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    "mePage.001": "서버 JSON 응답을 해석하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "mePage.002": "프로필 상세 정보를 불러오지 못했습니다.",
+    "mePage.003": "프로필 카드 추가 처리 중 오류가 발생했습니다.",
+    "mePage.004": "프로필 카드 메뉴",
+    "mePage.005": "프로필 조회",
+    "mePage.006": "기타",
+    "mePage.007": "남성",
+    "mePage.008": "여성",
+    "mePage.009": "양력",
+    "mePage.010": "음력",
+    "mePage.011": "윤달",
+    "mePage.012": "대한민국 · 서울",
+  },
+} as const;
+
+function mePageText(key: keyof typeof ME_PAGE_TEXT_TRANSLATIONS.ko): string {
+  return ME_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 declare global {
   interface Window {
     PortOne?: {
@@ -174,7 +194,7 @@ async function safeParseJson<T>(response: Response): Promise<T & { message?: str
     } catch (_) {
       return {
         ok: false,
-        message: "서버 JSON 응답을 해석하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        message: mePageText("mePage.001"),
       } as T & { message?: string; ok?: boolean };
     }
   }
@@ -891,7 +911,7 @@ export default function MePage() {
       setViewingProfile(payload.profile);
       setAuthNotice("");
     } catch (error) {
-      setAuthNotice(error instanceof Error ? error.message : "프로필 상세 정보를 불러오지 못했습니다.");
+      setAuthNotice(error instanceof Error ? error.message : mePageText("mePage.002"));
     } finally {
       setViewingProfileLoadingId("");
     }
@@ -1096,7 +1116,7 @@ export default function MePage() {
       await executeProfileCreateAction(requestId, profileId, draft, paymentContext);
       setAuthNotice("새 프로필 카드가 추가되었습니다.");
     } catch (error) {
-      setAuthNotice(error instanceof Error ? error.message : "프로필 카드 추가 처리 중 오류가 발생했습니다.");
+      setAuthNotice(error instanceof Error ? error.message : mePageText("mePage.003"));
     } finally {
       setBusyAction("");
       setProfileActionStage("");
@@ -1316,7 +1336,7 @@ export default function MePage() {
                             type="button"
                             aria-haspopup="menu"
                             aria-expanded={menuOpen}
-                            aria-label="프로필 카드 메뉴"
+                            aria-label={mePageText("mePage.004")}
                             onClick={(event) => {
                               if (busyAction) {
                                 return;
@@ -1355,7 +1375,7 @@ export default function MePage() {
                                 disabled={viewing || activating || deleting || (!!busyAction && !activating)}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
                               >
-                                <span>프로필 조회</span>
+                                <span>{mePageText("mePage.005")}</span>
                                 <span className="text-xs text-slate-400">{viewing ? "..." : ""}</span>
                               </button>
                               <button
@@ -1537,9 +1557,9 @@ export default function MePage() {
                     onChange={(event) => setCreateDraft((prev) => ({ ...prev, gender: event.target.value as ProfileCreateDraft["gender"] }))}
                     className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                   >
-                    <option value="OTHER">기타</option>
-                    <option value="M">남성</option>
-                    <option value="F">여성</option>
+                    <option value="OTHER">{mePageText("mePage.006")}</option>
+                    <option value="M">{mePageText("mePage.007")}</option>
+                    <option value="F">{mePageText("mePage.008")}</option>
                   </select>
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
@@ -1549,9 +1569,9 @@ export default function MePage() {
                     onChange={(event) => setCreateDraft((prev) => ({ ...prev, calType: event.target.value as ProfileCreateDraft["calType"] }))}
                     className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                   >
-                    <option value="solar">양력</option>
-                    <option value="lunar">음력</option>
-                    <option value="lunar_leap">윤달</option>
+                    <option value="solar">{mePageText("mePage.009")}</option>
+                    <option value="lunar">{mePageText("mePage.010")}</option>
+                    <option value="lunar_leap">{mePageText("mePage.011")}</option>
                   </select>
                 </label>
               </div>
@@ -1584,7 +1604,7 @@ export default function MePage() {
                 <input
                   value={createDraft.locationLabel}
                   onChange={(event) => setCreateDraft((prev) => ({ ...prev, locationLabel: event.target.value }))}
-                  placeholder="대한민국 · 서울"
+                  placeholder={mePageText("mePage.012")}
                   className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                 />
               </label>

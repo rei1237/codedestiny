@@ -3,6 +3,18 @@ import { buildReadingResponse, getTarotEngine, validateSpreadCardCount } from ".
 
 export const runtime = "nodejs";
 
+const TAROT_READING_ROUTE_TEXT_TRANSLATIONS = {
+  ko: {
+    failed: "타로 리딩 생성에 실패했습니다.",
+  },
+  en: {
+    failed: "Reading failed.",
+  },
+  ja: {
+    failed: "タロットリーディングの生成に失敗しました。",
+  },
+};
+
 export async function POST(req) {
   try {
     const body = await req.json().catch(() => ({}));
@@ -27,7 +39,7 @@ export async function POST(req) {
     const payload = buildReadingResponse(engine, category, spreadType, cards);
     return NextResponse.json(payload);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "reading failed";
+    const message = error instanceof Error ? error.message : TAROT_READING_ROUTE_TEXT_TRANSLATIONS.en.failed;
     console.error("[api/tarot/reading]", message);
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }

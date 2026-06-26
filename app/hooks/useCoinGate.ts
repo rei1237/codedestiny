@@ -13,6 +13,7 @@ import {
   markPaidAttemptGenerationStarted,
 } from "../_lib/paid-attempt-session";
 import { usePayment } from "./usePayment";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type CoinGateContext = {
   transactionId: string;
@@ -68,6 +69,143 @@ type RuntimePaidServiceGateWindow = Window & {
 };
 
 const LEGACY_PAYMENT_RUNTIME_SRC = PAID_SERVICE_RUNTIME_SRC;
+
+const COIN_GATE_TEXT_TRANSLATIONS: Record<LoadingLocale, {
+  paymentInProgress: string;
+  checkingPass: string;
+  loginRequired: string;
+  checkingEntitlements: string;
+  featureExecutionFailed: string;
+  paymentComplete: string;
+  singlePaymentRequired: string;
+  generatingResult: string;
+}> = {
+  ko: {
+    paymentInProgress: "결제가 이미 진행 중입니다. 잠시만 기다려 주세요.",
+    checkingPass: "이용권을 확인하고 있어요.",
+    loginRequired: "로그인이 필요합니다.",
+    checkingEntitlements: "이용권과 기존 잠금 해제 내역을 확인하고 있어요.",
+    featureExecutionFailed: "유료 기능 실행에 실패했습니다.",
+    paymentComplete: "결제가 완료되었습니다.",
+    singlePaymentRequired: "단건 결제가 필요합니다.",
+    generatingResult: "결제가 완료되었습니다. 결과를 생성하고 있습니다...",
+  },
+  en: {
+    paymentInProgress: "A payment is already in progress. Please wait a moment.",
+    checkingPass: "Checking your pass.",
+    loginRequired: "Login is required.",
+    checkingEntitlements: "Checking your pass and previous unlocks.",
+    featureExecutionFailed: "The paid feature could not be completed.",
+    paymentComplete: "Payment has been completed.",
+    singlePaymentRequired: "A one-time payment is required.",
+    generatingResult: "Payment has been completed. Creating your result...",
+  },
+  ja: {
+    paymentInProgress: "決済がすでに進行中です。少しお待ちください。",
+    checkingPass: "利用券を確認しています。",
+    loginRequired: "ログインが必要です。",
+    checkingEntitlements: "利用券と以前のロック解除履歴を確認しています。",
+    featureExecutionFailed: "有料機能の実行に失敗しました。",
+    paymentComplete: "決済が完了しました。",
+    singlePaymentRequired: "単発決済が必要です。",
+    generatingResult: "決済が完了しました。結果を生成しています...",
+  },
+  "zh-CN": {
+    paymentInProgress: "付款已在进行中，请稍候。",
+    checkingPass: "正在确认使用券。",
+    loginRequired: "需要登录。",
+    checkingEntitlements: "正在确认使用券和既有解锁记录。",
+    featureExecutionFailed: "付费功能执行失败。",
+    paymentComplete: "付款已完成。",
+    singlePaymentRequired: "需要单次付款。",
+    generatingResult: "付款已完成。正在生成结果...",
+  },
+  "zh-TW": {
+    paymentInProgress: "付款已在進行中，請稍候。",
+    checkingPass: "正在確認使用券。",
+    loginRequired: "需要登入。",
+    checkingEntitlements: "正在確認使用券與既有解鎖紀錄。",
+    featureExecutionFailed: "付費功能執行失敗。",
+    paymentComplete: "付款已完成。",
+    singlePaymentRequired: "需要單次付款。",
+    generatingResult: "付款已完成。正在生成結果...",
+  },
+  vi: {
+    paymentInProgress: "Đang có một thanh toán được xử lý. Vui lòng chờ.",
+    checkingPass: "Đang kiểm tra vé của bạn.",
+    loginRequired: "Bạn cần đăng nhập.",
+    checkingEntitlements: "Đang kiểm tra vé và các lần mở khóa trước đó.",
+    featureExecutionFailed: "Không thể hoàn tất tính năng trả phí.",
+    paymentComplete: "Thanh toán đã hoàn tất.",
+    singlePaymentRequired: "Cần thanh toán một lần.",
+    generatingResult: "Thanh toán đã hoàn tất. Đang tạo kết quả...",
+  },
+  hi: {
+    paymentInProgress: "भुगतान पहले से चल रहा है. कृपया प्रतीक्षा करें.",
+    checkingPass: "आपका पास जाँचा जा रहा है.",
+    loginRequired: "लॉगिन आवश्यक है.",
+    checkingEntitlements: "आपका पास और पुराने अनलॉक जाँचे जा रहे हैं.",
+    featureExecutionFailed: "Paid feature पूरा नहीं हो सका.",
+    paymentComplete: "भुगतान पूरा हो गया.",
+    singlePaymentRequired: "एक बार का भुगतान आवश्यक है.",
+    generatingResult: "भुगतान पूरा हो गया. आपका result बनाया जा रहा है...",
+  },
+  es: {
+    paymentInProgress: "Ya hay un pago en curso. Espera un momento.",
+    checkingPass: "Comprobando tu pase.",
+    loginRequired: "Debes iniciar sesión.",
+    checkingEntitlements: "Comprobando tu pase y desbloqueos anteriores.",
+    featureExecutionFailed: "No se pudo completar la función de pago.",
+    paymentComplete: "El pago se ha completado.",
+    singlePaymentRequired: "Se requiere un pago único.",
+    generatingResult: "El pago se ha completado. Creando tu resultado...",
+  },
+  fr: {
+    paymentInProgress: "Un paiement est déjà en cours. Veuillez patienter.",
+    checkingPass: "Vérification de votre pass.",
+    loginRequired: "Connexion requise.",
+    checkingEntitlements: "Vérification de votre pass et de vos déblocages précédents.",
+    featureExecutionFailed: "La fonctionnalité payante n'a pas pu être terminée.",
+    paymentComplete: "Le paiement est terminé.",
+    singlePaymentRequired: "Un paiement unique est requis.",
+    generatingResult: "Le paiement est terminé. Création de votre résultat...",
+  },
+  de: {
+    paymentInProgress: "Eine Zahlung läuft bereits. Bitte warte kurz.",
+    checkingPass: "Dein Pass wird geprüft.",
+    loginRequired: "Anmeldung erforderlich.",
+    checkingEntitlements: "Dein Pass und frühere Freischaltungen werden geprüft.",
+    featureExecutionFailed: "Die bezahlte Funktion konnte nicht abgeschlossen werden.",
+    paymentComplete: "Die Zahlung wurde abgeschlossen.",
+    singlePaymentRequired: "Eine Einmalzahlung ist erforderlich.",
+    generatingResult: "Die Zahlung wurde abgeschlossen. Dein Ergebnis wird erstellt...",
+  },
+  nl: {
+    paymentInProgress: "Er loopt al een betaling. Wacht even.",
+    checkingPass: "Je pas wordt gecontroleerd.",
+    loginRequired: "Inloggen is vereist.",
+    checkingEntitlements: "Je pas en eerdere ontgrendelingen worden gecontroleerd.",
+    featureExecutionFailed: "De betaalde functie kon niet worden voltooid.",
+    paymentComplete: "De betaling is voltooid.",
+    singlePaymentRequired: "Een eenmalige betaling is vereist.",
+    generatingResult: "De betaling is voltooid. Je resultaat wordt gemaakt...",
+  },
+  ms: {
+    paymentInProgress: "Bayaran sedang diproses. Sila tunggu sebentar.",
+    checkingPass: "Menyemak pas anda.",
+    loginRequired: "Log masuk diperlukan.",
+    checkingEntitlements: "Menyemak pas dan buka kunci terdahulu.",
+    featureExecutionFailed: "Ciri berbayar tidak dapat diselesaikan.",
+    paymentComplete: "Bayaran telah selesai.",
+    singlePaymentRequired: "Bayaran sekali diperlukan.",
+    generatingResult: "Bayaran telah selesai. Sedang menjana keputusan...",
+  },
+};
+
+function coinGateText(key: keyof typeof COIN_GATE_TEXT_TRANSLATIONS.ko) {
+  const locale = getCurrentLoadingLocale();
+  return COIN_GATE_TEXT_TRANSLATIONS[locale]?.[key] || COIN_GATE_TEXT_TRANSLATIONS.en[key] || COIN_GATE_TEXT_TRANSLATIONS.ko[key];
+}
 
 let legacyPaymentRuntimePromise: Promise<RuntimePaidServiceGateWindow["_cdOpenPaidServiceGate"] | null> | null = null;
 
@@ -172,7 +310,7 @@ export function useCoinGate() {
       return {
         ok: false,
         code: "PAYMENT_IN_PROGRESS",
-        message: "결제가 이미 진행 중입니다. 잠시만 기다려 주세요.",
+        message: coinGateText("paymentInProgress"),
         requiredCoins: 0,
         chargedCoins: 0,
         balanceAfter: 0,
@@ -183,7 +321,7 @@ export function useCoinGate() {
 
     inFlightRef.current = true;
     setIsPaying(true);
-    startPayment("이용권을 확인하고 있어요.", "pass-checking");
+    startPayment(coinGateText("checkingPass"), "pass-checking");
 
     let requiredCoins = 0;
 
@@ -206,7 +344,7 @@ export function useCoinGate() {
           return {
             ok: false,
             code: "AUTH_REQUIRED",
-            message: "로그인이 필요합니다.",
+            message: coinGateText("loginRequired"),
             requiredCoins: 0,
             chargedCoins: 0,
             balanceAfter: 0,
@@ -216,7 +354,7 @@ export function useCoinGate() {
         }
       }
 
-      setPaymentMessage("이용권과 기존 잠금 해제 내역을 확인하고 있어요.");
+      setPaymentMessage(coinGateText("checkingEntitlements"));
 
       const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,
@@ -234,13 +372,13 @@ export function useCoinGate() {
         const rawPricing = Object.keys(dataPricing).length ? dataPricing : readNestedObject(chargeResult.raw, "pricing");
         requiredCoins = toNumber(rawPricing.cost ?? rawPricing.coinPrice ?? chargeResult.raw.requiredCoins, requiredCoins);
         const code = normalizeCode(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
-        const message = toText(chargeResult.error?.message || chargeResult.message || "단건 결제가 필요합니다.") || "단건 결제가 필요합니다.";
+        const message = toText(chargeResult.error?.message || chargeResult.message || coinGateText("singlePaymentRequired")) || coinGateText("singlePaymentRequired");
 
         if (resolveLoginRequired(code, chargeResult.status)) {
           return {
             ok: false,
             code: "AUTH_REQUIRED",
-            message: "로그인이 필요합니다.",
+            message: coinGateText("loginRequired"),
             requiredCoins,
             chargedCoins: 0,
             balanceAfter: 0,
@@ -325,7 +463,7 @@ export function useCoinGate() {
       const subscriptionTier = toText(chargeData.subscriptionTier || chargeData.passTier || consume.subscriptionTier || consume.passTier || chargeAccessGrant.subscriptionTier || chargeAccessGrant.passTier);
 
       if (typeof input.onPaid === "function") {
-        setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
+        setPaymentMessage(coinGateText("generatingResult"));
         markPaidAttemptGenerationStarted("onPaid_callback_start");
         try {
           await input.onPaid({
@@ -348,7 +486,7 @@ export function useCoinGate() {
           return {
             ok: false,
             code: "FEATURE_EXECUTION_FAILED",
-            message: error instanceof Error ? error.message : "유료 기능 실행에 실패했습니다.",
+            message: error instanceof Error ? error.message : coinGateText("featureExecutionFailed"),
             requiredCoins,
             chargedCoins,
             balanceAfter,
@@ -363,7 +501,7 @@ export function useCoinGate() {
       return {
         ok: true,
         code: chargePassGranted ? "PASS_FREE" : chargeMonthlyGranted ? "MOONLIGHT_STONE" : "OK",
-        message: "결제가 완료되었습니다.",
+        message: coinGateText("paymentComplete"),
         requiredCoins,
         chargedCoins,
         balanceAfter,

@@ -253,6 +253,73 @@
   var _PRESS_DURATION = 2200; // ms
   var _TC_COIN_COST = 30;
   var _TC_FEATURE_KEY = 'openJuyukModal';
+  var TC_TEXT_TRANSLATIONS = {
+    ko: {
+      paymentReason: '주역 거북점 리딩',
+      gateUnavailable: '결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+      paymentChecking: '결제를 확인 중입니다...',
+      loginConfirm: '로그인이 필요합니다. 로그인 페이지로 이동할까요?',
+      scrollTopTitle: '맨 위로',
+      scrollTopButton: '↑ 맨 위로',
+      shareButton: '📜 신탁 공유하기',
+      redoButton: '⟳ 다시 불을 지피다',
+      homeButton: '← 홈으로 돌아가기',
+      oracleFallback: '신탁',
+      sharePrefix: '거북점 신탁: ',
+      shareSuffix: 'Code Destiny에서 확인하세요: https://code-destiny.com',
+      shareTitle: '거북점 신탁 · ',
+      copied: '✓ 복사됨',
+    },
+    en: {
+      paymentReason: 'I Ching Turtle Oracle Reading',
+      gateUnavailable: 'The payment gate could not be loaded. Please refresh and try again.',
+      paymentChecking: 'Checking your payment...',
+      loginConfirm: 'Login is required. Go to the login page?',
+      scrollTopTitle: 'Back to top',
+      scrollTopButton: '↑ Back to top',
+      shareButton: '📜 Share Oracle',
+      redoButton: '⟳ Kindle the fire again',
+      homeButton: '← Return home',
+      oracleFallback: 'Oracle',
+      sharePrefix: 'Turtle Oracle: ',
+      shareSuffix: 'See it on Code Destiny: https://code-destiny.com',
+      shareTitle: 'Turtle Oracle · ',
+      copied: '✓ Copied',
+    },
+    ja: {
+      paymentReason: '易経・亀甲占いリーディング',
+      gateUnavailable: '決済ゲートを読み込めませんでした。更新してもう一度お試しください。',
+      paymentChecking: '決済を確認しています...',
+      loginConfirm: 'ログインが必要です。ログインページへ移動しますか？',
+      scrollTopTitle: '一番上へ',
+      scrollTopButton: '↑ 一番上へ',
+      shareButton: '📜 神託を共有する',
+      redoButton: '⟳ もう一度火を灯す',
+      homeButton: '← ホームへ戻る',
+      oracleFallback: '神託',
+      sharePrefix: '亀甲占いの神託: ',
+      shareSuffix: 'Code Destinyで確認してください: https://code-destiny.com',
+      shareTitle: '亀甲占いの神託 · ',
+      copied: '✓ コピー済み',
+    }
+  };
+
+  function _tcLocale() {
+    var value = '';
+    try { if (window.cdGetCurrentLanguage) value = String(window.cdGetCurrentLanguage() || ''); } catch (_) {}
+    if (!value) {
+      try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
+    }
+    value = String(value || '').trim().replace('_', '-').toLowerCase();
+    if (value.indexOf('ja') === 0) return 'ja';
+    if (value.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _tcText(key) {
+    var copy = TC_TEXT_TRANSLATIONS[_tcLocale()] || TC_TEXT_TRANSLATIONS.ko;
+    return copy[key] || TC_TEXT_TRANSLATIONS.ko[key] || '';
+  }
 
   function _tcEl(id) { return document.getElementById(id); }
 
@@ -267,7 +334,7 @@
       if (typeof window._cdCoinGatePerUse === 'function') {
         window._cdCoinGatePerUse(
           _TC_COIN_COST,
-          '주역 거북점 리딩',
+          _tcText('paymentReason'),
           function() { resolve(true); },
           function() { resolve(false); },
           {
@@ -278,7 +345,7 @@
         return;
       }
 
-      alert('결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
+      alert(_tcText('gateUnavailable'));
       resolve(false);
       return;
 
@@ -290,7 +357,7 @@
       if (token) consumeHeaders.Authorization = 'Bearer ' + token;
 
       var requestId = 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
+      if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, _tcText('paymentChecking'));
 
       fetch('/api/billing/coin-gate', {
         method: 'POST',
@@ -299,7 +366,7 @@
         cache: 'no-store',
         body: JSON.stringify({
           cost: _TC_COIN_COST,
-          reason: '주역 거북점 리딩',
+          reason: _tcText('paymentReason'),
           featureKey: _TC_FEATURE_KEY,
           requestId: requestId,
           forceDeduct: true
@@ -311,7 +378,7 @@
       }).then(function(payload) {
         var res = payload.data || {};
         if (payload.status === 401) {
-          if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+          if (window.confirm(_tcText('loginConfirm'))) {
             window.location.href = '/login?next=%2F';
           }
           resolve(false);
@@ -567,10 +634,10 @@
         + '</div>'
       + '</div>'
 
-      + '<button class="tc-scroll-top-btn" onclick="(function(){var o=document.getElementById(\u0027juyukModalOverlay\u0027);if(o)window.scrollTo({top:o.offsetTop,behavior:\u0027smooth\u0027});})()" title="맨 위로">↑ 맨 위로</button>'
-      + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">📜 신탁 공유하기</button>'
-      + '<button class="tc-redo-btn" onclick="tcReset()">⟳ 다시 불을 지피다</button>'
-      + '<button class="tc-home-btn" onclick="closeJuyukModal()">← 홈으로 돌아가기</button>';
+      + '<button class="tc-scroll-top-btn" onclick="(function(){var o=document.getElementById(\u0027juyukModalOverlay\u0027);if(o)window.scrollTo({top:o.offsetTop,behavior:\u0027smooth\u0027});})()" title="' + _tcText('scrollTopTitle') + '">' + _tcText('scrollTopButton') + '</button>'
+      + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">' + _tcText('shareButton') + '</button>'
+      + '<button class="tc-redo-btn" onclick="tcReset()">' + _tcText('redoButton') + '</button>'
+      + '<button class="tc-home-btn" onclick="closeJuyukModal()">' + _tcText('homeButton') + '</button>';
 
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
@@ -615,16 +682,16 @@
 
   window.tcShareResult = function() {
     var hexName = document.querySelector('.tc-ink-name');
-    var name = hexName ? hexName.textContent.replace(/[『』\s]/g, '') : '신탁';
+    var name = hexName ? hexName.textContent.replace(/[『』\s]/g, '') : _tcText('oracleFallback');
     var qEl = document.getElementById('ichingQuestion');
     var q = qEl && qEl.value.trim() ? '"' + qEl.value.trim() + '" — ' : '';
-    var text = '거북점 신탁: ' + q + name + '\nCode Destiny에서 확인하세요: https://code-destiny.com';
+    var text = _tcText('sharePrefix') + q + name + '\n' + _tcText('shareSuffix');
     if (navigator.share) {
-      navigator.share({ title: '거북점 신탁 · ' + name, text: text }).catch(function(){});
+      navigator.share({ title: _tcText('shareTitle') + name, text: text }).catch(function(){});
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(function() {
         var btn = document.getElementById('tcShareBtn');
-        if (btn) { btn.textContent = '✓ 복사됨'; setTimeout(function(){ btn.textContent = '📜 신탁 공유하기'; }, 2000); }
+        if (btn) { btn.textContent = _tcText('copied'); setTimeout(function(){ btn.textContent = _tcText('shareButton'); }, 2000); }
       }).catch(function(){});
     }
   };

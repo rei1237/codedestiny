@@ -47,7 +47,7 @@ const TIERS = [
     name: "Starter",
     krwPrice: 9900,
     coins: 10,
-    description: "10 premium readings",
+    descriptionKey: "starter",
     popular: false,
   },
   {
@@ -55,7 +55,7 @@ const TIERS = [
     name: "Standard",
     krwPrice: 29000,
     coins: 35,
-    description: "35 readings + Destiny Report",
+    descriptionKey: "standard",
     popular: true,
   },
   {
@@ -63,10 +63,65 @@ const TIERS = [
     name: "Premium",
     krwPrice: 59000,
     coins: 80,
-    description: "80 readings + lifetime perks",
+    descriptionKey: "premium",
     popular: false,
   },
 ];
+
+const GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "프리미엄 운명 분석 열기",
+    localCurrency: "현재 지역 통화로 가격 표시",
+    detecting: "감지 중...",
+    popular: "가장 인기",
+    coins: (amount) => `${amount} 코인`,
+    descriptions: {
+      starter: "프리미엄 리딩 10회",
+      standard: "리딩 35회 + 운명 리포트",
+      premium: "리딩 80회 + 평생 혜택",
+    },
+    primaryCta: "시작하기 →",
+    secondaryCta: "플랜 선택",
+    trust: ["🔒 SSL 보안", "💳 Stripe 인증", "🔄 30일 보장", "🌍 80+ 국가"],
+  },
+  en: {
+    title: "Unlock Premium Destiny Analysis",
+    localCurrency: "Prices shown in your local currency",
+    detecting: "detecting...",
+    popular: "MOST POPULAR",
+    coins: (amount) => `${amount} Coins`,
+    descriptions: {
+      starter: "10 premium readings",
+      standard: "35 readings + Destiny Report",
+      premium: "80 readings + lifetime perks",
+    },
+    primaryCta: "Get Started →",
+    secondaryCta: "Select Plan",
+    trust: ["🔒 SSL Secure", "💳 Stripe Verified", "🔄 30-day Guarantee", "🌍 80+ Countries"],
+  },
+  ja: {
+    title: "プレミアム運命分析を開く",
+    localCurrency: "現在地の通貨で価格を表示",
+    detecting: "検出中...",
+    popular: "人気プラン",
+    coins: (amount) => `${amount}コイン`,
+    descriptions: {
+      starter: "プレミアムリーディング10回",
+      standard: "リーディング35回 + 運命レポート",
+      premium: "リーディング80回 + 永続特典",
+    },
+    primaryCta: "始める →",
+    secondaryCta: "プランを選択",
+    trust: ["🔒 SSL保護", "💳 Stripe認証", "🔄 30日保証", "🌍 80以上の国"],
+  },
+};
+
+function normalizePricingLocale(locale) {
+  const value = String(locale || "").toLowerCase();
+  if (value.startsWith("ja")) return "ja";
+  if (value.startsWith("en")) return "en";
+  return "ko";
+}
 
 function convertPrice(krwPrice, currencyKey, rates) {
   const currency = rates[currencyKey] || rates["USD"];
@@ -98,6 +153,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
   const [currency, setCurrency] = useState(forceCurrency || "USD");
   const [rates, setRates] = useState(FALLBACK_RATES);
   const [loading, setLoading] = useState(!forceCurrency);
+  const copy = GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS[normalizePricingLocale(locale)] || GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS.ko;
 
   useEffect(() => {
     if (forceCurrency) {
@@ -171,11 +227,11 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
             margin: "0 0 8px",
           }}
         >
-          Unlock Premium Destiny Analysis
+          {copy.title}
         </h2>
         <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-          Prices shown in your local currency
-          {loading ? " (detecting…)" : ` (${currency})`}
+          {copy.localCurrency}
+          {loading ? ` (${copy.detecting})` : ` (${currency})`}
         </p>
       </div>
 
@@ -222,7 +278,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
                   letterSpacing: "0.05em",
                 }}
               >
-                MOST POPULAR
+                {copy.popular}
               </span>
             )}
 
@@ -267,12 +323,12 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
                   color: "#fbbf24",
                 }}
               >
-                {tier.coins} Coins
+                {copy.coins(tier.coins)}
               </span>
             </div>
 
             <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
-              {tier.description}
+              {copy.descriptions[tier.descriptionKey]}
             </div>
 
             <div
@@ -289,7 +345,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
                 textAlign: "center",
               }}
             >
-              {tier.popular ? "Get Started →" : "Select Plan"}
+              {tier.popular ? copy.primaryCta : copy.secondaryCta}
             </div>
           </button>
         ))}
@@ -306,7 +362,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
           opacity: 0.7,
         }}
       >
-        {["🔒 SSL Secure", "💳 Stripe Verified", "🔄 30-day Guarantee", "🌍 80+ Countries"].map((item) => (
+        {copy.trust.map((item) => (
           <span key={item} style={{ fontSize: 12, color: "#475569" }}>
             {item}
           </span>

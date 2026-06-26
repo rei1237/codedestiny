@@ -5,6 +5,21 @@ import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
 
+const SIKOJEN_CASTING_TEXT_TRANSLATIONS = {
+  ko: {
+    avatarAlt: "연이 주조 단계",
+    counselTitle: "연이의 주조 상담",
+  },
+  en: {
+    avatarAlt: "Yeon-i casting phase",
+    counselTitle: "Yeon-i’s Casting Counsel",
+  },
+  ja: {
+    avatarAlt: "ヨンの鋳造段階",
+    counselTitle: "ヨンの鋳造相談",
+  },
+} as const;
+
 export function PhaseCasting() {
   const { setPhase, setIsCasting, generateShape, selectedCategory } = useSikojenpovailuContext();
   const [isCasting, setLocalIsCasting] = useState(false);
@@ -73,7 +88,7 @@ export function PhaseCasting() {
         <YeonSpriteAvatar
           frames={[10, 11, 12, 11]}
           size={140}
-          alt="연이 주조 단계"
+          alt={SIKOJEN_CASTING_TEXT_TRANSLATIONS.ko.avatarAlt}
           ringClassName="from-rose-300 to-pink-300"
           intervalMs={760}
         />
@@ -88,7 +103,7 @@ export function PhaseCasting() {
 
         <PigCounselBubble
           className="mb-7 w-full max-w-md"
-          title="연이의 주조 상담"
+          title={SIKOJEN_CASTING_TEXT_TRANSLATIONS.ko.counselTitle}
           message="틀을 한 번만 톡 눌러줘. 굳는 모양을 보면서 너한테 필요한 조언을 내가 바로 읽어줄게."
         />
 

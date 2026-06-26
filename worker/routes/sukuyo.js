@@ -1032,6 +1032,41 @@ function buildSukuyoRunningResponse(request, { sessionId = "", reportId = "", fe
   };
 }
 
+function buildSukuyoCompletedStatusResponse(request, { sessionId = "", reportId = "", report = null, completedAt = "" } = {}) {
+  const source = report && typeof report === "object" ? report : {};
+  const nested = source?.payload && typeof source.payload === "object" ? source.payload : {};
+  const ready = resolveSukuyoReadyFromPayload(source);
+  const completedReportId = clean(reportId || source.reportId || ready?.reportId || nested.reportId);
+  const completedSessionId = clean(sessionId || source.sessionId || ready?.sessionId || nested.sessionId);
+  const completedLinks = buildSukuyoRunningLinks(request, completedSessionId, completedReportId);
+  const normalizedReport = {
+    ...source,
+    ok: true,
+    status: "completed",
+    serverStatus: "completed",
+    reportId: completedReportId,
+    sessionId: completedSessionId,
+    archiveUrl: clean(source.archiveUrl) || completedLinks.archiveUrl,
+    statusPollUrl: clean(source.statusPollUrl) || completedLinks.statusPollUrl,
+    pdfReady: source.pdfReady || ready || null,
+  };
+  return {
+    ...normalizedReport,
+    ok: true,
+    execution: {
+      status: "success",
+      premiumStatus: "completed",
+      reportId: completedReportId,
+      sessionId: completedSessionId,
+      completedAt: clean(completedAt) || new Date().toISOString(),
+    },
+    archiveUrl: normalizedReport.archiveUrl,
+    statusPollUrl: normalizedReport.statusPollUrl,
+    pdfReady: normalizedReport.pdfReady || null,
+    report: normalizedReport,
+  };
+}
+
 function buildSukuyoGenerationFailureProgress(error = {}) {
   const failedChapters = Array.isArray(error?.failedChapters)
     ? error.failedChapters.slice(0, 15).map((chapter) => ({
@@ -2381,38 +2416,18 @@ async function handleSukuyoPremiumStatus(request, env) {
   if (reusableResponse?.status === 200) {
     const completedReportId = clean(reusableResponse.payload?.reportId || reportId);
     const completedSessionId = clean(reusableResponse.payload?.sessionId || sessionId);
-    const completedLinks = buildSukuyoRunningLinks(request, completedSessionId, completedReportId);
-    return json({
-      ok: true,
-      execution: {
-        status: "success",
-        premiumStatus: "completed",
-        reportId: completedReportId,
-        sessionId: completedSessionId,
-        completedAt: new Date().toISOString(),
-      },
-      archiveUrl: reusableResponse.payload?.archiveUrl || completedLinks.archiveUrl,
-      statusPollUrl: reusableResponse.payload?.statusPollUrl || completedLinks.statusPollUrl,
-      pdfReady: reusableResponse.payload?.pdfReady || reusableResponse.payload?.payload?.pdfReady || null,
+    return json(buildSukuyoCompletedStatusResponse(request, {
+      sessionId: completedSessionId,
+      reportId: completedReportId,
       report: reusableResponse.payload,
-    });
+    }));
   }
   const lock = sukuyoPdfGenerationLocks.get(sessionId);
   if (lock?.status === "done" && lock.result && isSukuyoCompletedPayloadReady(lock.result)) {
     const completedReportId = clean(lock.reportId || reportId);
-    const completedLinks = buildSukuyoRunningLinks(request, sessionId, completedReportId);
-    return json({
-      ok: true,
-      execution: {
-        status: "success",
-        premiumStatus: "completed",
-        reportId: completedReportId,
-        sessionId,
-        completedAt: new Date().toISOString(),
-      },
-      archiveUrl: completedLinks.archiveUrl,
-      statusPollUrl: completedLinks.statusPollUrl,
-      pdfReady: lock.result.pdfReady || null,
+    return json(buildSukuyoCompletedStatusResponse(request, {
+      sessionId,
+      reportId: completedReportId,
       report: {
         ...lock.result,
         ok: true,
@@ -2420,10 +2435,8 @@ async function handleSukuyoPremiumStatus(request, env) {
         serverStatus: "completed",
         reportId: completedReportId,
         sessionId,
-        archiveUrl: lock.result.archiveUrl || completedLinks.archiveUrl,
-        statusPollUrl: lock.result.statusPollUrl || completedLinks.statusPollUrl,
       },
-    });
+    }));
   }
   if (lock?.status === "done" && lock.result && !isSukuyoCompletedPayloadReady(lock.result)) {
     return json({

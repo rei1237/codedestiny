@@ -16,6 +16,29 @@
   var STORAGE_KEY_PREFIX  = 'cd_share_reward_';
   var LS_AUTH_TOKEN_KEY   = 'fortune_auth_token';
   var LS_AUTH_USER_KEY    = 'fortune_auth_user';
+  var SHARE_REWARD_COPY = {
+    ko: { networkError: '네트워크 오류가 발생했습니다.' },
+    en: { networkError: 'A network error occurred.' },
+    ja: { networkError: 'ネットワークエラーが発生しました。' },
+    zh: { networkError: '发生网络错误。' }
+  };
+
+  function getShareRewardLocale() {
+    try {
+      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      if (!raw && localStorage) raw = localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || '';
+      raw = String(raw || '').toLowerCase();
+      if (raw.indexOf('ja') === 0) return 'ja';
+      if (raw.indexOf('zh') === 0) return 'zh';
+      if (raw.indexOf('en') === 0) return 'en';
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function getShareRewardCopy() {
+    return SHARE_REWARD_COPY[getShareRewardLocale()] || SHARE_REWARD_COPY.ko;
+  }
 
   /* ── KST 날짜 키 (YYYYMMDD) ────────────────────────────────────────  */
   function _kstDateKey() {
@@ -213,7 +236,7 @@
       })
       .catch(function (err) {
         console.warn('[share-reward] network error', err);
-        onError(0, { message: '네트워크 오류가 발생했습니다.' });
+        onError(0, { message: getShareRewardCopy().networkError });
       });
   }
 

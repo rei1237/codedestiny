@@ -4,6 +4,7 @@ import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
 import { connectDb, mongoose } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
+import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
 
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
@@ -408,6 +409,62 @@ export async function signAuthToken(user, env) {
   );
 }
 
+function toAuthIsoOrNull(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+function readNonNegativeInteger(value, fallback = 0) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) return fallback;
+  return Math.floor(number);
+}
+
+function normalizeAuthProfileSubscription(user = {}) {
+  const rawSub = user?.profileSubscription && typeof user.profileSubscription === "object"
+    ? user.profileSubscription
+    : {};
+  const entitlement = normalizeHoneyPassEntitlement(user || {});
+  const activeTier = entitlement?.isActive && entitlement?.tier && entitlement.tier !== "none"
+    ? String(entitlement.tier || "free").toLowerCase()
+    : "free";
+  const isActive = activeTier !== "free";
+  const passLimit = isActive
+    ? readNonNegativeInteger(entitlement.maxCoveredCoin || rawSub.maxCoveredCoin || rawSub.passLimit || rawSub.freeLimit || PASS_LIMITS[activeTier] || 0)
+    : 0;
+  const membershipCreditBalance = readNonNegativeInteger(rawSub.monthlyStoneBalance ?? rawSub.membershipCreditBalance, 0);
+  const membershipCreditGranted = readNonNegativeInteger(rawSub.membershipCreditGranted, 0);
+  const membershipCreditUsed = readNonNegativeInteger(rawSub.membershipCreditUsed, 0);
+
+  return {
+    tier: activeTier,
+    passTier: isActive ? String(entitlement.passTier || rawSub.passTier || activeTier) : "free",
+    plan: isActive ? String(rawSub.plan || activeTier) : "free",
+    planId: isActive ? String(rawSub.planId || rawSub.plan || activeTier) : "free",
+    isActive,
+    isSubscribed: isActive,
+    status: isActive
+      ? String(rawSub.status || rawSub.subscriptionStatus || rawSub.membershipStatus || rawSub.lastBillingStatus || "active")
+      : "free",
+    subscriptionStatus: isActive
+      ? String(rawSub.subscriptionStatus || rawSub.status || rawSub.lastBillingStatus || "active")
+      : "free",
+    membershipStatus: isActive ? String(rawSub.membershipStatus || rawSub.status || "active") : "free",
+    source: isActive ? String(entitlement.source || rawSub.source || "auth_me") : "auth_me",
+    expiresAt: isActive ? (entitlement.expiresAt || toAuthIsoOrNull(rawSub.expiresAt)) : null,
+    profileLimit: isActive ? readNonNegativeInteger(entitlement.maxProfiles || rawSub.profileLimit, 1) : 1,
+    freeLimit: passLimit,
+    passLimit,
+    maxCoveredCoin: passLimit,
+    membershipCreditBalance,
+    monthlyStoneBalance: membershipCreditBalance,
+    membershipCreditGranted,
+    membershipCreditUsed,
+    snapshotSource: "auth_me",
+  };
+}
+
 export function normalizeUserResponse(user) {
   return {
     id: String(user._id),
@@ -420,5 +477,6 @@ export function normalizeUserResponse(user) {
     role: user.role,
     points: user.points,
     joinedAt: user.joinedAt,
+    profileSubscription: normalizeAuthProfileSubscription(user),
   };
 }

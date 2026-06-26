@@ -9,7 +9,7 @@ type LocaleCode = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | 
 type RouteLocaleCode = "ko" | "en" | "ja" | "zh";
 type LocaleItem = { code: LocaleCode; slug: string; label: string; shortLabel: string; hrefLang: string; routeLocale?: RouteLocaleCode };
 
-const LOCALES: LocaleItem[] = [
+const LOCALE_SWITCHER_LABELS: LocaleItem[] = [
   { code: "ko", slug: "", label: "한국어", shortLabel: "KR", hrefLang: "ko", routeLocale: "ko" },
   { code: "en", slug: "/en", label: "English", shortLabel: "ENG", hrefLang: "en", routeLocale: "en" },
   { code: "ja", slug: "/ja", label: "日本語", shortLabel: "JPN", hrefLang: "ja", routeLocale: "ja" },
@@ -51,7 +51,7 @@ function normalizePathname(input: string | null | undefined) {
 
 function detectLocaleFromPath(pathname: string) {
   const normalized = normalizePathname(pathname).toLowerCase();
-  const match = LOCALES.find(
+  const match = LOCALE_SWITCHER_LABELS.find(
     (locale) => locale.slug && (normalized === locale.slug || normalized.startsWith(`${locale.slug}/`)),
   );
   return match || null;
@@ -59,7 +59,7 @@ function detectLocaleFromPath(pathname: string) {
 
 function stripLocalePrefix(pathname: string) {
   const normalized = normalizePathname(pathname).toLowerCase();
-  for (const locale of LOCALES) {
+  for (const locale of LOCALE_SWITCHER_LABELS) {
     if (!locale.slug) continue;
     if (normalized === locale.slug) return "/";
     if (normalized.startsWith(`${locale.slug}/`)) return normalized.slice(locale.slug.length) || "/";
@@ -78,16 +78,16 @@ function normalizeStoredLocale(value: string | null | undefined): LocaleCode {
   if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
   if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
   if (normalized === "vi-vn") return "vi";
-  return LOCALES.find((locale) => locale.code.toLowerCase() === normalized)?.code || "ko";
+  return LOCALE_SWITCHER_LABELS.find((locale) => locale.code.toLowerCase() === normalized)?.code || "ko";
 }
 
 function readSavedLocale(): LocaleItem {
-  if (typeof window === "undefined") return LOCALES[0];
+  if (typeof window === "undefined") return LOCALE_SWITCHER_LABELS[0];
   try {
     const stored = window.localStorage.getItem("cd_lang");
-    return LOCALES.find((locale) => locale.code === normalizeStoredLocale(stored)) || LOCALES[0];
+    return LOCALE_SWITCHER_LABELS.find((locale) => locale.code === normalizeStoredLocale(stored)) || LOCALE_SWITCHER_LABELS[0];
   } catch {
-    return LOCALES[0];
+    return LOCALE_SWITCHER_LABELS[0];
   }
 }
 
@@ -115,7 +115,7 @@ function getLocalizedHref(pathname: string, targetLocale: LocaleItem) {
 export function LocaleSwitcher() {
   const pathname = usePathname() || "/";
 
-  const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALES[0]);
+  const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALE_SWITCHER_LABELS[0]);
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -172,7 +172,7 @@ export function LocaleSwitcher() {
 
       {open ? (
         <div role="menu" aria-label={copy.languageList} style={menuStyle} onMouseLeave={() => setOpen(false)}>
-          {LOCALES.map((locale) => (
+          {LOCALE_SWITCHER_LABELS.map((locale) => (
             <Link
               key={locale.code}
               role="menuitem"

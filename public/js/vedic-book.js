@@ -63,6 +63,37 @@
   var _paymentGateOpenedAt = 0;
   var _pendingPaymentPromise = null;
   var _pendingPaymentSessionId = '';
+  var VEDIC_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      paymentCancelled: '결제가 취소되었습니다.',
+      paymentModuleMissing: '결제 모듈을 사용할 수 없습니다.',
+    },
+    en: {
+      paymentCancelled: 'Payment cancelled.',
+      paymentModuleMissing: 'Payment module is not available.',
+    },
+    ja: {
+      paymentCancelled: '決済がキャンセルされました。',
+      paymentModuleMissing: '決済モジュールを利用できません。',
+    }
+  };
+
+  function _vedicLocale() {
+    var value = '';
+    try { if (window.cdGetCurrentLanguage) value = String(window.cdGetCurrentLanguage() || ''); } catch (_) {}
+    if (!value) {
+      try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
+    }
+    value = String(value || '').trim().replace('_', '-').toLowerCase();
+    if (value.indexOf('ja') === 0) return 'ja';
+    if (value.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _vedicText(key) {
+    var copy = VEDIC_BOOK_TEXT_TRANSLATIONS[_vedicLocale()] || VEDIC_BOOK_TEXT_TRANSLATIONS.ko;
+    return copy[key] || VEDIC_BOOK_TEXT_TRANSLATIONS.ko[key] || '';
+  }
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
@@ -877,7 +908,7 @@
   function _isRunningReport(response) {
     var payload = _normalizeVedicReportResponse(response || {});
     var status = _clean(payload && payload.status).toLowerCase();
-    return status === 'running' || status === 'pending' || status === 'generating';
+    return status === 'running' || status === 'pending' || status === 'validating' || status === 'generating' || status === 'rendering';
   }
 
   function _sleep(ms) {
@@ -1263,7 +1294,7 @@
 
       function cancel(error) {
         _lastPremiumPayment = null;
-        _logError(error || { message: 'Payment cancelled.', status: 402, code: 'VEDIC_PAYMENT_CANCELLED' }, { stage: 'billing' });
+        _logError(error || { message: _vedicText('paymentCancelled'), status: 402, code: 'VEDIC_PAYMENT_CANCELLED' }, { stage: 'billing' });
         _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
         reject(error instanceof Error ? error : new Error('VEDIC_PAYMENT_CANCELLED'));
       }
@@ -1292,7 +1323,7 @@
           return;
         }
 
-        cancel({ message: 'Payment module is not available.', status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' });
+        cancel({ message: _vedicText('paymentModuleMissing'), status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' });
       } catch (error) {
         cancel(error);
       }

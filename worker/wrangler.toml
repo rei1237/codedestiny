@@ -5,6 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 routes = [
   { pattern = "api.code-destiny.com", custom_domain = true },
+  { pattern = "code-destiny.com/api/*", zone_name = "code-destiny.com" },
 ]
 
 [ai]

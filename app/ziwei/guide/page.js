@@ -1,10 +1,28 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const ZIWEI_GUIDE_TEXT_TRANSLATIONS = {
+  ko: {
+    metaTitle: "자미두수 명반 읽는 법 | Code Destiny",
+    observe: "자미두수가 비추는 것",
+    inputs: "필요한 입력값",
+    useCases: "언제 참고하면 좋은가",
+    access: "무료와 유료 범위",
+    flow: "해석 흐름",
+    resultItems: "결과에서 확인할 수 있는 항목",
+    sample: "짧은 예시 리딩",
+    caution: "해석 시 주의할 점",
+  },
+};
+
+function ziweiGuideText(key) {
+  return ZIWEI_GUIDE_TEXT_TRANSLATIONS.ko[key];
+}
+
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/ziwei/guide",
-    title: "자미두수 명반 읽는 법 | Code Destiny",
+    title: ziweiGuideText("metaTitle"),
     description:
       "자미두수 명반이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 12궁과 주성, 대운 흐름을 어떻게 읽는지 안내합니다.",
     keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "주성", "대운", "Code Destiny"],
@@ -56,28 +74,28 @@ export default function ZiweiGuidePage() {
 
       <section className="cd-card-grid">
         <article className="cd-card">
-          <h2>자미두수가 비추는 것</h2>
+          <h2>{ziweiGuideText("observe")}</h2>
           <p>
             자미두수는 명궁, 형제궁, 부처궁, 자녀궁, 재백궁, 질액궁, 천이궁, 노복궁, 관록궁, 전택궁, 복덕궁, 부모궁을 통해 삶의 영역을 나누어 봅니다. 한 궁의 별만으로 결론을 내리지 않고, 서로 마주 보는 궁과 삼방사정의 연결을 함께 살피는 것이 핵심입니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>필요한 입력값</h2>
+          <h2>{ziweiGuideText("inputs")}</h2>
           <p>
             생년월일, 출생시간, 성별, 양력·음력 여부가 기본 입력값입니다. 특히 출생시간은 명궁과 별의 위치를 정하는 데 중요합니다. 시간이 애매하다면 결과를 절대값으로 붙잡기보다 반복되는 성향과 현재 상황에 맞는 조언을 중심으로 참고해야 합니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>언제 참고하면 좋은가</h2>
+          <h2>{ziweiGuideText("useCases")}</h2>
           <p>
             직업의 방향이 자주 바뀔 때, 관계에서 내가 맡는 역할을 알고 싶을 때, 재물과 책임의 흐름을 큰 그림으로 보고 싶을 때 도움이 됩니다. 자미두수는 선택지를 줄이는 도구가 아니라 자신이 어떤 방식으로 선택하는지 비추는 거울에 가깝습니다.
           </p>
         </article>
 
         <article className="cd-card">
-          <h2>무료와 유료 범위</h2>
+          <h2>{ziweiGuideText("access")}</h2>
           <p>
             무료 영역은 명궁과 주요 별, 핵심 궁의 분위기를 중심으로 안내합니다. 유료 리포트는 여러 궁의 상호 관계, 대운 흐름, 관계와 일의 세부 조언을 더 길게 풀어 줍니다. 결제 여부가 결과의 좋고 나쁨을 바꾸지는 않습니다.
           </p>
@@ -85,7 +103,7 @@ export default function ZiweiGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>해석 흐름</h2>
+        <h2>{ziweiGuideText("flow")}</h2>
         <ul>
           {flowItems.map((item) => (
             <li key={item}>{item}</li>
@@ -94,7 +112,7 @@ export default function ZiweiGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>결과에서 확인할 수 있는 항목</h2>
+        <h2>{ziweiGuideText("resultItems")}</h2>
         <ul>
           {resultItems.map((item) => (
             <li key={item}>{item}</li>
@@ -103,14 +121,14 @@ export default function ZiweiGuidePage() {
       </section>
 
       <section className="cd-card">
-        <h2>짧은 예시 리딩</h2>
+        <h2>{ziweiGuideText("sample")}</h2>
         <p>
           관록궁에 추진력을 주는 별이 강하고 복덕궁이 예민하게 반응한다면, 일에서는 책임을 빨리 맡는 흐름이 드러나지만 마음의 회복 속도는 늦을 수 있습니다. 이럴 때는 성취를 밀어붙이기 전에 휴식과 역할의 경계를 함께 세우는 편이 안정적입니다.
         </p>
       </section>
 
       <section className="cd-card">
-        <h2>해석 시 주의할 점</h2>
+        <h2>{ziweiGuideText("caution")}</h2>
         <p>
           자미두수는 의료 진단, 투자 판단, 법률 자문, 결혼과 이혼, 소송, 진로 선택의 유일한 근거가 아닙니다. 결과가 불안하게 느껴질수록 현실 자료와 전문가 상담을 함께 확인해야 합니다.
         </p>

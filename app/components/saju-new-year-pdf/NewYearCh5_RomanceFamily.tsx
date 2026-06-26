@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterVRomanceFamily | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_5_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "V. 연애·가정 - 감정 파동 관리법",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "V. Love and Family - Managing Emotional Waves",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "V. 恋愛・家庭 - 感情波動の整え方",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyRomanceOverview: "올해 연애/가정 총론",
   singleConnectionLuck: "싱글 인연운",
@@ -27,8 +42,8 @@ export default function NewYearCh5_RomanceFamily({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>V. 연애·가정 - 감정 파동 관리법</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_5_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_5_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh5_RomanceFamily({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "V. 연애·가정 - 감정 파동 관리법"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_5_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

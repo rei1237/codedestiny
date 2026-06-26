@@ -12,6 +12,32 @@ import {
 } from "./destinyMeetingPlaceMappings";
 import type { DestinyElement, DestinyMeetingPlaceResult, MeetingEnergyProfile } from "./destinyMeetingPlaceTypes";
 
+const DESTINY_MEETING_PLACE_ENGINE_TEXT_TRANSLATIONS = {
+  ko: {
+    "destinyMeetingPlace.001": "갑 일간",
+    "destinyMeetingPlace.002": "도화 강화 루트",
+    "destinyMeetingPlace.003": "사람 밀도가 높은 예술/사진 무대에서 도화 매력이 강하게 드러납니다.",
+    "destinyMeetingPlace.004": "홍염 무드 루트",
+    "destinyMeetingPlace.005": "야경과 향, 패션 무드가 만남 확률을 끌어올립니다.",
+    "destinyMeetingPlace.006": "화개 감성 루트",
+    "destinyMeetingPlace.007": "고요한 전시/사찰/서점에서 깊은 대화형 인연이 열립니다.",
+    "destinyMeetingPlace.008": "역마 이동 루트",
+    "destinyMeetingPlace.009": "이동 동선과 여행지에서 우연한 인연 운이 강합니다.",
+    "destinyMeetingPlace.010": "용신/희신 축의 오행을 공간으로 옮겨 인연 에너지를 키우는 방식입니다.",
+    "destinyMeetingPlace.011": "인연 장소 리딩",
+    "destinyMeetingPlace.012": "첫 대화 문장",
+    "destinyMeetingPlace.013": "데이트 동선 설계",
+    "destinyMeetingPlace.014": "여행 인연 시나리오",
+    "destinyMeetingPlace.015": "매력 스타일링",
+    "destinyMeetingPlace.016": "피해야 할 인연 흐름",
+    "destinyMeetingPlace.017": "7일 인연 의식",
+    "destinyMeetingPlace.018": "사주로 보는 운명의 장소",
+  },
+} as const;
+
+function destinyMeetingPlaceEngineText(key: keyof typeof DESTINY_MEETING_PLACE_ENGINE_TEXT_TRANSLATIONS.ko): string {
+  return DESTINY_MEETING_PLACE_ENGINE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const ELEMENT_KEYS: DestinyElement[] = ["wood", "fire", "earth", "metal", "water"];
 
 type EnrichedRecommendedPlace = DestinyMeetingPlaceResult["recommendedPlaces"][number] & {
@@ -159,7 +185,7 @@ function extractDayMaster(sajuResult: SajuEngineResult): { stem: string; label: 
     }
   }
 
-  return { stem: "갑", label: "갑 일간" };
+  return { stem: "갑", label: destinyMeetingPlaceEngineText("destinyMeetingPlace.001") };
 }
 
 function incrementElement(counter: Record<DestinyElement, number>, value: unknown, amount = 1) {
@@ -372,32 +398,32 @@ function buildMeetingPlaceTypes(profile: MeetingEnergyProfile) {
   const additional: DestinyMeetingPlaceResult["meetingPlaceTypes"] = [];
 
   if (profile.sinsalSignals.dohwa) additional.push({
-    title: "도화 강화 루트",
-    description: "사람 밀도가 높은 예술/사진 무대에서 도화 매력이 강하게 드러납니다.",
+    title: destinyMeetingPlaceEngineText("destinyMeetingPlace.002"),
+    description: destinyMeetingPlaceEngineText("destinyMeetingPlace.003"),
     whyItFits: "도화 신호가 활성화된 시기에는 시각적 자극과 유동 인구가 많은 장소에서 인연 접점이 빠르게 열립니다.",
     examplePlaces: ["사진 전시 오프닝", "라이브 공연장", "감성 팝업"],
     caution: "첫인상 속도가 빠른 만큼 경계선은 분명히 두세요.",
   });
 
   if (profile.sinsalSignals.hongyeom) additional.push({
-    title: "홍염 무드 루트",
-    description: "야경과 향, 패션 무드가 만남 확률을 끌어올립니다.",
+    title: destinyMeetingPlaceEngineText("destinyMeetingPlace.004"),
+    description: destinyMeetingPlaceEngineText("destinyMeetingPlace.005"),
     whyItFits: "홍염 성향은 분위기·감각·스타일 자극에서 강하게 반응해 대화의 점화 속도가 빨라집니다.",
     examplePlaces: ["루프탑", "야간 산책", "분위기 카페"],
     caution: "감정 과열을 피하려면 대화 속도를 천천히 맞추세요.",
   });
 
   if (profile.sinsalSignals.hwagae) additional.push({
-    title: "화개 감성 루트",
-    description: "고요한 전시/사찰/서점에서 깊은 대화형 인연이 열립니다.",
+    title: destinyMeetingPlaceEngineText("destinyMeetingPlace.006"),
+    description: destinyMeetingPlaceEngineText("destinyMeetingPlace.007"),
     whyItFits: "화개 신호는 정적이고 사유가 깊어지는 공간에서 내면 대화를 자연스럽게 확장시킵니다.",
     examplePlaces: ["독립서점", "사찰 산책", "소규모 전시"],
     caution: "침묵이 길어지면 질문 하나로 흐름을 열어주세요.",
   });
 
   if (profile.sinsalSignals.yeokma) additional.push({
-    title: "역마 이동 루트",
-    description: "이동 동선과 여행지에서 우연한 인연 운이 강합니다.",
+    title: destinyMeetingPlaceEngineText("destinyMeetingPlace.008"),
+    description: destinyMeetingPlaceEngineText("destinyMeetingPlace.009"),
     whyItFits: "역마 성향은 이동 자체가 트리거가 되어 예상 밖의 만남 확률을 구조적으로 높입니다.",
     examplePlaces: ["공항 라운지", "기차역 카페", "항구 도시 숙소"],
     caution: "즉흥 이동 시 일정과 귀가 동선은 미리 고정하세요.",
@@ -413,7 +439,7 @@ function buildMeetingPlaceTypes(profile: MeetingEnergyProfile) {
     },
     {
       title: `${ELEMENT_LABEL[profile.primaryElement]} 공명 루트`,
-      description: "용신/희신 축의 오행을 공간으로 옮겨 인연 에너지를 키우는 방식입니다.",
+      description: destinyMeetingPlaceEngineText("destinyMeetingPlace.010"),
       whyItFits: `당신의 사주에서 ${ELEMENT_LABEL[profile.primaryElement]} 기운은 경계심을 낮추고 대화의 결을 맞추는 핵심 신호로 작동합니다.`,
       examplePlaces: PLACE_POOL_BY_ELEMENT[profile.primaryElement].slice(0, 3).map((item) => item.name),
       caution: "한 번에 많은 장소를 돌기보다 한 공간에 충분히 머무는 편이 더 유리합니다.",
@@ -677,7 +703,7 @@ function buildPromptPack(
     prompts: [
       {
         id: "meeting-place-oracle",
-        title: "인연 장소 리딩",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.011"),
         category: "장소",
         intent: "나에게 맞는 만남의 공간을 깊게 해석할 때",
         relatedPlace: topPlace?.name,
@@ -691,7 +717,7 @@ function buildPromptPack(
       },
       {
         id: "conversation-opener",
-        title: "첫 대화 문장",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.012"),
         category: "대화",
         intent: "어색함 없이 첫 문장을 열고 싶을 때",
         relatedPlace: topPlace?.name,
@@ -705,7 +731,7 @@ function buildPromptPack(
       },
       {
         id: "date-route",
-        title: "데이트 동선 설계",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.013"),
         category: "동선",
         intent: "장소를 실제 만남 루트로 바꾸고 싶을 때",
         relatedPlace: `${topPlace?.name || "첫 장소"} · ${secondPlace?.name || "두 번째 장소"}`,
@@ -720,7 +746,7 @@ function buildPromptPack(
       },
       {
         id: "travel-romance",
-        title: "여행 인연 시나리오",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.014"),
         category: "여행",
         intent: "도시·해외 인연운을 상상하고 준비할 때",
         relatedPlace: travel ? `${travel.country} ${travel.cities[0]}` : undefined,
@@ -734,7 +760,7 @@ function buildPromptPack(
       },
       {
         id: "style-scent",
-        title: "매력 스타일링",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.015"),
         category: "스타일",
         intent: "첫인상을 사주 기운에 맞게 정리할 때",
         prompt: [
@@ -748,7 +774,7 @@ function buildPromptPack(
       },
       {
         id: "avoid-shadow",
-        title: "피해야 할 인연 흐름",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.016"),
         category: "주의",
         intent: "관계가 어긋나는 장소와 타이밍을 피하고 싶을 때",
         prompt: [
@@ -762,7 +788,7 @@ function buildPromptPack(
       },
       {
         id: "seven-day-ritual",
-        title: "7일 인연 의식",
+        title: destinyMeetingPlaceEngineText("destinyMeetingPlace.017"),
         category: "실천",
         intent: "이번 주 인연운을 실제 행동으로 열고 싶을 때",
         prompt: [
@@ -795,7 +821,7 @@ export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult):
 
   return {
     summary: {
-      title: "사주로 보는 운명의 장소",
+      title: destinyMeetingPlaceEngineText("destinyMeetingPlace.018"),
       oneLine: `당신의 운명은 ${ELEMENT_LABEL[profile.primaryElement]} 기운이 머무는 장소에서 가장 선명하게 숨을 고릅니다. 공간의 오행이 사주의 부족한 결을 채우면 첫 호감은 신뢰가 되고, 우연한 동선은 인연의 문으로 바뀝니다.`,
       mainEnergy: ELEMENT_LABEL[profile.primaryElement],
       romanceKeyword: style.romanceKeyword,

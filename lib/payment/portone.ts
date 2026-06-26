@@ -1,4 +1,5 @@
 import { authFetch } from "../../app/_lib/auth-client";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AuthPortOneUser = {
   id?: string;
@@ -77,6 +78,92 @@ declare global {
 const SDK_SCRIPT_ID = "portone-v2-sdk";
 const PORTONE_CURRENCY = "CURRENCY_KRW";
 const EMAIL_REGEX = /^[^@\s]+@[^\s@]+\.[^\s@]+$/;
+
+const PORTONE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, Record<string, string>>> = {
+  ko: {
+    configFetchFailed: "PortOne V2 결제 설정 조회를 실패했습니다.",
+    configMissing: "결제 설정이 준비되지 않았습니다.",
+    channelMissing: "결제 채널 설정이 준비되지 않았습니다.",
+    browserRequired: "브라우저 환경이 아닙니다.",
+    sdkLoadFailed: "PortOne V2 SDK 로드에 실패했습니다.",
+    defaultCustomerName: "고객",
+    paymentStopped: "결제가 중단되었습니다.",
+    clientOnly: "브라우저 환경에서만 결제할 수 있습니다.",
+    invalidAmount: "결제 금액이 유효하지 않습니다.",
+    invalidCustomer: "결제 고객 정보가 유효하지 않습니다.",
+    emptyOrderName: "상품명이 비어있습니다.",
+    missingPaymentId: "결제 응답 paymentId가 없습니다.",
+    requestFailed: "결제창 호출 중 오류가 발생했습니다.",
+  },
+  en: {
+    configFetchFailed: "Failed to fetch PortOne V2 payment settings.",
+    configMissing: "Payment settings are not ready.",
+    channelMissing: "Payment channel settings are not ready.",
+    browserRequired: "Payment is only available in a browser environment.",
+    sdkLoadFailed: "Failed to load the PortOne V2 SDK.",
+    defaultCustomerName: "Customer",
+    paymentStopped: "Payment was stopped.",
+    clientOnly: "Payment is only available in a browser environment.",
+    invalidAmount: "The payment amount is invalid.",
+    invalidCustomer: "The payment customer information is invalid.",
+    emptyOrderName: "The product name is empty.",
+    missingPaymentId: "The payment response did not include a paymentId.",
+    requestFailed: "An error occurred while opening the payment window.",
+  },
+  ja: {
+    configFetchFailed: "PortOne V2決済設定の取得に失敗しました。",
+    configMissing: "決済設定がまだ準備されていません。",
+    channelMissing: "決済チャネル設定がまだ準備されていません。",
+    browserRequired: "決済はブラウザ環境でのみ利用できます。",
+    sdkLoadFailed: "PortOne V2 SDKの読み込みに失敗しました。",
+    defaultCustomerName: "お客様",
+    paymentStopped: "決済が中断されました。",
+    clientOnly: "決済はブラウザ環境でのみ利用できます。",
+    invalidAmount: "決済金額が正しくありません。",
+    invalidCustomer: "決済顧客情報が正しくありません。",
+    emptyOrderName: "商品名が空です。",
+    missingPaymentId: "決済レスポンスにpaymentIdがありません。",
+    requestFailed: "決済画面の呼び出し中にエラーが発生しました。",
+  },
+  "zh-CN": {
+    configFetchFailed: "PortOne V2 支付设置获取失败。",
+    configMissing: "支付设置尚未准备好。",
+    channelMissing: "支付渠道设置尚未准备好。",
+    browserRequired: "只能在浏览器环境中支付。",
+    sdkLoadFailed: "PortOne V2 SDK 加载失败。",
+    defaultCustomerName: "客户",
+    paymentStopped: "支付已中断。",
+    clientOnly: "只能在浏览器环境中支付。",
+    invalidAmount: "支付金额无效。",
+    invalidCustomer: "支付客户信息无效。",
+    emptyOrderName: "商品名为空。",
+    missingPaymentId: "支付响应中没有 paymentId。",
+    requestFailed: "调用支付窗口时发生错误。",
+  },
+  "zh-TW": {
+    configFetchFailed: "PortOne V2 付款設定取得失敗。",
+    configMissing: "付款設定尚未準備好。",
+    channelMissing: "付款渠道設定尚未準備好。",
+    browserRequired: "只能在瀏覽器環境中付款。",
+    sdkLoadFailed: "PortOne V2 SDK 載入失敗。",
+    defaultCustomerName: "客戶",
+    paymentStopped: "付款已中斷。",
+    clientOnly: "只能在瀏覽器環境中付款。",
+    invalidAmount: "付款金額無效。",
+    invalidCustomer: "付款客戶資訊無效。",
+    emptyOrderName: "商品名稱為空。",
+    missingPaymentId: "付款回應中沒有 paymentId。",
+    requestFailed: "呼叫付款視窗時發生錯誤。",
+  },
+};
+
+type PortoneTextKey = keyof NonNullable<(typeof PORTONE_TEXT_TRANSLATIONS)["ko"]>;
+
+function portoneText(key: PortoneTextKey): string {
+  const locale = getCurrentLoadingLocale();
+  const fallback = PORTONE_TEXT_TRANSLATIONS.ko!;
+  return PORTONE_TEXT_TRANSLATIONS[locale]?.[key] || fallback[key];
+}
 
 function normalizeAmount(value: number): number {
   const next = Number(value);
@@ -160,12 +247,12 @@ async function fetchConfig(apiBase: string) {
   );
   const payload = await safeParseJson<PortOnePaymentConfig>(response);
   if (!response.ok) {
-    throw new Error((payload as { message?: string }).message || "PortOne V2 결제 설정 조회를 실패했습니다.");
+    throw new Error((payload as { message?: string }).message || portoneText("configFetchFailed"));
   }
   const storeId = normalizeId(payload.storeId);
   const channelKey = normalizeId(payload.channelKey);
-  if (!storeId) throw new Error("결제 설정이 준비되지 않았습니다.");
-  if (!channelKey) throw new Error("결제 채널 설정이 준비되지 않았습니다.");
+  if (!storeId) throw new Error(portoneText("configMissing"));
+  if (!channelKey) throw new Error(portoneText("channelMissing"));
   return {
     storeId,
     channelKey,
@@ -178,7 +265,7 @@ async function fetchConfig(apiBase: string) {
 function ensurePortoneSdk() {
   return new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
-      reject(new Error("브라우저 환경이 아닙니다."));
+      reject(new Error(portoneText("browserRequired")));
       return;
     }
     if (window.PortOne?.requestPayment) {
@@ -192,14 +279,14 @@ function ensurePortoneSdk() {
         "load",
         () => {
           if (window.PortOne?.requestPayment) resolve();
-          else reject(new Error("PortOne V2 SDK 로드에 실패했습니다."));
+          else reject(new Error(portoneText("sdkLoadFailed")));
         },
         { once: true },
       );
       existingScript.addEventListener(
         "error",
         () => {
-          reject(new Error("PortOne V2 SDK 로드에 실패했습니다."));
+          reject(new Error(portoneText("sdkLoadFailed")));
         },
         { once: true },
       );
@@ -212,9 +299,9 @@ function ensurePortoneSdk() {
     script.async = true;
     script.onload = () => {
       if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("PortOne V2 SDK 로드에 실패했습니다."));
+      else reject(new Error(portoneText("sdkLoadFailed")));
     };
-    script.onerror = () => reject(new Error("PortOne V2 SDK 로드에 실패했습니다."));
+    script.onerror = () => reject(new Error(portoneText("sdkLoadFailed")));
     document.body.appendChild(script);
   });
 }
@@ -224,21 +311,21 @@ export function buildPortOneCustomerFromAuthUser(user: AuthPortOneUser | null, p
   const phoneNumber = normalizePhone(merged);
   return {
     customerId: buildCustomerId(merged, paymentId),
-    fullName: String(merged.name || "고객").trim() || "고객",
+    fullName: String(merged.name || portoneText("defaultCustomerName")).trim() || portoneText("defaultCustomerName"),
     email: normalizeEmail(merged.email),
     ...(phoneNumber ? { phoneNumber } : {}),
   };
 }
 
 function getPaymentErrorMessage(response: PortOnePaymentResponse): string {
-  return String(response.message || response.error_msg || response.errorMsg || "결제가 중단되었습니다.").trim();
+  return String(response.message || response.error_msg || response.errorMsg || portoneText("paymentStopped")).trim();
 }
 
 export async function requestPortOneSinglePayment(
   options: PortOnePaymentRequestOptions,
 ): Promise<PortOneSinglePaymentRequestResult> {
   if (typeof window === "undefined") {
-    return { ok: false, code: "CLIENT_ENV_INVALID", message: "브라우저 환경에서만 결제할 수 있습니다." };
+    return { ok: false, code: "CLIENT_ENV_INVALID", message: portoneText("clientOnly") };
   }
 
   const {
@@ -269,15 +356,15 @@ export async function requestPortOneSinglePayment(
   });
 
   if (!Number.isFinite(amount)) {
-    return { ok: false, message: "결제 금액이 유효하지 않습니다." };
+    return { ok: false, message: portoneText("invalidAmount") };
   }
 
   if (!customer?.fullName || !customer.email) {
-    return { ok: false, message: "결제 고객 정보가 유효하지 않습니다." };
+    return { ok: false, message: portoneText("invalidCustomer") };
   }
 
   if (!hasOrderName) {
-    return { ok: false, message: "상품명이 비어있습니다." };
+    return { ok: false, message: portoneText("emptyOrderName") };
   }
 
   try {
@@ -287,10 +374,10 @@ export async function requestPortOneSinglePayment(
     const channelKey = manualChannelKey?.trim() || config.channelKey;
 
     if (!storeId) {
-      return { ok: false, message: "결제 설정이 준비되지 않았습니다." };
+      return { ok: false, message: portoneText("configMissing") };
     }
     if (!channelKey) {
-      return { ok: false, message: "결제 채널 설정이 준비되지 않았습니다." };
+      return { ok: false, message: portoneText("channelMissing") };
     }
 
     const requestData: PortOnePaymentRequest = {
@@ -327,12 +414,12 @@ export async function requestPortOneSinglePayment(
 
     const finalPaymentId = String(response?.paymentId || "").trim();
     if (!finalPaymentId) {
-      return { ok: false, message: "결제 응답 paymentId가 없습니다." };
+      return { ok: false, message: portoneText("missingPaymentId") };
     }
 
     return { ok: true, paymentId: finalPaymentId, request: requestData, response };
   } catch (error: unknown) {
-    const reason = error instanceof Error ? error.message : "결제창 호출 중 오류가 발생했습니다.";
+    const reason = error instanceof Error ? error.message : portoneText("requestFailed");
     console.error("[portone] request failed", {
       hasStoreId: Boolean(manualStoreId),
       hasChannelKey: Boolean(manualChannelKey),

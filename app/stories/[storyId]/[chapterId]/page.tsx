@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ChapterViewer from "@/components/stories/ChapterViewer";
-import { getChapter, getChapterNavigation, getChaptersByStoryId, getStoryById, mockStories } from "@/lib/stories/data";
+import { getChapter, getChapterNavigation, getChaptersByStoryId, getStories, getStoryById } from "@/lib/stories/data";
 
 type ChapterPageProps = {
   params: Promise<{ storyId: string; chapterId: string }> | { storyId: string; chapterId: string };
@@ -12,7 +12,7 @@ async function resolveParams(params: ChapterPageProps["params"]) {
 }
 
 export function generateStaticParams() {
-  return mockStories.flatMap((story) =>
+  return getStories().flatMap((story) =>
     getChaptersByStoryId(story.slug).map((chapter) => ({
       storyId: story.slug,
       chapterId: chapter.slug,

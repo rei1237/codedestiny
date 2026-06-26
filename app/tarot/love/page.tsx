@@ -1,10 +1,25 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const TAROT_LOVE_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "우리는 무슨 사이? - 6카드 연애 관계 타로",
+    description: "내가 보는 상대, 상대의 시선, 관계를 막는 요인과 예상 결과까지 6카드 스프레드로 확인하세요.",
+  },
+  en: {
+    title: "What Are We? - 6-Card Love Relationship Tarot",
+    description: "Use a six-card spread to read how you see them, how they see the relationship, what blocks it, and where it may go.",
+  },
+  ja: {
+    title: "私たちはどんな関係？ - 6枚の恋愛関係タロット",
+    description: "自分から見た相手、相手の視線、関係を妨げる要因、予想される流れまで6枚のスプレッドで確かめます。",
+  },
+} as const;
+
 const META = {
   path: "/tarot/love",
-  title: "우리는 무슨 사이? - 6카드 연애 관계 타로",
-  description: "내가 보는 상대, 상대의 시선, 관계를 막는 요인과 예상 결과까지 6카드 스프레드로 확인하세요.",
+  title: TAROT_LOVE_PAGE_TEXT_TRANSLATIONS.ko.title,
+  description: TAROT_LOVE_PAGE_TEXT_TRANSLATIONS.ko.description,
   keywords: ["연애 타로", "관계 타로", "relationship six card", "우리는 무슨 사이", "재회", "연애운"],
   image: "https://code-destiny.com/fuctionassets/tarolove.webp",
   featureList: ["6카드 연애 스프레드", "서로의 시선 확인", "관계 방향 한눈에 파악"],

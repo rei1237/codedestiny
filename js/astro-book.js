@@ -48,6 +48,279 @@
 
   function _clean(v) { return String(v || '').trim(); }
 
+  var ASTRO_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      defaultLocation: '대한민국 (서울)',
+      defaultUser: '사용자',
+      missingProfile: '생년월일 정보를 찾을 수 없습니다. 먼저 기본 점성술 계산을 완료해 주세요.',
+      missingBirthPlace: '출생지 미입력',
+      missingTime: '시간 미입력',
+      female: '여성',
+      male: '남성',
+      dateYear: '년 ',
+      dateDay: '일 ',
+      chapterProgress: function (step, total, done) { return step + ' / ' + total + ' 챕터 ' + (done ? '완성' : '진행'); },
+      loadingFallback: '점성술 코즈믹 리포트 PDF를 완성하는 중입니다',
+      birthDateRequired: '생년월일 정보가 확인되지 않아 점성술 PDF를 생성할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.',
+      birthTimeRequired: '점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.',
+      timezoneRequired: '점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요.',
+      birthplaceRequired: '점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요.',
+      statusCheckFailed: '상태 확인 실패',
+      progressLocal: '행성 좌표와 하우스의 삶의 장면을 정리하는 중입니다',
+      progressSeed: '차트의 핵심 상징을 상담 목차로 엮는 중입니다',
+      progressWriting: '12개 챕터의 상담문을 차례로 엮는 중입니다',
+      progressValidated: '챕터 흐름과 문장 결을 마지막으로 살피는 중입니다',
+      progressRendering: '코즈믹 리포트 PDF를 편집하는 중입니다',
+      progressRendered: 'PDF 저장 경로를 확인하는 중입니다',
+      progressFailed: '코즈믹 리포트 작성이 완료되지 않았습니다',
+      completed: '완료',
+      progressPreparing: '점성술 코즈믹 리포트 PDF를 준비하는 중입니다',
+      animationTitles: ['출생 정보를 확인하는 중입니다', '리포트 세션을 여는 중입니다', '행성 좌표와 하우스를 계산하는 중입니다'],
+      checkingProfile: '프로필 정보 확인 중',
+      preparingPayment: '결제 및 세션 준비 중',
+      requestingChart: '출생 차트 계산 요청 중',
+      manuscriptNotReady: '점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      resultNotSaved: '점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      emptyChapters: '점성술 챕터 데이터가 비어 있습니다.',
+      checkingPdfArchive: 'PDF 저장 정보를 확인하는 중입니다',
+      renderingPdf: 'PDF 편집/렌더링 중',
+      generationFailed: '생성 실패',
+      statusGenerationFailed: '점성술 PDF 생성에 실패했습니다.',
+      generationTimeout: '점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.',
+      downloadUrlMissing: 'PDF 다운로드 URL이 아직 준비되지 않았습니다.',
+      downloadRequestFailed: function (status) { return 'PDF 다운로드 요청에 실패했습니다. HTTP ' + status; },
+      paymentModuleMissing: '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.',
+      premiumFeatureName: '점성술 프리미엄 PDF 리포트 생성',
+      paymentConfirmFailed: '결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      paymentModuleUnavailable: '결제 모듈을 사용할 수 없습니다.',
+      downloadNotReady: '점성술 프리미엄 원고와 PDF 저장이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      downloadAuthFailed: 'PDF 다운로드 권한을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.',
+      reportUrlNotReady: '리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.'
+    },
+    en: {
+      defaultLocation: 'South Korea (Seoul)',
+      defaultUser: 'User',
+      missingProfile: 'Birth information could not be found. Please complete the basic astrology calculation first.',
+      missingBirthPlace: 'Birthplace not entered',
+      missingTime: 'Birth time not entered',
+      female: 'Female',
+      male: 'Male',
+      dateYear: '-',
+      dateDay: ' ',
+      chapterProgress: function (step, total, done) { return step + ' / ' + total + ' chapters ' + (done ? 'complete' : 'in progress'); },
+      loadingFallback: 'Completing your cosmic astrology PDF report',
+      birthDateRequired: 'Your birth date is missing, so the astrology PDF cannot be created. Please enter your birth date in the profile card first.',
+      birthTimeRequired: 'The astrology PDF needs your birth time to calculate the ascendant and houses. Please enter your birth time in the profile card first.',
+      timezoneRequired: 'The astrology PDF needs the birthplace time zone for accurate house calculation. Please choose your birth region again in the profile card.',
+      birthplaceRequired: 'The astrology PDF needs your birthplace to calculate the ascendant, houses, and midheaven. Please choose your birth region first.',
+      statusCheckFailed: 'Status check failed',
+      progressLocal: 'Arranging the planetary coordinates and life scenes of the houses',
+      progressSeed: 'Weaving the chart’s core symbols into a consultation outline',
+      progressWriting: 'Writing the 12 consultation chapters in order',
+      progressValidated: 'Giving the chapter flow and sentences one final review',
+      progressRendering: 'Editing the cosmic report PDF',
+      progressRendered: 'Checking the PDF save path',
+      progressFailed: 'The cosmic report was not completed',
+      completed: 'Complete',
+      progressPreparing: 'Preparing your cosmic astrology PDF report',
+      animationTitles: ['Checking birth information', 'Opening the report session', 'Calculating planetary coordinates and houses'],
+      checkingProfile: 'Checking profile information',
+      preparingPayment: 'Preparing payment and session',
+      requestingChart: 'Requesting birth chart calculation',
+      manuscriptNotReady: 'The premium astrology manuscript has not finished validation. Please try again shortly.',
+      resultNotSaved: 'The astrology PDF result has not been fully saved yet. Please try again shortly.',
+      emptyChapters: 'The astrology chapter data is empty.',
+      checkingPdfArchive: 'Checking PDF save information',
+      renderingPdf: 'Editing/rendering PDF',
+      generationFailed: 'Generation failed',
+      statusGenerationFailed: 'Astrology PDF generation failed.',
+      generationTimeout: 'Astrology PDF generation timed out. Please try again shortly.',
+      downloadUrlMissing: 'The PDF download URL is not ready yet.',
+      downloadRequestFailed: function (status) { return 'PDF download request failed. HTTP ' + status; },
+      paymentModuleMissing: 'The payment module could not be found. Please refresh the page and try again.',
+      premiumFeatureName: 'Astrology Premium PDF Report',
+      paymentConfirmFailed: 'A problem occurred while confirming payment. Please try again shortly.',
+      paymentModuleUnavailable: 'Payment module is not available.',
+      downloadNotReady: 'The premium astrology manuscript and PDF save are not complete yet. Please try again shortly.',
+      downloadAuthFailed: 'Could not verify PDF download permission. Please check your login status and try again.',
+      reportUrlNotReady: 'The report save URL is not ready yet. Please try again shortly.'
+    },
+    ja: {
+      defaultLocation: '韓国（ソウル）',
+      defaultUser: 'ユーザー',
+      missingProfile: '生年月日情報が見つかりません。先に基本の占星術計算を完了してください。',
+      missingBirthPlace: '出生地未入力',
+      missingTime: '出生時間未入力',
+      female: '女性',
+      male: '男性',
+      dateYear: '年 ',
+      dateDay: '日 ',
+      chapterProgress: function (step, total, done) { return step + ' / ' + total + 'チャプター ' + (done ? '完成' : '進行中'); },
+      loadingFallback: '占星術コズミックレポートPDFを仕上げています',
+      birthDateRequired: '生年月日情報が確認できないため、占星術PDFを作成できません。プロフィールカードで生年月日を先に入力してください。',
+      birthTimeRequired: '占星術PDFはアセンダントとハウス計算のために出生時間が必要です。プロフィールカードで出生時間を先に入力してください。',
+      timezoneRequired: '占星術PDFは正確なハウス計算のために出生地のタイムゾーンが必要です。プロフィールカードで出生地域をもう一度選択してください。',
+      birthplaceRequired: '占星術PDFはアセンダント・ハウス・天頂点計算のために出生地が必要です。プロフィールカードで出生地域を先に選択してください。',
+      statusCheckFailed: '状態確認に失敗しました',
+      progressLocal: '惑星座標とハウスが映す人生の場面を整えています',
+      progressSeed: 'チャートの核心象徴を相談目次へ編んでいます',
+      progressWriting: '12章の相談文を順番に紡いでいます',
+      progressValidated: '章の流れと言葉の質感を最後に見つめています',
+      progressRendering: 'コズミックレポートPDFを編集しています',
+      progressRendered: 'PDF保存先を確認しています',
+      progressFailed: 'コズミックレポートの作成が完了しませんでした',
+      completed: '完了',
+      progressPreparing: '占星術コズミックレポートPDFを準備しています',
+      animationTitles: ['出生情報を確認しています', 'レポートセッションを開いています', '惑星座標とハウスを計算しています'],
+      checkingProfile: 'プロフィール情報を確認中',
+      preparingPayment: '決済とセッションを準備中',
+      requestingChart: '出生チャート計算を依頼中',
+      manuscriptNotReady: '占星術プレミアム原稿の検証がまだ完了していません。しばらくしてからもう一度お試しください。',
+      resultNotSaved: '占星術PDF結果がまだ完全に保存されていません。しばらくしてからもう一度お試しください。',
+      emptyChapters: '占星術チャプターデータが空です。',
+      checkingPdfArchive: 'PDF保存情報を確認しています',
+      renderingPdf: 'PDFを編集/レンダリング中',
+      generationFailed: '生成に失敗しました',
+      statusGenerationFailed: '占星術PDFの生成に失敗しました。',
+      generationTimeout: '占星術PDFの生成時間が超過しました。しばらくしてからもう一度お試しください。',
+      downloadUrlMissing: 'PDFダウンロードURLがまだ準備されていません。',
+      downloadRequestFailed: function (status) { return 'PDFダウンロードリクエストに失敗しました。HTTP ' + status; },
+      paymentModuleMissing: '決済モジュールが見つかりません。ページを再読み込みしてからもう一度お試しください。',
+      premiumFeatureName: '占星術プレミアムPDFレポート生成',
+      paymentConfirmFailed: '決済確認中に問題が発生しました。しばらくしてからもう一度お試しください。',
+      paymentModuleUnavailable: '決済モジュールを利用できません。',
+      downloadNotReady: '占星術プレミアム原稿とPDF保存がまだ完了していません。しばらくしてからもう一度お試しください。',
+      downloadAuthFailed: 'PDFダウンロード権限を確認できませんでした。ログイン状態を確認してからもう一度お試しください。',
+      reportUrlNotReady: 'レポート保存URLがまだ準備されていません。しばらくしてからもう一度お試しください。'
+    },
+    'zh-CN': {
+      defaultLocation: '韩国（首尔）',
+      defaultUser: '用户',
+      missingProfile: '找不到出生年月日信息。请先完成基础占星计算。',
+      missingBirthPlace: '未输入出生地',
+      missingTime: '未输入出生时间',
+      female: '女性',
+      male: '男性',
+      dateYear: '年',
+      dateDay: '日 ',
+      chapterProgress: function (step, total, done) { return step + ' / ' + total + ' 章 ' + (done ? '完成' : '进行中'); },
+      loadingFallback: '正在完成占星宇宙报告 PDF',
+      birthDateRequired: '未确认出生日期信息，因此无法生成占星 PDF。请先在资料卡中输入出生日期。',
+      birthTimeRequired: '占星 PDF 需要出生时间来计算上升星座与宫位。请先在资料卡中输入出生时间。',
+      timezoneRequired: '占星 PDF 需要出生地时区才能准确计算宫位。请在资料卡中重新选择出生地区。',
+      birthplaceRequired: '占星 PDF 需要出生地来计算上升、宫位与天顶。请先在资料卡中选择出生地区。',
+      statusCheckFailed: '状态检查失败',
+      progressLocal: '正在整理行星坐标与宫位映照的人生场景',
+      progressSeed: '正在将星盘核心象征编成咨询目录',
+      progressWriting: '正在依次撰写 12 个咨询章节',
+      progressValidated: '正在最后确认章节流向与文字质感',
+      progressRendering: '正在编辑宇宙报告 PDF',
+      progressRendered: '正在确认 PDF 保存路径',
+      progressFailed: '宇宙报告未能完成',
+      completed: '完成',
+      progressPreparing: '正在准备占星宇宙报告 PDF',
+      animationTitles: ['正在确认出生信息', '正在开启报告会话', '正在计算行星坐标与宫位'],
+      checkingProfile: '正在确认资料信息',
+      preparingPayment: '正在准备支付与会话',
+      requestingChart: '正在请求出生星盘计算',
+      manuscriptNotReady: '占星高级稿件验证尚未完成。请稍后再试。',
+      resultNotSaved: '占星 PDF 结果尚未完全保存。请稍后再试。',
+      emptyChapters: '占星章节数据为空。',
+      checkingPdfArchive: '正在确认 PDF 保存信息',
+      renderingPdf: '正在编辑/渲染 PDF',
+      generationFailed: '生成失败',
+      statusGenerationFailed: '占星 PDF 生成失败。',
+      generationTimeout: '占星 PDF 生成超时。请稍后再试。',
+      downloadUrlMissing: 'PDF 下载 URL 尚未准备好。',
+      downloadRequestFailed: function (status) { return 'PDF 下载请求失败。HTTP ' + status; },
+      paymentModuleMissing: '找不到支付模块。请刷新页面后重试。',
+      premiumFeatureName: '占星高级 PDF 报告生成',
+      paymentConfirmFailed: '确认支付时发生问题。请稍后再试。',
+      paymentModuleUnavailable: '支付模块不可用。',
+      downloadNotReady: '占星高级稿件与 PDF 保存尚未完成。请稍后再试。',
+      downloadAuthFailed: '无法确认 PDF 下载权限。请检查登录状态后重试。',
+      reportUrlNotReady: '报告保存 URL 尚未准备好。请稍后再试。'
+    },
+    'zh-TW': {
+      defaultLocation: '韓國（首爾）',
+      defaultUser: '使用者',
+      missingProfile: '找不到出生年月日資訊。請先完成基礎占星計算。',
+      missingBirthPlace: '未輸入出生地',
+      missingTime: '未輸入出生時間',
+      female: '女性',
+      male: '男性',
+      dateYear: '年',
+      dateDay: '日 ',
+      chapterProgress: function (step, total, done) { return step + ' / ' + total + ' 章 ' + (done ? '完成' : '進行中'); },
+      loadingFallback: '正在完成占星宇宙報告 PDF',
+      birthDateRequired: '未確認出生日期資訊，因此無法生成占星 PDF。請先在資料卡中輸入出生日期。',
+      birthTimeRequired: '占星 PDF 需要出生時間來計算上升星座與宮位。請先在資料卡中輸入出生時間。',
+      timezoneRequired: '占星 PDF 需要出生地時區才能準確計算宮位。請在資料卡中重新選擇出生地區。',
+      birthplaceRequired: '占星 PDF 需要出生地來計算上升、宮位與天頂。請先在資料卡中選擇出生地區。',
+      statusCheckFailed: '狀態檢查失敗',
+      progressLocal: '正在整理行星座標與宮位映照的人生場景',
+      progressSeed: '正在將星盤核心象徵編成諮詢目錄',
+      progressWriting: '正在依序撰寫 12 個諮詢章節',
+      progressValidated: '正在最後確認章節流向與文字質感',
+      progressRendering: '正在編輯宇宙報告 PDF',
+      progressRendered: '正在確認 PDF 儲存路徑',
+      progressFailed: '宇宙報告未能完成',
+      completed: '完成',
+      progressPreparing: '正在準備占星宇宙報告 PDF',
+      animationTitles: ['正在確認出生資訊', '正在開啟報告會話', '正在計算行星座標與宮位'],
+      checkingProfile: '正在確認資料資訊',
+      preparingPayment: '正在準備付款與會話',
+      requestingChart: '正在請求出生星盤計算',
+      manuscriptNotReady: '占星進階稿件驗證尚未完成。請稍後再試。',
+      resultNotSaved: '占星 PDF 結果尚未完全儲存。請稍後再試。',
+      emptyChapters: '占星章節資料為空。',
+      checkingPdfArchive: '正在確認 PDF 儲存資訊',
+      renderingPdf: '正在編輯/渲染 PDF',
+      generationFailed: '生成失敗',
+      statusGenerationFailed: '占星 PDF 生成失敗。',
+      generationTimeout: '占星 PDF 生成逾時。請稍後再試。',
+      downloadUrlMissing: 'PDF 下載 URL 尚未準備好。',
+      downloadRequestFailed: function (status) { return 'PDF 下載請求失敗。HTTP ' + status; },
+      paymentModuleMissing: '找不到付款模組。請重新整理頁面後再試。',
+      premiumFeatureName: '占星進階 PDF 報告生成',
+      paymentConfirmFailed: '確認付款時發生問題。請稍後再試。',
+      paymentModuleUnavailable: '付款模組無法使用。',
+      downloadNotReady: '占星進階稿件與 PDF 儲存尚未完成。請稍後再試。',
+      downloadAuthFailed: '無法確認 PDF 下載權限。請檢查登入狀態後再試。',
+      reportUrlNotReady: '報告儲存 URL 尚未準備好。請稍後再試。'
+    }
+  };
+
+  function _astroBookLocale() {
+    try {
+      var stored = localStorage.getItem('cd_lang');
+      if (stored) return _normalizeAstroBookLocale(stored);
+    } catch (_) {}
+    try {
+      var cookie = String(document.cookie || '').match(/(?:^|;\s*)cd_locale=([^;]+)/);
+      if (cookie && cookie[1]) return _normalizeAstroBookLocale(decodeURIComponent(cookie[1]));
+    } catch (_) {}
+    try {
+      var lang = document.documentElement && (document.documentElement.getAttribute('data-cd-lang') || document.documentElement.lang);
+      if (lang) return _normalizeAstroBookLocale(lang);
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function _normalizeAstroBookLocale(locale) {
+    var value = String(locale || '').trim().toLowerCase().replace('_', '-');
+    if (value === 'en' || value.indexOf('en-') === 0) return 'en';
+    if (value === 'ja' || value.indexOf('ja-') === 0) return 'ja';
+    if (value === 'zh' || value === 'zh-cn' || value === 'zh-hans') return 'zh-CN';
+    if (value === 'zh-tw' || value === 'zh-hant' || value === 'zh-hk' || value === 'zh-mo') return 'zh-TW';
+    return 'ko';
+  }
+
+  function _astroBookText() {
+    var locale = _astroBookLocale();
+    return ASTRO_BOOK_TEXT_TRANSLATIONS[locale] || ASTRO_BOOK_TEXT_TRANSLATIONS.ko;
+  }
+
   function _withPdfArchiveFormat(url, format) {
     var value = _clean(url);
     var targetFormat = _clean(format) || 'pdf';
@@ -426,7 +699,7 @@
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
       var isFemale = !!(femaleEl && femaleEl.checked);
       var locationData = _readAstroDomLocation() || {
-        label: '대한민국 (서울)',
+        label: _astroBookText().defaultLocation,
         lat: 37.5665,
         lon: 126.9780,
         lng: 126.9780,
@@ -434,7 +707,7 @@
         tz: 'Asia/Seoul',
       };
       return {
-        name: (nameEl && nameEl.value && nameEl.value.trim()) || '사용자',
+        name: (nameEl && nameEl.value && nameEl.value.trim()) || _astroBookText().defaultUser,
         gender: isFemale ? 'F' : 'M',
         birth: {
           year: y,
@@ -845,16 +1118,16 @@
     var hasCoordinates = Number.isFinite(Number(birthInput && birthInput.latitude))
       && Number.isFinite(Number(birthInput && birthInput.longitude));
     if (!hasBirthDate || !hasBirthYmd) {
-      return { ok: false, message: '생년월일 정보가 확인되지 않아 점성술 PDF를 생성할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.' };
+      return { ok: false, message: _astroBookText().birthDateRequired };
     }
     if (!hasBirthTime || birthInput.isTimeUnknown) {
-      return { ok: false, message: '점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.' };
+      return { ok: false, message: _astroBookText().birthTimeRequired };
     }
     if (!hasTimezone || !hasTimezoneOffset) {
-      return { ok: false, message: '점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요.' };
+      return { ok: false, message: _astroBookText().timezoneRequired };
     }
     if (!hasBirthPlace || !hasCoordinates) {
-      return { ok: false, message: '점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요.' };
+      return { ok: false, message: _astroBookText().birthplaceRequired };
     }
     return { ok: true };
   }
@@ -1129,20 +1402,21 @@
   function _renderProfileSummary(profile) {
     var el = _qs('abProfileSummary');
     if (!el) return;
+    var copy = _astroBookText();
     if (!profile) {
-      el.textContent = '생년월일 정보를 찾을 수 없습니다. 먼저 기본 점성술 계산을 완료해 주세요.';
+      el.textContent = copy.missingProfile;
       return;
     }
     var birth = profile.birth || {};
-    var place = (profile.location && profile.location.label) || '출생지 미입력';
+    var place = (profile.location && profile.location.label) || copy.missingBirthPlace;
     var hour = Number(birth.hour);
     var minute = Number(birth.minute || 0);
     var time = Number.isFinite(hour)
       ? [String(hour).padStart(2, '0'), String(Number.isFinite(minute) ? minute : 0).padStart(2, '0')].join(':')
-      : '시간 미입력';
+      : copy.missingTime;
     el.textContent = [
-      (profile.name || '사용자') + ' · ' + (profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : ''),
-      [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + '일 ' + time,
+      (profile.name || copy.defaultUser) + ' · ' + (profile.gender === 'F' ? copy.female : profile.gender === 'M' ? copy.male : ''),
+      [birth.year, birth.month, birth.day].filter(Boolean).join(copy.dateYear) + copy.dateDay + time,
       place,
     ].join(' · ');
   }
@@ -1157,10 +1431,11 @@
     var txt = _qs('abProgressText');
     var num = _qs('abLoadingChapterNum');
     var ch = _qs('abLoadingChapter');
+    var copy = _astroBookText();
     if (bar) bar.style.width = pct + '%';
-    if (txt) txt.textContent = safeStep + ' / ' + safeTotal + ' 챕터 ' + (isDone ? '완성' : '진행');
+    if (txt) txt.textContent = copy.chapterProgress(safeStep, safeTotal, isDone);
     if (num) num.textContent = 'Chapter ' + Math.max(1, safeStep || 1);
-    if (ch) ch.textContent = _sanitizeText(title || '점성술 코즈믹 리포트 PDF를 완성하는 중입니다');
+    if (ch) ch.textContent = _sanitizeText(title || copy.loadingFallback);
 
     var dots = document.querySelectorAll('.ab-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
@@ -1187,11 +1462,7 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = [
-      '출생 정보를 확인하는 중입니다',
-      '리포트 세션을 여는 중입니다',
-      '행성 좌표와 하우스를 계산하는 중입니다',
-    ];
+    var titles = _astroBookText().animationTitles;
     var total = _getTotalChapters();
     var idx = 0;
     _setLoadingProgress(0, total, titles[0]);
@@ -1389,7 +1660,7 @@
           }));
         })
         .catch(function (err) {
-          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || '상태 확인 실패')));
+          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || _astroBookText().statusCheckFailed)));
         });
     }
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
@@ -1409,15 +1680,16 @@
   function _progressTitle(progress, statusData) {
     var state = _clean((progress && progress.stateKey) || (statusData && statusData.status));
     var title = _clean(progress && progress.currentChapterTitle);
-    if (state === 'local_calculation') return '행성 좌표와 하우스의 삶의 장면을 정리하는 중입니다';
-    if (state === 'writing_seed') return '차트의 핵심 상징을 상담 목차로 엮는 중입니다';
-    if (state === 'writing_llm') return title ? title : '12개 챕터의 상담문을 차례로 엮는 중입니다';
-    if (state === 'manuscript_validated') return '챕터 흐름과 문장 결을 마지막으로 살피는 중입니다';
-    if (state === 'pdf_rendering') return '코즈믹 리포트 PDF를 편집하는 중입니다';
-    if (state === 'pdf_rendered') return 'PDF 저장 경로를 확인하는 중입니다';
-    if (state === 'failed') return '코즈믹 리포트 작성이 완료되지 않았습니다';
-    if (state === 'completed' || state === 'done') return '완료';
-    return title || '점성술 코즈믹 리포트 PDF를 준비하는 중입니다';
+    var copy = _astroBookText();
+    if (state === 'local_calculation') return copy.progressLocal;
+    if (state === 'writing_seed') return copy.progressSeed;
+    if (state === 'writing_llm') return title ? title : copy.progressWriting;
+    if (state === 'manuscript_validated') return copy.progressValidated;
+    if (state === 'pdf_rendering') return copy.progressRendering;
+    if (state === 'pdf_rendered') return copy.progressRendered;
+    if (state === 'failed') return copy.progressFailed;
+    if (state === 'completed' || state === 'done') return copy.completed;
+    return title || copy.progressPreparing;
   }
 
   function _applyAstroStatusProgress(statusPayload) {
@@ -1461,12 +1733,12 @@
       return _fetchAstroStatus(sessionId, reportId).then(function (payload) {
         var data = _applyAstroStatusProgress(payload);
         if (data.status === 'done' && data.result) return data.result;
-        if (data.status === 'failed') throw _buildAstroApiError({ status: data.statusCode || 500, body: data }, (data.error && data.error.message) || data.message || '점성술 PDF 생성에 실패했습니다.', {
+        if (data.status === 'failed') throw _buildAstroApiError({ status: data.statusCode || 500, body: data }, (data.error && data.error.message) || data.message || _astroBookText().statusGenerationFailed, {
           stage: 'status',
           sessionId: sessionId,
           reportId: data.reportId
         });
-        if (Date.now() - started > timeoutMs) throw new Error('점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+        if (Date.now() - started > timeoutMs) throw new Error(_astroBookText().generationTimeout);
         return new Promise(function (resolve) { setTimeout(resolve, _statusRetryDelay(data)); }).then(wait);
       });
     }
@@ -1475,7 +1747,7 @@
 
   function _downloadAstroBookUrl(url, filename) {
     var safeUrl = _clean(url);
-    if (!safeUrl) return Promise.reject(new Error('PDF 다운로드 URL이 아직 준비되지 않았습니다.'));
+    if (!safeUrl) return Promise.reject(new Error(_astroBookText().downloadUrlMissing));
     return _fetchWithTimeout(safeUrl, {
       method: 'GET',
       headers: _astroStatusHeaders(),
@@ -1483,7 +1755,7 @@
       .then(function (res) {
         if (!res.ok) {
           return res.text().catch(function () { return ''; }).then(function (text) {
-            var err = new Error(text || ('PDF 다운로드 요청에 실패했습니다. HTTP ' + res.status));
+            var err = new Error(text || _astroBookText().downloadRequestFailed(res.status));
             err.status = res.status;
             throw err;
           });
@@ -1511,7 +1783,7 @@
       return Promise.resolve({ ok: true, skipped: true });
     }
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      var missingPaymentError = new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
+      var missingPaymentError = new Error(_astroBookText().paymentModuleMissing);
       missingPaymentError.status = 503;
       missingPaymentError.code = 'ASTRO_PAYMENT_MODULE_MISSING';
       missingPaymentError.stage = 'billing';
@@ -1521,14 +1793,14 @@
     _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY });
     return new Promise(function (resolve, reject) {
       try {
-        window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
+        window._cdCoinGatePerUse(ASTRO_COIN_COST, _astroBookText().premiumFeatureName, function (_transactionId, data) {
           _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
           _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
           _markPremiumAccessVerified(25 * 60 * 1000);
           _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY });
           resolve({ ok: true, skipped: false, data: _lastPremiumPayment });
         }, function () {
-          var billingError = new Error('결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+          var billingError = new Error(_astroBookText().paymentConfirmFailed);
           billingError.status = 402;
           billingError.code = 'ASTRO_PAYMENT_CANCELLED';
           billingError.stage = 'billing';
@@ -1613,13 +1885,13 @@
         }
 
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(ASTRO_COIN_COST, '\uC810\uC131\uC220 \uD504\uB9AC\uBBF8\uC5C4 PDF \uB9AC\uD3EC\uD2B8 \uC0DD\uC131', complete, function () {
+          window._cdCoinGatePerUse(ASTRO_COIN_COST, _astroBookText().premiumFeatureName, complete, function () {
             cancel(new Error('ASTRO_PAYMENT_CANCELLED'));
           }, gateOptions);
           return;
         }
 
-        var missingPaymentError = new Error('Payment module is not available.');
+        var missingPaymentError = new Error(_astroBookText().paymentModuleUnavailable);
         missingPaymentError.status = 503;
         missingPaymentError.code = 'ASTRO_PAYMENT_MODULE_MISSING';
         missingPaymentError.stage = 'billing';
@@ -1737,9 +2009,9 @@
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
     var total = _getTotalChapters();
-    _setLoadingProgress(0, total, '프로필 정보 확인 중');
+    _setLoadingProgress(0, total, _astroBookText().checkingProfile);
     _startProgressAnimation();
-    _setLoadingProgress(0, total, '결제 및 세션 준비 중');
+    _setLoadingProgress(0, total, _astroBookText().preparingPayment);
     _logStage('PaymentAndSessionStart', { totalChapters: total });
 
     _ensurePremiumPaymentAsync()
@@ -1761,7 +2033,7 @@
         var paymentConsume = paymentContext.consume && typeof paymentContext.consume === 'object' ? paymentContext.consume : {};
         var sourceTransactionId = _clean(paymentContext.transactionId || paymentContext.purchaseId || paymentContext.requestId);
         _logStage('SessionCreateSuccess', { sessionId: sessionId });
-        _setLoadingProgress(0, total, '출생 차트 계산 요청 중');
+        _setLoadingProgress(0, total, _astroBookText().requestingChart);
         _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
         return _postPrepare({
           featureKey: ASTRO_FEATURE_KEY,
@@ -1805,28 +2077,28 @@
         if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
         if (response && !_hasAstroLlmOnlyReady(response, total)) {
-          throw new Error('점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+          throw new Error(_astroBookText().manuscriptNotReady);
         }
         if (!_isCompletedReportReady(response)) {
-          throw new Error('점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+          throw new Error(_astroBookText().resultNotSaved);
         }
         _markPremiumAccessVerified(25 * 60 * 1000);
         _resultPayload = response;
         _chapters = Array.isArray(response.chapters) ? response.chapters : [];
-        if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
+        if (!_chapters.length) throw new Error(_astroBookText().emptyChapters);
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, 'PDF 저장 정보를 확인하는 중입니다');
+        _setLoadingProgress(total, total, _astroBookText().checkingPdfArchive);
         _logStage('PdfRenderStart', { chapterCount: total });
-        _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
+        _setLoadingProgress(total, total, _astroBookText().renderingPdf);
         _renderResult(_chapters, response.payload || {});
-        _setLoadingProgress(total, total, '완료', true);
+        _setLoadingProgress(total, total, _astroBookText().completed, true);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, llmAssembly: response.llmAssembly || null });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {
         _logError(err, { stage: 'generate' });
-        _setError(String(err && err.message ? err.message : err || '생성 실패'));
+        _setError(String(err && err.message ? err.message : err || _astroBookText().generationFailed));
       })
       .finally(function () {
         _generating = false;
@@ -1837,7 +2109,7 @@
 
   window.downloadAstroBookPdf = function () {
     if (!_isCompletedReportReady(_resultPayload)) {
-      _setError('점성술 프리미엄 원고와 PDF 저장이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+      _setError(_astroBookText().downloadNotReady);
       return;
     }
     var url = _resolveAstroStoredUrl(_resultPayload);
@@ -1846,12 +2118,12 @@
       var filename = ((_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.pdf').replace(/\.html?$/i, '.pdf');
       _downloadAstroBookUrl(url, filename).catch(function (err) {
         _logError(err, { stage: 'download' });
-        _setError('PDF 다운로드 권한을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.');
+        _setError(_astroBookText().downloadAuthFailed);
       });
       return;
     }
 
-    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+    alert(_astroBookText().reportUrlNotReady);
   };
 
   document.addEventListener('click', function (e) {

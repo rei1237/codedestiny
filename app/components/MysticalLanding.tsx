@@ -13,67 +13,53 @@ type MysticalService = {
   glow: string;
 };
 
-const services: MysticalService[] = [
+type MysticalServiceBase = Omit<MysticalService, "title" | "desc">;
+
+const services: MysticalServiceBase[] = [
   {
     id: 'tarot',
-    title: '타로 카드',
-    desc: '과거, 현재, 미래를 읽는 신비한 카드',
     icon: '🔮',
     gradient: 'from-purple-600/20 to-indigo-900/40',
     glow: 'rgba(139, 92, 246, 0.3)',
   },
   {
     id: 'astrology',
-    title: '점성술',
-    desc: '별의 위치로 운명을 읽다',
     icon: '🌌',
     gradient: 'from-blue-600/20 to-indigo-900/40',
     glow: 'rgba(59, 130, 246, 0.3)',
   },
   {
     id: 'aura',
-    title: '오라 리딩',
-    desc: '당신의 에너지를 시각화하다',
     icon: '✨',
     gradient: 'from-pink-600/20 to-purple-900/40',
     glow: 'rgba(236, 72, 153, 0.3)',
   },
   {
     id: 'rune',
-    title: '루룬 스톤',
-    desc: '북유럽의 고대 점술',
     icon: '🗿',
     gradient: 'from-amber-600/20 to-orange-900/40',
     glow: 'rgba(245, 158, 11, 0.3)',
   },
   {
     id: 'kabbalah',
-    title: '카바라',
-    desc: '유대 신비주의 운명론',
     icon: '✡️',
     gradient: 'from-indigo-600/20 to-slate-900/40',
     glow: 'rgba(79, 70, 229, 0.3)',
   },
   {
     id: 'iching',
-    title: 'I Ching(易經)',
-    desc: '동양의 고대 점술 지혜',
     icon: '☯️',
     gradient: 'from-emerald-600/20 to-teal-900/40',
     glow: 'rgba(16, 185, 129, 0.3)',
   },
   {
     id: 'numerology',
-    title: '숫자 운명학',
-    desc: '생년월일로 읽는 당신의 숨겨진 수',
     icon: '🔢',
     gradient: 'from-violet-600/20 to-purple-900/40',
     glow: 'rgba(124, 58, 237, 0.3)',
   },
   {
     id: 'pendulum',
-    title: '팬듈럼',
-    desc: '무의식의 목소리를 듣다',
     icon: '💎',
     gradient: 'from-cyan-600/20 to-blue-900/40',
     glow: 'rgba(6, 182, 212, 0.3)',

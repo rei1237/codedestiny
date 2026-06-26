@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterVIHealthEnergy | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_6_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "VI. 건강·에너지 - 번아웃 방지 설계",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "VI. Health and Energy - Designing Against Burnout",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "VI. 健康・エネルギー - 燃え尽き防止の設計",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyHealthOverview: "올해 건강운 총론",
   healthWeakPointsByElement: "오행별 취약 포인트",
@@ -27,8 +42,8 @@ export default function NewYearCh6_HealthEnergy({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>VI. 건강·에너지 - 번아웃 방지 설계</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_6_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_6_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh6_HealthEnergy({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "VI. 건강·에너지 - 번아웃 방지 설계"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_6_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

@@ -96,8 +96,8 @@ assert(unknownReading.magazine.pillars.day.ganji === unknownReading.saju.pillars
   assert(detailPage.includes(`function ${name}`), `${name} component must exist on the detail page`);
 });
 
-assert(serviceSource.includes("CELEBRITY_SAJU_MAGAZINE_PROMPT_CONTRACT"), "Famous saju prompt contract is required");
-assert(serviceSource.includes("LLM은 년주·월주·일주·시주, 오행, 십성, 신살, 12운성을 직접 계산하지 않는다."), "LLM calculation ban contract is required");
+assert(serviceSource.includes("CELEBRITY_SAJU_DIRECT_READING_CONTRACT"), "Famous saju direct reading contract is required");
+assert(serviceSource.includes("유명인 사주 본문은 계산 엔진이 산출한 년주·월주·일주·시주, 오행, 십성, 신살, 12운성 값을 바탕으로 직접 구성한다."), "Direct calculated reading contract is required");
 const mechanicalCopyRe = /이\s*기능은|이\s*결과는|분석\s*결과는|\uFFFD/;
 assert(!mechanicalCopyRe.test(`${detailPage}\n${serviceSource}`), "Mechanical copy or replacement characters must not be exposed");
 

@@ -982,16 +982,26 @@ export function fallbackChartSourceFromBirthInput(birthInput) {
   };
 }
 
+function hasUsableNestedChartSource(item = {}) {
+  if (!item || typeof item !== "object") return false;
+  if (item?.planets && typeof item.planets === "object" && Object.keys(item.planets).length > 0) return true;
+  if (Number.isFinite(Number(item?.ascendantSidereal ?? item?.ascendant ?? item?.lagnaLongitude))) return true;
+  if (safeArray(item?.chart?.planets).length || safeArray(item?.chart?.houses).length) return true;
+  return false;
+}
+
 function pickNestedChartSource(rawInput = {}) {
   const maybe = [
+    rawInput?.chartSource,
+    rawInput?.vedicChartSource,
+    rawInput?.vedicBase?.chart,
     rawInput?.chart,
     rawInput?.localVedicChartJson,
     rawInput?.vedicResult,
-    rawInput?.vedicBase?.chart,
     rawInput?.vedicBase,
     rawInput,
   ];
-  return maybe.find((item) => item && typeof item === "object") || {};
+  return maybe.find(hasUsableNestedChartSource) || {};
 }
 
 function computeAtmakaraka(planets = []) {

@@ -1,4 +1,5 @@
 import { axisMeaning, recommendedMatches, resolveFptiTypeCopy } from "./fpti-copy";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type {
   FptiAnalysisResult,
   FptiAxisCodes,
@@ -14,6 +15,37 @@ const ELEMENT_LABEL: Record<FiveElementKey, string> = {
   metal: "금",
   water: "수",
 };
+
+const FPTI_ENGINE_TEXT_TRANSLATIONS = {
+  ko: {
+    relationStyle: {
+      Open: "감정 교류를 빠르게 열고 분위기를 먼저 따뜻하게 만듭니다.",
+      Deep: "서두르지 않고 깊은 신뢰를 쌓아 오래 가는 관계를 지향합니다.",
+      Loyal: "약속과 책임을 중심으로 관계를 안정적으로 지켜냅니다.",
+      Free: "건강한 거리와 자율성을 유지할 때 관계 만족도가 높아집니다.",
+    },
+  },
+  en: {
+    relationStyle: {
+      Open: "You open emotional exchange quickly and warm the atmosphere first.",
+      Deep: "You prefer relationships that grow slowly through deep trust.",
+      Loyal: "You keep relationships steady through promises, responsibility, and care.",
+      Free: "Relationship satisfaction rises when healthy distance and autonomy are respected.",
+    },
+  },
+  ja: {
+    relationStyle: {
+      Open: "感情の交流を早く開き、まず空気を温かく整えるタイプです。",
+      Deep: "急がず深い信頼を積み重ね、長く続く関係を大切にします。",
+      Loyal: "約束と責任を軸に、関係を安定して守る傾向があります。",
+      Free: "健やかな距離感と自律性を保つほど、関係の満足度が高まります。",
+    },
+  },
+} as const;
+
+function getFptiEngineCopy(locale: LoadingLocale = getCurrentLoadingLocale()) {
+  return FPTI_ENGINE_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || FPTI_ENGINE_TEXT_TRANSLATIONS.ko;
+}
 
 const YANG_STEMS = new Set(["갑", "병", "무", "경", "임", "甲", "丙", "戊", "庚", "壬"]);
 const YIN_STEMS = new Set(["을", "정", "기", "신", "계", "乙", "丁", "己", "辛", "癸"]);
@@ -262,16 +294,17 @@ function tenGodNarrative(source: FptiSourceData, strongTenGods: string[]) {
 }
 
 function resolveRelationStyle(axis: FptiAxisCodes) {
+  const copy = getFptiEngineCopy();
   if (axis.judgment === "H" && axis.execution === "F") {
-    return { key: "Open" as const, description: "감정 교류를 빠르게 열고 분위기를 먼저 따뜻하게 만듭니다." };
+    return { key: "Open" as const, description: copy.relationStyle.Open };
   }
   if (axis.energy === "M" && axis.judgment === "H" && axis.vision === "V") {
-    return { key: "Deep" as const, description: "서두르지 않고 깊은 신뢰를 쌓아 오래 가는 관계를 지향합니다." };
+    return { key: "Deep" as const, description: copy.relationStyle.Deep };
   }
   if (axis.execution === "B" && axis.judgment === "L") {
-    return { key: "Loyal" as const, description: "약속과 책임을 중심으로 관계를 안정적으로 지켜냅니다." };
+    return { key: "Loyal" as const, description: copy.relationStyle.Loyal };
   }
-  return { key: "Free" as const, description: "건강한 거리와 자율성을 유지할 때 관계 만족도가 높아집니다." };
+  return { key: "Free" as const, description: copy.relationStyle.Free };
 }
 
 function buildStrategyGuide(axis: FptiAxisCodes) {

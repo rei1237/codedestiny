@@ -1,6 +1,156 @@
 import { buildBiasCardSvgModel, type DestinyBiasCardSvgInput } from "./buildBiasCardSvgModel";
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type SvgInput = DestinyBiasCardSvgInput;
+
+const DESTINY_BIAS_SVG_TEXT_TRANSLATIONS: Record<
+  LoadingLocale,
+  Record<string, string>
+> = {
+  ko: {
+    ariaLabel: "팬-최애 에너지 관계 포토카드",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "관계 에너지 핵심",
+    resonanceMode: "{mood} 공명 모드",
+    fanEnergy: "팬 에너지",
+    biasEnergy: "최애 에너지",
+    relationMood: "관계 무드",
+    todaySignal: "오늘의 공명 시그널",
+    oneLineComment: "한 줄 에너지 코멘트",
+  },
+  en: {
+    ariaLabel: "Fan and bias energy relationship photo card",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Relationship Energy Core",
+    resonanceMode: "{mood} resonance mode",
+    fanEnergy: "Fan Energy",
+    biasEnergy: "Bias Energy",
+    relationMood: "Relationship Mood",
+    todaySignal: "Today's Resonance Signal",
+    oneLineComment: "One-Line Energy Comment",
+  },
+  ja: {
+    ariaLabel: "ファンと推しのエネルギー関係フォトカード",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "関係エネルギーの核心",
+    resonanceMode: "{mood} 共鳴モード",
+    fanEnergy: "ファンのエネルギー",
+    biasEnergy: "推しのエネルギー",
+    relationMood: "関係ムード",
+    todaySignal: "今日の共鳴シグナル",
+    oneLineComment: "ひと言エネルギーコメント",
+  },
+  "zh-CN": {
+    ariaLabel: "粉丝与本命的能量关系照片卡",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "关系能量核心",
+    resonanceMode: "{mood} 共鸣模式",
+    fanEnergy: "粉丝能量",
+    biasEnergy: "本命能量",
+    relationMood: "关系氛围",
+    todaySignal: "今日共鸣讯号",
+    oneLineComment: "一句能量提示",
+  },
+  "zh-TW": {
+    ariaLabel: "粉絲與本命的能量關係照片卡",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "關係能量核心",
+    resonanceMode: "{mood} 共鳴模式",
+    fanEnergy: "粉絲能量",
+    biasEnergy: "本命能量",
+    relationMood: "關係氛圍",
+    todaySignal: "今日共鳴訊號",
+    oneLineComment: "一句能量提示",
+  },
+  vi: {
+    ariaLabel: "Thẻ ảnh năng lượng giữa fan và thần tượng",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Lõi năng lượng quan hệ",
+    resonanceMode: "Chế độ cộng hưởng {mood}",
+    fanEnergy: "Năng lượng fan",
+    biasEnergy: "Năng lượng thần tượng",
+    relationMood: "Sắc thái quan hệ",
+    todaySignal: "Tín hiệu cộng hưởng hôm nay",
+    oneLineComment: "Lời nhắn năng lượng",
+  },
+  hi: {
+    ariaLabel: "Fan aur bias energy relationship photo card",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Relationship Energy Core",
+    resonanceMode: "{mood} resonance mode",
+    fanEnergy: "Fan Energy",
+    biasEnergy: "Bias Energy",
+    relationMood: "Relationship Mood",
+    todaySignal: "Today's Resonance Signal",
+    oneLineComment: "One-Line Energy Comment",
+  },
+  es: {
+    ariaLabel: "Tarjeta fotográfica de energía entre fan y bias",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Núcleo de energía relacional",
+    resonanceMode: "Modo de resonancia {mood}",
+    fanEnergy: "Energía fan",
+    biasEnergy: "Energía del bias",
+    relationMood: "Ánimo de la relación",
+    todaySignal: "Señal de resonancia de hoy",
+    oneLineComment: "Comentario de energía",
+  },
+  fr: {
+    ariaLabel: "Carte photo d'énergie entre fan et bias",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Coeur energetique du lien",
+    resonanceMode: "Mode resonance {mood}",
+    fanEnergy: "Energie du fan",
+    biasEnergy: "Energie du bias",
+    relationMood: "Humeur du lien",
+    todaySignal: "Signal de resonance du jour",
+    oneLineComment: "Commentaire energetique",
+  },
+  de: {
+    ariaLabel: "Energiekarte fur Fan und Bias",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Kern der Beziehungsenergie",
+    resonanceMode: "{mood}-Resonanzmodus",
+    fanEnergy: "Fan-Energie",
+    biasEnergy: "Bias-Energie",
+    relationMood: "Beziehungsstimmung",
+    todaySignal: "Heutiges Resonanzsignal",
+    oneLineComment: "Ein Energiekommentar",
+  },
+  nl: {
+    ariaLabel: "Energie-fotokaart voor fan en bias",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Kern van relatie-energie",
+    resonanceMode: "{mood}-resonantiemodus",
+    fanEnergy: "Fanenergie",
+    biasEnergy: "Biasenergie",
+    relationMood: "Relatiemood",
+    todaySignal: "Resonantiesignaal van vandaag",
+    oneLineComment: "Energiecommentaar in een zin",
+  },
+  ms: {
+    ariaLabel: "Kad foto tenaga hubungan peminat dan bias",
+    cardTitle: "COSMIC ENERGY LINK CARD",
+    relationCore: "Teras tenaga hubungan",
+    resonanceMode: "Mod resonans {mood}",
+    fanEnergy: "Tenaga peminat",
+    biasEnergy: "Tenaga bias",
+    relationMood: "Suasana hubungan",
+    todaySignal: "Isyarat resonans hari ini",
+    oneLineComment: "Komen tenaga satu baris",
+  },
+};
+
+function destinyBiasSvgText(key: string, vars?: Record<string, string>) {
+  const locale = normalizeLoadingLocale(getCurrentLoadingLocale());
+  const value =
+    DESTINY_BIAS_SVG_TEXT_TRANSLATIONS[locale]?.[key] ||
+    DESTINY_BIAS_SVG_TEXT_TRANSLATIONS.en[key] ||
+    "Translation pending";
+  return Object.entries(vars || {}).reduce((text, [name, replacement]) => {
+    return text.replace(new RegExp(`\\{${name}\\}`, "g"), replacement);
+  }, value);
+}
 
 type RenderLineParams = {
   x: number;
@@ -176,7 +326,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1680" viewBox="0 0 1080 1680" role="img" aria-label="팬-최애 에너지 관계 포토카드">
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1680" viewBox="0 0 1080 1680" role="img" aria-label="${escapeXml(destinyBiasSvgText("ariaLabel"))}">
   <defs>
     <linearGradient id="stageBg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="${theme.stageBg[0]}"/>
@@ -237,7 +387,7 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   </g>
 
   <rect x="156" y="170" width="410" height="48" rx="24" fill="rgba(13,22,52,0.64)" stroke="rgba(255,255,255,0.3)"/>
-  <text x="182" y="202" fill="#EAF7FF" font-family="${fontFamily}" font-size="19" font-weight="700" letter-spacing="1.1">COSMIC ENERGY LINK CARD</text>
+  <text x="182" y="202" fill="#EAF7FF" font-family="${fontFamily}" font-size="19" font-weight="700" letter-spacing="1.1">${escapeXml(destinyBiasSvgText("cardTitle"))}</text>
 
   <rect x="770" y="168" width="152" height="52" rx="26" fill="rgba(13,22,52,0.72)" stroke="rgba(255,255,255,0.32)"/>
   <text x="808" y="202" fill="${theme.scoreTint}" font-family="${fontFamily}" font-size="28" font-weight="900">${score}%</text>
@@ -246,15 +396,15 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   ${relationPairText}
 
   <rect x="160" y="440" width="760" height="110" rx="28" fill="rgba(7,12,36,0.68)" stroke="url(#panelStroke)"/>
-  <text x="188" y="486" fill="#D5EAFF" font-family="${fontFamily}" font-size="20" font-weight="700">관계 에너지 핵심</text>
-  <text x="188" y="523" fill="#FFFFFF" font-family="${fontFamily}" font-size="28" font-weight="800">${escapeXml(input.relationMood)} 공명 모드</text>
+  <text x="188" y="486" fill="#D5EAFF" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("relationCore"))}</text>
+  <text x="188" y="523" fill="#FFFFFF" font-family="${fontFamily}" font-size="28" font-weight="800">${escapeXml(destinyBiasSvgText("resonanceMode", { mood: input.relationMood }))}</text>
 
   <rect x="160" y="594" width="760" height="410" rx="34" fill="rgba(8,14,38,0.68)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="188" y="640" fill="#DDEFFF" font-family="${fontFamily}" font-size="20" font-weight="700">팬 에너지</text>
+  <text x="188" y="640" fill="#DDEFFF" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("fanEnergy"))}</text>
   ${fanEnergyText}
-  <text x="188" y="762" fill="#FFE4F5" font-family="${fontFamily}" font-size="20" font-weight="700">최애 에너지</text>
+  <text x="188" y="762" fill="#FFE4F5" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("biasEnergy"))}</text>
   ${biasEnergyText}
-  <text x="188" y="886" fill="#FFF1C5" font-family="${fontFamily}" font-size="20" font-weight="700">관계 무드</text>
+  <text x="188" y="886" fill="#FFF1C5" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("relationMood"))}</text>
   ${relationMoodText}
 
   <circle cx="834" cy="800" r="92" fill="url(#energyOrb)" opacity="0.9"/>
@@ -262,11 +412,11 @@ export function createDestinyBiasCardSvg(input: SvgInput) {
   <circle cx="834" cy="800" r="54" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>
 
   <rect x="160" y="1040" width="760" height="196" rx="30" fill="rgba(8,13,36,0.7)" stroke="rgba(255,255,255,0.26)"/>
-  <text x="176" y="1082" fill="#D9EEFF" font-family="${fontFamily}" font-size="20" font-weight="700">오늘의 공명 시그널</text>
+  <text x="176" y="1082" fill="#D9EEFF" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("todaySignal"))}</text>
   ${signalText}
 
   <rect x="160" y="1258" width="760" height="202" rx="30" fill="rgba(10,15,42,0.72)" stroke="rgba(255,255,255,0.24)"/>
-  <text x="176" y="1290" fill="#F3E5FF" font-family="${fontFamily}" font-size="20" font-weight="700">한 줄 에너지 코멘트</text>
+  <text x="176" y="1290" fill="#F3E5FF" font-family="${fontFamily}" font-size="20" font-weight="700">${escapeXml(destinyBiasSvgText("oneLineComment"))}</text>
   ${oneLineText}
 
   <rect x="160" y="1488" width="760" height="96" rx="22" fill="rgba(4,8,24,0.74)" stroke="rgba(255,255,255,0.24)"/>

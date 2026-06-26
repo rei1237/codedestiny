@@ -1,10 +1,25 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const TAROT_YEAR_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "십이지신 천운 타로 - 열두 달의 수호 리듬",
+    description: "열두 수호 기운과 12장의 카드를 엮어 한 해의 상승 구간, 속도 조절이 필요한 달, 월별 선택의 결을 읽습니다.",
+  },
+  en: {
+    title: "Twelve Zodiac Heavenly Luck Tarot - Guardian Rhythm of the Year",
+    description: "Read the rising periods, months that need pacing, and monthly choices of the year through twelve guardian energies and twelve cards.",
+  },
+  ja: {
+    title: "十二支天運タロット - 12か月の守護リズム",
+    description: "十二の守護の気と12枚のカードを結び、一年の上昇期、速度調整が必要な月、月別の選択の質を読みます。",
+  },
+} as const;
+
 const META = {
   path: "/tarot/year",
-  title: "십이지신 천운 타로 - 열두 달의 수호 리듬",
-  description: "열두 수호 기운과 12장의 카드를 엮어 한 해의 상승 구간, 속도 조절이 필요한 달, 월별 선택의 결을 읽습니다.",
+  title: TAROT_YEAR_PAGE_TEXT_TRANSLATIONS.ko.title,
+  description: TAROT_YEAR_PAGE_TEXT_TRANSLATIONS.ko.description,
   keywords: ["십이지신 천운", "연간 운세 타로", "12개월 타로", "월별 타로", "재물운", "연애운"],
   image: "https://code-destiny.com/fuctionassets/12animals.webp",
   featureList: ["열두 달의 수호 리듬", "상승과 속도 조절의 달", "월별 선택의 작은 의식"],

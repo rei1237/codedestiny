@@ -1,4 +1,25 @@
 /* ─── 공유하기 함수 ─── */
+const SHARE_TEXT_TRANSLATIONS = {
+  ko: {
+    "share.001": "🐷 꿀꿀 만세력",
+    "share.002": "🐷 연이의 꿀꿀 타로",
+    "share.003": "✨ 점성술 코즈믹 차트",
+    "share.004": "무료 기본 숙요점 결과",
+    "share.005": "🌌 자미두수 결과",
+    "share.006": "사주 인생의 책",
+    "share.007": "💕 연애 비책",
+    "share.008": "사주 원국을 먼저 열어야 매일의 기운을 정확히 이어 받을 수 있습니다. 생년월일을 입력하고 사주 분석을 완료해 주세요.",
+    "share.009": "저장된 프로필을 여는 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+    "share.010": "저장된 프로필에서 사주 원국을 다시 여는 데 실패했습니다. 프로필을 다시 선택한 뒤 신청해 주세요.",
+    "share.011": "운세 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+    "share.012": "운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    "share.013": "잠시 후 다시 시도해 주세요.",
+  },
+};
+
+function _shareText(key) {
+  return SHARE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
 var APP_VERSION_RELOAD_GUARD = 'app_version_reload_guard';  // 무한 reload 방지
@@ -317,7 +338,7 @@ function shareKakao(){
   shareWithReward(function(){
     var text=getShareText();
     if(navigator.share){
-      navigator.share({title:'🐷 꿀꿀 만세력',text:text,url:window.location.href}).catch(function(){});
+      navigator.share({title:_shareText("share.001"),text:text,url:window.location.href}).catch(function(){});
       return;
     }
     var encoded=encodeURIComponent(text);
@@ -338,7 +359,7 @@ function shareTarotKakao(){
     var cOracle  = document.getElementById('tarotOracleText').innerText || '';
     var text = '🔮 [연이의 꿀꿀 타로] 🔮\n\n' + cName + '\n\n' + cFortune + '\n\n' + cOracle + '\n\n👉 무료 타로 보러가기: https://code-destiny.com';
     if(navigator.share){
-      navigator.share({title:'🐷 연이의 꿀꿀 타로',text:text,url:'https://code-destiny.com'}).catch(function(){});
+      navigator.share({title:_shareText("share.002"),text:text,url:'https://code-destiny.com'}).catch(function(){});
       return;
     }
     var a=document.createElement('a');a.href='kakaotalk://send?text='+encodeURIComponent(text);a.click();
@@ -358,7 +379,7 @@ function shareAstroKakao() {
       + (preview ? ('\n' + preview + '\n') : '\n')
       + '\n나도 무료로 확인하기 👇\n' + base;
     if (navigator.share) {
-      navigator.share({ title: '✨ 점성술 코즈믹 차트', text: text, url: base }).catch(function(){});
+      navigator.share({ title: _shareText("share.003"), text: text, url: base }).catch(function(){});
       return;
     }
     var a = document.createElement('a');
@@ -402,7 +423,7 @@ function shareSukuyoKakao() {
       + (preview ? ('\n' + preview + '\n') : '\n')
       + '\n나의 본명숙 확인하기\n' + base;
     if (navigator.share) {
-      navigator.share({ title: '무료 기본 숙요점 결과', text: text, url: base }).catch(function(){});
+      navigator.share({ title: _shareText("share.004"), text: text, url: base }).catch(function(){});
       return;
     }
     var a = document.createElement('a');
@@ -427,7 +448,7 @@ function shareZiweiKakao() {
       + (preview ? ('\n' + preview + '\n') : '\n')
       + '\n나도 무료로 확인하기 👇\n' + base;
     if (navigator.share) {
-      navigator.share({ title: '🌌 자미두수 결과', text: text, url: base }).catch(function(){});
+      navigator.share({ title: _shareText("share.005"), text: text, url: base }).catch(function(){});
       return;
     }
     var a = document.createElement('a');
@@ -447,7 +468,7 @@ function shareLifeBookKakao() {
     + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
     + '아래 링크에서 확인하세요.\n' + base;
   if (navigator.share) {
-    navigator.share({ title: '사주 인생의 책', text: text, url: base }).catch(function () {});
+    navigator.share({ title: _shareText("share.006"), text: text, url: base }).catch(function () {});
     return;
   }
   var a = document.createElement('a');
@@ -468,7 +489,7 @@ function shareLoveSecretKakao() {
       + '🔑 연애 자아 분석 · 💘 매력 해독 · ⚔️ 밀당 전략 · 🌿 개운 처방전\n\n'
       + '나도 무료로 확인하기 👇\n' + base;
     if (navigator.share) {
-      navigator.share({ title: '💕 연애 비책', text: text, url: base }).catch(function () {});
+      navigator.share({ title: _shareText("share.007"), text: text, url: base }).catch(function () {});
       return;
     }
     var a = document.createElement('a');
@@ -1267,10 +1288,10 @@ function ensureSajuSubscriptionPillars() {
   }
   var profile = getSajuSubscriptionProfileCandidate();
   if (!profile) {
-    return { ok: false, missingProfile: true, error: '사주 원국을 먼저 열어야 매일의 기운을 정확히 이어 받을 수 있습니다. 생년월일을 입력하고 사주 분석을 완료해 주세요.' };
+    return { ok: false, missingProfile: true, error: _shareText("share.008") };
   }
   if (typeof window.computeProfileForModal !== 'function') {
-    return { ok: false, error: '저장된 프로필을 여는 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
+    return { ok: false, error: _shareText("share.009") };
   }
   try {
     var computed = window.computeProfileForModal(profile);
@@ -1278,7 +1299,7 @@ function ensureSajuSubscriptionPillars() {
       return { ok: true, profile: profile };
     }
   } catch (_) {}
-  return { ok: false, error: '저장된 프로필에서 사주 원국을 다시 여는 데 실패했습니다. 프로필을 다시 선택한 뒤 신청해 주세요.' };
+  return { ok: false, error: _shareText("share.010") };
 }
 
 function getBirthSubscriptionData(profile) {
@@ -1310,7 +1331,7 @@ function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source, pr
     return { error: ready.error };
   }
   if (typeof getGanZhiForDate !== 'function' || typeof getMonthGanZhi !== 'function' || typeof analyzeFortuneGZ !== 'function') {
-    return { error: '운세 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
+    return { error: _shareText("share.011") };
   }
 
   var today = new Date();
@@ -1321,7 +1342,7 @@ function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source, pr
   var monRes = analyzeFortuneGZ(monGZ, window.G_PILLARS, '이달 월운');
 
   if ((subDaily && !dayRes) || (subMonthly && !monRes)) {
-    return { error: '운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.' };
+    return { error: _shareText("share.012") };
   }
 
   var birth = getBirthSubscriptionData(profileCandidate || ready.profile);
@@ -1478,7 +1499,7 @@ async function submitSajuSubscription(scope) {
     setSajuSubscriptionStatus(cfg.scope, state, getSajuSubscriptionSuccessMessage(data, emailVal));
     if (cfg.emailEl) cfg.emailEl.value = '';
   } catch (err) {
-    var detail = err && err.message ? err.message : '잠시 후 다시 시도해 주세요.';
+    var detail = err && err.message ? err.message : _shareText("share.013");
     setSajuSubscriptionStatus(cfg.scope, 'error', '구독 등록이 완료되지 않았습니다. ' + detail);
   } finally {
     SAJU_SUBSCRIPTION_IN_FLIGHT[cfg.scope] = false;

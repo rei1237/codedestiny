@@ -17,6 +17,71 @@ import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 
+const PALM_DESTINY_TEXT_TRANSLATIONS = {
+  ko: {
+    "palmDestiny.label.001": "선천적 손",
+    "palmDestiny.description.001": "타고난 기질과 잠재력을 보여주는 손",
+    "palmDestiny.label.002": "후천적 손",
+    "palmDestiny.description.002": "현재의 성향과 살아온 흐름을 보여주는 손",
+    "palmDestiny.label.003": "선후천 혼합 손",
+    "palmDestiny.description.003": "선천성과 후천성이 함께 반영된 손",
+    "palmDestiny.label.004": "미확정",
+    "palmDestiny.description.004": "주로 쓰는 손 선택 후 판별됩니다.",
+    "palmDestiny.label.005": "오른손",
+    "palmDestiny.label.006": "왼손",
+    "palmDestiny.label.007": "양손",
+    "palmDestiny.label.008": "사진 흐름",
+    "palmDestiny.label.009": "길이",
+    "palmDestiny.label.010": "깊이",
+    "palmDestiny.label.011": "곡선",
+    "palmDestiny.label.012": "변화",
+    "palmDestiny.label.013": "상태",
+    "palmDestiny.label.014": "길이",
+    "palmDestiny.label.015": "방향",
+    "palmDestiny.label.016": "시작",
+    "palmDestiny.label.017": "변화",
+    "palmDestiny.label.018": "상태",
+    "palmDestiny.label.019": "길이",
+    "palmDestiny.label.020": "곡선",
+    "palmDestiny.label.021": "끝맺음",
+    "palmDestiny.label.022": "변화",
+    "palmDestiny.label.023": "상태",
+    "palmDestiny.label.024": "전환",
+    "palmDestiny.label.025": "상태",
+    "palmDestiny.label.026": "표현력",
+    "palmDestiny.label.027": "리딩",
+    "palmDestiny.label.028": "재물 흐름",
+    "palmDestiny.label.029": "리딩",
+    "palmDestiny.label.030": "관계 흐름",
+    "palmDestiny.label.031": "리딩",
+    "palmDestiny.label.032": "손 형태",
+    "palmDestiny.label.033": "중심 포인트",
+    "palmDestiny.label.034": "전체 결",
+    "palmDestiny.title.001": "🌟 전체 운세",
+    "palmDestiny.title.002": "💗 연애운",
+    "palmDestiny.title.003": "💰 재물운",
+    "palmDestiny.title.004": "🧭 직업운",
+    "palmDestiny.title.005": "✨ 성격/매력",
+    "palmDestiny.title.006": "🤝 관계운",
+    "palmDestiny.message.001": "알 수 없는 오류",
+    "palmDestiny.message.002": "이용권 확인 중",
+    "palmDestiny.message.003": "손바닥 전체가 화면에 들어오지 않았습니다.",
+    "palmDestiny.message.004": "요청이 취소되었습니다.",
+    "palmDestiny.message.005": "네트워크/API 오류로 분석 요청에 실패했습니다.",
+    "palmDestiny.error.001": "분석 결과 데이터가 준비되지 않았습니다.",
+    "palmDestiny.message.006": "이용권 확인 중",
+    "palmDestiny.error.002": "AI 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
+    "palmDestiny.error.003": "AI 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
+    "palmDestiny.aria-label.001": "손바닥 바로 촬영하기",
+    "palmDestiny.aria-label.002": "앨범에서 사진 선택하기",
+    "palmDestiny.alt.001": "선택된 손바닥 미리보기",
+  },
+} as const;
+
+function palmDestinyText(key: keyof typeof PALM_DESTINY_TEXT_TRANSLATIONS.ko) {
+  return PALM_DESTINY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
 type HandRole = PalmHandRole;
@@ -201,20 +266,20 @@ const {
 
 const HAND_ROLE_META: Record<HandRole, { label: string; description: string }> = {
   innate: {
-    label: "선천적 손",
-    description: "타고난 기질과 잠재력을 보여주는 손",
+    label: palmDestinyText("palmDestiny.label.001"),
+    description: palmDestinyText("palmDestiny.description.001"),
   },
   acquired: {
-    label: "후천적 손",
-    description: "현재의 성향과 살아온 흐름을 보여주는 손",
+    label: palmDestinyText("palmDestiny.label.002"),
+    description: palmDestinyText("palmDestiny.description.002"),
   },
   mixed: {
-    label: "선후천 혼합 손",
-    description: "선천성과 후천성이 함께 반영된 손",
+    label: palmDestinyText("palmDestiny.label.003"),
+    description: palmDestinyText("palmDestiny.description.003"),
   },
   unknown: {
-    label: "미확정",
-    description: "주로 쓰는 손 선택 후 판별됩니다.",
+    label: palmDestinyText("palmDestiny.label.004"),
+    description: palmDestinyText("palmDestiny.description.004"),
   },
 };
 
@@ -231,9 +296,9 @@ const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
 const PALM_AI_CONSULT_SUB_FEATURE_KEY = "palm-reading-ai-consult";
 
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
-  { value: "right", label: "오른손" },
-  { value: "left", label: "왼손" },
-  { value: "both", label: "양손" },
+  { value: "right", label: palmDestinyText("palmDestiny.label.005") },
+  { value: "left", label: palmDestinyText("palmDestiny.label.006") },
+  { value: "both", label: palmDestinyText("palmDestiny.label.007") },
 ];
 
 const DOMINANT_HAND_HINT_LABEL: Record<DominantHand, string> = {
@@ -1249,43 +1314,43 @@ function buildCardSignalFacts(
   reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"],
 ): Array<{ label: string; value: string }> {
   if (!reading) {
-    return [{ label: "사진 흐름", value: "손바닥 전체 흐름을 중심으로 읽었어요." }];
+    return [{ label: palmDestinyText("palmDestiny.label.008"), value: "손바닥 전체 흐름을 중심으로 읽었어요." }];
   }
 
   if (key === "lifeLine") {
     const line = reading.majorLines.lifeLine;
     return line.detected
       ? [
-          { label: "길이", value: formatLineLength(line.length) },
-          { label: "깊이", value: formatLineDepth(line.depth) },
-          { label: "곡선", value: formatLineCurvature(line.curvature) },
-          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+          { label: palmDestinyText("palmDestiny.label.009"), value: formatLineLength(line.length) },
+          { label: palmDestinyText("palmDestiny.label.010"), value: formatLineDepth(line.depth) },
+          { label: palmDestinyText("palmDestiny.label.011"), value: formatLineCurvature(line.curvature) },
+          { label: palmDestinyText("palmDestiny.label.012"), value: formatLineChanges(line.branches, line.breaks) },
         ]
-      : [{ label: "상태", value: "이번 사진에서는 생명선이 옅어 에너지 흐름을 넓게 읽었어요." }];
+      : [{ label: palmDestinyText("palmDestiny.label.013"), value: "이번 사진에서는 생명선이 옅어 에너지 흐름을 넓게 읽었어요." }];
   }
 
   if (key === "headLine") {
     const line = reading.majorLines.headLine;
     return line.detected
       ? [
-          { label: "길이", value: formatLineLength(line.length) },
-          { label: "방향", value: formatHeadDirection(line.direction) },
-          { label: "시작", value: formatHeadLifeRelation(line.startRelationWithLifeLine) },
-          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+          { label: palmDestinyText("palmDestiny.label.014"), value: formatLineLength(line.length) },
+          { label: palmDestinyText("palmDestiny.label.015"), value: formatHeadDirection(line.direction) },
+          { label: palmDestinyText("palmDestiny.label.016"), value: formatHeadLifeRelation(line.startRelationWithLifeLine) },
+          { label: palmDestinyText("palmDestiny.label.017"), value: formatLineChanges(line.branches, line.breaks) },
         ]
-      : [{ label: "상태", value: "두뇌선이 옅어 손 형태와 주변 흐름까지 함께 읽었어요." }];
+      : [{ label: palmDestinyText("palmDestiny.label.018"), value: "두뇌선이 옅어 손 형태와 주변 흐름까지 함께 읽었어요." }];
   }
 
   if (key === "heartLine") {
     const line = reading.majorLines.heartLine;
     return line.detected
       ? [
-          { label: "길이", value: formatLineLength(line.length) },
-          { label: "곡선", value: formatLineCurvature(line.curvature) },
-          { label: "끝맺음", value: formatHeartEnding(line.endingArea) },
-          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+          { label: palmDestinyText("palmDestiny.label.019"), value: formatLineLength(line.length) },
+          { label: palmDestinyText("palmDestiny.label.020"), value: formatLineCurvature(line.curvature) },
+          { label: palmDestinyText("palmDestiny.label.021"), value: formatHeartEnding(line.endingArea) },
+          { label: palmDestinyText("palmDestiny.label.022"), value: formatLineChanges(line.branches, line.breaks) },
         ]
-      : [{ label: "상태", value: "감정선이 옅어 관계 온도는 조심스럽게 읽었어요." }];
+      : [{ label: palmDestinyText("palmDestiny.label.023"), value: "감정선이 옅어 관계 온도는 조심스럽게 읽었어요." }];
   }
 
   if (key === "fateLine") {
@@ -1294,39 +1359,39 @@ function buildCardSignalFacts(
       ? [
           { label: "힘", value: formatFateStrength(line.strength) },
           { label: "시작", value: formatFateStart(line.startArea) },
-          { label: "전환", value: formatLineChanges(0, line.breaks) },
+          { label: palmDestinyText("palmDestiny.label.024"), value: formatLineChanges(0, line.breaks) },
         ]
-      : [{ label: "상태", value: "운명선이 옅어 정해진 길보다 선택의 유연성을 중심으로 읽었어요." }];
+      : [{ label: palmDestinyText("palmDestiny.label.025"), value: "운명선이 옅어 정해진 길보다 선택의 유연성을 중심으로 읽었어요." }];
   }
 
   if (key === "sunLine") {
     const line = reading.minorLines.sunLine;
     return [
-      { label: "표현력", value: formatMinorStrength(line.strength) },
-      { label: "리딩", value: line.summary || "이름을 걸고 보여주는 일에서 흐름을 키우는 손입니다." },
+      { label: palmDestinyText("palmDestiny.label.026"), value: formatMinorStrength(line.strength) },
+      { label: palmDestinyText("palmDestiny.label.027"), value: line.summary || "이름을 걸고 보여주는 일에서 흐름을 키우는 손입니다." },
     ];
   }
 
   if (key === "moneyLine") {
     const line = reading.minorLines.moneyLine;
     return [
-      { label: "재물 흐름", value: formatMinorStrength(line.strength) },
-      { label: "리딩", value: line.summary || "돈을 크게 단정하기보다 관리와 가치화 습관을 읽었습니다." },
+      { label: palmDestinyText("palmDestiny.label.028"), value: formatMinorStrength(line.strength) },
+      { label: palmDestinyText("palmDestiny.label.029"), value: line.summary || "돈을 크게 단정하기보다 관리와 가치화 습관을 읽었습니다." },
     ];
   }
 
   if (key === "marriageLine") {
     const line = reading.minorLines.marriageLine;
     return [
-      { label: "관계 흐름", value: formatMinorStrength(line.strength) },
-      { label: "리딩", value: line.summary || "관계의 횟수가 아니라 친밀감과 약속 방식을 읽었습니다." },
+      { label: palmDestinyText("palmDestiny.label.030"), value: formatMinorStrength(line.strength) },
+      { label: palmDestinyText("palmDestiny.label.031"), value: line.summary || "관계의 횟수가 아니라 친밀감과 약속 방식을 읽었습니다." },
     ];
   }
 
   return [
-    { label: "손 형태", value: reading.handShape.labelKo || "복합형" },
-    { label: "중심 포인트", value: summarizeMountFocus(reading) },
-    { label: "전체 결", value: reading.overall.summary || "손바닥 전체 흐름을 종합해 읽었습니다." },
+    { label: palmDestinyText("palmDestiny.label.032"), value: reading.handShape.labelKo || "복합형" },
+    { label: palmDestinyText("palmDestiny.label.033"), value: summarizeMountFocus(reading) },
+    { label: palmDestinyText("palmDestiny.label.034"), value: reading.overall.summary || "손바닥 전체 흐름을 종합해 읽었습니다." },
   ];
 }
 
@@ -1376,7 +1441,7 @@ function buildCategoryConsultations(input: {
   return [
     {
       key: "general",
-      title: "🌟 전체 운세",
+      title: palmDestinyText("palmDestiny.title.001"),
       summary: String(report.summary || generalSection?.summary || "지금 흐름을 쉽게 정리한 손금 리딩이에요."),
       details: uniqText([
         String(report.oneLiner || ""),
@@ -1391,7 +1456,7 @@ function buildCategoryConsultations(input: {
     },
     {
       key: "love",
-      title: "💗 연애운",
+      title: palmDestinyText("palmDestiny.title.002"),
       summary: String(report.love || loveSection?.summary || "연애운은 안정감과 솔직한 대화가 핵심으로 보여요."),
       details: uniqText([loveSection?.detail, loveSection?.advice], 3),
       actions: uniqText([
@@ -1402,7 +1467,7 @@ function buildCategoryConsultations(input: {
     },
     {
       key: "wealth",
-      title: "💰 재물운",
+      title: palmDestinyText("palmDestiny.title.003"),
       summary: String(report.wealth || wealthSection?.summary || "재물운은 꾸준히 쌓을 때 힘이 붙는 흐름이에요."),
       details: uniqText([wealthSection?.detail, wealthSection?.advice], 3),
       actions: uniqText([
@@ -1413,7 +1478,7 @@ function buildCategoryConsultations(input: {
     },
     {
       key: "career",
-      title: "🧭 직업운",
+      title: palmDestinyText("palmDestiny.title.004"),
       summary: String(report.career || careerSection?.summary || "직업운은 내 방식과 실력을 쌓을수록 강해져요."),
       details: uniqText([careerSection?.detail, careerSection?.advice], 3),
       actions: uniqText([
@@ -1424,7 +1489,7 @@ function buildCategoryConsultations(input: {
     },
     {
       key: "personality",
-      title: "✨ 성격/매력",
+      title: palmDestinyText("palmDestiny.title.005"),
       summary: String(report.personality || personalitySection?.summary || "성격과 매력을 가볍게 정리한 리딩이에요."),
       details: uniqText([personalitySection?.detail, personalitySection?.advice], 3),
       actions: uniqText([
@@ -1435,7 +1500,7 @@ function buildCategoryConsultations(input: {
     },
     {
       key: "relationship",
-      title: "🤝 관계운",
+      title: palmDestinyText("palmDestiny.title.006"),
       summary: String(report.relationship || relationshipSection?.summary || "관계운은 편안한 소통에서 더 좋아져요."),
       details: uniqText([relationshipSection?.detail, relationshipSection?.advice], 3),
       actions: uniqText([
@@ -1760,7 +1825,7 @@ export default function PalmDestinyMain() {
       setSubmitMessage(
         isHeicLikeFile(file)
           ? "HEIC/HEIF 이미지를 브라우저에서 해석하지 못했습니다. iPhone에서 JPG로 촬영하거나 변환 후 다시 선택해 주세요."
-          : `이미지 로딩 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}. 다른 사진으로 다시 시도해 주세요.`,
+          : `이미지 로딩 실패: ${error instanceof Error ? error.message : palmDestinyText("palmDestiny.message.001")}. 다른 사진으로 다시 시도해 주세요.`,
       );
     }
   };
@@ -1912,7 +1977,7 @@ export default function PalmDestinyMain() {
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingCheckRequestId,
-        message: "이용권 확인 중",
+        message: palmDestinyText("palmDestiny.message.002"),
       });
 
       const entitlementCheckResult = await runBillingCoinGate({
@@ -2099,7 +2164,7 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: activeBillingGateRequestId,
           status: "error",
-          message: "손바닥 전체가 화면에 들어오지 않았습니다.",
+          message: palmDestinyText("palmDestiny.message.003"),
         });
         setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
         return;
@@ -2182,7 +2247,7 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: activeBillingGateRequestId,
           status: "error",
-          message: "요청이 취소되었습니다.",
+          message: palmDestinyText("palmDestiny.message.004"),
         });
         setSubmitMessage("요청이 취소되었습니다. 다시 분석을 시도해 주세요.");
         return;
@@ -2194,7 +2259,7 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: activeBillingGateRequestId,
           status: "error",
-          message: "네트워크/API 오류로 분석 요청에 실패했습니다.",
+          message: palmDestinyText("palmDestiny.message.005"),
         });
         setSubmitMessage("네트워크/API 오류로 분석 요청에 실패했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.");
         return;
@@ -2237,7 +2302,7 @@ export default function PalmDestinyMain() {
       setPalmAiPrompt({
         prompt: "",
         isLoading: false,
-        error: "분석 결과 데이터가 준비되지 않았습니다.",
+        error: palmDestinyText("palmDestiny.error.001"),
       });
       return;
     }
@@ -2312,7 +2377,7 @@ export default function PalmDestinyMain() {
       openPaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
         requestId: billingCheckRequestId,
-        message: "이용권 확인 중",
+        message: palmDestinyText("palmDestiny.message.006"),
       });
 
       const entitlementCheckResult = await runBillingCoinGate({
@@ -2441,7 +2506,7 @@ export default function PalmDestinyMain() {
         setPalmAiPrompt({
           prompt: "",
           isLoading: false,
-          error: "AI 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
+          error: palmDestinyText("palmDestiny.error.002"),
         });
         setSubmitMessage("AI 상담 생성 결과가 비어 있습니다.");
         return;
@@ -2462,7 +2527,7 @@ export default function PalmDestinyMain() {
         setPalmAiPrompt((prev) => ({
           ...prev,
           isLoading: false,
-          error: "AI 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
+          error: palmDestinyText("palmDestiny.error.003"),
         }));
         setSubmitMessage("AI 상담 API 연결이 일시적으로 불안정합니다.");
         return;
@@ -2942,14 +3007,14 @@ export default function PalmDestinyMain() {
                 <label
                   htmlFor={getCameraInputId(selectedCaptureSide)}
                   className="cd-main-cta inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-xl border border-[#d4af37]/70 bg-[linear-gradient(140deg,#8b0000_0%,#6b1a0a_35%,#5a1200_65%,#7a1800_100%)] px-4 py-3 text-sm font-black text-[#fff8e0]"
-                  aria-label="손바닥 바로 촬영하기"
+                  aria-label={palmDestinyText("palmDestiny.aria-label.001")}
                 >
                   📷 손바닥 바로 촬영하기
                 </label>
                 <label
                   htmlFor={getGalleryInputId(selectedCaptureSide)}
                   className="cd-ghost-btn inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-xl border border-[#c8a84b]/45 bg-[#0d0808] px-4 py-3 text-sm font-black text-[#f0d9a2]"
-                  aria-label="앨범에서 사진 선택하기"
+                  aria-label={palmDestinyText("palmDestiny.aria-label.002")}
                 >
                   🖼️ 앨범에서 사진 선택하기
                 </label>
@@ -2980,7 +3045,7 @@ export default function PalmDestinyMain() {
                     {currentPreviewState.previewUrl ? (
                       <img
                         src={currentPreviewState.previewUrl}
-                        alt="선택된 손바닥 미리보기"
+                        alt={palmDestinyText("palmDestiny.alt.001")}
                         className="max-h-[340px] w-full object-contain"
                       />
                     ) : null}

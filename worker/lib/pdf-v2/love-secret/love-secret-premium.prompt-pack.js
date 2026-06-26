@@ -1,60 +1,102 @@
-import { stableStringify } from "./love-secret-premium.types.js";
+import { asArray, stableStringify } from "./love-secret-premium.types.js";
 
-export const LOVE_SECRET_PREMIUM_PROMPT_VERSION = "2026-love-secret-llm-only-v3-saju-chapter-lock";
+export const LOVE_SECRET_PREMIUM_PROMPT_VERSION = "2026-06-love-secret-llm-v1";
 
-export const loveSecretSystemPrompt = `당신은 사주 연애 비책 원고를 쓰는 전문 명리 상담가입니다.
+export const loveSecretSystemPrompt = `너는 30년 경력의 사주 명리학자이자, 현실적인 연애 상담을 잘하는 상담사다.
+사주 용어를 쓰되 고객이 이해하기 쉬운 말로 풀어준다.
+불안 조장, 단정적 저주, 무조건적인 결혼·이별 확정 표현은 금지한다.
 
-제공된 사주, 연애, 궁합 계산 결과만 근거로 삼아 한국어 프리미엄 PDF 본문을 작성합니다.
-문장은 차분하고 깊게 흐르되, 독자에게 직접 말하는 상담 어조를 유지합니다.
+출력은 반드시 한국어 HTML fragment 하나만 허용한다.
+JSON, Markdown, 코드블록, schema, payload, prompt, debug, rawResultSummary, API, provider, model 이름은 절대 출력하지 않는다.
+제공된 사주·연애·궁합 계산 신호를 근거로 쓰되, 정보가 부족한 부분은 조심스럽게 가능성과 조건으로 말한다.
+같은 문장과 같은 문단을 반복하지 않고, 챕터 제목을 본문에서 반복해 늘리지 않는다.
+중요한 관계 결정은 현실의 대화와 상황을 함께 보아야 한다는 안전한 상담 관점을 유지한다.`;
 
-출력은 오직 한국어 HTML fragment만 허용됩니다.
-JSON, Markdown, 코드블록, schema, payload, prompt, debug, rawResultSummary, internal key, API/provider 이름은 절대 출력하지 않습니다.
-제공되지 않은 계산 신호를 지어내지 않습니다. 정보가 부족한 부분은 "확인 가능한 사주 신호 안에서는"처럼 조심스럽게 표현합니다.
-재회, 결혼, 이별, 운명은 단정하지 않고 가능성, 조건, 선택의 방향으로 말합니다.
-같은 제목, 같은 문단, 같은 문장을 반복하지 않습니다.
-개발자 문구, 기능 설명, 인코딩이 깨진 글자, 기계적인 안내문을 출력하지 않습니다.`;
+function inputForPrompt(input = {}) {
+  return stableStringify({
+    mode: input.mode,
+    userProfile: input.userProfile,
+    partnerProfile: input.partnerProfile,
+    saju: input.saju,
+    love: input.love,
+    luck: input.luck,
+    compatibility: input.compatibility,
+    warnings: input.warnings,
+  });
+}
 
-export function buildLoveSecretChapterPrompt({ input, chapter, chapterPlanSummary = "", expertPersona = "" }) {
-  const sections = chapter.sections.map((section) => `<section>
-  <h2>${section}</h2>
-  <p>사주 계산 신호를 바탕으로 자연스럽고 깊은 상담 본문을 씁니다.</p>
-  <p>독자가 바로 이해하고 선택에 적용할 수 있는 구체적인 조언을 덧붙입니다.</p>
-</section>`).join("\n");
+function modeRule(input = {}, chapter = {}) {
+  const perspectives = asArray(chapter.requiredPerspectives).join(", ");
+  if (input.mode === "compatibility") {
+    return [
+      `- 최종 챕터 수는 궁합 모드 13개 중 현재 챕터 하나이며, 현재 chapter id는 ${chapter.id}이다.`,
+      "- 두 사람의 사주 차이, 감정 리듬, 현실 관계 운영법을 함께 해석한다.",
+      `- 본문 어딘가에 다음 관점이 자연스럽게 드러나야 한다: ${perspectives}.`,
+      "- personA와 personB의 정보가 모두 상담에 반영되어야 한다.",
+    ].join("\n");
+  }
   return [
-    expertPersona ? `[전문가 태도]\n${expertPersona}` : "",
-    `[전체 챕터 구성]\n${chapterPlanSummary}`,
-    `[현재 작성할 챕터]\nID: ${chapter.id}\n순서: ${chapter.order}\n제목: ${chapter.title}\n목적: ${chapter.purpose}\n필수 소제목: ${chapter.sections.join(" / ")}\n최소 본문 길이: 공백 제외 ${chapter.minLength}자 이상`,
-    `[검증된 사주와 연애 계산 입력]\n${stableStringify(input)}`,
-    `[작성 규칙]
-- 반드시 아래 HTML fragment 형식만 출력합니다.
-- <article data-chapter-id="${chapter.id}">로 시작하고, <h1>${chapter.title}</h1>을 포함합니다.
-- 필수 소제목을 모두 정확한 문자열의 <h2>로 사용합니다.
-- 챕터 ID, 챕터 제목, <h2> 소제목은 제공된 문자열을 한 글자도 바꾸지 않습니다.
-- 현재 챕터만 작성하고 다른 챕터를 섞지 않습니다.
-- 솔로 모드는 솔로 개인 연애 흐름만, 궁합 모드는 두 사람의 관계 흐름만 다룹니다.
-- 각 section에는 최소 2개의 <p> 본문을 씁니다.
-- 사주 입력의 pillars, tenGods, elementBalance, luckCycles, loveSignals, partner 정보가 있으면 그 신호를 우선 반영합니다.
-- 자미두수, 숙요점, 점성술처럼 입력에 없는 체계로 계산 근거를 바꾸지 않습니다.
-- raw JSON, schema, payload, prompt, debug, rawResultSummary, undefined, null, NaN, [object Object], localAssembly, fallback을 출력하지 않습니다.
-- 결혼, 재회, 이별, 운명을 확정하지 말고 조건과 흐름으로 표현합니다.
-- 명리 상담가가 직접 말하듯 전문적이고 정서적으로 자연스럽게 씁니다.`,
-    `[출력 형식]\n<article data-chapter-id="${chapter.id}">
-  <h1>${chapter.title}</h1>
-${sections}
-</article>`,
+    `- 최종 챕터 수는 솔로 모드 10개 중 현재 챕터 하나이며, 현재 chapter id는 ${chapter.id}이다.`,
+    "- personB가 없어도 오류처럼 쓰지 말고, 사용자의 개인 연애 흐름에 집중한다.",
+    `- 본문 어딘가에 다음 관점이 자연스럽게 드러나야 한다: ${perspectives}.`,
+  ].join("\n");
+}
+
+export function buildLoveSecretChapterPrompt({ input, chapter, chapterPlanSummary = "", expertPersona = "", previousSummary = "" }) {
+  return [
+    expertPersona ? `[상담자 관점]\n${expertPersona}` : "",
+    `[전체 챕터 플랜]\n${chapterPlanSummary}`,
+    previousSummary ? `[직전 챕터 요약]\n${previousSummary}` : "",
+    `[현재 작성할 챕터]\nID: ${chapter.id}\n순서: ${chapter.order}\n제목: ${chapter.title}\n목적: ${chapter.purpose}\n목표 분량: 공백 제외 ${chapter.minLength}자 이상`,
+    `[검증된 입력]\n${inputForPrompt(input)}`,
+    `[작성 원칙]
+- 자연스러운 한국어 상담체로 고객에게 직접 말하듯 작성한다.
+- 사주 구조 → 연애 심리 → 현실 행동 조언 순서가 흐름 안에서 느껴져야 한다.
+- 과도한 전문용어 나열, 같은 문장 반복, 챕터 제목 반복을 피한다.
+- "이 장에서는", "다음 장에서는" 같은 기계적인 안내문을 최소화한다.
+- "당신은 무조건", "반드시 헤어진다", "망한다", "100%"처럼 단정하는 표현을 쓰지 않는다.
+- 빈 챕터, JSON 덤프, 프롬프트 원문, AI 생성 언급, 샘플 문장, 예시 텍스트를 절대 넣지 않는다.
+${modeRule(input, chapter)}`,
+    `[반드시 이 HTML 조각만 반환]
+<section class="love-secret-chapter" data-chapter-id="${chapter.id}">
+  <h2>${chapter.title}</h2>
+
+  <div class="chapter-summary">
+    <p>이 챕터의 핵심 요약 3~5문장</p>
+  </div>
+
+  <div class="chapter-body">
+    <p>상담형 본문</p>
+    <p>상담형 본문</p>
+    <p>상담형 본문</p>
+    <p>상담형 본문</p>
+    <p>상담형 본문</p>
+  </div>
+
+  <div class="chapter-advice">
+    <h3>연애 비책</h3>
+    <ul>
+      <li>실천 조언 1</li>
+      <li>실천 조언 2</li>
+      <li>실천 조언 3</li>
+    </ul>
+  </div>
+</section>`,
   ].filter(Boolean).join("\n\n");
 }
 
 export function buildLoveSecretRepairPrompt({ input, chapter, previousHtml, validationErrors = [], expertPersona = "" }) {
   return [
-    "이전 HTML은 연애 비책 PDF 검증을 통과하지 못했습니다. 실패한 챕터만 다시 작성합니다.",
-    `검증 오류: ${validationErrors.join(", ")}`,
-    `이전 출력은 참고만 하고 그대로 반복하지 않습니다.\n${String(previousHtml || "").replace(/<[^>]+>/g, " ").slice(0, 1200)}`,
+    "이전 HTML은 연애 비책 PDF 검증을 통과하지 못했다. 전체 리포트를 다시 만들지 말고 실패한 현재 챕터만 다시 작성한다.",
+    `실패 사유: ${validationErrors.join(", ") || "unknown"}`,
+    `같은 chapter id와 title을 유지한다.\nchapter id: ${chapter.id}\nchapter title: ${chapter.title}`,
+    `이전 출력은 참고만 하고 그대로 반복하지 않는다.\n${String(previousHtml || "").replace(/<[^>]+>/g, " ").slice(0, 1200)}`,
     buildLoveSecretChapterPrompt({
       input,
       chapter,
-      chapterPlanSummary: "repair generation",
+      chapterPlanSummary: "repair only",
       expertPersona,
+      previousSummary: "",
     }),
   ].join("\n\n");
 }

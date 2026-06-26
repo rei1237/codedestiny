@@ -10,28 +10,48 @@
  * 사용 위치: PremiumBlurGate, locale 랜딩 페이지, premium-unlock 페이지
  */
 
+const GLOBAL_TRUST_SECTION_TEXT_TRANSLATIONS = {
+  ko: {
+    "globalTrust.001": "Trusted by",
+    "globalTrust.002": "SSL Secure",
+    "globalTrust.003": "User Rating",
+    "globalTrust.004": "Stripe Verified",
+    "globalTrust.005": "Refund Guide",
+    "globalTrust.006": "Privacy Policy",
+    "globalTrust.007": "Terms of Service",
+    "globalTrust.008": "Refund Policy",
+    "globalTrust.009": "About Us",
+    "globalTrust.010": "Advertising Policy",
+    "globalTrust.011": "Trust and security badges",
+    "globalTrust.012": "Global footer",
+  },
+};
+
+function globalTrustSectionText(key) {
+  return GLOBAL_TRUST_SECTION_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const TRUST_BADGES = [
   {
     icon: "👥",
-    label: "Trusted by",
+    label: globalTrustSectionText("globalTrust.001"),
     value: "100,000+ Users",
     sub: "Across 80+ countries worldwide",
   },
   {
     icon: "🔒",
-    label: "SSL Secure",
+    label: globalTrustSectionText("globalTrust.002"),
     value: "256-bit Encryption",
     sub: "Your data is always protected",
   },
   {
     icon: "⭐",
-    label: "User Rating",
+    label: globalTrustSectionText("globalTrust.003"),
     value: "4.9 / 5",
     sub: "Based on verified reviews",
   },
   {
     icon: "💳",
-    label: "Stripe Verified",
+    label: globalTrustSectionText("globalTrust.004"),
     value: "Safe Payments",
     sub: "All major cards & Apple Pay",
   },
@@ -43,19 +63,19 @@ const TRUST_BADGES = [
   },
   {
     icon: "🔄",
-    label: "Refund Guide",
+    label: globalTrustSectionText("globalTrust.005"),
     value: "7-Day Unused",
     sub: "Delivery-start limits apply",
   },
 ];
 
 const GLOBAL_FOOTER_LINKS = [
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/terms", label: "Terms of Service" },
-  { href: "/terms#refund-policy", label: "Refund Policy" },
-  { href: "/about", label: "About Us" },
+  { href: "/privacy", label: globalTrustSectionText("globalTrust.006") },
+  { href: "/terms", label: globalTrustSectionText("globalTrust.007") },
+  { href: "/terms#refund-policy", label: globalTrustSectionText("globalTrust.008") },
+  { href: "/about", label: globalTrustSectionText("globalTrust.009") },
   { href: "/disclaimer", label: "Disclaimer" },
-  { href: "/advertising-policy", label: "Advertising Policy" },
+  { href: "/advertising-policy", label: globalTrustSectionText("globalTrust.010") },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];
@@ -75,7 +95,7 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
     <div>
       {/* ── 신뢰 배지 섹션 ── */}
       <section
-        aria-label="Trust and security badges"
+        aria-label={globalTrustSectionText("globalTrust.011")}
         style={{
           maxWidth: 900,
           margin: "0 auto",
@@ -157,7 +177,7 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
       {/* ── 글로벌 영문 푸터 ── */}
       {showFooter && (
         <footer
-          aria-label="Global footer"
+          aria-label={globalTrustSectionText("globalTrust.012")}
           style={{
             background: "rgba(7,11,31,0.96)",
             borderTop: "1px solid rgba(51,65,85,0.5)",
@@ -322,10 +342,10 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
             >
               <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px" }}>
                 {[
-                  { href: "/privacy", label: "Privacy Policy" },
-                  { href: "/terms", label: "Terms of Service" },
+                  { href: "/privacy", label: globalTrustSectionText("globalTrust.006") },
+                  { href: "/terms", label: globalTrustSectionText("globalTrust.007") },
                   { href: "/disclaimer", label: "Disclaimer" },
-                  { href: "/advertising-policy", label: "Advertising Policy" },
+                  { href: "/advertising-policy", label: globalTrustSectionText("globalTrust.010") },
                   { href: "/contact", label: "Refund & Support" },
                 ].map((l) => (
                   <a

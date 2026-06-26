@@ -5,6 +5,45 @@
   'use strict';
 
   var EL_KO = { wood: '목(木)', fire: '화(火)', earth: '토(土)', metal: '금(金)', water: '수(水)' };
+  var COMPAT_LLM_TEXT_TRANSLATIONS = {
+    ko: {
+      sajuTitle: '🤖 AI 심층 궁합 프롬프트 (사주)',
+      westernTitle: '🤖 AI 심층 궁합 프롬프트 (서양 점성술)',
+      ziweiTitle: '🤖 AI 심층 궁합 프롬프트 (자미두수)',
+      vedicTitle: '🤖 AI 심층 궁합 프롬프트 (베다점)',
+      sukuyoTitle: '🤖 AI 심층 궁합 프롬프트 (숙요점)',
+    },
+    en: {
+      sajuTitle: '🤖 AI Deep Compatibility Prompt (Saju)',
+      westernTitle: '🤖 AI Deep Compatibility Prompt (Western Astrology)',
+      ziweiTitle: '🤖 AI Deep Compatibility Prompt (Zi Wei Dou Shu)',
+      vedicTitle: '🤖 AI Deep Compatibility Prompt (Vedic Astrology)',
+      sukuyoTitle: '🤖 AI Deep Compatibility Prompt (Sukuyo)',
+    },
+    ja: {
+      sajuTitle: '🤖 AI深層相性プロンプト（四柱推命）',
+      westernTitle: '🤖 AI深層相性プロンプト（西洋占星術）',
+      ziweiTitle: '🤖 AI深層相性プロンプト（紫微斗数）',
+      vedicTitle: '🤖 AI深層相性プロンプト（ヴェーダ占星術）',
+      sukuyoTitle: '🤖 AI深層相性プロンプト（宿曜）',
+    },
+  };
+
+  function compatLlmLocale() {
+    try {
+      if (global.cdGetCurrentLanguage) return String(global.cdGetCurrentLanguage() || 'ko').slice(0, 2);
+    } catch (_) {}
+    try {
+      return String(localStorage.getItem('cd_locale') || localStorage.getItem('cd_lang') || localStorage.getItem('lang') || 'ko').slice(0, 2);
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function compatLlmText(key) {
+    var locale = compatLlmLocale();
+    var table = COMPAT_LLM_TEXT_TRANSLATIONS[locale] || COMPAT_LLM_TEXT_TRANSLATIONS.en;
+    return table[key] || COMPAT_LLM_TEXT_TRANSLATIONS.ko[key] || key;
+  }
 
   var GANHE = { 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' };
   var LIUHE = { 子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯', 辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午' };
@@ -579,7 +618,7 @@
       if (!host) return;
       mountCard(host, {
         idPrefix: 'cdLlmSaju',
-        title: '🤖 AI 심층 궁합 프롬프트 (사주)',
+        title: compatLlmText('sajuTitle'),
         getPrompt: function () {
           var payload = buildSajuUserPayload(p1, p2, n1, n2, type, nameSelf, namePartner, partnerMeta, sajuExtras);
           return buildFullPrompt('saju', JSON.stringify(payload, null, 2));
@@ -591,7 +630,7 @@
       if (!host) return;
       mountCard(host, {
         idPrefix: 'cdLlmWest',
-        title: '🤖 AI 심층 궁합 프롬프트 (서양 점성술)',
+        title: compatLlmText('westernTitle'),
         getPrompt: function () {
           return buildFullPrompt('western', JSON.stringify(payloadObj, null, 2));
         }
@@ -602,7 +641,7 @@
       if (!host) return;
       mountCard(host, {
         idPrefix: 'cdLlmZw',
-        title: '🤖 AI 심층 궁합 프롬프트 (자미두수)',
+        title: compatLlmText('ziweiTitle'),
         getPrompt: function () {
           return buildFullPrompt('ziwei', JSON.stringify(payloadObj, null, 2));
         }
@@ -613,7 +652,7 @@
       if (!host) return;
       mountCard(host, {
         idPrefix: 'cdLlmVed',
-        title: '🤖 AI 심층 궁합 프롬프트 (베다점)',
+        title: compatLlmText('vedicTitle'),
         getPrompt: function () {
           return buildFullPrompt('vedic', JSON.stringify(payloadObj, null, 2));
         }
@@ -624,7 +663,7 @@
       if (!host) return;
       mountCard(host, {
         idPrefix: 'cdLlmSukuyo',
-        title: '🤖 AI 심층 궁합 프롬프트 (숙요점)',
+        title: compatLlmText('sukuyoTitle'),
         getPrompt: function () {
           return buildFullPrompt('sukuyo', JSON.stringify(payloadObj, null, 2));
         }

@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterIOverview | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_1_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "I. 연간 파동 총론 - 올해의 기본 기조",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "I. Annual Wave Overview - The Year’s Core Tone",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "I. 年間波動総論 - 今年の基本基調",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyHeavenlyStemAnalysis: "올해 세운의 천간 분석",
   yearlyEarthlyBranchAnalysis: "올해 세운의 지지 분석",
@@ -26,8 +41,8 @@ export default function NewYearCh1_Overview({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>I. 연간 파동 총론 - 올해의 기본 기조</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_1_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_1_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -40,7 +55,7 @@ export default function NewYearCh1_Overview({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "I. 연간 파동 총론 - 올해의 기본 기조"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_1_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

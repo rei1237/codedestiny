@@ -32,6 +32,31 @@
     '.prem-card',
     '.fc-toggle-btn'
   ].join(',');
+  var MOBILE_INTERACTION_PATCH_COPY = {
+    ko: { locationSeoul: '대한민국 (서울)' },
+    en: { locationSeoul: 'South Korea (Seoul)' },
+    ja: { locationSeoul: '韓国（ソウル）' },
+    zh: { locationSeoul: '韩国（首尔）' }
+  };
+
+  function getMobileInteractionLocale() {
+    try {
+      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      if (!raw && window.localStorage) raw = localStorage.getItem('cd_locale') || localStorage.getItem('code-destiny-locale') || '';
+      raw = String(raw || '').toLowerCase();
+      if (raw.indexOf('ja') === 0) return 'ja';
+      if (raw.indexOf('zh') === 0) return 'zh';
+      if (raw.indexOf('en') === 0) return 'en';
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function mobileInteractionPatchText(key) {
+    var locale = getMobileInteractionLocale();
+    var copy = MOBILE_INTERACTION_PATCH_COPY[locale] || MOBILE_INTERACTION_PATCH_COPY.ko;
+    return copy[key] || MOBILE_INTERACTION_PATCH_COPY.ko[key] || 'Translation pending';
+  }
 
   function markCardScrollLock(durationMs) {
     var until = Date.now() + (durationMs || 220);
@@ -675,7 +700,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-4ecc9cdf618d').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-2d18cf90d088').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +782,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-4ecc9cdf618d'
+      'js/animal-totem-experience.js?v=build-2d18cf90d088'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-4ecc9cdf618d'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-4ecc9cdf618d'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-4ecc9cdf618d'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-2d18cf90d088'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-2d18cf90d088'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-2d18cf90d088'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-4ecc9cdf618d'],
-    openDreamModal: ['js/dream-ledger.js?v=build-4ecc9cdf618d'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-2d18cf90d088'],
+    openDreamModal: ['js/dream-ledger.js?v=build-2d18cf90d088'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-4ecc9cdf618d']
+    openSibylModal: ['js/sibyl-system.js?v=build-2d18cf90d088']
   };
 
   function normalizeScriptSrc(src) {
@@ -1545,7 +1570,7 @@
             lng: profile.location && profile.location.lng != null ? profile.location.lng : 126.978,
             tzOffset: profile.location && profile.location.tzOffset != null ? profile.location.tzOffset : 9,
             baseTzOffset: profile.location && profile.location.baseTzOffset != null ? profile.location.baseTzOffset : 9,
-            label: profile.location && profile.location.label ? profile.location.label : '대한민국 (서울)'
+            label: profile.location && profile.location.label ? profile.location.label : mobileInteractionPatchText('locationSeoul')
           }
         };
         // vedic-astrology.html에서 읽을 수 있도록 저장

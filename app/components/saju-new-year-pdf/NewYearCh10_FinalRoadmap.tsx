@@ -5,6 +5,21 @@ type Props = {
   chapter: SajuNewYearChapterXFinalRoadmap | null | undefined;
 };
 
+const NEW_YEAR_CHAPTER_10_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "X. 최종 실행 로드맵 - 연말 회수 전략",
+    empty: "챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "X. Final Execution Roadmap - Year-End Recovery Strategy",
+    empty: "Chapter data is not ready, so summary mode is shown.",
+  },
+  ja: {
+    title: "X. 最終実行ロードマップ - 年末回収戦略",
+    empty: "チャプターデータが未準備のため、要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Record<string, string> = {
   yearlyCoreSummary: "연간 핵심 요약",
   mustLeverageOpportunity: "반드시 살릴 기회",
@@ -27,8 +42,8 @@ export default function NewYearCh10_FinalRoadmap({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>X. 최종 실행 로드맵 - 연말 회수 전략</h2>
-        <p>챕터 데이터가 준비되지 않아 요약 모드로 표시합니다.</p>
+        <h2>{NEW_YEAR_CHAPTER_10_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{NEW_YEAR_CHAPTER_10_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -41,7 +56,7 @@ export default function NewYearCh10_FinalRoadmap({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "X. 최종 실행 로드맵 - 연말 회수 전략"}</h2>
+      <h2>{chapter.title || NEW_YEAR_CHAPTER_10_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row.key}>
           {row.label}: {row.content}

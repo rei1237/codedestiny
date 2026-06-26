@@ -12,6 +12,87 @@
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
   var LIFEBOOK_TARGET_YEAR_MIN = 1900;
   var LIFEBOOK_TARGET_YEAR_MAX = 2099;
+  var LIFE_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      'access.unverified': '결제 접근 권한을 확인하지 못했습니다.',
+      'access.notConfirmed': '결제 또는 이용권 확인이 완료되지 않았습니다. 결제창을 닫았다면 다시 생성 버튼을 눌러 주세요. 이미 결제되었다면 결제 내역 확인 후 문의해 주세요.',
+      'birthCountry.seoul': '대한민국(서울)',
+      'payment.cancelled': '결제가 취소되었습니다.',
+      'payment.confirmError': '결제 확인 중 오류가 발생했습니다.',
+      'payment.checkHistoryRetry': '결제 내역을 확인한 뒤 다시 시도해 주세요.',
+      'validation.birthDate': '생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.',
+      'validation.exactBirthTime': '인생의 책 PDF는 정확한 태어난 시·분이 필요합니다. 낮 12시 보수 계산 또는 출생시간 모름 상태로는 생성할 수 없습니다.',
+      'validation.needBirthTime': '인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.',
+      'validation.needSaju': '사주 계산을 먼저 완료해 주세요.',
+    },
+    en: {
+      'access.unverified': 'We could not verify your payment access.',
+      'access.notConfirmed': 'Payment or pass access has not been confirmed. If you closed the payment window, press the generate button again. If payment was already completed, check your payment history and contact support.',
+      'birthCountry.seoul': 'South Korea (Seoul)',
+      'payment.cancelled': 'Payment was cancelled.',
+      'payment.confirmError': 'An error occurred while confirming payment.',
+      'payment.checkHistoryRetry': 'Please check your payment history, then try again.',
+      'validation.birthDate': 'Please check your birth date. Birth information is required to create your Life Book.',
+      'validation.exactBirthTime': 'The Life Book PDF needs an exact birth hour and minute. It cannot be created with the conservative noon calculation or an unknown birth time.',
+      'validation.needBirthTime': 'The Life Book PDF needs your birth time to read the hour pillar and major fortune flow precisely. Please enter your birth time in the profile card.',
+      'validation.needSaju': 'Please complete the Saju calculation first.',
+    },
+    ja: {
+      'access.unverified': '決済アクセス権限を確認できませんでした。',
+      'access.notConfirmed': '決済または利用券の確認が完了していません。決済画面を閉じた場合は、もう一度生成ボタンを押してください。すでに決済済みの場合は、決済履歴を確認してお問い合わせください。',
+      'birthCountry.seoul': '韓国（ソウル）',
+      'payment.cancelled': '決済がキャンセルされました。',
+      'payment.confirmError': '決済確認中にエラーが発生しました。',
+      'payment.checkHistoryRetry': '決済履歴を確認してから、もう一度お試しください。',
+      'validation.birthDate': '生年月日情報を確認してください。人生の書を生成するには出生情報が必要です。',
+      'validation.exactBirthTime': '人生の書PDFには正確な出生時刻（時・分）が必要です。正午の保守計算や出生時刻不明の状態では生成できません。',
+      'validation.needBirthTime': '人生の書PDFでは時柱と大運の流れまで精密に見るため、出生時刻が必要です。プロフィールカードで出生時刻を入力してください。',
+      'validation.needSaju': '先に四柱推命の計算を完了してください。',
+    },
+    'zh-CN': {
+      'access.unverified': '未能确认付款访问权限。',
+      'access.notConfirmed': '付款或使用券确认尚未完成。如果关闭了付款窗口，请再次点击生成按钮。若已完成付款，请确认付款记录后联系客服。',
+      'birthCountry.seoul': '韩国（首尔）',
+      'payment.cancelled': '付款已取消。',
+      'payment.confirmError': '确认付款时发生错误。',
+      'payment.checkHistoryRetry': '请确认付款记录后再次尝试。',
+      'validation.birthDate': '请确认出生日期信息。生成生命之书需要出生信息。',
+      'validation.exactBirthTime': '生命之书 PDF 需要准确的出生时、分。使用中午 12 点保守计算或出生时间未知状态时无法生成。',
+      'validation.needBirthTime': '生命之书 PDF 需要出生时间，以便精细查看时柱与大运流向。请在个人资料卡中输入出生时间。',
+      'validation.needSaju': '请先完成四柱命理计算。',
+    },
+    'zh-TW': {
+      'access.unverified': '未能確認付款存取權限。',
+      'access.notConfirmed': '付款或使用券確認尚未完成。如果關閉了付款視窗，請再次點擊生成按鈕。若已完成付款，請確認付款紀錄後聯絡客服。',
+      'birthCountry.seoul': '韓國（首爾）',
+      'payment.cancelled': '付款已取消。',
+      'payment.confirmError': '確認付款時發生錯誤。',
+      'payment.checkHistoryRetry': '請確認付款紀錄後再次嘗試。',
+      'validation.birthDate': '請確認出生日期資訊。生成生命之書需要出生資訊。',
+      'validation.exactBirthTime': '生命之書 PDF 需要準確的出生時、分。使用中午 12 點保守計算或出生時間未知狀態時無法生成。',
+      'validation.needBirthTime': '生命之書 PDF 需要出生時間，以便精細查看時柱與大運流向。請在個人資料卡中輸入出生時間。',
+      'validation.needSaju': '請先完成四柱命理計算。',
+    },
+  };
+
+  function _lifeBookLang() {
+    var lang = 'ko';
+    try {
+      if (typeof window !== 'undefined' && typeof window.cdGetCurrentLanguage === 'function') lang = window.cdGetCurrentLanguage();
+      else if (typeof window !== 'undefined' && window.localStorage) lang = window.localStorage.getItem('cd_lang') || lang;
+    } catch (_) {}
+    lang = String(lang || 'ko').toLowerCase();
+    if (lang === 'zh' || lang === 'zh-cn' || lang === 'zh-hans') return 'zh-CN';
+    if (lang === 'zh-tw' || lang === 'zh-hant' || lang === 'zh-hk') return 'zh-TW';
+    if (lang.indexOf('ja') === 0) return 'ja';
+    if (lang.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _lifeBookText(key) {
+    var table = LIFE_BOOK_TEXT_TRANSLATIONS[_lifeBookLang()] || LIFE_BOOK_TEXT_TRANSLATIONS.en;
+    return table[key] || LIFE_BOOK_TEXT_TRANSLATIONS.en[key] || 'Translation pending';
+  }
 
   var CHAPTER_TITLES = [
     '프롤로그 - 내 인생의 핵심 코드',
@@ -571,7 +652,7 @@ function _isLifeBookGenerationBusy() {
           resolve({
             ok: !!accessGrant,
             status: accessGrant ? 200 : 500,
-            message: accessGrant ? '' : '결제 접근 권한을 확인하지 못했습니다.',
+            message: accessGrant ? '' : _lifeBookText('access.unverified'),
             accessGrant: accessGrant,
             premiumAccessToken: issuedToken,
             requestId: requestId,
@@ -580,7 +661,7 @@ function _isLifeBookGenerationBusy() {
         function cancel() {
           if (settled) return;
           settled = true;
-          resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
+          resolve({ ok: false, status: 402, message: _lifeBookText('payment.cancelled'), requestId: requestId });
         }
         function fail(error) {
           if (settled) return;
@@ -1416,7 +1497,7 @@ function _isLifeBookGenerationBusy() {
       var hourEl = document.getElementById('birthHour');
       var minEl = document.getElementById('birthMinute');
       /* 출생지는 모달 전용 선택기를 우선 사용하고 없으면 기본값을 사용 */
-      var locationData = { label: '대한민국(서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+      var locationData = { label: _lifeBookText('birthCountry.seoul'), lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
       var countrySel = document.getElementById('lbBirthCountry') || document.getElementById('birthCountry');
       if (countrySel && countrySel.selectedIndex >= 0) {
         var opt = countrySel.options[countrySel.selectedIndex];
@@ -1475,17 +1556,17 @@ function _isLifeBookGenerationBusy() {
 
   function _validateLifeBookProfileForGeneration(profile) {
     if (!profile) {
-      return { ok: false, message: '사주 계산을 먼저 완료해 주세요.' };
+      return { ok: false, message: _lifeBookText('validation.needSaju') };
     }
     var birth = (profile && profile.birth) || {};
     if (!birth.year || !birth.month || !birth.day) {
-      return { ok: false, message: '생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.' };
+      return { ok: false, message: _lifeBookText('validation.birthDate') };
     }
     if (_isLifeBookUnknownBirthTimeProfile(profile)) {
       return {
         ok: false,
         code: 'BIRTH_TIME_REQUIRED',
-        message: '인생의 책 PDF는 정확한 태어난 시·분이 필요합니다. 낮 12시 보수 계산 또는 출생시간 모름 상태로는 생성할 수 없습니다.'
+        message: _lifeBookText('validation.exactBirthTime')
       };
     }
     var hour = Number(birth.hour);
@@ -1493,7 +1574,7 @@ function _isLifeBookGenerationBusy() {
       return {
         ok: false,
         code: 'BIRTH_TIME_REQUIRED',
-        message: '인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.'
+        message: _lifeBookText('validation.needBirthTime')
       };
     }
     return { ok: true };
@@ -1757,7 +1838,7 @@ function _isLifeBookGenerationBusy() {
     /* 출생지 선택기 초기화 */
     if (typeof window.populateCountrySelectById === 'function') {
       var locLabel = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.location && window.__cdActiveBirthProfile.location.label)
-        ? window.__cdActiveBirthProfile.location.label : '대한민국(서울)';
+        ? window.__cdActiveBirthProfile.location.label : _lifeBookText('birthCountry.seoul');
       window.populateCountrySelectById('lbBirthCountry', locLabel);
     }
 
@@ -1905,7 +1986,7 @@ function _isLifeBookGenerationBusy() {
         try {
           var gate = await _runLifeBookCoinGate(gateReportId, profileCacheKey);
           if (!gate.ok || !gate.accessGrant) {
-            var failMsg = String(gate && gate.message ? gate.message : '결제 또는 이용권 확인이 완료되지 않았습니다. 결제창을 닫았다면 다시 생성 버튼을 눌러 주세요. 이미 결제되었다면 결제 내역 확인 후 문의해 주세요.');
+            var failMsg = String(gate && gate.message ? gate.message : _lifeBookText('access.notConfirmed'));
             _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: Number(gate && gate.status || 500), message: failMsg });
             _logLifeBookError(gate || { message: failMsg }, { stage: 'billing', reportId: gateReportId });
             _showLifeBookError(failMsg, { reportId: gateReportId, sessionId: gateSessionId, requestId: String(gate && gate.requestId || ''), profileKey: profileCacheKey });
@@ -1936,10 +2017,10 @@ function _isLifeBookGenerationBusy() {
             targetYear: targetYear,
           });
         } catch (error) {
-          var message = String(error && error.message ? error.message : '결제 확인 중 오류가 발생했습니다.');
+          var message = String(error && error.message ? error.message : _lifeBookText('payment.confirmError'));
           _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: 500, message: message });
           _logLifeBookError(error, { stage: 'billing', reportId: gateReportId });
-          _showLifeBookError(message + ' 결제 내역을 확인한 뒤 다시 시도해 주세요.', { reportId: gateReportId, sessionId: gateSessionId, profileKey: profileCacheKey });
+          _showLifeBookError(message + ' ' + _lifeBookText('payment.checkHistoryRetry'), { reportId: gateReportId, sessionId: gateSessionId, profileKey: profileCacheKey });
         }
       })();
       return;

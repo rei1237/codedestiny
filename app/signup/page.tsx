@@ -10,6 +10,27 @@ import { waitForAuthLogoutToSettle } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
+const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    "signupPage.001": "개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.",
+    "signupPage.002": "이름, 아이디(이메일), 비밀번호를 확인해 주세요.",
+    "signupPage.003": "휴대폰 번호를 정확히 입력해 주세요. 예: 01012345678",
+    "signupPage.004": "회원가입 처리 중 오류가 발생했습니다.",
+    "signupPage.005": "회원가입 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.",
+    "signupPage.006": "이름",
+    "signupPage.007": "8자 이상",
+    "signupPage.008": "선택 안 함",
+    "signupPage.009": "남성",
+    "signupPage.010": "여성",
+    "signupPage.011": "추천인 코드",
+    "signupPage.012": "[필수] 개인정보처리방침 전문을 읽고 동의합니다.",
+    "signupPage.013": "[필수] 이용약관 전문을 읽고 동의합니다.",
+  },
+} as const;
+
+function signupPageText(key: keyof typeof SIGNUP_PAGE_TEXT_TRANSLATIONS.ko): string {
+  return SIGNUP_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 declare global {
   interface Window {
     CODE_DESTINY_API_BASE_URL?: string;
@@ -427,18 +448,18 @@ export default function SignupPage() {
     abortBootstrapAuthCheck();
 
     if (!hasRequiredConsents) {
-      setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");
+      setError(signupPageText("signupPage.001"));
       return;
     }
 
     if (!name.trim() || !loginId.trim() || password.length < 8) {
-      setError("이름, 아이디(이메일), 비밀번호를 확인해 주세요.");
+      setError(signupPageText("signupPage.002"));
       return;
     }
 
     const normalizedPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber);
     if (!normalizedPhoneNumber) {
-      setError("휴대폰 번호를 정확히 입력해 주세요. 예: 01012345678");
+      setError(signupPageText("signupPage.003"));
       return;
     }
 
@@ -513,9 +534,9 @@ export default function SignupPage() {
 
       redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "회원가입 처리 중 오류가 발생했습니다.";
+      const message = e instanceof Error ? e.message : signupPageText("signupPage.004");
       if (message === "Failed to fetch") {
-        setError("회원가입 서버에 연결하지 못했습니다. 네트워크 상태 또는 API 배포 라우팅(/api) 설정을 확인해 주세요.");
+        setError(signupPageText("signupPage.005"));
         return;
       }
       setError(message);
@@ -530,7 +551,7 @@ export default function SignupPage() {
     abortBootstrapAuthCheck();
 
     if (!hasRequiredConsents) {
-      setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");
+      setError(signupPageText("signupPage.001"));
       return;
     }
 
@@ -626,7 +647,7 @@ export default function SignupPage() {
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     disabled={loading || socialLoading !== null}
-                    placeholder="이름"
+                    placeholder={signupPageText("signupPage.006")}
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
@@ -671,7 +692,7 @@ export default function SignupPage() {
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       disabled={loading || socialLoading !== null}
-                      placeholder="8자 이상"
+                      placeholder={signupPageText("signupPage.007")}
                       className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 pr-14 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <button
@@ -724,9 +745,9 @@ export default function SignupPage() {
                     disabled={loading || socialLoading !== null}
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 [color-scheme:dark] outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <option value="OTHER">선택 안 함</option>
-                    <option value="M">남성</option>
-                    <option value="F">여성</option>
+                    <option value="OTHER">{signupPageText("signupPage.008")}</option>
+                    <option value="M">{signupPageText("signupPage.009")}</option>
+                    <option value="F">{signupPageText("signupPage.010")}</option>
                   </select>
                 </div>
 
@@ -739,7 +760,7 @@ export default function SignupPage() {
                     value={referralCode}
                     onChange={(event) => setReferralCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 24))}
                     disabled={loading || socialLoading !== null}
-                    placeholder="추천인 코드"
+                    placeholder={signupPageText("signupPage.011")}
                     className="h-12 w-full rounded-xl border border-amber-100/30 bg-slate-950/55 px-4 text-sm font-semibold uppercase tracking-[0.08em] text-amber-50 outline-none transition placeholder:tracking-normal placeholder:text-amber-100/38 focus:border-amber-200/70 focus:ring-2 focus:ring-amber-200/25 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <p className="mt-2 text-[11px] leading-5 text-amber-50/78">
@@ -797,7 +818,7 @@ export default function SignupPage() {
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                     className="sr-only"
                   />
-                  <span>[필수] 개인정보처리방침 전문을 읽고 동의합니다.</span>
+                  <span>{signupPageText("signupPage.012")}</span>
                 </label>
               </article>
 
@@ -828,7 +849,7 @@ export default function SignupPage() {
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                     className="sr-only"
                   />
-                  <span>[필수] 이용약관 전문을 읽고 동의합니다.</span>
+                  <span>{signupPageText("signupPage.013")}</span>
                 </label>
               </article>
 

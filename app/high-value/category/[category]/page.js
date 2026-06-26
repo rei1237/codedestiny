@@ -10,6 +10,21 @@ import {
 
 export const dynamicParams = false;
 
+const HIGH_VALUE_CATEGORY_METADATA_COPY = {
+  ko: {
+    notFoundTitle: "카테고리를 찾을 수 없습니다 | Code Destiny",
+  },
+  en: {
+    notFoundTitle: "Category not found | Code Destiny",
+  },
+  ja: {
+    notFoundTitle: "カテゴリが見つかりません | Code Destiny",
+  },
+  zh: {
+    notFoundTitle: "未找到分类 | Code Destiny",
+  },
+};
+
 export function generateStaticParams() {
   return HIGH_VALUE_CATEGORIES.map((item) => ({ category: item.slug }));
 }
@@ -32,7 +47,7 @@ export function generateMetadata({ params }) {
   const category = getHighValueCategoryBySlug(params?.category);
   if (!category) {
     return {
-      title: "카테고리를 찾을 수 없습니다 | Code Destiny",
+      title: HIGH_VALUE_CATEGORY_METADATA_COPY.ko.notFoundTitle,
       robots: { index: false, follow: false },
     };
   }

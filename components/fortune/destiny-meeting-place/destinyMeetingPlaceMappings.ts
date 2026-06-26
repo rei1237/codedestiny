@@ -1,5 +1,74 @@
 import type { DestinyElement, DestinyPlaceType } from "./destinyMeetingPlaceTypes";
 
+const DESTINY_MEETING_PLACE_MAPPING_TEXT_TRANSLATIONS = {
+  ko: {
+    "tenStar.expression.title": "식상형 만남 루트",
+    "tenStar.expression.description": "표현과 콘텐츠, 취미 활동 속에서 인연이 열립니다.",
+    "tenStar.wealth.title": "재성형 만남 루트",
+    "tenStar.wealth.description": "현실적인 라이프스타일 공간에서 신뢰가 쌓입니다.",
+    "tenStar.officer.title": "관성형 만남 루트",
+    "tenStar.officer.description": "공식적인 환경, 학습과 일의 접점에서 안정적인 인연이 형성됩니다.",
+    "tenStar.resource.title": "인성형 만남 루트",
+    "tenStar.resource.description": "치유와 사색, 배움의 공간에서 깊은 인연이 이어집니다.",
+    "tenStar.peer.title": "비겁형 만남 루트",
+    "tenStar.peer.description": "친구 네트워크와 팀 활동에서 인연 운이 강하게 열립니다.",
+  },
+  en: {
+    "tenStar.expression.title": "Expression-Type Meeting Route",
+    "tenStar.expression.description": "Connections open through expression, content, hobbies, and shared activity.",
+    "tenStar.wealth.title": "Wealth-Type Meeting Route",
+    "tenStar.wealth.description": "Trust gathers in realistic lifestyle spaces.",
+    "tenStar.officer.title": "Officer-Type Meeting Route",
+    "tenStar.officer.description": "Steady connections form in formal settings and where learning meets work.",
+    "tenStar.resource.title": "Resource-Type Meeting Route",
+    "tenStar.resource.description": "Deep bonds continue through healing, reflection, and places of learning.",
+    "tenStar.peer.title": "Peer-Type Meeting Route",
+    "tenStar.peer.description": "Relationship luck opens strongly through friend networks and team activities.",
+  },
+  ja: {
+    "tenStar.expression.title": "食傷型の出会いルート",
+    "tenStar.expression.description": "表現、コンテンツ、趣味の活動の中で縁が開きます。",
+    "tenStar.wealth.title": "財星型の出会いルート",
+    "tenStar.wealth.description": "現実的なライフスタイル空間で信頼が積み重なります。",
+    "tenStar.officer.title": "官星型の出会いルート",
+    "tenStar.officer.description": "公的な環境や学びと仕事の接点で、安定した縁が形になります。",
+    "tenStar.resource.title": "印星型の出会いルート",
+    "tenStar.resource.description": "癒やし、思索、学びの場で深い縁がつながります。",
+    "tenStar.peer.title": "比劫型の出会いルート",
+    "tenStar.peer.description": "友人ネットワークやチーム活動の中で、縁の運が強く開きます。",
+  },
+  "zh-CN": {
+    "tenStar.expression.title": "食伤型相遇路线",
+    "tenStar.expression.description": "缘分会在表达、内容、兴趣活动之中开启。",
+    "tenStar.wealth.title": "财星型相遇路线",
+    "tenStar.wealth.description": "信任会在现实的生活方式空间里慢慢累积。",
+    "tenStar.officer.title": "官星型相遇路线",
+    "tenStar.officer.description": "稳定缘分会在正式环境、学习与工作的交汇处形成。",
+    "tenStar.resource.title": "印星型相遇路线",
+    "tenStar.resource.description": "深层缘分会在疗愈、思考与学习空间中延续。",
+    "tenStar.peer.title": "比劫型相遇路线",
+    "tenStar.peer.description": "朋友网络与团队活动会强力打开缘分运。",
+  },
+  "zh-TW": {
+    "tenStar.expression.title": "食傷型相遇路線",
+    "tenStar.expression.description": "緣分會在表達、內容、興趣活動之中開啟。",
+    "tenStar.wealth.title": "財星型相遇路線",
+    "tenStar.wealth.description": "信任會在現實的生活方式空間裡慢慢累積。",
+    "tenStar.officer.title": "官星型相遇路線",
+    "tenStar.officer.description": "穩定緣分會在正式環境、學習與工作的交會處形成。",
+    "tenStar.resource.title": "印星型相遇路線",
+    "tenStar.resource.description": "深層緣分會在療癒、思考與學習空間中延續。",
+    "tenStar.peer.title": "比劫型相遇路線",
+    "tenStar.peer.description": "朋友網絡與團隊活動會強力打開緣分運。",
+  },
+} as const;
+
+type DestinyMeetingPlaceMappingTextKey = keyof typeof DESTINY_MEETING_PLACE_MAPPING_TEXT_TRANSLATIONS.ko;
+
+function destinyMeetingPlaceMappingText(key: DestinyMeetingPlaceMappingTextKey): string {
+  return DESTINY_MEETING_PLACE_MAPPING_TEXT_TRANSLATIONS.ko[key] || DESTINY_MEETING_PLACE_MAPPING_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 export const ELEMENT_LABEL: Record<DestinyElement, string> = {
   wood: "목(木)",
   fire: "화(火)",
@@ -193,32 +262,32 @@ export const STYLING_GUIDE_BY_ELEMENT: Record<DestinyElement, { colors: string[]
 
 export const TEN_STAR_MEETING_STYLE: Record<"expression" | "wealth" | "officer" | "resource" | "peer", { title: string; description: string; examples: string[]; caution: string }> = {
   expression: {
-    title: "식상형 만남 루트",
-    description: "표현과 콘텐츠, 취미 활동 속에서 인연이 열립니다.",
+    title: destinyMeetingPlaceMappingText("tenStar.expression.title"),
+    description: destinyMeetingPlaceMappingText("tenStar.expression.description"),
     examples: ["원데이 클래스", "공연/체험형 전시", "SNS 기반 소모임"],
     caution: "흥분 속도만 빠르면 깊이는 얕아질 수 있어, 대화 시간을 반드시 확보하세요.",
   },
   wealth: {
-    title: "재성형 만남 루트",
-    description: "현실적인 라이프스타일 공간에서 신뢰가 쌓입니다.",
+    title: destinyMeetingPlaceMappingText("tenStar.wealth.title"),
+    description: destinyMeetingPlaceMappingText("tenStar.wealth.description"),
     examples: ["로컬 맛집", "쇼핑/디자인 거리", "생활형 동네 카페"],
     caution: "조건 중심 비교를 줄이고 감정의 미세한 신호도 함께 보세요.",
   },
   officer: {
-    title: "관성형 만남 루트",
-    description: "공식적인 환경, 학습과 일의 접점에서 안정적 인연이 형성됩니다.",
+    title: destinyMeetingPlaceMappingText("tenStar.officer.title"),
+    description: destinyMeetingPlaceMappingText("tenStar.officer.description"),
     examples: ["스터디", "직무 세미나", "자격 과정"],
     caution: "너무 신중하면 타이밍을 놓칠 수 있으니, 가벼운 제안 한 번은 먼저 건네세요.",
   },
   resource: {
-    title: "인성형 만남 루트",
-    description: "치유와 사색, 배움의 공간에서 깊은 인연이 이어집니다.",
+    title: destinyMeetingPlaceMappingText("tenStar.resource.title"),
+    description: destinyMeetingPlaceMappingText("tenStar.resource.description"),
     examples: ["도서관", "명상 클래스", "독립 전시"],
     caution: "감정은 깊지만 속도가 느릴 수 있으니 작은 리액션을 자주 보여주세요.",
   },
   peer: {
-    title: "비겁형 만남 루트",
-    description: "친구 네트워크와 팀 활동에서 인연 운이 강하게 열립니다.",
+    title: destinyMeetingPlaceMappingText("tenStar.peer.title"),
+    description: destinyMeetingPlaceMappingText("tenStar.peer.description"),
     examples: ["동호회", "팀 스포츠", "친구 소개 모임"],
     caution: "친구 모드에만 머물지 않게 1:1 대화 타이밍을 별도로 만드세요.",
   },

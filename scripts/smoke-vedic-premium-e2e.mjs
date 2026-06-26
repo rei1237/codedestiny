@@ -75,29 +75,21 @@ function extractPromptValue(prompt, label) {
 function fakeChapterHtml(prompt) {
   const id = extractPromptValue(prompt, "ID") || "vedic_soul_map";
   const title = extractPromptValue(prompt, "제목") || "베다점 프리미엄 리포트";
-  const sectionLine = extractPromptValue(prompt, "필수 소제목");
-  const sections = sectionLine.split("/").map((item) => item.trim()).filter(Boolean).slice(0, 5);
-  const body = sections.map((section, sectionIndex) => {
-    const paragraphs = Array.from({ length: 4 }).map((_, paragraphIndex) => {
-      return `<p>${section}에서는 베다점 계산 결과에 드러난 라그나, 문사인, 그라하와 하우스의 흐름을 함께 살핍니다. ${sectionIndex + 1}번째 결은 조티쉬의 라시 차트와 다샤 흐름 안에서 삶의 태도, 선택의 리듬, 관계와 일의 방향을 부드럽게 비춥니다. ${paragraphIndex + 1}번째 문단은 제공된 정보 안에서만 말하며, 확인이 제한되는 부분은 조심스럽게 남겨 둡니다.</p>`;
-    }).join("");
-    return `<section><h2>${section}</h2>${paragraphs}</section>`;
-  }).join("");
-  return `<article data-chapter-id="${id}"><h1>${title}</h1>${body}</article>`;
+  const paragraphs = Array.from({ length: 5 }).map((_, paragraphIndex) => (
+    `<p>${title}의 ${paragraphIndex + 1}번째 문단은 베다점 계산 결과에 드러난 라그나, 라시 차트, 그라하, 하우스, 나크샤트라, 다샤의 흐름만 바탕으로 상담합니다. 확인되지 않은 행성 위치나 하우스는 덧붙이지 않고, 삶의 태도와 관계의 리듬과 현실 조언을 차분히 비춥니다.</p>`
+  )).join("");
+  return `<section class="vedic-chapter" data-chapter-id="${id}"><h2>${title}</h2><div class="chapter-summary"><p>라그나와 달의 흐름이 삶의 큰 결을 비춥니다. 제공된 차트 안에서만 다샤와 그라하의 방향을 읽습니다. 지금은 선택의 기준을 선명히 하는 시간이 강하게 떠오릅니다.</p></div><div class="chapter-body">${paragraphs}</div><div class="chapter-advice"><h3>베다 처방</h3><ul><li>하루의 우선순위를 하나로 줄이세요.</li><li>관계에서는 속도보다 리듬을 살피세요.</li><li>돈과 일은 기록으로 흐름을 붙잡으세요.</li></ul></div></section>`;
 }
 
 function fakeVedicChapterHtmlV2(prompt) {
   const id = extractPromptValue(prompt, "ID") || "vedic_soul_map";
   const chapter = vedicPremiumChapterPlanV2.chapters.find((item) => item.id === id) || vedicPremiumChapterPlanV2.chapters[0];
   const tones = ["차분한 통찰", "깊은 상담", "현실적인 조언", "내면의 정리", "카르마적 맥락", "다르마의 방향"];
-  const body = chapter.sections.map((section, sectionIndex) => {
-    const paragraphs = Array.from({ length: 4 }).map((_, paragraphIndex) => {
-      const tone = tones[(sectionIndex + paragraphIndex) % tones.length];
-      return `<p>${chapter.title}의 ${section} 대목은 ${tone}을 바탕으로 라그나 라시 차트 나바암샤 나크샤트라 다샤 그라하와 하우스 신호를 함께 살핍니다 ${chapter.id} ${sectionIndex + 1} ${paragraphIndex + 1}번째 문단은 제공된 계산 결과 안에서만 해석하며 확인되지 않은 행성 하우스 다샤 요가 나크샤트라를 덧붙이지 않습니다 이 흐름은 사용자의 반복되는 선택 습관 관계의 온도 일의 리듬 회복 방식과 자기이해의 방향을 차분하게 비추며 유료 리포트에 어울리는 밀도로 정리됩니다</p>`;
-    }).join("");
-    return `<section><h2>${section}</h2>${paragraphs}</section>`;
+  const body = Array.from({ length: 5 }).map((_, paragraphIndex) => {
+    const tone = tones[paragraphIndex % tones.length];
+    return `<p>${chapter.title}의 ${paragraphIndex + 1}번째 흐름은 ${tone}을 바탕으로 라그나 라시 차트 나바암샤 나크샤트라 다샤 그라하와 하우스 신호를 함께 살핍니다 ${chapter.id} ${paragraphIndex + 1}번째 문단은 제공된 계산 결과 안에서만 해석하며 확인되지 않은 행성 하우스 다샤 요가 나크샤트라를 덧붙이지 않습니다 이 흐름은 사용자의 반복되는 선택 습관 관계의 온도 일의 리듬 회복 방식과 자기이해의 방향을 차분하게 비추며 유료 리포트에 어울리는 밀도로 정리됩니다</p>`;
   }).join("");
-  return `<article data-chapter-id="${chapter.id}"><h1>${chapter.title}</h1>${body}</article>`;
+  return `<section class="vedic-chapter" data-chapter-id="${chapter.id}"><h2>${chapter.title}</h2><div class="chapter-summary"><p>${chapter.category}의 핵심은 라그나와 달, 태양, 그라하의 분포를 함께 보며 삶의 방향을 읽는 데 있습니다. 제공된 나크샤트라와 다샤가 지금의 심리 리듬을 비춥니다. 이 장은 추측 없이 계산된 차트 안에서만 조언을 엮습니다.</p></div><div class="chapter-body">${body}</div><div class="chapter-advice"><h3>베다 처방</h3><ul><li>차트가 강하게 비추는 선택을 하루의 실천으로 낮추세요.</li><li>반복되는 감정 반응은 기록한 뒤 다음 다샤의 리듬과 비교하세요.</li><li>관계와 일의 결정은 서두르지 말고 기준을 먼저 세우세요.</li></ul></div></section>`;
 }
 
 function buildFakeEnv() {
@@ -166,12 +158,14 @@ assert.equal(report.llmAssembly.enabled, true, "llm assembly enabled");
 assert.equal(report.llmAssembly.externalGeneration, true, "external generation enabled");
 assert.equal(report.llmAssembly.fallbackUsed, false, "fallback not used");
 assert.equal(report.promptVersion, VEDIC_PREMIUM_PROMPT_VERSION, "prompt version");
-assert.equal(report.chapters.every((chapter) => chapter.sections.length === 5), true, "all sections generated");
+assert.equal(report.chapters.every((chapter) => chapter.sections.length === 3), true, "all section blocks generated");
 vedicPremiumChapterPlanV2.chapters.forEach((plan, index) => {
   const chapter = report.chapters[index];
   assert.equal(chapter.id, plan.id, `chapter id ${plan.id}`);
   assert.equal(chapter.title, plan.title, `chapter title ${plan.id}`);
-  assert.deepEqual(chapter.sections.map((section) => section.heading), plan.sections, `chapter sections ${plan.id}`);
+  assert.equal(chapter.category, plan.category, `chapter category ${plan.id}`);
+  assert.equal(chapter.bodyParagraphs.length >= 5, true, `chapter body paragraphs ${plan.id}`);
+  assert.equal(chapter.adviceItems.length >= 3, true, `chapter advice ${plan.id}`);
   assert.equal(/[가-힣]/.test(chapter.html), true, `chapter Korean body ${plan.id}`);
 });
 
@@ -213,15 +207,11 @@ assert.equal(/�|踰|李|怨|瑜|異|臾|洹|援|媛|醫/.test(completedHtml), 
 
 const firstPlan = vedicPremiumChapterPlanV2.chapters[0];
 const longEnglishParagraph = "This paid report paragraph intentionally stays in English and repeats technical consultation language so the Korean-only validator can reject it before the result is cached or rendered into the final premium PDF output";
-const englishOnlyChapter = `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1>${firstPlan.sections.map((section) => (
-  `<section><h2>${section}</h2>${Array.from({ length: 4 }).map(() => `<p>${longEnglishParagraph}</p>`).join("")}</section>`
-)).join("")}</article>`;
+const englishOnlyChapter = `<section class="vedic-chapter" data-chapter-id="${firstPlan.id}"><h2>${firstPlan.title}</h2><div class="chapter-summary"><p>${longEnglishParagraph}</p></div><div class="chapter-body">${Array.from({ length: 5 }).map(() => `<p>${longEnglishParagraph}</p>`).join("")}</div><div class="chapter-advice"><h3>베다 처방</h3><ul><li>${longEnglishParagraph}</li><li>${longEnglishParagraph}</li><li>${longEnglishParagraph}</li></ul></div></section>`;
 assert.equal(validateVedicPremiumChapterHtml(englishOnlyChapter, firstPlan).issues.includes("body.korean_required"), true, "English-heavy chapter rejected");
 
-const missingSectionChapter = `<article data-chapter-id="${firstPlan.id}"><h1>${firstPlan.title}</h1>${firstPlan.sections.slice(1).map((section, sectionIndex) => (
-  `<section><h2>${section}</h2>${Array.from({ length: 4 }).map((_, paragraphIndex) => `<p>${section}의 ${sectionIndex + 1}-${paragraphIndex + 1} 문단은 라그나 라시 차트 나바암샤 나크샤트라 다샤와 그라하의 흐름을 계산 결과 안에서만 조심스럽게 비추며 확인되지 않은 정보는 덧붙이지 않습니다 이 문장은 챕터 누락 검증을 위해 충분한 한국어 길이로 작성됩니다</p>`).join("")}</section>`
-)).join("")}</article>`;
-assert.equal(validateVedicPremiumChapterHtml(missingSectionChapter, firstPlan).issues.some((issue) => issue.startsWith(`h2.${firstPlan.sections[0]}`)), true, "missing h2 rejected");
+const missingSectionChapter = `<section class="vedic-chapter" data-chapter-id="${firstPlan.id}"><h2>${firstPlan.title}</h2><div class="chapter-summary"><p>라그나와 나크샤트라의 흐름을 계산 결과 안에서만 비춥니다.</p></div><div class="chapter-body"><p>라그나 라시 차트 나바암샤 나크샤트라 다샤와 그라하의 흐름을 계산 결과 안에서만 조심스럽게 비춥니다.</p></div></section>`;
+assert.equal(validateVedicPremiumChapterHtml(missingSectionChapter, firstPlan).issues.includes("chapter-advice.missing"), true, "missing advice rejected");
 
 const swappedChapters = completed.chapters.slice();
 [swappedChapters[0], swappedChapters[1]] = [swappedChapters[1], swappedChapters[0]];

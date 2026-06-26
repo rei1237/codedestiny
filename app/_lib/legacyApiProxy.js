@@ -1,5 +1,22 @@
 import { NextResponse } from "next/server";
 
+const LEGACY_API_PROXY_TEXT_TRANSLATIONS = {
+  en: {
+    baseMissing: "AUTH_API_BASE_URL must be configured to external API host (example: http://localhost:4000 or https://api.example.com).",
+    baseLoop: "Legacy API base resolves to current origin. Please set AUTH_API_BASE_URL to external API host.",
+  },
+  ko: {
+    baseMissing: "AUTH_API_BASE_URL은 외부 API 호스트로 설정되어야 합니다. 예: http://localhost:4000 또는 https://api.example.com",
+    baseLoop: "Legacy API base가 현재 origin으로 해석됩니다. AUTH_API_BASE_URL을 외부 API 호스트로 설정해 주세요.",
+  },
+  ja: {
+    baseMissing: "AUTH_API_BASE_URLは外部APIホストに設定してください。例: http://localhost:4000 または https://api.example.com",
+    baseLoop: "Legacy API baseが現在のoriginに解決されています。AUTH_API_BASE_URLを外部APIホストに設定してください。",
+  },
+};
+
+const legacyApiProxyCopy = LEGACY_API_PROXY_TEXT_TRANSLATIONS.en;
+
 function normalizeBaseUrl(rawValue) {
   const value = String(rawValue || "").trim();
   if (!value) return "";
@@ -95,7 +112,7 @@ export async function proxyLegacyApi(request) {
       {
         ok: false,
         error: "legacy_api_base_missing",
-        message: "AUTH_API_BASE_URL must be configured to external API host (example: http://localhost:4000 or https://api.example.com).",
+        message: legacyApiProxyCopy.baseMissing,
       },
       { status: 503 },
     );
@@ -108,7 +125,7 @@ export async function proxyLegacyApi(request) {
       {
         ok: false,
         error: "legacy_api_base_loop",
-        message: "Legacy API base resolves to current origin. Please set AUTH_API_BASE_URL to external API host.",
+        message: legacyApiProxyCopy.baseLoop,
       },
       { status: 500 },
     );
@@ -161,7 +178,7 @@ export async function proxyLegacyApiWithRewrite(request, rewriteFn) {
       JSON.stringify({
         ok: false,
         error: "legacy_api_base_loop",
-        message: "Legacy API base resolves to current origin. Please set AUTH_API_BASE_URL to external API host.",
+        message: legacyApiProxyCopy.baseLoop,
       }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );

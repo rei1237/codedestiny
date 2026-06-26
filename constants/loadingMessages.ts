@@ -228,15 +228,23 @@ export function normalizeLoadingLocale(value?: string | null): LoadingLocale {
 export function getCurrentLoadingLocale(): LoadingLocale {
   if (typeof window === "undefined") return "ko";
   try {
+    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+    if (runtimeLang) return normalizeLoadingLocale(runtimeLang);
+  } catch {}
+  try {
     const params = new URLSearchParams(window.location.search || "");
     const fromQuery = params.get("lang");
     if (fromQuery) return normalizeLoadingLocale(fromQuery);
   } catch {}
   try {
-    return normalizeLoadingLocale(window.localStorage.getItem("cd_lang"));
-  } catch {
-    return "ko";
-  }
+    const fromStorage = window.localStorage.getItem("cd_lang");
+    if (fromStorage) return normalizeLoadingLocale(fromStorage);
+  } catch {}
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
+    if (match?.[1]) return normalizeLoadingLocale(decodeURIComponent(match[1]));
+  } catch {}
+  return "ko";
 }
 
 export function resolveLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null) {

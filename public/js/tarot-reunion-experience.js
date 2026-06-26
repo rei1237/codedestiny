@@ -7,11 +7,11 @@
   "use strict";
 
   var POSITION_META = [
-    { key: "past_bond", label: "1. 현재 관계의 에너지", labelPos: "bottom" },
-    { key: "their_now", label: "2. 상대가 보이는 마음의 결", labelPos: "top" },
-    { key: "outside_factor", label: "3. 연락이 멈춘 현실 신호", labelPos: "bottom" },
-    { key: "their_heart", label: "4. 다시 닿을 수 있는 거리", labelPos: "top" },
-    { key: "reunion_outcome", label: "5. 관계 회복의 조건과 기준", labelPos: "bottom" },
+    { key: "past_bond", label: tarotReunionText("positionPastBond"), labelPos: "bottom" },
+    { key: "their_now", label: tarotReunionText("positionTheirNow"), labelPos: "top" },
+    { key: "outside_factor", label: tarotReunionText("positionOutsideFactor"), labelPos: "bottom" },
+    { key: "their_heart", label: tarotReunionText("positionTheirHeart"), labelPos: "top" },
+    { key: "reunion_outcome", label: tarotReunionText("positionOutcome"), labelPos: "bottom" },
   ];
 
   var GUIDE_LABELS = [
@@ -417,7 +417,7 @@
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (data) {
           if (res.status === 401) {
-            if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+            if (window.confirm(tarotReunionText("loginRequiredConfirm"))) {
               var next = encodeURIComponent(location.pathname + location.search);
               window.location.href = "/login?next=" + next;
             }
@@ -910,7 +910,7 @@
     });
     return found || POSITION_META[idx] || {
       key: position || ("card_" + (idx + 1)),
-      label: "카드 " + (idx + 1),
+      label: tarotReunionText("cardLabelPrefix") + " " + (idx + 1),
       labelPos: idx % 2 ? "top" : "bottom",
     };
   }
@@ -1627,7 +1627,7 @@
       '<h4 class="tarot-reunion-section-title tarot-reunion-ai-prompt-title">AI에게 건넬 재회운 질문문</h4>' +
       '<p class="tarot-reunion-ai-prompt-lead">방금 밝힌 등대 카드와 마음의 거리를 담았습니다. 필요한 AI에게 옮기면 오늘의 재회운을 더 깊게 이어 볼 수 있습니다.</p>' +
       '</div>' +
-      '<textarea id="tarotReunionAiPromptOutput" class="tarot-reunion-ai-prompt-output" readonly aria-label="재회운 타로 AI 질문문">' + escapeHtml(promptText) + '</textarea>' +
+      '<textarea id="tarotReunionAiPromptOutput" class="tarot-reunion-ai-prompt-output" readonly aria-label="' + tarotReunionText("aiPromptAria") + '">' + escapeHtml(promptText) + '</textarea>' +
       '<div class="tarot-reunion-ai-prompt-actions">' +
       '<button type="button" class="tarot-reunion-ai-prompt-copy" data-action="copyTarotReunionAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
       '<span id="tarotReunionAiPromptStatus" class="tarot-reunion-ai-prompt-status">등대 리딩에 포함된 질문문입니다.</span>' +
@@ -1646,10 +1646,10 @@
     overlay.innerHTML =
       '<div class="tarot-reunion-lightbox-backdrop"></div>' +
       '<div class="tarot-reunion-lightbox-panel" role="document">' +
-      '  <button type="button" class="tarot-reunion-lightbox-close" aria-label="확대 보기 닫기">×</button>' +
+      '  <button type="button" class="tarot-reunion-lightbox-close" aria-label="' + tarotReunionText("lightboxCloseAria") + '">×</button>' +
       '  <div class="tarot-reunion-lightbox-card">' +
       '    <div class="tarot-reunion-lightbox-card-front">' +
-      '      <img class="tarot-reunion-face-img" alt="타로 카드 이미지">' +
+      '      <img class="tarot-reunion-face-img" alt="' + tarotReunionText("cardImageAlt") + '">' +
       "    </div>" +
       '  </div>' +
       '  <p class="tarot-reunion-lightbox-name"></p>' +
@@ -1763,7 +1763,7 @@
 
     if (navigator.share) {
       navigator.share({
-        title: "🌊 별 헤는 밤바다 재회운 타로",
+        title: tarotReunionText("shareTitle"),
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

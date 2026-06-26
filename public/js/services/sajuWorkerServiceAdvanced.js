@@ -7,6 +7,29 @@
   if (typeof window === 'undefined') return;
 
   const CACHE = new Map();
+  const SAJU_WORKER_ADVANCED_COPY = {
+    ko: { allIterationsFailed: '모든 반복 실행이 실패했습니다.' },
+    en: { allIterationsFailed: 'All iterations failed' },
+    ja: { allIterationsFailed: 'すべての反復実行に失敗しました。' },
+    zh: { allIterationsFailed: '所有迭代执行均失败。' }
+  };
+
+  function getSajuWorkerAdvancedLocale() {
+    try {
+      const cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      let raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      if (!raw && window.localStorage) raw = localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || '';
+      raw = String(raw || '').toLowerCase();
+      if (raw.indexOf('ja') === 0) return 'ja';
+      if (raw.indexOf('zh') === 0) return 'zh';
+      if (raw.indexOf('en') === 0) return 'en';
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function getSajuWorkerAdvancedCopy() {
+    return SAJU_WORKER_ADVANCED_COPY[getSajuWorkerAdvancedLocale()] || SAJU_WORKER_ADVANCED_COPY.ko;
+  }
   const config = {
     enableCache: true,
     retryAttempts: 3,
@@ -276,7 +299,7 @@
       }
 
       if (times.length === 0) {
-        return { error: 'All iterations failed' };
+        return { error: getSajuWorkerAdvancedCopy().allIterationsFailed };
       }
 
       const sorted = times.sort((a, b) => a - b);

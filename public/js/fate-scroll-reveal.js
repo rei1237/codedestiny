@@ -7,6 +7,29 @@
   var ENABLE_SCROLL_INDICATOR = true;
   /* resultPage 최상위 섹션 + reportDashboard 내부 블록 매핑 */
   var TOP_LEVEL_SEL = '.card, .destiny-section, .letter-box, .share-section';
+  var FATE_SCROLL_REVEAL_COPY = {
+    ko: { nextAria: '다음 섹션으로 이동', nextLabel: '다음 서비스 보기' },
+    en: { nextAria: 'Move to the next section', nextLabel: 'View next service' },
+    ja: { nextAria: '次のセクションへ移動', nextLabel: '次のサービスを見る' },
+    zh: { nextAria: '移至下一部分', nextLabel: '查看下一个服务' }
+  };
+
+  function getFateScrollRevealLocale() {
+    try {
+      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      if (!raw && window.localStorage) raw = localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || '';
+      raw = String(raw || '').toLowerCase();
+      if (raw.indexOf('ja') === 0) return 'ja';
+      if (raw.indexOf('zh') === 0) return 'zh';
+      if (raw.indexOf('en') === 0) return 'en';
+    } catch (_) {}
+    return 'ko';
+  }
+
+  function getFateScrollRevealCopy() {
+    return FATE_SCROLL_REVEAL_COPY[getFateScrollRevealLocale()] || FATE_SCROLL_REVEAL_COPY.ko;
+  }
 
   /* ── 유틸 ── */
   function getSections() {
@@ -237,7 +260,7 @@
     }
 
     var txt = (titleEl && titleEl.textContent) ? titleEl.textContent.trim() : '';
-    if (!txt) txt = '다음 서비스 보기';
+    if (!txt) txt = getFateScrollRevealCopy().nextLabel;
     return txt;
   }
 
@@ -251,9 +274,10 @@
     indicatorEl = document.createElement('div');
     indicatorEl.className = 'fate-scroll-next-indicator';
     indicatorEl.id = INDICATOR_ID;
+    var copy = getFateScrollRevealCopy();
     indicatorEl.innerHTML =
-      '<button class="fate-scroll-next-arrow" id="fateNextArrow" aria-label="다음 섹션으로 이동">&#8595;</button>' +
-      '<span class="fate-scroll-next-label" id="fateNextLabel">다음 서비스 보기</span>';
+      '<button class="fate-scroll-next-arrow" id="fateNextArrow" aria-label="' + copy.nextAria + '">&#8595;</button>' +
+      '<span class="fate-scroll-next-label" id="fateNextLabel">' + copy.nextLabel + '</span>';
     if (document.body) document.body.appendChild(indicatorEl);
     indicatorLabel = document.getElementById('fateNextLabel');
 

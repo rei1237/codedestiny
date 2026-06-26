@@ -5,6 +5,21 @@ import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
 
+const SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS = {
+  ko: {
+    avatarAlt: "연이 그림자 읽기",
+    counselTitle: "연이의 그림자 상담",
+  },
+  en: {
+    avatarAlt: "Yeon-i shadow reading",
+    counselTitle: "Yeon-i’s Shadow Counsel",
+  },
+  ja: {
+    avatarAlt: "ヨンの影読み",
+    counselTitle: "ヨンの影相談",
+  },
+} as const;
+
 export function ShadowReading() {
   const { setPhase, selectedShape } = useSikojenpovailuContext();
   const [shadowOpacity, setShadowOpacity] = useState(0);
@@ -68,7 +83,7 @@ export function ShadowReading() {
             <YeonSpriteAvatar
               frames={[12, 11, 10, 9]}
               size={120}
-              alt="연이 그림자 읽기"
+              alt={SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS.ko.avatarAlt}
               ringClassName="from-rose-300 to-pink-300"
               intervalMs={820}
             />
@@ -88,7 +103,7 @@ export function ShadowReading() {
 
         <PigCounselBubble
           className="w-full max-w-md"
-          title="연이의 그림자 상담"
+          title={SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS.ko.counselTitle}
           message="불안한 마음은 숨기지 말고 같이 보자. 그림자 해석은 네가 지켜야 할 감정의 경계를 알려줘."
         />
 

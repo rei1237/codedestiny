@@ -6,6 +6,38 @@ import type {
   TwelveStageKey,
 } from "@/app/saju/animal-destiny/lib/types";
 
+const ANIMAL_TWELVE_DATA_TEXT_TRANSLATIONS = {
+  ko: {
+    "animalTwelveData.001": "별빛 숲에서 돋아나는 첫 숨",
+    "animalTwelveData.002": "아직 작지만 보호받는 복으로 새 길을 여는 순한 성장형",
+    "animalTwelveData.003": "달빛 물결에 반짝이는 감응",
+    "animalTwelveData.004": "감정과 매력이 물처럼 움직이며 사람의 시선을 끄는 인기형",
+    "animalTwelveData.005": "리본을 매고 무대에 오르는 관대",
+    "animalTwelveData.006": "자기다움을 갖추고 사회적 존재감을 키워 가는 성장 스타형",
+    "animalTwelveData.007": "별길을 지키며 신뢰를 쌓는 건록",
+    "animalTwelveData.008": "스스로의 실력으로 기반을 세우고 오래가는 성과를 만드는 독립형",
+    "animalTwelveData.009": "태양 왕관을 쓴 절정의 제왕",
+    "animalTwelveData.010": "에너지가 가장 크게 피어나는 자리에서 판을 만들고 이끄는 리더형",
+    "animalTwelveData.011": "낡은 별빛을 지혜로 바꾸는 쇠",
+    "animalTwelveData.012": "경험을 정리해 복잡한 흐름을 안정시키는 차분한 조율형",
+    "animalTwelveData.013": "구름 이불 속에서 회복하는 병",
+    "animalTwelveData.014": "섬세한 감정 안테나로 지친 마음을 알아보고 회복을 설계하는 케어형",
+    "animalTwelveData.015": "고치를 벗고 전환을 여는 사",
+    "animalTwelveData.016": "끝맺음과 내려놓음을 통해 다음 세계의 문을 여는 직감형",
+    "animalTwelveData.017": "보물을 품고 조용히 쌓는 묘",
+    "animalTwelveData.018": "작은 자원과 마음의 기록을 모아 큰 안정으로 바꾸는 축적형",
+    "animalTwelveData.019": "밤의 문턱에서 다시 태어나는 절",
+    "animalTwelveData.020": "끊어야 할 것을 알아보고 새 가능성을 향해 판을 바꾸는 리셋형",
+    "animalTwelveData.021": "별알 속에서 미래를 품는 태",
+    "animalTwelveData.022": "아직 보이지 않는 씨앗을 먼저 상상하고 가능성을 부화시키는 준비형",
+    "animalTwelveData.023": "품 안에서 복을 기르는 양 기운",
+    "animalTwelveData.024": "보호와 돌봄 속에서 신뢰, 안정감, 관계복을 차근차근 키우는 Code:Destiny 마스코트",
+  },
+} as const;
+
+function animalTwelveDataText(key: keyof typeof ANIMAL_TWELVE_DATA_TEXT_TRANSLATIONS.ko) {
+  return ANIMAL_TWELVE_DATA_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export const STAGE_SEQUENCE: TwelveStageKey[] = [
   "jangsaeng",
   "mogyok",
@@ -99,8 +131,8 @@ export const animalCollection = Object.freeze([
 const BASE = {
   jangsaeng: {
     animalName: "새싹 사슴",
-    title: "별빛 숲에서 돋아나는 첫 숨",
-    subtitle: "아직 작지만 보호받는 복으로 새 길을 여는 순한 성장형",
+    title: animalTwelveDataText("animalTwelveData.001"),
+    subtitle: animalTwelveDataText("animalTwelveData.002"),
     keywords: ["탄생", "성장", "순수함", "보호복", "새 기회"],
     symbolItems: ["별씨앗", "새싹뿔", "아침 이슬", "숲 연꽃"],
     colors: { primary: "#9bd8b0", secondary: "#fff3b3", accent: "#d4a84f", background: "#f7fff3" },
@@ -118,8 +150,8 @@ const BASE = {
   },
   mogyok: {
     animalName: "달빛 고양이",
-    title: "달빛 물결에 반짝이는 감응",
-    subtitle: "감정과 매력이 물처럼 움직이며 사람의 시선을 끄는 인기형",
+    title: animalTwelveDataText("animalTwelveData.003"),
+    subtitle: animalTwelveDataText("animalTwelveData.004"),
     keywords: ["매력", "감수성", "인기", "변화", "예술성"],
     symbolItems: ["달 조각", "연꽃 물방울", "비단 꼬리", "향기 별카드"],
     colors: { primary: "#c6a8ff", secondary: "#ffd4ec", accent: "#f4cb6a", background: "#fff4ff" },
@@ -137,8 +169,8 @@ const BASE = {
   },
   gwandae: {
     animalName: "리본 여우",
-    title: "리본을 매고 무대에 오르는 관대",
-    subtitle: "자기다움을 갖추고 사회적 존재감을 키워 가는 성장 스타형",
+    title: animalTwelveDataText("animalTwelveData.005"),
+    subtitle: animalTwelveDataText("animalTwelveData.006"),
     keywords: ["성장", "자존감", "표현력", "사회성", "무대운"],
     symbolItems: ["금실 리본", "여우 가면", "초승 랜턴", "자수 망토"],
     colors: { primary: "#ffb296", secondary: "#e8c8ff", accent: "#e2ab3d", background: "#fff8f4" },
@@ -156,8 +188,8 @@ const BASE = {
   },
   geonrok: {
     animalName: "별빛 강아지",
-    title: "별길을 지키며 신뢰를 쌓는 건록",
-    subtitle: "스스로의 실력으로 기반을 세우고 오래가는 성과를 만드는 독립형",
+    title: animalTwelveDataText("animalTwelveData.007"),
+    subtitle: animalTwelveDataText("animalTwelveData.008"),
     keywords: ["성실함", "실력", "책임감", "기반", "신뢰"],
     symbolItems: ["수호 목걸이", "별발자국", "청금 망토", "약속 종"],
     colors: { primary: "#5269b8", secondary: "#fff4d8", accent: "#d19a35", background: "#f6f8ff" },
@@ -175,8 +207,8 @@ const BASE = {
   },
   jewang: {
     animalName: "태양 사자",
-    title: "태양 왕관을 쓴 절정의 제왕",
-    subtitle: "에너지가 가장 크게 피어나는 자리에서 판을 만들고 이끄는 리더형",
+    title: animalTwelveDataText("animalTwelveData.009"),
+    subtitle: animalTwelveDataText("animalTwelveData.010"),
     keywords: ["절정", "카리스마", "주도성", "확장", "결단"],
     symbolItems: ["태양 왕관", "금빛 망토", "황금 사자문", "불꽃 별가루"],
     colors: { primary: "#f0b23f", secondary: "#ffdfa8", accent: "#e05c37", background: "#fff9ee" },
@@ -194,8 +226,8 @@ const BASE = {
   },
   soe: {
     animalName: "현자 부엉이",
-    title: "낡은 별빛을 지혜로 바꾸는 쇠",
-    subtitle: "경험을 정리해 복잡한 흐름을 안정시키는 차분한 조율형",
+    title: animalTwelveDataText("animalTwelveData.011"),
+    subtitle: animalTwelveDataText("animalTwelveData.012"),
     keywords: ["성숙", "정리", "판단력", "경험", "내실"],
     symbolItems: ["별자리 서책", "청동 안경", "은빛 깃털", "고요한 등불"],
     colors: { primary: "#6f5d89", secondary: "#efe3d2", accent: "#b48a52", background: "#f9f7ff" },
@@ -213,8 +245,8 @@ const BASE = {
   },
   byeong: {
     animalName: "구름 토끼",
-    title: "구름 이불 속에서 회복하는 병",
-    subtitle: "섬세한 감정 안테나로 지친 마음을 알아보고 회복을 설계하는 케어형",
+    title: animalTwelveDataText("animalTwelveData.013"),
+    subtitle: animalTwelveDataText("animalTwelveData.014"),
     keywords: ["예민함", "회복", "섬세함", "돌봄", "감정 감지"],
     symbolItems: ["구름 이불", "은방울", "별물방울", "달빛 처방전"],
     colors: { primary: "#f3c7d8", secondary: "#cde8ff", accent: "#d8a64d", background: "#fff8fc" },
@@ -232,8 +264,8 @@ const BASE = {
   },
   sa: {
     animalName: "신비 나비",
-    title: "고치를 벗고 전환을 여는 사",
-    subtitle: "끝맺음과 내려놓음을 통해 다음 세계의 문을 여는 직감형",
+    title: animalTwelveDataText("animalTwelveData.015"),
+    subtitle: animalTwelveDataText("animalTwelveData.016"),
     keywords: ["전환", "직감", "내려놓음", "영감", "재탄생"],
     symbolItems: ["영혼 날개", "자정 별가루", "은빛 부적", "비밀문"],
     colors: { primary: "#8f76d9", secondary: "#d9efff", accent: "#c6cad6", background: "#f8f7ff" },
@@ -251,8 +283,8 @@ const BASE = {
   },
   myo: {
     animalName: "보물 햄스터",
-    title: "보물을 품고 조용히 쌓는 묘",
-    subtitle: "작은 자원과 마음의 기록을 모아 큰 안정으로 바꾸는 축적형",
+    title: animalTwelveDataText("animalTwelveData.017"),
+    subtitle: animalTwelveDataText("animalTwelveData.018"),
     keywords: ["축적", "저장", "내면", "비밀", "관리"],
     symbolItems: ["복주머니", "비밀 금고", "미니 별화폐", "집중 초롱"],
     colors: { primary: "#cfb18f", secondary: "#eadbff", accent: "#d7a53e", background: "#fffaf2" },
@@ -270,8 +302,8 @@ const BASE = {
   },
   jeol: {
     animalName: "밤하늘 흑고양이",
-    title: "밤의 문턱에서 다시 태어나는 절",
-    subtitle: "끊어야 할 것을 알아보고 새 가능성을 향해 판을 바꾸는 리셋형",
+    title: animalTwelveDataText("animalTwelveData.019"),
+    subtitle: animalTwelveDataText("animalTwelveData.020"),
     keywords: ["리셋", "독립", "전환", "새 가능성", "경계"],
     symbolItems: ["초승달 망토", "별자리 고리", "검은 장갑", "금빛 눈동자"],
     colors: { primary: "#2a2741", secondary: "#8c7ed3", accent: "#d8b55a", background: "#f5f3ff" },
@@ -289,8 +321,8 @@ const BASE = {
   },
   tae: {
     animalName: "꿈알 병아리",
-    title: "별알 속에서 미래를 품는 태",
-    subtitle: "아직 보이지 않는 씨앗을 먼저 상상하고 가능성을 부화시키는 준비형",
+    title: animalTwelveDataText("animalTwelveData.021"),
+    subtitle: animalTwelveDataText("animalTwelveData.022"),
     keywords: ["가능성", "상상", "준비", "미래", "실험"],
     symbolItems: ["별알", "민트 깃털", "꿈지도", "새벽 램프"],
     colors: { primary: "#fbe98d", secondary: "#c8f2d3", accent: "#e1b74c", background: "#fffef2" },
@@ -308,8 +340,8 @@ const BASE = {
   },
   yang: {
     animalName: "솜구름 아기양",
-    title: "품 안에서 복을 기르는 양 기운",
-    subtitle: "보호와 돌봄 속에서 신뢰, 안정감, 관계복을 차근차근 키우는 Code:Destiny 마스코트",
+    title: animalTwelveDataText("animalTwelveData.023"),
+    subtitle: animalTwelveDataText("animalTwelveData.024"),
     keywords: ["양육", "보호", "돌봄", "안정 성장", "관계복"],
     symbolItems: ["솜구름 방울", "보호 담요", "연꽃 풀밭", "행운 양털"],
     colors: { primary: "#ffd6e2", secondary: "#fff1cf", accent: "#cfa64a", background: "#fffaf7" },

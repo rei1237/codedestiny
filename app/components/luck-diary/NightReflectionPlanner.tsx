@@ -3,6 +3,25 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+const NIGHT_REFLECTION_TEXT_TRANSLATIONS = {
+  ko: {
+    "nightReflection.blueprintWealth": "재물 흐름 설계",
+    "nightReflection.blueprintLove": "관계 기운 정돈",
+    "nightReflection.blueprintHealth": "회복력 강화",
+    "nightReflection.blueprintFocus": "집중/성과 모드",
+    "nightReflection.notePlaceholder": "실천하면서 느낀 변화, 막혔던 사인, 내일 보완할 점을 기록해보세요.",
+    "nightReflection.originalPlaceholder": "오늘의 부정적 사건",
+    "nightReflection.imaginedPlaceholder": "원하는 전개로 수정한 장면",
+    "nightReflection.audioLofi": "Lofi 밤",
+    "nightReflection.audioTheta": "Theta 밤",
+    "nightReflection.affirmationPlaceholder": "문장을 그대로 타이핑해보세요",
+  },
+} as const;
+
+function nightReflectionText(key: keyof typeof NIGHT_REFLECTION_TEXT_TRANSLATIONS.ko): string {
+  return NIGHT_REFLECTION_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type ActionItem = {
   id: string;
   text: string;
@@ -15,10 +34,10 @@ type BlueprintTheme = {
 };
 
 const BLUEPRINTS: BlueprintTheme[] = [
-  { id: 'wealth', label: '재물 흐름 설계', icon: '💰' },
-  { id: 'love', label: '관계 기운 정돈', icon: '💞' },
-  { id: 'health', label: '회복력 강화', icon: '🍃' },
-  { id: 'focus', label: '집중/성과 모드', icon: '🎯' }
+  { id: 'wealth', label: nightReflectionText("nightReflection.blueprintWealth"), icon: '💰' },
+  { id: 'love', label: nightReflectionText("nightReflection.blueprintLove"), icon: '💞' },
+  { id: 'health', label: nightReflectionText("nightReflection.blueprintHealth"), icon: '🍃' },
+  { id: 'focus', label: nightReflectionText("nightReflection.blueprintFocus"), icon: '🎯' }
 ];
 
 const DEFAULT_ACTIONS: ActionItem[] = [
@@ -291,7 +310,7 @@ export default function NightReflectionPlanner() {
             rows={4}
             maxLength={500}
             className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:bg-white"
-            placeholder="실천하면서 느낀 변화, 막혔던 포인트, 내일 보완할 점을 기록해보세요."
+            placeholder={nightReflectionText("nightReflection.notePlaceholder")}
           />
           <p className="mt-1 text-right text-xs text-slate-400">{note.length}/500</p>
         </div>
@@ -365,7 +384,7 @@ export default function NightReflectionPlanner() {
               rows={2}
               maxLength={220}
               className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
-              placeholder="오늘의 부정적 사건"
+              placeholder={nightReflectionText("nightReflection.originalPlaceholder")}
             />
             <textarea
               value={revisionImagined}
@@ -373,7 +392,7 @@ export default function NightReflectionPlanner() {
               rows={2}
               maxLength={220}
               className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
-              placeholder="원하는 전개로 수정된 장면"
+              placeholder={nightReflectionText("nightReflection.imaginedPlaceholder")}
             />
             <div className="mt-2 flex items-center justify-between gap-2">
               <button
@@ -431,8 +450,8 @@ export default function NightReflectionPlanner() {
                 onChange={(e) => setSatsAudioMode(e.target.value as 'lofi' | 'theta')}
                 className="rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700"
               >
-                <option value="lofi">Lofi 톤</option>
-                <option value="theta">Theta 톤</option>
+                <option value="lofi">{nightReflectionText("nightReflection.audioLofi")}</option>
+                <option value="theta">{nightReflectionText("nightReflection.audioTheta")}</option>
               </select>
               <button
                 type="button"
@@ -458,7 +477,7 @@ export default function NightReflectionPlanner() {
               value={affirmationInput}
               onChange={(e) => setAffirmationInput(e.target.value)}
               className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
-              placeholder="문장을 그대로 타이핑해보세요"
+              placeholder={nightReflectionText("nightReflection.affirmationPlaceholder")}
             />
             <div className="mt-2 flex gap-2">
               <button type="button" onClick={regenerateIam} className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-black">문구 새로고침</button>

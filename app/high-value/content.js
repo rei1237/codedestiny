@@ -1,40 +1,72 @@
+const HIGH_VALUE_CONTENT_TEXT_TRANSLATIONS = {
+  ko: {
+    "highValueContent.001": "사주팔자, 만세력, 오행, 십성을 처음 보는 분을 위한 기본 개념입니다.",
+    "highValueContent.002": "타로 질문을 정리하고 카드 해석을 현실의 선택지로 연결하는 방법입니다.",
+    "highValueContent.003": "연애운, 재회, 궁합을 불안이 아니라 관계 점검의 언어로 읽는 가이드입니다.",
+    "highValueContent.004": "하루 운세를 과장 없이 일정, 감정, 선택의 우선순위로 활용하는 방법입니다.",
+    "highValueContent.005": "출생차트, 12궁, 별자리 상징을 입문자가 이해하기 쉽게 정리합니다.",
+    "highValueContent.006": "운세 콘텐츠를 안전하고 균형 있게 읽기 위한 기준과 면책 고지입니다.",
+    "highValueContent.007": "사주팔자 입문 가이드",
+    "highValueContent.008": "무료 만세력 사주 분석",
+    "highValueContent.009": "사주 만세력 기본 해석",
+    "highValueContent.010": "타로 리딩은 어떻게 작동하나요",
+    "highValueContent.011": "무료 타로 카드 리딩",
+    "highValueContent.012": "재회 타로 리딩",
+    "highValueContent.013": "운명 해석을 현실적으로 읽는 법",
+    "highValueContent.014": "운세 콘텐츠 방법론",
+    "highValueContent.015": "운세 인사이트 가이드",
+    "highValueContent.016": "생년월일로 보는 성향 해석",
+    "highValueContent.017": "무료 점성술 출생차트",
+    "highValueContent.018": "자미두수 12궁 명반",
+    "highValueContent.019": "좋은 궁합을 알아보는 핵심 신호",
+    "highValueContent.020": "사주 궁합 무료 해석",
+    "highValueContent.021": "연애운 무료 보기",
+    "highValueContent.022": "운세 서비스를 안전하게 이용하는 FAQ",
+    "highValueContent.023": "오늘의 운세 무료 보기",
+    "highValueContent.024": "Code Destiny 자주 묻는 질문",
+  },
+};
+
+function highValueContentText(key) {
+  return HIGH_VALUE_CONTENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export const HIGH_VALUE_CATEGORIES = [
   {
     slug: "saju-beginner",
     name: "사주 입문",
-    description: "사주팔자, 만세력, 오행, 십성을 처음 보는 분을 위한 기본 개념입니다.",
+    description: highValueContentText("highValueContent.001"),
   },
   {
     slug: "tarot-reading",
     name: "타로 리딩",
-    description: "타로 질문을 정리하고 카드 해석을 현실의 선택지로 연결하는 방법입니다.",
+    description: highValueContentText("highValueContent.002"),
   },
   {
     slug: "compatibility-relationship",
     name: "궁합과 관계",
-    description: "연애운, 재회, 궁합을 불안이 아니라 관계 점검의 언어로 읽는 가이드입니다.",
+    description: highValueContentText("highValueContent.003"),
   },
   {
     slug: "daily-fortune",
     name: "오늘의 운세",
-    description: "하루 운세를 과장 없이 일정, 감정, 선택의 우선순위로 활용하는 방법입니다.",
+    description: highValueContentText("highValueContent.004"),
   },
   {
     slug: "astrology-ziwei",
     name: "점성술과 자미두수",
-    description: "출생차트, 12궁, 별자리 상징을 입문자가 이해하기 쉽게 정리합니다.",
+    description: highValueContentText("highValueContent.005"),
   },
   {
     slug: "methodology",
     name: "운세 콘텐츠 방법론",
-    description: "운세 콘텐츠를 안전하고 균형 있게 읽기 위한 기준과 면책 고지입니다.",
+    description: highValueContentText("highValueContent.006"),
   },
 ];
 
 export const HIGH_VALUE_PAGES = [
   {
     slug: "complete-guide-to-saju",
-    title: "사주팔자 입문 가이드",
+    title: highValueContentText("highValueContent.007"),
     category: "사주 입문",
     categorySlug: "saju-beginner",
     summary: "만세력으로 사주팔자의 네 기둥, 오행, 십성, 대운을 차례대로 읽는 기본 순서를 정리합니다.",
@@ -43,8 +75,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "사주 해석은 자기성찰과 오락 목적의 참고 자료이며, 중요한 현실 결정은 전문가 상담과 함께 판단해야 합니다.",
     serviceLinks: [
-      { href: "/manse", label: "무료 만세력 사주 분석" },
-      { href: "/saju/basic", label: "사주 만세력 기본 해석" },
+      { href: "/manse", label: highValueContentText("highValueContent.008") },
+      { href: "/saju/basic", label: highValueContentText("highValueContent.009") },
     ],
     faq: [
       {
@@ -79,7 +111,7 @@ export const HIGH_VALUE_PAGES = [
   },
   {
     slug: "how-tarot-actually-works",
-    title: "타로 리딩은 어떻게 작동하나요",
+    title: highValueContentText("highValueContent.010"),
     category: "타로 리딩",
     categorySlug: "tarot-reading",
     summary: "타로를 확정 예언이 아니라 질문을 구조화하고 선택지를 정리하는 상징 리딩으로 이해하는 방법입니다.",
@@ -88,8 +120,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "타로 결과는 현재 상황을 돌아보기 위한 참고 자료이며 특정 선택을 강요하지 않습니다.",
     serviceLinks: [
-      { href: "/tarot", label: "무료 타로 카드 리딩" },
-      { href: "/tarot/reunion", label: "재회 타로 리딩" },
+      { href: "/tarot", label: highValueContentText("highValueContent.011") },
+      { href: "/tarot/reunion", label: highValueContentText("highValueContent.012") },
     ],
     faq: [
       {
@@ -124,7 +156,7 @@ export const HIGH_VALUE_PAGES = [
   },
   {
     slug: "understanding-your-destiny",
-    title: "운명 해석을 현실적으로 읽는 법",
+    title: highValueContentText("highValueContent.013"),
     category: "운세 콘텐츠 방법론",
     categorySlug: "methodology",
     summary: "운명을 고정된 결말이 아니라 반복되는 패턴, 환경, 선택의 상호작용으로 읽는 관점을 설명합니다.",
@@ -133,8 +165,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "운세 해석은 자기 이해를 돕는 참고 자료이며 현실의 책임 있는 선택을 대신하지 않습니다.",
     serviceLinks: [
-      { href: "/methodology", label: "운세 콘텐츠 방법론" },
-      { href: "/high-value", label: "운세 인사이트 가이드" },
+      { href: "/methodology", label: highValueContentText("highValueContent.014") },
+      { href: "/high-value", label: highValueContentText("highValueContent.015") },
     ],
     faq: [
       {
@@ -169,7 +201,7 @@ export const HIGH_VALUE_PAGES = [
   },
   {
     slug: "what-your-birth-date-says-about-you",
-    title: "생년월일로 보는 성향 해석",
+    title: highValueContentText("highValueContent.016"),
     category: "점성술과 자미두수",
     categorySlug: "astrology-ziwei",
     summary: "생년월일 기반 해석이 성격을 단정하는 도구가 아니라 성향과 리듬을 살피는 참고 자료임을 설명합니다.",
@@ -178,8 +210,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "생년월일 해석은 성격 진단이나 전문 상담을 대체하지 않습니다.",
     serviceLinks: [
-      { href: "/astrology", label: "무료 점성술 출생차트" },
-      { href: "/ziwei", label: "자미두수 12궁 명반" },
+      { href: "/astrology", label: highValueContentText("highValueContent.017") },
+      { href: "/ziwei", label: highValueContentText("highValueContent.018") },
     ],
     faq: [
       {
@@ -214,7 +246,7 @@ export const HIGH_VALUE_PAGES = [
   },
   {
     slug: "top-10-signs-of-compatibility",
-    title: "좋은 궁합을 알아보는 핵심 신호",
+    title: highValueContentText("highValueContent.019"),
     category: "궁합과 관계",
     categorySlug: "compatibility-relationship",
     summary: "궁합을 점수보다 대화 방식, 갈등 회복, 생활 리듬, 책임 분담의 관점에서 읽는 관계 가이드입니다.",
@@ -223,8 +255,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "궁합 결과는 관계를 점검하는 참고 자료이며 상대의 마음이나 행동을 단정하지 않습니다.",
     serviceLinks: [
-      { href: "/saju/compatibility", label: "사주 궁합 무료 해석" },
-      { href: "/love", label: "연애운 무료 보기" },
+      { href: "/saju/compatibility", label: highValueContentText("highValueContent.020") },
+      { href: "/love", label: highValueContentText("highValueContent.021") },
     ],
     faq: [
       {
@@ -259,7 +291,7 @@ export const HIGH_VALUE_PAGES = [
   },
   {
     slug: "common-user-questions-faq",
-    title: "운세 서비스를 안전하게 이용하는 FAQ",
+    title: highValueContentText("highValueContent.022"),
     category: "오늘의 운세",
     categorySlug: "daily-fortune",
     summary: "무료 운세, 오늘의 운세, 개인정보, 결제, 결과 해석에 관한 자주 묻는 질문을 사용자 관점에서 정리합니다.",
@@ -268,8 +300,8 @@ export const HIGH_VALUE_PAGES = [
     author: "Code Destiny 편집팀",
     disclaimer: "운세 서비스 이용 안내는 일반 정보이며 개별 결제나 계정 문제는 고객센터 안내를 따릅니다.",
     serviceLinks: [
-      { href: "/today", label: "오늘의 운세 무료 보기" },
-      { href: "/faq", label: "Code Destiny 자주 묻는 질문" },
+      { href: "/today", label: highValueContentText("highValueContent.023") },
+      { href: "/faq", label: highValueContentText("highValueContent.024") },
     ],
     faq: [
       {

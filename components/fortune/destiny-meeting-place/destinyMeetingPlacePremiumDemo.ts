@@ -1,4 +1,72 @@
 import type { DestinyMeetingPlaceResult } from "./destinyMeetingPlaceTypes";
+import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
+
+const DESTINY_MEETING_PLACE_PREMIUM_DEMO_TEXT_TRANSLATIONS = {
+  ko: {
+    "headline": "모던 럭셔리 인연 리포트",
+    "energy.title": "토(土)와 금(金)이 만드는 신뢰의 자장",
+    "route.traditional.title": "전통 산책형 루트",
+    "route.traditional.description": "고궁/한옥/돌담길처럼 속도를 늦추는 공간에서 인연 운이 상승합니다.",
+    "route.curated.title": "큐레이션 대화형 루트",
+    "route.curated.description": "미술관/편집숍/북카페처럼 취향의 기준을 드러내는 공간이 유리합니다.",
+    "route.daily.title": "생활 미식형 루트",
+    "route.daily.description": "전통시장 미식 동선처럼 현실 호흡을 공유하는 장소가 안정적인 인연을 만듭니다.",
+  },
+  en: {
+    "headline": "Modern Luxury Destiny Meeting Report",
+    "energy.title": "The field of trust shaped by Earth and Metal",
+    "route.traditional.title": "Traditional Walking Route",
+    "route.traditional.description": "Destiny luck rises in places that slow the pace, such as palaces, hanok streets, and stone-wall walks.",
+    "route.curated.title": "Curated Conversation Route",
+    "route.curated.description": "Museums, concept stores, and book cafes that reveal taste and standards are especially favorable.",
+    "route.daily.title": "Everyday Gourmet Route",
+    "route.daily.description": "Food routes through traditional markets create steady connections by sharing a realistic daily rhythm.",
+  },
+  ja: {
+    "headline": "モダンラグジュアリー縁レポート",
+    "energy.title": "土と金がつくる信頼の場",
+    "route.traditional.title": "伝統散策ルート",
+    "route.traditional.description": "宮殿、韓屋、石垣道のように速度をゆるめる空間で縁の運が高まります。",
+    "route.curated.title": "キュレーション会話ルート",
+    "route.curated.description": "美術館、編集ショップ、ブックカフェのように好みの基準が見える空間が有利です。",
+    "route.daily.title": "日常グルメルート",
+    "route.daily.description": "伝統市場の食の動線のように現実の呼吸を共有する場所が、安定した縁を育てます。",
+  },
+  "zh-CN": {
+    "headline": "现代奢华缘分报告",
+    "energy.title": "土与金形成的信任磁场",
+    "route.traditional.title": "传统散步型路线",
+    "route.traditional.description": "古宫、韩屋、石墙路这类让速度放慢的空间，会提升缘分运。",
+    "route.curated.title": "策展对话型路线",
+    "route.curated.description": "美术馆、买手店、书咖等能展现品味标准的空间更有利。",
+    "route.daily.title": "日常美食型路线",
+    "route.daily.description": "像传统市场美食动线一样共享现实节奏的地点，会形成更稳定的缘分。",
+  },
+  "zh-TW": {
+    "headline": "現代奢華緣分報告",
+    "energy.title": "土與金形成的信任磁場",
+    "route.traditional.title": "傳統散步型路線",
+    "route.traditional.description": "古宮、韓屋、石牆路這類讓速度放慢的空間，會提升緣分運。",
+    "route.curated.title": "策展對話型路線",
+    "route.curated.description": "美術館、選物店、書咖等能展現品味標準的空間更有利。",
+    "route.daily.title": "日常美食型路線",
+    "route.daily.description": "像傳統市場美食動線一樣共享現實節奏的地點，會形成更穩定的緣分。",
+  },
+} as const;
+
+type DestinyMeetingPlacePremiumDemoTextKey = keyof typeof DESTINY_MEETING_PLACE_PREMIUM_DEMO_TEXT_TRANSLATIONS.ko;
+type DestinyMeetingPlacePremiumDemoLocale = keyof typeof DESTINY_MEETING_PLACE_PREMIUM_DEMO_TEXT_TRANSLATIONS;
+
+function destinyMeetingPlacePremiumDemoText(key: DestinyMeetingPlacePremiumDemoTextKey) {
+  const locale = normalizeLoadingLocale(getCurrentLoadingLocale());
+  const activeLocale: DestinyMeetingPlacePremiumDemoLocale =
+    locale === "ja" || locale === "zh-CN" || locale === "zh-TW" || locale === "en" ? locale : "ko";
+  return (
+    DESTINY_MEETING_PLACE_PREMIUM_DEMO_TEXT_TRANSLATIONS[activeLocale][key] ||
+    DESTINY_MEETING_PLACE_PREMIUM_DEMO_TEXT_TRANSLATIONS.en[key] ||
+    "Translation pending"
+  );
+}
 
 export type DestinyMeetingPlacePremiumNarrative = {
   profile: {
@@ -64,11 +132,11 @@ export const PREMIUM_DESTINY_MEETING_PLACE_DEMO: DestinyMeetingPlacePremiumNarra
     majorElements: ["토(土)", "금(金)"],
     keywords: ["세련된 끌림", "디테일에서 오는 매력", "품격 있는 만남"],
   },
-  headline: "모던 럭셔리 인연 리포트",
+  headline: destinyMeetingPlacePremiumDemoText("headline"),
   oneLineSummary:
     "당신의 인연운은 화려함보다 결이 고운 공간에서 열린다. 오후의 잔잔한 빛과 저녁의 정돈된 공기 속에서, 디테일을 알아보는 사람과 품격 있는 대화가 시작된다.",
   energyNarrative: {
-    title: "토(土)와 금(金)이 만드는 신뢰의 자장",
+    title: destinyMeetingPlacePremiumDemoText("energy.title"),
     body:
       "신(辛) 일간의 매력은 반짝임 그 자체보다 완성도 높은 디테일에서 드러난다. 토(土) 기운은 감정의 흔들림을 가라앉혀 첫 만남의 속도를 안정시키고, 금(金) 기운은 말투와 취향의 기준을 선명하게 만들어 신뢰 가능한 인상으로 연결한다.",
     psychologyLink:
@@ -257,22 +325,22 @@ export function premiumNarrativeToResult(data: DestinyMeetingPlacePremiumNarrati
     ],
     meetingPlaceTypes: [
       {
-        title: "전통 산책형 루트",
-        description: "고궁/한옥/돌담길처럼 속도를 늦추는 공간에서 인연 운이 상승합니다.",
+        title: destinyMeetingPlacePremiumDemoText("route.traditional.title"),
+        description: destinyMeetingPlacePremiumDemoText("route.traditional.description"),
         whyItFits: "토(土) 기운이 불안을 잠재워 진심 대화를 오래 유지하게 만듭니다.",
         examplePlaces: ["덕수궁 돌담길", "창덕궁 후원", "전주 한옥마을"],
         caution: "동선을 과하게 늘리지 말고 한 공간에 충분히 머무르세요.",
       },
       {
-        title: "큐레이션 대화형 루트",
-        description: "미술관/편집숍/북카페처럼 취향의 기준을 드러내는 공간이 유리합니다.",
+        title: destinyMeetingPlacePremiumDemoText("route.curated.title"),
+        description: destinyMeetingPlacePremiumDemoText("route.curated.description"),
         whyItFits: "금(金) 기운이 당신의 디테일 감각을 사회적 매력으로 전환합니다.",
         examplePlaces: ["큐레이션 전시", "디자인 편집숍", "비즈니스 북카페"],
         caution: "평가보다 질문 중심의 말투를 유지하세요.",
       },
       {
-        title: "생활 미식형 루트",
-        description: "전통시장 미식 동선처럼 현실 호흡을 공유하는 장소가 안정적인 인연을 만듭니다.",
+        title: destinyMeetingPlacePremiumDemoText("route.daily.title"),
+        description: destinyMeetingPlacePremiumDemoText("route.daily.description"),
         whyItFits: "함께 먹고 고르는 리듬이 관계의 실제 궁합을 빠르게 보여줍니다.",
         examplePlaces: ["광장시장", "남대문 시장", "지역 로컬 마켓"],
         caution: "과한 장소 이동보다 짧고 밀도 있는 코스가 효과적입니다.",

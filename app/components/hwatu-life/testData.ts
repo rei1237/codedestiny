@@ -137,10 +137,64 @@ export const LIFE_ARCHETYPES: LifeArchetype[] = [
   },
 ];
 
+const HWATU_LIFE_QUESTION_TEXT_TRANSLATIONS = {
+  ko: {
+    "q1.title": "판돈이 두 배로 뛰었다. 네 첫 선택은?",
+    "q2.title": "사랑이 꼬였다. 너의 한 수는?",
+    "q3.title": "팀 판이 흔들린다. 네 포지션은?",
+    "q4.title": "갑자기 빈자리가 생겼다. 승진 기회다.",
+    "q5.title": "지인이 무리한 투자 제안을 한다.",
+    "q6.title": "중요 발표 직전 돌발 변수가 생겼다.",
+    "q7.title": "네가 믿는 진짜 승부는?",
+  },
+  en: {
+    "q1.title": "The stakes have doubled. What is your first move?",
+    "q2.title": "Love has tangled up. What is your play?",
+    "q3.title": "The team table is shaking. Where do you stand?",
+    "q4.title": "A seat suddenly opens. It is a promotion chance.",
+    "q5.title": "Someone you know suggests a risky investment.",
+    "q6.title": "A sudden variable appears right before an important presentation.",
+    "q7.title": "What kind of real win do you believe in?",
+  },
+  ja: {
+    "q1.title": "賭け金が二倍に跳ねた。最初の一手は？",
+    "q2.title": "恋がこじれた。あなたの一手は？",
+    "q3.title": "チームの場が揺れている。あなたの立ち位置は？",
+    "q4.title": "突然空席ができた。昇進のチャンスだ。",
+    "q5.title": "知人が無理な投資話を持ちかけてきた。",
+    "q6.title": "大事な発表直前に想定外の変数が出た。",
+    "q7.title": "あなたが信じる本当の勝負は？",
+  },
+  "zh-CN": {
+    "q1.title": "赌注翻倍了。你的第一选择是什么？",
+    "q2.title": "爱情乱了套。你会怎么出手？",
+    "q3.title": "团队局势开始摇晃。你的位置在哪里？",
+    "q4.title": "突然出现空缺。这是升职机会。",
+    "q5.title": "熟人提出了一个高风险投资建议。",
+    "q6.title": "重要发表前突然出现变数。",
+    "q7.title": "你相信的真正胜负是什么？",
+  },
+  "zh-TW": {
+    "q1.title": "賭注翻倍了。你的第一選擇是什麼？",
+    "q2.title": "愛情亂了套。你會怎麼出手？",
+    "q3.title": "團隊局勢開始搖晃。你的位置在哪裡？",
+    "q4.title": "突然出現空缺。這是升職機會。",
+    "q5.title": "熟人提出了一個高風險投資建議。",
+    "q6.title": "重要發表前突然出現變數。",
+    "q7.title": "你相信的真正勝負是什麼？",
+  },
+} as const;
+
+type HwatuQuestionTextKey = keyof typeof HWATU_LIFE_QUESTION_TEXT_TRANSLATIONS.ko;
+
+function hwatuQuestionText(key: HwatuQuestionTextKey) {
+  return HWATU_LIFE_QUESTION_TEXT_TRANSLATIONS.ko[key];
+}
+
 export const LIFE_QUESTIONS: LifeQuestion[] = [
   {
     id: "q1",
-    title: "판돈이 두 배로 뛰었다. 네 첫 선택은?",
+    title: hwatuQuestionText("q1.title"),
     sub: "돈 앞에서 네 자세를 본다.",
     choices: [
       { key: "A", text: "묻고 더블로 간다.", score: { leadership: 2, opportunism: 1, charisma: 1 } },
@@ -150,7 +204,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q2",
-    title: "사랑이 꼬였다. 너의 한 수는?",
+    title: hwatuQuestionText("q2.title"),
     sub: "감정전에서의 승부법.",
     choices: [
       { key: "A", text: "오늘 바로 직구를 던진다.", score: { charisma: 2, leadership: 1, intuition: 1 } },
@@ -160,7 +214,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q3",
-    title: "팀 판이 흔들린다. 네 포지션은?",
+    title: hwatuQuestionText("q3.title"),
     sub: "위기 순간의 역할 선택.",
     choices: [
       { key: "A", text: "내가 앞에서 책임지고 판을 다시 세운다.", score: { leadership: 2, endurance: 1, charisma: 1 } },
@@ -170,7 +224,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q4",
-    title: "갑자기 빈자리가 생겼다. 승진 기회다.",
+    title: hwatuQuestionText("q4.title"),
     sub: "기회 앞에서의 본능.",
     choices: [
       { key: "A", text: "내 이름부터 올린다.", score: { leadership: 2, opportunism: 2 } },
@@ -180,7 +234,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q5",
-    title: "지인이 무리한 투자 제안을 한다.",
+    title: hwatuQuestionText("q5.title"),
     sub: "신뢰와 계산의 경계.",
     choices: [
       { key: "A", text: "소액으로 먼저 찍어본다.", score: { opportunism: 2, intuition: 1, pragmatism: 1 } },
@@ -190,7 +244,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q6",
-    title: "중요 발표 직전 돌발 변수가 생겼다.",
+    title: hwatuQuestionText("q6.title"),
     sub: "순간 대응 감각 체크.",
     choices: [
       { key: "A", text: "즉석에서 흐름을 재구성한다.", score: { charisma: 2, leadership: 1, intuition: 1 } },
@@ -200,7 +254,7 @@ export const LIFE_QUESTIONS: LifeQuestion[] = [
   },
   {
     id: "q7",
-    title: "네가 믿는 진짜 승부는?",
+    title: hwatuQuestionText("q7.title"),
     sub: "마지막. 본능대로 고른다.",
     choices: [
       { key: "A", text: "시선을 내 쪽으로 끌어오는 순간.", score: { charisma: 2, leadership: 1, opportunism: 1 } },

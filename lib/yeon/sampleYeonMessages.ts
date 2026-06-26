@@ -1,5 +1,23 @@
 import type { YeonMessageOutput } from "./types";
 
+const YEON_SAMPLE_MESSAGES_TEXT_TRANSLATIONS = {
+  ko: {
+    tiredHugTitle: "연이가 꼭 안아주는 말",
+    lonelyHugTitle: "연이가 건네는 달빛 안부",
+    anxiousHugTitle: "연이의 별쿠션 처방",
+  },
+  en: {
+    tiredHugTitle: "A Hug from Yeon",
+    lonelyHugTitle: "Yeon’s Moonlit Check-In",
+    anxiousHugTitle: "Yeon’s Star Cushion Prescription",
+  },
+  ja: {
+    tiredHugTitle: "ヨンがぎゅっと抱きしめる言葉",
+    lonelyHugTitle: "ヨンからの月明かりの便り",
+    anxiousHugTitle: "ヨンの星クッション処方",
+  },
+} as const;
+
 export const yeonSampleMessages: YeonMessageOutput[] = [
   {
     zodiac_sign: "양자리",
@@ -14,7 +32,7 @@ export const yeonSampleMessages: YeonMessageOutput[] = [
       first_sentence: "요즘 조금 무리하고 있지 않았어?",
     },
     yeon_is_hug: {
-      title: "연이가 꼭 안아주는 말",
+      title: YEON_SAMPLE_MESSAGES_TEXT_TRANSLATIONS.ko.tiredHugTitle,
       message: [
         "요즘 조금 무리하고 있지 않았어?",
         "별의 흐름을 보니, 지금의 너는 잘 달리는 사람이라서 더 자주 멈춰야 하는 시기 같아.",
@@ -60,7 +78,7 @@ export const yeonSampleMessages: YeonMessageOutput[] = [
       first_sentence: "요즘 사람들 사이에 있어도 혼자인 것처럼 느껴진 순간이 있었을지도 몰라.",
     },
     yeon_is_hug: {
-      title: "연이가 건네는 달빛 안부",
+      title: YEON_SAMPLE_MESSAGES_TEXT_TRANSLATIONS.ko.lonelyHugTitle,
       message: [
         "요즘 사람들 사이에 있어도 혼자인 것처럼 느껴진 순간이 있었을지도 몰라.",
         "오늘 별 흐름은 네 마음이 약해서가 아니라, 너무 오래 혼자 정리해 온 탓이라고 말해주고 있어.",
@@ -106,7 +124,7 @@ export const yeonSampleMessages: YeonMessageOutput[] = [
       first_sentence: "요즘 마음이 자꾸 먼저 뛰어가고 있지 않았어?",
     },
     yeon_is_hug: {
-      title: "연이의 별쿠션 처방",
+      title: YEON_SAMPLE_MESSAGES_TEXT_TRANSLATIONS.ko.anxiousHugTitle,
       message: [
         "요즘 마음이 자꾸 먼저 뛰어가고 있지 않았어?",
         "별의 신호를 보면 지금은 미래를 전부 해결하려 하기보다, 오늘의 불안을 한 칸씩 정리하는 흐름이야.",

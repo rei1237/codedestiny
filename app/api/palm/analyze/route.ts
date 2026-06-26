@@ -31,6 +31,57 @@ const ALLOWED_IMAGE_MIME = new Set([
   "image/heif",
   "application/octet-stream",
 ]);
+const PALM_ANALYZE_ROUTE_TEXT_TRANSLATIONS = {
+  ko: {
+    missingDominantHand: "주로 사용하는 손 정보가 필요합니다.",
+    missingPurpose: "분석 목적 정보가 필요합니다.",
+    missingAnalysisResult: "손바닥 분석 결과가 필요합니다.",
+    missingImage: "손바닥 이미지가 필요합니다.",
+    engineUnavailable: "손금 분석 엔진을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    palmDetectionFailed: "손바닥을 감지하지 못했습니다. 손바닥 전체가 화면 중앙에 오도록 다시 촬영해 주세요.",
+    internalError: "서버 내부 오류가 발생했습니다.",
+  },
+  en: {
+    missingDominantHand: "Dominant hand information is required.",
+    missingPurpose: "Analysis purpose information is required.",
+    missingAnalysisResult: "Palm analysis result is required.",
+    missingImage: "A palm image is required.",
+    engineUnavailable: "The palm analysis engine is unavailable. Please try again soon.",
+    palmDetectionFailed: "We could not detect a palm. Please retake the photo with the full palm centered on the screen.",
+    internalError: "An internal server error occurred.",
+  },
+  ja: {
+    missingDominantHand: "主に使う手の情報が必要です。",
+    missingPurpose: "分析目的の情報が必要です。",
+    missingAnalysisResult: "手のひら分析結果が必要です。",
+    missingImage: "手のひら画像が必要です。",
+    engineUnavailable: "手相分析エンジンを利用できません。少し後でもう一度お試しください。",
+    palmDetectionFailed: "手のひらを検出できませんでした。手のひら全体が画面中央に入るように撮り直してください。",
+    internalError: "サーバー内部エラーが発生しました。",
+  },
+  "zh-CN": {
+    missingDominantHand: "需要主要使用手的信息。",
+    missingPurpose: "需要分析目的信息。",
+    missingAnalysisResult: "需要手掌分析结果。",
+    missingImage: "需要手掌图片。",
+    engineUnavailable: "暂时无法使用掌纹分析引擎。请稍后再试。",
+    palmDetectionFailed: "未能检测到手掌。请让整个手掌位于画面中央后重新拍摄。",
+    internalError: "服务器内部发生错误。",
+  },
+  "zh-TW": {
+    missingDominantHand: "需要主要使用手的資訊。",
+    missingPurpose: "需要分析目的資訊。",
+    missingAnalysisResult: "需要手掌分析結果。",
+    missingImage: "需要手掌圖片。",
+    engineUnavailable: "暫時無法使用掌紋分析引擎。請稍後再試。",
+    palmDetectionFailed: "未能偵測到手掌。請讓整個手掌位於畫面中央後重新拍攝。",
+    internalError: "伺服器內部發生錯誤。",
+  },
+};
+
+function palmAnalyzeText(key: keyof typeof PALM_ANALYZE_ROUTE_TEXT_TRANSLATIONS.ko) {
+  return PALM_ANALYZE_ROUTE_TEXT_TRANSLATIONS.ko[key] || PALM_ANALYZE_ROUTE_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
 
 function dataUrlToBase64(dataUrl: string): { mimeType: string; data: string } | null {
   const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -1680,7 +1731,7 @@ export async function POST(req: NextRequest) {
         status: 400,
         code: "MISSING_DOMINANT_HAND",
         reasonCode: "MISSING_DOMINANT_HAND",
-        message: "주로 사용하는 손 정보가 필요합니다.",
+        message: palmAnalyzeText("missingDominantHand"),
       });
     }
     if (!analysisPurpose) {
@@ -1688,7 +1739,7 @@ export async function POST(req: NextRequest) {
         status: 400,
         code: "MISSING_ANALYSIS_PURPOSE",
         reasonCode: "MISSING_ANALYSIS_PURPOSE",
-        message: "분석 목적 정보가 필요합니다.",
+        message: palmAnalyzeText("missingPurpose"),
       });
     }
 
@@ -1699,7 +1750,7 @@ export async function POST(req: NextRequest) {
           status: 400,
           code: "MISSING_ANALYSIS_RESULT",
           reasonCode: "MISSING_ANALYSIS_RESULT",
-          message: "?먮컮?μ? ?먭툑 遺꾩꽍 由쎌굹?뵒 ?섎룄 ?덈떎.",
+          message: palmAnalyzeText("missingAnalysisResult"),
         });
       }
 
@@ -1743,7 +1794,7 @@ export async function POST(req: NextRequest) {
         status: 400,
         code: "MISSING_IMAGE",
         reasonCode: "MISSING_IMAGE",
-        message: "손바닥 이미지가 필요합니다.",
+        message: palmAnalyzeText("missingImage"),
       });
     }
 
@@ -1789,7 +1840,7 @@ export async function POST(req: NextRequest) {
           status: 502,
           code: "ANALYSIS_ENGINE_UNAVAILABLE",
           reasonCode: "ENGINE_UNAVAILABLE",
-          message: "손금 분석 엔진을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+          message: palmAnalyzeText("engineUnavailable"),
         });
       }
 
@@ -1821,7 +1872,7 @@ export async function POST(req: NextRequest) {
         code: "PALM_DETECTION_FAILED",
         error: "PALM_DETECTION_FAILED",
         reasonCode: "NO_PALM",
-        message: "손바닥을 감지하지 못했습니다. 손바닥 전체가 화면 중앙에 오도록 다시 촬영해 주세요.",
+        message: palmAnalyzeText("palmDetectionFailed"),
         debug: {
           checks: sideDebug,
         },
@@ -1999,6 +2050,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("[Palm Analyze Route] Error:", error);
-    return NextResponse.json({ ok: false, error: "서버 내부 오류가 발생했습니다." }, { status: 500 });
+    return NextResponse.json({ ok: false, error: palmAnalyzeText("internalError") }, { status: 500 });
   }
 }

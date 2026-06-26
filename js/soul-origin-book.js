@@ -52,14 +52,132 @@
   var _isGenerating = false;
   var _resolvedCoinCost = COIN_COST;
 
-  var LOADING_TEXTS = [
-    '다섯 운세 흐름의 핵심 주제를 정리하는 중입니다.',
-    '사주 원국과 대운의 반복 패턴을 해석하는 중입니다.',
-    '자미두수 명궁과 신궁의 운명 구조를 정리하는 중입니다.',
-    '점성술과 베다점의 시기 흐름을 반영하는 중입니다.',
-    '숙요점 인연 카르마를 통합하는 중입니다.',
-    '운명의 업 프리미엄 리포트를 완성하는 중입니다.',
-  ];
+  var SOUL_ORIGIN_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      loadingTexts: [
+        '다섯 운세 흐름의 핵심 주제를 정리하는 중입니다.',
+        '사주 원국과 대운의 반복 패턴을 해석하는 중입니다.',
+        '자미두수 명궁과 신궁의 운명 구조를 정리하는 중입니다.',
+        '점성술과 베다점의 시기 흐름을 반영하는 중입니다.',
+        '숙요점 인연 카르마를 통합하는 중입니다.',
+        '운명의 업 프리미엄 리포트를 완성하는 중입니다.',
+      ],
+      oneTime: '1회',
+      revisitAvailable: '결과 재열람 가능',
+      qualityVeryClear: '매우 선명함',
+      qualityStable: '안정적으로 선명함',
+      qualityCore: '핵심 흐름 확인됨',
+      qualityPassed: '검수 완료',
+      qualityReviewing: '상담 검수 진행 중',
+      qualitySummaryPrefix: '상담 검수',
+      qualitySummarySuffix: '장별 근거와 실천 처방 확인',
+      practiceFallback: '오늘 바로 바꿀 수 있는 작은 선택부터 정리하고, 같은 반응이 반복되는 장면을 PDF의 장별 처방에 따라 하나씩 조정하세요.',
+      symbolicSentence: '상징 문장',
+      mainSymbolFallback: '운명의 핵심 상징',
+      resultSummaryTitle: '상담 핵심 요약',
+      chapterUnit: '장',
+      sectionCount: '개 세부 카테고리',
+      coreJudgment: '핵심 판정',
+      coreJudgmentFallback: '운명의 업 흐름을 장별로 정리했습니다.',
+      symbolicAxis: '상징 축',
+      symbolicAxisFallback: '사주와 대운의 교차 흐름',
+      practicePrescription: '실천 처방',
+      selectedChapter: '선택 챕터',
+      itemPrefix: '항목',
+      pdfDetailNotice: '전체 세부 상담은 PDF에서 확인할 수 있습니다.',
+      paymentCanceled: '결제가 취소되었습니다.',
+      krwPaymentFailed: '원화 결제 확인에 실패했습니다.',
+      paymentTitle: '운명의 업 리포트 생성',
+    },
+    en: {
+      loadingTexts: [
+        'Gathering the core themes across five destiny currents.',
+        'Reading repeated patterns in the natal chart and decade cycle.',
+        'Organizing the destiny structure of Zi Wei life and body palaces.',
+        'Reflecting timing flows from Western and Vedic astrology.',
+        'Integrating Sukuyo relationship karma.',
+        'Completing your premium karma of destiny report.',
+      ],
+      oneTime: 'one time',
+      revisitAvailable: 'result can be reopened',
+      qualityVeryClear: 'very clear',
+      qualityStable: 'steadily clear',
+      qualityCore: 'core flow confirmed',
+      qualityPassed: 'review complete',
+      qualityReviewing: 'consultation review in progress',
+      qualitySummaryPrefix: 'consultation review',
+      qualitySummarySuffix: 'chapter evidence and practice guidance checked',
+      practiceFallback: 'Begin with one small choice you can change today, then adjust repeated reactions one by one through the chapter prescriptions in the PDF.',
+      symbolicSentence: 'symbolic sentence',
+      mainSymbolFallback: 'core destiny symbol',
+      resultSummaryTitle: 'Core Consultation Summary',
+      chapterUnit: 'chapters',
+      sectionCount: 'detailed sections',
+      coreJudgment: 'Core Judgment',
+      coreJudgmentFallback: 'The karma flow of destiny has been organized by chapter.',
+      symbolicAxis: 'Symbolic Axis',
+      symbolicAxisFallback: 'intersection of saju and decade cycles',
+      practicePrescription: 'Practice Prescription',
+      selectedChapter: 'Selected Chapter',
+      itemPrefix: 'Item',
+      pdfDetailNotice: 'The full detailed consultation is available in the PDF.',
+      paymentCanceled: 'Payment was canceled.',
+      krwPaymentFailed: 'KRW payment verification failed.',
+      paymentTitle: 'Generate Karma of Destiny Report',
+    },
+    ja: {
+      loadingTexts: [
+        '五つの占術の流れから核心テーマを整えています。',
+        '四柱原局と大運に繰り返される型を読み解いています。',
+        '紫微斗数の命宮と身宮に宿る運命構造を整理しています。',
+        '西洋占星術とヴェーダ占星術の時期の流れを反映しています。',
+        '宿曜占星術の縁のカルマを統合しています。',
+        '運命のカルマ・プレミアムリポートを仕上げています。',
+      ],
+      oneTime: '1回',
+      revisitAvailable: '結果の再閲覧が可能',
+      qualityVeryClear: 'とても鮮明',
+      qualityStable: '安定して鮮明',
+      qualityCore: '核心の流れを確認済み',
+      qualityPassed: '検収完了',
+      qualityReviewing: '相談内容を検収中',
+      qualitySummaryPrefix: '相談検収',
+      qualitySummarySuffix: '章ごとの根拠と実践処方を確認',
+      practiceFallback: '今日すぐ変えられる小さな選択から整え、同じ反応が繰り返される場面をPDFの章別処方に沿って一つずつ調整してください。',
+      symbolicSentence: '象徴文',
+      mainSymbolFallback: '運命の核心象徴',
+      resultSummaryTitle: '相談の核心要約',
+      chapterUnit: '章',
+      sectionCount: '個の詳細カテゴリ',
+      coreJudgment: '核心判定',
+      coreJudgmentFallback: '運命のカルマの流れを章ごとに整理しました。',
+      symbolicAxis: '象徴軸',
+      symbolicAxisFallback: '四柱と大運が交差する流れ',
+      practicePrescription: '実践処方',
+      selectedChapter: '選択した章',
+      itemPrefix: '項目',
+      pdfDetailNotice: '詳しい相談内容はPDFで確認できます。',
+      paymentCanceled: '決済がキャンセルされました。',
+      krwPaymentFailed: 'ウォン決済の確認に失敗しました。',
+      paymentTitle: '運命のカルマリポート生成',
+    }
+  };
+
+  function getSoulOriginBookLocale() {
+    var value = '';
+    try { if (window.cdGetCurrentLanguage) value = String(window.cdGetCurrentLanguage() || ''); } catch (_) {}
+    if (!value) {
+      try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
+    }
+    value = String(value || '').trim().replace('_', '-').toLowerCase();
+    if (value.indexOf('ja') === 0) return 'ja';
+    if (value.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function getSoulOriginBookCopy() {
+    return SOUL_ORIGIN_BOOK_TEXT_TRANSLATIONS[getSoulOriginBookLocale()] || SOUL_ORIGIN_BOOK_TEXT_TRANSLATIONS.ko;
+  }
 
   function $(id) { return document.getElementById(id); }
   function clean(value) { return String(value == null ? '' : value).trim(); }
@@ -71,11 +189,12 @@
 
   function updateSoulOriginCoinCost(cost) {
     _resolvedCoinCost = Math.max(0, Math.floor(Number(cost || COIN_COST)));
+    var copy = getSoulOriginBookCopy();
     var label = formatCoinCost(_resolvedCoinCost);
     var badge = $('soCoinCostBadge');
     var notice = $('soCoinCostLabel');
-    if (badge) badge.textContent = label + ' · 1회';
-    if (notice) notice.textContent = label + ' · 결과 재열람 가능';
+    if (badge) badge.textContent = label + ' · ' + copy.oneTime;
+    if (notice) notice.textContent = label + ' · ' + copy.revisitAvailable;
   }
 
   function setDisplay(id, value) {
@@ -569,8 +688,8 @@
   function isSoulOriginRunning(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
     var nested = data.data && typeof data.data === 'object' ? data.data : {};
-    var status = clean(data.status || data.serverStatus || nested.status).toLowerCase();
-    return status === 'running' || status === 'processing' || status === 'generating' || status === 'pending';
+    var status = clean(data.generationStatus || nested.generationStatus || data.status || data.serverStatus || nested.status).toLowerCase();
+    return status === 'running' || status === 'processing' || status === 'generating' || status === 'pending' || status === 'validating' || status === 'calculating' || status === 'rendering';
   }
 
   function isSoulOriginFailed(payload) {
@@ -748,17 +867,19 @@
   }
 
   function qualityLabelFromScore(score) {
+    var copy = getSoulOriginBookCopy();
     var value = normalizePercent(score);
-    if (value >= 90) return '매우 선명함';
-    if (value >= 82) return '안정적으로 선명함';
-    if (value > 0) return '핵심 흐름 확인됨';
-    return '검수 완료';
+    if (value >= 90) return copy.qualityVeryClear;
+    if (value >= 82) return copy.qualityStable;
+    if (value > 0) return copy.qualityCore;
+    return copy.qualityPassed;
   }
 
   function buildQualitySummary(quality) {
+    var copy = getSoulOriginBookCopy();
     var status = clean(quality && quality.status).toLowerCase();
-    if (status && status !== 'passed') return '상담 검수 진행 중';
-    return '상담 검수 · ' + qualityLabelFromScore(quality && quality.score) + ' · 장별 근거와 실천 처방 확인';
+    if (status && status !== 'passed') return copy.qualityReviewing;
+    return copy.qualitySummaryPrefix + ' · ' + qualityLabelFromScore(quality && quality.score) + ' · ' + copy.qualitySummarySuffix;
   }
 
   function extractPreviewParagraph(value, maxLength) {
@@ -783,7 +904,7 @@
         }
       }
     }
-    return '오늘 바로 바꿀 수 있는 작은 선택부터 정리하고, 같은 반응이 반복되는 장면을 PDF의 장별 처방에 따라 하나씩 조정하세요.';
+    return getSoulOriginBookCopy().practiceFallback;
   }
 
   function renderSymbolicProfile(payload) {
@@ -799,7 +920,7 @@
         var el = document.createElement('div');
         el.className = 'so-symbol-card';
         var title = document.createElement('b');
-        title.textContent = clean(card.title || '상징 문장');
+        title.textContent = clean(card.title || getSoulOriginBookCopy().symbolicSentence);
         var body = document.createElement('p');
         body.textContent = clean(card.body || '');
         el.appendChild(title);
@@ -814,7 +935,7 @@
       var items = Array.isArray(profile.metrics) ? profile.metrics : [];
       var heading = document.createElement('div');
       heading.className = 'so-metric-summary';
-      heading.textContent = clean(profile.mainSymbol || '운명의 핵심 상징') + ' · ' + buildQualitySummary(quality);
+      heading.textContent = clean(profile.mainSymbol || getSoulOriginBookCopy().mainSymbolFallback) + ' · ' + buildQualitySummary(quality);
       metricWrap.appendChild(heading);
       for (var j = 0; j < items.length; j += 1) {
         var item = items[j] || {};
@@ -847,21 +968,25 @@
     }, 0);
     var quality = payload && payload.qualityReport && typeof payload.qualityReport === 'object' ? payload.qualityReport : {};
     var profile = payload && payload.symbolicProfile && typeof payload.symbolicProfile === 'object' ? payload.symbolicProfile : {};
+    var copy = getSoulOriginBookCopy();
     var article = document.createElement('article');
     article.className = 'lb-result-article';
     var title = document.createElement('h3');
     title.className = 'lb-result-article__title';
-    title.textContent = '상담 핵심 요약';
+    title.textContent = copy.resultSummaryTitle;
     var subtitle = document.createElement('p');
     subtitle.className = 'lb-result-article__subtitle';
-    subtitle.textContent = chapters.length + '장 · ' + sectionCount + '개 세부 카테고리 · ' + qualityLabelFromScore(quality.score);
+    var locale = getSoulOriginBookLocale();
+    var chapterText = locale === 'en' ? chapters.length + ' ' + copy.chapterUnit : chapters.length + copy.chapterUnit;
+    var sectionText = locale === 'en' ? sectionCount + ' ' + copy.sectionCount : sectionCount + copy.sectionCount;
+    subtitle.textContent = chapterText + ' · ' + sectionText + ' · ' + qualityLabelFromScore(quality.score);
     article.appendChild(title);
     article.appendChild(subtitle);
 
     [
-      { title: '핵심 판정', body: extractPreviewParagraph(payload && payload.summary, 220) || '운명의 업 흐름을 장별로 정리했습니다.' },
-      { title: '상징 축', body: clean(profile.mainSymbol || '운명의 핵심 상징') + ' · ' + clean(profile.axis || '사주와 대운의 교차 흐름') },
-      { title: '실천 처방', body: pickResultPracticeText(chapters) },
+      { title: copy.coreJudgment, body: extractPreviewParagraph(payload && payload.summary, 220) || copy.coreJudgmentFallback },
+      { title: copy.symbolicAxis, body: clean(profile.mainSymbol || copy.mainSymbolFallback) + ' · ' + clean(profile.axis || copy.symbolicAxisFallback) },
+      { title: copy.practicePrescription, body: pickResultPracticeText(chapters) },
     ].forEach(function (item) {
       var sectionEl = document.createElement('section');
       sectionEl.className = 'lb-result-article__section';
@@ -886,7 +1011,7 @@
     article.className = 'lb-result-article so-chapter-preview';
     var h3 = document.createElement('h3');
     h3.className = 'lb-result-article__title';
-    h3.textContent = clean(chapter.title || '선택 챕터');
+    h3.textContent = clean(chapter.title || getSoulOriginBookCopy().selectedChapter);
     var subtitle = document.createElement('p');
     subtitle.className = 'lb-result-article__subtitle';
     subtitle.textContent = clean(chapter.subtitle || '');
@@ -899,7 +1024,7 @@
       sectionEl.className = 'lb-result-article__section';
       var h4 = document.createElement('h4');
       h4.className = 'lb-result-article__section-title';
-      h4.textContent = clean(sec.title || ('항목 ' + (i + 1)));
+      h4.textContent = clean(sec.title || (getSoulOriginBookCopy().itemPrefix + ' ' + (i + 1)));
       var body = document.createElement('p');
       body.className = 'lb-result-article__section-body';
       body.textContent = extractPreviewParagraph(sec.body || '', 320);
@@ -910,7 +1035,7 @@
     if (sections.length) {
       var note = document.createElement('p');
       note.className = 'lb-result-article__subtitle';
-      note.textContent = '전체 세부 상담은 PDF에서 확인할 수 있습니다.';
+      note.textContent = getSoulOriginBookCopy().pdfDetailNotice;
       article.appendChild(note);
     }
     previewEl.appendChild(article);
@@ -1017,10 +1142,11 @@
     var idx = 0;
     var el = $('soLoadingMessage');
     if (!el) return;
-    el.textContent = LOADING_TEXTS[0];
+    var loadingTexts = getSoulOriginBookCopy().loadingTexts;
+    el.textContent = loadingTexts[0];
     _loadingTimer = setInterval(function () {
-      idx = (idx + 1) % LOADING_TEXTS.length;
-      el.textContent = LOADING_TEXTS[idx];
+      idx = (idx + 1) % loadingTexts.length;
+      el.textContent = loadingTexts[idx];
     }, 1700);
   }
 
@@ -1364,7 +1490,7 @@
           function cancel(error) {
             if (settled) return;
             settled = true;
-            reject(error instanceof Error ? error : new Error(clean(error && error.message) || '결제가 취소되었습니다.'));
+            reject(error instanceof Error ? error : new Error(clean(error && error.message) || getSoulOriginBookCopy().paymentCanceled));
           }
           function fail(error) {
             if (settled) return;
@@ -1372,7 +1498,7 @@
             runServerCoinGate(reportId, requestId, sessionId)
               .then(resolve)
               .catch(function (fallbackError) {
-                reject(fallbackError || error || new Error('원화 결제 확인에 실패했습니다.'));
+                reject(fallbackError || error || new Error(getSoulOriginBookCopy().krwPaymentFailed));
               });
           }
           try {
@@ -1380,8 +1506,8 @@
               categoryKey: 'premium-pdf',
               featureKey: FEATURE_KEY,
               subFeatureKey: FEATURE_KEY,
-              title: '운명의 업 리포트 생성',
-              reason: '운명의 업 리포트 생성',
+              title: getSoulOriginBookCopy().paymentTitle,
+              reason: getSoulOriginBookCopy().paymentTitle,
               coinPrice: resolvedCoinCost,
               cost: resolvedCoinCost,
               serviceKey: 'soul-origin',

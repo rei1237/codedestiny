@@ -26,6 +26,7 @@ const paragraph = [
 
 const promptChecks = [];
 const geminiModel = "gemini-verify-premium";
+let fetchMode = "success";
 globalThis.fetch = async (url, options = {}) => {
   const body = JSON.parse(String(options.body || "{}"));
   const prompt = body.contents?.[0]?.parts?.map((part) => part?.text || "").join("\n") || "";
@@ -38,6 +39,12 @@ globalThis.fetch = async (url, options = {}) => {
     nameInstruction: prompt.includes("하린님과 도윤님") && prompt.includes("상담 대상 1: 하린") && prompt.includes("상담 대상 2: 도윤"),
     noSubjectAB: !/^\s*[AB]\s*:/m.test(prompt),
   });
+  if (fetchMode === "fail") {
+    return new Response(JSON.stringify({ error: { message: "forced LLM failure" } }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+  }
   const id = extract(/<article data-chapter-id="([^"]+)">/, prompt);
   const title = extract(/<h1>([^<]+)<\/h1>/, prompt);
   const sections = [...prompt.matchAll(/<section><h2>([^<]+)<\/h2><p>\.\.\.<\/p><p>\.\.\.<\/p><\/section>/g)]
@@ -108,6 +115,7 @@ const result = await generateSukyoPremiumReport(env, seed, { requestId: "verify-
 assert(result.ok === true, "숙요 PDF 생성이 ok=true를 반환해야 합니다.");
 assert(result.chapters.length === 15, "15챕터가 모두 생성되어야 합니다.", result.chapters.length);
 assert(promptChecks.length === 15, "15개 LLM 프롬프트가 호출되어야 합니다.", promptChecks.length);
+const initialPromptCount = promptChecks.length;
 assert(
   promptChecks.every((item) => item.modelInUrl && item.chapterCategory && item.sectionCategories && item.chapterFocus && item.forbiddenTone && item.nameInstruction && item.noSubjectAB),
   "모든 프롬프트가 Gemini 모델, 챕터 카테고리, 섹션 카테고리, 전문 초점, 이름 기반 상담 지시, 금지 문체를 포함해야 합니다.",
@@ -190,10 +198,58 @@ assert(
   badToneCompletion.issues,
 );
 
+promptChecks.length = 0;
+const repeatResult = await generateSukyoPremiumReport(env, {
+  ...seed,
+  reportId: "verify-sukuyo-premium-llm-repeat",
+  requestId: "verify-sukuyo-premium-llm-repeat",
+});
+const repeatPromptCount = promptChecks.length;
+assert(repeatResult.ok === true, "반복 생성도 ok=true를 반환해야 합니다.");
+assert(repeatResult.chapters.length === 15, "반복 생성도 15챕터가 모두 생성되어야 합니다.", repeatResult.chapters.length);
+assert(repeatPromptCount === 15, "장 캐시가 있어도 기본 생성은 15개 LLM 프롬프트를 다시 호출해야 합니다.", repeatPromptCount);
+assert(
+  repeatResult.chapters.every((chapter) => chapter.cached === false),
+  "기본 생성 결과는 캐시 챕터가 아니라 실시간 LLM 챕터여야 합니다.",
+  repeatResult.chapters.map((chapter) => ({ order: chapter.order, cached: chapter.cached })),
+);
+assert(repeatResult.llmAssembly?.cachedChapterCount === 0, "llmAssembly.cachedChapterCount는 기본 생성에서 0이어야 합니다.", repeatResult.llmAssembly);
+assert(repeatResult.llmAssembly?.liveChapterCount === 15, "llmAssembly.liveChapterCount는 기본 생성에서 15여야 합니다.", repeatResult.llmAssembly);
+
+fetchMode = "fail";
+promptChecks.length = 0;
+let failureError = null;
+try {
+  await generateSukyoPremiumReport({
+    ...env,
+    SUKYO_PREMIUM_LLM_REPAIR_LIMIT: 0,
+    SUKYO_PREMIUM_DISABLE_WORKERS_AI_FALLBACK: "true",
+  }, {
+    ...seed,
+    reportId: "verify-sukuyo-premium-llm-failure",
+    requestId: "verify-sukuyo-premium-llm-failure",
+  });
+} catch (error) {
+  failureError = error;
+}
+const failurePromptCount = promptChecks.length;
+fetchMode = "success";
+assert(failurePromptCount > 0, "LLM 실패 검증은 실제 LLM 호출 후 실패해야 합니다.", failurePromptCount);
+assert(failureError?.code === "SUKUYO_PREMIUM_GENERATION_FAILED", "LLM 실패 시 로컬 원고로 대체하지 않고 생성 실패를 반환해야 합니다.", {
+  code: failureError?.code,
+  message: failureError?.message,
+});
+assert(Number(failureError?.chapterCount || 0) === 0, "LLM 실패 시 부분/로컬 챕터를 완료 payload로 만들지 않아야 합니다.", {
+  chapterCount: failureError?.chapterCount,
+  failedChapters: failureError?.failedChapters,
+});
+
 console.log("[verify-sukuyo-premium-llm-pdf] ok", {
   chapters: result.chapters.length,
   htmlLength: html.length,
   provider: result.llmAssembly?.provider,
   modelName: result.llmAssembly?.modelName,
-  promptChecks: promptChecks.length,
+  promptChecks: initialPromptCount,
+  repeatPromptChecks: repeatPromptCount,
+  failurePromptChecks: failurePromptCount,
 });

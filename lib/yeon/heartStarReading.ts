@@ -100,14 +100,83 @@ type BuildReadingInput = {
   };
 };
 
+const YEON_HEART_STAR_TEXT_TRANSLATIONS = {
+  ko: {
+    "category.todayAura": "오늘의 별빛 요약",
+    "category.heartWeather": "마음 날씨",
+    "category.loveRelation": "사랑과 관계",
+    "category.moneyReality": "현실과 돈",
+    "category.selfCare": "나를 돌보는 방법",
+    "category.luckyRitual": "오늘의 행운 리추얼",
+    "category.yeonMessage": "연이의 한마디",
+    "card.title": "YEON HEART STAR",
+    "card.subtitle": "연이의 마음 별자리",
+    "summary.title": "오늘의 별빛 요약",
+  },
+  en: {
+    "category.todayAura": "Today's Starlight Summary",
+    "category.heartWeather": "Heart Weather",
+    "category.loveRelation": "Love and Relationships",
+    "category.moneyReality": "Reality and Money",
+    "category.selfCare": "How to Care for Yourself",
+    "category.luckyRitual": "Today's Lucky Ritual",
+    "category.yeonMessage": "A Word from Yeon",
+    "card.title": "YEON HEART STAR",
+    "card.subtitle": "Yeon's Heart Constellation",
+    "summary.title": "Today's Starlight Summary",
+  },
+  ja: {
+    "category.todayAura": "今日の星明かり要約",
+    "category.heartWeather": "心の天気",
+    "category.loveRelation": "愛と人間関係",
+    "category.moneyReality": "現実とお金",
+    "category.selfCare": "自分をいたわる方法",
+    "category.luckyRitual": "今日の幸運リチュアル",
+    "category.yeonMessage": "ヨニからのひと言",
+    "card.title": "YEON HEART STAR",
+    "card.subtitle": "ヨニの心の星座",
+    "summary.title": "今日の星明かり要約",
+  },
+  "zh-CN": {
+    "category.todayAura": "今日星光摘要",
+    "category.heartWeather": "内心天气",
+    "category.loveRelation": "爱与关系",
+    "category.moneyReality": "现实与金钱",
+    "category.selfCare": "照顾自己的方式",
+    "category.luckyRitual": "今日幸运仪式",
+    "category.yeonMessage": "Yeon的一句话",
+    "card.title": "YEON HEART STAR",
+    "card.subtitle": "Yeon的心之星座",
+    "summary.title": "今日星光摘要",
+  },
+  "zh-TW": {
+    "category.todayAura": "今日星光摘要",
+    "category.heartWeather": "內心天氣",
+    "category.loveRelation": "愛與關係",
+    "category.moneyReality": "現實與金錢",
+    "category.selfCare": "照顧自己的方式",
+    "category.luckyRitual": "今日幸運儀式",
+    "category.yeonMessage": "Yeon的一句話",
+    "card.title": "YEON HEART STAR",
+    "card.subtitle": "Yeon的心之星座",
+    "summary.title": "今日星光摘要",
+  },
+} as const;
+
+type YeonHeartStarTextKey = keyof typeof YEON_HEART_STAR_TEXT_TRANSLATIONS.ko;
+
+function yeonHeartStarText(key: YeonHeartStarTextKey): string {
+  return YEON_HEART_STAR_TEXT_TRANSLATIONS.ko[key] || YEON_HEART_STAR_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 const CATEGORY_META: Record<YeonHeartStarCategory, { label: string; icon: string }> = {
-  todayAura: { label: "오늘의 별빛 요약", icon: "✨" },
-  heartWeather: { label: "마음 날씨", icon: "🌙" },
-  loveRelation: { label: "사랑과 관계", icon: "💗" },
-  moneyReality: { label: "현실과 돈", icon: "🌿" },
-  selfCare: { label: "나를 돌보는 방법", icon: "🫶" },
-  luckyRitual: { label: "오늘의 행운 리추얼", icon: "🍑" },
-  yeonMessage: { label: "연이의 한마디", icon: "🐷" },
+  todayAura: { label: yeonHeartStarText("category.todayAura"), icon: "✨" },
+  heartWeather: { label: yeonHeartStarText("category.heartWeather"), icon: "🌙" },
+  loveRelation: { label: yeonHeartStarText("category.loveRelation"), icon: "💗" },
+  moneyReality: { label: yeonHeartStarText("category.moneyReality"), icon: "🌿" },
+  selfCare: { label: yeonHeartStarText("category.selfCare"), icon: "🫶" },
+  luckyRitual: { label: yeonHeartStarText("category.luckyRitual"), icon: "🍑" },
+  yeonMessage: { label: yeonHeartStarText("category.yeonMessage"), icon: "🐷" },
 };
 
 const BANNED_PATTERNS = [
@@ -306,8 +375,8 @@ export function buildYeonHeartStarReading(
     },
     astrologySignals,
     displayCard: {
-      title: "YEON HEART STAR",
-      subtitle: "연이의 마음 별자리",
+      title: yeonHeartStarText("card.title"),
+      subtitle: yeonHeartStarText("card.subtitle"),
       zodiacLabel: input.zodiacSign,
       dateLabel: input.generatedAt.slice(0, 10),
       oneLineMessage: limitChars(input.oneLineMessage, 70),
@@ -326,7 +395,7 @@ export function buildYeonHeartStarReading(
     },
     categories,
     summary: {
-      title: "오늘의 별빛 요약",
+      title: yeonHeartStarText("summary.title"),
       description: sanitizeYeonHeartStarText(`${weekdayLine} ${moodLine}`),
       focusAxis,
       oneLine: limitChars(input.oneLineMessage, 70),

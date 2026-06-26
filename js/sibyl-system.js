@@ -6,6 +6,73 @@
 (function(window) {
   'use strict';
 
+var SIBYL_TEXT_TRANSLATIONS = {
+  ko: {
+    "sibyl.title.001": "CH.01 시빌라 코어 매트릭스",
+    "sibyl.title.002": "CH.02 위험 계수 정밀 분석",
+    "sibyl.title.003": "CH.03 적성 계수 정밀 분석",
+    "sibyl.title.004": "CH.04 주도 십성과 행동 패턴",
+    "sibyl.title.005": "CH.05 오행 밸런스와 에너지 설계",
+    "sibyl.title.006": "CH.06 10년 위험 계수 그래프 해설",
+    "sibyl.title.007": "CH.07 월별 리스크 플래너",
+    "sibyl.title.008": "CH.08 관계와 애정 패턴",
+    "sibyl.title.009": "CH.09 재물과 직업 전략",
+    "sibyl.title.010": "CH.10 최종 실행 가이드",
+    "sibyl.message.001": "API 요청에 실패했습니다.",
+    "sibyl.label.001": "중립",
+    "sibyl.title.011": "코어 안정도",
+    "sibyl.title.012": "커리어 실행력",
+    "sibyl.title.013": "재정 운용력",
+    "sibyl.title.014": "관계/협업",
+    "sibyl.title.015": "회복 탄성",
+    "sibyl.title.016": "퀀텀 명리 정합",
+    "sibyl.title.017": "CH.01 시빌라 코어 매트릭스",
+    "sibyl.title.018": "CH.02 위험 계수 정밀 분석",
+    "sibyl.title.019": "CH.03 적성 계수 정밀 분석",
+    "sibyl.title.020": "CH.04 주도 십성과 행동 패턴",
+    "sibyl.title.021": "CH.05 오행 밸런스와 에너지 설계",
+    "sibyl.title.022": "CH.06 10년 위험 계수 그래프 해설",
+    "sibyl.title.023": "CH.07 월별 리스크 플래너",
+    "sibyl.title.024": "CH.08 관계와 애정 패턴",
+    "sibyl.title.025": "CH.09 재물과 직업 전략",
+    "sibyl.title.026": "CH.10 최종 실행 가이드",
+    "sibyl.title.027": "[식신 주도] 자연스러운 베풂의 관계",
+    "sibyl.title.028": "[상관 주도] 도발적·자기주장 강한 관계",
+    "sibyl.title.029": "[편재 주도] 확산적·통제적 대인 에너지",
+    "sibyl.title.030": "[정재 주도] 신중하고 헌신적인 관계",
+    "sibyl.title.031": "[편관 주도] 카리스마적·지배적 대인 구조",
+    "sibyl.title.032": "[정관 주도] 원칙·책임 중심 관계",
+    "sibyl.title.033": "[편인 주도] 독창적·거리감 있는 관계 패턴",
+    "sibyl.title.034": "[정인 주도] 학습·지원 중심의 관계 구조",
+    "sibyl.title.035": "[비견 주도] 독립적·경쟁적 대인 에너지",
+    "sibyl.title.036": "[겁재 주도] 생존형·전략적 관계 패턴",
+    "sibyl.title.037": "자수(子水) — 시작의 원점",
+    "sibyl.title.038": "축토(丑土) — 봉인된 보고(寶庫)",
+    "sibyl.title.039": "인목(寅木) — 점화의 씨앗",
+    "sibyl.title.040": "묘목(卯木) — 조용한 날(刃)",
+    "sibyl.title.041": "진토(辰土) — 용의 창고(水庫)",
+    "sibyl.title.042": "사화(巳火) — 기폭 회로",
+    "sibyl.title.043": "오화(午火) — 태양의 정점",
+    "sibyl.title.044": "미토(未土) — 여름의 황혼",
+    "sibyl.title.045": "신금(申金) — 냉각의 칼",
+    "sibyl.title.046": "유금(酉金) — 순수한 날끝",
+    "sibyl.title.047": "술토(戌土) — 화의 무덤",
+    "sibyl.title.048": "해수(亥水) — 심층 회로",
+    "sibyl.message.002": "결제 가격 정보가 올바르지 않습니다.",
+    "sibyl.message.003": "결제가 취소되었습니다.",
+    "sibyl.message.004": "원화 결제 확인이 필요합니다.",
+    "sibyl.message.005": "잠금 해제 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "sibyl.message.006": "리포트 생성 결과가 기준을 충족하지 못했습니다.",
+    "sibyl.title.049": "안정 성장 모드 — 현 궤도 정밀 유지",
+    "sibyl.title.050": "위험 조정 모드 — 실행 순서 재배치",
+    "sibyl.title.051": "집중 재정비 모드 — 구조 리셋 필요",
+  }
+};
+
+function _sibylText(key) {
+  return SIBYL_TEXT_TRANSLATIONS.ko[key] || 'Translation pending';
+}
+
   /* ── 상수 ── */
   var SIBYL_REPORT_CACHE_VERSION = '20260522-local-dominator-v1';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
@@ -14,16 +81,16 @@
   var SIBYL_MIN_PREMIUM_CHAPTER_CHARS = 300;
   var SIBYL_MIN_PREMIUM_TOTAL_CHARS = 20000;
   var SIBYL_PREMIUM_CHAPTER_META = [
-    { key: 'coreMatrix', title: 'CH.01 시빌라 코어 매트릭스', focus: '입력 사주·일간·지배 오행·주도 십성·핵심 점수 종합' },
-    { key: 'riskAnalysis', title: 'CH.02 위험 계수 정밀 분석', focus: '위험 점수 산출 근거와 충돌·변동성 분해' },
-    { key: 'aptitudeAnalysis', title: 'CH.03 적성 계수 정밀 분석', focus: '적성 요소와 성장·수익화 전략' },
-    { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', focus: '주도 십성 기반 행동·관계·의사결정 패턴' },
-    { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', focus: '오행 과부족, 보완 루틴, 환경 설계' },
-    { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', focus: '연도별 위험/기회 흐름과 실행 타이밍' },
-    { key: 'monthlyPlanner', title: 'CH.07 월별 리스크 플래너', focus: '12개월 위험/엔진/배터리 기반 월별 운영 플랜' },
-    { key: 'relationship', title: 'CH.08 관계와 애정 패턴', focus: '관계 충돌 패턴과 파트너십 운영' },
-    { key: 'moneyCareer', title: 'CH.09 재물과 직업 전략', focus: '재정 운용·직업 선택·리스크 대응' },
-    { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', focus: '핵심 결론과 7/30/90일 실행 원칙' }
+    { key: 'coreMatrix', title: _sibylText("sibyl.title.001"), focus: '입력 사주·일간·지배 오행·주도 십성·핵심 점수 종합' },
+    { key: 'riskAnalysis', title: _sibylText("sibyl.title.002"), focus: '위험 점수 산출 근거와 충돌·변동성 분해' },
+    { key: 'aptitudeAnalysis', title: _sibylText("sibyl.title.003"), focus: '적성 요소와 성장·수익화 전략' },
+    { key: 'tenGodPattern', title: _sibylText("sibyl.title.004"), focus: '주도 십성 기반 행동·관계·의사결정 패턴' },
+    { key: 'elementBalance', title: _sibylText("sibyl.title.005"), focus: '오행 과부족, 보완 루틴, 환경 설계' },
+    { key: 'yearlyFlow', title: _sibylText("sibyl.title.006"), focus: '연도별 위험/기회 흐름과 실행 타이밍' },
+    { key: 'monthlyPlanner', title: _sibylText("sibyl.title.007"), focus: '12개월 위험/엔진/배터리 기반 월별 운영 플랜' },
+    { key: 'relationship', title: _sibylText("sibyl.title.008"), focus: '관계 충돌 패턴과 파트너십 운영' },
+    { key: 'moneyCareer', title: _sibylText("sibyl.title.009"), focus: '재정 운용·직업 선택·리스크 대응' },
+    { key: 'finalMessage', title: _sibylText("sibyl.title.010"), focus: '핵심 결론과 7/30/90일 실행 원칙' }
   ];
   var SIBYL_PREMIUM_CHAPTER_KEYS = SIBYL_PREMIUM_CHAPTER_META.map(function(item) { return item.key; });
   var SibylState = Object.freeze({
@@ -598,7 +665,7 @@
     return lastResult || {
       ok: false,
       status: 0,
-      payload: { error: { code: 'NETWORK_ERROR', message: 'API 요청에 실패했습니다.' } },
+      payload: { error: { code: 'NETWORK_ERROR', message: _sibylText("sibyl.message.001") } },
       url: String(path || '')
     };
   }
@@ -732,7 +799,7 @@
       console.warn('[Sibyl] evalDaewun bridge fallback:', err && err.message ? err.message : err);
       return {
         score: 50,
-        label: '중립',
+        label: _sibylText("sibyl.label.001"),
         cls: 'neutral',
         evalSummary: String(gan || '') + String(zhi || '') + ' 기준 기본 스코어(50)로 보정했습니다.',
         hasChungBonus: false,
@@ -1976,42 +2043,42 @@
     return [
       {
         key: 'core',
-        title: '코어 안정도',
+        title: _sibylText("sibyl.title.011"),
         score: _clamp(100 - ((parts.elementImbalance || 50) * 0.45 + (parts.tenStarOverload || 50) * 0.55), 5, 99),
         summary: '오행 편차와 십성 과부하를 합쳐 기본 체질의 흔들림 강도를 산출합니다.',
         action: '고위험 월에는 의사결정 지연 규칙을 강제하고, 안정 월에 성장 과제를 배치하세요.'
       },
       {
         key: 'career',
-        title: '커리어 실행력',
+        title: _sibylText("sibyl.title.012"),
         score: _clamp((apt.career || 0) * 0.6 + (apt.execution || 0) * 0.4, 5, 99),
         summary: '커리어/실행 축을 결합해 실제 성과 전환 가능성을 봅니다.',
         action: '연간 피크 리스크(' + annualPeak + ') 전후에는 확장보다 검증 중심으로 운용하세요.'
       },
       {
         key: 'money',
-        title: '재정 운용력',
+        title: _sibylText("sibyl.title.013"),
         score: _clamp((apt.wealth || 0) - (parts.monthlyVolatility || 0) * 0.22, 5, 99),
         summary: '재물 포착력에서 월 변동성을 차감해 실수익 지속성을 계산합니다.',
         action: '월간 최고 리스크(' + monthlyPeak + ') 구간은 방어, 저점 구간은 확장으로 분리하세요.'
       },
       {
         key: 'relationship',
-        title: '관계/협업',
+        title: _sibylText("sibyl.title.014"),
         score: _clamp((apt.social || 0) - (parts.collision || 0) * 0.25, 5, 99),
         summary: '사회성 점수에서 충형파해 충돌 강도를 보정한 협업 신뢰 지표입니다.',
         action: '갈등 고조 구간에는 문자 기록 기반 합의로 오해 비용을 줄이세요.'
       },
       {
         key: 'recovery',
-        title: '회복 탄성',
+        title: _sibylText("sibyl.title.015"),
         score: _clamp((apt.recovery || 0) - (parts.johuStress || 0) * 0.22, 5, 99),
         summary: '회복력과 조후 스트레스를 합쳐 번아웃 위험을 계량화합니다.',
         action: '연간 저점(' + annualLow + ') 시기 전에 회복 루틴을 선배치하세요.'
       },
       {
         key: 'quantum',
-        title: '퀀텀 명리 정합',
+        title: _sibylText("sibyl.title.016"),
         score: quantumScore,
         summary: '조후/종격/억부를 통합한 오행 유불리를 5원소 단위로 압축한 지표입니다.',
         action: '유리 오행(' + ((quantumDiagnostics && quantumDiagnostics.favorableElements || []).join(', ') || '없음') + ') 중심으로 환경과 일정 리듬을 맞추세요.'
@@ -2497,16 +2564,16 @@
     var canonicalData = _buildSibylCanonicalData(normalized, riskBreakdown, aptData, annualPlan, monthlyPlan);
 
     var chapters = [
-      { key: 'coreMatrix', title: 'CH.01 시빌라 코어 매트릭스', content: chapter1 },
-      { key: 'riskAnalysis', title: 'CH.02 위험 계수 정밀 분석', content: chapter2 },
-      { key: 'aptitudeAnalysis', title: 'CH.03 적성 계수 정밀 분석', content: chapter3 },
-      { key: 'tenGodPattern', title: 'CH.04 주도 십성과 행동 패턴', content: chapter4 },
-      { key: 'elementBalance', title: 'CH.05 오행 밸런스와 에너지 설계', content: chapter5 },
-      { key: 'yearlyFlow', title: 'CH.06 10년 위험 계수 그래프 해설', content: chapter6 },
-      { key: 'monthlyPlanner', title: 'CH.07 월별 리스크 플래너', content: chapter7 },
-      { key: 'relationship', title: 'CH.08 관계와 애정 패턴', content: chapter8 },
-      { key: 'moneyCareer', title: 'CH.09 재물과 직업 전략', content: chapter9 },
-      { key: 'finalMessage', title: 'CH.10 최종 실행 가이드', content: chapter10 }
+      { key: 'coreMatrix', title: _sibylText("sibyl.title.017"), content: chapter1 },
+      { key: 'riskAnalysis', title: _sibylText("sibyl.title.018"), content: chapter2 },
+      { key: 'aptitudeAnalysis', title: _sibylText("sibyl.title.019"), content: chapter3 },
+      { key: 'tenGodPattern', title: _sibylText("sibyl.title.020"), content: chapter4 },
+      { key: 'elementBalance', title: _sibylText("sibyl.title.021"), content: chapter5 },
+      { key: 'yearlyFlow', title: _sibylText("sibyl.title.022"), content: chapter6 },
+      { key: 'monthlyPlanner', title: _sibylText("sibyl.title.023"), content: chapter7 },
+      { key: 'relationship', title: _sibylText("sibyl.title.024"), content: chapter8 },
+      { key: 'moneyCareer', title: _sibylText("sibyl.title.025"), content: chapter9 },
+      { key: 'finalMessage', title: _sibylText("sibyl.title.026"), content: chapter10 }
     ];
 
     var localTotals = _ensureSibylPremiumTotalChars(chapters, SIBYL_MIN_PREMIUM_TOTAL_CHARS, canonicalData);
@@ -2755,16 +2822,16 @@
     /* ■ Block 2-B: 십성 분포 기반 인간관계 패턴 분석 */
     (function() {
       var RELATIONSHIP_PATTERN = {
-        '식신': { title:'[식신 주도] 자연스러운 베풂의 관계', pattern:'관계에서 먼저 주는 역할을 맡아 상대를 편안하게 만드는 에너지를 타고났습니다. 식신이 강한 사람은 대화 중 상대를 웃게 만들고, 아이디어와 유머로 분위기를 이끄는 능력이 있어 자연스럽게 인기를 끕니다. 그러나 지나치게 베풀다 보면 에너지가 소진되고, 보상을 기대하지 않는 척하면서도 내면에 쌓이는 아쉬움이 관계 균열의 씨앗이 됩니다. 직접 요청 대신 돌려 말하는 방식으로 욕구를 표현하는 패턴이 반복되면 파트너가 진짜 필요를 파악하지 못해 단절이 심화됩니다. 인간관계에서 자신의 한계를 명확히 설정하는 "No 연습"이 장기 관계 지속성에 결정적입니다.', warning:'기대와 실망의 반복으로 인한 피로 누적. 베풂의 한계 설정 훈련이 필수.' },
-        '상관': { title:'[상관 주도] 도발적·자기주장 강한 관계', pattern:'상관이 주도하는 명식은 인간관계에서 타인의 불합리함을 즉시 지적하고, 권위에 도전하는 에너지가 강합니다. 날카로운 언어적 표현력으로 상대를 압도하지만, 그 과정에서 의도치 않게 깊은 상처를 남기는 경우가 반복됩니다. 상급자·선배·부모와의 관계에서 구조적 충돌이 일어나기 쉬우며, 자신도 모르게 관계의 규칙을 어기는 패턴이 진로·인간관계 단절의 주요 원인이 됩니다. 한편, 자신과 비슷한 독립 성향의 파트너와는 극도로 강력한 시너지를 낼 수 있습니다. 관계에서 "충분히 생각하고 말하기"를 의식적으로 훈련하는 것이 생존 전략입니다.', warning:'권위 충돌과 충동 발언으로 인한 관계 파괴 패턴. 인내심 훈련이 핵심.' },
-        '편재': { title:'[편재 주도] 확산적·통제적 대인 에너지', pattern:'편재가 주도하는 명식은 넓고 빠르게 인맥을 확장하지만, 깊이 있는 단일 관계 유지에 어려움이 있습니다. 상대를 자신의 기준으로 통제하거나 관리하려는 본능적 욕구가 있어, 관계가 깊어질수록 파트너에게 압박감을 줄 수 있습니다. 재물과 이해관계를 기반으로 관계를 개설하고 유지하는 패턴이 있어, 이익이 사라지면 관계도 흐릿해지는 구조가 내재해 있습니다. 감성적 공감보다 실용적 거래 언어가 자연스러우며, 이것이 장기 감성 파트너십에서 마찰 원인이 됩니다. 비이해관계 기반 관계를 의도적으로 구축하는 노력이 중요합니다.', warning:'인맥 관리의 도구화 경향. 감성 공감 능력 의식적 개발이 필요.' },
-        '정재': { title:'[정재 주도] 신중하고 헌신적인 관계', pattern:'정재가 강한 명식은 약속을 지키고 책임을 다하는 신뢰 기반 관계를 선호합니다. 관계를 함부로 맺지 않고, 소수의 깊고 안정적인 인연을 장기간 유지하는 성향이 있습니다. 그러나 변화에 대한 저항감이 강해, 관계에서 새로운 역동이나 갈등이 생겨도 기존 패턴을 고수하는 경향이 있습니다. 상대의 작은 실수나 불일치를 오래 기억하고 내면에 누적하는 성향이, 어느 순간 예상치 못한 폭발로 이어지는 것이 이 명식의 관계 위험 패턴입니다. 불만을 조기에 언어로 꺼내는 연습이 관계 안전망을 강화합니다.', warning:'내면 누적 후 폭발 패턴. 불만 조기 언어화 훈련이 필수.' },
-        '편관': { title:'[편관 주도] 카리스마적·지배적 대인 구조', pattern:'편관이 주도하는 명식은 강렬한 존재감과 카리스마로 주변을 압도하지만, 이것이 관계에서 과도한 지배 욕구로 표현될 때 상대에게 억압감을 줍니다. 관계를 수직적 서열로 인식하는 경향이 있어, 평등한 수평 관계를 설정하는 것 자체가 낯설고 불편하게 느껴질 수 있습니다. 편관이 강한 사람에게 지지와 인정을 받기 위해 주변인들이 지나치게 눈치를 보는 관계 생태계가 형성되기 쉽습니다. 충(衝) 에너지가 강한 시기에는 관계에서 폭발적 갈등 또는 완전 단절이 일어날 수 있습니다. 심리적 안전 환경을 의식적으로 만들어 상대가 솔직할 수 있는 구조를 구축하는 것이 관계 장수의 핵심입니다.', warning:'수직적 관계 구조로 인한 고립 위험. 취약성 표현 연습이 관계 회복력을 높인다.' },
-        '정관': { title:'[정관 주도] 원칙·책임 중심 관계', pattern:'정관이 강한 명식은 명확한 역할 분담과 원칙을 중시하며, 상대에게도 동일한 수준의 책임감을 요구합니다. 이 기준을 충족하는 파트너와는 매우 안정적이고 지속적인 관계를 형성하지만, 기준에 미달하는 상대에 대해서는 빠르게 신뢰를 거두는 패턴이 나타납니다. 원칙 준수에 대한 집착이 타인의 실수에 대한 용인 폭을 좁혀, 관계에서 과도한 판단자 역할을 맡게 되는 것이 주요 위험입니다. 스스로에게 부과하는 과도한 책임감이 만성 스트레스로 연결되며, 이것이 가까운 관계에서 냉담함 또는 비판으로 투영됩니다. 불완전한 타인을 수용하는 관용 연습이 관계를 더 풍요롭게 만듭니다.', warning:'과도한 기준 적용으로 인한 관계 단절. 불완전성 수용 훈련이 관건.' },
-        '편인': { title:'[편인 주도] 독창적·거리감 있는 관계 패턴', pattern:'편인이 강한 명식은 깊이 있는 지적 교류를 선호하며, 평범한 일상적 대화에 쉽게 지루함을 느낍니다. 자신만의 내면 세계가 풍부하여 필요 이상으로 타인과 의존적 관계를 만들지 않으려 하는데, 이것이 외부에서는 냉담하거나 거만하게 보일 수 있습니다. 편인의 독특한 시각이 소수의 깊은 인연에게는 굉장한 매력이 되지만, 다수에게는 이해하기 어려운 사람으로 분류됩니다. 아이디어가 충분히 무르익기 전에 관계에서 이탈하는 패턴이 반복되어, 장기 파트너십 형성에 구조적 어려움이 있습니다. 일관성 있는 관계 유지 의도를 의식적으로 표현하는 노력이 필요합니다.', warning:'예측 불가한 이탈 패턴으로 인한 신뢰 구축 어려움. 일관성 훈련이 핵심.' },
-        '정인': { title:'[정인 주도] 학습·지원 중심의 관계 구조', pattern:'정인이 강한 명식은 조언하고 가르치고 지원하는 역할에서 관계의 의미를 찾습니다. 타인의 성장을 돕는 데서 만족을 얻어 교육·상담·지도 관계에서 빛을 발합니다. 그러나 지나친 보호와 지원이 상대의 자율성을 침해하는 방향으로 흐를 때, 의존-갈등 구조가 형성됩니다. 상대가 독립을 선언했을 때 받게 되는 심리적 공허감이 관계에서 반복적인 매달림 패턴으로 이어질 수 있습니다. 또한, 지식과 경험을 과하게 공유하려는 성향이 상대에게 강요로 느껴지는 것이 관계 마찰의 주요 원인입니다.', warning:'의존 구조 형성 후 갈등. 상대 자율성 존중과 역할 분리가 관건.' },
-        '비견': { title:'[비견 주도] 독립적·경쟁적 대인 에너지', pattern:'비견이 강한 명식은 관계에서 강한 자아 경계선을 유지하며, 상대와 동등한 위치에 있어야 편안함을 느낍니다. 자신의 영역에 침범을 허용하지 않는 자율성이 강한 파트너를 선택하는 경향이 있으며, 이 경우 서로를 존중하지만 정서적으로 깊이 연결되지 않는 관계 스타일이 형성됩니다. 비견 과다 명식은 재성(財星)이 약해지는 구조로, 금전 감각 둔화와 이성 파트너십 이슈가 동시에 나타나기 쉽습니다. 관계 내에서 경쟁 심리가 발동하면 파트너를 협력자가 아닌 경쟁자로 인식하기 시작하며, 이것이 가장 깊은 관계를 무너뜨리는 패턴입니다.', warning:'파트너를 경쟁자로 인식하는 패턴 위험. 협력 언어 구사 훈련이 핵심.' },
-        '겁재': { title:'[겁재 주도] 생존형·전략적 관계 패턴', pattern:'겁재가 강한 명식은 관계에서도 경쟁 우위를 확보하려는 본능적 전략이 작동합니다. 상대의 자원·정보·영향력을 취하려는 에너지가 무의식적으로 발동되어, 주변에서 손해 보는 느낌을 받는 경우가 반복됩니다. 단기적으로 관계에서 우위를 점하지만, 장기적으로 신뢰를 잃어 파트너십 기반이 흔들리는 패턴이 구조화됩니다. 감정 기복이 관계에서 예측 불가한 반응으로 나타나 상대를 불안하게 만들 수 있습니다. 신뢰 우선·경쟁 후순위 원칙을 의식적으로 관계에 적용하는 것이 관계 장기화의 핵심입니다.', warning:'신뢰 기반 손상 구조 반복. 의도적 신뢰 구축 행동이 관계 지속성 결정.' }
+        '식신': { title:_sibylText("sibyl.title.027"), pattern:'관계에서 먼저 주는 역할을 맡아 상대를 편안하게 만드는 에너지를 타고났습니다. 식신이 강한 사람은 대화 중 상대를 웃게 만들고, 아이디어와 유머로 분위기를 이끄는 능력이 있어 자연스럽게 인기를 끕니다. 그러나 지나치게 베풀다 보면 에너지가 소진되고, 보상을 기대하지 않는 척하면서도 내면에 쌓이는 아쉬움이 관계 균열의 씨앗이 됩니다. 직접 요청 대신 돌려 말하는 방식으로 욕구를 표현하는 패턴이 반복되면 파트너가 진짜 필요를 파악하지 못해 단절이 심화됩니다. 인간관계에서 자신의 한계를 명확히 설정하는 "No 연습"이 장기 관계 지속성에 결정적입니다.', warning:'기대와 실망의 반복으로 인한 피로 누적. 베풂의 한계 설정 훈련이 필수.' },
+        '상관': { title:_sibylText("sibyl.title.028"), pattern:'상관이 주도하는 명식은 인간관계에서 타인의 불합리함을 즉시 지적하고, 권위에 도전하는 에너지가 강합니다. 날카로운 언어적 표현력으로 상대를 압도하지만, 그 과정에서 의도치 않게 깊은 상처를 남기는 경우가 반복됩니다. 상급자·선배·부모와의 관계에서 구조적 충돌이 일어나기 쉬우며, 자신도 모르게 관계의 규칙을 어기는 패턴이 진로·인간관계 단절의 주요 원인이 됩니다. 한편, 자신과 비슷한 독립 성향의 파트너와는 극도로 강력한 시너지를 낼 수 있습니다. 관계에서 "충분히 생각하고 말하기"를 의식적으로 훈련하는 것이 생존 전략입니다.', warning:'권위 충돌과 충동 발언으로 인한 관계 파괴 패턴. 인내심 훈련이 핵심.' },
+        '편재': { title:_sibylText("sibyl.title.029"), pattern:'편재가 주도하는 명식은 넓고 빠르게 인맥을 확장하지만, 깊이 있는 단일 관계 유지에 어려움이 있습니다. 상대를 자신의 기준으로 통제하거나 관리하려는 본능적 욕구가 있어, 관계가 깊어질수록 파트너에게 압박감을 줄 수 있습니다. 재물과 이해관계를 기반으로 관계를 개설하고 유지하는 패턴이 있어, 이익이 사라지면 관계도 흐릿해지는 구조가 내재해 있습니다. 감성적 공감보다 실용적 거래 언어가 자연스러우며, 이것이 장기 감성 파트너십에서 마찰 원인이 됩니다. 비이해관계 기반 관계를 의도적으로 구축하는 노력이 중요합니다.', warning:'인맥 관리의 도구화 경향. 감성 공감 능력 의식적 개발이 필요.' },
+        '정재': { title:_sibylText("sibyl.title.030"), pattern:'정재가 강한 명식은 약속을 지키고 책임을 다하는 신뢰 기반 관계를 선호합니다. 관계를 함부로 맺지 않고, 소수의 깊고 안정적인 인연을 장기간 유지하는 성향이 있습니다. 그러나 변화에 대한 저항감이 강해, 관계에서 새로운 역동이나 갈등이 생겨도 기존 패턴을 고수하는 경향이 있습니다. 상대의 작은 실수나 불일치를 오래 기억하고 내면에 누적하는 성향이, 어느 순간 예상치 못한 폭발로 이어지는 것이 이 명식의 관계 위험 패턴입니다. 불만을 조기에 언어로 꺼내는 연습이 관계 안전망을 강화합니다.', warning:'내면 누적 후 폭발 패턴. 불만 조기 언어화 훈련이 필수.' },
+        '편관': { title:_sibylText("sibyl.title.031"), pattern:'편관이 주도하는 명식은 강렬한 존재감과 카리스마로 주변을 압도하지만, 이것이 관계에서 과도한 지배 욕구로 표현될 때 상대에게 억압감을 줍니다. 관계를 수직적 서열로 인식하는 경향이 있어, 평등한 수평 관계를 설정하는 것 자체가 낯설고 불편하게 느껴질 수 있습니다. 편관이 강한 사람에게 지지와 인정을 받기 위해 주변인들이 지나치게 눈치를 보는 관계 생태계가 형성되기 쉽습니다. 충(衝) 에너지가 강한 시기에는 관계에서 폭발적 갈등 또는 완전 단절이 일어날 수 있습니다. 심리적 안전 환경을 의식적으로 만들어 상대가 솔직할 수 있는 구조를 구축하는 것이 관계 장수의 핵심입니다.', warning:'수직적 관계 구조로 인한 고립 위험. 취약성 표현 연습이 관계 회복력을 높인다.' },
+        '정관': { title:_sibylText("sibyl.title.032"), pattern:'정관이 강한 명식은 명확한 역할 분담과 원칙을 중시하며, 상대에게도 동일한 수준의 책임감을 요구합니다. 이 기준을 충족하는 파트너와는 매우 안정적이고 지속적인 관계를 형성하지만, 기준에 미달하는 상대에 대해서는 빠르게 신뢰를 거두는 패턴이 나타납니다. 원칙 준수에 대한 집착이 타인의 실수에 대한 용인 폭을 좁혀, 관계에서 과도한 판단자 역할을 맡게 되는 것이 주요 위험입니다. 스스로에게 부과하는 과도한 책임감이 만성 스트레스로 연결되며, 이것이 가까운 관계에서 냉담함 또는 비판으로 투영됩니다. 불완전한 타인을 수용하는 관용 연습이 관계를 더 풍요롭게 만듭니다.', warning:'과도한 기준 적용으로 인한 관계 단절. 불완전성 수용 훈련이 관건.' },
+        '편인': { title:_sibylText("sibyl.title.033"), pattern:'편인이 강한 명식은 깊이 있는 지적 교류를 선호하며, 평범한 일상적 대화에 쉽게 지루함을 느낍니다. 자신만의 내면 세계가 풍부하여 필요 이상으로 타인과 의존적 관계를 만들지 않으려 하는데, 이것이 외부에서는 냉담하거나 거만하게 보일 수 있습니다. 편인의 독특한 시각이 소수의 깊은 인연에게는 굉장한 매력이 되지만, 다수에게는 이해하기 어려운 사람으로 분류됩니다. 아이디어가 충분히 무르익기 전에 관계에서 이탈하는 패턴이 반복되어, 장기 파트너십 형성에 구조적 어려움이 있습니다. 일관성 있는 관계 유지 의도를 의식적으로 표현하는 노력이 필요합니다.', warning:'예측 불가한 이탈 패턴으로 인한 신뢰 구축 어려움. 일관성 훈련이 핵심.' },
+        '정인': { title:_sibylText("sibyl.title.034"), pattern:'정인이 강한 명식은 조언하고 가르치고 지원하는 역할에서 관계의 의미를 찾습니다. 타인의 성장을 돕는 데서 만족을 얻어 교육·상담·지도 관계에서 빛을 발합니다. 그러나 지나친 보호와 지원이 상대의 자율성을 침해하는 방향으로 흐를 때, 의존-갈등 구조가 형성됩니다. 상대가 독립을 선언했을 때 받게 되는 심리적 공허감이 관계에서 반복적인 매달림 패턴으로 이어질 수 있습니다. 또한, 지식과 경험을 과하게 공유하려는 성향이 상대에게 강요로 느껴지는 것이 관계 마찰의 주요 원인입니다.', warning:'의존 구조 형성 후 갈등. 상대 자율성 존중과 역할 분리가 관건.' },
+        '비견': { title:_sibylText("sibyl.title.035"), pattern:'비견이 강한 명식은 관계에서 강한 자아 경계선을 유지하며, 상대와 동등한 위치에 있어야 편안함을 느낍니다. 자신의 영역에 침범을 허용하지 않는 자율성이 강한 파트너를 선택하는 경향이 있으며, 이 경우 서로를 존중하지만 정서적으로 깊이 연결되지 않는 관계 스타일이 형성됩니다. 비견 과다 명식은 재성(財星)이 약해지는 구조로, 금전 감각 둔화와 이성 파트너십 이슈가 동시에 나타나기 쉽습니다. 관계 내에서 경쟁 심리가 발동하면 파트너를 협력자가 아닌 경쟁자로 인식하기 시작하며, 이것이 가장 깊은 관계를 무너뜨리는 패턴입니다.', warning:'파트너를 경쟁자로 인식하는 패턴 위험. 협력 언어 구사 훈련이 핵심.' },
+        '겁재': { title:_sibylText("sibyl.title.036"), pattern:'겁재가 강한 명식은 관계에서도 경쟁 우위를 확보하려는 본능적 전략이 작동합니다. 상대의 자원·정보·영향력을 취하려는 에너지가 무의식적으로 발동되어, 주변에서 손해 보는 느낌을 받는 경우가 반복됩니다. 단기적으로 관계에서 우위를 점하지만, 장기적으로 신뢰를 잃어 파트너십 기반이 흔들리는 패턴이 구조화됩니다. 감정 기복이 관계에서 예측 불가한 반응으로 나타나 상대를 불안하게 만들 수 있습니다. 신뢰 우선·경쟁 후순위 원칙을 의식적으로 관계에 적용하는 것이 관계 장기화의 핵심입니다.', warning:'신뢰 기반 손상 구조 반복. 의도적 신뢰 구축 행동이 관계 지속성 결정.' }
       };
       var relData = RELATIONSHIP_PATTERN[dominant] || RELATIONSHIP_PATTERN['편재'];
       html += '<div class="sb-nature-block">'
@@ -2907,18 +2974,18 @@
 
   /* ── INNER PALACE SCAN — 일지(日支) 비밀궁 분석 ── */
   var DAY_BRANCH_ORACLE = {
-    '子':{ code:'AQUA_SEED_v1', title:'자수(子水) — 시작의 원점', oracle:'가장 순수한 시작 에너지. 잠재력은 무한하지만 방향 없이는 증발합니다. 내면의 깊은 지성은 구조를 스스로 만들어야만 외부 세계와 연결됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 파트너가 경쟁자가 될 수 있음. 독립적 파트너 선호 필연.' },
-    '丑':{ code:'EARTH_VAULT_v2', title:'축토(丑土) — 봉인된 보고(寶庫)', oracle:'닫힌 금고. 표면은 둔하지만 내부에 황금 맥이 흐릅니다. 열리는 데 시간이 걸리지만, 한 번 개방되면 막을 수 없습니다.', spouse:'배우자궁 에너지: 관성+비겁+인성 혼재 → 헌신-갈등 주기 반복.' },
-    '寅':{ code:'WOOD_IGNITION_v3', title:'인목(寅木) — 점화의 씨앗', oracle:'봄의 첫 파열. 강렬한 시작 에너지가 항상 폭발을 준비합니다. 시작은 훌륭하지만 완주 본능을 별도로 키워야 합니다.', spouse:'배우자궁 에너지: 식상+재성+관성 혼재 → 활발하지만 제어 어려운 파트너.' },
-    '卯':{ code:'SOFT_BLADE_v4', title:'묘목(卯木) — 조용한 날(刃)', oracle:'보이지 않게 날카로운 목 에너지. 타인의 감정을 정확히 수신하는 이 안테나가 무기가 되거나 상처가 됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 독립적이고 경쟁적인 파트너.' },
-    '辰':{ code:'DRAGON_VAULT_v5', title:'진토(辰土) — 용의 창고(水庫)', oracle:'모든 오행을 저장하는 수고(水庫). 표면은 土이지만 내부에 水·木·土가 공존합니다. 이 복잡한 내면이 창의적 탄력성과 예측 불가한 심리 변동을 동시에 만듭니다. 압박이 강할수록 내면에서 무언가 폭발합니다.', spouse:'배우자궁 에너지: 편관+상관+겁재 혼재 → 통제-자유 갈등 구조 내재.' },
-    '巳':{ code:'FIRE_CIRCUIT_v6', title:'사화(巳火) — 기폭 회로', oracle:'봉인된 화기가 폭발 직전 상태. 표현 채널만 확보되면 불길처럼 번집니다. 통제 없는 열정은 모든 것을 태울 수 있습니다.', spouse:'배우자궁 에너지: 재성+관성+인성 혼재 → 능력 있는 파트너, 소유욕 충돌.' },
-    '午':{ code:'SOLAR_PEAK_v7', title:'오화(午火) — 태양의 정점', oracle:'최고조의 빛. 화려하지만 빠르게 소진됩니다. 무대 없이는 에너지가 내부로 향해 자기파괴적이 됩니다.', spouse:'배우자궁 에너지: 재성+편관+정재 혼재 → 화려하지만 변덕스러운 파트너 인연.' },
-    '未':{ code:'EARTH_DUSK_v8', title:'미토(未土) — 여름의 황혼', oracle:'풍요롭지만 소진된 에너지. 주는 데 익숙하지만 받는 法을 배우지 않으면 에너지 고갈이 반복됩니다.', spouse:'배우자궁 에너지: 관성+상관+재성 혼재 → 섬세하고 감성적인 파트너, 독립성 요구.' },
-    '申':{ code:'METAL_ZERO_v9', title:'신금(申金) — 냉각의 칼', oracle:'감정 없이 상황을 해부하는 냉정한 분석 에너지. 이 냉정함이 문제 해결의 무기이자, 타인과의 감정 연결을 끊는 장벽입니다.', spouse:'배우자궁 에너지: 인성+비겁+관성 혼재 → 지적이고 독립적인 파트너.' },
-    '酉':{ code:'PURE_EDGE_v10', title:'유금(酉金) — 순수한 날끝', oracle:'불순물을 허용하지 않는 완벽주의 에너지. 탁월한 완성도를 만들지만, 기준 차이로 인한 실망과 고립이 반복됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 서로 독립을 추구하는 파트너 구조.' },
-    '戌':{ code:'FIRE_TOMB_v11', title:'술토(戌土) — 화의 무덤', oracle:'화기의 창고이자 무덤. 평시에는 잠재력이 숨어 과소평가받지만, 폭발하면 걷잡을 수 없습니다.', spouse:'배우자궁 에너지: 관성+인성+재성 혼재 → 능력 있고 신뢰할 수 있는 파트너.' },
-    '亥':{ code:'DEEP_CIRCUIT_v12', title:'해수(亥水) — 심층 회로', oracle:'가장 깊은 수(水)의 근원. 무한한 잠재력이 보이지 않는 곳에 있습니다. 직관이 뛰어나지만 깊은 내향성으로 이 능력을 세상과 연결하는 것이 영구 과제입니다.', spouse:'배우자궁 에너지: 비겁+식신 계열 → 자유롭고 창의적인 파트너, 구속 거부.' }
+    '子':{ code:'AQUA_SEED_v1', title:_sibylText("sibyl.title.037"), oracle:'가장 순수한 시작 에너지. 잠재력은 무한하지만 방향 없이는 증발합니다. 내면의 깊은 지성은 구조를 스스로 만들어야만 외부 세계와 연결됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 파트너가 경쟁자가 될 수 있음. 독립적 파트너 선호 필연.' },
+    '丑':{ code:'EARTH_VAULT_v2', title:_sibylText("sibyl.title.038"), oracle:'닫힌 금고. 표면은 둔하지만 내부에 황금 맥이 흐릅니다. 열리는 데 시간이 걸리지만, 한 번 개방되면 막을 수 없습니다.', spouse:'배우자궁 에너지: 관성+비겁+인성 혼재 → 헌신-갈등 주기 반복.' },
+    '寅':{ code:'WOOD_IGNITION_v3', title:_sibylText("sibyl.title.039"), oracle:'봄의 첫 파열. 강렬한 시작 에너지가 항상 폭발을 준비합니다. 시작은 훌륭하지만 완주 본능을 별도로 키워야 합니다.', spouse:'배우자궁 에너지: 식상+재성+관성 혼재 → 활발하지만 제어 어려운 파트너.' },
+    '卯':{ code:'SOFT_BLADE_v4', title:_sibylText("sibyl.title.040"), oracle:'보이지 않게 날카로운 목 에너지. 타인의 감정을 정확히 수신하는 이 안테나가 무기가 되거나 상처가 됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 독립적이고 경쟁적인 파트너.' },
+    '辰':{ code:'DRAGON_VAULT_v5', title:_sibylText("sibyl.title.041"), oracle:'모든 오행을 저장하는 수고(水庫). 표면은 土이지만 내부에 水·木·土가 공존합니다. 이 복잡한 내면이 창의적 탄력성과 예측 불가한 심리 변동을 동시에 만듭니다. 압박이 강할수록 내면에서 무언가 폭발합니다.', spouse:'배우자궁 에너지: 편관+상관+겁재 혼재 → 통제-자유 갈등 구조 내재.' },
+    '巳':{ code:'FIRE_CIRCUIT_v6', title:_sibylText("sibyl.title.042"), oracle:'봉인된 화기가 폭발 직전 상태. 표현 채널만 확보되면 불길처럼 번집니다. 통제 없는 열정은 모든 것을 태울 수 있습니다.', spouse:'배우자궁 에너지: 재성+관성+인성 혼재 → 능력 있는 파트너, 소유욕 충돌.' },
+    '午':{ code:'SOLAR_PEAK_v7', title:_sibylText("sibyl.title.043"), oracle:'최고조의 빛. 화려하지만 빠르게 소진됩니다. 무대 없이는 에너지가 내부로 향해 자기파괴적이 됩니다.', spouse:'배우자궁 에너지: 재성+편관+정재 혼재 → 화려하지만 변덕스러운 파트너 인연.' },
+    '未':{ code:'EARTH_DUSK_v8', title:_sibylText("sibyl.title.044"), oracle:'풍요롭지만 소진된 에너지. 주는 데 익숙하지만 받는 法을 배우지 않으면 에너지 고갈이 반복됩니다.', spouse:'배우자궁 에너지: 관성+상관+재성 혼재 → 섬세하고 감성적인 파트너, 독립성 요구.' },
+    '申':{ code:'METAL_ZERO_v9', title:_sibylText("sibyl.title.045"), oracle:'감정 없이 상황을 해부하는 냉정한 분석 에너지. 이 냉정함이 문제 해결의 무기이자, 타인과의 감정 연결을 끊는 장벽입니다.', spouse:'배우자궁 에너지: 인성+비겁+관성 혼재 → 지적이고 독립적인 파트너.' },
+    '酉':{ code:'PURE_EDGE_v10', title:_sibylText("sibyl.title.046"), oracle:'불순물을 허용하지 않는 완벽주의 에너지. 탁월한 완성도를 만들지만, 기준 차이로 인한 실망과 고립이 반복됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 서로 독립을 추구하는 파트너 구조.' },
+    '戌':{ code:'FIRE_TOMB_v11', title:_sibylText("sibyl.title.047"), oracle:'화기의 창고이자 무덤. 평시에는 잠재력이 숨어 과소평가받지만, 폭발하면 걷잡을 수 없습니다.', spouse:'배우자궁 에너지: 관성+인성+재성 혼재 → 능력 있고 신뢰할 수 있는 파트너.' },
+    '亥':{ code:'DEEP_CIRCUIT_v12', title:_sibylText("sibyl.title.048"), oracle:'가장 깊은 수(水)의 근원. 무한한 잠재력이 보이지 않는 곳에 있습니다. 직관이 뛰어나지만 깊은 내향성으로 이 능력을 세상과 연결하는 것이 영구 과제입니다.', spouse:'배우자궁 에너지: 비겁+식신 계열 → 자유롭고 창의적인 파트너, 구속 거부.' }
   };
 
   function _buildDayBranchScan(pillars) {
@@ -3385,7 +3452,7 @@
     var cost = Number(pricing && pricing.cost || 0);
     var reason = String(pricing && pricing.reason || SIBYL_FEATURE_REASON).trim();
     if (!Number.isFinite(cost) || cost <= 0 || !reason) {
-      throw { status: 422, code: 'PRICE_NOT_FOUND', message: '결제 가격 정보가 올바르지 않습니다.' };
+      throw { status: 422, code: 'PRICE_NOT_FOUND', message: _sibylText("sibyl.message.002") };
     }
     return {
       featureKey: String(pricing.featureKey || SIBYL_FEATURE_KEY),
@@ -3499,7 +3566,7 @@
         }
         if (gatePromise && typeof gatePromise.then === 'function') {
           gatePromise.then(function(payload) {
-            if (payload === null || payload === undefined) fail({ status: 402, code: 'PAYMENT_CANCELLED', message: '결제가 취소되었습니다.' });
+            if (payload === null || payload === undefined) fail({ status: 402, code: 'PAYMENT_CANCELLED', message: _sibylText("sibyl.message.003") });
             else finish(payload);
           }).catch(fail);
         }
@@ -3509,7 +3576,7 @@
     var balance = await _resolveSibylBalance();
 
     if (balance < pricing.cost) {
-      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: '원화 결제 확인이 필요합니다.' };
+      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: _sibylText("sibyl.message.004") };
     }
 
     var gateRes = await _fetchApiJson('/api/billing/coin-gate', {
@@ -3616,7 +3683,7 @@
           throw (unlockStatus && unlockStatus.error) || {
             status: 503,
             code: 'UNLOCK_STATUS_UNAVAILABLE',
-            message: '잠금 해제 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+            message: _sibylText("sibyl.message.005")
           };
         }
 
@@ -3755,7 +3822,7 @@
         throw {
           status: 422,
           code: 'SIBYL_REPORT_INVALID',
-          message: '리포트 생성 결과가 기준을 충족하지 못했습니다.'
+          message: _sibylText("sibyl.message.006")
         };
       }
 
@@ -4007,9 +4074,9 @@
 
     // Dominator Mode Banner
     var modeMeta = {
-      nle: { cls:'nle', tag:'MODE: STABLE GROWTH TRACK', title:'안정 성장 모드 — 현 궤도 정밀 유지', desc:'현재 흐름은 안정 구간입니다. 성과를 키우기보다 재현 가능한 루틴을 고정해 변동성을 낮추는 것이 가장 효과적입니다.' },
-      le:  { cls:'le',  tag:'MODE: RISK ADJUSTMENT TRACK', title:'위험 조정 모드 — 실행 순서 재배치', desc:'경계 신호가 감지된 구간입니다. 중요한 결정은 검증 단계를 먼저 두고, 실행 강도를 조절해 손실 구간을 짧게 관리하세요.' },
-      dd:  { cls:'dd',  tag:'MODE: INTENSIVE RESET TRACK', title:'집중 재정비 모드 — 구조 리셋 필요', desc:'고위험 변동 구간입니다. 기존 방식의 전면 중단이 아니라 핵심 프로세스를 재정렬해 리스크를 줄이고 회복력을 우선 확보하세요.' }
+      nle: { cls:'nle', tag:'MODE: STABLE GROWTH TRACK', title:_sibylText("sibyl.title.049"), desc:'현재 흐름은 안정 구간입니다. 성과를 키우기보다 재현 가능한 루틴을 고정해 변동성을 낮추는 것이 가장 효과적입니다.' },
+      le:  { cls:'le',  tag:'MODE: RISK ADJUSTMENT TRACK', title:_sibylText("sibyl.title.050"), desc:'경계 신호가 감지된 구간입니다. 중요한 결정은 검증 단계를 먼저 두고, 실행 강도를 조절해 손실 구간을 짧게 관리하세요.' },
+      dd:  { cls:'dd',  tag:'MODE: INTENSIVE RESET TRACK', title:_sibylText("sibyl.title.051"), desc:'고위험 변동 구간입니다. 기존 방식의 전면 중단이 아니라 핵심 프로세스를 재정렬해 리스크를 줄이고 회복력을 우선 확보하세요.' }
     };
     var mm = modeMeta[mode];
     var modeBanner = _q('sbDominatorModeBanner');

@@ -18,6 +18,27 @@ const INSIGHT_FALLBACK_IMAGES = {
   default: { src: "/og/insights-og.png", alt: "운세 인사이트 대표 이미지" },
 };
 
+const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    fallbackTitle: "운세 인사이트 | Code Destiny",
+    fallbackDescription: "운세 인사이트 상세 글입니다.",
+    fallbackKeyword: "운세 인사이트",
+    titleSuffix: "운세 인사이트",
+  },
+  en: {
+    fallbackTitle: "Fortune Insights | Code Destiny",
+    fallbackDescription: "Detailed fortune insight article.",
+    fallbackKeyword: "fortune insights",
+    titleSuffix: "Fortune Insights",
+  },
+  ja: {
+    fallbackTitle: "運勢インサイト | Code Destiny",
+    fallbackDescription: "運勢インサイトの詳細記事です。",
+    fallbackKeyword: "運勢インサイト",
+    titleSuffix: "運勢インサイト",
+  },
+};
+
 function getStaticInsightImage(article) {
   const bag = [
     article?.slug,
@@ -62,12 +83,13 @@ function articleDescription(article) {
 export async function generateMetadata({ params }) {
   const slug = String(params?.slug || "");
   const article = getInsightSeedBySlug(slug);
+  const copy = INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS.ko;
   if (!article) {
     return buildSeoMetadata({
       path: `/insights/${encodeURIComponent(slug)}`,
-      title: "운세 인사이트 | Code Destiny",
-      description: "운세 인사이트 상세 글입니다.",
-      keywords: ["운세 인사이트"],
+      title: copy.fallbackTitle,
+      description: copy.fallbackDescription,
+      keywords: [copy.fallbackKeyword],
       ogType: "article",
     });
   }
@@ -75,7 +97,7 @@ export async function generateMetadata({ params }) {
   const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
-    title: `${article.title} | 운세 인사이트`,
+    title: `${article.title} | ${copy.titleSuffix}`,
     description: articleDescription(article),
     keywords: Array.from(new Set([article.category, ...(article.tags || []), ...(article.keywords || []), ...(article.relatedKeywords || [])].filter(Boolean))).slice(0, 12),
     ogImage: image.src,

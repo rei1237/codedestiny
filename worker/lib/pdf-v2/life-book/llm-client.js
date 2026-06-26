@@ -64,15 +64,6 @@ export function resolveLifeBookModelName(env = {}, provider = "gemini") {
 async function callWorkersAi(params, env) {
   const started = Date.now();
   try {
-    if (clean(env?.LIFE_BOOK_PREMIUM_MOCK_HTML)) {
-      return {
-        ok: true,
-        text: env.LIFE_BOOK_PREMIUM_MOCK_HTML,
-        model: "mock",
-        provider: "workers-ai",
-        latencyMs: Date.now() - started,
-      };
-    }
     const result = await withTimeout(callLLM({
       prompt: params.userPrompt,
       systemPrompt: params.systemPrompt,

@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import styles from "./FptiCosmic.module.css";
 
 type Props = {
@@ -16,8 +18,42 @@ const ELEMENTS = [
   { label: "水", className: "border-sky-300/55 bg-sky-500/10 text-sky-100" },
 ];
 
+const FPTI_HERO_COPY = {
+  ko: {
+    homeAriaLabel: "홈으로 가기",
+  },
+  en: {
+    homeAriaLabel: "Go home",
+  },
+  ja: {
+    homeAriaLabel: "ホームへ戻る",
+  },
+  zh: {
+    homeAriaLabel: "返回首页",
+  },
+};
+
+function getFptiHeroCopy(locale: LoadingLocale) {
+  if (locale === "en" || locale === "ja") return FPTI_HERO_COPY[locale];
+  if (locale === "zh-CN" || locale === "zh-TW") return FPTI_HERO_COPY.zh;
+  return FPTI_HERO_COPY.ko;
+}
+
 export default function FptiHero({ onStart }: Props) {
   const reducedMotion = useReducedMotion();
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getFptiHeroCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
 
   return (
     <section className={`${styles.glassPanelStrong} relative isolate overflow-hidden rounded-[32px] p-6 text-slate-50 md:p-10`}>
@@ -27,7 +63,7 @@ export default function FptiHero({ onStart }: Props) {
       <Link
         href="/"
         className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 backdrop-blur transition-all duration-200 hover:bg-white/10 hover:text-white"
-        aria-label="홈으로 가기"
+        aria-label={copy.homeAriaLabel}
       >
         <span>🏠</span> 홈으로
       </Link>

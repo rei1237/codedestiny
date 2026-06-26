@@ -3,12 +3,12 @@ import FamousSajuInsightDetailPage, {
   generateStaticParams,
 } from "../../insights/famous-saju/[slug]/page";
 
-type PageProps = { params: { slug: string } };
+type PageProps = { params: Promise<{ slug: string }> };
 
 export { generateStaticParams };
 
-export function generateMetadata(props: PageProps) {
-  const metadata = generateCanonicalMetadata(props);
+export async function generateMetadata(props: PageProps) {
+  const metadata = await generateCanonicalMetadata(props);
 
   return {
     ...metadata,

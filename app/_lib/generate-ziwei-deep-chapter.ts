@@ -23,6 +23,18 @@ import {
   validateZiweiDeepReading,
 } from "./ziwei-deep-reading";
 
+const ZIWEI_DEEP_CHAPTER_TEXT_TRANSLATIONS = {
+  ko: {
+    preparingTitle: "분석 준비 중",
+  },
+  en: {
+    preparingTitle: "Preparing Analysis",
+  },
+  ja: {
+    preparingTitle: "分析を準備中",
+  },
+} as const;
+
 type StrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
 
 const SYMBOL_DESC: Record<Exclude<StrengthSymbol, "">, string> = {
@@ -516,7 +528,7 @@ export function generateZiweiDeepChapter(chart: ZiweiDeepChart, sectionId: Ziwei
   if (!palace) {
     return {
       sectionId,
-      title: "분석 준비 중",
+      title: ZIWEI_DEEP_CHAPTER_TEXT_TRANSLATIONS.ko.preparingTitle,
       summary: ["선택한 궁 정보를 찾지 못했습니다."],
       fullText: "선택한 궁 데이터가 누락되어 기본 분석만 제공합니다. 입력값을 확인한 뒤 다시 계산하면 더 정밀한 결과를 확인할 수 있습니다.",
       highlights: ["데이터 누락"],

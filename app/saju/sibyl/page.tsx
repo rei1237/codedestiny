@@ -116,10 +116,34 @@ const SERVICE = {
   },
 };
 
+const SAJU_SIBYL_METADATA_COPY = {
+  ko: {
+    title: "시빌라 시스템 - 사주 진로 적성 × 운명 위험 계수 | Code Destiny",
+    description:
+      "사주팔자 기반 진로 적성 섹터 배정과 운명 위험 계수 분석. 기본 무료, 도미네이터 리포트 10,000원.",
+  },
+  en: {
+    title: "Sibyl System - Saju Career Aptitude x Destiny Risk Index | Code Destiny",
+    description:
+      "Career aptitude sector assignment and destiny risk coefficient analysis based on a Four Pillars chart. Core access is free, with a Dominator report for 10,000 KRW.",
+  },
+  ja: {
+    title: "シビラシステム - 四柱推命進路適性 × 運命リスク係数 | Code Destiny",
+    description:
+      "四柱推命にもとづく進路適性セクター判定と運命リスク係数分析。基本は無料、ドミネーターリポートは10,000ウォンです。",
+  },
+  zh: {
+    title: "Sibyl 系统 - 四柱职业适性 × 命运风险系数 | Code Destiny",
+    description:
+      "基于四柱八字的职业适性分区与命运风险系数分析。基础免费，Dominator 报告为 10,000 韩元。",
+  },
+};
+
+const metadataCopy = SAJU_SIBYL_METADATA_COPY.ko;
+
 export const metadata = {
-  title: "시빌라 시스템 - 사주 진로 적성 × 운명 위험 계수 | Code Destiny",
-  description:
-    "사주팔자 기반 진로 적성 섹터 배정과 운명 위험 계수 분석. 기본 무료, 도미네이터 리포트 10,000원.",
+  title: metadataCopy.title,
+  description: metadataCopy.description,
 };
 
 export default function SajuSibylLandingPage() {

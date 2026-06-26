@@ -1,3 +1,5 @@
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
 export type MeihuaMode = "basic" | "target" | "compatibility";
 
 export type GuaElement = "목" | "화" | "토" | "금" | "수";
@@ -46,11 +48,76 @@ export type MeihuaCalcResult = {
   coreSummary: string;
 };
 
-export const MEIHUA_MODES = [
-  { id: "basic", label: "매화역수 기본 해석", description: "생년월일 기반으로 매화역수 기본 해석을 제공합니다." },
-  { id: "target", label: "매화역수 지정일 해석", description: "출생 정보와 지정일을 비교해 흐름을 해석합니다." },
-  { id: "compatibility", label: "매화역수 궁합 해석", description: "두 사람의 흐름과 조화를 매화역수로 비교합니다." },
-] as const;
+type MeihuaCalcCopy = {
+  modeBasicLabel: string;
+  modeBasicDescription: string;
+  modeTargetLabel: string;
+  modeTargetDescription: string;
+  modeCompatibilityLabel: string;
+  modeCompatibilityDescription: string;
+};
+
+type MeihuaCalcTextKey = keyof MeihuaCalcCopy;
+
+const MEIHUA_CALC_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, MeihuaCalcCopy>> = {
+  ko: {
+    modeBasicLabel: "매화역수 기본 해석",
+    modeBasicDescription: "생년월일 기반으로 매화역수 기본 해석을 제공합니다.",
+    modeTargetLabel: "매화역수 지정일 해석",
+    modeTargetDescription: "출생 정보와 지정일을 비교해 흐름을 해석합니다.",
+    modeCompatibilityLabel: "매화역수 궁합 해석",
+    modeCompatibilityDescription: "두 사람의 흐름과 조화를 매화역수로 비교합니다.",
+  },
+  en: {
+    modeBasicLabel: "Meihua Yishu Basic Reading",
+    modeBasicDescription: "Provide a basic Meihua Yishu reading from the birth date.",
+    modeTargetLabel: "Meihua Yishu Target-Date Reading",
+    modeTargetDescription: "Compare birth details with a selected date to read the flow.",
+    modeCompatibilityLabel: "Meihua Yishu Compatibility",
+    modeCompatibilityDescription: "Compare two people's flow and harmony through Meihua Yishu.",
+  },
+  ja: {
+    modeBasicLabel: "梅花易数 基本解釈",
+    modeBasicDescription: "生年月日をもとに梅花易数の基本解釈を行います。",
+    modeTargetLabel: "梅花易数 指定日解釈",
+    modeTargetDescription: "出生情報と指定日を比較し、流れを読み解きます。",
+    modeCompatibilityLabel: "梅花易数 相性解釈",
+    modeCompatibilityDescription: "二人の流れと調和を梅花易数で比較します。",
+  },
+  "zh-CN": {
+    modeBasicLabel: "梅花易数基础解读",
+    modeBasicDescription: "根据出生日期提供梅花易数基础解读。",
+    modeTargetLabel: "梅花易数指定日解读",
+    modeTargetDescription: "比较出生信息与指定日期，解读其流向。",
+    modeCompatibilityLabel: "梅花易数合盘解读",
+    modeCompatibilityDescription: "以梅花易数比较两个人的流向与和谐度。",
+  },
+  "zh-TW": {
+    modeBasicLabel: "梅花易數基礎解讀",
+    modeBasicDescription: "根據出生日期提供梅花易數基礎解讀。",
+    modeTargetLabel: "梅花易數指定日解讀",
+    modeTargetDescription: "比較出生資訊與指定日期，解讀其流向。",
+    modeCompatibilityLabel: "梅花易數合盤解讀",
+    modeCompatibilityDescription: "以梅花易數比較兩個人的流向與和諧度。",
+  },
+};
+
+function meihuaCalcText(key: MeihuaCalcTextKey, locale?: LoadingLocale | string | null) {
+  const activeLocale = locale ? normalizeLoadingLocale(locale) : getCurrentLoadingLocale();
+  return MEIHUA_CALC_TEXT_TRANSLATIONS[activeLocale]?.[key]
+    ?? MEIHUA_CALC_TEXT_TRANSLATIONS.en?.[key]
+    ?? MEIHUA_CALC_TEXT_TRANSLATIONS.ko![key];
+}
+
+export function getMeihuaModes(locale?: LoadingLocale | string | null) {
+  return [
+    { id: "basic" as const, label: meihuaCalcText("modeBasicLabel", locale), description: meihuaCalcText("modeBasicDescription", locale) },
+    { id: "target" as const, label: meihuaCalcText("modeTargetLabel", locale), description: meihuaCalcText("modeTargetDescription", locale) },
+    { id: "compatibility" as const, label: meihuaCalcText("modeCompatibilityLabel", locale), description: meihuaCalcText("modeCompatibilityDescription", locale) },
+  ];
+}
+
+export const MEIHUA_MODES = getMeihuaModes();
 
 export const TARGET_PURPOSES = ["계약", "이사", "창업", "고백", "시험", "발표", "여행", "병원 방문", "중요한 만남", "기타"];
 

@@ -13,6 +13,78 @@
     window.__cdLoveSecretV2Initialized = true;
   }
 
+  var LOVE_SECRET_V2_TEXT_TRANSLATIONS = {
+    ko: {
+      birthTimePrompt: '출생 시각을 입력해 주세요. 모르면 비워두세요. (예: 14:30)',
+      genderPrompt: '성별을 입력해 주세요. (M/F)',
+      defaultLocationSeoul: '대한민국 (서울)',
+      validationNeedBirth: '생년월일 정보가 필요합니다. 출생 시간을 모르면 낮 12시 기준으로 보수 해석합니다.',
+      validationNeedPartnerBirth: '궁합 모드는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.',
+      userCancelled: '사용자가 생성을 중단했습니다.',
+      jsonParseError: 'JSON 파싱 오류',
+      apiResponseFailed: 'API 응답 실패',
+    },
+    en: {
+      birthTimePrompt: 'Enter your birth time. Leave it blank if you do not know it. (Example: 14:30)',
+      genderPrompt: 'Enter gender. (M/F)',
+      defaultLocationSeoul: 'South Korea (Seoul)',
+      validationNeedBirth: 'Birth date information is required. If birth time is unknown, the reading uses a conservative noon calculation.',
+      validationNeedPartnerBirth: 'Compatibility mode requires the other person’s birth date. You may continue with birth time unknown.',
+      userCancelled: 'Generation was stopped by the user.',
+      jsonParseError: 'JSON parsing error',
+      apiResponseFailed: 'API response failed',
+    },
+    ja: {
+      birthTimePrompt: '出生時刻を入力してください。不明な場合は空欄にしてください。（例: 14:30）',
+      genderPrompt: '性別を入力してください。（M/F）',
+      defaultLocationSeoul: '韓国（ソウル）',
+      validationNeedBirth: '生年月日情報が必要です。出生時刻が不明な場合は、正午基準で保守的に解釈します。',
+      validationNeedPartnerBirth: '相性モードでは相手の生年月日が必要です。出生時刻は不明のまま進められます。',
+      userCancelled: 'ユーザーが生成を中断しました。',
+      jsonParseError: 'JSON解析エラー',
+      apiResponseFailed: 'API応答に失敗しました',
+    },
+    'zh-CN': {
+      birthTimePrompt: '请输入出生时间。不知道时可留空。（例：14:30）',
+      genderPrompt: '请输入性别。（M/F）',
+      defaultLocationSeoul: '韩国（首尔）',
+      validationNeedBirth: '需要出生日期信息。如果不知道出生时间，将按中午 12 点进行保守解读。',
+      validationNeedPartnerBirth: '合盘模式需要对方出生日期。出生时间可按未知继续。',
+      userCancelled: '用户已停止生成。',
+      jsonParseError: 'JSON 解析错误',
+      apiResponseFailed: 'API 响应失败',
+    },
+    'zh-TW': {
+      birthTimePrompt: '請輸入出生時間。不知道時可留空。（例：14:30）',
+      genderPrompt: '請輸入性別。（M/F）',
+      defaultLocationSeoul: '韓國（首爾）',
+      validationNeedBirth: '需要出生日期資訊。如果不知道出生時間，將按中午 12 點進行保守解讀。',
+      validationNeedPartnerBirth: '合盤模式需要對方出生日期。出生時間可按未知繼續。',
+      userCancelled: '使用者已停止生成。',
+      jsonParseError: 'JSON 解析錯誤',
+      apiResponseFailed: 'API 回應失敗',
+    },
+  };
+
+  function _lsTextLang() {
+    var lang = 'ko';
+    try {
+      if (typeof window !== 'undefined' && typeof window.cdGetCurrentLanguage === 'function') lang = window.cdGetCurrentLanguage();
+      else if (typeof window !== 'undefined' && window.localStorage) lang = window.localStorage.getItem('cd_lang') || lang;
+    } catch (_) {}
+    lang = String(lang || 'ko').toLowerCase();
+    if (lang === 'zh' || lang === 'zh-cn' || lang === 'zh-hans') return 'zh-CN';
+    if (lang === 'zh-tw' || lang === 'zh-hant' || lang === 'zh-hk') return 'zh-TW';
+    if (lang.indexOf('ja') === 0) return 'ja';
+    if (lang.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _lsText(key) {
+    var table = LOVE_SECRET_V2_TEXT_TRANSLATIONS[_lsTextLang()] || LOVE_SECRET_V2_TEXT_TRANSLATIONS.en;
+    return table[key] || LOVE_SECRET_V2_TEXT_TRANSLATIONS.en[key] || 'Translation pending';
+  }
+
   var LOVE_SECRET_CHAPTER_META = {
     solo: {
       titles: [
@@ -116,6 +188,121 @@
     }
   };
 
+  LOVE_SECRET_CHAPTER_META = {
+    solo: {
+      titles: [
+        '연애 원국 총론 — 내가 사랑을 시작하는 방식',
+        '타고난 매력과 끌림의 포인트',
+        '이상형과 실제로 잘 맞는 사람',
+        '반복되는 연애 패턴과 상처의 원인',
+        '썸과 고백의 타이밍',
+        '관계가 깊어지는 대화법과 표현법',
+        '이별수·재회수·미련 정리법',
+        '결혼운과 장기 연애 가능성',
+        '시기별 연애운과 인연이 들어오는 흐름',
+        '나만의 연애 비책 — 실전 행동 처방'
+      ],
+      subtitles: [
+        '사주 원국으로 읽는 연애 성향과 인연의 기본 방향',
+        '상대에게 비치는 분위기와 연애 강점',
+        '관계를 오래 지키는 현실적인 이상형',
+        '반복되는 감정 패턴과 선택의 기준',
+        '관계를 시작하는 접근법과 고백 타이밍',
+        '애정 표현, 연락, 대화, 갈등 예방',
+        '이별과 재회를 바라보는 기준과 회복법',
+        '연애가 안정적 동반자 관계로 이어지는 조건',
+        '대운·세운·월운으로 보는 만남과 진전의 흐름',
+        '바로 실천할 수 있는 연락법과 관계 전략'
+      ],
+      loading: [
+        '연애 원국과 사랑의 시작 방식을 정리하고 있습니다',
+        '타고난 매력과 끌림의 포인트를 읽고 있습니다',
+        '이상형과 실제로 잘 맞는 사람의 결을 살피고 있습니다',
+        '반복되는 연애 패턴과 상처의 원인을 분석하고 있습니다',
+        '썸과 고백의 타이밍을 계산 흐름에 맞춰 정리하고 있습니다',
+        '관계가 깊어지는 대화법과 표현법을 집필하고 있습니다',
+        '이별수·재회수·미련 정리법을 상담형 문장으로 다듬고 있습니다',
+        '결혼운과 장기 연애 가능성을 살피고 있습니다',
+        '시기별 연애운과 인연이 들어오는 흐름을 정리하고 있습니다',
+        '나만의 연애 비책과 실전 행동 처방을 완성하고 있습니다'
+      ],
+      structured: {
+        1: ['상담형 해석', '연애 원국', '정서 구조', '인연 방향', '주의점', '실전 조언'],
+        2: ['상담형 해석', '타고난 매력', '끌림의 포인트', '연애 강점', '주의점', '실전 조언'],
+        3: ['상담형 해석', '이상형', '실제 궁합', '관계 유지 조건', '주의점', '실전 조언'],
+        4: ['상담형 해석', '반복 패턴', '상처의 원인', '감정 선택', '주의점', '실전 조언'],
+        5: ['상담형 해석', '썸의 흐름', '고백 타이밍', '상대 반응', '주의점', '실전 조언'],
+        6: ['상담형 해석', '대화법', '표현법', '갈등 예방', '주의점', '실전 조언'],
+        7: ['상담형 해석', '이별수', '재회수', '미련 정리', '주의점', '실전 조언'],
+        8: ['상담형 해석', '결혼운', '장기 연애', '현실 조건', '주의점', '실전 조언'],
+        9: ['상담형 해석', '대운', '세운', '월운', '주의점', '실전 조언'],
+        10: ['상담형 해석', '연애 전략', '자기관리', '연락법', '주의점', '실전 조언']
+      }
+    },
+    compatibility: {
+      titles: [
+        '두 사람의 인연 총론 — 왜 서로에게 끌리는가',
+        '각자의 연애 성향과 사랑의 언어',
+        '첫 끌림과 케미스트리',
+        '감정 궁합과 정서적 안정감',
+        '대화 궁합과 갈등 패턴',
+        '현실 생활 궁합',
+        '애정 표현과 스킨십 리듬',
+        '재물관·일관·미래 설계 궁합',
+        '결혼운과 동거·장기 관계 가능성',
+        '위기 구간과 헤어짐을 부르는 패턴',
+        '재회 가능성과 관계 회복 전략',
+        '시기별 궁합운과 관계의 전환점',
+        '두 사람만의 연애 비책 — 함께 오래 가는 법'
+      ],
+      subtitles: [
+        '두 명식이 만났을 때 생기는 끌림과 관계의 핵심 분위기',
+        '사랑을 표현하고 받아들이는 방식의 차이',
+        '호감과 설렘이 만들어지는 구조',
+        '서로를 안정시키거나 불안하게 하는 감정 리듬',
+        '말투, 연락, 오해, 감정 표현의 충돌 지점',
+        '생활 리듬과 현실 감각의 조화',
+        '애정의 온도차와 친밀감 형성 속도',
+        '돈, 일, 목표, 미래 계획의 합과 충돌',
+        '결혼, 동거, 장기 연애로 이어질 때의 조건',
+        '관계가 흔들리기 쉬운 시기와 반복 문제',
+        '갈등이나 이별 위기 뒤의 회복 가능성',
+        '대운·세운·월운으로 보는 관계 전환점',
+        '오래 가는 관계 운영법과 애정 회복법'
+      ],
+      loading: [
+        '두 사람의 인연 총론과 끌림의 이유를 정리하고 있습니다',
+        '각자의 연애 성향과 사랑의 언어를 비교하고 있습니다',
+        '첫 끌림과 케미스트리를 분석하고 있습니다',
+        '감정 궁합과 정서적 안정감을 살피고 있습니다',
+        '대화 궁합과 갈등 패턴을 정리하고 있습니다',
+        '현실 생활 궁합을 계산 흐름에 맞춰 읽고 있습니다',
+        '애정 표현과 스킨십 리듬을 상담형 문장으로 다듬고 있습니다',
+        '재물관·일관·미래 설계 궁합을 분석하고 있습니다',
+        '결혼운과 동거·장기 관계 가능성을 살피고 있습니다',
+        '위기 구간과 헤어짐을 부르는 패턴을 확인하고 있습니다',
+        '재회 가능성과 관계 회복 전략을 정리하고 있습니다',
+        '시기별 궁합운과 관계의 전환점을 읽고 있습니다',
+        '두 사람만의 연애 비책을 완성하고 있습니다'
+      ],
+      structured: {
+        1: ['두 사람의 차이', '인연 총론', '끌림', '관계 분위기', '관계 리스크', '실전 조언'],
+        2: ['두 사람의 차이', '연애 성향', '사랑의 언어', '표현 방식', '관계 리스크', '실전 조언'],
+        3: ['두 사람의 차이', '첫 끌림', '케미스트리', '호감 구조', '관계 리스크', '실전 조언'],
+        4: ['두 사람의 차이', '감정 궁합', '정서 안정감', '불안 자극', '관계 리스크', '실전 조언'],
+        5: ['두 사람의 차이', '대화 궁합', '갈등 패턴', '오해', '관계 리스크', '실전 조언'],
+        6: ['두 사람의 차이', '생활 리듬', '습관', '현실 감각', '관계 리스크', '실전 조언'],
+        7: ['두 사람의 차이', '애정 표현', '스킨십 리듬', '친밀감', '관계 리스크', '실전 조언'],
+        8: ['두 사람의 차이', '재물관', '일관', '미래 설계', '관계 리스크', '실전 조언'],
+        9: ['두 사람의 차이', '결혼운', '동거', '장기 관계', '관계 리스크', '실전 조언'],
+        10: ['두 사람의 차이', '위기 구간', '헤어짐 패턴', '반복 문제', '관계 리스크', '실전 조언'],
+        11: ['두 사람의 차이', '재회 가능성', '회복 전략', '접근법', '관계 리스크', '실전 조언'],
+        12: ['두 사람의 차이', '대운', '세운', '월운', '관계 리스크', '실전 조언'],
+        13: ['두 사람의 차이', '관계 운영법', '대화법', '애정 회복법', '관계 리스크', '실전 조언']
+      }
+    }
+  };
+
   var LS_LOVE_QUOTES = [
     '사주의 여덟 글자 속에는<br>당신이 사랑할 사람의 그림자가 담겨 있습니다',
     '사랑은 우연처럼 만나지만,<br>사주는 처음부터 알고 있었습니다',
@@ -135,7 +322,9 @@
   ];
 
   function _normalizeLoveSecretMode(mode) {
-    return String(mode || '').trim() === 'compatibility' ? 'compatibility' : 'solo';
+    var value = String(mode || '').trim().toLowerCase();
+    if (value === 'compatibility' || value === 'compat' || value === 'couple' || value === 'pair' || value === 'match') return 'compatibility';
+    return 'solo';
   }
 
   function _ensureLoveSecretUiStyles() {
@@ -1834,7 +2023,7 @@
         '<h2 class="chapter-title">' + _escHtml(meta.title) + '</h2>' +
         '<p class="chapter-sub">' + _escHtml(meta.subtitle) + '</p>' +
         '</div>' +
-        '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
+        '<div class="chapter-body">' + (_isLoveSecretChapterHtml(_chapters[i]) ? _chapters[i] : _md2html(_chapters[i])) + '</div>' +
         '</div>';
     }
 
@@ -1923,21 +2112,21 @@
       var day = _lsToInt(dParts[2], 0);
       if (!year || !month || !day) return null;
 
-      var timeInput = String(window.prompt('출생 시각을 입력해 주세요. 모르면 비워두세요. (예: 14:30)', '') || '').trim();
+      var timeInput = String(window.prompt(_lsText('birthTimePrompt'), '') || '').trim();
       var parsedPromptTime = _lsParseFlexibleBirthTime(timeInput, null, null);
       var hour = (parsedPromptTime.isUnknown || !Number.isFinite(parsedPromptTime.hour))
         ? 12
         : _lsToInt(parsedPromptTime.hour, 12);
       var minute = _lsToInt(parsedPromptTime.minute, 0);
 
-      var genderInput = String(window.prompt('성별을 입력해 주세요. (M/F)', 'F') || 'F').trim().toUpperCase();
+      var genderInput = String(window.prompt(_lsText('genderPrompt'), 'F') || 'F').trim().toUpperCase();
       var gender = genderInput === 'M' ? 'M' : 'F';
 
       return _lsNormalizeProfile({
         name: '사용자',
         gender: gender,
         birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: 'solar' },
-        location: { label: '대한민국 (서울)', tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
+        location: { label: _lsText('defaultLocationSeoul'), tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
       });
     } catch (_) {
       return null;
@@ -1968,7 +2157,7 @@
           var hEl = document.getElementById('birthHour');
           var minEl = document.getElementById('birthMinute');
           var cSel = document.getElementById('birthCountry');
-          var loc = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+          var loc = { label: _lsText('defaultLocationSeoul'), lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
           if (cSel && cSel.selectedIndex >= 0) {
             var op = cSel.options[cSel.selectedIndex];
             if (op) {
@@ -2019,7 +2208,7 @@
             minute: 0,
             calType: 'solar'
           },
-          location: { label: '대한민국 (서울)', tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
+          location: { label: _lsText('defaultLocationSeoul'), tz: 'Asia/Seoul', lng: 127.0, lat: 37.6, tzOffset: 9, baseTzOffset: 9 }
         });
       }
     } catch (_) {}
@@ -2149,11 +2338,11 @@
         return fetchChapter(idx);
       },
       isSuccess: function (data) {
-        return !!(data && data.ok && data.text);
+        return !!(data && data.ok && (data.html || data.text));
       },
       onSuccess: function (_, data) {
         _syncChapterMetaFromResponse(idx, data);
-        _chapters[idx] = String(data.text || '').trim();
+        _chapters[idx] = String(data.html || data.text || '').trim();
         _chapterStructured[idx] = (Array.isArray(data.sections) && data.sections.length)
           ? { sections: data.sections }
           : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);
@@ -2161,13 +2350,9 @@
         _renderChapter(chapter);
       },
       onFallback: function (_, fallbackPayload) {
-        var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해주세요.');
         var msg = (fallbackPayload && fallbackPayload.message) ? String(fallbackPayload.message) : '알 수 없는 오류';
-        _chapters[idx] = fallbackText;
-        _chapterStructured[idx] = null;
         console.warn('[연애 비책] Chapter ' + chapter + ' 부분 재생성 실패:', msg);
-        _saveResult(window.__cdActiveBirthProfile || {});
-        _renderChapter(chapter);
+        _showLoveSecretInlineError('현재 챕터 재생성에 실패했습니다: ' + msg);
       },
     }).catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
@@ -2186,6 +2371,10 @@
     });
   }
 
+  function _isLoveSecretChapterHtml(value) {
+    return /<section\b[^>]*class=["'][^"']*\blove-secret-chapter\b/i.test(String(value || ''));
+  }
+
   function _renderChapter(ch) {
     var content = _qs('lsChapterContent');
     if (!content) return;
@@ -2197,7 +2386,7 @@
       return;
     }
     var bodyHtml = _renderStructuredChapterBody(ch, structured);
-    if (!bodyHtml && data) bodyHtml = _md2html(data);
+    if (!bodyHtml && data) bodyHtml = _isLoveSecretChapterHtml(data) ? data : _md2html(data);
     if (!bodyHtml && structured) bodyHtml = _md2html(_deriveTextFromChapterJson(structured));
     content.innerHTML =
       '<div class="ls-chapter-wrap">' +
@@ -2301,10 +2490,10 @@
       hasPartner: hasPartner,
     });
     if (!hasSelf) {
-      return { ok: false, message: '생년월일 정보가 필요합니다. 출생 시간을 모르면 낮 12시 기준으로 보수 해석합니다.' };
+      return { ok: false, message: _lsText('validationNeedBirth') };
     }
     if (String(mode || 'solo') === 'compatibility' && !hasPartner) {
-      return { ok: false, message: '궁합 모드는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.' };
+      return { ok: false, message: _lsText('validationNeedPartnerBirth') };
     }
     return { ok: true };
   }
@@ -2628,7 +2817,7 @@
 
         function _runAttempt(at) {
           if (_cancelGeneration) {
-            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
+            _done({ ok: false, message: _lsText('userCancelled') });
             return;
           }
           if (at >= _attemptPlan.length) {
@@ -2718,7 +2907,7 @@
                   });
                 });
               }
-              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+              return res.json().catch(function () { return { ok: false, message: _lsText('jsonParseError') }; });
             })
             .then(function (data) {
               clearTimeout(timeoutId);
@@ -2734,7 +2923,7 @@
                 _done(data);
                 return;
               }
-              _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
+              _lastMsg = (data && data.message) ? data.message : _lsText('apiResponseFailed');
               _runAttempt(at + 1);
             })
             .catch(function (err) {
@@ -2777,7 +2966,7 @@
           subtitle: String(chapter.subtitle || _getLoveSecretChapterSubtitle(i, _currentChapterMode)),
           isSkeleton: false,
         };
-        _chapters[i] = String(chapter.text || '').trim();
+        _chapters[i] = String(chapter.html || chapter.text || '').trim();
         _chapterStructured[i] = (Array.isArray(chapter.sections) && chapter.sections.length)
           ? { sections: chapter.sections }
           : null;
@@ -2956,7 +3145,7 @@
           throw new Error((data && data.message) || ('Chapter ' + (i + 1) + ' 생성 실패'));
         }
         _syncChapterMetaFromResponse(i, data);
-        _chapters[i] = String(data.text || '').trim();
+        _chapters[i] = String(data.html || data.text || '').trim();
         _chapterStructured[i] = (Array.isArray(data.sections) && data.sections.length)
           ? { sections: data.sections }
           : (data.chapterJson && typeof data.chapterJson === 'object' ? data.chapterJson : null);

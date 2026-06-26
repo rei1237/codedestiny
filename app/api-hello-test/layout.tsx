@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 
+const API_HELLO_TEST_LAYOUT_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "API 테스트",
+  },
+  en: {
+    title: "API Test",
+  },
+  ja: {
+    title: "APIテスト",
+  },
+} as const;
+
+const apiHelloTestLayoutCopy = API_HELLO_TEST_LAYOUT_TEXT_TRANSLATIONS.ko;
+
 export const metadata: Metadata = {
-  title: "API 테스트",
+  title: apiHelloTestLayoutCopy.title,
   alternates: {
     canonical: "/api-hello-test/",
   },

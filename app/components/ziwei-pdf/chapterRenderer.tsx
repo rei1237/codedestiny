@@ -11,12 +11,24 @@ type RenderOptions = {
   fallbackTitle: string;
 };
 
+const ZIWEI_CHAPTER_RENDERER_TEXT_TRANSLATIONS = {
+  ko: {
+    empty: "챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.",
+  },
+  en: {
+    empty: "Chapter data is not ready, so the basic summary mode is shown.",
+  },
+  ja: {
+    empty: "チャプターデータが未準備のため、基本要約モードで表示します。",
+  },
+} as const;
+
 export function renderZiweiChapterBlock({ chapter, fallbackTitle }: RenderOptions) {
   if (!chapter) {
     return (
       <section>
         <h2>{fallbackTitle}</h2>
-        <p>챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.</p>
+        <p>{ZIWEI_CHAPTER_RENDERER_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }

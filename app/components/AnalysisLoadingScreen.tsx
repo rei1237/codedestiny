@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 /* ─────────────────────────────────────────
    타입 정의
@@ -31,7 +32,6 @@ interface Props {
 /* ─────────────────────────────────────────
    기본 분석 단계 (CRO 최적화 문구)
 ───────────────────────────────────────── */
-type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 type StepText = Pick<AnalysisStep, "label" | "detail">;
 
 const STEP_TIMING: Array<Pick<AnalysisStep, "duration" | "icon">> = [
@@ -300,28 +300,6 @@ const LOADING_UI_COPY: Record<LoadingLocale, {
   },
 };
 
-function normalizeLoadingLocale(value: string | null | undefined): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return (Object.keys(DEFAULT_STEP_TEXT_BY_LOCALE) as LoadingLocale[]).find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function readLoadingLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeLoadingLocale(fromQuery);
-  } catch {}
-  try {
-    return normalizeLoadingLocale(window.localStorage.getItem("cd_lang"));
-  } catch {
-    return "ko";
-  }
-}
-
 function buildDefaultSteps(locale: LoadingLocale): AnalysisStep[] {
   return DEFAULT_STEP_TEXT_BY_LOCALE[locale].map((text, index) => ({
     ...text,
@@ -488,7 +466,7 @@ function StepItem({ step, status, progress }: {
    메인 컴포넌트
 ───────────────────────────────────────── */
 export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete, userName }: Props) {
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [totalProgress, setTotalProgress] = useState(0);
@@ -497,7 +475,14 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    setLocale(readLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale as EventListener);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale as EventListener);
+      window.removeEventListener("storage", syncLocale);
+    };
   }, []);
 
   const copy = LOADING_UI_COPY[locale] || LOADING_UI_COPY.ko;

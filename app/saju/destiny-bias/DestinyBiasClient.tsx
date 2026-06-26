@@ -39,6 +39,53 @@ import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
 import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
+const DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS = {
+  ko: {
+    "destinyBiasClient.title.001": "안내",
+    "destinyBiasClient.title.002": "로그인이 필요해요",
+    "destinyBiasClient.message.001": "최애운명 분석은 계정 확인 후 진행됩니다. 로그인 후 다시 시도해 주세요.",
+    "destinyBiasClient.message.002": "이용권 확인 중",
+    "destinyBiasClient.title.003": "로그인 세션이 필요해요",
+    "destinyBiasClient.message.003": "세션이 만료되었습니다. 다시 로그인한 뒤 분석을 이어가 주세요.",
+    "destinyBiasClient.title.004": "유료 결제가 필요해요",
+    "destinyBiasClient.message.004": "최애운명 분석은 결제 후 이용할 수 있습니다. 결제 페이지에서 상품을 선택해 주세요.",
+    "destinyBiasClient.setError.001": "분석 중 오류가 발생했습니다.",
+    "destinyBiasClient.message.005": "PNG 저장에 실패했습니다.",
+    "destinyBiasClient.setError.002": "결과 복사에 실패했습니다.",
+    "destinyBiasClient.title.005": "My Destiny Bias",
+    "destinyBiasClient.setError.003": "공유 텍스트 복사에 실패했습니다.",
+    "destinyBiasClient.title.006": "My Destiny Bias",
+    "destinyBiasClient.setError.004": "인스타 공유용 이미지 저장에 실패했습니다.",
+    "destinyBiasClient.setError.005": "카카오 공유 문구 복사에 실패했습니다.",
+    "destinyBiasClient.title.007": "당신의 팬라이트 에너지를 확인할게요",
+    "destinyBiasClient.description.001": "이름과 생년월일을 입력하면 무대 입장 전 당신의 사주 에너지 베이스를 먼저 정렬합니다.",
+    "destinyBiasClient.label.001": "나의 이름/닉네임",
+    "destinyBiasClient.placeholder.001": "예: 네오",
+    "destinyBiasClient.label.002": "나의 생년월일",
+    "destinyBiasClient.placeholder.002": "예: 19910220",
+    "destinyBiasClient.label.003": "태어난 시간은 선택 입력",
+    "destinyBiasClient.placeholder.003": "예: 1430 (선택)",
+    "destinyBiasClient.title.008": "최애 프로필로 스테이지 케미를 연결할게요",
+    "destinyBiasClient.description.002": "최애 정보와 무드를 입력하면 나의 사주 에너지와 겹치는 공명 포인트를 스테이지 기준으로 계산합니다.",
+    "destinyBiasClient.label.004": "최애 이름",
+    "destinyBiasClient.placeholder.004": "예: MY BIAS",
+    "destinyBiasClient.label.005": "최애의 생년월일",
+    "destinyBiasClient.placeholder.005": "예: 20001225",
+    "destinyBiasClient.label.006": "연결 아티스트/그룹",
+    "destinyBiasClient.placeholder.006": "예: STARLIGHT UNIT",
+    "destinyBiasClient.label.007": "태어난 시간은 선택 입력",
+    "destinyBiasClient.placeholder.007": "예: 0915 (선택)",
+    "destinyBiasClient.placeholder.008": "이름, 그룹/작품, 카테고리로 검색해 보세요",
+    "destinyBiasClient.alt.001": "업로드한 최애 이미지 미리보기",
+    "destinyBiasClient.title.009": "콘서트 무대 톤을 선택해 주세요",
+    "destinyBiasClient.description.003": "무대의 조명 온도와 오라 색감을 선택합니다. 계산 결과는 동일하고, 표현되는 카드 스타일만 달라집니다.",
+  },
+} as const;
+
+function destinyBiasClientText(key: keyof typeof DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS.ko) {
+  return DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 const DEFAULT_ANALYZE_COST = 50;
 const MAX_BIAS_IMAGE_SIZE_MB = 12;
 
@@ -251,9 +298,15 @@ export default function DestinyBiasClient() {
   const [canUsePremiumTheme, setCanUsePremiumTheme] = useState(false);
   const [isLowSpec, setIsLowSpec] = useState(false);
 
-  const [coinModal, setCoinModal] = useState({
+  const [coinModal, setCoinModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    requiredCoins: number;
+    loginRequired: boolean;
+  }>({
     open: false,
-    title: "안내",
+    title: destinyBiasClientText("destinyBiasClient.title.001"),
     message: "",
     requiredCoins: 0,
     loginRequired: false,
@@ -607,8 +660,8 @@ export default function DestinyBiasClient() {
 
     if (!isLoggedIn) {
       openCoinNotice({
-        title: "로그인이 필요해요",
-        message: "최애운명 분석은 계정 확인 후 진행됩니다. 로그인 후 다시 시도해 주세요.",
+        title: destinyBiasClientText("destinyBiasClient.title.002"),
+        message: destinyBiasClientText("destinyBiasClient.message.001"),
         requiredCoins: DEFAULT_ANALYZE_COST,
         loginRequired: true,
       });
@@ -626,7 +679,7 @@ export default function DestinyBiasClient() {
         featureKey: "destiny-bias-analyze",
         requestId,
         cost: DEFAULT_ANALYZE_COST,
-        message: "이용권 확인 중",
+        message: destinyBiasClientText("destinyBiasClient.message.002"),
       });
 
       let coinGateResult = await runBillingCoinGate({
@@ -660,8 +713,8 @@ export default function DestinyBiasClient() {
         const code = String(coinGateResult.error?.code || "").toUpperCase();
         if (code === "AUTH_REQUIRED") {
           openCoinNotice({
-            title: "로그인 세션이 필요해요",
-            message: "세션이 만료되었습니다. 다시 로그인한 뒤 분석을 이어가 주세요.",
+            title: destinyBiasClientText("destinyBiasClient.title.003"),
+            message: destinyBiasClientText("destinyBiasClient.message.003"),
             requiredCoins: DEFAULT_ANALYZE_COST,
             loginRequired: true,
           });
@@ -670,8 +723,8 @@ export default function DestinyBiasClient() {
 
         if (code === "INSUFFICIENT_COINS") {
           openCoinNotice({
-            title: "유료 결제가 필요해요",
-            message: "최애운명 분석은 결제 후 이용할 수 있습니다. 결제 페이지에서 상품을 선택해 주세요.",
+            title: destinyBiasClientText("destinyBiasClient.title.004"),
+            message: destinyBiasClientText("destinyBiasClient.message.004"),
             requiredCoins: DEFAULT_ANALYZE_COST,
           });
           throw new Error("결제 가능 금액이 부족합니다.");
@@ -715,7 +768,7 @@ export default function DestinyBiasClient() {
           setError(analysisError.message);
         }
       } else {
-        setError("분석 중 오류가 발생했습니다.");
+        setError(destinyBiasClientText("destinyBiasClient.setError.001"));
       }
     } finally {
       setAnalyzing(false);
@@ -750,7 +803,7 @@ export default function DestinyBiasClient() {
       await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
       setToast("PNG 포토카드를 저장했어요.");
     } catch (downloadError) {
-      setError(downloadError instanceof Error ? downloadError.message : "PNG 저장에 실패했습니다.");
+      setError(downloadError instanceof Error ? downloadError.message : destinyBiasClientText("destinyBiasClient.message.005"));
     }
   }, [resultVm]);
 
@@ -770,7 +823,7 @@ export default function DestinyBiasClient() {
       await navigator.clipboard.writeText(summary);
       setToast("결과 요약을 복사했어요.");
     } catch {
-      setError("결과 복사에 실패했습니다.");
+      setError(destinyBiasClientText("destinyBiasClient.setError.002"));
     }
   }, [resultVm]);
 
@@ -782,7 +835,7 @@ export default function DestinyBiasClient() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "My Destiny Bias",
+          title: destinyBiasClientText("destinyBiasClient.title.005"),
           text,
           url: window.location.href,
         });
@@ -797,7 +850,7 @@ export default function DestinyBiasClient() {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
       setToast("공유용 텍스트를 복사했어요.");
     } catch {
-      setError("공유 텍스트 복사에 실패했습니다.");
+      setError(destinyBiasClientText("destinyBiasClient.setError.003"));
     }
   }, [resultVm]);
 
@@ -823,7 +876,7 @@ export default function DestinyBiasClient() {
       const file = await buildShareFile();
       if (!file) return false;
       const payload: ShareData = {
-        title: "My Destiny Bias",
+        title: destinyBiasClientText("destinyBiasClient.title.006"),
         text,
         url,
         files: [file],
@@ -859,7 +912,7 @@ export default function DestinyBiasClient() {
       await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
       setToast("인스타 공유용 카드 이미지를 저장했어요. 인스타 앱에서 업로드해 주세요.");
     } catch {
-      setError("인스타 공유용 이미지 저장에 실패했습니다.");
+      setError(destinyBiasClientText("destinyBiasClient.setError.004"));
     }
   }, [resultVm, shareWithNativeSheet]);
 
@@ -877,7 +930,7 @@ export default function DestinyBiasClient() {
       }
       setToast("카카오 공유용 문구를 복사했어요. 카카오톡에 붙여넣어 공유해 주세요.");
     } catch {
-      setError("카카오 공유 문구 복사에 실패했습니다.");
+      setError(destinyBiasClientText("destinyBiasClient.setError.005"));
     }
   }, [getShareBaseText, resultVm, shareWithNativeSheet]);
 
@@ -963,29 +1016,29 @@ export default function DestinyBiasClient() {
             {uiStep === 1 ? (
               <BiasDestinyInputPanel
                 stepLabel="STEP 01 · FAN PROFILE CHECK"
-                title="당신의 팬라이트 에너지를 확인할게요"
-                description="이름과 생년월일을 입력하면 무대 입장 전 당신의 사주 에너지 베이스를 먼저 정렬합니다."
+                title={destinyBiasClientText("destinyBiasClient.title.007")}
+                description={destinyBiasClientText("destinyBiasClient.description.001")}
               >
                 <div className="grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="NAME / 이름"
-                    label="나의 이름/닉네임"
+                    label={destinyBiasClientText("destinyBiasClient.label.001")}
                     value={meInput.name}
                     onChange={(value) => setMeInput((prev) => ({ ...prev, name: value }))}
-                    placeholder="예: 네오"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.001")}
                     maxLength={24}
                   />
 
                   <InputField
                     subLabel="BIRTH DATE / 생년월일"
-                    label="나의 생년월일"
+                    label={destinyBiasClientText("destinyBiasClient.label.002")}
                     value={meInput.birthDateInput}
                     onChange={(value) => {
                       setMeInput((prev) => ({ ...prev, birthDateInput: value }));
                       if (value.trim()) validateBirthInput(value, "me");
                       else setBirthInputErrors((prev) => ({ ...prev, me: "" }));
                     }}
-                    placeholder="예: 19910220"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.002")}
                     inputMode="numeric"
                     maxLength={10}
                     error={birthInputErrors.me}
@@ -995,10 +1048,10 @@ export default function DestinyBiasClient() {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="BIRTH TIME / 태어난 시간"
-                    label="태어난 시간은 선택 입력"
+                    label={destinyBiasClientText("destinyBiasClient.label.003")}
                     value={meInput.birthTimeInput}
                     onChange={(value) => setMeInput((prev) => ({ ...prev, birthTimeInput: value }))}
-                    placeholder="예: 1430 (선택)"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.003")}
                     inputMode="numeric"
                     maxLength={4}
                   />
@@ -1025,25 +1078,25 @@ export default function DestinyBiasClient() {
             {uiStep === 2 ? (
               <BiasDestinyInputPanel
                 stepLabel="STEP 02 · BIAS LINK"
-                title="최애 프로필로 스테이지 케미를 연결할게요"
-                description="최애 정보와 무드를 입력하면 나의 사주 에너지와 겹치는 공명 포인트를 스테이지 기준으로 계산합니다."
+                title={destinyBiasClientText("destinyBiasClient.title.008")}
+                description={destinyBiasClientText("destinyBiasClient.description.002")}
               >
                 <div className="grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="BIAS NAME / 최애 이름"
-                    label="최애 이름"
+                    label={destinyBiasClientText("destinyBiasClient.label.004")}
                     value={biasInput.name}
                     onChange={(value) => {
                       setSelectedCelebPresetId("");
                       setBiasInput((prev) => ({ ...prev, name: value }));
                     }}
-                    placeholder="예: MY BIAS"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.004")}
                     maxLength={24}
                   />
 
                   <InputField
                     subLabel="BIRTH DATE / 생년월일"
-                    label="최애의 생년월일"
+                    label={destinyBiasClientText("destinyBiasClient.label.005")}
                     value={biasInput.birthDateInput}
                     onChange={(value) => {
                       setSelectedCelebPresetId("");
@@ -1051,7 +1104,7 @@ export default function DestinyBiasClient() {
                       if (value.trim()) validateBirthInput(value, "bias");
                       else setBirthInputErrors((prev) => ({ ...prev, bias: "" }));
                     }}
-                    placeholder="예: 20001225"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.005")}
                     inputMode="numeric"
                     maxLength={10}
                     error={birthInputErrors.bias}
@@ -1061,25 +1114,25 @@ export default function DestinyBiasClient() {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <InputField
                     subLabel="ARTIST / 그룹 또는 아티스트"
-                    label="연결 아티스트/그룹"
+                    label={destinyBiasClientText("destinyBiasClient.label.006")}
                     value={biasArtistInput}
                     onChange={(value) => {
                       setSelectedCelebPresetId("");
                       setBiasArtistInput(value);
                     }}
-                    placeholder="예: STARLIGHT UNIT"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.006")}
                     maxLength={36}
                   />
 
                   <InputField
                     subLabel="BIRTH TIME / 태어난 시간"
-                    label="태어난 시간은 선택 입력"
+                    label={destinyBiasClientText("destinyBiasClient.label.007")}
                     value={biasInput.birthTimeInput}
                     onChange={(value) => {
                       setSelectedCelebPresetId("");
                       setBiasInput((prev) => ({ ...prev, birthTimeInput: value }));
                     }}
-                    placeholder="예: 0915 (선택)"
+                    placeholder={destinyBiasClientText("destinyBiasClient.placeholder.007")}
                     inputMode="numeric"
                     maxLength={4}
                   />
@@ -1121,7 +1174,7 @@ export default function DestinyBiasClient() {
                       type="text"
                       value={biasPresetQuery}
                       onChange={(event) => setBiasPresetQuery(event.target.value)}
-                      placeholder="이름, 그룹/작품, 카테고리로 검색해 보세요"
+                      placeholder={destinyBiasClientText("destinyBiasClient.placeholder.008")}
                       className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition placeholder:text-white/45 focus:border-cyan-200/70 focus:ring-cyan-200/35"
                     />
                     <div className={styles.celebTabRow}>
@@ -1278,7 +1331,7 @@ export default function DestinyBiasClient() {
                     <div className="mt-3 flex items-center gap-3 rounded-2xl border border-cyan-200/25 bg-cyan-300/8 p-2">
                       <Image
                         src={biasImageDataUrl}
-                        alt="업로드한 최애 이미지 미리보기"
+                        alt={destinyBiasClientText("destinyBiasClient.alt.001")}
                         width={64}
                         height={64}
                         unoptimized
@@ -1299,8 +1352,8 @@ export default function DestinyBiasClient() {
             {uiStep === 3 ? (
               <BiasDestinyInputPanel
                 stepLabel="STEP 03 · STAGE THEME"
-                title="콘서트 무대 톤을 선택해 주세요"
-                description="무대의 조명 온도와 오라 색감을 선택합니다. 계산 결과는 동일하고, 표현되는 카드 스타일만 달라집니다."
+                title={destinyBiasClientText("destinyBiasClient.title.009")}
+                description={destinyBiasClientText("destinyBiasClient.description.003")}
               >
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {destinyBiasThemeChoices.map((theme) => {

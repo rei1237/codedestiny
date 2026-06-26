@@ -1,23 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 export type OverlayLineKey = "lifeLine" | "headLine" | "heartLine" | "fateLine";
 export type OverlayPathMap = Partial<Record<OverlayLineKey, string>>;
 
 type OverlayMeta = {
   key: OverlayLineKey;
-  label: string;
   stroke: string;
   glow: string;
 };
 
 const LINE_META: OverlayMeta[] = [
-  { key: "lifeLine", label: "생명선", stroke: "#8FBF7C", glow: "rgba(171, 214, 132, 0.55)" },
-  { key: "headLine", label: "두뇌선", stroke: "#78ABD9", glow: "rgba(131, 188, 255, 0.55)" },
-  { key: "heartLine", label: "감정선", stroke: "#DEA4BE", glow: "rgba(250, 178, 212, 0.55)" },
-  { key: "fateLine", label: "운명선", stroke: "#B89ADA", glow: "rgba(203, 170, 245, 0.55)" },
+  { key: "lifeLine", stroke: "#8FBF7C", glow: "rgba(171, 214, 132, 0.55)" },
+  { key: "headLine", stroke: "#78ABD9", glow: "rgba(131, 188, 255, 0.55)" },
+  { key: "heartLine", stroke: "#DEA4BE", glow: "rgba(250, 178, 212, 0.55)" },
+  { key: "fateLine", stroke: "#B89ADA", glow: "rgba(203, 170, 245, 0.55)" },
 ];
+
+const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
+  ko: {
+    labels: { lifeLine: "생명선", headLine: "두뇌선", heartLine: "감정선", fateLine: "운명선" },
+    noImage: "오버레이를 표시할 손바닥 이미지가 없습니다.",
+    title: "손바닥 흐름 오버레이",
+    aiDetected: "AI가 인식한 주요 흐름",
+    symbolic: "상징적 안내선",
+    symbolicNote: "현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.",
+  },
+  en: {
+    labels: { lifeLine: "Life line", headLine: "Head line", heartLine: "Heart line", fateLine: "Fate line" },
+    noImage: "No palm image is available for the overlay.",
+    title: "Palm Flow Overlay",
+    aiDetected: "AI-detected major lines",
+    symbolic: "Symbolic guide lines",
+    symbolicNote: "These lines are symbolic guides rather than precise coordinates. They help visualize the flow when detailed recognition data is unavailable.",
+  },
+  ja: {
+    labels: { lifeLine: "生命線", headLine: "頭脳線", heartLine: "感情線", fateLine: "運命線" },
+    noImage: "オーバーレイを表示できる手のひら画像がありません。",
+    title: "手のひらの流れオーバーレイ",
+    aiDetected: "AIが認識した主要な流れ",
+    symbolic: "象徴的なガイド線",
+    symbolicNote: "現在の線は精密座標ではなく象徴的なガイド線です。精密認識結果がないときに流れを理解しやすくするための表示です。",
+  },
+} as const;
+
+function palmLineOverlayCopy(locale: LoadingLocale) {
+  return PALM_LINE_OVERLAY_TEXT_TRANSLATIONS[locale as keyof typeof PALM_LINE_OVERLAY_TEXT_TRANSLATIONS] || PALM_LINE_OVERLAY_TEXT_TRANSLATIONS.en;
+}
 
 const SYMBOLIC_PATHS: Record<OverlayLineKey, string> = {
   lifeLine: "M62 19 C 43 27, 30 46, 27 65 C 25 76, 30 86, 38 91",
@@ -50,6 +81,8 @@ export default function PalmLineOverlay({
   onSelectLine: (line: OverlayLineKey) => void;
 }) {
   const [hoverLine, setHoverLine] = useState<OverlayLineKey | null>(null);
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const copy = palmLineOverlayCopy(locale);
 
   const normalizedMap = useMemo(() => {
     const out: OverlayPathMap = {};
@@ -62,6 +95,17 @@ export default function PalmLineOverlay({
 
   const hasPreciseCoordinates = Object.keys(normalizedMap).length > 0;
 
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
+
   const renderedPaths: Record<OverlayLineKey, string> = {
     lifeLine: normalizedMap.lifeLine || SYMBOLIC_PATHS.lifeLine,
     headLine: normalizedMap.headLine || SYMBOLIC_PATHS.headLine,
@@ -72,7 +116,7 @@ export default function PalmLineOverlay({
   if (!imageUrl) {
     return (
       <div className="rounded-2xl border border-[#d8bf72]/40 bg-[#0b111b]/85 p-4 text-sm text-[#f6eecf]/90">
-        오버레이를 표시할 손바닥 이미지가 없습니다.
+        {copy.noImage}
       </div>
     );
   }
@@ -81,9 +125,9 @@ export default function PalmLineOverlay({
     <section className={`cd-ink-card cd-hanji relative overflow-hidden rounded-2xl border border-[#d8bf72]/45 bg-[linear-gradient(145deg,rgba(9,14,23,0.95),rgba(26,18,16,0.9))] ${immersive ? "cd-overlay-immersive" : ""}`}>
       <span className="cd-seal-dot pointer-events-none absolute right-2 top-2 h-3 w-3 rounded-full border border-[#f3d888]/65 bg-[#8f1c1c]/85" />
       <div className="flex items-center justify-between border-b border-[#d8bf72]/25 px-3 py-2 md:px-4">
-        <h3 className="text-sm font-black text-[#f3de9e] md:text-base">손바닥 흐름 오버레이</h3>
+        <h3 className="text-sm font-black text-[#f3de9e] md:text-base">{copy.title}</h3>
         <span className="rounded-full border border-[#d8bf72]/35 bg-[#141f2f]/80 px-2 py-1 text-[11px] font-bold text-[#fce9b4]">
-          {hasPreciseCoordinates ? "AI가 인식한 주요 흐름" : "상징적 안내선"}
+          {hasPreciseCoordinates ? copy.aiDetected : copy.symbolic}
         </span>
       </div>
 
@@ -153,7 +197,7 @@ export default function PalmLineOverlay({
                   : "border-[#d8bf72]/30 bg-[#101828] text-[#f4e8c3] hover:bg-[#17233a] hover:shadow-[0_0_12px_rgba(226,193,106,0.24)]"
               }`}
             >
-              {line.label}
+              {copy.labels[line.key]}
             </button>
           );
         })}
@@ -161,7 +205,7 @@ export default function PalmLineOverlay({
 
       {!hasPreciseCoordinates ? (
         <p className="border-t border-[#d8bf72]/25 px-3 py-2 text-[11px] leading-5 text-[#f5eccc]/80 md:px-4 md:text-xs">
-          현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.
+          {copy.symbolicNote}
         </p>
       ) : null}
 

@@ -23,6 +23,129 @@
   var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LLM_MANUSCRIPT_SOURCE, 'llm-html-v2', 'llm-workers-ai', 'llm-gemini', 'llm-workers-ai+gemini'];
   var SUKYO_FLOATING_STYLE_ID = 'skFloatingWindowStyle';
   var SUKYO_GENERATION_STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  var SUKYO_BOOK_TEXT_TRANSLATIONS = {
+    ko: {
+      'input.yearRange': '1900~2100 사이로 입력해 주세요',
+      'input.monthRange': '1~12 사이로 입력해 주세요',
+      'input.dayRange': '1~31 사이로 입력해 주세요',
+      'input.hourRange': '0~23 사이로 입력해 주세요',
+      'input.minuteRange': '0~59 사이로 입력해 주세요',
+      'loading.chapterTitle': function (step, title) { return '제' + step + '장. ' + title + ' 작성 중...'; },
+      'loading.defaultChapter': '숙요 궁합 원고',
+      'loading.finalizingPdf': 'PDF 저장본 확정 중입니다.',
+      'loading.renderingPdf': '15장 원고를 PDF로 렌더링하고 있습니다.',
+      'loading.completingArchive': '완성된 PDF 저장본을 확정하고 있습니다.',
+      'loading.savingStage': '숙요점 프리미엄 궁합 PDF 저장 중',
+      'loading.generatingStage': '숙요점 프리미엄 궁합 PDF 생성 중',
+      'loading.savedNotice': '15장 원고를 확인했습니다. 저장 링크와 결과 화면을 여는 중입니다.',
+      'loading.runningNotice': '숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.',
+      'payment.title': '숙요점 프리미엄 궁합 PDF',
+      'payment.reason': function (coinLabel) { return '숙요점 프리미엄 궁합 PDF 생성 · ' + coinLabel; },
+      'payment.moduleMissing': '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.',
+      'payment.cancelledStop': '결제가 취소되어 생성을 중단했습니다.',
+    },
+    en: {
+      'input.yearRange': 'Enter a year between 1900 and 2100.',
+      'input.monthRange': 'Enter a month from 1 to 12.',
+      'input.dayRange': 'Enter a day from 1 to 31.',
+      'input.hourRange': 'Enter an hour from 0 to 23.',
+      'input.minuteRange': 'Enter minutes from 0 to 59.',
+      'loading.chapterTitle': function (step, title) { return 'Chapter ' + step + '. Writing ' + title + '...'; },
+      'loading.defaultChapter': 'Sukuyo compatibility manuscript',
+      'loading.finalizingPdf': 'Finalizing the saved PDF.',
+      'loading.renderingPdf': 'Rendering the 15-chapter manuscript as a PDF.',
+      'loading.completingArchive': 'Confirming the completed saved PDF.',
+      'loading.savingStage': 'Saving the Sukuyo premium compatibility PDF',
+      'loading.generatingStage': 'Creating the Sukuyo premium compatibility PDF',
+      'loading.savedNotice': 'The 15 chapters have been checked. Opening the saved link and result screen.',
+      'loading.runningNotice': 'Your Sukuyo compatibility PDF is being created. Checking completion status.',
+      'payment.title': 'Sukuyo Premium Compatibility PDF',
+      'payment.reason': function (coinLabel) { return 'Create Sukuyo Premium Compatibility PDF · ' + coinLabel; },
+      'payment.moduleMissing': 'Payment module not found. Please refresh the page and try again.',
+      'payment.cancelledStop': 'Payment was cancelled, so generation has stopped.',
+    },
+    ja: {
+      'input.yearRange': '1900〜2100の範囲で入力してください',
+      'input.monthRange': '1〜12の範囲で入力してください',
+      'input.dayRange': '1〜31の範囲で入力してください',
+      'input.hourRange': '0〜23の範囲で入力してください',
+      'input.minuteRange': '0〜59の範囲で入力してください',
+      'loading.chapterTitle': function (step, title) { return '第' + step + '章. ' + title + 'を執筆中...'; },
+      'loading.defaultChapter': '宿曜相性原稿',
+      'loading.finalizingPdf': 'PDF保存版を確定しています。',
+      'loading.renderingPdf': '15章の原稿をPDFにレンダリングしています。',
+      'loading.completingArchive': '完成したPDF保存版を確定しています。',
+      'loading.savingStage': '宿曜プレミアム相性PDFを保存中',
+      'loading.generatingStage': '宿曜プレミアム相性PDFを生成中',
+      'loading.savedNotice': '15章の原稿を確認しました。保存リンクと結果画面を開いています。',
+      'loading.runningNotice': '宿曜相性PDFを生成中です。完了状態を確認しています。',
+      'payment.title': '宿曜プレミアム相性PDF',
+      'payment.reason': function (coinLabel) { return '宿曜プレミアム相性PDF生成 · ' + coinLabel; },
+      'payment.moduleMissing': '決済モジュールが見つかりません。ページを更新してもう一度お試しください。',
+      'payment.cancelledStop': '決済がキャンセルされたため、生成を中断しました。',
+    },
+    'zh-CN': {
+      'input.yearRange': '请输入 1900~2100 之间的年份',
+      'input.monthRange': '请输入 1~12 之间的月份',
+      'input.dayRange': '请输入 1~31 之间的日期',
+      'input.hourRange': '请输入 0~23 之间的小时',
+      'input.minuteRange': '请输入 0~59 之间的分钟',
+      'loading.chapterTitle': function (step, title) { return '第' + step + '章：正在撰写' + title + '...'; },
+      'loading.defaultChapter': '宿曜相性原稿',
+      'loading.finalizingPdf': '正在确认 PDF 保存版。',
+      'loading.renderingPdf': '正在将 15 章原稿渲染为 PDF。',
+      'loading.completingArchive': '正在确认完成的 PDF 保存版。',
+      'loading.savingStage': '正在保存宿曜高级相性 PDF',
+      'loading.generatingStage': '正在生成宿曜高级相性 PDF',
+      'loading.savedNotice': '15 章原稿已确认。正在打开保存链接与结果画面。',
+      'loading.runningNotice': '宿曜相性 PDF 正在生成中。正在确认完成状态。',
+      'payment.title': '宿曜高级相性 PDF',
+      'payment.reason': function (coinLabel) { return '生成宿曜高级相性 PDF · ' + coinLabel; },
+      'payment.moduleMissing': '未找到付款模块。请刷新页面后重试。',
+      'payment.cancelledStop': '付款已取消，生成已停止。',
+    },
+    'zh-TW': {
+      'input.yearRange': '請輸入 1900~2100 之間的年份',
+      'input.monthRange': '請輸入 1~12 之間的月份',
+      'input.dayRange': '請輸入 1~31 之間的日期',
+      'input.hourRange': '請輸入 0~23 之間的小時',
+      'input.minuteRange': '請輸入 0~59 之間的分鐘',
+      'loading.chapterTitle': function (step, title) { return '第' + step + '章：正在撰寫' + title + '...'; },
+      'loading.defaultChapter': '宿曜相性原稿',
+      'loading.finalizingPdf': '正在確認 PDF 保存版。',
+      'loading.renderingPdf': '正在將 15 章原稿渲染為 PDF。',
+      'loading.completingArchive': '正在確認完成的 PDF 保存版。',
+      'loading.savingStage': '正在保存宿曜高級相性 PDF',
+      'loading.generatingStage': '正在生成宿曜高級相性 PDF',
+      'loading.savedNotice': '15 章原稿已確認。正在開啟保存連結與結果畫面。',
+      'loading.runningNotice': '宿曜相性 PDF 正在生成中。正在確認完成狀態。',
+      'payment.title': '宿曜高級相性 PDF',
+      'payment.reason': function (coinLabel) { return '生成宿曜高級相性 PDF · ' + coinLabel; },
+      'payment.moduleMissing': '未找到付款模組。請重新整理頁面後再試。',
+      'payment.cancelledStop': '付款已取消，生成已停止。',
+    },
+  };
+
+  function _sukuyoBookLang() {
+    var lang = 'ko';
+    try {
+      if (typeof window !== 'undefined' && typeof window.cdGetCurrentLanguage === 'function') lang = window.cdGetCurrentLanguage();
+      else if (typeof window !== 'undefined' && window.localStorage) lang = window.localStorage.getItem('cd_lang') || lang;
+    } catch (_) {}
+    lang = String(lang || 'ko').toLowerCase();
+    if (lang === 'zh' || lang === 'zh-cn' || lang === 'zh-hans') return 'zh-CN';
+    if (lang === 'zh-tw' || lang === 'zh-hant' || lang === 'zh-hk') return 'zh-TW';
+    if (lang.indexOf('ja') === 0) return 'ja';
+    if (lang.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _sukuyoBookText(key) {
+    var table = SUKYO_BOOK_TEXT_TRANSLATIONS[_sukuyoBookLang()] || SUKYO_BOOK_TEXT_TRANSLATIONS.en;
+    var value = table[key] || SUKYO_BOOK_TEXT_TRANSLATIONS.en[key];
+    if (typeof value === 'function') return value.apply(null, Array.prototype.slice.call(arguments, 1));
+    return value || 'Translation pending';
+  }
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -558,7 +681,7 @@
     style.id = SUKYO_FLOATING_STYLE_ID;
     style.textContent = [
       'body>#skGenerationWindow.sk-floating-window,body>#skErrorWindow{position:fixed!important;inset:0!important;z-index:10080!important;display:none;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(6,3,18,.74)!important;backdrop-filter:blur(14px);}',
-      'body>#skGenerationWindow.sk-floating-window .sk-generation-window__panel,body>#skErrorWindow .sk-error-window__panel{width:min(460px,calc(100vw - 32px));border:1px solid rgba(196,181,253,.38);border-radius:8px;background:linear-gradient(135deg,rgba(18,10,42,.97),rgba(6,14,32,.97));box-shadow:0 28px 80px rgba(0,0,0,.5);padding:22px;text-align:center;color:#f9f4ff;}',
+      'body>#skGenerationWindow.sk-floating-window .sk-generation-window__panel,body>#skErrorWindow .sk-error-window__panel{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 36px);overflow:auto;border:1px solid rgba(196,181,253,.38);border-radius:8px;background:linear-gradient(135deg,rgba(18,10,42,.97),rgba(6,14,32,.97));box-shadow:0 28px 80px rgba(0,0,0,.5);padding:22px;text-align:center;color:#f9f4ff;}',
       '#skGenerationWindow.sk-floating-window .sk-generation-window__orb,#skErrorWindow .sk-error-window__orb{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(253,230,138,.38);background:radial-gradient(circle,rgba(253,230,138,.24),rgba(124,58,237,.18));color:#fde68a;font-size:1.55rem;}',
       '#skGenerationWindow.sk-floating-window .sk-generation-window__eyebrow,#skErrorWindow .sk-error-window__eyebrow{margin:0 0 6px;color:#c4b5fd;font-size:.76rem;font-weight:800;letter-spacing:0;text-transform:uppercase;}',
       '#skGenerationWindow.sk-floating-window .sk-generation-window__title,#skErrorWindow .sk-error-window__title{margin:0 0 14px;color:#fff7ed;font-size:1.12rem;line-height:1.45;word-break:keep-all;}',
@@ -634,6 +757,34 @@
     return element;
   }
 
+  function _ensureSukuyoGenerationWindow() {
+    _ensureFloatingWindowStyle();
+    var element = _qs('skGenerationWindow');
+    if (element) return element;
+    element = document.createElement('div');
+    element.id = 'skGenerationWindow';
+    element.setAttribute('role', 'dialog');
+    element.setAttribute('aria-modal', 'true');
+    element.setAttribute('aria-hidden', 'true');
+    element.style.display = 'none';
+    element.innerHTML = [
+      '<div class="sk-generation-window__panel">',
+      '<div class="sk-generation-window__orb" aria-hidden="true">PDF</div>',
+      '<p class="sk-generation-window__eyebrow">MOONLIGHT PDF</p>',
+      '<h3 class="sk-generation-window__title" id="skGenerationTitle">숙요점 궁합 PDF 생성 중</h3>',
+      '<div class="sk-generation-window__chapter">',
+      '<span id="skGenerationChapterNum">준비 중</span>',
+      '<p id="skGenerationChapter">두 사람의 달빛 기준을 맞추고 있습니다.</p>',
+      '</div>',
+      '<div class="sk-generation-window__bar" aria-hidden="true"><i id="skGenerationProgressBar"></i></div>',
+      '<p class="sk-generation-window__progress" id="skGenerationProgressText">0 / 15</p>',
+      '<p class="sk-generation-window__notice" id="skGenerationNotice">완성된 PDF 저장본이 확인될 때까지 창을 열어 둡니다.</p>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(element);
+    return element;
+  }
+
   function _setSukuyoErrorWindowVisible(visible, message) {
     var element = _ensureSukuyoErrorWindow();
     var msg = _qs('skErrorWindowMsg');
@@ -644,7 +795,7 @@
   }
 
   function _setGenerationWindowVisible(visible) {
-    var element = _qs('skGenerationWindow');
+    var element = visible ? _ensureSukuyoGenerationWindow() : _qs('skGenerationWindow');
     if (!element) return;
     _ensureFloatingWindowStyle();
     element.classList.add('sk-floating-window');
@@ -680,7 +831,7 @@
     var chapter = _qs('skGenerationChapter');
     if (bar) bar.style.width = pct + '%';
     if (text) text.textContent = normalizedStep <= 0 ? ('0 / ' + total) : (normalizedStep + ' / ' + total);
-    if (number) number.textContent = normalizedStep <= 0 ? '준비 중' : ('제' + normalizedStep + '장');
+    if (number) number.textContent = normalizedStep <= 0 ? '준비 중' : (normalizedStep >= total ? 'PDF 저장 확인' : ('제' + normalizedStep + '장'));
     if (chapter) chapter.textContent = _sanitizeText(title || '');
   }
 
@@ -924,11 +1075,11 @@
     var min = Number(input.getAttribute('min'));
     var max = Number(input.getAttribute('max'));
     var label = '';
-    if (input.id.indexOf('BirthYear') >= 0) label = '1900~2100 사이로 입력해 주세요';
-    if (input.id.indexOf('BirthMonth') >= 0) label = '1~12 사이로 입력해 주세요';
-    if (input.id.indexOf('BirthDay') >= 0) label = '1~31 사이로 입력해 주세요';
-    if (input.id.indexOf('BirthHour') >= 0) label = '0~23 사이로 입력해 주세요';
-    if (input.id.indexOf('BirthMinute') >= 0) label = '0~59 사이로 입력해 주세요';
+    if (input.id.indexOf('BirthYear') >= 0) label = _sukuyoBookText('input.yearRange');
+    if (input.id.indexOf('BirthMonth') >= 0) label = _sukuyoBookText('input.monthRange');
+    if (input.id.indexOf('BirthDay') >= 0) label = _sukuyoBookText('input.dayRange');
+    if (input.id.indexOf('BirthHour') >= 0) label = _sukuyoBookText('input.hourRange');
+    if (input.id.indexOf('BirthMinute') >= 0) label = _sukuyoBookText('input.minuteRange');
 
     if (raw && Number.isFinite(value) && Number.isFinite(min) && Number.isFinite(max) && (value < min || value > max)) {
       _setSplitInputError(input, label);
@@ -2401,30 +2552,19 @@
     var apply15 = function () {
       var step = Math.min(index15 + 1, total);
       var chapter = source[step - 1] || {};
+      if (step >= total) {
+        _setLoadingProgress(total, total, 'PDF 저장본 확정 중입니다.');
+        _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
+        _setLoadingNotice('15장 원고를 확인했습니다. 저장 링크와 결과 화면을 여는 중입니다.');
+        return;
+      }
       _setLoadingProgress(step, total, '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...');
       _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
       _setLoadingNotice('두 사람의 본명숙과 관계 거리를 따라 PDF 원고가 열리고 있습니다.');
-      if (index15 < total - 1) index15 += 1;
+      index15 += 1;
     };
     apply15();
     return setInterval(apply15, 2600);
-
-    var frames = [
-      { step: 1, title: '제1장 핵심 궁합 지도를 여는 중...', notice: '두 사람의 본명숙과 관계 축을 맞추는 중입니다' },
-      { step: 2, title: '제2장 마음의 결을 정리하는 중...', notice: '끌림과 거리감이 생기는 지점을 읽고 있습니다' },
-      { step: 3, title: '제3장 대화의 흐름을 엮는 중...', notice: '감정 온도와 표현 방식의 차이를 조율하고 있습니다' },
-      { step: 4, title: '제4장 관계 전략을 다듬는 중...', notice: '반복되는 갈등과 회복 루틴을 정리하고 있습니다' },
-    ];
-    var index = 0;
-    var apply = function () {
-      var frame = frames[Math.min(index, frames.length - 1)];
-      _setLoadingProgress(frame.step, SUKYO_TOTAL_CHAPTERS, frame.title);
-      _setLoadingStage('숙요점 궁합 PDF 생성 중');
-      _setLoadingNotice(frame.notice);
-      if (index < frames.length - 1) index += 1;
-    };
-    apply();
-    return setInterval(apply, 2600);
   }
 
   function _stopSukuyoAssemblyProgress(timer) {
@@ -2441,17 +2581,22 @@
     step = Math.max(step, _lastLoadingStep || 0);
     var stage = _clean(progress.stage || payload.status || '');
     var chapter = _canonicalChapters[step - 1] || {};
-    var title = '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...';
-    if (stage === 'pdf-rendering') title = '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다';
-    if (stage === 'archive-completing') title = '완성된 PDF를 저장하고 다운로드를 준비하는 중입니다';
+    var title = _sukuyoBookText('loading.chapterTitle', step, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), step)));
+    if (step >= total) title = _sukuyoBookText('loading.finalizingPdf');
+    if (stage === 'pdf-rendering') title = _sukuyoBookText('loading.renderingPdf');
+    if (stage === 'archive-completing') title = _sukuyoBookText('loading.completingArchive');
     var completed = Array.isArray(progress.completedChapters) ? progress.completedChapters.slice() : [];
     if (!completed.length) {
       var doneCount = (stage === 'pdf-rendering' || stage === 'archive-completing') ? total : Math.max(0, step - 1);
       for (var done = 1; done <= doneCount; done += 1) completed.push(done);
     }
-    _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
+    _setLoadingStage(step >= total || stage === 'pdf-rendering' || stage === 'archive-completing'
+      ? _sukuyoBookText('loading.savingStage')
+      : _sukuyoBookText('loading.generatingStage'));
     _setLoadingProgress(step, total, title);
-    _setLoadingNotice(payload.message || '숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
+    _setLoadingNotice(payload.message || (step >= total
+      ? _sukuyoBookText('loading.savedNotice')
+      : _sukuyoBookText('loading.runningNotice')));
     _persistGenerationState({
       isOpen: true,
       status: 'generating',
@@ -3038,7 +3183,9 @@
                 resolve(completedReport);
                 return;
               }
-              _setLoadingNotice('숙요점 프리미엄 궁합 PDF 완료본을 불러오는 중입니다');
+              _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
+              _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 저장본 확정 중입니다.');
+              _setLoadingNotice('15장 원고를 확인했습니다. 저장 링크와 결과 화면을 여는 중입니다.');
               _fetchArchivedSukuyoReport(nextReportId, completedReport).then(resolve).catch(reject);
               return;
             }
@@ -3087,16 +3234,16 @@
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return Promise.resolve(true);
     if (typeof window._cdOpenPaidServiceGate !== 'function' && typeof window._cdCoinGatePerUse !== 'function') {
-      return Promise.reject(new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.'));
+      return Promise.reject(new Error(_sukuyoBookText('payment.moduleMissing')));
     }
 
     var paymentScope = _getSukuyoGenerationScope();
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility', reportId: paymentScope.reportId });
     var coinCost = _resolveSukuyoCoinCost();
-    var reason = '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel();
+    var reason = _sukuyoBookText('payment.reason', _sukuyoCoinLabel());
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       return Promise.resolve(window._cdOpenPaidServiceGate({
-        title: '숙요점 프리미엄 궁합 PDF',
+        title: _sukuyoBookText('payment.title'),
         reason: reason,
         coinPrice: coinCost,
         cost: coinCost,
@@ -3114,7 +3261,7 @@
         requestId: paymentScope.requestId,
       })).then(function (gateResult) {
         if (!gateResult || gateResult.status === 'cancelled') {
-          throw new Error((gateResult && gateResult.message) || '결제가 취소되어 생성을 중단했습니다.');
+          throw new Error((gateResult && gateResult.message) || _sukuyoBookText('payment.cancelledStop'));
         }
         _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(gateResult.transactionId, gateResult.payload || gateResult));
         if (gateResult.access && typeof gateResult.access === 'object') _lastPremiumPayment.accessGateResult = gateResult.access;
@@ -3252,8 +3399,9 @@
 
     return _playChapterProgress(_chapters).then(function () {
       _syncDotsByChapters(_chapters);
-      _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
-      _setLoadingNotice('회복 루틴과 최종 궁합 전략을 완성하는 중입니다');
+      _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
+      _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 저장본 확정 중입니다.');
+      _setLoadingNotice('15장 원고와 저장 링크를 확인했습니다. 결과 화면을 여는 중입니다.');
       _renderResult(_chapters, response);
 
       _log('[SukuyoBook][PdfRequestSuccess]', {
@@ -3277,7 +3425,7 @@
         updatedAt: Date.now(),
       });
 
-      _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
+      _setLoadingNotice('숙요점 프리미엄 궁합 PDF 저장본이 확정되었습니다.');
       _setGenerationWindowVisible(false);
       _showScreen('skResultScreen');
       _showSukuyoToast('숙요점 PDF 원고가 완성됐어요. 현재 창에서 확인하고 저장할 수 있어요.');

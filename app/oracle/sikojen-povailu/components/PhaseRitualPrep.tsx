@@ -1,36 +1,134 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
+import { getCurrentLoadingLocale, type LoadingLocale } from '@/constants/loadingMessages';
+
+const SIKO_JEN_RITUAL_PREP_TEXT_TRANSLATIONS = {
+  ko: {
+    wealthPouch: '부의 주머니',
+    wealthDescription: '부와 번영',
+    lovePouch: '사랑의 주머니',
+    loveDescription: '사랑과 인연',
+    luckPouch: '행운의 주머니',
+    luckDescription: '일반 행운',
+    avatarAlt: '연이 준비 단계',
+    counsel: '마음이 끌리는 주머니 하나만 골라줘. 나 연이가 거기서 오늘의 운세 상담을 시작할게!',
+    guidedCasting: 'GUIDED CASTING',
+    guidedCopy: '연이가 선택 순간을 함께 안내해요',
+    steps: '3 Steps',
+    title: '당신의 마법 주석을 선택하세요!',
+    subtitle: '세 개의 주머니 중 마음이 가는 것을 골라봐요 ✨',
+    selectedTitle: '좋은 선택! 🎀',
+    selectedBody: '주석을 녹이는 마법이 준비되고 있어요...',
+  },
+  en: {
+    wealthPouch: 'Pouch of Wealth',
+    wealthDescription: 'Wealth and prosperity',
+    lovePouch: 'Pouch of Love',
+    loveDescription: 'Love and connection',
+    luckPouch: 'Pouch of Luck',
+    luckDescription: 'General good fortune',
+    avatarAlt: 'Yeoni preparation stage',
+    counsel: 'Choose the pouch your heart leans toward. Yeoni will begin today’s fortune reading from there.',
+    guidedCasting: 'GUIDED CASTING',
+    guidedCopy: 'Yeoni will guide the moment you choose',
+    steps: '3 Steps',
+    title: 'Choose Your Magical Pouch!',
+    subtitle: 'Pick the one your heart reaches for among the three ✨',
+    selectedTitle: 'Good choice! 🎀',
+    selectedBody: 'The magic inside the pouch is getting ready...',
+  },
+  ja: {
+    wealthPouch: '豊かさの袋',
+    wealthDescription: '富と繁栄',
+    lovePouch: '愛の袋',
+    loveDescription: '愛とご縁',
+    luckPouch: '幸運の袋',
+    luckDescription: '全体運',
+    avatarAlt: 'ヨニ準備段階',
+    counsel: '心が惹かれる袋を一つ選んでね。ヨニがそこから今日の運勢相談を始めるよ。',
+    guidedCasting: 'GUIDED CASTING',
+    guidedCopy: 'ヨニが選ぶ瞬間を一緒に案内します',
+    steps: '3 Steps',
+    title: 'あなたの魔法の袋を選んでください！',
+    subtitle: '三つの袋の中から心が向くものを選んでみましょう ✨',
+    selectedTitle: 'いい選択です！🎀',
+    selectedBody: '袋の魔法が準備されています...',
+  },
+  'zh-CN': {
+    wealthPouch: '财富锦囊',
+    wealthDescription: '财富与丰盛',
+    lovePouch: '爱情锦囊',
+    loveDescription: '爱情与缘分',
+    luckPouch: '好运锦囊',
+    luckDescription: '整体好运',
+    avatarAlt: 'Yeoni 准备阶段',
+    counsel: '选一个心里最有感觉的锦囊吧。Yeoni 会从那里开始今天的运势咨询。',
+    guidedCasting: 'GUIDED CASTING',
+    guidedCopy: 'Yeoni 会陪你完成选择的瞬间',
+    steps: '3 Steps',
+    title: '请选择你的魔法锦囊！',
+    subtitle: '从三个锦囊中选一个心动的吧 ✨',
+    selectedTitle: '很好的选择！🎀',
+    selectedBody: '锦囊里的魔法正在准备中...',
+  },
+  'zh-TW': {
+    wealthPouch: '財富錦囊',
+    wealthDescription: '財富與豐盛',
+    lovePouch: '愛情錦囊',
+    loveDescription: '愛情與緣分',
+    luckPouch: '好運錦囊',
+    luckDescription: '整體好運',
+    avatarAlt: 'Yeoni 準備階段',
+    counsel: '選一個心裡最有感覺的錦囊吧。Yeoni 會從那裡開始今天的運勢諮詢。',
+    guidedCasting: 'GUIDED CASTING',
+    guidedCopy: 'Yeoni 會陪你完成選擇的瞬間',
+    steps: '3 Steps',
+    title: '請選擇你的魔法錦囊！',
+    subtitle: '從三個錦囊中選一個心動的吧 ✨',
+    selectedTitle: '很好的選擇！🎀',
+    selectedBody: '錦囊裡的魔法正在準備中...',
+  },
+} as const;
+
+function getSikoJenRitualPrepCopy(locale: LoadingLocale) {
+  if (locale === 'en' || locale === 'ja' || locale === 'zh-CN' || locale === 'zh-TW') {
+    return SIKO_JEN_RITUAL_PREP_TEXT_TRANSLATIONS[locale];
+  }
+  return SIKO_JEN_RITUAL_PREP_TEXT_TRANSLATIONS.ko;
+}
 
 export function PhaseRitualPrep() {
   const { setPhase, selectCategory } = useSikojenpovailuContext();
   const [selectedCategory, setLocalSelectedCategory] = useState<string | null>(null);
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getSikoJenRitualPrepCopy(locale);
 
   const pouches = [
     {
       id: '금전운',
       icon: '💰',
-      label: '부의 주머니',
-      description: '부와 번영',
+      label: copy.wealthPouch,
+      description: copy.wealthDescription,
       color: 'from-yellow-200 to-yellow-300',
       borderColor: 'border-yellow-400',
     },
     {
       id: '연애운',
       icon: '💕',
-      label: '사랑의 주머니',
-      description: '사랑과 인연',
+      label: copy.lovePouch,
+      description: copy.loveDescription,
       color: 'from-pink-200 to-rose-300',
       borderColor: 'border-pink-400',
     },
     {
       id: '행운',
       icon: '🍀',
-      label: '행운의 주머니',
-      description: '일반 행운',
+      label: copy.luckPouch,
+      description: copy.luckDescription,
       color: 'from-emerald-200 to-green-300',
       borderColor: 'border-emerald-400',
     },
@@ -44,6 +142,13 @@ export function PhaseRitualPrep() {
       setPhase('casting');
     }, 500);
   };
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener('cd:locale-ready', syncLocale);
+    return () => window.removeEventListener('cd:locale-ready', syncLocale);
+  }, []);
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center">
@@ -75,14 +180,14 @@ export function PhaseRitualPrep() {
           <YeonSpriteAvatar
             frames={[7, 8, 9, 8]}
             size={160}
-            alt="연이 준비 단계"
+            alt={copy.avatarAlt}
             ringClassName="from-rose-300 to-pink-300"
             intervalMs={840}
           />
         </div>
         <PigCounselBubble
           className="mt-3 w-72"
-          message="마음이 끌리는 주머니 하나만 골라줘. 나 연이가 거기서 오늘의 운세 상담을 시작할게!"
+          message={copy.counsel}
         />
       </div>
 
@@ -92,23 +197,23 @@ export function PhaseRitualPrep() {
           <div className="flex items-center gap-3">
             <span className="text-2xl leading-none">🐷</span>
             <div>
-              <p className="text-xs font-semibold tracking-wide text-rose-500">GUIDED CASTING</p>
-              <p className="text-sm font-bold text-rose-700">연이가 선택 순간을 함께 안내해요</p>
+              <p className="text-xs font-semibold tracking-wide text-rose-500">{copy.guidedCasting}</p>
+              <p className="text-sm font-bold text-rose-700">{copy.guidedCopy}</p>
             </div>
           </div>
           <span className="rounded-full border border-amber-300 bg-amber-100/80 px-2.5 py-1 text-[11px] font-bold text-amber-800">
-            3 Steps
+            {copy.steps}
           </span>
         </div>
         
         {/* 제목 */}
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-pink-600 mb-3" style={{ fontFamily: "var(--font-playful)" }}>
-            당신의 마법 주석을 선택하세요!
+            {copy.title}
           </h1>
           
           <p className="text-sm md:text-base text-rose-600 font-medium">
-            세 개의 주머니 중 마음이 가는 것을 골라봐요 ✨
+            {copy.subtitle}
           </p>
         </div>
 
@@ -155,9 +260,9 @@ export function PhaseRitualPrep() {
         {selectedCategory && (
           <div className="text-center mt-8 animate-fade-in">
             <p className="text-lg font-bold text-rose-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>
-              좋은 선택! 🎀
+              {copy.selectedTitle}
             </p>
-            <p className="text-xs text-rose-500">주석을 녹이는 마법이 준비되고 있어요...</p>
+            <p className="text-xs text-rose-500">{copy.selectedBody}</p>
           </div>
         )}
       </div>

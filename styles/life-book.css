@@ -2249,8 +2249,26 @@ body.lb-modal-open {
 }
 
 #sukuyoBookModal #skStartScreen {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
+}
+
+#sukuyoBookModal.sukuyo-book-modal--generating #skNoProfileScreen,
+#sukuyoBookModal.sukuyo-book-modal--generating #skStartScreen,
+#sukuyoBookModal.sukuyo-book-modal--generating #skResultScreen,
+#sukuyoBookModal.sukuyo-book-modal--generating #skErrorScreen {
+  display: none !important;
+}
+
+#sukuyoBookModal.sukuyo-book-modal--generating #skLoadingScreen {
+  display: block !important;
+  min-height: 0 !important;
+}
+
+#sukuyoBookModal.sukuyo-book-modal--generating .lb-modal__panel {
+  width: min(520px, calc(100vw - 28px)) !important;
+  max-width: 520px !important;
+  margin: auto !important;
 }
 
 #sukuyoBookModal #skStartScreen > * {

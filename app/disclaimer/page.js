@@ -1,13 +1,40 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
-export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/disclaimer",
+const DISCLAIMER_METADATA_COPY = {
+  ko: {
     title: "면책 고지 | Code Destiny",
     description:
       "Code Destiny 운세, 상담형 콘텐츠, 건강·재물·관계 해석의 한계와 전문가 상담 필요성을 안내하는 면책 고지입니다.",
     keywords: ["면책 고지", "운세 면책", "건강 고지", "재물운 고지", "전문가 상담"],
+  },
+  en: {
+    title: "Disclaimer | Code Destiny",
+    description:
+      "Code Destiny's disclaimer explains the limits of fortune, consultation-style content, and health, money, and relationship readings, including when to seek professional advice.",
+    keywords: ["disclaimer", "fortune disclaimer", "health notice", "financial reading notice", "professional advice"],
+  },
+  ja: {
+    title: "免責事項 | Code Destiny",
+    description:
+      "Code Destinyの占い・相談型コンテンツ、健康・金運・人間関係の解釈に関する限界と、専門家への相談が必要な場合を案内する免責事項です。",
+    keywords: ["免責事項", "占い免責", "健康に関する注意", "金運の注意", "専門家相談"],
+  },
+  zh: {
+    title: "免责声明 | Code Destiny",
+    description:
+      "Code Destiny 免责声明说明运势、咨询式内容以及健康、财富、关系解读的限制，并提示需要专业咨询的情形。",
+    keywords: ["免责声明", "运势免责声明", "健康提示", "财富解读提示", "专业咨询"],
+  },
+};
+
+export function generateMetadata() {
+  const copy = DISCLAIMER_METADATA_COPY.ko;
+  return generatePageMetadata({
+    path: "/disclaimer",
+    title: copy.title,
+    description: copy.description,
+    keywords: copy.keywords,
   });
 }
 

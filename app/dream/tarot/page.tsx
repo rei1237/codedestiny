@@ -1,10 +1,43 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-page-metadata";
 
+const DREAM_TAROT_TEXT_TRANSLATIONS = {
+  ko: {
+    "meta.title": "드림 프롬프트 - 꿈의 잔향을 AI 상담 문장으로 봉인",
+    "meta.description": "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
+    "service.h1": "드림 프롬프트",
+    "service.seoText": "드림 프롬프트는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
+    "valueGuide.title": "꿈의 잔향을 AI 상담 문장으로 봉인하는 6단계",
+    "value.1.title": "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",
+    "value.2.title": "2. 상징은 사전 뜻보다 개인 맥락이 우선입니다",
+    "value.3.title": "3. 반복 꿈은 해결되지 않은 과제를 가리키는 경우가 많습니다",
+    "value.4.title": "4. 해석 결과는 다음 48시간 행동으로 연결하세요",
+    "value.5.title": "5. 관계 꿈은 상대 판정보다 내 욕구 언어를 읽는 데 쓰세요",
+    "value.6.title": "6. 주간 꿈 로그를 만들면 패턴이 보입니다",
+  },
+  en: {
+    "meta.title": "Dream Prompt - Sealing Dream Echoes into AI Consultation Questions",
+    "meta.description": "Scenes from your dream and the emotions that remain after waking settle into three symbolic cards, becoming quiet consultation questions to offer to AI.",
+    "service.h1": "Dream Prompt",
+    "service.seoText": "Dream Prompt gathers events, emotions, and repeated symbols from a dream into card language, sealing the signals your heart is holding and the question to ask AI.",
+    "valueGuide.title": "Six Steps to Seal Dream Echoes into AI Consultation Questions",
+    "value.1.title": "1. Dream interpretation is emotional signal reading, not fortune prediction",
+    "value.2.title": "2. Personal context matters more than dictionary meanings",
+    "value.3.title": "3. Repeating dreams often point to unresolved tasks",
+    "value.4.title": "4. Turn the reading into action within 48 hours",
+    "value.5.title": "5. Use relationship dreams to read your needs, not judge others",
+    "value.6.title": "6. A weekly dream log reveals patterns",
+  },
+};
+
+function dreamTarotText(key: keyof typeof DREAM_TAROT_TEXT_TRANSLATIONS.ko) {
+  return DREAM_TAROT_TEXT_TRANSLATIONS.ko[key] || DREAM_TAROT_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 const META = {
   path: "/dream/tarot",
-  title: "드림 프롬프트 - 꿈의 잔향을 AI 상담 문장으로 봉인",
-  description: "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
+  title: dreamTarotText("meta.title"),
+  description: dreamTarotText("meta.description"),
   keywords: ["꿈해몽", "드림 프롬프트", "꿈 상징", "dream prompt", "무의식"],
   image: "https://code-destiny.com/fuctionassets/heamong.webp",
   featureList: ["꿈 장면 정리", "깨어난 뒤 감정의 잔향", "AI에게 건넬 질문"],
@@ -18,11 +51,11 @@ export function generateMetadata() {
 const JSON_LD = buildFortuneJsonLd(META);
 
 const SERVICE = {
-  h1: "드림 프롬프트",
+  h1: dreamTarotText("service.h1"),
   description: META.description,
   ogImage: META.image,
   landingPoints: [...META.featureList],
-  seoText: "드림 프롬프트는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
+  seoText: dreamTarotText("service.seoText"),
   localized: {
     en: {
       title: "Dream Prompt - Sealing Dream Echoes into AI Consultation Questions",
@@ -487,35 +520,35 @@ const SERVICE = {
       ],
     },
   },
-  valueGuideTitle: "꿈의 잔향을 AI 상담 문장으로 봉인하는 6단계",
+  valueGuideTitle: dreamTarotText("valueGuide.title"),
   valueSections: [
     {
-      title: "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",
+      title: dreamTarotText("value.1.title"),
       body:
         "꿈은 미래를 단정하는 메시지라기보다 최근 정서와 스트레스가 압축된 형태로 나타나는 경우가 많습니다. 그래서 장면 자체보다 꿈에서 느낀 감정, 깬 직후 남은 여운을 먼저 기록하면 상징의 결이 선명해집니다. 꿈해몽을 불안 증폭 도구가 아닌 자기관찰 도구로 쓰는 태도가 핵심입니다.",
     },
     {
-      title: "2. 상징은 사전 뜻보다 개인 맥락이 우선입니다",
+      title: dreamTarotText("value.2.title"),
       body:
         "물, 계단, 동물 같은 상징은 일반 사전 의미가 있지만 개인 경험에 따라 완전히 달라질 수 있습니다. 예를 들어 물이 누군가에게는 휴식이지만 다른 누군가에게는 통제 불안을 의미할 수 있습니다. 따라서 공통 상징 해석 위에 내 최근 사건을 겹쳐 읽는 2단계 방식이 가장 실용적입니다.",
     },
     {
-      title: "3. 반복 꿈은 해결되지 않은 과제를 가리키는 경우가 많습니다",
+      title: dreamTarotText("value.3.title"),
       body:
         "같은 유형의 꿈이 반복된다면 단순 우연보다 미해결 과제가 남아 있을 가능성을 점검해 볼 필요가 있습니다. 관계 대화 미루기, 일정 과부하, 미완료된 결정 같은 요소가 반복 꿈으로 나타나기도 합니다. 꿈해몽의 가치는 상징 해석 자체보다 현실 과제를 명료화하는 데 있습니다.",
     },
     {
-      title: "4. 해석 결과는 다음 48시간 행동으로 연결하세요",
+      title: dreamTarotText("value.4.title"),
       body:
         "좋은 해석도 행동으로 이어지지 않으면 빠르게 휘발됩니다. 꿈에서 경계 신호가 강했다면 일정 감축, 관계 신호가 강했다면 확인 대화 시도처럼 작고 구체적인 행동 1개를 정해보세요. 48시간 내 실행 가능한 단일 행동으로 번역하면 꿈해몽이 실제 의사결정에 도움이 됩니다.",
     },
     {
-      title: "5. 관계 꿈은 상대 판정보다 내 욕구 언어를 읽는 데 쓰세요",
+      title: dreamTarotText("value.5.title"),
       body:
         "연애나 가족 꿈을 상대의 의도로 단정하면 오해가 커질 수 있습니다. 오히려 내가 어떤 안정, 존중, 거리감을 필요로 하는지 파악하는 데 집중하면 해석이 훨씬 건강해집니다. 꿈은 타인을 규정하는 도구가 아니라 내 욕구를 명확히 표현하기 위한 준비 도구로 사용할 때 효용이 큽니다.",
     },
     {
-      title: "6. 주간 꿈 로그를 만들면 패턴이 보입니다",
+      title: dreamTarotText("value.6.title"),
       body:
         "꿈 내용, 감정 강도, 다음날 컨디션을 짧게 기록하면 2~3주 안에 반복 패턴이 드러납니다. 특정 업무 전날 악몽이 잦거나, 특정 관계 이슈 후 특정 상징이 반복되는 식의 연결점이 보이면 대응 전략을 세울 수 있습니다. 꿈해몽은 기록이 쌓일수록 내 마음의 언어를 더 또렷하게 비추는 느린 도구입니다.",
     },

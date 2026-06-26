@@ -17,6 +17,43 @@ import {
   type PaymentType,
 } from "@/constants/loadingMessages";
 
+const BILLING_CLIENT_TEXT_TRANSLATIONS = {
+  ko: {
+    "billingClient.text.001": "달빛 결제 방식 선택",
+    "billingClient.text.002": "이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
+    "billingClient.text.003": "PortOne V2 · KG이니시스",
+    "billingClient.text.004": "카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.",
+    "billingClient.text.005": "월정석 결제",
+    "billingClient.text.006": "이용권 다시 확인",
+    "billingClient.text.007": "취소",
+    "billingClient.message.001": "결제창을 열지 못했습니다.",
+    "billingClient.message.002": "결제창을 열지 못했습니다.",
+    "billingClient.error.001": "결제 처리 중 오류가 발생했습니다.",
+    "billingClient.message.003": "이용권과 기존 잠금 해제 내역을 확인하고 있습니다.",
+    "billingClient.message.004": "결제 가능한 상품을 확인했습니다.",
+    "billingClient.message.005": "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    "billingClient.message.006": "이용권 확인이 끝났습니다. 결제 가능 상태를 확인하고 있습니다.",
+    "billingClient.message.007": "결제 가능한 상품을 확인해 주세요.",
+    "billingClient.message.008": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.009": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.010": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.011": "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "billingClient.message.012": "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "billingClient.message.013": "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "billingClient.message.014": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.015": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.016": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.017": "결제 가능한 상품을 확인해 주세요.",
+    "billingClient.message.018": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.019": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.020": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+  },
+} as const;
+
+function billingClientText(key: keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko) {
+  return BILLING_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 type BillingError = {
   code: string;
   message: string;
@@ -986,18 +1023,18 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <span class="cd-react-payment-choice-stars"></span>
           <span class="cd-react-payment-choice-reflect"></span>
         </div>
-        <h2 class="cd-react-payment-choice-title">달빛 결제 방식 선택</h2>
-        <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>
+        <h2 class="cd-react-payment-choice-title">${billingClientText("billingClient.text.001")}</h2>
+        <p class="cd-react-payment-choice-sub">${billingClientText("billingClient.text.002")}</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
-            <span class="cd-react-payment-choice-badge">PortOne V2 · KG이니시스</span>
+            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.003")}</span>
             <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
-            <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
+            <span>${billingClientText("billingClient.text.004")}</span>
           </button>
           ${canShowMonthly ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
-            <span class="cd-react-payment-choice-badge">월정석 결제</span>
+            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.005")}</span>
             <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 잔량</strong>
             <span>보유 잔량 ${monthlyBalance.toLocaleString("ko-KR")}에서 차감 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
           </button>` : ""}
@@ -1010,8 +1047,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         <div class="cd-react-payment-choice-status" data-payment-status></div>
         <div class="cd-react-payment-choice-actions">
-          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">이용권 다시 확인</button>
-          <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">취소</button>
+          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">${billingClientText("billingClient.text.006")}</button>
+          <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">${billingClientText("billingClient.text.007")}</button>
         </div>
       </div>
     `;
@@ -1715,10 +1752,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       ok: false,
       status: 402,
       data: null,
-      message: error instanceof Error ? error.message : "결제창을 열지 못했습니다.",
+      message: error instanceof Error ? error.message : billingClientText("billingClient.message.001"),
       error: {
         code: "PAYMENT_REQUIRED",
-        message: error instanceof Error ? error.message : "결제창을 열지 못했습니다.",
+        message: error instanceof Error ? error.message : billingClientText("billingClient.message.002"),
       },
       raw: {},
     };
@@ -2138,7 +2175,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     paymentProcessing: "결제 승인과 이용 권한을 확인하고 있습니다.",
     paymentSuccess: "이용 권한 저장이 완료되었습니다.",
     paymentFailed: "결제 처리에 실패했습니다.",
-    error: "결제 처리 중 오류가 발생했습니다.",
+    error: billingClientText("billingClient.error.001"),
   };
   const overlayMessage = String(payload.message || copyFromStatus[status as PaidFeatureGateRuntimeStatus] || "결제 상태를 안전하게 확인하고 있습니다.").trim();
   try {
@@ -2335,7 +2372,7 @@ export async function fetchBillingFeaturePricing(input: {
     featureId,
     featureKey: featureId,
     status: "checkingEntitlement",
-    message: "이용권과 기존 잠금 해제 내역을 확인하고 있습니다.",
+    message: billingClientText("billingClient.message.003"),
   });
   const query = toQuery(input as Record<string, unknown>);
   const path = query ? `/api/billing/features?${query}` : "/api/billing/features";
@@ -2435,7 +2472,7 @@ function buildRecoverablePaymentEligibility(input: {
         originalMessage: parsed.error?.message || parsed.message || "",
       },
     },
-    message: "결제 가능한 상품을 확인했습니다.",
+    message: billingClientText("billingClient.message.004"),
     error: null,
     raw: parsed.raw,
   };
@@ -2696,7 +2733,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     featureKey: featureId,
     requestId: gateRequestId,
     status: "checkingEntitlement",
-    message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    message: billingClientText("billingClient.message.005"),
     paymentMode: input.paymentMode,
     reason: input.reason,
   });
@@ -2747,7 +2784,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureKey: featureId,
         requestId: gateRequestId,
         status: "loadingProducts",
-        message: "이용권 확인이 끝났습니다. 결제 가능 상태를 확인하고 있습니다.",
+        message: billingClientText("billingClient.message.006"),
         cost: passEligibility.coinCost,
         paymentMode: requestedMode,
         reason: input.reason,
@@ -2799,7 +2836,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureKey: featureId,
         requestId: gateRequestId,
         status: "readyToPay",
-        message: "결제 가능한 상품을 확인해 주세요.",
+        message: billingClientText("billingClient.message.007"),
         cost: knownCoinCost,
         reason: input.reason,
       });
@@ -2819,17 +2856,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               featureKey: featureId,
               requestId: gateRequestId,
               status: "paymentFailed",
-              message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+              message: billingClientText("billingClient.message.008"),
             });
             return {
               ...parsed,
               ok: false,
               status: parsed.status || 500,
               data: null,
-              message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+              message: billingClientText("billingClient.message.009"),
               error: {
                 code: "SERVER_ACCESS_GRANT_MISSING",
-                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                message: billingClientText("billingClient.message.010"),
               },
             };
           }
@@ -2905,7 +2942,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureKey: featureId,
         requestId: gateRequestId,
         status: "error",
-        message: "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+        message: billingClientText("billingClient.message.011"),
         cost: knownCoinCost,
         reason: input.reason,
       });
@@ -2913,10 +2950,10 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         ok: false,
         status: 503,
         data: null,
-        message: "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+        message: billingClientText("billingClient.message.012"),
         error: {
           code: "PAYMENT_GATE_UNAVAILABLE",
-          message: "결제 선택창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.",
+          message: billingClientText("billingClient.message.013"),
         },
         raw: {},
       };
@@ -2961,17 +2998,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           featureKey: featureId,
           requestId: gateRequestId,
           status: "paymentFailed",
-          message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+          message: billingClientText("billingClient.message.014"),
         });
         return {
           ...parsed,
           ok: false,
           status: parsed.status || 500,
           data: null,
-          message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+          message: billingClientText("billingClient.message.015"),
           error: {
             code: "SERVER_ACCESS_GRANT_MISSING",
-            message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+            message: billingClientText("billingClient.message.016"),
           },
         };
       }
@@ -3040,7 +3077,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           featureKey: featureId,
           requestId: gateRequestId,
           status: "readyToPay",
-          message: "결제 가능한 상품을 확인해 주세요.",
+          message: billingClientText("billingClient.message.017"),
           cost: knownCoinCost,
           reason: input.reason,
         });
@@ -3059,17 +3096,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
                 featureKey: featureId,
                 requestId: gateRequestId,
                 status: "paymentFailed",
-                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                message: billingClientText("billingClient.message.018"),
               });
               return {
                 ...runtimePaymentResult,
                 ok: false,
                 status: runtimePaymentResult.status || 500,
                 data: null,
-                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                message: billingClientText("billingClient.message.019"),
                 error: {
                   code: "SERVER_ACCESS_GRANT_MISSING",
-                  message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+                  message: billingClientText("billingClient.message.020"),
                 },
               };
             }

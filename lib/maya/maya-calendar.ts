@@ -1,4 +1,29 @@
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
 export const MAYA_CORRELATION = 584283;
+
+const MAYA_CALENDAR_TEXT_TRANSLATIONS = {
+  ko: {
+    dateFormat: "날짜 형식이 올바르지 않습니다.",
+    birthDateRequired: "생년월일을 입력해 주세요.",
+    futureBirthDate: "아직 오지 않은 날짜는 생년월일로 사용할 수 없습니다.",
+  },
+  en: {
+    dateFormat: "Please enter a valid date.",
+    birthDateRequired: "Please enter your birth date.",
+    futureBirthDate: "A future date cannot be used as a birth date.",
+  },
+  ja: {
+    dateFormat: "正しい日付形式で入力してください。",
+    birthDateRequired: "生年月日を入力してください。",
+    futureBirthDate: "未来の日付は生年月日として使用できません。",
+  },
+} as const;
+
+function getMayaCalendarCopy(locale?: LoadingLocale | string | null) {
+  const activeLocale = locale ? normalizeLoadingLocale(locale) : getCurrentLoadingLocale();
+  return MAYA_CALENDAR_TEXT_TRANSLATIONS[activeLocale as "ko" | "en" | "ja"] || MAYA_CALENDAR_TEXT_TRANSLATIONS.ko;
+}
 
 export type DateOnlyParts = {
   year: number;
@@ -212,9 +237,10 @@ export function calculateHaab(mayaDayNumber: number): MayaCalendarResult["haab"]
 export function calculateMayaCalendar(
   input: string | DateOnlyParts,
   correlation = MAYA_CORRELATION,
+  locale?: LoadingLocale | string | null,
 ): MayaCalendarResult {
   const parts = typeof input === "string" ? parseDateOnly(input) : input;
-  if (!parts) throw new Error("날짜 형식이 올바르지 않습니다.");
+  if (!parts) throw new Error(getMayaCalendarCopy(locale).dateFormat);
 
   const julianDayNumber = gregorianToJulianDayNumber(parts.year, parts.month, parts.day);
   const mayaDayNumber = julianDayNumber - correlation;
@@ -232,20 +258,22 @@ export function calculateMayaCalendar(
 export function validateMayaBirthDate(
   value: string,
   today: DateOnlyParts = getLocalDateOnly(),
+  locale?: LoadingLocale | string | null,
 ): { ok: true; parts: DateOnlyParts } | { ok: false; message: string } {
+  const copy = getMayaCalendarCopy(locale);
   if (!String(value || "").trim()) {
-    return { ok: false, message: "생년월일을 입력해 주세요." };
+    return { ok: false, message: copy.birthDateRequired };
   }
 
   const parts = parseDateOnly(value);
   if (!parts) {
-    return { ok: false, message: "날짜 형식이 올바르지 않습니다." };
+    return { ok: false, message: copy.dateFormat };
   }
 
   const inputJdn = gregorianToJulianDayNumber(parts.year, parts.month, parts.day);
   const todayJdn = gregorianToJulianDayNumber(today.year, today.month, today.day);
   if (inputJdn > todayJdn) {
-    return { ok: false, message: "아직 오지 않은 날짜는 생년월일로 사용할 수 없습니다." };
+    return { ok: false, message: copy.futureBirthDate };
   }
 
   return { ok: true, parts };

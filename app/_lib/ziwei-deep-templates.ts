@@ -1,5 +1,27 @@
 import { ZiweiPalaceId } from "./ziwei-types";
 
+const ZIWEI_DEEP_TEMPLATES_TEXT_TRANSLATIONS = {
+  ko: {
+    "ziweiDeepTemplates.001": "명궁",
+    "ziweiDeepTemplates.002": "형제궁",
+    "ziweiDeepTemplates.003": "부부궁",
+    "ziweiDeepTemplates.004": "자녀궁",
+    "ziweiDeepTemplates.005": "재백궁",
+    "ziweiDeepTemplates.006": "질액궁",
+    "ziweiDeepTemplates.007": "천이궁",
+    "ziweiDeepTemplates.008": "교우궁",
+    "ziweiDeepTemplates.009": "관록궁",
+    "ziweiDeepTemplates.010": "전택궁",
+    "ziweiDeepTemplates.011": "복덕궁",
+    "ziweiDeepTemplates.012": "부모궁",
+    "ziweiDeepTemplates.013": "전체 명반 요약",
+    "ziweiDeepTemplates.014": "종합 총운과 인생 마스터플랜",
+  },
+} as const;
+
+function ziweiDeepTemplatesText(key: keyof typeof ZIWEI_DEEP_TEMPLATES_TEXT_TRANSLATIONS.ko): string {
+  return ZIWEI_DEEP_TEMPLATES_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export interface ZiweiPalaceTemplate {
   title: string;
   meaning: string;
@@ -10,7 +32,7 @@ export interface ZiweiPalaceTemplate {
 
 export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> = {
   ming: {
-    title: "명궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.001"),
     meaning: "타고난 자아와 인생 핵심 축을 읽는 궁입니다.",
     insightPrompts: [
       "나는 어떤 상황에서 가장 나답게 빛나는가",
@@ -25,7 +47,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["과속", "완벽주의", "관계 경직"],
   },
   siblings: {
-    title: "형제궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.002"),
     meaning: "가까운 관계의 협력/경쟁 구조를 해석하는 궁입니다.",
     insightPrompts: [
       "가까운 사람과 갈등이 생길 때 촉발점은 무엇인가",
@@ -36,7 +58,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["비교", "경계 붕괴", "감정 소모"],
   },
   spouse: {
-    title: "부부궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.003"),
     meaning: "연애/결혼/동반자 관계의 작동 원리를 보여주는 궁입니다.",
     insightPrompts: [
       "이상형과 실제 궁합의 차이는 무엇인가",
@@ -47,7 +69,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["과몰입", "침묵 누적", "기대 불일치"],
   },
   children: {
-    title: "자녀궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.004"),
     meaning: "자녀/후배/창작물 등 미래 결실의 에너지를 해석합니다.",
     insightPrompts: [
       "돌봄의 방식이 결실에 미치는 영향은 무엇인가",
@@ -58,7 +80,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["과기대", "통제", "장기 피로"],
   },
   wealth: {
-    title: "재백궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.005"),
     meaning: "수입/지출/투자/저축 등 재물 흐름 전반을 읽는 궁입니다.",
     insightPrompts: [
       "돈이 들어오는 구조와 새는 구조는 각각 무엇인가",
@@ -69,7 +91,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["충동 지출", "고위험 집중", "기록 부재"],
   },
   health: {
-    title: "질액궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.006"),
     meaning: "생활 리듬과 회복력 중심으로 건강 관리 방향을 제시합니다.",
     insightPrompts: [
       "스트레스가 몸으로 드러나는 패턴은 무엇인가",
@@ -80,7 +102,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["수면 붕괴", "만성 긴장", "회복 지연"],
   },
   travel: {
-    title: "천이궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.007"),
     meaning: "사회적 이미지와 외부 활동, 이동운을 해석하는 궁입니다.",
     insightPrompts: [
       "외부 활동에서 운이 열리는 장면은 무엇인가",
@@ -91,7 +113,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["충동 이동", "맥락 없는 확장", "평판 누수"],
   },
   friends: {
-    title: "교우궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.008"),
     meaning: "친구/인맥/동업 등 인간관계 네트워크를 해석하는 궁입니다.",
     insightPrompts: [
       "관계에서 에너지가 채워지는 연결과 소모되는 연결은 무엇인가",
@@ -102,7 +124,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["관계 과밀", "경계 모호", "구설"],
   },
   career: {
-    title: "관록궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.009"),
     meaning: "직업 적성, 사회적 성취, 업무 스타일을 읽는 궁입니다.",
     insightPrompts: [
       "조직형/사업형 중 어디에 강점이 큰가",
@@ -113,7 +135,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["과책임", "과로", "성과 과집중"],
   },
   property: {
-    title: "전택궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.010"),
     meaning: "주거 안정, 공간 에너지, 부동산 인연을 해석하는 궁입니다.",
     insightPrompts: [
       "집/공간이 성과와 감정에 주는 영향은 무엇인가",
@@ -124,7 +146,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["무리한 레버리지", "공간 혼잡", "유지비 과소평가"],
   },
   fortune: {
-    title: "복덕궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.011"),
     meaning: "정신적 안정감과 행복 회복 루틴을 읽는 궁입니다.",
     insightPrompts: [
       "내면이 가장 안정되는 환경은 무엇인가",
@@ -135,7 +157,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
     cautionLens: ["내적 과부하", "고립", "반복 걱정"],
   },
   parents: {
-    title: "부모궁",
+    title: ziweiDeepTemplatesText("ziweiDeepTemplates.012"),
     meaning: "부모/윗사람/후원자와의 인연 구조를 해석하는 궁입니다.",
     insightPrompts: [
       "윗사람과의 갈등이 생기는 패턴은 무엇인가",
@@ -148,11 +170,11 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
 };
 
 export const OVERVIEW_TEMPLATE = {
-  title: "전체 명반 요약",
+  title: ziweiDeepTemplatesText("ziweiDeepTemplates.013"),
   highlightLabels: ["핵심 키워드", "가장 강한 궁", "주의 궁", "인생 방향", "선택 기준"],
 };
 
 export const MASTER_TEMPLATE = {
-  title: "종합 총운과 인생 마스터플랜",
+  title: ziweiDeepTemplatesText("ziweiDeepTemplates.014"),
   declarationPrefix: "나는 나의 리듬과 기준을 이해하고,",
 };

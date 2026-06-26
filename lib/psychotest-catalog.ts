@@ -1,3 +1,25 @@
+const PSYCHOTEST_CATALOG_TEXT_TRANSLATIONS = {
+  ko: {
+    "psychotestCatalog.001": "사이코패스 성향 테스트",
+    "psychotestCatalog.002": "나르시시스트 테스트",
+    "psychotestCatalog.003": "분노의 치와와 테스트",
+    "psychotestCatalog.004": "아우라 컬러 테스트",
+    "psychotestCatalog.005": "T 성향 검증 테스트",
+    "psychotestCatalog.006": "페르소나 지수 테스트",
+    "psychotestCatalog.007": "스릴러 몰입 캐릭터 테스트",
+    "psychotestCatalog.008": "K-직장인 생존 테스트",
+    "psychotestCatalog.009": "연애 매력 지수 테스트",
+    "psychotestCatalog.010": "HSP 예민도 테스트",
+    "psychotestCatalog.011": "TCI 기질 계획 테스트",
+    "psychotestCatalog.012": "공감 능력 테스트",
+    "psychotestCatalog.013": "정신연령 테스트",
+    "psychotestCatalog.014": "연애 추구미 테스트",
+  },
+} as const;
+
+function psychotestCatalogText(key: keyof typeof PSYCHOTEST_CATALOG_TEXT_TRANSLATIONS.ko): string {
+  return PSYCHOTEST_CATALOG_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export type PsychotestEntry = {
   id: string;
   slug: string;
@@ -16,7 +38,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "psycho",
     slug: "psycho",
-    title: "사이코패스 성향 테스트",
+    title: psychotestCatalogText("psychotestCatalog.001"),
     summary: "PCL-R 스타일 20문항으로 공감, 충동, 반사회성 축을 가볍게 점검하는 성향 테스트",
     category: "성격",
     estimatedMinutes: 5,
@@ -26,7 +48,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "narcissist",
     slug: "narcissist",
-    title: "나르시시스트 테스트",
+    title: psychotestCatalogText("psychotestCatalog.002"),
     summary: "자기중심성, 인정욕구, 공감 저하 경향을 체크하는 자기애 성향 진단형 테스트",
     category: "성격",
     estimatedMinutes: 5,
@@ -36,7 +58,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "chihuahua",
     slug: "chihuahua",
-    title: "분노의 치와와 테스트",
+    title: psychotestCatalogText("psychotestCatalog.003"),
     summary: "일상 분노 트리거와 감정 폭발 패턴을 유머 코드로 풀어보는 분노 성향 테스트",
     category: "재미",
     estimatedMinutes: 5,
@@ -46,7 +68,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "aura",
     slug: "aura",
-    title: "아우라 컬러 테스트",
+    title: psychotestCatalogText("psychotestCatalog.004"),
     summary: "질문 기반으로 현재 분위기와 대인 인상을 아우라 컬러로 해석하는 감성 테스트",
     category: "힐링",
     estimatedMinutes: 3,
@@ -56,7 +78,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "ttest",
     slug: "ttest",
-    title: "T 성향 검증 테스트",
+    title: psychotestCatalogText("psychotestCatalog.005"),
     summary: "논리 중심 반응인지 공감 중심 반응인지 문항별로 비교하는 사고 성향 테스트",
     category: "재미",
     estimatedMinutes: 5,
@@ -66,7 +88,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "persona",
     slug: "persona",
-    title: "페르소나 지수 테스트",
+    title: psychotestCatalogText("psychotestCatalog.006"),
     summary: "겉으로 보이는 나와 내면의 나 사이 거리감을 확인하는 사회적 페르소나 테스트",
     category: "성격",
     estimatedMinutes: 4,
@@ -76,7 +98,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "thriller",
     slug: "thriller",
-    title: "스릴러 몰입 캐릭터 테스트",
+    title: psychotestCatalogText("psychotestCatalog.007"),
     summary: "극한 상황 선택 문항으로 본능형/논리형/생존형 캐릭터를 분류하는 상황 대응 테스트",
     category: "재미",
     estimatedMinutes: 6,
@@ -86,7 +108,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "office",
     slug: "office",
-    title: "K-직장인 생존 테스트",
+    title: psychotestCatalogText("psychotestCatalog.008"),
     summary: "메신저, 회식, 보고 상황에서 드러나는 직장 생존 스타일을 확인하는 직장 심리 테스트",
     category: "직장",
     estimatedMinutes: 4,
@@ -96,7 +118,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "seven",
     slug: "seven",
-    title: "연애 매력 지수 테스트",
+    title: psychotestCatalogText("psychotestCatalog.009"),
     summary: "스와이프 선택 기반으로 연애 매력 스타일과 호감 포인트를 점검하는 연애 성향 테스트",
     category: "연애",
     estimatedMinutes: 3,
@@ -106,7 +128,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "hsp",
     slug: "hsp",
-    title: "HSP 예민도 테스트",
+    title: psychotestCatalogText("psychotestCatalog.010"),
     summary: "소음, 자극, 감정 전이에 대한 민감도를 점검하는 고감도 성향(HSP) 체크 테스트",
     category: "힐링",
     estimatedMinutes: 4,
@@ -116,7 +138,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "tci",
     slug: "tci",
-    title: "TCI 기질 계획 테스트",
+    title: psychotestCatalogText("psychotestCatalog.011"),
     summary: "자극추구/위험회피/사회민감/인내력 축으로 계획 실행 스타일을 찾는 기질 테스트",
     category: "성격",
     estimatedMinutes: 5,
@@ -126,7 +148,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "empathy",
     slug: "empathy",
-    title: "공감 능력 테스트",
+    title: psychotestCatalogText("psychotestCatalog.012"),
     summary: "인지 공감, 정서 공감, 행동 공감 축으로 대인 공감 스타일을 측정하는 테스트",
     category: "공감",
     estimatedMinutes: 5,
@@ -136,7 +158,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "mental",
     slug: "mental",
-    title: "정신연령 테스트",
+    title: psychotestCatalogText("psychotestCatalog.013"),
     summary: "생활 선택 문항으로 현재 사고 습관과 심리적 성숙도를 정신연령 관점으로 해석하는 테스트",
     category: "연령",
     estimatedMinutes: 4,
@@ -146,7 +168,7 @@ export const PSYCHOTESTS: PsychotestEntry[] = [
   {
     id: "romance",
     slug: "romance",
-    title: "연애 추구미 테스트",
+    title: psychotestCatalogText("psychotestCatalog.014"),
     summary: "연애에서 선호하는 무드와 커뮤니케이션 스타일을 영화 장르 감성으로 분류하는 테스트",
     category: "미학",
     estimatedMinutes: 5,

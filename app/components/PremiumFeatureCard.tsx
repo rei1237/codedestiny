@@ -3,9 +3,6 @@
  * PremiumFeatureCard — 마이크로 인터랙션이 살아있는 프리미엄 기능 카드
  * 효과: hover 시 골드 빛 스윕 + 3D 틸트 + 오행 카드 뒤집기 애니메이션
  *
- * 사용법:
- *   <PremiumFeatureCard title="대운 흐름" icon="🔭" locked onFlip={() => router.push('/premium-unlock')} />
- *   <PremiumFeatureCard title="오행 분포" icon="☯" ohang={{ wood: 60, fire: 30, earth: 20, metal: 45, water: 15 }} />
  */
 
 import { useEffect, useState } from "react";

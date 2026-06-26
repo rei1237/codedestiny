@@ -35,11 +35,41 @@ export type LitePromptResult = {
   prompt: string;
 };
 
+const LITE_PROMPT_TOOLS_TEXT_TRANSLATIONS = {
+  ko: {
+    "litePrompt.001": "간단한 사주 프롬프트",
+    "litePrompt.002": "사주 원국의 기본 단서를 정리해 질문에 맞는 리딩 프롬프트를 만듭니다.",
+    "litePrompt.003": "간단한 베다점 프롬프트",
+    "litePrompt.004": "출생 정보와 알고 있는 차트 단서를 정리하고, 미산출 항목은 계산 필요로 남깁니다.",
+    "litePrompt.005": "간단한 점성술 프롬프트",
+    "litePrompt.006": "태양궁 중심의 가벼운 서양 점성술 리딩 프롬프트를 만듭니다.",
+    "litePrompt.007": "간단한 숙요점 프롬프트",
+    "litePrompt.008": "음력 월일 기반 본명숙을 산출해 기본 성향 프롬프트를 만듭니다.",
+    "litePrompt.009": "양력",
+    "litePrompt.010": "연주",
+    "litePrompt.011": "월주",
+    "litePrompt.012": "일주",
+    "litePrompt.013": "시주",
+    "litePrompt.014": "본명숙",
+    "litePrompt.015": "음력 월일",
+    "litePrompt.016": "산출 범위",
+    "litePrompt.017": "태양궁",
+    "litePrompt.018": "태양궁 키워드",
+    "litePrompt.019": "달궁/상승궁",
+    "litePrompt.020": "라그나",
+    "litePrompt.021": "나크샤트라",
+    "litePrompt.022": "다샤",
+  },
+} as const;
+
+function litePromptToolsText(key: keyof typeof LITE_PROMPT_TOOLS_TEXT_TRANSLATIONS.ko) {
+  return LITE_PROMPT_TOOLS_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 export const LITE_PROMPT_MODES = [
-  { id: "saju", label: "간단한 사주 프롬프트", description: "사주 원국의 기본 단서를 정리해 질문에 맞는 리딩 프롬프트를 만듭니다." },
-  { id: "vedic", label: "간단한 베다점 프롬프트", description: "출생 정보와 알고 있는 차트 단서를 정리하고, 미산출 항목은 계산 필요로 남깁니다." },
-  { id: "astrology", label: "간단한 점성술 프롬프트", description: "태양궁 중심의 가벼운 서양 점성술 리딩 프롬프트를 만듭니다." },
-  { id: "sukuyo", label: "간단한 숙요점 프롬프트", description: "음력 월일 기반 본명숙을 산출해 기본 성향 프롬프트를 만듭니다." },
+  { id: "saju", label: litePromptToolsText("litePrompt.001"), description: litePromptToolsText("litePrompt.002") },
+  { id: "vedic", label: litePromptToolsText("litePrompt.003"), description: litePromptToolsText("litePrompt.004") },
+  { id: "astrology", label: litePromptToolsText("litePrompt.005"), description: litePromptToolsText("litePrompt.006") },
+  { id: "sukuyo", label: litePromptToolsText("litePrompt.007"), description: litePromptToolsText("litePrompt.008") },
 ] as const;
 
 const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 24, 0, 2, 4, 6, 8];
@@ -110,7 +140,7 @@ function parseBirthTime(value: string, timeUnknown: boolean) {
 
 function calendarForEngine(value: LiteCalendarType) {
   return value === "solar"
-    ? { calendarType: "solar" as const, lunarLeap: false, label: "양력" }
+    ? { calendarType: "solar" as const, lunarLeap: false, label: litePromptToolsText("litePrompt.009") }
     : { calendarType: "lunar" as const, lunarLeap: value === "lunarLeap", label: value === "lunarLeap" ? "음력 윤달" : "음력" };
 }
 
@@ -218,10 +248,10 @@ export function calculateLiteSajuPrompt(input: LitePromptInput): LitePromptResul
     hour: local.pillars.hour?.ganji || "출생시간 미상",
   };
   const cards = [
-    { label: "연주", value: pillars.year },
-    { label: "월주", value: pillars.month },
-    { label: "일주", value: pillars.day },
-    { label: "시주", value: pillars.hour },
+    { label: litePromptToolsText("litePrompt.010"), value: pillars.year },
+    { label: litePromptToolsText("litePrompt.011"), value: pillars.month },
+    { label: litePromptToolsText("litePrompt.012"), value: pillars.day },
+    { label: litePromptToolsText("litePrompt.013"), value: pillars.hour },
   ];
   const prompt = `당신은 사주 명리 상담에 능숙한 전문 상담가입니다.
 
@@ -259,9 +289,9 @@ export function calculateLiteSukuyoPrompt(input: LitePromptInput): LitePromptRes
   const data = normalizeLiteInput(input);
   const sukuyo = buildSukuyo(data.lunar.month, data.lunar.day);
   const cards = [
-    { label: "본명숙", value: sukuyo.mansion },
-    { label: "음력 월일", value: `${data.lunar.month}월 ${data.lunar.day}일` },
-    { label: "산출 범위", value: "본명숙 중심" },
+    { label: litePromptToolsText("litePrompt.014"), value: sukuyo.mansion },
+    { label: litePromptToolsText("litePrompt.015"), value: `${data.lunar.month}월 ${data.lunar.day}일` },
+    { label: litePromptToolsText("litePrompt.016"), value: "본명숙 중심" },
   ];
   const prompt = `당신은 숙요점 상담에 능숙한 전문 상담가입니다.
 
@@ -296,9 +326,9 @@ export function calculateLiteAstrologyPrompt(input: LitePromptInput): LitePrompt
   const data = normalizeLiteInput(input);
   const sunSign = findSolarSign(data.solar.month, data.solar.day);
   const cards = [
-    { label: "태양궁", value: sunSign },
-    { label: "태양궁 키워드", value: SOLAR_SIGN_KEYWORDS[sunSign] || "계산 필요" },
-    { label: "달궁/상승궁", value: "계산 필요" },
+    { label: litePromptToolsText("litePrompt.017"), value: sunSign },
+    { label: litePromptToolsText("litePrompt.018"), value: SOLAR_SIGN_KEYWORDS[sunSign] || "계산 필요" },
+    { label: litePromptToolsText("litePrompt.019"), value: "계산 필요" },
   ];
   const prompt = `당신은 서양 점성술 상담에 능숙한 전문 상담가입니다.
 
@@ -336,9 +366,9 @@ export function calculateLiteVedicPrompt(input: LitePromptInput): LitePromptResu
   const data = normalizeLiteInput(input);
   const knownFacts = input.knownChartFacts?.trim() || "미입력";
   const cards = [
-    { label: "라그나", value: "계산 필요" },
-    { label: "나크샤트라", value: "계산 필요" },
-    { label: "다샤", value: "계산 필요" },
+    { label: litePromptToolsText("litePrompt.020"), value: "계산 필요" },
+    { label: litePromptToolsText("litePrompt.021"), value: "계산 필요" },
+    { label: litePromptToolsText("litePrompt.022"), value: "계산 필요" },
   ];
   const prompt = `당신은 베다 점성술 상담에 능숙한 전문 상담가입니다.
 

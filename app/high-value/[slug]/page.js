@@ -7,6 +7,55 @@ import { HIGH_VALUE_PAGES, getHighValuePageBySlug } from "../content";
 
 export const dynamicParams = false;
 
+const HIGH_VALUE_DETAIL_TEXT_TRANSLATIONS = {
+  ko: {
+    notFoundTitle: "문서를 찾을 수 없습니다 | Code Destiny",
+    home: "홈",
+    guide: "운세 인사이트 가이드",
+    dateLine: (publishedAt, updatedAt, author) => `작성일 ${publishedAt} · 최종 수정일 ${updatedAt} · ${author}`,
+    guideKeyword: "운세 가이드",
+    insightKeyword: "운세 인사이트",
+    sajuKeyword: "사주",
+    tarotKeyword: "타로",
+    disclaimer: "주의와 면책",
+    faq: "자주 묻는 질문",
+    relatedServices: "관련 서비스",
+    nextReads: "다음에 읽을 글",
+  },
+  en: {
+    notFoundTitle: "Document not found | Code Destiny",
+    home: "Home",
+    guide: "Fortune Insight Guide",
+    dateLine: (publishedAt, updatedAt, author) => `Published ${publishedAt} · Updated ${updatedAt} · ${author}`,
+    guideKeyword: "fortune guide",
+    insightKeyword: "fortune insight",
+    sajuKeyword: "saju",
+    tarotKeyword: "tarot",
+    disclaimer: "Notes and Disclaimer",
+    faq: "Frequently Asked Questions",
+    relatedServices: "Related Services",
+    nextReads: "Read Next",
+  },
+  ja: {
+    notFoundTitle: "文書が見つかりません | Code Destiny",
+    home: "ホーム",
+    guide: "運勢インサイトガイド",
+    dateLine: (publishedAt, updatedAt, author) => `公開日 ${publishedAt} · 最終更新日 ${updatedAt} · ${author}`,
+    guideKeyword: "運勢ガイド",
+    insightKeyword: "運勢インサイト",
+    sajuKeyword: "四柱推命",
+    tarotKeyword: "タロット",
+    disclaimer: "注意と免責",
+    faq: "よくある質問",
+    relatedServices: "関連サービス",
+    nextReads: "次に読む記事",
+  },
+};
+
+function highValueDetailText(key) {
+  return HIGH_VALUE_DETAIL_TEXT_TRANSLATIONS.ko[key];
+}
+
 export function generateStaticParams() {
   return HIGH_VALUE_PAGES.map((item) => ({ slug: item.slug }));
 }
@@ -15,7 +64,7 @@ export function generateMetadata({ params }) {
   const page = getHighValuePageBySlug(params?.slug);
   if (!page) {
     return {
-      title: "문서를 찾을 수 없습니다 | Code Destiny",
+      title: highValueDetailText("notFoundTitle"),
       robots: { index: false, follow: false },
     };
   }
@@ -25,7 +74,7 @@ export function generateMetadata({ params }) {
     title: `${page.title} | Code Destiny`,
     description: page.summary,
     ogImage: "https://code-destiny.com/og/code-destiny-og.png",
-    keywords: [page.title, page.category, "운세 인사이트", "사주", "타로"],
+    keywords: [page.title, page.category, highValueDetailText("insightKeyword"), highValueDetailText("sajuKeyword"), highValueDetailText("tarotKeyword")],
   });
 }
 
@@ -39,8 +88,8 @@ export default function HighValueDetailPage({ params }) {
     "@context": "https://schema.org",
     "@graph": [
       buildBreadcrumbJsonLd([
-        { name: "홈", path: "/" },
-        { name: "운세 인사이트 가이드", path: "/high-value" },
+        { name: highValueDetailText("home"), path: "/" },
+        { name: highValueDetailText("guide"), path: "/high-value" },
         { name: page.title, path },
       ]),
       buildArticleJsonLd({
@@ -49,7 +98,7 @@ export default function HighValueDetailPage({ params }) {
         path,
         author: page.author,
         category: page.category,
-        keywords: [page.category, page.title, "운세 가이드"],
+        keywords: [page.category, page.title, highValueDetailText("guideKeyword")],
         datePublished: page.publishedAt,
         dateModified: page.updatedAt,
       }),
@@ -61,8 +110,8 @@ export default function HighValueDetailPage({ params }) {
     <main className="cd-main-shell">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <nav aria-label="breadcrumb" className="cd-chip-wrap">
-        <Link href="/" className="cd-chip">홈</Link>
-        <Link href="/high-value" className="cd-chip">운세 인사이트 가이드</Link>
+        <Link href="/" className="cd-chip">{highValueDetailText("home")}</Link>
+        <Link href="/high-value" className="cd-chip">{highValueDetailText("guide")}</Link>
         <Link href={`/high-value/category/${page.categorySlug}`} className="cd-chip">{page.category}</Link>
       </nav>
 
@@ -72,7 +121,7 @@ export default function HighValueDetailPage({ params }) {
           <h1 className="cd-main-title">{page.title}</h1>
           <p className="cd-main-intro">{page.summary}</p>
           <p className="cd-muted">
-            작성일 {page.publishedAt} · 최종 수정일 {page.updatedAt} · {page.author}
+            {highValueDetailText("dateLine")(page.publishedAt, page.updatedAt, page.author)}
           </p>
         </header>
 
@@ -86,12 +135,12 @@ export default function HighValueDetailPage({ params }) {
         ))}
 
         <section className="cd-card">
-          <h2>주의와 면책</h2>
+          <h2>{highValueDetailText("disclaimer")}</h2>
           <p>{page.disclaimer}</p>
         </section>
 
         <section className="cd-card">
-          <h2>자주 묻는 질문</h2>
+          <h2>{highValueDetailText("faq")}</h2>
           {page.faq.map((item) => (
             <article key={item.question}>
               <h3>{item.question}</h3>
@@ -101,7 +150,7 @@ export default function HighValueDetailPage({ params }) {
         </section>
 
         <section className="cd-card">
-          <h2>관련 서비스</h2>
+          <h2>{highValueDetailText("relatedServices")}</h2>
           <div className="cd-chip-wrap">
             {page.serviceLinks.map((link) => (
               <Link key={link.href} href={link.href} className="cd-chip">
@@ -112,7 +161,7 @@ export default function HighValueDetailPage({ params }) {
         </section>
 
         <section className="cd-card">
-          <h2>다음에 읽을 글</h2>
+          <h2>{highValueDetailText("nextReads")}</h2>
           <ul>
             {relatedPages.map((item) => (
               <li key={item.slug}>

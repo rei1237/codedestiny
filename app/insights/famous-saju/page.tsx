@@ -2,11 +2,52 @@ import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds } from "../../../lib/famous-saju/celebrity-saju-service";
 
+const INSIGHTS_FAMOUS_SAJU_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    metadataTitle: "유명인 사주 분석 | 운세 인사이트 허브",
+    metadataDescription: "공개 생년월일과 Code Destiny 명식 기준을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 이야기형 사주 인사이트로 정리한 아카이브입니다.",
+    keywords: ["유명인 사주", "연예인 사주", "이순신 사주", "아이유 사주", "BTS RM 사주", "운세 인사이트"],
+    hubLink: "운세 인사이트 허브",
+    kicker: "Famous Saju Insights",
+    title: "유명인 사주 분석",
+    intro: "출생 시간이 확인된 경우 시주까지, 그렇지 않은 경우 연주·월주·일주 중심으로 유명인의 명식 흐름을 조심스럽게 정리했습니다.",
+    searchLabel: "유명인 사주 검색",
+    searchPlaceholder: "이름, 분야, 태그 검색",
+    articleCountSuffix: "개 글",
+  },
+  en: {
+    metadataTitle: "Famous Saju Analysis | Fortune Insights Hub",
+    metadataDescription: "An archive of story-style Saju insights for public figures, based on public birth data and Code Destiny chart standards.",
+    keywords: ["famous Saju", "celebrity Saju", "Yi Sun-sin Saju", "IU Saju", "BTS RM Saju", "fortune insights"],
+    hubLink: "Fortune Insights Hub",
+    kicker: "Famous Saju Insights",
+    title: "Famous Saju Analysis",
+    intro: "When birth time is confirmed, we include the hour pillar; otherwise, each public figure is read carefully through the year, month, and day pillars.",
+    searchLabel: "Search famous Saju",
+    searchPlaceholder: "Search name, field, or tag",
+    articleCountSuffix: " articles",
+  },
+  ja: {
+    metadataTitle: "有名人の四柱推命分析 | 運勢インサイトハブ",
+    metadataDescription: "公開生年月日とCode Destinyの命式基準をもとに、有名人の日干、五行、三柱の流れを物語型の四柱推命インサイトとして整理したアーカイブです。",
+    keywords: ["有名人 四柱推命", "芸能人 四柱推命", "李舜臣 四柱推命", "IU 四柱推命", "BTS RM 四柱推命", "運勢インサイト"],
+    hubLink: "運勢インサイトハブ",
+    kicker: "Famous Saju Insights",
+    title: "有名人の四柱推命分析",
+    intro: "出生時刻が確認できる場合は時柱まで、そうでない場合は年柱・月柱・日柱を中心に、有名人の命式の流れを慎重に整理しました。",
+    searchLabel: "有名人の四柱推命を検索",
+    searchPlaceholder: "名前、分野、タグを検索",
+    articleCountSuffix: "件の記事",
+  },
+} as const;
+
+const famousSajuInsightCopy = INSIGHTS_FAMOUS_SAJU_PAGE_TEXT_TRANSLATIONS.ko;
+
 export const metadata = generatePageMetadata({
   path: "/insights/famous-saju",
-  title: "유명인 사주 분석 | 운세 인사이트 허브",
-  description: "공개 생년월일과 Code Destiny 명식 기준을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 이야기형 사주 인사이트로 정리한 아카이브입니다.",
-  keywords: ["유명인 사주", "연예인 사주", "이순신 사주", "아이유 사주", "BTS RM 사주", "운세 인사이트"],
+  title: famousSajuInsightCopy.metadataTitle,
+  description: famousSajuInsightCopy.metadataDescription,
+  keywords: famousSajuInsightCopy.keywords,
 });
 
 const filterScript = `
@@ -84,27 +125,27 @@ export default function FamousSajuInsightIndexPage() {
       <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
         <div className="max-w-3xl">
           <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
-            운세 인사이트 허브
+            {famousSajuInsightCopy.hubLink}
           </Link>
-          <p className="mt-5 text-sm font-semibold text-amber-100/80">Famous Saju Insights</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">유명인 사주 분석</h1>
+          <p className="mt-5 text-sm font-semibold text-amber-100/80">{famousSajuInsightCopy.kicker}</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">{famousSajuInsightCopy.title}</h1>
           <p className="mt-5 text-base leading-8 text-slate-300">
-            출생 시간이 확인된 경우 시주까지, 그렇지 않은 경우 연주·월주·일주 중심으로 유명인의 명식 흐름을 조심스럽게 정리했습니다.
+            {famousSajuInsightCopy.intro}
           </p>
         </div>
 
         <section className="mt-8 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <label className="sr-only" htmlFor="famousSajuSearch">유명인 사주 검색</label>
+            <label className="sr-only" htmlFor="famousSajuSearch">{famousSajuInsightCopy.searchLabel}</label>
             <input
               id="famousSajuSearch"
               data-famous-search
               className="min-h-11 w-full rounded-lg border border-white/15 bg-black/25 px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-amber-200/70 md:max-w-md"
-              placeholder="이름, 분야, 태그 검색"
+              placeholder={famousSajuInsightCopy.searchPlaceholder}
               type="search"
             />
             <p className="text-sm text-slate-300">
-              <span data-famous-count>{publishedCelebritySajuSeeds.length}</span>개 글
+              <span data-famous-count>{publishedCelebritySajuSeeds.length}</span>{famousSajuInsightCopy.articleCountSuffix}
             </p>
           </div>
 

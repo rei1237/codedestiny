@@ -30,6 +30,82 @@
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
+  var DP_TEXT_TRANSLATIONS = {
+    ko: {
+      apiCooldown: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.',
+      apiConnectionFailed: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      networkError: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      passAppliedOverlay: '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.',
+      subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
+      openProfileList: '프로필 목록 열기',
+      profileCardManage: '프로필 카드 관리',
+      loginRequiredConfirm: '🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?',
+      close: '닫기',
+    },
+    en: {
+      apiCooldown: 'The server response is unstable, so we are waiting briefly. Please try again soon.',
+      apiConnectionFailed: 'API connection failed. Please try again soon.',
+      networkError: 'A network error occurred. Please try again soon.',
+      passAppliedOverlay: 'Your pass has been applied.\nThis content is free with your current pass.\nIt will open without any extra payment.',
+      subscriptionIncluded: 'Using your pass with no additional payment.',
+      openProfileList: 'Open profile list',
+      profileCardManage: 'Manage profile cards',
+      loginRequiredConfirm: '🔒 Profile cards can only be created after login.\nMove to the login page?',
+      close: 'Close',
+    },
+    ja: {
+      apiCooldown: 'サーバー応答が不安定なため、しばらく待機しています。少し後でもう一度お試しください。',
+      apiConnectionFailed: 'API接続に失敗しました。少し後でもう一度お試しください。',
+      networkError: 'ネットワークエラーが発生しました。少し後でもう一度お試しください。',
+      passAppliedOverlay: '利用券が適用されました。\nこのコンテンツはお持ちの利用券で無料で利用できます。\n追加決済なしですぐに開きます。',
+      subscriptionIncluded: '利用券で追加決済なしに利用します。',
+      openProfileList: 'プロフィール一覧を開く',
+      profileCardManage: 'プロフィールカード管理',
+      loginRequiredConfirm: '🔒 プロフィールカードはログイン後にのみ作成できます。\nログインページへ移動しますか？',
+      close: '閉じる',
+    },
+    'zh-CN': {
+      apiCooldown: '服务器响应不稳定，正在短暂等待。请稍后再试。',
+      apiConnectionFailed: 'API 连接失败。请稍后再试。',
+      networkError: '发生网络错误。请稍后再试。',
+      passAppliedOverlay: '已应用使用券。\n本内容可使用当前持有的使用券免费查看。\n无需额外付款，将立即开启。',
+      subscriptionIncluded: '使用券已生效，无需额外付款。',
+      openProfileList: '打开个人资料列表',
+      profileCardManage: '管理个人资料卡',
+      loginRequiredConfirm: '🔒 个人资料卡只能在登录后创建。\n要前往登录页面吗？',
+      close: '关闭',
+    },
+    'zh-TW': {
+      apiCooldown: '伺服器回應不穩定，正在短暫等待。請稍後再試。',
+      apiConnectionFailed: 'API 連線失敗。請稍後再試。',
+      networkError: '發生網路錯誤。請稍後再試。',
+      passAppliedOverlay: '已套用使用券。\n本內容可使用目前持有的使用券免費查看。\n無需額外付款，將立即開啟。',
+      subscriptionIncluded: '使用券已生效，無需額外付款。',
+      openProfileList: '開啟個人資料列表',
+      profileCardManage: '管理個人資料卡',
+      loginRequiredConfirm: '🔒 個人資料卡只能在登入後建立。\n要前往登入頁面嗎？',
+      close: '關閉',
+    },
+  };
+
+  function _dpTextLang() {
+    var lang = 'ko';
+    try {
+      if (typeof window !== 'undefined' && typeof window.cdGetCurrentLanguage === 'function') lang = window.cdGetCurrentLanguage();
+      else if (typeof window !== 'undefined' && window.localStorage) lang = window.localStorage.getItem('cd_lang') || lang;
+    } catch (_) {}
+    lang = String(lang || 'ko').toLowerCase();
+    if (lang === 'zh' || lang === 'zh-cn' || lang === 'zh-hans') return 'zh-CN';
+    if (lang === 'zh-tw' || lang === 'zh-hant' || lang === 'zh-hk') return 'zh-TW';
+    if (lang.indexOf('ja') === 0) return 'ja';
+    if (lang.indexOf('en') === 0) return 'en';
+    return 'ko';
+  }
+
+  function _dpText(key) {
+    var table = DP_TEXT_TRANSLATIONS[_dpTextLang()] || DP_TEXT_TRANSLATIONS.en;
+    return table[key] || DP_TEXT_TRANSLATIONS.en[key] || 'Translation pending';
+  }
 
   function _dpReadAuthUser() {
     try {
@@ -889,7 +965,7 @@
           status: 503,
           data: {
             code: 'SERVICE_UNAVAILABLE',
-            message: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.'
+            message: _dpText('apiCooldown')
           },
           response: null,
           base: '',
@@ -918,7 +994,7 @@
         return Promise.resolve(lastResult || {
           ok: false,
           status: 503,
-          data: { message: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' },
+          data: { message: _dpText('apiConnectionFailed') },
           response: null,
           base: '',
           url: _dpJoinApiUrl('', pathname),
@@ -1017,7 +1093,7 @@
             status: 0,
             data: {
               code: 'NETWORK_ERROR',
-              message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+              message: _dpText('networkError'),
               error: String((error && error.message) || error || 'network_error'),
             },
             response: null,
@@ -2354,10 +2430,10 @@
         if (result.status === 'pass_applied') {
           if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
           else if (typeof window._cdSetCoinGateOverlay === 'function') {
-            window._cdSetCoinGateOverlay(true, '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.', 'pass-applied');
+            window._cdSetCoinGateOverlay(true, _dpText('passAppliedOverlay'), 'pass-applied');
             window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
           }
-          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '이용권으로 추가 결제 없이 이용합니다.', requiredCoins: coinPrice });
+          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: _dpText('subscriptionIncluded'), requiredCoins: coinPrice });
         }
       } catch (_) {}
       return result;
@@ -4440,7 +4516,7 @@
             + '</div>'
           + '</div>'
           + '<div class="dp-mc-action-wrap">'
-            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 목록 열기" aria-expanded="false" aria-controls="dpListSheet" data-profile-menu-marker="profile-card-hamburger-list-delete-v20260611" style="touch-action:manipulation">'
+            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="' + _esc(_dpText('openProfileList')) + '" aria-expanded="false" aria-controls="dpListSheet" data-profile-menu-marker="profile-card-hamburger-list-delete-v20260611" style="touch-action:manipulation">'
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
           + '</div>'
@@ -5002,7 +5078,7 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
-            + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
+            + '<div class="dp-li-actions" aria-label="' + _esc(_dpText('profileCardManage')) + '">'
               + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
             + '</div>';
@@ -5295,7 +5371,7 @@
       var msg = String((err && err.message) || '프로필 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       restoreCardAfterSaveAttempt();
       if (msg === 'AUTH_REQUIRED') {
-        if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
+        if (window.confirm(_dpText('loginRequiredConfirm'))) {
           window.location.href = '/login?next=%2F';
           return;
         }
@@ -5909,7 +5985,7 @@
     ov.className = 'dp-fsel-overlay';
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<button type="button" class="dp-fsel-close-btn" aria-label="닫기" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
       + '<div class="dp-fsel-profile">'
         + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
         + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'

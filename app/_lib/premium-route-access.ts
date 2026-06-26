@@ -20,6 +20,26 @@ const PREMIUM_UNLOCK_POLICY: Record<string, string[]> = {
   soulOriginKarma: ["premiumDivinationPack"],
 };
 
+const PREMIUM_ROUTE_ACCESS_TEXT_TRANSLATIONS = {
+  ko: {
+    paymentRequired: "프리미엄 결제 또는 포인트 결제가 확인되지 않았습니다.",
+    policyMissing: "서버 접근 제어 정책이 정의되지 않은 reportType입니다.",
+    unauthorized: "유효한 사용자 인증이 필요합니다.",
+  },
+  en: {
+    paymentRequired: "Premium payment or point payment has not been confirmed.",
+    policyMissing: "No server access-control policy is defined for this reportType.",
+    unauthorized: "Valid user authentication is required.",
+  },
+  ja: {
+    paymentRequired: "プレミアム決済またはポイント決済を確認できませんでした。",
+    policyMissing: "このreportTypeにはサーバーアクセス制御ポリシーが定義されていません。",
+    unauthorized: "有効なユーザー認証が必要です。",
+  },
+} as const;
+
+const premiumRouteAccessCopy = PREMIUM_ROUTE_ACCESS_TEXT_TRANSLATIONS.ko;
+
 function uniqueStrings(values: unknown[]): string[] {
   return Array.from(new Set(
     (Array.isArray(values) ? values : [])
@@ -401,7 +421,7 @@ function buildPaymentRequiredResult(reportType: string, rules: Rule[]) {
     ok: false,
     status: 402,
     code: "PAYMENT_REQUIRED",
-    message: "프리미엄 결제 또는 포인트 결제가 확인되지 않았습니다.",
+    message: premiumRouteAccessCopy.paymentRequired,
     reportType,
     required: rules.length ? rules.map((rule) => `${rule.featureKey}:${rule.minCost}`).join(", ") : "unlock-or-payment",
   };
@@ -424,7 +444,7 @@ export async function requirePremiumRouteAccess(userId: string, reportType: stri
       ok: false,
       status: 403,
       code: "ACCESS_POLICY_MISSING",
-      message: "서버 접근 제어 정책이 정의되지 않은 reportType입니다.",
+      message: premiumRouteAccessCopy.policyMissing,
       reportType: normalizedReportType || null,
     };
   }
@@ -443,7 +463,7 @@ export async function requirePremiumRouteAccess(userId: string, reportType: stri
       ok: false,
       status: 401,
       code: "UNAUTHORIZED",
-      message: "유효한 사용자 인증이 필요합니다.",
+      message: premiumRouteAccessCopy.unauthorized,
       reportType: normalizedReportType,
     };
   }

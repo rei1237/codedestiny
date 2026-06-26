@@ -13,19 +13,153 @@
   var REPORT_META_ID = "psychoDreamReportMeta";
   var WIZARD_LINE_ID = "psychoDreamWizardLine";
 
-  var LOADING_MESSAGES = [
-    "무의식의 방을 탐색 중입니다...",
-    "박사의 소견을 정리하고 있습니다...",
-    "상징을 디코딩 중입니다...",
-  ];
-  var FREUD_QUOTES = [
-    "꿈은 무의식으로 가는 왕도입니다.",
-    "억압된 감정은 사라지지 않고 다른 형태로 되돌아옵니다.",
-    "자아는 자신의 집에서도 주인이 아닙니다.",
-    "사랑하고 일하는 능력은 성숙함의 표지입니다.",
-    "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
-    "말해지지 못한 감정은 증상으로 말하려 합니다."
-  ];
+  var PSYCHO_DREAM_TEXT_TRANSLATIONS = {
+    ko: {
+      loadingMessages: ["무의식의 방을 탐색 중입니다...", "박사의 소견을 정리하고 있습니다...", "상징을 디코딩 중입니다..."],
+      freudQuotes: [
+        "꿈은 무의식으로 가는 왕도입니다.",
+        "억압된 감정은 사라지지 않고 다른 형태로 되돌아옵니다.",
+        "자아는 자신의 집에서도 주인이 아닙니다.",
+        "사랑하고 일하는 능력은 성숙함의 표지입니다.",
+        "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
+        "말해지지 못한 감정은 증상으로 말하려 합니다."
+      ],
+      resultTitle: "분석 결과",
+      validationRequired: "꿈 내용을 입력해 주세요.",
+      validationMin: "조금 더 자세히 적어 주세요. (최소 8자)",
+      serviceNotFound: "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요.",
+      serverNoResponse: "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.",
+      analysisFailed: "분석에 실패했습니다.",
+      cached: "캐시됨",
+      reportMeta: "정신분석 데이터 분석",
+      formatWarning: "섹션 형식은 일부 자동 정리됨",
+      networkFailed: "네트워크 오류로 분석에 실패했습니다.",
+      timeout: "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.",
+      wizardHint: "프로이트 박사의 소견을 받을 준비가 되셨나요?",
+      shareMissing: "공유할 분석 결과가 아직 없습니다.",
+      shareTitle: "정신분석 해몽 결과",
+      clipboardCopied: "분석 텍스트를 클립보드에 복사했습니다.",
+      copyPrompt: "아래 텍스트를 복사하세요.",
+      copyPromptOpened: "텍스트 복사 창을 열었습니다.",
+      shareUnavailable: "공유 기능을 사용할 수 없습니다.",
+    },
+    en: {
+      loadingMessages: ["Opening the room of the unconscious...", "Arranging the doctor's notes...", "Decoding the dream symbols..."],
+      freudQuotes: [
+        "Dreams open a royal road toward the unconscious.",
+        "Repressed feelings return in another form.",
+        "The self is not always master in its own house.",
+        "The ability to love and work marks maturity.",
+        "Pain often reveals itself through repetition.",
+        "Unspoken emotion tries to speak through symptoms."
+      ],
+      resultTitle: "Analysis Result",
+      validationRequired: "Please enter the dream you want to explore.",
+      validationMin: "Please write a little more. (At least 8 characters)",
+      serviceNotFound: "The analysis service path could not be found. Please check the deployment or domain settings.",
+      serverNoResponse: "We could not read the server response. Please check the network and try again.",
+      analysisFailed: "The analysis could not be completed.",
+      cached: "cached",
+      reportMeta: "Psychoanalytic dream data analysis",
+      formatWarning: "Some section formatting was adjusted automatically",
+      networkFailed: "The analysis failed because of a network error.",
+      timeout: "The analysis request took too long. Please try again in a moment.",
+      wizardHint: "Are you ready to receive the doctor's note?",
+      shareMissing: "There is no analysis result to share yet.",
+      shareTitle: "Psychoanalytic Dream Result",
+      clipboardCopied: "The analysis text has been copied to the clipboard.",
+      copyPrompt: "Copy the text below.",
+      copyPromptOpened: "A copy window has been opened.",
+      shareUnavailable: "Sharing is unavailable in this browser.",
+    },
+    ja: {
+      loadingMessages: ["無意識の部屋をたどっています...", "博士の所見を整えています...", "夢の象徴を読み解いています..."],
+      freudQuotes: [
+        "夢は無意識へ向かう王道です。",
+        "抑圧された感情は別の姿で戻ってきます。",
+        "自我は自分の家でも完全な主人ではありません。",
+        "愛し働く力は成熟のしるしです。",
+        "痛みは記憶より反復の中で姿を見せます。",
+        "語られなかった感情は症状として語ろうとします。"
+      ],
+      resultTitle: "分析結果",
+      validationRequired: "夢の内容を入力してください。",
+      validationMin: "もう少し詳しく書いてください。（8文字以上）",
+      serviceNotFound: "分析サービスの経路が見つかりません。デプロイまたはドメイン設定をご確認ください。",
+      serverNoResponse: "サーバー応答を受け取れませんでした。通信状況を確認してもう一度お試しください。",
+      analysisFailed: "分析に失敗しました。",
+      cached: "キャッシュ済み",
+      reportMeta: "精神分析データ解析",
+      formatWarning: "一部のセクション形式を自動で整えました",
+      networkFailed: "ネットワークエラーにより分析に失敗しました。",
+      timeout: "分析リクエストに時間がかかりすぎました。しばらくしてからもう一度お試しください。",
+      wizardHint: "博士の所見を受け取る準備はできていますか？",
+      shareMissing: "共有できる分析結果がまだありません。",
+      shareTitle: "精神分析夢診断結果",
+      clipboardCopied: "分析テキストをクリップボードにコピーしました。",
+      copyPrompt: "下のテキストをコピーしてください。",
+      copyPromptOpened: "コピー用のウィンドウを開きました。",
+      shareUnavailable: "このブラウザでは共有機能を使用できません。",
+    },
+    "zh-CN": {
+      loadingMessages: ["正在探访潜意识的房间...", "正在整理博士的意见...", "正在解读梦中的象征..."],
+      freudQuotes: [
+        "梦是通往潜意识的王道。",
+        "被压抑的情绪会以另一种形态回来。",
+        "自我并不总是自己屋中的主人。",
+        "爱与工作的能力，是成熟的标记。",
+        "痛苦常常通过重复显露出来。",
+        "未被说出口的情绪，会试着以症状发声。"
+      ],
+      resultTitle: "分析结果",
+      validationRequired: "请输入梦境内容。",
+      validationMin: "请再写得详细一些。（至少 8 个字符）",
+      serviceNotFound: "找不到分析服务路径。请检查部署或域名设置。",
+      serverNoResponse: "未能读取服务器响应。请检查网络后重试。",
+      analysisFailed: "分析未能完成。",
+      cached: "已缓存",
+      reportMeta: "精神分析数据解读",
+      formatWarning: "部分章节格式已自动整理",
+      networkFailed: "因网络错误，分析未能完成。",
+      timeout: "分析请求等待时间过长。请稍后再试。",
+      wizardHint: "准备好接收博士的意见了吗？",
+      shareMissing: "目前还没有可分享的分析结果。",
+      shareTitle: "精神分析解梦结果",
+      clipboardCopied: "分析文本已复制到剪贴板。",
+      copyPrompt: "请复制下方文本。",
+      copyPromptOpened: "已打开文本复制窗口。",
+      shareUnavailable: "当前浏览器无法使用分享功能。",
+    },
+    "zh-TW": {
+      loadingMessages: ["正在探訪潛意識的房間...", "正在整理博士的意見...", "正在解讀夢中的象徵..."],
+      freudQuotes: [
+        "夢是通往潛意識的王道。",
+        "被壓抑的情緒會以另一種形態回來。",
+        "自我並不總是自己屋中的主人。",
+        "愛與工作的能力，是成熟的標記。",
+        "痛苦常常透過重複顯露出來。",
+        "未被說出口的情緒，會試著以症狀發聲。"
+      ],
+      resultTitle: "分析結果",
+      validationRequired: "請輸入夢境內容。",
+      validationMin: "請再寫得詳細一些。（至少 8 個字元）",
+      serviceNotFound: "找不到分析服務路徑。請檢查部署或網域設定。",
+      serverNoResponse: "未能讀取伺服器回應。請確認網路後重試。",
+      analysisFailed: "分析未能完成。",
+      cached: "已快取",
+      reportMeta: "精神分析資料解讀",
+      formatWarning: "部分段落格式已自動整理",
+      networkFailed: "因網路錯誤，分析未能完成。",
+      timeout: "分析請求等待時間過長。請稍後再試。",
+      wizardHint: "準備好接收博士的意見了嗎？",
+      shareMissing: "目前還沒有可分享的分析結果。",
+      shareTitle: "精神分析解夢結果",
+      clipboardCopied: "分析文字已複製到剪貼簿。",
+      copyPrompt: "請複製下方文字。",
+      copyPromptOpened: "已開啟文字複製視窗。",
+      shareUnavailable: "目前瀏覽器無法使用分享功能。",
+    },
+  };
 
   var state = {
     uiLocked: false,
@@ -37,6 +171,42 @@
     typingTimer: null,
     typingActive: false,
   };
+
+  function normalizePsychoDreamLocale(value) {
+    var lang = String(value || "").trim().replace("_", "-");
+    var lower = lang.toLowerCase();
+    if (lower === "zh" || lower === "zh-cn" || lower === "zh-hans") return "zh-CN";
+    if (lower === "zh-tw" || lower === "zh-hant" || lower === "zh-hk") return "zh-TW";
+    if (lower.indexOf("ja") === 0) return "ja";
+    if (lower.indexOf("en") === 0) return "en";
+    return "ko";
+  }
+
+  function getPsychoDreamLocale() {
+    try {
+      if (window.cdGetCurrentLanguage) return normalizePsychoDreamLocale(window.cdGetCurrentLanguage());
+    } catch (_) {}
+    try {
+      var stored = localStorage.getItem("cd_locale") || localStorage.getItem("codeDestinyLocale") || localStorage.getItem("lang");
+      if (stored) return normalizePsychoDreamLocale(stored);
+    } catch (_) {}
+    try {
+      var cookieLang = getCookie("cd_locale") || getCookie("NEXT_LOCALE") || getCookie("lang");
+      if (cookieLang) return normalizePsychoDreamLocale(cookieLang);
+    } catch (_) {}
+    return "ko";
+  }
+
+  function psychoDreamText(key) {
+    var locale = getPsychoDreamLocale();
+    var table = PSYCHO_DREAM_TEXT_TRANSLATIONS[locale] || PSYCHO_DREAM_TEXT_TRANSLATIONS.ko;
+    return table[key] || PSYCHO_DREAM_TEXT_TRANSLATIONS.ko[key] || "";
+  }
+
+  function psychoDreamList(key) {
+    var value = psychoDreamText(key);
+    return Array.isArray(value) ? value : [];
+  }
 
   function syncPsychoViewportHeight() {
     var root = document.documentElement;
@@ -136,8 +306,10 @@
   }
 
   function composeLoadingLine(idx) {
-    var msg = LOADING_MESSAGES[idx % LOADING_MESSAGES.length] || "";
-    var quote = FREUD_QUOTES[idx % FREUD_QUOTES.length] || "";
+    var messages = psychoDreamList("loadingMessages");
+    var quotes = psychoDreamList("freudQuotes");
+    var msg = messages[idx % Math.max(messages.length, 1)] || "";
+    var quote = quotes[idx % Math.max(quotes.length, 1)] || "";
     return quote ? msg + " " + quote : msg;
   }
 
@@ -147,7 +319,7 @@
     state.loadingIdx = 0;
     clearLoadingTimer();
     state.loadingTimer = setInterval(function () {
-      state.loadingIdx = (state.loadingIdx + 1) % LOADING_MESSAGES.length;
+      state.loadingIdx = (state.loadingIdx + 1) % Math.max(psychoDreamList("loadingMessages").length, 1);
       var lt = $(LOADER_TEXT_ID);
       if (lt) lt.textContent = composeLoadingLine(state.loadingIdx);
     }, 1400);
@@ -535,7 +707,7 @@
     if (!html.trim()) {
       html =
         '<div class="ps-report-section">' +
-        '<div class="ps-report-section-title">분석 결과</div>' +
+        '<div class="ps-report-section-title">' + escapeHtml(psychoDreamText("resultTitle")) + "</div>" +
         '<div class="ps-report-section-body">' +
         escapeHtml(text).replace(/\n/g, "<br/>") +
         "</div></div>";
@@ -548,11 +720,11 @@
     if (state.uiLocked) return;
     var dreamText = ($(TEXTAREA_ID) && $(TEXTAREA_ID).value ? $(TEXTAREA_ID).value : "").trim();
     if (!dreamText) {
-      setError("꿈 내용을 입력해 주세요.");
+      setError(psychoDreamText("validationRequired"));
       return;
     }
     if (dreamText.length < 8) {
-      setError("조금 더 자세히 적어 주세요. (최소 8자)");
+      setError(psychoDreamText("validationMin"));
       return;
     }
 
@@ -615,15 +787,15 @@
         stopTyping();
         var hint =
           res.status === 404
-            ? "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요."
-            : "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.";
+            ? psychoDreamText("serviceNotFound")
+            : psychoDreamText("serverNoResponse");
         setError(hint);
         setScreen("input");
         return;
       }
 
       if (!res.ok || !data.ok) {
-        var msg = (data && data.message) || "분석에 실패했습니다.";
+        var msg = getPsychoDreamLocale() === "ko" && data && data.message ? data.message : psychoDreamText("analysisFailed");
         stopTyping();
         setError(msg);
         setScreen("input");
@@ -635,10 +807,10 @@
 
       var metaEl = $(REPORT_META_ID);
       if (metaEl) {
-        var cachedTag = data.cached ? " (캐시됨)" : "";
+        var cachedTag = data.cached ? " (" + psychoDreamText("cached") + ")" : "";
         var dateStr = new Date().toLocaleString();
-        var bits = [dateStr, "정신분석 데이터 분석"];
-        if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
+        var bits = [dateStr, psychoDreamText("reportMeta")];
+        if (data.formatWarning) bits.push(psychoDreamText("formatWarning"));
         metaEl.textContent = bits.join(" · ") + cachedTag;
       }
 
@@ -676,9 +848,10 @@
     } catch (e) {
       stopLoading();
       stopTyping();
-      var msg = (e && e.message) || "네트워크 오류로 분석에 실패했습니다.";
-      if (e && (e.name === "AbortError" || String(msg || "").toLowerCase().includes("abort"))) {
-        msg = "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+      var rawErrorMessage = (e && e.message) || "";
+      var msg = psychoDreamText("networkFailed");
+      if (e && (e.name === "AbortError" || String(rawErrorMessage || "").toLowerCase().includes("abort"))) {
+        msg = psychoDreamText("timeout");
       }
       setError(msg);
       setScreen("input");
@@ -696,7 +869,7 @@
     setOverlayVisible(true);
     setBodyLock(true);
     syncPsychoViewportHeight();
-    setWizardHint("프로이트 박사의 소견을 받을 준비가 되셨나요?");
+    setWizardHint(psychoDreamText("wizardHint"));
   };
 
   window.closePsychoDreamModal = function closePsychoDreamModal() {
@@ -732,11 +905,11 @@
   window.psychoDreamShareText = async function psychoDreamShareText() {
     var text = String(state.currentMarkdown || "").trim();
     if (!text) {
-      setError("공유할 분석 결과가 아직 없습니다.");
+      setError(psychoDreamText("shareMissing"));
       return;
     }
 
-    var shareTitle = "정신분석 해몽 결과";
+    var shareTitle = psychoDreamText("shareTitle");
     // 1) Web Share API 우선
     try {
       if (navigator.share) {
@@ -751,17 +924,17 @@
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
-        setError("분석 텍스트를 클립보드에 복사했습니다.");
+        setError(psychoDreamText("clipboardCopied"));
         return;
       }
     } catch (_) {}
 
     // 3) 최후 폴백: 선택창
     try {
-      window.prompt("아래 텍스트를 복사하세요.", text.slice(0, 5000));
-      setError("텍스트 복사 창을 열었습니다.");
+      window.prompt(psychoDreamText("copyPrompt"), text.slice(0, 5000));
+      setError(psychoDreamText("copyPromptOpened"));
     } catch (_) {
-      setError("공유 기능을 사용할 수 없습니다.");
+      setError(psychoDreamText("shareUnavailable"));
     }
   };
 

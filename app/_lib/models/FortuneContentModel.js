@@ -39,13 +39,30 @@ export async function getFortuneContentModel() {
   return _model;
 }
 
+const FORTUNE_CONTENT_MODEL_TEXT_TRANSLATIONS = {
+  ko: {
+    saju: "사주",
+    tarot: "타로",
+    horoscope: "별자리",
+    dream: "꿈해몽",
+    daily: "오늘의운세",
+    geomancy: "풍수지리",
+    love: "연애운",
+    career: "직업운",
+  },
+};
+
+function fortuneContentModelText(key) {
+  return FORTUNE_CONTENT_MODEL_TEXT_TRANSLATIONS.ko[key];
+}
+
 export const CONTENT_CATEGORIES = [
-  { value: "saju",      label: "사주" },
-  { value: "tarot",     label: "타로" },
-  { value: "horoscope", label: "별자리" },
-  { value: "dream",     label: "꿈해몽" },
-  { value: "daily",     label: "오늘의운세" },
-  { value: "geomancy",  label: "풍수지리" },
-  { value: "love",      label: "연애운" },
-  { value: "career",    label: "직업운" },
+  { value: "saju",      label: fortuneContentModelText("saju") },
+  { value: "tarot",     label: fortuneContentModelText("tarot") },
+  { value: "horoscope", label: fortuneContentModelText("horoscope") },
+  { value: "dream",     label: fortuneContentModelText("dream") },
+  { value: "daily",     label: fortuneContentModelText("daily") },
+  { value: "geomancy",  label: fortuneContentModelText("geomancy") },
+  { value: "love",      label: fortuneContentModelText("love") },
+  { value: "career",    label: fortuneContentModelText("career") },
 ];

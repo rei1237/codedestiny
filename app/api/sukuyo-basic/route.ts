@@ -6,6 +6,27 @@ import {
 } from "@/worker/lib/sukuyo-premium.js";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
 
+const SUKUYO_BASIC_ROUTE_TEXT_TRANSLATIONS = {
+  ko: {
+    "sukuyoBasicRoute.moonPhaseUnknown": "정보 없음",
+    "sukuyoBasicRoute.moonPhaseNew": "삭(신월)",
+    "sukuyoBasicRoute.moonPhaseCrescent": "초승",
+    "sukuyoBasicRoute.moonPhaseFirstQuarter": "상현",
+    "sukuyoBasicRoute.moonPhaseWaxing": "차는달",
+    "sukuyoBasicRoute.moonPhaseFull": "망(보름)",
+    "sukuyoBasicRoute.moonPhaseWaning": "기우는달",
+    "sukuyoBasicRoute.moonPhaseLastQuarter": "하현",
+    "sukuyoBasicRoute.moonPhaseDark": "그믐",
+    "sukuyoBasicRoute.invalidInput": "year/month/day 입력이 필요합니다.",
+    "sukuyoBasicRoute.calcFailed": "숙요 계산에 실패했습니다.",
+    "sukuyoBasicRoute.canonicalInvalid": "숙요 canonical 데이터 검증에 실패했습니다.",
+  },
+} as const;
+
+function sukuyoBasicRouteText(key: keyof typeof SUKUYO_BASIC_ROUTE_TEXT_TRANSLATIONS.ko): string {
+  return SUKUYO_BASIC_ROUTE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
@@ -49,15 +70,15 @@ function resolveMoonPhaseByAngle(angle: number) {
     };
   }
 
-  let label = "정보 없음";
-  if (a < 22.5 || a >= 337.5) label = "삭(신월)";
-  else if (a < 67.5) label = "초승";
-  else if (a < 112.5) label = "상현";
-  else if (a < 157.5) label = "차는달";
-  else if (a < 202.5) label = "망(보름)";
-  else if (a < 247.5) label = "기우는달";
-  else if (a < 292.5) label = "하현";
-  else label = "그믐";
+  let label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseUnknown");
+  if (a < 22.5 || a >= 337.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseNew");
+  else if (a < 67.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseCrescent");
+  else if (a < 112.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseFirstQuarter");
+  else if (a < 157.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseWaxing");
+  else if (a < 202.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseFull");
+  else if (a < 247.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseWaning");
+  else if (a < 292.5) label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseLastQuarter");
+  else label = sukuyoBasicRouteText("sukuyoBasicRoute.moonPhaseDark");
 
   const illumination = Math.round(((1 - Math.cos((a * Math.PI) / 180)) / 2) * 1000) / 10;
   const waxing = a < 180;
@@ -164,7 +185,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           code: "INVALID_INPUT",
-          error: "year/month/day 입력이 필요합니다.",
+          error: sukuyoBasicRouteText("sukuyoBasicRoute.invalidInput"),
         },
         { status: 400 }
       );
@@ -190,7 +211,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           code: "SUKUYO_CALC_FAILED",
-          error: "숙요 계산에 실패했습니다.",
+          error: sukuyoBasicRouteText("sukuyoBasicRoute.calcFailed"),
         },
         { status: 500 }
       );
@@ -241,7 +262,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           code: "SUKUYO_CANONICAL_INVALID",
-          error: "숙요 canonical 데이터 검증에 실패했습니다.",
+          error: sukuyoBasicRouteText("sukuyoBasicRoute.canonicalInvalid"),
           missingFields: validation?.missingFields || [],
         },
         { status: 500 }

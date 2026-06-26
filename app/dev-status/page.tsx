@@ -16,6 +16,18 @@ type DevStatusPayload = {
   };
 };
 
+const DEV_STATUS_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    fetchFailed: "상태 정보를 불러오지 못했습니다.",
+  },
+  en: {
+    fetchFailed: "failed to fetch",
+  },
+  ja: {
+    fetchFailed: "状態情報を取得できませんでした。",
+  },
+} as const;
+
 export default function DevStatusPage() {
   const [payload, setPayload] = useState<DevStatusPayload | null>(null);
   const [error, setError] = useState<string>("");
@@ -43,7 +55,7 @@ export default function DevStatusPage() {
         setLastUpdatedAt(Date.now());
       } catch (e) {
         if (!alive) return;
-        setError(e instanceof Error ? e.message : "failed to fetch");
+        setError(e instanceof Error ? e.message : DEV_STATUS_PAGE_TEXT_TRANSLATIONS.en.fetchFailed);
       } finally {
         if (!alive) return;
         timer = window.setTimeout(tick, 1000);

@@ -76,6 +76,201 @@ const MONTH_TO_SEASON = {
 
 const WATER_LEVELS = ['low', 'balanced', 'high'];
 const ENVIRONMENTS = ['Forest', 'Garden', 'Pond', 'Lake', 'Rock', 'Desert', 'Field', 'Wetland', 'NightSky'];
+const DESTINY_FLOWER_I18N_NAMESPACE = 'fortune.destinyFlower';
+const DESTINY_FLOWER_KO_TEXT = Object.freeze({
+  'common.unknown': '미확인',
+  'astro.unknownSun': '태양궁 미확인',
+  'astro.unknownRising': '상승궁 미확인',
+  'astro.unknownMoon': '달궁 미확인',
+  'astro.stickerLabel': '점성술로 보는 꽃',
+  'astro.sunSignBadge': '태양궁 {sign}',
+  'astro.risingSignBadge': '상승궁 {sign}',
+  'astro.moonSignBadge': '달궁 {sign}',
+  'astro.scenarioTitle': '태양궁 중심(상승·달궁 보조) 개화 시나리오',
+  'astro.chartPending': '차트 데이터 대기',
+  'astro.ritualTip': '오늘 밤 3분간 호흡을 고르고 별자리 하나를 바라보며 의도를 고정해보세요.',
+  'astro.relationshipTheme': '대표 별자리의 성향을 기준으로 관계의 리듬을 맞추면 갈등이 줄어듭니다.',
+  'astro.careerTheme': '태양궁이 가진 핵심 동력을 업무 루틴에 반영하면 추진력이 안정됩니다.',
+  'astro.growthCycle': '별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산',
+  'astro.fallbackNote': '태양궁 데이터가 없어 기본 공기 원소로 보정했습니다.',
+  'astro.ultimateTitle': 'Ultimate Destiny Flower',
+  'astro.ultimateConcept': '동양의 {dayMaster} 기운이 서양의 {sunSign} 별빛과 융합한 하이브리드 개화',
+  'astro.verdict': '점성술의 별자리 결로 읽은 운명꽃은 {flowerName} ({scientificName})입니다. 태양궁·상승궁·달궁 3축에서 흐르는 원소의 파동을 겹쳐보면, 이 꽃의 상징이 지금의 당신과 가장 정밀하게 공명합니다.',
+  'astro.narrative': '태양궁 {sun}에서 올라온 {sunElement} 원소의 불씨가 꽃 선택의 중심축을 세웁니다. 상승궁 {rising}({risingElement})은 꽃잎의 결처럼 바깥으로 드러나는 톤을 빚고, 달궁 {moon}({moonElement})은 밤이슬 같은 감정의 습도를 맞춰 {flowerName}의 "{flowerSymbolism}" 상징을 가장 맑게 피워냅니다. 그래서 지금 차트에서는 "{keyword}" 키워드가 이 운명꽃을 부르는 별빛 신호가 됩니다.',
+  'ziwei.brightness.miao': '묘(廟)',
+  'ziwei.brightness.wang': '왕(旺)',
+  'ziwei.brightness.li': '이(利)',
+  'ziwei.brightness.de': '득(得)',
+  'ziwei.brightness.ping': '평(平)',
+  'ziwei.brightness.han': '한(閑)',
+  'ziwei.brightness.xian': '함(陷)',
+  'ziwei.coreFlow': '핵심 운세 흐름',
+  'ziwei.coreEnergy': '핵심 에너지의 발현',
+  'ziwei.stickerLabel': '자미두수로 보는 꽃',
+  'ziwei.strongStarBadge': '오늘의 강한 별 {stars}',
+  'ziwei.brightnessLabel': '별 밝기 {brightness}',
+  'ziwei.scenarioTitle': '오늘의 강한 별 개화 시나리오',
+  'ziwei.ritualTip': '오늘의 핵심 키워드: {keyword}',
+  'ziwei.relationshipTheme': '오늘의 강한 별 성향을 관계의 기준으로 삼으면 갈등이 줄고 합이 선명해집니다.',
+  'ziwei.careerTheme': '주성의 강점을 전면에 배치할수록 실행력과 포지셔닝이 안정됩니다.',
+  'ziwei.growthCycle': '별 정렬 → 기운 응집 → 씨앗 점화 → 개화',
+  'ziwei.secondaryFallbackNote': '복합 주성 보정: {primaryStar} 중심 + {secondaryStar} 향기 블렌드',
+  'ziwei.palaceFallbackNote': '궁 특성 보정: {palace} · {trait}',
+  'ziwei.hybridHint': '사주 {dayMaster} 기운과 자미두수 {stars} 주성을 결합한 하이브리드 렌더링 가능',
+  'ziwei.verdict': '자미두수에서 오늘 가장 강하게 떠오른 별로 읽은 운명꽃은 {flowerName} ({scientificName})입니다. {palace}의 성격 "{palaceTrait}" 위에서 {stars}의 별기질 "{keyword}"이 별 밝기 {brightness}와 겹쳐 가장 선명하게 살아납니다.',
+  'ziwei.narrativeWithSecondary': '{palace}은(는) "{palaceEnergy}"을 관장하는 자리입니다. 여기에서 {stars} 조합이 떠올라 {title}을 중심꽃으로 세웠고, 주성의 성격인 "{personality}"에 보조 주성의 "{secondaryKeyword}" 결이 더해졌습니다. 별 밝기 {brightness}의 광휘가 이를 안정적으로 받쳐주기 때문에, {flowerName}이 지금 운세 구조의 결을 가장 또렷하게 꽃으로 번역합니다.',
+  'ziwei.narrativeSingle': '{palace}은(는) "{palaceEnergy}"을 다루는 자리이며, 오늘의 강한 별 {star}은(는) "{keyword}" 기질과 "{personality}" 성격을 꽃심처럼 세웁니다. 별 밝기 {brightness}가 그 기질의 빛을 흔들림 없이 지탱합니다. 그 결과 이번 흐름에서는 {flowerName}이 당신의 중심 에너지와 가장 깊은 공명을 이룹니다.',
+  'sukuyo.moon.full': '보름달',
+  'sukuyo.moon.new': '그믐달',
+  'sukuyo.moon.crescent': '초승달',
+  'sukuyo.moon.gibbous': '상현/하현달',
+  'sukuyo.stickerLabel': '숙요점으로 보는 꽃',
+  'sukuyo.moonPhaseLabel': '달 위상 {moon}',
+  'sukuyo.guardianLabel': '수호동물 {guardian}',
+  'sukuyo.scenarioTitle': '27숙-달 위상 통합 개화 시나리오',
+  'sukuyo.ritualTip': '달빛이 보이는 창가에서 27번 호흡하며 오늘의 의도를 한 단어로 고정해보세요.',
+  'sukuyo.relationshipTheme': '{group}의 결을 따를수록 관계의 긴장이 누그러지고 교감이 선명해집니다.',
+  'sukuyo.careerTheme': '{guardian} 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.',
+  'sukuyo.growthCycle': '별자리 연결 → 달빛 응집 → 영성 점화 → 개화',
+  'sukuyo.verdict': '숙요점의 달빛 결로 읽은 운명꽃은 {flowerName} ({scientificName})입니다. {mansion}·{moon}·{guardian}의 조합이 지금 인연·감정·행동의 리듬과 가장 섬세하게 맞물립니다.',
+  'sukuyo.narrative': '{mansion}({group})의 인연 결, 달 위상 {moon}의 조수, 수호동물 {guardian}의 보호 문양이 한밤의 정원에서 맞물리며 "{symbolism}" 성향을 짙게 피워냅니다. 이 세 갈래 달빛 신호를 겹쳐 읽으면 지금의 당신에게 가장 정확한 운명꽃은 {flowerName}입니다.',
+  'saju.stickerLabel': '사주로 보는 꽃',
+  'saju.dayMasterWaiting': '일간 판독 대기',
+  'saju.signalPending': '핵심 시그널 계산 대기',
+  'saju.scenarioTitleFallback': '{dayMasterBadge} 개화 시나리오',
+  'saju.scenarioFallbackReason': '일간과 환경을 통합해 개화 흐름을 판독했습니다.',
+  'saju.growthCycle': '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)',
+  'saju.fallbackNote': '일간 데이터 보강 로직이 적용되었습니다.',
+  'saju.verdict': '사주로 볼 때 당신의 꽃은 {flowerName} ({scientificName}) 입니다.',
+  'saju.rationale.verdict': '사주로 볼 때 당신의 운명꽃은 {flowerName} ({scientificName}) 입니다.',
+  'saju.rationale.elements': '사주 오행 분석 결과, 주기운은 {dominant}이고 보조 흐름은 {support}으로 정리됩니다.',
+  'saju.rationale.context': '현재 운의 계절 결은 {season}, 에너지 밀도는 {water}, 삶의 무대는 {environment} 성향으로 판독되었습니다.',
+  'saju.rationale.dayMaster': '일간 주인공은 {dayMasterBadge}으로 확인되었고, 일간이 놓인 계절/환경 상호작용을 최우선으로 매칭했습니다.',
+  'saju.rationale.scenario': '일간-환경 시나리오: {reason}',
+  'saju.rationale.levels': '오행 레벨은 {elementLevelLine}이며, 목·화·토·금·수 다섯 레벨을 모두 가중 반영해 운명꽃을 확정했습니다.',
+  'saju.rationale.symbolism': '이 꽃은 {symbolism}을 상징하며, 지금 시기의 운명 테마를 가장 정확히 반영합니다.',
+  'saju.rationale.description': '운명꽃 해석: {description}',
+  'saju.rationale.vibe': '개화 가이드: {vibeMessage}',
+  'saju.rationale.fallback': '보정 로직: {note}',
+  'saju.elements.wood': '목(木)',
+  'saju.elements.fire': '화(火)',
+  'saju.elements.earth': '토(土)',
+  'saju.elements.metal': '금(金)',
+  'saju.elements.water': '수(水)',
+  'saju.seasons.Spring': '봄',
+  'saju.seasons.Summer': '여름',
+  'saju.seasons.Autumn': '가을',
+  'saju.seasons.Winter': '겨울',
+  'saju.environments.Forest': '숲',
+  'saju.environments.Garden': '정원',
+  'saju.environments.Pond': '연못',
+  'saju.environments.Lake': '호수',
+  'saju.environments.Rock': '바위산',
+  'saju.environments.Desert': '사막',
+  'saju.environments.Field': '들판',
+  'saju.environments.Wetland': '습지',
+  'saju.environments.NightSky': '밤하늘',
+  'saju.environmentTraits.Forest': '숲의 확장성',
+  'saju.environmentTraits.Garden': '정원의 조화',
+  'saju.environmentTraits.Pond': '연못의 순환',
+  'saju.environmentTraits.Lake': '호수의 깊이',
+  'saju.environmentTraits.Rock': '바위의 응축력',
+  'saju.environmentTraits.Desert': '사막의 생존력',
+  'saju.environmentTraits.Field': '들판의 개방성',
+  'saju.environmentTraits.Wetland': '습지의 생명력',
+  'saju.environmentTraits.NightSky': '밤하늘의 직관성',
+  'saju.water.low': '건조한 기운',
+  'saju.water.balanced': '균형 잡힌 기운',
+  'saju.water.high': '촉촉하고 유연한 기운',
+  'saju.ritual.Wood': '해 뜨기 전 10분 스트레칭으로 목기운을 열어주세요.',
+  'saju.ritual.Fire': '아침 햇빛 5분을 의식적으로 받으며 화기를 정렬해보세요.',
+  'saju.ritual.Earth': '책상/집 한 구역을 정돈해 토기운의 중심을 회복하세요.',
+  'saju.ritual.Metal': '하루 우선순위 3개를 적어 금기운의 절제력을 강화하세요.',
+  'saju.ritual.Water': '짧은 산책과 깊은 호흡으로 수기운의 순환을 열어주세요.',
+  'saju.relationship.Wood': '서로의 성장 속도를 존중할수록 관계가 안정됩니다.',
+  'saju.relationship.Fire': '감정 표현을 숨기지 않을수록 관계의 온도가 올라갑니다.',
+  'saju.relationship.Earth': '일관된 태도가 신뢰를 오래 지켜줍니다.',
+  'saju.relationship.Metal': '명확한 경계와 약속이 관계의 질을 높입니다.',
+  'saju.relationship.Water': '공감과 경청이 관계의 전환점을 만듭니다.',
+  'saju.career.Wood': '확장형 프로젝트에서 성장 폭이 크게 나타납니다.',
+  'saju.career.Fire': '런칭/홍보/발표처럼 전면에 서는 업무와 궁합이 좋습니다.',
+  'saju.career.Earth': '운영·관리·체계화 업무에서 강점이 극대화됩니다.',
+  'saju.career.Metal': '분석·기획·품질관리에서 정확도가 성과를 만듭니다.',
+  'saju.career.Water': '연구·리서치·콘텐츠 설계에서 깊이가 빛납니다.',
+  'saju.scenarios.default.title': '{dayMasterBadge} 환경 개화 시나리오',
+  'saju.scenarios.jia.springWood.title': '갑목의 직간(直幹) 선도 시나리오',
+  'saju.scenarios.jia.autumnMetal.title': '갑목의 금기 단련 시나리오',
+  'saju.scenarios.jia.dryFire.title': '갑목의 조열 내구 시나리오',
+  'saju.scenarios.yi.metalWater.title': '을목의 금수 상생 시나리오',
+  'saju.scenarios.yi.dryEarth.title': '을목의 조열 토양 생존 시나리오',
+  'saju.scenarios.yi.autumn.title': '을목의 가을 수련 시나리오',
+  'saju.scenarios.yi.wetSpring.title': '을목의 습윤 확장 시나리오',
+  'saju.scenarios.bing.springWood.title': '병화의 봄 점화 시나리오',
+  'saju.scenarios.bing.summerFire.title': '병화의 하계 확장 시나리오',
+  'saju.scenarios.bing.waterControl.title': '병화의 수기 제어 시나리오',
+  'saju.scenarios.ding.coldWet.title': '정화의 한습 온기 시나리오',
+  'saju.scenarios.ding.autumnMetal.title': '정화의 금기 정련 시나리오',
+  'saju.scenarios.ding.resonance.title': '정화의 감응 개화 시나리오',
+  'saju.scenarios.wu.fireEarth.title': '무토의 화토 성취 시나리오',
+  'saju.scenarios.wu.winterWater.title': '무토의 동계 기반 시나리오',
+  'saju.scenarios.wu.center.title': '무토의 중심 구축 시나리오',
+  'saju.scenarios.ji.wetEarth.title': '기토의 배양 확장 시나리오',
+  'saju.scenarios.ji.metalDesign.title': '기토의 정밀 설계 시나리오',
+  'saju.scenarios.ji.balance.title': '기토의 균형 조율 시나리오',
+  'saju.scenarios.geng.metalEarth.title': '경금의 원칙 관철 시나리오',
+  'saju.scenarios.geng.fireTraining.title': '경금의 화련 단련 시나리오',
+  'saju.scenarios.geng.clearJudgment.title': '경금의 정단 판단 시나리오',
+  'saju.scenarios.xin.metalWater.title': '신금의 금수 정제 시나리오',
+  'saju.scenarios.xin.springWood.title': '신금의 목기 조율 시나리오',
+  'saju.scenarios.xin.completion.title': '신금의 완성도 시나리오',
+  'saju.scenarios.ren.summerCooling.title': '임수의 하계 냉각 시나리오',
+  'saju.scenarios.ren.winterCondensing.title': '임수의 동계 응축 시나리오',
+  'saju.scenarios.ren.nightIntuition.title': '임수의 야간 직감 시나리오',
+  'saju.scenarios.gui.coldWetPurifying.title': '계수의 한습 정화 시나리오',
+  'saju.scenarios.gui.summerEmpathy.title': '계수의 하계 감응 시나리오',
+  'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오'
+});
+
+function interpolateDestinyFlowerText(value, vars) {
+  if (!vars || typeof vars !== 'object') return value;
+  return String(value || '').replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}|\{\s*([a-zA-Z0-9_.-]+)\s*\}/g, function (_, doubleKey, singleKey) {
+    const key = doubleKey || singleKey;
+    return Object.prototype.hasOwnProperty.call(vars, key) ? String(vars[key]) : '';
+  });
+}
+
+function destinyFlowerText(path, vars, fallback) {
+  const key = DESTINY_FLOWER_I18N_NAMESPACE + '.' + path;
+  const localFallback = typeof fallback === 'string' ? fallback : (DESTINY_FLOWER_KO_TEXT[path] || '');
+  if (typeof window !== 'undefined' && window && typeof window.cdTranslate === 'function') {
+    return window.cdTranslate(key, vars || {}, localFallback);
+  }
+  return localFallback ? interpolateDestinyFlowerText(localFallback, vars || {}) : key;
+}
+
+function localizeDestinyFlowerCopy(flower) {
+  if (!flower || !flower.id) return flower;
+  const id = String(flower.id);
+  const base = 'flowers.' + id;
+  const localized = {
+    ...flower,
+    name: destinyFlowerText(base + '.name', null, flower.name),
+    symbolism: destinyFlowerText(base + '.symbolism', null, flower.symbolism),
+    title: destinyFlowerText(base + '.title', null, flower.title || flower.name),
+    description: destinyFlowerText(base + '.description', null, flower.description || flower.vibe_message || flower.symbolism),
+    vibe_message: destinyFlowerText(base + '.vibeMessage', null, flower.vibe_message || flower.description || flower.symbolism)
+  };
+  if (Array.isArray(flower.keywords)) {
+    localized.keywords = flower.keywords.map((keyword, index) =>
+      destinyFlowerText(base + '.keywords.' + index, null, keyword)
+    );
+  }
+  return localized;
+}
+
+function localizeDestinyFlowerList(flowers) {
+  return Array.isArray(flowers) ? flowers.map((flower) => localizeDestinyFlowerCopy(flower)) : [];
+}
 
 function safeNumber(value, fallback = 0) {
   const n = Number(value);
@@ -465,20 +660,33 @@ function pickAstroFlowerIdsByElement(element, sunSign) {
 }
 
 function buildAstroNarrative(chart, flower, sunElement) {
-  const sunKo = chart.sunSign || '태양궁 미확인';
-  const sunElementKo = ASTRO_ELEMENT_LABEL_KO[sunElement] || '별';
-  const risingKo = chart.risingSign || '미확인';
-  const moonKo = chart.moonSign || '미확인';
-  const risingElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.risingSign)] || sunElementKo;
-  const moonElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.moonSign)] || sunElementKo;
+  const sunKo = chart.sunSign || destinyFlowerText('astro.unknownSun');
+  const sunElementKo = destinyFlowerText('astro.elements.' + (sunElement || 'Cosmic'), null, ASTRO_ELEMENT_LABEL_KO[sunElement] || '별');
+  const risingKo = chart.risingSign || destinyFlowerText('common.unknown');
+  const moonKo = chart.moonSign || destinyFlowerText('common.unknown');
+  const risingElementKo = destinyFlowerText(
+    'astro.elements.' + (resolveAstroElement(chart.risingSign) || sunElement || 'Cosmic'),
+    null,
+    ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.risingSign)] || sunElementKo
+  );
+  const moonElementKo = destinyFlowerText(
+    'astro.elements.' + (resolveAstroElement(chart.moonSign) || sunElement || 'Cosmic'),
+    null,
+    ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.moonSign)] || sunElementKo
+  );
   const flowerSymbolism = String(flower.symbolism || '균형').split(',')[0].trim();
   const keyword = (flower.keywords && flower.keywords[0]) || flowerSymbolism;
-  return (
-    '태양궁 ' + sunKo + '에서 올라온 ' + sunElementKo + ' 원소의 불씨가 꽃 선택의 중심축을 세웁니다. ' +
-    '상승궁 ' + risingKo + '(' + risingElementKo + ')은 꽃잎의 결처럼 바깥으로 드러나는 톤을 빚고, 달궁 ' + moonKo + '(' + moonElementKo + ')' +
-    '은 밤이슬 같은 감정의 습도를 맞춰 ' + flower.name + '의 "' + flowerSymbolism + '" 상징을 가장 맑게 피워냅니다. ' +
-    '그래서 지금 차트에서는 "' + keyword + '" 키워드가 이 운명꽃을 부르는 별빛 신호가 됩니다.'
-  );
+  return destinyFlowerText('astro.narrative', {
+    sun: sunKo,
+    sunElement: sunElementKo,
+    rising: risingKo,
+    risingElement: risingElementKo,
+    moon: moonKo,
+    moonElement: moonElementKo,
+    flowerName: flower.name,
+    flowerSymbolism,
+    keyword
+  });
 }
 
 export function getAstrologyFlower(chartData = {}) {
@@ -489,13 +697,16 @@ export function getAstrologyFlower(chartData = {}) {
   const ids = pickAstroFlowerIdsByElement(sunElement, chart.sunSign);
   const primaryFlower = ASTRO_FLOWER_LIBRARY[ids[0]] || ASTRO_FLOWER_LIBRARY.astro_lavender;
   const secondaryFlower = ASTRO_FLOWER_LIBRARY[ids[1]] || primaryFlower;
+  const displayPrimaryFlower = localizeDestinyFlowerCopy(primaryFlower);
+  const displaySecondaryFlower = localizeDestinyFlowerCopy(secondaryFlower);
   const moonElement = resolveAstroElement(chart.moonSign) || sunElement;
   const moonGlow = ASTRO_MOON_GLOW[moonElement] || ASTRO_MOON_GLOW.Air;
 
-  const astroVerdict =
-    '점성술의 별자리 결로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
-    '태양궁·상승궁·달궁 3축에서 흐르는 원소의 파동을 겹쳐보면, 이 꽃의 상징이 지금의 당신과 가장 정밀하게 공명합니다.';
-  const narrative = buildAstroNarrative(chart, primaryFlower, sunElement);
+  const astroVerdict = destinyFlowerText('astro.verdict', {
+    flowerName: displayPrimaryFlower.name,
+    scientificName: displayPrimaryFlower.scientific_name
+  });
+  const narrative = buildAstroNarrative(chart, displayPrimaryFlower, sunElement);
 
   return {
     source: 'astrology',
@@ -507,8 +718,8 @@ export function getAstrologyFlower(chartData = {}) {
       moon_element: moonElement,
       rising_element: resolveAstroElement(chart.risingSign) || sunElement
     },
-    flower: primaryFlower,
-    flower_options: [primaryFlower, secondaryFlower],
+    flower: displayPrimaryFlower,
+    flower_options: [displayPrimaryFlower, displaySecondaryFlower],
     astro_verdict: astroVerdict,
     narrative,
     theme: {
@@ -526,19 +737,25 @@ export function getAstrologyFlower(chartData = {}) {
       }
     },
     flower_data: {
-      sticker_label: '점성술로 보는 꽃',
-      day_master_badge: chart.sunSign ? ('태양궁 ' + chart.sunSign) : '태양궁 미확인',
-      season_label: chart.risingSign ? ('상승궁 ' + chart.risingSign) : '상승궁 미확인',
-      environment_label: chart.moonSign ? ('달궁 ' + chart.moonSign) : '달궁 미확인',
-      scenario_title: '태양궁 중심(상승·달궁 보조) 개화 시나리오',
+      sticker_label: destinyFlowerText('astro.stickerLabel'),
+      day_master_badge: chart.sunSign
+        ? destinyFlowerText('astro.sunSignBadge', { sign: chart.sunSign })
+        : destinyFlowerText('astro.unknownSun'),
+      season_label: chart.risingSign
+        ? destinyFlowerText('astro.risingSignBadge', { sign: chart.risingSign })
+        : destinyFlowerText('astro.unknownRising'),
+      environment_label: chart.moonSign
+        ? destinyFlowerText('astro.moonSignBadge', { sign: chart.moonSign })
+        : destinyFlowerText('astro.unknownMoon'),
+      scenario_title: destinyFlowerText('astro.scenarioTitle'),
       scenario_reason: narrative,
       motion_preset: sunElement === 'Water' ? 'water-flow' : (sunElement === 'Fire' ? 'fire-bloom' : 'wood-grow'),
-      focus_signal: [chart.sunSign, chart.risingSign, chart.moonSign].filter(Boolean).join(' · ') || '차트 데이터 대기',
-      ritual_tip: '오늘 밤 3분간 호흡을 고르고 별자리 하나를 바라보며 의도를 고정해보세요.',
-      relationship_theme: '대표 별자리(태양궁)의 성향을 기준으로 관계의 리듬을 맞추면 갈등이 줄어듭니다.',
-      career_theme: '태양궁이 가진 핵심 동력을 업무 루틴에 반영하면 추진력이 안정됩니다.',
-      growth_cycle: '별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산',
-      fallback_note: chart.sunSign ? '' : '태양궁 데이터가 없어 기본(공기) 원소로 보정했습니다.'
+      focus_signal: [chart.sunSign, chart.risingSign, chart.moonSign].filter(Boolean).join(' · ') || destinyFlowerText('astro.chartPending'),
+      ritual_tip: destinyFlowerText('astro.ritualTip'),
+      relationship_theme: destinyFlowerText('astro.relationshipTheme'),
+      career_theme: destinyFlowerText('astro.careerTheme'),
+      growth_cycle: destinyFlowerText('astro.growthCycle'),
+      fallback_note: chart.sunSign ? '' : destinyFlowerText('astro.fallbackNote')
     }
   };
 }
@@ -561,9 +778,11 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
     ultimate_destiny_flower: hasSajuAndAstro
       ? {
           enabled: true,
-          title: 'Ultimate Destiny Flower',
-          concept:
-            '동양의 ' + profile.domains.saju.day_master + ' 기운이 서양의 ' + astroMatch.chart.sun_sign + ' 별빛과 융합한 하이브리드 개화',
+          title: destinyFlowerText('astro.ultimateTitle'),
+          concept: destinyFlowerText('astro.ultimateConcept', {
+            dayMaster: profile.domains.saju.day_master,
+            sunSign: astroMatch.chart.sun_sign
+          }),
           palette: {
             primary: astroMatch.theme.palette.primary,
             secondary: astroMatch.theme.palette.secondary,
@@ -573,7 +792,7 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
       : { enabled: false },
     algorithm: {
       version: '1.0.0-astrology-flower',
-      note: '태양궁 중심 매핑 + 상승/달궁 표시',
+      note: 'sun-sign-mapping-with-rising-and-moon-display',
       source: options.source || 'astrology'
     }
   };
@@ -646,49 +865,56 @@ const JAMIDUSU_STAR_RULES = Object.freeze([
   {
     keys: ['자미', 'zi wei', 'ziwei'],
     flowerId: 'peony_ziwei',
-    title: '제왕의 모란',
+    copyKey: 'peonyZiwei',
+    titleKo: '제왕의 모란',
     keyword: '제왕의 기품',
     personality: '중심을 세우고 주변의 질서를 정돈하는 리더형'
   },
   {
     keys: ['칠살', 'seven killings', 'qisha'],
     flowerId: 'thorny_rose',
-    title: '장군의 붉은 장미',
+    copyKey: 'thornyRoseGeneral',
+    titleKo: '장군의 붉은 장미',
     keyword: '돌파의 결단',
     personality: '압박 속에서도 전선을 밀어붙이는 결단형'
   },
   {
     keys: ['파군', 'the breaker', 'pogun', '렴정', 'lian zhen', 'lianzhen'],
     flowerId: 'thorny_rose',
-    title: '개척자의 붉은 장미',
+    copyKey: 'thornyRosePioneer',
+    titleKo: '개척자의 붉은 장미',
     keyword: '판을 바꾸는 추진력',
     personality: '기존 틀을 깨고 새 질서를 여는 혁신형'
   },
   {
     keys: ['천기', 'tian ji', 'tianji', '천동', 'tian tong', 'tiantong', '천량', 'tian liang', 'tianliang'],
     flowerId: 'delicate_willow',
-    title: '책사의 버드나무꽃',
+    copyKey: 'delicateWillow',
+    titleKo: '책사의 버드나무꽃',
     keyword: '부드러운 지략',
     personality: '상황을 유연하게 읽고 최적 해법을 찾는 전략형'
   },
   {
     keys: ['태양', 'tai yang', 'taiyang', '무곡', 'wu qu', 'wuqu', '화성', 'huo xing', 'huoxing', '영성', 'ling xing', 'lingxing'],
     flowerId: 'sunflower_ziwei',
-    title: '태양의 해바라기',
+    copyKey: 'sunflowerZiwei',
+    titleKo: '태양의 해바라기',
     keyword: '빛의 확장',
     personality: '목표를 향해 에너지를 집중해 성과를 끌어내는 실행형'
   },
   {
     keys: ['태음', 'tai yin', 'taiyin', '거문', 'ju men', 'jumen', '천상', 'tian xiang', 'tianxiang', '천부', 'tian fu', 'tianfu'],
     flowerId: 'night_cereus',
-    title: '달빛의 월하미인',
+    copyKey: 'nightCereus',
+    titleKo: '달빛의 월하미인',
     keyword: '야간 개화의 신비',
     personality: '깊은 내면 통찰로 보이지 않는 흐름을 읽는 성찰형'
   },
   {
     keys: ['탐랑', 'tan lang', 'tanlang', '문창', 'wen chang', 'wenchang', '문곡', 'wen qu', 'wenqu', '좌보', 'zuo fu', 'zuofu', '우필', 'you bi', 'youbi'],
     flowerId: 'orchid_tanlang',
-    title: '도화의 난초',
+    copyKey: 'orchidTanlang',
+    titleKo: '도화의 난초',
     keyword: '관능적 매혹',
     personality: '관계와 표현의 미감을 살려 사람을 이끄는 매력형'
   }
@@ -710,14 +936,28 @@ const JAMIDUSU_PALACE_FLOWER_HINTS = Object.freeze({
 });
 
 const JAMIDUSU_BRIGHTNESS_INTENSITY = Object.freeze({
-  miao: { glow: 1, saturation: 1, mist: 0.08, label: '묘(廟)' },
-  wang: { glow: 0.94, saturation: 0.96, mist: 0.12, label: '왕(旺)' },
-  li: { glow: 0.8, saturation: 0.88, mist: 0.2, label: '이(利)' },
-  de: { glow: 0.74, saturation: 0.82, mist: 0.26, label: '득(得)' },
-  ping: { glow: 0.62, saturation: 0.74, mist: 0.34, label: '평(平)' },
-  han: { glow: 0.5, saturation: 0.68, mist: 0.42, label: '한(閑)' },
-  xian: { glow: 0.42, saturation: 0.62, mist: 0.52, label: '함(陷)' }
+  miao: { glow: 1, saturation: 1, mist: 0.08 },
+  wang: { glow: 0.94, saturation: 0.96, mist: 0.12 },
+  li: { glow: 0.8, saturation: 0.88, mist: 0.2 },
+  de: { glow: 0.74, saturation: 0.82, mist: 0.26 },
+  ping: { glow: 0.62, saturation: 0.74, mist: 0.34 },
+  han: { glow: 0.5, saturation: 0.68, mist: 0.42 },
+  xian: { glow: 0.42, saturation: 0.62, mist: 0.52 }
 });
+
+function localizeJamidusuRuleField(rule, field) {
+  if (!rule) return '';
+  const fallback = field === 'title' ? rule.titleKo : rule[field];
+  return destinyFlowerText('ziwei.rules.' + rule.copyKey + '.' + field, null, fallback);
+}
+
+function localizeJamidusuBrightness(code) {
+  const intensity = JAMIDUSU_BRIGHTNESS_INTENSITY[code] || JAMIDUSU_BRIGHTNESS_INTENSITY.ping;
+  return {
+    ...intensity,
+    label: destinyFlowerText('ziwei.brightness.' + (code || 'ping'))
+  };
+}
 
 function normalizeJamidusuBrightness(value) {
   const raw = String(value || '').trim().toLowerCase();
@@ -804,7 +1044,7 @@ export function getJamidusuFlower(starData = {}) {
   const brightnessCode = normalizeJamidusuBrightness(
     starData.brightness || starData.starBrightness || starData.main_star_brightness || starData.star_brightness
   );
-  const intensity = JAMIDUSU_BRIGHTNESS_INTENSITY[brightnessCode] || JAMIDUSU_BRIGHTNESS_INTENSITY.ping;
+  const intensity = localizeJamidusuBrightness(brightnessCode);
 
   const blendedPrimary = secondaryFlower
     ? blendJamidusuPalette(primaryFlower.primary_color, secondaryFlower.primary_color, 0.35)
@@ -813,24 +1053,44 @@ export function getJamidusuFlower(starData = {}) {
     ? blendJamidusuPalette(primaryFlower.secondary_color, secondaryFlower.secondary_color, 0.45)
     : primaryFlower.secondary_color;
 
-  const jamidusuVerdict =
-    '자미두수에서 오늘 가장 강하게 떠오른 별로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
-    palace + '의 성격 "' + (palaceHint ? palaceHint.trait : '핵심 운세 흐름') + '" 위에서 ' + stars.join('·') +
-    '의 별기질 "' + primaryRule.keyword + '"이(가) 별 밝기 ' + intensity.label + '와 겹쳐 가장 선명하게 살아납니다.';
+  const displayPrimaryFlower = localizeDestinyFlowerCopy(primaryFlower);
+  const displaySecondaryFlower = secondaryFlower ? localizeDestinyFlowerCopy(secondaryFlower) : null;
+  const primaryRuleTitle = localizeJamidusuRuleField(primaryRule, 'title');
+  const primaryRuleKeyword = localizeJamidusuRuleField(primaryRule, 'keyword');
+  const primaryRulePersonality = localizeJamidusuRuleField(primaryRule, 'personality');
+  const secondaryRuleKeyword = secondaryRule ? localizeJamidusuRuleField(secondaryRule, 'keyword') : '';
+  const palaceTrait = palaceHint ? palaceHint.trait : destinyFlowerText('ziwei.coreFlow');
+  const palaceEnergy = palaceHint ? palaceHint.trait : destinyFlowerText('ziwei.coreEnergy');
+
+  const jamidusuVerdict = destinyFlowerText('ziwei.verdict', {
+    flowerName: displayPrimaryFlower.name,
+    scientificName: displayPrimaryFlower.scientific_name,
+    palace,
+    palaceTrait,
+    stars: stars.join('·'),
+    keyword: primaryRuleKeyword,
+    brightness: intensity.label
+  });
   const narrative = secondaryRule
-    ? (
-      palace + '은(는) "' + (palaceHint ? palaceHint.trait : '핵심 에너지의 발현') + '"을 관장하는 자리입니다. ' +
-      '여기에서 ' + stars.join('·') + ' 조합이 떠올라 ' + primaryRule.title + '을 중심꽃으로 세웠고, ' +
-      '주성의 성격인 "' + primaryRule.personality + '"에 보조 주성의 "' + secondaryRule.keyword + '" 결이 더해졌습니다. ' +
-      '별 밝기 ' + intensity.label + '의 광휘가 이를 안정적으로 받쳐주기 때문에, ' +
-      primaryFlower.name + '이 지금 운세 구조의 결을 가장 또렷하게 꽃으로 번역합니다.'
-    )
-    : (
-      palace + '은(는) "' + (palaceHint ? palaceHint.trait : '핵심 에너지의 발현') + '"을 다루는 자리이며, ' +
-      '오늘의 강한 별 ' + stars[0] + '은(는) "' + primaryRule.keyword + '" 기질과 "' + primaryRule.personality + '" 성격을 꽃심처럼 세웁니다. ' +
-      '별 밝기 ' + intensity.label + '가 그 기질의 빛을 흔들림 없이 지탱합니다. ' +
-      '그 결과 이번 흐름에서는 ' + primaryFlower.name + '이 당신의 중심 에너지와 가장 깊은 공명을 이룹니다.'
-    );
+    ? destinyFlowerText('ziwei.narrativeWithSecondary', {
+      palace,
+      palaceEnergy,
+      stars: stars.join('·'),
+      title: primaryRuleTitle,
+      personality: primaryRulePersonality,
+      secondaryKeyword: secondaryRuleKeyword,
+      brightness: intensity.label,
+      flowerName: displayPrimaryFlower.name
+    })
+    : destinyFlowerText('ziwei.narrativeSingle', {
+      palace,
+      palaceEnergy,
+      star: stars[0],
+      keyword: primaryRuleKeyword,
+      personality: primaryRulePersonality,
+      brightness: intensity.label,
+      flowerName: displayPrimaryFlower.name
+    });
 
   return {
     source: 'jamidusu',
@@ -841,14 +1101,14 @@ export function getJamidusuFlower(starData = {}) {
       brightness_code: brightnessCode
     },
     flower: {
-      ...primaryFlower,
+      ...displayPrimaryFlower,
       primary_color: blendedPrimary,
       secondary_color: blendedSecondary,
       keywords: secondaryRule
-        ? Array.from(new Set([...(primaryFlower.keywords || []), ...(secondaryFlower.keywords || [])])).slice(0, 5)
-        : primaryFlower.keywords
+        ? Array.from(new Set([...(displayPrimaryFlower.keywords || []), ...(displaySecondaryFlower.keywords || [])])).slice(0, 5)
+        : displayPrimaryFlower.keywords
     },
-    flower_options: secondaryFlower ? [primaryFlower, secondaryFlower] : [primaryFlower],
+    flower_options: displaySecondaryFlower ? [displayPrimaryFlower, displaySecondaryFlower] : [displayPrimaryFlower],
     jamidusu_verdict: jamidusuVerdict,
     narrative,
     visual_intensity: {
@@ -871,21 +1131,21 @@ export function getJamidusuFlower(starData = {}) {
       star_alignment: stars.join(' · ')
     },
     flower_data: {
-      sticker_label: '자미두수로 보는 꽃',
-      day_master_badge: '오늘의 강한 별 ' + stars.join('·'),
-      season_label: '별 밝기 ' + intensity.label,
+      sticker_label: destinyFlowerText('ziwei.stickerLabel'),
+      day_master_badge: destinyFlowerText('ziwei.strongStarBadge', { stars: stars.join('·') }),
+      season_label: destinyFlowerText('ziwei.brightnessLabel', { brightness: intensity.label }),
       environment_label: palace,
-      scenario_title: '오늘의 강한 별 개화 시나리오',
+      scenario_title: destinyFlowerText('ziwei.scenarioTitle'),
       scenario_reason: narrative,
       motion_preset: (stars.some((s) => /천기|태음/i.test(String(s))) ? 'water-flow' : 'wood-grow'),
       focus_signal: stars.join(' · '),
-      ritual_tip: '오늘의 핵심 키워드: ' + primaryRule.keyword,
-      relationship_theme: '오늘의 강한 별 성향을 관계의 기준으로 삼으면 갈등이 줄고 합이 선명해집니다.',
-      career_theme: '주성의 강점을 전면에 배치할수록 실행력과 포지셔닝이 안정됩니다.',
-      growth_cycle: '별 정렬 → 기운 응집 → 씨앗 점화 → 개화',
+      ritual_tip: destinyFlowerText('ziwei.ritualTip', { keyword: primaryRuleKeyword }),
+      relationship_theme: destinyFlowerText('ziwei.relationshipTheme'),
+      career_theme: destinyFlowerText('ziwei.careerTheme'),
+      growth_cycle: destinyFlowerText('ziwei.growthCycle'),
       fallback_note: secondaryRule
-        ? ('복합 주성 보정: ' + stars[0] + ' 중심 + ' + stars[1] + ' 향기 블렌드')
-        : (palaceHint ? ('궁 특성 보정: ' + palace + ' · ' + palaceHint.trait) : '')
+        ? destinyFlowerText('ziwei.secondaryFallbackNote', { primaryStar: stars[0], secondaryStar: stars[1] })
+        : (palaceHint ? destinyFlowerText('ziwei.palaceFallbackNote', { palace, trait: palaceHint.trait }) : '')
     }
   };
 }
@@ -1006,12 +1266,15 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
     hybrid_hint: {
       enabled: Boolean(profile.domains.saju && profile.domains.saju.day_master),
       description: profile.domains.saju && profile.domains.saju.day_master
-        ? ('사주 ' + profile.domains.saju.day_master + ' 기운과 자미두수 ' + jamiMatch.ziwei.primary_stars.join('·') + ' 주성을 결합한 하이브리드 렌더링 가능')
+        ? destinyFlowerText('ziwei.hybridHint', {
+          dayMaster: profile.domains.saju.day_master,
+          stars: jamiMatch.ziwei.primary_stars.join('·')
+        })
         : ''
     },
     algorithm: {
       version: '1.1.0-jamidusu-flower',
-      note: '오늘의 강한 별 + 궁 성격 + 밝기(묘왕이득평한함) 기반 자미두수 꽃 매칭 엔진',
+      note: 'strong-star-palace-brightness-ziwei-flower-matcher',
       source: options.source || 'jamidusu'
     }
   };
@@ -1255,7 +1518,7 @@ function resolveSukyoMoonStyle(phase) {
   if (phase === 'full') {
     return {
       mode: 'full_glow',
-      label: '보름달',
+      label: destinyFlowerText('sukuyo.moon.full'),
       silhouette_only: false,
       glow: 1,
       halo: 0.92,
@@ -1265,7 +1528,7 @@ function resolveSukyoMoonStyle(phase) {
   if (phase === 'new' || phase === 'crescent') {
     return {
       mode: 'eclipse',
-      label: phase === 'new' ? '그믐달' : '초승달',
+      label: destinyFlowerText(phase === 'new' ? 'sukuyo.moon.new' : 'sukuyo.moon.crescent'),
       silhouette_only: true,
       glow: 0.54,
       halo: 0.3,
@@ -1274,7 +1537,7 @@ function resolveSukyoMoonStyle(phase) {
   }
   return {
     mode: 'lunar_flow',
-    label: '상현/하현달',
+    label: destinyFlowerText('sukuyo.moon.gibbous'),
     silhouette_only: false,
     glow: 0.72,
     halo: 0.56,
@@ -1314,12 +1577,17 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const flowerIds = groupTheme.flowerIds || ['white_baby_breath', 'moon_lily'];
   const primaryId = flowerIds[idx % flowerIds.length];
   const flower = SUKUYO_FLOWER_LIBRARY[primaryId] || SUKUYO_FLOWER_LIBRARY.white_baby_breath;
+  const displayFlower = localizeDestinyFlowerCopy(flower);
   const constellation = buildSukuyoConstellation(idx);
   const guardianParticle = SUKUYO_GUARDIAN_PARTICLE[mansion.guardian] || 'lunar_dust';
-  const narrativeCopy =
-    mansion.name + '(' + mansion.group + ')의 인연 결, 달 위상 ' + moonStyle.label + '의 조수, 수호동물 ' + mansion.guardian +
-    '의 보호 문양이 한밤의 정원에서 맞물리며 "' + flower.symbolism + '" 성향을 짙게 피워냅니다. ' +
-    '이 세 갈래 달빛 신호를 겹쳐 읽으면 지금의 당신에게 가장 정확한 운명꽃은 ' + flower.name + '입니다.';
+  const narrativeCopy = destinyFlowerText('sukuyo.narrative', {
+    mansion: mansion.name,
+    group: mansion.group,
+    moon: moonStyle.label,
+    guardian: mansion.guardian,
+    symbolism: displayFlower.symbolism,
+    flowerName: displayFlower.name
+  });
 
   return {
     source: 'sukuyo',
@@ -1332,10 +1600,14 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
       moon_style: moonStyle.mode,
       constellation_points: constellation
     },
-    flower,
-    sukuyo_verdict:
-      '숙요점의 달빛 결로 읽은 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ')입니다. ' +
-      mansion.name + '·' + moonStyle.label + '·' + mansion.guardian + '의 조합이 지금 인연·감정·행동의 리듬과 가장 섬세하게 맞물립니다.',
+    flower: displayFlower,
+    sukuyo_verdict: destinyFlowerText('sukuyo.verdict', {
+      flowerName: displayFlower.name,
+      scientificName: displayFlower.scientific_name,
+      mansion: mansion.name,
+      moon: moonStyle.label,
+      guardian: mansion.guardian
+    }),
     narrative: narrativeCopy,
     visual_intensity: {
       glow: moonStyle.glow,
@@ -1360,18 +1632,18 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
       mix_blend_mode: 'screen'
     },
     flower_data: {
-      sticker_label: '숙요점으로 보는 꽃',
+      sticker_label: destinyFlowerText('sukuyo.stickerLabel'),
       day_master_badge: mansion.name + ' · ' + formatSukuyoGroupLabel(mansion.group),
-      season_label: '달 위상 ' + moonStyle.label,
-      environment_label: '수호동물 ' + mansion.guardian,
-      scenario_title: '27숙-달 위상 통합 개화 시나리오',
+      season_label: destinyFlowerText('sukuyo.moonPhaseLabel', { moon: moonStyle.label }),
+      environment_label: destinyFlowerText('sukuyo.guardianLabel', { guardian: mansion.guardian }),
+      scenario_title: destinyFlowerText('sukuyo.scenarioTitle'),
       scenario_reason: narrativeCopy,
       motion_preset: groupTheme.motion,
       focus_signal: mansion.name + ' · ' + mansion.guardian,
-      ritual_tip: '달빛이 보이는 창가에서 27번 호흡하며 오늘의 의도를 한 단어로 고정해보세요.',
-      relationship_theme: mansion.group + '의 결을 따를수록 관계의 긴장이 누그러지고 교감이 선명해집니다.',
-      career_theme: mansion.guardian + ' 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.',
-      growth_cycle: '별자리 연결 → 달빛 응집 → 영성 점화 → 개화',
+      ritual_tip: destinyFlowerText('sukuyo.ritualTip'),
+      relationship_theme: destinyFlowerText('sukuyo.relationshipTheme', { group: mansion.group }),
+      career_theme: destinyFlowerText('sukuyo.careerTheme', { guardian: mansion.guardian }),
+      growth_cycle: destinyFlowerText('sukuyo.growthCycle'),
       fallback_note: ''
     }
   };
@@ -1678,7 +1950,7 @@ export function parseDestinyProfile(userData = {}) {
   return profile;
 }
 
-export const flowerSymbology = Object.freeze({
+export const DESTINY_FLOWER_LOCALIZED_FLOWER_LABELS = Object.freeze({
   LOTUS: {
     id: 'lotus',
     name: '연꽃',
@@ -2820,6 +3092,7 @@ export const flowerSymbology = Object.freeze({
   }
 });
 
+export const flowerSymbology = DESTINY_FLOWER_LOCALIZED_FLOWER_LABELS;
 export const flowerCatalog = Object.freeze(Object.values(flowerSymbology));
 
 function normalizeElementsCountInput(elementsCount) {
@@ -2920,7 +3193,7 @@ export function calculateDestinyFlower(profileData = {}) {
   let primaryFlowerId = 'lotus';
   let secondaryFlowerIds = [];
   let reason = '일간의 성질과 오행 환경을 통합해 현재 개화 시나리오와 가장 맞는 꽃을 선정했습니다.';
-  let title = dayMaster.badge + ' 환경 개화 시나리오';
+  let scenarioTitle = destinyFlowerText('saju.scenarios.default.title', { dayMasterBadge: dayMaster.badge });
 
   switch (dayMaster.stem) {
     case '갑':
@@ -2928,17 +3201,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'magnolia';
         secondaryFlowerIds = ['forsythia', 'delphinium'];
         reason = '갑목(甲木)은 큰 나무의 양기처럼 곧게 뻗는 성질이 강합니다. 봄 목기운과 공명해 판을 여는 선도형 개화가 활성화됩니다.';
-        title = '갑목의 직간(直幹) 선도 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.jia.springWood.title');
       } else if (metalStrong && season === 'Autumn') {
         primaryFlowerId = 'bellflower';
         secondaryFlowerIds = ['gentian'];
         reason = '갑목(甲木)이 가을 금기운의 압력을 받을 때, 가지를 정리하고 핵심만 남기는 구조조정형 성장 모드로 전환됩니다.';
-        title = '갑목의 금기 단련 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.jia.autumnMetal.title');
       } else if (isDry && fireStrong) {
         primaryFlowerId = 'mugunghwa';
         secondaryFlowerIds = ['sunflower'];
         reason = '갑목(甲木)이 조열한 화토 환경에서 뿌리 체력을 길러야 할 때, 장기전 회복 탄력을 상징하는 무궁화 축이 선택됩니다.';
-        title = '갑목의 조열 내구 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.jia.dryFire.title');
       }
       break;
 
@@ -2947,22 +3220,22 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'lotus';
         secondaryFlowerIds = ['water_lily', 'lotus_white'];
         reason = '을목(乙木)은 넝쿨과 화초의 음기처럼 유연하게 스며드는 성질입니다. 금수 강세 환경에서 품위와 정화력이 극대화됩니다.';
-        title = '을목의 금수 상생 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.yi.metalWater.title');
       } else if (earthStrong && isDry) {
         primaryFlowerId = 'cactus_flower';
         secondaryFlowerIds = ['marigold'];
         reason = '을목(乙木)이 건조한 토기운에 놓이면 생존력과 회복 탄성이 핵심 과제가 됩니다. 척박함을 돌파하는 선인장꽃 축으로 판정됩니다.';
-        title = '을목의 조열 토양 생존 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.yi.dryEarth.title');
       } else if (season === 'Autumn') {
         primaryFlowerId = 'daisy';
         secondaryFlowerIds = ['cosmos'];
         reason = '을목(乙木)이 가을 금기운을 통과하며 섬세함을 질서로 바꾸는 시기입니다. 균형감과 정리력이 강조됩니다.';
-        title = '을목의 가을 수련 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.yi.autumn.title');
       } else if (season === 'Spring' && isWet) {
         primaryFlowerId = 'wisteria';
         secondaryFlowerIds = ['sweet_pea'];
         reason = '을목(乙木)이 봄의 습윤한 기운을 만나면 연결과 번식력이 커집니다. 관계 기반 확장 운이 활성화됩니다.';
-        title = '을목의 습윤 확장 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.yi.wetSpring.title');
       }
       break;
 
@@ -2971,17 +3244,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'forsythia';
         secondaryFlowerIds = ['magnolia'];
         reason = '병화(丙火)는 태양의 양화로서 점화와 확산이 빠릅니다. 봄 목기운과 만나 강한 런칭 에너지를 만듭니다.';
-        title = '병화의 봄 점화 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.bing.springWood.title');
       } else if (season === 'Summer' && fireStrong) {
         primaryFlowerId = 'sunflower';
         secondaryFlowerIds = ['hibiscus'];
         reason = '병화(丙火)가 여름 화기운과 중첩되면 외부 확장과 리더십 발현이 최대로 상승합니다.';
-        title = '병화의 하계 확장 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.bing.summerFire.title');
       } else if (waterStrong) {
         primaryFlowerId = 'marigold';
         secondaryFlowerIds = ['narcissus'];
         reason = '병화(丙火)가 수기운을 강하게 만날 때는 과열보다 방향 제어가 중요합니다. 보호와 현실 감각 축으로 보정됩니다.';
-        title = '병화의 수기 제어 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.bing.waterControl.title');
       }
       break;
 
@@ -2990,17 +3263,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'camellia';
         secondaryFlowerIds = ['gardenia'];
         reason = '정화(丁火)는 촛불의 음화처럼 내면 집중형 광휘를 가집니다. 한습 환경에서 온기를 오래 지키는 지속형 개화가 핵심입니다.';
-        title = '정화의 한습 온기 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ding.coldWet.title');
       } else if (season === 'Autumn' && metalStrong) {
         primaryFlowerId = 'dahlia';
         secondaryFlowerIds = ['foxglove'];
         reason = '정화(丁火)가 금기운을 만나면 정밀함과 미적 집중이 강화됩니다. 섬세한 완성도형 시나리오가 활성화됩니다.';
-        title = '정화의 금기 정련 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ding.autumnMetal.title');
       } else {
         primaryFlowerId = 'rose';
         secondaryFlowerIds = ['ranunculus'];
         reason = '정화(丁火)는 감정의 결을 정교하게 다듬어 관계 밀도를 높입니다. 표현의 농도를 올릴수록 운이 열립니다.';
-        title = '정화의 감응 개화 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ding.resonance.title');
       }
       break;
 
@@ -3009,17 +3282,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'peony';
         secondaryFlowerIds = ['chrysanthemum_gold'];
         reason = '무토(戊土)는 산악의 양토로서 구조와 외연을 크게 만듭니다. 화토가 받쳐주면 대형 성취형 개화가 유리합니다.';
-        title = '무토의 화토 성취 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.wu.fireEarth.title');
       } else if (waterStrong && season === 'Winter') {
         primaryFlowerId = 'yarrow';
         secondaryFlowerIds = ['gentian'];
         reason = '무토(戊土)가 겨울 수기운을 만나면 속도를 줄이고 기반을 다지는 회복형 운영 모드가 적합합니다.';
-        title = '무토의 동계 기반 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.wu.winterWater.title');
       } else {
         primaryFlowerId = 'begonia';
         secondaryFlowerIds = ['carnation'];
         reason = '무토(戊土)의 핵심은 판을 안정시키는 중심력입니다. 루틴과 지속성을 정교하게 다듬을수록 성과가 커집니다.';
-        title = '무토의 중심 구축 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.wu.center.title');
       }
       break;
 
@@ -3028,17 +3301,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'sweet_pea';
         secondaryFlowerIds = ['begonia'];
         reason = '기토(己土)는 밭의 음토처럼 세밀한 배양이 강점입니다. 습윤한 환경에서 관계/협업의 생산성이 올라갑니다.';
-        title = '기토의 배양 확장 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ji.wetEarth.title');
       } else if (metalStrong) {
         primaryFlowerId = 'queen_anne_lace';
         secondaryFlowerIds = ['daisy'];
         reason = '기토(己土)가 금기운과 결합하면 디테일 설계력과 정리력이 상승합니다. 품질 중심 운영에 강합니다.';
-        title = '기토의 정밀 설계 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ji.metalDesign.title');
       } else {
         primaryFlowerId = 'cosmos';
         secondaryFlowerIds = ['carnation'];
         reason = '기토(己土)는 부드러운 균형감으로 팀과 환경을 맞추는 데 탁월합니다. 완급 조절이 행운 포인트입니다.';
-        title = '기토의 균형 조율 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ji.balance.title');
       }
       break;
 
@@ -3047,17 +3320,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'edelweiss';
         secondaryFlowerIds = ['gentian'];
         reason = '경금(庚金)은 원석의 양금처럼 강한 절단력과 결단을 가집니다. 토금 기반에서 원칙 실행력이 극대화됩니다.';
-        title = '경금의 원칙 관철 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.geng.metalEarth.title');
       } else if (fireStrong && season === 'Summer') {
         primaryFlowerId = 'foxglove';
         secondaryFlowerIds = ['dahlia'];
         reason = '경금(庚金)이 화기 단련을 통과하면 카리스마와 전문성이 동시에 강화됩니다. 승부처 집중력이 높습니다.';
-        title = '경금의 화련 단련 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.geng.fireTraining.title');
       } else {
         primaryFlowerId = 'bellflower';
         secondaryFlowerIds = ['iris'];
         reason = '경금(庚金)의 장점은 핵심을 명확히 자르는 판단력입니다. 정확한 기준 설정이 곧 성과로 연결됩니다.';
-        title = '경금의 정단 판단 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.geng.clearJudgment.title');
       }
       break;
 
@@ -3066,17 +3339,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'cornflower';
         secondaryFlowerIds = ['iris'];
         reason = '신금(辛金)은 보석의 음금처럼 정제된 감각과 언어가 강점입니다. 금수 조합에서 분석/표현력이 선명해집니다.';
-        title = '신금의 금수 정제 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.xin.metalWater.title');
       } else if (woodStrong && season === 'Spring') {
         primaryFlowerId = 'orchid';
         secondaryFlowerIds = ['bluebell'];
         reason = '신금(辛金)이 봄 목기운을 만날 때는 날을 세우기보다 조율과 감각 설계로 성과를 내는 편이 유리합니다.';
-        title = '신금의 목기 조율 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.xin.springWood.title');
       } else {
         primaryFlowerId = 'wild_chrysanthemum';
         secondaryFlowerIds = ['queen_anne_lace'];
         reason = '신금(辛金)은 과한 확장보다 완성도를 높이는 전략에서 강합니다. 세부 완성으로 신뢰를 확보합니다.';
-        title = '신금의 완성도 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.xin.completion.title');
       }
       break;
 
@@ -3085,17 +3358,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'water_lily';
         secondaryFlowerIds = ['blue_lotus'];
         reason = '임수(壬水)는 대양의 양수처럼 큰 흐름을 다루는 힘이 있습니다. 여름 화열을 식히며 냉정한 집중력이 상승합니다.';
-        title = '임수의 하계 냉각 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ren.summerCooling.title');
       } else if (season === 'Winter') {
         primaryFlowerId = 'glacier_bloom';
         secondaryFlowerIds = ['winter_plum', 'lotus_white'];
         reason = '임수(壬水)가 겨울 수기운과 공명해 얼음층 아래 잠재력을 응축하는 빙하꽃 시나리오로 전개됩니다.';
-        title = '임수의 동계 응축 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ren.winterCondensing.title');
       } else {
         primaryFlowerId = 'moonflower';
         secondaryFlowerIds = ['blue_lotus'];
         reason = '임수(壬水)는 낮보다 밤의 직감에서 방향성을 잡는 경우가 많습니다. 리듬 기반 의사결정이 유리합니다.';
-        title = '임수의 야간 직감 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.ren.nightIntuition.title');
       }
       break;
 
@@ -3104,17 +3377,17 @@ export function calculateDestinyFlower(profileData = {}) {
         primaryFlowerId = 'lotus_white';
         secondaryFlowerIds = ['plum_blossom', 'water_lily'];
         reason = '계수(癸水)는 이슬의 음수처럼 미세한 감응과 정화력이 탁월합니다. 한습 환경에서 고요한 집중이 힘이 됩니다.';
-        title = '계수의 한습 정화 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.gui.coldWetPurifying.title');
       } else if (season === 'Summer' && fireStrong) {
         primaryFlowerId = 'hydrangea';
         secondaryFlowerIds = ['blue_lotus'];
         reason = '계수(癸水)가 여름 화열을 만나면 감정 조율과 공감 네트워크가 핵심 전략이 됩니다. 수국 축이 활성화됩니다.';
-        title = '계수의 하계 감응 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.gui.summerEmpathy.title');
       } else {
         primaryFlowerId = 'anemone';
         secondaryFlowerIds = ['moonflower'];
         reason = '계수(癸水)는 작은 신호를 빠르게 읽는 감지력이 강점입니다. 정교한 타이밍 운용이 성패를 가릅니다.';
-        title = '계수의 미세 감지 시나리오';
+        scenarioTitle = destinyFlowerText('saju.scenarios.gui.subtleSignal.title');
       }
       break;
 
@@ -3153,12 +3426,12 @@ export function calculateDestinyFlower(profileData = {}) {
     environment,
     waterLevel,
     elementsCount,
-    title,
+    title: scenarioTitle,
     reason,
     primaryFlowerId: primaryFlower.id,
-    primaryFlower,
+    primaryFlower: localizeDestinyFlowerCopy(primaryFlower),
     secondaryFlowerIds: secondaryFlowers.map((flower) => flower.id),
-    secondaryFlowers,
+    secondaryFlowers: localizeDestinyFlowerList(secondaryFlowers),
     motionPreset: motionPresetByDayMasterElement(dayMasterElement)
   };
 }
@@ -3201,34 +3474,34 @@ function buildFlowerDataSheet(profile, flower, scenario, matchedSignals) {
 
   const dayMasterBadge = (scenario && scenario.dayMasterBadge) || (profile.domains.saju && profile.domains.saju.day_master) || '일간 판독 대기';
   const dayMasterElement = (scenario && scenario.dayMasterElement) || (profile.domains.saju && profile.domains.saju.day_master_element) || 'Wood';
-  const seasonLabel = seasonKo[(scenario && scenario.season) || profile.core.season] || profile.core.season;
+  const rawSeason = (scenario && scenario.season) || profile.core.season;
+  const rawEnvironment = (scenario && scenario.environment) || profile.core.environment;
+  const seasonLabel = destinyFlowerText('saju.seasons.' + rawSeason, null, seasonKo[rawSeason] || rawSeason);
   const environmentLabel =
-    environmentKo[(scenario && scenario.environment) || profile.core.environment] ||
-    (scenario && scenario.environment) ||
-    profile.core.environment;
+    destinyFlowerText('saju.environments.' + rawEnvironment, null, environmentKo[rawEnvironment] || rawEnvironment);
 
   return {
-    sticker_label: '사주로 보는 꽃',
+    sticker_label: destinyFlowerText('saju.stickerLabel', null, '사주로 보는 꽃'),
     day_master_badge: dayMasterBadge,
     season_label: seasonLabel,
     environment_label: environmentLabel,
-    scenario_title: (scenario && scenario.title) || (dayMasterBadge + ' 개화 시나리오'),
-    scenario_reason: (scenario && scenario.reason) || '일간과 환경을 통합해 개화 흐름을 판독했습니다.',
+    scenario_title: (scenario && scenario.title) || destinyFlowerText('saju.scenarioTitleFallback', { dayMasterBadge }, dayMasterBadge + ' 개화 시나리오'),
+    scenario_reason: (scenario && scenario.reason) || destinyFlowerText('saju.scenarioFallbackReason', null, '일간과 환경을 통합해 개화 흐름을 판독했습니다.'),
     motion_preset: (scenario && scenario.motionPreset) || motionPresetByDayMasterElement(dayMasterElement),
     focus_signal: _buildSignalSummary(matchedSignals),
-    ritual_tip: elementRitual[dayMasterElement] || elementRitual.Wood,
-    relationship_theme: relationshipTheme[dayMasterElement] || relationshipTheme.Wood,
-    career_theme: careerTheme[dayMasterElement] || careerTheme.Wood,
-    growth_cycle: '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)',
+    ritual_tip: destinyFlowerText('saju.ritual.' + dayMasterElement, null, elementRitual[dayMasterElement] || elementRitual.Wood),
+    relationship_theme: destinyFlowerText('saju.relationship.' + dayMasterElement, null, relationshipTheme[dayMasterElement] || relationshipTheme.Wood),
+    career_theme: destinyFlowerText('saju.career.' + dayMasterElement, null, careerTheme[dayMasterElement] || careerTheme.Wood),
+    growth_cycle: destinyFlowerText('saju.growthCycle', null, '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)'),
     fallback_note:
       (profile.domains.saju && profile.domains.saju.day_master_fallback_note) ||
-      ((scenario && scenario.fallbackUsed) ? '일간 데이터 보강 로직이 적용되었습니다.' : '')
+      ((scenario && scenario.fallbackUsed) ? destinyFlowerText('saju.fallbackNote', null, '일간 데이터 보강 로직이 적용되었습니다.') : '')
   };
 }
 
 function _buildSignalSummary(matchedSignals) {
   const list = Array.isArray(matchedSignals) ? matchedSignals.slice(0, 5) : [];
-  if (!list.length) return '핵심 시그널 계산 대기';
+  if (!list.length) return destinyFlowerText('saju.signalPending', null, '핵심 시그널 계산 대기');
   return list.join(' · ');
 }
 
@@ -3425,33 +3698,35 @@ function scoreFlower(profile, flower, dayMasterScenario) {
 
 function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   const seasonKorean = {
-    Spring: '봄',
-    Summer: '여름',
-    Autumn: '가을',
-    Winter: '겨울'
+    Spring: destinyFlowerText('saju.seasons.Spring', null, '봄'),
+    Summer: destinyFlowerText('saju.seasons.Summer', null, '여름'),
+    Autumn: destinyFlowerText('saju.seasons.Autumn', null, '가을'),
+    Winter: destinyFlowerText('saju.seasons.Winter', null, '겨울')
   };
   const waterKorean = {
-    low: '건조한 기운',
-    balanced: '균형 잡힌 기운',
-    high: '촉촉하고 유연한 기운'
+    low: destinyFlowerText('saju.water.low', null, '건조한 기운'),
+    balanced: destinyFlowerText('saju.water.balanced', null, '균형 잡힌 기운'),
+    high: destinyFlowerText('saju.water.high', null, '촉촉하고 유연한 기운')
   };
   const environmentKorean = {
-    Forest: '숲의 확장성',
-    Garden: '정원의 조화',
-    Pond: '연못의 순환',
-    Lake: '호수의 깊이',
-    Rock: '바위의 응축력',
-    Desert: '사막의 생존력',
-    Field: '들판의 개방성',
-    Wetland: '습지의 생명력',
-    NightSky: '밤하늘의 직관성'
+    Forest: destinyFlowerText('saju.environmentTraits.Forest', null, '숲의 확장성'),
+    Garden: destinyFlowerText('saju.environmentTraits.Garden', null, '정원의 조화'),
+    Pond: destinyFlowerText('saju.environmentTraits.Pond', null, '연못의 순환'),
+    Lake: destinyFlowerText('saju.environmentTraits.Lake', null, '호수의 깊이'),
+    Rock: destinyFlowerText('saju.environmentTraits.Rock', null, '바위의 응축력'),
+    Desert: destinyFlowerText('saju.environmentTraits.Desert', null, '사막의 생존력'),
+    Field: destinyFlowerText('saju.environmentTraits.Field', null, '들판의 개방성'),
+    Wetland: destinyFlowerText('saju.environmentTraits.Wetland', null, '습지의 생명력'),
+    NightSky: destinyFlowerText('saju.environmentTraits.NightSky', null, '밤하늘의 직관성')
   };
 
-  const dominant = ELEMENT_KOREAN_LABELS[normalizeElement(profile.core.dominant_element)];
-  const support = ELEMENT_KOREAN_LABELS[normalizeElement(profile.core.support_element)];
+  const dominantKey = normalizeElement(profile.core.dominant_element);
+  const supportKey = normalizeElement(profile.core.support_element);
+  const dominant = destinyFlowerText('saju.elements.' + dominantKey, null, ELEMENT_KOREAN_LABELS[dominantKey]);
+  const support = destinyFlowerText('saju.elements.' + supportKey, null, ELEMENT_KOREAN_LABELS[supportKey]);
   const corePercent = getCoreElementPercentMap(profile.core);
   const elementLevelLine = ELEMENT_KEYS
-    .map((key) => ELEMENT_KOREAN_LABELS[key] + ' ' + Number(corePercent[key]).toFixed(1) + '%')
+    .map((key) => destinyFlowerText('saju.elements.' + key, null, ELEMENT_KOREAN_LABELS[key]) + ' ' + Number(corePercent[key]).toFixed(1) + '%')
     .join(' · ');
   const season = seasonKorean[profile.core.season] || profile.core.season;
   const water = waterKorean[profile.core.water_level] || profile.core.water_level;
@@ -3459,34 +3734,36 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   const dayMasterBadge =
     (dayMasterScenario && dayMasterScenario.dayMasterBadge) ||
     (profile.domains.saju && profile.domains.saju.day_master) ||
-    '일간 판독 대기';
-  const sajuVerdict =
-    '사주로 볼 때 당신의 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ') 입니다.';
+    destinyFlowerText('saju.dayMasterWaiting', null, '일간 판독 대기');
+  const sajuVerdict = destinyFlowerText('saju.rationale.verdict', {
+    flowerName: flower.name,
+    scientificName: flower.scientific_name
+  }, '사주로 볼 때 당신의 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ') 입니다.');
 
   const lines = [];
   lines.push(
-    '사주 오행 분석 결과, 주기운은 ' + dominant + '이고 보조 흐름은 ' + support + '으로 정리됩니다.'
+    destinyFlowerText('saju.rationale.elements', { dominant, support }, '사주 오행 분석 결과, 주기운은 ' + dominant + '이고 보조 흐름은 ' + support + '으로 정리됩니다.')
   );
   lines.push(
-    '현재 운의 계절 결은 ' + season + ', 에너지 밀도는 ' + water + ', 삶의 무대는 ' + environment + ' 성향으로 판독되었습니다.'
+    destinyFlowerText('saju.rationale.context', { season, water, environment }, '현재 운의 계절 결은 ' + season + ', 에너지 밀도는 ' + water + ', 삶의 무대는 ' + environment + ' 성향으로 판독되었습니다.')
   );
-  lines.push('일간 주인공은 ' + dayMasterBadge + '으로 확인되었고, 일간이 놓인 계절/환경 상호작용을 최우선으로 매칭했습니다.');
+  lines.push(destinyFlowerText('saju.rationale.dayMaster', { dayMasterBadge }, '일간 주인공은 ' + dayMasterBadge + '으로 확인되었고, 일간이 놓인 계절/환경 상호작용을 최우선으로 매칭했습니다.'));
   if (dayMasterScenario && dayMasterScenario.reason) {
-    lines.push('일간-환경 시나리오: ' + dayMasterScenario.reason);
+    lines.push(destinyFlowerText('saju.rationale.scenario', { reason: dayMasterScenario.reason }, '일간-환경 시나리오: ' + dayMasterScenario.reason));
   }
-  lines.push('오행 레벨은 ' + elementLevelLine + '이며, 목·화·토·금·수 다섯 레벨을 모두 가중 반영해 운명꽃을 확정했습니다.');
+  lines.push(destinyFlowerText('saju.rationale.levels', { elementLevelLine }, '오행 레벨은 ' + elementLevelLine + '이며, 목·화·토·금·수 다섯 레벨을 모두 가중 반영해 운명꽃을 확정했습니다.'));
   lines.push(sajuVerdict);
   if (flower.symbolism) {
-    lines.push('이 꽃은 ' + flower.symbolism + '을 상징하며, 지금 시기의 운명 테마를 가장 정확히 반영합니다.');
+    lines.push(destinyFlowerText('saju.rationale.symbolism', { symbolism: flower.symbolism }, '이 꽃은 ' + flower.symbolism + '을 상징하며, 지금 시기의 운명 테마를 가장 정확히 반영합니다.'));
   }
   if (flower.description) {
-    lines.push('운명꽃 해석: ' + flower.description);
+    lines.push(destinyFlowerText('saju.rationale.description', { description: flower.description }, '운명꽃 해석: ' + flower.description));
   }
   if (flower.vibe_message) {
-    lines.push('개화 가이드: ' + flower.vibe_message);
+    lines.push(destinyFlowerText('saju.rationale.vibe', { vibeMessage: flower.vibe_message }, '개화 가이드: ' + flower.vibe_message));
   }
   if (profile.domains.saju && profile.domains.saju.day_master_fallback_used && profile.domains.saju.day_master_fallback_note) {
-    lines.push('보정 로직: ' + profile.domains.saju.day_master_fallback_note);
+    lines.push(destinyFlowerText('saju.rationale.fallback', { note: profile.domains.saju.day_master_fallback_note }, '보정 로직: ' + profile.domains.saju.day_master_fallback_note));
   }
 
   return lines.join(' ');
@@ -3534,19 +3811,26 @@ export function matchDestinyFlower(userData = {}, options = {}) {
   });
   const candidates = rankFlowerCandidates(profile, { ...options, dayMasterScenario });
   const picked = candidates[0] || { flower: flowerSymbology.LOTUS, score: 0, matchedSignals: [] };
-  const sajuVerdict =
-    '사주로 볼 때 당신의 꽃은 ' + picked.flower.name + ' (' + picked.flower.scientific_name + ') 입니다.';
-  const flowerData = buildFlowerDataSheet(profile, picked.flower, dayMasterScenario, picked.matchedSignals);
+  const displayFlower = localizeDestinyFlowerCopy(picked.flower);
+  const localizedCandidates = candidates.map((candidate) => ({
+    ...candidate,
+    flower: localizeDestinyFlowerCopy(candidate.flower)
+  }));
+  const sajuVerdict = destinyFlowerText('saju.verdict', {
+    flowerName: displayFlower.name,
+    scientificName: displayFlower.scientific_name
+  }, '사주로 볼 때 당신의 꽃은 ' + displayFlower.name + ' (' + displayFlower.scientific_name + ') 입니다.');
+  const flowerData = buildFlowerDataSheet(profile, displayFlower, dayMasterScenario, picked.matchedSignals);
 
   return {
     profile,
-    flower: picked.flower,
-    flowerSymbology: picked.flower,
-    candidates,
+    flower: displayFlower,
+    flowerSymbology: displayFlower,
+    candidates: localizedCandidates,
     day_master_environment: dayMasterScenario,
     flower_data: flowerData,
     saju_verdict: sajuVerdict,
-    narrative: buildRationale(profile, picked.flower, picked.matchedSignals, dayMasterScenario),
+    narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),
       source: profile.domains && profile.domains.saju && profile.domains.saju.day_master_source,
@@ -3554,7 +3838,7 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     },
     algorithm: {
       version: '1.2.0-day-master-environment',
-      note: '일간-환경(억부용신/조후) 우선 매칭 + 다중 신호 가중치 엔진'
+      note: 'day-master-environment-prioritized-multi-signal-weighting-engine'
     }
   };
 }

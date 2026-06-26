@@ -1,5 +1,26 @@
 import styles from "./SiteFooterHub.module.css";
 
+const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
+  ko: {
+    "siteFooter.001": "핵심 운세",
+    "siteFooter.002": "타로 리딩",
+    "siteFooter.003": "신탁 & 특화",
+    "siteFooter.004": "추천 가이드",
+    "siteFooter.005": "상호명",
+    "siteFooter.006": "대표자",
+    "siteFooter.007": "사업자등록번호",
+    "siteFooter.008": "통신판매업 신고번호",
+    "siteFooter.009": "연락처",
+    "siteFooter.010": "이메일",
+    "siteFooter.011": "사업장 주소",
+    "siteFooter.012": "랜딩 페이지 내부 링크 허브",
+    "siteFooter.013": "코드 데스티니(Code Destiny)",
+  },
+};
+
+function siteFooterHubText(key) {
+  return SITE_FOOTER_HUB_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const MAIN_ACTION_ROUTE_MAP = {
   "/saju": "/index.html",
   "/manse": "/index.html",
@@ -52,7 +73,7 @@ const POLICY_LINKS = [
 
 const SEO_LINK_GROUPS = [
   {
-    title: "핵심 운세",
+    title: siteFooterHubText("siteFooter.001"),
     links: [
       { href: "/saju", text: "무료 사주풀이 보기" },
       { href: "/manse", text: "꿀꿀 만세력 확인하기" },
@@ -68,7 +89,7 @@ const SEO_LINK_GROUPS = [
     ],
   },
   {
-    title: "타로 리딩",
+    title: siteFooterHubText("siteFooter.002"),
     links: [
       { href: "/tarot", text: "명리학 타로 시작하기" },
       { href: "/physiognomy", text: "동물관상 분석하기" },
@@ -84,7 +105,7 @@ const SEO_LINK_GROUPS = [
     ],
   },
   {
-    title: "신탁 & 특화",
+    title: siteFooterHubText("siteFooter.003"),
     links: [
       { href: "/ziwei", text: "자미두수 명반 보기" },
       { href: "/astrology", text: "점성술 출생차트 보기" },
@@ -100,7 +121,7 @@ const SEO_LINK_GROUPS = [
     ],
   },
   {
-    title: "추천 가이드",
+    title: siteFooterHubText("siteFooter.004"),
     links: [
       { href: "/insights", text: "운명 인사이트 허브" },
       { href: "/high-value", text: "하이밸류 아카이브" },
@@ -113,13 +134,13 @@ const SEO_LINK_GROUPS = [
 ];
 
 const BUSINESS_INFO_ROWS = [
-  { label: "상호명", value: "코드 데스티니 (Code Destiny)" },
-  { label: "대표자", value: "박병하" },
-  { label: "사업자등록번호", value: "372-23-02329" },
-  { label: "통신판매업 신고번호", value: "제 2026-화성호-0264 호" },
-  { label: "연락처", value: "050-6664-7398" },
-  { label: "이메일", value: "seongbae555@gmail.com" },
-  { label: "사업장 주소", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
+  { label: siteFooterHubText("siteFooter.005"), value: "코드 데스티니 (Code Destiny)" },
+  { label: siteFooterHubText("siteFooter.006"), value: "박병하" },
+  { label: siteFooterHubText("siteFooter.007"), value: "372-23-02329" },
+  { label: siteFooterHubText("siteFooter.008"), value: "제 2026-화성호-0264 호" },
+  { label: siteFooterHubText("siteFooter.009"), value: "050-6664-7398" },
+  { label: siteFooterHubText("siteFooter.010"), value: "seongbae555@gmail.com" },
+  { label: siteFooterHubText("siteFooter.011"), value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
 ];
 
 const REFUND_POLICY_ROWS = [
@@ -141,7 +162,7 @@ export default function SiteFooterHub() {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
-        <section aria-label="랜딩 페이지 내부 링크 허브">
+        <section aria-label={siteFooterHubText("siteFooter.012")}>
           <p className={styles.sfhKicker}>Constellation Navigation</p>
           <p className={styles.sfhTitle}>서비스 링크 허브</p>
           <p className={styles.sfhSubtitle}>
@@ -176,7 +197,7 @@ export default function SiteFooterHub() {
 
             <div className={styles.sfhBusinessDivider}>
               <p className={styles.sfhBusinessEmphasis}>
-                모든 거래에 대한 책임과 환불, 민원 등은 <strong>코드 데스티니(Code Destiny)</strong>에서 진행합니다.
+                모든 거래에 대한 책임과 환불, 민원 등은 <strong>{siteFooterHubText("siteFooter.013")}</strong>에서 진행합니다.
               </p>
               <p className={styles.sfhBusinessMuted}>민원담당자 : 박병하 (seongbae555@gmail.com)</p>
             </div>

@@ -5,6 +5,21 @@ type Props = {
   chapter: AstroPremiumReportData["chapters"]["I"] | null | undefined;
 };
 
+const ASTROLOGY_CHAPTER_1_TEXT_TRANSLATIONS = {
+  ko: {
+    title: "I. 출생 차트 총론 — 나의 우주적 설계도",
+    empty: "챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.",
+  },
+  en: {
+    title: "I. Birth Chart Overview — My Cosmic Blueprint",
+    empty: "Chapter data is not ready, so the basic summary mode is shown.",
+  },
+  ja: {
+    title: "I. 出生チャート総論 — 私の宇宙的な設計図",
+    empty: "チャプターデータが未準備のため、基本要約モードで表示します。",
+  },
+} as const;
+
 const LABELS: Array<{ key: keyof AstroPremiumReportData["chapters"]["I"]["sections"]; label: string }> = [
   { key: "birthChartBasics", label: "출생 차트 기본 정보" },
   { key: "sunMoonAscSummary", label: "태양·달·상승궁 요약" },
@@ -22,8 +37,8 @@ export default function Chapter1_Intro({ chapter }: Props) {
   if (!chapter) {
     return (
       <section>
-        <h2>I. 출생 차트 총론 — 나의 우주적 설계도</h2>
-        <p>챕터 데이터가 준비되지 않아 기본 요약 모드로 표시합니다.</p>
+        <h2>{ASTROLOGY_CHAPTER_1_TEXT_TRANSLATIONS.ko.title}</h2>
+        <p>{ASTROLOGY_CHAPTER_1_TEXT_TRANSLATIONS.ko.empty}</p>
       </section>
     );
   }
@@ -34,7 +49,7 @@ export default function Chapter1_Intro({ chapter }: Props) {
 
   return (
     <section>
-      <h2>{chapter.title || "I. 출생 차트 총론 — 나의 우주적 설계도"}</h2>
+      <h2>{chapter.title || ASTROLOGY_CHAPTER_1_TEXT_TRANSLATIONS.ko.title}</h2>
       {rows.map((row) => (
         <p key={row}>{row}</p>
       ))}

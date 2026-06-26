@@ -8,6 +8,31 @@ export const GANJI_60 = [
 ] as const;
 
 export type Ganji60 = (typeof GANJI_60)[number];
+export type GanjiGuardianLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW";
+
+const GANJI_GUARDIAN_TEXT_TRANSLATIONS: Record<GanjiGuardianLocale, {
+  elements: Record<"wood" | "fire" | "earth" | "metal" | "water", string>;
+}> = {
+  ko: { elements: { wood: "목(木)", fire: "화(火)", earth: "토(土)", metal: "금(金)", water: "수(水)" } },
+  en: { elements: { wood: "Wood", fire: "Fire", earth: "Earth", metal: "Metal", water: "Water" } },
+  ja: { elements: { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" } },
+  "zh-CN": { elements: { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" } },
+  "zh-TW": { elements: { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" } },
+};
+
+function normalizeGanjiGuardianLocale(value?: string | null): GanjiGuardianLocale {
+  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
+  if (normalized === "ja" || normalized.startsWith("ja-")) return "ja";
+  if (normalized === "en" || normalized.startsWith("en-")) return "en";
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk") return "zh-TW";
+  return "ko";
+}
+
+function ganjiGuardianElementLabel(key: "wood" | "fire" | "earth" | "metal" | "water", locale?: string | null) {
+  const lang = normalizeGanjiGuardianLocale(locale);
+  return GANJI_GUARDIAN_TEXT_TRANSLATIONS[lang].elements[key] || GANJI_GUARDIAN_TEXT_TRANSLATIONS.ko.elements[key];
+}
 
 export const GANJI_ANIMAL_MAP: Record<Ganji60, string> = {
   갑자: "쥐",
@@ -142,13 +167,13 @@ export function getGanjiSpriteRect(ganji: Ganji60) {
   };
 }
 
-export function getStemElement(ganji: Ganji60) {
+export function getStemElement(ganji: Ganji60, locale?: string | null) {
   const stem = ganji[0];
 
   if (stem === "갑" || stem === "을") {
     return {
       key: "wood",
-      label: "목(木)",
+      label: ganjiGuardianElementLabel("wood", locale),
       gradient: "from-emerald-200 via-lime-100 to-green-50",
       border: "border-emerald-300",
       glow: "shadow-emerald-200/70",
@@ -159,7 +184,7 @@ export function getStemElement(ganji: Ganji60) {
   if (stem === "병" || stem === "정") {
     return {
       key: "fire",
-      label: "화(火)",
+      label: ganjiGuardianElementLabel("fire", locale),
       gradient: "from-rose-200 via-orange-100 to-pink-50",
       border: "border-rose-300",
       glow: "shadow-rose-200/70",
@@ -170,7 +195,7 @@ export function getStemElement(ganji: Ganji60) {
   if (stem === "무" || stem === "기") {
     return {
       key: "earth",
-      label: "토(土)",
+      label: ganjiGuardianElementLabel("earth", locale),
       gradient: "from-amber-200 via-yellow-100 to-stone-50",
       border: "border-amber-300",
       glow: "shadow-amber-200/70",
@@ -181,7 +206,7 @@ export function getStemElement(ganji: Ganji60) {
   if (stem === "경" || stem === "신") {
     return {
       key: "metal",
-      label: "금(金)",
+      label: ganjiGuardianElementLabel("metal", locale),
       gradient: "from-yellow-100 via-stone-50 to-white",
       border: "border-yellow-300",
       glow: "shadow-yellow-100/80",
@@ -191,7 +216,7 @@ export function getStemElement(ganji: Ganji60) {
 
   return {
     key: "water",
-    label: "수(水)",
+    label: ganjiGuardianElementLabel("water", locale),
     gradient: "from-sky-200 via-blue-100 to-indigo-50",
     border: "border-sky-300",
     glow: "shadow-sky-200/70",

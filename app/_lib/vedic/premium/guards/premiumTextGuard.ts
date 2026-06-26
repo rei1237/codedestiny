@@ -1,3 +1,15 @@
+const PREMIUM_TEXT_GUARD_TEXT_TRANSLATIONS = {
+  ko: {
+    coreTitle: "핵심 해석",
+  },
+  en: {
+    coreTitle: "Core Reading",
+  },
+  ja: {
+    coreTitle: "核心解釈",
+  },
+} as const;
+
 export function sanitizePremiumText(input: unknown, fallback = "해석 데이터를 준비 중입니다."): string {
   const text = String(input ?? "").trim();
   if (!text) return fallback;
@@ -19,7 +31,7 @@ export function sanitizePremiumSections<T extends { title?: string; body?: strin
   const seen = new Set<string>();
 
   for (const item of safeList) {
-    const title = sanitizePremiumText(item?.title || "핵심 해석", "핵심 해석");
+    const title = sanitizePremiumText(item?.title || PREMIUM_TEXT_GUARD_TEXT_TRANSLATIONS.ko.coreTitle, PREMIUM_TEXT_GUARD_TEXT_TRANSLATIONS.ko.coreTitle);
     const body = sanitizePremiumText(item?.body || "", fallback);
     const key = `${title}::${body}`;
     if (seen.has(key)) continue;
@@ -28,7 +40,7 @@ export function sanitizePremiumSections<T extends { title?: string; body?: strin
   }
 
   if (!out.length) {
-    out.push({ title: "핵심 해석", body: fallback });
+    out.push({ title: PREMIUM_TEXT_GUARD_TEXT_TRANSLATIONS.ko.coreTitle, body: fallback });
   }
 
   return out;

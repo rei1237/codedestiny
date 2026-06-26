@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ChevronDown, Compass, Copy, Heart, Luggage, MapPin, MessageCircle, Moon, Palette, Route, ShieldAlert, Sparkles, Star, WandSparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { DestinyMeetingPlaceResult, DestinyPlaceType } from "./destinyMeetingPlaceTypes";
 
 type Props = {
@@ -69,8 +70,466 @@ type PromptAtelierGridProps = {
 const serifClass = "font-['Noto_Serif_KR','Cormorant_Garamond',serif]";
 const sansClass = "font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif]";
 
+type DestinyMeetingPlaceResultCopy = {
+  currency: (amount: number) => string;
+  elementWood: string;
+  elementFire: string;
+  elementEarth: string;
+  elementMetal: string;
+  elementWater: string;
+  promptCategory: string;
+  promptIntent: string;
+  promptRelatedPlace: string;
+  fallbackPlaceType: string;
+  summaryTitle: string;
+  analysisValue: string;
+  nextCoordinate: string;
+  primaryEnergy: string;
+  secondaryEnergy: string;
+  compatibility: string;
+  destinyMapTitle: string;
+  avoidFlow: string;
+  promptBookTitle: string;
+  promptTabAria: string;
+  allPromptsCopied: string;
+  copyAllPrompts: string;
+  copied: string;
+  copy: string;
+  myEnergyTitle: string;
+  dayMaster: string;
+  elementBalance: string;
+  coreElement: string;
+  overheatedElement: string;
+  timingTitle: string;
+  topPlacesTitle: string;
+  topPreview: (total: number, preview: number) => string;
+  auspiciousPlace: string;
+  remainingPlaces: (count: number) => string;
+  actionPlanTitle: string;
+  today: string;
+  thisWeek: string;
+  thisMonth: string;
+  travelPlan: string;
+  microActions: string;
+  styleSignature: string;
+  colorLabel: string;
+  fragranceLabel: string;
+  cityMood: string;
+  avoidGuide: string;
+  avoidPlaces: string;
+  avoidTiming: string;
+  avoidPatterns: string;
+};
+
+const DESTINY_MEETING_PLACE_RESULT_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, DestinyMeetingPlaceResultCopy>> = {
+  ko: {
+    currency: (amount: number) => `${amount.toLocaleString("ko-KR")}원`,
+    elementWood: "목(木)",
+    elementFire: "화(火)",
+    elementEarth: "토(土)",
+    elementMetal: "금(金)",
+    elementWater: "수(水)",
+    promptCategory: "분류",
+    promptIntent: "목적",
+    promptRelatedPlace: "연결 장소",
+    fallbackPlaceType: "기타",
+    summaryTitle: "한 줄 요약",
+    analysisValue: "분석 가치",
+    nextCoordinate: "다음 좌표",
+    primaryEnergy: "주기운",
+    secondaryEnergy: "보조기운",
+    compatibility: "궁합",
+    destinyMapTitle: "달빛이 머무는 좌표",
+    avoidFlow: "피해야 할 흐름",
+    promptBookTitle: "사주 프롬프트 북",
+    promptTabAria: "사주 프롬프트 선택",
+    allPromptsCopied: "전체 세트 복사 완료",
+    copyAllPrompts: "전체 프롬프트 세트 복사",
+    copied: "복사 완료",
+    copy: "복사",
+    myEnergyTitle: "나의 기운",
+    dayMaster: "일간",
+    elementBalance: "오행 밸런스",
+    coreElement: "핵심",
+    overheatedElement: "과열 주의",
+    timingTitle: "타이밍",
+    topPlacesTitle: "장소 TOP 5",
+    topPreview: (total: number, preview: number) => `TOP ${total}곳 • 대표 ${preview}곳 미리보기`,
+    auspiciousPlace: "길지",
+    remainingPlaces: (count: number) => `나머지 ${count}곳은 접기/펼치기로 확인`,
+    actionPlanTitle: "액션 플랜",
+    today: "오늘",
+    thisWeek: "이번 주",
+    thisMonth: "이번 달",
+    travelPlan: "원정 플랜",
+    microActions: "실전 마이크로 액션",
+    styleSignature: "스타일 시그니처",
+    colorLabel: "컬러",
+    fragranceLabel: "향",
+    cityMood: "도시 무드 추천",
+    avoidGuide: "주의할 흐름",
+    avoidPlaces: "장소",
+    avoidTiming: "타이밍",
+    avoidPatterns: "패턴",
+  },
+  en: {
+    currency: (amount: number) => `KRW ${amount.toLocaleString("en-US")}`,
+    elementWood: "Wood",
+    elementFire: "Fire",
+    elementEarth: "Earth",
+    elementMetal: "Metal",
+    elementWater: "Water",
+    promptCategory: "Category",
+    promptIntent: "Intent",
+    promptRelatedPlace: "Linked place",
+    fallbackPlaceType: "Other",
+    summaryTitle: "One-Line Summary",
+    analysisValue: "Reading value",
+    nextCoordinate: "Next coordinate",
+    primaryEnergy: "Primary energy",
+    secondaryEnergy: "Secondary energy",
+    compatibility: "Compatibility",
+    destinyMapTitle: "Coordinates where moonlight stays",
+    avoidFlow: "Flow to avoid",
+    promptBookTitle: "Saju Prompt Book",
+    promptTabAria: "Choose a saju prompt",
+    allPromptsCopied: "Full set copied",
+    copyAllPrompts: "Copy full prompt set",
+    copied: "Copied",
+    copy: "Copy",
+    myEnergyTitle: "My Energy",
+    dayMaster: "Day master",
+    elementBalance: "Element balance",
+    coreElement: "Core",
+    overheatedElement: "Overheat caution",
+    timingTitle: "Timing",
+    topPlacesTitle: "Place TOP 5",
+    topPreview: (total: number, preview: number) => `TOP ${total} places • preview ${preview}`,
+    auspiciousPlace: "Auspicious place",
+    remainingPlaces: (count: number) => `${count} more places can be checked by expanding`,
+    actionPlanTitle: "Action Plan",
+    today: "Today",
+    thisWeek: "This week",
+    thisMonth: "This month",
+    travelPlan: "Travel plan",
+    microActions: "Practical micro actions",
+    styleSignature: "Style signature",
+    colorLabel: "Colors",
+    fragranceLabel: "Fragrance",
+    cityMood: "City mood recommendations",
+    avoidGuide: "Flow to watch",
+    avoidPlaces: "Places",
+    avoidTiming: "Timing",
+    avoidPatterns: "Patterns",
+  },
+  ja: {
+    currency: (amount: number) => `${amount.toLocaleString("ja-JP")} KRW`,
+    elementWood: "木",
+    elementFire: "火",
+    elementEarth: "土",
+    elementMetal: "金",
+    elementWater: "水",
+    promptCategory: "分類",
+    promptIntent: "目的",
+    promptRelatedPlace: "関連する場所",
+    fallbackPlaceType: "その他",
+    summaryTitle: "一行要約",
+    analysisValue: "分析価値",
+    nextCoordinate: "次の座標",
+    primaryEnergy: "主気運",
+    secondaryEnergy: "補助気運",
+    compatibility: "相性",
+    destinyMapTitle: "月明かりが留まる座標",
+    avoidFlow: "避けたい流れ",
+    promptBookTitle: "四柱プロンプトブック",
+    promptTabAria: "四柱プロンプトを選択",
+    allPromptsCopied: "全セットをコピーしました",
+    copyAllPrompts: "全プロンプトセットをコピー",
+    copied: "コピー完了",
+    copy: "コピー",
+    myEnergyTitle: "私の気運",
+    dayMaster: "日干",
+    elementBalance: "五行バランス",
+    coreElement: "核心",
+    overheatedElement: "過熱注意",
+    timingTitle: "タイミング",
+    topPlacesTitle: "場所 TOP 5",
+    topPreview: (total: number, preview: number) => `TOP ${total}か所 • 代表 ${preview}か所をプレビュー`,
+    auspiciousPlace: "吉地",
+    remainingPlaces: (count: number) => `残り${count}か所は開いて確認`,
+    actionPlanTitle: "アクションプラン",
+    today: "今日",
+    thisWeek: "今週",
+    thisMonth: "今月",
+    travelPlan: "遠征プラン",
+    microActions: "実践マイクロアクション",
+    styleSignature: "スタイルシグネチャー",
+    colorLabel: "カラー",
+    fragranceLabel: "香り",
+    cityMood: "都市ムードおすすめ",
+    avoidGuide: "注意したい流れ",
+    avoidPlaces: "場所",
+    avoidTiming: "タイミング",
+    avoidPatterns: "パターン",
+  },
+  "zh-CN": {
+    currency: (amount: number) => `KRW ${amount.toLocaleString("zh-CN")}`,
+    elementWood: "木",
+    elementFire: "火",
+    elementEarth: "土",
+    elementMetal: "金",
+    elementWater: "水",
+    promptCategory: "分类",
+    promptIntent: "目的",
+    promptRelatedPlace: "关联地点",
+    fallbackPlaceType: "其他",
+    summaryTitle: "一句总结",
+    analysisValue: "分析价值",
+    nextCoordinate: "下一个坐标",
+    primaryEnergy: "主气运",
+    secondaryEnergy: "辅助气运",
+    compatibility: "合拍度",
+    destinyMapTitle: "月光停留的坐标",
+    avoidFlow: "需要避开的流向",
+    promptBookTitle: "四柱提示词册",
+    promptTabAria: "选择四柱提示词",
+    allPromptsCopied: "整套已复制",
+    copyAllPrompts: "复制整套提示词",
+    copied: "已复制",
+    copy: "复制",
+    myEnergyTitle: "我的能量",
+    dayMaster: "日干",
+    elementBalance: "五行平衡",
+    coreElement: "核心",
+    overheatedElement: "过热注意",
+    timingTitle: "时机",
+    topPlacesTitle: "地点 TOP 5",
+    topPreview: (total: number, preview: number) => `TOP ${total}处 • 预览代表 ${preview}处`,
+    auspiciousPlace: "吉地",
+    remainingPlaces: (count: number) => `其余 ${count} 处可展开查看`,
+    actionPlanTitle: "行动计划",
+    today: "今天",
+    thisWeek: "本周",
+    thisMonth: "本月",
+    travelPlan: "远行计划",
+    microActions: "实战微行动",
+    styleSignature: "风格标记",
+    colorLabel: "颜色",
+    fragranceLabel: "香气",
+    cityMood: "城市氛围推荐",
+    avoidGuide: "需要注意的流向",
+    avoidPlaces: "地点",
+    avoidTiming: "时机",
+    avoidPatterns: "模式",
+  },
+  "zh-TW": {
+    currency: (amount: number) => `KRW ${amount.toLocaleString("zh-TW")}`,
+    elementWood: "木",
+    elementFire: "火",
+    elementEarth: "土",
+    elementMetal: "金",
+    elementWater: "水",
+    promptCategory: "分類",
+    promptIntent: "目的",
+    promptRelatedPlace: "關聯地點",
+    fallbackPlaceType: "其他",
+    summaryTitle: "一句總結",
+    analysisValue: "分析價值",
+    nextCoordinate: "下一個座標",
+    primaryEnergy: "主氣運",
+    secondaryEnergy: "輔助氣運",
+    compatibility: "合拍度",
+    destinyMapTitle: "月光停留的座標",
+    avoidFlow: "需要避開的流向",
+    promptBookTitle: "四柱提示詞冊",
+    promptTabAria: "選擇四柱提示詞",
+    allPromptsCopied: "整套已複製",
+    copyAllPrompts: "複製整套提示詞",
+    copied: "已複製",
+    copy: "複製",
+    myEnergyTitle: "我的能量",
+    dayMaster: "日干",
+    elementBalance: "五行平衡",
+    coreElement: "核心",
+    overheatedElement: "過熱注意",
+    timingTitle: "時機",
+    topPlacesTitle: "地點 TOP 5",
+    topPreview: (total: number, preview: number) => `TOP ${total}處 • 預覽代表 ${preview}處`,
+    auspiciousPlace: "吉地",
+    remainingPlaces: (count: number) => `其餘 ${count} 處可展開查看`,
+    actionPlanTitle: "行動計畫",
+    today: "今天",
+    thisWeek: "本週",
+    thisMonth: "本月",
+    travelPlan: "遠行計畫",
+    microActions: "實戰微行動",
+    styleSignature: "風格標記",
+    colorLabel: "顏色",
+    fragranceLabel: "香氣",
+    cityMood: "城市氛圍推薦",
+    avoidGuide: "需要注意的流向",
+    avoidPlaces: "地點",
+    avoidTiming: "時機",
+    avoidPatterns: "模式",
+  },
+};
+
+const DESTINY_MEETING_PLACE_RESULT_PLACE_TYPE_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, Record<string, string>>> = {
+  ko: {
+    city: "도시",
+    nature: "자연",
+    cafe: "카페",
+    culture: "문화",
+    travel: "여행",
+    spiritual: "정신",
+    water: "바다",
+    mountain: "산",
+    night: "야간",
+    daily: "일상",
+    other: "기타",
+  },
+  en: {
+    city: "City",
+    nature: "Nature",
+    cafe: "Cafe",
+    culture: "Culture",
+    travel: "Travel",
+    spiritual: "Spiritual",
+    water: "Water",
+    mountain: "Mountain",
+    night: "Night",
+    daily: "Daily",
+    other: "Other",
+  },
+  ja: {
+    city: "都市",
+    nature: "自然",
+    cafe: "カフェ",
+    culture: "文化",
+    travel: "旅",
+    spiritual: "精神",
+    water: "水辺",
+    mountain: "山",
+    night: "夜",
+    daily: "日常",
+    other: "その他",
+  },
+  "zh-CN": {
+    city: "城市",
+    nature: "自然",
+    cafe: "咖啡馆",
+    culture: "文化",
+    travel: "旅行",
+    spiritual: "精神",
+    water: "水边",
+    mountain: "山",
+    night: "夜间",
+    daily: "日常",
+    other: "其他",
+  },
+  "zh-TW": {
+    city: "城市",
+    nature: "自然",
+    cafe: "咖啡館",
+    culture: "文化",
+    travel: "旅行",
+    spiritual: "精神",
+    water: "水邊",
+    mountain: "山",
+    night: "夜間",
+    daily: "日常",
+    other: "其他",
+  },
+};
+
+const DESTINY_MEETING_PLACE_RESULT_PLACE_ICON_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, Record<string, string>>> = {
+  ko: {
+    city: "도시",
+    nature: "정원",
+    cafe: "찻잔",
+    culture: "전시",
+    travel: "여정",
+    spiritual: "성소",
+    water: "물결",
+    mountain: "산길",
+    night: "야경",
+    daily: "일상",
+    other: "좌표",
+  },
+  en: {
+    city: "City",
+    nature: "Garden",
+    cafe: "Tea cup",
+    culture: "Gallery",
+    travel: "Route",
+    spiritual: "Sanctuary",
+    water: "Wave",
+    mountain: "Mountain path",
+    night: "Night view",
+    daily: "Daily",
+    other: "Coordinate",
+  },
+  ja: {
+    city: "都市",
+    nature: "庭",
+    cafe: "茶器",
+    culture: "展示",
+    travel: "旅路",
+    spiritual: "聖所",
+    water: "波",
+    mountain: "山道",
+    night: "夜景",
+    daily: "日常",
+    other: "座標",
+  },
+  "zh-CN": {
+    city: "城市",
+    nature: "花园",
+    cafe: "茶杯",
+    culture: "展览",
+    travel: "旅程",
+    spiritual: "圣所",
+    water: "水波",
+    mountain: "山路",
+    night: "夜景",
+    daily: "日常",
+    other: "坐标",
+  },
+  "zh-TW": {
+    city: "城市",
+    nature: "花園",
+    cafe: "茶杯",
+    culture: "展覽",
+    travel: "旅程",
+    spiritual: "聖所",
+    water: "水波",
+    mountain: "山路",
+    night: "夜景",
+    daily: "日常",
+    other: "座標",
+  },
+};
+
+function destinyMeetingPlaceResultCopy(locale?: LoadingLocale | string | null) {
+  const activeLocale = locale ? normalizeLoadingLocale(locale) : getCurrentLoadingLocale();
+  return DESTINY_MEETING_PLACE_RESULT_TEXT_TRANSLATIONS[activeLocale]
+    ?? DESTINY_MEETING_PLACE_RESULT_TEXT_TRANSLATIONS.en
+    ?? DESTINY_MEETING_PLACE_RESULT_TEXT_TRANSLATIONS.ko!;
+}
+
+function destinyMeetingPlaceResultText(key: keyof DestinyMeetingPlaceResultCopy) {
+  const value = destinyMeetingPlaceResultCopy()[key];
+  return typeof value === "string" ? value : "";
+}
+
+function destinyMeetingPlaceTypeText(type: string, icon = false) {
+  const activeLocale = getCurrentLoadingLocale();
+  const source = icon ? DESTINY_MEETING_PLACE_RESULT_PLACE_ICON_TEXT_TRANSLATIONS : DESTINY_MEETING_PLACE_RESULT_PLACE_TYPE_TEXT_TRANSLATIONS;
+  return source[activeLocale]?.[type] ?? source.en?.[type] ?? source.ko?.[type] ?? type;
+}
+
 function formatCoinValue(amount: number) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+  return destinyMeetingPlaceResultCopy().currency(Math.max(0, Math.floor(Number(amount || 0) * 100)));
 }
 
 const fadeUpVariant = {
@@ -83,12 +542,13 @@ const fadeUpVariant = {
 };
 
 function elementLabel(element: string) {
+  const copy = destinyMeetingPlaceResultCopy();
   const map: Record<string, string> = {
-    wood: "목(木)",
-    fire: "화(火)",
-    earth: "토(土)",
-    metal: "금(金)",
-    water: "수(水)",
+    wood: copy.elementWood,
+    fire: copy.elementFire,
+    earth: copy.elementEarth,
+    metal: copy.elementMetal,
+    water: copy.elementWater,
   };
   return map[element] || element;
 }
@@ -154,33 +614,6 @@ const PLACE_TYPE_ORDER: (DestinyPlaceType | "other")[] = [
   "daily",
   "other",
 ];
-const placeTypeLabel: Record<string, string> = {
-  city: "도시",
-  nature: "자연",
-  cafe: "카페",
-  culture: "문화",
-  travel: "여행",
-  spiritual: "정신",
-  water: "바다",
-  mountain: "산",
-  night: "야간",
-  daily: "일상",
-  other: "기타",
-};
-const placeTypeIcon: Record<string, string> = {
-  city: "도시",
-  nature: "정원",
-  cafe: "찻잔",
-  culture: "전시",
-  travel: "여정",
-  spiritual: "성소",
-  water: "물결",
-  mountain: "산길",
-  night: "야경",
-  daily: "일상",
-  other: "좌표",
-};
-
 type PlaceTypeGroup = DestinyPlaceType | "other";
 
 function buildPromptPackText(promptPack: PromptPack) {
@@ -189,9 +622,9 @@ function buildPromptPackText(promptPack: PromptPack) {
     promptPack.intro,
     ...promptPack.prompts.map((prompt, index) => [
       `${index + 1}. ${prompt.title}`,
-      `분류: ${prompt.category}`,
-      `목적: ${prompt.intent}`,
-      prompt.relatedPlace ? `연결 장소: ${prompt.relatedPlace}` : "",
+      `${destinyMeetingPlaceResultText("promptCategory")}: ${prompt.category}`,
+      `${destinyMeetingPlaceResultText("promptIntent")}: ${prompt.intent}`,
+      prompt.relatedPlace ? `${destinyMeetingPlaceResultText("promptRelatedPlace")}: ${prompt.relatedPlace}` : "",
       prompt.prompt,
     ].filter(Boolean).join("\n")),
   ].join("\n\n");
@@ -199,11 +632,11 @@ function buildPromptPackText(promptPack: PromptPack) {
 
 function normalizePlaceType(type?: string): PlaceTypeGroup {
   if (!type) return "other";
-  return Object.prototype.hasOwnProperty.call(placeTypeLabel, type) ? (type as PlaceTypeGroup) : "other";
+  return PLACE_TYPE_ORDER.includes(type as PlaceTypeGroup) ? (type as PlaceTypeGroup) : "other";
 }
 
 function placeCategoryLabel(type: PlaceTypeGroup) {
-  return `${placeTypeIcon[type]} · ${placeTypeLabel[type] || "기타"}`;
+  return `${destinyMeetingPlaceTypeText(type, true)} · ${destinyMeetingPlaceTypeText(type) || destinyMeetingPlaceResultText("fallbackPlaceType")}`;
 }
 
 function SectionCard({ title, subtitle, icon, index, children }: SectionCardProps) {
@@ -249,7 +682,7 @@ function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinyS
               <Compass size={14} />
               DESTINY SUMMARY
             </div>
-            <h3 className={`mt-3 text-2xl leading-tight text-[#fff8ed] sm:text-3xl ${serifClass}`}>한 줄 요약</h3>
+            <h3 className={`mt-3 text-2xl leading-tight text-[#fff8ed] sm:text-3xl ${serifClass}`}>{destinyMeetingPlaceResultText("summaryTitle")}</h3>
           </div>
           <div className="rounded-full border border-white/[0.16] bg-white/10 p-3 text-[#c4b5fd] shadow-[0_0_28px_rgba(196,181,253,0.18)]">
             <Sparkles size={20} />
@@ -263,8 +696,8 @@ function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinyS
               {chip}
             </GlassChip>
           ))}
-          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">분석 가치 {formatCoinValue(chargedCoins)}</GlassChip>
-          {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">다음 좌표 {topPlace.name}</GlassChip> : null}
+          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">{destinyMeetingPlaceResultText("analysisValue")} {formatCoinValue(chargedCoins)}</GlassChip>
+          {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">{destinyMeetingPlaceResultText("nextCoordinate")} {topPlace.name}</GlassChip> : null}
         </div>
       </div>
     </motion.section>
@@ -301,9 +734,9 @@ function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <ElementBadge element={place.element} label="주기운" />
-            {place.secondaryElement ? <ElementBadge element={place.secondaryElement} label="보조기운" /> : null}
-            <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e5f1ff]">궁합 {place.romancePotential}%</GlassChip>
+            <ElementBadge element={place.element} label={destinyMeetingPlaceResultText("primaryEnergy")} />
+            {place.secondaryElement ? <ElementBadge element={place.secondaryElement} label={destinyMeetingPlaceResultText("secondaryEnergy")} /> : null}
+            <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e5f1ff]">{destinyMeetingPlaceResultText("compatibility")} {place.romancePotential}%</GlassChip>
           </div>
 
           <div className="space-y-3 text-[15px] leading-7 text-[#f0e8dc]">
@@ -342,9 +775,9 @@ function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#f8dfa6]/85">DESTINY MAP</p>
-              <p className={`mt-2 text-2xl leading-tight text-[#fff8ed] ${serifClass}`}>달빛이 머무는 좌표</p>
+              <p className={`mt-2 text-2xl leading-tight text-[#fff8ed] ${serifClass}`}>{destinyMeetingPlaceResultText("destinyMapTitle")}</p>
               {place.bestTimeHint ? <p className="mt-3 text-sm leading-6 text-[#e9e1f8]">{place.bestTimeHint}</p> : null}
-              {place.avoidWhen ? <p className="mt-2 text-xs leading-5 text-[#ffdbe4]">피해야 할 흐름: {place.avoidWhen}</p> : null}
+              {place.avoidWhen ? <p className="mt-2 text-xs leading-5 text-[#ffdbe4]">{destinyMeetingPlaceResultText("avoidFlow")}: {place.avoidWhen}</p> : null}
             </div>
           </div>
         </div>
@@ -355,11 +788,11 @@ function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
 
 function PromptAtelierGrid({ promptPack, selectedPrompt, copiedPromptId, index, onSelectPrompt, onCopyPrompt }: PromptAtelierGridProps) {
   return (
-    <SectionCard title="사주 프롬프트 북" subtitle="Prompt Atelier" icon={<WandSparkles size={18} />} index={index}>
+    <SectionCard title={destinyMeetingPlaceResultText("promptBookTitle")} subtitle="Prompt Atelier" icon={<WandSparkles size={18} />} index={index}>
       <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-4">
           <p className={`text-lg leading-8 text-[#fff0d6] ${serifClass}`}>{promptPack.intro}</p>
-          <div className="grid gap-3 sm:grid-cols-2" role="tablist" aria-label="사주 프롬프트 선택">
+          <div className="grid gap-3 sm:grid-cols-2" role="tablist" aria-label={destinyMeetingPlaceResultText("promptTabAria")}>
             {promptPack.prompts.map((prompt, promptIndex) => {
               const isActive = selectedPrompt?.id === prompt.id;
               const accent = promptAccentClasses[promptIndex % promptAccentClasses.length];
@@ -393,7 +826,7 @@ function PromptAtelierGrid({ promptPack, selectedPrompt, copiedPromptId, index, 
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#f8dfa6]/40 bg-[#f8dfa6]/15 px-4 py-2 text-sm font-black text-[#fff1d7] shadow-[0_12px_28px_rgba(8,8,28,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#f8dfa6]/20"
           >
             <Copy size={15} />
-            {copiedPromptId === "all-prompts" ? "전체 세트 복사 완료" : "전체 프롬프트 세트 복사"}
+            {copiedPromptId === "all-prompts" ? destinyMeetingPlaceResultText("allPromptsCopied") : destinyMeetingPlaceResultText("copyAllPrompts")}
           </button>
         </div>
 
@@ -412,12 +845,12 @@ function PromptAtelierGrid({ promptPack, selectedPrompt, copiedPromptId, index, 
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/[0.18] bg-white/10 px-3 py-2 text-xs font-black text-[#fff4df] transition-all hover:bg-white/15"
                 >
                   <Copy size={14} />
-                  {copiedPromptId === selectedPrompt.id ? "복사 완료" : "복사"}
+                  {copiedPromptId === selectedPrompt.id ? destinyMeetingPlaceResultText("copied") : destinyMeetingPlaceResultText("copy")}
                 </button>
               </div>
               <p className="mt-3 text-sm leading-7 text-[#dfd5c8]">{selectedPrompt.intent}</p>
               {selectedPrompt.relatedPlace ? (
-                <GlassChip className="mt-3 border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e4f1ff]">연결 장소: {selectedPrompt.relatedPlace}</GlassChip>
+                <GlassChip className="mt-3 border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e4f1ff]">{destinyMeetingPlaceResultText("promptRelatedPlace")}: {selectedPrompt.relatedPlace}</GlassChip>
               ) : null}
               <div className="mt-4 max-h-[420px] overflow-auto rounded-[22px] border border-white/[0.14] bg-black/20 p-4 text-sm leading-7 text-[#f8efe4] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] whitespace-pre-wrap break-words">
                 {selectedPrompt.prompt}
@@ -486,25 +919,25 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         />
       ) : null}
 
-      <SectionCard title="나의 기운" subtitle="Energy Signature" icon={<Heart size={18} />} index={hasPromptPack ? 3 : 2}>
+      <SectionCard title={destinyMeetingPlaceResultText("myEnergyTitle")} subtitle="Energy Signature" icon={<Heart size={18} />} index={hasPromptPack ? 3 : 2}>
         <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-2 text-[15px] leading-relaxed text-[#ece5d7]">
-            <p className="text-sm text-[#f4dfbb]">일간</p>
+            <p className="text-sm text-[#f4dfbb]">{destinyMeetingPlaceResultText("dayMaster")}</p>
             <p className={`text-xl text-[#fff6e8] ${serifClass}`}>{result.energyProfile.dayMaster}</p>
             <p>{result.energyProfile.relationshipPattern}</p>
             <p>{result.energyProfile.meetingStyle}</p>
           </div>
           <div className="space-y-3 rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-sm text-[#f4dfbb]">오행 밸런스</p>
+            <p className="text-sm text-[#f4dfbb]">{destinyMeetingPlaceResultText("elementBalance")}</p>
             <div className="flex flex-wrap gap-2 text-xs">
               {result.energyProfile.usefulElements.map((element) => (
                 <span key={`useful-${element}`} className={`rounded-full border px-2.5 py-1 ${elementToneClass(element)}`}>
-                  핵심 {elementLabel(element)}
+                  {destinyMeetingPlaceResultText("coreElement")} {elementLabel(element)}
                 </span>
               ))}
               {result.energyProfile.avoidElements.map((element) => (
                 <span key={`avoid-${element}`} className="rounded-full border border-rose-200/45 bg-rose-300/15 px-2.5 py-1 text-rose-100">
-                  과열 주의 {elementLabel(element)}
+                  {destinyMeetingPlaceResultText("overheatedElement")} {elementLabel(element)}
                 </span>
               ))}
             </div>
@@ -512,7 +945,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="타이밍" subtitle="Timing Window" icon={<Moon size={18} />} index={hasPromptPack ? 4 : 3}>
+      <SectionCard title={destinyMeetingPlaceResultText("timingTitle")} subtitle="Timing Window" icon={<Moon size={18} />} index={hasPromptPack ? 4 : 3}>
         <div className="grid gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">Season</p>
@@ -530,7 +963,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         <p className="mt-4 text-sm leading-relaxed text-[#e5dccd]">{result.luckyTiming.explanation}</p>
       </SectionCard>
 
-      <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={hasPromptPack ? 5 : 4}>
+      <SectionCard title={destinyMeetingPlaceResultText("topPlacesTitle")} subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={hasPromptPack ? 5 : 4}>
         <div className="space-y-4">
           {orderedPlaceGroups.map((group) => {
             const isExpanded = !!expandedPlaceGroups[group.type];
@@ -547,7 +980,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#f8df9f]">{placeCategoryLabel(group.type)}</p>
                     <p className="mt-1 text-sm text-[#f2dfbf]">
-                      TOP {group.places.length}곳 • 대표 {Math.min(PREVIEW_DESTINATION_COUNT, group.places.length)}곳 미리보기
+                      {destinyMeetingPlaceResultCopy().topPreview(group.places.length, Math.min(PREVIEW_DESTINATION_COUNT, group.places.length))}
                     </p>
                   </div>
                   <ChevronDown size={16} className={`shrink-0 text-[#f8df9f] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
@@ -560,7 +993,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e8b16e]">
-                              #{place.rank} {place.destinyGrade || place.categoryLabel || "길지"}
+                              #{place.rank} {place.destinyGrade || place.categoryLabel || destinyMeetingPlaceResultText("auspiciousPlace")}
                             </p>
                             <p className={`mt-1 text-xl text-[#f7e5cc] ${serifClass}`}>{place.name}</p>
                           </div>
@@ -572,7 +1005,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                           </div>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                          <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/15 px-2.5 py-1 text-[#ead4ab]">궁합 {place.romancePotential}%</span>
+                          <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/15 px-2.5 py-1 text-[#ead4ab]">{destinyMeetingPlaceResultText("compatibility")} {place.romancePotential}%</span>
                           {place.elementalProfile ? (
                             <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[#ddd0bd]">{place.elementalProfile}</span>
                           ) : null}
@@ -621,7 +1054,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                 {hasMore ? (
                   <div className="px-4 pb-3">
                     <p className="text-xs text-[#b8a78d]">
-                      나머지 {group.places.length - PREVIEW_DESTINATION_COUNT}곳은 접기/펼치기로 확인
+                      {destinyMeetingPlaceResultCopy().remainingPlaces(group.places.length - PREVIEW_DESTINATION_COUNT)}
                     </p>
                   </div>
                 ) : null}
@@ -631,22 +1064,22 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="액션 플랜" subtitle="This Week Ritual" icon={<Star size={18} />} index={hasPromptPack ? 6 : 5}>
+      <SectionCard title={destinyMeetingPlaceResultText("actionPlanTitle")} subtitle="This Week Ritual" icon={<Star size={18} />} index={hasPromptPack ? 6 : 5}>
         <div className="space-y-3 text-sm text-[#ece4d7]">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">오늘</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("today")}</p>
             <p className="mt-1 leading-relaxed">{result.practicalPlan.todayAction}</p>
           </article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">이번 주</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("thisWeek")}</p>
             <p className="mt-1 leading-relaxed">{result.practicalPlan.thisWeekAction}</p>
           </article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">이번 달</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("thisMonth")}</p>
             <p className="mt-1 leading-relaxed">{result.practicalPlan.thisMonthAction}</p>
           </article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">원정 플랜</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("travelPlan")}</p>
             <p className="mt-1 leading-relaxed">{result.practicalPlan.travelAction}</p>
           </article>
           {result.practicalPlan.toneReminder ? (
@@ -657,7 +1090,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
           ) : null}
           {result.practicalPlan.microActions?.length ? (
             <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">실전 마이크로 액션</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("microActions")}</p>
               <div className="mt-2 space-y-2 text-[#ede3d4]">
                 {result.practicalPlan.microActions.map((action) => (
                   <p key={action}>- {action}</p>
@@ -669,15 +1102,15 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
 
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">스타일 시그니처</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("styleSignature")}</p>
             <p className={`mt-2 text-lg text-[#fff2de] ${serifClass}`}>{result.stylingGuide.mood}</p>
             <p className="mt-2 text-sm text-[#e8ddcd]">{result.stylingGuide.outfit}</p>
-            <p className="mt-1 text-sm text-[#e8ddcd]">컬러: {result.stylingGuide.colors.join(" · ")}</p>
-            {result.stylingGuide.fragrance ? <p className="mt-1 text-sm text-[#e8ddcd]">향: {result.stylingGuide.fragrance}</p> : null}
+            <p className="mt-1 text-sm text-[#e8ddcd]">{destinyMeetingPlaceResultText("colorLabel")}: {result.stylingGuide.colors.join(" · ")}</p>
+            {result.stylingGuide.fragrance ? <p className="mt-1 text-sm text-[#e8ddcd]">{destinyMeetingPlaceResultText("fragranceLabel")}: {result.stylingGuide.fragrance}</p> : null}
           </article>
 
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">도시 무드 추천</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("cityMood")}</p>
             <div className="mt-2 space-y-2">
               {result.recommendedCountries.slice(0, 2).map((city) => (
                 <div key={`${city.country}-${city.rank}`} className="rounded-xl border border-white/10 bg-black/10 p-3">
@@ -691,10 +1124,10 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
 
         <div className="mt-4 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-[#e9dfd1]">
-          <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">주의할 흐름</p>
-          <p className="mt-2 leading-relaxed">장소: {result.avoidGuide.avoidPlaces.join(" · ")}</p>
-          <p className="mt-1 leading-relaxed">타이밍: {result.avoidGuide.avoidTiming.join(" · ")}</p>
-          <p className="mt-1 leading-relaxed">패턴: {result.avoidGuide.avoidPatterns.join(" · ")}</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">{destinyMeetingPlaceResultText("avoidGuide")}</p>
+          <p className="mt-2 leading-relaxed">{destinyMeetingPlaceResultText("avoidPlaces")}: {result.avoidGuide.avoidPlaces.join(" · ")}</p>
+          <p className="mt-1 leading-relaxed">{destinyMeetingPlaceResultText("avoidTiming")}: {result.avoidGuide.avoidTiming.join(" · ")}</p>
+          <p className="mt-1 leading-relaxed">{destinyMeetingPlaceResultText("avoidPatterns")}: {result.avoidGuide.avoidPatterns.join(" · ")}</p>
           <p className="mt-2 text-[#dacdb8]">{result.avoidGuide.reason}</p>
         </div>
       </SectionCard>

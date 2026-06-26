@@ -83,6 +83,7 @@ function updateLifeBookSessionProgress(sessionId, progress = {}) {
   const lock = LIFEBOOK_SESSION_LOCKS.get(key) || {};
   LIFEBOOK_SESSION_LOCKS.set(key, {
     ...lock,
+    status: clean(progress.status || lock.status || "running"),
     progress: {
       ...(lock.progress || {}),
       ...progress,
@@ -93,11 +94,18 @@ function updateLifeBookSessionProgress(sessionId, progress = {}) {
 
 function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
   const rawStatus = clean(lock.status || fallback.status || "");
-  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
+  const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
+  const status = rawStatus === "done"
+    ? "completed"
+    : rawStatus === "running" || rawStatus === "queued"
+      ? clean(progress.stateKey || LIFEBOOK_WRITING_STATE)
+      : rawStatus === "failed"
+        ? "failed"
+        : rawStatus || "pending";
   const result = lock.result && typeof lock.result === "object" ? lock.result : null;
   const data = result?.data && typeof result.data === "object" ? result.data : result;
-  const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
   const totalChapters = Number(progress.totalChapters || data?.chapterCount || getLifeBookBlueprints().length);
+  const currentChapterNo = Math.max(0, Math.min(totalChapters, Number(progress.currentChapterNo || (status === "completed" ? totalChapters : 0)) || 0));
   return {
     ok: true,
     serviceKey: LIFEBOOK_SERVICE_KEY,
@@ -109,8 +117,9 @@ function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
       completedAt: clean(fallback.completedAt || data?.completedAt),
       failedAt: clean(fallback.failedAt),
       progress: {
-        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_WRITING_STATE)),
-        currentChapterNo: Math.max(0, Math.min(totalChapters, Number(progress.currentChapterNo || (status === "done" ? totalChapters : 0)) || 0)),
+        stateKey: clean(progress.stateKey || (status === "completed" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_WRITING_STATE)),
+        percent: Math.max(0, Math.min(100, Number(progress.percent || progress.progress || (status === "completed" ? 100 : status === "failed" ? 0 : Math.round((currentChapterNo / Math.max(1, totalChapters)) * 70 + 10))) || 0)),
+        currentChapterNo,
         totalChapters,
         currentChapterTitle: clean(progress.currentChapterTitle),
         updatedAt: clean(progress.updatedAt),
@@ -223,32 +232,6 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
         reportType: "lifeBook",
         data,
         ...data,
-      },
-    };
-  }
-
-  if (clean(doc.status) === "pending" || clean(doc.premiumStatus) === "generating") {
-    return {
-      status: 202,
-      payload: {
-        ok: true,
-        serviceKey: LIFEBOOK_SERVICE_KEY,
-        status: "running",
-        serverStatus: "running",
-        reportId,
-        sessionId,
-        fromCache: true,
-        cacheKey,
-        data: {
-          reportId,
-          sessionId,
-          status: "running",
-          progress: {
-            stateKey: LIFEBOOK_WRITING_STATE,
-            currentChapterNo: 0,
-            totalChapters: getLifeBookBlueprints().length,
-          },
-        },
       },
     };
   }
@@ -1862,6 +1845,7 @@ function buildLifeBookPdfRecord({
   createdAt = "",
   engineVersion = "",
   actualPages,
+  chapterCount = 13,
   cacheKey = "",
   calculationResultHash = "",
 } = {}) {
@@ -1878,7 +1862,7 @@ function buildLifeBookPdfRecord({
     title: "사주 인생의 책",
     createdAt: clean(createdAt) || new Date().toISOString(),
     engineVersion: clean(engineVersion) || "quantum-myeongri-v1",
-    chapterCount: 13,
+    chapterCount: Number.isFinite(Number(chapterCount)) ? Number(chapterCount) : 13,
     status: ["generating", "completed", "failed"].includes(clean(status)) ? clean(status) : "generating",
     markdownContent: normalizedMarkdown,
   };
@@ -2149,7 +2133,8 @@ async function handlePrepareSync(request, env) {
     status: "running",
     startedAt: recordCreatedAt,
     progress: {
-      stateKey: "payment-verification",
+      stateKey: "pending",
+      percent: 0,
       currentChapterNo: 0,
       totalChapters: getLifeBookBlueprints().length,
       updatedAt: new Date().toISOString(),
@@ -2226,6 +2211,8 @@ async function handlePrepareSync(request, env) {
 
     updateLifeBookSessionProgress(sessionId, {
       stateKey: "local_calculation",
+      status: "validating",
+      percent: 5,
       currentChapterNo: 0,
       currentChapterTitle: "사주 계산 정합성 확인",
       totalChapters: getLifeBookBlueprints().length,
@@ -2234,6 +2221,8 @@ async function handlePrepareSync(request, env) {
 
     updateLifeBookSessionProgress(sessionId, {
       stateKey: "llm_generation",
+      status: "generating",
+      percent: 10,
       currentChapterNo: 0,
       currentChapterTitle: "인생의 책 본문 생성",
       totalChapters: getLifeBookBlueprints().length,
@@ -2271,13 +2260,18 @@ async function handlePrepareSync(request, env) {
       requestUrl: request.url,
       reportId,
       sessionId,
-      onProgress: ({ chapter } = {}) => {
-        if (!chapter) return;
+      onProgress: (progressEvent = {}) => {
+        const chapter = progressEvent.chapter || null;
+        const totalChapters = Number(progressEvent.totalChapters || getLifeBookBlueprints().length);
+        const currentChapterNo = Number(progressEvent.currentChapterNo ?? chapter?.order ?? 0);
+        const stateKey = clean(progressEvent.status || (chapter ? "generating" : "llm_generation"));
         updateLifeBookSessionProgress(sessionId, {
-          stateKey: "llm_generation",
-          currentChapterNo: Number(chapter.order || 0),
-          currentChapterTitle: clean(chapter.title || "인생의 책 본문 생성"),
-          totalChapters: getLifeBookBlueprints().length,
+          stateKey,
+          status: stateKey === "completed" ? "done" : stateKey === "failed" ? "failed" : "running",
+          percent: Number(progressEvent.progress || 0),
+          currentChapterNo,
+          currentChapterTitle: clean(chapter?.title || (stateKey === "rendering" ? "PDF 렌더링" : "인생의 책 본문 생성")),
+          totalChapters,
         });
       },
     });
@@ -2295,6 +2289,7 @@ async function handlePrepareSync(request, env) {
       userId: auth.userId,
       profileId,
       status: "completed",
+      chapterCount: generated.chapterCount,
       htmlContent: generated.pdfReady?.html || "",
       pdfUrl: generated.downloadUrl || generated.pdfUrl || generated.htmlUrl || "",
       createdAt: recordCreatedAt,
@@ -2351,8 +2346,9 @@ async function handlePrepareSync(request, env) {
       result: responseBody,
       progress: {
         stateKey: "completed",
-        currentChapterNo: getLifeBookBlueprints().length,
-        totalChapters: getLifeBookBlueprints().length,
+        percent: 100,
+        currentChapterNo: Number(generated.chapterCount || getLifeBookBlueprints().length),
+        totalChapters: Number(generated.expectedChapterCount || getLifeBookBlueprints().length),
         updatedAt: new Date().toISOString(),
       },
       lifeBookPdfRecord: completedRecord,
@@ -2360,6 +2356,7 @@ async function handlePrepareSync(request, env) {
     return json(responseBody);
   } catch (error) {
     const normalizedError = normalizeLifeBookError(error);
+    const previousProgress = LIFEBOOK_SESSION_LOCKS.get(sessionId)?.progress || {};
     if (executionCtx && !skipDbPersistence) {
       await failPremiumPdfExecution(
         pdfDbEnv,
@@ -2388,8 +2385,9 @@ async function handlePrepareSync(request, env) {
       failedAt: new Date().toISOString(),
       progress: {
         stateKey: "failed",
-        currentChapterNo: 0,
-        totalChapters: getLifeBookBlueprints().length,
+        percent: 0,
+        currentChapterNo: Number(previousProgress.currentChapterNo || 0),
+        totalChapters: Number(previousProgress.totalChapters || getLifeBookBlueprints().length),
         updatedAt: new Date().toISOString(),
       },
       error: normalizedError,
@@ -2462,6 +2460,7 @@ async function handlePrepare(request, env, ctx) {
     startedAt: new Date().toISOString(),
     progress: {
       stateKey: "queued",
+      percent: 0,
       currentChapterNo: 0,
       totalChapters: getLifeBookBlueprints().length,
       updatedAt: new Date().toISOString(),
@@ -2490,6 +2489,7 @@ async function handlePrepare(request, env, ctx) {
           startedAt: new Date().toISOString(),
           progress: {
             stateKey: "failed",
+            percent: 0,
             currentChapterNo: 0,
             totalChapters: getLifeBookBlueprints().length,
             updatedAt: new Date().toISOString(),
@@ -2513,6 +2513,7 @@ async function handlePrepare(request, env, ctx) {
       status: "running",
       progress: {
         stateKey: "queued",
+        percent: 0,
         currentChapterNo: 0,
         totalChapters: getLifeBookBlueprints().length,
       },

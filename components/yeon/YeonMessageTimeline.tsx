@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { YeonMessageOutput } from "@/lib/yeon/types";
 import YeonTypewriterBubble from "./YeonTypewriterBubble";
 
@@ -17,11 +19,67 @@ function TimelineCard({ title, children }: { title: string; children: React.Reac
   );
 }
 
+const YEON_MESSAGE_TIMELINE_TEXT_TRANSLATIONS = {
+  ko: {
+    vibeTitle: "오늘의 별빛 키워드",
+    joyTitle: "연이의 작은 행복 처방",
+    adviceTitle: "사랑/일/돈/관계의 부드러운 힌트",
+    itemLabel: "아이템",
+    actionLabel: "실천",
+    loveLabel: "사랑",
+    workLabel: "일",
+    moneyLabel: "돈",
+    relationshipLabel: "관계",
+  },
+  en: {
+    vibeTitle: "Today’s Starlight Keyword",
+    joyTitle: "Yeon’s Small Joy Prescription",
+    adviceTitle: "Gentle Hints for Love, Work, Money, and Ties",
+    itemLabel: "Item",
+    actionLabel: "Practice",
+    loveLabel: "Love",
+    workLabel: "Work",
+    moneyLabel: "Money",
+    relationshipLabel: "Relationships",
+  },
+  ja: {
+    vibeTitle: "今日の星明かりキーワード",
+    joyTitle: "ヨンの小さな幸せ処方",
+    adviceTitle: "恋・仕事・お金・関係へのやさしいヒント",
+    itemLabel: "アイテム",
+    actionLabel: "実践",
+    loveLabel: "恋愛",
+    workLabel: "仕事",
+    moneyLabel: "お金",
+    relationshipLabel: "関係",
+  },
+} as const;
+
+function getYeonMessageTimelineCopy(locale: LoadingLocale) {
+  return YEON_MESSAGE_TIMELINE_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || YEON_MESSAGE_TIMELINE_TEXT_TRANSLATIONS.ko;
+}
+
 export default function YeonMessageTimeline({ message }: Props) {
-  const cards = [
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getYeonMessageTimelineCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
+
+  const cards = useMemo(() => [
     {
       key: "vibe",
-      title: "오늘의 별빛 키워드",
+      title: copy.vibeTitle,
       content: (
         <>
           <p className="font-semibold">{message.weekly_vibe.keyword}</p>
@@ -37,28 +95,28 @@ export default function YeonMessageTimeline({ message }: Props) {
     },
     {
       key: "joy",
-      title: "연이의 작은 행복 처방",
+      title: copy.joyTitle,
       content: (
         <>
-          <p>아이템: {message.small_joy.item}</p>
-          <p>실천: {message.small_joy.action}</p>
+          <p>{copy.itemLabel}: {message.small_joy.item}</p>
+          <p>{copy.actionLabel}: {message.small_joy.action}</p>
           <p>{message.small_joy.reason}</p>
         </>
       ),
     },
     {
       key: "advice",
-      title: "사랑/일/돈/관계의 부드러운 힌트",
+      title: copy.adviceTitle,
       content: (
         <>
-          <p>사랑: {message.gentle_advice.love}</p>
-          <p>일: {message.gentle_advice.work}</p>
-          <p>돈: {message.gentle_advice.money}</p>
-          <p>관계: {message.gentle_advice.relationship}</p>
+          <p>{copy.loveLabel}: {message.gentle_advice.love}</p>
+          <p>{copy.workLabel}: {message.gentle_advice.work}</p>
+          <p>{copy.moneyLabel}: {message.gentle_advice.money}</p>
+          <p>{copy.relationshipLabel}: {message.gentle_advice.relationship}</p>
         </>
       ),
     },
-  ];
+  ], [copy, message]);
 
   return (
     <div className="space-y-3.5">

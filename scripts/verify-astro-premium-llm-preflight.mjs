@@ -93,24 +93,30 @@ function fixtureChart() {
 }
 
 function mockArticle(prompt) {
-  const chapterId = (prompt.match(/<article data-chapter-id="([^"]+)"/) || [])[1] || "ch01";
-  const title = (prompt.match(/<h1>([\s\S]*?)<\/h1>/) || [])[1] || "점성술 챕터";
-  const grounding = ((prompt.match(/필수 근거 용어: ([^\n]+)/) || [])[1] || "태양 / 달 / 상승궁")
-    .split("/")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-    .join(", ");
-  const outputFormat = prompt.slice(Math.max(0, prompt.lastIndexOf("[출력 형식]")));
-  const sections = Array.from(outputFormat.matchAll(/<h2>([\s\S]*?)<\/h2>/g)).map((match) => match[1]);
-  const body = sections.map((section, index) => {
-    const marker = ` [장${chapterId.replace("ch", "")}-${index + 1}]`;
-    const first = `${section}${marker}에서는 ${grounding}의 근거와 함께 태양, 달, 상승궁, 하우스와 애스펙트가 만드는 흐름을 차분히 읽습니다. ${section}${marker}의 핵심은 계산된 차트에 있는 행성 배치와 현재 트랜짓을 현실의 감각으로 번역하는 데 있습니다. ${section}${marker}은 사용자가 반복해 선택하는 기준, 감정이 먼저 반응하는 방향, 관계 안에서 자연스럽게 취하는 태도를 하나씩 밝혀 줍니다.`;
-    const second = `${section}${marker}의 조언은 단정적인 예언이 아니라 자기이해를 돕는 안내입니다. ${section}${marker}은 제공된 점성술 계산 결과를 기준으로 확인되는 신호만 다루며, 부족한 정보는 신중하게 제한을 밝힙니다. ${section}${marker}의 흐름은 관계, 일, 돈, 생활 리듬에서 지금 조정할 수 있는 행동을 부드럽게 가리킵니다.`;
-    const third = `${section}${marker}을 현실에 적용할 때는 행성의 위치와 하우스의 무대가 겹치는 부분을 먼저 봅니다. ${section}${marker}은 당장 바꿀 수 있는 습관, 더 지켜봐야 할 변화, 타인과 대화로 풀어야 할 주제를 구분하게 합니다. ${section}${marker}의 마지막 조언은 오늘의 작은 선택을 차트의 큰 방향과 맞추는 데 있습니다.`;
-    return `<section><h2>${section}</h2><p>${first}</p><p>${second}</p><p>${third}</p></section>`;
-  }).join("");
-  return `<article data-chapter-id="${chapterId}"><h1>${title}</h1>${body}</article>`;
+  const chapterId = (prompt.match(/data-chapter-id="([^"]+)"/) || [])[1] || "astro-01";
+  const title = (prompt.match(/\n제목: ([^\n]+)/) || prompt.match(/<h2>([\s\S]*?)<\/h2>/) || [])[1] || "점성술 챕터";
+  const bodyParagraphs = [
+    `${title}에서는 출생 차트의 Sun 물고기자리, Moon 천칭자리, 상승궁 천칭자리, MC 게자리 흐름을 중심으로 삶의 큰 방향을 읽습니다. 태양은 자기표현의 중심을, 달은 감정의 안전감을, 상승궁은 관계 안에서 처음 드러나는 태도를 비춥니다.`,
+    `이 차트는 Venus 양자리와 Mars 쌍둥이자리의 움직임이 사랑과 행동 방식에 또렷하게 닿아 있습니다. 금성은 관계에서 빠르게 마음이 열리는 지점을 보여 주고, 화성은 말과 배움, 이동성 안에서 추진력이 살아나는 패턴을 가리킵니다.`,
+    `하우스 배치를 함께 보면 5하우스의 태양과 1하우스의 달이 자기표현과 감정 반응을 강하게 연결합니다. 이 흐름은 사람들 앞에서 부드럽게 빛나고 싶어 하면서도, 가까운 관계에서는 균형과 공정함을 중요하게 여기는 심리로 드러납니다.`,
+    `Sun-Moon trine과 Venus-Mars opposition은 조화와 긴장이 함께 움직이는 신호입니다. 장점은 감정과 의지가 비교적 자연스럽게 이어진다는 점이고, 주의점은 사랑과 선택의 속도가 빨라질 때 상대의 리듬을 놓칠 수 있다는 점입니다.`,
+    `현재 트랜짓에서는 목성-태양 트라인과 토성-달 섹스타일 흐름이 성장과 정돈을 동시에 요구합니다. 지금은 관계와 창작의 가능성을 넓히되, 생활 리듬과 약속의 경계를 분명히 세울수록 운의 흐름이 안정적으로 열립니다.`,
+  ].map((text) => `<p>${text}</p>`).join("");
+  return `<section class="astrology-chapter" data-chapter-id="${chapterId}">
+  <h2>${title}</h2>
+  <div class="chapter-summary">
+    <p>출생 차트의 태양, 달, 상승궁, 하우스, 어스펙트가 한 방향으로만 흐르지 않고 조화와 긴장을 함께 만듭니다. 제공된 계산 결과 안에서 확인되는 신호를 중심으로 현재의 선택 기준을 정리합니다. 이 장은 성향의 장점과 조율 지점을 현실 조언으로 연결합니다.</p>
+  </div>
+  <div class="chapter-body">${bodyParagraphs}</div>
+  <div class="chapter-advice">
+    <h3>별자리 처방</h3>
+    <ul>
+      <li>감정이 앞설 때는 Moon 천칭자리의 균형 감각으로 대화의 순서를 늦추세요.</li>
+      <li>Venus 양자리의 빠른 끌림은 약속과 경계 확인을 거칠 때 더 안정됩니다.</li>
+      <li>목성-태양 트라인이 열어 주는 확장 기회를 작은 실행 계획으로 붙잡으세요.</li>
+    </ul>
+  </div>
+</section>`;
 }
 
 function buildEnv(mode) {
@@ -145,12 +151,37 @@ function installLogFilter(verbose) {
   };
 }
 
-function assertResult(generated) {
+function assertResult(generated, progressEvents = []) {
   const html = clean(generated?.pdfReady?.html);
   const text = stripTags(html);
   const foreignTokens = Array.from(text.matchAll(/\b[A-Za-z][A-Za-z0-9_-]{2,}\b/g))
     .map((match) => match[0])
-    .filter((token) => !["PDF", "HTML", "MC", "IC", "ASC"].includes(token));
+    .filter((token) => ![
+      "PDF",
+      "HTML",
+      "MC",
+      "IC",
+      "ASC",
+      "ID",
+      "Sun",
+      "Moon",
+      "Mercury",
+      "Venus",
+      "Mars",
+      "Jupiter",
+      "Saturn",
+      "female",
+      "Asia",
+      "Seoul",
+      "tropical",
+      "Placidus",
+      "trine",
+      "opposition",
+      "Sun-Moon",
+      "Venus-Mars",
+      "astro-preflight-local",
+      "astro-preflight-live",
+    ].includes(token));
   const summary = {
     ok: generated?.ok === true,
     status: generated?.status,
@@ -158,11 +189,13 @@ function assertResult(generated) {
     completionOk: generated?.pdfCompletionValidation?.ok === true,
     chapterCount: Number(generated?.chapterCount || 0),
     expectedChapterCount: Number(generated?.expectedChapterCount || 0),
-    articleCount: (html.match(/data-chapter-id=/g) || []).length,
+    chapterSectionCount: (html.match(/class="astrology-chapter"/g) || []).length,
     tableCount: (html.match(/astro-table/g) || []).length,
-    barCount: (html.match(/astro-bar-track/g) || []).length,
-    timelineCount: (html.match(/astro-transit-timeline/g) || []).length,
+    chartBasisCount: (html.match(/astro-chart-basis/g) || []).length,
+    finalAdviceCount: (html.match(/astro-final-advice/g) || []).length,
     foreignTokens,
+    progressStatuses: Array.from(new Set(progressEvents.map((event) => clean(event.status)).filter(Boolean))),
+    lastProgress: progressEvents.length ? progressEvents[progressEvents.length - 1] : null,
   };
   const pass = summary.ok
     && summary.status === "completed"
@@ -170,11 +203,16 @@ function assertResult(generated) {
     && summary.completionOk
     && summary.chapterCount === astrologyPremiumChapterPlanV2.chapters.length
     && summary.expectedChapterCount === astrologyPremiumChapterPlanV2.chapters.length
-    && summary.articleCount === astrologyPremiumChapterPlanV2.chapters.length
+    && summary.chapterSectionCount === astrologyPremiumChapterPlanV2.chapters.length
     && summary.tableCount >= 3
-    && summary.barCount >= 6
-    && summary.timelineCount >= 1
-    && summary.foreignTokens.length === 0;
+    && summary.chartBasisCount >= 1
+    && summary.finalAdviceCount >= 1
+    && summary.foreignTokens.length === 0
+    && summary.progressStatuses.includes("validating")
+    && summary.progressStatuses.includes("generating")
+    && summary.progressStatuses.includes("rendering")
+    && summary.progressStatuses.includes("completed")
+    && Number(summary.lastProgress?.progress || 0) === 100;
   return { pass, summary, html };
 }
 
@@ -212,16 +250,15 @@ async function renderCheck(html) {
       });
       return {
         title: document.title,
-        articles: count("article[data-chapter-id]"),
+        chapters: count("section.astrology-chapter[data-chapter-id]"),
         tableCount: count(".astro-table"),
-        barCount: count(".astro-bar-track i"),
-        timelineCount: count(".astro-transit-timeline li"),
-        visualSection: box(".astro-visual-section"),
+        chartBasisCount: count(".astro-chart-basis"),
+        finalAdviceCount: count(".astro-final-advice"),
+        visualSection: box(".astro-core-summary"),
         planetTable: box(".astro-planet-table"),
-        firstBar: box(".astro-bar-track i"),
         tablesVisible: allVisible(".astro-table"),
-        barsVisible: allVisible(".astro-bar-track i"),
-        timelineVisible: allVisible(".astro-transit-timeline li"),
+        chartBasisVisible: allVisible(".astro-chart-basis"),
+        finalAdviceVisible: allVisible(".astro-final-advice"),
       };
     });
     await browser.close();
@@ -248,25 +285,28 @@ async function main() {
     return;
   }
 
+  const reportSuffix = mode === "mock" ? "local" : "live";
+  const progressEvents = [];
   const generated = await generateAstrologyPremiumPdfV2({
     userId: "preflight-user",
     env: buildEnv(mode),
     input: { localAstroChartJson: fixtureChart() },
     requestUrl: "https://example.test/api/astro/premium/prepare",
-    reportId: `astro-preflight-${mode}`,
-    sessionId: `astro-preflight-${mode}`,
-    paymentContext: { reportId: `astro-preflight-${mode}`, sessionId: `astro-preflight-${mode}` },
+    reportId: `astro-preflight-${reportSuffix}`,
+    sessionId: `astro-preflight-${reportSuffix}`,
+    paymentContext: { reportId: `astro-preflight-${reportSuffix}`, sessionId: `astro-preflight-${reportSuffix}` },
+    onProgress: (event) => progressEvents.push(event),
   });
-  const checked = assertResult(generated);
+  const checked = assertResult(generated, progressEvents);
   const render = args.noRender === "true" ? { skipped: true, reason: "NO_RENDER" } : await renderCheck(checked.html);
   const renderPass = render.skipped === true || (
-    render.articles === astrologyPremiumChapterPlanV2.chapters.length
+    render.chapters === astrologyPremiumChapterPlanV2.chapters.length
     && render.tableCount >= 3
-    && render.barCount >= 6
-    && render.timelineCount >= 1
+    && render.chartBasisCount >= 1
+    && render.finalAdviceCount >= 1
     && render.tablesVisible === true
-    && render.barsVisible === true
-    && render.timelineVisible === true
+    && render.chartBasisVisible === true
+    && render.finalAdviceVisible === true
   );
   const ok = checked.pass && renderPass;
   console.log(JSON.stringify({

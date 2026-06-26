@@ -1,27 +1,54 @@
 (function () {
+  const DREAM_MEANING_LIBRARY_TEXT_TRANSLATIONS = {
+    ko: {
+      "dreamMeaning.001": "전체",
+      "dreamMeaning.002": "동물 관련",
+      "dreamMeaning.003": "과일 관련",
+      "dreamMeaning.004": "사람 관련",
+      "dreamMeaning.005": "감정(긍정)",
+      "dreamMeaning.006": "감정(분노)",
+      "dreamMeaning.007": "감정(불안)",
+      "dreamMeaning.008": "감정(상실)",
+      "dreamMeaning.009": "감정(회복)",
+      "dreamMeaning.010": "장소 키워드",
+      "dreamMeaning.011": "사물 키워드",
+      "dreamMeaning.012": "태몽",
+      "dreamMeaning.013": "재물운",
+      "dreamMeaning.014": "합격운",
+      "dreamMeaning.015": "연애운",
+      "dreamMeaning.016": "결혼운",
+      "dreamMeaning.017": "마주침 장면",
+      "dreamMeaning.018": "행동 장면",
+      "dreamMeaning.019": "변화 장면",
+    },
+  };
+
+  function _dreamMeaningLibraryText(key) {
+    return DREAM_MEANING_LIBRARY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+  }
   var CATEGORY_META = {
-    all: { label: '전체', icon: '📚' },
-    animal: { label: '동물 관련', icon: '🐾' },
-    fruit: { label: '과일 관련', icon: '🍎' },
-    people: { label: '사람 관련', icon: '🧑' },
-    emotion_positive: { label: '감정(긍정)', icon: '💖' },
-    emotion_anger: { label: '감정(분노)', icon: '❤️‍🔥' },
-    emotion_anxiety: { label: '감정(불안)', icon: '💭' },
-    emotion_loss: { label: '감정(상실)', icon: '🫧' },
-    emotion_recovery: { label: '감정(회복)', icon: '💚' },
-    place: { label: '장소 키워드', icon: '📍' },
-    object: { label: '사물 키워드', icon: '🧰' },
-    taemong: { label: '태몽', icon: '👶' },
-    wealth: { label: '재물운', icon: '💰' },
-    success: { label: '합격운', icon: '🎯' },
-    love: { label: '연애운', icon: '💞' },
-    marriage: { label: '결혼운', icon: '💍' }
+    all: { label: _dreamMeaningLibraryText("dreamMeaning.001"), icon: '📚' },
+    animal: { label: _dreamMeaningLibraryText("dreamMeaning.002"), icon: '🐾' },
+    fruit: { label: _dreamMeaningLibraryText("dreamMeaning.003"), icon: '🍎' },
+    people: { label: _dreamMeaningLibraryText("dreamMeaning.004"), icon: '🧑' },
+    emotion_positive: { label: _dreamMeaningLibraryText("dreamMeaning.005"), icon: '💖' },
+    emotion_anger: { label: _dreamMeaningLibraryText("dreamMeaning.006"), icon: '❤️‍🔥' },
+    emotion_anxiety: { label: _dreamMeaningLibraryText("dreamMeaning.007"), icon: '💭' },
+    emotion_loss: { label: _dreamMeaningLibraryText("dreamMeaning.008"), icon: '🫧' },
+    emotion_recovery: { label: _dreamMeaningLibraryText("dreamMeaning.009"), icon: '💚' },
+    place: { label: _dreamMeaningLibraryText("dreamMeaning.010"), icon: '📍' },
+    object: { label: _dreamMeaningLibraryText("dreamMeaning.011"), icon: '🧰' },
+    taemong: { label: _dreamMeaningLibraryText("dreamMeaning.012"), icon: '👶' },
+    wealth: { label: _dreamMeaningLibraryText("dreamMeaning.013"), icon: '💰' },
+    success: { label: _dreamMeaningLibraryText("dreamMeaning.014"), icon: '🎯' },
+    love: { label: _dreamMeaningLibraryText("dreamMeaning.015"), icon: '💞' },
+    marriage: { label: _dreamMeaningLibraryText("dreamMeaning.016"), icon: '💍' }
   };
 
   var DEFAULT_SCENE_VARIANTS = [
-    { label: '마주침 장면', hook: '상징이 눈앞에 또렷하게 등장하는', fortuneBoost: '초기 기회 감지', tipFocus: '관찰과 기록', tags: ['마주침', '초기신호'] },
-    { label: '행동 장면', hook: '상징과 직접 상호작용하며 선택이 드러나는', fortuneBoost: '실행 가속', tipFocus: '작은 행동 착수', tags: ['행동', '실천'] },
-    { label: '변화 장면', hook: '상징의 상태가 변하면서 결말 힌트를 주는', fortuneBoost: '결과 전환', tipFocus: '우선순위 조정', tags: ['변화', '결과'] }
+    { label: _dreamMeaningLibraryText("dreamMeaning.017"), hook: '상징이 눈앞에 또렷하게 등장하는', fortuneBoost: '초기 기회 감지', tipFocus: '관찰과 기록', tags: ['마주침', '초기신호'] },
+    { label: _dreamMeaningLibraryText("dreamMeaning.018"), hook: '상징과 직접 상호작용하며 선택이 드러나는', fortuneBoost: '실행 가속', tipFocus: '작은 행동 착수', tags: ['행동', '실천'] },
+    { label: _dreamMeaningLibraryText("dreamMeaning.019"), hook: '상징의 상태가 변하면서 결말 힌트를 주는', fortuneBoost: '결과 전환', tipFocus: '우선순위 조정', tags: ['변화', '결과'] }
   ];
 
   function normalizeDreamTitle(keyword) {

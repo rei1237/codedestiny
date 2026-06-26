@@ -108,16 +108,80 @@ const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";
 const SHARE_TEXT_PREFIX = "태양 회복 타로가 건넨 메시지입니다.\n\n";
 
+const SUN_HEALING_TAROT_TEXT_TRANSLATIONS = {
+  ko: {
+    "section.firstLight": "지금 가장 먼저 비친 빛",
+    "section.prologue": "새벽빛 프롤로그",
+    "section.sunMessages": "네 장의 태양 메시지",
+    "section.hiddenTruth": "1. 마음이 지친 진짜 자리",
+    "section.emotionalTemperature": "2. 감정의 온도",
+    "section.recoveryClue": "3. 회복의 단서",
+    "section.recoveryAction": "4. 오늘의 회복 행동",
+    "section.integration": "종합 풀이: 마음에 빛이 돌아오는 흐름",
+    "section.routine": "오늘의 회복 루틴",
+  },
+  en: {
+    "section.firstLight": "The First Light Showing Now",
+    "section.prologue": "Dawnlight Prologue",
+    "section.sunMessages": "Four Solar Messages",
+    "section.hiddenTruth": "1. Where the Heart Is Truly Tired",
+    "section.emotionalTemperature": "2. Emotional Temperature",
+    "section.recoveryClue": "3. A Clue for Recovery",
+    "section.recoveryAction": "4. Today's Recovery Action",
+    "section.integration": "Full Reading: How Light Returns to the Heart",
+    "section.routine": "Today's Recovery Routine",
+  },
+  ja: {
+    "section.firstLight": "いま最初に差し込む光",
+    "section.prologue": "夜明け色のプロローグ",
+    "section.sunMessages": "四枚の太陽メッセージ",
+    "section.hiddenTruth": "1. 心が本当に疲れている場所",
+    "section.emotionalTemperature": "2. 感情の温度",
+    "section.recoveryClue": "3. 回復の手がかり",
+    "section.recoveryAction": "4. 今日の回復アクション",
+    "section.integration": "総合リーディング：心に光が戻る流れ",
+    "section.routine": "今日の回復ルーティン",
+  },
+  "zh-CN": {
+    "section.firstLight": "此刻最先照进来的光",
+    "section.prologue": "晨光序章",
+    "section.sunMessages": "四张太阳讯息",
+    "section.hiddenTruth": "1. 内心真正疲惫的位置",
+    "section.emotionalTemperature": "2. 情绪的温度",
+    "section.recoveryClue": "3. 复原的线索",
+    "section.recoveryAction": "4. 今日复原行动",
+    "section.integration": "综合解读：光如何回到心里",
+    "section.routine": "今日复原练习",
+  },
+  "zh-TW": {
+    "section.firstLight": "此刻最先照進來的光",
+    "section.prologue": "晨光序章",
+    "section.sunMessages": "四張太陽訊息",
+    "section.hiddenTruth": "1. 內心真正疲憊的位置",
+    "section.emotionalTemperature": "2. 情緒的溫度",
+    "section.recoveryClue": "3. 復原的線索",
+    "section.recoveryAction": "4. 今日復原行動",
+    "section.integration": "綜合解讀：光如何回到心裡",
+    "section.routine": "今日復原練習",
+  },
+} as const;
+
+type SunHealingTarotTextKey = keyof typeof SUN_HEALING_TAROT_TEXT_TRANSLATIONS.ko;
+
+function sunHealingTarotText(key: SunHealingTarotTextKey): string {
+  return SUN_HEALING_TAROT_TEXT_TRANSLATIONS.ko[key] || SUN_HEALING_TAROT_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 const READING_SECTIONS: ReadingSection[] = [
-  { key: "consultingHighlights", title: "지금 가장 먼저 비친 빛", tone: "focus", icon: Sparkles },
-  { key: "opening", title: "새벽빛 프롤로그", tone: "neutral", icon: Sparkles },
-  { key: "cardDeepDive", title: "네 장의 태양 메시지", tone: "focus", icon: Telescope },
-  { key: "hiddenTruth", title: "1. 마음이 지친 진짜 자리", tone: "focus", icon: Telescope },
-  { key: "embracePain", title: "2. 감정의 온도", tone: "warm", icon: HeartHandshake },
-  { key: "silverLining", title: "3. 회복의 단서", tone: "focus", icon: Lightbulb },
-  { key: "stepForward", title: "4. 오늘의 회복 행동", tone: "warm", icon: Footprints },
-  { key: "integrationMessage", title: "종합 풀이: 마음에 빛이 돌아오는 흐름", tone: "neutral", icon: Sparkles },
-  { key: "actionPlan", title: "오늘의 회복 루틴", tone: "focus", icon: Sparkles },
+  { key: "consultingHighlights", title: sunHealingTarotText("section.firstLight"), tone: "focus", icon: Sparkles },
+  { key: "opening", title: sunHealingTarotText("section.prologue"), tone: "neutral", icon: Sparkles },
+  { key: "cardDeepDive", title: sunHealingTarotText("section.sunMessages"), tone: "focus", icon: Telescope },
+  { key: "hiddenTruth", title: sunHealingTarotText("section.hiddenTruth"), tone: "focus", icon: Telescope },
+  { key: "embracePain", title: sunHealingTarotText("section.emotionalTemperature"), tone: "warm", icon: HeartHandshake },
+  { key: "silverLining", title: sunHealingTarotText("section.recoveryClue"), tone: "focus", icon: Lightbulb },
+  { key: "stepForward", title: sunHealingTarotText("section.recoveryAction"), tone: "warm", icon: Footprints },
+  { key: "integrationMessage", title: sunHealingTarotText("section.integration"), tone: "neutral", icon: Sparkles },
+  { key: "actionPlan", title: sunHealingTarotText("section.routine"), tone: "focus", icon: Sparkles },
 ];
 
 function clamp(n: number, min: number, max: number) {

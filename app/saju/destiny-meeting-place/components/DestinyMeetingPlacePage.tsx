@@ -16,6 +16,28 @@ import {
 } from "@/components/fortune/destiny-meeting-place/destinyMeetingPlacePremiumDemo";
 import type { DestinyMeetingPlaceResult as MeetingResult } from "@/components/fortune/destiny-meeting-place/destinyMeetingPlaceTypes";
 
+const DESTINY_MEETING_PLACE_PAGE_TEXT_TRANSLATIONS = {
+  ko: {
+    "destinyMeetingPage.001": "생년월일을 입력해 주세요.",
+    "destinyMeetingPage.002": "이용권 확인 중",
+    "destinyMeetingPage.003": "유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.",
+    "destinyMeetingPage.004": "로그인이 필요합니다.",
+    "destinyMeetingPage.005": "인연의 장소 리포트가 완성되었습니다.",
+    "destinyMeetingPage.006": "Reset form",
+    "destinyMeetingPage.007": "뒤로 가기",
+    "destinyMeetingPage.008": "초기화",
+    "destinyMeetingPage.009": "사주로 보는 인연의 장소 대표 이미지",
+    "destinyMeetingPage.010": "예: 은하수여우",
+    "destinyMeetingPage.011": "일간:",
+    "destinyMeetingPage.012": "대표 운성:",
+    "destinyMeetingPage.013": "엔진 소스:",
+    "destinyMeetingPage.014": "시간 입력:",
+  },
+} as const;
+
+function destinyMeetingPlacePageText(key: keyof typeof DESTINY_MEETING_PLACE_PAGE_TEXT_TRANSLATIONS.ko): string {
+  return DESTINY_MEETING_PLACE_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
 const FEATURE_COST = 100;
@@ -110,7 +132,7 @@ export default function DestinyMeetingPlacePage() {
   const handleAnalyze = useCallback(async () => {
     if (isLoading || isCharging) return;
     if (!input.birthDate) {
-      toast.error("생년월일을 입력해 주세요.");
+      toast.error(destinyMeetingPlacePageText("destinyMeetingPage.001"));
       return;
     }
 
@@ -136,7 +158,7 @@ export default function DestinyMeetingPlacePage() {
         requestId,
         cost: FEATURE_COST,
         paymentMode: "pass",
-        message: "이용권 확인 중",
+        message: destinyMeetingPlacePageText("destinyMeetingPage.002"),
       });
 
       const gate = await runBillingCoinGate({
@@ -152,11 +174,11 @@ export default function DestinyMeetingPlacePage() {
       if (!gate.ok) {
         const code = String(gate.error?.code || "").toUpperCase();
         if (code === "INSUFFICIENT_COINS") {
-          toast.error("유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.");
+          toast.error(destinyMeetingPlacePageText("destinyMeetingPage.003"));
           return;
         }
         if (code === "AUTH_REQUIRED") {
-          toast.error("로그인이 필요합니다.");
+          toast.error(destinyMeetingPlacePageText("destinyMeetingPage.004"));
           return;
         }
         toast.error(gate.error?.message || "결제 확인에 실패했습니다.");
@@ -183,7 +205,7 @@ export default function DestinyMeetingPlacePage() {
         timeUnknown: Boolean(root.timeUnknown),
       });
 
-      toast.success("인연의 장소 리포트가 완성되었습니다.");
+      toast.success(destinyMeetingPlacePageText("destinyMeetingPage.005"));
     } finally {
       setIsCharging(false);
       setIsLoading(false);
@@ -266,7 +288,7 @@ export default function DestinyMeetingPlacePage() {
             type="button"
             onClick={handleReset}
             className="pointer-events-auto rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
-            aria-label="Reset form"
+            aria-label={destinyMeetingPlacePageText("destinyMeetingPage.006")}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -281,7 +303,7 @@ export default function DestinyMeetingPlacePage() {
           <button
             onClick={handleBack}
             className="rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
-            aria-label="뒤로 가기"
+            aria-label={destinyMeetingPlacePageText("destinyMeetingPage.007")}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
@@ -294,7 +316,7 @@ export default function DestinyMeetingPlacePage() {
           <button
             onClick={handleReset}
             className="rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
-            aria-label="초기화"
+            aria-label={destinyMeetingPlacePageText("destinyMeetingPage.008")}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -309,7 +331,7 @@ export default function DestinyMeetingPlacePage() {
           <div className="relative h-[220px] sm:h-[300px]">
             <img
               src={HERO_IMAGE}
-              alt="사주로 보는 인연의 장소 대표 이미지"
+              alt={destinyMeetingPlacePageText("destinyMeetingPage.009")}
               className="h-full w-full object-cover"
               loading="eager"
               decoding="async"
@@ -364,7 +386,7 @@ export default function DestinyMeetingPlacePage() {
               <input
                 value={input.name || ""}
                 onChange={(event) => setPatch({ name: event.target.value.slice(0, 24) })}
-                placeholder="예: 은하수여우"
+                placeholder={destinyMeetingPlacePageText("destinyMeetingPage.010")}
                 className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] placeholder:text-[#cfc7ea] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               />
               <span className="block text-[11px] font-medium text-[#d7d1ee]">리포트 상단에 표시될 호칭입니다. 본명이 아니어도 괜찮아요.</span>
@@ -453,10 +475,10 @@ export default function DestinyMeetingPlacePage() {
           <section className="rounded-3xl border border-[#9cd8ff]/30 bg-[#0f1538]/55 p-4 text-sm text-[#f1edff] backdrop-blur-md sm:p-5">
             <h3 className="text-base font-black text-white [text-shadow:0_0_12px_rgba(145,216,255,0.5)]">분석 근거 데이터</h3>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <p>일간: <b>{meta.dayMaster}</b></p>
-              <p>대표 운성: <b>{meta.representativeStage}</b></p>
-              <p>엔진 소스: <b>{meta.source === "saju-engine" ? "사주 엔진" : "로컬 정밀 계산"}</b></p>
-              <p>시간 입력: <b>{meta.timeUnknown ? "시간 미입력" : "시간 입력됨"}</b></p>
+              <p>{destinyMeetingPlacePageText("destinyMeetingPage.011")} <b>{meta.dayMaster}</b></p>
+              <p>{destinyMeetingPlacePageText("destinyMeetingPage.012")} <b>{meta.representativeStage}</b></p>
+              <p>{destinyMeetingPlacePageText("destinyMeetingPage.013")} <b>{meta.source === "saju-engine" ? "사주 엔진" : "로컬 정밀 계산"}</b></p>
+              <p>{destinyMeetingPlacePageText("destinyMeetingPage.014")} <b>{meta.timeUnknown ? "시간 미입력" : "시간 입력됨"}</b></p>
             </div>
             {meta.warning ? <p className="mt-2 text-xs text-[#ffd7e5]">주의: {meta.warning}</p> : null}
           </section>

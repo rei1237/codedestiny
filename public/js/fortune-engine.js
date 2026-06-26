@@ -86,6 +86,29 @@
     return UI[langKey === 'kr' ? 'kr' : 'en'];
   }
 
+  var FORTUNE_ENGINE_TEXT_TRANSLATIONS = {
+    kr: {
+      systemAria: '운세 체계',
+      systemTabs: { animal: '12띠', sign: '별자리', ziwei: '자미', sukuyo: '숙요', vedic: '베다' }
+    },
+    en: {
+      systemAria: 'Fortune systems',
+      systemTabs: { animal: '12 Animals', sign: 'Zodiac', ziwei: 'Zi Wei', sukuyo: 'Sukuyo', vedic: 'Vedic' }
+    },
+    jp: {
+      systemAria: '占い体系',
+      systemTabs: { animal: '十二支', sign: '星座', ziwei: '紫微', sukuyo: '宿曜', vedic: 'ヴェーダ' }
+    },
+    cn: {
+      systemAria: '运势体系',
+      systemTabs: { animal: '十二生肖', sign: '星座', ziwei: '紫微', sukuyo: '宿曜', vedic: '吠陀' }
+    }
+  };
+
+  function fortuneEngineText() {
+    return pickI18n(FORTUNE_ENGINE_TEXT_TRANSLATIONS, resolveLangKey()) || FORTUNE_ENGINE_TEXT_TRANSLATIONS.kr;
+  }
+
   var ZODIAC_EN = {
     aries: 'Aries', taurus: 'Taurus', gemini: 'Gemini', cancer: 'Cancer', leo: 'Leo', virgo: 'Virgo',
     libra: 'Libra', scorpio: 'Scorpio', sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius', pisces: 'Pisces'
@@ -490,14 +513,15 @@
   function buildSystemTabs(cfg, L) {
     var p = cfg.period;
     var base = '/fortune/' + p + '/';
+    var copy = fortuneEngineText();
     var tabs = [
-      { href: base + 'rat.html', label: '12띠', t: 'animal' },
-      { href: base + 'aries.html', label: '별자리', t: 'sign' },
-      { href: base + 'ziwei/mingong.html', label: '자미', t: 'ziwei' },
-      { href: base + 'sukuyo/1.html', label: '숙요', t: 'sukuyo' },
-      { href: base + 'vedic/mesha.html', label: '베다', t: 'vedic' }
+      { href: base + 'rat.html', label: copy.systemTabs.animal, t: 'animal' },
+      { href: base + 'aries.html', label: copy.systemTabs.sign, t: 'sign' },
+      { href: base + 'ziwei/mingong.html', label: copy.systemTabs.ziwei, t: 'ziwei' },
+      { href: base + 'sukuyo/1.html', label: copy.systemTabs.sukuyo, t: 'sukuyo' },
+      { href: base + 'vedic/mesha.html', label: copy.systemTabs.vedic, t: 'vedic' }
     ];
-    var html = '<nav class="fe-sys-tabs" aria-label="운세 체계">';
+    var html = '<nav class="fe-sys-tabs" aria-label="' + escapeHtml(copy.systemAria) + '">';
     tabs.forEach(function(tab) {
       var active = cfg.type === tab.t ? ' fe-sys-tab--active' : '';
       html += '<a class="fe-sys-tab' + active + '" href="' + escapeHtml(tab.href) + '">' + escapeHtml(tab.label) + '</a>';
@@ -877,4 +901,3 @@
   }
 
 })(window);
-

@@ -15,6 +15,32 @@ import PremiumBlurGate from "./PremiumBlurGate";
 import { motion, AnimatePresence } from "framer-motion";
 import { authFetch } from "../_lib/auth-client";
 
+const ADVANCED_ZIWEI_SECTION_TEXT_TRANSLATIONS = {
+  ko: {
+    "advancedZiwei.001": "성도 안내",
+    "advancedZiwei.002": "운명의 축",
+    "advancedZiwei.003": "기질의 코어",
+    "advancedZiwei.004": "직업 궤도",
+    "advancedZiwei.005": "재물 항로",
+    "advancedZiwei.006": "관계 중력",
+    "advancedZiwei.007": "가문의 결",
+    "advancedZiwei.008": "사회 좌표",
+    "advancedZiwei.009": "신체 리듬",
+    "advancedZiwei.010": "내면 우주",
+    "advancedZiwei.011": "공간 자산",
+    "advancedZiwei.012": "환경 변곡",
+    "advancedZiwei.013": "후속 에너지",
+    "advancedZiwei.014": "10년 파동",
+    "advancedZiwei.015": "총합 마스터플랜",
+    "advancedZiwei.016": "예: 홍길동",
+    "advancedZiwei.017": "남성",
+    "advancedZiwei.018": "여성",
+  },
+} as const;
+
+function advancedZiweiSectionText(key: keyof typeof ADVANCED_ZIWEI_SECTION_TEXT_TRANSLATIONS.ko): string {
+  return ADVANCED_ZIWEI_SECTION_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 type Step = "form" | "computing" | "result";
 
 interface FormState {
@@ -44,21 +70,21 @@ interface ChapterMeta {
 }
 
 const CHAPTERS: ChapterMeta[] = [
-  { id: "intro", title: "성도 안내", constellation: "Orion", free: true },
-  { id: "destiny", title: "운명의 축", constellation: "Polaris", free: true },
-  { id: "personality", title: "기질의 코어", constellation: "Lyra", free: true },
-  { id: "career", title: "직업 궤도", constellation: "Vega", free: false },
-  { id: "wealth", title: "재물 항로", constellation: "Cygnus", free: false },
-  { id: "love", title: "관계 중력", constellation: "Andromeda", free: false },
-  { id: "family", title: "가문의 결", constellation: "Cassiopeia", free: false },
-  { id: "social", title: "사회 좌표", constellation: "Draco", free: false },
-  { id: "health", title: "신체 리듬", constellation: "Aquila", free: false },
-  { id: "innerMind", title: "내면 우주", constellation: "Phoenix", free: false },
-  { id: "realEstate", title: "공간 자산", constellation: "Pegasus", free: false },
-  { id: "environment", title: "환경 변곡", constellation: "Hydra", free: false },
-  { id: "children", title: "후속 에너지", constellation: "Gemini", free: false },
-  { id: "majorCycle", title: "10년 파동", constellation: "Ursa", free: false },
-  { id: "total", title: "총합 마스터플랜", constellation: "Argo", free: false },
+  { id: "intro", title: advancedZiweiSectionText("advancedZiwei.001"), constellation: "Orion", free: true },
+  { id: "destiny", title: advancedZiweiSectionText("advancedZiwei.002"), constellation: "Polaris", free: true },
+  { id: "personality", title: advancedZiweiSectionText("advancedZiwei.003"), constellation: "Lyra", free: true },
+  { id: "career", title: advancedZiweiSectionText("advancedZiwei.004"), constellation: "Vega", free: false },
+  { id: "wealth", title: advancedZiweiSectionText("advancedZiwei.005"), constellation: "Cygnus", free: false },
+  { id: "love", title: advancedZiweiSectionText("advancedZiwei.006"), constellation: "Andromeda", free: false },
+  { id: "family", title: advancedZiweiSectionText("advancedZiwei.007"), constellation: "Cassiopeia", free: false },
+  { id: "social", title: advancedZiweiSectionText("advancedZiwei.008"), constellation: "Draco", free: false },
+  { id: "health", title: advancedZiweiSectionText("advancedZiwei.009"), constellation: "Aquila", free: false },
+  { id: "innerMind", title: advancedZiweiSectionText("advancedZiwei.010"), constellation: "Phoenix", free: false },
+  { id: "realEstate", title: advancedZiweiSectionText("advancedZiwei.011"), constellation: "Pegasus", free: false },
+  { id: "environment", title: advancedZiweiSectionText("advancedZiwei.012"), constellation: "Hydra", free: false },
+  { id: "children", title: advancedZiweiSectionText("advancedZiwei.013"), constellation: "Gemini", free: false },
+  { id: "majorCycle", title: advancedZiweiSectionText("advancedZiwei.014"), constellation: "Ursa", free: false },
+  { id: "total", title: advancedZiweiSectionText("advancedZiwei.015"), constellation: "Argo", free: false },
 ];
 
 const RESULT_CACHE_KEY = "premium:ziwei:result:v5";
@@ -537,7 +563,7 @@ export default function AdvancedZiweiSection({
                 value={form.name}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                 className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/70 focus:bg-white/10"
-                placeholder="예: 홍길동"
+                placeholder={advancedZiweiSectionText("advancedZiwei.016")}
               />
             </label>
 
@@ -545,8 +571,8 @@ export default function AdvancedZiweiSection({
               <span className="text-xs font-bold tracking-wide text-cyan-100/80">성별</span>
               <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/15 bg-white/5 p-1">
                 {[
-                  { key: "M", label: "남성" },
-                  { key: "F", label: "여성" },
+                  { key: "M", label: advancedZiweiSectionText("advancedZiwei.017") },
+                  { key: "F", label: advancedZiweiSectionText("advancedZiwei.018") },
                 ].map((gender) => (
                   <button
                     key={gender.key}

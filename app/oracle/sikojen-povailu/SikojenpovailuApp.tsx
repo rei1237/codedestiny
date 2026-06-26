@@ -12,6 +12,18 @@ import { PhaseSharing } from './components/PhaseSharing';
 import { ShadowReading } from './components/ShadowReading';
 import './components/phases.css';
 
+const SIKOJEN_APP_TEXT_TRANSLATIONS = {
+  ko: {
+    homeAria: "홈으로 돌아가기",
+  },
+  en: {
+    homeAria: "Return home",
+  },
+  ja: {
+    homeAria: "ホームへ戻る",
+  },
+} as const;
+
 /**
  * Phase 라우터 컴포넌트
  * 현재 Phase에 따라 적절한 컴포넌트를 렌더링합니다
@@ -94,7 +106,7 @@ export default function SikojenpovailuApp() {
         <button
           type="button"
           onClick={handleClose}
-          aria-label="홈으로 돌아가기"
+          aria-label={SIKOJEN_APP_TEXT_TRANSLATIONS.ko.homeAria}
           style={{
             position: 'fixed',
             top: 'max(12px, env(safe-area-inset-top, 0px) + 8px)',

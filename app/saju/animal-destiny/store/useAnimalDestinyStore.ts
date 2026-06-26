@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAnimalBySajuResult, getAnimalDisplayData, calculateAnimalCompatibility } from "../lib/animalMapping";
 import { fetchSajuEngineResult, resolveAnimalTwelveResult } from "../lib/sajuAdapter";
 import { getTwelveStagesForPillars } from "../lib/twelveStages";
@@ -25,6 +26,53 @@ interface AnimalDestinyState {
   calculate: () => Promise<void>;
   calculateCompatibility: (partnerInput: AnimalDestinyInput) => Promise<void>;
   reset: () => void;
+}
+
+const ANIMAL_DESTINY_STORE_TEXT_TRANSLATIONS = {
+  ko: {
+    birthDateRequired: "생년월일을 입력해 주세요.",
+    checkSajuInfo: "사주 계산 정보를 다시 확인해 주세요.",
+    animalMappingFailed: "십이운성 매핑에 실패했습니다.",
+    animalDataLoadFailed: "동물 데이터 로딩에 실패했습니다.",
+    calculationFailed: "사주 계산 중 오류가 발생했습니다.",
+    summonFirst: "먼저 내 수호 동물을 소환해 주세요.",
+    partnerSajuInsufficient: "상대방 사주 계산 데이터가 부족합니다.",
+    partnerAnimalLoadFailed: "상대방 동물 데이터 로딩에 실패했습니다.",
+    compatibilityFailed: "궁합 계산 중 오류가 발생했습니다.",
+  },
+  en: {
+    birthDateRequired: "Please enter your birth date.",
+    checkSajuInfo: "Please check the Saju calculation details and try again.",
+    animalMappingFailed: "We could not match the Twelve Growth Stage animal.",
+    animalDataLoadFailed: "We could not load the guardian animal data.",
+    calculationFailed: "An error occurred while calculating the Saju chart.",
+    summonFirst: "Please summon your guardian animal first.",
+    partnerSajuInsufficient: "The other person's Saju calculation data is incomplete.",
+    partnerAnimalLoadFailed: "We could not load the other person's animal data.",
+    compatibilityFailed: "An error occurred while calculating compatibility.",
+  },
+  ja: {
+    birthDateRequired: "生年月日を入力してください。",
+    checkSajuInfo: "四柱推命の計算情報をもう一度ご確認ください。",
+    animalMappingFailed: "十二運星の守護動物を照合できませんでした。",
+    animalDataLoadFailed: "守護動物のデータを読み込めませんでした。",
+    calculationFailed: "四柱推命の計算中にエラーが発生しました。",
+    summonFirst: "先にあなたの守護動物を呼び出してください。",
+    partnerSajuInsufficient: "相手の四柱推命計算データが不足しています。",
+    partnerAnimalLoadFailed: "相手の動物データを読み込めませんでした。",
+    compatibilityFailed: "相性計算中にエラーが発生しました。",
+  },
+} as const;
+
+function getAnimalDestinyStoreCopy(locale: LoadingLocale = getCurrentLoadingLocale()) {
+  return ANIMAL_DESTINY_STORE_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || ANIMAL_DESTINY_STORE_TEXT_TRANSLATIONS.ko;
+}
+
+function resolveAnimalDestinyError(error: unknown, fallback: string, locale: LoadingLocale) {
+  const message = error instanceof Error ? error.message : "";
+  if (!message) return fallback;
+  if (locale === "ko") return message;
+  return (Object.values(getAnimalDestinyStoreCopy(locale)) as string[]).includes(message) ? message : fallback;
 }
 
 const INITIAL_INPUT: AnimalDestinyInput = {
@@ -79,13 +127,15 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
   },
 
   calculate: async () => {
+    const locale = getCurrentLoadingLocale();
+    const copy = getAnimalDestinyStoreCopy(locale);
     const currentInput = get().input;
     if (get().status === "calculating" || get().status === "revealing") return;
 
     if (!currentInput.birthDate) {
       set({
         status: "error",
-        error: "생년월일을 입력해 주세요.",
+        error: copy.birthDateRequired,
       });
       return;
     }
@@ -99,7 +149,8 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
     try {
       const resolved = await resolveAnimalTwelveResult(currentInput);
       if (!resolved.ok || !resolved.profile || !resolved.sajuResult) {
-        throw new Error(resolved.error || "사주 계산 정보를 다시 확인해 주세요.");
+        const resolvedError = locale === "ko" ? resolved.error : "";
+        throw new Error(resolvedError || copy.checkSajuInfo);
       }
 
       const sajuResult = resolved.sajuResult;
@@ -110,10 +161,10 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
       };
 
       const { animalId } = getAnimalBySajuResult(sajuResult);
-      if (!animalId) throw new Error("십이운성 매핑에 실패했습니다.");
+      if (!animalId) throw new Error(copy.animalMappingFailed);
 
       const animalData = getAnimalDisplayData(animalId) || resolved.profile;
-      if (!animalData) throw new Error("동물 데이터 로딩에 실패했습니다.");
+      if (!animalData) throw new Error(copy.animalDataLoadFailed);
 
       set({
         status: "revealing",
@@ -131,16 +182,18 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
     } catch (error) {
       set({
         status: "error",
-        error: error instanceof Error ? error.message : "사주 계산 중 오류가 발생했습니다.",
+        error: resolveAnimalDestinyError(error, copy.calculationFailed, locale),
       });
     }
   },
 
   calculateCompatibility: async (partnerInput) => {
+    const locale = getCurrentLoadingLocale();
+    const copy = getAnimalDestinyStoreCopy(locale);
     const myAnimalId = get().animalId;
     if (!myAnimalId) {
       set({
-        error: "먼저 내 수호 동물을 소환해 주세요.",
+        error: copy.summonFirst,
       });
       return;
     }
@@ -150,12 +203,12 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
       const partnerStages = getTwelveStagesForPillars(partnerSaju);
       const { animalId: partnerAnimalId } = getAnimalBySajuResult(partnerSaju);
       if (!partnerAnimalId) {
-        throw new Error("상대방 사주 계산 데이터가 부족합니다.");
+        throw new Error(copy.partnerSajuInsufficient);
       }
 
       const partnerData = getAnimalDisplayData(partnerAnimalId);
       if (!partnerData) {
-        throw new Error("상대방 동물 데이터 로딩에 실패했습니다.");
+        throw new Error(copy.partnerAnimalLoadFailed);
       }
 
       const compatibility = calculateAnimalCompatibility(myAnimalId, partnerAnimalId);
@@ -182,7 +235,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
       });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : "궁합 계산 중 오류가 발생했습니다.",
+        error: resolveAnimalDestinyError(error, copy.compatibilityFailed, locale),
       });
     }
   },

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
 import {
   GANJI_ANIMAL_MAP,
@@ -126,6 +127,457 @@ const SAJU_GUARDIAN_VERIFICATION_RETRY_MS = 800;
 const SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY = "fortune_auth_user";
 const SAJU_GUARDIAN_TILE_LOCKS_PREFIX = "cd_tile_locks_v2";
 const SAJU_GUARDIAN_IMAGE_SRC = "/fuctionassets/saju-guardian-animal-v20260615.png";
+
+type SajuGuardianTx = (value: string) => string;
+
+const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
+  "사주 가디언 소환진 해금 확인",
+  "사주 가디언 소환진 해금 재확인",
+  "해금 확인",
+  "수호 인장 권한 확인 중",
+  "해금 기록과 이용권을 확인한 뒤 사주 가디언 소환진을 열어드립니다.",
+  "프리미엄 수호 인장",
+  "사주 가디언 소환진",
+  "일주·월지·시지·오행 상징을 함께 읽어 지금 삶을 지키는 수호 인장과 7일 실행 의식을 여는 프리미엄 명리 리딩입니다.",
+  "일주",
+  "월지",
+  "시지",
+  "오행",
+  "인장",
+  "문양",
+  "리듬",
+  "시지 보류",
+  "완료",
+  "프리미엄 해금 완료",
+  "결과 데이터가 아직 준비되지 않았어요. 다시 생성하면 일주 기반 가디언 카드를 불러옵니다.",
+  "다시 생성하기",
+  "명리 근거",
+  "일간·일지·월지·시지가 겹치는 자리에서 수호 인장의 모양이 또렷하게 열립니다.",
+  "수호력과 그림자",
+  "타고난 힘만 말하지 않고, 운을 새게 만드는 습관과 지켜야 할 기준을 함께 짚습니다.",
+  "실전 운용",
+  "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다.",
+  "오늘의 개운 의식",
+  "해금",
+  "10,000원 영구 해금",
+  "좌표",
+  "일주·월지·시지 세우기",
+  "오행 수호 인장 열기",
+  "리딩",
+  "7일 수호 미션 받기",
+  "수호 인장",
+  "부적 주머니",
+  "색·문장·의식",
+  "실행 리딩",
+  "관계·일·재물",
+  "🔒 10,000원으로 영구 해금하기",
+  "메인으로 돌아가기",
+  "가디언 인장을 여는 데 실패했어요.",
+  "입력값을 확인한 뒤 다시 소환해 주세요.",
+  "🔄 다시 시도하기",
+  "일주의 문을 열고 가디언 인장을 세우는 중...",
+  "✨ 60갑자와 오행의 결을 맞추고 있어요 ✨",
+  "생년월일은 저장하지 않고 기기에서 바로 계산합니다",
+  "사주 가디언 소환진",
+  "수호 인장",
+  "사주 가디언 소환진",
+  "🔒 10,000원 영구 해금 · 60갑자 수호 인장",
+  "일주·월지·시지·오행",
+  "의 결을 맞춰",
+  "당신에게 필요한 수호 인장과 7일 의식을 엽니다.",
+  "성장",
+  "발화",
+  "중심",
+  "절제",
+  "흐름",
+  "일주 천간·지지로 나의 중심 기운 판독",
+  "월지와 시지로 현실 배경과 행동 리듬 보강",
+  "관계·일·재물·오늘의 개운 의식까지 정리",
+  "사주 가디언 소환진 구성",
+  "10,000원 수호 인장 구성",
+  "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다",
+  "나를 대표하는 일주를 먼저 세우면, 그 안의 천간과 지지가 중심을 지키는 결로 드러납니다. 이 축에서 수호 인장의 이름과 첫 문장이 열립니다.",
+  "2. 오행의 생극으로 수호력과 약점을 함께 봅니다",
+  "목·화·토·금·수는 강하면 좋고 약하면 나쁜 단순한 척도가 아닙니다. 어떤 기운이 나를 살리고, 어떤 기운이 나를 급하게 만드는지 함께 보아야 실제 선택에 쓸 수 있는 리딩이 됩니다.",
+  "3. 60갑자 상징을 인장 문장으로 압축합니다",
+  "60갑자는 같은 오행이라도 결이 다릅니다. 갑자와 을축이 다르고, 병오와 정미가 다르듯이 같은 불·같은 나무라도 드러나는 방식이 달라집니다. 이 차이를 수호 인장의 이름과 문장으로 정리합니다.",
+  "4. 관계·일·재물의 운용 문장까지 엽니다",
+  "재미있는 캐릭터 너머로, 내가 어떤 말투로 관계를 살리는지, 어떤 방식으로 일과 돈의 흐름을 잡는지까지 이어집니다. 오늘 바로 쓸 수 있는 행동 언어로 맺힙니다.",
+  "5. 오늘의 개운 의식으로 리딩을 닫습니다",
+  "명리 리딩은 읽는 순간보다 실행하는 순간 힘이 생깁니다. 결과 마지막에는 오늘의 색, 정리할 기준, 말해야 할 문장처럼 작지만 분명한 수호 행동을 남깁니다.",
+  "6. 월지와 시지로 현실 리듬을 보강합니다",
+  "일주가 중심 인장이라면 월지는 인장이 현실에서 힘을 얻는 배경이고, 시지는 하루 속에서 수호력이 깨어나는 보조 리듬입니다. 생시를 입력하면 행동 타이밍까지 더 섬세하게 열립니다.",
+  "🔮 출생 좌표 입력하고 인장 열기",
+  "생년월일 필수 · 태어난 시간은 선택 입력",
+  "이전 화면",
+  "출생 좌표",
+  "명리 좌표",
+  "가디언을 여는 출생 좌표",
+  "생년월일로 일주와 월지를 세우고, 선택 입력한 시간으로 시지의 보조 리듬까지 정렬합니다.",
+  "태어난 년도",
+  "년도",
+  "월",
+  "일",
+  "태어난 시간 (선택)",
+  "시간을 모르면 건너뛰세요",
+  "년",
+  "시",
+  "오전",
+  "오후",
+  "태어난 ",
+  "년·월·일",
+  "은 필수예요.",
+  "시간을 모르면 일주·월지 중심으로 읽고, 시간을 입력하면 시지의 보조 수호 리듬까지 열립니다.",
+  "출생 좌표가 맞춰졌어요. 이제 가디언 인장과 7일 미션을 열 수 있습니다.",
+  "🔮 수호 인장 열기",
+  "년·월·일을 입력해 주세요",
+  "입력된 생년월일은 운세 분석에만 사용되며 저장되지 않아요",
+  "가디언의 수호력",
+  "타고난 기운의 운용법",
+  "월령의 배경 기운",
+  "시간의 보조 수호",
+  "그림자와 약점",
+  "관계의 보호 문장",
+  "일과 재물의 사용처",
+  "새는 기운 닫기",
+  "관계의 온도 조절",
+  "일의 기준 세우기",
+  "그림자 관찰",
+  "수호 문장 실행",
+  "운을 담는 그릇 정돈",
+  "가디언 재확인",
+  "오늘의 판단 우선순위",
+  "관계 운영 문장",
+  "일·금전 리스크 체크",
+  "7일 루틴 시작점",
+  "핵심 수호 인장",
+  "관계·일·재물 운용",
+  "의식",
+  "7일",
+  "7일 가디언 미션",
+  "운용",
+  "실전 가디언 가이드",
+  "계산 중",
+  "수호축",
+  "인장상",
+  "엠블럼",
+  "시간 미입력",
+  "오늘의 색",
+  "맑은",
+  "{color}빛으로 {element} 기운을 부드럽게 고정하세요.",
+  "소환 주문",
+  "{guardian}의 중심을 조용히 세웁니다.",
+  "작은 실행",
+  "시간 열쇠",
+  "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.",
+  "본캐력",
+  "럭키력",
+  "멘탈핏",
+  "사주네컷 Stargram",
+  "MZ 운명 필터",
+  "1컷 본캐 Vibe",
+  "2컷 겉텐션 vs 속리듬",
+  "3컷 브레인맵",
+  "오늘의 운명 게이지",
+  "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.",
+  "4컷 럭키버튼",
+  "최애 운명 포카",
+  "포토카드 컷",
+  "센터컷",
+  "팬싸운",
+  "관계 시그널",
+  "무대운",
+  "일과 재물 텐션",
+  "엔딩요정",
+  "오늘 남길 한 문장",
+  "{guardian}의 기준이 밤까지 은은하게 남습니다.",
+  "럭키 편의점 컷",
+  "운명 영수증",
+  "오늘의 구매운",
+  "사면 좋은 것",
+  "{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.",
+  "당충전운",
+  "{element} 회복 루틴",
+  "장바구니 경고",
+  "충동 결제 잠깐 멈춤",
+  "럭키 쿠폰",
+  "오늘 바로 쓰는 한 장",
+  "달빛 DM 네컷",
+  "밤샘 감성 컷",
+  "읽씹 금지",
+  "마음의 답장",
+  "{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.",
+  "DM 온도",
+  "관계의 간격",
+  "새벽 루틴",
+  "정오 기준 리듬",
+  "잠들기 전",
+  "내일로 넘길 기운",
+  "사주네컷 캡션을 복사했어요 📋",
+  "클립보드에 복사됐어요! 📋",
+  "🔮 Code Destiny Saju Guardian 열기",
+  "뒤로가기",
+  "닫기",
+  "사주 가디언 핵심 지표",
+  "사주 가디언 소환 단계",
+  "사주네컷 운명 필터",
+  "사주네컷 운명 필터 ON",
+  "바로 스토리 각",
+  "{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.",
+  "캡처용 캡션 복사",
+  "바로 공유하기",
+  "{element} 기운",
+  "✦ {branch}년지",
+  "{ganji}일주 · {label}",
+  "오늘 바로 쓸 수 있는 수호 키트",
+  "3개 개봉",
+  "가디언 인장",
+  "수호 방향",
+  "조심할 결",
+  "정밀 리포트",
+  "가디언 리포트",
+  "현재 가디언 메시지",
+  "{guardian}의 에너지를 실전 루틴에 연결해 보세요.",
+  "오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.",
+  "네컷 캡션 복사하기",
+  "공유하기",
+  "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.",
+  "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
+  "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
+] as const;
+
+const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, string>>> = {
+  ko: Object.fromEntries(SAJU_GUARDIAN_TEXT_KEYS_COPY.map((value) => [value, value])) as Record<string, string>,
+  en: {
+    "사주 가디언 소환진 해금 확인": "Saju Guardian unlock check",
+    "사주 가디언 소환진 해금 재확인": "Saju Guardian unlock recheck",
+    "해금 확인": "Unlock Check",
+    "수호 인장 권한 확인 중": "Checking guardian seal access",
+    "해금 기록과 이용권을 확인한 뒤 사주 가디언 소환진을 열어드립니다.": "We will open the Saju Guardian circle after checking your unlock record and pass.",
+    "프리미엄 수호 인장": "Premium Guardian Seal",
+    "사주 가디언 소환진": "Saju Guardian Circle",
+    "일주·월지·시지·오행 상징을 함께 읽어 지금 삶을 지키는 수호 인장과 7일 실행 의식을 여는 프리미엄 명리 리딩입니다.": "A premium Myeongli reading that opens your guardian seal and seven-day ritual through your day pillar, month branch, hour branch, and five-element symbols.",
+    "일주": "Day Pillar",
+    "월지": "Month Branch",
+    "시지": "Hour Branch",
+    "오행": "Five Elements",
+    "인장": "Seal",
+    "문양": "Emblem",
+    "리듬": "Rhythm",
+    "시지 보류": "Hour branch pending",
+    "완료": "Done",
+    "프리미엄 해금 완료": "Premium unlock complete",
+    "결과 데이터가 아직 준비되지 않았어요. 다시 생성하면 일주 기반 가디언 카드를 불러옵니다.": "Result data is not ready yet. Generate again to load your day-pillar guardian card.",
+    "다시 생성하기": "Generate Again",
+    "명리 근거": "Myeongli Basis",
+    "일간·일지·월지·시지가 겹치는 자리에서 수호 인장의 모양이 또렷하게 열립니다.": "The guardian seal becomes clear where the day stem, day branch, month branch, and hour branch overlap.",
+    "수호력과 그림자": "Protection and Shadow",
+    "타고난 힘만 말하지 않고, 운을 새게 만드는 습관과 지켜야 할 기준을 함께 짚습니다.": "The reading shows not only your natural strength, but also the habits that leak luck and the standards to protect.",
+    "실전 운용": "Practical Use",
+    "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다.": "It closes with practical language for relationships, work, money, today’s luck ritual, and a seven-day mission.",
+    "오늘의 개운 의식": "Today’s Luck Ritual",
+    "해금": "Unlock",
+    "10,000원 영구 해금": "Permanent unlock for KRW 10,000",
+    "좌표": "Coordinates",
+    "일주·월지·시지 세우기": "Set day, month, and hour branches",
+    "오행 수호 인장 열기": "Open five-element guardian seal",
+    "리딩": "Reading",
+    "7일 수호 미션 받기": "Receive a seven-day guardian mission",
+    "수호 인장": "Guardian Seal",
+    "부적 주머니": "Charm Pouch",
+    "색·문장·의식": "Color, phrase, ritual",
+    "실행 리딩": "Action Reading",
+    "관계·일·재물": "Relationships, work, money",
+    "🔒 10,000원으로 영구 해금하기": "🔒 Permanently unlock for KRW 10,000",
+    "메인으로 돌아가기": "Back to Home",
+    "가디언 인장을 여는 데 실패했어요.": "We could not open the guardian seal.",
+    "입력값을 확인한 뒤 다시 소환해 주세요.": "Please check your input and summon it again.",
+    "🔄 다시 시도하기": "🔄 Try Again",
+    "일주의 문을 열고 가디언 인장을 세우는 중...": "Opening the day-pillar gate and raising your guardian seal...",
+    "✨ 60갑자와 오행의 결을 맞추고 있어요 ✨": "✨ Aligning the sixty stem-branch cycle with the five elements ✨",
+    "생년월일은 저장하지 않고 기기에서 바로 계산합니다": "Your birth date is calculated on this device and is not stored.",
+    "🔒 10,000원 영구 해금 · 60갑자 수호 인장": "🔒 KRW 10,000 permanent unlock · Sixty-cycle guardian seal",
+    "일주·월지·시지·오행": "day pillar, month branch, hour branch, and five elements",
+    "의 결을 맞춰": "",
+    "당신에게 필요한 수호 인장과 7일 의식을 엽니다.": "Open the guardian seal and seven-day ritual you need now.",
+    "성장": "Growth",
+    "발화": "Spark",
+    "중심": "Center",
+    "절제": "Refinement",
+    "흐름": "Flow",
+    "일주 천간·지지로 나의 중심 기운 판독": "Read your central energy through day stem and branch",
+    "월지와 시지로 현실 배경과 행동 리듬 보강": "Add real-life background and action rhythm through month and hour branches",
+    "관계·일·재물·오늘의 개운 의식까지 정리": "Organize relationships, work, money, and today’s luck ritual",
+    "사주 가디언 소환진 구성": "Saju Guardian Circle contents",
+    "10,000원 수호 인장 구성": "KRW 10,000 guardian seal package",
+    "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다": "1. The guardian seal begins from your day pillar.",
+    "나를 대표하는 일주를 먼저 세우면, 그 안의 천간과 지지가 중심을 지키는 결로 드러납니다. 이 축에서 수호 인장의 이름과 첫 문장이 열립니다.": "When the day pillar that represents you is set first, its heavenly stem and earthly branch reveal the texture that protects your center. From this axis, the name and first sentence of your guardian seal open.",
+    "2. 오행의 생극으로 수호력과 약점을 함께 봅니다": "2. The five-element cycle shows both protection and weak points.",
+    "목·화·토·금·수는 강하면 좋고 약하면 나쁜 단순한 척도가 아닙니다. 어떤 기운이 나를 살리고, 어떤 기운이 나를 급하게 만드는지 함께 보아야 실제 선택에 쓸 수 있는 리딩이 됩니다.": "Wood, fire, earth, metal, and water are not simply good when strong or bad when weak. A useful reading sees which energy supports you and which energy makes you rush.",
+    "3. 60갑자 상징을 인장 문장으로 압축합니다": "3. The sixty stem-branch symbols become seal sentences.",
+    "60갑자는 같은 오행이라도 결이 다릅니다. 갑자와 을축이 다르고, 병오와 정미가 다르듯이 같은 불·같은 나무라도 드러나는 방식이 달라집니다. 이 차이를 수호 인장의 이름과 문장으로 정리합니다.": "Even within the same element, each of the sixty stem-branch signs has a different texture. These differences are gathered into the guardian seal’s name and sentence.",
+    "4. 관계·일·재물의 운용 문장까지 엽니다": "4. It opens practical sentences for relationships, work, and money.",
+    "재미있는 캐릭터 너머로, 내가 어떤 말투로 관계를 살리는지, 어떤 방식으로 일과 돈의 흐름을 잡는지까지 이어집니다. 오늘 바로 쓸 수 있는 행동 언어로 맺힙니다.": "Beyond a charming character, the reading reaches the words that help your relationships and the way you manage work and money. It closes with language you can use today.",
+    "5. 오늘의 개운 의식으로 리딩을 닫습니다": "5. The reading closes with today’s luck ritual.",
+    "명리 리딩은 읽는 순간보다 실행하는 순간 힘이 생깁니다. 결과 마지막에는 오늘의 색, 정리할 기준, 말해야 할 문장처럼 작지만 분명한 수호 행동을 남깁니다.": "A Myeongli reading gains power when it is practiced. The final result leaves a small but clear guardian action, such as today’s color, a standard to organize, or a sentence to say.",
+    "6. 월지와 시지로 현실 리듬을 보강합니다": "6. Month and hour branches add real-life rhythm.",
+    "일주가 중심 인장이라면 월지는 인장이 현실에서 힘을 얻는 배경이고, 시지는 하루 속에서 수호력이 깨어나는 보조 리듬입니다. 생시를 입력하면 행동 타이밍까지 더 섬세하게 열립니다.": "If the day pillar is the central seal, the month branch is the background that gives it strength in real life, and the hour branch is the supporting rhythm that wakes protection during the day.",
+    "🔮 출생 좌표 입력하고 인장 열기": "🔮 Enter birth coordinates and open the seal",
+    "생년월일 필수 · 태어난 시간은 선택 입력": "Birth date required · Birth time optional",
+    "이전 화면": "Previous screen",
+    "출생 좌표": "Birth Coordinates",
+    "명리 좌표": "Myeongli Coordinates",
+    "가디언을 여는 출생 좌표": "Birth coordinates that open your guardian",
+    "생년월일로 일주와 월지를 세우고, 선택 입력한 시간으로 시지의 보조 리듬까지 정렬합니다.": "Your birth date sets the day pillar and month branch; optional birth time aligns the supporting hour-branch rhythm.",
+    "태어난 년도": "Birth Year",
+    "년도": "Year",
+    "월": "Month",
+    "일": "Day",
+    "태어난 시간 (선택)": "Birth Time (Optional)",
+    "시간을 모르면 건너뛰세요": "Skip if you do not know the time",
+    "년": "",
+    "시": ":00",
+    "오전": "AM",
+    "오후": "PM",
+    "태어난 ": "Your ",
+    "년·월·일": "birth date",
+    "은 필수예요.": " is required.",
+    "시간을 모르면 일주·월지 중심으로 읽고, 시간을 입력하면 시지의 보조 수호 리듬까지 열립니다.": "If you do not know the time, the reading centers on your day pillar and month branch. Add the time to open the supporting hour-branch rhythm.",
+    "출생 좌표가 맞춰졌어요. 이제 가디언 인장과 7일 미션을 열 수 있습니다.": "Your birth coordinates are aligned. You can now open the guardian seal and seven-day mission.",
+    "🔮 수호 인장 열기": "🔮 Open Guardian Seal",
+    "년·월·일을 입력해 주세요": "Enter year, month, and day",
+    "입력된 생년월일은 운세 분석에만 사용되며 저장되지 않아요": "The entered birth date is used only for this reading and is not stored.",
+    "가디언의 수호력": "Guardian Protection",
+    "타고난 기운의 운용법": "How to Use Your Native Energy",
+    "월령의 배경 기운": "Month-Branch Background Energy",
+    "시간의 보조 수호": "Hour-Branch Support",
+    "그림자와 약점": "Shadow and Weak Point",
+    "관계의 보호 문장": "Protective Sentence for Relationships",
+    "일과 재물의 사용처": "How to Use Work and Money Energy",
+    "새는 기운 닫기": "Close Leaking Energy",
+    "관계의 온도 조절": "Adjust Relationship Temperature",
+    "일의 기준 세우기": "Set Work Standards",
+    "그림자 관찰": "Observe the Shadow",
+    "수호 문장 실행": "Practice the Guardian Sentence",
+    "운을 담는 그릇 정돈": "Clear the Vessel That Holds Luck",
+    "가디언 재확인": "Recheck the Guardian",
+    "오늘의 판단 우선순위": "Today’s Decision Priority",
+    "관계 운영 문장": "Relationship Operating Sentence",
+    "일·금전 리스크 체크": "Work and Money Risk Check",
+    "7일 루틴 시작점": "Seven-Day Routine Starting Point",
+    "핵심 수호 인장": "Core Guardian Seal",
+    "관계·일·재물 운용": "Relationships, Work, and Money",
+    "의식": "Ritual",
+    "7일": "7 Days",
+    "7일 가디언 미션": "Seven-Day Guardian Mission",
+    "운용": "Use",
+    "실전 가디언 가이드": "Practical Guardian Guide",
+    "계산 중": "Calculating",
+    "수호축": "Guardian Axis",
+    "인장상": "Seal Image",
+    "엠블럼": "Emblem",
+    "시간 미입력": "No birth time",
+    "오늘의 색": "Today’s Color",
+    "맑은": "Clear",
+    "{color}빛으로 {element} 기운을 부드럽게 고정하세요.": "Anchor {element} energy softly with {color} light.",
+    "소환 주문": "Summoning Phrase",
+    "{guardian}의 중심을 조용히 세웁니다.": "Quietly raise the center of {guardian}.",
+    "작은 실행": "Small Action",
+    "시간 열쇠": "Time Key",
+    "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.": "Add birth time to reveal a clearer guardian rhythm by time of day.",
+    "본캐력": "Core Self",
+    "럭키력": "Luck",
+    "멘탈핏": "Mind Fit",
+    "사주네컷 Stargram": "Saju Four-Cut Stargram",
+    "MZ 운명 필터": "Gen Z Destiny Filter",
+    "1컷 본캐 Vibe": "Cut 1 Core Vibe",
+    "2컷 겉텐션 vs 속리듬": "Cut 2 Outer Tension vs Inner Rhythm",
+    "3컷 브레인맵": "Cut 3 Brain Map",
+    "오늘의 운명 게이지": "Today’s Destiny Gauge",
+    "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.": "Luck stays with what lasts longer, not only what attracts you first.",
+    "4컷 럭키버튼": "Cut 4 Lucky Button",
+    "최애 운명 포카": "Favorite Destiny Photo Card",
+    "포토카드 컷": "Photo Card Cut",
+    "센터컷": "Center Cut",
+    "팬싸운": "Fan-Sign Luck",
+    "관계 시그널": "Relationship Signal",
+    "무대운": "Stage Luck",
+    "일과 재물 텐션": "Work and Money Tension",
+    "엔딩요정": "Ending Fairy",
+    "오늘 남길 한 문장": "One Sentence to Leave Today",
+    "{guardian}의 기준이 밤까지 은은하게 남습니다.": "The standard of {guardian} lingers softly into the night.",
+    "럭키 편의점 컷": "Lucky Convenience Store Cut",
+    "운명 영수증": "Destiny Receipt",
+    "오늘의 구매운": "Today’s Purchase Luck",
+    "사면 좋은 것": "Good Things to Buy",
+    "{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.": "Luck leans toward {color}-toned items, small organizers, and essentials you have postponed.",
+    "당충전운": "Sweet Recharge Luck",
+    "{element} 회복 루틴": "{element} Recovery Routine",
+    "장바구니 경고": "Cart Warning",
+    "충동 결제 잠깐 멈춤": "Pause Impulse Payment",
+    "럭키 쿠폰": "Lucky Coupon",
+    "오늘 바로 쓰는 한 장": "One Coupon to Use Today",
+    "달빛 DM 네컷": "Moonlight DM Four-Cut",
+    "밤샘 감성 컷": "Late-Night Mood Cut",
+    "읽씹 금지": "Do Not Leave It Unanswered",
+    "마음의 답장": "Reply from the Heart",
+    "{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.": "{guardian} shines more deeply when feelings are left as ordered sentences instead of being pushed away.",
+    "DM 온도": "DM Temperature",
+    "관계의 간격": "Relationship Distance",
+    "새벽 루틴": "Dawn Routine",
+    "정오 기준 리듬": "Noon-Based Rhythm",
+    "잠들기 전": "Before Sleep",
+    "내일로 넘길 기운": "Energy to Carry Into Tomorrow",
+    "사주네컷 캡션을 복사했어요 📋": "Saju four-cut caption copied 📋",
+    "클립보드에 복사됐어요! 📋": "Copied to clipboard 📋",
+    "🔮 Code Destiny Saju Guardian 열기": "🔮 Open Code Destiny Saju Guardian",
+    "뒤로가기": "Back",
+    "닫기": "Close",
+    "사주 가디언 핵심 지표": "Saju Guardian key metrics",
+    "사주 가디언 소환 단계": "Saju Guardian summoning steps",
+    "사주네컷 운명 필터": "Saju four-cut destiny filter",
+    "사주네컷 운명 필터 ON": "Saju Four-Cut Destiny Filter ON",
+    "바로 스토리 각": "Ready for Your Story",
+    "{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.": "Four scenes of {guardianSeal} rise as today’s mood, relationship temperature, action rhythm, and lucky button.",
+    "캡처용 캡션 복사": "Copy Capture Caption",
+    "바로 공유하기": "Share Now",
+    "{element} 기운": "{element} Energy",
+    "✦ {branch}년지": "✦ Year branch {branch}",
+    "{ganji}일주 · {label}": "{ganji} day pillar · {label}",
+    "오늘 바로 쓸 수 있는 수호 키트": "A guardian kit you can use today",
+    "3개 개봉": "3 opened",
+    "가디언 인장": "Guardian Seal",
+    "수호 방향": "Guardian Direction",
+    "조심할 결": "Texture to Watch",
+    "정밀 리포트": "Detailed Report",
+    "가디언 리포트": "Guardian Report",
+    "현재 가디언 메시지": "Current Guardian Message",
+    "{guardian}의 에너지를 실전 루틴에 연결해 보세요.": "Connect the energy of {guardian} to a practical routine.",
+    "오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.": "Today asks you to block one leaking energy and set one clear standard rather than trying to change everything at once.",
+    "네컷 캡션 복사하기": "Copy Four-Cut Caption",
+    "공유하기": "Share",
+    "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.": "Saju Guardian Circle is a premium Myeongli reading that reads your day pillar, month branch, hour branch, and sixty-cycle symbols together.",
+    "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Day-pillar calculation failed. Please check your input.",
+    "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Local calculation failed. Please check your input.",
+  },
+};
+
+const SAJU_GUARDIAN_MISSING_COPY: Partial<Record<LoadingLocale, string>> = {
+  ko: "번역 준비 중",
+  en: "Translation unavailable",
+  ja: "翻訳準備中",
+  "zh-CN": "翻译准备中",
+  "zh-TW": "翻譯準備中",
+};
+
+function translateSajuGuardianText(value: string, locale: LoadingLocale) {
+  const table = SAJU_GUARDIAN_TEXT_COPY[locale] || SAJU_GUARDIAN_TEXT_COPY.en || SAJU_GUARDIAN_TEXT_COPY.ko;
+  return table?.[value] || SAJU_GUARDIAN_TEXT_COPY.en?.[value] || SAJU_GUARDIAN_MISSING_COPY[locale] || SAJU_GUARDIAN_MISSING_COPY.en || "";
+}
+
+function formatSajuGuardianText(template: string, params: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(params[key] ?? ""));
+}
 
 type GuardianPayload = Record<string, unknown> | null | undefined;
 
@@ -540,7 +992,7 @@ const ELEMENT_GUARDIAN_READING: Record<string, {
   },
 };
 
-const SAJU_GUARDIAN_VALUE_SECTIONS = [
+const SAJU_GUARDIAN_VALUE_SECTIONS_COPY = [
   {
     title: "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다",
     body:
@@ -573,14 +1025,14 @@ const SAJU_GUARDIAN_VALUE_SECTIONS = [
   },
 ] as const;
 
-const GUARDIAN_FLOW_STEPS = [
+const GUARDIAN_FLOW_STEPS_COPY = [
   { step: "01", label: "해금", title: "10,000원 영구 해금", icon: "🔒" },
   { step: "02", label: "좌표", title: "일주·월지·시지 세우기", icon: "🗝️" },
   { step: "03", label: "인장", title: "오행 수호 인장 열기", icon: "🔮" },
   { step: "04", label: "리딩", title: "7일 수호 미션 받기", icon: "💌" },
 ] as const;
 
-const GUARDIAN_PREMIUM_POINTS = [
+const GUARDIAN_PREMIUM_POINTS_COPY = [
   { label: "수호 인장", value: "일주·월지·시지" },
   { label: "부적 주머니", value: "색·문장·의식" },
   { label: "실행 리딩", value: "관계·일·재물" },
@@ -662,7 +1114,7 @@ function SelectField({
 }
 
 /* ─────────────────────── 로딩 애니메이션 ───────────────────── */
-function LoadingScreen() {
+function LoadingScreen({ tx }: { tx: SajuGuardianTx }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 px-6">
       <div className="relative w-40 h-40">
@@ -685,10 +1137,10 @@ function LoadingScreen() {
 
       <div className="text-center space-y-3">
         <p className="text-lg font-bold text-slate-700">
-          일주의 문을 열고 가디언 인장을 세우는 중...
+          {tx("일주의 문을 열고 가디언 인장을 세우는 중...")}
         </p>
         <p className="text-sm text-pink-400 font-medium animate-pulse">
-          ✨ 60갑자와 오행의 결을 맞추고 있어요 ✨
+          {tx("✨ 60갑자와 오행의 결을 맞추고 있어요 ✨")}
         </p>
         <div className="flex justify-center gap-2 mt-2">
           {["🌸", "🌙", "⭐", "🌸", "🌙"].map((emoji, i) => (
@@ -704,7 +1156,7 @@ function LoadingScreen() {
             </span>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-4">생년월일은 저장하지 않고 기기에서 바로 계산합니다</p>
+        <p className="text-xs text-slate-400 mt-4">{tx("생년월일은 저장하지 않고 기기에서 바로 계산합니다")}</p>
       </div>
     </div>
   );
@@ -718,6 +1170,7 @@ function GuardianSealDisplay({
   monthBranch,
   hourBranch,
   hasBirthTime,
+  tx,
 }: {
   guardianSeal: string;
   guardianArchetype: string;
@@ -726,6 +1179,7 @@ function GuardianSealDisplay({
   monthBranch: string;
   hourBranch: string;
   hasBirthTime: boolean;
+  tx: SajuGuardianTx;
 }) {
   const ringMarks = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸", "子", "午"];
   const ringPositions = [
@@ -768,23 +1222,23 @@ function GuardianSealDisplay({
         <div className="relative flex h-40 w-40 flex-col items-center justify-center rounded-full border border-amber-100 bg-gradient-to-br from-white via-amber-50 to-rose-50 text-center shadow-xl">
           <span className="text-4xl">🔮</span>
           <p className="mt-2 px-4 text-sm font-black leading-tight text-slate-800">{guardianArchetype}</p>
-          <p className="mt-1 text-[11px] font-bold text-rose-400">{dominantElement} 수호축</p>
+          <p className="mt-1 text-[11px] font-bold text-rose-400">{dominantElement} {tx("수호 인장")}</p>
         </div>
       </div>
 
       <div className="relative mt-4 grid gap-2 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/80 bg-white/75 px-3 py-3 text-center">
-          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">인장</p>
+          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">{tx("인장")}</p>
           <p className="mt-1 text-xs font-black leading-relaxed text-slate-700">{guardianSeal}</p>
         </div>
         <div className="rounded-2xl border border-white/80 bg-white/75 px-3 py-3 text-center">
-          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">문양</p>
+          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">{tx("문양")}</p>
           <p className="mt-1 text-xs font-black leading-relaxed text-slate-700">{guardianEmblem}</p>
         </div>
         <div className="rounded-2xl border border-white/80 bg-white/75 px-3 py-3 text-center">
-          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">리듬</p>
+          <p className="text-[10px] font-black tracking-[0.12em] text-slate-400">{tx("리듬")}</p>
           <p className="mt-1 text-xs font-black leading-relaxed text-slate-700">
-            {monthBranch || "월지"} · {hasBirthTime ? hourBranch || "시지" : "시지 보류"}
+            {monthBranch || tx("월지")} · {hasBirthTime ? hourBranch || tx("시지") : tx("시지 보류")}
           </p>
         </div>
       </div>
@@ -796,9 +1250,11 @@ function GuardianSealDisplay({
 function ResultCard({
   data,
   onReset,
+  tx,
 }: {
   data: ApiResult;
   onReset: () => void;
+  tx: SajuGuardianTx;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
   const [activeFrameId, setActiveFrameId] = useState("stargram");
@@ -808,13 +1264,13 @@ function ResultCard({
       <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 py-10">
         <div className="mx-auto w-full max-w-xl rounded-[2rem] border border-white/70 bg-white/80 p-6 text-center shadow-xl backdrop-blur-xl">
           <p className="text-sm font-semibold text-slate-600">
-            결과 데이터가 아직 준비되지 않았어요. 다시 생성하면 일주 기반 가디언 카드를 불러옵니다.
+            {tx("결과 데이터가 아직 준비되지 않았어요. 다시 생성하면 일주 기반 가디언 카드를 불러옵니다.")}
           </p>
           <button
             onClick={onReset}
             className="mt-4 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-2.5 text-sm font-black text-white"
           >
-            다시 생성하기
+            {tx("다시 생성하기")}
           </button>
         </div>
       </div>
@@ -825,6 +1281,7 @@ function ResultCard({
   const resolvedGanji = normalizeGanji(data.resolvedGanji);
   const guardianCopy = resolvedGanji ? getGuardianCopy(resolvedGanji) : null;
   const stemTheme = resolvedGanji ? getStemElement(resolvedGanji) : null;
+  const txp = (value: string, params: Record<string, string | number>) => formatSajuGuardianText(tx(value), params);
 
   const animalEmoji = ANIMAL_EMOJI[result.mainAnimal] ?? "🐾";
   const elementEmoji = ELEMENT_EMOJI[result.dominantElement] ?? "✨";
@@ -858,43 +1315,43 @@ function ResultCard({
 
   const interpretationCards = [
     {
-      title: "명리 좌표",
+      title: tx("명리 좌표"),
       body: resolvedGanji
         ? `당신의 중심축은 ${resolvedGanji}일주입니다. 겉으로 드러나는 천간은 ${dayStem || "일간"}의 ${stemPolarity}${result.dominantElement} 기운이고, 안쪽의 지지는 ${dayBranch || "일지"}의 뿌리로 작동합니다. 이 조합에서 ${guardianArchetype}이 중심을 지키는 첫 번째 인장이 열립니다.`
         : result.personalitySummaryKo || personalityLines[0],
     },
     {
-      title: "가디언의 수호력",
+      title: tx("가디언의 수호력"),
       body: `${elementReading.protection} ${guardianCopy?.traits?.[0] || `${guardianArchetype}은 중요한 순간에 본능과 판단을 연결하는 힘을 상징합니다.`}`,
     },
     {
-      title: "타고난 기운의 운용법",
+      title: tx("타고난 기운의 운용법"),
       body: `${elementReading.axis} ${personalityLines[1] || guardianCopy?.traits?.[1] || "중요한 선택 앞에서는 속도보다 호흡을 먼저 맞추면 운의 탄력이 살아납니다."}`,
     },
     {
-      title: "월령의 배경 기운",
+      title: tx("월령의 배경 기운"),
       body: `${monthBranch ? `${monthBranch}월지와 ${monthElement} 기운이` : "월지의 배경 기운이"} 수호 인장이 현실에서 작동하는 환경을 만듭니다. ${monthReading}`,
     },
     {
-      title: "시간의 보조 수호",
+      title: tx("시간의 보조 수호"),
       body: hasBirthTime
         ? `${hourBranch}시지와 ${hourElement} 기운에서 하루 중 당신의 수호력이 살아나는 방식이 드러납니다. ${hourReading}`
         : hourReading,
     },
     {
-      title: "그림자와 약점",
+      title: tx("그림자와 약점"),
       body: `${guardianCopy?.caution || personalityLines[2] || "감정이 급해지는 순간에는 결정을 잠시 미루고 기준을 다시 확인해 보세요."} ${elementReading.shadow}`,
     },
     {
-      title: "관계의 보호 문장",
+      title: tx("관계의 보호 문장"),
       body: elementReading.relation,
     },
     {
-      title: "일과 재물의 사용처",
+      title: tx("일과 재물의 사용처"),
       body: elementReading.work,
     },
     {
-      title: "오늘의 개운 의식",
+      title: tx("오늘의 개운 의식"),
       body: elementReading.ritual,
     },
   ];
@@ -902,173 +1359,173 @@ function ResultCard({
   const sevenDayMissions = [
     {
       day: "1일차",
-      title: "새는 기운 닫기",
+      title: tx("새는 기운 닫기"),
       body: `${guardianSeal}은 오늘 흩어진 약속과 생각을 정리할 때 가장 먼저 힘을 냅니다. 미뤄 둔 답장, 정리하지 않은 일정, 마음에 걸리는 작은 일을 하나만 닫으세요.`,
     },
     {
       day: "2일차",
-      title: "관계의 온도 조절",
+      title: tx("관계의 온도 조절"),
       body: elementReading.relation,
     },
     {
       day: "3일차",
-      title: "일의 기준 세우기",
+      title: tx("일의 기준 세우기"),
       body: elementReading.work,
     },
     {
       day: "4일차",
-      title: "그림자 관찰",
+      title: tx("그림자 관찰"),
       body: elementReading.shadow,
     },
     {
       day: "5일차",
-      title: "수호 문장 실행",
+      title: tx("수호 문장 실행"),
       body: `${guardianArchetype}은 생각을 오래 붙잡을수록 흐려집니다. 오늘은 하나의 문장을 정하고, 그 문장에 맞지 않는 선택을 줄이세요.`,
     },
     {
       day: "6일차",
-      title: "운을 담는 그릇 정돈",
+      title: tx("운을 담는 그릇 정돈"),
       body: "내 공간에서 가장 자주 보는 곳 하나를 정리하세요. 명리에서 운은 기세만이 아니라 담기는 자리의 상태에도 반응합니다.",
     },
     {
       day: "7일차",
-      title: "가디언 재확인",
+      title: tx("가디언 재확인"),
       body: `${guardianSeal}의 핵심은 나를 과하게 밀어붙이는 것이 아니라, 중요한 순간에 흔들리지 않을 기준을 남기는 데 있습니다.`,
     },
   ];
 
   const executionGuides = [
     {
-      title: "오늘의 판단 우선순위",
+      title: tx("오늘의 판단 우선순위"),
       body: `가장 먼저 처리할 순서는 ①미루는 답장 1건 정리, ②오후 업무의 핵심 1건 선택, ③불필요한 약속 1개 삭제입니다. ${resolvedGanji}의 ${stemPolarity}${result.dominantElement} 기운은 분산보다 정렬을 먼저 먹입니다.`,
     },
     {
-      title: "관계 운영 문장",
+      title: tx("관계 운영 문장"),
       body: `오늘 대화에서는 '지금은 잠깐 멈추고 정리한 뒤 다시 말하겠다'를 기본 문장으로 세우세요. 월지가 밀어 주는 정서 기운과 시지가 조용히 받쳐주는 질서를 함께 쓰면 오해 비용이 낮아집니다.`,
     },
     {
-      title: "일·금전 리스크 체크",
+      title: tx("일·금전 리스크 체크"),
       body: "작은 지출 승인, 즉시 반응 메시지, 감정적 구매를 동시에 하지 마세요. 3회 확인 후 진행하면 일주가 드러내는 속도를 살려 손실 확률을 줄일 수 있습니다.",
     },
     {
-      title: "7일 루틴 시작점",
+      title: tx("7일 루틴 시작점"),
       body: "매일 밤 10분, 오늘의 가디언 포인트 1개를 점검해 기록하세요. 수호 메시지를 매일 반복할수록 실행 실패 비용이 빠르게 낮아집니다.",
     },
   ];
 
   const reportPanels = {
     seal: {
-      label: "인장",
-      title: "핵심 수호 인장",
+      label: tx("인장"),
+      title: tx("핵심 수호 인장"),
       items: interpretationCards.slice(0, 3),
     },
     flow: {
-      label: "흐름",
-      title: "관계·일·재물 운용",
+      label: tx("흐름"),
+      title: tx("관계·일·재물 운용"),
       items: interpretationCards.slice(3, 8),
     },
     ritual: {
-      label: "의식",
-      title: "오늘의 개운 의식",
+      label: tx("의식"),
+      title: tx("오늘의 개운 의식"),
       items: [interpretationCards[8]],
     },
     mission: {
-      label: "7일",
-      title: "7일 가디언 미션",
+      label: tx("7일"),
+      title: tx("7일 가디언 미션"),
       items: sevenDayMissions.map((mission) => ({
         title: `${mission.day} · ${mission.title}`,
         body: mission.body,
       })),
     },
     guide: {
-      label: "운용",
-      title: "실전 가디언 가이드",
+      label: tx("운용"),
+      title: tx("실전 가디언 가이드"),
       items: executionGuides,
     },
   } as const;
 
   const activeReport = reportPanels[activePanel as keyof typeof reportPanels] || reportPanels.seal;
   const summaryMetrics = [
-    { label: "일주", value: resolvedGanji || "계산 중" },
-    { label: "수호축", value: `${stemPolarity}${result.dominantElement}` },
-    { label: "인장상", value: guardianArchetype },
-    { label: "엠블럼", value: guardianEmblem },
-    { label: "월지", value: `${monthBranch || "-"} · ${monthElement}` },
-    { label: "시지", value: hasBirthTime ? `${hourBranch || "-"} · ${hourElement}` : "시간 미입력" },
+    { label: tx("일주"), value: resolvedGanji || tx("계산 중") },
+    { label: tx("수호축"), value: `${stemPolarity}${result.dominantElement}` },
+    { label: tx("인장상"), value: guardianArchetype },
+    { label: tx("엠블럼"), value: guardianEmblem },
+    { label: tx("월지"), value: `${monthBranch || "-"} · ${monthElement}` },
+    { label: tx("시지"), value: hasBirthTime ? `${hourBranch || "-"} · ${hourElement}` : tx("시간 미입력") },
   ];
   const guardianCharms = [
-    { icon: "🎀", label: "오늘의 색", value: `${result.colorKo || "맑은"}빛으로 ${result.dominantElement} 기운을 부드럽게 고정하세요.` },
-    { icon: "🪄", label: "소환 주문", value: guardianCopy?.title || `${guardianArchetype}의 중심을 조용히 세웁니다.` },
-    { icon: "📮", label: "작은 실행", value: elementReading.ritual },
-    { icon: "🕯️", label: "시간 열쇠", value: hasBirthTime ? hourReading : "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다." },
+    { icon: "🎀", label: tx("오늘의 색"), value: txp("{color}빛으로 {element} 기운을 부드럽게 고정하세요.", { color: result.colorKo || tx("맑은"), element: result.dominantElement }) },
+    { icon: "🪄", label: tx("소환 주문"), value: guardianCopy?.title || txp("{guardian}의 중심을 조용히 세웁니다.", { guardian: guardianArchetype }) },
+    { icon: "📮", label: tx("작은 실행"), value: elementReading.ritual },
+    { icon: "🕯️", label: tx("시간 열쇠"), value: hasBirthTime ? hourReading : tx("생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.") },
   ];
   const sajuSeed = `${resolvedGanji || ""}${monthBranch}${hourBranch}${result.dominantElement}${result.mainAnimal}`
     .split("")
     .reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const vibeScores = [
-    { label: "본캐력", value: 72 + (sajuSeed % 19), color: "from-pink-400 to-fuchsia-400" },
-    { label: "럭키력", value: 68 + (sajuSeed % 23), color: "from-amber-300 to-orange-400" },
-    { label: "멘탈핏", value: 64 + (sajuSeed % 21), color: "from-sky-300 to-cyan-400" },
+    { label: tx("본캐력"), value: 72 + (sajuSeed % 19), color: "from-pink-400 to-fuchsia-400" },
+    { label: tx("럭키력"), value: 68 + (sajuSeed % 23), color: "from-amber-300 to-orange-400" },
+    { label: tx("멘탈핏"), value: 64 + (sajuSeed % 21), color: "from-sky-300 to-cyan-400" },
   ];
   const fourCutFrames = [
     {
       id: "stargram",
-      badge: "MZ 운명 필터",
-      title: "사주네컷 Stargram",
+      badge: tx("MZ 운명 필터"),
+      title: tx("사주네컷 Stargram"),
       subtitle: `${guardianSeal}이 오늘의 피드 위로 반짝 떠오릅니다.`,
       shellClass: "border-fuchsia-200/80 bg-[radial-gradient(circle_at_20%_12%,rgba(244,114,182,.22),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(125,211,252,.22),transparent_30%),linear-gradient(135deg,#fff7fd,#eef7ff_55%,#fff8e8)]",
       stripClass: "border-white/90 bg-white/85 shadow-pink-200/80",
       chipClass: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600",
       panels: [
-        { icon: "💿", kicker: "1컷 본캐 Vibe", title: guardianArchetype, body: `${guardianCopy?.short || result.headlineKo} ${result.expressionKo}의 결이 선명하게 드러납니다.` },
-        { icon: "🎭", kicker: "2컷 겉텐션 vs 속리듬", title: `${dayStem || "일간"}의 표정 · ${dayBranch || "일지"}의 심장`, body: `${stemPolarity}${result.dominantElement} 기운은 겉으로 빠르게 빛나고, ${monthBranch || "월지"} 배경은 선택의 온도를 천천히 맞춥니다.` },
-        { icon: "🧠", kicker: "3컷 브레인맵", title: "오늘의 운명 게이지", body: "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.", meters: vibeScores },
-        { icon: "🍀", kicker: "4컷 럭키버튼", title: result.colorKo || "맑은 빛", body: `${elementReading.ritual} 이 작은 의식에서 오늘의 문이 부드럽게 열립니다.` },
+        { icon: "💿", kicker: tx("1컷 본캐 Vibe"), title: guardianArchetype, body: `${guardianCopy?.short || result.headlineKo} ${result.expressionKo}의 결이 선명하게 드러납니다.` },
+        { icon: "🎭", kicker: tx("2컷 겉텐션 vs 속리듬"), title: `${dayStem || "일간"}의 표정 · ${dayBranch || "일지"}의 심장`, body: `${stemPolarity}${result.dominantElement} 기운은 겉으로 빠르게 빛나고, ${monthBranch || "월지"} 배경은 선택의 온도를 천천히 맞춥니다.` },
+        { icon: "🧠", kicker: tx("3컷 브레인맵"), title: tx("오늘의 운명 게이지"), body: tx("끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다."), meters: vibeScores },
+        { icon: "🍀", kicker: tx("4컷 럭키버튼"), title: result.colorKo || tx("맑은"), body: `${elementReading.ritual} 이 작은 의식에서 오늘의 문이 부드럽게 열립니다.` },
       ],
     },
     {
       id: "idol",
-      badge: "포토카드 컷",
-      title: "최애 운명 포카",
+      badge: tx("포토카드 컷"),
+      title: tx("최애 운명 포카"),
       subtitle: `${guardianEmblem}이 당신의 오늘 운세 포지션을 비춥니다.`,
       shellClass: "border-sky-200/80 bg-[radial-gradient(circle_at_18%_18%,rgba(56,189,248,.22),transparent_30%),radial-gradient(circle_at_86%_22%,rgba(251,191,36,.22),transparent_28%),linear-gradient(135deg,#f0fdff,#fff7ed_54%,#fdf2f8)]",
       stripClass: "border-sky-100 bg-white/90 shadow-sky-100/80",
       chipClass: "border-sky-200 bg-sky-50 text-sky-600",
       panels: [
-        { icon: "📸", kicker: "센터컷", title: `${result.mainAnimal} 포지션`, body: `${animalEmoji} ${result.mainAnimal} 상징이 첫인상에 머물고, ${guardianArchetype}의 존재감이 뒤에서 밀어 올립니다.` },
-        { icon: "✨", kicker: "팬싸운", title: "관계 시그널", body: elementReading.relation },
-        { icon: "🎤", kicker: "무대운", title: "일과 재물 텐션", body: elementReading.work },
-        { icon: "💌", kicker: "엔딩요정", title: "오늘 남길 한 문장", body: guardianCopy?.subtitle || `${guardianSeal}의 기준이 밤까지 은은하게 남습니다.` },
+        { icon: "📸", kicker: tx("센터컷"), title: `${result.mainAnimal} 포지션`, body: `${animalEmoji} ${result.mainAnimal} 상징이 첫인상에 머물고, ${guardianArchetype}의 존재감이 뒤에서 밀어 올립니다.` },
+        { icon: "✨", kicker: tx("팬싸운"), title: tx("관계 시그널"), body: elementReading.relation },
+        { icon: "🎤", kicker: tx("무대운"), title: tx("일과 재물 텐션"), body: elementReading.work },
+        { icon: "💌", kicker: tx("엔딩요정"), title: tx("오늘 남길 한 문장"), body: guardianCopy?.subtitle || txp("{guardian}의 기준이 밤까지 은은하게 남습니다.", { guardian: guardianSeal }) },
       ],
     },
     {
       id: "receipt",
-      badge: "운명 영수증",
-      title: "럭키 편의점 컷",
+      badge: tx("운명 영수증"),
+      title: tx("럭키 편의점 컷"),
       subtitle: `${result.colorKo || "맑은"}빛 행운이 오늘의 장바구니에 담깁니다.`,
       shellClass: "border-emerald-200/80 bg-[radial-gradient(circle_at_12%_20%,rgba(52,211,153,.22),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(251,113,133,.2),transparent_28%),linear-gradient(135deg,#f0fdf4,#fff7ed_50%,#eef2ff)]",
       stripClass: "border-emerald-100 bg-white/90 shadow-emerald-100/80",
       chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
       panels: [
-        { icon: "🧾", kicker: "오늘의 구매운", title: "사면 좋은 것", body: `${result.colorKo || "맑은"}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.` },
-        { icon: "🥤", kicker: "당충전운", title: `${result.dominantElement} 회복 루틴`, body: elementReading.protection },
-        { icon: "🛒", kicker: "장바구니 경고", title: "충동 결제 잠깐 멈춤", body: elementReading.shadow },
-        { icon: "🎟️", kicker: "럭키 쿠폰", title: "오늘 바로 쓰는 한 장", body: sevenDayMissions[0].body },
+        { icon: "🧾", kicker: tx("오늘의 구매운"), title: tx("사면 좋은 것"), body: txp("{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.", { color: result.colorKo || tx("맑은") }) },
+        { icon: "🥤", kicker: tx("당충전운"), title: txp("{element} 회복 루틴", { element: result.dominantElement }), body: elementReading.protection },
+        { icon: "🛒", kicker: tx("장바구니 경고"), title: tx("충동 결제 잠깐 멈춤"), body: elementReading.shadow },
+        { icon: "🎟️", kicker: tx("럭키 쿠폰"), title: tx("오늘 바로 쓰는 한 장"), body: sevenDayMissions[0].body },
       ],
     },
     {
       id: "night",
-      badge: "밤샘 감성 컷",
-      title: "달빛 DM 네컷",
+      badge: tx("밤샘 감성 컷"),
+      title: tx("달빛 DM 네컷"),
       subtitle: `${hourBranch || "오늘의 시간"} 위로 숨은 마음의 답장이 열립니다.`,
       shellClass: "border-indigo-200/80 bg-[radial-gradient(circle_at_18%_14%,rgba(129,140,248,.24),transparent_30%),radial-gradient(circle_at_84%_20%,rgba(244,114,182,.18),transparent_28%),linear-gradient(135deg,#eef2ff,#fdf2f8_52%,#f8fafc)]",
       stripClass: "border-indigo-100 bg-white/90 shadow-indigo-100/80",
       chipClass: "border-indigo-200 bg-indigo-50 text-indigo-600",
       panels: [
-        { icon: "🌙", kicker: "읽씹 금지", title: "마음의 답장", body: `${guardianArchetype}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.` },
-        { icon: "💬", kicker: "DM 온도", title: "관계의 간격", body: elementReading.relation },
-        { icon: "🕯️", kicker: "새벽 루틴", title: hasBirthTime ? `${hourBranch}시지 리듬` : "정오 기준 리듬", body: hourReading },
-        { icon: "🪐", kicker: "잠들기 전", title: "내일로 넘길 기운", body: sevenDayMissions[6].body },
+        { icon: "🌙", kicker: tx("읽씹 금지"), title: tx("마음의 답장"), body: txp("{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.", { guardian: guardianArchetype }) },
+        { icon: "💬", kicker: tx("DM 온도"), title: tx("관계의 간격"), body: elementReading.relation },
+        { icon: "🕯️", kicker: tx("새벽 루틴"), title: hasBirthTime ? `${hourBranch}${tx("시지")} ${tx("리듬")}` : tx("정오 기준 리듬"), body: hourReading },
+        { icon: "🪐", kicker: tx("잠들기 전"), title: tx("내일로 넘길 기운"), body: sevenDayMissions[6].body },
       ],
     },
   ];
@@ -1078,12 +1535,12 @@ function ResultCard({
     const headline = guardianCopy?.title || result.headlineKo;
     const text = `${activeFrame.title}\n${guardianSeal}\n${headline}\n\n${activeFrame.panels.map((item) => `${item.kicker} · ${item.title}: ${item.body}`).join("\n\n")}`;
     await navigator.clipboard.writeText(text).catch(() => {});
-    alert("사주네컷 캡션을 복사했어요 📋");
+    alert(tx("사주네컷 캡션을 복사했어요 📋"));
   };
 
   const handleShare = async () => {
     const headline = guardianCopy?.title || result.headlineKo;
-    const text = `${activeFrame.title}\n${guardianSeal}\n\n${headline}\n\n🔮 Code Destiny Saju Guardian 열기\nhttps://code-destiny.com/saju-guardian`;
+    const text = `${activeFrame.title}\n${guardianSeal}\n\n${headline}\n\n${tx("🔮 Code Destiny Saju Guardian 열기")}\nhttps://code-destiny.com/saju-guardian`;
     if (navigator.share) {
       try {
         await navigator.share({ title: activeFrame.title, text });
@@ -1092,7 +1549,7 @@ function ResultCard({
       }
     } else {
       await navigator.clipboard.writeText(text).catch(() => {});
-      alert("클립보드에 복사됐어요! 📋");
+      alert(tx("클립보드에 복사됐어요! 📋"));
     }
   };
 
@@ -1102,28 +1559,28 @@ function ResultCard({
         <header className="border-b border-white/70 bg-white/70 px-1 pb-4 backdrop-blur-xl sm:px-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-black tracking-[0.16em] text-slate-500">수호 인장</p>
-              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-800">사주 가디언 소환진</h1>
-              <p className="mt-1 text-sm text-slate-600">일주·월지·시지로 여는 60갑자 수호 인장</p>
+              <p className="text-xs font-black tracking-[0.16em] text-slate-500">{tx("수호 인장")}</p>
+              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-800">{tx("사주 가디언 소환진")}</h1>
+              <p className="mt-1 text-sm text-slate-600">{tx("일주·월지·시지 세우기")}</p>
             </div>
             <div className="flex items-center gap-2">
               <a
                 href="/"
                 className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm"
               >
-                ← 뒤로가기
+                ← {tx("뒤로가기")}
               </a>
               <button
                 onClick={onReset}
                 className="inline-flex items-center rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-bold text-rose-500 shadow-sm"
               >
-                닫기
+                {tx("닫기")}
               </button>
             </div>
           </div>
         </header>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" aria-label="사주 가디언 핵심 지표">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" aria-label={tx("사주 가디언 핵심 지표")}>
           {summaryMetrics.map((item) => (
             <div key={item.label} className="rounded-2xl border border-white/70 bg-white/75 px-4 py-3 shadow-sm">
               <p className="text-[11px] font-black tracking-[0.14em] text-slate-400">{item.label}</p>
@@ -1132,23 +1589,23 @@ function ResultCard({
           ))}
         </section>
 
-        <section className="grid gap-2 rounded-[2rem] border border-white/70 bg-white/70 p-3 shadow-sm backdrop-blur-xl sm:grid-cols-4" aria-label="사주 가디언 소환 단계">
-          {GUARDIAN_FLOW_STEPS.map((item) => (
+        <section className="grid gap-2 rounded-[2rem] border border-white/70 bg-white/70 p-3 shadow-sm backdrop-blur-xl sm:grid-cols-4" aria-label={tx("사주 가디언 소환 단계")}>
+          {GUARDIAN_FLOW_STEPS_COPY.map((item) => (
             <div key={item.step} className="flex items-center gap-3 rounded-2xl bg-white/70 px-3 py-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-50 text-lg">{item.icon}</span>
               <span className="min-w-0">
                 <span className="block text-[10px] font-black tracking-[0.14em] text-rose-400">
-                  {item.step === "01" ? "완료" : item.label}
+                  {item.step === "01" ? tx("완료") : tx(item.label)}
                 </span>
                 <span className="block truncate text-xs font-black text-slate-700">
-                  {item.step === "01" ? "프리미엄 해금 완료" : item.title}
+                  {item.step === "01" ? tx("프리미엄 해금 완료") : tx(item.title)}
                 </span>
               </span>
             </div>
           ))}
         </section>
 
-        <section className={`relative overflow-hidden rounded-[2rem] border p-4 shadow-xl backdrop-blur-xl sm:p-5 ${activeFrame.shellClass}`} aria-label="사주네컷 운명 필터">
+        <section className={`relative overflow-hidden rounded-[2rem] border p-4 shadow-xl backdrop-blur-xl sm:p-5 ${activeFrame.shellClass}`} aria-label={tx("사주네컷 운명 필터")}>
           <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
             <div className="absolute left-5 top-5 text-xl">✦</div>
             <div className="absolute right-8 top-10 text-lg">♡</div>
@@ -1157,7 +1614,7 @@ function ResultCard({
           <div className="relative flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-xs font-black tracking-[0.18em] text-slate-500">{activeFrame.badge}</p>
-              <h2 className="mt-1 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">사주네컷 운명 필터 ON</h2>
+              <h2 className="mt-1 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">{tx("사주네컷 운명 필터 ON")}</h2>
               <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-600">{activeFrame.subtitle}</p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -1215,10 +1672,10 @@ function ResultCard({
 
             <div className="flex flex-col justify-between rounded-[1.8rem] border border-white/80 bg-white/70 p-4 shadow-sm">
               <div>
-                <p className="text-xs font-black tracking-[0.16em] text-slate-400">바로 스토리 각</p>
+                <p className="text-xs font-black tracking-[0.16em] text-slate-400">{tx("바로 스토리 각")}</p>
                 <h3 className="mt-2 text-2xl font-black leading-tight text-slate-900">{activeFrame.title}</h3>
                 <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
-                  {guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.
+                  {txp("{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.", { guardianSeal })}
                 </p>
               </div>
               <div className="mt-5 grid gap-2">
@@ -1227,14 +1684,14 @@ function ResultCard({
                   onClick={handleCopy}
                   className="rounded-2xl bg-gradient-to-r from-pink-400 via-fuchsia-400 to-sky-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-pink-200/70 transition-transform active:scale-[0.98]"
                 >
-                  캡처용 캡션 복사
+                  {tx("캡처용 캡션 복사")}
                 </button>
                 <button
                   type="button"
                   onClick={handleShare}
                   className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 shadow-sm transition-transform active:scale-[0.98]"
                 >
-                  바로 공유하기
+                  {tx("바로 공유하기")}
                 </button>
               </div>
             </div>
@@ -1251,6 +1708,7 @@ function ResultCard({
               monthBranch={monthBranch}
               hourBranch={hourBranch}
               hasBirthTime={hasBirthTime}
+              tx={tx}
             />
 
             <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl backdrop-blur-xl">
@@ -1259,16 +1717,16 @@ function ResultCard({
                   {guardianEmblem}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
-                  {elementEmoji} {result.dominantElement} 기운
+                  {elementEmoji} {txp("{element} 기운", { element: result.dominantElement })}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-                  ✦ {yearBranch || result.zodiac}년지
+                  {txp("✦ {branch}년지", { branch: yearBranch || result.zodiac })}
                 </span>
                 {resolvedGanji ? (
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${stemTheme?.border || "border-slate-200"} ${stemTheme?.text || "text-slate-600"}`}
                   >
-                    {resolvedGanji}일주 · {stemTheme?.label}
+                    {txp("{ganji}일주 · {label}", { ganji: resolvedGanji, label: stemTheme?.label || "" })}
                   </span>
                 ) : null}
               </div>
@@ -1277,16 +1735,16 @@ function ResultCard({
                 {guardianCopy?.short || result.headlineKo}
               </p>
               <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/80 p-4">
-                <p className="text-xs font-black tracking-[0.14em] text-amber-700">가디언 인장</p>
+                <p className="text-xs font-black tracking-[0.14em] text-amber-700">{tx("가디언 인장")}</p>
                 <p className="mt-1 text-sm font-bold leading-relaxed text-slate-700">{guardianSeal}</p>
               </div>
               <div className="mt-4 rounded-[1.75rem] border border-pink-100 bg-pink-50/60 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black tracking-[0.14em] text-pink-500">부적 주머니</p>
-                    <p className="mt-1 text-sm font-bold text-slate-700">오늘 바로 쓸 수 있는 수호 키트</p>
+                    <p className="text-xs font-black tracking-[0.14em] text-pink-500">{tx("부적 주머니")}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-700">{tx("오늘 바로 쓸 수 있는 수호 키트")}</p>
                   </div>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500 shadow-sm">3개 개봉</span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500 shadow-sm">{tx("3개 개봉")}</span>
                 </div>
                 <div className="mt-3 grid gap-2">
                   {guardianCharms.map((item) => (
@@ -1302,11 +1760,11 @@ function ResultCard({
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4">
-                  <p className="text-xs font-black tracking-[0.14em] text-rose-500">수호 방향</p>
+                  <p className="text-xs font-black tracking-[0.14em] text-rose-500">{tx("수호 방향")}</p>
                   <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">{elementReading.protection}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                  <p className="text-xs font-black tracking-[0.14em] text-slate-500">조심할 결</p>
+                  <p className="text-xs font-black tracking-[0.14em] text-slate-500">{tx("조심할 결")}</p>
                   <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">{elementReading.shadow}</p>
                 </div>
               </div>
@@ -1317,8 +1775,8 @@ function ResultCard({
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-black tracking-[0.16em] text-rose-500">정밀 리포트</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-800">가디언 리포트</h2>
+                <p className="text-xs font-black tracking-[0.16em] text-rose-500">{tx("정밀 리포트")}</p>
+                <h2 className="mt-1 text-2xl font-black text-slate-800">{tx("가디언 리포트")}</h2>
               </div>
               <div className="grid grid-cols-5 rounded-2xl border border-white/80 bg-white/75 p-1 shadow-sm">
                 {Object.entries(reportPanels).map(([key, panel]) => (
@@ -1350,9 +1808,9 @@ function ResultCard({
             </div>
 
             <div className="rounded-[2rem] border border-rose-100 bg-gradient-to-r from-rose-50 to-amber-50 p-5 shadow-sm">
-              <p className="text-xs font-black tracking-[0.14em] text-rose-500">현재 가디언 메시지</p>
+              <p className="text-xs font-black tracking-[0.14em] text-rose-500">{tx("현재 가디언 메시지")}</p>
               <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">
-                {guardianCopy?.subtitle || `${guardianArchetype}의 에너지를 실전 루틴에 연결해 보세요.`} 오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.
+                {guardianCopy?.subtitle || txp("{guardian}의 에너지를 실전 루틴에 연결해 보세요.", { guardian: guardianArchetype })} {tx("오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.")}
               </p>
             </div>
           </section>
@@ -1364,24 +1822,24 @@ function ResultCard({
               onClick={handleCopy}
               className="rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-200/70 transition-transform active:scale-[0.98]"
             >
-              네컷 캡션 복사하기
+              {tx("네컷 캡션 복사하기")}
             </button>
             <button
               onClick={onReset}
               className="rounded-2xl bg-gradient-to-r from-amber-300 to-orange-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-amber-200/70 transition-transform active:scale-[0.98]"
             >
-              다시 생성하기
+              {tx("다시 생성하기")}
             </button>
             <button
               onClick={handleShare}
               className="rounded-2xl bg-gradient-to-r from-indigo-400 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200/70 transition-transform active:scale-[0.98]"
             >
-              공유하기
+              {tx("공유하기")}
             </button>
           </div>
 
           <p className="mt-3 text-center text-xs text-slate-500">
-            사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.
+            {tx("사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.")}
           </p>
         </footer>
       </div>
@@ -1392,6 +1850,7 @@ function ResultCard({
 /* ─────────────────────── 메인 페이지 ───────────────────────── */
 export default function SajuGuardianPage() {
   const [phase, setPhase] = useState<Phase>("checking");
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
@@ -1400,6 +1859,18 @@ export default function SajuGuardianPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const isFormValid = birthYear && birthMonth && birthDay;
+  const tx = useCallback((value: string) => translateSajuGuardianText(value, locale), [locale]);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -1430,7 +1901,7 @@ export default function SajuGuardianPage() {
 
       const resolvedGanji = normalizeGanji(local?.pillars?.day?.ganji ?? null);
       if (!resolvedGanji) {
-        setErrorMsg("일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.");
+        setErrorMsg(tx("일주 계산에 실패했어요. 입력값을 다시 확인해 주세요."));
         setPhase("error");
         return;
       }
@@ -1494,10 +1965,10 @@ export default function SajuGuardianPage() {
       setApiData(localData);
       setPhase("result");
     } catch (e) {
-      setErrorMsg("로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.");
+      setErrorMsg(tx("로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요."));
       setPhase("error");
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, isFormValid]);
+  }, [birthYear, birthMonth, birthDay, birthHour, isFormValid, tx]);
 
   const handleReset = useCallback(() => {
     setApiData(null);
@@ -1513,10 +1984,10 @@ export default function SajuGuardianPage() {
         <div className="mx-auto flex min-h-[76vh] w-full max-w-md flex-col items-center justify-center text-center">
           <div className="rounded-[2rem] border border-white/70 bg-white/80 p-7 shadow-xl backdrop-blur-xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-3xl shadow-inner">🔮</div>
-            <p className="mt-5 text-xs font-black tracking-[0.16em] text-rose-400">해금 확인</p>
-            <h1 className="mt-2 text-2xl font-black text-slate-800">수호 인장 권한 확인 중</h1>
+            <p className="mt-5 text-xs font-black tracking-[0.16em] text-rose-400">{tx("해금 확인")}</p>
+            <h1 className="mt-2 text-2xl font-black text-slate-800">{tx("수호 인장 권한 확인 중")}</h1>
             <p className="mt-3 text-sm leading-relaxed text-slate-500">
-              해금 기록과 이용권을 확인한 뒤 사주 가디언 소환진을 열어드립니다.
+              {tx("해금 기록과 이용권을 확인한 뒤 사주 가디언 소환진을 열어드립니다.")}
             </p>
           </div>
         </div>
@@ -1530,33 +2001,33 @@ export default function SajuGuardianPage() {
         <div className="mx-auto flex min-h-[76vh] w-full max-w-5xl flex-col justify-center gap-6">
           <div className="grid gap-6 lg:grid-cols-[0.92fr,1.08fr] lg:items-center">
             <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-xl backdrop-blur-xl">
-              <p className="text-xs font-black tracking-[0.16em] text-rose-500">프리미엄 수호 인장</p>
-              <h1 className="mt-2 text-3xl font-black leading-tight text-slate-800">사주 가디언 소환진</h1>
+              <p className="text-xs font-black tracking-[0.16em] text-rose-500">{tx("프리미엄 수호 인장")}</p>
+              <h1 className="mt-2 text-3xl font-black leading-tight text-slate-800">{tx("사주 가디언 소환진")}</h1>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                일주·월지·시지·오행 상징을 함께 읽어 지금 삶을 지키는 수호 인장과 7일 실행 의식을 여는 프리미엄 명리 리딩입니다.
+                {tx("일주·월지·시지·오행 상징을 함께 읽어 지금 삶을 지키는 수호 인장과 7일 실행 의식을 여는 프리미엄 명리 리딩입니다.")}
               </p>
               <div className="mt-5 grid grid-cols-4 gap-2">
                 {["일주", "월지", "시지", "오행"].map((label) => (
                   <div key={label} className="rounded-2xl border border-rose-100 bg-rose-50/70 px-3 py-3 text-center">
-                    <p className="text-[11px] font-black tracking-[0.12em] text-rose-400">인장</p>
-                    <p className="mt-1 text-sm font-black text-slate-700">{label}</p>
+                    <p className="text-[11px] font-black tracking-[0.12em] text-rose-400">{tx("인장")}</p>
+                    <p className="mt-1 text-sm font-black text-slate-700">{tx(label)}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-4 grid gap-2">
-                {GUARDIAN_PREMIUM_POINTS.map((item) => (
+                {GUARDIAN_PREMIUM_POINTS_COPY.map((item) => (
                   <div key={item.label} className="flex items-center justify-between rounded-2xl bg-white/70 px-3 py-2.5">
-                    <span className="text-xs font-black text-slate-500">{item.label}</span>
-                    <span className="text-xs font-black text-rose-500">{item.value}</span>
+                    <span className="text-xs font-black text-slate-500">{tx(item.label)}</span>
+                    <span className="text-xs font-black text-rose-500">{tx(item.value)}</span>
                   </div>
                 ))}
               </div>
             </section>
             <section className="space-y-3">
               {[
-                { title: "명리 근거", body: "일간·일지·월지·시지가 겹치는 자리에서 수호 인장의 모양이 또렷하게 열립니다." },
-                { title: "수호력과 그림자", body: "타고난 힘만 말하지 않고, 운을 새게 만드는 습관과 지켜야 할 기준을 함께 짚습니다." },
-                { title: "실전 운용", body: "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다." },
+                { title: tx("명리 근거"), body: tx("일간·일지·월지·시지가 겹치는 자리에서 수호 인장의 모양이 또렷하게 열립니다.") },
+                { title: tx("수호력과 그림자"), body: tx("타고난 힘만 말하지 않고, 운을 새게 만드는 습관과 지켜야 할 기준을 함께 짚습니다.") },
+                { title: tx("실전 운용"), body: tx("관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다.") },
               ].map((item) => (
                 <article key={item.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm">
                   <h2 className="text-sm font-black text-slate-800">{item.title}</h2>
@@ -1567,14 +2038,14 @@ export default function SajuGuardianPage() {
           </div>
           <div className="rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-xl backdrop-blur-xl">
             <div className="grid gap-2 sm:grid-cols-4">
-              {GUARDIAN_FLOW_STEPS.map((item) => (
+              {GUARDIAN_FLOW_STEPS_COPY.map((item) => (
                 <div key={item.step} className="rounded-2xl border border-rose-100 bg-rose-50/60 px-3 py-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-lg">{item.icon}</span>
                     <span className="text-[10px] font-black tracking-[0.14em] text-rose-400">{item.step}</span>
                   </div>
-                  <p className="mt-2 text-xs font-black text-slate-700">{item.label}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{item.title}</p>
+                  <p className="mt-2 text-xs font-black text-slate-700">{tx(item.label)}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{tx(item.title)}</p>
                 </div>
               ))}
             </div>
@@ -1582,13 +2053,13 @@ export default function SajuGuardianPage() {
               href="/index.html?action=openSajuGuardianPage"
               className="mt-5 inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 px-5 py-4 text-sm font-black text-white shadow-xl shadow-pink-200/60 transition-transform active:scale-[0.98]"
             >
-              🔒 10,000원으로 영구 해금하기
+              {tx("🔒 10,000원으로 영구 해금하기")}
             </a>
             <a
               href="/"
               className="mt-3 inline-flex w-full items-center justify-center rounded-3xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600"
             >
-              메인으로 돌아가기
+              {tx("메인으로 돌아가기")}
             </a>
           </div>
         </div>
@@ -1598,7 +2069,7 @@ export default function SajuGuardianPage() {
 
   /* ── 결과 화면 ── */
   if (phase === "result" && apiData) {
-    return <ResultCard data={apiData} onReset={handleReset} />;
+    return <ResultCard data={apiData} onReset={handleReset} tx={tx} />;
   }
 
   /* ── 에러 화면 ── */
@@ -1609,7 +2080,7 @@ export default function SajuGuardianPage() {
           <div className="text-6xl">😢</div>
           <div className="bg-white/80 rounded-3xl p-6 shadow-lg space-y-3">
             <p className="text-slate-700 font-semibold leading-relaxed">
-              가디언 인장을 여는 데 실패했어요.<br />입력값을 확인한 뒤 다시 소환해 주세요.
+              {tx("가디언 인장을 여는 데 실패했어요.")}<br />{tx("입력값을 확인한 뒤 다시 소환해 주세요.")}
             </p>
             {errorMsg && <p className="text-xs text-slate-400">{errorMsg}</p>}
           </div>
@@ -1617,7 +2088,7 @@ export default function SajuGuardianPage() {
             onClick={handleReset}
             className="w-full bg-gradient-to-r from-pink-400 to-rose-500 text-white font-bold rounded-2xl py-3.5 shadow-lg shadow-rose-200/60 active:scale-95 transition-all"
           >
-            🔄 다시 시도하기
+            {tx("🔄 다시 시도하기")}
           </button>
         </div>
       </div>
@@ -1637,7 +2108,7 @@ export default function SajuGuardianPage() {
             to { transform: translateY(-8px); }
           }
         `}</style>
-        <LoadingScreen />
+        <LoadingScreen tx={tx} />
       </div>
     );
   }
@@ -1650,20 +2121,20 @@ export default function SajuGuardianPage() {
           <a
             href="/"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/80 shadow-sm transition-colors hover:bg-pink-50"
-            aria-label="메인으로 돌아가기"
+            aria-label={tx("메인으로 돌아가기")}
           >
             <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </a>
-          <span className="text-sm font-black tracking-[0.12em] text-slate-500">수호 인장</span>
+          <span className="text-sm font-black tracking-[0.12em] text-slate-500">{tx("수호 인장")}</span>
         </div>
 
         <div className="max-w-md mx-auto px-4 pb-12 space-y-6">
           <div className="relative w-full aspect-square max-w-sm mx-auto mt-6 rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/60 border-4 border-white/80">
             <Image
               src={SAJU_GUARDIAN_IMAGE_SRC}
-              alt="사주 가디언 소환진"
+              alt={tx("사주 가디언 소환진")}
               fill
               priority
               className="object-cover"
@@ -1672,38 +2143,38 @@ export default function SajuGuardianPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 text-center">
               <span className="inline-block bg-white/90 backdrop-blur-sm text-slate-800 font-bold text-sm rounded-full px-4 py-1.5 shadow-sm">
-                🔒 10,000원 영구 해금 · 60갑자 수호 인장
+                {tx("🔒 10,000원 영구 해금 · 60갑자 수호 인장")}
               </span>
             </div>
           </div>
 
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-pink-500 via-rose-400 to-purple-500 leading-tight">
-              사주 가디언<br />소환진 🌙
+              {tx("사주 가디언 소환진")} 🌙
             </h1>
             <p className="text-sm text-slate-500 leading-relaxed">
-              <span className="font-semibold text-pink-500">일주·월지·시지·오행</span>의 결을 맞춰<br />
-              당신에게 필요한 수호 인장과 7일 의식을 엽니다.
+              <span className="font-semibold text-pink-500">{tx("일주·월지·시지·오행")}</span>{tx("의 결을 맞춰")}<br />
+              {tx("당신에게 필요한 수호 인장과 7일 의식을 엽니다.")}
             </p>
           </div>
 
           <div className="grid grid-cols-4 gap-2">
-            {GUARDIAN_FLOW_STEPS.map((item) => (
+              {GUARDIAN_FLOW_STEPS_COPY.map((item) => (
               <div key={item.step} className="rounded-2xl border border-white/70 bg-white/70 px-2 py-3 text-center shadow-sm">
                 <span className="block text-lg">{item.icon}</span>
-                <span className="mt-1 block text-[10px] font-black tracking-[0.12em] text-pink-400">{item.label}</span>
-                <span className="mt-0.5 block text-[10px] font-semibold leading-tight text-slate-500">{item.title}</span>
+                <span className="mt-1 block text-[10px] font-black tracking-[0.12em] text-pink-400">{tx(item.label)}</span>
+                <span className="mt-0.5 block text-[10px] font-semibold leading-tight text-slate-500">{tx(item.title)}</span>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-5 gap-2">
             {[
-              { element: "목", emoji: "🌿", color: "from-emerald-100 to-green-100", text: "성장" },
-              { element: "화", emoji: "🔥", color: "from-rose-100 to-pink-100", text: "발화" },
-              { element: "토", emoji: "🌙", color: "from-amber-100 to-yellow-100", text: "중심" },
-              { element: "금", emoji: "✨", color: "from-slate-100 to-gray-100", text: "절제" },
-              { element: "수", emoji: "💧", color: "from-sky-100 to-blue-100", text: "흐름" },
+              { element: "목", emoji: "🌿", color: "from-emerald-100 to-green-100", text: tx("성장") },
+              { element: "화", emoji: "🔥", color: "from-rose-100 to-pink-100", text: tx("발화") },
+              { element: "토", emoji: "🌙", color: "from-amber-100 to-yellow-100", text: tx("중심") },
+              { element: "금", emoji: "✨", color: "from-slate-100 to-gray-100", text: tx("절제") },
+              { element: "수", emoji: "💧", color: "from-sky-100 to-blue-100", text: tx("흐름") },
             ].map((item) => (
               <div
                 key={item.element}
@@ -1718,9 +2189,9 @@ export default function SajuGuardianPage() {
 
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3">
             {[
-              { icon: "🔮", text: "일주 천간·지지로 나의 중심 기운 판독" },
-              { icon: "🧭", text: "월지와 시지로 현실 배경과 행동 리듬 보강" },
-              { icon: "💌", text: "관계·일·재물·오늘의 개운 의식까지 정리" },
+              { icon: "🔮", text: tx("일주 천간·지지로 나의 중심 기운 판독") },
+              { icon: "🧭", text: tx("월지와 시지로 현실 배경과 행동 리듬 보강") },
+              { icon: "💌", text: tx("관계·일·재물·오늘의 개운 의식까지 정리") },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
                 <span className="text-xl shrink-0">{item.icon}</span>
@@ -1729,12 +2200,12 @@ export default function SajuGuardianPage() {
             ))}
           </div>
 
-          <section className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3" aria-label="사주 가디언 소환진 구성">
-            <h2 className="text-sm font-black text-slate-700 tracking-wide">10,000원 수호 인장 구성</h2>
-            {SAJU_GUARDIAN_VALUE_SECTIONS.map((section) => (
+          <section className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3" aria-label={tx("사주 가디언 소환진 구성")}>
+            <h2 className="text-sm font-black text-slate-700 tracking-wide">{tx("10,000원 수호 인장 구성")}</h2>
+            {SAJU_GUARDIAN_VALUE_SECTIONS_COPY.map((section) => (
               <article key={section.title} className="rounded-2xl border border-pink-100 bg-white/70 p-3.5">
-                <h3 className="text-sm font-bold text-pink-600 leading-relaxed">{section.title}</h3>
-                <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">{section.body}</p>
+                <h3 className="text-sm font-bold text-pink-600 leading-relaxed">{tx(section.title)}</h3>
+                <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">{tx(section.body)}</p>
               </article>
             ))}
           </section>
@@ -1743,11 +2214,11 @@ export default function SajuGuardianPage() {
             onClick={() => setPhase("form")}
             className="w-full bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-lg rounded-3xl py-5 shadow-xl shadow-pink-200/60 transition-all active:scale-[0.98]"
           >
-            🔮 출생 좌표 입력하고 인장 열기
+            {tx("🔮 출생 좌표 입력하고 인장 열기")}
           </button>
 
           <p className="text-center text-xs text-slate-400">
-            생년월일 필수 · 태어난 시간은 선택 입력
+            {tx("생년월일 필수 · 태어난 시간은 선택 입력")}
           </p>
         </div>
       </div>
@@ -1761,30 +2232,30 @@ export default function SajuGuardianPage() {
         <button
           onClick={() => setPhase("intro")}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/80 shadow-sm transition-colors hover:bg-pink-50"
-          aria-label="이전 화면"
+          aria-label={tx("이전 화면")}
         >
           <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-sm font-black tracking-[0.12em] text-slate-500">출생 좌표</span>
+        <span className="text-sm font-black tracking-[0.12em] text-slate-500">{tx("출생 좌표")}</span>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8 space-y-6">
         <div className="text-center space-y-1.5">
-          <p className="text-xs font-black tracking-[0.16em] text-rose-400">명리 좌표</p>
-          <h2 className="text-2xl font-black text-slate-800">가디언을 여는 출생 좌표</h2>
+          <p className="text-xs font-black tracking-[0.16em] text-rose-400">{tx("명리 좌표")}</p>
+          <h2 className="text-2xl font-black text-slate-800">{tx("가디언을 여는 출생 좌표")}</h2>
           <p className="text-sm leading-relaxed text-slate-500">
-            생년월일로 일주와 월지를 세우고, 선택 입력한 시간으로 시지의 보조 리듬까지 정렬합니다.
+            {tx("생년월일로 일주와 월지를 세우고, 선택 입력한 시간으로 시지의 보조 리듬까지 정렬합니다.")}
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          {GUARDIAN_FLOW_STEPS.slice(1).map((item) => (
+          {GUARDIAN_FLOW_STEPS_COPY.slice(1).map((item) => (
             <div key={item.step} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3 text-center shadow-sm">
               <span className="block text-lg">{item.icon}</span>
-              <span className="mt-1 block text-[10px] font-black tracking-[0.12em] text-rose-400">{item.label}</span>
-              <span className="mt-0.5 block text-[11px] font-bold leading-tight text-slate-600">{item.title}</span>
+              <span className="mt-1 block text-[10px] font-black tracking-[0.12em] text-rose-400">{tx(item.label)}</span>
+              <span className="mt-0.5 block text-[11px] font-bold leading-tight text-slate-600">{tx(item.title)}</span>
             </div>
           ))}
         </div>
@@ -1792,44 +2263,44 @@ export default function SajuGuardianPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-white/60 shadow-xl shadow-pink-100/50 space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <SelectField
-              label="태어난 년도"
+              label={tx("태어난 년도")}
               value={birthYear}
               onChange={setBirthYear}
-              placeholder="년도"
-              options={YEARS.map((y) => ({ value: String(y), label: `${y}년` }))}
+              placeholder={tx("년도")}
+              options={YEARS.map((y) => ({ value: String(y), label: `${y}${tx("년")}` }))}
             />
             <SelectField
-              label="월"
+              label={tx("월")}
               value={birthMonth}
               onChange={setBirthMonth}
-              placeholder="월"
-              options={MONTHS.map((m) => ({ value: String(m), label: `${m}월` }))}
+              placeholder={tx("월")}
+              options={MONTHS.map((m) => ({ value: String(m), label: locale === "ko" ? `${m}월` : `Month ${m}` }))}
             />
             <SelectField
-              label="일"
+              label={tx("일")}
               value={birthDay}
               onChange={setBirthDay}
-              placeholder="일"
-              options={DAYS.map((d) => ({ value: String(d), label: `${d}일` }))}
+              placeholder={tx("일")}
+              options={DAYS.map((d) => ({ value: String(d), label: locale === "ko" ? `${d}일` : `Day ${d}` }))}
             />
           </div>
 
           <SelectField
-            label="태어난 시간 (선택)"
+            label={tx("태어난 시간 (선택)")}
             value={birthHour}
             onChange={setBirthHour}
-            placeholder="시간을 모르면 건너뛰세요"
+            placeholder={tx("시간을 모르면 건너뛰세요")}
             options={HOURS.map((h) => ({
               value: String(h),
-              label: `${String(h).padStart(2, "0")}시 (${h < 12 ? "오전" : "오후"} ${h === 0 ? 12 : h > 12 ? h - 12 : h}시)`,
+              label: `${String(h).padStart(2, "0")}${tx("시")} (${h < 12 ? tx("오전") : tx("오후")} ${h === 0 ? 12 : h > 12 ? h - 12 : h}${tx("시")})`,
             }))}
           />
 
           <div className="bg-pink-50/80 rounded-2xl px-4 py-3 flex items-start gap-2.5">
             <span className="text-pink-400 text-lg shrink-0">💡</span>
             <p className="text-xs text-slate-500 leading-relaxed">
-              태어난 <span className="font-semibold text-pink-500">년·월·일</span>은 필수예요.
-              시간을 모르면 일주·월지 중심으로 읽고, 시간을 입력하면 시지의 보조 수호 리듬까지 열립니다.
+              {tx("태어난 ")}<span className="font-semibold text-pink-500">{tx("년·월·일")}</span>{tx("은 필수예요.")}
+              {tx("시간을 모르면 일주·월지 중심으로 읽고, 시간을 입력하면 시지의 보조 수호 리듬까지 열립니다.")}
             </p>
           </div>
         </div>
@@ -1837,7 +2308,7 @@ export default function SajuGuardianPage() {
         {isFormValid && (
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl py-4 px-5 border border-pink-100 shadow-sm animate-fade-in-up">
             <p className="text-center text-sm font-semibold text-slate-600">
-              출생 좌표가 맞춰졌어요. 이제 가디언 인장과 7일 미션을 열 수 있습니다.
+              {tx("출생 좌표가 맞춰졌어요. 이제 가디언 인장과 7일 미션을 열 수 있습니다.")}
             </p>
           </div>
         )}
@@ -1851,11 +2322,11 @@ export default function SajuGuardianPage() {
               : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
           }`}
         >
-          {isFormValid ? "🔮 수호 인장 열기" : "년·월·일을 입력해 주세요"}
+          {isFormValid ? tx("🔮 수호 인장 열기") : tx("년·월·일을 입력해 주세요")}
         </button>
 
         <p className="text-center text-xs text-slate-400">
-          입력된 생년월일은 운세 분석에만 사용되며 저장되지 않아요
+          {tx("입력된 생년월일은 운세 분석에만 사용되며 저장되지 않아요")}
         </p>
       </div>
     </div>

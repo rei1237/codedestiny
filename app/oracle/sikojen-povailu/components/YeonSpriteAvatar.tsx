@@ -13,10 +13,22 @@ type YeonSpriteAvatarProps = {
   pulse?: boolean;
 };
 
+const YEON_SPRITE_AVATAR_TEXT_TRANSLATIONS = {
+  ko: {
+    defaultAlt: '꽃돼지 주석점 이미지',
+  },
+  en: {
+    defaultAlt: 'flower pig tin oracle image',
+  },
+  ja: {
+    defaultAlt: '花豚の錫占い画像',
+  },
+} as const;
+
 export function YeonSpriteAvatar({
   frames = [1, 2, 3, 4],
   size = 140,
-  alt = '꽃돼지 주석점 이미지',
+  alt = YEON_SPRITE_AVATAR_TEXT_TRANSLATIONS.ko.defaultAlt,
   ringClassName = 'from-rose-300 to-pink-300',
   className = '',
   intervalMs = 900,

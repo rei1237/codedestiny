@@ -1,3 +1,5 @@
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
 type BiasEnergySvgInput = {
   biasName: string;
   biasEnergyType: string;
@@ -9,6 +11,52 @@ type BiasEnergySvgInput = {
   totalScore: number;
   connectionKeywords: string[];
 };
+
+const BIAS_ENERGY_SVG_TEXT_TRANSLATIONS = {
+  ko: {
+    ariaLabel: "상대방 에너지 시그니처",
+    signature: "ENERGY SIGNATURE",
+    auraType: "오라 타입",
+    auraMaterial: "오라 재질",
+    resonanceKeywords: "공명 키워드",
+    relationPhase: "관계 위상",
+    modeSuffix: "모드",
+    energyStrength: "에너지 공명 강도",
+    defaultSignal: "Neon",
+    defaultSecondSignal: "Rhythm",
+    defaultRelationMood: "응원형",
+  },
+  en: {
+    ariaLabel: "Other person's energy signature",
+    signature: "ENERGY SIGNATURE",
+    auraType: "Aura Type",
+    auraMaterial: "Aura Material",
+    resonanceKeywords: "Resonance Keywords",
+    relationPhase: "Relationship Phase",
+    modeSuffix: "mode",
+    energyStrength: "Energy Resonance",
+    defaultSignal: "Neon",
+    defaultSecondSignal: "Rhythm",
+    defaultRelationMood: "Supportive",
+  },
+  ja: {
+    ariaLabel: "相手のエネルギーシグネチャー",
+    signature: "エネルギーシグネチャー",
+    auraType: "オーラタイプ",
+    auraMaterial: "オーラの質感",
+    resonanceKeywords: "共鳴キーワード",
+    relationPhase: "関係の位相",
+    modeSuffix: "モード",
+    energyStrength: "エネルギー共鳴度",
+    defaultSignal: "ネオン",
+    defaultSecondSignal: "リズム",
+    defaultRelationMood: "応援型",
+  },
+} as const;
+
+function getBiasEnergySvgCopy(locale: LoadingLocale = getCurrentLoadingLocale()) {
+  return BIAS_ENERGY_SVG_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || BIAS_ENERGY_SVG_TEXT_TRANSLATIONS.ko;
+}
 
 function escapeXml(value: string) {
   return String(value || "")
@@ -135,6 +183,7 @@ function clampScore(value: number) {
 }
 
 export function createBiasEnergySvg(input: BiasEnergySvgInput) {
+  const copy = getBiasEnergySvgCopy();
   const safeColor = normalizeHexColor(input.energyColor);
   const bright = tint(safeColor, 0.48);
   const deep = shade(safeColor, 0.42);
@@ -144,12 +193,12 @@ export function createBiasEnergySvg(input: BiasEnergySvgInput) {
 
   const orbitOffset = 6 + (seed % 24);
   const orbitRotation = seed % 360;
-  const signal = (Array.isArray(input.connectionKeywords) ? input.connectionKeywords : []).filter(Boolean)[0] || "Neon";
-  const secondSignal = (Array.isArray(input.connectionKeywords) ? input.connectionKeywords : []).filter(Boolean)[1] || "Rhythm";
-  const relationMood = String(input.relationMood || "응원형").trim() || "응원형";
+  const signal = (Array.isArray(input.connectionKeywords) ? input.connectionKeywords : []).filter(Boolean)[0] || copy.defaultSignal;
+  const secondSignal = (Array.isArray(input.connectionKeywords) ? input.connectionKeywords : []).filter(Boolean)[1] || copy.defaultSecondSignal;
+  const relationMood = String(input.relationMood || copy.defaultRelationMood).trim() || copy.defaultRelationMood;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="상대방 에너지 시그니처">
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="${escapeXml(copy.ariaLabel)}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="${theme.bgStart}"/>
@@ -223,25 +272,25 @@ export function createBiasEnergySvg(input: BiasEnergySvgInput) {
   </g>
 
   <g transform="translate(510 114)">
-    <text x="0" y="0" fill="#D9E9FF" font-size="18" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" letter-spacing="1">ENERGY SIGNATURE</text>
+    <text x="0" y="0" fill="#D9E9FF" font-size="18" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" letter-spacing="1">${escapeXml(copy.signature)}</text>
     <text x="0" y="44" fill="#FFFFFF" font-size="42" font-weight="800" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(input.biasName)}</text>
     <text x="0" y="84" fill="${bright}" font-size="28" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(input.biasEnergyType)}</text>
 
     <rect x="0" y="108" width="322" height="212" rx="18" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)"/>
-    <text x="20" y="146" fill="#CDE8FF" font-size="16" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">오라 타입</text>
+    <text x="20" y="146" fill="#CDE8FF" font-size="16" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(copy.auraType)}</text>
     <text x="20" y="172" fill="#FFFFFF" font-size="20" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(input.auraType)}</text>
 
-    <text x="20" y="210" fill="#CDE8FF" font-size="16" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">오라 재질</text>
+    <text x="20" y="210" fill="#CDE8FF" font-size="16" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(copy.auraMaterial)}</text>
     <text x="20" y="236" fill="#FFFFFF" font-size="20" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(input.auraMaterial)}</text>
 
-    <text x="20" y="272" fill="#A4CCFF" font-size="15" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">공명 키워드 · ${escapeXml(signal)} / ${escapeXml(secondSignal)}</text>
-    <text x="20" y="300" fill="#D4E7FF" font-size="15" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">관계 위상 · ${escapeXml(relationMood)} 모드</text>
+    <text x="20" y="272" fill="#A4CCFF" font-size="15" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(copy.resonanceKeywords)} · ${escapeXml(signal)} / ${escapeXml(secondSignal)}</text>
+    <text x="20" y="300" fill="#D4E7FF" font-size="15" font-weight="600" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(copy.relationPhase)} · ${escapeXml(relationMood)} ${escapeXml(copy.modeSuffix)}</text>
   </g>
 
   <g transform="translate(78 448)">
     <rect x="0" y="0" width="744" height="38" rx="14" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)"/>
     <rect x="0" y="0" width="${Math.max(22, Math.min(744, Math.round(score * 7.44)))}" height="38" rx="14" fill="${safeColor}" opacity="0.74"/>
-    <text x="16" y="26" fill="#ECF6FF" font-size="16" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">에너지 공명 강도 ${score}/100</text>
+    <text x="16" y="26" fill="#ECF6FF" font-size="16" font-weight="700" font-family="Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif">${escapeXml(copy.energyStrength)} ${score}/100</text>
   </g>
 </svg>`;
 }

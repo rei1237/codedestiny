@@ -1,14 +1,45 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
+const ASTRO_COSMIC_TEXT_TRANSLATIONS = {
+  ko: {
+    "service.h1": "점성술 코즈믹 차트",
+    "service.description": "서양 점성술의 태양궁, 달궁, 상승궁을 중심으로 성향과 관계 패턴을 읽는 코즈믹 차트 서비스입니다.",
+    "service.seoText": "점성술 코즈믹 차트는 출생 정보를 기반으로 태양, 달, 상승궁을 해석해 성향과 감정 패턴, 표현 방식을 이해하도록 돕습니다.",
+    "value.1.title": "1. 태양궁은 목표, 달궁은 회복, 상승궁은 표현입니다",
+    "value.2.title": "2. 하우스는 사건의 무대, 행성은 행동의 배우입니다",
+    "value.3.title": "3. 각은 긴장 신호가 아니라 조정 포인트입니다",
+    "value.4.title": "4. 트랜짓은 이벤트 예언보다 준비 체크리스트에 가깝습니다",
+    "value.5.title": "5. 궁합은 케미 점수보다 소통 번역 능력을 봅니다",
+    "value.6.title": "6. 코즈믹 해석은 주간 실험으로 완성됩니다",
+    "metadata.title": "점성술 코즈믹 차트 - 태양·달·상승궁 분석",
+  },
+  en: {
+    "service.h1": "Astrology Cosmic Chart",
+    "service.description": "A cosmic chart service that reads temperament and relationship patterns through the Sun sign, Moon sign, and Rising sign of Western astrology.",
+    "service.seoText": "Astrology Cosmic Chart interprets the Sun, Moon, and Rising sign from birth information to help you understand temperament, emotional patterns, and expression style.",
+    "value.1.title": "1. The Sun is purpose, the Moon is recovery, and the Rising is expression",
+    "value.2.title": "2. Houses are stages, planets are actors",
+    "value.3.title": "3. Aspects are adjustment points, not tension punishments",
+    "value.4.title": "4. Transits are preparation checklists more than event predictions",
+    "value.5.title": "5. Compatibility is communication translation, not chemistry score",
+    "value.6.title": "6. Cosmic interpretation is completed through weekly experiments",
+    "metadata.title": "Astrology Cosmic Chart - Sun, Moon, and Rising Analysis",
+  },
+};
+
+function astroCosmicText(key: keyof typeof ASTRO_COSMIC_TEXT_TRANSLATIONS.ko) {
+  return ASTRO_COSMIC_TEXT_TRANSLATIONS.ko[key] || ASTRO_COSMIC_TEXT_TRANSLATIONS.en[key] || "Translation pending";
+}
+
 const SERVICE = {
-  h1: "점성술 코즈믹 차트",
+  h1: astroCosmicText("service.h1"),
   description:
-    "서양 점성술의 태양궁, 달궁, 상승궁을 중심으로 성향과 관계 패턴을 읽는 코즈믹 차트 서비스입니다.",
+    astroCosmicText("service.description"),
   ogImage: "https://code-destiny.com/fuctionassets/jumsung.webp",
   landingPoints: ["태양궁·달궁·상승궁 해석", "코즈믹 스타일 차트", "관계 패턴 파악"],
   seoText:
-    "점성술 코즈믹 차트는 출생 정보를 기반으로 태양, 달, 상승궁을 해석해 성향과 감정 패턴, 표현 방식을 이해하도록 돕습니다.",
+    astroCosmicText("service.seoText"),
   localized: {
     en: {
       title: "Astrology Cosmic Chart - Sun, Moon, and Rising Analysis",
@@ -476,32 +507,32 @@ const SERVICE = {
   valueGuideTitle: "코즈믹 차트를 현실에 연결하는 6개 관점",
   valueSections: [
     {
-      title: "1. 태양궁은 목표, 달궁은 회복, 상승궁은 표현입니다",
+      title: astroCosmicText("value.1.title"),
       body:
         "점성술을 한 줄 별자리로만 보면 설명이 얕아집니다. 태양궁은 내가 장기적으로 추구하는 방향, 달궁은 불안할 때의 정서 반응, 상승궁은 처음 만나는 사람에게 보이는 운영 방식을 보여줍니다. 이 세 축을 함께 읽어야 왜 의지는 강한데 관계에서 피곤해지는지 같은 실제 체감이 명확해집니다.",
     },
     {
-      title: "2. 하우스는 사건의 무대, 행성은 행동의 배우입니다",
+      title: astroCosmicText("value.2.title"),
       body:
         "같은 금성이라도 2하우스와 10하우스에서 작동 방식이 다릅니다. 하우스는 어떤 삶의 영역에서 에너지가 드러나는지 설명하고, 행성은 그 영역을 어떤 톤으로 다루는지 알려줍니다. 차트를 볼 때 행성 의미만 단독으로 외우기보다 어디에서, 누구와, 무엇을 통해 발현되는지를 함께 적는 습관이 해석 정확도를 높입니다.",
     },
     {
-      title: "3. 각은 긴장 신호가 아니라 조정 포인트입니다",
+      title: astroCosmicText("value.3.title"),
       body:
         "사각이나 대립이 많다고 반드시 나쁜 차트는 아닙니다. 오히려 성장 동력이 강한 구조일 수 있습니다. 중요한 것은 불편한 각이 생길 때 내 의사결정이 어떻게 급해지는지, 관계 대화가 어디에서 틀어지는지 패턴을 아는 것입니다. 각은 운명의 벌점이 아니라 조정이 필요한 작업 항목처럼 보는 것이 건강합니다.",
     },
     {
-      title: "4. 트랜짓은 이벤트 예언보다 준비 체크리스트에 가깝습니다",
+      title: astroCosmicText("value.4.title"),
       body:
         "행성 이동은 결과를 확정하는 스위치가 아니라 집중해야 할 주제를 알려주는 신호입니다. 예를 들어 토성 압박기가 오면 책임과 구조 재정비가 우선이고, 목성 확장기는 기회를 넓히되 과장된 약속을 경계해야 합니다. 일정 관리, 지출 계획, 관계 대화 목표를 미리 정해두면 같은 트랜짓도 훨씬 안정적으로 통과합니다.",
     },
     {
-      title: "5. 궁합은 케미 점수보다 소통 번역 능력을 봅니다",
+      title: astroCosmicText("value.5.title"),
       body:
         "시너스트리에서 자주 보는 실수는 점수가 낮으면 관계가 끝이라는 해석입니다. 실제로는 감정 표현 언어가 다를 뿐인 경우가 많습니다. 상대 달궁이 원하는 안정 방식, 내 화성이 밀어붙이는 속도를 비교해 대화 순서를 조정하면 갈등의 상당 부분이 줄어듭니다. 궁합은 판결보다 번역의 문제라는 관점이 실용적입니다.",
     },
     {
-      title: "6. 코즈믹 해석은 주간 실험으로 완성됩니다",
+      title: astroCosmicText("value.6.title"),
       body:
         "차트 결과를 읽은 뒤 일주일만 실험해 보세요. 에너지가 떨어지는 시간대, 관계가 부드러워지는 대화 방식, 집중이 잘 되는 작업 환경을 기록하면 해석이 내 데이터로 바뀝니다. 점성술은 외부 운명을 기다리는 기술이 아니라 내 리듬을 관찰하고 조정하는 프레임으로 쓸 때 가장 높은 가치를 제공합니다.",
     },
@@ -509,7 +540,7 @@ const SERVICE = {
 };
 
 export const metadata = withUniqueRouteMetadata("/astrology/cosmic", {
-  title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",
+  title: astroCosmicText("metadata.title"),
   description:
     "서양 점성술의 태양궁, 달궁, 상승궁을 중심으로 성향과 관계 패턴을 읽는 코즈믹 차트 서비스.",
 });

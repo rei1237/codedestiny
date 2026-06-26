@@ -3,13 +3,36 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
-const POSITION_TITLES = [
-  "표면 감정",
-  "과거의 잔상",
-  "핵심 진심",
-  "미래 기대",
-  "무의식 욕구",
-];
+const TAROT_MINDSCAN_ROUTE_TEXT_TRANSLATIONS = {
+  ko: {
+    positionTitles: ["표면 감정", "과거의 잔상", "핵심 진심", "미래 기대", "무의식 욕구"],
+    positionFallback: (slot) => `포지션 ${slot}`,
+    positionMeaningFallback: "이 위치의 감정 흐름을 읽어냅니다.",
+    cardsRequired: "카드 페어 데이터가 필요합니다.",
+    questionRequired: "상담 질문이 필요합니다.",
+    cardMeaningMissing: "카드 의미 데이터가 누락되어 정확한 해석을 생성할 수 없습니다",
+    serverError: "서버 오류가 발생했습니다.",
+  },
+  en: {
+    positionTitles: ["Surface Emotion", "Echo of the Past", "Core Truth", "Future Hope", "Unconscious Desire"],
+    positionFallback: (slot) => `Position ${slot}`,
+    positionMeaningFallback: "This position reads the emotional flow at this point.",
+    cardsRequired: "Card-pair data is required.",
+    questionRequired: "A consultation question is required.",
+    cardMeaningMissing: "Card meaning data is missing, so an accurate reading cannot be generated.",
+    serverError: "A server error occurred.",
+  },
+  ja: {
+    positionTitles: ["表面の感情", "過去の余韻", "核心の本音", "未来への期待", "無意識の欲求"],
+    positionFallback: (slot) => `ポジション${slot}`,
+    positionMeaningFallback: "この位置の感情の流れを読み解きます。",
+    cardsRequired: "カードペアデータが必要です。",
+    questionRequired: "相談質問が必要です。",
+    cardMeaningMissing: "カード意味データが不足しているため、正確な解釈を生成できません。",
+    serverError: "サーバーエラーが発生しました。",
+  },
+};
+const tarotMindscanRouteCopy = TAROT_MINDSCAN_ROUTE_TEXT_TRANSLATIONS.ko;
 
 const MAJOR = [
   "The Fool",
@@ -80,8 +103,8 @@ function normalizePair(pair, idx) {
 
   return {
     slot,
-    positionLabel: toText(pair?.positionLabel) || POSITION_TITLES[idx] || `포지션 ${slot}`,
-    positionMeaning: toText(pair?.positionMeaning) || "이 위치의 감정 흐름을 읽어냅니다.",
+    positionLabel: toText(pair?.positionLabel) || tarotMindscanRouteCopy.positionTitles[idx] || tarotMindscanRouteCopy.positionFallback(slot),
+    positionMeaning: toText(pair?.positionMeaning) || tarotMindscanRouteCopy.positionMeaningFallback,
     mainCardName,
     subCardName,
   };
@@ -154,14 +177,14 @@ export async function POST(req) {
 
     if (!Array.isArray(pairs) || pairs.length === 0) {
       return NextResponse.json(
-        { ok: false, message: "카드 페어 데이터가 필요합니다." },
+        { ok: false, message: tarotMindscanRouteCopy.cardsRequired },
         { status: 400 }
       );
     }
 
     if (!question) {
       return NextResponse.json(
-        { ok: false, message: "상담 질문이 필요합니다." },
+        { ok: false, message: tarotMindscanRouteCopy.questionRequired },
         { status: 400 }
       );
     }
@@ -172,7 +195,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           ok: false,
-          message: reading?.message || "카드 의미 데이터가 누락되어 정확한 해석을 생성할 수 없습니다",
+          message: reading?.message || tarotMindscanRouteCopy.cardMeaningMissing,
         },
         { status: 422 },
       );
@@ -182,7 +205,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("[tarot/mindscan] Error:", error);
     return NextResponse.json(
-      { ok: false, message: "서버 오류가 발생했습니다." },
+      { ok: false, message: tarotMindscanRouteCopy.serverError },
       { status: 500 }
     );
   }

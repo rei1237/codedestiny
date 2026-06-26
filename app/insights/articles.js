@@ -1,9 +1,131 @@
 import { ADSENSE_READY_ARTICLES } from "./adsense-ready-articles";
 
+const INSIGHT_ARTICLE_TEXT_TRANSLATIONS = {
+  ko: {
+    "ia_1015_prop_title": "자미두수 14주성 완전정리: 모든 별의 뜻과 궁위별 해석",
+    "ia_1105_prop_title": "사주 12운성 완전입문: 장생부터 양까지 쉽게 읽는 법",
+    "ia_1145_prop_title": "십성으로 보는 직업·적성: 내 일머리 캐릭터 찾기",
+    "ia_1190_prop_title": "사주 궁합 보는 법: 오행 밸런스로 재미있게 읽기",
+    "ia_1215_prop_title": "타로 궁합 리딩 게임: 3카드로 서로의 마음 읽기",
+    "ia_1240_prop_title": "숙요점 궁합 보는 법: 27수 리듬 맞추기",
+    "ia_1265_prop_title": "베다점 궁합 입문: 구나매칭과 생활 궁합 읽기",
+    "ia_127_prop_title": "십성(十星) 완전 입문: 비겁·식상·재성·관성·인성 역할과 생활 적용법",
+    "ia_128_prop_description": "십성의 개념을 관계/일/학습/재무 관점으로 풀어낸 사주 입문자용 완전 가이드입니다. 해석을 행동으로 바꾸는 실용 맵입니다.",
+    "ia_1290_prop_title": "점성술 궁합 보는 법: 시너스트리로 케미 읽기",
+    "ia_1315_prop_title": "자미두수 궁합 보는 법: 부처궁·명궁 중심 실전 가이드",
+    "ia_1340_prop_title": "오행별 성격 완전정리: 목화토금수 성향을 깊게 읽는 법",
+    "ia_1390_prop_title": "숙요점 27수란 무엇인가: 처음 보는 사람도 이해하는 설명",
+    "ia_1403_prop_title": "숙요점 3분류 이해: 근거리·중거리·원거리 감각 잡기",
+    "ia_1416_prop_title": "숙요점 궁합 체크리스트 7가지: 오늘 바로 써먹기",
+    "ia_1429_prop_title": "숙요점 연애 소통법: 싸움 줄이는 간단 규칙",
+    "ia_1442_prop_title": "숙요점으로 보는 친구·팀워크: 같이 일할 때 궁합 읽기",
+    "ia_1455_prop_title": "숙요점 일상 활용법: 하루 리듬을 읽는 간단 루틴",
+    "ia_1468_prop_title": "숙요점 초보 용어 사전: 어려운 말 쉽게 바꾸기",
+    "ia_1481_prop_title": "숙요점 자주 묻는 질문 10선: 헷갈리는 포인트 정리",
+    "ia_1494_prop_title": "숙요점 27숙 수호 동물 대백과: 특징과 유래를 쉽게 읽기",
+    "ia_1577_prop_title": "병오년 일간별 생존 필승 전략: 갑부터 계까지 실전 가이드",
+    "ia_1647_prop_title": "병오년 연애 필승 전략: 불의 해에서 관계를 지키는 실전 가이드",
+    "ia_1697_prop_title": "병오년 재물 필승 전략: 과열 장세에서 돈을 지키고 키우는 법",
+    "ia_172_prop_title": "용신(用神) 완전 이해: 조건부 해석으로 내 사주를 제대로 읽는 법",
+    "ia_173_prop_description": "용신 해석의 기본과 흔한 오해, 콘텐츠에 안전하게 적용하는 방법을 다룹니다. 사주 보는 법의 심화 단계에서 궁금하지 않는 용신 적용 가이드입니다.",
+    "ia_1752_prop_title": "타로 마이너 아르카나 4원소 실전 해석: 완드·컵·소드·펜타클",
+    "ia_1802_prop_title": "타로 코트카드 완전 가이드: 페이지·나이트·퀸·킹 읽는 법",
+    "ia_1852_prop_title": "자미두수 사화(化祿·化權·化科·化忌) 실전 해석 가이드",
+    "ia_1902_prop_title": "자미두수 대운·유년 해석법: 흐름을 길게 읽는 실전 프레임",
+    "ia_1952_prop_title": "타로 실전 리딩 케이스북: 질문별 샘플 리딩과 해석 구조",
+    "ia_2007_prop_title": "자미두수 궁위별 월간 점검 템플릿: 명궁부터 재백궁까지",
+    "ia_2062_prop_title": "베다점 심화: 다샤·고차르·업야야 실전 해석법",
+    "ia_207_prop_title": "병오년(丙午年) 심층 분석: 드러남과 질서 재정립의 해로 승부하는 법",
+    "ia_2107_prop_title": "세계 이색 점술 가이드: 돼지점 포함 신기한 점복 문화",
+    "ia_2162_prop_title": "아시아 점복 전통 심화: 주역·사주·숙요·민속 점술의 흐름",
+    "ia_2202_prop_title": "유럽 점복 전통 심화: 타로·룬·차잎 점의 역사와 실전 읽기",
+    "ia_2242_prop_title": "중동 점복 전통 심화: 지오맨시와 의례적 해석 문화",
+    "ia_2282_prop_title": "아프리카 점복 전통 심화: 이파(Ifa)와 공동체 의사결정 문화",
+    "ia_2322_prop_title": "2026 월간 운세 계획법: 사주 흐름을 일정 관리로 바꾸는 실전 프레임",
+    "ia_2362_prop_title": "수성 역행 운세 제대로 읽기: 오해를 줄이고 일정 혼선을 막는 체크리스트",
+    "ia_2402_prop_title": "타로로 보는 커리어 운: 이직·연봉·번아웃을 읽는 7문항 프레임워크",
+    "ia_243_prop_title": "타로 메이저 아르카나 22장 상징 완전 가이드: 스토리로 읽는 카드 해석법",
+    "ia_2442_prop_title": "신월·보름 운세 루틴: 월간 목표를 지키는 15분 리추얼 가이드",
+    "ia_244_prop_description": "메이저 아르카나의 상징 체계를 스토리 흐름으로 정리한 학습형 콘텐츠입니다. 0번 바보에서 21번 세계까지 이어지는 성장 서사와 각 카드의 핵심 상징을 실전 해석법과 함께 설명합니다.",
+    "ia_2482_prop_title": "사주로 이직 타이밍 읽는 법: 후회 줄이는 9가지 체크리스트",
+    "ia_2522_prop_title": "불안할 때 타로를 안전하게 보는 법: 과몰입을 막는 5단계 리딩 프로토콜",
+    "ia_2562_prop_title": "베다점 다샤 읽기 입문: 월간 행동 전략으로 바꾸는 현실 가이드",
+    "ia_2602_prop_title": "숙요점 관계 회복 템플릿: 갈등 후 대화를 복구하는 12문장 가이드",
+    "ia_2642_prop_title": "자미두수 승진운 실전 해석: 평가 시즌에 강해지는 준비 전략",
+    "ia_2682_prop_title": "베다점 역행행성 해석법: 불안 대신 실전 점검으로 읽는 가이드",
+    "ia_2717_prop_title": "베다점 문라시 감정 관리법: 하루 루틴으로 안정감을 만드는 방법",
+    "ia_2752_prop_title": "베다점 트랜짓 90일 기록법: 체감 정확도를 높이는 저널 템플릿",
+    "ia_2787_prop_title": "숙요점 경계선 설정법: 좋은 관계를 오래 가게 하는 현실 가이드",
+    "ia_2822_prop_title": "숙요점 커플 재무 궁합: 돈 때문에 싸우지 않는 리듬 설계법",
+    "ia_283_prop_title": "타로 0번부터 21번까지: 이미지로 배우는 메이저 아르카나",
+    "ia_2931_prop_label": "전체",
+    "ia_2932_prop_label": "사주",
+    "ia_2933_prop_label": "타로",
+    "ia_2934_prop_label": "숙요점",
+    "ia_2935_prop_label": "베다점성술",
+    "ia_2936_prop_label": "점성술",
+    "ia_2937_prop_label": "자미두수",
+    "ia_343_prop_title": "타로 역방향 카드 해석 완전 가이드: 부정이 아닌 신호로 읽는 프레임워크",
+    "ia_344_prop_description": "역방향 카드를 부정으로 단정하지 않고 해석하는 안전한 프레임워크를 제시합니다. 에너지 지연, 내면화, 조정 필요 신호로 읽는 실전 해석법을 안내합니다.",
+    "ia_383_prop_title": "타로 스프레드 설계 완전 가이드: 질문 목적에 맞는 스프레드 구성법",
+    "ia_384_prop_description": "3카드, 5카드, 관계 스프레드 등 질문 목적에 맞는 스프레드 설계법을 설명합니다. 좋은 스프레드는 좋은 질문에서 시작됩니다.",
+    "ia_423_prop_title": "궁합 해석 윤리: 관계를 해치지 않는 문장",
+    "ia_424_prop_description": "궁합 콘텐츠 작성 시 피해야 할 표현과 권장 표현을 사례 중심으로 정리합니다.",
+    "ia_447_prop_title": "오늘의 운세를 더 잘 읽는 3단계",
+    "ia_448_prop_description": "일일 운세를 막연한 예언이 아닌 실천 가능한 힌트로 바꾸는 읽기법을 소개합니다.",
+    "ia_471_prop_title": "서양 점성술 vs 사주명리학 완전 비교: 두 체계의 차이와 활용법",
+    "ia_472_prop_description": "별자리 점성술과 사주명리학이 무엇을 중심으로 읽는지 비교해 설명합니다. 두 체계의 데이터 구조와 해석 방식, 어떤 질문에 어떤 도구가 더 맞는지 안내합니다.",
+    "ia_47_prop_title": "십천간(十天干) 완전 해석: 갑·을·병·정·무·기·경·신·임·계의 기질과 실전 활용법",
+    "ia_48_prop_description": "갑·을·병·정·무·기·경·신·임·계 십천간의 기질을 대인관계·직무·학습 스타일로 풀어낸 사주 실전 해석 가이드입니다.",
+    "ia_511_prop_title": "운세 결과를 안전하게 활용하는 방법",
+    "ia_512_prop_description": "운세/타로 결과를 현실 의사결정에 과몰입 없이 적용하는 실천 가이드입니다.",
+    "ia_535_prop_title": "운세 질문을 깊고 정확하게 만드는 질문 설계법 완전 가이드",
+    "ia_536_prop_description": "사주·타로 상담 전 질문을 정리해 더 정확한 해석을 끌어내는 방법을 소개합니다. 좋은 질문이 좋은 해석을 만듭니다.",
+    "ia_575_prop_title": "초보자를 위한 타로 카드 완전 학습 가이드: 처음 시작하는 사람의 22가지 체크리스트",
+    "ia_576_prop_description": "타로를 처음 배우는 사람이 기본기를 빠르게 익히도록 돕는 단계별 학습 체크리스트입니다. 암기보다 이해, 이해보다 실용에 초점을 맞춥니다.",
+    "ia_615_prop_title": "사주와 타로 통합 해석 입문: 두 체계를 함께 읽어 인생 통찰 얻는 법",
+    "ia_616_prop_description": "사주와 타로를 서로 보완적으로 읽어 현실적인 조언을 만드는 기본법을 설명합니다. 두 체계의 강점을 활용한 통합 해석 가이드입니다.",
+    "ia_655_prop_title": "숙요점(宿曜占) 완전 입문: 27수로 읽는 관계와 생활 리듬 가이드",
+    "ia_656_prop_description": "숙요점의 27수 체계와 관계 해석 기본, 현대적으로 안전하게 활용하는 방법을 정리합니다. 달의 위치로 읽는 동양 점성술 숙요점 핵심 가이드입니다.",
+    "ia_695_prop_title": "베다점성술(Jyotish) 완전 기초: 라시 차트와 나밤샤를 함께 읽는 법",
+    "ia_696_prop_description": "베다점성술의 기본 차트 구조와 해석 순서를 초보자 눈높이로 설명합니다. 라시(D1)와 나밤샤(D9)를 활용한 현대적 베다 점성술 입문 가이드입니다.",
+    "ia_6_prop_title": "사주 명리학 기초: 사주팔자·천간지지·오행을 한 번에 이해하는 완전 입문 가이드",
+    "ia_735_prop_title": "자미두수(紫微斗數) 핵심성 완전 입문: 주성과 보성으로 읽는 12궁 가이드",
+    "ia_736_prop_description": "자미두수의 주성/보성 구조와 해석 순서를 간결하게 정리한 입문 콘텐츠입니다. 명반 구성부터 핵심성 해석까지, 자미두수 처음 배우는 분을 위한 완전 가이드입니다.",
+    "ia_775_prop_title": "점성술 하우스 12영역 빠른 이해",
+    "ia_776_prop_description": "서양 점성술 하우스 12영역을 삶의 질문으로 연결해 설명하는 실전 가이드입니다.",
+    "ia_799_prop_title": "천동성(天同)은 무엇인가: 궁위별 특징 한눈에 보기",
+    "ia_800_prop_description": "천동성의 기본 성향과 명궁·재백궁·관록궁·부처궁에 있을 때의 해석 포인트를 고객 눈높이로 설명합니다.",
+    "ia_823_prop_title": "무곡성(武曲)은 무엇인가: 돈·일·책임 해석법",
+    "ia_824_prop_description": "무곡성의 핵심 성향과 궁위별 작동 방식, 특히 관록궁/재백궁에서의 실전 해석 포인트를 다룹니다.",
+    "ia_847_prop_title": "자미성(紫微)은 무엇인가: 리더십과 중심축 해석",
+    "ia_848_prop_description": "자미성이 명궁·관록궁·천이궁에 위치할 때 나타나는 리더십과 책임 구조를 초보자용으로 설명합니다.",
+    "ia_871_prop_title": "천부성(天府) 해석: 안정, 자산, 신뢰의 별",
+    "ia_872_prop_description": "천부성의 안정적 성향과 재백궁/복덕궁/관록궁에서의 작동 원리를 고객 관점으로 풀어냅니다.",
+    "ia_87_prop_title": "십이지지(十二地支) 완전 해석: 계절성·지장간·충합형 관계를 이해하는 사주 기초 가이드",
+    "ia_88_prop_description": "자(子)·축·인·묘·진·사·오·미·신·유·술·해 십이지지의 계절성과 지장간, 충·합·형 관계를 실생활에 연결하는 사주 기초 해설입니다.",
+    "ia_895_prop_title": "태양성·태음성 차이: 자미두수 음양 밸런스 읽기",
+    "ia_896_prop_description": "태양성과 태음성의 성향 차이와 궁위별 해석 포인트를 통해 관계·커리어에서의 균형을 설명합니다.",
+    "ia_919_prop_title": "자미두수 12궁 핵심: 관록궁·재백궁·부처궁 빠른 해석",
+    "ia_920_prop_description": "자미두수에서 고객이 가장 궁금해하는 일·돈·연애 영역 중심으로 12궁 해석의 핵심을 정리합니다.",
+    "ia_943_prop_title": "록존·화기 실전 해석: 기회와 과열 신호 구분하기",
+    "ia_944_prop_description": "자미두수에서 자주 궁금해하는 록존/화기 성향을 일상 의사결정에 적용하는 방법을 안내합니다.",
+    "ia_967_prop_title": "자미두수 별 조합 입문: 천동·무곡·태음 함께 읽는 법",
+    "ia_968_prop_description": "별 하나가 아닌 조합으로 읽어야 정확해지는 이유와 고객이 바로 적용할 수 있는 조합 해석법을 제공합니다.",
+    "ia_991_prop_title": "명궁 자가분석 체크리스트: 자미두수를 일상에 쓰는 법",
+    "ia_992_prop_description": "명궁 중심으로 성향을 점검하고 일·돈·관계 행동전략으로 바꾸는 고객용 체크리스트입니다.",
+  },
+};
+
+function insightArticleText(key) {
+  return INSIGHT_ARTICLE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
+
 const RAW_INSIGHT_ARTICLES = [
   {
     slug: "saju-four-pillars-basics",
-    title: "사주 명리학 기초: 사주팔자·천간지지·오행을 한 번에 이해하는 완전 입문 가이드",
+    title: insightArticleText("ia_6_prop_title"),
     description:
       "사주명리학의 핵심인 사주팔자, 천간·지지, 음양오행의 관계를 한 번에 이해하는 입문 가이드입니다. 사주 보는 법의 기초부터 일상 활용까지 단계별로 설명합니다.",
     category: "사주 기초",
@@ -44,8 +166,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ten-heavenly-stems-practical",
-    title: "십천간(十天干) 완전 해석: 갑·을·병·정·무·기·경·신·임·계의 기질과 실전 활용법",
-    description: "갑·을·병·정·무·기·경·신·임·계 십천간의 기질을 대인관계·직무·학습 스타일로 풀어낸 사주 실전 해석 가이드입니다.",
+    title: insightArticleText("ia_47_prop_title"),
+    description: insightArticleText("ia_48_prop_description"),
     category: "사주 기초",
     updatedAt: "2026-04-05",
     keywords: ["십천간", "사주명리학", "사주 보는 법", "천간 해석", "일간 특성"],
@@ -84,8 +206,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "twelve-earthly-branches-and-seasons",
-    title: "십이지지(十二地支) 완전 해석: 계절성·지장간·충합형 관계를 이해하는 사주 기초 가이드",
-    description: "자(子)·축·인·묘·진·사·오·미·신·유·술·해 십이지지의 계절성과 지장간, 충·합·형 관계를 실생활에 연결하는 사주 기초 해설입니다.",
+    title: insightArticleText("ia_87_prop_title"),
+    description: insightArticleText("ia_88_prop_description"),
     category: "사주 기초",
     updatedAt: "2026-04-05",
     keywords: ["십이지지", "지지 해석", "사주 보는 법", "지장간", "사주 충합형"],
@@ -124,8 +246,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ten-gods-beginner-map",
-    title: "십성(十星) 완전 입문: 비겁·식상·재성·관성·인성 역할과 생활 적용법",
-    description: "십성의 개념을 관계/일/학습/재무 관점으로 풀어낸 사주 입문자용 완전 가이드입니다. 해석을 행동으로 바꾸는 실용 맵입니다.",
+    title: insightArticleText("ia_127_prop_title"),
+    description: insightArticleText("ia_128_prop_description"),
     category: "사주 심화",
     updatedAt: "2026-04-05",
     keywords: ["십성", "사주 십성", "비겁 식상 재성", "사주 보는 법", "십성 해석"],
@@ -169,8 +291,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "yongshin-how-to-think",
-    title: "용신(用神) 완전 이해: 조건부 해석으로 내 사주를 제대로 읽는 법",
-    description: "용신 해석의 기본과 흔한 오해, 콘텐츠에 안전하게 적용하는 방법을 다룹니다. 사주 보는 법의 심화 단계에서 궁금하지 않는 용신 적용 가이드입니다.",
+    title: insightArticleText("ia_172_prop_title"),
+    description: insightArticleText("ia_173_prop_description"),
     category: "사주 심화",
     updatedAt: "2026-04-05",
     keywords: ["용신", "용신 찾는 법", "사주명리학", "사주 보는 법", "신강신약"],
@@ -204,7 +326,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "byeongo-year-reorder-signals",
-    title: "병오년(丙午年) 심층 분석: 드러남과 질서 재정립의 해로 승부하는 법",
+    title: insightArticleText("ia_207_prop_title"),
     description:
       "병오년의 불(火) 기운이 개인의 관계·일·학습에서 어떤 방식으로 '드러남'과 '위계 재정립'을 만들 수 있는지 설명합니다.",
     category: "사주 심화",
@@ -240,8 +362,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-major-arcana-symbols",
-    title: "타로 메이저 아르카나 22장 상징 완전 가이드: 스토리로 읽는 카드 해석법",
-    description: "메이저 아르카나의 상징 체계를 스토리 흐름으로 정리한 학습형 콘텐츠입니다. 0번 바보에서 21번 세계까지 이어지는 성장 서사와 각 카드의 핵심 상징을 실전 해석법과 함께 설명합니다.",
+    title: insightArticleText("ia_243_prop_title"),
+    description: insightArticleText("ia_244_prop_description"),
     category: "타로 이론",
     updatedAt: "2026-04-05",
     keywords: ["타로 메이저 아르카나", "타로 카드 해석", "타로 공부", "타로 배우기", "타로 상징"],
@@ -280,7 +402,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-major-arcana-0-to-21-with-images",
-    title: "타로 0번부터 21번까지: 이미지로 배우는 메이저 아르카나",
+    title: insightArticleText("ia_283_prop_title"),
     description:
       "0번 바보부터 21번 세계까지, 카드 이미지를 보며 핵심 의미와 해석 접근법을 단계적으로 익히는 입문 가이드입니다.",
     category: "타로 이론",
@@ -340,8 +462,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-reversed-card-framework",
-    title: "타로 역방향 카드 해석 완전 가이드: 부정이 아닌 신호로 읽는 프레임워크",
-    description: "역방향 카드를 부정으로 단정하지 않고 해석하는 안전한 프레임워크를 제시합니다. 에너지 지연, 내면화, 조정 필요 신호로 읽는 실전 해석법을 안내합니다.",
+    title: insightArticleText("ia_343_prop_title"),
+    description: insightArticleText("ia_344_prop_description"),
     category: "타로 이론",
     updatedAt: "2026-04-05",
     keywords: ["타로 역방향", "역방향 카드 해석", "타로 공부", "타로 배우기", "타로 카드"],
@@ -380,8 +502,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-spread-design-principles",
-    title: "타로 스프레드 설계 완전 가이드: 질문 목적에 맞는 스프레드 구성법",
-    description: "3카드, 5카드, 관계 스프레드 등 질문 목적에 맞는 스프레드 설계법을 설명합니다. 좋은 스프레드는 좋은 질문에서 시작됩니다.",
+    title: insightArticleText("ia_383_prop_title"),
+    description: insightArticleText("ia_384_prop_description"),
     category: "타로 이론",
     updatedAt: "2026-04-05",
     keywords: ["타로 스프레드", "타로 카드 배열", "타로 공부", "타로 배우기", "타로 리딩"],
@@ -420,8 +542,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "compatibility-reading-ethics",
-    title: "궁합 해석 윤리: 관계를 해치지 않는 문장",
-    description: "궁합 콘텐츠 작성 시 피해야 할 표현과 권장 표현을 사례 중심으로 정리합니다.",
+    title: insightArticleText("ia_423_prop_title"),
+    description: insightArticleText("ia_424_prop_description"),
     category: "상담 윤리",
     updatedAt: "2026-03-20",
     sections: [
@@ -444,8 +566,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "daily-fortune-content-quality",
-    title: "오늘의 운세를 더 잘 읽는 3단계",
-    description: "일일 운세를 막연한 예언이 아닌 실천 가능한 힌트로 바꾸는 읽기법을 소개합니다.",
+    title: insightArticleText("ia_447_prop_title"),
+    description: insightArticleText("ia_448_prop_description"),
     category: "사용자 가이드",
     updatedAt: "2026-03-20",
     sections: [
@@ -468,8 +590,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "astrology-vs-saju-differences",
-    title: "서양 점성술 vs 사주명리학 완전 비교: 두 체계의 차이와 활용법",
-    description: "별자리 점성술과 사주명리학이 무엇을 중심으로 읽는지 비교해 설명합니다. 두 체계의 데이터 구조와 해석 방식, 어떤 질문에 어떤 도구가 더 맞는지 안내합니다.",
+    title: insightArticleText("ia_471_prop_title"),
+    description: insightArticleText("ia_472_prop_description"),
     category: "비교 가이드",
     updatedAt: "2026-04-05",
     keywords: ["서양 점성술", "사주명리학", "점성술 사주 차이", "타로 점성술", "사주 보는 법"],
@@ -508,8 +630,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "how-to-use-fortune-results-safely",
-    title: "운세 결과를 안전하게 활용하는 방법",
-    description: "운세/타로 결과를 현실 의사결정에 과몰입 없이 적용하는 실천 가이드입니다.",
+    title: insightArticleText("ia_511_prop_title"),
+    description: insightArticleText("ia_512_prop_description"),
     category: "사용자 가이드",
     updatedAt: "2026-03-20",
     sections: [
@@ -532,8 +654,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "structured-data-for-fortune-sites",
-    title: "운세 질문을 깊고 정확하게 만드는 질문 설계법 완전 가이드",
-    description: "사주·타로 상담 전 질문을 정리해 더 정확한 해석을 끌어내는 방법을 소개합니다. 좋은 질문이 좋은 해석을 만듭니다.",
+    title: insightArticleText("ia_535_prop_title"),
+    description: insightArticleText("ia_536_prop_description"),
     category: "점성술",
     updatedAt: "2026-04-05",
     keywords: ["운세 질문", "타로 질문법", "사주 질문", "점술 활용법", "운세 활용"],
@@ -572,8 +694,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "adsense-ready-content-checklist",
-    title: "초보자를 위한 타로 카드 완전 학습 가이드: 처음 시작하는 사람의 22가지 체크리스트",
-    description: "타로를 처음 배우는 사람이 기본기를 빠르게 익히도록 돕는 단계별 학습 체크리스트입니다. 암기보다 이해, 이해보다 실용에 초점을 맞춥니다.",
+    title: insightArticleText("ia_575_prop_title"),
+    description: insightArticleText("ia_576_prop_description"),
     category: "타로 이론",
     updatedAt: "2026-04-05",
     keywords: ["타로 입문", "타로 공부법", "타로 배우기", "타로 카드", "타로 초보"],
@@ -612,8 +734,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "copyright-safe-writing-for-fortune",
-    title: "사주와 타로 통합 해석 입문: 두 체계를 함께 읽어 인생 통찰 얻는 법",
-    description: "사주와 타로를 서로 보완적으로 읽어 현실적인 조언을 만드는 기본법을 설명합니다. 두 체계의 강점을 활용한 통합 해석 가이드입니다.",
+    title: insightArticleText("ia_615_prop_title"),
+    description: insightArticleText("ia_616_prop_description"),
     category: "사주 심화",
     updatedAt: "2026-04-05",
     keywords: ["사주 타로 통합", "사주 타로 함께 보기", "사주명리학", "타로 공부", "사주 보는 법"],
@@ -652,8 +774,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-lunar-mansion-primer",
-    title: "숙요점(宿曜占) 완전 입문: 27수로 읽는 관계와 생활 리듬 가이드",
-    description: "숙요점의 27수 체계와 관계 해석 기본, 현대적으로 안전하게 활용하는 방법을 정리합니다. 달의 위치로 읽는 동양 점성술 숙요점 핵심 가이드입니다.",
+    title: insightArticleText("ia_655_prop_title"),
+    description: insightArticleText("ia_656_prop_description"),
     category: "숙요점",
     updatedAt: "2026-04-05",
     keywords: ["숙요점", "27수", "숙요 궁합", "달 위치 점성술", "동양 점성술"],
@@ -692,8 +814,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-astrology-navamsa-basics",
-    title: "베다점성술(Jyotish) 완전 기초: 라시 차트와 나밤샤를 함께 읽는 법",
-    description: "베다점성술의 기본 차트 구조와 해석 순서를 초보자 눈높이로 설명합니다. 라시(D1)와 나밤샤(D9)를 활용한 현대적 베다 점성술 입문 가이드입니다.",
+    title: insightArticleText("ia_695_prop_title"),
+    description: insightArticleText("ia_696_prop_description"),
     category: "베다점",
     updatedAt: "2026-04-05",
     keywords: ["베다점성술", "조티시", "라시 차트", "나밤샤", "인도 점성술"],
@@ -732,8 +854,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-doushu-stars-intro",
-    title: "자미두수(紫微斗數) 핵심성 완전 입문: 주성과 보성으로 읽는 12궁 가이드",
-    description: "자미두수의 주성/보성 구조와 해석 순서를 간결하게 정리한 입문 콘텐츠입니다. 명반 구성부터 핵심성 해석까지, 자미두수 처음 배우는 분을 위한 완전 가이드입니다.",
+    title: insightArticleText("ia_735_prop_title"),
+    description: insightArticleText("ia_736_prop_description"),
     category: "자미두수",
     updatedAt: "2026-04-05",
     keywords: ["자미두수", "자미두수 입문", "자미두수 보는 법", "자미두수 명반", "동양 점성술"],
@@ -772,8 +894,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "astrology-houses-quick-guide",
-    title: "점성술 하우스 12영역 빠른 이해",
-    description: "서양 점성술 하우스 12영역을 삶의 질문으로 연결해 설명하는 실전 가이드입니다.",
+    title: insightArticleText("ia_775_prop_title"),
+    description: insightArticleText("ia_776_prop_description"),
     category: "점성술",
     updatedAt: "2026-03-20",
     sections: [
@@ -796,8 +918,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-tiandong-meaning-and-palaces",
-    title: "천동성(天同)은 무엇인가: 궁위별 특징 한눈에 보기",
-    description: "천동성의 기본 성향과 명궁·재백궁·관록궁·부처궁에 있을 때의 해석 포인트를 고객 눈높이로 설명합니다.",
+    title: insightArticleText("ia_799_prop_title"),
+    description: insightArticleText("ia_800_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -820,8 +942,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-wugok-meaning-and-palaces",
-    title: "무곡성(武曲)은 무엇인가: 돈·일·책임 해석법",
-    description: "무곡성의 핵심 성향과 궁위별 작동 방식, 특히 관록궁/재백궁에서의 실전 해석 포인트를 다룹니다.",
+    title: insightArticleText("ia_823_prop_title"),
+    description: insightArticleText("ia_824_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -844,8 +966,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-ziwei-star-beginner-guide",
-    title: "자미성(紫微)은 무엇인가: 리더십과 중심축 해석",
-    description: "자미성이 명궁·관록궁·천이궁에 위치할 때 나타나는 리더십과 책임 구조를 초보자용으로 설명합니다.",
+    title: insightArticleText("ia_847_prop_title"),
+    description: insightArticleText("ia_848_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -868,8 +990,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-tianfu-star-wealth-and-stability",
-    title: "천부성(天府) 해석: 안정, 자산, 신뢰의 별",
-    description: "천부성의 안정적 성향과 재백궁/복덕궁/관록궁에서의 작동 원리를 고객 관점으로 풀어냅니다.",
+    title: insightArticleText("ia_871_prop_title"),
+    description: insightArticleText("ia_872_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -892,8 +1014,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-sun-moon-balance",
-    title: "태양성·태음성 차이: 자미두수 음양 밸런스 읽기",
-    description: "태양성과 태음성의 성향 차이와 궁위별 해석 포인트를 통해 관계·커리어에서의 균형을 설명합니다.",
+    title: insightArticleText("ia_895_prop_title"),
+    description: insightArticleText("ia_896_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -916,8 +1038,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-palaces-career-finance-love",
-    title: "자미두수 12궁 핵심: 관록궁·재백궁·부처궁 빠른 해석",
-    description: "자미두수에서 고객이 가장 궁금해하는 일·돈·연애 영역 중심으로 12궁 해석의 핵심을 정리합니다.",
+    title: insightArticleText("ia_919_prop_title"),
+    description: insightArticleText("ia_920_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -940,8 +1062,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-lucun-and-huaji-practical",
-    title: "록존·화기 실전 해석: 기회와 과열 신호 구분하기",
-    description: "자미두수에서 자주 궁금해하는 록존/화기 성향을 일상 의사결정에 적용하는 방법을 안내합니다.",
+    title: insightArticleText("ia_943_prop_title"),
+    description: insightArticleText("ia_944_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -964,8 +1086,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-star-combinations-for-beginners",
-    title: "자미두수 별 조합 입문: 천동·무곡·태음 함께 읽는 법",
-    description: "별 하나가 아닌 조합으로 읽어야 정확해지는 이유와 고객이 바로 적용할 수 있는 조합 해석법을 제공합니다.",
+    title: insightArticleText("ia_967_prop_title"),
+    description: insightArticleText("ia_968_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -988,8 +1110,8 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-minggong-self-analysis-checklist",
-    title: "명궁 자가분석 체크리스트: 자미두수를 일상에 쓰는 법",
-    description: "명궁 중심으로 성향을 점검하고 일·돈·관계 행동전략으로 바꾸는 고객용 체크리스트입니다.",
+    title: insightArticleText("ia_991_prop_title"),
+    description: insightArticleText("ia_992_prop_description"),
     category: "자미두수",
     updatedAt: "2026-03-20",
     sections: [
@@ -1012,7 +1134,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-14-main-stars-complete-guide",
-    title: "자미두수 14주성 완전정리: 모든 별의 뜻과 궁위별 해석",
+    title: insightArticleText("ia_1015_prop_title"),
     description:
       "자미두수의 14주성(자미·천기·태양·무곡·천동·염정·천부·태음·탐랑·거문·천상·천량·칠살·파군)을 고객 관점으로 구체적으로 설명합니다.",
     category: "자미두수",
@@ -1102,7 +1224,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "saju-12-unseong-complete-guide",
-    title: "사주 12운성 완전입문: 장생부터 양까지 쉽게 읽는 법",
+    title: insightArticleText("ia_1105_prop_title"),
     description:
       "12운성(장생·목욕·관대·건록·제왕·쇠·병·사·묘·절·태·양)의 의미를 고객 눈높이로 정리하고 실생활 해석 포인트를 안내합니다.",
     category: "사주 심화",
@@ -1142,7 +1264,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ten-gods-career-aptitude-fun-guide",
-    title: "십성으로 보는 직업·적성: 내 일머리 캐릭터 찾기",
+    title: insightArticleText("ia_1145_prop_title"),
     description:
       "비겁·식상·재성·관성·인성 십성을 직업 성향과 일 스타일로 재미있게 풀어낸 고객용 가이드입니다.",
     category: "사주 심화",
@@ -1187,7 +1309,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "saju-compatibility-fun-method",
-    title: "사주 궁합 보는 법: 오행 밸런스로 재미있게 읽기",
+    title: insightArticleText("ia_1190_prop_title"),
     description:
       "사주 궁합을 일간·오행·십성 관점으로 쉽게 읽는 고객용 가이드입니다. 서로 맞는 포인트와 부딪히는 포인트를 실전적으로 정리합니다.",
     category: "사주 심화",
@@ -1212,7 +1334,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-compatibility-reading-game",
-    title: "타로 궁합 리딩 게임: 3카드로 서로의 마음 읽기",
+    title: insightArticleText("ia_1215_prop_title"),
     description:
       "타로로 궁합을 볼 때 바로 써먹을 수 있는 3카드/5카드 스프레드와 질문 템플릿을 제공합니다.",
     category: "타로 이론",
@@ -1237,7 +1359,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-compatibility-rhythm-guide",
-    title: "숙요점 궁합 보는 법: 27수 리듬 맞추기",
+    title: insightArticleText("ia_1240_prop_title"),
     description:
       "숙요점 궁합을 관계 리듬과 소통 속도로 읽는 고객용 실전 가이드입니다.",
     category: "숙요점",
@@ -1262,7 +1384,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-compatibility-synastry-basics",
-    title: "베다점 궁합 입문: 구나매칭과 생활 궁합 읽기",
+    title: insightArticleText("ia_1265_prop_title"),
     description:
       "베다점성술 궁합에서 자주 쓰는 구나 매칭 관점과 실생활 적용법을 고객 눈높이로 설명합니다.",
     category: "베다점",
@@ -1287,7 +1409,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "astrology-synastry-compatibility-fun-guide",
-    title: "점성술 궁합 보는 법: 시너스트리로 케미 읽기",
+    title: insightArticleText("ia_1290_prop_title"),
     description:
       "태양·달·금성·화성 시너스트리 관점으로 연애/우정 궁합을 재밌게 이해하는 가이드입니다.",
     category: "점성술",
@@ -1312,7 +1434,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-compatibility-palace-method",
-    title: "자미두수 궁합 보는 법: 부처궁·명궁 중심 실전 가이드",
+    title: insightArticleText("ia_1315_prop_title"),
     description:
       "자미두수에서 궁합을 볼 때 꼭 확인할 부처궁·명궁·복덕궁 포인트를 재미있게 정리합니다.",
     category: "자미두수",
@@ -1337,7 +1459,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "five-elements-personality-deep-dive",
-    title: "오행별 성격 완전정리: 목화토금수 성향을 깊게 읽는 법",
+    title: insightArticleText("ia_1340_prop_title"),
     description:
       "사주 오행(木火土金水)별 성격 특징을 강점·약점·관계 스타일·일 방식까지 자세히 설명하는 고객용 가이드입니다.",
     category: "사주 심화",
@@ -1387,7 +1509,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-what-is-27-lunar-mansions",
-    title: "숙요점 27수란 무엇인가: 처음 보는 사람도 이해하는 설명",
+    title: insightArticleText("ia_1390_prop_title"),
     description:
       "숙요점의 핵심인 27수 개념을 아주 쉽게 설명합니다. 번역기로 읽어도 의미가 잘 전달되도록 짧고 직관적으로 구성했습니다.",
     category: "숙요점",
@@ -1400,7 +1522,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-three-group-types-guide",
-    title: "숙요점 3분류 이해: 근거리·중거리·원거리 감각 잡기",
+    title: insightArticleText("ia_1403_prop_title"),
     description:
       "숙요점에서 자주 나오는 거리감 개념을 쉽게 정리합니다. 관계에서 왜 속도 차이가 나는지 직관적으로 이해할 수 있습니다.",
     category: "숙요점",
@@ -1413,7 +1535,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-compatibility-simple-checklist",
-    title: "숙요점 궁합 체크리스트 7가지: 오늘 바로 써먹기",
+    title: insightArticleText("ia_1416_prop_title"),
     description:
       "숙요 궁합을 점수 대신 행동으로 확인하는 쉬운 체크리스트입니다.",
     category: "숙요점",
@@ -1426,7 +1548,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-love-communication-rules",
-    title: "숙요점 연애 소통법: 싸움 줄이는 간단 규칙",
+    title: insightArticleText("ia_1429_prop_title"),
     description:
       "숙요 궁합을 연애에 적용할 때 가장 효과적인 소통 규칙을 쉽고 짧게 풀어냈습니다.",
     category: "숙요점",
@@ -1439,7 +1561,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-friendship-teamwork-guide",
-    title: "숙요점으로 보는 친구·팀워크: 같이 일할 때 궁합 읽기",
+    title: insightArticleText("ia_1442_prop_title"),
     description:
       "연애뿐 아니라 친구 관계, 팀 프로젝트에도 숙요점을 적용하는 쉬운 방법입니다.",
     category: "숙요점",
@@ -1452,7 +1574,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-day-by-day-rhythm-usage",
-    title: "숙요점 일상 활용법: 하루 리듬을 읽는 간단 루틴",
+    title: insightArticleText("ia_1455_prop_title"),
     description:
       "숙요점을 매일 가볍게 활용하는 방법을 안내합니다. 복잡한 계산 없이 실천 중심으로 구성했습니다.",
     category: "숙요점",
@@ -1465,7 +1587,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-beginner-terms-easy-dictionary",
-    title: "숙요점 초보 용어 사전: 어려운 말 쉽게 바꾸기",
+    title: insightArticleText("ia_1468_prop_title"),
     description:
       "숙요점에서 자주 나오는 용어를 쉬운 표현으로 바꾼 고객용 사전입니다.",
     category: "숙요점",
@@ -1478,7 +1600,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-qa-most-asked-questions",
-    title: "숙요점 자주 묻는 질문 10선: 헷갈리는 포인트 정리",
+    title: insightArticleText("ia_1481_prop_title"),
     description:
       "숙요점 입문자가 가장 많이 묻는 질문을 짧고 분명하게 답한 Q&A형 콘텐츠입니다.",
     category: "숙요점",
@@ -1491,7 +1613,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-27-guardian-animals-origin-guide",
-    title: "숙요점 27숙 수호 동물 대백과: 특징과 유래를 쉽게 읽기",
+    title: insightArticleText("ia_1494_prop_title"),
     description:
       "숙요점 27숙별 수호 동물의 대표 해석과 유래를 쉽고 직관적으로 풀어냈습니다. 번역기로 읽어도 이해되도록 짧은 문장 중심으로 구성했습니다.",
     category: "숙요점",
@@ -1574,7 +1696,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "day-master-survival-winning-strategy",
-    title: "병오년 일간별 생존 필승 전략: 갑부터 계까지 실전 가이드",
+    title: insightArticleText("ia_1577_prop_title"),
     description:
       "병오년의 강한 화기 속에서 갑·을·병·정·무·기·경·신·임·계 일간이 실제로 버티고 이기는 생존 전략을 정리한 사주 실전 콘텐츠입니다.",
     category: "사주 심화",
@@ -1644,7 +1766,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "byeongo-year-love-winning-strategy",
-    title: "병오년 연애 필승 전략: 불의 해에서 관계를 지키는 실전 가이드",
+    title: insightArticleText("ia_1647_prop_title"),
     description:
       "병오년의 강한 화기와 드러남 에너지 속에서 연애 관계를 안정적으로 지키고 성장시키는 상세 실전 전략입니다.",
     category: "사주 심화",
@@ -1694,7 +1816,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "byeongo-year-wealth-winning-strategy",
-    title: "병오년 재물 필승 전략: 과열 장세에서 돈을 지키고 키우는 법",
+    title: insightArticleText("ia_1697_prop_title"),
     description:
       "병오년의 속도감과 변동성 속에서 현금흐름, 소비, 투자, 리스크를 체계적으로 관리하는 상세 재물 전략 가이드입니다.",
     category: "사주 심화",
@@ -1749,7 +1871,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-minor-arcana-four-suits-practical-guide",
-    title: "타로 마이너 아르카나 4원소 실전 해석: 완드·컵·소드·펜타클",
+    title: insightArticleText("ia_1752_prop_title"),
     description:
       "메이저 중심 해석에서 벗어나, 마이너 아르카나 4수트의 차이를 질문 맥락별로 읽는 실전 가이드입니다.",
     category: "타로 이론",
@@ -1799,7 +1921,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-court-cards-personality-and-relationship-guide",
-    title: "타로 코트카드 완전 가이드: 페이지·나이트·퀸·킹 읽는 법",
+    title: insightArticleText("ia_1802_prop_title"),
     description:
       "코트카드를 인물 예언으로 단정하지 않고, 성향과 관계 역동으로 읽는 실전 해석 프레임을 제공합니다.",
     category: "타로 이론",
@@ -1849,7 +1971,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-four-transformations-lu-quan-ke-ji-guide",
-    title: "자미두수 사화(化祿·化權·化科·化忌) 실전 해석 가이드",
+    title: insightArticleText("ia_1852_prop_title"),
     description:
       "자미두수의 핵심 동력인 사화(록·권·과·기)를 길흉 단정 없이 영역별 전략으로 읽는 실전 프레임입니다.",
     category: "자미두수",
@@ -1899,7 +2021,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-decade-and-annual-flow-reading-guide",
-    title: "자미두수 대운·유년 해석법: 흐름을 길게 읽는 실전 프레임",
+    title: insightArticleText("ia_1902_prop_title"),
     description:
       "자미두수에서 대운(10년)과 유년(1년)을 함께 읽어 큰 흐름과 올해 과제를 분리하는 방법을 설명합니다.",
     category: "자미두수",
@@ -1949,7 +2071,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-practical-reading-casebook-by-question",
-    title: "타로 실전 리딩 케이스북: 질문별 샘플 리딩과 해석 구조",
+    title: insightArticleText("ia_1952_prop_title"),
     description:
       "연애·재회·커리어·이직·재물·인간관계 질문별로 바로 적용할 수 있는 타로 샘플 리딩과 해석 템플릿을 제공합니다.",
     category: "타로 이론",
@@ -2004,7 +2126,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-monthly-action-checklist-by-palace",
-    title: "자미두수 궁위별 월간 점검 템플릿: 명궁부터 재백궁까지",
+    title: insightArticleText("ia_2007_prop_title"),
     description:
       "자미두수 해석을 실제 생활에 적용할 수 있도록, 궁위별 월간 체크 항목과 실행 템플릿을 제공하는 실전 가이드입니다.",
     category: "자미두수",
@@ -2059,7 +2181,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-dasha-transit-remedy-practical-guide",
-    title: "베다점 심화: 다샤·고차르·업야야 실전 해석법",
+    title: insightArticleText("ia_2062_prop_title"),
     description:
       "베다점성술의 핵심인 다샤(시기), 고차르(트랜싯), 업야야(보완 실천)를 함께 읽어 현실 전략으로 연결하는 심화 가이드입니다.",
     category: "베다점",
@@ -2104,7 +2226,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "world-strange-divination-guide-including-pig-oracle",
-    title: "세계 이색 점술 가이드: 돼지점 포함 신기한 점복 문화",
+    title: insightArticleText("ia_2107_prop_title"),
     description:
       "베다점부터 돼지점(돼지 관련 점복)까지, 세계 각지의 독특한 점술 전통을 역사·해석·현대 활용 관점으로 정리한 가이드입니다.",
     category: "비교 가이드",
@@ -2159,7 +2281,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "asia-divination-traditions-deep-guide",
-    title: "아시아 점복 전통 심화: 주역·사주·숙요·민속 점술의 흐름",
+    title: insightArticleText("ia_2162_prop_title"),
     description:
       "동아시아와 남아시아의 대표 점복 체계를 역사적 맥락과 실전 활용 관점에서 비교 정리한 심화 가이드입니다.",
     category: "비교 가이드",
@@ -2199,7 +2321,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "europe-divination-traditions-deep-guide",
-    title: "유럽 점복 전통 심화: 타로·룬·차잎 점의 역사와 실전 읽기",
+    title: insightArticleText("ia_2202_prop_title"),
     description:
       "유럽권에서 발전한 상징 중심 점복 전통을 문화사와 실전 리딩 관점으로 정리한 심화 콘텐츠입니다.",
     category: "비교 가이드",
@@ -2239,7 +2361,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "middle-east-divination-traditions-deep-guide",
-    title: "중동 점복 전통 심화: 지오맨시와 의례적 해석 문화",
+    title: insightArticleText("ia_2242_prop_title"),
     description:
       "중동권에서 전개된 지오맨시 중심 점복 전통과 의례적 해석 문화를 비교·정리한 심화 가이드입니다.",
     category: "비교 가이드",
@@ -2279,7 +2401,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "africa-divination-traditions-deep-guide",
-    title: "아프리카 점복 전통 심화: 이파(Ifa)와 공동체 의사결정 문화",
+    title: insightArticleText("ia_2282_prop_title"),
     description:
       "아프리카권 대표 점복 전통인 이파를 중심으로, 공동체 기반 해석 방식과 현대적 활용 원칙을 설명합니다.",
     category: "비교 가이드",
@@ -2319,7 +2441,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "saju-2026-monthly-planning-framework",
-    title: "2026 월간 운세 계획법: 사주 흐름을 일정 관리로 바꾸는 실전 프레임",
+    title: insightArticleText("ia_2322_prop_title"),
     description:
       "사주 해석을 막연한 예언이 아닌 월간 실행 계획으로 전환하는 방법을 단계별로 정리한 고품질 실전 가이드입니다.",
     category: "사주 심화",
@@ -2359,7 +2481,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "astrology-mercury-retrograde-practical-guide",
-    title: "수성 역행 운세 제대로 읽기: 오해를 줄이고 일정 혼선을 막는 체크리스트",
+    title: insightArticleText("ia_2362_prop_title"),
     description:
       "수성 역행을 공포 마케팅 없이 실용적으로 해석하고, 커뮤니케이션·계약·이동 리스크를 줄이는 실행 가이드를 제공합니다.",
     category: "점성술",
@@ -2399,7 +2521,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-career-reading-7-question-framework",
-    title: "타로로 보는 커리어 운: 이직·연봉·번아웃을 읽는 7문항 프레임워크",
+    title: insightArticleText("ia_2402_prop_title"),
     description:
       "커리어 타로 리딩에서 자주 놓치는 질문 구조를 7문항 프레임으로 정리해, 해석을 실행 가능한 경력 전략으로 바꿉니다.",
     category: "타로 이론",
@@ -2439,7 +2561,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "new-moon-full-moon-fortune-routine",
-    title: "신월·보름 운세 루틴: 월간 목표를 지키는 15분 리추얼 가이드",
+    title: insightArticleText("ia_2442_prop_title"),
     description:
       "신월과 보름의 흐름을 이용해 목표 설정, 진행 점검, 감정 정리를 수행하는 간단하고 실용적인 월간 루틴을 소개합니다.",
     category: "점성술",
@@ -2479,7 +2601,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "saju-job-change-timing-checklist-2026",
-    title: "사주로 이직 타이밍 읽는 법: 후회 줄이는 9가지 체크리스트",
+    title: insightArticleText("ia_2482_prop_title"),
     description:
       "사주 흐름을 기반으로 이직 시점을 점검하되, 시장 데이터와 재무 준비를 함께 보는 실전형 체크리스트를 제공합니다.",
     category: "사주 심화",
@@ -2519,7 +2641,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "tarot-anxiety-safe-reading-method",
-    title: "불안할 때 타로를 안전하게 보는 법: 과몰입을 막는 5단계 리딩 프로토콜",
+    title: insightArticleText("ia_2522_prop_title"),
     description:
       "불안 상황에서 타로를 반복 조회하며 더 흔들리는 패턴을 줄이고, 감정 안정과 행동 전환으로 연결하는 안전한 리딩 방법입니다.",
     category: "타로 이론",
@@ -2559,7 +2681,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-dasha-monthly-action-guide",
-    title: "베다점 다샤 읽기 입문: 월간 행동 전략으로 바꾸는 현실 가이드",
+    title: insightArticleText("ia_2562_prop_title"),
     description:
       "베다점성술의 다샤 개념을 어렵지 않게 이해하고, 월간 실행 계획으로 연결하는 초보자 친화형 콘텐츠입니다.",
     category: "베다점",
@@ -2599,7 +2721,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-conflict-repair-dialogue-templates",
-    title: "숙요점 관계 회복 템플릿: 갈등 후 대화를 복구하는 12문장 가이드",
+    title: insightArticleText("ia_2602_prop_title"),
     description:
       "숙요점 궁합 해석을 실제 대화로 연결해, 갈등 이후 관계를 안전하게 회복하는 문장 템플릿을 제공합니다.",
     category: "숙요점",
@@ -2639,7 +2761,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "ziwei-promotion-signals-practical-guide",
-    title: "자미두수 승진운 실전 해석: 평가 시즌에 강해지는 준비 전략",
+    title: insightArticleText("ia_2642_prop_title"),
     description:
       "자미두수 관록궁·명궁·재백궁 신호를 기반으로 승진 시즌에 성과를 증명하는 실전 준비법을 풀어냈습니다.",
     category: "자미두수",
@@ -2679,7 +2801,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-retrograde-planets-practical-decoding",
-    title: "베다점 역행행성 해석법: 불안 대신 실전 점검으로 읽는 가이드",
+    title: insightArticleText("ia_2682_prop_title"),
     description:
       "베다점성술의 역행행성을 과장 없이 해석하고, 커리어·관계·재무 영역에서 실제 점검 항목으로 전환하는 실용 콘텐츠입니다.",
     category: "베다점",
@@ -2714,7 +2836,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-moon-sign-emotion-routine-guide",
-    title: "베다점 문라시 감정 관리법: 하루 루틴으로 안정감을 만드는 방법",
+    title: insightArticleText("ia_2717_prop_title"),
     description:
       "문라시(월궁) 중심으로 감정 리듬을 이해하고, 아침·낮·밤 루틴으로 적용하는 초보자 친화형 베다점 실천 가이드입니다.",
     category: "베다점",
@@ -2749,7 +2871,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "vedic-transit-journal-template-90days",
-    title: "베다점 트랜짓 90일 기록법: 체감 정확도를 높이는 저널 템플릿",
+    title: insightArticleText("ia_2752_prop_title"),
     description:
       "트랜짓 해석을 감(感)에 의존하지 않고 90일 기록으로 검증하는 방법을 소개하는 데이터 기반 베다점 학습 가이드입니다.",
     category: "베다점",
@@ -2784,7 +2906,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-boundary-setting-practical-guide",
-    title: "숙요점 경계선 설정법: 좋은 관계를 오래 가게 하는 현실 가이드",
+    title: insightArticleText("ia_2787_prop_title"),
     description:
       "숙요 궁합을 바탕으로 감정 소모를 줄이는 경계선 설정 문장과 실전 적용 방법을 정리한 정보형 콘텐츠입니다.",
     category: "숙요점",
@@ -2819,7 +2941,7 @@ const RAW_INSIGHT_ARTICLES = [
   },
   {
     slug: "sukuyo-couple-finance-rhythm-guide",
-    title: "숙요점 커플 재무 궁합: 돈 때문에 싸우지 않는 리듬 설계법",
+    title: insightArticleText("ia_2822_prop_title"),
     description:
       "숙요점 관계 해석을 커플 재무 운영에 적용해 지출 갈등을 줄이고 합의 가능한 돈 관리 규칙을 만드는 방법을 안내합니다.",
     category: "숙요점",
@@ -2928,13 +3050,13 @@ export function getArticleBySlug(slug) {
 }
 
 export const INSIGHT_TOPICS = [
-  { key: "all", label: "전체", emoji: "✦" },
-  { key: "saju", label: "사주", emoji: "四" },
-  { key: "tarot", label: "타로", emoji: "☾" },
-  { key: "sukuyo", label: "숙요점", emoji: "宿" },
-  { key: "vedic", label: "베다점성술", emoji: "ॐ" },
-  { key: "astrology", label: "점성술", emoji: "♈" },
-  { key: "ziwei", label: "자미두수", emoji: "紫" },
+  { key: "all", label: insightArticleText("ia_2931_prop_label"), emoji: "✦" },
+  { key: "saju", label: insightArticleText("ia_2932_prop_label"), emoji: "四" },
+  { key: "tarot", label: insightArticleText("ia_2933_prop_label"), emoji: "☾" },
+  { key: "sukuyo", label: insightArticleText("ia_2934_prop_label"), emoji: "宿" },
+  { key: "vedic", label: insightArticleText("ia_2935_prop_label"), emoji: "ॐ" },
+  { key: "astrology", label: insightArticleText("ia_2936_prop_label"), emoji: "♈" },
+  { key: "ziwei", label: insightArticleText("ia_2937_prop_label"), emoji: "紫" },
 ];
 
 function inferTopic(article) {

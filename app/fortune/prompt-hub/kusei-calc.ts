@@ -81,6 +81,32 @@ type SolarTerm = {
   timeMs: number;
 };
 
+const KUSEI_CALC_TEXT_TRANSLATIONS = {
+  ko: {
+    "kuseiCalc.001": "소한",
+    "kuseiCalc.002": "입춘",
+    "kuseiCalc.003": "경칩",
+    "kuseiCalc.004": "청명",
+    "kuseiCalc.005": "입하",
+    "kuseiCalc.006": "망종",
+    "kuseiCalc.007": "소서",
+    "kuseiCalc.008": "입추",
+    "kuseiCalc.009": "백로",
+    "kuseiCalc.010": "한로",
+    "kuseiCalc.011": "입동",
+    "kuseiCalc.012": "대설",
+    "kuseiCalc.013": "본명성",
+    "kuseiCalc.014": "월명성",
+    "kuseiCalc.015": "기학년",
+    "kuseiCalc.016": "기학월",
+    "kuseiCalc.017": "현재 연운",
+    "kuseiCalc.018": "현재 월운",
+  },
+} as const;
+
+function kuseiCalcText(key: keyof typeof KUSEI_CALC_TEXT_TRANSLATIONS.ko): string {
+  return KUSEI_CALC_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const SOLAR_TERM_BASE_OFFSET_MINUTES = 480;
 const TIMEZONE_OFFSETS: Record<string, number> = {
   UTC: 0,
@@ -92,18 +118,18 @@ const TIMEZONE_OFFSETS: Record<string, number> = {
 };
 
 const TERM_META = {
-  xiaohan: { name: "小寒", label: "소한" },
-  lichun: { name: "立春", label: "입춘" },
-  jingzhe: { name: "惊蛰", label: "경칩" },
-  qingming: { name: "清明", label: "청명" },
-  lixia: { name: "立夏", label: "입하" },
-  mangzhong: { name: "芒种", label: "망종" },
-  xiaoshu: { name: "小暑", label: "소서" },
-  liqiu: { name: "立秋", label: "입추" },
-  bailu: { name: "白露", label: "백로" },
-  hanlu: { name: "寒露", label: "한로" },
-  lidong: { name: "立冬", label: "입동" },
-  daxue: { name: "大雪", label: "대설" },
+  xiaohan: { name: "小寒", label: kuseiCalcText("kuseiCalc.001") },
+  lichun: { name: "立春", label: kuseiCalcText("kuseiCalc.002") },
+  jingzhe: { name: "惊蛰", label: kuseiCalcText("kuseiCalc.003") },
+  qingming: { name: "清明", label: kuseiCalcText("kuseiCalc.004") },
+  lixia: { name: "立夏", label: kuseiCalcText("kuseiCalc.005") },
+  mangzhong: { name: "芒种", label: kuseiCalcText("kuseiCalc.006") },
+  xiaoshu: { name: "小暑", label: kuseiCalcText("kuseiCalc.007") },
+  liqiu: { name: "立秋", label: kuseiCalcText("kuseiCalc.008") },
+  bailu: { name: "白露", label: kuseiCalcText("kuseiCalc.009") },
+  hanlu: { name: "寒露", label: kuseiCalcText("kuseiCalc.010") },
+  lidong: { name: "立冬", label: kuseiCalcText("kuseiCalc.011") },
+  daxue: { name: "大雪", label: kuseiCalcText("kuseiCalc.012") },
 } as const;
 
 const KIGAKU_MONTH_BRANCH: Record<number, string> = {
@@ -532,12 +558,12 @@ export function buildKuseiPromptPayload(input: KuseiPromptInput): KuseiPromptPay
     calculation,
     prompt,
     summaryCards: [
-      { label: "본명성", value: `${calculation.honmeiStar.koreanName} ${calculation.honmeiStar.kanjiName} / ${calculation.honmeiStar.element}` },
-      { label: "월명성", value: calculation.getsumeiStar ? `${calculation.getsumeiStar.koreanName} ${calculation.getsumeiStar.kanjiName} / ${calculation.getsumeiStar.element}` : "미산출" },
-      { label: "기학년", value: `${calculation.effectiveYear}년` },
-      { label: "기학월", value: calculation.kigakuMonthNo ? `${calculation.kigakuMonthNo}월 기운 / 월지 ${calculation.monthBranch || "미산출"}` : "미산출" },
-      { label: "현재 연운", value: calculation.currentYearStar ? `${calculation.currentYearStar.koreanName} / ${calculation.currentYearStar.element}` : "미산출" },
-      { label: "현재 월운", value: calculation.currentMonthStar ? `${calculation.currentMonthStar.koreanName} / ${calculation.currentMonthStar.element}` : "미산출" },
+      { label: kuseiCalcText("kuseiCalc.013"), value: `${calculation.honmeiStar.koreanName} ${calculation.honmeiStar.kanjiName} / ${calculation.honmeiStar.element}` },
+      { label: kuseiCalcText("kuseiCalc.014"), value: calculation.getsumeiStar ? `${calculation.getsumeiStar.koreanName} ${calculation.getsumeiStar.kanjiName} / ${calculation.getsumeiStar.element}` : "미산출" },
+      { label: kuseiCalcText("kuseiCalc.015"), value: `${calculation.effectiveYear}년` },
+      { label: kuseiCalcText("kuseiCalc.016"), value: calculation.kigakuMonthNo ? `${calculation.kigakuMonthNo}월 기운 / 월지 ${calculation.monthBranch || "미산출"}` : "미산출" },
+      { label: kuseiCalcText("kuseiCalc.017"), value: calculation.currentYearStar ? `${calculation.currentYearStar.koreanName} / ${calculation.currentYearStar.element}` : "미산출" },
+      { label: kuseiCalcText("kuseiCalc.018"), value: calculation.currentMonthStar ? `${calculation.currentMonthStar.koreanName} / ${calculation.currentMonthStar.element}` : "미산출" },
     ],
   };
 }

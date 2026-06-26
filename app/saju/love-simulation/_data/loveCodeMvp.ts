@@ -90,6 +90,12 @@ export type LoveScene = {
   choices: LoveChoice[];
 };
 
+type LoveSceneDefinition = Omit<LoveScene, "title"> & {
+  titleKey: string;
+};
+
+type LoveSceneTitleLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+
 export type ChoiceLog = {
   sceneId: string;
   choiceId: string;
@@ -844,13 +850,389 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
 ];
 
-export const LOVE_SCENES: LoveScene[] = [
+const LOVE_SCENE_TITLE_TRANSLATIONS = {
+  ko: {
+    "kang-court-sunlight": "첫 번째 패스",
+    "kang-gym-after": "숨 고르는 응원",
+    "kang-campus-goal": "목표의 방향",
+    "kang-teamwork": "편을 들어주는 순간",
+    "kang-night-court": "불빛 아래 고백",
+    "kang-early-run": "같은 호흡으로 뛰는 아침",
+    "kang-spicy-dinner": "뜨거운 국물과 진짜 표정",
+    "kang-injury-bench": "붕대 아래 숨긴 불안",
+    "kang-team-diner": "팀원들을 지키는 방식",
+    "kang-letter-locker": "경기 전 짧은 편지",
+    "kang-loss-rain": "졌다는 말을 꺼내는 밤",
+    "kang-quiet-library": "조용한 곳에서 배우는 속도",
+    "kang-jealous-stands": "질투를 숨긴 장난",
+    "kang-family-call": "기대라는 이름의 무게",
+    "kang-sunlit-pasta": "승부 없는 점심",
+    "kang-volunteer-match": "가르치는 사람의 눈빛",
+    "kang-storm-shelter": "비를 기다리는 작전 회의",
+    "kang-future-board": "미래를 붙이는 손",
+    "kang-empty-court": "마지막 슛을 미루는 밤",
+    "kang-sunrise-confession": "태양 코트의 고백",
+    "kwon-lounge": "야경 위의 첫 판단",
+    "kwon-restaurant": "깔끔한 선택",
+    "kwon-library": "비밀의 무게",
+    "kwon-night-view": "미래 계획",
+    "kwon-hotel-cafe": "조용한 확신",
+    "kwon-watch-repair": "멈춘 초침의 기준",
+    "kwon-private-exhibit": "초대 명단의 이름",
+    "kwon-black-coffee": "블랙커피와 고른 침묵",
+    "kwon-schedule-change": "변수의 알림",
+    "kwon-leather-note": "가죽 노트의 빈 페이지",
+    "kwon-secret-call": "말하지 않은 변수",
+    "kwon-jealous-etiquette": "예의 바른 질투",
+    "kwon-missed-message": "답장의 온도",
+    "kwon-boundary-talk": "경계선을 그리는 밤",
+    "kwon-work-crisis": "실패 보고서의 빈칸",
+    "kwon-family-dinner": "정중한 방패",
+    "kwon-open-calendar": "계획표에 생긴 여백",
+    "kwon-apology-archive": "사과를 보관하는 방식",
+    "kwon-closed-observatory": "완벽하지 않은 타이밍",
+    "kwon-glass-tower-confession": "계획 밖의 고백",
+    "michael-night-walk": "달빛 아래의 여백",
+    "michael-sea": "파도와 비밀",
+    "michael-museum": "은유의 그림",
+    "michael-late-cafe": "허브티의 침묵",
+    "michael-moon-gift": "달 모양 키링",
+    "michael-dawn-library": "반납함 위의 편지",
+    "michael-herb-soup": "향이 약한 따뜻한 수프",
+    "michael-silver-ring": "반지의 안쪽",
+    "michael-dream-note": "꿈을 적는 노트",
+    "michael-still-room": "고요한 음악의 박자",
+    "michael-shadow-call": "돌아오는 문장",
+    "michael-blueberry-morning": "블루베리 요거트의 아침",
+    "michael-philosophy-bridge": "대답 없는 질문",
+    "michael-candle-room": "불빛을 낮추는 방식",
+    "michael-truth-praise": "거짓된 칭찬의 온도",
+    "michael-sea-storm": "파도 앞의 잠수",
+    "michael-old-letter": "오래된 편지의 가장자리",
+    "michael-moon-rooftop": "사라지지 않는 여백",
+    "michael-last-train": "마지막 칸의 고백 직전",
+    "michael-moonlit-confession": "고요한 물결의 고백",
+    "yuan-library": "책갈피의 자리",
+    "yuan-warm-cafe": "크림 라떼의 온도",
+    "yuan-bookstore": "손편지 같은 문장",
+    "yuan-campus-walk": "계절을 걷는 속도",
+    "yuan-plant-room": "작은 화분",
+    "yuan-literary-room": "고친 원고의 여백",
+    "yuan-rain-stop": "우산의 반쪽",
+    "yuan-scone-kitchen": "스콘이 식기 전",
+    "yuan-bookmark-market": "말린 꽃 책갈피",
+    "yuan-noisy-dinner": "나가기 전의 손짓",
+    "yuan-letter-postbox": "부치지 못한 손편지",
+    "yuan-sick-day": "따뜻한 국물의 순서",
+    "yuan-thank-you-day": "고마움의 구체적인 이름",
+    "yuan-tote-bag": "토트백 참의 무게",
+    "yuan-quiet-conflict": "괜찮다는 말의 안쪽",
+    "yuan-season-garden": "시드는 잎의 이름",
+    "yuan-home-routine": "생활의 동맹",
+    "yuan-manuscript-night": "처음 쓴 문장",
+    "yuan-last-library": "반납하지 못한 책",
+    "yuan-letter-confession": "흙빛 편지의 고백",
+    "ijun-midnight-study": "검은 노트",
+    "ijun-concert": "끝나지 않은 여운",
+    "ijun-philosophy-bookstore": "모순의 책장",
+    "ijun-rain-street": "고독의 우산",
+    "ijun-black-note": "마지막 질문",
+    "ijun-dark-chocolate": "다크초콜릿의 쓴맛",
+    "ijun-classic-record": "낡은 클래식 음반",
+    "ijun-old-film": "오래된 영화 티켓",
+    "ijun-private-boundary": "사생활의 손잡이",
+    "ijun-pasta-night": "담백한 파스타의 균형",
+    "ijun-ethics-debate": "윤리의 반박",
+    "ijun-noise-party": "소음 속의 퇴장",
+    "ijun-jealous-distance": "날카로운 농담",
+    "ijun-alone-day": "돌아올 자유",
+    "ijun-fountain-pen": "잉크가 마르기 전",
+    "ijun-river-bench": "정의할 수 없는 감정",
+    "ijun-apology-argument": "이기는 사과가 없는 밤",
+    "ijun-last-train": "도망가지 않는 반례",
+    "ijun-blue-note": "푸른 잉크의 문장",
+    "ijun-river-confession": "피할 수 없는 반례",
+    "siwoo-campus": "햇살의 첫 인사",
+    "siwoo-cherry-road": "같이 걷는 계획",
+    "siwoo-library": "성실함의 표시",
+    "siwoo-sunny-cafe": "여행 노트",
+    "siwoo-park": "푸른 약속",
+    "siwoo-festival-square": "떨어진 포스터",
+    "siwoo-lemon-aid": "레몬 에이드의 청량함",
+    "siwoo-project-room": "함께 만드는 작은 프로젝트",
+    "siwoo-earbuds-case": "무선 이어폰 케이스",
+    "siwoo-late-promise": "시간을 가볍게 여기지 않는 법",
+    "siwoo-rest-bench": "쉬는 것도 계획",
+    "siwoo-dream-talk": "꿈을 평가하지 않는 오후",
+    "siwoo-dark-room": "너무 어두운 공간",
+    "siwoo-jealous-team": "부족한 사람이라는 오해",
+    "siwoo-shoelace-charm": "운동화 끈 참",
+    "siwoo-emotion-swing": "갑작스러운 감정의 날씨",
+    "siwoo-future-map": "미래 쪽으로 이어지는 선",
+    "siwoo-empty-gym": "든든한 사람의 빈자리",
+    "siwoo-firework-before": "미래로 이어지는 시간",
+    "siwoo-garden-confession": "쉼의 계절 고백",
+    "yunseo-stage": "조명 뒤의 첫인사",
+    "yunseo-studio": "숨겨진 불안",
+    "yunseo-night-street": "새로운 아이디어",
+    "yunseo-cafe": "장난과 진심 사이",
+    "yunseo-keyring": "독특한 키링",
+    "yunseo-iem-case": "이어모니터 케이스",
+    "yunseo-taco-night": "무대 뒤의 야식",
+    "yunseo-fashion-room": "반짝이는 팔찌",
+    "yunseo-empty-reaction": "무반응의 벽",
+    "yunseo-sticker-wall": "스티커로 남긴 힌트",
+    "yunseo-control-room": "프레임 밖으로",
+    "yunseo-fan-letter": "손글씨 응원 카드",
+    "yunseo-carbonated-call": "탄산처럼 튀는 질투",
+    "yunseo-silent-rehearsal": "웃기지 않아도 되는 리허설",
+    "yunseo-midnight-cup": "앙코르 전의 허기",
+    "yunseo-direct-talk": "장난을 접는 법",
+    "yunseo-backstage-door": "돌아올 수 있는 자유",
+    "yunseo-encore-message": "너에게만 남긴 세트리스트",
+    "yunseo-empty-stage-before": "마이크를 내려놓기 전",
+    "yunseo-encore-confession": "앙코르 고백",
+    "ming-concert": "은빛의 첫 악장",
+    "ming-candle-restaurant": "분위기의 온도",
+    "ming-garden": "꽃다발의 결",
+    "ming-gallery": "무심한 농담의 경계",
+    "ming-tearoom": "손편지의 확신",
+    "ming-macaron-counter": "마카롱의 작은 균열",
+    "ming-pearl-earrings": "진주 귀걸이의 빛",
+    "ming-perfume-note": "잔향의 이름",
+    "ming-silk-ribbon": "젖은 실크 리본",
+    "ming-noisy-street": "깨진 분위기의 가장자리",
+    "ming-promise-crack": "약속의 작은 금",
+    "ming-emotion-repair": "다시 다듬은 말",
+    "ming-champagne": "배 향 샴페인의 잔향",
+    "ming-jealous-calm": "완벽한 표정의 질투",
+    "ming-cream-pasta": "크림 파스타의 부드러운 확신",
+    "ming-open-wound": "예민함의 다른 이름",
+    "ming-late-letter": "다시 쓴 손편지",
+    "ming-moon-salon": "문 닫은 살롱의 향",
+    "ming-final-tea": "식기 전의 확신",
+    "ming-salon-confession": "은빛 잔향의 고백",
+    "jieun-mansion": "검은 리본",
+    "jieun-candle-room": "질문의 그림자",
+    "jieun-rain-garden": "붉은 과일차",
+    "jieun-classic-hall": "진심 확인",
+    "jieun-antique-card": "앤티크 카드",
+    "jieun-black-cherry": "블랙체리 타르트",
+    "jieun-red-jewel": "붉은 보석 장식",
+    "jieun-gothic-library": "고전 소설의 밑줄",
+    "jieun-crowded-hall": "시선이 빼앗기는 밤",
+    "jieun-secret-key": "비밀의 작은 열쇠",
+    "jieun-lie-test": "예쁘게 꾸민 거짓말",
+    "jieun-boundary": "경계가 있는 다정함",
+    "jieun-dark-chocolate": "다크초콜릿의 쓴 고백",
+    "jieun-other-kindness": "다른 사람에게 더 다정한 모습",
+    "jieun-rose-thorn": "장미 가시에 찔린 손",
+    "jieun-missing-call": "설명 없는 침묵",
+    "jieun-request-not-test": "시험 대신 부탁",
+    "jieun-open-gate": "도망가지 않는 사람",
+    "jieun-thorn-before": "가시를 감추지 않는 밤",
+    "jieun-greenhouse-confession": "검은 장미의 고백",
+    "saebyeok-rooftop": "붉은 도시",
+    "saebyeok-restaurant": "선명한 주문",
+    "saebyeok-opening": "세련된 칭찬",
+    "saebyeok-jazz": "흐릿하지 않은 마음",
+    "saebyeok-gold-gift": "골드 액세서리",
+    "saebyeok-midnight-taxi": "빨간 신호의 빈틈",
+    "saebyeok-diary": "고급 다이어리의 여백",
+    "saebyeok-truffle-pasta": "트러플 파스타의 기준",
+    "saebyeok-red-lipbalm": "붉은 립밤의 자존심",
+    "saebyeok-project-night": "리더의 마지막 조명",
+    "saebyeok-bad-joke": "예의 없는 농담의 끝",
+    "saebyeok-weak-moment": "강한 척이 멈춘 계단",
+    "saebyeok-sparking-water": "드라이한 스파클링 워터",
+    "saebyeok-rival-gaze": "경쟁하지 않는 시선",
+    "saebyeok-one-flower": "꽃 한 송이의 확신",
+    "saebyeok-no-plan": "대충 고른 길",
+    "saebyeok-side": "내 편이라는 문장",
+    "saebyeok-horizon": "앞서 걷는 사람",
+    "saebyeok-neon-before": "강한 척을 접는 밤",
+    "saebyeok-neon-confession": "붉은 도시의 고백",
+    "seoyeon-flower-field": "데이지의 첫 미소",
+    "seoyeon-picnic": "햇살 아래 카드",
+    "seoyeon-warm-cafe": "작은 변화",
+    "seoyeon-sunny-walk": "다정한 확인",
+    "seoyeon-photo-shop": "플라워 키링",
+    "seoyeon-rain-greenhouse": "유리 위에 맺힌 기다림",
+    "seoyeon-strawberry-tart": "딸기 타르트의 기억",
+    "seoyeon-small-market": "이름표 없는 꽃",
+    "seoyeon-forgot-promise": "잊힌 약속의 그늘",
+    "seoyeon-pressed-bookmark": "압화 책갈피",
+    "seoyeon-comparison-shadow": "비교의 그림자",
+    "seoyeon-fruit-tea-message": "과일차 위의 안부",
+    "seoyeon-slow-confession": "느린 고백의 예고",
+    "seoyeon-quiet-tears": "웃음 뒤의 물방울",
+    "seoyeon-season-photo": "계절 사진첩",
+    "seoyeon-bitter-cup": "쓴 커피의 표정",
+    "seoyeon-salad-pasta": "샐러드 파스타의 보폭",
+    "seoyeon-late-reply": "늦은 답장의 이유",
+    "seoyeon-flower-letter": "꽃잎 편지",
+    "seoyeon-garden-confession": "천천히 피는 고백",
+    "soha-running-track": "첫 번째 페이스",
+    "soha-tennis": "밝은 리액션",
+    "soha-brunch": "긍정의 루틴",
+    "soha-yoga": "숨 고르는 응원",
+    "soha-park-smoothie": "스무디와 다음 목표",
+    "soha-bike-path": "같은 바람의 속도",
+    "soha-protein-pancake": "프로틴 팬케이크의 농담",
+    "soha-smoke-place": "탁한 공기의 신호",
+    "soha-routine-check": "루틴 체크인",
+    "soha-sports-towel": "스포츠 타월의 온도",
+    "soha-low-energy-day": "햇살이 낮은 날",
+    "soha-negative-loop": "부정의 반복",
+    "soha-travel-plan": "여행 루트와 운동화",
+    "soha-rooftop-track": "도시 위의 한 바퀴",
+    "soha-salty-food": "짠맛의 농도",
+    "soha-rest-day": "쉬는 날의 용기",
+    "soha-running-band": "러닝 기록 밴드",
+    "soha-jealous-pace": "질투의 페이스",
+    "soha-last-lap": "마지막 바퀴의 숨",
+    "soha-finish-confession": "같이 도착하는 고백",
+    "jiyoon-sea-cafe": "파도처럼 밝은 인사",
+    "jiyoon-beach-walk": "젖은 모래 위의 농담",
+    "jiyoon-aquarium": "유리 너머의 깊이",
+    "jiyoon-white-terrace": "흰 난간의 바람",
+    "jiyoon-seafood-pasta": "해산물 파스타의 선",
+    "jiyoon-shell-keyring": "조개 모양 키링",
+    "jiyoon-stuffy-room": "닫힌 창문",
+    "jiyoon-blue-bracelet": "파란 팔찌의 약속",
+    "jiyoon-photo-postcard": "파도 사진 엽서",
+    "jiyoon-jealous-cool": "쿨한 척의 파도",
+    "jiyoon-ferry-dock": "떠나는 배와 남는 자리",
+    "jiyoon-lime-sherbet": "라임 셔벗의 환기",
+    "jiyoon-return-place": "돌아올 곳의 불빛",
+    "jiyoon-heavy-basement": "가라앉는 분위기",
+    "jiyoon-sneakers": "흰색 스니커즈",
+    "jiyoon-harbor-talk": "항구의 진심",
+    "jiyoon-fireworks": "불꽃놀이가 끝난 뒤",
+    "jiyoon-friend-line": "친구와 연인 사이",
+    "jiyoon-moon-breakwater": "달빛 아래의 닻",
+    "jiyoon-harbor-confession": "돌아올 항구의 고백",
+    "harin-neon-popup": "핑크빛 리액션",
+    "harin-photo-booth": "두 번째 컷의 표정",
+    "harin-sticker-alley": "스티커 한 장의 신호",
+    "harin-character-cafe": "마카롱과 리액션",
+    "harin-festival-glow": "분홍 조명의 박자",
+    "harin-macaron-choice": "트렌드보다 네 취향",
+    "harin-no-reaction": "무반응의 정적",
+    "harin-friend-call": "친구의 전화",
+    "harin-hairpin-gift": "반짝 헤어핀",
+    "harin-pink-lemonade": "핑크 레모네이드의 질문",
+    "harin-serious-face": "장난 아닌 얼굴",
+    "harin-foodtruck": "분식과 하트 츄러스",
+    "harin-sticker-message": "스티커 메시지",
+    "harin-control-line": "통제의 선",
+    "harin-bitter-menu": "쓴 디저트의 표정",
+    "harin-popup-jealous": "질투도 반짝이게",
+    "harin-photocard-holder": "포토카드 홀더",
+    "harin-after-party-quiet": "조용해진 불빛",
+    "harin-last-shot": "마지막 컷 직전",
+    "harin-photobooth-confession": "이번 컷은 진짜",
+    "neo-gallery": "은빛 정적의 첫 페이지",
+    "neo-rain-cafe": "말 없는 라떼와 젖은 창문",
+    "neo-library": "책장 사이에 숨은 취향",
+    "neo-rooftop": "속도의 약속과 옥상 바람",
+    "neo-return-gallery": "기억한 색감의 재방문",
+    "neo-midnight-platform": "이어폰 한쪽의 거리",
+    "neo-record-shop": "반복 재생되는 마음",
+    "neo-used-bookstore": "접힌 페이지의 이름",
+    "neo-night-river": "말 대신 걷는 리듬",
+    "neo-quiet-cinema": "엔딩 크레딧 뒤의 대화",
+    "neo-convenience-rain": "투명 우산의 반쪽",
+    "neo-silver-keyring": "무광 은색 키링",
+    "neo-message-gap": "읽지 않은 마음",
+    "neo-small-exhibit": "흐린 사진의 초점",
+    "neo-arcade-corner": "낮은 볼륨의 게임",
+    "neo-winter-bus": "입김 사이의 약속",
+    "neo-secret-note": "빌려준 책 속 메모",
+    "neo-city-observatory": "불빛을 세는 방식",
+    "neo-dawn-terminal": "떠나기 전의 좌석",
+    "neo-silver-bookmark-confession": "은빛 책갈피 고백",
+    "yeoni-teahouse": "따뜻한 꽃차",
+    "yeoni-garden": "느린 걸음",
+    "yeoni-bookstore": "문장 하나",
+    "yeoni-lake": "흔들리는 물결",
+    "yeoni-hanok-evening": "등불 아래의 확신",
+    "yeoni-moon-yard": "분홍 꽃등의 손끝",
+    "yeoni-lotus-pond": "연꽃 아래의 침묵",
+    "yeoni-honey-pear-tea": "꿀 배차의 온도",
+    "yeoni-jagae-bookmark": "자개 책갈피",
+    "yeoni-strong-tone": "말투의 그림자",
+    "yeoni-dream-story": "꿈 이야기",
+    "yeoni-comfort-return": "되돌아온 위로",
+    "yeoni-scent-pouch": "작은 향낭",
+    "yeoni-silent-bench": "말 없는 벤치",
+    "yeoni-spicy-table": "매운 상 위의 숨",
+    "yeoni-wish-paper": "소원지의 여백",
+    "yeoni-tired-hands": "차가운 손",
+    "yeoni-last-lantern-before": "마지막 등불 전",
+    "yeoni-lake-reflection": "물에 비친 고백 전야",
+    "yeoni-flower-lantern-confession": "서로의 등불 고백",
+  },
+} as const;
+
+const LOVE_SCENE_TITLE_GENERIC: Record<LoveSceneTitleLocale, (scene: LoveSceneDefinition) => string> = {
+  ko: (scene) => LOVE_SCENE_TITLE_TRANSLATIONS.ko[scene.titleKey as keyof typeof LOVE_SCENE_TITLE_TRANSLATIONS.ko] || `러브 코드 ${scene.chapter}장`,
+  en: (scene) => `${humanizeLoveSceneTitleKey(scene.titleKey)} · Chapter ${scene.chapter}`,
+  ja: (scene) => `ラブコード ${scene.chapter}章`,
+  "zh-CN": (scene) => `恋爱代码 第${scene.chapter}章`,
+  "zh-TW": (scene) => `戀愛代碼 第${scene.chapter}章`,
+  vi: (scene) => `Chương ${scene.chapter} · Mật mã tình yêu`,
+  hi: (scene) => `अध्याय ${scene.chapter} · Love Code`,
+  es: (scene) => `Capítulo ${scene.chapter} · Código del amor`,
+  fr: (scene) => `Chapitre ${scene.chapter} · Code de l'amour`,
+  de: (scene) => `Kapitel ${scene.chapter} · Liebescode`,
+  nl: (scene) => `Hoofdstuk ${scene.chapter} · Liefdescode`,
+  ms: (scene) => `Bab ${scene.chapter} · Kod Cinta`,
+};
+
+const missingLoveSceneTitleLog = new Set<string>();
+
+function normalizeLoveSceneTitleLocale(locale?: string | null): LoveSceneTitleLocale {
+  const normalized = String(locale || "ko").trim().toLowerCase().replace("_", "-");
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "ja-jp") return "ja";
+  if (normalized === "en-us" || normalized === "en-gb") return "en";
+  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(normalized)) return normalized as LoveSceneTitleLocale;
+  return "ko";
+}
+
+function humanizeLoveSceneTitleKey(titleKey: string) {
+  return titleKey
+    .split("-")
+    .slice(1)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function resolveLoveSceneTitle(scene: LoveSceneDefinition, locale?: string | null) {
+  const activeLocale = normalizeLoveSceneTitleLocale(locale);
+  const translationSet = LOVE_SCENE_TITLE_TRANSLATIONS[activeLocale as keyof typeof LOVE_SCENE_TITLE_TRANSLATIONS];
+  const translated = translationSet?.[scene.titleKey as keyof typeof LOVE_SCENE_TITLE_TRANSLATIONS.ko];
+  if (typeof translated === "string" && translated) return translated;
+
+  const logKey = `${activeLocale}:${scene.titleKey}`;
+  if (!missingLoveSceneTitleLog.has(logKey)) {
+    missingLoveSceneTitleLog.add(logKey);
+    if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+      console.warn("[i18n:love-scene-title] missing title", { locale: activeLocale, key: scene.titleKey });
+    }
+  }
+  return LOVE_SCENE_TITLE_GENERIC[activeLocale](scene);
+}
+
+const LOVE_SCENE_DEFINITIONS: LoveSceneDefinition[] = [
   {
     id: "kang-court-sunlight",
     characterId: "kang-taejun",
     chapter: 1,
     location: "햇빛 좋은 야외 코트",
-    title: "첫 번째 패스",
+    titleKey: "kang-court-sunlight",
     situation: "오후의 햇빛이 코트 위에 길게 내려앉았다. 강태준은 땀을 닦으며 당신에게 공을 건넨다.",
     dialogue: "한 번 해볼래? 못해도 괜찮아. 대신 대충은 안 봐줘.",
     choices: [
@@ -882,7 +1264,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 2,
     location: "훈련이 끝난 체육관",
-    title: "숨 고르는 응원",
+    titleKey: "kang-gym-after",
     situation: "체육관 조명이 하나씩 꺼진다. 강태준은 숨을 고르며 오늘의 아쉬운 장면을 떠올린다.",
     dialogue: "마지막에 집중이 흐트러졌어. 내가 봐도 답답하더라.",
     choices: [
@@ -914,7 +1296,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 3,
     location: "햇빛 좋은 캠퍼스",
-    title: "목표의 방향",
+    titleKey: "kang-campus-goal",
     situation: "벤치 옆 나무 그림자가 흔들린다. 강태준은 다음 시즌 목표를 말하다가 당신을 바라본다.",
     dialogue: "난 이기고 싶다는 말이 아직도 제일 솔직해.",
     choices: [
@@ -946,7 +1328,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 4,
     location: "스포츠 경기장 복도",
-    title: "편을 들어주는 순간",
+    titleKey: "kang-teamwork",
     situation: "경기장 복도에서 팀 분위기가 흔들린다. 태준은 화를 삼키며 벽에 기대어 있다.",
     dialogue: "내가 틀린 말 한 건 아니야. 근데 분위기는 내가 망친 것 같고.",
     choices: [
@@ -978,7 +1360,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 5,
     location: "밤의 야외 코트",
-    title: "불빛 아래 고백",
+    titleKey: "kang-night-court",
     situation: "조용해진 코트에 가로등만 남았다. 태준은 공을 내려놓고 처음보다 낮은 목소리로 말한다.",
     dialogue: "나, 애매한 건 잘 못해. 마음이 있으면 움직이는 편이라.",
     choices: [
@@ -1010,7 +1392,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 6,
     location: "새벽 러닝 트랙",
-    title: "같은 호흡으로 뛰는 아침",
+    titleKey: "kang-early-run",
     situation: "새벽 공기는 아직 차갑고 트랙 위에는 두 사람의 발소리만 일정하게 남는다. 태준은 평소처럼 앞서 달리려다가 당신의 호흡이 흐트러지는 걸 보고 속도를 낮춘다. 이기고 싶은 본능이 강한 사람이라도, 좋아하는 사람 앞에서는 결승선보다 나란히 도착하는 쪽을 배워야 한다는 걸 처음 체감하는 얼굴이다.",
     dialogue: "원래는 더 빠르게 뛰는데, 오늘은 네 페이스가 궁금해.",
     choices: [
@@ -1042,7 +1424,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 7,
     location: "경기 후 매운 국밥집",
-    title: "뜨거운 국물과 진짜 표정",
+    titleKey: "kang-spicy-dinner",
     situation: "경기 후 작은 식당에 들어서자 태준은 익숙하게 물컵을 먼저 채운다. 그는 화려한 레스토랑보다 땀을 식히며 먹는 뜨거운 국물, 매운 음식 앞에서 풀리는 진짜 표정을 더 좋아한다. 당신이 메뉴판을 보는 동안 태준은 너무 맵지 않게 주문할지 묻고, 자신이 좋아하는 것을 강요하지 않으려 애쓴다.",
     dialogue: "나 매운 거 좋아하긴 하는데, 네가 힘들면 다른 거 시켜도 돼.",
     choices: [
@@ -1074,7 +1456,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 8,
     location: "체육관 벤치",
-    title: "붕대 아래 숨긴 불안",
+    titleKey: "kang-injury-bench",
     situation: "태준은 손목에 감은 붕대를 괜히 만지작거린다. 큰 부상은 아니라고 말하지만, 공을 잡지 못하는 짧은 시간에도 마음은 조급해진다. 그는 약한 모습을 보이기 싫어 일부러 더 크게 웃고, 당신이 걱정스러운 표정을 짓자 농담으로 분위기를 밀어 올린다.",
     dialogue: "별거 아니야. 이 정도로 쉬면 내가 너무 약해 보이잖아.",
     choices: [
@@ -1106,7 +1488,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 9,
     location: "팀 회식이 끝난 분식집",
-    title: "팀원들을 지키는 방식",
+    titleKey: "kang-team-diner",
     situation: "늦은 회식 뒤 작은 분식집에 남은 태준은 팀원 이야기를 쉽게 끝내지 못한다. 누군가의 실수를 감싸느라 자신이 욕을 먹었다는 걸 말하면서도, 그 사람을 나쁘게 만들지는 않는다. 의리와 자존심이 한 그릇 안에서 끓고 있는 밤이다.",
     dialogue: "내가 나서면 편해질 줄 알았는데, 가끔은 내가 더 문제를 크게 만드는 것 같아.",
     choices: [
@@ -1138,7 +1520,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 10,
     location: "락커룸 앞 복도",
-    title: "경기 전 짧은 편지",
+    titleKey: "kang-letter-locker",
     situation: "중요한 경기를 앞두고 복도는 이상하게 조용하다. 태준은 평소보다 말이 적고, 신발 끈을 두 번이나 다시 묶는다. 당신은 주머니 안에 짧은 응원 편지를 넣어 두었다. 대단한 문장은 아니지만, 그가 결과보다 과정을 오래 기억해 주길 바랐던 마음이 담겨 있다.",
     dialogue: "오늘은 이상하게 긴장된다. 이기고 싶은 경기일수록 더 그래.",
     choices: [
@@ -1170,7 +1552,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 11,
     location: "패배 후 비 오는 운동장",
-    title: "졌다는 말을 꺼내는 밤",
+    titleKey: "kang-loss-rain",
     situation: "경기는 졌고, 운동장에는 비가 얇게 내린다. 태준은 사람들 앞에서는 괜찮다고 웃었지만, 아무도 없는 관중석 계단에 앉자 표정이 무너진다. 그는 패배보다 자신을 믿어 준 사람들을 실망시켰다는 감각에 더 오래 붙잡혀 있다.",
     dialogue: "나 괜찮다고 말했는데, 사실 하나도 안 괜찮아.",
     choices: [
@@ -1202,7 +1584,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 12,
     location: "시험기간 도서관",
-    title: "조용한 곳에서 배우는 속도",
+    titleKey: "kang-quiet-library",
     situation: "도서관은 태준에게 낯선 경기장이다. 큰 목소리도, 빠른 움직임도, 즉각적인 결과도 없다. 그는 펜을 돌리다 멈추고, 당신의 필기 속도를 따라가려다 결국 낮게 웃는다. 활동적인 데이트만 좋아할 것 같던 그가, 당신의 고요한 세계에 들어오려고 애쓰는 장면이다.",
     dialogue: "여긴 어렵다. 가만히 있는데도 체력 쓰는 느낌이야.",
     choices: [
@@ -1234,7 +1616,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 13,
     location: "관중석 아래 계단",
-    title: "질투를 숨긴 장난",
+    titleKey: "kang-jealous-stands",
     situation: "경기 후 누군가 당신에게 오래 말을 건다. 태준은 멀리서 장난스러운 표정으로 손을 흔들지만, 물병 라벨을 괜히 뜯고 있다. 그는 질투를 인정하기보다 더 밝게 굴고, 아무렇지 않은 척 당신의 반응을 살핀다.",
     dialogue: "인기 많네. 나 없어도 재밌어 보이던데?",
     choices: [
@@ -1266,7 +1648,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 14,
     location: "체육관 밖 계단",
-    title: "기대라는 이름의 무게",
+    titleKey: "kang-family-call",
     situation: "태준은 가족과의 통화를 끝내고 한동안 휴대폰을 내려놓지 못한다. 잘하고 있다는 말보다 더 잘해야 한다는 말이 오래 남은 얼굴이다. 그는 평소처럼 농담을 던지려 하지만, 이번에는 웃음이 늦게 나온다.",
     dialogue: "응원인 거 아는데, 가끔은 내가 성적표처럼 느껴질 때가 있어.",
     choices: [
@@ -1298,7 +1680,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 15,
     location: "햇빛 드는 파스타집",
-    title: "승부 없는 점심",
+    titleKey: "kang-sunlit-pasta",
     situation: "창가 자리에는 오후 햇빛이 부드럽게 내려앉아 있다. 태준은 메뉴를 고르다가 오늘은 빨리 먹고 훈련장에 가자는 말을 삼킨다. 처음으로 일정표를 비워 둔 날, 그는 아무것도 증명하지 않아도 되는 데이트를 어색해한다.",
     dialogue: "오늘은 뭘 해야 잘한 데이트인지 모르겠네. 그냥 밥 먹는 것도 괜찮나?",
     choices: [
@@ -1330,7 +1712,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 16,
     location: "동네 어린이 농구 교실",
-    title: "가르치는 사람의 눈빛",
+    titleKey: "kang-volunteer-match",
     situation: "태준은 아이들에게 슛 자세를 알려주며 평소보다 훨씬 부드럽게 말한다. 승부욕 강한 사람이라고만 생각했던 얼굴에, 누군가를 기다려 주는 인내가 조용히 비친다. 아이가 연속으로 실패해도 태준은 공을 다시 건네며 무릎을 낮춘다.",
     dialogue: "잘하는 것보다 포기 안 하는 게 먼저야. 나도 그랬거든.",
     choices: [
@@ -1362,7 +1744,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 17,
     location: "소나기 피하는 학교 현관",
-    title: "비를 기다리는 작전 회의",
+    titleKey: "kang-storm-shelter",
     situation: "갑작스러운 소나기에 두 사람은 학교 현관에 멈춰 선다. 태준은 뛰어가면 된다고 말하려다, 당신의 젖은 신발을 보고 멈춘다. 평소라면 돌파했을 상황을 오늘은 함께 기다리는 쪽으로 바꾸려는 얼굴이다.",
     dialogue: "뛰면 금방인데... 네 신발 젖으면 불편하겠다.",
     choices: [
@@ -1394,7 +1776,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 18,
     location: "캠퍼스 게시판 앞",
-    title: "미래를 붙이는 손",
+    titleKey: "kang-future-board",
     situation: "게시판에는 대회 일정, 진로 상담, 동아리 모집 공지가 빼곡하다. 태준은 프로 테스트 포스터 앞에서 오래 멈춘다. 큰 꿈을 말할 때마다 자신만만해 보였지만, 오늘은 떨어졌을 때의 얼굴을 먼저 떠올리는 듯 조용하다.",
     dialogue: "붙으면 좋겠지. 근데 떨어지면 내가 뭘 해야 할지 모르겠어.",
     choices: [
@@ -1426,7 +1808,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 19,
     location: "불 꺼진 실내 코트",
-    title: "마지막 슛을 미루는 밤",
+    titleKey: "kang-empty-court",
     situation: "실내 코트의 불은 반쯤 꺼졌고, 태준은 공을 들고 자유투 라인에 선다. 오늘따라 그는 슛을 던지지 못한다. 성공하면 끝날 것 같고, 실패하면 마음까지 흔들릴 것 같아서다. 당신이 옆에 있다는 사실이 오히려 더 진지하게 느껴지는 밤이다.",
     dialogue: "이상하지. 공 하나 던지는 건데, 오늘은 네 대답 기다리는 것처럼 떨린다.",
     choices: [
@@ -1458,7 +1840,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kang-taejun",
     chapter: 20,
     location: "해 뜨는 야외 코트",
-    title: "태양 코트의 고백",
+    titleKey: "kang-sunrise-confession",
     situation: "새벽빛이 코트 바닥에 천천히 번진다. 태준은 밤새 손에 쥐고 있던 공을 내려놓고, 당신 앞에서 처음으로 아무것도 증명하지 않는 얼굴이 된다. 이기고 싶다는 말, 잘하고 싶다는 말, 멋있어 보이고 싶다는 말 뒤에 숨어 있던 진짜 마음이 햇빛처럼 올라온다.",
     dialogue: "나 이제 너한테 이기는 사람이 아니라, 같이 지는 날도 버틸 수 있는 사람이 되고 싶어.",
     choices: [
@@ -1490,7 +1872,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 1,
     location: "고층 라운지",
-    title: "야경 위의 첫 판단",
+    titleKey: "kwon-lounge",
     situation: "유리창 밖으로 도시의 불빛이 정돈되어 보인다. 권세현은 잔을 내려놓고 당신의 시간을 확인한다.",
     dialogue: "늦지 않았네. 시간 약속을 지키는 사람은 생각보다 드물어.",
     choices: [
@@ -1522,7 +1904,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 2,
     location: "조용한 레스토랑",
-    title: "깔끔한 선택",
+    titleKey: "kwon-restaurant",
     situation: "테이블 위의 식기가 가지런하다. 세현은 메뉴를 훑고 당신에게 선택권을 넘긴다.",
     dialogue: "복잡한 선택일수록 취향이 보이더라. 무엇을 고르겠어?",
     choices: [
@@ -1554,7 +1936,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 3,
     location: "프라이빗 서재",
-    title: "비밀의 무게",
+    titleKey: "kwon-library",
     situation: "낮은 조명의 서재에서 세현은 닫힌 노트를 책상 위에 올려둔다. 말보다 침묵이 먼저 흐른다.",
     dialogue: "사람을 믿는 데 오래 걸리는 편이야. 그게 효율적이진 않아도 안전하거든.",
     choices: [
@@ -1586,7 +1968,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 4,
     location: "야경이 보이는 공간",
-    title: "미래 계획",
+    titleKey: "kwon-night-view",
     situation: "도시의 불빛이 격자처럼 펼쳐진다. 세현은 먼 곳을 보며 미래에 대해 조용히 말한다.",
     dialogue: "감정만으로는 오래 가지 못해. 결국 관계도 운영 방식이 필요하다고 봐.",
     choices: [
@@ -1618,7 +2000,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 5,
     location: "호텔 카페의 늦은 밤",
-    title: "조용한 확신",
+    titleKey: "kwon-hotel-cafe",
     situation: "마지막 커피 향이 잔잔하게 남아 있다. 세현은 당신에게 흔치 않은 속도로 진심을 꺼낸다.",
     dialogue: "내 기준이 까다롭다는 건 알아. 그런데 당신은 그 기준 안으로 들어오고 있어.",
     choices: [
@@ -1650,7 +2032,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 6,
     location: "오래된 시계 수리점",
-    title: "멈춘 초침의 기준",
+    titleKey: "kwon-watch-repair",
     situation: "작은 시계 수리점 안에는 금속 부품이 정돈된 트레이 위에서 낮게 빛난다. 세현은 오래된 손목시계를 맡기며 수리 내역을 꼼꼼히 확인한다. 단순히 시간을 아끼는 사람이 아니라, 누군가와의 약속이 어긋났을 때 생기는 불안을 오래 기억하는 사람이라는 게 그 작은 습관에서 드러난다.",
     dialogue: "시계가 멈추면 불편한 건 시간이 아니라 약속 쪽이야.",
     choices: [
@@ -1682,7 +2064,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 7,
     location: "예약된 전시 프리뷰",
-    title: "초대 명단의 이름",
+    titleKey: "kwon-private-exhibit",
     situation: "전시장은 아직 정식 오픈 전이라 조용하다. 세현은 초대 명단을 확인하고 당신 이름 옆에 작은 체크 표시가 된 것을 본다. 그는 화려한 작품보다, 예약과 동선이 매끄럽게 준비된 공간에서 편안해한다. 그가 준비한 데이트는 감정을 과시하기보다 불편한 변수를 줄이는 방식으로 설계되어 있다.",
     dialogue: "사람이 적은 시간으로 잡았어. 작품보다 소음이 먼저 기억나는 건 싫을 것 같아서.",
     choices: [
@@ -1714,7 +2096,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 8,
     location: "호텔 카페 창가",
-    title: "블랙커피와 고른 침묵",
+    titleKey: "kwon-black-coffee",
     situation: "세현은 블랙커피를 앞에 두고 당신의 잔을 본다. 그는 자신이 좋아하는 담백함을 강요하지 않지만, 선택의 이유를 듣고 싶어 한다. 대화는 메뉴보다 기준으로 흐른다. 어떤 것을 고르는지보다, 왜 그렇게 골랐는지가 세현에게는 더 많은 것을 말해 준다.",
     dialogue: "취향은 사소해 보여도 반복되면 기준이 되지.",
     choices: [
@@ -1746,7 +2128,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 9,
     location: "갑자기 바뀐 약속 장소",
-    title: "변수의 알림",
+    titleKey: "kwon-schedule-change",
     situation: "갑작스러운 도로 통제로 약속 장소를 바꿔야 한다. 세현은 이미 대체 장소 두 곳을 찾아두었지만, 당신에게 일방적으로 통보하지 않고 먼저 상황을 설명한다. 예전의 그는 답을 정해 놓고 상대를 움직였겠지만, 오늘은 확인을 먼저 선택한다.",
     dialogue: "변수가 생겼어. 내가 정할 수도 있지만, 이번엔 네 의견을 먼저 듣는 게 맞겠지.",
     choices: [
@@ -1778,7 +2160,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 10,
     location: "프라이빗 서재의 책상",
-    title: "가죽 노트의 빈 페이지",
+    titleKey: "kwon-leather-note",
     situation: "세현은 책상 위에 새 가죽 노트를 올려 둔다. 겉으로는 단정한 선물이지만, 첫 페이지에는 아무것도 적혀 있지 않다. 그는 정해진 문장보다 당신이 어떤 약속을 남길지 보고 싶어 한다. 신뢰는 말보다 기록이 되고, 기록은 다시 행동으로 증명되어야 한다고 믿는 사람의 방식이다.",
     dialogue: "첫 페이지는 내가 쓰지 않는 게 맞다고 판단했어. 당신 기준을 먼저 보고 싶어서.",
     choices: [
@@ -1810,7 +2192,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 11,
     location: "비상계단의 낮은 통화",
-    title: "말하지 않은 변수",
+    titleKey: "kwon-secret-call",
     situation: "세현은 통화를 끝내고 비상계단 난간에 손을 얹는다. 집안 문제인지, 일 문제인지 그는 바로 설명하지 않는다. 다만 평소보다 넥타이를 느슨하게 풀고, 말할지 말지 계산하는 얼굴로 당신을 본다. 비밀을 갖고 싶어서가 아니라, 당신을 불편한 일에 끌어들이고 싶지 않은 사람이다.",
     dialogue: "지금 말하면 네가 신경 쓸 거고, 말하지 않으면 숨기는 것처럼 보이겠지.",
     choices: [
@@ -1842,7 +2224,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 12,
     location: "파티가 끝난 호텔 복도",
-    title: "예의 바른 질투",
+    titleKey: "kwon-jealous-etiquette",
     situation: "파티에서 누군가 당신에게 오래 말을 걸었다. 세현은 내내 예의 바른 미소를 유지했지만, 복도로 나오자 말수가 줄어든다. 질투를 드러내는 대신 더 정중하고 차가워지는 사람. 그의 불안은 소란스럽지 않아서, 알아차리지 못하면 그대로 거리로 굳는다.",
     dialogue: "방금 대화가 즐거워 보이더군. 내가 끼어들 필요는 없어 보였고.",
     choices: [
@@ -1874,7 +2256,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 13,
     location: "읽지 못한 메시지",
-    title: "답장의 온도",
+    titleKey: "kwon-missed-message",
     situation: "당신이 바쁜 하루 끝에 세현의 메시지를 늦게 확인했다. 그는 재촉하지 않았지만, 답장에는 평소보다 더 짧은 문장이 남아 있다. 괜찮아. 일정 이해해. 그 두 문장 사이에 서운함과 통제가 동시에 숨어 있다. 그는 묻고 싶지만, 묻는 순간 자신이 집착처럼 보일까 봐 멈춘다.",
     dialogue: "연락이 늦은 건 이해해. 다만 내가 어느 정도 기다리면 되는지는 알고 싶군.",
     choices: [
@@ -1906,7 +2288,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 14,
     location: "야경 아래 긴 벤치",
-    title: "경계선을 그리는 밤",
+    titleKey: "kwon-boundary-talk",
     situation: "도시의 불빛이 벤치 아래로 길게 번진다. 세현은 관계에서 서로 지켜야 할 선을 이야기한다. 어떤 사람에게는 차갑게 들릴 수 있지만, 그에게 경계는 멀어지자는 말이 아니라 오래 머물기 위한 설계다. 그는 당신이 답답해할까 봐 단어를 고른다.",
     dialogue: "선이 있다는 건 멀어지자는 뜻이 아니야. 어디까지 가면 서로 다치는지 알고 싶다는 뜻이지.",
     choices: [
@@ -1938,7 +2320,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 15,
     location: "늦은 밤 회의실",
-    title: "실패 보고서의 빈칸",
+    titleKey: "kwon-work-crisis",
     situation: "세현의 계획이 드물게 어긋났다. 회의실 화이트보드에는 수정된 일정이 빼곡하지만, 세현은 한 칸을 비워 둔 채 말이 없다. 완벽주의자에게 실패는 사건보다 균열에 가깝다. 그는 괜찮다는 말을 듣고 싶지 않지만, 혼자 두면 더 차가워질 것도 안다.",
     dialogue: "내 판단 오류야. 변명할 생각은 없어.",
     choices: [
@@ -1970,7 +2352,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 16,
     location: "격식 있는 가족 식사 자리",
-    title: "정중한 방패",
+    titleKey: "kwon-family-dinner",
     situation: "식사 자리는 지나치게 단정하다. 세현은 말수를 줄이고, 가족의 질문이 당신에게 날카롭게 닿기 전마다 정중하게 방향을 바꾼다. 보호받고 있다는 느낌과, 그의 세계가 얼마나 기준으로 가득한지 동시에 체감되는 자리다.",
     dialogue: "불편한 질문이 나오면 내가 정리할게. 다만 네가 직접 답하고 싶으면 신호를 줘.",
     choices: [
@@ -2002,7 +2384,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 17,
     location: "두 사람의 공유 캘린더",
-    title: "계획표에 생긴 여백",
+    titleKey: "kwon-open-calendar",
     situation: "세현은 공유 캘린더를 열고 다음 한 달의 약속을 보다가, 처음으로 비어 있는 날을 그대로 둔다. 예전 같으면 빈칸까지 계획했겠지만, 당신과의 관계에서는 여백도 약속이 될 수 있다는 걸 배우는 중이다.",
     dialogue: "이 날은 비워둘까 해. 즉흥이 아니라, 쉬는 시간을 계획하는 거야.",
     choices: [
@@ -2034,7 +2416,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 18,
     location: "자료실의 닫힌 캐비닛",
-    title: "사과를 보관하는 방식",
+    titleKey: "kwon-apology-archive",
     situation: "작은 오해가 지나간 뒤, 세현은 자료실 캐비닛 앞에서 당신을 기다린다. 그는 꽃이나 긴 메시지 대신, 무엇이 사실이었고 무엇이 감정이었는지 적은 짧은 메모를 준비했다. 딱딱해 보이지만, 그 안에는 변명하지 않으려는 노력과 놓치고 싶지 않은 마음이 들어 있다.",
     dialogue: "내가 틀린 부분과 서툴렀던 부분을 구분해 봤어. 둘 다 사과해야 할 것 같아서.",
     choices: [
@@ -2066,7 +2448,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 19,
     location: "닫힌 전망대 입구",
-    title: "완벽하지 않은 타이밍",
+    titleKey: "kwon-closed-observatory",
     situation: "전망대는 예상보다 일찍 문을 닫았다. 세현이 준비한 완벽한 고백 동선은 시작도 못 하고 무너진다. 그는 안내문 앞에서 한동안 말이 없다. 계획이 틀어진 순간에도 당신이 떠나지 않는지, 그 사실이 지금 더 중요한지 스스로 확인하는 얼굴이다.",
     dialogue: "완벽한 타이밍은 아니군. 그래서 더 미루고 싶어지는 것도 사실이야.",
     choices: [
@@ -2098,7 +2480,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kwon-sehyun",
     chapter: 20,
     location: "유리 첨탑의 비상 테라스",
-    title: "계획 밖의 고백",
+    titleKey: "kwon-glass-tower-confession",
     situation: "전망대 대신 열린 비상 테라스에는 바람과 도시의 불빛만 있다. 세현은 준비해 둔 고백 문장을 꺼내지 않는다. 대신 접힌 일정 카드 뒷면에 당신 이름과 비어 있는 날짜 하나를 적어 둔다. 완벽한 계획표에 없는 계절을 만들겠다는 그의 방식이다.",
     dialogue: "내 계획에 없던 사람이 생겼고, 이제는 그 변수를 지우고 싶지 않아.",
     choices: [
@@ -2130,7 +2512,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 1,
     location: "밤 산책로",
-    title: "달빛 아래의 여백",
+    titleKey: "michael-night-walk",
     situation: "가로등 사이로 긴 그림자가 이어진다. 미카엘은 걷는 속도를 늦추고 밤공기를 조용히 바라본다.",
     dialogue: "밤에는 말이 조금 덜 필요해지는 것 같아.",
     choices: [
@@ -2162,7 +2544,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 2,
     location: "조용한 바다",
-    title: "파도와 비밀",
+    titleKey: "michael-sea",
     situation: "잔잔한 파도 소리가 이어진다. 미카엘은 바다를 보며 한참 뒤에야 낮게 말한다.",
     dialogue: "가끔은 아무에게도 말하지 않은 생각이 가장 오래 남아.",
     choices: [
@@ -2194,7 +2576,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 3,
     location: "미술관",
-    title: "은유의 그림",
+    titleKey: "michael-museum",
     situation: "어두운 전시실 한가운데, 미카엘은 푸른빛 그림 앞에 멈춰 선다.",
     dialogue: "이 그림은 슬픈데 이상하게 차갑지는 않아.",
     choices: [
@@ -2226,7 +2608,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 4,
     location: "심야 카페",
-    title: "허브티의 침묵",
+    titleKey: "michael-late-cafe",
     situation: "심야 카페의 마지막 음악이 낮게 흐른다. 미카엘은 식어가는 허브티를 바라본다.",
     dialogue: "사람은 가끔, 이해받기보다 오해받지 않기를 바라게 돼.",
     choices: [
@@ -2258,7 +2640,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 5,
     location: "전망 좋은 호텔 라운지",
-    title: "달 모양 키링",
+    titleKey: "michael-moon-gift",
     situation: "창밖에 달이 얇게 걸려 있다. 당신이 작은 선물을 건네자 미카엘은 포장을 천천히 연다.",
     dialogue: "달 모양이네. 이런 건 어떻게 떠올렸어?",
     choices: [
@@ -2290,7 +2672,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 6,
     location: "새벽 도서관",
-    title: "반납함 위의 편지",
+    titleKey: "michael-dawn-library",
     situation: "새벽 도서관의 자동문이 느리게 열린다. 반납함 위에는 접힌 편지가 있고, 미카엘은 마지막 조명 아래서 당신을 기다린다.",
     dialogue: "밤새 여기 있었어? 아니면, 돌아올 곳이 필요했던 걸까.",
     choices: [
@@ -2322,7 +2704,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 7,
     location: "비 내리는 작은 식당",
-    title: "향이 약한 따뜻한 수프",
+    titleKey: "michael-herb-soup",
     situation: "비가 유리창을 천천히 훑는다. 메뉴판을 보던 미카엘은 매운 향이 나는 요리 앞에서 조용히 시선을 거둔다.",
     dialogue: "강한 향은 조금 피하고 싶어. 오늘은 몸이 먼저 지친 것 같아.",
     choices: [
@@ -2354,7 +2736,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 8,
     location: "은색 장신구 공방",
-    title: "반지의 안쪽",
+    titleKey: "michael-silver-ring",
     situation: "작은 공방의 조명이 은색 반지 위로 내려앉는다. 미카엘은 반지 안쪽의 빈 공간을 오래 바라본다.",
     dialogue: "반지 안쪽에는 보통 보이지 않는 말을 새기지.",
     choices: [
@@ -2386,7 +2768,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 9,
     location: "심야 카페 구석",
-    title: "꿈을 적는 노트",
+    titleKey: "michael-dream-note",
     situation: "심야 카페 구석, 미카엘은 고급 노트의 첫 장에 날짜만 적고 오래 멈춰 있다. 창밖의 간판 불빛이 파랗게 번진다.",
     dialogue: "꿈은 이상하게 깨어난 뒤에도 감정만 남아.",
     choices: [
@@ -2418,7 +2800,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 10,
     location: "조용한 음악 감상실",
-    title: "고요한 음악의 박자",
+    titleKey: "michael-still-room",
     situation: "작은 음악 감상실에는 낮은 피아노 선율만 남아 있다. 미카엘은 박자 사이의 침묵에서 더 오래 숨을 쉰다.",
     dialogue: "좋아하는 음악은 대개 빈자리가 많아.",
     choices: [
@@ -2450,7 +2832,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 11,
     location: "연락이 끊긴 밤",
-    title: "돌아오는 문장",
+    titleKey: "michael-shadow-call",
     situation: "밤 열한 시를 넘긴 휴대폰에 짧은 메시지가 도착한다. 한동안 사라졌던 미카엘의 이름이 화면 위에서 조용히 깜박인다.",
     dialogue: "미안. 대답할 말이 없어서 아무 말도 못 했어.",
     choices: [
@@ -2482,7 +2864,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 12,
     location: "늦은 아침 호텔 라운지",
-    title: "블루베리 요거트의 아침",
+    titleKey: "michael-blueberry-morning",
     situation: "긴 밤이 지나고 호텔 라운지에 옅은 햇빛이 든다. 미카엘 앞에는 블루베리 요거트와 따뜻한 물이 놓여 있다.",
     dialogue: "밤을 넘기면 아침은 이상하게 낯설어.",
     choices: [
@@ -2514,7 +2896,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 13,
     location: "강 위의 보행교",
-    title: "대답 없는 질문",
+    titleKey: "michael-philosophy-bridge",
     situation: "강 위의 보행교에서 바람이 천천히 지나간다. 미카엘은 난간 아래 물결을 보며 오래 묻지 못한 질문을 꺼낸다.",
     dialogue: "좋아한다는 말은 왜 늘 질문처럼 들릴까.",
     choices: [
@@ -2546,7 +2928,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 14,
     location: "향초가 켜진 작은 방",
-    title: "불빛을 낮추는 방식",
+    titleKey: "michael-candle-room",
     situation: "작은 방에 향초 하나가 켜져 있다. 미카엘은 강한 향을 피하려 창문을 조금 열고, 불빛만 낮게 남겨 둔다.",
     dialogue: "향이 강하면 생각이 흐려져. 약한 불빛이 더 오래 남아.",
     choices: [
@@ -2578,7 +2960,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 15,
     location: "전시회 뒤편 복도",
-    title: "거짓된 칭찬의 온도",
+    titleKey: "michael-truth-praise",
     situation: "전시회 뒤편 복도, 누군가의 과장된 칭찬이 지나간 뒤 미카엘은 벽에 걸린 작은 그림 앞에 멈춰 선다.",
     dialogue: "칭찬이 다정할 때도 있지만, 가끔은 문을 닫는 말이기도 해.",
     choices: [
@@ -2610,7 +2992,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 16,
     location: "바람 센 밤바다",
-    title: "파도 앞의 잠수",
+    titleKey: "michael-sea-storm",
     situation: "밤바다의 바람이 코트 끝을 세차게 흔든다. 미카엘은 파도 소리가 커질수록 더 낮은 목소리로 말한다.",
     dialogue: "나는 가끔 파도 밑으로 들어가. 위에서 부르는 소리가 너무 크면 더 못 올라와.",
     choices: [
@@ -2642,7 +3024,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 17,
     location: "헌책방 창가",
-    title: "오래된 편지의 가장자리",
+    titleKey: "michael-old-letter",
     situation: "헌책방 창가에 오래된 편지가 끼워진 책이 놓여 있다. 미카엘은 발신인보다 접힌 자국을 더 오래 바라본다.",
     dialogue: "오래된 편지는 보낸 사람보다 기다린 사람을 더 많이 남겨.",
     choices: [
@@ -2674,7 +3056,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 18,
     location: "달빛 루프탑",
-    title: "사라지지 않는 여백",
+    titleKey: "michael-moon-rooftop",
     situation: "루프탑 난간 위로 달빛이 얇게 내려앉는다. 미카엘은 도시의 불빛보다 당신이 남긴 침묵을 더 오래 기억하는 듯하다.",
     dialogue: "여백이 사라지지 않는 사람은 드물어. 너는 이상하게 남아.",
     choices: [
@@ -2706,7 +3088,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 19,
     location: "새벽 막차 안",
-    title: "마지막 칸의 고백 직전",
+    titleKey: "michael-last-train",
     situation: "새벽 막차의 마지막 칸은 거의 비어 있다. 흔들리는 창에 두 사람의 얼굴이 겹치고, 미카엘은 손잡이를 잡은 채 말끝을 망설인다.",
     dialogue: "막차는 늘 조금 늦게 떠나. 그래서 사람들이 못한 말을 떠올리나 봐.",
     choices: [
@@ -2738,7 +3120,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "michael",
     chapter: 20,
     location: "달빛 도서관의 마지막 조명",
-    title: "고요한 물결의 고백",
+    titleKey: "michael-moonlit-confession",
     situation: "다시 돌아온 새벽 도서관, 마지막 조명이 두 사람 사이에 작은 원을 만든다. 미카엘은 당신이 빌린 책의 마지막 페이지에 끼워 둔 편지를 천천히 꺼낸다.",
     dialogue: "나는 조용한 사람이라서, 마음까지 작게 느껴질까 봐 두려웠어.",
     choices: [
@@ -2770,7 +3152,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 1,
     location: "도서관",
-    title: "책갈피의 자리",
+    titleKey: "yuan-library",
     situation: "조용한 도서관 창가. 서유안은 당신이 읽던 책 옆에 작은 책갈피를 조심스럽게 놓는다.",
     dialogue: "이 페이지쯤에서 잠깐 쉬면 좋을 것 같아서요.",
     choices: [
@@ -2802,7 +3184,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 2,
     location: "따뜻한 카페",
-    title: "크림 라떼의 온도",
+    titleKey: "yuan-warm-cafe",
     situation: "따뜻한 카페 안, 유안은 당신 앞에 라떼를 놓고 컵홀더 방향을 살짝 맞춘다.",
     dialogue: "뜨거울 수 있어요. 천천히 마셔요.",
     choices: [
@@ -2834,7 +3216,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 3,
     location: "작은 서점",
-    title: "손편지 같은 문장",
+    titleKey: "yuan-bookstore",
     situation: "작은 서점 한쪽에 손글씨 추천 카드가 놓여 있다. 유안은 한 문장을 조심스럽게 읽는다.",
     dialogue: "좋은 문장은 마음을 너무 세게 두드리지 않아서 좋아요.",
     choices: [
@@ -2866,7 +3248,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 4,
     location: "캠퍼스 산책로",
-    title: "계절을 걷는 속도",
+    titleKey: "yuan-campus-walk",
     situation: "나무 사이로 바람이 지나간다. 유안은 떨어진 잎을 피해 천천히 걷는다.",
     dialogue: "저는 빨리 걷는 것보다, 같이 맞춰 걷는 게 더 좋아요.",
     choices: [
@@ -2898,7 +3280,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 5,
     location: "식물이 많은 공간",
-    title: "작은 화분",
+    titleKey: "yuan-plant-room",
     situation: "햇살이 식물 잎 위에 내려앉는다. 유안은 작은 화분을 당신 쪽으로 밀어준다.",
     dialogue: "물을 너무 많이 주면 오히려 힘들대요. 관계도 가끔 그런 것 같아요.",
     choices: [
@@ -2930,7 +3312,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 6,
     location: "낡은 문예부실",
-    title: "고친 원고의 여백",
+    titleKey: "yuan-literary-room",
     situation: "낡은 문예부실에는 오래된 종이 냄새가 남아 있다. 유안은 당신의 글에 빨간 표시 대신 작은 별표를 남기고, 틀린 문장보다 쉬어 가도 되는 문장들을 먼저 짚는다.",
     dialogue: "고치는 말도 상처가 되지 않았으면 해서요.",
     choices: [
@@ -2962,7 +3344,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 7,
     location: "비 오는 버스 정류장",
-    title: "우산의 반쪽",
+    titleKey: "yuan-rain-stop",
     situation: "비 오는 정류장, 유안은 우산을 당신 쪽으로 더 기울이다가 자기 어깨가 젖는 것도 모른 척한다. 버스 도착 시간보다 그의 소매 끝이 먼저 눈에 들어온다.",
     dialogue: "괜찮아요. 저는 이 정도는 금방 마르니까.",
     choices: [
@@ -2994,7 +3376,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 8,
     location: "작은 베이킹 공방",
-    title: "스콘이 식기 전",
+    titleKey: "yuan-scone-kitchen",
     situation: "작은 베이킹 공방에서 갓 구운 스콘 냄새가 번진다. 유안은 가장 예쁜 조각보다 덜 부서진 조각을 당신 접시에 올린다.",
     dialogue: "따뜻할 때 먹으면 조금 덜 외로운 맛이 나요.",
     choices: [
@@ -3026,7 +3408,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 9,
     location: "수공예 마켓",
-    title: "말린 꽃 책갈피",
+    titleKey: "yuan-bookmark-market",
     situation: "수공예 마켓의 작은 테이블에 말린 꽃 책갈피가 줄지어 놓여 있다. 유안은 화려한 색보다 연한 잎맥이 남은 책갈피 앞에서 멈춘다.",
     dialogue: "너무 선명하지 않아서 좋아요. 오래 보면 천천히 보이는 것들이 있잖아요.",
     choices: [
@@ -3058,7 +3440,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 10,
     location: "시끄러운 술자리 앞",
-    title: "나가기 전의 손짓",
+    titleKey: "yuan-noisy-dinner",
     situation: "친구들이 부르는 술자리 앞, 문틈으로 큰 웃음소리와 빠른 음악이 새어 나온다. 유안은 괜찮다고 말하지만 손에 쥔 토트백 끈이 점점 꼬인다.",
     dialogue: "다 같이 있으면 좋긴 한데, 오늘은 조금 큰 소리가 어렵네요.",
     choices: [
@@ -3090,7 +3472,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 11,
     location: "오래된 우체통 앞",
-    title: "부치지 못한 손편지",
+    titleKey: "yuan-letter-postbox",
     situation: "오래된 우체통 앞에서 유안은 접힌 편지를 꺼냈다가 다시 넣는다. 봉투에는 받는 사람 이름이 없고, 대신 고맙다는 말만 연필로 옅게 적혀 있다.",
     dialogue: "고마운 마음도 너무 늦게 말하면, 편지가 아니라 미안함이 되더라고요.",
     choices: [
@@ -3122,7 +3504,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 12,
     location: "감기 기운이 도는 저녁",
-    title: "따뜻한 국물의 순서",
+    titleKey: "yuan-sick-day",
     situation: "저녁 공기가 차다. 유안은 당신의 기침을 듣고 식당 메뉴를 바꾸자고 하지만, 정작 자기 목소리도 조금 잠겨 있다.",
     dialogue: "오늘은 따뜻한 국물이 좋겠어요. 당신도, 저도요.",
     choices: [
@@ -3154,7 +3536,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 13,
     location: "캠퍼스 벤치",
-    title: "고마움의 구체적인 이름",
+    titleKey: "yuan-thank-you-day",
     situation: "캠퍼스 벤치에 앉은 유안은 당신의 가방 옆에 물병을 조용히 놓는다. 너무 자연스러운 배려라 지나치기 쉬운 순간이다.",
     dialogue: "목 마를 것 같아서요. 별건 아니에요.",
     choices: [
@@ -3186,7 +3568,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 14,
     location: "작은 문구점",
-    title: "토트백 참의 무게",
+    titleKey: "yuan-tote-bag",
     situation: "작은 문구점에서 유안은 토트백 참을 손에 올려본다. 가볍고 작지만, 오래 들고 다닌 가방에 새로운 계절을 달아줄 것 같다.",
     dialogue: "작은 것도 매일 보면 마음이 조금 바뀌잖아요.",
     choices: [
@@ -3218,7 +3600,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 15,
     location: "늦은 답장 뒤의 카페",
-    title: "괜찮다는 말의 안쪽",
+    titleKey: "yuan-quiet-conflict",
     situation: "당신의 답장이 늦었던 날, 유안은 아무렇지 않게 크림 라떼를 저어 준다. 괜찮다고 말하지만 스푼이 컵 안에서 같은 방향으로만 맴돈다.",
     dialogue: "정말 괜찮아요. 바빴을 수도 있으니까요.",
     choices: [
@@ -3250,7 +3632,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 16,
     location: "계절 정원",
-    title: "시드는 잎의 이름",
+    titleKey: "yuan-season-garden",
     situation: "계절 정원에서 유안은 시든 잎을 바로 떼지 않고 손끝으로 살핀다. 그는 끝난 것처럼 보이는 잎에도 지나온 계절이 남아 있다고 말한다.",
     dialogue: "시든 걸 빨리 버리면, 버텨온 시간까지 사라지는 것 같아서요.",
     choices: [
@@ -3282,7 +3664,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 17,
     location: "저녁 장보기 길",
-    title: "생활의 동맹",
+    titleKey: "yuan-home-routine",
     situation: "저녁 장보기 길, 유안은 할인 스티커가 붙은 채소와 내일 아침에 먹을 빵을 함께 고른다. 데이트라기보다 하루를 함께 이어 붙이는 시간 같다.",
     dialogue: "사랑도 가끔은 이런 장면에서 오래 남는 것 같아요. 뭘 먹을지 같이 정하는 것.",
     choices: [
@@ -3314,7 +3696,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 18,
     location: "문예부실의 밤",
-    title: "처음 쓴 문장",
+    titleKey: "yuan-manuscript-night",
     situation: "문예부실의 마지막 불빛 아래, 유안은 고친 원고 뭉치가 아니라 처음 쓴 종이를 꺼낸다. 여러 번 지운 흔적보다 남겨둔 한 문장이 더 떨린다.",
     dialogue: "좋은 사람처럼 보이는 문장은 많이 써봤는데, 진짜 제 마음은 늘 처음 써보는 것 같아요.",
     choices: [
@@ -3346,7 +3728,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 19,
     location: "문 닫는 도서관",
-    title: "반납하지 못한 책",
+    titleKey: "yuan-last-library",
     situation: "문 닫는 도서관에서 유안은 반납 기한이 지난 책을 품고 있다. 책갈피가 꽂힌 페이지마다 당신과 나눈 대화가 작은 날짜처럼 남아 있다.",
     dialogue: "돌려줘야 하는데, 어떤 책은 조금 더 가지고 있고 싶어져요.",
     choices: [
@@ -3378,7 +3760,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-yuan",
     chapter: 20,
     location: "문예부실 마지막 불빛",
-    title: "흙빛 편지의 고백",
+    titleKey: "yuan-letter-confession",
     situation: "문예부실 마지막 불빛 아래, 유안은 여러 번 고친 원고가 아니라 처음부터 끝까지 한 번에 쓴 편지를 건넨다. 창밖에는 비가 그치고 젖은 나뭇잎에서 흙냄새가 올라온다.",
     dialogue: "좋은 사람이 되고 싶어서가 아니라, 네 앞에서는 진짜 사람이 되고 싶어요.",
     choices: [
@@ -3410,7 +3792,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 1,
     location: "심야 서재",
-    title: "검은 노트",
+    titleKey: "ijun-midnight-study",
     situation: "낮은 스탠드 조명 아래, 서이준은 검은색 노트에 짧은 문장을 적고 있다.",
     dialogue: "사람은 솔직해지고 싶다면서, 솔직한 사람을 견디지는 못하더라.",
     choices: [
@@ -3442,7 +3824,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 2,
     location: "클래식 음악회",
-    title: "끝나지 않은 여운",
+    titleKey: "ijun-concert",
     situation: "마지막 음이 사라진 뒤에도 객석은 조용하다. 이준은 박수보다 침묵에 먼저 머문다.",
     dialogue: "좋은 음악은 끝나고 나서야 진짜 시작되는 것 같아.",
     choices: [
@@ -3474,7 +3856,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 3,
     location: "철학 서점",
-    title: "모순의 책장",
+    titleKey: "ijun-philosophy-bookstore",
     situation: "오래된 책장 사이에서 이준은 인간관계에 관한 책을 꺼내 당신에게 보여준다.",
     dialogue: "관계는 자유를 원하면서도 확인을 요구해. 꽤 모순적이지.",
     choices: [
@@ -3506,7 +3888,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 4,
     location: "비 오는 거리",
-    title: "고독의 우산",
+    titleKey: "ijun-rain-street",
     situation: "비가 내려 거리가 반짝인다. 이준은 우산을 살짝 기울여 당신의 어깨를 가린다.",
     dialogue: "혼자 있는 게 편한 사람도, 완전히 혼자이고 싶은 건 아니야.",
     choices: [
@@ -3538,7 +3920,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 5,
     location: "조용한 바",
-    title: "마지막 질문",
+    titleKey: "ijun-black-note",
     situation: "잔잔한 음악이 흐르는 바. 이준은 검은 노트를 당신 앞에 밀어놓는다.",
     dialogue: "네가 오늘 남긴 말 중 하나를 적어도 돼?",
     choices: [
@@ -3570,7 +3952,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 6,
     location: "조용한 바의 구석",
-    title: "다크초콜릿의 쓴맛",
+    titleKey: "ijun-dark-chocolate",
     situation: "조용한 바의 구석, 이준은 다크초콜릿 한 조각을 블랙커피 옆에 놓는다. 단맛보다 남는 쓴맛을 확인하듯 천천히 씹는다.",
     dialogue: "쓴맛이 오래 남는 건, 단맛보다 정직해서일지도 몰라.",
     choices: [
@@ -3602,7 +3984,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 7,
     location: "중고 음반점",
-    title: "낡은 클래식 음반",
+    titleKey: "ijun-classic-record",
     situation: "중고 음반점의 먼지 낀 선반에서 이준은 낡은 클래식 음반을 꺼낸다. 표지는 바랬지만 안쪽 해설지는 누군가의 밑줄로 가득하다.",
     dialogue: "누군가가 오래 들었다는 흔적이 새것보다 흥미로울 때가 있어.",
     choices: [
@@ -3634,7 +4016,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 8,
     location: "심야 독립영화관",
-    title: "오래된 영화 티켓",
+    titleKey: "ijun-old-film",
     situation: "심야 독립영화관의 마지막 회차가 끝난다. 이준은 엔딩 크레딧이 다 올라갈 때까지 자리를 뜨지 않고, 티켓 뒷면에 짧은 문장을 적는다.",
     dialogue: "좋은 결말은 설명하지 않아서 오래 남아.",
     choices: [
@@ -3666,7 +4048,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 9,
     location: "닫힌 연구실 문 앞",
-    title: "사생활의 손잡이",
+    titleKey: "ijun-private-boundary",
     situation: "닫힌 연구실 문 앞, 이준은 휴대폰 화면을 뒤집어 둔다. 숨기는 것처럼 보일 수 있지만 표정에는 방어보다 피로가 더 많다.",
     dialogue: "모든 걸 공유해야 사랑이라는 생각은 꽤 폭력적이야.",
     choices: [
@@ -3698,7 +4080,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 10,
     location: "비 내리는 파스타집",
-    title: "담백한 파스타의 균형",
+    titleKey: "ijun-pasta-night",
     situation: "비 내리는 파스타집에서 이준은 유행 메뉴 대신 담백한 파스타를 고른다. 접시는 조용하지만, 소스의 균형은 꽤 오래 남는다.",
     dialogue: "과하게 꾸민 맛은 금방 피곤해져. 대화도 비슷하고.",
     choices: [
@@ -3730,7 +4112,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 11,
     location: "야간 강의실",
-    title: "윤리의 반박",
+    titleKey: "ijun-ethics-debate",
     situation: "야간 강의실 칠판에는 지워지다 만 윤리학 명제가 남아 있다. 이준은 당신에게 일부러 까다로운 질문을 던진다.",
     dialogue: "선의가 늘 좋은 결과를 만들지 않는다면, 선의는 어디까지 책임져야 할까.",
     choices: [
@@ -3762,7 +4144,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 12,
     location: "시끄러운 단체 모임",
-    title: "소음 속의 퇴장",
+    titleKey: "ijun-noise-party",
     situation: "시끄러운 단체 모임에서 누군가가 이준의 말을 끊고 큰 웃음으로 넘긴다. 이준은 웃는 얼굴로 잔을 내려놓지만 눈빛은 이미 문 쪽에 가 있다.",
     dialogue: "소음은 말이 없는 게 아니라, 말이 남을 자리를 없애는 거야.",
     choices: [
@@ -3794,7 +4176,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 13,
     location: "늦은 밤 메시지",
-    title: "날카로운 농담",
+    titleKey: "ijun-jealous-distance",
     situation: "늦은 밤, 당신이 다른 사람과 깊게 대화했다는 이야기를 듣고 이준은 평소보다 더 건조한 메시지를 보낸다. 농담처럼 보이지만 문장 끝이 이상하게 날카롭다.",
     dialogue: "대화 상대가 바뀌면 사유의 질도 바뀌나 봐.",
     choices: [
@@ -3826,7 +4208,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 14,
     location: "혼자 있고 싶은 토요일",
-    title: "돌아올 자유",
+    titleKey: "ijun-alone-day",
     situation: "토요일 오후, 이준은 오늘은 혼자 있고 싶다고 말한다. 변명도 과한 설명도 없지만, 문장 끝에는 조심스러운 긴장이 남아 있다.",
     dialogue: "혼자 있고 싶다는 말을 거절처럼 듣지 않을 수 있어?",
     choices: [
@@ -3858,7 +4240,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 15,
     location: "만년필 가게",
-    title: "잉크가 마르기 전",
+    titleKey: "ijun-fountain-pen",
     situation: "만년필 가게에서 이준은 검은 잉크와 푸른 잉크 사이를 오래 고민한다. 종이에 쓰인 선은 아직 마르지 않아 빛을 잡아먹는다.",
     dialogue: "좋은 문장은 잉크가 마르기 전이 가장 위험해. 수정할 수 있으니까.",
     choices: [
@@ -3890,7 +4272,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 16,
     location: "새벽 강변 벤치",
-    title: "정의할 수 없는 감정",
+    titleKey: "ijun-river-bench",
     situation: "새벽 강변 벤치에서 물소리가 낮게 흐른다. 이준은 한참 동안 강을 보다가, 오늘은 아무 이론도 도움이 되지 않는다고 말한다.",
     dialogue: "사랑을 정의할 수 없다는 게, 사랑이 없다는 뜻은 아니겠지.",
     choices: [
@@ -3922,7 +4304,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 17,
     location: "논쟁 뒤의 계단",
-    title: "이기는 사과가 없는 밤",
+    titleKey: "ijun-apology-argument",
     situation: "작은 논쟁 뒤, 계단참에 앉은 이준은 자신이 틀렸다고 말하지 않는다. 대신 당신의 표정을 놓쳤다는 문장을 조심히 꺼낸다.",
     dialogue: "내 말이 틀렸는지는 아직 모르겠어. 그런데 네 마음을 놓친 건 맞아.",
     choices: [
@@ -3954,7 +4336,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 18,
     location: "새벽 막차 플랫폼",
-    title: "도망가지 않는 반례",
+    titleKey: "ijun-last-train",
     situation: "새벽 막차 플랫폼, 전광판에는 지연 안내가 떠 있다. 이준은 떠날 수 있는 시간이 생겼는데도 이상하게 자리를 옮기지 않는다.",
     dialogue: "도망갈 기회가 생기면, 사람은 자기 마음을 더 정확히 보게 돼.",
     choices: [
@@ -3986,7 +4368,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 19,
     location: "심야 서재의 마지막 장",
-    title: "푸른 잉크의 문장",
+    titleKey: "ijun-blue-note",
     situation: "심야 서재의 마지막 장에 푸른 잉크가 번진다. 이준은 당신이 남긴 말을 옮겨 적다가, 처음으로 자기 문장을 이어 붙인다.",
     dialogue: "너를 좋아한다는 말은 너무 단순해서 싫었는데, 단순해서 피할 수 없기도 해.",
     choices: [
@@ -4018,7 +4400,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seo-ijun",
     chapter: 20,
     location: "검은 강변의 새벽",
-    title: "피할 수 없는 반례",
+    titleKey: "ijun-river-confession",
     situation: "검은 강변에 새벽빛이 얇게 오른다. 이준은 검은 노트의 마지막 장을 찢지 않고 당신에게 건넨다. 그곳에는 반박 대신 오래 고른 문장 하나가 남아 있다.",
     dialogue: "나는 사랑을 믿지 않는 쪽에 가까웠어. 그런데 너는 내 모든 결론의 반례가 됐어.",
     choices: [
@@ -4050,7 +4432,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 1,
     location: "캠퍼스",
-    title: "햇살의 첫 인사",
+    titleKey: "siwoo-campus",
     situation: "캠퍼스 벤치 위로 햇살이 쏟아진다. 윤시우는 당신이 도착하자 가볍게 손을 흔든다.",
     dialogue: "오는 길 괜찮았어? 시간 맞춰 와줘서 고마워.",
     choices: [
@@ -4082,7 +4464,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 2,
     location: "벚꽃길",
-    title: "같이 걷는 계획",
+    titleKey: "siwoo-cherry-road",
     situation: "벚꽃잎이 천천히 떨어진다. 시우는 산책로 지도를 펼쳐 두 갈래 길을 보여준다.",
     dialogue: "짧은 길도 있고, 돌아가는 길도 있어. 오늘은 어떤 속도가 좋아?",
     choices: [
@@ -4114,7 +4496,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 3,
     location: "도서관",
-    title: "성실함의 표시",
+    titleKey: "siwoo-library",
     situation: "시험 기간 도서관. 시우는 당신이 놓친 필기 부분을 깔끔하게 정리해 건넨다.",
     dialogue: "이 부분 어려워 보이길래 정리해봤어. 도움이 되면 좋겠다.",
     choices: [
@@ -4146,7 +4528,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 4,
     location: "햇살 좋은 카페",
-    title: "여행 노트",
+    titleKey: "siwoo-sunny-cafe",
     situation: "창가 자리에 앉은 시우는 작은 노트에 다음 여행 후보지를 적어놓았다.",
     dialogue: "계획을 세우는 건 좋아하지만, 네가 답답하지 않았으면 해.",
     choices: [
@@ -4178,7 +4560,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 5,
     location: "공원",
-    title: "푸른 약속",
+    titleKey: "siwoo-park",
     situation: "공원의 저녁빛이 부드럽다. 시우는 산책을 마치고 당신에게 작은 간식을 건넨다.",
     dialogue: "너랑 있으면 좋은 습관이 하나씩 생길 것 같아.",
     choices: [
@@ -4210,7 +4592,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 6,
     location: "봄 축제 광장",
-    title: "떨어진 포스터",
+    titleKey: "siwoo-festival-square",
     situation: "봄 축제 광장 한쪽에서 포스터가 바람에 떨어진다. 시우는 웃으며 다시 붙이지만, 체크리스트에는 이미 그의 이름이 너무 많이 적혀 있다.",
     dialogue: "괜찮아. 조금만 더 하면 다 맞출 수 있어.",
     choices: [
@@ -4242,7 +4624,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 7,
     location: "운동장 옆 매점",
-    title: "레몬 에이드의 청량함",
+    titleKey: "siwoo-lemon-aid",
     situation: "운동장 옆 매점에서 시우는 레몬 에이드를 두 잔 산다. 얼음이 부딪히는 소리 사이로 오후 햇빛이 눈부시게 내려앉는다.",
     dialogue: "더울 때는 시원한 게 필요하잖아. 사람도 가끔 그렇고.",
     choices: [
@@ -4274,7 +4656,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 8,
     location: "프로젝트 회의실",
-    title: "함께 만드는 작은 프로젝트",
+    titleKey: "siwoo-project-room",
     situation: "회의실 화이트보드에는 작은 프로젝트 일정이 적혀 있다. 시우는 네 의견을 빈칸으로 남겨 두고 기다린다.",
     dialogue: "내 계획만으로 채우면 우리 프로젝트가 아니잖아.",
     choices: [
@@ -4306,7 +4688,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 9,
     location: "캠퍼스 굿즈 숍",
-    title: "무선 이어폰 케이스",
+    titleKey: "siwoo-earbuds-case",
     situation: "캠퍼스 굿즈 숍에서 시우는 무선 이어폰 케이스를 고른다. 화려한 디자인보다 깔끔한 초록색 케이스 앞에서 오래 멈춘다.",
     dialogue: "매일 쓰는 물건은 볼 때마다 기분이 조금 좋아야 하잖아.",
     choices: [
@@ -4338,7 +4720,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 10,
     location: "늦은 약속의 카페 앞",
-    title: "시간을 가볍게 여기지 않는 법",
+    titleKey: "siwoo-late-promise",
     situation: "약속 시간보다 늦게 도착한 당신을 시우가 카페 앞에서 기다린다. 그는 괜찮다고 웃지만, 손목시계를 이미 여러 번 본 듯하다.",
     dialogue: "괜찮아. 무슨 일 있었어?",
     choices: [
@@ -4370,7 +4752,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 11,
     location: "도서관 뒤 벤치",
-    title: "쉬는 것도 계획",
+    titleKey: "siwoo-rest-bench",
     situation: "도서관 뒤 벤치에서 시우는 노트북을 덮고도 계속 해야 할 일을 떠올린다. 바람은 좋은데 그의 어깨는 아직 쉬지 못한다.",
     dialogue: "쉬면 뒤처지는 느낌이 들 때가 있어.",
     choices: [
@@ -4402,7 +4784,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 12,
     location: "햇살 좋은 카페 창가",
-    title: "꿈을 평가하지 않는 오후",
+    titleKey: "siwoo-dream-talk",
     situation: "햇살 좋은 카페 창가, 시우는 여행 노트 옆에 졸업 후 하고 싶은 일들을 적어 둔다. 밝은 글씨지만 몇 줄은 여러 번 지워져 있다.",
     dialogue: "꿈을 말하면, 사람들이 생각보다 빨리 평가하더라.",
     choices: [
@@ -4434,7 +4816,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 13,
     location: "정전된 동아리방",
-    title: "너무 어두운 공간",
+    titleKey: "siwoo-dark-room",
     situation: "갑작스러운 정전으로 동아리방이 어두워진다. 시우는 괜찮다고 말하지만 휴대폰 플래시를 바로 켠다.",
     dialogue: "어두운 곳은 오래 있으면 생각이 좀 무거워져.",
     choices: [
@@ -4466,7 +4848,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 14,
     location: "프로젝트 발표 뒤",
-    title: "부족한 사람이라는 오해",
+    titleKey: "siwoo-jealous-team",
     situation: "프로젝트 발표 뒤, 당신이 다른 팀원과 오래 이야기하자 시우는 응원하듯 웃지만 말수가 줄어든다. 경쟁심보다 자신이 부족한지 확인하는 얼굴이다.",
     dialogue: "네가 즐겁게 이야기하는 걸 보니까 좋았어. 조금 이상하게 조용해졌지만.",
     choices: [
@@ -4498,7 +4880,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 15,
     location: "공원 러닝 코스",
-    title: "운동화 끈 참",
+    titleKey: "siwoo-shoelace-charm",
     situation: "공원 러닝 코스에서 시우는 풀린 운동화 끈을 다시 묶는다. 당신이 건넨 작은 참이 끈 끝에서 햇빛을 받는다.",
     dialogue: "이런 작은 게 있으면, 같은 길도 조금 다르게 느껴져.",
     choices: [
@@ -4530,7 +4912,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 16,
     location: "비 온 뒤의 캠퍼스",
-    title: "갑작스러운 감정의 날씨",
+    titleKey: "siwoo-emotion-swing",
     situation: "비 온 뒤의 캠퍼스에서 당신의 감정이 갑자기 흔들린다. 시우는 놀라지만 바로 해결책을 꺼내지 않고 우산을 접는다.",
     dialogue: "지금은 해결보다, 그냥 옆에 있는 게 나을까?",
     choices: [
@@ -4562,7 +4944,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 17,
     location: "여행 지도 앞",
-    title: "미래 쪽으로 이어지는 선",
+    titleKey: "siwoo-future-map",
     situation: "여행 지도 앞에서 시우는 가고 싶은 도시를 표시한다. 선들이 이어지다 어느 순간 두 사람의 다음 계절처럼 보인다.",
     dialogue: "계획을 세우다 보면, 누구와 가고 싶은지가 더 중요해질 때가 있어.",
     choices: [
@@ -4594,7 +4976,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 18,
     location: "비어 있는 체육관",
-    title: "든든한 사람의 빈자리",
+    titleKey: "siwoo-empty-gym",
     situation: "비어 있는 체육관에서 시우는 축제 물품을 정리하다가 잠시 앉는다. 모두가 떠난 뒤에도 그는 마지막까지 남는 사람이다.",
     dialogue: "가끔은 누가 나한테도 다 했냐고 물어봐 줬으면 좋겠어.",
     choices: [
@@ -4626,7 +5008,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 19,
     location: "축제 마지막 불꽃 직전",
-    title: "미래로 이어지는 시간",
+    titleKey: "siwoo-firework-before",
     situation: "축제 마지막 불꽃이 오르기 전, 시우는 손에 남은 페인트 자국을 보며 웃는다. 함께 만든 시간들이 하루보다 길게 남는 얼굴이다.",
     dialogue: "이상하게, 너랑 만든 것들은 자꾸 내 미래 쪽으로 이어져.",
     choices: [
@@ -4658,7 +5040,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yoon-siwoo",
     chapter: 20,
     location: "축제 뒤 청춘 정원",
-    title: "쉼의 계절 고백",
+    titleKey: "siwoo-garden-confession",
     situation: "축제가 끝난 뒤 청춘 정원에는 낮은 조명만 남아 있다. 시우는 마지막으로 남은 작은 간식을 당신에게 건네고, 오늘은 처음으로 체크리스트를 접어 둔다.",
     dialogue: "너랑 있으면 더 잘하고 싶어져. 그런데 이상하게, 쉬어도 괜찮을 것 같아.",
     choices: [
@@ -4690,7 +5072,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 1,
     location: "공연장",
-    title: "조명 뒤의 첫인사",
+    titleKey: "yunseo-stage",
     situation: "리허설이 끝난 공연장. 한윤서는 무대 아래로 내려오며 장난스럽게 마이크를 돌린다.",
     dialogue: "어땠어? 칭찬은 구체적으로, 비판은 부드럽게 부탁해.",
     choices: [
@@ -4722,7 +5104,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 2,
     location: "녹음실",
-    title: "숨겨진 불안",
+    titleKey: "yunseo-studio",
     situation: "녹음실 불빛이 낮게 켜져 있다. 윤서는 장난을 멈추고 이어폰을 만지작거린다.",
     dialogue: "가끔은 내가 진짜 좋은 건지, 그냥 시끄러운 건지 헷갈려.",
     choices: [
@@ -4754,7 +5136,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 3,
     location: "야경이 보이는 거리",
-    title: "새로운 아이디어",
+    titleKey: "yunseo-night-street",
     situation: "네온 불빛 아래, 윤서는 갑자기 휴대폰에 멜로디를 녹음하기 시작한다.",
     dialogue: "지금 떠올랐어. 이상해도 말리지 마. 이런 건 도망가거든.",
     choices: [
@@ -4786,7 +5168,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 4,
     location: "감성적인 카페",
-    title: "장난과 진심 사이",
+    titleKey: "yunseo-cafe",
     situation: "윤서는 스티커가 붙은 컵을 보여주며 웃다가, 갑자기 목소리를 낮춘다.",
     dialogue: "내가 장난치면 다들 진심이 없는 줄 알더라.",
     choices: [
@@ -4818,7 +5200,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 5,
     location: "편집실",
-    title: "독특한 키링",
+    titleKey: "yunseo-keyring",
     situation: "밤늦은 편집실. 당신이 건넨 독특한 키링을 윤서는 조명 아래 이리저리 비춰본다.",
     dialogue: "뭐야, 이거 이상한데 마음에 들어. 나 같아서 골랐어?",
     choices: [
@@ -4850,7 +5232,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 6,
     location: "리허설 대기실",
-    title: "이어모니터 케이스",
+    titleKey: "yunseo-iem-case",
     situation: "리허설 대기실에서 윤서는 이어모니터 케이스를 열었다 닫는다. 케이스에는 작은 흠집들이 있고, 그만큼 많은 무대의 긴장이 묻어 있다.",
     dialogue: "이거 없으면 내 소리가 나한테도 안 들려. 웃기지?",
     choices: [
@@ -4882,7 +5264,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 7,
     location: "새벽 타코 트럭",
-    title: "무대 뒤의 야식",
+    titleKey: "yunseo-taco-night",
     situation: "새벽 타코 트럭 앞, 공연 뒤의 윤서는 반짝이는 재킷 위에 후드를 걸치고 있다. 환호가 끝난 뒤라 그런지 웃음이 조금 느리다.",
     dialogue: "공연 끝나고 먹는 타코는 이상하게 현실로 돌아오는 맛이 나.",
     choices: [
@@ -4914,7 +5296,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 8,
     location: "의상 피팅룸",
-    title: "반짝이는 팔찌",
+    titleKey: "yunseo-fashion-room",
     situation: "의상 피팅룸에서 윤서는 팔찌를 여러 개 겹쳐 찬다. 화려한 장식처럼 보이지만 손목을 만지는 습관이 그의 긴장을 드러낸다.",
     dialogue: "반짝이면 사람들이 떨리는 손을 덜 보거든.",
     choices: [
@@ -4946,7 +5328,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 9,
     location: "연습실 거울 앞",
-    title: "무반응의 벽",
+    titleKey: "yunseo-empty-reaction",
     situation: "연습실 거울 앞, 윤서는 새 안무를 보여주고 당신의 반응을 기다린다. 장난스럽게 웃지만 눈빛은 의외로 진지하다.",
     dialogue: "방금 거 어땠어? 무반응이면 나 좀 시들어.",
     choices: [
@@ -4978,7 +5360,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 10,
     location: "편집실 벽",
-    title: "스티커로 남긴 힌트",
+    titleKey: "yunseo-sticker-wall",
     situation: "편집실 벽에는 윤서가 붙인 스티커들이 가득하다. 웃긴 그림 사이에 유독 조용한 문장 하나가 숨어 있다.",
     dialogue: "사람들은 웃긴 스티커만 보더라. 사실 힌트는 그 사이에 있는데.",
     choices: [
@@ -5010,7 +5392,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 11,
     location: "규칙이 많은 촬영장",
-    title: "프레임 밖으로",
+    titleKey: "yunseo-control-room",
     situation: "규칙이 많은 촬영장에서 윤서는 정해진 동선만 반복하다가 점점 말수가 줄어든다. 감독의 지시보다 그의 숨이 먼저 답답해 보인다.",
     dialogue: "가끔은 예쁘게 갇히는 것보다 이상하게 살아 있는 게 나아.",
     choices: [
@@ -5042,7 +5424,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 12,
     location: "공연장 뒷문",
-    title: "손글씨 응원 카드",
+    titleKey: "yunseo-fan-letter",
     situation: "공연장 뒷문에서 윤서는 팬들의 선물 사이에 작은 손글씨 응원 카드를 발견한다. 화려하지 않지만 글씨마다 오래 본 사람의 온도가 있다.",
     dialogue: "환호보다 이런 한 줄이 더 오래 갈 때가 있어.",
     choices: [
@@ -5074,7 +5456,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 13,
     location: "편의점 앞 통화",
-    title: "탄산처럼 튀는 질투",
+    titleKey: "yunseo-carbonated-call",
     situation: "편의점 앞, 윤서는 탄산음료 캔을 따며 당신이 다른 사람의 공연을 칭찬한 이야기를 듣는다. 웃음은 그대로인데 목소리가 평소보다 높다.",
     dialogue: "오, 그 사람 무대 좋았구나. 내 라이벌 등장이야?",
     choices: [
@@ -5106,7 +5488,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 14,
     location: "텅 빈 공연장 객석",
-    title: "웃기지 않아도 되는 리허설",
+    titleKey: "yunseo-silent-rehearsal",
     situation: "텅 빈 공연장 객석에서 윤서는 아무도 없는 무대를 보며 조용해진다. 오늘은 평소처럼 웃길 대사를 찾지 않는다.",
     dialogue: "나 오늘 좀 재미없지. 이런 날도 무대에 서도 되나.",
     choices: [
@@ -5138,7 +5520,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 15,
     location: "새벽 컵라면 테이블",
-    title: "앙코르 전의 허기",
+    titleKey: "yunseo-midnight-cup",
     situation: "새벽 컵라면 테이블에서 윤서는 후드를 뒤집어쓰고 젓가락을 든다. 조명이 없는 그의 얼굴은 생각보다 지쳐 보인다.",
     dialogue: "멋있게 배고픈 방법은 없더라. 사람은 결국 라면을 먹어야 해.",
     choices: [
@@ -5170,7 +5552,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 16,
     location: "감성적인 카페의 마지막 자리",
-    title: "장난을 접는 법",
+    titleKey: "yunseo-direct-talk",
     situation: "감성적인 카페의 마지막 자리, 윤서는 평소처럼 장난을 치려다 말고 컵 가장자리를 만진다. 오늘은 웃음 뒤로 도망치기 싫은 얼굴이다.",
     dialogue: "나 지금 농담으로 넘기면, 너 또 다 알아차릴 것 같아서 짜증 나.",
     choices: [
@@ -5202,7 +5584,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 17,
     location: "공연장 백스테이지 문",
-    title: "돌아올 수 있는 자유",
+    titleKey: "yunseo-backstage-door",
     situation: "공연장 백스테이지 문 앞, 윤서는 갑자기 혼자 바람을 쐬고 오겠다고 말한다. 도망 같기도 하고 숨 고르기 같기도 하다.",
     dialogue: "잠깐 나가도 돼? 잡히면 더 도망가고 싶어질 것 같아.",
     choices: [
@@ -5234,7 +5616,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 18,
     location: "앙코르 대기실",
-    title: "너에게만 남긴 세트리스트",
+    titleKey: "yunseo-encore-message",
     situation: "앙코르 대기실에서 윤서는 세트리스트 끝에 작은 표시를 한다. 모두에게 들려줄 곡 사이에, 당신에게만 보이는 제목 하나가 적혀 있다.",
     dialogue: "이 곡은 공식 세트리스트엔 없어. 너무 사적인 노래라서.",
     choices: [
@@ -5266,7 +5648,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 19,
     location: "공연 후 텅 빈 무대",
-    title: "마이크를 내려놓기 전",
+    titleKey: "yunseo-empty-stage-before",
     situation: "공연 후 텅 빈 무대, 윤서는 마이크를 들고도 노래하지 않는다. 객석은 비었고, 조명은 당신과 윤서 사이에만 남아 있다.",
     dialogue: "오늘은 노래 말고 내가 직접 닿아도 될까.",
     choices: [
@@ -5298,7 +5680,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "han-yunseo",
     chapter: 20,
     location: "텅 빈 무대의 마지막 조명",
-    title: "앙코르 고백",
+    titleKey: "yunseo-encore-confession",
     situation: "텅 빈 무대의 마지막 조명 아래, 윤서는 마이크를 완전히 내려놓는다. 객석도 환호도 없지만 그의 목소리는 오히려 더 선명하다.",
     dialogue: "오늘 내 앙코르는 너한테만 들려줄게. 웃기지 않아도 괜찮다면, 나 너한테 꽤 진심이야.",
     choices: [
@@ -5330,7 +5712,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 1,
     location: "클래식 공연장",
-    title: "은빛의 첫 악장",
+    titleKey: "ming-concert",
     situation: "공연이 끝난 뒤 로비의 조명이 부드럽게 내려앉는다. 김밍은 프로그램 북을 조심스럽게 접는다.",
     dialogue: "마지막 곡은 마음이 오래 흔들리는 느낌이었어요.",
     choices: [
@@ -5362,7 +5744,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 2,
     location: "촛불이 있는 레스토랑",
-    title: "분위기의 온도",
+    titleKey: "ming-candle-restaurant",
     situation: "촛불이 테이블 위에서 작게 흔들린다. 김밍은 잔의 위치를 조용히 맞춘다.",
     dialogue: "이런 작은 분위기가 기억에 오래 남는 것 같아요.",
     choices: [
@@ -5394,7 +5776,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 3,
     location: "정원",
-    title: "꽃다발의 결",
+    titleKey: "ming-garden",
     situation: "정원 길에 은은한 꽃향기가 흐른다. 김밍은 작은 꽃다발을 조심스럽게 받아 든다.",
     dialogue: "꽃은 예쁘다는 말보다, 골라준 마음이 더 오래 남아요.",
     choices: [
@@ -5426,7 +5808,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 4,
     location: "고요한 미술관",
-    title: "무심한 농담의 경계",
+    titleKey: "ming-gallery",
     situation: "고요한 미술관에서 김밍은 그림 앞에 오래 머문다. 당신의 말 한마디를 기다리는 듯하다.",
     dialogue: "이 그림은 조용한데, 어쩐지 다정해 보여요.",
     choices: [
@@ -5458,7 +5840,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 5,
     location: "호텔 티룸",
-    title: "손편지의 확신",
+    titleKey: "ming-tearoom",
     situation: "호텔 티룸의 홍차 향이 잔잔하다. 당신이 건넨 손편지를 김밍은 천천히 펼친다.",
     dialogue: "이런 건 빨리 읽을 수가 없어요. 마음이 적혀 있으면 더더욱.",
     choices: [
@@ -5490,7 +5872,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 6,
     location: "살롱 디저트 카운터",
-    title: "마카롱의 작은 균열",
+    titleKey: "ming-macaron-counter",
     situation: "살롱 디저트 카운터에 파스텔빛 마카롱이 놓여 있다. 김밍은 표면의 작은 균열을 보고도 가장 오래 향이 남는 것을 고른다.",
     dialogue: "완벽한 모양보다, 오래 남는 향이 더 좋을 때가 있어요.",
     choices: [
@@ -5522,7 +5904,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 7,
     location: "은빛 액세서리 숍",
-    title: "진주 귀걸이의 빛",
+    titleKey: "ming-pearl-earrings",
     situation: "은빛 액세서리 숍에서 김밍은 진주 귀걸이를 귀 옆에 대본다. 화려한 보석보다 작은 광택이 그녀의 표정을 부드럽게 만든다.",
     dialogue: "진주는 큰빛이 아니라, 가까이서 조용히 빛나는 쪽이 좋아요.",
     choices: [
@@ -5554,7 +5936,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 8,
     location: "작은 향수 공방",
-    title: "잔향의 이름",
+    titleKey: "ming-perfume-note",
     situation: "작은 향수 공방에서 김밍은 시향지를 손목 가까이 가져간다. 첫 향이 지나간 뒤 남는 잔향을 더 오래 기다린다.",
     dialogue: "첫인상보다 남는 향이 더 정직할 때가 있어요.",
     choices: [
@@ -5586,7 +5968,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 9,
     location: "비 오는 쇼윈도 앞",
-    title: "젖은 실크 리본",
+    titleKey: "ming-silk-ribbon",
     situation: "비 오는 쇼윈도 앞, 김밍은 젖은 실크 리본을 고쳐 묶는다. 비가 리본을 망쳤다기보다 다른 결을 만든 것처럼 바라본다.",
     dialogue: "젖으면 모양은 흐트러져도, 촉감은 더 진해질 때가 있어요.",
     choices: [
@@ -5618,7 +6000,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 10,
     location: "복잡한 거리",
-    title: "깨진 분위기의 가장자리",
+    titleKey: "ming-noisy-street",
     situation: "복잡한 거리에서 소음이 겹친다. 김밍은 괜찮다고 말하지만, 발걸음이 조금씩 느려지고 향수의 잔향도 소음 속에 묻힌다.",
     dialogue: "사람이 많은 곳은 가끔 감정까지 흩어지는 것 같아요.",
     choices: [
@@ -5650,7 +6032,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 11,
     location: "늦어진 예약 앞",
-    title: "약속의 작은 금",
+    titleKey: "ming-promise-crack",
     situation: "예약 시간보다 늦어진 저녁, 레스토랑의 촛불은 이미 반쯤 녹아 있다. 김밍은 괜찮다고 말하지만 손끝이 잔 받침을 정리한다.",
     dialogue: "늦을 수도 있죠. 다만 기다리는 동안 마음이 조금 식을 때가 있어요.",
     choices: [
@@ -5682,7 +6064,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 12,
     location: "고요한 미술관 복도",
-    title: "다시 다듬은 말",
+    titleKey: "ming-emotion-repair",
     situation: "고요한 미술관 복도에서 당신이 무심코 던진 농담이 분위기를 깨뜨린다. 김밍은 웃어 보이지만 그림 앞에서 오래 멈춘다.",
     dialogue: "농담인 건 알아요. 그런데 어떤 농담은 오래 남아요.",
     choices: [
@@ -5714,7 +6096,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 13,
     location: "달빛 살롱 창가",
-    title: "배 향 샴페인의 잔향",
+    titleKey: "ming-champagne",
     situation: "달빛 살롱 창가에서 배 향이 나는 샴페인이 조용히 올라온다. 김밍은 첫 모금보다 잔향을 기다린 뒤 미소 짓는다.",
     dialogue: "늦게 오는 향이 더 오래 마음에 남을 때가 있어요.",
     choices: [
@@ -5746,7 +6128,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 14,
     location: "호텔 티룸의 조용한 오후",
-    title: "완벽한 표정의 질투",
+    titleKey: "ming-jealous-calm",
     situation: "호텔 티룸에서 당신이 다른 사람의 세심함을 칭찬하자 김밍은 완벽하게 웃는다. 홍차 표면은 고요하지만 스푼이 한 번 더 잔을 친다.",
     dialogue: "세심한 사람은 참 기억에 오래 남죠.",
     choices: [
@@ -5778,7 +6160,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 15,
     location: "작은 이탈리안 레스토랑",
-    title: "크림 파스타의 부드러운 확신",
+    titleKey: "ming-cream-pasta",
     situation: "작은 이탈리안 레스토랑에서 김밍은 매운 메뉴 대신 크림 파스타를 고른다. 테이블에는 향이 강하지 않은 꽃 한 송이가 놓여 있다.",
     dialogue: "부드러운 건 약한 게 아니라, 오래 머물 수 있게 하는 방식 같아요.",
     choices: [
@@ -5810,7 +6192,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 16,
     location: "정원 벤치",
-    title: "예민함의 다른 이름",
+    titleKey: "ming-open-wound",
     situation: "정원 벤치에서 김밍은 꽃잎 하나를 손바닥에 올려놓는다. 바람에 흔들리는 목소리로 오래 숨긴 말을 꺼낸다.",
     dialogue: "제가 예민한 건지, 소중히 여기는 게 많은 건지 가끔 모르겠어요.",
     choices: [
@@ -5842,7 +6224,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 17,
     location: "호텔 티룸의 닫힌 창가",
-    title: "다시 쓴 손편지",
+    titleKey: "ming-late-letter",
     situation: "호텔 티룸의 닫힌 창가, 김밍은 당신이 다시 쓴 손편지를 읽는다. 첫 편지보다 화려하진 않지만, 놓쳤던 상처의 이름이 정확히 적혀 있다.",
     dialogue: "예쁜 문장보다, 기억하겠다는 문장이 더 믿음직할 때가 있어요.",
     choices: [
@@ -5874,7 +6256,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 18,
     location: "달빛 살롱",
-    title: "문 닫은 살롱의 향",
+    titleKey: "ming-moon-salon",
     situation: "달빛 살롱이 문을 닫은 뒤, 김밍은 조명을 하나만 남기고 작은 향수병을 꺼낸다. 이름 없는 향이 두 사람 사이에 천천히 번진다.",
     dialogue: "아직 이름을 붙이지 못한 향이에요. 자꾸 누군가의 공기를 떠올리게 해서.",
     choices: [
@@ -5906,7 +6288,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 19,
     location: "마지막 홍차가 식기 전",
-    title: "식기 전의 확신",
+    titleKey: "ming-final-tea",
     situation: "마지막 홍차가 식기 전, 김밍은 찻잔을 두 손으로 감싼다. 말하지 않은 고백이 증기처럼 올라왔다 사라진다.",
     dialogue: "큰 고백보다, 식기 전에 다시 따뜻하게 해주는 마음이 좋아요.",
     choices: [
@@ -5938,7 +6320,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "kim-ming",
     chapter: 20,
     location: "달빛 살롱의 마지막 향",
-    title: "은빛 잔향의 고백",
+    titleKey: "ming-salon-confession",
     situation: "달빛 살롱의 마지막 조명 아래, 김밍은 직접 고른 작은 향수를 당신에게 건넨다. 병 안에는 장미보다 차분하고, 홍차보다 오래 남는 잔향이 담겨 있다.",
     dialogue: "네가 지나간 자리의 공기를 자꾸 기억하게 돼요. 그래서 이 향의 이름을 정했어요.",
     choices: [
@@ -5970,7 +6352,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 1,
     location: "고딕풍 저택",
-    title: "검은 리본",
+    titleKey: "jieun-mansion",
     situation: "촛불이 낮게 흔들리는 저택 응접실. 박지은은 검은 리본을 손끝으로 만지며 당신을 바라본다.",
     dialogue: "사람은 특별하다고 말하면서도, 금방 다른 것에 시선을 빼앗기죠.",
     choices: [
@@ -6002,7 +6384,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 2,
     location: "촛불이 있는 방",
-    title: "질문의 그림자",
+    titleKey: "jieun-candle-room",
     situation: "붉은 촛불이 벽에 긴 그림자를 만든다. 지은은 부드러운 목소리로 날카로운 질문을 꺼낸다.",
     dialogue: "나 말고도 이렇게 다정하게 말하는 사람이 많나요?",
     choices: [
@@ -6034,7 +6416,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 3,
     location: "비 오는 정원",
-    title: "붉은 과일차",
+    titleKey: "jieun-rain-garden",
     situation: "비가 정원의 장미잎을 적신다. 지은은 붉은 과일차를 당신 쪽으로 밀어둔다.",
     dialogue: "달콤한 건 오래 남지 않아요. 진한 것만 흔적을 남기죠.",
     choices: [
@@ -6066,7 +6448,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 4,
     location: "조용한 클래식 홀",
-    title: "진심 확인",
+    titleKey: "jieun-classic-hall",
     situation: "클래식 홀이 비어가고 있다. 지은은 마지막 박수 소리가 사라질 때까지 자리를 뜨지 않는다.",
     dialogue: "끝까지 남는 사람이 누군지 보면, 많은 걸 알 수 있어요.",
     choices: [
@@ -6098,7 +6480,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 5,
     location: "촛불이 있는 방",
-    title: "앤티크 카드",
+    titleKey: "jieun-antique-card",
     situation: "당신이 건넨 앤티크 카드를 지은은 한참 동안 살핀다. 카드 가장자리의 붉은 장식이 촛불에 반짝인다.",
     dialogue: "나를 이런 카드로 기억했다는 건, 조금 과감한 선택이네요.",
     choices: [
@@ -6130,7 +6512,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 6,
     location: "검은 장미 테이블",
-    title: "블랙체리 타르트",
+    titleKey: "jieun-black-cherry",
     situation: "검은 장미가 놓인 테이블 위에 블랙체리 타르트가 있다. 지은은 달콤함보다 진한 산미가 남는 부분을 먼저 자른다.",
     dialogue: "너무 가벼운 단맛은 금방 잊히잖아요. 나는 오래 남는 쪽이 좋아요.",
     choices: [
@@ -6162,7 +6544,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 7,
     location: "앤티크 장식장 앞",
-    title: "붉은 보석 장식",
+    titleKey: "jieun-red-jewel",
     situation: "앤티크 장식장 안의 붉은 보석 장식이 촛불을 받아 어둡게 빛난다. 지은은 그것을 보며 당신의 표정을 살핀다.",
     dialogue: "붉은 건 아름답지만, 쉽게 장난으로 다루면 손을 베일 수도 있어요.",
     choices: [
@@ -6194,7 +6576,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 8,
     location: "고딕 저택의 서가",
-    title: "고전 소설의 밑줄",
+    titleKey: "jieun-gothic-library",
     situation: "고딕 저택의 서가에서 지은은 오래된 고전 소설을 꺼낸다. 밑줄 그은 문장마다 사랑과 의심이 같은 잉크로 남아 있다.",
     dialogue: "사랑 이야기에서 제일 무서운 건 배신이 아니라, 예고 없는 마음의 식음이에요.",
     choices: [
@@ -6226,7 +6608,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 9,
     location: "사람이 많은 홀",
-    title: "시선이 빼앗기는 밤",
+    titleKey: "jieun-crowded-hall",
     situation: "사람이 많은 홀에서 누군가 당신에게 다정하게 말을 건다. 지은은 가까이 서 있으면서도, 한 걸음 뒤로 물러나듯 잔을 든다.",
     dialogue: "당신은 누구에게나 그런 표정으로 웃나요?",
     choices: [
@@ -6258,7 +6640,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 10,
     location: "비밀 온실 입구",
-    title: "비밀의 작은 열쇠",
+    titleKey: "jieun-secret-key",
     situation: "비밀 온실 입구에서 지은은 작은 열쇠를 쥐고 있다. 문을 열 수 있는 사람은 많지 않다는 듯, 당신의 손을 오래 바라본다.",
     dialogue: "비밀을 맡기는 건 마음을 맡기는 것보다 어려울 때가 있어요.",
     choices: [
@@ -6290,7 +6672,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 11,
     location: "촛불 아래의 긴 테이블",
-    title: "예쁘게 꾸민 거짓말",
+    titleKey: "jieun-lie-test",
     situation: "촛불 아래 긴 테이블에서 지은은 당신이 숨긴 작은 사정을 알아차린 듯하다. 목소리는 부드럽지만 눈빛은 칼날처럼 맑다.",
     dialogue: "거짓말이면 예쁘게 해요. 나는 금방 알아차리거든.",
     choices: [
@@ -6322,7 +6704,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 12,
     location: "비 오는 정원의 유리문",
-    title: "경계가 있는 다정함",
+    titleKey: "jieun-boundary",
     situation: "비 오는 정원의 유리문 앞, 지은은 당신의 대답을 기다리며 젖은 장미를 바라본다. 오늘의 질문은 평소보다 더 집요하다.",
     dialogue: "내가 확인하고 싶어 하는 게 그렇게 싫은가요?",
     choices: [
@@ -6354,7 +6736,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 13,
     location: "저택 응접실",
-    title: "다크초콜릿의 쓴 고백",
+    titleKey: "jieun-dark-chocolate",
     situation: "저택 응접실에서 지은은 다크초콜릿을 반으로 나눈다. 달콤함보다 쓴맛이 먼저 닿고, 그녀의 눈빛도 비슷한 온도다.",
     dialogue: "쓴맛을 싫어하는 사람은 깊은 걸 오래 견디기 어렵더라고요.",
     choices: [
@@ -6386,7 +6768,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 14,
     location: "클래식 홀 로비",
-    title: "다른 사람에게 더 다정한 모습",
+    titleKey: "jieun-other-kindness",
     situation: "클래식 홀 로비에서 당신이 다른 사람에게 코트를 건네준다. 지은은 그 장면을 보고도 아무 말 없이 프로그램 북을 접는다.",
     dialogue: "당신의 다정함은 참 넓네요. 그래서 더 위험하고.",
     choices: [
@@ -6418,7 +6800,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 15,
     location: "비밀 온실 중앙",
-    title: "장미 가시에 찔린 손",
+    titleKey: "jieun-rose-thorn",
     situation: "비밀 온실 중앙에서 지은이 장미 가시에 손끝을 찔린다. 그녀는 아무렇지 않은 척 손을 감추지만 붉은 자국은 촛불보다 선명하다.",
     dialogue: "다친 걸 보이면, 사람들은 대체로 더 조심하거나 더 멀어지죠.",
     choices: [
@@ -6450,7 +6832,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 16,
     location: "답이 없던 밤",
-    title: "설명 없는 침묵",
+    titleKey: "jieun-missing-call",
     situation: "답이 없던 밤이 지나고, 지은의 메시지는 짧고 차갑다. 그러나 문장 사이에는 기다림의 흔적이 남아 있다.",
     dialogue: "설명 없이 사라지는 건, 떠나는 연습처럼 보여요.",
     choices: [
@@ -6482,7 +6864,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 17,
     location: "비 오는 온실 벤치",
-    title: "시험 대신 부탁",
+    titleKey: "jieun-request-not-test",
     situation: "비 오는 온실 벤치에서 지은은 오래 침묵한다. 오늘은 날카로운 질문 대신, 잘 꺼내지 못하던 말을 손끝으로 더듬는 얼굴이다.",
     dialogue: "나를 시험하지 않게 해달라고 부탁하면, 너무 약해 보이나요?",
     choices: [
@@ -6514,7 +6896,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 18,
     location: "비밀 온실의 열린 문",
-    title: "도망가지 않는 사람",
+    titleKey: "jieun-open-gate",
     situation: "비밀 온실의 문이 처음으로 열린다. 지은은 안쪽으로 들어가지 않고, 당신이 정말 따라오는지 확인하듯 문턱에 서 있다.",
     dialogue: "위험해도 남겠다는 말은, 아직 유효한가요?",
     choices: [
@@ -6546,7 +6928,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 19,
     location: "온실의 꺼지는 조명",
-    title: "가시를 감추지 않는 밤",
+    titleKey: "jieun-thorn-before",
     situation: "온실의 조명이 하나씩 꺼진다. 지은은 장미 가시에 찔린 손을 더 이상 감추지 않고, 당신에게 보여준다.",
     dialogue: "나는 사랑을 예쁘게만 할 줄 모르는 사람이에요. 그래도 남을 건가요?",
     choices: [
@@ -6578,7 +6960,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "park-jieun",
     chapter: 20,
     location: "비밀 온실의 마지막 장미",
-    title: "검은 장미의 고백",
+    titleKey: "jieun-greenhouse-confession",
     situation: "비밀 온실의 마지막 장미 앞, 지은은 검은 리본을 풀어 당신 손목에 느슨하게 묶는다. 묶는 동작은 소유가 아니라, 떠나지 말라는 서툰 부탁처럼 보인다.",
     dialogue: "네가 위험해도 남겠다면, 나도 더는 도망가지 않을게요. 나를 시험하지 않게 해줘요.",
     choices: [
@@ -6610,7 +6992,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 1,
     location: "루프탑",
-    title: "붉은 도시",
+    titleKey: "saebyeok-rooftop",
     situation: "루프탑 아래 도시의 불빛이 붉게 흐른다. 새벽은 난간에 기대어 당신의 준비를 살핀다.",
     dialogue: "괜찮네요. 무계획으로 나온 건 아닌 것 같고.",
     choices: [
@@ -6642,7 +7024,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 2,
     location: "야경 좋은 레스토랑",
-    title: "선명한 주문",
+    titleKey: "saebyeok-restaurant",
     situation: "창가 테이블에 도시 야경이 펼쳐진다. 새벽은 메뉴판을 닫고 당신을 바라본다.",
     dialogue: "선택이 빠른 사람은 좋아요. 단, 대충 고르는 건 싫고.",
     choices: [
@@ -6674,7 +7056,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 3,
     location: "전시 오프닝",
-    title: "세련된 칭찬",
+    titleKey: "saebyeok-opening",
     situation: "전시 오프닝의 조명이 새벽의 골드 액세서리에 닿는다. 그녀는 사람들 사이에서도 흐트러지지 않는다.",
     dialogue: "이런 자리에서는 말보다 태도가 먼저 보이죠.",
     choices: [
@@ -6706,7 +7088,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 4,
     location: "재즈 공연장",
-    title: "흐릿하지 않은 마음",
+    titleKey: "saebyeok-jazz",
     situation: "재즈 공연의 즉흥 연주가 끝난다. 새벽은 박수 소리 속에서 당신의 표정을 본다.",
     dialogue: "관계에서도 즉흥은 필요하지만, 마음까지 즉흥이면 곤란해요.",
     choices: [
@@ -6738,7 +7120,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 5,
     location: "도심 호텔 라운지",
-    title: "골드 액세서리",
+    titleKey: "saebyeok-gold-gift",
     situation: "라운지의 낮은 조명 아래, 당신이 건넨 작은 골드 액세서리가 반짝인다.",
     dialogue: "취향을 맞추려 한 흔적은 보이네요. 왜 이걸 골랐어요?",
     choices: [
@@ -6770,7 +7152,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 6,
     location: "새벽의 택시 승강장",
-    title: "빨간 신호의 빈틈",
+    titleKey: "saebyeok-midnight-taxi",
     situation: "비가 그친 도로 위로 택시 불빛이 번진다. 새벽은 젖은 머리카락을 넘기며 마지막 일정표를 접지 못하고 있다.",
     dialogue: "내 하루는 항상 끝까지 꽉 차요. 그래서 빈칸이 생기면 오히려 어색해.",
     choices: [
@@ -6802,7 +7184,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 7,
     location: "도심 호텔 라운지",
-    title: "고급 다이어리의 여백",
+    titleKey: "saebyeok-diary",
     situation: "라운지의 낮은 조명 아래, 당신이 건넨 고급 다이어리 첫 장에는 아무것도 적혀 있지 않다.",
     dialogue: "빈 페이지를 선물하는 건 꽤 위험한데요. 뭘 채우라는 뜻이에요?",
     choices: [
@@ -6834,7 +7216,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 8,
     location: "야경 좋은 레스토랑",
-    title: "트러플 파스타의 기준",
+    titleKey: "saebyeok-truffle-pasta",
     situation: "창가 좌석에 트러플 향이 낮게 퍼진다. 새벽은 한 입을 먹고 당신이 고른 메뉴의 이유를 묻는다.",
     dialogue: "내가 이런 걸 좋아한다고 누가 알려줬어요? 아니면 눈치가 빠른 편?",
     choices: [
@@ -6866,7 +7248,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 9,
     location: "전시 오프닝 대기실",
-    title: "붉은 립밤의 자존심",
+    titleKey: "saebyeok-red-lipbalm",
     situation: "오프닝 직전, 새벽의 립 컬러가 살짝 번진다. 당신이 준비한 붉은 립밤은 손바닥 안에서 조용히 빛난다.",
     dialogue: "이런 순간에 도와주겠다고 나서는 건 조심해야 해요. 동정처럼 보이면 싫거든.",
     choices: [
@@ -6898,7 +7280,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 10,
     location: "야간 도시 프로젝트 회의실",
-    title: "리더의 마지막 조명",
+    titleKey: "saebyeok-project-night",
     situation: "회의가 끝난 뒤에도 새벽은 불 꺼진 회의실에 남아 자료를 다시 넘긴다. 도시 지도 위 붉은 표시가 그녀의 눈가에 비친다.",
     dialogue: "사람들은 결과만 보죠. 버티는 얼굴 뒤에 뭐가 있는지는 잘 안 봐요.",
     choices: [
@@ -6930,7 +7312,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 11,
     location: "도심 호텔 바",
-    title: "예의 없는 농담의 끝",
+    titleKey: "saebyeok-bad-joke",
     situation: "바의 긴 테이블에서 누군가 새벽의 단호함을 가볍게 놀린다. 웃음이 번지기 직전, 새벽의 손끝이 잔 위에서 멈춘다.",
     dialogue: "농담이라는 이름으로 선을 넘는 사람들, 참 부지런해요.",
     choices: [
@@ -6962,7 +7344,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 12,
     location: "비상계단",
-    title: "강한 척이 멈춘 계단",
+    titleKey: "saebyeok-weak-moment",
     situation: "행사장 밖 비상계단에서 새벽은 잠시 눈을 감는다. 늘 곧던 어깨가 아주 조금 내려앉아 있다.",
     dialogue: "이런 모습 보이면 사람들이 실망하겠죠. 나한텐 계속 괜찮은 얼굴을 기대하니까.",
     choices: [
@@ -6994,7 +7376,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 13,
     location: "루프탑 라운지",
-    title: "드라이한 스파클링 워터",
+    titleKey: "saebyeok-sparking-water",
     situation: "루프탑 바에서 새벽은 와인 대신 드라이한 스파클링 워터를 고른다. 화려한 음악 사이로 그녀의 선택은 의외로 절제되어 있다.",
     dialogue: "분위기는 좋아해도 흐려지는 건 싫어요. 내 판단은 내가 또렷하게 들고 있고 싶거든.",
     choices: [
@@ -7026,7 +7408,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 14,
     location: "전시 오프닝 로비",
-    title: "경쟁하지 않는 시선",
+    titleKey: "saebyeok-rival-gaze",
     situation: "로비에서 새벽의 오랜 경쟁자가 다가와 날카로운 축하를 건넨다. 새벽은 웃고 있지만 손가락 끝은 차갑다.",
     dialogue: "누군가 내 옆에 선다는 게, 나 대신 싸워달라는 뜻은 아니에요.",
     choices: [
@@ -7058,7 +7440,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 15,
     location: "새벽 꽃집",
-    title: "꽃 한 송이의 확신",
+    titleKey: "saebyeok-one-flower",
     situation: "문 닫기 직전의 꽃집에서 당신은 붉은 꽃 한 송이를 고른다. 새벽은 화려한 꽃다발 대신 그 한 송이를 오래 본다.",
     dialogue: "꽃을 이렇게 적게 주는 건 자신감인가요, 아니면 계산인가요?",
     choices: [
@@ -7090,7 +7472,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 16,
     location: "무계획 골목",
-    title: "대충 고른 길",
+    titleKey: "saebyeok-no-plan",
     situation: "예약했던 장소가 문을 닫았다. 골목의 간판들은 낯설고, 새벽은 당신의 다음 말을 기다린다.",
     dialogue: "예상 밖의 상황은 괜찮아요. 문제는 그다음 태도죠.",
     choices: [
@@ -7122,7 +7504,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 17,
     location: "택시 안의 붉은 도시",
-    title: "내 편이라는 문장",
+    titleKey: "saebyeok-side",
     situation: "택시 창밖으로 붉은 신호가 지나간다. 새벽은 팔짱을 풀고 조용히 묻는다.",
     dialogue: "당신이 말하는 내 편이라는 건, 정확히 어떤 뜻이에요?",
     choices: [
@@ -7154,7 +7536,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 18,
     location: "도시 전망대",
-    title: "앞서 걷는 사람",
+    titleKey: "saebyeok-horizon",
     situation: "전망대 유리창 앞, 새벽은 도시의 불빛을 아래에 두고 서 있다. 그녀는 뒤돌아보지 않은 채 말한다.",
     dialogue: "내가 앞서 걷는 사람처럼 보이면, 사람들은 따라오거나 멈추라고 하죠. 같이 걷자는 말은 잘 안 해요.",
     choices: [
@@ -7186,7 +7568,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 19,
     location: "새벽 네온 거리",
-    title: "강한 척을 접는 밤",
+    titleKey: "saebyeok-neon-before",
     situation: "마지막 골목의 네온이 붉게 깜박인다. 새벽은 하이힐 끈을 고쳐 매다가, 처음으로 당신에게 손을 내민다.",
     dialogue: "오늘은 조금 기대도 돼요? 이런 말 하는 내가 낯설어서 웃기긴 한데.",
     choices: [
@@ -7218,7 +7600,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "saebyeok",
     chapter: 20,
     location: "도시 전망대의 붉은 새벽",
-    title: "붉은 도시의 고백",
+    titleKey: "saebyeok-neon-confession",
     situation: "해가 뜨기 전의 전망대, 붉은 네온과 푸른 새벽빛이 겹친다. 새벽은 처음으로 완벽한 자세를 내려놓고 당신을 바라본다.",
     dialogue: "나는 많은 걸 혼자 해낼 수 있어요. 그런데 이상하죠. 당신이 없으면 하루가 조금 비어 보여.",
     choices: [
@@ -7250,7 +7632,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 1,
     location: "꽃밭",
-    title: "데이지의 첫 미소",
+    titleKey: "seoyeon-flower-field",
     situation: "작은 꽃들이 바람에 흔들린다. 서연은 데이지 한 송이 앞에서 수줍게 멈춰 선다.",
     dialogue: "이 꽃은 화려하지 않은데, 자꾸 눈이 가요.",
     choices: [
@@ -7282,7 +7664,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 2,
     location: "피크닉 장소",
-    title: "햇살 아래 카드",
+    titleKey: "seoyeon-picnic",
     situation: "돗자리 위에 과일차와 작은 카드가 놓여 있다. 서연은 손글씨를 보며 조심스럽게 웃는다.",
     dialogue: "손글씨는 이상하게 마음이 더 잘 보여요.",
     choices: [
@@ -7314,7 +7696,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 3,
     location: "따뜻한 카페",
-    title: "작은 변화",
+    titleKey: "seoyeon-warm-cafe",
     situation: "따뜻한 카페 창가. 서연은 머리핀을 살짝 만지며 당신의 반응을 기다린다.",
     dialogue: "오늘은 평소랑 조금 다르게 해봤어요.",
     choices: [
@@ -7346,7 +7728,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 4,
     location: "햇살 좋은 산책로",
-    title: "다정한 확인",
+    titleKey: "seoyeon-sunny-walk",
     situation: "산책로에 햇살이 길게 내려앉는다. 서연은 잠시 망설이다 당신을 본다.",
     dialogue: "가끔은 내가 너무 사소한 걸 신경 쓰는 건 아닌지 걱정돼요.",
     choices: [
@@ -7378,7 +7760,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 5,
     location: "감성 소품샵",
-    title: "플라워 키링",
+    titleKey: "seoyeon-photo-shop",
     situation: "작은 소품샵에서 당신이 플라워 키링을 건넨다. 서연은 두 손으로 조심스럽게 받는다.",
     dialogue: "이런 작은 선물은 볼 때마다 그날이 생각나서 좋아요.",
     choices: [
@@ -7410,7 +7792,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 6,
     location: "비 오는 유리온실",
-    title: "유리 위에 맺힌 기다림",
+    titleKey: "seoyeon-rain-greenhouse",
     situation: "비가 유리 지붕을 두드린다. 서연은 작은 화분 옆에 앉아 젖은 꽃잎을 바라본다.",
     dialogue: "비 오는 날엔 꽃들이 더 천천히 숨 쉬는 것 같아요. 사람 마음도 그럴까요?",
     choices: [
@@ -7442,7 +7824,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 7,
     location: "따뜻한 카페",
-    title: "딸기 타르트의 기억",
+    titleKey: "seoyeon-strawberry-tart",
     situation: "창가 테이블에 딸기 타르트와 과일차가 놓인다. 서연은 당신이 주문한 메뉴를 보고 눈을 동그랗게 뜬다.",
     dialogue: "제가 딸기 좋아한다고 말한 적 있었나요? 아주 작게 말했던 것 같은데.",
     choices: [
@@ -7474,7 +7856,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 8,
     location: "작은 꽃시장",
-    title: "이름표 없는 꽃",
+    titleKey: "seoyeon-small-market",
     situation: "꽃시장 끝 작은 양동이에 이름표 없는 꽃들이 모여 있다. 서연은 그 앞에서 오래 멈춘다.",
     dialogue: "이름을 모르는 꽃도 예쁘다고 말해주면, 조금 안심할 것 같아요.",
     choices: [
@@ -7506,7 +7888,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 9,
     location: "햇살 좋은 산책로",
-    title: "잊힌 약속의 그늘",
+    titleKey: "seoyeon-forgot-promise",
     situation: "산책로 벤치에서 서연은 잠시 머뭇거린다. 지난번 같이 보자던 꽃 전시 날짜가 이미 지나 있었다.",
     dialogue: "괜찮아요. 바빴을 수도 있죠. 그냥, 제가 혼자 기대를 좀 했나 봐요.",
     choices: [
@@ -7538,7 +7920,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 10,
     location: "감성 소품샵",
-    title: "압화 책갈피",
+    titleKey: "seoyeon-pressed-bookmark",
     situation: "서연이 오래 바라보던 압화 책갈피를 당신이 조심스럽게 건넨다. 투명한 책갈피 안에 작은 꽃잎이 잠들어 있다.",
     dialogue: "꽃을 오래 보관하는 건 조금 슬프고, 조금 예뻐요.",
     choices: [
@@ -7570,7 +7952,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 11,
     location: "피크닉 장소",
-    title: "비교의 그림자",
+    titleKey: "seoyeon-comparison-shadow",
     situation: "멀리 화려한 커플 사진 촬영이 한창이다. 서연은 사진을 보다가 자신의 소박한 피크닉 바구니를 살짝 가린다.",
     dialogue: "저런 데이트가 더 특별해 보이긴 하죠?",
     choices: [
@@ -7602,7 +7984,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 12,
     location: "따뜻한 카페",
-    title: "과일차 위의 안부",
+    titleKey: "seoyeon-fruit-tea-message",
     situation: "서연이 과일차를 저으며 조심스럽게 묻는다. 오늘따라 그녀의 말끝이 조금 늦게 내려앉는다.",
     dialogue: "연락이 없으면 제가 뭘 잘못했나 생각하게 돼요. 그런 제가 조금 피곤하게 느껴질까 봐 말 못 했어요.",
     choices: [
@@ -7634,7 +8016,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 13,
     location: "햇살 좋은 산책로",
-    title: "느린 고백의 예고",
+    titleKey: "seoyeon-slow-confession",
     situation: "산책로 끝, 서연은 떨어진 꽃잎을 손바닥에 올리고 한참을 망설인다.",
     dialogue: "좋아한다는 말을 너무 빨리 하면, 그 마음을 제가 감당 못 할까 봐 걱정돼요.",
     choices: [
@@ -7666,7 +8048,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 14,
     location: "비 오는 유리온실",
-    title: "웃음 뒤의 물방울",
+    titleKey: "seoyeon-quiet-tears",
     situation: "유리온실의 물방울 사이로 서연의 눈가가 반짝인다. 그녀는 울지 않은 척 작은 화분을 정리한다.",
     dialogue: "괜찮아요. 정말 괜찮은데, 이상하게 마음이 조금 젖었나 봐요.",
     choices: [
@@ -7698,7 +8080,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 15,
     location: "꽃밭",
-    title: "계절 사진첩",
+    titleKey: "seoyeon-season-photo",
     situation: "서연은 휴대폰 사진첩을 보여준다. 계절마다 찍은 꽃 사진 사이에 당신과 걸었던 길도 조용히 저장되어 있다.",
     dialogue: "사진은 다시 보면 그날의 말투까지 생각나서 좋아요.",
     choices: [
@@ -7730,7 +8112,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 16,
     location: "따뜻한 카페",
-    title: "쓴 커피의 표정",
+    titleKey: "seoyeon-bitter-cup",
     situation: "주문이 잘못 나와 서연 앞에 진한 쓴 커피가 놓인다. 그녀는 괜찮다고 말하지만 잔을 거의 들지 못한다.",
     dialogue: "괜찮아요. 분위기 깨고 싶진 않아서요.",
     choices: [
@@ -7762,7 +8144,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 17,
     location: "피크닉 장소",
-    title: "샐러드 파스타의 보폭",
+    titleKey: "seoyeon-salad-pasta",
     situation: "늦은 오후, 피크닉 바구니에서 샐러드 파스타가 나온다. 서연은 당신이 고른 가벼운 메뉴를 보며 웃는다.",
     dialogue: "오늘은 오래 걸을 줄 알고 일부러 이렇게 준비한 거예요?",
     choices: [
@@ -7794,7 +8176,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 18,
     location: "햇살 좋은 산책로",
-    title: "늦은 답장의 이유",
+    titleKey: "seoyeon-late-reply",
     situation: "서연은 어젯밤 늦은 답장 이야기를 꺼내려다 여러 번 말을 삼킨다. 손끝에는 데이지 꽃잎이 구겨져 있다.",
     dialogue: "답장이 늦은 이유를 묻는 게, 제가 너무 확인받고 싶어 하는 사람처럼 보일까 봐요.",
     choices: [
@@ -7826,7 +8208,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 19,
     location: "작은 꽃시장",
-    title: "꽃잎 편지",
+    titleKey: "seoyeon-flower-letter",
     situation: "작은 꽃시장 가판대에서 서연은 손글씨 카드와 데이지를 함께 고른다. 아직 전하지 못한 말이 카드 위에서 망설인다.",
     dialogue: "말로 하면 떨려서, 글로 쓰면 조금 더 오래 남을 것 같아요.",
     choices: [
@@ -7858,7 +8240,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "seoyeon",
     chapter: 20,
     location: "피크닉 정원의 오후",
-    title: "천천히 피는 고백",
+    titleKey: "seoyeon-garden-confession",
     situation: "오후의 정원, 데이지 꽃잎이 피크닉 매트 위로 내려앉는다. 서연은 손글씨 카드를 당신에게 건네며 숨을 고른다.",
     dialogue: "네가 내 마음을 서두르지 않아서, 나도 이제 조금 용기를 내고 싶어요.",
     choices: [
@@ -7890,7 +8272,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 1,
     location: "러닝 트랙",
-    title: "첫 번째 페이스",
+    titleKey: "soha-running-track",
     situation: "아침 공기가 맑다. 소화는 가볍게 스트레칭을 하며 당신의 운동화를 본다.",
     dialogue: "무리하지 말고, 대신 포기하지는 말기. 같이 한 바퀴 어때?",
     choices: [
@@ -7922,7 +8304,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 2,
     location: "테니스장",
-    title: "밝은 리액션",
+    titleKey: "soha-tennis",
     situation: "테니스공이 코트 위로 튄다. 소화가 실수하고도 크게 웃으며 다시 라켓을 든다.",
     dialogue: "방금 완전 엉망이었지? 근데 재밌으면 됐어!",
     choices: [
@@ -7954,7 +8336,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 3,
     location: "브런치 카페",
-    title: "긍정의 루틴",
+    titleKey: "soha-brunch",
     situation: "브런치 카페 창가. 소화는 그릭요거트를 섞으며 이번 주 루틴을 이야기한다.",
     dialogue: "나는 하루가 흐트러져도 하나만 지키면 다시 돌아올 수 있더라.",
     choices: [
@@ -7986,7 +8368,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 4,
     location: "요가 스튜디오",
-    title: "숨 고르는 응원",
+    titleKey: "soha-yoga",
     situation: "요가 스튜디오의 조용한 음악 속에서 소화가 숨을 고른다. 평소보다 차분한 얼굴이다.",
     dialogue: "밝아 보인다고 항상 괜찮은 건 아니더라.",
     choices: [
@@ -8018,7 +8400,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 5,
     location: "공원",
-    title: "스무디와 다음 목표",
+    titleKey: "soha-park-smoothie",
     situation: "운동을 마친 공원 벤치. 소화는 스무디를 들고 다음 도전을 묻는다.",
     dialogue: "우리 다음엔 뭐 해볼까? 같이 목표가 생기는 거, 꽤 좋더라.",
     choices: [
@@ -8050,7 +8432,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 6,
     location: "강변 자전거길",
-    title: "같은 바람의 속도",
+    titleKey: "soha-bike-path",
     situation: "강변 바람이 운동복 소매를 흔든다. 소화는 자전거 핸들을 잡고 당신의 호흡을 살핀다.",
     dialogue: "빠르게 가는 건 쉬워. 같이 가는 속도를 찾는 게 더 어렵지.",
     choices: [
@@ -8082,7 +8464,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 7,
     location: "브런치 카페",
-    title: "프로틴 팬케이크의 농담",
+    titleKey: "soha-protein-pancake",
     situation: "운동 뒤 브런치 카페, 프로틴 팬케이크 위로 꿀이 얇게 흐른다. 소화는 장난스럽게 포크를 들어 보인다.",
     dialogue: "건강한데 맛있는 거, 이게 진짜 어려운 밸런스거든.",
     choices: [
@@ -8114,7 +8496,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 8,
     location: "공기 답답한 술자리",
-    title: "탁한 공기의 신호",
+    titleKey: "soha-smoke-place",
     situation: "약속 장소 근처에서 담배 냄새가 짙게 번진다. 소화는 웃고 있지만 호흡이 조금 짧아졌다.",
     dialogue: "괜찮아. 잠깐이면 버틸 수 있어. 아마도?",
     choices: [
@@ -8146,7 +8528,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 9,
     location: "러닝 트랙",
-    title: "루틴 체크인",
+    titleKey: "soha-routine-check",
     situation: "일주일 뒤 같은 트랙, 소화는 당신이 지난번 정한 작은 루틴을 기억하는지 장난스럽게 묻는다.",
     dialogue: "우리 그때 정한 거, 혹시 작심삼일로 끝난 건 아니지?",
     choices: [
@@ -8178,7 +8560,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 10,
     location: "테니스장",
-    title: "스포츠 타월의 온도",
+    titleKey: "soha-sports-towel",
     situation: "테니스 연습이 끝난 뒤, 당신은 소화에게 깨끗한 스포츠 타월을 건넨다. 타월 끝에는 작은 이니셜이 수놓여 있다.",
     dialogue: "이거 내 이름? 이런 건 괜히 힘 나는데.",
     choices: [
@@ -8210,7 +8592,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 11,
     location: "요가 스튜디오",
-    title: "햇살이 낮은 날",
+    titleKey: "soha-low-energy-day",
     situation: "요가 매트 위, 소화는 평소보다 조용하다. 장난을 시작하려다 말고 물병만 굴린다.",
     dialogue: "오늘은 이상하게 에너지가 안 올라와. 나답지 않지?",
     choices: [
@@ -8242,7 +8624,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 12,
     location: "브런치 카페",
-    title: "부정의 반복",
+    titleKey: "soha-negative-loop",
     situation: "비가 오는 아침, 당신이 지친 이야기를 꺼내자 소화는 끝까지 듣다가 조심스럽게 컵을 내려놓는다.",
     dialogue: "힘든 건 말해도 돼. 그런데 모든 게 안 된다는 말만 계속 들으면, 나도 어디서부터 잡아야 할지 모르겠어.",
     choices: [
@@ -8274,7 +8656,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 13,
     location: "공원",
-    title: "여행 루트와 운동화",
+    titleKey: "soha-travel-plan",
     situation: "공원 잔디 위에 소화가 주말 여행 지도를 펼친다. 걷는 길과 쉬는 지점이 형광펜으로 표시되어 있다.",
     dialogue: "여행도 체력전이긴 한데, 나는 같이 웃는 구간이 제일 중요해.",
     choices: [
@@ -8306,7 +8688,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 14,
     location: "루프탑 트랙",
-    title: "도시 위의 한 바퀴",
+    titleKey: "soha-rooftop-track",
     situation: "밤의 루프탑 트랙, 도시 불빛 아래 소화는 마지막 한 바퀴를 남기고 당신을 본다.",
     dialogue: "여기서 뛰면 이상하게 마음이 정리돼. 바람이 답을 주는 느낌?",
     choices: [
@@ -8338,7 +8720,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 15,
     location: "브런치 카페",
-    title: "짠맛의 농도",
+    titleKey: "soha-salty-food",
     situation: "예상보다 짠 음식이 나오자 소화는 물을 연달아 마신다. 그래도 분위기를 깨지 않으려 웃고 있다.",
     dialogue: "맛있긴 한데 조금 짜다. 내일 얼굴 부으면 같이 책임질래?",
     choices: [
@@ -8370,7 +8752,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 16,
     location: "공원 벤치",
-    title: "쉬는 날의 용기",
+    titleKey: "soha-rest-day",
     situation: "소화는 운동화를 신지 않은 채 공원 벤치에 앉아 있다. 평소보다 낯선 모습에 그녀가 먼저 웃는다.",
     dialogue: "오늘은 아무것도 안 하고 싶어. 근데 내가 이래도 괜찮아?",
     choices: [
@@ -8402,7 +8784,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 17,
     location: "러닝 트랙",
-    title: "러닝 기록 밴드",
+    titleKey: "soha-running-band",
     situation: "당신이 건넨 작은 러닝 기록 밴드가 소화의 손목에 감긴다. 화면에는 오늘의 기록 대신 휴식 알림이 떠 있다.",
     dialogue: "기록 밴드인데 쉬라고 알려주는 거야? 센스 있네.",
     choices: [
@@ -8434,7 +8816,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 18,
     location: "테니스장",
-    title: "질투의 페이스",
+    titleKey: "soha-jealous-pace",
     situation: "테니스장에서 누군가 당신에게 오래 말을 건다. 소화는 괜찮은 척 웃으며 연습 공을 평소보다 세게 친다.",
     dialogue: "나 지금 질투하는 거 아니야. 그냥 컨디션이 갑자기 좋아진 거야.",
     choices: [
@@ -8466,7 +8848,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 19,
     location: "루프탑 트랙",
-    title: "마지막 바퀴의 숨",
+    titleKey: "soha-last-lap",
     situation: "루프탑 트랙의 마지막 바퀴, 소화는 당신보다 반 걸음 앞에서 뛰다가 속도를 낮춘다.",
     dialogue: "내가 앞서가면 불러달라고 했잖아. 오늘은 내가 먼저 돌아올게.",
     choices: [
@@ -8498,7 +8880,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "soha",
     chapter: 20,
     location: "루프탑 트랙의 새벽",
-    title: "같이 도착하는 고백",
+    titleKey: "soha-finish-confession",
     situation: "마지막 바퀴를 끝낸 뒤, 도시의 아침빛이 트랙 위에 내려앉는다. 소화는 물병을 건네며 이번엔 당신의 손을 놓지 않는다.",
     dialogue: "너랑 같이 뛰면 목적지보다 옆자리가 더 신경 쓰여. 그래서 말인데, 다음 바퀴도 같이 돌아줄래?",
     choices: [
@@ -8530,7 +8912,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 1,
     location: "바닷가 카페",
-    title: "파도처럼 밝은 인사",
+    titleKey: "jiyoon-sea-cafe",
     situation: "창밖으로 파도가 반짝인다. 지윤은 레몬에이드를 들고 당신 쪽으로 환하게 웃는다.",
     dialogue: "이런 바람 좋지 않아? 답답한 생각이 조금씩 풀리는 느낌.",
     choices: [
@@ -8562,7 +8944,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 2,
     location: "해변",
-    title: "젖은 모래 위의 농담",
+    titleKey: "jiyoon-beach-walk",
     situation: "파도가 발끝까지 밀려온다. 지윤은 젖은 모래에 작은 웃는 얼굴을 그려놓고 당신을 본다.",
     dialogue: "웃긴데 이상하게 오래 남는 것들이 있잖아. 오늘도 그런 날이면 좋겠다.",
     choices: [
@@ -8594,7 +8976,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 3,
     location: "수족관",
-    title: "유리 너머의 깊이",
+    titleKey: "jiyoon-aquarium",
     situation: "푸른 수조 앞에서 지윤은 오래 말이 없다. 물고기 그림자가 그녀의 얼굴 위로 지나간다.",
     dialogue: "사람들은 바다가 밝다고 생각하지만, 사실 깊은 곳은 꽤 조용하잖아.",
     choices: [
@@ -8626,7 +9008,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 4,
     location: "흰색 테라스",
-    title: "흰 난간의 바람",
+    titleKey: "jiyoon-white-terrace",
     situation: "흰색 테라스에 바람이 지나간다. 지윤은 의자에 다리를 접고 앉아 여행 사진을 넘긴다.",
     dialogue: "어딘가로 떠나는 건 좋은데, 돌아오는 마음이 편해야 더 좋더라.",
     choices: [
@@ -8658,7 +9040,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 5,
     location: "바닷가 카페",
-    title: "해산물 파스타의 선",
+    titleKey: "jiyoon-seafood-pasta",
     situation: "해산물 파스타가 나오자 지윤은 향을 맡고 살짝 웃는다. 비린 맛을 싫어하는 그녀가 조심스럽게 포크를 든다.",
     dialogue: "해산물은 좋아하는데 비리면 바로 마음이 도망가. 묘하지?",
     choices: [
@@ -8690,7 +9072,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 6,
     location: "해변 기념품점",
-    title: "조개 모양 키링",
+    titleKey: "jiyoon-shell-keyring",
     situation: "작은 기념품점에서 당신은 조개 모양 키링을 건넨다. 지윤은 손바닥 안에서 그것을 흔들어본다.",
     dialogue: "이런 거 보면 여행 온 기분 나서 좋아. 너무 의미 부여하면 조금 민망하지만.",
     choices: [
@@ -8722,7 +9104,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 7,
     location: "답답한 실내",
-    title: "닫힌 창문",
+    titleKey: "jiyoon-stuffy-room",
     situation: "비를 피하려 들어간 실내는 창문이 닫혀 있고 공기가 무겁다. 지윤은 괜찮다며 웃지만 자꾸 문 쪽을 본다.",
     dialogue: "나 이런 곳 오래 있으면 생각까지 조금 눅눅해져.",
     choices: [
@@ -8754,7 +9136,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 8,
     location: "여름 산책로",
-    title: "파란 팔찌의 약속",
+    titleKey: "jiyoon-blue-bracelet",
     situation: "산책로 난간에 파도가 부서진다. 지윤은 당신이 건넨 파란 팔찌를 손목에 대본다.",
     dialogue: "커플템 같은 건 부담스러운데, 이건 바다 색이라 좀 예쁘다.",
     choices: [
@@ -8786,7 +9168,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 9,
     location: "흰색 테라스",
-    title: "파도 사진 엽서",
+    titleKey: "jiyoon-photo-postcard",
     situation: "테라스 테이블 위에 파도 사진 엽서가 놓인다. 지윤은 뒷면의 짧은 문장을 읽고 오래 말이 없다.",
     dialogue: "네가 쓴 문장, 농담처럼 짧은데 이상하게 진심이네.",
     choices: [
@@ -8818,7 +9200,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 10,
     location: "바닷가 카페",
-    title: "쿨한 척의 파도",
+    titleKey: "jiyoon-jealous-cool",
     situation: "누군가 당신에게 친근하게 인사하고 지나간다. 지윤은 레몬에이드를 젓다가 아주 밝게 웃는다.",
     dialogue: "인기 많네? 아냐, 나 완전 쿨해. 파도처럼 쿨해.",
     choices: [
@@ -8850,7 +9232,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 11,
     location: "작은 페리 선착장",
-    title: "떠나는 배와 남는 자리",
+    titleKey: "jiyoon-ferry-dock",
     situation: "작은 페리가 선착장을 떠난다. 지윤은 배가 멀어지는 방향을 보며 캔버스 에코백 끈을 고쳐 잡는다.",
     dialogue: "떠나는 건 쉬운데, 돌아오고 싶은 곳을 만드는 건 조금 어렵더라.",
     choices: [
@@ -8882,7 +9264,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 12,
     location: "여름 산책로",
-    title: "라임 셔벗의 환기",
+    titleKey: "jiyoon-lime-sherbet",
     situation: "뜨거운 오후, 지윤은 라임 셔벗을 한입 먹고 눈을 감는다. 산책로의 열기가 조금 가라앉는다.",
     dialogue: "기분 전환은 대단한 게 아니라 이런 한입일 때도 있지.",
     choices: [
@@ -8914,7 +9296,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 13,
     location: "달빛 방파제",
-    title: "돌아올 곳의 불빛",
+    titleKey: "jiyoon-return-place",
     situation: "달빛 방파제 끝, 작은 등대 불빛이 일정한 간격으로 켜진다. 지윤은 그 불빛을 따라 눈을 움직인다.",
     dialogue: "저런 불빛 좋다. 멀리 있어도 방향을 잃지 않게 해주잖아.",
     choices: [
@@ -8946,7 +9328,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 14,
     location: "소음이 갇힌 지하 공간",
-    title: "가라앉는 분위기",
+    titleKey: "jiyoon-heavy-basement",
     situation: "지하 공간의 음악이 벽에 부딪혀 되돌아온다. 지윤은 주변을 둘러보다 얕게 숨을 쉰다.",
     dialogue: "여긴 소리가 빠져나가지 못하는 느낌이야. 내 말도 같이 갇힐 것 같아.",
     choices: [
@@ -8978,7 +9360,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 15,
     location: "여름 산책로",
-    title: "흰색 스니커즈",
+    titleKey: "jiyoon-sneakers",
     situation: "산책로 벤치 위, 흰색 스니커즈 끈이 바람에 흔들린다. 지윤은 예상 못 한 선물에 눈을 크게 뜬다.",
     dialogue: "신발은 좀 직접적인 선물이라 떨리는데. 어디든 가라는 뜻이야?",
     choices: [
@@ -9010,7 +9392,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 16,
     location: "작은 페리 선착장",
-    title: "항구의 진심",
+    titleKey: "jiyoon-harbor-talk",
     situation: "배가 모두 떠난 선착장, 지윤은 난간에 기대어 웃지 않은 얼굴로 당신을 본다.",
     dialogue: "편한 사이가 되면, 사람들은 중요한 말도 언젠가 하겠지 하고 미루더라.",
     choices: [
@@ -9042,7 +9424,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 17,
     location: "해변",
-    title: "불꽃놀이가 끝난 뒤",
+    titleKey: "jiyoon-fireworks",
     situation: "불꽃놀이가 끝나고 해변은 갑자기 조용해진다. 지윤은 웃다가, 꺼진 하늘을 오래 바라본다.",
     dialogue: "화려한 건 끝나면 좀 허전해. 그래서 끝난 뒤에 곁에 누가 있는지가 더 중요해.",
     choices: [
@@ -9074,7 +9456,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 18,
     location: "바닷가 카페",
-    title: "친구와 연인 사이",
+    titleKey: "jiyoon-friend-line",
     situation: "카페 마감 후, 지윤은 의자를 정리하다가 문득 멈춘다. 둘 사이의 편안함이 유난히 선명한 밤이다.",
     dialogue: "우리 너무 편해서, 가끔은 네가 나를 그냥 좋은 친구처럼만 보는 건 아닌가 싶어.",
     choices: [
@@ -9106,7 +9488,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 19,
     location: "달빛 방파제",
-    title: "달빛 아래의 닻",
+    titleKey: "jiyoon-moon-breakwater",
     situation: "달빛이 방파제 끝을 하얗게 비춘다. 지윤은 파도 소리 사이로 아주 낮게 말한다.",
     dialogue: "나 사실 돌아올 곳이 생기는 게 조금 무서워. 잃어버리면 더 멀리 떠나고 싶어질까 봐.",
     choices: [
@@ -9138,7 +9520,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "jiyoon",
     chapter: 20,
     location: "달빛 해변의 항구",
-    title: "돌아올 항구의 고백",
+    titleKey: "jiyoon-harbor-confession",
     situation: "해변의 마지막 불빛이 꺼지고, 항구에는 낮은 파도 소리만 남는다. 지윤은 파란 팔찌를 만지며 당신 곁에 앉는다.",
     dialogue: "너랑 있으면 돌아가야 할 곳이 아니라 머물고 싶은 곳이 생겨. 나, 그게 조금 무섭고 많이 좋아.",
     choices: [
@@ -9170,7 +9552,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 1,
     location: "네온 팝업스토어",
-    title: "핑크빛 리액션",
+    titleKey: "harin-neon-popup",
     situation: "네온 조명이 반짝이는 팝업스토어. 하린은 귀여운 키링을 들고 당신 반응을 기다린다.",
     dialogue: "이거 완전 귀엽지? 솔직히 지금 네 반응이 더 궁금해.",
     choices: [
@@ -9202,7 +9584,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 2,
     location: "인생네컷 부스",
-    title: "두 번째 컷의 표정",
+    titleKey: "harin-photo-booth",
     situation: "포토부스 커튼 안, 하린은 브이 포즈를 하다가 두 번째 컷에서 잠깐 진지한 얼굴이 된다.",
     dialogue: "나 방금 너무 진지했지? 다시 귀엽게 할까?",
     choices: [
@@ -9234,7 +9616,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 3,
     location: "스티커 사진 골목",
-    title: "스티커 한 장의 신호",
+    titleKey: "harin-sticker-alley",
     situation: "골목 벽에 붙은 스티커들 사이에서 하린은 작은 하트 스티커를 당신 휴대폰에 붙이려다 멈춘다.",
     dialogue: "붙여도 돼? 너무 내 마음 티 나는 거면 안 붙이고.",
     choices: [
@@ -9266,7 +9648,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 4,
     location: "캐릭터 카페",
-    title: "마카롱과 리액션",
+    titleKey: "harin-character-cafe",
     situation: "캐릭터 카페 테이블 위에 마카롱이 줄지어 있다. 하린은 가장 핑크색인 것을 당신 앞에 밀어둔다.",
     dialogue: "이건 누가 봐도 내 거 같지만, 너한테 먼저 줄게. 반응 봐야 하니까.",
     choices: [
@@ -9298,7 +9680,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 5,
     location: "페스티벌",
-    title: "분홍 조명의 박자",
+    titleKey: "harin-festival-glow",
     situation: "페스티벌 무대 앞, 분홍 조명이 사람들 위로 쏟아진다. 하린은 음악에 맞춰 손을 흔들며 당신 반응을 살핀다.",
     dialogue: "여기서 무표정이면 진짜 반칙이야. 같이 신나야지!",
     choices: [
@@ -9330,7 +9712,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 6,
     location: "팝업스토어",
-    title: "트렌드보다 네 취향",
+    titleKey: "harin-macaron-choice",
     situation: "팝업스토어 디저트 코너에서 가장 인기 있는 마카롱과 하린이 조용히 본 색이 다른 마카롱이 놓여 있다.",
     dialogue: "요즘은 이게 제일 핫하다는데, 사실 난 저 색이 더 좋아.",
     choices: [
@@ -9362,7 +9744,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 7,
     location: "네온 거리",
-    title: "무반응의 정적",
+    titleKey: "harin-no-reaction",
     situation: "하린이 새로 산 헤어핀을 보여준다. 당신이 잠시 휴대폰을 보느라 반응이 늦자, 그녀의 웃음이 얇아진다.",
     dialogue: "아냐, 괜찮아. 그냥 별거 아니야. 진짜 별거 아닌 거 맞아.",
     choices: [
@@ -9394,7 +9776,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 8,
     location: "야간 푸드트럭",
-    title: "친구의 전화",
+    titleKey: "harin-friend-call",
     situation: "푸드트럭 앞에서 하린의 친구에게 전화가 온다. 하린은 당신 눈치를 보며 휴대폰을 내려다본다.",
     dialogue: "잠깐 받아도 돼? 얘가 오늘 좀 힘든 날이라서.",
     choices: [
@@ -9426,7 +9808,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 9,
     location: "스티커 사진 골목",
-    title: "반짝 헤어핀",
+    titleKey: "harin-hairpin-gift",
     situation: "작은 가게에서 당신이 고른 반짝이는 헤어핀을 하린에게 건넨다. 하린은 거울 앞에서 바로 꽂아본다.",
     dialogue: "나한테 이런 거 잘 어울린다고 생각했어?",
     choices: [
@@ -9458,7 +9840,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 10,
     location: "캐릭터 카페",
-    title: "핑크 레모네이드의 질문",
+    titleKey: "harin-pink-lemonade",
     situation: "하린은 핑크 레모네이드 빨대를 빙글 돌리며 갑자기 조용해진다.",
     dialogue: "너는 내가 계속 이렇게 밝으면 편해? 아니면 가끔 진지하면 어색해?",
     choices: [
@@ -9490,7 +9872,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 11,
     location: "네온 거리",
-    title: "장난 아닌 얼굴",
+    titleKey: "harin-serious-face",
     situation: "네온 거리의 음악이 잠깐 끊긴다. 하린은 장난스러운 말끝을 삼키고 당신을 똑바로 본다.",
     dialogue: "나 아까 서운했어. 근데 이렇게 말하면 분위기 깨질까 봐 계속 참았어.",
     choices: [
@@ -9522,7 +9904,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 12,
     location: "야간 푸드트럭",
-    title: "분식과 하트 츄러스",
+    titleKey: "harin-foodtruck",
     situation: "푸드트럭 불빛 아래 떡볶이와 하트 츄러스가 놓인다. 하린은 달콤한 디저트부터 집어 든다.",
     dialogue: "건강식 데이트만 하면 나 진짜 못 버텨. 이 정도 귀여운 당 충전은 필요해.",
     choices: [
@@ -9554,7 +9936,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 13,
     location: "팝업스토어",
-    title: "스티커 메시지",
+    titleKey: "harin-sticker-message",
     situation: "하린은 팝업스토어 이벤트 보드에 스티커로 짧은 문장을 붙인다. 장난처럼 보이지만 손끝이 떨린다.",
     dialogue: "여기 적은 건 이벤트용이야. 진짜 마음이라고 오해하면 안 돼. 아마도.",
     choices: [
@@ -9586,7 +9968,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 14,
     location: "페스티벌",
-    title: "통제의 선",
+    titleKey: "harin-control-line",
     situation: "페스티벌 인파 속에서 하린이 친구들과 짧게 인사한다. 당신이 불편한 표정을 짓자 그녀가 곧바로 눈치챈다.",
     dialogue: "나 친구들이랑 노는 거 싫어? 아니면 내가 너무 자유로워 보여?",
     choices: [
@@ -9618,7 +10000,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 15,
     location: "격식 있는 자리",
-    title: "쓴 디저트의 표정",
+    titleKey: "harin-bitter-menu",
     situation: "격식 있는 카페에서 쓴 디저트가 나온다. 하린은 예의상 웃지만 손이 접시 위에서 멈춘다.",
     dialogue: "나 이런 분위기에서 싫다고 말하면 너무 애 같아 보일까 봐.",
     choices: [
@@ -9650,7 +10032,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 16,
     location: "네온 팝업스토어",
-    title: "질투도 반짝이게",
+    titleKey: "harin-popup-jealous",
     situation: "팝업스토어 직원이 당신에게 친근하게 말을 건다. 하린은 평소보다 더 과장된 리액션으로 키링을 흔든다.",
     dialogue: "나 지금 질투하는 거 아니야. 그냥 키링이 갑자기 엄청 귀여워졌어.",
     choices: [
@@ -9682,7 +10064,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 17,
     location: "스티커 사진 골목",
-    title: "포토카드 홀더",
+    titleKey: "harin-photocard-holder",
     situation: "당신이 건넨 포토카드 홀더 안에는 오늘 찍은 사진 한 장이 들어 있다. 하린은 사진 속 자신의 진지한 표정을 발견한다.",
     dialogue: "이 컷 넣었어? 나 여기 너무 안 웃고 있는데.",
     choices: [
@@ -9714,7 +10096,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 18,
     location: "페스티벌 뒤편",
-    title: "조용해진 불빛",
+    titleKey: "harin-after-party-quiet",
     situation: "페스티벌이 끝난 뒤, 하린은 조용한 뒤편 계단에 앉아 반짝이 스티커를 떼어낸다.",
     dialogue: "사람들 앞에서는 잘 노는데, 끝나고 나면 갑자기 좀 비어. 이상하지?",
     choices: [
@@ -9746,7 +10128,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 19,
     location: "인생네컷 부스",
-    title: "마지막 컷 직전",
+    titleKey: "harin-last-shot",
     situation: "포토부스 마지막 컷 타이머가 깜박인다. 하린은 포즈를 취하지 않고 당신의 손을 잡는다.",
     dialogue: "이번 컷은 장난으로 찍기 싫어. 근데 진지하면 네가 어색해할까 봐.",
     choices: [
@@ -9778,7 +10160,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "harin",
     chapter: 20,
     location: "핑크 네온 포토부스",
-    title: "이번 컷은 진짜",
+    titleKey: "harin-photobooth-confession",
     situation: "마지막 플래시가 터지고, 사진이 천천히 출력된다. 하린은 사진 속 자신보다 당신의 눈을 먼저 본다.",
     dialogue: "나 지금 장난치는 거 아니야. 귀엽게 보이고 싶은 것도 맞는데, 네가 소중하게 봐줬으면 하는 게 더 커.",
     choices: [
@@ -9810,7 +10192,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 1,
     location: "조용한 전시장",
-    title: "은빛 정적의 첫 페이지",
+    titleKey: "neo-gallery",
     situation: "전시장 안은 유리잔을 손끝으로 두드린 것처럼 맑고 낮은 소리만 남아 있다. 네오는 은색 프레임이 둘러진 작은 추상화 앞에서 오래 멈춰 서고, 당신보다 반 걸음 앞에 있으면서도 길을 막지 않도록 몸을 비켜 준다. 그는 작품 설명보다 색의 가장자리, 사람이 지나갈 때 바닥에 스치는 발소리, 조명이 유리 위에 남기는 얇은 흠집 같은 것을 먼저 본다. 그 조용한 집중을 방해하지 않고 곁에 서 있으면, 네오가 어떤 순간에 마음을 여는지 조금씩 보이기 시작한다.",
     dialogue: "이 그림, 밝은 색이 많은데도 이상하게 시끄럽지 않아. 오래 보면 숨이 조금 느려지는 것 같아.",
     choices: [
@@ -9842,7 +10224,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 2,
     location: "비 오는 작은 카페",
-    title: "말 없는 라떼와 젖은 창문",
+    titleKey: "neo-rain-cafe",
     situation: "카페 유리창 위로 비가 가느다란 선을 긋고, 네오는 얼음이 반쯤 녹은 라떼를 손끝으로 천천히 돌린다. 그는 메뉴를 고를 때 당신이 너무 단 음료를 피했다는 것을 기억하고, 주문대에서 조용히 담백한 샌드위치를 같이 골라 왔다. 말없이 챙겨 놓은 배려는 설명을 기다리지 않고 테이블 위에 놓여 있다. 네오의 호감은 대체로 이런 식이다. 크지 않고, 늦게 알아차릴수록 더 오래 남는다.",
     dialogue: "비 오는 날엔 말이 더 느려져. 이상하게 머릿속 문장들이 다 창문에 붙어 있는 것 같아.",
     choices: [
@@ -9874,7 +10256,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 3,
     location: "밤의 도서관",
-    title: "책장 사이에 숨은 취향",
+    titleKey: "neo-library",
     situation: "폐관 안내 방송이 낮게 울리고, 도서관의 형광등은 밤의 색을 조금씩 잃어 간다. 네오는 얇은 산문집 한 권을 품에 끼고 창가에 기대어 있다. 책갈피 대신 전시장에서 가져온 작은 엽서를 끼워 둔 걸 보면, 그는 좋았던 장면을 버리지 않고 다른 곳으로 조용히 옮겨 다니는 사람이다. 당신이 다가오자 그는 책 표지를 덮지만, 완전히 숨기지는 않는다.",
     dialogue: "이 문장, 이상하게 자꾸 생각나. 좋아한다고 말하기엔 좀 낯간지럽고, 그냥 계속 남아.",
     choices: [
@@ -9906,7 +10288,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 4,
     location: "옥상에서 보는 도시 야경",
-    title: "속도의 약속과 옥상 바람",
+    titleKey: "neo-rooftop",
     situation: "옥상 난간 너머로 도시의 불빛이 낮게 번지고, 멀리 전철이 지나가는 소리가 은색 선처럼 밤을 가른다. 네오는 난간 가까이 서지 않고 한 걸음 뒤에서 바람을 맞는다. 당신에게 춥지 않냐고 묻는 대신, 말없이 자신의 후드 지퍼를 조금 올려 보이며 바람이 세다는 신호를 준다. 관계에서도 그는 이렇게 직접적인 고백보다 작은 경고와 배려로 마음의 위치를 알려 준다.",
     dialogue: "사람이 가까워지는 건... 생각보다 어렵더라. 좋아도 바로 가까워지는 건 잘 안 돼.",
     choices: [
@@ -9938,7 +10320,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 5,
     location: "다시 만난 전시장",
-    title: "기억한 색감의 재방문",
+    titleKey: "neo-return-gallery",
     situation: "처음 만난 전시장에 다시 들어서자 네오는 입구에서 잠깐 걸음을 멈춘다. 그날과 같은 은색 프레임, 같은 조명, 같은 낮은 발소리인데 둘 사이의 공기는 달라져 있다. 당신은 가방 안쪽에 작은 전시 엽서와 무광 은색 책갈피를 넣어 두었다. 거창한 선물은 아니지만, 네오가 오래 보던 색과 도서관에서 만지작거리던 엽서를 기억한 물건이다. 네오는 아직 아무것도 모른 채 같은 그림 앞에 선다.",
     dialogue: "여기, 다시 오니까 좀 이상하다. 같은 곳인데 다르게 보여. 처음엔 혼자 보는 게 편했는데, 지금은 네가 어느 부분을 볼지도 궁금해.",
     choices: [
@@ -9970,7 +10352,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 6,
     location: "막차 직전 전철 플랫폼",
-    title: "이어폰 한쪽의 거리",
+    titleKey: "neo-midnight-platform",
     situation: "전광판의 막차 시간이 깜박이고 플랫폼에는 늦은 바람만 남아 있다. 네오는 사람이 덜 모인 기둥 옆에 서서 이어폰 줄을 손가락에 감았다 풀고, 당신이 추운지 아닌지 먼저 살핀다. 그는 말로 걱정을 길게 풀지 않는다. 대신 바람이 덜 드는 쪽으로 반 걸음 옮긴 뒤 당신이 따라올 수 있게 속도를 늦춘다.",
     dialogue: "이쪽 칸이 덜 붐벼. 사람 많은 곳 싫으면 여기서 타는 게 나아.",
     choices: [
@@ -10002,7 +10384,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 7,
     location: "좁은 골목의 레코드 숍",
-    title: "반복 재생되는 마음",
+    titleKey: "neo-record-shop",
     situation: "작은 레코드 숍에는 낡은 스피커 소리와 비닐 포장 냄새가 섞여 있다. 네오는 신보 코너보다 구석의 청음대 앞에 오래 머문다. 그는 곡 제목을 바로 말하지 않고 드럼이 들어오기 전의 공백, 보컬이 숨을 삼키는 부분, 밤에 들으면 덜 외로운 음색부터 설명한다.",
     dialogue: "좋은 노래는 처음 들을 때보다 세 번째 들을 때 더 선명해지는 것 같아.",
     choices: [
@@ -10034,7 +10416,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 8,
     location: "헌책방 지하 계단",
-    title: "접힌 페이지의 이름",
+    titleKey: "neo-used-bookstore",
     situation: "헌책방 지하에는 오래된 종이 냄새와 낮은 조명이 내려앉아 있다. 네오는 새 책보다 누군가 밑줄을 그은 책을 천천히 본다. 다른 사람의 흔적을 함부로 해석하지 않고, 왜 이 문장만 남았을지 조용히 상상하는 얼굴이다.",
     dialogue: "누가 접어둔 페이지를 보면, 그 사람이 숨기고 싶었던 마음을 잠깐 빌리는 느낌이 들어.",
     choices: [
@@ -10066,7 +10448,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 9,
     location: "밤의 강변 산책로",
-    title: "말 대신 걷는 리듬",
+    titleKey: "neo-night-river",
     situation: "강물은 검은 유리처럼 도시의 불빛을 길게 끌어안고 있다. 네오는 대화가 끊길 때마다 미안해하지 않고 걷는다. 다만 당신의 보폭이 느려지면 모른 척 속도를 낮춘다. 그의 다정함은 손을 잡는 것보다 먼저, 나란히 걸을 수 있는 속도를 만드는 데서 시작된다.",
     dialogue: "계속 말하지 않아도 되는 산책이 좋아. 그래도 혼자인 건 아닌 느낌이라서.",
     choices: [
@@ -10098,7 +10480,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 10,
     location: "작은 독립영화관",
-    title: "엔딩 크레딧 뒤의 대화",
+    titleKey: "neo-quiet-cinema",
     situation: "영화가 끝났지만 네오는 바로 일어나지 않는다. 불이 완전히 켜지기 전, 엔딩 크레딧의 작은 글자들이 어둠 위를 천천히 올라간다. 그는 줄거리보다 마지막 장면의 침묵을 곱씹는 얼굴이다. 사람이 빠져나가는 동안 당신에게 서두르자는 말도 하지 않는다.",
     dialogue: "마지막 장면에서 아무 말도 안 한 게 제일 좋았어. 말하면 오히려 작아졌을 것 같아서.",
     choices: [
@@ -10130,7 +10512,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 11,
     location: "비 피하는 편의점 앞",
-    title: "투명 우산의 반쪽",
+    titleKey: "neo-convenience-rain",
     situation: "갑자기 굵어진 비 때문에 두 사람은 편의점 처마 아래에 선다. 네오는 새 우산을 사기보다 비가 조금 약해질 때까지 기다리자는 쪽을 고른다. 당신이 젖은 소매를 털자 그는 말없이 작은 손수건을 꺼내 건넨다. 손수건은 오래 쓴 것 같지만 깨끗하게 접혀 있다.",
     dialogue: "조금만 기다리면 약해질 거야. 급하게 뛰면 더 젖어.",
     choices: [
@@ -10162,7 +10544,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 12,
     location: "작은 디자인 마켓",
-    title: "무광 은색 키링",
+    titleKey: "neo-silver-keyring",
     situation: "디자인 마켓의 테이블 위에는 반짝이는 장식들이 줄지어 있다. 네오는 화려한 것보다 무광 은색 키링 앞에서 오래 멈춘다. 손에 들어도 티가 많이 나지 않고, 오래 써도 질리지 않을 것 같은 물건. 네오가 좋아하는 것들은 대체로 그런 얼굴을 하고 있다.",
     dialogue: "눈에 확 띄는 것보다, 오래 봐도 거슬리지 않는 게 좋아.",
     choices: [
@@ -10194,7 +10576,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 13,
     location: "하루 늦은 답장",
-    title: "읽지 않은 마음",
+    titleKey: "neo-message-gap",
     situation: "데이트 다음 날, 네오의 답장이 늦다. 화면에는 마지막으로 보낸 짧은 안부만 남아 있고, 당신은 그 침묵이 무관심인지 정리의 시간인지 알 수 없다. 밤이 깊어질 즈음 네오에게서 메시지가 온다. 늦어서 미안. 말 고르다가 시간이 지나갔어.",
     dialogue: "답장이 늦으면, 내가 피하는 것처럼 보일 수도 있겠지.",
     choices: [
@@ -10226,7 +10608,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 14,
     location: "작은 사진전",
-    title: "흐린 사진의 초점",
+    titleKey: "neo-small-exhibit",
     situation: "사진전의 작품들은 선명하지 않다. 흔들린 거리, 초점이 나간 손, 얼굴이 보이지 않는 뒷모습이 벽에 걸려 있다. 네오는 완벽한 구도보다 놓친 순간을 오래 본다. 그는 틀어진 것 안에서만 보이는 진심을 좋아한다.",
     dialogue: "흐린 사진이 더 정확할 때도 있어. 선명하면 오히려 숨길 수 있는 게 많아서.",
     choices: [
@@ -10258,7 +10640,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 15,
     location: "오락실 가장 안쪽",
-    title: "낮은 볼륨의 게임",
+    titleKey: "neo-arcade-corner",
     situation: "오락실은 시끄럽지만 가장 안쪽 리듬 게임 기계 하나는 이상하게 사람이 적다. 네오는 큰 소리에 찡그리면서도 오래된 픽셀 화면 앞에서는 눈이 조금 밝아진다. 그는 남들 앞에서 실력 자랑을 하지 않고, 조용히 이어폰 볼륨을 낮춘 뒤 한 판만 해보자고 말한다.",
     dialogue: "시끄러운 건 별로인데, 오래된 게임 화면은 좀 좋아해. 이상하지.",
     choices: [
@@ -10290,7 +10672,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 16,
     location: "겨울 버스 정류장",
-    title: "입김 사이의 약속",
+    titleKey: "neo-winter-bus",
     situation: "버스 정류장의 유리벽에 두 사람의 입김이 흐릿하게 맺힌다. 네오는 장갑 낀 손으로 시간표를 확인하고, 막차까지 남은 시간을 계산한다. 그는 당신을 붙잡고 싶어도 늦은 밤의 피곤함을 먼저 생각한다. 오래 있고 싶은 마음과 무리시키고 싶지 않은 마음이 같은 얼굴로 서 있다.",
     dialogue: "더 있고 싶은데, 네가 피곤하면 여기서 보내는 게 맞는 것 같아.",
     choices: [
@@ -10322,7 +10704,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 17,
     location: "도서관 반납함 앞",
-    title: "빌려준 책 속 메모",
+    titleKey: "neo-secret-note",
     situation: "네오가 빌려준 책을 반납하려는 순간, 얇은 메모지가 책 사이에서 떨어진다. 거기에는 긴 고백 대신 몇 개의 페이지 번호와 짧은 표시가 있다. 43쪽, 네가 좋아할 것 같음. 97쪽, 말하기 어려웠던 것. 121쪽, 다음에 같이 읽기. 네오는 메모를 들킨 사람처럼 귀 끝이 붉어진다.",
     dialogue: "일부러 숨긴 건 아닌데... 바로 보면 좀 부끄러울 것 같아서.",
     choices: [
@@ -10354,7 +10736,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 18,
     location: "도심 전망대",
-    title: "불빛을 세는 방식",
+    titleKey: "neo-city-observatory",
     situation: "전망대 유리창 아래로 도시가 펼쳐진다. 사람들은 사진을 찍느라 바쁘지만 네오는 카메라를 들지 않는다. 그는 특정 건물의 불빛이 꺼졌다 켜지는 간격을 보고, 저 안에도 늦게까지 남은 사람이 있겠지라고 말한다. 화려한 야경보다 그 안의 고요한 생활을 상상하는 사람이다.",
     dialogue: "멀리서 보면 다 빛인데, 가까이 가면 전부 다른 밤일 거야.",
     choices: [
@@ -10386,7 +10768,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 19,
     location: "새벽 버스터미널",
-    title: "떠나기 전의 좌석",
+    titleKey: "neo-dawn-terminal",
     situation: "새벽 버스터미널은 아직 완전히 깨어나지 않았다. 네오는 긴 의자 끝에 앉아 표를 접었다 펴고, 떠나는 사람들보다 남겨지는 사람들의 표정을 더 오래 본다. 오늘은 당신이 먼저 가야 하는 날이다. 그는 붙잡고 싶은 말을 하지 않고, 대신 도착하면 짧게라도 알려달라고 말한다.",
     dialogue: "잡는 말은 잘 못해. 대신 도착했다는 말은 듣고 싶어.",
     choices: [
@@ -10418,7 +10800,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "neo",
     chapter: 20,
     location: "닫힌 전시장 앞",
-    title: "은빛 책갈피 고백",
+    titleKey: "neo-silver-bookmark-confession",
     situation: "전시장은 이미 문을 닫았고, 유리문 너머로 희미한 조명만 남아 있다. 네오는 휴대폰 케이스 안쪽에서 당신이 준 무광 은색 책갈피를 꺼낸다. 처음에는 잃어버리지 않으려고 넣어뒀다고 했지만, 이제는 부적처럼 가지고 다녔다고 고백한다. 그는 긴 말을 준비한 듯하다가도 결국 가장 네오다운 짧은 문장만 남긴다.",
     dialogue: "나한테 너는... 조용한데 계속 남는 사람 같아.",
     choices: [
@@ -10450,7 +10832,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 1,
     location: "작은 전통 찻집",
-    title: "따뜻한 꽃차",
+    titleKey: "yeoni-teahouse",
     situation: "은은한 차 향이 번진다. 연이는 당신 앞에 따뜻한 잔을 밀어놓고 조심스럽게 미소 짓는다.",
     dialogue: "오늘 조금 지쳐 보였어. 따뜻한 게 좋을 것 같아서.",
     choices: [
@@ -10482,7 +10864,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 2,
     location: "꽃이 많은 정원",
-    title: "느린 걸음",
+    titleKey: "yeoni-garden",
     situation: "정원 길에 꽃잎 그림자가 내려앉았다. 연이는 걸음을 늦추며 당신을 기다린다.",
     dialogue: "이 길은 천천히 걸을 때 제일 예뻐.",
     choices: [
@@ -10514,7 +10896,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 3,
     location: "작은 서점",
-    title: "문장 하나",
+    titleKey: "yeoni-bookstore",
     situation: "작은 서점의 나무 바닥이 조용히 삐걱인다. 연이는 시집 코너 앞에서 책등을 쓸어본다.",
     dialogue: "가끔은 한 문장 때문에 하루가 괜찮아질 때가 있어.",
     choices: [
@@ -10546,7 +10928,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 4,
     location: "고요한 호수",
-    title: "흔들리는 물결",
+    titleKey: "yeoni-lake",
     situation: "호수 위로 바람이 지난다. 연이는 평소보다 말수가 줄어든 채 물가를 바라본다.",
     dialogue: "가끔은 괜찮다고 말하는 게 더 어려운 날이 있어.",
     choices: [
@@ -10578,7 +10960,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 5,
     location: "한옥 카페의 저녁",
-    title: "등불 아래의 확신",
+    titleKey: "yeoni-hanok-evening",
     situation: "창밖에 등불이 켜진다. 연이는 차분한 목소리로 오늘의 끝을 붙잡듯 말한다.",
     dialogue: "너랑 있으면, 마음이 조금 덜 급해져.",
     choices: [
@@ -10610,7 +10992,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 6,
     location: "달빛 마당",
-    title: "분홍 꽃등의 손끝",
+    titleKey: "yeoni-moon-yard",
     situation: "달빛 마당에 분홍 꽃등이 줄지어 흔들린다. 연이는 꺼진 등불 하나를 고치며 손끝을 숨긴다.",
     dialogue: "다른 사람 소원은 잘 보이는데, 제 소원은 늘 조금 흐려요.",
     choices: [
@@ -10642,7 +11024,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 7,
     location: "연꽃 연못",
-    title: "연꽃 아래의 침묵",
+    titleKey: "yeoni-lotus-pond",
     situation: "연꽃 연못 위로 잔물결이 번진다. 연이는 말없이 물 위에 떨어진 꽃잎을 바라본다.",
     dialogue: "침묵이 편한 사람이 있고, 침묵을 빨리 채우려는 사람이 있죠.",
     choices: [
@@ -10674,7 +11056,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 8,
     location: "전통 찻집",
-    title: "꿀 배차의 온도",
+    titleKey: "yeoni-honey-pear-tea",
     situation: "연이가 당신에게 꿀 배차를 건넨다. 당신은 이번엔 그녀 앞에도 따뜻한 잔을 놓는다.",
     dialogue: "제 것까지요? 저는 괜찮은데.",
     choices: [
@@ -10706,7 +11088,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 9,
     location: "작은 서점",
-    title: "자개 책갈피",
+    titleKey: "yeoni-jagae-bookmark",
     situation: "작은 서점의 계산대 옆, 자개 책갈피가 은은하게 빛난다. 당신이 그것을 건네자 연이는 숨을 작게 멈춘다.",
     dialogue: "빛이 너무 작아서 더 오래 보게 되네요.",
     choices: [
@@ -10738,7 +11120,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 10,
     location: "꽃이 많은 정원",
-    title: "말투의 그림자",
+    titleKey: "yeoni-strong-tone",
     situation: "정원 길에서 사소한 오해가 생긴다. 당신의 말투가 조금 높아지자 연이는 꽃잎을 만지던 손을 멈춘다.",
     dialogue: "큰 소리가 나면, 마음이 먼저 숨어버려요.",
     choices: [
@@ -10770,7 +11152,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 11,
     location: "한옥 카페",
-    title: "꿈 이야기",
+    titleKey: "yeoni-dream-story",
     situation: "한옥 카페의 처마 아래, 연이는 지난밤 꿈 이야기를 조심스럽게 꺼낸다.",
     dialogue: "꿈에서 등불을 들고 있었는데, 제 손만 계속 어두웠어요.",
     choices: [
@@ -10802,7 +11184,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 12,
     location: "고요한 호수",
-    title: "되돌아온 위로",
+    titleKey: "yeoni-comfort-return",
     situation: "당신의 이야기를 한참 들어준 뒤, 연이는 괜찮다고 말하며 물가를 본다. 하지만 어깨는 조금 내려앉아 있다.",
     dialogue: "당신이 조금 편해졌다면 다행이에요. 저는 괜찮아요.",
     choices: [
@@ -10834,7 +11216,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 13,
     location: "전통 찻집",
-    title: "작은 향낭",
+    titleKey: "yeoni-scent-pouch",
     situation: "당신이 건넨 작은 향낭에서 은은한 풀잎 향이 난다. 연이는 손목 장식 옆에 그것을 조심스럽게 댄다.",
     dialogue: "향이 강하지 않아서 좋아요. 오래 곁에 둘 수 있을 것 같아요.",
     choices: [
@@ -10866,7 +11248,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 14,
     location: "꽃이 많은 정원",
-    title: "말 없는 벤치",
+    titleKey: "yeoni-silent-bench",
     situation: "정원 벤치 위, 연이는 손수건을 접었다 펴며 말을 고른다. 바람은 조용하고 시간은 느리다.",
     dialogue: "말을 고르다 보면, 말할 타이밍을 놓칠 때가 있어요.",
     choices: [
@@ -10898,7 +11280,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 15,
     location: "거친 분위기의 술자리",
-    title: "매운 상 위의 숨",
+    titleKey: "yeoni-spicy-table",
     situation: "우연히 들른 술자리는 소란스럽고 음식은 지나치게 맵다. 연이는 물잔을 들고도 괜찮다고 말한다.",
     dialogue: "분위기를 깨고 싶지는 않아서요. 조금 매운 정도는 괜찮아요.",
     choices: [
@@ -10930,7 +11312,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 16,
     location: "달빛 마당",
-    title: "소원지의 여백",
+    titleKey: "yeoni-wish-paper",
     situation: "소원지 위에 연이의 글씨가 멈춰 있다. 다른 사람의 소원지는 가득하지만 그녀의 종이는 반쯤 비어 있다.",
     dialogue: "누군가를 위한 말은 쉬운데, 저를 위한 말은 왜 이렇게 어려울까요.",
     choices: [
@@ -10962,7 +11344,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 17,
     location: "한옥 카페의 저녁",
-    title: "차가운 손",
+    titleKey: "yeoni-tired-hands",
     situation: "등불을 정리하던 연이의 손이 차갑다. 그녀는 괜찮다며 손을 등 뒤로 숨긴다.",
     dialogue: "조금 피곤한 것뿐이에요. 곧 괜찮아질 거예요.",
     choices: [
@@ -10994,7 +11376,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 18,
     location: "달빛 마당",
-    title: "마지막 등불 전",
+    titleKey: "yeoni-last-lantern-before",
     situation: "마당의 꽃등이 하나씩 꺼진다. 연이는 마지막 등불 앞에서 당신에게 빈 소원지를 건넨다.",
     dialogue: "이번엔 당신 소원만 적지 말고, 우리 둘의 마음도 적어볼까요.",
     choices: [
@@ -11026,7 +11408,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 19,
     location: "고요한 호수",
-    title: "물에 비친 고백 전야",
+    titleKey: "yeoni-lake-reflection",
     situation: "호수 위에 두 사람의 그림자가 흔들린다. 연이는 물결을 보며 조심스럽게 말한다.",
     dialogue: "저는 늘 누군가를 비춰주는 쪽이었어요. 그런데 당신 옆에서는 제 모습도 보이는 것 같아요.",
     choices: [
@@ -11058,7 +11440,7 @@ export const LOVE_SCENES: LoveScene[] = [
     characterId: "yeoni",
     chapter: 20,
     location: "달꽃 신당의 밤",
-    title: "서로의 등불 고백",
+    titleKey: "yeoni-flower-lantern-confession",
     situation: "달꽃 신당의 마지막 꽃등이 두 사람 사이에서 밝다. 연이는 등불을 당신에게 건네며 처음으로 자기 소원을 말한다.",
     dialogue: "이제는 당신의 소원뿐 아니라 제 마음도 같이 밝혀 보고 싶어요. 당신 곁에서, 저도 기대고 싶어요.",
     choices: [
@@ -11086,3 +11468,15 @@ export const LOVE_SCENES: LoveScene[] = [
     ],
   },
 ];
+
+export function getLocalizedLoveScenes(locale?: string | null): LoveScene[] {
+  return LOVE_SCENE_DEFINITIONS.map((scene) => {
+    const { titleKey: _titleKey, ...rest } = scene;
+    return {
+      ...rest,
+      title: resolveLoveSceneTitle(scene, locale),
+    };
+  });
+}
+
+export const LOVE_SCENES: LoveScene[] = getLocalizedLoveScenes("ko");

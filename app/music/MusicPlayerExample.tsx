@@ -18,6 +18,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { allTracks, type ArtistKey } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
@@ -48,6 +49,115 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
+
+const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
+  ko: {
+    lyricsAria: "현재 곡 가사",
+    lyrics: "가사",
+    lyricsLoading: "가사 로딩 중...",
+    lyricsEmpty: "가사 데이터가 아직 준비되지 않았습니다.",
+    statusLoading: "달빛을 불러오는 중",
+    statusWaiting: "달빛이 열리기를 기다리는 중",
+    statusPlaying: "지금 흐르는 달빛",
+    statusPaused: "달빛이 잠시 머무는 중",
+    playerAria: "Code Destiny 음악 플레이어",
+    pause: "일시정지",
+    play: "재생",
+    nextTrack: "다음 곡",
+    previousTrack: "이전 곡",
+    listeningMode: "음악 감상 모드",
+    playlistHint: "✦ 달빛 플레이리스트",
+    close: "닫기",
+    heroKicker: "MOON LIBRARY",
+    heroTitle: "달빛 플레이리스트",
+    heroText: "네오와 연이의 감성 무드로 이어지는 플레이 리스트.",
+    shareCurrent: "현재 곡 공유",
+    copied: "복사됨",
+    share: "공유",
+    defaultMood: "달빛 세션",
+    repeat: (mode: RepeatMode) => `반복 ${mode}`,
+    shuffleOn: "셔플 켜짐",
+    shuffleOff: "셔플 꺼짐",
+    unmute: "음소거 해제",
+    mute: "음소거",
+    volume: "볼륨",
+    shareText: "Code Destiny 달빛 라이브러리에서 들어보세요.",
+    shareMain: "Code Destiny 메인",
+    shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+  },
+  en: {
+    lyricsAria: "Current track lyrics",
+    lyrics: "Lyrics",
+    lyricsLoading: "Loading lyrics...",
+    lyricsEmpty: "Lyrics are not ready yet.",
+    statusLoading: "Calling in the moonlight",
+    statusWaiting: "Waiting for the moonlight to open",
+    statusPlaying: "Moonlight is playing now",
+    statusPaused: "Moonlight is resting for a moment",
+    playerAria: "Code Destiny music player",
+    pause: "Pause",
+    play: "Play",
+    nextTrack: "Next track",
+    previousTrack: "Previous track",
+    listeningMode: "Listening mode",
+    playlistHint: "✦ Moonlit playlist",
+    close: "Close",
+    heroKicker: "MOON LIBRARY",
+    heroTitle: "Moonlit Playlist",
+    heroText: "A playlist woven through Neo and Yeoni's emotional moods.",
+    shareCurrent: "Share current track",
+    copied: "Copied",
+    share: "Share",
+    defaultMood: "moonlight session",
+    repeat: (mode: RepeatMode) => `Repeat ${mode}`,
+    shuffleOn: "Shuffle on",
+    shuffleOff: "Shuffle off",
+    unmute: "Unmute",
+    mute: "Mute",
+    volume: "Volume",
+    shareText: "Listen inside the Code Destiny moon library.",
+    shareMain: "Code Destiny main",
+    shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+  },
+  ja: {
+    lyricsAria: "現在の曲の歌詞",
+    lyrics: "歌詞",
+    lyricsLoading: "歌詞を読み込んでいます...",
+    lyricsEmpty: "歌詞データはまだ準備されていません。",
+    statusLoading: "月明かりを呼び込んでいます",
+    statusWaiting: "月明かりが開くのを待っています",
+    statusPlaying: "いま流れている月明かり",
+    statusPaused: "月明かりが少し留まっています",
+    playerAria: "Code Destiny 音楽プレイヤー",
+    pause: "一時停止",
+    play: "再生",
+    nextTrack: "次の曲",
+    previousTrack: "前の曲",
+    listeningMode: "音楽鑑賞モード",
+    playlistHint: "✦ 月明かりプレイリスト",
+    close: "閉じる",
+    heroKicker: "MOON LIBRARY",
+    heroTitle: "月明かりプレイリスト",
+    heroText: "ネオとヨニの感性ムードでつながるプレイリスト。",
+    shareCurrent: "現在の曲を共有",
+    copied: "コピー済み",
+    share: "共有",
+    defaultMood: "月明かりセッション",
+    repeat: (mode: RepeatMode) => `リピート ${mode}`,
+    shuffleOn: "シャッフル オン",
+    shuffleOff: "シャッフル オフ",
+    unmute: "ミュート解除",
+    mute: "ミュート",
+    volume: "音量",
+    shareText: "Code Destinyの月明かりライブラリで聴いてみてください。",
+    shareMain: "Code Destiny メイン",
+    shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+  },
+} as const;
+
+function getMusicPlayerCopy(locale: LoadingLocale) {
+  return MUSIC_PLAYER_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || MUSIC_PLAYER_TEXT_TRANSLATIONS.ko;
+}
 
 let musicLyricsModulePromise: Promise<{ lyricsFromAudioFileName: (audioFileName: string) => string | undefined }>|null = null;
 const lyricsTextCache = new Map<string, string>();
@@ -121,10 +231,10 @@ async function copyMusicShareText(text: string) {
   document.body.removeChild(textarea);
 }
 
-function getListeningStatusLabel(isLoading: boolean, canPlay: boolean, isPlaying: boolean) {
-  if (isLoading) return "달빛을 불러오는 중";
-  if (!canPlay) return "달빛이 열리기를 기다리는 중";
-  return isPlaying ? "지금 흐르는 달빛" : "달빛이 잠시 머무는 중";
+function getListeningStatusLabel(isLoading: boolean, canPlay: boolean, isPlaying: boolean, copy: ReturnType<typeof getMusicPlayerCopy>) {
+  if (isLoading) return copy.statusLoading;
+  if (!canPlay) return copy.statusWaiting;
+  return isPlaying ? copy.statusPlaying : copy.statusPaused;
 }
 
 type LyricsPanelProps = {
@@ -132,18 +242,19 @@ type LyricsPanelProps = {
   isLoading: boolean;
   lyricsText: string;
   onToggle: () => void;
+  copy: ReturnType<typeof getMusicPlayerCopy>;
 };
 
-const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, onToggle }: LyricsPanelProps) {
+const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, onToggle, copy }: LyricsPanelProps) {
   return (
-    <section className={styles.lyricsPanel} aria-label="Current track lyrics">
+    <section className={styles.lyricsPanel} aria-label={copy.lyricsAria}>
       <button
         className={styles.lyricsToggle}
         type="button"
         aria-expanded={isOpen}
         onClick={onToggle}
       >
-        <span>가사</span>
+        <span>{copy.lyrics}</span>
         <ChevronDown
           className={`${styles.lyricsToggleIcon} ${isOpen ? styles.lyricsToggleIconOpen : ""}`}
           size={16}
@@ -152,11 +263,11 @@ const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, o
       </button>
       <div className={`${styles.lyricsBody} ${isOpen ? styles.lyricsBodyOpen : ""}`} aria-hidden={!isOpen}>
         {isLoading ? (
-          <p className={styles.lyricsEmpty}>가사 로딩 중...</p>
+          <p className={styles.lyricsEmpty}>{copy.lyricsLoading}</p>
         ) : lyricsText ? (
           <pre className={styles.lyricsText}>{lyricsText}</pre>
         ) : (
-          <p className={styles.lyricsEmpty}>가사 데이터가 아직 준비되지 않았습니다.</p>
+          <p className={styles.lyricsEmpty}>{copy.lyricsEmpty}</p>
         )}
       </div>
     </section>
@@ -165,6 +276,8 @@ const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, o
 
 export default function MusicPlayerExample({ ambientAssetKey, presentation = "full" }: MusicPlayerExampleProps) {
   const searchParams = useSearchParams();
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = getMusicPlayerCopy(locale);
   const sharedTrackId = searchParams?.get("track") || undefined;
   const initialSharedTrackId = useMemo(() => {
     return sharedTrackId && allTracks.some((track) => track.id === sharedTrackId) ? sharedTrackId : undefined;
@@ -191,6 +304,19 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         : styles.neoMode;
   const isCompact = presentation === "compact";
   const hasCurrentTrack = Boolean(player.currentTrack);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     setPlaybackState(currentTrackId, player.isPlaying);
@@ -363,7 +489,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       window.clearTimeout(preloadIdleId);
     };
   }, [player.currentIndex, player.tracks]);
-  const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying);
+  const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying, copy);
   const progressPercent = progressMax > 0
     ? Math.min(100, Math.max(0, (player.currentTime / progressMax) * 100))
     : 0;
@@ -376,15 +502,15 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     const mainUrl = typeof window !== "undefined" ? new URL("/", window.location.origin).toString() : "https://code-destiny.com/";
     const text = [
       `${track.artistName} - ${track.title}`,
-      "Listen inside the Code Destiny moon library.",
-      `Code Destiny main: ${mainUrl}`,
+      copy.shareText,
+      `${copy.shareMain}: ${mainUrl}`,
     ].join("\n");
     const copiedText = `${text}\n${trackUrl}`;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Code Destiny Music - ${track.title}`,
+          title: copy.shareTitle(track.title),
           text,
           url: trackUrl,
         });
@@ -412,7 +538,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         className={`${styles.miniPlayerShell} ${artistThemeClass} ${coverFailed ? styles.coverFallback : ""} font-body`}
         data-artist-mode={effectiveArtistTheme || player.currentTrack.artistKey}
         style={playerStyle}
-        aria-label="Code Destiny music player"
+        aria-label={copy.playerAria}
       >
         <div className={styles.miniCoverWrap}>
           {player.currentTrack.coverUrl ? (
@@ -440,19 +566,19 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             className={styles.smallButton}
             type="button"
             onClick={player.isPlaying ? player.pause : player.play}
-            aria-label={player.isPlaying ? "Pause" : "Play"}
+            aria-label={player.isPlaying ? copy.pause : copy.play}
           >
             {player.isPlaying ? <Pause size={18} /> : <Play size={18} />}
           </button>
-          <button className={styles.smallButton} type="button" onClick={player.next} aria-label="Next track">
+          <button className={styles.smallButton} type="button" onClick={player.next} aria-label={copy.nextTrack}>
             <SkipForward size={18} />
           </button>
           <button className={styles.listenModeButton} type="button" onClick={() => setIsListeningModeOpen(true)}>
             <ListenModeHeadphonesIcon className={styles.listenModeIcon} />
-            음악 감상 모드
+            {copy.listeningMode}
           </button>
         </div>
-        <p className={styles.listenModeHint}>✦ 달빛 플레이리스트</p>
+        <p className={styles.listenModeHint}>{copy.playlistHint}</p>
       </section>
     );
   }
@@ -465,7 +591,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     >
       {isCompact ? (
         <button className={styles.closeListeningMode} type="button" onClick={() => setIsListeningModeOpen(false)}>
-          닫기
+          {copy.close}
         </button>
       ) : null}
 
@@ -504,9 +630,9 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       {player.currentTrack ? (
         <div className={`${styles.playerFrame} mx-auto animate-fade-in-up`}>
           <div className={`${styles.playerHero} font-display`}>
-            <span className={`${styles.playerHeroKicker} font-decorative`}>MOON LIBRARY</span>
-            <h1 className={`${styles.playerHeroTitle} font-display`}>달빛 플레이리스트</h1>
-            <p className={`${styles.playerHeroText} font-premium`}>네오와 연이의 감성 무드로 이어지는 플레이 리스트.</p>
+            <span className={`${styles.playerHeroKicker} font-decorative`}>{copy.heroKicker}</span>
+            <h1 className={`${styles.playerHeroTitle} font-display`}>{copy.heroTitle}</h1>
+            <p className={`${styles.playerHeroText} font-premium`}>{copy.heroText}</p>
           </div>
           <div className={`${styles.playerMain} rounded-[8px]`}>
             <div className={`${styles.albumChamber} relative`}>
@@ -535,31 +661,31 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   className={styles.nowPlayingShareButton}
                   type="button"
                   onClick={() => void handleShareNowPlaying()}
-                  aria-label="현재 곡 공유"
+                  aria-label={copy.shareCurrent}
                   data-shared={nowPlayingShared ? "true" : "false"}
                 >
                   <Share2 size={16} aria-hidden />
-                  <span>{nowPlayingShared ? "Copied" : "Share"}</span>
+                  <span>{nowPlayingShared ? copy.copied : copy.share}</span>
                 </button>
               </div>
               <h2 className="font-display">{player.currentTrack.title}</h2>
-              <p>{player.currentTrack.mood || "moonlight session"}</p>
+              <p>{player.currentTrack.mood || copy.defaultMood}</p>
             </div>
 
             <div className={`${styles.controlDeck} shadow-violet-neon`}>
               <div className={styles.controlRow}>
-                <button className={styles.iconButton} type="button" onClick={player.previous} aria-label="Previous track">
+                <button className={styles.iconButton} type="button" onClick={player.previous} aria-label={copy.previousTrack}>
                   <SkipBack size={18} />
                 </button>
                 <button
                   className={`${styles.playButton} shadow-violet-neon-focus`}
                   type="button"
                   onClick={player.isPlaying ? player.pause : player.play}
-                  aria-label={player.isPlaying ? "Pause" : "Play"}
+                  aria-label={player.isPlaying ? copy.pause : copy.play}
                 >
                   {player.isPlaying ? <Pause size={20} /> : <Play size={20} />}
                 </button>
-                <button className={styles.iconButton} type="button" onClick={player.next} aria-label="Next track">
+                <button className={styles.iconButton} type="button" onClick={player.next} aria-label={copy.nextTrack}>
                   <SkipForward size={18} />
                 </button>
               </div>
@@ -587,7 +713,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   className={styles.smallButton}
                   type="button"
                   onClick={() => player.setRepeat(getNextRepeatMode(player.repeat))}
-                  aria-label={`Repeat ${player.repeat}`}
+                  aria-label={copy.repeat(player.repeat)}
                   data-active={player.repeat !== "off"}
                 >
                   {player.repeat === "one" ? <Repeat1 size={18} /> : <Repeat size={18} />}
@@ -596,7 +722,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   className={styles.smallButton}
                   type="button"
                   onClick={player.toggleShuffle}
-                  aria-label={player.shuffle ? "Shuffle on" : "Shuffle off"}
+                  aria-label={player.shuffle ? copy.shuffleOn : copy.shuffleOff}
                   aria-pressed={player.shuffle}
                   data-active={player.shuffle}
                 >
@@ -606,7 +732,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   className={styles.smallButton}
                   type="button"
                   onClick={player.toggleMute}
-                  aria-label={player.muted ? "Unmute" : "Mute"}
+                  aria-label={player.muted ? copy.unmute : copy.mute}
                   data-active={player.muted}
                 >
                   {player.muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
@@ -621,7 +747,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                     step="0.01"
                     value={player.volume}
                     onChange={(event) => player.setVolume(Number(event.currentTarget.value))}
-                    aria-label="Volume"
+                    aria-label={copy.volume}
                   />
                 </label>
               </div>
@@ -642,6 +768,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               isLoading={isLyricsLoading}
               lyricsText={lyricsText}
               onToggle={toggleLyricsOpen}
+              copy={copy}
             />
           </div>
 

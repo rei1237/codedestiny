@@ -718,7 +718,8 @@ assert(generated.llmAssembly?.templateVersion === ZIWEI_PDF_CONFIG.templateVersi
 assert(Number(generated.llmAssembly?.chapterCount || 0) === 15, "generator.llm_chapter_count");
 assert(generatedCompletion.ok, `generator.fake_worker_completion:${generatedCompletion.issues?.join(",") || "unknown"}`);
 assert(count(generated.pdfReady?.html || "", /<article\b/g) === 15, "generator.final_html_contains_15_articles");
-assert(count(generated.pdfReady?.html || "", /<section>/g) === 75, "generator.final_html_contains_75_sections");
+const expectedSectionCount = ZIWEI_PREMIUM_CHAPTERS_V3.reduce((sum, chapter) => sum + chapter.sections.length, 0);
+assert(count(generated.pdfReady?.html || "", /<section>/g) === expectedSectionCount, "generator.final_html_contains_all_sections");
 assert(generated.pdfReady?.html?.includes("12궁의 주성 흐름"), "generator.cover_uses_ziwei_star_flow");
 assert(!generated.pdfReady?.html?.includes("별 흐름"), "generator.cover_removes_generic_star_flow");
 assert(!generated.pdfReady?.html?.includes("Ch."), "generator.html_removes_english_chapter_prefix");

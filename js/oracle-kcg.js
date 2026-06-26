@@ -350,7 +350,105 @@
 ============================================================== */
 const KEMET_AI_PROMPT_FEATURE_KEY = "egyptian_oracle_ai_prompt";
 const KEMET_AI_PROMPT_COST = 30;
-const KEMET_AI_PROMPT_REASON = "이집트 신탁 AI 질문 프롬프트 생성";
+const KEMET_ORACLE_COPY = {
+  ko: {
+    promptReason: "이집트 신탁 AI 질문 프롬프트 생성",
+    readingReason: "이집트 신탁 리딩",
+    promptReady: "프롬프트가 열렸습니다. 그대로 복사해 원하는 AI에게 건네면 됩니다.",
+    gateUnavailable: "결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.",
+    gateError: "결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    checkingButton: "30코인 확인 중...",
+    checkingStatus: "이 신탁의 흐름을 열기 전 30코인 결제를 확인하고 있습니다.",
+    paymentNotCompleted: "결제가 완료되지 않아 프롬프트를 열지 않았습니다.",
+    generateButton: "AI에게 더 깊이 묻기 · 30코인",
+    copyNotReady: "복사할 프롬프트가 아직 열리지 않았습니다.",
+    copied: "프롬프트가 복사되었습니다.",
+    copyFailed: "복사에 실패했습니다. 문장을 직접 선택해 복사해 주세요.",
+    kicker: "AI ORACLE PROMPT",
+    promptTitle: "AI에게 건넬 이집트 신탁 질문문",
+    promptLead: "이 신탁의 상징과 세 장의 흐름을 바탕으로, AI에게 더 깊이 물을 수 있는 문장을 엽니다. 30코인이 사용됩니다.",
+    copyButton: "프롬프트 복사",
+    pendingStatus: "질문문은 결제 확인 뒤 이 자리에서 바로 열립니다.",
+    promptAria: "이집트 신탁 AI 질문 프롬프트",
+  },
+  en: {
+    promptReason: "Egyptian oracle AI question prompt",
+    readingReason: "Egyptian oracle reading",
+    promptReady: "Your prompt is open. Copy it as it is and bring it to the AI you prefer.",
+    gateUnavailable: "The payment check module is not ready yet.\nPlease refresh and try again in a moment.",
+    gateError: "An error occurred while checking payment. Please try again shortly.",
+    checkingButton: "Checking 30 coins...",
+    checkingStatus: "Checking the 30-coin payment before opening this oracle flow.",
+    paymentNotCompleted: "Payment was not completed, so the prompt was not opened.",
+    generateButton: "Ask AI more deeply · 30 coins",
+    copyNotReady: "The prompt is not open yet.",
+    copied: "Prompt copied.",
+    copyFailed: "Copy failed. Please select and copy the text manually.",
+    kicker: "AI ORACLE PROMPT",
+    promptTitle: "Egyptian oracle question for AI",
+    promptLead: "Based on this oracle's symbols and three-card flow, open a deeper question for AI. 30 coins will be used.",
+    copyButton: "Copy prompt",
+    pendingStatus: "The question will open here after payment is confirmed.",
+    promptAria: "Egyptian oracle AI question prompt",
+  },
+  ja: {
+    promptReason: "エジプト神託AI質問プロンプト生成",
+    readingReason: "エジプト神託リーディング",
+    promptReady: "プロンプトが開きました。このままコピーして、お好きなAIに渡してください。",
+    gateUnavailable: "決済確認モジュールがまだ準備できていません。\nしばらくしてから更新し、もう一度お試しください。",
+    gateError: "決済確認中にエラーが発生しました。しばらくしてからもう一度お試しください。",
+    checkingButton: "30コイン確認中...",
+    checkingStatus: "この神託の流れを開く前に、30コイン決済を確認しています。",
+    paymentNotCompleted: "決済が完了していないため、プロンプトを開きませんでした。",
+    generateButton: "AIにさらに深く尋ねる · 30コイン",
+    copyNotReady: "コピーするプロンプトはまだ開いていません。",
+    copied: "プロンプトをコピーしました。",
+    copyFailed: "コピーに失敗しました。文章を直接選択してコピーしてください。",
+    kicker: "AI ORACLE PROMPT",
+    promptTitle: "AIに渡すエジプト神託の質問文",
+    promptLead: "この神託の象徴と三枚の流れをもとに、AIへさらに深く尋ねる文を開きます。30コインが使用されます。",
+    copyButton: "プロンプトをコピー",
+    pendingStatus: "質問文は決済確認後、この場所に開きます。",
+    promptAria: "エジプト神託AI質問プロンプト",
+  },
+  zh: {
+    promptReason: "埃及神谕 AI 提问提示生成",
+    readingReason: "埃及神谕解读",
+    promptReady: "提示已开启。请直接复制并交给你想使用的 AI。",
+    gateUnavailable: "支付确认模块尚未准备好。\n请稍后刷新后重试。",
+    gateError: "支付确认时发生错误。请稍后再试。",
+    checkingButton: "正在确认 30 枚硬币...",
+    checkingStatus: "正在开启这道神谕前确认 30 枚硬币支付。",
+    paymentNotCompleted: "支付未完成，因此未开启提示。",
+    generateButton: "向 AI 更深入提问 · 30 枚硬币",
+    copyNotReady: "可复制的提示尚未开启。",
+    copied: "提示已复制。",
+    copyFailed: "复制失败。请手动选择文字并复制。",
+    kicker: "AI ORACLE PROMPT",
+    promptTitle: "交给 AI 的埃及神谕提问",
+    promptLead: "依据这道神谕的象征与三张牌的流向，开启可向 AI 深入追问的句子。将使用 30 枚硬币。",
+    copyButton: "复制提示",
+    pendingStatus: "支付确认后，提问会在这里开启。",
+    promptAria: "埃及神谕 AI 提问提示",
+  },
+};
+
+function getKemetOracleLocale() {
+  try {
+    var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+    var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || "") : "";
+    if (!raw && window.localStorage) raw = localStorage.getItem("cd_locale") || localStorage.getItem("code-destiny-locale") || "";
+    raw = String(raw || "").toLowerCase();
+    if (raw.indexOf("ja") === 0) return "ja";
+    if (raw.indexOf("zh") === 0) return "zh";
+    if (raw.indexOf("en") === 0) return "en";
+  } catch (_) {}
+  return "ko";
+}
+
+function getKemetOracleCopy() {
+  return KEMET_ORACLE_COPY[getKemetOracleLocale()] || KEMET_ORACLE_COPY.ko;
+}
 
 const KEMET_GODS = [
   {
@@ -543,7 +641,7 @@ function revealKemetAiPrompt(panel) {
   if (output) output.style.display = 'block';
   if (copyBtn) copyBtn.style.display = 'inline-flex';
   if (generateBtn) generateBtn.style.display = 'none';
-  setKemetAiPromptStatus(panel, '프롬프트가 열렸습니다. 그대로 복사해 원하는 AI에게 건네면 됩니다.', 'success');
+  setKemetAiPromptStatus(panel, getKemetOracleCopy().promptReady, 'success');
 }
 
 function consumeKemetAiPromptCoin() {
@@ -555,7 +653,7 @@ function consumeKemetAiPromptCoin() {
       resolve(!!ok);
     }
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
+      alert(getKemetOracleCopy().gateUnavailable);
       done(false);
       return;
     }
@@ -563,7 +661,7 @@ function consumeKemetAiPromptCoin() {
       var requestId = KEMET_AI_PROMPT_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       var result = window._cdCoinGatePerUse(
         KEMET_AI_PROMPT_COST,
-        KEMET_AI_PROMPT_REASON,
+        getKemetOracleCopy().promptReason,
         function() { done(true); },
         function() { done(false); },
         {
@@ -580,7 +678,7 @@ function consumeKemetAiPromptCoin() {
         }).catch(function() { done(false); });
       }
     } catch (_err) {
-      alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      alert(getKemetOracleCopy().gateError);
       done(false);
     }
   });
@@ -594,21 +692,22 @@ function generateKemetAiPrompt(button) {
     return;
   }
   var prevText = button ? button.textContent : '';
+  var copy = getKemetOracleCopy();
   if (button) {
     button.disabled = true;
-    button.textContent = '30코인 확인 중...';
+    button.textContent = copy.checkingButton;
   }
-  setKemetAiPromptStatus(panel, '이 신탁의 흐름을 열기 전 30코인 결제를 확인하고 있습니다.', 'info');
+  setKemetAiPromptStatus(panel, copy.checkingStatus, 'info');
   consumeKemetAiPromptCoin().then(function(ok) {
     if (!ok) {
-      setKemetAiPromptStatus(panel, '결제가 완료되지 않아 프롬프트를 열지 않았습니다.', 'warn');
+      setKemetAiPromptStatus(panel, copy.paymentNotCompleted, 'warn');
       return;
     }
     revealKemetAiPrompt(panel);
   }).finally(function() {
     if (!button) return;
     button.disabled = false;
-    if (panel.dataset.generated !== '1') button.textContent = prevText || 'AI에게 더 깊이 묻기 · 30코인';
+    if (panel.dataset.generated !== '1') button.textContent = prevText || copy.generateButton;
   });
 }
 
@@ -639,14 +738,15 @@ function copyKemetAiPrompt(button) {
   var panel = findKemetAiPromptPanel(button);
   var output = panel ? panel.querySelector('[data-kemet-ai-prompt-output]') : null;
   var text = output ? output.value : '';
+  var copy = getKemetOracleCopy();
   if (!text.trim()) {
-    setKemetAiPromptStatus(panel, '복사할 프롬프트가 아직 열리지 않았습니다.', 'warn');
+    setKemetAiPromptStatus(panel, copy.copyNotReady, 'warn');
     return;
   }
   copyKemetText(text).then(function() {
-    setKemetAiPromptStatus(panel, '프롬프트가 복사되었습니다.', 'success');
+    setKemetAiPromptStatus(panel, copy.copied, 'success');
   }).catch(function() {
-    setKemetAiPromptStatus(panel, '복사에 실패했습니다. 문장을 직접 선택해 복사해 주세요.', 'warn');
+    setKemetAiPromptStatus(panel, copy.copyFailed, 'warn');
   });
 }
 
@@ -686,11 +786,11 @@ function closeKemetModal() {
 
 function consumeKemetPerUseCoin() {
   var COST = 30;
-  var REASON = '이집트 신탁 리딩';
+  var REASON = getKemetOracleCopy().readingReason;
 
-  return new Promise(function(resolve) {
+    return new Promise(function(resolve) {
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
+      alert(getKemetOracleCopy().gateUnavailable);
       resolve(false);
       return;
     }
@@ -703,7 +803,7 @@ function consumeKemetPerUseCoin() {
         function() { resolve(false); }
       );
     } catch (_err) {
-      alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      alert(getKemetOracleCopy().gateError);
       resolve(false);
     }
   });
@@ -778,6 +878,7 @@ function showKemetSpread(userInput, selectedIndices) {
     catSymbol: catSymbol
   });
   var safeAiPromptText = escapeKemetHtml(aiPromptText);
+  var promptCopy = getKemetOracleCopy();
 
   resultDiv.innerHTML = `
     <style>
@@ -958,17 +1059,17 @@ function showKemetSpread(userInput, selectedIndices) {
         <div class="km-ai-prompt-head">
           <span class="km-ai-prompt-seal" aria-hidden="true">𓂀</span>
           <div>
-            <p class="km-ai-prompt-kicker">AI ORACLE PROMPT</p>
-            <h3 class="km-ai-prompt-title">AI에게 건넬 이집트 신탁 질문문</h3>
-            <p class="km-ai-prompt-lead">이 신탁의 상징과 세 장의 흐름을 바탕으로, AI에게 더 깊이 물을 수 있는 문장을 엽니다. 30코인이 사용됩니다.</p>
+            <p class="km-ai-prompt-kicker">${promptCopy.kicker}</p>
+            <h3 class="km-ai-prompt-title">${promptCopy.promptTitle}</h3>
+            <p class="km-ai-prompt-lead">${promptCopy.promptLead}</p>
           </div>
         </div>
         <div class="km-ai-prompt-actions">
-          <button class="km-ai-prompt-btn" type="button" data-action="generateKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-generate data-feature-key="${KEMET_AI_PROMPT_FEATURE_KEY}" data-coin-cost="${KEMET_AI_PROMPT_COST}">AI에게 더 깊이 묻기 · 30코인</button>
-          <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy style="display:none;">프롬프트 복사</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="generateKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-generate data-feature-key="${KEMET_AI_PROMPT_FEATURE_KEY}" data-coin-cost="${KEMET_AI_PROMPT_COST}">${promptCopy.generateButton}</button>
+          <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy style="display:none;">${promptCopy.copyButton}</button>
         </div>
-        <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>질문문은 결제 확인 뒤 이 자리에서 바로 열립니다.</p>
-        <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="이집트 신탁 AI 질문 프롬프트" style="display:none;">${safeAiPromptText}</textarea>
+        <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>${promptCopy.pendingStatus}</p>
+        <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="${promptCopy.promptAria}" style="display:none;">${safeAiPromptText}</textarea>
       </div>
 
       <div style="width:100%; text-align:center; padding:10px 0 6px;">

@@ -7,6 +7,31 @@ type AuthPayload = {
   typ?: string;
 };
 
+const ROUTE_AUTH_TEXT_TRANSLATIONS = {
+  ko: {
+    loginRequired: "로그인 후 이용할 수 있습니다.",
+  },
+  en: {
+    loginRequired: "Please log in to continue.",
+  },
+  ja: {
+    loginRequired: "ログイン後にご利用いただけます。",
+  },
+} as const;
+
+function getRouteAuthLocale(req: NextRequest): keyof typeof ROUTE_AUTH_TEXT_TRANSLATIONS {
+  const cookieLocale = String(req.cookies.get("cd_locale")?.value || req.cookies.get("NEXT_LOCALE")?.value || "").trim();
+  const headerLocale = String(req.headers.get("accept-language") || "").trim();
+  const locale = (cookieLocale || headerLocale).replace("_", "-").toLowerCase();
+  if (locale.startsWith("ja")) return "ja";
+  if (locale.startsWith("en")) return "en";
+  return "ko";
+}
+
+function getRouteAuthCopy(req: NextRequest) {
+  return ROUTE_AUTH_TEXT_TRANSLATIONS[getRouteAuthLocale(req)] || ROUTE_AUTH_TEXT_TRANSLATIONS.ko;
+}
+
 function readEnv(...keys: string[]): string {
   for (const key of keys) {
     const value = String((process.env as Record<string, string | undefined>)[key] || "").trim();
@@ -142,6 +167,7 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
   const refreshCookieToken = getRefreshCookieTokenFromRequest(req);
   const devUserId = getDevAuthUserId();
   if (devUserId) return { ok: true, userId: devUserId };
+  const copy = getRouteAuthCopy(req);
 
   if (!bearerToken && !accessCookieToken && !refreshCookieToken) {
     logRouteAuthDiagnostic(req, new Error("missing_auth_token"), "route_auth_missing_token");
@@ -151,7 +177,7 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
         {
           success: false,
           error: "LOGIN_REQUIRED",
-          message: "로그인 후 이용할 수 있습니다.",
+          message: copy.loginRequired,
         },
         { status: 401 },
       ),
@@ -177,7 +203,7 @@ export function requireRouteAuth(req: NextRequest): { ok: true; userId: string }
         {
           success: false,
           error: "LOGIN_REQUIRED",
-          message: "로그인 후 이용할 수 있습니다.",
+          message: copy.loginRequired,
         },
         { status: 401 },
       ),

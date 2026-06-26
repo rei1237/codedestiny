@@ -1,4 +1,5 @@
 import { Lunar, Solar } from "lunar-javascript";
+import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { calculateLocalSaju, type LocalSajuResult, type SajuPillarLocal } from "../../saju/animal-destiny/engine/localSajuCalculator";
 
 export type DangsajuMode = "basic" | "compatibility";
@@ -94,10 +95,81 @@ export type DangsajuCompatibilityResult = {
 
 export type DangsajuResult = DangsajuChartResult | DangsajuCompatibilityResult;
 
-export const DANGSAJU_MODES = [
-  { id: "basic", label: "당사주 기본차트 해석", description: "당사주로 보는 초년·청년·중년·말년을 알려드립니다." },
-  { id: "compatibility", label: "당사주 궁합", description: "두 사람의 당사주 궁합을 풀이합니다." },
-] as const;
+type DangsajuCalcCopy = {
+  modeBasicLabel: string;
+  modeBasicDescription: string;
+  modeCompatibilityLabel: string;
+  modeCompatibilityDescription: string;
+  calendarLunarLeap: string;
+  calendarLunar: string;
+  calendarSolar: string;
+};
+
+type DangsajuCalcTextKey = keyof DangsajuCalcCopy;
+
+const DANGSAJU_CALC_TEXT_TRANSLATIONS: Partial<Record<LoadingLocale, DangsajuCalcCopy>> = {
+  ko: {
+    modeBasicLabel: "당사주 기본차트 해석",
+    modeBasicDescription: "당사주로 보는 초년·청년·중년·말년을 알려드립니다.",
+    modeCompatibilityLabel: "당사주 궁합",
+    modeCompatibilityDescription: "두 사람의 당사주 궁합을 풀이합니다.",
+    calendarLunarLeap: "음력 윤달",
+    calendarLunar: "음력",
+    calendarSolar: "양력",
+  },
+  en: {
+    modeBasicLabel: "Dangsaju Life Chart",
+    modeBasicDescription: "Read the early, youth, middle, and later-life currents through Dangsaju.",
+    modeCompatibilityLabel: "Dangsaju Compatibility",
+    modeCompatibilityDescription: "Unfold the compatibility between two people through Dangsaju.",
+    calendarLunarLeap: "Lunar leap month",
+    calendarLunar: "Lunar",
+    calendarSolar: "Solar",
+  },
+  ja: {
+    modeBasicLabel: "唐四柱 基本チャート",
+    modeBasicDescription: "唐四柱で幼年・青年・中年・晩年の流れを読み解きます。",
+    modeCompatibilityLabel: "唐四柱 相性",
+    modeCompatibilityDescription: "二人の唐四柱の相性をやわらかく読み解きます。",
+    calendarLunarLeap: "旧暦 うるう月",
+    calendarLunar: "旧暦",
+    calendarSolar: "新暦",
+  },
+  "zh-CN": {
+    modeBasicLabel: "唐四柱基础命盘",
+    modeBasicDescription: "以唐四柱解读早年、青年、中年与晚年的命运流向。",
+    modeCompatibilityLabel: "唐四柱合盘",
+    modeCompatibilityDescription: "通过唐四柱细读两个人的缘分与相处节奏。",
+    calendarLunarLeap: "农历闰月",
+    calendarLunar: "农历",
+    calendarSolar: "公历",
+  },
+  "zh-TW": {
+    modeBasicLabel: "唐四柱基礎命盤",
+    modeBasicDescription: "以唐四柱解讀早年、青年、中年與晚年的命運流向。",
+    modeCompatibilityLabel: "唐四柱合盤",
+    modeCompatibilityDescription: "透過唐四柱細讀兩個人的緣分與相處節奏。",
+    calendarLunarLeap: "農曆閏月",
+    calendarLunar: "農曆",
+    calendarSolar: "國曆",
+  },
+};
+
+function dangsajuCalcText(key: DangsajuCalcTextKey, locale?: LoadingLocale | string | null) {
+  const activeLocale = locale ? normalizeLoadingLocale(locale) : getCurrentLoadingLocale();
+  return DANGSAJU_CALC_TEXT_TRANSLATIONS[activeLocale]?.[key]
+    ?? DANGSAJU_CALC_TEXT_TRANSLATIONS.en?.[key]
+    ?? DANGSAJU_CALC_TEXT_TRANSLATIONS.ko![key];
+}
+
+export function getDangsajuModes(locale?: LoadingLocale | string | null) {
+  return [
+    { id: "basic" as const, label: dangsajuCalcText("modeBasicLabel", locale), description: dangsajuCalcText("modeBasicDescription", locale) },
+    { id: "compatibility" as const, label: dangsajuCalcText("modeCompatibilityLabel", locale), description: dangsajuCalcText("modeCompatibilityDescription", locale) },
+  ];
+}
+
+export const DANGSAJU_MODES = getDangsajuModes();
 
 export const DANGSAJU_RELATIONSHIP_TYPES = ["연애", "결혼", "썸", "재회", "친구", "가족", "사업 파트너", "직장 관계", "기타"];
 
@@ -287,9 +359,9 @@ function parseBirthTime(value: string, timeUnknown: boolean) {
 }
 
 function normalizeCalendarType(value: DangsajuCalendarType) {
-  return value === "lunarLeap" ? { engine: "lunar" as const, leap: true, label: "음력 윤달" } : value === "lunar"
-    ? { engine: "lunar" as const, leap: false, label: "음력" }
-    : { engine: "solar" as const, leap: false, label: "양력" };
+  return value === "lunarLeap" ? { engine: "lunar" as const, leap: true, label: dangsajuCalcText("calendarLunarLeap") } : value === "lunar"
+    ? { engine: "lunar" as const, leap: false, label: dangsajuCalcText("calendarLunar") }
+    : { engine: "solar" as const, leap: false, label: dangsajuCalcText("calendarSolar") };
 }
 
 function solarFromInput(year: number, month: number, day: number, calendarType: DangsajuCalendarType) {

@@ -47,10 +47,46 @@ export type PsychPromptResult = {
   }>;
 };
 
+const PSYCH_PROMPT_TOOLS_TEXT_TRANSLATIONS = {
+  ko: {
+    "psychPrompt.001": "안정 확인형",
+    "psychPrompt.002": "깊이 몰입형",
+    "psychPrompt.003": "거리 조율형",
+    "psychPrompt.004": "표현 탐색형",
+    "psychPrompt.005": "구조 설계형",
+    "psychPrompt.006": "확장 실험형",
+    "psychPrompt.007": "관계 협업형",
+    "psychPrompt.008": "몰입 장인형",
+    "psychPrompt.009": "감각 회복형",
+    "psychPrompt.010": "대화 정리형",
+    "psychPrompt.011": "혼자 재정렬형",
+    "psychPrompt.012": "행동 전환형",
+    "psychPrompt.013": "근거 확인형",
+    "psychPrompt.014": "직감 점화형",
+    "psychPrompt.015": "리스크 방어형",
+    "psychPrompt.016": "타이밍 관찰형",
+    "psychPrompt.017": "관계 마음결 테스트",
+    "psychPrompt.018": "Relationship Mind Pattern",
+    "psychPrompt.019": "관계 안에서 가까워지는 방식, 불안이 켜지는 순간, 표현의 속도를 먼저 살핀 뒤 상담 프롬프트로 엮습니다.",
+    "psychPrompt.020": "일과 재능 리듬 테스트",
+    "psychPrompt.021": "Career Talent Rhythm",
+    "psychPrompt.022": "일이 잘 풀릴 때의 리듬, 지치는 조건, 재능이 살아나는 환경을 먼저 가려 프롬프트에 담습니다.",
+    "psychPrompt.023": "감정 회복 리듬 테스트",
+    "psychPrompt.024": "Emotional Recovery Rhythm",
+    "psychPrompt.025": "마음이 흔들릴 때 안정되는 방식과 회복을 막는 습관을 먼저 읽어 프롬프트로 정리합니다.",
+    "psychPrompt.026": "선택 패턴 테스트",
+    "psychPrompt.027": "Decision Pattern Check",
+    "psychPrompt.028": "중요한 선택 앞에서 확인하는 기준, 불안이 커지는 지점, 움직여도 되는 신호를 프롬프트로 정리합니다.",
+  },
+} as const;
+
+function psychPromptToolsText(key: keyof typeof PSYCH_PROMPT_TOOLS_TEXT_TRANSLATIONS.ko) {
+  return PSYCH_PROMPT_TOOLS_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
 const RELATIONSHIP_ARCHETYPES: PsychArchetype[] = [
   {
     type: "secure",
-    label: "안정 확인형",
+    label: psychPromptToolsText("psychPrompt.001"),
     summary: "관계의 온도를 차분히 확인하고 약속과 태도를 함께 보려는 흐름이 강합니다.",
     strengths: ["신뢰를 천천히 쌓음", "상대의 상황을 함께 고려함", "관계의 지속성을 중시함"],
     cautions: ["확인이 늦어지면 속마음을 삼킬 수 있음", "갈등을 오래 미루기 쉬움"],
@@ -58,7 +94,7 @@ const RELATIONSHIP_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "deep",
-    label: "깊이 몰입형",
+    label: psychPromptToolsText("psychPrompt.002"),
     summary: "마음이 움직이면 깊게 들어가고, 관계의 진심과 몰입을 크게 느끼는 편입니다.",
     strengths: ["감정 집중력이 높음", "진심을 빠르게 알아차림", "관계에 정성을 쏟음"],
     cautions: ["상대의 작은 반응을 크게 해석할 수 있음", "기다림이 길어지면 불안이 커짐"],
@@ -66,7 +102,7 @@ const RELATIONSHIP_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "distance",
-    label: "거리 조율형",
+    label: psychPromptToolsText("psychPrompt.003"),
     summary: "가까워지고 싶어도 내 리듬을 잃지 않으려 하며, 안전한 거리에서 마음을 확인합니다.",
     strengths: ["경계를 잘 지킴", "관계에 휩쓸리지 않음", "상황을 객관화함"],
     cautions: ["표현이 늦어 차갑게 보일 수 있음", "좋은 기회도 관찰만 하다 놓칠 수 있음"],
@@ -74,7 +110,7 @@ const RELATIONSHIP_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "expressive",
-    label: "표현 탐색형",
+    label: psychPromptToolsText("psychPrompt.004"),
     summary: "마음이 움직이면 말과 행동으로 확인하려 하고, 관계의 반응 속도를 중요하게 봅니다.",
     strengths: ["표현이 빠름", "관계 분위기를 살림", "막힌 대화를 열기 쉬움"],
     cautions: ["답을 빨리 확인하려 할 수 있음", "상대 속도보다 앞서갈 수 있음"],
@@ -85,7 +121,7 @@ const RELATIONSHIP_ARCHETYPES: PsychArchetype[] = [
 const CAREER_ARCHETYPES: PsychArchetype[] = [
   {
     type: "structure",
-    label: "구조 설계형",
+    label: psychPromptToolsText("psychPrompt.005"),
     summary: "일의 기준과 순서를 잡을 때 재능이 안정적으로 살아납니다.",
     strengths: ["계획을 세움", "누락을 줄임", "장기 목표에 강함"],
     cautions: ["완벽한 조건을 기다리다 시작이 늦어질 수 있음", "변수에 피로가 쌓임"],
@@ -93,7 +129,7 @@ const CAREER_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "spark",
-    label: "확장 실험형",
+    label: psychPromptToolsText("psychPrompt.006"),
     summary: "새로운 시도와 변화 속에서 감각이 열리고 가능성을 빠르게 찾습니다.",
     strengths: ["기회 포착", "빠른 시도", "아이디어 확장"],
     cautions: ["마무리 전에 다음 자극으로 옮겨갈 수 있음", "루틴이 약해질 수 있음"],
@@ -101,7 +137,7 @@ const CAREER_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "people",
-    label: "관계 협업형",
+    label: psychPromptToolsText("psychPrompt.007"),
     summary: "사람의 필요와 분위기를 읽으며 협업과 조율 안에서 능력이 드러납니다.",
     strengths: ["소통 감각", "중재력", "상대의 니즈 파악"],
     cautions: ["타인의 기대를 떠안기 쉬움", "내 기준이 뒤로 밀릴 수 있음"],
@@ -109,7 +145,7 @@ const CAREER_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "craft",
-    label: "몰입 장인형",
+    label: psychPromptToolsText("psychPrompt.008"),
     summary: "깊게 파고드는 일에서 실력이 쌓이고, 조용한 집중 시간이 중요합니다.",
     strengths: ["전문성", "집중력", "작품 완성도"],
     cautions: ["혼자 떠안기 쉬움", "피드백을 늦게 받을 수 있음"],
@@ -120,7 +156,7 @@ const CAREER_ARCHETYPES: PsychArchetype[] = [
 const EMOTION_ARCHETYPES: PsychArchetype[] = [
   {
     type: "body",
-    label: "감각 회복형",
+    label: psychPromptToolsText("psychPrompt.009"),
     summary: "몸의 감각과 환경이 안정될 때 마음도 함께 가라앉습니다.",
     strengths: ["현실 감각", "생활 리듬 회복", "몸의 신호를 잘 느낌"],
     cautions: ["피로를 감정 문제로 착각할 수 있음", "환경이 흐트러지면 예민해짐"],
@@ -128,7 +164,7 @@ const EMOTION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "talk",
-    label: "대화 정리형",
+    label: psychPromptToolsText("psychPrompt.010"),
     summary: "말로 풀어낼 때 감정의 모양이 선명해지고, 마음이 정리됩니다.",
     strengths: ["감정 언어화", "관계 회복", "상황 설명력"],
     cautions: ["상대 반응에 따라 기분이 흔들릴 수 있음", "말이 길어질 수 있음"],
@@ -136,7 +172,7 @@ const EMOTION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "alone",
-    label: "혼자 재정렬형",
+    label: psychPromptToolsText("psychPrompt.011"),
     summary: "혼자 있는 시간이 생기면 감정의 소음이 낮아지고 판단이 맑아집니다.",
     strengths: ["내면 관찰", "자기 회복", "감정 거리두기"],
     cautions: ["고립이 길어질 수 있음", "필요한 도움 요청이 늦어질 수 있음"],
@@ -144,7 +180,7 @@ const EMOTION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "action",
-    label: "행동 전환형",
+    label: psychPromptToolsText("psychPrompt.012"),
     summary: "움직이며 장면을 바꿀 때 감정이 빠르게 환기되고 다시 힘이 생깁니다.",
     strengths: ["회복 속도", "실행력", "분위기 전환"],
     cautions: ["감정을 충분히 보지 않고 바쁘게 넘길 수 있음", "쉬어야 할 때도 움직일 수 있음"],
@@ -155,7 +191,7 @@ const EMOTION_ARCHETYPES: PsychArchetype[] = [
 const DECISION_ARCHETYPES: PsychArchetype[] = [
   {
     type: "proof",
-    label: "근거 확인형",
+    label: psychPromptToolsText("psychPrompt.013"),
     summary: "판단 전에 자료와 조건을 맞추며, 납득 가능한 선택을 선호합니다.",
     strengths: ["리스크 점검", "현실 검토", "차분한 비교"],
     cautions: ["확신이 늦게 올 수 있음", "정보가 많아질수록 결정이 무거워짐"],
@@ -163,7 +199,7 @@ const DECISION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "intuition",
-    label: "직감 점화형",
+    label: psychPromptToolsText("psychPrompt.014"),
     summary: "마음이 선명하게 반응하는 순간을 중요하게 보고, 기회를 빠르게 붙잡습니다.",
     strengths: ["빠른 감지", "기회 포착", "흐름을 읽는 감각"],
     cautions: ["감정의 파도와 직감을 혼동할 수 있음", "검토가 부족해질 수 있음"],
@@ -171,7 +207,7 @@ const DECISION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "risk",
-    label: "리스크 방어형",
+    label: psychPromptToolsText("psychPrompt.015"),
     summary: "나쁜 가능성을 먼저 살피며, 안전한 선택지를 확보해야 움직임이 편해집니다.",
     strengths: ["위험 감지", "대비책 마련", "손실 최소화"],
     cautions: ["가능성보다 위험을 크게 볼 수 있음", "좋은 제안도 불안 때문에 늦출 수 있음"],
@@ -179,7 +215,7 @@ const DECISION_ARCHETYPES: PsychArchetype[] = [
   },
   {
     type: "timing",
-    label: "타이밍 관찰형",
+    label: psychPromptToolsText("psychPrompt.016"),
     summary: "상황의 흐름과 사람들의 반응을 보며 움직일 때 판단이 안정됩니다.",
     strengths: ["분위기 파악", "적절한 때를 기다림", "관계 변수 관찰"],
     cautions: ["기다림이 길어질 수 있음", "내 의사를 늦게 드러낼 수 있음"],
@@ -194,9 +230,9 @@ function option(id: string, label: string, signal: string, type: string): PsychO
 export const PSYCH_PROMPT_TESTS: PsychPromptTest[] = [
   {
     id: "relationship",
-    title: "관계 마음결 테스트",
-    subtitle: "Relationship Mind Pattern",
-    description: "관계 안에서 가까워지는 방식, 불안이 켜지는 순간, 표현의 속도를 먼저 살핀 뒤 상담 프롬프트로 엮습니다.",
+    title: psychPromptToolsText("psychPrompt.017"),
+    subtitle: psychPromptToolsText("psychPrompt.018"),
+    description: psychPromptToolsText("psychPrompt.019"),
     guide: "지금 떠오르는 한 사람이나 관계 장면을 기준으로 답하면 흐름이 더 선명해집니다.",
     archetypes: RELATIONSHIP_ARCHETYPES,
     questions: [
@@ -254,9 +290,9 @@ export const PSYCH_PROMPT_TESTS: PsychPromptTest[] = [
   },
   {
     id: "career",
-    title: "일과 재능 리듬 테스트",
-    subtitle: "Career Talent Rhythm",
-    description: "일이 잘 풀릴 때의 리듬, 지치는 조건, 재능이 살아나는 환경을 먼저 가려 프롬프트에 담습니다.",
+    title: psychPromptToolsText("psychPrompt.020"),
+    subtitle: psychPromptToolsText("psychPrompt.021"),
+    description: psychPromptToolsText("psychPrompt.022"),
     guide: "최근 일, 공부, 프로젝트, 돈을 버는 방식 중 가장 마음에 남는 장면을 기준으로 답해 주세요.",
     archetypes: CAREER_ARCHETYPES,
     questions: [
@@ -314,9 +350,9 @@ export const PSYCH_PROMPT_TESTS: PsychPromptTest[] = [
   },
   {
     id: "emotion",
-    title: "감정 회복 리듬 테스트",
-    subtitle: "Emotional Recovery Rhythm",
-    description: "마음이 흔들릴 때 안정되는 방식과 회복을 막는 습관을 먼저 읽어 프롬프트로 정리합니다.",
+    title: psychPromptToolsText("psychPrompt.023"),
+    subtitle: psychPromptToolsText("psychPrompt.024"),
+    description: psychPromptToolsText("psychPrompt.025"),
     guide: "최근 지쳤던 날을 떠올리고, 실제로 마음이 조금 내려앉았던 방식을 골라 주세요.",
     archetypes: EMOTION_ARCHETYPES,
     questions: [
@@ -374,9 +410,9 @@ export const PSYCH_PROMPT_TESTS: PsychPromptTest[] = [
   },
   {
     id: "decision",
-    title: "선택 패턴 테스트",
-    subtitle: "Decision Pattern Check",
-    description: "중요한 선택 앞에서 확인하는 기준, 불안이 커지는 지점, 움직여도 되는 신호를 프롬프트로 정리합니다.",
+    title: psychPromptToolsText("psychPrompt.026"),
+    subtitle: psychPromptToolsText("psychPrompt.027"),
+    description: psychPromptToolsText("psychPrompt.028"),
     guide: "이직, 계약, 고백, 투자, 이동처럼 지금 미루고 있는 선택을 하나 떠올리고 답해 주세요.",
     archetypes: DECISION_ARCHETYPES,
     questions: [
