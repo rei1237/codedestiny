@@ -9,7 +9,7 @@ export const SUKYO_PDF_CHAPTER_COUNT = 15;
 export const SUKYO_PDF_CONFIG = Object.freeze({
   generationMode: "llm-html-v2",
   provider: "gemini-primary-workers-ai-fallback",
-  templateVersion: "sukuyo-premium-html-v2.3.0",
+  templateVersion: "sukuyo-premium-html-v2.3.1",
 });
 const SUKYO_PDF_CHAPTER_CATEGORY_BY_ORDER = Object.freeze({
   1: { categoryKey: "core-map", categoryTitle: "Core compatibility map" },
@@ -222,8 +222,8 @@ function decodeEntities(value) {
     .replace(/&#39;/g, "'");
 }
 
-function stripTags(value) {
-  return clean(decodeEntities(String(value || "").replace(/<[^>]+>/g, " ")));
+function stripTags(value, max = 100000) {
+  return clean(decodeEntities(String(value || "").replace(/<[^>]+>/g, " ")), max);
 }
 
 function hashStable(value) {
@@ -787,6 +787,48 @@ function containsKorean(value = "") {
   return /[가-힣]/.test(String(value || ""));
 }
 
+function sukyoPersonLabel(value = "", fallback = "") {
+  return clean(value || fallback, 80).replace(/님$/u, "") + "님";
+}
+
+function replaceSukyoSubjectPlaceholders(value = "", selfLabel = "본인", partnerLabel = "상대") {
+  return clean(value, 300)
+    .replace(/A에서\s*B로/g, `${selfLabel}에게서 ${partnerLabel}에게`)
+    .replace(/B에서\s*A로/g, `${partnerLabel}에게서 ${selfLabel}에게`)
+    .replace(/A가\s*B에게/g, `${selfLabel}이 ${partnerLabel}에게`)
+    .replace(/B가\s*A에게/g, `${partnerLabel}이 ${selfLabel}에게`)
+    .replace(/A의/g, `${selfLabel}의`)
+    .replace(/B의/g, `${partnerLabel}의`)
+    .replace(/A가/g, `${selfLabel}이`)
+    .replace(/B가/g, `${partnerLabel}이`)
+    .replace(/A를/g, `${selfLabel}을`)
+    .replace(/B를/g, `${partnerLabel}을`);
+}
+
+function personalizeSukyoSectionTitle(title = "", facts = {}) {
+  const selfLabel = sukyoPersonLabel(facts.consultation?.selfName || facts.personA?.name || "본인");
+  const partnerLabel = sukyoPersonLabel(facts.consultation?.partnerName || facts.personB?.name || "상대");
+  return replaceSukyoSubjectPlaceholders(title, selfLabel, partnerLabel);
+}
+
+function personalizeSukyoChapterSpec(chapterSpec = {}, facts = {}) {
+  return {
+    ...chapterSpec,
+    sections: asArray(chapterSpec.sections).map((title) => personalizeSukyoSectionTitle(title, facts)),
+  };
+}
+
+export function buildPublicSukyoPdfChapterSpec(chapterSpec = {}) {
+  return {
+    ...chapterSpec,
+    sections: asArray(chapterSpec.sections).map((title) => replaceSukyoSubjectPlaceholders(title, "본인", "상대")),
+  };
+}
+
+export function getPublicSukyoPdfChapters() {
+  return SUKYO_PDF_CHAPTERS.map(buildPublicSukyoPdfChapterSpec);
+}
+
 function extractTag(html, tag) {
   const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
   return stripTags(html.match(re)?.[1] || "");
@@ -813,10 +855,11 @@ function extractSections(html) {
 }
 
 function findConsultationToneIssues(value = "") {
-  const text = stripTags(value);
+  const text = stripTags(value, Infinity);
   const issues = [];
   if (/(^|[\s"'“‘])(?:A|B)\s*[:：]/.test(text)) issues.push("tone.ab-speaker");
   if (/(?:A와\s*B|B와\s*A|상대\s*[AB]|personA|personB)/i.test(text)) issues.push("tone.ab-label");
+  if (/(?:A가\s*B에게|B가\s*A에게|A에서\s*B로|B에서\s*A로|A의|B의|A가|B가|A를|B를)/.test(text)) issues.push("tone.ab-placeholder");
   if (/(?:이 결과는|이 기능은|분석 결과는|데이터에 따르면|템플릿|자동 생성|검증|스키마)/.test(text)) issues.push("tone.mechanical");
   return issues;
 }
@@ -926,6 +969,22 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     .slice(0, 6)
     .map((item) => (typeof item === "string" ? `- ${item}` : `- ${clean(item.title || item.label || item.period || "시기 흐름", 80)}: ${clean(item.text || item.reading || item.advice || "", 240)}`))
     .join("\n");
+  const prescriptions = asArray(facts.consultation?.prescriptions || facts.compatibility?.prescriptions)
+    .slice(0, 6)
+    .map((item) => (typeof item === "string" ? `- ${item}` : `- ${clean(item.title || item.label || "관계 처방", 80)}: ${clean(item.text || item.advice || item.prescription || "", 260)}`))
+    .join("\n");
+  const purposeReadings = asArray(facts.consultation?.purposeReadings || facts.compatibility?.purposeReadings)
+    .slice(0, 6)
+    .map((item) => (typeof item === "string" ? `- ${item}` : `- ${clean(item.title || item.label || "인연 목적", 80)}: ${clean(item.text || item.reading || item.advice || "", 260)}`))
+    .join("\n");
+  const roleA = clean(facts.consultation?.roleA || facts.compatibility?.roleA || "", 260);
+  const roleB = clean(facts.consultation?.roleB || facts.compatibility?.roleB || "", 260);
+  const distanceDeep = typeof facts.compatibility?.distanceDeep === "string"
+    ? clean(facts.compatibility.distanceDeep, 360)
+    : clean(facts.compatibility?.distanceDeep?.reading || facts.compatibility?.distanceDeep?.summary || facts.compatibility?.distanceDeep?.advice || "", 360);
+  const pastLife = typeof facts.compatibility?.pastLife === "string"
+    ? clean(facts.compatibility.pastLife, 360)
+    : clean(facts.compatibility?.pastLife?.reading || facts.compatibility?.pastLife?.summary || facts.compatibility?.pastLife?.advice || "", 360);
   return [
     `Chapter category: ${chapterSpec.categoryKey || ""} / ${chapterSpec.categoryTitle || ""}`,
     "Section categories:",
@@ -954,10 +1013,17 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     `종합 점수: ${facts.compatibility.score ?? "미상"} / ${facts.compatibility.scoreLabel}`,
     facts.compatibility.relationshipName ? `기본 숙요점 관계명: ${facts.compatibility.relationshipName}` : "",
     facts.compatibility.elementHarmony ? `오행 흐름: ${facts.compatibility.elementHarmony}` : "",
+    facts.consultation?.relationshipName ? `숙요점 관계 별칭: ${facts.consultation.relationshipName}` : "",
+    roleA ? `${selfName}님의 관계 역할: ${roleA}` : "",
+    roleB ? `${partnerName}님의 관계 역할: ${roleB}` : "",
+    distanceDeep ? `거리감 심화 해석: ${distanceDeep}` : "",
+    pastLife ? `전생 인연감 상담 근거: ${pastLife}` : "",
     facts.consultation?.expertFinal ? `기본 숙요점 전문가 최종 소견: ${facts.consultation.expertFinal}` : "",
     categoryReadings ? `기본 숙요점 카테고리 리딩:\n${categoryReadings}` : "",
     riskRoutines ? `회복 루틴 근거:\n${riskRoutines}` : "",
     timing ? `시기 흐름 근거:\n${timing}` : "",
+    prescriptions ? `관계 처방 근거:\n${prescriptions}` : "",
+    purposeReadings ? `인연 목적 근거:\n${purposeReadings}` : "",
     "",
     `현재 장: ${chapterSpec.order}. ${chapterSpec.title}`,
     `장 목적: ${chapterSpec.purpose}`,
@@ -1184,6 +1250,22 @@ function isRetryableProviderFailure(result = {}) {
   const errorCode = clean(result?.errorCode || "").toLowerCase();
   if (status === 429 || status >= 500) return true;
   return ["provider_exception", "timeout", "empty_response"].includes(errorCode);
+}
+
+async function emitSukyoProgress(onProgress, payload = {}) {
+  if (typeof onProgress !== "function") return;
+  try {
+    await onProgress({
+      ...payload,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.warn("[SukyoPremiumPDF][ProgressEmitFailed]", {
+      chapterOrder: Number(payload.currentChapterNo || 0) || undefined,
+      stage: clean(payload.stage || ""),
+      reason: clean(error?.message || error),
+    });
+  }
 }
 
 async function generateChapter(env, facts, chapterSpec, previousSummary) {
@@ -1828,6 +1910,7 @@ export function validateSukyoCompatibilityPdfQuality(chapters = []) {
 
 export async function generateSukyoPremiumReport(env = {}, seed = {}, options = {}) {
   const facts = buildFacts(seed);
+  const onProgress = typeof options.onProgress === "function" ? options.onProgress : null;
   if (SUKYO_PDF_CHAPTERS.length !== SUKYO_PDF_CHAPTER_COUNT) {
     throw Object.assign(new Error("숙요점 PDF 장 구성이 완성되지 않았습니다."), {
       status: 500,
@@ -1843,18 +1926,38 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
   let cachedChapterCount = 0;
 
   for (const chapterSpec of SUKYO_PDF_CHAPTERS) {
-    const result = await generateChapter(env, facts, chapterSpec, previousSummary);
+    const displayChapterSpec = personalizeSukyoChapterSpec(chapterSpec, facts);
+    const completedBefore = generated.map((chapter) => Number(chapter.order || chapter.chapterNo || 0)).filter(Boolean);
+    await emitSukyoProgress(onProgress, {
+      stage: "llm-chapter-started",
+      currentChapterNo: displayChapterSpec.order,
+      currentChapterTitle: displayChapterSpec.title,
+      completedChapters: completedBefore,
+      completedChapterCount: completedBefore.length,
+      totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+      progressPercent: Math.round((completedBefore.length / SUKYO_PDF_CHAPTER_COUNT) * 100),
+    });
+    const result = await generateChapter(env, facts, displayChapterSpec, previousSummary);
     if (!result.ok) {
       failedChapters.push({
-        id: chapterSpec.id,
-        order: chapterSpec.order,
-        title: chapterSpec.title,
+        id: displayChapterSpec.id,
+        order: displayChapterSpec.order,
+        title: displayChapterSpec.title,
         errorCode: result.errorCode,
         attempts: result.attempts || [],
       });
+      await emitSukyoProgress(onProgress, {
+        stage: "llm-chapter-failed",
+        currentChapterNo: displayChapterSpec.order,
+        currentChapterTitle: displayChapterSpec.title,
+        completedChapters: completedBefore,
+        completedChapterCount: completedBefore.length,
+        totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+        progressPercent: Math.round((completedBefore.length / SUKYO_PDF_CHAPTER_COUNT) * 100),
+      });
       break;
     }
-    const parsed = parseSukyoPremiumChapterHtml(result.html, chapterSpec);
+    const parsed = parseSukyoPremiumChapterHtml(result.html, displayChapterSpec);
     parsed.provider = result.provider;
     parsed.modelName = result.modelName || "";
     parsed.cached = Boolean(result.cached);
@@ -1863,6 +1966,16 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
     providerSet.add(result.provider);
     if (clean(result.modelName)) modelSet.add(clean(result.modelName));
     previousSummary = clean(stripTags(result.html).slice(-800), 800);
+    const completedAfter = generated.map((chapter) => Number(chapter.order || chapter.chapterNo || 0)).filter(Boolean);
+    await emitSukyoProgress(onProgress, {
+      stage: "llm-chapter-completed",
+      currentChapterNo: displayChapterSpec.order,
+      currentChapterTitle: displayChapterSpec.title,
+      completedChapters: completedAfter,
+      completedChapterCount: completedAfter.length,
+      totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+      progressPercent: Math.round((completedAfter.length / SUKYO_PDF_CHAPTER_COUNT) * 100),
+    });
   }
 
   if (failedChapters.length > 0 || generated.length !== SUKYO_PDF_CHAPTER_COUNT) {

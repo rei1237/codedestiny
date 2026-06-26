@@ -25,6 +25,7 @@ const paragraph = [
 ].join(" ");
 
 const promptChecks = [];
+const progressEvents = [];
 const geminiModel = "gemini-verify-premium";
 let fetchMode = "success";
 globalThis.fetch = async (url, options = {}) => {
@@ -38,6 +39,12 @@ globalThis.fetch = async (url, options = {}) => {
     forbiddenTone: prompt.includes("Forbidden tone keywords:"),
     nameInstruction: prompt.includes("하린님과 도윤님") && prompt.includes("상담 대상 1: 하린") && prompt.includes("상담 대상 2: 도윤"),
     noSubjectAB: !/^\s*[AB]\s*:/m.test(prompt),
+    relationshipEvidence: prompt.includes("숙요점 관계 별칭: 깊은 끌림을 조율하는 안괴"),
+    roleEvidence: prompt.includes("하린님의 관계 역할:") && prompt.includes("도윤님의 관계 역할:"),
+    distanceDeepEvidence: prompt.includes("거리감 심화 해석:"),
+    pastLifeEvidence: prompt.includes("전생 인연감 상담 근거:"),
+    prescriptionEvidence: prompt.includes("관계 처방 근거:"),
+    purposeEvidence: prompt.includes("인연 목적 근거:"),
   });
   if (fetchMode === "fail") {
     return new Response(JSON.stringify({ error: { message: "forced LLM failure" } }), {
@@ -93,6 +100,17 @@ seed.canonical.compatibility = {
   communicationScore: 76,
   conflictScore: 42,
   relationshipName: "깊은 끌림을 조율하는 안괴",
+  roleA: "하린님은 관계의 감정선을 먼저 감지하고 침묵 속 의미를 읽는 쪽에 가깝습니다.",
+  roleB: "도윤님은 관계의 현실 리듬을 붙잡고 약속을 통해 안정감을 세우는 쪽에 가깝습니다.",
+  distanceDeep: "근거리 안괴는 끌림이 빠르게 붙지만 작은 표현 차이에도 마음의 문턱이 예민해지는 흐름입니다.",
+  pastLife: "두 사람은 익숙한 감정의 반복을 통해 오래된 미해결감을 다듬는 인연감이 강하게 떠오릅니다.",
+  relationshipPrescriptions: [
+    { title: "감정 온도 조율", text: "서운함이 생긴 날에는 결론보다 다음 대화 시간을 먼저 정합니다." },
+    { title: "약속의 안정", text: "작은 약속을 반복해서 지키면 안괴의 긴장이 신뢰로 바뀝니다." },
+  ],
+  purposeReadings: [
+    { title: "성장 목적", reading: "서로의 반응 속도를 이해하며 애착의 방식이 깊어지는 인연입니다." },
+  ],
   relationshipCategoryReadings: [
     { title: "감정 호흡", score: 88, reading: "하린님은 감정의 깊이를 먼저 느끼고 도윤님은 반응의 타이밍을 통해 안정감을 찾습니다." },
     { title: "대화 회복", score: 76, reading: "도윤님이 결론을 늦추고 하린님이 감정의 이름을 정확히 말할수록 오해가 빠르게 풀립니다." },
@@ -111,14 +129,36 @@ seed.canonical.compatibility = {
   },
 };
 
-const result = await generateSukyoPremiumReport(env, seed, { requestId: "verify-sukuyo-premium-llm-pdf" });
+const result = await generateSukyoPremiumReport(env, seed, {
+  requestId: "verify-sukuyo-premium-llm-pdf",
+  onProgress: (event) => progressEvents.push(event),
+});
 assert(result.ok === true, "숙요 PDF 생성이 ok=true를 반환해야 합니다.");
 assert(result.chapters.length === 15, "15챕터가 모두 생성되어야 합니다.", result.chapters.length);
 assert(promptChecks.length === 15, "15개 LLM 프롬프트가 호출되어야 합니다.", promptChecks.length);
 const initialPromptCount = promptChecks.length;
+const startedEvents = progressEvents.filter((event) => event.stage === "llm-chapter-started");
+const completedEvents = progressEvents.filter((event) => event.stage === "llm-chapter-completed");
+assert(startedEvents.length === 15, "15개 챕터 시작 progress 이벤트가 필요합니다.", progressEvents);
+assert(completedEvents.length === 15, "15개 챕터 완료 progress 이벤트가 필요합니다.", progressEvents);
 assert(
-  promptChecks.every((item) => item.modelInUrl && item.chapterCategory && item.sectionCategories && item.chapterFocus && item.forbiddenTone && item.nameInstruction && item.noSubjectAB),
-  "모든 프롬프트가 Gemini 모델, 챕터 카테고리, 섹션 카테고리, 전문 초점, 이름 기반 상담 지시, 금지 문체를 포함해야 합니다.",
+  startedEvents.every((event, index) => event.currentChapterNo === index + 1 && event.completedChapterCount === index),
+  "챕터 시작 이벤트는 현재 장과 완료 장 수가 정확해야 합니다.",
+  startedEvents,
+);
+assert(
+  completedEvents.every((event, index) => event.currentChapterNo === index + 1 && event.completedChapterCount === index + 1),
+  "챕터 완료 이벤트는 현재 장과 완료 장 수가 정확해야 합니다.",
+  completedEvents,
+);
+assert(
+  completedEvents.at(-1)?.completedChapters?.length === 15 && completedEvents.at(-1)?.progressPercent === 100,
+  "마지막 progress 이벤트는 15개 완료와 100%를 반환해야 합니다.",
+  completedEvents.at(-1),
+);
+assert(
+  promptChecks.every((item) => item.modelInUrl && item.chapterCategory && item.sectionCategories && item.chapterFocus && item.forbiddenTone && item.nameInstruction && item.noSubjectAB && item.relationshipEvidence && item.roleEvidence && item.distanceDeepEvidence && item.pastLifeEvidence && item.prescriptionEvidence && item.purposeEvidence),
+  "모든 프롬프트가 Gemini 모델, 챕터/섹션 카테고리, 전문 초점, 이름 기반 상담 지시, 금지 문체, 관계 근거를 포함해야 합니다.",
   promptChecks,
 );
 assert(SUKYO_PDF_CONFIG.provider === "gemini-primary-workers-ai-fallback", "숙요 PDF provider 설정은 Gemini 우선이어야 합니다.", SUKYO_PDF_CONFIG.provider);
@@ -135,6 +175,7 @@ const completion = validateSukyoPdfCompletionPayload({ pdfReady: result.pdfReady
 assert(completion.ok === true, "PDF 완료 payload 검증이 통과해야 합니다.", completion.issues);
 
 const html = String(result.pdfReady.html || "");
+const subjectPlaceholderPattern = /(?:A가\s*B에게|B가\s*A에게|A에서\s*B로|B에서\s*A로|A의|B의|A가|B가|A를|B를)/;
 const requiredMarkers = [
   'class="calculation-dashboard"',
   'class="distance-graph"',
@@ -177,6 +218,18 @@ const missingExactValues = exactValueMarkers.filter((marker) => !html.includes(m
 assert(missingExactValues.length === 0, "시각화 data 값이 입력 계산값과 정확히 일치해야 합니다.", missingExactValues);
 assert(html.includes("하린님") && html.includes("도윤님"), "PDF 본문은 입력 이름을 사용해야 합니다.");
 assert(!/(^|[\s\"'“‘])(?:A|B)\s*[:：]/.test(html), "PDF 본문에 A/B speaker 표기가 남지 않아야 합니다.");
+assert(!subjectPlaceholderPattern.test(html), "PDF 본문과 제목에 A/B 자리표시자가 남지 않아야 합니다.");
+assert(
+  result.chapters.every((chapter) => !subjectPlaceholderPattern.test([
+    chapter.title,
+    ...chapter.sections.map((section) => section.heading),
+  ].join(" "))),
+  "챕터 JSON 제목에 A/B 자리표시자가 남지 않아야 합니다.",
+);
+assert(
+  result.chapters.some((chapter) => chapter.sections.some((section) => /하린님|도윤님/.test(section.heading))),
+  "챕터 섹션 제목은 입력 이름 기반으로 동적 변환되어야 합니다.",
+);
 
 const badCompletion = validateSukyoPdfCompletionPayload({
   pdfReady: { ...result.pdfReady, html: `${html}<p>localdraft 템플릿</p>` },
@@ -189,7 +242,7 @@ assert(
 );
 
 const badToneCompletion = validateSukyoPdfCompletionPayload({
-  pdfReady: { ...result.pdfReady, html: `${html}<p>A: 마음을 더 열어야 합니다.</p>` },
+  pdfReady: { ...result.pdfReady, html: `${html}<p>A가 B에게 마음을 더 열어야 합니다.</p>` },
   chapters: result.chapters,
 });
 assert(
@@ -250,6 +303,7 @@ console.log("[verify-sukuyo-premium-llm-pdf] ok", {
   provider: result.llmAssembly?.provider,
   modelName: result.llmAssembly?.modelName,
   promptChecks: initialPromptCount,
+  progressEvents: progressEvents.length,
   repeatPromptChecks: repeatPromptCount,
   failurePromptChecks: failurePromptCount,
 });

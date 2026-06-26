@@ -13,6 +13,7 @@ import {
   SUKYO_PDF_FEATURE_KEY,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
+  getPublicSukyoPdfChapters,
   validateSukyoPdfCompletionPayload,
   validateSukyoPdfInput,
 } from "../lib/sukyo-pdf.js";
@@ -1032,6 +1033,79 @@ function buildSukuyoRunningResponse(request, { sessionId = "", reportId = "", fe
   };
 }
 
+function normalizeSukuyoGenerationProgress(progress = {}) {
+  const source = progress && typeof progress === "object" ? progress : {};
+  const totalChapters = Math.max(1, Number(source.totalChapters || source.expectedChapterCount || SUKYO_PDF_CHAPTER_COUNT) || SUKYO_PDF_CHAPTER_COUNT);
+  let completedChapters = Array.isArray(source.completedChapters)
+    ? source.completedChapters.map((chapterNo) => Number(chapterNo)).filter((chapterNo) => Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= totalChapters)
+    : [];
+  const completedChapterCount = Math.max(0, Math.min(totalChapters, Number(source.completedChapterCount || completedChapters.length || 0) || 0));
+  if (!completedChapters.length && completedChapterCount > 0) {
+    completedChapters = Array.from({ length: completedChapterCount }, (_, index) => index + 1);
+  }
+  const currentChapterNo = Math.max(0, Math.min(totalChapters, Number(source.currentChapterNo || source.chapterNo || source.chapterIndex || 0) || 0));
+  const progressPercent = Math.max(0, Math.min(100, Number(source.progressPercent ?? source.progress ?? Math.round((completedChapterCount / totalChapters) * 100)) || 0));
+  return {
+    ...source,
+    stage: clean(source.stage || source.status || "generating"),
+    currentChapterNo,
+    currentChapterTitle: clean(source.currentChapterTitle || source.chapterTitle || ""),
+    completedChapters,
+    completedChapterCount: Math.max(completedChapterCount, completedChapters.length),
+    totalChapters,
+    progressPercent,
+    updatedAt: clean(source.updatedAt) || new Date().toISOString(),
+  };
+}
+
+function updateSukuyoSessionProgress(sessionId = "", progress = {}, fallback = {}) {
+  const key = clean(sessionId);
+  if (!key) return normalizeSukuyoGenerationProgress(progress);
+  const lock = sukuyoPdfGenerationLocks.get(key) || {};
+  const nextProgress = normalizeSukuyoGenerationProgress({
+    ...(lock.progress || {}),
+    ...progress,
+  });
+  sukuyoPdfGenerationLocks.set(key, {
+    ...lock,
+    ...fallback,
+    sessionId: key,
+    status: clean(fallback.status || lock.status || "running"),
+    startedAt: clean(lock.startedAt || fallback.startedAt) || new Date().toISOString(),
+    progress: nextProgress,
+  });
+  return nextProgress;
+}
+
+async function updateSukuyoExecutionProgress(env, userId, executionCtx = {}, progress = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return null;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    const normalized = normalizeSukuyoGenerationProgress(progress);
+    return await ServiceExecutionTransaction.updateOne(
+      { userId, executionKey },
+      {
+        $set: {
+          heartbeatAt: now,
+          "metadata.generationStatus": normalized.stage,
+          "metadata.progress": normalized,
+          "metadata.currentChapterNo": normalized.currentChapterNo,
+          "metadata.currentChapterTitle": normalized.currentChapterTitle,
+          "metadata.completedChapterCount": normalized.completedChapterCount,
+          "metadata.chapterCount": normalized.totalChapters,
+          "metadata.progressPercent": normalized.progressPercent,
+          "metadata.progressUpdatedAt": now.toISOString(),
+        },
+      },
+    );
+  } catch (error) {
+    console.warn("[SukuyoPremiumPDF][ProgressUpdateFailed]", { reason: clean(error?.message || error) });
+    return null;
+  }
+}
+
 function buildSukuyoCompletedStatusResponse(request, { sessionId = "", reportId = "", report = null, completedAt = "" } = {}) {
   const source = report && typeof report === "object" ? report : {};
   const nested = source?.payload && typeof source.payload === "object" ? source.payload : {};
@@ -1150,6 +1224,9 @@ function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) 
   }
 
   if (status === "pending" || premiumStatus === "generating") {
+    const metadataProgress = metadata.progress && typeof metadata.progress === "object"
+      ? metadata.progress
+      : { stage: clean(metadata.generationStatus || "payment-verified") };
     if (isSukuyoExecutionStale(doc)) {
       return {
         status: 409,
@@ -1171,7 +1248,7 @@ function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) 
         sessionId,
         reportId,
         featureKey,
-        progress: metadata.progress || { stage: "payment-verified" },
+        progress: normalizeSukuyoGenerationProgress(metadataProgress),
         startedAt: doc.generationStartedAt || doc.createdAt || "",
       }),
     };
@@ -1955,20 +2032,37 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
     dryRunSeed.requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || sessionId);
     dryRunSeed.featureKey = featureKey;
 
-    const generated = await generateSukyoPremiumReport(env, dryRunSeed);
-    sukuyoPdfGenerationLocks.set(sessionId, {
+    const handleChapterProgress = async (progressEvent = {}) => {
+      const normalizedProgress = updateSukuyoSessionProgress(sessionId, progressEvent, {
+        sessionId,
+        reportId,
+        featureKey,
+        status: "running",
+      });
+      await updateSukuyoExecutionProgress(pdfDbEnv, auth.userId, executionCtx, normalizedProgress);
+    };
+    const generated = await generateSukyoPremiumReport(env, dryRunSeed, {
+      onProgress: handleChapterProgress,
+    });
+    const generatedChapterNos = Array.isArray(generated?.chapters)
+      ? generated.chapters.map((chapter) => Number(chapter.order || chapter.chapterNo || 0)).filter(Boolean)
+      : Array.from({ length: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT) || SUKYO_PDF_CHAPTER_COUNT }, (_, index) => index + 1);
+    const renderingProgress = updateSukuyoSessionProgress(sessionId, {
+      stage: "pdf-rendering",
+      currentChapterNo: Math.min(SUKYO_PDF_CHAPTER_COUNT, generatedChapterNos.length || SUKYO_PDF_CHAPTER_COUNT),
+      currentChapterTitle: "PDF HTML 조립",
+      completedChapters: generatedChapterNos,
+      completedChapterCount: generatedChapterNos.length,
+      totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+      chapterCount: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT),
+      progressPercent: 100,
+    }, {
       sessionId,
       reportId,
       featureKey,
       status: "running",
-      startedAt: new Date().toISOString(),
-      progress: {
-        stage: "pdf-rendering",
-        currentChapterNo: Math.max(1, Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT) - 1),
-        totalChapters: SUKYO_PDF_CHAPTER_COUNT,
-        chapterCount: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT),
-      },
     });
+    await updateSukuyoExecutionProgress(pdfDbEnv, auth.userId, executionCtx, renderingProgress);
     const archiveUrl = buildSukuyoRunningLinks(request, sessionId, reportId).archiveUrl;
     const archivePdfUrl = withSukuyoArchiveFormat(archiveUrl, "pdf");
     const archiveHtmlUrl = withSukuyoArchiveFormat(archiveUrl, "html");
@@ -2074,19 +2168,22 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
     let completedExecution = null;
 
     try {
-      sukuyoPdfGenerationLocks.set(sessionId, {
+      const archiveProgress = updateSukuyoSessionProgress(sessionId, {
+        stage: "archive-completing",
+        currentChapterNo: SUKYO_PDF_CHAPTER_COUNT,
+        currentChapterTitle: "PDF 저장본 확정",
+        completedChapters: generatedChapterNos,
+        completedChapterCount: generatedChapterNos.length,
+        totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+        chapterCount: generated.chapterCount,
+        progressPercent: 100,
+      }, {
         sessionId,
         reportId,
         featureKey,
         status: "running",
-        startedAt: new Date().toISOString(),
-        progress: {
-          stage: "archive-completing",
-          currentChapterNo: SUKYO_PDF_CHAPTER_COUNT,
-          totalChapters: SUKYO_PDF_CHAPTER_COUNT,
-          chapterCount: generated.chapterCount,
-        },
       });
+      await updateSukuyoExecutionProgress(pdfDbEnv, auth.userId, executionCtx, archiveProgress);
       completedExecution = await withSukuyoTimeout(
         completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
           chapterCount: generated.chapterCount,
@@ -2169,13 +2266,27 @@ async function handleSukuyoPremiumPrepareSync(request, env) {
       });
     }
 
+    const doneChapterNos = generatedChapterNos.length
+      ? generatedChapterNos
+      : Array.from({ length: SUKYO_PDF_CHAPTER_COUNT }, (_, index) => index + 1);
+    const doneProgress = normalizeSukuyoGenerationProgress({
+      stage: "done",
+      currentChapterNo: SUKYO_PDF_CHAPTER_COUNT,
+      currentChapterTitle: "PDF 저장본 확정",
+      completedChapters: doneChapterNos,
+      completedChapterCount: doneChapterNos.length,
+      totalChapters: SUKYO_PDF_CHAPTER_COUNT,
+      chapterCount: generated.chapterCount,
+      progressPercent: 100,
+    });
+    await updateSukuyoExecutionProgress(pdfDbEnv, auth.userId, executionCtx, doneProgress);
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,
       reportId,
       featureKey,
       status: "done",
       startedAt: new Date().toISOString(),
-      progress: { stage: "done", chapterCount: generated.chapterCount },
+      progress: doneProgress,
       result: responseBody,
     });
 
@@ -3396,7 +3507,7 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
         featureKey: SUKYO_PDF_FEATURE_KEY,
         aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
         chapterCount: SUKYO_PDF_CHAPTER_COUNT,
-        chapters: SUKYO_PDF_CHAPTERS,
+        chapters: getPublicSukyoPdfChapters(),
       });
     }
 

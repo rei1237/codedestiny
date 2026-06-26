@@ -64,6 +64,7 @@
     "verify:lifebook-llm-only-flow": "node scripts/verify-lifebook-llm-only-flow.mjs",
     "verify:love-secret-llm": "node scripts/verify-love-secret-llm-engine.mjs",
     "verify:astro-premium-llm": "node scripts/verify-astro-premium-llm-preflight.mjs",
+    "verify:sukuyo-premium-llm": "node scripts/verify-sukuyo-premium-llm-pdf.mjs",
     "verify:saju-new-year-llm": "node scripts/verify-saju-new-year-llm-engine.mjs",
     "verify:ziwei-pdf-v3": "node scripts/verify-ziwei-pdf-v3.mjs",
     "i18n:check": "node scripts/i18n-check.mjs && npm run verify:i18n-runtime && node scripts/verify-i18n-public-parity.mjs --all",

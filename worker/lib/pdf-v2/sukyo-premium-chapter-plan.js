@@ -1,4 +1,4 @@
-export const SUKYO_PREMIUM_CHAPTER_PLAN_VERSION = "sukuyo-premium-v2.2.0";
+export const SUKYO_PREMIUM_CHAPTER_PLAN_VERSION = "sukuyo-premium-v2.2.1";
 
 export const SUKYO_PREMIUM_CHAPTERS_V2 = Object.freeze([
   {

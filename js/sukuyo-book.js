@@ -2283,30 +2283,45 @@
     button.setAttribute('aria-busy', isBusy ? 'true' : 'false');
   }
 
-  function _setLoadingProgress(step, total, title) {
+  function _setLoadingProgress(step, total, title, completedChapters) {
+    total = Math.max(1, Number(total) || SUKYO_TOTAL_CHAPTERS);
+    var hasCompletedList = Array.isArray(completedChapters);
+    var completedList = hasCompletedList ? completedChapters.map(function (chapterNo) {
+      return Number(chapterNo);
+    }).filter(function (chapterNo, index, array) {
+      return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total && array.indexOf(chapterNo) === index;
+    }) : [];
     var normalizedStep = Math.max(0, Math.min(total, Number(step) || 0));
+    if (normalizedStep <= 0 && completedList.length) normalizedStep = Math.max.apply(Math, completedList);
     if (normalizedStep <= 0) {
       _lastLoadingStep = 0;
     } else {
       normalizedStep = Math.max(normalizedStep, _lastLoadingStep);
       _lastLoadingStep = normalizedStep;
     }
-    var pct = Math.max(0, Math.min(100, Math.round((normalizedStep / Math.max(total, 1)) * 100)));
+    var completedCount = hasCompletedList ? completedList.length : normalizedStep;
+    var pctBase = hasCompletedList ? completedCount : normalizedStep;
+    var pct = Math.max(0, Math.min(100, Math.round((pctBase / total) * 100)));
     var bar = _qs('skProgressBar');
     var text = _qs('skProgressText');
     var number = _qs('skLoadingChapterNum');
     var chapter = _qs('skLoadingChapter');
     if (bar) bar.style.width = pct + '%';
-    if (text) text.textContent = normalizedStep <= 0 ? ('0 / ' + total + ' 준비 중') : (normalizedStep + ' / ' + total);
+    if (text) text.textContent = completedCount <= 0 ? ('0 / ' + total + ' 준비 중') : (completedCount + ' / ' + total + (hasCompletedList ? ' 챕터 완성' : ''));
     if (number) number.textContent = normalizedStep <= 0 ? '준비 중' : ('제' + normalizedStep + '장');
     if (chapter) chapter.textContent = _sanitizeText(title || (normalizedStep <= 0 ? '숙요점 궁합 리포트를 준비하고 있습니다.' : '숙요점 챕터를 생성하는 중입니다'));
 
     _syncGenerationWindowProgress(normalizedStep, total, title);
 
+    var completedSet = completedList.reduce(function (acc, chapterNo) {
+      acc[chapterNo] = true;
+      return acc;
+    }, {});
     Array.prototype.forEach.call(document.querySelectorAll('.sk-ch-dot'), function (dot) {
       var dotNo = Number(dot.getAttribute('data-skch'));
-      dot.classList.toggle('lb-ch-dot--active', normalizedStep > 0 && dotNo === normalizedStep);
-      dot.classList.toggle('lb-ch-dot--done', dotNo < normalizedStep);
+      var isDone = hasCompletedList ? !!completedSet[dotNo] : dotNo < normalizedStep;
+      dot.classList.toggle('lb-ch-dot--active', normalizedStep > 0 && dotNo === normalizedStep && !isDone);
+      dot.classList.toggle('lb-ch-dot--done', isDone);
     });
   }
 
@@ -2510,7 +2525,9 @@
         var chapter = list[i] || {};
         var chapterNo = Number(chapter.order || chapter.chapterNo || (i + 1)) || (i + 1);
         var title = _sanitizeText(_chapterTitleOnly(chapter.title, chapterNo));
-        _setLoadingProgress(chapterNo, SUKYO_TOTAL_CHAPTERS, '제' + chapterNo + '장. ' + title + ' 작성 중...');
+        _setLoadingProgress(chapterNo, SUKYO_TOTAL_CHAPTERS, '제' + chapterNo + '장. ' + title + ' 작성 중...', list.slice(0, chapterNo).map(function (c) {
+          return Number(c.order || c.chapterNo || 0);
+        }).filter(Boolean));
         _setLoadingStage('숙요점 궁합 PDF 생성 중');
         _persistGenerationState({
           isOpen: true,
@@ -2564,6 +2581,11 @@
     completed = completed.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
       return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
     });
+    var completedCount = Math.max(completed.length, Number(progress.completedChapterCount || 0) || 0);
+    completedCount = Math.max(0, Math.min(total, completedCount));
+    if (!completed.length && completedCount > 0) {
+      for (var doneNo = 1; doneNo <= completedCount; doneNo += 1) completed.push(doneNo);
+    }
     var hasProgressSignal = (Number.isFinite(rawStep) && rawStep > 0) || completed.length > 0 || isPostChapterStage;
     if (!hasProgressSignal) {
       _setLoadingStage(_sukuyoBookText('loading.generatingStage'));
@@ -2572,11 +2594,12 @@
     }
     var completedMax = completed.length ? Math.max.apply(Math, completed) : 0;
     var serverStep = Number.isFinite(rawStep) && rawStep > 0 ? Math.min(total, rawStep) : completedMax;
-    var waitingStep = Math.max(0, total - 1);
-    var displayStep = Math.min(waitingStep, Math.max(serverStep, isPostChapterStage ? waitingStep : 0));
-    var titleStep = serverStep > 0 ? serverStep : displayStep;
+    if (isPostChapterStage && serverStep <= 0) serverStep = Math.min(total, completedMax || completedCount || total);
+    var displayStep = Math.max(0, Math.min(total, serverStep));
+    var titleStep = displayStep;
     var chapter = titleStep > 0 ? (_canonicalChapters[titleStep - 1] || {}) : {};
-    var title = titleStep > 0
+    var title = _clean(progress.currentChapterTitle || progress.chapterTitle || '');
+    if (!title) title = titleStep > 0
       ? _sukuyoBookText('loading.chapterTitle', titleStep, _sanitizeText(_chapterTitleOnly(chapter.title || _sukuyoBookText('loading.defaultChapter'), titleStep)))
       : _sukuyoBookText('loading.runningNotice');
     if (stage === 'pdf-rendering') title = _sukuyoBookText('loading.renderingPdf');
@@ -2584,7 +2607,7 @@
     _setLoadingStage(isPostChapterStage
       ? _sukuyoBookText('loading.savingStage')
       : _sukuyoBookText('loading.generatingStage'));
-    _setLoadingProgress(displayStep, total, title);
+    _setLoadingProgress(displayStep, total, title, completed);
     _setLoadingNotice(payload.message || (isPostChapterStage
       ? _sukuyoBookText('loading.savedNotice')
       : _sukuyoBookText('loading.runningNotice')));
@@ -3145,10 +3168,14 @@
     var initialCompleted = completed.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
       return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
     });
+    var initialCompletedCount = Math.max(initialCompleted.length, Number(progress.completedChapterCount || 0) || 0);
+    initialCompletedCount = Math.max(0, Math.min(total, initialCompletedCount));
+    if (!initialCompleted.length && initialCompletedCount > 0) {
+      for (var initialDoneNo = 1; initialDoneNo <= initialCompletedCount; initialDoneNo += 1) initialCompleted.push(initialDoneNo);
+    }
     var initialStep = Number.isFinite(initialRawStep) && initialRawStep > 0
       ? Math.min(total, initialRawStep)
       : (initialCompleted.length ? Math.max.apply(Math, initialCompleted) : 0);
-    initialStep = Math.min(Math.max(0, total - 1), initialStep);
     if (sessionId) _activeSessionId = sessionId;
     if (reportId) _activeReportId = reportId;
     _persistGenerationState({
@@ -3182,9 +3209,21 @@
                 resolve(completedReport);
                 return;
               }
+              var waitingProgress = data && data.running && data.running.progress || data && data.progress || execution && execution.progress || {};
+              var waitingCompleted = Array.isArray(waitingProgress.completedChapters) ? waitingProgress.completedChapters.slice() : [];
+              waitingCompleted = waitingCompleted.map(function (chapterNo) { return Number(chapterNo); }).filter(function (chapterNo) {
+                return Number.isFinite(chapterNo) && chapterNo >= 1 && chapterNo <= total;
+              });
+              var waitingCompletedCount = Math.max(waitingCompleted.length, Number(waitingProgress.completedChapterCount || 0) || 0);
+              waitingCompletedCount = Math.max(0, Math.min(total, waitingCompletedCount));
+              if (!waitingCompleted.length && waitingCompletedCount > 0) {
+                for (var waitingDoneNo = 1; waitingDoneNo <= waitingCompletedCount; waitingDoneNo += 1) waitingCompleted.push(waitingDoneNo);
+              }
+              if (!waitingCompleted.length) waitingCompleted = initialCompleted.slice();
+              var waitingStep = Number(waitingProgress.currentChapterNo || 0) || (waitingCompleted.length ? Math.max.apply(Math, waitingCompleted) : initialStep);
               _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
-              _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 저장본 확정 중입니다.');
-              _setLoadingNotice('15장 원고를 확인했습니다. 저장 링크와 결과 화면을 여는 중입니다.');
+              _setLoadingProgress(waitingStep, total, 'PDF 저장본 확인 중입니다.', waitingCompleted);
+              _setLoadingNotice('챕터 원고 작성 이후 저장 링크를 확인하는 중입니다.');
               _fetchArchivedSukuyoReport(nextReportId, completedReport).then(resolve).catch(reject);
               return;
             }
@@ -3360,7 +3399,7 @@
       var dot = document.querySelector('.sk-ch-dot[data-skch="' + i + '"]');
       if (!dot) continue;
       dot.classList.toggle('lb-ch-dot--done', i <= done);
-      dot.classList.toggle('lb-ch-dot--active', i === Math.min(done + 1, total));
+      dot.classList.toggle('lb-ch-dot--active', done < total && i === Math.min(done + 1, total));
     }
   }
 
@@ -3399,7 +3438,7 @@
     return _playChapterProgress(_chapters).then(function () {
       _syncDotsByChapters(_chapters);
       _setLoadingStage('숙요점 프리미엄 궁합 PDF 저장 중');
-      _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 저장본 확정 중입니다.');
+      _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, 'PDF 저장본 확정 중입니다.', Array.from({ length: SUKYO_TOTAL_CHAPTERS }, function (_, index) { return index + 1; }));
       _setLoadingNotice('15장 원고와 저장 링크를 확인했습니다. 결과 화면을 여는 중입니다.');
       _renderResult(_chapters, response);
 
