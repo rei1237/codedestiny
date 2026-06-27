@@ -4558,6 +4558,15 @@ function safeNewYearAILogMeta(meta = {}) {
     chapterNo: Number(meta.chapterNo || 0) || undefined,
     geminiForced: typeof meta.geminiForced === "boolean" ? meta.geminiForced : undefined,
     model: clean(meta.model) || undefined,
+    authSource: clean(meta.authSource) || undefined,
+    hasPremiumAccessToken: typeof meta.hasPremiumAccessToken === "boolean" ? meta.hasPremiumAccessToken : undefined,
+    hasConsultationAccessToken: typeof meta.hasConsultationAccessToken === "boolean" ? meta.hasConsultationAccessToken : undefined,
+    tokenVerified: typeof meta.tokenVerified === "boolean" ? meta.tokenVerified : undefined,
+    retryAttempt: Number.isFinite(Number(meta.retryAttempt)) ? Number(meta.retryAttempt) : undefined,
+    rawTextLength: Number(meta.rawTextLength || 0) || undefined,
+    rawTextHash: clean(meta.rawTextHash) || undefined,
+    jsonExtracted: typeof meta.jsonExtracted === "boolean" ? meta.jsonExtracted : undefined,
+    parseFallback: typeof meta.parseFallback === "boolean" ? meta.parseFallback : undefined,
   };
   return Object.fromEntries(Object.entries(out).filter(([, value]) => value !== undefined && value !== ""));
 }
@@ -4632,6 +4641,24 @@ function readNewYearAIConsultationAccessToken(request, body = {}) {
   );
 }
 
+function readNewYearAIPremiumAccessToken(request, body = {}) {
+  return clean(
+    request.headers.get("x-premium-access-token")
+    || body?.premiumAccessToken
+    || body?._premiumAccessToken
+    || body?.accessGrant?.premiumAccessToken
+    || body?.accessGrant?._premiumAccessToken
+    || body?.payment?.premiumAccessToken
+    || body?.payment?._premiumAccessToken
+    || body?._paymentContext?.premiumAccessToken
+    || body?._paymentContext?._premiumAccessToken
+    || body?.consume?.premiumAccessToken
+    || body?.consume?._premiumAccessToken
+    || cookieValue(request, "cd_premium_access")
+    || "",
+  );
+}
+
 function newYearAIConsultationTokenMatches(tokenPayload = {}, binding = {}) {
   const tokenReportId = clean(tokenPayload.reportId);
   const tokenSessionId = clean(tokenPayload.sessionId || tokenPayload.reportSessionId);
@@ -4666,6 +4693,48 @@ function buildNewYearAIAuthFromConsultationToken(tokenPayload = {}) {
     points: 0,
     joinedAt: null,
   };
+}
+
+async function resolveNewYearAIStartAuth(request, env, body = {}) {
+  const premiumAccessToken = readNewYearAIPremiumAccessToken(request, body);
+  try {
+    const auth = await requireAuth(request, env);
+    return {
+      auth,
+      authSource: "login",
+      premiumAccessToken,
+      tokenVerified: false,
+    };
+  } catch (authError) {
+    if (!premiumAccessToken) {
+      if (Number(authError?.status) === 401) {
+        throw Object.assign(new Error(hasNewYearAuthMaterial(request)
+          ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
+          : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
+          code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
+          status: 401,
+        });
+      }
+      throw authError;
+    }
+    const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType: "sajuNewYear" });
+    if (!verified?.ok) {
+      const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+      throw Object.assign(new Error(expired
+        ? "결제 확인 시간이 만료되었습니다. 결제창에서 권한을 다시 확인해 주세요."
+        : "결제 권한을 확인하지 못했습니다. 결제창에서 다시 확인해 주세요."), {
+        code: expired ? "NEW_YEAR_AI_PAYMENT_TOKEN_EXPIRED" : "NEW_YEAR_AI_PAYMENT_TOKEN_INVALID",
+        status: 402,
+      });
+    }
+    return {
+      auth: buildNewYearAIAuthFromConsultationToken(verified.payload || {}),
+      authSource: "premiumAccessToken",
+      premiumAccessToken,
+      tokenVerified: true,
+      tokenPayload: verified.payload || {},
+    };
+  }
 }
 
 async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, binding = {}) {
@@ -4918,6 +4987,19 @@ function buildNewYearAIFocusPrompt({ normalized, yearlyNormalized, body = {}, qu
   ].join("\n");
 }
 
+function buildNewYearAIJsonRepairPrompt(basePrompt = "", phase = "chapter") {
+  return [
+    clean(basePrompt),
+    "",
+    "[JSON 재작성 지시]",
+    "직전 응답은 상담 내용은 생성되었지만 JSON 구조가 안정적으로 해석되지 않았다.",
+    "새로운 해석을 만들지 말고, 위 지시의 답변 형식에 맞는 JSON 객체 하나만 다시 작성한다.",
+    phase === "focus"
+      ? "focus 단계이므로 반드시 topicAnswer를 채우고, JSON 앞뒤 설명 문장은 붙이지 않는다."
+      : "chapter 단계이므로 반드시 chapter와 resultPatch를 채우고, JSON 앞뒤 설명 문장은 붙이지 않는다.",
+  ].join("\n");
+}
+
 function extractNewYearAIJsonText(text = "") {
   const source = clean(text).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   if (!source) return "";
@@ -4975,6 +5057,15 @@ function normalizeNewYearAIChapterConsultations(value, targetYear, limit = NEW_Y
   }).filter((item) => item.overview || item.sections.length || item.keyTakeaways.length || item.actionItems.length).slice(0, limit);
 }
 
+function newYearAIRawTextMeta(text = "") {
+  const rawText = clean(text);
+  return {
+    rawTextLength: rawText.length,
+    rawTextHash: rawText ? hashAnnualFortuneValue(rawText).slice(0, 16) : "",
+    jsonExtracted: Boolean(extractNewYearAIJsonText(rawText)),
+  };
+}
+
 function splitNewYearAIRawText(text = "") {
   const rawText = clean(text);
   const sentences = rawText.split(/(?<=[.!?。！？]|다\.|요\.)\s+/).map((item) => clean(item)).filter(Boolean);
@@ -4996,6 +5087,46 @@ function splitNewYearAIRawText(text = "") {
       "올해 인간관계에서 가장 조심해야 할 부분을 알려주세요.",
     ],
     rawText,
+  };
+}
+
+function buildNewYearAIRawChapterFallback(text = "", targetYear = resolveDefaultTargetYear(), chapterNo = 1) {
+  const rawText = clean(text);
+  const blueprint = buildNewYearAIChapterBlueprint(targetYear);
+  const no = clamp(Number(chapterNo || 1) || 1, 1, blueprint.length || NEW_YEAR_AI_CHAPTER_COUNT);
+  const spec = blueprint.find((chapter) => Number(chapter.no) === no) || blueprint[no - 1] || {};
+  return {
+    chapter: {
+      no,
+      title: clean(spec.title) || `${no}장 신년운세 상담`,
+      overview: rawText.slice(0, 900),
+      sections: [{ title: "상담 원문", body: rawText }],
+      keyTakeaways: [],
+      actionItems: [],
+    },
+    resultPatch: normalizeNewYearAIResultPatch(no === 1
+      ? { summary: rawText.slice(0, 500), yearlyFlow: rawText }
+      : no === NEW_YEAR_AI_CHAPTER_COUNT
+        ? { timing: {}, actionGuide: [], closingMessage: rawText.slice(-500) }
+        : { topicAnswer: rawText }),
+    rawText,
+    parseFallback: true,
+  };
+}
+
+function buildNewYearAIRawFocusFallback(text = "") {
+  const rawText = clean(text);
+  return {
+    resultPatch: normalizeNewYearAIResultPatch({
+      topicAnswer: rawText,
+      questionFocus: rawText,
+      timing: {},
+      actionGuide: [],
+      closingMessage: "",
+      followUpQuestions: [],
+    }),
+    rawText,
+    parseFallback: true,
   };
 }
 
@@ -5061,20 +5192,13 @@ function normalizeNewYearAIChapterResponse(rawText = "", targetYear = resolveDef
   }
   const jsonText = extractNewYearAIJsonText(text);
   if (!jsonText) {
-    throw Object.assign(new Error("신년운세 AI 상담 장문 JSON을 해석하지 못했습니다."), {
-      code: "NEW_YEAR_AI_CHAPTER_JSON_PARSE_FAILED",
-      status: 502,
-    });
+    return buildNewYearAIRawChapterFallback(text, targetYear, chapterNo);
   }
   let parsed;
   try {
     parsed = JSON.parse(jsonText);
   } catch (error) {
-    throw Object.assign(new Error("신년운세 AI 상담 장문 JSON 형식이 올바르지 않습니다."), {
-      code: "NEW_YEAR_AI_CHAPTER_JSON_PARSE_FAILED",
-      status: 502,
-      cause: error,
-    });
+    return buildNewYearAIRawChapterFallback(text, targetYear, chapterNo);
   }
   const chapterSource = parsed.chapter || parsed.chapterConsultation || parsed.chapterResult || parsed;
   const chapter = normalizeNewYearAIChapterConsultations([{
@@ -5082,15 +5206,13 @@ function normalizeNewYearAIChapterResponse(rawText = "", targetYear = resolveDef
     no: Number(chapterSource?.no || chapterNo) || chapterNo,
   }], targetYear, 1)[0];
   if (!chapter) {
-    throw Object.assign(new Error("신년운세 AI 상담 장문 구조를 확인하지 못했습니다."), {
-      code: "NEW_YEAR_AI_CHAPTER_INVALID",
-      status: 502,
-    });
+    return buildNewYearAIRawChapterFallback(text, targetYear, chapterNo);
   }
   return {
     chapter,
     resultPatch: normalizeNewYearAIResultPatch(parsed.resultPatch || parsed.patch || parsed),
     rawText: text,
+    parseFallback: false,
   };
 }
 
@@ -5104,10 +5226,7 @@ function normalizeNewYearAIFocusResponse(rawText = "") {
   }
   const jsonText = extractNewYearAIJsonText(text);
   if (!jsonText) {
-    throw Object.assign(new Error("신년운세 AI 질문 집중 상담 JSON을 해석하지 못했습니다."), {
-      code: "NEW_YEAR_AI_FOCUS_JSON_PARSE_FAILED",
-      status: 502,
-    });
+    return buildNewYearAIRawFocusFallback(text);
   }
   try {
     const parsed = JSON.parse(jsonText);
@@ -5116,18 +5235,15 @@ function normalizeNewYearAIFocusResponse(rawText = "") {
       questionFocus: parsed.questionFocus || parsed.topicAnswer,
     });
     if (!clean(resultPatch.topicAnswer)) {
-      throw new Error("topicAnswer missing");
+      return buildNewYearAIRawFocusFallback(text);
     }
     return {
       resultPatch,
       rawText: text,
+      parseFallback: false,
     };
   } catch (error) {
-    throw Object.assign(new Error("신년운세 AI 질문 집중 상담 JSON 형식이 올바르지 않습니다."), {
-      code: "NEW_YEAR_AI_FOCUS_JSON_PARSE_FAILED",
-      status: 502,
-      cause: error,
-    });
+    return buildNewYearAIRawFocusFallback(text);
   }
 }
 
@@ -7598,6 +7714,7 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   let providerName = "";
   let authSource = "";
   let hasConsultationAccessToken = false;
+  let hasPremiumAccessToken = false;
   let tokenVerified = false;
   const baseMeta = () => ({
     hasEnvAI,
@@ -7612,12 +7729,14 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
     geminiForced: true,
     model: resolveNewYearAIGeminiModel(env),
     authSource: authSource || undefined,
+    hasPremiumAccessToken,
     hasConsultationAccessToken,
     tokenVerified,
   });
 
   body = await readJson(request);
   hasConsultationAccessToken = Boolean(readNewYearAIConsultationAccessToken(request, body));
+  hasPremiumAccessToken = Boolean(readNewYearAIPremiumAccessToken(request, body));
   category = normalizeNewYearAICategory(body);
   question = normalizeNewYearAIQuestion(body);
   targetYear = Number(body?.targetYear || body?.selectedYear || body?.fortuneYear || 0) || 0;
@@ -7638,25 +7757,8 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
     });
   }
   const isStartRoute = /\/start$/.test(routePath);
-  if (isStartRoute) authSource = "login";
 
   let auth = null;
-  if (isStartRoute) {
-    try {
-      auth = await requireAuth(request, env);
-    } catch (error) {
-      if (Number(error?.status) === 401) {
-        throw Object.assign(new Error(hasNewYearAuthMaterial(request)
-          ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
-          : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
-          code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
-          status: 401,
-        });
-      }
-      throw error;
-    }
-  }
-
   normalized = normalizeInput(body);
   if (!normalized.ok) {
     throw Object.assign(new Error(clean(normalized.message).replace(/PDF\s*생성/g, "AI 상담") || "신년운세 AI 상담에 필요한 생년월일과 대상 연도를 확인해 주세요."), {
@@ -7669,11 +7771,17 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   const featureKey = normalizeFeatureKey(body?.featureKey);
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-new-year-ai-${targetYear}-${Date.now().toString(36)}`);
   const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
-  const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
+  let premiumAccessToken = readNewYearAIPremiumAccessToken(request, body);
   const requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || "");
 
   let access;
   if (isStartRoute) {
+    const startAuth = await resolveNewYearAIStartAuth(request, env, body);
+    auth = startAuth.auth;
+    authSource = startAuth.authSource;
+    tokenVerified = startAuth.tokenVerified === true;
+    premiumAccessToken = clean(startAuth.premiumAccessToken || premiumAccessToken);
+    hasPremiumAccessToken = Boolean(premiumAccessToken);
     try {
       access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
         ...body,
@@ -7695,7 +7803,7 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
 
     if (!access?.ok) {
       const status = Number(access?.status || 402);
-      const code = status === 401 ? "SESSION_INVALID" : (status === 402 || status === 403 ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
+      const code = status === 401 && !hasPremiumAccessToken ? "SESSION_INVALID" : (status === 402 || status === 403 || hasPremiumAccessToken ? "ENTITLEMENT_REQUIRED" : "ENTITLEMENT_CHECK_FAILED");
       throw Object.assign(new Error(code === "ENTITLEMENT_REQUIRED"
         ? "신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요."
         : "결제 권한 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."), {
@@ -7921,7 +8029,8 @@ async function handleNewYearAIConsultationChapter(request, env) {
         model: readiness.model,
       });
       const aiStartedAt = Date.now();
-      const ai = await callGeminiText(env, prompt, {
+      const promptForAttempt = attempt > 0 ? buildNewYearAIJsonRepairPrompt(prompt, "chapter") : prompt;
+      const ai = await callGeminiText(env, promptForAttempt, {
         systemPrompt: NEW_YEAR_AI_RESULT_SYSTEM_PROMPT,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.62 : 0.68,
@@ -7947,6 +8056,30 @@ async function handleNewYearAIConsultationChapter(request, env) {
       }
       try {
         const parsed = normalizeNewYearAIChapterResponse(ai.text, ctx.targetYear, chapterNo);
+        const rawMeta = newYearAIRawTextMeta(ai.text);
+        if (parsed.parseFallback === true && attempt < 1) {
+          lastError = Object.assign(new Error("신년운세 AI 상담 장문 JSON을 다시 정리해야 합니다."), {
+            code: "NEW_YEAR_AI_CHAPTER_JSON_REPAIR_REQUIRED",
+            status: 502,
+          });
+          logNewYearAIConsultation("LLM provider error", {
+            ...ctx.baseMeta(),
+            providerName: "gemini",
+            targetYear: ctx.targetYear,
+            category: ctx.category,
+            questionLength: ctx.question.length,
+            chartCalculated: true,
+            chapterNo,
+            geminiForced: true,
+            model: ai.model || readiness.model,
+            llmLatencyMs,
+            retryAttempt: attempt,
+            parseFallback: true,
+            ...rawMeta,
+            errorCode: "NEW_YEAR_AI_CHAPTER_JSON_REPAIR_REQUIRED",
+          });
+          continue;
+        }
         logNewYearAIConsultation("LLM provider success", {
           ...ctx.baseMeta(),
           providerName: "gemini",
@@ -7958,6 +8091,9 @@ async function handleNewYearAIConsultationChapter(request, env) {
           geminiForced: true,
           model: ai.model || readiness.model,
           llmLatencyMs,
+          retryAttempt: attempt,
+          parseFallback: parsed.parseFallback === true,
+          ...rawMeta,
         });
         return json({
           ok: true,
@@ -7980,6 +8116,7 @@ async function handleNewYearAIConsultationChapter(request, env) {
           providerName: "gemini",
           model: ai.model || readiness.model,
           isMock: false,
+          parseFallback: parsed.parseFallback === true,
           chartCalculated: true,
           luckFlowCalculated: true,
           llmLatencyMs,
@@ -8048,7 +8185,8 @@ async function handleNewYearAIConsultationFocus(request, env) {
         model: readiness.model,
       });
       const aiStartedAt = Date.now();
-      const ai = await callGeminiText(env, prompt, {
+      const promptForAttempt = attempt > 0 ? buildNewYearAIJsonRepairPrompt(prompt, "focus") : prompt;
+      const ai = await callGeminiText(env, promptForAttempt, {
         systemPrompt: NEW_YEAR_AI_RESULT_SYSTEM_PROMPT,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.62 : 0.68,
@@ -8074,6 +8212,30 @@ async function handleNewYearAIConsultationFocus(request, env) {
       }
       try {
         const parsed = normalizeNewYearAIFocusResponse(ai.text);
+        const rawMeta = newYearAIRawTextMeta(ai.text);
+        if (parsed.parseFallback === true && attempt < 1) {
+          lastError = Object.assign(new Error("신년운세 AI 질문 집중 상담 JSON을 다시 정리해야 합니다."), {
+            code: "NEW_YEAR_AI_FOCUS_JSON_REPAIR_REQUIRED",
+            status: 502,
+          });
+          logNewYearAIConsultation("LLM provider error", {
+            ...ctx.baseMeta(),
+            providerName: "gemini",
+            targetYear: ctx.targetYear,
+            category: ctx.category,
+            questionLength: ctx.question.length,
+            chartCalculated: true,
+            chapterNo: 11,
+            geminiForced: true,
+            model: ai.model || readiness.model,
+            llmLatencyMs,
+            retryAttempt: attempt,
+            parseFallback: true,
+            ...rawMeta,
+            errorCode: "NEW_YEAR_AI_FOCUS_JSON_REPAIR_REQUIRED",
+          });
+          continue;
+        }
         logNewYearAIConsultation("LLM provider success", {
           ...ctx.baseMeta(),
           providerName: "gemini",
@@ -8085,6 +8247,9 @@ async function handleNewYearAIConsultationFocus(request, env) {
           geminiForced: true,
           model: ai.model || readiness.model,
           llmLatencyMs,
+          retryAttempt: attempt,
+          parseFallback: parsed.parseFallback === true,
+          ...rawMeta,
         });
         return json({
           ok: true,
@@ -8106,6 +8271,7 @@ async function handleNewYearAIConsultationFocus(request, env) {
           providerName: "gemini",
           model: ai.model || readiness.model,
           isMock: false,
+          parseFallback: parsed.parseFallback === true,
           chartCalculated: true,
           luckFlowCalculated: true,
           llmLatencyMs,

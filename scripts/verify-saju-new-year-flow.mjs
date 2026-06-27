@@ -114,6 +114,21 @@ const parsedFocus = __sajuNewYearTestUtils.normalizeNewYearAIFocusResponse(JSON.
 }));
 assert.ok(parsedFocus.resultPatch.topicAnswer.includes("직업운"));
 
+const rawChapterFallback = __sajuNewYearTestUtils.normalizeNewYearAIChapterResponse(
+  "올해의 일 흐름은 서두른 확장보다 맡은 자리의 책임을 단단히 증명하는 쪽으로 드러납니다. 제안은 들어오더라도 조건을 문서로 확인하고, 성급한 약속보다 준비된 성과를 보여 주는 편이 좋습니다.",
+  targetYear,
+  2,
+);
+assert.equal(rawChapterFallback.chapter.no, 2);
+assert.equal(rawChapterFallback.parseFallback, true);
+assert.ok(rawChapterFallback.chapter.sections[0].body.includes("책임"));
+
+const rawFocusFallback = __sajuNewYearTestUtils.normalizeNewYearAIFocusResponse(
+  "질문하신 직업운과 수입 흐름은 올해 역할과 평가의 자리가 함께 열리는 모습입니다. 단번에 크게 바꾸기보다 지금 가진 전문성을 증명하고, 제안이 들어올 때 조건을 차분히 확인하는 흐름이 좋습니다.",
+);
+assert.equal(rawFocusFallback.parseFallback, true);
+assert.ok(rawFocusFallback.resultPatch.topicAnswer.includes("직업운"));
+
 const frontendSource = await readFile("js/saju-new-year.js", "utf8");
 const indexSource = await readFile("index.html", "utf8");
 const routeSource = await readFile("worker/routes/saju-new-year.js", "utf8");
@@ -133,6 +148,9 @@ assert.ok(routeSource.includes("consultationAccessToken"));
 assert.ok(routeSource.includes('request.headers.get("x-new-year-ai-access-token")'));
 assert.ok(routeSource.includes("verifyNewYearAIConsultationAccessToken"));
 assert.ok(routeSource.includes("buildNewYearAIAuthFromConsultationToken"));
+assert.ok(routeSource.includes("readNewYearAIPremiumAccessToken"));
+assert.ok(routeSource.includes("resolveNewYearAIStartAuth"));
+assert.ok(routeSource.includes('authSource: "premiumAccessToken"'));
 assert.ok(routeSource.includes("authSource = \"consultationAccessToken\""));
 assert.ok(routeSource.includes("createPremiumAccessToken"));
 assert.ok(!routeSource.includes("maxOutputTokens: 8192"));
@@ -146,14 +164,32 @@ assert.ok(frontendSource.includes("function _runAfterBillingAI"));
 assert.ok(frontendSource.includes("function _runAIChapterWithRetry"));
 assert.ok(frontendSource.includes("function _runAIFocusWithRetry"));
 assert.ok(frontendSource.includes("function _buildPaidEvidence"));
+assert.ok(frontendSource.includes("function _bindGenerateButton"));
+assert.ok(frontendSource.includes("var _aiConsultationState"));
+assert.ok(frontendSource.includes("function _setAIResultMode"));
+assert.ok(frontendSource.includes("function _continueAIConsultationChapters"));
+assert.ok(frontendSource.includes("window.retrySajuNewYearAIChapter"));
 assert.ok(frontendSource.includes("TOTAL_CHAPTERS = 6"));
 assert.ok(frontendSource.includes("consultationAccessToken"));
 assert.ok(frontendSource.includes("headers['x-new-year-ai-access-token']"));
+assert.ok(frontendSource.includes("premiumAccessToken: premiumAccessToken || undefined"));
 assert.ok(frontendSource.includes("function _chapterConsultationsHtml"));
 assert.ok(frontendSource.includes("신년운세 전체 상담"));
+assert.ok(frontendSource.includes("data-action=\"retrySajuNewYearAIChapter\""));
+assert.ok(frontendSource.includes("nyInsightPanel"));
+assert.ok(frontendSource.includes("#nyResultScreen .lb-toc"));
 assert.ok(frontendSource.includes("받은 질문을 중심으로 깊은 상담을 정리하고 있어요."));
 assert.ok(frontendSource.includes("paymentPurpose: 'ai_consultation'"));
-assert.ok(runBillingBlock && runBillingBlock[0].includes("_checkNewYearAIGeminiReady"));
+assert.ok(frontendSource.includes("NetworkRequestStart"));
+assert.ok(frontendSource.includes("NetworkRequestEnd"));
+assert.ok(routeSource.includes("buildNewYearAIJsonRepairPrompt"));
+assert.ok(routeSource.includes("buildNewYearAIRawChapterFallback"));
+assert.ok(routeSource.includes("buildNewYearAIRawFocusFallback"));
+assert.ok(routeSource.includes("newYearAIRawTextMeta"));
+assert.ok(routeSource.includes("parseFallback"));
+assert.ok(routeSource.includes("rawTextHash"));
+assert.ok(runBillingBlock && !runBillingBlock[0].includes("_checkNewYearAIGeminiReady"));
+assert.ok(runBillingBlock && runBillingBlock[0].indexOf("_runCoinGate") < runBillingBlock[0].indexOf("_runAfterBillingAI(pending, gate.accessGrant"));
 assert.ok(runBillingBlock && runBillingBlock[0].includes("_runAfterBillingAI"));
 assert.ok(runBillingBlock && !runBillingBlock[0].includes("_runAfterBillingMock"));
 assert.ok(!runBillingBlock[0].includes("_postJson(AI_CONSULTATION_API"));

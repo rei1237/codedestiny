@@ -45,6 +45,7 @@
   var _activeChapter = 1;
   var _progressTimer = null;
   var _pendingGeneration = null;
+  var _aiConsultationState = null;
   var _lastAccessGrant = null;
   var _lastPremiumToken = '';
   var _lastPaidEvidence = null;
@@ -269,6 +270,8 @@
       NEW_YEAR_AI_SESSION_TOKEN_REQUIRED: '결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.',
       NEW_YEAR_AI_SESSION_TOKEN_EXPIRED: '결제된 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요.',
       NEW_YEAR_AI_SESSION_TOKEN_INVALID: '결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.',
+      NEW_YEAR_AI_PAYMENT_TOKEN_EXPIRED: '결제 확인 시간이 만료되었습니다. 결제창에서 권한을 다시 확인해 주세요.',
+      NEW_YEAR_AI_PAYMENT_TOKEN_INVALID: '결제 권한을 확인하지 못했습니다. 결제창에서 다시 확인해 주세요.',
       AUTH_REQUIRED: '신년운세 AI 상담을 위해 먼저 로그인해 주세요.',
       SESSION_INVALID: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
       ENTITLEMENT_REQUIRED: '신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
@@ -452,7 +455,15 @@
       var found = _clean(payload[keys[i]]);
       if (found) return found;
     }
-    return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+    var nestedKeys = ['data', 'payload', 'accessGrant', 'accessDecision', 'consume', 'payment', '_paymentContext'];
+    for (var j = 0; j < nestedKeys.length; j += 1) {
+      var nested = payload[nestedKeys[j]];
+      if (nested && nested !== payload) {
+        var nestedToken = _extractPremiumToken(nested);
+        if (nestedToken) return nestedToken;
+      }
+    }
+    return '';
   }
 
   function _paymentPayloadData(payload) {
@@ -508,6 +519,7 @@
     var consume = _firstPaymentObject(layers, 'consume');
     var payment = _firstPaymentObject(layers, 'payment');
     var context = _firstPaymentObject(layers, '_paymentContext');
+    var premiumAccessToken = _extractPremiumToken(rawPayload) || _firstPaymentString(layers, ['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token']);
     var requestId = _clean(grant && grant.requestId) || _firstPaymentString(layers, ['requestId', 'idempotencyKey']) || fallbackRequestId;
     var sessionId = _clean(grant && grant.sessionId) || _firstPaymentString(layers, ['sessionId', 'reportSessionId']) || ('saju-new-year:' + reportId);
     var purchaseId = _clean(grant && grant.purchaseId) || _firstPaymentString(layers, ['purchaseId', 'transactionId', 'paymentId', 'ledgerId', 'evidenceId']) || requestId;
@@ -518,9 +530,12 @@
       grant.reportId = _clean(grant.reportId || reportId);
       grant.purchaseId = _clean(grant.purchaseId || purchaseId);
       grant.featureKey = _clean(grant.featureKey || API_FEATURE_KEY) || API_FEATURE_KEY;
+      if (premiumAccessToken) grant.premiumAccessToken = _clean(grant.premiumAccessToken || premiumAccessToken);
     }
+    if (premiumAccessToken && payment && typeof payment === 'object') payment.premiumAccessToken = _clean(payment.premiumAccessToken || premiumAccessToken);
     return {
       requestId: requestId,
+      premiumAccessToken: premiumAccessToken || undefined,
       accessGrant: grant || {},
       accessDecision: accessDecision,
       consume: consume,
@@ -535,7 +550,8 @@
         transactionId: _clean((grant && (grant.transactionId || grant.sourceTransactionId || grant.paymentId)) || _firstPaymentString(layers, ['transactionId', 'sourceTransactionId', 'paymentId', 'ledgerId', 'evidenceId']) || purchaseId),
         accessType: _clean((grant && grant.accessType) || _firstPaymentString(layers, ['accessType', 'transactionType'])),
         accessMethod: _clean((grant && grant.accessMethod) || _firstPaymentString(layers, ['accessMethod', 'paymentMethod'])),
-        paymentMode: _clean(_firstPaymentString(layers, ['paymentMode']))
+        paymentMode: _clean(_firstPaymentString(layers, ['paymentMode'])),
+        premiumAccessToken: premiumAccessToken || undefined
       })
     };
   }
@@ -711,6 +727,18 @@
     });
   }
 
+  function _setAIResultMode(isAI) {
+    var hideSelectors = ['nyInsightPanel', 'nyChapterContent'];
+    hideSelectors.forEach(function (id) {
+      var el = _qs(id);
+      if (el) el.style.display = isAI ? 'none' : '';
+    });
+    ['#nyResultScreen .lb-toc', '#nyResultScreen .ny-chapter-toolbar', '#nyResultScreen .lb-result-actions'].forEach(function (selector) {
+      var el = document.querySelector(selector);
+      if (el) el.style.display = isAI ? 'none' : '';
+    });
+  }
+
   function _setError(message, options) {
     var opts = options && typeof options === 'object' ? options : {};
     var el = _qs('nyErrorMsg');
@@ -742,6 +770,17 @@
       if (!btn) return;
       btn.disabled = !!isBusy;
       btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    });
+  }
+
+  function _bindGenerateButton() {
+    var btn = _qs('nyGenerateBtn');
+    if (!btn || btn.dataset.nyAiGenerateBound === '1') return;
+    btn.dataset.nyAiGenerateBound = '1';
+    btn.addEventListener('click', function (event) {
+      if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (typeof window.generateSajuNewYear === 'function') window.generateSajuNewYear();
     });
   }
 
@@ -999,6 +1038,12 @@
     var status = Number(gate && gate.status || 0);
     var code = _clean(gate && (gate.code || gate.errorCode)).toUpperCase();
     var message = _clean(gate && gate.message);
+    if (/^NEW_YEAR_AI_(SESSION|PAYMENT)_TOKEN_/.test(code)) {
+      return {
+        detail: '결제된 상담 권한을 이어받지 못했습니다. 같은 입력으로 다시 누르면 결제창에서 기존 권한을 먼저 확인합니다.',
+        retryText: '상담 권한 다시 확인'
+      };
+    }
     if (status === 401 || code === 'AUTH_REQUIRED' || code === 'SESSION_INVALID' || code === 'UNAUTHORIZED') {
       return {
         showLogin: true,
@@ -1467,11 +1512,14 @@
             productKey: API_FEATURE_KEY,
             entitlementKey: 'saju_new_year_pdf',
             paymentPurpose: 'ai_consultation',
-            allowedPaymentModes: ['direct', 'monthly', 'pass'],
+            allowedPaymentModes: ['direct', 'monthly', 'membership_pass', 'pass'],
             title: REASON,
             reason: REASON,
             coinPrice: resolvedCost,
             cost: resolvedCost,
+            amountKrw: resolvedCost * 100,
+            amountKRW: resolvedCost * 100,
+            paymentAmount: resolvedCost * 100,
             reportId: reportId,
             sessionId: 'saju-new-year:' + reportId,
             reportSessionId: 'saju-new-year:' + reportId,
@@ -1507,7 +1555,7 @@
         productKey: API_FEATURE_KEY,
         entitlementKey: 'saju_new_year_pdf',
         paymentPurpose: 'ai_consultation',
-        allowedPaymentModes: ['direct', 'monthly', 'pass'],
+        allowedPaymentModes: ['direct', 'monthly', 'membership_pass', 'pass'],
         reason: REASON,
         mode: 'saju-new-year',
         reportId: reportId,
@@ -1516,6 +1564,9 @@
         requestId: requestId,
         coinPrice: resolvedCost,
         cost: resolvedCost,
+        amountKrw: resolvedCost * 100,
+        amountKRW: resolvedCost * 100,
+        paymentAmount: resolvedCost * 100,
         forceDeduct: true,
         confirmedByUser: true
       })
@@ -1547,6 +1598,12 @@
     var headers = _buildAuthHeaders({ 'Content-Type': 'application/json' });
     var consultationToken = _clean(payload && payload.consultationAccessToken);
     if (consultationToken) headers['x-new-year-ai-access-token'] = consultationToken;
+    _log('NetworkRequestStart', {
+      stage: _stageForRequestUrl(url),
+      url: _clean(url),
+      hasConsultationAccessToken: !!consultationToken,
+      hasPremiumAccessToken: !!headers['x-premium-access-token']
+    });
     var response = await fetch(url, {
       method: 'POST',
       credentials: 'include',
@@ -1554,6 +1611,15 @@
       body: JSON.stringify(payload)
     });
     var body = await response.json().catch(function () { return {}; });
+    _log('NetworkRequestEnd', {
+      stage: _stageForRequestUrl(url),
+      url: _clean(url),
+      status: response.status,
+      ok: response.ok && body && body.ok !== false,
+      code: _clean(body && body.code),
+      provider: _clean(body && (body.provider || body.providerName)),
+      parseFallback: body && body.parseFallback === true
+    });
     if (!response.ok || !body || body.ok === false) {
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
       _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
@@ -1902,6 +1968,7 @@
     _resultPayload = response;
     _pendingGeneration = null;
     _chapters = [];
+    _setAIResultMode(true);
     var result = response && response.result && typeof response.result === 'object' ? response.result : {};
     var cards = _qs('nyConsultationResultCards');
     var nameEl = _qs('nyResultName');
@@ -1912,6 +1979,10 @@
     }
     if (!cards) return;
     var followUps = Array.isArray(result.followUpQuestions) ? result.followUpQuestions : [];
+    var failedChapterNo = Number(result.failedChapterNo || response && response.failedChapterNo || 0) || 0;
+    var retryCard = failedChapterNo
+      ? '<section class="ny-ai-result-card ny-ai-result-card--retry"><h4>이어 생성이 멈춘 장</h4><p>제 ' + _esc(failedChapterNo) + '장 상담이 완성되지 않았습니다. 결제는 다시 진행하지 않고 해당 장부터 이어서 생성합니다.</p><button type="button" class="ny-secondary-btn" data-action="retrySajuNewYearAIChapter" data-ny-retry-chapter="' + _esc(failedChapterNo) + '">제 ' + _esc(failedChapterNo) + '장 다시 생성</button></section>'
+      : '';
     cards.innerHTML = [
       '<section class="ny-ai-result-card"><h4>상담 요약</h4>' + _textBlockHtml(result.summary) + '</section>',
       '<section class="ny-ai-result-card"><h4>올해의 큰 흐름</h4>' + _textBlockHtml(result.yearlyFlow) + '</section>',
@@ -1920,6 +1991,7 @@
       _chapterConsultationsHtml(result.chapterConsultations),
       '<section class="ny-ai-result-card"><h4>현실적인 조언</h4>' + (_listBlockHtml(result.actionGuide) || _textBlockHtml(result.actionGuide)) + '</section>',
       '<section class="ny-ai-result-card"><h4>마지막 한마디</h4>' + _textBlockHtml(result.closingMessage) + '</section>',
+      retryCard,
       '<section class="ny-ai-result-card ny-ai-result-card--follow"><h4>이어 물어보기</h4>' + (followUps.length ? '<div class="ny-followup-list">' + followUps.map(function (item) { return '<button type="button" class="ny-followup-chip" data-ny-followup="' + _esc(item) + '">' + _esc(item) + '</button>'; }).join('') + '</div>' : '<p>올해 가장 궁금한 주제를 하나 더 좁혀 물어보면 흐름이 더 섬세하게 열립니다.</p>') + '</section>'
     ].filter(Boolean).join('');
     Array.prototype.forEach.call(cards.querySelectorAll('.ny-followup-chip'), function (btn) {
@@ -1951,6 +2023,7 @@
   function _renderResult(response, profile, targetYear) {
     _resultPayload = response;
     _pendingGeneration = null;
+    _setAIResultMode(false);
     _chapters = Array.isArray(response.chapters) ? response.chapters : [];
     var nameEl = _qs('nyResultName');
     var dateEl = _qs('nyResultDate');
@@ -2016,6 +2089,112 @@
     };
   }
 
+  function _chapterResultNo(item) {
+    return Number(item && (item.chapterNo || item.no || item.chapter && item.chapter.no) || 0) || 0;
+  }
+
+  function _stateChapters(state) {
+    return (state && Array.isArray(state.chapterResults) ? state.chapterResults : [])
+      .map(function (item) { return item && item.chapter; })
+      .filter(Boolean);
+  }
+
+  function _buildAIStateResponse(state, status) {
+    var pending = state && state.pending || {};
+    var focusPatch = state && state.focusResult && state.focusResult.resultPatch || {};
+    var chapters = _stateChapters(state);
+    return {
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      title: '신년운세 AI 상담',
+      status: status || 'chapter_partial',
+      targetYear: pending.targetYear,
+      category: pending.category,
+      question: pending.question,
+      failedChapterNo: Number(state && state.failedChapterNo || 0) || undefined,
+      result: {
+        summary: focusPatch.summary || (chapters[0] && chapters[0].overview) || '질문에 대한 핵심 흐름을 먼저 열었습니다. 전체 신년운세 상담은 장별로 이어서 정리합니다.',
+        yearlyFlow: focusPatch.yearlyFlow || '명식과 세운의 큰 흐름을 바탕으로 질문에 가장 가까운 흐름부터 살피고 있습니다.',
+        topicAnswer: focusPatch.topicAnswer || focusPatch.questionFocus || '',
+        timing: focusPatch.timing || {},
+        chapterConsultations: chapters,
+        actionGuide: focusPatch.actionGuide || [],
+        closingMessage: focusPatch.closingMessage || '완성된 장을 바탕으로 올해의 길이 조금씩 선명해지고 있습니다.',
+        followUpQuestions: focusPatch.followUpQuestions || [],
+        rawText: focusPatch.rawText || ''
+      },
+      provider: 'gemini',
+      isMock: false
+    };
+  }
+
+  function _chapterAlreadyCompleted(state, chapterNo) {
+    var no = Number(chapterNo || 0) || 0;
+    return !!(state && Array.isArray(state.chapterResults) && state.chapterResults.some(function (item) {
+      return _chapterResultNo(item) === no;
+    }));
+  }
+
+  async function _finalizeAIConsultationState(state) {
+    var started = state.started || {};
+    var payload = state.payload || {};
+    var finalPayload = Object.assign({}, payload, {
+      consultationId: started.consultationId,
+      resultId: started.resultId,
+      consultationAccessToken: state.consultationAccessToken,
+      chapterResults: state.chapterResults,
+      focusResult: state.focusResult,
+      chapters: state.chapterResults.map(function (item) { return item.chapter; }),
+      resultPatches: state.chapterResults.map(function (item) { return item.resultPatch; }).filter(Boolean),
+      rawTexts: state.chapterResults.map(function (item) { return item.rawText; }).filter(Boolean).concat(state.focusResult && state.focusResult.rawText ? [state.focusResult.rawText] : [])
+    });
+    var data = await _postJson(AI_FINALIZE_API, finalPayload);
+    if (!data || data.ok === false || !data.result) {
+      throw _buildPdfApiError(data, 502, '신년운세 AI 상담 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+    _aiConsultationState = null;
+    _renderAIConsultationResult(data, state.pending.profile, state.pending.targetYear);
+    _showScreen('nyResultScreen');
+    _log('ConsultationCompleted', {
+      reportId: state.pending.reportId,
+      targetYear: state.pending.targetYear,
+      provider: _clean(data.provider),
+      isMock: data.isMock === true,
+      chapterCount: state.chapterResults.length
+    });
+    return data;
+  }
+
+  async function _continueAIConsultationChapters(state, startChapterNo) {
+    var started = state.started || {};
+    var total = Number(started.totalChapters || started.chapterBlueprint && started.chapterBlueprint.length || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
+    state.totalChapters = total;
+    state.failedChapterNo = 0;
+    _aiConsultationState = state;
+    for (var chapterNo = Number(startChapterNo || 1) || 1; chapterNo <= total; chapterNo += 1) {
+      if (_chapterAlreadyCompleted(state, chapterNo)) continue;
+      try {
+        var chapterResult = await _runAIChapterWithRetry(state.payload, started, chapterNo);
+        if (!chapterResult || chapterResult.ok === false || !chapterResult.chapter) {
+          throw _buildPdfApiError(chapterResult, 502, chapterNo + '장 상담 결과를 확인하지 못했습니다. 해당 장만 다시 시도해 주세요.');
+        }
+        state.chapterResults.push(chapterResult);
+        _renderAIConsultationResult(_buildAIStateResponse(state, 'chapter_partial'), state.pending.profile, state.pending.targetYear);
+        _showScreen('nyResultScreen');
+      } catch (error) {
+        state.failedChapterNo = chapterNo;
+        state.lastError = error;
+        _logError(error, { stage: 'chapter', reportId: state.pending.reportId, chapterNo: chapterNo });
+        _renderAIConsultationResult(_buildAIStateResponse(state, 'chapter_retry_required'), state.pending.profile, state.pending.targetYear);
+        _showScreen('nyResultScreen');
+        return null;
+      }
+    }
+    _setStage('archive');
+    _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
+    return _finalizeAIConsultationState(state);
+  }
+
   async function _runAfterBillingAI(pending, accessGrant, premiumToken, paidEvidence) {
     _setStage('calculate');
     _setProgress(2, '명식과 올해의 세운을 읽고 있어요.');
@@ -2038,66 +2217,25 @@
       payload.consultationAccessToken = consultationAccessToken;
       if (evidence) evidence.consultationAccessToken = consultationAccessToken;
     }
-    var total = Number(started.totalChapters || started.chapterBlueprint.length || TOTAL_CHAPTERS) || TOTAL_CHAPTERS;
-    var chapterResults = [];
     var focusResult = await _runAIFocusWithRetry(payload, started);
     if (!focusResult || focusResult.ok === false || !focusResult.resultPatch || !focusResult.resultPatch.topicAnswer) {
       throw _buildPdfApiError(focusResult, 502, '질문 집중 상담 결과를 확인하지 못했습니다. 다시 시도해 주세요.');
     }
-    _renderAIConsultationResult({
-      ok: true,
-      serviceKey: SERVICE_KEY,
-      title: '신년운세 AI 상담',
-      status: 'focus_completed',
-      targetYear: pending.targetYear,
-      category: pending.category,
-      question: pending.question,
-      result: {
-        summary: '질문에 대한 핵심 흐름을 먼저 열었습니다. 전체 신년운세 상담은 이어서 장별로 정리하고 있어요.',
-        yearlyFlow: '명식과 세운의 큰 흐름을 바탕으로 질문에 가장 가까운 흐름부터 살피고 있습니다.',
-        topicAnswer: focusResult.resultPatch.topicAnswer,
-        timing: focusResult.resultPatch.timing || {},
-        chapterConsultations: [],
-        actionGuide: focusResult.resultPatch.actionGuide || [],
-        closingMessage: focusResult.resultPatch.closingMessage || '전체 상담이 완성되면 올해의 길이 더 선명하게 정리됩니다.',
-        followUpQuestions: focusResult.resultPatch.followUpQuestions || []
-      },
-      provider: 'gemini',
-      isMock: false
-    }, pending.profile, pending.targetYear);
-    _showScreen('nyResultScreen');
-    for (var chapterNo = 1; chapterNo <= total; chapterNo += 1) {
-      var chapterResult = await _runAIChapterWithRetry(payload, started, chapterNo);
-      if (!chapterResult || chapterResult.ok === false || !chapterResult.chapter) {
-        throw _buildPdfApiError(chapterResult, 502, chapterNo + '장 상담 결과를 확인하지 못했습니다. 해당 장만 다시 시도해 주세요.');
-      }
-      chapterResults.push(chapterResult);
-    }
-    _setStage('archive');
-    _setProgress(3, '질문에 맞는 올해의 흐름을 정리하고 있어요.');
-    var finalPayload = Object.assign({}, payload, {
-      consultationId: started.consultationId,
-      resultId: started.resultId,
-      consultationAccessToken: consultationAccessToken,
-      chapterResults: chapterResults,
+    var state = {
+      pending: pending,
+      payload: payload,
+      started: started,
       focusResult: focusResult,
-      chapters: chapterResults.map(function (item) { return item.chapter; }),
-      resultPatches: chapterResults.map(function (item) { return item.resultPatch; }).filter(Boolean),
-      rawTexts: chapterResults.map(function (item) { return item.rawText; }).filter(Boolean).concat(focusResult.rawText ? [focusResult.rawText] : [])
-    });
-    var data = await _postJson(AI_FINALIZE_API, finalPayload);
-    if (!data || data.ok === false || !data.result) {
-      throw _buildPdfApiError(data, 502, '신년운세 AI 상담 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-    }
-    _renderAIConsultationResult(data, pending.profile, pending.targetYear);
+      chapterResults: [],
+      consultationAccessToken: consultationAccessToken,
+      totalChapters: Number(started.totalChapters || started.chapterBlueprint.length || TOTAL_CHAPTERS) || TOTAL_CHAPTERS,
+      failedChapterNo: 0,
+      lastError: null
+    };
+    _aiConsultationState = state;
+    _renderAIConsultationResult(_buildAIStateResponse(state, 'focus_completed'), pending.profile, pending.targetYear);
     _showScreen('nyResultScreen');
-    _log('ConsultationCompleted', {
-      reportId: pending.reportId,
-      targetYear: pending.targetYear,
-      provider: _clean(data.provider),
-      isMock: data.isMock === true,
-      chapterCount: chapterResults.length
-    });
+    return _continueAIConsultationChapters(state, 1);
   }
 
   function _runAfterBilling(pending, accessGrant, premiumToken) {
@@ -2197,19 +2335,12 @@
   function _runBillingAndGeneration(pending) {
     _showScreen('nyLoadingScreen');
     _setStage('billing');
-    _setProgress(1, '제미나이 상담 생성 설정을 확인하는 중입니다');
-    return _checkNewYearAIGeminiReady(pending).then(function () {
-      _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
-      if (_hasReusableAccessFor(pending)) {
-        _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
-        return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken, _lastPaidEvidence);
-      }
-      return _refreshNewYearBillingSnapshot().catch(function () { return null; });
-    }).then(function () {
-      if (_hasReusableAccessFor(pending)) return null;
-      return _runCoinGate(pending.reportId);
-    }).then(function (gate) {
-      if (!gate && _hasReusableAccessFor(pending)) return null;
+    _setProgress(1, '결제창에서 권한과 금액을 확인하는 중입니다');
+    if (_hasReusableAccessFor(pending)) {
+      _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
+      return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken, _lastPaidEvidence);
+    }
+    return _runCoinGate(pending.reportId).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
         _setError(gate.message || '신년운세 AI 상담을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
@@ -2270,6 +2401,7 @@
     _log('ModalOpen');
     var modal = _qs('sajuNewYearModal');
     if (!modal) return;
+    _bindGenerateButton();
     _syncTargetYearBounds();
     _bindQuestionControls();
     _refreshNewYearBillingSnapshot();
@@ -2401,6 +2533,34 @@
     });
   };
 
+  window.retrySajuNewYearAIChapter = function (chapterNo) {
+    if (_generating) return;
+    var state = _aiConsultationState;
+    var retryNo = Number(chapterNo || state && state.failedChapterNo || 0) || 0;
+    if (!state || !retryNo || !state.payload || !state.started) {
+      _setError('이어 생성할 상담 세션을 확인하지 못했습니다. 결제 후 상담 생성을 다시 시작해 주세요.', {
+        retryText: '상담 다시 시작'
+      });
+      return;
+    }
+    _generating = true;
+    _setBusy(true);
+    _showScreen('nyLoadingScreen');
+    _setStage('write');
+    _setChapterAIProgress(retryNo, state.totalChapters || TOTAL_CHAPTERS, '제 ' + retryNo + '장 상담을 다시 이어 쓰고 있어요.');
+    _continueAIConsultationChapters(state, retryNo).catch(function (error) {
+      _logError(error, { stage: error && error.stage || 'chapter-retry', reportId: state.pending && state.pending.reportId, chapterNo: retryNo });
+      state.failedChapterNo = retryNo;
+      state.lastError = error;
+      _renderAIConsultationResult(_buildAIStateResponse(state, 'chapter_retry_required'), state.pending.profile, state.pending.targetYear);
+      _showScreen('nyResultScreen');
+    }).finally(function () {
+      _generating = false;
+      _setBusy(false);
+      _stopProgressAnimation();
+    });
+  };
+
   window.downloadSajuNewYearPdf = function () {
     var result = _resultPayload || {};
     var ready = result.pdfReady && typeof result.pdfReady === 'object' ? result.pdfReady : {};
@@ -2449,6 +2609,7 @@
     if (action === 'backSajuNewYearStart') { window.backSajuNewYearStart(); return; }
     if (action === 'generateSajuNewYear') { window.generateSajuNewYear(); return; }
     if (action === 'confirmSajuNewYearPayment') { window.confirmSajuNewYearPayment(); return; }
+    if (action === 'retrySajuNewYearAIChapter') { window.retrySajuNewYearAIChapter(actionEl.getAttribute('data-ny-retry-chapter')); return; }
     if (action === 'downloadSajuNewYearPdf') { window.downloadSajuNewYearPdf(); return; }
     if (action === 'focusSajuNewYearBirthInput') { window.focusSajuNewYearBirthInput(); return; }
     if (action === 'openSajuNewYearCharge') { window.openSajuNewYearCharge(); return; }
@@ -2456,5 +2617,6 @@
     if (action === 'nextSajuNewYearChapter') { window.nextSajuNewYearChapter(); return; }
   });
 
+  _bindGenerateButton();
   try { window.__cdSajuNewYearCoverImage = COVER_IMAGE; } catch (_) {}
 })();

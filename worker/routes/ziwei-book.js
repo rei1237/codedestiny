@@ -1554,6 +1554,7 @@ function normalizeZiweiAIQuestion(body = {}) {
 }
 
 function isZiweiAIConsultationDryRun(env = {}, body = {}) {
+  if (isZiweiAIProductionRuntime(env)) return false;
   const values = [
     body?.dryRun,
     body?.dry_run,
@@ -1563,6 +1564,24 @@ function isZiweiAIConsultationDryRun(env = {}, body = {}) {
     env?.LLM_DRY_RUN,
   ];
   return values.some((value) => /^(1|true|yes|on|mock|dry_run)$/i.test(clean(value)));
+}
+
+function isZiweiAIProductionRuntime(env = {}) {
+  const values = [
+    clean(env?.NODE_ENV),
+    clean(env?.APP_ENV),
+    clean(env?.ENV),
+    clean(env?.ENVIRONMENT),
+    clean(env?.ENVIRONMENT_NAME),
+    clean(env?.STAGE),
+    clean(env?.DEPLOY_ENV),
+    clean(env?.CF_PAGES),
+    clean(env?.CF_PAGES_BRANCH),
+  ];
+  return values.some((value) => {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "production" || normalized === "prod" || normalized === "live" || normalized === "release" || normalized === "main";
+  });
 }
 
 function hasZiweiAIProviderEnv(env = {}) {
@@ -1605,6 +1624,8 @@ function logZiweiAIConsultation(stage, details = {}) {
     hasAnnualLuck: Boolean(details.hasAnnualLuck),
     llmLatencyMs: Number(details.llmLatencyMs || 0),
     errorCode: clean(details.errorCode || ""),
+    dryRunSource: clean(details.dryRunSource || ""),
+    isMockSuppressedInProduction: details.isMockSuppressedInProduction === true,
     authSource: clean(details.authSource || ""),
     tokenVerified: details.tokenVerified === true,
   };
@@ -1886,12 +1907,15 @@ async function handleZiweiAIConsultation(request, env) {
     body = await readJson(request);
     category = normalizeZiweiAICategory(body?.category);
     const questionResult = normalizeZiweiAIQuestion(body);
+    const isProduction = isZiweiAIProductionRuntime(env);
+    const dryRunSource = isProduction ? "production-forced-false" : "request";
     question = questionResult.question || "";
-    const dryRun = isZiweiAIConsultationDryRun(env, body);
+    const dryRun = isProduction ? false : isZiweiAIConsultationDryRun(env, body);
     logZiweiAIConsultation("request received", {
       hasEnvAI,
       providerName: hasEnvAI ? "gemini-primary-workers-ai-fallback" : "",
       dryRun,
+      dryRunSource,
       category,
       questionLength: question.length,
     });
@@ -1900,6 +1924,7 @@ async function handleZiweiAIConsultation(request, env) {
         retryable: false,
         dryRun: true,
         isMock: false,
+        dryRunSource,
       });
     }
     if (!questionResult.ok) {
@@ -2010,12 +2035,19 @@ async function handleZiweiAIConsultation(request, env) {
     });
     logZiweiAIConsultation("prompt built", chartLog);
     if (!hasEnvAI) {
-      logZiweiAIConsultation("LLM provider error", { ...chartLog, errorCode: "LLM_PROVIDER_MISSING" });
+      logZiweiAIConsultation("LLM provider error", {
+        ...chartLog,
+        errorCode: "LLM_PROVIDER_MISSING",
+        dryRunSource,
+        isMockSuppressedInProduction: false,
+      });
       return buildZiweiAIError("LLM_PROVIDER_MISSING", "자미두수 AI 상담을 생성할 LLM provider 설정이 없습니다.", 503, {
         retryable: true,
         paymentRetainedForRetry: true,
         isMock: false,
         dryRun: false,
+        dryRunSource,
+        isMockSuppressedInProduction: false,
       });
     }
     const llmStartedAt = Date.now();
@@ -2032,16 +2064,28 @@ async function handleZiweiAIConsultation(request, env) {
     const provider = clean(ai?.provider || "gemini-primary-workers-ai-fallback");
     const model = clean(ai?.model || "");
     const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    const isMockSuppressedInProduction = isProduction && isMock;
+    const effectiveIsMock = isProduction ? false : isMock;
     const aiText = clean(ai?.text || "");
-    if (!ai?.ok || isMock || aiText.length < 240) {
-      const errorCode = isMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.error || "LLM_GENERATION_FAILED");
-      logZiweiAIConsultation("LLM provider error", { ...chartLog, providerName: provider, isMock, llmLatencyMs, errorCode });
+    if (!ai?.ok || effectiveIsMock || aiText.length < 240) {
+      const errorCode = effectiveIsMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.error || "LLM_GENERATION_FAILED");
+      logZiweiAIConsultation("LLM provider error", {
+        ...chartLog,
+        providerName: provider,
+        isMock,
+        isMockSuppressedInProduction,
+        dryRunSource,
+        llmLatencyMs,
+        errorCode,
+      });
       return buildZiweiAIError(errorCode, clean(ai?.message || "자미두수 AI 상담 생성이 일시적으로 실패했습니다. 결제 확인 상태는 유지되니 잠시 뒤 다시 시도해 주세요."), 503, {
         retryable: true,
         paymentRetainedForRetry: true,
         provider,
         model,
         isMock,
+        isMockSuppressedInProduction,
+        dryRunSource,
         dryRun: false,
       });
     }
@@ -2059,6 +2103,8 @@ async function handleZiweiAIConsultation(request, env) {
       model,
       isMock: false,
       dryRun: false,
+      dryRunSource,
+      isMockSuppressedInProduction: false,
       category,
       categoryLabel,
       chartSummary,
@@ -2074,7 +2120,7 @@ async function handleZiweiAIConsultation(request, env) {
       },
       elapsedMs: Date.now() - startedAt,
     };
-    logZiweiAIConsultation("response returned", { ...chartLog, providerName: provider, llmLatencyMs });
+    logZiweiAIConsultation("response returned", { ...chartLog, providerName: provider, dryRunSource, llmLatencyMs });
     serverStage = "response";
     return json(responsePayload, { status: 200 });
   } catch (error) {
@@ -2097,6 +2143,8 @@ async function handleZiweiAIConsultation(request, env) {
       hasDecadeLuck: Boolean(chartSummary.hasDecadeLuck),
       hasAnnualLuck: Boolean(chartSummary.hasAnnualLuck),
       errorCode,
+      dryRunSource,
+      isMockSuppressedInProduction: false,
     });
     console.error(`${ZIWEI_AI_CONSULTATION_MARKER} unhandled error`, {
       stage: serverStage,
@@ -2111,6 +2159,8 @@ async function handleZiweiAIConsultation(request, env) {
       paymentRetainedForRetry: responseStatus >= 500,
       isMock: false,
       dryRun: false,
+      dryRunSource,
+      isMockSuppressedInProduction: false,
       debugSafe: {
         stage: serverStage,
         errorCode,
