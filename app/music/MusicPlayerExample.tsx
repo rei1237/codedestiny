@@ -63,7 +63,7 @@ const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
 const HUMAN_MODE_COVER_KEYS = {
   yeoni: "\uc5f0\uc774 \uc778\uac04 \ubaa8\ub4dc \uc568\ubc94.webp",
   dest1novaVol1: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc94 \ub370\ubdd4.webp",
-  dest1novaVol2: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc94 2.webp",
+  dest1novaVol2: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc942.webp",
 };
 
 const HUMAN_MODE_COVER_URLS = {

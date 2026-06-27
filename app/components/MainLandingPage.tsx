@@ -384,11 +384,6 @@ const DeferredEmailSubscriptionSection = dynamic(() => import("./EmailSubscripti
   ssr: false,
   loading: () => null,
 });
-const DeferredMusicPlayerExample = dynamic(() => import("../music/MusicPlayerExample"), {
-  ssr: false,
-  loading: () => null,
-});
-
 type LazySectionProps = {
   id?: string;
   className?: string;
@@ -532,10 +527,6 @@ export default function MainLandingPage() {
 
       <section id="fortuneForm" className="cd-main-shell !py-4 md:!py-5">
         <MainHeroFortuneForm onProfileReady={setProfile} />
-      </section>
-
-      <section className="cd-main-shell !py-4 md:!py-5" aria-label="Code Destiny music player">
-        <DeferredMusicPlayerExample presentation="compact" />
       </section>
 
       <section className="cd-main-shell !py-4 md:!py-5">
