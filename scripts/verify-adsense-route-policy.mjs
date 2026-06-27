@@ -56,7 +56,14 @@ const blockedRoutes = [
   "/palm-reading/scan",
   "/pdf/life-book",
   "/pdf/love-report",
-  "/pdf/new-year",
+  "/life-book-ai",
+  "/love-secret-ai",
+  "/new-year-ai-consultation",
+  "/ziwei-ai",
+  "/astrology-ai",
+  "/vedic-ai",
+  "/sukuyo-compatibility-ai",
+  "/karma-destiny-ai",
   "/points/history",
   "/premium",
   "/premium-reports",
@@ -143,7 +150,7 @@ const canonicalAllowSamples = [
 const canonicalBlockedSamples = [
   ["/about", "/faq"],
   ["/about?action=openPaymentModal", "/about"],
-  ["/saju/guide?premiumIntent=love-secret-pdf", "/saju/guide"],
+  ["/saju/guide?payment=1", "/saju/guide"],
   ["/saju/guide?birthDate=1990-01-01", "/saju/guide"],
   ["/tarot/numerology?birthDate=1990-01-01", "/tarot/numerology"],
   ["/tarot/numerology?payment=1", "/tarot/numerology"],
@@ -201,7 +208,7 @@ const canonicalUrlBlockedSamples = [
   [
     "/saju/guide",
     "https://code-destiny.com/saju/guide/",
-    "https://code-destiny.com/saju/guide/?premiumIntent=love-secret-pdf",
+    "https://code-destiny.com/saju/guide/?payment=1",
   ],
   [
     "/saju/guide",

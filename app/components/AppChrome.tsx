@@ -19,9 +19,15 @@ const CHROMELESS_ROUTES = [
   "/saju/animal-test",
   "/palm-reading",
   "/music",
+  "/ziwei-ai",
   "/ziwei/chart",
   "/fortune/prompt-hub",
   "/maya",
+  "/new-year-ai-consultation",
+  "/life-book-ai",
+  "/love-secret-ai",
+  "/astrology-ai",
+  "/vedic-ai",
 ];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {

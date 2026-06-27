@@ -303,7 +303,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     structuredData: ["WebPage", "BreadcrumbList"],
   },
   newYearPdf: {
-    path: "/pdf/new-year",
+    path: "/new-year-ai-consultation",
     title: siteSeoText("siteSeo.022"),
     description:
       "신년운세 PDF는 새해의 커리어, 재물, 관계, 건강 흐름을 월별로 살펴보는 프리미엄 운세 문서입니다.",

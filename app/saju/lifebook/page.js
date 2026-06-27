@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function SajuLifebookPage() {
-  redirect("/?action=openLifeBookModal");
+  redirect("/life-book-ai");
 }

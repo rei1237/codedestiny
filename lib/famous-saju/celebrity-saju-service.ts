@@ -1295,10 +1295,7 @@ function sentence(value: string) {
 }
 
 function softSentence(value: string) {
-  return sentence(value)
-    .replace(/한다\./g, "합니다.")
-    .replace(/된다\./g, "됩니다.")
-    .replace(/이다\./g, "입니다.");
+  return toFamousSajuHonorificText(sentence(value));
 }
 
 function polishFortuneSentence(value: string) {
@@ -1322,8 +1319,157 @@ function polishFortuneSentence(value: string) {
     .replace(/목를/g, "목을");
 }
 
-function formatAccessibleFortuneTerms(value: string) {
+function toFamousSajuHonorificText(value: string) {
   return polishFortuneSentence(value)
+    .replace(/아니다\./g, "아닙니다.")
+    .replace(/않는다\./g, "않습니다.")
+    .replace(/한다\./g, "합니다.")
+    .replace(/된다\./g, "됩니다.")
+    .replace(/이다\./g, "입니다.")
+    .replace(/있다\./g, "있습니다.")
+    .replace(/없다\./g, "없습니다.")
+    .replace(/좋다\./g, "좋습니다.")
+    .replace(/깊다\./g, "깊습니다.")
+    .replace(/크다\./g, "큽니다.")
+    .replace(/강하다\./g, "강합니다.")
+    .replace(/약하다\./g, "약합니다.")
+    .replace(/중요하다\./g, "중요합니다.")
+    .replace(/필요하다\./g, "필요합니다.")
+    .replace(/부족하다\./g, "부족합니다.")
+    .replace(/어렵다\./g, "어렵습니다.")
+    .replace(/선명하다\./g, "선명합니다.")
+    .replace(/정확하다\./g, "정확합니다.")
+    .replace(/분명하다\./g, "분명합니다.")
+    .replace(/살아난다\./g, "살아납니다.")
+    .replace(/드러난다\./g, "드러납니다.")
+    .replace(/나타난다\./g, "나타납니다.")
+    .replace(/생긴다\./g, "생깁니다.")
+    .replace(/흐른다\./g, "흐릅니다.")
+    .replace(/읽는다\./g, "읽습니다.")
+    .replace(/본다\./g, "봅니다.")
+    .replace(/살핀다\./g, "살핍니다.")
+    .replace(/보인다\./g, "보입니다.")
+    .replace(/보여 준다\./g, "보여 줍니다.")
+    .replace(/만든다\./g, "만듭니다.")
+    .replace(/남긴다\./g, "남깁니다.")
+    .replace(/묶는다\./g, "묶습니다.")
+    .replace(/묶어 둔다\./g, "묶어 둡니다.")
+    .replace(/다룬다\./g, "다룹니다.")
+    .replace(/움직인다\./g, "움직입니다.")
+    .replace(/작동한다\./g, "작동합니다.")
+    .replace(/작용한다\./g, "작용합니다.")
+    .replace(/가리킨다\./g, "가리킵니다.")
+    .replace(/굳힌다\./g, "굳힙니다.")
+    .replace(/다듬는다\./g, "다듬습니다.")
+    .replace(/밝힌다\./g, "밝힙니다.")
+    .replace(/바꾼다\./g, "바꿉니다.")
+    .replace(/키운다\./g, "키웁니다.")
+    .replace(/솟는다\./g, "솟습니다.")
+    .replace(/버틴다\./g, "버팁니다.")
+    .replace(/떠오른다\./g, "떠오릅니다.")
+    .replace(/강해진다\./g, "강해집니다.")
+    .replace(/선명해진다\./g, "선명해집니다.")
+    .replace(/중요해진다\./g, "중요해집니다.")
+    .replace(/숨어든다\./g, "숨어듭니다.")
+    .replace(/깨어난다\./g, "깨어납니다.")
+    .replace(/걸린다\./g, "걸립니다.")
+    .replace(/잡는다\./g, "잡습니다.")
+    .replace(/품는다\./g, "품습니다.")
+    .replace(/난다\./g, "납니다.")
+    .replace(/낸다\./g, "냅니다.")
+    .replace(/고른다\./g, "고릅니다.")
+    .replace(/중시한다\./g, "중시합니다.")
+    .replace(/지나치다\./g, "지나칩니다.")
+    .replace(/넓힌다\./g, "넓힙니다.")
+    .replace(/일으킨다\./g, "일으킵니다.")
+    .replace(/밝아진다\./g, "밝아집니다.")
+    .replace(/흐려진다\./g, "흐려집니다.")
+    .replace(/태어난다\./g, "태어납니다.")
+    .replace(/접고 간다\./g, "접고 갑니다.")
+    .replace(/지킨다\./g, "지킵니다.")
+    .replace(/붙든다\./g, "붙듭니다.")
+    .replace(/세운다\./g, "세웁니다.")
+    .replace(/얻는다\./g, "얻습니다.")
+    .replace(/맑아진다\./g, "맑아집니다.")
+    .replace(/깊어진다\./g, "깊어집니다.")
+    .replace(/커진다\./g, "커집니다.")
+    .replace(/늦어진다\./g, "늦어집니다.")
+    .replace(/줄어든다\./g, "줄어듭니다.")
+    .replace(/흔들린다\./g, "흔들립니다.")
+    .replace(/올라간다\./g, "올라갑니다.")
+    .replace(/끌어당긴다\./g, "끌어당깁니다.")
+    .replace(/넘어간다\./g, "넘어갑니다.")
+    .replace(/밀고 간다\./g, "밀고 갑니다.")
+    .replace(/따라간다\./g, "따라갑니다.")
+    .replace(/받아들인다\./g, "받아들입니다.")
+    .replace(/말한다\./g, "말합니다.")
+    .replace(/요구한다\./g, "요구합니다.")
+    .replace(/맡는다\./g, "맡습니다.")
+    .replace(/놓인다\./g, "놓입니다.")
+    .replace(/나뉜다\./g, "나뉩니다.")
+    .replace(/이어진다\./g, "이어집니다.")
+    .replace(/열린다\./g, "열립니다.")
+    .replace(/닿는다\./g, "닿습니다.")
+    .replace(/느껴진다\./g, "느껴집니다.")
+    .replace(/새겨진다\./g, "새겨집니다.")
+    .replace(/비춘다\./g, "비춥니다.")
+    .replace(/묻는다\./g, "묻습니다.")
+    .replace(/태도다\./g, "태도입니다.")
+    .replace(/구조다\./g, "구조입니다.")
+    .replace(/자리다\./g, "자리입니다.")
+    .replace(/별이다\./g, "별입니다.")
+    .replace(/기운이다\./g, "기운입니다.")
+    .replace(/흐름이다\./g, "흐름입니다.")
+    .replace(/감각이다\./g, "감각입니다.")
+    .replace(/기준이다\./g, "기준입니다.")
+    .replace(/지도다\./g, "지도입니다.")
+    .replace(/신호다\./g, "신호입니다.")
+    .replace(/리듬이다\./g, "리듬입니다.")
+    .replace(/문이다\./g, "문입니다.")
+    .replace(/힘이다\./g, "힘입니다.")
+    .replace(/언어다\./g, "언어입니다.")
+    .replace(/방식이다\./g, "방식입니다.")
+    .replace(/해석이다\./g, "해석입니다.")
+    .replace(/상징이다\./g, "상징입니다.")
+    .replace(/중심이다\./g, "중심입니다.")
+    .replace(/색이다\./g, "색입니다.")
+    .replace(/팔자다\./g, "팔자입니다.")
+    .replace(/사주다\./g, "사주입니다.")
+    .replace(/명식이다\./g, "명식입니다.");
+}
+
+function polishFamousSajuOutput<T>(value: T): T {
+  if (typeof value === "string") return toFamousSajuHonorificText(value) as T;
+  if (Array.isArray(value)) return value.map((item) => polishFamousSajuOutput(item)) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, polishFamousSajuOutput(item)])
+    ) as T;
+  }
+  return value;
+}
+
+function polishFamousSajuArticle(article: FamousSajuArticle): FamousSajuArticle {
+  return {
+    ...article,
+    magazine: polishFamousSajuOutput(article.magazine),
+    heroCopy: toFamousSajuHonorificText(article.heroCopy),
+    coreKeywords: article.coreKeywords.map((item) => toFamousSajuHonorificText(item)),
+    analysisBadge: toFamousSajuHonorificText(article.analysisBadge),
+    timeNotice: toFamousSajuHonorificText(article.timeNotice),
+    summary: toFamousSajuHonorificText(article.summary),
+    sections: polishFamousSajuOutput(article.sections),
+    insightCards: polishFamousSajuOutput(article.insightCards),
+    reliabilityNotes: polishFamousSajuOutput(article.reliabilityNotes),
+    conclusion: toFamousSajuHonorificText(article.conclusion),
+    seoTitle: toFamousSajuHonorificText(article.seoTitle),
+    seoDescription: toFamousSajuHonorificText(article.seoDescription),
+    seoKeywords: article.seoKeywords.map((item) => toFamousSajuHonorificText(item)),
+  };
+}
+
+function formatAccessibleFortuneTerms(value: string) {
+  const text = toFamousSajuHonorificText(value)
     .replace(/계절 균형이 급해/g, "계절의 온도 균형이 먼저 필요해")
     .replace(/금과 수가 차갑게 치우친 흐름의 병을 치료하는 약이/g, "차갑게 치우친 금·수의 흐름을 누그러뜨리는 기운은")
     .replace(/화염토조의 병을 치료하는 약이/g, "뜨겁고 건조한 흐름을 누그러뜨리는 기운은")
@@ -1377,6 +1523,7 @@ function formatAccessibleFortuneTerms(value: string) {
     .replace(/구조라 ([목화토금수]), ([목화토금수]), ([목화토금수])(?:이|가) 균형을 잡는다/g, "구조라 $1·$2·$3 기운이 균형을 잡습니다")
     .replace(/구조라 ([목화토금수]), ([목화토금수])(?:이|가) 균형을 잡는다/g, "구조라 $1·$2 기운이 균형을 잡습니다")
     .replace(/종하는 기운 ([목화토금수])(?:을|를) 따라야 한다/g, "종하는 $1 기운을 따라야 합니다");
+  return toFamousSajuHonorificText(text);
 }
 
 function formatReasonSentences(value: string, name = "") {
@@ -1731,18 +1878,33 @@ const tenGodReadingTone: Record<string, { nature: string; motion: string; cautio
 };
 
 const twelveStageTone: Record<string, { phase: "성장기" | "절정기" | "쇠퇴기"; text: string }> = {
-  장생: { phase: "성장기", text: "장생은 기운이 막 태어나 길을 여는 자리다. 시작의 힘이 싱싱하고, 낯선 환경에서도 살아나려는 생기가 강하다." },
-  목욕: { phase: "성장기", text: "목욕은 감각이 물 위로 올라오는 자리다. 재능이 눈에 띄게 흔들리며 드러나고, 외부 자극에 민감하게 반응한다." },
-  관대: { phase: "성장기", text: "관대는 몸을 세우고 밖으로 나가는 자리다. 아직 완성은 아니지만 자신을 드러내려는 의지가 선명하다." },
-  건록: { phase: "절정기", text: "건록은 자기 힘으로 서는 자리다. 일간의 뼈대가 단단해지고, 선택을 남에게 기대기보다 스스로 밀고 간다." },
-  제왕: { phase: "절정기", text: "제왕은 기운이 가장 크게 솟는 자리다. 장악력이 강하고, 한 번 중심을 잡으면 주변 흐름까지 끌어당긴다." },
-  쇠: { phase: "쇠퇴기", text: "쇠는 넘친 힘을 줄이고 핵심만 남기는 자리다. 화려한 확장보다 익은 힘을 절제해 쓰는 감각이 중요하다." },
-  병: { phase: "쇠퇴기", text: "병은 기운이 피로를 느끼는 자리다. 계속 밀어붙이기보다 회복과 조율을 배워야 흐름이 맑아진다." },
-  사: { phase: "쇠퇴기", text: "사는 한 흐름을 접고 다음 문을 준비하는 자리다. 겉의 움직임은 줄어도 안쪽 판단은 깊어진다." },
-  묘: { phase: "쇠퇴기", text: "묘는 힘을 안으로 저장하는 자리다. 밖으로 뻗기보다 간직하고 정리하며, 숨은 축적이 생긴다." },
-  절: { phase: "쇠퇴기", text: "절은 끊고 다시 잇는 자리다. 기존 흐름이 멈추는 듯 보여도 새 국면을 위한 전환의 칼날이 된다." },
-  태: { phase: "성장기", text: "태는 가능성이 씨앗처럼 맺히는 자리다. 아직 작지만 앞으로 자랄 기운이 안쪽에서 숨을 쉰다." },
-  양: { phase: "성장기", text: "양은 보호 속에서 기운을 기르는 자리다. 서두르기보다 바탕을 채울수록 다음 움직임이 안정된다." },
+  장생: { phase: "성장기", text: "장생은 기운이 막 태어나 길을 여는 자리입니다. 시작의 힘이 싱싱하고, 낯선 환경에서도 살아나려는 생기가 강하게 드러납니다." },
+  목욕: { phase: "성장기", text: "목욕은 감각이 물 위로 올라오는 자리입니다. 재능이 눈에 띄게 흔들리며 드러나고, 외부 자극에 민감하게 반응합니다." },
+  관대: { phase: "성장기", text: "관대는 몸을 세우고 밖으로 나가는 자리입니다. 아직 완성은 아니지만 자신을 드러내려는 의지가 선명하게 흐릅니다." },
+  건록: { phase: "절정기", text: "건록은 자기 힘으로 서는 자리입니다. 일간의 뼈대가 단단해지고, 선택을 남에게 기대기보다 스스로 밀고 갑니다." },
+  제왕: { phase: "절정기", text: "제왕은 기운이 가장 크게 솟는 자리입니다. 장악력이 강하고, 한 번 중심을 잡으면 주변 흐름까지 끌어당깁니다." },
+  쇠: { phase: "쇠퇴기", text: "쇠는 넘친 힘을 줄이고 핵심만 남기는 자리입니다. 화려한 확장보다 익은 힘을 절제해 쓰는 감각이 중요하게 떠오릅니다." },
+  병: { phase: "쇠퇴기", text: "병은 기운이 피로를 느끼는 자리입니다. 계속 밀어붙이기보다 회복과 조율을 배울 때 흐름이 맑아집니다." },
+  사: { phase: "쇠퇴기", text: "사는 한 흐름을 접고 다음 문을 준비하는 자리입니다. 겉의 움직임은 줄어도 안쪽 판단은 깊어집니다." },
+  묘: { phase: "쇠퇴기", text: "묘는 힘을 안으로 저장하는 자리입니다. 밖으로 뻗기보다 간직하고 정리하며, 숨은 축적이 생깁니다." },
+  절: { phase: "쇠퇴기", text: "절은 끊고 다시 잇는 자리입니다. 기존 흐름이 멈추는 듯 보여도 새 국면을 위한 전환의 칼날이 됩니다." },
+  태: { phase: "성장기", text: "태는 가능성이 씨앗처럼 맺히는 자리입니다. 아직 작지만 앞으로 자랄 기운이 안쪽에서 숨을 쉽니다." },
+  양: { phase: "성장기", text: "양은 보호 속에서 기운을 기르는 자리입니다. 서두르기보다 바탕을 채울수록 다음 움직임이 안정됩니다." },
+};
+
+const repeatedTwelveStageTone: Record<string, string> = {
+  장생: "장생이 여러 주에 반복되면 시작성, 적응력, 새로운 환경을 여는 힘이 겹쳐집니다. 초반 추진력과 생존 감각이 강해지고, 낯선 판에서도 길을 찾아내려는 생기가 원국 전반에 흐릅니다.",
+  목욕: "목욕이 여러 주에 반복되면 감각, 표현력, 대중 반응성이 예민해집니다. 매력과 재능이 밖으로 쉽게 드러나며, 주변의 시선과 분위기를 빠르게 읽는 힘이 강해집니다.",
+  관대: "관대가 여러 주에 반복되면 자기표현, 성장 욕구, 사회적 등장성이 강해집니다. 아직 완성되기 전에도 앞으로 나서려는 의지가 뚜렷하고, 자신의 이름과 역할을 세우려는 흐름이 커집니다.",
+  건록: "건록이 여러 주에 반복되면 독립성, 자기 기준, 지속력이 단단해집니다. 남에게 기대기보다 스스로 버티고 밀고 가려는 힘이 강하며, 삶의 중요한 선택에서 주도권을 놓치려 하지 않습니다.",
+  제왕: "제왕이 여러 주에 반복되면 장악력, 중심성, 리더십이 크게 떠오릅니다. 한 번 판을 잡으면 주변 흐름까지 끌어당기려는 힘이 강해지고, 존재감이 쉽게 묻히지 않습니다.",
+  쇠: "쇠가 여러 주에 반복되면 절제, 선별, 성숙한 판단이 강해집니다. 무리한 확장보다 핵심을 남기는 감각이 발달하며, 경험을 압축해 필요한 순간에 쓰려는 흐름이 깊어집니다.",
+  병: "병이 여러 주에 반복되면 회복 리듬, 민감성, 조율의 필요성이 커집니다. 에너지를 몰아 쓰기보다 몸과 마음의 속도를 살피며, 과로한 흐름을 정돈할 때 명식의 맑은 힘이 살아납니다.",
+  사: "사가 여러 주에 반복되면 내면 판단, 정리, 다음 국면 준비가 깊어집니다. 겉으로 크게 움직이지 않아도 안쪽에서는 선택과 포기가 분명해지고, 오래된 흐름을 접어 새 문을 여는 힘이 생깁니다.",
+  묘: "묘가 여러 주에 반복되면 저장, 축적, 숨은 자산화의 힘이 강해집니다. 밖으로 즉시 드러내기보다 안쪽에 모으고 익히는 기운이 깊어져, 시간이 지난 뒤 묵직한 결과로 나타나기 쉽습니다.",
+  절: "절이 여러 주에 반복되면 단절과 전환, 판을 바꾸는 힘이 강해집니다. 익숙한 흐름을 과감히 끊고 새 국면으로 넘어가는 기운이 뚜렷해져, 삶의 방향 전환이 선명하게 드러납니다.",
+  태: "태가 여러 주에 반복되면 잠재력, 준비성, 보이지 않는 가능성이 커집니다. 아직 표면화되지 않은 씨앗이 많고, 시간이 무르익을수록 안쪽에서 자라던 힘이 현실의 형태를 갖춥니다.",
+  양: "양이 여러 주에 반복되면 보호, 기반 형성, 후원과 안정 욕구가 강해집니다. 서두르기보다 안전한 바탕을 먼저 만들려는 흐름이 커지고, 좋은 울타리를 얻을수록 다음 움직임이 안정됩니다.",
 };
 
 function buildUnknownMagazinePillar(label: CelebritySajuMagazinePillar["label"], text = "알 수 없음"): CelebritySajuMagazinePillar {
@@ -1844,14 +2006,14 @@ function getElementExtremes(counts: Record<ElementKey, number>, mode: "max" | "m
 }
 
 function buildElementFlowText(strongest: ElementKey[], weakest: ElementKey[]) {
-  if (!strongest.length) return "오행의 흐름이 아직 충분히 열리지 않았다. 계산된 원국이 부족하면 기운을 꾸며 붙이지 않고, 확인된 자리만 남기는 것이 명리의 바른 태도다.";
+  if (!strongest.length) return "오행의 흐름이 아직 충분히 열리지 않았습니다. 계산된 원국이 부족하면 기운을 꾸며 붙이지 않고, 확인된 자리만 남기는 것이 명리의 바른 태도입니다.";
   if (strongest.length === 5 && weakest.length === 5) {
-    return "오행이 한쪽으로 크게 쏠리지 않는다. 특정 기운 하나가 판을 독점하기보다 목·화·토·금·수가 서로 견제하며 명식의 호흡을 나눈다. 이런 원국은 속도가 폭발적으로 치솟기보다 상황에 맞춰 힘을 배분한다. 균형이 강점이다. 그러나 균형형 명식은 결정적인 순간에 어느 기운을 앞세울지 의식적으로 선택해야 더 선명해진다.";
+    return "오행이 한쪽으로 크게 쏠리지 않습니다. 특정 기운 하나가 판을 독점하기보다 목·화·토·금·수가 서로 견제하며 명식의 호흡을 나눕니다. 이런 원국은 속도가 폭발적으로 치솟기보다 상황에 맞춰 힘을 배분하는 데 강점이 있습니다. 다만 균형형 명식은 결정적인 순간에 어느 기운을 앞세울지 의식적으로 선택해야 사주의 쓰임이 더 선명해집니다.";
   }
 
   const strongBody = strongest.map((element) => elementSurgeTone[element]).join(" ");
   const weakBody = weakest.map((element) => elementEmptyTone[element]).join(" ");
-  return `${strongest.join("·")} 기운이 먼저 명식을 움직인다. ${strongBody} 그러나 ${weakest.join("·")} 기운이 약하면 흐름의 한쪽이 비어 속도와 균형 사이에 간극이 생긴다. ${weakBody} 이 원국의 조율은 강한 기운을 꺾는 데 있지 않고, 약한 기운이 맡아야 할 리듬을 생활 속에서 되살리는 데 있다.`;
+  return `${strongest.join("·")} 기운이 먼저 명식을 움직입니다. ${strongBody} 그러나 ${weakest.join("·")} 기운이 약하면 흐름의 한쪽이 비어 속도와 균형 사이에 간극이 생깁니다. ${weakBody} 명리적으로는 강한 오행을 단순히 꺾기보다, 약한 오행이 맡아야 할 역할을 생활 리듬과 선택의 방식 안에서 되살리는 것이 중요합니다. 이때 보완 기운은 부족한 성향을 억지로 더하는 장식이 아니라, 원국의 과열과 공백을 조율하는 실제 처방의 축으로 보아야 합니다.`;
 }
 
 function connectStemTone(text: string) {
@@ -1865,7 +2027,7 @@ function connectStemTone(text: string) {
 function buildDayPillarTexture(saju: FamousSajuEngineResult, dayPillar: string, dayElement: string) {
   const branchElement = elementByBranch[saju.pillars.day.branch] || "지지";
   const stemText = connectStemTone(stemTone[saju.dayStem] || `${dayElement} 일간은 자기 결을 따라 움직입니다.`);
-  return `${dayPillar}. ${stemText}, 일지 ${saju.pillars.day.branch}는 ${branchElement} 기운으로 그 성정을 현실의 자리와 감정의 온도에 묶어 둔다.`;
+  return `${dayPillar}. ${stemText}, 일지 ${saju.pillars.day.branch}는 ${branchElement} 기운으로 그 성정을 현실의 자리와 감정의 온도에 묶어 둡니다. 일주는 이 명식이 세상을 받아들이는 첫 기준이므로, 천간의 의지와 지지의 생활 감각을 함께 보아야 실제 기질이 선명해집니다.`;
 }
 
 function findTenGodPositions(name: string, pillars: Array<CelebritySajuMagazinePillar | null>) {
@@ -1941,12 +2103,24 @@ function buildSinsalTextureText(stars: CelebritySajuMagazineStar[], strongestTex
     .join("\n\n");
 }
 
+function formatKoreanLabelList(labels: string[]) {
+  if (labels.length <= 1) return labels[0] || "";
+  if (labels.length === 2) return `${labels[0]}와 ${labels[1]}`;
+  return `${labels.slice(0, -1).join("·")}와 ${labels[labels.length - 1]}`;
+}
+
+function toPositionedTwelveStageText(stage: string, text?: string) {
+  const fallback = "일간의 힘이 해당 지지에서 쓰이는 방식을 보여 줍니다.";
+  const safeText = text || fallback;
+  return safeText.startsWith(`${stage}은 `) ? safeText.slice(`${stage}은 `.length) : safeText;
+}
+
 function buildTwelveStageMaturityText(pillars: Array<CelebritySajuMagazinePillar | null>, birthTimeKnown: boolean) {
   const rows = pillars
     .filter((pillar): pillar is CelebritySajuMagazinePillar => Boolean(pillar && !pillar.isUnknown))
     .map((pillar) => ({ label: pillar.label, stage: pillar.twelveStage, tone: twelveStageTone[pillar.twelveStage] }))
     .filter((row) => row.stage && row.stage !== "알 수 없음");
-  if (!rows.length) return "12운성의 흐름이 충분히 열리지 않았다. 이럴 때는 성장과 절정, 쇠퇴를 임의로 꾸미지 않고 일간과 오행의 기본 힘을 먼저 본다.";
+  if (!rows.length) return "12운성의 흐름이 충분히 열리지 않았습니다. 이럴 때는 성장과 절정, 쇠퇴를 임의로 꾸미지 않고 일간과 오행의 기본 힘을 먼저 봅니다.";
 
   const counts = rows.reduce<Record<"성장기" | "절정기" | "쇠퇴기", number>>((acc, row) => {
     const phase = row.tone?.phase || "성장기";
@@ -1954,11 +2128,25 @@ function buildTwelveStageMaturityText(pillars: Array<CelebritySajuMagazinePillar
     return acc;
   }, { 성장기: 0, 절정기: 0, 쇠퇴기: 0 });
   const dominantPhase = (Object.entries(counts) as Array<["성장기" | "절정기" | "쇠퇴기", number]>).sort((a, b) => b[1] - a[1])[0][0];
-  const details = rows
-    .map((row) => `${row.label}의 ${row.stage}은 ${row.tone?.text || "일간의 힘이 해당 지지에서 쓰이는 방식을 보여 준다."}`)
+  const groupedRows = Array.from(rows.reduce<Map<string, typeof rows>>((acc, row) => {
+    const group = acc.get(row.stage) || [];
+    group.push(row);
+    acc.set(row.stage, group);
+    return acc;
+  }, new Map()).values());
+  const details = groupedRows
+    .map((group) => {
+      const [first] = group;
+      if (group.length === 1) {
+        return `${first.label}의 ${first.stage}은 ${toPositionedTwelveStageText(first.stage, first.tone?.text)}`;
+      }
+      const labels = formatKoreanLabelList(group.map((row) => row.label));
+      const repeatText = repeatedTwelveStageTone[first.stage] || `${first.stage}이 여러 주에 반복되면 같은 운성의 결이 원국 안에서 겹쳐 흐릅니다. 한 자리의 의미로만 보지 않고, 삶의 속도와 반응 방식 전체에 반복적으로 작동하는 힘으로 읽어야 합니다.`;
+      return `${labels}에 ${first.stage}이 함께 드러납니다. ${repeatText} 기본 성정으로 보면 ${toPositionedTwelveStageText(first.stage, first.tone?.text)}`;
+    })
     .join("\n\n");
 
-  return `${details}\n\n${birthTimeKnown ? "4주 전체" : "3주 기준"}로 보면 이 명식은 ${dominantPhase} 흐름이 가장 뚜렷하다. 성장기는 시작과 감각을, 절정기는 자기 힘의 장악을, 쇠퇴기는 정리와 절제를 맡는다. 이 진단은 좋고 나쁨의 판정이 아니라 일간이 어느 속도로 힘을 쓰는지 보여 주는 성숙도의 지도다.`;
+  return `${details}\n\n${birthTimeKnown ? "4주 전체로" : "3주 기준으로"} 보면 이 명식은 ${dominantPhase} 흐름이 가장 뚜렷합니다. 성장기는 시작과 감각을, 절정기는 자기 힘의 장악을, 쇠퇴기는 정리와 절제를 맡습니다. 같은 운성이 반복되는 자리는 단순한 강조가 아니라, 일간이 비슷한 방식으로 여러 삶의 장면을 통과한다는 뜻으로 읽습니다. 그래서 이 진단은 좋고 나쁨의 판정이 아니라, 어느 속도로 힘을 쓰고 어디에서 성숙도가 깊어지는지를 보여 주는 지도입니다.`;
 }
 
 function buildSajuAnnotation(person: CelebritySajuSeed, birthTimeKnown: boolean) {
@@ -2050,7 +2238,7 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
   const tenGodHighlights = buildMagazineTenGodHighlights(saju, magazinePillars, dayElement, strongestText, weakestText);
   const primaryTenGod = tenGodHighlights[0]?.name || "십성";
   const dayPillar = `${saju.pillars.day.ganji}일주`;
-  const oneLineReading = `${strongestText} 기운 위에 선 ${dayPillar}은 ${primaryTenGod}의 방식으로 자기 날을 세우는 명식이다.`;
+  const oneLineReading = `${strongestText} 기운 위에 선 ${dayPillar}은 ${primaryTenGod}의 방식으로 자기 날을 세우는 명식입니다. 일간의 기세, 월령의 계절감, 드러난 십성의 작용을 함께 보면 이 명식은 단순한 성향보다 반복되는 선택의 문법으로 읽힙니다.`;
   const dayPillarTexture = buildDayPillarTexture(saju, dayPillar, dayElement);
   const elementInterpretation = buildElementFlowText(strongest, weakest);
   const sinsalTexture = buildSinsalTextureText(
@@ -2119,7 +2307,7 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
       {
         id: "ten-gods",
         title: famousSajuCopy("magazine.tenGodTalent"),
-        body: `${tenGodHighlights.map((item) => item.name).join(" · ")}이 먼저 떠오른다. 십성은 일간이 세상과 부딪히고, 만들고, 지키고, 받아들이는 방식을 가리키는 명리의 언어다. 아래의 각 십성은 원국 안에서 놓인 자리와 오행의 힘을 함께 보아야 제 색을 드러낸다.`,
+        body: `${tenGodHighlights.map((item) => item.name).join(" · ")}이 먼저 떠오릅니다. 십성은 일간이 세상과 부딪히고, 만들고, 지키고, 받아들이는 방식을 가리키는 명리의 언어입니다. 단순한 재능 목록으로 보지 않고, 천간에 드러난 십성은 외부로 표현되는 역할로, 지장간에 숨은 십성은 반복되는 심리와 선택의 습관으로 나누어 읽어야 합니다. 아래의 각 십성은 원국 안에서 놓인 자리와 오행의 힘을 함께 보아야 제 색을 드러냅니다.`,
         cards: tenGodHighlights.map((item) => ({
           label: item.name,
           title: item.meaning,
@@ -2235,7 +2423,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     const coreKeywords = uniqueKeywords(["명식 기준 확인 필요", person.category, ...person.tags.slice(0, 3)]).slice(0, 5);
     const analysisBadge = "명식 기준 확인 필요";
     const summary = `${person.nameKo}의 유명인 사주 분석은 명식 기준 확인이 먼저 필요한 상태입니다. 확인되지 않은 팔자·격국·보완 기운·대운을 임의로 꾸미지 않습니다.`;
-    return {
+    return polishFamousSajuArticle({
       celebrity: person,
       person,
       saju: null,
@@ -2269,7 +2457,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       seoTitle: buildFamousSajuSeoTitle(person),
       seoDescription: `${person.nameKo}의 명식 기준이 확인되기 전까지 임의 해석을 만들지 않고, 공개 자료로 확인 가능한 범위만 조심스럽게 남기는 유명인 사주 분석입니다.`,
       seoKeywords: uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, "유명인 사주", "명식 기준 확인 필요"]),
-    };
+    });
   }
 
   const dayStem = saju.dayStem;
@@ -2629,7 +2817,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     .join(" ") || craftedArticle?.summary || summary;
   const articleConclusion = magazine.summary.oneLineReading || craftedArticle?.conclusion || conclusion;
 
-  return {
+  return polishFamousSajuArticle({
     celebrity: person,
     person,
     saju,
@@ -2658,7 +2846,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       calculationStatus: "calculated",
     }),
     seoKeywords,
-  };
+  });
 }
 
 export function getFamousSajuSeoMetadata(person: CelebritySajuSeed, article: FamousSajuArticle) {

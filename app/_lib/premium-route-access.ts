@@ -15,7 +15,6 @@ const PREMIUM_UNLOCK_POLICY: Record<string, string[]> = {
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
   lifeBook: [],
-  loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   sajuNewYear: ["premiumDivinationPack"],
   soulOriginKarma: ["premiumDivinationPack"],
 };
@@ -197,30 +196,6 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
         reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
         minCost: 490,
         windowMinutes: 240,
-      },
-    ];
-  }
-
-  if (reportType === "ziweiPremium") {
-    const isCompat = normalizeModeToken(requestBody).includes("compat");
-    return [
-      {
-        featureKey: isCompat ? "premium_pdf_ziwei_compat" : "premium_pdf_ziwei",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: isCompat ? "premium-ziwei-report-compat" : "premium-ziwei-report",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
-        windowMinutes: 120,
       },
     ];
   }

@@ -700,7 +700,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-933d425d99ed').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-0c8e87d09e1b').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -782,23 +782,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-933d425d99ed'
+      'js/animal-totem-experience.js?v=build-0c8e87d09e1b'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-933d425d99ed'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-933d425d99ed'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-933d425d99ed'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-0c8e87d09e1b'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-0c8e87d09e1b'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-0c8e87d09e1b'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-933d425d99ed'],
-    openDreamModal: ['js/dream-ledger.js?v=build-933d425d99ed'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-933d425d99ed'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-0c8e87d09e1b'],
+    openDreamModal: ['js/dream-ledger.js?v=build-0c8e87d09e1b'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-0c8e87d09e1b'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-933d425d99ed']
+    openSibylModal: ['js/sibyl-system.js?v=build-0c8e87d09e1b']
   };
 
   function normalizeScriptSrc(src) {
@@ -1573,7 +1573,7 @@
             label: profile.location && profile.location.label ? profile.location.label : mobileInteractionPatchText('locationSeoul')
           }
         };
-        // vedic-astrology.html에서 읽을 수 있도록 저장
+        // /vedic-ai에서 읽을 수 있도록 저장
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
         }
@@ -1582,16 +1582,16 @@
         }
         // URL 파라미터로도 전달 (백업)
         var vp = encodeURIComponent(JSON.stringify(vedicPayload));
-        window.location.href = '/vedic-astrology.html?vp=' + vp;
+        window.location.href = '/vedic-ai?vp=' + vp;
         return;
       }
       // 프로필이 없으면 그냥 이동 (입력 페이지 표시)
-      window.location.href = '/vedic-astrology.html';
+      window.location.href = '/vedic-ai';
     } catch (err) {
       console.error('[navigateToVedic] Error:', err);
       endFeatureLoading(loadToken);
       // 오류 발생 시에도 페이지 이동은 시도
-      window.location.href = '/vedic-astrology.html';
+      window.location.href = '/vedic-ai';
     }
   };
 })();

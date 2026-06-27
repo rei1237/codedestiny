@@ -1,0 +1,495 @@
+.screen {
+  min-height: 100vh;
+  padding: 18px;
+  background:
+    linear-gradient(132deg, rgba(36, 10, 20, .96), rgba(20, 32, 36, .98) 48%, rgba(54, 28, 22, .96)),
+    #1f1018;
+  color: #fff7f3;
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.threadLine {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 64px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244, 114, 182, .72), rgba(251, 191, 36, .56), transparent);
+  pointer-events: none;
+}
+
+.shell {
+  width: min(1240px, 100%);
+  min-height: calc(100vh - 36px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(320px, .86fr) minmax(0, 1.14fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.visualPanel,
+.workPanel {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .06);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+  overflow: hidden;
+}
+
+.visualPanel {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 620px;
+}
+
+.visualImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.visualCopy {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 28px;
+  background: linear-gradient(0deg, rgba(24, 8, 18, .92), rgba(24, 8, 18, .2));
+}
+
+.eyebrow {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 10px;
+  color: #ffd7a3;
+  font-weight: 800;
+  font-size: .88rem;
+}
+
+.visualCopy h1 {
+  margin: 0;
+  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+  color: #fff7ed;
+}
+
+.visualCopy p:last-child {
+  max-width: 520px;
+  margin: 14px 0 0;
+  color: #ffe6ea;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.workPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(145deg, rgba(17, 24, 39, .86), rgba(69, 20, 35, .72));
+}
+
+.stepTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.step,
+.stepActive {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .07);
+  color: #f7e8ee;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.step span,
+.stepActive span {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  font-size: .78rem;
+}
+
+.stepActive {
+  border-color: rgba(251, 191, 36, .58);
+  background: rgba(251, 191, 36, .16);
+  color: #fff9e8;
+}
+
+.formPanel,
+.resultPanel {
+  flex: 1;
+  min-height: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field,
+.fieldWide,
+.questionBox,
+.optionGroup {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field span,
+.fieldWide span,
+.questionBox span,
+.optionGroup span {
+  color: #ffd7a3;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.field input,
+.field select,
+.questionBox textarea,
+.chatComposer textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  background: rgba(7, 12, 22, .72);
+  color: #fff7f3;
+  font: inherit;
+  outline: none;
+}
+
+.field input,
+.field select {
+  height: 46px;
+  padding: 0 12px;
+}
+
+.questionBox textarea {
+  min-height: 124px;
+  resize: vertical;
+  padding: 12px;
+  line-height: 1.65;
+}
+
+.field input:focus,
+.field select:focus,
+.questionBox textarea:focus,
+.chatComposer textarea:focus {
+  border-color: rgba(244, 114, 182, .72);
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, .14);
+}
+
+.segmented,
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segment,
+.segmentActive,
+.chip,
+.chipActive {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .07);
+  color: #fff4f8;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.segment,
+.segmentActive {
+  min-width: 96px;
+  height: 40px;
+}
+
+.chip,
+.chipActive {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
+.segmentActive,
+.chipActive {
+  border-color: rgba(52, 211, 153, .55);
+  background: rgba(52, 211, 153, .17);
+  color: #ecfdf5;
+}
+
+.finalStep {
+  display: grid;
+  gap: 18px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ghostButton,
+.primaryButton,
+.chatComposer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  min-height: 46px;
+  color: #fff7ed;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ghostButton {
+  width: 52px;
+  background: rgba(255, 255, 255, .07);
+}
+
+.primaryButton {
+  padding: 0 18px;
+  background: linear-gradient(135deg, #be123c, #0f766e);
+  box-shadow: 0 14px 34px rgba(190, 18, 60, .26);
+}
+
+.chatComposer button {
+  width: 48px;
+  background: #be123c;
+}
+
+.ghostButton:disabled,
+.primaryButton:disabled,
+.chatComposer button:disabled,
+.step:disabled,
+.stepActive:disabled,
+.segment:disabled,
+.segmentActive:disabled,
+.chip:disabled,
+.chipActive:disabled {
+  opacity: .56;
+  cursor: not-allowed;
+}
+
+.statusInfo,
+.statusError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.statusInfo {
+  border: 1px solid rgba(251, 191, 36, .34);
+  background: rgba(251, 191, 36, .12);
+  color: #fff7dc;
+}
+
+.statusError {
+  border: 1px solid rgba(248, 113, 113, .34);
+  background: rgba(127, 29, 29, .22);
+  color: #ffe4e6;
+}
+
+.statusInfo span,
+.statusError span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 10px;
+}
+
+.summaryCard {
+  min-height: 112px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.summaryCard span {
+  color: #ffd7a3;
+  font-size: .84rem;
+  font-weight: 800;
+}
+
+.summaryCard strong {
+  color: #fff7ed;
+  font-size: 1.28rem;
+}
+
+.summaryCard em {
+  color: #c7f9e8;
+  font-style: normal;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.chatList {
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 296px);
+  margin-top: 12px;
+  padding-right: 4px;
+  overflow: auto;
+}
+
+.assistantMessage,
+.userMessage {
+  display: grid;
+  gap: 7px;
+  width: min(92%, 780px);
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .14);
+}
+
+.assistantMessage {
+  justify-self: start;
+  background: rgba(255, 255, 255, .08);
+}
+
+.userMessage {
+  justify-self: end;
+  background: rgba(190, 18, 60, .2);
+}
+
+.assistantMessage span,
+.userMessage span {
+  color: #ffd7a3;
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.assistantMessage p,
+.userMessage p {
+  margin: 0;
+  color: #fff7f3;
+  white-space: pre-wrap;
+  line-height: 1.78;
+  word-break: keep-all;
+}
+
+.chatComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chatComposer textarea {
+  min-height: 48px;
+  max-height: 130px;
+  resize: vertical;
+  padding: 12px;
+}
+
+.spin {
+  animation: spin .9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .screen {
+    padding: 0;
+  }
+
+  .shell {
+    min-height: 100vh;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .visualPanel {
+    min-height: 280px;
+    border-radius: 0;
+  }
+
+  .workPanel {
+    border-radius: 0;
+    min-height: calc(100vh - 280px);
+  }
+}
+
+@media (max-width: 620px) {
+  .workPanel {
+    padding: 12px;
+  }
+
+  .stepTabs,
+  .formGrid,
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .visualCopy {
+    padding: 22px 16px;
+  }
+
+  .visualCopy h1 {
+    font-size: 2.18rem;
+  }
+
+  .step,
+  .stepActive {
+    justify-content: flex-start;
+    padding-left: 12px;
+    text-align: left;
+  }
+
+  .chip,
+  .chipActive {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+  }
+
+  .primaryButton {
+    flex: 1;
+    padding: 0 12px;
+  }
+
+  .chatList {
+    max-height: none;
+  }
+
+  .assistantMessage,
+  .userMessage {
+    width: 100%;
+  }
+}

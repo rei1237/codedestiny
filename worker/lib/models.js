@@ -495,6 +495,380 @@ paidExecutionRecordSchema.index(
   },
 );
 
+const newYearAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const newYearAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  year: { type: Number, required: true, min: 1900, max: 2100, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 1000 },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [newYearAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "newYearAiConsultations" });
+
+newYearAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+newYearAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
+const karmaDestinyAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 80000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const karmaDestinyAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    birthPlace: {
+      city: { type: String, default: "", trim: true, maxlength: 100 },
+      country: { type: String, default: "", trim: true, maxlength: 100 },
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      timezone: { type: String, default: "", trim: true, maxlength: 80 },
+    },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 100 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1600 },
+  integratedResult: { type: mongoose.Schema.Types.Mixed, default: null },
+  summaryCards: { type: mongoose.Schema.Types.Mixed, default: null },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  messages: { type: [karmaDestinyAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "karmaDestinyAiConsultations" });
+
+karmaDestinyAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+karmaDestinyAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+karmaDestinyAiConsultationSchema.index({ paymentId: 1 });
+karmaDestinyAiConsultationSchema.index({ billingRequestId: 1 });
+
+const ziweiAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 80000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const ziweiAiPalaceSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 40 },
+  earthlyBranch: { type: String, default: "", trim: true, maxlength: 20 },
+  branchIndex: { type: Number, default: null },
+  mainStars: { type: [String], default: [] },
+  assistantStars: { type: [String], default: [] },
+  maleficStars: { type: [String], default: [] },
+  transformations: { type: [String], default: [] },
+  brightness: { type: mongoose.Schema.Types.Mixed, default: {} },
+  majorLuck: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { _id: false });
+
+const ziweiAiChartSchema = new mongoose.Schema({
+  lifePalace: { type: String, default: "", trim: true, maxlength: 40 },
+  bodyPalace: { type: String, default: "", trim: true, maxlength: 40 },
+  palaces: { type: [ziweiAiPalaceSchema], default: [] },
+  fourTransformations: {
+    huaLu: { type: String, default: "", trim: true, maxlength: 40 },
+    huaQuan: { type: String, default: "", trim: true, maxlength: 40 },
+    huaKe: { type: String, default: "", trim: true, maxlength: 40 },
+    huaJi: { type: String, default: "", trim: true, maxlength: 40 },
+  },
+  majorLuck: { type: mongoose.Schema.Types.Mixed, default: null },
+  yearlyLuck: { type: mongoose.Schema.Types.Mixed, default: null },
+  sanFangSiZheng: { type: mongoose.Schema.Types.Mixed, default: null },
+  chartSummary: { type: String, default: "", trim: true, maxlength: 3000 },
+  keyFeatures: { type: mongoose.Schema.Types.Mixed, default: null },
+  lunar: { type: mongoose.Schema.Types.Mixed, default: null },
+  bureau: { type: mongoose.Schema.Types.Mixed, default: null },
+  uncertainty: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { _id: false });
+
+const ziweiAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    isLeapMonth: { type: Boolean, default: false },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 80 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
+  ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [ziweiAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "ziweiAiConsultations" });
+
+ziweiAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+ziweiAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+ziweiAiConsultationSchema.index({ paymentId: 1 });
+
+const loveSecretAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const loveSecretAiPersonInfoSchema = new mongoose.Schema({
+  name: { type: String, default: "", trim: true, maxlength: 80 },
+  gender: { type: String, default: "", trim: true, maxlength: 20 },
+  birthDate: { type: String, default: "", trim: true, maxlength: 10 },
+  birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+  birthTimeUnknown: { type: Boolean, default: false },
+  calendarType: { type: String, enum: ["solar", "lunar", ""], default: "solar" },
+}, { _id: false });
+
+const loveSecretAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  myInfo: { type: loveSecretAiPersonInfoSchema, required: true },
+  partnerInfo: { type: loveSecretAiPersonInfoSchema, default: null },
+  relationshipStatus: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  topic: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
+  sajuResult: {
+    myChart: { type: mongoose.Schema.Types.Mixed, default: null },
+    partnerChart: { type: mongoose.Schema.Types.Mixed, default: null },
+    compatibility: { type: mongoose.Schema.Types.Mixed, default: null },
+    uncertainty: { type: [String], default: [] },
+    consultationMode: { type: String, enum: ["solo", "with_partner", ""], default: "" },
+  },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  keywords: { type: [String], default: [] },
+  strategy: { type: String, default: "", trim: true, maxlength: 400 },
+  messages: { type: [loveSecretAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "loveSecretAiConsultations" });
+
+loveSecretAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+loveSecretAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
+const lifeBookAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  createdAt: { type: Date, default: Date.now },
+  idempotencyKey: { type: String, default: "", trim: true, maxlength: 180 },
+}, { _id: false });
+
+const lifeBookAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+  },
+  sajuResult: {
+    yearPillar: { type: String, default: "", trim: true, maxlength: 20 },
+    monthPillar: { type: String, default: "", trim: true, maxlength: 20 },
+    dayPillar: { type: String, default: "", trim: true, maxlength: 20 },
+    hourPillar: { type: String, default: "", trim: true, maxlength: 20 },
+    dayMaster: { type: String, default: "", trim: true, maxlength: 20 },
+    fiveElements: { type: mongoose.Schema.Types.Mixed, default: null },
+    tenGods: { type: mongoose.Schema.Types.Mixed, default: null },
+    strength: { type: String, default: "", trim: true, maxlength: 120 },
+    usefulGod: { type: String, default: "", trim: true, maxlength: 160 },
+    unfavorableGod: { type: String, default: "", trim: true, maxlength: 160 },
+    majorLuck: { type: mongoose.Schema.Types.Mixed, default: null },
+    yearlyLuck: { type: mongoose.Schema.Types.Mixed, default: null },
+    calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 120 },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  accessSource: { type: String, default: "", trim: true, maxlength: 80 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  title: { type: String, default: "", trim: true, maxlength: 100 },
+  keywords: { type: [String], default: [] },
+  messages: { type: [lifeBookAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "lifeBookAiConsultations" });
+
+lifeBookAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+lifeBookAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
+const sukuyoCompatibilityAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const sukuyoCompatibilityAiPersonSchema = new mongoose.Schema({
+  name: { type: String, default: "", trim: true, maxlength: 80 },
+  gender: { type: String, default: "", trim: true, maxlength: 40 },
+  birthDate: { type: String, required: true, trim: true, match: birthDateRegex },
+  birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+  calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+  isLeapMonth: { type: Boolean, default: false },
+  shuku: { type: String, default: "", trim: true, maxlength: 40 },
+  shukuIndex: { type: Number, default: null, min: 0, max: 26 },
+}, { _id: false });
+
+const sukuyoCompatibilityAiConsultationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 160 },
+  personA: { type: sukuyoCompatibilityAiPersonSchema, required: true },
+  personB: { type: sukuyoCompatibilityAiPersonSchema, required: true },
+  sukuyoResult: {
+    personAShuku: { type: String, required: true, trim: true, maxlength: 40 },
+    personBShuku: { type: String, required: true, trim: true, maxlength: 40 },
+    relationType: { type: String, required: true, trim: true, maxlength: 40 },
+    distance: { type: String, enum: ["near", "middle", "far", ""], default: "" },
+    distanceLabel: { type: String, default: "", trim: true, maxlength: 40 },
+    direction: { type: String, default: "", trim: true, maxlength: 80 },
+    forwardDistance: { type: Number, default: null },
+    reverseDistance: { type: Number, default: null },
+  },
+  relationshipType: { type: String, required: true, trim: true, maxlength: 80 },
+  topic: { type: String, required: true, trim: true, maxlength: 80 },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [sukuyoCompatibilityAiMessageSchema], default: [] },
+  provider: { type: String, default: "", trim: true, maxlength: 80 },
+  model: { type: String, default: "", trim: true, maxlength: 120 },
+}, { timestamps: true, collection: "sukuyoCompatibilityAiConsultations" });
+
+sukuyoCompatibilityAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+sukuyoCompatibilityAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
+const vedicAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 60000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const vedicAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, match: birthDateRegex },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    birthPlace: { type: mongoose.Schema.Types.Mixed, default: null },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1500 },
+  vedicChart: {
+    ayanamsa: { type: String, default: "", trim: true, maxlength: 40 },
+    lagna: { type: mongoose.Schema.Types.Mixed, default: null },
+    moon: { type: mongoose.Schema.Types.Mixed, default: null },
+    sun: { type: mongoose.Schema.Types.Mixed, default: null },
+    planets: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    rahuKetu: { type: mongoose.Schema.Types.Mixed, default: null },
+    houses: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    divisionalCharts: { type: mongoose.Schema.Types.Mixed, default: null },
+    yogas: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    dasha: { type: mongoose.Schema.Types.Mixed, default: null },
+    transits: { type: mongoose.Schema.Types.Mixed, default: null },
+    chartSummary: { type: String, default: "", trim: true, maxlength: 1200 },
+    calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+  },
+  accessType: { type: String, enum: ["pass", "paid", "subscription"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [vedicAiMessageSchema], default: [] },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "vedicAiConsultations" });
+
+vedicAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+vedicAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
+const astrologyAiMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 70000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const astrologyAiConsultationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, default: "", trim: true, maxlength: 40 },
+    birthDate: { type: String, required: true, trim: true, match: birthDateRegex },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    birthPlace: {
+      city: { type: String, default: "", trim: true, maxlength: 80 },
+      country: { type: String, default: "", trim: true, maxlength: 80 },
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      timezone: { type: String, default: "", trim: true, maxlength: 80 },
+      timezoneOffsetHours: { type: Number, default: null },
+    },
+  },
+  topic: { type: String, required: true, trim: true, maxlength: 100 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1400 },
+  astrologyChart: { type: mongoose.Schema.Types.Mixed, default: null },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [astrologyAiMessageSchema], default: [] },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "astrologyAiConsultations" });
+
+astrologyAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+astrologyAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
@@ -509,6 +883,22 @@ export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTrans
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
 export const PaidExecutionRecord = mongoose.models.PaidExecutionRecord
   || mongoose.model("PaidExecutionRecord", paidExecutionRecordSchema);
+export const NewYearAiConsultation = mongoose.models.NewYearAiConsultation
+  || mongoose.model("NewYearAiConsultation", newYearAiConsultationSchema);
+export const KarmaDestinyAiConsultation = mongoose.models.KarmaDestinyAiConsultation
+  || mongoose.model("KarmaDestinyAiConsultation", karmaDestinyAiConsultationSchema);
+export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
+  || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
+export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
+  || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation
+  || mongoose.model("LifeBookAiConsultation", lifeBookAiConsultationSchema);
+export const SukuyoCompatibilityAiConsultation = mongoose.models.SukuyoCompatibilityAiConsultation
+  || mongoose.model("SukuyoCompatibilityAiConsultation", sukuyoCompatibilityAiConsultationSchema);
+export const VedicAiConsultation = mongoose.models.VedicAiConsultation
+  || mongoose.model("VedicAiConsultation", vedicAiConsultationSchema);
+export const AstrologyAiConsultation = mongoose.models.AstrologyAiConsultation
+  || mongoose.model("AstrologyAiConsultation", astrologyAiConsultationSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },

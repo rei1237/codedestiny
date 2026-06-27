@@ -27,6 +27,15 @@
       if (!isOpenAction && !isPremiumGotoAction) return;
 
       if (isPremiumGotoAction) {
+        if (action === 'gotoZiweiPremium') {
+          window.location.href = '/ziwei-ai';
+          return;
+        }
+        if (action === 'gotoAstrologyPremium') {
+          window.location.href = '/astrology-ai';
+          return;
+        }
+
         var tile = document.querySelector('[data-action="' + action + '"]');
         var invoked = false;
 

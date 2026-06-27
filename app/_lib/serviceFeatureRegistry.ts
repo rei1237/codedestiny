@@ -144,7 +144,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "자미두수의 12궁 구조와 주요 성요 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
       "heroImageAlt": "심화 자미두수 12궁 상담 대표 이미지",
       "tags": ["자미두수", "12궁", "명궁", "신궁", "사화"],
-      "highlights": ["12궁 핵심 명반", "50,000원 영구 해금", "프리미엄 PDF 확장 가능"],
+      "highlights": ["12궁 핵심 명반", "30,000원 AI 상담", "명반 상담으로 이어짐"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -687,55 +687,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": []
     },
     "saju-lifebook": {
-      "title": "사주 인생의 책 PDF",
-      "subtitle": "사주 핵심 지표를 13챕터로 재구성한 프리미엄 인생 전략서",
-      "description": "출생 정보를 기반으로 로컬 사주 계산 결과를 먼저 정리한 뒤, 13개 챕터 구조로 확장해 PDF 저장에 적합한 리포트를 생성합니다.",
-      "heroImageAlt": "사주 인생의 책 PDF 대표 이미지",
-      "tags": ["사주", "인생 전략", "13챕터", "PDF"],
-      "highlights": ["13챕터 고정 구조", "로컬 계산 우선", "PDF 저장용 결과"],
+      "title": "인생의 책 AI 상담",
+      "subtitle": "명식과 지금의 질문으로 읽는 나의 인생 서사",
+      "description": "생년월일, 성별, 출생시간, 상담 주제를 바탕으로 삶의 흐름과 반복 패턴을 따뜻한 1:1 상담처럼 풀어드립니다.",
+      "heroImageAlt": "인생의 책 AI 상담 대표 이미지",
+      "priceLabel": "50,000원",
+      "tags": ["AI 상담", "명리학", "인생 서사"],
+      "highlights": ["명식 기반 상담", "삶의 핵심 주제", "추가 질문 대화"],
       "howItWorks": [
         {
-          "title": "출생 정보 입력",
-          "description": "생년월일시와 기본 프로필을 입력합니다."
+          "title": "상담 정보 입력",
+          "description": "이름 또는 닉네임, 성별, 생년월일, 출생시간, 달력 기준과 상담 주제를 입력합니다."
         },
         {
-          "title": "사주 계산",
-          "description": "로컬 계산 엔진으로 핵심 지표를 먼저 구성합니다."
+          "title": "삶의 흐름 계산",
+          "description": "입력된 정보 기준으로 명식 구조와 오행 흐름을 정리합니다."
         },
         {
-          "title": "리포트 생성",
-          "description": "13챕터 구조로 정리된 프리미엄 리포트를 생성합니다."
+          "title": "상담 이어가기",
+          "description": "첫 답변을 받은 뒤 마음에 남은 질문을 이어서 묻습니다."
         }
       ],
       "resultExamples": [
         {
-          "title": "핵심 사주 요약",
-          "description": "일간/오행/용희기신 중심 해석"
+          "title": "인생 책 제목",
+          "description": "삶을 관통하는 주제와 핵심 키워드"
         },
         {
-          "title": "13챕터 구조",
-          "description": "관계·커리어·재물·건강·전환점까지 고정 목차"
+          "title": "반복되는 흐름",
+          "description": "성향, 관계, 일과 돈에서 되풀이되는 패턴"
         },
         {
-          "title": "실행 제안",
-          "description": "챕터별 실전 액션 플랜"
+          "title": "지금의 조언",
+          "description": "현재 전환점에서 현실적으로 살려야 할 방향"
         }
       ],
-      "priceLabel": "50,000원",
       "seo": {
-        "title": "사주 인생의 책 PDF 소개 | Code Destiny",
-        "description": "사주 핵심 지표를 13챕터로 정리해 PDF로 저장하는 프리미엄 인생 전략 리포트 소개 페이지입니다.",
-        "keywords": ["사주 인생의 책", "사주 PDF", "13챕터 사주", "인생 전략 리포트"]
+        "title": "인생의 책 AI 상담 | Code Destiny",
+        "description": "명식과 상담 주제를 바탕으로 삶의 흐름을 따뜻하게 읽어주는 인생의 책 AI 상담입니다.",
+        "keywords": ["인생의 책 AI 상담", "명리학 상담", "사주 상담", "인생 상담"]
       },
       "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "자미두수 프리미엄 PDF",
+    "ziwei-ai": {
+      "title": "자미두수 AI 상담",
       "subtitle": "명궁과 12궁으로 여는 운명의 궁위",
-      "description": "자미두수 명반을 바탕으로 명궁, 신궁, 사화, 14주성, 12궁, 대한과 유년 흐름을 15챕터로 깊이 있게 해석합니다.",
-      "heroImageAlt": "자미두수 프리미엄 PDF 대표 이미지",
-      "tags": ["ZIWEI", "PREMIUM", "15 CHAPTERS", "PDF"],
-      "highlights": ["15챕터 고정 구조", "명궁·신궁·12궁 기반", "대한·유년 종합 전략"],
+      "description": "자미두수 명반을 바탕으로 명궁, 신궁, 사화, 14주성, 12궁, 대한과 유년 흐름을 상담형으로 깊이 있게 풀어냅니다.",
+      "heroImageAlt": "자미두수 AI 상담 대표 이미지",
+      "tags": ["ZIWEI", "AI CONSULTATION", "12 PALACES", "STAR CHART"],
+      "highlights": ["명반 기반 1:1 상담", "명궁·신궁·12궁 기반", "대한·유년 흐름 조언"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -746,8 +746,8 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "로컬 자미두수 엔진으로 명궁, 신궁, 12궁, 사화, 대한 데이터를 먼저 계산합니다."
         },
         {
-          "title": "프리미엄 PDF 생성",
-          "description": "계산된 명반을 15챕터 구조로 정리해 PDF 저장용 리포트를 생성합니다."
+          "title": "AI 상담 시작",
+          "description": "계산된 명반을 바탕으로 지금의 질문에 맞는 상담 답변을 엽니다."
         }
       ],
       "resultExamples": [
@@ -764,11 +764,11 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "앞으로 열리는 운의 흐름과 선택 기준"
         }
       ],
-      "priceLabel": "59,000원",
+      "priceLabel": "30,000원",
       "seo": {
-        "title": "자미두수 프리미엄 PDF 소개 | Code Destiny",
-        "description": "자미두수 명반을 바탕으로 명궁, 신궁, 12궁, 대한과 유년 흐름을 15챕터로 해석하는 프리미엄 PDF 리포트 소개 페이지입니다.",
-        "keywords": ["자미두수 프리미엄 PDF", "자미두수 PDF", "명궁 해석", "15챕터 자미두수"]
+        "title": "자미두수 AI 상담 소개 | Code Destiny",
+        "description": "자미두수 명반을 바탕으로 명궁, 신궁, 12궁, 대한과 유년 흐름을 상담형으로 풀어주는 자미두수 AI 상담 소개 페이지입니다.",
+        "keywords": ["자미두수 AI 상담", "자미두수 명반 상담", "명궁 해석", "자미두수 상담"]
       },
       "premiumOptions": []
     },
@@ -1451,55 +1451,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -1531,9 +1531,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -2215,55 +2215,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "四柱 人生の書 PDF",
-      "subtitle": "命式の深い構造を長文鑑定としてまとめるプレミアムPDF。",
-      "description": "命式の深い構造を長文鑑定としてまとめるプレミアムPDF。",
-      "heroImageAlt": "四柱 人生の書 PDFの象徴イメージ",
-      "priceLabel": "50,000ウォン",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
+      "priceLabel": "KRW 50,000",
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "情報を入力",
-          "description": "鑑定に必要な内容だけを丁寧に受け取ります。"
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "鑑定を開く",
-          "description": "選んだ占術と問いを合わせて流れを整えます。"
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "結果を読む",
-          "description": "核心メッセージ、注意点、実践の一歩を確認します。"
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "核心サイン",
-          "description": "今もっとも強く浮かぶテーマをまとめます。"
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "時期と注意点",
-          "description": "動きやすい時期と慎重に扱う点を分けて読みます。"
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "次の一歩",
-          "description": "今日から使える実践の方向を添えます。"
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "四柱 人生の書 PDF | Code Destiny",
-        "description": "命式の深い構造を長文鑑定としてまとめるプレミアムPDF。",
-        "keywords": ["四柱 人生の書 PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
+    "ziwei-ai": {
       "title": "紫微斗数プレミアムPDF",
       "subtitle": "十二宮の命盤を実用的な人生戦略の本に整えます。",
       "description": "十二宮の命盤を実用的な人生戦略の本に整えます。",
       "heroImageAlt": "紫微斗数プレミアムPDFの象徴イメージ",
-      "priceLabel": "59,000ウォン",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+      "priceLabel": "30,000ウォン",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
         {
@@ -2297,7 +2297,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗数プレミアムPDF | Code Destiny",
         "description": "十二宮の命盤を実用的な人生戦略の本に整えます。",
-        "keywords": ["紫微斗数プレミアムPDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗数プレミアムPDF", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -2979,55 +2979,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "八字人生之书PDF",
-      "subtitle": "把命盘深层结构整理为长篇咨询的高级PDF。",
-      "description": "把命盘深层结构整理为长篇咨询的高级PDF。",
-      "heroImageAlt": "八字人生之书PDF象征图像",
-      "priceLabel": "50,000韩元",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
+      "priceLabel": "KRW 50,000",
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "输入资料",
-          "description": "只收集本次解读所需的内容。"
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "开启解读",
-          "description": "系统会把所选占术与问题对齐。"
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "查看结果",
-          "description": "确认核心讯息、注意点与实际下一步。"
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "核心信号",
-          "description": "整理此刻最强的主题。"
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "时机与提醒",
-          "description": "把适合行动的时机和需要谨慎的点分开呈现。"
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "下一步",
-          "description": "给出今天就能使用的行动方向。"
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "八字人生之书PDF | Code Destiny",
-        "description": "把命盘深层结构整理为长篇咨询的高级PDF。",
-        "keywords": ["八字人生之书PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
+    "ziwei-ai": {
       "title": "紫微斗数高级PDF",
       "subtitle": "将十二宫命盘整理成实用的人生策略书。",
       "description": "将十二宫命盘整理成实用的人生策略书。",
       "heroImageAlt": "紫微斗数高级PDF象征图像",
-      "priceLabel": "59,000韩元",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+      "priceLabel": "30,000韩元",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
         {
@@ -3061,7 +3061,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗数高级PDF | Code Destiny",
         "description": "将十二宫命盘整理成实用的人生策略书。",
-        "keywords": ["紫微斗数高级PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗数高级PDF", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -3743,55 +3743,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "八字人生之書PDF",
-      "subtitle": "把命盤深層結構整理為長篇諮詢的高級PDF。",
-      "description": "把命盤深層結構整理為長篇諮詢的高級PDF。",
-      "heroImageAlt": "八字人生之書PDF象徵圖像",
-      "priceLabel": "50,000韓元",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
+      "priceLabel": "KRW 50,000",
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "輸入資料",
-          "description": "只收集本次解讀所需的內容。"
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "開啟解讀",
-          "description": "系統會把所選占術與問題對齊。"
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "查看結果",
-          "description": "確認核心訊息、注意點與實際下一步。"
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "核心訊號",
-          "description": "整理此刻最強的主題。"
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "時機與提醒",
-          "description": "把適合行動的時機和需要謹慎的點分開呈現。"
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "下一步",
-          "description": "給出今天就能使用的行動方向。"
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "八字人生之書PDF | Code Destiny",
-        "description": "把命盤深層結構整理為長篇諮詢的高級PDF。",
-        "keywords": ["八字人生之書PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
+    "ziwei-ai": {
       "title": "紫微斗數高級PDF",
       "subtitle": "將十二宮命盤整理成實用的人生策略書。",
       "description": "將十二宮命盤整理成實用的人生策略書。",
       "heroImageAlt": "紫微斗數高級PDF象徵圖像",
-      "priceLabel": "59,000韓元",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+      "priceLabel": "30,000韓元",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
         {
@@ -3825,7 +3825,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗數高級PDF | Code Destiny",
         "description": "將十二宮命盤整理成實用的人生策略書。",
-        "keywords": ["紫微斗數高級PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗數高級PDF", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -4507,55 +4507,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -4587,9 +4587,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -5271,55 +5271,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5351,9 +5351,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -6035,55 +6035,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6115,9 +6115,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -6799,55 +6799,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6879,9 +6879,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -7563,55 +7563,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -7643,9 +7643,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -8327,55 +8327,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8407,9 +8407,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -9091,55 +9091,55 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Saju Book of Life PDF",
-      "subtitle": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-      "heroImageAlt": "Saju Book of Life PDF symbolic preview",
+      "title": "Life Book AI Consultation",
+      "subtitle": "A one-on-one reading that follows your life as a living story.",
+      "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
+      "heroImageAlt": "Life Book AI Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["Premium PDF", "Saju", "Life Strategy"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Enter your details",
+          "description": "Share your name or nickname, gender, birth date, optional birth time, calendar type, and topic."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Read the flow",
+          "description": "The consultation uses the entered information to organize the chart structure and life pattern."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Continue the conversation",
+          "description": "Ask follow-up questions from the same consultation thread."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Your life book title",
+          "description": "The central theme and three keywords of your story"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Recurring patterns",
+          "description": "How temperament, relationships, work, and money tend to repeat"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "Advice for now",
+          "description": "A grounded direction for the turning point you are standing in"
         }
       ],
-      "premiumOptions": [],
       "seo": {
-        "title": "Saju Book of Life PDF | Code Destiny",
-        "description": "A premium life-book PDF that gathers the deep structure of your chart into long-form counsel.",
-        "keywords": ["Saju Book of Life PDF", "Premium PDF", "Saju", "Life Strategy"]
-      }
+        "title": "Life Book AI Consultation | Code Destiny",
+        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+      },
+      "premiumOptions": []
     },
-    "ziwei-premium-pdf": {
-      "title": "Zi Wei Premium PDF",
-      "subtitle": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-      "heroImageAlt": "Zi Wei Premium PDF symbolic preview",
-      "priceLabel": "KRW 59,000",
-      "tags": ["Premium PDF", "Zi Wei", "12 Palaces"],
+    "ziwei-ai": {
+      "title": "Zi Wei AI Consultation",
+      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "priceLabel": "KRW 30,000",
+      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -9171,9 +9171,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei Premium PDF | Code Destiny",
-        "description": "A premium Zi Wei PDF that turns your twelve-palace chart into a practical life strategy book.",
-        "keywords": ["Zi Wei Premium PDF", "Premium PDF", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei AI Consultation | Code Destiny",
+        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -9403,19 +9403,19 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     category: "premium",
     image: stableServiceAsset("/fuctionassets/lifebook.webp"),
     detailRoute: "/services/saju-lifebook",
-    launchRoute: "/premium/saju-lifebook",
-    accessType: "premium_report",
-    featureKey: "saju_life_book_pdf",
+    launchRoute: "/life-book-ai",
+    accessType: "paid",
+    featureKey: "life-book-ai-consultation",
   },
   {
-    slug: "ziwei-premium-pdf",
-    copyKey: "ziwei-premium-pdf",
+    slug: "ziwei-ai",
+    copyKey: "ziwei-ai",
     category: "premium",
     image: "/fuctionassets/jamipremiun.webp",
     detailRoute: "/services/ziwei",
-    launchRoute: "/index.html?action=gotoZiweiPremium",
-    accessType: "premium_report",
-    featureKey: "premium_pdf_ziwei",
+    launchRoute: "/ziwei-ai",
+    accessType: "paid",
+    featureKey: "ziwei-ai-consultation",
   },
   {
     slug: "stonehenge-rune",

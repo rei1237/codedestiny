@@ -24,6 +24,12 @@ if (typeof window !== 'undefined' && typeof window.openFortuneTellerFishPage !==
   };
 }
 
+if (typeof window !== 'undefined' && typeof window.goLoveSecretAi !== 'function') {
+  window.goLoveSecretAi = function goLoveSecretAi() {
+    window.location.assign('/love-secret-ai');
+  };
+}
+
 function __ensureSukuyoAIConsultationReady() {
   return new Promise((resolve) => {
     let attempts = 0;
@@ -54,71 +60,73 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-933d425d99ed'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-933d425d99ed'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-933d425d99ed'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-0c8e87d09e1b'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-0c8e87d09e1b'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-0c8e87d09e1b'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-933d425d99ed')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-0c8e87d09e1b')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-933d425d99ed'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-933d425d99ed'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-0c8e87d09e1b'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-0c8e87d09e1b'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-933d425d99ed'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-933d425d99ed'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-933d425d99ed'),
-  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-933d425d99ed'),
-  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-933d425d99ed'),
-  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-933d425d99ed'),
-  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-933d425d99ed'),
-  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-933d425d99ed'),
-  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-933d425d99ed'),
-  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-933d425d99ed'),
-  openZiweiBookModal: () => __loadZiweiBookReady(),
-  closeZiweiBookModal: () => __loadZiweiBookReady(),
-  generateZiweiBook: () => __loadZiweiBookReady(),
-  downloadZiweiBookPdf: () => __loadZiweiBookReady(),
-  gotoZiweiPremium: () => __loadZiweiBookReady().then(() => {
-    if (typeof window.gotoZiweiPremium === 'function') window.gotoZiweiPremium();
-    else if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
-    return true;
-  }),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-933d425d99ed'),
-  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-933d425d99ed'),
-  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-933d425d99ed'),
-  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-933d425d99ed'),
-  openVedicBookModal: () => __loadScriptOnce('/js/vedic-ai-consultation.js?v=20260627-vedic-ai-payment-wasm'),
-  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-ai-consultation.js?v=20260627-vedic-ai-payment-wasm'),
-  generateVedicBook: () => __loadScriptOnce('/js/vedic-ai-consultation.js?v=20260627-vedic-ai-payment-wasm'),
-  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-ai-consultation.js?v=20260627-vedic-ai-payment-wasm'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-ai-consultation.js?v=20260627-vedic-ai-payment-wasm'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-0c8e87d09e1b'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-0c8e87d09e1b'),
+  openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
+  closeLifeBookModal: () => Promise.resolve(),
+  generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
+  openAstroBookModal: () => Promise.resolve(window.location.assign('/astrology-ai')),
+  closeAstroBookModal: () => Promise.resolve(true),
+  generateAstroBook: () => Promise.resolve(window.location.assign('/astrology-ai')),
+  downloadAstroBookPdf: () => Promise.resolve(window.location.assign('/astrology-ai')),
+  gotoAstrologyPremium: () => Promise.resolve(window.location.assign('/astrology-ai')),
+  gotoZiweiPremium: () => __gotoZiweiAi(),
+  openSajuNewYearModal: () => { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
+  closeSajuNewYearModal: () => Promise.resolve(true),
+  generateSajuNewYear: () => { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
+  downloadSajuNewYearPdf: () => { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
+  openVedicBookModal: () => { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
+  closeVedicBookModal: () => { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
+  generateVedicBook: () => { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
+  downloadVedicBookPdf: () => { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
+  gotoVedicPremium: () => { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
   openSukuyoBookModal: () => __ensureSukuyoAIConsultationReady(),
   closeSukuyoBookModal: () => __ensureSukuyoAIConsultationReady(),
   generateSukuyoBook: () => __ensureSukuyoAIConsultationReady(),
   downloadSukuyoBookPdf: () => __ensureSukuyoAIConsultationReady(),
   gotoSukuyoPremium: () => __ensureSukuyoAIConsultationReady(),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-933d425d99ed'),
-  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-933d425d99ed'),
-  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-933d425d99ed'),
+  goLoveSecretAi: () => Promise.resolve(window.location.assign('/love-secret-ai')),
+  openLoveSecretModal: () => Promise.resolve(window.location.assign('/love-secret-ai')),
+  closeLoveSecretModal: () => Promise.resolve(),
+  generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-933d425d99ed').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-0c8e87d09e1b').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-933d425d99ed')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-0c8e87d09e1b')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
 }
 
 const __lazyActionState = {};
+
+function __gotoZiweiAi() {
+  window.location.assign('/ziwei-ai');
+  return Promise.resolve(true);
+}
+
+window.gotoZiweiPremium = function gotoZiweiPremium() {
+  return __gotoZiweiAi();
+};
 
 /** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
 const __CD_DEFER_INP_ACTIONS = new Set([
@@ -202,85 +210,6 @@ function __loadScriptOnce(src) {
   });
 }
 
-function __isZiweiBookAction(action) {
-  return [
-    'openZiweiBookModal',
-    'closeZiweiBookModal',
-    'generateZiweiBook',
-    'downloadZiweiBookPdf',
-    'gotoZiweiPremium'
-  ].indexOf(action) !== -1;
-}
-
-function __removeScriptByFileName(fileName) {
-  Array.from(document.querySelectorAll('script[src]')).forEach((script) => {
-    const src = script.getAttribute('src') || '';
-    if (src.split('?')[0].endsWith('/' + fileName)) script.remove();
-  });
-}
-
-function __assertZiweiBookReady() {
-  const required = ['openZiweiBookModal', 'generateZiweiBook', 'gotoZiweiPremium', 'downloadZiweiBookPdf'];
-  const missing = required.filter((name) => {
-    const fn = window[name];
-    return typeof fn !== 'function' || fn.__cdZiweiBookStub === true;
-  });
-  if (missing.length) throw new Error('ziwei-book module not ready: ' + missing.join(','));
-}
-
-function __loadZiweiBookReady() {
-  const src = '/js/ziwei-book.js?v=20260627-ziwei-ai-consultation';
-  return __loadScriptOnce(src).then(() => {
-    try {
-      __assertZiweiBookReady();
-      return true;
-    } catch (_) {
-      __removeScriptByFileName('ziwei-book.js');
-      return __loadScriptOnce(src + '&retry=' + Date.now()).then(() => {
-        __assertZiweiBookReady();
-        return true;
-      });
-    }
-  });
-}
-
-function __invokeZiweiBookAfterReady(name, args) {
-  return __loadZiweiBookReady()
-    .then(() => {
-      const fn = window[name];
-      if (typeof fn === 'function' && fn.__cdZiweiBookStub !== true) {
-        return fn.apply(window, args || []);
-      }
-      if ((name === 'gotoZiweiPremium' || name === 'openZiweiBookModal') && typeof window.openZiweiBookModal === 'function' && window.openZiweiBookModal.__cdZiweiBookStub !== true) {
-        return window.openZiweiBookModal();
-      }
-      throw new Error('ziwei-book module not ready: ' + name);
-    })
-    .catch((err) => {
-      console.error('[uiBindings] ziwei action failed:', err);
-      const msg = '자미두수 PDF 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.';
-      if (typeof window.showToast === 'function') window.showToast(msg, 'error');
-      else alert(msg);
-      return false;
-    });
-}
-
-function __installZiweiBookActionStub(name) {
-  const current = window[name];
-  if (typeof current === 'function' && current.__cdZiweiBookStub !== true) return;
-  const stub = function(...args) {
-    return __invokeZiweiBookAfterReady(name, args);
-  };
-  stub.__cdZiweiBookStub = true;
-  window[name] = stub;
-}
-
-function __installZiweiBookActionStubs() {
-  ['openZiweiBookModal', 'closeZiweiBookModal', 'generateZiweiBook', 'downloadZiweiBookPdf', 'gotoZiweiPremium'].forEach(__installZiweiBookActionStub);
-}
-
-__installZiweiBookActionStubs();
-
 function __resolveEventElement(event) {
   if (!event || !event.target) return null;
   if (event.target instanceof Element) return event.target;
@@ -332,7 +261,7 @@ function __invokeAction(action, actionEl, event) {
     const loader = __lazyActionLoaders[action];
     if (!loader) return;
 
-    const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function' && window[action].__cdZiweiBookStub !== true;
+    const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
 
     // If the function already exists, avoid redundant lazy-loading + retry loops.
     // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before
@@ -344,11 +273,6 @@ function __invokeAction(action, actionEl, event) {
       __lazyActionState[action] = loader().catch((err) => {
         __lazyActionState[action] = null;
         console.error('[uiBindings] lazy action load failed:', action, err);
-        if (__isZiweiBookAction(action)) {
-          const msg = '자미두수 PDF 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.';
-          if (typeof window.showToast === 'function') window.showToast(msg, 'error');
-          else alert(msg);
-        }
         throw err;
       });
     }
@@ -359,7 +283,7 @@ function __invokeAction(action, actionEl, event) {
       const retryMs = 50;
 
       const tryInvokeOnceWhenReady = () => {
-        if (typeof window[action] !== 'function' || window[action].__cdZiweiBookStub === true) {
+        if (typeof window[action] !== 'function') {
           if (attempt >= maxAttempts) {
             if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
               window._dpOpenFortuneType('olympus');

@@ -70,6 +70,13 @@ const staleTadagochiPwaTargets = [
   "tadagochi-sw.js",
 ];
 
+const staleLifeBookPdfTargets = [
+  "js/life-book.js",
+  "js/ziwei-book.js",
+  "js/soul-origin-book.js",
+  "js/astro-book.js",
+];
+
 syncSwissEphVendor();
 
 function removeStaleTadagochiPwaAssets() {
@@ -197,7 +204,6 @@ function stripLeadingBom(buffer) {
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
 const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-payment-wasm";
-const ZIWEI_AI_CONSULTATION_CACHE_KEY = "20260627-ziwei-ai-consultation";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
@@ -383,7 +389,6 @@ function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
     /(\/js\/[^"'\s`)]+\.js\?v=)([a-zA-Z0-9_-]+)/g,
     (match, prefix) => {
       if (prefix.includes("/js/vedic-ai-consultation.js?v=")) return `${prefix}${VEDIC_AI_CONSULTATION_CACHE_KEY}`;
-      if (prefix.includes("/js/ziwei-book.js?v=")) return `${prefix}${ZIWEI_AI_CONSULTATION_CACHE_KEY}`;
       return `${prefix}${buildTimestamp}`;
     },
   );
@@ -394,10 +399,6 @@ function preserveVedicAIConsultationCacheKey(source) {
     .replace(
       /(\/js\/vedic-ai-consultation\.js\?v=)[a-zA-Z0-9_-]+/g,
       `$1${VEDIC_AI_CONSULTATION_CACHE_KEY}`,
-    )
-    .replace(
-      /(\/js\/ziwei-book\.js\?v=)[a-zA-Z0-9_-]+/g,
-      `$1${ZIWEI_AI_CONSULTATION_CACHE_KEY}`,
     );
 }
 
@@ -535,6 +536,13 @@ for (const target of staticTargets) {
 
 removeStaleTadagochiPwaAssets();
 
+for (const target of staleLifeBookPdfTargets) {
+  const targetPath = resolve(publicDir, target);
+  if (!existsSync(targetPath)) continue;
+  rmSync(targetPath, { force: true });
+  console.log(`[sync-legacy-static-to-public] Removed stale retired asset: ${target}`);
+}
+
 // Some legacy source HTML files can carry BOM from manual edits.
 // Strip BOM from public HTML artifacts before any downstream locale propagation.
 stripBomInPublicHtmlTree(publicDir);
@@ -615,7 +623,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log(`[sync-legacy-static-to-public] Detected ${bomStart} BOM byte(s) in existing public/index.html`);
   }
 
-  const legacyReplacementMarker = "'�'(replacement char)";
+  const legacyReplacementMarker = `'${String.fromCharCode(0xfffd)}'(replacement char)`;
   const dedupedIndexHtml = dedupeUtf8CharsetMeta(baseIndexHtml);
   if (dedupedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = dedupedIndexHtml;

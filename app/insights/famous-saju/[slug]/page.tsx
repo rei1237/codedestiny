@@ -118,10 +118,10 @@ const elementRows = [
 ] as const;
 
 const pillarAccents = [
-  "border-violet-300/25 bg-[#15102c]",
-  "border-violet-300/25 bg-[#15102c]",
-  "border-violet-200/70 bg-[#1d1235] shadow-[0_0_36px_rgba(139,92,246,0.2)]",
-  "border-violet-300/15 bg-[#100d23]",
+  "border-emerald-200/25 bg-[#0d1d1a]",
+  "border-amber-200/25 bg-[#20180b]",
+  "border-violet-200/65 bg-[#1d1235] shadow-[0_0_36px_rgba(139,92,246,0.2)]",
+  "border-sky-200/20 bg-[#0b1625]",
 ] as const;
 
 function displayPillar(value: MagazinePillar | null): MagazinePillar {
@@ -142,9 +142,9 @@ function displayPillar(value: MagazinePillar | null): MagazinePillar {
 
 function SectionHeader({ label, title }: { label: string; title: string }) {
   return (
-    <div className="mb-4 border-b border-violet-200/15 pb-3">
-      <p className="text-[11px] font-semibold text-violet-200/80">{label}</p>
-      <h2 className="mt-2 text-xl font-semibold leading-snug text-white sm:text-2xl">{title}</h2>
+    <div className="mb-4 border-b border-amber-100/15 pb-3">
+      <p className="text-[11px] font-semibold text-amber-100/80 [font-family:var(--font-decorative)]">{label}</p>
+      <h2 className="mt-2 text-xl font-semibold leading-snug text-white sm:text-2xl [font-family:var(--font-premium)]">{title}</h2>
     </div>
   );
 }
@@ -159,17 +159,17 @@ function CelebritySajuHero({ magazine }: { magazine: CelebritySajuMagazineResult
 
   return (
     <header className="pt-8 text-center sm:pt-10">
-      <p className="text-xs font-semibold text-violet-200/75">사주 통식 분석 · 유명인</p>
-      <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl [font-family:var(--font-display)]">
+      <p className="text-xs font-semibold text-amber-100/75 [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
+      <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl [font-family:var(--font-premium)]">
         {magazine.profile.displayName}
       </h1>
-      <p className="mt-4 text-base font-semibold leading-7 text-violet-100 [font-family:var(--font-premium)]">
+      <p className="mt-4 text-base font-semibold leading-7 text-amber-50 [font-family:var(--font-display)]">
         {dayPillar} 일주 - {magazine.summary.coreMetaphor}
       </p>
-      <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-violet-100/65">
+      <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200/70">
         {magazine.summary.subtitle}
       </p>
-      <div className="mt-5 inline-flex max-w-full items-center rounded-lg border border-violet-300/25 bg-violet-200/10 px-4 py-2 text-xs font-semibold text-violet-100">
+      <div className="mt-5 inline-flex max-w-full items-center rounded-lg border border-emerald-200/25 bg-emerald-100/10 px-4 py-2 text-xs font-semibold text-emerald-50 [font-family:var(--font-playful)]">
         공개 원국 직접 해석 · {basis}
       </div>
     </header>
@@ -190,15 +190,15 @@ function CelebritySajuPillarTable({ magazine }: { magazine: CelebritySajuMagazin
         {pillars.map((pillar, index) => (
           <article key={`${pillar.label}-${index}`} className={`min-h-[128px] rounded-lg border p-4 ${pillarAccents[index]}`}>
             <div className="flex items-start justify-between gap-2">
-              <p className="text-xs font-medium text-violet-100/50">{pillar.label}</p>
+              <p className="text-xs font-medium text-slate-100/60 [font-family:var(--font-decorative)]">{pillar.label}</p>
               {index === 2 ? <span className="rounded-md bg-violet-400 px-2 py-0.5 text-[11px] font-bold text-white">일주</span> : null}
             </div>
-            <h2 className={`mt-3 text-3xl font-semibold ${pillar.isUnknown ? "text-violet-100/35" : "text-violet-100"}`}>{pillar.ganji}</h2>
+            <h2 className={`mt-3 text-3xl font-semibold [font-family:var(--font-premium)] ${pillar.isUnknown ? "text-slate-100/35" : "text-white"}`}>{pillar.ganji}</h2>
             <div className="mt-3 flex gap-2">
               <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-violet-400/20 text-violet-100"}`}>{pillar.stem}</span>
               <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-amber-300/20 text-amber-100"}`}>{pillar.branch}</span>
             </div>
-            <p className="mt-3 text-xs leading-5 text-violet-100/55">
+            <p className="mt-3 text-xs leading-5 text-slate-100/60">
               {pillar.isUnknown ? "미상" : `${pillar.stemTenGod} · ${pillar.branchTenGod}`}
             </p>
           </article>
@@ -221,10 +221,10 @@ function CelebritySajuQuickSummaryCards({ magazine }: { magazine: CelebritySajuM
   return (
     <section className="mt-5 grid gap-3 md:grid-cols-3">
       {cards.map((card) => (
-        <article key={card.label} className="rounded-lg border border-violet-300/20 bg-[#120d27] p-4">
-          <p className="text-xs font-semibold text-violet-200/70">{card.label}</p>
-          <h3 className="mt-2 text-lg font-semibold text-white">{card.title}</h3>
-          <p className="mt-3 text-sm leading-7 text-violet-100/70">{card.body}</p>
+        <article key={card.label} className="rounded-lg border border-amber-100/15 bg-[#12131f] p-4">
+          <p className="text-xs font-semibold text-amber-100/70 [font-family:var(--font-decorative)]">{card.label}</p>
+          <h3 className="mt-2 text-lg font-semibold text-white [font-family:var(--font-display)]">{card.title}</h3>
+          <p className="mt-3 text-sm leading-7 text-slate-200/75">{card.body}</p>
         </article>
       ))}
     </section>
@@ -235,7 +235,7 @@ function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResu
   const max = Math.max(...elementRows.map((item) => magazine.fiveElements[item.key]), 1);
 
   return (
-    <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.005")} title={`${magazine.fiveElements.strongest.join("·") || "알 수 없음"} 강, ${magazine.fiveElements.weakest.join("·") || "알 수 없음"} 보완`} />
       <div className="grid grid-cols-5 gap-3">
         {elementRows.map((item) => {
@@ -260,24 +260,24 @@ function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResu
           return <span key={`empty-${item.key}`} className={`rounded-md border px-2 py-1 text-xs ${item.tone}`}>{item.label} 공백</span>;
         })}
       </div>
-      <p className="mt-5 text-sm leading-7 text-violet-100/75">{magazine.fiveElements.interpretation}</p>
+      <p className="mt-5 text-sm leading-7 text-slate-200/75">{magazine.fiveElements.interpretation}</p>
     </section>
   );
 }
 
 function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   return (
-    <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-amber-100/15 bg-[#151319] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.007")} title={famousSajuInsightText("famousSajuInsight.008")} />
       <div className="grid gap-3">
         {magazine.tenGods.highlights.map((item) => (
-          <article key={item.name} className="grid gap-4 rounded-lg border border-violet-300/20 bg-[#181031] p-4 sm:grid-cols-[3.5rem_1fr]">
+          <article key={item.name} className="grid gap-4 rounded-lg border border-violet-300/20 bg-[#171426] p-4 sm:grid-cols-[3.5rem_1fr]">
             <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-amber-200/20 bg-amber-200/10 text-lg font-bold text-amber-100">
               {item.name.slice(0, 1)}
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">{item.name} - {item.meaning}</h3>
-              <div className="mt-2 space-y-3 text-sm leading-7 text-violet-100/75">
+              <h3 className="text-base font-semibold text-white [font-family:var(--font-display)]">{item.name} - {item.meaning}</h3>
+              <div className="mt-2 space-y-3 text-sm leading-7 text-slate-200/75">
                 {splitFortuneParagraphs(item.reading).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
             </div>
@@ -296,12 +296,12 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
   ];
 
   return (
-    <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.012")} title={famousSajuInsightText("famousSajuInsight.013")} />
       <div className="grid gap-3 md:grid-cols-3">
         {groups.map((group) => (
-          <div key={group.title} className="rounded-lg border border-violet-300/15 bg-[#17102d] p-4">
-            <p className="text-sm font-semibold text-white">{group.title}</p>
+          <div key={group.title} className="rounded-lg border border-slate-100/10 bg-[#121827] p-4">
+            <p className="text-sm font-semibold text-white [font-family:var(--font-display)]">{group.title}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {group.items.length ? group.items.map((item) => (
                 <span key={`${group.title}-${item.name}-${item.position}`} className={`rounded-md border px-2 py-1 text-xs ${group.tone}`} title={item.reading}>
@@ -320,18 +320,18 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
 
 function MagazineSection({ section }: { section: CelebritySajuMagazineResult["sections"][number] }) {
   return (
-    <section id={section.id} className="scroll-mt-24 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
-      <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl">{section.title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-8 text-violet-100/75 sm:text-base">
+    <section id={section.id} className="scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
+      <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl [font-family:var(--font-premium)]">{section.title}</h2>
+      <div className="mt-4 space-y-4 text-sm leading-8 text-slate-200/75 sm:text-base">
         {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
       {section.cards?.length ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {section.cards.map((card) => (
-            <div key={`${section.id}-${card.label}`} className="rounded-lg border border-violet-300/15 bg-[#17102d] p-4">
-              <p className="text-xs text-violet-200/70">{card.label}</p>
-              <h3 className="mt-2 font-semibold text-white">{card.title}</h3>
-              <div className="mt-2 space-y-3 text-sm leading-6 text-violet-100/60">
+            <div key={`${section.id}-${card.label}`} className="rounded-lg border border-sky-100/10 bg-[#121827] p-4">
+              <p className="text-xs text-amber-100/70 [font-family:var(--font-decorative)]">{card.label}</p>
+              <h3 className="mt-2 font-semibold text-white [font-family:var(--font-display)]">{card.title}</h3>
+              <div className="mt-2 space-y-3 text-sm leading-6 text-slate-200/60">
                 {splitFortuneParagraphs(card.description).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
             </div>
@@ -351,13 +351,13 @@ function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) 
   if (!faq.length) return null;
 
   return (
-    <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.014")} title={famousSajuInsightText("famousSajuInsight.015")} />
       <dl className="divide-y divide-violet-300/10">
         {faq.map((item) => (
           <div key={item.question} className="py-4">
-            <dt className="font-semibold text-white">Q. {item.question}</dt>
-            <dd className="mt-2 text-sm leading-7 text-violet-100/70">{item.answer}</dd>
+            <dt className="font-semibold text-white [font-family:var(--font-display)]">Q. {item.question}</dt>
+            <dd className="mt-2 text-sm leading-7 text-slate-200/70">{item.answer}</dd>
           </div>
         ))}
       </dl>
@@ -367,9 +367,9 @@ function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) 
 
 function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) {
   return (
-    <section className="mt-5 rounded-lg border border-violet-400/40 bg-[#150b2d] p-4 sm:p-5">
-      <h2 className="text-xl font-semibold text-white">{cta.title}</h2>
-      <p className="mt-3 text-sm leading-7 text-violet-100/70">{cta.description}</p>
+    <section className="mt-5 rounded-lg border border-amber-200/30 bg-[#1a1524] p-4 sm:p-5">
+      <h2 className="text-xl font-semibold text-white [font-family:var(--font-premium)]">{cta.title}</h2>
+      <p className="mt-3 text-sm leading-7 text-slate-200/70">{cta.description}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link href="/saju/basic/play" className="rounded-lg border border-violet-300 bg-violet-500/20 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-500/30">{cta.buttonText}</Link>
         <Link href="/insights/famous-saju" className="rounded-lg border border-violet-300/20 px-4 py-3 text-center text-sm font-semibold text-violet-100 transition hover:border-violet-200/60">다른 유명인 보기</Link>
@@ -380,7 +380,7 @@ function CelebritySajuCTA({ cta }: { cta: CelebritySajuMagazineResult["cta"] }) 
 
 function RelatedCelebritySajuList({ related }: { related: RelatedCelebrity[] }) {
   return (
-    <section className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5">
+    <section className="mt-5 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.016")} title={famousSajuInsightText("famousSajuInsight.017")} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {related.map((item) => (

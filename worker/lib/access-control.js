@@ -9,9 +9,7 @@ import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
-  sajuNewYear: ["premiumDivinationPack"],
   lifeBook: [],
-  loveSecret: ["premium-love-secret", "premiumDivinationPack", "premium-naming"],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
@@ -197,41 +195,6 @@ function normalizeModeToken(requestBody = {}) {
 }
 
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
-  if (reportType === "sajuNewYear") {
-    return [
-      {
-        featureKey: "saju_new_year_pdf",
-        reason: "사주 신년운세 AI 상담",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium_pdf_saju_new_year",
-        reason: "사주 신년운세 AI 상담",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium-saju-newyear-report",
-        reason: "사주 신년운세 AI 상담",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "사주 신년운세 AI 상담",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "사주 신년운세 PDF 리포트 생성",
-        minCost: 300,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
   if (reportType === "lifeBook") {
     return [
       {
@@ -256,62 +219,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "coin-gate-per-use",
         reason: "인생의 책 생성 (13챕터)",
         minCost: 500,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
-  if (reportType === "loveSecret") {
-    const modeToken = normalizeModeToken(requestBody);
-    const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
-    return [
-      {
-        featureKey: "saju_love_book_pdf",
-        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-        minCost: isCouple ? 400 : 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: isCouple ? "premium_pdf_saju_love_secret_compat" : "premium_pdf_saju_love_secret",
-        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-        minCost: isCouple ? 400 : 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: isCouple ? "premium-love-secret-couple" : "premium-love-secret-solo",
-        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-        minCost: isCouple ? 400 : 300,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: isCouple ? "사주 프리미엄 궁합 리포트 생성" : "사주 프리미엄 연애운 리포트 생성",
-        minCost: isCouple ? 400 : 300,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
-  if (reportType === "ziweiPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    const isCompat = modeToken.includes("compat");
-    return [
-      {
-        featureKey: isCompat ? "premium_pdf_ziwei_compat" : "premium_pdf_ziwei",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: isCompat ? "premium-ziwei-report-compat" : "premium-ziwei-report",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: isCompat ? "자미두수 프리미엄 PDF 궁합 리포트 생성" : "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 690 : 590,
         windowMinutes: 120,
       },
     ];
@@ -871,57 +778,6 @@ function requiresContextBoundPremiumPaymentEvidence(reportType = "") {
   return normalized === "vedicPremium" || normalized === "soulOriginKarma";
 }
 
-async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody = {}) {
-  const modeToken = normalizeModeToken(requestBody);
-  const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
-  if (!isCouple) return null;
-
-  const baseRules = [
-    {
-      featureKey: "saju_love_book_pdf",
-      reason: "사주 프리미엄 연애운 리포트 생성",
-      minCost: 300,
-      windowMinutes: 120,
-    },
-    {
-      featureKey: "premium_pdf_saju_love_secret",
-      reason: "사주 프리미엄 연애운 리포트 생성",
-      minCost: 300,
-      windowMinutes: 120,
-    },
-    {
-      featureKey: "premium-love-secret-solo",
-      reason: "사주 프리미엄 연애운 리포트 생성",
-      minCost: 300,
-      windowMinutes: 120,
-    },
-  ];
-  const addonRules = [
-    {
-      featureKey: "coin-gate-per-use",
-      reason: "연애 비책 궁합 분석",
-      minCost: 100,
-      windowMinutes: 120,
-    },
-  ];
-
-  let baseEvidence = null;
-  for (let i = 0; i < baseRules.length; i += 1) {
-    baseEvidence = await findRecentDeductionEvidence(userId, baseRules[i]);
-    if (baseEvidence) break;
-  }
-  if (!baseEvidence) return null;
-
-  let addonEvidence = null;
-  for (let i = 0; i < addonRules.length; i += 1) {
-    addonEvidence = await findRecentDeductionEvidence(userId, addonRules[i]);
-    if (addonEvidence) break;
-  }
-  if (!addonEvidence) return null;
-
-  return { baseEvidence, addonEvidence };
-}
-
 async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [], options = {}) {
   const tokens = extractPaymentLookupTokens(requestBody);
   const binding = extractAccessBindingHints(requestBody);
@@ -1070,7 +926,7 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
 
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
-  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium" || normalizedReportType === "sajuNewYear";
+  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
@@ -1086,18 +942,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || requestBody?.subFeatureKey
     || "",
   ).trim();
-  const logSajuAccessResolved = (result = {}) => {
-    if (normalizedReportType !== "sajuNewYear") return;
-    console.info("[SajuNewYearAPI] access resolved", {
-      ok: Boolean(result?.ok),
-      expectedFeatureKey: "saju_new_year_pdf",
-      receivedFeatureKey,
-      hasSessionId: Boolean(String(accessBinding.sessionId || "").trim()),
-      hasPurchaseId: Boolean(String(accessBinding.purchaseId || "").trim()),
-      hasReportId: Boolean(String(accessBinding.reportId || "").trim()),
-      reason: result?.reason || result?.code || null,
-    });
-  };
+  const logSajuAccessResolved = () => {};
   const premiumAccessToken = String(
     requestBody?.premiumAccessToken
     || requestBody?._premiumAccessToken
@@ -1110,22 +955,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || "",
   ).trim();
   const requiresContextBoundPaymentEvidence = requiresContextBoundPremiumPaymentEvidence(normalizedReportType);
-
-  if (normalizedReportType === "sajuNewYear") {
-    const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "saju_new_year_pdf");
-    const receivedFeatureKey = String(requestBody?.featureKey || payment?.featureKey || consume?.featureKey || requestBody?.subFeatureKey || "");
-    console.info("[SajuNewYear][Payment] CHECK_START", {
-      expectedFeatureKey,
-      receivedFeatureKey,
-      expectedReportType: normalizedReportType,
-      receivedReportType: String(requestBody?.reportType || requestBody?.type || normalizedReportType),
-      hasPurchaseId: Boolean(String(requestBody?.purchaseId || requestBody?.reportPurchaseId || payment?.purchaseId || consume?.purchaseId || "").trim()),
-      hasSessionId: Boolean(String(requestBody?.sessionId || requestBody?.reportSessionId || payment?.sessionId || payment?.reportSessionId || consume?.sessionId || consume?.reportSessionId || "").trim()),
-      profileId: String(requestBody?.profileId || requestBody?.selectedProfileId || payment?.profileId || consume?.profileId || ""),
-      status: "checking",
-      reason: String(requestBody?.reason || payment?.reason || consume?.reason || "")
-    });
-  }
 
   if (premiumAccessToken) {
     const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env, {
@@ -1400,74 +1229,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       };
       logSajuAccessResolved(allowed);
       return allowed;
-    }
-  }
-
-  if (normalizedReportType === "sajuNewYear" && alternativeRules.length) {
-    for (let i = 0; i < alternativeRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
-      if (!evidence) continue;
-      logPremiumAccessDecision({
-        route: requestBody?._accessRoute,
-        userId,
-        reportType: normalizedReportType,
-        featureKey: String(evidence?.featureKey || ""),
-        accessSource: "recent-payment-window",
-        matchedTransactionId: String(evidence?._id || ""),
-      });
-      const allowed = {
-        ok: true,
-        accessType: "recent-payment-window",
-        reportType: normalizedReportType,
-        matchedTransactionId: String(evidence?._id || ""),
-        featureKey: String(evidence?.featureKey || ""),
-        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
-      };
-      logSajuAccessResolved(allowed);
-      return allowed;
-    }
-  }
-
-  if (normalizedReportType === "loveSecret" && alternativeRules.length) {
-    for (let i = 0; i < alternativeRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
-      if (!evidence) continue;
-      logPremiumAccessDecision({
-        route: requestBody?._accessRoute,
-        userId,
-        reportType: normalizedReportType,
-        featureKey: String(evidence?.featureKey || ""),
-        accessSource: "recent-payment-window",
-        matchedTransactionId: String(evidence?._id || ""),
-      });
-      return {
-        ok: true,
-        accessType: "recent-payment-window",
-        reportType: normalizedReportType,
-        matchedTransactionId: String(evidence?._id || ""),
-        featureKey: String(evidence?.featureKey || ""),
-        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
-      };
-    }
-
-    const splitEvidence = await findLoveSecretBasePlusCompatibilityEvidence(user._id, requestBody);
-    if (splitEvidence?.baseEvidence && splitEvidence?.addonEvidence) {
-      logPremiumAccessDecision({
-        route: requestBody?._accessRoute,
-        userId,
-        reportType: normalizedReportType,
-        featureKey: String(splitEvidence?.baseEvidence?.featureKey || ""),
-        accessSource: "recent-payment-window-split",
-        matchedTransactionId: String(splitEvidence?.addonEvidence?._id || splitEvidence?.baseEvidence?._id || ""),
-      });
-      return {
-        ok: true,
-        accessType: "recent-payment-window-split",
-        reportType: normalizedReportType,
-        matchedTransactionId: String(splitEvidence?.addonEvidence?._id || splitEvidence?.baseEvidence?._id || ""),
-        featureKey: String(splitEvidence?.baseEvidence?.featureKey || ""),
-        chargedCoins: Math.abs(Number(splitEvidence?.baseEvidence?.delta || 0)) + Math.abs(Number(splitEvidence?.addonEvidence?.delta || 0)),
-      };
     }
   }
 

@@ -240,6 +240,9 @@ type PaidFeatureGateRuntimeDetail = {
 type BillingCoinGateData = {
   pricing: BillingFeaturePricing;
   consume: Record<string, unknown>;
+  deferredUsage?: boolean;
+  usageDeferred?: boolean;
+  executionId?: string;
   accessGateResult?: AccessGateResult | null;
   licensePass?: AccessGateResult | null;
   membershipPass?: Record<string, unknown> | null;
@@ -276,6 +279,9 @@ type BillingCoinGateInput = {
   reason?: string;
   requestId?: string;
   forceDeduct?: boolean;
+  deferUsage?: boolean;
+  usagePolicy?: string;
+  executionKey?: string;
   paymentMode?: string;
   payloadHash?: string;
   productId?: string;
@@ -323,31 +329,22 @@ const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
   "premium-lifebook-report": "premium-lifebook-report",
   generatelifebook: "premium-lifebook-report",
   opensajulifebookbuilder: "premium-lifebook-report",
-  premium_pdf_ziwei: "premium-ziwei-report",
-  premium_pdf_ziwei_compat: "premium-ziwei-report-compat",
-  "premium-pdf-ziwei": "premium-ziwei-report",
-  premiumziweipdf: "premium-ziwei-report",
-  gotoziweipremium: "premium-ziwei-report",
+  gotoziweipremium: "ziwei-ai-consultation",
   premium_pdf_western_astrology: "premium-astrology-report",
   premium_pdf_western_astrology_compat: "premium-astrology-report-compat",
-  gotoastrologypremium: "premium-astrology-report",
+  gotoastrologypremium: "astrology-ai-consultation",
   premium_pdf_sukyo: "premium-sukuyo-report",
   premium_pdf_sukyo_compat: "premium-sukuyo-report-compat",
-  gotosukuyopremium: "premium-sukuyo-report-compat",
+  gotosukuyopremium: "sukuyo-compatibility-ai",
   premium_pdf_vedic: "premium-vedic-report",
   premium_pdf_vedic_compat: "premium-vedic-report-compat",
-  gotovedicpremium: "premium-vedic-report",
+  gotovedicpremium: "vedic-ai-consultation",
+  "vedic-ai-consultation": "vedic-ai-consultation",
+  vedicaiconsultation: "vedic-ai-consultation",
+  "karma-destiny-ai": "karma-destiny-ai-consultation",
+  "karma-destiny-ai-consultation": "karma-destiny-ai-consultation",
+  karmadestinyaiconsultation: "karma-destiny-ai-consultation",
   premium_pdf_saju_life_book: "premium-lifebook-report",
-  "premium-saju-newyear-report": "saju_new_year_pdf",
-  "premium-saju-newyear-report-compat": "saju_new_year_pdf",
-  premium_pdf_saju_new_year: "saju_new_year_pdf",
-  premium_pdf_saju_yearly: "saju_new_year_pdf",
-  opensajunewyearmodal: "saju_new_year_pdf",
-  generatesajunewyear: "saju_new_year_pdf",
-  saju_love_book_pdf: "premium-love-secret-solo",
-  sajulovebookpdf: "premium-love-secret-solo",
-  premium_pdf_saju_love_secret: "premium-love-secret-solo",
-  premium_pdf_saju_love_secret_compat: "premium-love-secret-couple",
   "premium-soul-origin-report": "premium_pdf_soul_origin",
   souloriginkarma: "premium_pdf_soul_origin",
   soul_origin_book: "premium_pdf_soul_origin",
@@ -2694,6 +2691,30 @@ export async function fetchPaymentEligibility(input: {
   }
 }
 
+async function registerDeferredBillingUsage(
+  input: BillingCoinGateInput,
+  result: BillingResult<BillingCoinGateData>,
+  context: { requestId: string; featureId: string },
+): Promise<BillingResult<BillingCoinGateData>> {
+  if (input.deferUsage !== true || !result.ok || !result.data) return result;
+  const response = await authFetchBilling("/api/billing/coin-gate/deferred/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...(input || {}),
+      requestId: context.requestId,
+      idempotencyKey: input.idempotencyKey || context.requestId,
+      featureKey: input.featureKey || context.featureId,
+      deferUsage: true,
+      usagePolicy: input.usagePolicy || "apply_after_success",
+      billingGate: result.data,
+    }),
+  });
+  return await parseBillingResponse<BillingCoinGateData>(response);
+}
+
 export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
@@ -2847,7 +2868,10 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         runtimeGate: await loadRuntimeGateForPayment(),
       });
       if (runtimePaymentResult) {
-        const parsed = runtimePaymentResult;
+        const parsed = await registerDeferredBillingUsage(input, runtimePaymentResult, {
+          requestId: gateRequestId,
+          featureId,
+        });
         if (parsed.ok && parsed.data) {
           if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {
             markPaidAttemptFailed("server_access_grant_missing");
@@ -3088,8 +3112,12 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           runtimeGate: await loadRuntimeGateForPayment(),
         });
         if (runtimePaymentResult) {
-          if (runtimePaymentResult.ok && runtimePaymentResult.data) {
-            if (!hasVerifiedBillingAccess(runtimePaymentResult.data, input.featureKey || featureId)) {
+          const parsedRuntimePaymentResult = await registerDeferredBillingUsage(input, runtimePaymentResult, {
+            requestId: gateRequestId,
+            featureId,
+          });
+          if (parsedRuntimePaymentResult.ok && parsedRuntimePaymentResult.data) {
+            if (!hasVerifiedBillingAccess(parsedRuntimePaymentResult.data, input.featureKey || featureId)) {
               markPaidAttemptFailed("server_access_grant_missing");
               emitPaidFeatureGate("update", {
                 featureId,
@@ -3099,9 +3127,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
                 message: billingClientText("billingClient.message.018"),
               });
               return {
-                ...runtimePaymentResult,
+                ...parsedRuntimePaymentResult,
                 ok: false,
-                status: runtimePaymentResult.status || 500,
+                status: parsedRuntimePaymentResult.status || 500,
                 data: null,
                 message: billingClientText("billingClient.message.019"),
                 error: {
@@ -3111,17 +3139,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               };
             }
             invalidateBillingBalanceCache();
-            normalizeBillingBalanceFields(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
-            emitBillingBalanceUpdated(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime-fallback");
+            normalizeBillingBalanceFields(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            emitBillingBalanceUpdated(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime-fallback");
             markPaidAttemptPaymentSucceeded();
             markPaidAttemptCallbackReturned();
-            const consume = asRecord(runtimePaymentResult.data.consume);
+            const consume = asRecord(parsedRuntimePaymentResult.data.consume);
             const accessType = toText(consume?.accessType);
             const accessMethod = toText(consume?.accessMethod);
             const paymentMethod = toText(consume?.paymentMethod);
-            const licenseGate = extractLicenseGateResult(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
-            const licenseMessage = buildLicensePassOverlayMessage(runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
-            const runtimeData = runtimePaymentResult.data as BillingCoinGateData & Record<string, unknown>;
+            const licenseGate = extractLicenseGateResult(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            const licenseMessage = buildLicensePassOverlayMessage(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
+            const runtimeData = parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>;
             const appliedPayment = resolveAppliedBillingPayment(runtimeData, requestedMode, runtimeData.freeBySubscription === true);
             const successOverlay = resolvePaymentWaitOverlay(appliedPayment.status, licenseMessage || undefined, {
               paymentMode: appliedPayment.paymentMode,
@@ -3139,7 +3167,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               requestId: gateRequestId,
               status: appliedPayment.status,
               message: successOverlay.message,
-              cost: runtimePaymentResult.data.pricing?.cost,
+              cost: parsedRuntimePaymentResult.data.pricing?.cost,
               paymentMode: appliedPayment.paymentMode,
               reason: input.reason,
               accessType,
@@ -3149,19 +3177,19 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               licenseReason: licenseGate?.reason,
             });
           } else {
-            const runtimeCode = String(runtimePaymentResult.error?.code || "").toUpperCase();
-            markPaidAttemptFailed(runtimePaymentResult.error?.code || "payment_runtime_required");
+            const runtimeCode = String(parsedRuntimePaymentResult.error?.code || "").toUpperCase();
+            markPaidAttemptFailed(parsedRuntimePaymentResult.error?.code || "payment_runtime_required");
             emitPaidFeatureGate("update", {
               featureId,
               featureKey: featureId,
               requestId: gateRequestId,
               status: runtimeCode === "PAYMENT_CANCELLED" ? "noEntitlement" : "paymentFailed",
-              message: runtimePaymentResult.error?.message || runtimePaymentResult.message || "결제가 완료되지 않았습니다.",
+              message: parsedRuntimePaymentResult.error?.message || parsedRuntimePaymentResult.message || "결제가 완료되지 않았습니다.",
               cost: knownCoinCost,
               reason: input.reason,
             });
           }
-          return runtimePaymentResult;
+          return parsedRuntimePaymentResult;
         }
       }
       markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");

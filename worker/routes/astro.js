@@ -5378,58 +5378,31 @@ export async function handleAstroRoutes(request, env) {
     if (pathname === "/api/astro" || pathname.startsWith("/api/astro/")) {
       const path = getRoutePath(request, "/api/astro");
       if (path === "/premium/mock-chapters") {
-        if (method !== "GET") return methodNotAllowed();
-        return json({
-          ok: true,
-          serviceType: "astrology_pdf",
-          chapterCount: ASTROLOGY_PDF_CHAPTERS.length,
-          chapters: ASTROLOGY_PDF_CHAPTERS,
-          provider: "mock",
-          tokensUsed: 0,
-          cost: 0,
-          isMock: true,
-        });
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/ai-consultation") {
-        if (method !== "POST") return methodNotAllowed();
-        return await handleAstrologyAIConsultation(request, env);
+        return json({ ok: false, code: "ASTROLOGY_LEGACY_CONSULTATION_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/verify-access") {
-        if (method !== "POST") return methodNotAllowed();
-        return await handleAstrologyMockVerifyAccess(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/create-job") {
-        if (method !== "POST") return methodNotAllowed();
-        return await handleAstrologyMockCreateJob(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/generate-mock") {
-        if (method !== "POST") return methodNotAllowed();
-        return await handleAstrologyMockGenerate(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/result") {
-        if (method !== "GET") return methodNotAllowed();
-        return await handleAstrologyMockResult(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/chapters") {
-        if (method !== "GET") return methodNotAllowed();
-        return json({
-          ok: true,
-          featureKey: ASTRO_PREMIUM_FEATURE_KEY,
-          chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-          chapters: ASTRO_PREMIUM_CHAPTERS,
-        });
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/prepare") {
-        if (method !== "POST") return methodNotAllowed();
-        return await handleAstroPremiumPrepare(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/premium/status") {
-        if (method !== "GET") return methodNotAllowed();
-        const statusUrl = new URL(request.url);
-        if (clean(statusUrl.searchParams.get("jobId"))) {
-          return await handleAstrologyMockStatus(request, env);
-        }
-        return await handleAstroPremiumStatus(request, env);
+        return json({ ok: false, code: "ASTROLOGY_PDF_REMOVED", next: "/astrology-ai" }, { status: 410 });
       }
       if (path === "/western-chart") {
         if (method !== "POST") return methodNotAllowed();

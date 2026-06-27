@@ -80,55 +80,42 @@ describe("Fortune coin access guard", () => {
       env: { NODE_ENV: "production" },
       productSpec: null,
       requestedCost: 9999,
-      featureKey: "premium-love-secret-couple",
-      reason: "사주 프리미엄 궁합 리포트 생성",
+      featureKey: "love-secret-ai-consultation",
+      reason: "연애 비책 AI 상담",
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(400);
+    expect(priced.cost).toBe(300);
     expect(priced.pricingSource).toBe("feature-key");
   });
 
-  test("premium-ziwei-report는 서버 가격 590으로 고정되어야 한다", () => {
+  test("new-year-ai-consultation은 서버 가격 300으로 고정되어야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },
       productSpec: null,
       requestedCost: 1,
-      featureKey: "premium-ziwei-report",
-      reason: "자미두수 프리미엄 PDF 리포트 생성",
+      featureKey: "new-year-ai-consultation",
+      reason: "신년운세 AI 상담",
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(590);
+    expect(priced.cost).toBe(300);
+    expect(priced.featureKey).toBe("new-year-ai-consultation");
     expect(priced.pricingSource).toBe("feature-key");
   });
 
-  test("premium-ziwei-report-compat는 서버 가격 690으로 고정되어야 한다", () => {
+  test("ziwei-ai-consultation은 서버 가격 300으로 고정되어야 한다", () => {
     const priced = utils.resolveServerCoinPricing({
       env: { NODE_ENV: "production" },
       productSpec: null,
       requestedCost: 1,
-      featureKey: "premium-ziwei-report-compat",
-      reason: "자미두수 프리미엄 PDF 궁합 리포트 생성",
+      featureKey: "ziwei-ai-consultation",
+      reason: "자미두수 AI 상담",
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(690);
-    expect(priced.pricingSource).toBe("feature-key");
-  });
-
-  test("premium_pdf_ziwei는 서버 가격 590으로 고정되어야 한다", () => {
-    const priced = utils.resolveServerCoinPricing({
-      env: { NODE_ENV: "production" },
-      productSpec: null,
-      requestedCost: 1,
-      featureKey: "premium_pdf_ziwei",
-      reason: "자미두수 프리미엄 PDF",
-    });
-
-    expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(590);
-    expect(priced.featureKey).toBe("premium_pdf_ziwei");
+    expect(priced.cost).toBe(300);
+    expect(priced.featureKey).toBe("ziwei-ai-consultation");
     expect(priced.pricingSource).toBe("feature-key");
   });
 

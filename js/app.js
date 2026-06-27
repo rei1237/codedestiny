@@ -1,4 +1,4 @@
-import { initAppShell } from './core/init.js';
+import { initAppShell } from './core/init.js?v=20260627-new-year-ai';
 
 const DESTINY_FLOWER_ACTIONS = [
   'openDestinyFlowerStudio',

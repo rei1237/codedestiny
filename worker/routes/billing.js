@@ -22,11 +22,13 @@ import {
   heartbeatServiceExecution,
   startServiceExecution,
 } from "../lib/service-execution-task.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, mongoose } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
   MonthlyCreditLedger,
+  PaidExecutionRecord,
+  Payment,
   PointHistory,
   SAJU_LOCKED_CONTENT_KEYS,
   ServiceExecutionTransaction,
@@ -176,16 +178,6 @@ const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
   "saju_life_book_pdf",
   "premium-lifebook-report",
   "premium_pdf_saju_life_book",
-  "saju_love_book_pdf",
-  "saju-love-book",
-  "premium-love-secret-solo",
-  "premium-love-secret-couple",
-  "premium_pdf_saju_love_secret",
-  "premium_pdf_saju_love_secret_compat",
-  "saju_new_year_pdf",
-  "premium-saju-newyear-report",
-  "premium_pdf_saju_new_year",
-  "premium_pdf_saju_yearly",
 ]);
 
 function resolveSajuProfileUnlockContentKey(featureKey, contentKey = "") {
@@ -274,8 +266,6 @@ function resolveUsagePassCategories(pricing = {}) {
     || featureKey.includes("relationship")
     || featureKey === "section_compat"
     || featureKey === "vedic-compatibility-per-use"
-    || featureKey === "premium-love-secret-couple"
-    || featureKey === "premium_pdf_saju_love_secret_compat";
   const isSajuUnlock = featureKey === "section_daewun"
     || featureKey === "section_summary"
     || featureKey === "section_compat"
@@ -1596,6 +1586,431 @@ function cleanProfileId(value) {
   return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
 }
 
+function isDeferredUsageRequested(body = {}) {
+  const value = body?.deferUsage ?? body?.usageDeferred ?? body?.deferredUsage;
+  return value === true
+    || String(value || "").trim().toLowerCase() === "true"
+    || String(body?.usagePolicy || "").trim().toLowerCase() === "apply_after_success";
+}
+
+function safeObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function objectIdLike(value) {
+  const text = String(value || "").trim();
+  return Boolean(text && mongoose.Types.ObjectId.isValid(text));
+}
+
+function deferredExecutionId(featureKey, userId, requestId) {
+  return `deferred:${String(featureKey || "").trim()}:${String(userId || "").trim()}:${String(requestId || "").trim()}`.slice(0, 160);
+}
+
+function normalizeDeferredPaymentMethod(value) {
+  const method = String(value || "").trim().toUpperCase();
+  if (method === "MONTHLY" || method === "MONTHLY_CREDIT" || method === "MOONLIGHT_STONE") return "MONTHLY";
+  if (method === "PASS" || method === "MEMBERSHIP_PASS") return "PASS";
+  if (method === "FAMILY" || method === "FAMILY_PASS") return "FAMILY";
+  if (method === "DIRECT_KRW" || method === "CARD" || method === "SINGLE_PURCHASE") return "DIRECT_KRW";
+  return "COIN";
+}
+
+function deferredRecordAccessMethod(paymentMethod) {
+  const method = normalizeDeferredPaymentMethod(paymentMethod);
+  if (method === "MONTHLY") return "monthly";
+  if (method === "PASS") return "pass";
+  if (method === "FAMILY") return "family";
+  return "single";
+}
+
+function deferredAccessType(paymentMethod) {
+  const method = normalizeDeferredPaymentMethod(paymentMethod);
+  if (method === "MONTHLY") return "membership_credit";
+  if (method === "PASS") return "membership_pass";
+  if (method === "FAMILY") return "family";
+  if (method === "DIRECT_KRW") return "single_purchase";
+  return "coin";
+}
+
+function applyPaymentModeForDeferred(paymentMethod) {
+  const method = normalizeDeferredPaymentMethod(paymentMethod);
+  if (method === "MONTHLY") return "monthly_credit";
+  if (method === "PASS" || method === "FAMILY") return "membership_pass";
+  if (method === "DIRECT_KRW") return "single_purchase";
+  return "coin";
+}
+
+function collectDeferredEvidenceIds(...sources) {
+  const ids = new Set();
+  const visit = (value, depth = 0) => {
+    if (!value || depth > 3) return;
+    if (typeof value !== "object") return;
+    for (const key of ["_id", "id", "paymentId", "merchantUid", "merchant_uid", "impUid", "imp_uid", "transactionId", "purchaseId", "evidenceId", "requestId", "idempotencyKey", "orderId", "ledgerId"]) {
+      const id = String(value?.[key] || "").trim();
+      if (id) ids.add(id);
+    }
+    for (const key of ["data", "consume", "accessGrant", "payment", "pricing", "billingGate"]) visit(value?.[key], depth + 1);
+  };
+  sources.forEach((source) => visit(source));
+  return [...ids];
+}
+
+function deferredEvidenceClauses(ids = []) {
+  const clauses = [];
+  for (const id of ids) {
+    clauses.push({ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id });
+    clauses.push({ "metadata.requestId": id }, { "metadata.purchaseId": id }, { "metadata.idempotencyKey": id }, { "metadata.orderId": id }, { "metadata.ledgerId": id }, { "metadata.pointHistoryId": id });
+    clauses.push({ sourceId: id });
+    if (objectIdLike(id)) clauses.push({ _id: id }, { paymentId: id });
+  }
+  return clauses;
+}
+
+function deferredUsageSnapshot(record = {}) {
+  return safeObject(safeObject(record.result).deferredUsage);
+}
+
+function buildDeferredGrantPayload({ record, pricing, paymentMethod, accessType, user, message }) {
+  const method = normalizeDeferredPaymentMethod(paymentMethod);
+  const executionId = String(record?.executionId || "");
+  const evidenceId = String(record?._id || record?.id || "");
+  const requestId = String(record?.requestId || "");
+  const coinPrice = resolvePricingCoinCost(pricing);
+  const membershipCreditCost = method === "MONTHLY" ? resolveMonthlyCreditCostForBilling(pricing, {}) : 0;
+  const balance = Number.isFinite(Number(user?.points)) ? Number(user.points) : null;
+  const monthlyCredits = Math.max(0, Math.floor(Number(user?.profileSubscription?.membershipCreditBalance || 0)));
+  return {
+    pricing,
+    deferredUsage: true,
+    usageDeferred: true,
+    executionId,
+    accessMethod: method,
+    paymentMode: method,
+    consume: {
+      ok: true,
+      deferredUsage: true,
+      transactionType: accessType,
+      accessType,
+      accessMethod: method,
+      paymentMethod: method,
+      transactionId: evidenceId,
+      purchaseId: requestId,
+      requestId,
+      executionId,
+      featureKey: String(pricing?.featureKey || ""),
+      chargedCoins: 0,
+      coinPrice: method === "COIN" ? coinPrice : 0,
+      membershipCreditCost,
+    },
+    accessGrant: {
+      ok: true,
+      deferredUsage: true,
+      accessType,
+      accessMethod: method,
+      paymentMethod: method,
+      featureKey: String(pricing?.featureKey || ""),
+      requestId,
+      purchaseId: requestId,
+      evidenceId,
+      executionId,
+      paidAt: new Date().toISOString(),
+    },
+    balance,
+    monthlyStoneBalance: monthlyCredits,
+    membershipCreditBalance: monthlyCredits,
+    monthlyCredits,
+    monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
+    user: user ? {
+      id: String(user?._id || user?.id || ""),
+      points: Number(user?.points || 0),
+      profileSubscription: user?.profileSubscription || null,
+    } : null,
+    freeBySubscription: accessType === "membership_pass" || accessType === "family",
+    message,
+  };
+}
+
+async function createDeferredUsageGrant(env, authUserId, pricing, requestId, options = {}) {
+  await connectDb(env);
+  const featureKey = String(pricing?.featureKey || options?.body?.featureKey || "").trim();
+  const normalizedRequestId = String(requestId || options?.body?.idempotencyKey || "").trim();
+  const paymentMethod = normalizeDeferredPaymentMethod(options.paymentMethod);
+  const accessType = options.accessType || deferredAccessType(paymentMethod);
+  const executionId = deferredExecutionId(featureKey, authUserId, normalizedRequestId);
+  const user = await User.findById(authUserId).select("points profileSubscription").lean();
+  const now = new Date();
+  const record = await PaidExecutionRecord.findOneAndUpdate(
+    { executionId },
+    {
+      $setOnInsert: {
+        executionId,
+        requestId: normalizedRequestId,
+        userId: String(authUserId || ""),
+        featureId: featureKey,
+        profileId: cleanProfileId(options.profileId || options?.body?.profileId || "default") || "default",
+        accessMode: "per_use",
+        accessMethod: deferredRecordAccessMethod(paymentMethod),
+        amountCoins: paymentMethod === "COIN" ? resolvePricingCoinCost(pricing) : 0,
+        amountKRW: paymentMethod === "DIRECT_KRW" ? resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)) : 0,
+        monthlyDeductedAmount: paymentMethod === "MONTHLY" ? resolveMonthlyCreditCostForBilling(pricing, options.body || {}) : 0,
+        paymentId: String(options.paymentId || ""),
+        orderId: String(options.orderId || normalizedRequestId),
+        status: "paid_pending_generation",
+        resultId: "",
+        result: {
+          deferredUsage: {
+            source: String(options.source || "pre_usage"),
+            featureKey,
+            requestId: normalizedRequestId,
+            paymentMethod,
+            accessType,
+            paymentId: String(options.paymentId || ""),
+            evidence: options.evidence || null,
+            pricingSnapshot: pricing,
+            createdAt: now.toISOString(),
+          },
+        },
+        idempotencyKey: executionId,
+      },
+      $set: {
+        paymentId: String(options.paymentId || ""),
+        orderId: String(options.orderId || normalizedRequestId),
+      },
+    },
+    { upsert: true, new: true },
+  ).lean();
+  return success(
+    buildDeferredGrantPayload({
+      record,
+      pricing,
+      paymentMethod,
+      accessType,
+      user,
+      message: "이용 권한을 확인했습니다.",
+    }),
+    "이용 권한을 확인했습니다.",
+  );
+}
+
+async function findVerifiedDeferredBillingEvidence(env, authUserId, featureKey, body = {}) {
+  await connectDb(env);
+  const gate = safeObject(body.billingGate || body.billing || body.billingResult || body.paymentContext);
+  const ids = collectDeferredEvidenceIds(body, gate);
+  const clauses = deferredEvidenceClauses(ids);
+  if (!clauses.length) return null;
+
+  const pointHistory = await PointHistory.findOne({
+    userId: authUserId,
+    kind: "deduct",
+    featureKey,
+    $or: clauses,
+  }).sort({ createdAt: -1 }).select("_id metadata").lean();
+  if (pointHistory) {
+    const meta = safeObject(pointHistory.metadata);
+    const method = normalizeDeferredPaymentMethod(meta.paymentMethod || meta.accessMethod || meta.accessType);
+    return {
+      source: "point_history",
+      paymentMethod: method,
+      accessType: meta.accessType || deferredAccessType(method),
+      paymentId: String(pointHistory._id || ""),
+      evidence: { pointHistoryId: String(pointHistory._id || "") },
+      alreadyConsumed: true,
+    };
+  }
+
+  const ledger = await MonthlyCreditLedger.findOne({
+    userId: authUserId,
+    type: "MONTHLY_CREDIT_SPEND",
+    serviceKey: featureKey,
+    $or: clauses,
+  }).sort({ createdAt: -1 }).select("_id").lean();
+  if (ledger) {
+    return {
+      source: "monthly_credit_ledger",
+      paymentMethod: "MONTHLY",
+      accessType: "membership_credit",
+      paymentId: String(ledger._id || ""),
+      evidence: { ledgerId: String(ledger._id || "") },
+      alreadyConsumed: true,
+    };
+  }
+
+  const payment = await Payment.findOne({
+    userId: authUserId,
+    paymentType: "digital_content",
+    status: { $in: ["paid", "success", "fulfilled"] },
+    $and: [
+      { $or: clauses },
+      {
+        $or: [
+          { featureKey },
+          { "pricingSnapshot.featureKey": featureKey },
+        ],
+      },
+    ],
+  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid impUid requestId").lean();
+  if (payment) {
+    return {
+      source: "payment",
+      paymentMethod: "DIRECT_KRW",
+      accessType: "single_purchase",
+      paymentId: String(payment.merchantUid || payment.impUid || payment.requestId || payment._id || ""),
+      evidence: { paymentId: String(payment._id || ""), merchantUid: payment.merchantUid || "", impUid: payment.impUid || "" },
+      alreadyConsumed: true,
+    };
+  }
+
+  return null;
+}
+
+async function handleDeferredUsageRegister(request, env) {
+  const body = await readJson(request);
+  const pricingResult = resolvePricingFromBody(body);
+  if (!pricingResult.ok) return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+  const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+  if (!authCheck.ok) return authCheck.response;
+  const requestId = resolveRequestId(request, body);
+  const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
+  const evidence = await findVerifiedDeferredBillingEvidence(env, authCheck.auth.userId, featureKey, body);
+  if (!evidence) {
+    return failure(402, "PAYMENT_VERIFICATION_FAILED", "결제 확인이 완료되지 않았습니다.");
+  }
+  return createDeferredUsageGrant(env, authCheck.auth.userId, pricingResult.pricing, requestId, {
+    body,
+    paymentMethod: evidence.paymentMethod,
+    accessType: evidence.accessType,
+    paymentId: evidence.paymentId,
+    orderId: evidence.paymentId || requestId,
+    source: evidence.alreadyConsumed ? "verified_payment" : "pre_usage",
+    evidence: evidence.evidence,
+  });
+}
+
+async function findDeferredUsageRecord(env, authUserId, featureKey, requestId, body = {}) {
+  await connectDb(env);
+  const ids = collectDeferredEvidenceIds(body, { requestId });
+  const executionId = String(body?.executionId || deferredExecutionId(featureKey, authUserId, requestId)).trim();
+  return PaidExecutionRecord.findOne({
+    userId: String(authUserId || ""),
+    featureId: featureKey,
+    $or: [
+      { executionId },
+      { requestId: String(requestId || "") },
+      { _id: ids.find(objectIdLike) || undefined },
+    ].filter((item) => Object.values(item)[0]),
+  }).sort({ updatedAt: -1, createdAt: -1 });
+}
+
+async function markDeferredPaymentFulfilled(record, authUserId) {
+  const snapshot = deferredUsageSnapshot(record);
+  const paymentId = String(snapshot?.paymentId || snapshot?.evidence?.paymentId || "").trim();
+  if (!paymentId) return;
+  const query = objectIdLike(paymentId)
+    ? { _id: paymentId, userId: authUserId }
+    : {
+      userId: authUserId,
+      $or: [
+        { merchantUid: paymentId },
+        { impUid: paymentId },
+        { requestId: paymentId },
+      ],
+    };
+  await Payment.updateOne(query, {
+    $set: {
+      status: "fulfilled",
+      orderState: "UNLOCKED",
+    },
+  }).catch(() => {});
+}
+
+async function completeDeferredUsageRecord(record, authUserId, resultId, applyResult = null) {
+  const now = new Date();
+  await markDeferredPaymentFulfilled(record, authUserId);
+  const updated = await PaidExecutionRecord.findOneAndUpdate(
+    { _id: record._id, userId: String(authUserId || "") },
+    {
+      $set: {
+        status: "completed",
+        consumedAt: record.consumedAt || now,
+        completedAt: now,
+        resultId: String(resultId || ""),
+        "result.applyResult": applyResult,
+        "result.completedAt": now.toISOString(),
+      },
+    },
+    { new: true },
+  ).lean();
+  return updated;
+}
+
+async function handleDeferredUsageApply(request, env) {
+  const body = await readJson(request);
+  const pricingResult = resolvePricingFromBody(body);
+  if (!pricingResult.ok) return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+  const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+  if (!authCheck.ok) return authCheck.response;
+  const requestId = resolveRequestId(request, body);
+  const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
+  const record = await findDeferredUsageRecord(env, authCheck.auth.userId, featureKey, requestId, body);
+  if (!record) return failure(404, "DEFERRED_USAGE_NOT_FOUND", "보류된 이용 권한을 찾을 수 없습니다.");
+  if (record.status === "completed") {
+    return success({ deferredUsage: true, executionId: record.executionId, status: "completed" }, "이용 권한이 이미 확정되었습니다.");
+  }
+
+  const snapshot = deferredUsageSnapshot(record);
+  const paymentMethod = normalizeDeferredPaymentMethod(snapshot.paymentMethod || body?.paymentMode);
+  if (snapshot.source === "verified_payment" || snapshot.evidence) {
+    const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null });
+    return success({ deferredUsage: true, executionId: completed?.executionId || record.executionId, status: "completed" }, "이용 권한이 확정되었습니다.");
+  }
+
+  const applyBody = {
+    ...body,
+    featureKey,
+    requestId: record.requestId || requestId,
+    idempotencyKey: record.requestId || requestId,
+    paymentMode: applyPaymentModeForDeferred(paymentMethod),
+    forceDeduct: paymentMethod === "COIN",
+    deferUsage: false,
+    usagePolicy: "",
+  };
+  const applyResponse = await processCoinGateFromPricing(request, env, applyBody, pricingResult);
+  const applyPayload = await readPayloadSafe(applyResponse);
+  if (!applyResponse.ok || applyPayload?.ok !== true) return applyResponse;
+  const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", applyPayload?.data || applyPayload);
+  return success({
+    ...(applyPayload?.data && typeof applyPayload.data === "object" ? applyPayload.data : {}),
+    deferredUsage: true,
+    executionId: completed?.executionId || record.executionId,
+    status: "completed",
+  }, "이용 권한이 확정되었습니다.");
+}
+
+async function handleDeferredUsageCancel(request, env) {
+  const body = await readJson(request);
+  const pricingResult = resolvePricingFromBody(body);
+  if (!pricingResult.ok) return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
+  const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+  if (!authCheck.ok) return authCheck.response;
+  const requestId = resolveRequestId(request, body);
+  const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
+  const record = await findDeferredUsageRecord(env, authCheck.auth.userId, featureKey, requestId, body);
+  if (!record || record.status === "completed") {
+    return success({ deferredUsage: true, status: record?.status || "not_found" }, "보류된 이용 권한을 정리했습니다.");
+  }
+  await PaidExecutionRecord.updateOne(
+    { _id: record._id, userId: String(authCheck.auth.userId || "") },
+    {
+      $set: {
+        status: "generation_failed",
+        "error.code": String(body?.code || "GENERATION_FAILED").slice(0, 80),
+        "error.message": String(body?.message || "").slice(0, 500),
+      },
+    },
+  );
+  return success({ deferredUsage: true, executionId: record.executionId, status: "generation_failed" }, "보류된 이용 권한을 정리했습니다.");
+}
+
 async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
   const explicit = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
   if (explicit || !authUserId) return explicit;
@@ -1804,122 +2219,12 @@ function toIso(value) {
 
 const REPORT_TYPE_FALLBACK = Object.freeze({
   lifeBook: { reportType: "life_book", displayName: "사주 인생의 책" },
-  loveSecret: { reportType: "love_book", displayName: "사주 연애 비책" },
-  sajuNewYear: { reportType: "new_year", displayName: "사주 신년운세" },
   ziweiPremium: { reportType: "ziwei_book", displayName: "자미두수" },
   sookyoPremium: { reportType: "sukyo_book", displayName: "숙요점" },
   westernAstrologyPremium: { reportType: "western_astro_book", displayName: "점성술" },
   vedicPremium: { reportType: "vedic_book", displayName: "베다점" },
   soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 업" },
 });
-
-const ZIWEI_ARCHIVE_CHAPTER_COUNT = 15;
-const ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER = 5;
-const ZIWEI_ARCHIVE_FORBIDDEN_TOKENS = Object.freeze([
-  "json",
-  "payload",
-  "fallback",
-  "llm",
-  "api",
-  "debug",
-  "engine",
-  "internal server error",
-  "undefined",
-  "null",
-  "nan",
-  "about:blank",
-  "[object object]",
-]);
-const ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE = "llm-html-v3";
-const ZIWEI_ARCHIVE_REQUIRED_TEMPLATE_VERSION = "ziwei-premium-html-v3.0.0";
-const ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES = Object.freeze(["local", "localdraft", "template", "fallback", "skeleton"]);
-
-function isZiweiArchiveDocument(doc = {}, archive = {}) {
-  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
-  return cleanText(doc?.reportType, 80) === "ziweiPremium"
-    || cleanText(archive?.reportType, 80) === "ziwei_book"
-    || cleanText(archive?.serviceKey, 80) === "ziwei-book"
-    || cleanText(payload?.serviceKey, 80) === "ziwei-book"
-    || cleanText(payload?.featureKey, 120) === "premium-ziwei-report";
-}
-
-function hasZiweiArchiveForbiddenToken(value = "") {
-  const text = String(value || "").toLowerCase();
-  return ZIWEI_ARCHIVE_FORBIDDEN_TOKENS.some((token) => text.includes(token));
-}
-
-function countZiweiArchiveMatches(value = "", pattern) {
-  return (String(value || "").match(pattern) || []).length;
-}
-
-function ziweiArchiveObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-}
-
-function resolveZiweiArchiveChapters({ metadata = {}, archive = {}, pdfReady = {} } = {}) {
-  const payload = ziweiArchiveObject(archive?.payload || metadata?.payload);
-  const candidates = [
-    archive?.chapters,
-    metadata?.chapters,
-    pdfReady?.chapters,
-    payload?.chapters,
-  ];
-  return candidates.find((item) => Array.isArray(item)) || [];
-}
-
-function resolveZiweiArchiveLlmAssembly({ metadata = {}, archive = {}, pdfReady = {} } = {}) {
-  const diagnostics = ziweiArchiveObject(archive?.diagnostics);
-  const payload = ziweiArchiveObject(archive?.payload || metadata?.payload);
-  const metadataPdfReady = ziweiArchiveObject(metadata?.pdfReady);
-  const candidates = [
-    archive?.llmAssembly,
-    pdfReady?.llmAssembly,
-    diagnostics?.llmAssembly,
-    metadata?.llmAssembly,
-    metadataPdfReady?.llmAssembly,
-    payload?.llmAssembly,
-    ziweiArchiveObject(payload?.pdfReady)?.llmAssembly,
-  ];
-  return candidates.find((item) => item && typeof item === "object" && !Array.isArray(item)) || {};
-}
-
-function validateZiweiArchiveForDownload({ doc = {}, metadata = {}, archive = {}, htmlContent = "" } = {}) {
-  const issues = [];
-  if (!isZiweiArchiveDocument(doc, archive)) return { ok: true, issues, skipped: true };
-
-  const pdfReady = ziweiArchiveObject(archive?.pdfReady || metadata?.pdfReady);
-  const chapters = resolveZiweiArchiveChapters({ metadata, archive, pdfReady });
-  const llmAssembly = resolveZiweiArchiveLlmAssembly({ metadata, archive, pdfReady });
-  const html = String(htmlContent || pdfReady?.html || archive?.html || metadata?.html || "");
-  const htmlArticleCount = countZiweiArchiveMatches(html, /<article\b[^>]*data-chapter-id=/gi);
-  const htmlSectionCount = countZiweiArchiveMatches(html, /<section\b/gi);
-
-  if (chapters.length !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("chapter_count");
-  if (!html.trim()) issues.push("html_missing");
-  if (html.trim() && htmlArticleCount !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("html_article_count");
-  if (html.trim() && htmlSectionCount < ZIWEI_ARCHIVE_CHAPTER_COUNT * ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER) issues.push("html_section_count");
-  if (hasZiweiArchiveForbiddenToken(html)) issues.push("forbidden_token");
-  if (llmAssembly.enabled !== true) issues.push("llm_enabled");
-  if (cleanText(llmAssembly.source, 80) !== ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE) issues.push("llm_source");
-  if (!cleanText(llmAssembly.provider, 80)) issues.push("llm_provider");
-  if (cleanText(llmAssembly.templateVersion, 120) !== ZIWEI_ARCHIVE_REQUIRED_TEMPLATE_VERSION) issues.push("llm_template_version");
-  if (llmAssembly.externalGeneration !== true) issues.push("external_generation");
-  if (llmAssembly.externalCallsAllowed !== true) issues.push("external_calls_allowed");
-  if (llmAssembly.fallbackUsed === true) issues.push("fallback_used");
-  if (llmAssembly.localFallbackUsed === true) issues.push("local_fallback_used");
-  if (Number(llmAssembly.chapterCount || 0) !== ZIWEI_ARCHIVE_CHAPTER_COUNT) issues.push("llm_chapter_count");
-
-  chapters.forEach((chapter, index) => {
-    const source = cleanText(chapter?.source, 80).toLowerCase();
-    const provider = cleanText(chapter?.provider, 80).toLowerCase();
-    if (source !== ZIWEI_ARCHIVE_REQUIRED_CHAPTER_SOURCE) issues.push(`chapter_source_${index + 1}`);
-    if (ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES.includes(source)) issues.push(`chapter_blocked_source_${index + 1}`);
-    if (!provider || ZIWEI_ARCHIVE_BLOCKED_CHAPTER_SOURCES.includes(provider)) issues.push(`chapter_provider_${index + 1}`);
-    if (!Array.isArray(chapter?.sections) || chapter.sections.length < ZIWEI_ARCHIVE_SECTIONS_PER_CHAPTER) issues.push(`chapter_sections_${index + 1}`);
-  });
-
-  return { ok: issues.length === 0, issues, skipped: false };
-}
 
 function toArchiveBase(doc) {
   const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
@@ -1937,12 +2242,6 @@ function toArchiveBase(doc) {
   const htmlUrl = cleanText(archive.htmlUrl || archive?.pdfReady?.htmlUrl, 500);
   const downloadUrl = cleanText(archive.downloadUrl || archive?.pdfReady?.downloadUrl || pdfUrl, 500);
   const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
-  const ziweiArchiveValidation = validateZiweiArchiveForDownload({
-    doc,
-    metadata,
-    archive,
-    htmlContent: archive?.pdfReady?.html || archive?.html || "",
-  });
   const canReopen = Boolean(pdfUrl || chapters.length > 0 || (archive.payload && typeof archive.payload === "object"));
 
   return {
@@ -1971,7 +2270,7 @@ function toArchiveBase(doc) {
     manuscriptSource: cleanText(archive.manuscriptSource || archive?.pdfReady?.manuscriptSource || "", 80),
     llmAssemblyOnly: archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true,
     externalCallsAllowed: archive.externalCallsAllowed === true || archive?.pdfReady?.externalCallsAllowed === true,
-    llmAssembly: resolveZiweiArchiveLlmAssembly({ metadata, archive, pdfReady: archive?.pdfReady }),
+    llmAssembly: archive?.llmAssembly || archive?.pdfReady?.llmAssembly || metadata?.llmAssembly || null,
     pdfCompletionValidation: archive.pdfCompletionValidation || archive?.pdfReady?.pdfCompletionValidation || null,
     pdfV2: archive.pdfV2 && typeof archive.pdfV2 === "object" ? archive.pdfV2 : archive?.payload?.pdfV2,
     pdfReady: archive.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : null,
@@ -1980,7 +2279,7 @@ function toArchiveBase(doc) {
     paymentSessionId: cleanText(doc?.paymentSessionId || metadata.purchaseId || "", 160),
     coinAmount: Number(doc?.coinAmount || 0),
     canReopen,
-    canDownload: Boolean(downloadUrl || pdfUrl) && ziweiArchiveValidation.ok,
+    canDownload: Boolean(downloadUrl || pdfUrl),
   };
 }
 
@@ -2599,12 +2898,6 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
     || metadata?.lifeBookPdfRecord?.htmlContent
     || "",
   );
-  const ziweiArchiveValidation = validateZiweiArchiveForDownload({ doc, metadata, archive, htmlContent });
-  if (!ziweiArchiveValidation.ok) {
-    return failure(409, "ZIWEI_PDF_COMPLETION_INVALID", "자미두수 PDF 원고 검증이 완료되지 않았습니다. 다시 생성해 주세요.", "", {
-      issues: ziweiArchiveValidation.issues,
-    });
-  }
   if (format === "html" || format === "document" || format === "print") {
     if (!htmlContent.trim()) {
       return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
@@ -3181,6 +3474,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     || requestedPaymentMode === "pig_coin"
     || requestedPaymentMode === "pig-coin"
     || (!requestedPaymentMode && forceDeductRequested && !directPaymentRequested);
+  const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
     || requestedPaymentMode === "single_purchase"
     || membershipPassOnly
@@ -3346,6 +3640,15 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       : accessDecision.paymentOptions;
   }
   if (accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered") {
+    if (deferUsage && accessDecision.reason === "pass_covered") {
+      return createDeferredUsageGrant(env, authCheck.auth.userId, pricing, requestId, {
+        body: scopedBody,
+        profileId,
+        paymentMethod: "PASS",
+        accessType: "membership_pass",
+        source: "pre_usage",
+      });
+    }
     logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "EXISTING_UNLOCK_FOUND" : "PASS_FEATURE_ELIGIBLE", {
       requestId,
       userId: authCheck.auth.userId,
@@ -3593,6 +3896,15 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         passLimit: paymentDecision.passLimit,
         idempotencyKey: requestId,
       });
+      if (deferUsage) {
+        return createDeferredUsageGrant(env, authCheck.auth.userId, pricing, requestId, {
+          body: scopedBody,
+          profileId,
+          paymentMethod: paymentDecision.passTier === "family" ? "FAMILY" : "PASS",
+          accessType: paymentDecision.passTier === "family" ? "family" : "membership_pass",
+          source: "pre_usage",
+        });
+      }
       const tierPassConsume = await consumeTierPassIfAvailable(env, authCheck.auth.userId, pricing, requestId, scopedBody, { profileId });
       if (!tierPassConsume?.ok) {
         logPaidAccessStage("PASS_DENIED", {
@@ -3830,6 +4142,27 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         monthlyRequiredAmount: resolveMonthlyCreditCostForBilling(pricing, scopedBody),
         idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
       });
+      if (deferUsage) {
+        const requiredMonthlyCredits = resolveMonthlyCreditCostForBilling(pricing, scopedBody);
+        const currentUser = await User.findById(authCheck.auth.userId).select("profileSubscription points").lean();
+        const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
+        if (monthlyCredits < requiredMonthlyCredits) {
+          return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 선택액이 부족합니다.", undefined, {
+            pricing,
+            requiredMonthlyCredits,
+            currentMonthlyCredits: monthlyCredits,
+            membershipCreditBalance: monthlyCredits,
+            canUseByCard: true,
+          });
+        }
+        return createDeferredUsageGrant(env, authCheck.auth.userId, pricing, requestId, {
+          body: scopedBody,
+          profileId,
+          paymentMethod: "MONTHLY",
+          accessType: "membership_credit",
+          source: "pre_usage",
+        });
+      }
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
@@ -4171,6 +4504,29 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     const requiredCoins = resolvePricingCoinCost(pricing);
     const coinPurchaseId = String(body?.purchaseId || body?.idempotencyKey || body?.orderId || requestId || "").trim();
     const coinFeatureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+
+    if (deferUsage) {
+      const currentUser = await User.findById(authCheck.auth.userId)
+        .select("points profileSubscription")
+        .lean();
+      const currentCoins = Math.max(0, Math.floor(Number(currentUser?.points || 0)));
+      if (currentCoins < requiredCoins) {
+        return failure(402, "INSUFFICIENT_COINS", "결제 가능한 금액이 부족합니다. 원화 단건 결제를 이용해 주세요.", undefined, {
+          pricing,
+          requiredCoins,
+          currentCoins,
+          membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+          canUseByCard: true,
+        });
+      }
+      return createDeferredUsageGrant(env, authCheck.auth.userId, pricing, requestId, {
+        body: scopedBody,
+        profileId,
+        paymentMethod: "COIN",
+        accessType: "coin",
+        source: "pre_usage",
+      });
+    }
 
     if (coinPurchaseId && coinFeatureKey) {
       const existingCoinSpend = await PointHistory.findOne({
@@ -5985,6 +6341,9 @@ export async function handleBillingRoutes(request, env) {
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);
+    if (method === "POST" && path === "/coin-gate/deferred/register") return await handleDeferredUsageRegister(request, env);
+    if (method === "POST" && path === "/coin-gate/deferred/apply") return await handleDeferredUsageApply(request, env);
+    if (method === "POST" && path === "/coin-gate/deferred/cancel") return await handleDeferredUsageCancel(request, env);
     if (method === "POST" && (path === "/purchase" || path === "/charge")) return await handleLegacyPurchaseOrCharge(request, env);
     if (method === "POST" && path === "/refund") return await handleLegacyRefund(request, env);
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);

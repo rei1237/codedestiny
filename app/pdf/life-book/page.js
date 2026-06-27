@@ -1,16 +1,12 @@
-import SeoLandingTemplate from "../../components/SeoLandingTemplate";
-import { buildSeoMetadata } from "../../../lib/seo";
-import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
+import { redirect } from "next/navigation";
 
-const page = SEO_LANDING_PAGES.lifeBookPdf;
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
-export const metadata = buildSeoMetadata({
-  path: page.path,
-  title: page.title,
-  description: page.description,
-  keywords: page.keywords,
-});
-
-export default function LifeBookPdfLandingPage() {
-  return <SeoLandingTemplate page={page} />;
+export default function LifeBookLegacyRedirectPage() {
+  redirect("/life-book-ai");
 }

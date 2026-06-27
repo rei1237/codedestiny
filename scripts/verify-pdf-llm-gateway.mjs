@@ -5,11 +5,11 @@ import {
 } from "../worker/lib/pdf-v2/pdf-llm-gateway.js";
 
 const input = {
-  serviceKey: "saju-new-year",
-  serviceType: "new_year_pdf",
+  serviceKey: "soul-origin",
+  serviceType: "soul_origin_pdf",
   jobId: "verify-pdf-llm-gateway",
-  chapterId: "newyear-01",
-  chapterTitle: "Intro",
+  chapterId: "soul-origin-01",
+  chapterTitle: "Soul Origin Intro",
   chapterOrder: 1,
   totalChapters: 10,
   input: {
@@ -17,10 +17,10 @@ const input = {
     gender: "female",
     birthDate: "1990-05-17",
     birthTime: "",
-    targetYear: 2031,
+    topic: "삶의 방향",
   },
   context: {
-    serviceKey: "saju-new-year",
+    serviceKey: "soul-origin",
     provider: "workers-ai",
     allowActual: true,
     format: "markdown",
@@ -39,7 +39,7 @@ const env = {
     async run() {
       aiRunCalls += 1;
       return {
-        response: "첫 장의 흐름은 총운과 세운이 만나는 곳에서 조용히 열립니다.",
+        response: "첫 장의 흐름은 영혼의 원형과 현재 선택이 만나는 자리에서 조용히 열립니다.",
       };
     },
   },
@@ -57,12 +57,12 @@ assert.ok(markdownResult.content.length > 0);
 
 const jsonTextResult = await generatePdfChapterTextResult({
   ...input,
-  serviceType: "saju-new-year-json",
+  serviceType: "soul-origin-json",
   prompt: "Return one valid chapter manuscript.",
   systemPrompt: "Write in Korean.",
   context: {
     ...input.context,
-    format: "saju-new-year-json",
+    format: "soul-origin-json",
   },
 }, env);
 assert.equal(aiRunCalls, 2);

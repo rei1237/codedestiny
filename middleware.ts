@@ -155,7 +155,6 @@ const SERVICE_ROUTE_ACTIONS = new Map([
   ["/saju/basic", "checkPrivacyAndCalculate"],
   ["/saju/basic/play", "checkPrivacyAndCalculate"],
   ["/saju/sibyl", "openSibylModal"],
-  ["/saju/love-secret", "openLoveSecretModal"],
   ["/saju/love-simulation", "openLoveSimulation"],
   ["/oracle", "openHwatuModal"],
   ["/oracle/hwatu-life", "openHwatuModal"],
@@ -173,10 +172,7 @@ const SERVICE_ROUTE_PARAMS = new Map([
   ["/oracle/sikojen-povailu", ["service", "pig-oracle"]],
 ]);
 
-const SERVICE_ROUTE_EXTRA_QUERY = new Map([
-  ["/saju/love-secret", { premiumIntent: "love-secret-pdf", mode: "solo" }],
-  ["/saju/love-bible", { premiumIntent: "love-secret-pdf", mode: "solo" }],
-]);
+const SERVICE_ROUTE_EXTRA_QUERY = new Map([]);
 
 const LANDING_ONLY_ROUTES = new Set([
   "/faq",
@@ -465,6 +461,13 @@ export function middleware(request) {
   }
 
   const routePath = stripLocaleSlug(normalizedPath);
+
+  if (routePath === "/saju/love-secret" || routePath === "/saju/love-bible" || routePath === "/premium/saju-love-bible") {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/love-secret-ai";
+    redirectUrl.search = "";
+    return attachLocaleCookies(NextResponse.redirect(redirectUrl, 308), getRuntimeLangFromRequest(request));
+  }
 
   if (PROTECTED_AUTH_ROUTE_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`))) {
     if (!hasAuthSessionCookie(request)) {

@@ -5,7 +5,6 @@
     return;
   }
 
-  const LOVE_BOOK_FEATURE_KEY = 'saju_love_book_pdf';
   const COIN_GATE_TIMEOUT_MS = 25000;
   const COIN_GATE_HELPER_TEXT_TRANSLATIONS = {
     ko: {
@@ -283,7 +282,7 @@
 
     return Object.assign({}, accessGrant, {
       ok: true,
-      featureKey: String((payload && payload.featureKey) || (accessGrant && accessGrant.featureKey) || LOVE_BOOK_FEATURE_KEY),
+      featureKey: String((payload && payload.featureKey) || (accessGrant && accessGrant.featureKey) || ''),
       sessionId: sessionId || undefined,
       purchaseId: purchaseId || requestId || undefined,
       requestId: requestId || undefined,
@@ -297,7 +296,19 @@
     return {
       async purchaseFeature(input) {
         var payload = input && typeof input.payload === 'object' ? input.payload : {};
-        var requestedFeatureKey = String((input && input.featureKey) || payload.featureKey || LOVE_BOOK_FEATURE_KEY).trim() || LOVE_BOOK_FEATURE_KEY;
+        var requestedFeatureKey = String((input && input.featureKey) || payload.featureKey || '').trim();
+        if (!requestedFeatureKey) {
+          return {
+            ok: false,
+            status: 400,
+            message: getCoinGateHelperCopy().gateUnavailable,
+            featureKey: '',
+            accessGrant: null,
+            purchaseId: '',
+            premiumAccessToken: null,
+            raw: {},
+          };
+        }
         var reportId = String(payload.reportId || '').trim();
         var sessionId = normalizeReportSessionId(reportId, payload);
         var requestBody = {
@@ -455,16 +466,12 @@
         if (!reportId) {
           return { ok: false, status: 400, message: getCoinGateHelperCopy().reportIdRequired, accessGrant: null };
         }
-        var response = await requestJson('/api/love-secret/access?reportId=' + encodeURIComponent(reportId), {
-          method: 'GET',
-        });
-        var data = (response.payload && response.payload.data) || response.payload || {};
         return {
-          ok: !!response.ok,
-          status: Number(response.status || 0),
-          message: String((response.payload && response.payload.message) || ''),
-          accessGrant: (data && data.accessGrant) || null,
-          raw: response.payload || {},
+          ok: false,
+          status: 410,
+          message: getCoinGateHelperCopy().gateUnavailable,
+          accessGrant: null,
+          raw: {},
         };
       },
 

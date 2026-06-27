@@ -48,6 +48,14 @@ const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
 const sukuyoPdfGenerationLocks = new Map();
+function sukuyoCompatibilityAiMovedResponse() {
+  return json({
+    ok: false,
+    code: "SUKUYO_COMPATIBILITY_AI_ROUTE_MOVED",
+    message: "숙요점 궁합 AI 상담은 새 상담 전용 API를 사용합니다.",
+    next: "/api/sukuyo-compatibility-ai/start",
+  }, { status: 410 });
+}
 const SUKUYO_CALENDAR_TIMEZONE = "Asia/Seoul";
 const SUKUYO_CALENDAR_WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const SUKYO_COMPAT_AI_CATEGORY_LABELS = Object.freeze({
@@ -4577,35 +4585,27 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
 
     if (path === "/compatibility-ai-consultation" || path === "/ai-compatibility") {
       if (method !== "POST") return methodNotAllowed();
-      return await handleSukyoCompatibilityAIConsultation(request, env);
+      return sukuyoCompatibilityAiMovedResponse();
     }
 
     if (path === "/premium/chapters") {
       if (method !== "GET") return methodNotAllowed();
-      return json({
-        ok: true,
-        reportType: "sookyoPremium",
-        mode: "compatibility",
-        featureKey: SUKYO_PDF_FEATURE_KEY,
-        aliasFeatureKey: SUKYO_PDF_ALIAS_FEATURE_KEY,
-        chapterCount: SUKYO_PDF_CHAPTER_COUNT,
-        chapters: getPublicSukyoPdfChapters(),
-      });
+      return sukuyoCompatibilityAiMovedResponse();
     }
 
     if (path === "/premium/preflight") {
       if (method !== "POST") return methodNotAllowed();
-      return await handleSukuyoPremiumPreflight(request);
+      return sukuyoCompatibilityAiMovedResponse();
     }
 
     if (path === "/premium/status") {
       if (method !== "GET") return methodNotAllowed();
-      return await handleSukuyoPremiumStatus(request, env);
+      return sukuyoCompatibilityAiMovedResponse();
     }
 
     if (path === "/premium/prepare") {
       if (method !== "POST") return methodNotAllowed();
-      return await handleSukuyoPremiumPrepare(request, env, ctx);
+      return sukuyoCompatibilityAiMovedResponse();
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

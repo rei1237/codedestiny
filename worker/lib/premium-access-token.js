@@ -30,24 +30,8 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const reportTypeByFeatureKey = {
     "saju_life_book_pdf": "lifeBook",
     "saju_lifebook_pdf": "lifeBook",
-    "saju_love_book_pdf": "loveSecret",
-    "sajulovebookpdf": "loveSecret",
     "premium_pdf_saju_life_book": "lifeBook",
-    "premium_pdf_saju_love_secret": "loveSecret",
-    "premium_pdf_saju_love_secret_compat": "loveSecret",
     "premium-lifebook-report": "lifeBook",
-    "premium-love-secret-solo": "loveSecret",
-    "premium-love-secret-couple": "loveSecret",
-    "saju_new_year_pdf": "sajuNewYear",
-    "premium_pdf_saju_new_year": "sajuNewYear",
-    "premium_pdf_saju_yearly": "sajuNewYear",
-    "premium-saju-newyear-report": "sajuNewYear",
-    "premium-saju-newyear-report-compat": "sajuNewYear",
-    "premium-ziwei-report": "ziweiPremium",
-    "premium-ziwei-report-compat": "ziweiPremium",
-    "premium_pdf_ziwei": "ziweiPremium",
-    "premium_pdf_ziwei_compat": "ziweiPremium",
-    "premium-pdf-ziwei": "ziweiPremium",
     "premium-astrology-report": "westernAstrologyPremium",
     "premium-astrology-report-compat": "westernAstrologyPremium",
     "premium_pdf_western_astrology": "westernAstrologyPremium",
@@ -72,10 +56,6 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
 
   if (reportTypeByFeatureKey[canonicalKey]) {
     return reportTypeByFeatureKey[canonicalKey];
-  }
-
-  if (key === "premium-saju-newyear-report" || why.includes("신년운세")) {
-    return "sajuNewYear";
   }
 
   return "";

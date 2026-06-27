@@ -187,10 +187,6 @@ function resolveByFeatureKey(featureKey) {
   if (!requestedFeatureKey) return null;
   const normalizedFeatureKey = normalizePaidFeatureKey(requestedFeatureKey);
 
-  if (normalizedFeatureKey === "saju_love_book_pdf") {
-    return null;
-  }
-
   const alias = LEGACY_FEATURE_ALIAS_MAP[normalizeKey(requestedFeatureKey)]
     || LEGACY_FEATURE_ALIAS_MAP[normalizeKey(normalizedFeatureKey)]
     || null;
@@ -304,21 +300,6 @@ export function normalizeBillingFeatureRequest(input = {}) {
 
 export function getBillingFeaturePricing(input = {}) {
   const normalized = normalizeBillingFeatureRequest(input);
-
-  if (normalized.featureKey === "saju_love_book_pdf" && normalized.reason) {
-    const fromReason = resolveByReason(normalized.reason);
-    if (fromReason) {
-      return {
-        ok: true,
-        pricing: {
-          ...fromReason,
-          featureKey: "saju_love_book_pdf",
-          subFeatureKey: normalizeKey(String(input?.mode || input?.reportMode || fromReason.subFeatureKey || "solo")) || fromReason.subFeatureKey,
-        },
-        source: "reason-with-canonical-love-book-feature",
-      };
-    }
-  }
 
   if (normalized.categoryKey && normalized.subFeatureKey) {
     const fromCategory = resolveCategorySubFeature(normalized.categoryKey, normalized.subFeatureKey);

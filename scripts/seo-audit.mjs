@@ -27,7 +27,7 @@ const indexablePaths = [
   "/premium-reports",
   "/pdf/life-book",
   "/pdf/love-report",
-  "/pdf/new-year",
+  "/sukuyo-compatibility-ai",
   "/high-value",
   "/high-value/complete-guide-to-saju",
   "/high-value/how-tarot-actually-works",

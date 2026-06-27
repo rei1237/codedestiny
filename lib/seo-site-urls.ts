@@ -106,6 +106,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/dream",         changeFrequency: "weekly", priority: 0.94 },
   { path: "/love",          changeFrequency: "weekly", priority: 0.94 },
   { path: "/physiognomy",   changeFrequency: "weekly", priority: 0.93 },
+  { path: "/sukuyo-compatibility-ai", changeFrequency: "monthly", priority: 0.87 },
   // ── 기존 핵심 서비스 (직접 사용자 inflow) ─────────────────────
   { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
   { path: "/oracle/sukuyo",    changeFrequency: "weekly", priority: 0.93 },

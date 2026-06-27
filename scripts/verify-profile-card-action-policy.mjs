@@ -20,9 +20,6 @@ const files = {
   destinyProfile: "js/destiny-profile.js",
   mainRuntime: "js/core/index-inline-runtime.js",
   vedicBook: "js/vedic-book.js",
-  astroBook: "js/astro-book.js",
-  sajuNewYear: "js/saju-new-year.js",
-  lifeBook: "js/life-book.js",
   olympusOracle: "js/olympus-oracle.js",
   shareRuntime: "js/share.js",
 };
@@ -215,17 +212,11 @@ const cases = [
     name: "static premium runtimes accept YYYYMMDD birth date fallback",
     includes: [
       ["vedicBook", "var dateParts = _parseBirthDateParts(birthDateEl.value);"],
-      ["astroBook", "function _parseAstroBirthDateInput(value)"],
-      ["sajuNewYear", "function _parseSajuNewYearDateInput(value)"],
-      ["lifeBook", "function _parseLifeBookBirthDateInput(value)"],
       ["olympusOracle", "var digits = birthDate.replace(/\\D/g, '');"],
       ["shareRuntime", "var birthDateDigits = String(birthDate || '').replace(/\\D/g, '');"],
     ],
     excludes: [
       ["vedicBook", "birthDateEl.value.split('-')"],
-      ["astroBook", "birthDateEl.value.split('-')"],
-      ["sajuNewYear", "birthDateEl.value.split('-')"],
-      ["lifeBook", "dateEl.value.split('-')"],
       ["olympusOracle", "birthDate.split('-')"],
       ["shareRuntime", "birthDate.split('-')[0]"],
     ],

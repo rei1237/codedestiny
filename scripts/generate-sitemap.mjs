@@ -72,7 +72,7 @@ const coreRoutes = [
   { path: "/premium-reports", changefreq: "weekly", priority: 0.92 },
   { path: "/pdf/life-book", changefreq: "monthly", priority: 0.88 },
   { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
-  { path: "/pdf/new-year", changefreq: "monthly", priority: 0.88 },
+  { path: "/sukuyo-compatibility-ai", changefreq: "monthly", priority: 0.87 },
   { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },
   { path: "/oracle/sukuyo", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },

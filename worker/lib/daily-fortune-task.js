@@ -181,7 +181,7 @@ function buildPaidFeatureLinks(env) {
     {
       title: "사주 연애 비책",
       desc: "내 사주의 사랑 방식과 관계에서 되풀이되는 선택의 그림자가 더 깊은 빛으로 떠오릅니다.",
-      href: `${base}/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo&utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_love`,
+      href: `${base}/love-secret-ai?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_love`,
       cta: "연애 비책 보기",
     },
     {

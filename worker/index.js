@@ -324,10 +324,13 @@ const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => impo
 const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
 const handleYoutubeRoutes = createLazyRouteHandler("./routes/youtube.js", () => import("./routes/youtube.js"), "handleYoutubeRoutes");
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
-const handleSajuLifebookRoutes = createLazyRouteHandler("./routes/saju-lifebook.js", () => import("./routes/saju-lifebook.js"), "handleSajuLifebookRoutes");
-const handleSajuLoveSecretRoutes = createLazyRouteHandler("./routes/saju-love-secret.js", () => import("./routes/saju-love-secret.js"), "handleSajuLoveSecretRoutes");
+const handleLifeBookAiRoutes = createLazyRouteHandler("./routes/life-book-ai.js", () => import("./routes/life-book-ai.js"), "handleLifeBookAiRoutes", "api/life-book-ai");
+const handleLoveSecretAiRoutes = createLazyRouteHandler("./routes/love-secret-ai.js", () => import("./routes/love-secret-ai.js"), "handleLoveSecretAiRoutes", "api/love-secret-ai");
 const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
-const handleZiweiBookRoutes = createLazyRouteHandler("./routes/ziwei-book.js", () => import("./routes/ziwei-book.js"), "handleZiweiBookRoutes");
+const handleNewYearAiRoutes = createLazyRouteHandler("./routes/new-year-ai.js", () => import("./routes/new-year-ai.js"), "handleNewYearAiRoutes", "api/new-year-ai");
+const handleVedicAiRoutes = createLazyRouteHandler("./routes/vedic-ai.js", () => import("./routes/vedic-ai.js"), "handleVedicAiRoutes", "api/vedic-ai");
+const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destiny-ai.js", () => import("./routes/karma-destiny-ai.js"), "handleKarmaDestinyAiRoutes", "api/karma-destiny-ai");
+const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
@@ -338,10 +341,11 @@ const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import
 const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
+const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
 const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstroRoutes");
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
-const handleSukyoPdfMockRoutes = createLazyRouteHandler("./routes/sukyo-pdf-mock.js", () => import("./routes/sukyo-pdf-mock.js"), "handleSukyoPdfMockRoutes", "api/pdf/sukyo");
+const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleSoulOriginRoutes = createLazyRouteHandler("./routes/soul-origin.js", () => import("./routes/soul-origin.js"), "handleSoulOriginRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
@@ -378,7 +382,7 @@ const getRuntimeKeyMatrix = async (env, forceRefresh = false) => {
  * Code Destiny API Worker.
  *
  * Backend-only runtime for /api/*.
- * Auth, payment, fortune, premium, lifebook, love-secret, and ziwei-book routes run natively.
+ * Auth, payment, fortune, premium, lifebook, love-secret-ai, and ziwei-ai routes run natively.
  * API_UPSTREAM_ORIGIN remains optional as a fallback for unported API groups.
  */
 
@@ -808,7 +812,7 @@ export default {
             service: "code-destiny-api-worker",
             mode: "worker-native",
             backendOnly: true,
-            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
+            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-ai", "life-book-ai", "love-secret-ai", "karma-destiny-ai", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
             fallbackProxyMode: upstreamOrigin
               ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
               : "disabled",
@@ -1088,8 +1092,8 @@ export default {
         return runWithRouteMetrics("api/premium", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
-          supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
+          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
         }, { status: 410 }));
       }
 
@@ -1097,13 +1101,13 @@ export default {
         return runWithRouteMetrics("api/premium-report", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
-          supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
+          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
         }, { status: 410 }));
       }
 
-      if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
-        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env, ctx));
+      if (url.pathname === "/api/ziwei-ai" || url.pathname.startsWith("/api/ziwei-ai/")) {
+        return withCorsHeaders(request, env, await handleZiweiAiRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {
@@ -1126,23 +1130,35 @@ export default {
         || url.pathname === "/api/premium/saju/life-book"
         || url.pathname.startsWith("/api/premium/saju/life-book/")
       ) {
-        let routedRequest = request;
-        if (url.pathname === "/api/lifebook" || url.pathname.startsWith("/api/lifebook/")) {
-          const suffix = url.pathname.slice("/api/lifebook".length);
-          routedRequest = rewriteRequestPath(request, "/api/premium/saju-lifebook" + (suffix || ""));
-        } else if (url.pathname === "/api/premium/saju/life-book" || url.pathname.startsWith("/api/premium/saju/life-book/")) {
-          const suffix = url.pathname.slice("/api/premium/saju/life-book".length);
-          routedRequest = rewriteRequestPath(request, "/api/premium/saju-lifebook" + (suffix || ""));
-        }
-        return withCorsHeaders(request, env, await handleSajuLifebookRoutes(routedRequest, env, ctx));
+        return runWithRouteMetrics("api/lifebook-legacy", env, () => jsonResponse(request, env, {
+          ok: false,
+          error: "removed_feature",
+          message: "이전 인생의 책 생성 경로는 종료되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
+        }, { status: 410 }));
       }
 
-      if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {
-        return withCorsHeaders(request, env, await handleSajuLoveSecretRoutes(request, env, ctx));
+      if (url.pathname === "/api/love-secret-ai" || url.pathname.startsWith("/api/love-secret-ai/")) {
+        return withCorsHeaders(request, env, await handleLoveSecretAiRoutes(request, env));
       }
 
       if (url.pathname === "/api/saju-new-year" || url.pathname.startsWith("/api/saju-new-year/")) {
         return withCorsHeaders(request, env, await handleSajuNewYearRoutes(request, env));
+      }
+      if (url.pathname === "/api/new-year-ai" || url.pathname.startsWith("/api/new-year-ai/")) {
+        return withCorsHeaders(request, env, await handleNewYearAiRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/karma-destiny-ai" || url.pathname.startsWith("/api/karma-destiny-ai/")) {
+        return withCorsHeaders(request, env, await handleKarmaDestinyAiRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/vedic-ai" || url.pathname.startsWith("/api/vedic-ai/")) {
+        return withCorsHeaders(request, env, await handleVedicAiRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {
+        return withCorsHeaders(request, env, await handleLifeBookAiRoutes(request, env));
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
@@ -1181,12 +1197,33 @@ export default {
         url.pathname === "/api/vedic/generate-chapter"
         || url.pathname === "/api/vedic/session"
         || url.pathname === "/api/vedic/generate"
+        || url.pathname === "/api/vedic/prepare"
+        || url.pathname === "/api/vedic/create-job"
+        || url.pathname.startsWith("/api/vedic/pdf/")
+        || url.pathname.startsWith("/api/vedic/premium/")
       ) {
         return runWithRouteMetrics("api/vedic", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "vedic premium PDF 엔드포인트는 제거되었습니다.",
+          message: "베다점 상담은 /vedic-ai에서 시작해 주세요.",
+          next: "/vedic-ai",
         }, { status: 410 }));
+      }
+
+
+      if (
+        url.pathname === "/api/astrology-ai"
+        || url.pathname.startsWith("/api/astrology-ai/")
+      ) {
+        return withCorsHeaders(request, env, await handleAstrologyAiRoutes(request, env));
+      }
+
+
+      if (
+        url.pathname === "/api/sukuyo-compatibility-ai"
+        || url.pathname.startsWith("/api/sukuyo-compatibility-ai/")
+      ) {
+        return withCorsHeaders(request, env, await handleSukuyoCompatibilityAiRoutes(request, env));
       }
 
       if (
@@ -1202,11 +1239,21 @@ export default {
       }
 
       if (url.pathname === "/api/pdf/sukyo" || url.pathname.startsWith("/api/pdf/sukyo/")) {
-        return withCorsHeaders(request, env, await handleSukyoPdfMockRoutes(request, env, ctx));
+        return withCorsHeaders(request, env, jsonResponse(request, env, {
+          ok: false,
+          code: "SUKUYO_COMPATIBILITY_PDF_REMOVED",
+          message: "숙요점 궁합은 숙요점 궁합 AI 상담으로 전환되었습니다.",
+          next: "/sukuyo-compatibility-ai",
+        }, { status: 410 }));
       }
 
       if (url.pathname === "/api/astrology" || url.pathname.startsWith("/api/astrology/")) {
-        return withCorsHeaders(request, env, await handleAstrologyRoutes(request, env));
+        return withCorsHeaders(request, env, jsonResponse(request, env, {
+          ok: false,
+          code: "ASTROLOGY_PDF_REMOVED",
+          message: "점성술 상담은 점성술 AI 상담으로 전환되었습니다.",
+          next: "/astrology-ai",
+        }, { status: 410 }));
       }
 
       if (url.pathname === "/api/astro" || url.pathname.startsWith("/api/astro/")) {

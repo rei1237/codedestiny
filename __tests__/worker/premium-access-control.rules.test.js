@@ -10,24 +10,9 @@ beforeAll(async () => {
 });
 
 describe("Premium access-control rules", () => {
-  test("sajuNewYear는 단일 canonical key와 120분 결제 검증 규칙을 사용해야 한다", () => {
+  test("sajuNewYear 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
     const rules = utils.buildAlternativePaymentRules("sajuNewYear", {});
-    expect(rules.length).toBeGreaterThanOrEqual(2);
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "saju_new_year_pdf",
-        minCost: 300,
-        windowMinutes: 120,
-      }),
-      expect.objectContaining({
-        featureKey: "coin-gate-per-use",
-        minCost: 300,
-        windowMinutes: 120,
-      }),
-    ]));
-    for (const rule of rules) {
-      expect(rule.windowMinutes).toBe(120);
-    }
+    expect(rules).toHaveLength(0);
   });
 
   test("lifeBook은 최근 per-use 결제 증빙 규칙이 있어야 한다", () => {
@@ -56,48 +41,9 @@ describe("Premium access-control rules", () => {
     );
   });
 
-  test("ziweiPremium personal은 590 코인 결제 증빙 규칙이어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("ziweiPremium", { mode: "personal" });
-    expect(rules.length).toBeGreaterThanOrEqual(2);
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium_pdf_ziwei",
-        minCost: 590,
-      }),
-      expect.objectContaining({
-        featureKey: "premium-ziwei-report",
-        reason: "자미두수 프리미엄 PDF 리포트 생성",
-        minCost: 590,
-      }),
-    ]));
-  });
-
-  test("ziweiPremium compatibility는 690 코인 결제 증빙 규칙이어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("ziweiPremium", { mode: "compatibility" });
-    expect(rules.length).toBeGreaterThanOrEqual(2);
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium-ziwei-report-compat",
-        reason: "자미두수 프리미엄 PDF 궁합 리포트 생성",
-        minCost: 690,
-      }),
-    ]));
-  });
-
-  test("loveSecret couple은 400 코인 규칙으로 결제 증빙을 요구해야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("loveSecret", { mode: "couple" });
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium_pdf_saju_love_secret_compat",
-        minCost: 400,
-        windowMinutes: 120,
-      }),
-      expect.objectContaining({
-        featureKey: "premium-love-secret-couple",
-        minCost: 400,
-        windowMinutes: 120,
-      }),
-    ]));
+  test("ziweiPremium 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
+    expect(utils.buildAlternativePaymentRules("ziweiPremium", { mode: "personal" })).toHaveLength(0);
+    expect(utils.buildAlternativePaymentRules("ziweiPremium", { mode: "compatibility" })).toHaveLength(0);
   });
 
   test("sookyoPremium compat 모드는 별도 required 규칙 없이 모드별 기본 과금으로 처리해야 한다", () => {

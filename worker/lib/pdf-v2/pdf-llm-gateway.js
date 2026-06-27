@@ -96,18 +96,6 @@ function workersAiModelName(env = {}) {
 function buildWorkersAiPrompt(input = {}) {
   const context = safeObject(input.context);
   const format = clean(context.format || inferFormat(input));
-  if (format === "saju-new-year-json" && block(input.prompt)) {
-    return [
-      `챕터 제목: ${clean(input.chapterTitle || input.chapterId)}`,
-      `챕터 순서: ${Number(input.chapterOrder || 1)} / ${Number(input.totalChapters || 1)}`,
-      `Job ID: ${clean(input.jobId, 160)}`,
-      `Chapter ID: ${clean(input.chapterId, 120)}`,
-      "",
-      "아래 지시문에 따라 JSON만 반환하세요.",
-      "",
-      block(input.prompt),
-    ].join("\n");
-  }
   const sourceInput = safeObject(input.input);
   return [
     `챕터 제목: ${clean(input.chapterTitle || input.chapterId)}`,
@@ -160,9 +148,7 @@ async function generateWorkersAiPdfChapter(input = {}, env = {}) {
   const format = clean(context.format || inferFormat(input));
   const prompt = buildWorkersAiPrompt(input);
   const maxTokens = Math.max(256, Math.min(4096, readNumber(env, "PDF_WORKERS_AI_MAX_TOKENS", 1400)));
-  const systemContent = format === "saju-new-year-json"
-    ? block(input.systemPrompt) || "당신은 신년운세 PDF 원고를 쓰는 전문 명리 상담가입니다. 반드시 유효한 JSON만 반환합니다."
-    : "당신은 신년운세 PDF 원고를 쓰는 전문 명리 상담가입니다. 자연스러운 한국어 Markdown 본문만 작성합니다.";
+  const systemContent = block(input.systemPrompt) || "You are a professional fortune manuscript writer. Write only natural Korean prose.";
   let raw;
   try {
     raw = await env.AI.run(modelName, {
@@ -209,8 +195,6 @@ function inferFormat(input = {}) {
   if (serviceType.includes("life")) return "life-book-html";
   if (serviceType.includes("astro")) return "astrology-html";
   if (serviceType.includes("vedic")) return "vedic-html";
-  if (serviceType.includes("new-year-json")) return "saju-new-year-json";
-  if (serviceType.includes("new-year")) return "saju-new-year-json";
   if (serviceType.includes("suk")) return "sukuyo-html";
   if (serviceType.includes("ziwei")) return "ziwei-html";
   if (serviceType.includes("karma")) return "karma-integrated-html";
@@ -238,13 +222,6 @@ function domainProfile(format = "") {
       className: "love-secret-chapter",
       terms: ["사주", "일간", "오행", "십성", "관계", "감정", "거리감", "대화", "리스크", "조언"],
       decision: "상담적 해석과 주의점, 실전 조언을 함께 놓으면 감정의 결을 무리하게 단정하지 않고 관계의 속도를 조절할 수 있습니다.",
-    };
-  }
-  if (format === "saju-new-year-json") {
-    return {
-      className: "new-year-chapter",
-      terms: ["사주", "원국", "일간", "월령", "오행", "십성", "대운", "세운", "용신", "지장간", "합충"],
-      decision: "한 해의 흐름은 원국과 세운의 접점에서 드러나며, 현실의 자료와 전문가적 판단을 함께 두고 선택해야 합니다.",
     };
   }
   if (format === "karma-integrated-html") {
@@ -463,62 +440,6 @@ function buildKarmaIntegratedHtml(input = {}, context = {}) {
 </section>`;
 }
 
-function buildSajuNewYearJson(input = {}, context = {}) {
-  const chapter = safeObject(context.chapter);
-  const targetYear = Number(context.targetYear || input.context?.targetYear || new Date().getFullYear());
-  const categories = asArray(chapter.categories).length ? asArray(chapter.categories) : ["총운", "일과 성취", "재물", "관계", "건강"];
-  const domain = ["총운", "연운", "원국", "오행", "기운", "일간", "세운", "대운", "월운", "십성", "재물", "직장", "관계", "건강"];
-  const sections = categories.map((title, index) => {
-    const bodyParts = [
-      `${targetYear}년의 ${title}은 ${termsText(domain)}의 흐름 속에서 차분히 드러납니다. 이 장은 사용자의 원국과 세운이 만나는 지점을 중심으로 한 해의 방향을 읽으며, 일간이 어떤 기운을 받아들이고 어떤 기운을 조절해야 하는지 상담하듯 풀어냅니다. 월령과 오행의 균형을 함께 보면 겉으로 드러나는 사건보다 마음과 생활의 리듬이 먼저 보입니다.`,
-      `${title}의 두 번째 흐름은 현실 선택과 연결됩니다. 직장, 재물, 관계, 건강의 장면에서 같은 기운이 서로 다르게 나타날 수 있으므로, 한 가지 결론으로 몰아가기보다 시기와 상황을 나누어 보아야 합니다. 대운이 열어 둔 큰 길 위에서 세운은 올해의 구체적인 움직임을 만들고, 월운은 실행의 속도를 조절합니다.`,
-      `이 대목은 한 해의 결을 충분히 길게 펼쳐 읽을 수 있도록 차분히 이어집니다. 앞에서 짚은 흐름이 다음 장면으로 자연스럽게 이어지고, 긴 한글 문단 안에서도 말의 호흡이 흐트러지지 않도록 구성합니다. 실제 상담 문장처럼 부드럽게 흐르되 과도한 단정은 피하고, 사용자가 스스로 선택의 기준을 세울 수 있게 돕습니다.`,
-      `${title}에서 실천할 방향은 작게 시작하는 것입니다. 중요한 결정은 자료를 모아 판단하고, 감정이 앞서는 날에는 하루의 리듬을 낮추며, 기회가 열리는 시기에는 이미 준비한 일을 밖으로 꺼내는 편이 좋습니다. 전문가의 판단처럼 차분하게 흐름을 구분하면 올해의 선택은 더 안정된 모양을 갖추게 됩니다.`,
-      `${title}은 한 해를 한 번에 단정하지 않고 여러 층으로 나누어 살피는 자리입니다. 원국의 기본 성향은 익숙한 선택 방식을 만들고, 세운은 그 선택 방식이 어디에서 힘을 얻고 어디에서 흔들리는지 드러냅니다. 오행의 균형이 지나치게 한쪽으로 기울 때에는 속도를 늦추고, 부족한 기운이 필요한 장면에서는 사람과 환경의 도움을 받아 균형을 회복하는 것이 좋습니다. 이 흐름을 따라가면 올해의 일은 막연한 기대보다 구체적인 생활 질서 속에서 더 분명하게 열립니다.`,
-      `월운을 함께 보면 ${title}의 변화는 더 세밀하게 드러납니다. 초반에는 방향을 잡는 힘이 중요하고, 중반에는 이미 시작한 일을 정리하며 이어 가는 힘이 필요합니다. 후반에는 무리하게 넓히기보다 남은 과제를 가볍게 정돈하는 태도가 한 해의 결실을 안정시킵니다. 같은 사건도 마음이 급할 때에는 부담으로 느껴지고, 준비가 되어 있을 때에는 기회로 바뀔 수 있으므로 시기별 감각을 나누어 보는 것이 좋습니다.`,
-      `${title}의 판단 기준은 실제 생활에서 확인할 수 있어야 합니다. 말의 속도, 약속의 간격, 지출의 흐름, 몸의 피로, 관계에서 반복되는 감정은 모두 세운이 생활 속으로 내려온 모습입니다. 이 신호들을 기록하면 올해의 운은 멀리 있는 예언이 아니라 매일 조절할 수 있는 리듬으로 바뀝니다. 특히 원국에서 강한 기운은 좋은 점과 부담을 함께 만들기 때문에, 강한 부분은 다듬고 약한 부분은 보태는 방식으로 읽어야 합니다.`,
-      `이 장에서 가장 중요한 것은 ${title}을 삶의 한 장면으로 좁혀 보는 태도입니다. 직장에서는 평가와 책임이, 재물에서는 지출과 계약이, 관계에서는 거리와 말투가, 건강에서는 회복과 습관이 각각 다른 모양으로 나타납니다. 세운이 밀어 올리는 일이라도 준비가 부족하면 흔들릴 수 있고, 부담스러워 보이는 일이라도 순서를 잘 잡으면 안정된 발판이 됩니다. 그러므로 올해는 큰 결론보다 작은 순서가 운을 다루는 핵심이 됩니다.`,
-      `${title}을 따라 움직일 때에는 처음부터 모든 문을 열려고 하지 않는 편이 좋습니다. 먼저 지켜야 할 것을 정하고, 다음으로 넓혀도 되는 것을 구분하며, 마지막으로 내려놓아도 되는 부담을 확인해야 합니다. 이 순서가 잡히면 원국과 세운의 긴장이 생활 속에서 부드럽게 풀립니다. 다만 흐름이 좋게 느껴지는 시기에도 확인 없이 밀어붙이는 태도는 피해야 하며, 흐름이 무겁게 느껴지는 시기에도 스스로를 몰아세우기보다 회복의 시간을 먼저 남겨 두어야 합니다.`,
-      `마지막으로 ${title}은 올해의 전체 균형을 다시 묻습니다. 어떤 달에는 앞으로 나아가는 힘이 강하고, 어떤 달에는 정리와 보완이 더 중요하게 떠오릅니다. 좋은 운은 움직일 때 살아나고, 조심해야 할 운은 미리 알아차릴 때 부드러워집니다. 이 장의 문장은 그 흐름을 충분히 길게 남겨 계절마다 마음이 어디로 기울고 생활이 어떤 순서로 정리되어야 하는지 비춥니다. 독자는 상담을 받듯 자연스럽게 읽으며, 자신의 현실에 맞는 작은 기준을 조용히 고를 수 있습니다.`,
-    ];
-    return {
-      title: clean(title).replace(/\{YEAR\}/g, String(targetYear)),
-      body: [
-        ...bodyParts,
-        ...bodyParts.map((paragraph) => `${paragraph} 이 흐름은 ${title}의 기준을 다시 확인하며, 세운과 월운이 실제 생활에서 어떤 속도로 움직이는지 한 번 더 정리하게 합니다.`),
-      ].join("\n\n"),
-      sajuEvidence: ["원국", "일간", "오행", "세운"],
-      keyPoints: [`${title}은 ${targetYear}년의 기운을 현실 선택으로 옮기는 자리입니다.`],
-      actionGuide: ["중요한 선택은 자료를 확인한 뒤 작은 실행으로 시작합니다."],
-      checklist: ["완료한 일과 미룬 일을 나누어 적습니다."],
-      caution: ["감정이 급해지는 날에는 결론을 하루 늦춥니다."],
-    };
-  });
-  return JSON.stringify({
-    schemaVersion: clean(context.schemaVersion || "saju-new-year-llm-json.v1"),
-    targetYear,
-    chapterNo: Number(chapter.no || input.chapterOrder || 1),
-    title: clean(input.chapterTitle || chapter.title || `챕터 ${input.chapterOrder || 1}`).replace(/\{YEAR\}/g, String(targetYear)),
-    focus: clean(chapter.purpose || `${targetYear}년의 흐름을 사주 원국과 세운으로 살핍니다.`),
-    sections,
-    monthlyFortunes: Number(chapter.no || input.chapterOrder || 1) === 9
-      ? Array.from({ length: 12 }, (_, index) => ({
-        month: index + 1,
-        title: `${index + 1}월의 세운과 월운 흐름 상담 기준`,
-        flow: `${index + 1}월은 세운과 월운이 만나는 지점에서 생활의 속도를 조절하게 합니다.`,
-        advice: "중요한 약속은 일정과 자료를 확인한 뒤 진행하는 편이 좋습니다.",
-        caution: "감정이 앞설 때에는 말의 속도를 낮추고 하루의 여백을 둡니다.",
-        action: "한 가지 실행 목표를 작게 정해 끝까지 마무리합니다.",
-        luckyRoutine: "아침에 오늘의 우선순위 세 가지를 적고 저녁에 확인합니다.",
-      }))
-      : [],
-    finalAdvice: {
-      title: `${targetYear}년 마지막 조언`,
-      body: `${targetYear}년의 흐름은 원국과 세운이 만나는 자리에서 열립니다. 큰 결론보다 매달의 선택을 정리하고, 필요한 때에는 쉬며, 준비된 때에는 조용히 앞으로 나아가면 한 해의 기운을 안정적으로 사용할 수 있습니다. 올해는 빠른 확신보다 반복해서 확인한 감각이 더 큰 힘이 됩니다. 일과 관계, 재물과 건강의 흐름을 따로 떼어 보되, 마지막에는 생활의 리듬 안에서 다시 하나로 묶어야 합니다. 밀어붙일 시기와 멈추어 다듬을 시기를 구분하면 불필요한 소모가 줄고, 이미 가진 장점은 더 안정적으로 드러납니다. 한 해의 운은 멀리서 정해지는 것이 아니라 매일의 선택 속에서 형태를 얻으니, 조용하지만 꾸준한 정리가 가장 든든한 길이 됩니다. 다가오는 달마다 해야 할 일과 기다려야 할 일을 나누어 적고, 마음이 급해질 때에는 처음 세운 기준으로 돌아오십시오. 준비가 된 일은 더 분명하게 열리고, 아직 때가 무르익지 않은 일은 조금 더 다듬을 시간을 줍니다. 그렇게 걸음을 맞추면 ${targetYear}년의 흐름은 흔들림 속에서도 당신에게 필요한 방향을 차분히 비추게 됩니다.`,
-    },
-  });
-}
-
 function buildSoulOriginJson(input = {}, context = {}) {
   const chapterPlan = asArray(context.chapterPlan).length ? asArray(context.chapterPlan) : Array.from({ length: Number(input.totalChapters || 12) || 12 }, (_, index) => ({
     chapterNumber: index + 1,
@@ -581,7 +502,6 @@ Provider: mock
 function buildMockContent(input = {}, env = {}) {
   const context = safeObject(input.context);
   const format = clean(context.format || inferFormat(input));
-  if (format === "saju-new-year-json") return buildSajuNewYearJson(input, context);
   if (format === "soul-origin-json") return buildSoulOriginJson(input, context);
   if (format === "sukuyo-html") return buildSukuyoHtml(input, context);
   if (format === "ziwei-html") return buildZiweiHtml(input, context);

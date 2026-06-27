@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function SajuLoveBiblePage() {
-  redirect("/?action=openLoveSecretModal&premiumIntent=love-secret-pdf&mode=solo");
+  redirect("/love-secret-ai");
 }

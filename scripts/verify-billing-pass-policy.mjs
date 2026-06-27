@@ -262,7 +262,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
 }
 
 const unchangedPdf = applyPdfPassDiscountToPricing({
-  featureKey: "premium_pdf_ziwei",
+  featureKey: "ziwei-ai-consultation",
   billingType: "pdf",
   cost: 590,
   coinPrice: 590,
@@ -280,7 +280,6 @@ const unchangedPdfDecision = decision({
 assert.equal(unchangedPdfDecision.canUseByPass, false, "PDF over premium pass limit requires payment");
 
 const smallPdfUnchanged = applyPdfPassDiscountToPricing({
-  featureKey: "premium_pdf_saju_love_secret",
   billingType: "pdf",
   cost: 50,
   coinPrice: 50,
@@ -415,7 +414,7 @@ assertBefore(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternal
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"30일 이용권 결제를 확인하고 있어요", "subscription confirm wait starts only after PG response");
 const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
 assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
-assertContains(pointsSource, "PDF 서비스는 상품별 원화 단건 결제", "standard pass PDF single-payment UI");
+assertContains(pointsSource, "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.", "standard pass paid-service policy UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
