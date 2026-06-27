@@ -5,6 +5,7 @@ import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
@@ -797,6 +798,8 @@ function logKarmaAIConsultation(marker, details = {}) {
     dataLimitations: asArray(details.dataLimitations).map((item) => clean(item)).filter(Boolean).slice(0, 8),
     llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
     errorCode: clean(details.errorCode || ""),
+    authSource: clean(details.authSource || ""),
+    tokenVerified: details.tokenVerified === true,
   };
   try {
     console.info(`${KARMA_AI_CONSULTATION_MARKER} ${marker}`, payload);
@@ -815,6 +818,73 @@ function buildKarmaAIError(code, message, status = 400, extra = {}) {
     message,
     ...extra,
   }, { status });
+}
+
+function buildKarmaAIAuthFromPremiumToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) return null;
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
+async function resolveKarmaAIConsultationAuth(request, env, body = {}) {
+  try {
+    const auth = await requireAuth(request, env);
+    return { ok: true, auth, authSource: "login", tokenVerified: false };
+  } catch (error) {
+    if (Number(error?.status) !== 401) throw error;
+  }
+
+  const premiumAccessToken = getPremiumAccessToken(request, body);
+  if (!premiumAccessToken) {
+    return {
+      ok: false,
+      status: 401,
+      code: "AUTH_REQUIRED",
+      message: "운명의 업 AI 상담을 위해 먼저 로그인해 주세요.",
+    };
+  }
+
+  const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType: SOUL_ORIGIN_REPORT_TYPE });
+  if (!verified?.ok) {
+    const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+    return {
+      ok: false,
+      status: 402,
+      code: expired ? "KARMA_AI_SESSION_TOKEN_EXPIRED" : "KARMA_AI_SESSION_TOKEN_INVALID",
+      message: expired
+        ? "결제된 운명의 업 AI 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+        : "결제된 운명의 업 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  const auth = buildKarmaAIAuthFromPremiumToken(verified.payload);
+  if (!auth) {
+    return {
+      ok: false,
+      status: 402,
+      code: "KARMA_AI_SESSION_TOKEN_INVALID",
+      message: "결제된 운명의 업 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  return {
+    ok: true,
+    auth,
+    authSource: "premiumAccessToken",
+    tokenVerified: true,
+    tokenPayload: verified.payload || {},
+  };
 }
 
 function parseKarmaAITimezoneOffsetToken(value) {
@@ -1331,8 +1401,15 @@ function normalizeKarmaAIResult(aiText, dataLimitations = []) {
 
 async function handleKarmaAIConsultation(request, env) {
   const startedAt = Date.now();
-  const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const authCheck = await resolveKarmaAIConsultationAuth(request, env, body);
+  if (!authCheck.ok) {
+    return buildKarmaAIError(authCheck.code, authCheck.message, authCheck.status, {
+      authSource: authCheck.authSource || "",
+      tokenVerified: false,
+    });
+  }
+  const auth = authCheck.auth;
   const dryRun = isKarmaAIConsultationDryRun(env);
   const hasEnvAI = hasKarmaAIGeminiApiKey(env);
   const question = clean(body?.question);
@@ -1408,6 +1485,8 @@ async function handleKarmaAIConsultation(request, env) {
     hasBirthTime: birthInput.hasBirthTime,
     hasBirthPlace: birthInput.hasBirthPlace,
     timezoneResolved: birthInput.timezoneResolved,
+    authSource: authCheck.authSource,
+    tokenVerified: authCheck.tokenVerified === true,
   });
 
   const executionCtx = buildPremiumExecutionContext({

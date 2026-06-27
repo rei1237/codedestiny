@@ -266,6 +266,9 @@
   function _publicErrorMessage(error, fallback) {
     var code = _clean(error && (error.code || error.name)).toUpperCase();
     var messages = {
+      NEW_YEAR_AI_SESSION_TOKEN_REQUIRED: '결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.',
+      NEW_YEAR_AI_SESSION_TOKEN_EXPIRED: '결제된 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요.',
+      NEW_YEAR_AI_SESSION_TOKEN_INVALID: '결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.',
       AUTH_REQUIRED: '신년운세 AI 상담을 위해 먼저 로그인해 주세요.',
       SESSION_INVALID: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
       ENTITLEMENT_REQUIRED: '신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
@@ -1542,6 +1545,8 @@
 
   async function _postJson(url, payload) {
     var headers = _buildAuthHeaders({ 'Content-Type': 'application/json' });
+    var consultationToken = _clean(payload && payload.consultationAccessToken);
+    if (consultationToken) headers['x-new-year-ai-access-token'] = consultationToken;
     var response = await fetch(url, {
       method: 'POST',
       credentials: 'include',

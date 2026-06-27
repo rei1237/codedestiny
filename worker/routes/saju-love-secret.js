@@ -1,6 +1,7 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 import { buildLoveSecretReference } from "../lib/love-secret-reference.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
@@ -5869,7 +5870,12 @@ async function handleLoveSecretAIConsultation(request, env) {
 
   const authz = await authorizeLoveSecret(request, env, { ...body, mode, reportMode: mode, question, category, _accessRoute: "/api/love-secret/ai-consultation" }, mode);
   if (!authz.ok) return authz.response;
-  loveSecretConsultationLog("payment verified", { ...baseLog, featureKey: authz.featureKey });
+  loveSecretConsultationLog("payment verified", {
+    ...baseLog,
+    featureKey: authz.featureKey,
+    authSource: authz.authSource,
+    tokenVerified: authz.tokenVerified === true,
+  });
 
   if (!hasEnvAI) {
     return buildApiError("AI_PROVIDER_NOT_CONFIGURED", "현재 연애 비책 AI 상담을 위한 LLM 설정이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.", 503, baseLog);
@@ -6065,22 +6071,67 @@ function loveSecretAccessErrorMessage(code, status, fallback = "") {
   return clean(fallback) || "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
+function buildLoveSecretAuthFromPremiumToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) return null;
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
 async function authorizeLoveSecret(request, env, body, mode) {
+  const premiumAccessToken = clean(body?.premiumAccessToken || request?.headers?.get?.("x-premium-access-token"));
   let auth;
+  let authSource = "login";
+  let tokenVerified = false;
   try {
     auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
-      return { ok: false, response: buildApiError("UNAUTHORIZED", "로그인 후 연애 비책 AI 상담을 받을 수 있습니다.", 401) };
+      if (!premiumAccessToken) {
+        return { ok: false, response: buildApiError("UNAUTHORIZED", "로그인 후 연애 비책 AI 상담을 받을 수 있습니다.", 401) };
+      }
+      const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType: "loveSecret" });
+      if (!verified?.ok) {
+        const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+        return {
+          ok: false,
+          response: buildApiError(
+            expired ? "LOVE_SECRET_AI_SESSION_TOKEN_EXPIRED" : "LOVE_SECRET_AI_SESSION_TOKEN_INVALID",
+            expired
+              ? "결제된 연애 비책 AI 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+              : "결제된 연애 비책 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+            402,
+          ),
+        };
+      }
+      auth = buildLoveSecretAuthFromPremiumToken(verified.payload);
+      if (!auth) {
+        return {
+          ok: false,
+          response: buildApiError("LOVE_SECRET_AI_SESSION_TOKEN_INVALID", "결제된 연애 비책 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.", 402),
+        };
+      }
+      authSource = "premiumAccessToken";
+      tokenVerified = true;
+    } else {
+      throw error;
     }
-    throw error;
   }
 
   const featureKey = toFeatureKey(mode);
   const reportId = clean(body?.reportId);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
   const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
-  const premiumAccessToken = clean(body?.premiumAccessToken || request?.headers?.get?.("x-premium-access-token"));
 
   const access = await requirePremiumReportAccess(getLoveSecretFastDbEnv(env), auth.userId, "loveSecret", {
     ...body,
@@ -6117,7 +6168,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
     };
   }
 
-  return { ok: true, auth, featureKey, access };
+  return { ok: true, auth, featureKey, access, authSource, tokenVerified };
 }
 
 async function handleAccess(request, env) {

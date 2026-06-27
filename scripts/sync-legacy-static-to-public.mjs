@@ -196,7 +196,7 @@ function stripLeadingBom(buffer) {
 }
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
-const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-consultation";
+const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-payment-wasm";
 const ZIWEI_AI_CONSULTATION_CACHE_KEY = "20260627-ziwei-ai-consultation";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",

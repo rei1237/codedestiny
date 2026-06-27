@@ -4646,6 +4646,28 @@ function newYearAIConsultationTokenMatches(tokenPayload = {}, binding = {}) {
   );
 }
 
+function buildNewYearAIAuthFromConsultationToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) {
+    throw Object.assign(new Error("결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요."), {
+      code: "NEW_YEAR_AI_SESSION_TOKEN_INVALID",
+      status: 402,
+    });
+  }
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
 async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, binding = {}) {
   const token = readNewYearAIConsultationAccessToken(request, body);
   if (!token) {
@@ -4654,17 +4676,27 @@ async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, 
       status: 402,
     });
   }
-  const verified = await verifyPremiumAccessToken(token, env, {
-    userId: String(auth?.userId || ""),
-    reportType: "sajuNewYear",
-  });
-  if (!verified?.ok || !newYearAIConsultationTokenMatches(verified.payload, binding)) {
+  const expected = { reportType: "sajuNewYear" };
+  const expectedUserId = clean(auth?.userId);
+  if (expectedUserId) expected.userId = expectedUserId;
+  const verified = await verifyPremiumAccessToken(token, env, expected);
+  if (!verified?.ok) {
+    const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+    throw Object.assign(new Error(expired
+      ? "결제된 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+      : "결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요."), {
+      code: expired ? "NEW_YEAR_AI_SESSION_TOKEN_EXPIRED" : "NEW_YEAR_AI_SESSION_TOKEN_INVALID",
+      status: 402,
+    });
+  }
+  if (!newYearAIConsultationTokenMatches(verified.payload, binding)) {
     throw Object.assign(new Error("신년운세 AI 상담 세션 권한이 유효하지 않습니다. 결제 후 상담 생성을 다시 시작해 주세요."), {
       code: "NEW_YEAR_AI_SESSION_TOKEN_INVALID",
       status: 402,
     });
   }
   const payload = verified.payload || {};
+  const tokenAuth = buildNewYearAIAuthFromConsultationToken(payload);
   return {
     ok: true,
     accessType: "consultation_access_token",
@@ -4673,6 +4705,8 @@ async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, 
     featureKey: clean(payload.featureKey || FEATURE_KEY),
     chargedCoins: Math.max(0, Number(payload.chargedCoins || 0)),
     tokenPayload: payload,
+    tokenVerified: true,
+    auth: tokenAuth,
   };
 }
 
@@ -7562,6 +7596,9 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   let question = "";
   let normalized = null;
   let providerName = "";
+  let authSource = "";
+  let hasConsultationAccessToken = false;
+  let tokenVerified = false;
   const baseMeta = () => ({
     hasEnvAI,
     providerName,
@@ -7574,9 +7611,13 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
     providerName: "gemini",
     geminiForced: true,
     model: resolveNewYearAIGeminiModel(env),
+    authSource: authSource || undefined,
+    hasConsultationAccessToken,
+    tokenVerified,
   });
 
   body = await readJson(request);
+  hasConsultationAccessToken = Boolean(readNewYearAIConsultationAccessToken(request, body));
   category = normalizeNewYearAICategory(body);
   question = normalizeNewYearAIQuestion(body);
   targetYear = Number(body?.targetYear || body?.selectedYear || body?.fortuneYear || 0) || 0;
@@ -7596,20 +7637,24 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
       status: isNewYearProductionEnv(env) ? 403 : 400,
     });
   }
+  const isStartRoute = /\/start$/.test(routePath);
+  if (isStartRoute) authSource = "login";
 
-  let auth;
-  try {
-    auth = await requireAuth(request, env);
-  } catch (error) {
-    if (Number(error?.status) === 401) {
-      throw Object.assign(new Error(hasNewYearAuthMaterial(request)
-        ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
-        : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
-        code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
-        status: 401,
-      });
+  let auth = null;
+  if (isStartRoute) {
+    try {
+      auth = await requireAuth(request, env);
+    } catch (error) {
+      if (Number(error?.status) === 401) {
+        throw Object.assign(new Error(hasNewYearAuthMaterial(request)
+          ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
+          : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
+          code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
+          status: 401,
+        });
+      }
+      throw error;
     }
-    throw error;
   }
 
   normalized = normalizeInput(body);
@@ -7626,7 +7671,6 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
   const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
   const requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || "");
-  const isStartRoute = /\/start$/.test(routePath);
 
   let access;
   if (isStartRoute) {
@@ -7665,6 +7709,9 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
       sessionKey,
       requestId,
     });
+    auth = access.auth;
+    authSource = "consultationAccessToken";
+    tokenVerified = access.tokenVerified === true;
   }
   logNewYearAIConsultation("payment verified", {
     ...baseMeta(),

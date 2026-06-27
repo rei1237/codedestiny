@@ -437,10 +437,13 @@
       return;
     }
     setBusy(true);
-    showScreen('vdLoadingScreen');
-    startLoading();
+    setStatus('결제 권한을 확인하고 있어요.', 'info');
+    var paymentVerified = false;
     ensurePayment()
       .then(function (payment) {
+        paymentVerified = true;
+        showScreen('vdLoadingScreen');
+        startLoading();
         var body = Object.assign({}, payload, paymentBody(payment), {
           featureKey: VEDIC_FEATURE_KEY,
           reportType: 'vedicPremium',
@@ -456,6 +459,11 @@
       .catch(function (error) {
         var payloadSafe = error && error.payload || {};
         if (error && (error.status === 402 || error.code === 'PAYMENT_REQUIRED')) _lastPayment = null;
+        if (!paymentVerified) {
+          showScreen('vdStartScreen');
+          setStatus(clean(payloadSafe.message || error && error.message) || '결제가 완료되지 않아 상담을 시작하지 않았습니다.', 'error');
+          return;
+        }
         showScreen('vdErrorScreen');
         var msg = qs('vdErrorMsg');
         if (msg) msg.textContent = clean(payloadSafe.message || error && error.message) || '베다점 상담을 열지 못했습니다. 잠시 후 다시 시도해 주세요.';

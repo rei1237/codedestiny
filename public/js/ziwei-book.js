@@ -2481,6 +2481,39 @@
     return json;
   }
 
+  function buildZiweiAIRequestSeed(seed){
+    var source = seed && typeof seed === 'object' ? seed : {};
+    var chart = source.chart && typeof source.chart === 'object' ? source.chart : {};
+    return {
+      chart: {
+        mingGong: chart.mingGong,
+        shenGong: chart.shenGong,
+        fiveElementBureau: chart.fiveElementBureau,
+        yearStemBranch: chart.yearStemBranch,
+        palaces: Array.isArray(chart.palaces) ? chart.palaces : [],
+        lifePalace: chart.lifePalace || null,
+        bodyPalace: chart.bodyPalace || null,
+        careerPalace: chart.careerPalace || null,
+        wealthPalace: chart.wealthPalace || null,
+        spousePalace: chart.spousePalace || null,
+        friendsPalace: chart.friendsPalace || null,
+        parentsPalace: chart.parentsPalace || null,
+        siblingsPalace: chart.siblingsPalace || null,
+        healthPalace: chart.healthPalace || null,
+        propertyPalace: chart.propertyPalace || null,
+        travelPalace: chart.travelPalace || null,
+        fortunePalace: chart.fortunePalace || null,
+        transformations: Array.isArray(chart.transformations) ? chart.transformations : [],
+        decadeLuck: Array.isArray(chart.decadeLuck) ? chart.decadeLuck : [],
+        annualLuck: Array.isArray(chart.annualLuck) ? chart.annualLuck : []
+      },
+      localZiweiChartJson: source.localZiweiChartJson || null,
+      diagnostics: source.diagnostics || null,
+      lifePalace: source.lifePalace || chart.lifePalace || null,
+      bodyPalace: source.bodyPalace || chart.bodyPalace || null
+    };
+  }
+
   async function postConsultation(profile, seed, payment, birthInput){
     var birthHash = text(payment && payment.birthHash) || makeBirthHash(birthInput || {});
     var scope = getZiweiGenerationScope(birthHash);
@@ -2512,6 +2545,7 @@
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     if(jobToken) headers['x-ziwei-job-token'] = jobToken;
+    var aiSeed = buildZiweiAIRequestSeed(seed);
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
@@ -2559,10 +2593,7 @@
       birthplace: profile.birthplace,
       category: category,
       question: question,
-      ziweiClientEvidenceJson: buildZiweiClientEvidenceJson(seed, birthInput),
-      ziweiBase: seed,
-      ziweiPdfSeed: seed,
-      localZiweiChartJson: seed && seed.localZiweiChartJson,
+      ziweiBase: aiSeed,
       dryRun: false
     };
     var diagnostics = buildZiweiPrepareDiagnostics(profile, seed, paymentContext, birthInput, body, CONSULTATION_API);
@@ -2571,7 +2602,15 @@
       questionLength: question.length,
       endpoint: CONSULTATION_API
     }));
-    var fetched = await fetchZiweiApi(CONSULTATION_API, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+    var requestText = JSON.stringify(body);
+    logFlow('ZiweiAIConsultationPayloadReady', {
+      endpoint: CONSULTATION_API,
+      category: category,
+      questionLength: question.length,
+      payloadBytes: requestText.length,
+      palaceCount: aiSeed.chart && Array.isArray(aiSeed.chart.palaces) ? aiSeed.chart.palaces.length : 0
+    });
+    var fetched = await fetchZiweiApi(CONSULTATION_API, { method: 'POST', headers: headers, body: requestText });
     var res = fetched.res;
     var json = fetched.json;
     if(!res.ok || !json.ok){
@@ -2579,6 +2618,7 @@
       var message = text(json && (json.message || json.error)) || ('자미두수 AI 상담 요청에 실패했습니다. HTTP ' + res.status);
       var apiError = buildZiweiApiError({ res: res, json: json }, message, (res.status === 401 || res.status === 402 || res.status === 403) ? 'payment' : 'generation');
       apiError.code = code;
+      apiError.stage = text(json && json.stage) || 'ziwei-ai-consultation';
       apiError.paymentRetainedForRetry = Boolean(json && json.paymentRetainedForRetry);
       logZiweiError('ziwei-ai-consultation', apiError, Object.assign({}, diagnostics, {
         responseStatus: res.status,

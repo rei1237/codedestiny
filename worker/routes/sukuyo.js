@@ -583,6 +583,8 @@ function logSukyoCompatibilityAI(event, details = {}) {
     distanceType: clean(details.distanceType || ""),
     llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
     errorCode: clean(details.errorCode || ""),
+    authSource: clean(details.authSource || ""),
+    tokenVerified: details.tokenVerified === true,
   };
   try {
     console.info(marker, payload);
@@ -979,14 +981,38 @@ async function verifySukyoCompatibilityAIAccess(request, env, auth, body, sessio
 async function handleSukyoCompatibilityAIConsultation(request, env) {
   const startedAt = Date.now();
   const hasEnvAI = hasSukyoAIProviderEnv(env);
-  const auth = await requireAuth(request, env);
-  const body = await readJson(request);
+  let body = {};
+  try {
+    body = await readJson(request);
+  } catch (error) {
+    logSukyoCompatibilityAI("request received", {
+      hasEnvAI,
+      errorCode: clean(error?.code || "INVALID_JSON"),
+    });
+    return buildSukyoCompatibilityAIError(
+      clean(error?.code || "INVALID_JSON"),
+      clean(error?.message || "요청 본문을 확인해 주세요."),
+      Number(error?.status) || 400,
+    );
+  }
   const category = normalizeSukyoAIConsultationCategory(body?.category || body?.relationshipCategory || body?.consultationCategory);
   const question = clean(body?.question || body?.relationshipQuestion || body?.prompt || "");
   const dryRun = body?.dryRun === true || body?.dry_run === true;
   const baseLog = { hasEnvAI, dryRun, category, questionLength: question.length };
 
   logSukyoCompatibilityAI("request received", baseLog);
+
+  const authCheck = await resolveSukuyoCompatibilityAIAuth(request, env, body);
+  if (!authCheck.ok) {
+    const errorCode = clean(authCheck.code || "AUTH_REQUIRED");
+    logSukyoCompatibilityAI("LLM provider error", { ...baseLog, errorCode });
+    return buildSukyoCompatibilityAIError(
+      errorCode,
+      authCheck.message || "숙요점 궁합 AI 상담을 시작하려면 로그인이 필요합니다.",
+      Number(authCheck.status) || 401,
+    );
+  }
+  const auth = authCheck.auth;
 
   if (dryRun) {
     return buildSukyoCompatibilityAIError("DRY_RUN_BLOCKED", "숙요점 궁합 AI 상담은 실제 결제/이용권 확인과 LLM 호출로만 생성됩니다.", 400, { dryRun: true });
@@ -1009,6 +1035,11 @@ async function handleSukyoCompatibilityAIConsultation(request, env) {
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
   const access = await verifySukyoCompatibilityAIAccess(request, env, auth, body, sessionId, reportId, featureKey);
   if (!access?.ok) {
+    logSukyoCompatibilityAI("LLM provider error", {
+      ...baseLog,
+      providerName: clean(access?.accessType || access?.accessMethod || "payment"),
+      errorCode: clean(access?.code || "SUKYO_COMPAT_AI_PAYMENT_REQUIRED"),
+    });
     return buildSukyoCompatibilityAIError(
       clean(access?.code || "SUKYO_COMPAT_AI_PAYMENT_REQUIRED"),
       clean(access?.message || "숙요점 궁합 AI 상담은 결제 또는 이용권 확인 후 열립니다."),
@@ -1022,7 +1053,12 @@ async function handleSukyoCompatibilityAIConsultation(request, env) {
       },
     );
   }
-  logSukyoCompatibilityAI("payment verified", { ...baseLog, providerName: clean(access.accessType || access.accessMethod) });
+  logSukyoCompatibilityAI("payment verified", {
+    ...baseLog,
+    providerName: clean(access.accessType || access.accessMethod),
+    authSource: authCheck.authSource,
+    tokenVerified: authCheck.tokenVerified === true,
+  });
 
   let selfSukuyo = null;
   let partnerSukuyo = null;
@@ -2413,6 +2449,75 @@ async function resolveSukuyoSignedTokenAccess(env, userId, premiumAccessToken) {
     featureKey: isCompatFeature ? tokenFeatureKey : SUKYO_PDF_FEATURE_KEY,
     chargedCoins,
     signedTokenFallback: true,
+  };
+}
+
+function buildSukuyoAIAuthFromPremiumToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) return null;
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
+async function resolveSukuyoCompatibilityAIAuth(request, env, body = {}) {
+  try {
+    const auth = await requireAuth(request, env);
+    return { ok: true, auth, authSource: "login", tokenVerified: false };
+  } catch (error) {
+    if (Number(error?.status) !== 401) throw error;
+  }
+
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  if (!premiumAccessToken) {
+    return {
+      ok: false,
+      status: 401,
+      code: "AUTH_REQUIRED",
+      message: "숙요점 궁합 AI 상담을 위해 먼저 로그인해 주세요.",
+    };
+  }
+
+  const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env);
+  if (!tokenCheck?.ok) {
+    const expired = clean(tokenCheck?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+    return {
+      ok: false,
+      status: 402,
+      code: expired ? "SUKYO_COMPAT_AI_SESSION_TOKEN_EXPIRED" : "SUKYO_COMPAT_AI_SESSION_TOKEN_INVALID",
+      message: expired
+        ? "결제된 숙요점 궁합 AI 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+        : "결제된 숙요점 궁합 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  const tokenUserId = clean(tokenCheck.payload?.userId || tokenCheck.payload?.sub);
+  const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, tokenUserId, premiumAccessToken);
+  const auth = signedTokenAccess ? buildSukuyoAIAuthFromPremiumToken(tokenCheck.payload) : null;
+  if (!auth) {
+    return {
+      ok: false,
+      status: 402,
+      code: "SUKYO_COMPAT_AI_SESSION_TOKEN_INVALID",
+      message: "결제된 숙요점 궁합 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  return {
+    ok: true,
+    auth,
+    authSource: "premiumAccessToken",
+    tokenVerified: true,
+    tokenPayload: tokenCheck.payload || {},
   };
 }
 
@@ -4440,9 +4545,10 @@ async function handleSukuyoYearlyVerifyPayment(request, env) {
 }
 
 export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
+  let path = "";
   try {
     const method = request.method.toUpperCase();
-    const path = getRoutePath(request, "/api/sukuyo");
+    path = getRoutePath(request, "/api/sukuyo");
 
     if (path === "/calendar") {
       if (method !== "GET") return methodNotAllowed();
@@ -4505,6 +4611,19 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (path === "/compatibility-ai-consultation" || path === "/ai-compatibility") {
+      const status = Number(error?.status) || 500;
+      const errorCode = clean(error?.code || "SUKYO_COMPAT_AI_ROUTE_FAILED");
+      logSukyoCompatibilityAI("LLM provider error", { errorCode });
+      return buildSukyoCompatibilityAIError(
+        errorCode,
+        clean(error?.message || "숙요점 궁합 AI 상담 요청을 처리하지 못했습니다."),
+        status >= 400 && status < 600 ? status : 500,
+        {
+          retryable: status >= 500,
+        },
+      );
+    }
     console.error("[SukuyoPremiumPDF][Error]", normalizeSukuyoError(error));
     const status = Number(error?.status) || 0;
     if (status >= 400 && status < 500) {

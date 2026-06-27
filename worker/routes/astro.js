@@ -2,6 +2,7 @@ import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemer
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-premium-chapters.js";
 import {
   ASTRO_PDF_CONFIG,
@@ -510,6 +511,73 @@ function readPremiumAccessToken(request, body = {}) {
   const headerToken = String(request.headers.get("x-premium-access-token") || "").trim();
   if (headerToken) return headerToken;
   return String(body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access") || "").trim();
+}
+
+function buildAIConsultationAuthFromPremiumToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) return null;
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
+async function resolveAIConsultationAuth(request, env, body = {}, reportType = "") {
+  try {
+    const auth = await requireAuth(request, env);
+    return { ok: true, auth, authSource: "login", tokenVerified: false };
+  } catch (error) {
+    if (Number(error?.status) !== 401) throw error;
+  }
+
+  const premiumAccessToken = readPremiumAccessToken(request, body);
+  if (!premiumAccessToken) {
+    return {
+      ok: false,
+      status: 401,
+      code: "AUTH_REQUIRED",
+      message: "AI 상담을 위해 먼저 로그인해 주세요.",
+    };
+  }
+
+  const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType });
+  if (!verified?.ok) {
+    const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+    return {
+      ok: false,
+      status: 402,
+      code: expired ? "AI_CONSULTATION_SESSION_TOKEN_EXPIRED" : "AI_CONSULTATION_SESSION_TOKEN_INVALID",
+      message: expired
+        ? "결제된 AI 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+        : "결제된 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  const auth = buildAIConsultationAuthFromPremiumToken(verified.payload);
+  if (!auth) {
+    return {
+      ok: false,
+      status: 402,
+      code: "AI_CONSULTATION_SESSION_TOKEN_INVALID",
+      message: "결제된 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  return {
+    ok: true,
+    auth,
+    authSource: "premiumAccessToken",
+    tokenVerified: true,
+    tokenPayload: verified.payload || {},
+  };
 }
 
 function toSafeBirthLog(input = {}, chapterCount = 0) {
@@ -2935,6 +3003,8 @@ function logVedicAIConsultation(marker, details = {}) {
     hasNakshatra: details.hasNakshatra === true,
     llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
     errorCode: clean(details.errorCode),
+    authSource: clean(details.authSource),
+    tokenVerified: details.tokenVerified === true,
   };
   try {
     console.info(`${VEDIC_AI_CONSULTATION_MARKER} ${marker}`, payload);
@@ -2952,6 +3022,23 @@ function readVedicAIRequestBirthSource(body = {}) {
   const timeUnknown = raw.birthTimeUnknown === true || raw.isTimeUnknown === true || body?.birthTimeUnknown === true || body?.isTimeUnknown === true;
   return {
     ...raw,
+    isTimeUnknown: timeUnknown,
+    birthTimeUnknown: timeUnknown,
+  };
+}
+
+function buildVedicAIConsultationPreflightBirthInput(body = {}) {
+  const birthSource = readVedicAIRequestBirthSource(body);
+  const dateMatch = clean(birthSource.birthDate).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const timeMatch = clean(birthSource.birthTime).match(/^(\d{1,2}):(\d{2})$/);
+  const timeUnknown = birthSource.birthTimeUnknown === true || birthSource.isTimeUnknown === true;
+  return {
+    ...birthSource,
+    birthYear: dateMatch ? Number(dateMatch[1]) : Number(birthSource.birthYear),
+    birthMonth: dateMatch ? Number(dateMatch[2]) : Number(birthSource.birthMonth),
+    birthDay: dateMatch ? Number(dateMatch[3]) : Number(birthSource.birthDay),
+    birthHour: timeUnknown ? null : (timeMatch ? Number(timeMatch[1]) : Number(birthSource.birthHour)),
+    birthMinute: timeUnknown ? 0 : (timeMatch ? Number(timeMatch[2]) : Number(birthSource.birthMinute || 0)),
     isTimeUnknown: timeUnknown,
     birthTimeUnknown: timeUnknown,
   };
@@ -3267,8 +3354,16 @@ function normalizeVedicAIResult(aiText) {
 
 async function handleVedicAIConsultation(request, env) {
   const startedAt = Date.now();
-  const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const authCheck = await resolveAIConsultationAuth(request, env, body, "vedicPremium");
+  if (!authCheck.ok) {
+    return buildVedicAIError(authCheck.code, authCheck.message, authCheck.status, {
+      serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
+      authSource: authCheck.authSource || "",
+      tokenVerified: false,
+    });
+  }
+  const auth = authCheck.auth;
   const dryRun = isVedicAIConsultationDryRun(env);
   const hasEnvAI = hasVedicAIProviderEnv(env);
   const question = clean(body?.question);
@@ -3293,23 +3388,15 @@ async function handleVedicAIConsultation(request, env) {
     });
   }
 
-  const birthInput = normalizeVedicAIConsultationBirthInput(body);
-  const validation = validateVedicAIConsultationInput(body, birthInput);
+  const preflightBirthInput = buildVedicAIConsultationPreflightBirthInput(body);
+  const validation = validateVedicAIConsultationInput(body, preflightBirthInput);
   if (!validation.ok) {
     return buildVedicAIError("VEDIC_AI_INPUT_INVALID", validation.message, 422, {
       missing: validation.missing,
       serviceType: VEDIC_AI_CONSULTATION_SERVICE_TYPE,
     });
   }
-  birthInput._timezoneResolved = true;
-  birthInput._timezoneOffset = validation.timezoneOffset;
-  const hasBirthTime = !birthInput.isTimeUnknown && Number.isFinite(Number(birthInput.birthHour));
-  logVedicAIConsultation("birth profile normalized", {
-    ...baseLog,
-    hasBirthTime,
-    hasBirthPlace: Boolean(clean(birthInput.birthPlace)),
-    timezoneResolved: birthInput._timezoneResolved === true,
-  });
+  const preflightHasBirthTime = !preflightBirthInput.isTimeUnknown && Number.isFinite(Number(preflightBirthInput.birthHour));
 
   const featureKey = clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY;
   const premiumAccessToken = readPremiumAccessToken(request, body);
@@ -3332,9 +3419,22 @@ async function handleVedicAIConsultation(request, env) {
   }
   logVedicAIConsultation("payment verified", {
     ...baseLog,
-    hasBirthTime,
-    hasBirthPlace: true,
+    hasBirthTime: preflightHasBirthTime,
+    hasBirthPlace: Boolean(clean(preflightBirthInput.birthPlace)),
     timezoneResolved: true,
+    authSource: authCheck.authSource,
+    tokenVerified: authCheck.tokenVerified === true,
+  });
+
+  const birthInput = normalizeVedicAIConsultationBirthInput(body);
+  birthInput._timezoneResolved = true;
+  birthInput._timezoneOffset = validation.timezoneOffset;
+  const hasBirthTime = !birthInput.isTimeUnknown && Number.isFinite(Number(birthInput.birthHour));
+  logVedicAIConsultation("birth profile normalized", {
+    ...baseLog,
+    hasBirthTime,
+    hasBirthPlace: Boolean(clean(birthInput.birthPlace)),
+    timezoneResolved: birthInput._timezoneResolved === true,
   });
 
   let localVedicChartJson = null;
@@ -3590,6 +3690,8 @@ function logAstrologyAIConsultation(marker, details = {}) {
     hasMajorAspects: details.hasMajorAspects === true,
     llmLatencyMs: Number.isFinite(Number(details.llmLatencyMs)) ? Number(details.llmLatencyMs) : undefined,
     errorCode: clean(details.errorCode),
+    authSource: clean(details.authSource),
+    tokenVerified: details.tokenVerified === true,
   };
   try {
     console.info(`${ASTROLOGY_AI_CONSULTATION_MARKER} ${marker}`, payload);
@@ -3992,8 +4094,16 @@ function normalizeAstrologyAIResult(aiText, chartSummary = {}) {
 
 async function handleAstrologyAIConsultation(request, env) {
   const startedAt = Date.now();
-  const auth = await requireAuth(request, env);
   const body = await readJson(request);
+  const authCheck = await resolveAIConsultationAuth(request, env, body, "westernAstrologyPremium");
+  if (!authCheck.ok) {
+    return buildAstrologyAIError(authCheck.code, authCheck.message, authCheck.status, {
+      serviceType: ASTROLOGY_AI_CONSULTATION_SERVICE_TYPE,
+      authSource: authCheck.authSource || "",
+      tokenVerified: false,
+    });
+  }
+  const auth = authCheck.auth;
   const dryRun = isAstrologyAIConsultationDryRun(env);
   const hasEnvAI = hasAstrologyAIProviderEnv(env);
   const question = clean(body?.question);
@@ -4058,6 +4168,8 @@ async function handleAstrologyAIConsultation(request, env) {
     hasBirthTime,
     hasBirthPlace: true,
     timezoneResolved: true,
+    authSource: authCheck.authSource,
+    tokenVerified: authCheck.tokenVerified === true,
   });
 
   let localAstroChartJson = null;
@@ -5254,8 +5366,12 @@ export async function handleAstroRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const pathname = new URL(request.url).pathname;
+    const isAIConsultationPost = method === "POST" && (
+      pathname === "/api/astro/ai-consultation"
+      || pathname === "/api/vedic/ai-consultation"
+    );
 
-    if (method === "POST") {
+    if (method === "POST" && !isAIConsultationPost) {
       await requireAuth(request, env);
     }
 

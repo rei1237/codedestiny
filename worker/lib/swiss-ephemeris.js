@@ -54,6 +54,59 @@ function sanitizeUrlLikeEnvValue(value) {
   return raw;
 }
 
+function resolveOriginLike(value) {
+  const normalized = sanitizeUrlLikeEnvValue(value);
+  if (!normalized) return "";
+  try {
+    const withProtocol = /^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`;
+    const parsed = new URL(withProtocol);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    return parsed.origin;
+  } catch (e) {
+    return "";
+  }
+}
+
+function resolveHttpUrl(value) {
+  const normalized = sanitizeUrlLikeEnvValue(value);
+  if (!normalized) return "";
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
+  } catch (e) {
+    return "";
+  }
+  return "";
+}
+
+function resolveRequestOrigin(requestUrl) {
+  const raw = clean(requestUrl);
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.origin;
+  } catch (e) {
+    return "";
+  }
+  return "";
+}
+
+function resolveSwissAssetOrigin(env, options = {}) {
+  return resolveOriginLike(
+    getEnv(env, "PUBLIC_SITE_ORIGIN")
+    || getEnv(env, "NEXT_PUBLIC_SITE_URL")
+    || getEnv(env, "SITE_BASE_URL")
+    || getEnv(env, "SITE_URL")
+    || getEnv(env, "AUTH_FRONTEND_BASE_URL")
+    || getEnv(env, "CF_PAGES_URL")
+    || getEnv(env, "WORKER_ORIGIN")
+    || getEnv(env, "ASTRO_SWISS_BASE_URL")
+    || getEnv(env, "ASTRO_API_BASE_URL")
+    || options.origin
+    || options.baseUrl,
+  );
+}
+
 function nd(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return NaN;
@@ -570,19 +623,6 @@ function julianDayFromInput(swe, input) {
 }
 
 function resolveEpheBaseUrl(env, options = {}) {
-  const resolveOriginLike = (value) => {
-    const normalized = sanitizeUrlLikeEnvValue(value);
-    if (!normalized) return "";
-    try {
-      const withProtocol = /^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`;
-      const parsed = new URL(withProtocol);
-      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
-      return parsed.origin;
-    } catch (e) {
-      return "";
-    }
-  };
-
   const fromEnv = sanitizeUrlLikeEnvValue(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
     || getEnv(env, "SWISS_EPHE_BASE_URL")
@@ -599,15 +639,7 @@ function resolveEpheBaseUrl(env, options = {}) {
     }
   }
 
-  const originFromEnv = resolveOriginLike(
-    getEnv(env, "PUBLIC_SITE_ORIGIN")
-    || getEnv(env, "NEXT_PUBLIC_SITE_URL")
-    || getEnv(env, "SITE_URL")
-    || getEnv(env, "CF_PAGES_URL")
-    || getEnv(env, "WORKER_ORIGIN")
-    || getEnv(env, "ASTRO_SWISS_BASE_URL")
-    || getEnv(env, "ASTRO_API_BASE_URL"),
-  );
+  const originFromEnv = resolveSwissAssetOrigin(env, options);
   if (originFromEnv) return `${originFromEnv}/ephe/`;
 
   const requestUrl = clean(options.requestUrl);
@@ -622,86 +654,100 @@ function resolveEpheBaseUrl(env, options = {}) {
   throw toStatusError(500, "Swiss ephemeris base URL is missing. Set SWISS_EPHEMERIS_FILES_BASE_URL or provide request URL context.");
 }
 
-function resolveSwissWasmPath(env, options = {}) {
-  const rawPath = sanitizeUrlLikeEnvValue(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath) || DEFAULT_SWISS_WASM_PATH;
-  const requestUrl = clean(options.requestUrl);
-  const tryResolveFromRequest = () => {
-    if (!requestUrl) return "";
-    try {
-      return new URL(rawPath, requestUrl).toString();
-    } catch (e) {
-      return "";
+function resolveSwissWasmCandidates(env, options = {}) {
+  const configuredPath = sanitizeUrlLikeEnvValue(
+    getEnv(env, "SWISS_WASM_URL")
+    || getEnv(env, "SWISS_WASM_PATH")
+    || options.wasmUrl
+    || options.wasmPath,
+  );
+  const rawPath = configuredPath || DEFAULT_SWISS_WASM_PATH;
+  const requestOrigin = resolveRequestOrigin(options.requestUrl);
+  const envOrigin = resolveSwissAssetOrigin(env, options);
+  const candidates = [];
+  const add = (source, value) => {
+    const url = resolveHttpUrl(value);
+    if (!url || candidates.some((candidate) => candidate.url === url)) return;
+    candidates.push({ source, url });
+  };
+  const addPath = (source, value) => {
+    const raw = sanitizeUrlLikeEnvValue(value);
+    if (!raw) return;
+    const absolute = resolveHttpUrl(raw);
+    if (absolute) {
+      add(source, absolute);
+      return;
     }
+    const normalizedPath = raw.startsWith("/") ? raw : `/${raw.replace(/^\.?\/*/, "")}`;
+    if (requestOrigin) add(`${source}:request-origin`, new URL(normalizedPath, `${requestOrigin}/`).toString());
+    if (envOrigin) add(`${source}:env-origin`, new URL(normalizedPath, `${envOrigin}/`).toString());
   };
 
-  if (rawPath.startsWith("/")) {
-    const resolved = tryResolveFromRequest();
-    if (resolved) return resolved;
-    const originFromEnv = resolveOriginLike(
-      getEnv(env, "PUBLIC_SITE_ORIGIN")
-      || getEnv(env, "NEXT_PUBLIC_SITE_URL")
-      || getEnv(env, "SITE_URL")
-      || getEnv(env, "CF_PAGES_URL")
-      || getEnv(env, "WORKER_ORIGIN")
-      || getEnv(env, "ASTRO_SWISS_BASE_URL")
-      || getEnv(env, "ASTRO_API_BASE_URL"),
-    );
-    if (originFromEnv) return new URL(rawPath, `${originFromEnv}/`).toString();
-    return FALLBACK_SWISS_WASM_URL;
-  }
+  addPath(configuredPath ? "configured" : "default", rawPath);
+  add("cdn-fallback", FALLBACK_SWISS_WASM_URL);
+  return candidates;
+}
 
-  try {
-    const parsed = new URL(rawPath);
-    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
-  } catch (e) {
-    const resolved = tryResolveFromRequest();
-    if (resolved) return resolved;
-    return FALLBACK_SWISS_WASM_URL;
-  }
+function resolveSwissWasmPath(env, options = {}) {
+  const candidates = resolveSwissWasmCandidates(env, options);
+  return candidates[0]?.url || FALLBACK_SWISS_WASM_URL;
+}
 
-  return FALLBACK_SWISS_WASM_URL;
+function summarizeSwissInitError(error) {
+  return clean(error?.message || error || "unknown").replace(/\s+/g, " ").slice(0, 180);
+}
+
+function buildSwissWasmInitError(attempts) {
+  const message = "베다 차트 계산 엔진을 초기화하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+  const error = toStatusError(503, message);
+  error.code = "SWISS_WASM_INIT_FAILED";
+  error.payload = {
+    ok: false,
+    error: message,
+    code: "SWISS_WASM_INIT_FAILED",
+    errorDetails: {
+      attemptCount: attempts.length,
+      lastError: attempts[attempts.length - 1]?.error || "",
+    },
+  };
+  return error;
 }
 
 async function createSwissInstance(env, options = {}) {
-  const wasmPath = resolveSwissWasmPath(env, options);
+  const wasmCandidates = resolveSwissWasmCandidates(env, options);
   let swe = null;
 
   try {
     console.info("[swiss-init]", JSON.stringify({
-      hasWasmPath: Boolean(String(wasmPath || "").trim()),
-      wasmPathPrefix: String(wasmPath || "").slice(0, 120),
+      wasmCandidateCount: wasmCandidates.length,
+      wasmPathPrefix: String(wasmCandidates[0]?.url || "").slice(0, 120),
     }));
   } catch (e) {
     // ignore logging failure
   }
 
-  const initSwiss = async (pathValue) => {
-    if (typeof pathValue === "string" && pathValue.trim()) {
-      return SwissEPH.init(pathValue);
+  const attempts = [];
+  for (const candidate of wasmCandidates) {
+    try {
+      swe = await SwissEPH.init(candidate.url);
+      break;
+    } catch (error) {
+      attempts.push({
+        source: candidate.source,
+        error: summarizeSwissInitError(error),
+      });
     }
-    return SwissEPH.init();
-  };
-
-  try {
-    swe = await initSwiss(wasmPath);
-  } catch (error) {
-    const attempts = [];
-    if (String(wasmPath || "").trim() !== FALLBACK_SWISS_WASM_URL) attempts.push(FALLBACK_SWISS_WASM_URL);
-    attempts.push("");
-
-    let lastError = error;
-    for (const fallbackPath of attempts) {
-      try {
-        swe = await initSwiss(fallbackPath);
-        lastError = null;
-        break;
-      } catch (retryError) {
-        lastError = retryError;
-      }
+  }
+  if (!swe) {
+    try {
+      console.warn("[swiss-init-error]", JSON.stringify({
+        code: "SWISS_WASM_INIT_FAILED",
+        attempts,
+      }));
+    } catch (e) {
+      // ignore logging failure
     }
-    if (!swe) {
-      throw toStatusError(500, `Swiss wasm init failed after fallback: ${String(lastError?.message || lastError || "unknown")}`);
-    }
+    throw buildSwissWasmInitError(attempts);
   }
 
   const epheBaseUrl = resolveEpheBaseUrl(env, options);
@@ -898,5 +944,6 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
 export const __swissEphemerisTestUtils = {
   sanitizeUrlLikeEnvValue,
   resolveEpheBaseUrl,
+  resolveSwissWasmCandidates,
   resolveSwissWasmPath,
 };

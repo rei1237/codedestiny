@@ -1,6 +1,7 @@
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
@@ -1604,6 +1605,8 @@ function logZiweiAIConsultation(stage, details = {}) {
     hasAnnualLuck: Boolean(details.hasAnnualLuck),
     llmLatencyMs: Number(details.llmLatencyMs || 0),
     errorCode: clean(details.errorCode || ""),
+    authSource: clean(details.authSource || ""),
+    tokenVerified: details.tokenVerified === true,
   };
   try {
     console.info(`${ZIWEI_AI_CONSULTATION_MARKER} ${stage}`, payload);
@@ -1877,7 +1880,9 @@ async function handleZiweiAIConsultation(request, env) {
   let category = "general";
   let question = "";
   let chartSummary = {};
+  let serverStage = "request";
   try {
+    serverStage = "parse_request";
     body = await readJson(request);
     category = normalizeZiweiAICategory(body?.category);
     const questionResult = normalizeZiweiAIQuestion(body);
@@ -1900,15 +1905,17 @@ async function handleZiweiAIConsultation(request, env) {
     if (!questionResult.ok) {
       return buildZiweiAIError(questionResult.code, questionResult.message, 422, { retryable: false });
     }
-    let auth;
-    try {
-      auth = await requireAuth(request, env);
-    } catch (error) {
-      if (Number(error?.status) === 401) {
-        return buildZiweiAIError("UNAUTHORIZED", "자미두수 AI 상담을 위해 먼저 로그인해 주세요.", 401, { retryable: false });
-      }
-      throw error;
+    serverStage = "auth";
+    const authCheck = await resolveZiweiAIConsultationAuth(request, env, body);
+    if (!authCheck.ok) {
+      return buildZiweiAIError(authCheck.code, authCheck.message, authCheck.status, {
+        retryable: false,
+        authSource: authCheck.authSource || "",
+        tokenVerified: false,
+      });
     }
+    const auth = authCheck.auth;
+    serverStage = "normalize_birth";
     const normalized = normalizeInput(body);
     if (!normalized.ok) {
       const message = normalized.code === "BIRTH_TIME_REQUIRED"
@@ -1924,6 +1931,7 @@ async function handleZiweiAIConsultation(request, env) {
       hasBirthTime: Number.isFinite(Number(normalized.birthInput.birthHour)),
       calendarType: normalized.birthInput.calendarType,
     });
+    serverStage = "payment";
     const premiumAccessToken = getZiweiAccessToken(request, body);
     const featureKey = normalizeFeatureKey(body?.featureKey);
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "ziweiPremium", {
@@ -1952,11 +1960,15 @@ async function handleZiweiAIConsultation(request, env) {
       questionLength: question.length,
       hasBirthTime: Number.isFinite(Number(normalized.birthInput.birthHour)),
       calendarType: normalized.birthInput.calendarType,
+      authSource: authCheck.authSource,
+      tokenVerified: authCheck.tokenVerified === true,
     });
+    serverStage = "chart_input";
     const base = getZiweiBase(body);
     if (!base) {
       return buildZiweiAIError("MISSING_ZIWEI_ENGINE_RESULT", "자미두수 명반 계산 결과가 전달되지 않았습니다. 입력값을 확인한 뒤 다시 시도해 주세요.", 422, { retryable: false });
     }
+    serverStage = "chart_seed";
     const seed = buildZiweiPdfSeed(normalized.profile, base);
     const seedValidation = validateSeed(seed);
     if (!seedValidation.ok) {
@@ -1965,6 +1977,7 @@ async function handleZiweiAIConsultation(request, env) {
         details: seedValidation.errors,
       });
     }
+    serverStage = "chart_summary";
     chartSummary = buildZiweiAIChartSummary(seed, normalized.birthInput, category);
     const chartLog = {
       hasEnvAI,
@@ -1986,6 +1999,7 @@ async function handleZiweiAIConsultation(request, env) {
     logZiweiAIConsultation("transformations extracted", chartLog);
     logZiweiAIConsultation("luck flow calculated", chartLog);
     const categoryLabel = ZIWEI_AI_CONSULTATION_CATEGORIES[category] || ZIWEI_AI_CONSULTATION_CATEGORIES.general;
+    serverStage = "prompt";
     const prompt = buildZiweiAIConsultationPrompt({
       birthInput: normalized.birthInput,
       category,
@@ -2005,6 +2019,7 @@ async function handleZiweiAIConsultation(request, env) {
       });
     }
     const llmStartedAt = Date.now();
+    serverStage = "llm";
     logZiweiAIConsultation("LLM provider start", chartLog);
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: buildZiweiAIConsultationSystemPrompt(),
@@ -2030,6 +2045,7 @@ async function handleZiweiAIConsultation(request, env) {
         dryRun: false,
       });
     }
+    serverStage = "normalize_result";
     const result = normalizeZiweiAIConsultationResult(aiText, chartSummary);
     logZiweiAIConsultation("LLM provider success", { ...chartLog, providerName: provider, isMock: false, llmLatencyMs });
     const consultationId = clean(body?.consultationId || body?.reportId || body?.reportSessionId || `ziwei-ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
@@ -2059,11 +2075,13 @@ async function handleZiweiAIConsultation(request, env) {
       elapsedMs: Date.now() - startedAt,
     };
     logZiweiAIConsultation("response returned", { ...chartLog, providerName: provider, llmLatencyMs });
+    serverStage = "response";
     return json(responsePayload, { status: 200 });
   } catch (error) {
     const status = Number(error?.status || 503);
     const responseStatus = status >= 400 && status < 600 ? status : 503;
     const errorCode = clean(error?.code || "ZIWEI_AI_CONSULTATION_FAILED");
+    const safeErrorMessage = clean(error?.message || "자미두수 AI 상담 생성이 일시적으로 실패했습니다. 잠시 뒤 다시 시도해 주세요.");
     logZiweiAIConsultation("LLM provider error", {
       hasEnvAI,
       providerName: "gemini-primary-workers-ai-fallback",
@@ -2080,11 +2098,28 @@ async function handleZiweiAIConsultation(request, env) {
       hasAnnualLuck: Boolean(chartSummary.hasAnnualLuck),
       errorCode,
     });
-    return buildZiweiAIError(errorCode, clean(error?.message || "자미두수 AI 상담 생성이 일시적으로 실패했습니다. 잠시 뒤 다시 시도해 주세요."), responseStatus, {
+    console.error(`${ZIWEI_AI_CONSULTATION_MARKER} unhandled error`, {
+      stage: serverStage,
+      code: errorCode,
+      name: clean(error?.name || ""),
+      message: safeErrorMessage,
+      status: responseStatus,
+    });
+    return buildZiweiAIError(errorCode, safeErrorMessage, responseStatus, {
+      stage: serverStage,
       retryable: responseStatus >= 500,
       paymentRetainedForRetry: responseStatus >= 500,
       isMock: false,
       dryRun: false,
+      debugSafe: {
+        stage: serverStage,
+        errorCode,
+        hasEnvAI,
+        category,
+        questionLength: question.length,
+        hasBirthTime: Boolean(chartSummary.hasBirthTime),
+        hasPalaceData: Boolean(chartSummary.hasPalaceData),
+      },
     });
   }
 }
@@ -4906,6 +4941,73 @@ function getZiweiAccessToken(request, body = {}) {
     || cookieValue(request, "cd_premium_access")
     || "",
   );
+}
+
+function buildZiweiAIAuthFromPremiumToken(tokenPayload = {}) {
+  const userId = clean(tokenPayload.userId || tokenPayload.sub);
+  if (!userId) return null;
+  return {
+    userId,
+    email: clean(tokenPayload.email),
+    role: clean(tokenPayload.role) || "user",
+    name: clean(tokenPayload.name),
+    image: "",
+    birthDate: "",
+    birthTime: "",
+    gender: "OTHER",
+    points: 0,
+    joinedAt: null,
+  };
+}
+
+async function resolveZiweiAIConsultationAuth(request, env, body = {}) {
+  try {
+    const auth = await requireAuth(request, env);
+    return { ok: true, auth, authSource: "login", tokenVerified: false };
+  } catch (error) {
+    if (Number(error?.status) !== 401) throw error;
+  }
+
+  const premiumAccessToken = getZiweiAccessToken(request, body);
+  if (!premiumAccessToken) {
+    return {
+      ok: false,
+      status: 401,
+      code: "UNAUTHORIZED",
+      message: "자미두수 AI 상담을 위해 먼저 로그인해 주세요.",
+    };
+  }
+
+  const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType: "ziweiPremium" });
+  if (!verified?.ok) {
+    const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
+    return {
+      ok: false,
+      status: 402,
+      code: expired ? "ZIWEI_AI_SESSION_TOKEN_EXPIRED" : "ZIWEI_AI_SESSION_TOKEN_INVALID",
+      message: expired
+        ? "결제된 자미두수 AI 상담 세션이 만료되었습니다. 결제 후 다시 이어가 주세요."
+        : "결제된 자미두수 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  const auth = buildZiweiAIAuthFromPremiumToken(verified.payload);
+  if (!auth) {
+    return {
+      ok: false,
+      status: 402,
+      code: "ZIWEI_AI_SESSION_TOKEN_INVALID",
+      message: "결제된 자미두수 AI 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.",
+    };
+  }
+
+  return {
+    ok: true,
+    auth,
+    authSource: "premiumAccessToken",
+    tokenVerified: true,
+    tokenPayload: verified.payload || {},
+  };
 }
 
 function invalidZiweiAuthorizationResponse(status = 403, details = {}) {
