@@ -59,6 +59,7 @@
     source: 'fallback'
   };
   var _billingSnapshotPromise = null;
+  var _currentStage = '';
 
   var LOADING_MESSAGES = [
     '명식과 올해의 세운을 읽고 있어요.',
@@ -821,6 +822,7 @@
 
   function _setStage(stage) {
     var active = _clean(stage);
+    _currentStage = active;
     var pills = document.querySelectorAll('#sajuNewYearModal .ny-stage-pill');
     Array.prototype.forEach.call(pills, function (pill) {
       pill.classList.toggle('is-active', _clean(pill.getAttribute('data-ny-stage')) === active);
@@ -842,7 +844,11 @@
       bar.style.width = percent + '%';
       bar.setAttribute('aria-valuenow', String(percent));
     }
-    if (text) text.textContent = percent + '% · AI 상담 생성 중';
+    var label = 'AI 상담 생성 중';
+    if (_currentStage === 'billing') label = '결제 권한 확인 중';
+    else if (_currentStage === 'calculate') label = '사주 계산 중';
+    else if (_currentStage === 'archive') label = '결과 정리 중';
+    if (text) text.textContent = percent + '% · ' + label;
     if (chapter) chapter.textContent = message || LOADING_MESSAGES[bounded % LOADING_MESSAGES.length] || '신년운세 상담을 정리하는 중입니다';
     if (quote && message) quote.textContent = message;
     if (num) num.textContent = bounded >= totalSteps ? '완성' : '상담 ' + Math.max(1, bounded + 1);
@@ -2262,7 +2268,7 @@
 
   async function _runAfterBillingAI(pending, accessGrant, premiumToken, paidEvidence) {
     _setStage('calculate');
-    _setProgress(2, '명식과 올해의 세운을 읽고 있어요.');
+    _setProgress(1, '명식과 올해의 세운을 읽고 있어요.');
     _rememberAccessGrant(pending, accessGrant, premiumToken, paidEvidence);
     _log('RequestReceived', {
       reportId: pending.reportId,
@@ -2398,9 +2404,7 @@
   }
 
   function _runBillingAndGeneration(pending) {
-    _showScreen('nyLoadingScreen');
     _setStage('billing');
-    _setProgress(1, '결제창에서 권한과 금액을 확인하는 중입니다');
     return _runCoinGate(pending.reportId).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
@@ -2408,6 +2412,9 @@
         return null;
       }
       _rememberAccessGrant(pending, gate.accessGrant, gate.premiumAccessToken, gate.paidEvidence);
+      _showScreen('nyLoadingScreen');
+      _setStage('calculate');
+      _setProgress(1, '결제 권한이 확인되었습니다. 명식과 올해의 세운을 읽고 있어요.');
       return _runAfterBillingAI(pending, gate.accessGrant, gate.premiumAccessToken, gate.paidEvidence);
     });
   }
