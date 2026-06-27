@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { readCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
+import { normalizeDuplicatedSubjectParticles } from "@/lib/tarot/myeongri-tarot-text-utils.mjs";
 
 type TarotMode = "one" | "three";
 
@@ -912,6 +913,7 @@ function limitRepeatedTerms(payload: ReadingPayload): ReadingPayload {
         return replacements[(count - 2) % replacements.length];
       });
     }
+    next = normalizeDuplicatedSubjectParticles(next);
     nextPayload[key] = Array.isArray(value) ? next.split("\n").filter(Boolean) : next;
   }
 
@@ -956,6 +958,7 @@ function generateLocalReading(category: TarotCategory, mode: TarotMode, selected
 export const __MINGRI_TAROT_TEST__ = {
   buildMingriSajuContext,
   generateLocalReading,
+  normalizeDuplicatedSubjectParticles,
   normalizeTenGod,
 };
 

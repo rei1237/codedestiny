@@ -8485,7 +8485,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-paid-status { display:inline-flex; align-items:center; justify-content:center; min-height:30px; padding:5px 11px; border-radius:999px; border:1px solid rgba(248,231,183,0.44); background:rgba(120,53,15,0.18); color:#fef3c7; font-size:0.73rem; font-weight:900; line-height:1.35; }
         .sy-paid-status.is-unlocked { border-color:rgba(134,239,172,0.5); background:rgba(20,83,45,0.22); color:#bbf7d0; }
         .sy-radar-card { margin-top:15px; border-left-color:#c4b5fd!important; border-color:rgba(196,181,253,0.3); background:radial-gradient(circle at 86% 8%, rgba(216,180,254,0.18), transparent 26%), radial-gradient(circle at 12% 90%, rgba(125,211,252,0.1), transparent 30%), linear-gradient(145deg, rgba(25,22,45,0.96), rgba(9,14,31,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 28px rgba(196,181,253,0.09), inset 0 1px 0 rgba(255,255,255,0.06); }
-        .sy-dogam-card { margin-top:15px; border-left-color:#f8e7b7!important; border-color:rgba(248,231,183,0.32); background:radial-gradient(circle at 9% 8%,rgba(248,231,183,0.15),transparent 28%),radial-gradient(circle at 90% 12%,rgba(165,180,252,0.16),transparent 30%),linear-gradient(145deg,rgba(20,18,36,0.96),rgba(8,13,30,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.42),inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-dogam-card { margin-top:15px; border-left-color:#f8e7b7!important; border-color:rgba(248,231,183,0.42); background:linear-gradient(118deg,rgba(255,255,255,0.08),transparent 18%,rgba(147,197,253,0.08) 54%,transparent 78%),linear-gradient(152deg,rgba(31,27,58,0.98),rgba(8,13,30,0.98) 48%,rgba(17,24,52,0.98))!important; box-shadow:0 22px 58px rgba(2,6,23,0.5),0 0 42px rgba(248,231,183,0.08),inset 0 1px 0 rgba(255,255,255,0.08); overflow:hidden; }
         .sy-past-life-card { margin-top:15px; border-left-color:#d8b4fe!important; border-color:rgba(216,180,254,0.38); background:radial-gradient(circle at 12% 8%,rgba(216,180,254,0.18),transparent 30%),radial-gradient(circle at 88% 20%,rgba(253,224,71,0.11),transparent 28%),linear-gradient(145deg,rgba(28,18,48,0.97),rgba(9,13,29,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.44),inset 0 1px 0 rgba(255,255,255,0.06); }
         .sy-past-life-title { margin:0; color:#f5d0fe; font-size:1.06rem; line-height:1.38; }
         .sy-past-life-copy { margin:0 0 13px; color:#e9d5ff; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
@@ -8528,38 +8528,50 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-past-life-ai-status { color:#fde68a; font-size:0.76rem; line-height:1.55; word-break:keep-all; }
         .sy-past-life-one-line { border:1px solid rgba(250,204,21,0.28); border-radius:13px; background:rgba(250,204,21,0.08); color:#fef3c7; padding:11px; font-size:0.87rem; line-height:1.7; font-weight:850; word-break:keep-all; }
         .sy-past-life-disclaimer { color:#cbd5e1; font-size:0.75rem; line-height:1.6; word-break:keep-all; }
-        .sy-dogam-title { margin:0; color:#fde68a; font-size:1.06rem; line-height:1.38; }
-        .sy-dogam-copy { margin:0 0 12px; color:#dbeafe; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
-        .sy-dogam-submit { min-height:46px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.42); background:linear-gradient(135deg,#fde68a,#c4b5fd 54%,#93c5fd); color:#111827; font-weight:950; cursor:pointer; box-shadow:0 14px 32px rgba(196,181,253,0.2); }
-        .sy-dogam-status { min-height:20px; color:#e9d5ff; font-size:0.78rem; line-height:1.55; margin-top:9px; }
-        .sy-dogam-result { margin-top:14px; display:grid; gap:12px; }
-        .sy-dogam-hero,.sy-dogam-highlight,.sy-dogam-entry { border:1px solid rgba(226,232,240,0.18); border-radius:14px; background:rgba(2,6,23,0.34); padding:12px; }
-        .sy-dogam-hero h5 { margin:0 0 6px; color:#f8fafc; font-size:1.02rem; line-height:1.42; }
-        .sy-dogam-hero p,.sy-dogam-highlight p,.sy-dogam-entry p { margin:0; color:#dbeafe; font-size:0.82rem; line-height:1.68; word-break:keep-all; }
-        .sy-dogam-meta,.sy-dogam-distribution,.sy-dogam-highlights,.sy-dogam-grid { display:grid; gap:8px; }
-        .sy-dogam-meta { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .sy-dogam-title { margin:0; color:#fef3c7; font-size:1.14rem; line-height:1.34; text-shadow:0 0 22px rgba(254,243,199,0.18); }
+        .sy-dogam-copy { margin:0 0 13px; color:#e0e7ff; font-size:0.88rem; line-height:1.82; word-break:keep-all; }
+        .sy-dogam-submit { min-height:48px; width:100%; border-radius:13px; border:1px solid rgba(255,255,255,0.5); background:linear-gradient(135deg,#fff7d6,#f8e7b7 34%,#c4b5fd 68%,#93c5fd); color:#111827; font-weight:950; cursor:pointer; box-shadow:0 16px 34px rgba(196,181,253,0.24),0 0 24px rgba(248,231,183,0.12); }
+        .sy-dogam-status { min-height:20px; color:#f5d0fe; font-size:0.78rem; line-height:1.55; margin-top:9px; }
+        .sy-dogam-result { margin-top:15px; display:grid; gap:13px; }
+        .sy-dogam-hero,.sy-dogam-highlight,.sy-dogam-entry { border:1px solid rgba(226,232,240,0.2); border-radius:16px; background:linear-gradient(145deg,rgba(15,23,42,0.66),rgba(2,6,23,0.42)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.055); }
+        .sy-dogam-hero { position:relative; overflow:hidden; padding:17px; background:linear-gradient(125deg,rgba(15,23,42,0.72),rgba(36,30,72,0.68) 54%,rgba(9,14,31,0.78)); }
+        .sy-dogam-hero:before { content:""; position:absolute; right:20px; top:18px; width:48px; height:48px; border-radius:999px; background:radial-gradient(circle at 34% 30%,#fff7d6,#f8e7b7 46%,rgba(147,197,253,0.14) 70%,transparent 72%); box-shadow:0 0 26px rgba(248,231,183,0.24); opacity:.72; pointer-events:none; }
+        .sy-dogam-hero:after { content:""; position:absolute; inset:0; background:linear-gradient(100deg,transparent,rgba(255,255,255,0.08),transparent); opacity:.32; pointer-events:none; }
+        .sy-dogam-hero h5 { position:relative; margin:0 58px 9px 0; color:#f8fafc; font-size:1.08rem; line-height:1.42; }
+        .sy-dogam-hero p,.sy-dogam-highlight p,.sy-dogam-entry p { margin:0; color:#dbeafe; font-size:0.83rem; line-height:1.72; word-break:keep-all; }
+        .sy-dogam-hero p + p { margin-top:6px; }
+        .sy-dogam-meta,.sy-dogam-distribution,.sy-dogam-highlights,.sy-dogam-grid { display:grid; gap:9px; }
+        .sy-dogam-meta { position:relative; grid-template-columns:repeat(3,minmax(0,1fr)); margin-bottom:11px; }
         .sy-dogam-distribution { grid-template-columns:repeat(3,minmax(0,1fr)); }
         .sy-dogam-highlights { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .sy-dogam-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-        .sy-dogam-pill,.sy-dogam-dist { border:1px solid rgba(226,232,240,0.18); border-radius:999px; background:rgba(15,23,42,0.58); color:#e0e7ff; padding:6px 9px; font-size:0.74rem; font-weight:850; text-align:center; }
-        .sy-dogam-filters { display:flex; gap:7px; overflow-x:auto; padding:2px 0 4px; scrollbar-width:thin; }
-        .sy-dogam-filter { flex:0 0 auto; border:1px solid rgba(196,181,253,0.32); border-radius:999px; background:rgba(15,23,42,0.64); color:#ddd6fe; padding:7px 11px; font-size:0.76rem; font-weight:850; cursor:pointer; }
-        .sy-dogam-filter.is-active { background:linear-gradient(135deg,#fde68a,#c4b5fd); color:#111827; }
-        .sy-dogam-entry { display:grid; gap:8px; }
-        .sy-dogam-entry[data-relation="명"] { border-color:rgba(226,232,240,0.34); }
-        .sy-dogam-entry[data-relation="업태"] { border-color:rgba(191,219,254,0.36); box-shadow:inset 0 0 28px rgba(168,85,247,0.08); }
-        .sy-dogam-entry[data-relation="영친"] { border-color:rgba(253,224,71,0.38); }
-        .sy-dogam-entry[data-relation="우쇠"] { border-color:rgba(125,211,252,0.34); }
-        .sy-dogam-entry[data-relation="안괴"] { border-color:rgba(216,180,254,0.48); box-shadow:inset 0 0 32px rgba(147,51,234,0.12); }
-        .sy-dogam-entry[data-relation="성위"] { border-color:rgba(134,239,172,0.34); }
-        .sy-dogam-entry h6 { margin:0; color:#fef3c7; font-size:0.92rem; line-height:1.38; }
+        .sy-dogam-pill,.sy-dogam-dist { border:1px solid rgba(226,232,240,0.2); border-radius:999px; background:rgba(15,23,42,0.62); color:#e0e7ff; padding:7px 10px; font-size:0.74rem; font-weight:900; text-align:center; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); }
+        .sy-dogam-dist { background:linear-gradient(135deg,rgba(15,23,42,0.78),rgba(30,41,59,0.52)); color:#fef3c7; }
+        .sy-dogam-highlight { padding:13px; background:linear-gradient(145deg,rgba(30,27,75,0.46),rgba(8,13,30,0.66)); }
+        .sy-dogam-highlight b { color:#fef3c7; font-size:0.78rem; }
+        .sy-dogam-filters { display:flex; gap:7px; overflow-x:auto; padding:3px 0 5px; scrollbar-width:thin; }
+        .sy-dogam-filter { flex:0 0 auto; min-height:34px; border:1px solid rgba(196,181,253,0.34); border-radius:999px; background:rgba(15,23,42,0.68); color:#ddd6fe; padding:7px 12px; font-size:0.76rem; font-weight:900; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
+        .sy-dogam-filter.is-active { border-color:rgba(254,243,199,0.82); background:linear-gradient(135deg,#fff7d6,#c4b5fd 62%,#93c5fd); color:#111827; box-shadow:0 0 20px rgba(248,231,183,0.16); }
+        .sy-dogam-entry { position:relative; overflow:hidden; display:grid; gap:9px; padding:13px; }
+        .sy-dogam-entry:before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,rgba(248,231,183,0.7),rgba(196,181,253,0.45),rgba(147,197,253,0.55)); opacity:.72; }
+        .sy-dogam-entry[data-relation="명"] { border-color:rgba(226,232,240,0.36); }
+        .sy-dogam-entry[data-relation="업태"] { border-color:rgba(191,219,254,0.42); box-shadow:inset 0 0 30px rgba(168,85,247,0.1); }
+        .sy-dogam-entry[data-relation="영친"] { border-color:rgba(253,224,71,0.44); }
+        .sy-dogam-entry[data-relation="우쇠"] { border-color:rgba(125,211,252,0.4); }
+        .sy-dogam-entry[data-relation="안괴"] { border-color:rgba(216,180,254,0.54); box-shadow:inset 0 0 34px rgba(147,51,234,0.14); }
+        .sy-dogam-entry[data-relation="성위"] { border-color:rgba(134,239,172,0.4); }
+        .sy-dogam-entry h6 { margin:0; color:#fef3c7; font-size:0.96rem; line-height:1.38; }
+        .sy-dogam-entry-head { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+        .sy-dogam-entry-meta { flex:0 0 auto; border:1px solid rgba(248,231,183,0.28); border-radius:999px; background:rgba(248,231,183,0.08); color:#fef3c7; padding:4px 8px; font-size:0.7rem; font-weight:900; white-space:nowrap; }
         .sy-dogam-tags { display:flex; flex-wrap:wrap; gap:5px; }
-        .sy-dogam-tags span { border:1px solid rgba(226,232,240,0.16); border-radius:999px; color:#bfdbfe; padding:3px 7px; font-size:0.7rem; }
-        .sy-dogam-score-mini { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
-        .sy-dogam-score-mini span { border-radius:9px; background:rgba(15,23,42,0.58); color:#e0f2fe; padding:6px; font-size:0.72rem; text-align:center; }
-        .sy-dogam-entry details { border-top:1px solid rgba(226,232,240,0.12); padding-top:7px; }
+        .sy-dogam-tags span { border:1px solid rgba(226,232,240,0.18); border-radius:999px; background:rgba(15,23,42,0.42); color:#bfdbfe; padding:4px 8px; font-size:0.7rem; }
+        .sy-dogam-score-mini { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+        .sy-dogam-score-mini span { border:1px solid rgba(148,163,184,0.18); border-radius:11px; background:rgba(15,23,42,0.58); color:#e0f2fe; padding:7px; font-size:0.72rem; text-align:center; }
+        .sy-dogam-score-mini i { display:block; height:5px; margin-top:5px; border-radius:999px; background:linear-gradient(90deg,#c4b5fd,#f8e7b7,#93c5fd); transform-origin:left center; }
+        .sy-dogam-entry details { border-top:1px solid rgba(226,232,240,0.13); padding-top:8px; }
         .sy-dogam-entry summary { color:#f5d0fe; cursor:pointer; font-size:0.78rem; font-weight:900; }
-        .sy-dogam-detail { display:grid; gap:8px; margin-top:8px; }
+        .sy-dogam-detail { display:grid; gap:9px; margin-top:9px; }
+        .sy-dogam-detail p { border:1px solid rgba(148,163,184,0.14); border-radius:12px; background:rgba(2,6,23,0.22); padding:9px; }
         .sy-dogam-detail b { color:#fde68a; }
         .sy-radar-title { margin:0; color:#f5d0fe; font-size:1.06rem; line-height:1.38; }
         .sy-radar-copy { margin:0 0 13px; color:#dbeafe; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
@@ -9140,11 +9152,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
           </div>
           <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="' + _sajuQuantumText("sq_8669_attr_placeholder") + '" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8669_attr_placeholder"))}" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-radar-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
             <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-radar-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="' + _sajuQuantumText("sq_8673_attr_placeholder") + '"></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8673_attr_placeholder"))}"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-radar-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
           </div>
           <button type="submit" class="sy-radar-submit">인연 레이더 분석하기</button>
@@ -9175,11 +9187,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
           </div>
           <div class="sy-radar-grid">
-            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="' + _sajuQuantumText("sq_8704_attr_placeholder") + '" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8704_attr_placeholder"))}" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-past-life-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
             <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-past-life-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
-            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="' + _sajuQuantumText("sq_8708_attr_placeholder") + '"></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="${syCanonicalEsc(_sajuQuantumText("sq_8708_attr_placeholder"))}"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-past-life-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
           </div>
           <button type="submit" class="sy-past-life-submit">전생 인연 리딩 열기</button>
@@ -9302,6 +9314,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     area.innerHTML = html;
     if (typeof window.__cdPlaceSukuyoCalendarBelowWheel === 'function') {
       window.__cdPlaceSukuyoCalendarBelowWheel();
+    }
+    if (typeof window.__cdRefreshSukuyoCalendarPanel === 'function') {
+      window.__cdRefreshSukuyoCalendarPanel(true);
     }
 
     // 게이지 + 유명인 UI 초기화 (DOM 삽입 후 실행)
@@ -11337,7 +11352,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     function scoreMini(entry) {
       var s = entry.scores;
-      return '<div class="sy-dogam-score-mini"><span>끌림 ' + s.attraction + '</span><span>안정 ' + s.stability + '</span><span>소모 ' + s.exhaustion + '</span></div>';
+      return '<div class="sy-dogam-score-mini">'
+        + '<span>끌림 ' + s.attraction + '<i style="transform:scaleX(' + Math.max(0.08, Math.min(1, s.attraction / 100)) + ')"></i></span>'
+        + '<span>안정 ' + s.stability + '<i style="transform:scaleX(' + Math.max(0.08, Math.min(1, s.stability / 100)) + ')"></i></span>'
+        + '<span>소모 ' + s.exhaustion + '<i style="transform:scaleX(' + Math.max(0.08, Math.min(1, s.exhaustion / 100)) + ')"></i></span>'
+      + '</div>';
     }
     function entryHtml(entry, locked) {
       var cats = entry.categories.join(' ');
@@ -11355,8 +11374,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '</div>'
         : '<div class="sy-dogam-detail"><p>전체 도감 해금 후 연애, 결혼, 친구, 비즈니스, 경계 전략이 모두 열립니다.</p></div>';
       return '<article class="sy-dogam-entry" data-relation="' + syCanonicalEsc(entry.relationType) + '" data-categories="' + syCanonicalEsc(cats) + '">'
-        + '<h6>' + syCanonicalEsc(entry.title) + '</h6>'
-        + '<p>' + syCanonicalEsc(entry.relationType + (entry.distance !== '해당없음' ? ' ' + entry.distance : '') + ' · ' + entry.direction) + '</p>'
+        + '<div class="sy-dogam-entry-head"><h6>' + syCanonicalEsc(entry.title) + '</h6><span class="sy-dogam-entry-meta">' + syCanonicalEsc(entry.relationType) + '</span></div>'
+        + '<p>' + syCanonicalEsc((entry.distance !== '해당없음' ? entry.distance + ' · ' : '') + entry.direction) + '</p>'
         + '<div class="sy-dogam-tags">' + tagHtml + '</div>'
         + scoreMini(entry)
         + '<details><summary>자세히 보기</summary>' + detail + '</details>'
@@ -14876,7 +14895,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
                 <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 담아, AI에게 이어 묻기 좋은 프롬프트를 무료로 정리합니다.</div>
-                <textarea data-sy-ai-question maxlength="1000" placeholder="' + _sajuQuantumText("sq_14399_attr_placeholder") + '" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+                <textarea data-sy-ai-question maxlength="1000" placeholder="${syCanonicalEsc(_sajuQuantumText("sq_14399_attr_placeholder"))}" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>

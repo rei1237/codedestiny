@@ -16,6 +16,7 @@ import {
   buildNumerologyPromptContext,
   selectCards,
 } from "../../../lib/tarot/numerology-tarot.mjs";
+import { normalizeDuplicatedSubjectParticles } from "../../../lib/tarot/myeongri-tarot-text-utils.mjs";
 
 const NUMEROLOGY_TAROT_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -684,6 +685,12 @@ function createDays(month: string): string[] {
 
 function toText(value: unknown): string {
   return String(value || "").trim();
+}
+
+function normalizeNumerologyReadingForDisplay<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value), (_key, current) => (
+    typeof current === "string" ? normalizeDuplicatedSubjectParticles(current) : current
+  )) as T;
 }
 
 function getCardImageUrl(cardId?: number): string {
@@ -1788,7 +1795,7 @@ export default function NumerologyTarotClient() {
               </section>
             ) : null}
 
-            {reading ? (() => {
+            {reading ? ((reading: NumerologyTarotInterpretation) => {
               const renderedCards = reading.cards?.length
                 ? reading.cards
                 : reading.cardReadings.map((item) => ({
@@ -2003,7 +2010,7 @@ export default function NumerologyTarotClient() {
                   </div>
                 </section>
               );
-            })() : null}
+            })(normalizeNumerologyReadingForDisplay(reading)) : null}
           </div>
 
           <aside className={styles.sidePanel}>
