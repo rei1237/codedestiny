@@ -352,6 +352,78 @@
   opacity: 0.92;
 }
 
+.albumModeButton {
+  position: relative;
+  appearance: none;
+  min-height: 36px;
+  border: 1px solid rgba(246, 251, 255, 0.25);
+  border-radius: 999px;
+  padding: 0 12px;
+  color: var(--moon-ink);
+  background: linear-gradient(130deg, rgba(246, 251, 255, 0.18), rgba(246, 251, 255, 0.07));
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+  box-shadow:
+    0 0 0 1px rgba(246, 251, 255, 0.06) inset,
+    0 0 22px rgba(126, 224, 255, 0.16);
+}
+
+.albumModeButton[data-mode="human"] {
+  border-color: rgba(255, 221, 253, 0.48);
+  background: linear-gradient(130deg, rgba(255, 221, 253, 0.22), rgba(255, 221, 253, 0.08));
+  box-shadow:
+    0 0 0 1px rgba(255, 221, 253, 0.08) inset,
+    0 0 24px rgba(255, 177, 213, 0.22);
+}
+
+.albumModeButton:hover,
+.albumModeButton:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.albumModeButton:active {
+  transform: translateY(0);
+}
+
+.albumModeButton svg {
+  flex: 0 0 14px;
+  opacity: 0.96;
+}
+
+.albumModeButtonText {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.albumModeButtonGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.34), transparent 42%),
+    radial-gradient(circle at 88% 76%, rgba(126, 224, 255, 0.3), transparent 42%);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.albumModeButton:hover .albumModeButtonGlow,
+.albumModeButton:focus-visible .albumModeButtonGlow {
+  opacity: 0.42;
+}
+
 .assetAmbient,
 .coverAmbient,
 .moon,
@@ -3023,6 +3095,20 @@
     flex: 0 0 auto;
   }
 
+  .albumModeButton {
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 0.66rem;
+    gap: 5px;
+  }
+
+  .albumModeButtonText {
+    max-width: 46px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .controlDeck {
     padding: 14px;
   }
@@ -3124,6 +3210,7 @@
   .playButton,
   .smallButton,
   .trackButton,
+  .albumModeButton,
   .playlistHeaderButton,
   .playlistTab,
   .playlistTrack,

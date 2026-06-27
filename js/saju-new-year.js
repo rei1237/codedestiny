@@ -569,17 +569,27 @@
       NEW_YEAR_AI_PAYMENT_TOKEN_EXPIRED: '결제 확인 시간이 만료되었습니다. 결제창에서 권한을 다시 확인해 주세요.',
       NEW_YEAR_AI_PAYMENT_TOKEN_INVALID: '결제 권한을 확인하지 못했습니다. 결제창에서 다시 확인해 주세요.',
       NEW_YEAR_AI_PAYMENT_TOKEN_MISSING: '이용권 적용은 확인됐지만 상담 생성 권한이 전달되지 않았습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 갱신해 주세요.',
+      NEW_YEAR_AI_AUTH_SERVICE_ERROR: '결제 권한 확인 중 문제가 발생했습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 확인해 주세요.',
+      WORKER_UNHANDLED_EXCEPTION: '결제 권한 확인 중 문제가 발생했습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 확인해 주세요.',
+      INTERNAL_SERVER_ERROR: '결제 권한 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
       NEW_YEAR_AI_LLM_FAILED: '현재 신년운세 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
       GEMINI_NOT_CONFIGURED: '현재 Gemini 설정을 확인하지 못해 상담을 생성할 수 없습니다.'
     };
     if (messages[code]) return messages[code];
-    var message = _clean(error && error.message ? error.message : error);
+    var payload = error && error.payload && typeof error.payload === 'object' ? error.payload : {};
+    var payloadCode = _clean(payload.code || payload.error).toUpperCase();
+    if (messages[payloadCode]) return messages[payloadCode];
+    var message = _clean(payload.message || payload.errorMessage || (error && error.message ? error.message : error));
+    if (/Authentication service error/i.test(message)) return messages.NEW_YEAR_AI_AUTH_SERVICE_ERROR;
     if (!message || message === '[object Object]' || /^HTTP\s*5\d\d/i.test(message)) return fallback || '신년운세 AI 상담 생성 중 오류가 발생했습니다.';
     return message;
   }
   function _errorOptions(error) {
     var status = Number(error && error.status || 0);
     var code = _clean(error && (error.code || error.name)).toUpperCase();
+    if (code === 'NEW_YEAR_AI_AUTH_SERVICE_ERROR' || code === 'WORKER_UNHANDLED_EXCEPTION' || code === 'INTERNAL_SERVER_ERROR') {
+      return { retryText: '권한 다시 확인' };
+    }
     if (status === 401 || code === 'AUTH_REQUIRED') {
       return { showLogin: true, retryText: '로그인 후 다시 시도' };
     }
@@ -831,14 +841,14 @@
       stage: 'ai-consultation',
       status: response.status,
       ok: response.ok && body && body.ok !== false,
-      code: _clean(body && body.code),
+      code: _clean(body && (body.code || body.error)),
       provider: _clean(body && (body.provider || body.providerName)),
       isMock: body && body.isMock === true
     });
     if (!response.ok || !body || body.ok === false) {
-      var error = new Error(_clean(body && body.message) || ('HTTP ' + response.status));
+      var error = new Error(_clean(body && (body.message || body.errorMessage || body.error)) || ('HTTP ' + response.status));
       error.status = response.status;
-      error.code = _clean(body && body.code) || 'NEW_YEAR_AI_CONSULTATION_FAILED';
+      error.code = _clean(body && (body.code || body.error)) || 'NEW_YEAR_AI_CONSULTATION_FAILED';
       error.payload = body;
       error.requestUrl = AI_CONSULTATION_API;
       throw error;

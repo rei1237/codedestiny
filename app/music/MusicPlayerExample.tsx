@@ -6,6 +6,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
 
+  Moon,
   Pause,
   Play,
   Repeat,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { allTracks, type ArtistKey } from "./_data/musicManifest";
+import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import MoonAlbumArtwork from "./MoonAlbumArtwork";
@@ -38,6 +39,13 @@ type PlayerStyle = CSSProperties & {
   "--asset-ambient-image"?: string;
   "--moon-banner-cover-fallback"?: string;
 };
+type AlbumImageMode = "default" | "human";
+
+type HumanModeCoverMap = {
+  yeoni: string;
+  dest1novaVol1: string;
+  dest1novaVol2: string;
+};
 
 const BANNER_STARS = [
   { cx: 14, cy: 18, r: 1.8, opacity: 0.32, duration: "3s", delay: "0s" },
@@ -49,6 +57,55 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
+const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
+const HUMAN_MODE_COVER_KEYS = {
+  yeoni: "\uc5f0\uc774 \uc778\uac04 \ubaa8\ub4dc \uc568\ubc94.webp",
+  dest1novaVol1: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc94 \ub370\ubdd4.webp",
+  dest1novaVol2: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc94 2.webp",
+};
+
+const HUMAN_MODE_COVER_URLS = {
+  yeoni: safeBuildMusicPublicUrl(`humanmode/${HUMAN_MODE_COVER_KEYS.yeoni}`),
+  dest1novaVol1: safeBuildMusicPublicUrl(`humanmode/${HUMAN_MODE_COVER_KEYS.dest1novaVol1}`),
+  dest1novaVol2: safeBuildMusicPublicUrl(`humanmode/${HUMAN_MODE_COVER_KEYS.dest1novaVol2}`),
+};
+
+function safeBuildMusicPublicUrl(objectKey: string) {
+  try {
+    return buildMusicPublicUrl(objectKey);
+  } catch {
+    return "";
+  }
+}
+
+function canUseHumanCoverMode(artistKey: ArtistKey) {
+  return artistKey === "yeoni" || artistKey === "dest1nova";
+}
+
+function getAlbumCoverMode(artistImageMode: Partial<Record<ArtistKey, AlbumImageMode>>, artistKey: ArtistKey) {
+  if (!canUseHumanCoverMode(artistKey)) return "default" as const;
+  return artistImageMode[artistKey] || "default";
+}
+
+function resolveTrackAlbumCoverUrl(track: Track, mode: AlbumImageMode, humanModeCoverUrls: HumanModeCoverMap) {
+  if (!track) return "";
+
+  if (mode !== "human") {
+    return track.coverUrl;
+  }
+
+  if (track.artistKey === "yeoni" && humanModeCoverUrls.yeoni) {
+    return humanModeCoverUrls.yeoni;
+  }
+
+  if (track.artistKey === "dest1nova") {
+    const isSecondAlbum = DEST1NOVA_SECOND_ALBUM_MARKER.test(track.audioKey);
+    if (isSecondAlbum && humanModeCoverUrls.dest1novaVol2) return humanModeCoverUrls.dest1novaVol2;
+    if (humanModeCoverUrls.dest1novaVol1) return humanModeCoverUrls.dest1novaVol1;
+  }
+
+  return track.coverUrl;
+}
 
 const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
   ko: {
@@ -67,6 +124,9 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previousTrack: "이전 곡",
     listeningMode: "음악 감상 모드",
     playlistHint: "✦ 달빛 플레이리스트",
+    albumModeLabel: "앨범 모드",
+    albumModeDefault: "기본",
+    albumModeHuman: "인간",
     close: "닫기",
     heroKicker: "MOON LIBRARY",
     heroTitle: "달빛 플레이리스트",
@@ -101,6 +161,9 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previousTrack: "Previous track",
     listeningMode: "Listening mode",
     playlistHint: "✦ Moonlit playlist",
+    albumModeLabel: "Album mode",
+    albumModeDefault: "Default",
+    albumModeHuman: "Human",
     close: "Close",
     heroKicker: "MOON LIBRARY",
     heroTitle: "Moonlit Playlist",
@@ -135,6 +198,9 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     previousTrack: "前の曲",
     listeningMode: "音楽鑑賞モード",
     playlistHint: "✦ 月明かりプレイリスト",
+    albumModeLabel: "アルバムモード",
+    albumModeDefault: "デフォルト",
+    albumModeHuman: "ヒューマン",
     close: "閉じる",
     heroKicker: "MOON LIBRARY",
     heroTitle: "月明かりプレイリスト",
@@ -292,8 +358,17 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [nowPlayingShared, setNowPlayingShared] = useState(false);
   const [playlistThemeMode, setPlaylistThemeMode] = useState<PlaylistThemeMode>("all");
-  const currentTrackId = player.currentTrack?.id || "";
-  const coverFailed = Boolean(!player.currentTrack?.coverUrl || (currentTrackId && failedCoverIds[currentTrackId]));
+  const [albumImageModeByArtist, setAlbumImageModeByArtist] = useState<Partial<Record<ArtistKey, AlbumImageMode>>>({});
+  const currentTrack = player.currentTrack;
+  const currentTrackId = currentTrack?.id || "";
+  const currentTrackAlbumMode = currentTrack ? getAlbumCoverMode(albumImageModeByArtist, currentTrack.artistKey) : "default";
+  const coverFailed = Boolean(!currentTrack || !resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS) || (currentTrackId && failedCoverIds[currentTrackId]));
+  const displayedTracks = useMemo(() => {
+    return player.tracks.map((track) => ({
+      ...track,
+      coverUrl: resolveTrackAlbumCoverUrl(track, getAlbumCoverMode(albumImageModeByArtist, track.artistKey), HUMAN_MODE_COVER_URLS),
+    }));
+  }, [albumImageModeByArtist, player.tracks]);
   const effectiveArtistTheme = playlistThemeMode === "all" ? player.currentTrack?.artistKey : playlistThemeMode;
   const artistThemeClass = effectiveArtistTheme === "dest1nova"
     ? styles.dest1novaMode
@@ -304,6 +379,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         : styles.neoMode;
   const isCompact = presentation === "compact";
   const hasCurrentTrack = Boolean(player.currentTrack);
+  const canToggleAlbumMode = Boolean(currentTrack && canUseHumanCoverMode(currentTrack.artistKey));
+  const albumModeSwitchLabel = currentTrackAlbumMode === "human" ? copy.albumModeDefault : copy.albumModeHuman;
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
@@ -352,20 +429,18 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     }
   }, [ambientAssetKey]);
   const bannerFallbackCover = useMemo(() => {
-    if (!hasCurrentTrack) {
+    if (!currentTrack) {
       return "url('/music-covers/yeoni-1st-album.webp')";
     }
 
-    try {
-      return `url("${buildMusicPublicUrl("yeonisong/꽃돼지 1집.png")}")`;
-    } catch {
-      return "url('/music-covers/yeoni-1st-album.webp')";
-    }
-  }, [hasCurrentTrack]);
+    const coverUrl = resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS);
+    return coverUrl ? `url("${coverUrl}")` : "url('/music-covers/yeoni-1st-album.webp')";
+  }, [currentTrack, currentTrackAlbumMode]);
   const playerStyle: PlayerStyle = {};
+  const currentTrackCoverUrl = currentTrack ? resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS) : "";
 
-  if (player.currentTrack && !coverFailed) {
-    playerStyle["--cover-image"] = `url("${player.currentTrack.coverUrl}")`;
+  if (currentTrack && currentTrackCoverUrl && !coverFailed) {
+    playerStyle["--cover-image"] = `url("${currentTrackCoverUrl}")`;
   }
   playerStyle["--moon-banner-cover-fallback"] = bannerFallbackCover;
 
@@ -390,6 +465,36 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
     setFailedCoverIds((current) => ({ ...current, [trackId]: true }));
   }, [player.currentTrack?.id]);
+
+  const clearCoverFailuresForArtist = useCallback((artistKey: ArtistKey) => {
+    setFailedCoverIds((current) => {
+      const next = { ...current };
+      let hasChanges = false;
+
+      for (const track of player.tracks) {
+        if (track.artistKey !== artistKey) continue;
+        if (!next[track.id]) continue;
+        delete next[track.id];
+        hasChanges = true;
+      }
+
+      return hasChanges ? next : current;
+    });
+  }, [player.tracks]);
+
+  const handleAlbumModeToggle = useCallback(() => {
+    const track = player.currentTrack;
+    if (!track || !canUseHumanCoverMode(track.artistKey)) return;
+
+    setAlbumImageModeByArtist((current) => {
+      const currentMode = getAlbumCoverMode(current, track.artistKey);
+      return {
+        ...current,
+        [track.artistKey]: currentMode === "human" ? "default" : "human",
+      };
+    });
+    clearCoverFailuresForArtist(track.artistKey);
+  }, [clearCoverFailuresForArtist, player.currentTrack]);
 
   const toggleLyricsOpen = useCallback(() => {
     setIsLyricsOpen((current) => !current);
@@ -541,10 +646,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         aria-label={copy.playerAria}
       >
         <div className={styles.miniCoverWrap}>
-          {player.currentTrack.coverUrl ? (
+          {currentTrackCoverUrl ? (
             <img
               className={styles.miniCover}
-              src={player.currentTrack.coverUrl}
+              src={currentTrackCoverUrl}
               alt={`${player.currentTrack.artistName} - ${player.currentTrack.title} cover`}
               loading="lazy"
               decoding="async"
@@ -627,7 +732,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       </svg>
       <div className={styles.mist} aria-hidden />
 
-      {player.currentTrack ? (
+      {currentTrack ? (
         <div className={`${styles.playerFrame} mx-auto animate-fade-in-up`}>
           <div className={`${styles.playerHero} font-display`}>
             <span className={`${styles.playerHeroKicker} font-decorative`}>{copy.heroKicker}</span>
@@ -637,10 +742,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
           <div className={`${styles.playerMain} rounded-[8px]`}>
             <div className={`${styles.albumChamber} relative`}>
               <MoonAlbumArtwork
-                coverUrl={player.currentTrack.coverUrl}
-                title={player.currentTrack.title}
-                artistKey={player.currentTrack.artistKey}
-                artistName={player.currentTrack.artistName}
+                coverUrl={currentTrackCoverUrl}
+                title={currentTrack.title}
+                artistKey={currentTrack.artistKey}
+                artistName={currentTrack.artistName}
                 coverFailed={coverFailed}
                 onCoverLoad={markCoverLoaded}
                 onCoverError={markCoverFailed}
@@ -656,7 +761,20 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
             <div className={`${styles.nowPlayingPanel} shadow-violet-neon`}>
               <div className={styles.nowPlayingHeader}>
-                <span className={`${styles.artistName} font-decorative`}>{player.currentTrack.artistName}</span>
+                <span className={`${styles.artistName} font-decorative`}>{currentTrack.artistName}</span>
+                {canToggleAlbumMode ? (
+                  <button
+                    className={styles.albumModeButton}
+                    type="button"
+                    onClick={handleAlbumModeToggle}
+                    data-mode={currentTrackAlbumMode}
+                    aria-label={`${copy.albumModeLabel}: ${albumModeSwitchLabel}`}
+                  >
+                    <Moon size={14} aria-hidden />
+                    <span className={styles.albumModeButtonText}>{albumModeSwitchLabel}</span>
+                    <span className={styles.albumModeButtonGlow} aria-hidden />
+                  </button>
+                ) : null}
                 <button
                   className={styles.nowPlayingShareButton}
                   type="button"
@@ -668,8 +786,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   <span>{nowPlayingShared ? copy.copied : copy.share}</span>
                 </button>
               </div>
-              <h2 className="font-display">{player.currentTrack.title}</h2>
-              <p>{player.currentTrack.mood || copy.defaultMood}</p>
+              <h2 className="font-display">{currentTrack.title}</h2>
+              <p>{currentTrack.mood || copy.defaultMood}</p>
             </div>
 
             <div className={`${styles.controlDeck} shadow-violet-neon`}>
@@ -773,7 +891,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
           </div>
 
           <MusicPlaylistPanel
-            tracks={player.tracks}
+            tracks={displayedTracks}
             failedCoverIds={failedCoverIds}
             onActiveTabChange={setPlaylistThemeMode}
             onCoverError={handlePlaylistCoverError}

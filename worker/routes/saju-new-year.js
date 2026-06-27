@@ -1,5 +1,5 @@
-import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
-import { requireAuth } from "../lib/auth.js";
+﻿import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
+import { getOptionalUserFromRequest, requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { createPremiumAccessToken, verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
@@ -4744,32 +4744,7 @@ function buildNewYearAIAuthFromConsultationToken(tokenPayload = {}) {
 
 async function resolveNewYearAIStartAuth(request, env, body = {}) {
   const premiumAccessToken = readNewYearAIPremiumAccessToken(request, body);
-  try {
-    const auth = await requireAuth(request, env);
-    return {
-      auth,
-      authSource: "login",
-      premiumAccessToken,
-      tokenVerified: false,
-    };
-  } catch (authError) {
-    if (!premiumAccessToken) {
-      if (hasNewYearAIPassEvidence(body)) {
-        throw Object.assign(new Error("이용권 적용은 확인됐지만 상담 세션 토큰이 전달되지 않았습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 갱신해 주세요."), {
-          code: "NEW_YEAR_AI_PAYMENT_TOKEN_MISSING",
-          status: 402,
-        });
-      }
-      if (Number(authError?.status) === 401) {
-        throw Object.assign(new Error(hasNewYearAuthMaterial(request)
-          ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."
-          : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
-          code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
-          status: 401,
-        });
-      }
-      throw authError;
-    }
+  if (premiumAccessToken) {
     const verified = await verifyPremiumAccessToken(premiumAccessToken, env, { reportType: "sajuNewYear" });
     if (!verified?.ok) {
       const expired = clean(verified?.code) === "PREMIUM_ACCESS_TOKEN_EXPIRED";
@@ -4788,6 +4763,41 @@ async function resolveNewYearAIStartAuth(request, env, body = {}) {
       tokenPayload: verified.payload || {},
     };
   }
+
+  let optionalAuth = null;
+  try {
+    optionalAuth = await getOptionalUserFromRequest(request, env);
+  } catch (authError) {
+    throw Object.assign(new Error("신년운세 AI 상담 권한 확인 중 인증 상태를 확인하지 못했습니다. 결제창에서 권한을 다시 확인해 주세요."), {
+      code: "NEW_YEAR_AI_AUTH_SERVICE_ERROR",
+      status: 401,
+      cause: authError,
+    });
+  }
+
+  if (optionalAuth) {
+    return {
+      auth: optionalAuth,
+      authSource: "login",
+      premiumAccessToken,
+      tokenVerified: false,
+    };
+  }
+
+  if (hasNewYearAIPassEvidence(body)) {
+    throw Object.assign(new Error("이용권 적용은 확인됐지만 상담 생성 권한 토큰이 전달되지 않았습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 갱신해 주세요."), {
+      code: "NEW_YEAR_AI_PAYMENT_TOKEN_MISSING",
+      status: 402,
+    });
+  }
+
+  throw Object.assign(new Error(hasNewYearAuthMaterial(request)
+    ? "로그인 세션이 만료되었습니다. 결제창에서 권한을 다시 확인해 주세요."
+    : "신년운세 AI 상담을 위해 먼저 로그인해 주세요."), {
+    code: hasNewYearAuthMaterial(request) ? "SESSION_INVALID" : "AUTH_REQUIRED",
+    status: 401,
+  });
+
 }
 
 async function verifyNewYearAIConsultationAccessToken(request, env, auth, body, binding = {}) {
@@ -9403,7 +9413,15 @@ export async function handleSajuNewYearRoutes(request, env = {}) {
     return json({ ok: false, serviceKey: SERVICE_KEY, message: "지원하지 않는 사주 신년운세 경로입니다." }, { status: 404 });
   } catch (error) {
     console.error("[NewYearBook][Error]", normalizeNewYearBookError(error));
-    return handleRouteError(error, "SajuNewYearRoutes");
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: {
+        route: "SajuNewYearRoutes",
+        method: request.method,
+        authPresent: hasNewYearAuthMaterial(request),
+      },
+    });
   }
 }
 
