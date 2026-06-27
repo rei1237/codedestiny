@@ -4659,6 +4659,53 @@ function readNewYearAIPremiumAccessToken(request, body = {}) {
   );
 }
 
+function hasNewYearAIPassEvidence(body = {}) {
+  const candidates = [];
+  const push = (item) => {
+    if (item && typeof item === "object" && !candidates.includes(item)) candidates.push(item);
+  };
+  push(body);
+  push(body?.data);
+  push(body?.payload);
+  push(body?.rawPayload);
+  push(body?.rawPayload?.data);
+  push(body?.access);
+  push(body?.access?.payload);
+  push(body?.access?.rawPayload);
+  push(body?.accessGrant);
+  push(body?.accessDecision);
+  push(body?.consume);
+  push(body?.payment);
+  push(body?._paymentContext);
+  for (const item of [...candidates]) {
+    push(item?.data);
+    push(item?.payload);
+    push(item?.rawPayload);
+    push(item?.accessGrant);
+    push(item?.accessDecision);
+    push(item?.consume);
+    push(item?.payment);
+    push(item?._paymentContext);
+  }
+  return candidates.some((item) => {
+    const accessType = clean(item?.accessType || item?.transactionType || item?.type).toLowerCase();
+    const accessMethod = clean(item?.accessMethod || item?.paymentMethod || item?.method).toLowerCase();
+    const paymentMode = clean(item?.paymentMode || item?.mode).toLowerCase();
+    const reason = clean(item?.reason || item?.status).toLowerCase();
+    const passTier = clean(item?.passTier || item?.tier || item?.licenseTier).toLowerCase();
+    return Boolean(
+      item?.freeBySubscription === true
+      || item?.__cdPassGateResolved === true
+      || item?.accessGranted === true && /pass|family|subscription|license/.test(reason)
+      || /^(membership_pass|family|family_pass|usage_pass|subscription_pass|pass)$/.test(accessType)
+      || /^(pass|family|membership_pass)$/.test(accessMethod)
+      || /^(membership_pass|pass|family)$/.test(paymentMode)
+      || /^(pass_applied|pass_covered|pass_free|family_all_access|license_coin_limit)$/.test(reason)
+      || passTier === "family"
+    );
+  });
+}
+
 function newYearAIConsultationTokenMatches(tokenPayload = {}, binding = {}) {
   const tokenReportId = clean(tokenPayload.reportId);
   const tokenSessionId = clean(tokenPayload.sessionId || tokenPayload.reportSessionId);
@@ -4707,6 +4754,12 @@ async function resolveNewYearAIStartAuth(request, env, body = {}) {
     };
   } catch (authError) {
     if (!premiumAccessToken) {
+      if (hasNewYearAIPassEvidence(body)) {
+        throw Object.assign(new Error("이용권 적용은 확인됐지만 상담 세션 토큰이 전달되지 않았습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 갱신해 주세요."), {
+          code: "NEW_YEAR_AI_PAYMENT_TOKEN_MISSING",
+          status: 402,
+        });
+      }
       if (Number(authError?.status) === 401) {
         throw Object.assign(new Error(hasNewYearAuthMaterial(request)
           ? "로그인 세션이 만료되었습니다. 다시 로그인한 뒤 신년운세 AI 상담을 이어가 주세요."

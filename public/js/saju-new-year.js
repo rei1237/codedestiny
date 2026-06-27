@@ -272,6 +272,7 @@
       NEW_YEAR_AI_SESSION_TOKEN_INVALID: '결제된 상담 세션을 확인하지 못했습니다. 결제 후 다시 이어가 주세요.',
       NEW_YEAR_AI_PAYMENT_TOKEN_EXPIRED: '결제 확인 시간이 만료되었습니다. 결제창에서 권한을 다시 확인해 주세요.',
       NEW_YEAR_AI_PAYMENT_TOKEN_INVALID: '결제 권한을 확인하지 못했습니다. 결제창에서 다시 확인해 주세요.',
+      NEW_YEAR_AI_PAYMENT_TOKEN_MISSING: '이용권 적용은 확인됐지만 상담 세션 토큰이 전달되지 않았습니다. 신년운세 AI 상담 받기를 다시 눌러 권한을 갱신해 주세요.',
       AUTH_REQUIRED: '신년운세 AI 상담을 위해 먼저 로그인해 주세요.',
       SESSION_INVALID: '로그인 세션이 만료되었습니다. 다시 로그인한 뒤 시도해 주세요.',
       ENTITLEMENT_REQUIRED: '신년운세 AI 상담 권한이 필요합니다. 결제 또는 이용권을 확인해 주세요.',
@@ -455,7 +456,7 @@
       var found = _clean(payload[keys[i]]);
       if (found) return found;
     }
-    var nestedKeys = ['data', 'payload', 'accessGrant', 'accessDecision', 'consume', 'payment', '_paymentContext'];
+    var nestedKeys = ['data', 'payload', 'rawPayload', 'raw', 'access', 'accessGrant', 'accessDecision', 'consume', 'payment', '_paymentContext'];
     for (var j = 0; j < nestedKeys.length; j += 1) {
       var nested = payload[nestedKeys[j]];
       if (nested && nested !== payload) {
@@ -483,12 +484,27 @@
     push(source);
     push(source.data);
     push(source.payload);
+    push(source.rawPayload);
+    push(source.raw);
+    push(source.access);
+    push(source.access && source.access.payload);
+    push(source.access && source.access.rawPayload);
     push(data);
     push(data.accessGrant);
     push(data.accessDecision);
     push(data.consume);
     push(data.payment);
     push(data._paymentContext);
+    layers.slice().forEach(function (item) {
+      push(item && item.data);
+      push(item && item.payload);
+      push(item && item.rawPayload);
+      push(item && item.accessGrant);
+      push(item && item.accessDecision);
+      push(item && item.consume);
+      push(item && item.payment);
+      push(item && item._paymentContext);
+    });
     return layers;
   }
 
@@ -1207,13 +1223,19 @@
   function _buildAIConsultationPayload(pending, accessGrant, premiumToken, paidEvidence, consultationAccessToken) {
     var evidence = paidEvidence && typeof paidEvidence === 'object' ? paidEvidence : null;
     var grant = accessGrant || evidence && evidence.accessGrant;
+    var paymentToken = _clean(
+      premiumToken
+      || evidence && (evidence.premiumAccessToken || evidence._premiumAccessToken)
+      || grant && (grant.premiumAccessToken || grant._premiumAccessToken || grant.accessToken || grant.token)
+      || _readPremiumAccessToken()
+    );
     var payload = _buildPreparePayload(
       pending.reportId,
       pending.targetYear,
       pending.profile,
       pending.normalizedBirth,
       grant,
-      premiumToken || _readPremiumAccessToken()
+      paymentToken
     );
     payload.paymentPurpose = 'ai_consultation';
     payload.entitlementKey = 'saju_new_year_pdf';
@@ -1233,6 +1255,13 @@
         sessionId: payload.sessionId,
         reportSessionId: payload.reportSessionId || payload.sessionId
       });
+    }
+    if (paymentToken) {
+      payload.premiumAccessToken = paymentToken;
+      payload._premiumAccessToken = payload._premiumAccessToken || paymentToken;
+      payload.accessGrant = Object.assign({}, payload.accessGrant || {}, { premiumAccessToken: paymentToken });
+      payload.payment = Object.assign({}, payload.payment || {}, { premiumAccessToken: paymentToken });
+      payload._paymentContext = Object.assign({}, payload._paymentContext || {}, { premiumAccessToken: paymentToken });
     }
     payload.consultationAccessToken = _clean(consultationAccessToken || pending.consultationAccessToken || evidence && evidence.consultationAccessToken);
     payload.dryRun = false;
@@ -1485,10 +1514,20 @@
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       var gateResult = await new Promise(function(resolve) {
         var settled = false;
-        function finish(payload) {
+        function finish(payload, access) {
           if (settled) return;
           settled = true;
-          var raw = payload && typeof payload === 'object' ? payload : {};
+          var sourcePayload = payload && typeof payload === 'object' ? payload : {};
+          var accessPayload = access && typeof access === 'object' ? access : {};
+          var raw = Object.assign(
+            {},
+            accessPayload.rawPayload && typeof accessPayload.rawPayload === 'object' ? accessPayload.rawPayload : {},
+            accessPayload.payload && typeof accessPayload.payload === 'object' ? accessPayload.payload : {},
+            sourcePayload
+          );
+          if (accessPayload && Object.keys(accessPayload).length) raw.access = accessPayload;
+          if (accessPayload.rawPayload && typeof accessPayload.rawPayload === 'object') raw.rawPayload = accessPayload.rawPayload;
+          if (accessPayload.payload && typeof accessPayload.payload === 'object') raw.payload = accessPayload.payload;
           var data = raw && raw.data && typeof raw.data === 'object'
             ? raw.data
             : (raw && raw.payload && typeof raw.payload === 'object')
@@ -1548,12 +1587,12 @@
             sessionId: 'saju-new-year:' + reportId,
             reportSessionId: 'saju-new-year:' + reportId,
             requestId: requestId,
-            onGranted: function(transactionId, payload) {
+            onGranted: function(transactionId, payload, access) {
               var grantedPayload = payload && typeof payload === 'object' ? payload : {};
               var txId = _clean((grantedPayload && (grantedPayload.purchaseId || grantedPayload.transactionId)) || transactionId);
-              finish(Object.assign({}, grantedPayload, txId ? { purchaseId: txId, transactionId: txId } : {}));
+              finish(Object.assign({}, grantedPayload, txId ? { purchaseId: txId, transactionId: txId } : {}), access);
             },
-            onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}); },
+            onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}, access); },
             onCancel: cancel
           });
           if (gate && typeof gate.then === 'function') gate.then(function(payload) {
