@@ -4906,11 +4906,11 @@ function buildNewYearAIConsultationPrompt({ normalized, yearlyNormalized, body =
   const targetYear = yearlyNormalized?.targetYear || normalized?.targetYear || resolveDefaultTargetYear();
   const chapterBlueprint = buildNewYearAIChapterBlueprint(targetYear);
   return [
-    "아래 계산 데이터에 근거해 신년운세 AI 상담을 1장씩 순차 작성한다.",
+    "아래 계산 데이터에 근거해 신년운세 AI 상담 전체 결과를 한 번에 작성한다.",
     "질문에 직접 답하고, 계산 데이터에 없는 세부 날짜나 월운은 지어내지 않는다.",
-    "기존 신년운세 목차는 6장 안정형 상담 설계도로 압축해 사용한다.",
-    "실제 LLM 호출은 한 번에 한 장만 작성한다.",
+    "6장 상담 설계도는 PDF 목차가 아니라 화면에 표시할 AI 상담 카드 구조로만 사용한다.",
     "사용자가 선택한 질문 카테고리는 해당 장과 관련 장에서 더 깊고 구체적으로 다룬다.",
+    "결과는 따뜻하고 신비로운 한국어 상담 문체로 작성한다.",
     "",
     "[사용자 질문]",
     question,
@@ -4927,10 +4927,17 @@ function buildNewYearAIConsultationPrompt({ normalized, yearlyNormalized, body =
     "[계산된 명식/대운/세운/월운 context]",
     compactJsonForPrompt(context, 16000),
     "",
-    "[생성 방식]",
-    "ready, start, focus, chapter, finalize 단계로 처리한다.",
-    "chapter 단계에서는 선택된 chapterNo 한 장만 JSON으로 작성한다.",
-    "focus 단계에서는 사용자의 실제 질문을 가장 먼저 깊게 답한다.",
+    "[답변 형식]",
+    "반드시 JSON 객체 하나로만 답한다. JSON 앞뒤에 설명 문장을 붙이지 않는다.",
+    "필드: summary, yearlyFlow, topicAnswer, chapterConsultations, timing, actionGuide, closingMessage, followUpQuestions.",
+    "summary는 사용자의 질문에 대한 핵심 답을 3~5문장으로 먼저 제시한다.",
+    "yearlyFlow는 분석 연도의 세운, 일간 기준 십성 흐름, 오행 균형, 대운과 세운의 상호작용을 설명한다.",
+    "topicAnswer는 사용자의 질문과 카테고리에 직접 답하며 8~14문장으로 깊게 작성한다.",
+    "chapterConsultations는 6장 모두 포함한다. 각 장은 {no,title,overview,sections,keyTakeaways,actionItems} 구조다.",
+    "각 장 overview는 2~4문장, sections는 3~5개, keyTakeaways/actionItems는 각각 2~5개로 제한한다.",
+    "timing.goodPeriods/timing.cautionPeriods는 한국어 문자열 배열이다.",
+    "timing.monthlyNotes는 [{\"month\":\"1월\",\"note\":\"...\"}] 배열이다.",
+    "actionGuide와 followUpQuestions는 한국어 문자열 배열이다.",
     hasMonthly
       ? "월운 데이터가 있으므로 월별 또는 분기별 흐름을 계산 근거와 함께 정리한다."
       : "월운 데이터가 부족하면 정확한 월별 예측을 꾸며내지 말고 분기·계절 단위로만 설명한다.",
@@ -5047,7 +5054,9 @@ function buildNewYearAIJsonRepairPrompt(basePrompt = "", phase = "chapter") {
     "[JSON 재작성 지시]",
     "직전 응답은 상담 내용은 생성되었지만 JSON 구조가 안정적으로 해석되지 않았다.",
     "새로운 해석을 만들지 말고, 위 지시의 답변 형식에 맞는 JSON 객체 하나만 다시 작성한다.",
-    phase === "focus"
+    phase === "complete"
+      ? "complete 단계이므로 반드시 summary, yearlyFlow, topicAnswer, chapterConsultations, timing, actionGuide, closingMessage, followUpQuestions를 채운다."
+      : phase === "focus"
       ? "focus 단계이므로 반드시 topicAnswer를 채우고, JSON 앞뒤 설명 문장은 붙이지 않는다."
       : "chapter 단계이므로 반드시 chapter와 resultPatch를 채우고, JSON 앞뒤 설명 문장은 붙이지 않는다.",
   ].join("\n");
@@ -7810,6 +7819,8 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
     });
   }
   const isStartRoute = /\/start$/.test(routePath);
+  const isSingleConsultationRoute = /\/ai-consultation$/.test(routePath);
+  const isPaidEntryRoute = isStartRoute || isSingleConsultationRoute;
 
   let auth = null;
   normalized = normalizeInput(body);
@@ -7828,7 +7839,7 @@ async function loadNewYearAIConsultationContext(request, env, routePath = "/api/
   const requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || "");
 
   let access;
-  if (isStartRoute) {
+  if (isPaidEntryRoute) {
     const startAuth = await resolveNewYearAIStartAuth(request, env, body);
     auth = startAuth.auth;
     authSource = startAuth.authSource;
@@ -8452,11 +8463,178 @@ async function handleNewYearAIConsultationFinalize(request, env) {
 }
 
 async function handleNewYearAIConsultation(request, env) {
+  let ctx = null;
+  let llmLatencyMs = 0;
+  try {
+    const readiness = assertNewYearAIGeminiReady(env);
+    ctx = await loadNewYearAIConsultationContext(request, env, "/api/saju-new-year/ai-consultation");
+    const prompt = buildNewYearAIConsultationPrompt({
+      normalized: ctx.normalized,
+      yearlyNormalized: ctx.yearlyNormalized,
+      body: ctx.body,
+      question: ctx.question,
+      category: ctx.category,
+    });
+    logNewYearAIConsultation("prompt built", {
+      ...ctx.baseMeta(),
+      targetYear: ctx.targetYear,
+      category: ctx.category,
+      questionLength: ctx.question.length,
+      chartCalculated: true,
+      geminiForced: true,
+      model: readiness.model,
+    });
+
+    let finalAi = null;
+    let finalResult = null;
+    let lastError = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      logNewYearAIConsultation("LLM provider start", {
+        ...ctx.baseMeta(),
+        targetYear: ctx.targetYear,
+        category: ctx.category,
+        questionLength: ctx.question.length,
+        chartCalculated: true,
+        geminiForced: true,
+        model: readiness.model,
+      });
+      const aiStartedAt = Date.now();
+      const promptForAttempt = attempt > 0 ? buildNewYearAIJsonRepairPrompt(prompt, "complete") : prompt;
+      const ai = await callGeminiText(env, promptForAttempt, {
+        systemPrompt: NEW_YEAR_AI_RESULT_SYSTEM_PROMPT,
+        taskType: "fortune",
+        temperature: attempt > 0 ? 0.62 : 0.7,
+        maxOutputTokens: 6144,
+        model: readiness.model,
+        timeoutMs: readiness.timeoutMs,
+        fallbackToWorkersAI: false,
+      });
+      llmLatencyMs = Date.now() - aiStartedAt;
+      if (!ai?.ok || !clean(ai.text)) {
+        lastError = Object.assign(new Error(clean(ai?.message) || "Gemini new year consultation generation failed."), {
+          code: clean(ai?.error || ai?.code) || "NEW_YEAR_AI_LLM_FAILED",
+          status: Number(ai?.status || 502) || 502,
+        });
+        continue;
+      }
+      if (clean(ai.provider).toLowerCase() !== "gemini") {
+        lastError = Object.assign(new Error("신년운세 AI 상담은 Gemini provider만 허용됩니다."), {
+          code: "GEMINI_PROVIDER_REQUIRED",
+          status: 502,
+        });
+        continue;
+      }
+      const parsed = normalizeNewYearAIResult(ai.text, ctx.targetYear);
+      const rawMeta = newYearAIRawTextMeta(ai.text);
+      if (!clean(parsed.summary || parsed.topicAnswer || parsed.rawText)) {
+        lastError = Object.assign(new Error("신년운세 AI 상담 결과가 충분히 생성되지 않았습니다."), {
+          code: "NEW_YEAR_AI_RESULT_TOO_SHORT",
+          status: 502,
+        });
+        continue;
+      }
+      finalAi = ai;
+      finalResult = parsed;
+      logNewYearAIConsultation("LLM provider success", {
+        ...ctx.baseMeta(),
+        providerName: "gemini",
+        targetYear: ctx.targetYear,
+        category: ctx.category,
+        questionLength: ctx.question.length,
+        chartCalculated: true,
+        geminiForced: true,
+        model: ai.model || readiness.model,
+        llmLatencyMs,
+        retryAttempt: attempt,
+        ...rawMeta,
+      });
+      break;
+    }
+
+    if (!finalAi || !finalResult) {
+      throw lastError || Object.assign(new Error("신년운세 AI 상담 생성에 실패했습니다."), {
+        code: "NEW_YEAR_AI_LLM_FAILED",
+        status: 502,
+      });
+    }
+
+    const consultationId = `saju-new-year-ai:${hashAnnualFortuneValue({
+      userId: ctx.auth.userId,
+      reportId: ctx.reportId,
+      sessionKey: ctx.sessionKey,
+      targetYear: ctx.targetYear,
+      category: ctx.category,
+      question: ctx.question,
+      createdAtBucket: Math.floor(ctx.startedAt / 1000),
+    })}`;
+    const chargedCoins = Math.max(0, Number(ctx.access.chargedCoins || ctx.access.amountCoins || ctx.access.cost || 0));
+    const responsePayload = {
+      ok: true,
+      serviceKey: SERVICE_KEY,
+      featureKey: ctx.featureKey,
+      title: NEW_YEAR_AI_TITLE,
+      status: "completed",
+      targetYear: ctx.targetYear,
+      category: ctx.category,
+      question: ctx.question,
+      result: finalResult,
+      rawText: finalResult.rawText,
+      consultationId,
+      resultId: consultationId,
+      requestId: clean(ctx.body?.requestId || ctx.body?.accessGrant?.requestId || ctx.body?._paymentContext?.requestId || ""),
+      sessionId: ctx.sessionKey,
+      reportId: ctx.reportId,
+      billing: {
+        accessType: clean(ctx.access.accessType || ctx.access.type || ""),
+        accessMethod: clean(ctx.access.accessMethod || ctx.access.method || ""),
+        paymentMode: clean(ctx.access.paymentMode || ctx.access.method || ""),
+        chargedCoins: chargedCoins || undefined,
+      },
+      model: finalAi.model || readiness.model,
+      provider: "gemini",
+      providerName: "gemini",
+      isMock: false,
+      chartCalculated: true,
+      luckFlowCalculated: true,
+      llmLatencyMs,
+    };
+    logNewYearAIConsultation("response returned", {
+      ...ctx.baseMeta(),
+      providerName: "gemini",
+      targetYear: ctx.targetYear,
+      category: ctx.category,
+      questionLength: ctx.question.length,
+      chartCalculated: true,
+      geminiForced: true,
+      model: responsePayload.model,
+      llmLatencyMs,
+    });
+    return json(responsePayload);
+  } catch (error) {
+    logNewYearAIConsultation("LLM provider error", {
+      ...(ctx?.baseMeta ? ctx.baseMeta() : {}),
+      providerName: "gemini",
+      isMock: false,
+      dryRun: false,
+      targetYear: ctx?.targetYear,
+      category: ctx?.category,
+      questionLength: ctx?.question?.length,
+      chartCalculated: Boolean(ctx?.yearlyNormalized),
+      geminiForced: true,
+      model: resolveNewYearAIGeminiModel(env),
+      llmLatencyMs,
+      errorCode: clean(error?.code || error?.name) || "NEW_YEAR_AI_CONSULTATION_FAILED",
+    });
+    return newYearAIErrorResponse(error, "현재 신년운세 AI 상담 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+  }
+}
+
+async function handleNewYearAIConsultationDeprecatedPhase() {
   return json({
     ok: false,
     serviceKey: SERVICE_KEY,
-    code: "NEW_YEAR_AI_PHASE_REQUIRED",
-    message: "신년운세 AI 상담은 질문 집중 상담과 6장 상담을 순차 생성합니다. ready, start, focus, chapter, finalize 경로를 사용해 주세요.",
+    code: "NEW_YEAR_AI_PHASE_DEPRECATED",
+    message: "신년운세 AI 상담 생성 방식이 단일 상담 API로 변경되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.",
   }, { status: 409 });
 }
 
@@ -9213,11 +9391,11 @@ export async function handleSajuNewYearRoutes(request, env = {}) {
     if (method === "POST" && (path === "/verify-access" || path === "verify-access")) return await handleVerifyAccess(request, env);
     if (method === "POST" && (path === "/create-job" || path === "create-job")) return await handleCreateJob(request, env);
     if (method === "POST" && (path === "/generate-mock" || path === "generate-mock")) return await handleGenerateMock(request, env);
-    if (method === "POST" && (path === "/ai-consultation/ready" || path === "ai-consultation/ready")) return await handleNewYearAIConsultationReady(request, env);
-    if (method === "POST" && (path === "/ai-consultation/start" || path === "ai-consultation/start")) return await handleNewYearAIConsultationStart(request, env);
-    if (method === "POST" && (path === "/ai-consultation/chapter" || path === "ai-consultation/chapter")) return await handleNewYearAIConsultationChapter(request, env);
-    if (method === "POST" && (path === "/ai-consultation/focus" || path === "ai-consultation/focus")) return await handleNewYearAIConsultationFocus(request, env);
-    if (method === "POST" && (path === "/ai-consultation/finalize" || path === "ai-consultation/finalize")) return await handleNewYearAIConsultationFinalize(request, env);
+    if (method === "POST" && (path === "/ai-consultation/ready" || path === "ai-consultation/ready")) return await handleNewYearAIConsultationDeprecatedPhase();
+    if (method === "POST" && (path === "/ai-consultation/start" || path === "ai-consultation/start")) return await handleNewYearAIConsultationDeprecatedPhase();
+    if (method === "POST" && (path === "/ai-consultation/chapter" || path === "ai-consultation/chapter")) return await handleNewYearAIConsultationDeprecatedPhase();
+    if (method === "POST" && (path === "/ai-consultation/focus" || path === "ai-consultation/focus")) return await handleNewYearAIConsultationDeprecatedPhase();
+    if (method === "POST" && (path === "/ai-consultation/finalize" || path === "ai-consultation/finalize")) return await handleNewYearAIConsultationDeprecatedPhase();
     if (method === "POST" && (path === "/ai-consultation" || path === "ai-consultation")) return await handleNewYearAIConsultation(request, env);
     if (method === "POST" && (String(path || "").startsWith("/retry/") || String(path || "").startsWith("retry/"))) return await handlePrepare(request, env);
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare" || path === "prepare")) return await handlePrepare(request, env);
