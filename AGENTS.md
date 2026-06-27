@@ -21,6 +21,7 @@
 - If the user's prompt is too vague, stop and ask a clarifying question before writing code.
 - Ensure every code snippet is copy-paste ready with enough local context for placement.
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
+- `준비중` 배지는 사용자 승인 없이 삭제하지 않는다. 계획서/안 작성 시에도 삭제 제안은 금지한다.
 - All fortune-related writing must read as professional, mystical, and emotionally natural, and must never sound like developer documentation, technical specs, or implementation notes.
 - This rule applies only to fortune-facing writing in Markdown documents, prompt files, generated reports, UI copy, JSON text payloads, PDF manuscripts, and test fixtures.
 - Fortune writing must not introduce itself as a feature, service, section, report, analysis result, or content block.
