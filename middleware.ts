@@ -175,7 +175,6 @@ const SERVICE_ROUTE_PARAMS = new Map([
 const SERVICE_ROUTE_EXTRA_QUERY = new Map([]);
 
 const LANDING_ONLY_ROUTES = new Set([
-  "/faq",
   "/high-value",
   "/methodology",
   "/landing",

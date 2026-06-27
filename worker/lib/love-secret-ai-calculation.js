@@ -2,6 +2,7 @@ import { buildSajuProfile } from "./destiny-bias-engine.js";
 import { buildLoveSecretReference } from "./love-secret-reference.js";
 
 export const LOVE_SECRET_RELATIONSHIP_STATUSES = Object.freeze([
+  "솔로",
   "짝사랑",
   "썸",
   "연애 중",
@@ -68,7 +69,8 @@ function normalizeGender(value) {
   const text = clean(value, 20).toLowerCase();
   if (["m", "male", "man", "남", "남성", "남자"].includes(text)) return "male";
   if (["f", "female", "woman", "여", "여성", "여자"].includes(text)) return "female";
-  if (["other", "기타", "unknown", "none"].includes(text)) return text === "unknown" || text === "none" ? "" : "other";
+  if (["unknown", "none", "비공개"].includes(text)) return "unknown";
+  if (["other", "기타"].includes(text)) return "other";
   return text || "";
 }
 

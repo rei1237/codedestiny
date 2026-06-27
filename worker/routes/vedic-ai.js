@@ -3,15 +3,17 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, mongoose } from "../lib/db.js";
-import { MonthlyCreditLedger, Payment, PointHistory, VedicAiConsultation } from "../lib/models.js";
+import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
 const PRODUCT_ID = "vedic-ai-consultation";
+const CONSULTATION_TYPE = "vedic";
 const ACCESS_TOKEN_TYPE = "vedic-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "베다점 AI 상담";
@@ -19,66 +21,74 @@ const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const startLocks = new Map();
 
-const TOPICS = new Set([
-  "전체 인생 흐름",
-  "타고난 성향",
-  "영혼의 방향성",
-  "직업/사업운",
-  "재물운",
-  "연애/결혼운",
-  "인간관계",
-  "가족/부모운",
-  "건강/멘탈",
-  "이직/창업",
-  "올해 운세",
-  "다샤 흐름",
-  "현재 고민 상담",
-  "인생 전환기 상담",
-]);
+const FOCUS_AREA_LABELS = Object.freeze({
+  overall: "전체 흐름",
+  love: "연애와 인연",
+  money: "재물과 자원",
+  career: "일과 진로",
+  health: "건강과 에너지",
+  relationship: "관계와 협력",
+  spirituality: "영성과 내면",
+  custom: "직접 질문",
+});
+const FOCUS_AREA_VALUES = new Set(Object.keys(FOCUS_AREA_LABELS));
+const GEMINI_ENV_KEYS = [
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
+];
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  paymentRequired: "베다점 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
-  paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  invalidInput: "생년월일, 출생시간, 출생지 정보를 다시 확인해 주세요.",
-  placeInvalid: "출생지 정보를 확인하지 못했습니다. 도시와 국가를 다시 입력해 주세요.",
-  calculationFailed: "베다 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  serverFailed: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  llmFailed: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  paymentRequired: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
+  paymentVerifyFailed: "결제 정보를 확인하지 못했어요. 결제나 이용권은 차감되지 않았습니다.",
+  invalidInput: "베다점 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
+  birthTimeRequired: "베다점은 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
+  customQuestionRequired: "직접 질문을 선택했다면 지금 가장 궁금한 내용을 함께 적어 주세요.",
+  placeInvalid: "출생지와 시간대를 확인하기 어려워요. 도시명 또는 시간대를 다시 확인해 주세요.",
+  calculationFailed: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
+  serverFailed: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 };
 
 const SYSTEM_PROMPT = [
-  "당신은 베다 점성술, 즉 Jyotish를 상담하는 최고 수준의 베다 점성술 상담가입니다.",
+  "당신은 베다 점성술, 조티시, 나크샤트라, 라시 차트, 다샤 흐름을 바탕으로 상담하는 전문 상담가입니다.",
+  "사용자의 생년월일, 성별, 출생시간, 가능한 경우 출생지와 차트 정보를 바탕으로 현재 질문에 맞는 상담을 제공합니다.",
+  "답변은 신비롭지만 현실적인 문장으로 작성합니다.",
+  "전문 용어를 무리하게 나열하지 말고, 사용자가 이해하기 쉬운 말로 풀어 설명합니다.",
+  "불안감을 자극하거나 과장된 예언을 하지 않습니다.",
+  "무조건 성공한다, 반드시 실패한다 같은 단정적 표현을 쓰지 않습니다.",
+  "사용자가 실제로 선택할 수 있는 행동 조언을 제시합니다.",
   "",
-  "사용자의 생년월일, 성별, 출생시간, 출생지 정보와 계산된 베다 점성술 차트 데이터를 바탕으로 사용자의 삶의 흐름을 상담형으로 해석합니다.",
+  "결과는 아래 흐름을 자연스러운 한국어 상담문으로 나누어 작성합니다.",
+  "1. 우주가 말하는 핵심 결론",
+  "2. 나의 베다 차트 기질",
+  "3. 현재 질문과 연결되는 별의 흐름",
+  "4. 나크샤트라가 비추는 감정",
+  "5. 일과 재물의 방향",
+  "6. 관계와 인연의 흐름",
+  "7. 조심해야 할 선택",
+  "8. 오늘의 별빛 행동 처방",
+  "9. 마지막 조언",
   "",
-  "반드시 지켜야 할 원칙:",
-  "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 차트를 놓고 설명하듯 자연스럽게 답변합니다.",
-  "2. Lagna, Moon Sign, Nakshatra, D1 Rashi Chart, D9 Navamsa, house lordship, yoga, dasha, Rahu/Ketu의 의미를 정확하게 반영합니다.",
-  "3. 행성 이름과 별자리만 나열하지 말고, 사용자의 삶에서 어떤 성향과 사건 패턴으로 나타나는지 풀어냅니다.",
-  "4. Lagna는 삶의 기본 방향과 현실적 성향으로 해석합니다.",
-  "5. Moon은 감정, 마음의 안정, 반응 패턴, 내면의 욕구로 해석합니다.",
-  "6. Sun은 자아감, 명예, 권위, 삶의 중심감으로 해석합니다.",
-  "7. Nakshatra는 영혼의 성향, 감정의 결, 반복되는 선택 패턴으로 해석합니다.",
-  "8. D9 Navamsa는 결혼, 내면의 성숙, 후천적으로 드러나는 운명의 질감으로 해석합니다.",
-  "9. D10이 있으면 직업과 사회적 역할을 해석할 때 참고합니다.",
-  "10. Vimshottari Dasha는 현재 시기와 인생의 전환 흐름을 읽는 핵심 축으로 사용합니다.",
-  "11. Rahu는 강한 욕망, 낯선 방향, 집착, 성장의 실험으로 해석합니다.",
-  "12. Ketu는 분리감, 과거의 숙련, 허무감, 영적 거리감으로 해석합니다.",
-  "13. 어려운 배치나 약한 행성을 공포스럽게 말하지 말고, 조심해야 할 습관과 성장 과제로 설명합니다.",
-  "14. 운세를 절대적 예언처럼 말하지 않습니다.",
-  "15. 불안감을 조장하지 않습니다.",
-  "16. 같은 문장을 반복하지 않습니다.",
-  "17. AI, 프롬프트, 시스템, PDF, 챕터, job, progress 같은 표현을 결과에 노출하지 않습니다.",
-  "18. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
-  "19. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
-  "",
-  "첫 답변 출력 흐름:",
-  "차트의 핵심 인상, Lagna로 본 삶의 기본 방향, Moon과 Nakshatra로 본 마음의 패턴, 가장 강하게 작동하는 행성 흐름, 삶에서 반복되기 쉬운 패턴, 직업/사업 방향, 재물 흐름, 연애/결혼 흐름, 인간관계와 사회적 위치, Rahu/Ketu로 본 욕망과 숙제, 현재 Dasha 흐름, 현재 상담 주제에 대한 집중 해석, 앞으로 살려야 할 방향, 조심해야 할 선택, 현실적인 행동 조언, 마지막 상담 메시지.",
+  "AI, 시스템, PDF, 챕터, job, progress, 프롬프트 같은 구현 용어는 결과에 드러내지 않습니다.",
 ].join("\n");
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function cleanMultiline(value, maxLength = 0) {
+  const text = String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
 }
 
@@ -98,9 +108,48 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
+function objectId(userId) {
+  const id = String(userId || "");
+  return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
+}
+
+function isDevEnv(env) {
+  return ["development", "dev", "local", "test"].includes(clean(env?.NODE_ENV || env?.ENVIRONMENT).toLowerCase());
+}
+
+function maskedBirthDate(value) {
+  const text = clean(value, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text.slice(0, 4)}-**-**` : "";
+}
+
+function errorPayload(error, env) {
+  return {
+    errorMessage: clean(error?.message || error, 300),
+    ...(isDevEnv(env) && error?.stack ? { stack: String(error.stack).slice(0, 2000) } : {}),
+  };
+}
+
+function logVedicAi(stage, payload = {}, level = "log") {
+  const logger = typeof console[level] === "function" ? console[level] : console.log;
+  logger(`[Vedic AI ${stage}]`, payload);
+}
+
+function routeLogContext(request, body = {}, normalized = null, requestId = "") {
+  const input = normalized?.input || {};
+  return {
+    route: new URL(request.url).pathname,
+    requestId: requestId || clean(body.requestId || body.idempotencyKey, 180),
+    serviceType: clean(body.serviceType || FEATURE_KEY, 80),
+    focusArea: clean(input.focusArea || body.focusArea || "", 40),
+    birthDate: maskedBirthDate(input.birthInfo?.birthDate || body.birthDate || body.birthInfo?.birthDate),
+    questionLength: clean(input.userQuestion || body.question || body.userQuestion || body.message).length,
+  };
+}
+
 function readIdempotencyKey(request, body = {}) {
   return normalizeId(
-    body?.idempotencyKey
+    body?.requestId
+      || body?.idempotencyKey
       || request.headers.get("idempotency-key")
       || request.headers.get("x-idempotency-key"),
   );
@@ -126,18 +175,47 @@ function normalizeGender(value) {
   const text = clean(value, 20).toLowerCase();
   if (["m", "male", "man", "남", "남성", "남자"].includes(text)) return "male";
   if (["f", "female", "woman", "여", "여성", "여자"].includes(text)) return "female";
-  if (["other", "none", "기타", "비공개"].includes(text)) return "other";
+  if (["unknown", "other", "none", "비공개", "기타"].includes(text)) return "unknown";
   return text || "";
 }
 
-function normalizeBirthPlace(value = {}) {
-  const src = value && typeof value === "object" ? value : {};
-  const latitude = Number(src.latitude ?? src.lat);
-  const longitude = Number(src.longitude ?? src.lng ?? src.lon);
+function normalizeCalendarType(value) {
+  const text = clean(value, 20).toLowerCase();
+  if (["solar", "gregorian", "양력"].includes(text)) return "solar";
+  if (["lunar", "음력"].includes(text)) return "lunar";
+  return "";
+}
+
+function inferFocusAreaFromTopic(topic) {
+  const text = clean(topic, 80);
+  if (/연애|사랑|결혼|인연/.test(text)) return "love";
+  if (/돈|재물|금전/.test(text)) return "money";
+  if (/직업|사업|일|진로|창업/.test(text)) return "career";
+  if (/건강|멘탈|에너지/.test(text)) return "health";
+  if (/관계|가족|부모/.test(text)) return "relationship";
+  if (/영성|카르마|전환/.test(text)) return "spirituality";
+  return "overall";
+}
+
+function normalizeFocusArea(value, fallbackTopic = "") {
+  const text = clean(value, 40).toLowerCase();
+  if (FOCUS_AREA_VALUES.has(text)) return text;
+  return inferFocusAreaFromTopic(fallbackTopic);
+}
+
+function normalizeBirthPlace(body = {}, sourceBirth = {}) {
+  const rawBirthPlace = body.birthPlace ?? sourceBirth.birthPlace ?? {};
+  const src = rawBirthPlace && typeof rawBirthPlace === "object" ? rawBirthPlace : {};
+  const label = typeof rawBirthPlace === "string"
+    ? clean(rawBirthPlace, 120)
+    : clean(src.label || src.displayName || src.place || src.city || "", 120);
+  const [cityFromLabel = "", countryFromLabel = ""] = label.split(",").map((item) => item.trim());
+  const latitude = Number(body.latitude ?? src.latitude ?? src.lat);
+  const longitude = Number(body.longitude ?? src.longitude ?? src.lng ?? src.lon);
   const place = {
-    city: clean(src.city || src.birthCity || src.place, 80),
-    country: clean(src.country, 80),
-    timezone: clean(src.timezone || src.timeZone, 80),
+    city: clean(src.city || cityFromLabel || src.place || sourceBirth.birthCity, 80),
+    country: clean(src.country || countryFromLabel, 80),
+    timezone: clean(body.timezone || src.timezone || src.timeZone || sourceBirth.timezone, 80),
   };
   if (Number.isFinite(latitude)) place.latitude = latitude;
   if (Number.isFinite(longitude)) place.longitude = longitude;
@@ -146,38 +224,56 @@ function normalizeBirthPlace(value = {}) {
 
 function normalizeConsultationInput(body = {}) {
   const sourceBirth = body.birthInfo && typeof body.birthInfo === "object" ? body.birthInfo : {};
-  const name = clean(body.name ?? body.nickname ?? sourceBirth.name, 80);
+  const rawTopic = clean(body.topic ?? body.consultationTopic, 80);
+  const focusArea = normalizeFocusArea(body.focusArea, rawTopic);
+  const name = clean(body.userName ?? body.name ?? body.nickname ?? sourceBirth.name, 80);
   const gender = normalizeGender(body.gender ?? sourceBirth.gender);
   const birthDate = clean(body.birthDate ?? sourceBirth.birthDate, 10);
   const birthTimeUnknown = body.birthTimeUnknown === true || sourceBirth.birthTimeUnknown === true;
   const birthTime = clean(body.birthTime ?? sourceBirth.birthTime, 5);
-  const birthPlace = normalizeBirthPlace(body.birthPlace || sourceBirth.birthPlace || {});
-  const topic = clean(body.topic ?? body.consultationTopic, 80);
-  const userQuestion = clean(body.userQuestion ?? body.question ?? body.message, 1500);
+  const calendarType = normalizeCalendarType(body.calendarType ?? sourceBirth.calendarType);
+  const birthPlace = normalizeBirthPlace(body, sourceBirth);
+  const topic = FOCUS_AREA_LABELS[focusArea] || rawTopic || FOCUS_AREA_LABELS.overall;
+  const userQuestion = clean(body.question ?? body.userQuestion ?? body.message, 1500);
   const errors = [];
 
+  if (body.serviceType && clean(body.serviceType, 80) !== FEATURE_KEY) errors.push("serviceType");
+  if (body.consultationType && clean(body.consultationType, 40) !== CONSULTATION_TYPE) errors.push("consultationType");
   if (!gender) errors.push("gender");
   if (!isValidDateKey(birthDate)) errors.push("birthDate");
+  if (!calendarType) errors.push("calendarType");
   if (!birthTimeUnknown && !isValidBirthTime(birthTime)) errors.push("birthTime");
-  if (!birthPlace.city && (!Number.isFinite(Number(birthPlace.latitude)) || !Number.isFinite(Number(birthPlace.longitude)))) errors.push("birthPlace");
-  if (!TOPICS.has(topic)) errors.push("topic");
+  if (!birthPlace.city && !birthPlace.timezone && (!Number.isFinite(Number(birthPlace.latitude)) || !Number.isFinite(Number(birthPlace.longitude)))) errors.push("birthPlace");
+  if (!FOCUS_AREA_VALUES.has(focusArea)) errors.push("focusArea");
+  if (focusArea === "custom" && userQuestion.length < 2) errors.push("question");
 
   const normalized = {
+    serviceType: FEATURE_KEY,
+    consultationType: CONSULTATION_TYPE,
+    locale: clean(body.locale, 10) || "ko",
+    focusArea,
     birthInfo: {
       name,
       gender,
       birthDate,
       birthTime: birthTimeUnknown ? "" : birthTime,
       birthTimeUnknown,
+      calendarType,
       birthPlace,
     },
     topic,
     userQuestion,
   };
 
+  let message = MESSAGES.invalidInput;
+  if (errors.includes("birthTime")) message = MESSAGES.birthTimeRequired;
+  if (errors.includes("question")) message = MESSAGES.customQuestionRequired;
+  if (errors.includes("birthPlace")) message = MESSAGES.placeInvalid;
+
   return {
     ok: errors.length === 0,
     errors,
+    message,
     input: normalized,
     inputHash: sha256(stableJson(normalized)),
   };
@@ -205,6 +301,8 @@ function buildPaymentPayload(idempotencyKey) {
   const pricing = getPricing();
   return {
     serviceKey: SERVICE_KEY,
+    serviceType: FEATURE_KEY,
+    consultationType: CONSULTATION_TYPE,
     featureKey: FEATURE_KEY,
     productId: PRODUCT_ID,
     reason: ORDER_NAME,
@@ -243,7 +341,7 @@ async function verifyAccessToken(env, token) {
     audience: getJwtAudience(env),
   });
   if (payload?.typ !== ACCESS_TOKEN_TYPE || payload?.serviceKey !== SERVICE_KEY || payload?.featureKey !== FEATURE_KEY) {
-    throw new Error("INVALID_ACCESS_TOKEN");
+    throw Object.assign(new Error("INVALID_ACCESS_TOKEN"), { status: 403 });
   }
   return payload;
 }
@@ -252,8 +350,8 @@ function loginRequired() {
   return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
 }
 
-function invalidInput(message = MESSAGES.invalidInput) {
-  return json({ ok: false, reason: "INVALID_INPUT", message }, { status: 422 });
+function invalidInput(message = MESSAGES.invalidInput, errors = []) {
+  return json({ ok: false, reason: "INVALID_INPUT", message, errors }, { status: 422 });
 }
 
 function paymentRequired(idempotencyKey) {
@@ -273,9 +371,15 @@ function serverError(message = MESSAGES.serverFailed, status = 500, reason = "SE
   return json({ ok: false, reason, message }, { status });
 }
 
-function objectId(userId) {
-  const id = String(userId || "");
-  return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
+async function loadBillingUser(userId) {
+  if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
+  return User.findById(userId)
+    .select("email name phoneNumber points role profileSubscription subscription membership pass entitlement paidFeatures unlockedFeatures recentConsumeRequestIds usagePasses")
+    .lean();
+}
+
+function isAdmin(auth = {}, user = {}) {
+  return clean(auth.role || user?.role).toLowerCase() === "admin";
 }
 
 function collectEvidenceIds(...sources) {
@@ -295,10 +399,11 @@ function collectEvidenceIds(...sources) {
       [
         "transactionId", "paymentId", "purchaseId", "requestId", "idempotencyKey",
         "orderId", "merchantUid", "impUid", "evidenceId", "ledgerId", "pointHistoryId",
+        "monthlyCreditLedgerId", "_id",
       ].forEach((key) => {
         if (value[key]) visit(value[key], depth + 1);
       });
-      ["payload", "data", "accessGrant", "consume", "payment", "order", "access"].forEach((key) => {
+      ["payload", "data", "accessGrant", "consume", "payment", "order", "access", "billingEvidence"].forEach((key) => {
         if (value[key]) visit(value[key], depth + 1);
       });
     }
@@ -308,21 +413,67 @@ function collectEvidenceIds(...sources) {
 }
 
 function flattenEvidence(body = {}) {
-  const evidence = body.paymentEvidence && typeof body.paymentEvidence === "object" ? body.paymentEvidence : {};
+  const evidence = body.billingEvidence && typeof body.billingEvidence === "object"
+    ? body.billingEvidence
+    : (body.paymentEvidence && typeof body.paymentEvidence === "object" ? body.paymentEvidence : {});
   return {
     ...evidence,
     bodyPaymentId: body.paymentId,
     bodyTransactionId: body.transactionId,
     bodyAccessGrant: body.accessGrant,
     bodyConsume: body.consume,
+    bodyPayment: body.payment,
   };
 }
 
-function readEvidenceAccessType(evidence = {}) {
-  const text = stableJson(evidence).toLowerCase();
-  if (text.includes("membership_credit") || text.includes("moonlight_stone") || text.includes("monthly")) return "subscription";
-  if (text.includes("membership_pass") || text.includes("accessmethod\":\"pass") || text.includes("family")) return "pass";
+function readEvidenceAccessType(evidence = {}, body = {}) {
+  const signal = [
+    body.accessType,
+    body.accessMethod,
+    body.paymentMode,
+    evidence.accessType,
+    evidence.accessMethod,
+    evidence.paymentMode,
+    evidence.bodyAccessGrant?.accessType,
+    evidence.bodyAccessGrant?.accessMethod,
+    evidence.bodyConsume?.accessType,
+    evidence.bodyConsume?.accessMethod,
+    stableJson(evidence),
+  ].map((value) => clean(value).toLowerCase()).filter(Boolean).join("|");
+  if (signal.includes("membership_credit") || signal.includes("moonlight_stone") || signal.includes("monthly")) return "subscription";
+  if (signal.includes("membership_pass") || signal.includes("usage_pass") || signal.includes("family") || signal.includes("pass")) return "pass";
+  if (signal.includes("coin") || signal.includes("point")) return "paid";
   return "paid";
+}
+
+function pointHistoryTokenClauses(tokens = []) {
+  const clauses = [];
+  tokens.forEach((token) => {
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
+    clauses.push({ "metadata.orderId": token });
+    clauses.push({ "metadata.transactionId": token });
+    clauses.push({ "metadata.pointHistoryId": token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: new mongoose.Types.ObjectId(token) });
+  });
+  return clauses;
+}
+
+function monthlyCreditTokenClauses(tokens = []) {
+  const clauses = [];
+  tokens.forEach((token) => {
+    clauses.push({ sourceId: token });
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
+    clauses.push({ "metadata.orderId": token });
+    clauses.push({ "metadata.pointHistoryId": token });
+    clauses.push({ "metadata.ledgerId": token });
+    clauses.push({ "metadata.monthlyCreditLedgerId": token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: new mongoose.Types.ObjectId(token) });
+  });
+  return clauses;
 }
 
 async function findDirectPayment(userObjectId, ids, idempotencyKey) {
@@ -340,136 +491,261 @@ async function findDirectPayment(userObjectId, ids, idempotencyKey) {
     status: { $in: ["paid", "processing", "success", "fulfilled"] },
     paymentAmount: AMOUNT_KRW,
     $or: clauses,
-  }).lean();
+  }).sort({ updatedAt: -1, paidAt: -1, createdAt: -1 }).lean();
 }
 
-async function findMonthlyEvidence(userObjectId, ids, idempotencyKey) {
-  const candidates = Array.from(new Set([idempotencyKey, ...ids].filter(Boolean)));
-  const ledgerClauses = [];
-  candidates.forEach((id) => {
-    ledgerClauses.push(
-      { sourceId: id },
-      { "metadata.requestId": id },
-      { "metadata.purchaseId": id },
-      { "metadata.idempotencyKey": id },
-      { "metadata.orderId": id },
-      { "metadata.pointHistoryId": id },
-    );
-  });
-  if (ledgerClauses.length) {
-    const ledger = await MonthlyCreditLedger.findOne({
-      userId: userObjectId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FEATURE_KEY,
-      "metadata.accessType": "membership_credit",
-      "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
-      $or: ledgerClauses,
-    }).lean();
-    if (ledger) return { source: "monthly-ledger", record: ledger };
-  }
-  const historyClauses = [];
-  candidates.forEach((id) => {
-    historyClauses.push(
-      { "metadata.requestId": id },
-      { "metadata.purchaseId": id },
-      { "metadata.idempotencyKey": id },
-      { "metadata.orderId": id },
-    );
-    if (mongoose.Types.ObjectId.isValid(id)) historyClauses.push({ _id: new mongoose.Types.ObjectId(id) });
-  });
-  if (!historyClauses.length) return null;
-  const history = await PointHistory.findOne({
-    userId: userObjectId,
-    featureKey: FEATURE_KEY,
-    kind: "deduct",
-    "metadata.accessType": "membership_credit",
-    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
-    $or: historyClauses,
-  }).lean();
-  return history ? { source: "monthly-history", record: history } : null;
-}
-
-async function findPassEvidence(userObjectId, ids, idempotencyKey) {
-  const candidates = Array.from(new Set([idempotencyKey, ...ids].filter(Boolean)));
-  const clauses = [];
-  candidates.forEach((id) => {
-    clauses.push(
-      { "metadata.requestId": id },
-      { "metadata.purchaseId": id },
-      { "metadata.idempotencyKey": id },
-      { "metadata.orderId": id },
-    );
-    if (mongoose.Types.ObjectId.isValid(id)) clauses.push({ _id: new mongoose.Types.ObjectId(id) });
-  });
+async function findPointEvidence(userObjectId, ids, idempotencyKey, pricing) {
+  const clauses = pointHistoryTokenClauses(Array.from(new Set([idempotencyKey, ...ids].filter(Boolean))));
   if (!clauses.length) return null;
   const history = await PointHistory.findOne({
     userId: userObjectId,
     featureKey: FEATURE_KEY,
     kind: "deduct",
+    "metadata.coinRefundedForUnlockFailure": { $ne: true },
+    "metadata.refundedForServiceExecution": { $ne: true },
     $or: clauses,
-    $and: [{
-      $or: [
-        { "metadata.accessType": { $in: ["membership_pass", "family"] } },
-        { "metadata.accessMethod": { $in: ["PASS", "FAMILY"] } },
-      ],
-    }],
-  }).lean();
-  return history ? { source: "pass-history", record: history } : null;
+  }).sort({ createdAt: -1 }).lean();
+  if (!history) return null;
+  return {
+    accessType: "paid",
+    paymentId: clean(history._id, 160),
+    source: "coin-history",
+    prepaid: true,
+    evidenceType: "coin",
+    evidenceId: clean(history._id, 160),
+    amount: Math.max(0, Math.floor(Math.abs(Number(history.delta || history?.metadata?.chargedCoins || pricing.coinPrice || 0)))),
+    purchaseId: clean(history?.metadata?.purchaseId || history?.metadata?.idempotencyKey || history?.metadata?.orderId || idempotencyKey, 180),
+  };
 }
 
-async function resolveBillingEvidence({ env, userId, body, idempotencyKey }) {
+async function findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing) {
+  const clauses = monthlyCreditTokenClauses(Array.from(new Set([idempotencyKey, ...ids].filter(Boolean))));
+  if (!clauses.length) return null;
+  const ledger = await MonthlyCreditLedger.findOne({
+    userId: userObjectId,
+    type: "MONTHLY_CREDIT_SPEND",
+    serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
+    "metadata.refundedForUnlockFailure": { $ne: true },
+    "metadata.refundedForServiceExecution": { $ne: true },
+    $or: clauses,
+  }).sort({ createdAt: -1 }).lean();
+  if (!ledger) return null;
+  return {
+    accessType: "subscription",
+    paymentId: clean(ledger._id, 160),
+    source: "monthly-ledger",
+    prepaid: true,
+    evidenceType: "monthly_credit",
+    evidenceId: clean(ledger._id, 160),
+    amount: Math.max(0, Math.floor(Number(ledger.amount || pricing.membershipCreditCost || 0))),
+    purchaseId: clean(ledger.sourceId || ledger?.metadata?.purchaseId || ledger?.metadata?.idempotencyKey || idempotencyKey, 180),
+  };
+}
+
+async function resolveBillingEvidence({ env, userId, body, idempotencyKey, pricing }) {
   const userObjectId = objectId(userId);
   if (!userObjectId) return null;
   const evidence = flattenEvidence(body);
   const ids = collectEvidenceIds(evidence, body.paymentId, body.transactionId, body.accessGrant, body.consume, idempotencyKey);
+  const likelyAccessType = readEvidenceAccessType(evidence, body);
   await connectDb(env);
+
+  const user = await loadBillingUser(userObjectId);
+  if (likelyAccessType === "pass") {
+    const usageMarker = `usage-pass:${FEATURE_KEY}:${idempotencyKey}`;
+    const usagePassConsumed = Array.isArray(user?.recentConsumeRequestIds) && user.recentConsumeRequestIds.includes(usageMarker);
+    const pass = normalizeHoneyPassEntitlement(user || {});
+    if (usagePassConsumed || canUseByPass(pass, pricing.coinPrice)) {
+      const category = clean(evidence.bodyConsume?.category || evidence.bodyAccessGrant?.category || "", 120);
+      return {
+        accessType: "pass",
+        paymentId: ids[0] || "",
+        source: usagePassConsumed ? "usage-pass" : "pass-entitlement",
+        prepaid: usagePassConsumed,
+        evidenceType: usagePassConsumed ? "usage_pass" : "pass",
+        usageMarker: usagePassConsumed ? usageMarker : "",
+        usageCategory: category,
+      };
+    }
+  }
+
   const direct = await findDirectPayment(userObjectId, ids, idempotencyKey);
   if (direct) {
     return {
       accessType: "paid",
-      paymentId: String(direct.merchantUid || direct.impUid || direct._id || ""),
+      paymentId: clean(direct.merchantUid || direct.impUid || direct._id, 160),
       source: "direct-payment",
-      paymentDocId: String(direct._id || ""),
+      paymentDocId: clean(direct._id, 160),
+      prepaid: true,
+      evidenceType: "direct_payment",
+      evidenceId: clean(direct._id, 160),
     };
   }
-  const likelyAccessType = readEvidenceAccessType(evidence);
+
   if (likelyAccessType === "subscription") {
-    const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey);
-    if (monthly) {
-      return {
-        accessType: "subscription",
-        paymentId: String(monthly.record?._id || monthly.record?.sourceId || ""),
-        source: monthly.source,
-      };
-    }
+    const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing);
+    if (monthly) return monthly;
   }
-  if (likelyAccessType === "pass") {
-    const pass = await findPassEvidence(userObjectId, ids, idempotencyKey);
-    if (pass) {
-      return {
-        accessType: "pass",
-        paymentId: String(pass.record?._id || ""),
-        source: pass.source,
-      };
-    }
-  }
-  const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey);
-  if (monthly) {
-    return {
-      accessType: "subscription",
-      paymentId: String(monthly.record?._id || monthly.record?.sourceId || ""),
-      source: monthly.source,
-    };
-  }
-  const pass = await findPassEvidence(userObjectId, ids, idempotencyKey);
-  if (pass) {
-    return {
-      accessType: "pass",
-      paymentId: String(pass.record?._id || ""),
-      source: pass.source,
-    };
-  }
+
+  const point = await findPointEvidence(userObjectId, ids, idempotencyKey, pricing);
+  if (point) return point;
+
+  const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing);
+  if (monthly) return monthly;
+
   return null;
+}
+
+async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null, env = {} }) {
+  if (!access?.prepaid) return false;
+  const userObjectId = objectId(userId);
+  if (!userObjectId) return false;
+  const evidenceType = clean(access.evidenceType, 80);
+  const evidenceId = clean(access.evidenceId || access.paymentId, 160);
+  const failureMessage = clean(error?.message || error || "service execution failed", 500);
+  const now = new Date();
+
+  try {
+    if (evidenceType === "usage_pass" && access.usageMarker && access.usageCategory) {
+      await User.updateOne(
+        {
+          _id: userObjectId,
+          recentConsumeRequestIds: access.usageMarker,
+          "usagePasses.category": access.usageCategory,
+        },
+        {
+          $inc: { "usagePasses.$.remainingUses": 1 },
+          $set: { "usagePasses.$.updatedAt": now },
+          $pull: { recentConsumeRequestIds: access.usageMarker },
+        },
+      );
+      return true;
+    }
+
+    if (evidenceType === "coin" && mongoose.Types.ObjectId.isValid(evidenceId)) {
+      const history = await PointHistory.findOne({
+        _id: new mongoose.Types.ObjectId(evidenceId),
+        userId: userObjectId,
+        kind: "deduct",
+        featureKey: FEATURE_KEY,
+        "metadata.refundedForServiceExecution": { $ne: true },
+      }).lean();
+      if (!history) return false;
+
+      const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || access.amount || pricing.coinPrice || 0))));
+      if (!refundCoins) return false;
+
+      const marked = await PointHistory.updateOne(
+        { _id: history._id, userId: userObjectId, "metadata.refundedForServiceExecution": { $ne: true } },
+        {
+          $set: {
+            "metadata.refundedForServiceExecution": true,
+            "metadata.serviceExecutionRefundedAt": now,
+            "metadata.serviceExecutionFailureMessage": failureMessage,
+          },
+        },
+      );
+      if (!marked.modifiedCount) return false;
+
+      const purchaseId = clean(access.purchaseId || history?.metadata?.purchaseId || history?.metadata?.idempotencyKey || idempotencyKey, 180);
+      const updated = await User.findByIdAndUpdate(
+        userObjectId,
+        {
+          $inc: { points: refundCoins },
+          ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
+        },
+        { new: true, projection: { points: 1 } },
+      ).lean();
+
+      await PointHistory.create({
+        userId: userObjectId,
+        kind: "refund",
+        delta: refundCoins,
+        balanceAfter: Math.max(0, Math.floor(Number(updated?.points || 0))),
+        reason: `${ORDER_NAME} 생성 실패 환급`,
+        featureKey: FEATURE_KEY,
+        metadata: {
+          refundedForServiceExecution: true,
+          originalPointHistoryId: clean(history._id, 160),
+          idempotencyKey,
+          purchaseId,
+          failureMessage,
+        },
+      }).catch(() => {});
+      return true;
+    }
+
+    if (evidenceType === "monthly_credit") {
+      const ledgerQuery = mongoose.Types.ObjectId.isValid(evidenceId)
+        ? { _id: new mongoose.Types.ObjectId(evidenceId) }
+        : { sourceId: access.purchaseId || idempotencyKey };
+      const ledger = await MonthlyCreditLedger.findOne({
+        ...ledgerQuery,
+        userId: userObjectId,
+        type: "MONTHLY_CREDIT_SPEND",
+        serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
+        "metadata.refundedForServiceExecution": { $ne: true },
+      }).lean();
+      if (!ledger) return false;
+
+      const refundCredit = Math.max(0, Math.floor(Number(ledger.amount || access.amount || pricing.membershipCreditCost || 0)));
+      if (!refundCredit) return false;
+
+      const marked = await MonthlyCreditLedger.updateOne(
+        { _id: ledger._id, userId: userObjectId, "metadata.refundedForServiceExecution": { $ne: true } },
+        {
+          $set: {
+            "metadata.refundedForServiceExecution": true,
+            "metadata.serviceExecutionRefundedAt": now,
+            "metadata.serviceExecutionFailureMessage": failureMessage,
+          },
+        },
+      );
+      if (!marked.modifiedCount) return false;
+
+      const purchaseId = clean(access.purchaseId || ledger.sourceId || idempotencyKey, 180);
+      await User.findByIdAndUpdate(
+        userObjectId,
+        {
+          $inc: {
+            "profileSubscription.membershipCreditBalance": refundCredit,
+            "profileSubscription.membershipCreditUsed": -refundCredit,
+          },
+          ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
+        },
+      ).catch(() => {});
+
+      const clauses = pointHistoryTokenClauses([purchaseId, evidenceId, idempotencyKey].filter(Boolean));
+      if (clauses.length) {
+        await PointHistory.updateMany(
+          {
+            userId: userObjectId,
+            kind: "deduct",
+            featureKey: FEATURE_KEY,
+            "metadata.refundedForServiceExecution": { $ne: true },
+            $or: clauses,
+          },
+          {
+            $set: {
+              "metadata.refundedForServiceExecution": true,
+              "metadata.serviceExecutionRefundedAt": now,
+              "metadata.serviceExecutionFailureMessage": failureMessage,
+            },
+          },
+        ).catch(() => {});
+      }
+      return true;
+    }
+  } catch (restoreError) {
+    logVedicAi("Refund Or Restore", {
+      userId: clean(userId, 80),
+      evidenceType,
+      evidenceId,
+      restored: false,
+      ...errorPayload(restoreError, env),
+    }, "warn");
+  }
+  return false;
 }
 
 function compactChartForPrompt(chart) {
@@ -492,17 +768,21 @@ function compactChartForPrompt(chart) {
 
 function buildFirstPrompt(input, chart) {
   return [
-    "아래의 계산된 베다 점성술 차트만 바탕으로 상담을 시작하세요.",
-    "사용자가 선택한 주제와 질문을 가장 깊게 다루되, 불안 조장이나 단정적 예언은 피하세요.",
+    "아래 베다 차트와 사용자 질문을 바탕으로 조티시 상담을 시작하세요.",
+    "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
     "",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
     `성별: ${input.birthInfo.gender}`,
+    `생년월일: ${input.birthInfo.birthDate}`,
+    `출생시간: ${input.birthInfo.birthTimeUnknown ? "모름" : input.birthInfo.birthTime}`,
+    `달력 기준: ${input.birthInfo.calendarType}`,
+    `출생지: ${[input.birthInfo.birthPlace?.city, input.birthInfo.birthPlace?.country].filter(Boolean).join(", ") || "미입력"}`,
+    `시간대: ${input.birthInfo.birthPlace?.timezone || "미입력"}`,
     `상담 주제: ${input.topic}`,
-    `현재 질문: ${input.userQuestion || "자연스럽게 전체 흐름을 먼저 보고 싶어 합니다."}`,
-    `출생시간 신뢰도: ${chart.calculationMeta?.birthTimeConfidence || ""}`,
+    `자유 질문: ${input.userQuestion || "전체 흐름을 먼저 알고 싶습니다."}`,
     `해석 기준: ${chart.calculationMeta?.interpretationMode === "moon-chart" ? "출생시간이 불확실하므로 Moon Chart 중심" : "Lagna Chart 중심"}`,
     "",
-    "계산된 차트 데이터:",
+    "계산된 베다 차트 데이터:",
     JSON.stringify(compactChartForPrompt(chart), null, 2),
   ].join("\n");
 }
@@ -514,12 +794,12 @@ function buildFollowUpPrompt(consultation, question) {
   }));
   return [
     "이전 상담 맥락과 계산된 베다 차트를 유지하면서 사용자의 추가 질문에 답하세요.",
-    "행성 이름 나열이 아니라 삶의 패턴과 현실적 선택으로 풀어 주세요.",
+    "별의 이름을 나열하는 대신, 지금의 선택과 감정 흐름으로 부드럽게 풀어 주세요.",
     "",
     `상담 주제: ${consultation.topic}`,
     `추가 질문: ${question}`,
     "",
-    "계산된 차트 데이터:",
+    "계산된 베다 차트 데이터:",
     JSON.stringify(compactChartForPrompt(consultation.vedicChart || {}), null, 2),
     "",
     "최근 상담 맥락:",
@@ -528,37 +808,47 @@ function buildFollowUpPrompt(consultation, question) {
 }
 
 function sanitizeAssistantText(value) {
-  let text = clean(value, 60000);
-  text = text.replace(/\bPDF\b/gi, "상담");
+  let text = cleanMultiline(value, 60000);
+  text = text.replace(/\bPDF\b/gi, "상담문");
   text = text.replace(/챕터|chapter/gi, "흐름");
   text = text.replace(/\bjob\b/gi, "상담");
   text = text.replace(/\bprogress\b/gi, "진행");
   text = text.replace(/프롬프트/g, "질문");
   text = text.replace(/시스템/g, "상담 기준");
-  text = text.replace(/\bAI\b/g, "상담");
   return text.trim();
 }
 
-async function callConsultationLlm(env, prompt) {
+function getProviderDiagnostics(env) {
+  const hasGeminiEnv = GEMINI_ENV_KEYS.some((key) => Boolean(clean(env?.[key])));
+  const hasWorkersAi = Boolean(env?.AI);
+  return {
+    hasEnvAI: hasGeminiEnv || hasWorkersAi,
+    willUseRealLLM: hasGeminiEnv || hasWorkersAi,
+    providerReason: hasGeminiEnv ? "gemini-env" : (hasWorkersAi ? "workers-ai-binding" : "missing-ai-env"),
+  };
+}
+
+async function callConsultationLlm(env, prompt, logContext = {}) {
+  logVedicAi("LLM Provider Selected", {
+    ...logContext,
+    ...getProviderDiagnostics(env),
+  });
   const result = await callGeminiText(env, prompt, {
     systemPrompt: SYSTEM_PROMPT,
     maxOutputTokens: 6500,
     temperature: 0.72,
     taskType: "fortune",
   });
-  if (!result?.ok || !clean(result.text)) {
-    const error = new Error(result?.message || "LLM_FAILED");
+  const provider = clean(result?.provider || result?.model || "gemini");
+  const isMock = /mock/i.test(provider) || result?.isMock === true;
+  const content = sanitizeAssistantText(result?.text || "");
+  if (!result?.ok || isMock || !content) {
+    const error = new Error(result?.message || (isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_FAILED"));
     error.code = "LLM_FAILED";
     error.llm = result || null;
     throw error;
   }
-  const content = sanitizeAssistantText(result.text);
-  if (!content) {
-    const error = new Error("EMPTY_LLM_RESULT");
-    error.code = "LLM_FAILED";
-    throw error;
-  }
-  return { content, meta: { provider: result.provider || "", model: result.model || "" } };
+  return { content, meta: { provider, model: clean(result.model || ""), isMock: false } };
 }
 
 function summaryCards(chart) {
@@ -574,7 +864,7 @@ function summaryCards(chart) {
     moonSign: chart.moon?.sign || "",
     nakshatra: chart.moon?.nakshatra || "",
     currentDasha: dasha,
-    keywords: keywordSeed.slice(0, 3),
+    keywords: keywordSeed.slice(0, 4),
     d1: chart.divisionalCharts?.d1 || null,
     d9: chart.divisionalCharts?.d9 || null,
   };
@@ -600,29 +890,41 @@ function consultationPayload(doc) {
 async function handleEnsureAccess(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
   const body = await readJson(request);
+  const normalized = normalizeConsultationInput(body);
+  const idempotencyKey = readIdempotencyKey(request, body);
+  const context = routeLogContext(request, body, normalized, idempotencyKey);
+  logVedicAi("LLM Prepare Start", context);
+  logVedicAi("LLM Payload Received", context);
+
+  if (!normalized.ok) {
+    logVedicAi("LLM Payload Validated", { ...context, validationResult: "failed", errors: normalized.errors }, "warn");
+    return invalidInput(normalized.message, normalized.errors);
+  }
+  logVedicAi("LLM Payload Validated", { ...context, validationResult: "success" });
+
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth?.userId) return loginRequired();
+  const requestId = idempotencyKey || `vedic-ai-${auth.userId}-${normalized.inputHash.slice(0, 16)}-${Date.now()}-${randomSuffix()}`;
+  const pricing = getPricing();
+  logVedicAi("LLM Access Check Start", { ...context, requestId });
 
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(MESSAGES.invalidInput);
-  const idempotencyKey = readIdempotencyKey(request, body) || `vedic-ai-${auth.userId}-${normalized.inputHash.slice(0, 16)}-${Date.now()}-${randomSuffix()}`;
-  getPricing();
   await connectDb(env);
   const existing = await VedicAiConsultation.findOne({
     userId: String(auth.userId),
-    idempotencyKey,
+    idempotencyKey: requestId,
     inputHash: normalized.inputHash,
     status: "completed",
   }).lean();
   if (existing) {
     const accessToken = await createAccessToken(env, {
       userId: String(auth.userId),
-      idempotencyKey,
+      idempotencyKey: requestId,
       inputHash: normalized.inputHash,
       accessType: existing.accessType,
       paymentId: existing.paymentId || "",
       reuse: true,
     });
+    logVedicAi("LLM Access Check Success", { ...context, requestId, accessCheckResult: "existing" });
     return json({
       ok: true,
       accessToken,
@@ -630,10 +932,31 @@ async function handleEnsureAccess(request, env) {
       consultation: consultationPayload(existing),
     });
   }
-  return paymentRequired(idempotencyKey);
+
+  const user = await loadBillingUser(auth.userId);
+  if (isAdmin(auth, user)) {
+    const accessToken = await createAccessToken(env, {
+      userId: String(auth.userId),
+      idempotencyKey: requestId,
+      inputHash: normalized.inputHash,
+      accessType: "pass",
+      paymentId: "",
+      admin: true,
+    });
+    logVedicAi("LLM Access Check Success", { ...context, requestId, accessCheckResult: "admin" });
+    return json({ ok: true, accessToken, accessType: "pass" });
+  }
+
+  logVedicAi("LLM Access Check Success", {
+    ...context,
+    requestId,
+    accessCheckResult: "payment_required",
+    coinPrice: pricing.coinPrice,
+  });
+  return paymentRequired(requestId);
 }
 
-async function resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey }) {
+async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing }) {
   const token = clean(body.accessToken);
   if (token) {
     const payload = await verifyAccessToken(env, token);
@@ -643,20 +966,22 @@ async function resolveStartAccess({ request, env, auth, body, normalized, idempo
     return {
       accessType: payload.accessType || "paid",
       paymentId: payload.paymentId || "",
-      source: "access-token",
+      source: payload.admin ? "admin-token" : "access-token",
+      prepaid: false,
     };
   }
-  const evidence = await resolveBillingEvidence({
+  return resolveBillingEvidence({
     env,
     userId: auth.userId,
     body,
     idempotencyKey,
+    pricing,
   });
-  if (!evidence) return null;
-  return evidence;
 }
 
 async function generateConsultation({ request, env, auth, body, normalized, idempotencyKey }) {
+  const pricing = getPricing();
+  const context = routeLogContext(request, body, normalized, idempotencyKey);
   await connectDb(env);
   const existing = await VedicAiConsultation.findOne({
     userId: String(auth.userId),
@@ -666,8 +991,9 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     return json({ ok: true, consultation: consultationPayload(existing.toObject()) });
   }
 
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey });
+  const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
+  logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
 
   const sessionId = existing?.id || `vedic-ai-${Date.now()}-${randomSuffix()}`;
   const doc = existing || new VedicAiConsultation({
@@ -679,7 +1005,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   doc.birthInfo = normalized.input.birthInfo;
   doc.topic = normalized.input.topic;
   doc.userQuestion = normalized.input.userQuestion;
-  doc.accessType = access.accessType;
+  doc.accessType = ["pass", "subscription"].includes(access.accessType) ? access.accessType : "paid";
   doc.paymentId = access.paymentId || "";
   doc.status = "generating";
   doc.generationError = null;
@@ -688,23 +1014,28 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 
   let chart;
   try {
+    logVedicAi("Chart Data Start", context);
     chart = await calculateVedicAiChart(env, normalized.input, { requestUrl: request.url });
-  } catch (error) {
-    console.warn("[vedic-ai] chart calculation failed", {
-      userId: String(auth.userId),
-      idempotencyKey,
-      code: error?.code || "",
-      message: clean(error?.message || error, 300),
+    logVedicAi("Chart Data Success", {
+      ...context,
+      hasLagna: Boolean(chart?.lagna),
+      hasNakshatra: Boolean(chart?.moon?.nakshatra),
+      interpretationMode: clean(chart?.calculationMeta?.interpretationMode, 80),
     });
+  } catch (error) {
     doc.status = "generation_failed";
     doc.generationError = { code: error?.code || "CHART_CALCULATION_FAILED", message: clean(error?.message || error, 500), at: new Date() };
     await doc.save();
+    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
+    logVedicAi("Refund Or Restore", { ...context, restored, reason: "chart_failed" }, restored ? "log" : "warn");
+    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
     if (error?.code === "BIRTH_PLACE_INVALID") return serverError(MESSAGES.placeInvalid, 422, "BIRTH_PLACE_INVALID");
     return serverError(MESSAGES.calculationFailed, 422, "CHART_CALCULATION_FAILED");
   }
 
   try {
-    const { content, meta } = await callConsultationLlm(env, buildFirstPrompt(normalized.input, chart));
+    logVedicAi("LLM Generate Start", context);
+    const { content, meta } = await callConsultationLlm(env, buildFirstPrompt(normalized.input, chart), context);
     doc.vedicChart = chart;
     doc.messages = [
       ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),
@@ -716,22 +1047,20 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     await doc.save();
     if (access.source === "direct-payment" && access.paymentDocId) {
       await Payment.updateOne(
-        { _id: access.paymentDocId, userId: objectId(auth.userId), featureKey: FEATURE_KEY },
+        { _id: new mongoose.Types.ObjectId(access.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY },
         { $set: { status: "fulfilled", sessionId: doc.id, orderState: "UNLOCKED" } },
       ).catch(() => {});
     }
+    logVedicAi("LLM Generate Success", { ...context, provider: meta.provider, model: meta.model });
     return json({ ok: true, consultation: consultationPayload(doc.toObject()) });
   } catch (error) {
-    console.warn("[vedic-ai] llm failed", {
-      userId: String(auth.userId),
-      idempotencyKey,
-      code: error?.code || "",
-      message: clean(error?.message || error, 300),
-    });
     doc.vedicChart = chart;
     doc.status = "generation_failed";
     doc.generationError = { code: "LLM_FAILED", message: clean(error?.message || error, 500), at: new Date() };
     await doc.save();
+    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
+    logVedicAi("Refund Or Restore", { ...context, restored, reason: "llm_failed" }, restored ? "log" : "warn");
+    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
     return serverError(MESSAGES.llmFailed, 502, "LLM_FAILED");
   }
 }
@@ -739,11 +1068,19 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 async function handleStart(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
   const body = await readJson(request);
+  const normalized = normalizeConsultationInput(body);
+  const idempotencyKey = readIdempotencyKey(request, body);
+  const context = routeLogContext(request, body, normalized, idempotencyKey);
+  logVedicAi("Submit Start", context);
+
+  if (!normalized.ok) {
+    logVedicAi("LLM Payload Validated", { ...context, validationResult: "failed", errors: normalized.errors }, "warn");
+    return invalidInput(normalized.message, normalized.errors);
+  }
+  logVedicAi("LLM Payload Validated", { ...context, validationResult: "success" });
+
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth?.userId) return loginRequired();
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(MESSAGES.invalidInput);
-  const idempotencyKey = readIdempotencyKey(request, body);
   if (!idempotencyKey) return invalidInput(MESSAGES.invalidInput);
   getPricing();
 
@@ -772,19 +1109,25 @@ async function handleMessage(request, env) {
   });
   if (!consultation) return notFound();
 
+  const context = {
+    route: new URL(request.url).pathname,
+    requestId: consultation.idempotencyKey,
+    serviceType: FEATURE_KEY,
+    focusArea: "",
+    questionLength: content.length,
+  };
+
   try {
-    const { content: answer, meta } = await callConsultationLlm(env, buildFollowUpPrompt(consultation.toObject(), content));
+    logVedicAi("LLM Generate Start", context);
+    const { content: answer, meta } = await callConsultationLlm(env, buildFollowUpPrompt(consultation.toObject(), content), context);
     consultation.messages.push({ role: "user", content, createdAt: new Date() });
     consultation.messages.push({ role: "assistant", content: answer, createdAt: new Date() });
     consultation.llmMeta = meta;
     await consultation.save();
+    logVedicAi("LLM Generate Success", { ...context, provider: meta.provider, model: meta.model });
     return json({ ok: true, consultation: consultationPayload(consultation.toObject()) });
   } catch (error) {
-    console.warn("[vedic-ai] follow-up llm failed", {
-      userId: String(auth.userId),
-      consultationId,
-      message: clean(error?.message || error, 300),
-    });
+    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
     return serverError(MESSAGES.llmFailed, 502, "LLM_FAILED");
   }
 }
@@ -798,8 +1141,11 @@ export async function handleVedicAiRoutes(request, env) {
 }
 
 export const __vedicAiTestUtils = {
+  FEATURE_KEY,
+  SERVICE_KEY,
   normalizeConsultationInput,
+  buildFirstPrompt,
   buildPaymentPayload,
-  collectEvidenceIds,
   sanitizeAssistantText,
+  collectEvidenceIds,
 };

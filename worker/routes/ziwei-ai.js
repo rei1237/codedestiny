@@ -18,15 +18,26 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "자미두수 AI 상담";
 const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
+const GEMINI_ENV_KEYS = [
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
+];
 
 const MESSAGES = Object.freeze({
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  paymentRequired: "자미두수 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
+  paymentRequired: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  invalidInput: "생년월일과 출생시간 정보를 다시 확인해 주세요.",
+  invalidInput: "자미두수 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
+  birthTimeMissing: "자미두수는 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
+  customQuestionRequired: "별궁에 묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
   calculationFailed: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  serverFailed: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  llmFailed: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  serverFailed: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 });
 
 const TOPICS = new Set([
@@ -44,12 +55,87 @@ const TOPICS = new Set([
   "대운 흐름",
   "현재 고민 상담",
 ]);
+const FOCUS_AREA_LABELS = Object.freeze({
+  overall: "전체 명반 해석",
+  love: "연애/결혼운",
+  money: "재물운",
+  career: "직업/사업운",
+  health: "건강/멘탈",
+  relationship: "인간관계",
+  personality: "타고난 성향",
+  custom: "현재 고민 상담",
+});
+const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 
 const FORBIDDEN_RESULT_PATTERN = /\bAI\b|PDF|챕터|chapter|\bjob\b|\bprogress\b|프롬프트|시스템/i;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function readProcessEnv(key) {
+  if (typeof process === "undefined") return "";
+  return clean(process.env?.[key], 2000);
+}
+
+function getProviderDiagnostics(env = {}) {
+  const hasGeminiKey = GEMINI_ENV_KEYS.some((key) => clean(env?.[key], 2000) || readProcessEnv(key));
+  const hasEnvAI = typeof env?.AI?.run === "function";
+  return {
+    hasEnvAI,
+    willUseRealLLM: hasGeminiKey || hasEnvAI,
+    providerReason: hasGeminiKey ? "gemini_api_key_available" : hasEnvAI ? "workers_ai_binding_available" : "no_real_llm_provider_detected",
+  };
+}
+
+function isDevelopmentEnv(env = {}) {
+  const mode = clean(env?.NODE_ENV || env?.ENVIRONMENT || env?.APP_ENV || readProcessEnv("NODE_ENV"), 40).toLowerCase();
+  return mode && mode !== "production";
+}
+
+function maskBirthDate(value) {
+  const text = clean(value, 10);
+  const match = text.match(/^(\d{4})-/);
+  return match ? `${match[1]}-**-**` : "";
+}
+
+function maskName(value) {
+  const text = clean(value, 80);
+  if (!text) return "";
+  if (text.length <= 1) return "*";
+  return `${text.slice(0, 1)}${"*".repeat(Math.min(3, text.length - 1))}`;
+}
+
+function safeLogPayload({ route = "", requestId = "", body = {}, normalized = null, validation = "", access = "", env = {}, error = null, providerReason = "" } = {}) {
+  const input = normalized?.input || {};
+  const birthInfo = input.birthInfo || body.birthInfo || {};
+  const question = clean(input.userQuestion ?? input.question ?? body.userQuestion ?? body.question ?? body.message, 1200);
+  return {
+    route: clean(route || "/api/ziwei-ai", 120),
+    requestId: clean(requestId || body.requestId || body.idempotencyKey, 180),
+    serviceType: clean(input.serviceType || body.serviceType || body.featureKey || FEATURE_KEY, 80),
+    consultationType: clean(input.consultationType || body.consultationType || "ziwei", 40),
+    focusArea: clean(input.focusArea || body.focusArea || "overall", 40),
+    validation,
+    access,
+    name: maskName(input.birthInfo?.name || birthInfo.name || body.userName || body.name),
+    gender: clean(input.birthInfo?.gender || birthInfo.gender || body.gender, 20),
+    birthDate: maskBirthDate(input.birthInfo?.birthDate || birthInfo.birthDate || body.birthDate),
+    calendarType: clean(input.birthInfo?.calendarType || birthInfo.calendarType || body.calendarType, 20),
+    questionLength: question.length,
+    ...getProviderDiagnostics(env),
+    providerReason: providerReason || getProviderDiagnostics(env).providerReason,
+    ...(error ? {
+      errorMessage: clean(error?.message || error, 500),
+      ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
+    } : {}),
+  };
+}
+
+function logZiweiAi(marker, details = {}, level = "info") {
+  const method = level === "error" ? "error" : level === "warn" ? "warn" : "info";
+  console[method](`[Ziwei AI LLM ${marker}]`, details);
 }
 
 function sha256(value) {
@@ -94,7 +180,7 @@ function normalizeGender(value) {
   const text = clean(value, 20).toLowerCase();
   if (["m", "male", "man", "남", "남성", "남자"].includes(text)) return "male";
   if (["f", "female", "woman", "여", "여성", "여자"].includes(text)) return "female";
-  if (["other", "기타", "unknown"].includes(text)) return text === "unknown" ? "" : "other";
+  if (["unknown", "other", "기타", "비공개"].includes(text)) return "unknown";
   return text || "";
 }
 
@@ -110,25 +196,43 @@ function isValidDateKey(value) {
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
+function normalizeFocusArea(value, fallbackTopic = "") {
+  const token = clean(value, 40).toLowerCase();
+  if (FOCUS_AREAS.has(token)) return token;
+  const topic = clean(fallbackTopic, 80);
+  const matched = Object.entries(FOCUS_AREA_LABELS).find(([, label]) => label === topic);
+  return matched?.[0] || "overall";
+}
+
 function normalizeConsultationInput(body = {}) {
   const birthSource = body.birthInfo && typeof body.birthInfo === "object" ? body.birthInfo : body;
-  const name = clean(body.name ?? body.nickname ?? birthSource.name ?? birthSource.nickname, 80);
+  const name = clean(body.userName ?? body.name ?? body.nickname ?? birthSource.name ?? birthSource.nickname, 80);
   const gender = normalizeGender(body.gender ?? birthSource.gender);
   const birthDate = clean(body.birthDate ?? birthSource.birthDate, 10);
   const birthTimeUnknown = body.birthTimeUnknown === true || birthSource.birthTimeUnknown === true;
   const birthTime = birthTimeUnknown ? "" : clean(body.birthTime ?? birthSource.birthTime, 5);
   const calendarType = normalizeCalendarType(body.calendarType ?? birthSource.calendarType);
   const isLeapMonth = body.isLeapMonth === true || birthSource.isLeapMonth === true;
-  const topic = clean(body.topic ?? body.consultationTopic, 80);
+  const focusArea = normalizeFocusArea(body.focusArea, body.topic ?? body.consultationTopic);
+  const topic = clean(body.topic ?? body.consultationTopic ?? FOCUS_AREA_LABELS[focusArea], 80);
   const userQuestion = clean(body.userQuestion ?? body.question ?? body.message, 1200);
+  const serviceType = clean(body.serviceType || FEATURE_KEY, 80);
+  const consultationType = clean(body.consultationType || "ziwei", 40);
+  const locale = clean(body.locale || "ko", 12);
 
   if (!gender) return { ok: false, message: MESSAGES.invalidInput };
   if (!isValidDateKey(birthDate)) return { ok: false, message: MESSAGES.invalidInput };
-  if (!birthTimeUnknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) return { ok: false, message: MESSAGES.invalidInput };
+  if (!birthTimeUnknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) return { ok: false, message: MESSAGES.birthTimeMissing };
   if (!TOPICS.has(topic)) return { ok: false, message: "상담 주제를 다시 선택해 주세요." };
+  if (!FOCUS_AREAS.has(focusArea)) return { ok: false, message: "상담 주제를 다시 선택해 주세요." };
+  if (focusArea === "custom" && userQuestion.length < 2) return { ok: false, message: MESSAGES.customQuestionRequired };
   if (userQuestion && userQuestion.length < 2) return { ok: false, message: "현재 가장 궁금한 질문을 조금 더 구체적으로 적어 주세요." };
 
   const normalized = {
+    serviceType,
+    consultationType,
+    focusArea,
+    locale,
     birthInfo: {
       name,
       gender,
@@ -374,7 +478,7 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
 
   if (signal.includes("pass") || signal.includes("membership_pass") || signal.includes("usage_pass")) {
     const pass = normalizeHoneyPassEntitlement(user || {});
-    const ctx = getBillingEvidenceContext(body);
+    const ctx = readBillingContext(body);
     const usageMarker = `usage-pass:${FEATURE_KEY}:${idempotencyKey}`;
     const usagePassConsumed = Array.isArray(user?.recentConsumeRequestIds) && user.recentConsumeRequestIds.includes(usageMarker);
     if (canUseByPass(pass, pricing.coinPrice) || usagePassConsumed) {
@@ -774,6 +878,11 @@ function cleanForbiddenResult(text) {
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
+  const logContext = options.logContext || {};
+  logZiweiAi("Provider Selected", {
+    ...logContext,
+    ...getProviderDiagnostics(env),
+  });
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
@@ -1089,18 +1198,35 @@ function publicConsultation(doc) {
   };
 }
 
-async function handleEnsureAccess(request, env) {
+async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare") {
+  logZiweiAi("Prepare Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logZiweiAi("Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logZiweiAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
+
+  try {
+    logZiweiAi("Chart Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+    calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    logZiweiAi("Chart Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+  } catch (error) {
+    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "chart_data_failed", env, error }), "error");
+    return calculationFailed();
+  }
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
 
   const pricing = getPricing();
+  logZiweiAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   if (isAdmin(auth)) {
+    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "admin", env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -1119,6 +1245,7 @@ async function handleEnsureAccess(request, env) {
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
   if (access.ok) {
+    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -1146,6 +1273,7 @@ async function handleEnsureAccess(request, env) {
     return invalidInput(payment.message, 409);
   }
 
+  logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "payment_required", env }));
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
@@ -1177,11 +1305,17 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
+  logZiweiAi("Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logZiweiAi("Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logZiweiAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
   const auth = await getOptionalUserFromRequest(request, env);
@@ -1189,12 +1323,15 @@ async function handleStart(request, env) {
 
   await connectDb(env);
   const pricing = getPricing();
+  logZiweiAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
   }
+  logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+  logZiweiAi("Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
   const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
@@ -1207,13 +1344,12 @@ async function handleStart(request, env) {
 
   let chart;
   try {
+    logZiweiAi("Chart Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    logZiweiAi("Chart Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
-    console.warn("[ziwei-ai] chart calculation failed", {
-      inputHash: normalized.inputHash,
-      code: clean(error?.code || ""),
-      message: clean(error?.message || error, 300),
-    });
+    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "chart_data_failed", access: access.accessType, env, error }), "error");
+    await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
     return calculationFailed();
   }
 
@@ -1254,7 +1390,8 @@ async function handleStart(request, env) {
   }
 
   try {
-    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), { minLength: 360, maxOutputTokens: 8000 });
+    const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
+    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), { minLength: 360, maxOutputTokens: 8000, logContext });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
     const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
     const completed = await ZiweiAiConsultation.findOneAndUpdate(
@@ -1272,9 +1409,21 @@ async function handleStart(request, env) {
       },
       { new: true },
     ).lean();
+    logZiweiAi("Generate Success", {
+      ...logContext,
+      providerReason: generated.provider || generated.model || "real_llm_success",
+      provider: generated.provider,
+      model: generated.model,
+    });
     return json(publicConsultation(completed));
   } catch (error) {
-    await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
+    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    logZiweiAi("Refund Or Restore", {
+      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+      restored,
+      accessPrepaid: access.prepaid === true,
+    }, restored ? "info" : "warn");
     await ZiweiAiConsultation.updateOne(
       { id: sessionId },
       {
@@ -1293,6 +1442,7 @@ async function handleStart(request, env) {
 }
 
 async function handleMessage(request, env) {
+  const route = "/api/ziwei-ai/message";
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1200);
@@ -1311,9 +1461,11 @@ async function handleMessage(request, env) {
   if (!consultation) return invalidInput("상담 기록을 찾을 수 없습니다.", 404);
 
   try {
+    const logContext = safeLogPayload({ route, requestId: sessionId, body, access: "follow_up", env });
     const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
       minLength: 100,
       maxOutputTokens: 5000,
+      logContext,
     });
     const userMessage = { role: "user", content: message, createdAt: new Date() };
     const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date() };
@@ -1327,8 +1479,15 @@ async function handleMessage(request, env) {
       },
       { new: true },
     ).lean();
+    logZiweiAi("Generate Success", {
+      ...logContext,
+      providerReason: generated.provider || generated.model || "real_llm_success",
+      provider: generated.provider,
+      model: generated.model,
+    });
     return json(publicConsultation(updated));
   } catch (error) {
+    logZiweiAi("Error", safeLogPayload({ route, requestId: sessionId, body, access: "follow_up", env, error }), "error");
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
   }
 }
@@ -1338,8 +1497,12 @@ export async function handleZiweiAiRoutes(request, env = {}) {
   const path = getRoutePath(request, "/api/ziwei-ai");
 
   try {
-    if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
-    if (method === "POST" && path === "/start") return await handleStart(request, env);
+    if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
+      return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
+    }
+    if (method === "POST" && (path === "/generate" || path === "/start")) {
+      return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start");
+    }
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

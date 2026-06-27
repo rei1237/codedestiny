@@ -56,11 +56,19 @@ assertExcludes("index.html", oldAccessRetryCopy, "old access retry copy should b
 
 assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/ensure-access");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/start");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/message");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "runBillingCoinGate");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "상담을 준비하고 있습니다");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "결제창을 확인해 주세요");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "올해의 흐름을 읽고 있습니다");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "새해의 기운을 읽는 중...");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "targetYear");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "focusArea");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "더 깊게 보고 싶은 흐름");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "nyai-category-chip");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "AI Consultation");
+assertExcludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/message");
+assertExcludes("app/new-year-ai-consultation/page.tsx", "handleFollowUp");
+assertExcludes("app/new-year-ai-consultation/page.tsx", "nyai-follow");
+assertExcludes("app/new-year-ai-consultation/page.tsx", "followUp");
 assertExcludes("app/new-year-ai-consultation/page.tsx", "/api/saju-new-year");
 assertExcludes("app/new-year-ai-consultation/page.tsx", "create-job");
 assertExcludes("app/new-year-ai-consultation/page.tsx", "verify-access");
@@ -73,6 +81,12 @@ assertIncludes("worker/routes/new-year-ai.js", "handleMessage");
 assertIncludes("worker/routes/new-year-ai.js", "new-year-ai-consultation");
 assertIncludes("worker/routes/new-year-ai.js", "PointHistory");
 assertIncludes("worker/routes/new-year-ai.js", "billingMode: \"coin-gate\"");
+assertIncludes("worker/routes/new-year-ai.js", "calculateNewYearFortuneData");
+assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Prepare Start\"");
+assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Generate Success\"");
+assertIncludes("worker/routes/new-year-ai.js", "providerReason");
+assertIncludes("worker/routes/new-year-ai.js", "FOLLOW_UP_DISABLED");
+assertExcludes("worker/routes/new-year-ai.js", "buildFollowUpPrompt");
 assertExcludes("worker/routes/new-year-ai.js", "fetchPortOnePayment");
 assertExcludes("worker/routes/new-year-ai.js", "getPortOnePublicConfig");
 assertIncludes("worker/lib/models.js", "newYearAiConsultations");
@@ -87,20 +101,45 @@ const route = await import(routeUrl);
 const oldRoute = await import(oldRouteUrl);
 
 const validInput = {
-  year: 2026,
-  birthInfo: {
-    name: "테스트",
-    gender: "female",
-    birthDate: "1992-01-10",
-    birthTime: "09:30",
-    calendarType: "solar",
-  },
-  topic: "올해 일과 재물 흐름이 궁금합니다.",
+  serviceType: "new-year-ai-consultation",
+  consultationType: "newYearFortune",
+  userName: "테스트",
+  gender: "female",
+  birthDate: "1992-01-10",
+  birthTime: "09:30",
+  calendarType: "solar",
+  targetYear: 2026,
+  focusArea: "overall",
+  question: "",
+  locale: "ko",
   idempotencyKey: "nyai-test-key-20260627",
 };
 
 const normalized = route.__newYearAiTestUtils.normalizeConsultationInput(validInput);
 assert(normalized.ok === true, "new-year-ai input should normalize successfully");
+assert(normalized.input.targetYear === 2026, "new-year-ai targetYear should normalize successfully");
+assert(normalized.input.focusArea === "overall", "new-year-ai focusArea should normalize successfully");
+const fortuneData = route.__newYearAiTestUtils.calculateNewYearFortuneData(normalized.input);
+assert(fortuneData?.saju?.dayMaster, "new-year-ai fortune data should include day master");
+assert(fortuneData?.targetYear?.pillar, "new-year-ai fortune data should include target-year pillar");
+const firstPrompt = route.__newYearAiTestUtils.buildFirstPrompt(normalized.input, fortuneData);
+assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year-ai first prompt should include computed fortune data");
+assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
+assert(firstPrompt.includes("새해 전체 운의 핵심 결론"), "new-year-ai first prompt should request consultation sections");
+
+const workerSource = read("worker/routes/new-year-ai.js");
+const messageHandlerSource = workerSource.slice(workerSource.indexOf("async function handleMessage"), workerSource.indexOf("export async function handleNewYearAiRoutes"));
+assert(!messageHandlerSource.includes("generateConsultationText"), "new-year-ai message route should not generate follow-up LLM text");
+assert(!messageHandlerSource.includes("callGeminiText"), "new-year-ai message route should not call the LLM gateway");
+
+const missingYear = route.__newYearAiTestUtils.normalizeConsultationInput({ ...validInput, targetYear: "" });
+assert(missingYear.ok === false && missingYear.message === "상담할 연도를 선택해 주세요.", "new-year-ai should reject missing targetYear");
+
+const missingBirth = route.__newYearAiTestUtils.normalizeConsultationInput({ ...validInput, birthDate: "" });
+assert(missingBirth.ok === false && missingBirth.message.includes("생년월일, 성별, 달력 기준"), "new-year-ai should reject missing birthDate before payment");
+
+const customWithoutQuestion = route.__newYearAiTestUtils.normalizeConsultationInput({ ...validInput, focusArea: "custom", question: "" });
+assert(customWithoutQuestion.ok === false && customWithoutQuestion.message.includes("직접 질문"), "new-year-ai should require question for custom focus");
 
 const ensureResponse = await route.handleNewYearAiRoutes(new Request("https://code-destiny.test/api/new-year-ai/ensure-access", {
   method: "POST",
@@ -114,6 +153,29 @@ const ensureBody = await ensureResponse.json();
 assert(ensureResponse.status === 401, "ensure-access should require login without auth");
 assert(ensureBody.reason === "LOGIN_REQUIRED", "ensure-access should return LOGIN_REQUIRED");
 assert(ensureBody.message === "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.", "ensure-access should return the new login message");
+
+const invalidResponse = await route.handleNewYearAiRoutes(new Request("https://code-destiny.test/api/new-year-ai/ensure-access", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Idempotency-Key": validInput.idempotencyKey,
+  },
+  body: JSON.stringify({ ...validInput, birthDate: "" }),
+}), {});
+const invalidBody = await invalidResponse.json();
+assert(invalidResponse.status === 422, "ensure-access should reject invalid input before login/payment");
+assert(invalidBody.reason === "INVALID_INPUT", "invalid ensure-access should return INVALID_INPUT");
+
+const disabledMessageResponse = await route.handleNewYearAiRoutes(new Request("https://code-destiny.test/api/new-year-ai/message", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ sessionId: "nyai-test-session", message: "추가 질문 테스트" }),
+}), {});
+const disabledMessageBody = await disabledMessageResponse.json();
+assert(disabledMessageResponse.status === 410, "message route should be disabled");
+assert(disabledMessageBody.reason === "FOLLOW_UP_DISABLED", "message route should return FOLLOW_UP_DISABLED");
 
 const oldResponse = await oldRoute.handleSajuNewYearRoutes(new Request("https://code-destiny.test/api/saju-new-year/create-job", {
   method: "POST",

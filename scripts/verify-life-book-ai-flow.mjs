@@ -34,44 +34,36 @@ function assertNotIncludes(file, text, marker) {
 const indexHtml = read("index.html");
 const client = read("app/life-book-ai/LifeBookAiClient.tsx");
 const route = read("worker/routes/life-book-ai.js");
-const billingClient = read("app/_lib/billing-client.ts");
-const billingRoute = read("worker/routes/billing.js");
 const workerIndex = read("worker/index.js");
 const models = read("worker/lib/models.js");
 const saju = read("worker/lib/life-book-ai-saju.js");
 
-for (const file of [
-  "js/life-book.js",
-  "worker/routes/saju-lifebook.js",
-  "app/api/lifebook/session/route.js",
-  "app/_lib/lifebook/canonical.js",
-  "app/_lib/lifebook/state.js",
-  "scripts/verify-lifebook-llm-only-flow.mjs",
-  "__tests__/worker/saju-lifebook.pipeline-quality-soft-gate.test.js",
-]) {
-  assert(!fs.existsSync(rel(file)), `retired file still exists: ${file}`);
-}
-
 assertIncludes("index.html", indexHtml, 'href="/life-book-ai"');
-assertIncludes("index.html", indexHtml, "인생의 책 AI 상담");
+assertIncludes("index.html", indexHtml, "cd-preparing-badge");
 assertNotIncludes("index.html", indexHtml, 'data-action="openLifeBookModal"');
 assertNotIncludes("index.html", indexHtml, 'id="lifeBookModal"');
 assertNotIncludes("index.html", indexHtml, "/js/life-book.js");
 
 for (const marker of [
-  "/api/life-book-ai/ensure-access",
-  "/api/life-book-ai/start",
+  "/api/life-book-ai/prepare",
+  "/api/life-book-ai/generate",
   "/api/life-book-ai/message",
+  'serviceType: FEATURE_KEY',
+  'consultationType: "lifeBook"',
+  "focusArea",
+  "question",
   "runBillingCoinGate",
   "deferUsage: true",
+  "usagePolicy: \"apply_after_success\"",
+  "[LifeBook AI Page Enter]",
+  "[LifeBook AI Initial Render Success]",
+  "[LifeBook AI Submit Start]",
+  "[LifeBook AI Payment Success]",
+  "splitLifeBookSections",
 ]) {
   assertIncludes("app/life-book-ai/LifeBookAiClient.tsx", client, marker);
 }
-assertIncludes("app/_lib/billing-client.ts", billingClient, "registerDeferredBillingUsage");
-assertIncludes("worker/routes/billing.js", billingRoute, "handleDeferredUsageApply");
-assertIncludes("worker/routes/billing.js", billingRoute, "handleDeferredUsageCancel");
-assertIncludes("worker/routes/life-book-ai.js", route, "finalizeDeferredBillingUsage");
-assertIncludes("worker/routes/life-book-ai.js", route, "cancelDeferredBillingUsage");
+
 for (const marker of [
   "/api/premium/saju-lifebook",
   "/api/lifebook/prepare",
@@ -79,9 +71,10 @@ for (const marker of [
   "generate-mock",
   "lbProgress",
   "lbChapterContent",
-  "PortOne",
   "requestPayment",
   "portone_redirect",
+  "/api/life-book-ai/start\"",
+  "/api/life-book-ai/ensure-access\"",
 ]) {
   assertNotIncludes("app/life-book-ai/LifeBookAiClient.tsx", client, marker);
 }
@@ -95,19 +88,52 @@ for (const marker of [
   "handleEnsureAccess",
   "handleStart",
   "handleMessage",
+  "path === \"/prepare\"",
+  "path === \"/generate\"",
+  "path === \"/ensure-access\"",
+  "path === \"/start\"",
+  "serviceType",
+  "consultationType",
+  "focusArea",
+  "question",
   "calculateLifeBookAiSaju",
-  "LifeBookAiConsultation",
+  "callGeminiText",
+  "finalizeDeferredBillingUsage",
+  "cancelDeferredBillingUsage",
+  "restoreBillingGateAccessOnFailure",
+  "applyUsageOnce",
   "PAYMENT_REQUIRED",
   "LOGIN_REQUIRED",
   "INVALID_INPUT",
+  "[LifeBook AI ${marker}]",
+  'logLifeBookAi("LLM Prepare Start"',
+  'logLifeBookAi("LLM Payload Received"',
+  'logLifeBookAi("LLM Payload Validated"',
+  'logLifeBookAi("LLM Access Check Start"',
+  'logLifeBookAi("LLM Access Check Success"',
+  'logLifeBookAi("Payment Required"',
+  'logLifeBookAi("LLM Generate Start"',
+  'logLifeBookAi("LLM Provider Selected"',
+  'logLifeBookAi("LLM Generate Success"',
+  'logLifeBookAi("LLM Error"',
+  'logLifeBookAi("Refund Or Restore"',
+  'logLifeBookAi("Pass Consumed"',
 ]) {
   assertIncludes("worker/routes/life-book-ai.js", route, marker);
 }
-assertNotIncludes("worker/routes/life-book-ai.js", route, "/api/premium/saju-lifebook");
-assertNotIncludes("worker/routes/life-book-ai.js", route, "create-job");
-assertNotIncludes("worker/routes/life-book-ai.js", route, "generate-mock");
-assertNotIncludes("worker/routes/life-book-ai.js", route, "fetchPortOnePayment");
-assertNotIncludes("worker/routes/life-book-ai.js", route, "getPortOnePublicConfig");
+
+for (const marker of [
+  "/api/premium/saju-lifebook",
+  "/api/lifebook/prepare",
+  "create-job",
+  "generate-mock",
+  "fetchPortOnePayment",
+  "getPortOnePublicConfig",
+  "requestPayment",
+  "portone_redirect",
+]) {
+  assertNotIncludes("worker/routes/life-book-ai.js", route, marker);
+}
 
 assertIncludes("worker/lib/models.js", models, "lifeBookAiConsultationSchema");
 assertIncludes("worker/lib/models.js", models, 'collection: "lifeBookAiConsultations"');

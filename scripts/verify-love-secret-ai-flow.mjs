@@ -66,8 +66,8 @@ assertNotIncludes("index.html", indexHtml, 'id="loveSecretModal"');
 assertNotIncludes("index.html", indexHtml, "love-secret-pdf");
 
 for (const marker of [
-  "/api/love-secret-ai/ensure-access",
-  "/api/love-secret-ai/start",
+  "/api/love-secret-ai/prepare",
+  "/api/love-secret-ai/generate",
   "/api/love-secret-ai/message",
   "runBillingCoinGate",
   "연애 비책 AI 상담 받기",
@@ -90,8 +90,13 @@ for (const marker of [
   "handleEnsureAccess",
   "handleStart",
   "handleMessage",
+  'path === "/prepare"',
+  'path === "/generate"',
+  'path === "/ensure-access"',
+  'path === "/start"',
   "resolveBillingUsageEvidence",
   "refundBillingGateMonthlyCredit",
+  "restoreBillingGateAccessOnFailure",
   "love-secret-ai-consultation",
 ]) {
   assertIncludes("worker/routes/love-secret-ai.js", route, marker);

@@ -8,13 +8,15 @@ import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-
 import { callGeminiText } from "../lib/gemini.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
-const TITLE = "숙요점 궁합 AI 상담";
+const TITLE = "숙요점 AI 상담";
+const COMPATIBILITY_TITLE = "숙요점 궁합 AI 상담";
 const AMOUNT_KRW = 49000;
 const COIN_PRICE = 490;
 const TOKEN_TTL_MS = 20 * 60 * 1000;
 const startLocks = new Map();
 
-const RELATIONSHIP_TYPES = new Set(["연인", "썸", "부부", "재회", "짝사랑", "비즈니스 파트너", "친구", "가족"]);
+const CONSULTATION_TYPES = new Set(["personal", "compatibility"]);
+const RELATIONSHIP_TYPES = new Set(["개인 상담", "연인", "썸", "부부", "재회", "짝사랑", "비즈니스 파트너", "친구", "가족"]);
 const TOPICS = new Set([
   "전체 궁합",
   "연애 궁합",
@@ -32,30 +34,30 @@ const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   paymentRequired: "숙요점 궁합 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  invalidInput: "두 사람의 생년월일과 관계 정보를 다시 확인해 주세요.",
+  invalidInput: "상담에 필요한 정보가 부족해요. 생년월일과 상담 질문을 다시 확인해 주세요.",
   calculationFailed: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  serverFailed: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  llmFailed: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  serverFailed: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
 
 const SYSTEM_PROMPT = [
-  "당신은 숙요점 궁합을 상담하는 최고 수준의 동양 점성술 상담가입니다.",
+  "당신은 숙요점 27숙과 관계 상담에 능한 전문 상담가입니다.",
   "",
-  "사용자 A와 사용자 B의 생년월일, 성별, 양력/음력 정보, 관계 유형, 상담 주제, 그리고 계산된 27숙과 숙요점 관계 유형을 바탕으로 궁합을 상담형으로 해석합니다.",
+  "사용자의 생년월일을 바탕으로 본명숙을 해석하고, 궁합 상담인 경우 상대방의 숙과 관계 거리도 함께 분석합니다.",
   "",
   "반드시 지켜야 할 원칙:",
-  "1. PDF 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 말하듯 자연스럽게 답변합니다.",
+  "1. 실제 상담사가 말하듯 전문적이고 따뜻하게 답변합니다.",
   "2. 숙요점의 27숙, 관계 유형, 거리 개념을 정확하게 반영합니다.",
   "3. 명, 업태, 영친, 우쇠, 안괴, 위성/성위 관계를 단순한 길흉으로만 말하지 말고 관계 심리로 풀어냅니다.",
-  "4. 좋다/나쁘다로 단정하지 말고, 관계가 어떤 방식으로 끌리고 어떤 방식으로 상처를 주는지 설명합니다.",
-  "5. 연애, 결혼, 재회, 갈등, 장기 관계 가능성을 현실적으로 상담합니다.",
-  "6. 불안감을 조장하지 않습니다.",
-  "7. 상대방의 마음을 확정적으로 단정하지 않습니다.",
-  "8. 운세를 절대적 예언처럼 말하지 않습니다.",
-  "9. 같은 문장을 반복하지 않습니다.",
-  "10. AI, 프롬프트, 시스템, PDF, 챕터 같은 표현을 결과에 노출하지 않습니다.",
-  "11. 사용자가 입력한 관계 유형과 상담 주제를 가장 깊게 다룹니다.",
-  "12. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+  "4. 불안감을 자극하거나 결론을 과장하지 않습니다.",
+  "5. 상대방의 마음을 확정적으로 단정하지 않습니다.",
+  "6. 운세를 절대적 예언처럼 말하지 않습니다.",
+  "7. 사용자가 실제로 오늘 할 수 있는 행동 처방을 제시합니다.",
+  "8. 같은 문장을 반복하지 않습니다.",
+  "9. AI, 프롬프트, 시스템, PDF, 챕터 같은 표현을 결과에 노출하지 않습니다.",
+  "10. 사용자의 현재 질문을 가장 깊게 다룹니다.",
+  "11. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
 ].join("\n");
 
 function clean(value, max = 0) {
@@ -67,11 +69,54 @@ function normalizeId(value) {
   return clean(value, 180).replace(/[^a-zA-Z0-9._:-]/g, "-");
 }
 
+function isDevEnv(env = {}) {
+  return ["development", "dev", "local", "test"].includes(clean(env.NODE_ENV || env.ENVIRONMENT || env.APP_ENV).toLowerCase());
+}
+
+function maskBirthDate(value) {
+  const text = clean(value, 10);
+  return text ? `${text.slice(0, 4)}-**-**` : "";
+}
+
+function maskName(value) {
+  const text = clean(value, 80);
+  if (!text) return "";
+  if (text.length <= 1) return "*";
+  return `${text.slice(0, 1)}${"*".repeat(Math.min(3, text.length - 1))}`;
+}
+
+function maskedPerson(person = {}) {
+  return {
+    name: maskName(person.name),
+    gender: clean(person.gender, 20),
+    birthDate: maskBirthDate(person.birthDate),
+    calendarType: clean(person.calendarType, 20),
+  };
+}
+
+function logSukyoAi(marker, details = {}, error = null, env = {}) {
+  const payload = {
+    route: clean(details.route || "/api/sukuyo-compatibility-ai", 120),
+    requestId: clean(details.requestId, 180),
+    consultationType: clean(details.consultationType || "compatibility", 40),
+    validation: details.validation,
+    providerReason: clean(details.providerReason, 120),
+    accessGranted: typeof details.accessGranted === "boolean" ? details.accessGranted : undefined,
+    accessType: clean(details.accessType, 40),
+    personA: details.personA ? maskedPerson(details.personA) : undefined,
+    personB: details.personB ? maskedPerson(details.personB) : undefined,
+    errorMessage: error ? clean(error?.message || error, 500) : clean(details.errorMessage, 500),
+  };
+  if (error && isDevEnv(env)) payload.stack = clean(error?.stack, 2000);
+  const writer = error ? console.error : console.info;
+  writer(marker, payload);
+}
+
 function normalizeGender(value) {
   const token = clean(value).toLowerCase();
   if (["m", "male", "man", "남", "남성", "남자"].includes(token)) return "male";
   if (["f", "female", "woman", "여", "여성", "여자"].includes(token)) return "female";
-  if (["other", "기타", "비공개", "unknown"].includes(token)) return token === "unknown" ? "" : "other";
+  if (["other", "기타", "비공개", "unknown"].includes(token)) return "unknown";
   return token ? clean(value, 40) : "";
 }
 
@@ -102,6 +147,7 @@ function normalizeBirthTime(value) {
 
 function normalizePerson(value = {}, fallbackName) {
   const source = value && typeof value === "object" ? value : {};
+  const rawCalendarType = clean(source.calendarType);
   const birthDate = parseBirthDate(source.birthDate);
   return {
     name: clean(source.name || source.nickname || fallbackName, 80),
@@ -109,23 +155,56 @@ function normalizePerson(value = {}, fallbackName) {
     birthDate: birthDate?.raw || "",
     birthParts: birthDate,
     birthTime: normalizeBirthTime(source.birthTime),
-    calendarType: normalizeCalendarType(source.calendarType),
+    calendarType: normalizeCalendarType(rawCalendarType),
+    hasCalendarType: Boolean(rawCalendarType),
     isLeapMonth: source.isLeapMonth === true || clean(source.calendarType).toLowerCase().includes("leap") || clean(source.calendarType).includes("윤달"),
   };
 }
 
+function normalizeConsultationType(value) {
+  const token = clean(value).toLowerCase();
+  return CONSULTATION_TYPES.has(token) ? token : "compatibility";
+}
+
 function normalizeInput(body = {}) {
-  const personA = normalizePerson(body.personA || body.self || body.user || {}, "나");
-  const personB = normalizePerson(body.personB || body.partner || {}, "상대");
-  const relationshipType = clean(body.relationshipType || body.relationType || body.category, 80);
-  const topic = clean(body.topic || body.consultationTopic || body.questionTopic, 80);
+  const consultationType = normalizeConsultationType(body.consultationType || body.type);
+  const flatPersonA = {
+    name: body.userName || body.name || body.nickname,
+    gender: body.gender,
+    birthDate: body.birthDate,
+    birthTime: body.birthTime,
+    calendarType: body.calendarType,
+    isLeapMonth: body.isLeapMonth,
+  };
+  const flatPersonB = {
+    name: body.partnerName,
+    gender: body.partnerGender,
+    birthDate: body.partnerBirthDate,
+    birthTime: body.partnerBirthTime,
+    calendarType: body.partnerCalendarType,
+    isLeapMonth: body.partnerIsLeapMonth,
+  };
+  const personA = normalizePerson(body.personA || body.self || body.user || flatPersonA, "나");
+  const personB = normalizePerson(body.personB || body.partner || flatPersonB, "상대");
+  const relationshipType = consultationType === "personal"
+    ? "개인 상담"
+    : clean(body.relationshipType || body.relationType || body.category, 80);
+  const topic = clean(body.topic || body.consultationTopic || body.questionTopic || "숙요점 상담", 80);
   const question = clean(body.question || body.message || body.consultationQuestion || "", 1200);
   const errors = [];
+  if (!CONSULTATION_TYPES.has(consultationType)) errors.push("consultationType");
   if (!personA.birthParts) errors.push("personA.birthDate");
-  if (!personB.birthParts) errors.push("personB.birthDate");
+  if (!personA.gender) errors.push("personA.gender");
+  if (!personA.hasCalendarType) errors.push("personA.calendarType");
+  if (consultationType === "compatibility") {
+    if (!personB.birthParts) errors.push("personB.birthDate");
+    if (!personB.gender) errors.push("personB.gender");
+    if (!personB.hasCalendarType) errors.push("personB.calendarType");
+  }
   if (!RELATIONSHIP_TYPES.has(relationshipType)) errors.push("relationshipType");
   if (!TOPICS.has(topic)) errors.push("topic");
-  return { ok: errors.length === 0, errors, personA, personB, relationshipType, topic, question };
+  if (question.length < 2) errors.push("question");
+  return { ok: errors.length === 0, errors, consultationType, personA, personB, relationshipType, topic, question };
 }
 
 function lunarForPerson(person) {
@@ -185,6 +264,23 @@ function shukuName(sukuyo = {}) {
 
 function calculateSukuyo(input) {
   const personASukuyo = calculatePersonSukuyo(input.personA, "personA");
+  if (input.consultationType === "personal") {
+    return {
+      personASukuyo,
+      personBSukuyo: null,
+      compatibility: null,
+      sukuyoResult: {
+        personAShuku: shukuName(personASukuyo),
+        personBShuku: "개인 상담",
+        relationType: "본명숙",
+        distance: "",
+        distanceLabel: "",
+        direction: "",
+        forwardDistance: null,
+        reverseDistance: null,
+      },
+    };
+  }
   const personBSukuyo = calculatePersonSukuyo(input.personB, "personB");
   const compatibility = buildSukuyoAiCompatibility(personASukuyo, personBSukuyo);
   const relationType = clean(compatibility.relationType || "명");
@@ -254,10 +350,12 @@ async function verifyToken(env, token) {
 
 async function inputHash(input) {
   return sha256Text(JSON.stringify({
+    consultationType: input.consultationType,
     personA: input.personA,
-    personB: input.personB,
+    personB: input.consultationType === "compatibility" ? input.personB : null,
     relationshipType: input.relationshipType,
     topic: input.topic,
+    question: input.question,
   }));
 }
 
@@ -275,9 +373,9 @@ function buildPaymentPayload(idempotencyKey) {
   return {
     provider: "PORTONE_V2",
     featureKey: FEATURE_KEY,
-    title: TITLE,
-    reason: TITLE,
-    orderName: TITLE,
+    title: COMPATIBILITY_TITLE,
+    reason: COMPATIBILITY_TITLE,
+    orderName: COMPATIBILITY_TITLE,
     amountKRW: AMOUNT_KRW,
     coinPrice: COIN_PRICE,
     currency: "KRW",
@@ -288,8 +386,8 @@ function buildPaymentPayload(idempotencyKey) {
     checkoutEndpoint: "/api/billing/checkout",
     confirmEndpoint: "/api/billing/confirm",
     runtimeGate: {
-      title: TITLE,
-      reason: TITLE,
+      title: COMPATIBILITY_TITLE,
+      reason: COMPATIBILITY_TITLE,
       featureKey: FEATURE_KEY,
       categoryKey: "premium-consultation",
       subFeatureKey: FEATURE_KEY,
@@ -312,9 +410,10 @@ async function resolveUser(auth, env) {
 }
 
 function paymentIdFromBody(body = {}) {
+  const billingGate = body.billingGate && typeof body.billingGate === "object" ? body.billingGate : {};
   const payment = body.payment && typeof body.payment === "object" ? body.payment : {};
-  const accessGrant = body.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
-  const consume = body.consume && typeof body.consume === "object" ? body.consume : {};
+  const accessGrant = body.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : billingGate.accessGrant && typeof billingGate.accessGrant === "object" ? billingGate.accessGrant : {};
+  const consume = body.consume && typeof body.consume === "object" ? body.consume : billingGate.consume && typeof billingGate.consume === "object" ? billingGate.consume : {};
   return clean(
     body.paymentId
       || body.transactionId
@@ -322,6 +421,10 @@ function paymentIdFromBody(body = {}) {
       || body.ledgerId
       || body.impUid
       || body.merchantUid
+      || billingGate.paymentId
+      || billingGate.transactionId
+      || billingGate.purchaseId
+      || billingGate.ledgerId
       || payment.paymentId
       || payment.impUid
       || payment.merchantUid
@@ -362,9 +465,10 @@ function collectBillingEvidenceIds(body = {}) {
     const id = clean(value, 180);
     if (id) ids.add(id);
   };
+  const billingGate = body.billingGate && typeof body.billingGate === "object" ? body.billingGate : {};
   const payment = body.payment && typeof body.payment === "object" ? body.payment : {};
-  const accessGrant = body.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
-  const consume = body.consume && typeof body.consume === "object" ? body.consume : {};
+  const accessGrant = body.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : billingGate.accessGrant && typeof billingGate.accessGrant === "object" ? billingGate.accessGrant : {};
+  const consume = body.consume && typeof body.consume === "object" ? body.consume : billingGate.consume && typeof billingGate.consume === "object" ? billingGate.consume : {};
   const sources = [
     body.paymentId,
     body.transactionId,
@@ -373,6 +477,12 @@ function collectBillingEvidenceIds(body = {}) {
     body.requestId,
     body.idempotencyKey,
     body.orderId,
+    billingGate.paymentId,
+    billingGate.transactionId,
+    billingGate.purchaseId,
+    billingGate.ledgerId,
+    billingGate.requestId,
+    billingGate.idempotencyKey,
     payment.paymentId,
     payment.impUid,
     payment.merchantUid,
@@ -485,19 +595,44 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
 }
 
 async function handleEnsureAccess(request, env) {
+  const body = await readJson(request);
+  const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key") || `sukuyo-ai-${Date.now().toString(36)}`);
+  logSukyoAi("[Sukyo AI LLM Prepare Start]", {
+    route: "/api/sukuyo-compatibility-ai/prepare",
+    requestId: idempotencyKey,
+    consultationType: normalizeConsultationType(body.consultationType || body.type),
+  });
   let auth = null;
   try {
     auth = await requireAuth(request, env);
   } catch (_) {
     return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   }
-  const body = await readJson(request);
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 422 });
-  const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key") || `sukuyo-ai-${Date.now().toString(36)}`);
+  logSukyoAi("[Sukyo AI LLM Payload Validated]", {
+    route: "/api/sukuyo-compatibility-ai/prepare",
+    requestId: idempotencyKey,
+    consultationType: normalized.consultationType,
+    validation: { ok: normalized.ok, errors: normalized.errors },
+    personA: normalized.personA,
+    personB: normalized.consultationType === "compatibility" ? normalized.personB : null,
+  });
+  if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput, errors: normalized.errors }, { status: 422 });
+  logSukyoAi("[Sukyo AI LLM Access Check Start]", {
+    route: "/api/sukuyo-compatibility-ai/prepare",
+    requestId: idempotencyKey,
+    consultationType: normalized.consultationType,
+  });
   const user = await resolveUser(auth, env);
   const accessHash = await inputHash(normalized);
   if (clean(user?.role).toLowerCase() === "admin") {
+    logSukyoAi("[Sukyo AI LLM Access Check Success]", {
+      route: "/api/sukuyo-compatibility-ai/prepare",
+      requestId: idempotencyKey,
+      consultationType: normalized.consultationType,
+      accessGranted: true,
+      accessType: "admin",
+    });
     return json({
       ok: true,
       accessToken: await signTokenPayload(env, { userId: String(auth.userId), accessType: "admin", inputHash: accessHash, idempotencyKey, exp: Date.now() + TOKEN_TTL_MS }),
@@ -507,12 +642,25 @@ async function handleEnsureAccess(request, env) {
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user || {});
+    logSukyoAi("[Sukyo AI LLM Access Check Success]", {
+      route: "/api/sukuyo-compatibility-ai/prepare",
+      requestId: idempotencyKey,
+      consultationType: normalized.consultationType,
+      accessGranted: true,
+      accessType,
+    });
     return json({
       ok: true,
       accessToken: await signTokenPayload(env, { userId: String(auth.userId), accessType, inputHash: accessHash, idempotencyKey, exp: Date.now() + TOKEN_TTL_MS }),
       accessType,
     });
   }
+  logSukyoAi("[Sukyo AI LLM Access Check Success]", {
+    route: "/api/sukuyo-compatibility-ai/prepare",
+    requestId: idempotencyKey,
+    consultationType: normalized.consultationType,
+    accessGranted: false,
+  });
   return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: buildPaymentPayload(idempotencyKey) }, { status: 402 });
 }
 
@@ -538,16 +686,18 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
 }
 
 function buildFirstPrompt(input, calculation) {
+  const personal = input.consultationType === "personal";
   return [
-    "아래 계산 데이터만 근거로 숙요점 궁합 첫 상담 답변을 작성하세요.",
+    "아래 계산 데이터만 근거로 숙요점 AI 첫 상담 답변을 작성하세요.",
     "없는 사실을 지어내지 말고, 계산된 27숙과 관계 유형을 중심으로 말하세요.",
     "",
     "[사용자 입력]",
-    `- 사용자 A: ${input.personA.name || "나"} · 성별 ${input.personA.gender || "미입력"} · ${input.personA.birthDate} · ${input.personA.calendarType === "lunar" ? "음력" : "양력"} · 출생시간 ${input.personA.birthTime || "미입력"}`,
-    `- 사용자 B: ${input.personB.name || "상대"} · 성별 ${input.personB.gender || "미입력"} · ${input.personB.birthDate} · ${input.personB.calendarType === "lunar" ? "음력" : "양력"} · 출생시간 ${input.personB.birthTime || "미입력"}`,
+    `- 상담 유형: ${personal ? "개인 상담" : "궁합 상담"}`,
+    `- 사용자: ${input.personA.name || "나"} · 성별 ${input.personA.gender || "미입력"} · ${input.personA.birthDate} · ${input.personA.calendarType === "lunar" ? "음력" : "양력"} · 출생시간 ${input.personA.birthTime || "미입력"}`,
+    personal ? "" : `- 상대방: ${input.personB.name || "상대"} · 성별 ${input.personB.gender || "미입력"} · ${input.personB.birthDate} · ${input.personB.calendarType === "lunar" ? "음력" : "양력"} · 출생시간 ${input.personB.birthTime || "미입력"}`,
     `- 관계 유형: ${input.relationshipType}`,
     `- 상담 주제: ${input.topic}`,
-    input.question ? `- 사용자의 현재 질문: ${input.question}` : "",
+    `- 사용자의 현재 질문: ${input.question}`,
     "",
     "[숙요점 계산 결과]",
     JSON.stringify({
@@ -558,7 +708,7 @@ function buildFirstPrompt(input, calculation) {
         strengths: calculation.personASukuyo.strengths,
         shadows: calculation.personASukuyo.shadows,
       },
-      personB: {
+      personB: personal ? null : {
         shuku: calculation.sukuyoResult.personBShuku,
         index: calculation.personBSukuyo.index,
         keywords: calculation.personBSukuyo.keywords,
@@ -569,8 +719,9 @@ function buildFirstPrompt(input, calculation) {
       compatibility: calculation.compatibility,
     }, null, 2),
     "",
-    "첫 답변은 다음 흐름을 자연스럽게 모두 포함하세요.",
-    "두 사람의 숙요점 핵심 궁합, 두 사람 사이의 끌림 구조, 반복되기 쉬운 갈등 패턴, 한쪽이 더 상처받기 쉬운 지점, 연애 궁합, 결혼 또는 장기 관계 가능성, 재회/회복 가능성, 대화 방식과 감정 조율법, 조심해야 할 관계 패턴, 관계를 좋게 만드는 현실 조언, 마지막 상담 메시지.",
+    "첫 답변은 Markdown으로 작성하되 다음 흐름을 자연스럽게 모두 포함하세요.",
+    "오늘의 달빛 결론, 나의 본명숙, 숙요점 기질, 현재 질문의 흐름, 지금 가장 강하게 작용하는 감정 패턴, 가까운 시기의 변화 가능성, 조심해야 할 관계 습관, 오늘의 행동 처방, 마지막 한 줄 조언.",
+    personal ? "" : "궁합 상담이므로 상대방의 본명숙, 관계의 별자리, 관계 거리 또는 관계 유형, 두 사람의 관계 흐름도 반드시 포함하세요.",
   ].filter(Boolean).join("\n");
 }
 
@@ -581,6 +732,11 @@ function sanitizeConsultationText(text) {
 }
 
 async function createFirstAnswer(env, input, calculation) {
+  logSukyoAi("[Sukyo AI LLM Generate Start]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: input.idempotencyKey,
+    consultationType: input.consultationType,
+  });
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
     systemPrompt: SYSTEM_PROMPT,
     taskType: "fortune",
@@ -591,11 +747,30 @@ async function createFirstAnswer(env, input, calculation) {
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  logSukyoAi("[Sukyo AI LLM Provider Selected]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: input.idempotencyKey,
+    consultationType: input.consultationType,
+    providerReason: isMock ? "mock_provider_blocked" : provider || model || "gemini",
+  });
   const content = sanitizeConsultationText(ai?.text || "");
   if (!ai?.ok || isMock || content.length < 240) {
-    console.error("[sukuyo-compatibility-ai] llm failed", { error: clean(ai?.error || ""), provider, model, isMock });
-    throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+    const llmError = Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+    logSukyoAi("[Sukyo AI LLM Error]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: input.idempotencyKey,
+      consultationType: input.consultationType,
+      providerReason: isMock ? "mock_provider_blocked" : provider || model || "llm_failed",
+      errorMessage: clean(ai?.error || ai?.message || "LLM_FAILED"),
+    }, llmError, env);
+    throw llmError;
   }
+  logSukyoAi("[Sukyo AI LLM Generate Success]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: input.idempotencyKey,
+    consultationType: input.consultationType,
+    providerReason: provider || model || "real_llm_success",
+  });
   return { content, provider, model };
 }
 
@@ -609,6 +784,7 @@ function serializeConsultation(doc) {
     relationshipType: raw.relationshipType,
     topic: raw.topic,
     accessType: raw.accessType,
+    consultationType: raw.relationshipType === "개인 상담" ? "personal" : "compatibility",
     messages: Array.isArray(raw.messages) ? raw.messages : [],
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
@@ -671,8 +847,21 @@ async function handleStart(request, env) {
   }
   const body = await readJson(request);
   const normalized = normalizeInput(body);
-  if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 422 });
   const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key") || `sukuyo-ai-${Date.now().toString(36)}`);
+  logSukyoAi("[Sukyo AI LLM Generate Start]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: idempotencyKey,
+    consultationType: normalized.consultationType,
+  });
+  logSukyoAi("[Sukyo AI LLM Payload Validated]", {
+    route: "/api/sukuyo-compatibility-ai/generate",
+    requestId: idempotencyKey,
+    consultationType: normalized.consultationType,
+    validation: { ok: normalized.ok, errors: normalized.errors },
+    personA: normalized.personA,
+    personB: normalized.consultationType === "compatibility" ? normalized.personB : null,
+  });
+  if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput, errors: normalized.errors }, { status: 422 });
   const lockKey = `${auth.userId}:${idempotencyKey}`;
   if (startLocks.has(lockKey)) return startLocks.get(lockKey);
 
@@ -681,13 +870,50 @@ async function handleStart(request, env) {
     const existing = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
     if (existing) return json({ ok: true, consultation: serializeConsultation(existing), reused: true });
     const accessHash = await inputHash(normalized);
+    logSukyoAi("[Sukyo AI LLM Access Check Start]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: idempotencyKey,
+      consultationType: normalized.consultationType,
+    });
     const access = await resolveStartAccess(request, env, auth, body, normalized, accessHash);
     if (!access.ok) {
+      logSukyoAi("[Sukyo AI LLM Access Check Success]", {
+        route: "/api/sukuyo-compatibility-ai/generate",
+        requestId: idempotencyKey,
+        consultationType: normalized.consultationType,
+        accessGranted: false,
+      });
       return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: buildPaymentPayload(idempotencyKey), message: MESSAGES.paymentRequired }, { status: 402 });
     }
+    logSukyoAi("[Sukyo AI LLM Access Check Success]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: idempotencyKey,
+      consultationType: normalized.consultationType,
+      accessGranted: true,
+      accessType: access.accessType,
+    });
     const calculation = calculateSukuyo(normalized);
-    const firstAnswer = await createFirstAnswer(env, normalized, calculation);
+    const firstAnswer = await createFirstAnswer(env, { ...normalized, idempotencyKey }, calculation);
     const now = new Date();
+    const storedPersonB = normalized.consultationType === "personal" ? {
+      name: "",
+      gender: "unknown",
+      birthDate: normalized.personA.birthDate,
+      birthTime: "",
+      calendarType: normalized.personA.calendarType,
+      isLeapMonth: normalized.personA.isLeapMonth,
+      shuku: "개인 상담",
+      shukuIndex: null,
+    } : {
+      name: normalized.personB.name,
+      gender: normalized.personB.gender,
+      birthDate: normalized.personB.birthDate,
+      birthTime: normalized.personB.birthTime,
+      calendarType: normalized.personB.calendarType,
+      isLeapMonth: normalized.personB.isLeapMonth,
+      shuku: calculation.sukuyoResult.personBShuku,
+      shukuIndex: calculation.personBSukuyo.index,
+    };
     try {
       const created = await SukuyoCompatibilityAiConsultation.create({
         userId: auth.userId,
@@ -702,22 +928,16 @@ async function handleStart(request, env) {
           shuku: calculation.sukuyoResult.personAShuku,
           shukuIndex: calculation.personASukuyo.index,
         },
-        personB: {
-          name: normalized.personB.name,
-          gender: normalized.personB.gender,
-          birthDate: normalized.personB.birthDate,
-          birthTime: normalized.personB.birthTime,
-          calendarType: normalized.personB.calendarType,
-          isLeapMonth: normalized.personB.isLeapMonth,
-          shuku: calculation.sukuyoResult.personBShuku,
-          shukuIndex: calculation.personBSukuyo.index,
-        },
+        personB: storedPersonB,
         sukuyoResult: calculation.sukuyoResult,
         relationshipType: normalized.relationshipType,
         topic: normalized.topic,
         accessType: access.accessType,
         paymentId: access.paymentId || paymentIdFromBody(body),
-        messages: [{ role: "assistant", content: firstAnswer.content, createdAt: now }],
+        messages: [
+          { role: "user", content: normalized.question, createdAt: now },
+          { role: "assistant", content: firstAnswer.content, createdAt: now },
+        ],
         provider: firstAnswer.provider,
         model: firstAnswer.model,
       });
@@ -738,7 +958,12 @@ async function handleStart(request, env) {
       : code === "CALCULATION_FAILED"
         ? MESSAGES.calculationFailed
         : MESSAGES.serverFailed;
-    console.error("[sukuyo-compatibility-ai] start failed", { code, status, message: clean(error?.message || "") });
+    logSukyoAi("[Sukyo AI LLM Error]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      requestId: idempotencyKey,
+      consultationType: normalized.consultationType,
+      errorMessage: clean(error?.message || ""),
+    }, error, env);
     return json({ ok: false, reason: code, message }, { status: status >= 400 && status < 600 ? status : 500 });
   }).finally(() => {
     startLocks.delete(lockKey);
@@ -796,7 +1021,16 @@ async function handleMessage(request, env) {
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
   const answer = sanitizeConsultationText(ai?.text || "");
-  if (!ai?.ok || isMock || answer.length < 80) return json({ ok: false, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
+  if (!ai?.ok || isMock || answer.length < 80) {
+    logSukyoAi("[Sukyo AI LLM Error]", {
+      route: "/api/sukuyo-compatibility-ai/message",
+      requestId: sessionId,
+      consultationType: consultation.relationshipType === "개인 상담" ? "personal" : "compatibility",
+      providerReason: isMock ? "mock_provider_blocked" : provider || model || "llm_failed",
+      errorMessage: clean(ai?.error || ai?.message || "LLM_FAILED"),
+    }, null, env);
+    return json({ ok: false, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
+  }
   const now = new Date();
   consultation.messages.push({ role: "user", content, createdAt: now });
   consultation.messages.push({ role: "assistant", content: answer, createdAt: now });
@@ -810,8 +1044,17 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/sukuyo-compatibility-ai");
   if (method !== "POST") return methodNotAllowed();
-  if (path === "/ensure-access") return handleEnsureAccess(request, env);
-  if (path === "/start") return handleStart(request, env);
-  if (path === "/message") return handleMessage(request, env);
-  return notFound();
+  try {
+    if (path === "/ensure-access" || path === "/prepare") return await handleEnsureAccess(request, env);
+    if (path === "/start" || path === "/generate") return await handleStart(request, env);
+    if (path === "/message") return await handleMessage(request, env);
+    return notFound();
+  } catch (error) {
+    logSukyoAi("[Sukyo AI LLM Error]", {
+      route: `/api/sukuyo-compatibility-ai${path}`,
+      requestId: request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
+      errorMessage: clean(error?.message || error, 500),
+    }, error, env);
+    return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.serverFailed }, { status: 500 });
+  }
 }

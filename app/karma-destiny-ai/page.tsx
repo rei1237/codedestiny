@@ -1,12 +1,13 @@
 "use client";
 
 import { CalendarDays, Clock3, Loader2, MapPin, Moon, Send, Sparkles, WalletCards } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
-type GenderType = "male" | "female" | "other" | "";
+type GenderType = "male" | "female" | "unknown" | "";
+type FocusAreaType = "overall" | "love" | "money" | "career" | "relationship" | "family" | "lifePattern" | "spirituality" | "custom";
 type FlowStatus = "idle" | "preparing" | "payment" | "reading" | "ready" | "error";
 
 type BirthPlace = {
@@ -25,8 +26,8 @@ type ConsultationForm = {
   birthTimeUnknown: boolean;
   calendarType: CalendarType;
   birthPlace: BirthPlace;
-  topic: string;
-  userQuestion: string;
+  focusArea: FocusAreaType;
+  question: string;
 };
 
 type ChatMessage = {
@@ -50,6 +51,7 @@ type IntegratedResult = {
 
 type BillingGatePayload = {
   featureKey?: string;
+  runtimeGate?: Record<string, unknown>;
   reason?: string;
   requestId?: string;
   idempotencyKey?: string;
@@ -88,22 +90,23 @@ const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합
 const PAYMENT_REQUIRED_MESSAGE = "운명의 업 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const REQUIRED_INPUT_MESSAGE = "운명의 업 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.";
+const BIRTH_TIME_REQUIRED_MESSAGE = "운명의 업 상담은 출생시간에 따라 해석의 깊이가 달라져요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.";
+const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 지금 가장 궁금한 내용을 짧게 적어 주세요.";
+const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
 
-const TOPICS = [
-  "전체 운명의 업",
-  "반복되는 인생 패턴",
-  "관계에서 반복되는 상처",
-  "돈과 일에서 반복되는 문제",
-  "가족과 인연의 업",
-  "사랑과 이별의 업",
-  "고독감과 내면의 숙제",
-  "재능과 사명의 방향",
-  "지금 인생의 전환점",
-  "앞으로 풀어야 할 삶의 과제",
-  "올해의 업과 기회",
-  "현재 고민 상담",
-] as const;
+const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string }> = [
+  { value: "overall", label: "전체 운명의 업" },
+  { value: "lifePattern", label: "반복되는 인생 패턴" },
+  { value: "love", label: "사랑과 이별의 업" },
+  { value: "money", label: "돈에서 반복되는 흐름" },
+  { value: "career", label: "일과 사명의 방향" },
+  { value: "relationship", label: "관계에서 반복되는 감정" },
+  { value: "family", label: "가족과 인연의 업" },
+  { value: "spirituality", label: "내면과 영혼의 성장" },
+  { value: "custom", label: "직접 질문" },
+];
 
 const PLACE_PRESETS = [
   { label: "서울, 대한민국", city: "Seoul", country: "South Korea", latitude: "37.5665", longitude: "126.9780", timezone: "Asia/Seoul" },
@@ -129,8 +132,8 @@ const defaultForm = (): ConsultationForm => ({
     longitude: "126.9780",
     timezone: "Asia/Seoul",
   },
-  topic: "전체 운명의 업",
-  userQuestion: "",
+  focusArea: "overall",
+  question: "",
 });
 
 function createIdempotencyKey() {
@@ -144,7 +147,31 @@ function toNumberOrUndefined(value: string) {
 }
 
 function buildConsultationPayload(form: ConsultationForm) {
+  const latitude = toNumberOrUndefined(form.birthPlace.latitude);
+  const longitude = toNumberOrUndefined(form.birthPlace.longitude);
+  const birthPlace = {
+    city: form.birthPlace.city.trim(),
+    country: form.birthPlace.country.trim(),
+    latitude,
+    longitude,
+    timezone: form.birthPlace.timezone.trim(),
+  };
   return {
+    serviceType: "karma-ai-consultation",
+    consultationType: "destinyKarma",
+    userName: form.name.trim(),
+    gender: form.gender,
+    birthDate: form.birthDate,
+    birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+    birthTimeUnknown: form.birthTimeUnknown,
+    calendarType: form.calendarType,
+    birthPlace,
+    latitude,
+    longitude,
+    timezone: birthPlace.timezone,
+    focusArea: form.focusArea,
+    question: form.question.trim(),
+    locale: "ko",
     birthInfo: {
       name: form.name.trim(),
       gender: form.gender,
@@ -152,17 +179,16 @@ function buildConsultationPayload(form: ConsultationForm) {
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
       birthTimeUnknown: form.birthTimeUnknown,
       calendarType: form.calendarType,
-      birthPlace: {
-        city: form.birthPlace.city.trim(),
-        country: form.birthPlace.country.trim(),
-        latitude: toNumberOrUndefined(form.birthPlace.latitude),
-        longitude: toNumberOrUndefined(form.birthPlace.longitude),
-        timezone: form.birthPlace.timezone.trim(),
-      },
+      birthPlace,
     },
-    topic: form.topic,
-    userQuestion: form.userQuestion.trim(),
   };
+}
+
+function validateConsultationForm(form: ConsultationForm) {
+  if (!form.birthDate || !form.gender || !form.calendarType) return REQUIRED_INPUT_MESSAGE;
+  if (!form.birthTimeUnknown && !form.birthTime) return BIRTH_TIME_REQUIRED_MESSAGE;
+  if (form.focusArea === "custom" && form.question.trim().length < 2) return CUSTOM_QUESTION_REQUIRED_MESSAGE;
+  return "";
 }
 
 async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<{ response: Response; payload: T }> {
@@ -189,6 +215,77 @@ function summarizeSystem(result: IntegratedResult | null | undefined, key: "saju
   return "라후와 케투의 축으로 익숙한 습관과 성장 방향을 살핍니다.";
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function toText(value: unknown) {
+  return String(value || "").trim();
+}
+
+function toNumber(value: unknown, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function maskBirthDate(value: string) {
+  const match = value.match(/^(\d{4})-/);
+  return match ? `${match[1]}-**-**` : "";
+}
+
+function buildBillingGateInput(paymentPayload: BillingGatePayload, idempotencyKey: string) {
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  return {
+    categoryKey: toText(runtimeGate.categoryKey || "premium-consultation"),
+    subFeatureKey: toText(runtimeGate.subFeatureKey || FEATURE_KEY),
+    featureKey: toText(runtimeGate.featureKey || paymentPayload.featureKey) || FEATURE_KEY,
+    reason: toText(runtimeGate.reason || paymentPayload.reason) || FEATURE_REASON,
+    productId: toText(runtimeGate.productId || "karma-destiny-ai"),
+    productType: toText(runtimeGate.productType || "karma-destiny-ai"),
+    serviceType: toText(runtimeGate.serviceType || "karma-ai-consultation"),
+    requestId: idempotencyKey,
+    idempotencyKey,
+    forceDeduct: true,
+    deferUsage: true,
+    usagePolicy: "apply_after_success",
+    cost: toNumber(runtimeGate.cost ?? paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST),
+    coinPrice: toNumber(runtimeGate.coinPrice ?? paymentPayload.coinPrice ?? paymentPayload.cost, FEATURE_COST),
+    amountKRW: toNumber(runtimeGate.amountKRW ?? paymentPayload.amountKRW ?? paymentPayload.paymentAmount ?? paymentPayload.totalAmount, FEATURE_AMOUNT_KRW),
+    membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost ?? paymentPayload.cost, FEATURE_COST),
+  };
+}
+
+function splitAssistantSections(content: string) {
+  const normalized = content.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return [];
+  const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
+  return chunks.map((chunk, index) => {
+    const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
+    const first = lines[0] || "";
+    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:\d+[.)]\s*)?(.{2,42}?)(?:[:：])?$/);
+    const hasHeading = Boolean(headingMatch && lines.length > 1 && first.length <= 44);
+    return {
+      title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || `운명의 답장 ${index + 1}` : `운명의 답장 ${index + 1}`,
+      body: hasHeading ? lines.slice(1).join("\n") : chunk,
+    };
+  });
+}
+
+function AssistantMessageContent({ content }: { content: string }) {
+  const sections = splitAssistantSections(content);
+  if (!sections.length) return <p>{content}</p>;
+  return (
+    <div className="kdai-section-list">
+      {sections.map((section, index) => (
+        <section className="kdai-result-section" key={`${section.title}-${index}`}>
+          <h3>{section.title}</h3>
+          <p>{section.body}</p>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export default function KarmaDestinyAiPage() {
   const [form, setForm] = useState<ConsultationForm>(() => defaultForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -204,12 +301,18 @@ export default function KarmaDestinyAiPage() {
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
 
+  useEffect(() => {
+    console.info("[Karma AI Page Enter]", { route: "/karma-destiny-ai" });
+    console.info("[Karma AI Route Matched]", { route: "/karma-destiny-ai" });
+    console.info("[Karma AI Initial Render Success]", { route: "/karma-destiny-ai", serviceType: "karma-ai-consultation" });
+  }, []);
+
   const statusText = useMemo(() => {
     if (status === "preparing") return "운명의 기록을 펼치고 있습니다";
     if (status === "payment") return "결제창을 확인해 주세요";
     if (status === "reading") return "삶의 반복 패턴과 업의 흐름을 읽고 있습니다";
     if (status === "ready") return "상담이 이어지고 있습니다";
-    return "달빛 아래 운명의 문이 열려 있습니다";
+    return "운명의 실을 펼칠 준비가 되어 있습니다";
   }, [status]);
 
   const isBusy = status === "preparing" || status === "payment" || status === "reading";
@@ -292,52 +395,62 @@ export default function KarmaDestinyAiPage() {
   }, []);
 
   const runCommonBillingGate = async (paymentPayload: BillingGatePayload, idempotencyKey: string) => {
+    const billingInput = buildBillingGateInput(paymentPayload, idempotencyKey);
     openPaidFeatureGate({
-      featureKey: FEATURE_KEY,
+      featureKey: billingInput.featureKey,
       requestId: idempotencyKey,
-      cost: Number(paymentPayload.cost || paymentPayload.coinPrice || FEATURE_COST),
-      paymentMode: "single_purchase",
+      cost: billingInput.cost,
+      paymentMode: "pass",
       message: "결제창을 확인해 주세요",
     });
 
-    const gate = await runBillingCoinGate({
-      featureKey: FEATURE_KEY,
-      reason: FEATURE_REASON,
-      requestId: idempotencyKey,
-      idempotencyKey,
-      forceDeduct: true,
-      cost: Number(paymentPayload.cost || FEATURE_COST),
-      coinPrice: Number(paymentPayload.coinPrice || paymentPayload.cost || FEATURE_COST),
-      amountKRW: Number(paymentPayload.amountKRW || paymentPayload.paymentAmount || paymentPayload.totalAmount || FEATURE_AMOUNT_KRW),
-      membershipCreditCost: Number(paymentPayload.membershipCreditCost || paymentPayload.cost || FEATURE_COST),
-      productId: "karma-destiny-ai",
-      serviceType: "karma-destiny-ai",
-    });
+    const gate = await runBillingCoinGate(billingInput);
 
-    if (!gate.ok) {
+    if (!gate.ok || !gate.data) {
       const code = String(gate.error?.code || "").toUpperCase();
-      if (code === "AUTH_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
+      if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
       if (code === "INSUFFICIENT_COINS") throw new Error(PAYMENT_REQUIRED_MESSAGE);
       throw new Error(gate.error?.message || PAYMENT_VERIFY_FAILED_MESSAGE);
     }
 
-    const data = gate.data as Record<string, unknown> | null;
-    const consume = data?.consume as Record<string, unknown> | undefined;
-    const accessGrant = data?.accessGrant as Record<string, unknown> | undefined;
     return {
-      billingRequestId: idempotencyKey,
-      billingConsume: consume || null,
-      billingAccessGrant: accessGrant || null,
-      transactionId: String(consume?.transactionId || accessGrant?.purchaseId || accessGrant?.evidenceId || ""),
+      billingGate: gate.data as Record<string, unknown>,
     };
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (startLockRef.current || isBusy) return;
+    const validationMessage = validateConsultationForm(form);
+    if (validationMessage) {
+      console.warn("[Karma AI Submit Start]", {
+        route: "/karma-destiny-ai",
+        serviceType: "karma-ai-consultation",
+        focusArea: form.focusArea,
+        validation: "failed",
+        birthDate: maskBirthDate(form.birthDate),
+        questionLength: form.question.trim().length,
+      });
+      setNotice("");
+      setError(validationMessage);
+      setStatus("error");
+      return;
+    }
     startLockRef.current = true;
     const idempotencyKey = idempotencyKeyRef.current;
-    const payload = buildConsultationPayload(form);
+    const payload = {
+      ...buildConsultationPayload(form),
+      requestId: idempotencyKey,
+    };
+    console.info("[Karma AI Submit Start]", {
+      route: "/karma-destiny-ai",
+      requestId: idempotencyKey,
+      serviceType: "karma-ai-consultation",
+      focusArea: form.focusArea,
+      validation: "ok",
+      birthDate: maskBirthDate(form.birthDate),
+      questionLength: form.question.trim().length,
+    });
     let paymentAttempted = false;
     setError("");
     setNotice("");
@@ -349,17 +462,18 @@ export default function KarmaDestinyAiPage() {
         await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
         return;
       }
-      if (access.reason === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
-      if (access.reason === "INVALID_INPUT") throw new Error(access.message);
-      if (access.reason === "PAYMENT_REQUIRED" && "paymentPayload" in access) {
+      const denied = access as Exclude<EnsureAccessResult, { ok: true }>;
+      if (denied.reason === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
+      if (denied.reason === "INVALID_INPUT") throw new Error(denied.message);
+      if (denied.reason === "PAYMENT_REQUIRED" && "paymentPayload" in denied) {
         paymentAttempted = true;
-        setNotice(access.message || PAYMENT_REQUIRED_MESSAGE);
+        setNotice(denied.message || PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
-        const billingEvidence = await runCommonBillingGate(access.paymentPayload, idempotencyKey);
+        const billingEvidence = await runCommonBillingGate(denied.paymentPayload, idempotencyKey);
         await startConsultation(payload, idempotencyKey, billingEvidence);
         return;
       }
-      throw new Error("message" in access ? access.message || SERVER_ERROR_MESSAGE : SERVER_ERROR_MESSAGE);
+      throw new Error("message" in denied ? denied.message || SERVER_ERROR_MESSAGE : SERVER_ERROR_MESSAGE);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
       setError(
@@ -367,10 +481,13 @@ export default function KarmaDestinyAiPage() {
           || message === PAYMENT_VERIFY_FAILED_MESSAGE
           || message === LLM_ERROR_MESSAGE
           || message === PAYMENT_REQUIRED_MESSAGE
+          || message === REQUIRED_INPUT_MESSAGE
+          || message === BIRTH_TIME_REQUIRED_MESSAGE
+          || message === CUSTOM_QUESTION_REQUIRED_MESSAGE
           ? message
           : paymentAttempted
             ? PAYMENT_VERIFY_FAILED_MESSAGE
-            : message || SERVER_ERROR_MESSAGE,
+            : message || NETWORK_ERROR_MESSAGE,
       );
       setStatus("error");
     } finally {
@@ -402,13 +519,14 @@ export default function KarmaDestinyAiPage() {
   return (
     <main className="kdai-page" data-karma-destiny-ai="v20260627">
       <section className="kdai-hero" aria-label="운명의 업 AI 상담">
+        <div className="kdai-hero__sigil" aria-hidden="true" />
         <div className="kdai-hero__image">
           <img src="/fuctionassets/soul-origin-cover.webp" alt="운명의 업 대표 이미지" />
         </div>
         <div className="kdai-hero__copy">
-          <div className="kdai-kicker"><Moon size={16} /> 운명의 업 AI 상담</div>
-          <h1>반복되는 장면 속에서, 지금 풀어야 할 삶의 매듭이 드러납니다.</h1>
-          <p>사주, 서양 점성술, 베다 점성술의 흐름을 함께 살펴 관계와 일, 가족과 마음에 반복되는 선택의 방향을 차분히 읽습니다.</p>
+          <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic AI Reading</div>
+          <h1>운명의 업 AI 상담</h1>
+          <p>반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.</p>
           <div className="kdai-status" data-status={status}>
             {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
             <span>{statusText}</span>
@@ -421,7 +539,7 @@ export default function KarmaDestinyAiPage() {
         <form className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title">
             <CalendarDays size={18} />
-            <h2>상담 정보</h2>
+            <h2>운명의 실을 읽기 위한 정보</h2>
           </div>
 
           <div className="kdai-grid">
@@ -435,7 +553,7 @@ export default function KarmaDestinyAiPage() {
                 <option value="">선택</option>
                 <option value="female">여성</option>
                 <option value="male">남성</option>
-                <option value="other">기타</option>
+                <option value="unknown">비공개</option>
               </select>
             </label>
             <label>
@@ -477,42 +595,49 @@ export default function KarmaDestinyAiPage() {
           <div className="kdai-grid kdai-place-grid">
             <label>
               도시
-              <input value={form.birthPlace.city} onChange={updatePlaceField("city")} placeholder="Seoul" required />
+              <input value={form.birthPlace.city} onChange={updatePlaceField("city")} placeholder="Seoul" />
             </label>
             <label>
               국가
-              <input value={form.birthPlace.country} onChange={updatePlaceField("country")} placeholder="South Korea" required />
+              <input value={form.birthPlace.country} onChange={updatePlaceField("country")} placeholder="South Korea" />
             </label>
             <label>
               위도
-              <input value={form.birthPlace.latitude} onChange={updatePlaceField("latitude")} inputMode="decimal" placeholder="37.5665" required />
+              <input value={form.birthPlace.latitude} onChange={updatePlaceField("latitude")} inputMode="decimal" placeholder="37.5665" />
             </label>
             <label>
               경도
-              <input value={form.birthPlace.longitude} onChange={updatePlaceField("longitude")} inputMode="decimal" placeholder="126.9780" required />
+              <input value={form.birthPlace.longitude} onChange={updatePlaceField("longitude")} inputMode="decimal" placeholder="126.9780" />
             </label>
           </div>
           <label>
             시간대
-            <input value={form.birthPlace.timezone} onChange={updatePlaceField("timezone")} placeholder="Asia/Seoul" required />
+            <input value={form.birthPlace.timezone} onChange={updatePlaceField("timezone")} placeholder="Asia/Seoul" />
           </label>
 
           <label className="kdai-topic">
             상담 주제
-            <select value={form.topic} onChange={updateField("topic")} required>
-              {TOPICS.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+            <select value={form.focusArea} onChange={updateField("focusArea")} required>
+              {FOCUS_AREA_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <label className="kdai-topic">
             현재 가장 궁금한 질문
-            <textarea value={form.userQuestion} onChange={updateField("userQuestion")} placeholder="반복되는 관계 패턴이 왜 생기는지 알고 싶어요." minLength={2} maxLength={1600} required />
+            <textarea
+              value={form.question}
+              onChange={updateField("question")}
+              placeholder={form.focusArea === "custom" ? "지금 가장 풀고 싶은 운명의 매듭을 적어 주세요." : "비워두면 선택한 주제를 중심으로 상담이 이어집니다."}
+              minLength={form.focusArea === "custom" ? 2 : undefined}
+              maxLength={1600}
+              required={form.focusArea === "custom"}
+            />
           </label>
 
           {notice && <p className="kdai-notice">{notice}</p>}
           {error && <p className="kdai-error">{error}</p>}
           <button className="kdai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}
-            <span>{isBusy ? statusText : "운명의 업 AI 상담 받기"}</span>
+            <span>{isBusy ? "운명의 실을 따라가는 중..." : "운명의 업 AI 상담 받기"}</span>
           </button>
         </form>
 
@@ -559,14 +684,14 @@ export default function KarmaDestinyAiPage() {
           <div className="kdai-messages">
             {messages.length === 0 ? (
               <div className="kdai-empty">
-                <Clock3 size={28} />
-                <p>운명의 기록이 조용히 기다리고 있습니다.</p>
-                <span>상담이 시작되면 반복되는 삶의 흐름이 이곳에 펼쳐집니다.</span>
+                <div className="kdai-karma-ring" aria-hidden="true"><Clock3 size={28} /></div>
+                <p>운명의 실을 펼칠 준비가 되어 있습니다.</p>
+                <span>입력한 정보를 기준으로 반복되는 삶의 패턴과 지금의 질문을 연결해 상담이 이어집니다.</span>
               </div>
             ) : messages.map((message, index) => (
               <article key={`${message.role}-${index}`} className={`kdai-message kdai-message--${message.role}`}>
                 <span>{message.role === "assistant" ? "상담가" : "나"}</span>
-                <p>{message.content}</p>
+                {message.role === "assistant" ? <AssistantMessageContent content={message.content} /> : <p>{message.content}</p>}
               </article>
             ))}
           </div>
@@ -600,26 +725,59 @@ export default function KarmaDestinyAiPage() {
 
       <style jsx>{`
         .kdai-page {
+          position: relative;
+          overflow: hidden;
           min-height: 100vh;
           padding: clamp(16px, 3vw, 40px);
           color: #f9f0dc;
           background:
-            linear-gradient(115deg, rgba(10, 12, 20, .98), rgba(25, 18, 30, .96) 46%, rgba(16, 38, 35, .94)),
-            linear-gradient(0deg, rgba(245, 207, 126, .06), rgba(245, 207, 126, 0) 34%),
-            repeating-linear-gradient(90deg, rgba(255,255,255,.045) 0 1px, transparent 1px 92px);
+            radial-gradient(circle at 18% 8%, rgba(124, 58, 237, .28), transparent 28%),
+            radial-gradient(circle at 86% 18%, rgba(225, 29, 72, .18), transparent 30%),
+            radial-gradient(circle at 52% 95%, rgba(20, 184, 166, .13), transparent 32%),
+            linear-gradient(128deg, #060914 0%, #121126 38%, #21142d 62%, #071c24 100%);
           font-family: CodeDestinyBody, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .kdai-page::before,
+        .kdai-page::after {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          content: "";
+        }
+
+        .kdai-page::before {
+          opacity: .42;
+          background:
+            linear-gradient(108deg, transparent 0 18%, rgba(239, 204, 137, .24) 18.2%, transparent 18.6% 64%, rgba(190, 18, 60, .22) 64.2%, transparent 64.7%),
+            repeating-linear-gradient(91deg, rgba(255,255,255,.055) 0 1px, transparent 1px 92px),
+            repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 78px);
+          mask-image: linear-gradient(180deg, rgba(0,0,0,.95), rgba(0,0,0,.28));
+        }
+
+        .kdai-page::after {
+          opacity: .5;
+          background-image:
+            radial-gradient(circle, rgba(255, 247, 223, .62) 0 1px, transparent 1.5px),
+            radial-gradient(circle, rgba(244, 114, 182, .42) 0 1px, transparent 1.5px);
+          background-size: 118px 118px, 164px 164px;
+          background-position: 18px 24px, 72px 48px;
         }
 
         .kdai-panel,
         .kdai-hero {
           border: 1px solid rgba(239, 204, 137, .22);
           border-radius: 8px;
-          background: rgba(10, 14, 22, .76);
-          box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+          background:
+            linear-gradient(180deg, rgba(255, 252, 243, .09), rgba(255, 255, 255, .045)),
+            rgba(7, 10, 22, .78);
+          box-shadow: 0 24px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 247, 223, .08);
           backdrop-filter: blur(18px);
         }
 
         .kdai-hero {
+          position: relative;
+          overflow: hidden;
           display: grid;
           grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
           gap: clamp(18px, 4vw, 44px);
@@ -629,12 +787,58 @@ export default function KarmaDestinyAiPage() {
           padding: clamp(16px, 3vw, 30px);
         }
 
+        .kdai-hero::before {
+          position: absolute;
+          inset: auto -8% 18% 34%;
+          height: 2px;
+          content: "";
+          background: linear-gradient(90deg, transparent, rgba(248, 208, 111, .85), rgba(190, 18, 60, .72), transparent);
+          box-shadow: 0 0 28px rgba(248, 208, 111, .42);
+          transform: rotate(-7deg);
+        }
+
+        .kdai-hero::after {
+          position: absolute;
+          inset: 18px 18px auto auto;
+          width: min(36vw, 360px);
+          aspect-ratio: 1;
+          border: 1px solid rgba(239, 204, 137, .18);
+          border-radius: 50%;
+          content: "";
+          background:
+            conic-gradient(from 22deg, transparent 0 12%, rgba(239, 204, 137, .28) 12% 13%, transparent 13% 28%, rgba(244, 114, 182, .22) 28% 29%, transparent 29% 100%);
+          opacity: .58;
+        }
+
+        .kdai-hero__sigil {
+          position: absolute;
+          inset: 12% auto auto 22%;
+          width: 220px;
+          aspect-ratio: 1;
+          border: 1px solid rgba(239, 204, 137, .16);
+          border-radius: 50%;
+          background:
+            repeating-conic-gradient(from 12deg, rgba(239, 204, 137, .16) 0 4deg, transparent 4deg 18deg),
+            radial-gradient(circle, transparent 0 48%, rgba(190, 18, 60, .18) 49% 50%, transparent 51%);
+          opacity: .34;
+          animation: kdaiSlowTurn 38s linear infinite;
+        }
+
         .kdai-hero__image {
+          position: relative;
+          z-index: 1;
           overflow: hidden;
           aspect-ratio: 1 / 1;
           border-radius: 8px;
           border: 1px solid rgba(239, 204, 137, .28);
           background: #11151f;
+        }
+
+        .kdai-hero__copy,
+        .kdai-form,
+        .kdai-result {
+          position: relative;
+          z-index: 1;
         }
 
         .kdai-hero__image img {
@@ -655,13 +859,15 @@ export default function KarmaDestinyAiPage() {
         .kdai-kicker {
           color: #f1cd7c;
           font-weight: 800;
+          letter-spacing: .08em;
+          text-transform: uppercase;
         }
 
         .kdai-hero h1 {
           max-width: 780px;
           margin: 14px 0 12px;
           font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
-          font-size: clamp(30px, 4.6vw, 62px);
+          font-size: clamp(34px, 3.9rem, 58px);
           line-height: 1.08;
           letter-spacing: 0;
         }
@@ -679,6 +885,7 @@ export default function KarmaDestinyAiPage() {
           min-height: 36px;
           padding: 8px 10px;
           border-radius: 8px;
+          border: 1px solid rgba(241, 205, 124, .2);
           background: rgba(241, 205, 124, .1);
           color: #ffe4a3;
           font-size: 14px;
@@ -744,10 +951,20 @@ export default function KarmaDestinyAiPage() {
           width: 100%;
           border: 1px solid rgba(239, 204, 137, .22);
           border-radius: 8px;
-          background: rgba(255, 255, 255, .08);
+          background: rgba(255, 252, 243, .09);
           color: #fff7df;
           font: inherit;
           outline: none;
+          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+        .kdai-form input:focus,
+        .kdai-form select:focus,
+        .kdai-form textarea:focus,
+        .kdai-follow textarea:focus {
+          border-color: rgba(248, 208, 111, .72);
+          background: rgba(255, 252, 243, .13);
+          box-shadow: 0 0 0 3px rgba(248, 208, 111, .14), 0 0 22px rgba(190, 18, 60, .12);
         }
 
         .kdai-form input,
@@ -831,9 +1048,18 @@ export default function KarmaDestinyAiPage() {
           border: 0;
           border-radius: 8px;
           color: #17120a;
-          background: #f1cd7c;
+          background: linear-gradient(135deg, #ffe7a6, #d9a441 52%, #be123c);
           font-weight: 900;
           cursor: pointer;
+          box-shadow: 0 14px 30px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 244, 205, .18);
+          transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+        }
+
+        .kdai-primary:hover:not(:disabled),
+        .kdai-follow button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          filter: saturate(1.08);
+          box-shadow: 0 18px 34px rgba(0, 0, 0, .32), 0 0 26px rgba(248, 208, 111, .22);
         }
 
         .kdai-primary {
@@ -910,6 +1136,7 @@ export default function KarmaDestinyAiPage() {
         }
 
         .kdai-empty {
+          position: relative;
           display: grid;
           place-content: center;
           min-height: 360px;
@@ -917,9 +1144,26 @@ export default function KarmaDestinyAiPage() {
           color: rgba(249, 240, 220, .72);
         }
 
-        .kdai-empty svg {
+        .kdai-karma-ring {
+          position: relative;
+          display: grid;
+          place-items: center;
+          width: 94px;
+          aspect-ratio: 1;
           margin: 0 auto 12px;
+          border: 1px solid rgba(239, 204, 137, .38);
+          border-radius: 50%;
           color: #f1cd7c;
+          background:
+            conic-gradient(from 0deg, rgba(239, 204, 137, .24), transparent 24%, rgba(190, 18, 60, .22), transparent 68%, rgba(244, 114, 182, .18)),
+            rgba(255, 252, 243, .04);
+          box-shadow: inset 0 0 0 12px rgba(255, 255, 255, .025), 0 0 30px rgba(248, 208, 111, .16);
+          animation: kdaiSlowTurn 18s linear infinite;
+        }
+
+        .kdai-karma-ring svg {
+          color: #f1cd7c;
+          animation: kdaiReverseTurn 18s linear infinite;
         }
 
         .kdai-empty p {
@@ -943,6 +1187,33 @@ export default function KarmaDestinyAiPage() {
         .kdai-message p {
           margin: 0;
           color: #fff8e6;
+        }
+
+        .kdai-section-list {
+          display: grid;
+          gap: 10px;
+          white-space: normal;
+        }
+
+        .kdai-result-section {
+          border: 1px solid rgba(239, 204, 137, .18);
+          border-radius: 8px;
+          padding: 13px;
+          background:
+            linear-gradient(135deg, rgba(255, 252, 243, .08), rgba(124, 58, 237, .08)),
+            rgba(5, 9, 19, .42);
+        }
+
+        .kdai-result-section h3 {
+          margin: 0 0 8px;
+          color: #ffe4a3;
+          font-size: 15px;
+          line-height: 1.35;
+          letter-spacing: 0;
+        }
+
+        .kdai-result-section p {
+          white-space: pre-wrap;
         }
 
         .kdai-message--assistant {
@@ -975,6 +1246,14 @@ export default function KarmaDestinyAiPage() {
           to { transform: rotate(360deg); }
         }
 
+        @keyframes kdaiSlowTurn {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes kdaiReverseTurn {
+          to { transform: rotate(-360deg); }
+        }
+
         @media (max-width: 900px) {
           .kdai-page {
             padding: 12px;
@@ -990,6 +1269,10 @@ export default function KarmaDestinyAiPage() {
           .kdai-hero__image {
             max-height: 260px;
             aspect-ratio: 16 / 9;
+          }
+
+          .kdai-hero h1 {
+            font-size: 34px;
           }
 
           .kdai-grid,

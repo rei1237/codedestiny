@@ -213,6 +213,7 @@ const sitemapRequiredRoutes = [
   "/contact",
   "/disclaimer",
   "/editorial-policy",
+  "/faq",
   "/privacy",
   "/terms",
   "/saju/guide",

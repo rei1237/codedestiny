@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, HeartHandshake, Loader2, Moon, Send, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 
 type CalendarType = "solar" | "lunar";
+type ConsultationType = "personal" | "compatibility";
 type PersonForm = {
   name: string;
   gender: string;
@@ -21,6 +22,7 @@ type ConsultationMessage = {
 };
 type Consultation = {
   id: string;
+  consultationType?: ConsultationType;
   personA: { name?: string; shuku?: string };
   personB: { name?: string; shuku?: string };
   sukuyoResult: {
@@ -39,15 +41,22 @@ type EnsureAccessResult =
   | { ok: true; accessToken: string; accessType: "pass" | "paid" | "subscription" | "admin" }
   | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload: Record<string, unknown> }
   | { ok: false; reason: "LOGIN_REQUIRED" }
-  | { ok: false; reason: "INVALID_INPUT"; message: string };
+  | { ok: false; reason: "INVALID_INPUT"; message: string }
+  | { ok: false; reason?: string; message?: string };
 
+const FEATURE_KEY = "sukuyo-compatibility-ai";
+const FEATURE_REASON = "숙요점 궁합 AI 상담";
+const FEATURE_COST = 490;
+const FEATURE_AMOUNT_KRW = 49000;
+const FEATURE_MEMBERSHIP_CREDIT_COST = 4900;
 const RELATIONSHIP_TYPES = ["연인", "썸", "부부", "재회", "짝사랑", "비즈니스 파트너", "친구", "가족"];
 const TOPICS = ["전체 궁합", "연애 궁합", "결혼 가능성", "재회 가능성", "갈등 원인", "속궁합/정서적 친밀감", "장기 관계 가능성", "상대의 마음", "관계 유지 전략"];
 const STEPS = ["내 정보", "상대방 정보", "관계와 질문"];
+const PERSONAL_STEPS = ["내 정보", "상담 질문"];
 
 const EMPTY_PERSON: PersonForm = {
   name: "",
-  gender: "",
+  gender: "unknown",
   birthDate: "",
   birthTime: "",
   calendarType: "solar",
@@ -57,10 +66,11 @@ const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "숙요점 궁합 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  INVALID_INPUT: "두 사람의 생년월일과 관계 정보를 다시 확인해 주세요.",
+  INVALID_INPUT: "상담에 필요한 정보가 부족해요. 생년월일과 상담 질문을 다시 확인해 주세요.",
   CALCULATION_FAILED: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  SERVER_ERROR: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  LLM_FAILED: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
 
 function makeIdempotencyKey() {
@@ -142,6 +152,33 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
   };
 }
 
+function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST);
+  const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, FEATURE_AMOUNT_KRW);
+  return {
+    categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
+    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || FEATURE_KEY,
+    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || FEATURE_KEY,
+    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || FEATURE_REASON,
+    productId: toText(runtimeGate.productId ?? paymentPayload.productId) || FEATURE_KEY,
+    productType: toText(runtimeGate.productType ?? paymentPayload.productType) || FEATURE_KEY,
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || "sukyo-ai-consultation",
+    forceDeduct: true,
+    deferUsage: true,
+    usagePolicy: "apply_after_success",
+    executionKey: `${FEATURE_KEY}:${idempotencyKey}`,
+    requestId: idempotencyKey,
+    idempotencyKey,
+    cost,
+    coinPrice: cost,
+    amountKRW,
+    amountKrw: amountKRW,
+    paymentAmount: amountKRW,
+    membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, FEATURE_MEMBERSHIP_CREDIT_COST),
+  };
+}
+
 async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string) {
   const response = await authFetch(path, {
     method: "POST",
@@ -164,6 +201,7 @@ function distanceLabel(value?: string) {
 
 export default function SukuyoCompatibilityAiClient() {
   const [step, setStep] = useState(0);
+  const [consultationType, setConsultationType] = useState<ConsultationType>("compatibility");
   const [personA, setPersonA] = useState<PersonForm>({ ...EMPTY_PERSON });
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
   const [relationshipType, setRelationshipType] = useState("연인");
@@ -178,37 +216,83 @@ export default function SukuyoCompatibilityAiClient() {
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const chatBusy = phase === "chat";
+  const stepLabels = consultationType === "personal" ? PERSONAL_STEPS : STEPS;
+  const lastStep = stepLabels.length - 1;
+
+  useEffect(() => {
+    document.body.classList.add(styles.fullscreenBody);
+    return () => document.body.classList.remove(styles.fullscreenBody);
+  }, []);
+
   const phaseText = useMemo(() => {
-    if (phase === "access") return "두 사람의 인연을 읽고 있습니다";
+    if (phase === "access") return "달빛 상담 준비를 확인하고 있습니다";
     if (phase === "payment") return "결제창을 확인해 주세요";
-    if (phase === "start") return "숙요점 궁합 상담을 준비하고 있습니다";
+    if (phase === "start") return "숙요점 상담문을 생성하고 있습니다";
     if (phase === "chat") return "상담 답변을 이어가고 있습니다";
     return "";
   }, [phase]);
 
   const payload = useMemo(() => ({
-    personA,
-    personB,
+    consultationType,
+    userName: personA.name,
+    gender: personA.gender,
+    birthDate: personA.birthDate,
+    birthTime: personA.birthTime,
+    calendarType: personA.calendarType,
+    partnerName: consultationType === "compatibility" ? personB.name : "",
+    partnerGender: consultationType === "compatibility" ? personB.gender : "",
+    partnerBirthDate: consultationType === "compatibility" ? personB.birthDate : "",
+    partnerBirthTime: consultationType === "compatibility" ? personB.birthTime : "",
+    partnerCalendarType: consultationType === "compatibility" ? personB.calendarType : "",
     relationshipType,
     topic,
     question,
-  }), [personA, personB, relationshipType, topic, question]);
+    locale: "ko",
+    serviceType: "sukyo-ai-consultation",
+  }), [consultationType, personA, personB, relationshipType, topic, question]);
+
+  function resetAttempt() {
+    if (busy) return;
+    submitKeyRef.current = "";
+    setError("");
+    setNotice("");
+    setConsultation(null);
+  }
 
   function updatePerson(target: "a" | "b", patch: Partial<PersonForm>) {
+    resetAttempt();
     if (target === "a") setPersonA((current) => ({ ...current, ...patch }));
     if (target === "b") setPersonB((current) => ({ ...current, ...patch }));
   }
 
+  function updateConsultationType(next: ConsultationType) {
+    if (busy) return;
+    resetAttempt();
+    setConsultationType(next);
+    setStep(0);
+  }
+
+  function updateQuestion(value: string) {
+    resetAttempt();
+    setQuestion(value);
+  }
+
+  function validatePayload() {
+    if (!personA.birthDate || !personA.gender || !personA.calendarType || question.trim().length < 2) return false;
+    if (consultationType === "compatibility" && (!personB.birthDate || !personB.gender || !personB.calendarType)) return false;
+    return Boolean(topic && (consultationType === "personal" || relationshipType));
+  }
+
   function validateCurrentStep() {
-    if (step === 0) return Boolean(personA.birthDate);
-    if (step === 1) return Boolean(personB.birthDate);
-    return Boolean(relationshipType && topic && personA.birthDate && personB.birthDate);
+    if (step === 0) return Boolean(personA.birthDate && personA.gender && personA.calendarType);
+    if (consultationType === "compatibility" && step === 1) return Boolean(personB.birthDate && personB.gender && personB.calendarType);
+    return validatePayload();
   }
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
     const { status, data } = await postJson<{ ok?: boolean; reason?: string; message?: string; consultation?: Consultation }>(
-      "/api/sukuyo-compatibility-ai/start",
+      "/api/sukuyo-compatibility-ai/generate",
       { ...payload, ...access, idempotencyKey },
       idempotencyKey,
     );
@@ -221,12 +305,15 @@ export default function SukuyoCompatibilityAiClient() {
       return;
     }
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
+    if (data.reason === "LLM_FAILED") throw new Error("LLM_FAILED");
+    if (data.reason === "CALCULATION_FAILED") throw new Error("CALCULATION_FAILED");
+    if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
   }
 
   async function handleSubmit() {
     if (busy) return;
-    if (!personA.birthDate || !personB.birthDate || !relationshipType || !topic) {
+    if (!validatePayload()) {
       setError(ERROR_TEXT.INVALID_INPUT);
       return;
     }
@@ -237,7 +324,7 @@ export default function SukuyoCompatibilityAiClient() {
     setPhase("access");
     try {
       const { data } = await postJson<EnsureAccessResult>(
-        "/api/sukuyo-compatibility-ai/ensure-access",
+        "/api/sukuyo-compatibility-ai/prepare",
         { ...payload, idempotencyKey },
         idempotencyKey,
       );
@@ -248,28 +335,16 @@ export default function SukuyoCompatibilityAiClient() {
       const denied = data as Exclude<EnsureAccessResult, { ok: true }>;
       if (denied.reason === "LOGIN_REQUIRED") throw new Error("LOGIN_REQUIRED");
       if (denied.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      if (denied.reason !== "PAYMENT_REQUIRED") throw new Error(toText(denied.reason) || "SERVER_ERROR");
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
-      const paymentPayload = asRecord(denied.reason === "PAYMENT_REQUIRED" ? denied.paymentPayload : {});
-      const runtimeGate = asRecord(paymentPayload.runtimeGate);
-      const runtimeResult = await runBillingCoinGate({
-        categoryKey: toText(runtimeGate.categoryKey) || "premium-consultation",
-        subFeatureKey: "sukuyo-compatibility-ai",
-        featureKey: "sukuyo-compatibility-ai",
-        reason: toText(runtimeGate.reason || paymentPayload.reason) || "숙요점 궁합 AI 상담",
-        forceDeduct: true,
-        requestId: idempotencyKey,
-        idempotencyKey,
-        cost: toNumber(runtimeGate.cost ?? paymentPayload.coinPrice, 490),
-        coinPrice: toNumber(runtimeGate.coinPrice ?? paymentPayload.coinPrice, 490),
-        amountKRW: toNumber(runtimeGate.amountKRW ?? paymentPayload.amountKRW, 49000),
-        membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, 4900),
-      });
+      const paymentPayload = asRecord("paymentPayload" in denied ? denied.paymentPayload : {});
+      const runtimeResult = await runBillingCoinGate(buildBillingGateInput(paymentPayload, idempotencyKey));
       if (!isPaymentGranted(runtimeResult)) throw new Error("PAYMENT_VERIFY_FAILED");
       const payment = extractPayment(runtimeResult, idempotencyKey);
-      await startConsultation(idempotencyKey, payment, true);
+      await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(runtimeResult.data) }, true);
     } catch (caught) {
-      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       setPhase("idle");
     }
@@ -311,7 +386,7 @@ export default function SukuyoCompatibilityAiClient() {
           <option value="">선택</option>
           <option value="female">여성</option>
           <option value="male">남성</option>
-          <option value="other">기타</option>
+          <option value="unknown">비공개</option>
         </select>
       </label>
       <label className={styles.field}>
@@ -342,23 +417,32 @@ export default function SukuyoCompatibilityAiClient() {
   );
 
   return (
-    <main className={styles.screen}>
+    <main className={styles.screen} data-sukuyo-ai-consultation>
       <div className={styles.threadLine} />
+      <div className={styles.starField} aria-hidden="true" />
       <section className={styles.shell}>
         <aside className={styles.visualPanel}>
           <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 궁합 AI 상담" className={styles.visualImage} />
           <div className={styles.visualCopy}>
-            <p className={styles.eyebrow}><Moon size={15} /> 27숙 인연 상담</p>
-            <h1>숙요점 궁합 AI 상담</h1>
-            <p>두 사람의 달빛 자리와 관계의 결을 따라 끌림, 상처, 회복의 흐름을 차분히 읽습니다.</p>
+            <p className={styles.eyebrow}><Moon size={15} /> 27숙 달빛 상담</p>
+            <h1>숙요점 AI 상담</h1>
+            <p>태어난 날의 달빛 자리를 따라 지금의 질문과 관계의 결을 부드럽게 읽습니다.</p>
           </div>
         </aside>
 
         <section className={styles.workPanel}>
           {!consultation ? (
             <>
+              <div className={styles.modeSwitch} aria-label="상담 유형">
+                <button type="button" className={consultationType === "personal" ? styles.modeActive : styles.modeButton} onClick={() => updateConsultationType("personal")} disabled={busy}>
+                  개인 상담
+                </button>
+                <button type="button" className={consultationType === "compatibility" ? styles.modeActive : styles.modeButton} onClick={() => updateConsultationType("compatibility")} disabled={busy}>
+                  궁합 상담
+                </button>
+              </div>
               <div className={styles.stepTabs}>
-                {STEPS.map((label, index) => (
+                {stepLabels.map((label, index) => (
                   <button key={label} type="button" className={index === step ? styles.stepActive : styles.step} onClick={() => setStep(index)} disabled={busy}>
                     <span>{index + 1}</span>{label}
                   </button>
@@ -367,32 +451,34 @@ export default function SukuyoCompatibilityAiClient() {
 
               <div className={styles.formPanel}>
                 {step === 0 && renderPersonFields("a", personA)}
-                {step === 1 && renderPersonFields("b", personB)}
-                {step === 2 && (
+                {consultationType === "compatibility" && step === 1 && renderPersonFields("b", personB)}
+                {step === lastStep && (
                   <div className={styles.finalStep}>
-                    <div className={styles.optionGroup}>
-                      <span>관계 유형</span>
-                      <div className={styles.chipGrid}>
-                        {RELATIONSHIP_TYPES.map((item) => (
-                          <button key={item} type="button" className={relationshipType === item ? styles.chipActive : styles.chip} onClick={() => setRelationshipType(item)} disabled={busy}>
-                            {item}
-                          </button>
-                        ))}
+                    {consultationType === "compatibility" && (
+                      <div className={styles.optionGroup}>
+                        <span>관계 유형</span>
+                        <div className={styles.chipGrid}>
+                          {RELATIONSHIP_TYPES.map((item) => (
+                            <button key={item} type="button" className={relationshipType === item ? styles.chipActive : styles.chip} onClick={() => { resetAttempt(); setRelationshipType(item); }} disabled={busy}>
+                              {item}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className={styles.optionGroup}>
                       <span>상담 주제</span>
                       <div className={styles.chipGrid}>
                         {TOPICS.map((item) => (
-                          <button key={item} type="button" className={topic === item ? styles.chipActive : styles.chip} onClick={() => setTopic(item)} disabled={busy}>
+                          <button key={item} type="button" className={topic === item ? styles.chipActive : styles.chip} onClick={() => { resetAttempt(); setTopic(item); }} disabled={busy}>
                             {item}
                           </button>
                         ))}
                       </div>
                     </div>
                     <label className={styles.questionBox}>
-                      <span>지금 가장 듣고 싶은 말</span>
-                      <textarea value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={1200} disabled={busy} />
+                      <span>상담 질문</span>
+                      <textarea value={question} onChange={(event) => updateQuestion(event.target.value)} maxLength={1200} disabled={busy} placeholder="지금 가장 알고 싶은 흐름을 적어 주세요." />
                     </label>
                   </div>
                 )}
@@ -402,14 +488,14 @@ export default function SukuyoCompatibilityAiClient() {
                 <button type="button" className={styles.ghostButton} onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={busy || step === 0} aria-label="이전 단계">
                   <ChevronLeft size={18} />
                 </button>
-                {step < 2 ? (
-                  <button type="button" className={styles.primaryButton} onClick={() => validateCurrentStep() ? setStep((current) => Math.min(2, current + 1)) : setError(ERROR_TEXT.INVALID_INPUT)} disabled={busy}>
+                {step < lastStep ? (
+                  <button type="button" className={styles.primaryButton} onClick={() => validateCurrentStep() ? setStep((current) => Math.min(lastStep, current + 1)) : setError(ERROR_TEXT.INVALID_INPUT)} disabled={busy}>
                     다음 <ChevronRight size={18} />
                   </button>
                 ) : (
                   <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy}>
                     {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                    숙요점 궁합 AI 상담 받기
+                    AI 상담 받기
                   </button>
                 )}
               </div>
@@ -422,14 +508,16 @@ export default function SukuyoCompatibilityAiClient() {
                   <strong>{consultation.sukuyoResult?.personAShuku || consultation.personA?.shuku || "-"}</strong>
                 </div>
                 <div className={styles.summaryCard}>
-                  <span>{consultation.relationshipType} · {consultation.topic}</span>
+                  <span>{consultation.consultationType === "personal" ? "오늘의 달빛 결론" : `${consultation.relationshipType} · ${consultation.topic}`}</span>
                   <strong>{consultation.sukuyoResult?.relationType || "-"}</strong>
                   <em>{consultation.sukuyoResult?.distanceLabel || distanceLabel(consultation.sukuyoResult?.distance) || "출생 정보 기준으로 본 흐름"}</em>
                 </div>
-                <div className={styles.summaryCard}>
-                  <span>{consultation.personB?.name || "상대"}</span>
-                  <strong>{consultation.sukuyoResult?.personBShuku || consultation.personB?.shuku || "-"}</strong>
-                </div>
+                {consultation.consultationType !== "personal" && (
+                  <div className={styles.summaryCard}>
+                    <span>{consultation.personB?.name || "상대"}</span>
+                    <strong>{consultation.sukuyoResult?.personBShuku || consultation.personB?.shuku || "-"}</strong>
+                  </div>
+                )}
               </div>
 
               <div className={styles.chatList}>

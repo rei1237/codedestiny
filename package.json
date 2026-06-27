@@ -68,6 +68,7 @@
     "verify:astrology-ai-flow": "node scripts/verify-astrology-ai-flow.mjs",
     "verify:new-year-ai-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:karma-destiny-ai-flow": "node scripts/verify-karma-destiny-ai-flow.mjs",
+    "verify:vedic-ai-flow": "node scripts/verify-vedic-ai-flow.mjs",
     "verify:saju-new-year-llm": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-new-year-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:pdf-llm-gateway": "node scripts/verify-pdf-llm-gateway.mjs",

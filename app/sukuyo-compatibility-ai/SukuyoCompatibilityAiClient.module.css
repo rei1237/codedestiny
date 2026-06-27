@@ -1,25 +1,48 @@
 .screen {
-  min-height: 100vh;
+  position: relative;
+  min-height: 100svh;
   padding: 18px;
   background:
-    linear-gradient(132deg, rgba(36, 10, 20, .96), rgba(20, 32, 36, .98) 48%, rgba(54, 28, 22, .96)),
-    #1f1018;
-  color: #fff7f3;
+    radial-gradient(circle at 72% 12%, rgba(239, 230, 181, .18), transparent 18%),
+    linear-gradient(145deg, #090a1d 0%, #15183c 40%, #32214f 72%, #111827 100%);
+  color: #f8f7ff;
   font-family: var(--font-body), system-ui, sans-serif;
   overflow-x: hidden;
+}
+
+.fullscreenBody > :global(header),
+.fullscreenBody > :global(footer),
+.fullscreenBody > :global(div[class*="Disclaimer"]),
+.fullscreenBody > :global(div[class*="LegalUi_disclaimerBar"]) {
+  display: none !important;
 }
 
 .threadLine {
   position: fixed;
   left: 0;
   right: 0;
-  top: 64px;
+  top: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(244, 114, 182, .72), rgba(251, 191, 36, .56), transparent);
+  background: linear-gradient(90deg, transparent, rgba(217, 209, 255, .72), rgba(244, 214, 135, .68), transparent);
   pointer-events: none;
 }
 
+.starField {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .56) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(244, 214, 135, .34) 0 1px, transparent 1.7px);
+  background-position: 0 0, 24px 18px;
+  background-size: 72px 72px, 112px 112px;
+  opacity: .46;
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .7) 62%, transparent 100%);
+}
+
 .shell {
+  position: relative;
+  z-index: 1;
   width: min(1240px, 100%);
   min-height: calc(100vh - 36px);
   margin: 0 auto;
@@ -31,10 +54,11 @@
 
 .visualPanel,
 .workPanel {
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(230, 225, 255, .18);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .06);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+  background: rgba(255, 255, 255, .08);
+  box-shadow: 0 24px 80px rgba(3, 7, 18, .44), inset 0 1px 0 rgba(255, 255, 255, .12);
+  backdrop-filter: blur(18px);
   overflow: hidden;
 }
 
@@ -51,7 +75,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.08) contrast(1.04);
+  filter: saturate(1.04) contrast(1.03) brightness(.82);
 }
 
 .visualCopy {
@@ -59,7 +83,7 @@
   z-index: 1;
   width: 100%;
   padding: 28px;
-  background: linear-gradient(0deg, rgba(24, 8, 18, .92), rgba(24, 8, 18, .2));
+  background: linear-gradient(0deg, rgba(7, 10, 28, .94), rgba(22, 20, 58, .2));
 }
 
 .eyebrow {
@@ -67,7 +91,7 @@
   gap: 8px;
   align-items: center;
   margin: 0 0 10px;
-  color: #ffd7a3;
+  color: #f5d987;
   font-weight: 800;
   font-size: .88rem;
 }
@@ -78,13 +102,14 @@
   font-size: clamp(2rem, 5vw, 4.5rem);
   line-height: 1.04;
   letter-spacing: 0;
-  color: #fff7ed;
+  color: #fffaf0;
+  text-shadow: 0 10px 34px rgba(244, 214, 135, .22);
 }
 
 .visualCopy p:last-child {
   max-width: 520px;
   margin: 14px 0 0;
-  color: #ffe6ea;
+  color: #e7e4ff;
   line-height: 1.75;
   word-break: keep-all;
 }
@@ -94,7 +119,30 @@
   flex-direction: column;
   gap: 14px;
   padding: 18px;
-  background: linear-gradient(145deg, rgba(17, 24, 39, .86), rgba(69, 20, 35, .72));
+  background: linear-gradient(145deg, rgba(13, 17, 42, .84), rgba(35, 26, 74, .72));
+}
+
+.modeSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.modeButton,
+.modeActive {
+  min-height: 44px;
+  border: 1px solid rgba(230, 225, 255, .16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .07);
+  color: #ebe9ff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.modeActive {
+  border-color: rgba(244, 214, 135, .62);
+  background: linear-gradient(135deg, rgba(244, 214, 135, .2), rgba(167, 139, 250, .18));
+  color: #fffaf0;
 }
 
 .stepTabs {
@@ -106,10 +154,10 @@
 .step,
 .stepActive {
   min-height: 44px;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(230, 225, 255, .16);
   border-radius: 8px;
   background: rgba(255, 255, 255, .07);
-  color: #f7e8ee;
+  color: #e8e6ff;
   font-weight: 800;
   cursor: pointer;
 }
@@ -127,9 +175,9 @@
 }
 
 .stepActive {
-  border-color: rgba(251, 191, 36, .58);
-  background: rgba(251, 191, 36, .16);
-  color: #fff9e8;
+  border-color: rgba(244, 214, 135, .58);
+  background: rgba(244, 214, 135, .15);
+  color: #fffaf0;
 }
 
 .formPanel,
@@ -160,7 +208,7 @@
 .fieldWide span,
 .questionBox span,
 .optionGroup span {
-  color: #ffd7a3;
+  color: #f5d987;
   font-size: .86rem;
   font-weight: 800;
 }
@@ -170,10 +218,10 @@
 .questionBox textarea,
 .chatComposer textarea {
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, .16);
+  border: 1px solid rgba(230, 225, 255, .18);
   border-radius: 8px;
-  background: rgba(7, 12, 22, .72);
-  color: #fff7f3;
+  background: rgba(5, 8, 23, .68);
+  color: #fffaf7;
   font: inherit;
   outline: none;
 }
@@ -195,8 +243,8 @@
 .field select:focus,
 .questionBox textarea:focus,
 .chatComposer textarea:focus {
-  border-color: rgba(244, 114, 182, .72);
-  box-shadow: 0 0 0 3px rgba(244, 114, 182, .14);
+  border-color: rgba(244, 214, 135, .72);
+  box-shadow: 0 0 0 3px rgba(244, 214, 135, .13);
 }
 
 .segmented,
@@ -210,10 +258,10 @@
 .segmentActive,
 .chip,
 .chipActive {
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(230, 225, 255, .16);
   border-radius: 8px;
   background: rgba(255, 255, 255, .07);
-  color: #fff4f8;
+  color: #f6f3ff;
   font-weight: 800;
   cursor: pointer;
 }
@@ -232,9 +280,9 @@
 
 .segmentActive,
 .chipActive {
-  border-color: rgba(52, 211, 153, .55);
-  background: rgba(52, 211, 153, .17);
-  color: #ecfdf5;
+  border-color: rgba(199, 210, 254, .62);
+  background: rgba(129, 140, 248, .2);
+  color: #f1f5ff;
 }
 
 .finalStep {
@@ -255,10 +303,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, .16);
+  border: 1px solid rgba(230, 225, 255, .18);
   border-radius: 8px;
   min-height: 46px;
-  color: #fff7ed;
+  color: #fffaf0;
   font-weight: 900;
   cursor: pointer;
 }
@@ -270,13 +318,13 @@
 
 .primaryButton {
   padding: 0 18px;
-  background: linear-gradient(135deg, #be123c, #0f766e);
-  box-shadow: 0 14px 34px rgba(190, 18, 60, .26);
+  background: linear-gradient(135deg, #6d5dfc, #c7a64b);
+  box-shadow: 0 14px 34px rgba(99, 102, 241, .28);
 }
 
 .chatComposer button {
   width: 48px;
-  background: #be123c;
+  background: #6d5dfc;
 }
 
 .ghostButton:disabled,
@@ -284,6 +332,8 @@
 .chatComposer button:disabled,
 .step:disabled,
 .stepActive:disabled,
+.modeButton:disabled,
+.modeActive:disabled,
 .segment:disabled,
 .segmentActive:disabled,
 .chip:disabled,
@@ -305,14 +355,14 @@
 }
 
 .statusInfo {
-  border: 1px solid rgba(251, 191, 36, .34);
-  background: rgba(251, 191, 36, .12);
-  color: #fff7dc;
+  border: 1px solid rgba(244, 214, 135, .34);
+  background: rgba(244, 214, 135, .12);
+  color: #fff8dc;
 }
 
 .statusError {
   border: 1px solid rgba(248, 113, 113, .34);
-  background: rgba(127, 29, 29, .22);
+  background: rgba(127, 29, 29, .24);
   color: #ffe4e6;
 }
 
@@ -335,24 +385,24 @@
   align-content: center;
   gap: 8px;
   padding: 16px;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(230, 225, 255, .16);
   border-radius: 8px;
   background: rgba(255, 255, 255, .08);
 }
 
 .summaryCard span {
-  color: #ffd7a3;
+  color: #f5d987;
   font-size: .84rem;
   font-weight: 800;
 }
 
 .summaryCard strong {
-  color: #fff7ed;
+  color: #fffaf0;
   font-size: 1.28rem;
 }
 
 .summaryCard em {
-  color: #c7f9e8;
+  color: #d8d3ff;
   font-style: normal;
   font-size: .86rem;
   font-weight: 800;
@@ -374,22 +424,22 @@
   width: min(92%, 780px);
   padding: 14px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(230, 225, 255, .16);
 }
 
 .assistantMessage {
   justify-self: start;
-  background: rgba(255, 255, 255, .08);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .1), rgba(199, 210, 254, .08));
 }
 
 .userMessage {
   justify-self: end;
-  background: rgba(190, 18, 60, .2);
+  background: rgba(109, 93, 252, .22);
 }
 
 .assistantMessage span,
 .userMessage span {
-  color: #ffd7a3;
+  color: #f5d987;
   font-size: .82rem;
   font-weight: 900;
 }
@@ -397,7 +447,7 @@
 .assistantMessage p,
 .userMessage p {
   margin: 0;
-  color: #fff7f3;
+  color: #fffaf7;
   white-space: pre-wrap;
   line-height: 1.78;
   word-break: keep-all;

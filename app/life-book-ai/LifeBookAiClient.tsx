@@ -1,12 +1,25 @@
 "use client";
 
-import { BookOpen, CalendarDays, Clock3, Loader2, Moon, Send, Sparkles, UserRound, WalletCards } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  BookOpen,
+  CalendarDays,
+  Clock3,
+  Feather,
+  Loader2,
+  Moon,
+  Send,
+  Sparkles,
+  Stars,
+  UserRound,
+  WalletCards,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
-type GenderType = "male" | "female" | "other" | "";
+type GenderType = "male" | "female" | "unknown" | "";
+type FocusAreaType = "overall" | "love" | "money" | "career" | "relationship" | "family" | "lifePurpose" | "turningPoint" | "custom";
 type FlowStatus = "idle" | "opening" | "payment" | "reading" | "ready" | "error";
 
 type ConsultationForm = {
@@ -16,7 +29,8 @@ type ConsultationForm = {
   birthTime: string;
   birthTimeUnknown: boolean;
   calendarType: CalendarType;
-  topic: string;
+  focusArea: FocusAreaType;
+  question: string;
 };
 
 type ChatMessage = {
@@ -25,7 +39,7 @@ type ChatMessage = {
   createdAt?: string;
 };
 
-type EnsureAccessResult =
+type PrepareResult =
   | { ok: true; accessToken: string; accessType: AccessType }
   | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload?: Record<string, unknown> }
   | { ok: false; reason: "LOGIN_REQUIRED"; message?: string }
@@ -45,26 +59,41 @@ type ConsultationResult = {
   message?: string;
 };
 
+type ChapterSection = {
+  title: string;
+  content: string;
+};
+
 const FEATURE_KEY = "life-book-ai-consultation";
 const FEATURE_COST = 500;
 const FEATURE_AMOUNT_KRW = 50000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 5000;
 const FEATURE_REASON = "인생의 책 AI 상담";
+const ROUTE = "/life-book-ai";
 
-const TOPICS = [
-  "전체 인생 흐름",
-  "타고난 성향",
-  "인생의 사명",
-  "직업/사업 방향",
-  "재물 흐름",
-  "연애와 결혼",
-  "인간관계",
-  "가족과 상처",
-  "현재 인생의 전환점",
-  "앞으로의 기회",
-  "반복되는 실패 패턴",
-  "나에게 맞는 삶의 방식",
-] as const;
+const FOCUS_OPTIONS: Array<{ value: FocusAreaType; label: string; hint: string }> = [
+  { value: "overall", label: "전체 인생 흐름", hint: "삶 전체의 반복 장면과 방향" },
+  { value: "love", label: "사랑", hint: "마음이 열리고 닫히는 방식" },
+  { value: "money", label: "재물", hint: "돈의 흐름과 쌓이는 힘" },
+  { value: "career", label: "일과 커리어", hint: "역할, 재능, 사회적 방향" },
+  { value: "relationship", label: "인간관계", hint: "사람 사이에서 반복되는 결" },
+  { value: "family", label: "가족과 인연", hint: "가까운 인연과 오래된 마음" },
+  { value: "lifePurpose", label: "삶의 목적", hint: "내가 오래 쓰게 될 문장" },
+  { value: "turningPoint", label: "전환점", hint: "다음 장으로 넘어가는 시기" },
+  { value: "custom", label: "직접 질문", hint: "지금 가장 묻고 싶은 한 가지" },
+];
+
+const FOCUS_TOPIC: Record<FocusAreaType, string> = {
+  overall: "전체 인생 흐름",
+  love: "사랑과 관계의 흐름",
+  money: "재물과 안정의 흐름",
+  career: "일과 커리어의 방향",
+  relationship: "인간관계의 반복 장면",
+  family: "가족과 인연의 장",
+  lifePurpose: "삶의 목적과 사명",
+  turningPoint: "전환점과 기회의 장",
+  custom: "사용자의 직접 질문",
+};
 
 const ACCESS_LABELS: Record<AccessType, string> = {
   pass: "이용권",
@@ -73,13 +102,36 @@ const ACCESS_LABELS: Record<AccessType, string> = {
   admin: "관리자",
 };
 
+const CHAPTER_TITLES = [
+  "첫 문장",
+  "주인공의 기질",
+  "반복되는 장면",
+  "사랑과 관계",
+  "일과 재물",
+  "가족과 인연",
+  "전환점",
+  "넘겨야 할 오래된 페이지",
+  "새롭게 써야 할 다음 장",
+  "오늘의 행동 처방",
+  "마지막 문장",
+];
+
+const LOADING_LINES = [
+  "첫 페이지를 펼치는 중...",
+  "당신의 삶에 반복된 문장을 찾는 중...",
+  "다음 장으로 넘어갈 단서를 정리하는 중...",
+  "인생의 책 상담문을 완성하는 중...",
+];
+
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_REQUIRED_MESSAGE = "인생의 책 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
+const PAYMENT_REQUIRED_MESSAGE = "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
-const INVALID_INPUT_MESSAGE = "생년월일과 상담 정보를 다시 확인해 주세요.";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
-const CALCULATION_ERROR_MESSAGE = "명식 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
+const INVALID_INPUT_MESSAGE = "인생의 책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 상담 주제를 다시 확인해 주세요.";
+const BIRTH_TIME_REQUIRED_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
+const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요.";
+const SERVER_ERROR_MESSAGE = "인생의 책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
+const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
 
 const defaultForm = (): ConsultationForm => ({
   name: "",
@@ -88,7 +140,8 @@ const defaultForm = (): ConsultationForm => ({
   birthTime: "",
   birthTimeUnknown: false,
   calendarType: "solar",
-  topic: "전체 인생 흐름",
+  focusArea: "overall",
+  question: "",
 });
 
 function createIdempotencyKey() {
@@ -109,18 +162,47 @@ function toNumber(value: unknown, fallback = 0) {
   return Number.isFinite(number) && number > 0 ? Math.floor(number) : fallback;
 }
 
-function buildConsultationPayload(form: ConsultationForm) {
+function maskBirthDate(value: string) {
+  const year = value.match(/^(\d{4})-/)?.[1];
+  return year ? `${year}-**-**` : "";
+}
+
+function buildConsultationPayload(form: ConsultationForm, requestId: string) {
+  const question = form.question.trim();
+  const topic = FOCUS_TOPIC[form.focusArea];
   return {
+    serviceType: FEATURE_KEY,
+    consultationType: "lifeBook",
+    userName: form.name.trim(),
+    gender: form.gender || "unknown",
+    birthDate: form.birthDate,
+    birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+    birthTimeUnknown: form.birthTimeUnknown,
+    calendarType: form.calendarType,
+    focusArea: form.focusArea,
+    question,
+    locale: "ko",
+    requestId,
+    idempotencyKey: requestId,
     birthInfo: {
       name: form.name.trim(),
-      gender: form.gender,
+      gender: form.gender || "unknown",
       birthDate: form.birthDate,
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
       birthTimeUnknown: form.birthTimeUnknown,
       calendarType: form.calendarType,
     },
-    topic: form.topic,
+    topic,
+    userQuestion: question,
   };
+}
+
+function validateForm(form: ConsultationForm) {
+  if (!form.gender || !form.birthDate || !form.calendarType || !form.focusArea) return INVALID_INPUT_MESSAGE;
+  if (!form.birthTimeUnknown && !form.birthTime) return BIRTH_TIME_REQUIRED_MESSAGE;
+  if (!form.birthTimeUnknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(form.birthTime)) return BIRTH_TIME_REQUIRED_MESSAGE;
+  if (form.focusArea === "custom" && form.question.trim().length < 2) return CUSTOM_QUESTION_REQUIRED_MESSAGE;
+  return "";
 }
 
 function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
@@ -134,7 +216,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     reason: toText(runtimeGate.reason ?? paymentPayload.reason) || FEATURE_REASON,
     productId: toText(runtimeGate.productId ?? paymentPayload.productId) || "life-book-ai",
     productType: toText(runtimeGate.productType ?? paymentPayload.productType) || "life-book-ai",
-    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || "life-book-ai",
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
     forceDeduct: true,
     deferUsage: true,
     usagePolicy: "apply_after_success",
@@ -169,11 +251,53 @@ function firstAssistantMessage(messages: ChatMessage[]) {
 }
 
 function fallbackTitle(name: string) {
-  return `${name.trim() || "당신"}의 인생 책`;
+  return `${name.trim() || "당신"}의 인생의 책`;
 }
 
 function compactLines(content: string) {
   return String(content || "").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+}
+
+function normalizeChapterTitle(line: string, fallback: string) {
+  const cleanLine = line
+    .replace(/^#{1,4}\s*/, "")
+    .replace(/^\d{1,2}[.)]\s*/, "")
+    .replace(/^[「『"']|[」』"']$/g, "")
+    .replace(/[:：]\s*$/, "")
+    .trim();
+  const matched = CHAPTER_TITLES.find((title) => cleanLine.includes(title));
+  return matched || (cleanLine.length <= 28 ? cleanLine : fallback);
+}
+
+function splitLifeBookSections(content: string): ChapterSection[] {
+  const lines = String(content || "").replace(/\r\n/g, "\n").split("\n");
+  const sections: ChapterSection[] = [];
+  let current: ChapterSection | null = null;
+  const headingPattern = /^(?:#{1,4}\s*)?(?:\d{1,2}[.)]\s*)?(인생의 책이 여는 첫 문장|첫 문장|당신이라는 주인공의 기질|주인공의 기질|지금 인생에서 반복되는 장면|반복되는 장면|사랑과 관계의 장|사랑과 관계|일과 재물의 장|일과 재물|가족과 인연의 장|가족과 인연|전환점과 기회의 장|전환점|지금 넘겨야 할 오래된 페이지|넘겨야 할 오래된 페이지|새롭게 써야 할 다음 장|오늘의 행동 처방|인생의 책 마지막 문장|마지막 문장)\s*[:：]?/;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const heading = line.match(headingPattern);
+    if (heading) {
+      if (current && current.content.trim()) sections.push({ ...current, content: current.content.trim() });
+      current = { title: normalizeChapterTitle(line, CHAPTER_TITLES[sections.length] || "다음 장"), content: line.replace(headingPattern, "").trim() };
+      continue;
+    }
+    if (!current) current = { title: CHAPTER_TITLES[0], content: "" };
+    current.content += `${current.content ? "\n" : ""}${line}`;
+  }
+
+  if (current && current.content.trim()) sections.push({ ...current, content: current.content.trim() });
+  if (sections.length >= 3) return sections.slice(0, 12);
+
+  const paragraphs = String(content || "").split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+  if (paragraphs.length) {
+    return paragraphs.slice(0, 11).map((paragraph, index) => ({
+      title: CHAPTER_TITLES[index] || `장 ${index + 1}`,
+      content: paragraph,
+    }));
+  }
+  return [];
 }
 
 export default function LifeBookAiClient() {
@@ -191,19 +315,29 @@ export default function LifeBookAiClient() {
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
 
+  useEffect(() => {
+    console.info("[LifeBook AI Page Enter]", { route: ROUTE });
+    console.info("[LifeBook AI Initial Render Success]", { route: ROUTE, serviceType: FEATURE_KEY });
+  }, []);
+
   const statusText = useMemo(() => {
-    if (status === "opening") return "당신의 인생 책을 펼치고 있습니다";
-    if (status === "payment") return "결제창을 확인해 주세요";
-    if (status === "reading") return "삶의 흐름을 읽고 있습니다";
-    if (status === "ready") return "상담이 이어지고 있습니다";
-    return "달빛 서재가 조용히 열려 있습니다";
+    if (status === "opening") return "인생의 책 상담을 준비하는 중...";
+    if (status === "payment") return "결제 정보를 확인하는 중...";
+    if (status === "reading") return "당신의 인생 페이지를 읽는 중...";
+    if (status === "ready") return "인생의 책 상담문이 열렸습니다";
+    if (status === "error") return "상담 흐름을 다시 확인해 주세요";
+    return "아직 펼쳐지지 않은 책이 기다리고 있습니다";
   }, [status]);
 
   const isBusy = status === "opening" || status === "payment" || status === "reading";
   const canAskFollowUp = Boolean(sessionId && messages.length && !sending && !isBusy);
-  const assistantIntro = firstAssistantMessage(messages);
+  const assistantText = firstAssistantMessage(messages);
+  const chapters = useMemo(() => splitLifeBookSections(assistantText), [assistantText]);
   const displayTitle = title || fallbackTitle(form.name);
-  const displayKeywords = keywords.length ? keywords : [form.topic, "자기 이해", "전환"].slice(0, 3);
+  const displayKeywords = keywords.length
+    ? keywords
+    : [FOCUS_TOPIC[form.focusArea], "자기 이해", "전환점"].slice(0, 3);
+  const loadingLine = LOADING_LINES[status === "opening" ? 0 : status === "payment" ? 1 : status === "reading" ? 3 : 2];
 
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
@@ -218,7 +352,7 @@ export default function LifeBookAiClient() {
     setStatus("idle");
   }, [isBusy]);
 
-  const updateField = (field: keyof ConsultationForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const updateField = (field: keyof ConsultationForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const value = field === "birthTimeUnknown"
       ? (event.target as HTMLInputElement).checked
       : event.target.value;
@@ -230,13 +364,13 @@ export default function LifeBookAiClient() {
     resetAttempt();
   };
 
-  const startConsultation = useCallback(async (
+  const generateConsultation = useCallback(async (
     payload: ReturnType<typeof buildConsultationPayload>,
     idempotencyKey: string,
     access: { accessToken?: string; billingGate?: Record<string, unknown> },
   ) => {
     setStatus("reading");
-    const { payload: result } = await postJson<ConsultationResult>("/api/life-book-ai/start", {
+    const { payload: result } = await postJson<ConsultationResult>("/api/life-book-ai/generate", {
       ...payload,
       ...access,
     }, idempotencyKey);
@@ -254,40 +388,52 @@ export default function LifeBookAiClient() {
     }
 
     if (result.status === "generating") {
-      setNotice("삶의 흐름을 읽고 있습니다");
+      setNotice("인생의 책 상담문을 완성하는 중입니다. 잠시 후 다시 확인해 주세요.");
       return;
     }
 
     const reason = String(result.reason || "");
     if (reason === "LLM_ERROR") throw new Error(LLM_ERROR_MESSAGE);
     if (reason === "PAYMENT_VERIFY_FAILED") throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
-    if (reason === "CALCULATION_ERROR") throw new Error(CALCULATION_ERROR_MESSAGE);
-    throw new Error(result.message || SERVER_ERROR_MESSAGE);
+    throw new Error(result.message || LLM_ERROR_MESSAGE);
   }, [form.name]);
 
   const submit = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (startLockRef.current || isBusy) return;
-    const payload = buildConsultationPayload(form);
-    if (!form.gender || !form.birthDate || !form.topic || (!form.birthTimeUnknown && form.birthTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(form.birthTime))) {
-      setError(INVALID_INPUT_MESSAGE);
+
+    const requestId = idempotencyKeyRef.current;
+    const validationMessage = validateForm(form);
+    console.info("[LifeBook AI Submit Start]", {
+      route: ROUTE,
+      requestId,
+      serviceType: FEATURE_KEY,
+      focusArea: form.focusArea,
+      validation: validationMessage ? "failed" : "passed",
+      birthDate: maskBirthDate(form.birthDate),
+      questionLength: form.question.trim().length,
+    });
+
+    if (validationMessage) {
+      setError(validationMessage);
       setStatus("error");
       return;
     }
 
     startLockRef.current = true;
-    const idempotencyKey = idempotencyKeyRef.current;
+    const payload = buildConsultationPayload(form, requestId);
     setError("");
     setNotice("");
     setStatus("opening");
 
     try {
-      const { payload: access } = await postJson<EnsureAccessResult>("/api/life-book-ai/ensure-access", payload, idempotencyKey);
+      const { payload: access } = await postJson<PrepareResult>("/api/life-book-ai/prepare", payload, requestId);
       if (access.ok) {
-        await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
+        await generateConsultation(payload, requestId, { accessToken: access.accessToken });
         return;
       }
-      const denied = access as Exclude<EnsureAccessResult, { ok: true }>;
+
+      const denied = access as Exclude<PrepareResult, { ok: true }>;
       if (denied.reason === "LOGIN_REQUIRED") {
         setError(denied.message || LOGIN_REQUIRED_MESSAGE);
         setStatus("error");
@@ -302,10 +448,10 @@ export default function LifeBookAiClient() {
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
         const paymentPayload = "paymentPayload" in denied ? denied.paymentPayload : undefined;
-        const billingInput = buildBillingGateInput(asRecord(paymentPayload), idempotencyKey);
+        const billingInput = buildBillingGateInput(asRecord(paymentPayload), requestId);
         openPaidFeatureGate({
           featureKey: billingInput.featureKey,
-          requestId: idempotencyKey,
+          requestId,
           cost: billingInput.cost,
           paymentMode: "pass",
           message: PAYMENT_REQUIRED_MESSAGE,
@@ -316,17 +462,28 @@ export default function LifeBookAiClient() {
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
           throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
         }
-        await startConsultation(payload, idempotencyKey, { billingGate: gate.data as Record<string, unknown> });
+        console.info("[LifeBook AI Payment Success]", {
+          route: ROUTE,
+          requestId,
+          serviceType: FEATURE_KEY,
+          focusArea: form.focusArea,
+        });
+        await generateConsultation(payload, requestId, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
       throw new Error(("message" in denied && denied.message) ? denied.message : SERVER_ERROR_MESSAGE);
     } catch (err) {
-      setError(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE);
+      const message = err instanceof TypeError
+        ? NETWORK_ERROR_MESSAGE
+        : err instanceof Error
+          ? err.message
+          : SERVER_ERROR_MESSAGE;
+      setError(message);
       setStatus("error");
     } finally {
       startLockRef.current = false;
     }
-  }, [form, isBusy, startConsultation]);
+  }, [form, generateConsultation, isBusy]);
 
   const sendFollowUp = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -339,155 +496,191 @@ export default function LifeBookAiClient() {
       const { payload } = await postJson<ConsultationResult>("/api/life-book-ai/message", {
         sessionId,
         message: content,
+        serviceType: FEATURE_KEY,
+        consultationType: "lifeBook",
       }, idempotencyKey);
       if (!payload.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
       if (Array.isArray(payload.messages)) setMessages(payload.messages);
       setFollowUp("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : LLM_ERROR_MESSAGE);
+      setError(err instanceof TypeError ? NETWORK_ERROR_MESSAGE : err instanceof Error ? err.message : LLM_ERROR_MESSAGE);
     } finally {
       setSending(false);
     }
   }, [canAskFollowUp, followUp, sessionId]);
 
   return (
-    <main className="min-h-screen bg-[#101626] text-[#fff8ed]">
+    <main
+      className="min-h-screen bg-[#080b16] text-[#fff8ea]"
+      style={{
+        backgroundImage: "radial-gradient(circle at 18% 8%, rgba(236,188,92,.24), transparent 28%), radial-gradient(circle at 84% 16%, rgba(151,112,219,.16), transparent 24%), radial-gradient(circle at 48% 90%, rgba(255,223,150,.16), transparent 32%), linear-gradient(135deg,#070b16 0%,#171225 46%,#25170f 100%)",
+      }}
+    >
       <section className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(244,197,94,.22),transparent_28%),radial-gradient(circle_at_82%_8%,rgba(45,212,191,.16),transparent_24%),linear-gradient(135deg,#101626_0%,#23172a_48%,#0e1f27_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#f8d88922] to-transparent" />
-        <div className="relative mx-auto grid min-h-[calc(100vh-48px)] w-full max-w-6xl gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-          <aside className="flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[8px] border border-[#f0d48a33] bg-[#131927cc] p-5 shadow-2xl shadow-black/30 sm:p-7">
+        <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(90deg,rgba(255,232,173,.08)_1px,transparent_1px),linear-gradient(rgba(255,232,173,.05)_1px,transparent_1px)] [background-size:54px_54px]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#ffd98c24] to-transparent" />
+        <div className="relative mx-auto grid min-h-[calc(100vh-48px)] w-full max-w-7xl gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <aside className="flex min-h-[520px] flex-col justify-between overflow-hidden rounded-[8px] border border-[#f4d27a36] bg-[#100c15cc] p-5 shadow-2xl shadow-black/35 backdrop-blur sm:p-7">
             <div>
-              <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-[#f8d889]">
-                <BookOpen size={18} />
-                <span>인생의 책 AI 상담</span>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#e8c67538] bg-[#f7d99014] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#f5d589]">
+                <Stars size={15} />
+                Book of Life · AI Destiny Reading
               </div>
-              <h1 className="max-w-[12ch] text-4xl font-black leading-tight tracking-normal sm:text-5xl">
-                달빛 서재에서 펼쳐지는 나의 삶
+              <h1 className="max-w-[12ch] text-4xl font-black leading-tight tracking-normal text-[#fff2ca] sm:text-5xl">
+                인생의 책 AI 상담
               </h1>
-              <p className="mt-4 max-w-xl text-base leading-7 text-[#eadfc9]">
-                명식의 구조와 지금의 질문을 함께 놓고, 당신의 삶이 어떤 문장으로 이어져 왔는지 차분히 읽어드립니다.
+              <p className="mt-4 max-w-xl text-base leading-7 text-[#eadbb9]">
+                당신의 삶에 반복해서 등장한 장면과 앞으로 써 내려갈 다음 장을 조용히 읽어드립니다.
               </p>
             </div>
-            <div className="mt-8 overflow-hidden rounded-[8px] border border-[#f0d48a2b] bg-[#080d18]">
+            <div className="mt-8 overflow-hidden rounded-[8px] border border-[#f4d27a2b] bg-[#080b16] shadow-inner shadow-[#f6c76d14]">
               <img
                 src="/fuctionassets/lifebook.webp"
-                alt="인생의 책"
-                className="h-auto w-full object-cover"
+                alt="황금빛 인생의 책"
+                className="h-auto w-full object-cover opacity-90"
                 loading="eager"
                 decoding="async"
               />
+              <div className="border-t border-[#f4d27a22] bg-[#1d120acc] p-4 text-sm leading-7 text-[#eadbb9]">
+                입력한 정보를 기준으로 삶의 흐름과 지금의 질문을 한 권의 책처럼 정리합니다.
+              </div>
             </div>
           </aside>
 
-          <section className="grid min-h-[520px] gap-4">
-            <div className="rounded-[8px] border border-[#f0d48a2f] bg-[#fff8ed10] p-4 shadow-2xl shadow-black/20 sm:p-5">
+          <section className="grid gap-4">
+            <form onSubmit={submit} className="rounded-[8px] border border-[#f4d27a36] bg-[#fff7e814] p-4 shadow-2xl shadow-black/25 backdrop-blur sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#f8d889]">
-                  {isBusy ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f5d589]">Golden Life Book</p>
+                  <h2 className="mt-1 text-2xl font-black text-[#fff2ca]">인생의 책을 열기 위한 정보</h2>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-bold text-[#ffe5a8]">
+                  {isBusy ? <Loader2 size={18} className="animate-spin" /> : <BookOpen size={18} />}
                   <span>{statusText}</span>
                 </div>
-                {accessType && <span className="rounded-full border border-[#8be0d433] px-3 py-1 text-xs font-bold text-[#b6f3ea]">{ACCESS_LABELS[accessType]}</span>}
               </div>
 
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-bold">
+                  <span className="flex items-center gap-2 text-[#f6e6c4]"><UserRound size={16} /> 이름 또는 닉네임</span>
+                  <input value={form.name} onChange={updateField("name")} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" placeholder="이름" />
+                </label>
+                <label className="grid gap-2 text-sm font-bold">
+                  <span className="text-[#f6e6c4]">성별</span>
+                  <select value={form.gender} onChange={updateField("gender")} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]">
+                    <option value="">선택</option>
+                    <option value="female">여성</option>
+                    <option value="male">남성</option>
+                    <option value="unknown">비공개</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-bold">
+                  <span className="flex items-center gap-2 text-[#f6e6c4]"><CalendarDays size={16} /> 생년월일</span>
+                  <input type="date" value={form.birthDate} onChange={updateField("birthDate")} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" />
+                </label>
+                <label className="grid gap-2 text-sm font-bold">
+                  <span className="flex items-center gap-2 text-[#f6e6c4]"><Moon size={16} /> 달력 기준</span>
+                  <select value={form.calendarType} onChange={updateField("calendarType")} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]">
+                    <option value="solar">양력</option>
+                    <option value="lunar">음력</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <label className="grid gap-2 text-sm font-bold">
+                  <span className="flex items-center gap-2 text-[#f6e6c4]"><Clock3 size={16} /> 출생시간</span>
+                  <input type="time" value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
+                </label>
+                <label className="flex min-h-11 items-center gap-2 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-sm font-bold text-[#eadfc9]">
+                  <input type="checkbox" checked={form.birthTimeUnknown} onChange={updateField("birthTimeUnknown")} className="h-4 w-4 accent-[#e7bd62]" />
+                  출생시간 모름
+                </label>
+              </div>
+
+              <label className="mt-3 grid gap-2 text-sm font-bold">
+                <span className="text-[#f6e6c4]">상담 주제</span>
+                <select value={form.focusArea} onChange={updateField("focusArea")} className="min-h-11 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]">
+                  {FOCUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+                <span className="text-xs font-medium text-[#d8c6a7]">{FOCUS_OPTIONS.find((option) => option.value === form.focusArea)?.hint}</span>
+              </label>
+
+              <label className="mt-3 grid gap-2 text-sm font-bold">
+                <span className="flex items-center gap-2 text-[#f6e6c4]"><Feather size={16} /> 자유 질문</span>
+                <textarea value={form.question} onChange={updateField("question")} className="min-h-[96px] resize-y rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 py-3 leading-6 text-[#fff8ed] outline-none transition placeholder:text-[#bba77d] focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" placeholder="지금 가장 묻고 싶은 질문을 적어 주세요." />
+              </label>
+
+              <button type="submit" disabled={isBusy} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-[#e8bd64] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:bg-[#ffd98e] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+                {isBusy ? <Loader2 size={18} className="animate-spin" /> : <WalletCards size={18} />}
+                {isBusy ? "당신의 인생 페이지를 읽는 중..." : "인생의 책 AI 상담 받기"}
+              </button>
+
+              {(notice || error) && (
+                <div className={`mt-4 rounded-[8px] border px-4 py-3 text-sm font-semibold ${error ? "border-[#fb718540] bg-[#3b111bcc] text-[#fecdd3]" : "border-[#f4d27a38] bg-[#302513cc] text-[#ffe8b0]"}`}>
+                  {error || notice}
+                </div>
+              )}
+            </form>
+
+            <div className="min-h-[360px] rounded-[8px] border border-[#f4d27a30] bg-[#fff7e812] p-4 shadow-2xl shadow-black/20 backdrop-blur sm:p-5">
               {messages.length === 0 ? (
-                <form onSubmit={submit} className="grid gap-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-2 text-sm font-bold">
-                      <span className="flex items-center gap-2 text-[#f6e6c4]"><UserRound size={16} /> 이름 또는 닉네임</span>
-                      <input value={form.name} onChange={updateField("name")} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889]" placeholder="이름" />
-                    </label>
-                    <label className="grid gap-2 text-sm font-bold">
-                      <span className="text-[#f6e6c4]">성별</span>
-                      <select value={form.gender} onChange={updateField("gender")} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889]">
-                        <option value="">선택</option>
-                        <option value="female">여성</option>
-                        <option value="male">남성</option>
-                        <option value="other">기타</option>
-                      </select>
-                    </label>
+                <div className="grid h-full min-h-[320px] place-items-center rounded-[8px] border border-[#f4d27a22] bg-[#0b1020aa] p-8 text-center">
+                  <div>
+                    <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-[#f4d27a40] bg-[#f4d27a12] text-[#f5d589] shadow-lg shadow-[#f4d27a18]">
+                      {isBusy ? <Loader2 size={34} className="animate-spin" /> : <Sparkles size={34} />}
+                    </div>
+                    <h3 className="mt-5 text-2xl font-black text-[#fff2ca]">{isBusy ? loadingLine : "아직 펼쳐지지 않은 책이 기다리고 있습니다."}</h3>
+                    <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#dfcfad]">
+                      입력한 정보를 기준으로 당신의 인생 흐름과 지금의 질문을 한 권의 책처럼 정리해 드립니다.
+                    </p>
                   </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-2 text-sm font-bold">
-                      <span className="flex items-center gap-2 text-[#f6e6c4]"><CalendarDays size={16} /> 생년월일</span>
-                      <input type="date" value={form.birthDate} onChange={updateField("birthDate")} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889]" />
-                    </label>
-                    <label className="grid gap-2 text-sm font-bold">
-                      <span className="flex items-center gap-2 text-[#f6e6c4]"><Moon size={16} /> 양력/음력</span>
-                      <select value={form.calendarType} onChange={updateField("calendarType")} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889]">
-                        <option value="solar">양력</option>
-                        <option value="lunar">음력</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <label className="grid gap-2 text-sm font-bold">
-                      <span className="flex items-center gap-2 text-[#f6e6c4]"><Clock3 size={16} /> 출생시간</span>
-                      <input type="time" value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889] disabled:opacity-50" />
-                    </label>
-                    <label className="flex min-h-11 items-center gap-2 rounded-[8px] border border-[#ffffff20] bg-[#0b1220] px-3 text-sm font-bold text-[#eadfc9]">
-                      <input type="checkbox" checked={form.birthTimeUnknown} onChange={updateField("birthTimeUnknown")} className="h-4 w-4 accent-[#f8d889]" />
-                      출생시간 모름
-                    </label>
-                  </div>
-
-                  <label className="grid gap-2 text-sm font-bold">
-                    <span className="text-[#f6e6c4]">상담하고 싶은 인생 주제</span>
-                    <select value={form.topic} onChange={updateField("topic")} className="min-h-11 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889]">
-                      {TOPICS.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
-                    </select>
-                  </label>
-
-                  <button type="submit" disabled={isBusy} className="mt-1 flex min-h-12 items-center justify-center gap-2 rounded-[8px] bg-[#f4cc78] px-5 font-black text-[#15110a] shadow-lg shadow-[#00000033] transition hover:bg-[#ffe0a2] disabled:cursor-not-allowed disabled:opacity-60">
-                    {isBusy ? <Loader2 size={18} className="animate-spin" /> : <WalletCards size={18} />}
-                    인생의 책 AI 상담 받기
-                  </button>
-                </form>
+                </div>
               ) : (
                 <div className="grid gap-4">
-                  <div className="rounded-[8px] border border-[#f0d48a36] bg-[#0b1220cc] p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f8d889]">당신의 인생 책 제목</p>
-                    <h2 className="mt-2 text-2xl font-black leading-tight text-[#fff8ed]">{displayTitle}</h2>
+                  <div className="rounded-[8px] border border-[#f4d27a36] bg-[#0b1020cc] p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f5d589]">Your Golden Manuscript</p>
+                        <h2 className="mt-2 text-2xl font-black leading-tight text-[#fff2ca]">{displayTitle}</h2>
+                      </div>
+                      {accessType && <span className="rounded-full border border-[#f4d27a36] px-3 py-1 text-xs font-bold text-[#ffe5a8]">{ACCESS_LABELS[accessType]}</span>}
+                    </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {displayKeywords.map((keyword) => (
-                        <span key={keyword} className="rounded-full border border-[#8be0d433] bg-[#0f2a2dcc] px-3 py-1 text-xs font-bold text-[#b6f3ea]">{keyword}</span>
+                        <span key={keyword} className="rounded-full border border-[#f4d27a30] bg-[#f4d27a12] px-3 py-1 text-xs font-bold text-[#ffe3a5]">{keyword}</span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="max-h-[56vh] space-y-3 overflow-y-auto pr-1">
-                    {messages.map((message, index) => (
-                      <article key={`${message.role}-${index}`} className={`rounded-[8px] border p-4 leading-7 ${message.role === "assistant" ? "border-[#f0d48a2f] bg-[#fff8ed12] text-[#fff8ed]" : "border-[#8be0d426] bg-[#0b2228cc] text-[#dffbf7]"}`}>
-                        {compactLines(message.content).map((line, lineIndex) => (
-                          <p key={lineIndex} className={lineIndex === 0 && message.role === "assistant" ? "font-bold text-[#f8d889]" : "mt-2 first:mt-0"}>{line}</p>
-                        ))}
+                  <div className="grid max-h-[62vh] gap-3 overflow-y-auto pr-1">
+                    {chapters.map((chapter, index) => (
+                      <article key={`${chapter.title}-${index}`} className="rounded-[8px] border border-[#f4d27a2f] bg-[#fff8ed12] p-4 text-[#fff8ed] shadow-inner shadow-[#f6cf7a0f]">
+                        <div className="mb-3 flex items-center gap-2 text-[#f5d589]">
+                          <BookOpen size={16} />
+                          <h3 className="text-base font-black">{chapter.title}</h3>
+                        </div>
+                        <div className="space-y-2 text-sm leading-7 text-[#efe0c0]">
+                          {compactLines(chapter.content).map((line, lineIndex) => (
+                            <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
+                          ))}
+                        </div>
                       </article>
                     ))}
                   </div>
 
                   <form onSubmit={sendFollowUp} className="flex gap-2">
-                    <input value={followUp} onChange={(event) => setFollowUp(event.target.value)} disabled={!canAskFollowUp} className="min-h-12 min-w-0 flex-1 rounded-[8px] border border-[#ffffff24] bg-[#0b1220] px-3 text-[#fff8ed] outline-none focus:border-[#f8d889] disabled:opacity-50" placeholder="지금 마음에 남은 질문을 적어 주세요" />
-                    <button type="submit" disabled={!canAskFollowUp || sending} className="grid min-h-12 w-12 place-items-center rounded-[8px] bg-[#8be0d4] text-[#082226] disabled:cursor-not-allowed disabled:opacity-50" aria-label="추가 질문 보내기">
+                    <input value={followUp} onChange={(event) => setFollowUp(event.target.value)} disabled={!canAskFollowUp} className="min-h-12 min-w-0 flex-1 rounded-[8px] border border-[#fff1c626] bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition placeholder:text-[#bba77d] focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" placeholder="지금 마음에 남은 질문을 적어 주세요." />
+                    <button type="submit" disabled={!canAskFollowUp || sending} className="grid min-h-12 w-12 place-items-center rounded-[8px] bg-[#e8bd64] text-[#171007] transition hover:bg-[#ffd98e] disabled:cursor-not-allowed disabled:opacity-50" aria-label="추가 질문 보내기">
                       {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     </button>
                   </form>
                 </div>
               )}
-
-              {(notice || error) && (
-                <div className={`mt-4 rounded-[8px] border px-4 py-3 text-sm font-semibold ${error ? "border-[#fb718540] bg-[#3b111bcc] text-[#fecdd3]" : "border-[#f0d48a38] bg-[#302513cc] text-[#ffe8b0]"}`}>
-                  {error || notice}
-                </div>
-              )}
             </div>
-
-            {assistantIntro && (
-              <div className="rounded-[8px] border border-[#ffffff18] bg-[#0b1220aa] p-4 text-sm leading-7 text-[#eadfc9]">
-                {compactLines(assistantIntro).slice(0, 2).join(" ")}
-              </div>
-            )}
           </section>
         </div>
       </section>

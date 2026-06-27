@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { Lunar, Solar } from "lunar-javascript";
 
 const SERVICE_KEY = "new-year-ai";
 const FEATURE_KEY = "new-year-ai-consultation";
@@ -20,10 +21,302 @@ const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습�
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b/i;
+const FOCUS_AREA_LABELS = Object.freeze({
+  overall: "전체운",
+  love: "연애운",
+  money: "재물운",
+  career: "일과 직업운",
+  health: "건강운",
+  relationship: "인간관계",
+  study: "학업운",
+  custom: "직접 질문",
+});
+const GEMINI_ENV_KEYS = [
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
+];
+const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
+const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const ELEMENTS = ["목", "화", "토", "금", "수"];
+const STEM_ELEMENT = {
+  갑: "목", 을: "목",
+  병: "화", 정: "화",
+  무: "토", 기: "토",
+  경: "금", 신: "금",
+  임: "수", 계: "수",
+};
+const STEM_POLARITY = {
+  갑: "yang", 병: "yang", 무: "yang", 경: "yang", 임: "yang",
+  을: "yin", 정: "yin", 기: "yin", 신: "yin", 계: "yin",
+};
+const BRANCH_ELEMENT = {
+  자: "수", 축: "토", 인: "목", 묘: "목", 진: "토", 사: "화",
+  오: "화", 미: "토", 신: "금", 유: "금", 술: "토", 해: "수",
+};
+const HIDDEN_STEMS = {
+  자: ["계"],
+  축: ["기", "계", "신"],
+  인: ["갑", "병", "무"],
+  묘: ["을"],
+  진: ["무", "을", "계"],
+  사: ["병", "무", "경"],
+  오: ["정", "기"],
+  미: ["기", "정", "을"],
+  신: ["경", "임", "무"],
+  유: ["신"],
+  술: ["무", "신", "정"],
+  해: ["임", "갑"],
+};
+const PRODUCES = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
+const CONTROLS = { 목: "토", 화: "금", 토: "수", 금: "목", 수: "화" };
+const BRANCH_CLASH = { 자: "오", 축: "미", 인: "신", 묘: "유", 진: "술", 사: "해", 오: "자", 미: "축", 신: "인", 유: "묘", 술: "진", 해: "사" };
+const BRANCH_COMBINATION = { 자: "축", 축: "자", 인: "해", 해: "인", 묘: "술", 술: "묘", 진: "유", 유: "진", 사: "신", 신: "사", 오: "미", 미: "오" };
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function readProcessEnv(key) {
+  if (typeof process === "undefined") return "";
+  return clean(process.env?.[key], 2000);
+}
+
+function getProviderDiagnostics(env = {}) {
+  const hasGeminiKey = GEMINI_ENV_KEYS.some((key) => clean(env?.[key], 2000) || readProcessEnv(key));
+  const hasEnvAI = typeof env?.AI?.run === "function";
+  return {
+    hasEnvAI,
+    willUseRealLLM: hasGeminiKey || hasEnvAI,
+    providerReason: hasGeminiKey ? "gemini_api_key_available" : hasEnvAI ? "workers_ai_binding_available" : "no_real_llm_provider_detected",
+  };
+}
+
+function isDevelopmentEnv(env = {}) {
+  const mode = clean(env?.NODE_ENV || env?.ENVIRONMENT || readProcessEnv("NODE_ENV"), 40).toLowerCase();
+  return mode && mode !== "production";
+}
+
+function maskBirthDate(value) {
+  const text = clean(value, 10);
+  const match = text.match(/^(\d{4})-/);
+  return match ? `${match[1]}-**-**` : "";
+}
+
+function safeLogPayload({ route = "", requestId = "", body = {}, normalized = null, validation = "", access = "", env = {}, error = null } = {}) {
+  const input = normalized?.input || {};
+  const birthInfo = input.birthInfo || body.birthInfo || {};
+  const question = clean(input.question ?? body.question ?? body.topic ?? body.consultationTopic, 1000);
+  const diagnostics = getProviderDiagnostics(env);
+  return {
+    route,
+    requestId: clean(requestId || body.requestId || body.idempotencyKey, 180),
+    serviceType: clean(input.serviceType || body.serviceType || body.featureKey || FEATURE_KEY, 80),
+    targetYear: Number(input.targetYear || input.year || body.targetYear || body.year || 0) || null,
+    focusArea: clean(input.focusArea || body.focusArea || "overall", 40),
+    validation,
+    access,
+    birthDate: maskBirthDate(input.birthInfo?.birthDate || birthInfo.birthDate || body.birthDate),
+    questionLength: question.length,
+    ...diagnostics,
+    ...(error ? {
+      errorMessage: clean(error?.message || error, 500),
+      ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
+    } : {}),
+  };
+}
+
+function logNewYearAi(marker, details = {}, level = "info") {
+  const method = level === "error" ? "error" : level === "warn" ? "warn" : "info";
+  console[method](`[NewYear AI LLM ${marker}]`, details);
+}
+
+function parseDateParts(value) {
+  const raw = clean(value, 10);
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  return { year, month, day };
+}
+
+function parseBirthTime(value) {
+  const raw = clean(value, 5);
+  const match = raw.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  if (!match) return { hour: 12, minute: 0, timeUnknown: true };
+  return { hour: Number(match[1]), minute: Number(match[2]), timeUnknown: false };
+}
+
+function pillarStem(pillar = "") {
+  return clean(pillar).slice(0, 1);
+}
+
+function pillarBranch(pillar = "") {
+  return clean(pillar).slice(1, 2);
+}
+
+function emptyElementCounts() {
+  return ELEMENTS.reduce((acc, element) => ({ ...acc, [element]: 0 }), {});
+}
+
+function addElement(counts, element, weight = 1) {
+  if (!element || !Object.prototype.hasOwnProperty.call(counts, element)) return;
+  counts[element] = Number((Number(counts[element] || 0) + weight).toFixed(2));
+}
+
+function tenGodFor(dayStem, targetStem) {
+  const dayElement = STEM_ELEMENT[dayStem];
+  const targetElement = STEM_ELEMENT[targetStem];
+  const samePolarity = STEM_POLARITY[dayStem] === STEM_POLARITY[targetStem];
+  if (!dayElement || !targetElement) return "";
+  if (targetElement === dayElement) return samePolarity ? "비견" : "겁재";
+  if (PRODUCES[dayElement] === targetElement) return samePolarity ? "식신" : "상관";
+  if (CONTROLS[dayElement] === targetElement) return samePolarity ? "편재" : "정재";
+  if (CONTROLS[targetElement] === dayElement) return samePolarity ? "편관" : "정관";
+  if (PRODUCES[targetElement] === dayElement) return samePolarity ? "편인" : "정인";
+  return "";
+}
+
+function buildElementDistribution(pillars) {
+  const counts = emptyElementCounts();
+  for (const pillar of pillars.filter(Boolean)) {
+    addElement(counts, STEM_ELEMENT[pillarStem(pillar)], 1);
+    addElement(counts, BRANCH_ELEMENT[pillarBranch(pillar)], 1);
+  }
+  return counts;
+}
+
+function buildTenGodDistribution(dayStem, pillars) {
+  const counts = {};
+  for (const pillar of pillars.filter(Boolean)) {
+    const stem = pillarStem(pillar);
+    const branch = pillarBranch(pillar);
+    const main = tenGodFor(dayStem, stem);
+    if (main) counts[main] = Number((Number(counts[main] || 0) + 1).toFixed(2));
+    for (const hidden of HIDDEN_STEMS[branch] || []) {
+      const hiddenGod = tenGodFor(dayStem, hidden);
+      if (hiddenGod) counts[hiddenGod] = Number((Number(counts[hiddenGod] || 0) + 0.35).toFixed(2));
+    }
+  }
+  return counts;
+}
+
+function pickElement(fiveElements, direction = "dominant") {
+  const entries = Object.entries(fiveElements || {}).sort((a, b) => (
+    direction === "weak" ? Number(a[1]) - Number(b[1]) : Number(b[1]) - Number(a[1])
+  ));
+  return entries[0]?.[0] || "";
+}
+
+function judgeStrength(dayStem, fiveElements) {
+  const dayElement = STEM_ELEMENT[dayStem] || "";
+  const total = Object.values(fiveElements || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+  const own = Number(fiveElements?.[dayElement] || 0);
+  const ratio = total > 0 ? own / total : 0;
+  if (ratio >= 0.34) return "일간의 기운이 강한 편";
+  if (ratio <= 0.18) return "일간의 기운이 약한 편";
+  return "일간의 기운이 비교적 균형적인 편";
+}
+
+function describeBranchRelation(sourceBranch, targetBranch) {
+  if (!sourceBranch || !targetBranch) return "";
+  if (BRANCH_CLASH[sourceBranch] === targetBranch) return `${sourceBranch}-${targetBranch} 충으로 변화와 조정 압력이 생기기 쉬움`;
+  if (BRANCH_COMBINATION[sourceBranch] === targetBranch) return `${sourceBranch}-${targetBranch} 합으로 관계와 협력의 실마리가 열리기 쉬움`;
+  if (sourceBranch === targetBranch) return `${targetBranch} 기운이 반복되어 같은 패턴이 강해지기 쉬움`;
+  return "큰 충돌보다는 기존 구조 위에 새 기운이 더해지는 흐름";
+}
+
+function buildLunarFromInput(dateParts, birthTime, calendarType) {
+  if (calendarType === "lunar") {
+    return Lunar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0);
+  }
+  return Solar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0).getLunar();
+}
+
+// 사주·세운 계산은 LLM에 넘길 구조 데이터만 만들고, 해석 문장은 LLM 상담 단계에서 생성한다.
+function calculateNewYearFortuneData(input) {
+  const birth = input.birthInfo || {};
+  const dateParts = parseDateParts(birth.birthDate);
+  if (!dateParts) {
+    const error = new Error("Invalid birth date for new-year consultation.");
+    error.code = "INVALID_BIRTH_DATE";
+    throw error;
+  }
+  const birthTime = parseBirthTime(birth.birthTime);
+  const lunar = buildLunarFromInput(dateParts, birthTime, birth.calendarType);
+  const solar = lunar.getSolar();
+  const yearPillar = lunar.getYearInGanZhi();
+  const monthPillar = lunar.getMonthInGanZhi();
+  const dayPillar = lunar.getDayInGanZhi();
+  const hourPillar = birthTime.timeUnknown ? "" : lunar.getTimeInGanZhi();
+  const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
+  const dayMaster = pillarStem(dayPillar);
+  const dayBranch = pillarBranch(dayPillar);
+  const fiveElements = buildElementDistribution(pillars);
+  const tenGods = buildTenGodDistribution(dayMaster, pillars);
+  const targetYear = Number(input.targetYear || input.year);
+  const targetLunar = Solar.fromYmdHms(targetYear, 7, 1, 12, 0, 0).getLunar();
+  const targetPillar = targetLunar.getYearInGanZhi();
+  const targetStem = pillarStem(targetPillar);
+  const targetBranch = pillarBranch(targetPillar);
+  const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1;
+    const monthPillar = Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi();
+    return {
+      month,
+      pillar: monthPillar,
+      stem: pillarStem(monthPillar),
+      branch: pillarBranch(monthPillar),
+      element: STEM_ELEMENT[pillarStem(monthPillar)] || BRANCH_ELEMENT[pillarBranch(monthPillar)] || "",
+      tenGod: tenGodFor(dayMaster, pillarStem(monthPillar)),
+    };
+  });
+
+  return {
+    birthCalendar: {
+      solarDate: `${solar.getYear()}-${String(solar.getMonth()).padStart(2, "0")}-${String(solar.getDay()).padStart(2, "0")}`,
+      inputCalendarType: birth.calendarType,
+      timeUnknown: birthTime.timeUnknown,
+    },
+    saju: {
+      yearPillar,
+      monthPillar,
+      dayPillar,
+      hourPillar: hourPillar || "출생시간 미입력",
+      dayMaster,
+      dayBranch,
+      fiveElements,
+      tenGods,
+      strength: judgeStrength(dayMaster, fiveElements),
+      dominantElement: pickElement(fiveElements, "dominant"),
+      balancingElement: pickElement(fiveElements, "weak"),
+    },
+    targetYear: {
+      year: targetYear,
+      pillar: targetPillar,
+      stem: targetStem,
+      branch: targetBranch,
+      stemElement: STEM_ELEMENT[targetStem] || "",
+      branchElement: BRANCH_ELEMENT[targetBranch] || "",
+      tenGodToDayMaster: tenGodFor(dayMaster, targetStem),
+      relationToDayBranch: describeBranchRelation(dayBranch, targetBranch),
+      relationToYearBranch: describeBranchRelation(pillarBranch(yearPillar), targetBranch),
+    },
+    focus: {
+      focusArea: input.focusArea,
+      focusLabel: FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall,
+      question: input.question || "",
+    },
+    monthlyFlow,
+  };
 }
 
 function sha256(value) {
@@ -57,8 +350,14 @@ function normalizeGender(value) {
   const text = clean(value, 20).toLowerCase();
   if (["m", "male", "man", "남", "남성"].includes(text)) return "male";
   if (["f", "female", "woman", "여", "여성"].includes(text)) return "female";
-  if (["other", "unknown", "none", "기타"].includes(text)) return "other";
+  if (["other", "unknown", "none", "기타", "비공개"].includes(text)) return "unknown";
   return text || "";
+}
+
+function normalizeFocusArea(value) {
+  const text = clean(value, 40).toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(FOCUS_AREA_LABELS, text)) return text;
+  return "overall";
 }
 
 function isValidDateKey(value) {
@@ -68,19 +367,29 @@ function isValidDateKey(value) {
 }
 
 function normalizeConsultationInput(body = {}) {
-  const year = Math.floor(Number(body.year ?? body.targetYear ?? body.consultationYear));
+  const rawYear = body.targetYear ?? body.year ?? body.consultationYear;
+  const year = Math.floor(Number(rawYear));
   const birthInfo = body.birthInfo && typeof body.birthInfo === "object" ? body.birthInfo : {};
-  const name = clean(body.name ?? body.nickname ?? birthInfo.name, 80);
+  const serviceType = clean(body.serviceType || body.featureKey || FEATURE_KEY, 80) || FEATURE_KEY;
+  const consultationType = clean(body.consultationType || "newYearFortune", 80);
+  const name = clean(body.userName ?? body.name ?? body.nickname ?? birthInfo.name, 80);
   const gender = normalizeGender(body.gender ?? birthInfo.gender);
   const birthDate = clean(body.birthDate ?? birthInfo.birthDate, 10);
   const birthTime = clean(body.birthTime ?? birthInfo.birthTime, 5);
   const calendarType = clean(body.calendarType ?? birthInfo.calendarType, 20).toLowerCase();
-  const topic = clean(body.topic ?? body.question ?? body.consultationTopic, 1000);
+  const focusArea = normalizeFocusArea(body.focusArea ?? body.topicArea ?? body.domain);
+  const question = clean(body.question ?? body.topic ?? body.consultationTopic, 1000);
+  const topic = question || `${FOCUS_AREA_LABELS[focusArea] || FOCUS_AREA_LABELS.overall} 중심의 ${year || ""}년 신년운세`;
 
+  if (rawYear === undefined || rawYear === null || clean(rawYear) === "") {
+    return { ok: false, message: "상담할 연도를 선택해 주세요." };
+  }
   if (!Number.isInteger(year) || year < 1900 || year > 2100) {
     return { ok: false, message: "상담 연도를 정확히 입력해 주세요." };
   }
-  if (!gender) return { ok: false, message: "성별을 선택해 주세요." };
+  if (!gender || !birthDate || !calendarType) {
+    return { ok: false, message: "신년운세 상담에 필요한 정보가 부족해요. 생년월일, 성별, 달력 기준을 다시 확인해 주세요." };
+  }
   if (!isValidDateKey(birthDate)) return { ok: false, message: "생년월일을 YYYY-MM-DD 형식으로 입력해 주세요." };
   if (birthTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) {
     return { ok: false, message: "출생시간은 HH:mm 형식으로 입력해 주세요." };
@@ -88,11 +397,16 @@ function normalizeConsultationInput(body = {}) {
   if (calendarType !== "solar" && calendarType !== "lunar") {
     return { ok: false, message: "양력 또는 음력을 선택해 주세요." };
   }
-  if (topic.length < 2) return { ok: false, message: "상담 주제를 입력해 주세요." };
+  if (focusArea === "custom" && question.length < 2) return { ok: false, message: "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요." };
 
   const normalized = {
     year,
+    targetYear: year,
+    serviceType,
+    consultationType,
     birthInfo: { name, gender, birthDate, birthTime, calendarType },
+    focusArea,
+    question,
     topic,
   };
 
@@ -344,6 +658,8 @@ function buildBillingGatePayload({ pricing, idempotencyKey }) {
     billingMode: "coin-gate",
     featureKey: FEATURE_KEY,
     serviceKey: SERVICE_KEY,
+    serviceType: FEATURE_KEY,
+    consultationType: "newYearFortune",
     reason: ORDER_NAME,
     cost: pricing.coinPrice,
     coinPrice: pricing.coinPrice,
@@ -369,75 +685,57 @@ async function resolveServerAccess({ auth, user, pricing }) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 신년운세를 상담하는 최고 수준의 명리학 상담가입니다.",
+    "당신은 사주명리학과 세운 분석에 능한 전문 상담가입니다.",
     "",
-    "사용자의 생년월일, 성별, 출생시간, 양력/음력 정보와 상담 연도를 바탕으로 신년운세를 상담형으로 해석합니다.",
+    "사용자의 생년월일과 사주 구조, 목표 연도의 세운을 바탕으로 신년운세를 상담형 문장으로 해석합니다.",
     "",
     "반드시 지켜야 할 원칙:",
     "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 말하듯 자연스럽게 답변합니다.",
     "2. 명리학적 근거를 사용하되 사용자가 이해하기 쉬운 말로 풀이합니다.",
     "3. 재물운, 연애운, 직장/사업운, 인간관계, 건강/멘탈, 월별 흐름을 균형 있게 봅니다.",
     "4. 불안감을 조장하지 않습니다.",
-    "5. 운세를 절대적 예언처럼 말하지 않습니다.",
+    "5. 무조건 성공한다, 반드시 망한다 같은 단정적 표현을 쓰지 않습니다.",
     "6. 사용자가 당장 실천할 수 있는 조언을 포함합니다.",
     "7. 같은 문장을 반복하지 않습니다.",
     "8. “AI로 생성되었습니다”, “프롬프트”, “시스템” 같은 표현은 결과에 노출하지 않습니다.",
-    "9. 사용자의 질문 주제가 있으면 그 주제를 가장 깊게 다룹니다.",
-    "10. 답변 마지막에는 사용자가 추가로 물어볼 수 있도록 자연스럽게 상담을 이어갑니다.",
+    "9. 사용자가 처음 입력한 더 깊게 보고 싶은 흐름이 있으면 그 주제를 가장 깊게 다룹니다.",
+    "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
   ].join("\n");
 }
 
-function buildFirstPrompt(input) {
+function buildFirstPrompt(input, fortuneData) {
   const birth = input.birthInfo || {};
   return [
-    "[상담 정보]",
-    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
-    `성별: ${birth.gender}`,
-    `생년월일: ${birth.birthDate}`,
-    `출생시간: ${birth.birthTime || "모름"}`,
-    `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `상담 연도: ${input.year}`,
-    `상담 주제: ${input.topic}`,
+    "아래 사용자 입력과 서버에서 계산된 사주·세운 데이터를 바탕으로 신년운세 첫 상담문을 작성하세요.",
+    "문장은 전문적이고 따뜻하게, 실제 선택에 도움이 되도록 현실적으로 말하세요.",
     "",
-    "아래 흐름으로 답변하되, 항목명은 자연스럽게 유지하고 각 항목은 상담하듯 풀어주세요.",
-    "- 올해의 핵심 흐름",
-    "- 가장 강하게 들어오는 기회",
-    "- 조심해야 할 흐름",
-    "- 재물운",
-    "- 연애운",
-    "- 직장/사업운",
-    "- 인간관계",
-    "- 건강/멘탈",
-    "- 월별 흐름",
-    "- 현실 조언",
-    "- 마지막 상담 메시지",
-  ].join("\n");
-}
-
-function buildFollowUpPrompt(consultation, question) {
-  const birth = consultation.birthInfo || {};
-  const history = (consultation.messages || [])
-    .slice(-8)
-    .map((message) => `${message.role === "assistant" ? "상담가" : "사용자"}: ${clean(message.content, 1400)}`)
-    .join("\n\n");
-  return [
-    "[상담 정보]",
-    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
-    `성별: ${birth.gender}`,
-    `생년월일: ${birth.birthDate}`,
-    `출생시간: ${birth.birthTime || "모름"}`,
-    `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `상담 연도: ${consultation.year}`,
-    `처음 상담 주제: ${consultation.topic}`,
+    "[사용자 입력]",
+    `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    `- 성별: ${birth.gender}`,
+    `- 생년월일: ${birth.birthDate}`,
+    `- 출생시간: ${birth.birthTime || "모름"}`,
+    `- 달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
+    `- 상담 연도: ${input.targetYear || input.year}`,
+    `- 집중 상담 분야: ${FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall}`,
+    `- 처음 입력한 더 깊게 보고 싶은 흐름: ${input.question || "전체 흐름 중심"}`,
     "",
-    "[이전 대화]",
-    history,
+    "[계산된 사주와 세운 데이터]",
+    JSON.stringify(fortuneData, null, 2),
     "",
-    "[새 질문]",
-    question,
+    "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
+    "1. 새해 전체 운의 핵심 결론",
+    "2. 올해 당신에게 들어오는 큰 기운",
+    "3. 일과 직업운",
+    "4. 재물운과 돈의 흐름",
+    "5. 연애운과 인간관계",
+    "6. 건강과 컨디션 관리",
+    "7. 조심해야 할 시기와 패턴",
+    "8. 기회를 살리는 행동 전략",
+    "9. 월별 흐름 요약",
+    "10. 새해를 여는 한 줄 조언",
     "",
-    "이전 흐름을 이어받아 자연스럽게 답변하고, 질문에 직접 답해주세요.",
+    "출생시간이 없거나 계산상 불확실한 부분은 단정하지 말고 입력된 정보 기준으로 본 흐름이라고 자연스럽게 말하세요.",
   ].join("\n");
 }
 
@@ -450,6 +748,11 @@ function cleanForbiddenResult(text) {
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
+  const providerDiagnostics = getProviderDiagnostics(env);
+  logNewYearAi("Provider Selected", {
+    ...(options.logContext || {}),
+    ...providerDiagnostics,
+  });
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
@@ -463,6 +766,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   if (!ai?.ok || isMock || text.length < (options.minLength || 180)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
+    error.providerDiagnostics = providerDiagnostics;
     throw error;
   }
   if (!FORBIDDEN_RESULT_PATTERN.test(text)) return { text, provider, model: clean(ai?.model) };
@@ -512,17 +816,35 @@ function publicSession(doc) {
 }
 
 async function handleEnsureAccess(request, env) {
+  const route = "/api/new-year-ai/ensure-access";
+  logNewYearAi("Prepare Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logNewYearAi("Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logNewYearAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
+
+  try {
+    logNewYearAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+    calculateNewYearFortuneData(normalized.input);
+    logNewYearAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+  } catch (error) {
+    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", env, error }), "error");
+    return serverError(SERVER_ERROR_MESSAGE, 500);
+  }
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
 
   const pricing = getPricing();
+  logNewYearAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   if (isAdmin(auth)) {
+    logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "admin", env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -541,6 +863,7 @@ async function handleEnsureAccess(request, env) {
 
   const access = await resolveServerAccess({ auth, user, pricing });
   if (access.ok) {
+    logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -555,6 +878,7 @@ async function handleEnsureAccess(request, env) {
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
+  logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "payment_required", env }));
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
@@ -580,10 +904,17 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 }
 
 async function handleStart(request, env) {
+  const route = "/api/new-year-ai/start";
+  logNewYearAi("Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logNewYearAi("Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logNewYearAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
   const auth = await getOptionalUserFromRequest(request, env);
@@ -591,11 +922,24 @@ async function handleStart(request, env) {
 
   await connectDb(env);
   const pricing = getPricing();
+  logNewYearAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
+  }
+  logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+  logNewYearAi("Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+
+  let fortuneData = null;
+  try {
+    logNewYearAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+    fortuneData = calculateNewYearFortuneData(normalized.input);
+    logNewYearAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+  } catch (error) {
+    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
+    return serverError(SERVER_ERROR_MESSAGE, 500);
   }
 
   const existing = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
@@ -643,7 +987,11 @@ async function handleStart(request, env) {
   }
 
   try {
-    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input), { minLength: 240, maxOutputTokens: 7000 });
+    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, fortuneData), {
+      minLength: 240,
+      maxOutputTokens: 7000,
+      logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+    });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, prepaid: access.prepaid === true });
     const completed = await NewYearAiConsultation.findOneAndUpdate(
       { id: sessionId },
@@ -654,12 +1002,17 @@ async function handleStart(request, env) {
             { role: "user", content: normalized.input.topic, createdAt: now },
             { role: "assistant", content: generated.text, createdAt: new Date() },
           ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString(), fortuneData },
           generationError: null,
         },
       },
       { new: true },
     ).lean();
+    logNewYearAi("Generate Success", {
+      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+      provider: generated.provider,
+      model: generated.model,
+    });
     return json(publicSession(completed));
   } catch (error) {
     await NewYearAiConsultation.updateOne(
@@ -675,49 +1028,28 @@ async function handleStart(request, env) {
         },
       },
     ).catch(() => {});
+    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
+    logNewYearAi("Refund Or Restore", {
+      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }),
+      restoreMode: "same_request_id_retry_preserves_billing_evidence",
+    }, "warn");
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }
 }
 
 async function handleMessage(request, env) {
+  const route = "/api/new-year-ai/message";
   const body = await readJson(request);
-  const sessionId = clean(body?.sessionId || body?.consultationId, 120);
-  const message = clean(body?.message || body?.question, 1200);
-  if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
-  if (message.length < 2) return invalidInput("추가 질문을 입력해 주세요.");
-
-  const auth = await getOptionalUserFromRequest(request, env);
-  if (!auth) return loginRequired();
-
-  await connectDb(env);
-  const consultation = await NewYearAiConsultation.findOne({
-    id: sessionId,
-    userId: clean(auth.userId),
-    status: "completed",
-  }).lean();
-  if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
-
-  try {
-    const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
-      minLength: 80,
-      maxOutputTokens: 4096,
-    });
-    const userMessage = { role: "user", content: message, createdAt: new Date() };
-    const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date() };
-    const updated = await NewYearAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: clean(auth.userId) },
-      {
-        $push: { messages: { $each: [userMessage, assistantMessage] } },
-        $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-        },
-      },
-      { new: true },
-    ).lean();
-    return json(publicSession(updated));
-  } catch (error) {
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
-  }
+  const requestId = clean(body?.requestId || body?.idempotencyKey || body?.sessionId || body?.consultationId, 180);
+  logNewYearAi("Error", {
+    ...safeLogPayload({ route, requestId, body, env }),
+    disabledReason: "follow_up_llm_disabled",
+  }, "warn");
+  return json({
+    ok: false,
+    reason: "FOLLOW_UP_DISABLED",
+    message: "신년운세 AI 상담은 처음 입력한 흐름을 기준으로 한 번 생성됩니다. 더 깊게 보고 싶은 내용은 상담 시작 전에 입력해 주세요.",
+  }, { status: 410 });
 }
 
 export async function handleNewYearAiRoutes(request, env = {}) {
@@ -732,6 +1064,7 @@ export async function handleNewYearAiRoutes(request, env = {}) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[new-year-ai]", clean(error?.code || error?.message || error, 500));
+    logNewYearAi("Error", safeLogPayload({ route: "/api/new-year-ai", env, error }), "error");
     return serverError();
   }
 }
@@ -740,6 +1073,7 @@ export const __newYearAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
   normalizeConsultationInput,
+  calculateNewYearFortuneData,
   buildFirstPrompt,
   buildSystemPrompt,
   cleanForbiddenResult,

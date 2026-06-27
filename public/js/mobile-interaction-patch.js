@@ -700,7 +700,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-bbe2fda0d952').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-b1986b009afa').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -782,23 +782,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-bbe2fda0d952'
+      'js/animal-totem-experience.js?v=build-b1986b009afa'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-bbe2fda0d952'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-bbe2fda0d952'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-bbe2fda0d952'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-b1986b009afa'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-b1986b009afa'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-b1986b009afa'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-bbe2fda0d952'],
-    openDreamModal: ['js/dream-ledger.js?v=build-bbe2fda0d952'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-bbe2fda0d952'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-b1986b009afa'],
+    openDreamModal: ['js/dream-ledger.js?v=build-b1986b009afa'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-b1986b009afa'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-bbe2fda0d952']
+    openSibylModal: ['js/sibyl-system.js?v=build-b1986b009afa']
   };
 
   function normalizeScriptSrc(src) {

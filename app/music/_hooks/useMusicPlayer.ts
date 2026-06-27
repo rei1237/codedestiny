@@ -154,6 +154,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
   }, [options.initialTrackId, tracks]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const nextAudioPreloadRef = useRef<HTMLAudioElement | null>(null);
   const tracksRef = useRef(tracks);
   const currentIndexRef = useRef(initialIndex);
   const isPlayingRef = useRef(false);
@@ -608,6 +609,25 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
     return () => {
       link.remove();
+    };
+  }, [nextTrack?.audioUrl]);
+
+  useEffect(() => {
+    if (typeof Audio === "undefined" || !nextTrack?.audioUrl) return;
+
+    const nextAudio = new Audio();
+    nextAudio.preload = "metadata";
+    nextAudio.src = nextTrack.audioUrl;
+    nextAudioPreloadRef.current = nextAudio;
+    nextAudio.load();
+
+    return () => {
+      nextAudio.pause();
+      nextAudio.removeAttribute("src");
+      nextAudio.load();
+      if (nextAudioPreloadRef.current === nextAudio) {
+        nextAudioPreloadRef.current = null;
+      }
     };
   }, [nextTrack?.audioUrl]);
 

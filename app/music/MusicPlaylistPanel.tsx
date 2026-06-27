@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ChevronDown, Moon, Search, Share2, Sparkles } from "lucide-react";
 import {
   type ChangeEvent,
@@ -49,6 +50,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     emptyBody: "All을 선택하거나 검색어를 지워 보세요.",
     shareLead: "Code Destiny 달빛 음악 라이브러리에서 들어보세요.",
     mainLabel: "Code Destiny 메인",
+    playTrack: (title: string) => `${title} 재생`,
   },
   en: {
     playlistAria: "Music playlist",
@@ -61,6 +63,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     emptyBody: "Try All or clear the search.",
     shareLead: "Listen inside the Code Destiny moon library.",
     mainLabel: "Code Destiny main",
+    playTrack: (title: string) => `Play ${title}`,
   },
   ja: {
     playlistAria: "音楽プレイリスト",
@@ -73,8 +76,11 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     emptyBody: "Allを選ぶか、検索語を消してください。",
     shareLead: "Code Destinyの月明かり音楽ライブラリで聴いてください。",
     mainLabel: "Code Destinyメイン",
+    playTrack: (title: string) => `${title}を再生`,
   },
 } as const;
+
+const PLAYLIST_COVER_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
 
 function musicPlaylistCopy(locale: LoadingLocale) {
   return MUSIC_PLAYLIST_TEXT_TRANSLATIONS[locale as keyof typeof MUSIC_PLAYLIST_TEXT_TRANSLATIONS] || MUSIC_PLAYLIST_TEXT_TRANSLATIONS.en;
@@ -146,6 +152,7 @@ async function copyShareText(text: string) {
 
 type PlaylistTrackItemProps = {
   track: Track;
+  displayIndex: number;
   collectionLabel: string;
   durationLabel: string;
   isPlayable: boolean;
@@ -158,6 +165,7 @@ type PlaylistTrackItemProps = {
 
 const PlaylistTrackItem = memo(function PlaylistTrackItem({
   track,
+  displayIndex,
   collectionLabel,
   durationLabel,
   isPlayable,
@@ -199,17 +207,33 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
         type="button"
         onClick={handleTrackSelect}
         disabled={!isPlayable}
+        aria-label={musicPlaylistCopy(getCurrentLoadingLocale()).playTrack(track.title || "Untitled track")}
       >
+        <span className={styles.playlistTrackIndex} aria-hidden={!isCurrent}>
+          {isCurrent ? (
+            <span className={styles.equalizerIcon} aria-label={isCurrentTrackPlaying ? "Playing" : "Selected"}>
+              <i />
+              <i />
+              <i />
+            </span>
+          ) : (
+            <span>{displayIndex}</span>
+          )}
+        </span>
         <span className={styles.playlistThumb} data-fallback={coverUnavailable ? "true" : "false"}>
           {track.coverUrl ? (
-            <img
+            <Image
               src={track.coverUrl}
               alt=""
               width={72}
               height={72}
+              sizes="72px"
               loading="lazy"
               decoding="async"
               fetchPriority="low"
+              placeholder="blur"
+              blurDataURL={PLAYLIST_COVER_BLUR_DATA_URL}
+              unoptimized
               onError={handleTrackCoverError}
             />
           ) : null}
@@ -224,13 +248,6 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
         </span>
 
         <span className={styles.playlistTrackMeta}>
-          {isCurrent ? (
-            <span className={styles.equalizerIcon} aria-label={isCurrentTrackPlaying ? "Playing" : "Selected"}>
-              <i />
-              <i />
-              <i />
-            </span>
-          ) : null}
           {durationLabel ? <span>{durationLabel}</span> : null}
           {isSharedTrack ? <span className={styles.playlistShareStatus}>Copied</span> : null}
         </span>
@@ -254,6 +271,7 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
     && prev.track.artistKey === next.track.artistKey
     && prev.track.artistName === next.track.artistName
     && prev.track.coverUrl === next.track.coverUrl
+    && prev.displayIndex === next.displayIndex
     && prev.collectionLabel === next.collectionLabel
     && prev.durationLabel === next.durationLabel
     && prev.isPlayable === next.isPlayable
@@ -535,6 +553,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
                     >
                       <PlaylistTrackItem
                         track={track.track}
+                        displayIndex={virtualItem.index + 1}
                         collectionLabel={track.collectionLabel}
                         durationLabel={track.durationLabel}
                         isPlayable={track.isPlayable}

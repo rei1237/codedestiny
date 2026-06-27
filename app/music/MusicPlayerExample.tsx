@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -57,6 +58,7 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
+const MOON_COVER_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
 const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
 const HUMAN_MODE_COVER_KEYS = {
   yeoni: "\uc5f0\uc774 \uc778\uac04 \ubaa8\ub4dc \uc568\ubc94.webp",
@@ -378,7 +380,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         ? styles.yeoniMode
         : styles.neoMode;
   const isCompact = presentation === "compact";
-  const hasCurrentTrack = Boolean(player.currentTrack);
   const canToggleAlbumMode = Boolean(currentTrack && canUseHumanCoverMode(currentTrack.artistKey));
   const albumModeSwitchLabel = currentTrackAlbumMode === "human" ? copy.albumModeDefault : copy.albumModeHuman;
 
@@ -647,12 +648,18 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       >
         <div className={styles.miniCoverWrap}>
           {currentTrackCoverUrl ? (
-            <img
+            <Image
               className={styles.miniCover}
               src={currentTrackCoverUrl}
               alt={`${player.currentTrack.artistName} - ${player.currentTrack.title} cover`}
+              width={64}
+              height={64}
+              sizes="64px"
               loading="lazy"
               decoding="async"
+              placeholder="blur"
+              blurDataURL={MOON_COVER_BLUR_DATA_URL}
+              unoptimized
               data-hidden={coverFailed ? "true" : "false"}
               onLoad={markCoverLoaded}
               onError={markCoverFailed}
@@ -702,6 +709,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
       <div className={styles.assetAmbient} aria-hidden />
       <div className={styles.coverAmbient} aria-hidden />
+      <div className={styles.stars} aria-hidden />
       <div className={styles.moon} aria-hidden />
       <div className={styles.moonbeam} aria-hidden />
       <div className={styles.bannerGlowLeft} aria-hidden />
@@ -733,6 +741,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       <div className={styles.mist} aria-hidden />
 
       {currentTrack ? (
+        <>
         <div className={`${styles.playerFrame} mx-auto animate-fade-in-up`}>
           <div className={`${styles.playerHero} font-display`}>
             <span className={`${styles.playerHeroKicker} font-decorative`}>{copy.heroKicker}</span>
@@ -898,6 +907,56 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             onSelectTrack={handlePlaylistTrackSelect}
           />
         </div>
+        <aside
+          className={styles.nowPlayingDock}
+          data-playing={player.isPlaying ? "true" : "false"}
+          aria-label={copy.playerAria}
+        >
+          <span className={styles.nowPlayingDockGlow} aria-hidden />
+          <span className={styles.nowPlayingDockCover} data-fallback={coverFailed ? "true" : "false"}>
+            {currentTrackCoverUrl ? (
+              <Image
+                src={currentTrackCoverUrl}
+                alt={`${currentTrack.artistName} - ${currentTrack.title} cover`}
+                width={64}
+                height={64}
+                sizes="64px"
+                placeholder="blur"
+                blurDataURL={MOON_COVER_BLUR_DATA_URL}
+                unoptimized
+                onLoad={markCoverLoaded}
+                onError={markCoverFailed}
+              />
+            ) : null}
+            <span className={styles.nowPlayingDockFallback} aria-hidden />
+          </span>
+          <span className={styles.nowPlayingDockMeta}>
+            <span className={styles.nowPlayingDockTitle}>
+              <span>{currentTrack.title}</span>
+            </span>
+            <span className={styles.nowPlayingDockArtist}>{currentTrack.artistName}</span>
+          </span>
+          <span className={styles.nowPlayingDockControls}>
+            <button type="button" onClick={player.previous} aria-label={copy.previousTrack}>
+              <SkipBack size={18} aria-hidden />
+            </button>
+            <button
+              className={styles.nowPlayingDockPlay}
+              type="button"
+              onClick={player.isPlaying ? player.pause : player.play}
+              aria-label={player.isPlaying ? copy.pause : copy.play}
+            >
+              {player.isPlaying ? <Pause size={20} aria-hidden /> : <Play size={20} aria-hidden />}
+            </button>
+            <button type="button" onClick={player.next} aria-label={copy.nextTrack}>
+              <SkipForward size={18} aria-hidden />
+            </button>
+          </span>
+          <span className={styles.nowPlayingDockProgress} aria-hidden>
+            <span style={{ width: `${progressPercent}%` }} />
+          </span>
+        </aside>
+        </>
       ) : null}
     </section>
   );

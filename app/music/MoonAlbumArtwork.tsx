@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./moon-music-player.module.css";
 import type { ArtistKey } from "./_data/musicManifest";
 import { useCallback, useEffect, useRef } from "react";
@@ -14,6 +15,8 @@ type MoonAlbumArtworkProps = {
   onCoverLoad: () => void;
   onCoverError: () => void;
 };
+
+const MOON_ARTWORK_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
 
 export default function MoonAlbumArtwork({
   coverUrl,
@@ -69,13 +72,18 @@ export default function MoonAlbumArtwork({
       <div className={styles.albumMoonRing} aria-hidden />
       <div ref={albumFrameRef} className={styles.albumFrame}>
         {coverUrl ? (
-          <img
+          <Image
             className={styles.coverImage}
             src={coverUrl}
             alt={`${artistName} - ${title} cover`}
-            loading="eager"
+            width={640}
+            height={640}
+            sizes="(max-width: 768px) 100vw, 400px"
+            priority
             decoding="async"
-            fetchPriority="high"
+            placeholder="blur"
+            blurDataURL={MOON_ARTWORK_BLUR_DATA_URL}
+            unoptimized
             onLoad={handleCoverLoad}
             onError={handleCoverError}
             data-hidden={coverFailed ? "true" : "false"}

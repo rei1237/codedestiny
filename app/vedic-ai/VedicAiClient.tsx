@@ -6,29 +6,28 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import styles from "./VedicAiClient.module.css";
 
-type Gender = "male" | "female" | "other" | "";
+type Gender = "male" | "female" | "unknown" | "";
+type CalendarType = "solar" | "lunar" | "";
+type FocusArea = "overall" | "love" | "money" | "career" | "health" | "relationship" | "spirituality" | "custom";
 type Phase = "idle" | "access" | "payment" | "start" | "chat";
 type Message = {
   role: "user" | "assistant";
   content: string;
   createdAt?: string;
 };
-type BirthPlace = {
-  city: string;
-  country: string;
-  timezone: string;
-  latitude?: number;
-  longitude?: number;
-};
 type FormState = {
-  name: string;
+  userName: string;
   gender: Gender;
   birthDate: string;
   birthTime: string;
   birthTimeUnknown: boolean;
-  birthPlace: BirthPlace;
-  topic: string;
-  userQuestion: string;
+  calendarType: CalendarType;
+  birthPlace: string;
+  latitude: string;
+  longitude: string;
+  timezone: string;
+  focusArea: FocusArea;
+  question: string;
 };
 type SummaryCards = {
   lagna?: string;
@@ -44,6 +43,7 @@ type Consultation = {
   status: string;
   birthInfo: Record<string, unknown>;
   topic: string;
+  focusArea?: FocusArea;
   userQuestion?: string;
   vedicChart: Record<string, unknown>;
   accessType: "pass" | "paid" | "subscription";
@@ -56,65 +56,92 @@ type EnsureAccessResult =
   | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload: Record<string, unknown>; message?: string }
   | { ok: false; reason: "LOGIN_REQUIRED"; message?: string }
   | { ok: false; reason: "INVALID_INPUT"; message: string };
+type StartResult = {
+  ok?: boolean;
+  reason?: string;
+  message?: string;
+  consultation?: Consultation;
+};
+type PendingAccess = {
+  requestId: string;
+  access: Record<string, unknown>;
+  paymentWasRequired: boolean;
+};
 
 const FEATURE_KEY = "vedic-ai-consultation";
+const CONSULTATION_TYPE = "vedic";
 const FEATURE_COST = 300;
 const AMOUNT_KRW = 30000;
+const MEMBERSHIP_CREDIT_COST = 3000;
 const REASON = "베다점 AI 상담";
 
-const TOPICS = [
-  "전체 인생 흐름",
-  "타고난 성향",
-  "영혼의 방향성",
-  "직업/사업운",
-  "재물운",
-  "연애/결혼운",
-  "인간관계",
-  "가족/부모운",
-  "건강/멘탈",
-  "이직/창업",
-  "올해 운세",
-  "다샤 흐름",
-  "현재 고민 상담",
-  "인생 전환기 상담",
+const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
+  { value: "overall", label: "전체 흐름" },
+  { value: "love", label: "연애" },
+  { value: "money", label: "재물" },
+  { value: "career", label: "일과 진로" },
+  { value: "health", label: "건강" },
+  { value: "relationship", label: "관계" },
+  { value: "spirituality", label: "영성" },
+  { value: "custom", label: "직접 질문" },
 ];
 
-const PLACE_PRESETS: BirthPlace[] = [
-  { city: "서울", country: "한국", timezone: "Asia/Seoul", latitude: 37.5665, longitude: 126.9780 },
-  { city: "부산", country: "한국", timezone: "Asia/Seoul", latitude: 35.1796, longitude: 129.0756 },
-  { city: "인천", country: "한국", timezone: "Asia/Seoul", latitude: 37.4563, longitude: 126.7052 },
-  { city: "대구", country: "한국", timezone: "Asia/Seoul", latitude: 35.8714, longitude: 128.6014 },
-  { city: "제주", country: "한국", timezone: "Asia/Seoul", latitude: 33.4996, longitude: 126.5312 },
-  { city: "Tokyo", country: "Japan", timezone: "Asia/Tokyo", latitude: 35.6762, longitude: 139.6503 },
-  { city: "New York", country: "USA", timezone: "America/New_York", latitude: 40.7128, longitude: -74.0060 },
-  { city: "Los Angeles", country: "USA", timezone: "America/Los_Angeles", latitude: 34.0522, longitude: -118.2437 },
-  { city: "Delhi", country: "India", timezone: "Asia/Kolkata", latitude: 28.6139, longitude: 77.2090 },
-  { city: "Mumbai", country: "India", timezone: "Asia/Kolkata", latitude: 19.0760, longitude: 72.8777 },
+const PLACE_PRESETS = [
+  { label: "서울, 한국", latitude: "37.5665", longitude: "126.9780", timezone: "Asia/Seoul" },
+  { label: "부산, 한국", latitude: "35.1796", longitude: "129.0756", timezone: "Asia/Seoul" },
+  { label: "인천, 한국", latitude: "37.4563", longitude: "126.7052", timezone: "Asia/Seoul" },
+  { label: "대구, 한국", latitude: "35.8714", longitude: "128.6014", timezone: "Asia/Seoul" },
+  { label: "제주, 한국", latitude: "33.4996", longitude: "126.5312", timezone: "Asia/Seoul" },
+  { label: "Delhi, India", latitude: "28.6139", longitude: "77.2090", timezone: "Asia/Kolkata" },
+  { label: "Mumbai, India", latitude: "19.0760", longitude: "72.8777", timezone: "Asia/Kolkata" },
+  { label: "Tokyo, Japan", latitude: "35.6762", longitude: "139.6503", timezone: "Asia/Tokyo" },
+  { label: "New York, USA", latitude: "40.7128", longitude: "-74.0060", timezone: "America/New_York" },
+  { label: "Los Angeles, USA", latitude: "34.0522", longitude: "-118.2437", timezone: "America/Los_Angeles" },
 ];
 
 const ERROR_TEXT: Record<string, string> = {
-  LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  PAYMENT_REQUIRED: "베다점 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
-  PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  INVALID_INPUT: "생년월일, 출생시간, 출생지 정보를 다시 확인해 주세요.",
-  BIRTH_PLACE_INVALID: "출생지 정보를 확인하지 못했습니다. 도시와 국가를 다시 입력해 주세요.",
-  CHART_CALCULATION_FAILED: "베다 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  SERVER_ERROR: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  LLM_FAILED: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  INPUT_MISSING: "베다점 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
+  BIRTH_TIME_MISSING: "베다점은 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
+  CUSTOM_QUESTION_MISSING: "직접 질문을 선택했다면 지금 가장 궁금한 내용을 함께 적어 주세요.",
+  BIRTH_PLACE_INVALID: "출생지와 시간대를 확인하기 어려워요. 도시명 또는 시간대를 다시 확인해 주세요.",
+  LOGIN_REQUIRED: "로그인이 필요한 상담입니다. 로그인 후 다시 시도해 주세요.",
+  PAYMENT_REQUIRED: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
+  PAYMENT_VERIFY_FAILED: "결제 정보를 확인하지 못했어요. 결제나 이용권은 차감되지 않았습니다.",
+  PREPARE_FAILED: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  CHART_CALCULATION_FAILED: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
+  LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  SERVER_ERROR: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
 };
+
+const SECTION_TITLES = [
+  "우주가 말하는 핵심 결론",
+  "나의 베다 차트 기질",
+  "현재 질문과 연결되는 별의 흐름",
+  "나크샤트라가 비추는 감정",
+  "일과 재물의 방향",
+  "관계와 인연의 흐름",
+  "조심해야 할 선택",
+  "오늘의 별빛 행동 처방",
+  "마지막 조언",
+];
 
 const initialForm: FormState = {
-  name: "",
+  userName: "",
   gender: "",
   birthDate: "",
-  birthTime: "12:00",
+  birthTime: "",
   birthTimeUnknown: false,
-  birthPlace: { ...PLACE_PRESETS[0] },
-  topic: TOPICS[0],
-  userQuestion: "",
+  calendarType: "solar",
+  birthPlace: PLACE_PRESETS[0].label,
+  latitude: PLACE_PRESETS[0].latitude,
+  longitude: PLACE_PRESETS[0].longitude,
+  timezone: PLACE_PRESETS[0].timezone,
+  focusArea: "overall",
+  question: "",
 };
 
-function makeIdempotencyKey() {
+function makeRequestId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `vedic-ai-${crypto.randomUUID()}`;
   }
@@ -132,6 +159,11 @@ function toText(value: unknown) {
 function toNumber(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
+}
+
+function optionalNumber(value: string) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
 }
 
 function runtimePayload(result: unknown) {
@@ -178,29 +210,80 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
     || payment.merchantUid
     || accessGrant.paymentId
     || accessGrant.purchaseId
-    || fallbackRequestId
+    || fallbackRequestId,
   );
   return {
     paymentId,
     transactionId: paymentId,
     paymentEvidence: payload,
+    billingEvidence: payload,
     payment: { ...payment, paymentId, requestId: fallbackRequestId },
     accessGrant,
     consume,
   };
 }
 
-async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string) {
-  const response = await authFetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await response.json().catch(() => ({}));
-  return { status: response.status, data: data as T };
+async function postJson<T>(path: string, body: Record<string, unknown>, requestId?: string) {
+  try {
+    const response = await authFetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(requestId ? { "Idempotency-Key": requestId } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await response.json().catch(() => ({}));
+    return { status: response.status, data: data as T };
+  } catch {
+    throw new Error("NETWORK_ERROR");
+  }
+}
+
+function validateForm(form: FormState) {
+  if (!form.birthDate || !form.gender || !form.calendarType) return ERROR_TEXT.INPUT_MISSING;
+  if (!form.birthTimeUnknown && !form.birthTime) return ERROR_TEXT.BIRTH_TIME_MISSING;
+  if (!form.birthPlace.trim() && !form.timezone.trim()) return ERROR_TEXT.BIRTH_PLACE_INVALID;
+  if (form.focusArea === "custom" && form.question.trim().length < 2) return ERROR_TEXT.CUSTOM_QUESTION_MISSING;
+  return "";
+}
+
+function buildPayload(form: FormState, requestId: string) {
+  return {
+    serviceType: FEATURE_KEY,
+    consultationType: CONSULTATION_TYPE,
+    userName: form.userName.trim() || undefined,
+    gender: form.gender || "unknown",
+    birthDate: form.birthDate,
+    birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+    birthTimeUnknown: form.birthTimeUnknown,
+    calendarType: form.calendarType,
+    birthPlace: form.birthPlace.trim(),
+    latitude: optionalNumber(form.latitude),
+    longitude: optionalNumber(form.longitude),
+    timezone: form.timezone.trim(),
+    focusArea: form.focusArea,
+    question: form.question.trim(),
+    locale: "ko",
+    requestId,
+  };
+}
+
+function buildBillingGateInput(paymentPayload: Record<string, unknown>, requestId: string) {
+  return {
+    featureKey: FEATURE_KEY,
+    subFeatureKey: FEATURE_KEY,
+    productId: toText(paymentPayload.productId) || FEATURE_KEY,
+    serviceType: FEATURE_KEY,
+    reason: toText(paymentPayload.reason) || REASON,
+    forceDeduct: true,
+    requestId,
+    idempotencyKey: requestId,
+    cost: toNumber(paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST),
+    coinPrice: toNumber(paymentPayload.coinPrice ?? paymentPayload.cost, FEATURE_COST),
+    amountKRW: toNumber(paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, AMOUNT_KRW),
+    membershipCreditCost: toNumber(paymentPayload.membershipCreditCost, MEMBERSHIP_CREDIT_COST),
+  };
 }
 
 function chartPoint(chart: Record<string, unknown>, key: string) {
@@ -220,6 +303,39 @@ function vargaPlanetSign(chart: Record<string, unknown>, chartKey: string, plane
   return toText(asRecord(varga[planetName]).sign);
 }
 
+function sectionHeading(line: string) {
+  const text = line.replace(/^#{1,4}\s*/, "").replace(/^\d+[\).]\s*/, "").replace(/[:：]\s*$/, "").trim();
+  return SECTION_TITLES.find((title) => text.includes(title) || title.includes(text)) || "";
+}
+
+function splitAssistantSections(content: string) {
+  const lines = content.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const sections: Array<{ title: string; body: string }> = [];
+  let currentTitle = "";
+  let buffer: string[] = [];
+
+  lines.forEach((line) => {
+    const heading = sectionHeading(line);
+    if (heading) {
+      if (buffer.length) sections.push({ title: currentTitle || SECTION_TITLES[Math.min(sections.length, SECTION_TITLES.length - 1)], body: buffer.join("\n") });
+      currentTitle = heading;
+      buffer = [];
+      return;
+    }
+    buffer.push(line);
+  });
+
+  if (buffer.length) sections.push({ title: currentTitle || SECTION_TITLES[Math.min(sections.length, SECTION_TITLES.length - 1)], body: buffer.join("\n") });
+  if (sections.length > 1) return sections;
+
+  const paragraphs = content.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) return [{ title: SECTION_TITLES[0], body: content.trim() }];
+  return paragraphs.slice(0, SECTION_TITLES.length).map((body, index) => ({
+    title: SECTION_TITLES[index] || `별빛 조언 ${index + 1}`,
+    body,
+  }));
+}
+
 export default function VedicAiClient() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -227,116 +343,120 @@ export default function VedicAiClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [chatInput, setChatInput] = useState("");
-  const submitKeyRef = useRef("");
+  const requestIdRef = useRef("");
+  const pendingAccessRef = useRef<PendingAccess | null>(null);
+  const submitBusyRef = useRef(false);
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const chatBusy = phase === "chat";
-  const payload = useMemo(() => ({
-    birthInfo: {
-      name: form.name,
-      gender: form.gender,
-      birthDate: form.birthDate,
-      birthTime: form.birthTimeUnknown ? "" : form.birthTime,
-      birthTimeUnknown: form.birthTimeUnknown,
-      birthPlace: form.birthPlace,
-    },
-    topic: form.topic,
-    userQuestion: form.userQuestion,
-  }), [form]);
+  const validationMessage = validateForm(form);
 
   const phaseText = useMemo(() => {
-    if (phase === "access") return "베다 차트를 펼치고 있습니다";
-    if (phase === "payment") return "결제창을 확인해 주세요";
-    if (phase === "start") return "별과 다샤의 흐름을 읽고 있습니다";
-    if (phase === "chat") return "상담의 흐름을 이어가고 있습니다";
+    if (phase === "access") return "베다 상담 권한을 확인하는 중...";
+    if (phase === "payment") return "결제 정보를 확인하는 중...";
+    if (phase === "start") return "나크샤트라의 빛을 읽는 중...";
+    if (phase === "chat") return "행성의 흐름과 질문을 다시 연결하는 중...";
     return "";
   }, [phase]);
-
-  const canSubmit = Boolean(form.gender && form.birthDate && form.topic && (form.birthTimeUnknown || form.birthTime) && (form.birthPlace.city || form.birthPlace.latitude));
 
   function updateForm(patch: Partial<FormState>) {
     setForm((current) => ({ ...current, ...patch }));
   }
 
-  function updatePlace(patch: Partial<BirthPlace>) {
-    setForm((current) => ({ ...current, birthPlace: { ...current.birthPlace, ...patch } }));
-  }
-
   function applyPreset(value: string) {
-    const preset = PLACE_PRESETS.find((place) => `${place.city}, ${place.country}` === value);
-    if (preset) updatePlace({ ...preset });
+    const preset = PLACE_PRESETS.find((place) => place.label === value);
+    if (!preset) {
+      updateForm({ birthPlace: value });
+      return;
+    }
+    updateForm({
+      birthPlace: preset.label,
+      latitude: preset.latitude,
+      longitude: preset.longitude,
+      timezone: preset.timezone,
+    });
   }
 
-  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
+  async function startConsultation(requestId: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
-    const { status, data } = await postJson<{ ok?: boolean; reason?: string; message?: string; consultation?: Consultation }>(
+    const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
-      { ...payload, ...access, idempotencyKey },
-      idempotencyKey,
+      { ...buildPayload(form, requestId), ...access, idempotencyKey: requestId },
+      requestId,
     );
     if (data.ok && data.consultation) {
       setConsultation(data.consultation);
       setError("");
       setNotice("");
-      setPhase("idle");
-      submitKeyRef.current = "";
+      requestIdRef.current = "";
+      pendingAccessRef.current = null;
       return;
     }
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
-    throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
+    throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));
   }
 
   async function handleSubmit() {
-    if (busy) return;
-    if (!canSubmit) {
-      setError(ERROR_TEXT.INVALID_INPUT);
+    if (busy || submitBusyRef.current) return;
+    if (validationMessage) {
+      setError(validationMessage);
+      setNotice("");
       return;
     }
-    const idempotencyKey = submitKeyRef.current || makeIdempotencyKey();
-    submitKeyRef.current = idempotencyKey;
+
+    const requestId = requestIdRef.current || makeRequestId();
+    requestIdRef.current = requestId;
+    submitBusyRef.current = true;
     setError("");
     setNotice("");
-    setPhase("access");
+
     try {
+      const pending = pendingAccessRef.current;
+      if (pending && pending.requestId === requestId) {
+        await startConsultation(requestId, pending.access, pending.paymentWasRequired);
+        return;
+      }
+
+      setPhase("access");
       const { data } = await postJson<EnsureAccessResult>(
         "/api/vedic-ai/ensure-access",
-        { ...payload, idempotencyKey },
-        idempotencyKey,
+        { ...buildPayload(form, requestId), idempotencyKey: requestId },
+        requestId,
       );
+
       if (data.ok) {
         if (data.consultation) {
           setConsultation(data.consultation);
-          setPhase("idle");
-          submitKeyRef.current = "";
+          requestIdRef.current = "";
+          pendingAccessRef.current = null;
           return;
         }
-        await startConsultation(idempotencyKey, { accessToken: data.accessToken, accessType: data.accessType });
+        await startConsultation(requestId, { accessToken: data.accessToken, accessType: data.accessType });
         return;
       }
+
       if (data.reason === "LOGIN_REQUIRED") throw new Error("LOGIN_REQUIRED");
-      if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      if (data.reason === "INVALID_INPUT") throw new Error("PREPARE_FAILED");
+
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentPayload = asRecord(data.paymentPayload);
-      const gate = await runBillingCoinGate({
-        featureKey: FEATURE_KEY,
-        subFeatureKey: FEATURE_KEY,
-        productId: toText(paymentPayload.productId) || FEATURE_KEY,
-        serviceType: "vedic-ai",
-        reason: toText(paymentPayload.reason) || REASON,
-        forceDeduct: true,
-        requestId: idempotencyKey,
-        idempotencyKey,
-        cost: toNumber(paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST),
-        coinPrice: toNumber(paymentPayload.coinPrice ?? paymentPayload.cost, FEATURE_COST),
-        amountKRW: toNumber(paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, AMOUNT_KRW),
-        membershipCreditCost: toNumber(paymentPayload.membershipCreditCost, FEATURE_COST * 10),
-      });
+      const gate = await runBillingCoinGate(buildBillingGateInput(paymentPayload, requestId));
       if (!isPaymentGranted(gate)) throw new Error("PAYMENT_VERIFY_FAILED");
-      await startConsultation(idempotencyKey, extractPayment(gate, idempotencyKey), true);
+
+      const access = extractPayment(gate, requestId);
+      pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
+      await startConsultation(requestId, access, true);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const clearPrepaid = ["LLM_FAILED", "CHART_CALCULATION_FAILED", "BIRTH_PLACE_INVALID", "PAYMENT_VERIFY_FAILED", "LOGIN_REQUIRED", "PREPARE_FAILED"].includes(code);
+      if (clearPrepaid) {
+        pendingAccessRef.current = null;
+        requestIdRef.current = "";
+      }
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+    } finally {
+      submitBusyRef.current = false;
       setPhase("idle");
     }
   }
@@ -348,19 +468,19 @@ export default function VedicAiClient() {
     setError("");
     setPhase("chat");
     try {
-      const { status, data } = await postJson<{ ok?: boolean; reason?: string; consultation?: Consultation }>(
+      const { status, data } = await postJson<StartResult>(
         "/api/vedic-ai/message",
         { consultationId: consultation.id, message },
       );
       if (data.ok && data.consultation) {
         setConsultation(data.consultation);
-        setPhase("idle");
         return;
       }
       throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+    } finally {
       setPhase("idle");
     }
   }
@@ -371,18 +491,24 @@ export default function VedicAiClient() {
   const moon = chartPoint(chart, "moon");
 
   return (
-    <main className={styles.shell}>
+    <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627">
       <section className={styles.hero}>
-        <div className={styles.backdrop} />
+        <div className={styles.starLayer} aria-hidden="true" />
         <div className={styles.heroInner}>
           <div className={styles.copy}>
-            <span className={styles.eyebrow}><Sparkles size={16} /> Jyotish Consultation</span>
+            <span className={styles.eyebrow}><Sparkles size={16} /> Vedic Astrology · Jyotish AI Reading</span>
             <h1>베다점 AI 상담</h1>
-            <p>출생 순간의 라그나, 문 사인, 낙샤트라와 다샤 흐름을 바탕으로 지금의 질문을 깊게 읽어드립니다.</p>
-            <div className={styles.pricePill}>30,000원 · 이용권 · 월정석 · 단건결제</div>
+            <p>나크샤트라와 행성의 흐름을 따라 지금의 질문을 조용히 풀어드립니다.</p>
+            <div className={styles.heroMeta}>
+              <span>30,000원</span>
+              <span>{FEATURE_COST}코인</span>
+              <span>LLM 상담</span>
+            </div>
           </div>
-          <div className={styles.imagePanel} aria-hidden="true">
-            <img src="/fuctionassets/veda.webp" alt="" />
+          <div className={styles.mandalaStage} aria-hidden="true">
+            <div className={styles.mandalaCore} />
+            <div className={styles.orbitOne} />
+            <div className={styles.orbitTwo} />
           </div>
         </div>
       </section>
@@ -390,14 +516,14 @@ export default function VedicAiClient() {
       <section className={styles.workspace}>
         <form className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
           <div className={styles.panelHeader}>
-            <span><Star size={18} /> 출생정보</span>
-            <strong>{FEATURE_COST}코인</strong>
+            <span><Star size={18} /> 별의 지도를 열기 위한 정보</span>
+            <strong>Vedic AI</strong>
           </div>
 
           <div className={styles.formGrid}>
             <label>
               <span>이름 또는 닉네임</span>
-              <input value={form.name} onChange={(event) => updateForm({ name: event.target.value })} maxLength={80} disabled={busy} placeholder="상담에서 부를 이름" />
+              <input value={form.userName} onChange={(event) => updateForm({ userName: event.target.value })} maxLength={80} disabled={busy} placeholder="상담에서 부를 이름" />
             </label>
             <label>
               <span>성별</span>
@@ -405,7 +531,7 @@ export default function VedicAiClient() {
                 <option value="">선택</option>
                 <option value="female">여성</option>
                 <option value="male">남성</option>
-                <option value="other">기타/비공개</option>
+                <option value="unknown">비공개</option>
               </select>
             </label>
             <label>
@@ -413,17 +539,28 @@ export default function VedicAiClient() {
               <input type="date" value={form.birthDate} onChange={(event) => updateForm({ birthDate: event.target.value })} disabled={busy} />
             </label>
             <label>
+              <span>달력 기준</span>
+              <select value={form.calendarType} onChange={(event) => updateForm({ calendarType: event.target.value as CalendarType })} disabled={busy}>
+                <option value="solar">양력</option>
+                <option value="lunar">음력</option>
+              </select>
+            </label>
+            <label>
               <span><Clock3 size={15} /> 출생시간</span>
               <input type="time" value={form.birthTime} onChange={(event) => updateForm({ birthTime: event.target.value })} disabled={busy || form.birthTimeUnknown} />
+            </label>
+            <label>
+              <span><Compass size={15} /> 시간대</span>
+              <input value={form.timezone} onChange={(event) => updateForm({ timezone: event.target.value })} disabled={busy} placeholder="Asia/Seoul" />
             </label>
           </div>
 
           <label className={styles.checkRow}>
-            <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => updateForm({ birthTimeUnknown: event.target.checked })} disabled={busy} />
-            <span>출생시간을 정확히 모릅니다</span>
+            <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => updateForm({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} disabled={busy} />
+            <span>출생시간 모름</span>
           </label>
           {form.birthTimeUnknown && (
-            <p className={styles.softNotice}>출생시간이 불확실하면 라그나와 하우스는 조심스럽게 보고, Moon Chart 중심으로 상담합니다.</p>
+            <p className={styles.softNotice}>출생시간이 불확실하면 라그나의 정밀도는 낮추고, 달과 나크샤트라의 흐름을 중심으로 읽습니다.</p>
           )}
 
           <div className={styles.formGrid}>
@@ -431,46 +568,34 @@ export default function VedicAiClient() {
               <span><MapPin size={15} /> 출생지</span>
               <input
                 list="vedic-place-presets"
-                value={`${form.birthPlace.city}${form.birthPlace.country ? `, ${form.birthPlace.country}` : ""}`}
-                onChange={(event) => {
-                  applyPreset(event.target.value);
-                  const [city, country = form.birthPlace.country] = event.target.value.split(",").map((item) => item.trim());
-                  updatePlace({ city, country });
-                }}
+                value={form.birthPlace}
+                onChange={(event) => applyPreset(event.target.value)}
                 disabled={busy}
                 placeholder="도시, 국가"
               />
               <datalist id="vedic-place-presets">
-                {PLACE_PRESETS.map((place) => <option key={`${place.city}-${place.country}`} value={`${place.city}, ${place.country}`} />)}
+                {PLACE_PRESETS.map((place) => <option key={place.label} value={place.label} />)}
               </datalist>
             </label>
             <label>
-              <span><Compass size={15} /> 시간대</span>
-              <input value={form.birthPlace.timezone} onChange={(event) => updatePlace({ timezone: event.target.value })} disabled={busy} placeholder="Asia/Seoul" />
+              <span>상담 주제</span>
+              <select value={form.focusArea} onChange={(event) => updateForm({ focusArea: event.target.value as FocusArea })} disabled={busy}>
+                {FOCUS_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
             </label>
-          </div>
-
-          <div className={styles.formGrid}>
             <label>
               <span>위도</span>
-              <input type="number" step="0.0001" value={form.birthPlace.latitude ?? ""} onChange={(event) => updatePlace({ latitude: Number(event.target.value) })} disabled={busy} placeholder="37.5665" />
+              <input type="number" step="0.0001" value={form.latitude} onChange={(event) => updateForm({ latitude: event.target.value })} disabled={busy} placeholder="37.5665" />
             </label>
             <label>
               <span>경도</span>
-              <input type="number" step="0.0001" value={form.birthPlace.longitude ?? ""} onChange={(event) => updatePlace({ longitude: Number(event.target.value) })} disabled={busy} placeholder="126.9780" />
+              <input type="number" step="0.0001" value={form.longitude} onChange={(event) => updateForm({ longitude: event.target.value })} disabled={busy} placeholder="126.9780" />
             </label>
           </div>
 
           <label>
-            <span>상담 주제</span>
-            <select value={form.topic} onChange={(event) => updateForm({ topic: event.target.value })} disabled={busy}>
-              {TOPICS.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </label>
-
-          <label>
-            <span>현재 가장 궁금한 질문</span>
-            <textarea value={form.userQuestion} onChange={(event) => updateForm({ userQuestion: event.target.value })} maxLength={1500} disabled={busy} placeholder="지금 가장 알고 싶은 흐름을 자유롭게 적어 주세요." />
+            <span>자유 질문</span>
+            <textarea value={form.question} onChange={(event) => updateForm({ question: event.target.value })} maxLength={1500} disabled={busy} placeholder="지금 가장 궁금한 흐름을 자연스럽게 적어 주세요." />
           </label>
 
           {(error || notice || phaseText) && (
@@ -480,18 +605,26 @@ export default function VedicAiClient() {
             </div>
           )}
 
-          <button type="submit" className={styles.primaryButton} disabled={busy || !canSubmit}>
+          <button type="submit" className={styles.primaryButton} disabled={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
-            베다점 AI 상담 받기
+            {busy ? "나크샤트라의 흐름을 읽는 중..." : "베다점 AI 상담 받기"}
           </button>
         </form>
 
         <section className={styles.resultPanel}>
+          {busy && (
+            <div className={styles.loadingVeil} aria-live="polite">
+              <div className={styles.loadingMandala} />
+              <strong>{phaseText || "라시 차트를 정렬하는 중..."}</strong>
+              <span>행성의 흐름과 질문을 조용히 맞추고 있습니다.</span>
+            </div>
+          )}
+
           {!consultation ? (
             <div className={styles.emptyState}>
-              <Sparkles size={32} />
-              <h2>차트를 펼치면 이곳에서 상담이 시작됩니다.</h2>
-              <p>라그나, 문 사인, 낙샤트라, 현재 다샤의 핵심이 먼저 드러나고 이어서 대화가 열립니다.</p>
+              <div className={styles.emptyMandala} aria-hidden="true" />
+              <h2>우주의 차트를 펼칠 준비가 되어 있습니다.</h2>
+              <p>입력한 정보를 기준으로 별의 흐름과 현재 질문을 연결해 상담이 이어집니다.</p>
             </div>
           ) : (
             <>
@@ -499,38 +632,49 @@ export default function VedicAiClient() {
                 <article><span>Lagna</span><strong>{summary.lagna || toText(lagna.sign) || "Moon Chart"}</strong></article>
                 <article><span>Moon Sign</span><strong>{summary.moonSign || toText(moon.sign) || "-"}</strong></article>
                 <article><span>Nakshatra</span><strong>{summary.nakshatra || toText(moon.nakshatra) || "-"}</strong></article>
-                <article><span>현재 Dasha</span><strong>{summary.currentDasha || "-"}</strong></article>
+                <article><span>Current Dasha</span><strong>{summary.currentDasha || "-"}</strong></article>
               </div>
 
               <div className={styles.keywordRow}>
-                {(summary.keywords || []).slice(0, 3).map((keyword) => <span key={keyword}>{keyword}</span>)}
+                {(summary.keywords || []).slice(0, 4).map((keyword) => <span key={keyword}>{keyword}</span>)}
               </div>
 
               <div className={styles.chartCards}>
                 <article>
                   <span>D1 Rashi</span>
-                  <strong>{planetSummary(chart, "Sun") || "Sun 흐름 준비됨"}</strong>
-                  <p>{planetSummary(chart, "Rahu") || "Rahu/Ketu 축이 상담에 반영됩니다."}</p>
+                  <strong>{planetSummary(chart, "Sun") || "태양의 흐름"}</strong>
+                  <p>{planetSummary(chart, "Rahu") || "라후와 케투의 축을 상담에 함께 반영합니다."}</p>
                 </article>
                 <article>
                   <span>D9 Navamsa</span>
-                  <strong>{toText(asRecord(asRecord(summary.d9).Venus).sign) || vargaPlanetSign(chart, "d9", "Venus") || "내면의 성숙 흐름"}</strong>
-                  <p>관계, 성숙, 후천적으로 열리는 운명의 질감을 함께 봅니다.</p>
+                  <strong>{toText(asRecord(asRecord(summary.d9).Venus).sign) || vargaPlanetSign(chart, "d9", "Venus") || "내면의 성숙"}</strong>
+                  <p>관계, 약속, 오래 남는 선택의 질감을 함께 살핍니다.</p>
                 </article>
               </div>
 
               <div className={styles.chatList}>
                 {consultation.messages.map((message, index) => (
-                  <article key={`${message.role}-${index}`} className={message.role === "assistant" ? styles.assistantMsg : styles.userMsg}>
-                    <span>{message.role === "assistant" ? "상담가" : "나"}</span>
-                    <p>{message.content}</p>
-                  </article>
+                  message.role === "assistant" ? (
+                    <div className={styles.sectionGrid} key={`${message.role}-${index}`}>
+                      {splitAssistantSections(message.content).map((section, sectionIndex) => (
+                        <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
+                          <span>{section.title}</span>
+                          <p>{section.body}</p>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <article className={styles.userMsg} key={`${message.role}-${index}`}>
+                      <span>나의 질문</span>
+                      <p>{message.content}</p>
+                    </article>
+                  )
                 ))}
               </div>
 
               <div className={styles.chatInput}>
-                <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} disabled={chatBusy} placeholder="이어 묻고 싶은 내용을 적어 주세요." />
-                <button type="button" onClick={() => void handleSendMessage()} disabled={chatBusy || chatInput.trim().length < 2}>
+                <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} maxLength={1800} disabled={chatBusy} placeholder="상담 흐름에 이어서 더 묻고 싶은 내용을 적어 주세요." />
+                <button type="button" onClick={() => void handleSendMessage()} disabled={chatBusy || chatInput.trim().length < 2} aria-label="추가 질문 보내기">
                   {chatBusy ? <Loader2 className={styles.spin} size={18} /> : <Send size={18} />}
                 </button>
               </div>

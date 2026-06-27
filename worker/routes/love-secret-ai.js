@@ -22,17 +22,125 @@ const FEATURE_KEY = "love-secret-ai-consultation";
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "연애 비책 AI 상담";
+const GEMINI_ENV_KEYS = Object.freeze([
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
+]);
+const RELATIONSHIP_STATUS_LABELS = Object.freeze({
+  single: "솔로",
+  crush: "짝사랑",
+  dating: "연애 중",
+  breakup: "이별 직후",
+  reunion: "재회 고민",
+  marriage: "결혼 고민",
+  complicated: "관계 정리 고민",
+  custom: "상대방 마음이 궁금한 상태",
+  "짝사랑": "짝사랑",
+  "썸": "썸",
+  "연애 중": "연애 중",
+  "장기 연애": "장기 연애",
+  "이별 직후": "이별 직후",
+  "재회 고민": "재회 고민",
+  "연락이 끊긴 상태": "연락이 끊긴 상태",
+  "결혼 고민": "결혼 고민",
+  "부부 관계": "부부 관계",
+  "관계 정리 고민": "관계 정리 고민",
+  "상대방 마음이 궁금한 상태": "상대방 마음이 궁금한 상태",
+});
+const FOCUS_AREA_LABELS = Object.freeze({
+  overall: "전체 연애 흐름",
+  crush: "상대방 마음",
+  reunion: "재회 가능성",
+  confession: "고백 타이밍",
+  marriage: "결혼 가능성",
+  conflict: "갈등 원인",
+  compatibility: "상대방과의 궁합",
+  custom: "전체 연애 흐름",
+  "전체 연애 흐름": "전체 연애 흐름",
+  "상대방 마음": "상대방 마음",
+  "연락 타이밍": "연락 타이밍",
+  "고백 타이밍": "고백 타이밍",
+  "재회 가능성": "재회 가능성",
+  "관계 회복 전략": "관계 회복 전략",
+  "장기 연애 유지법": "장기 연애 유지법",
+  "결혼 가능성": "결혼 가능성",
+  "갈등 원인": "갈등 원인",
+  "나의 연애 패턴": "나의 연애 패턴",
+  "상대방과의 궁합": "상대방과의 궁합",
+  "지금 밀어야 할지 기다려야 할지": "지금 밀어야 할지 기다려야 할지",
+  "이 관계를 계속해도 되는지": "이 관계를 계속해도 되는지",
+});
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
-const INVALID_INPUT_MESSAGE = "생년월일과 연애 상담 정보를 다시 확인해 주세요.";
+const PAYMENT_VERIFY_FAILED_MESSAGE = "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.";
+const INVALID_INPUT_MESSAGE = "연애 비책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 연애 상황을 다시 확인해 주세요.";
+const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요.";
 const CALCULATION_FAILED_MESSAGE = "연애 흐름 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const SERVER_ERROR_MESSAGE = "연애 비책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
+const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function readProcessEnv(key) {
+  if (typeof process === "undefined") return "";
+  return clean(process.env?.[key], 2000);
+}
+
+function getProviderDiagnostics(env = {}) {
+  const hasGeminiKey = GEMINI_ENV_KEYS.some((key) => clean(env?.[key], 2000) || readProcessEnv(key));
+  const hasEnvAI = typeof env?.AI?.run === "function";
+  return {
+    hasEnvAI,
+    willUseRealLLM: hasGeminiKey || hasEnvAI,
+    providerReason: hasGeminiKey ? "gemini_api_key_available" : hasEnvAI ? "workers_ai_binding_available" : "no_real_llm_provider_detected",
+  };
+}
+
+function isDevelopmentEnv(env = {}) {
+  const mode = clean(env?.NODE_ENV || env?.ENVIRONMENT || readProcessEnv("NODE_ENV"), 40).toLowerCase();
+  return mode && mode !== "production";
+}
+
+function maskBirthDate(value) {
+  const text = clean(value, 10);
+  const match = text.match(/^(\d{4})-/);
+  return match ? `${match[1]}-**-**` : "";
+}
+
+function safeLogPayload({ route = "", requestId = "", body = {}, normalized = null, validation = "", access = "", env = {}, error = null, providerReason = "" } = {}) {
+  const input = normalized?.input || {};
+  const myInfo = input.myInfo || objectOf(body.myInfo);
+  const diagnostics = getProviderDiagnostics(env);
+  return {
+    route: clean(route, 140),
+    requestId: clean(requestId || body.requestId || body.idempotencyKey, 180),
+    serviceType: clean(input.serviceType || body.serviceType || body.featureKey || FEATURE_KEY, 80),
+    focusArea: clean(input.focusArea || body.focusArea || body.topic || "overall", 80),
+    relationshipStatus: clean(input.relationshipStatus || body.relationshipStatus || body.relationshipType, 80),
+    validation,
+    access,
+    birthDate: maskBirthDate(input.birthDate || myInfo.birthDate || body.birthDate),
+    questionLength: clean(input.question || input.userQuestion || body.question || body.userQuestion || body.message, 1200).length,
+    ...diagnostics,
+    providerReason: clean(providerReason || diagnostics.providerReason, 160),
+    ...(error ? {
+      errorMessage: clean(error?.message || error, 500),
+      ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
+    } : {}),
+  };
+}
+
+function logLoveSecretAi(marker, details = {}, level = "info") {
+  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
+  writer(`[LoveSecret AI ${marker}]`, details);
 }
 
 function sha256(value) {
@@ -82,12 +190,117 @@ function calculationFailed() {
   return json({ ok: false, reason: "CALCULATION_FAILED", message: CALCULATION_FAILED_MESSAGE }, { status: 422 });
 }
 
+function toBoolean(value) {
+  return value === true || value === "true" || value === "1" || value === 1;
+}
+
+function normalizeGenderForCalculation(value) {
+  const text = clean(value, 20).toLowerCase();
+  if (text === "unknown" || text === "비공개") return "unknown";
+  return clean(value, 20);
+}
+
+function hasFlatPartnerSignal(body = {}) {
+  return Boolean(
+    clean(body.partnerName)
+      || clean(body.partnerGender)
+      || clean(body.partnerBirthDate)
+      || clean(body.partnerBirthTime)
+      || body.partnerBirthTimeUnknown === true
+      || clean(body.partnerCalendarType),
+  );
+}
+
+function normalizeRelationshipStatus(value) {
+  const key = clean(value || "single", 80);
+  return RELATIONSHIP_STATUS_LABELS[key] || RELATIONSHIP_STATUS_LABELS[key.toLowerCase()] || key;
+}
+
+function normalizeFocusArea(value) {
+  const key = clean(value || "overall", 80);
+  return FOCUS_AREA_LABELS[key] || FOCUS_AREA_LABELS[key.toLowerCase()] || key;
+}
+
+function normalizeCanonicalBody(body = {}) {
+  const source = objectOf(body);
+  const legacyMyInfo = objectOf(source.myInfo || source.self || source.user);
+  const myInfo = Object.keys(legacyMyInfo).length
+    ? legacyMyInfo
+    : {
+      name: source.userName || source.name || source.nickname,
+      gender: source.gender,
+      birthDate: source.birthDate,
+      birthTime: source.birthTime,
+      birthTimeUnknown: source.birthTimeUnknown,
+      calendarType: source.calendarType,
+    };
+  const legacyPartnerInfo = objectOf(source.partnerInfo || source.partner);
+  const includePartner = Object.keys(legacyPartnerInfo).length || hasFlatPartnerSignal(source);
+  const partnerInfo = Object.keys(legacyPartnerInfo).length
+    ? legacyPartnerInfo
+    : {
+      name: source.partnerName,
+      gender: source.partnerGender,
+      birthDate: source.partnerBirthDate,
+      birthTime: source.partnerBirthTime,
+      birthTimeUnknown: source.partnerBirthTimeUnknown,
+      calendarType: source.partnerCalendarType,
+    };
+  const relationshipStatus = normalizeRelationshipStatus(source.relationshipStatus || source.relationshipType);
+  const focusArea = clean(source.focusArea || source.topic || source.consultationTopic || "overall", 80);
+  const topic = normalizeFocusArea(focusArea);
+  const question = clean(source.question || source.userQuestion || source.message, 1200);
+  const birthTimeUnknown = toBoolean(myInfo.birthTimeUnknown);
+
+  if (!birthTimeUnknown && !clean(myInfo.birthTime)) {
+    return { ok: false, message: "출생시간을 입력하거나 출생시간 모름을 선택해 주세요." };
+  }
+  if (clean(focusArea).toLowerCase() === "custom" && question.length < 2) {
+    return { ok: false, message: QUESTION_REQUIRED_MESSAGE };
+  }
+
+  return {
+    ok: true,
+    serviceType: clean(source.serviceType || source.featureKey || FEATURE_KEY, 80) || FEATURE_KEY,
+    consultationType: clean(source.consultationType || "loveSecret", 40) || "loveSecret",
+    focusArea: clean(source.focusArea || "overall", 80) || "overall",
+    question,
+    legacyBody: {
+      myInfo: {
+        ...myInfo,
+        gender: normalizeGenderForCalculation(myInfo.gender),
+        birthTimeUnknown,
+      },
+      partnerInfo: includePartner
+        ? {
+          ...partnerInfo,
+          gender: normalizeGenderForCalculation(partnerInfo.gender),
+          birthTimeUnknown: toBoolean(partnerInfo.birthTimeUnknown),
+        }
+        : undefined,
+      relationshipStatus,
+      topic,
+      userQuestion: question,
+    },
+  };
+}
+
 function normalizeRequestBody(body = {}) {
-  const normalized = normalizeLoveSecretAiInput(body);
+  const canonical = normalizeCanonicalBody(body);
+  if (!canonical.ok) return canonical;
+  const normalized = normalizeLoveSecretAiInput(canonical.legacyBody);
   if (!normalized.ok) return normalized;
+  const input = {
+    ...normalized.input,
+    serviceType: canonical.serviceType,
+    consultationType: canonical.consultationType,
+    focusArea: canonical.focusArea,
+    question: canonical.question,
+  };
   return {
     ...normalized,
-    inputHash: sha256(stableJson(normalized.input)),
+    input,
+    inputHash: sha256(stableJson(input)),
   };
 }
 
@@ -354,6 +567,8 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
         ledgerId: clean(pointHistory?.metadata?.ledgerId, 160),
         purchaseId: clean(pointHistory?.metadata?.purchaseId || pointHistory?.metadata?.requestId, 160),
         membershipCreditCost: Math.max(0, Math.floor(Number(pointHistory?.metadata?.membershipCreditCost || pointHistory?.metadata?.requiredMonthlyCredits || 0))),
+        delta: Math.floor(Number(pointHistory?.delta || 0)),
+        accessType: clean(pointHistory?.metadata?.accessType || pointHistory?.metadata?.transactionType || pointHistory?.metadata?.accessMethod, 80),
       },
     };
   }
@@ -385,14 +600,23 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
   return null;
 }
 
-async function generateFirstConsultation(env, input, sajuResult) {
+async function generateFirstConsultation(env, input, sajuResult, logContext = {}) {
   const ai = await callGeminiText(env, buildFirstConsultationPrompt(input, sajuResult), {
     systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
     temperature: 0.72,
     maxOutputTokens: 8000,
     taskType: "fortune",
   });
-  if (!ai?.ok || !clean(ai.text)) {
+  const provider = clean(ai?.provider);
+  const model = clean(ai?.model);
+  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  logLoveSecretAi("LLM Provider Selected", {
+    ...logContext,
+    providerReason: isMock ? "mock_provider_blocked" : provider || model || logContext.providerReason || "llm_provider_selected",
+    provider,
+    model,
+  });
+  if (!ai?.ok || isMock || !clean(ai.text)) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
     throw error;
@@ -400,8 +624,8 @@ async function generateFirstConsultation(env, input, sajuResult) {
   const parsed = parseFirstConsultationResponse(ai.text);
   return {
     ...parsed,
-    provider: clean(ai.provider),
-    model: clean(ai.model),
+    provider,
+    model,
   };
 }
 
@@ -509,6 +733,74 @@ async function refundBillingGateMonthlyCredit({ userId, evidence = {}, reason = 
   return { refunded: true };
 }
 
+async function restoreBillingGateAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+  const evidence = objectOf(access.billingEvidence);
+  const failureMessage = clean(error?.message || error || "love secret ai generation failed", 500);
+  const now = new Date();
+  if (access.accessSource === "billing_gate_membership_credit") {
+    return refundBillingGateMonthlyCredit({ userId, evidence, reason: LLM_ERROR_MESSAGE });
+  }
+
+  const pointHistoryId = clean(evidence.pointHistoryId || access.paymentId, 160);
+  if (access.accessSource !== "billing_gate_paid" || !mongoose.Types.ObjectId.isValid(pointHistoryId)) {
+    return { restored: false };
+  }
+
+  const history = await PointHistory.findOne({
+    _id: pointHistoryId,
+    userId,
+    kind: "deduct",
+    featureKey: FEATURE_KEY,
+    "metadata.refundedForLoveSecretAiFailure": { $ne: true },
+  }).lean();
+  if (!history) return { restored: false };
+
+  const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || evidence.delta || pricing.coinPrice || 0))));
+  if (!refundCoins) return { restored: false };
+
+  const marked = await PointHistory.updateOne(
+    { _id: history._id, userId, "metadata.refundedForLoveSecretAiFailure": { $ne: true } },
+    {
+      $set: {
+        "metadata.refundedForLoveSecretAiFailure": true,
+        "metadata.refundedForServiceExecution": true,
+        "metadata.serviceExecutionRefundedAt": now,
+        "metadata.serviceExecutionFailureMessage": failureMessage,
+      },
+    },
+  );
+  if (!marked.modifiedCount) return { restored: false };
+
+  const purchaseId = clean(evidence.purchaseId || history?.metadata?.purchaseId || history?.metadata?.idempotencyKey || idempotencyKey, 180);
+  const updated = await User.findByIdAndUpdate(
+    userId,
+    {
+      $inc: { points: refundCoins },
+      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
+    },
+    { new: true, projection: { points: 1 } },
+  ).lean();
+
+  await PointHistory.create({
+    userId,
+    kind: "refund",
+    delta: refundCoins,
+    balanceAfter: Math.max(0, Math.floor(Number(updated?.points || 0))),
+    reason: `${ORDER_NAME} 생성 실패 환급`,
+    featureKey: FEATURE_KEY,
+    metadata: {
+      refundedForLoveSecretAiFailure: true,
+      refundedForServiceExecution: true,
+      originalPointHistoryId: clean(history._id, 160),
+      idempotencyKey,
+      purchaseId,
+      failureMessage,
+    },
+  }).catch(() => {});
+
+  return { restored: true, type: "point_refund", amount: refundCoins };
+}
+
 function publicSession(doc) {
   return {
     ok: true,
@@ -517,6 +809,13 @@ function publicSession(doc) {
     status: clean(doc.status),
     keywords: Array.isArray(doc.keywords) ? doc.keywords.map((item) => clean(item)).filter(Boolean).slice(0, 3) : [],
     strategy: clean(doc.strategy),
+    sections: Array.isArray(doc.llmMeta?.sections)
+      ? doc.llmMeta.sections.map((section) => ({
+        title: clean(section?.title, 80),
+        body: clean(section?.body, 12000),
+      })).filter((section) => section.title && section.body)
+      : [],
+    finalLine: clean(doc.llmMeta?.finalLine, 500),
     consultationMode: clean(doc.sajuResult?.consultationMode),
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
@@ -528,18 +827,35 @@ function publicSession(doc) {
   };
 }
 
-async function handleEnsureAccess(request, env) {
+async function handleEnsureAccess(request, env, route = "/api/love-secret-ai/prepare") {
+  logLoveSecretAi("LLM Prepare Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeRequestBody(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logLoveSecretAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeRequestBody(body);
+  if (!normalized.ok) {
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logLoveSecretAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 정보가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
+
+  try {
+    logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+    calculateLoveSecretAiSaju(normalized);
+    logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
+  } catch (error) {
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", env, error }), "error");
+    return calculationFailed();
+  }
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
 
   const pricing = getPricing();
+  logLoveSecretAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   if (isAdmin(auth)) {
+    logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "admin", env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -558,6 +874,7 @@ async function handleEnsureAccess(request, env) {
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
   if (access.ok) {
+    logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -572,6 +889,7 @@ async function handleEnsureAccess(request, env) {
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
+  logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "payment_required", env }));
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
@@ -597,11 +915,17 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, route = "/api/love-secret-ai/generate") {
+  logLoveSecretAi("LLM Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
-  const normalized = normalizeRequestBody(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
+  logLoveSecretAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+  const normalized = normalizeRequestBody(body);
+  if (!normalized.ok) {
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
+    return invalidInput(normalized.message);
+  }
+  logLoveSecretAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 정보가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
   const auth = await getOptionalUserFromRequest(request, env);
@@ -609,12 +933,15 @@ async function handleStart(request, env) {
 
   await connectDb(env);
   const pricing = getPricing();
+  logLoveSecretAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
   }
+  logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+  logLoveSecretAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
   const existing = await LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
@@ -627,9 +954,16 @@ async function handleStart(request, env) {
 
   let sajuResult;
   try {
+    logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     sajuResult = calculateLoveSecretAiSaju(normalized);
+    logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
-    console.warn("[love-secret-ai] calculation failed", clean(error?.message || error, 500));
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
+    const restored = await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
+    logLoveSecretAi("LLM Refund Or Restore", {
+      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+      restored,
+    }, restored?.restored || restored?.refunded ? "info" : "warn");
     return calculationFailed();
   }
 
@@ -674,7 +1008,8 @@ async function handleStart(request, env) {
   }
 
   try {
-    const generated = await generateFirstConsultation(env, normalized.input, sajuResult);
+    const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
+    const generated = await generateFirstConsultation(env, normalized.input, sajuResult, logContext);
     const completed = await LoveSecretAiConsultation.findOneAndUpdate(
       { id: sessionId },
       {
@@ -690,7 +1025,13 @@ async function handleStart(request, env) {
             },
             { role: "assistant", content: generated.answer, createdAt: new Date() },
           ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+          llmMeta: {
+            provider: generated.provider,
+            model: generated.model,
+            completedAt: new Date().toISOString(),
+            sections: generated.sections,
+            finalLine: generated.finalLine,
+          },
           generationError: null,
         },
       },
@@ -705,17 +1046,20 @@ async function handleStart(request, env) {
       pricing,
     });
     const finalDoc = await LoveSecretAiConsultation.findOne({ id: sessionId }).lean();
+    logLoveSecretAi("LLM Generate Success", {
+      ...logContext,
+      providerReason: generated.provider || generated.model || "real_llm_success",
+      provider: generated.provider,
+      model: generated.model,
+    });
     return json(publicSession(finalDoc || completed));
   } catch (error) {
-    if (access.accessSource === "billing_gate_membership_credit") {
-      await refundBillingGateMonthlyCredit({
-        userId: auth.userId,
-        evidence: access.billingEvidence || {},
-        reason: LLM_ERROR_MESSAGE,
-      }).catch((refundError) => {
-        console.warn("[love-secret-ai] monthly credit refund failed", clean(refundError?.message || refundError, 500));
-      });
-    }
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
+    const restored = await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
+    logLoveSecretAi("LLM Refund Or Restore", {
+      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
+      restored,
+    }, restored?.restored || restored?.refunded ? "info" : "warn");
     await LoveSecretAiConsultation.updateOne(
       { id: sessionId },
       {
@@ -774,10 +1118,15 @@ async function handleMessage(request, env) {
 export async function handleLoveSecretAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/love-secret-ai");
+  logLoveSecretAi("Route Matched", safeLogPayload({ route: `/api/love-secret-ai${path}`, env }));
 
   try {
-    if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
-    if (method === "POST" && path === "/start") return await handleStart(request, env);
+    if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
+      return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/love-secret-ai/prepare" : "/api/love-secret-ai/ensure-access");
+    }
+    if (method === "POST" && (path === "/generate" || path === "/start")) {
+      return await handleStart(request, env, path === "/generate" ? "/api/love-secret-ai/generate" : "/api/love-secret-ai/start");
+    }
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

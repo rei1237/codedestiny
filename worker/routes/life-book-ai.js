@@ -17,32 +17,129 @@ const FEATURE_KEY = "life-book-ai-consultation";
 const ACCESS_TOKEN_TYPE = "life-book-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "인생의 책 AI 상담";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
-const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
-const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const INVALID_INPUT_MESSAGE = "생년월일과 상담 정보를 다시 확인해 주세요.";
-const CALCULATION_ERROR_MESSAGE = "명식 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
-const TOPICS = new Set([
-  "전체 인생 흐름",
-  "타고난 성향",
-  "인생의 사명",
-  "직업/사업 방향",
-  "재물 흐름",
-  "연애와 결혼",
-  "인간관계",
-  "가족과 상처",
-  "현재 인생의 전환점",
-  "앞으로의 기회",
-  "반복되는 실패 패턴",
-  "나에게 맞는 삶의 방식",
-]);
+
+const GEMINI_ENV_KEYS = [
+  "GEMINIF_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
+];
+
+const MESSAGES = Object.freeze({
+  login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
+  paymentRequired: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
+  paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
+  invalidInput: "인생의 책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 상담 주제를 다시 확인해 주세요.",
+  birthTimeMissing: "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.",
+  customQuestionRequired: "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요.",
+  prepareFailed: "인생의 책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  network: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+});
+
+const FOCUS_AREA_LABELS = Object.freeze({
+  overall: "전체 인생 흐름",
+  love: "사랑과 관계의 흐름",
+  money: "재물과 안정의 흐름",
+  career: "일과 커리어의 방향",
+  relationship: "인간관계의 반복 장면",
+  family: "가족과 인연의 장",
+  lifePurpose: "삶의 목적과 사명",
+  turningPoint: "전환점과 기회의 장",
+  custom: "사용자의 직접 질문",
+});
+
+const LEGACY_TOPIC_TO_FOCUS = Object.freeze({
+  "전체 인생 흐름": "overall",
+  "타고난 성향": "overall",
+  "인생의 사명": "lifePurpose",
+  "직업/사업 방향": "career",
+  "재물 흐름": "money",
+  "연애와 결혼": "love",
+  "인간관계": "relationship",
+  "가족과 상처": "family",
+  "현재 인생의 전환점": "turningPoint",
+  "앞으로의 기회": "turningPoint",
+  "반복되는 실패 패턴": "overall",
+  "나에게 맞는 삶의 방식": "lifePurpose",
+});
+
+const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|chapter|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능/gi;
 const startLocks = new Map();
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function readProcessEnv(key) {
+  if (typeof process === "undefined") return "";
+  return clean(process.env?.[key], 2000);
+}
+
+function getProviderDiagnostics(env = {}) {
+  const hasGeminiKey = GEMINI_ENV_KEYS.some((key) => clean(env?.[key], 2000) || readProcessEnv(key));
+  const hasEnvAI = typeof env?.AI?.run === "function";
+  return {
+    hasEnvAI,
+    willUseRealLLM: hasGeminiKey || hasEnvAI,
+    providerReason: hasGeminiKey ? "gemini_api_key_available" : hasEnvAI ? "workers_ai_binding_available" : "no_real_llm_provider_detected",
+  };
+}
+
+function isDevelopmentEnv(env = {}) {
+  const mode = clean(env?.NODE_ENV || env?.ENVIRONMENT || env?.APP_ENV || readProcessEnv("NODE_ENV"), 40).toLowerCase();
+  return mode && mode !== "production";
+}
+
+function maskBirthDate(value) {
+  const text = clean(value, 10);
+  const match = text.match(/^(\d{4})-/);
+  return match ? `${match[1]}-**-**` : "";
+}
+
+function maskName(value) {
+  const text = clean(value, 80);
+  if (!text) return "";
+  if (text.length <= 1) return "*";
+  return `${text.slice(0, 1)}${"*".repeat(Math.min(3, text.length - 1))}`;
+}
+
+function safeLogPayload({ route = "", requestId = "", body = {}, normalized = null, validation = "", access = "", payment = "", env = {}, error = null, providerReason = "" } = {}) {
+  const input = normalized?.input || {};
+  const birthInfo = input.birthInfo || body.birthInfo || {};
+  const question = clean(input.question ?? body.question ?? body.userQuestion ?? body.message, 1200);
+  const diagnostics = getProviderDiagnostics(env);
+  return {
+    route: clean(route || "/api/life-book-ai", 120),
+    requestId: clean(requestId || body.requestId || body.idempotencyKey, 180),
+    serviceType: clean(input.serviceType || body.serviceType || body.featureKey || FEATURE_KEY, 80),
+    consultationType: clean(input.consultationType || body.consultationType || "lifeBook", 40),
+    focusArea: clean(input.focusArea || body.focusArea || "", 40),
+    validation,
+    access,
+    payment,
+    name: maskName(input.birthInfo?.name || birthInfo.name || body.userName || body.name),
+    gender: clean(input.birthInfo?.gender || birthInfo.gender || body.gender, 20),
+    birthDate: maskBirthDate(input.birthInfo?.birthDate || birthInfo.birthDate || body.birthDate),
+    calendarType: clean(input.birthInfo?.calendarType || birthInfo.calendarType || body.calendarType, 20),
+    questionLength: question.length,
+    ...diagnostics,
+    providerReason: providerReason || diagnostics.providerReason,
+    ...(error ? {
+      errorMessage: clean(error?.message || error, 500),
+      ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
+    } : {}),
+  };
+}
+
+function logLifeBookAi(marker, details = {}, level = "info") {
+  const method = level === "error" ? "error" : level === "warn" ? "warn" : "info";
+  console[method](`[LifeBook AI ${marker}]`, details);
 }
 
 function sha256(value) {
@@ -60,6 +157,7 @@ function stableJson(value) {
 function readIdempotencyKey(request, body = {}) {
   return clean(
     body?.idempotencyKey
+      || body?.requestId
       || request.headers.get("idempotency-key")
       || request.headers.get("x-idempotency-key"),
     180,
@@ -68,7 +166,11 @@ function readIdempotencyKey(request, body = {}) {
 
 function randomToken(length = 10) {
   const bytes = new Uint8Array(Math.max(8, Math.ceil(length * 0.75)));
-  crypto.getRandomValues(bytes);
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256);
+  }
   return Array.from(bytes).map((byte) => byte.toString(36).padStart(2, "0")).join("").slice(0, length);
 }
 
@@ -76,8 +178,36 @@ function normalizeGender(value) {
   const text = clean(value, 20).toLowerCase();
   if (["m", "male", "man", "남", "남성", "남자"].includes(text)) return "male";
   if (["f", "female", "woman", "여", "여성", "여자"].includes(text)) return "female";
-  if (["other", "unknown", "none", "기타", "비공개"].includes(text)) return "other";
+  if (["unknown", "other", "none", "비공개", "기타"].includes(text)) return "unknown";
   return text || "";
+}
+
+function normalizeCalendarType(value) {
+  const text = clean(value, 20).toLowerCase();
+  if (["solar", "양력"].includes(text)) return "solar";
+  if (["lunar", "음력"].includes(text)) return "lunar";
+  return "";
+}
+
+function normalizeServiceType(value) {
+  const text = clean(value || FEATURE_KEY, 80);
+  if ([FEATURE_KEY, SERVICE_KEY].includes(text)) return FEATURE_KEY;
+  return "";
+}
+
+function normalizeConsultationType(value) {
+  const text = clean(value || "lifeBook", 40);
+  if (["lifeBook", "lifebook", "life-book", "life_book"].includes(text)) return "lifeBook";
+  return "";
+}
+
+function normalizeFocusArea(value, fallbackTopic = "") {
+  const token = clean(value, 40);
+  if (FOCUS_AREAS.has(token)) return token;
+  const topic = clean(fallbackTopic, 120);
+  if (LEGACY_TOPIC_TO_FOCUS[topic]) return LEGACY_TOPIC_TO_FOCUS[topic];
+  const matched = Object.entries(FOCUS_AREA_LABELS).find(([, label]) => label === topic);
+  return matched?.[0] || "";
 }
 
 function isValidDateKey(value) {
@@ -87,22 +217,31 @@ function isValidDateKey(value) {
 }
 
 function normalizeConsultationInput(body = {}) {
-  const birthInfo = body.birthInfo && typeof body.birthInfo === "object" ? body.birthInfo : {};
-  const name = clean(body.name ?? body.nickname ?? birthInfo.name, 80);
-  const gender = normalizeGender(body.gender ?? birthInfo.gender);
-  const birthDate = clean(body.birthDate ?? birthInfo.birthDate, 10);
-  const birthTimeUnknown = body.birthTimeUnknown === true || birthInfo.birthTimeUnknown === true;
-  const birthTime = birthTimeUnknown ? "" : clean(body.birthTime ?? birthInfo.birthTime, 5);
-  const calendarType = clean(body.calendarType ?? birthInfo.calendarType, 20).toLowerCase();
-  const topic = clean(body.topic ?? body.questionTopic ?? body.consultationTopic, 120);
+  const birthSource = body.birthInfo && typeof body.birthInfo === "object" ? body.birthInfo : body;
+  const serviceType = normalizeServiceType(body.serviceType || body.featureKey || FEATURE_KEY);
+  const consultationType = normalizeConsultationType(body.consultationType || "lifeBook");
+  const name = clean(body.userName ?? body.name ?? body.nickname ?? birthSource.name ?? birthSource.nickname, 80);
+  const gender = normalizeGender(body.gender ?? birthSource.gender);
+  const birthDate = clean(body.birthDate ?? birthSource.birthDate, 10);
+  const birthTimeUnknown = body.birthTimeUnknown === true || birthSource.birthTimeUnknown === true;
+  const birthTime = birthTimeUnknown ? "" : clean(body.birthTime ?? birthSource.birthTime, 5);
+  const calendarType = normalizeCalendarType(body.calendarType ?? birthSource.calendarType);
+  const focusArea = normalizeFocusArea(body.focusArea, body.topic ?? body.questionTopic ?? body.consultationTopic);
+  const topic = clean(body.topic ?? body.questionTopic ?? body.consultationTopic ?? FOCUS_AREA_LABELS[focusArea], 120);
+  const question = clean(body.question ?? body.userQuestion ?? body.message, 1200);
+  const locale = clean(body.locale || "ko", 12) || "ko";
 
-  if (!gender) return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (!isValidDateKey(birthDate)) return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (!birthTimeUnknown && birthTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (calendarType !== "solar" && calendarType !== "lunar") return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (!TOPICS.has(topic)) return { ok: false, message: INVALID_INPUT_MESSAGE };
+  if (!serviceType || !consultationType) return { ok: false, message: MESSAGES.invalidInput };
+  if (!gender) return { ok: false, message: MESSAGES.invalidInput };
+  if (!isValidDateKey(birthDate)) return { ok: false, message: MESSAGES.invalidInput };
+  if (!calendarType) return { ok: false, message: MESSAGES.invalidInput };
+  if (!birthTimeUnknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) return { ok: false, message: MESSAGES.birthTimeMissing };
+  if (!focusArea || !FOCUS_AREAS.has(focusArea)) return { ok: false, message: MESSAGES.invalidInput };
+  if (focusArea === "custom" && question.length < 2) return { ok: false, message: MESSAGES.customQuestionRequired };
 
   const normalized = {
+    serviceType,
+    consultationType,
     birthInfo: {
       name,
       gender,
@@ -111,25 +250,28 @@ function normalizeConsultationInput(body = {}) {
       birthTimeUnknown,
       calendarType,
     },
-    topic,
+    focusArea,
+    topic: topic || FOCUS_AREA_LABELS[focusArea],
+    question,
+    locale,
   };
   return { ok: true, input: normalized, inputHash: sha256(stableJson(normalized)) };
 }
 
-function invalidInput(message = INVALID_INPUT_MESSAGE, status = 422) {
+function invalidInput(message = MESSAGES.invalidInput, status = 422) {
   return json({ ok: false, reason: "INVALID_INPUT", message }, { status });
 }
 
 function loginRequired() {
-  return json({ ok: false, reason: "LOGIN_REQUIRED", message: LOGIN_REQUIRED_MESSAGE }, { status: 401 });
+  return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
 }
 
-function serverError(message = SERVER_ERROR_MESSAGE, status = 500) {
+function serverError(message = MESSAGES.prepareFailed, status = 500) {
   return json({ ok: false, reason: "SERVER_ERROR", message }, { status });
 }
 
 function paymentVerifyFailed() {
-  return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: MESSAGES.paymentVerifyFailed }, { status: 402 });
 }
 
 function getPricing() {
@@ -187,7 +329,7 @@ function isAdmin(auth = {}) {
 async function loadBillingUser(userId) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
   return User.findById(userId)
-    .select("email name phoneNumber role profileSubscription monthlySubscription subscription membership pass entitlement licenses paidFeatures unlockedFeatures")
+    .select("email name phoneNumber role points profileSubscription monthlySubscription subscription membership pass entitlement licenses paidFeatures unlockedFeatures")
     .lean();
 }
 
@@ -226,12 +368,13 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
   const paidPayment = await findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId });
   if (paidPayment) {
     const storedHash = clean(paidPayment?.pricingSnapshot?.inputHash);
-    if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: INVALID_INPUT_MESSAGE };
+    if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
     return { ok: true, accessType: "paid", accessSource: "single_purchase", paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || paymentId, 160) };
   }
 
   const pass = normalizeHoneyPassEntitlement(user || {});
   if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", accessSource: "license_pass", paymentId: "" };
+
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env: pricing.env, reason: ORDER_NAME });
   if (decision?.allowed) {
     const mapped = mapPaidDecision(decision);
@@ -245,6 +388,7 @@ function buildBillingGatePayload(pricing, idempotencyKey) {
   return {
     featureKey: FEATURE_KEY,
     serviceId: SERVICE_KEY,
+    serviceType: FEATURE_KEY,
     contentId: FEATURE_KEY,
     contentType: SERVICE_KEY,
     orderName: ORDER_NAME,
@@ -264,7 +408,7 @@ function buildBillingGatePayload(pricing, idempotencyKey) {
       reason: ORDER_NAME,
       productId: SERVICE_KEY,
       productType: SERVICE_KEY,
-      serviceType: SERVICE_KEY,
+      serviceType: FEATURE_KEY,
       cost: pricing.coinPrice,
       coinPrice: pricing.coinPrice,
       amountKRW: pricing.amountKRW,
@@ -296,9 +440,10 @@ function billingFeatureMatches(body = {}) {
   const keys = [
     body.featureKey,
     body.subFeatureKey,
-    body.categoryKey,
+    body.serviceType,
     gate.featureKey,
     gate.subFeatureKey,
+    gate.serviceType,
     consume.featureKey,
     accessGrant.featureKey,
     pricing.featureKey,
@@ -306,7 +451,7 @@ function billingFeatureMatches(body = {}) {
     payment.featureKey,
     licensePass.featureKey,
   ].map((item) => clean(item).toLowerCase()).filter(Boolean);
-  return keys.includes(FEATURE_KEY);
+  return keys.includes(FEATURE_KEY) || keys.includes(SERVICE_KEY);
 }
 
 function addEvidenceId(ids, value) {
@@ -317,14 +462,7 @@ function addEvidenceId(ids, value) {
 function collectBillingEvidenceIds(body = {}) {
   const ids = new Set();
   const { gate, consume, accessGrant, payment, licensePass } = collectBillingObjects(body);
-  const sources = [
-    body,
-    gate,
-    consume,
-    accessGrant,
-    payment,
-    licensePass,
-  ];
+  const sources = [body, gate, consume, accessGrant, payment, licensePass];
   for (const source of sources) {
     addEvidenceId(ids, source?._id);
     addEvidenceId(ids, source?.id);
@@ -338,6 +476,7 @@ function collectBillingEvidenceIds(body = {}) {
     addEvidenceId(ids, source?.requestId);
     addEvidenceId(ids, source?.idempotencyKey);
     addEvidenceId(ids, source?.orderId);
+    addEvidenceId(ids, source?.executionId);
   }
   return [...ids];
 }
@@ -445,8 +584,9 @@ async function resolveBillingGateAccess({ env, auth, body }) {
       userId: auth.userId,
       kind: "deduct",
       featureKey: FEATURE_KEY,
+      "metadata.refundedForServiceExecution": { $ne: true },
       $or: pointClauses,
-    }).sort({ createdAt: -1 }).select("_id metadata").lean()
+    }).sort({ createdAt: -1 }).select("_id delta metadata").lean()
     : null;
   if (pointHistory) {
     return {
@@ -454,6 +594,9 @@ async function resolveBillingGateAccess({ env, auth, body }) {
       accessType: mapBillingGateAccessType(pointHistory.metadata || {}),
       accessSource: "billing_gate",
       paymentId: String(pointHistory._id || ""),
+      evidenceType: "coin",
+      evidenceId: String(pointHistory._id || ""),
+      amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || 0)))),
     };
   }
 
@@ -462,9 +605,10 @@ async function resolveBillingGateAccess({ env, auth, body }) {
     ? await MonthlyCreditLedger.findOne({
       userId: auth.userId,
       type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FEATURE_KEY,
+      serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
+      "metadata.refundedForServiceExecution": { $ne: true },
       $or: ledgerClauses,
-    }).sort({ createdAt: -1 }).select("_id").lean()
+    }).sort({ createdAt: -1 }).select("_id amount sourceId").lean()
     : null;
   if (ledger) {
     return {
@@ -472,6 +616,9 @@ async function resolveBillingGateAccess({ env, auth, body }) {
       accessType: "subscription",
       accessSource: "billing_gate",
       paymentId: String(ledger._id || ""),
+      evidenceType: "monthly_credit",
+      evidenceId: String(ledger._id || ""),
+      amount: Math.max(0, Math.floor(Number(ledger.amount || 0))),
     };
   }
 
@@ -499,6 +646,8 @@ async function resolveBillingGateAccess({ env, auth, body }) {
       accessType: "paid",
       accessSource: "billing_gate",
       paymentId: clean(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 160),
+      evidenceType: "payment",
+      evidenceId: String(payment._id || ""),
     };
   }
 
@@ -507,58 +656,65 @@ async function resolveBillingGateAccess({ env, auth, body }) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 한 사람의 인생을 한 권의 책처럼 읽어주는 최고 수준의 명리학 상담가이자 인생 상담가입니다.",
-    "",
-    "사용자의 생년월일, 성별, 출생시간, 양력/음력 정보와 계산된 사주 명식 데이터를 바탕으로, 사용자의 삶의 흐름을 따뜻하고 깊이 있게 상담합니다.",
-    "",
-    "반드시 지켜야 할 원칙:",
-    "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 말하듯 자연스럽게 답변합니다.",
-    "2. 사용자의 삶을 한 권의 책처럼 비유하되, 과장된 문학 표현만 남발하지 않습니다.",
-    "3. 명리학적 근거를 사용하되 사용자가 이해하기 쉬운 말로 풀이합니다.",
-    "4. 타고난 성향, 반복되는 삶의 패턴, 상처, 재능, 관계 방식, 일과 돈의 흐름을 균형 있게 봅니다.",
-    "5. 사용자의 인생을 단정하거나 낙인찍지 않습니다.",
-    "6. 불안감을 조장하지 않습니다.",
-    "7. 운세를 절대적 예언처럼 말하지 않습니다.",
-    "8. 당신은 안 된다, 망한다, 평생 힘들다 같은 표현을 금지합니다.",
-    "9. 같은 문장을 반복하지 않습니다.",
-    "10. AI, 프롬프트, 시스템, PDF, 챕터, job, progress 같은 표현을 결과에 노출하지 않습니다.",
-    "11. 사용자가 선택한 상담 주제를 가장 깊게 다룹니다.",
-    "12. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+    "당신은 사주명리학과 인생 상담을 바탕으로 사용자의 삶의 흐름을 한 권의 책처럼 해석하는 전문 상담가입니다.",
+    "사용자의 생년월일, 성별, 출생시간, 가능한 사주 계산 데이터를 바탕으로 현재 질문에 맞는 상담을 제공합니다.",
+    "답변은 따뜻하고 깊이 있게 작성합니다.",
+    "인생을 단정하거나 겁주지 말고, 사용자가 앞으로 선택할 수 있는 방향을 제시합니다.",
+    "“당신은 이렇게 살 운명이다”, “반드시 실패한다”, “무조건 성공한다” 같은 단정적 표현을 쓰지 않습니다.",
+    "각 섹션은 인생의 책의 장처럼 읽히도록 구성합니다.",
+    "사용자가 실제로 오늘 선택할 수 있는 행동 조언을 포함합니다.",
+    "PDF, 다운로드, 진행률, job, prompt, system, AI 같은 기술 표현은 결과에 드러내지 않습니다.",
   ].join("\n");
 }
 
 function buildFirstPrompt(input, sajuResult) {
+  const birth = input.birthInfo || {};
+  const question = input.question || "지금 삶의 전체 흐름과 다음 장을 알고 싶습니다.";
   return [
-    "아래 입력과 계산된 명식 데이터를 바탕으로 첫 인생 상담 답변을 작성하세요.",
-    "문장은 따뜻하고 깊게, 그러나 실제 선택에 도움이 되도록 현실적으로 말하세요.",
+    "아래 입력과 계산 가능한 명리 데이터를 바탕으로 첫 인생의 책 상담문을 작성하세요.",
+    "문체는 전문 명리 상담가가 조용한 서재에서 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
     "",
     "[사용자 입력]",
-    `- 이름 또는 닉네임: ${input.birthInfo.name || "이름 미입력"}`,
-    `- 성별: ${input.birthInfo.gender}`,
-    `- 생년월일: ${input.birthInfo.birthDate}`,
-    `- 출생시간: ${input.birthInfo.birthTimeUnknown ? "모름" : input.birthInfo.birthTime}`,
-    `- 달력: ${input.birthInfo.calendarType === "lunar" ? "음력" : "양력"}`,
+    `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    `- 성별: ${birth.gender}`,
+    `- 생년월일: ${birth.birthDate}`,
+    `- 출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
+    `- 달력 기준: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
     `- 상담 주제: ${input.topic}`,
+    `- 질문: ${question}`,
     "",
-    "[계산된 사주 명식 데이터]",
+    "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuResult, null, 2),
     "",
-    "첫 답변은 다음 흐름을 모두 자연스럽게 포함하세요.",
-    "당신의 인생 책 제목, 이 삶의 핵심 주제, 타고난 성향과 기질, 반복되는 인생 패턴, 숨겨진 재능과 강점, 상처받기 쉬운 지점, 일과 돈의 흐름, 사랑과 인간관계의 흐름, 인생의 중요한 전환점, 앞으로 살려야 할 방향, 지금 가장 필요한 현실 조언, 마지막 상담 메시지.",
-    "출생시간이 없거나 계산상 불확실한 부분은 단정하지 말고 입력된 정보 기준으로 본 흐름이라고 자연스럽게 말하세요.",
+    "반드시 아래 제목을 Markdown `##` 제목으로 순서대로 작성하세요.",
+    "## 인생의 책이 여는 첫 문장",
+    "## 당신이라는 주인공의 기질",
+    "## 지금 인생에서 반복되는 장면",
+    "## 사랑과 관계의 장",
+    "## 일과 재물의 장",
+    "## 가족과 인연의 장",
+    "## 전환점과 기회의 장",
+    "## 지금 넘겨야 할 오래된 페이지",
+    "## 새롭게 써야 할 다음 장",
+    "## 오늘의 행동 처방",
+    "## 인생의 책 마지막 문장",
+    "",
+    "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
+    "각 장은 2~4문단으로 쓰고, 사용자의 질문과 상담 주제를 중심에 두세요.",
   ].join("\n");
 }
 
 function buildFollowUpPrompt(consultation, message) {
   return [
     "아래 기존 상담 맥락을 이어서 답하세요.",
-    "명식 데이터와 이전 상담의 흐름을 바꾸지 말고, 사용자의 추가 질문에 직접 답하세요.",
+    "명리 데이터와 이전 상담의 흐름을 바꾸지 말고, 사용자의 추가 질문에 직접 답하세요.",
     "",
-    "[명식 요약]",
+    "[명리 요약]",
     JSON.stringify({
       birthInfo: consultation.birthInfo,
       sajuResult: consultation.sajuResult,
       topic: consultation.topic,
+      llmMeta: consultation.llmMeta?.input || null,
     }, null, 2),
     "",
     "[최근 상담 흐름]",
@@ -578,17 +734,23 @@ function hasForbiddenResultTerms(value) {
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
+  const diagnostics = getProviderDiagnostics(env);
+  logLifeBookAi("LLM Provider Selected", {
+    ...(options.logContext || {}),
+    ...diagnostics,
+    providerReason: diagnostics.providerReason,
+  });
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
-    temperature: options.temperature || 0.74,
-    maxOutputTokens: options.maxOutputTokens || 7000,
+    temperature: options.temperature || 0.72,
+    maxOutputTokens: options.maxOutputTokens || 7600,
     timeoutMs: Number(env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
   const text = clean(ai?.text);
-  if (!ai?.ok || isMock || text.length < (options.minLength || 220)) {
+  if (!ai?.ok || isMock || text.length < (options.minLength || 300)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;
@@ -596,17 +758,18 @@ async function generateConsultationText(env, prompt, options = {}) {
   if (!hasForbiddenResultTerms(text)) return { text, provider, model: clean(ai?.model) };
 
   const repair = await callGeminiText(env, [
-    "다음 상담 답변에서 금지된 기술 용어를 모두 제거하고, 자연스러운 인생 상담문으로만 다시 써 주세요.",
+    "다음 상담문에서 기술 용어와 금지 표현을 제거하고, 자연스러운 인생 상담문으로만 다시 써 주세요.",
+    "장 제목과 상담의 의미는 유지하되 PDF, 진행률, job, prompt, system 같은 표현은 모두 빼세요.",
     "",
     text,
   ].join("\n"), {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.58,
-    maxOutputTokens: options.maxOutputTokens || 7000,
+    maxOutputTokens: options.maxOutputTokens || 7600,
   });
   const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
-  if (hasForbiddenResultTerms(repaired) || repaired.length < (options.minLength || 120)) {
+  if (hasForbiddenResultTerms(repaired) || repaired.length < (options.minLength || 180)) {
     const error = new Error("Forbidden result terms remained.");
     error.code = "LLM_FORBIDDEN_TERMS";
     throw error;
@@ -620,26 +783,27 @@ async function generateConsultationText(env, prompt, options = {}) {
 
 function extractTitle(content, fallbackName = "") {
   const lines = clean(content).split(/\n+/).map((line) => line.replace(/^[-*#\s]+/, "").trim()).filter(Boolean);
-  const titleLine = lines.find((line) => /인생\s*책\s*제목|책\s*제목/.test(line)) || lines[0] || "";
-  const title = titleLine.replace(/^.*(?:인생\s*책\s*제목|책\s*제목)\s*[:：-]\s*/, "").replace(/^["“”']+|["“”']+$/g, "").trim();
-  return clean(title || `${fallbackName || "당신"}의 인생 책`, 80);
+  const firstLine = lines[0] || "";
+  const title = firstLine
+    .replace(/^(인생의 책이 여는 첫 문장|첫 문장)\s*[:：]?\s*/, "")
+    .replace(/^["“”'‘’]+|["“”'‘’]+$/g, "")
+    .trim();
+  return clean(title || `${fallbackName || "당신"}의 인생의 책`, 100);
 }
 
 function extractKeywords(content, topic) {
   const candidates = [
     topic,
-    "회복",
-    "전환",
+    "전환점",
     "자기 이해",
     "관계",
-    "재능",
-    "균형",
-    "현실 조언",
-    "삶의 방식",
+    "재물",
+    "기질",
+    "오늘의 행동",
   ];
   const text = clean(content);
   const picked = candidates.filter((word) => word && text.includes(word)).slice(0, 3);
-  while (picked.length < 3) picked.push(["자기 이해", "전환", "회복"][picked.length]);
+  while (picked.length < 3) picked.push(["자기 이해", "전환점", "오늘의 행동"][picked.length]);
   return Array.from(new Set(picked)).slice(0, 3);
 }
 
@@ -665,7 +829,7 @@ async function finalizeDeferredBillingUsage({ request, env, access, idempotencyK
     body: {
       featureKey: FEATURE_KEY,
       productId: SERVICE_KEY,
-      serviceType: SERVICE_KEY,
+      serviceType: FEATURE_KEY,
       reason: ORDER_NAME,
       requestId: idempotencyKey,
       idempotencyKey,
@@ -677,7 +841,7 @@ async function finalizeDeferredBillingUsage({ request, env, access, idempotencyK
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.ok !== true) {
-    throw Object.assign(new Error(PAYMENT_VERIFY_FAILED_MESSAGE), { code: "DEFERRED_USAGE_APPLY_FAILED" });
+    throw Object.assign(new Error(MESSAGES.paymentVerifyFailed), { code: "DEFERRED_USAGE_APPLY_FAILED" });
   }
   return true;
 }
@@ -691,7 +855,7 @@ async function cancelDeferredBillingUsage({ request, env, access, idempotencyKey
     body: {
       featureKey: FEATURE_KEY,
       productId: SERVICE_KEY,
-      serviceType: SERVICE_KEY,
+      serviceType: FEATURE_KEY,
       reason: ORDER_NAME,
       requestId: idempotencyKey,
       idempotencyKey,
@@ -705,10 +869,146 @@ async function cancelDeferredBillingUsage({ request, env, access, idempotencyKey
   return true;
 }
 
-async function applyUsageOnce({ request, env, sessionId, access, idempotencyKey }) {
+async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESSAGES.llmFailed }) {
+  if (access?.accessSource !== "billing_gate") return false;
+  if (access.evidenceType === "coin" && access.evidenceId && access.amount > 0) {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $inc: { points: access.amount } },
+      { new: true, projection: { points: 1 } },
+    ).lean();
+    if (!updatedUser) return false;
+    await PointHistory.create({
+      userId,
+      kind: "refund",
+      delta: access.amount,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey: FEATURE_KEY,
+      metadata: {
+        source: "life-book-ai",
+        refundedForServiceExecution: true,
+        originalPointHistoryId: access.evidenceId,
+        refundedAt: new Date(),
+      },
+    }).catch(() => {});
+    await PointHistory.updateOne(
+      { _id: access.evidenceId, userId },
+      { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedAt": new Date() } },
+    ).catch(() => {});
+    return true;
+  }
+
+  if (access.evidenceType === "monthly_credit" && access.evidenceId && access.amount > 0) {
+    const refundSourceId = `life-book-ai-restore:${access.evidenceId}`.slice(0, 180);
+    const existing = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_GRANT", sourceId: refundSourceId }).lean();
+    if (existing) return true;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $inc: {
+          "profileSubscription.membershipCreditBalance": access.amount,
+          "profileSubscription.membershipCreditUsed": -access.amount,
+        },
+      },
+      { new: true, projection: { profileSubscription: 1 } },
+    ).lean();
+    if (!updatedUser) return false;
+    const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+    await MonthlyCreditLedger.create({
+      userId,
+      type: "MONTHLY_CREDIT_GRANT",
+      amount: access.amount,
+      beforeBalance: Math.max(0, afterBalance - access.amount),
+      afterBalance,
+      reason,
+      sourceId: refundSourceId,
+      serviceKey: FEATURE_KEY,
+      metadata: {
+        source: "life-book-ai",
+        refundedForServiceExecution: true,
+        originalLedgerId: access.evidenceId,
+        refundedAt: new Date(),
+      },
+    }).catch((error) => {
+      if (error?.code !== 11000) throw error;
+    });
+    await MonthlyCreditLedger.updateOne(
+      { _id: access.evidenceId, userId },
+      { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedAt": new Date() } },
+    ).catch(() => {});
+    return true;
+  }
+  return false;
+}
+
+async function applyUsageOnce({ request, env, userId, sessionId, access, idempotencyKey, pricing }) {
   const existing = await LifeBookAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
-  await finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId });
+
+  if (access.accessSource === "billing_gate_deferred") {
+    await finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId });
+  } else if (access.accessSource !== "billing_gate" && access.accessType === "subscription") {
+    const sourceId = `${SERVICE_KEY}:${sessionId}`;
+    const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
+    if (!ledger) {
+      const beforeUser = await User.findById(userId).select("profileSubscription.membershipCreditBalance").lean();
+      const beforeBalance = Math.max(0, Math.floor(Number(beforeUser?.profileSubscription?.membershipCreditBalance || 0)));
+      const updated = await User.findOneAndUpdate(
+        { _id: userId, "profileSubscription.membershipCreditBalance": { $gte: pricing.membershipCreditCost } },
+        {
+          $inc: {
+            "profileSubscription.membershipCreditBalance": -pricing.membershipCreditCost,
+            "profileSubscription.membershipCreditUsed": pricing.membershipCreditCost,
+          },
+        },
+        { new: true },
+      ).select("profileSubscription.membershipCreditBalance").lean();
+      if (!updated) {
+        const error = new Error("membership credit balance is insufficient");
+        error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
+        throw error;
+      }
+      await MonthlyCreditLedger.create({
+        userId,
+        type: "MONTHLY_CREDIT_SPEND",
+        amount: pricing.membershipCreditCost,
+        beforeBalance,
+        afterBalance: Math.max(0, Math.floor(Number(updated?.profileSubscription?.membershipCreditBalance || 0))),
+        reason: ORDER_NAME,
+        sourceId,
+        serviceKey: FEATURE_KEY,
+        metadata: { featureKey: FEATURE_KEY, sessionId, requestId: idempotencyKey },
+      }).catch((error) => {
+        if (error?.code !== 11000) throw error;
+      });
+    }
+  } else if (access.accessSource !== "billing_gate" && access.accessType === "pass") {
+    await User.updateOne(
+      { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
+      {
+        $inc: {
+          "profileSubscription.passRemainingUses": -1,
+          "profileSubscription.passUsedCount": 1,
+        },
+      },
+    ).catch(() => {});
+  } else if (access.accessType === "paid" && access.paymentId) {
+    await Payment.updateOne(
+      { userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId },
+      {
+        $set: {
+          status: "fulfilled",
+          orderState: "UNLOCKED",
+          reportId: sessionId,
+          sessionId,
+          "pricingSnapshot.sessionId": sessionId,
+          "pricingSnapshot.usageAppliedAt": new Date().toISOString(),
+        },
+      },
+    ).catch(() => {});
+  }
+
   await LifeBookAiConsultation.updateOne(
     { id: sessionId, usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
@@ -736,18 +1036,27 @@ function publicSession(doc) {
   };
 }
 
-async function handleEnsureAccess(request, env) {
+async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepare") {
+  logLifeBookAi("LLM Prepare Start", { route });
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
-  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  logLifeBookAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "failed", env, error: normalized.message }), "warn");
+    return invalidInput(normalized.message);
+  }
+  if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
+  logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
 
+  logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
   const pricing = { ...getPricing(), env };
   if (isAdmin(auth)) {
+    logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "admin", env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -767,6 +1076,7 @@ async function handleEnsureAccess(request, env) {
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
   if (access.ok) {
+    logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -782,6 +1092,7 @@ async function handleEnsureAccess(request, env) {
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
+  logLifeBookAi("Payment Required", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "payment_required", env }));
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
@@ -795,7 +1106,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     try {
       const payload = await verifyAccessToken(env, token);
       if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
-        return { ok: false, reason: "INVALID_INPUT", message: INVALID_INPUT_MESSAGE };
+        return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
       }
       return {
         ok: true,
@@ -816,12 +1127,42 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return resolveServerAccess({ auth, user, pricing: { ...pricing, env }, idempotencyKey, inputHash: normalized.inputHash });
 }
 
-async function handleStart(request, env) {
+function buildLimitedSajuResult(error, birthInfo = {}) {
+  return {
+    yearPillar: "",
+    monthPillar: "",
+    dayPillar: "",
+    hourPillar: "",
+    dayMaster: "",
+    fiveElements: null,
+    tenGods: null,
+    strength: "",
+    usefulGod: "",
+    unfavorableGod: "",
+    majorLuck: null,
+    yearlyLuck: null,
+    calculationMeta: {
+      available: false,
+      birthTimeUnknown: Boolean(birthInfo.birthTimeUnknown),
+      limitation: "입력값 기준으로 계산 가능한 범위에서만 상담합니다.",
+      errorCode: clean(error?.code || "SAJU_CALCULATION_LIMITED", 80),
+    },
+  };
+}
+
+async function handleStart(request, env, route = "/api/life-book-ai/generate") {
+  logLifeBookAi("LLM Generate Start", { route });
   const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
-  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  logLifeBookAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
+
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "failed", env, error: normalized.message }), "warn");
+    return invalidInput(normalized.message);
+  }
+  if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
+  logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
@@ -832,30 +1173,37 @@ async function handleStart(request, env) {
   const pending = (async () => {
     await connectDb(env);
     const pricing = getPricing();
+    logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
     const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
     if (!access.ok) {
       if (access.reason === "LOGIN_REQUIRED") return loginRequired();
       if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
       return paymentVerifyFailed();
     }
+    logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }));
 
     const existing = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-    if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
+    if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
     if (existing?.status === "completed") return json(publicSession(existing));
     if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
-      return json({ ok: true, sessionId: existing.id, status: "generating", message: "삶의 흐름을 읽고 있습니다" }, { status: 202 });
+      return json({ ok: true, sessionId: existing.id, status: "generating", message: "인생의 책 상담문을 완성하는 중입니다." }, { status: 202 });
     }
 
     let sajuResult = null;
     try {
       sajuResult = calculateLifeBookAiSaju(normalized.input.birthInfo);
     } catch (error) {
-      console.warn("[life-book-ai] saju calculation failed", {
-        userId: clean(auth.userId),
-        code: clean(error?.code || ""),
-        message: clean(error?.message || error, 200),
-      });
-      return json({ ok: false, reason: "CALCULATION_ERROR", message: CALCULATION_ERROR_MESSAGE }, { status: 422 });
+      sajuResult = buildLimitedSajuResult(error, normalized.input.birthInfo);
+      logLifeBookAi("LLM Error", safeLogPayload({
+        route,
+        requestId: idempotencyKey,
+        body,
+        normalized,
+        validation: "saju_calculation_limited",
+        access: access.accessType,
+        env,
+        error,
+      }), "warn");
     }
 
     const sessionId = existing?.id || `lbai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
@@ -876,6 +1224,15 @@ async function handleStart(request, env) {
       inputHash: normalized.inputHash,
       status: "generating",
       generationError: null,
+      llmMeta: {
+        input: {
+          serviceType: normalized.input.serviceType,
+          consultationType: normalized.input.consultationType,
+          focusArea: normalized.input.focusArea,
+          questionLength: normalized.input.question.length,
+          locale: normalized.input.locale,
+        },
+      },
     };
 
     if (existing) {
@@ -890,21 +1247,31 @@ async function handleStart(request, env) {
         if (error?.code === 11000) {
           const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
           if (duplicate?.status === "completed") return json(publicSession(duplicate));
-          return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "삶의 흐름을 읽고 있습니다" }, { status: 202 });
+          return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "인생의 책 상담문을 완성하는 중입니다." }, { status: 202 });
         }
         throw error;
       }
     }
 
     try {
-      const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), { minLength: 260, maxOutputTokens: 7000 });
+      const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env });
+      const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
+        minLength: 360,
+        maxOutputTokens: 7600,
+        logContext,
+      });
       await applyUsageOnce({
         request,
         env,
+        userId: auth.userId,
         sessionId,
         access,
         idempotencyKey,
+        pricing,
       });
+      if (access.accessType === "pass") {
+        logLifeBookAi("Pass Consumed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, payment: "usage_applied", env }));
+      }
       const title = extractTitle(generated.text, normalized.input.birthInfo.name);
       const keywords = extractKeywords(generated.text, normalized.input.topic);
       const completed = await LifeBookAiConsultation.findOneAndUpdate(
@@ -915,18 +1282,40 @@ async function handleStart(request, env) {
             title,
             keywords,
             messages: [
-              { role: "user", content: normalized.input.topic, createdAt: now },
+              { role: "user", content: normalized.input.question || normalized.input.topic, createdAt: now },
               { role: "assistant", content: generated.text, createdAt: new Date() },
             ],
-            llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+            llmMeta: {
+              provider: generated.provider,
+              model: generated.model,
+              completedAt: new Date().toISOString(),
+              input: {
+                serviceType: normalized.input.serviceType,
+                consultationType: normalized.input.consultationType,
+                focusArea: normalized.input.focusArea,
+                questionLength: normalized.input.question.length,
+                locale: normalized.input.locale,
+              },
+            },
             generationError: null,
           },
         },
         { new: true },
       ).lean();
+      logLifeBookAi("LLM Generate Success", safeLogPayload({
+        route,
+        requestId: idempotencyKey,
+        body,
+        normalized,
+        validation: "passed",
+        access: access.accessType,
+        payment: "usage_applied",
+        env,
+        providerReason: generated.provider || generated.model,
+      }));
       return json(publicSession(completed));
     } catch (error) {
-      await cancelDeferredBillingUsage({
+      const deferredCanceled = await cancelDeferredBillingUsage({
         request,
         env,
         access,
@@ -934,6 +1323,18 @@ async function handleStart(request, env) {
         sessionId,
         error,
       });
+      const restored = deferredCanceled || await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, reason: MESSAGES.llmFailed }).catch(() => false);
+      logLifeBookAi("Refund Or Restore", safeLogPayload({
+        route,
+        requestId: idempotencyKey,
+        body,
+        normalized,
+        validation: "passed",
+        access: access.accessType,
+        payment: restored ? "restored_or_canceled" : "no_deferred_usage_to_restore",
+        env,
+        error,
+      }), restored ? "info" : "warn");
       await LifeBookAiConsultation.updateOne(
         { id: sessionId },
         {
@@ -947,12 +1348,12 @@ async function handleStart(request, env) {
           },
         },
       ).catch(() => {});
-      console.error("[life-book-ai] generation failed", { code: clean(error?.code || ""), message: clean(error?.message || error, 240) });
+      logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env, error }), "error");
       if (clean(error?.code) === "DEFERRED_USAGE_APPLY_FAILED") return paymentVerifyFailed();
-      return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
     }
   })().catch((error) => {
-    console.error("[life-book-ai] start failed", clean(error?.message || error, 500));
+    logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "server_error", env, error }), "error");
     return serverError();
   }).finally(() => {
     startLocks.delete(lockKey);
@@ -962,11 +1363,12 @@ async function handleStart(request, env) {
 }
 
 async function handleMessage(request, env) {
+  const route = "/api/life-book-ai/message";
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1600);
   const idempotencyKey = readIdempotencyKey(request, body);
-  if (!sessionId || message.length < 2) return invalidInput(INVALID_INPUT_MESSAGE);
+  if (!sessionId || message.length < 2) return invalidInput(MESSAGES.invalidInput);
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
@@ -982,13 +1384,14 @@ async function handleMessage(request, env) {
   const duplicate = idempotencyKey
     ? (consultation.messages || []).find((item) => clean(item.idempotencyKey) === idempotencyKey && item.role === "assistant")
     : null;
-  if (duplicate) return json({ ok: true, consultation: publicSession(consultation), message: duplicate });
+  if (duplicate) return json({ ...publicSession(consultation), message: duplicate });
 
   try {
     const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
       minLength: 90,
       maxOutputTokens: 4096,
       temperature: 0.72,
+      logContext: safeLogPayload({ route, requestId: idempotencyKey, body, validation: "follow_up", access: "existing_session", env }),
     });
     const userMessage = { role: "user", content: message, createdAt: new Date(), idempotencyKey };
     const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date(), idempotencyKey };
@@ -997,37 +1400,46 @@ async function handleMessage(request, env) {
       {
         $push: { messages: { $each: [userMessage, assistantMessage] } },
         $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
+          llmMeta: { ...consultation.llmMeta, provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
         },
       },
       { new: true },
     ).lean();
     return json({ ...publicSession(updated), message: assistantMessage });
-  } catch (_) {
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+  } catch (error) {
+    logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "follow_up", env, error }), "error");
+    return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
   }
 }
 
 export async function handleLifeBookAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/life-book-ai");
+  const route = `/api/life-book-ai${path}`;
   try {
-    if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
-    if (method === "POST" && path === "/start") return await handleStart(request, env);
+    logLifeBookAi("Route Matched", { route, method });
+    if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
+      return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/life-book-ai/prepare" : "/api/life-book-ai/ensure-access");
+    }
+    if (method === "POST" && (path === "/generate" || path === "/start")) {
+      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
+    }
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    console.error("[life-book-ai]", clean(error?.code || error?.message || error, 500));
+    logLifeBookAi("LLM Error", {
+      route,
+      message: clean(error?.message || error, 500),
+      ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
+    }, "error");
     return serverError();
   }
 }
 
 export const __lifeBookAiTestUtils = {
-  FEATURE_KEY,
-  SERVICE_KEY,
   normalizeConsultationInput,
-  buildFirstPrompt,
-  buildSystemPrompt,
+  extractTitle,
+  extractKeywords,
   cleanForbiddenResult,
 };

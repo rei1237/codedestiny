@@ -5,6 +5,8 @@ import { publicSeoPages } from "../../lib/seo/siteSeo";
 
 const seo = publicSeoPages.faq;
 
+export const dynamic = "force-static";
+
 const faqs = [
   {
     question: "Code Destiny의 기본 운세 기능은 무료인가요?",
@@ -25,6 +27,14 @@ const faqs = [
   {
     question: "사주와 타로 결과가 다르게 나오면 어떻게 보나요?",
     answer: "서로 다른 해석 체계를 사용하므로 결과를 하나의 정답으로 합치기보다 현재 상황을 여러 관점에서 점검하는 참고 자료로 보는 것이 좋습니다.",
+  },
+  {
+    question: "운세 결과를 바꾸나요?",
+    answer: "운세는 선택을 대신하거나 미래를 고정하지 않습니다. 지금 드러난 흐름을 참고해 말과 행동, 관계의 거리, 준비의 순서를 조금 더 섬세하게 조정하는 데 도움을 주는 안내로 보시면 좋습니다.",
+  },
+  {
+    question: "어떤 순서로 들으면 좋나요?",
+    answer: "처음에는 무료 사주나 오늘의 운세로 전체 흐름을 가볍게 살피고, 관계가 궁금할 때는 궁합과 타로를 함께 참고해 보세요. 더 깊은 정리가 필요할 때 자미두수, 신년운세, 프리미엄 리포트 순서로 이어가면 부담이 적습니다.",
   },
   {
     question: "이용권과 단건 결제는 어떻게 취소하거나 환불받나요?",

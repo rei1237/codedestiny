@@ -1,14 +1,16 @@
 "use client";
 
 import { CalendarDays, ChevronLeft, ChevronRight, Heart, Loader2, Moon, Send, Sparkles, WalletCards } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
-type GenderType = "male" | "female" | "other" | "";
+type GenderType = "male" | "female" | "unknown" | "";
 type Phase = "idle" | "reading" | "payment" | "generating" | "ready" | "chat" | "error";
+type RelationshipStatus = "single" | "crush" | "dating" | "breakup" | "reunion" | "marriage" | "complicated" | "custom";
+type FocusArea = "overall" | "crush" | "reunion" | "confession" | "marriage" | "conflict" | "compatibility" | "custom";
 
 type PersonInfo = {
   name: string;
@@ -22,15 +24,20 @@ type PersonInfo = {
 type ConsultationForm = {
   myInfo: PersonInfo;
   partnerInfo: PersonInfo;
-  relationshipStatus: string;
-  topic: string;
-  userQuestion: string;
+  relationshipStatus: RelationshipStatus | "";
+  focusArea: FocusArea;
+  question: string;
 };
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   createdAt?: string;
+};
+
+type ResultSection = {
+  title: string;
+  body: string;
 };
 
 type BillingPaymentPayload = {
@@ -67,47 +74,58 @@ type ConsultationResult = {
   status?: string;
   keywords?: string[];
   strategy?: string;
+  sections?: ResultSection[];
+  finalLine?: string;
   messages?: ChatMessage[];
   reason?: string;
   message?: string;
 };
 
-const RELATIONSHIP_STATUSES = [
-  "짝사랑",
-  "썸",
-  "연애 중",
-  "장기 연애",
-  "이별 직후",
-  "재회 고민",
-  "연락이 끊긴 상태",
-  "결혼 고민",
-  "부부 관계",
-  "관계 정리 고민",
-  "상대방 마음이 궁금한 상태",
+const SERVICE_TYPE = "love-secret-ai-consultation";
+const CONSULTATION_TYPE = "loveSecret";
+
+const RELATIONSHIP_STATUSES: Array<{ value: RelationshipStatus; label: string }> = [
+  { value: "single", label: "솔로" },
+  { value: "crush", label: "짝사랑" },
+  { value: "dating", label: "연애 중" },
+  { value: "breakup", label: "이별 직후" },
+  { value: "reunion", label: "재회 고민" },
+  { value: "marriage", label: "결혼 고민" },
+  { value: "complicated", label: "관계가 복잡한 상태" },
+  { value: "custom", label: "직접 설명할게요" },
 ];
 
-const TOPICS = [
-  "전체 연애 흐름",
-  "상대방 마음",
-  "연락 타이밍",
-  "고백 타이밍",
-  "재회 가능성",
-  "관계 회복 전략",
-  "장기 연애 유지법",
-  "결혼 가능성",
-  "갈등 원인",
-  "나의 연애 패턴",
-  "상대방과의 궁합",
-  "지금 밀어야 할지 기다려야 할지",
-  "이 관계를 계속해도 되는지",
+const FOCUS_AREAS: Array<{ value: FocusArea; label: string }> = [
+  { value: "overall", label: "전체 연애 흐름" },
+  { value: "crush", label: "상대방 마음" },
+  { value: "reunion", label: "재회 가능성" },
+  { value: "confession", label: "고백 타이밍" },
+  { value: "marriage", label: "결혼 가능성" },
+  { value: "conflict", label: "갈등 원인" },
+  { value: "compatibility", label: "상대방과의 궁합" },
+  { value: "custom", label: "직접 질문" },
+];
+
+const FALLBACK_RESULT_TITLES = [
+  "지금 연애 흐름의 핵심 결론",
+  "나의 연애 성향",
+  "관계의 현재 온도",
+  "반복되는 감정 패턴",
+  "조심해야 할 말과 행동",
+  "가능성을 높이는 접근법",
+  "오늘의 연애 비책",
+  "마지막 한 줄 조언",
 ];
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "연애 비책 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
-const INVALID_INPUT_MESSAGE = "생년월일과 연애 상담 정보를 다시 확인해 주세요.";
-const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const INVALID_INPUT_MESSAGE = "연애 비책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 연애 상황을 다시 확인해 주세요.";
+const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요.";
+const BIRTH_TIME_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
+const SERVER_ERROR_MESSAGE = "연애 비책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
+const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
 
 const emptyPerson = (): PersonInfo => ({
   name: "",
@@ -121,9 +139,9 @@ const emptyPerson = (): PersonInfo => ({
 const defaultForm = (): ConsultationForm => ({
   myInfo: emptyPerson(),
   partnerInfo: emptyPerson(),
-  relationshipStatus: "썸",
-  topic: "전체 연애 흐름",
-  userQuestion: "",
+  relationshipStatus: "single",
+  focusArea: "overall",
+  question: "",
 });
 
 function createIdempotencyKey() {
@@ -135,23 +153,50 @@ function hasPartnerInfo(partner: PersonInfo) {
   return Boolean(partner.name.trim() || partner.gender || partner.birthDate || partner.birthTime);
 }
 
-function buildPayload(form: ConsultationForm) {
+function labelFor<T extends string>(options: Array<{ value: T; label: string }>, value: T | "") {
+  return options.find((item) => item.value === value)?.label || "";
+}
+
+function buildPayload(form: ConsultationForm, requestId: string) {
+  const question = form.question.trim();
+  const partnerInfo = hasPartnerInfo(form.partnerInfo)
+    ? {
+      ...form.partnerInfo,
+      name: form.partnerInfo.name.trim(),
+      birthTime: form.partnerInfo.birthTimeUnknown ? "" : form.partnerInfo.birthTime,
+    }
+    : undefined;
   return {
+    serviceType: SERVICE_TYPE,
+    consultationType: CONSULTATION_TYPE,
+    userName: form.myInfo.name.trim() || undefined,
+    gender: form.myInfo.gender || "unknown",
+    birthDate: form.myInfo.birthDate,
+    birthTime: form.myInfo.birthTimeUnknown ? "" : form.myInfo.birthTime,
+    birthTimeUnknown: form.myInfo.birthTimeUnknown,
+    calendarType: form.myInfo.calendarType,
+    relationshipStatus: form.relationshipStatus,
+    relationshipStatusLabel: labelFor(RELATIONSHIP_STATUSES, form.relationshipStatus),
+    focusArea: form.focusArea,
+    focusAreaLabel: labelFor(FOCUS_AREAS, form.focusArea),
+    question,
+    partnerName: partnerInfo?.name || undefined,
+    partnerGender: partnerInfo?.gender || undefined,
+    partnerBirthDate: partnerInfo?.birthDate || undefined,
+    partnerBirthTime: partnerInfo?.birthTime || undefined,
+    partnerBirthTimeUnknown: partnerInfo?.birthTimeUnknown,
+    partnerCalendarType: partnerInfo?.calendarType,
+    locale: "ko",
+    requestId,
+    idempotencyKey: requestId,
     myInfo: {
       ...form.myInfo,
       name: form.myInfo.name.trim(),
       birthTime: form.myInfo.birthTimeUnknown ? "" : form.myInfo.birthTime,
     },
-    partnerInfo: hasPartnerInfo(form.partnerInfo)
-      ? {
-        ...form.partnerInfo,
-        name: form.partnerInfo.name.trim(),
-        birthTime: form.partnerInfo.birthTimeUnknown ? "" : form.partnerInfo.birthTime,
-      }
-      : undefined,
-    relationshipStatus: form.relationshipStatus,
-    topic: form.topic,
-    userQuestion: form.userQuestion.trim(),
+    partnerInfo,
+    topic: labelFor(FOCUS_AREAS, form.focusArea),
+    userQuestion: question,
   };
 }
 
@@ -244,6 +289,21 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
   };
 }
 
+function splitAssistantSections(content: string): ResultSection[] {
+  const normalized = content.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return [];
+  const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
+  return chunks.map((chunk, index) => {
+    const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
+    const first = lines[0] || "";
+    const hasHeading = lines.length > 1 && first.length <= 42;
+    return {
+      title: hasHeading ? first.replace(/^#{1,3}\s*/, "").replace(/\*\*/g, "") : FALLBACK_RESULT_TITLES[index % FALLBACK_RESULT_TITLES.length],
+      body: hasHeading ? lines.slice(1).join("\n") : chunk,
+    };
+  });
+}
+
 async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, idempotencyKey: string) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const gateResult = await runBillingCoinGate({
@@ -276,6 +336,8 @@ export default function LoveSecretAiPage() {
   const [accessType, setAccessType] = useState<AccessType | "">("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [strategy, setStrategy] = useState("");
+  const [sections, setSections] = useState<ResultSection[]>([]);
+  const [finalLine, setFinalLine] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [followUp, setFollowUp] = useState("");
   const startLockRef = useRef(false);
@@ -284,12 +346,21 @@ export default function LoveSecretAiPage() {
   const busy = phase === "reading" || phase === "payment" || phase === "generating";
   const chatBusy = phase === "chat";
   const canAskFollowUp = Boolean(sessionId && messages.length && !busy && !chatBusy);
+  const assistantText = messages.find((message) => message.role === "assistant")?.content || "";
+  const displaySections = useMemo(() => (
+    sections.length ? sections : splitAssistantSections(assistantText)
+  ), [assistantText, sections]);
+
+  useEffect(() => {
+    console.info("[LoveSecret AI Page Enter]", { route: "/love-secret-ai" });
+    console.info("[LoveSecret AI Initial Render Success]", { route: "/love-secret-ai" });
+  }, []);
 
   const phaseText = useMemo(() => {
-    if (phase === "reading") return "당신의 연애 흐름을 읽고 있습니다";
+    if (phase === "reading") return "마음의 온도를 살피는 중...";
     if (phase === "payment") return "결제창을 확인해 주세요";
-    if (phase === "generating") return "연애 비책 상담을 준비하고 있습니다";
-    if (phase === "chat") return "상담을 이어가고 있습니다";
+    if (phase === "generating") return "지금 필요한 연애 비책을 정리하는 중...";
+    if (phase === "chat") return "상담문을 부드럽게 다듬는 중...";
     return "";
   }, [phase]);
 
@@ -300,6 +371,8 @@ export default function LoveSecretAiPage() {
     setAccessType("");
     setKeywords([]);
     setStrategy("");
+    setSections([]);
+    setFinalLine("");
     setMessages([]);
     setNotice("");
     setError("");
@@ -323,17 +396,35 @@ export default function LoveSecretAiPage() {
     resetAttempt();
   };
 
-  const updateField = (field: "relationshipStatus" | "topic" | "userQuestion") => (
+  const updateField = (field: "relationshipStatus" | "focusArea" | "question") => (
     event: ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
+    const value = event.target.value;
+    setForm((current) => {
+      if (field === "relationshipStatus") return { ...current, relationshipStatus: value as RelationshipStatus };
+      if (field === "focusArea") return { ...current, focusArea: value as FocusArea };
+      return { ...current, question: value };
+    });
     resetAttempt();
   };
 
+  function validateForm() {
+    if (!form.myInfo.gender || !form.myInfo.birthDate || !form.myInfo.calendarType || !form.relationshipStatus) return INVALID_INPUT_MESSAGE;
+    if (!form.myInfo.birthTimeUnknown && !form.myInfo.birthTime) return BIRTH_TIME_MESSAGE;
+    if (form.focusArea === "custom" && form.question.trim().length < 2) return QUESTION_REQUIRED_MESSAGE;
+    return "";
+  }
+
   function validateCurrentStep() {
-    if (step === 0) return Boolean(form.myInfo.gender && form.myInfo.birthDate && form.myInfo.calendarType);
+    if (step === 0) return Boolean(form.myInfo.gender && form.myInfo.birthDate && form.myInfo.calendarType && (form.myInfo.birthTimeUnknown || form.myInfo.birthTime));
     if (step === 1) return true;
-    return Boolean(form.relationshipStatus && form.topic);
+    return Boolean(form.relationshipStatus && form.focusArea && (form.focusArea !== "custom" || form.question.trim().length >= 2));
+  }
+
+  function currentStepError() {
+    if (step === 0 && !form.myInfo.birthTimeUnknown && !form.myInfo.birthTime) return BIRTH_TIME_MESSAGE;
+    if (step === 2 && form.focusArea === "custom" && form.question.trim().length < 2) return QUESTION_REQUIRED_MESSAGE;
+    return INVALID_INPUT_MESSAGE;
   }
 
   async function startConsultation(
@@ -342,7 +433,7 @@ export default function LoveSecretAiPage() {
     access: Record<string, unknown>,
   ) {
     setPhase("generating");
-    const { payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/start", {
+    const { payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
       ...payload,
       ...access,
     }, idempotencyKey);
@@ -352,6 +443,8 @@ export default function LoveSecretAiPage() {
       setAccessType(result.accessType || "");
       setKeywords(Array.isArray(result.keywords) ? result.keywords.slice(0, 3) : []);
       setStrategy(result.strategy || "");
+      setSections(Array.isArray(result.sections) ? result.sections.filter((section) => section.title && section.body) : []);
+      setFinalLine(result.finalLine || "");
       setMessages(result.messages);
       setNotice("");
       setError("");
@@ -371,19 +464,30 @@ export default function LoveSecretAiPage() {
   async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (startLockRef.current || busy || chatBusy) return;
-    if (!form.myInfo.gender || !form.myInfo.birthDate || !form.relationshipStatus || !form.topic) {
-      setError(INVALID_INPUT_MESSAGE);
+    const validationMessage = validateForm();
+    if (validationMessage) {
+      setNotice("");
+      setError(validationMessage);
+      setPhase("error");
       return;
     }
     startLockRef.current = true;
     const idempotencyKey = idempotencyKeyRef.current;
-    const payload = buildPayload(form);
+    const payload = buildPayload(form, idempotencyKey);
+    console.info("[LoveSecret AI Submit Start]", {
+      route: "/love-secret-ai",
+      requestId: idempotencyKey,
+      serviceType: SERVICE_TYPE,
+      focusArea: payload.focusArea,
+      relationshipStatus: payload.relationshipStatus,
+      questionLength: payload.question.length,
+    });
     setError("");
     setNotice("");
     setPhase("reading");
 
     try {
-      const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/ensure-access", payload, idempotencyKey);
+      const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);
       if (access.ok) {
         await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
         return;
@@ -399,7 +503,7 @@ export default function LoveSecretAiPage() {
       }
       throw new Error(("message" in access && access.message) || SERVER_ERROR_MESSAGE);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
+      const message = caught instanceof TypeError ? NETWORK_ERROR_MESSAGE : caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
       setError(message || SERVER_ERROR_MESSAGE);
       setPhase("error");
     } finally {
@@ -439,7 +543,7 @@ export default function LoveSecretAiPage() {
             <option value="">선택</option>
             <option value="female">여성</option>
             <option value="male">남성</option>
-            <option value="other">기타</option>
+            <option value="unknown">비공개</option>
           </select>
         </label>
         <label>
@@ -472,12 +576,12 @@ export default function LoveSecretAiPage() {
           <img src="/fuctionassets/lovebible.webp" alt="연애 비책 AI 상담" />
         </div>
         <div className="lsai-copy">
-          <p className="lsai-kicker"><Moon size={16} /> Moonlight Love Consultation</p>
+          <p className="lsai-kicker"><Moon size={16} /> Love Secret · AI Romance Reading</p>
           <h1>연애 비책 AI 상담</h1>
-          <p>생년월일과 지금의 관계 흐름을 바탕으로, 마음을 잃지 않으면서 현실적으로 움직일 수 있는 연애 전략을 함께 읽습니다.</p>
+          <p>마음의 온도와 관계의 흐름을 읽어, 지금 가장 필요한 연애의 한 수를 전해드립니다.</p>
           <div className="lsai-status" data-phase={phase}>
             {(busy || chatBusy) ? <Loader2 size={16} className="lsai-spin" /> : <Sparkles size={16} />}
-            <span>{phaseText || "달빛 아래 조용히 상담을 열어두었습니다"}</span>
+            <span>{phaseText || "연애 비책을 펼칠 준비가 되어 있습니다"}</span>
           </div>
         </div>
       </section>
@@ -493,7 +597,7 @@ export default function LoveSecretAiPage() {
           </div>
 
           <div className="lsai-panel">
-            <div className="lsai-title"><CalendarDays size={18} /><h2>{step === 0 ? "내 정보" : step === 1 ? "상대방 정보" : "연애 상담 정보"}</h2></div>
+            <div className="lsai-title"><CalendarDays size={18} /><h2>{step === 0 ? "연애 비책을 열기 위한 정보" : step === 1 ? "상대방 정보 선택 입력" : "연애 상담 정보"}</h2></div>
             {step === 0 && renderPersonFields("myInfo", "내", true)}
             {step === 1 && renderPersonFields("partnerInfo", "상대방", false)}
             {step === 2 && (
@@ -501,18 +605,18 @@ export default function LoveSecretAiPage() {
                 <label>
                   <span>현재 관계 상태</span>
                   <select value={form.relationshipStatus} onChange={updateField("relationshipStatus")} disabled={busy}>
-                    {RELATIONSHIP_STATUSES.map((item) => <option key={item} value={item}>{item}</option>)}
+                    {RELATIONSHIP_STATUSES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
                 </label>
                 <label>
                   <span>상담 주제</span>
-                  <select value={form.topic} onChange={updateField("topic")} disabled={busy}>
-                    {TOPICS.map((item) => <option key={item} value={item}>{item}</option>)}
+                  <select value={form.focusArea} onChange={updateField("focusArea")} disabled={busy}>
+                    {FOCUS_AREAS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
                 </label>
                 <label>
                   <span>현재 가장 궁금한 질문</span>
-                  <textarea value={form.userQuestion} onChange={updateField("userQuestion")} maxLength={1200} disabled={busy} placeholder="지금 이 관계에서 가장 알고 싶은 마음과 상황을 적어 주세요." />
+                  <textarea value={form.question} onChange={updateField("question")} maxLength={1200} disabled={busy} placeholder={form.focusArea === "custom" ? "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요." : "비워두어도 상담은 가능하지만, 지금의 마음과 상황을 적으면 더 섬세하게 읽어드립니다."} />
                 </label>
               </div>
             )}
@@ -525,7 +629,7 @@ export default function LoveSecretAiPage() {
               <ChevronLeft size={18} />
             </button>
             {step < 2 ? (
-              <button type="button" className="lsai-primary" onClick={() => validateCurrentStep() ? setStep((current) => Math.min(2, current + 1)) : setError(INVALID_INPUT_MESSAGE)} disabled={busy}>
+              <button type="button" className="lsai-primary" onClick={() => validateCurrentStep() ? setStep((current) => Math.min(2, current + 1)) : setError(currentStepError())} disabled={busy}>
                 다음 <ChevronRight size={18} />
               </button>
             ) : (
@@ -550,14 +654,31 @@ export default function LoveSecretAiPage() {
                   <p>{strategy || "상담 답변 안에서 지금 필요한 속도와 거리감을 함께 짚었습니다."}</p>
                 </article>
               </div>
-              <div className="lsai-chat">
-                {messages.map((message, index) => (
-                  <article key={`${message.role}-${index}`} className={message.role === "assistant" ? "assistant" : "user"}>
-                    <span>{message.role === "assistant" ? "상담가" : "나"}</span>
-                    <p>{message.content}</p>
+              <div className="lsai-sections">
+                {displaySections.map((section, index) => (
+                  <article key={`${section.title}-${index}`} className="lsai-section-card">
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <h3>{section.title}</h3>
+                    <p>{section.body}</p>
                   </article>
                 ))}
+                {finalLine && (
+                  <article className="lsai-final-line">
+                    <span>마지막 한 줄 조언</span>
+                    <p>{finalLine}</p>
+                  </article>
+                )}
               </div>
+              {messages.some((message) => message.role === "user") && (
+                <div className="lsai-chat">
+                  {messages.filter((message) => message.role === "user").map((message, index) => (
+                    <article key={`${message.role}-${index}`} className="user">
+                      <span>나</span>
+                      <p>{message.content}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
               <form className="lsai-follow" onSubmit={handleFollowUp}>
                 <textarea value={followUp} onChange={(event) => setFollowUp(event.target.value)} maxLength={1200} disabled={!canAskFollowUp} placeholder="조금 더 묻고 싶은 상황을 이어서 적어 주세요." />
                 <button type="submit" disabled={!canAskFollowUp || !followUp.trim()}>
@@ -568,8 +689,8 @@ export default function LoveSecretAiPage() {
           ) : (
             <div className="lsai-empty">
               <Heart size={34} />
-              <h2>상담 카드가 이곳에 열립니다</h2>
-              <p>내 정보만으로도 연애 패턴을 볼 수 있고, 상대방 생년월일을 넣으면 두 사람의 관계 흐름까지 함께 읽습니다.</p>
+              <h2>연애 비책을 펼칠 준비가 되어 있습니다.</h2>
+              <p>입력한 정보를 기준으로 마음의 온도와 관계의 흐름을 차분히 읽어드립니다.</p>
             </div>
           )}
         </section>
@@ -577,14 +698,46 @@ export default function LoveSecretAiPage() {
 
       <style jsx>{`
         .lsai-page {
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
           min-height: 100vh;
           padding: clamp(14px, 3vw, 38px);
-          color: #fff7ed;
+          color: #fff8ef;
           background:
-            linear-gradient(135deg, rgba(24, 6, 24, .94), rgba(79, 18, 42, .9) 48%, rgba(32, 20, 45, .96)),
-            radial-gradient(circle at 22% 16%, rgba(244, 114, 182, .18), transparent 32%),
-            radial-gradient(circle at 82% 12%, rgba(250, 204, 21, .11), transparent 28%);
+            radial-gradient(circle at 16% 10%, rgba(255, 182, 193, .24), transparent 30%),
+            radial-gradient(circle at 86% 8%, rgba(252, 211, 77, .16), transparent 26%),
+            radial-gradient(circle at 72% 86%, rgba(190, 24, 93, .24), transparent 34%),
+            linear-gradient(135deg, #120012 0%, #3b071f 42%, #10172e 100%);
           font-family: CodeDestinyBody, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .lsai-page::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          pointer-events: none;
+          background:
+            linear-gradient(115deg, transparent 0 38%, rgba(252, 231, 243, .08) 40%, transparent 43%),
+            radial-gradient(1px 1px at 18% 22%, rgba(255, 248, 239, .72), transparent),
+            radial-gradient(1px 1px at 76% 18%, rgba(251, 207, 232, .72), transparent),
+            radial-gradient(1px 1px at 58% 72%, rgba(253, 224, 71, .55), transparent);
+          opacity: .86;
+        }
+        .lsai-page::after {
+          content: "";
+          position: absolute;
+          left: -8%;
+          right: -8%;
+          top: 208px;
+          z-index: -1;
+          height: 90px;
+          pointer-events: none;
+          background:
+            radial-gradient(ellipse at 50% 50%, rgba(244, 114, 182, .16), transparent 64%),
+            linear-gradient(92deg, transparent 0 14%, rgba(244, 114, 182, .34) 16%, rgba(252, 211, 77, .18) 46%, rgba(244, 114, 182, .30) 78%, transparent 88%);
+          filter: blur(12px);
+          transform: rotate(-4deg);
         }
         .lsai-hero,
         .lsai-shell {
@@ -599,11 +752,19 @@ export default function LoveSecretAiPage() {
           margin-bottom: 22px;
         }
         .lsai-visual {
+          position: relative;
           aspect-ratio: 1 / 1;
           overflow: hidden;
-          border: 1px solid rgba(253, 186, 116, .32);
+          border: 1px solid rgba(251, 207, 232, .34);
           border-radius: 8px;
-          box-shadow: 0 24px 76px rgba(0,0,0,.38);
+          box-shadow: 0 28px 88px rgba(36, 4, 24, .58), 0 0 0 1px rgba(252, 211, 77, .12);
+        }
+        .lsai-visual::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(18,0,18,.06), rgba(18,0,18,.12) 38%, rgba(18,0,18,.52));
+          pointer-events: none;
         }
         .lsai-visual img {
           width: 100%;
@@ -616,7 +777,7 @@ export default function LoveSecretAiPage() {
           align-items: center;
           gap: 8px;
           margin: 0;
-          color: #fed7aa;
+          color: #fde68a;
           font-weight: 800;
         }
         .lsai-copy h1 {
@@ -629,7 +790,7 @@ export default function LoveSecretAiPage() {
         .lsai-copy p:not(.lsai-kicker) {
           max-width: 690px;
           margin: 0;
-          color: rgba(255, 247, 237, .78);
+          color: rgba(255, 248, 239, .82);
           line-height: 1.75;
         }
         .lsai-status {
@@ -639,11 +800,12 @@ export default function LoveSecretAiPage() {
           min-height: 36px;
           margin-top: 18px;
           padding: 8px 12px;
-          border: 1px solid rgba(253, 186, 116, .22);
+          border: 1px solid rgba(251, 207, 232, .24);
           border-radius: 8px;
-          background: rgba(255,255,255,.08);
-          color: #ffedd5;
+          background: rgba(60, 8, 36, .42);
+          color: #fff1f2;
           font-size: 14px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
         }
         .lsai-shell {
           display: grid;
@@ -652,10 +814,10 @@ export default function LoveSecretAiPage() {
         }
         .lsai-panel,
         .lsai-result {
-          border: 1px solid rgba(253, 186, 116, .2);
+          border: 1px solid rgba(251, 207, 232, .22);
           border-radius: 8px;
-          background: rgba(24, 9, 28, .72);
-          box-shadow: 0 20px 70px rgba(0,0,0,.26);
+          background: linear-gradient(145deg, rgba(43, 7, 28, .78), rgba(17, 24, 48, .62));
+          box-shadow: 0 24px 76px rgba(6, 4, 18, .42), inset 0 1px 0 rgba(255,255,255,.10);
           backdrop-filter: blur(18px);
         }
         .lsai-panel {
@@ -723,12 +885,20 @@ export default function LoveSecretAiPage() {
         select,
         textarea {
           width: 100%;
-          border: 1px solid rgba(253, 186, 116, .22);
+          border: 1px solid rgba(251, 207, 232, .24);
           border-radius: 8px;
-          background: rgba(255,255,255,.09);
-          color: #fff7ed;
+          background: rgba(255,255,255,.075);
+          color: #fff8ef;
           font: inherit;
           outline: 0;
+          transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+          border-color: rgba(252, 211, 77, .58);
+          background: rgba(255,255,255,.11);
+          box-shadow: 0 0 0 3px rgba(244, 114, 182, .18), 0 0 24px rgba(244, 114, 182, .14);
         }
         input,
         select {
@@ -777,8 +947,13 @@ export default function LoveSecretAiPage() {
         }
         .lsai-primary,
         .lsai-follow button {
-          background: linear-gradient(90deg, #fb7185, #f9a8d4, #fdba74);
-          color: #2b0c16;
+          background: linear-gradient(90deg, #be185d 0%, #ec4899 52%, #f8c471 100%);
+          color: #2b0718;
+          box-shadow: 0 10px 28px rgba(190, 24, 93, .34), inset 0 1px 0 rgba(255,255,255,.2);
+        }
+        .lsai-primary:not(:disabled):hover,
+        .lsai-follow button:not(:disabled):hover {
+          box-shadow: 0 16px 36px rgba(236, 72, 153, .38), 0 0 0 1px rgba(252, 211, 77, .18), inset 0 1px 0 rgba(255,255,255,.26);
         }
         button:disabled,
         input:disabled,
@@ -865,12 +1040,69 @@ export default function LoveSecretAiPage() {
           margin: 0;
           line-height: 1.65;
         }
-        .lsai-chat {
-          display: flex;
-          flex: 1;
-          flex-direction: column;
+        .lsai-sections {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 12px;
           overflow: auto;
+          padding-right: 4px;
+        }
+        .lsai-section-card,
+        .lsai-final-line {
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(251, 207, 232, .2);
+          border-radius: 8px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(252, 211, 77, .12), transparent 34%),
+            rgba(255,255,255,.075);
+          padding: 15px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        .lsai-section-card::before,
+        .lsai-final-line::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background: linear-gradient(#f9a8d4, #f8c471);
+        }
+        .lsai-section-card span,
+        .lsai-final-line span {
+          display: block;
+          margin-bottom: 8px;
+          color: #f8c471;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .08em;
+        }
+        .lsai-section-card h3 {
+          margin: 0 0 8px;
+          color: #fff8ef;
+          font-size: 17px;
+          line-height: 1.35;
+          letter-spacing: 0;
+        }
+        .lsai-section-card p,
+        .lsai-final-line p {
+          margin: 0;
+          color: rgba(255,248,239,.84);
+          line-height: 1.78;
+          white-space: pre-wrap;
+        }
+        .lsai-final-line {
+          grid-column: 1 / -1;
+          background: linear-gradient(135deg, rgba(190, 24, 93, .2), rgba(252, 211, 77, .12));
+        }
+        .lsai-chat {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: 190px;
+          overflow: auto;
+          margin-top: 14px;
           padding-right: 4px;
         }
         .lsai-chat article {
@@ -929,7 +1161,8 @@ export default function LoveSecretAiPage() {
             max-height: 270px;
           }
           .lsai-grid,
-          .lsai-final {
+          .lsai-final,
+          .lsai-sections {
             grid-template-columns: 1fr;
           }
           .lsai-result {
