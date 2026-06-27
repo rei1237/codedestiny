@@ -1,10 +1,10 @@
 "use client";
 
-import { CalendarDays, Clock3, Loader2, MapPin, Moon, Send, Sparkles, WalletCards } from "lucide-react";
+import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 
-type AccessType = "pass" | "paid" | "subscription" | "admin";
+type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
 type GenderType = "male" | "female" | "unknown" | "";
 type FocusAreaType = "overall" | "love" | "money" | "career" | "relationship" | "family" | "lifePattern" | "spirituality" | "custom";
@@ -34,6 +34,12 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   createdAt?: string;
+};
+
+type ParsedSection = {
+  symbol: string;
+  title: string;
+  body: string;
 };
 
 type SummaryCards = {
@@ -90,11 +96,28 @@ const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합
 const PAYMENT_REQUIRED_MESSAGE = "운명의 업 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const LLM_ERROR_MESSAGE = "상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
 const REQUIRED_INPUT_MESSAGE = "운명의 업 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.";
 const BIRTH_TIME_REQUIRED_MESSAGE = "운명의 업 상담은 출생시간에 따라 해석의 깊이가 달라져요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.";
 const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 지금 가장 궁금한 내용을 짧게 적어 주세요.";
 const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
+
+const KARMA_SECTIONS = [
+  { symbol: "命", fallbackTitle: "命 — 당신이라는 별의 본질" },
+  { symbol: "業", fallbackTitle: "業 — 반복되는 삶의 문양" },
+  { symbol: "時", fallbackTitle: "時 — 지금 이 계절의 의미" },
+  { symbol: "情", fallbackTitle: "情 — 관계에서 흐르는 강물" },
+  { symbol: "財", fallbackTitle: "財 — 재능과 물질이 만나는 지점" },
+  { symbol: "課", fallbackTitle: "課 — 이 생의 핵심 과제" },
+  { symbol: "箋", fallbackTitle: "箋 — 오늘을 위한 운명의 처방" },
+] as const;
+
+const LOADING_STAGES = [
+  { icon: "☯", label: "사주 원국을 펼치는 중...", duration: 2000 },
+  { icon: "♄", label: "행성의 위치를 읽는 중...", duration: 2500 },
+  { icon: "☽", label: "나크샤트라를 탐색하는 중...", duration: 2000 },
+  { icon: "✦", label: "운명의 답장을 작성하는 중...", duration: 3000 },
+] as const;
 
 const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string }> = [
   { value: "overall", label: "전체 운명의 업" },
@@ -255,17 +278,36 @@ function buildBillingGateInput(paymentPayload: BillingGatePayload, idempotencyKe
   };
 }
 
-function splitAssistantSections(content: string) {
+function splitAssistantSections(content: string): ParsedSection[] {
   const normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
+
+  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦]\s*)?([命業時情財課箋])\s*[—-]\s*([^\n]+)/g;
+  const matches = [...normalized.matchAll(headingPattern)];
+  if (matches.length) {
+    return matches.map((match, index) => {
+      const fallback = KARMA_SECTIONS[index] || KARMA_SECTIONS[KARMA_SECTIONS.length - 1];
+      const start = (match.index || 0) + match[0].length;
+      const end = matches[index + 1]?.index ?? normalized.length;
+      const symbol = match[1] || fallback.symbol;
+      return {
+        symbol,
+        title: `${symbol} — ${match[2].replace(/\*\*/g, "").trim()}`,
+        body: normalized.slice(start, end).replace(/^\s+/, "").trim(),
+      };
+    }).filter((section) => section.body);
+  }
+
   const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
   return chunks.map((chunk, index) => {
+    const fallback = KARMA_SECTIONS[index] || KARMA_SECTIONS[KARMA_SECTIONS.length - 1];
     const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
     const first = lines[0] || "";
-    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:\d+[.)]\s*)?(.{2,42}?)(?:[:：])?$/);
-    const hasHeading = Boolean(headingMatch && lines.length > 1 && first.length <= 44);
+    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦]|\d+[.)])?\s*(.{2,48}?)(?:[:：])?$/);
+    const hasHeading = Boolean(headingMatch && lines.length > 1 && first.length <= 54);
     return {
-      title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || `운명의 답장 ${index + 1}` : `운명의 답장 ${index + 1}`,
+      symbol: fallback.symbol,
+      title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || fallback.fallbackTitle : fallback.fallbackTitle,
       body: hasHeading ? lines.slice(1).join("\n") : chunk,
     };
   });
@@ -278,10 +320,143 @@ function AssistantMessageContent({ content }: { content: string }) {
     <div className="kdai-section-list">
       {sections.map((section, index) => (
         <section className="kdai-result-section" key={`${section.title}-${index}`}>
-          <h3>{section.title}</h3>
+          <div className="kdai-result-section__head">
+            <span>{section.symbol}</span>
+            <h3>{section.title}</h3>
+          </div>
           <p>{section.body}</p>
         </section>
       ))}
+    </div>
+  );
+}
+
+function KarmaLoadingScreen({ status }: { status: FlowStatus }) {
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    setStage(status === "reading" ? 1 : 0);
+    const timers = LOADING_STAGES.map((item, index) => {
+      const delay = LOADING_STAGES.slice(0, index).reduce((total, stageItem) => total + stageItem.duration, 0);
+      return window.setTimeout(() => setStage(index), delay);
+    });
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [status]);
+
+  const active = LOADING_STAGES[Math.min(stage, LOADING_STAGES.length - 1)];
+
+  return (
+    <div className="kdai-loading" role="status" aria-live="polite">
+      <div className="kdai-loading__seal" aria-hidden="true">
+        <div className="kdai-loading__core">{active.icon}</div>
+        <svg viewBox="0 0 128 128">
+          <circle cx="64" cy="64" r="58" />
+        </svg>
+      </div>
+      <div className="kdai-loading__text">
+        <p>{active.label}</p>
+        <div className="kdai-loading__dots" aria-hidden="true">
+          {LOADING_STAGES.map((_, index) => (
+            <span key={index} data-active={index <= stage} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KarmaResultModal({
+  content,
+  userData,
+  onClose,
+  onDownloadError,
+}: {
+  content: string;
+  userData: ConsultationForm;
+  onClose: () => void;
+  onDownloadError: (message: string) => void;
+}) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const sections = splitAssistantSections(content);
+  const userName = userData.name.trim() || "당신";
+  const birthDate = userData.birthDate || "생년월일 미입력";
+
+  const handleDownload = async () => {
+    const element = document.getElementById("karma-result-content");
+    if (!element || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
+      const canvas = await html2canvas(element, {
+        backgroundColor: "#060412",
+        scale: Math.min(2, window.devicePixelRatio || 2),
+        useCORS: true,
+      });
+      const pdf = new JsPDF("p", "mm", "a4");
+      const imageData = canvas.toDataURL("image/png");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const imageHeight = (canvas.height * pageWidth) / canvas.width;
+      let remainingHeight = imageHeight;
+      let position = 0;
+      pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
+      remainingHeight -= pageHeight;
+      while (remainingHeight > 0) {
+        position = remainingHeight - imageHeight;
+        pdf.addPage();
+        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
+        remainingHeight -= pageHeight;
+      }
+      const fileName = `운명의답장_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "")}.pdf`;
+      pdf.save(fileName);
+    } catch {
+      onDownloadError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <div className="kdai-result-modal" role="dialog" aria-modal="true" aria-label="운명의 답장">
+      <header className="kdai-result-modal__bar">
+        <div>
+          <h2>운명의 답장</h2>
+          <p>{userName} · {birthDate}</p>
+        </div>
+        <div className="kdai-result-modal__actions">
+          <button type="button" onClick={handleDownload} disabled={isDownloading}>
+            {isDownloading ? <Loader2 size={17} className="kdai-spin" /> : <Download size={17} />}
+            <span>{isDownloading ? "저장 중" : "PDF 저장"}</span>
+          </button>
+          <button type="button" onClick={onClose} aria-label="닫기">
+            <X size={18} />
+          </button>
+        </div>
+      </header>
+
+      <div id="karma-result-content" className="kdai-result-document">
+        <div className="kdai-result-cover">
+          <span aria-hidden="true">☽</span>
+          <h1>운명의 답장</h1>
+          <p>{userName}님의 명(命) · 업(業) · 시(時)</p>
+        </div>
+
+        {sections.map((section, index) => (
+          <article className="kdai-result-document__section" key={`${section.title}-${index}`}>
+            <div>
+              <span>{section.symbol}</span>
+              <h3>{section.title}</h3>
+            </div>
+            <p>{section.body}</p>
+          </article>
+        ))}
+
+        <footer>Code Destiny · {new Date().toLocaleDateString("ko-KR")}</footer>
+      </div>
     </div>
   );
 }
@@ -298,8 +473,10 @@ export default function KarmaDestinyAiPage() {
   const [integratedResult, setIntegratedResult] = useState<IntegratedResult | null>(null);
   const [followUp, setFollowUp] = useState("");
   const [sending, setSending] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const latestOpenedResultRef = useRef("");
 
   useEffect(() => {
     console.info("[Karma AI Page Enter]", { route: "/karma-destiny-ai" });
@@ -317,6 +494,17 @@ export default function KarmaDestinyAiPage() {
 
   const isBusy = status === "preparing" || status === "payment" || status === "reading";
   const canAskFollowUp = Boolean(sessionId && messages.length && !sending && !isBusy);
+  const latestAssistantContent = useMemo(() => {
+    return [...messages].reverse().find((message) => message.role === "assistant")?.content || "";
+  }, [messages]);
+
+  useEffect(() => {
+    if (status !== "ready" || !latestAssistantContent) return;
+    const resultKey = `${sessionId}:${latestAssistantContent.length}:${latestAssistantContent.slice(0, 48)}`;
+    if (latestOpenedResultRef.current === resultKey) return;
+    latestOpenedResultRef.current = resultKey;
+    setResultOpen(true);
+  }, [latestAssistantContent, sessionId, status]);
 
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
@@ -326,6 +514,8 @@ export default function KarmaDestinyAiPage() {
     setMessages([]);
     setSummaryCards(null);
     setIntegratedResult(null);
+    setResultOpen(false);
+    latestOpenedResultRef.current = "";
     setError("");
     setNotice("");
     setStatus("idle");
@@ -524,7 +714,7 @@ export default function KarmaDestinyAiPage() {
           <img src="/fuctionassets/soul-origin-cover.webp" alt="운명의 업 대표 이미지" />
         </div>
         <div className="kdai-hero__copy">
-          <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic AI Reading</div>
+          <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
           <h1>운명의 업 AI 상담</h1>
           <p>반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.</p>
           <div className="kdai-status" data-status={status}>
@@ -642,9 +832,17 @@ export default function KarmaDestinyAiPage() {
         </form>
 
         <section className="kdai-result kdai-panel" aria-live="polite">
-          <div className="kdai-panel-title">
-            <Sparkles size={18} />
-            <h2>상담 카드</h2>
+          <div className="kdai-panel-title kdai-panel-title--split">
+            <div>
+              <Sparkles size={18} />
+              <h2>상담 카드</h2>
+            </div>
+            {latestAssistantContent && (
+              <button className="kdai-ghost-action" type="button" onClick={() => setResultOpen(true)}>
+                <Maximize2 size={16} />
+                <span>전체화면</span>
+              </button>
+            )}
           </div>
 
           {messages.length > 0 && (
@@ -711,6 +909,16 @@ export default function KarmaDestinyAiPage() {
           </form>
         </section>
       </section>
+
+      {(status === "preparing" || status === "reading") && <KarmaLoadingScreen status={status} />}
+      {resultOpen && latestAssistantContent && (
+        <KarmaResultModal
+          content={latestAssistantContent}
+          userData={form}
+          onClose={() => setResultOpen(false)}
+          onDownloadError={setError}
+        />
+      )}
 
       <style jsx global>{`
         body:has(.kdai-page) header,
@@ -919,6 +1127,32 @@ export default function KarmaDestinyAiPage() {
           margin: 0;
           font-size: 18px;
           letter-spacing: 0;
+        }
+
+        .kdai-panel-title--split {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+        }
+
+        .kdai-panel-title--split > div,
+        .kdai-ghost-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .kdai-ghost-action {
+          min-height: 34px;
+          padding: 0 10px;
+          border: 1px solid rgba(239, 204, 137, .26);
+          border-radius: 8px;
+          color: #ffe4a3;
+          background: rgba(255, 252, 243, .08);
+          font: inherit;
+          font-size: 13px;
+          font-weight: 900;
+          cursor: pointer;
         }
 
         .kdai-place-title {
@@ -1205,11 +1439,32 @@ export default function KarmaDestinyAiPage() {
         }
 
         .kdai-result-section h3 {
-          margin: 0 0 8px;
+          margin: 0;
           color: #ffe4a3;
           font-size: 15px;
           line-height: 1.35;
           letter-spacing: 0;
+        }
+
+        .kdai-result-section__head {
+          display: grid;
+          grid-template-columns: 34px minmax(0, 1fr);
+          gap: 10px;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .kdai-result-section__head span {
+          display: grid;
+          place-items: center;
+          width: 34px;
+          aspect-ratio: 1;
+          margin: 0;
+          border: 1px solid rgba(239, 204, 137, .28);
+          border-radius: 50%;
+          color: #f1cd7c;
+          font-family: CodeDestinyDisplay, serif;
+          font-size: 18px;
         }
 
         .kdai-result-section p {
@@ -1236,6 +1491,259 @@ export default function KarmaDestinyAiPage() {
 
         .kdai-follow textarea {
           min-height: 66px;
+        }
+
+        .kdai-loading,
+        .kdai-result-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 90;
+          color: #fff7df;
+          background: rgba(6, 4, 18, .96);
+          backdrop-filter: blur(14px);
+        }
+
+        .kdai-loading {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 28px;
+          padding: 24px;
+        }
+
+        .kdai-loading__seal {
+          position: relative;
+          display: grid;
+          place-items: center;
+          width: clamp(112px, 24vw, 144px);
+          aspect-ratio: 1;
+        }
+
+        .kdai-loading__seal::before {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          content: "";
+          background: conic-gradient(from 10deg, rgba(124, 58, 237, .34), rgba(217, 119, 6, .28), rgba(20, 184, 166, .22), rgba(124, 58, 237, .34));
+          filter: blur(10px);
+          animation: kdaiSlowTurn 8s linear infinite;
+        }
+
+        .kdai-loading__core {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          place-items: center;
+          width: 78%;
+          aspect-ratio: 1;
+          border: 1px solid rgba(239, 204, 137, .36);
+          border-radius: 50%;
+          color: #ffe4a3;
+          background: linear-gradient(145deg, rgba(44, 24, 84, .92), rgba(10, 8, 21, .94));
+          font-size: 42px;
+          box-shadow: inset 0 0 28px rgba(255, 252, 243, .08), 0 18px 44px rgba(0, 0, 0, .32);
+        }
+
+        .kdai-loading__seal svg {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          width: 100%;
+          height: 100%;
+          animation: kdaiSlowTurn 9s linear infinite;
+        }
+
+        .kdai-loading__seal circle {
+          fill: none;
+          stroke: rgba(255, 228, 163, .76);
+          stroke-width: 1.4;
+          stroke-dasharray: 4 9;
+        }
+
+        .kdai-loading__text {
+          text-align: center;
+        }
+
+        .kdai-loading__text p {
+          margin: 0;
+          color: #d9c3ff;
+          font-size: 14px;
+          font-weight: 900;
+          letter-spacing: .08em;
+        }
+
+        .kdai-loading__dots {
+          display: flex;
+          justify-content: center;
+          gap: 9px;
+          margin-top: 16px;
+        }
+
+        .kdai-loading__dots span {
+          width: 8px;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, .22);
+          transition: transform .3s ease, background .3s ease;
+        }
+
+        .kdai-loading__dots span[data-active="true"] {
+          transform: scale(1.35);
+          background: #f1cd7c;
+        }
+
+        .kdai-result-modal {
+          z-index: 100;
+          overflow-y: auto;
+        }
+
+        .kdai-result-modal__bar {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 14px clamp(16px, 4vw, 28px);
+          border-bottom: 1px solid rgba(239, 204, 137, .18);
+          background: rgba(10, 8, 21, .9);
+          backdrop-filter: blur(16px);
+        }
+
+        .kdai-result-modal__bar h2 {
+          margin: 0;
+          color: #f1cd7c;
+          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+          font-size: 19px;
+          letter-spacing: 0;
+        }
+
+        .kdai-result-modal__bar p {
+          margin: 4px 0 0;
+          color: rgba(255, 247, 223, .48);
+          font-size: 12px;
+        }
+
+        .kdai-result-modal__actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .kdai-result-modal__actions button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          min-height: 38px;
+          padding: 0 12px;
+          border: 1px solid rgba(239, 204, 137, .28);
+          border-radius: 8px;
+          color: #ffe4a3;
+          background: rgba(255, 252, 243, .08);
+          font: inherit;
+          font-size: 13px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        .kdai-result-modal__actions button:last-child {
+          width: 38px;
+          padding: 0;
+          color: rgba(255, 247, 223, .78);
+        }
+
+        .kdai-result-modal__actions button:disabled {
+          cursor: not-allowed;
+          opacity: .62;
+        }
+
+        .kdai-result-document {
+          width: min(100%, 760px);
+          margin: 0 auto;
+          padding: clamp(28px, 7vw, 58px) clamp(18px, 5vw, 44px) 54px;
+          background:
+            linear-gradient(180deg, rgba(255, 252, 243, .035), rgba(255, 252, 243, 0)),
+            #060412;
+        }
+
+        .kdai-result-cover {
+          padding: 22px 0 34px;
+          border-bottom: 1px solid rgba(239, 204, 137, .22);
+          text-align: center;
+        }
+
+        .kdai-result-cover span {
+          display: block;
+          color: #f1cd7c;
+          font-size: 54px;
+          line-height: 1;
+        }
+
+        .kdai-result-cover h1 {
+          margin: 12px 0 6px;
+          color: #fff7df;
+          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+          font-size: clamp(29px, 7vw, 42px);
+          line-height: 1.15;
+          letter-spacing: 0;
+        }
+
+        .kdai-result-cover p,
+        .kdai-result-document footer {
+          margin: 0;
+          color: rgba(255, 247, 223, .48);
+          font-size: 13px;
+        }
+
+        .kdai-result-document__section {
+          padding: clamp(30px, 7vw, 46px) 0;
+          border-bottom: 1px solid rgba(239, 204, 137, .12);
+        }
+
+        .kdai-result-document__section > div {
+          display: grid;
+          grid-template-columns: 54px minmax(0, 1fr);
+          gap: 16px;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .kdai-result-document__section span {
+          display: grid;
+          place-items: center;
+          width: 54px;
+          aspect-ratio: 1;
+          border: 1px solid rgba(239, 204, 137, .32);
+          border-radius: 50%;
+          color: rgba(241, 205, 124, .9);
+          font-family: CodeDestinyDisplay, serif;
+          font-size: 30px;
+        }
+
+        .kdai-result-document__section h3 {
+          margin: 0;
+          color: #ffe4a3;
+          font-size: clamp(18px, 4.4vw, 23px);
+          line-height: 1.34;
+          letter-spacing: 0;
+        }
+
+        .kdai-result-document__section p {
+          margin: 0;
+          color: rgba(255, 247, 223, .8);
+          font-size: 15px;
+          line-height: 2.05;
+          white-space: pre-wrap;
+          word-break: keep-all;
+          overflow-wrap: anywhere;
+        }
+
+        .kdai-result-document footer {
+          padding-top: 30px;
+          text-align: center;
         }
 
         .kdai-spin {
@@ -1290,6 +1798,31 @@ export default function KarmaDestinyAiPage() {
 
           .kdai-follow button {
             width: 100%;
+          }
+
+          .kdai-panel-title--split,
+          .kdai-result-modal__bar {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .kdai-result-modal__actions,
+          .kdai-result-modal__actions button:first-child {
+            width: 100%;
+          }
+
+          .kdai-result-modal__actions button:first-child {
+            flex: 1;
+          }
+
+          .kdai-result-document__section > div {
+            grid-template-columns: 46px minmax(0, 1fr);
+            gap: 12px;
+          }
+
+          .kdai-result-document__section span {
+            width: 46px;
+            font-size: 25px;
           }
         }
       `}</style>

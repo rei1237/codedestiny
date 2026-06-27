@@ -35,6 +35,7 @@ const PLACE_ERROR_MESSAGE = "출생지 정보를 확인하지 못했습니다. �
 const CALCULATION_ERROR_MESSAGE = "점성술 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
 
 const TOPICS = new Set([
   "전체 차트 해석",
@@ -86,7 +87,7 @@ const PLANET_LABELS = {
 const MAJOR_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TIMING_TRANSIT_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TRANSIT_TARGETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
-const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, /시스템/g, /\bAI\b/g];
+const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, /시스템/g, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
 
 const PLACE_PRESETS = [
   ["서울", "대한민국", 37.5665, 126.978, "Asia/Seoul", ["seoul", "서울", "south korea", "korea"]],
@@ -821,6 +822,10 @@ function buildSystemPrompt() {
     "불안감을 조장하지 않고, 건강 문제는 진단처럼 말하지 않으며, 재물운은 투자 확정 조언처럼 말하지 않습니다.",
     "사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
     "출생시간을 모르는 경우 Ascendant, MC, House를 강하게 단정하지 말고 행성의 별자리와 주요 각도 중심으로 말합니다.",
+    "계산 데이터 안에 없는 각도, 하우스, 트랜짓, 행성 배치를 새로 지어내지 않습니다.",
+    "상담문은 별자리 상담 요약, 태양·달·상승궁, 개인 행성, 사회 행성, 세대 행성, 원소와 모드, 주요 각도, 하우스, 현재 트랜짓, 상담 주제별 맞춤 해석, 실천 조언, 마무리 메시지의 흐름을 자연스럽게 담습니다.",
+    "출생시간 미상이라면 상승궁과 하우스 앞에 반드시 제한적 해석임을 부드럽게 밝힙니다.",
+    "각 흐름은 짧은 운세가 아니라 사용자의 질문에 직접 닿는 상담 문장으로 충분히 펼칩니다.",
     "AI, 프롬프트, 시스템, PDF, 챕터, job, progress 같은 표현을 결과에 노출하지 않습니다.",
     "마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
   ].join("\n");
@@ -843,7 +848,11 @@ function buildFirstPrompt(input, chart) {
     "[계산된 차트 데이터]",
     JSON.stringify(chart, null, 2),
     "",
-    "첫 답변에는 차트의 핵심 인상, Sun/Moon/Ascendant 기본 성향, 차트 룰러와 삶의 방향, 강하게 작동하는 행성 흐름, 반복되기 쉬운 삶의 패턴, 직업/사업 방향, 재물 흐름, 연애/결혼 흐름, 인간관계와 사회적 위치, 내면의 불안과 감정 패턴, 현재 트랜짓 흐름, 상담 주제 집중 해석, 앞으로 살려야 할 방향, 조심해야 할 선택, 현실적인 행동 조언, 마지막 상담 메시지를 자연스럽게 포함하세요.",
+    "첫 답변은 충분히 깊게 작성하세요.",
+    "반드시 사용자의 현재 질문에 먼저 답하고, 그 답의 근거를 계산된 차트 흐름에서 이어 주세요.",
+    "태양·달·상승궁, 수성·금성·화성, 목성·토성, 천왕성·해왕성·명왕성, 원소와 모드, 주요 각도, 하우스, 현재 트랜짓, 상담 주제별 맞춤 해석, 이번 달 실천 조언, 피해야 할 패턴, 따뜻한 마무리를 자연스럽게 포함하세요.",
+    "주요 각도와 트랜짓은 계산 데이터에 있는 것만 사용하고, 없다면 없다고 말하지 말고 행성 배치와 원소 균형 중심으로 상담을 이어가세요.",
+    "출생시간 미상인 경우 상승궁과 하우스는 확정하지 말고 제한적 해석임을 분명히 밝히세요.",
   ].filter(Boolean).join("\n");
 }
 
@@ -884,9 +893,11 @@ async function generateConsultation(env, prompt, options = {}) {
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
+  console.info("[AstrologyAI] provider selected", { provider, model });
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
   const content = sanitizeConsultationText(ai?.text || "");
   if (!ai?.ok || isMock || content.length < (options.minLength || 180)) {
+    console.error("[AstrologyAI] generation empty result", { provider, model, isMock, length: content.length, ok: ai?.ok === true });
     const error = new Error(LLM_ERROR_MESSAGE);
     error.code = "LLM_FAILED";
     error.status = 503;
@@ -1079,11 +1090,16 @@ async function handleEnsureAccess(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey });
   const auth = await getOptionalUserFromRequest(request, env);
-  if (!auth) return loginRequired();
+  if (!auth) {
+    console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "LOGIN_REQUIRED" });
+    return loginRequired();
+  }
   const pricing = getPricing();
   const access = await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);
   if (access.ok) {
+    console.info("[AstrologyAI] access check success", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, accessType: access.accessType });
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
@@ -1096,7 +1112,11 @@ async function handleEnsureAccess(request, env) {
       accessType: access.accessType,
     });
   }
-  if (access.reason === "LOGIN_REQUIRED") return loginRequired();
+  if (access.reason === "LOGIN_REQUIRED") {
+    console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "LOGIN_REQUIRED" });
+    return loginRequired();
+  }
+  console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "PAYMENT_REQUIRED" });
   return paymentRequired(pricing, idempotencyKey);
 }
 
@@ -1111,12 +1131,15 @@ async function handleStart(request, env) {
 
   await connectDb(env);
   const pricing = getPricing();
+  console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/start", requestId: idempotencyKey });
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
+    console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/start", requestId: idempotencyKey, reason: access.reason || "PAYMENT_VERIFY_FAILED" });
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
   }
+  console.info("[AstrologyAI] access check success", { route: "/api/astrology-ai/start", requestId: idempotencyKey, accessType: access.accessType, source: access.source });
 
   const existing = await AstrologyAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
@@ -1162,6 +1185,7 @@ async function handleStart(request, env) {
 
   await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
   try {
+    console.info("[AstrologyAI] generation started", { route: "/api/astrology-ai/start", requestId: idempotencyKey, sessionId });
     const chart = await calculateAstrologyChart(env, normalized);
     const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), { minLength: 260, maxOutputTokens: 7500 });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
@@ -1183,6 +1207,8 @@ async function handleStart(request, env) {
       { new: true },
     ).lean();
     await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    console.info("[AstrologyAI] generation success", { requestId: idempotencyKey, sessionId, provider: generated.provider, model: generated.model });
+    console.info("[AstrologyAI] result saved", { requestId: idempotencyKey, resultId: sessionId });
     return json(publicSession(completed));
   } catch (error) {
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
@@ -1206,6 +1232,39 @@ async function handleStart(request, env) {
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: isCalculationError ? 422 : 503 });
   }
+}
+
+async function handleResult(request, env, pathId = "") {
+  const url = new URL(request.url);
+  const rawId = pathId || url.searchParams.get("id") || "";
+  let resultId = "";
+  try {
+    resultId = clean(decodeURIComponent(rawId), 120);
+  } catch (_) {
+    resultId = clean(rawId, 120);
+  }
+  if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+
+  await connectDb(env);
+  const consultation = await AstrologyAiConsultation.findOne({
+    id: resultId,
+    userId: auth.userId,
+    status: "completed",
+  }).lean();
+  if (!consultation) {
+    return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+  }
+
+  const payload = publicSession(consultation);
+  const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
+  if (!assistantContent.trim()) {
+    console.error("[AstrologyAI] generation empty result", { resultId });
+    return json({ ok: false, reason: "RESULT_EMPTY", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  }
+  return json(payload);
 }
 
 async function handleMessage(request, env) {
@@ -1258,6 +1317,8 @@ export async function handleAstrologyAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/astrology-ai");
   try {
+    if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);

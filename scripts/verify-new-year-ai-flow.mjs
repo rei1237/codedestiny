@@ -57,6 +57,8 @@ assertExcludes("index.html", oldAccessRetryCopy, "old access retry copy should b
 assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/ensure-access");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/start");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "runBillingCoinGate");
+assertIncludes("app/new-year-ai-consultation/page.tsx", "deferUsage: true", "new-year client should defer usage until generation succeeds");
+assertIncludes("app/new-year-ai-consultation/page.tsx", 'usagePolicy: "apply_after_success"', "new-year client should apply billing after success");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "상담을 준비하고 있습니다");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "결제창을 확인해 주세요");
 assertIncludes("app/new-year-ai-consultation/page.tsx", "새해의 기운을 읽는 중...");
@@ -80,8 +82,21 @@ assertIncludes("worker/routes/new-year-ai.js", "handleStart");
 assertIncludes("worker/routes/new-year-ai.js", "handleMessage");
 assertIncludes("worker/routes/new-year-ai.js", "new-year-ai-consultation");
 assertIncludes("worker/routes/new-year-ai.js", "PointHistory");
+assertIncludes("worker/routes/new-year-ai.js", "PaidExecutionRecord");
+assertIncludes("worker/routes/new-year-ai.js", "Payment");
+assertIncludes("worker/routes/new-year-ai.js", "handleBillingRoutes");
 assertIncludes("worker/routes/new-year-ai.js", "billingMode: \"coin-gate\"");
+assertIncludes("worker/routes/new-year-ai.js", "runtimeGate");
+assertIncludes("worker/routes/new-year-ai.js", "paymentAmount");
 assertIncludes("worker/routes/new-year-ai.js", "calculateNewYearFortuneData");
+assertIncludes("worker/routes/new-year-ai.js", "advancedSajuSummary");
+assertIncludes("worker/routes/new-year-ai.js", "gyeokguk");
+assertIncludes("worker/routes/new-year-ai.js", "yongshin");
+assertIncludes("worker/routes/new-year-ai.js", "johu");
+assertIncludes("worker/routes/new-year-ai.js", "daewoonSewoon");
+assertIncludes("worker/routes/new-year-ai.js", "annualInteractions");
+assertIncludes("worker/routes/new-year-ai.js", "path: \"apply\"");
+assertIncludes("worker/routes/new-year-ai.js", "path: \"cancel\"");
 assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Prepare Start\"");
 assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Generate Success\"");
 assertIncludes("worker/routes/new-year-ai.js", "providerReason");
@@ -99,6 +114,10 @@ const routeUrl = pathToFileURL(path.join(root, "worker/routes/new-year-ai.js")).
 const oldRouteUrl = pathToFileURL(path.join(root, "worker/routes/saju-new-year.js")).href;
 const route = await import(routeUrl);
 const oldRoute = await import(oldRouteUrl);
+
+const workerSource = read("worker/routes/new-year-ai.js");
+const ensureAccessSource = workerSource.slice(workerSource.indexOf("async function handleEnsureAccess"), workerSource.indexOf("async function resolveStartAccess"));
+assert(!ensureAccessSource.includes("calculateNewYearFortuneData"), "ensure-access should not calculate fortune data before auth/payment checks");
 
 const validInput = {
   serviceType: "new-year-ai-consultation",
@@ -122,12 +141,21 @@ assert(normalized.input.focusArea === "overall", "new-year-ai focusArea should n
 const fortuneData = route.__newYearAiTestUtils.calculateNewYearFortuneData(normalized.input);
 assert(fortuneData?.saju?.dayMaster, "new-year-ai fortune data should include day master");
 assert(fortuneData?.targetYear?.pillar, "new-year-ai fortune data should include target-year pillar");
+assert(fortuneData?.advancedSajuSummary?.gyeokguk, "new-year-ai fortune data should include gyeokguk summary");
+assert(fortuneData?.advancedSajuSummary?.yongshin, "new-year-ai fortune data should include yongshin summary");
+assert(fortuneData?.advancedSajuSummary?.johu, "new-year-ai fortune data should include johu summary");
+assert(fortuneData?.advancedSajuSummary?.daewoonSewoon, "new-year-ai fortune data should include daewoon-sewoon summary");
+assert(Array.isArray(fortuneData?.advancedSajuSummary?.annualInteractions), "new-year-ai fortune data should include annual interactions");
+assert(fortuneData?.monthlyFlow?.some((row) => row.timing === "기회" || row.timing === "주의"), "new-year-ai monthly flow should include timing labels");
 const firstPrompt = route.__newYearAiTestUtils.buildFirstPrompt(normalized.input, fortuneData);
 assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year-ai first prompt should include computed fortune data");
 assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
 assert(firstPrompt.includes("새해 전체 운의 핵심 결론"), "new-year-ai first prompt should request consultation sections");
+assert(firstPrompt.includes("격국, 용신·기신, 조후, 대운-세운 관계"), "new-year-ai first prompt should request advanced saju synthesis");
+const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
+assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
+assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
 
-const workerSource = read("worker/routes/new-year-ai.js");
 const messageHandlerSource = workerSource.slice(workerSource.indexOf("async function handleMessage"), workerSource.indexOf("export async function handleNewYearAiRoutes"));
 assert(!messageHandlerSource.includes("generateConsultationText"), "new-year-ai message route should not generate follow-up LLM text");
 assert(!messageHandlerSource.includes("callGeminiText"), "new-year-ai message route should not call the LLM gateway");

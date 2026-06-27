@@ -3,11 +3,12 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, mongoose } from "../lib/db.js";
-import { MonthlyCreditLedger, NewYearAiConsultation, PointHistory, User } from "../lib/models.js";
+import { MonthlyCreditLedger, NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { handleBillingRoutes } from "./billing.js";
 import { Lunar, Solar } from "lunar-javascript";
 
 const SERVICE_KEY = "new-year-ai";
@@ -20,7 +21,7 @@ const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b/i;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|기능/i;
 const FOCUS_AREA_LABELS = Object.freeze({
   overall: "전체운",
   love: "연애운",
@@ -76,6 +77,26 @@ const PRODUCES = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const CONTROLS = { 목: "토", 화: "금", 토: "수", 금: "목", 수: "화" };
 const BRANCH_CLASH = { 자: "오", 축: "미", 인: "신", 묘: "유", 진: "술", 사: "해", 오: "자", 미: "축", 신: "인", 유: "묘", 술: "진", 해: "사" };
 const BRANCH_COMBINATION = { 자: "축", 축: "자", 인: "해", 해: "인", 묘: "술", 술: "묘", 진: "유", 유: "진", 사: "신", 신: "사", 오: "미", 미: "오" };
+const STEM_COMBINATION = { 갑: "기", 기: "갑", 을: "경", 경: "을", 병: "신", 신: "병", 정: "임", 임: "정", 무: "계", 계: "무" };
+const STEM_CLASH = { 갑: "경", 경: "갑", 을: "신", 신: "을", 병: "임", 임: "병", 정: "계", 계: "정" };
+const BRANCH_SEASON = {
+  인: "봄의 시작", 묘: "봄의 절정", 진: "봄에서 여름으로 넘어가는 토기",
+  사: "여름의 시작", 오: "여름의 절정", 미: "여름에서 가을로 넘어가는 토기",
+  신: "가을의 시작", 유: "가을의 절정", 술: "가을에서 겨울로 넘어가는 토기",
+  해: "겨울의 시작", 자: "겨울의 절정", 축: "겨울에서 봄으로 넘어가는 토기",
+};
+const TEN_GOD_DOMAIN = {
+  비견: "자기주도와 경쟁",
+  겁재: "공동 자원과 지출 관리",
+  식신: "실력 발휘와 안정적인 생산성",
+  상관: "표현력과 규칙 조정",
+  편재: "기회형 재물과 외부 활동",
+  정재: "고정 수입과 현실적 관리",
+  편관: "압박 속 승부와 책임",
+  정관: "평판, 조직, 약속",
+  편인: "새 공부와 관점 전환",
+  정인: "보호, 문서, 회복",
+};
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -234,6 +255,115 @@ function describeBranchRelation(sourceBranch, targetBranch) {
   return "큰 충돌보다는 기존 구조 위에 새 기운이 더해지는 흐름";
 }
 
+function describeStemRelation(sourceStem, targetStem) {
+  if (!sourceStem || !targetStem) return "";
+  if (STEM_CLASH[sourceStem] === targetStem) return `${sourceStem}-${targetStem} 천간충으로 표면 사건과 판단이 흔들리기 쉬움`;
+  if (STEM_COMBINATION[sourceStem] === targetStem) return `${sourceStem}-${targetStem} 천간합으로 관계, 계약, 선택의 묶임이 생기기 쉬움`;
+  if (sourceStem === targetStem) return `${targetStem} 천간이 반복되어 같은 의지와 경쟁심이 강해지기 쉬움`;
+  return "천간은 직접 충합보다 새 역할이 더해지는 흐름";
+}
+
+function rankedElements(fiveElements) {
+  return Object.entries(fiveElements || {})
+    .map(([element, power]) => ({ element, power: Number(power || 0) }))
+    .sort((a, b) => b.power - a.power);
+}
+
+function buildGyeokgukSummary(dayMaster, monthPillar) {
+  const monthStem = pillarStem(monthPillar);
+  const monthBranch = pillarBranch(monthPillar);
+  const monthTenGod = tenGodFor(dayMaster, monthStem) || "월간 십성 미산출";
+  const hiddenTenGods = (HIDDEN_STEMS[monthBranch] || []).map((stem) => ({
+    stem,
+    tenGod: tenGodFor(dayMaster, stem),
+  })).filter((row) => row.tenGod);
+  const mainHidden = hiddenTenGods[0]?.tenGod || monthTenGod;
+  return {
+    monthCommand: `${monthBranch}월령`,
+    season: BRANCH_SEASON[monthBranch] || "계절 기운 미산출",
+    visibleTenGod: monthTenGod,
+    hiddenStemTenGods: hiddenTenGods,
+    finalGyeokguk: `${mainHidden} 중심으로 현실 작용을 읽는 구조`,
+    reading: `월령의 ${mainHidden} 기운을 중심으로 격국을 잡고, 드러난 ${monthTenGod}이 실제 선택 방식으로 올라오는지 함께 봅니다.`,
+  };
+}
+
+function buildYongshinSummary(dayMaster, fiveElements) {
+  const ranking = rankedElements(fiveElements);
+  const dominant = ranking[0]?.element || "";
+  const weak = [...ranking].reverse()[0]?.element || "";
+  const dayElement = STEM_ELEMENT[dayMaster] || "";
+  const strength = judgeStrength(dayMaster, fiveElements);
+  return {
+    dayElement,
+    strength,
+    elementRanking: ranking,
+    coreYongshinKo: weak || "보완 오행 미산출",
+    heesinKo: PRODUCES[weak] || dayElement || "",
+    gisinKo: dominant || "과한 오행 미산출",
+    reading: `${strength}이므로 ${weak || "부족한 기운"}을 보완하고 ${dominant || "강한 기운"}이 과해지는 선택을 조절하는 방향을 우선합니다.`,
+  };
+}
+
+function buildJohuSummary(monthBranch, fiveElements) {
+  const season = BRANCH_SEASON[monthBranch] || "";
+  const urgentElement = ["사", "오", "미"].includes(monthBranch)
+    ? "수"
+    : ["해", "자", "축"].includes(monthBranch)
+      ? "화"
+      : ["신", "유", "술"].includes(monthBranch)
+        ? "목"
+        : ["인", "묘", "진"].includes(monthBranch)
+          ? "금"
+          : pickElement(fiveElements, "weak");
+  return {
+    season,
+    urgentElementKo: urgentElement,
+    climate: `${season || "월령"}의 온도와 습도를 기준으로 ${urgentElement || "부족한 기운"} 조절을 먼저 봅니다.`,
+    reading: `${urgentElement || "균형 기운"}이 살아나면 판단과 컨디션이 안정되고, 과열되거나 얼어붙은 흐름이 완만해집니다.`,
+  };
+}
+
+function buildAnnualInteractions(pillarMap, targetStem, targetBranch) {
+  const labels = { year: "년주", month: "월주", day: "일주", hour: "시주" };
+  return Object.entries(pillarMap)
+    .filter(([, pillar]) => pillar)
+    .map(([key, pillar]) => ({
+      pillar: labels[key] || key,
+      ganji: pillar,
+      heavenlyStem: describeStemRelation(pillarStem(pillar), targetStem),
+      earthlyBranch: describeBranchRelation(pillarBranch(pillar), targetBranch),
+    }));
+}
+
+function buildDaewoonSewoonSummary({ birthYear, gender, yearStem, targetYear, targetPillar, targetTenGod, annualInteractions }) {
+  const age = Number(targetYear) - Number(birthYear) + 1;
+  const forward = (gender === "male" && STEM_POLARITY[yearStem] === "yang") || (gender === "female" && STEM_POLARITY[yearStem] === "yin");
+  const strongestAnnual = annualInteractions.find((item) => /충|합|반복/.test(`${item.heavenlyStem} ${item.earthlyBranch}`));
+  return {
+    targetAgeKoreanStyle: Number.isFinite(age) ? age : null,
+    daewoonDirection: gender === "unknown" ? "성별 비공개로 순역 판단은 보수적으로 해석" : forward ? "순행 흐름" : "역행 흐름",
+    annualPillar: targetPillar,
+    annualTenGod: targetTenGod,
+    annualEventTrigger: strongestAnnual || null,
+    integratedReading: `${targetPillar} 세운은 ${targetTenGod || "새 십성"}의 사건성을 띠며, 대운의 배경 위에서 ${strongestAnnual?.pillar || "원국"}을 통해 체감되기 쉽습니다.`,
+  };
+}
+
+function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
+  const opportunityMonths = monthlyFlow.filter((row) => row.timing === "기회").map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
+  const cautionMonths = monthlyFlow.filter((row) => row.timing === "주의").map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
+  const domain = TEN_GOD_DOMAIN[annualTenGod] || "새해의 역할 변화";
+  return {
+    career: `${annualTenGod || "세운"}은 ${domain}을 통해 일의 방향을 드러냅니다.`,
+    money: `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
+    love: "합이 드는 달에는 관계가 가까워지고, 충이 드는 달에는 오래 미룬 대화가 표면으로 올라옵니다.",
+    health: `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
+    opportunityMonths,
+    cautionMonths,
+  };
+}
+
 function buildLunarFromInput(dateParts, birthTime, calendarType) {
   if (calendarType === "lunar") {
     return Lunar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0);
@@ -257,28 +387,62 @@ function calculateNewYearFortuneData(input) {
   const monthPillar = lunar.getMonthInGanZhi();
   const dayPillar = lunar.getDayInGanZhi();
   const hourPillar = birthTime.timeUnknown ? "" : lunar.getTimeInGanZhi();
+  const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
   const dayBranch = pillarBranch(dayPillar);
+  const monthBranch = pillarBranch(monthPillar);
   const fiveElements = buildElementDistribution(pillars);
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
+  const strength = judgeStrength(dayMaster, fiveElements);
+  const dominantElement = pickElement(fiveElements, "dominant");
+  const balancingElement = pickElement(fiveElements, "weak");
   const targetYear = Number(input.targetYear || input.year);
   const targetLunar = Solar.fromYmdHms(targetYear, 7, 1, 12, 0, 0).getLunar();
   const targetPillar = targetLunar.getYearInGanZhi();
   const targetStem = pillarStem(targetPillar);
   const targetBranch = pillarBranch(targetPillar);
+  const targetTenGod = tenGodFor(dayMaster, targetStem);
+  const annualInteractions = buildAnnualInteractions(pillarMap, targetStem, targetBranch);
+  const gyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
+  const yongshin = buildYongshinSummary(dayMaster, fiveElements);
+  const johu = buildJohuSummary(monthBranch, fiveElements);
   const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
     const monthPillar = Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi();
+    const stem = pillarStem(monthPillar);
+    const branch = pillarBranch(monthPillar);
+    const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
+    const tenGod = tenGodFor(dayMaster, stem);
+    const branchRelation = describeBranchRelation(dayBranch, branch);
+    const timing = element === balancingElement || /합/.test(branchRelation)
+      ? "기회"
+      : element === dominantElement || /충/.test(branchRelation)
+        ? "주의"
+        : "정비";
     return {
       month,
       pillar: monthPillar,
-      stem: pillarStem(monthPillar),
-      branch: pillarBranch(monthPillar),
-      element: STEM_ELEMENT[pillarStem(monthPillar)] || BRANCH_ELEMENT[pillarBranch(monthPillar)] || "",
-      tenGod: tenGodFor(dayMaster, pillarStem(monthPillar)),
+      stem,
+      branch,
+      element,
+      tenGod,
+      domain: TEN_GOD_DOMAIN[tenGod] || "생활 리듬 조정",
+      stemRelationToDayMaster: describeStemRelation(dayMaster, stem),
+      relationToDayBranch: branchRelation,
+      timing,
     };
   });
+  const daewoonSewoon = buildDaewoonSewoonSummary({
+    birthYear: dateParts.year,
+    gender: birth.gender,
+    yearStem: pillarStem(yearPillar),
+    targetYear,
+    targetPillar,
+    targetTenGod,
+    annualInteractions,
+  });
+  const domainSignals = buildDomainSignals({ annualTenGod: targetTenGod, yongshin, johu, monthlyFlow });
 
   return {
     birthCalendar: {
@@ -295,9 +459,9 @@ function calculateNewYearFortuneData(input) {
       dayBranch,
       fiveElements,
       tenGods,
-      strength: judgeStrength(dayMaster, fiveElements),
-      dominantElement: pickElement(fiveElements, "dominant"),
-      balancingElement: pickElement(fiveElements, "weak"),
+      strength,
+      dominantElement,
+      balancingElement,
     },
     targetYear: {
       year: targetYear,
@@ -306,9 +470,17 @@ function calculateNewYearFortuneData(input) {
       branch: targetBranch,
       stemElement: STEM_ELEMENT[targetStem] || "",
       branchElement: BRANCH_ELEMENT[targetBranch] || "",
-      tenGodToDayMaster: tenGodFor(dayMaster, targetStem),
+      tenGodToDayMaster: targetTenGod,
       relationToDayBranch: describeBranchRelation(dayBranch, targetBranch),
       relationToYearBranch: describeBranchRelation(pillarBranch(yearPillar), targetBranch),
+    },
+    advancedSajuSummary: {
+      gyeokguk,
+      yongshin,
+      johu,
+      annualInteractions,
+      daewoonSewoon,
+      domainSignals,
     },
     focus: {
       focusArea: input.focusArea,
@@ -500,10 +672,15 @@ function uniq(values = []) {
   return [...new Set(values.map((value) => clean(value, 180)).filter(Boolean))];
 }
 
+function objectIdLike(value) {
+  const text = clean(value, 180);
+  return Boolean(text && mongoose.Types.ObjectId.isValid(text));
+}
+
 function readBillingContext(body = {}) {
   const billing = asObject(body.billingGate || body.billingEvidence || body.billing || body.paymentEvidence);
-  const consume = asObject(body.consume || billing.consume);
-  const accessGrant = asObject(body.accessGrant || billing.accessGrant);
+  const consume = asObject(body.billingConsume || body.consume || billing.consume);
+  const accessGrant = asObject(body.billingAccessGrant || body.accessGrant || billing.accessGrant);
   const pricing = asObject(body.pricing || billing.pricing);
   return { billing, consume, accessGrant, pricing };
 }
@@ -512,14 +689,18 @@ function collectBillingTokens(body = {}, idempotencyKey = "") {
   const ctx = readBillingContext(body);
   return uniq([
     idempotencyKey,
+    body.billingRequestId,
+    body.executionId,
     body.paymentId,
     body.transactionId,
     body.purchaseId,
     body.requestId,
+    ctx.billing.executionId,
     ctx.billing.transactionId,
     ctx.billing.purchaseId,
     ctx.billing.paymentId,
     ctx.billing.requestId,
+    ctx.consume.executionId,
     ctx.consume.transactionId,
     ctx.consume.purchaseId,
     ctx.consume.requestId,
@@ -527,6 +708,7 @@ function collectBillingTokens(body = {}, idempotencyKey = "") {
     ctx.consume.pointHistoryId,
     ctx.consume.ledgerId,
     ctx.consume.monthlyCreditLedgerId,
+    ctx.accessGrant.executionId,
     ctx.accessGrant.evidenceId,
     ctx.accessGrant.purchaseId,
     ctx.accessGrant.paymentId,
@@ -564,7 +746,7 @@ function pointHistoryTokenClauses(tokens = []) {
     clauses.push({ "metadata.orderId": token });
     clauses.push({ "metadata.transactionId": token });
     clauses.push({ "metadata.pointHistoryId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+    if (objectIdLike(token)) clauses.push({ _id: token });
   });
   return clauses;
 }
@@ -580,7 +762,36 @@ function monthlyCreditTokenClauses(tokens = []) {
     clauses.push({ "metadata.pointHistoryId": token });
     clauses.push({ "metadata.ledgerId": token });
     clauses.push({ "metadata.monthlyCreditLedgerId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+    if (objectIdLike(token)) clauses.push({ _id: token });
+  });
+  return clauses;
+}
+
+function deferredTokenClauses(tokens = []) {
+  const clauses = [];
+  tokens.forEach((token) => {
+    clauses.push({ requestId: token });
+    clauses.push({ idempotencyKey: token });
+    clauses.push({ executionId: token });
+    clauses.push({ paymentId: token });
+    clauses.push({ orderId: token });
+    clauses.push({ "result.deferredUsage.requestId": token });
+    clauses.push({ "result.deferredUsage.paymentId": token });
+    if (objectIdLike(token)) clauses.push({ _id: token });
+  });
+  return clauses;
+}
+
+function paymentTokenClauses(tokens = []) {
+  const clauses = [];
+  tokens.forEach((token) => {
+    clauses.push({ requestId: token });
+    clauses.push({ idempotencyKey: token });
+    clauses.push({ merchantUid: token });
+    clauses.push({ impUid: token });
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
   });
   return clauses;
 }
@@ -650,6 +861,48 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
     }
   }
 
+  const deferredClauses = deferredTokenClauses(tokens);
+  if (deferredClauses.length) {
+    const record = await PaidExecutionRecord.findOne({
+      userId: clean(auth.userId),
+      featureId: FEATURE_KEY,
+      status: { $in: ["paid_pending_generation", "generating", "completed"] },
+      $or: deferredClauses,
+    }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+    if (record) {
+      const deferredUsage = asObject(asObject(record.result).deferredUsage);
+      return {
+        ok: true,
+        accessType: normalizeBillingAccessType(deferredUsage.accessType || record.accessMethod || signal),
+        paymentId: clean(record._id, 160),
+        billingRequestId: clean(record.requestId || idempotencyKey, 180),
+        deferredUsage: record.status !== "completed",
+        usageAlreadyApplied: record.status === "completed",
+        prepaid: true,
+      };
+    }
+  }
+
+  const paymentClauses = paymentTokenClauses(tokens);
+  if (paymentClauses.length) {
+    const payment = await Payment.findOne({
+      userId: auth.userId,
+      featureKey: FEATURE_KEY,
+      status: { $in: ["paid", "success", "fulfilled"] },
+      $or: paymentClauses,
+    }).sort({ updatedAt: -1, paidAt: -1, createdAt: -1 }).lean();
+    if (payment) {
+      return {
+        ok: true,
+        accessType: "paid",
+        paymentId: clean(payment.merchantUid || payment.impUid || payment._id || tokens[0], 160),
+        billingRequestId: clean(payment.requestId || payment.idempotencyKey || idempotencyKey, 180),
+        usageAlreadyApplied: true,
+        prepaid: true,
+      };
+    }
+  }
+
   return null;
 }
 
@@ -658,26 +911,73 @@ function buildBillingGatePayload({ pricing, idempotencyKey }) {
     billingMode: "coin-gate",
     featureKey: FEATURE_KEY,
     serviceKey: SERVICE_KEY,
+    serviceId: SERVICE_KEY,
     serviceType: FEATURE_KEY,
     consultationType: "newYearFortune",
+    categoryKey: "premium-consultation",
+    subFeatureKey: FEATURE_KEY,
+    contentId: FEATURE_KEY,
+    orderName: ORDER_NAME,
     reason: ORDER_NAME,
     cost: pricing.coinPrice,
     coinPrice: pricing.coinPrice,
+    totalAmount: pricing.amountKRW,
+    paymentAmount: pricing.amountKRW,
     amountKRW: pricing.amountKRW,
+    currency: "CURRENCY_KRW",
     membershipCreditCost: pricing.membershipCreditCost,
     requestId: idempotencyKey,
     idempotencyKey,
+    runtimeGate: {
+      categoryKey: "premium-consultation",
+      subFeatureKey: FEATURE_KEY,
+      featureKey: FEATURE_KEY,
+      reason: ORDER_NAME,
+      productId: SERVICE_KEY,
+      productType: SERVICE_KEY,
+      serviceType: FEATURE_KEY,
+      cost: pricing.coinPrice,
+      coinPrice: pricing.coinPrice,
+      amountKRW: pricing.amountKRW,
+      membershipCreditCost: pricing.membershipCreditCost,
+    },
   };
 }
 
-async function resolveServerAccess({ auth, user, pricing }) {
+async function resolveServerAccess({ auth, user, pricing, idempotencyKey = "", inputHash = "", body = {} }) {
   if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") {
-    return { ok: true, accessType: "admin", paymentId: "" };
+    return { ok: true, accessType: "admin", paymentId: "", usageAlreadyApplied: true };
+  }
+
+  if (idempotencyKey && inputHash) {
+    const existing = await NewYearAiConsultation.findOne({
+      userId: clean(auth.userId),
+      idempotencyKey,
+      inputHash,
+      status: "completed",
+    }).select("id accessType paymentId").lean();
+    if (existing) {
+      return {
+        ok: true,
+        accessType: clean(existing.accessType) || "paid",
+        paymentId: clean(existing.paymentId, 160),
+        billingRequestId: idempotencyKey,
+        usageAlreadyApplied: true,
+      };
+    }
+  }
+
+  const billing = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
+  if (billing?.ok) {
+    return {
+      ...billing,
+      usageAlreadyApplied: billing.usageAlreadyApplied === true,
+    };
   }
 
   const pass = normalizeHoneyPassEntitlement(user || {});
   if (canUseByPass(pass, pricing.coinPrice)) {
-    return { ok: true, accessType: "pass", paymentId: "" };
+    return { ok: true, accessType: "pass", paymentId: "", usageAlreadyApplied: false };
   }
 
   return { ok: false, reason: "PAYMENT_REQUIRED" };
@@ -685,14 +985,14 @@ async function resolveServerAccess({ auth, user, pricing }) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 사주명리학과 세운 분석에 능한 전문 상담가입니다.",
+    "당신은 사주명리학과 세운 분석을 깊게 다루는 최고 수준의 명리학자입니다.",
     "",
-    "사용자의 생년월일과 사주 구조, 목표 연도의 세운을 바탕으로 신년운세를 상담형 문장으로 해석합니다.",
+    "사용자의 생년월일, 원국의 격국과 용신·기신, 조후, 대운의 배경, 목표 연도의 세운을 함께 묶어 신년운세를 읽습니다.",
     "",
     "반드시 지켜야 할 원칙:",
-    "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 말하듯 자연스럽게 답변합니다.",
-    "2. 명리학적 근거를 사용하되 사용자가 이해하기 쉬운 말로 풀이합니다.",
-    "3. 재물운, 연애운, 직장/사업운, 인간관계, 건강/멘탈, 월별 흐름을 균형 있게 봅니다.",
+    "1. 보고서처럼 딱딱하게 쓰지 말고, 오래 상담해 온 명리학자가 마주 앉아 말하듯 자연스럽게 답변합니다.",
+    "2. 일간, 월령, 격국, 용신·기신, 조후, 천간합충, 지지합충, 대운과 세운의 관계를 근거로 삼되 쉬운 말로 풀어냅니다.",
+    "3. 재물운, 연애운, 직장/사업운, 인간관계, 건강/멘탈, 월별 흐름을 균형 있게 보되 사용자가 선택한 집중 분야를 가장 깊게 봅니다.",
     "4. 불안감을 조장하지 않습니다.",
     "5. 무조건 성공한다, 반드시 망한다 같은 단정적 표현을 쓰지 않습니다.",
     "6. 사용자가 당장 실천할 수 있는 조언을 포함합니다.",
@@ -708,7 +1008,8 @@ function buildFirstPrompt(input, fortuneData) {
   const birth = input.birthInfo || {};
   return [
     "아래 사용자 입력과 서버에서 계산된 사주·세운 데이터를 바탕으로 신년운세 첫 상담문을 작성하세요.",
-    "문장은 전문적이고 따뜻하게, 실제 선택에 도움이 되도록 현실적으로 말하세요.",
+    "문장은 전문적이고 신비로우며 따뜻하게, 실제 선택에 도움이 되도록 현실적으로 말하세요.",
+    "격국, 용신·기신, 조후, 대운-세운 관계, 세운 천간/지지 충합, 월별 흐름을 서로 따로 나열하지 말고 한 사람의 새해 흐름으로 엮어 주세요.",
     "",
     "[사용자 입력]",
     `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
@@ -725,14 +1026,14 @@ function buildFirstPrompt(input, fortuneData) {
     "",
     "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
     "1. 새해 전체 운의 핵심 결론",
-    "2. 올해 당신에게 들어오는 큰 기운",
-    "3. 일과 직업운",
-    "4. 재물운과 돈의 흐름",
-    "5. 연애운과 인간관계",
-    "6. 건강과 컨디션 관리",
-    "7. 조심해야 할 시기와 패턴",
-    "8. 기회를 살리는 행동 전략",
-    "9. 월별 흐름 요약",
+    "2. 원국의 격국과 용신·기신으로 본 새해의 쓰임",
+    "3. 대운의 배경 위에 세운이 일으키는 사건성",
+    "4. 일과 직업운",
+    "5. 재물운과 돈의 흐름",
+    "6. 연애운과 인간관계",
+    "7. 건강과 컨디션 관리",
+    "8. 조심해야 할 시기와 패턴",
+    "9. 월별 흐름과 기회가 열리는 달",
     "10. 새해를 여는 한 줄 조언",
     "",
     "출생시간이 없거나 계산상 불확실한 부분은 단정하지 말고 입력된 정보 기준으로 본 흐름이라고 자연스럽게 말하세요.",
@@ -744,7 +1045,11 @@ function cleanForbiddenResult(text) {
     .replace(/\bPDF\b/gi, "상담")
     .replace(/챕터/g, "상담 항목")
     .replace(/\bprogress\b/gi, "흐름")
-    .replace(/\bjob\b/gi, "상담");
+    .replace(/\bjob\b/gi, "상담")
+    .replace(/프롬프트/g, "상담 문장")
+    .replace(/시스템/g, "상담 흐름")
+    .replace(/\bAI\b/g, "상담")
+    .replace(/기능/g, "상담");
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
@@ -789,9 +1094,27 @@ async function generateConsultationText(env, prompt, options = {}) {
   };
 }
 
-async function applyUsageOnce({ sessionId }) {
+async function applyUsageOnce({ userId, sessionId, accessType }) {
   const existing = await NewYearAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
+
+  if (accessType === "pass") {
+    const passUpdate = await User.updateOne(
+      { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
+      {
+        $inc: {
+          "profileSubscription.passRemainingUses": -1,
+          "profileSubscription.passUsedCount": 1,
+        },
+      },
+    );
+    if (!passUpdate?.modifiedCount) {
+      const error = new Error("membership pass balance is insufficient");
+      error.code = "MEMBERSHIP_PASS_CONSUME_FAILED";
+      throw error;
+    }
+  }
+
   await NewYearAiConsultation.updateOne(
     { id: sessionId, usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
@@ -815,6 +1138,42 @@ function publicSession(doc) {
   };
 }
 
+function cloneBillingHeaders(request) {
+  const headers = new Headers(request.headers);
+  headers.set("Content-Type", "application/json");
+  headers.delete("content-length");
+  return headers;
+}
+
+async function callDeferredUsageRoute({ request, env, path, idempotencyKey, sessionId, code = "", message = "" }) {
+  const url = new URL(request.url);
+  url.pathname = `/api/billing/coin-gate/deferred/${path}`;
+  url.search = "";
+  const response = await handleBillingRoutes(new Request(url.toString(), {
+    method: "POST",
+    headers: cloneBillingHeaders(request),
+    body: JSON.stringify({
+      featureKey: FEATURE_KEY,
+      serviceType: FEATURE_KEY,
+      consultationType: "newYearFortune",
+      reason: ORDER_NAME,
+      requestId: idempotencyKey,
+      idempotencyKey,
+      sessionId,
+      resultId: sessionId,
+      code,
+      message,
+    }),
+  }), env);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.ok === false) {
+    const error = new Error(clean(payload?.message || payload?.error?.message || `Deferred usage ${path} failed.`, 500));
+    error.code = clean(payload?.error?.code || `DEFERRED_USAGE_${path.toUpperCase()}_FAILED`, 80);
+    throw error;
+  }
+  return payload?.data || payload;
+}
+
 async function handleEnsureAccess(request, env) {
   const route = "/api/new-year-ai/ensure-access";
   logNewYearAi("Prepare Start", safeLogPayload({ route, env }));
@@ -828,15 +1187,6 @@ async function handleEnsureAccess(request, env) {
   }
   logNewYearAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
-
-  try {
-    logNewYearAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
-    calculateNewYearFortuneData(normalized.input);
-    logNewYearAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
-  } catch (error) {
-    logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", env, error }), "error");
-    return serverError(SERVER_ERROR_MESSAGE, 500);
-  }
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
@@ -861,7 +1211,7 @@ async function handleEnsureAccess(request, env) {
   const user = await loadBillingUser(auth.userId);
   if (!user) return loginRequired();
 
-  const access = await resolveServerAccess({ auth, user, pricing });
+  const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
   if (access.ok) {
     logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -872,6 +1222,9 @@ async function handleEnsureAccess(request, env) {
         idempotencyKey,
         inputHash: normalized.inputHash,
         paymentId: access.paymentId || "",
+        billingRequestId: access.billingRequestId || "",
+        usageAlreadyApplied: access.usageAlreadyApplied === true,
+        deferredUsage: access.deferredUsage === true,
       }),
       accessType: access.accessType,
     });
@@ -893,14 +1246,26 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160) };
+    return {
+      ok: true,
+      accessType: clean(payload.accessType),
+      paymentId: clean(payload.paymentId, 160),
+      billingRequestId: clean(payload.billingRequestId, 180),
+      usageAlreadyApplied: payload.usageAlreadyApplied === true,
+      deferredUsage: payload.deferredUsage === true,
+    };
   }
 
   const user = await loadBillingUser(auth.userId);
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
   const billingAccess = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
-  if (billingAccess?.ok) return billingAccess;
-  return resolveServerAccess({ auth, user, pricing });
+  if (billingAccess?.ok) {
+    return {
+      ...billingAccess,
+      usageAlreadyApplied: billingAccess.usageAlreadyApplied === true,
+    };
+  }
+  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
 }
 
 async function handleStart(request, env) {
@@ -939,6 +1304,19 @@ async function handleStart(request, env) {
     logNewYearAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
     logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
+    if (access.deferredUsage) {
+      await callDeferredUsageRoute({
+        request,
+        env,
+        path: "cancel",
+        idempotencyKey,
+        sessionId: idempotencyKey,
+        code: clean(error?.code || "FORTUNE_DATA_FAILED", 80),
+        message: clean(error?.message || error, 500),
+      }).catch((restoreError) => {
+        logNewYearAi("Refund Or Restore", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error: restoreError }), "warn");
+      });
+    }
     return serverError(SERVER_ERROR_MESSAGE, 500);
   }
 
@@ -992,7 +1370,20 @@ async function handleStart(request, env) {
       maxOutputTokens: 7000,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, prepaid: access.prepaid === true });
+    if (access.deferredUsage) {
+      await callDeferredUsageRoute({ request, env, path: "apply", idempotencyKey, sessionId });
+    } else if (!access.usageAlreadyApplied && access.accessType === "pass") {
+      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing });
+    } else if (!access.usageAlreadyApplied && access.accessType === "subscription") {
+      const gateError = new Error("monthly credit must be confirmed by common billing gate");
+      gateError.code = "MONTHLY_CREDIT_GATE_REQUIRED";
+      throw gateError;
+    } else {
+      await NewYearAiConsultation.updateOne(
+        { id: sessionId, usageAppliedAt: null },
+        { $set: { usageAppliedAt: new Date() } },
+      );
+    }
     const completed = await NewYearAiConsultation.findOneAndUpdate(
       { id: sessionId },
       {
@@ -1002,7 +1393,15 @@ async function handleStart(request, env) {
             { role: "user", content: normalized.input.topic, createdAt: now },
             { role: "assistant", content: generated.text, createdAt: new Date() },
           ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString(), fortuneData },
+          usageAppliedAt: new Date(),
+          llmMeta: {
+            provider: generated.provider,
+            model: generated.model,
+            completedAt: new Date().toISOString(),
+            deferredUsageApplied: access.deferredUsage === true,
+            billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
+            fortuneData,
+          },
           generationError: null,
         },
       },
@@ -1029,9 +1428,22 @@ async function handleStart(request, env) {
       },
     ).catch(() => {});
     logNewYearAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
+    if (access.deferredUsage) {
+      await callDeferredUsageRoute({
+        request,
+        env,
+        path: "cancel",
+        idempotencyKey,
+        sessionId,
+        code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
+        message: clean(error?.message || error, 500),
+      }).catch((restoreError) => {
+        logNewYearAi("Refund Or Restore", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error: restoreError }), "warn");
+      });
+    }
     logNewYearAi("Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }),
-      restoreMode: "same_request_id_retry_preserves_billing_evidence",
+      restoreMode: access.deferredUsage ? "deferred_usage_cancelled_or_pending" : "same_request_id_retry_preserves_billing_evidence",
     }, "warn");
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }

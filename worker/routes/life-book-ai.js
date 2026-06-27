@@ -32,12 +32,12 @@ const MESSAGES = Object.freeze({
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   paymentRequired: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
-  invalidInput: "인생의 책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 상담 주제를 다시 확인해 주세요.",
+  invalidInput: "인생의 책을 열기 위한 정보가 부족합니다. 생년월일과 성별을 다시 확인해 주세요.",
   birthTimeMissing: "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.",
-  customQuestionRequired: "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요.",
   prepareFailed: "인생의 책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   network: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  resultNotFound: "저장된 인생의 책을 찾을 수 없습니다.",
 });
 
 const FOCUS_AREA_LABELS = Object.freeze({
@@ -49,7 +49,6 @@ const FOCUS_AREA_LABELS = Object.freeze({
   family: "가족과 인연의 장",
   lifePurpose: "삶의 목적과 사명",
   turningPoint: "전환점과 기회의 장",
-  custom: "사용자의 직접 질문",
 });
 
 const LEGACY_TOPIC_TO_FOCUS = Object.freeze({
@@ -68,7 +67,8 @@ const LEGACY_TOPIC_TO_FOCUS = Object.freeze({
 });
 
 const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|chapter|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능/gi;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능/gi;
+const CANONICAL_TEN_GODS = Object.freeze(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]);
 const startLocks = new Map();
 
 function clean(value, maxLength = 0) {
@@ -112,7 +112,6 @@ function maskName(value) {
 function safeLogPayload({ route = "", requestId = "", body = {}, normalized = null, validation = "", access = "", payment = "", env = {}, error = null, providerReason = "" } = {}) {
   const input = normalized?.input || {};
   const birthInfo = input.birthInfo || body.birthInfo || {};
-  const question = clean(input.question ?? body.question ?? body.userQuestion ?? body.message, 1200);
   const diagnostics = getProviderDiagnostics(env);
   return {
     route: clean(route || "/api/life-book-ai", 120),
@@ -127,7 +126,7 @@ function safeLogPayload({ route = "", requestId = "", body = {}, normalized = nu
     gender: clean(input.birthInfo?.gender || birthInfo.gender || body.gender, 20),
     birthDate: maskBirthDate(input.birthInfo?.birthDate || birthInfo.birthDate || body.birthDate),
     calendarType: clean(input.birthInfo?.calendarType || birthInfo.calendarType || body.calendarType, 20),
-    questionLength: question.length,
+    emphasisArea: clean(input.focusArea || body.focusArea || "", 40),
     ...diagnostics,
     providerReason: providerReason || diagnostics.providerReason,
     ...(error ? {
@@ -226,9 +225,8 @@ function normalizeConsultationInput(body = {}) {
   const birthTimeUnknown = body.birthTimeUnknown === true || birthSource.birthTimeUnknown === true;
   const birthTime = birthTimeUnknown ? "" : clean(body.birthTime ?? birthSource.birthTime, 5);
   const calendarType = normalizeCalendarType(body.calendarType ?? birthSource.calendarType);
-  const focusArea = normalizeFocusArea(body.focusArea, body.topic ?? body.questionTopic ?? body.consultationTopic);
-  const topic = clean(body.topic ?? body.questionTopic ?? body.consultationTopic ?? FOCUS_AREA_LABELS[focusArea], 120);
-  const question = clean(body.question ?? body.userQuestion ?? body.message, 1200);
+  const focusArea = normalizeFocusArea(body.focusArea, body.topic ?? body.consultationTopic);
+  const topic = clean(body.topic ?? body.consultationTopic ?? FOCUS_AREA_LABELS[focusArea], 120);
   const locale = clean(body.locale || "ko", 12) || "ko";
 
   if (!serviceType || !consultationType) return { ok: false, message: MESSAGES.invalidInput };
@@ -237,7 +235,6 @@ function normalizeConsultationInput(body = {}) {
   if (!calendarType) return { ok: false, message: MESSAGES.invalidInput };
   if (!birthTimeUnknown && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) return { ok: false, message: MESSAGES.birthTimeMissing };
   if (!focusArea || !FOCUS_AREAS.has(focusArea)) return { ok: false, message: MESSAGES.invalidInput };
-  if (focusArea === "custom" && question.length < 2) return { ok: false, message: MESSAGES.customQuestionRequired };
 
   const normalized = {
     serviceType,
@@ -252,7 +249,6 @@ function normalizeConsultationInput(body = {}) {
     },
     focusArea,
     topic: topic || FOCUS_AREA_LABELS[focusArea],
-    question,
     locale,
   };
   return { ok: true, input: normalized, inputHash: sha256(stableJson(normalized)) };
@@ -656,12 +652,13 @@ async function resolveBillingGateAccess({ env, auth, body }) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 사주명리학과 인생 상담을 바탕으로 사용자의 삶의 흐름을 한 권의 책처럼 해석하는 전문 상담가입니다.",
-    "사용자의 생년월일, 성별, 출생시간, 가능한 사주 계산 데이터를 바탕으로 현재 질문에 맞는 상담을 제공합니다.",
-    "답변은 따뜻하고 깊이 있게 작성합니다.",
+    "당신은 30년 경력의 사주 명리학자이자 삶의 흐름을 한 권의 책처럼 해석하는 운명 상담가입니다.",
+    "사용자의 생년월일, 성별, 출생시간, 계산된 사주 명리 데이터를 바탕으로 챕터형 인생 해석서를 작성합니다.",
+    "질문 답변이 아니라 타고난 사주, 성격, 사랑, 일, 재물, 대운, 세운, 삶의 목적이 이어지는 리포트로 작성합니다.",
     "인생을 단정하거나 겁주지 말고, 사용자가 앞으로 선택할 수 있는 방향을 제시합니다.",
     "“당신은 이렇게 살 운명이다”, “반드시 실패한다”, “무조건 성공한다” 같은 단정적 표현을 쓰지 않습니다.",
-    "각 섹션은 인생의 책의 장처럼 읽히도록 구성합니다.",
+    `십성 이름은 계산 데이터에 있는 이름만 그대로 사용합니다. 허용되는 십성 이름: ${CANONICAL_TEN_GODS.join(", ")}.`,
+    "각 장은 자연스러운 한국어 문장으로 충분히 길고 구체적으로 작성합니다.",
     "사용자가 실제로 오늘 선택할 수 있는 행동 조언을 포함합니다.",
     "PDF, 다운로드, 진행률, job, prompt, system, AI 같은 기술 표현은 결과에 드러내지 않습니다.",
   ].join("\n");
@@ -669,10 +666,10 @@ function buildSystemPrompt() {
 
 function buildFirstPrompt(input, sajuResult) {
   const birth = input.birthInfo || {};
-  const question = input.question || "지금 삶의 전체 흐름과 다음 장을 알고 싶습니다.";
   return [
-    "아래 입력과 계산 가능한 명리 데이터를 바탕으로 첫 인생의 책 상담문을 작성하세요.",
+    "아래 입력과 계산 가능한 명리 데이터를 바탕으로 인생의 책 리포트를 작성하세요.",
     "문체는 전문 명리 상담가가 조용한 서재에서 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
+    "가능하면 아래 JSON 구조만 반환하세요. JSON이 어렵다면 같은 장 구성을 Markdown `##` 제목으로 작성하세요.",
     "",
     "[사용자 입력]",
     `- 이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
@@ -680,52 +677,66 @@ function buildFirstPrompt(input, sajuResult) {
     `- 생년월일: ${birth.birthDate}`,
     `- 출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
     `- 달력 기준: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `- 상담 주제: ${input.topic}`,
-    `- 질문: ${question}`,
+    `- 리포트 강조 영역: ${input.topic}`,
     "",
     "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuResult, null, 2),
     "",
-    "반드시 아래 제목을 Markdown `##` 제목으로 순서대로 작성하세요.",
-    "## 인생의 책이 여는 첫 문장",
-    "## 당신이라는 주인공의 기질",
-    "## 지금 인생에서 반복되는 장면",
-    "## 사랑과 관계의 장",
-    "## 일과 재물의 장",
-    "## 가족과 인연의 장",
-    "## 전환점과 기회의 장",
-    "## 지금 넘겨야 할 오래된 페이지",
-    "## 새롭게 써야 할 다음 장",
-    "## 오늘의 행동 처방",
-    "## 인생의 책 마지막 문장",
-    "",
-    "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
-    "각 장은 2~4문단으로 쓰고, 사용자의 질문과 상담 주제를 중심에 두세요.",
-  ].join("\n");
-}
-
-function buildFollowUpPrompt(consultation, message) {
-  return [
-    "아래 기존 상담 맥락을 이어서 답하세요.",
-    "명리 데이터와 이전 상담의 흐름을 바꾸지 말고, 사용자의 추가 질문에 직접 답하세요.",
-    "",
-    "[명리 요약]",
+    "[반환 JSON 구조]",
     JSON.stringify({
-      birthInfo: consultation.birthInfo,
-      sajuResult: consultation.sajuResult,
-      topic: consultation.topic,
-      llmMeta: consultation.llmMeta?.input || null,
+      title: "인생의 책",
+      subtitle: "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
+      profileSummary: {
+        name: birth.name || "",
+        birthDate: birth.birthDate || "",
+        calendarType: birth.calendarType === "lunar" ? "음력" : "양력",
+        birthTime: birth.birthTimeUnknown ? "모름" : birth.birthTime || "",
+        gender: birth.gender || "",
+      },
+      coreSummary: {
+        oneLine: "",
+        lifeTheme: "",
+        strongestElement: "",
+        neededBalance: "",
+      },
+      chapters: [
+        { chapterNumber: 1, title: "타고난 사주의 원형", summary: "", content: "", advice: [] },
+        { chapterNumber: 2, title: "성격과 내면의 작동 방식", summary: "", content: "", advice: [] },
+        { chapterNumber: 3, title: "재능과 일의 방향", summary: "", content: "", advice: [] },
+        { chapterNumber: 4, title: "사랑과 인연", summary: "", content: "", advice: [] },
+        { chapterNumber: 5, title: "재물과 현실 기반", summary: "", content: "", advice: [] },
+        { chapterNumber: 6, title: "인간관계와 가족의 장", summary: "", content: "", advice: [] },
+        { chapterNumber: 7, title: "건강과 조후의 균형", summary: "", content: "", advice: [] },
+        { chapterNumber: 8, title: "대운으로 보는 인생의 큰 장면", summary: "", content: "", advice: [] },
+        { chapterNumber: 9, title: "가까운 시기의 세운 조언", summary: "", content: "", advice: [] },
+        { chapterNumber: 10, title: "인생의 책 마지막 문장", summary: "", content: "", advice: [] },
+      ],
+      finalMessage: "",
+      pdfSections: [],
     }, null, 2),
     "",
-    "[최근 상담 흐름]",
-    (consultation.messages || []).slice(-8).map((item) => `${item.role}: ${clean(item.content, 1800)}`).join("\n\n"),
-    "",
-    `[사용자의 추가 질문]\n${message}`,
+    "반드시 포함할 분석: 일간 중심 기질, 월지와 계절감, 오행 균형, 십성 구조, 조후, 강점과 약점, 사랑과 인연, 일과 재능, 재물 흐름, 인간관계, 가족과 뿌리, 건강과 생활 리듬, 대운 흐름, 가까운 세운 흐름, 삶의 목적, 지금 실천할 조언.",
+    "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하세요. 없는 십성 이름을 새로 만들거나 바꿔 부르지 마세요.",
+    "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
+    "각 장 content는 최소 2문단 이상으로 쓰고, 챕터마다 관점이 분명해야 합니다.",
   ].join("\n");
 }
 
 function cleanForbiddenResult(value) {
   return clean(value, 60000).replace(FORBIDDEN_RESULT_PATTERN, "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function extractReportJson(content) {
+  const raw = clean(content, 60000).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(raw.slice(start, end + 1));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 function hasForbiddenResultTerms(value) {
@@ -782,6 +793,8 @@ async function generateConsultationText(env, prompt, options = {}) {
 }
 
 function extractTitle(content, fallbackName = "") {
+  const report = extractReportJson(content);
+  if (report?.title) return clean(report.title, 100);
   const lines = clean(content).split(/\n+/).map((line) => line.replace(/^[-*#\s]+/, "").trim()).filter(Boolean);
   const firstLine = lines[0] || "";
   const title = firstLine
@@ -792,6 +805,13 @@ function extractTitle(content, fallbackName = "") {
 }
 
 function extractKeywords(content, topic) {
+  const report = extractReportJson(content);
+  if (Array.isArray(report?.chapters)) {
+    const chapterWords = report.chapters.map((chapter) => clean(chapter?.title, 40)).filter(Boolean);
+    const picked = [topic, ...chapterWords].filter(Boolean).slice(0, 3);
+    while (picked.length < 3) picked.push(["자기 이해", "전환점", "오늘의 행동"][picked.length]);
+    return Array.from(new Set(picked)).slice(0, 3);
+  }
   const candidates = [
     topic,
     "전환점",
@@ -1021,11 +1041,18 @@ function publicSession(doc) {
     ok: true,
     sessionId: clean(doc.id),
     consultationId: clean(doc.id),
+    idempotencyKey: clean(doc.idempotencyKey),
     accessType: clean(doc.accessType),
     status: clean(doc.status),
     title: clean(doc.title || ""),
+    topic: clean(doc.topic || ""),
+    birthInfo: doc.birthInfo || null,
     keywords: Array.isArray(doc.keywords) ? doc.keywords : [],
     sajuResult: doc.sajuResult || null,
+    reportJson: doc.llmMeta?.reportJson || null,
+    generationError: doc.generationError || null,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
         role: message.role,
@@ -1150,6 +1177,46 @@ function buildLimitedSajuResult(error, birthInfo = {}) {
   };
 }
 
+async function handleResult(request, env, pathId = "") {
+  const url = new URL(request.url);
+  const attemptId = clean(url.searchParams.get("attemptId") || url.searchParams.get("idempotencyKey"), 180);
+  const sessionId = clean(pathId || url.searchParams.get("sessionId") || url.searchParams.get("consultationId"), 120);
+  if (!attemptId && !sessionId) return invalidInput(MESSAGES.resultNotFound, 404);
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+
+  await connectDb(env);
+  const clauses = [];
+  if (attemptId) clauses.push({ idempotencyKey: attemptId }, { id: attemptId });
+  if (sessionId) clauses.push({ id: sessionId });
+
+  const consultation = await LifeBookAiConsultation.findOne({
+    userId: clean(auth.userId),
+    $or: clauses,
+  }).lean();
+
+  if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
+  if (consultation.status === "generating") {
+    return json({ ...publicSession(consultation), message: "인생의 책을 완성하는 중입니다." }, { status: 202 });
+  }
+  if (consultation.status === "generation_failed") {
+    return json({
+      ...publicSession(consultation),
+      ok: false,
+      reason: "LLM_ERROR",
+      message: MESSAGES.llmFailed,
+    }, { status: 503 });
+  }
+
+  const payload = publicSession(consultation);
+  const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
+  if (!assistantContent.trim()) {
+    return json({ ok: false, reason: "RESULT_EMPTY", message: MESSAGES.llmFailed }, { status: 409 });
+  }
+  return json(payload);
+}
+
 async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   logLifeBookAi("LLM Generate Start", { route });
   const body = await readJson(request);
@@ -1229,7 +1296,6 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
           serviceType: normalized.input.serviceType,
           consultationType: normalized.input.consultationType,
           focusArea: normalized.input.focusArea,
-          questionLength: normalized.input.question.length,
           locale: normalized.input.locale,
         },
       },
@@ -1256,7 +1322,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
     try {
       const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env });
       const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
-        minLength: 360,
+        minLength: 1800,
         maxOutputTokens: 7600,
         logContext,
       });
@@ -1274,6 +1340,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       }
       const title = extractTitle(generated.text, normalized.input.birthInfo.name);
       const keywords = extractKeywords(generated.text, normalized.input.topic);
+      const reportJson = extractReportJson(generated.text);
       const completed = await LifeBookAiConsultation.findOneAndUpdate(
         { id: sessionId },
         {
@@ -1282,18 +1349,18 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
             title,
             keywords,
             messages: [
-              { role: "user", content: normalized.input.question || normalized.input.topic, createdAt: now },
+              { role: "user", content: `리포트 강조 영역: ${normalized.input.topic}`, createdAt: now },
               { role: "assistant", content: generated.text, createdAt: new Date() },
             ],
             llmMeta: {
               provider: generated.provider,
               model: generated.model,
+              reportJson,
               completedAt: new Date().toISOString(),
               input: {
                 serviceType: normalized.input.serviceType,
                 consultationType: normalized.input.consultationType,
                 focusArea: normalized.input.focusArea,
-                questionLength: normalized.input.question.length,
                 locale: normalized.input.locale,
               },
             },
@@ -1362,69 +1429,20 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   return pending;
 }
 
-async function handleMessage(request, env) {
-  const route = "/api/life-book-ai/message";
-  const body = await readJson(request);
-  const sessionId = clean(body?.sessionId || body?.consultationId, 120);
-  const message = clean(body?.message || body?.question, 1600);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  if (!sessionId || message.length < 2) return invalidInput(MESSAGES.invalidInput);
-
-  const auth = await getOptionalUserFromRequest(request, env);
-  if (!auth) return loginRequired();
-
-  await connectDb(env);
-  const consultation = await LifeBookAiConsultation.findOne({
-    id: sessionId,
-    userId: clean(auth.userId),
-    status: "completed",
-  }).lean();
-  if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾을 수 없습니다." }, { status: 404 });
-
-  const duplicate = idempotencyKey
-    ? (consultation.messages || []).find((item) => clean(item.idempotencyKey) === idempotencyKey && item.role === "assistant")
-    : null;
-  if (duplicate) return json({ ...publicSession(consultation), message: duplicate });
-
-  try {
-    const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
-      minLength: 90,
-      maxOutputTokens: 4096,
-      temperature: 0.72,
-      logContext: safeLogPayload({ route, requestId: idempotencyKey, body, validation: "follow_up", access: "existing_session", env }),
-    });
-    const userMessage = { role: "user", content: message, createdAt: new Date(), idempotencyKey };
-    const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date(), idempotencyKey };
-    const updated = await LifeBookAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: clean(auth.userId) },
-      {
-        $push: { messages: { $each: [userMessage, assistantMessage] } },
-        $set: {
-          llmMeta: { ...consultation.llmMeta, provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-        },
-      },
-      { new: true },
-    ).lean();
-    return json({ ...publicSession(updated), message: assistantMessage });
-  } catch (error) {
-    logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "follow_up", env, error }), "error");
-    return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
-  }
-}
-
 export async function handleLifeBookAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/life-book-ai");
   const route = `/api/life-book-ai${path}`;
   try {
     logLifeBookAi("Route Matched", { route, method });
+    if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/life-book-ai/prepare" : "/api/life-book-ai/ensure-access");
     }
     if (method === "POST" && (path === "/generate" || path === "/start")) {
       return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
     }
-    if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

@@ -17,7 +17,7 @@ const ACCESS_TOKEN_TYPE = "karma-destiny-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "운명의 업 AI 상담";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const LLM_ERROR_MESSAGE = "상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const INVALID_INPUT_MESSAGE = "생년월일, 출생시간, 출생지 정보를 다시 확인해 주세요.";
@@ -62,7 +62,7 @@ const VALID_TOPICS = new Set([
   "현재 고민 상담",
 ]);
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b/gi;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|이 결과는|분석 결과는/gi;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -340,17 +340,16 @@ async function loadBillingUser(userId) {
     .lean();
 }
 
-function hasMonthlyCredit(user = {}, membershipCreditCost = 0) {
-  const balance = Math.max(0, Math.floor(Number(user?.profileSubscription?.membershipCreditBalance || user?.profileSubscription?.monthlyStoneBalance || 0)));
-  return membershipCreditCost > 0 && balance >= membershipCreditCost;
-}
-
 function normalizeAccessType(value) {
   const raw = clean(value).toLowerCase();
-  if (["membership_credit", "monthly_credit", "monthly", "subscription"].includes(raw)) return "subscription";
+  if (["membership_credit", "monthly_credit", "monthly", "subscription"].includes(raw)) return "monthly_credit";
   if (["membership_pass", "family_pass", "pass", "usage_pass"].includes(raw)) return "pass";
   if (["admin"].includes(raw)) return "admin";
   return "paid";
+}
+
+function isMonthlyCreditAccess(accessType) {
+  return ["membership_credit", "monthly_credit", "monthly", "subscription"].includes(clean(accessType).toLowerCase());
 }
 
 function readBillingContext(body = {}) {
@@ -448,7 +447,7 @@ function deferredTokenClauses(tokens = []) {
 
 function normalizeDeferredAccessType(value) {
   const raw = clean(value).toLowerCase();
-  if (["monthly", "membership_credit", "monthly_credit"].includes(raw)) return "subscription";
+  if (["monthly", "membership_credit", "monthly_credit"].includes(raw)) return "monthly_credit";
   if (["pass", "family", "membership_pass", "family_pass"].includes(raw)) return "pass";
   return "paid";
 }
@@ -495,7 +494,7 @@ async function findBillingGateEvidence({ userId, idempotencyKey, body = {} }) {
     if (ledger) {
       return {
         ok: true,
-        accessType: "subscription",
+        accessType: "monthly_credit",
         paymentId: clean(ledger._id, 160),
         billingRequestId: clean(ledger?.metadata?.requestId || idempotencyKey, 180),
         usageAlreadyApplied: true,
@@ -577,10 +576,6 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "pass", paymentId: "", usageAlreadyApplied: false };
   }
 
-  if (hasMonthlyCredit(user, pricing.membershipCreditCost)) {
-    return { ok: true, accessType: "subscription", paymentId: "", usageAlreadyApplied: false };
-  }
-
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
@@ -624,25 +619,45 @@ function buildBillingGatePayload(pricing, idempotencyKey) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 사주명리학, 서양 점성술, 베다 점성술의 상징을 통합해 인생의 반복 패턴과 성장 과제를 상담하는 전문 상담가입니다.",
+    "당신은 운명의 답장을 작성하는 AI 운세 마스터입니다.",
+    "사주명리학, 서양 점성술, 베다 점성술 세 체계의 핵심 강점만을 통합하여 한 편의 완성된 운명 서사를 작성합니다.",
     "",
-    "사용자의 생년월일, 성별, 출생시간, 가능한 경우 출생지와 운명학 계산 데이터를 바탕으로 현재 질문에 맞는 상담을 제공합니다.",
+    "세 체계의 역할 분담:",
+    "사주명리학은 일간의 기질, 오행 구조, 대운 흐름, 육친 관계, 강약 오행에서 도출되는 현실적 처방을 맡습니다.",
+    "서양 점성술은 태양궁의 내면 욕구, 달 별자리의 감정 반응, 상승궁의 세계 대면 방식, 카이런의 상처와 치유 서사를 맡습니다.",
+    "베다 점성술은 라시와 나크샤트라의 영혼 본질, 다샤 행성 주기, 라후-케투 축의 카르마 과제, 다르마와 아르타 하우스의 소명을 맡습니다.",
     "",
-    "반드시 지켜야 할 원칙:",
-    "1. ‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
-    "2. 신비롭지만 현실적인 문장으로 작성합니다.",
-    "3. 불안감을 자극하거나 죄책감을 주는 표현을 피합니다.",
-    "4. 전생, 저주, 벌, 운명 확정 같은 표현을 사실처럼 단정하지 않습니다.",
-    "5. 무조건 성공한다, 반드시 실패한다, 당신은 이렇게 살 운명이다 같은 단정적 표현을 쓰지 않습니다.",
-    "6. 사용자가 실제로 오늘 선택할 수 있는 행동 조언을 제시합니다.",
-    "7. 계산 결과를 단순 나열하지 말고 공통적으로 반복되는 패턴을 종합해 해석합니다.",
-    "8. 사주에서는 원국, 일간, 오행 분포, 십성 구조, 강약, 형충합해파 중 안전하게 계산 가능한 항목만 참고합니다.",
-    "9. 서양 점성술에서는 태양, 달, 상승궁, 주요 행성, 하우스와 관계/직업/감정 포인트를 참고하되 출생시간을 모르면 상승궁과 하우스를 단정하지 않습니다.",
-    "10. 베다 점성술에서는 라그나, 달, 나크샤트라, 라후와 케투, 가능한 다샤 흐름을 참고하되 계산 불가 항목은 단정하지 않습니다.",
-    "11. 세 시스템의 결과가 다르게 보이면 억지로 맞추지 말고 겉으로 드러나는 방식과 내면의 작동 방식이 다르다고 조화롭게 설명합니다.",
-    "12. PDF, 챕터, chapter, job, progress, 프롬프트, 시스템이라는 표현을 결과에 노출하지 않습니다.",
-    "13. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
-    "14. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+    "출력 구조를 엄수합니다. 아래 7개 섹션을 순서대로 작성하고, 각 섹션은 300~500자의 완성된 산문으로 씁니다. 절대로 불릿 리스트나 단순 나열을 사용하지 않습니다.",
+    "## ① 命 — 당신이라는 별의 본질",
+    "사주 일간과 태양 별자리, 나크샤트라를 통합하여 이 사람의 본질 에너지를 하나의 통일된 은유로 묘사합니다. 반드시 “당신은 ~와 같은 존재입니다”로 시작합니다.",
+    "## ② 業 — 반복되는 삶의 문양",
+    "사주 비겁/식상 구조, 달의 별자리 감정 패턴, 라후-케투 카르마 축을 통합하여 반복되는 관계·감정·선택 패턴을 서술합니다. 반드시 “삶은 당신에게 반복해서 ~라는 장면을 보여줍니다”로 시작합니다.",
+    "## ③ 時 — 지금 이 계절의 의미",
+    "현재 대운, 서양 점성술 트랜짓, 베다 다샤 주기를 통합하여 지금 이 시기가 인생에서 어떤 국면인지 계절이나 자연 현상의 은유로 서술합니다.",
+    "## ④ 情 — 관계에서 흐르는 강물",
+    "육친 구조, 금성·화성 위치, 베다 7하우스를 통합하여 관계에서 반복되는 감정 구조와 지금 필요한 전환을 서술합니다.",
+    "## ⑤ 財 — 재능과 물질이 만나는 지점",
+    "사주 재성·식상 구조, 서양 2하우스·MC, 베다 아르타 하우스를 통합하여 돈과 재능에서 반복되는 선택 흐름과 지금 시기의 기회를 서술합니다.",
+    "## ⑥ 課 — 이 생의 핵심 과제",
+    "사주 용신·희신, 카이런, 라후의 방향을 통합하여 이 생에서 영혼이 배워야 할 가장 핵심적인 한 가지를 선명하게 서술합니다. 반드시 “당신의 운명은 ~를 배우도록 설계되어 있습니다”로 시작합니다.",
+    "## ⑦ 箋 — 오늘을 위한 운명의 처방",
+    "앞의 분석을 바탕으로 지금 당장 실천 가능한 구체적인 방향을 제시합니다. 추상적 조언이 아니라 “오늘, ~를 해보세요”처럼 구체적으로 작성합니다. 마지막 문장은 사용자의 이름이나 닉네임을 불러 따뜻하게 마무리합니다.",
+    "",
+    "작성 금지 사항:",
+    "‘당신의 사주를 보면’, ‘점성술에 따르면’ 등 출처 언급을 금지합니다.",
+    "동일한 내용을 다른 섹션에서 반복하지 않습니다.",
+    "‘~할 수 있습니다’, ‘~일 것입니다’의 반복적 어미를 피합니다.",
+    "불릿 포인트, 숫자 나열 형식, 7개 섹션 외의 추가 내용을 금지합니다.",
+    "마지막에 ‘더 궁금한 점이 있으시면’ 같은 추가 질문 유도를 금지합니다.",
+    "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템, AI, 기능, 결과, 분석 결과 같은 작업 표현을 결과에 노출하지 않습니다.",
+    "",
+    "언어와 문체:",
+    "한국어 격식체로 씁니다.",
+    "운명을 서술하되 점술사가 아니라 삶을 오래 관찰한 현인의 목소리로 씁니다.",
+    "각 섹션은 서로 다른 은유와 이미지를 사용합니다.",
+    "전체 분량은 2,500~3,500자로 맞춥니다.",
+    "‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
+    "불안감이나 죄책감을 자극하지 않고, 운명 확정 표현을 사실처럼 단정하지 않습니다.",
   ].join("\n");
 }
 
@@ -664,18 +679,9 @@ function buildFirstPrompt(input, integratedResult) {
     "[서버 계산 데이터]",
     JSON.stringify(integratedResult),
     "",
-    "아래 제목을 그대로 사용해 실제 상담처럼 자연스럽게 답변하세요.",
-    "1. 운명의 업이 말하는 핵심 결론",
-    "2. 당신에게 반복되는 인생 패턴",
-    "3. 관계에서 되풀이되는 감정 구조",
-    "4. 일과 돈에서 반복되는 선택 흐름",
-    "5. 사주가 보여주는 핵심 과제",
-    "6. 별자리가 비추는 내면의 방향",
-    "7. 베다점이 말하는 영혼의 리듬",
-    "8. 지금 끊어내야 할 습관",
-    "9. 새롭게 키워야 할 힘",
-    "10. 오늘의 카르마 행동 처방",
-    "11. 운명의 마지막 조언",
+    "위 계산 데이터를 바탕으로 7개 섹션만 작성하세요.",
+    "각 섹션 제목은 지정된 한자와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
+    "사용자의 선택 주제와 질문은 전체 서사의 중심 감정으로 녹이고, 별도 문답 형식으로 나누지 마세요.",
   ].join("\n");
 }
 
@@ -780,45 +786,8 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
   const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
 
-  if (accessType === "subscription") {
-    const sourceId = `${SERVICE_KEY}:${sessionId}`;
-    const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
-    if (!ledger) {
-      const beforeUser = await User.findById(userId).select("profileSubscription.membershipCreditBalance").lean();
-      const beforeBalance = Math.max(0, Math.floor(Number(beforeUser?.profileSubscription?.membershipCreditBalance || 0)));
-      const updated = await User.findOneAndUpdate(
-        { _id: userId, "profileSubscription.membershipCreditBalance": { $gte: pricing.membershipCreditCost } },
-        {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": -pricing.membershipCreditCost,
-            "profileSubscription.membershipCreditUsed": pricing.membershipCreditCost,
-          },
-        },
-        { new: true },
-      ).select("profileSubscription.membershipCreditBalance").lean();
-      if (!updated) {
-        const error = new Error("membership credit balance is insufficient");
-        error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
-        throw error;
-      }
-      await MonthlyCreditLedger.create({
-        userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        amount: pricing.membershipCreditCost,
-        beforeBalance,
-        afterBalance: Math.max(0, Math.floor(Number(updated?.profileSubscription?.membershipCreditBalance || 0))),
-        reason: ORDER_NAME,
-        sourceId,
-        serviceKey: SERVICE_KEY,
-        metadata: { featureKey: FEATURE_KEY, sessionId },
-      }).catch((error) => {
-        if (error?.code !== 11000) throw error;
-      });
-    }
-  }
-
   if (accessType === "pass") {
-    await User.updateOne(
+    const passUpdate = await User.updateOne(
       { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
       {
         $inc: {
@@ -826,7 +795,12 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
           "profileSubscription.passUsedCount": 1,
         },
       },
-    ).catch(() => {});
+    );
+    if (!passUpdate?.modifiedCount) {
+      const error = new Error("membership pass balance is insufficient");
+      error.code = "MEMBERSHIP_PASS_CONSUME_FAILED";
+      throw error;
+    }
   }
 
   await KarmaDestinyAiConsultation.updateOne(
@@ -903,6 +877,7 @@ async function handleEnsureAccess(request, env) {
         paymentId: access.paymentId || "",
         billingRequestId: access.billingRequestId || "",
         usageAlreadyApplied: access.usageAlreadyApplied === true,
+        deferredUsage: access.deferredUsage === true,
       }),
       accessType: access.accessType,
     });
@@ -930,6 +905,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       paymentId: clean(payload.paymentId, 160),
       billingRequestId: clean(payload.billingRequestId, 180),
       usageAlreadyApplied: payload.usageAlreadyApplied === true,
+      deferredUsage: payload.deferredUsage === true,
     };
   }
 
@@ -939,9 +915,12 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     usageAlreadyApplied: billing.usageAlreadyApplied === true,
   };
 
-  const user = await loadBillingUser(auth.userId);
-  if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
+  return {
+    ok: false,
+    reason: "PAYMENT_REQUIRED",
+    message: "상담 생성 전 결제 확인이 필요합니다.",
+    code: "START_ACCESS_CONFIRMATION_REQUIRED",
+  };
 }
 
 function cloneBillingHeaders(request) {
@@ -1071,8 +1050,12 @@ async function handleStart(request, env) {
     });
     if (access.deferredUsage) {
       await callDeferredUsageRoute({ request, env, path: "apply", idempotencyKey, sessionId });
-    } else if (!access.usageAlreadyApplied && ["pass", "subscription"].includes(access.accessType)) {
+    } else if (!access.usageAlreadyApplied && access.accessType === "pass") {
       await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing });
+    } else if (!access.usageAlreadyApplied && isMonthlyCreditAccess(access.accessType)) {
+      const gateError = new Error("monthly credit must be confirmed by common billing gate");
+      gateError.code = "MONTHLY_CREDIT_GATE_REQUIRED";
+      throw gateError;
     } else {
       await KarmaDestinyAiConsultation.updateOne(
         { id: sessionId, usageAppliedAt: null },
@@ -1223,6 +1206,7 @@ export const __karmaDestinyAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
   normalizeConsultationInput,
+  resolveStartAccess,
   buildFirstPrompt,
   buildSystemPrompt,
   cleanForbiddenResult,

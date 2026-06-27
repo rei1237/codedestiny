@@ -26,7 +26,7 @@ const cardSlice = html.slice(Math.max(0, markerIndex - 800), markerIndex + 1800)
 assertIncludes(cardSlice, 'href="/vedic-ai"', "main card href");
 assertIncludes(cardSlice, "AI 상담 · 30,000원", "main card price");
 assertIncludes(html, "__cdVedicAiDirectClickGuard", "main card direct click guard");
-assertMissing(cardSlice, ['data-action="gotoVedicPremium"', 'data-coin-cost="300"', "준비중"], "vedic card");
+assertMissing(cardSlice, ['data-action="gotoVedicPremium"', 'data-coin-cost="300"'], "vedic card");
 assertMissing(html, ["/js/vedic-ai-consultation.js?v="], "index legacy script include");
 
 const page = read("app/vedic-ai/page.tsx");

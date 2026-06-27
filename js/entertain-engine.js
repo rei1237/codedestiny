@@ -1526,6 +1526,7 @@
   function renderRpgSection(root, state, p) {
     if (!root) return;
     ensureRpgUiStyles();
+    var wasVisible = !!(root.classList && root.classList.contains('is-visible'));
     var html = '';
     try {
       html = buildRpgTemplate(state || {}, p || {});
@@ -1537,6 +1538,7 @@
     var shell = holder.firstElementChild;
     if (shell && shell.id === 'entRpgSection') {
       root.className = shell.className;
+      if (wasVisible && root.classList) root.classList.add('is-visible');
       root.innerHTML = shell.innerHTML;
       root.setAttribute('data-marker', shell.getAttribute('data-marker') || 'rpg-character-sheet-stable-bottom-v20260617');
       root.setAttribute('data-dayel', shell.getAttribute('data-dayel') || '');

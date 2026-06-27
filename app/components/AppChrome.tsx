@@ -23,6 +23,7 @@ const CHROMELESS_ROUTES = [
   "/ziwei/chart",
   "/fortune/prompt-hub",
   "/maya",
+  "/fortune-tea-house",
   "/new-year-ai-consultation",
   "/life-book-ai",
   "/love-secret-ai",

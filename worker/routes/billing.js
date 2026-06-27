@@ -830,6 +830,66 @@ function buildPaidContentAccessDecision({
   };
 }
 
+function buildTemporaryUnavailableAccessDecision(pricing, profileSubscription = null, extras = {}) {
+  return {
+    ...buildPaidContentAccessDecision({
+      reason: "temporary_unavailable",
+      priceCoin: resolvePricingCoinCost(pricing),
+      paymentOptions: buildPassPaymentDecisionFallback(pricing, profileSubscription || {
+        membershipCreditBalance: 0,
+      }),
+    }),
+    degraded: true,
+    temporaryUnavailable: true,
+    scope: String(extras?.scope || "").trim() || undefined,
+    errorCode: String(extras?.errorCode || "PASS_STATUS_TEMPORARILY_UNAVAILABLE").trim(),
+    errorDetails: extras?.errorDetails || null,
+  };
+}
+
+function isTemporaryUnavailableAccessDecision(decision) {
+  return Boolean(decision?.temporaryUnavailable) || String(decision?.reason || "").trim().toLowerCase() === "temporary_unavailable";
+}
+
+function createPassLookupUnavailableMarker(scope, error) {
+  return {
+    __passLookupUnavailable: true,
+    scope: String(scope || "").trim() || "unknown",
+    error: error || null,
+  };
+}
+
+function isPassLookupUnavailableMarker(value) {
+  return Boolean(value && typeof value === "object" && value.__passLookupUnavailable === true);
+}
+
+function buildPassStatusTemporarilyUnavailableFailure(pricing, options = {}) {
+  const profileSubscription = options?.profileSubscription && typeof options.profileSubscription === "object"
+    ? options.profileSubscription
+    : null;
+  const paymentOptions = options?.paymentOptions && typeof options.paymentOptions === "object"
+    ? options.paymentOptions
+    : buildPassPaymentDecisionFallback(pricing, profileSubscription);
+  const detail = {
+    pricing,
+    reason: "temporary_unavailable",
+    degraded: true,
+    paymentOptions,
+    accessGrant: null,
+    balance: null,
+    ...(options?.profileId ? { profileId: options.profileId } : {}),
+    ...(options?.scope ? { scope: options.scope } : {}),
+  };
+  return failure(
+    503,
+    "PASS_STATUS_TEMPORARILY_UNAVAILABLE",
+    "이용권 상태를 일시적으로 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    undefined,
+    detail,
+    options?.errorDetails || null,
+  );
+}
+
 function resolveProfileCardActionType(value) {
   const text = String(value || "").trim().toLowerCase();
   if (text.includes("delete") || text.includes("remove")) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
@@ -993,12 +1053,14 @@ async function resolvePaidContentAccess(env, {
     }), priceCoin);
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
-      return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
-        reason: "payment_required",
-        shouldOpenPaymentSelector: true,
-        priceCoin,
-        paymentOptions: buildPassPaymentDecisionFallback(pricing, { membershipCreditBalance: 0 }),
-      }), priceCoin);
+      return buildTemporaryUnavailableAccessDecision(pricing, null, {
+        scope: "resolve_paid_content_access",
+        errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
+          featureKey,
+          requestId,
+          profileId,
+        }),
+      });
     }
 
     if (String(error?.code || "") === "MISSING_PROFILE_ID") {
@@ -3533,7 +3595,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     if (!isDatabaseUnavailableError(error)) {
       throw error;
     }
-    return "";
+    return createPassLookupUnavailableMarker("profile_lookup", error);
   }) : Promise.resolve("");
   const subscriptionPassPromise = authCheck?.auth?.userId ? withDbAccessTimeout(
     getMembershipPassForBillingRequest(
@@ -3547,12 +3609,27 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     if (!isDatabaseUnavailableError(error)) {
       throw error;
     }
-    return null;
+    return createPassLookupUnavailableMarker("membership_pass_lookup", error);
   }) : Promise.resolve(null);
-  const [profileId, subscriptionPassForDecision] = await Promise.all([
+  const [profileLookupResult, subscriptionPassLookupResult] = await Promise.all([
     profileResolvePromise,
     subscriptionPassPromise,
   ]);
+  const lookupUnavailable = isPassLookupUnavailableMarker(profileLookupResult)
+    ? profileLookupResult
+    : (isPassLookupUnavailableMarker(subscriptionPassLookupResult) ? subscriptionPassLookupResult : null);
+  if (lookupUnavailable) {
+    return buildPassStatusTemporarilyUnavailableFailure(pricing, {
+      scope: lookupUnavailable.scope,
+      errorDetails: buildBillingErrorDetails("coin-gate-pass-lookup", lookupUnavailable.error, {
+        featureKey: String(pricing?.featureKey || ""),
+        requestId,
+        paymentMode: requestedPaymentMode || undefined,
+      }),
+    });
+  }
+  const profileId = profileLookupResult;
+  const subscriptionPassForDecision = subscriptionPassLookupResult;
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
   const featurePolicyDecision = buildPassPaymentDecision(
     subscriptionPassForDecision?.entitlement,
@@ -3624,6 +3701,15 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       allowPassAutoUnlock: false,
       subscriptionPass: subscriptionPassForDecision,
       body: scopedBody,
+    });
+  }
+  if (isTemporaryUnavailableAccessDecision(accessDecision)) {
+    return buildPassStatusTemporarilyUnavailableFailure(pricing, {
+      profileId: profileId || undefined,
+      profileSubscription: subscriptionPassForDecision?.profileSubscription || null,
+      paymentOptions: accessDecision.paymentOptions || undefined,
+      scope: accessDecision.scope || "coin_gate_access_decision",
+      errorDetails: accessDecision.errorDetails || null,
     });
   }
 
@@ -5715,6 +5801,15 @@ async function handleUnlockStatus(request, env) {
       actionType: String(url.searchParams.get("actionType") || "").trim(),
     },
   });
+  if (isTemporaryUnavailableAccessDecision(accessDecision)) {
+    return buildPassStatusTemporarilyUnavailableFailure(pricing, {
+      profileId: accessProfileId || undefined,
+      profileSubscription: subscriptionPass?.profileSubscription || null,
+      paymentOptions: accessDecision.paymentOptions || undefined,
+      scope: accessDecision.scope || "unlock_status_access_decision",
+      errorDetails: accessDecision.errorDetails || null,
+    });
+  }
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
   const passStatusCovered = paymentDecision.canUseByPass === true;
   const responseAccessDecision = passStatusCovered && !accessDecision.accessGranted

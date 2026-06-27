@@ -18,18 +18,25 @@ export const LOVE_SECRET_RELATIONSHIP_STATUSES = Object.freeze([
 
 export const LOVE_SECRET_TOPICS = Object.freeze([
   "전체 연애 흐름",
+  "현재 관계가 어디로 흘러갈지",
   "상대방 마음",
+  "상대의 마음과 거리감",
   "연락 타이밍",
   "고백 타이밍",
+  "연락/고백/대화 타이밍",
   "재회 가능성",
   "관계 회복 전략",
   "장기 연애 유지법",
   "결혼 가능성",
+  "결혼/장기 관계 가능성",
   "갈등 원인",
   "나의 연애 패턴",
+  "내가 바꿔야 할 연애 패턴",
   "상대방과의 궁합",
+  "속궁합과 친밀감 리듬",
   "지금 밀어야 할지 기다려야 할지",
   "이 관계를 계속해도 되는지",
+  "직접 입력",
 ]);
 
 const ELEMENT_LABELS = Object.freeze({

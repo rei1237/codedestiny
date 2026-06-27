@@ -102,6 +102,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/vedic/guide",   changeFrequency: "monthly", priority: 0.89 },
   { path: "/mayan-calendar/guide", changeFrequency: "monthly", priority: 0.88 },
   { path: "/music/guide",   changeFrequency: "monthly", priority: 0.86 },
+  { path: "/fortune-tea-house", changeFrequency: "weekly", priority: 0.86 },
   { path: "/yeon-star-hug", changeFrequency: "weekly", priority: 0.84 },
   { path: "/dream",         changeFrequency: "weekly", priority: 0.94 },
   { path: "/love",          changeFrequency: "weekly", priority: 0.94 },

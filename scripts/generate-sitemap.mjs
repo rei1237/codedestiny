@@ -82,6 +82,7 @@ const coreRoutes = [
   { path: "/animal/mbti", changefreq: "weekly", priority: 0.87 },
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
   { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
+  { path: "/fortune-tea-house", changefreq: "weekly", priority: 0.86 },
   { path: "/about", changefreq: "monthly", priority: 0.9 },
   { path: "/faq", changefreq: "monthly", priority: 0.88 },
   { path: "/methodology", changefreq: "monthly", priority: 0.86 },

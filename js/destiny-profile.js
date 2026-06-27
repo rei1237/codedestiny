@@ -2545,6 +2545,13 @@
       if (opts.sessionId) checkoutPayload.sessionId = opts.sessionId;
       if (opts.reportSessionId || opts.sessionId) checkoutPayload.reportSessionId = opts.reportSessionId || opts.sessionId;
       if (opts.purchaseId) checkoutPayload.purchaseId = opts.purchaseId;
+      if (opts.profileId) checkoutPayload.profileId = opts.profileId;
+      if (opts.selectedProfileId || opts.profileId) checkoutPayload.selectedProfileId = opts.selectedProfileId || opts.profileId;
+      if (opts.contentKey) checkoutPayload.contentKey = opts.contentKey;
+      if (opts.contentId || opts.contentKey) checkoutPayload.contentId = opts.contentId || opts.contentKey;
+      if (opts.targetYear !== undefined && opts.targetYear !== null) checkoutPayload.targetYear = opts.targetYear;
+      if (opts.serviceKey) checkoutPayload.serviceKey = opts.serviceKey;
+      if (opts.serviceId || opts.serviceKey) checkoutPayload.serviceId = opts.serviceId || opts.serviceKey;
 
       var checkoutRes = await _dpPaymentFetchJson('/api/billing/checkout', {
         method: 'POST',
@@ -2677,6 +2684,9 @@
           paymentType: 'digital_content',
           featureKey: String(order.featureKey || checkoutPayload.featureKey || ''),
           requestId: String(checkoutPayload.requestId || ''),
+          profileId: String(checkoutPayload.profileId || checkoutPayload.selectedProfileId || ''),
+          contentKey: String(checkoutPayload.contentKey || checkoutPayload.contentId || ''),
+          targetYear: String(checkoutPayload.targetYear || ''),
         },
       };
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];

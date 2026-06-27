@@ -42,6 +42,13 @@ const PEXELS_SECTION_QUERIES = {
 const PEXELS_IMAGE_ROUTE_SECTIONS = new Set(Object.keys(PEXELS_SECTION_IMAGES));
 const PEXELS_IMAGE_ROUTE_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const PEXELS_KEYWORDS_RE = /(cosmic|cosmos|star|stars|nebula|galaxy|moon|mystic|mystical|astrology|zodiac)/i;
+const GEOCODE_FALLBACK_SEOUL = {
+  lat: 37.5665,
+  lng: 126.978,
+  name: "서울 (기본값)",
+  timezone: "Asia/Seoul",
+  fallback: true,
+};
 
 function getPexelsSection(value) {
   const key = String(value || "default").trim().toLowerCase();
@@ -135,6 +142,61 @@ async function handlePexelsImageRequest(request, env) {
     return jsonResponse(request, env, image);
   } catch {
     return jsonResponse(request, env, { ...fallback, status: "network-error" });
+  }
+}
+
+function cleanGeocodeText(value, maxLength = 0) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function validGeocodeCoordinates(lat, lng) {
+  return Number.isFinite(lat)
+    && Number.isFinite(lng)
+    && lat >= -90
+    && lat <= 90
+    && lng >= -180
+    && lng <= 180;
+}
+
+function guessTimezoneFromLongitude(lng) {
+  const offset = Math.max(-12, Math.min(14, Math.round(lng / 15)));
+  if (offset === 9) return "Asia/Seoul";
+  return `UTC${offset >= 0 ? "+" : ""}${offset}`;
+}
+
+async function handleGeocodeRequest(request, env) {
+  const url = new URL(request.url);
+  const place = cleanGeocodeText(url.searchParams.get("place"), 120);
+  if (!place) return jsonResponse(request, env, { error: "NO_PLACE" }, { status: 400 });
+
+  try {
+    const geocodeUrl = new URL("https://nominatim.openstreetmap.org/search");
+    geocodeUrl.searchParams.set("q", place);
+    geocodeUrl.searchParams.set("format", "json");
+    geocodeUrl.searchParams.set("limit", "1");
+    geocodeUrl.searchParams.set("accept-language", "ko,en");
+
+    const response = await fetch(geocodeUrl.toString(), {
+      headers: { "User-Agent": "CodeDestiny/1.0 (geocode)" },
+    });
+    if (!response.ok) return jsonResponse(request, env, GEOCODE_FALLBACK_SEOUL);
+
+    const payload = await response.json().catch(() => null);
+    const first = Array.isArray(payload) ? payload[0] : null;
+    const lat = Number(first?.lat);
+    const lng = Number(first?.lon);
+    if (!first || !validGeocodeCoordinates(lat, lng)) return jsonResponse(request, env, GEOCODE_FALLBACK_SEOUL);
+
+    return jsonResponse(request, env, {
+      lat,
+      lng,
+      name: cleanGeocodeText(first.display_name || place, 180),
+      timezone: guessTimezoneFromLongitude(lng),
+      fallback: false,
+    });
+  } catch {
+    return jsonResponse(request, env, GEOCODE_FALLBACK_SEOUL);
   }
 }
 
@@ -910,6 +972,10 @@ export default {
             locale: detectLocale(country),
           });
         });
+      }
+
+      if (url.pathname === "/api/geocode") {
+        return runWithRouteMetrics("api/geocode", env, () => handleGeocodeRequest(request, env));
       }
 
       if (url.pathname === "/api/version") {

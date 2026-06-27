@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -67,6 +67,12 @@ type PendingAccess = {
   access: Record<string, unknown>;
   paymentWasRequired: boolean;
 };
+type GeocodeState = {
+  lat: string;
+  lng: string;
+  name: string;
+  fallback: boolean;
+};
 
 const FEATURE_KEY = "vedic-ai-consultation";
 const CONSULTATION_TYPE = "vedic";
@@ -98,6 +104,57 @@ const PLACE_PRESETS = [
   { label: "New York, USA", latitude: "40.7128", longitude: "-74.0060", timezone: "America/New_York" },
   { label: "Los Angeles, USA", latitude: "34.0522", longitude: "-118.2437", timezone: "America/Los_Angeles" },
 ];
+
+const TIMEZONE_OPTIONS = [
+  { value: "Asia/Seoul", label: "한국 (KST +9)" },
+  { value: "Asia/Shanghai", label: "중국/싱가포르 (CST +8)" },
+  { value: "Asia/Kolkata", label: "인도 (IST +5:30)" },
+  { value: "Europe/London", label: "영국 (GMT 0)" },
+  { value: "America/New_York", label: "미국 동부 (EST -5)" },
+  { value: "America/Los_Angeles", label: "미국 서부 (PST -8)" },
+];
+
+const COSMOS_STAGES = [
+  { glyph: "ॐ", label: "출생 좌표를 우주 시간으로 변환하는 중", sub: "Julian Day 계산" },
+  { glyph: "☉", label: "태양의 항로를 추적하는 중", sub: "Surya 황경 계산" },
+  { glyph: "☽", label: "달의 나크샤트라를 찾는 중", sub: "Chandra Nakshatra" },
+  { glyph: "↑", label: "어센던트를 세우는 중", sub: "Lagna 계산" },
+  { glyph: "★", label: "다샤의 흐름을 읽는 중", sub: "Vimshottari Dasha" },
+  { glyph: "✦", label: "조티시 해석을 완성하는 중", sub: "AI 서사 생성" },
+];
+
+const COSMOS_ORBITS = [
+  { r: 56, speed: 1, color: "rgba(251,191,36,0.9)", size: 6 },
+  { r: 78, speed: 0.6, color: "rgba(196,181,253,0.9)", size: 5 },
+  { r: 100, speed: 0.4, color: "rgba(251,113,133,0.7)", size: 4 },
+  { r: 122, speed: 0.25, color: "rgba(134,239,172,0.7)", size: 4 },
+  { r: 144, speed: 0.15, color: "rgba(148,163,184,0.6)", size: 3 },
+];
+
+const COSMOS_STARS = Array.from({ length: 90 }, (_, index) => ({
+  top: `${(index * 37) % 100}%`,
+  left: `${(index * 61) % 100}%`,
+  size: `${0.5 + (index % 3) * 0.45}px`,
+  opacity: 0.18 + (index % 7) * 0.08,
+  delay: `${(index % 9) * 0.35}s`,
+}));
+
+const SCORE_LABELS: Record<string, string> = {
+  dharma: "다르마",
+  artha: "아르타",
+  kama: "카마",
+  moksha: "목샤",
+};
+
+const SECTION_GLYPHS: Record<string, string> = {
+  lagna: "↑",
+  sun_nakshatra: "☉",
+  moon_nakshatra: "☽",
+  dasha: "★",
+  karma: "業",
+  topic: "問",
+  prescription: "方",
+};
 
 const ERROR_TEXT: Record<string, string> = {
   INPUT_MISSING: "베다점 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
@@ -336,6 +393,187 @@ function splitAssistantSections(content: string) {
   }));
 }
 
+function parseStructuredReading(content: string) {
+  const text = content.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+  if (!text.startsWith("{")) return null;
+  try {
+    const parsed = JSON.parse(text);
+    const scores = asRecord(parsed.scores);
+    const sections = asRecord(parsed.sections);
+    return Object.keys(scores).length && Object.keys(sections).length ? { scores, sections } : null;
+  } catch {
+    return null;
+  }
+}
+
+function scoreValue(value: unknown) {
+  return Math.max(0, Math.min(100, toNumber(value, 0)));
+}
+
+function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
+  const [stage, setStage] = useState(0);
+  const [angle, setAngle] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const durations = [2000, 3000, 3000, 3000, 4000, 8000];
+    let acc = 0;
+    const timers = durations.map((duration, index) => {
+      const timer = window.setTimeout(() => setStage(index), acc);
+      acc += duration;
+      return timer;
+    });
+    const rotationTimer = window.setInterval(() => setAngle((current) => (current + 0.3) % 360), 16);
+    const progressTimer = window.setInterval(() => setProgress((current) => Math.min(current + 0.35, 95)), 80);
+    return () => {
+      timers.forEach(window.clearTimeout);
+      window.clearInterval(rotationTimer);
+      window.clearInterval(progressTimer);
+    };
+  }, []);
+
+  const activeStage = COSMOS_STAGES[stage] || COSMOS_STAGES[0];
+
+  return (
+    <div className={styles.cosmosLoading} aria-live="polite">
+      <div className={styles.cosmosStars} aria-hidden="true">
+        {COSMOS_STARS.map((star, index) => (
+          <span
+            key={`${star.top}-${star.left}-${index}`}
+            style={{
+              top: star.top,
+              left: star.left,
+              width: star.size,
+              height: star.size,
+              opacity: star.opacity,
+              animationDelay: star.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className={styles.cosmosOrbitStage}>
+        <svg viewBox="0 0 320 320" className={styles.cosmosOrbitSvg} aria-hidden="true">
+          {COSMOS_ORBITS.map((orbit) => (
+            <circle key={orbit.r} cx="160" cy="160" r={orbit.r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+          ))}
+          {COSMOS_ORBITS.map((orbit, index) => {
+            const theta = (angle * orbit.speed + index * 60) * Math.PI / 180;
+            const px = 160 + orbit.r * Math.cos(theta);
+            const py = 160 + orbit.r * Math.sin(theta);
+            return (
+              <circle
+                key={`${orbit.r}-${index}`}
+                cx={px}
+                cy={py}
+                r={orbit.size / 2}
+                fill={orbit.color}
+                style={{ filter: `drop-shadow(0 0 5px ${orbit.color})` }}
+              />
+            );
+          })}
+          <circle cx="160" cy="160" r="28" fill="rgba(124,58,237,0.14)" stroke="rgba(139,92,246,0.32)" strokeWidth="1" />
+        </svg>
+        <span>{activeStage.glyph}</span>
+      </div>
+
+      <div className={styles.cosmosLoadingText}>
+        <strong>{activeStage.label || fallbackText}</strong>
+        <span>{activeStage.sub}</span>
+      </div>
+
+      <div className={styles.cosmosStageDots}>
+        {COSMOS_STAGES.map((item, index) => (
+          <i key={item.sub} className={index <= stage ? styles.activeCosmosDot : ""}>{item.glyph}</i>
+        ))}
+      </div>
+
+      <div className={styles.cosmosProgress}>
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p>행성들이 자리를 잡고 있습니다</p>
+    </div>
+  );
+}
+
+function StructuredReadingResult({
+  reading,
+  chart,
+  name,
+}: {
+  reading: { scores: Record<string, unknown>; sections: Record<string, unknown> };
+  chart: Record<string, unknown>;
+  name: string;
+}) {
+  const lagna = chartPoint(chart, "lagna");
+  const sun = chartPoint(chart, "sun");
+  const moon = chartPoint(chart, "moon");
+  const dasha = asRecord(chart.dasha);
+  const lagnaRashi = asRecord(lagna.rashi);
+  const sunNakshatra = asRecord(sun.nakshatra);
+  const moonNakshatra = asRecord(moon.nakshatra);
+  const moonRashi = asRecord(moon.rashi);
+  const sectionEntries = Object.entries(reading.sections);
+
+  return (
+    <div className={styles.structuredResult} id="vedic-result-body">
+      <div className={styles.structuredHeader}>
+        <div>
+          <p>Jyotish · 조티시 베다 점성술</p>
+          <h2>{name || "상담자"}님의 별의 지도</h2>
+        </div>
+        <button type="button" onClick={() => window.print()} aria-label="PDF로 저장">↓ PDF</button>
+      </div>
+
+      <section className={styles.chartSummaryCard}>
+        <article>
+          <span>어센던트</span>
+          <strong>{toText(lagnaRashi.name) || toText(lagna.sign) || "-"}</strong>
+          <small>Lagna</small>
+        </article>
+        <article>
+          <span>태양 나크샤트라</span>
+          <strong>{toText(sunNakshatra.name) || toText(sun.nakshatra) || "-"}</strong>
+          <small>{toText(sunNakshatra.pada) || toText(sun.pada) || ""}</small>
+        </article>
+        <article>
+          <span>달 나크샤트라</span>
+          <strong>{toText(moonNakshatra.name) || toText(moon.nakshatra) || "-"}</strong>
+          <small>{toText(moon.sign) || toText(moonRashi.name) || ""}</small>
+        </article>
+      </section>
+
+      <div className={styles.dashaBanner}>
+        <span>현재 다샤</span>
+        <strong>{toText(dasha.currentLord || dasha.currentMahadasha) || "-"} · 잔여 {toText(dasha.remaining) || "-"}년</strong>
+      </div>
+
+      <section className={styles.scorePanel}>
+        {Object.entries(SCORE_LABELS).map(([key, label]) => (
+          <div key={key}>
+            <span>{label}({key})</span>
+            <strong>{scoreValue(reading.scores[key])}</strong>
+            <i><b style={{ width: `${scoreValue(reading.scores[key])}%` }} /></i>
+          </div>
+        ))}
+      </section>
+
+      {sectionEntries.map(([key, rawSection]) => {
+        const section = asRecord(rawSection);
+        return (
+          <article className={styles.structuredSection} key={key}>
+            <div>
+              <span>{SECTION_GLYPHS[key] || "✦"}</span>
+              <h3>{toText(section.title) || key}</h3>
+            </div>
+            <p>{toText(section.body)}</p>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function VedicAiClient() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -343,6 +581,13 @@ export default function VedicAiClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [chatInput, setChatInput] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocode, setGeocode] = useState<GeocodeState>({
+    lat: PLACE_PRESETS[0].latitude,
+    lng: PLACE_PRESETS[0].longitude,
+    name: PLACE_PRESETS[0].label,
+    fallback: false,
+  });
   const requestIdRef = useRef("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const submitBusyRef = useRef(false);
@@ -375,6 +620,36 @@ export default function VedicAiClient() {
       longitude: preset.longitude,
       timezone: preset.timezone,
     });
+    setGeocode({ lat: preset.latitude, lng: preset.longitude, name: preset.label, fallback: false });
+  }
+
+  async function handlePlaceBlur() {
+    const place = form.birthPlace.trim();
+    if (!place || PLACE_PRESETS.some((preset) => preset.label === place) || geocoding) return;
+
+    setGeocoding(true);
+    try {
+      const response = await fetch(`/api/geocode?place=${encodeURIComponent(place)}`, { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      const lat = toText(data.lat);
+      const lng = toText(data.lng);
+      if (!lat || !lng) return;
+
+      const name = toText(data.name) || place;
+      updateForm({
+        latitude: lat,
+        longitude: lng,
+        timezone: toText(data.timezone) || form.timezone || "Asia/Seoul",
+      });
+      setGeocode({ lat, lng, name, fallback: data.fallback === true });
+      setNotice(data.fallback === true ? "출생지를 찾지 못해 서울 기준으로 계산합니다." : "");
+    } catch {
+      setNotice("위치 확인이 잠시 불안정해 서울 기준으로 계산합니다.");
+      updateForm({ latitude: "37.5665", longitude: "126.9780", timezone: form.timezone || "Asia/Seoul" });
+      setGeocode({ lat: "37.5665", lng: "126.9780", name: "서울 (기본값)", fallback: true });
+    } finally {
+      setGeocoding(false);
+    }
   }
 
   async function startConsultation(requestId: string, access: Record<string, unknown>, paymentWasRequired = false) {
@@ -551,7 +826,9 @@ export default function VedicAiClient() {
             </label>
             <label>
               <span><Compass size={15} /> 시간대</span>
-              <input value={form.timezone} onChange={(event) => updateForm({ timezone: event.target.value })} disabled={busy} placeholder="Asia/Seoul" />
+              <select value={form.timezone} onChange={(event) => updateForm({ timezone: event.target.value })} disabled={busy}>
+                {TIMEZONE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
             </label>
           </div>
 
@@ -570,26 +847,22 @@ export default function VedicAiClient() {
                 list="vedic-place-presets"
                 value={form.birthPlace}
                 onChange={(event) => applyPreset(event.target.value)}
+                onBlur={() => void handlePlaceBlur()}
                 disabled={busy}
-                placeholder="도시, 국가"
+                placeholder="예: 서울, 부산 해운대구, Tokyo, New York"
               />
               <datalist id="vedic-place-presets">
                 {PLACE_PRESETS.map((place) => <option key={place.label} value={place.label} />)}
               </datalist>
+              <small className={styles.geoStatus}>
+                {geocoding ? "위치 확인 중..." : geocode.name ? `✓ ${geocode.name.slice(0, 42)}` : "출생지를 입력하면 좌표를 자동으로 확인합니다."}
+              </small>
             </label>
             <label>
               <span>상담 주제</span>
               <select value={form.focusArea} onChange={(event) => updateForm({ focusArea: event.target.value as FocusArea })} disabled={busy}>
                 {FOCUS_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
-            </label>
-            <label>
-              <span>위도</span>
-              <input type="number" step="0.0001" value={form.latitude} onChange={(event) => updateForm({ latitude: event.target.value })} disabled={busy} placeholder="37.5665" />
-            </label>
-            <label>
-              <span>경도</span>
-              <input type="number" step="0.0001" value={form.longitude} onChange={(event) => updateForm({ longitude: event.target.value })} disabled={busy} placeholder="126.9780" />
             </label>
           </div>
 
@@ -612,13 +885,7 @@ export default function VedicAiClient() {
         </form>
 
         <section className={styles.resultPanel}>
-          {busy && (
-            <div className={styles.loadingVeil} aria-live="polite">
-              <div className={styles.loadingMandala} />
-              <strong>{phaseText || "라시 차트를 정렬하는 중..."}</strong>
-              <span>행성의 흐름과 질문을 조용히 맞추고 있습니다.</span>
-            </div>
-          )}
+          {busy && <CosmosLoadingScreen fallbackText={phaseText || "라시 차트를 정렬하는 중..."} />}
 
           {!consultation ? (
             <div className={styles.emptyState}>
@@ -653,8 +920,19 @@ export default function VedicAiClient() {
               </div>
 
               <div className={styles.chatList}>
-                {consultation.messages.map((message, index) => (
-                  message.role === "assistant" ? (
+                {consultation.messages.map((message, index) => {
+                  const structured = message.role === "assistant" ? parseStructuredReading(message.content) : null;
+                  if (structured) {
+                    return (
+                      <StructuredReadingResult
+                        key={`${message.role}-${index}`}
+                        reading={structured}
+                        chart={chart}
+                        name={toText(consultation.birthInfo?.name) || form.userName}
+                      />
+                    );
+                  }
+                  return message.role === "assistant" ? (
                     <div className={styles.sectionGrid} key={`${message.role}-${index}`}>
                       {splitAssistantSections(message.content).map((section, sectionIndex) => (
                         <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
@@ -668,8 +946,8 @@ export default function VedicAiClient() {
                       <span>나의 질문</span>
                       <p>{message.content}</p>
                     </article>
-                  )
-                ))}
+                  );
+                })}
               </div>
 
               <div className={styles.chatInput}>

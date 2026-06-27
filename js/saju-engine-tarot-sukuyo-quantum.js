@@ -4482,14 +4482,22 @@ function renderTTest(p, natal, johu, pw) {
       + '</section>';
   }
 
-  function renderTTestPanelLock(feature) {
+  function renderTTestPanelLock(feature, options) {
     var priceLabel = syPaidPriceLabel(feature);
-    return '<section class="t-panel" style="--t-panel-accent:rgba(244,114,182,.26);opacity:.96;position:relative;">'
-      + '<div class="t-panel-title">🔒 콘텐츠 잠금 해제 필요</div>'
+    var opts = options && typeof options === 'object' ? options : {};
+    var title = opts.title || '🔒 관계 확장 잠금 해제';
+    var desc = opts.desc || '이 영역은 이용권, 월정석, 단건 결제 중 가능한 방식으로 열립니다. 잠금 해제 후 [관계 회로], [연애 알고리즘], [현실 처리 능력]이 함께 열립니다.';
+    var extraStyle = opts.fullSpan === true ? 'grid-column:1/-1;' : '';
+    return '<section class="t-panel" style="--t-panel-accent:rgba(244,114,182,.26);opacity:.96;position:relative;' + extraStyle + '">'
+      + '<div class="t-panel-title">' + title + '</div>'
       + '<p style="margin:0 0 10px;color:#cbd5e1;font-size:0.82rem;line-height:1.6;word-break:keep-all;">'
-      + '이 부분은 단건 결제로만 열립니다. 결제 후 [관계 회로]에서 아래 섹션 전체가 전부 해제됩니다.</p>'
-      + '<button type="button" data-extreme-t-lock-button data-extreme-t-feature-key="' + feature.key + '" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;width:100%;border-radius:10px;border:1px solid rgba(248,231,183,.56);background:linear-gradient(135deg, rgba(30,41,59,.68), rgba(59,7,100,.4));color:#fef3c7;font-size:0.82rem;font-weight:900;padding:8px 14px;cursor:pointer;">극T [관계 회로] 잠금 해제 · ' + priceLabel + '</button>'
+      + desc + '</p>'
+      + '<button type="button" data-extreme-t-lock-button data-extreme-t-feature-key="' + feature.key + '" style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;width:100%;border-radius:10px;border:1px solid rgba(248,231,183,.56);background:linear-gradient(135deg, rgba(30,41,59,.68), rgba(59,7,100,.4));color:#fef3c7;font-size:0.82rem;font-weight:900;padding:8px 14px;cursor:pointer;">극T 관계 확장 열기 · ' + priceLabel + '</button>'
       + '</section>';
+  }
+
+  function renderTTestPanelLockBundle(feature) {
+    return renderTTestPanelLock(feature, { fullSpan: true });
   }
 
   function bindExtremeTRelationshipUnlock(area, renderArgs) {
@@ -4601,10 +4609,9 @@ function renderTTest(p, natal, johu, pw) {
         ? SY_PAID_FEATURES.extremeTRelationshipCircuit
         : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
       var hasExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(tTestFeature.key);
+      var relationshipGateHtmlFromBuilder = '';
       if (!hasExtremeTRelationshipAccess) {
-        relationshipHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
-        loveHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
-        workMoneyHtmlFromBuilder = renderTTestPanelLock(tTestFeature);
+        relationshipGateHtmlFromBuilder = renderTTestPanelLockBundle(tTestFeature);
       }
 
       var builderHtml = '<div class="t-test-wrapper">';
@@ -4619,7 +4626,9 @@ function renderTTest(p, natal, johu, pw) {
       builderHtml += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (stats.johuValue || '정지') + '</div></div>';
       builderHtml += '</div>';
       builderHtml += detailedAnalysisHtmlFromBuilder;
-      builderHtml += '<div class="t-panel-grid">' + relationshipHtmlFromBuilder + loveHtmlFromBuilder + workMoneyHtmlFromBuilder + '</div>';
+      builderHtml += relationshipGateHtmlFromBuilder
+        ? '<div class="t-panel-grid">' + relationshipGateHtmlFromBuilder + '</div>'
+        : '<div class="t-panel-grid">' + relationshipHtmlFromBuilder + loveHtmlFromBuilder + workMoneyHtmlFromBuilder + '</div>';
       builderHtml += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtmlFromBuilder + fatalBugHtmlFromBuilder + prescriptionHtmlFromBuilder + '</div>';
       builderHtml += missionHtmlFromBuilder;
       builderHtml += summaryCardHtmlFromBuilder;
@@ -5086,10 +5095,9 @@ function renderTTest(p, natal, johu, pw) {
     ? SY_PAID_FEATURES.extremeTRelationshipCircuit
     : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
   var hasFallbackExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(fallbackExtremeTRelationshipFeature.key);
+  var fallbackRelationshipGateHtml = '';
   if (!hasFallbackExtremeTRelationshipAccess) {
-    relationshipHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
-    loveHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
-    workMoneyHtml = renderTTestPanelLock(fallbackExtremeTRelationshipFeature);
+    fallbackRelationshipGateHtml = renderTTestPanelLockBundle(fallbackExtremeTRelationshipFeature);
   }
   var fatalBugHtml = renderSection('[치명적 버그] 가까워질수록 드러나는 오류 패턴', renderInfoRows(bugRows), 'rgba(248,113,113,.28)');
   var prescriptionHtml = renderSection('[디버깅 처방전] 바로 써먹는 관계 패치', renderInfoRows(prescriptionRows), 'rgba(251,191,36,.28)');
@@ -5119,7 +5127,9 @@ function renderTTest(p, natal, johu, pw) {
   html += '<div class="t-test-item"><div class="t-stat-label">[조후] 냉각/건조 성궁 진법</div><div class="t-val">' + (isColdDry ? '가동(+25%)' : '정지') + '</div></div>';
   html += '</div>';
   html += detailedAnalysisHtml;
-  html += '<div class="t-panel-grid">' + relationshipHtml + loveHtml + workMoneyHtml + '</div>';
+  html += fallbackRelationshipGateHtml
+    ? '<div class="t-panel-grid">' + fallbackRelationshipGateHtml + '</div>'
+    : '<div class="t-panel-grid">' + relationshipHtml + loveHtml + workMoneyHtml + '</div>';
   html += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtml + fatalBugHtml + prescriptionHtml + '</div>';
   html += missionHtml;
   html += summaryCardHtml;
@@ -7235,11 +7245,15 @@ function syFeatureListHasKey(list, featureKey) {
 function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   var key = String(featureKey || '').trim();
   var root = typeof window !== 'undefined' ? window : {};
+  var hasAuthToken = false;
   if (!key) return false;
   if (key === SY_PAID_FEATURES.relationshipRadar.key && root._sySukuyoRadarUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key && root._sySukuyoEncyclopediaUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.pastLifeReading.key && root._sySukuyoPastLifeUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key && root._syMonthlySukuyoFortuneUnlocked === true) return true;
+  try {
+    hasAuthToken = !!(localStorage.getItem('fortune_auth_token') || '');
+  } catch (_) {}
   try {
     if (typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key)) return true;
   } catch (_) {}
@@ -7253,6 +7267,7 @@ function syIsPaidSukuyoFeatureUnlocked(featureKey) {
     if (user && syFeatureListHasKey(user.unlockedFeatures, key)) return true;
     if (user && user.unlockMap && user.unlockMap[key] === true) return true;
   } catch (_) {}
+  if (hasAuthToken) return false;
   try {
     if (localStorage.getItem(syPaidFeatureStorageKey(key)) === '1') return true;
   } catch (_) {}
@@ -7266,6 +7281,27 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
   try {
     if (!root.unlockedFeatureMap) root.unlockedFeatureMap = Object.create(null);
     root.unlockedFeatureMap[key] = true;
+  } catch (_) {}
+  try {
+    var cachedUser = null;
+    if (typeof readAuthUser === 'function') cachedUser = readAuthUser();
+    else if (typeof root.readAuthUser === 'function') cachedUser = root.readAuthUser();
+    if (cachedUser && typeof cachedUser === 'object') {
+      var nextUser = Object.assign({}, cachedUser);
+      var nextUnlockMap = nextUser.unlockMap && typeof nextUser.unlockMap === 'object'
+        ? Object.assign({}, nextUser.unlockMap)
+        : Object.create(null);
+      nextUnlockMap[key] = true;
+      nextUser.unlockMap = nextUnlockMap;
+      var nextUnlockedFeatures = Array.isArray(nextUser.unlockedFeatures)
+        ? nextUser.unlockedFeatures.slice()
+        : [];
+      if (!syFeatureListHasKey(nextUnlockedFeatures, key)) nextUnlockedFeatures.push(key);
+      nextUser.unlockedFeatures = nextUnlockedFeatures;
+      if (typeof __cdWriteAuthUserCache === 'function') __cdWriteAuthUserCache(nextUser);
+      else if (typeof root.__cdWriteAuthUserCache === 'function') root.__cdWriteAuthUserCache(nextUser);
+      else localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser));
+    }
   } catch (_) {}
   try { localStorage.setItem(syPaidFeatureStorageKey(key), '1'); } catch (_) {}
   if (key === SY_PAID_FEATURES.relationshipRadar.key) root._sySukuyoRadarUnlocked = true;
@@ -8453,23 +8489,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-moon-core { position:relative; z-index:2; width:62px; height:62px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-size:1.5rem; font-weight:900; background:radial-gradient(circle at 35% 28%, #ffffff 0%, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 30px rgba(248,250,252,0.4), 0 0 54px rgba(147,197,253,0.22); animation:syMoonCoreGlow 4.8s ease-in-out infinite; }
         .sy-canon-moon-label { position:relative; z-index:2; margin-top:8px; color:#f8e7b7; font-size:0.78rem; font-weight:900; text-align:center; }
         .sy-canon-moon-illum { position:relative; z-index:2; margin-top:2px; color:#bfdbfe; font-size:0.72rem; font-weight:800; }
-        .sy-lunar-year-card { border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.18), transparent 27%), radial-gradient(circle at 12% 78%, rgba(196,181,253,0.12), transparent 32%), linear-gradient(145deg,rgba(31,24,56,0.82),rgba(8,13,30,0.94))!important; }
-        .sy-lunar-overline { font-size:0.72rem; color:#f8e7b7; letter-spacing:0; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
-        .sy-lunar-year-head { display:grid; grid-template-columns:minmax(0,1fr) 142px; gap:14px; align-items:stretch; margin-bottom:12px; }
-        .sy-lunar-year-copy h4 { margin:0 0 6px; color:#fef9c3; font-size:1.1rem; line-height:1.38; }
-        .sy-lunar-year-copy p { margin:0; color:#e9d5ff; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
-        .sy-lunar-score-orb { position:relative; min-height:142px; border-radius:18px; border:1px solid rgba(248,231,183,0.24); background:radial-gradient(circle at 50% 38%, rgba(248,250,252,0.18), transparent 42%), rgba(2,6,23,0.34); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
-        .sy-lunar-score-orb::before { content:''; position:absolute; width:104px; height:104px; border-radius:999px; border:1px solid rgba(248,231,183,0.25); box-shadow:0 0 30px rgba(248,231,183,0.08); }
-        .sy-lunar-score { position:relative; color:#fef9c3; font-size:1.55rem; font-weight:900; line-height:1; }
-        .sy-lunar-score-label { position:relative; margin-top:8px; color:#bfdbfe; font-size:0.74rem; font-weight:800; }
+        .sy-lunar-year-card { position:relative; overflow:hidden; border-color:rgba(248,231,183,0.34)!important; border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.2), transparent 25%), radial-gradient(circle at 15% 82%, rgba(45,212,191,0.12), transparent 34%), linear-gradient(145deg,rgba(26,24,52,0.9),rgba(7,12,28,0.96))!important; box-shadow:0 20px 48px rgba(2,6,23,0.44),0 0 34px rgba(248,231,183,0.07),inset 0 1px 0 rgba(255,255,255,0.07); }
+        .sy-lunar-year-card::before { content:''; position:absolute; inset:0 0 auto; height:1px; background:linear-gradient(90deg,transparent,rgba(248,231,183,0.72),rgba(125,211,252,0.52),transparent); pointer-events:none; }
+        .sy-lunar-year-card > * { position:relative; z-index:1; }
+        .sy-lunar-overline { display:inline-flex; align-items:center; width:max-content; max-width:100%; font-size:0.72rem; color:#f8e7b7; letter-spacing:0; text-transform:uppercase; font-weight:900; margin-bottom:8px; border:1px solid rgba(248,231,183,0.26); border-radius:999px; background:rgba(248,231,183,0.08); padding:4px 10px; }
+        .sy-lunar-year-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(118px,152px); gap:14px; align-items:stretch; margin-bottom:13px; }
+        .sy-lunar-year-copy h4 { margin:0 0 7px; color:#fff7d6; font-size:1.12rem; line-height:1.38; text-shadow:0 0 22px rgba(248,231,183,0.12); }
+        .sy-lunar-year-copy p { margin:0; color:#dbeafe; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
+        .sy-lunar-score-orb { position:relative; min-height:142px; border-radius:16px; border:1px solid rgba(248,231,183,0.3); background:linear-gradient(145deg, rgba(15,23,42,0.34), rgba(2,6,23,0.58)); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),0 0 24px rgba(147,197,253,0.07); }
+        .sy-lunar-score-orb::before { content:''; position:absolute; inset:16px; border-radius:14px; border:1px solid rgba(248,231,183,0.14); background:linear-gradient(135deg,rgba(248,231,183,0.08),rgba(125,211,252,0.06)); }
+        .sy-lunar-score { position:relative; color:#fff7d6; font-size:1.58rem; font-weight:900; line-height:1; }
+        .sy-lunar-score-label { position:relative; margin-top:8px; color:#bae6fd; font-size:0.74rem; font-weight:800; }
         .sy-lunar-year-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; font-size:0.8rem; line-height:1.7; }
-        .sy-lunar-year-grid article { background:rgba(2,6,23,0.44); border:1px solid rgba(248,231,183,0.18); border-radius:12px; padding:10px; }
+        .sy-lunar-year-grid article { background:linear-gradient(145deg,rgba(2,6,23,0.48),rgba(15,23,42,0.34)); border:1px solid rgba(248,231,183,0.2); border-radius:12px; padding:10px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
         .sy-lunar-year-grid strong { display:block; color:#f8e7b7; margin-bottom:4px; }
         .sy-lunar-year-grid span { display:block; color:#fef9c3; font-weight:900; margin-bottom:5px; }
-        .sy-lunar-year-grid p { margin:0; color:#e9d5ff; }
+        .sy-lunar-year-grid p { margin:0; color:#dbeafe; }
         .sy-lunar-month-card { border-left-color:#99f6e4!important; background:radial-gradient(circle at 90% 8%, rgba(153,246,228,0.14), transparent 28%), radial-gradient(circle at 13% 92%, rgba(191,219,254,0.11), transparent 30%), linear-gradient(145deg,rgba(10,49,46,0.5),rgba(8,13,30,0.94))!important; }
         .sy-lunar-month-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; font-size:0.78rem; line-height:1.68; color:#dcfce7; }
-        .sy-lunar-month-item { position:relative; overflow:hidden; background:rgba(2,6,23,0.46); border:1px solid rgba(153,246,228,0.2); border-radius:13px; padding:11px; }
+        .sy-lunar-month-item { position:relative; overflow:hidden; background:linear-gradient(145deg,rgba(2,6,23,0.5),rgba(11,37,42,0.3)); border:1px solid rgba(153,246,228,0.22); border-radius:13px; padding:11px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
         .sy-lunar-month-item::before { content:''; position:absolute; right:-20px; top:-22px; width:72px; height:72px; border-radius:999px; background:radial-gradient(circle at 36% 30%, rgba(248,250,252,0.7), rgba(153,246,228,0.2) 48%, transparent 70%); opacity:0.42; pointer-events:none; }
         .sy-lunar-month-head { position:relative; display:flex; justify-content:space-between; gap:8px; align-items:flex-start; margin-bottom:7px; }
         .sy-lunar-month-title { display:flex; gap:7px; align-items:center; min-width:0; color:#ccfbf1; font-weight:900; }
@@ -8616,16 +8654,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-lunar-month-titlebar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
         .sy-lunar-month-titlebar h4 { margin:0; color:#ccfbf1; font-size:1.04rem; line-height:1.35; }
         .sy-lunar-month-copy { margin:0 0 12px; color:#dbeafe; font-size:0.86rem; line-height:1.78; word-break:keep-all; }
-        .sy-month-lock-panel { display:grid; grid-template-columns:84px minmax(0,1fr); gap:14px; align-items:center; border:1px solid rgba(248,231,183,0.22); border-radius:15px; padding:14px; background:linear-gradient(145deg, rgba(2,6,23,0.5), rgba(30,41,59,0.42)); margin-bottom:10px; }
-        .sy-month-lock-orbit { position:relative; width:68px; height:68px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:900; background:radial-gradient(circle at 34% 28%, #fff7d6, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 28px rgba(248,231,183,0.18); }
-        .sy-month-lock-orbit::before { content:''; position:absolute; inset:-9px; border-radius:999px; border:1px dashed rgba(248,231,183,0.36); }
-        .sy-month-lock-body strong { display:block; color:#fef3c7; font-size:0.98rem; margin-bottom:4px; }
+        .sy-yearly-empty-state { border:1px solid rgba(248,231,183,0.24); border-radius:14px; padding:18px; color:#fef3c7; line-height:1.8; background:linear-gradient(145deg,rgba(2,6,23,0.5),rgba(15,23,42,0.34)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); word-break:keep-all; }
+        .sy-yearly-empty-state.is-loading { color:#dbeafe; border-color:rgba(125,211,252,0.28); }
+        .sy-month-lock-panel { display:grid; grid-template-columns:84px minmax(0,1fr); gap:15px; align-items:center; border:1px solid rgba(248,231,183,0.28); border-radius:14px; padding:15px; background:linear-gradient(145deg, rgba(2,6,23,0.58), rgba(18,33,50,0.48)); margin-bottom:11px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 16px 32px rgba(2,6,23,0.24); }
+        .sy-month-lock-orbit { position:relative; width:68px; height:68px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:900; background:radial-gradient(circle at 34% 28%, #fff7d6, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 26px rgba(248,231,183,0.2); }
+        .sy-month-lock-orbit::before { content:''; position:absolute; inset:-9px; border-radius:999px; border:1px solid rgba(248,231,183,0.28); }
+        .sy-month-lock-body strong { display:block; color:#fff7d6; font-size:1rem; line-height:1.38; margin-bottom:5px; }
         .sy-month-lock-body p { margin:0 0 10px; color:#dbeafe; font-size:0.84rem; line-height:1.7; word-break:keep-all; }
-        .sy-month-unlock-btn { display:inline-flex; align-items:center; justify-content:center; min-height:40px; border-radius:999px; border:1px solid rgba(248,231,183,0.56); background:linear-gradient(135deg, rgba(248,231,183,0.24), rgba(20,184,166,0.18)); color:#fff7d6; font-size:0.82rem; font-weight:900; padding:8px 14px; cursor:pointer; }
+        .sy-month-unlock-btn { display:inline-flex; align-items:center; justify-content:center; min-height:42px; border-radius:999px; border:1px solid rgba(248,231,183,0.62); background:linear-gradient(135deg, rgba(248,231,183,0.32), rgba(20,184,166,0.2)); color:#fff7d6; font-size:0.82rem; font-weight:900; padding:8px 15px; cursor:pointer; box-shadow:0 12px 24px rgba(20,184,166,0.12); }
+        .sy-month-unlock-btn:hover { border-color:rgba(254,243,199,0.86); background:linear-gradient(135deg, rgba(248,231,183,0.4), rgba(125,211,252,0.24)); }
         .sy-month-preview-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-        .sy-month-preview-item { position:relative; overflow:hidden; border:1px solid rgba(148,163,184,0.22); border-radius:12px; padding:10px; background:rgba(15,23,42,0.52); }
-        .sy-month-preview-item strong { display:block; color:#bfdbfe; font-size:0.78rem; margin-bottom:5px; }
-        .sy-month-preview-item span { display:block; color:#94a3b8; font-size:0.74rem; line-height:1.55; }
+        .sy-month-preview-item { position:relative; overflow:hidden; border:1px solid rgba(148,163,184,0.24); border-radius:12px; padding:10px; background:linear-gradient(145deg,rgba(15,23,42,0.56),rgba(2,6,23,0.38)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
+        .sy-month-preview-item strong { display:block; color:#bfdbfe; font-size:0.78rem; line-height:1.42; margin-bottom:5px; }
+        .sy-month-preview-item span { display:block; color:#cbd5e1; font-size:0.74rem; line-height:1.58; word-break:keep-all; }
         .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
         .sy-canon-tab { padding:8px 13px; border-radius:999px; border:1px solid rgba(251,191,36,0.36); background:linear-gradient(135deg, rgba(251,191,36,0.12), rgba(30,41,59,0.48)); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:40px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); transition:background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
@@ -12531,6 +12572,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return year;
   }
 
+  function syResolveSukuyoYearlyProfileId(state) {
+    var currentProfileId = syResolveCurrentProfileIdForPaidGate();
+    if (currentProfileId) return currentProfileId;
+    var source = state && typeof state === 'object' ? state : {};
+    var scope = source.unlockScope && typeof source.unlockScope === 'object' ? source.unlockScope : {};
+    var payload = source.payload && typeof source.payload === 'object' ? source.payload : {};
+    var payloadScope = payload.unlockScope && typeof payload.unlockScope === 'object' ? payload.unlockScope : {};
+    return String(source.profileId || source.selectedProfileId || source.userProfileId || scope.profileId || payloadScope.profileId || '').trim();
+  }
+
+  function syBuildSukuyoYearlyContentKey(targetYear) {
+    return 'sukyo_yearly_fortune_unlock:' + String(targetYear || new Date().getFullYear());
+  }
+
   function syRenderSukuyoMonthlyGrid(reading) {
     var months = reading && Array.isArray(reading.monthlyFlow) ? reading.monthlyFlow : [];
     if (!months.length) return '';
@@ -12748,7 +12803,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         requestId: String(result.requestId || data.requestId || consume.requestId || accessGrant.requestId || '').trim(),
         transactionId: String(result.transactionId || data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
         purchaseId: String(data.purchaseId || consume.purchaseId || accessGrant.purchaseId || '').trim(),
-        featureKey: 'sukyo_yearly_fortune_unlock'
+        featureKey: 'sukyo_yearly_fortune_unlock',
+        contentKey: String((base && base.contentKey) || '').trim(),
+        contentId: String((base && (base.contentId || base.contentKey)) || '').trim(),
+        targetYear: base && base.targetYear
       }
     });
   }
@@ -12790,14 +12848,27 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!target) return;
     var targetYear = syResolveSukuyoYearlyTargetYear(state);
     if (!targetYear) return;
-    var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
+    var profileId = syResolveSukuyoYearlyProfileId(state);
     window._sySukuyoYearlyHydrateKey = String(profileId || '') + ':' + String(targetYear || '');
-    target.innerHTML = '<div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
+    if (!profileId) {
+      if (status) status.textContent = '프로필 선택 필요';
+      target.innerHTML = '<div class="sy-yearly-empty-state">프로필 카드를 먼저 선택하면 숙요점 1년운이 열립니다.</div>';
+      return;
+    }
+    target.innerHTML = '<div class="sy-yearly-empty-state is-loading">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
     syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
       .then(function(pack) {
         var payload = pack && pack.payload ? pack.payload : {};
         if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
-        window._sySukuyoYearlyReading = Object.assign({}, state, { profileId: payload.unlockScope && payload.unlockScope.profileId || profileId, targetYear: targetYear, payload: payload });
+        var resolvedProfileId = payload.unlockScope && payload.unlockScope.profileId || profileId;
+        var contentKey = payload.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
+        window._sySukuyoYearlyReading = Object.assign({}, state, {
+          profileId: resolvedProfileId,
+          selectedProfileId: resolvedProfileId,
+          contentKey: contentKey,
+          targetYear: targetYear,
+          payload: payload
+        });
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
         if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
         target.innerHTML = payload.unlocked ? syRenderSukuyoYearlyFullV2(payload.result) : syRenderSukuyoYearlyLocked(payload);
@@ -12810,7 +12881,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syBindSukuyoMonthlyUnlock(reading) {
-    if (reading) window._sySukuyoYearlyReading = reading;
+    if (reading) {
+      var initialProfileId = syResolveSukuyoYearlyProfileId(reading);
+      window._sySukuyoYearlyReading = Object.assign({}, reading, initialProfileId ? { profileId: initialProfileId, selectedProfileId: initialProfileId } : {});
+    }
     var input = document.querySelector('[data-sy-yearly-input]');
     var viewBtn = document.querySelector('[data-sy-yearly-view]');
     if (input && !input._syYearlyInputBound) {
@@ -12828,10 +12902,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
       });
     }
-    var hydrateKey = String((window._sySukuyoYearlyReading && window._sySukuyoYearlyReading.profileId) || reading.profileId || '') + ':' + String((document.querySelector('[data-sy-yearly-input]') || {}).value || reading.targetYear || '');
-    if (hydrateKey && window._sySukuyoYearlyHydrateKey !== hydrateKey) {
+    var stateForHydrate = window._sySukuyoYearlyReading || reading || {};
+    var hydrateProfileId = syResolveSukuyoYearlyProfileId(stateForHydrate);
+    var hydrateYear = String((document.querySelector('[data-sy-yearly-input]') || {}).value || stateForHydrate.targetYear || '');
+    var hydrateKey = String(hydrateProfileId || '') + ':' + hydrateYear;
+    if (hydrateYear && window._sySukuyoYearlyHydrateKey !== hydrateKey) {
       window._sySukuyoYearlyHydrateKey = hydrateKey;
-      syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+      syHydrateSukuyoYearlyFortune(stateForHydrate);
     }
     var btn = document.querySelector('[data-sy-yearly-unlock]');
     if (!btn || btn._syYearlyUnlockBound) return;
@@ -12840,12 +12917,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var state = window._sySukuyoYearlyReading || reading || {};
       var targetYear = syResolveSukuyoYearlyTargetYear(state);
       if (!targetYear) return;
-      var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
+      var profileId = syResolveSukuyoYearlyProfileId(state);
+      if (!profileId) {
+        window.alert('프로필 카드를 먼저 선택해 주세요.');
+        return;
+      }
+      var contentKey = state.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
       btn.disabled = true;
       btn.textContent = '숙요점 1년운을 열고 있어요.';
       syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/unlock', {
         method: 'POST',
-        body: JSON.stringify({ profileId: profileId, targetYear: targetYear })
+        body: JSON.stringify({
+          profileId: profileId,
+          selectedProfileId: profileId,
+          targetYear: targetYear,
+          contentKey: contentKey,
+          contentId: contentKey,
+          serviceKey: 'sukuyo',
+          serviceId: 'sukuyo'
+        })
       }).then(function(pack) {
         var payload = pack && pack.payload ? pack.payload : {};
         if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '잠금 해제 상태를 확인하지 못했습니다.');
@@ -12859,7 +12949,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           title: _sajuQuantumText("sq_12360_prop_title"),
           reason: '숙요점 1년운 전체 해석 잠금 해제',
           featureKey: 'sukyo_yearly_fortune_unlock',
-          contentKey: payload.contentKey,
+          contentKey: payload.contentKey || contentKey,
+          contentId: payload.contentKey || contentKey,
+          serviceKey: 'sukuyo',
+          serviceId: 'sukuyo',
           profileId: payload.profileId || profileId,
           selectedProfileId: payload.profileId || profileId,
           targetYear: targetYear,
@@ -12874,7 +12967,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             profileId: payload.profileId || profileId,
             selectedProfileId: payload.profileId || profileId,
             targetYear: targetYear,
-            contentKey: payload.contentKey,
+            contentKey: payload.contentKey || contentKey,
+            contentId: payload.contentKey || contentKey,
+            serviceKey: 'sukuyo',
+            serviceId: 'sukuyo',
             featureKey: 'sukyo_yearly_fortune_unlock'
           }, result).then(function(verifyPayload) {
             if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
@@ -12894,7 +12990,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (typeof window !== 'undefined') window._sySukuyoYearlyReading = reading;
     var year = Number(reading.targetYear || new Date().getFullYear());
     return ''
-      + '<div class="sy-card sy-lunar-year-card is-locked" data-sy-yearly-fortune-card data-sy-year-fortune="20260625-sukuyo-yearly-v2" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
+      + '<div class="sy-card sy-lunar-year-card is-locked" data-sy-yearly-fortune-card data-sy-year-fortune="20260627-sukuyo-yearly-v3" data-sy-year-moon-ui="20260627-sukuyo-year-moon-premium">'
       + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
       + '<div class="sy-lunar-month-titlebar">'
         + '<div>'
@@ -12903,7 +12999,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '</div>'
         + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
       + '</div>'
-      + '<div id="syYearlyFortuneContent"><div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요.</div></div>'
+      + '<div id="syYearlyFortuneContent"><div class="sy-yearly-empty-state is-loading">숙요점 1년운을 열고 있어요.</div></div>'
       + '</div>';
   }
 

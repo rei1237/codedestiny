@@ -177,6 +177,8 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     productType: toText(runtimeGate.productType || paymentPayload.productType) || "new-year-ai",
     serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType) || FEATURE_KEY,
     forceDeduct: true,
+    deferUsage: true,
+    usagePolicy: "apply_after_success",
     requestId: idempotencyKey,
     idempotencyKey,
     cost: toNumber(runtimeGate.cost ?? paymentPayload.coinPrice, FEATURE_COST),

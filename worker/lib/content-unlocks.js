@@ -111,7 +111,8 @@ function resolvePaidContentServiceKey(featureKey, fallback = "") {
   const key = String(featureKey || "").trim().toLowerCase();
   if (key === "fun.quantumlotto.ritualreport") return "saju";
   if (key.startsWith("section_") || key.includes("saju") || key.includes("lifebook") || key.includes("love-secret")) return "saju";
-  if (ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[key]) return "ziwei";
+  if (key === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY || key.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`)) return "sukuyo";
+  if (ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key]) return "ziwei";
   if (key.includes("ziwei")) return "ziwei";
   if (key.includes("astrology") || key.includes("western")) return "western_astrology";
   if (key.includes("sukuyo") || key.includes("sukyo")) return "sukuyo";

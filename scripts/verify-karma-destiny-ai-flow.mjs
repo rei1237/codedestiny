@@ -49,6 +49,12 @@ assertIncludes(routeSource, "handleKarmaDestinyAiRoutes", "worker route exported
 assertIncludes(routeSource, "buildKarmaDestinyIntegratedResult", "calculation adapter wired");
 assertIncludes(routeSource, "FEATURE_KEY = \"karma-destiny-ai-consultation\"", "feature key");
 assertIncludes(routeSource, "PointHistory", "billing evidence verification");
+assertIncludes(routeSource, "START_ACCESS_CONFIRMATION_REQUIRED", "start route requires pre-confirmed access");
+assertIncludes(routeSource, "MONTHLY_CREDIT_GATE_REQUIRED", "monthly credit must use common billing gate");
+assertIncludes(routeSource, "accessType: \"monthly_credit\"", "monthly credit is payment evidence, not entitlement");
+assertNotIncludes(routeSource, "function hasMonthlyCredit", "monthly credit balance must not grant direct access");
+assertNotIncludes(routeSource, "return { ok: true, accessType: \"subscription\", paymentId: \"\", usageAlreadyApplied: false }", "monthly credit must not be direct entitlement");
+assertNotIncludes(routeSource, "return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });", "start route must not re-check entitlement without access token");
 assertIncludes(modelSource, "karmaDestinyAiConsultations", "new collection");
 assertIncludes(modelSource, "KarmaDestinyAiConsultation", "model export");
 assertIncludes(registrySource, "\"karma-destiny-ai-consultation\": { cost: 500, amountKRW: 50000", "pricing");
@@ -62,7 +68,8 @@ const removedJson = await removedResponse.json();
 assert.equal(removedResponse.status, 410, "legacy soul-origin API should be disabled");
 assert.equal(removedJson.next, "/karma-destiny-ai", "legacy API should point to new page");
 
-const { handleKarmaDestinyAiRoutes } = await import(pathToFileURL(resolve(root, "worker/routes/karma-destiny-ai.js")).href);
+const { handleKarmaDestinyAiRoutes, __karmaDestinyAiTestUtils } = await import(pathToFileURL(resolve(root, "worker/routes/karma-destiny-ai.js")).href);
+const { normalizeConsultationInput, resolveStartAccess } = __karmaDestinyAiTestUtils;
 const noLoginResponse = await handleKarmaDestinyAiRoutes(new Request("https://example.test/api/karma-destiny-ai/ensure-access", {
   method: "POST",
   headers: { "Content-Type": "application/json", "Idempotency-Key": "verify-kdai-123456" },
@@ -91,5 +98,44 @@ const noLoginJson = await noLoginResponse.json();
 assert.equal(noLoginResponse.status, 401, "unauthenticated ensure-access should require login");
 assert.equal(noLoginJson.reason, "LOGIN_REQUIRED", "unauthenticated reason");
 assert.equal(noLoginJson.message, "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.", "login message");
+
+const directStartBody = {
+  idempotencyKey: "verify-kdai-direct-start",
+  birthInfo: {
+    name: "테스트",
+    gender: "female",
+    birthDate: "1990-01-01",
+    birthTime: "12:00",
+    birthTimeUnknown: false,
+    calendarType: "solar",
+    birthPlace: {
+      city: "Seoul",
+      country: "South Korea",
+      latitude: 37.5665,
+      longitude: 126.978,
+      timezone: "Asia/Seoul",
+    },
+  },
+  topic: "전체 운명의 업",
+  userQuestion: "반복되는 관계 흐름이 궁금합니다.",
+};
+const directStartNormalized = normalizeConsultationInput(directStartBody);
+assert.equal(directStartNormalized.ok, true, "direct start fixture should normalize");
+const directStartAccess = await resolveStartAccess({
+  request: new Request("https://example.test/api/karma-destiny-ai/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Idempotency-Key": directStartBody.idempotencyKey },
+    body: JSON.stringify(directStartBody),
+  }),
+  env: {},
+  auth: { userId: "verify-user-without-billing-evidence" },
+  body: directStartBody,
+  normalized: directStartNormalized,
+  pricing: { coinPrice: 500, membershipCreditCost: 500, amountKRW: 50000 },
+  idempotencyKey: directStartBody.idempotencyKey,
+});
+assert.equal(directStartAccess.ok, false, "direct start without confirmed billing must be blocked");
+assert.equal(directStartAccess.reason, "PAYMENT_REQUIRED", "direct start block reason");
+assert.equal(directStartAccess.code, "START_ACCESS_CONFIRMATION_REQUIRED", "direct start block code");
 
 console.log("[verify-karma-destiny-ai-flow] ok");

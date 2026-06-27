@@ -606,8 +606,8 @@ function customerFromUser(user, userId) {
 
 function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempotencyKey }) {
   return {
-    storeId: config.storeId,
-    channelKey: config.channelKey,
+    storeId: config.storeId || "",
+    channelKey: config.channelKey || "",
     paymentId,
     merchantUid: paymentId,
     orderName: ORDER_NAME,
@@ -640,6 +640,7 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
       coinPrice: pricing.coinPrice,
       amountKRW: pricing.amountKRW,
       amountKrw: pricing.amountKRW,
+      membershipCreditCost: pricing.membershipCreditCost,
       paymentMode: "DIRECT_KRW",
       requestId: idempotencyKey,
       idempotencyKey,
@@ -649,9 +650,6 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
 
 async function createOrReusePaymentPayload({ env, auth, user, pricing, idempotencyKey, inputHash }) {
   const config = getPortOnePublicConfig(env || {});
-  if (!config.configured) {
-    return { ok: false, serverError: true, message: "결제 설정을 확인할 수 없습니다." };
-  }
 
   const existing = await Payment.findOne({
     userId: auth.userId,
@@ -667,6 +665,13 @@ async function createOrReusePaymentPayload({ env, auth, user, pricing, idempoten
     return {
       ok: true,
       paymentPayload: buildPaymentPayload({ config, paymentId, pricing, user, userId: auth.userId, idempotencyKey }),
+    };
+  }
+
+  if (!config.configured) {
+    return {
+      ok: true,
+      paymentPayload: buildPaymentPayload({ config, paymentId: idempotencyKey, pricing, user, userId: auth.userId, idempotencyKey }),
     };
   }
 
@@ -789,29 +794,23 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
 
 function buildSystemPrompt() {
   return [
-    "당신은 자미두수를 상담하는 최고 수준의 자미두수 명반 상담가입니다.",
+    "당신은 자미두수(紫微斗數)를 상담하는 최고 수준의 명반 해석가입니다.",
     "",
-    "사용자의 생년월일, 성별, 출생시간, 양력/음력 정보와 계산된 자미두수 명반 데이터를 바탕으로 사용자의 삶의 흐름을 상담형으로 해석합니다.",
+    "대만·홍콩 정통 파계를 기반으로 하되, 현대인의 삶에 실용적으로 적용하는 심화 독법으로 상담합니다.",
     "",
     "반드시 지켜야 할 원칙:",
     "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 명반을 놓고 설명하듯 자연스럽게 답변합니다.",
     "2. 명궁, 신궁, 12궁, 주성, 보성, 살성, 사화, 삼방사정, 대운과 세운의 흐름을 반영합니다.",
     "3. 별 이름만 나열하지 말고, 사용자의 삶에서 어떤 성향과 사건 패턴으로 나타나는지 풀어냅니다.",
-    "4. 명궁은 타고난 기질과 삶의 기본 방향으로 해석합니다.",
-    "5. 신궁은 후천적으로 강해지는 삶의 방향과 행동 패턴으로 해석합니다.",
-    "6. 관록궁은 직업, 사회적 역할, 일의 방식으로 해석합니다.",
-    "7. 재백궁은 돈의 흐름, 벌고 쓰는 방식, 재물 감각으로 해석합니다.",
-    "8. 부부궁은 연애, 결혼, 친밀한 관계의 패턴으로 해석합니다.",
-    "9. 복덕궁은 내면 만족감, 정신적 안정, 외로움, 삶의 여백으로 해석합니다.",
-    "10. 질액궁은 건강을 단정하지 말고 생활 습관과 취약 경향으로 조심스럽게 해석합니다.",
-    "11. 사화는 삶에서 강하게 작동하는 방향성으로 해석하되, 화기를 공포스럽게 말하지 않습니다.",
-    "12. 살성은 위험이 아니라 긴장, 압박, 돌파력, 반복되는 시험으로 해석합니다.",
-    "13. 운세를 절대적 예언처럼 말하지 않습니다.",
-    "14. 불안감을 조장하지 않습니다.",
-    "15. 같은 문장을 반복하지 않습니다.",
-    "16. PDF, 챕터, job, progress, 프롬프트, 시스템 같은 표현을 결과에 노출하지 않습니다.",
-    "17. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
-    "18. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+    "4. 주성의 강약은 반드시 해석에 반영합니다. 묘는 선명하고 순수하게, 왕은 충분히 활성화된 기운으로, 평은 상황 의존적 기질로, 함은 제약되거나 굴절되는 기운으로 풀어냅니다.",
+    "5. 사화는 화록·화권·화과·화기가 어느 궁에 떨어지는지에 따라 확장, 장악력, 인정, 집착과 차질의 흐름으로 구분합니다.",
+    "6. 보성은 도움과 보완으로, 살성은 위험 단정이 아니라 긴장, 압박, 돌파력, 반복되는 시험으로 해석합니다.",
+    "7. 현재 대운과 세운은 지금 사용자가 실제로 선택할 타이밍 언어로 연결합니다.",
+    "8. 질액궁은 건강을 단정하지 말고 생활 습관과 취약 경향으로 조심스럽게 해석합니다.",
+    "9. 운세를 절대적 예언처럼 말하지 않고 불안감을 조장하지 않습니다.",
+    "10. 같은 문장을 반복하지 않습니다.",
+    "11. PDF, 챕터, job, progress, 프롬프트, 시스템 같은 표현을 결과에 노출하지 않습니다.",
+    "12. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
   ].join("\n");
 }
 
@@ -831,8 +830,63 @@ function buildFirstPrompt(input, chart) {
     "[계산된 자미두수 명반 데이터]",
     JSON.stringify(chart, null, 2),
     "",
-    "첫 답변은 다음 흐름을 자연스럽게 포함해 주세요.",
-    "명반의 핵심 인상, 명궁과 신궁으로 본 타고난 방향, 가장 강한 별의 흐름, 반복되기 쉬운 패턴, 직업/사업 방향, 재물 흐름, 연애/결혼 흐름, 인간관계와 사회적 위치, 내면의 불안과 복덕의 흐름, 현재 상담 주제에 대한 집중 해석, 앞으로 살려야 할 방향, 조심해야 할 선택, 현실적인 행동 조언, 마지막 상담 메시지.",
+    "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
+    JSON.stringify({
+      meta: {
+        name: birth.name || "이름 미입력",
+        gender: birth.gender || "미입력",
+        mingong: {
+          branch: "명궁 지지",
+          main_stars: ["별 이름"],
+          strength: ["묘/왕/평/함"],
+          description: "명궁 핵심 요약",
+        },
+        shengong: {
+          palace: "신궁 이름",
+          main_stars: ["별 이름"],
+          strength: ["묘/왕/평/함"],
+        },
+        sihua: {
+          lu: { star: "별 이름", palace: "궁 이름" },
+          quan: { star: "별 이름", palace: "궁 이름" },
+          ke: { star: "별 이름", palace: "궁 이름" },
+          ji: { star: "별 이름", palace: "궁 이름" },
+        },
+        dayun: {
+          current_palace: "현재 대운궁 이름",
+          age_range: "나이 범위",
+          main_stars: ["별 이름"],
+          theme: "현재 대운의 핵심 한 줄",
+        },
+        scores: {
+          career: 0,
+          wealth: 0,
+          relationship: 0,
+          health: 0,
+          overall: 0,
+        },
+      },
+      sections: {
+        essence: { title: "명궁이 말하는 본질", body: "상담 본문" },
+        flow: { title: "사화와 흐름의 물결", body: "상담 본문" },
+        career: { title: "일과 사업의 지도", body: "상담 본문" },
+        wealth: { title: "재물이 머무는 방식", body: "상담 본문" },
+        relationship: { title: "관계와 인연의 결", body: "상담 본문" },
+        dayun_now: { title: "지금의 대운", body: "상담 본문" },
+        caution: { title: "반복되는 함정과 전환점", body: "상담 본문" },
+        prescription: { title: "지금의 처방", body: "상담 본문" },
+      },
+    }, null, 2),
+    "",
+    "작성 규칙:",
+    "1. sections의 8개 body는 각각 완결된 상담 문단으로 작성하고, 서로 같은 첫 문장 구조를 반복하지 마세요.",
+    "2. essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 보성·살성의 영향까지 통합하세요.",
+    "3. flow는 화록·화권·화과·화기를 모두 언급하고, 화기가 있는 궁의 주의점을 구체적으로 풀어주세요.",
+    "4. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약과 대운·세운 흐름을 연결하세요.",
+    "5. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하세요.",
+    "6. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
+    "7. career, wealth, relationship, health는 각 20점 만점, overall은 별도 종합 판단으로 100점 만점에 맞추세요.",
+    "8. 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
     chart?.uncertainty?.birthTimeUnknown ? "출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
   ].filter(Boolean).join("\n");
 }
@@ -1244,7 +1298,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   if (!user) return loginRequired();
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
-  if (access.ok) {
+  if (access.ok && access.accessType === "paid") {
     logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
       ok: true,
@@ -1257,6 +1311,9 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
       }),
       accessType: access.accessType,
     });
+  }
+  if (access.ok) {
+    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "billing_gate_required", env }));
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
@@ -1289,7 +1346,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160) };
+    const accessType = clean(payload.accessType);
+    if (accessType !== "admin" && accessType !== "paid") return { ok: false, reason: "PAYMENT_REQUIRED" };
+    return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
   }
 
   const paymentId = clean(body?.paymentId || body?.merchantUid || body?.merchant_uid, 160);
@@ -1302,7 +1361,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
   const billingAccess = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
   if (billingAccess?.ok) return billingAccess;
-  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
+  return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
 async function handleStart(request, env, route = "/api/ziwei-ai/generate") {

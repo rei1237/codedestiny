@@ -37,6 +37,9 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
+const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
+const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
+
 const PORTONE_SINGLE_PAYMENT_METHODS = new Set(["CARD", "TRANSFER", "VIRTUAL_ACCOUNT", "MOBILE", "EASY_PAY"]);
 const SINGLE_PAYMENT_UNLOCKED_STATUSES = ["paid", "success", "fulfilled"];
 const PORTONE_WEBHOOK_EVENTS = Object.freeze({
@@ -628,6 +631,24 @@ function resolveSajuProfileUnlockContentKey(featureKey) {
   return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
 }
 
+function isSukuyoYearlyPaymentKey(value) {
+  const key = String(value || "").trim();
+  return key === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY || key.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`);
+}
+
+function resolveProfileUnlockContentKey(featureKey, contentKey = "") {
+  const explicitContentKey = String(contentKey || "").trim().slice(0, 160);
+  if (isSukuyoYearlyPaymentKey(explicitContentKey)) return explicitContentKey;
+  if (isSukuyoYearlyPaymentKey(featureKey)) return explicitContentKey || String(featureKey || "").trim();
+  return resolveSajuProfileUnlockContentKey(featureKey);
+}
+
+function resolveProfileUnlockServiceKey(featureKey, contentKey = "") {
+  if (isSukuyoYearlyPaymentKey(featureKey) || isSukuyoYearlyPaymentKey(contentKey)) return SUKYO_YEARLY_FORTUNE_SERVICE_KEY;
+  if (resolveSajuProfileUnlockContentKey(featureKey)) return CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
+  return "";
+}
+
 function cleanProfileId(value) {
   return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
 }
@@ -677,13 +698,15 @@ function trimUtf8Bytes(value, maxBytes) {
 }
 
 function resolveSinglePaymentFeatureKey(body = {}) {
-  return String(
+  const rawKey = String(
     body?.featureKey
       || body?.contentId
       || body?.subFeatureKey
       || body?.productId
       || "",
   ).trim().slice(0, 80);
+  if (isSukuyoYearlyPaymentKey(rawKey)) return SUKYO_YEARLY_FORTUNE_PRODUCT_KEY;
+  return rawKey;
 }
 
 function resolveSinglePayMethod(value) {
@@ -744,14 +767,15 @@ async function verifySinglePaymentProfileOwner(userId, profileId) {
   return null;
 }
 
-async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey }) {
-  const contentKey = resolveSajuProfileUnlockContentKey(featureKey);
-  if (contentKey) {
+async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey, contentKey: requestedContentKey = "" }) {
+  const contentKey = resolveProfileUnlockContentKey(featureKey, requestedContentKey);
+  const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
+  if (contentKey && serviceKey) {
     // 결제창 호출 전에 프로필 단위 잠금 해제 이력을 먼저 확인해 중복 결제를 차단한다.
     const entitlement = await ContentEntitlement.findOne({
       userId: String(userId),
       profileId: String(profileId),
-      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      serviceKey,
       contentKey,
       scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
@@ -767,9 +791,19 @@ async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey })
     accessType: "single_purchase",
     featureKey,
     status: { $in: SINGLE_PAYMENT_UNLOCKED_STATUSES },
-    $or: [
-      { "pricingSnapshot.profileId": String(profileId) },
-      { "pricingSnapshot.selectedProfileId": String(profileId) },
+    $and: [
+      {
+        $or: [
+          { "pricingSnapshot.profileId": String(profileId) },
+          { "pricingSnapshot.selectedProfileId": String(profileId) },
+        ],
+      },
+      ...(contentKey ? [{
+        $or: [
+          { "pricingSnapshot.contentKey": contentKey },
+          { "pricingSnapshot.contentId": contentKey },
+        ],
+      }] : []),
     ],
   }).sort({ createdAt: -1 }).lean();
   if (paidPayment) return { source: "payment", payment: paidPayment };
@@ -826,7 +860,7 @@ function resolveSinglePaymentPricing(body = {}) {
   };
 }
 
-function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountKRW, coinPrice, payMethod, redirectUrl, customer, profileId, serviceId, contentId, contentType, featureKey, returnPath }) {
+function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountKRW, coinPrice, payMethod, redirectUrl, customer, profileId, serviceId, contentId, contentKey, contentType, featureKey, targetYear, returnPath }) {
   return {
     storeId: config.storeId,
     channelKey: config.channelKey,
@@ -843,8 +877,10 @@ function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountK
     profileId,
     serviceId,
     contentId,
+    contentKey,
     contentType,
     featureKey,
+    targetYear,
     coinPrice,
     returnPath,
     orderState: SINGLE_PAYMENT_ORDER_STATES.PENDING,
@@ -881,7 +917,7 @@ function isPortOnePendingStatus(status) {
   return ["ready", "pay_pending", "virtual_account_issued", "pending"].includes(normalized);
 }
 
-function buildSingleCompleteAccessGrant({ payment, entitlement, profileId, contentId, contentType, serviceId, paidAt }) {
+function buildSingleCompleteAccessGrant({ payment, entitlement, profileId, contentId, contentKey, contentType, serviceId, targetYear, paidAt }) {
   return {
     ok: true,
     accessType: "single_purchase",
@@ -892,9 +928,12 @@ function buildSingleCompleteAccessGrant({ payment, entitlement, profileId, conte
     featureKey: String(payment?.featureKey || contentId || ""),
     serviceId,
     contentId,
+    contentKey,
     contentType,
     evidenceId: String(entitlement?._id || ""),
     profileId,
+    selectedProfileId: profileId,
+    targetYear,
     paidAt: paidAt ? new Date(paidAt).toISOString() : null,
   };
 }
@@ -1060,7 +1099,8 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU).trim().slice(0, 80);
   const contentId = String(payment?.pricingSnapshot?.contentId || payment?.featureKey || "").trim().slice(0, 160);
   const contentType = String(payment?.pricingSnapshot?.contentType || payment?.pricingSnapshot?.categoryKey || "digital_content").trim().slice(0, 80);
-  const contentKey = resolveSajuProfileUnlockContentKey(payment?.featureKey) || contentId;
+  const contentKey = resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId) || contentId;
+  const serviceKey = resolveProfileUnlockServiceKey(payment?.featureKey, contentKey) || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
   const coinPrice = Math.max(0, Math.floor(Number(payment?.coinPrice || payment?.expectedChargedPoints || 0)));
   const amountKRW = Math.max(0, Math.floor(Number(payment?.paymentAmount || payment?.pricingSnapshot?.amountKRW || 0)));
   if (!profileId || !contentId || !contentKey) {
@@ -1076,7 +1116,7 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
     {
       userId: String(payment.userId),
       profileId,
-      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      serviceKey,
       contentKey,
       scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     },
@@ -1099,7 +1139,7 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
       $setOnInsert: {
         userId: String(payment.userId),
         profileId,
-        serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+        serviceKey,
         contentKey,
         scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
         unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
@@ -1215,8 +1255,10 @@ async function handleSinglePaymentComplete(request, env, auth) {
         entitlement,
         profileId: String(entitlement?.profileId || order.pricingSnapshot?.profileId || ""),
         contentId: String(entitlement?.contentId || order.pricingSnapshot?.contentId || order.featureKey || ""),
+        contentKey: String(entitlement?.contentKey || order.pricingSnapshot?.contentKey || ""),
         contentType: String(entitlement?.contentType || order.pricingSnapshot?.contentType || "digital_content"),
         serviceId: String(entitlement?.serviceId || order.pricingSnapshot?.serviceId || order.productId || ""),
+        targetYear: order.pricingSnapshot?.targetYear,
         paidAt,
       }),
     });
@@ -1406,6 +1448,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
     userId: order.userId,
     profileId: order.pricingSnapshot?.profileId,
     featureKey: order.featureKey,
+    contentKey: order.pricingSnapshot?.contentKey || order.pricingSnapshot?.contentId,
   });
   const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
 
@@ -1473,8 +1516,10 @@ async function handleSinglePaymentComplete(request, env, auth) {
       entitlement,
       profileId: String(entitlement?.profileId || responsePayment?.pricingSnapshot?.profileId || ""),
       contentId: String(entitlement?.contentId || responsePayment?.pricingSnapshot?.contentId || responsePayment?.featureKey || ""),
+      contentKey: String(entitlement?.contentKey || responsePayment?.pricingSnapshot?.contentKey || ""),
       contentType: String(entitlement?.contentType || responsePayment?.pricingSnapshot?.contentType || "digital_content"),
       serviceId: String(entitlement?.serviceId || responsePayment?.pricingSnapshot?.serviceId || responsePayment?.productId || ""),
+      targetYear: responsePayment?.pricingSnapshot?.targetYear,
       paidAt,
     }),
   });
@@ -1680,6 +1725,7 @@ async function handleSinglePaymentStart(request, env, auth) {
     userId: auth.userId,
     profileId,
     featureKey: resolved.featureKey,
+    contentKey: body?.contentKey,
   });
   if (unlockEvidence) {
     return json({
@@ -1712,8 +1758,14 @@ async function handleSinglePaymentStart(request, env, auth) {
   }
 
   const idempotencyKey = resolveIdempotencyKey(request, body);
-  const serviceId = String(body?.serviceId || resolved.pricing?.serviceId || "code-destiny").trim().slice(0, 80);
-  const contentId = String(body?.contentId || resolved.featureKey).trim().slice(0, 120);
+  const serviceId = String(body?.serviceId || body?.serviceKey || resolved.pricing?.serviceId || "code-destiny").trim().slice(0, 80);
+  const targetYear = body?.targetYear === undefined || body?.targetYear === null ? undefined : Number(body.targetYear);
+  const contentKey = String(
+    body?.contentKey
+      || resolved.pricing?.contentKey
+      || (isSukuyoYearlyPaymentKey(resolved.featureKey) && Number.isInteger(targetYear) ? `${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:${targetYear}` : ""),
+  ).trim().slice(0, 160);
+  const contentId = String(body?.contentId || contentKey || resolved.featureKey).trim().slice(0, 120);
   const contentType = String(body?.contentType || resolved.pricing?.categoryKey || "digital_content").trim().slice(0, 80);
   const returnPath = sanitizeReturnPath(body?.returnPath);
   const payMethod = resolveSinglePayMethod(body?.payMethod || body?.paymentMethod);
@@ -1734,7 +1786,10 @@ async function handleSinglePaymentStart(request, env, auth) {
       const existingCoins = Number(existing.coinPrice || existing.expectedChargedPoints || 0);
       const existingProfileId = String(existing.pricingSnapshot?.profileId || existing.pricingSnapshot?.selectedProfileId || "");
       const existingContentId = String(existing.pricingSnapshot?.contentId || existing.featureKey || "");
-      if (existingAmount !== resolved.amountKRW || existingCoins !== resolved.coinPrice || existingProfileId !== profileId || existingContentId !== contentId) {
+      const existingContentKey = String(existing.pricingSnapshot?.contentKey || (isSukuyoYearlyPaymentKey(existing.featureKey) ? existing.pricingSnapshot?.contentId : "") || "");
+      const existingTargetYear = existing.pricingSnapshot?.targetYear === undefined || existing.pricingSnapshot?.targetYear === null ? undefined : Number(existing.pricingSnapshot.targetYear);
+      const targetYearConflicts = targetYear !== undefined && existingTargetYear !== targetYear;
+      if (existingAmount !== resolved.amountKRW || existingCoins !== resolved.coinPrice || existingProfileId !== profileId || existingContentId !== contentId || (contentKey && existingContentKey !== contentKey) || targetYearConflicts) {
         return json({
           message: "Idempotency key conflict. Request payload does not match existing single payment order.",
           code: "IDEMPOTENCY_CONFLICT",
@@ -1759,8 +1814,10 @@ async function handleSinglePaymentStart(request, env, auth) {
           profileId,
           serviceId,
           contentId,
+          contentKey,
           contentType,
           featureKey: resolved.featureKey,
+          targetYear,
           returnPath,
         }),
       });
@@ -1790,7 +1847,10 @@ async function handleSinglePaymentStart(request, env, auth) {
       selectedProfileId: profileId,
       serviceId,
       contentId,
+      contentKey,
       contentType,
+      serviceKey: serviceId,
+      targetYear,
       coinPrice: resolved.coinPrice,
       amountKRW: resolved.amountKRW,
       paymentId,
@@ -1825,8 +1885,10 @@ async function handleSinglePaymentStart(request, env, auth) {
       profileId,
       serviceId,
       contentId,
+      contentKey,
       contentType,
       featureKey: resolved.featureKey,
+      targetYear,
       returnPath,
     }),
   }, { status: 201 });
@@ -1861,8 +1923,12 @@ async function upsertSajuPaymentUnlockEntitlement({
   session = null,
 }) {
   const featureKey = String(payment?.featureKey || body?.featureKey || body?.subFeatureKey || "").trim();
-  const contentKey = resolveSajuProfileUnlockContentKey(featureKey);
-  if (!contentKey) return null;
+  const contentKey = resolveProfileUnlockContentKey(
+    featureKey,
+    body?.contentKey || payment?.pricingSnapshot?.contentKey || payment?.pricingSnapshot?.contentId,
+  );
+  const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
+  if (!contentKey || !serviceKey) return null;
   if (!userId || !profileId) {
     const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
     error.code = "MISSING_PROFILE_ID";
@@ -1875,7 +1941,7 @@ async function upsertSajuPaymentUnlockEntitlement({
     {
       userId: String(userId),
       profileId: String(profileId),
-      serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+      serviceKey,
       contentKey,
       scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     },
@@ -1892,7 +1958,7 @@ async function upsertSajuPaymentUnlockEntitlement({
       $setOnInsert: {
         userId: String(userId),
         profileId: String(profileId),
-        serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+        serviceKey,
         contentKey,
         scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
         unlockedAt: Number.isNaN(effectiveUnlockedAt.getTime()) ? now : effectiveUnlockedAt,
@@ -1966,6 +2032,11 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
     || "",
   ).trim().slice(0, 80);
   const actionType = String(body?.actionType || payment?.pricingSnapshot?.actionType || "").trim().slice(0, 80);
+  const contentKey = String(body?.contentKey || payment?.pricingSnapshot?.contentKey || "").trim().slice(0, 160);
+  const contentId = String(body?.contentId || contentKey || payment?.pricingSnapshot?.contentId || payment?.featureKey || "").trim().slice(0, 160);
+  const targetYear = body?.targetYear === undefined || body?.targetYear === null
+    ? payment?.pricingSnapshot?.targetYear
+    : Number(body.targetYear);
   const profileCardId = String(
     body?.profileCardId
     || body?.profileId
@@ -2016,6 +2087,9 @@ async function createDigitalContentAccessEvidence({ userId, payment, body = {}, 
       productType,
       serviceType,
       actionType,
+      contentKey,
+      contentId,
+      targetYear,
       featureKey,
       coinPrice,
       costCoins,
@@ -2274,6 +2348,10 @@ async function settlePaymentByImpUid({
         sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || ""),
         evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
         profileId: profileId || undefined,
+        selectedProfileId: profileId || undefined,
+        contentKey: String(unlockEntitlement?.contentKey || paymentRecord.pricingSnapshot?.contentKey || body?.contentKey || ""),
+        contentId: String(unlockEntitlement?.contentId || paymentRecord.pricingSnapshot?.contentId || body?.contentId || ""),
+        targetYear: paymentRecord.pricingSnapshot?.targetYear ?? body?.targetYear,
         paidAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt).toISOString() : null,
       } : null,
     };
@@ -2628,6 +2706,10 @@ async function settlePaymentByImpUid({
           sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
           evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
           profileId: profileId || undefined,
+          selectedProfileId: profileId || undefined,
+          contentKey: String(unlockEntitlement?.contentKey || finalizedPayment.pricingSnapshot?.contentKey || body?.contentKey || ""),
+          contentId: String(unlockEntitlement?.contentId || finalizedPayment.pricingSnapshot?.contentId || body?.contentId || ""),
+          targetYear: finalizedPayment.pricingSnapshot?.targetYear ?? body?.targetYear,
           paidAt: paidAt.toISOString(),
         },
       };
@@ -2769,6 +2851,10 @@ async function settlePaymentByImpUid({
               sessionId: String(finalizedPayment.sessionId || body?.sessionId || body?.reportSessionId || ""),
               evidenceId: String(unlockEntitlement?._id || accessEvidence?._id || ""),
               profileId: profileId || undefined,
+              selectedProfileId: profileId || undefined,
+              contentKey: String(unlockEntitlement?.contentKey || finalizedPayment.pricingSnapshot?.contentKey || body?.contentKey || ""),
+              contentId: String(unlockEntitlement?.contentId || finalizedPayment.pricingSnapshot?.contentId || body?.contentId || ""),
+              targetYear: finalizedPayment.pricingSnapshot?.targetYear ?? body?.targetYear,
               paidAt: paidAt.toISOString(),
             },
           };

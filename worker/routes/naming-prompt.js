@@ -114,7 +114,8 @@ function normalizeInput(raw = {}) {
   const calendarType = clean(raw.calendarType || raw.calendar || "solar", 20).toLowerCase();
   const desiredNames = normalizeDesiredNames(raw.desiredNames || raw.candidateNames || raw.nameCandidates);
   const currentName = clean(raw.currentName || raw.hangulName || raw.preferredName, 40);
-  const preferredStyle = clean(raw.preferredStyle || raw.style, 200);
+  const preferredStyle = clean(raw.preferredStyle || raw.style || raw.preferenceTone, 200);
+  const preferredImage = cleanList(raw.preferredImage || raw.preferredImages || raw.preferenceTone, 60);
   const memo = clean(raw.memo || raw.requestMemo || raw.extraRequest, 1500);
 
   return {
@@ -133,7 +134,7 @@ function normalizeInput(raw = {}) {
     desiredSyllables: cleanList(raw.desiredSyllables || raw.usableSyllables, 20),
     requiredSyllables: cleanList(raw.requiredSyllables || raw.requiredLetters, 20),
     blockedSyllables: cleanList(raw.blockedSyllables || raw.blockedLetters, 20),
-    preferredImage: cleanList(raw.preferredImage || raw.preferredImages, 60),
+    preferredImage,
     preferredStyle,
     useHanja: toBoolean(raw.useHanja ?? true),
     generationNameRule: clean(raw.generationNameRule || raw.generationName || "", 200),
@@ -155,8 +156,6 @@ function validateInput(input) {
   if (!input.birthDate || !input.year || !input.month || !input.day) missing.push("생년월일");
   if (!input.calendarType) missing.push("양력/음력");
   if (!input.familyName) missing.push("성씨");
-  if (!input.currentName && input.desiredNames.length === 0 && input.desiredSyllables.length === 0) missing.push("이름 후보 또는 원하는 음절");
-  if (!input.preferredStyle && !input.memo) missing.push("선호 스타일 또는 요청 메모");
 
   const invalidHanja = [];
   for (const item of input.desiredNames) {
@@ -491,13 +490,41 @@ function desiredNamesMarkdown(names) {
   }).join("\n");
 }
 
+function buildPreferenceContext(input) {
+  const parts = [];
+  const style = clean(input.preferredStyle, 200);
+  const images = Array.isArray(input.preferredImage) ? input.preferredImage : [];
+  if (style) parts.push(style);
+  for (const image of images) {
+    const token = clean(image, 60);
+    if (token && !parts.includes(token)) parts.push(token);
+  }
+  return parts.length ? parts.join(" / ") : "미입력";
+}
+
 function buildGeneratedPrompt(input, saju) {
+  const hasSeedNames = Boolean(input.currentName || input.desiredNames.length || input.desiredSyllables.length);
+  const preferenceContext = buildPreferenceContext(input);
   const timeNote = input.birthTimeUnknown
     ? "\n- 출생시간이 불명확하므로 시주는 확정하지 않고, 년주·월주·일주 중심으로 작명 방향을 판단해주세요. 시주에 따라 용신 판단이 달라질 수 있음을 고려해주세요."
     : "";
   const hanjaNote = input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja)
     ? "\n- 한글 이름만 입력된 후보는 한자 획수와 수리 풀이를 한자 조합이 확정된 뒤 최종 판단해주세요."
     : "";
+  const draftNote = hasSeedNames
+    ? "\n- 무료 입력 단계의 초안 추천이 있었다면 참고안으로만 보고, 반드시 사주와 작명 원칙으로 다시 검토해주세요."
+    : "\n- 사용자가 이름 후보를 비워두었으므로, 사주와 요청 조건을 바탕으로 새 이름 후보 5~7개를 먼저 제안해주세요.";
+  const candidateRequestLines = hasSeedNames
+    ? [
+        "2. 사용자가 입력한 이름 후보를 각각 평가해주세요.",
+        "3. 각 후보 이름에 대해 소리오행, 자원오행, 수리오행, 원형이정 수리, 음양 균형, 현대적 이름감을 분석해주세요.",
+        "4. 한글 이름만 입력된 경우 가능한 한자 조합을 여러 개 제안하고, 각 조합의 장단점을 비교해주세요.",
+      ]
+    : [
+        "2. 입력값을 바탕으로 새 이름 후보 5~7개를 먼저 제안해주세요.",
+        "3. 제안한 후보 각각에 대해 소리오행, 자원오행, 수리오행, 원형이정 수리, 음양 균형, 현대적 이름감을 분석해주세요.",
+        "4. 각 후보별로 가능한 한자 조합을 여러 개 제안하고, 장단점을 비교해주세요.",
+      ];
 
   return `당신은 30년 이상 임상 작명 경험을 가진 한국 전통 작명 전문가이자 사주명리학자입니다.
 아래 사용자의 사주와 이름 후보를 바탕으로, 단순히 예쁜 이름을 고르는 것이 아니라 사주 보완, 용신·희신, 소리오행, 자원오행, 한자 의미, 인명용 한자 적합성, 원형이정 수리, 음양 균형, 현대적 사용성을 모두 종합해 가장 좋은 이름을 추천해주세요.
@@ -508,7 +535,7 @@ function buildGeneratedPrompt(input, saju) {
 - 수리만 좋고 사주에 맞지 않는 이름, 발음만 예쁘고 오행이 맞지 않는 이름은 낮게 평가해주세요.
 - 전통 작명 이론과 현대적 이름감을 함께 고려해주세요.
 - 불확실한 부분은 단정하지 말고 판단 근거와 보완 의견을 함께 말해주세요.
-- 사용자가 입력한 이름 후보가 좋지 않더라도 무조건 부정하지 말고, 개선 가능한 한자 조합이나 대체 이름을 제안해주세요.${timeNote}${hanjaNote}
+- 사용자가 입력한 이름 후보가 좋지 않더라도 무조건 부정하지 말고, 개선 가능한 한자 조합이나 대체 이름을 제안해주세요.${timeNote}${hanjaNote}${draftNote}
 
 [사용자 정보]
 - 성별: ${input.gender}
@@ -567,8 +594,7 @@ ${desiredNamesMarkdown(input.desiredNames)}
 - 사용하고 싶은 음절: ${formatList(input.desiredSyllables)}
 - 반드시 넣고 싶은 글자: ${formatList(input.requiredSyllables)}
 - 피하고 싶은 글자: ${formatList(input.blockedSyllables)}
-- 선호 이미지: ${formatList(input.preferredImage)}
-- 선호 스타일: ${input.preferredStyle || "미입력"}
+- 이름 분위기/이미지 선호: ${preferenceContext}
 - 한자 사용 여부: ${input.useHanja ? "사용" : "한글 이름 중심, 필요 시 한자 조합 제안"}
 - 돌림자 여부: ${input.generationNameRule || "미입력"}
 - 형제자매 이름과의 조화: ${input.siblingHarmony || "미입력"}
@@ -577,9 +603,7 @@ ${desiredNamesMarkdown(input.desiredNames)}
 
 [분석 요청]
 1. 먼저 이 사주에서 이름이 어떤 방향으로 보완되어야 하는지 설명해주세요.
-2. 사용자가 입력한 이름 후보를 각각 평가해주세요.
-3. 각 후보 이름에 대해 소리오행, 자원오행, 수리오행, 원형이정 수리, 음양 균형, 현대적 이름감을 분석해주세요.
-4. 한글 이름만 입력된 경우 가능한 한자 조합을 여러 개 제안하고, 각 조합의 장단점을 비교해주세요.
+${candidateRequestLines.join("\n")}
 5. 사주 보완에 가장 좋은 이름 TOP 3를 추천해주세요.
 6. 최종 1순위 이름을 선정하고, 왜 그 이름이 가장 적합한지 설명해주세요.
 7. 피해야 할 이름 조합과 이유도 알려주세요.

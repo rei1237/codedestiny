@@ -139,4 +139,24 @@ describe("Billing access decision", () => {
     expect(decision.allowed).toBe(false);
     expect(decision.reason).toBe(utils.ACCESS_DECISION_REASONS.REQUIRES_PURCHASE);
   });
+  test("returns temporary_unavailable instead of payment_required when pass lookup is unavailable", async () => {
+    const decision = await utils.resolvePaidContentAccess({}, {
+      userId: "507f1f77bcf86cd799439011",
+      profileId: "profile-1",
+      pricing: {
+        featureKey: "saju_ai_prompt_generator",
+        cost: 200,
+        coinPrice: 200,
+      },
+      requestId: "req-pass-lookup-unavailable",
+      requestedPaymentMode: "membership_pass",
+    });
+
+    expect(decision.accessGranted).toBe(false);
+    expect(decision.reason).toBe("temporary_unavailable");
+    expect(decision.temporaryUnavailable).toBe(true);
+    expect(decision.shouldOpenPaymentSelector).toBe(false);
+    expect(decision.errorCode).toBe("PASS_STATUS_TEMPORARILY_UNAVAILABLE");
+    expect(decision.paymentOptions).toBeTruthy();
+  });
 });

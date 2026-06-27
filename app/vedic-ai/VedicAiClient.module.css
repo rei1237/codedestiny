@@ -267,6 +267,13 @@
   color: #17133d;
 }
 
+.geoStatus {
+  min-height: 1rem;
+  color: rgba(134, 239, 172, 0.78);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
 .formPanel input:focus,
 .formPanel select:focus,
 .formPanel textarea:focus {
@@ -353,14 +360,116 @@
 }
 
 .resultPanel::before {
-  content: "";
+  content: none;
+}
+
+.cosmosLoading {
   position: absolute;
-  inset: auto -9rem -12rem auto;
-  width: 28rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(234, 92, 152, 0.18), transparent 62%);
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.25rem;
+  padding: 2rem;
+  overflow: hidden;
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 40%, #080318 0%, #030010 60%, #010008 100%);
+}
+
+.cosmosStars {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
+}
+
+.cosmosStars span {
+  position: absolute;
+  border-radius: 999px;
+  background: #fff;
+  animation: twinkle 3.8s ease-in-out infinite alternate;
+}
+
+.cosmosOrbitStage {
+  position: relative;
+  width: min(20rem, 78vw);
+  aspect-ratio: 1;
+}
+
+.cosmosOrbitSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cosmosOrbitStage > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  background-image: linear-gradient(135deg, #a78bfa, #fbbf24);
+  background-clip: text;
+  font-size: 2.6rem;
+  filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.6));
+}
+
+.cosmosLoadingText {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cosmosLoadingText strong {
+  color: rgba(196, 181, 253, 0.88);
+  font-weight: 500;
+}
+
+.cosmosLoadingText span {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.cosmosStageDots {
+  display: flex;
+  gap: 0.85rem;
+  justify-content: center;
+}
+
+.cosmosStageDots i {
+  color: rgba(255, 255, 255, 0.18);
+  font-style: normal;
+  transition: color 0.35s ease, transform 0.35s ease, text-shadow 0.35s ease;
+}
+
+.cosmosStageDots .activeCosmosDot {
+  color: rgba(196, 181, 253, 0.86);
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.9);
+  transform: scale(1.25);
+}
+
+.cosmosProgress {
+  width: 13rem;
+  height: 1px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cosmosProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa 50%, #fbbf24);
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.6);
+  transition: width 0.1s linear;
+}
+
+.cosmosLoading p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.18);
+  font-size: 0.78rem;
 }
 
 .emptyState {
@@ -559,8 +668,182 @@
   cursor: not-allowed;
 }
 
+.structuredResult {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.structuredHeader {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0 1rem;
+  background: rgba(13, 15, 52, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+}
+
+.structuredHeader p {
+  margin: 0 0 0.25rem;
+  color: rgba(196, 181, 253, 0.48);
+  font-size: 0.78rem;
+}
+
+.structuredHeader h2 {
+  margin: 0;
+  color: rgba(196, 181, 253, 0.92);
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.structuredHeader button {
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  color: rgba(251, 191, 36, 0.86);
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+}
+
+.chartSummaryCard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(124, 58, 237, 0.24);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(251, 191, 36, 0.06));
+}
+
+.chartSummaryCard article {
+  min-width: 0;
+  text-align: center;
+}
+
+.chartSummaryCard span,
+.dashaBanner span {
+  display: block;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 0.76rem;
+}
+
+.chartSummaryCard strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: rgba(196, 181, 253, 0.94);
+  overflow-wrap: anywhere;
+}
+
+.chartSummaryCard small {
+  display: block;
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.dashaBanner {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+  padding: 0.9rem;
+  border-top: 1px solid rgba(124, 58, 237, 0.16);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.16);
+}
+
+.dashaBanner strong {
+  color: rgba(251, 191, 36, 0.86);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.scorePanel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scorePanel div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+}
+
+.scorePanel span {
+  color: rgba(196, 181, 253, 0.58);
+  font-size: 0.78rem;
+}
+
+.scorePanel strong {
+  color: rgba(251, 191, 36, 0.78);
+  font-size: 0.78rem;
+}
+
+.scorePanel i {
+  grid-column: 1 / -1;
+  display: block;
+  height: 1px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.scorePanel b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa 50%, #fbbf24);
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.structuredSection {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.14);
+}
+
+.structuredSection div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.structuredSection span {
+  color: transparent;
+  background-image: linear-gradient(135deg, #a78bfa, #fbbf24);
+  background-clip: text;
+  font-size: 1.45rem;
+}
+
+.structuredSection h3 {
+  margin: 0;
+  color: rgba(196, 181, 253, 0.88);
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.structuredSection p {
+  margin: 0;
+  color: rgba(220, 214, 254, 0.72);
+  line-height: 2.05;
+  white-space: pre-wrap;
+}
+
 .spin {
   animation: spin 0.9s linear infinite;
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.12;
+  }
+
+  to {
+    opacity: 0.82;
+  }
 }
 
 @keyframes spin {
@@ -612,6 +895,7 @@
   }
 
   .summaryGrid,
+  .chartSummaryCard,
   .sectionGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -634,6 +918,7 @@
 
   .formGrid,
   .summaryGrid,
+  .chartSummaryCard,
   .chartCards,
   .sectionGrid {
     grid-template-columns: 1fr;

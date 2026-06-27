@@ -4249,12 +4249,53 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
 }
 
 async function findSukuyoYearlyUnlock({ userId, profileId, targetYear }) {
-  return findActivePaidContentUnlock({
+  const contentKey = sukuyoYearlyContentKey(targetYear);
+  const primary = await findActivePaidContentUnlock({
     userId,
     profileId,
     serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
-    contentKey: sukuyoYearlyContentKey(targetYear),
+    contentKey,
   });
+  if (primary?._id) return primary;
+
+  for (const serviceKey of ["ziwei", "saju"]) {
+    const legacy = await findActivePaidContentUnlock({
+      userId,
+      profileId,
+      serviceKey,
+      contentKey,
+    });
+    if (!legacy?._id) continue;
+    try {
+      const source = Object.values(CONTENT_ENTITLEMENT_SOURCES).includes(legacy.source)
+        ? legacy.source
+        : CONTENT_ENTITLEMENT_SOURCES.BACKFILL;
+      return await upsertPaidContentUnlock({
+        userId,
+        profileId,
+        featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+        serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
+        contentKey,
+        source,
+        orderId: legacy.orderId || "",
+        paymentId: legacy.paymentId || "",
+        passId: legacy.passId || "",
+        coinAmount: Number(legacy.coinAmount || 0),
+        unlockedAt: legacy.unlockedAt || null,
+      });
+    } catch (error) {
+      console.warn("[SukuyoYearly][LegacyUnlockBackfillFailed]", {
+        userId: clean(userId),
+        profileId: clean(profileId),
+        targetYear,
+        serviceKey,
+        reason: clean(error?.message || error),
+      });
+      return legacy;
+    }
+  }
+
+  return null;
 }
 
 async function handleSukuyoYearlyFortune(request, env) {
@@ -4406,7 +4447,9 @@ function isSukuyoYearlyPointEvidence(doc, { profileId, contentKey, targetYear })
   if (clean(doc.kind) !== "deduct") return false;
   const profileOk = valueMatchesAny(metadata.profileId, [profileId]) || valueMatchesAny(metadata.selectedProfileId, [profileId]);
   if (!profileOk) return false;
-  const contentOk = valueMatchesAny(metadata.contentKey, [contentKey]) || Number(metadata.targetYear) === Number(targetYear);
+  const contentOk = valueMatchesAny(metadata.contentKey, [contentKey])
+    || valueMatchesAny(metadata.contentId, [contentKey])
+    || Number(metadata.targetYear) === Number(targetYear);
   if (!contentOk) return false;
   const paidCoins = Math.max(
     Math.abs(Number(doc.delta || 0)),
@@ -4422,14 +4465,15 @@ function isSukuyoYearlyPaymentEvidence(doc, { profileId, contentKey, targetYear 
   const pricing = doc.pricingSnapshot && typeof doc.pricingSnapshot === "object" ? doc.pricingSnapshot : {};
   const status = clean(doc.status).toLowerCase();
   const orderState = clean(doc.orderState).toUpperCase();
-  const featureKey = clean(doc.featureKey || pricing.featureKey || pricing.productId || pricing.contentKey);
-  if (featureKey !== SUKYO_YEARLY_FORTUNE_PRODUCT_KEY && clean(pricing.contentKey) !== contentKey) return false;
+  const featureKey = clean(doc.featureKey || pricing.featureKey || pricing.productId || pricing.contentKey || pricing.contentId);
+  if (featureKey !== SUKYO_YEARLY_FORTUNE_PRODUCT_KEY && clean(pricing.contentKey) !== contentKey && clean(pricing.contentId) !== contentKey) return false;
   if (!["paid", "success", "fulfilled", "processing"].includes(status) && !["PAID_VERIFIED", "UNLOCKED"].includes(orderState)) return false;
   const profileOk = valueMatchesAny(doc.profileId, [profileId])
     || valueMatchesAny(pricing.profileId, [profileId])
     || valueMatchesAny(pricing.selectedProfileId, [profileId]);
   if (!profileOk) return false;
   const contentOk = valueMatchesAny(pricing.contentKey, [contentKey])
+    || valueMatchesAny(pricing.contentId, [contentKey])
     || Number(pricing.targetYear || doc.targetYear) === Number(targetYear);
   if (!contentOk) return false;
   const paidAmount = Math.max(Number(doc.paymentAmount || 0), Number(pricing.amountKrw || pricing.amountKRW || 0));

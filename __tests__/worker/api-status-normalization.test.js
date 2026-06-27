@@ -312,4 +312,20 @@ describe("Worker API status normalization", () => {
     expect(payload.ok).toBe(false);
     expect(payload.error?.code).toBe("AUTH_REQUIRED");
   });
+  test("authenticated coin-gate membership pass falls back to 503 instead of payment_required when pass lookup is unavailable", async () => {
+    const request = await buildAuthRequest("https://example.com/api/billing/coin-gate", "POST", {
+      featureKey: "saju_ai_prompt_generator",
+      paymentMode: "membership_pass",
+      forceDeduct: false,
+    });
+
+    const response = await handleBillingRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.ok).toBe(false);
+    expect(payload.code).toBe("PASS_STATUS_TEMPORARILY_UNAVAILABLE");
+    expect(payload.error?.code).toBe("PASS_STATUS_TEMPORARILY_UNAVAILABLE");
+    expect(payload.degraded).toBe(true);
+  });
 });

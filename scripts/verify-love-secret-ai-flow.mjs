@@ -50,6 +50,7 @@ for (const file of [
 
 const indexHtml = read("index.html");
 const page = read("app/love-secret-ai/page.tsx");
+const resultPage = read("app/love-secret-ai/result/page.tsx");
 const route = read("worker/routes/love-secret-ai.js");
 const workerIndex = read("worker/index.js");
 const models = read("worker/lib/models.js");
@@ -68,9 +69,10 @@ assertNotIncludes("index.html", indexHtml, "love-secret-pdf");
 for (const marker of [
   "/api/love-secret-ai/prepare",
   "/api/love-secret-ai/generate",
-  "/api/love-secret-ai/message",
   "runBillingCoinGate",
-  "연애 비책 AI 상담 받기",
+  "LoveSecretGeneratingCard",
+  "연애 비책 상담 시작하기",
+  "/love-secret-ai/result",
 ]) {
   assertIncludes("app/love-secret-ai/page.tsx", page, marker);
 }
@@ -81,15 +83,27 @@ for (const marker of [
   "/api/love-secret/prepare",
   "create-job",
   "chapter",
-  "progress",
 ]) {
   assertNotIncludes("app/love-secret-ai/page.tsx", page, marker);
+}
+for (const marker of [
+  "/api/love-secret-ai/result",
+  "PDF로 저장하기",
+  "love-secret-reading-",
+  "LoveSecretResultSection",
+  "html2canvas",
+  "jspdf",
+]) {
+  assertIncludes("app/love-secret-ai/result/page.tsx", resultPage, marker);
 }
 
 for (const marker of [
   "handleEnsureAccess",
   "handleStart",
+  "handleResult",
   "handleMessage",
+  'path === "/result"',
+  'path.startsWith("/result/")',
   'path === "/prepare"',
   'path === "/generate"',
   'path === "/ensure-access"',
@@ -98,6 +112,7 @@ for (const marker of [
   "refundBillingGateMonthlyCredit",
   "restoreBillingGateAccessOnFailure",
   "love-secret-ai-consultation",
+  "attemptId",
 ]) {
   assertIncludes("worker/routes/love-secret-ai.js", route, marker);
 }
@@ -120,9 +135,12 @@ assertIncludes("worker/lib/models.js", models, 'collection: "loveSecretAiConsult
 assertIncludes("worker/lib/paid-feature-registry.js", registry, '"love-secret-ai-consultation"');
 assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "buildSajuProfile");
 assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "calculateLoveSecretAiSaju");
+assertIncludes("worker/lib/love-secret-ai-calculation.js", calc, "속궁합과 친밀감 리듬");
 assertNotIncludes("worker/lib/love-secret-ai-calculation.js", calc, "pdf-v2");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "LOVE_SECRET_AI_SYSTEM_PROMPT");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "parseFirstConsultationResponse");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "johuIntimacyRhythm");
+assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "pdfSections");
 assertIncludes("app/components/AppChrome.tsx", appChrome, '"/love-secret-ai"');
 
 if (failures.length) {

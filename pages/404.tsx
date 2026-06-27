@@ -7,7 +7,7 @@ const quickLinks = [
   { href: "/insights/famous-saju/iu", label: "아이유 사주" },
 ];
 
-const chipStyle = {
+const chipStyle: React.CSSProperties = {
   border: "1px solid rgba(251,191,36,0.32)",
   borderRadius: 14,
   background: "rgba(251,191,36,0.08)",
@@ -17,7 +17,7 @@ const chipStyle = {
   textDecoration: "none",
 };
 
-const actionStyle = {
+const actionStyle: React.CSSProperties = {
   borderRadius: 999,
   fontWeight: 800,
   padding: "10px 18px",
@@ -69,7 +69,7 @@ export default function NotFoundPage() {
         React.createElement(
           "p",
           { style: { margin: "14px auto 0", maxWidth: 520, lineHeight: 1.8, color: "#cbd5e1" } },
-          "주소가 바뀌었거나 아직 공개되지 않은 글일 수 있습니다. 아래 링크에서 가까운 운세 가이드와 인사이트를 확인해 주세요.",
+          "주소가 바뀌었거나 아직 공개되지 않은 길일 수 있습니다. 아래 링크에서 가까운 운세 가이드와 인사이트를 확인해 주세요.",
         ),
         React.createElement(
           "div",

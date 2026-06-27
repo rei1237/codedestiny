@@ -128,6 +128,13 @@ const CITY_COORDS = [
   ["daejeon", "korea", 36.3504, 127.3845, "Asia/Seoul"],
   ["gwangju", "korea", 35.1595, 126.8526, "Asia/Seoul"],
   ["jeju", "korea", 33.4996, 126.5312, "Asia/Seoul"],
+  ["서울", "한국", 37.5665, 126.9780, "Asia/Seoul"],
+  ["부산", "한국", 35.1796, 129.0756, "Asia/Seoul"],
+  ["인천", "한국", 37.4563, 126.7052, "Asia/Seoul"],
+  ["대구", "한국", 35.8714, 128.6014, "Asia/Seoul"],
+  ["대전", "한국", 36.3504, 127.3845, "Asia/Seoul"],
+  ["광주", "한국", 35.1595, 126.8526, "Asia/Seoul"],
+  ["제주", "한국", 33.4996, 126.5312, "Asia/Seoul"],
   ["tokyo", "japan", 35.6762, 139.6503, "Asia/Tokyo"],
   ["osaka", "japan", 34.6937, 135.5023, "Asia/Tokyo"],
   ["new york", "usa", 40.7128, -74.0060, "America/New_York"],
@@ -137,6 +144,15 @@ const CITY_COORDS = [
   ["delhi", "india", 28.6139, 77.2090, "Asia/Kolkata"],
   ["mumbai", "india", 19.0760, 72.8777, "Asia/Kolkata"],
 ];
+
+const DEFAULT_TIMEZONE = "Asia/Seoul";
+const DEFAULT_PLACE = Object.freeze({
+  city: "서울",
+  country: "한국",
+  latitude: 37.5665,
+  longitude: 126.9780,
+  timezone: DEFAULT_TIMEZONE,
+});
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -192,23 +208,68 @@ function angularDistance(a, b) {
   return Math.min(diff, 360 - diff);
 }
 
+function normalizePlaceObject(rawPlace = {}) {
+  return rawPlace && typeof rawPlace === "object"
+    ? rawPlace
+    : { place: rawPlace };
+}
+
+function isValidCoordinatePair(lat, lon) {
+  return Number.isFinite(lat)
+    && Number.isFinite(lon)
+    && lat >= -90
+    && lat <= 90
+    && lon >= -180
+    && lon <= 180;
+}
+
+function optionalCoordinate(value) {
+  const text = clean(value, 40);
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : null;
+}
+
+function placeSearchText(rawPlace = {}) {
+  const place = normalizePlaceObject(rawPlace);
+  return [
+    place.label,
+    place.displayName,
+    place.name,
+    place.place,
+    place.city,
+    place.birthCity,
+    place.country,
+  ].map((item) => clean(item, 120)).filter(Boolean).join(", ");
+}
+
+function withDefaultTimezone(place) {
+  if (!place) return null;
+  return {
+    ...place,
+    timezone: clean(place.timezone || place.timeZone, 80)
+      || guessTimezoneFromLongitude(place.longitude)
+      || DEFAULT_TIMEZONE,
+  };
+}
+
 function resolvePlace(rawPlace = {}) {
-  const place = rawPlace && typeof rawPlace === "object" ? rawPlace : {};
-  const lat = Number(place.latitude ?? place.lat);
-  const lon = Number(place.longitude ?? place.lng ?? place.lon);
+  const place = normalizePlaceObject(rawPlace);
+  const lat = optionalCoordinate(place.latitude ?? place.lat);
+  const lon = optionalCoordinate(place.longitude ?? place.lng ?? place.lon);
   const timezone = clean(place.timezone || place.timeZone);
-  if (Number.isFinite(lat) && Number.isFinite(lon)) {
+  if (isValidCoordinatePair(lat, lon)) {
     return {
       city: clean(place.city, 80),
       country: clean(place.country, 80),
       latitude: lat,
       longitude: lon,
-      timezone: timezone || guessTimezoneFromLongitude(lon),
+      timezone: timezone || guessTimezoneFromLongitude(lon) || DEFAULT_TIMEZONE,
       source: "provided-coordinates",
     };
   }
 
-  const city = clean(place.city || place.birthCity || place.place, 80).toLowerCase();
+  const city = clean(place.city || place.birthCity || place.place || place.label || place.displayName || place.name, 80).toLowerCase();
   const country = clean(place.country, 80).toLowerCase();
   if (!city) return null;
   const matched = CITY_COORDS.find(([knownCity, knownCountry]) => (
@@ -220,13 +281,66 @@ function resolvePlace(rawPlace = {}) {
     country: clean(place.country || matched[1], 80),
     latitude: matched[2],
     longitude: matched[3],
-    timezone: timezone || matched[4],
+    timezone: timezone || matched[4] || DEFAULT_TIMEZONE,
     source: "city-preset",
   };
 }
 
+async function geocodePlace(rawPlace = {}) {
+  const query = placeSearchText(rawPlace);
+  if (!query) return null;
+
+  try {
+    const url = new URL("https://nominatim.openstreetmap.org/search");
+    url.searchParams.set("q", query);
+    url.searchParams.set("format", "json");
+    url.searchParams.set("limit", "1");
+    url.searchParams.set("accept-language", "ko,en");
+
+    const response = await fetch(url.toString(), {
+      headers: { "User-Agent": "CodeDestiny/1.0 (vedic-ai)" },
+    });
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const first = Array.isArray(data) ? data[0] : null;
+    const lat = Number(first?.lat);
+    const lon = Number(first?.lon);
+    if (!isValidCoordinatePair(lat, lon)) return null;
+
+    const place = normalizePlaceObject(rawPlace);
+    return withDefaultTimezone({
+      city: clean(place.city || place.place || place.label || place.name || query, 80),
+      country: clean(place.country, 80),
+      latitude: lat,
+      longitude: lon,
+      timezone: clean(place.timezone || place.timeZone, 80),
+      displayName: clean(first?.display_name, 180),
+      source: "nominatim-geocode",
+    });
+  } catch (error) {
+    return null;
+  }
+}
+
+async function resolvePlaceForCalculation(rawPlace = {}) {
+  const provided = resolvePlace(rawPlace);
+  if (provided) return withDefaultTimezone(provided);
+
+  const geocoded = await geocodePlace(rawPlace);
+  if (geocoded) return geocoded;
+
+  return {
+    ...DEFAULT_PLACE,
+    source: placeSearchText(rawPlace) ? "geocode-fallback-seoul" : "missing-place-fallback-seoul",
+    fallback: true,
+  };
+}
+
 function guessTimezoneFromLongitude(longitude) {
-  const offset = Math.max(-12, Math.min(14, Math.round(Number(longitude) / 15)));
+  const numeric = Number(longitude);
+  if (!Number.isFinite(numeric)) return "";
+  const offset = Math.max(-12, Math.min(14, Math.round(numeric / 15)));
   if (offset === 9) return "Asia/Seoul";
   return `UTC${offset >= 0 ? "+" : ""}${offset}`;
 }
@@ -246,7 +360,7 @@ function timezoneOffsetHours(utcDate, timezone) {
   if (fixed != null) return fixed;
   try {
     const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone || "Asia/Seoul",
+      timeZone: timezone || DEFAULT_TIMEZONE,
       hourCycle: "h23",
       year: "numeric",
       month: "2-digit",
@@ -545,12 +659,7 @@ function summarizeChart(chart) {
 
 export async function calculateVedicAiChart(env, consultationInput = {}, options = {}) {
   const birthInfo = consultationInput.birthInfo || {};
-  const place = resolvePlace(birthInfo.birthPlace || consultationInput.birthPlace || {});
-  if (!place) {
-    const error = new Error("출생지 정보를 확인하지 못했습니다.");
-    error.code = "BIRTH_PLACE_INVALID";
-    throw error;
-  }
+  const place = await resolvePlaceForCalculation(birthInfo.birthPlace || consultationInput.birthPlace || {});
 
   const chartInput = localBirthToChartInput(birthInfo, place);
   const raw = await getSwissVedicPlanets(env, chartInput, {

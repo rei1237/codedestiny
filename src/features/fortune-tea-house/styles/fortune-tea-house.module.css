@@ -1,0 +1,3751 @@
+.page {
+  --tea-violet: #2a1745;
+  --tea-purple: #6d46e8;
+  --tea-pink: #f8bbdd;
+  --tea-rose: #ffb6c1;
+  --tea-gold: #e9c46a;
+  --tea-cream: #fff6fa;
+  --tea-ink: #fff9fd;
+  --tea-muted: rgba(255, 246, 250, 0.76);
+  position: relative;
+  min-height: 100svh;
+  overflow-x: hidden;
+  color: var(--tea-ink);
+  background:
+    radial-gradient(ellipse at 72% 18%, rgba(248, 187, 221, 0.18), transparent 34rem),
+    radial-gradient(ellipse at 16% 82%, rgba(233, 196, 106, 0.12), transparent 30rem),
+    linear-gradient(180deg, rgba(24, 9, 43, 0.38), rgba(12, 5, 24, 0.76)),
+    var(--tea-bg-mobile),
+    linear-gradient(145deg, #1a102c, #2a1745 52%, #140b24);
+  background-position: var(--tea-bg-position-mobile, center);
+  background-size: cover;
+  background-attachment: fixed;
+  font-family: var(--font-body, "CodeDestinyBody", system-ui, sans-serif);
+  letter-spacing: 0;
+  isolation: isolate;
+}
+
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(248, 187, 221, 0.12), transparent 34%, rgba(233, 196, 106, 0.1)),
+    linear-gradient(0deg, rgba(13, 7, 24, 0.5), transparent 42%, rgba(42, 23, 69, 0.28));
+  z-index: 0;
+}
+
+.backdropVeil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 6%, rgba(255, 246, 250, 0.22), transparent 34rem),
+    radial-gradient(ellipse at 22% 82%, rgba(248, 187, 221, 0.18), transparent 30rem),
+    linear-gradient(180deg, rgba(13, 7, 24, 0.04), rgba(13, 7, 24, 0.42));
+}
+
+.backdropVeil::before,
+.backdropVeil::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+
+.backdropVeil::before {
+  top: 8vh;
+  right: -4vw;
+  width: min(680px, 48vw);
+  aspect-ratio: 1.66;
+  background-image: var(--tea-overlay);
+  background-size: 212% auto;
+  background-position: left 3% top 13%;
+  opacity: 0.28;
+  filter: saturate(1.22) drop-shadow(0 0 24px rgba(248, 187, 221, 0.2));
+}
+
+.backdropVeil::after {
+  left: -5vw;
+  bottom: -3vh;
+  width: min(620px, 46vw);
+  aspect-ratio: 2.8;
+  background-image: var(--tea-overlay-2);
+  background-size: 230% auto;
+  background-position: left 2% bottom 13%;
+  opacity: 0.24;
+  filter: saturate(1.12) drop-shadow(0 0 22px rgba(233, 196, 106, 0.12));
+}
+
+.shellSceneImage {
+  position: fixed;
+  right: max(-80px, -5vw);
+  bottom: max(-110px, -9vh);
+  z-index: 1;
+  width: min(54vw, 720px);
+  aspect-ratio: 4 / 5;
+  opacity: 0.3;
+  filter: saturate(1.18) contrast(1.04);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.shellSceneImageAsset {
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.shellSceneImage * {
+  pointer-events: none;
+}
+
+.shellMist {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: 30svh;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 246, 250, 0.18), transparent 62%),
+    linear-gradient(0deg, rgba(10, 5, 22, 0.72), transparent);
+}
+
+.backButton {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 7;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border: 1px solid rgba(255, 246, 250, 0.22);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.88);
+  background: rgba(31, 14, 53, 0.42);
+  box-shadow: 0 10px 28px rgba(6, 3, 16, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  backdrop-filter: blur(14px);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.backButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(233, 196, 106, 0.54);
+  box-shadow: 0 14px 34px rgba(248, 187, 221, 0.18);
+}
+
+.page[data-stage="transform"] .backdropVeil {
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(248, 187, 221, 0.2), transparent 31rem),
+    radial-gradient(ellipse at 50% 52%, rgba(109, 70, 232, 0.22), transparent 34rem),
+    linear-gradient(180deg, rgba(13, 7, 24, 0.7), rgba(13, 7, 24, 0.72));
+}
+
+.page[data-stage="result"] .shellSceneImage,
+.page[data-stage="tarotReveal"] .shellSceneImage {
+  opacity: 0.22;
+}
+
+.page[data-stage="landing"] .backdropVeil {
+  background:
+    radial-gradient(ellipse at 25% 18%, rgba(255, 246, 250, 0.1), transparent 26rem),
+    radial-gradient(ellipse at 78% 72%, rgba(248, 187, 221, 0.14), transparent 34rem),
+    linear-gradient(90deg, rgba(12, 6, 24, 0.66), rgba(22, 9, 40, 0.24) 52%, rgba(12, 6, 24, 0.26)),
+    linear-gradient(180deg, rgba(10, 5, 22, 0.08), rgba(10, 5, 22, 0.62));
+}
+
+.page[data-stage="landing"] .shellSceneImage {
+  opacity: 0;
+}
+
+.pageInner {
+  position: relative;
+  z-index: 3;
+  width: min(100%, 1220px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 22px 16px 32px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+}
+
+.sceneFrame {
+  position: relative;
+  min-height: calc(100svh - 92px);
+  display: grid;
+  align-items: center;
+}
+
+.stageDots {
+  width: min(100%, 680px);
+  min-height: 28px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(255, 246, 250, 0.16);
+  border-radius: 8px;
+  background: rgba(23, 10, 40, 0.48);
+  box-shadow: 0 10px 28px rgba(6, 3, 16, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.stageDot {
+  height: 6px;
+  border-radius: 6px;
+  background: rgba(255, 246, 250, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 246, 250, 0.1);
+}
+
+.stageDot[data-complete="true"] {
+  background: rgba(233, 196, 106, 0.7);
+}
+
+.stageDot[data-active="true"] {
+  background: linear-gradient(90deg, var(--tea-gold), var(--tea-pink));
+  box-shadow: 0 0 18px rgba(248, 187, 221, 0.48);
+}
+
+.petalsLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.petal {
+  position: absolute;
+  top: -42px;
+  width: 13px;
+  height: 20px;
+  border-radius: 8px 8px 8px 2px;
+  background: linear-gradient(145deg, rgba(255, 246, 250, 0.92), rgba(248, 187, 221, 0.72) 58%, rgba(233, 196, 106, 0.52));
+  opacity: 0.72;
+  transform: scale(var(--petal-scale));
+  animation: petalFall 18s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(248, 187, 221, 0.34));
+}
+
+.landingScene,
+.storyScene,
+.transformScene,
+.yeoniScene,
+.flowScene,
+.ctaScene,
+.teaSelectScene,
+.questionScene,
+.emotionScene,
+.tarotRevealScene,
+.resultScene {
+  position: relative;
+  min-height: 620px;
+  display: grid;
+  align-items: center;
+  gap: 28px;
+}
+
+.landingScene {
+  grid-template-columns: minmax(0, 0.94fr) minmax(360px, 1.06fr);
+  min-height: calc(100svh - 92px);
+}
+
+.landingCopy,
+.storyPanel,
+.transformCopy,
+.yeoniDialoguePanel,
+.flowCopy,
+.ctaPanel,
+.teaSelectGuide,
+.questionPanel,
+.emotionPanel,
+.tarotRevealPanel {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+}
+
+.landingCopy {
+  padding: 28px;
+  border: 1px solid rgba(233, 196, 106, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 246, 250, 0.1), transparent 52%),
+    rgba(21, 8, 38, 0.58);
+  box-shadow: 0 28px 80px rgba(6, 3, 16, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.sceneEyebrow {
+  margin: 0 0 12px;
+  color: var(--tea-gold);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-shadow: 0 0 18px rgba(233, 196, 106, 0.38);
+}
+
+.landingCopy h1,
+.storyPanel h2,
+.transformCopy h2,
+.yeoniDialoguePanel h2,
+.flowCopy h2,
+.ctaPanel h2,
+.teaSelectGuide h2,
+.questionPanel h2,
+.emotionPanel h2,
+.tarotRevealPanel h2,
+.resultHeader h2 {
+  margin: 0;
+  color: var(--tea-cream);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 2.72rem;
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: 0;
+  text-shadow: 0 12px 38px rgba(12, 6, 25, 0.72), 0 0 28px rgba(248, 187, 221, 0.28);
+}
+
+.landingCopy p:not(.sceneEyebrow),
+.ctaPanel > p {
+  max-width: 540px;
+  margin: 18px 0 28px;
+  color: var(--tea-muted);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.08rem;
+  line-height: 1.82;
+  letter-spacing: 0;
+}
+
+.landingPrologue {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 12px;
+  max-width: 590px;
+  max-height: min(44vh, 430px);
+  overflow: auto;
+  margin-top: 26px;
+  padding: 26px 28px 28px;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 246, 250, 0.16), transparent 28%),
+    linear-gradient(145deg, rgba(42, 23, 69, 0.82), rgba(72, 35, 83, 0.64) 54%, rgba(25, 10, 43, 0.84)),
+    rgba(255, 246, 250, 0.06);
+  box-shadow:
+    0 24px 76px rgba(8, 4, 19, 0.42),
+    0 0 42px rgba(248, 187, 221, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(233, 196, 106, 0.44) rgba(255, 246, 250, 0.08);
+}
+
+.landingPrologue::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tea-overlay-2);
+  background-repeat: no-repeat;
+  background-size: 168% auto;
+  background-position: 48% 88%;
+  opacity: 0.44;
+  mix-blend-mode: screen;
+  filter: saturate(1.12);
+}
+
+.landingPrologue::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(255, 246, 250, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(20, 8, 36, 0.34), rgba(20, 8, 36, 0.62)),
+    radial-gradient(circle at 100% 0%, rgba(233, 196, 106, 0.12), transparent 36%);
+}
+
+.landingPrologue p {
+  position: relative;
+  z-index: 2;
+  max-width: none;
+  margin: 0;
+  color: rgba(255, 250, 253, 0.9);
+  font-size: 0.97rem;
+  line-height: 1.78;
+  text-shadow: 0 2px 12px rgba(7, 3, 18, 0.42);
+}
+
+.landingPrologue p:first-child {
+  color: var(--tea-cream);
+  font-size: 1.04rem;
+  font-weight: 800;
+}
+
+.landingPrologue p:nth-child(4),
+.landingPrologue p:nth-child(5) {
+  padding-left: 14px;
+  border-left: 2px solid rgba(233, 196, 106, 0.42);
+  color: rgba(255, 246, 250, 0.96);
+}
+
+.landingVisual {
+  position: relative;
+  min-height: 510px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.landingSceneCard {
+  position: absolute;
+  inset: 12% 8% 9%;
+  z-index: 0;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 8px;
+  opacity: 0.82;
+  box-shadow:
+    0 28px 70px rgba(8, 3, 18, 0.42),
+    0 0 46px rgba(248, 187, 221, 0.22);
+  overflow: hidden;
+}
+
+.landingSceneCard::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 70% 12%, rgba(255, 246, 250, 0.28), transparent 24%),
+    linear-gradient(180deg, rgba(42, 23, 69, 0.12), rgba(13, 7, 24, 0.28));
+  content: "";
+}
+
+.landingSceneCard .assetImageImg {
+  object-fit: cover;
+  transform: scale(1.06);
+}
+
+.landingPigMascot {
+  position: absolute;
+  left: 6%;
+  bottom: 8%;
+  z-index: 3;
+  width: min(18vw, 190px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 24px 30px rgba(7, 3, 18, 0.48)) drop-shadow(0 0 28px rgba(248, 187, 221, 0.24));
+  animation: characterFloat 6.2s ease-in-out infinite;
+}
+
+.landingPigMascot .assetImageImg {
+  object-fit: contain;
+}
+
+.landingPigMascot .assetImageFallback {
+  display: none;
+}
+
+.moonPlate {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  width: 132px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff6fa, #ecd8ff 42%, rgba(109, 70, 232, 0.1) 72%);
+  box-shadow: 0 0 60px rgba(255, 246, 250, 0.42), 0 0 140px rgba(248, 187, 221, 0.16);
+  opacity: 0.76;
+  z-index: 0;
+}
+
+.landingPigCharm {
+  position: absolute;
+  right: 44%;
+  bottom: 18%;
+  z-index: 3;
+  width: min(14vw, 150px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 20px 32px rgba(7, 3, 18, 0.42));
+  animation: characterFloat 6.2s ease-in-out infinite;
+}
+
+.landingPigCharm .assetImageImg {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 400% !important;
+  height: 400% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover;
+  mix-blend-mode: multiply;
+  filter: brightness(1.85) saturate(1.38) drop-shadow(0 16px 24px rgba(248, 187, 221, 0.22));
+}
+
+.landingPigCharm .assetImageFallback {
+  display: none;
+}
+
+.gateImage {
+  display: none;
+}
+
+.gateImage .assetImageImg {
+  object-fit: cover;
+}
+
+.gateSign {
+  position: absolute;
+  right: 7%;
+  bottom: 18%;
+  z-index: 2;
+  min-width: 180px;
+  padding: 12px 18px;
+  border: 1px solid rgba(233, 196, 106, 0.62);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: rgba(42, 23, 69, 0.62);
+  box-shadow: 0 18px 46px rgba(7, 3, 18, 0.3), 0 0 28px rgba(233, 196, 106, 0.2);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.18rem;
+  text-align: center;
+  letter-spacing: 0;
+  backdrop-filter: blur(12px);
+}
+
+.storyScene,
+.yeoniScene,
+.flowScene,
+.ctaScene,
+.teaSelectScene,
+.questionScene,
+.emotionScene,
+.tarotRevealScene {
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+}
+
+.storyVisual,
+.yeoniPortraitWrap,
+.ctaPortrait {
+  position: relative;
+  min-height: 500px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.teaHouseDoor {
+  position: relative;
+  width: min(100%, 460px);
+  aspect-ratio: 4 / 5;
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(42, 23, 69, 0.84), rgba(109, 70, 232, 0.18));
+  box-shadow: 0 24px 72px rgba(6, 3, 16, 0.48);
+}
+
+.teaHouseDoor .doorImage {
+  position: absolute;
+  inset: 0;
+}
+
+.teaHouseDoor .assetImageImg {
+  object-fit: cover;
+}
+
+.teaHouseDoor span {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 30px;
+  padding: 10px 16px;
+  border: 1px solid rgba(233, 196, 106, 0.54);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: rgba(26, 12, 45, 0.72);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1rem;
+  letter-spacing: 0;
+  backdrop-filter: blur(10px);
+}
+
+.talkingPig {
+  position: relative;
+  width: min(100%, 430px);
+  min-height: 450px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.pigGlow,
+.yeoniAura,
+.transformGlow {
+  position: absolute;
+  inset: 10%;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.22), transparent 56%),
+    radial-gradient(circle, rgba(248, 187, 221, 0.34), transparent 64%);
+  filter: blur(18px);
+}
+
+.pigImage {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 28px 42px rgba(7, 3, 18, 0.42));
+  transform-origin: center bottom;
+  animation: characterFloat 5.8s ease-in-out infinite;
+}
+
+.pigSpriteFrame {
+  overflow: hidden;
+  border: 1px solid rgba(255, 246, 250, 0.12);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(255, 246, 250, 0.18), transparent 58%),
+    linear-gradient(145deg, rgba(248, 187, 221, 0.14), rgba(42, 23, 69, 0.24));
+}
+
+.pigSpriteSheet {
+  position: absolute !important;
+  width: 400% !important;
+  height: 400% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  left: calc(var(--pig-sprite-col) * -100%) !important;
+  top: calc(var(--pig-sprite-row) * -100%) !important;
+  object-fit: cover;
+  object-position: center;
+}
+
+.pigSpriteFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--tea-cream);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(248, 187, 221, 0.36), transparent 50%),
+    linear-gradient(145deg, rgba(42, 23, 69, 0.9), rgba(109, 70, 232, 0.3));
+  font-family: var(--font-playful, var(--font-body));
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.pigImage .assetImageImg,
+.yeoniPortrait .assetImageImg,
+.ctaYeoni .assetImageImg,
+.transformImage .assetImageImg {
+  object-fit: contain;
+}
+
+.pigNamePlate {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  z-index: 3;
+  transform: translateX(-50%);
+  padding: 9px 16px;
+  border: 1px solid rgba(248, 187, 221, 0.64);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: rgba(77, 20, 64, 0.72);
+  box-shadow: 0 0 24px rgba(248, 187, 221, 0.24);
+  font-family: var(--font-playful, var(--font-body));
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  backdrop-filter: blur(12px);
+}
+
+.pigScentTrail {
+  position: absolute;
+  top: 19%;
+  right: 17%;
+  z-index: 1;
+  width: 72px;
+  height: 130px;
+  border: 1px solid rgba(248, 187, 221, 0.24);
+  border-width: 0 1px 0 0;
+  border-radius: 50%;
+  transform: rotate(26deg);
+  opacity: 0.72;
+  animation: scentDrift 4.8s ease-in-out infinite;
+}
+
+.preloadFrames {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dialogueBox {
+  position: relative;
+  margin-top: 22px;
+  min-height: 188px;
+  padding: 42px 46px 36px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  color: #361e48;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.58), transparent 34%),
+    linear-gradient(135deg, rgba(255, 246, 250, 0.9), rgba(248, 187, 221, 0.78));
+  box-shadow: 0 24px 68px rgba(8, 4, 18, 0.38), 0 0 36px rgba(248, 187, 221, 0.16);
+  isolation: isolate;
+}
+
+.dialogueBox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tea-dialogue-frame);
+  background-repeat: no-repeat;
+  opacity: 0.68;
+  filter: saturate(1.08) drop-shadow(0 20px 24px rgba(45, 18, 64, 0.14));
+}
+
+.dialogueBox::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(255, 255, 255, 0.86), transparent 22%),
+    linear-gradient(145deg, rgba(255, 250, 253, 0.96), rgba(255, 230, 244, 0.9));
+  opacity: 0.96;
+}
+
+.dialogueBox[data-frame="character"]::before {
+  background-size: 168% auto;
+  background-position: 96% 2%;
+}
+
+.dialogueBox[data-frame="system"] {
+  min-height: 142px;
+  padding: 34px 44px 32px;
+}
+
+.dialogueBox[data-frame="system"]::before {
+  background-size: 168% auto;
+  background-position: 96% 78%;
+}
+
+.dialogueBox[data-frame="system"]::after {
+  inset: 10px;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.7), transparent 24%),
+    linear-gradient(145deg, rgba(250, 243, 255, 0.9), rgba(232, 217, 255, 0.72));
+}
+
+.dialogueBox[data-speaker="꽃돼지?"] {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 246, 250, 0.76), transparent 35%),
+    linear-gradient(135deg, rgba(255, 230, 244, 0.93), rgba(255, 182, 193, 0.72));
+}
+
+.dialogueBox[data-speaker="연이"] {
+  background:
+    radial-gradient(circle at 76% 8%, rgba(255, 255, 255, 0.74), transparent 34%),
+    linear-gradient(135deg, rgba(255, 246, 250, 0.96), rgba(248, 187, 221, 0.74));
+}
+
+.dialogueSpeaker {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #7f4066;
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.dialogueSpeaker span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 196, 106, 0.5);
+  border-radius: 50%;
+  color: #fff6fa;
+  background: linear-gradient(145deg, #c76794, #8d5fcf);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 0.78rem;
+}
+
+.dialogueBox p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: #2a1745;
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.06rem;
+  line-height: 1.84;
+  letter-spacing: 0;
+  white-space: pre-line;
+}
+
+.storyActions,
+.ctaActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.storyProgress {
+  color: rgba(255, 246, 250, 0.62);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.teaButton {
+  appearance: none;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 8px;
+  padding: 0 20px;
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.teaButtonPrimary {
+  border: 1px solid rgba(233, 196, 106, 0.78);
+  color: #2a1745;
+  background: linear-gradient(135deg, #fff6d8, var(--tea-gold) 54%, #f8bbdd);
+  box-shadow: 0 14px 34px rgba(233, 196, 106, 0.22), 0 0 28px rgba(248, 187, 221, 0.2);
+}
+
+.teaButtonSecondary {
+  border: 1px solid rgba(248, 187, 221, 0.58);
+  color: var(--tea-cream);
+  background: rgba(248, 187, 221, 0.16);
+  box-shadow: 0 14px 34px rgba(248, 187, 221, 0.14);
+}
+
+.teaButtonGhost {
+  border: 1px solid rgba(255, 246, 250, 0.24);
+  color: var(--tea-cream);
+  background: rgba(255, 246, 250, 0.08);
+}
+
+.teaButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 38px rgba(248, 187, 221, 0.26), 0 0 34px rgba(233, 196, 106, 0.18);
+}
+
+.teaButton:active {
+  transform: translateY(1px);
+}
+
+.teaButton:focus-visible {
+  outline: 2px solid rgba(255, 246, 250, 0.96);
+  outline-offset: 3px;
+}
+
+.teaButton:disabled {
+  cursor: wait;
+  opacity: 0.62;
+  transform: none;
+}
+
+.teaButtonIconSpin {
+  animation: spin 1s linear infinite;
+}
+
+.assetImage {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.assetImageImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.assetImage[data-loaded="true"] .assetImageImg {
+  opacity: 1;
+}
+
+.assetImageFallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border: 1px solid rgba(255, 246, 250, 0.16);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.82);
+  background:
+    linear-gradient(135deg, rgba(248, 187, 221, 0.18), transparent 46%),
+    linear-gradient(145deg, rgba(42, 23, 69, 0.9), rgba(109, 70, 232, 0.24));
+  font-size: 0.88rem;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.assetImage.shellSceneImage {
+  position: fixed;
+}
+
+.assetImage.gateImage {
+  display: none;
+}
+
+.assetImage.landingPigCharm,
+.assetImage.doorImage,
+.assetImage.loadingSceneAsset,
+.assetImage.emotionGaugeAsset {
+  position: absolute;
+}
+
+.transformScene {
+  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
+  min-height: 670px;
+}
+
+.transformScene::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  border-radius: 8px;
+  background: rgba(25, 10, 43, 0.58);
+  box-shadow: inset 0 0 160px rgba(109, 70, 232, 0.22);
+}
+
+.transformMoon {
+  position: absolute;
+  top: 5%;
+  left: 9%;
+  width: 160px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff6fa, #eadcff 44%, rgba(109, 70, 232, 0.1));
+  box-shadow: 0 0 86px rgba(255, 246, 250, 0.44);
+  opacity: 0.64;
+}
+
+.transformImageWrap {
+  position: relative;
+  min-height: 560px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.transformGlow {
+  inset: 2%;
+  animation: transformPulse 2.4s ease-in-out infinite;
+}
+
+.transformImage {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 500px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 30px 62px rgba(7, 3, 18, 0.5));
+  animation: revealLift 1.2s ease both;
+}
+
+.transformCopy {
+  position: relative;
+  z-index: 2;
+}
+
+.transformNarration {
+  margin: 16px 0 22px;
+  padding: 14px 16px;
+  border-left: 2px solid rgba(233, 196, 106, 0.62);
+  color: rgba(255, 246, 250, 0.82);
+  background: rgba(255, 246, 250, 0.07);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.98rem;
+  line-height: 1.72;
+  white-space: pre-line;
+}
+
+.yeoniPortraitWrap {
+  min-height: 600px;
+}
+
+.yeoniAura {
+  inset: 4%;
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.18), transparent 50%),
+    radial-gradient(circle, rgba(233, 196, 106, 0.2), transparent 66%),
+    radial-gradient(circle, rgba(248, 187, 221, 0.28), transparent 72%);
+}
+
+.yeoniPortrait,
+.ctaYeoni {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 470px);
+  aspect-ratio: 4 / 5;
+  filter: drop-shadow(0 30px 56px rgba(7, 3, 18, 0.48));
+  animation: revealLift 760ms ease both, characterFloat 7.4s ease-in-out 760ms infinite;
+}
+
+.yeoniActor {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  transform-origin: center bottom;
+}
+
+.yeoniSpriteFrame {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  aspect-ratio: var(--yeoni-frame-aspect, 4 / 5);
+  overflow: hidden;
+  border: 1px solid rgba(255, 246, 250, 0.14);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 246, 250, 0.18), transparent 42%),
+    linear-gradient(145deg, rgba(248, 187, 221, 0.18), rgba(42, 23, 69, 0.34));
+  box-shadow: inset 0 0 34px rgba(255, 246, 250, 0.06);
+}
+
+.yeoniSpriteSheet {
+  position: absolute !important;
+  width: calc(var(--yeoni-sprite-columns) * 100%) !important;
+  height: calc(var(--yeoni-sprite-rows) * 100%) !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  left: calc(var(--yeoni-sprite-col) * -100%) !important;
+  top: calc(var(--yeoni-sprite-row) * -100%) !important;
+  object-fit: cover;
+  object-position: center;
+  transition: filter 420ms ease, opacity 420ms ease;
+}
+
+.yeoniSpriteFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--tea-cream);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.26rem;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(248, 187, 221, 0.38), transparent 42%),
+    linear-gradient(145deg, rgba(42, 23, 69, 0.9), rgba(109, 70, 232, 0.3));
+}
+
+.yeoniSpriteFallback span {
+  padding: 10px 16px;
+  border: 1px solid rgba(233, 196, 106, 0.44);
+  border-radius: 8px;
+  background: rgba(31, 14, 53, 0.68);
+  box-shadow: 0 0 30px rgba(248, 187, 221, 0.24);
+}
+
+.yeoniActorLotus {
+  position: absolute;
+  top: 9%;
+  right: 8%;
+  z-index: 3;
+  width: 70px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.5), transparent 26%),
+    radial-gradient(circle, rgba(248, 187, 221, 0.28), transparent 60%);
+  filter: blur(1px) drop-shadow(0 0 20px rgba(248, 187, 221, 0.34));
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.yeoniActorName {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  z-index: 4;
+  transform: translateX(-50%);
+  padding: 9px 16px;
+  border: 1px solid rgba(233, 196, 106, 0.64);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: rgba(42, 23, 69, 0.74);
+  box-shadow: 0 0 24px rgba(233, 196, 106, 0.2);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  backdrop-filter: blur(12px);
+}
+
+.yeoniActorScent {
+  position: absolute;
+  left: 10%;
+  top: 18%;
+  z-index: 1;
+  width: 120px;
+  height: 220px;
+  border: 1px solid rgba(233, 196, 106, 0.2);
+  border-width: 0 0 0 1px;
+  border-radius: 50%;
+  transform: rotate(-22deg);
+  opacity: 0.58;
+  animation: scentDrift 5.6s ease-in-out infinite;
+}
+
+.yeoniActor[data-speaking="true"] .yeoniSpriteFrame {
+  box-shadow: inset 0 0 34px rgba(255, 246, 250, 0.08), 0 0 42px rgba(248, 187, 221, 0.16);
+}
+
+.flowYeoniActor {
+  width: min(240px, 54vw);
+  margin: 18px 0 2px;
+  animation: characterFloat 7.2s ease-in-out infinite;
+}
+
+.flowYeoniActor .yeoniActorName {
+  bottom: -8px;
+}
+
+.yeoniDialoguePanel {
+  animation: softFadeIn 720ms ease both;
+}
+
+.flowScene {
+  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.flowCard {
+  position: relative;
+  min-height: 248px;
+  display: grid;
+  grid-template-rows: auto 88px auto 1fr;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(255, 246, 250, 0.1), transparent 46%),
+    rgba(33, 15, 56, 0.68);
+  box-shadow: 0 18px 46px rgba(7, 3, 18, 0.3);
+  backdrop-filter: blur(14px);
+}
+
+.flowCardIcon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 196, 106, 0.4);
+  border-radius: 8px;
+  color: var(--tea-gold);
+  background: rgba(233, 196, 106, 0.1);
+}
+
+.flowCardAsset {
+  width: 100%;
+  height: 88px;
+  border-radius: 8px;
+  background: rgba(255, 246, 250, 0.08);
+}
+
+.flowCardAsset .assetImageImg {
+  object-fit: cover;
+}
+
+.flowCard h3 {
+  margin: 0;
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.02rem;
+  letter-spacing: 0;
+}
+
+.flowCard p {
+  margin: 0;
+  color: var(--tea-muted);
+  font-size: 0.9rem;
+  line-height: 1.68;
+  letter-spacing: 0;
+}
+
+.ctaScene {
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
+}
+
+.ctaPortrait {
+  min-height: 520px;
+}
+
+.ctaPanel {
+  padding: 28px;
+  border: 1px solid rgba(233, 196, 106, 0.26);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(233, 196, 106, 0.1), transparent 48%),
+    rgba(31, 14, 53, 0.72);
+  box-shadow: 0 24px 64px rgba(7, 3, 18, 0.4);
+  backdrop-filter: blur(18px);
+}
+
+.teaSelectScene {
+  grid-template-columns: minmax(280px, 0.58fr) minmax(620px, 1.42fr);
+}
+
+.teaSelectGuide .flowYeoniActor {
+  display: none;
+}
+
+.teaSelectGuide {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.teaSelectGuide::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  bottom: -42px;
+  z-index: 0;
+  width: min(220px, 54vw);
+  aspect-ratio: 4 / 3;
+  pointer-events: none;
+  background-image: var(--yeoni-cup-pose-sheet);
+  background-repeat: no-repeat;
+  background-size: 400% 200%;
+  background-position: 0% 0%;
+  opacity: 0.13;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 24px rgba(248, 187, 221, 0.34));
+}
+
+.teaSelectGuide > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cupPoseYeoni {
+  width: min(260px, 70vw);
+  aspect-ratio: 3 / 4;
+  margin: 14px auto 8px;
+  border-radius: 8px;
+  filter: drop-shadow(0 24px 36px rgba(9, 4, 22, 0.34)) drop-shadow(0 0 26px rgba(248, 187, 221, 0.24));
+  opacity: 0.9;
+}
+
+.cupPoseYeoniImage {
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.cupPoseYeoni .assetImageFallback {
+  display: none;
+}
+
+.teaMenuBoard {
+  position: relative;
+  width: min(100%, 1080px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.38);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(18, 7, 34, 0.08), rgba(18, 7, 34, 0.16)),
+    var(--tea-menu-desktop),
+    linear-gradient(145deg, rgba(42, 23, 69, 0.9), rgba(248, 187, 221, 0.18));
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 30px 90px rgba(7, 3, 18, 0.5), 0 0 42px rgba(248, 187, 221, 0.16);
+  isolation: isolate;
+}
+
+.teaMenuBoard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255, 246, 250, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(31, 14, 53, 0.08), rgba(31, 14, 53, 0.2));
+  z-index: 0;
+}
+
+.teaMenuBoard::after {
+  content: "";
+  position: absolute;
+  inset: 9% 8% 7%;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tea-cups-labeled);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  mix-blend-mode: soft-light;
+  opacity: 0.1;
+}
+
+.teaMenuCards {
+  position: absolute;
+  left: 7.5%;
+  right: 7.6%;
+  top: 26.4%;
+  bottom: 11.9%;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 3.2% 1.6%;
+}
+
+.teaCupMenuItem {
+  position: relative;
+  display: grid;
+  align-content: end;
+  justify-items: stretch;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.teaCupMenuItem::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 1;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 246, 250, 0);
+  background: linear-gradient(180deg, transparent 44%, rgba(24, 8, 42, 0.58));
+  opacity: 0.18;
+  transition: opacity 180ms ease, border-color 180ms ease;
+}
+
+.teaCupMenuVisual {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: min(82%, 250px);
+  height: min(92%, 250px);
+  background-image: var(--tea-cups-states);
+  background-repeat: no-repeat;
+  background-size: 600% 300%;
+  background-position: var(--cup-state-x) 0%;
+  clip-path: ellipse(48% 42% at 50% 52%);
+  filter: saturate(1.25) contrast(1.1) drop-shadow(0 16px 24px rgba(8, 3, 18, 0.38));
+  opacity: 0.68;
+  transform: translate(-50%, -49%) scale(0.96);
+  transition: filter 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.teaCupMenuItem[data-selected="true"] .teaCupMenuVisual {
+  background-position: var(--cup-state-x) 100%;
+}
+
+.teaCupMenuItem:hover,
+.teaCupMenuItem:focus-visible,
+.teaCupMenuItem[data-selected="true"] {
+  transform: translateY(-1px);
+  border-color: rgba(233, 196, 106, 0.82);
+  background: rgba(255, 246, 250, 0.05);
+  box-shadow: 0 0 0 1px rgba(255, 246, 250, 0.18) inset, 0 0 34px rgba(248, 187, 221, 0.32);
+  outline: none;
+}
+
+.teaCupMenuItem:hover::before,
+.teaCupMenuItem:focus-visible::before,
+.teaCupMenuItem[data-selected="true"]::before {
+  border-color: rgba(255, 246, 250, 0.28);
+  opacity: 1;
+}
+
+.teaCupMenuItem:hover .teaCupMenuVisual,
+.teaCupMenuItem:focus-visible .teaCupMenuVisual,
+.teaCupMenuItem[data-selected="true"] .teaCupMenuVisual {
+  filter: saturate(1.35) contrast(1.14) drop-shadow(0 20px 32px rgba(8, 3, 18, 0.44)) drop-shadow(0 0 22px rgba(248, 187, 221, 0.42));
+  opacity: 0.92;
+  transform: translate(-50%, -52%) scale(1.01);
+}
+
+.teaCupMenuNumber {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  border: 1px solid rgba(233, 196, 106, 0.46);
+  border-radius: 50%;
+  color: rgba(255, 246, 250, 0.92);
+  background: rgba(42, 23, 69, 0.5);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 0.84rem;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.teaCupMenuText {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 246, 250, 0.14);
+  border-radius: 8px;
+  background: rgba(37, 14, 54, 0.58);
+  box-shadow: 0 14px 32px rgba(7, 3, 18, 0.24);
+  opacity: 0;
+  transform: translateY(8px);
+  backdrop-filter: blur(10px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.teaCupMenuText strong {
+  color: var(--tea-cream);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1rem;
+  line-height: 1.12;
+}
+
+.teaCupMenuText span {
+  color: var(--tea-gold);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.teaCupMenuText small {
+  color: rgba(255, 246, 250, 0.78);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.teaCupMenuAction {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 2;
+  padding: 7px 10px;
+  border: 1px solid rgba(233, 196, 106, 0.42);
+  border-radius: 999px;
+  color: #2a1745;
+  background: linear-gradient(135deg, rgba(255, 246, 216, 0.92), rgba(248, 187, 221, 0.88));
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.72rem;
+  font-weight: 900;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.teaCupMenuItem:hover .teaCupMenuText,
+.teaCupMenuItem:focus-visible .teaCupMenuText,
+.teaCupMenuItem[data-selected="true"] .teaCupMenuText,
+.teaCupMenuItem:hover .teaCupMenuNumber,
+.teaCupMenuItem:focus-visible .teaCupMenuNumber,
+.teaCupMenuItem[data-selected="true"] .teaCupMenuNumber,
+.teaCupMenuItem:hover .teaCupMenuAction,
+.teaCupMenuItem:focus-visible .teaCupMenuAction,
+.teaCupMenuItem[data-selected="true"] .teaCupMenuAction {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.teaCupGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.teaCupCard {
+  position: relative;
+  min-height: 286px;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(42, 23, 69, 0.76), rgba(31, 14, 53, 0.9)),
+    var(--selection-pattern),
+    radial-gradient(circle at 50% 8%, rgba(255, 246, 250, 0.14), transparent 38%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.1), transparent 44%),
+    rgba(32, 14, 54, 0.72);
+  background-size: cover;
+  box-shadow: 0 18px 46px rgba(7, 3, 18, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.teaCupCard[data-accent="pink"] {
+  border-color: rgba(248, 187, 221, 0.42);
+}
+
+.teaCupCard[data-accent="purple"] {
+  border-color: rgba(145, 116, 255, 0.42);
+}
+
+.teaCupCard[data-accent="gold"] {
+  border-color: rgba(233, 196, 106, 0.46);
+}
+
+.teaCupCard[data-accent="blue"] {
+  border-color: rgba(147, 202, 255, 0.4);
+}
+
+.teaCupCard[data-accent="rose"] {
+  border-color: rgba(255, 182, 193, 0.5);
+}
+
+.teaCupCard[data-accent="cream"] {
+  border-color: rgba(255, 246, 250, 0.46);
+}
+
+.teaCupCard[data-selected="true"] {
+  box-shadow: 0 20px 52px rgba(248, 187, 221, 0.22), 0 0 0 1px rgba(233, 196, 106, 0.46) inset;
+}
+
+.teaCupSymbol {
+  width: 72px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(233, 196, 106, 0.38);
+  border-radius: 50%;
+  color: var(--tea-gold);
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.18), transparent 60%),
+    rgba(233, 196, 106, 0.08);
+}
+
+.teaCupSymbol svg:nth-child(1) {
+  transform: translate(20px, -8px);
+}
+
+.teaCupSymbol svg:nth-child(3) {
+  transform: translate(-18px, 8px);
+}
+
+.teaCupCard h3,
+.resultBlock h3,
+.actionPrescription h3 {
+  margin: 0;
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.1rem;
+  line-height: 1.32;
+  letter-spacing: 0;
+}
+
+.teaCupCard strong {
+  color: var(--tea-gold);
+  font-size: 0.92rem;
+  line-height: 1.58;
+}
+
+.teaCupCard p {
+  margin: 0 0 6px;
+  color: var(--tea-muted);
+  font-size: 0.94rem;
+  line-height: 1.68;
+}
+
+.questionScene {
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+}
+
+.questionActor {
+  position: relative;
+  min-height: 560px;
+  display: grid;
+  place-items: center;
+}
+
+.questionPanel,
+.emotionPanel,
+.tarotRevealPanel {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border: 1px solid rgba(255, 246, 250, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(233, 196, 106, 0.08), transparent 48%),
+    rgba(31, 14, 53, 0.72);
+  box-shadow: 0 24px 64px rgba(7, 3, 18, 0.38);
+  backdrop-filter: blur(18px);
+}
+
+.questionPanel::before,
+.emotionPanel::before,
+.tarotRevealPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tea-overlay-2);
+  background-repeat: no-repeat;
+  background-size: 240% auto;
+  background-position: right 3% top 9%;
+  opacity: 0.22;
+  mix-blend-mode: screen;
+}
+
+.tarotRevealPanel::after {
+  content: "";
+  position: absolute;
+  inset: auto -8% -18% auto;
+  z-index: 0;
+  width: min(560px, 78vw);
+  aspect-ratio: 16 / 10;
+  pointer-events: none;
+  background-image:
+    var(--tarot-frame-sheet),
+    var(--tarot-minor-wands-cups),
+    var(--tarot-minor-swords-pentacles);
+  background-repeat: no-repeat;
+  background-size: 115% auto, 46% auto, 46% auto;
+  background-position: center, left bottom, right bottom;
+  opacity: 0.1;
+  mix-blend-mode: screen;
+  filter: blur(0.2px) saturate(1.1);
+}
+
+.questionPanel > *,
+.emotionPanel > *,
+.tarotRevealPanel > * {
+  position: relative;
+  z-index: 2;
+}
+
+.questionLabel {
+  display: block;
+  margin: 22px 0 8px;
+  color: var(--tea-gold);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.questionFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.questionFieldGrid .questionLabel {
+  margin: 0;
+}
+
+.questionInput {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--tea-cream);
+  background: rgba(18, 8, 34, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.96rem;
+  letter-spacing: 0;
+  outline: none;
+}
+
+.questionInput::placeholder {
+  color: rgba(255, 246, 250, 0.42);
+}
+
+.questionInput:focus {
+  border-color: rgba(248, 187, 221, 0.72);
+  box-shadow: 0 0 0 3px rgba(248, 187, 221, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.concernTopicGroup {
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.concernTopicGroup legend {
+  margin-bottom: 10px;
+  color: var(--tea-gold);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.concernTopicGroup > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.concernTopicButton {
+  min-height: 38px;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: rgba(255, 246, 250, 0.84);
+  background: rgba(255, 246, 250, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.concernTopicButton[data-selected="true"] {
+  border-color: rgba(233, 196, 106, 0.68);
+  color: #2a1745;
+  background: linear-gradient(135deg, #fff6d8, var(--tea-gold), var(--tea-pink));
+  box-shadow: 0 10px 24px rgba(248, 187, 221, 0.18);
+}
+
+.questionTextarea {
+  width: 100%;
+  min-height: 172px;
+  margin-top: 8px;
+  resize: vertical;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--tea-cream);
+  background: rgba(18, 8, 34, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1rem;
+  line-height: 1.68;
+  letter-spacing: 0;
+  outline: none;
+}
+
+.questionTextarea::placeholder {
+  color: rgba(255, 246, 250, 0.42);
+}
+
+.questionTextarea:focus {
+  border-color: rgba(248, 187, 221, 0.72);
+  box-shadow: 0 0 0 3px rgba(248, 187, 221, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.questionError {
+  margin: 10px 0 0;
+  color: #ffd4e8;
+  font-size: 0.9rem;
+}
+
+.emotionScene {
+  grid-template-columns: minmax(300px, 0.86fr) minmax(0, 1.14fr);
+}
+
+.emotionVisual {
+  position: relative;
+  min-height: 520px;
+  display: grid;
+  place-items: center;
+}
+
+.loadingSceneAsset {
+  position: absolute;
+  inset: 8% 3% auto;
+  height: 340px;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 8px;
+  opacity: 0.68;
+  background: rgba(255, 246, 250, 0.06);
+  box-shadow: 0 24px 70px rgba(7, 3, 18, 0.4), 0 0 46px rgba(248, 187, 221, 0.14);
+}
+
+.loadingSceneAsset .assetImageImg {
+  object-fit: cover;
+}
+
+.emotionGaugeAsset {
+  position: absolute;
+  inset: auto 8% 6%;
+  height: 150px;
+  border-radius: 8px;
+  opacity: 0.78;
+  background: rgba(255, 246, 250, 0.06);
+}
+
+.emotionGaugeAsset .assetImageImg,
+.resultGaugeAsset .assetImageImg,
+.resultBubbleAsset .assetImageImg {
+  object-fit: contain;
+}
+
+.loadingGaugeList,
+.resultEmotionList {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.loadingGaugeItem,
+.resultEmotionItem {
+  padding: 14px;
+  border: 1px solid rgba(255, 246, 250, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 246, 250, 0.06);
+}
+
+.loadingGaugeItem > span,
+.resultEmotionItem strong {
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.94rem;
+}
+
+.loadingGaugeItem > strong,
+.resultEmotionItem span {
+  float: right;
+  color: var(--tea-gold);
+  font-size: 0.88rem;
+}
+
+.loadingGaugeTrack,
+.resultGaugeTrack {
+  clear: both;
+  height: 9px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 246, 250, 0.12);
+}
+
+.loadingGaugeTrack span,
+.resultGaugeTrack span {
+  display: block;
+  width: var(--gauge-value);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--tea-pink), var(--tea-gold));
+  box-shadow: 0 0 18px rgba(248, 187, 221, 0.36);
+  animation: softFadeIn 620ms ease both;
+}
+
+.tarotRevealScene {
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+}
+
+.tarotRevealActor {
+  min-height: 590px;
+  display: grid;
+  place-items: center;
+}
+
+.tarotStage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 24px 0 4px;
+  perspective: 1200px;
+}
+
+.tarotFlipCard {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 310px);
+  aspect-ratio: 2.6 / 4;
+}
+
+.tarotFlipInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 860ms cubic-bezier(0.22, 0.86, 0.3, 1);
+}
+
+.tarotFlipCard[data-flipped="true"] .tarotFlipInner {
+  transform: rotateY(180deg);
+}
+
+.tarotFlipBack,
+.tarotFlipFront {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.tarotFlipFront {
+  transform: rotateY(180deg);
+}
+
+.tarotCardBack,
+.tarotCardFace {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.58);
+  box-shadow: 0 24px 58px rgba(6, 3, 16, 0.44), 0 0 46px rgba(248, 187, 221, 0.16);
+}
+
+.tarotCardBack {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--tea-cream);
+  background:
+    linear-gradient(145deg, rgba(255, 246, 250, 0.08), transparent 46%),
+    var(--tarot-card-back),
+    linear-gradient(180deg, rgba(42, 23, 69, 0.98), rgba(21, 9, 38, 0.98)),
+    var(--selection-pattern);
+  background-size: cover, cover, cover, 150% auto;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat;
+}
+
+.tarotCardBack::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  z-index: 2;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  border-radius: 6px;
+}
+
+.tarotCardBack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--tarot-card-animation);
+  background-repeat: no-repeat;
+  background-size: 800% 100%;
+  background-position: 0% 50%;
+  opacity: 0;
+  filter: drop-shadow(0 0 22px rgba(248, 187, 221, 0.2));
+}
+
+.tarotCardBack[data-animated="true"]::after {
+  opacity: 0.96;
+  animation: tarotCardFrameSweep 1.15s steps(7, end) infinite;
+}
+
+.tarotBackMoon {
+  display: grid;
+  place-items: center;
+  width: 118px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(233, 196, 106, 0.4);
+  border-radius: 50%;
+  color: var(--tea-gold);
+  background: radial-gradient(circle, rgba(255, 246, 250, 0.12), transparent 62%);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 2.1rem;
+  z-index: 2;
+}
+
+.tarotBackLotus,
+.tarotBackStars {
+  position: absolute;
+  z-index: 2;
+  color: rgba(255, 246, 250, 0.78);
+  font-family: var(--font-display, var(--font-body));
+}
+
+.tarotBackLotus {
+  bottom: 22%;
+  font-size: 1.25rem;
+}
+
+.tarotBackStars {
+  top: 18%;
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+}
+
+.spriteCrop {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--sprite-ratio);
+  overflow: hidden;
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 246, 250, 0.58), transparent 42%),
+    linear-gradient(180deg, rgba(42, 23, 69, 0.14), rgba(255, 246, 250, 0.2));
+}
+
+.spriteCrop img {
+  position: absolute;
+  left: var(--sprite-img-left);
+  top: var(--sprite-img-top);
+  width: var(--sprite-img-width);
+  height: var(--sprite-img-height);
+  max-width: none;
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+}
+
+.spriteCropFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  color: rgba(42, 23, 69, 0.76);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.tarotAssetCard {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: 11px;
+  width: 100%;
+  height: 100%;
+  min-height: 410px;
+  padding: 20px 18px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.58);
+  border-radius: 8px;
+  color: var(--tea-violet);
+  background:
+    linear-gradient(180deg, rgba(255, 246, 250, 0.72), rgba(255, 235, 245, 0.86)),
+    var(--tarot-yeoni-card),
+    linear-gradient(180deg, rgba(255, 246, 250, 0.96), rgba(255, 238, 247, 0.94));
+  background-size: cover, cover, cover;
+  background-position: center;
+  box-shadow: 0 24px 58px rgba(6, 3, 16, 0.44), 0 0 46px rgba(248, 187, 221, 0.16);
+}
+
+.tarotAssetCard::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+  border: 1px solid rgba(233, 196, 106, 0.5);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.tarotAssetCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255, 246, 250, 0.42), transparent 26%),
+    radial-gradient(circle at 50% 46%, rgba(248, 187, 221, 0.22), transparent 35%),
+    linear-gradient(180deg, rgba(255, 246, 250, 0.36), rgba(255, 246, 250, 0.08));
+  mix-blend-mode: screen;
+}
+
+.tarotAssetHeader,
+.tarotAssetVisual,
+.tarotAssetTitle,
+.tarotAssetCard .tarotKeywordList,
+.tarotAssetCard .tarotMeaning,
+.tarotAssetCardBack strong,
+.tarotAssetBackMark {
+  position: relative;
+  z-index: 2;
+}
+
+.tarotAssetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #6b3d78;
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.tarotAssetHeader strong {
+  padding: 5px 10px;
+  border: 1px solid rgba(109, 70, 232, 0.18);
+  border-radius: 999px;
+  color: #5d3371;
+  background: rgba(255, 246, 250, 0.68);
+  box-shadow: 0 8px 18px rgba(248, 187, 221, 0.18);
+}
+
+.tarotAssetVisual {
+  align-self: center;
+  width: min(100%, 178px);
+  margin-inline: auto;
+  padding: 8px;
+  border: 1px solid rgba(233, 196, 106, 0.54);
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 246, 250, 0.54), rgba(255, 246, 250, 0.18)),
+    rgba(42, 23, 69, 0.08);
+  box-shadow: inset 0 0 18px rgba(255, 246, 250, 0.24), 0 14px 28px rgba(42, 23, 69, 0.18);
+}
+
+.tarotAssetCrop {
+  box-shadow: inset 0 0 0 1px rgba(42, 23, 69, 0.12);
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.tarotAssetCard[data-orientation="reversed"] .tarotAssetCrop {
+  transform: rotate(180deg);
+}
+
+.tarotAssetTitle {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.tarotAssetTitle h3 {
+  margin: 0;
+  color: #2a1745;
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.44rem;
+  line-height: 1.16;
+}
+
+.tarotAssetTitle p {
+  margin: 0;
+  color: rgba(42, 23, 69, 0.68);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.tarotAssetCard[data-size="sm"] {
+  min-height: 310px;
+  padding: 14px;
+}
+
+.tarotAssetCard[data-size="sm"] .tarotAssetVisual {
+  width: min(100%, 132px);
+  padding: 6px;
+}
+
+.tarotAssetCard[data-size="sm"] .tarotAssetTitle h3 {
+  font-size: 1.05rem;
+}
+
+.tarotAssetCard[data-size="lg"] {
+  min-height: 450px;
+}
+
+.tarotAssetCard[data-compact="true"] {
+  gap: 9px;
+  min-height: 360px;
+}
+
+.tarotAssetCardBack {
+  place-items: center;
+  align-content: center;
+  color: var(--tea-cream);
+  text-align: center;
+  background:
+    linear-gradient(145deg, rgba(255, 246, 250, 0.08), transparent 46%),
+    var(--tarot-yeoni-card),
+    linear-gradient(180deg, rgba(42, 23, 69, 0.98), rgba(21, 9, 38, 0.98));
+  background-size: cover;
+}
+
+.tarotAssetCardBack strong {
+  color: rgba(255, 246, 250, 0.88);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1rem;
+}
+
+.tarotAssetBackMark {
+  display: grid;
+  place-items: center;
+  width: 118px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(233, 196, 106, 0.4);
+  border-radius: 50%;
+  color: var(--tea-gold);
+  background: radial-gradient(circle, rgba(255, 246, 250, 0.12), transparent 62%);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 2.1rem;
+}
+
+.tarotRevealAnimation {
+  position: relative;
+  width: min(340px, 82vw);
+  aspect-ratio: 1916 / 821;
+  border-radius: 10px;
+  background-image: var(--tarot-card-animation);
+  background-repeat: no-repeat;
+  background-size: calc(var(--tarot-reveal-columns, 8) * 100%) 100%;
+  background-position: 0% 50%;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 34px rgba(248, 187, 221, 0.34));
+  pointer-events: none;
+}
+
+.tarotRevealAnimation[data-active="true"] {
+  animation: tarotCardFrameSweep 1.15s steps(7, end) infinite;
+}
+
+.tarotRevealStageAnimation {
+  position: absolute;
+  z-index: 0;
+  opacity: 0.58;
+  transform: translateY(-10px) scale(1.16);
+}
+
+.tarotCardFace {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(132px, 1fr) auto auto auto;
+  gap: 14px;
+  padding: 18px;
+  color: var(--tea-violet);
+  background:
+    linear-gradient(180deg, rgba(255, 246, 250, 0.78), rgba(255, 238, 247, 0.86)),
+    radial-gradient(circle at 50% 22%, rgba(248, 187, 221, 0.42), transparent 36%),
+    linear-gradient(180deg, rgba(255, 246, 250, 0.96), rgba(255, 238, 247, 0.94));
+}
+
+.tarotCardFace::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+  border: 1px solid rgba(233, 196, 106, 0.52);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.tarotCardFace::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tarot-frame-sheet);
+  background-repeat: no-repeat;
+  background-size: 210% auto;
+  background-position: 2% 4%;
+  opacity: 0.1;
+  mix-blend-mode: multiply;
+}
+
+.tarotFaceHeader,
+.tarotFaceCenter,
+.tarotMajorVisual,
+.tarotKeywordList,
+.tarotMeaning {
+  position: relative;
+  z-index: 2;
+}
+
+.tarotMajorVisual {
+  width: 100%;
+  min-height: 156px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.5);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 246, 250, 0.52), transparent 32%),
+    linear-gradient(180deg, rgba(62, 28, 82, 0.18), rgba(255, 246, 250, 0.52));
+  box-shadow: inset 0 0 18px rgba(42, 23, 69, 0.1), 0 12px 24px rgba(42, 23, 69, 0.12);
+}
+
+.tarotMajorArtwork {
+  position: absolute;
+  inset: 0;
+  background-image: var(--tarot-major-sheet);
+  background-repeat: no-repeat;
+  background-size: 600% 400%;
+  background-position: var(--tarot-card-x) var(--tarot-card-y);
+  transform: scale(1.025);
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.tarotCardFace[data-orientation="reversed"] .tarotMajorArtwork {
+  transform: rotate(180deg) scale(1.025);
+}
+
+.tarotCardFace[data-compact="true"] {
+  gap: 10px;
+  padding: 14px;
+}
+
+.tarotCardFace[data-compact="true"] .tarotMajorVisual {
+  min-height: 126px;
+}
+
+.tarotFaceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #6b3d78;
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.tarotFaceHeader strong {
+  padding: 5px 9px;
+  border: 1px solid rgba(109, 70, 232, 0.22);
+  border-radius: 999px;
+  background: rgba(109, 70, 232, 0.08);
+}
+
+.tarotFaceCenter {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  text-align: center;
+}
+
+.tarotFaceMoon {
+  width: 76px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #7b4c8d;
+  background: radial-gradient(circle, rgba(233, 196, 106, 0.34), transparent 68%);
+  font-size: 2rem;
+}
+
+.tarotFaceCenter h3 {
+  margin: 0;
+  color: #2a1745;
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.72rem;
+  line-height: 1.15;
+}
+
+.tarotFaceCenter p,
+.tarotMeaning {
+  margin: 0;
+  color: rgba(42, 23, 69, 0.72);
+  font-family: var(--font-premium, var(--font-body));
+}
+
+.tarotKeywordList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+}
+
+.tarotKeywordList span,
+.luckyKeywordList span {
+  padding: 7px 10px;
+  border: 1px solid rgba(109, 70, 232, 0.16);
+  border-radius: 999px;
+  background: rgba(248, 187, 221, 0.24);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.tarotMeaning {
+  font-size: 0.88rem;
+  line-height: 1.62;
+  text-align: center;
+}
+
+.resultScene {
+  align-items: start;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1.58fr);
+  padding: 8px 0 38px;
+}
+
+.resultYeoniPanel {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  isolation: isolate;
+}
+
+.resultFullYeoni {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  z-index: 0;
+  width: min(360px, 96%);
+  aspect-ratio: 3 / 5;
+  transform: translateX(-50%);
+  opacity: 0.22;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 30px 60px rgba(6, 3, 16, 0.42));
+  pointer-events: none;
+}
+
+.resultFullYeoni .assetImageFallback {
+  display: none;
+}
+
+.resultYeoniActor {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 340px);
+  margin-inline: auto;
+}
+
+.resultBubbleAsset {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 300px);
+  height: 96px;
+  margin-inline: auto;
+  opacity: 0.64;
+  border-radius: 8px;
+}
+
+.resultSheet {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  padding: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.34);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background:
+    linear-gradient(180deg, rgba(24, 9, 42, 0.74), rgba(22, 8, 38, 0.86)),
+    radial-gradient(circle at 12% 8%, rgba(255, 246, 250, 0.22), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(248, 187, 221, 0.18), transparent 32%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.2), rgba(248, 187, 221, 0.08) 38%, transparent 62%),
+    linear-gradient(180deg, rgba(64, 29, 84, 0.86), rgba(28, 12, 48, 0.92));
+  box-shadow: 0 28px 82px rgba(6, 3, 16, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.resultSheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--tea-result-sheet);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  opacity: 0.46;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.resultSheet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tea-overlay-2);
+  background-repeat: no-repeat;
+  background-size: 230% auto;
+  background-position: right 4% top 10%;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+
+.resultHeader,
+.resultSummaryGrid,
+.resultBlock,
+.actionPrescription,
+.resultActions {
+  position: relative;
+  z-index: 2;
+}
+
+.resultSheet > * {
+  position: relative;
+  z-index: 2;
+}
+
+.resultHeader p {
+  max-width: 760px;
+  margin: 16px 0 0;
+  color: var(--tea-muted);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+.resultSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.resultSummaryGrid > div,
+.resultBlock,
+.actionPrescription {
+  border: 1px solid rgba(255, 246, 250, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 246, 250, 0.065);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.resultSummaryGrid > div {
+  padding: 16px;
+}
+
+.resultSummaryGrid span,
+.choiceCard span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--tea-gold);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.resultSummaryGrid strong {
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.02rem;
+}
+
+.resultSummaryGrid p {
+  margin: 8px 0 0;
+  color: var(--tea-muted);
+  font-size: 0.9rem;
+  line-height: 1.58;
+}
+
+.resultBlock,
+.actionPrescription {
+  padding: 20px;
+}
+
+.sajuSummary,
+.sajuCaution,
+.synthesisBlock p,
+.synthesisBlock strong {
+  margin: 12px 0 0;
+  color: var(--tea-muted);
+  font-size: 0.96rem;
+  line-height: 1.76;
+}
+
+.sajuKeyPointList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sajuKeyPoint {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 999px;
+  color: var(--tea-cream);
+  background: rgba(248, 187, 221, 0.1);
+  box-shadow: 0 10px 24px rgba(248, 187, 221, 0.08);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.sajuCaution {
+  color: rgba(255, 246, 250, 0.74);
+}
+
+.tenGodSectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.tenGodSectionHeader span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--tea-gold);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.tenGodSectionHeader p {
+  max-width: 320px;
+  margin: 0;
+  color: rgba(255, 246, 250, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.62;
+  text-align: right;
+}
+
+.tenGodResultGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.tenGodSecondaryList {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.tenGodBridgeText {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(248, 187, 221, 0.24);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.86);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(248, 187, 221, 0.16), transparent 36%),
+    rgba(42, 23, 69, 0.34);
+  line-height: 1.74;
+}
+
+.tenGodCard {
+  --ten-god-accent: var(--tea-pink);
+  --ten-god-soft: rgba(248, 187, 221, 0.18);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ten-god-accent) 54%, transparent);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 0% 0%, var(--ten-god-soft), transparent 42%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.11), rgba(42, 23, 69, 0.28));
+  box-shadow:
+    0 16px 34px rgba(9, 3, 22, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.tenGodCard::after {
+  position: absolute;
+  inset: auto -18px -30px auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ten-god-accent) 32%, transparent), transparent 68%);
+  content: "";
+  pointer-events: none;
+}
+
+.tenGodCard[data-selected="true"] {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ten-god-accent) 38%, transparent),
+    0 22px 48px rgba(9, 3, 22, 0.22),
+    0 0 32px color-mix(in srgb, var(--ten-god-accent) 22%, transparent);
+}
+
+.tenGodCard[data-size="sm"] {
+  gap: 11px;
+  padding: 12px;
+}
+
+.tenGodCard[data-size="lg"] {
+  min-height: 230px;
+}
+
+.tenGodCard[data-tone="purple"] {
+  --ten-god-accent: #b8a4ff;
+  --ten-god-soft: rgba(109, 70, 232, 0.22);
+}
+
+.tenGodCard[data-tone="pink"] {
+  --ten-god-accent: #f8bbdd;
+  --ten-god-soft: rgba(248, 187, 221, 0.24);
+}
+
+.tenGodCard[data-tone="gold"] {
+  --ten-god-accent: #e9c46a;
+  --ten-god-soft: rgba(233, 196, 106, 0.2);
+}
+
+.tenGodCard[data-tone="blue"] {
+  --ten-god-accent: #9fc4ff;
+  --ten-god-soft: rgba(109, 152, 232, 0.18);
+}
+
+.tenGodCard[data-tone="green"] {
+  --ten-god-accent: #9fd9b5;
+  --ten-god-soft: rgba(130, 206, 158, 0.18);
+}
+
+.tenGodCard[data-tone="red"] {
+  --ten-god-accent: #ff9d9d;
+  --ten-god-soft: rgba(255, 118, 132, 0.18);
+}
+
+.tenGodCard[data-tone="gray"] {
+  --ten-god-accent: #c7bfd7;
+  --ten-god-soft: rgba(199, 191, 215, 0.16);
+}
+
+.tenGodIconWrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--ten-god-accent) 68%, transparent);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.36), transparent 26%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.2), color-mix(in srgb, var(--ten-god-accent) 28%, rgba(42, 23, 69, 0.76)));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--ten-god-accent) 24%, transparent);
+}
+
+.tenGodCard[data-size="sm"] .tenGodIconWrap {
+  width: 54px;
+}
+
+.tenGodGlyph {
+  color: var(--tea-cream);
+  font-family: var(--font-decorative, var(--font-display, var(--font-body)));
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--ten-god-accent) 62%, transparent);
+}
+
+.tenGodCard[data-size="sm"] .tenGodGlyph {
+  font-size: 1.35rem;
+}
+
+.tenGodImage,
+.tenGodSprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.tenGodCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tenGodTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tenGodTitleRow h4 {
+  margin: 0;
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1.12rem;
+  letter-spacing: 0;
+}
+
+.tenGodTitleRow span {
+  color: color-mix(in srgb, var(--ten-god-accent) 80%, var(--tea-cream));
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.tenGodRole {
+  margin: 0;
+  color: color-mix(in srgb, var(--ten-god-accent) 78%, var(--tea-cream));
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.tenGodKeywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tenGodKeywords span {
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--ten-god-accent) 36%, transparent);
+  border-radius: 999px;
+  color: rgba(255, 246, 250, 0.82);
+  background: rgba(255, 246, 250, 0.07);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tenGodDescription,
+.tenGodVisualHint {
+  margin: 0;
+  color: rgba(255, 246, 250, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.66;
+}
+
+.tenGodDescription {
+  grid-column: 1 / -1;
+}
+
+.tenGodDescription p {
+  margin: 0;
+}
+
+.tenGodVisualHint {
+  display: block;
+  margin-top: 6px;
+  color: rgba(233, 196, 106, 0.78);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.synthesisVisualPair {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) auto minmax(160px, 0.55fr);
+  gap: 14px;
+  align-items: center;
+  margin: 16px 0 4px;
+}
+
+.synthesisVisualPair > span {
+  color: var(--tea-gold);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(233, 196, 106, 0.42);
+}
+
+.synthesisBlock {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(233, 196, 106, 0.18), transparent 34%),
+    radial-gradient(circle at 100% 20%, rgba(248, 187, 221, 0.16), transparent 36%),
+    rgba(255, 246, 250, 0.075);
+}
+
+.synthesisBlock strong {
+  display: block;
+  padding: 14px 16px;
+  border-left: 2px solid rgba(233, 196, 106, 0.64);
+  color: var(--tea-cream);
+  background: rgba(42, 23, 69, 0.28);
+}
+
+.resultGaugeAsset {
+  width: 100%;
+  height: 110px;
+  margin-top: 12px;
+  border-radius: 8px;
+  opacity: 0.72;
+}
+
+.resultEmotionItem p {
+  margin: 10px 0 0;
+  color: var(--tea-muted);
+  font-size: 0.9rem;
+  line-height: 1.58;
+}
+
+.resultTarotGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-top: 14px;
+}
+
+.resultTarotCopy {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+}
+
+.resultTarotCopy p,
+.yeoniReadingGrid p,
+.actionPrescription p,
+.choiceCard p,
+.choiceCard strong {
+  margin: 0;
+  color: var(--tea-muted);
+  font-size: 0.96rem;
+  line-height: 1.76;
+}
+
+.yeoniReadingGrid {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.yeoniReadingGrid p {
+  padding: 14px 16px;
+  border-left: 2px solid rgba(233, 196, 106, 0.52);
+  background: rgba(255, 246, 250, 0.05);
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.choiceCard {
+  padding: 16px;
+  border: 1px solid rgba(255, 246, 250, 0.14);
+  border-radius: 8px;
+  background: rgba(25, 10, 43, 0.36);
+}
+
+.choiceCard h4 {
+  margin: 0 0 10px;
+  color: var(--tea-cream);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 1rem;
+}
+
+.choiceCard strong {
+  display: block;
+  margin-top: 10px;
+  color: rgba(233, 196, 106, 0.86);
+  font-weight: 700;
+}
+
+.luckyKeywordList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.luckyKeywordList span {
+  color: var(--tea-violet);
+  background: rgba(255, 246, 250, 0.84);
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.readyNotice {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  z-index: 8;
+  width: min(92%, 520px);
+  transform: translateX(-50%);
+  padding: 16px 18px;
+  border: 1px solid rgba(233, 196, 106, 0.46);
+  border-radius: 8px;
+  color: var(--tea-cream);
+  background: rgba(31, 14, 53, 0.9);
+  box-shadow: 0 18px 46px rgba(7, 3, 18, 0.48), 0 0 34px rgba(248, 187, 221, 0.18);
+  font-family: var(--font-premium, var(--font-body));
+  font-size: 0.96rem;
+  text-align: center;
+  letter-spacing: 0;
+  backdrop-filter: blur(16px);
+  animation: softFadeIn 220ms ease both;
+}
+
+.tarotDebugPage {
+  position: relative;
+  min-height: 100svh;
+  padding: 28px;
+  color: var(--tea-cream);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(248, 187, 221, 0.18), transparent 34%),
+    radial-gradient(circle at 90% 12%, rgba(233, 196, 106, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(30, 12, 52, 0.48), rgba(11, 6, 22, 0.78)),
+    var(--tea-bg-mobile),
+    linear-gradient(180deg, rgba(30, 12, 52, 0.96), rgba(11, 6, 22, 0.98));
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
+  isolation: isolate;
+}
+
+.tarotDebugPage::before,
+.tarotDebugPage::after {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  content: "";
+}
+
+.tarotDebugPage::before {
+  top: 3svh;
+  right: -5vw;
+  width: min(760px, 54vw);
+  aspect-ratio: 1.66;
+  background-image: var(--tea-overlay);
+  background-size: 212% auto;
+  background-position: left 3% top 13%;
+  opacity: 0.34;
+  mix-blend-mode: screen;
+}
+
+.tarotDebugPage::after {
+  left: -4vw;
+  bottom: -4svh;
+  width: min(780px, 62vw);
+  aspect-ratio: 2.85;
+  background-image: var(--tea-overlay-2);
+  background-size: 230% auto;
+  background-position: left 2% bottom 13%;
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+.tarotDebugHeader {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  max-width: 1100px;
+  margin: 0 auto 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(233, 196, 106, 0.28);
+  border-radius: 8px;
+  background: rgba(28, 12, 48, 0.58);
+  box-shadow: 0 20px 44px rgba(9, 3, 22, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.tarotDebugHeader p,
+.tarotDebugHeader span {
+  margin: 0;
+  color: var(--tea-gold);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.tarotDebugHeader h1 {
+  margin: 0;
+  font-family: var(--font-display, var(--font-body));
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  letter-spacing: 0;
+}
+
+.tarotDebugSheets {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1400px;
+  margin: 0 auto 28px;
+}
+
+.tarotDebugSheets figure {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(233, 196, 106, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 246, 250, 0.06);
+}
+
+.tarotDebugSheets img {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+}
+
+.tarotDebugSheets figcaption {
+  margin-top: 8px;
+  color: var(--tea-muted);
+  font-size: 0.82rem;
+}
+
+.tarotDebugGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tenGodDebugPage {
+  min-height: 100svh;
+  padding: 28px;
+  color: var(--tea-cream);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(248, 187, 221, 0.2), transparent 32%),
+    radial-gradient(circle at 92% 16%, rgba(233, 196, 106, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(30, 12, 52, 0.96), rgba(11, 6, 22, 0.98));
+}
+
+.tenGodDebugGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tarotDebugCard {
+  display: grid;
+  gap: 10px;
+}
+
+.tarotDebugCard code {
+  display: block;
+  padding: 10px;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(255, 246, 250, 0.14);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.78);
+  background: rgba(0, 0, 0, 0.24);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 768px) {
+  .page {
+    background:
+      radial-gradient(ellipse at 72% 18%, rgba(248, 187, 221, 0.16), transparent 38rem),
+      radial-gradient(ellipse at 18% 82%, rgba(233, 196, 106, 0.1), transparent 34rem),
+      linear-gradient(180deg, rgba(22, 8, 38, 0.32), rgba(11, 5, 22, 0.68)),
+      var(--tea-bg-desktop),
+      linear-gradient(145deg, #1a102c, #2a1745 52%, #140b24);
+    background-position: var(--tea-bg-position-desktop, center);
+    background-size: cover;
+  }
+
+  .pageInner {
+    padding: 30px 24px 44px;
+  }
+
+  .tarotDebugPage {
+    background:
+      radial-gradient(circle at 18% 0%, rgba(248, 187, 221, 0.18), transparent 34%),
+      radial-gradient(circle at 90% 12%, rgba(233, 196, 106, 0.12), transparent 26%),
+      linear-gradient(180deg, rgba(30, 12, 52, 0.42), rgba(11, 6, 22, 0.72)),
+      var(--tea-bg-desktop),
+      linear-gradient(180deg, rgba(30, 12, 52, 0.96), rgba(11, 6, 22, 0.98));
+    background-position: center center;
+    background-size: cover;
+  }
+}
+
+@media (max-width: 980px) {
+  .landingScene,
+  .storyScene,
+  .transformScene,
+  .yeoniScene,
+  .flowScene,
+  .ctaScene,
+  .teaSelectScene,
+  .questionScene,
+  .emotionScene,
+  .tarotRevealScene,
+  .resultScene {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 10px 0 28px;
+  }
+
+  .landingCopy,
+  .storyPanel,
+  .transformCopy,
+  .yeoniDialoguePanel,
+  .flowCopy,
+  .ctaPanel,
+  .teaSelectGuide,
+  .questionPanel,
+  .emotionPanel,
+  .tarotRevealPanel,
+  .resultSheet {
+    max-width: none;
+  }
+
+  .landingVisual {
+    min-height: 220px;
+    order: 2;
+  }
+
+  .landingCopy {
+    order: 1;
+  }
+
+  .teaSelectGuide {
+    order: 2;
+  }
+
+  .teaMenuBoard {
+    order: 1;
+  }
+
+  .storyVisual,
+  .yeoniPortraitWrap,
+  .ctaPortrait,
+  .transformImageWrap,
+  .questionActor,
+  .emotionVisual,
+  .tarotRevealActor {
+    min-height: 360px;
+  }
+
+  .talkingPig {
+    min-height: 360px;
+  }
+
+  .pigImage {
+    width: min(100%, 310px);
+  }
+
+  .yeoniPortrait,
+  .ctaYeoni {
+    width: min(100%, 340px);
+  }
+
+  .flowYeoniActor {
+    width: min(250px, 70vw);
+    margin-inline: auto;
+  }
+
+  .transformImage {
+    width: min(100%, 360px);
+  }
+
+  .flowGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultSummaryGrid,
+  .resultTarotGrid,
+  .tenGodResultGrid,
+  .synthesisVisualPair,
+  .choiceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tenGodSectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tenGodSectionHeader p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .teaCupGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teaMenuBoard {
+    width: min(100%, 520px);
+    margin-inline: auto;
+    aspect-ratio: 941 / 1704;
+    background-image:
+      linear-gradient(180deg, rgba(18, 7, 34, 0.02), rgba(18, 7, 34, 0.1)),
+      var(--tea-menu-mobile),
+      linear-gradient(145deg, rgba(42, 23, 69, 0.9), rgba(248, 187, 221, 0.18));
+  }
+
+  .teaMenuCards {
+    left: 9.7%;
+    right: 9.9%;
+    top: 19.1%;
+    bottom: 9.5%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 2.1% 3.7%;
+  }
+
+  .teaCupMenuItem {
+    padding: 8px;
+  }
+
+  .teaCupMenuVisual {
+    width: 88%;
+    height: 80%;
+    background-image: var(--tea-cups-states);
+    background-size: 600% 300%;
+    background-position: var(--cup-state-x) 0%;
+    transform: translate(-50%, -51%) scale(0.98);
+  }
+
+  .teaCupMenuItem[data-selected="true"] .teaCupMenuVisual {
+    background-position: var(--cup-state-x) 100%;
+  }
+
+  .teaCupMenuNumber,
+  .teaCupMenuText {
+    display: none;
+  }
+
+  .teaCupMenuAction {
+    left: 8px;
+    top: auto;
+    bottom: 8px;
+    padding: 6px 8px;
+    font-size: 0.68rem;
+    opacity: 0;
+  }
+
+  .resultYeoniPanel {
+    position: relative;
+    top: auto;
+  }
+
+  .resultYeoniActor {
+    width: min(280px, 74vw);
+  }
+}
+
+@media (max-width: 640px) {
+  .pageInner {
+    padding: 12px 12px 26px;
+    gap: 12px;
+  }
+
+  .shellSceneImage {
+    right: -36vw;
+    bottom: -8svh;
+    width: 105vw;
+    opacity: 0.1;
+  }
+
+  .backButton {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.76rem;
+  }
+
+  .sceneFrame {
+    min-height: calc(100svh - 72px);
+  }
+
+  .stageDots {
+    min-height: 24px;
+    gap: 5px;
+    padding: 7px;
+  }
+
+  .landingCopy h1,
+  .storyPanel h2,
+  .transformCopy h2,
+  .yeoniDialoguePanel h2,
+  .flowCopy h2,
+  .ctaPanel h2,
+  .teaSelectGuide h2,
+  .questionPanel h2,
+  .emotionPanel h2,
+  .tarotRevealPanel h2,
+  .resultHeader h2 {
+    font-size: 2rem;
+    line-height: 1.18;
+  }
+
+  .landingCopy p:not(.sceneEyebrow),
+  .ctaPanel > p {
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .landingPrologue {
+    max-height: min(46svh, 360px);
+    margin-top: 20px;
+    padding: 22px 20px 24px;
+  }
+
+  .landingPrologue::before {
+    background-size: 230% auto;
+    background-position: 50% 92%;
+    opacity: 0.5;
+  }
+
+  .landingPrologue::after {
+    inset: 8px;
+  }
+
+  .landingPrologue p {
+    font-size: 0.92rem;
+    line-height: 1.76;
+  }
+
+  .landingPrologue p:first-child {
+    font-size: 0.98rem;
+  }
+
+  .page[data-stage="landing"] .landingScene {
+    min-height: calc(100svh - 72px);
+  }
+
+  .page[data-stage="landing"] .landingVisual {
+    min-height: 150px;
+  }
+
+  .page[data-stage="landing"] .moonPlate {
+    top: 8%;
+    right: 8%;
+    width: 78px;
+    opacity: 0.42;
+  }
+
+  .page[data-stage="landing"] .landingSceneCard {
+    inset: 0 0 8%;
+    opacity: 0.64;
+  }
+
+  .page[data-stage="landing"] .landingPigMascot {
+    left: auto;
+    right: 18px;
+    bottom: 18px;
+    width: 96px;
+  }
+
+  .page[data-stage="landing"] .landingPigCharm {
+    right: 18px;
+    bottom: 18px;
+    width: 82px;
+  }
+
+  .page[data-stage="landing"] .gateSign {
+    right: auto;
+    left: 14px;
+    bottom: 28px;
+    min-width: 148px;
+    padding: 10px 14px;
+    font-size: 0.98rem;
+  }
+
+  .dialogueBox {
+    margin-top: 16px;
+    min-height: 158px;
+    padding: 34px 28px 28px;
+  }
+
+  .dialogueBox p {
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .dialogueBox[data-frame="character"]::before {
+    background-size: 235% auto;
+    background-position: 88% 1%;
+  }
+
+  .dialogueBox[data-frame="system"] {
+    min-height: 126px;
+    padding: 30px 28px 26px;
+  }
+
+  .dialogueBox[data-frame="system"]::before {
+    background-size: 232% auto;
+    background-position: 88% 78%;
+  }
+
+  .storyActions,
+  .ctaActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .storyProgress {
+    order: 2;
+    text-align: center;
+  }
+
+  .teaButton {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 0.94rem;
+  }
+
+  .gateImage {
+    width: min(100%, 330px);
+  }
+
+  .landingPigCharm {
+    width: min(40vw, 138px);
+    left: 0;
+    bottom: 2%;
+  }
+
+  .moonPlate {
+    width: 90px;
+    top: 3%;
+    right: 5%;
+  }
+
+  .flowCard {
+    min-height: 220px;
+  }
+
+  .ctaPanel {
+    padding: 20px;
+  }
+
+  .questionPanel,
+  .emotionPanel,
+  .tarotRevealPanel,
+  .resultSheet {
+    padding: 20px;
+  }
+
+  .teaCupCard {
+    min-height: auto;
+  }
+
+  .teaCupGrid,
+  .questionFieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tarotFlipCard {
+    width: min(100%, 260px);
+  }
+
+  .resultActions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 390px) {
+  .landingCopy h1,
+  .storyPanel h2,
+  .transformCopy h2,
+  .yeoniDialoguePanel h2,
+  .flowCopy h2,
+  .ctaPanel h2,
+  .teaSelectGuide h2,
+  .questionPanel h2,
+  .emotionPanel h2,
+  .tarotRevealPanel h2,
+  .resultHeader h2 {
+    font-size: 1.78rem;
+  }
+
+  .dialogueBox p {
+    font-size: 0.94rem;
+  }
+
+  .storyVisual,
+  .yeoniPortraitWrap,
+  .ctaPortrait,
+  .transformImageWrap,
+  .questionActor,
+  .emotionVisual,
+  .tarotRevealActor,
+  .landingVisual,
+  .talkingPig {
+    min-height: 320px;
+  }
+
+  .pigImage {
+    width: min(100%, 280px);
+  }
+
+  .flowYeoniActor {
+    width: min(220px, 74vw);
+  }
+
+  .resultSheet {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .petal,
+  .pigImage,
+  .pigScentTrail,
+  .yeoniActor,
+  .yeoniActorScent,
+  .transformGlow,
+  .transformImage,
+  .yeoniPortrait,
+  .ctaYeoni,
+  .tarotFlipInner,
+  .tarotCardBack::after,
+  .yeoniDialoguePanel,
+  .readyNotice,
+  .teaButton,
+  .teaButtonIconSpin {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .teaButton:hover {
+    transform: none;
+  }
+}
+
+@keyframes petalFall {
+  0% {
+    transform: translate3d(0, -40px, 0) rotate(0deg) scale(var(--petal-scale));
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.72;
+  }
+  50% {
+    transform: translate3d(34px, 50svh, 0) rotate(78deg) scale(var(--petal-scale));
+  }
+  100% {
+    transform: translate3d(-24px, calc(100svh + 60px), 0) rotate(146deg) scale(var(--petal-scale));
+    opacity: 0;
+  }
+}
+
+@keyframes characterFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes scentDrift {
+  0%,
+  100% {
+    transform: translateY(0) rotate(26deg);
+    opacity: 0.42;
+  }
+  50% {
+    transform: translateY(-14px) rotate(31deg);
+    opacity: 0.82;
+  }
+}
+
+@keyframes transformPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes revealLift {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tarotCardFrameSweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

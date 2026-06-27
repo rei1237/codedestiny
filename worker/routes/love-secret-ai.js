@@ -54,26 +54,39 @@ const RELATIONSHIP_STATUS_LABELS = Object.freeze({
 });
 const FOCUS_AREA_LABELS = Object.freeze({
   overall: "전체 연애 흐름",
+  relationshipFlow: "현재 관계가 어디로 흘러갈지",
+  distance: "상대의 마음과 거리감",
   crush: "상대방 마음",
   reunion: "재회 가능성",
   confession: "고백 타이밍",
+  timing: "연락/고백/대화 타이밍",
   marriage: "결혼 가능성",
+  longTerm: "결혼/장기 관계 가능성",
   conflict: "갈등 원인",
   compatibility: "상대방과의 궁합",
-  custom: "전체 연애 흐름",
+  intimacy: "속궁합과 친밀감 리듬",
+  pattern: "내가 바꿔야 할 연애 패턴",
+  custom: "직접 입력",
   "전체 연애 흐름": "전체 연애 흐름",
+  "현재 관계가 어디로 흘러갈지": "현재 관계가 어디로 흘러갈지",
   "상대방 마음": "상대방 마음",
+  "상대의 마음과 거리감": "상대의 마음과 거리감",
   "연락 타이밍": "연락 타이밍",
   "고백 타이밍": "고백 타이밍",
+  "연락/고백/대화 타이밍": "연락/고백/대화 타이밍",
   "재회 가능성": "재회 가능성",
   "관계 회복 전략": "관계 회복 전략",
   "장기 연애 유지법": "장기 연애 유지법",
   "결혼 가능성": "결혼 가능성",
+  "결혼/장기 관계 가능성": "결혼/장기 관계 가능성",
   "갈등 원인": "갈등 원인",
   "나의 연애 패턴": "나의 연애 패턴",
+  "내가 바꿔야 할 연애 패턴": "내가 바꿔야 할 연애 패턴",
   "상대방과의 궁합": "상대방과의 궁합",
+  "속궁합과 친밀감 리듬": "속궁합과 친밀감 리듬",
   "지금 밀어야 할지 기다려야 할지": "지금 밀어야 할지 기다려야 할지",
   "이 관계를 계속해도 되는지": "이 관계를 계속해도 되는지",
+  "직접 입력": "직접 입력",
 });
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
@@ -467,6 +480,7 @@ function collectBillingEvidenceIds(body = {}) {
     body.transactionId,
     body.purchaseId,
     body.ledgerId,
+    body.attemptId,
     body.requestId,
     body.idempotencyKey,
     body.orderId,
@@ -802,23 +816,42 @@ async function restoreBillingGateAccessOnFailure({ userId, access = {}, idempote
 }
 
 function publicSession(doc) {
+  const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
+  const meta = raw?.llmMeta || {};
   return {
     ok: true,
-    sessionId: clean(doc.id),
-    accessType: clean(doc.accessType),
-    status: clean(doc.status),
-    keywords: Array.isArray(doc.keywords) ? doc.keywords.map((item) => clean(item)).filter(Boolean).slice(0, 3) : [],
-    strategy: clean(doc.strategy),
-    sections: Array.isArray(doc.llmMeta?.sections)
-      ? doc.llmMeta.sections.map((section) => ({
+    id: clean(raw?.id),
+    sessionId: clean(raw?.id),
+    attemptId: clean(raw?.attemptId, 180),
+    requestId: clean(raw?.idempotencyKey, 180),
+    accessType: clean(raw?.accessType),
+    status: clean(raw?.status),
+    myInfo: raw?.myInfo || null,
+    partnerInfo: raw?.partnerInfo || null,
+    relationshipStatus: clean(raw?.relationshipStatus, 80),
+    topic: clean(raw?.topic, 120),
+    userQuestion: clean(raw?.userQuestion, 1400),
+    createdAt: raw?.createdAt,
+    updatedAt: raw?.updatedAt,
+    keywords: Array.isArray(raw?.keywords) ? raw.keywords.map((item) => clean(item)).filter(Boolean).slice(0, 3) : [],
+    strategy: clean(raw?.strategy),
+    sections: Array.isArray(meta?.sections)
+      ? meta.sections.map((section) => ({
         title: clean(section?.title, 80),
         body: clean(section?.body, 12000),
       })).filter((section) => section.title && section.body)
       : [],
-    finalLine: clean(doc.llmMeta?.finalLine, 500),
-    consultationMode: clean(doc.sajuResult?.consultationMode),
-    messages: Array.isArray(doc.messages)
-      ? doc.messages.map((message) => ({
+    finalLine: clean(meta?.finalLine, 700),
+    reading: meta?.reading || null,
+    pdfSections: Array.isArray(meta?.pdfSections)
+      ? meta.pdfSections.map((section) => ({
+        title: clean(section?.title, 80),
+        body: clean(section?.body, 12000),
+      })).filter((section) => section.title && section.body)
+      : [],
+    consultationMode: clean(raw?.sajuResult?.consultationMode),
+    messages: Array.isArray(raw?.messages)
+      ? raw.messages.map((message) => ({
         role: message.role,
         content: message.content,
         createdAt: message.createdAt,
@@ -969,9 +1002,18 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate")
 
   const sessionId = existing?.id || `lsai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   const now = new Date();
+  const attemptId = clean(
+    body?.attemptId
+      || body?.paidAttemptId
+      || objectOf(body?.payment)?.attemptId
+      || objectOf(body?.accessGrant)?.attemptId
+      || objectOf(body?.consume)?.attemptId,
+    180,
+  );
   const seed = {
     id: sessionId,
     userId: clean(auth.userId),
+    attemptId,
     myInfo: normalized.input.myInfo,
     partnerInfo: normalized.input.partnerInfo || null,
     relationshipStatus: normalized.input.relationshipStatus,
@@ -1030,6 +1072,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate")
             model: generated.model,
             completedAt: new Date().toISOString(),
             sections: generated.sections,
+            reading: generated.reading,
+            pdfSections: generated.pdfSections,
             finalLine: generated.finalLine,
           },
           generationError: null,
@@ -1077,6 +1121,68 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate")
   }
 }
 
+async function handleResult(request, env, pathId = "") {
+  const url = new URL(request.url);
+  const rawIds = [
+    pathId,
+    url.searchParams.get("sessionId"),
+    url.searchParams.get("id"),
+    url.searchParams.get("requestId"),
+    url.searchParams.get("idempotencyKey"),
+    url.searchParams.get("attemptId"),
+  ];
+  const ids = [...new Set(rawIds.map((item) => {
+    try {
+      return clean(decodeURIComponent(item || ""), 180);
+    } catch (_) {
+      return clean(item, 180);
+    }
+  }).filter(Boolean))];
+  if (!ids.length) return invalidInput("저장된 연애 비책 상담 결과를 찾을 수 없습니다.", 404);
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+
+  await connectDb(env);
+  const or = [];
+  ids.forEach((id) => {
+    or.push({ id }, { idempotencyKey: id }, { attemptId: id });
+  });
+  const consultation = await LoveSecretAiConsultation.findOne({
+    userId: clean(auth.userId),
+    $or: or,
+  }).lean();
+  if (!consultation) {
+    return json({ ok: false, reason: "RESULT_NOT_FOUND", message: "저장된 연애 비책 상담 결과를 찾을 수 없습니다." }, { status: 404 });
+  }
+  if (consultation.status === "generating") {
+    return json({
+      ok: true,
+      sessionId: clean(consultation.id),
+      attemptId: clean(consultation.attemptId, 180),
+      requestId: clean(consultation.idempotencyKey, 180),
+      status: "generating",
+      message: "두 사람의 마음의 온도를 읽고 있습니다.",
+    }, { status: 202 });
+  }
+  if (consultation.status === "generation_failed") {
+    return json({
+      ok: false,
+      sessionId: clean(consultation.id),
+      status: "generation_failed",
+      reason: "LLM_ERROR",
+      message: LLM_ERROR_MESSAGE,
+    }, { status: 503 });
+  }
+
+  const payload = publicSession(consultation);
+  const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
+  if (!assistantContent.trim() && !payload.sections.length) {
+    return json({ ok: false, reason: "RESULT_EMPTY", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  }
+  return json(payload);
+}
+
 async function handleMessage(request, env) {
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
@@ -1121,6 +1227,8 @@ export async function handleLoveSecretAiRoutes(request, env = {}) {
   logLoveSecretAi("Route Matched", safeLogPayload({ route: `/api/love-secret-ai${path}`, env }));
 
   try {
+    if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/love-secret-ai/prepare" : "/api/love-secret-ai/ensure-access");
     }

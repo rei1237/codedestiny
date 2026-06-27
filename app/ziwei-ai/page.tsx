@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
-import { Loader2, MessageCircle, Moon, Send, Sparkles, Stars, WalletCards } from "lucide-react";
+import { Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 
@@ -9,7 +9,7 @@ type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
 type Gender = "female" | "male" | "unknown" | "";
 type FocusArea = "overall" | "love" | "money" | "career" | "health" | "relationship" | "personality" | "custom";
-type Phase = "idle" | "checking" | "payment" | "reading" | "ready" | "chat";
+type Phase = "idle" | "checking" | "payment" | "reading" | "ready";
 
 type BirthInfo = {
   name?: string;
@@ -66,6 +66,18 @@ type Consultation = {
   messages?: ConsultationMessage[];
 };
 
+type StructuredZiweiResult = {
+  meta?: {
+    dayun?: {
+      current_palace?: string;
+      age_range?: string;
+      theme?: string;
+    };
+    scores?: Record<string, unknown>;
+  };
+  sections?: Record<string, { title?: string; body?: string }>;
+};
+
 type ApiResult = {
   ok?: boolean;
   reason?: string;
@@ -95,6 +107,7 @@ const FEATURE_REASON = "자미두수 AI 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
+const ZIWEI_AI_MESSAGE_ENDPOINT = "/api/ziwei-ai/message";
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -124,6 +137,31 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
   acc[item.value] = item.label;
   return acc;
 }, {} as Record<FocusArea, string>);
+
+const SECTION_ORDER = ["essence", "flow", "career", "wealth", "relationship", "dayun_now", "caution", "prescription"];
+const SECTION_GLYPHS: Record<string, string> = {
+  essence: "命",
+  flow: "化",
+  career: "官",
+  wealth: "財",
+  relationship: "緣",
+  dayun_now: "運",
+  caution: "忌",
+  prescription: "策",
+};
+const SCORE_LABELS: Record<string, string> = {
+  career: "직업·사업",
+  wealth: "재물",
+  relationship: "관계·인연",
+  health: "건강·멘탈",
+};
+const LOADING_STAGES = [
+  { glyph: "命", label: "자미두수 명반을 세우는 중", sub: "12궁 배치 계산" },
+  { glyph: "旺", label: "별의 강약을 판정하는 중", sub: "묘·왕·평·함 분석" },
+  { glyph: "化", label: "사화의 흐름을 읽는 중", sub: "화록·화권·화과·화기" },
+  { glyph: "運", label: "대운의 물길을 찾는 중", sub: "현재 대운 계산" },
+  { glyph: "星", label: "별궁 상담을 완성하는 중", sub: "명반 서사 생성" },
+];
 
 const defaultForm: FormState = {
   name: "",
@@ -308,9 +346,37 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
+function parseStructuredZiweiResult(content: string): StructuredZiweiResult | null {
+  const normalized = content.replace(/\r\n/g, "\n").trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
+  if (!normalized.includes("{") || !normalized.includes("}")) return null;
+  const start = normalized.indexOf("{");
+  const end = normalized.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(normalized.slice(start, end + 1)) as StructuredZiweiResult;
+    return parsed?.sections && typeof parsed.sections === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function splitAssistantSections(content: string) {
   const normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
+  const structured = parseStructuredZiweiResult(normalized);
+  if (structured) {
+    const sections = asRecord(structured.sections);
+    return SECTION_ORDER
+      .filter((key) => asRecord(sections[key]).body)
+      .map((key) => {
+        const section = asRecord(sections[key]);
+        return {
+          title: toText(section.title) || key,
+          body: toText(section.body),
+          glyph: SECTION_GLYPHS[key] || "星",
+        };
+      });
+  }
   const fallbackTitles = [
     "명반의 핵심 결론",
     "명궁이 말하는 나의 기질",
@@ -329,6 +395,7 @@ function splitAssistantSections(content: string) {
     return {
       title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || fallbackTitles[index % fallbackTitles.length] : fallbackTitles[index % fallbackTitles.length],
       body: hasHeading ? lines.slice(1).join("\n") : chunk,
+      glyph: "星",
     };
   });
 }
@@ -339,14 +406,22 @@ export default function ZiweiAiPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
-  const [chatInput, setChatInput] = useState("");
   const idempotencyRef = useRef("");
   const busyRef = useRef(false);
 
-  const busy = phase === "checking" || phase === "payment" || phase === "reading" || phase === "chat";
+  const busy = phase === "checking" || phase === "payment" || phase === "reading";
   const summary = consultation?.summaryCards || {};
   const palaces = consultation?.ziweiChart?.palaces || [];
-  const assistantMessages = consultation?.messages?.filter((message) => message.role === "assistant") || [];
+  const assistantMessages = useMemo(() => consultation?.messages?.filter((message) => message.role === "assistant") || [], [consultation?.messages]);
+  const structuredResult = useMemo(() => {
+    for (const message of assistantMessages) {
+      const parsed = parseStructuredZiweiResult(message.content);
+      if (parsed) return parsed;
+    }
+    return null;
+  }, [assistantMessages]);
+  const structuredScores = asRecord(structuredResult?.meta?.scores);
+  const currentLoadingStage = phase === "payment" ? 1 : phase === "reading" ? 4 : 0;
   const assistantSections = useMemo(() => assistantMessages.flatMap((message, messageIndex) => (
     splitAssistantSections(message.content).map((section, sectionIndex) => ({
       ...section,
@@ -433,34 +508,8 @@ export default function ZiweiAiPage() {
     }
   }
 
-  async function handleSendMessage() {
-    if (!consultation || busy || chatInput.trim().length < 2) return;
-    const message = chatInput.trim();
-    setChatInput("");
-    setError("");
-    setNotice("당신의 질문과 별의 흐름을 연결하는 중...");
-    setPhase("chat");
-    try {
-      const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/message", {
-        sessionId: consultation.id,
-        message,
-      });
-      if (data.ok && data.consultation) {
-        setConsultation(data.consultation);
-        setPhase("ready");
-        setNotice("");
-        return;
-      }
-      throw new Error(mapError(data, status));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
-      setPhase("ready");
-      setNotice("");
-    }
-  }
-
   return (
-    <main className="ziweiAiShell">
+    <main className="ziweiAiShell" data-follow-up-endpoint={ZIWEI_AI_MESSAGE_ENDPOINT}>
       <section className="ziweiHero">
         <div className="heroMedia" aria-hidden="true">
           <img src="/fuctionassets/jamipremiun.webp" alt="" />
@@ -563,8 +612,13 @@ export default function ZiweiAiPage() {
               <div className="palaceSigil isSpinning" aria-hidden="true">
                 {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
               </div>
-              <strong>{phase === "payment" ? "이용권을 확인하는 중..." : "명궁과 신궁의 흐름을 맞춰보는 중..."}</strong>
-              <span>{phase === "reading" ? "당신의 질문과 별의 흐름을 연결하는 중..." : "12궁의 별자리를 펼치는 중..."}</span>
+              <strong>{LOADING_STAGES[currentLoadingStage].label}</strong>
+              <span>{LOADING_STAGES[currentLoadingStage].sub}</span>
+              <div className="loadingSteps" aria-hidden="true">
+                {LOADING_STAGES.map((item, index) => (
+                  <i key={item.glyph} className={index <= currentLoadingStage ? "isActive" : ""}>{item.glyph}</i>
+                ))}
+              </div>
             </div>
           ) : !consultation ? (
             <div className="emptyState">
@@ -583,6 +637,33 @@ export default function ZiweiAiPage() {
                 <div><span>상담 키워드</span><strong>{(summary.keywords || []).slice(0, 3).join(" · ") || consultation.topic}</strong></div>
               </div>
 
+              {Object.keys(structuredScores).length > 0 && (
+                <div className="scoreGrid">
+                  {Object.entries(SCORE_LABELS).map(([key, label]) => {
+                    const value = Math.max(0, Math.min(20, toNumber(structuredScores[key], 0)));
+                    return (
+                      <div key={key} className="scoreItem">
+                        <span>{label}</span>
+                        <strong>{value}/20</strong>
+                        <em style={{ width: `${(value / 20) * 100}%` }} />
+                      </div>
+                    );
+                  })}
+                  <div className="overallScore">
+                    <span>종합</span>
+                    <strong>{Math.max(0, Math.min(100, toNumber(structuredScores.overall, 0)))}/100</strong>
+                  </div>
+                </div>
+              )}
+
+              {structuredResult?.meta?.dayun && (
+                <section className="dayunBanner">
+                  <span>현재 대운</span>
+                  <strong>{structuredResult.meta.dayun.current_palace || "-"} · {structuredResult.meta.dayun.age_range || "-"}</strong>
+                  <p>{structuredResult.meta.dayun.theme || "지금의 흐름을 명반 기준으로 살핍니다."}</p>
+                </section>
+              )}
+
               <div className="palaceGrid">
                 {palaces.slice(0, 12).map((palace) => (
                   <article key={`${palace.name}-${palace.earthlyBranch}`} className="palaceCard">
@@ -600,21 +681,12 @@ export default function ZiweiAiPage() {
                 {assistantSections.map((section) => (
                   <article className="chatCard" key={section.key}>
                     <div className="chatCardTitle">
-                      <MessageCircle size={18} />
+                      <b>{section.glyph || "星"}</b>
                       <h3>{section.title}</h3>
                     </div>
                     <p>{section.body}</p>
                   </article>
                 ))}
-              </div>
-
-              <div className="chatInput">
-                <input value={chatInput} onChange={(event) => setChatInput(event.target.value)} onKeyDown={(event) => {
-                  if (event.key === "Enter") handleSendMessage();
-                }} placeholder="더 묻고 싶은 흐름을 적어 주세요" disabled={busy} />
-                <button type="button" onClick={handleSendMessage} disabled={busy || chatInput.trim().length < 2} aria-label="추가 질문 보내기">
-                  {phase === "chat" ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
-                </button>
               </div>
             </>
           )}
@@ -641,11 +713,11 @@ export default function ZiweiAiPage() {
         .consultForm{display:grid;gap:14px;align-self:start;padding:20px;position:sticky;top:16px}
         .formHeader{display:flex;align-items:center;gap:9px;color:#fff0b8;font-family:var(--font-display);font-size:18px}
         .consultForm label{display:grid;gap:7px;color:#ded8ff;font-size:13px;font-weight:820}
-        .consultForm input,.consultForm select,.consultForm textarea,.chatInput input{width:100%;min-height:46px;border:1px solid rgba(224,210,255,.26);border-radius:8px;background:rgba(5,8,24,.70);color:#fffaf0;padding:11px 12px;font:inherit;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+        .consultForm input,.consultForm select,.consultForm textarea{width:100%;min-height:46px;border:1px solid rgba(224,210,255,.26);border-radius:8px;background:rgba(5,8,24,.70);color:#fffaf0;padding:11px 12px;font:inherit;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
         .consultForm textarea{resize:vertical;min-height:132px;line-height:1.62}
-        .consultForm input:hover,.consultForm select:hover,.consultForm textarea:hover,.chatInput input:hover{border-color:rgba(244,214,148,.42);background:rgba(9,12,32,.82)}
-        .consultForm input:focus,.consultForm select:focus,.consultForm textarea:focus,.chatInput input:focus{border-color:#f5d991;box-shadow:0 0 0 3px rgba(245,217,145,.16),0 0 24px rgba(181,152,255,.14)}
-        .consultForm textarea::placeholder,.chatInput input::placeholder{color:rgba(226,214,255,.54)}
+        .consultForm input:hover,.consultForm select:hover,.consultForm textarea:hover{border-color:rgba(244,214,148,.42);background:rgba(9,12,32,.82)}
+        .consultForm input:focus,.consultForm select:focus,.consultForm textarea:focus{border-color:#f5d991;box-shadow:0 0 0 3px rgba(245,217,145,.16),0 0 24px rgba(181,152,255,.14)}
+        .consultForm textarea::placeholder{color:rgba(226,214,255,.54)}
         .fieldRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .toggles{display:flex;gap:10px;flex-wrap:wrap}
         .check{display:inline-flex;grid-template-columns:auto 1fr;align-items:center;gap:9px;border:1px solid rgba(224,210,255,.20);border-radius:8px;background:rgba(255,255,255,.055);padding:10px 11px}
@@ -660,6 +732,9 @@ export default function ZiweiAiPage() {
         .emptyState,.loadingState{min-height:584px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;color:#d7ceff}
         .emptyState strong,.loadingState strong{color:#fffaf0;font-family:var(--font-display);font-size:21px}
         .emptyState span,.loadingState span{max-width:360px;color:#beb8df;line-height:1.65}
+        .loadingSteps{display:flex;gap:10px;margin-top:8px}
+        .loadingSteps i{display:grid;place-items:center;width:28px;aspect-ratio:1;border:1px solid rgba(224,210,255,.16);border-radius:999px;color:rgba(224,210,255,.38);font-style:normal;font-family:var(--font-premium);font-size:13px;transition:all .24s ease}
+        .loadingSteps i.isActive{border-color:rgba(245,217,145,.46);background:rgba(245,217,145,.12);color:#fff0b8;box-shadow:0 0 18px rgba(245,217,145,.18)}
         .palaceSigil{position:relative;width:168px;aspect-ratio:1;border:1px solid rgba(245,217,145,.30);border-radius:999px;background:radial-gradient(circle,rgba(245,217,145,.18),transparent 27%),radial-gradient(circle,rgba(143,167,255,.16),transparent 56%);box-shadow:0 0 42px rgba(168,147,255,.18),inset 0 0 28px rgba(245,217,145,.08)}
         .palaceSigil::before,.palaceSigil::after{content:"";position:absolute;inset:22px;border:1px solid rgba(224,210,255,.18);border-radius:999px}
         .palaceSigil::after{inset:52px;background:rgba(245,217,145,.18);box-shadow:0 0 18px rgba(245,217,145,.30)}
@@ -670,6 +745,16 @@ export default function ZiweiAiPage() {
         .summaryGrid div{min-height:94px;border:1px solid rgba(245,217,145,.22);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.12),rgba(125,103,209,.12));padding:13px}
         .summaryGrid span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
         .summaryGrid strong{display:block;margin-top:9px;color:#fffaf0;font-size:16px;line-height:1.45;word-break:keep-all}
+        .scoreGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:15px}
+        .scoreItem,.overallScore{position:relative;overflow:hidden;min-height:78px;border:1px solid rgba(245,217,145,.22);border-radius:8px;background:rgba(255,255,255,.055);padding:11px}
+        .scoreItem span,.overallScore span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
+        .scoreItem strong,.overallScore strong{position:relative;z-index:1;display:block;margin-top:9px;color:#fff0b8;font-size:17px}
+        .scoreItem em{position:absolute;left:0;bottom:0;height:3px;background:linear-gradient(90deg,#8fa7ff,#fff0b8);box-shadow:0 0 14px rgba(245,217,145,.25)}
+        .overallScore{background:linear-gradient(145deg,rgba(245,217,145,.15),rgba(125,103,209,.16))}
+        .dayunBanner{display:grid;gap:5px;margin-bottom:15px;border:1px solid rgba(143,167,255,.24);border-radius:8px;background:linear-gradient(145deg,rgba(72,84,168,.22),rgba(245,217,145,.08));padding:14px}
+        .dayunBanner span{color:#cfc7f8;font-size:12px;font-weight:820}
+        .dayunBanner strong{color:#fffaf0;font-size:16px}
+        .dayunBanner p{margin:0;color:#d9c7ff;line-height:1.58}
         .palaceGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:15px}
         .palaceCard{min-height:116px;border:1px solid rgba(224,210,255,.18);border-radius:8px;background:rgba(255,255,255,.055);padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
         .palaceCard div{display:flex;justify-content:space-between;gap:8px;color:#fff0b8}
@@ -679,15 +764,13 @@ export default function ZiweiAiPage() {
         .chatList{display:grid;gap:12px}
         .chatCard{display:grid;gap:10px;border:1px solid rgba(224,210,255,.22);border-radius:8px;background:linear-gradient(145deg,rgba(8,11,30,.92),rgba(28,26,64,.78));padding:16px;color:#f8fafc}
         .chatCardTitle{display:flex;align-items:center;gap:8px;color:#fff0b8}
+        .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
         .chatCardTitle h3{margin:0;font-family:var(--font-display);font-size:16px;line-height:1.35;color:#fff0b8}
         .chatCardTitle svg{color:#f5d991}
         .chatCard p{margin:0;white-space:pre-wrap;line-height:1.84;font-size:15px;color:#f3efff}
-        .chatInput{display:grid;grid-template-columns:1fr 48px;gap:8px;margin-top:14px}
-        .chatInput button{border:0;border-radius:8px;background:#fff0b8;color:#10142a;cursor:pointer}
-        .chatInput button:disabled{opacity:.55;cursor:not-allowed}
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
-        @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
+        @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
         @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.palaceGrid{grid-template-columns:1fr}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
       `}</style>
     </main>

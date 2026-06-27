@@ -675,6 +675,7 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   keywords: { type: [String], default: [] },
   strategy: { type: String, default: "", trim: true, maxlength: 400 },
   messages: { type: [loveSecretAiMessageSchema], default: [] },
+  attemptId: { type: String, default: "", trim: true, maxlength: 180, index: true },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
@@ -684,6 +685,7 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
 }, { timestamps: true, collection: "loveSecretAiConsultations" });
 
 loveSecretAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+loveSecretAiConsultationSchema.index({ userId: 1, attemptId: 1 });
 loveSecretAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
 const lifeBookAiMessageSchema = new mongoose.Schema({

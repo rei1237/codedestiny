@@ -29,6 +29,34 @@ const TOPICS = new Set([
   "관계 유지 전략",
 ]);
 const FORBIDDEN_RESULT_PATTERNS = [/PDF/gi, /챕터/g, /chapter/gi, /progress/gi, /job/gi, /프롬프트/g, /시스템/g];
+const SUKUYO_STABLE_GROUP_HANJA = new Set(["角", "亢", "氐", "房", "心", "尾", "箕"]);
+const SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜", "參"]);
+const SUKUYO_FIVE_ELEMENTS = new Set(["목", "화", "토", "금", "수"]);
+const SUKUYO_ELEMENT_CREATE = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
+const SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
+const SUKUYO_RELATION_12 = [
+  { name: "안", han: "安", meaning: "동숙·완벽한 공명" },
+  { name: "위", han: "危", meaning: "근접·날카로운 긴장" },
+  { name: "괴", han: "壞", meaning: "파괴적 변화 유발" },
+  { name: "복", han: "福", meaning: "복과 이익의 관계" },
+  { name: "명", han: "命", meaning: "운명적 연결" },
+  { name: "이", han: "利", meaning: "실익과 협력" },
+  { name: "쇠", han: "衰", meaning: "에너지 소진 위험" },
+  { name: "우", han: "友", meaning: "우정·동반의 결속" },
+  { name: "아", han: "我", meaning: "자기 투영·미러링" },
+  { name: "원", han: "怨", meaning: "원한·업보의 얽힘" },
+  { name: "친", han: "親", meaning: "깊은 친밀감" },
+  { name: "비", han: "非", meaning: "이질적 공존" },
+];
+const SUKUYO_SECTION_SPECS = [
+  ["essence", "兩星 — 두 별의 본질"],
+  ["chemistry", "引力 — 끌림의 구조"],
+  ["conflict", "波紋 — 갈등의 파문"],
+  ["timing", "時節 — 관계의 계절"],
+  ["caution", "禁忌 — 조심해야 할 관계 습관"],
+  ["strength", "金脈 — 이 관계만의 보물"],
+  ["prescription", "月箋 — 오늘의 달빛 처방"],
+];
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -57,7 +85,21 @@ const SYSTEM_PROMPT = [
   "8. 같은 문장을 반복하지 않습니다.",
   "9. AI, 프롬프트, 시스템, PDF, 챕터 같은 표현을 결과에 노출하지 않습니다.",
   "10. 사용자의 현재 질문을 가장 깊게 다룹니다.",
-  "11. 마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+  "11. 마지막 질문 유도 문구 없이, 지금 필요한 관계 처방으로 마무리합니다.",
+].join("\n");
+
+const COMPATIBILITY_JSON_SYSTEM_PROMPT = [
+  "당신은 숙요점(宿曜點) 전문 궁합 리더입니다.",
+  "인도에서 기원하여 당나라를 거쳐 한국에 전해진 27숙 체계로 두 사람의 궁합을 정밀하게 독해합니다.",
+  "서버가 제공한 본명숙, 숙 그룹, 음양, 오행, 수호신, 관계 거리, 양방향 관계 유형, 점수는 확정값입니다.",
+  "확정값을 바꾸거나 새로 계산하지 말고, 주어진 JSON 뼈대의 meta 값은 그대로 유지합니다.",
+  "결과는 한국어 JSON 객체 하나만 반환합니다.",
+  "마크다운 코드블록, 설명 문구, 표, 번호 나열, 불릿, 후속 질문 유도 문구를 절대 넣지 않습니다.",
+  "각 body는 전문 숙요점 상담가가 직접 말하듯 신비롭고 자연스러운 400~600자 산문으로 작성합니다.",
+  "숙 이름은 첫 언급 시 한글과 한자를 병기합니다.",
+  "같은 비유와 같은 첫 문장 구조를 반복하지 않습니다.",
+  "상대방의 마음, 재회, 이별, 결혼을 확정하지 않고 건강한 선택과 경계를 존중합니다.",
+  "AI, 프롬프트, 시스템, PDF, 챕터, 리포트 렌더링 같은 표현은 결과에 노출하지 않습니다.",
 ].join("\n");
 
 function clean(value, max = 0) {
@@ -260,6 +302,256 @@ function normalizeDistance(compatibility = {}) {
 function shukuName(sukuyo = {}) {
   const name = clean(sukuyo.nameKo || sukuyo.name || "");
   return name ? `${name}숙` : "";
+}
+
+function sukuyoHanjaName(sukuyo = {}) {
+  const han = clean(sukuyo.nameHan || sukuyo.hanja || "");
+  return han ? `${han}宿` : "";
+}
+
+function normalizeSukuyoFiveElement(value) {
+  const element = clean(value);
+  if (SUKUYO_FIVE_ELEMENTS.has(element)) return element;
+  if (element === "일") return "화";
+  if (element === "월") return "수";
+  return "토";
+}
+
+function sukuyoGroup(sukuyo = {}) {
+  const han = clean(sukuyo.nameHan || sukuyo.hanja || "");
+  if (SUKUYO_STABLE_GROUP_HANJA.has(han)) return "안숙";
+  if (SUKUYO_RISK_GROUP_HANJA.has(han)) return "위험숙";
+  return "성숙";
+}
+
+function sukuyoGuardian(sukuyo = {}) {
+  const direction = clean(sukuyo.direction);
+  if (direction.includes("동")) return "청룡";
+  if (direction.includes("남")) return "주작";
+  if (direction.includes("서")) return "백호";
+  if (direction.includes("북")) return "현무";
+  const index = Number(sukuyo.index);
+  if (Number.isFinite(index)) {
+    if (index <= 6) return "청룡";
+    if (index <= 13) return "현무";
+    if (index <= 20) return "백호";
+    return "주작";
+  }
+  return "청룡";
+}
+
+function sukuyoYinYang(sukuyo = {}) {
+  const index = Number(sukuyo.index);
+  return Number.isFinite(index) && index % 2 === 0 ? "양" : "음";
+}
+
+function sukuyoKeyword(sukuyo = {}) {
+  const words = []
+    .concat(Array.isArray(sukuyo.keywords) ? sukuyo.keywords : [])
+    .concat(Array.isArray(sukuyo.strengths) ? sukuyo.strengths : [])
+    .map((item) => clean(item, 20))
+    .filter(Boolean);
+  return words.slice(0, 3).join("·") || "직관·조율·성장";
+}
+
+function sukuyoDegreeStrength(sukuyo = {}) {
+  const index = Number(sukuyo.index);
+  if (!Number.isFinite(index)) return 12;
+  return 8 + ((Math.abs(index) * 7 + 3) % 12);
+}
+
+function currentKstSeason(date = new Date()) {
+  const month = Number(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", month: "numeric" }).format(date));
+  if ([3, 4, 5].includes(month)) return "봄";
+  if ([6, 7, 8].includes(month)) return "여름";
+  if ([9, 10, 11].includes(month)) return "가을";
+  return "겨울";
+}
+
+function seasonElement(season) {
+  if (season === "봄") return "목";
+  if (season === "여름") return "화";
+  if (season === "가을") return "금";
+  if (season === "겨울") return "수";
+  return "토";
+}
+
+function seasonalStrength(element, season) {
+  const ruling = seasonElement(season);
+  if (element === ruling) return "왕";
+  if (SUKUYO_ELEMENT_CREATE[element] === ruling || SUKUYO_ELEMENT_CREATE[ruling] === element) return "상";
+  return "평";
+}
+
+function relationByDirectionalDistance(distance) {
+  const normalized = ((Math.floor(Number(distance) || 0) % 27) + 27) % 27;
+  const item = SUKUYO_RELATION_12[Math.min(normalized, 11)] || SUKUYO_RELATION_12[11];
+  return {
+    ...item,
+    rawDistance: normalized,
+    label: `${item.name}(${item.han})`,
+  };
+}
+
+function buildCompatibilityRelationMeta(compatibility = {}) {
+  const forwardDistance = Number(compatibility.forwardDistance);
+  const reverseDistance = Number(compatibility.reverseDistance);
+  const shortestDistance = Number(compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance);
+  const forward = relationByDirectionalDistance(Number.isFinite(forwardDistance) ? forwardDistance : 0);
+  const reverse = relationByDirectionalDistance(Number.isFinite(reverseDistance) ? reverseDistance : 0);
+  const distance = Number.isFinite(shortestDistance)
+    ? Math.min(Math.max(0, Math.floor(shortestDistance)), 13)
+    : Math.min(forward.rawDistance, reverse.rawDistance);
+  const traditional = clean(compatibility.relationType || "");
+  const intensity = distance <= 3 || ["안괴", "업태"].includes(traditional)
+    ? "강렬"
+    : distance >= 9
+      ? "잔잔"
+      : "보통";
+  return {
+    type_a_to_b: forward.label,
+    type_b_to_a: reverse.label,
+    distance,
+    intensity,
+    directional_meaning: {
+      a_to_b: forward.meaning,
+      b_to_a: reverse.meaning,
+    },
+    traditional_relation: traditional,
+    traditional_relation_hanja: clean(compatibility.relationTypeHan || ""),
+  };
+}
+
+function elementRelation(aElement, bElement) {
+  if (aElement === bElement) return "동류";
+  if (SUKUYO_ELEMENT_CREATE[aElement] === bElement || SUKUYO_ELEMENT_CREATE[bElement] === aElement) return "상생";
+  if (SUKUYO_ELEMENT_CONTROL[aElement] === bElement || SUKUYO_ELEMENT_CONTROL[bElement] === aElement) return "상극";
+  return "보완";
+}
+
+function clampSukuyoAreaScore(value) {
+  return Math.max(12, Math.min(18, Math.round(Number(value) || 15)));
+}
+
+function normalizeSukuyoScoreTotal(scores) {
+  const keys = ["destiny", "harmony", "emotion", "growth", "stability"];
+  const normalized = {};
+  keys.forEach((key) => {
+    normalized[key] = clampSukuyoAreaScore(scores[key]);
+  });
+  let total = keys.reduce((sum, key) => sum + normalized[key], 0);
+  while (total > 80) {
+    const key = keys.find((name) => normalized[name] > 14);
+    if (!key) break;
+    normalized[key] -= 1;
+    total -= 1;
+  }
+  while (total < 70) {
+    const key = keys.find((name) => normalized[name] < 16);
+    if (!key) break;
+    normalized[key] += 1;
+    total += 1;
+  }
+  normalized.total = total;
+  return normalized;
+}
+
+function buildSukuyoScoreMeta(personA, personB, relation, compatibility = {}) {
+  const harmonyType = elementRelation(personA.element, personB.element);
+  const distance = Number(relation.distance) || 0;
+  const chemistryScore = Number(compatibility.chemistryScore || 75);
+  const stabilityScore = Number(compatibility.stabilityScore || 74);
+  const relationBoost = relation.intensity === "강렬" ? 1 : relation.intensity === "잔잔" ? -1 : 0;
+  return normalizeSukuyoScoreTotal({
+    destiny: 15 + relationBoost + (distance === 0 ? 2 : distance <= 4 ? 1 : 0),
+    harmony: 15 + (harmonyType === "상생" ? 2 : harmonyType === "동류" ? 1 : harmonyType === "상극" ? -2 : 0),
+    emotion: 15 + (personA.yin_yang !== personB.yin_yang ? 1 : 0) + (personA.guardian === personB.guardian ? 1 : 0) - (distance >= 9 ? 1 : 0),
+    growth: 15 + (["괴(壞)", "위(危)", "원(怨)"].includes(relation.type_a_to_b) ? 2 : 0) + (chemistryScore >= 82 ? 1 : 0),
+    stability: 15 + (stabilityScore >= 82 ? 2 : stabilityScore <= 66 ? -2 : 0) - (relation.intensity === "강렬" ? 1 : 0),
+  });
+}
+
+function buildSukuyoPromptPersonMeta(person = {}, sukuyo = {}) {
+  const element = normalizeSukuyoFiveElement(sukuyo.element);
+  return {
+    name: clean(person.name || "나", 80),
+    sukuyo: shukuName(sukuyo),
+    sukuyo_hanja: sukuyoHanjaName(sukuyo),
+    group: sukuyoGroup(sukuyo),
+    element,
+    yin_yang: sukuyoYinYang(sukuyo),
+    guardian: sukuyoGuardian(sukuyo),
+    keyword: sukuyoKeyword(sukuyo),
+  };
+}
+
+function buildSukuyoCompatibilityJsonSchema(input, calculation) {
+  const personA = buildSukuyoPromptPersonMeta(input.personA, calculation.personASukuyo);
+  const personB = buildSukuyoPromptPersonMeta(input.personB, calculation.personBSukuyo);
+  const relation = buildCompatibilityRelationMeta(calculation.compatibility);
+  const scores = buildSukuyoScoreMeta(personA, personB, relation, calculation.compatibility);
+  return {
+    meta: {
+      person_a: personA,
+      person_b: personB,
+      relation: {
+        type_a_to_b: relation.type_a_to_b,
+        type_b_to_a: relation.type_b_to_a,
+        distance: relation.distance,
+        intensity: relation.intensity,
+      },
+      scores,
+    },
+    sections: Object.fromEntries(SUKUYO_SECTION_SPECS.map(([key, title]) => [key, { title, body: "400~600자 산문" }])),
+  };
+}
+
+function buildSukuyoCompatibilityPromptContext(input, calculation) {
+  const season = currentKstSeason();
+  const personAElement = normalizeSukuyoFiveElement(calculation.personASukuyo?.element);
+  const personBElement = normalizeSukuyoFiveElement(calculation.personBSukuyo?.element);
+  return {
+    user_input: {
+      relationshipType: input.relationshipType,
+      topic: input.topic,
+      question: input.question,
+    },
+    calculation: {
+      personA: {
+        ...buildSukuyoPromptPersonMeta(input.personA, calculation.personASukuyo),
+        index: calculation.personASukuyo?.index,
+        lunarMonth: calculation.personASukuyo?.lunarMonth,
+        lunarDay: calculation.personASukuyo?.lunarDay,
+        degree_strength: sukuyoDegreeStrength(calculation.personASukuyo),
+        seasonal_strength: seasonalStrength(personAElement, season),
+        keywords: calculation.personASukuyo?.keywords,
+        strengths: calculation.personASukuyo?.strengths,
+        shadows: calculation.personASukuyo?.shadows,
+      },
+      personB: {
+        ...buildSukuyoPromptPersonMeta(input.personB, calculation.personBSukuyo),
+        index: calculation.personBSukuyo?.index,
+        lunarMonth: calculation.personBSukuyo?.lunarMonth,
+        lunarDay: calculation.personBSukuyo?.lunarDay,
+        degree_strength: sukuyoDegreeStrength(calculation.personBSukuyo),
+        seasonal_strength: seasonalStrength(personBElement, season),
+        keywords: calculation.personBSukuyo?.keywords,
+        strengths: calculation.personBSukuyo?.strengths,
+        shadows: calculation.personBSukuyo?.shadows,
+      },
+      relation: buildCompatibilityRelationMeta(calculation.compatibility),
+      traditionalCompatibility: calculation.compatibility,
+      elementHarmony: {
+        personAElement,
+        personBElement,
+        relation: elementRelation(personAElement, personBElement),
+      },
+      timing: {
+        currentSeason: season,
+        nextThreeToSixMonths: "현재 계절을 기준으로 앞으로 3~6개월의 주의 시기와 좋은 시기를 서술",
+      },
+    },
+  };
 }
 
 function calculateSukuyo(input) {
@@ -687,6 +979,26 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
 
 function buildFirstPrompt(input, calculation) {
   const personal = input.consultationType === "personal";
+  if (!personal) {
+    const schema = buildSukuyoCompatibilityJsonSchema(input, calculation);
+    return [
+      "아래 숙요점 계산값만 근거로 숙요점 궁합 상담 JSON을 작성하세요.",
+      "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다.",
+      "반환 JSON의 meta 값은 [반환 JSON 뼈대]와 정확히 같아야 하며, sections.*.body만 상담 산문으로 채웁니다.",
+      "body 내부에는 불릿, 번호, 표, 마크다운, 후속 질문을 넣지 마세요.",
+      "'~할 수 있습니다'는 한 body 안에서 2회 이상 쓰지 마세요.",
+      "같은 비유를 두 섹션에서 반복하지 마세요.",
+      "각 section body는 400~600자, 전체 body 합계는 3000~4200자로 작성하세요.",
+      "마지막 prescription.body의 마지막 문장은 반드시 두 사람의 이름을 모두 불러 따뜻하게 마무리하세요.",
+      "JSON 외 다른 텍스트를 절대 포함하지 마세요.",
+      "",
+      "[숙요점 계산 context]",
+      JSON.stringify(buildSukuyoCompatibilityPromptContext(input, calculation), null, 2),
+      "",
+      "[반환 JSON 뼈대]",
+      JSON.stringify(schema, null, 2),
+    ].join("\n");
+  }
   return [
     "아래 계산 데이터만 근거로 숙요점 AI 첫 상담 답변을 작성하세요.",
     "없는 사실을 지어내지 말고, 계산된 27숙과 관계 유형을 중심으로 말하세요.",
@@ -731,6 +1043,40 @@ function sanitizeConsultationText(text) {
   return result.replace(/\n{3,}/g, "\n\n").trim();
 }
 
+function parseJsonObjectFromText(text) {
+  const normalized = String(text || "").replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const start = normalized.indexOf("{");
+  const end = normalized.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(normalized.slice(start, end + 1));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function normalizeStructuredSukuyoCompatibilityText(text, input, calculation) {
+  const parsed = parseJsonObjectFromText(text);
+  if (!parsed) {
+    throw Object.assign(new Error("숙요점 궁합 상담 JSON을 읽지 못했습니다."), { code: "LLM_FAILED", status: 503 });
+  }
+  const expected = buildSukuyoCompatibilityJsonSchema(input, calculation);
+  const sourceSections = parsed.sections && typeof parsed.sections === "object" ? parsed.sections : {};
+  const sections = {};
+  for (const [key, title] of SUKUYO_SECTION_SPECS) {
+    const body = clean(sourceSections[key]?.body, 1200);
+    if (body.length < 220) {
+      throw Object.assign(new Error(`숙요점 궁합 상담 ${key} 본문이 부족합니다.`), { code: "LLM_FAILED", status: 503 });
+    }
+    sections[key] = { title, body };
+  }
+  return JSON.stringify({
+    meta: expected.meta,
+    sections,
+  }, null, 2);
+}
+
 async function createFirstAnswer(env, input, calculation) {
   logSukyoAi("[Sukyo AI LLM Generate Start]", {
     route: "/api/sukuyo-compatibility-ai/generate",
@@ -738,10 +1084,10 @@ async function createFirstAnswer(env, input, calculation) {
     consultationType: input.consultationType,
   });
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: input.consultationType === "compatibility" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
     taskType: "fortune",
-    temperature: 0.74,
-    maxOutputTokens: 4096,
+    temperature: input.consultationType === "compatibility" ? 0.62 : 0.74,
+    maxOutputTokens: input.consultationType === "compatibility" ? 8192 : 4096,
     timeoutMs: Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
   });
   const provider = clean(ai?.provider || "");
@@ -753,7 +1099,10 @@ async function createFirstAnswer(env, input, calculation) {
     consultationType: input.consultationType,
     providerReason: isMock ? "mock_provider_blocked" : provider || model || "gemini",
   });
-  const content = sanitizeConsultationText(ai?.text || "");
+  let content = sanitizeConsultationText(ai?.text || "");
+  if (ai?.ok && !isMock && input.consultationType === "compatibility") {
+    content = normalizeStructuredSukuyoCompatibilityText(content, input, calculation);
+  }
   if (!ai?.ok || isMock || content.length < 240) {
     const llmError = Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
     logSukyoAi("[Sukyo AI LLM Error]", {

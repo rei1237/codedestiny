@@ -4783,6 +4783,84 @@ function invokeOptionalGlobalRenderer(fnName, args) {
   return true;
 }
 
+function hasOptionalRendererTargetContent(targetId) {
+  var id = String(targetId || '').trim();
+  if (!id) return false;
+
+  var targetEl = document.getElementById(id);
+  if (!targetEl) return false;
+
+  var innerSection = targetEl.querySelector ? targetEl.querySelector('div[id]') : null;
+  if (!innerSection) return true;
+
+  var html = String(innerSection.innerHTML || '').trim();
+  if (html.length >= 40) return true;
+
+  var text = String(innerSection.textContent || '').replace(/\s+/g, ' ').trim();
+  if (text.length >= 20) return true;
+
+  return !!(innerSection.children && innerSection.children.length > 0);
+}
+
+var __optionalRendererRetryTimers = Object.create(null);
+
+function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
+  var name = String(fnName || '').trim();
+  if (!name) return false;
+
+  var opts = options && typeof options === 'object' ? options : {};
+  var targetId = String(opts.targetId || '').trim();
+  var delayMs = Number(opts.delayMs);
+  var maxAttempts = Number(opts.maxAttempts);
+  var retryDelay = Number.isFinite(delayMs) && delayMs > 0 ? delayMs : 180;
+  var retryLimit = Number.isFinite(maxAttempts) && maxAttempts > 0 ? maxAttempts : 24;
+  var timerKey = name + '::' + targetId;
+
+  if (invokeOptionalGlobalRenderer(name, args) && (!targetId || hasOptionalRendererTargetContent(targetId))) {
+    if (__optionalRendererRetryTimers[timerKey]) {
+      clearTimeout(__optionalRendererRetryTimers[timerKey]);
+      delete __optionalRendererRetryTimers[timerKey];
+    }
+    return true;
+  }
+
+  if (__optionalRendererRetryTimers[timerKey]) return false;
+
+  var attempts = 0;
+  var retry = function() {
+    attempts += 1;
+
+    if (targetId && hasOptionalRendererTargetContent(targetId)) {
+      clearTimeout(__optionalRendererRetryTimers[timerKey]);
+      delete __optionalRendererRetryTimers[timerKey];
+      return;
+    }
+
+    var rendered = false;
+    try {
+      rendered = invokeOptionalGlobalRenderer(name, args);
+    } catch (_) {
+      rendered = false;
+    }
+
+    if (rendered && (!targetId || hasOptionalRendererTargetContent(targetId))) {
+      clearTimeout(__optionalRendererRetryTimers[timerKey]);
+      delete __optionalRendererRetryTimers[timerKey];
+      return;
+    }
+
+    if (attempts >= retryLimit) {
+      delete __optionalRendererRetryTimers[timerKey];
+      return;
+    }
+
+    __optionalRendererRetryTimers[timerKey] = setTimeout(retry, retryDelay);
+  };
+
+  __optionalRendererRetryTimers[timerKey] = setTimeout(retry, retryDelay);
+  return false;
+}
+
 /* ═══════════════════════════════════════
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
@@ -5224,9 +5302,11 @@ async function calculate(){
       }
     } catch(e) { console.error('EnergyCoord 에러:', e); }
     try {
-      if (!invokeOptionalGlobalRenderer('renderHealthReport', [p, natal, johu, G_POWER, G_JONG])) {
-        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderHealthReport', [p, natal, johu, G_POWER, G_JONG]); } catch(_){ } }]);
-      }
+      invokeOptionalGlobalRendererWithRetry('renderHealthReport', [p, natal, johu, G_POWER, G_JONG], {
+        targetId: 'healthReportCard',
+        delayMs: 180,
+        maxAttempts: 24
+      });
     } catch(e) { console.error('HealthReport 에러:', e); }
     try {
       if (!invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER])) {
@@ -8106,6 +8186,115 @@ let html = ``;
   if(tsModal) tsModal.classList.add('show');
 }
 
+function escapeManseAttr(value){
+  return String(value == null ? '' : value)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function openManseCharDetail(node){
+  if(!node || !node.getAttribute) return false;
+  var clickedChar=node.getAttribute('data-char')||'';
+  var charType=node.getAttribute('data-char-type')||'';
+  var gan=node.getAttribute('data-gan')||'';
+  var zhi=node.getAttribute('data-zhi')||'';
+  var posLabel=node.getAttribute('data-pos-label')||'';
+  var isDayStem=node.getAttribute('data-is-day-stem')==='1';
+  if(!clickedChar||!charType||!gan||!zhi||!posLabel) return false;
+  showCharDetail(clickedChar,charType,gan,zhi,posLabel,isDayStem);
+  return true;
+}
+
+function bindManseCharTap(container){
+  if(!container||container.__cdManseCharTapBound) return;
+  container.__cdManseCharTapBound=true;
+  var touchState={active:false,moved:false,startX:0,startY:0,startAt:0};
+
+  function findCharNode(target){
+    return target&&target.closest?target.closest('[data-manse-char="1"]'):null;
+  }
+
+  function resetTouchState(){
+    touchState.active=false;
+    touchState.moved=false;
+    touchState.startX=0;
+    touchState.startY=0;
+    touchState.startAt=0;
+  }
+
+  container.addEventListener('touchstart',function(event){
+    var node=findCharNode(event.target);
+    if(!node||!event.touches||!event.touches.length) return;
+    var touch=event.touches[0];
+    touchState.active=true;
+    touchState.moved=false;
+    touchState.startX=touch.clientX;
+    touchState.startY=touch.clientY;
+    touchState.startAt=Date.now();
+  },{passive:true});
+
+  container.addEventListener('touchmove',function(event){
+    if(!touchState.active||!event.touches||!event.touches.length) return;
+    var touch=event.touches[0];
+    if(
+      Math.abs(touch.clientX-touchState.startX)>12 ||
+      Math.abs(touch.clientY-touchState.startY)>12
+    ){
+      touchState.moved=true;
+    }
+  },{passive:true});
+
+  container.addEventListener('touchend',function(event){
+    var node=findCharNode(event.target);
+    if(!node||!touchState.active){
+      resetTouchState();
+      return;
+    }
+    var now=Date.now();
+    var duration=touchState.startAt?(now-touchState.startAt):0;
+    var shouldOpen=!touchState.moved&&duration<=650;
+    resetTouchState();
+    if(!shouldOpen){
+      container.__cdManseTouchBlockedUntil=now+260;
+      return;
+    }
+    container.__cdManseTouchHandledAt=now;
+    if(event.cancelable) event.preventDefault();
+    openManseCharDetail(node);
+  },{passive:false});
+
+  container.addEventListener('touchcancel',function(){
+    container.__cdManseTouchBlockedUntil=Date.now()+260;
+    resetTouchState();
+  },{passive:true});
+
+  container.addEventListener('click',function(event){
+    var node=findCharNode(event.target);
+    if(!node) return;
+    var now=Date.now();
+    if(now<(container.__cdManseTouchBlockedUntil||0)){
+      event.preventDefault();
+      return;
+    }
+    if((now-(container.__cdManseTouchHandledAt||0))<500){
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    openManseCharDetail(node);
+  });
+
+  container.addEventListener('keydown',function(event){
+    if(event.key!=='Enter'&&event.key!==' ') return;
+    var node=findCharNode(event.target);
+    if(!node) return;
+    event.preventDefault();
+    openManseCharDetail(node);
+  });
+}
+
 function renderManse(p){
   var cols=[{l:'시주',g:p.h.g,j:p.h.j},{l:'일주',g:p.d.g,j:p.d.j},{l:'월주',g:p.m.g,j:p.m.j},{l:'년주',g:p.y.g,j:p.y.j}];
   var h='';
@@ -8113,19 +8302,25 @@ function renderManse(p){
     var gd=GAN[c.g]||{e:'metal',y:'+',n:'?'},jd=JI[c.j]||{e:'water',y:'+',a:'?'};
     var gGod=c.l==='일주'?'일간':getTenGod(p.d.g,c.g);
     var jGod=getTenGod(p.d.g,c.j);
+    var stemAria=c.l+' 천간 '+c.g+' 상세 보기';
+    var branchAria=c.l+' 지지 '+c.j+' 상세 보기';
 
     var isDayStem = (c.l==='일주');
     h+='<div class="pillar">'+
       '<div class="pillar-head">'+c.l+'</div>'+
       '<div class="ten-god-badge'+(isDayStem?' day':'')+'">'+gGod+'</div>'+
-      '<div class="char-box bg-'+gd.e+'" onclick="showCharDetail(\''+c.g+'\', \'stem\', \''+c.g+'\', \''+c.j+'\', \''+c.l+'\', '+isDayStem+')">'+c.g+'</div>'+
+      '<div class="char-box bg-'+gd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.g)+'" data-char-type="stem" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="'+(isDayStem?'1':'0')+'" aria-label="'+escapeManseAttr(stemAria)+'">'+c.g+'</div>'+
       '<div class="yang-yin">'+(gd.y==='+'?'양':'음')+' '+gd.n+'</div>'+
       '<div class="ten-god-badge">'+jGod+'</div>'+
-      '<div class="char-box bg-'+jd.e+'" onclick="showCharDetail(\''+c.j+'\', \'branch\', \''+c.g+'\', \''+c.j+'\', \''+c.l+'\', false)">'+c.j+'</div>'+
+      '<div class="char-box bg-'+jd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.j)+'" data-char-type="branch" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="0" aria-label="'+escapeManseAttr(branchAria)+'">'+c.j+'</div>'+
       '<div class="yang-yin">'+(jd.y==='+'?'양':'음')+' '+jd.a+'</div>'+
       '</div>';
   });
-  document.getElementById('manseGrid').innerHTML=h;
+  var manseGrid=document.getElementById('manseGrid');
+  if(manseGrid){
+    manseGrid.innerHTML=h;
+    bindManseCharTap(manseGrid);
+  }
   var manseSlot = document.querySelector('#sajuCard .saju-manse-slot');
   var manseSk = document.getElementById('sajuManseSkeleton');
   if (manseSlot) manseSlot.classList.add('saju-manse-slot--ready');
@@ -25962,7 +26157,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
 
     function isSajuInteractiveTarget(target) {
       if (!target || !target.closest || isInputLike(target)) return false;
-      return !!target.closest('.year-row, .dw-item, .zw-cell, .zwp-cell, .zw-pivot-toggle, .zw-report-close-btn, .zw-summary-close-btn, .zw-cosmic-btn, .ts-card, .char-box, .btn-sub, [data-action]');
+      return !!target.closest('.year-row, .dw-item, .zw-cell, .zwp-cell, .zw-pivot-toggle, .zw-report-close-btn, .zw-summary-close-btn, .zw-cosmic-btn, .ts-card, .btn-sub, [data-action]');
     }
 
     function blockEvent(event) {

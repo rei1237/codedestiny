@@ -8,9 +8,11 @@ const { pathToFileURL } = require("url");
 
 function runSukuyoProbe(body) {
   const moduleUrl = pathToFileURL(path.resolve(__dirname, "../../worker/routes/sukuyo.js")).href;
+  const unlockModuleUrl = pathToFileURL(path.resolve(__dirname, "../../worker/lib/content-unlocks.js")).href;
   const script = `
     (async function() {
       const mod = await import(${JSON.stringify(moduleUrl)});
+      const unlockUtils = await import(${JSON.stringify(unlockModuleUrl)});
       const utils = mod.__sukuyoYearlyTestUtils;
       const buildProfile = ${buildProfile.toString()};
       const result = (function() {
@@ -55,6 +57,22 @@ function flattenText(value) {
 }
 
 describe("sukuyo yearly fortune", () => {
+  test("yearly fortune unlock resolves to sukuyo service key by content key", () => {
+    const result = runSukuyoProbe(`
+      return unlockUtils.resolvePaidContentUnlockTarget({
+        userId: "user-yearly-1",
+        profileId: "profile-yearly-1",
+        featureKey: "sukyo_yearly_fortune_unlock",
+        contentKey: "sukyo_yearly_fortune_unlock:2026",
+      });
+    `);
+
+    expect(result.serviceKey).toBe("sukuyo");
+    expect(result.profileId).toBe("profile-yearly-1");
+    expect(result.contentKey).toBe("sukyo_yearly_fortune_unlock:2026");
+    expect(result.scope).toBe("PROFILE");
+  });
+
   test("full result includes detailed local sukuyo calculation fields", () => {
     const result = runSukuyoProbe(`
       return utils.buildSukuyoYearlyFortuneResult({
@@ -144,6 +162,16 @@ describe("sukuyo yearly fortune", () => {
           targetYear: 2026,
         },
       };
+      const contentIdOnly = {
+        status: "paid",
+        paymentAmount: 10000,
+        pricingSnapshot: {
+          featureKey: "sukyo_yearly_fortune_unlock",
+          profileId: "profile-yearly-1",
+          contentId: contentKey,
+          targetYear: 2026,
+        },
+      };
       const underpaid = {
         ...good,
         paymentAmount: 100,
@@ -159,6 +187,7 @@ describe("sukuyo yearly fortune", () => {
       };
       return {
         good: utils.isSukuyoYearlyPaymentEvidence(good, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
+        contentIdOnly: utils.isSukuyoYearlyPaymentEvidence(contentIdOnly, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
         underpaid: utils.isSukuyoYearlyPaymentEvidence(underpaid, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
         wrongProfile: utils.isSukuyoYearlyPaymentEvidence(wrongProfile, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
         wrongYear: utils.isSukuyoYearlyPaymentEvidence(wrongYear, { profileId: "profile-yearly-1", contentKey, targetYear: 2026 }),
@@ -166,6 +195,7 @@ describe("sukuyo yearly fortune", () => {
     `);
 
     expect(result.good).toBe(true);
+    expect(result.contentIdOnly).toBe(true);
     expect(result.underpaid).toBe(false);
     expect(result.wrongProfile).toBe(false);
     expect(result.wrongYear).toBe(false);

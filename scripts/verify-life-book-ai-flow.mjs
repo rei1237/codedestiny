@@ -33,6 +33,7 @@ function assertNotIncludes(file, text, marker) {
 
 const indexHtml = read("index.html");
 const client = read("app/life-book-ai/LifeBookAiClient.tsx");
+const resultPage = read("app/life-book-ai/result/page.tsx");
 const route = read("worker/routes/life-book-ai.js");
 const workerIndex = read("worker/index.js");
 const models = read("worker/lib/models.js");
@@ -47,19 +48,20 @@ assertNotIncludes("index.html", indexHtml, "/js/life-book.js");
 for (const marker of [
   "/api/life-book-ai/prepare",
   "/api/life-book-ai/generate",
-  "/api/life-book-ai/message",
   'serviceType: FEATURE_KEY',
   'consultationType: "lifeBook"',
   "focusArea",
-  "question",
   "runBillingCoinGate",
   "deferUsage: true",
   "usagePolicy: \"apply_after_success\"",
+  "buildResultUrl",
+  "window.open(pendingUrl, \"_blank\")",
+  "인생의 책 생성하기",
+  "완성된 인생의 책 열기",
   "[LifeBook AI Page Enter]",
   "[LifeBook AI Initial Render Success]",
   "[LifeBook AI Submit Start]",
   "[LifeBook AI Payment Success]",
-  "splitLifeBookSections",
 ]) {
   assertIncludes("app/life-book-ai/LifeBookAiClient.tsx", client, marker);
 }
@@ -75,8 +77,31 @@ for (const marker of [
   "portone_redirect",
   "/api/life-book-ai/start\"",
   "/api/life-book-ai/ensure-access\"",
+  "/api/life-book-ai/message",
+  "openPaidFeatureGate",
+  "paymentMode: \"pass\"",
+  "sendFollowUp",
+  "splitLifeBookSections",
+  "question",
+  "상담 주제",
+  "자유 질문",
+  "직접 질문",
 ]) {
   assertNotIncludes("app/life-book-ai/LifeBookAiClient.tsx", client, marker);
+}
+
+for (const marker of [
+  "useSearchParams",
+  "authFetch(`/api/life-book-ai/result?attemptId=",
+  "pending",
+  "html2canvas",
+  "jspdf",
+  "life-book-reading-",
+  "CANONICAL_TEN_GODS",
+  "PDF로 저장하기",
+  "새로운 인생의 책 만들기",
+]) {
+  assertIncludes("app/life-book-ai/result/page.tsx", resultPage, marker);
 }
 
 assertIncludes("worker/index.js", workerIndex, '"/api/life-book-ai"');
@@ -87,17 +112,22 @@ assertNotIncludes("worker/index.js", workerIndex, "routes/saju-lifebook.js");
 for (const marker of [
   "handleEnsureAccess",
   "handleStart",
-  "handleMessage",
+  "handleResult",
   "path === \"/prepare\"",
   "path === \"/generate\"",
   "path === \"/ensure-access\"",
   "path === \"/start\"",
+  "path === \"/result\"",
+  "path.startsWith(\"/result/\")",
   "serviceType",
   "consultationType",
   "focusArea",
-  "question",
   "calculateLifeBookAiSaju",
   "callGeminiText",
+  "extractReportJson",
+  "reportJson",
+  "CANONICAL_TEN_GODS",
+  "리포트 강조 영역",
   "finalizeDeferredBillingUsage",
   "cancelDeferredBillingUsage",
   "restoreBillingGateAccessOnFailure",
@@ -131,6 +161,12 @@ for (const marker of [
   "getPortOnePublicConfig",
   "requestPayment",
   "portone_redirect",
+  "/api/life-book-ai/message",
+  "handleMessage",
+  "buildFollowUpPrompt",
+  "question",
+  "customQuestionRequired",
+  "직접 질문",
 ]) {
   assertNotIncludes("worker/routes/life-book-ai.js", route, marker);
 }
