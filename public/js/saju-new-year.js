@@ -511,6 +511,23 @@
     return '';
   }
 
+  function _isPassAccessPayload(layers, data) {
+    var source = data && typeof data === 'object' ? data : {};
+    if (source.freeBySubscription === true || source.__cdPassGateResolved === true) return true;
+    for (var i = 0; i < layers.length; i += 1) {
+      var item = layers[i] || {};
+      var accessType = _clean(item.accessType || item.transactionType || item.type).toLowerCase();
+      var accessMethod = _clean(item.accessMethod || item.paymentMethod || item.method).toLowerCase();
+      var status = _clean(item.status || item.reason).toLowerCase();
+      var passTier = _clean(item.passTier || item.tier || item.licenseTier).toLowerCase();
+      if (/^(membership_pass|family|family_pass|usage_pass|subscription_pass|pass)$/.test(accessType)) return true;
+      if (/^(pass|family|membership_pass)$/.test(accessMethod)) return true;
+      if (/^(pass_applied|pass_covered|pass_free|family_all_access|license_coin_limit)$/.test(status)) return true;
+      if (passTier === 'family') return true;
+    }
+    return false;
+  }
+
   function _buildPaidEvidence(rawPayload, reportId, fallbackRequestId) {
     var data = _paymentPayloadData(rawPayload);
     var layers = _paymentPayloadLayers(rawPayload);
@@ -523,6 +540,7 @@
     var requestId = _clean(grant && grant.requestId) || _firstPaymentString(layers, ['requestId', 'idempotencyKey']) || fallbackRequestId;
     var sessionId = _clean(grant && grant.sessionId) || _firstPaymentString(layers, ['sessionId', 'reportSessionId']) || ('saju-new-year:' + reportId);
     var purchaseId = _clean(grant && grant.purchaseId) || _firstPaymentString(layers, ['purchaseId', 'transactionId', 'paymentId', 'ledgerId', 'evidenceId']) || requestId;
+    var passAccess = _isPassAccessPayload(layers, data);
     if (grant) {
       grant.requestId = _clean(grant.requestId || requestId);
       grant.sessionId = _clean(grant.sessionId || sessionId);
@@ -540,7 +558,7 @@
       accessDecision: accessDecision,
       consume: consume,
       payment: payment,
-      freeBySubscription: data.freeBySubscription === true || accessDecision.accessGranted === true && /pass|subscription/i.test(_clean(accessDecision.reason || accessDecision.status || accessDecision.accessType)),
+      freeBySubscription: passAccess || data.freeBySubscription === true || accessDecision.accessGranted === true && /pass|subscription|family/i.test(_clean(accessDecision.reason || accessDecision.status || accessDecision.accessType)),
       _paymentContext: Object.assign({}, context, {
         requestId: requestId,
         reportId: _clean(reportId),
@@ -551,6 +569,7 @@
         accessType: _clean((grant && grant.accessType) || _firstPaymentString(layers, ['accessType', 'transactionType'])),
         accessMethod: _clean((grant && grant.accessMethod) || _firstPaymentString(layers, ['accessMethod', 'paymentMethod'])),
         paymentMode: _clean(_firstPaymentString(layers, ['paymentMode'])),
+        accessSource: passAccess ? 'membership_pass' : undefined,
         premiumAccessToken: premiumAccessToken || undefined
       })
     };
@@ -1400,19 +1419,21 @@
       || accessDecision.ledgerId
     );
     var statusText = _clean(data.status || accessGrant.status || consume.status || access.status || accessDecision.status || accessDecision.reason).toLowerCase();
+    var passAccess = _isPassAccessPayload(_paymentPayloadLayers(data), data);
     var accessOk = data.ok === true
       || data.accessGranted === true
       || data.granted === true
       || data.canAccess === true
       || data.unlocked === true
       || data.freeBySubscription === true
+      || passAccess
       || accessGrant.ok === true
       || accessGrant.accessGranted === true
       || consume.ok === true
       || access.ok === true
       || access.accessGranted === true
       || accessDecision.accessGranted === true
-      || ['granted', 'success', 'succeeded', 'pass_applied', 'pass_covered', 'pass_free', 'has_entitlement', 'completed', 'monthly_paid'].indexOf(statusText) >= 0;
+      || ['granted', 'success', 'succeeded', 'pass_applied', 'pass_covered', 'pass_free', 'family_all_access', 'has_entitlement', 'completed', 'monthly_paid'].indexOf(statusText) >= 0;
     var purchaseId = explicitPurchaseId || (accessOk ? ('access:' + _clean(requestId || sessionId || normalizedReportId)) : '');
     if (!normalizedReportId || !purchaseId) return null;
     return {
@@ -1511,7 +1532,10 @@
             serviceType: SERVICE_KEY,
             productKey: API_FEATURE_KEY,
             entitlementKey: 'saju_new_year_pdf',
+            reportType: 'sajuNewYear',
             paymentPurpose: 'ai_consultation',
+            action: 'openSajuNewYearModal',
+            forcePassFirst: true,
             allowedPaymentModes: ['direct', 'monthly', 'membership_pass', 'pass'],
             title: REASON,
             reason: REASON,
@@ -1554,7 +1578,9 @@
         serviceType: SERVICE_KEY,
         productKey: API_FEATURE_KEY,
         entitlementKey: 'saju_new_year_pdf',
+        reportType: 'sajuNewYear',
         paymentPurpose: 'ai_consultation',
+        paymentMode: 'MEMBERSHIP_PASS',
         allowedPaymentModes: ['direct', 'monthly', 'membership_pass', 'pass'],
         reason: REASON,
         mode: 'saju-new-year',
@@ -1567,7 +1593,7 @@
         amountKrw: resolvedCost * 100,
         amountKRW: resolvedCost * 100,
         paymentAmount: resolvedCost * 100,
-        forceDeduct: true,
+        forceDeduct: false,
         confirmedByUser: true
       })
     });
@@ -2336,10 +2362,6 @@
     _showScreen('nyLoadingScreen');
     _setStage('billing');
     _setProgress(1, '결제창에서 권한과 금액을 확인하는 중입니다');
-    if (_hasReusableAccessFor(pending)) {
-      _setProgress(1, '확인된 결제 권한으로 신년운세 AI 상담을 다시 시작합니다');
-      return _runAfterBillingAI(pending, _lastAccessGrant, _lastPremiumToken, _lastPaidEvidence);
-    }
     return _runCoinGate(pending.reportId).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
@@ -2488,7 +2510,7 @@
 
   window.generateSajuNewYear = function () {
     if (_generating) return;
-    var pending = _hasReusableAccessFor(_pendingGeneration) ? _pendingGeneration : _buildPendingGeneration();
+    var pending = _buildPendingGeneration();
     if (!pending) return;
     _pendingGeneration = pending;
     _refreshNewYearBillingSnapshot();
@@ -2515,7 +2537,7 @@
 
   window.confirmSajuNewYearPayment = function () {
     if (_generating) return;
-    var pending = _pendingGeneration || _buildPendingGeneration();
+    var pending = _buildPendingGeneration();
     if (!pending) return;
     _pendingGeneration = pending;
     _generating = true;

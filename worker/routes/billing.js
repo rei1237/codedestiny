@@ -1561,7 +1561,16 @@ function resolveSuccessAccessStatus(data = {}, consume = {}, accessGrant = {}) {
   const transactionType = String(data.transactionType || consume.transactionType || accessGrant.transactionType || "").trim().toLowerCase();
   const accessMethod = String(data.accessMethod || consume.accessMethod || accessGrant.accessMethod || "").trim().toLowerCase();
   if (data.alreadyUnlocked === true || accessType === "already_unlocked" || transactionType === "unlock_entitlement") return "already_unlocked";
-  if (data.freeBySubscription === true || accessType === "membership_pass" || transactionType === "membership_pass" || accessMethod === "pass") return "pass_applied";
+  if (
+    data.freeBySubscription === true
+    || accessType === "membership_pass"
+    || accessType === "family"
+    || accessType === "family_pass"
+    || transactionType === "membership_pass"
+    || transactionType === "family_pass"
+    || accessMethod === "pass"
+    || accessMethod === "family"
+  ) return "pass_applied";
   return "success";
 }
 
