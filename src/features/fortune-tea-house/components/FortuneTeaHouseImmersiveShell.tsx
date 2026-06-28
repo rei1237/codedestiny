@@ -26,6 +26,7 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
     "--tea-bg-position-desktop": backgroundAssets.desktopPosition,
     "--tea-bg-position-mobile": backgroundAssets.mobilePosition,
   } as CSSProperties;
+  const shouldShowBackButton = stage !== "landing";
 
   return (
     <main className={styles.page} data-stage={stage} style={backgroundStyle}>
@@ -37,9 +38,11 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
         alt=""
         imageClassName={styles.shellSceneImageAsset}
       />
-      <button className={styles.backButton} type="button" onClick={onBackToLanding}>
-        돌아가기
-      </button>
+      {shouldShowBackButton ? (
+        <button className={styles.backButton} type="button" onClick={onBackToLanding}>
+          돌아가기
+        </button>
+      ) : null}
       <Link className={styles.homeButton} href="/" aria-label="Code Destiny 홈화면으로 바로가기">
         홈으로
       </Link>
@@ -59,6 +62,15 @@ function getStageBackgroundAssets(stage: TeaHouseStage) {
     return {
       desktop: fortuneTeaHouseAssets.backgrounds.landingDesktop,
       mobile: fortuneTeaHouseAssets.backgrounds.landingMobile,
+      desktopPosition: "center center",
+      mobilePosition: "center top",
+    };
+  }
+
+  if (stage === "teaCupRitual") {
+    return {
+      desktop: fortuneTeaHouseAssets.backgrounds.interiorDesktop2,
+      mobile: fortuneTeaHouseAssets.backgrounds.interiorMobile2,
       desktopPosition: "center center",
       mobilePosition: "center top",
     };

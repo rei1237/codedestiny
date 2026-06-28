@@ -7,9 +7,12 @@ import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
 import QuestionInputScene from "./components/QuestionInputScene";
 import ScentLoadingScene from "./components/ScentLoadingScene";
 import TarotRevealScene from "./components/TarotRevealScene";
+import FortuneTeaHouseDebugPanel from "./components/FortuneTeaHouseDebugPanel";
+import TeaCupRitualScene from "./components/TeaCupRitualScene";
 import TeaCupSelectionScene from "./components/TeaCupSelectionScene";
 import AssetImage from "./components/AssetImage";
 import TeaHouseEntryScene from "./components/TeaHouseEntryScene";
+import TeaHouseButton from "./components/TeaHouseButton";
 import TeaHouseResultSheet from "./components/TeaHouseResultSheet";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseQuestionInput } from "./data/consult";
@@ -41,10 +44,17 @@ const FORTUNE_TEA_BGM_STORAGE_KEY = "code-destiny-fortune-tea-house-bgm";
 
 function getFortuneTeaBgmTrack(stage: TeaHouseStage) {
   if (stage === "tarotReveal" || stage === "result") return FORTUNE_TEA_BGM_TRACKS.moonlitDestinyRoom;
-  if (stage === "yeoniReveal" || stage === "teaIntro" || stage === "teaSelect" || stage === "questionInput" || stage === "scentLoading") {
+  if (stage === "yeoniReveal" || stage === "teaIntro" || stage === "teaSelect" || stage === "teaCupRitual" || stage === "questionInput" || stage === "scentLoading") {
     return FORTUNE_TEA_BGM_TRACKS.gentleOrientalGirl;
   }
   return FORTUNE_TEA_BGM_TRACKS.moonlitTeaHouse;
+}
+
+function logSubmitStep(message: string, payload?: unknown) {
+  if (process.env.NODE_ENV !== "production") {
+    if (typeof payload === "undefined") console.info(`[FortuneTeaHouse Submit] ${message}`);
+    else console.info(`[FortuneTeaHouse Submit] ${message}`, payload);
+  }
 }
 
 export default function FortuneTeaHousePage() {
@@ -57,9 +67,12 @@ export default function FortuneTeaHousePage() {
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
   const [questionInput, setQuestionInput] = useState<Partial<FortuneTeaHouseQuestionInput>>({});
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const enterTimerRef = useRef<number | null>(null);
   const consultRunRef = useRef(0);
+  const submitLockRef = useRef(false);
   const currentBgmTrack = getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
 
@@ -157,6 +170,10 @@ export default function FortuneTeaHousePage() {
   }
 
   function restartConsultation() {
+    consultRunRef.current += 1;
+    submitLockRef.current = false;
+    setIsSubmitting(false);
+    setSubmitError("");
     setQuestionInput({});
     setConsultResult(null);
     setStage("teaSelect");
@@ -164,6 +181,7 @@ export default function FortuneTeaHousePage() {
 
   function returnToLanding() {
     consultRunRef.current += 1;
+    submitLockRef.current = false;
     if (enterTimerRef.current) {
       window.clearTimeout(enterTimerRef.current);
       enterTimerRef.current = null;
@@ -172,6 +190,8 @@ export default function FortuneTeaHousePage() {
     setSelectedCup(null);
     setQuestionInput({});
     setConsultResult(null);
+    setIsSubmitting(false);
+    setSubmitError("");
     setStage("landing");
   }
 
@@ -182,15 +202,24 @@ export default function FortuneTeaHousePage() {
   function selectTeaCup(cup: TeaHouseCup) {
     setSelectedCup(cup);
     setConsultResult(null);
-    goToStage("questionInput");
+    setSubmitError("");
+    goToStage("teaCupRitual");
   }
 
   async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput) {
+    if (isSubmitting || submitLockRef.current) return;
+    logSubmitStep("start");
+    logSubmitStep("selectedCup", selectedCup);
+    logSubmitStep("input", nextQuestionInput);
+
     if (!selectedCup) {
       goToStage("teaSelect");
       return;
     }
 
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+    setSubmitError("");
     setQuestionInput(nextQuestionInput);
     setConsultResult(null);
     goToStage("scentLoading");
@@ -199,6 +228,7 @@ export default function FortuneTeaHousePage() {
 
     try {
       const startedAt = Date.now();
+      logSubmitStep("build result start");
       const payload = buildFortuneTeaHouseConsultResult({
         selectedTeaCupId: selectedCup.id,
         selectedTeaCupName: selectedCup.name,
@@ -212,6 +242,7 @@ export default function FortuneTeaHousePage() {
         calendarType: nextQuestionInput.calendarType,
         question: nextQuestionInput.question,
       });
+      logSubmitStep("build result success", payload);
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
       if (remainingDelay > 0) {
@@ -220,12 +251,36 @@ export default function FortuneTeaHousePage() {
 
       if (consultRunRef.current !== consultRunId) return;
       setConsultResult(payload as FortuneTeaHouseConsultResponse);
+      logSubmitStep("go tarotReveal");
       goToStage("tarotReveal");
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
-      setNotice(error instanceof Error ? error.message : "찻잔의 향이 잠시 흐려졌어요. 잠시 뒤 다시 물어봐 주세요.");
+      logSubmitStep("error", error);
+      setSubmitError("찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");
       goToStage("questionInput");
+    } finally {
+      if (consultRunRef.current === consultRunId) {
+        setIsSubmitting(false);
+        submitLockRef.current = false;
+      }
     }
+  }
+
+  function renderRecoveryCard(message: string) {
+    return (
+      <section className={styles.consultErrorScene} aria-labelledby="fortuneTeaRecoveryTitle">
+        <div className={styles.consultErrorCard}>
+          <p className={styles.sceneEyebrow}>달빛이 잠시 흐려졌어요</p>
+          <h2 id="fortuneTeaRecoveryTitle">빈 화면 대신 찻잔을 다시 데울게요</h2>
+          <p>{message}</p>
+          <div className={styles.storyActions}>
+            <TeaHouseButton variant="ghost" onClick={() => goToStage("teaSelect")}>
+              찻잔 다시 고르기
+            </TeaHouseButton>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   function renderScene() {
@@ -246,6 +301,10 @@ export default function FortuneTeaHousePage() {
       return <TeaCupSelectionScene selectedCupId={selectedCup?.id} onSelect={selectTeaCup} />;
     }
 
+    if (stage === "teaCupRitual" && selectedCup) {
+      return <TeaCupRitualScene selectedCup={selectedCup} onBack={() => goToStage("teaSelect")} onConfirm={() => goToStage("questionInput")} />;
+    }
+
     if (stage === "questionInput" && selectedCup) {
       return (
         <QuestionInputScene
@@ -253,6 +312,8 @@ export default function FortuneTeaHousePage() {
           initialInput={questionInput}
           onBack={() => goToStage("teaSelect")}
           onSubmit={submitQuestion}
+          isSubmitting={isSubmitting}
+          submitError={submitError}
         />
       );
     }
@@ -263,6 +324,10 @@ export default function FortuneTeaHousePage() {
 
     if (stage === "tarotReveal" && consultResult) {
       return <TarotRevealScene result={consultResult} onComplete={() => goToStage("result")} />;
+    }
+
+    if (stage === "tarotReveal") {
+      return renderRecoveryCard("카드가 떠오르기 전에 상담 결과가 사라졌어요. 찻잔을 다시 골라 이어갈게요.");
     }
 
     if (stage === "result" && consultResult) {
@@ -277,7 +342,11 @@ export default function FortuneTeaHousePage() {
       );
     }
 
-    return null;
+    if (stage === "result") {
+      return renderRecoveryCard("결과 시트가 열리기 전에 상담 기록이 흐려졌어요. 다시 한 번 차를 데워볼게요.");
+    }
+
+    return <TeaCupSelectionScene selectedCupId={selectedCup?.id} onSelect={selectTeaCup} />;
   }
 
   return (
@@ -340,6 +409,14 @@ export default function FortuneTeaHousePage() {
           </motion.div>
         </AnimatePresence>
       </div>
+      <FortuneTeaHouseDebugPanel
+        stage={stage}
+        selectedCup={selectedCup}
+        questionInput={questionInput}
+        consultResult={consultResult}
+        lastError={submitError}
+        isSubmitting={isSubmitting}
+      />
     </FortuneTeaHouseImmersiveShell>
   );
 }

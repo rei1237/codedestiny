@@ -3,9 +3,11 @@
 import type { CSSProperties } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
+import { getTeaHouseCupById } from "../data/teaCups";
 import { getTenGodMeta } from "../data/tenGods";
 import AssetImage from "./AssetImage";
 import TarotAssetCard from "./TarotAssetCard";
+import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
@@ -23,6 +25,9 @@ type TeaHouseResultSheetProps = {
 
 export default function TeaHouseResultSheet({ result, onRestart, onReady, onShowTarot, onEditBirthInfo }: TeaHouseResultSheetProps) {
   const direction = result.tarot.orientation === "upright" ? "정방향" : "역방향";
+  const selectedCup = getTeaHouseCupById(result.teaCup.id);
+  const resultPrelude = result.teaCup.resultPrelude || selectedCup?.resultPrelude || result.teaCup.reading;
+  const yeoniOpening = selectedCup?.resultPrelude || "연이가 찻잔과 카드, 지금 적어주신 질문의 향을 한 장의 상담 기록으로 엮었습니다.";
   const saju = result.saju || {
     available: false,
     title: "사주가 말하는 기본 흐름",
@@ -38,7 +43,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
   const primaryTenGodId = saju.primaryTenGod?.id || (tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined);
   const primaryTenGodMeta = primaryTenGodId ? getTenGodMeta(primaryTenGodId) : null;
   return (
-    <section className={styles.resultScene} aria-labelledby="teaResultTitle">
+    <section className={styles.resultScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="teaResultTitle">
       <aside className={styles.resultYeoniPanel}>
         <AssetImage className={styles.resultFullYeoni} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="상담 결과를 들려주는 인간 상담사 연이" priority />
         <YeoniDialogueActor mood="closing" isSpeaking cueText={result.closingLine} className={styles.resultYeoniActor} priority />
@@ -47,9 +52,11 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
 
       <article className={styles.resultSheet}>
         <header className={styles.resultHeader}>
-          <p className={styles.sceneEyebrow}>인간 상담사 연이가 읽어 준 오늘의 찻잔</p>
+          {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.resultHeaderCup} /> : null}
+          <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || "인간 상담사 연이가 읽어 준 오늘의 찻잔"}</p>
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
           <p>{result.questionSummary}</p>
+          <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>
         </header>
 
         <div className={styles.resultSummaryGrid}>
@@ -66,29 +73,29 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
             <p>{result.tarot.keywords.join(" · ")}</p>
           </div>
           <div>
-            <span>대표 십성</span>
+            <span>사주 사용 여부</span>
             <strong>{primaryTenGodMeta ? primaryTenGodMeta.nameKo : "사주 정보 없음"}</strong>
             <p>{primaryTenGodMeta ? primaryTenGodMeta.roleInTeaHouse : "출생정보 없이 현재 고민과 타로 중심으로 읽습니다."}</p>
           </div>
           <div>
-            <span>핵심 키워드</span>
+            <span>오늘의 첫 장면</span>
             <strong>{result.tarot.keywords.slice(0, 2).join(" · ")}</strong>
             <p>{result.luckyKeywords.slice(0, 3).join(" · ")}</p>
           </div>
         </div>
 
         <section className={styles.resultBlock} aria-labelledby="teaCupTopicTitle">
-          <h3 id="teaCupTopicTitle">찻잔이 비춘 오늘의 주제</h3>
-          <p className={styles.sajuSummary}>{result.teaCup.reading}</p>
+          <h3 id="teaCupTopicTitle">찻잔이 먼저 말한 것</h3>
+          <p className={styles.sajuSummary}>{resultPrelude}</p>
           <p className={styles.sajuCaution}>
-            이 찻잔은 {result.teaCup.topic}의 관점에서 질문을 바라보게 합니다. 인간 상담사 연이는 이 관점 위에 사주의 기본 흐름과 타로의 현재 상징을 함께 올려 읽습니다.
+            {result.teaCup.name}은 {result.teaCup.topic}의 관점에서 질문을 바라보게 합니다. 연이는 그 향 위에 사주의 기본 흐름과 타로의 현재 상징을 함께 올려 읽었습니다.
           </p>
         </section>
 
         <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} />
 
         <section className={styles.resultBlock} aria-labelledby="tarotResultTitle">
-          <h3 id="tarotResultTitle">타로가 보여준 지금의 상징</h3>
+          <h3 id="tarotResultTitle">타로가 보여준 지금의 장면</h3>
           <div className={styles.resultTarotGrid}>
             <TarotAssetCard
               cardId={result.tarot.cardId}
@@ -105,7 +112,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
                 {result.tarot.nameKo} · {direction} · {result.tarot.keywords.join(" · ")}
               </strong>
               <p>{result.tarot.reading}</p>
-              <p>타로 카드는 지금 이 순간, 질문이 품고 있는 상징을 비춰줍니다.</p>
+              <p>{selectedCup?.tarotRevealTitle || "타로 카드는 지금 이 순간, 질문이 품고 있는 상징을 비춰줍니다."}</p>
             </div>
           </div>
         </section>
@@ -157,7 +164,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="yeoniReadingTitle">
-          <h3 id="yeoniReadingTitle">연이의 상담</h3>
+          <h3 id="yeoniReadingTitle">연이가 이어 읽은 두 흐름의 접점</h3>
           <div className={styles.yeoniReadingGrid}>
             <p>{result.yeoniReading.intro}</p>
             <p>{result.yeoniReading.main}</p>
@@ -167,7 +174,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
-          <h3 id="choiceSimulationTitle">운명의 갈림길</h3>
+          <h3 id="choiceSimulationTitle">지금 선택할 수 있는 세 가지 길</h3>
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
               <article className={styles.choiceCard} key={choice.id}>
@@ -181,13 +188,18 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
         </section>
 
         <section className={styles.actionPrescription} aria-labelledby="actionPrescriptionTitle">
-          <h3 id="actionPrescriptionTitle">오늘의 행동 처방</h3>
+          <h3 id="actionPrescriptionTitle">오늘의 작은 처방</h3>
           <p>{result.actionPrescription}</p>
           <div className={styles.luckyKeywordList}>
             {result.luckyKeywords.map((keyword) => (
               <span key={keyword}>{keyword}</span>
             ))}
           </div>
+        </section>
+
+        <section className={styles.resultBlock} aria-labelledby="closingResultTitle">
+          <h3 id="closingResultTitle">마지막 한마디</h3>
+          <p className={styles.sajuSummary}>{result.closingLine}</p>
         </section>
 
         <div className={styles.resultActions}>

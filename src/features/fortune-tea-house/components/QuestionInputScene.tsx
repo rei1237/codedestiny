@@ -6,6 +6,7 @@ import type { FortuneTeaHouseQuestionInput } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
+import TeaCupVisual from "./TeaCupVisual";
 import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
 
@@ -14,16 +15,14 @@ type QuestionInputSceneProps = {
   initialInput?: Partial<FortuneTeaHouseQuestionInput>;
   onSubmit: (input: FortuneTeaHouseQuestionInput) => void;
   onBack: () => void;
+  isSubmitting?: boolean;
+  submitError?: string;
 };
 
-const concernTopics = ["연애·재회", "썸·인연", "진로·사업", "금전운", "마음 회복", "이별·위기"] as const;
+const concernTopics = ["연애 · 재회", "썸 · 인연", "진로 · 사업", "금전운", "마음 회복", "이별 · 위기"] as const;
 
-const questionGuideDialogue =
-  "좋아요. 고민 내용은 타로가 읽을 현재 질문이 되고, 출생정보는 사주가 읽을 기본 흐름이 됩니다.\n출생시간을 몰라도 상담은 진행할 수 있어요. 인간 상담사 연이가 찻잔과 카드, 사주의 흐름이 만나는 지점을 차분히 읽어드릴게요.";
-
-export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "" }: QuestionInputSceneProps) {
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
-  const [concernTopic, setConcernTopic] = useState(initialInput?.concernTopic || selectedCup.topic || concernTopics[0]);
   const [birthDate, setBirthDate] = useState(initialInput?.birthDate || "");
   const [birthTime, setBirthTime] = useState(initialInput?.birthTime || "");
   const [gender, setGender] = useState(initialInput?.gender || "");
@@ -31,14 +30,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextQuestion = question.trim();
-    if (nextQuestion.length < 4) {
-      setError("연이가 읽을 수 있도록 마음을 조금만 더 적어 주세요.");
-      return;
-    }
-    setError("");
+  function buildInput(nextQuestion: string): FortuneTeaHouseQuestionInput {
     const birthInfoSummary = [
       birthDate ? birthDate.replaceAll("-", ".") : "",
       birthTime ? birthTime : "",
@@ -47,40 +39,57 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     ]
       .filter(Boolean)
       .join(" ");
-    onSubmit({
+    return {
       nickname: nickname.trim(),
-      concernTopic,
+      concernTopic: selectedCup.topic,
       birthInfo: birthInfoSummary,
       birthDate,
       birthTime,
       gender,
       calendarType,
       question: nextQuestion,
-    });
+    };
+  }
+
+  function submitCurrentQuestion() {
+    if (isSubmitting) return;
+    const nextQuestion = question.trim();
+    if (nextQuestion.length < 4) {
+      setError("연이가 읽을 수 있도록 마음을 조금만 더 적어 주세요.");
+      return;
+    }
+    setError("");
+    onSubmit(buildInput(nextQuestion));
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    submitCurrentQuestion();
   }
 
   return (
     <section className={styles.questionScene} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
         <YeoniDialogueActor mood="comfort" isSpeaking={false} className={styles.yeoniPortrait} priority />
+        <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.questionSelectedCup} />
       </div>
       <form className={styles.questionPanel} onSubmit={handleSubmit}>
-        <p className={styles.sceneEyebrow}>{selectedCup.name}가 데워지고 있습니다</p>
-        <h2 id="teaQuestionTitle">연이에게 오늘의 고민을 들려주세요</h2>
+        <p className={styles.sceneEyebrow}>{selectedCup.ritualTitle}</p>
+        <h2 id="teaQuestionTitle">{selectedCup.name} 위에 오늘의 질문을 올려주세요</h2>
         <p className={styles.sceneDescription}>
-          고민 내용은 타로가 읽을 현재 질문이 되고, 출생정보는 사주가 읽을 기본 흐름이 됩니다. 출생시간을 몰라도 상담은 진행할 수 있어요.
+          {selectedCup.summonLine} 출생정보를 몰라도 괜찮아요. 오늘은 찻잔과 타로를 중심으로 먼저 읽고, 사주가 열리면 더 깊게 이어볼게요.
         </p>
         <TeaHouseDialogueBox
           speaker="연이"
-          text={questionGuideDialogue}
+          text={selectedCup.questionGuideLine}
         />
 
         <section className={styles.questionFormSection} aria-labelledby="tarotQuestionSectionTitle">
           <div className={styles.questionSectionHeader}>
             <span>A</span>
             <div>
-              <h3 id="tarotQuestionSectionTitle">타로가 읽을 오늘의 질문</h3>
-              <p>지금 가장 궁금한 마음을 적어주세요. 짧아도 괜찮고, 길게 털어놓아도 괜찮아요.</p>
+              <h3 id="tarotQuestionSectionTitle">오늘의 질문</h3>
+              <p>말이 엉켜 있어도 괜찮아요. 연이가 찻잔 위에 놓인 장면부터 천천히 읽습니다.</p>
             </div>
           </div>
           <div className={styles.questionFieldGrid}>
@@ -93,6 +102,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 onChange={(event) => setNickname(event.target.value)}
                 placeholder="손님"
                 autoComplete="nickname"
+                disabled={isSubmitting}
               />
             </label>
             <fieldset className={styles.concernTopicGroup}>
@@ -101,15 +111,16 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 {concernTopics.map((topic) => (
                   <button
                     className={styles.concernTopicButton}
-                    data-selected={concernTopic === topic ? "true" : "false"}
+                    data-selected={selectedCup.topic === topic ? "true" : "false"}
                     key={topic}
                     type="button"
-                    onClick={() => setConcernTopic(topic)}
+                    disabled
                   >
                     {topic}
                   </button>
                 ))}
               </div>
+              <p className={styles.topicSyncNotice}>{selectedCup.name} 상담은 {selectedCup.topic}으로 고정되어 있어요.</p>
             </fieldset>
           </div>
 
@@ -120,8 +131,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
               className={styles.questionTextarea}
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
-              placeholder="예: 이 관계를 계속 기다려도 괜찮을까요?"
+              placeholder={selectedCup.questionPlaceholder}
               rows={7}
+              disabled={isSubmitting}
             />
           </label>
         </section>
@@ -143,6 +155,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 type="date"
                 value={birthDate}
                 onChange={(event) => setBirthDate(event.target.value)}
+                disabled={isSubmitting}
               />
             </label>
             <label className={styles.questionLabel} htmlFor="fortuneTeaBirthTime">
@@ -153,11 +166,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 type="time"
                 value={birthTime}
                 onChange={(event) => setBirthTime(event.target.value)}
+                disabled={isSubmitting}
               />
             </label>
             <label className={styles.questionLabel} htmlFor="fortuneTeaGender">
               성별
-              <select id="fortuneTeaGender" className={styles.questionInput} value={gender} onChange={(event) => setGender(event.target.value)}>
+              <select id="fortuneTeaGender" className={styles.questionInput} value={gender} onChange={(event) => setGender(event.target.value)} disabled={isSubmitting}>
                 <option value="">선택 안 함</option>
                 <option value="female">여성</option>
                 <option value="male">남성</option>
@@ -170,6 +184,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 className={styles.questionInput}
                 value={calendarType}
                 onChange={(event) => setCalendarType(event.target.value === "lunar" ? "lunar" : "solar")}
+                disabled={isSubmitting}
               >
                 <option value="solar">양력</option>
                 <option value="lunar">음력</option>
@@ -181,11 +196,22 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           </p>
         </section>
         {error ? <p className={styles.questionError}>{error}</p> : null}
+        {submitError ? (
+          <section className={styles.questionSubmitErrorCard} role="alert" aria-live="assertive">
+            <strong>찻잔의 향이 잠시 흐려졌어요.</strong>
+            <p>{submitError}</p>
+            <TeaHouseButton type="button" variant="secondary" onClick={submitCurrentQuestion} loading={isSubmitting}>
+              다시 한 번 건네기
+            </TeaHouseButton>
+          </section>
+        ) : null}
         <div className={styles.storyActions}>
-          <TeaHouseButton variant="ghost" onClick={onBack}>
+          <TeaHouseButton variant="ghost" onClick={onBack} disabled={isSubmitting}>
             찻잔 다시 고르기
           </TeaHouseButton>
-          <TeaHouseButton type="submit">연이에게 건네기</TeaHouseButton>
+          <TeaHouseButton type="submit" loading={isSubmitting}>
+            연이에게 건네기
+          </TeaHouseButton>
         </div>
       </form>
     </section>

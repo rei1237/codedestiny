@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { fortuneTeaHouseAssets, talkingPigYeoniFrameCrops } from "../data/assets";
 import {
+  flowerPigIdleLines,
   getNextTeaHouseEntryStage,
   getPreviousTeaHouseEntryStage,
   getTeaHouseEntryScene,
@@ -25,6 +26,9 @@ const pigFrames = [
   talkingPigYeoniFrameCrops.welcome,
   talkingPigYeoniFrameCrops.honey,
   talkingPigYeoniFrameCrops.comfort,
+  talkingPigYeoniFrameCrops.thinking,
+  talkingPigYeoniFrameCrops.surprised,
+  talkingPigYeoniFrameCrops.doorway,
 ] as const;
 
 const transformFrames = [
@@ -37,6 +41,24 @@ const transformFrames = [
   { col: 2, row: 1 },
   { col: 3, row: 1 },
 ] as const;
+
+const TRANSFORM_LOAD_FALLBACK_DELAY_MS = 1000;
+const TRANSFORM_MIN_VISIBLE_MS = 1200;
+const TRANSFORM_FALLBACK_FRAME_MS = 140;
+const PIG_IDLE_FIRST_DELAY_MS = 8200;
+const PIG_IDLE_NEXT_DELAY_MS = 10800;
+
+function debugEntry(message: string, ...payload: unknown[]) {
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[FortuneTeaHouse Entry] ${message}`, ...payload);
+  }
+}
+
+function debugTransform(message: string, ...payload: unknown[]) {
+  if (process.env.NODE_ENV !== "production") {
+    console.info(`[FortuneTeaHouse Transform] ${message}`, ...payload);
+  }
+}
 
 const teaIntroYeoniCupFrame = {
   x: 444,
@@ -55,16 +77,27 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const prefersReducedMotion = usePrefersReducedMotion();
   const scene = getTeaHouseEntryScene(stage);
   const [lineIndex, setLineIndex] = useState(0);
+  const [idleLineIndex, setIdleLineIndex] = useState<number | null>(null);
   const [pigFrameIndex, setPigFrameIndex] = useState(0);
   const [usePigFallback, setUsePigFallback] = useState(false);
   const [useTransformFallback, setUseTransformFallback] = useState(false);
   const [useTeaCupsFallback, setUseTeaCupsFallback] = useState(false);
-  const [transformFrameIndex, setTransformFrameIndex] = useState(transformFrames.length - 1);
-  const currentLine = scene.lines[lineIndex] || scene.lines[0]!;
+  const [isTransformVideoReady, setIsTransformVideoReady] = useState(false);
+  const [transformHasPlayed, setTransformHasPlayed] = useState(false);
+  const [transformFallbackFrameIndex, setTransformFallbackFrameIndex] = useState(0);
+  const [isTransformMinTimeReady, setIsTransformMinTimeReady] = useState(false);
+  const baseLine = scene.lines[lineIndex] || scene.lines[0]!;
+  const canShowPigIdleLine = scene.actor === "pig" && flowerPigIdleLines.length > 0;
+  const idleLine = canShowPigIdleLine && idleLineIndex !== null ? flowerPigIdleLines[idleLineIndex % flowerPigIdleLines.length] || null : null;
+  const currentLine = idleLine || baseLine;
+  const isShowingIdleLine = idleLine !== null;
   const isLastLine = lineIndex >= scene.lines.length - 1;
   const previousStage = getPreviousTeaHouseEntryStage(scene.stage);
   const nextStage = getNextTeaHouseEntryStage(scene.stage);
-  const showSkip = scene.stage !== "teaIntro";
+  const isTransformPreview = scene.stage === "transformPreview";
+  const isTransformAdvanceLocked = isTransformPreview && (!isTransformMinTimeReady || !transformHasPlayed);
+  const showSkip = scene.stage !== "teaIntro" && scene.stage !== "transformPreview" && scene.stage !== "yeoniReveal";
+  const nextButtonLabel = isTransformAdvanceLocked ? "달빛이 피어오르는 중..." : baseLine.cta || (nextStage ? "다음" : "찻잔 고르러 가기");
   const sceneStyle = useMemo(
     () =>
       ({
@@ -77,13 +110,91 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   );
 
   useEffect(() => {
+    debugEntry("stage changed:", stage);
+  }, [stage]);
+
+  useEffect(() => {
     setLineIndex(0);
+    setIdleLineIndex(null);
     setPigFrameIndex(0);
-    setTransformFrameIndex(transformFrames.length - 1);
+    setTransformFallbackFrameIndex(prefersReducedMotion && stage === "transformPreview" ? transformFrames.length - 1 : 0);
     setUsePigFallback(false);
-    setUseTransformFallback(false);
+    setUseTransformFallback(prefersReducedMotion && stage === "transformPreview");
     setUseTeaCupsFallback(false);
+    setIsTransformVideoReady(false);
+    setTransformHasPlayed(stage !== "transformPreview");
+    setIsTransformMinTimeReady(stage !== "transformPreview");
   }, [prefersReducedMotion, stage]);
+
+  useEffect(() => {
+    setIdleLineIndex(null);
+  }, [lineIndex]);
+
+  useEffect(() => {
+    if (stage !== "transformPreview") return;
+    debugTransform("video url:", fortuneTeaHouseAssets.videos.pigTransform);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "transformPreview") return;
+    const timer = window.setTimeout(() => {
+      setIsTransformMinTimeReady(true);
+    }, TRANSFORM_MIN_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "transformPreview" || prefersReducedMotion || isTransformVideoReady || useTransformFallback) return;
+    const timer = window.setTimeout(() => {
+      setUseTransformFallback(true);
+      setTransformFallbackFrameIndex(0);
+    }, TRANSFORM_LOAD_FALLBACK_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [isTransformVideoReady, prefersReducedMotion, stage, useTransformFallback]);
+
+  useEffect(() => {
+    if (stage !== "transformPreview" || !useTransformFallback) return;
+    debugTransform("fallback started");
+
+    if (prefersReducedMotion) {
+      setTransformFallbackFrameIndex(transformFrames.length - 1);
+      const timer = window.setTimeout(() => {
+        setTransformHasPlayed(true);
+      }, TRANSFORM_MIN_VISIBLE_MS);
+      return () => window.clearTimeout(timer);
+    }
+
+    let frameIndex = 0;
+    let completeTimer: number | null = null;
+    setTransformFallbackFrameIndex(0);
+    const frameTimer = window.setInterval(() => {
+      frameIndex = Math.min(frameIndex + 1, transformFrames.length - 1);
+      setTransformFallbackFrameIndex(frameIndex);
+      if (frameIndex >= transformFrames.length - 1) {
+        window.clearInterval(frameTimer);
+        completeTimer = window.setTimeout(() => {
+          setTransformHasPlayed(true);
+        }, TRANSFORM_FALLBACK_FRAME_MS);
+      }
+    }, TRANSFORM_FALLBACK_FRAME_MS);
+
+    return () => {
+      window.clearInterval(frameTimer);
+      if (completeTimer) window.clearTimeout(completeTimer);
+    };
+  }, [prefersReducedMotion, stage, useTransformFallback]);
+
+  useEffect(() => {
+    if (stage === "transformPreview" && useTransformFallback) {
+      debugTransform("fallback frame:", transformFallbackFrameIndex);
+    }
+  }, [stage, transformFallbackFrameIndex, useTransformFallback]);
+
+  useEffect(() => {
+    if (stage === "transformPreview" && transformHasPlayed) {
+      debugTransform("completed");
+    }
+  }, [stage, transformHasPlayed]);
 
   useEffect(() => {
     if (prefersReducedMotion || (scene.actor !== "pig" && scene.actor !== "tea")) return;
@@ -93,7 +204,35 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     return () => window.clearInterval(timer);
   }, [prefersReducedMotion, scene.actor]);
 
-  function goNext() {
+  useEffect(() => {
+    if (!canShowPigIdleLine) return;
+    const delay = idleLineIndex === null ? PIG_IDLE_FIRST_DELAY_MS : PIG_IDLE_NEXT_DELAY_MS;
+    const timer = window.setTimeout(() => {
+      setIdleLineIndex((current) => (current === null ? 0 : (current + 1) % flowerPigIdleLines.length));
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [canShowPigIdleLine, idleLineIndex, lineIndex, stage]);
+
+  const handleTransformVideoReady = useCallback(() => {
+    setIsTransformVideoReady((wasReady) => {
+      if (!wasReady) debugTransform("video loaded");
+      return true;
+    });
+  }, []);
+
+  const handleTransformVideoEnded = useCallback(() => {
+    setTransformHasPlayed(true);
+  }, []);
+
+  const handleTransformError = useCallback(() => {
+    debugTransform("video error");
+    setUseTransformFallback(true);
+    setTransformFallbackFrameIndex(0);
+  }, []);
+
+  const goNext = useCallback(() => {
+    setIdleLineIndex(null);
+    if (isTransformAdvanceLocked) return;
     if (!isLastLine) {
       setLineIndex((current) => current + 1);
       return;
@@ -103,9 +242,10 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
       return;
     }
     onComplete();
-  }
+  }, [isLastLine, isTransformAdvanceLocked, nextStage, onComplete, onStageChange]);
 
   function goPrevious() {
+    setIdleLineIndex(null);
     if (lineIndex > 0) {
       setLineIndex((current) => current - 1);
       return;
@@ -122,18 +262,28 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
       <EntryActor
         actor={scene.actor}
         pigFrameIndex={pigFrameIndex}
-        transformFrameIndex={transformFrameIndex}
+        transformFallbackFrameIndex={transformFallbackFrameIndex}
         usePigFallback={usePigFallback}
         useTransformFallback={useTransformFallback}
+        isTransformVideoReady={isTransformVideoReady}
+        transformHasPlayed={transformHasPlayed}
         useTeaCupsFallback={useTeaCupsFallback}
         onPigError={() => setUsePigFallback(true)}
-        onTransformError={() => setUseTransformFallback(true)}
+        onTransformVideoReady={handleTransformVideoReady}
+        onTransformVideoEnded={handleTransformVideoEnded}
+        onTransformError={handleTransformError}
         onTeaCupsError={() => setUseTeaCupsFallback(true)}
       />
       <div className={styles.entryStoryPanel}>
         <p className={styles.sceneEyebrow}>{scene.eyebrow}</p>
         <h2 id="teaHouseEntryTitle">{scene.title}</h2>
-        <TeaHouseDialogueBox speaker={currentLine.speaker} text={currentLine.text} className={styles.entryDialogueBox} />
+        <TeaHouseDialogueBox
+          speaker={currentLine.speaker}
+          text={currentLine.text}
+          className={`${styles.entryDialogueBox} ${isShowingIdleLine ? styles.entryIdleDialogueBox : ""}`}
+          onAdvance={goNext}
+          isAdvanceDisabled={isTransformAdvanceLocked}
+        />
         <div className={styles.entryStoryControls}>
           <span className={styles.storyProgress}>
             {lineIndex + 1} / {scene.lines.length}
@@ -143,11 +293,20 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
               이전
             </TeaHouseButton>
             {showSkip ? (
-              <TeaHouseButton variant="secondary" onClick={() => onStageChange("teaIntro")} aria-label="찻잔 안내 장면으로 건너뛰기">
+              <TeaHouseButton
+                variant="secondary"
+                onClick={() => {
+                  setIdleLineIndex(null);
+                  onStageChange("teaIntro");
+                }}
+                aria-label="찻잔 안내 장면으로 건너뛰기"
+              >
                 건너뛰기
               </TeaHouseButton>
             ) : null}
-            <TeaHouseButton onClick={goNext}>{currentLine.cta || (nextStage ? "다음" : "찻잔 고르러 가기")}</TeaHouseButton>
+            <TeaHouseButton onClick={goNext} disabled={isTransformAdvanceLocked}>
+              {nextButtonLabel}
+            </TeaHouseButton>
           </div>
         </div>
       </div>
@@ -158,11 +317,15 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
 type EntryActorProps = {
   actor: TeaHouseEntryActor;
   pigFrameIndex: number;
-  transformFrameIndex: number;
+  transformFallbackFrameIndex: number;
   usePigFallback: boolean;
   useTransformFallback: boolean;
+  isTransformVideoReady: boolean;
+  transformHasPlayed: boolean;
   useTeaCupsFallback: boolean;
   onPigError: () => void;
+  onTransformVideoReady: () => void;
+  onTransformVideoEnded: () => void;
   onTransformError: () => void;
   onTeaCupsError: () => void;
 };
@@ -170,16 +333,20 @@ type EntryActorProps = {
 function EntryActor({
   actor,
   pigFrameIndex,
-  transformFrameIndex,
+  transformFallbackFrameIndex,
   usePigFallback,
   useTransformFallback,
+  isTransformVideoReady,
+  transformHasPlayed,
   useTeaCupsFallback,
   onPigError,
+  onTransformVideoReady,
+  onTransformVideoEnded,
   onTransformError,
   onTeaCupsError,
 }: EntryActorProps) {
   const pigFrame = pigFrames[pigFrameIndex] || pigFrames[0];
-  const transformFrame = transformFrames[transformFrameIndex] || transformFrames[0];
+  const transformFrame = transformFrames[transformFallbackFrameIndex] || transformFrames[0];
 
   if (actor === "none") {
     return (
@@ -225,8 +392,18 @@ function EntryActor({
 
   if (actor === "transform") {
     return (
-      <div className={styles.entryActor} data-actor="transform">
+      <div
+        className={styles.entryActor}
+        data-actor="transform"
+        data-fallback={useTransformFallback ? "true" : "false"}
+        data-video-ready={isTransformVideoReady ? "true" : "false"}
+        data-transform-played={transformHasPlayed ? "true" : "false"}
+      >
         <span className={styles.entryTransformBurst} aria-hidden />
+        <span className={styles.entryTransformTeaCup} aria-hidden />
+        <span className={styles.entryTransformLotusMist} aria-hidden />
+        <span className={styles.entryTransformRing} aria-hidden />
+        <span className={styles.entryTransformPetals} aria-hidden />
         {!useTransformFallback ? (
           <video
             className={styles.entryTransformVideo}
@@ -236,11 +413,24 @@ function EntryActor({
             muted
             playsInline
             preload="auto"
+            onLoadedData={onTransformVideoReady}
+            onCanPlay={(event) => {
+              onTransformVideoReady();
+              void event.currentTarget.play().catch(onTransformError);
+            }}
+            onTimeUpdate={(event) => {
+              const video = event.currentTarget;
+              if (Number.isFinite(video.duration) && video.duration > 0 && video.currentTime >= video.duration - 0.18) {
+                onTransformVideoEnded();
+              }
+            }}
+            onEnded={onTransformVideoEnded}
             onError={onTransformError}
           />
         ) : (
           <span
             className={styles.entryTransformFrame}
+            data-frame-index={transformFallbackFrameIndex}
             style={
               {
                 "--entry-transform-col": transformFrame.col,

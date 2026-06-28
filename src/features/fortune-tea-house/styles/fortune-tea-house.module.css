@@ -38,6 +38,590 @@
   isolation: isolate;
 }
 
+.teaCupVisual {
+  --cup-accent: rgba(248, 187, 221, 0.78);
+  --cup-accent-soft: rgba(248, 187, 221, 0.18);
+  position: relative;
+  display: block;
+  width: min(100%, 160px);
+  overflow: visible;
+  isolation: isolate;
+}
+
+.teaCupVisual[data-accent="purple"] {
+  --cup-accent: rgba(185, 156, 255, 0.86);
+  --cup-accent-soft: rgba(185, 156, 255, 0.2);
+}
+
+.teaCupVisual[data-accent="gold"] {
+  --cup-accent: rgba(233, 196, 106, 0.92);
+  --cup-accent-soft: rgba(233, 196, 106, 0.2);
+}
+
+.teaCupVisual[data-accent="blue"] {
+  --cup-accent: rgba(137, 186, 255, 0.86);
+  --cup-accent-soft: rgba(137, 186, 255, 0.18);
+}
+
+.teaCupVisual[data-accent="rose"] {
+  --cup-accent: rgba(255, 164, 190, 0.9);
+  --cup-accent-soft: rgba(255, 164, 190, 0.2);
+}
+
+.teaCupVisual[data-accent="cream"] {
+  --cup-accent: rgba(255, 246, 216, 0.9);
+  --cup-accent-soft: rgba(255, 246, 216, 0.18);
+}
+
+.teaCupVisual[data-size="large"] {
+  width: min(42vw, 260px);
+}
+
+.teaCupVisual[data-size="hero"] {
+  width: min(56vw, 430px);
+}
+
+.teaCupVisual[data-size="debug"] {
+  width: 150px;
+}
+
+.teaCupVisualGlow,
+.teaCupVisualParticles {
+  position: absolute;
+  inset: 8% 7% 4%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.teaCupVisualGlow {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 246, 250, 0.34), transparent 34%),
+    radial-gradient(circle at 50% 62%, var(--cup-accent-soft), transparent 68%);
+  filter: blur(12px);
+  opacity: 0.86;
+  transform: scale(1.05);
+}
+
+.teaCupVisualParticles {
+  inset: -6% -10%;
+  background:
+    radial-gradient(circle at 26% 18%, var(--cup-accent) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 24%, rgba(255, 246, 250, 0.82) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 64% 72%, var(--cup-accent) 0 1.8px, transparent 3px),
+    radial-gradient(circle at 32% 76%, rgba(255, 246, 250, 0.72) 0 1.5px, transparent 3px);
+  opacity: 0.62;
+  animation: teaCupParticleRise 4.8s ease-in-out infinite;
+}
+
+.teaCupVisualSprite {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 0;
+  background: transparent;
+  filter:
+    saturate(1.18)
+    contrast(1.08)
+    drop-shadow(0 18px 26px rgba(8, 3, 18, 0.36))
+    drop-shadow(0 0 18px var(--cup-accent-soft));
+}
+
+.teaCupVisualSprite img {
+  transform: translateZ(0);
+}
+
+.teaCupVisualFallback {
+  display: grid;
+  gap: 6px;
+  color: rgba(255, 246, 250, 0.92);
+}
+
+.teaCupVisualFallback strong {
+  font-family: var(--tea-font-display);
+  font-size: 1rem;
+}
+
+.teaCupVisualFallback small {
+  color: rgba(255, 246, 250, 0.72);
+  font-size: 0.76rem;
+}
+
+.teaCupMenuItem {
+  overflow: visible;
+}
+
+.teaCupMenuItem .teaCupMenuVisual {
+  width: min(100%, 154px);
+}
+
+.teaCupMenuItem[data-selected="true"] .teaCupVisualParticles,
+.teaCupMenuItem:hover .teaCupVisualParticles,
+.teaCupMenuItem:focus-visible .teaCupVisualParticles {
+  opacity: 0.92;
+}
+
+.teaCupRitualScene {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.98fr) minmax(420px, 1.02fr);
+  gap: clamp(20px, 4vw, 46px);
+  align-items: center;
+  width: 100%;
+  min-height: min(760px, calc(100svh - 120px));
+  padding: clamp(16px, 2.5vw, 28px) 0;
+}
+
+.teaCupRitualVisual,
+.teaCupRitualPanel {
+  position: relative;
+  isolation: isolate;
+}
+
+.teaCupRitualVisual {
+  display: grid;
+  min-height: 560px;
+  place-items: center;
+  overflow: visible;
+}
+
+.teaCupRitualMoon,
+.teaCupRitualMist {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.teaCupRitualMoon {
+  width: min(76vw, 580px);
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.28), transparent 38%),
+    conic-gradient(from 180deg, transparent, rgba(233, 196, 106, 0.28), rgba(248, 187, 221, 0.28), transparent);
+  filter: blur(2px);
+  opacity: 0.76;
+  animation: ritualMoonBreath 6.2s ease-in-out infinite;
+}
+
+.teaCupRitualMist {
+  inset: 16% 2% auto;
+  height: 58%;
+  background:
+    radial-gradient(circle at 42% 42%, rgba(255, 246, 250, 0.22), transparent 28%),
+    radial-gradient(circle at 60% 50%, rgba(248, 187, 221, 0.22), transparent 36%),
+    radial-gradient(circle at 50% 72%, rgba(233, 196, 106, 0.14), transparent 54%);
+  filter: blur(26px);
+  opacity: 0.76;
+}
+
+.teaCupRitualCup {
+  z-index: 2;
+  animation: ritualCupFloat 5.2s ease-in-out infinite;
+}
+
+.teaCupRitualPanel {
+  display: grid;
+  gap: 14px;
+  padding: clamp(22px, 3vw, 34px);
+  overflow: hidden;
+  border: 1px solid rgba(233, 196, 106, 0.42);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(248, 187, 221, 0.18), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(233, 196, 106, 0.14), transparent 32%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.12), rgba(255, 246, 250, 0.04)),
+    rgba(17, 7, 31, 0.72);
+  box-shadow: var(--tea-shadow-panel), 0 0 42px rgba(248, 187, 221, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.teaCupRitualPanel::before {
+  content: "";
+  position: absolute;
+  inset: auto -14% -22% auto;
+  width: min(420px, 70vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background-image: var(--tea-cup-ritual-asset);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.07;
+  mix-blend-mode: screen;
+}
+
+.teaCupRitualPanel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.teaCupRitualYeoni {
+  width: min(180px, 48vw);
+  aspect-ratio: 3 / 4;
+  justify-self: center;
+  filter: drop-shadow(0 24px 36px rgba(9, 4, 22, 0.34));
+}
+
+.questionSelectedCup {
+  position: absolute;
+  right: clamp(10px, 6vw, 58px);
+  bottom: clamp(22px, 7vw, 78px);
+  z-index: 3;
+}
+
+.scentLoadingTeaCup {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  z-index: 3;
+  width: min(34vw, 230px);
+  transform: translateX(-50%);
+}
+
+.topicSyncNotice {
+  margin: 8px 0 0;
+  color: rgba(255, 246, 250, 0.62);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.concernTopicButton:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.concernTopicButton:disabled[data-selected="true"] {
+  opacity: 1;
+}
+
+.questionInput:disabled,
+.questionTextarea:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.questionSubmitErrorCard,
+.consultErrorCard {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid rgba(248, 187, 221, 0.42);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.9);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(248, 187, 221, 0.16), transparent 36%),
+    rgba(42, 23, 69, 0.42);
+  box-shadow: 0 18px 44px rgba(7, 3, 18, 0.22);
+}
+
+.questionSubmitErrorCard strong,
+.consultErrorCard h2 {
+  color: var(--tea-cream);
+  font-family: var(--tea-font-premium);
+}
+
+.questionSubmitErrorCard p,
+.consultErrorCard p {
+  margin: 0;
+  line-height: 1.68;
+}
+
+.consultErrorScene {
+  display: grid;
+  width: min(100%, 760px);
+  min-height: min(640px, calc(100svh - 120px));
+  place-items: center;
+  margin-inline: auto;
+}
+
+.consultErrorCard {
+  margin: 0;
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.resultHeaderCup {
+  width: min(34vw, 220px);
+  margin: 0 0 8px;
+}
+
+.resultYeoniOpening {
+  display: block;
+  max-width: 780px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(233, 196, 106, 0.34);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.92);
+  background: rgba(255, 246, 250, 0.065);
+  line-height: 1.72;
+}
+
+.tarotAssetFallbackCard {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  padding: 12px;
+  color: #2a1745;
+  text-align: center;
+}
+
+.tarotAssetFallbackCard strong {
+  font-family: var(--tea-font-display);
+  font-size: 1.05rem;
+}
+
+.tarotAssetFallbackCard small,
+.tarotAssetFallbackCard em,
+.tarotAssetFallbackCard span {
+  font-style: normal;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.fortuneTeaDebugPanel {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 80;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(54vh, 420px);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(233, 196, 106, 0.42);
+  border-radius: 8px;
+  color: rgba(255, 246, 250, 0.92);
+  background: rgba(13, 6, 26, 0.88);
+  box-shadow: 0 18px 42px rgba(5, 2, 14, 0.4);
+  font-size: 0.75rem;
+}
+
+.fortuneTeaDebugPanel dl {
+  display: grid;
+  gap: 7px;
+  margin: 8px 0 0;
+}
+
+.fortuneTeaDebugPanel div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.fortuneTeaDebugPanel dt {
+  color: var(--tea-gold);
+}
+
+.fortuneTeaDebugPanel dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.teaCupDebugPage {
+  min-height: 100dvh;
+  padding: clamp(18px, 3vw, 34px);
+  color: var(--tea-cream);
+  background:
+    linear-gradient(180deg, rgba(18, 7, 34, 0.72), rgba(9, 3, 22, 0.92)),
+    var(--tea-bg-desktop);
+  background-size: cover;
+  background-position: center;
+}
+
+.teaCupDebugSheets,
+.teaCupDebugGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.teaCupDebugSheets {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.teaCupDebugSheets figure,
+.teaCupDebugCard {
+  margin: 0;
+  padding: 14px;
+  overflow: visible;
+  border: 1px solid rgba(255, 246, 250, 0.14);
+  border-radius: 8px;
+  background: rgba(18, 7, 34, 0.68);
+}
+
+.teaCupDebugSheets img {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.12) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.12) 75%),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.12) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.12) 75%);
+  background-position: 0 0, 12px 12px;
+  background-size: 24px 24px;
+}
+
+.teaCupDebugSheets figcaption,
+.teaCupDebugCard code {
+  display: block;
+  margin-top: 10px;
+  color: rgba(255, 246, 250, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.teaCupDebugGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.teaCupDebugPreviewRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.teaCupDebugMobileCard {
+  display: grid;
+  justify-items: center;
+  width: 160px;
+  min-height: 236px;
+  margin: 14px auto 0;
+  padding: 10px;
+  border: 1px solid rgba(233, 196, 106, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 246, 250, 0.06);
+}
+
+.teaCupDebugMobileCard strong {
+  color: var(--tea-cream);
+  font-family: var(--tea-font-premium);
+  text-align: center;
+}
+
+@keyframes teaCupParticleRise {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translateY(4px);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes ritualMoonBreath {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.98) rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.86;
+    transform: scale(1.03) rotate(8deg);
+  }
+}
+
+@keyframes ritualCupFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-12px) scale(1.025);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teaCupVisualParticles,
+  .teaCupRitualMoon,
+  .teaCupRitualCup {
+    animation: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .teaCupRitualScene {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .teaCupRitualVisual {
+    min-height: 420px;
+  }
+
+  .teaCupDebugSheets,
+  .teaCupDebugGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .teaCupVisual[data-size="hero"] {
+    width: min(82vw, 320px);
+  }
+
+  .teaCupVisual[data-size="large"] {
+    width: min(56vw, 210px);
+  }
+
+  .teaCupRitualScene {
+    gap: 12px;
+    padding: 4px 0 24px;
+  }
+
+  .teaCupRitualVisual {
+    min-height: 300px;
+  }
+
+  .teaCupRitualPanel {
+    padding: 20px;
+  }
+
+  .questionSelectedCup {
+    right: 4%;
+    bottom: 2%;
+    width: min(38vw, 150px);
+  }
+
+  .scentLoadingTeaCup {
+    bottom: 4%;
+    width: min(48vw, 170px);
+  }
+
+  .resultHeaderCup {
+    width: min(54vw, 170px);
+  }
+
+  .teaCupDebugSheets,
+  .teaCupDebugGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .teaCupDebugSheets img {
+    height: 180px;
+  }
+}
+
+@media (max-width: 390px) {
+  .teaCupMenuItem .teaCupMenuVisual {
+    width: min(100%, 80px);
+  }
+
+  .teaCupVisual[data-size="large"] {
+    width: min(52vw, 170px);
+  }
+
+  .teaCupRitualPanel {
+    padding: 18px 14px;
+  }
+}
+
 .page::before {
   content: "";
   position: fixed;
@@ -186,7 +770,7 @@
   gap: 8px;
   padding: 0 12px;
   border: 1px solid var(--tea-border-gold);
-  border-radius: var(--tea-radius);
+  border-radius: 999px;
   color: rgba(255, 246, 250, 0.9);
   background:
     radial-gradient(circle at 18% 12%, rgba(248, 187, 221, 0.18), transparent 34%),
@@ -408,7 +992,22 @@
 
 .page[data-stage="result"] .shellSceneImage,
 .page[data-stage="tarotReveal"] .shellSceneImage {
-  opacity: 0.22;
+  display: none;
+}
+
+.page[data-stage="result"] .backdropVeil,
+.page[data-stage="tarotReveal"] .backdropVeil {
+  background:
+    radial-gradient(ellipse at 50% 9%, rgba(255, 246, 250, 0.16), transparent 34rem),
+    radial-gradient(ellipse at 22% 80%, rgba(248, 187, 221, 0.12), transparent 28rem),
+    linear-gradient(180deg, rgba(31, 14, 53, 0.08), rgba(31, 14, 53, 0.18));
+}
+
+.page[data-stage="result"] .backdropVeil::before,
+.page[data-stage="result"] .backdropVeil::after,
+.page[data-stage="tarotReveal"] .backdropVeil::before,
+.page[data-stage="tarotReveal"] .backdropVeil::after {
+  opacity: 0.08;
 }
 
 .page[data-stage="landing"] .backdropVeil {
@@ -1316,20 +1915,24 @@
   padding: 30px 34px 30px;
   overflow: hidden;
   border: 1px solid var(--tea-border-gold);
-  border-radius: var(--tea-radius);
+  border-radius: 24px 24px 24px 10px;
   color: rgba(255, 246, 250, 0.92);
   background:
-    radial-gradient(circle at 92% 0%, rgba(248, 187, 221, 0.2), transparent 31%),
-    radial-gradient(circle at 8% 100%, rgba(185, 156, 255, 0.12), transparent 36%),
-    linear-gradient(135deg, rgba(255, 246, 250, 0.13), rgba(255, 246, 250, 0.034)),
+    radial-gradient(circle at 92% 0%, rgba(248, 187, 221, 0.24), transparent 31%),
+    radial-gradient(circle at 8% 100%, rgba(185, 156, 255, 0.16), transparent 36%),
+    linear-gradient(135deg, rgba(255, 246, 250, 0.16), rgba(255, 246, 250, 0.044)),
     var(--tea-glass-strong);
   box-shadow:
     var(--tea-shadow-panel),
-    0 0 42px rgba(185, 156, 255, 0.13),
-    0 0 28px rgba(233, 196, 106, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13);
+    0 0 42px rgba(185, 156, 255, 0.15),
+    0 0 32px rgba(233, 196, 106, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(233, 196, 106, 0.1);
   backdrop-filter: blur(18px);
   isolation: isolate;
+  cursor: pointer;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .dialogueBox::before {
@@ -1342,10 +1945,10 @@
   z-index: 0;
   pointer-events: none;
   border: 1px solid rgba(255, 246, 250, 0.08);
-  border-radius: 8px;
+  border-radius: 18px 18px 18px 8px;
   background:
-    linear-gradient(90deg, rgba(9, 5, 16, 0.36), transparent 42%),
-    linear-gradient(180deg, rgba(233, 196, 106, 0.12), transparent 22%, transparent 78%, rgba(185, 156, 255, 0.1)),
+    linear-gradient(90deg, rgba(9, 5, 16, 0.28), transparent 42%),
+    linear-gradient(180deg, rgba(233, 196, 106, 0.14), transparent 22%, transparent 78%, rgba(185, 156, 255, 0.12)),
     radial-gradient(circle at 100% 0%, rgba(231, 198, 106, 0.13), transparent 36%);
   opacity: 1;
 }
@@ -1365,8 +1968,8 @@
 }
 
 .dialogueBox[data-frame="system"] {
-  min-height: 0;
-  padding: 22px 26px;
+  min-height: 138px;
+  padding: 26px 30px 28px;
   border: 1px solid rgba(255, 246, 250, 0.13);
   color: rgba(255, 246, 250, 0.92);
   background:
@@ -1386,16 +1989,39 @@
 }
 
 .dialogueBox[data-frame="system"]::after {
-  display: none;
+  display: block;
+  opacity: 0.2;
 }
 
 .dialogueBox[data-speaker="꽃돼지?"] {
   border-color: rgba(248, 187, 221, 0.38);
   background:
-    radial-gradient(circle at 12% 0%, rgba(248, 187, 221, 0.3), transparent 34%),
-    radial-gradient(circle at 96% 10%, rgba(231, 198, 106, 0.15), transparent 28%),
-    linear-gradient(145deg, rgba(255, 246, 250, 0.12), rgba(255, 246, 250, 0.034)),
-    rgba(12, 5, 22, 0.82);
+    radial-gradient(circle at 12% 0%, rgba(248, 187, 221, 0.34), transparent 34%),
+    radial-gradient(circle at 96% 10%, rgba(231, 198, 106, 0.18), transparent 28%),
+    radial-gradient(circle at 50% 120%, rgba(255, 246, 250, 0.11), transparent 42%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.15), rgba(255, 246, 250, 0.044)),
+    rgba(31, 14, 53, 0.76);
+  box-shadow:
+    0 24px 66px rgba(32, 12, 49, 0.4),
+    0 0 42px rgba(248, 187, 221, 0.2),
+    0 0 28px rgba(233, 196, 106, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.dialogueBox[data-speaker="꽃돼지?"]::after {
+  left: 30px;
+  top: auto;
+  bottom: -12px;
+  width: 28px;
+  height: 28px;
+  border-right: 1px solid rgba(248, 187, 221, 0.34);
+  border-bottom: 1px solid rgba(248, 187, 221, 0.34);
+  border-radius: 0 0 8px 0;
+  background:
+    linear-gradient(135deg, rgba(255, 246, 250, 0.13), rgba(248, 187, 221, 0.1)),
+    rgba(31, 14, 53, 0.76);
+  opacity: 1;
+  transform: rotate(45deg);
 }
 
 .dialogueBox[data-speaker="연이"] {
@@ -1427,6 +2053,10 @@
   letter-spacing: 0;
 }
 
+.dialogueBox[data-frame="system"] .dialogueSpeaker {
+  color: rgba(218, 206, 255, 0.94);
+}
+
 .dialogueSpeaker span {
   width: 28px;
   height: 28px;
@@ -1450,6 +2080,16 @@
   font-family: var(--tea-font-playful);
 }
 
+.dialogueBox[data-speaker="꽃돼지?"] .dialogueSpeaker span {
+  border-color: rgba(255, 226, 241, 0.6);
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.86), transparent 18%),
+    linear-gradient(135deg, #fff0f7, #f7a8c8 54%, #e7c66a);
+  box-shadow:
+    0 0 18px rgba(248, 187, 221, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
 .dialogueBox[data-speaker="연이"] .dialogueSpeaker span {
   border-color: rgba(255, 246, 250, 0.5);
   background: linear-gradient(135deg, #fff8de, #e7c66a 48%, #b99cff);
@@ -1458,7 +2098,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.48);
 }
 
-.dialogueBox p {
+.dialogueBox p,
+.dialogueText {
   position: relative;
   z-index: 2;
   margin: 0;
@@ -1468,6 +2109,33 @@
   line-height: 1.84;
   letter-spacing: 0;
   white-space: pre-line;
+}
+
+.dialogueNextIndicator {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  z-index: 2;
+  color: rgba(255, 233, 177, 0.88);
+  font-family: var(--tea-font-premium);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-shadow: 0 0 14px rgba(233, 196, 106, 0.2);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 180ms var(--tea-ease-out), transform 180ms var(--tea-ease-out);
+  animation: dialogueNextPulse 1.6s ease-in-out infinite;
+}
+
+.dialogueBox[data-complete="true"] .dialogueNextIndicator {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dialogueBox[data-advance-disabled="true"] .dialogueNextIndicator {
+  color: rgba(255, 246, 250, 0.72);
+  animation: none;
 }
 
 .storyPanel .dialogueBox,
@@ -2094,7 +2762,20 @@
 }
 
 .teaMenuBoard::after {
-  display: none;
+  content: "";
+  position: absolute;
+  right: clamp(18px, 3vw, 42px);
+  bottom: 10px;
+  width: min(34vw, 320px);
+  height: 58px;
+  pointer-events: none;
+  background-image: var(--fallback-teacup-ui);
+  background-repeat: no-repeat;
+  background-size: 560px auto;
+  background-position: right bottom;
+  opacity: 0.34;
+  filter: saturate(1.08) drop-shadow(0 10px 18px rgba(7, 3, 18, 0.28));
+  z-index: 1;
 }
 
 .teaMenuHeader {
@@ -2188,6 +2869,46 @@
   opacity: 0.9;
   transform: scale(0.98);
   transition: filter 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.teaCupMenuDesignFrame {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  z-index: 1;
+  width: auto;
+  pointer-events: none;
+  border-radius: 8px;
+  background: transparent;
+  opacity: 0.34;
+  filter: saturate(1.14) drop-shadow(0 12px 22px rgba(7, 3, 18, 0.22));
+}
+
+.teaCupMenuDesignCharm {
+  position: absolute;
+  top: 52px;
+  left: 18px;
+  z-index: 3;
+  width: 34px;
+  pointer-events: none;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0.72;
+  filter: saturate(1.18) drop-shadow(0 8px 16px rgba(7, 3, 18, 0.3));
+}
+
+.teaCupMenuItem[data-selected="true"] .teaCupMenuDesignFrame,
+.teaCupMenuItem:hover .teaCupMenuDesignFrame,
+.teaCupMenuItem:focus-visible .teaCupMenuDesignFrame {
+  opacity: 0.54;
+}
+
+.teaCupMenuItem[data-selected="true"] .teaCupMenuDesignCharm,
+.teaCupMenuItem:hover .teaCupMenuDesignCharm,
+.teaCupMenuItem:focus-visible .teaCupMenuDesignCharm {
+  opacity: 0.96;
+  transform: scale(1.06);
 }
 
 .teaCupMenuItem:hover,
@@ -2446,6 +3167,20 @@
   backdrop-filter: blur(18px);
 }
 
+.tarotRevealPanel {
+  border-color: rgba(233, 196, 106, 0.48);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(248, 187, 221, 0.2), transparent 34%),
+    radial-gradient(circle at 90% 12%, rgba(233, 196, 106, 0.16), transparent 28%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.14), rgba(255, 246, 250, 0.052)),
+    rgba(24, 10, 41, 0.58);
+  box-shadow:
+    0 24px 68px rgba(28, 10, 43, 0.32),
+    0 0 42px rgba(248, 187, 221, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
 .emotionPanel::before,
 .tarotRevealPanel::before {
   content: "";
@@ -2457,7 +3192,7 @@
   background-repeat: no-repeat;
   background-size: 240% auto;
   background-position: right 3% top 9%;
-  opacity: 0.22;
+  opacity: 0.1;
   mix-blend-mode: screen;
 }
 
@@ -2489,7 +3224,7 @@
   background-repeat: no-repeat;
   background-size: 115% auto, 46% auto, 46% auto;
   background-position: center, left bottom, right bottom;
-  opacity: 0.1;
+  opacity: 0.035;
   mix-blend-mode: screen;
   filter: blur(0.2px) saturate(1.1);
 }
@@ -2813,11 +3548,40 @@
   perspective: 1200px;
 }
 
+.tarotStage::before,
+.tarotStage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.tarotStage::before {
+  width: min(420px, 88vw);
+  aspect-ratio: 1.25;
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.28), rgba(248, 187, 221, 0.16) 34%, rgba(233, 196, 106, 0.08) 54%, transparent 72%);
+  filter: blur(14px);
+  opacity: 0.78;
+  animation: tarotStageBreath 4.8s ease-in-out infinite;
+}
+
+.tarotStage::after {
+  width: min(310px, 68vw);
+  aspect-ratio: 1.9;
+  bottom: 4%;
+  background: radial-gradient(ellipse, rgba(233, 196, 106, 0.18), transparent 68%);
+  filter: blur(8px);
+  opacity: 0.7;
+}
+
 .tarotFlipCard {
   position: relative;
   z-index: 1;
   width: min(100%, 310px);
   aspect-ratio: 2.6 / 4;
+  filter: drop-shadow(0 22px 34px rgba(44, 18, 62, 0.28)) drop-shadow(0 0 26px rgba(248, 187, 221, 0.18));
+  animation: tarotCardHover 5.6s ease-in-out infinite;
 }
 
 .tarotFlipInner {
@@ -2825,7 +3589,7 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 860ms cubic-bezier(0.22, 0.86, 0.3, 1);
+  transition: transform 1120ms cubic-bezier(0.2, 0.82, 0.24, 1);
 }
 
 .tarotFlipCard[data-flipped="true"] .tarotFlipInner {
@@ -2849,8 +3613,11 @@
   height: 100%;
   border-radius: var(--tea-radius);
   overflow: hidden;
-  border: 1px solid rgba(233, 196, 106, 0.58);
-  box-shadow: 0 24px 58px rgba(6, 3, 16, 0.44), 0 0 46px rgba(248, 187, 221, 0.16);
+  border: 1px solid rgba(255, 233, 177, 0.64);
+  box-shadow:
+    0 20px 44px rgba(44, 18, 62, 0.26),
+    0 0 44px rgba(248, 187, 221, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .tarotCardBack {
@@ -2859,12 +3626,13 @@
   place-items: center;
   color: var(--tea-cream);
   background:
-    linear-gradient(145deg, rgba(255, 246, 250, 0.08), transparent 46%),
+    radial-gradient(circle at 50% 18%, rgba(255, 246, 250, 0.16), transparent 35%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.12), transparent 46%),
     var(--tarot-card-back),
-    linear-gradient(180deg, rgba(42, 23, 69, 0.98), rgba(21, 9, 38, 0.98)),
+    linear-gradient(180deg, rgba(62, 28, 82, 0.76), rgba(42, 23, 69, 0.82)),
     var(--selection-pattern);
-  background-size: cover, cover, cover, 150% auto;
-  background-position: center, center, center, center;
+  background-size: cover, cover, cover, cover, 150% auto;
+  background-position: center, center, center, center, center;
   background-repeat: no-repeat;
 }
 
@@ -2892,8 +3660,8 @@
 }
 
 .tarotCardBack[data-animated="true"]::after {
-  opacity: 0.96;
-  animation: tarotCardFrameSweep 1.15s steps(7, end) infinite;
+  opacity: 0.74;
+  animation: tarotCardFrameSweep 1.6s steps(7, end) infinite;
 }
 
 .tarotBackMoon {
@@ -3149,13 +3917,13 @@
   background-repeat: no-repeat;
   background-size: calc(var(--tarot-reveal-columns, 8) * 100%) 100%;
   background-position: 0% 50%;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 34px rgba(248, 187, 221, 0.34));
+  opacity: 0.72;
+  filter: drop-shadow(0 0 34px rgba(248, 187, 221, 0.28));
   pointer-events: none;
 }
 
 .tarotRevealAnimation[data-active="true"] {
-  animation: tarotCardFrameSweep 1.15s steps(7, end) infinite;
+  animation: tarotCardFrameSweep 1.6s steps(7, end) infinite;
 }
 
 .tarotRevealStageAnimation {
@@ -5386,6 +6154,15 @@
       linear-gradient(145deg, rgba(42, 23, 69, 0.82), rgba(18, 7, 34, 0.92));
   }
 
+  .teaMenuBoard::after {
+    right: 14px;
+    bottom: 6px;
+    width: 180px;
+    height: 38px;
+    background-size: 380px auto;
+    opacity: 0.24;
+  }
+
   .teaMenuHeader {
     margin-bottom: 14px;
   }
@@ -5416,6 +6193,19 @@
     min-height: 0;
     margin-bottom: 6px;
     transform: scale(0.98);
+  }
+
+  .teaCupMenuDesignFrame {
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    opacity: 0.24;
+  }
+
+  .teaCupMenuDesignCharm {
+    top: 42px;
+    left: 12px;
+    width: 26px;
   }
 
   .teaCupMenuText {
@@ -5805,9 +6595,12 @@
   .transformImage,
   .yeoniPortrait,
   .ctaYeoni,
+  .tarotFlipCard,
   .tarotFlipInner,
+  .tarotStage::before,
   .tarotCardBack::after,
   .yeoniDialoguePanel,
+  .entryIdleDialogueBox,
   .readyNotice,
   .entryTransition img,
   .entryTransition span,
@@ -5981,6 +6774,101 @@
   }
 }
 
+@keyframes transformTeaBloom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 18%) scale(0.68);
+    filter: blur(5px) drop-shadow(0 0 10px rgba(233, 196, 106, 0.12));
+  }
+  48% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0.2px) drop-shadow(0 0 28px rgba(233, 196, 106, 0.26));
+  }
+}
+
+@keyframes transformMistRise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 18%) scale(0.72);
+  }
+  55% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0.76;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes transformRingOpen {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.34) rotate(-22deg);
+  }
+  58% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes transformPetalDrift {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -42%) scale(0.72) rotate(-5deg);
+  }
+  38% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 0.64;
+    transform: translate(-50%, -54%) scale(1.08) rotate(5deg);
+  }
+}
+
+@keyframes transformCutsceneFocus {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.9);
+    filter:
+      blur(5px)
+      drop-shadow(0 34px 70px rgba(5, 2, 14, 0.48))
+      drop-shadow(0 0 42px rgba(248, 187, 221, 0.34));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dialogueNextPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes entryIdleBubbleGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(248, 187, 221, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(248, 187, 221, 0.16));
+  }
+}
+
 @keyframes revealLift {
   0% {
     opacity: 0;
@@ -6000,6 +6888,28 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes tarotStageBreath {
+  0%,
+  100% {
+    opacity: 0.64;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.86;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes tarotCardHover {
+  0%,
+  100% {
+    transform: translateY(0) rotateZ(-0.35deg);
+  }
+  50% {
+    transform: translateY(-8px) rotateZ(0.35deg);
   }
 }
 
@@ -6271,11 +7181,12 @@
   position: relative;
   width: 100%;
   min-height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   color: var(--tea-cream);
   background:
-    radial-gradient(circle at 80% 18%, rgba(248, 187, 221, 0.18), transparent 30%),
-    linear-gradient(135deg, #12081f 0%, #231136 50%, #07040e 100%);
+    radial-gradient(circle at 80% 18%, rgba(248, 187, 221, 0.16), transparent 30%),
+    linear-gradient(135deg, #211038 0%, #34204f 52%, #170b27 100%);
   isolation: isolate;
 }
 
@@ -6286,16 +7197,16 @@
   background-image: var(--entry-bg-desktop);
   background-size: cover;
   background-position: center 58%;
-  filter: saturate(1.08) brightness(0.74);
-  transform: scale(1.08);
+  filter: saturate(1.12) brightness(0.88);
+  transform: scale(1.04);
 }
 
 .entryStoryScene[data-entry-stage="transformPreview"] .entryStoryBackground,
 .entryStoryScene[data-entry-stage="yeoniReveal"] .entryStoryBackground,
 .entryStoryScene[data-entry-stage="teaIntro"] .entryStoryBackground {
   background-position: center 54%;
-  filter: saturate(1.1) brightness(0.68);
-  transform: scale(1.12);
+  filter: saturate(1.12) brightness(0.82);
+  transform: scale(1.07);
 }
 
 .entryStoryOverlay,
@@ -6309,12 +7220,12 @@
 .entryStoryOverlay {
   inset: 0;
   background:
-    radial-gradient(circle at 72% 16%, rgba(248, 187, 221, 0.13), transparent 34%),
+    radial-gradient(circle at 72% 16%, rgba(248, 187, 221, 0.14), transparent 34%),
     radial-gradient(circle at 20% 78%, rgba(185, 156, 255, 0.1), transparent 42%),
-    linear-gradient(90deg, rgba(5, 2, 12, 0.68) 0%, rgba(13, 5, 25, 0.36) 44%, rgba(5, 2, 12, 0.72) 100%),
-    linear-gradient(180deg, rgba(13, 5, 26, 0.32), rgba(5, 2, 12, 0.72));
+    linear-gradient(90deg, rgba(42, 23, 69, 0.24) 0%, rgba(42, 23, 69, 0.08) 44%, rgba(42, 23, 69, 0.22) 100%),
+    linear-gradient(180deg, rgba(31, 14, 53, 0.1), rgba(31, 14, 53, 0.42));
   background-size: cover;
-  opacity: 0.94;
+  opacity: 0.76;
   mix-blend-mode: normal;
 }
 
@@ -6347,6 +7258,7 @@
   display: grid;
   place-items: center;
   pointer-events: none;
+  overflow: visible;
 }
 
 .entryActor[data-actor="none"] {
@@ -6361,7 +7273,8 @@
 
 .entryActor[data-actor="transform"] {
   place-items: center;
-  padding-bottom: clamp(150px, 19svh, 220px);
+  padding: clamp(46px, 7svh, 88px) 0 clamp(230px, 27svh, 330px);
+  perspective: 1200px;
 }
 
 .entryActor[data-actor="yeoni"] {
@@ -6377,6 +7290,7 @@
 .entryActorAura,
 .entryTransformBurst {
   position: absolute;
+  z-index: 1;
   width: min(58vw, 720px);
   aspect-ratio: 1;
   border-radius: 999px;
@@ -6408,18 +7322,93 @@
   animation: transformPulse 2.4s ease-in-out infinite;
 }
 
+.entryTransformTeaCup,
+.entryTransformLotusMist,
+.entryTransformRing,
+.entryTransformPetals {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.entryTransformTeaCup {
+  top: 62%;
+  width: min(34vw, 420px);
+  aspect-ratio: 2.6 / 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(255, 246, 250, 0.8) 0 4%, rgba(233, 196, 106, 0.44) 5% 12%, transparent 34%),
+    radial-gradient(ellipse at 50% 66%, rgba(248, 187, 221, 0.28), transparent 58%);
+  filter: blur(0.2px) drop-shadow(0 0 28px rgba(233, 196, 106, 0.26));
+  opacity: 0.9;
+  animation: transformTeaBloom 1.28s ease-out both;
+}
+
+.entryTransformLotusMist {
+  top: 46%;
+  width: min(50vw, 620px);
+  aspect-ratio: 1.15;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255, 246, 250, 0.32), transparent 10%),
+    radial-gradient(circle at 42% 48%, rgba(248, 187, 221, 0.28), transparent 24%),
+    radial-gradient(circle at 58% 42%, rgba(185, 156, 255, 0.22), transparent 28%),
+    radial-gradient(circle, rgba(233, 196, 106, 0.16), transparent 62%);
+  filter: blur(18px);
+  opacity: 0.76;
+  animation: transformMistRise 1.5s ease-out both;
+}
+
+.entryTransformRing {
+  width: min(52vw, 650px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  background:
+    radial-gradient(circle, transparent 44%, rgba(255, 246, 250, 0.12) 45% 46%, transparent 48%),
+    conic-gradient(from 90deg, rgba(248, 187, 221, 0), rgba(248, 187, 221, 0.44), rgba(233, 196, 106, 0.34), rgba(185, 156, 255, 0.42), rgba(248, 187, 221, 0));
+  box-shadow:
+    0 0 48px rgba(185, 156, 255, 0.2),
+    inset 0 0 34px rgba(233, 196, 106, 0.12);
+  opacity: 0.72;
+  mask-image: radial-gradient(circle, transparent 48%, #000 50%, #000 58%, transparent 62%);
+  -webkit-mask-image: radial-gradient(circle, transparent 48%, #000 50%, #000 58%, transparent 62%);
+  animation: transformRingOpen 1.4s ease-out both;
+}
+
+.entryTransformPetals {
+  width: min(60vw, 740px);
+  aspect-ratio: 1.35;
+  background:
+    radial-gradient(ellipse at 28% 42%, rgba(248, 187, 221, 0.88) 0 2%, transparent 3%),
+    radial-gradient(ellipse at 38% 22%, rgba(255, 226, 241, 0.82) 0 1.8%, transparent 3%),
+    radial-gradient(ellipse at 60% 24%, rgba(248, 187, 221, 0.78) 0 1.8%, transparent 3%),
+    radial-gradient(ellipse at 70% 48%, rgba(255, 226, 241, 0.86) 0 2%, transparent 3%),
+    radial-gradient(ellipse at 47% 70%, rgba(233, 196, 106, 0.78) 0 1.6%, transparent 3%);
+  filter: drop-shadow(0 0 14px rgba(248, 187, 221, 0.3));
+  opacity: 0;
+  animation: transformPetalDrift 1.36s ease-out both;
+}
+
 .entryTransformFrame,
 .entryTransformVideo {
   position: relative;
-  z-index: 2;
-  width: min(54vw, 660px);
+  z-index: 3;
+  width: min(58vw, 700px);
   min-width: 340px;
   aspect-ratio: 1;
   border: 0;
-  border-radius: 26px;
+  border-radius: 999px;
   display: block;
   overflow: hidden;
-  filter: drop-shadow(0 34px 70px rgba(5, 2, 14, 0.48)) drop-shadow(0 0 38px rgba(248, 187, 221, 0.28));
+  filter:
+    drop-shadow(0 34px 70px rgba(5, 2, 14, 0.48))
+    drop-shadow(0 0 42px rgba(248, 187, 221, 0.34))
+    drop-shadow(0 0 26px rgba(233, 196, 106, 0.18));
+  animation: transformCutsceneFocus 1.2s ease-out both;
 }
 
 .entryTransformVideo {
@@ -6600,24 +7589,25 @@
   left: 50%;
   bottom: var(--entry-panel-bottom);
   z-index: 5;
-  width: min(900px, calc(100vw - 72px));
-  padding: 24px;
+  width: min(900px, 72vw);
+  padding: 20px 22px 18px;
   border: 1px solid rgba(255, 246, 250, 0.16);
   border-radius: 8px;
   background:
-    radial-gradient(circle at 92% 0%, rgba(247, 168, 200, 0.14), transparent 34%),
-    linear-gradient(145deg, rgba(255, 246, 250, 0.12), rgba(255, 246, 250, 0.045)),
-    rgba(13, 6, 24, 0.78);
+    radial-gradient(circle at 92% 0%, rgba(247, 168, 200, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.16), rgba(255, 246, 250, 0.064)),
+    rgba(31, 14, 53, 0.6);
   box-shadow:
-    0 26px 80px rgba(5, 2, 14, 0.54),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 22px 64px rgba(32, 12, 49, 0.36),
+    0 0 34px rgba(248, 187, 221, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
   transform: translateX(-50%);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(14px) saturate(1.08);
   animation: entryPanelFade 420ms ease both;
 }
 
 .entryStoryPanel .sceneEyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: rgba(233, 196, 106, 0.95);
   font-family: var(--font-premium, var(--font-body));
   font-size: 0.92rem;
@@ -6626,10 +7616,10 @@
 }
 
 .entryStoryPanel h2 {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   color: rgba(255, 246, 250, 0.97);
   font-family: var(--font-display, var(--font-body));
-  font-size: clamp(2rem, 3.4vw, 3.3rem);
+  font-size: clamp(1.65rem, 2.4vw, 2.45rem);
   font-weight: 760;
   line-height: 1.16;
   letter-spacing: 0;
@@ -6641,10 +7631,10 @@
   background:
     radial-gradient(circle at 88% 0%, rgba(185, 156, 255, 0.16), transparent 34%),
     radial-gradient(circle at 12% 0%, rgba(248, 187, 221, 0.13), transparent 36%),
-    linear-gradient(145deg, rgba(255, 246, 250, 0.13), rgba(255, 246, 250, 0.045)),
-    rgba(9, 4, 19, 0.82);
+    linear-gradient(145deg, rgba(255, 246, 250, 0.16), rgba(255, 246, 250, 0.06)),
+    rgba(31, 14, 53, 0.64);
   box-shadow:
-    0 30px 92px rgba(5, 2, 14, 0.58),
+    0 26px 76px rgba(32, 12, 49, 0.42),
     0 0 48px rgba(185, 156, 255, 0.14),
     0 0 28px rgba(233, 196, 106, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -6652,8 +7642,40 @@
 
 .entryDialogueBox {
   margin-top: 0;
-  min-height: 0;
-  padding: 22px 24px;
+  min-height: 148px;
+  padding: 22px 24px 30px;
+}
+
+.entryDialogueBox[data-speaker="꽃돼지?"] {
+  overflow: visible;
+}
+
+.entryIdleDialogueBox {
+  border-color: rgba(255, 226, 241, 0.58);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255, 226, 241, 0.32), transparent 34%),
+    radial-gradient(circle at 88% 18%, rgba(233, 196, 106, 0.2), transparent 28%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.17), rgba(255, 246, 250, 0.058)),
+    rgba(31, 14, 53, 0.68);
+  box-shadow:
+    0 22px 60px rgba(32, 12, 49, 0.34),
+    0 0 42px rgba(248, 187, 221, 0.24),
+    0 0 26px rgba(233, 196, 106, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  animation: entryIdleBubbleGlow 5.8s ease-in-out infinite;
+}
+
+.entryIdleDialogueBox::before {
+  border-color: rgba(255, 226, 241, 0.12);
+  background:
+    radial-gradient(circle at 12% 16%, rgba(255, 246, 250, 0.16), transparent 18%),
+    linear-gradient(180deg, rgba(233, 196, 106, 0.13), transparent 24%, rgba(248, 187, 221, 0.1)),
+    radial-gradient(circle at 100% 0%, rgba(248, 187, 221, 0.16), transparent 36%);
+}
+
+.entryIdleDialogueBox .dialogueText {
+  color: rgba(255, 250, 253, 0.94);
+  text-shadow: 0 2px 18px rgba(5, 2, 14, 0.3), 0 0 18px rgba(248, 187, 221, 0.12);
 }
 
 .entryStoryScene[data-entry-stage="yeoniReveal"] .entryDialogueBox {
@@ -6697,7 +7719,7 @@
 
   .entryActor[data-actor="transform"] {
     place-items: center;
-    padding-bottom: clamp(150px, 19svh, 230px);
+    padding: clamp(42px, 7svh, 88px) 0 clamp(230px, 27svh, 330px);
   }
 
   .entryActor[data-actor="yeoni"] {
@@ -6710,24 +7732,18 @@
     height: min(70svh, 740px);
   }
 
-  .entryStoryPanel {
-    left: clamp(44px, 6vw, 110px);
-    width: min(720px, 52vw);
-    transform: none;
-  }
-
-  .entryStoryScene[data-entry-stage="doorOpened"] .entryStoryPanel {
+  .entryStoryPanel,
+  .entryStoryScene[data-entry-stage="doorOpened"] .entryStoryPanel,
+  .entryStoryScene[data-entry-stage="yeoniReveal"] .entryStoryPanel,
+  .entryStoryScene[data-entry-stage="teaIntro"] .entryStoryPanel {
     left: 50%;
-    width: min(850px, calc(100vw - 120px));
-    text-align: center;
+    right: auto;
+    width: min(900px, 72vw);
     transform: translateX(-50%);
   }
 
-  .entryStoryScene[data-entry-stage="yeoniReveal"] .entryStoryPanel,
-  .entryStoryScene[data-entry-stage="teaIntro"] .entryStoryPanel {
-    left: auto;
-    right: clamp(40px, 6vw, 104px);
-    width: min(680px, 50vw);
+  .entryStoryScene[data-entry-stage="doorOpened"] .entryStoryPanel {
+    text-align: center;
   }
 }
 
@@ -6735,25 +7751,30 @@
   .entryStoryScene {
     --entry-panel-bottom: max(14px, env(safe-area-inset-bottom));
     min-height: 100dvh;
+    height: 100dvh;
   }
 
   .entryStoryBackground {
     background-image: var(--entry-bg-mobile);
     background-position: 58% center;
-    transform: scale(1.13);
+    transform: scale(1.08);
   }
 
   .entryStoryOverlay {
     background:
       radial-gradient(circle at 72% 12%, rgba(248, 187, 221, 0.13), transparent 34%),
-      linear-gradient(180deg, rgba(8, 3, 16, 0.38) 0%, rgba(10, 4, 18, 0.22) 38%, rgba(5, 2, 12, 0.84) 100%),
-      linear-gradient(90deg, rgba(5, 2, 12, 0.58), rgba(14, 5, 26, 0.28), rgba(5, 2, 12, 0.62));
+      linear-gradient(180deg, rgba(31, 14, 53, 0.22) 0%, rgba(31, 14, 53, 0.12) 38%, rgba(31, 14, 53, 0.56) 100%),
+      linear-gradient(90deg, rgba(42, 23, 69, 0.28), rgba(42, 23, 69, 0.08), rgba(42, 23, 69, 0.28));
+  }
+
+  .entryActor {
+    inset: 0 0 clamp(270px, 42dvh, 390px);
   }
 
   .entryActor[data-actor="pig"],
   .entryActor[data-actor="transform"] {
     align-items: start;
-    padding: clamp(58px, 11svh, 92px) 0 0;
+    padding: clamp(48px, 8dvh, 76px) 0 0;
   }
 
   .entryPigFrame {
@@ -6761,9 +7782,27 @@
     min-width: 250px;
   }
 
-  .entryTransformFrame {
-    width: min(86vw, 390px);
+  .entryTransformFrame,
+  .entryTransformVideo {
+    width: min(86vw, 410px);
     min-width: 280px;
+  }
+
+  .entryTransformTeaCup {
+    top: 67%;
+    width: min(64vw, 310px);
+  }
+
+  .entryTransformLotusMist {
+    width: min(92vw, 430px);
+  }
+
+  .entryTransformRing {
+    width: min(92vw, 430px);
+  }
+
+  .entryTransformPetals {
+    width: min(98vw, 460px);
   }
 
   .entryActor[data-actor="yeoni"] {
@@ -6805,8 +7844,17 @@
   }
 
   .entryStoryPanel {
-    width: calc(100vw - 20px);
-    padding: 18px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 44dvh;
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 14px 14px 0 0;
+    transform: none;
   }
 
   .entryStoryPanel .sceneEyebrow {
@@ -6814,12 +7862,13 @@
   }
 
   .entryStoryPanel h2 {
-    margin-bottom: 12px;
-    font-size: clamp(1.58rem, 7.6vw, 2.45rem);
+    margin-bottom: 10px;
+    font-size: clamp(1.34rem, 5.8vw, 1.9rem);
   }
 
   .entryDialogueBox {
-    padding: 18px;
+    min-height: 128px;
+    padding: 18px 18px 28px;
   }
 
   .entryDialogueBox p {
@@ -6830,12 +7879,27 @@
   .entryStoryControls {
     align-items: stretch;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    margin-top: 10px;
   }
 
   .entryStoryButtons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .entryStoryButtons .teaButton {
+    width: 100%;
+  }
+
+  .entryStoryButtons .teaButton:not(:last-child) {
+    min-height: 32px;
+    padding: 4px 10px;
+    border-color: rgba(255, 246, 250, 0.12);
+    background: rgba(255, 246, 250, 0.04);
+    box-shadow: none;
+    font-size: 0.76rem;
   }
 
   .entryStoryButtons .teaButton:last-child {
@@ -6845,8 +7909,8 @@
 
 @media (max-width: 430px) {
   .entryStoryPanel {
-    width: calc(100vw - 8px);
-    padding: 16px;
+    width: 100%;
+    padding: 14px 14px max(14px, env(safe-area-inset-bottom));
   }
 
   .entryPigFrame {
@@ -6859,7 +7923,7 @@
   }
 
   .entryStoryPanel h2 {
-    font-size: clamp(1.45rem, 7.3vw, 2rem);
+    font-size: clamp(1.24rem, 5.6vw, 1.58rem);
   }
 
   .entryStoryButtons {
@@ -6871,6 +7935,13 @@
   .entryPigFrame,
   .entryStoryPanel,
   .entryTransformBurst,
+  .entryTransformTeaCup,
+  .entryTransformLotusMist,
+  .entryTransformRing,
+  .entryTransformPetals,
+  .entryTransformFrame,
+  .entryTransformVideo,
+  .entryIdleDialogueBox,
   .entryActor[data-actor="pig"],
   .entryYeoniDescent,
   .entryYeoniMoonRing,
@@ -7064,5 +8135,580 @@
     right: auto;
     bottom: auto;
     margin: 20px 14px 34px;
+  }
+}
+
+.teaCupMenuItem {
+  overflow: visible;
+}
+
+.teaCupMenuItem .teaCupMenuVisual {
+  width: min(100%, 154px);
+  overflow: visible;
+}
+
+.teaCupMenuVisual .teaCupVisualSprite {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .teaCupMenuItem .teaCupMenuVisual {
+    width: min(100%, 92px);
+  }
+}
+
+@media (max-width: 390px) {
+  .teaCupMenuItem .teaCupMenuVisual {
+    width: min(100%, 84px);
+  }
+}
+
+.page[data-stage="landing"] .landingHero {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 72% 16%, rgba(255, 246, 250, 0.2), transparent 12rem),
+    radial-gradient(circle at 82% 52%, rgba(248, 187, 221, 0.2), transparent 22rem),
+    radial-gradient(ellipse at 36% 92%, rgba(233, 196, 106, 0.18), transparent 26rem),
+    var(--landing-bg-desktop),
+    linear-gradient(135deg, #160b2e 0%, #2a1745 48%, #12081f 100%);
+  background-position: center center;
+  background-size: cover;
+}
+
+.page[data-stage="landing"] .landingHero::before {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(7, 3, 16, 0.72) 0%, rgba(12, 5, 24, 0.46) 36%, rgba(12, 5, 24, 0.16) 62%, rgba(7, 3, 16, 0.5) 100%),
+    linear-gradient(180deg, rgba(255, 246, 250, 0.04), rgba(12, 5, 24, 0.22) 58%, rgba(7, 3, 16, 0.76));
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+.page[data-stage="landing"] .landingHero::after {
+  display: block;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 68% 20%, rgba(255, 246, 250, 0.28), transparent 11rem),
+    radial-gradient(circle at 88% 42%, rgba(248, 187, 221, 0.17), transparent 18rem),
+    linear-gradient(115deg, transparent 0 52%, rgba(255, 246, 250, 0.1) 53%, transparent 67%);
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+.page[data-stage="landing"] .landingMoonGlow,
+.page[data-stage="landing"] .landingTeaGlow,
+.page[data-stage="landing"] .landingParticles,
+.page[data-stage="landing"] .landingHeroGlow {
+  display: block;
+}
+
+.page[data-stage="landing"] .landingMoonGlow {
+  top: clamp(-160px, -9vw, -80px);
+  right: clamp(-120px, -5vw, 28px);
+  width: clamp(340px, 39vw, 620px);
+  z-index: 2;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 251, 238, 0.48), transparent 28%),
+    radial-gradient(circle at 50% 50%, rgba(248, 187, 221, 0.3), transparent 58%),
+    radial-gradient(circle at 50% 50%, rgba(185, 156, 255, 0.2), transparent 72%);
+  opacity: 0.9;
+  animation: landingPremiumMoonPulse 8s ease-in-out infinite;
+}
+
+.page[data-stage="landing"] .landingTeaGlow {
+  left: clamp(18px, 27vw, 420px);
+  bottom: clamp(42px, 8vh, 110px);
+  width: clamp(260px, 35vw, 560px);
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255, 246, 250, 0.2), transparent 32%),
+    radial-gradient(ellipse at 50% 58%, rgba(233, 196, 106, 0.26), transparent 64%),
+    radial-gradient(ellipse at 50% 70%, rgba(248, 187, 221, 0.16), transparent 72%);
+  opacity: 0.86;
+  animation: landingPremiumTeaGlow 7s ease-in-out infinite;
+}
+
+.page[data-stage="landing"] .landingHeroGlow {
+  left: auto;
+  right: clamp(26px, 9vw, 150px);
+  bottom: clamp(84px, 12vh, 158px);
+  z-index: 2;
+  width: clamp(260px, 34vw, 560px);
+  background:
+    radial-gradient(circle, rgba(255, 246, 250, 0.16), transparent 38%),
+    radial-gradient(circle, rgba(248, 187, 221, 0.24), transparent 62%),
+    radial-gradient(circle, rgba(233, 196, 106, 0.11), transparent 74%);
+  filter: blur(16px);
+  opacity: 0.92;
+}
+
+.page[data-stage="landing"] .landingParticles {
+  z-index: 3;
+}
+
+.page[data-stage="landing"] .landingParticles span {
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.92), transparent 16%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.92), rgba(248, 187, 221, 0.78) 58%, rgba(233, 196, 106, 0.62));
+  opacity: 0.64;
+  filter: drop-shadow(0 0 12px rgba(248, 187, 221, 0.36));
+}
+
+.page[data-stage="landing"] .landingHeroContent {
+  position: relative;
+  z-index: 4;
+  min-height: 100dvh;
+  height: auto;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.78fr);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(32px, 6vw, 96px);
+  padding: clamp(72px, 8vw, 112px) clamp(28px, 7vw, 112px) clamp(48px, 7vw, 88px);
+}
+
+.page[data-stage="landing"] .landingCopy {
+  max-width: 720px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.page[data-stage="landing"] .landingCopy > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page[data-stage="landing"] .landingBadge {
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 9px 14px;
+  border-color: rgba(255, 233, 177, 0.56);
+  color: rgba(255, 246, 250, 0.94);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 246, 250, 0.26), transparent 34%),
+    linear-gradient(135deg, rgba(255, 246, 250, 0.13), rgba(248, 187, 221, 0.08)),
+    rgba(18, 8, 31, 0.36);
+  box-shadow:
+    0 0 26px rgba(248, 187, 221, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.page[data-stage="landing"] .landingBadge::before {
+  content: "";
+  width: 7px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(255, 233, 177, 0.96);
+  box-shadow: 0 0 16px rgba(255, 233, 177, 0.72), 0 0 28px rgba(248, 187, 221, 0.5);
+}
+
+.page[data-stage="landing"] .landingCopy h1 {
+  max-width: 7em;
+  color: rgba(255, 250, 253, 0.98);
+  font-family: var(--tea-font-display);
+  font-size: clamp(3.6rem, 7vw, 7.2rem);
+  font-weight: 780;
+  line-height: 0.98;
+  white-space: normal;
+  text-shadow:
+    0 20px 46px rgba(5, 2, 14, 0.62),
+    0 0 34px rgba(248, 187, 221, 0.34),
+    0 0 18px rgba(233, 196, 106, 0.2);
+}
+
+.page[data-stage="landing"] .landingLead {
+  max-width: 620px;
+  margin-top: 24px;
+  color: rgba(255, 246, 250, 0.95);
+  font-size: clamp(1.22rem, 2vw, 1.58rem);
+  line-height: 1.62;
+  text-shadow: 0 10px 32px rgba(5, 2, 14, 0.58);
+}
+
+.page[data-stage="landing"] .landingIntro {
+  max-width: 590px;
+  margin-top: 14px;
+  color: rgba(255, 246, 250, 0.78);
+  font-size: clamp(0.98rem, 1.4vw, 1.08rem);
+  line-height: 1.8;
+  text-shadow: 0 8px 24px rgba(5, 2, 14, 0.5);
+}
+
+.page[data-stage="landing"] .landingActions {
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.page[data-stage="landing"] .landingActions .teaButton {
+  position: relative;
+  min-width: 198px;
+  min-height: 54px;
+  border-color: rgba(255, 233, 177, 0.88);
+  border-radius: 999px;
+  color: #241338;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(255, 255, 255, 0.92), transparent 28%),
+    linear-gradient(135deg, rgba(255, 248, 222, 0.98), rgba(233, 196, 106, 0.95) 46%, rgba(248, 187, 221, 0.96));
+  box-shadow:
+    0 20px 46px rgba(233, 196, 106, 0.26),
+    0 0 46px rgba(248, 187, 221, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+.page[data-stage="landing"] .landingActions .teaButton::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(110deg, transparent 0 32%, rgba(255, 255, 255, 0.46) 44%, transparent 58%),
+    radial-gradient(circle at 86% 50%, rgba(255, 246, 250, 0.4), transparent 24%);
+  opacity: 0.42;
+  transform: translateX(-18%);
+  transition: opacity 180ms var(--tea-ease-out), transform 240ms var(--tea-ease-out);
+}
+
+.page[data-stage="landing"] .landingActions .teaButton:hover::before {
+  opacity: 0.72;
+  transform: translateX(10%);
+}
+
+.page[data-stage="landing"] .landingActions .teaButton:focus-visible {
+  outline: 2px solid rgba(255, 246, 250, 0.96);
+  outline-offset: 4px;
+  box-shadow:
+    0 0 0 5px rgba(248, 187, 221, 0.22),
+    0 22px 52px rgba(233, 196, 106, 0.28),
+    0 0 52px rgba(248, 187, 221, 0.32);
+}
+
+.page[data-stage="landing"] .landingHistoryButton {
+  margin-top: 14px;
+  padding: 10px 16px;
+  border-color: rgba(255, 246, 250, 0.24);
+  border-radius: 999px;
+  color: rgba(255, 246, 250, 0.86);
+  background:
+    linear-gradient(135deg, rgba(255, 246, 250, 0.1), rgba(248, 187, 221, 0.06)),
+    rgba(18, 8, 31, 0.24);
+  box-shadow:
+    0 14px 34px rgba(5, 2, 14, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.page[data-stage="landing"] .landingHistoryButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 233, 177, 0.48);
+  color: rgba(255, 250, 253, 0.96);
+  background:
+    linear-gradient(135deg, rgba(255, 246, 250, 0.15), rgba(248, 187, 221, 0.09)),
+    rgba(18, 8, 31, 0.34);
+  box-shadow: 0 18px 38px rgba(5, 2, 14, 0.3), 0 0 24px rgba(248, 187, 221, 0.14);
+}
+
+.page[data-stage="landing"] .landingVisual {
+  min-height: clamp(360px, 52vh, 640px);
+  display: grid;
+  align-self: center;
+  justify-self: center;
+  place-items: center;
+  isolation: isolate;
+}
+
+.page[data-stage="landing"] .landingPigAura {
+  display: block;
+  left: 50%;
+  bottom: 8%;
+  z-index: 1;
+  width: clamp(260px, 34vw, 520px);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 246, 250, 0.28), transparent 35%),
+    radial-gradient(circle at 50% 58%, rgba(248, 187, 221, 0.28), transparent 62%),
+    radial-gradient(circle at 50% 74%, rgba(233, 196, 106, 0.12), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.9;
+}
+
+.page[data-stage="landing"] .landingPigMascot {
+  z-index: 3;
+  width: clamp(250px, 28vw, 440px);
+  filter:
+    drop-shadow(0 30px 46px rgba(5, 2, 14, 0.46))
+    drop-shadow(0 0 30px rgba(248, 187, 221, 0.34))
+    drop-shadow(0 0 18px rgba(233, 196, 106, 0.16));
+}
+
+.page[data-stage="landing"] .landingSpeechWrap {
+  left: auto;
+  right: clamp(190px, 20vw, 330px);
+  top: clamp(12px, 5vh, 64px);
+  width: clamp(286px, 24vw, 368px);
+  min-height: 112px;
+  padding: 24px 26px 24px;
+  border-color: rgba(255, 246, 250, 0.34);
+  border-radius: 28px 28px 10px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.24), transparent 28%),
+    radial-gradient(circle at 94% 8%, rgba(233, 196, 106, 0.16), transparent 30%),
+    linear-gradient(145deg, rgba(255, 246, 250, 0.18), rgba(255, 246, 250, 0.07)),
+    rgba(18, 8, 31, 0.42);
+  box-shadow:
+    0 24px 54px rgba(5, 2, 14, 0.38),
+    0 0 34px rgba(248, 187, 221, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(16px) saturate(1.12);
+}
+
+.page[data-stage="landing"] .landingSpeechWrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 28px 28px 10px;
+  background-image:
+    var(--landing-bubble-overlay),
+    var(--landing-bubble-overlay-2);
+  background-repeat: no-repeat;
+  background-size: 64% auto, 58% auto;
+  background-position:
+    left -34px top -42px,
+    right -30px bottom -44px;
+  opacity: 0.24;
+  mix-blend-mode: screen;
+  clip-path: inset(0 round 28px 28px 10px);
+  filter: saturate(1.12) drop-shadow(0 0 12px rgba(248, 187, 221, 0.18));
+}
+
+.page[data-stage="landing"] .landingSpeechWrap::after {
+  right: 32px;
+  bottom: -14px;
+  width: 30px;
+  height: 30px;
+  border-color: rgba(255, 246, 250, 0.3);
+  background:
+    linear-gradient(145deg, rgba(255, 246, 250, 0.16), rgba(248, 187, 221, 0.1)),
+    rgba(18, 8, 31, 0.42);
+  z-index: 0;
+}
+
+.page[data-stage="landing"] .landingSpeechOrnament {
+  z-index: 3;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.92), transparent 22%),
+    linear-gradient(135deg, rgba(255, 246, 250, 0.95), rgba(248, 187, 221, 0.78) 58%, rgba(233, 196, 106, 0.68));
+  box-shadow: 0 0 22px rgba(248, 187, 221, 0.36), 0 0 14px rgba(233, 196, 106, 0.22);
+}
+
+.page[data-stage="landing"] .landingSpeechWrap p {
+  z-index: 2;
+  color: rgba(255, 250, 253, 0.94);
+  font-size: clamp(0.98rem, 1.35vw, 1.08rem);
+  line-height: 1.68;
+  text-shadow: 0 8px 24px rgba(5, 2, 14, 0.4);
+}
+
+@keyframes landingPremiumMoonPulse {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 0.98;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes landingPremiumTeaGlow {
+  0%,
+  100% {
+    opacity: 0.66;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+@media (max-width: 980px) {
+  .page[data-stage="landing"] .landingHero {
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at 76% 12%, rgba(255, 246, 250, 0.2), transparent 10rem),
+      radial-gradient(circle at 64% 58%, rgba(248, 187, 221, 0.18), transparent 18rem),
+      var(--landing-bg-mobile),
+      linear-gradient(135deg, #160b2e 0%, #2a1745 48%, #12081f 100%);
+    background-position: center top;
+    background-size: cover;
+  }
+
+  .page[data-stage="landing"] .landingHeroContent {
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: clamp(18px, 4vh, 32px);
+    padding: 72px 18px 24px;
+  }
+
+  .page[data-stage="landing"] .landingCopy {
+    justify-self: stretch;
+    text-align: center;
+  }
+
+  .page[data-stage="landing"] .landingBadge {
+    margin-inline: auto;
+  }
+
+  .page[data-stage="landing"] .landingCopy h1 {
+    max-width: none;
+    font-size: clamp(2.85rem, 12vw, 4.9rem);
+  }
+
+  .page[data-stage="landing"] .landingLead,
+  .page[data-stage="landing"] .landingIntro {
+    max-width: 620px;
+    margin-inline: auto;
+  }
+
+  .page[data-stage="landing"] .landingActions {
+    justify-content: center;
+    margin-top: 24px;
+  }
+
+  .page[data-stage="landing"] .landingVisual {
+    min-height: clamp(230px, 34vh, 360px);
+    align-self: center;
+  }
+
+  .page[data-stage="landing"] .landingPigMascot {
+    width: clamp(190px, 42vw, 300px);
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: -6px;
+    width: min(calc(100vw - 44px), 360px);
+    min-height: 0;
+    padding: 18px 20px 20px;
+    transform: translateX(-50%);
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap::before {
+    background-size: 58% auto, 54% auto;
+    background-position:
+      left -26px top -32px,
+      right -24px bottom -36px;
+    opacity: 0.2;
+  }
+
+  .page[data-stage="landing"] .landingMoonGlow {
+    right: -180px;
+    top: -140px;
+    width: 440px;
+  }
+
+  .page[data-stage="landing"] .landingTeaGlow {
+    left: 50%;
+    bottom: 1%;
+    width: min(86vw, 420px);
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .page[data-stage="landing"] .landingHeroContent {
+    gap: 14px;
+    padding: 64px 14px max(18px, env(safe-area-inset-bottom));
+  }
+
+  .page[data-stage="landing"] .landingBadge {
+    margin-bottom: 14px;
+    padding: 7px 11px;
+    font-size: 0.72rem;
+  }
+
+  .page[data-stage="landing"] .landingCopy h1 {
+    font-size: clamp(2.35rem, 13vw, 3.45rem);
+    line-height: 1.02;
+  }
+
+  .page[data-stage="landing"] .landingLead {
+    margin-top: 14px;
+    font-size: clamp(1rem, 4.4vw, 1.18rem);
+    line-height: 1.55;
+  }
+
+  .page[data-stage="landing"] .landingIntro {
+    margin-top: 9px;
+    font-size: 0.9rem;
+    line-height: 1.62;
+  }
+
+  .page[data-stage="landing"] .landingActions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 9px;
+    margin-top: 16px;
+  }
+
+  .page[data-stage="landing"] .landingActions .teaButton,
+  .page[data-stage="landing"] .landingHistoryButton {
+    width: 100%;
+  }
+
+  .page[data-stage="landing"] .landingActions .teaButton {
+    min-height: 50px;
+  }
+
+  .page[data-stage="landing"] .landingHistoryButton {
+    margin-top: 8px;
+  }
+
+  .page[data-stage="landing"] .landingVisual {
+    min-height: clamp(200px, 30vh, 280px);
+  }
+
+  .page[data-stage="landing"] .landingPigMascot {
+    width: min(56vw, 230px);
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap {
+    width: min(calc(100vw - 32px), 320px);
+    padding: 16px 18px 18px;
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap::before {
+    background-size: 54% auto, 50% auto;
+    background-position:
+      left -22px top -28px,
+      right -20px bottom -32px;
+    opacity: 0.18;
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap p {
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page[data-stage="landing"] .landingMoonGlow,
+  .page[data-stage="landing"] .landingTeaGlow,
+  .page[data-stage="landing"] .landingParticles span {
+    animation: none !important;
   }
 }

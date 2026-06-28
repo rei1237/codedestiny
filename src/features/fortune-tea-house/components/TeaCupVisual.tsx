@@ -1,0 +1,48 @@
+"use client";
+
+import type { TeaHouseCup } from "../data/teaCups";
+import { getTeaCupSprite, type TeaCupSpriteState } from "../data/teaCupSpriteMap";
+import SpriteCrop from "./SpriteCrop";
+import styles from "../styles/fortune-tea-house.module.css";
+
+type TeaCupVisualProps = {
+  cup: Pick<TeaHouseCup, "id" | "name" | "topic" | "accent" | "particleTone">;
+  state?: TeaCupSpriteState;
+  size?: "menu" | "large" | "hero" | "debug";
+  className?: string;
+  decorative?: boolean;
+};
+
+export default function TeaCupVisual({ cup, state = "normal", size = "menu", className = "", decorative = false }: TeaCupVisualProps) {
+  const crop = getTeaCupSprite(cup.id, state);
+
+  return (
+    <span
+      className={`${styles.teaCupVisual} ${className}`}
+      data-size={size}
+      data-state={state}
+      data-accent={cup.accent}
+      data-particle-tone={cup.particleTone}
+    >
+      <span className={styles.teaCupVisualGlow} aria-hidden />
+      <SpriteCrop
+        className={styles.teaCupVisualSprite}
+        src={crop.src}
+        sheetWidth={crop.sheetWidth}
+        sheetHeight={crop.sheetHeight}
+        x={crop.x}
+        y={crop.y}
+        width={crop.width}
+        height={crop.height}
+        alt={decorative ? "" : `${cup.name} 찻잔`}
+        fallback={
+          <span className={styles.teaCupVisualFallback}>
+            <strong>{cup.name}</strong>
+            <small>{cup.topic}</small>
+          </span>
+        }
+      />
+      <span className={styles.teaCupVisualParticles} aria-hidden />
+    </span>
+  );
+}

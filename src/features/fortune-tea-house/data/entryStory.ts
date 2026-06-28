@@ -149,6 +149,49 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
   },
 ] as const;
 
+export const flowerPigIdleLines: TeaHouseEntryLine[] = [
+  {
+    speaker: "꽃돼지?",
+    text: "꿀… 기다리는 동안에도 찻잔은 조금씩 밝아져.\n마음이 천천히 도착하는 속도라면, 그 속도가 오늘의 답이야.",
+    mood: "comfort",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "방금 달빛이 살짝 흔들렸어.\n누군가 숨겨 둔 말을 꺼낼 준비를 할 때, 찻집은 먼저 알아차리거든.",
+    mood: "thinking",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "꿀 냄새가 나는 고민은 대체로 마음이 아직 포기하지 않았다는 뜻이야.\n나는 그런 마음을 꽤 좋아해.",
+    mood: "playful",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "말을 고르지 못해도 괜찮아.\n이곳에서는 침묵도 찻잎처럼 천천히 우러나와.",
+    mood: "comfort",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "저 문 너머에는 답보다 먼저 온기가 있어.\n차가 식기 전에, 너의 마음도 조금은 편해졌으면 좋겠어.",
+    mood: "welcome",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "가끔은 아주 작은 망설임 하나가 큰 방향을 바꿔.\n그래서 나는 손님의 첫 숨을 오래 듣는 편이야.",
+    mood: "thinking",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "지금 반짝인 찻잔 봤어?\n아직 고르지 않았는데도, 너를 알아보려는 빛이 먼저 움직였어.",
+    mood: "surprised",
+  },
+  {
+    speaker: "꽃돼지?",
+    text: "꿀… 오늘의 밤은 조금 다정해.\n그래도 너무 빨리 괜찮아지려고 애쓰지는 마.",
+    mood: "comfort",
+  },
+];
+
 export const teaHouseEntryStageOrder = teaHouseEntryScenes.map((scene) => scene.stage);
 
 export function isTeaHouseEntryStage(stage: string): stage is TeaHouseEntryStage {

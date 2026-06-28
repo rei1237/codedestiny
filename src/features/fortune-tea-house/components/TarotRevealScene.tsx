@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
+import { getTeaHouseCupById } from "../data/teaCups";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TarotCardBack from "./TarotCardBack";
 import TarotAssetCard from "./TarotAssetCard";
@@ -20,6 +21,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   const prefersReducedMotion = usePrefersReducedMotion();
   const [isFlipped, setIsFlipped] = useState(prefersReducedMotion);
   const [isSpeaking, setIsSpeaking] = useState(true);
+  const selectedCup = getTeaHouseCupById(result.teaCup.id);
 
   useEffect(() => {
     setIsFlipped(prefersReducedMotion);
@@ -35,11 +37,11 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   }
 
   const dialogueText = isFlipped
-    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 찻잔 위에 떠올랐어요.\n이제 인간 상담사 연이가 이 카드의 상징이 사주의 흐름과 어디에서 만나는지 읽어볼게요.`
-    : "이 카드는 정답을 명령하지 않아요.\n다만 지금 당신의 마음이 어디를 바라보고 있는지 조용히 보여줄 뿐이에요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
+    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 ${selectedCup?.name || "찻잔"} 위에 떠올랐어요.\n이제 연이가 이 카드의 상징이 지금 질문과 어디에서 만나는지 읽어볼게요.`
+    : selectedCup?.tarotBeforeLine || "이 카드는 정답을 명령하지 않아요.\n다만 지금 당신의 마음이 어디를 바라보고 있는지 조용히 보여줄 뿐이에요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
 
   return (
-    <section className={styles.tarotRevealScene} aria-labelledby="tarotRevealTitle">
+    <section className={styles.tarotRevealScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="tarotRevealTitle">
       <div className={styles.tarotRevealActor}>
         <YeoniDialogueActor
           mood={isFlipped ? "serious" : "welcome"}
@@ -50,8 +52,8 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
         />
       </div>
       <div className={styles.tarotRevealPanel}>
-        <p className={styles.sceneEyebrow}>타로가 보여준 지금의 상징</p>
-        <h2 id="tarotRevealTitle">찻잔 위에 카드가 떠올랐어요</h2>
+        <p className={styles.sceneEyebrow}>{selectedCup?.visualMotif || "moonlit tarot"}</p>
+        <h2 id="tarotRevealTitle">{selectedCup?.tarotRevealTitle || "찻잔 위에 카드가 떠올랐어요"}</h2>
         <TeaHouseDialogueBox
           speaker="연이"
           text={dialogueText}

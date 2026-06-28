@@ -79,6 +79,14 @@ export default function TarotAssetCard({
           width={slice.width}
           height={slice.height}
           alt={`${nameKo} ${nameEn} 타로 카드`}
+          fallback={
+            <span className={styles.tarotAssetFallbackCard}>
+              <strong>{nameKo}</strong>
+              <small>{direction}</small>
+              <em>{keywords.slice(0, 3).join(" · ")}</em>
+              {meaning ? <span>{meaning}</span> : null}
+            </span>
+          }
         />
       </div>
 

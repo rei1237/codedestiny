@@ -123,6 +123,7 @@ export type FortuneTeaHouseConsultResponse = {
     name: string;
     topic: string;
     reading: string;
+    resultPrelude?: string;
   };
   saju: {
     available: boolean;

@@ -118,6 +118,8 @@ export const fortuneTeaHouseAssets = {
     overlay: teaHouseAsset("오버레이.webp"),
     overlay2: teaHouseAsset("오버레이2.webp"),
     overlay1: teaHouseAsset("오버레이.webp"),
+    overlayCutout: teaHouseNoBackgroundAsset("오버레이-Photoroom.png"),
+    overlay2Cutout: teaHouseNoBackgroundAsset("오버레이2-Photoroom.png"),
     resultSheet: teaHouseAsset("운명의 찻집 결과 시트.webp"),
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
   },
@@ -127,6 +129,7 @@ export const fortuneTeaHouseAssets = {
   teaCups: {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
+    labeledPhotoroom: teaHouseNoBackgroundAsset("찻잔 이미지-Photoroom.png"),
     transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
   },
   tea: {

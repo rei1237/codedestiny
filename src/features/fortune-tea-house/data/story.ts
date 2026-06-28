@@ -12,6 +12,7 @@ export type TeaHouseStage =
   | "transform"
   | "yeoniIntro"
   | "teaSelect"
+  | "teaCupRitual"
   | "questionInput"
   | "scentLoading"
   | "tarotReveal"
@@ -42,6 +43,7 @@ export const teaHouseStageOrder: TeaHouseStage[] = [
   "transform",
   "yeoniIntro",
   "teaSelect",
+  "teaCupRitual",
   "questionInput",
   "scentLoading",
   "tarotReveal",

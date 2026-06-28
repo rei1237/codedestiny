@@ -1,6 +1,12 @@
-import type { FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, TeaHouseEmotionTone } from "../data/consult";
+import type {
+  FortuneTeaHouseConsultRequest,
+  FortuneTeaHouseConsultResponse,
+  FortuneTeaSajuSnapshot,
+  FortuneTeaTarotSnapshot,
+  TeaHouseEmotionTone,
+} from "../data/consult";
 import { getTenGodMeta } from "../data/tenGods";
-import { hashTeaHouseSeed, type TarotOrientation } from "../data/tarotCards";
+import { drawMajorArcana, drawTarotOrientation, hashTeaHouseSeed, type TarotOrientation } from "../data/tarotCards";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { buildFortuneTeaPrompt } from "./buildFortuneTeaPrompt";
 import { buildSajuResultSection, buildFortuneTeaSajuSnapshot } from "./sajuAdapter";
@@ -50,6 +56,86 @@ function emotion(label: string, value: number, description: string, tone: TeaHou
   return { label, value, description, tone };
 }
 
+function buildUnavailableSajuSnapshot(reason = "사주 계산이 잠시 흐려져 오늘은 찻잔과 타로 중심으로 읽었습니다."): FortuneTeaSajuSnapshot {
+  return {
+    available: false,
+    coreSummary: "사주의 세부 흐름은 열지 않고, 찻잔과 타로 중심으로 읽었습니다.",
+    caution: reason,
+    tenGodSnapshot: {
+      available: false,
+      tenGodLabels: [],
+      reason,
+      source: "fallback",
+    },
+  };
+}
+
+function buildUnavailableSajuSection(snapshot: FortuneTeaSajuSnapshot, request: FortuneTeaHouseConsultRequest): FortuneTeaHouseConsultResponse["saju"] {
+  return {
+    available: false,
+    title: "사주가 비춘 기본 흐름",
+    summary: snapshot.coreSummary || "사주의 세부 흐름은 열지 않고, 찻잔과 타로 중심으로 읽었습니다.",
+    keyPoints: ["사주의 세부 흐름은 열지 않고, 찻잔과 타로 중심으로 읽었습니다."],
+    birthSummary: {
+      nickname: compactText(request.nickname || "", "손님"),
+      birthDate: request.birthDate,
+      birthTime: request.birthTime,
+      hasBirthTime: Boolean(request.birthTime),
+      calendarType: request.calendarType,
+      gender: request.gender,
+    },
+    caution: snapshot.caution,
+    cautionReading: "사주의 세부 흐름은 열지 않고, 찻잔과 타로 중심으로 읽었습니다.",
+    actionPrescription: "오늘은 지금 적어주신 질문의 감정과 현실 신호를 한 문장씩 나누어 보세요.",
+    tarotBridgeReady: "사주가 잠시 접혀 있어도 타로와 찻잔은 지금 질문의 상징을 계속 비춥니다.",
+    tenGodSnapshot: snapshot.tenGodSnapshot,
+  };
+}
+
+function safeBuildSajuSnapshot(request: FortuneTeaHouseConsultRequest) {
+  try {
+    return buildFortuneTeaSajuSnapshot(request);
+  } catch {
+    return buildUnavailableSajuSnapshot();
+  }
+}
+
+function safeBuildSajuSection(snapshot: FortuneTeaSajuSnapshot, request: FortuneTeaHouseConsultRequest) {
+  try {
+    return buildSajuResultSection(snapshot, request);
+  } catch {
+    return buildUnavailableSajuSection(snapshot, request);
+  }
+}
+
+function safeBuildTarotSnapshot(request: FortuneTeaHouseConsultRequest, seed: string): FortuneTeaTarotSnapshot {
+  try {
+    return buildFortuneTeaTarotSnapshot(request, seed);
+  } catch {
+    const card = drawMajorArcana(seed);
+    const orientation = drawTarotOrientation(seed);
+    const meaning = orientation === "upright" ? card.upright : card.reversed;
+    return {
+      cardId: card.id,
+      number: card.number,
+      nameKo: card.nameKo,
+      nameEn: card.nameEn,
+      orientation,
+      keywords: meaning.keywords,
+      meaning: meaning.meaning,
+      source: "fallback",
+    };
+  }
+}
+
+function safePromptSignature(seed: string, buildPrompt: () => string) {
+  try {
+    return hashTeaHouseSeed(buildPrompt());
+  } catch {
+    return hashTeaHouseSeed(seed);
+  }
+}
+
 export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsultRequest): FortuneTeaHouseConsultResponse {
   const nickname = displayName(request.nickname || "");
   const question = compactText(request.question, "오늘 내 마음이 향하는 곳은 어디인가요?");
@@ -61,13 +147,13 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
     name: registeredCup?.name || compactText(request.selectedTeaCupName, "연꽃 달차"),
     topic: registeredCup?.topic || compactText(request.selectedTeaCupTopic, "마음의 진심"),
     reading: registeredCup?.reading || `${compactText(request.selectedTeaCupName, "이 찻잔")}은 ${compactText(request.selectedTeaCupTopic, "마음의 흐름")}을 조용히 비춥니다.`,
+    resultPrelude: registeredCup?.resultPrelude,
   };
   const seed = `${nickname}|${concernTopic}|${birthInfo}|${teaCup.id}|${teaCup.name}|${teaCup.topic}|${question}`;
-  const sajuSnapshot = buildFortuneTeaSajuSnapshot(request);
-  const sajuSection = buildSajuResultSection(sajuSnapshot, request);
-  const tarotSnapshot = buildFortuneTeaTarotSnapshot(request, seed);
-  const consultPromptSeed = buildFortuneTeaPrompt({ request, teaCup, sajuSnapshot, tarotSnapshot });
-  const promptSignature = hashTeaHouseSeed(consultPromptSeed);
+  const sajuSnapshot = safeBuildSajuSnapshot(request);
+  const sajuSection = safeBuildSajuSection(sajuSnapshot, request);
+  const tarotSnapshot = safeBuildTarotSnapshot(request, seed);
+  const promptSignature = safePromptSignature(seed, () => buildFortuneTeaPrompt({ request, teaCup, sajuSnapshot, tarotSnapshot }));
   const direction = orientationLabel(tarotSnapshot.orientation);
   const questionSummary = summarize(`${concernTopic ? `${concernTopic} · ` : ""}${question}`, 86);
   const emotionalWeight = seededValue(`${seed}:${promptSignature}:emotion`, 52, 88);
@@ -89,7 +175,7 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
     : `${teaCup.name}${subjectParticle(teaCup.name)} ${teaCup.topic}${objectParticle(teaCup.topic)} 바라보게 하고, 오늘은 현재 고민과 타로의 상징이 상담의 중심이 됩니다.`;
 
   const result: FortuneTeaHouseConsultResponse = {
-    sessionTitle: `오늘의 찻잔이 비춘 상담 결과`,
+    sessionTitle: `${teaCup.name}가 비춘 오늘의 상담 기록`,
     questionSummary,
     teaCup,
     saju: sajuSection,
@@ -149,5 +235,9 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
     closingLine: "오늘 당신에게 필요한 건 완벽한 결론이 아니라, 마음을 덜 다치게 하는 다음 한 걸음이에요. 달빛이 남아 있는 한, 당신의 이야기를 들을 찻잔 하나쯤은 언제나 준비해둘게요.",
   };
 
-  return ensureConsultResultConsistency(result, tarotSnapshot);
+  try {
+    return ensureConsultResultConsistency(result, tarotSnapshot);
+  } catch {
+    return result;
+  }
 }
