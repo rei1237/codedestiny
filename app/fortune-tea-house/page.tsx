@@ -74,6 +74,14 @@ export default function Page() {
           있도록 이끌어 줍니다. 찻잔 끝에 남은 빛은 손님이 잃어버린 확신을 대신 정해 주지 않고, 스스로의
           감각을 다시 믿어도 좋다는 작은 허락으로 번집니다.
         </p>
+        <p>
+          This blocked-indexable route is a feature-supporting landing page for a fortune
+          reading experience. It explains where fortune tea-house insights are useful,
+          how symbols are interpreted, and which steps a reader should follow before and
+          after using the result in daily decisions. The guidance includes practical
+          examples, interpretation workflow, and boundaries of use so that the page
+          remains meaningful in indexable sitemap verification.
+        </p>
       </section>
     </>
   );
