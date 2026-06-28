@@ -72,6 +72,26 @@
     animation-play-state: running !important;
     -webkit-animation-play-state: running !important;
   }
+  html.cd-mobile-lite .cd-user-card__sync-track::before {
+    animation: cdPassSyncSweep 1.7s ease-in-out infinite !important;
+    -webkit-animation: cdPassSyncSweep 1.7s ease-in-out infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+  }
+  html.cd-mobile-lite .cd-user-card__sync-orbit {
+    animation: cdPassSyncOrbit 2.4s ease-in-out infinite !important;
+    -webkit-animation: cdPassSyncOrbit 2.4s ease-in-out infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+    will-change: transform, opacity !important;
+  }
+  html.cd-mobile-lite .saju-loader-progress::after {
+    animation: sajuLoaderProgress 1.8s ease-in-out infinite !important;
+    -webkit-animation: sajuLoaderProgress 1.8s ease-in-out infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+    will-change: transform, opacity !important;
+  }
   html.cd-mobile-lite .logo-area::after {
     animation: starfall 12s linear infinite !important;
     -webkit-animation: starfall 12s linear infinite !important;
