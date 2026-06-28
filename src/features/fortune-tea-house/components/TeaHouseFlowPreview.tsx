@@ -25,7 +25,6 @@ const flowAssetSrc = {
 
 export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowPreviewProps) {
   const [stepIndex, setStepIndex] = useState(0);
-  const [isYeoniSpeaking, setIsYeoniSpeaking] = useState(false);
   const firstStepId = steps[0]?.id || "";
 
   useEffect(() => {
@@ -35,16 +34,7 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
   const currentStep = steps[stepIndex] || steps[0];
   const isLast = stepIndex >= steps.length - 1;
   const progressLabel = useMemo(() => `${Math.min(stepIndex + 1, steps.length)} / ${steps.length}`, [stepIndex, steps.length]);
-
-  useEffect(() => {
-    if (currentStep?.speaker !== "연이") {
-      setIsYeoniSpeaking(false);
-      return;
-    }
-    setIsYeoniSpeaking(true);
-    const timer = window.setTimeout(() => setIsYeoniSpeaking(false), 2600);
-    return () => window.clearTimeout(timer);
-  }, [currentStep?.id, currentStep?.speaker]);
+  const isYeoniLine = currentStep?.speaker === "연이";
 
   if (!currentStep) return null;
 
@@ -56,7 +46,8 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
         <YeoniDialogueActor
           className={styles.flowYeoniActor}
           mood={currentStep.mood || "gentle"}
-          isSpeaking={isYeoniSpeaking}
+          isSpeaking={isYeoniLine}
+          cueText={isYeoniLine ? currentStep.text : ""}
           compact
         />
         <TeaHouseDialogueBox speaker={currentStep.speaker} text={currentStep.text} />

@@ -22,6 +22,9 @@ const cupSpritePositions = [
   { largeX: "100%", largeY: "100%", stateX: "100%" },
 ] as const;
 
+const teaCupSelectionDialogue =
+  "이제 운명의 메뉴판을 펼쳐볼게요.\n이 찻잔들은 단순한 음료가 아니라, 당신의 고민을 어떤 방향에서 바라볼지 정하는 작은 문이에요.\n너무 오래 고민하지는 마세요. 오늘 당신에게 필요한 찻잔은, 머리보다 마음이 먼저 알아볼 거예요. 꿀... 아, 이건 못 들은 걸로 해주세요.";
+
 export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCupSelectionSceneProps) {
   const menuStyle = {
     "--tea-menu-desktop": `url("${fortuneTeaHouseAssets.ui.menuDesktop}")`,
@@ -44,10 +47,10 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
           src={fortuneTeaHouseAssets.yeoni.cupPose}
           alt="찻잔을 내미는 연이"
         />
-        <YeoniDialogueActor className={styles.flowYeoniActor} mood="gentle" isSpeaking compact />
+        <YeoniDialogueActor className={styles.flowYeoniActor} mood="gentle" isSpeaking cueText={teaCupSelectionDialogue} compact />
         <TeaHouseDialogueBox
           speaker="연이"
-          text={"이제 운명의 메뉴판을 펼쳐볼게요.\n이 찻잔들은 단순한 음료가 아니라, 당신의 고민을 어떤 방향에서 바라볼지 정하는 작은 문이에요.\n너무 오래 고민하지는 마세요. 오늘 당신에게 필요한 찻잔은, 머리보다 마음이 먼저 알아볼 거예요. 꿀... 아, 이건 못 들은 걸로 해주세요."}
+          text={teaCupSelectionDialogue}
         />
       </div>
 

@@ -5,13 +5,13 @@ import { fortuneTeaHouseAssets } from "@/src/features/fortune-tea-house/data/ass
 export const metadata: Metadata = {
   title: "운명의 찻집 | Code Destiny",
   description:
-    "달빛이 머무는 찻집에서 꽃돼지?를 만나고, 인간 연이와 마음의 향을 따라가는 스토리형 운세 상담 입구입니다.",
+    "달빛이 머무는 숨겨진 찻집에서 연이가 찻잔과 카드로 마음의 질문을 다정하게 읽어드립니다.",
   alternates: {
     canonical: "https://code-destiny.com/fortune-tea-house",
   },
   openGraph: {
     title: "운명의 찻집 | Code Destiny",
-    description: "꽃돼지?의 신비로운 안내와 연이의 따뜻한 찻잔 상담이 시작되는 밤.",
+    description: "보라빛 밤의 찻집에서 따뜻한 찻잔과 오라클 카드 상담이 조용히 시작됩니다.",
     url: "https://code-destiny.com/fortune-tea-house",
     siteName: "Code Destiny",
     locale: "ko_KR",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         url: fortuneTeaHouseAssets.pig.transform,
         width: 1200,
         height: 630,
-        alt: "운명의 찻집에서 꽃돼지?가 연이로 변신하는 장면",
+        alt: "달빛 아래 운명의 찻집에서 연이가 손님을 맞이하는 장면",
       },
     ],
   },

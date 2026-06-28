@@ -1,45 +1,32 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useMemo, useState } from "react";
 import { talkingPigYeoniFrames } from "../data/assets";
-import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
+import type { YeoniMood } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
 
-const pigFrameSequence = [
-  { sheet: 0, col: 0, row: 0 },
-  { sheet: 0, col: 1, row: 0 },
-  { sheet: 1, col: 0, row: 1 },
-  { sheet: 0, col: 2, row: 0 },
-  { sheet: 2, col: 1, row: 0 },
-  { sheet: 1, col: 1, row: 1 },
-  { sheet: 2, col: 2, row: 2 },
-  { sheet: 0, col: 0, row: 0 },
-] as const;
-
-const idleFrame = { sheet: 0, col: 1, row: 0 };
+const pigExpressionFrames = {
+  welcome: { sheet: 0, col: 1, row: 0, label: "반갑게 맞이하는 꽃돼지?" },
+  honey: { sheet: 0, col: 2, row: 0, label: "꿀 향에 반응하는 꽃돼지?" },
+  thinking: { sheet: 1, col: 0, row: 1, label: "마음의 향을 읽는 꽃돼지?" },
+  comfort: { sheet: 1, col: 1, row: 1, label: "다정하게 안심시키는 꽃돼지?" },
+  surprised: { sheet: 2, col: 1, row: 0, label: "작게 놀란 꽃돼지?" },
+  doorway: { sheet: 2, col: 2, row: 2, label: "찻집 문을 여는 꽃돼지?" },
+} as const;
 
 type TalkingPigYeoniProps = {
+  cueText?: string;
   isSpeaking?: boolean;
+  mood?: YeoniMood;
 };
 
-export default function TalkingPigYeoni({ isSpeaking = true }: TalkingPigYeoniProps) {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const [frameStep, setFrameStep] = useState(0);
+export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood }: TalkingPigYeoniProps) {
   const [failed, setFailed] = useState(false);
-  const activeFrame = prefersReducedMotion || !isSpeaking ? idleFrame : pigFrameSequence[frameStep % pigFrameSequence.length];
-
-  useEffect(() => {
-    if (prefersReducedMotion || !isSpeaking) return;
-    const timer = window.setInterval(() => {
-      setFrameStep((current) => current + 1);
-    }, 1080);
-    return () => window.clearInterval(timer);
-  }, [isSpeaking, prefersReducedMotion]);
+  const activeFrame = useMemo(() => pickPigExpressionFrame(cueText, mood, isSpeaking), [cueText, isSpeaking, mood]);
 
   return (
-    <div className={styles.talkingPig} data-speaking={isSpeaking ? "true" : "false"}>
+    <div className={styles.talkingPig} data-expression={activeFrame.label} data-speaking={isSpeaking ? "true" : "false"}>
       <span className={styles.pigGlow} aria-hidden />
       <span
         className={`${styles.pigImage} ${styles.pigSpriteFrame}`}
@@ -52,14 +39,12 @@ export default function TalkingPigYeoni({ isSpeaking = true }: TalkingPigYeoniPr
         }
       >
         {!failed ? (
-          <Image
+          <img
             className={styles.pigSpriteSheet}
             src={talkingPigYeoniFrames[activeFrame.sheet]}
-            alt="문 앞에서 말을 건네는 꽃돼지?"
-            fill
-            sizes="(max-width: 640px) 82vw, 360px"
-            priority
-            unoptimized
+            alt={activeFrame.label}
+            decoding="async"
+            loading="eager"
             onError={() => setFailed(true)}
           />
         ) : (
@@ -72,9 +57,20 @@ export default function TalkingPigYeoni({ isSpeaking = true }: TalkingPigYeoniPr
       <span className={styles.pigScentTrail} aria-hidden />
       <div className={styles.preloadFrames} aria-hidden>
         {talkingPigYeoniFrames.map((frame) => (
-          <Image key={frame} src={frame} alt="" width={1} height={1} priority unoptimized />
+          <img key={frame} src={frame} alt="" decoding="async" loading="eager" />
         ))}
       </div>
     </div>
   );
+}
+
+function pickPigExpressionFrame(cueText: string, mood?: YeoniMood, isSpeaking = true) {
+  const text = cueText.replace(/\s+/g, " ");
+  if (!isSpeaking) return pigExpressionFrames.welcome;
+  if (mood === "playful" || /꿀|달고/.test(text)) return pigExpressionFrames.honey;
+  if (mood === "comfort" || /괜찮|안심|덜 아프|기다/.test(text)) return pigExpressionFrames.comfort;
+  if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) return pigExpressionFrames.thinking;
+  if (mood === "surprised" || /놀랐|처음/.test(text)) return pigExpressionFrames.surprised;
+  if (/문|종소리|딸랑|열/.test(text)) return pigExpressionFrames.doorway;
+  return pigExpressionFrames.welcome;
 }

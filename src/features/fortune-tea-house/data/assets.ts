@@ -9,6 +9,8 @@ const teaHouseAsset = (fileName: string) =>
     prefix: "",
   });
 
+const teaHouseNoBackgroundAsset = (fileName: string) => teaHouseAsset(`nobackground/${fileName}`);
+
 export const fortuneTeaHouseAssets = {
   pig: {
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
@@ -24,6 +26,19 @@ export const fortuneTeaHouseAssets = {
     talking1: teaHouseAsset("말하는 꽃돼지 연이1.webp"),
     talking2: teaHouseAsset("말하는 꽃돼지 연이2.webp"),
     talking3: teaHouseAsset("말하는 꽃돼지 연이3.webp"),
+    transparent: {
+      transform: teaHouseNoBackgroundAsset("꽃돼지 연이 변신-Photoroom.png"),
+      base1: teaHouseNoBackgroundAsset("flower-pig-cutout.webp"),
+      base2: teaHouseNoBackgroundAsset("꽃돼지2-Photoroom.png"),
+      base3: teaHouseNoBackgroundAsset("꽃돼지3-Photoroom.png"),
+      base4: teaHouseNoBackgroundAsset("꽃돼지4-Photoroom.png"),
+      base5: teaHouseNoBackgroundAsset("꽃돼지5-Photoroom.png"),
+      base6: teaHouseNoBackgroundAsset("꽃돼지6-Photoroom.png"),
+      base8: teaHouseNoBackgroundAsset("꽃돼지8-Photoroom.png"),
+      talking1: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni1-cutout.webp"),
+      talking2: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni2-cutout.webp"),
+      talking3: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni3-cutout.webp"),
+    },
   },
   yeoni: {
     bubble: teaHouseAsset("연이 말풍선.webp"),
@@ -40,6 +55,19 @@ export const fortuneTeaHouseAssets = {
     cupPoseSheet: teaHouseAsset("연이 컵을 내미는 포즈 스프라이트 시트.webp"),
     tarotCard: teaHouseAsset("연이 타로 카드.webp"),
     tarotCardAnim: teaHouseAsset("연이 타로 카드 애니메이션.webp"),
+    transparent: {
+      bubble: teaHouseNoBackgroundAsset("yeoni-dialogue-bubble-cutout.webp"),
+      bust: teaHouseNoBackgroundAsset("yeoni-bust-cutout.webp"),
+      sprite1: teaHouseNoBackgroundAsset("yeoni-sprite1-cutout.webp"),
+      sprite2: teaHouseNoBackgroundAsset("yeoni-sprite2-cutout.webp"),
+      sprite3: teaHouseNoBackgroundAsset("yeoni-sprite3-cutout.webp"),
+      sprite4: teaHouseNoBackgroundAsset("yeoni-sprite4-cutout.webp"),
+      sprite5: teaHouseNoBackgroundAsset("yeoni-sprite5-cutout.webp"),
+      sprite6: teaHouseNoBackgroundAsset("yeoni-sprite6-cutout.webp"),
+      sprite7: teaHouseNoBackgroundAsset("yeoni-sprite7-cutout.webp"),
+      tarotCard: teaHouseNoBackgroundAsset("연이 타로 카드-Photoroom.png"),
+      tarotCardAnim: teaHouseNoBackgroundAsset("연이 타로 카드 애니메이션-Photoroom.png"),
+    },
   },
   backgrounds: {
     mainDesktop: teaHouseAsset("운명의 찻집 데스크탑.webp"),
@@ -71,6 +99,7 @@ export const fortuneTeaHouseAssets = {
   teaCups: {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
+    transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
   },
   tea: {
     cups1: teaHouseAsset("찻잔 이미지.webp"),
@@ -90,7 +119,7 @@ export const fortuneTeaHouseAssets = {
 } as const;
 
 export const talkingPigYeoniFrames = [
-  fortuneTeaHouseAssets.pig.talking1,
-  fortuneTeaHouseAssets.pig.talking2,
-  fortuneTeaHouseAssets.pig.talking3,
+  fortuneTeaHouseAssets.pig.transparent.talking1,
+  fortuneTeaHouseAssets.pig.transparent.talking2,
+  fortuneTeaHouseAssets.pig.transparent.talking3,
 ] as const;

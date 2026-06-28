@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import type { TeaHouseStoryStep } from "../data/story";
-import AssetImage from "./AssetImage";
 import TalkingPigYeoni from "./TalkingPigYeoni";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
@@ -36,15 +35,13 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
     <section className={styles.storyScene} aria-labelledby={`${currentStep.stage}Title`}>
       <div className={styles.storyVisual} data-visual={currentStep.visual}>
         {currentStep.visual === "pig" ? (
-          <TalkingPigYeoni isSpeaking={currentStep.speaker === "꽃돼지?"} />
+          <TalkingPigYeoni cueText={currentStep.text} isSpeaking={currentStep.speaker === "꽃돼지?"} mood={currentStep.mood} />
         ) : (
           <div className={styles.teaHouseDoor}>
-            <AssetImage
-              className={styles.doorImage}
-              src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-              alt="조용히 빛나는 운명의 찻집 문"
-              priority
-            />
+            <picture className={styles.doorImage}>
+              <source media="(max-width: 640px)" srcSet={fortuneTeaHouseAssets.backgrounds.landingMobile} />
+              <img src={fortuneTeaHouseAssets.backgrounds.landingDesktop} alt="달빛 아래 문이 열린 운명의 찻집" decoding="async" loading="eager" />
+            </picture>
             <span>운명의 찻집</span>
           </div>
         )}
@@ -55,14 +52,21 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
         <TeaHouseDialogueBox speaker={currentStep.speaker} text={currentStep.text} />
         <div className={styles.storyActions}>
           <span className={styles.storyProgress}>{progressLabel}</span>
-          <TeaHouseButton
-            onClick={() => {
-              if (isLast) onComplete();
-              else setStepIndex((current) => current + 1);
-            }}
-          >
-            {buttonLabel}
-          </TeaHouseButton>
+          <div className={styles.storyButtonGroup}>
+            {!isLast ? (
+              <TeaHouseButton variant="ghost" onClick={onComplete} aria-label="운명의 찻집 도입 장면 건너뛰기">
+                건너뛰기
+              </TeaHouseButton>
+            ) : null}
+            <TeaHouseButton
+              onClick={() => {
+                if (isLast) onComplete();
+                else setStepIndex((current) => current + 1);
+              }}
+            >
+              {buttonLabel}
+            </TeaHouseButton>
+          </div>
         </div>
       </div>
     </section>

@@ -34,21 +34,27 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
     window.setTimeout(() => setIsSpeaking(false), prefersReducedMotion ? 0 : 1800);
   }
 
+  const dialogueText = isFlipped
+    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 나왔어요.\n이제 이 카드가 찻잔의 향과 어떻게 이어지는지 읽어볼게요.`
+    : "이제 찻잔이 답을 보여주려고 해요.\n운세는 당신을 겁주기 위해 있는 게 아니에요. 지금 보지 못하고 지나친 마음의 방향을 조금 더 선명하게 보여주는 작은 등불에 가까워요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
+
   return (
     <section className={styles.tarotRevealScene} aria-labelledby="tarotRevealTitle">
       <div className={styles.tarotRevealActor}>
-        <YeoniDialogueActor mood={isFlipped ? "serious" : "welcome"} isSpeaking={isSpeaking} className={styles.yeoniPortrait} priority />
+        <YeoniDialogueActor
+          mood={isFlipped ? "serious" : "welcome"}
+          isSpeaking={isSpeaking}
+          cueText={dialogueText}
+          className={styles.yeoniPortrait}
+          priority
+        />
       </div>
       <div className={styles.tarotRevealPanel}>
         <p className={styles.sceneEyebrow}>찻잔이 고른 한 장</p>
         <h2 id="tarotRevealTitle">운명의 카드가 펼쳐집니다</h2>
         <TeaHouseDialogueBox
           speaker="연이"
-          text={
-            isFlipped
-              ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 나왔어요.\n이제 이 카드가 찻잔의 향과 어떻게 이어지는지 읽어볼게요.`
-              : "이제 찻잔이 답을 보여주려고 해요.\n운세는 당신을 겁주기 위해 있는 게 아니에요. 지금 보지 못하고 지나친 마음의 방향을 조금 더 선명하게 보여주는 작은 등불에 가까워요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요."
-          }
+          text={dialogueText}
         />
         <div className={styles.tarotStage}>
           {!isFlipped && !prefersReducedMotion ? <TarotRevealAnimation className={styles.tarotRevealStageAnimation} /> : null}

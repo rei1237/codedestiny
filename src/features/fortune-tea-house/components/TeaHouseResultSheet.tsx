@@ -43,7 +43,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaH
     <section className={styles.resultScene} aria-labelledby="teaResultTitle">
       <aside className={styles.resultYeoniPanel}>
         <AssetImage className={styles.resultFullYeoni} src={fortuneTeaHouseAssets.yeoni.full} alt="상담 결과를 들려주는 연이" priority />
-        <YeoniDialogueActor mood="closing" isSpeaking={false} className={styles.resultYeoniActor} priority />
+        <YeoniDialogueActor mood="closing" isSpeaking cueText={result.closingLine} className={styles.resultYeoniActor} priority />
         <AssetImage className={styles.resultBubbleAsset} src={fortuneTeaHouseAssets.yeoni.bubble} alt="연이 말풍선 장식" />
         <TeaHouseDialogueBox speaker="연이" text={result.closingLine} />
       </aside>

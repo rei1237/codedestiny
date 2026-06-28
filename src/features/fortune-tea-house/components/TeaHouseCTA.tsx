@@ -15,7 +15,7 @@ export default function TeaHouseCTA({ onReady, onRestart }: TeaHouseCTAProps) {
       <div className={styles.ctaPortrait}>
         <AssetImage
           className={styles.ctaYeoni}
-          src={fortuneTeaHouseAssets.yeoni.bust}
+          src={fortuneTeaHouseAssets.yeoni.transparent.bust}
           alt="찻잔 상담을 준비하는 연이"
           priority
         />
