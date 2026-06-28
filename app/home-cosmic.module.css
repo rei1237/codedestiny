@@ -76,9 +76,9 @@
 .heroTitle {
   margin: 12px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(2.35rem, 7vw, 5.8rem);
+  font-size: clamp(2.35rem, 5.7vw, 4.9rem);
   font-weight: 400;
-  line-height: 1.04;
+  line-height: 1.08;
   letter-spacing: 0;
   color: #fff8e3;
   text-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
@@ -102,7 +102,6 @@
 }
 
 .ctaButton,
-.textLink,
 .policyStrip a {
   min-height: 44px;
   display: inline-flex;
@@ -131,18 +130,8 @@
   color: #e8fbff;
 }
 
-.textLink {
-  min-height: 40px;
-  padding: 0 6px;
-  color: #f2d9e1;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
 .ctaButton:hover,
 .ctaButton:focus-visible,
-.textLink:hover,
-.textLink:focus-visible,
 .policyStrip a:hover,
 .policyStrip a:focus-visible,
 .serviceCard:hover,
@@ -162,14 +151,6 @@
   background: rgba(191, 232, 207, 0.12);
 }
 
-.heroFacts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 28px 0 0;
-}
-
-.heroFacts div,
 .serviceCard,
 .infoCard,
 .refundCard {
@@ -177,23 +158,6 @@
   border-radius: 8px;
   background: linear-gradient(150deg, rgba(255, 255, 255, 0.088), rgba(255, 255, 255, 0.035));
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.heroFacts div {
-  padding: 14px;
-}
-
-.heroFacts dt {
-  color: var(--cd-cyan);
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
-.heroFacts dd {
-  margin: 5px 0 0;
-  color: rgba(248, 244, 234, 0.82);
-  font-size: 0.9rem;
-  line-height: 1.5;
 }
 
 .heroVisual {
@@ -424,7 +388,6 @@
     gap: 22px;
   }
 
-  .heroFacts,
   .serviceGrid,
   .passGrid,
   .refundGrid,
@@ -440,7 +403,6 @@
   }
 
   .ctaButton,
-  .textLink,
   .policyStrip a {
     width: 100%;
   }
@@ -453,7 +415,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ctaButton,
-  .textLink,
   .policyStrip a,
   .serviceCard {
     transition: none;
@@ -461,8 +422,6 @@
 
   .ctaButton:hover,
   .ctaButton:focus-visible,
-  .textLink:hover,
-  .textLink:focus-visible,
   .policyStrip a:hover,
   .policyStrip a:focus-visible,
   .serviceCard:hover,

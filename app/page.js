@@ -36,11 +36,6 @@ const HOME_PAGE_TEXT_TRANSLATIONS = {
     "homePage.label.002": "이용약관",
     "homePage.label.003": "개인정보처리방침",
     "homePage.label.004": "고객센터",
-    "homePage.text.001": "폰트",
-    "homePage.text.002": "R2 브랜드 폰트와 한글 fallback",
-    "homePage.text.003": "결제",
-    "homePage.text.004": "구매 전 환불 기준 노출",
-    "homePage.text.005": "달빛·꽃·별의 프리미엄 감성",
     "homePage.alt.001": "Code Destiny 꿀꿀 운세 로고",
     "homePage.alt.002": "마야점 달력판 이미지",
     "homePage.text.006": "운명의 시간 문양",
@@ -126,37 +121,37 @@ const DEST1NOVA_IMAGE_URL = buildMusicPublicUrl("DEST1NOVA/DEST1NOVA.webp");
 
 const SERVICE_LINKS = [
   {
-    href: "/manse",
+    href: "/static/#destinyCardForm",
     title: homePageText("homePage.title.002"),
     description: homePageText("homePage.description.001"),
     meta: "무료 시작",
   },
   {
-    href: "/tarot",
+    href: "/static/#tarotCollection",
     title: homePageText("homePage.title.003"),
     description: homePageText("homePage.description.002"),
     meta: "무료/유료 혼합",
   },
   {
-    href: "/ziwei",
+    href: "/static/#cosmicCollection",
     title: homePageText("homePage.title.004"),
     description: homePageText("homePage.description.003"),
     meta: "기본 무료",
   },
   {
-    href: "/astrology",
+    href: "/static/#cosmicCollection",
     title: homePageText("homePage.title.005"),
     description: homePageText("homePage.description.004"),
     meta: "코즈믹 리딩",
   },
   {
-    href: "/sukuyo",
+    href: "/static/#premiumVvipCollection",
     title: homePageText("homePage.title.006"),
     description: homePageText("homePage.description.005"),
     meta: "궁합 안내",
   },
   {
-    href: "/points",
+    href: "/static/#premiumVvipCollection",
     title: homePageText("homePage.title.007"),
     description: homePageText("homePage.description.006"),
     meta: "환불 안내 포함",
@@ -237,33 +232,16 @@ export default function HomePage() {
             생년월일 하나로 오늘 당신에게 열린 운의 결을 차분히 살펴보세요.
           </p>
           <div className={styles.ctaRow}>
-            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/#inputPage" aria-label="정적 메인 운세 입력 화면으로 이동">
+            <Link className={`${styles.ctaButton} ${styles.ctaPrimary}`} href="/static/#inputPage" aria-label="정적 메인 운세 입력 화면으로 이동">
               무료 운세 시작
             </Link>
-            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/kkul-kkul-unse" aria-label="꿀꿀 운세 브랜드 안내 페이지로 이동">
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/static/" aria-label="정적 꿀꿀 운세 홈으로 이동">
               꿀꿀 운세 홈
             </Link>
-            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/points" aria-label="이용권과 결제 안내 확인">
+            <Link className={`${styles.ctaButton} ${styles.ctaSecondary}`} href="/static/#premiumVvipCollection" aria-label="정적 메인 이용권 안내로 이동">
               이용권 안내
             </Link>
-            <Link className={styles.textLink} href="/terms#refund-policy" aria-label="환불정책 상세 보기">
-              환불정책 보기
-            </Link>
           </div>
-          <dl className={styles.heroFacts} aria-label="React 홈 핵심 개선 정보">
-            <div>
-              <dt>{homePageText("homePage.text.001")}</dt>
-              <dd>{homePageText("homePage.text.002")}</dd>
-            </div>
-            <div>
-              <dt>{homePageText("homePage.text.003")}</dt>
-              <dd>{homePageText("homePage.text.004")}</dd>
-            </div>
-            <div>
-              <dt>톤</dt>
-              <dd>{homePageText("homePage.text.005")}</dd>
-            </div>
-          </dl>
         </div>
 
         <div className={styles.heroVisual} aria-label="Code Destiny 브랜드 자산 미리보기">

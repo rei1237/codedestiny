@@ -48,14 +48,29 @@
   html.cd-mobile-lite .cd-user-star {
     animation: cdStarBlink var(--dur, 2s) ease-in-out var(--delay, 0s) infinite !important;
     -webkit-animation: cdStarBlink var(--dur, 2s) ease-in-out var(--delay, 0s) infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+    will-change: transform, opacity !important;
   }
   html.cd-mobile-lite .cd-user-card__avatar {
-    animation: cdAvatarGlow 3s ease-in-out infinite !important;
-    -webkit-animation: cdAvatarGlow 3s ease-in-out infinite !important;
+    animation: cdAvatarGlow 3.2s ease-in-out infinite !important;
+    -webkit-animation: cdAvatarGlow 3.2s ease-in-out infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+    will-change: box-shadow !important;
   }
   html.cd-mobile-lite .cd-user-card__avatar-ring {
-    animation: cdAvatarSpin 4s linear infinite !important;
-    -webkit-animation: cdAvatarSpin 4s linear infinite !important;
+    animation: cdPlanetRingDrift 5.4s ease-in-out infinite !important;
+    -webkit-animation: cdPlanetRingDrift 5.4s ease-in-out infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+    will-change: transform !important;
+  }
+  html.cd-mobile-lite .cd-user-card__avatar-ring::before {
+    animation: cdPlanetLightOrbit 3.2s linear infinite !important;
+    -webkit-animation: cdPlanetLightOrbit 3.2s linear infinite !important;
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
   }
   html.cd-mobile-lite .logo-area::after {
     animation: starfall 12s linear infinite !important;
