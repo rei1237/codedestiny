@@ -17,6 +17,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import {
   getActivePaidAttemptSession,
   markPaidAttemptFailed,
@@ -158,8 +159,25 @@ const emptyPerson = (): PersonInfo => ({
   calendarType: "solar",
 });
 
+function buildInitialMyInfo(): PersonInfo {
+  const person = emptyPerson();
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
+    return person;
+  }
+  return {
+    ...person,
+    name: profile.name || person.name,
+    gender: (profile.gender as PersonInfo["gender"]) || person.gender,
+    birthDate: profile.birthDate || person.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? person.birthTimeUnknown,
+    birthTime: profile.birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
+    calendarType: profile.calendarType || person.calendarType,
+  };
+}
+
 const defaultForm = (): ConsultationForm => ({
-  myInfo: emptyPerson(),
+  myInfo: buildInitialMyInfo(),
   partnerInfo: emptyPerson(),
   relationshipStatus: "single",
   focusArea: "relationshipFlow",

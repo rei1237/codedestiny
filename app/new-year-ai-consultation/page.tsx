@@ -3,6 +3,7 @@
 import { CalendarDays, Loader2, Moon, Sparkles, WalletCards } from "lucide-react";
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -78,6 +79,22 @@ const defaultForm = (): ConsultationForm => ({
   focusArea: "overall",
   question: "",
 });
+
+function buildInitialForm(): ConsultationForm {
+  const form = defaultForm();
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
+    return form;
+  }
+  return {
+    ...form,
+    userName: profile.name || form.userName,
+    gender: (profile.gender as ConsultationForm["gender"]) || form.gender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime || form.birthTime),
+    calendarType: profile.calendarType || form.calendarType,
+  };
+}
 
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `nyai-${crypto.randomUUID()}`;
@@ -189,7 +206,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
 }
 
 export default function NewYearAiConsultationPage() {
-  const [form, setForm] = useState<ConsultationForm>(() => defaultForm());
+  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");

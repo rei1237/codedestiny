@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import styles from "./VedicAiClient.module.css";
 
 type Gender = "male" | "female" | "unknown" | "";
@@ -197,6 +198,31 @@ const initialForm: FormState = {
   focusArea: "overall",
   question: "",
 };
+
+function buildInitialForm(): FormState {
+  const form = initialForm;
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined && !profile.timezone && !profile.city && !profile.country && !profile.latitude && !profile.longitude) {
+    return form;
+  }
+  const birthplace = [profile.city, profile.country].filter(Boolean).join(", ");
+  return {
+    ...form,
+    userName: profile.name || form.userName,
+    gender: (profile.gender as FormState["gender"]) || form.gender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
+    birthTime:
+      profile.birthTimeUnknown === true
+        ? ""
+        : profile.birthTime || form.birthTime,
+    calendarType: profile.calendarType || form.calendarType,
+    birthPlace: birthplace || profile.region || form.birthPlace,
+    latitude: profile.latitude || form.latitude,
+    longitude: profile.longitude || form.longitude,
+    timezone: profile.timezone || form.timezone,
+  };
+}
 
 function makeRequestId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -575,18 +601,21 @@ function StructuredReadingResult({
 }
 
 export default function VedicAiClient() {
-  const [form, setForm] = useState<FormState>(initialForm);
+  const [form, setForm] = useState<FormState>(() => buildInitialForm());
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [geocoding, setGeocoding] = useState(false);
-  const [geocode, setGeocode] = useState<GeocodeState>({
-    lat: PLACE_PRESETS[0].latitude,
-    lng: PLACE_PRESETS[0].longitude,
-    name: PLACE_PRESETS[0].label,
-    fallback: false,
+  const [geocode, setGeocode] = useState<GeocodeState>(() => {
+    const initial = buildInitialForm();
+    return {
+      lat: initial.latitude || PLACE_PRESETS[0].latitude,
+      lng: initial.longitude || PLACE_PRESETS[0].longitude,
+      name: initial.birthPlace || PLACE_PRESETS[0].label,
+      fallback: false,
+    };
   });
   const requestIdRef = useRef("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);

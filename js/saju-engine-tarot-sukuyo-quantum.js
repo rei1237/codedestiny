@@ -12783,26 +12783,67 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return new Promise(function(resolve) { setTimeout(resolve, ms); });
   }
 
+  function syIsSukuyoYearlyPassGrant(result) {
+    var gate = result && typeof result === 'object' ? result : {};
+    var access = gate.access && typeof gate.access === 'object' ? gate.access : {};
+    var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+    var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : (payload.consume && typeof payload.consume === 'object' ? payload.consume : {});
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : (payload.accessGrant && typeof payload.accessGrant === 'object' ? payload.accessGrant : {});
+    var status = String(gate.status || access.status || payload.status || data.status || '').toLowerCase();
+    var accessType = String(access.accessType || data.accessType || payload.accessType || consume.accessType || accessGrant.accessType || '').toLowerCase();
+    var accessSource = String(access.accessSource || data.accessSource || payload.accessSource || '').toLowerCase();
+    return status === 'pass_applied'
+      || access.freeBySubscription === true
+      || data.freeBySubscription === true
+      || payload.freeBySubscription === true
+      || accessType === 'membership_pass'
+      || accessSource === 'license_pass'
+      || accessSource === 'family_pass';
+  }
+
   function syBuildSukuyoYearlyVerifyBody(base, gateResult) {
     var result = gateResult && typeof gateResult === 'object' ? gateResult : {};
     var payload = result.payload && typeof result.payload === 'object' ? result.payload : result;
     var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
-    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-    var payment = data.payment && typeof data.payment === 'object' ? data.payment : {};
-    var paymentId = String(result.transactionId || data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || result.requestId || '').trim();
+    var access = result.access && typeof result.access === 'object' ? result.access : {};
+    var accessPayload = access.payload && typeof access.payload === 'object' ? access.payload : access;
+    var accessData = accessPayload.data && typeof accessPayload.data === 'object' ? accessPayload.data : accessPayload;
+    var consume = Object.assign(
+      {},
+      accessData.consume && typeof accessData.consume === 'object' ? accessData.consume : {},
+      accessPayload.consume && typeof accessPayload.consume === 'object' ? accessPayload.consume : {},
+      data.consume && typeof data.consume === 'object' ? data.consume : {},
+      payload.consume && typeof payload.consume === 'object' ? payload.consume : {}
+    );
+    var accessGrant = Object.assign(
+      {},
+      accessData.accessGrant && typeof accessData.accessGrant === 'object' ? accessData.accessGrant : {},
+      accessPayload.accessGrant && typeof accessPayload.accessGrant === 'object' ? accessPayload.accessGrant : {},
+      data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {},
+      payload.accessGrant && typeof payload.accessGrant === 'object' ? payload.accessGrant : {}
+    );
+    var payment = Object.assign(
+      {},
+      accessData.payment && typeof accessData.payment === 'object' ? accessData.payment : {},
+      accessPayload.payment && typeof accessPayload.payment === 'object' ? accessPayload.payment : {},
+      data.payment && typeof data.payment === 'object' ? data.payment : {},
+      payload.payment && typeof payload.payment === 'object' ? payload.payment : {}
+    );
+    var paymentId = String(result.transactionId || data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.paymentId || accessGrant.requestId || payment.transactionId || payment.paymentId || payment.purchaseId || payment.merchantUid || result.requestId || '').trim();
     return Object.assign({}, base || {}, {
       paymentId: paymentId,
       transactionId: String(result.transactionId || data.transactionId || consume.transactionId || '').trim(),
       purchaseId: String(data.purchaseId || consume.purchaseId || accessGrant.purchaseId || '').trim(),
       requestId: String(result.requestId || data.requestId || consume.requestId || accessGrant.requestId || '').trim(),
+      access: access,
       accessGrant: accessGrant,
       consume: consume,
       payment: payment,
       _paymentContext: {
         requestId: String(result.requestId || data.requestId || consume.requestId || accessGrant.requestId || '').trim(),
-        transactionId: String(result.transactionId || data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-        purchaseId: String(data.purchaseId || consume.purchaseId || accessGrant.purchaseId || '').trim(),
+        transactionId: String(result.transactionId || data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.paymentId || payment.transactionId || payment.paymentId || '').trim(),
+        purchaseId: String(data.purchaseId || consume.purchaseId || accessGrant.purchaseId || payment.purchaseId || '').trim(),
         featureKey: 'sukyo_yearly_fortune_unlock',
         contentKey: String((base && base.contentKey) || '').trim(),
         contentId: String((base && (base.contentId || base.contentKey)) || '').trim(),
@@ -12961,8 +13002,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           amountKrw: 10000
         })).then(function(result) {
           if (!syIsPaidGateGranted(result)) throw new Error('결제가 완료되지 않았습니다.');
-          sySetSukuyoYearlyUnlockStateV2(false, targetYear, '결제 확인됨 · 해금 반영 중');
-          btn.textContent = '결제 확인됨 · 해금 반영 중';
+          var grantedByPass = syIsSukuyoYearlyPassGrant(result);
+          var savingLabel = grantedByPass ? '이용권으로 열람되었습니다 · 해금 반영 중' : '결제 확인됨 · 해금 반영 중';
+          sySetSukuyoYearlyUnlockStateV2(false, targetYear, savingLabel);
+          btn.textContent = savingLabel;
           return syVerifySukuyoYearlyPaymentWithRetry({
             profileId: payload.profileId || profileId,
             selectedProfileId: payload.profileId || profileId,

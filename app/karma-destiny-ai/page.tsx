@@ -3,6 +3,7 @@
 import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -158,6 +159,35 @@ const defaultForm = (): ConsultationForm => ({
   focusArea: "overall",
   question: "",
 });
+
+function buildInitialForm(): ConsultationForm {
+  const form = defaultForm();
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && !profile.timezone && !profile.city && !profile.country && profile.birthTimeUnknown === undefined && !profile.latitude && !profile.longitude) {
+    return form;
+  }
+  const birthplace = {
+    city: profile.city || form.birthPlace.city,
+    country: profile.country || form.birthPlace.country,
+    latitude: profile.latitude || form.birthPlace.latitude,
+    longitude: profile.longitude || form.birthPlace.longitude,
+    timezone: profile.timezone || form.birthPlace.timezone,
+  };
+  const resolvedGender = (profile.gender as GenderType) || form.gender;
+  return {
+    ...form,
+    name: profile.name || form.name,
+    gender: resolvedGender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || form.birthTime,
+    calendarType: profile.calendarType || form.calendarType,
+    birthPlace: {
+      ...form.birthPlace,
+      ...birthplace,
+    },
+  };
+}
 
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `kdai-${crypto.randomUUID()}`;
@@ -462,7 +492,7 @@ function KarmaResultModal({
 }
 
 export default function KarmaDestinyAiPage() {
-  const [form, setForm] = useState<ConsultationForm>(() => defaultForm());
+  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");

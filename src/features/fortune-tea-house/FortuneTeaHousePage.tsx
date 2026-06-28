@@ -387,6 +387,13 @@ export default function FortuneTeaHousePage() {
           alt=""
           priority
         />
+        <AssetImage
+          className={styles.entryTransitionSceneArt}
+          imageClassName={styles.entryTransitionSceneArtImage}
+          src={fortuneTeaHouseAssets.backgrounds.loadingScene}
+          alt=""
+          priority
+        />
         <span className={styles.entryTransitionRing} />
         <div className={styles.entryLoadingPanel}>
           <strong>LOADING...</strong>

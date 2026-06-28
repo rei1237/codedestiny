@@ -130,6 +130,7 @@ export const fortuneTeaHouseAssets = {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
     labeledPhotoroom: teaHouseNoBackgroundAsset("찻잔 이미지-Photoroom.png"),
+    correctedPhotoroom: teaHouseNoBackgroundAsset("찻잔 이미지2 수정-Photoroom.png"),
     transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
   },
   tea: {

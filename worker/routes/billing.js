@@ -3735,6 +3735,65 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         source: "pre_usage",
       });
     }
+    let passUnlockEntitlement = null;
+    if (accessDecision.reason === "pass_covered" && persistProfileUnlockEntitlement) {
+      try {
+        logPaidAccessStage("UNLOCK_SAVE_START", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "pass",
+          paymentMethod: "PASS",
+          amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+          passTier: paymentDecision.passTier,
+          passLimit: paymentDecision.passLimit,
+          idempotencyKey: requestId,
+        });
+        passUnlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+          userId: authCheck.auth.userId,
+          profileId,
+          featureKey: pricing.featureKey,
+          contentKey: body?.contentKey,
+          source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+          passId: `membership:${subscriptionPassForDecision?.tier || paymentDecision.passTier || "pass"}:${requestId}`,
+          coinAmount: 0,
+        });
+        logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "pass",
+          paymentMethod: "PASS",
+          amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+          passTier: paymentDecision.passTier,
+          passLimit: paymentDecision.passLimit,
+          unlockId: String(passUnlockEntitlement?._id || ""),
+          idempotencyKey: requestId,
+        });
+      } catch (error) {
+        return failure(
+          error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+          "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+          "Unlock entitlement could not be saved after pass access.",
+          String(error?.message || ""),
+          {
+            pricing,
+            pendingUnlock: true,
+            settlement: {
+              source: "PASS",
+              requestId,
+              profileId: profileId || undefined,
+            },
+          },
+        );
+      }
+    }
+    const resolvedUnlockId = String(passUnlockEntitlement?._id || accessDecision.unlockId || "");
+    const resolvedAccessDecision = passUnlockEntitlement?._id
+      ? { ...accessDecision, accessGranted: true, unlockId: String(passUnlockEntitlement._id || "") }
+      : accessDecision;
     logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "EXISTING_UNLOCK_FOUND" : "PASS_FEATURE_ELIGIBLE", {
       requestId,
       userId: authCheck.auth.userId,
@@ -3746,8 +3805,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       passEligible: accessDecision.reason === "pass_covered",
       passTier: paymentDecision.passTier,
       passLimit: paymentDecision.passLimit,
-      unlockId: String(accessDecision.unlockId || ""),
-      orderId: String(accessDecision.unlockId || requestId),
+      unlockId: resolvedUnlockId,
+      orderId: resolvedUnlockId || requestId,
       idempotencyKey: requestId,
     });
     logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "ACCESS_ALREADY_UNLOCKED" : "PASS_GRANTED", {
@@ -3761,8 +3820,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       passEligible: accessDecision.reason === "pass_covered",
       passTier: paymentDecision.passTier,
       passLimit: paymentDecision.passLimit,
-      unlockId: String(accessDecision.unlockId || ""),
-      orderId: String(accessDecision.unlockId || requestId),
+      unlockId: resolvedUnlockId,
+      orderId: resolvedUnlockId || requestId,
       idempotencyKey: requestId,
     });
     const accessType = accessDecision.reason === "already_unlocked" ? "already_unlocked" : "membership_pass";
@@ -3791,13 +3850,13 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         featureKey: String(pricing.featureKey || ""),
         sessionId: reportSessionId || undefined,
         requestId,
-        purchaseId: String(accessDecision.unlockId || requestId),
-        evidenceId: String(accessDecision.unlockId || ""),
+        purchaseId: resolvedUnlockId || requestId,
+        evidenceId: resolvedUnlockId,
         reportId: reportId || undefined,
         profileId: profileId || undefined,
         paidAt: new Date().toISOString(),
       },
-      accessDecision,
+      accessDecision: resolvedAccessDecision,
       unlockedFeatures: [String(pricing.featureKey || "")],
       unlockMap: { [String(pricing.featureKey || "")]: true },
       balance: null,

@@ -3779,6 +3779,14 @@ async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
   return profile;
 }
 
+function requireSukuyoYearlyAuth(auth) {
+  if (auth?.userId) return auth;
+  const error = new Error("숙요점 1년운을 열려면 로그인이 필요합니다.");
+  error.status = 401;
+  error.code = "AUTH_REQUIRED";
+  throw error;
+}
+
 function resolveSukuyoLunarFromProfile(profile) {
   const birth = profile?.birth || {};
   const year = Number(birth.year);
@@ -4299,7 +4307,7 @@ async function findSukuyoYearlyUnlock({ userId, profileId, targetYear }) {
 }
 
 async function handleSukuyoYearlyFortune(request, env) {
-  const auth = await requireAuth(request, env);
+  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
   const url = new URL(request.url);
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
@@ -4328,7 +4336,7 @@ async function handleSukuyoYearlyFortune(request, env) {
 }
 
 async function handleSukuyoYearlyUnlock(request, env) {
-  const auth = await requireAuth(request, env);
+  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
@@ -4375,11 +4383,28 @@ function isSukuyoMongoId(value) {
   return /^[a-f0-9]{24}$/i.test(clean(value));
 }
 
+function sukuyoYearlyObject(value) {
+  return value && typeof value === "object" ? value : {};
+}
+
 function collectSukuyoYearlyEvidenceIds(body = {}) {
-  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
-  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
-  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
-  const context = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const access = sukuyoYearlyObject(body?.access);
+  const accessPayload = sukuyoYearlyObject(access?.payload);
+  const accessData = sukuyoYearlyObject(accessPayload?.data);
+  const accessSource = Object.keys(accessData).length ? accessData : (Object.keys(accessPayload).length ? accessPayload : access);
+  const accessGrant = {
+    ...sukuyoYearlyObject(accessSource?.accessGrant),
+    ...sukuyoYearlyObject(body?.accessGrant),
+  };
+  const consume = {
+    ...sukuyoYearlyObject(accessSource?.consume),
+    ...sukuyoYearlyObject(body?.consume),
+  };
+  const payment = {
+    ...sukuyoYearlyObject(accessSource?.payment),
+    ...sukuyoYearlyObject(body?.payment),
+  };
+  const context = sukuyoYearlyObject(body?._paymentContext);
   return Array.from(new Set([
     body?.paymentId,
     body?.impUid,
@@ -4389,6 +4414,18 @@ function collectSukuyoYearlyEvidenceIds(body = {}) {
     body?.purchaseId,
     body?.orderId,
     body?.requestId,
+    access.paymentId,
+    access.transactionId,
+    access.purchaseId,
+    access.requestId,
+    accessPayload.paymentId,
+    accessPayload.transactionId,
+    accessPayload.purchaseId,
+    accessPayload.requestId,
+    accessSource.paymentId,
+    accessSource.transactionId,
+    accessSource.purchaseId,
+    accessSource.requestId,
     accessGrant.evidenceId,
     accessGrant.paymentId,
     accessGrant.purchaseId,
@@ -4556,7 +4593,7 @@ export const __sukuyoPremiumStatusTestUtils = {
 };
 
 async function handleSukuyoYearlyVerifyPayment(request, env) {
-  const auth = await requireAuth(request, env);
+  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);

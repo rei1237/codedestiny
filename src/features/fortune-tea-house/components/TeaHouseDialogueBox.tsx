@@ -14,6 +14,7 @@ type TeaHouseDialogueBoxProps = {
 };
 
 const TYPEWRITER_INTERVAL_MS = 24;
+const TYPEWRITER_INTERVAL_NARRATION_MS = 48;
 
 function getSpeakerLabel(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker) {
   if (speaker === "narration") return "나레이션";
@@ -38,6 +39,7 @@ export default function TeaHouseDialogueBox({
   const [visibleCharacters, setVisibleCharacters] = useState(() => (prefersReducedMotion ? characters.length : 0));
   const speakerLabel = getSpeakerLabel(speaker);
   const isSystem = speaker === "narration";
+  const typewriterIntervalMs = isSystem ? TYPEWRITER_INTERVAL_NARRATION_MS : TYPEWRITER_INTERVAL_MS;
   const speakerIcon = getSpeakerIcon(speaker);
   const isTextComplete = visibleCharacters >= characters.length;
   const visibleText = characters.slice(0, visibleCharacters).join("");
@@ -57,10 +59,10 @@ export default function TeaHouseDialogueBox({
         }
         return current + 1;
       });
-    }, TYPEWRITER_INTERVAL_MS);
+    }, typewriterIntervalMs);
 
     return () => window.clearInterval(timer);
-  }, [characters.length, prefersReducedMotion, text]);
+  }, [characters.length, prefersReducedMotion, text, typewriterIntervalMs]);
 
   function handleDialogueAdvance() {
     if (!isTextComplete) {

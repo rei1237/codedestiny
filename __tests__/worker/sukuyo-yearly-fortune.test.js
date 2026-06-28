@@ -200,4 +200,44 @@ describe("sukuyo yearly fortune", () => {
     expect(result.wrongProfile).toBe(false);
     expect(result.wrongYear).toBe(false);
   });
+
+  test("collects current paid gate access evidence from nested payload", () => {
+    const result = runSukuyoProbe(`
+      return utils.collectSukuyoYearlyEvidenceIds({
+        access: {
+          requestId: "access-request-root",
+          payload: {
+            data: {
+              transactionId: "access-transaction-data",
+              accessGrant: {
+                evidenceId: "entitlement-access-1",
+                purchaseId: "purchase-access-1",
+                requestId: "request-access-1",
+              },
+              consume: {
+                transactionId: "consume-access-1",
+              },
+              payment: {
+                paymentId: "payment-access-1",
+              },
+            },
+          },
+        },
+        _paymentContext: {
+          transactionId: "context-access-1",
+        },
+      });
+    `);
+
+    expect(result).toEqual(expect.arrayContaining([
+      "access-request-root",
+      "access-transaction-data",
+      "entitlement-access-1",
+      "purchase-access-1",
+      "request-access-1",
+      "consume-access-1",
+      "payment-access-1",
+      "context-access-1",
+    ]));
+  });
 });

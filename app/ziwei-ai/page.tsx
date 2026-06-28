@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import { Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -173,6 +174,32 @@ const defaultForm: FormState = {
   isLeapMonth: false,
   focusArea: "overall",
   question: "",
+};
+
+function toZiweiGender(value: string | undefined): Gender {
+  if (value === "female" || value === "male" || value === "unknown") return value;
+  return "";
+}
+
+const buildInitialZiweiForm = (): FormState => {
+  const form = defaultForm;
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
+    return form;
+  }
+  const profileGender = toZiweiGender(profile.gender);
+  return {
+    ...form,
+    name: profile.name || form.name,
+    gender: profileGender || form.gender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
+    birthTime:
+      profile.birthTimeUnknown === true
+        ? ""
+        : profile.birthTime || form.birthTime,
+    calendarType: profile.calendarType || form.calendarType,
+  };
 };
 
 function createIdempotencyKey() {
@@ -401,7 +428,7 @@ function splitAssistantSections(content: string) {
 }
 
 export default function ZiweiAiPage() {
-  const [form, setForm] = useState<FormState>(defaultForm);
+  const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");

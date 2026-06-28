@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -139,6 +140,31 @@ const defaultForm = (): FormState => {
   };
 };
 
+const buildInitialForm = (): FormState => {
+  const form = defaultForm();
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && profile.birthTimeUnknown === undefined && !profile.timezone && !profile.city) {
+    return form;
+  }
+  return {
+    ...form,
+    name: profile.name || form.name,
+    gender: profile.gender || form.gender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
+    birthTime:
+      profile.birthTimeUnknown === true
+        ? ""
+        : profile.birthTime || form.birthTime,
+    timezone: profile.timezone || form.timezone,
+    city: profile.city || form.city,
+    country: profile.country || form.country,
+    latitude: profile.latitude || form.latitude,
+    longitude: profile.longitude || form.longitude,
+    placeKey: profile.city ? "custom" : form.placeKey,
+  };
+};
+
 function makeIdempotencyKey() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return `astro-ai-${crypto.randomUUID()}`;
   return `astro-ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
@@ -205,7 +231,7 @@ function pointLabel(point?: ChartPoint | null) {
 }
 
 export default function AstrologyAiClient() {
-  const [form, setForm] = useState<FormState>(() => defaultForm());
+  const [form, setForm] = useState<FormState>(buildInitialForm);
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");

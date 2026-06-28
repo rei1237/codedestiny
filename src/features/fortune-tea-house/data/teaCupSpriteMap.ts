@@ -18,7 +18,7 @@ type TeaCupSpriteEntry = {
 };
 
 const sheet = {
-  src: fortuneTeaHouseAssets.teaCups.labeledPhotoroom,
+  src: fortuneTeaHouseAssets.teaCups.correctedPhotoroom,
   sheetWidth: 1448,
   sheetHeight: 1086,
 } as const;
@@ -35,33 +35,33 @@ function slice(x: number, y: number, width: number, height: number): TeaCupSprit
 export const teaCupSpriteMap: Record<string, TeaCupSpriteEntry> = {
   "lotus-moon": {
     ...sheet,
-    normal: slice(50, 40, 445, 500),
-    selected: slice(50, 40, 445, 500),
+    normal: slice(18, 52, 256, 324),
+    selected: slice(18, 52, 256, 324),
   },
   "honey-peach": {
     ...sheet,
-    normal: slice(495, 40, 445, 500),
-    selected: slice(495, 40, 445, 500),
+    normal: slice(268, 53, 244, 324),
+    selected: slice(268, 53, 244, 324),
   },
   "star-black-tea": {
     ...sheet,
-    normal: slice(945, 40, 440, 500),
-    selected: slice(945, 40, 440, 500),
+    normal: slice(505, 54, 230, 324),
+    selected: slice(505, 54, 230, 324),
   },
   "gold-cinnamon": {
     ...sheet,
-    normal: slice(45, 525, 440, 505),
-    selected: slice(45, 525, 440, 505),
+    normal: slice(723, 53, 230, 325),
+    selected: slice(723, 53, 230, 325),
   },
   "white-lotus-healing": {
     ...sheet,
-    normal: slice(495, 525, 440, 505),
-    selected: slice(495, 525, 440, 505),
+    normal: slice(942, 53, 234, 324),
+    selected: slice(942, 53, 234, 324),
   },
   "black-moon-brown-rice": {
     ...sheet,
-    normal: slice(945, 525, 435, 505),
-    selected: slice(945, 525, 435, 505),
+    normal: slice(1187, 52, 242, 325),
+    selected: slice(1187, 52, 242, 325),
   },
 };
 

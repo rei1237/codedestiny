@@ -42,7 +42,6 @@ const transformFrames = [
   { col: 3, row: 1 },
 ] as const;
 
-const TRANSFORM_LOAD_FALLBACK_DELAY_MS = 1000;
 const TRANSFORM_MIN_VISIBLE_MS = 1200;
 const TRANSFORM_FALLBACK_FRAME_MS = 140;
 const PIG_IDLE_FIRST_DELAY_MS = 8200;
@@ -60,19 +59,6 @@ function debugTransform(message: string, ...payload: unknown[]) {
   }
 }
 
-const teaIntroYeoniCupFrame = {
-  x: 444,
-  y: 444,
-  width: 443,
-  height: 443,
-  sheetWidth: 1774,
-  sheetHeight: 887,
-  left: "-100.23%",
-  top: "-100.23%",
-  sheetWidthPercent: "400.45%",
-  sheetHeightPercent: "200.23%",
-} as const;
-
 export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }: TeaHouseEntrySceneProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const scene = getTeaHouseEntryScene(stage);
@@ -81,7 +67,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const [pigFrameIndex, setPigFrameIndex] = useState(0);
   const [usePigFallback, setUsePigFallback] = useState(false);
   const [useTransformFallback, setUseTransformFallback] = useState(false);
-  const [useTeaCupsFallback, setUseTeaCupsFallback] = useState(false);
   const [isTransformVideoReady, setIsTransformVideoReady] = useState(false);
   const [transformHasPlayed, setTransformHasPlayed] = useState(false);
   const [transformFallbackFrameIndex, setTransformFallbackFrameIndex] = useState(0);
@@ -120,7 +105,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     setTransformFallbackFrameIndex(prefersReducedMotion && stage === "transformPreview" ? transformFrames.length - 1 : 0);
     setUsePigFallback(false);
     setUseTransformFallback(prefersReducedMotion && stage === "transformPreview");
-    setUseTeaCupsFallback(false);
     setIsTransformVideoReady(false);
     setTransformHasPlayed(stage !== "transformPreview");
     setIsTransformMinTimeReady(stage !== "transformPreview");
@@ -142,15 +126,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     }, TRANSFORM_MIN_VISIBLE_MS);
     return () => window.clearTimeout(timer);
   }, [stage]);
-
-  useEffect(() => {
-    if (stage !== "transformPreview" || prefersReducedMotion || isTransformVideoReady || useTransformFallback) return;
-    const timer = window.setTimeout(() => {
-      setUseTransformFallback(true);
-      setTransformFallbackFrameIndex(0);
-    }, TRANSFORM_LOAD_FALLBACK_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [isTransformVideoReady, prefersReducedMotion, stage, useTransformFallback]);
 
   useEffect(() => {
     if (stage !== "transformPreview" || !useTransformFallback) return;
@@ -267,12 +242,10 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
         useTransformFallback={useTransformFallback}
         isTransformVideoReady={isTransformVideoReady}
         transformHasPlayed={transformHasPlayed}
-        useTeaCupsFallback={useTeaCupsFallback}
         onPigError={() => setUsePigFallback(true)}
         onTransformVideoReady={handleTransformVideoReady}
         onTransformVideoEnded={handleTransformVideoEnded}
         onTransformError={handleTransformError}
-        onTeaCupsError={() => setUseTeaCupsFallback(true)}
       />
       <div className={styles.entryStoryPanel}>
         <p className={styles.sceneEyebrow}>{scene.eyebrow}</p>
@@ -322,12 +295,10 @@ type EntryActorProps = {
   useTransformFallback: boolean;
   isTransformVideoReady: boolean;
   transformHasPlayed: boolean;
-  useTeaCupsFallback: boolean;
   onPigError: () => void;
   onTransformVideoReady: () => void;
   onTransformVideoEnded: () => void;
   onTransformError: () => void;
-  onTeaCupsError: () => void;
 };
 
 function EntryActor({
@@ -338,12 +309,10 @@ function EntryActor({
   useTransformFallback,
   isTransformVideoReady,
   transformHasPlayed,
-  useTeaCupsFallback,
   onPigError,
   onTransformVideoReady,
   onTransformVideoEnded,
   onTransformError,
-  onTeaCupsError,
 }: EntryActorProps) {
   const pigFrame = pigFrames[pigFrameIndex] || pigFrames[0];
   const transformFrame = transformFrames[transformFallbackFrameIndex] || transformFrames[0];
@@ -485,45 +454,14 @@ function EntryActor({
 
   return (
     <div className={styles.entryActor} data-actor="tea">
-      <span
-        className={styles.entryTeaYeoniActor}
-        style={
-          {
-            "--entry-tea-yeoni-x": `${teaIntroYeoniCupFrame.x}px`,
-            "--entry-tea-yeoni-y": `${teaIntroYeoniCupFrame.y}px`,
-            "--entry-tea-yeoni-width": `${teaIntroYeoniCupFrame.width}px`,
-            "--entry-tea-yeoni-height": `${teaIntroYeoniCupFrame.height}px`,
-            "--entry-tea-yeoni-sheet-width": `${teaIntroYeoniCupFrame.sheetWidth}px`,
-            "--entry-tea-yeoni-sheet-height": `${teaIntroYeoniCupFrame.sheetHeight}px`,
-            "--entry-tea-yeoni-aspect-width": teaIntroYeoniCupFrame.width,
-            "--entry-tea-yeoni-aspect-height": teaIntroYeoniCupFrame.height,
-            "--entry-tea-yeoni-left": teaIntroYeoniCupFrame.left,
-            "--entry-tea-yeoni-top": teaIntroYeoniCupFrame.top,
-            "--entry-tea-yeoni-sheet-width-percent": teaIntroYeoniCupFrame.sheetWidthPercent,
-            "--entry-tea-yeoni-sheet-height-percent": teaIntroYeoniCupFrame.sheetHeightPercent,
-          } as CSSProperties
-        }
-      >
+      <span className={styles.entryTeaYeoniPortrait} role="img" aria-label="달빛 아래 찻잔 선택을 안내하는 연이">
         <Image
-          className={styles.entryTeaYeoniSpriteSheet}
-          src={fortuneTeaHouseAssets.yeoni.transparent.cupPoseSheet}
-          alt="찻잔을 내미는 연이"
+          src={fortuneTeaHouseAssets.yeoni.transparent.bust}
+          alt=""
           fill
-          sizes="(max-width: 640px) 74vw, 34vw"
+          sizes="(max-width: 640px) 72vw, 34vw"
           priority
           unoptimized
-        />
-      </span>
-      <span className={styles.entryTeaCupPreview}>
-        <Image
-          className={styles.entryTeaCupImage}
-          src={useTeaCupsFallback ? fortuneTeaHouseAssets.fallback.teaCups : fortuneTeaHouseAssets.cutout.teaCups}
-          alt="달빛 아래 놓인 여섯 개의 찻잔"
-          fill
-          sizes="(max-width: 640px) 90vw, 42vw"
-          priority
-          unoptimized
-          onError={onTeaCupsError}
         />
       </span>
     </div>

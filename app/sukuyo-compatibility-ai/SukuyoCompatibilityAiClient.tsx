@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 
 type CalendarType = "solar" | "lunar";
@@ -74,13 +75,13 @@ const FEATURE_REASON = "숙요점 궁합 AI 상담";
 const FEATURE_COST = 490;
 const FEATURE_AMOUNT_KRW = 49000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 4900;
-const STEPS = ["내 정보", "상대 정보"];
+const STEPS = ["내 달자리", "상대의 달자리"];
 const LOADING_STAGES = [
-  { phase: "🌑", label: "두 사람의 달빛 자리를 탐색하는 중", sub: "본명숙 산출" },
-  { phase: "🌒", label: "27숙의 거리를 재는 중", sub: "관계 유형 판정" },
-  { phase: "🌓", label: "음양오행의 흐름을 읽는 중", sub: "기질 분석" },
-  { phase: "🌔", label: "궁합의 파문을 그리는 중", sub: "종합 해석 생성" },
-  { phase: "🌕", label: "달빛 답장을 완성하는 중", sub: "최종 검토" },
+  { phase: "🌑", label: "두 사람의 본명숙을 비추는 중입니다", sub: "본명숙 산출" },
+  { phase: "🌒", label: "관계 거리를 따라 마음의 리듬을 읽는 중입니다", sub: "관계 유형 판정" },
+  { phase: "🌓", label: "끌림과 갈등의 결을 차분히 살피는 중입니다", sub: "기질 분석" },
+  { phase: "🌔", label: "AI 상담 문장을 정리하고 있습니다", sub: "종합 해석 생성" },
+  { phase: "🌕", label: "두 사람에게 전할 달빛 답장을 완성하는 중입니다", sub: "최종 검토" },
 ];
 const SECTION_ICONS: Record<string, string> = {
   essence: "☽",
@@ -127,6 +128,21 @@ const EMPTY_PERSON: PersonForm = {
   birthTime: "",
   calendarType: "solar",
 };
+
+function buildInitialPersonA(): PersonForm {
+  const profile = readAiProfileSeed();
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
+    return { ...EMPTY_PERSON };
+  }
+  return {
+    ...EMPTY_PERSON,
+    name: profile.name || EMPTY_PERSON.name,
+    gender: (profile.gender as PersonForm["gender"]) || EMPTY_PERSON.gender,
+    birthDate: profile.birthDate || EMPTY_PERSON.birthDate,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || EMPTY_PERSON.birthTime,
+    calendarType: profile.calendarType || EMPTY_PERSON.calendarType,
+  };
+}
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -286,7 +302,6 @@ function latestAssistantJson(consultation: Consultation | null) {
 
 function MoonLoadingScreen() {
   const [stage, setStage] = useState(0);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const intervals = [3000, 5000, 4000, 5000, 3000];
@@ -295,12 +310,8 @@ function MoonLoadingScreen() {
       elapsed += duration;
       return window.setTimeout(() => setStage(index), elapsed - duration);
     });
-    const bar = window.setInterval(() => {
-      setProgress((current) => Math.min(current + 0.5, 95));
-    }, 100);
     return () => {
       timers.forEach(window.clearTimeout);
-      window.clearInterval(bar);
     };
   }, []);
 
@@ -326,9 +337,9 @@ function MoonLoadingScreen() {
           <circle cx="80" cy="80" r="72" fill="none" stroke="url(#moonRing)" strokeWidth="1" strokeDasharray="3 12" />
           <defs>
             <linearGradient id="moonRing" gradientTransform="rotate(90)">
-              <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.6" />
-              <stop offset="50%" stopColor="#d97706" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+              <stop offset="0%" stopColor="#F4D98B" stopOpacity="0.62" />
+              <stop offset="50%" stopColor="#AFA4FF" stopOpacity="0.34" />
+              <stop offset="100%" stopColor="#F4D98B" stopOpacity="0" />
             </linearGradient>
           </defs>
         </svg>
@@ -346,9 +357,9 @@ function MoonLoadingScreen() {
         ))}
       </div>
       <div className={styles.loadingBar}>
-        <span style={{ width: `${progress}%` }} />
+        <span />
       </div>
-      <p className={styles.loadingFoot}>달빛이 두 사람의 운명을 읽고 있습니다</p>
+      <p className={styles.loadingFoot}>달빛이 두 사람의 관계 리듬을 차분히 읽고 있습니다</p>
     </div>
   );
 }
@@ -575,7 +586,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
 
 export default function SukuyoCompatibilityAiClient() {
   const [step, setStep] = useState(0);
-  const [personA, setPersonA] = useState<PersonForm>({ ...EMPTY_PERSON });
+  const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
   const relationshipType = "연인";
   const topic = "전체 궁합";
@@ -648,10 +659,51 @@ export default function SukuyoCompatibilityAiClient() {
     return Boolean(topic && (consultationType === "personal" || relationshipType));
   }
 
-  function validateCurrentStep() {
-    if (step === 0) return Boolean(personA.birthDate && personA.gender && personA.calendarType);
-    if (consultationType === "compatibility" && step === 1) return Boolean(personB.birthDate && personB.gender && personB.calendarType);
-    return validatePayload();
+  function getPersonValidationMessage(target: "a" | "b", value: PersonForm) {
+    const owner = target === "a" ? "내" : "상대의";
+    if (!value.birthDate) return `${owner} 생년월일을 입력해 주세요.`;
+    if (!value.gender) return `${owner} 성별을 선택해 주세요.`;
+    if (!value.calendarType) return `${owner} 달력 기준을 선택해 주세요.`;
+    return "";
+  }
+
+  function getStepValidationMessage(index = step) {
+    if (index === 0) return getPersonValidationMessage("a", personA);
+    if (consultationType === "compatibility" && index === 1) return getPersonValidationMessage("b", personB);
+    return validatePayload() ? "" : ERROR_TEXT.INVALID_INPUT;
+  }
+
+  function getPayloadValidationMessage() {
+    return getPersonValidationMessage("a", personA) || getPersonValidationMessage("b", personB) || ERROR_TEXT.INVALID_INPUT;
+  }
+
+  function isStepComplete(index: number) {
+    if (index === 0) return !getPersonValidationMessage("a", personA);
+    if (index === 1) return !getPersonValidationMessage("b", personB);
+    return false;
+  }
+
+  function handleStepClick(index: number) {
+    if (busy) return;
+    if (index > step) {
+      const message = getStepValidationMessage(step);
+      if (message) {
+        setError(message);
+        return;
+      }
+    }
+    setError("");
+    setStep(index);
+  }
+
+  function handleNextStep() {
+    const message = getStepValidationMessage(step);
+    if (message) {
+      setError(message);
+      return;
+    }
+    setError("");
+    setStep((current) => Math.min(lastStep, current + 1));
   }
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
@@ -679,7 +731,7 @@ export default function SukuyoCompatibilityAiClient() {
   async function handleSubmit() {
     if (busy) return;
     if (!validatePayload()) {
-      setError(ERROR_TEXT.INVALID_INPUT);
+      setError(getPayloadValidationMessage());
       return;
     }
     const idempotencyKey = submitKeyRef.current || makeIdempotencyKey();
@@ -715,47 +767,68 @@ export default function SukuyoCompatibilityAiClient() {
     }
   }
 
-  const renderPersonFields = (target: "a" | "b", value: PersonForm) => (
-    <div className={styles.formGrid}>
-      <label className={styles.field}>
-        <span>{target === "a" ? "내 이름 또는 닉네임" : "상대방 이름 또는 닉네임"}</span>
-        <input value={value.name} onChange={(event) => updatePerson(target, { name: event.target.value })} maxLength={80} disabled={busy} />
-      </label>
-      <label className={styles.field}>
-        <span>{target === "a" ? "내 성별" : "상대방 성별"}</span>
-        <select value={value.gender} onChange={(event) => updatePerson(target, { gender: event.target.value })} disabled={busy}>
-          <option value="">선택</option>
-          <option value="female">여성</option>
-          <option value="male">남성</option>
-          <option value="unknown">비공개</option>
-        </select>
-      </label>
-      <label className={styles.field}>
-        <span>{target === "a" ? "내 생년월일" : "상대방 생년월일"}</span>
-        <input type="date" value={value.birthDate} onChange={(event) => updatePerson(target, { birthDate: event.target.value })} disabled={busy} />
-      </label>
-      <label className={styles.field}>
-        <span>{target === "a" ? "내 출생시간" : "상대방 출생시간"}</span>
-        <input type="time" value={value.birthTime} onChange={(event) => updatePerson(target, { birthTime: event.target.value })} disabled={busy} />
-      </label>
-      <div className={styles.fieldWide}>
-        <span>달력 기준</span>
-        <div className={styles.segmented}>
-          {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
-            <button
-              key={calendarType}
-              type="button"
-              className={value.calendarType === calendarType ? styles.segmentActive : styles.segment}
-              onClick={() => updatePerson(target, { calendarType })}
-              disabled={busy}
-            >
-              {calendarType === "solar" ? "양력" : "음력"}
+  const renderPersonFields = (target: "a" | "b", value: PersonForm) => {
+    const prefix = target === "a" ? "self" : "partner";
+    const owner = target === "a" ? "내" : "상대의";
+    return (
+      <div className={styles.formGrid}>
+        <div className={styles.field}>
+          <label htmlFor={`${prefix}-name`}>이름 또는 닉네임</label>
+          <input
+            id={`${prefix}-name`}
+            value={value.name}
+            onChange={(event) => updatePerson(target, { name: event.target.value })}
+            maxLength={80}
+            disabled={busy}
+            placeholder={target === "a" ? "나를 부르는 이름" : "상대를 부르는 이름"}
+            autoComplete="name"
+          />
+          <span className={styles.fieldHint}>이름을 입력하면 상담 문장이 더 자연스러워져요.</span>
+        </div>
+        <div className={styles.field}>
+          <label htmlFor={`${prefix}-gender`}>성별</label>
+          <select id={`${prefix}-gender`} value={value.gender} onChange={(event) => updatePerson(target, { gender: event.target.value })} disabled={busy}>
+            <option value="">선택</option>
+            <option value="female">여성</option>
+            <option value="male">남성</option>
+            <option value="unknown">비공개</option>
+          </select>
+        </div>
+        <div className={styles.field}>
+          <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
+          <input id={`${prefix}-birth-date`} type="date" value={value.birthDate} onChange={(event) => updatePerson(target, { birthDate: event.target.value })} disabled={busy} />
+          {!value.birthDate && <span className={styles.fieldHint}>{owner} 생년월일을 입력해 주세요.</span>}
+        </div>
+        <div className={styles.field}>
+          <label htmlFor={`${prefix}-birth-time`}>출생시간</label>
+          <div className={styles.timeControl}>
+            <input id={`${prefix}-birth-time`} type="time" value={value.birthTime} onChange={(event) => updatePerson(target, { birthTime: event.target.value })} disabled={busy} />
+            <button type="button" className={styles.timeUnknownButton} onClick={() => updatePerson(target, { birthTime: "" })} disabled={busy || !value.birthTime}>
+              모름
             </button>
-          ))}
+          </div>
+          <span className={styles.fieldHint}>출생시간을 모르면 비워두셔도 괜찮아요.</span>
+        </div>
+        <div className={styles.fieldWide}>
+          <span>달력 기준</span>
+          <div className={styles.segmented} role="group" aria-label={`${owner} 달력 기준`}>
+            {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
+              <button
+                key={calendarType}
+                type="button"
+                className={value.calendarType === calendarType ? styles.segmentActive : styles.segment}
+                onClick={() => updatePerson(target, { calendarType })}
+                disabled={busy}
+                aria-pressed={value.calendarType === calendarType}
+              >
+                {calendarType === "solar" ? "양력" : "음력"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <main className={styles.screen} data-sukuyo-ai-consultation>
@@ -769,13 +842,14 @@ export default function SukuyoCompatibilityAiClient() {
             <span className={styles.moonPath} />
           </div>
           <div className={styles.visualCopy}>
-            <p className={styles.eyebrow}><Moon size={15} /> 27숙 달빛 궁합</p>
+            <p className={styles.eyebrow}><Moon size={15} /> ☾ 27숙 달빛 궁합</p>
             <h1>숙요점 궁합 AI 상담</h1>
-            <p>두 사람의 본명숙과 관계 거리를 따라 끌림, 갈등, 오래 머무는 마음의 리듬을 차분히 비춥니다.</p>
+            <p>두 사람의 본명숙과 관계 거리를 따라 끌림, 갈등, 오래 머무는 마음의 리듬을 달빛처럼 차분히 비춥니다.</p>
             <div className={styles.heroMeta} aria-label="상담 기준">
               <span><Orbit size={14} /> 본명숙</span>
               <span><CalendarDays size={14} /> 관계 거리</span>
               <span><HeartHandshake size={14} /> 궁합 해석</span>
+              <span><Sparkles size={14} /> 갈등 포인트</span>
             </div>
           </div>
         </aside>
@@ -784,15 +858,20 @@ export default function SukuyoCompatibilityAiClient() {
           {!consultation ? (
             <>
               <div className={styles.panelHeader}>
-                <p><Sparkles size={15} /> Moonlight Consultation</p>
+                <p><Sparkles size={15} /> Moonlight Compatibility</p>
                 <h2>두 사람의 달빛 자리를 엽니다</h2>
+                <span>숙요점의 본명숙과 관계 거리를 바탕으로 서로의 끌림, 갈등, 마음의 속도를 AI 상담 형식으로 차분히 풀어드립니다.</span>
               </div>
               <div className={styles.stepTabs}>
-                {stepLabels.map((label, index) => (
-                  <button key={label} type="button" className={index === step ? styles.stepActive : styles.step} onClick={() => setStep(index)} disabled={busy} aria-current={index === step ? "step" : undefined}>
-                    <span>{index + 1}</span>{label}
-                  </button>
-                ))}
+                {stepLabels.map((label, index) => {
+                  const complete = isStepComplete(index);
+                  const stepClass = index === step ? styles.stepActive : complete ? styles.stepComplete : styles.step;
+                  return (
+                    <button key={label} type="button" className={stepClass} onClick={() => handleStepClick(index)} disabled={busy} aria-current={index === step ? "step" : undefined}>
+                      <span>{complete && index !== step ? "✓" : index + 1}</span>{label}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className={styles.formPanel}>
@@ -803,15 +882,16 @@ export default function SukuyoCompatibilityAiClient() {
               <div className={styles.actions}>
                 <button type="button" className={styles.ghostButton} onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={busy || step === 0} aria-label="이전 단계">
                   <ChevronLeft size={18} />
+                  이전
                 </button>
                 {step < lastStep ? (
-                  <button type="button" className={styles.primaryButton} onClick={() => validateCurrentStep() ? setStep((current) => Math.min(lastStep, current + 1)) : setError(ERROR_TEXT.INVALID_INPUT)} disabled={busy}>
+                  <button type="button" className={styles.primaryButton} onClick={handleNextStep} disabled={busy}>
                     다음 <ChevronRight size={18} />
                   </button>
                 ) : (
                   <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy}>
                     {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                    달빛 상담 받기
+                    달빛 궁합 열기
                   </button>
                 )}
               </div>
