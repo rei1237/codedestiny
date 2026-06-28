@@ -75,6 +75,14 @@ export default function FortuneTeaHouseLanding({ onEnter, onShowHistory }: Fortu
               정답을 서두르지 않는 작은 찻집에서
               <br />
               오늘 마음에 오래 남은 질문을 한 잔의 온기로 내려놓아 보세요.
+              <br />
+              찻잔의 가장자리에 머무는 빛은 지금 마음이 붙잡은 관계와 선택의 결을 비춥니다.
+              <br />
+              연이는 질문 속에 남은 떨림과 기다림, 다시 열릴 가능성을 차분히 짚어 주고
+              작은 온기가 당신에게 필요한 다음 한 걸음을 조용히 가리킵니다.
+              <br />
+              밤새 남은 예감은 찻물 위에서 한결 또렷한 문장으로 떠오르고,
+              당신의 속도가 무너지지 않도록 부드럽게 머무릅니다.
             </p>
             <div className={styles.landingActions}>
               <TeaHouseButton onClick={onEnter} aria-label="운명의 찻집 상담 시작하기">찻집에 들어가기</TeaHouseButton>
@@ -84,7 +92,7 @@ export default function FortuneTeaHouseLanding({ onEnter, onShowHistory }: Fortu
             </button>
           </div>
 
-          <div className={styles.landingVisual} aria-label="귀엽게 말하는 꽃돼지?">
+          <div className={styles.landingVisual} aria-label="귀엽게 말하는 꽃돼지 연이">
             <div className={styles.landingSpeechWrap} role="note">
               <span className={styles.landingSpeechOrnament} aria-hidden />
               <p>{activePig.speech}</p>
