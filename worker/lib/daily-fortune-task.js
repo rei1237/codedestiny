@@ -5,6 +5,30 @@ import { sendEmail } from "./resend.js";
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
 const GANJI_LIST = Array.from({ length: 60 }, (_, i) => STEMS[i % 10] + BRANCHES[i % 12]);
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+function getKstDateParts(value = Date.now()) {
+  const base = value instanceof Date ? value : new Date(value);
+  const kst = new Date(base.getTime() + KST_OFFSET_MS);
+  return {
+    y: kst.getUTCFullYear(),
+    m: kst.getUTCMonth() + 1,
+    d: kst.getUTCDate(),
+    day: kst.getUTCDay(),
+  };
+}
+
+function getKstDateKey(value = Date.now()) {
+  const { y, m, d } = getKstDateParts(value);
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function isSameKstDate(value, dateKey = getKstDateKey()) {
+  if (!value) return false;
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return false;
+  return getKstDateKey(date) === dateKey;
+}
 
 function getJulianDay(year, month, day) {
   let y = year;
@@ -19,10 +43,7 @@ function getJulianDay(year, month, day) {
 }
 
 function getTodayPillars() {
-  const now = new Date(Date.now() + 9 * 3600 * 1000); // KST
-  const y = now.getFullYear();
-  const m = now.getMonth() + 1;
-  const d = now.getDate();
+  const { y, m, d, day } = getKstDateParts();
 
   const jd = getJulianDay(y, m, d);
   const dayIdx = (Math.floor(jd + 0.5) + 49) % 60;
@@ -35,7 +56,7 @@ function getTodayPillars() {
     date: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
     yearPillar,
     dayPillar,
-    dayName: ["일", "월", "화", "수", "목", "금", "토"][now.getDay()],
+    dayName: ["일", "월", "화", "수", "목", "금", "토"][day],
   };
 }
 
@@ -210,7 +231,16 @@ function buildPaidFeatureCtaHtml(env) {
   `;
 }
 
-export async function sendSingleFortune(env, sub) {
+export async function sendSingleFortune(env, sub, options = {}) {
+  const dateKey = options.todayKey || getKstDateKey();
+  if (options.skipIfSentToday && isSameKstDate(sub?.lastSentAt, dateKey)) {
+    return {
+      status: "skipped",
+      reason: "already_sent_today",
+      dateKey,
+    };
+  }
+
   const pillars = getTodayPillars();
   const dateLabel = pillars.date;
   const ctx = buildSajuMailContext(sub, pillars);
@@ -293,19 +323,39 @@ export async function sendSingleFortune(env, sub) {
   });
 
   if (emailResult.ok) {
+    let trackingUpdated = true;
+    let trackingError = "";
     await DailyFortuneSubscription.updateOne(
       { _id: sub._id },
       { $set: { lastSentAt: new Date(), lastMailError: "", lastMailErrorAt: null } }
-    );
-    return true;
-  } else {
-    throw new Error(emailResult.error || "Email sending failed");
+    ).catch((error) => {
+      trackingUpdated = false;
+      trackingError = String(error?.message || "last_sent_update_failed").slice(0, 240);
+      console.error(`[EMAIL] Sent but failed to update daily fortune tracking for ${sub.email}:`, error);
+    });
+
+    return {
+      status: "sent",
+      dateKey,
+      trackingUpdated,
+      trackingError,
+      providerStatus: emailResult.status || 0,
+      providerId: String(emailResult.data?.id || ""),
+    };
   }
+
+  return {
+    status: "error",
+    errorCode: emailResult.error || "email_send_failed",
+    providerStatus: emailResult.status || 0,
+    providerData: emailResult.data || null,
+  };
 }
 
 export async function runDailyFortuneTask(env) {
   console.log("[CRON] Starting Daily Fortune Task...");
   await connectDb(env);
+  const todayKey = getKstDateKey();
 
   const subscribers = await DailyFortuneSubscription.find({
     isActive: true,
@@ -318,13 +368,33 @@ export async function runDailyFortuneTask(env) {
   }
 
   console.log(`[CRON] Found ${subscribers.length} subscribers.`);
+  let sentCount = 0;
+  let skippedCount = 0;
+  let failedCount = 0;
 
   for (const sub of subscribers) {
     try {
       console.log(`[CRON] Processing ${sub.email}...`);
-      await sendSingleFortune(env, sub);
-      console.log(`[CRON] Successfully processed ${sub.email}`);
+      const result = await sendSingleFortune(env, sub, { skipIfSentToday: true, todayKey });
+      if (result.status === "skipped") {
+        skippedCount += 1;
+        console.log(`[CRON] Skipped ${sub.email}: ${result.reason}`);
+        continue;
+      }
+      if (result.status === "error") {
+        failedCount += 1;
+        const mailErrorCode = String(result.errorCode || "daily_mail_failed").slice(0, 240);
+        console.error(`[CRON] Email send failed for ${sub.email}: ${mailErrorCode}`);
+        await DailyFortuneSubscription.updateOne(
+          { _id: sub._id },
+          { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
+        );
+        continue;
+      }
+      sentCount += 1;
+      console.log(`[CRON] Successfully sent ${sub.email}`);
     } catch (err) {
+      failedCount += 1;
       console.error(`[CRON] Error processing subscriber ${sub.email}:`, err);
       await DailyFortuneSubscription.updateOne(
         { _id: sub._id },
@@ -333,5 +403,5 @@ export async function runDailyFortuneTask(env) {
     }
   }
 
-  console.log("[CRON] Daily Fortune Task completed.");
+  console.log(`[CRON] Daily Fortune Task completed. sent=${sentCount} skipped=${skippedCount} failed=${failedCount}`);
 }

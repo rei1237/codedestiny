@@ -29,6 +29,7 @@ const CHROMELESS_ROUTES = [
   "/love-secret-ai",
   "/astrology-ai",
   "/vedic-ai",
+  "/saju-guardian",
 ];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {

@@ -32,6 +32,7 @@ type MusicPlaylistPanelProps = {
 
 const PLAYLIST_TAB_LABELS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "yeoni", label: "Yeoni" },
+  { key: "destinycafe", label: "Yeoni's destiny cafe" },
   { key: "neo", label: "Neo" },
   { key: "dest1nova", label: "DEST1NOVA" },
   { key: "lunabloom", label: "Luna Bloom" },
@@ -115,6 +116,7 @@ function normalizeSearchText(value: string) {
 }
 
 function getTrackCollectionLabel(track: Track) {
+  if (track.artistKey === "destinycafe") return "Yeoni's destiny cafe";
   if (track.artistKey === "dest1nova") return "DEST1NOVA";
   if (track.artistKey === "lunabloom") return "Luna Bloom";
   if (track.audioKey.startsWith("neosongmini1/") || track.audioKey.startsWith("yeonisongmini1/")) return "Mini Album";
@@ -338,6 +340,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       all: tracks.length,
       neo: 0,
       yeoni: 0,
+      destinycafe: 0,
       dest1nova: 0,
       lunabloom: 0,
     } as Record<PlaylistTab, number>;
@@ -345,6 +348,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     tracks.forEach((track) => {
       if (track.artistKey === "neo") baseCounts.neo += 1;
       else if (track.artistKey === "yeoni") baseCounts.yeoni += 1;
+      else if (track.artistKey === "destinycafe") baseCounts.destinycafe += 1;
       else if (track.artistKey === "dest1nova") baseCounts.dest1nova += 1;
       else if (track.artistKey === "lunabloom") baseCounts.lunabloom += 1;
     });

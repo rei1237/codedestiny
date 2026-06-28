@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import FloatingPetals from "./FloatingPetals";
 import { fortuneTeaHouseAssets } from "../data/assets";
+import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
 import AssetImage from "./AssetImage";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -11,10 +12,11 @@ import styles from "../styles/fortune-tea-house.module.css";
 type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
   notice?: string;
+  onBackToLanding: () => void;
   children: ReactNode;
 };
 
-export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", children }: FortuneTeaHouseImmersiveShellProps) {
+export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children }: FortuneTeaHouseImmersiveShellProps) {
   const backgroundAssets = getStageBackgroundAssets(stage);
   const backgroundStyle = {
     "--tea-bg-desktop": `url("${backgroundAssets.desktop}")`,
@@ -35,8 +37,11 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", chil
         alt=""
         imageClassName={styles.shellSceneImageAsset}
       />
-      <Link className={styles.backButton} href="/">
+      <button className={styles.backButton} type="button" onClick={onBackToLanding}>
         돌아가기
+      </button>
+      <Link className={styles.homeButton} href="/" aria-label="Code Destiny 홈화면으로 바로가기">
+        홈으로
       </Link>
       <div className={styles.pageInner}>{children}</div>
       <div className={styles.shellMist} aria-hidden />
@@ -74,6 +79,16 @@ function getStageBackgroundAssets(stage: TeaHouseStage) {
       mobile: fortuneTeaHouseAssets.backgrounds.interiorMobile2,
       desktopPosition: "center center",
       mobilePosition: "center top",
+    };
+  }
+
+  if (isTeaHouseEntryStage(stage)) {
+    const useSecondInterior = stage === "transformPreview" || stage === "yeoniReveal" || stage === "teaIntro";
+    return {
+      desktop: useSecondInterior ? fortuneTeaHouseAssets.backgrounds.interiorDesktop2 : fortuneTeaHouseAssets.backgrounds.interiorDesktop1,
+      mobile: useSecondInterior ? fortuneTeaHouseAssets.backgrounds.interiorMobile2 : fortuneTeaHouseAssets.backgrounds.interiorMobile1,
+      desktopPosition: "center center",
+      mobilePosition: "center center",
     };
   }
 

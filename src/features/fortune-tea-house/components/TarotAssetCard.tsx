@@ -44,7 +44,7 @@ export default function TarotAssetCard({
       <article
         className={`${styles.tarotAssetCard} ${styles.tarotAssetCardBack} ${className}`}
         data-size={size}
-        style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.tarot.yeoniCard}")` } as CSSProperties}
+        style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCard}")` } as CSSProperties}
         aria-label="아직 공개되지 않은 운명의 카드"
       >
         <span className={styles.tarotAssetBackMark} aria-hidden>
@@ -61,7 +61,7 @@ export default function TarotAssetCard({
       data-size={size}
       data-orientation={orientation}
       data-compact={compact ? "true" : "false"}
-      style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.tarot.yeoniCard}")` } as CSSProperties}
+      style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCard}")` } as CSSProperties}
     >
       <div className={styles.tarotAssetHeader}>
         <span>{String(cardNumber).padStart(2, "0")}</span>

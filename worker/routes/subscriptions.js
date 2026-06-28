@@ -14,6 +14,24 @@ function normalizeText(value, maxLength = 80) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function normalizeMailError(error, fallback = "first_mail_failed") {
+  const code = normalizeText(error?.errorCode || error?.code || error?.message || fallback, 100) || fallback;
+  const status = Number(error?.providerStatus || error?.status || 0);
+  return normalizeText(status ? `${code}:${status}` : code, 120);
+}
+
+async function recordMailError(subscriptionId, mailErrorCode) {
+  if (!subscriptionId || !mailErrorCode) return;
+  try {
+    await DailyFortuneSubscription.updateOne(
+      { _id: subscriptionId },
+      { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
+    );
+  } catch (recordError) {
+    console.error("[SUBSCRIPTION] Failed to record immediate fortune error:", recordError);
+  }
+}
+
 function normalizeSnapshotKey(key) {
   return normalizeText(key, 60).replace(/[$.]/g, "_");
 }
@@ -129,21 +147,18 @@ async function handleDailyFortunePost(request, env) {
     let firstMailSent = false;
     let mailErrorCode = "";
     try {
-      await sendSingleFortune(env, saved);
-      firstMailSent = true;
+      const mailResult = await sendSingleFortune(env, saved);
+      firstMailSent = mailResult?.status === "sent";
+      if (firstMailSent && mailResult?.trackingUpdated === false) {
+        mailErrorCode = "tracking_update_failed";
+      } else if (mailResult?.status === "error") {
+        mailErrorCode = normalizeMailError(mailResult);
+        await recordMailError(saved._id, mailErrorCode);
+      }
     } catch (err) {
       console.error("[SUBSCRIPTION] Immediate fortune failed:", err);
-      mailErrorCode = normalizeText(err?.message || "first_mail_failed", 120);
-      if (saved._id) {
-        try {
-          await DailyFortuneSubscription.updateOne(
-            { _id: saved._id },
-            { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
-          );
-        } catch (recordError) {
-          console.error("[SUBSCRIPTION] Failed to record immediate fortune error:", recordError);
-        }
-      }
+      mailErrorCode = normalizeMailError(err);
+      await recordMailError(saved._id, mailErrorCode);
     }
 
     return json({

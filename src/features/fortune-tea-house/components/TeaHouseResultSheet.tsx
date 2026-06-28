@@ -8,6 +8,7 @@ import AssetImage from "./AssetImage";
 import TarotAssetCard from "./TarotAssetCard";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
+import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
 import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -16,9 +17,11 @@ type TeaHouseResultSheetProps = {
   result: FortuneTeaHouseConsultResponse;
   onRestart: () => void;
   onReady: () => void;
+  onShowTarot: () => void;
+  onEditBirthInfo: () => void;
 };
 
-export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaHouseResultSheetProps) {
+export default function TeaHouseResultSheet({ result, onRestart, onReady, onShowTarot, onEditBirthInfo }: TeaHouseResultSheetProps) {
   const direction = result.tarot.orientation === "upright" ? "정방향" : "역방향";
   const saju = result.saju || {
     available: false,
@@ -32,25 +35,19 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaH
     sajuTarotBridge: "오늘은 현재 고민과 카드의 상징을 중심으로, 마음이 덜 다치게 움직일 수 있는 다음 한 걸음을 살핍니다.",
   };
   const tenGodSnapshot = saju.tenGodSnapshot;
-  const primaryTenGodId = tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined;
-  const secondaryTenGodIds = tenGodSnapshot?.available ? tenGodSnapshot.secondaryTenGods || [] : [];
+  const primaryTenGodId = saju.primaryTenGod?.id || (tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined);
   const primaryTenGodMeta = primaryTenGodId ? getTenGodMeta(primaryTenGodId) : null;
-  const resultSheetStyle = {
-    "--tea-result-sheet": `url("${fortuneTeaHouseAssets.ui.resultSheet}")`,
-  } as CSSProperties;
-
   return (
     <section className={styles.resultScene} aria-labelledby="teaResultTitle">
       <aside className={styles.resultYeoniPanel}>
-        <AssetImage className={styles.resultFullYeoni} src={fortuneTeaHouseAssets.yeoni.full} alt="상담 결과를 들려주는 연이" priority />
+        <AssetImage className={styles.resultFullYeoni} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="상담 결과를 들려주는 인간 상담사 연이" priority />
         <YeoniDialogueActor mood="closing" isSpeaking cueText={result.closingLine} className={styles.resultYeoniActor} priority />
-        <AssetImage className={styles.resultBubbleAsset} src={fortuneTeaHouseAssets.yeoni.bubble} alt="연이 말풍선 장식" />
         <TeaHouseDialogueBox speaker="연이" text={result.closingLine} />
       </aside>
 
-      <article className={styles.resultSheet} style={resultSheetStyle}>
+      <article className={styles.resultSheet}>
         <header className={styles.resultHeader}>
-          <p className={styles.sceneEyebrow}>연이가 읽어 준 오늘의 찻잔</p>
+          <p className={styles.sceneEyebrow}>인간 상담사 연이가 읽어 준 오늘의 찻잔</p>
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
           <p>{result.questionSummary}</p>
         </header>
@@ -62,60 +59,86 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaH
             <p>{result.teaCup.topic}</p>
           </div>
           <div>
-            <span>사주 핵심</span>
-            <strong>{saju.available ? saju.title : "현재 질문 중심"}</strong>
-            <p>{saju.summary}</p>
-          </div>
-          <div>
-            <span>운명의 카드</span>
+            <span>선택된 타로 카드</span>
             <strong>
               {result.tarot.nameKo} · {direction}
             </strong>
             <p>{result.tarot.keywords.join(" · ")}</p>
           </div>
+          <div>
+            <span>대표 십성</span>
+            <strong>{primaryTenGodMeta ? primaryTenGodMeta.nameKo : "사주 정보 없음"}</strong>
+            <p>{primaryTenGodMeta ? primaryTenGodMeta.roleInTeaHouse : "출생정보 없이 현재 고민과 타로 중심으로 읽습니다."}</p>
+          </div>
+          <div>
+            <span>핵심 키워드</span>
+            <strong>{result.tarot.keywords.slice(0, 2).join(" · ")}</strong>
+            <p>{result.luckyKeywords.slice(0, 3).join(" · ")}</p>
+          </div>
         </div>
 
-        <section className={styles.resultBlock} aria-labelledby="sajuResultTitle">
-          <h3 id="sajuResultTitle">사주가 말하는 기본 흐름</h3>
-          <p className={styles.sajuSummary}>{saju.summary}</p>
-          <div className={styles.sajuKeyPointList}>
-            {saju.keyPoints.map((point) => (
-              <span className={styles.sajuKeyPoint} key={point}>
-                {point}
-              </span>
-            ))}
-          </div>
-          {saju.caution ? <p className={styles.sajuCaution}>{saju.caution}</p> : null}
+        <section className={styles.resultBlock} aria-labelledby="teaCupTopicTitle">
+          <h3 id="teaCupTopicTitle">찻잔이 비춘 오늘의 주제</h3>
+          <p className={styles.sajuSummary}>{result.teaCup.reading}</p>
+          <p className={styles.sajuCaution}>
+            이 찻잔은 {result.teaCup.topic}의 관점에서 질문을 바라보게 합니다. 인간 상담사 연이는 이 관점 위에 사주의 기본 흐름과 타로의 현재 상징을 함께 올려 읽습니다.
+          </p>
         </section>
 
-        {primaryTenGodId && primaryTenGodMeta ? (
-          <section className={styles.resultBlock} aria-labelledby="tenGodResultTitle">
-            <div className={styles.tenGodSectionHeader}>
-              <div>
-                <span>사주가 초대한 오늘의 손님</span>
-                <h3 id="tenGodResultTitle">오늘 찻집에 들어온 십성</h3>
+        <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} />
+
+        <section className={styles.resultBlock} aria-labelledby="tarotResultTitle">
+          <h3 id="tarotResultTitle">타로가 보여준 지금의 상징</h3>
+          <div className={styles.resultTarotGrid}>
+            <TarotAssetCard
+              cardId={result.tarot.cardId}
+              number={result.tarot.number}
+              nameKo={result.tarot.nameKo}
+              nameEn={result.tarot.nameEn}
+              orientation={result.tarot.orientation}
+              keywords={result.tarot.keywords}
+              meaning={result.tarot.meaning}
+              size="lg"
+            />
+            <div className={styles.resultTarotCopy}>
+              <strong>
+                {result.tarot.nameKo} · {direction} · {result.tarot.keywords.join(" · ")}
+              </strong>
+              <p>{result.tarot.reading}</p>
+              <p>타로 카드는 지금 이 순간, 질문이 품고 있는 상징을 비춰줍니다.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.resultBlock} ${styles.synthesisBlock}`} aria-labelledby="synthesisResultTitle">
+          <h3 id="synthesisResultTitle">{synthesis.title}</h3>
+          <div className={styles.synthesisVisualPair} aria-label={`${primaryTenGodMeta?.nameKo || "사주 정보 없음"}과 ${result.tarot.nameKo}의 연결`}>
+            {primaryTenGodId ? (
+              <TenGodSymbolCard tenGodId={primaryTenGodId} size="sm" showDescription={false} selected />
+            ) : (
+              <div className={styles.synthesisUnavailableSaju}>
+                <span>사주</span>
+                <strong>출생정보 없음</strong>
+                <p>세부 사주 흐름은 만들지 않고 현재 질문 중심으로 읽습니다.</p>
               </div>
-              <p>오늘 찻집에 가장 먼저 들어온 손님은 {primaryTenGodMeta.nameKo}입니다.</p>
-            </div>
-            <div className={styles.tenGodResultGrid}>
-              <TenGodSymbolCard tenGodId={primaryTenGodId} size="lg" selected />
-              {secondaryTenGodIds.length ? (
-                <div className={styles.tenGodSecondaryList}>
-                  {secondaryTenGodIds.map((tenGodId) => (
-                    <TenGodSymbolCard key={tenGodId} tenGodId={tenGodId} size="sm" showDescription={false} />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <p className={styles.tenGodBridgeText}>
-              {primaryTenGodMeta.yeoniDescription} 오늘의 {result.tarot.nameKo} {direction}과 함께 보면, 이 흐름은{" "}
-              {primaryTenGodMeta.shadowSide} 그래서 먼저 확인 가능한 감정과 현실을 나누어 보는 편이 좋아요.
-            </p>
-          </section>
-        ) : null}
+            )}
+            <span>×</span>
+            <TarotAssetCard
+              cardId={result.tarot.cardId}
+              number={result.tarot.number}
+              nameKo={result.tarot.nameKo}
+              nameEn={result.tarot.nameEn}
+              orientation={result.tarot.orientation}
+              keywords={result.tarot.keywords.slice(0, 2)}
+              size="sm"
+            />
+          </div>
+          <p>{synthesis.summary}</p>
+          <strong>{synthesis.sajuTarotBridge}</strong>
+        </section>
 
         <section className={styles.resultBlock} aria-labelledby="emotionResultTitle">
-          <h3 id="emotionResultTitle">마음의 향 분석</h3>
+          <h3 id="emotionResultTitle">연이가 맡은 마음의 향</h3>
           <AssetImage className={styles.resultGaugeAsset} src={fortuneTeaHouseAssets.pig.emotionGauge} alt="감정 분석 게이지 장식" />
           <div className={styles.resultEmotionList}>
             {result.emotionAnalysis.map((item) => (
@@ -133,47 +156,6 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaH
           </div>
         </section>
 
-        <section className={styles.resultBlock} aria-labelledby="tarotResultTitle">
-          <h3 id="tarotResultTitle">타로 카드 해석</h3>
-          <div className={styles.resultTarotGrid}>
-            <TarotAssetCard
-              cardId={result.tarot.cardId}
-              number={result.tarot.number}
-              nameKo={result.tarot.nameKo}
-              nameEn={result.tarot.nameEn}
-              orientation={result.tarot.orientation}
-              keywords={result.tarot.keywords}
-              meaning={result.tarot.meaning}
-              size="lg"
-            />
-            <div className={styles.resultTarotCopy}>
-              <p>{result.tarot.reading}</p>
-              <p>{result.teaCup.reading}</p>
-            </div>
-          </div>
-        </section>
-
-        <section className={`${styles.resultBlock} ${styles.synthesisBlock}`} aria-labelledby="synthesisResultTitle">
-          <h3 id="synthesisResultTitle">{synthesis.title}</h3>
-          {primaryTenGodId ? (
-            <div className={styles.synthesisVisualPair} aria-label={`${primaryTenGodMeta?.nameKo || "십성"}과 ${result.tarot.nameKo}의 연결`}>
-              <TenGodSymbolCard tenGodId={primaryTenGodId} size="sm" showDescription={false} selected />
-              <span>×</span>
-              <TarotAssetCard
-                cardId={result.tarot.cardId}
-                number={result.tarot.number}
-                nameKo={result.tarot.nameKo}
-                nameEn={result.tarot.nameEn}
-                orientation={result.tarot.orientation}
-                keywords={result.tarot.keywords.slice(0, 2)}
-                size="sm"
-              />
-            </div>
-          ) : null}
-          <p>{synthesis.summary}</p>
-          <strong>{synthesis.sajuTarotBridge}</strong>
-        </section>
-
         <section className={styles.resultBlock} aria-labelledby="yeoniReadingTitle">
           <h3 id="yeoniReadingTitle">연이의 상담</h3>
           <div className={styles.yeoniReadingGrid}>
@@ -185,7 +167,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady }: TeaH
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
-          <h3 id="choiceSimulationTitle">선택지별 흐름</h3>
+          <h3 id="choiceSimulationTitle">운명의 갈림길</h3>
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
               <article className={styles.choiceCard} key={choice.id}>

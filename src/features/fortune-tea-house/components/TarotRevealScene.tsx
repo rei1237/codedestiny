@@ -35,8 +35,8 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   }
 
   const dialogueText = isFlipped
-    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 나왔어요.\n이제 이 카드가 찻잔의 향과 어떻게 이어지는지 읽어볼게요.`
-    : "이제 찻잔이 답을 보여주려고 해요.\n운세는 당신을 겁주기 위해 있는 게 아니에요. 지금 보지 못하고 지나친 마음의 방향을 조금 더 선명하게 보여주는 작은 등불에 가까워요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
+    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 찻잔 위에 떠올랐어요.\n이제 인간 상담사 연이가 이 카드의 상징이 사주의 흐름과 어디에서 만나는지 읽어볼게요.`
+    : "이 카드는 정답을 명령하지 않아요.\n다만 지금 당신의 마음이 어디를 바라보고 있는지 조용히 보여줄 뿐이에요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
 
   return (
     <section className={styles.tarotRevealScene} aria-labelledby="tarotRevealTitle">
@@ -50,8 +50,8 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
         />
       </div>
       <div className={styles.tarotRevealPanel}>
-        <p className={styles.sceneEyebrow}>찻잔이 고른 한 장</p>
-        <h2 id="tarotRevealTitle">운명의 카드가 펼쳐집니다</h2>
+        <p className={styles.sceneEyebrow}>타로가 보여준 지금의 상징</p>
+        <h2 id="tarotRevealTitle">찻잔 위에 카드가 떠올랐어요</h2>
         <TeaHouseDialogueBox
           speaker="연이"
           text={dialogueText}

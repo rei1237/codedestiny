@@ -1,6 +1,6 @@
 import { buildMusicPublicUrl } from "@/lib/r2-public-url";
 
-export type ArtistKey = "neo" | "yeoni" | "dest1nova" | "lunabloom";
+export type ArtistKey = "neo" | "yeoni" | "dest1nova" | "lunabloom" | "destinycafe";
 export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA" | "Luna bloom";
 
 export type Track = {
@@ -18,7 +18,7 @@ export type Track = {
   lyricsLookupKey?: string;
 };
 
-type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom";
+type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom" | "DestinyCafe";
 
 type ArtistConfig = {
   artistKey: ArtistKey;
@@ -70,6 +70,14 @@ const ARTISTS = {
     fallbackCoverFileName: "LUNA BLOOM.webp",
     coverFileNames: ["LUNA BLOOM.webp"],
     displayCoverUrl: undefined,
+  },
+  destinycafe: {
+    artistKey: "destinycafe",
+    artistName: "Yeoni",
+    folder: "DestinyCafe",
+    fallbackCoverFileName: "운명의 찻집.webp",
+    coverFileNames: ["운명의 찻집.webp"],
+    displayCoverUrl: "https://assets.code-destiny.com/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp",
   },
 } as const satisfies Record<ArtistKey, ArtistConfig>;
 
@@ -207,6 +215,17 @@ const artistAudioManifests = [
       "형충파해 break.mp3",
     ],
   },
+  {
+    artistKey: "destinycafe",
+    audioFileNames: [
+      "Fortune Reveal.mp3",
+      "Gentle Oriental Girl.mp3",
+      "Kindness.mp3",
+      "Moonlit Destiny Room.mp3",
+      "Moonlit Tea House.mp3",
+      "Moonlight Tea.mp3",
+    ],
+  },
 ] as const satisfies readonly ArtistAudioManifest[];
 
 function keyFromFileName(folder: ArtistConfig["folder"], fileName: string) {
@@ -256,7 +275,7 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
   };
 }
 
-const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0 };
+const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0, destinycafe: 0 };
 
 export const tracks = artistAudioManifests.flatMap((manifest) => (
   manifest.audioFileNames.map((audioFileName) => {
@@ -269,4 +288,5 @@ export const neoTracks = tracks.filter((track) => track.artistKey === "neo");
 export const yeoniTracks = tracks.filter((track) => track.artistKey === "yeoni");
 export const dest1novaTracks = tracks.filter((track) => track.artistKey === "dest1nova");
 export const lunaBloomTracks = tracks.filter((track) => track.artistKey === "lunabloom");
-export const allTracks = [...yeoniTracks, ...neoTracks, ...dest1novaTracks, ...lunaBloomTracks];
+export const destinyCafeTracks = tracks.filter((track) => track.artistKey === "destinycafe");
+export const allTracks = [...yeoniTracks, ...destinyCafeTracks, ...neoTracks, ...dest1novaTracks, ...lunaBloomTracks];

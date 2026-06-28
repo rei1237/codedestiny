@@ -15,8 +15,8 @@ export default function TarotCardBack({ className = "", animated = false }: Taro
       style={
         {
           "--selection-pattern": `url("${fortuneTeaHouseAssets.ui.selection}")`,
-          "--tarot-card-back": `url("${fortuneTeaHouseAssets.tarot.yeoniCard}")`,
-          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.tarot.yeoniCardAnimation}")`,
+          "--tarot-card-back": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCard}")`,
+          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCardAnim}")`,
         } as CSSProperties
       }
       aria-label="아직 공개되지 않은 운명의 카드"

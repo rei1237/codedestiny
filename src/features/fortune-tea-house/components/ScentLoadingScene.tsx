@@ -3,7 +3,6 @@ import { fortuneTeaHouseAssets } from "../data/assets";
 import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
-import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
 
 type ScentLoadingSceneProps = {
@@ -11,13 +10,15 @@ type ScentLoadingSceneProps = {
 };
 
 const loadingBars = [
-  { label: "마음속에 남은 향", value: 72 },
-  { label: "찻잔 위의 달빛", value: 58 },
-  { label: "떠오르는 카드", value: 81 },
+  { label: "사주 기운을 조용히 펼치는 중이에요…", value: 34 },
+  { label: "오늘 찻집에 들어온 십성을 확인하고 있어요…", value: 48 },
+  { label: "타로 카드가 달빛 위로 떠오르고 있어요…", value: 66 },
+  { label: "사주와 타로가 만나는 지점을 정리하고 있어요…", value: 82 },
+  { label: "연이가 당신에게 필요한 한마디를 따뜻하게 고르고 있어요…", value: 94 },
 ];
 
 const scentLoadingDialogue =
-  "당신의 말 속에 여러 감정이 겹쳐 있어요.\n겉으로는 하나의 질문처럼 보이지만, 그 안에는 기대와 불안, 미련과 두려움이 함께 들어 있네요.\n조금만 기다려주세요. 오늘은 빠르게 단정하기보다, 마음의 결을 천천히 풀어야 할 것 같아요.";
+  "인간 상담사 연이가 찻잔 위의 흐름을 읽고 있어요.\n사주는 당신의 기본 흐름을 보여주고, 타로는 지금 이 질문의 상징을 보여줘요.\n두 이야기가 만나는 지점을 따뜻하게 정리할 테니 조금만 기다려주세요.";
 
 export default function ScentLoadingScene({ selectedCup }: ScentLoadingSceneProps) {
   return (
@@ -34,11 +35,17 @@ export default function ScentLoadingScene({ selectedCup }: ScentLoadingSceneProp
           src={fortuneTeaHouseAssets.pig.emotionGauge}
           alt="마음의 향을 읽는 감정 분석 장식"
         />
-        <YeoniDialogueActor className={styles.flowYeoniActor} mood="thinking" isSpeaking cueText={scentLoadingDialogue} compact />
+        <AssetImage
+          className={styles.scentLoadingCupPoseYeoni}
+          imageClassName={styles.scentLoadingCupPoseYeoniImage}
+          src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
+          alt="답을 담은 찻잔을 내미는 연이"
+          priority
+        />
       </div>
       <div className={styles.emotionPanel}>
         <p className={styles.sceneEyebrow}>{selectedCup?.name || "찻잔"} 위로 향이 피어납니다</p>
-        <h2 id="scentLoadingTitle">연이가 마음의 향을 읽고 있어요</h2>
+        <h2 id="scentLoadingTitle">연이가 찻잔 위의 흐름을 읽고 있어요</h2>
         <TeaHouseDialogueBox
           speaker="연이"
           text={scentLoadingDialogue}

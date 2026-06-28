@@ -1,5 +1,13 @@
 import { buildSajuProfile } from "@/worker/lib/destiny-bias-engine.js";
-import type { FortuneTeaHouseConsultRequest, FortuneTeaSajuSnapshot } from "../data/consult";
+import type {
+  FortuneTeaFiveElementBalance,
+  FortuneTeaFiveElementKey,
+  FortuneTeaHouseConsultRequest,
+  FortuneTeaSajuBirthSummary,
+  FortuneTeaSajuPillar,
+  FortuneTeaSajuPillarKey,
+  FortuneTeaSajuSnapshot,
+} from "../data/consult";
 import { getTenGodMeta, normalizeTenGodId, type TenGodId } from "../data/tenGods";
 
 const ELEMENT_LABELS: Record<string, string> = {
@@ -8,6 +16,51 @@ const ELEMENT_LABELS: Record<string, string> = {
   earth: "토",
   metal: "금",
   water: "수",
+};
+
+const ELEMENT_KEYS: FortuneTeaFiveElementKey[] = ["wood", "fire", "earth", "metal", "water"];
+
+const STEM_ELEMENTS: Record<string, string> = {
+  갑: "목",
+  을: "목",
+  병: "화",
+  정: "화",
+  무: "토",
+  기: "토",
+  경: "금",
+  신: "금",
+  임: "수",
+  계: "수",
+};
+
+const BRANCH_ELEMENTS: Record<string, string> = {
+  인: "목",
+  묘: "목",
+  사: "화",
+  오: "화",
+  진: "토",
+  술: "토",
+  축: "토",
+  미: "토",
+  신: "금",
+  유: "금",
+  해: "수",
+  자: "수",
+};
+
+const PILLAR_LABELS: Record<FortuneTeaSajuPillarKey, string> = {
+  year: "년주",
+  month: "월주",
+  day: "일주",
+  hour: "시주",
+};
+
+const ELEMENT_TONES: Record<FortuneTeaFiveElementKey, FortuneTeaFiveElementBalance["tone"]> = {
+  wood: "green",
+  fire: "rose",
+  earth: "gold",
+  metal: "silver",
+  water: "blue",
 };
 
 type NormalizedBirthInput = {
@@ -23,7 +76,23 @@ type SajuProfile = {
     stemKo?: string;
     elementKo?: string;
   };
-  pillars?: Partial<Record<"year" | "month" | "day" | "hour", { ganji?: string }>>;
+  pillars?: Partial<
+    Record<
+      FortuneTeaSajuPillarKey,
+      {
+        ganji?: string;
+        stem?: string;
+        branch?: string;
+        stemKo?: string;
+        branchKo?: string;
+        heavenlyStem?: string;
+        earthlyBranch?: string;
+        elementKo?: string;
+        tenGod?: string;
+        tenGodKo?: string;
+      }
+    >
+  >;
   calendar?: {
     includeHour?: boolean;
   };
@@ -122,6 +191,120 @@ function listElements(value: unknown) {
   if (Array.isArray(value)) return value.map(elementLabel).filter(Boolean);
   const label = elementLabel(value);
   return label ? [label] : [];
+}
+
+function birthSummaryFromRequest(request?: FortuneTeaHouseConsultRequest): FortuneTeaSajuBirthSummary | undefined {
+  if (!request) return undefined;
+  const birthInfo = text(request.birthInfo);
+  const birthDate = text(request.birthDate) || parseBirthDate(birthInfo) || undefined;
+  const birthTime = text(request.birthTime) || parseBirthTime(birthInfo) || undefined;
+
+  return {
+    nickname: text(request.nickname) || "손님",
+    birthDate,
+    birthTime,
+    hasBirthTime: Boolean(birthTime),
+    calendarType: request.calendarType,
+    gender: text(request.gender) || undefined,
+  };
+}
+
+function splitGanji(ganji?: string) {
+  const chars = Array.from(text(ganji));
+  return {
+    stem: chars[0] || undefined,
+    branch: chars[1] || undefined,
+  };
+}
+
+function pillarElement(stem?: string, branch?: string) {
+  if (stem && STEM_ELEMENTS[stem]) return STEM_ELEMENTS[stem];
+  if (branch && BRANCH_ELEMENTS[branch]) return BRANCH_ELEMENTS[branch];
+  return undefined;
+}
+
+function buildPillar(key: FortuneTeaSajuPillarKey, ganji?: string, note?: string): FortuneTeaSajuPillar {
+  const parts = splitGanji(ganji);
+  return {
+    key,
+    label: PILLAR_LABELS[key],
+    ganji,
+    heavenlyStem: parts.stem,
+    earthlyBranch: parts.branch,
+    element: pillarElement(parts.stem, parts.branch),
+    available: Boolean(ganji),
+    note,
+  };
+}
+
+function buildPillars(snapshot: FortuneTeaSajuSnapshot): FortuneTeaSajuPillar[] {
+  return [
+    buildPillar("year", snapshot.pillars?.year),
+    buildPillar("month", snapshot.pillars?.month),
+    buildPillar("day", snapshot.pillars?.day),
+    buildPillar(
+      "hour",
+      snapshot.pillars?.hour,
+      snapshot.pillars?.hour
+        ? undefined
+        : "출생시간을 몰라도 괜찮아요. 이번 상담에서는 시주 없이 큰 흐름을 중심으로 읽습니다.",
+    ),
+  ];
+}
+
+function strengthLabel(value: number) {
+  if (value >= 28) return "짙게 차오름";
+  if (value >= 18) return "고르게 머묾";
+  if (value > 0) return "은은하게 남음";
+  return "비어 있음";
+}
+
+function elementReading(nameKo: string, value: number) {
+  if (value >= 28) {
+    return `${nameKo} 기운이 비교적 또렷합니다. 이 힘은 장점으로 쓰면 기준을 세우게 하고, 지나치면 한쪽으로 마음이 기울 수 있어요.`;
+  }
+  if (value >= 18) {
+    return `${nameKo} 기운이 안정적으로 머뭅니다. 지금은 이 기운을 무리하게 키우기보다 다른 흐름과 조화를 맞추는 편이 좋아요.`;
+  }
+  if (value > 0) {
+    return `${nameKo} 기운은 은은하게 남아 있습니다. 작게 보이는 마음이라도 천천히 돌보면 균형을 회복하는 실마리가 됩니다.`;
+  }
+  return `${nameKo} 기운은 오늘의 명식에서 약하게 보입니다. 없는 것으로 단정하기보다, 의식적으로 보완할 방향으로 살피면 좋아요.`;
+}
+
+function buildFiveElementBalance(snapshot: FortuneTeaSajuSnapshot): FortuneTeaFiveElementBalance[] | undefined {
+  if (!snapshot.fiveElements) return undefined;
+
+  return ELEMENT_KEYS.map((key) => {
+    const nameKo = ELEMENT_LABELS[key];
+    const value = Number(snapshot.fiveElements?.[nameKo] ?? snapshot.fiveElements?.[key] ?? 0);
+    const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+
+    return {
+      key,
+      nameKo,
+      value: safeValue,
+      strengthLabel: strengthLabel(safeValue),
+      reading: elementReading(nameKo, safeValue),
+      tone: ELEMENT_TONES[key],
+    };
+  });
+}
+
+function dominantElementsFromBalance(balance?: FortuneTeaFiveElementBalance[]) {
+  return balance
+    ?.filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 2)
+    .map((item) => item.nameKo);
+}
+
+function buildCautionReading(snapshot: FortuneTeaSajuSnapshot) {
+  if (snapshot.caution) return snapshot.caution;
+  if (snapshot.weakElements?.length) {
+    return `${snapshot.weakElements.join(" · ")} 기운이 약하게 머무를 수 있어요. 오늘은 부족함을 탓하기보다, 그 기운을 천천히 채우는 선택을 먼저 보세요.`;
+  }
+  return "오늘의 사주는 한쪽 결론으로 급히 닫기보다, 내 기준과 감정이 서로 부딪히는 지점을 차분히 나누어 보라고 말합니다.";
 }
 
 function normalizeFiveElements(profile: SajuProfile) {
@@ -257,18 +440,28 @@ export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultReque
   }
 }
 
-export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot) {
+export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request?: FortuneTeaHouseConsultRequest) {
+  const birthSummary = birthSummaryFromRequest(request);
+
   if (!snapshot.available) {
     return {
       available: false,
       title: "사주가 말하는 기본 흐름",
       summary: snapshot.coreSummary || "출생정보가 충분하지 않아 오늘은 현재 고민과 타로, 찻잔의 흐름을 중심으로 읽어드릴게요.",
       keyPoints: ["없는 사주 데이터는 억지로 만들지 않고, 지금의 질문과 찻잔, 타로 흐름을 중심으로 읽었습니다."],
+      birthSummary,
+      pillars: buildPillars(snapshot),
       caution: snapshot.caution,
+      cautionReading: "출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 대신 연이는 찻잔과 타로, 지금 적어주신 고민을 중심으로 읽어드릴게요.",
+      actionPrescription: "오늘은 결론을 서두르기보다, 지금 가장 궁금한 질문을 한 문장으로 줄여 적어보세요.",
+      tarotBridgeReady: "사주는 손님의 기본 흐름을 자세히 펼치지 않았어요. 이제 타로는 지금 이 질문이 어떤 상징으로 떠오르는지 보여줄 차례입니다.",
       tenGodSnapshot: snapshot.tenGodSnapshot,
     };
   }
 
+  const pillarBoard = buildPillars(snapshot);
+  const fiveElementBalance = buildFiveElementBalance(snapshot);
+  const dominantElements = dominantElementsFromBalance(fiveElementBalance);
   const pillars = snapshot.pillars
     ? [snapshot.pillars.year, snapshot.pillars.month, snapshot.pillars.day, snapshot.pillars.hour].filter(Boolean).join(" · ")
     : "";
@@ -279,6 +472,21 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot) {
         .map(([name, value]) => `${name} ${Math.round(value)}%`)
         .join(" · ")
     : "";
+  const primaryTenGodMeta =
+    snapshot.tenGodSnapshot?.available && snapshot.tenGodSnapshot.primaryTenGod
+      ? getTenGodMeta(snapshot.tenGodSnapshot.primaryTenGod)
+      : null;
+  const secondaryTenGods =
+    snapshot.tenGodSnapshot?.available && snapshot.tenGodSnapshot.secondaryTenGods?.length
+      ? snapshot.tenGodSnapshot.secondaryTenGods.map((id) => {
+          const meta = getTenGodMeta(id);
+          return {
+            id,
+            nameKo: meta.nameKo,
+            roleInTeaHouse: meta.roleInTeaHouse,
+          };
+        })
+      : undefined;
 
   return {
     available: true,
@@ -293,7 +501,26 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot) {
         : "",
       snapshot.usefulElements?.length ? `균형을 돕는 기운: ${snapshot.usefulElements.join(" · ")}` : "",
     ].filter(Boolean),
+    birthSummary,
+    dayMaster: snapshot.dayMaster,
+    dominantElements,
+    pillars: pillarBoard,
+    fiveElements: fiveElementBalance,
+    primaryTenGod: primaryTenGodMeta
+      ? {
+          id: primaryTenGodMeta.id,
+          nameKo: primaryTenGodMeta.nameKo,
+          roleInTeaHouse: primaryTenGodMeta.roleInTeaHouse,
+          reading: primaryTenGodMeta.yeoniDescription,
+        }
+      : undefined,
+    secondaryTenGods,
     caution: snapshot.caution,
+    cautionReading: buildCautionReading(snapshot),
+    actionPrescription: primaryTenGodMeta
+      ? `오늘은 ${primaryTenGodMeta.nameKo}의 마음이 앞서 움직이기 전에, 지금 확인할 수 있는 사실과 아직 추측인 마음을 한 줄씩 나누어 적어보세요.`
+      : "오늘은 마음이 반복해서 향하는 장면을 적고, 그 안에서 지킬 기준 하나만 조용히 골라보세요.",
+    tarotBridgeReady: "사주는 손님의 기본 흐름을 보여주었어요. 이제 타로는 지금 이 질문이 어떤 상징으로 떠오르는지 보여줄 차례입니다.",
     tenGodSnapshot: snapshot.tenGodSnapshot,
   };
 }

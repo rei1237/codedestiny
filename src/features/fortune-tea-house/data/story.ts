@@ -2,6 +2,12 @@ import type { YeoniMood } from "./yeoniSprites";
 
 export type TeaHouseStage =
   | "landing"
+  | "doorOpened"
+  | "pigGreeting"
+  | "pigDialogue"
+  | "transformPreview"
+  | "yeoniReveal"
+  | "teaIntro"
   | "pigIntro"
   | "transform"
   | "yeoniIntro"
@@ -26,6 +32,12 @@ export type TeaHouseStoryStep = {
 
 export const teaHouseStageOrder: TeaHouseStage[] = [
   "landing",
+  "doorOpened",
+  "pigGreeting",
+  "pigDialogue",
+  "transformPreview",
+  "yeoniReveal",
+  "teaIntro",
   "pigIntro",
   "transform",
   "yeoniIntro",

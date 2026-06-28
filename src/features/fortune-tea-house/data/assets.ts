@@ -10,8 +10,29 @@ const teaHouseAsset = (fileName: string) =>
   });
 
 const teaHouseNoBackgroundAsset = (fileName: string) => teaHouseAsset(`nobackground/${fileName}`);
+const tenGodSheetAsset = teaHouseNoBackgroundAsset("십성-Photoroom.png");
 
 export const fortuneTeaHouseAssets = {
+  cutout: {
+    flowerPig: teaHouseNoBackgroundAsset("flower-pig-cutout.webp"),
+    talkingPig1: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni1-cutout.webp"),
+    talkingPig2: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni2-cutout.webp"),
+    talkingPig3: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni3-cutout.webp"),
+    teaCups: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
+    yeoniBubble: teaHouseNoBackgroundAsset("yeoni-dialogue-bubble-cutout.webp"),
+  },
+  fallback: {
+    flowerPig: teaHouseNoBackgroundAsset("꽃돼지-Photoroom.png"),
+    talkingPig1: teaHouseNoBackgroundAsset("말하는 꽃돼지 연이1-Photoroom.png"),
+    talkingPig2: teaHouseNoBackgroundAsset("말하는 꽃돼지 연이2-Photoroom.png"),
+    talkingPig3: teaHouseNoBackgroundAsset("말하는 꽃돼지 연이3-Photoroom.png"),
+    teaCups: teaHouseNoBackgroundAsset("선택 UI-Photoroom.png"),
+    yeoniBubble: teaHouseNoBackgroundAsset("연이 말풍선-Photoroom.png"),
+    yeoniBust: teaHouseNoBackgroundAsset("연이 반신상-Photoroom.png"),
+    yeoniSprite1: teaHouseNoBackgroundAsset("연이 스프라이트1-Photoroom.png"),
+    yeoniSprite2: teaHouseNoBackgroundAsset("연이 스프라이트2-Photoroom.png"),
+    yeoniSprite3: teaHouseNoBackgroundAsset("연이 스프라이트3-Photoroom.png"),
+  },
   pig: {
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
     transform: teaHouseAsset("꽃돼지 연이 변신.webp"),
@@ -58,6 +79,7 @@ export const fortuneTeaHouseAssets = {
     transparent: {
       bubble: teaHouseNoBackgroundAsset("yeoni-dialogue-bubble-cutout.webp"),
       bust: teaHouseNoBackgroundAsset("yeoni-bust-cutout.webp"),
+      full: teaHouseNoBackgroundAsset("연이 전신상-Photoroom.png"),
       sprite1: teaHouseNoBackgroundAsset("yeoni-sprite1-cutout.webp"),
       sprite2: teaHouseNoBackgroundAsset("yeoni-sprite2-cutout.webp"),
       sprite3: teaHouseNoBackgroundAsset("yeoni-sprite3-cutout.webp"),
@@ -65,6 +87,8 @@ export const fortuneTeaHouseAssets = {
       sprite5: teaHouseNoBackgroundAsset("yeoni-sprite5-cutout.webp"),
       sprite6: teaHouseNoBackgroundAsset("yeoni-sprite6-cutout.webp"),
       sprite7: teaHouseNoBackgroundAsset("yeoni-sprite7-cutout.webp"),
+      cupPose: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈-Photoroom.png"),
+      cupPoseSheet: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈 스프라이트 시트-Photoroom.png"),
       tarotCard: teaHouseNoBackgroundAsset("연이 타로 카드-Photoroom.png"),
       tarotCardAnim: teaHouseNoBackgroundAsset("연이 타로 카드 애니메이션-Photoroom.png"),
     },
@@ -95,6 +119,10 @@ export const fortuneTeaHouseAssets = {
     overlay2: teaHouseAsset("오버레이2.webp"),
     overlay1: teaHouseAsset("오버레이.webp"),
     resultSheet: teaHouseAsset("운명의 찻집 결과 시트.webp"),
+    emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
+  },
+  videos: {
+    pigTransform: teaHouseNoBackgroundAsset("꽃돼지 변신.mp4"),
   },
   teaCups: {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
@@ -113,8 +141,11 @@ export const fortuneTeaHouseAssets = {
     minorWandsCups: teaHouseAsset("타로카드 매핑3.webp"),
     minorSwordsPentacles: teaHouseAsset("타로카드 매핑4.webp"),
   },
+  saju: {
+    tenGodSheet: tenGodSheetAsset,
+  },
   tenGods: {
-    sheet: teaHouseAsset("십성.webp"),
+    sheet: tenGodSheetAsset,
   },
 } as const;
 
@@ -123,3 +154,71 @@ export const talkingPigYeoniFrames = [
   fortuneTeaHouseAssets.pig.transparent.talking2,
   fortuneTeaHouseAssets.pig.transparent.talking3,
 ] as const;
+
+const talkingPigSpriteSheetSize = {
+  sheetWidth: 1254,
+  sheetHeight: 1254,
+} as const;
+
+export const talkingPigYeoniFrameCrops = {
+  welcome: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig1,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig1,
+    x: 34,
+    y: 20,
+    width: 266,
+    height: 338,
+    label: "반갑게 맞이하는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+  comfort: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig1,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig1,
+    x: 340,
+    y: 20,
+    width: 266,
+    height: 338,
+    label: "다정하게 안심시키는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+  honey: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig1,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig1,
+    x: 650,
+    y: 20,
+    width: 274,
+    height: 338,
+    label: "꿀 향에 반응하는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+  doorway: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig1,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig1,
+    x: 954,
+    y: 20,
+    width: 272,
+    height: 338,
+    label: "찻집 문을 여는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+  thinking: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig2,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig2,
+    x: 38,
+    y: 24,
+    width: 272,
+    height: 338,
+    label: "마음의 향을 읽는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+  surprised: {
+    src: fortuneTeaHouseAssets.cutout.talkingPig3,
+    fallbackSrc: fortuneTeaHouseAssets.fallback.talkingPig3,
+    x: 44,
+    y: 24,
+    width: 282,
+    height: 338,
+    label: "작게 손을 흔드는 꽃돼지?",
+    ...talkingPigSpriteSheetSize,
+  },
+} as const;

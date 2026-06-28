@@ -127,6 +127,9 @@ const SAJU_GUARDIAN_VERIFICATION_RETRY_MS = 800;
 const SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY = "fortune_auth_user";
 const SAJU_GUARDIAN_TILE_LOCKS_PREFIX = "cd_tile_locks_v2";
 const SAJU_GUARDIAN_IMAGE_SRC = "/fuctionassets/saju-guardian-animal-v20260615.png";
+const SAJU_GUARDIAN_HANDOFF_KEY = "cd_saju_guardian_handoff_v20260628";
+const SAJU_GUARDIAN_HANDOFF_MARKER = "saju-guardian-main-saju-handoff-v20260628";
+const SAJU_GUARDIAN_HANDOFF_TTL_MS = 30 * 60 * 1000;
 
 type SajuGuardianTx = (value: string) => string;
 
@@ -270,62 +273,18 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "작은 실행",
   "시간 열쇠",
   "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.",
-  "본캐력",
-  "럭키력",
-  "멘탈핏",
-  "사주네컷 Stargram",
-  "MZ 운명 필터",
-  "1컷 본캐 Vibe",
-  "2컷 겉텐션 vs 속리듬",
-  "3컷 브레인맵",
-  "오늘의 운명 게이지",
-  "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.",
-  "4컷 럭키버튼",
-  "최애 운명 포카",
-  "포토카드 컷",
-  "센터컷",
-  "팬싸운",
-  "관계 시그널",
-  "무대운",
-  "일과 재물 텐션",
-  "엔딩요정",
-  "오늘 남길 한 문장",
-  "{guardian}의 기준이 밤까지 은은하게 남습니다.",
-  "럭키 편의점 컷",
-  "운명 영수증",
-  "오늘의 구매운",
-  "사면 좋은 것",
-  "{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.",
-  "당충전운",
-  "{element} 회복 루틴",
-  "장바구니 경고",
-  "충동 결제 잠깐 멈춤",
-  "럭키 쿠폰",
-  "오늘 바로 쓰는 한 장",
-  "달빛 DM 네컷",
-  "밤샘 감성 컷",
-  "읽씹 금지",
-  "마음의 답장",
-  "{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.",
-  "DM 온도",
-  "관계의 간격",
-  "새벽 루틴",
-  "정오 기준 리듬",
-  "잠들기 전",
-  "내일로 넘길 기운",
-  "사주네컷 캡션을 복사했어요 📋",
-  "클립보드에 복사됐어요! 📋",
-  "🔮 Code Destiny Saju Guardian 열기",
-  "뒤로가기",
+  "수호상 화첩",
+  "나의 사주 가디언 그리기",
+  "명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.",
+  "그림 주문문",
+  "그림 주문 복사",
+  "그림 주문이 복사됐어요",
+  "수호 동물",
+  "중심 색감",
+  "수호 문양",
   "닫기",
   "사주 가디언 핵심 지표",
   "사주 가디언 소환 단계",
-  "사주네컷 운명 필터",
-  "사주네컷 운명 필터 ON",
-  "바로 스토리 각",
-  "{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.",
-  "캡처용 캡션 복사",
-  "바로 공유하기",
   "{element} 기운",
   "✦ {branch}년지",
   "{ganji}일주 · {label}",
@@ -339,8 +298,6 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "현재 가디언 메시지",
   "{guardian}의 에너지를 실전 루틴에 연결해 보세요.",
   "오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.",
-  "네컷 캡션 복사하기",
-  "공유하기",
   "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.",
   "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
   "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.",
@@ -485,62 +442,18 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "작은 실행": "Small Action",
     "시간 열쇠": "Time Key",
     "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.": "Add birth time to reveal a clearer guardian rhythm by time of day.",
-    "본캐력": "Core Self",
-    "럭키력": "Luck",
-    "멘탈핏": "Mind Fit",
-    "사주네컷 Stargram": "Saju Four-Cut Stargram",
-    "MZ 운명 필터": "Gen Z Destiny Filter",
-    "1컷 본캐 Vibe": "Cut 1 Core Vibe",
-    "2컷 겉텐션 vs 속리듬": "Cut 2 Outer Tension vs Inner Rhythm",
-    "3컷 브레인맵": "Cut 3 Brain Map",
-    "오늘의 운명 게이지": "Today’s Destiny Gauge",
-    "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.": "Luck stays with what lasts longer, not only what attracts you first.",
-    "4컷 럭키버튼": "Cut 4 Lucky Button",
-    "최애 운명 포카": "Favorite Destiny Photo Card",
-    "포토카드 컷": "Photo Card Cut",
-    "센터컷": "Center Cut",
-    "팬싸운": "Fan-Sign Luck",
-    "관계 시그널": "Relationship Signal",
-    "무대운": "Stage Luck",
-    "일과 재물 텐션": "Work and Money Tension",
-    "엔딩요정": "Ending Fairy",
-    "오늘 남길 한 문장": "One Sentence to Leave Today",
-    "{guardian}의 기준이 밤까지 은은하게 남습니다.": "The standard of {guardian} lingers softly into the night.",
-    "럭키 편의점 컷": "Lucky Convenience Store Cut",
-    "운명 영수증": "Destiny Receipt",
-    "오늘의 구매운": "Today’s Purchase Luck",
-    "사면 좋은 것": "Good Things to Buy",
-    "{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.": "Luck leans toward {color}-toned items, small organizers, and essentials you have postponed.",
-    "당충전운": "Sweet Recharge Luck",
-    "{element} 회복 루틴": "{element} Recovery Routine",
-    "장바구니 경고": "Cart Warning",
-    "충동 결제 잠깐 멈춤": "Pause Impulse Payment",
-    "럭키 쿠폰": "Lucky Coupon",
-    "오늘 바로 쓰는 한 장": "One Coupon to Use Today",
-    "달빛 DM 네컷": "Moonlight DM Four-Cut",
-    "밤샘 감성 컷": "Late-Night Mood Cut",
-    "읽씹 금지": "Do Not Leave It Unanswered",
-    "마음의 답장": "Reply from the Heart",
-    "{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.": "{guardian} shines more deeply when feelings are left as ordered sentences instead of being pushed away.",
-    "DM 온도": "DM Temperature",
-    "관계의 간격": "Relationship Distance",
-    "새벽 루틴": "Dawn Routine",
-    "정오 기준 리듬": "Noon-Based Rhythm",
-    "잠들기 전": "Before Sleep",
-    "내일로 넘길 기운": "Energy to Carry Into Tomorrow",
-    "사주네컷 캡션을 복사했어요 📋": "Saju four-cut caption copied 📋",
-    "클립보드에 복사됐어요! 📋": "Copied to clipboard 📋",
-    "🔮 Code Destiny Saju Guardian 열기": "🔮 Open Code Destiny Saju Guardian",
-    "뒤로가기": "Back",
+    "수호상 화첩": "Guardian Sketchbook",
+    "나의 사주 가디언 그리기": "Draw My Saju Guardian",
+    "명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.": "Let the color and animal symbol of your chart bloom into one guardian portrait.",
+    "그림 주문문": "Art Invocation",
+    "그림 주문 복사": "Copy Art Invocation",
+    "그림 주문이 복사됐어요": "Art invocation copied",
+    "수호 동물": "Guardian Animal",
+    "중심 색감": "Core Color",
+    "수호 문양": "Guardian Emblem",
     "닫기": "Close",
     "사주 가디언 핵심 지표": "Saju Guardian key metrics",
     "사주 가디언 소환 단계": "Saju Guardian summoning steps",
-    "사주네컷 운명 필터": "Saju four-cut destiny filter",
-    "사주네컷 운명 필터 ON": "Saju Four-Cut Destiny Filter ON",
-    "바로 스토리 각": "Ready for Your Story",
-    "{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.": "Four scenes of {guardianSeal} rise as today’s mood, relationship temperature, action rhythm, and lucky button.",
-    "캡처용 캡션 복사": "Copy Capture Caption",
-    "바로 공유하기": "Share Now",
     "{element} 기운": "{element} Energy",
     "✦ {branch}년지": "✦ Year branch {branch}",
     "{ganji}일주 · {label}": "{ganji} day pillar · {label}",
@@ -554,8 +467,6 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "현재 가디언 메시지": "Current Guardian Message",
     "{guardian}의 에너지를 실전 루틴에 연결해 보세요.": "Connect the energy of {guardian} to a practical routine.",
     "오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.": "Today asks you to block one leaking energy and set one clear standard rather than trying to change everything at once.",
-    "네컷 캡션 복사하기": "Copy Four-Cut Caption",
-    "공유하기": "Share",
     "사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.": "Saju Guardian Circle is a premium Myeongli reading that reads your day pillar, month branch, hour branch, and sixty-cycle symbols together.",
     "일주 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Day-pillar calculation failed. Please check your input.",
     "로컬 계산에 실패했어요. 입력값을 다시 확인해 주세요.": "Local calculation failed. Please check your input.",
@@ -942,6 +853,210 @@ const STEM_POLARITY: Record<string, "양" | "음"> = {
   계: "음",
 };
 
+type PlainObject = Record<string, unknown>;
+
+const HANJA_STEM_TO_KO: Record<string, string> = {
+  甲: "갑",
+  乙: "을",
+  丙: "병",
+  丁: "정",
+  戊: "무",
+  己: "기",
+  庚: "경",
+  辛: "신",
+  壬: "임",
+  癸: "계",
+};
+
+const HANJA_BRANCH_TO_KO: Record<string, string> = {
+  子: "자",
+  丑: "축",
+  寅: "인",
+  卯: "묘",
+  辰: "진",
+  巳: "사",
+  午: "오",
+  未: "미",
+  申: "신",
+  酉: "유",
+  戌: "술",
+  亥: "해",
+};
+
+const ELEMENT_KEY_TO_KO: Record<string, "목" | "화" | "토" | "금" | "수"> = {
+  wood: "목",
+  목: "목",
+  木: "목",
+  fire: "화",
+  화: "화",
+  火: "화",
+  earth: "토",
+  토: "토",
+  土: "토",
+  metal: "금",
+  금: "금",
+  金: "금",
+  water: "수",
+  수: "수",
+  水: "수",
+};
+
+function asPlainObject(value: unknown): PlainObject | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as PlainObject) : null;
+}
+
+function asString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    const text = asString(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function convertHanjaGanjiText(value: unknown) {
+  return asString(value)
+    .replace(/[甲乙丙丁戊己庚辛壬癸]/g, (char) => HANJA_STEM_TO_KO[char] || char)
+    .replace(/[子丑寅卯辰巳午未申酉戌亥]/g, (char) => HANJA_BRANCH_TO_KO[char] || char);
+}
+
+function normalizeStem(value: unknown) {
+  const text = convertHanjaGanjiText(value);
+  return text ? text.slice(0, 1) : "";
+}
+
+function normalizeBranch(value: unknown) {
+  const text = convertHanjaGanjiText(value);
+  return text ? text.slice(0, 1) : "";
+}
+
+function normalizeGanjiFromAny(value: unknown) {
+  return normalizeGanji(convertHanjaGanjiText(value));
+}
+
+function normalizeElement(value: unknown): "목" | "화" | "토" | "금" | "수" | "" {
+  const key = asString(value);
+  return ELEMENT_KEY_TO_KO[key] || "";
+}
+
+function normalizeElementFromWeights(source: unknown): "목" | "화" | "토" | "금" | "수" | "" {
+  const weights = asPlainObject(source);
+  if (!weights) return "";
+  const candidates: Array<{ key: keyof typeof ELEMENT_KEY_TO_KO; value: number }> = [
+    { key: "wood", value: Number(weights.wood ?? weights["목"] ?? 0) },
+    { key: "fire", value: Number(weights.fire ?? weights["화"] ?? 0) },
+    { key: "earth", value: Number(weights.earth ?? weights["토"] ?? 0) },
+    { key: "metal", value: Number(weights.metal ?? weights["금"] ?? 0) },
+    { key: "water", value: Number(weights.water ?? weights["수"] ?? 0) },
+  ];
+  const best = candidates.reduce((winner, item) => (Number.isFinite(item.value) && item.value > winner.value ? item : winner), {
+    key: "earth" as keyof typeof ELEMENT_KEY_TO_KO,
+    value: -1,
+  });
+  return best.value >= 0 ? ELEMENT_KEY_TO_KO[best.key] : "";
+}
+
+function normalizeGuardianPillar(value: unknown) {
+  const source = asPlainObject(value);
+  if (!source) return undefined;
+  const ganji = normalizeGanjiFromAny(firstString(source.ganji, source.stemBranch, source.dayGanji, `${firstString(source.g, source.stem)}${firstString(source.j, source.branch)}`));
+  const stem = normalizeStem(firstString(source.stem, source.g, ganji?.slice(0, 1)));
+  const branch = normalizeBranch(firstString(source.branch, source.j, ganji?.slice(1, 2)));
+  if (!ganji && !stem && !branch) return undefined;
+  return {
+    ganji: ganji || (stem && branch ? `${stem}${branch}` : undefined),
+    stem: stem || undefined,
+    branch: branch || undefined,
+  };
+}
+
+function normalizeGuardianPillars(value: unknown) {
+  const source = asPlainObject(value);
+  if (!source) return null;
+  const pillars = {
+    year: normalizeGuardianPillar(source.year ?? source.y),
+    month: normalizeGuardianPillar(source.month ?? source.m),
+    day: normalizeGuardianPillar(source.day ?? source.d),
+    hour: normalizeGuardianPillar(source.hour ?? source.h),
+  };
+  return pillars.day?.ganji ? pillars : null;
+}
+
+function nestedObject(source: PlainObject | null, key: string) {
+  return source ? asPlainObject(source[key]) : null;
+}
+
+function hasKnownBirthTime(profile: PlainObject | null) {
+  const birth = nestedObject(profile, "birth");
+  if (!birth) return false;
+  if (birth.unknownTime === true || birth.timeDefault === true || birth.birthTimeUnknown === true) return false;
+  return birth.hour !== undefined && birth.hour !== null && birth.hour !== "";
+}
+
+function buildGuardianDataFromHandoff(payload: unknown): ApiResult | null {
+  const handoff = asPlainObject(payload);
+  if (!handoff || handoff.marker !== SAJU_GUARDIAN_HANDOFF_MARKER) return null;
+  const storedAt = Number(handoff.storedAt || 0);
+  if (!Number.isFinite(storedAt) || Date.now() - storedAt > SAJU_GUARDIAN_HANDOFF_TTL_MS) return null;
+
+  const pillars = normalizeGuardianPillars(handoff.pillars);
+  if (!pillars?.day?.ganji) return null;
+
+  const profile = asPlainObject(handoff.profile);
+  const snapshot = asPlainObject(handoff.snapshot);
+  const analysis = nestedObject(snapshot, "analysis");
+  const natal = asPlainObject(handoff.natal);
+  const natalRatios = nestedObject(natal, "ratios");
+  const dayStem = pillars.day.stem || pillars.day.ganji.slice(0, 1);
+  const monthStem = pillars.month?.stem || "";
+  const dominantElement = STEM_TO_ELEMENT[dayStem] || normalizeElement(snapshot?.dayStemElement) || normalizeElement(analysis?.dayStemElement) || normalizeElementFromWeights(natalRatios) || "토";
+  const secondaryElement = STEM_TO_ELEMENT[monthStem] || normalizeElementFromWeights(natalRatios) || ELEMENT_NEXT[dominantElement] || "금";
+  const resolvedGanji = normalizeGanji(pillars.day.ganji);
+  if (!resolvedGanji) return null;
+
+  const mainAnimal = GANJI_ANIMAL_MAP[resolvedGanji] ?? "용";
+  const copy = getGuardianCopy(resolvedGanji);
+  const yearBranch = pillars.year?.branch || "";
+
+  return {
+    ok: true,
+    resolvedGanji,
+    result: {
+      dominantElement,
+      secondaryElement,
+      zodiac: BRANCH_TO_ZODIAC[yearBranch] ?? mainAnimal,
+      colorKo: ELEMENT_COLOR[dominantElement]?.ko ?? "파스텔",
+      colorEn: ELEMENT_COLOR[dominantElement]?.en ?? "Pastel",
+      animals: [mainAnimal],
+      mainAnimal,
+      expressionKo: `${mainAnimal} 수호성이 명식 위로 드러나는 흐름`,
+      personalitySummaryKo: copy.short,
+      personalityLines: copy.traits,
+      headlineKo: copy.title,
+      hasBirthTime: hasKnownBirthTime(profile),
+      dayPillar: resolvedGanji,
+      dayGanji: resolvedGanji,
+      ilju: resolvedGanji,
+      dayStemBranch: resolvedGanji,
+      fourPillars: pillars,
+    },
+  };
+}
+
+function readGuardianHandoffData() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(SAJU_GUARDIAN_HANDOFF_KEY);
+    if (!raw) return null;
+    return buildGuardianDataFromHandoff(JSON.parse(raw));
+  } catch (e) {
+    return null;
+  }
+}
+
 const ELEMENT_GUARDIAN_READING: Record<string, {
   axis: string;
   protection: string;
@@ -1221,7 +1336,7 @@ function GuardianSealDisplay({
 
         <div className="relative flex h-40 w-40 flex-col items-center justify-center rounded-full border border-amber-100 bg-gradient-to-br from-white via-amber-50 to-rose-50 text-center shadow-xl">
           <span className="text-4xl">🔮</span>
-          <p className="mt-2 px-4 text-sm font-black leading-tight text-slate-800">{guardianArchetype}</p>
+          <p className="mt-2 px-4 text-sm font-black leading-tight text-slate-800" style={{ fontFamily: "var(--font-playful)" }}>{guardianArchetype}</p>
           <p className="mt-1 text-[11px] font-bold text-rose-400">{dominantElement} {tx("수호 인장")}</p>
         </div>
       </div>
@@ -1257,7 +1372,7 @@ function ResultCard({
   tx: SajuGuardianTx;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
-  const [activeFrameId, setActiveFrameId] = useState("stargram");
+  const [promptCopied, setPromptCopied] = useState(false);
 
   if (!data.result) {
     return (
@@ -1459,247 +1574,115 @@ function ResultCard({
     { icon: "📮", label: tx("작은 실행"), value: elementReading.ritual },
     { icon: "🕯️", label: tx("시간 열쇠"), value: hasBirthTime ? hourReading : tx("생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다.") },
   ];
-  const sajuSeed = `${resolvedGanji || ""}${monthBranch}${hourBranch}${result.dominantElement}${result.mainAnimal}`
-    .split("")
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const vibeScores = [
-    { label: tx("본캐력"), value: 72 + (sajuSeed % 19), color: "from-pink-400 to-fuchsia-400" },
-    { label: tx("럭키력"), value: 68 + (sajuSeed % 23), color: "from-amber-300 to-orange-400" },
-    { label: tx("멘탈핏"), value: 64 + (sajuSeed % 21), color: "from-sky-300 to-cyan-400" },
+  const guardianPromptColor = result.colorKo || tx("맑은");
+  const guardianArtPrompt = [
+    `귀엽고 신비로운 사주 가디언 일러스트를 그려 주세요.`,
+    `주인공은 ${result.mainAnimal} 형상의 작은 수호령이며, ${guardianArchetype}의 기품을 지녔습니다.`,
+    `${resolvedGanji || "일주"}의 ${stemPolarity}${result.dominantElement} 기운을 중심으로 ${guardianPromptColor}빛 아우라와 ${guardianEmblem} 문양을 은은하게 담아 주세요.`,
+    `배경에는 월지 ${monthBranch || "월지"}의 흐름과 ${hasBirthTime ? `시지 ${hourBranch || "시지"}` : "부드러운 달빛 시간"}의 리듬이 둥근 소환진처럼 맴돕니다.`,
+    `표정은 다정하고 영리하게, 분위기는 프리미엄 명리 부적과 동화책 삽화가 만난 느낌으로, 선은 섬세하고 색은 맑게 표현해 주세요.`,
+    `글자, 로고, 워터마크, 실제 인물 얼굴, 과한 공포감은 넣지 말아 주세요.`,
+  ].join("\n");
+  const guardianPromptChips = [
+    { label: tx("수호 동물"), value: result.mainAnimal },
+    { label: tx("중심 색감"), value: guardianPromptColor },
+    { label: tx("수호 문양"), value: guardianEmblem },
   ];
-  const fourCutFrames = [
-    {
-      id: "stargram",
-      badge: tx("MZ 운명 필터"),
-      title: tx("사주네컷 Stargram"),
-      subtitle: `${guardianSeal}이 오늘의 피드 위로 반짝 떠오릅니다.`,
-      shellClass: "border-fuchsia-200/80 bg-[radial-gradient(circle_at_20%_12%,rgba(244,114,182,.22),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(125,211,252,.22),transparent_30%),linear-gradient(135deg,#fff7fd,#eef7ff_55%,#fff8e8)]",
-      stripClass: "border-white/90 bg-white/85 shadow-pink-200/80",
-      chipClass: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600",
-      panels: [
-        { icon: "💿", kicker: tx("1컷 본캐 Vibe"), title: guardianArchetype, body: `${guardianCopy?.short || result.headlineKo} ${result.expressionKo}의 결이 선명하게 드러납니다.` },
-        { icon: "🎭", kicker: tx("2컷 겉텐션 vs 속리듬"), title: `${dayStem || "일간"}의 표정 · ${dayBranch || "일지"}의 심장`, body: `${stemPolarity}${result.dominantElement} 기운은 겉으로 빠르게 빛나고, ${monthBranch || "월지"} 배경은 선택의 온도를 천천히 맞춥니다.` },
-        { icon: "🧠", kicker: tx("3컷 브레인맵"), title: tx("오늘의 운명 게이지"), body: tx("끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다."), meters: vibeScores },
-        { icon: "🍀", kicker: tx("4컷 럭키버튼"), title: result.colorKo || tx("맑은"), body: `${elementReading.ritual} 이 작은 의식에서 오늘의 문이 부드럽게 열립니다.` },
-      ],
-    },
-    {
-      id: "idol",
-      badge: tx("포토카드 컷"),
-      title: tx("최애 운명 포카"),
-      subtitle: `${guardianEmblem}이 당신의 오늘 운세 포지션을 비춥니다.`,
-      shellClass: "border-sky-200/80 bg-[radial-gradient(circle_at_18%_18%,rgba(56,189,248,.22),transparent_30%),radial-gradient(circle_at_86%_22%,rgba(251,191,36,.22),transparent_28%),linear-gradient(135deg,#f0fdff,#fff7ed_54%,#fdf2f8)]",
-      stripClass: "border-sky-100 bg-white/90 shadow-sky-100/80",
-      chipClass: "border-sky-200 bg-sky-50 text-sky-600",
-      panels: [
-        { icon: "📸", kicker: tx("센터컷"), title: `${result.mainAnimal} 포지션`, body: `${animalEmoji} ${result.mainAnimal} 상징이 첫인상에 머물고, ${guardianArchetype}의 존재감이 뒤에서 밀어 올립니다.` },
-        { icon: "✨", kicker: tx("팬싸운"), title: tx("관계 시그널"), body: elementReading.relation },
-        { icon: "🎤", kicker: tx("무대운"), title: tx("일과 재물 텐션"), body: elementReading.work },
-        { icon: "💌", kicker: tx("엔딩요정"), title: tx("오늘 남길 한 문장"), body: guardianCopy?.subtitle || txp("{guardian}의 기준이 밤까지 은은하게 남습니다.", { guardian: guardianSeal }) },
-      ],
-    },
-    {
-      id: "receipt",
-      badge: tx("운명 영수증"),
-      title: tx("럭키 편의점 컷"),
-      subtitle: `${result.colorKo || "맑은"}빛 행운이 오늘의 장바구니에 담깁니다.`,
-      shellClass: "border-emerald-200/80 bg-[radial-gradient(circle_at_12%_20%,rgba(52,211,153,.22),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(251,113,133,.2),transparent_28%),linear-gradient(135deg,#f0fdf4,#fff7ed_50%,#eef2ff)]",
-      stripClass: "border-emerald-100 bg-white/90 shadow-emerald-100/80",
-      chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-      panels: [
-        { icon: "🧾", kicker: tx("오늘의 구매운"), title: tx("사면 좋은 것"), body: txp("{color}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.", { color: result.colorKo || tx("맑은") }) },
-        { icon: "🥤", kicker: tx("당충전운"), title: txp("{element} 회복 루틴", { element: result.dominantElement }), body: elementReading.protection },
-        { icon: "🛒", kicker: tx("장바구니 경고"), title: tx("충동 결제 잠깐 멈춤"), body: elementReading.shadow },
-        { icon: "🎟️", kicker: tx("럭키 쿠폰"), title: tx("오늘 바로 쓰는 한 장"), body: sevenDayMissions[0].body },
-      ],
-    },
-    {
-      id: "night",
-      badge: tx("밤샘 감성 컷"),
-      title: tx("달빛 DM 네컷"),
-      subtitle: `${hourBranch || "오늘의 시간"} 위로 숨은 마음의 답장이 열립니다.`,
-      shellClass: "border-indigo-200/80 bg-[radial-gradient(circle_at_18%_14%,rgba(129,140,248,.24),transparent_30%),radial-gradient(circle_at_84%_20%,rgba(244,114,182,.18),transparent_28%),linear-gradient(135deg,#eef2ff,#fdf2f8_52%,#f8fafc)]",
-      stripClass: "border-indigo-100 bg-white/90 shadow-indigo-100/80",
-      chipClass: "border-indigo-200 bg-indigo-50 text-indigo-600",
-      panels: [
-        { icon: "🌙", kicker: tx("읽씹 금지"), title: tx("마음의 답장"), body: txp("{guardian}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.", { guardian: guardianArchetype }) },
-        { icon: "💬", kicker: tx("DM 온도"), title: tx("관계의 간격"), body: elementReading.relation },
-        { icon: "🕯️", kicker: tx("새벽 루틴"), title: hasBirthTime ? `${hourBranch}${tx("시지")} ${tx("리듬")}` : tx("정오 기준 리듬"), body: hourReading },
-        { icon: "🪐", kicker: tx("잠들기 전"), title: tx("내일로 넘길 기운"), body: sevenDayMissions[6].body },
-      ],
-    },
-  ];
-  const activeFrame = fourCutFrames.find((frame) => frame.id === activeFrameId) || fourCutFrames[0];
-
-  const handleCopy = async () => {
-    const headline = guardianCopy?.title || result.headlineKo;
-    const text = `${activeFrame.title}\n${guardianSeal}\n${headline}\n\n${activeFrame.panels.map((item) => `${item.kicker} · ${item.title}: ${item.body}`).join("\n\n")}`;
-    await navigator.clipboard.writeText(text).catch(() => {});
-    alert(tx("사주네컷 캡션을 복사했어요 📋"));
-  };
-
-  const handleShare = async () => {
-    const headline = guardianCopy?.title || result.headlineKo;
-    const text = `${activeFrame.title}\n${guardianSeal}\n\n${headline}\n\n${tx("🔮 Code Destiny Saju Guardian 열기")}\nhttps://code-destiny.com/saju-guardian`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: activeFrame.title, text });
-      } catch (e) {
-        /* 취소 */
-      }
-    } else {
-      await navigator.clipboard.writeText(text).catch(() => {});
-      alert(tx("클립보드에 복사됐어요! 📋"));
+  const handlePromptCopy = useCallback(async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(guardianArtPrompt);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = guardianArtPrompt;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
     }
-  };
+    setPromptCopied(true);
+    window.setTimeout(() => setPromptCopied(false), 1800);
+  }, [guardianArtPrompt]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 pb-14 pt-6">
-      <div className="relative mx-auto w-full max-w-7xl space-y-6">
-        <header className="border-b border-white/70 bg-white/70 px-1 pb-4 backdrop-blur-xl sm:px-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-black tracking-[0.16em] text-slate-500">{tx("수호 인장")}</p>
-              <h1 className="mt-1 text-2xl font-black leading-tight text-slate-800">{tx("사주 가디언 소환진")}</h1>
-              <p className="mt-1 text-sm text-slate-600">{tx("일주·월지·시지 세우기")}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <a
-                href="/"
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm"
-              >
-                ← {tx("뒤로가기")}
-              </a>
-              <button
-                onClick={onReset}
-                className="inline-flex items-center rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-bold text-rose-500 shadow-sm"
-              >
-                {tx("닫기")}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" aria-label={tx("사주 가디언 핵심 지표")}>
-          {summaryMetrics.map((item) => (
-            <div key={item.label} className="rounded-2xl border border-white/70 bg-white/75 px-4 py-3 shadow-sm">
-              <p className="text-[11px] font-black tracking-[0.14em] text-slate-400">{item.label}</p>
-              <p className="mt-1 text-base font-black text-slate-800">{item.value}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="grid gap-2 rounded-[2rem] border border-white/70 bg-white/70 p-3 shadow-sm backdrop-blur-xl sm:grid-cols-4" aria-label={tx("사주 가디언 소환 단계")}>
-          {GUARDIAN_FLOW_STEPS_COPY.map((item) => (
-            <div key={item.step} className="flex items-center gap-3 rounded-2xl bg-white/70 px-3 py-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-50 text-lg">{item.icon}</span>
-              <span className="min-w-0">
-                <span className="block text-[10px] font-black tracking-[0.14em] text-rose-400">
-                  {item.step === "01" ? tx("완료") : tx(item.label)}
-                </span>
-                <span className="block truncate text-xs font-black text-slate-700">
-                  {item.step === "01" ? tx("프리미엄 해금 완료") : tx(item.title)}
-                </span>
-              </span>
-            </div>
-          ))}
-        </section>
-
-        <section className={`relative overflow-hidden rounded-[2rem] border p-4 shadow-xl backdrop-blur-xl sm:p-5 ${activeFrame.shellClass}`} aria-label={tx("사주네컷 운명 필터")}>
-          <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
-            <div className="absolute left-5 top-5 text-xl">✦</div>
-            <div className="absolute right-8 top-10 text-lg">♡</div>
-            <div className="absolute bottom-8 left-1/3 text-sm">✧</div>
-          </div>
-          <div className="relative flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-black tracking-[0.18em] text-slate-500">{activeFrame.badge}</p>
-              <h2 className="mt-1 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">{tx("사주네컷 운명 필터 ON")}</h2>
-              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-600">{activeFrame.subtitle}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {fourCutFrames.map((frame) => (
+    <main className="min-h-screen overflow-hidden bg-[#080b14] text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_16%_8%,rgba(244,114,182,.24),transparent_30%),radial-gradient(circle_at_82%_12%,rgba(45,212,191,.18),transparent_28%),linear-gradient(135deg,#080b14_0%,#151022_42%,#08111f_100%)]" aria-hidden="true" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+        <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+          <div className="relative min-h-[520px] overflow-hidden rounded-lg border border-amber-200/20 bg-slate-950 shadow-2xl shadow-black/40">
+            <Image
+              src={SAJU_GUARDIAN_IMAGE_SRC}
+              alt={tx("사주 가디언 소환진")}
+              fill
+              priority
+              className="object-cover opacity-[0.88]"
+              sizes="(max-width: 1024px) 100vw, 44vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/42 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+              <p className="text-xs font-black tracking-[0.18em] text-amber-200">{tx("수호 인장")}</p>
+              <h1 className="mt-3 text-4xl font-black leading-tight text-white sm:text-5xl" style={{ fontFamily: "var(--font-decorative)" }}>
+                {tx("사주 가디언 소환진")}
+              </h1>
+              <p className="mt-4 max-w-xl text-sm font-semibold leading-relaxed text-amber-50/88">
+                {guardianSeal}이 명식의 중심에 섭니다. 일주가 뿌리를 세우고, 월지와 시지가 현실의 방향과 하루의 리듬을 조용히 밝혀 줍니다.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
                 <button
-                  key={frame.id}
                   type="button"
-                  onClick={() => setActiveFrameId(frame.id)}
-                  className={`rounded-2xl border px-3 py-2 text-left text-[11px] font-black leading-tight transition ${
-                    activeFrame.id === frame.id
-                      ? "border-slate-900 bg-slate-900 text-white shadow-lg"
-                      : `${frame.chipClass} hover:scale-[1.02]`
-                  }`}
-                  aria-pressed={activeFrame.id === frame.id}
+                  onClick={onReset}
+                  className="rounded-lg border border-amber-200/30 bg-amber-200/12 px-4 py-2.5 text-xs font-black text-amber-100 transition hover:bg-amber-200/18"
                 >
-                  {frame.title}
+                  {tx("다시 생성하기")}
                 </button>
+                <a
+                  href="/"
+                  className="rounded-lg border border-white/12 bg-white/8 px-4 py-2.5 text-xs font-black text-slate-100 transition hover:bg-white/12"
+                >
+                  {tx("메인으로 돌아가기")}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <section className="grid content-between gap-4 rounded-lg border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-xl" aria-label={tx("사주 가디언 핵심 지표")}>
+            <div>
+              <p className="text-xs font-black tracking-[0.18em] text-teal-200">{tx("정밀 리포트")}</p>
+              <h2 className="mt-2 text-3xl font-black leading-tight text-white" style={{ fontFamily: "var(--font-premium)" }}>
+                {guardianArchetype}
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-slate-200">
+                {guardianCopy?.short || result.headlineKo} {elementReading.axis}
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {summaryMetrics.map((item) => (
+                <div key={item.label} className="rounded-lg border border-white/10 bg-slate-950/55 px-4 py-3">
+                  <p className="text-[11px] font-black tracking-[0.14em] text-slate-400">{item.label}</p>
+                  <p className="mt-1 text-base font-black text-amber-50">{item.value}</p>
+                </div>
               ))}
             </div>
-          </div>
-
-          <div className="relative mt-5 grid gap-4 lg:grid-cols-[1.05fr,0.95fr] lg:items-stretch">
-            <div className={`rounded-[1.8rem] border-4 p-3 ${activeFrame.stripClass}`}>
-              <div className="mb-3 flex items-center justify-between gap-3 px-1">
-                <span className="rounded-full bg-slate-950 px-3 py-1 text-[11px] font-black tracking-[0.16em] text-white">SAJU 4CUT</span>
-                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-slate-500 shadow-sm">{resolvedGanji || guardianSeal}</span>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {activeFrame.panels.map((panel, index) => (
-                  <article key={panel.kicker} className="min-h-[12rem] rounded-[1.35rem] border border-white/90 bg-white/80 p-3 shadow-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-xl shadow-sm">{panel.icon}</span>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-slate-400 shadow-sm">#{index + 1}</span>
-                    </div>
-                    <p className="mt-3 text-[11px] font-black tracking-[0.14em] text-pink-500">{panel.kicker}</p>
-                    <h3 className="mt-1 text-base font-black leading-tight text-slate-900">{panel.title}</h3>
-                    <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-600">{panel.body}</p>
-                    {"meters" in panel && panel.meters ? (
-                      <div className="mt-3 space-y-1.5">
-                        {panel.meters.map((meter) => (
-                          <div key={meter.label} className="grid grid-cols-[3.4rem,1fr,2.2rem] items-center gap-2">
-                            <span className="text-[10px] font-black text-slate-500">{meter.label}</span>
-                            <span className="h-2 overflow-hidden rounded-full bg-slate-100">
-                              <span className={`block h-full rounded-full bg-gradient-to-r ${meter.color}`} style={{ width: `${Math.min(meter.value, 98)}%` }} />
-                            </span>
-                            <span className="text-right text-[10px] font-black text-slate-500">{Math.min(meter.value, 98)}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
+            <div className="grid gap-2 sm:grid-cols-4">
+              {GUARDIAN_FLOW_STEPS_COPY.map((item) => (
+                <div key={item.step} className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="text-[10px] font-black tracking-[0.14em] text-amber-200">{item.step}</span>
+                  </div>
+                  <p className="mt-2 text-xs font-black text-slate-100">{item.step === "01" ? tx("완료") : tx(item.label)}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{item.step === "01" ? tx("프리미엄 해금 완료") : tx(item.title)}</p>
+                </div>
+              ))}
             </div>
-
-            <div className="flex flex-col justify-between rounded-[1.8rem] border border-white/80 bg-white/70 p-4 shadow-sm">
-              <div>
-                <p className="text-xs font-black tracking-[0.16em] text-slate-400">{tx("바로 스토리 각")}</p>
-                <h3 className="mt-2 text-2xl font-black leading-tight text-slate-900">{activeFrame.title}</h3>
-                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
-                  {txp("{guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.", { guardianSeal })}
-                </p>
-              </div>
-              <div className="mt-5 grid gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="rounded-2xl bg-gradient-to-r from-pink-400 via-fuchsia-400 to-sky-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-pink-200/70 transition-transform active:scale-[0.98]"
-                >
-                  {tx("캡처용 캡션 복사")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 shadow-sm transition-transform active:scale-[0.98]"
-                >
-                  {tx("바로 공유하기")}
-                </button>
-              </div>
-            </div>
-          </div>
+          </section>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-[0.95fr,1.05fr]">
-          <div className="space-y-5">
+        <div className="grid gap-5 lg:grid-cols-[0.86fr_1.14fr]">
+          <div className="grid gap-5">
             <GuardianSealDisplay
               guardianSeal={guardianSeal}
               guardianArchetype={guardianArchetype}
@@ -1711,81 +1694,96 @@ function ResultCard({
               tx={tx}
             />
 
-            <section className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl backdrop-blur-xl">
+            <section className="overflow-hidden rounded-lg border border-pink-200/20 bg-gradient-to-br from-pink-950/50 via-slate-950/72 to-violet-950/48 p-5 shadow-2xl shadow-pink-950/20">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black tracking-[0.16em] text-pink-200">{tx("수호상 화첩")}</p>
+                  <h2 className="mt-2 text-2xl font-black text-white" style={{ fontFamily: "var(--font-playful)" }}>
+                    {tx("나의 사주 가디언 그리기")}
+                  </h2>
+                  <p className="mt-2 text-xs font-semibold leading-relaxed text-pink-50/80">
+                    {tx("명식의 색과 동물 상징을 한 장의 수호상으로 피워 올립니다.")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handlePromptCopy}
+                  className="rounded-lg border border-pink-100/30 bg-pink-100/14 px-4 py-2.5 text-xs font-black text-pink-50 transition hover:bg-pink-100/22"
+                >
+                  {promptCopied ? tx("그림 주문이 복사됐어요") : tx("그림 주문 복사")}
+                </button>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {guardianPromptChips.map((item) => (
+                  <div key={item.label} className="rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
+                    <p className="text-[10px] font-black tracking-[0.12em] text-pink-200">{item.label}</p>
+                    <p className="mt-1 text-xs font-black text-white" style={{ fontFamily: "var(--font-playful)" }}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-lg border border-white/10 bg-slate-950/62 p-4">
+                <p className="text-[11px] font-black tracking-[0.14em] text-violet-200">{tx("그림 주문문")}</p>
+                <pre className="mt-3 whitespace-pre-wrap break-keep text-xs font-semibold leading-relaxed text-slate-100" style={{ fontFamily: "var(--font-body)" }}>
+                  {guardianArtPrompt}
+                </pre>
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-white/10 bg-white/[0.08] p-5 backdrop-blur-xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">
+                <span className="rounded-lg border border-amber-200/25 bg-amber-200/12 px-3 py-1 text-xs font-bold text-amber-100">
                   {guardianEmblem}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600">
+                <span className="rounded-lg border border-teal-200/25 bg-teal-200/12 px-3 py-1 text-xs font-bold text-teal-100">
                   {elementEmoji} {txp("{element} 기운", { element: result.dominantElement })}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                <span className="rounded-lg border border-white/10 bg-white/8 px-3 py-1 text-xs font-bold text-slate-100">
                   {txp("✦ {branch}년지", { branch: yearBranch || result.zodiac })}
                 </span>
                 {resolvedGanji ? (
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${stemTheme?.border || "border-slate-200"} ${stemTheme?.text || "text-slate-600"}`}
-                  >
+                  <span className="rounded-lg border border-rose-200/25 bg-rose-200/12 px-3 py-1 text-xs font-bold text-rose-100">
                     {txp("{ganji}일주 · {label}", { ganji: resolvedGanji, label: stemTheme?.label || "" })}
                   </span>
                 ) : null}
               </div>
 
-              <p className="mt-4 text-sm leading-relaxed text-slate-700">
-                {guardianCopy?.short || result.headlineKo}
-              </p>
-              <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/80 p-4">
-                <p className="text-xs font-black tracking-[0.14em] text-amber-700">{tx("가디언 인장")}</p>
-                <p className="mt-1 text-sm font-bold leading-relaxed text-slate-700">{guardianSeal}</p>
-              </div>
-              <div className="mt-4 rounded-[1.75rem] border border-pink-100 bg-pink-50/60 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black tracking-[0.14em] text-pink-500">{tx("부적 주머니")}</p>
-                    <p className="mt-1 text-sm font-bold text-slate-700">{tx("오늘 바로 쓸 수 있는 수호 키트")}</p>
-                  </div>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-pink-500 shadow-sm">{tx("3개 개봉")}</span>
-                </div>
-                <div className="mt-3 grid gap-2">
-                  {guardianCharms.map((item) => (
-                    <div key={item.label} className="flex gap-3 rounded-2xl bg-white/75 p-3">
-                      <span className="text-lg">{item.icon}</span>
-                      <div>
-                        <p className="text-xs font-black text-slate-700">{item.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4">
-                  <p className="text-xs font-black tracking-[0.14em] text-rose-500">{tx("수호 방향")}</p>
-                  <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">{elementReading.protection}</p>
-                </div>
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-                  <p className="text-xs font-black tracking-[0.14em] text-slate-500">{tx("조심할 결")}</p>
-                  <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">{elementReading.shadow}</p>
-                </div>
+              <div className="mt-5 rounded-lg border border-amber-200/20 bg-slate-950/50 p-4">
+                <p className="text-xs font-black tracking-[0.14em] text-amber-200">{tx("가디언 인장")}</p>
+                <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-100">{guardianSeal}</p>
               </div>
 
+              <div className="mt-4 grid gap-3">
+                {guardianCharms.map((item) => (
+                  <div key={item.label} className="flex gap-3 rounded-lg border border-white/10 bg-white/[0.06] p-3">
+                    <span className="text-lg">{item.icon}</span>
+                    <div>
+                      <p className="text-xs font-black text-slate-100">{item.label}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-300">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </section>
           </div>
 
-          <section className="space-y-4">
+          <section className="grid gap-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-black tracking-[0.16em] text-rose-500">{tx("정밀 리포트")}</p>
-                <h2 className="mt-1 text-2xl font-black text-slate-800">{tx("가디언 리포트")}</h2>
+                <p className="text-xs font-black tracking-[0.18em] text-rose-200">{tx("가디언 리포트")}</p>
+                <h2 className="mt-2 text-3xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
+                  {activeReport.title}
+                </h2>
               </div>
-              <div className="grid grid-cols-5 rounded-2xl border border-white/80 bg-white/75 p-1 shadow-sm">
+              <div className="grid grid-cols-5 rounded-lg border border-white/10 bg-slate-950/60 p-1">
                 {Object.entries(reportPanels).map(([key, panel]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => setActivePanel(key)}
-                    className={`min-h-10 rounded-xl px-3 text-xs font-black transition ${
-                      activePanel === key ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:bg-white"
+                    className={`min-h-10 rounded-md px-3 text-xs font-black transition ${
+                      activePanel === key ? "bg-amber-200 text-slate-950" : "text-slate-300 hover:bg-white/10"
                     }`}
                     aria-pressed={activePanel === key}
                   >
@@ -1795,55 +1793,27 @@ function ResultCard({
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl backdrop-blur-xl sm:p-6">
-              <h3 className="text-lg font-black text-slate-800">{activeReport.title}</h3>
-              <div className="mt-4 grid gap-3">
+            <div className="rounded-lg border border-white/10 bg-white/[0.08] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl sm:p-6">
+              <div className="grid gap-3">
                 {activeReport.items.map((item) => (
-                  <article key={item.title} className="rounded-2xl border border-slate-100 bg-white/85 p-4 shadow-sm">
-                    <h4 className="text-sm font-black text-slate-700">{item.title}</h4>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.body}</p>
+                  <article key={item.title} className="rounded-lg border border-white/10 bg-slate-950/52 p-4">
+                    <h3 className="text-sm font-black text-amber-100">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.body}</p>
                   </article>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-rose-100 bg-gradient-to-r from-rose-50 to-amber-50 p-5 shadow-sm">
-              <p className="text-xs font-black tracking-[0.14em] text-rose-500">{tx("현재 가디언 메시지")}</p>
-              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-700">
+            <div className="rounded-lg border border-rose-200/20 bg-gradient-to-r from-rose-950/55 via-slate-950/65 to-amber-950/45 p-5">
+              <p className="text-xs font-black tracking-[0.14em] text-rose-200">{tx("현재 가디언 메시지")}</p>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-100">
                 {guardianCopy?.subtitle || txp("{guardian}의 에너지를 실전 루틴에 연결해 보세요.", { guardian: guardianArchetype })} {tx("오늘은 운을 크게 바꾸려 하기보다, 새는 기운 하나를 막고 지켜야 할 기준 하나를 선명히 세우는 날입니다.")}
               </p>
             </div>
           </section>
         </div>
-
-        <footer className="rounded-[2rem] border border-white/70 bg-white/75 p-4 shadow-xl backdrop-blur-xl sm:p-5">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <button
-              onClick={handleCopy}
-              className="rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-200/70 transition-transform active:scale-[0.98]"
-            >
-              {tx("네컷 캡션 복사하기")}
-            </button>
-            <button
-              onClick={onReset}
-              className="rounded-2xl bg-gradient-to-r from-amber-300 to-orange-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-amber-200/70 transition-transform active:scale-[0.98]"
-            >
-              {tx("다시 생성하기")}
-            </button>
-            <button
-              onClick={handleShare}
-              className="rounded-2xl bg-gradient-to-r from-indigo-400 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200/70 transition-transform active:scale-[0.98]"
-            >
-              {tx("공유하기")}
-            </button>
-          </div>
-
-          <p className="mt-3 text-center text-xs text-slate-500">
-            {tx("사주 가디언 소환진은 일주·월지·시지와 60갑자 상징을 함께 읽는 프리미엄 명리 리딩입니다.")}
-          </p>
-        </footer>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -1876,6 +1846,14 @@ export default function SajuGuardianPage() {
     let alive = true;
     verifyGuardianUnlockAccess().then((allowed) => {
       if (!alive) return;
+      if (allowed) {
+        const handoffData = readGuardianHandoffData();
+        if (handoffData) {
+          setApiData(handoffData);
+          setPhase("result");
+          return;
+        }
+      }
       setPhase(allowed ? "intro" : "locked");
     });
     return () => {

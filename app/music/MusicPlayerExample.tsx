@@ -376,7 +376,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     ? styles.dest1novaMode
     : effectiveArtistTheme === "lunabloom"
       ? styles.lunabloomMode
-      : effectiveArtistTheme === "yeoni"
+      : effectiveArtistTheme === "yeoni" || effectiveArtistTheme === "destinycafe"
         ? styles.yeoniMode
         : styles.neoMode;
   const isCompact = presentation === "compact";

@@ -21,6 +21,10 @@ export type FortuneTeaHouseQuestionInput = {
   nickname?: string;
   concernTopic: string;
   birthInfo?: string;
+  birthDate?: string;
+  birthTime?: string;
+  gender?: string;
+  calendarType?: "solar" | "lunar";
   question: string;
 };
 
@@ -52,6 +56,53 @@ export type FortuneTeaSajuSnapshot = {
   caution?: string;
 };
 
+export type FortuneTeaSajuPillarKey = "year" | "month" | "day" | "hour";
+
+export type FortuneTeaSajuPillar = {
+  key: FortuneTeaSajuPillarKey;
+  label: string;
+  ganji?: string;
+  heavenlyStem?: string;
+  earthlyBranch?: string;
+  element?: string;
+  tenGod?: string;
+  available: boolean;
+  note?: string;
+};
+
+export type FortuneTeaFiveElementKey = "wood" | "fire" | "earth" | "metal" | "water";
+
+export type FortuneTeaFiveElementBalance = {
+  key: FortuneTeaFiveElementKey;
+  nameKo: string;
+  value: number;
+  strengthLabel: string;
+  reading: string;
+  tone: "green" | "rose" | "gold" | "silver" | "blue";
+};
+
+export type FortuneTeaSajuBirthSummary = {
+  nickname: string;
+  birthDate?: string;
+  birthTime?: string;
+  hasBirthTime: boolean;
+  calendarType?: "solar" | "lunar";
+  gender?: string;
+};
+
+export type FortuneTeaSajuTenGodReading = {
+  id: TenGodId;
+  nameKo: string;
+  roleInTeaHouse: string;
+  reading: string;
+};
+
+export type FortuneTeaSajuSecondaryTenGod = {
+  id: TenGodId;
+  nameKo: string;
+  roleInTeaHouse: string;
+};
+
 export type FortuneTeaTarotSnapshot = {
   cardId: string;
   number: number;
@@ -78,7 +129,17 @@ export type FortuneTeaHouseConsultResponse = {
     title: string;
     summary: string;
     keyPoints: string[];
+    birthSummary?: FortuneTeaSajuBirthSummary;
+    dayMaster?: string;
+    dominantElements?: string[];
+    pillars?: FortuneTeaSajuPillar[];
+    fiveElements?: FortuneTeaFiveElementBalance[];
+    primaryTenGod?: FortuneTeaSajuTenGodReading;
+    secondaryTenGods?: FortuneTeaSajuSecondaryTenGod[];
     caution?: string;
+    cautionReading?: string;
+    actionPrescription?: string;
+    tarotBridgeReady?: string;
     tenGodSnapshot?: FortuneTeaSajuTenGodSnapshot;
   };
   tarot: {

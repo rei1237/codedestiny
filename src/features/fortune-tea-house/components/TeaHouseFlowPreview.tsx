@@ -18,7 +18,7 @@ type TeaHouseFlowPreviewProps = {
 const flowIcons = [Coffee, PenLine, HeartPulse, MessagesSquare];
 const flowAssetSrc = {
   selection: fortuneTeaHouseAssets.ui.selection,
-  bubble: fortuneTeaHouseAssets.yeoni.bubble,
+  bubble: fortuneTeaHouseAssets.cutout.teaCups,
   emotionGauge: fortuneTeaHouseAssets.pig.emotionGauge,
   buttons: fortuneTeaHouseAssets.ui.buttons,
 } as const;

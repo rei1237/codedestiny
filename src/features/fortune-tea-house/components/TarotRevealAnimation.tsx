@@ -17,7 +17,7 @@ export default function TarotRevealAnimation({ active = true, className = "" }: 
       data-active={active ? "true" : "false"}
       style={
         {
-          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.tarot.yeoniCardAnimation}")`,
+          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCardAnim}")`,
           "--tarot-reveal-columns": tarotRevealAnimationAtlas.columns,
         } as CSSProperties
       }

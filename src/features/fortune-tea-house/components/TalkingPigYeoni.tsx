@@ -2,17 +2,17 @@
 
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
-import { talkingPigYeoniFrames } from "../data/assets";
+import { talkingPigYeoniFrameCrops, talkingPigYeoniFrames } from "../data/assets";
 import type { YeoniMood } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
 
 const pigExpressionFrames = {
-  welcome: { sheet: 0, col: 1, row: 0, label: "반갑게 맞이하는 꽃돼지?" },
-  honey: { sheet: 0, col: 2, row: 0, label: "꿀 향에 반응하는 꽃돼지?" },
-  thinking: { sheet: 1, col: 0, row: 1, label: "마음의 향을 읽는 꽃돼지?" },
-  comfort: { sheet: 1, col: 1, row: 1, label: "다정하게 안심시키는 꽃돼지?" },
-  surprised: { sheet: 2, col: 1, row: 0, label: "작게 놀란 꽃돼지?" },
-  doorway: { sheet: 2, col: 2, row: 2, label: "찻집 문을 여는 꽃돼지?" },
+  welcome: talkingPigYeoniFrameCrops.welcome,
+  honey: talkingPigYeoniFrameCrops.honey,
+  thinking: talkingPigYeoniFrameCrops.thinking,
+  comfort: talkingPigYeoniFrameCrops.comfort,
+  surprised: talkingPigYeoniFrameCrops.surprised,
+  doorway: talkingPigYeoniFrameCrops.doorway,
 } as const;
 
 type TalkingPigYeoniProps = {
@@ -33,15 +33,21 @@ export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood 
         data-failed={failed ? "true" : "false"}
         style={
           {
-            "--pig-sprite-col": activeFrame.col,
-            "--pig-sprite-row": activeFrame.row,
+            "--pig-sprite-x": `${activeFrame.x}px`,
+            "--pig-sprite-y": `${activeFrame.y}px`,
+            "--pig-sprite-width": `${activeFrame.width}px`,
+            "--pig-sprite-height": `${activeFrame.height}px`,
+            "--pig-sprite-aspect-width": activeFrame.width,
+            "--pig-sprite-aspect-height": activeFrame.height,
+            "--pig-sprite-sheet-width": `${activeFrame.sheetWidth}px`,
+            "--pig-sprite-sheet-height": `${activeFrame.sheetHeight}px`,
           } as CSSProperties
         }
       >
         {!failed ? (
           <img
             className={styles.pigSpriteSheet}
-            src={talkingPigYeoniFrames[activeFrame.sheet]}
+            src={activeFrame.src}
             alt={activeFrame.label}
             decoding="async"
             loading="eager"
