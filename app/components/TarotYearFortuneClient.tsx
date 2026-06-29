@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const YEAR_STYLE_HREF = "/styles/tarot-year-fortune.css";
+const YEAR_STYLE_HREF = "/styles/tarot-year-fortune.css?v=20260629-no-llm-prompt";
 
 const TAROT_YEAR_COPY: Record<LoadingLocale, {
   closeLabel: string;
@@ -44,25 +44,25 @@ const TAROT_YEAR_COPY: Record<LoadingLocale, {
   ko: {
     closeLabel: "닫기",
     zodiacTitles: ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"],
-    badge: "십이지신 천운",
-    title: "운명의 수레바퀴를 열다",
-    subtitle: "천상의 열두 수호신이 지키는 한 해. 1월부터 12월까지 각 월의 카드를 뽑고 재물, 연애, 인간관계, 합격운을 확인하세요.",
-    cta: "천운 카드 뽑기",
-    drawTitle: "천운의 카드를 뽑는 중입니다",
-    loadingText: "열두 수호신이 한 해의 문을 열고 있습니다. 잠시만 기다려 주세요.",
-    resultTitle: "십이지신 월운, 1월부터 12월 스프레드",
-    resultHint: "월패를 눌러 해당 월 타로 상담을 여세요",
-    detailPlaceholder: "월패를 눌러 해당 월의 운세를 확인하세요",
+    badge: "십이지신 천운 타로",
+    title: "열두 달의 문을 차례로 열다",
+    subtitle: "열두 수호 리듬과 12장의 카드가 한 해의 상승 구간, 쉬어갈 달, 월별 선택의 기준을 차분히 비춥니다.",
+    cta: "12개월 카드 열기",
+    drawTitle: "열두 달의 카드를 준비하는 중입니다",
+    loadingText: "한 해의 문이 천천히 열리고 있습니다. 잠시만 기다려 주세요.",
+    resultTitle: "1월부터 12월까지, 열두 달의 카드 흐름",
+    resultHint: "월 카드를 눌러 해당 달의 타로 흐름을 여세요",
+    detailPlaceholder: "월 카드를 눌러 해당 달의 흐름을 확인하세요",
     detailTitle: "1월 상세 운세",
     cardAlt: "이달의 타로 카드",
     monthlyCard: "이달의 카드",
-    oracleConsult: "전문 타로 리딩",
-    spreadTitle: "이달의 삼재 스프레드",
+    oracleConsult: "월별 타로 해석",
+    spreadTitle: "이달의 세 장 흐름",
     tabs: { general: "핵심", relationship: "관계", money: "금전·일", health: "건강" },
-    categoryTitle: "전반 운세 해석",
-    adviceTitle: "오라클의 총평",
-    share: "천운 공유",
-    reset: "다시 점치기",
+    categoryTitle: "전반 흐름 해석",
+    adviceTitle: "한 해의 총평",
+    share: "1년 흐름 공유",
+    reset: "다시 보기",
     home: "홈화면 바로가기",
   },
   en: {
@@ -378,7 +378,7 @@ export default function TarotYearFortuneClient() {
 
   return (
     <>
-      <Script src="/js/tarot-year-fortune-experience.js?v=20260619-zodiac-tarot-reading" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
+      <Script src="/js/tarot-year-fortune-experience.js?v=20260629-no-llm-prompt" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
 
       <div
         id="tarotYearFortuneOverlay"

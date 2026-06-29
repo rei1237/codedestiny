@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import StoriesIndex from "@/components/stories/StoriesIndex";
+import StoriesIndexRouteClient from "./StoriesIndexRouteClient";
+import { getStories } from "@/lib/stories/data";
 import styles from "./stories.module.css";
 
 const STORIES_PAGE_TEXT_TRANSLATIONS = {
@@ -32,13 +33,15 @@ export const metadata: Metadata = {
 };
 
 export default function StoriesPage() {
+  const stories = getStories();
+
   return (
     <main className={styles.page}>
       <div className={styles.inner}>
         <Link className={styles.backLink} href="/">
           {storiesPageCopy.homeLink}
         </Link>
-        <StoriesIndex />
+        <StoriesIndexRouteClient stories={stories} />
       </div>
     </main>
   );

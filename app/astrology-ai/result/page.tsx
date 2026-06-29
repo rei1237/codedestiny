@@ -69,6 +69,9 @@ const FALLBACK_SECTIONS = [
   "마무리 메시지",
 ];
 
+const RESULT_PANEL_CLASS = "rounded-lg border border-white/10 bg-white/[0.045] shadow-xl shadow-black/20 ring-1 ring-white/[0.03] backdrop-blur";
+const RESULT_INFO_CLASS = "rounded-lg border border-white/10 bg-[#0d132c]/75 p-4";
+
 function toText(value: unknown) {
   return String(value || "").trim();
 }
@@ -176,6 +179,15 @@ export default function AstrologyAiResultPage() {
   const sections = useMemo(() => splitSections(assistantContent), [assistantContent]);
   const userName = toText(birth.name) || "당신";
   const birthTime = birth.birthTimeUnknown ? "출생시간 미상" : toText(birth.birthTime) || "출생시간 미입력";
+  const coreCards = [
+    { title: "태양", value: pointLabel(highlights.sun || chart?.sun) },
+    { title: "달", value: pointLabel(highlights.moon || chart?.moon) },
+    { title: "상승궁", value: highlights.ascendant || chart?.ascendant ? pointLabel(highlights.ascendant || chart?.ascendant) : "출생시간 미상으로 제한" },
+    { title: "차트 룰러", value: toText(highlights.chartRuler || chart?.chartRuler) || "제한적 해석" },
+  ];
+  const keywords = (highlights.keywords || chart?.consultationKeywords || []).filter(Boolean).slice(0, 6);
+  const evidencePlanets = (chart?.planets || []).slice(0, 7);
+  const evidenceAspects = (chart?.majorAspects || []).slice(0, 5);
 
   async function handlePdfDownload() {
     const element = document.getElementById("astrology-ai-result-document");
@@ -221,18 +233,19 @@ export default function AstrologyAiResultPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,rgba(6,8,23,0.96),rgba(19,18,48,0.94)_48%,rgba(5,8,22,1)),radial-gradient(circle_at_48%_0%,rgba(232,199,112,0.18),transparent_34%),radial-gradient(circle_at_78%_34%,rgba(96,165,250,0.16),transparent_30%)]" aria-hidden="true" />
-      <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#c4b5fd_1px,transparent_1px)] [background-position:0_0,34px_42px] [background-size:82px_82px,124px_124px]" aria-hidden="true" />
+    <main className="relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,#050816_0%,#0b1028_46%,#050816_100%)]" aria-hidden="true" />
+      <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#c4b5fd_1px,transparent_1px)] [background-position:0_0,34px_42px] [background-size:88px_88px,128px_128px]" aria-hidden="true" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
 
-      <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/astrology-ai" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/15 px-4 text-sm font-bold text-slate-100 transition hover:border-[#f5d487]/40 hover:bg-white/[0.06]">
+          <Link href="/astrology-ai" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:border-[#f5d487]/40 hover:bg-white/[0.065]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             상담 입력으로 돌아가기
           </Link>
           {consultation && (
-            <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#f5d487] px-4 text-sm font-black text-[#161019] transition hover:bg-[#ffe6a8] disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#f5d487] px-4 text-sm font-black text-[#161019] shadow-lg shadow-[#f5d487]/15 transition hover:bg-[#ffe6a8] disabled:cursor-not-allowed disabled:opacity-60">
               {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
               {pdfLoading ? "별자리 리포트를 정리하는 중입니다" : "PDF 다운로드"}
             </button>
@@ -240,7 +253,7 @@ export default function AstrologyAiResultPage() {
         </div>
 
         {loading && (
-          <div className="grid min-h-[60vh] place-items-center rounded-lg border border-white/10 bg-white/[0.04] p-8 text-center">
+          <div className="grid min-h-[60vh] place-items-center rounded-lg border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-black/25">
             <div>
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#f5d487] motion-reduce:animate-none" aria-hidden="true" />
               <p className="mt-4 text-lg font-black text-white">저장된 별자리 상담을 불러오고 있습니다.</p>
@@ -249,7 +262,7 @@ export default function AstrologyAiResultPage() {
         )}
 
         {!loading && error && (
-          <div className="grid min-h-[60vh] place-items-center rounded-lg border border-rose-300/25 bg-rose-400/10 p-8 text-center">
+          <div className="grid min-h-[60vh] place-items-center rounded-lg border border-rose-300/25 bg-rose-400/10 p-8 text-center shadow-2xl shadow-black/25">
             <div className="max-w-md">
               <AlertCircle className="mx-auto h-9 w-9 text-rose-200" aria-hidden="true" />
               <h1 className="mt-4 text-2xl font-black text-white">결과를 열 수 없습니다</h1>
@@ -259,16 +272,25 @@ export default function AstrologyAiResultPage() {
         )}
 
         {!loading && consultation && (
-          <div id="astrology-ai-result-document" className="relative grid gap-6 rounded-lg border border-white/10 bg-[#060817] p-4 shadow-2xl shadow-black/40 sm:p-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div id="astrology-ai-result-document" className="relative grid gap-6 rounded-lg border border-white/10 bg-[#060817] p-4 shadow-2xl shadow-black/40 ring-1 ring-white/[0.03] sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <article className="space-y-6">
-              <header className="rounded-lg border border-[#f5d487]/20 bg-white/[0.045] p-6 sm:p-8">
-                <p className="text-sm font-semibold text-[#f5d487]">Code Destiny Astrology</p>
+              <header className={`${RESULT_PANEL_CLASS} overflow-hidden p-6 sm:p-8`}>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">Code Destiny Astrology</p>
                 <h1 className="mt-3 text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                   {userName}님의 별자리 상담
                 </h1>
-                <p className="mt-4 max-w-2xl text-base leading-8 text-slate-200">
+                <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">
                   태어난 하늘과 지금의 하늘이 만나는 자리에서, {toText(consultation.topic) || "현재 질문"}의 흐름을 차분히 비춥니다.
                 </p>
+                {keywords.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {keywords.map((keyword) => (
+                      <span key={keyword} className="rounded-full border border-[#f5d487]/25 bg-[#f5d487]/10 px-3 py-1 text-xs font-bold text-amber-50">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </header>
 
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -279,14 +301,16 @@ export default function AstrologyAiResultPage() {
               </section>
 
               {birth.birthTimeUnknown && (
-                <section className="rounded-lg border border-[#f5d487]/20 bg-[#f5d487]/10 p-4 text-sm leading-7 text-amber-50">
-                  출생시간 미상으로 상승궁과 하우스는 확정하지 않고 제한적으로 다룹니다. 태양, 달, 개인 행성, 주요 각도와 현재 트랜짓의 흐름을 중심으로 읽어 주세요.
+                <section className="rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-4 text-sm leading-7 text-amber-50">
+                  출생시간 미상으로 상승궁과 하우스는 확정하지 않고 제한적으로 다룹니다. 태양, 달, 개인 행성, 주요 각도와 현재 흐름을 중심으로 읽어 주세요.
                 </section>
               )}
 
-              <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
+              <section className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
                 <div className="mb-4 flex items-center gap-3">
-                  <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <h2 className="text-xl font-black text-white">현재 질문</h2>
                 </div>
                 <p className="whitespace-pre-wrap text-sm leading-7 text-slate-200">{toText(consultation.userQuestion) || "전체 흐름을 중심으로 상담합니다."}</p>
@@ -294,46 +318,51 @@ export default function AstrologyAiResultPage() {
 
               <section className="space-y-3">
                 {sections.map((section, index) => (
-                  <details key={`${section.title}-${index}`} className="rounded-lg border border-white/10 bg-white/[0.045] p-5" open={index < 2}>
-                    <summary className="cursor-pointer text-lg font-black text-[#f5d487] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
-                      {section.title}
+                  <details key={`${section.title}-${index}`} className={`${RESULT_PANEL_CLASS} group p-5 sm:p-6`} open={index < 2}>
+                    <summary className="cursor-pointer list-none text-lg font-black leading-7 text-[#f5d487] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
+                      <span className="inline-flex w-full items-center justify-between gap-3">
+                        <span>{section.title}</span>
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#f5d487]/25 text-sm text-amber-50 transition group-open:rotate-45">+</span>
+                      </span>
                     </summary>
-                    <p className="mt-4 whitespace-pre-wrap text-[15px] leading-8 text-slate-100">{section.body}</p>
+                    <p className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-slate-100">{section.body}</p>
                   </details>
                 ))}
               </section>
             </article>
 
             <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-              <section className="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+              <section className={`${RESULT_PANEL_CLASS} p-5`}>
                 <div className="mb-4 flex items-center gap-3">
-                  <Moon className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
-                  <h2 className="text-lg font-black text-white">차트 요약</h2>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Moon className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
+                  <h2 className="text-lg font-black text-white">차트 시그니처</h2>
                 </div>
                 <div className="grid gap-3">
-                  <InfoCard title="태양" value={pointLabel(highlights.sun || chart?.sun)} />
-                  <InfoCard title="달" value={pointLabel(highlights.moon || chart?.moon)} />
-                  <InfoCard title="상승궁" value={highlights.ascendant || chart?.ascendant ? pointLabel(highlights.ascendant || chart?.ascendant) : "출생시간 미상으로 제한"} />
-                  <InfoCard title="차트 룰러" value={toText(highlights.chartRuler || chart?.chartRuler) || "제한적 해석"} />
+                  {coreCards.map((card) => (
+                    <InfoCard key={card.title} title={card.title} value={card.value} />
+                  ))}
                 </div>
               </section>
 
-              <section className="rounded-lg border border-white/10 bg-white/[0.045] p-5">
+              <section className={`${RESULT_PANEL_CLASS} p-5`}>
                 <div className="mb-4 flex items-center gap-3">
-                  <Stars className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Stars className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <h2 className="text-lg font-black text-white">주요 근거</h2>
                 </div>
                 <div className="grid gap-2 text-sm leading-6 text-slate-200">
-                  {(chart?.planets || []).slice(0, 6).map((planet) => (
-                    <span key={planet.name} className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-                      {planet.label || planet.name} {planet.signKo || planet.sign}{planet.retrograde ? " R" : ""}
-                    </span>
+                  {evidencePlanets.map((planet) => (
+                    <EvidencePill key={planet.name} text={`${planet.label || planet.name} ${planet.signKo || planet.sign || ""}${planet.retrograde ? " R" : ""}`.trim()} />
                   ))}
-                  {(chart?.majorAspects || []).slice(0, 4).map((aspect) => (
-                    <span key={`${aspect.planetA}-${aspect.aspect}-${aspect.planetB}`} className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-                      {aspect.planetA} {aspectLabel(aspect.aspect)} {aspect.planetB}
-                    </span>
+                  {evidenceAspects.map((aspect) => (
+                    <EvidencePill key={`${aspect.planetA}-${aspect.aspect}-${aspect.planetB}`} text={`${aspect.planetA} ${aspectLabel(aspect.aspect)} ${aspect.planetB}`} />
                   ))}
+                  {!evidencePlanets.length && !evidenceAspects.length && (
+                    <EvidencePill text="저장된 차트 근거가 제한적입니다." />
+                  )}
                 </div>
               </section>
 
@@ -352,9 +381,17 @@ export default function AstrologyAiResultPage() {
 
 function InfoCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+    <div className={RESULT_INFO_CLASS}>
       <p className="text-xs font-black uppercase text-[#f5d487]">{title}</p>
       <p className="mt-2 break-words text-sm font-bold leading-6 text-white">{value}</p>
     </div>
+  );
+}
+
+function EvidencePill({ text }: { text: string }) {
+  return (
+    <span className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm font-semibold text-slate-100">
+      {text}
+    </span>
   );
 }

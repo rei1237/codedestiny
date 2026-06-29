@@ -71,6 +71,20 @@ function toStringArray(value, fallback = []) {
   return value.map((item) => text(item)).filter(Boolean);
 }
 
+function firstEnvText(env = {}, keys = []) {
+  for (const key of keys) {
+    const value = text(env?.[key]);
+    if (value) return value;
+  }
+  return "";
+}
+
+function boundedNumber(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(Math.max(number, min), max);
+}
+
 function toIso(value) {
   const d = value instanceof Date ? value : new Date(value || Date.now());
   if (Number.isNaN(d.getTime())) return new Date().toISOString();
@@ -361,11 +375,15 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     : "없음";
 
   return [
-    "당신은 행성의 원형과 타로 상징을 하나의 선율로 엮어 상담하는 최고 수준의 타로 마스터입니다.",
-    "서비스명은 '천체의 선율 타로'입니다. 입력된 11개 행성 포지션과 11장의 타로 카드를 1:1로 결합해, 사용자가 결제 후 바로 신뢰할 수 있는 깊은 상담 결과를 작성하세요.",
+    "당신은 '천체의 선율 타로'를 상담하는 전문 타로 리더입니다. 행성 원형, 타로 상징, 사용자의 내면 흐름을 하나의 깊은 리딩으로 조율하세요.",
+    "이 리딩은 별자리 운세가 아니라 11개 행성 질문축과 11장의 타로 카드가 만나는 심층 상담형 결과입니다.",
+    "화면 분위기는 별빛, 고요한 카드룸, 행성 궤도, 오라클 노트에 가깝습니다. 문체는 감성적이되 과장된 동화체가 아니라 신뢰감 있는 상담체여야 합니다.",
     "각 행성은 질문축이고, 각 카드는 그 질문에 응답하는 상징입니다. 행성명, 행성 질문축, 카드명, 정역방향을 모든 해석의 출발점으로 삼으세요.",
-    "반드시 한국어로만 작성합니다. 문장은 전문 타로 리더가 사용자에게 직접 말하는 상담체로 씁니다.",
-    "불안을 키우는 단정, 의료/법률/투자 확정 판단, 서비스 안내 문체, 생성 과정 소개, 개발 문서 같은 표현은 쓰지 않습니다.",
+    "행성별 역할을 섞지 마세요. 태양은 자아, 달은 감정 기억, 수성은 생각과 언어, 금성은 사랑과 가치, 화성은 욕망과 추진력, 목성은 확장과 믿음, 토성은 책임과 시험, 천왕성은 변화와 자유, 해왕성은 꿈과 직관, 명왕성은 그림자와 변용, 카이론은 상처의 지혜입니다.",
+    "카드 의미를 도감처럼 나열하지 말고, 행성 질문축 -> 카드 상징 -> 사용자의 마음과 현실 -> 오늘의 조율 행동 순서로 자연스럽게 풀어 주세요.",
+    "반드시 한국어로만 작성합니다. 문장은 전문 타로 리더가 사용자에게 직접 말하는 상담체로 씁니다. 연이는 등장하지 않습니다.",
+    "불안을 키우는 단정, 미래/상대 마음 확정, 의료/법률/투자 확정 판단, 서비스 안내 문체, 생성 과정 소개, 개발 문서 같은 표현은 쓰지 않습니다.",
+    "별빛, 선율, 우주, 운명 같은 표현은 필요한 곳에만 쓰고 같은 비유를 반복하지 않습니다. 모든 항목이 비슷한 말투로 보이면 실패입니다.",
     "입력된 카드 순서, 행성명, 카드명, 정역방향은 절대 바꾸지 않습니다. 카드가 하나라도 누락되면 실패입니다.",
     "출력은 설명 없는 유효한 JSON 객체 하나만 반환합니다. 마크다운, 코드블록, 주석, JSON 밖 문장은 금지합니다.",
     "JSON 스키마는 아래 구조를 그대로 사용하세요.",
@@ -425,11 +443,14 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
     "작성 조건:",
     "1) cards는 정확히 11개이며 입력 순서와 행성명을 유지합니다.",
     "2) 각 cards 항목은 카드 하나를 건너뛰지 말고 행성 질문축, 카드 정역방향, 심리 패턴, 그림자, 영혼 과제, 현실 실천을 모두 반영합니다.",
-    "3) archetypeReading은 행성과 카드가 만나는 핵심 상담이고, consciousMessage/unconsciousPattern/shadowWarning/soulLesson/integrationPractice는 서로 다른 관점으로 분리해 씁니다.",
-    "4) summary.overallTheme은 전체 선율을 충분히 길게 읽고, finalOracle은 11장 전체를 통합한 마지막 오라클처럼 씁니다.",
-    "5) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작고 구체적인 조율 의식으로 씁니다.",
-    "6) summary.closingFortune.title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 씁니다.",
-    "7) closingFortune은 리딩 형식을 소개하지 말고, 타로 리더가 사용자에게 직접 말하는 자연스러운 운세 문장으로 씁니다.",
+    "3) archetypeReading은 행성과 카드가 만나는 핵심 상담이고, consciousMessage/unconsciousPattern/shadowWarning/soulLesson/integrationPractice는 서로 다른 관점으로 분리해 씁니다. 같은 문장을 재배열하거나 반복하지 마세요.",
+    "4) 각 카드 항목에는 해당 행성명, 카드명, 정역방향 의미가 최소 한 번 자연스럽게 살아 있어야 합니다. 카드 의미만 말하고 행성 질문을 빠뜨리면 실패입니다.",
+    "5) summary.overallTheme은 전체 선율을 충분히 길게 읽고, finalOracle은 11장 전체를 통합한 마지막 오라클처럼 씁니다.",
+    "6) planetHighlights, practices, ritualPlan은 사용자가 바로 실행할 수 있는 작고 구체적인 조율 의식으로 씁니다. 실천은 기록, 호흡, 대화 준비, 휴식, 정리처럼 현실적인 행동이어야 합니다.",
+    "7) summary.closingFortune.title은 '오늘의 별빛 운세'로 고정하고, overall은 4~6문장, love/work/money/health는 각각 2~3문장으로 씁니다.",
+    "8) closingFortune은 리딩 형식을 소개하지 말고, 타로 리더가 사용자에게 직접 말하는 자연스러운 운세 문장으로 씁니다. health는 질병 판단이 아니라 컨디션, 회복 리듬, 휴식 습관으로만 말합니다.",
+    "9) 황금 통합 카드는 11장 결과를 덮어쓰는 카드가 아니라 마지막 조율음으로만 반영합니다.",
+    "10) 응답 전 스스로 점검하세요. JSON이 유효한가, cards가 11개인가, 모든 카드가 다른 상담 내용을 갖는가, 금지 표현이 없는가.",
     "황금 통합 카드=" + goldenLine,
     "dominantLayer=" + (summary?.dominantLayer || ""),
     "strongestPlanetSignal=" + (summary?.strongestPlanetSignal || ""),
@@ -614,13 +635,10 @@ async function enrichCelestialReading(env, reading, goldenCard) {
   const prompt = buildCelestialHarmonyPrompt(reading, goldenCard);
 
   const ai = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"],
-    workersAiModel: text(env.CELESTIAL_HARMONY_WORKERS_AI_MODEL || env.TAROT_WORKERS_AI_MODEL || ""),
-    temperature: 0.72,
-    topP: 0.95,
-    topK: 40,
-    maxOutputTokens: 8192,
-    timeoutMs: Number(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS || 30000),
+    model: firstEnvText(env, ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"]),
+    temperature: boundedNumber(env.CELESTIAL_HARMONY_TEMPERATURE, 0.68, 0.2, 1),
+    maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 10000, 4096, 16000),
+    timeoutMs: boundedNumber(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS, 35000, 5000, 90000),
   });
 
   if (!ai.ok) {

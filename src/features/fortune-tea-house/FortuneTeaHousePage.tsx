@@ -14,12 +14,21 @@ import AssetImage from "./components/AssetImage";
 import TeaHouseEntryScene from "./components/TeaHouseEntryScene";
 import TeaHouseButton from "./components/TeaHouseButton";
 import TeaHouseResultSheet from "./components/TeaHouseResultSheet";
+import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
-import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseQuestionInput } from "./data/consult";
+import type { FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import { teaHouseCtaCopy, type TeaHouseStage } from "./data/story";
 import type { TeaHouseCup } from "./data/teaCups";
 import { buildFortuneTeaHouseConsultResult } from "./lib/buildConsultResult";
+import {
+  applyGuestHoneyDropReward,
+  attachHoneyBonusAdvice,
+  createFortuneTeaAttemptId,
+  normalizeHoneyDropsState,
+  pickHoneyDropMessage,
+  readGuestHoneyDrops,
+} from "./lib/honeyDrops";
 import styles from "./styles/fortune-tea-house.module.css";
 
 const FORTUNE_TEA_BGM_TRACKS = {
@@ -33,18 +42,60 @@ const FORTUNE_TEA_BGM_TRACKS = {
     url: "https://music.code-destiny.com/DestinyCafe/Gentle%20Oriental%20Girl.mp3",
     volume: 0.24,
   },
+  moonlightTea: {
+    key: "moonlight-tea",
+    url: "https://music.code-destiny.com/DestinyCafe/Moonlight%20Tea.mp3",
+    volume: 0.26,
+  },
+  kindness: {
+    key: "kindness",
+    url: "https://music.code-destiny.com/DestinyCafe/Kindness.mp3",
+    volume: 0.26,
+  },
   moonlitDestinyRoom: {
     key: "moonlit-destiny-room",
     url: "https://music.code-destiny.com/DestinyCafe/Moonlit%20Destiny%20Room.mp3",
     volume: 0.26,
   },
+  fortuneReveal: {
+    key: "fortune-reveal",
+    url: "https://music.code-destiny.com/DestinyCafe/Fortune%20Reveal.mp3",
+    volume: 0.25,
+  },
 } as const;
 
 const FORTUNE_TEA_BGM_STORAGE_KEY = "code-destiny-fortune-tea-house-bgm";
+const FORTUNE_TEA_LOADING_PLAYLIST = [
+  FORTUNE_TEA_BGM_TRACKS.moonlightTea,
+  FORTUNE_TEA_BGM_TRACKS.moonlitDestinyRoom,
+  FORTUNE_TEA_BGM_TRACKS.fortuneReveal,
+] as const;
+
+type FortuneTeaBgmTrack = (typeof FORTUNE_TEA_BGM_TRACKS)[keyof typeof FORTUNE_TEA_BGM_TRACKS];
+
+type FortuneTeaHouseConsultApiResponse = {
+  ok?: boolean;
+  result?: FortuneTeaHouseConsultResponse;
+  honeyDrops?: FortuneTeaHouseHoneyDropsState;
+  message?: string;
+  generationMeta?: {
+    mode?: "gemini" | "local_fallback";
+    provider?: string;
+    model?: string;
+    reason?: string;
+    generatedAt?: string;
+  };
+};
+
+type BrowserIdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
 
 function getFortuneTeaBgmTrack(stage: TeaHouseStage) {
-  if (stage === "tarotReveal" || stage === "result") return FORTUNE_TEA_BGM_TRACKS.moonlitDestinyRoom;
-  if (stage === "yeoniReveal" || stage === "teaIntro" || stage === "teaSelect" || stage === "teaCupRitual" || stage === "questionInput" || stage === "scentLoading") {
+  if (stage === "scentLoading") return FORTUNE_TEA_BGM_TRACKS.moonlightTea;
+  if (stage === "tarotReveal" || stage === "result") return FORTUNE_TEA_BGM_TRACKS.kindness;
+  if (stage === "yeoniReveal" || stage === "teaIntro" || stage === "teaSelect" || stage === "teaCupRitual" || stage === "questionInput") {
     return FORTUNE_TEA_BGM_TRACKS.gentleOrientalGirl;
   }
   return FORTUNE_TEA_BGM_TRACKS.moonlitTeaHouse;
@@ -67,13 +118,18 @@ export default function FortuneTeaHousePage() {
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
   const [questionInput, setQuestionInput] = useState<Partial<FortuneTeaHouseQuestionInput>>({});
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
+  const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
+  const [honeyRewardBurstKey, setHoneyRewardBurstKey] = useState(0);
+  const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const enterTimerRef = useRef<number | null>(null);
   const consultRunRef = useRef(0);
   const submitLockRef = useRef(false);
-  const currentBgmTrack = getFortuneTeaBgmTrack(stage);
+  const loadingBgmIndexRef = useRef(0);
+  const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -95,19 +151,55 @@ export default function FortuneTeaHousePage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    const abortController = new AbortController();
+    setHoneyDrops(readGuestHoneyDrops());
+
+    const syncServerHoneyDrops = () => {
+      fetch("/api/fortune-tea-house/honey-drops", {
+        cache: "no-store",
+        signal: abortController.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) return null;
+          const payload = (await response.json().catch(() => null)) as { ok?: boolean; honeyDrops?: FortuneTeaHouseHoneyDropsState } | null;
+          return payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
+        })
+        .then((serverHoneyDrops) => {
+          if (!cancelled && serverHoneyDrops?.authenticated) setHoneyDrops(serverHoneyDrops);
+        })
+        .catch(() => {
+          void 0;
+        });
+    };
+
+    const idleWindow = window as BrowserIdleWindow;
+    const idleCallbackId = idleWindow.requestIdleCallback?.(syncServerHoneyDrops, { timeout: 2500 }) ?? null;
+    const fallbackTimerId = idleCallbackId === null ? window.setTimeout(syncServerHoneyDrops, 1200) : null;
+
+    return () => {
+      cancelled = true;
+      abortController.abort();
+      if (idleCallbackId !== null) idleWindow.cancelIdleCallback?.(idleCallbackId);
+      if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
+    };
+  }, []);
+
+  useEffect(() => {
     setNotice("");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [stage]);
 
-  const playBgm = useCallback(async () => {
+  const playBgm = useCallback(async (forceEnabled = false, trackOverride?: FortuneTeaBgmTrack) => {
     const audio = bgmAudioRef.current;
-    if (!audio || !bgmEnabled || !isBgmPreferenceReady) return;
+    if (!audio || (!forceEnabled && !bgmEnabled) || !isBgmPreferenceReady) return;
+    const nextTrack = trackOverride ?? currentBgmTrack;
     try {
-      audio.volume = currentBgmTrack.volume;
-      if (audio.src !== currentBgmTrack.url) {
-        audio.src = currentBgmTrack.url;
+      audio.volume = nextTrack.volume;
+      if (audio.src !== nextTrack.url) {
+        audio.src = nextTrack.url;
         audio.load();
       }
       await audio.play();
@@ -118,6 +210,30 @@ export default function FortuneTeaHousePage() {
   }, [bgmEnabled, currentBgmTrack.url, currentBgmTrack.volume, isBgmPreferenceReady]);
 
   useEffect(() => {
+    loadingBgmIndexRef.current = 0;
+    setLoadingBgmIndex(0);
+  }, [stage]);
+
+  useEffect(() => {
+    const audio = bgmAudioRef.current;
+    if (!audio) return;
+
+    const playNextLoadingTrack = () => {
+      if (stage !== "scentLoading" || !bgmEnabled) return;
+      const nextIndex = (loadingBgmIndexRef.current + 1) % FORTUNE_TEA_LOADING_PLAYLIST.length;
+      const nextTrack = FORTUNE_TEA_LOADING_PLAYLIST[nextIndex];
+      loadingBgmIndexRef.current = nextIndex;
+      setLoadingBgmIndex(nextIndex);
+      void playBgm(false, nextTrack);
+    };
+
+    audio.addEventListener("ended", playNextLoadingTrack);
+    return () => {
+      audio.removeEventListener("ended", playNextLoadingTrack);
+    };
+  }, [bgmEnabled, playBgm, stage]);
+
+  useEffect(() => {
     const audio = bgmAudioRef.current;
     if (!audio || !isBgmPreferenceReady) return;
     if (!bgmEnabled) {
@@ -125,8 +241,11 @@ export default function FortuneTeaHousePage() {
       setBgmStatus("off");
       return;
     }
+    if (!audio.paused) {
+      void playBgm();
+      return;
+    }
     setBgmStatus("idle");
-    void playBgm();
   }, [bgmEnabled, currentBgmTrack.key, isBgmPreferenceReady, playBgm]);
 
   useEffect(() => {
@@ -155,7 +274,7 @@ export default function FortuneTeaHousePage() {
       void 0;
     }
     if (nextEnabled) {
-      void playBgm();
+      void playBgm(true);
     }
   }
 
@@ -228,8 +347,8 @@ export default function FortuneTeaHousePage() {
 
     try {
       const startedAt = Date.now();
-      logSubmitStep("build result start");
-      const payload = buildFortuneTeaHouseConsultResult({
+      const localDraft = buildFortuneTeaHouseConsultResult({
+        consultationMode: nextQuestionInput.consultationMode,
         selectedTeaCupId: selectedCup.id,
         selectedTeaCupName: selectedCup.name,
         selectedTeaCupTopic: selectedCup.topic,
@@ -240,9 +359,41 @@ export default function FortuneTeaHousePage() {
         birthTime: nextQuestionInput.birthTime,
         gender: nextQuestionInput.gender,
         calendarType: nextQuestionInput.calendarType,
+        sukuyo: nextQuestionInput.sukuyo,
         question: nextQuestionInput.question,
       });
-      logSubmitStep("build result success", payload);
+      const requestPayload: FortuneTeaHouseConsultRequest = {
+        consultationMode: nextQuestionInput.consultationMode,
+        selectedTeaCupId: selectedCup.id,
+        selectedTeaCupName: selectedCup.name,
+        selectedTeaCupTopic: selectedCup.topic,
+        nickname: nextQuestionInput.nickname,
+        concernTopic: nextQuestionInput.concernTopic,
+        birthInfo: nextQuestionInput.birthInfo,
+        birthDate: nextQuestionInput.birthDate,
+        birthTime: nextQuestionInput.birthTime,
+        gender: nextQuestionInput.gender,
+        calendarType: nextQuestionInput.calendarType,
+        sukuyo: nextQuestionInput.sukuyo,
+        question: nextQuestionInput.question,
+      };
+      const attemptId = createFortuneTeaAttemptId(requestPayload);
+      const requestPayloadWithAttempt: FortuneTeaHouseConsultRequest = {
+        ...requestPayload,
+        attemptId,
+      };
+      logSubmitStep("api result start");
+      const response = await fetch("/api/fortune-tea-house/consult", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...requestPayloadWithAttempt, draftResult: localDraft }),
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
+      if (!response.ok || !payload.ok || !payload.result) {
+        throw new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+      }
+      logSubmitStep("api result success", payload.generationMeta);
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
       if (remainingDelay > 0) {
@@ -250,7 +401,33 @@ export default function FortuneTeaHousePage() {
       }
 
       if (consultRunRef.current !== consultRunId) return;
-      setConsultResult(payload as FortuneTeaHouseConsultResponse);
+      const resultId = payload.result.resultId || attemptId;
+      const serverHoneyDrops = normalizeHoneyDropsState(payload.honeyDrops);
+      const nextHoneyDrops = serverHoneyDrops || applyGuestHoneyDropReward(resultId);
+      const nextResult = attachHoneyBonusAdvice(
+        { ...payload.result, resultId, consultationMode: nextQuestionInput.consultationMode },
+        nextHoneyDrops,
+      );
+      setHoneyDrops(nextHoneyDrops);
+      if (nextHoneyDrops.earnedThisResult) {
+        setHoneyRewardMessage(pickHoneyDropMessage(nextHoneyDrops));
+        setHoneyRewardBurstKey((key) => key + 1);
+      }
+      setConsultResult(nextResult);
+      if (payload.generationMeta?.mode === "local_fallback") {
+        setNotice(
+          nextQuestionInput.consultationMode === "saju"
+            ? "연이가 사주의 드러난 흐름을 먼저 짚어 상담을 이어갔어요."
+            : nextQuestionInput.consultationMode === "sukuyo"
+              ? "연이가 27숙 인연의 흐름을 먼저 짚어 상담을 이어갔어요."
+              : "연이가 타로의 향을 먼저 엮어 상담을 이어갔어요.",
+        );
+      }
+      if (nextQuestionInput.consultationMode === "saju" || nextQuestionInput.consultationMode === "sukuyo") {
+        logSubmitStep("go result");
+        goToStage("result");
+        return;
+      }
       logSubmitStep("go tarotReveal");
       goToStage("tarotReveal");
     } catch (error) {
@@ -319,7 +496,7 @@ export default function FortuneTeaHousePage() {
     }
 
     if (stage === "scentLoading") {
-      return <ScentLoadingScene selectedCup={selectedCup} />;
+      return <ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} />;
     }
 
     if (stage === "tarotReveal" && consultResult) {
@@ -354,10 +531,9 @@ export default function FortuneTeaHousePage() {
       <audio
         ref={bgmAudioRef}
         className={styles.bgmAudio}
-        src={currentBgmTrack.url}
         data-track={currentBgmTrack.key}
-        loop
-        preload="metadata"
+        loop={stage !== "scentLoading"}
+        preload="none"
       />
       <button
         className={styles.bgmToggle}
@@ -371,6 +547,14 @@ export default function FortuneTeaHousePage() {
         <strong>BGM</strong>
         <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
       </button>
+
+      {stage === "landing" ? (
+        <HoneyDropRewardOverlay
+          honeyDrops={honeyDrops}
+          burstKey={honeyRewardBurstKey}
+          message={honeyRewardMessage}
+        />
+      ) : null}
 
       <div className={styles.entryTransition} data-active={isEnteringTeaHouse ? "true" : "false"} aria-hidden>
         <AssetImage
@@ -387,16 +571,10 @@ export default function FortuneTeaHousePage() {
           alt=""
           priority
         />
-        <AssetImage
-          className={styles.entryTransitionSceneArt}
-          imageClassName={styles.entryTransitionSceneArtImage}
-          src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-          alt=""
-          priority
-        />
         <span className={styles.entryTransitionRing} />
         <div className={styles.entryLoadingPanel}>
           <strong>LOADING...</strong>
+          <p className={styles.entryLoadingPanelMessage}>달빛이 찻집의 문을 조용히 열고 있어요.</p>
           <p>달빛 찻집의 문이 열립니다</p>
           <i />
         </div>

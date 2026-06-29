@@ -113,13 +113,18 @@ const ERROR_TEXT: Record<string, string> = {
 };
 
 const PROGRESS_STEPS = [
-  { title: "출생 정보 확인 중", description: "생년월일, 출생시간, 출생지 좌표를 정리합니다." },
-  { title: "결제/이용권 권한 확인 중", description: "이용권, 월정석, 단건결제 권한을 확인합니다." },
-  { title: "별자리 차트 계산 중", description: "별자리 차트를 펼치고 있습니다. 태어난 순간의 태양, 달, 행성 위치를 계산합니다." },
-  { title: "행성·하우스·각도 해석 중", description: "실제 계산된 차트 근거만 상담 흐름으로 엮습니다." },
-  { title: "AI 상담 문장 생성 중", description: "행성과 별자리의 흐름을 읽고 있습니다. 현재 질문에 맞춰 깊은 상담문을 빚고 있습니다." },
-  { title: "결과 페이지 준비 중", description: "새 탭에서 열 결과 리포트를 정리합니다." },
+  { title: "입력값 정렬", description: "생년월일, 출생시간, 출생지 좌표를 상담 가능한 형태로 정리합니다." },
+  { title: "권한 확인", description: "이용권, 월정석, 단건결제 권한을 차례로 확인합니다." },
+  { title: "차트 계산", description: "별자리 차트를 펼치고 있습니다. 태어난 순간의 태양, 달, 행성, 상승궁과 하우스 축을 계산합니다." },
+  { title: "핵심 근거 선별", description: "실제 계산된 행성·하우스·각도만 골라 상담 흐름으로 엮습니다." },
+  { title: "상담문 작성", description: "행성과 별자리의 흐름을 읽고 있습니다. 질문에 먼저 닿고, 차트 근거와 현실 조언을 이어갑니다." },
+  { title: "결과 준비", description: "새 탭에서 열 수 있는 별자리 상담 전문을 정리합니다." },
 ];
+
+const FIELD_CLASS = "h-12 rounded-lg border border-white/10 bg-white/[0.065] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:bg-white/[0.085] focus:ring-2 focus:ring-[#f5d487]/25 disabled:cursor-not-allowed disabled:opacity-50";
+const SELECT_CLASS = "h-12 rounded-lg border border-white/10 bg-[#121735] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25";
+const PANEL_CLASS = "rounded-lg border border-white/10 bg-[#0b1027]/80 p-5 shadow-2xl shadow-black/25 ring-1 ring-white/[0.03] backdrop-blur sm:p-6";
+const LABEL_CLASS = "grid gap-2 text-sm font-semibold text-slate-200";
 
 const defaultForm = (): FormState => {
   const seoul = PLACE_PRESETS[0];
@@ -457,135 +462,153 @@ export default function AstrologyAiClient() {
   const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / PROGRESS_STEPS.length) * 100);
 
   return (
-    <main className="astro-ai-page min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(9,12,33,0.96),rgba(24,16,54,0.92)_46%,rgba(5,8,22,1)),radial-gradient(circle_at_50%_0%,rgba(232,199,112,0.18),transparent_34%),radial-gradient(circle_at_80%_38%,rgba(139,92,246,0.18),transparent_30%)]" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#b9c7ff_1px,transparent_1px)] [background-position:0_0,28px_34px] [background-size:74px_74px,108px_108px]" aria-hidden="true" />
+    <main className="astro-ai-page relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,#050816_0%,#0b1028_42%,#050816_100%)]" aria-hidden="true" />
+      <div className="pointer-events-none fixed inset-0 opacity-45 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#a9b7ff_1px,transparent_1px)] [background-position:0_0,32px_44px] [background-size:86px_86px,132px_132px]" aria-hidden="true" />
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
 
-      <section className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
           <div className="space-y-6">
-            <header className="min-h-[240px] overflow-hidden rounded-lg border border-white/10 bg-white/[0.05] p-6 shadow-2xl shadow-black/30 sm:p-8">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="max-w-2xl">
-                  <p className="text-sm font-semibold text-[#f5d487]">Western Astrology Salon</p>
+            <header className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1027]/[0.82] p-6 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur sm:p-8">
+              <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#f5d487]">Western Astrology Salon</p>
                   <h1 className="mt-3 text-4xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                     점성술 AI 상담
                   </h1>
-                  <p className="mt-4 max-w-xl text-base leading-8 text-slate-200">
-                    태어난 순간의 별자리와 현재의 하늘이 만나는 상담. 질문의 결을 차트 위에 올려 깊고 차분하게 읽습니다.
+                  <p className="mt-4 max-w-2xl text-base leading-8 text-slate-200">
+                    태어난 순간의 하늘과 지금의 별빛을 한 자리 위에 올려, 질문의 핵심과 선택의 방향을 차분히 비춥니다.
                   </p>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    {["출생 정보", "차트 계산", "상담 전문"].map((label, index) => (
+                      <div key={label} className="rounded-lg border border-white/10 bg-white/[0.045] px-4 py-3">
+                        <p className="text-xs font-black text-[#f5d487]">0{index + 1}</p>
+                        <p className="mt-1 text-sm font-bold text-white">{label}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="relative mx-auto grid aspect-square w-44 place-items-center sm:w-56 lg:mx-0">
-                  <div className="absolute inset-0 rounded-full border border-[#f5d487]/35" />
-                  <div className="absolute inset-6 rounded-full border border-violet-200/20" />
-                  <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-[#f5d487]/45 to-transparent" />
-                  <div className="absolute h-full w-px bg-gradient-to-b from-transparent via-sky-200/35 to-transparent" />
-                  <Moon className="h-16 w-16 text-[#f5d487]" aria-hidden="true" />
+                <div className="relative mx-auto grid aspect-square w-48 place-items-center sm:w-56 lg:mx-0">
+                  <div className="absolute inset-0 rounded-full border border-[#f5d487]/40" />
+                  <div className="absolute inset-5 rounded-full border border-white/10" />
+                  <div className="absolute inset-10 rounded-full border border-sky-200/20" />
+                  <div className="absolute h-px w-full bg-gradient-to-r from-transparent via-[#f5d487]/55 to-transparent" />
+                  <div className="absolute h-full w-px bg-gradient-to-b from-transparent via-sky-200/40 to-transparent" />
+                  <div className="grid h-24 w-24 place-items-center rounded-full border border-[#f5d487]/35 bg-[#050816]/70 shadow-xl shadow-[#f5d487]/10">
+                    <Moon className="h-12 w-12 text-[#f5d487]" aria-hidden="true" />
+                  </div>
                 </div>
               </div>
             </header>
 
             <form id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
-              <section className="rounded-lg border border-white/10 bg-[#0d1024]/85 p-5 shadow-xl shadow-black/20 sm:p-6">
-                <div className="mb-5 flex items-center gap-3">
-                  <CalendarDays className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              <section className={PANEL_CLASS}>
+                <div className="mb-5 flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <CalendarDays className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <div>
                     <h2 className="text-lg font-black text-white">출생 정보</h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">차트의 기본 축을 세우는 정보입니다.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">차트의 태양, 달, 상승궁을 세우는 첫 기준입니다.</p>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <label className={LABEL_CLASS}>
                     이름 또는 닉네임
-                    <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.name} onChange={(event) => patchForm({ name: event.target.value })} autoComplete="name" placeholder="예: 지우" />
+                    <input className={FIELD_CLASS} value={form.name} onChange={(event) => patchForm({ name: event.target.value })} autoComplete="name" placeholder="예: 지우" />
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <label className={LABEL_CLASS}>
                     성별
-                    <select className="h-12 rounded-lg border border-white/10 bg-[#151934] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.gender} onChange={(event) => patchForm({ gender: event.target.value })}>
+                    <select className={SELECT_CLASS} value={form.gender} onChange={(event) => patchForm({ gender: event.target.value })}>
                       <option value="">선택</option>
                       <option value="female">여성</option>
                       <option value="male">남성</option>
                       <option value="other">기타/미입력</option>
                     </select>
                   </label>
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <label className={LABEL_CLASS}>
                     생년월일
-                    <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" type="date" value={form.birthDate} onChange={(event) => patchForm({ birthDate: event.target.value })} />
+                    <input className={FIELD_CLASS} type="date" value={form.birthDate} onChange={(event) => patchForm({ birthDate: event.target.value })} />
                   </label>
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+                    <label className={LABEL_CLASS}>
                       출생시간
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25 disabled:opacity-50" type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
+                      <input className={FIELD_CLASS} type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
                     </label>
-                    <label className="flex items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
+                    <label className="flex min-h-12 items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
                       <input className="h-4 w-4 accent-[#f5d487]" type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTimeUnknown: event.target.checked })} />
-                      출생시간 모름
+                      <span>시간 모름</span>
                     </label>
                   </div>
                 </div>
                 {form.birthTimeUnknown && (
-                  <p className="mt-4 rounded-lg border border-[#f5d487]/20 bg-[#f5d487]/10 px-4 py-3 text-sm leading-6 text-amber-50">
-                    출생시간 미상으로 상승궁과 하우스 해석은 제한적으로 다루고, 태양·달·행성 각도 중심으로 상담합니다.
+                  <p className="mt-4 rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 px-4 py-3 text-sm leading-6 text-amber-50">
+                    출생시간 미상으로 상승궁과 하우스는 제한적으로 다루고, 태양·달·행성 각도를 중심으로 상담합니다.
                   </p>
                 )}
               </section>
 
-              <section className="rounded-lg border border-white/10 bg-[#0d1024]/85 p-5 shadow-xl shadow-black/20 sm:p-6">
-                <div className="mb-5 flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              <section className={PANEL_CLASS}>
+                <div className="mb-5 flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <MapPin className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <div>
                     <h2 className="text-lg font-black text-white">출생지</h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">도시를 고르거나 직접 좌표와 시간대를 입력해 주세요.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">도시와 좌표가 하우스 축과 시간대 계산을 보정합니다.</p>
                   </div>
                 </div>
 
                 <div className="grid gap-4">
-                  <label className="grid gap-2 text-sm font-semibold text-slate-200">
-                    출생지 빠른 선택
-                    <select className="h-12 rounded-lg border border-white/10 bg-[#151934] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.placeKey} onChange={(event) => handlePresetChange(event.target.value)}>
+                  <label className={LABEL_CLASS}>
+                    빠른 선택
+                    <select className={SELECT_CLASS} value={form.placeKey} onChange={(event) => handlePresetChange(event.target.value)}>
                       {PLACE_PRESETS.map((place) => <option key={place.key} value={place.key}>{place.label}</option>)}
                       <option value="custom">직접 입력</option>
                     </select>
                   </label>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className={LABEL_CLASS}>
                       도시
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.city} onChange={(event) => patchForm({ city: event.target.value, placeKey: "custom" })} placeholder="예: 서울" />
+                      <input className={FIELD_CLASS} value={form.city} onChange={(event) => patchForm({ city: event.target.value, placeKey: "custom" })} placeholder="예: 서울" />
                     </label>
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className={LABEL_CLASS}>
                       국가
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.country} onChange={(event) => patchForm({ country: event.target.value, placeKey: "custom" })} placeholder="예: 대한민국" />
+                      <input className={FIELD_CLASS} value={form.country} onChange={(event) => patchForm({ country: event.target.value, placeKey: "custom" })} placeholder="예: 대한민국" />
                     </label>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className={LABEL_CLASS}>
                       위도
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" inputMode="decimal" value={form.latitude} onChange={(event) => patchForm({ latitude: event.target.value, placeKey: "custom" })} placeholder="37.5665" />
+                      <input className={FIELD_CLASS} inputMode="decimal" value={form.latitude} onChange={(event) => patchForm({ latitude: event.target.value, placeKey: "custom" })} placeholder="37.5665" />
                     </label>
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className={LABEL_CLASS}>
                       경도
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" inputMode="decimal" value={form.longitude} onChange={(event) => patchForm({ longitude: event.target.value, placeKey: "custom" })} placeholder="126.9780" />
+                      <input className={FIELD_CLASS} inputMode="decimal" value={form.longitude} onChange={(event) => patchForm({ longitude: event.target.value, placeKey: "custom" })} placeholder="126.9780" />
                     </label>
-                    <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                    <label className={LABEL_CLASS}>
                       시간대
-                      <input className="h-12 rounded-lg border border-white/10 bg-white/[0.06] px-4 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.timezone} onChange={(event) => patchForm({ timezone: event.target.value, placeKey: "custom" })} placeholder="Asia/Seoul" />
+                      <input className={FIELD_CLASS} value={form.timezone} onChange={(event) => patchForm({ timezone: event.target.value, placeKey: "custom" })} placeholder="Asia/Seoul" />
                     </label>
                   </div>
                 </div>
               </section>
 
-              <section className="rounded-lg border border-white/10 bg-[#0d1024]/85 p-5 shadow-xl shadow-black/20 sm:p-6">
-                <div className="mb-5 flex items-center gap-3">
-                  <Stars className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              <section className={PANEL_CLASS}>
+                <div className="mb-5 flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Stars className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <div>
                     <h2 className="text-lg font-black text-white">상담 주제</h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">가장 알고 싶은 하늘의 길을 선택해 주세요.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">지금 가장 깊게 보고 싶은 삶의 장면을 고릅니다.</p>
                   </div>
                 </div>
-                <label className="mb-4 grid gap-2 text-sm font-semibold text-slate-200">
+                <label className={`${LABEL_CLASS} mb-4`}>
                   상담 주제 선택
-                  <select className="h-12 rounded-lg border border-white/10 bg-[#151934] px-4 text-white outline-none transition focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.topic} onChange={(event) => patchForm({ topic: event.target.value })}>
+                  <select className={SELECT_CLASS} value={form.topic} onChange={(event) => patchForm({ topic: event.target.value })}>
                     {TOPICS.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
                   </select>
                 </label>
@@ -595,7 +618,7 @@ export default function AstrologyAiClient() {
                       key={topic}
                       type="button"
                       onClick={() => patchForm({ topic })}
-                      className={`min-h-11 rounded-lg border px-3 py-2 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-[#f5d487]/35 ${form.topic === topic ? "border-[#f5d487] bg-[#f5d487] text-[#161019]" : "border-white/10 bg-white/[0.05] text-slate-200 hover:border-violet-200/50 hover:bg-violet-200/10"}`}
+                      className={`min-h-11 rounded-lg border px-3 py-2 text-sm font-bold leading-5 transition focus:outline-none focus:ring-2 focus:ring-[#f5d487]/35 ${form.topic === topic ? "border-[#f5d487] bg-[#f5d487] text-[#161019] shadow-lg shadow-[#f5d487]/15" : "border-white/10 bg-white/[0.045] text-slate-200 hover:border-[#f5d487]/40 hover:bg-white/[0.075]"}`}
                     >
                       {topic}
                     </button>
@@ -603,25 +626,30 @@ export default function AstrologyAiClient() {
                 </div>
               </section>
 
-              <section className="rounded-lg border border-white/10 bg-[#0d1024]/85 p-5 shadow-xl shadow-black/20 sm:p-6">
-                <div className="mb-5 flex items-center gap-3">
-                  <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              <section className={PANEL_CLASS}>
+                <div className="mb-5 flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
                   <div>
                     <h2 className="text-lg font-black text-white">현재 질문</h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">구체적으로 적을수록 차트의 답도 더 깊게 닿습니다.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">구체적인 질문일수록 차트의 근거가 더 선명하게 이어집니다.</p>
                   </div>
                 </div>
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                <label className={LABEL_CLASS}>
                   지금 가장 묻고 싶은 것
-                  <textarea className="min-h-36 rounded-lg border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:ring-2 focus:ring-[#f5d487]/25" value={form.userQuestion} onChange={(event) => patchForm({ userQuestion: event.target.value })} maxLength={1200} placeholder="예: 올해 이직을 준비해도 괜찮을지, 지금 관계에서 무엇을 보아야 할지 알고 싶어요." />
+                  <textarea className="min-h-40 rounded-lg border border-white/10 bg-white/[0.065] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-[#f5d487] focus:bg-white/[0.085] focus:ring-2 focus:ring-[#f5d487]/25" value={form.userQuestion} onChange={(event) => patchForm({ userQuestion: event.target.value })} maxLength={1200} placeholder="예: 올해 이직을 준비해도 괜찮을지, 지금 관계에서 무엇을 보아야 할지 알고 싶어요." />
                 </label>
+                <p className="mt-2 text-right text-xs font-semibold text-slate-400">{form.userQuestion.length}/1200</p>
               </section>
 
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <button type="submit" disabled={busy} className="relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-lg shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden="true" />
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-5 w-5" aria-hidden="true" />}
-                  별빛 상담 시작
+                <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden="true" />
+                  <span className="relative inline-flex items-center gap-2">
+                    {busy ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-5 w-5" aria-hidden="true" />}
+                    별빛 상담 시작
+                  </span>
                 </button>
                 <button type="button" disabled={busy} onClick={reset} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/15 px-5 text-sm font-bold text-slate-100 transition hover:border-[#f5d487]/40 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50">
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
@@ -632,17 +660,20 @@ export default function AstrologyAiClient() {
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
-            <section className="rounded-lg border border-white/10 bg-[#0b0f25]/90 p-5 shadow-2xl shadow-black/30" aria-live="polite">
-              <div className="mb-5 flex items-center justify-between gap-3">
+            <section className="rounded-lg border border-white/10 bg-[#0b1027]/[0.88] p-5 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur" aria-live="polite">
+              <div className="mb-5 flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-black text-white">생성 진행</h2>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-[#f5d487]">Consultation Flow</p>
+                  <h2 className="mt-1 text-lg font-black text-white">상담 진행</h2>
                   <p className="mt-1 text-sm leading-6 text-slate-300">{phaseText}</p>
                 </div>
-                {phase === "ready" ? <CheckCircle2 className="h-6 w-6 text-emerald-300" aria-hidden="true" /> : phase === "payment" ? <WalletCards className="h-6 w-6 text-[#f5d487]" aria-hidden="true" /> : <Moon className="h-6 w-6 text-[#f5d487]" aria-hidden="true" />}
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.055]">
+                  {phase === "ready" ? <CheckCircle2 className="h-6 w-6 text-emerald-300" aria-hidden="true" /> : phase === "payment" ? <WalletCards className="h-6 w-6 text-[#f5d487]" aria-hidden="true" /> : <Moon className="h-6 w-6 text-[#f5d487]" aria-hidden="true" />}
+                </span>
               </div>
 
               <div className="mb-5 h-3 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-violet-300 via-[#f5d487] to-sky-200 transition-all duration-700 motion-reduce:transition-none" style={{ width: `${progressPercent}%` }} />
+                <div className="h-full rounded-full bg-gradient-to-r from-sky-200 via-[#f5d487] to-emerald-200 transition-all duration-700 motion-reduce:transition-none" style={{ width: `${progressPercent}%` }} />
               </div>
 
               <div className="grid gap-3">
@@ -666,13 +697,15 @@ export default function AstrologyAiClient() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-white/10 bg-[#0b0f25]/90 p-5 shadow-2xl shadow-black/30">
+            <section className="rounded-lg border border-white/10 bg-[#0b1027]/[0.88] p-5 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur">
               <div className="flex items-start gap-3">
-                <Sparkles className="mt-1 h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                  <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                </span>
                 <div>
                   <h2 className="text-lg font-black text-white">{phase === "ready" ? "결과가 준비되었습니다" : "상담소 대기실"}</h2>
                   <p className="mt-2 text-sm leading-7 text-slate-300">
-                    {phase === "ready" ? "상담 전문은 별도 결과 페이지에서 보여드립니다. 새로고침해도 저장된 결과를 다시 불러옵니다." : "출생 정보와 질문을 입력한 뒤 결제/이용권 확인이 끝나면 상담 생성이 시작됩니다."}
+                    {phase === "ready" ? "상담 전문은 별도 결과 페이지에서 보여드립니다. 저장된 결과는 같은 링크로 다시 열 수 있습니다." : "입력값과 권한 확인이 끝나면 차트 계산과 상담문 작성이 이어집니다."}
                   </p>
                 </div>
               </div>
@@ -692,7 +725,7 @@ export default function AstrologyAiClient() {
                 </div>
               )}
 
-              {notice && <p className="mt-4 rounded-lg border border-[#f5d487]/20 bg-[#f5d487]/10 p-3 text-sm leading-6 text-amber-50">{notice}</p>}
+              {notice && <p className="mt-4 rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-3 text-sm leading-6 text-amber-50">{notice}</p>}
               {error && (
                 <div className="mt-4 rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm text-rose-50">
                   <div className="flex gap-2">

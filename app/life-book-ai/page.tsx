@@ -1,4 +1,4 @@
-import LifeBookAiClient from "./LifeBookAiClient";
+import LifeBookAiRouteClient from "./LifeBookAiRouteClient";
 
 export const metadata = {
   title: "인생의 책 AI 상담 | Code Destiny",
@@ -10,5 +10,5 @@ export const metadata = {
 };
 
 export default function LifeBookAiPage() {
-  return <LifeBookAiClient />;
+  return <LifeBookAiRouteClient />;
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { teaHouseCups, type TeaHouseCup } from "../data/teaCups";
+import AssetImage from "./AssetImage";
 import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -17,12 +17,9 @@ const teaCupSelectionDialogue =
 
 export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCupSelectionSceneProps) {
   const selectedCup = teaHouseCups.find((cup) => cup.id === selectedCupId);
-  const sceneStyle = {
-    "--yeoni-cup-pose-sheet": `url("${fortuneTeaHouseAssets.yeoni.transparent.cupPoseSheet}")`,
-  } as CSSProperties;
 
   return (
-    <section className={styles.teaSelectScene} style={sceneStyle} aria-labelledby="teaCupSelectTitle">
+    <section className={styles.teaSelectScene} aria-labelledby="teaCupSelectTitle">
       <div className={styles.teaSelectGuide}>
         <p className={styles.sceneEyebrow}>마음의 향에 반응하는 여섯 잔</p>
         <h2 id="teaCupSelectTitle">오늘 당신을 부르는 찻잔</h2>
@@ -30,9 +27,14 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
           연이가 손님의 마음 향을 맡으면, 질문의 결에 맞는 찻잔부터 먼저 빛납니다.
           컵 하나를 고르는 순간 상담의 장면도 그 향으로 열려요.
         </p>
-        <span className={styles.cupPoseYeoni} role="img" aria-label="찻잔을 건네는 연이">
-          <span className={styles.cupPoseYeoniSprite} aria-hidden />
-        </span>
+        <AssetImage
+          className={styles.cupPoseYeoni}
+          imageClassName={styles.cupPoseYeoniImage}
+          src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
+          fallbackSrc={fortuneTeaHouseAssets.yeoni.cupPose}
+          alt="찻잔을 건네는 연이"
+          priority
+        />
         <TeaHouseDialogueBox speaker="연이" text={teaCupSelectionDialogue} />
         {selectedCup ? <p className={styles.teaCupSelectedComment}>{selectedCup.selectionComment}</p> : null}
       </div>

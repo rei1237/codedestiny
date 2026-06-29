@@ -1,10 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import AuthWidget from "./AuthWidget";
-import { LocaleSwitcher } from "./LocaleSwitcher";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const AuthWidget = dynamic(() => import("./AuthWidget"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const LocaleSwitcher = dynamic(
+  () => import("./LocaleSwitcher").then((mod) => mod.LocaleSwitcher),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
 
 const headerNavItems = [
   { href: "/index.html" },
@@ -142,9 +154,28 @@ function isStaticShellHref(href: string) {
   return href === "/index.html" || href.startsWith("/index.html?");
 }
 
+function useDesktopHeaderControls() {
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const sync = () => setEnabled(media.matches);
+    sync();
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", sync);
+      return () => media.removeEventListener("change", sync);
+    }
+    media.addListener(sync);
+    return () => media.removeListener(sync);
+  }, []);
+
+  return enabled;
+}
+
 export default function GlobalHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const showDesktopControls = useDesktopHeaderControls();
   const copy = GLOBAL_HEADER_COPY[locale] || GLOBAL_HEADER_COPY.ko;
 
   useEffect(() => {
@@ -179,8 +210,12 @@ export default function GlobalHeader() {
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
-            <LocaleSwitcher />
-            <AuthWidget />
+            {showDesktopControls ? (
+              <>
+                <LocaleSwitcher />
+                <AuthWidget />
+              </>
+            ) : null}
           </div>
 
           <button

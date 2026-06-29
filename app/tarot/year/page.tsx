@@ -3,8 +3,8 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const TAROT_YEAR_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "십이지신 천운 타로 - 열두 달의 수호 리듬",
-    description: "열두 수호 기운과 12장의 카드를 엮어 한 해의 상승 구간, 속도 조절이 필요한 달, 월별 선택의 결을 읽습니다.",
+    title: "십이지신 천운 타로 - 열두 달의 선택 리듬",
+    description: "열두 수호 리듬과 12장의 카드를 엮어 한 해의 상승 구간, 쉬어갈 달, 월별 선택의 결을 차분히 읽습니다.",
   },
   en: {
     title: "Twelve Zodiac Heavenly Luck Tarot - Guardian Rhythm of the Year",
@@ -22,7 +22,7 @@ const META = {
   description: TAROT_YEAR_PAGE_TEXT_TRANSLATIONS.ko.description,
   keywords: ["십이지신 천운", "연간 운세 타로", "12개월 타로", "월별 타로", "재물운", "연애운"],
   image: "https://code-destiny.com/fuctionassets/12animals.webp",
-  featureList: ["열두 달의 수호 리듬", "상승과 속도 조절의 달", "월별 선택의 작은 의식"],
+  featureList: ["열두 달의 수호 리듬", "상승과 쉬어갈 달", "월별 선택의 작은 기준"],
   applicationCategory: "EntertainmentApplication",
 } as const;
 
@@ -38,7 +38,7 @@ export default function TarotYearLandingPage() {
         description: META.description,
         ogImage: META.image,
         landingPoints: [...META.featureList],
-        seoText: "실행은 메인 런처에서 진행됩니다.",
+        seoText: "열두 장의 카드가 한 해의 리듬과 월별 선택의 기준을 차례로 비춥니다.",
         localized: {
           en: {
             title: "Twelve Zodiac Heavenly Luck Tarot - Guardian Rhythm of the Year",

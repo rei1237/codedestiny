@@ -1,4 +1,4 @@
-import DestinyBiasClient from "./DestinyBiasClient";
+import DestinyBiasRouteClient from "./DestinyBiasRouteClient";
 import MyDestinyBiasShell from "./components/MyDestinyBiasShell";
 
 const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
@@ -52,7 +52,7 @@ export const metadata = {
 export default function DestinyBiasPage() {
   return (
     <MyDestinyBiasShell>
-      <DestinyBiasClient />
+      <DestinyBiasRouteClient />
     </MyDestinyBiasShell>
   );
 }

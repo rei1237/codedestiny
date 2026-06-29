@@ -62,7 +62,7 @@ const VALID_TOPICS = new Set([
   "현재 고민 상담",
 ]);
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|이 결과는|분석 결과는/gi;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/gi;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -617,17 +617,46 @@ function buildBillingGatePayload(pricing, idempotencyKey) {
   };
 }
 
-function buildSystemPrompt() {
+function buildSystemPrompt(mode = "initial") {
+  const shared = [
+    "당신은 오래 상담해 온 운명의 업 상담가입니다.",
+    "명리학자의 현실 감각, 서양 점성술사의 상징 해석, 베다 점성술사의 카르마 통찰을 한 목소리로 엮습니다.",
+    "사주명리학은 일간의 기질, 오행 구조, 대운 흐름, 육친 관계, 강약 오행에서 드러나는 현실 처방을 맡습니다.",
+    "서양 점성술은 태양의 욕구, 달의 감정 반응, 상승궁의 대면 방식, 카이런의 상처와 치유 서사를 맡습니다.",
+    "베다 점성술은 라시와 나크샤트라의 본질, 다샤 행성 주기, 라후-케투 축의 카르마 과제, 다르마와 아르타 하우스의 소명을 맡습니다.",
+    "세 체계의 이름을 설명표처럼 나열하지 말고, 필요한 근거가 상담 문장 안에서 자연스럽게 드러나게 합니다.",
+    "",
+    "언어와 문체:",
+    "한국어 격식체로 씁니다.",
+    "운세 전문가가 직접 사용자를 마주 보고 말하듯 전문적이고 신비로우며 감정적으로 자연스럽게 씁니다.",
+    "각 단락은 서로 다른 은유와 이미지를 사용합니다.",
+    "‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
+    "불안감이나 죄책감을 자극하지 않고, 운명 확정 표현을 사실처럼 단정하지 않습니다.",
+    "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템, AI, 기능, 결과, 분석 결과, 출력, 데이터 같은 작업 표현을 노출하지 않습니다.",
+  ];
+
+  if (mode === "follow_up") {
+    return [
+      ...shared,
+      "",
+      "추가 질문 응답 방식:",
+      "처음 상담의 7개 장 제목을 반복하지 않습니다.",
+      "첫 문장부터 사용자의 새 질문에 직접 답합니다.",
+      "이전 상담에서 이미 말한 내용을 길게 되풀이하지 말고, 새 질문에 필요한 흐름만 다시 짚습니다.",
+      "사주, 서양 점성술, 베다 점성술의 근거는 필요한 만큼만 섞어 2~4개의 완성된 산문 단락으로 답합니다.",
+      "단순 위로가 아니라 지금 사용자가 취할 수 있는 말, 태도, 선택을 구체적으로 비춥니다.",
+      "불릿 포인트와 번호 나열을 사용하지 않습니다.",
+      "전체 분량은 900~1,600자로 맞춥니다.",
+      "마지막 문장은 사용자가 지금 해볼 수 있는 한 가지 행동으로 따뜻하게 닫습니다.",
+    ].join("\n");
+  }
+
   return [
-    "당신은 운명의 답장을 작성하는 AI 운세 마스터입니다.",
-    "사주명리학, 서양 점성술, 베다 점성술 세 체계의 핵심 강점만을 통합하여 한 편의 완성된 운명 서사를 작성합니다.",
+    ...shared,
     "",
-    "세 체계의 역할 분담:",
-    "사주명리학은 일간의 기질, 오행 구조, 대운 흐름, 육친 관계, 강약 오행에서 도출되는 현실적 처방을 맡습니다.",
-    "서양 점성술은 태양궁의 내면 욕구, 달 별자리의 감정 반응, 상승궁의 세계 대면 방식, 카이런의 상처와 치유 서사를 맡습니다.",
-    "베다 점성술은 라시와 나크샤트라의 영혼 본질, 다샤 행성 주기, 라후-케투 축의 카르마 과제, 다르마와 아르타 하우스의 소명을 맡습니다.",
-    "",
-    "출력 구조를 엄수합니다. 아래 7개 섹션을 순서대로 작성하고, 각 섹션은 300~500자의 완성된 산문으로 씁니다. 절대로 불릿 리스트나 단순 나열을 사용하지 않습니다.",
+    "초기 상담 구조:",
+    "아래 7개 섹션을 순서대로 작성하고, 각 섹션은 300~500자의 완성된 산문으로 씁니다.",
+    "불릿 리스트나 단순 나열을 사용하지 않습니다.",
     "## ① 命 — 당신이라는 별의 본질",
     "사주 일간과 태양 별자리, 나크샤트라를 통합하여 이 사람의 본질 에너지를 하나의 통일된 은유로 묘사합니다. 반드시 “당신은 ~와 같은 존재입니다”로 시작합니다.",
     "## ② 業 — 반복되는 삶의 문양",
@@ -641,23 +670,15 @@ function buildSystemPrompt() {
     "## ⑥ 課 — 이 생의 핵심 과제",
     "사주 용신·희신, 카이런, 라후의 방향을 통합하여 이 생에서 영혼이 배워야 할 가장 핵심적인 한 가지를 선명하게 서술합니다. 반드시 “당신의 운명은 ~를 배우도록 설계되어 있습니다”로 시작합니다.",
     "## ⑦ 箋 — 오늘을 위한 운명의 처방",
-    "앞의 분석을 바탕으로 지금 당장 실천 가능한 구체적인 방향을 제시합니다. 추상적 조언이 아니라 “오늘, ~를 해보세요”처럼 구체적으로 작성합니다. 마지막 문장은 사용자의 이름이나 닉네임을 불러 따뜻하게 마무리합니다.",
+    "앞의 흐름을 바탕으로 지금 당장 실천 가능한 구체적인 방향을 제시합니다. 추상적 조언이 아니라 “오늘, ~를 해보세요”처럼 구체적으로 작성합니다. 마지막 문장은 사용자의 이름이나 닉네임을 불러 따뜻하게 마무리합니다.",
     "",
-    "작성 금지 사항:",
+    "초기 상담 금지 사항:",
     "‘당신의 사주를 보면’, ‘점성술에 따르면’ 등 출처 언급을 금지합니다.",
     "동일한 내용을 다른 섹션에서 반복하지 않습니다.",
     "‘~할 수 있습니다’, ‘~일 것입니다’의 반복적 어미를 피합니다.",
-    "불릿 포인트, 숫자 나열 형식, 7개 섹션 외의 추가 내용을 금지합니다.",
-    "마지막에 ‘더 궁금한 점이 있으시면’ 같은 추가 질문 유도를 금지합니다.",
-    "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템, AI, 기능, 결과, 분석 결과 같은 작업 표현을 결과에 노출하지 않습니다.",
-    "",
-    "언어와 문체:",
-    "한국어 격식체로 씁니다.",
-    "운명을 서술하되 점술사가 아니라 삶을 오래 관찰한 현인의 목소리로 씁니다.",
-    "각 섹션은 서로 다른 은유와 이미지를 사용합니다.",
+    "7개 섹션 외의 추가 내용을 쓰지 않습니다.",
+    "마지막에 추가 질문을 유도하지 않습니다.",
     "전체 분량은 2,500~3,500자로 맞춥니다.",
-    "‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
-    "불안감이나 죄책감을 자극하지 않고, 운명 확정 표현을 사실처럼 단정하지 않습니다.",
   ].join("\n");
 }
 
@@ -676,12 +697,13 @@ function buildFirstPrompt(input, integratedResult) {
     `상담 초점: ${input.focusArea}`,
     `현재 가장 궁금한 질문: ${input.question || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
-    "[서버 계산 데이터]",
+    "[상담 근거]",
     JSON.stringify(integratedResult),
     "",
     "위 계산 데이터를 바탕으로 7개 섹션만 작성하세요.",
     "각 섹션 제목은 지정된 한자와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
     "사용자의 선택 주제와 질문은 전체 서사의 중심 감정으로 녹이고, 별도 문답 형식으로 나누지 마세요.",
+    "각 섹션에는 사주명리학, 서양 점성술, 베다 점성술의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
   ].join("\n");
 }
 
@@ -700,7 +722,7 @@ function buildFollowUpPrompt(consultation, question) {
     `처음 상담 주제: ${consultation.topic}`,
     `처음 상담 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
     "",
-    "[서버 계산 데이터]",
+    "[상담 근거]",
     JSON.stringify(consultation.integratedResult || {}),
     "",
     "[이전 대화]",
@@ -709,7 +731,8 @@ function buildFollowUpPrompt(consultation, question) {
     "[새 질문]",
     question,
     "",
-    "이전 상담 흐름을 이어받아 질문에 직접 답하고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
+    "7개 섹션을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
+    "이전 상담 흐름을 이어받되 필요한 부분만 짚고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
   ].join("\n");
 }
 
@@ -722,19 +745,27 @@ function cleanForbiddenResult(text) {
     .replace(/\bjob\b/gi, "상담")
     .replace(/프롬프트/g, "상담 문장")
     .replace(/시스템/g, "상담 흐름")
-    .replace(/\bAI\b/g, "상담");
+    .replace(/\bAI\b/g, "상담")
+    .replace(/이 기능은|해당 기능|본 기능/g, "이 흐름은")
+    .replace(/기능/g, "흐름")
+    .replace(/분석 결과는|이 결과는|상담 결과는|생성 결과는|결과는/g, "상담 흐름은")
+    .replace(/분석 결과|상담 결과|생성 결과|결과물/g, "상담 흐름")
+    .replace(/출력/g, "상담")
+    .replace(/서버 계산 데이터|분석 데이터/g, "상담 근거");
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
   const providerDiagnostics = getProviderDiagnostics(env);
+  const mode = options.mode === "follow_up" ? "follow_up" : "initial";
+  const systemPrompt = buildSystemPrompt(mode);
   logKarmaAi("LLM Provider Selected", {
     ...(options.logContext || {}),
     ...providerDiagnostics,
   });
   const ai = await callGeminiText(env, prompt, {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt,
     taskType: "fortune",
-    temperature: 0.74,
+    temperature: options.temperature || (mode === "follow_up" ? 0.68 : 0.74),
     maxOutputTokens: options.maxOutputTokens || 7600,
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
   });
@@ -754,7 +785,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     "",
     text,
   ].join("\n"), {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt,
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || 7600,
@@ -771,14 +802,14 @@ function buildSummaryCards(integratedResult = {}) {
   const synthesis = asObject(integratedResult.synthesis);
   const themes = safeArray(synthesis.karmicThemes).map((item) => clean(item)).filter(Boolean);
   const patterns = safeArray(synthesis.commonPatterns).map((item) => clean(item)).filter(Boolean);
+  const keywordCandidates = uniq([...themes, ...patterns]
+    .map((item) => clean(String(item).replace(/[.!?。]/g, "").split(/[·ㆍ,，:：/]/)[0], 28))
+    .filter(Boolean));
+  const keywords = uniq([...keywordCandidates, "반복 선택", "관계의 매듭", "재능의 숙제"]).slice(0, 3);
   return {
-    keywords: [
-      "반복 선택",
-      "관계의 매듭",
-      "재능의 숙제",
-    ],
-    repeatingPattern: patterns[0] || "익숙한 감정 반응이 관계와 일의 선택에서 되풀이되는 흐름",
-    currentTask: clean(synthesis.currentLifeTask) || themes[0] || "같은 장면에서 한 번 더 느린 선택을 연습하는 일",
+    keywords,
+    repeatingPattern: clean(patterns[0], 180) || "익숙한 감정 반응이 관계와 일의 선택에서 되풀이되는 흐름",
+    currentTask: clean(synthesis.currentLifeTask, 180) || clean(themes[0], 180) || "같은 장면에서 한 번 더 느린 선택을 연습하는 일",
   };
 }
 
@@ -1044,6 +1075,7 @@ async function handleStart(request, env) {
     logKarmaAi("LLM Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const summaryCards = buildSummaryCards(integratedResult);
     const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, integratedResult), {
+      mode: "initial",
       minLength: 360,
       maxOutputTokens: 8200,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
@@ -1161,7 +1193,8 @@ async function handleMessage(request, env) {
       env,
     });
     const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
-      minLength: 100,
+      mode: "follow_up",
+      minLength: 180,
       maxOutputTokens: 4600,
       logContext,
     });

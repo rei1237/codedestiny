@@ -6,7 +6,6 @@ import FloatingPetals from "./FloatingPetals";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
-import AssetImage from "./AssetImage";
 import styles from "../styles/fortune-tea-house.module.css";
 
 type FortuneTeaHouseImmersiveShellProps = {
@@ -32,12 +31,6 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
     <main className={styles.page} data-stage={stage} style={backgroundStyle}>
       <FloatingPetals />
       <div className={styles.backdropVeil} aria-hidden />
-      <AssetImage
-        className={styles.shellSceneImage}
-        src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-        alt=""
-        imageClassName={styles.shellSceneImageAsset}
-      />
       {shouldShowBackButton ? (
         <button className={styles.backButton} type="button" onClick={onBackToLanding}>
           돌아가기

@@ -381,19 +381,38 @@ const highRiskAdsenseEligibleTextPatterns = [
 ];
 
 const repeatedSiteNameTitlePattern = /Code Destiny\s*(?:\||—|-)\s*Code Destiny(?:\s*(?:\||—|-)|$)/i;
+const retryableReadErrorCodes = new Set(["EBUSY", "ENOENT", "EPERM"]);
+
+function wait(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function readFileUtf8WithRetry(absolutePath) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      return readFileSync(absolutePath, "utf8");
+    } catch (error) {
+      lastError = error;
+      if (!retryableReadErrorCodes.has(error?.code)) throw error;
+      wait(80 + attempt * 60);
+    }
+  }
+  throw lastError;
+}
 
 function readRequired(path) {
   const absolutePath = resolve(rootDir, path);
   if (!existsSync(absolutePath)) {
     throw new Error(`[adsense-readiness] missing required file: ${path}`);
   }
-  return readFileSync(absolutePath, "utf8");
+  return readFileUtf8WithRetry(absolutePath);
 }
 
 function readOptional(path) {
   const absolutePath = resolve(rootDir, path);
   if (!existsSync(absolutePath)) return "";
-  return readFileSync(absolutePath, "utf8");
+  return readFileUtf8WithRetry(absolutePath);
 }
 
 function collectIndexHtmlFiles(directory, files = []) {
@@ -593,13 +612,15 @@ function countMatches(content, pattern) {
 function verifyAdsenseScriptOwnership() {
   const sourceFiles = adsenseSourceScanTargets.flatMap((target) => collectSourceFiles(target));
   const layoutPath = "app/layout.js";
+  const runtimeGuardsPath = "app/components/RuntimeClientGuards.tsx";
   const deferredAdsensePath = "app/components/DeferredAdsense.tsx";
   const layoutSource = readRequired(layoutPath);
+  const runtimeGuardsSource = existsSync(resolve(rootDir, runtimeGuardsPath)) ? readRequired(runtimeGuardsPath) : "";
   const deferredAdsenseSource = readRequired(deferredAdsensePath);
 
   for (const absolutePath of sourceFiles) {
     const relPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const content = readFileSync(absolutePath, "utf8");
+    const content = readFileUtf8WithRetry(absolutePath);
     if (!adsenseMarkers.test(content)) continue;
 
     assert(
@@ -608,13 +629,17 @@ function verifyAdsenseScriptOwnership() {
     );
   }
 
+  const layoutOwnsDeferredAdsense =
+    countMatches(layoutSource, /import\s+DeferredAdsense\s+from\s+["']\.\/components\/DeferredAdsense["']/g) === 1
+    && countMatches(layoutSource, /<DeferredAdsense\s*\/>/g) === 1;
+  const runtimeGuardsOwnDeferredAdsense =
+    countMatches(layoutSource, /import\s+RuntimeClientGuards\s+from\s+["']\.\/components\/RuntimeClientGuards["']/g) === 1
+    && countMatches(layoutSource, /<RuntimeClientGuards\s*\/>/g) === 1
+    && countMatches(runtimeGuardsSource, /dynamic\(\(\)\s*=>\s*import\(["']\.\/DeferredAdsense["']\)/g) === 1
+    && countMatches(runtimeGuardsSource, /<DeferredAdsense\s*\/>/g) === 1;
   assert(
-    countMatches(layoutSource, /import\s+DeferredAdsense\s+from\s+["']\.\/components\/DeferredAdsense["']/g) === 1,
-    `${layoutPath}: DeferredAdsense import must exist exactly once`,
-  );
-  assert(
-    countMatches(layoutSource, /<DeferredAdsense\s*\/>/g) === 1,
-    `${layoutPath}: DeferredAdsense mount must exist exactly once`,
+    layoutOwnsDeferredAdsense || runtimeGuardsOwnDeferredAdsense,
+    `${layoutPath}: DeferredAdsense must be mounted exactly once directly or through RuntimeClientGuards`,
   );
   assert(
     deferredAdsenseSource.includes("canLoadAdsenseForCanonicalUrl"),
@@ -838,7 +863,7 @@ function verifyGeneratedAdsenseEligibleRoutes(baseDir) {
     if (!canLoadAdsense(route)) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     const robots = getMetaContent(html, "robots").toLowerCase();
     const googleBot = getMetaContent(html, "googlebot").toLowerCase();
     const description = getMetaContent(html, "description");
@@ -891,7 +916,7 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
     paidRouteCount += 1;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     assert(!canLoadAdsense(route), `${route}: paid feature route policy should block AdSense`);
     assert(!adsenseMarkers.test(html), `${htmlPath}: paid feature route must not embed AdSense`);
   }
@@ -910,7 +935,7 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
     if (!isTopLevelAlias && !isInsightsDetail) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     const robots = getMetaContent(html, "robots").toLowerCase();
     const googleBot = getMetaContent(html, "googlebot").toLowerCase();
     const canonical = getCanonical(html);
@@ -973,7 +998,7 @@ function verifyGeneratedAdsenseBlockedRoutes(baseDir) {
     if (canLoadAdsense(route)) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     assert(!adsenseMarkers.test(html), `${htmlPath}: AdSense-blocked route must not embed AdSense`);
   }
 }
@@ -983,7 +1008,7 @@ function verifyNoGeneratedStaticAdUnits(baseDir) {
 
   for (const absolutePath of htmlFiles) {
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     assert(
       !staticAdUnitMarkupPattern.test(html),
       `${htmlPath}: generated HTML must not include static AdSense unit markup before explicit placement review`,
@@ -1108,7 +1133,7 @@ function verifyAdsenseEligibleRouteSitemapAlignment(baseDir) {
     if (!canLoadAdsense(route)) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     const robots = getMetaContent(html, "robots").toLowerCase();
     const googleBot = getMetaContent(html, "googlebot").toLowerCase();
     const canonical = getCanonical(html);
@@ -1156,7 +1181,7 @@ function verifyIndexableRouteCoverage(baseDir) {
 
   for (const absolutePath of htmlFiles) {
     const pathname = routeFromHtmlPath(baseDir, absolutePath);
-    const html = readFileSync(absolutePath, "utf8");
+    const html = readFileUtf8WithRetry(absolutePath);
     const robots = getMetaContent(html, "robots").toLowerCase();
     if (robots.includes("noindex")) continue;
 

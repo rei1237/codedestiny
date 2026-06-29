@@ -69,6 +69,9 @@ const LEGACY_TOPIC_TO_FOCUS = Object.freeze({
 const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능/gi;
 const CANONICAL_TEN_GODS = Object.freeze(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]);
+const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
+const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 240;
+const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 3500;
 const startLocks = new Map();
 
 function clean(value, maxLength = 0) {
@@ -652,14 +655,15 @@ async function resolveBillingGateAccess({ env, auth, body }) {
 
 function buildSystemPrompt() {
   return [
-    "당신은 30년 경력의 사주 명리학자이자 삶의 흐름을 한 권의 책처럼 해석하는 운명 상담가입니다.",
-    "사용자의 생년월일, 성별, 출생시간, 계산된 사주 명리 데이터를 바탕으로 챕터형 인생 해석서를 작성합니다.",
-    "질문 답변이 아니라 타고난 사주, 성격, 사랑, 일, 재물, 대운, 세운, 삶의 목적이 이어지는 리포트로 작성합니다.",
-    "인생을 단정하거나 겁주지 말고, 사용자가 앞으로 선택할 수 있는 방향을 제시합니다.",
+    "당신은 30년 경력의 사주 명리학자이자, 한 사람의 삶을 조용히 오래 살펴 온 운명 상담가입니다.",
+    "사용자의 생년월일, 성별, 출생시간, 계산된 사주 명리 데이터를 바탕으로 삶의 흐름을 한 권의 책처럼 읽어 줍니다.",
+    "질문에 짧게 답하지 말고, 타고난 사주, 성격, 사랑, 일, 재물, 대운, 세운, 삶의 목적이 서로 이어지는 깊은 상담문으로 작성합니다.",
+    "각 장은 명식에서 드러나는 근거, 그 근거가 삶에서 만드는 의미, 지금 현실에서 선택할 수 있는 조언의 순서로 자연스럽게 흐르게 합니다.",
+    "인생을 단정하거나 겁주지 말고, 사용자가 앞으로 선택할 수 있는 방향을 부드럽고도 분명하게 비춥니다.",
     "“당신은 이렇게 살 운명이다”, “반드시 실패한다”, “무조건 성공한다” 같은 단정적 표현을 쓰지 않습니다.",
     `십성 이름은 계산 데이터에 있는 이름만 그대로 사용합니다. 허용되는 십성 이름: ${CANONICAL_TEN_GODS.join(", ")}.`,
-    "각 장은 자연스러운 한국어 문장으로 충분히 길고 구체적으로 작성합니다.",
-    "사용자가 실제로 오늘 선택할 수 있는 행동 조언을 포함합니다.",
+    "각 장은 자연스러운 한국어 문장으로 충분히 길고 구체적으로 작성하되, 같은 표현과 같은 결론을 반복하지 않습니다.",
+    "사용자가 실제로 오늘 선택할 수 있는 행동 조언을 포함하고, 조언은 감정 위로와 현실적 방향이 함께 느껴지게 씁니다.",
     "PDF, 다운로드, 진행률, job, prompt, system, AI 같은 기술 표현은 결과에 드러내지 않습니다.",
   ].join("\n");
 }
@@ -668,7 +672,8 @@ function buildFirstPrompt(input, sajuResult) {
   const birth = input.birthInfo || {};
   return [
     "아래 입력과 계산 가능한 명리 데이터를 바탕으로 인생의 책 리포트를 작성하세요.",
-    "문체는 전문 명리 상담가가 조용한 서재에서 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
+    "문체는 전문 명리학자가 조용한 서재에서 한 사람을 오래 마주하고 직접 읽어 주듯 따뜻하고 깊게 유지하세요.",
+    "각 장은 명식 근거, 삶에서 드러나는 의미, 오늘부터 현실에서 조정할 수 있는 선택을 자연스럽게 이어 주세요.",
     "가능하면 아래 JSON 구조만 반환하세요. JSON이 어렵다면 같은 장 구성을 Markdown `##` 제목으로 작성하세요.",
     "",
     "[사용자 입력]",
@@ -718,7 +723,8 @@ function buildFirstPrompt(input, sajuResult) {
     "반드시 포함할 분석: 일간 중심 기질, 월지와 계절감, 오행 균형, 십성 구조, 조후, 강점과 약점, 사랑과 인연, 일과 재능, 재물 흐름, 인간관계, 가족과 뿌리, 건강과 생활 리듬, 대운 흐름, 가까운 세운 흐름, 삶의 목적, 지금 실천할 조언.",
     "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하세요. 없는 십성 이름을 새로 만들거나 바꿔 부르지 마세요.",
     "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
-    "각 장 content는 최소 2문단 이상으로 쓰고, 챕터마다 관점이 분명해야 합니다.",
+    "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 2문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 2개 이상 담으세요.",
+    "열 장의 관점이 서로 겹치지 않게 하며, 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
   ].join("\n");
 }
 
@@ -737,6 +743,53 @@ function extractReportJson(content) {
   } catch (_) {
     return null;
   }
+}
+
+function getLifeBookReportQualityIssues(content) {
+  const issues = [];
+  const text = clean(content, 60000);
+  if (!text) return ["empty_result"];
+  if (hasForbiddenResultTerms(text)) issues.push("forbidden_terms");
+  const report = extractReportJson(text);
+  if (!report) {
+    issues.push("report_json_missing");
+    if (text.length < LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) issues.push("total_content_too_short");
+    return issues;
+  }
+
+  const chapters = Array.isArray(report.chapters) ? report.chapters : [];
+  if (chapters.length !== LIFE_BOOK_EXPECTED_CHAPTER_COUNT) issues.push("chapter_count_mismatch");
+
+  let totalContentLength = 0;
+  chapters.forEach((chapter, index) => {
+    const chapterNumber = index + 1;
+    const summary = clean(chapter?.summary, 1200);
+    const chapterContent = clean(chapter?.content, 20000);
+    const advice = Array.isArray(chapter?.advice)
+      ? chapter.advice.map((item) => clean(item, 1000)).filter(Boolean)
+      : [];
+    totalContentLength += chapterContent.length;
+    if (!summary) issues.push(`chapter_${chapterNumber}_summary_missing`);
+    if (!chapterContent) issues.push(`chapter_${chapterNumber}_content_missing`);
+    if (chapterContent && chapterContent.length < LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS) issues.push(`chapter_${chapterNumber}_content_too_short`);
+    if (!advice.length) issues.push(`chapter_${chapterNumber}_advice_missing`);
+  });
+
+  if (totalContentLength < LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) issues.push("total_content_too_short");
+  return issues;
+}
+
+function buildLifeBookRepairPrompt(content, issues) {
+  return [
+    "다음 인생의 책 상담문을 같은 JSON 구조로 다시 정돈해 주세요.",
+    "열 장을 모두 채우고, 각 장에는 summary, content, advice를 빠짐없이 담아 주세요.",
+    "각 장 content는 명식 근거, 삶에서 드러나는 의미, 현실 조언이 자연스럽게 이어지도록 충분히 깊게 써 주세요.",
+    "전체 본문은 짧게 줄이지 말고, 같은 표현을 반복하지 않으며 전문 명리학자의 상담처럼 부드럽고 분명하게 유지하세요.",
+    "기술 표현은 결과에 드러내지 말고, 계산 데이터에 없는 십성 이름은 만들지 마세요.",
+    `보완할 지점: ${issues.join(", ")}`,
+    "",
+    content,
+  ].join("\n");
 }
 
 function hasForbiddenResultTerms(value) {
@@ -761,28 +814,25 @@ async function generateConsultationText(env, prompt, options = {}) {
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
   const text = clean(ai?.text);
-  if (!ai?.ok || isMock || text.length < (options.minLength || 300)) {
+  if (!ai?.ok || isMock || !text) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;
   }
-  if (!hasForbiddenResultTerms(text)) return { text, provider, model: clean(ai?.model) };
+  const issues = getLifeBookReportQualityIssues(text);
+  if (!issues.length) return { text, provider, model: clean(ai?.model) };
 
-  const repair = await callGeminiText(env, [
-    "다음 상담문에서 기술 용어와 금지 표현을 제거하고, 자연스러운 인생 상담문으로만 다시 써 주세요.",
-    "장 제목과 상담의 의미는 유지하되 PDF, 진행률, job, prompt, system 같은 표현은 모두 빼세요.",
-    "",
-    text,
-  ].join("\n"), {
+  const repair = await callGeminiText(env, buildLifeBookRepairPrompt(text, issues), {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
-    temperature: 0.58,
-    maxOutputTokens: options.maxOutputTokens || 7600,
+    temperature: 0.52,
+    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), 9000),
   });
   const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
-  if (hasForbiddenResultTerms(repaired) || repaired.length < (options.minLength || 180)) {
-    const error = new Error("Forbidden result terms remained.");
-    error.code = "LLM_FORBIDDEN_TERMS";
+  const repairedIssues = getLifeBookReportQualityIssues(repaired);
+  if (repairedIssues.length) {
+    const error = new Error(`Life book result quality check failed: ${repairedIssues.join(", ")}`);
+    error.code = "LLM_QUALITY_CHECK_FAILED";
     throw error;
   }
   return {
@@ -1323,7 +1373,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env });
       const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
         minLength: 1800,
-        maxOutputTokens: 7600,
+        maxOutputTokens: 9000,
         logContext,
       });
       await applyUsageOnce({

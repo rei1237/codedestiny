@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, BookOpenText, FileText, ShieldCheck } from "lucide-react";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
-import ShareWidget from "../../components/ShareWidget";
+import DeferredShareWidget from "../../components/DeferredShareWidget";
 import { HIGH_VALUE_PAGES, getHighValuePageBySlug } from "../content";
 
 export const dynamicParams = false;
@@ -242,7 +242,7 @@ export default function HighValueDetailPage({ params }) {
           </div>
         </article>
 
-        <ShareWidget
+        <DeferredShareWidget
           title={page.title}
           description={page.summary}
           path={path}

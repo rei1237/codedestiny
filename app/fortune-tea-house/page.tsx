@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FortuneTeaHousePage from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
+import FortuneTeaHouseClient from "./FortuneTeaHouseClient";
 import { fortuneTeaHouseAssets } from "@/src/features/fortune-tea-house/data/assets";
 
 export const metadata: Metadata = {
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <FortuneTeaHousePage />
-      <section className="sr-only">
+      <FortuneTeaHouseClient />
+      <section className="visually-hidden">
         <h2>달빛 아래 조용히 열리는 운명의 찻집</h2>
         <p>
           운명의 찻집은 달빛이 내려앉은 골목 끝에서 조용히 문을 엽니다. 이곳에서는 서둘러 답을 끌어내지

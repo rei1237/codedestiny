@@ -1,10 +1,10 @@
-import TarotSelfEsteemLandingContent from "./TarotSelfEsteemLandingContent";
+import TarotSelfEsteemRouteClient from "./TarotSelfEsteemRouteClient";
 
 const TAROT_SELF_ESTEEM_METADATA_COPY = {
   ko: {
-    title: "✨ 자존감 레벨업 - 5카드 RPG 퀘스트 타로",
+    title: "자기 기준 회복 타로 - 다시 내 편에 서는 5카드 리딩",
     description:
-      "5카드 RPG 퀘스트 스프레드로 자존감 상태를 점검하고 회복 전략을 확인하세요. 완전 무료 서비스입니다.",
+      "다섯 장의 카드로 타인의 시선에 흔들린 마음의 시작, 소모 지점, 오늘 지킬 기준을 차분히 살핍니다.",
   },
   en: {
     title: "Self-Esteem Level Up - 5-Card RPG Quest Tarot",
@@ -31,5 +31,5 @@ export const metadata = {
 };
 
 export default function TarotSelfEsteemLandingPage() {
-  return <TarotSelfEsteemLandingContent />;
+  return <TarotSelfEsteemRouteClient />;
 }

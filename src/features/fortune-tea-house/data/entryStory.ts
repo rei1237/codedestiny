@@ -80,8 +80,14 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       {
         speaker: "꽃돼지?",
         text: "괜찮아.\n여기서는 잘 말하지 못해도 돼.\n마음은 말보다 먼저 찻잔 위에 도착하니까.",
-        cta: "찻집 안쪽으로",
+        cta: "조용히 바라보기",
         mood: "comfort",
+      },
+      {
+        speaker: "꽃돼지?",
+        text: "다만 이 향을 끝까지 읽으려면, 나도 잠깐 본래의 결로 돌아가야 해.\n달빛이 찻잔에 닿는 순간, 네 마음을 더 또렷하게 들을 수 있거든.",
+        cta: "달빛에 맡기기",
+        mood: "gentle",
       },
     ],
   },
@@ -94,7 +100,12 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
     lines: [
       {
         speaker: "narration",
-        text: "찻잔 위로 달빛이 고이고,\n연꽃잎들이 한 번 크게 빛납니다.",
+        text: "찻잔 위로 달빛이 고이고,\n꽃돼지의 작은 그림자가 연꽃잎 사이로 부드럽게 번집니다.",
+        cta: "달빛을 바라보기",
+      },
+      {
+        speaker: "narration",
+        text: "동그란 숨결이 한 겹씩 풀리자, 찻집 안의 빛이 조용히 사람의 이름을 부릅니다.\n이제 당신 앞에 설 상담사는 꽃돼지가 아니라, 운명의 향을 읽는 연이입니다.",
         cta: "연이를 만난다",
       },
     ],
@@ -135,7 +146,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
     lines: [
       {
         speaker: "연이",
-        text: "이제부터는 당신의 사주 흐름과, 지금 이 질문에 떠오르는 타로의 상징을 함께 읽어볼 거예요.\n둘은 따로 말하지 않고, 한 잔의 차 안에서 같은 방향을 비춥니다.",
+        text: "이제부터는 타로와 사주 중 하나의 길을 직접 골라볼 거예요.\n어느 길을 열든, 연이는 선택한 상징만 따라 깊고 차분하게 읽어드립니다.",
         cta: "상담 방식 듣기",
         mood: "gentle",
       },

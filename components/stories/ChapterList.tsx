@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { estimateReadingMinutes } from "@/lib/stories/data";
+import { estimateReadingMinutes } from "@/lib/stories/metrics";
 import type { IChapter, IStory } from "@/lib/stories/types";
 import styles from "./storyComponents.module.css";
 

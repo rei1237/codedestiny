@@ -32,7 +32,8 @@
   overflow: hidden;
   padding: 0;
   cursor: pointer;
-  background: var(--lb-void) url('/fuctionassets/lifebook.webp') center 20% / cover no-repeat;
+  background:
+    linear-gradient(135deg, #09070f 0%, #1b1018 42%, #08060d 100%);
   min-height: 420px;
   box-shadow:
     0 12px 48px rgba(80, 30, 180, 0.6),
@@ -49,9 +50,90 @@
   background: var(--lb-void) url('/fuctionassets/신년운세.webp?v=build-1779170632465') center 22% / cover no-repeat;
 }
 
-/* Hide the <img> inside — we use CSS background-image now */
 .lifebook-tile__img-wrap { display: none; }
 .lifebook-tile__img { display: none; }
+
+.fg-group--lifebook .lifebook-tile {
+  min-height: 392px;
+  border: 1px solid rgba(236, 203, 128, 0.28);
+  background:
+    linear-gradient(90deg, rgba(236, 203, 128, 0.16) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(135deg, rgba(255, 244, 207, 0.055) 0 1px, transparent 1px 18px),
+    linear-gradient(135deg, #08070d 0%, #191018 38%, #231516 62%, #09070b 100%);
+  box-shadow:
+    0 22px 62px rgba(0, 0, 0, 0.46),
+    0 0 0 1px rgba(236, 203, 128, 0.16),
+    inset 0 1px 0 rgba(255, 247, 220, 0.14);
+}
+
+.fg-group--lifebook .lifebook-tile::before,
+.fg-group--lifebook .lifebook-tile::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.fg-group--lifebook .lifebook-tile::before {
+  inset: 14px;
+  z-index: 1;
+  border: 1px solid rgba(236, 203, 128, 0.22);
+  border-radius: 17px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 247, 220, 0.06),
+    0 0 28px rgba(236, 203, 128, 0.08);
+}
+
+.fg-group--lifebook .lifebook-tile::after {
+  top: 72px;
+  right: 24px;
+  z-index: 1;
+  width: min(34%, 220px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(236, 203, 128, 0.62), transparent);
+}
+
+.fg-group--lifebook .lifebook-tile__bg {
+  background:
+    linear-gradient(180deg, rgba(8, 6, 12, 0.24) 0%, rgba(8, 6, 12, 0.68) 64%, rgba(5, 3, 8, 0.92) 100%),
+    linear-gradient(120deg, rgba(236, 203, 128, 0.16), transparent 35%, rgba(93, 31, 28, 0.18) 70%, transparent);
+}
+
+.fg-group--lifebook .lifebook-tile__inner {
+  min-height: 392px;
+  padding: 20px 22px 26px;
+}
+
+.fg-group--lifebook .lifebook-tile__body {
+  max-width: 760px;
+}
+
+.fg-group--lifebook .lifebook-tile__title {
+  color: #fff7df;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.72), 0 0 24px rgba(236, 203, 128, 0.18);
+}
+
+.fg-group--lifebook .lifebook-tile__subtitle {
+  color: #f2d99a;
+  letter-spacing: 0.04em;
+}
+
+.fg-group--lifebook .lifebook-tile__desc {
+  max-width: 680px;
+  color: rgba(245, 236, 214, 0.88);
+}
+
+.fg-group--lifebook .lb-feat {
+  border-color: rgba(236, 203, 128, 0.28);
+  background: rgba(12, 8, 12, 0.66);
+  color: rgba(255, 247, 223, 0.88);
+}
+
+.fg-group--lifebook .lifebook-tile__cta {
+  width: fit-content;
+  min-width: 208px;
+  color: #1c1207;
+  background: linear-gradient(90deg, #fff0b6 0%, #d9ad55 52%, #a86f21 100%);
+}
 
 .lifebook-tile:hover,
 .lifebook-tile:focus-visible {
@@ -261,6 +343,9 @@
   .lifebook-tile { min-height: 360px; background-position: center 15%; }
   .lifebook-tile__inner { min-height: 360px; padding: 16px 16px 20px; }
   .lifebook-tile__title { font-size: 1.35rem; }
+  .fg-group--lifebook .lifebook-tile { min-height: 372px; }
+  .fg-group--lifebook .lifebook-tile__inner { min-height: 372px; }
+  .fg-group--lifebook .lifebook-tile__cta { width: 100%; min-width: 0; }
 }
 
 /* ── iOS 스크롤 잠금 ── */
@@ -1428,6 +1513,17 @@ body.lb-modal-open {
   }
   .lifebook-tile__inner {
     padding-top: 52px;
+  }
+  .fg-group--lifebook .lifebook-tile__inner {
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: 58px;
+  }
+  .fg-group--lifebook .lifebook-tile__label-row {
+    position: absolute;
+    top: 18px;
+    left: 22px;
+    right: 22px;
   }
 }
 

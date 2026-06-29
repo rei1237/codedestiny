@@ -133,6 +133,12 @@ function createNextConfig(phase) {
       optimizePackageImports: ['lucide-react'],
     },
     trailingSlash: true,
+    webpack(config, { dev }) {
+      if (!dev) {
+        config.cache = false;
+      }
+      return config;
+    },
   };
 
   if (isDevelopmentServer) {

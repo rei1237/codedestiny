@@ -1,5 +1,5 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-import TarotHealingLandingContent from "./TarotHealingLandingContent";
+import TarotHealingRouteClient from "./TarotHealingRouteClient";
 
 const TAROT_HEALING_METADATA_COPY = {
   ko: {
@@ -44,5 +44,5 @@ export function generateMetadata() {
 }
 
 export default function SunHealingTarotPage() {
-  return <TarotHealingLandingContent />;
+  return <TarotHealingRouteClient />;
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SukuyoCalendarClient from "./SukuyoCalendarClient";
+import SukuyoCalendarRouteClient from "./SukuyoCalendarRouteClient";
 
 const SUKUYO_CALENDAR_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -37,5 +37,5 @@ export const metadata: Metadata = {
 };
 
 export default function SukuyoCalendarPage() {
-  return <SukuyoCalendarClient />;
+  return <SukuyoCalendarRouteClient />;
 }

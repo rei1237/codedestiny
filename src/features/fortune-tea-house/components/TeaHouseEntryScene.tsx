@@ -43,9 +43,20 @@ const transformFrames = [
 ] as const;
 
 const TRANSFORM_MIN_VISIBLE_MS = 1200;
+const TRANSFORM_VIDEO_READY_TIMEOUT_MS = 1800;
 const TRANSFORM_FALLBACK_FRAME_MS = 140;
+const TRANSFORM_VIDEO_CACHE_KEY = "20260629-transform";
 const PIG_IDLE_FIRST_DELAY_MS = 8200;
 const PIG_IDLE_NEXT_DELAY_MS = 10800;
+const TRANSFORM_AUTO_ADVANCE_DELAY_MS = 900;
+const YEONI_REVEAL_AUTO_ADVANCE_DELAY_MS = 2800;
+
+function withAssetCacheKey(src: string, cacheKey: string) {
+  if (!src) return src;
+  return `${src}${src.includes("?") ? "&" : "?"}v=${cacheKey}`;
+}
+
+const transformVideoSrc = withAssetCacheKey(fortuneTeaHouseAssets.videos.pigTransform, TRANSFORM_VIDEO_CACHE_KEY);
 
 function debugEntry(message: string, ...payload: unknown[]) {
   if (process.env.NODE_ENV !== "production") {
@@ -82,7 +93,8 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const isTransformPreview = scene.stage === "transformPreview";
   const isTransformAdvanceLocked = isTransformPreview && (!isTransformMinTimeReady || !transformHasPlayed);
   const showSkip = scene.stage !== "teaIntro" && scene.stage !== "transformPreview" && scene.stage !== "yeoniReveal";
-  const nextButtonLabel = isTransformAdvanceLocked ? "달빛이 피어오르는 중..." : baseLine.cta || (nextStage ? "다음" : "찻잔 고르러 가기");
+  const canGoPrevious = Boolean(previousStage) || lineIndex > 0;
+  const nextButtonLabel = isTransformAdvanceLocked ? "달빛 피어나는 중" : baseLine.cta || (nextStage ? "다음" : "찻잔 고르러 가기");
   const sceneStyle = useMemo(
     () =>
       ({
@@ -116,7 +128,28 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
 
   useEffect(() => {
     if (stage !== "transformPreview") return;
-    debugTransform("video url:", fortuneTeaHouseAssets.videos.pigTransform);
+    debugTransform("video url:", transformVideoSrc);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "doorOpened" && stage !== "transformPreview") return;
+
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.src = transformVideoSrc;
+    video.load();
+
+    const teaCupSheet = new window.Image();
+    teaCupSheet.decoding = "async";
+    teaCupSheet.src = fortuneTeaHouseAssets.teaCups.correctedPhotoroom;
+
+    return () => {
+      video.removeAttribute("src");
+      video.load();
+      teaCupSheet.removeAttribute("src");
+    };
   }, [stage]);
 
   useEffect(() => {
@@ -126,6 +159,16 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     }, TRANSFORM_MIN_VISIBLE_MS);
     return () => window.clearTimeout(timer);
   }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "transformPreview" || prefersReducedMotion || useTransformFallback || isTransformVideoReady) return;
+    const timer = window.setTimeout(() => {
+      debugTransform("video ready timeout");
+      setUseTransformFallback(true);
+      setTransformFallbackFrameIndex(0);
+    }, TRANSFORM_VIDEO_READY_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [isTransformVideoReady, prefersReducedMotion, stage, useTransformFallback]);
 
   useEffect(() => {
     if (stage !== "transformPreview" || !useTransformFallback) return;
@@ -219,6 +262,19 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     onComplete();
   }, [isLastLine, isTransformAdvanceLocked, nextStage, onComplete, onStageChange]);
 
+  useEffect(() => {
+    if (isShowingIdleLine) return;
+    if (stage !== "transformPreview" && stage !== "yeoniReveal") return;
+    if (isTransformAdvanceLocked) return;
+
+    const delay = stage === "transformPreview" ? TRANSFORM_AUTO_ADVANCE_DELAY_MS : YEONI_REVEAL_AUTO_ADVANCE_DELAY_MS;
+    const timer = window.setTimeout(() => {
+      goNext();
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [goNext, isShowingIdleLine, isTransformAdvanceLocked, lineIndex, stage]);
+
   function goPrevious() {
     setIdleLineIndex(null);
     if (lineIndex > 0) {
@@ -242,6 +298,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
         useTransformFallback={useTransformFallback}
         isTransformVideoReady={isTransformVideoReady}
         transformHasPlayed={transformHasPlayed}
+        transformVideoSrc={transformVideoSrc}
         onPigError={() => setUsePigFallback(true)}
         onTransformVideoReady={handleTransformVideoReady}
         onTransformVideoEnded={handleTransformVideoEnded}
@@ -262,9 +319,11 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
             {lineIndex + 1} / {scene.lines.length}
           </span>
           <div className={styles.entryStoryButtons}>
-            <TeaHouseButton variant="ghost" onClick={goPrevious} disabled={!previousStage && lineIndex === 0} aria-label="이전 장면으로 돌아가기">
-              이전
-            </TeaHouseButton>
+            {canGoPrevious ? (
+              <TeaHouseButton variant="ghost" onClick={goPrevious} aria-label="이전 장면으로 돌아가기">
+                이전
+              </TeaHouseButton>
+            ) : null}
             {showSkip ? (
               <TeaHouseButton
                 variant="secondary"
@@ -295,6 +354,7 @@ type EntryActorProps = {
   useTransformFallback: boolean;
   isTransformVideoReady: boolean;
   transformHasPlayed: boolean;
+  transformVideoSrc: string;
   onPigError: () => void;
   onTransformVideoReady: () => void;
   onTransformVideoEnded: () => void;
@@ -309,6 +369,7 @@ function EntryActor({
   useTransformFallback,
   isTransformVideoReady,
   transformHasPlayed,
+  transformVideoSrc,
   onPigError,
   onTransformVideoReady,
   onTransformVideoEnded,
@@ -376,17 +437,20 @@ function EntryActor({
         {!useTransformFallback ? (
           <video
             className={styles.entryTransformVideo}
-            src={fortuneTeaHouseAssets.videos.pigTransform}
+            src={transformVideoSrc}
             aria-label="꽃돼지?가 연이로 변신하는 달빛 컷신"
             autoPlay
             muted
             playsInline
             preload="auto"
+            onLoadedMetadata={onTransformVideoReady}
             onLoadedData={onTransformVideoReady}
             onCanPlay={(event) => {
               onTransformVideoReady();
               void event.currentTarget.play().catch(onTransformError);
             }}
+            onPlaying={onTransformVideoReady}
+            onStalled={onTransformError}
             onTimeUpdate={(event) => {
               const video = event.currentTarget;
               if (Number.isFinite(video.duration) && video.duration > 0 && video.currentTime >= video.duration - 0.18) {

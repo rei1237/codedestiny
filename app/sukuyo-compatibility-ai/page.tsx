@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SukuyoCompatibilityAiClient from "./SukuyoCompatibilityAiClient";
+import SukuyoCompatibilityAiRouteClient from "./SukuyoCompatibilityAiRouteClient";
 
 export const metadata: Metadata = {
   title: "숙요점 궁합 AI 상담 | Code Destiny",
@@ -16,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function SukuyoCompatibilityAiPage() {
-  return <SukuyoCompatibilityAiClient />;
+  return <SukuyoCompatibilityAiRouteClient />;
 }

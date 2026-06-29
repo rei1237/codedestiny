@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -77,11 +78,34 @@ const FEATURE_AMOUNT_KRW = 49000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 4900;
 const STEPS = ["내 달자리", "상대의 달자리"];
 const LOADING_STAGES = [
-  { phase: "🌑", label: "두 사람의 본명숙을 비추는 중입니다", sub: "본명숙 산출" },
-  { phase: "🌒", label: "관계 거리를 따라 마음의 리듬을 읽는 중입니다", sub: "관계 유형 판정" },
-  { phase: "🌓", label: "끌림과 갈등의 결을 차분히 살피는 중입니다", sub: "기질 분석" },
-  { phase: "🌔", label: "AI 상담 문장을 정리하고 있습니다", sub: "종합 해석 생성" },
-  { phase: "🌕", label: "두 사람에게 전할 달빛 답장을 완성하는 중입니다", sub: "최종 검토" },
+  { phase: "1", label: "두 사람의 달빛 자리를 맞춰보고 있어요.", sub: "생년 정보 확인" },
+  { phase: "2", label: "본명숙과 관계 거리의 흐름을 차분히 읽는 중입니다.", sub: "본명숙 계산" },
+  { phase: "3", label: "끌림과 갈등이 머무는 자리를 살피고 있어요.", sub: "관계 거리 해석" },
+  { phase: "4", label: "두 사람에게 전할 상담문을 고요히 정리합니다.", sub: "AI 상담문 생성" },
+];
+const CONSULTATION_CARDS = [
+  { icon: Orbit, title: "본명숙", text: "태어난 달의 자리로 보는 마음의 기본 결" },
+  { icon: CalendarDays, title: "관계 거리", text: "가까움과 멀어짐의 리듬을 읽는 숙요점 핵심" },
+  { icon: HeartHandshake, title: "궁합 해석", text: "끌림, 갈등, 오래가는 방식까지 AI 상담으로 정리" },
+];
+const LUNAR_SCENE_PETALS = [
+  { x: 128, y: 360, rx: 30, ry: 10, rotate: -16, opacity: 0.66, driftX: 7, driftY: -5, delay: 0 },
+  { x: 192, y: 330, rx: 24, ry: 8, rotate: 15, opacity: 0.46, driftX: -5, driftY: -7, delay: 0.35 },
+  { x: 296, y: 270, rx: 18, ry: 7, rotate: -34, opacity: 0.42, driftX: 4, driftY: -4, delay: 0.7 },
+  { x: 438, y: 224, rx: 22, ry: 8, rotate: 24, opacity: 0.52, driftX: -6, driftY: -5, delay: 1.05 },
+  { x: 560, y: 206, rx: 16, ry: 6, rotate: -20, opacity: 0.36, driftX: 4, driftY: -3, delay: 1.4 },
+  { x: 708, y: 250, rx: 19, ry: 7, rotate: 22, opacity: 0.5, driftX: -5, driftY: 4, delay: 1.75 },
+  { x: 782, y: 328, rx: 26, ry: 9, rotate: -12, opacity: 0.44, driftX: 6, driftY: -4, delay: 2.1 },
+];
+const LUNAR_SCENE_STARS = [
+  { x: 166, y: 92, r: 1.4, opacity: 0.48, delay: 0.2 },
+  { x: 236, y: 146, r: 1.8, opacity: 0.28, delay: 0.8 },
+  { x: 342, y: 88, r: 1.2, opacity: 0.42, delay: 1.3 },
+  { x: 474, y: 126, r: 1.6, opacity: 0.36, delay: 1.7 },
+  { x: 612, y: 72, r: 1.3, opacity: 0.5, delay: 0.5 },
+  { x: 792, y: 112, r: 1.7, opacity: 0.34, delay: 1.1 },
+  { x: 812, y: 412, r: 1.2, opacity: 0.36, delay: 1.9 },
+  { x: 88, y: 218, r: 1.5, opacity: 0.3, delay: 1.5 },
 ];
 const SECTION_ICONS: Record<string, string> = {
   essence: "☽",
@@ -128,6 +152,136 @@ const EMPTY_PERSON: PersonForm = {
   birthTime: "",
   calendarType: "solar",
 };
+
+function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
+  return (
+    <motion.svg
+      className={styles.lunarBotanicalScene}
+      viewBox="0 0 900 520"
+      aria-hidden="true"
+      focusable="false"
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <defs>
+        <radialGradient id="sukuyoSceneMoonAura" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFE8B6" stopOpacity="0.55" />
+          <stop offset="42%" stopColor="#F7DFA3" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#C8A8FF" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="sukuyoSceneMoon" cx="34%" cy="28%" r="70%">
+          <stop offset="0%" stopColor="#FFFDF3" />
+          <stop offset="45%" stopColor="#FFE8B6" />
+          <stop offset="78%" stopColor="#D3BE91" />
+          <stop offset="100%" stopColor="#8F7E6D" />
+        </radialGradient>
+        <linearGradient id="sukuyoPetal" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFD6E7" stopOpacity="0.86" />
+          <stop offset="54%" stopColor="#F6B7D2" stopOpacity="0.46" />
+          <stop offset="100%" stopColor="#C8A8FF" stopOpacity="0.24" />
+        </linearGradient>
+        <linearGradient id="sukuyoOrbit" x1="0%" x2="100%" y1="0%" y2="0%">
+          <stop offset="0%" stopColor="#C8A8FF" stopOpacity="0" />
+          <stop offset="36%" stopColor="#C8A8FF" stopOpacity="0.32" />
+          <stop offset="68%" stopColor="#FFE8B6" stopOpacity="0.34" />
+          <stop offset="100%" stopColor="#FFE8B6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.circle
+        className={styles.sceneMoonAura}
+        cx="684"
+        cy="138"
+        r="150"
+        fill="url(#sukuyoSceneMoonAura)"
+        animate={reduceMotion ? undefined : { scale: [1, 1.035, 1], opacity: [0.76, 1, 0.82] }}
+        transition={{ duration: 6.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.circle
+        className={styles.sceneMoon}
+        cx="684"
+        cy="138"
+        r="72"
+        fill="url(#sukuyoSceneMoon)"
+        animate={reduceMotion ? undefined : { y: [0, -4, 0] }}
+        transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <path className={styles.sceneOrbit} d="M96 360C240 260 432 206 704 244C784 255 842 286 874 320" stroke="url(#sukuyoOrbit)" />
+      <path className={styles.sceneOrbitSoft} d="M156 402C280 318 420 276 592 300C706 316 786 366 836 424" stroke="url(#sukuyoOrbit)" />
+      <motion.g
+        className={styles.sceneLotus}
+        animate={reduceMotion ? undefined : { y: [0, -5, 0], opacity: [0.78, 0.96, 0.82] }}
+        transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <ellipse cx="180" cy="402" rx="78" ry="16" fill="#F6B7D2" opacity="0.16" />
+        <ellipse cx="156" cy="386" rx="58" ry="18" fill="url(#sukuyoPetal)" opacity="0.38" transform="rotate(-12 156 386)" />
+        <ellipse cx="204" cy="386" rx="58" ry="18" fill="url(#sukuyoPetal)" opacity="0.32" transform="rotate(12 204 386)" />
+        <ellipse cx="180" cy="370" rx="42" ry="26" fill="url(#sukuyoPetal)" opacity="0.42" />
+        <path d="M124 414C160 428 206 430 244 414" fill="none" stroke="#FFE8B6" strokeOpacity="0.22" strokeWidth="1.2" />
+      </motion.g>
+      <g className={styles.scenePetalLayer}>
+        {LUNAR_SCENE_PETALS.map((petal) => (
+          <motion.g
+            key={`${petal.x}-${petal.y}`}
+            animate={reduceMotion ? undefined : { x: [0, petal.driftX, 0], y: [0, petal.driftY, 0] }}
+            transition={{ duration: 7.8, repeat: Infinity, ease: "easeInOut", delay: petal.delay }}
+          >
+            <ellipse
+              className={styles.scenePetal}
+              cx={petal.x}
+              cy={petal.y}
+              rx={petal.rx}
+              ry={petal.ry}
+              fill="url(#sukuyoPetal)"
+              opacity={petal.opacity}
+              transform={`rotate(${petal.rotate} ${petal.x} ${petal.y})`}
+            />
+          </motion.g>
+        ))}
+      </g>
+      <g className={styles.sceneStars}>
+        {LUNAR_SCENE_STARS.map((star) => (
+          <motion.circle
+            key={`${star.x}-${star.y}`}
+            cx={star.x}
+            cy={star.y}
+            r={star.r}
+            fill="#FFF7E8"
+            opacity={star.opacity}
+            animate={reduceMotion ? undefined : { opacity: [star.opacity * 0.45, star.opacity, star.opacity * 0.55] }}
+            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: star.delay }}
+          />
+        ))}
+      </g>
+    </motion.svg>
+  );
+}
+
+function LoadingBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
+  return (
+    <motion.svg
+      className={styles.loadingBotanicalScene}
+      viewBox="0 0 200 200"
+      aria-hidden="true"
+      focusable="false"
+      animate={reduceMotion ? undefined : { rotate: 360 }}
+      transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+    >
+      <defs>
+        <linearGradient id="sukuyoLoadingPetal" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFD6E7" stopOpacity="0.9" />
+          <stop offset="56%" stopColor="#F6B7D2" stopOpacity="0.52" />
+          <stop offset="100%" stopColor="#C8A8FF" stopOpacity="0.24" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="100" cy="24" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.72" transform="rotate(18 100 24)" />
+      <ellipse cx="174" cy="100" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.5" transform="rotate(92 174 100)" />
+      <ellipse cx="100" cy="176" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.66" transform="rotate(190 100 176)" />
+      <ellipse cx="26" cy="100" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.44" transform="rotate(278 26 100)" />
+      <path d="M34 112C72 150 132 150 168 112" fill="none" stroke="#FFE8B6" strokeOpacity="0.22" strokeWidth="1" />
+    </motion.svg>
+  );
+}
 
 function buildInitialPersonA(): PersonForm {
   const profile = readAiProfileSeed();
@@ -302,9 +456,10 @@ function latestAssistantJson(consultation: Consultation | null) {
 
 function MoonLoadingScreen() {
   const [stage, setStage] = useState(0);
+  const reduceMotion = useReducedMotion() === true;
 
   useEffect(() => {
-    const intervals = [3000, 5000, 4000, 5000, 3000];
+    const intervals = [2400, 3000, 3200, 3400];
     let elapsed = 0;
     const timers = intervals.map((duration, index) => {
       elapsed += duration;
@@ -332,7 +487,10 @@ function MoonLoadingScreen() {
         ))}
       </div>
       <div className={styles.loadingMoonWrap}>
-        <div className={styles.loadingMoon}>{LOADING_STAGES[stage].phase}</div>
+        <LoadingBotanicalScene reduceMotion={reduceMotion} />
+        <div className={styles.loadingMoon} aria-hidden="true">
+          <span />
+        </div>
         <svg className={styles.loadingRing} viewBox="0 0 160 160" aria-hidden="true">
           <circle cx="80" cy="80" r="72" fill="none" stroke="url(#moonRing)" strokeWidth="1" strokeDasharray="3 12" />
           <defs>
@@ -353,13 +511,14 @@ function MoonLoadingScreen() {
           <span key={item.sub} className={index <= stage ? styles.loadingDotActive : styles.loadingDot}>
             <b>{item.phase}</b>
             <i />
+            <em>{item.sub}</em>
           </span>
         ))}
       </div>
       <div className={styles.loadingBar}>
         <span />
       </div>
-      <p className={styles.loadingFoot}>달빛이 두 사람의 관계 리듬을 차분히 읽고 있습니다</p>
+      <p className={styles.loadingFoot}>두 사람의 달빛 자리를 맞춰보고 있어요.</p>
     </div>
   );
 }
@@ -585,6 +744,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
 }
 
 export default function SukuyoCompatibilityAiClient() {
+  const reduceMotion = useReducedMotion() === true;
   const [step, setStep] = useState(0);
   const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
@@ -807,7 +967,7 @@ export default function SukuyoCompatibilityAiClient() {
               모름
             </button>
           </div>
-          <span className={styles.fieldHint}>출생시간을 모르면 비워두셔도 괜찮아요.</span>
+          <span className={styles.fieldHint}>정확한 시간을 모르신다면 ‘모름’을 선택해도 상담은 진행됩니다.</span>
         </div>
         <div className={styles.fieldWide}>
           <span>달력 기준</span>
@@ -834,25 +994,49 @@ export default function SukuyoCompatibilityAiClient() {
     <main className={styles.screen} data-sukuyo-ai-consultation>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
-      <section className={styles.shell}>
-        <aside className={styles.visualPanel}>
-          <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 궁합 AI 상담" className={styles.visualImage} />
+      <section className={`${styles.shell} mx-auto w-full`}>
+        <motion.aside
+          className={styles.visualPanel}
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div className={styles.visualVeil} aria-hidden="true">
-            <span className={styles.moonDisc} />
-            <span className={styles.moonPath} />
+            <LunarBotanicalScene reduceMotion={reduceMotion} />
           </div>
-          <div className={styles.visualCopy}>
+          <motion.div
+            className={styles.visualCopy}
+            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
             <p className={styles.eyebrow}><Moon size={15} /> ☾ 27숙 달빛 궁합</p>
-            <h1>숙요점 궁합 AI 상담</h1>
-            <p>두 사람의 본명숙과 관계 거리를 따라 끌림, 갈등, 오래 머무는 마음의 리듬을 달빛처럼 차분히 비춥니다.</p>
+            <h1>두 사람의 달빛 자리를 엽니다</h1>
+            <p>본명숙과 관계 거리를 바탕으로 끌림, 갈등, 오래 머무는 마음의 리듬을 차분히 풀어드립니다.</p>
             <div className={styles.heroMeta} aria-label="상담 기준">
-              <span><Orbit size={14} /> 본명숙</span>
+              <span><Orbit size={14} /> 27숙 본명숙</span>
               <span><CalendarDays size={14} /> 관계 거리</span>
-              <span><HeartHandshake size={14} /> 궁합 해석</span>
-              <span><Sparkles size={14} /> 갈등 포인트</span>
+              <span><HeartHandshake size={14} /> 인연 리듬</span>
+              <span><Sparkles size={14} /> AI 상담문</span>
             </div>
-          </div>
-        </aside>
+            <div className={styles.insightCards} aria-label="숙요점 궁합 상담 구성">
+              {CONSULTATION_CARDS.map(({ icon: Icon, title, text }, index) => (
+                <motion.article
+                  key={title}
+                  className={styles.insightCard}
+                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                  animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                  whileHover={reduceMotion ? undefined : { y: -4, scale: 1.012 }}
+                  transition={{ duration: 0.32, delay: 0.16 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                  <strong>{title}</strong>
+                  <span>{text}</span>
+                </motion.article>
+              ))}
+            </div>
+          </motion.div>
+        </motion.aside>
 
         <section className={styles.workPanel}>
           {!consultation ? (

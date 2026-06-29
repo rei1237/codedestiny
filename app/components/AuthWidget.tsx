@@ -25,6 +25,19 @@ type AuthUser = {
 };
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+const AUTH_STORAGE_KEYS = new Set([
+  "fortune_auth_user",
+  "fortune_auth_token",
+  "fortune_auth_role",
+  "fortune_auth_cache_verified_v1",
+]);
+const AUTH_WIDGET_SYNC_EVENTS = new Set(["login", "logout", "subscription"]);
+
+function shouldSyncAuthFromPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object") return true;
+  const event = String((payload as { event?: unknown }).event || "");
+  return AUTH_WIDGET_SYNC_EVENTS.has(event);
+}
 
 const AUTH_WIDGET_COPY: Record<LoadingLocale, {
   userFallback: string;
@@ -63,21 +76,45 @@ export default function AuthWidget() {
   useEffect(() => {
     setLocale(getCurrentLoadingLocale());
     setMounted(true);
-    refreshAuth({ force: true, silent: false }).catch(() => {
+    refreshAuth({ force: false, silent: true }).catch(() => {
       // best-effort bootstrap sync
     });
 
-    const syncUser = () => {
-      refreshAuth({ force: true, silent: true }).catch(() => {
-        // transient failures should not break header rendering
-      });
+    let syncTimerId: number | null = null;
+    let syncInFlight = false;
+    let syncPending = false;
+
+    const runSyncUser = () => {
+      syncTimerId = null;
+      if (syncInFlight || !syncPending) return;
+
+      syncPending = false;
+      syncInFlight = true;
+      refreshAuth({ force: true, silent: true })
+        .catch(() => {
+          // transient failures should not break header rendering
+        })
+        .finally(() => {
+          syncInFlight = false;
+          if (syncPending) {
+            syncTimerId = window.setTimeout(runSyncUser, 250);
+          }
+        });
     };
 
-    const onStorage = () => {
-      syncUser();
+    const scheduleSyncUser = () => {
+      syncPending = true;
+      if (syncTimerId !== null) window.clearTimeout(syncTimerId);
+      syncTimerId = window.setTimeout(runSyncUser, 250);
     };
-    const onAuthChanged = () => {
-      syncUser();
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== null && !AUTH_STORAGE_KEYS.has(event.key)) return;
+      scheduleSyncUser();
+    };
+    const onAuthChanged = (event: Event) => {
+      if (event instanceof CustomEvent && !shouldSyncAuthFromPayload(event.detail)) return;
+      scheduleSyncUser();
     };
     window.addEventListener("storage", onStorage);
     window.addEventListener("cd:auth-changed", onAuthChanged as EventListener);
@@ -86,13 +123,18 @@ export default function AuthWidget() {
     try {
       if (typeof BroadcastChannel !== "undefined") {
         channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
-        channel.onmessage = () => syncUser();
+        channel.onmessage = (event) => {
+          if (!shouldSyncAuthFromPayload(event.data)) return;
+          scheduleSyncUser();
+        };
       }
     } catch (e) {
       channel = null;
     }
 
     return () => {
+      syncPending = false;
+      if (syncTimerId !== null) window.clearTimeout(syncTimerId);
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("cd:auth-changed", onAuthChanged as EventListener);
       channel?.close();

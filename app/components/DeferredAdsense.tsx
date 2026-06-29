@@ -13,6 +13,8 @@ const ADSENSE_SRC =
 const AD_REMOVAL_CACHE_KEY = "cd_adsense_ad_removal_v1";
 const AD_REMOVAL_CACHE_TTL_MS = 10 * 60 * 1000;
 const LOCAL_AUTH_HINT_KEYS = ["fortune_auth_user", "fortune_auth_token", "cdToken", "user", "cd_user"];
+const ADSENSE_AUTH_STORAGE_KEYS = new Set([...LOCAL_AUTH_HINT_KEYS, AD_REMOVAL_CACHE_KEY]);
+const ADSENSE_AUTH_SYNC_EVENTS = new Set(["login", "logout", "subscription"]);
 const COOKIE_AUTH_HINT_KEYS = [
   "fortune_auth_token",
   "fortune_auth_refresh",
@@ -168,17 +170,17 @@ function hasAdRemovalEntitlement(input: unknown, depth = 0): boolean {
   return false;
 }
 
-function readCachedAdRemovalEntitlement() {
-  if (typeof localStorage === "undefined") return false;
+function readCachedAdRemovalEntitlement(): boolean | null {
+  if (typeof localStorage === "undefined") return null;
   try {
     const raw = localStorage.getItem(AD_REMOVAL_CACHE_KEY);
-    if (!raw) return false;
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as { active?: unknown; checkedAt?: unknown };
     const checkedAt = Number(parsed.checkedAt || 0);
-    if (!checkedAt || Date.now() - checkedAt > AD_REMOVAL_CACHE_TTL_MS) return false;
+    if (!checkedAt || Date.now() - checkedAt > AD_REMOVAL_CACHE_TTL_MS) return null;
     return parsed.active === true;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -217,7 +219,8 @@ function hasCookieAuthHint() {
 
 async function currentViewerAllowsAdsense() {
   if (typeof window === "undefined") return false;
-  if (readCachedAdRemovalEntitlement()) return false;
+  const cachedAdRemoval = readCachedAdRemovalEntitlement();
+  if (cachedAdRemoval !== null) return !cachedAdRemoval;
   if (!hasLocalAuthHint() && !hasCookieAuthHint()) return true;
 
   try {
@@ -226,15 +229,25 @@ async function currentViewerAllowsAdsense() {
       clearCachedAdRemovalEntitlement();
       return true;
     }
-    if (!response.ok) return !readCachedAdRemovalEntitlement();
+    if (!response.ok) {
+      const fallbackCachedAdRemoval = readCachedAdRemovalEntitlement();
+      return fallbackCachedAdRemoval !== null ? !fallbackCachedAdRemoval : true;
+    }
 
     const payload = (await response.json()) as unknown;
     const hasAdRemoval = hasAdRemovalEntitlement(payload);
     writeCachedAdRemovalEntitlement(hasAdRemoval);
     return !hasAdRemoval;
   } catch {
-    return !readCachedAdRemovalEntitlement();
+    const fallbackCachedAdRemoval = readCachedAdRemovalEntitlement();
+    return fallbackCachedAdRemoval !== null ? !fallbackCachedAdRemoval : true;
   }
+}
+
+function shouldRefreshAdsenseViewerStateFromPayload(payload: unknown) {
+  if (!payload || typeof payload !== "object") return true;
+  const event = String((payload as { event?: unknown }).event || "");
+  return ADSENSE_AUTH_SYNC_EVENTS.has(event);
 }
 
 export default function DeferredAdsense() {
@@ -248,27 +261,61 @@ export default function DeferredAdsense() {
 
   useEffect(() => {
     let cancelled = false;
+    let refreshTimerId: number | null = null;
+    let refreshInFlight = false;
+    let refreshPending = false;
 
     async function refreshViewerAdsenseState() {
       const allowed = await currentViewerAllowsAdsense();
       if (!cancelled) setViewerAllowsAdsense(allowed);
     }
 
-    function handleAuthChanged(event: Event) {
-      const detail = (event as CustomEvent<{ event?: string }>).detail;
-      if (detail?.event === "logout") clearCachedAdRemovalEntitlement();
-      void refreshViewerAdsenseState();
+    function runRefreshViewerAdsenseState() {
+      refreshTimerId = null;
+      if (refreshInFlight || !refreshPending) return;
+
+      refreshPending = false;
+      refreshInFlight = true;
+      refreshViewerAdsenseState()
+        .catch(() => {
+          if (!cancelled) setViewerAllowsAdsense(true);
+        })
+        .finally(() => {
+          refreshInFlight = false;
+          if (refreshPending) refreshTimerId = window.setTimeout(runRefreshViewerAdsenseState, 250);
+        });
     }
 
-    void refreshViewerAdsenseState();
+    function scheduleRefreshViewerAdsenseState(delayMs = 250) {
+      refreshPending = true;
+      if (refreshTimerId !== null) window.clearTimeout(refreshTimerId);
+      refreshTimerId = window.setTimeout(runRefreshViewerAdsenseState, delayMs);
+    }
+
+    function handleAuthChanged(event: Event) {
+      const detail = (event as CustomEvent<{ event?: string }>).detail;
+      if (!shouldRefreshAdsenseViewerStateFromPayload(detail)) return;
+      clearCachedAdRemovalEntitlement();
+      scheduleRefreshViewerAdsenseState();
+    }
+
+    function handleStorageChanged(event: StorageEvent) {
+      if (event.key !== null && !ADSENSE_AUTH_STORAGE_KEYS.has(event.key)) return;
+      if (event.key !== AD_REMOVAL_CACHE_KEY) clearCachedAdRemovalEntitlement();
+      scheduleRefreshViewerAdsenseState();
+    }
+
+    scheduleRefreshViewerAdsenseState(800);
 
     window.addEventListener("cd:auth-changed", handleAuthChanged);
-    window.addEventListener("storage", refreshViewerAdsenseState);
+    window.addEventListener("storage", handleStorageChanged);
 
     return () => {
       cancelled = true;
+      refreshPending = false;
+      if (refreshTimerId !== null) window.clearTimeout(refreshTimerId);
       window.removeEventListener("cd:auth-changed", handleAuthChanged);
-      window.removeEventListener("storage", refreshViewerAdsenseState);
+      window.removeEventListener("storage", handleStorageChanged);
     };
   }, [pathname]);
 

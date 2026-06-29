@@ -7,7 +7,10 @@ const root = process.cwd();
 const read = (file) => readFileSync(resolve(root, file), "utf8");
 
 const indexSource = read("index.html");
-const pageSource = read("app/karma-destiny-ai/page.tsx");
+const pageSource = [
+  read("app/karma-destiny-ai/page.tsx"),
+  read("app/karma-destiny-ai/KarmaDestinyAiClient.tsx"),
+].join("\n");
 const workerIndexSource = read("worker/index.js");
 const routeSource = read("worker/routes/karma-destiny-ai.js");
 const modelSource = read("worker/lib/models.js");

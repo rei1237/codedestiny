@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AstrologyAiClient from "./AstrologyAiClient";
+import AstrologyAiRouteClient from "./AstrologyAiRouteClient";
 
 export const metadata: Metadata = {
   title: "점성술 AI 상담 | Code Destiny",
@@ -20,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function AstrologyAiPage() {
-  return <AstrologyAiClient />;
+  return <AstrologyAiRouteClient />;
 }

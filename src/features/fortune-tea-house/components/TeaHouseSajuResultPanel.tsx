@@ -13,6 +13,7 @@ type TeaHouseSajuResultPanelProps = {
   result: FortuneTeaHouseConsultResponse;
   onShowTarot: () => void;
   onEditBirthInfo: () => void;
+  showTarotAction?: boolean;
 };
 
 function calendarLabel(value?: "solar" | "lunar") {
@@ -25,7 +26,7 @@ function timeLabel(hasBirthTime?: boolean, birthTime?: string) {
   return hasBirthTime && birthTime ? birthTime : "출생시간 미입력";
 }
 
-export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo }: TeaHouseSajuResultPanelProps) {
+export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo, showTarotAction = true }: TeaHouseSajuResultPanelProps) {
   const saju = result.saju;
   const birth = saju.birthSummary;
   const primaryTenGod = saju.primaryTenGod;
@@ -36,7 +37,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           <div>
             <span>연이가 펼친 달빛 명식</span>
             <h3 id="sajuResultPanelTitle">사주가 비춘 오늘의 기본 흐름</h3>
-            <p>출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 대신 연이는 찻잔과 타로, 지금 적어주신 고민을 중심으로 읽어드릴게요.</p>
+            <p>출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 연이는 보이는 정보와 지금 적어주신 고민의 결만 차분히 읽어드릴게요.</p>
           </div>
           <AssetImage
             className={styles.sajuResultYeoni}
@@ -56,7 +57,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </div>
 
         <div className={styles.sajuResultActions}>
-          <TeaHouseButton onClick={onShowTarot}>타로 중심으로 계속 보기</TeaHouseButton>
+          {showTarotAction ? <TeaHouseButton onClick={onShowTarot}>타로 중심으로 계속 보기</TeaHouseButton> : null}
           <TeaHouseButton variant="secondary" onClick={onEditBirthInfo}>
             출생정보 다시 입력
           </TeaHouseButton>
@@ -169,14 +170,16 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         <p>{saju.actionPrescription}</p>
       </section>
 
-      <section className={styles.sajuTarotReadyCard} aria-labelledby="sajuTarotReadyTitle">
-        <div>
-          <span>타로와 만날 준비</span>
-          <h4 id="sajuTarotReadyTitle">찻잔 위에 다음 상징이 떠오를 차례예요</h4>
-          <p>{saju.tarotBridgeReady}</p>
-        </div>
-        <TeaHouseButton onClick={onShowTarot}>타로 카드 펼치기</TeaHouseButton>
-      </section>
+      {showTarotAction ? (
+        <section className={styles.sajuTarotReadyCard} aria-labelledby="sajuTarotReadyTitle">
+          <div>
+            <span>타로와 만날 준비</span>
+            <h4 id="sajuTarotReadyTitle">찻잔 위에 다음 상징이 떠오를 차례예요</h4>
+            <p>{saju.tarotBridgeReady}</p>
+          </div>
+          <TeaHouseButton onClick={onShowTarot}>타로 카드 펼치기</TeaHouseButton>
+        </section>
+      ) : null}
     </section>
   );
 }

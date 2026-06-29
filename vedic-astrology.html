@@ -6,6 +6,35 @@
     <meta http-equiv="refresh" content="0; url=/vedic-ai">
     <title>베다점 AI 상담으로 이동합니다</title>
     <script>
+      const VEDIC_AI_PROMPT_COST = 100;
+      const VEDIC_AI_PROMPT_AMOUNT_KRW = 10000;
+
+      async function vedicAiGeneratePrompt(requestId, payload) {
+        const gate = await window._cdOpenPaidServiceGate({
+          featureKey: 'vedic_ai_prompt_generator',
+          coinPrice: VEDIC_AI_PROMPT_COST,
+          cost: VEDIC_AI_PROMPT_COST,
+          amountKrw: VEDIC_AI_PROMPT_AMOUNT_KRW,
+          paymentAmount: VEDIC_AI_PROMPT_AMOUNT_KRW,
+          membershipCreditCost: VEDIC_AI_PROMPT_COST * 10,
+          forcePassFirst: true
+        });
+        const headers = { 'Content-Type': 'application/json' };
+        headers['idempotency-key'] = gate.requestId||requestId;
+        return fetch('/api/fortune/vedic/ai-prompt', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            ...(payload || {}),
+            requestId: gate.requestId || requestId,
+            accessGrant: gate.accessGrant,
+            accessDecision: gate.accessDecision,
+            freeBySubscription: gate.freeBySubscription===true,
+            _paymentContext: gate._paymentContext
+          })
+        });
+      }
+      window.vedicAiGeneratePrompt = vedicAiGeneratePrompt;
       window.location.replace('/vedic-ai' + window.location.search + window.location.hash);
     </script>
   </head>

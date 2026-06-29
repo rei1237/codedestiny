@@ -433,9 +433,9 @@ export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultReque
   } catch {
     return {
       available: false,
-      coreSummary: "출생정보가 충분하지 않아 오늘은 현재 고민과 타로, 찻잔의 흐름을 중심으로 읽어드릴게요.",
+      coreSummary: "출생정보가 충분하지 않아 오늘은 확인된 정보와 현재 질문의 결을 중심으로 읽어드릴게요.",
       tenGodSnapshot: normalizeTenGodSnapshot(),
-      caution: "사주 계산이 잠시 흐려져 오늘은 찻잔과 타로의 상징을 더 중심에 두었습니다.",
+      caution: "사주 계산이 잠시 흐려져 오늘은 확인된 질문과 찻잔의 결을 더 중심에 두었습니다.",
     };
   }
 }
@@ -447,14 +447,14 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request
     return {
       available: false,
       title: "사주가 말하는 기본 흐름",
-      summary: snapshot.coreSummary || "출생정보가 충분하지 않아 오늘은 현재 고민과 타로, 찻잔의 흐름을 중심으로 읽어드릴게요.",
-      keyPoints: ["없는 사주 데이터는 억지로 만들지 않고, 지금의 질문과 찻잔, 타로 흐름을 중심으로 읽었습니다."],
+      summary: snapshot.coreSummary || "출생정보가 충분하지 않아 오늘은 확인된 정보와 현재 질문의 결을 중심으로 읽어드릴게요.",
+      keyPoints: ["없는 사주 데이터는 억지로 만들지 않고, 지금의 질문과 찻잔의 결을 중심으로 읽었습니다."],
       birthSummary,
       pillars: buildPillars(snapshot),
       caution: snapshot.caution,
-      cautionReading: "출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 대신 연이는 찻잔과 타로, 지금 적어주신 고민을 중심으로 읽어드릴게요.",
+      cautionReading: "출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 대신 연이는 보이는 정보와 지금 적어주신 고민의 결만 차분히 읽어드릴게요.",
       actionPrescription: "오늘은 결론을 서두르기보다, 지금 가장 궁금한 질문을 한 문장으로 줄여 적어보세요.",
-      tarotBridgeReady: "사주는 손님의 기본 흐름을 자세히 펼치지 않았어요. 이제 타로는 지금 이 질문이 어떤 상징으로 떠오르는지 보여줄 차례입니다.",
+      tarotBridgeReady: "다른 상담 방식을 열고 싶다면, 같은 질문을 새 상징 위에 다시 올려도 괜찮습니다.",
       tenGodSnapshot: snapshot.tenGodSnapshot,
     };
   }
@@ -520,7 +520,7 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request
     actionPrescription: primaryTenGodMeta
       ? `오늘은 ${primaryTenGodMeta.nameKo}의 마음이 앞서 움직이기 전에, 지금 확인할 수 있는 사실과 아직 추측인 마음을 한 줄씩 나누어 적어보세요.`
       : "오늘은 마음이 반복해서 향하는 장면을 적고, 그 안에서 지킬 기준 하나만 조용히 골라보세요.",
-    tarotBridgeReady: "사주는 손님의 기본 흐름을 보여주었어요. 이제 타로는 지금 이 질문이 어떤 상징으로 떠오르는지 보여줄 차례입니다.",
+    tarotBridgeReady: "다른 상담 방식을 열고 싶다면, 같은 질문을 새 상징 위에 다시 올려도 괜찮습니다.",
     tenGodSnapshot: snapshot.tenGodSnapshot,
   };
 }

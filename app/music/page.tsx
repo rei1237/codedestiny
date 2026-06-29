@@ -1,4 +1,4 @@
-﻿import MusicPlayerExample from "./MusicPlayerExample";
+﻿import MusicRouteClient from "./MusicRouteClient";
 
 import { Suspense } from "react";
 
@@ -35,7 +35,7 @@ export const metadata = {
 export default function MusicPage() {
   return (
     <Suspense fallback={null}>
-      <MusicPlayerExample />
+      <MusicRouteClient />
     </Suspense>
   );
 }

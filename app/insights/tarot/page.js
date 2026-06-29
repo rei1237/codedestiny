@@ -5,12 +5,12 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/tarot";
 const INSIGHTS_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "타로 인사이트 허브 · 점술 서비스형 질문법과 해석 가이드 | Code Destiny",
-    description: "무료 타로, 연애 타로, 재회운 타로, 상대방 속마음 타로 질문 설계와 해석을 모아 사람다운 말로 정리한 타로 인사이트 허브입니다.",
+    title: "타로 인사이트 허브 · 질문법과 카드 해석 가이드 | Code Destiny",
+    description: "무료 타로, 연애 타로, 재회운 타로, 상대방 속마음 타로의 질문 설계와 카드 해석을 차분한 말로 정리한 타로 인사이트 허브입니다.",
     keywords: ["무료 타로", "연애 타로", "재회운 타로", "타로 해석", "상대방 속마음 타로"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "타로 인사이트"],
     archiveTitle: "타로 인사이트 허브",
-    intro: "카드 의미 암기보다 질문 설계와 실천 제안에 집중한, 점술 서비스도 놓치지 않는 따뜻한 타로 해석 아카이브입니다.",
+    intro: "카드 의미를 외우는 데서 멈추지 않고, 좋은 질문을 세우고 현실에서 확인할 조언으로 이어 가는 타로 해석 아카이브입니다.",
   },
   en: {
     title: "Tarot Insights Hub · Reading Questions and Interpretation Guide | Code Destiny",

@@ -1,17 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FptiHero from "./FptiHero";
 import FptiInputForm from "./FptiInputForm";
-import FptiLoading from "./FptiLoading";
-import FptiResultCard from "./FptiResultCard";
 import styles from "./FptiCosmic.module.css";
-import {
-  analyzeFptiFromSajuSource,
-  calculateSajuSourceFromBirth,
-  hasRequiredSajuFields,
-} from "@/lib/fpti/fpti-adapter";
-import { FPTI_CURATED_TYPES } from "@/lib/fpti/fpti-copy";
 import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
 import {
   fetchCurrentDestinyProfile,
@@ -19,6 +12,16 @@ import {
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const FptiLoading = dynamic(() => import("./FptiLoading"), {
+  loading: () => null,
+});
+const FptiResultCard = dynamic(() => import("./FptiResultCard"), {
+  loading: () => null,
+});
+const FptiDictionarySection = dynamic(() => import("./FptiDictionarySection"), {
+  loading: () => null,
+});
 
 const FPTI_EXPERIENCE_TEXT_TRANSLATIONS = {
   ko: {
@@ -95,8 +98,6 @@ const FPTI_EXPERIENCE_TEXT_TRANSLATIONS = {
 function getFptiExperienceCopy(locale: LoadingLocale) {
   return FPTI_EXPERIENCE_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || FPTI_EXPERIENCE_TEXT_TRANSLATIONS.ko;
 }
-
-const PREVIEW_TYPES = FPTI_CURATED_TYPES.slice(0, 6);
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -351,6 +352,12 @@ function buildAutoSignature(input: FptiFormInput): string {
   return [keyBirthDate, keyCalendarType, keyTime, keyGender].join("|");
 }
 
+function hasRequiredFptiSajuFields(input: FptiFormInput | null | undefined): boolean {
+  if (!input?.birthDate || !input?.calendarType) return false;
+  if (!input?.timeUnknown && !String(input?.birthTime || "").trim()) return false;
+  return true;
+}
+
 export default function FptiExperience() {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [phase, setPhase] = useState<"landing" | "input" | "loading" | "result">("landing");
@@ -365,7 +372,7 @@ export default function FptiExperience() {
   const copy = getFptiExperienceCopy(locale);
 
   const loadingStep = useMemo(() => copy.loadingSteps[stepIndex] || copy.loadingSteps[0], [copy, stepIndex]);
-  const autoReady = useMemo(() => hasRequiredSajuFields(form), [form]);
+  const autoReady = useMemo(() => hasRequiredFptiSajuFields(form), [form]);
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
@@ -452,17 +459,26 @@ export default function FptiExperience() {
 
   const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" | "profile" = "manual") => {
     const analysisInput = toAnalysisInput(input);
-    if (!hasRequiredSajuFields(analysisInput)) {
+    if (!hasRequiredFptiSajuFields(analysisInput)) {
       if (trigger === "manual") {
         setError(copy.inputRequired);
       }
       return false;
     }
 
+    let fptiAdapter: typeof import("@/lib/fpti/fpti-adapter");
+    try {
+      fptiAdapter = await import("@/lib/fpti/fpti-adapter");
+    } catch {
+      setError(copy.analysisFailed);
+      setPhase("input");
+      return false;
+    }
+
     let computed: FptiSourceData;
     try {
       // 입력값을 사주 원천 데이터로 먼저 계산해 FPTI 상태와 동기화합니다.
-      computed = calculateSajuSourceFromBirth(analysisInput);
+      computed = fptiAdapter.calculateSajuSourceFromBirth(analysisInput);
       setSajuSource(computed);
     } catch {
       setError(copy.invalidBirthInput);
@@ -481,7 +497,7 @@ export default function FptiExperience() {
 
     try {
       const [analysis] = await Promise.all([
-        Promise.resolve(analyzeFptiFromSajuSource(computed)),
+        Promise.resolve(fptiAdapter.analyzeFptiFromSajuSource(computed)),
         sleep(trigger === "auto" ? 1300 : trigger === "profile" ? 700 : 2200),
       ]);
       setResult(analysis);
@@ -592,22 +608,6 @@ export default function FptiExperience() {
             </div>
           )}
 
-          <div className="mt-4 rounded-2xl border border-indigo-200/20 bg-[#0a1432]/55 p-3">
-              <h3 className="text-sm font-semibold text-slate-50">{copy.previewTitle}</h3>
-            <p className="mt-1 text-xs text-indigo-100/85">
-              {copy.previewBody}
-            </p>
-            <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-              {PREVIEW_TYPES.map((item) => (
-                <div key={item.code} className="rounded-xl border border-indigo-200/20 bg-[#091029]/70 p-3">
-                  <p className="text-[11px] tracking-[0.12em] text-[#9dd8ff]">{item.code}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#f7f9ff]">{item.name}</p>
-                  <p className="mt-1 text-xs text-[#d8e2ff]">{item.oneLiner}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
@@ -625,6 +625,8 @@ export default function FptiExperience() {
             </button>
           </div>
         </section>
+
+        <FptiDictionarySection currentCode={result?.code} />
 
         {phase === "input" && (
           <section id="fpti-input">

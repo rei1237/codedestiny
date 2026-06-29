@@ -9,18 +9,34 @@ type TeaCupSpriteSlice = {
   height: number;
 };
 
-type TeaCupSpriteEntry = {
+type TeaCupSpriteSheet = {
   src: string;
   sheetWidth: number;
   sheetHeight: number;
+};
+
+type TeaCupSpriteEntry = {
+  normalSheet: TeaCupSpriteSheet;
+  selectedSheet: TeaCupSpriteSheet;
   normal: TeaCupSpriteSlice;
   selected: TeaCupSpriteSlice;
 };
 
-const sheet = {
+const normalSheet = {
   src: fortuneTeaHouseAssets.teaCups.correctedPhotoroom,
   sheetWidth: 1448,
   sheetHeight: 1086,
+} as const;
+
+const selectedSheet = {
+  src: fortuneTeaHouseAssets.teaCups.labeledPhotoroom,
+  sheetWidth: 1448,
+  sheetHeight: 1086,
+} as const;
+
+const sheets = {
+  normalSheet,
+  selectedSheet,
 } as const;
 
 function slice(x: number, y: number, width: number, height: number): TeaCupSpriteSlice {
@@ -34,44 +50,45 @@ function slice(x: number, y: number, width: number, height: number): TeaCupSprit
 
 export const teaCupSpriteMap: Record<string, TeaCupSpriteEntry> = {
   "lotus-moon": {
-    ...sheet,
+    ...sheets,
     normal: slice(18, 52, 256, 324),
-    selected: slice(18, 52, 256, 324),
+    selected: slice(61, 47, 424, 502),
   },
   "honey-peach": {
-    ...sheet,
+    ...sheets,
     normal: slice(268, 53, 244, 324),
-    selected: slice(268, 53, 244, 324),
+    selected: slice(508, 48, 463, 501),
   },
   "star-black-tea": {
-    ...sheet,
+    ...sheets,
     normal: slice(505, 54, 230, 324),
-    selected: slice(505, 54, 230, 324),
+    selected: slice(959, 48, 416, 501),
   },
   "gold-cinnamon": {
-    ...sheet,
+    ...sheets,
     normal: slice(723, 53, 230, 325),
-    selected: slice(723, 53, 230, 325),
+    selected: slice(55, 537, 420, 479),
   },
   "white-lotus-healing": {
-    ...sheet,
+    ...sheets,
     normal: slice(942, 53, 234, 324),
-    selected: slice(942, 53, 234, 324),
+    selected: slice(500, 537, 471, 481),
   },
   "black-moon-brown-rice": {
-    ...sheet,
+    ...sheets,
     normal: slice(1187, 52, 242, 325),
-    selected: slice(1187, 52, 242, 325),
+    selected: slice(959, 537, 410, 481),
   },
 };
 
 export function getTeaCupSprite(cupId: string, state: TeaCupSpriteState = "normal") {
   const entry = teaCupSpriteMap[cupId] || teaCupSpriteMap["lotus-moon"];
   const crop = entry[state];
+  const sheet = state === "selected" ? entry.selectedSheet : entry.normalSheet;
   return {
-    src: entry.src,
-    sheetWidth: entry.sheetWidth,
-    sheetHeight: entry.sheetHeight,
+    src: sheet.src,
+    sheetWidth: sheet.sheetWidth,
+    sheetHeight: sheet.sheetHeight,
     ...crop,
   };
 }

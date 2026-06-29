@@ -569,8 +569,6 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
 
 karmaDestinyAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 karmaDestinyAiConsultationSchema.index({ userId: 1, createdAt: -1 });
-karmaDestinyAiConsultationSchema.index({ paymentId: 1 });
-karmaDestinyAiConsultationSchema.index({ billingRequestId: 1 });
 
 const ziweiAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
@@ -638,7 +636,6 @@ const ziweiAiConsultationSchema = new mongoose.Schema({
 
 ziweiAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 ziweiAiConsultationSchema.index({ userId: 1, createdAt: -1 });
-ziweiAiConsultationSchema.index({ paymentId: 1 });
 
 const loveSecretAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },

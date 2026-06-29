@@ -24,8 +24,8 @@
   --border-subtle: rgba(155, 127, 212, 0.15);
   --border-active: rgba(155, 127, 212, 0.45);
   --moon-progress: 0%;
-  --album-frame-width: min(94%, 392px);
-  --album-frame-aspect: 16 / 9;
+  --album-frame-width: min(100%, 448px);
+  --album-frame-aspect: 4 / 3;
   --album-frame-padding: 10px;
   --album-frame-bg: linear-gradient(145deg, rgba(232, 244, 255, 0.13), rgba(10, 18, 34, 0.72));
   --album-frame-shadow: 0 28px 70px rgba(0, 0, 0, 0.46), 0 0 74px rgba(224, 242, 255, 0.2);
@@ -98,9 +98,6 @@
 }
 
 .neoMode {
-  --album-frame-width: min(94%, 392px);
-  --album-frame-aspect: 16 / 9;
-  --album-frame-padding: 10px;
   --album-frame-bg: linear-gradient(145deg, rgba(232, 244, 255, 0.13), rgba(10, 18, 34, 0.72));
   --album-frame-shadow: 0 28px 70px rgba(0, 0, 0, 0.46), 0 0 74px rgba(224, 242, 255, 0.2);
   --cover-fit: contain;
@@ -113,9 +110,6 @@
   --moon-glass: rgba(52, 8, 39, 0.54);
   --moon-cyan: rgba(255, 187, 221, 0.42);
   --moon-rose: rgba(255, 107, 186, 0.44);
-  --album-frame-width: min(82%, 334px);
-  --album-frame-aspect: 1;
-  --album-frame-padding: 12px;
   --album-frame-bg: linear-gradient(145deg, rgba(255, 239, 247, 0.2), rgba(44, 10, 34, 0.76));
   --album-frame-shadow: 0 30px 76px rgba(34, 4, 26, 0.52), 0 0 82px rgba(255, 159, 207, 0.28);
   --cover-fit: contain;
@@ -161,9 +155,6 @@
   --moon-glass: rgba(4, 18, 36, 0.56);
   --moon-cyan: rgba(52, 232, 255, 0.38);
   --moon-rose: rgba(255, 88, 176, 0.28);
-  --album-frame-width: min(98%, 452px);
-  --album-frame-aspect: 16 / 9;
-  --album-frame-padding: 10px;
   --album-frame-bg: linear-gradient(145deg, rgba(214, 248, 255, 0.18), rgba(4, 18, 36, 0.78));
   --album-frame-shadow: 0 30px 76px rgba(0, 6, 18, 0.58), 0 0 86px rgba(52, 232, 255, 0.26);
   --cover-fit: contain;
@@ -209,9 +200,6 @@
   --moon-glass: rgba(37, 18, 43, 0.54);
   --moon-cyan: rgba(255, 201, 114, 0.34);
   --moon-rose: rgba(223, 117, 255, 0.24);
-  --album-frame-width: min(82%, 348px);
-  --album-frame-aspect: 1;
-  --album-frame-padding: 12px;
   --album-frame-bg: linear-gradient(145deg, rgba(255, 231, 185, 0.2), rgba(37, 18, 43, 0.78));
   --album-frame-shadow: 0 30px 76px rgba(32, 12, 38, 0.54), 0 0 82px rgba(255, 201, 114, 0.24);
   --cover-fit: contain;
@@ -724,7 +712,7 @@
 
 .albumStage {
   position: relative;
-  width: min(78vw, 392px);
+  width: min(100%, 448px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -813,7 +801,7 @@
   position: relative;
   z-index: 1;
   width: var(--album-frame-width);
-  aspect-ratio: var(--album-cover-aspect-ratio, var(--album-frame-aspect));
+  aspect-ratio: var(--album-frame-aspect);
   display: grid;
   place-items: center;
   padding: var(--album-frame-padding);
@@ -2581,11 +2569,6 @@
   }
 
   .albumStage {
-    width: min(100%, 356px);
-  }
-
-  .neoMode .albumStage,
-  .dest1novaMode .albumStage {
     width: min(100%, 448px);
   }
 
@@ -2876,7 +2859,7 @@
   }
 
   .albumStage {
-    width: min(100%, 258px);
+    width: min(100%, 320px);
   }
 
   .albumStatusBadge {
@@ -3143,7 +3126,7 @@
   }
 
   .albumStage {
-    width: min(84vw, 304px);
+    width: min(88vw, 344px);
   }
 
   .albumReflection {

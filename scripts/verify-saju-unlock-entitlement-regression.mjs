@@ -294,7 +294,14 @@ const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 for (const marker of [
   "SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY",
   "잠금 해제 상태 확인 중",
+  "/api/billing/saju-analysis/entitlements?",
   "/api/access/unlocks?",
+  "SAJU_UNLOCK_CONFIRM_DELAYS_MS = [500, 1500, 3000]",
+  "결제가 확인되었습니다. 콘텐츠 잠금 해제를 반영하는 중입니다.",
+  "잠금 해제가 완료되었습니다.",
+  "잠금 상태 다시 확인",
+  "[Saju Unlock UI Refresh]",
+  "window.refreshSajuEntitlements",
   "requireAccessApi",
   "cd-section-gate--checking",
   "__cdDirectPaymentChoiceConfirmed",
@@ -312,6 +319,11 @@ for (const marker of [
   "MISSING_PROFILE_ID",
   "const accessProfileId = cleanProfileId",
   "profileId: accessProfileId",
+  "handleSajuAnalysisEntitlements",
+  "SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS",
+  "proxy-revalidate",
+  "[Saju Unlock Entitlement]",
+  "[Saju Payment Unlock Applied]",
 ]) {
   assert.ok(billingSource.includes(marker), `billing/access marker exists: ${marker}`);
 }

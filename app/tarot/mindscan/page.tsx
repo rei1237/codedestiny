@@ -1,5 +1,5 @@
 import Link from "next/link";
-import MindScanTarot from "../../components/MindScanTarot";
+import MindScanTarotRouteClient from "./MindScanTarotRouteClient";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 
@@ -20,7 +20,7 @@ export default function MindScanTarotPage() {
 
   return (
     <>
-      <MindScanTarot />
+      <MindScanTarotRouteClient />
       <section className="mx-auto max-w-4xl px-4 py-10 text-slate-100">
         <h2 className="text-2xl font-semibold">관계 마음 해석에서 살피는 것</h2>
         <p className="mt-3 leading-8 text-slate-300">

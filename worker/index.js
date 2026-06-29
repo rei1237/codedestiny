@@ -393,6 +393,7 @@ const handleNewYearAiRoutes = createLazyRouteHandler("./routes/new-year-ai.js", 
 const handleVedicAiRoutes = createLazyRouteHandler("./routes/vedic-ai.js", () => import("./routes/vedic-ai.js"), "handleVedicAiRoutes", "api/vedic-ai");
 const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destiny-ai.js", () => import("./routes/karma-destiny-ai.js"), "handleKarmaDestinyAiRoutes", "api/karma-destiny-ai");
 const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
+const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea-house.js", () => import("./routes/fortune-tea-house.js"), "handleFortuneTeaHouseRoutes", "api/fortune-tea-house");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
@@ -1104,6 +1105,10 @@ export default {
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {
+        return withCorsHeaders(request, env, await handleFortuneTeaHouseRoutes(request, env));
       }
 
       if (url.pathname === "/api/fpti" || url.pathname.startsWith("/api/fpti/")) {

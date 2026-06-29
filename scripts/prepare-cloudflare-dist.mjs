@@ -1,14 +1,24 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
 const publicDir = resolve(rootDir, "public");
-const candidates = [resolve(rootDir, ".open-next", "assets"), resolve(rootDir, "out")];
+const generatedOutDir = resolve(rootDir, "out");
+const candidates = [generatedOutDir, resolve(rootDir, ".open-next", "assets")];
 
 const sourceDir = candidates.find((dirPath) => existsSync(dirPath));
-const generatedRouteHtmlFiles = [
-  "insights/index.html",
+const staticShellRouteHtmlFiles = new Set([
+  "index.html",
+  "static/index.html",
+  "en/index.html",
+  "ja/index.html",
+  "zh/index.html",
+]);
+
+const generatedRouteHtmlRoots = [
+  generatedOutDir,
+  sourceDir,
 ];
 
 if (!sourceDir) {
@@ -31,13 +41,47 @@ function clearDirectoryOrRemove(targetDir) {
   }
 }
 
+function collectGeneratedRouteHtmlFiles(sourceRoot, currentDir = sourceRoot, routeFiles = []) {
+  if (!sourceRoot || !existsSync(currentDir)) return routeFiles;
+
+  for (const entry of readdirSync(currentDir)) {
+    const entryPath = join(currentDir, entry);
+    const stats = statSync(entryPath);
+
+    if (stats.isDirectory()) {
+      collectGeneratedRouteHtmlFiles(sourceRoot, entryPath, routeFiles);
+      continue;
+    }
+
+    if (entry !== "index.html") continue;
+
+    const routeFile = relativePath(sourceRoot, entryPath);
+    if (!staticShellRouteHtmlFiles.has(routeFile)) {
+      routeFiles.push(routeFile);
+    }
+  }
+
+  return routeFiles;
+}
+
+function relativePath(from, to) {
+  return to.slice(from.length + 1).replace(/\\/g, "/");
+}
+
 function restoreGeneratedRouteHtml(targetRoot) {
-  for (const routeFile of generatedRouteHtmlFiles) {
-    const sourcePath = join(sourceDir, routeFile);
-    if (!existsSync(sourcePath)) continue;
-    const targetPath = join(targetRoot, routeFile);
-    mkdirSync(join(targetPath, ".."), { recursive: true });
-    cpSync(sourcePath, targetPath, { force: true });
+  const restored = new Set();
+
+  for (const routeRoot of generatedRouteHtmlRoots) {
+    if (!routeRoot || !existsSync(routeRoot)) continue;
+
+    for (const routeFile of collectGeneratedRouteHtmlFiles(routeRoot)) {
+      if (restored.has(routeFile)) continue;
+      const sourcePath = join(routeRoot, routeFile);
+      const targetPath = join(targetRoot, routeFile);
+      mkdirSync(dirname(targetPath), { recursive: true });
+      copyFileSync(sourcePath, targetPath);
+      restored.add(routeFile);
+    }
   }
 }
 

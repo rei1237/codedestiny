@@ -1,4 +1,4 @@
-import InsightsCosmicClient from "./InsightsCosmicClient";
+import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
@@ -129,7 +129,7 @@ export default async function InsightsPage() {
 
   return (
     <>
-      <InsightsCosmicClient
+      <InsightsCosmicRouteClient
         initialItems={initialItems}
         initialAllItems={initialAllItems}
         initialRecommended={initialRecommended}

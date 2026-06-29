@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import DestinyMeetingPlacePage from "./components/DestinyMeetingPlacePage";
+import DestinyMeetingPlaceRouteClient from "./DestinyMeetingPlaceRouteClient";
 
 const DESTINY_MEETING_PLACE_METADATA_COPY = {
   ko: {
@@ -40,5 +40,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <DestinyMeetingPlacePage />;
+  return <DestinyMeetingPlaceRouteClient />;
 }

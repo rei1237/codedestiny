@@ -260,6 +260,7 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
   };
   const audioKey = keyFromFileName(artist.folder, audioFileName);
   const coverKey = keyFromFileName(artist.folder, findCoverFileName(artist, audioFileName));
+  const hasLyrics = audioFileName !== "Fortune Reveal.mp3";
 
   return {
     id: `${artist.artistKey}-${String(index + 1).padStart(2, "0")}`,
@@ -270,7 +271,7 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
     coverKey,
     audioUrl: buildMusicPublicUrl(audioKey),
     coverUrl: artist.displayCoverUrl || buildMusicPublicUrl(coverKey),
-    lyricsLookupKey: audioFileName,
+    ...(hasLyrics ? { lyricsLookupKey: audioFileName } : {}),
     order: index + 1,
   };
 }

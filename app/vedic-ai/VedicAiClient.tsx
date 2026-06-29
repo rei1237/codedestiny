@@ -800,13 +800,13 @@ export default function VedicAiClient() {
         <div className={styles.starLayer} aria-hidden="true" />
         <div className={styles.heroInner}>
           <div className={styles.copy}>
-            <span className={styles.eyebrow}><Sparkles size={16} /> Vedic Astrology · Jyotish AI Reading</span>
+            <span className={styles.eyebrow}><Sparkles size={16} /> Jyotish · Vedic Star Counsel</span>
             <h1>베다점 AI 상담</h1>
-            <p>나크샤트라와 행성의 흐름을 따라 지금의 질문을 조용히 풀어드립니다.</p>
+            <p>나크샤트라와 행성의 흐름, 다샤의 리듬 위로 지금의 질문이 조용히 비춥니다.</p>
             <div className={styles.heroMeta}>
               <span>30,000원</span>
               <span>{FEATURE_COST}코인</span>
-              <span>LLM 상담</span>
+              <span>다샤 흐름</span>
             </div>
           </div>
           <div className={styles.mandalaStage} aria-hidden="true">
@@ -884,11 +884,11 @@ export default function VedicAiClient() {
                 {PLACE_PRESETS.map((place) => <option key={place.label} value={place.label} />)}
               </datalist>
               <small className={styles.geoStatus}>
-                {geocoding ? "위치 확인 중..." : geocode.name ? `✓ ${geocode.name.slice(0, 42)}` : "출생지를 입력하면 좌표를 자동으로 확인합니다."}
+                {geocoding ? "위치 확인 중..." : geocode.name ? `✓ ${geocode.name.slice(0, 42)}` : "출생지를 적으면 별의 기준 좌표를 맞춥니다."}
               </small>
             </label>
             <label>
-              <span>상담 주제</span>
+              <span>지금 비출 주제</span>
               <select value={form.focusArea} onChange={(event) => updateForm({ focusArea: event.target.value as FocusArea })} disabled={busy}>
                 {FOCUS_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
@@ -919,8 +919,8 @@ export default function VedicAiClient() {
           {!consultation ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyMandala} aria-hidden="true" />
-              <h2>우주의 차트를 펼칠 준비가 되어 있습니다.</h2>
-              <p>입력한 정보를 기준으로 별의 흐름과 현재 질문을 연결해 상담이 이어집니다.</p>
+              <h2>별의 지도가 조용히 열릴 준비가 되어 있습니다.</h2>
+              <p>출생의 순간과 지금의 질문이 만나는 자리에서 흐름을 살피겠습니다.</p>
             </div>
           ) : (
             <>
@@ -939,12 +939,12 @@ export default function VedicAiClient() {
                 <article>
                   <span>D1 Rashi</span>
                   <strong>{planetSummary(chart, "Sun") || "태양의 흐름"}</strong>
-                  <p>{planetSummary(chart, "Rahu") || "라후와 케투의 축을 상담에 함께 반영합니다."}</p>
+                  <p>{planetSummary(chart, "Rahu") || "라후와 케투의 축이 머무는 긴장을 함께 비춥니다."}</p>
                 </article>
                 <article>
                   <span>D9 Navamsa</span>
                   <strong>{toText(asRecord(asRecord(summary.d9).Venus).sign) || vargaPlanetSign(chart, "d9", "Venus") || "내면의 성숙"}</strong>
-                  <p>관계, 약속, 오래 남는 선택의 질감을 함께 살핍니다.</p>
+                  <p>관계와 약속, 오래 남는 선택의 질감을 함께 살핍니다.</p>
                 </article>
               </div>
 
@@ -980,7 +980,7 @@ export default function VedicAiClient() {
               </div>
 
               <div className={styles.chatInput}>
-                <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} maxLength={1800} disabled={chatBusy} placeholder="상담 흐름에 이어서 더 묻고 싶은 내용을 적어 주세요." />
+                <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} maxLength={1800} disabled={chatBusy} placeholder="이어지는 흐름에서 더 묻고 싶은 말을 적어 주세요." />
                 <button type="button" onClick={() => void handleSendMessage()} disabled={chatBusy || chatInput.trim().length < 2} aria-label="추가 질문 보내기">
                   {chatBusy ? <Loader2 className={styles.spin} size={18} /> : <Send size={18} />}
                 </button>

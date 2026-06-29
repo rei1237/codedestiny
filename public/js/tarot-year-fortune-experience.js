@@ -859,135 +859,6 @@
     return text || fallback;
   }
 
-  function compactTarotYearPromptText(value, fallback) {
-    var text = "";
-    if (Array.isArray(value)) {
-      text = value.map(function (line) { return String(line || "").trim(); }).filter(Boolean).join(" / ");
-    } else {
-      text = String(value || "").trim();
-    }
-    text = text.replace(/\s+/g, " ").trim();
-    return text ? text.slice(0, 560) : (fallback || "");
-  }
-
-  function buildTarotYearAiPromptText(reading) {
-    var r = reading || {};
-    if (!r || (!r.summary && !r.finalAdvice && !r.monthlyReadings)) return "";
-    var annual = r.annualSummary || {};
-    var monthly = Array.isArray(r.monthlyReadings) ? r.monthlyReadings.slice(0, 12) : [];
-    var monthlyLines = monthly.map(function (item, idx) {
-      var card = item && item.mainCard ? item.mainCard : {};
-      var drawnCard = state.cards && state.cards[idx] ? state.cards[idx] : {};
-      var monthLabel = compactTarotYearPromptText(item && item.monthLabel, (idx + 1) + "월");
-      var zodiac = compactTarotYearPromptText(((item && item.zodiacSymbol) || "") + " " + ((item && item.zodiacAnimal) || ""), "수호신");
-      var cardName = compactTarotYearPromptText(card.nameKo || card.nameKr || card.name || drawnCard.nameKr || drawnCard.name, "이달의 카드");
-      var orientation = compactTarotYearPromptText(card.orientation === "reversed" || drawnCard.orientation === "reversed" ? "역방향" : "정방향");
-      var flow = compactTarotYearPromptText((item && (item.overall || item.flow || item.zodiacReading)) || "");
-      var money = compactTarotYearPromptText(item && (item.moneyWork || item.money));
-      var relation = compactTarotYearPromptText(item && (item.love || item.relationship));
-      var advice = compactTarotYearPromptText(item && (item.advice || (card && card.advice)));
-      return [
-        (idx + 1) + ". " + monthLabel + " - " + zodiac + " / " + cardName + " " + orientation,
-        flow ? "흐름: " + flow : "",
-        money ? "재물·일: " + money : "",
-        relation ? "관계: " + relation : "",
-        advice ? "선택 기준: " + advice : "",
-      ].filter(Boolean).join(" | ");
-    });
-
-    var highlightLines = Array.isArray(state.consultingHighlights)
-      ? state.consultingHighlights.map(function (line) { return compactTarotYearPromptText(line); }).filter(Boolean).slice(0, 4)
-      : [];
-    var bestMonth = annual.bestMonth ? (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")) : "";
-    var cautionMonth = annual.cautionMonth ? (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")) : "";
-
-    return [
-      "십이지신 천운 타로에서 받은 아래 흐름을 바탕으로, 올해 내 운의 큰 문이 어디로 열리는지 깊게 봐주세요.",
-      "",
-      "동양의 열두 수호신과 타로를 함께 읽는 상담가처럼 말해주세요. 단정적인 예언보다 달마다 달라지는 기회, 조심할 흐름, 재물·관계·일의 선택 기준을 중심으로 읽어주세요.",
-      "",
-      "[올해의 천운 총론] " + compactTarotYearPromptText(r.summary || annual.summary || annual.overallFlow, "올해 전체 흐름부터 차분히 짚어주세요."),
-      annual.overallFlow ? "[연간 흐름] " + compactTarotYearPromptText(annual.overallFlow) : "",
-      annual.dominantSuit ? "[바탕 원소] " + compactTarotYearPromptText(annual.dominantSuit) : "",
-      bestMonth ? "[기회가 또렷한 달] " + compactTarotYearPromptText(bestMonth) : "",
-      cautionMonth ? "[조심스럽게 건너갈 달] " + compactTarotYearPromptText(cautionMonth) : "",
-      highlightLines.length ? "[상담의 신호] " + highlightLines.join(" / ") : "",
-      "",
-      "[12개월 수호신과 카드]",
-      monthlyLines.join("\n"),
-      "",
-      "[오라클의 총평] " + compactTarotYearPromptText(r.finalAdvice || annual.annualAdvice, "한 해를 지키는 최종 조언을 이어서 봐주세요."),
-      "",
-      "이 흐름에서 올해 가장 먼저 잡아야 할 기회, 늦춰야 할 선택, 돈과 관계에서 반복될 수 있는 패턴을 월별로 짚어주세요. 마지막에는 앞으로 30일 동안 운을 여는 실천 의식 3가지를 건네주세요.",
-    ].filter(function (line) { return String(line || "").trim(); }).join("\n");
-  }
-
-  function copyTarotYearAiPrompt(self) {
-    var panel = self && self.closest ? self.closest(".ty-ai-prompt-panel") : null;
-    var textarea = panel ? panel.querySelector("#tarotYearAiPromptOutput") : byId("tarotYearAiPromptOutput");
-    var status = panel ? panel.querySelector(".ty-ai-prompt-status") : byId("tarotYearAiPromptStatus");
-    var text = textarea ? String(textarea.value || "") : "";
-    if (!text) return;
-
-    function done(message, ok) {
-      if (!status) return;
-      status.textContent = message;
-      status.setAttribute("data-state", ok ? "success" : "warn");
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        done("복사되었습니다.", true);
-      }).catch(function () {
-        try {
-          textarea.focus();
-          textarea.select();
-          document.execCommand("copy");
-          done("복사되었습니다.", true);
-        } catch (e) {
-          done("직접 선택해 복사해 주세요.", false);
-        }
-      });
-      return;
-    }
-
-    try {
-      textarea.focus();
-      textarea.select();
-      document.execCommand("copy");
-      done("복사되었습니다.", true);
-    } catch (e2) {
-      done("직접 선택해 복사해 주세요.", false);
-    }
-  }
-
-  function renderTarotYearAiPromptPanel(reading) {
-    var actions = document.querySelector("#tarotYearFortuneResultStage .ty-result-actions");
-    if (!actions || !actions.parentNode || !reading) return;
-    var existing = byId("tarotYearAiPromptPanel");
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
-    var promptText = buildTarotYearAiPromptText(reading);
-    if (!promptText) return;
-
-    var section = document.createElement("section");
-    section.id = "tarotYearAiPromptPanel";
-    section.className = "ty-ai-prompt-panel";
-    section.setAttribute("data-marker", "tarot-year-ai-prompt-bottom-v20260621");
-    section.innerHTML =
-      '<p class="ty-ai-prompt-kicker">AI에게 건넬 천운 질문문</p>' +
-      '<h3 class="ty-ai-prompt-title">열두 수호신이 연 한 해의 문을 더 깊이 비추기</h3>' +
-      '<p class="ty-ai-prompt-lead">아래 문장을 그대로 전하면, 12개월 카드와 수호 기운을 바탕으로 더 깊은 운세를 이어서 들을 수 있습니다.</p>' +
-      '<textarea id="tarotYearAiPromptOutput" class="ty-ai-prompt-output" readonly></textarea>' +
-      '<div class="ty-ai-prompt-actions">' +
-      '<button type="button" class="ty-ai-prompt-copy" data-action="copyTarotYearAiPrompt" data-action-pass-self="1">프롬프트 복사</button>' +
-      '<span id="tarotYearAiPromptStatus" class="ty-ai-prompt-status" aria-live="polite"></span>' +
-      '</div>';
-
-    var textarea = section.querySelector("#tarotYearAiPromptOutput");
-    if (textarea) textarea.value = promptText;
-    actions.parentNode.insertBefore(section, actions);
-  }
-
   function mapCategoryForApi(cat) {
     if (cat === "money") return "money";
     if (cat === "exam") return "career";
@@ -1610,7 +1481,6 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     if (panel) panel.classList.add("is-visible");
     if (placeholder) placeholder.style.display = "block";
     if (content) content.style.display = "none";
-    renderTarotYearAiPromptPanel(r);
   }
 
   function shareTarotYearFortuneResult() {
@@ -1648,7 +1518,6 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
   window.resetTarotYearFortuneFlow = resetTarotYearFortuneFlow;
   window.startTarotYearFortuneReading = startTarotYearFortuneReading;
   window.shareTarotYearFortuneResult = shareTarotYearFortuneResult;
-  window.copyTarotYearAiPrompt = copyTarotYearAiPrompt;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", bindTarotYearStaticActions);
   } else {

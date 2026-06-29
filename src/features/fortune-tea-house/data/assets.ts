@@ -61,6 +61,14 @@ export const fortuneTeaHouseAssets = {
       talking3: teaHouseNoBackgroundAsset("talking-flower-pig-yeoni3-cutout.webp"),
     },
   },
+  rewards: {
+    flowerPig: teaHouseNoBackgroundAsset("꽃돼지8-Photoroom.png"),
+    flowerPigHoneyHug: "/images/fortune-tea-house/flower-pig-honey-hug.png",
+    honeyDrop: teaHouseNoBackgroundAsset("꿀방울.png"),
+    honeyDropCounter: "/images/fortune-tea-house/honey-drop-counter.png",
+    honeyDrop2: teaHouseNoBackgroundAsset("꿀방울 2.png"),
+    honeyDrop2Fallback: teaHouseNoBackgroundAsset("꿀방울 2.png"),
+  },
   yeoni: {
     bubble: teaHouseAsset("연이 말풍선.webp"),
     bust: teaHouseAsset("연이 반신상.webp"),
@@ -87,8 +95,9 @@ export const fortuneTeaHouseAssets = {
       sprite5: teaHouseNoBackgroundAsset("yeoni-sprite5-cutout.webp"),
       sprite6: teaHouseNoBackgroundAsset("yeoni-sprite6-cutout.webp"),
       sprite7: teaHouseNoBackgroundAsset("yeoni-sprite7-cutout.webp"),
-      cupPose: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈-Photoroom.png"),
+      cupPose: "/images/fortune-tea-house/yeoni-cup-pose-photoroom.png",
       cupPoseSheet: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈 스프라이트 시트-Photoroom.png"),
+      teaChatSprite: "/images/fortune-tea-house/yeoni-tea-chat-loading-sprite.png",
       tarotCard: teaHouseNoBackgroundAsset("연이 타로 카드-Photoroom.png"),
       tarotCardAnim: teaHouseNoBackgroundAsset("연이 타로 카드 애니메이션-Photoroom.png"),
     },
@@ -129,8 +138,8 @@ export const fortuneTeaHouseAssets = {
   teaCups: {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
-    labeledPhotoroom: teaHouseNoBackgroundAsset("찻잔 이미지-Photoroom.png"),
-    correctedPhotoroom: teaHouseNoBackgroundAsset("찻잔 이미지2 수정-Photoroom.png"),
+    labeledPhotoroom: "/images/fortune-tea-house/tea-cups-labeled-photoroom.png",
+    correctedPhotoroom: "/images/fortune-tea-house/tea-cups-corrected-photoroom.png",
     transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
   },
   tea: {
@@ -147,6 +156,11 @@ export const fortuneTeaHouseAssets = {
   },
   saju: {
     tenGodSheet: tenGodSheetAsset,
+  },
+  consultModes: {
+    tarot: teaHouseNoBackgroundAsset("운명의 찻집 타로.webp"),
+    saju: teaHouseNoBackgroundAsset("운명의 찻집 사주.webp"),
+    sukuyo: teaHouseNoBackgroundAsset("27숙 인연의 흐름.webp"),
   },
   tenGods: {
     sheet: tenGodSheetAsset,

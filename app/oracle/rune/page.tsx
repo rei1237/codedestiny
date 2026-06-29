@@ -1,7 +1,5 @@
-"use client";
-
-import StonehengeRune from "../../../StonehengeRune";
+import RuneRouteClient from "./RuneRouteClient";
 
 export default function RunePage() {
-  return <StonehengeRune />;
+  return <RuneRouteClient />;
 }

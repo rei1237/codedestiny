@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, RefreshCw, Save, Share2, WandSparkles } from "lucide-react";
+import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
@@ -13,80 +13,11 @@ import {
   NUMEROLOGY_DATA,
   TOPIC_LABELS,
   buildNumerologyContext,
-  buildNumerologyPromptContext,
   selectCards,
 } from "../../../lib/tarot/numerology-tarot.mjs";
 import { normalizeDuplicatedSubjectParticles } from "../../../lib/tarot/myeongri-tarot-text-utils.mjs";
 
-const NUMEROLOGY_TAROT_CLIENT_TEXT_TRANSLATIONS = {
-  ko: {
-    "numerologyTarot.001": "인생 설계도",
-    "numerologyTarot.002": "생명수, 정점수 4단계, 도전수 3개를 한눈에 읽어 인생의 큰 흐름과 설계도를 정리합니다.",
-    "numerologyTarot.003": "금전운·재테크 전략",
-    "numerologyTarot.004": "이 조합으로 돈 버는 방식, 돈이 새는 패턴, 올해 재테크 포지션을 수비학으로 정리합니다.",
-    "numerologyTarot.005": "연애 패턴 리포트",
-    "numerologyTarot.006": "이 조합으로 연애 오라, 사랑 방식, 올해 연애 기상도와 실수 패턴을 분석합니다.",
-    "numerologyTarot.007": "직업·커리어 로드맵",
-    "numerologyTarot.008": "이 조합으로 직무 성향, 커리어 병목, 전성기 구간과 액션 플랜을 코칭합니다.",
-    "numerologyTarot.009": "시험·학습 전략",
-    "numerologyTarot.010": "이 조합과 개인 연도·월수 타임라인으로 학습 타입, 슬럼프 패턴, 합격운이 높은 골든 타임을 정리합니다.",
-    "numerologyTarot.011": "변화·고난기 내비게이션",
-    "numerologyTarot.012": "이 조합으로 지금이 버티고 갈 시기인지, 리셋할 시기인지 수비학 숫자로 판단을 돕습니다.",
-    "numerologyTarot.013": "2026 신년 운세 리포트",
-    "numerologyTarot.014": "생명수와 2026년 개인 연도·월수 흐름으로 한 해의 테마와 월별 핵심 액션을 정리합니다.",
-    "numerologyTarot.015": "관계 궁합 리포트",
-    "numerologyTarot.016": "두 사람의 생명수·태도수·도전수·커플 연도수를 비교해 관계의 조화와 과제를 봅니다.",
-    "numerologyTarot.017": "정점수·도전수 리딩",
-    "numerologyTarot.018": "정점수 4단계와 도전수 3개로 인생 주기와 반복 과제를 봅니다.",
-    "numerologyTarot.019": "개인연도·월수 리딩",
-    "numerologyTarot.020": "분석 연도의 개인연도와 12개월 개인월수 흐름을 읽습니다.",
-  },
-} as const;
-
-function numerologyTarotClientText(key: keyof typeof NUMEROLOGY_TAROT_CLIENT_TEXT_TRANSLATIONS.ko): string {
-  return NUMEROLOGY_TAROT_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-}
 type TopicKey = keyof typeof TOPIC_LABELS;
-type PromptTopicKey =
-  | "blueprint"
-  | "money"
-  | "love"
-  | "career"
-  | "study"
-  | "change"
-  | "year-2026"
-  | "compatibility"
-  | "pinnacles-challenges"
-  | "personal-year";
-
-type PromptTopicOption = {
-  value: PromptTopicKey;
-  slug: string;
-  symbol: string;
-  title: string;
-  description: string;
-  focus: string;
-};
-
-type NumerologyPromptContext = {
-  birthDate: string;
-  analysisDate: string;
-  promptTopic: string;
-  lifePathNumber: number;
-  pinnacleNumbers: number[];
-  challengeNumbers: number[];
-  personalYearNumber: number;
-  personalMonthNumber: number;
-  nameNumber: number | null;
-  nameNumberSource: string;
-};
-
-const buildTypedNumerologyPromptContext = buildNumerologyPromptContext as unknown as (input: {
-  birthDate: string;
-  name: string;
-  analysisDate: Date;
-  promptTopic: string;
-}) => NumerologyPromptContext;
 
 type DrawnCard = {
   card: {
@@ -162,7 +93,6 @@ type NumerologyTarotInterpretation = {
   nextActions?: string[];
   counselorClosing?: string;
   disclaimer?: string;
-  continuationPrompt?: string;
   numerologyReading: string;
   coreMessage: string;
   topicReading: {
@@ -251,7 +181,6 @@ type ReadingEntitlement = {
   paid: true;
   includesCardDraw: true;
   includesFullReading: true;
-  includesContinuationPrompt: true;
   purchasedAt: string;
   requestId?: string;
   payloadHash?: string;
@@ -345,7 +274,7 @@ const INCLUDED_BENEFITS = [
   "카드별 해석",
   "수비학과 타로를 연결한 종합 상담",
   "결과 저장 및 다시 보기",
-  "AI 상담 이어가기용 요약문",
+  "질문 주제별 실천 흐름",
   "생성 실패 시 무료 재시도",
 ];
 
@@ -354,89 +283,6 @@ const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
 const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement";
 const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:";
 const READING_RECOVERY_MAX_AGE_MS = 6 * 60 * 60 * 1000;
-
-const PROMPT_TOPIC_OPTIONS: PromptTopicOption[] = [
-  {
-    value: "blueprint",
-    slug: "blueprint",
-    symbol: "書",
-    title: numerologyTarotClientText("numerologyTarot.001"),
-    description: numerologyTarotClientText("numerologyTarot.002"),
-    focus: "인생 전체의 방향, 타고난 기질, 반복되는 과제, 장기 흐름",
-  },
-  {
-    value: "money",
-    slug: "money",
-    symbol: "錢",
-    title: numerologyTarotClientText("numerologyTarot.003"),
-    description: numerologyTarotClientText("numerologyTarot.004"),
-    focus: "수입 방식, 지출 습관, 투자 태도, 올해 돈의 속도",
-  },
-  {
-    value: "love",
-    slug: "love",
-    symbol: "心",
-    title: numerologyTarotClientText("numerologyTarot.005"),
-    description: numerologyTarotClientText("numerologyTarot.006"),
-    focus: "끌림의 방식, 애정 표현, 반복되는 연애 선택, 마음의 방어",
-  },
-  {
-    value: "career",
-    slug: "career",
-    symbol: "業",
-    title: numerologyTarotClientText("numerologyTarot.007"),
-    description: numerologyTarotClientText("numerologyTarot.008"),
-    focus: "직무 성향, 성장 병목, 전성기 흐름, 다음 실행 계획",
-  },
-  {
-    value: "study",
-    slug: "study",
-    symbol: "學",
-    title: numerologyTarotClientText("numerologyTarot.009"),
-    description: numerologyTarotClientText("numerologyTarot.010"),
-    focus: "학습 리듬, 집중력 회복, 시험 준비, 합격운이 강한 구간",
-  },
-  {
-    value: "change",
-    slug: "change",
-    symbol: "轉",
-    title: numerologyTarotClientText("numerologyTarot.011"),
-    description: numerologyTarotClientText("numerologyTarot.012"),
-    focus: "버틸 시기와 바꿀 시기, 고난의 의미, 회복의 순서",
-  },
-  {
-    value: "year-2026",
-    slug: "2026",
-    symbol: "年",
-    title: numerologyTarotClientText("numerologyTarot.013"),
-    description: numerologyTarotClientText("numerologyTarot.014"),
-    focus: "2026년의 큰 테마, 월별 흐름, 한 해의 선택 기준",
-  },
-  {
-    value: "compatibility",
-    slug: "compatibility",
-    symbol: "緣",
-    title: numerologyTarotClientText("numerologyTarot.015"),
-    description: numerologyTarotClientText("numerologyTarot.016"),
-    focus: "관계의 조화, 충돌 지점, 대화 방식, 함께 넘어야 할 과제",
-  },
-  {
-    value: "pinnacles-challenges",
-    slug: "pinnacles-challenges",
-    symbol: "峰",
-    title: numerologyTarotClientText("numerologyTarot.017"),
-    description: numerologyTarotClientText("numerologyTarot.018"),
-    focus: "인생 주기, 성장 단계, 반복 과제, 넘어야 할 숫자",
-  },
-  {
-    value: "personal-year",
-    slug: "personal-year",
-    symbol: "月",
-    title: numerologyTarotClientText("numerologyTarot.019"),
-    description: numerologyTarotClientText("numerologyTarot.020"),
-    focus: "올해의 숫자, 이번 달의 흐름, 월별 선택 리듬",
-  },
-];
 
 const STEP_LABELS = ["상담 입력", "결제 완료", "카드 5장", "상담 결과"];
 
@@ -726,74 +572,6 @@ function getTodayDateInput(): string {
   return `${year}-${month}-${day}`;
 }
 
-function getPromptTopicOption(value: PromptTopicKey): PromptTopicOption {
-  return PROMPT_TOPIC_OPTIONS.find((option) => option.value === value) || PROMPT_TOPIC_OPTIONS[0];
-}
-
-function resolvePromptTopicFromTarotTopic(value: TopicKey): PromptTopicKey {
-  if (value === "money") return "money";
-  if (value === "career") return "career";
-  if (value === "love" || value === "reunion" || value === "feelings" || value === "relationship") return "love";
-  if (value === "move" || value === "health") return "change";
-  return "blueprint";
-}
-
-function formatNumberSequence(values: number[] = [], unit = "단계"): string {
-  return values.map((value, index) => `${index + 1}${unit} ${value}`).join(" / ");
-}
-
-function formatNameNumber(context: NumerologyPromptContext | null): string {
-  if (!context) return "생년월일을 먼저 열어 주세요.";
-  if (typeof context.nameNumber === "number") return `${context.nameNumber} · 영문 이름수`;
-  if (context.nameNumberSource === "display-name") return "이름은 리딩 호칭으로 반영";
-  return "이름 미입력";
-}
-
-function buildStandaloneNumerologyPromptText({
-  context,
-  name,
-  question,
-  topicOption,
-}: {
-  context: NumerologyPromptContext;
-  name: string;
-  question: string;
-  topicOption: PromptTopicOption;
-}): string {
-  const userName = toText(name) || "이름을 밝히지 않은 사람";
-  const nameNumberLine = typeof context.nameNumber === "number"
-    ? `이름수: ${context.nameNumber} (영문 이름 피타고라스 방식)`
-    : "이름수: 한글 또는 혼합 이름은 숫자로 줄이지 않고 호칭과 분위기로만 반영";
-
-  return [
-    "수비학 해석가처럼 아래 숫자들을 한 사람의 흐름으로 이어 읽어주세요.",
-    "단정적인 예언보다 생명수, 정점수, 도전수, 개인연도와 개인월수가 지금 어떤 선택을 가리키는지 차분히 비춰 주세요.",
-    "",
-    `이름: ${userName}`,
-    `생년월일: ${context.birthDate}`,
-    `분석 날짜: ${context.analysisDate}`,
-    `질문: ${compactNumerologyPromptText(question)}`,
-    `선택한 주제: ${topicOption.title}`,
-    `주제의 초점: ${topicOption.focus}`,
-    "",
-    `생명수: ${context.lifePathNumber}`,
-    `정점수 4단계: ${formatNumberSequence(context.pinnacleNumbers)}`,
-    `도전수 3개: ${formatNumberSequence(context.challengeNumbers, "번")}`,
-    `개인연도수: ${context.personalYearNumber}`,
-    `개인월수: ${context.personalMonthNumber}`,
-    nameNumberLine,
-    "",
-    "읽어야 할 결",
-    "1. 생명수가 드러내는 타고난 성향과 오래 반복되는 선택 습관",
-    "2. 정점수 4단계가 여는 인생 주기와 각 단계의 성장 문",
-    "3. 도전수 3개가 가리키는 반복 과제와 흔들림을 다루는 방식",
-    "4. 개인연도수와 개인월수가 비추는 지금의 타이밍",
-    "5. 선택한 주제에서 오늘 바로 정리해야 할 말과 행동",
-    "",
-    "마지막에는 지금 붙잡을 한 문장, 조심할 한 문장, 현실에서 확인할 작은 행동 2~3개를 남겨주세요.",
-  ].join("\n");
-}
-
 async function copyTextToClipboard(text: string): Promise<boolean> {
   if (!text) return false;
   try {
@@ -906,7 +684,6 @@ function buildReadingEntitlement(readingId: string, paymentContext: ReadingPayme
     paid: true,
     includesCardDraw: true,
     includesFullReading: true,
-    includesContinuationPrompt: true,
     purchasedAt: new Date().toISOString(),
     requestId: paymentContext.requestId,
     payloadHash: paymentContext.payloadHash,
@@ -915,41 +692,6 @@ function buildReadingEntitlement(readingId: string, paymentContext: ReadingPayme
     transactionId: paymentContext.transactionId,
     paymentContext,
   };
-}
-
-function buildContinuationSummaryText({
-  name,
-  topicLabel,
-  question,
-  numerology,
-  cards,
-  reading,
-}: {
-  name: string;
-  topicLabel: string;
-  question: string;
-  numerology: NumerologyContext | null;
-  cards: DrawnCard[];
-  reading: NumerologyTarotInterpretation | null;
-}): string {
-  if (reading?.continuationPrompt) return reading.continuationPrompt;
-  const cardLine = cards
-    .map((entry, index) => `${index + 1}. ${entry.card.nameKr || entry.card.name} / ${entry.card.id}번 / ${entry.orientation === "reversed" ? "역방향" : "정방향"} / ${entry.positionLabel}`)
-    .join("\n");
-  return [
-    "아래 수비학 타로 상담 내용을 이어서 다뤄 주세요.",
-    `이름: ${toText(name) || "내담자"}`,
-    `상담 주제: ${topicLabel}`,
-    `질문: ${toText(question)}`,
-    `생명수: ${numerology?.lifePathNumber ?? "-"}`,
-    `개인일수: ${numerology?.personalDayNumber ?? "-"}`,
-    `질문수: ${numerology?.questionNumber ?? "-"}`,
-    "선택 카드:",
-    cardLine,
-    `핵심 답변: ${reading?.directAnswer || reading?.coreMessage || ""}`,
-    `마무리 조언: ${reading?.counselorClosing || reading?.conclusion?.finalWord || ""}`,
-    "상대의 속마음이나 미래를 단정하지 말고, 현실에서 확인할 수 있는 선택지를 중심으로 상담해 주세요.",
-  ].join("\n");
 }
 
 export default function NumerologyTarotClient() {
@@ -974,9 +716,6 @@ export default function NumerologyTarotClient() {
   const [cards, setCards] = useState<DrawnCard[]>([]);
   const [revealed, setRevealed] = useState<number[]>([]);
   const [reading, setReading] = useState<ReadingResponse["interpretation"] | null>(null);
-  const [standalonePromptText, setStandalonePromptText] = useState("");
-  const [standalonePromptStatus, setStandalonePromptStatus] = useState("");
-  const [standalonePromptLoading, setStandalonePromptLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
@@ -987,39 +726,8 @@ export default function NumerologyTarotClient() {
   }, [numerology]);
 
   const questionKeywords = useMemo(() => extractQuestionKeywords(question), [question]);
-  const promptTopic = useMemo<PromptTopicKey>(() => resolvePromptTopicFromTarotTopic(topic), [topic]);
-  const promptTopicOption = useMemo(() => getPromptTopicOption(promptTopic), [promptTopic]);
-  const promptContext = useMemo<NumerologyPromptContext | null>(() => {
-    if (!birthDate) return null;
-    return buildTypedNumerologyPromptContext({
-      birthDate,
-      name,
-      analysisDate: new Date(`${analysisDate}T00:00:00`),
-      promptTopic,
-    });
-  }, [analysisDate, birthDate, name, promptTopic]);
-  const standalonePromptPreview = useMemo(() => {
-    if (!promptContext || !toText(question)) return "";
-    return buildStandaloneNumerologyPromptText({
-      context: promptContext,
-      name,
-      question,
-      topicOption: promptTopicOption,
-    });
-  }, [name, promptContext, promptTopicOption, question]);
   const hasPaidAccess = Boolean(entitlement?.paid);
   const selectedTopicHints = TOPIC_QUESTION_HINTS[topic] || TOPIC_QUESTION_HINTS.general;
-  const continuationSummaryText = useMemo(() => {
-    if (!reading) return "";
-    return buildContinuationSummaryText({
-      name,
-      topicLabel: TOPIC_LABELS[topic],
-      question,
-      numerology,
-      cards,
-      reading,
-    });
-  }, [cards, name, numerology, question, reading, topic]);
   const freeProfile = useMemo<FreeProfile | null>(() => {
     const lifePath = Number(numerology?.lifePathNumber || 0);
     if (!numerology || !lifePath) return null;
@@ -1132,8 +840,6 @@ export default function NumerologyTarotClient() {
   useEffect(() => {
     if (entitlement?.paid || reading) return;
     setFlowState(toText(question) ? "checkout_ready" : "question_input");
-    setStandalonePromptText("");
-    setStandalonePromptStatus("");
   }, [birthDate, entitlement?.paid, name, question, reading, topic]);
 
   useEffect(() => {
@@ -1216,8 +922,6 @@ export default function NumerologyTarotClient() {
     setError("");
     setRevealed([]);
     setSaveStatus("");
-    setStandalonePromptText("");
-    setStandalonePromptStatus("");
     if (nextReadingId) setReadingId(nextReadingId);
     setFlowState("card_drawing");
     return true;
@@ -1421,42 +1125,6 @@ export default function NumerologyTarotClient() {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function generateStandalonePrompt() {
-    if (!entitlement?.paid) {
-      setStandalonePromptStatus("결제 완료 내역을 먼저 확인해 주세요.");
-      return;
-    }
-    if (!reading) {
-      setStandalonePromptStatus("상담 결과가 열린 뒤 사용할 수 있어요.");
-      return;
-    }
-    const promptText = [
-      standalonePromptPreview,
-      continuationSummaryText,
-    ].filter(Boolean).join("\n\n---\n\n");
-
-    if (!promptText) {
-      setStandalonePromptStatus("상담 프롬프트를 만들 수 없습니다.");
-      return;
-    }
-
-    setStandalonePromptLoading(true);
-    setStandalonePromptStatus("");
-    try {
-      setStandalonePromptText(promptText);
-      setStandalonePromptStatus(`${promptTopicOption.title} 흐름으로 이어 볼 상담 문장이 준비되었습니다. 추가 결제는 없습니다.`);
-    } catch {
-      setStandalonePromptStatus("상담 프롬프트를 여는 중 오류가 발생했습니다.");
-    } finally {
-      setStandalonePromptLoading(false);
-    }
-  }
-
-  async function copyStandalonePrompt() {
-    const copied = await copyTextToClipboard(standalonePromptText);
-    setStandalonePromptStatus(copied ? "상담 문장이 복사되었습니다." : "직접 선택해 복사해 주세요.");
   }
 
   function saveReadingResult() {
@@ -1787,7 +1455,7 @@ export default function NumerologyTarotClient() {
                     <div>
                       <p className={styles.promptToolKicker}>결제에 포함</p>
                       <h4>숫자와 카드 5장을 함께 읽는 상담 결과</h4>
-                      <p>카드 추첨, 전체 해석, 결과 저장, 질문 주제에 맞춘 AI 상담 프롬프트가 모두 포함됩니다. 추가 결제는 없습니다.</p>
+                      <p>카드 추첨, 전체 해석, 결과 저장, 질문 주제별 실천 흐름이 포함됩니다. 추가 결제는 없습니다.</p>
                     </div>
                     <div className={styles.promptPriceBadge}>추가 결제 없음</div>
                   </div>
@@ -1954,8 +1622,6 @@ export default function NumerologyTarotClient() {
                           setCards([]);
                           setRevealed([]);
                           setReading(null);
-                          setStandalonePromptText("");
-                          setStandalonePromptStatus("");
                           setSaveStatus("");
                           setFlowState("checkout_ready");
                           clearStoredReadingSession(readingId || reading.readingId);
@@ -1966,43 +1632,7 @@ export default function NumerologyTarotClient() {
                       </button>
                     </div>
 
-                    <article className={styles.utilityPanel}>
-                      <div className={styles.promptToolHeader}>
-                        <div>
-                          <p className={styles.promptToolKicker}>결과 활용하기</p>
-                          <h4>{TOPIC_LABELS[topic]} 흐름으로 이어 보는 상담 프롬프트</h4>
-                          <p>이번 리딩의 숫자, 카드 5장, 질문을 {promptTopicOption.title} 흐름에 맞춰 자연스럽게 엮습니다. 결제에 포함되어 추가 비용은 없습니다.</p>
-                        </div>
-                      </div>
-                      <div className={styles.promptAutoPanel}>
-                        <span className={styles.promptTopicSymbol}>{promptTopicOption.symbol}</span>
-                        <span className={styles.promptTopicContent}>
-                          <strong>{promptTopicOption.title}</strong>
-                          <small>{promptTopicOption.focus}</small>
-                        </span>
-                      </div>
-                      <div className={styles.promptToolActions}>
-                        <button type="button" className={styles.mainBtn} onClick={generateStandalonePrompt} disabled={standalonePromptLoading}>
-                          <WandSparkles className={styles.actionIcon} size={16} aria-hidden="true" />
-                          {standalonePromptLoading ? "정리 중..." : "이 흐름으로 더 깊이 보기"}
-                        </button>
-                        {standalonePromptText ? (
-                          <button type="button" className={styles.lightBtn} onClick={copyStandalonePrompt}>
-                            <Copy className={styles.actionIcon} size={16} aria-hidden="true" />
-                            상담 문장 복사하기
-                          </button>
-                        ) : null}
-                        <span className={styles.aiPromptStatus} aria-live="polite">{standalonePromptStatus || saveStatus}</span>
-                      </div>
-                      {standalonePromptText ? (
-                        <textarea
-                          className={styles.aiPromptOutput}
-                          value={standalonePromptText}
-                          readOnly
-                          aria-label="현재 주제 맞춤 AI 상담 프롬프트"
-                        />
-                      ) : null}
-                    </article>
+                    {saveStatus ? <p className={styles.qualityNote} aria-live="polite">{saveStatus}</p> : null}
 
                     {reading.quality?.warnings?.length ? (
                       <p className={styles.qualityNote}>상담 결과를 표시하기 전 카드와 문장 품질을 점검했습니다.</p>

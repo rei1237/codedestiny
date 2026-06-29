@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
-import { resolveAnimalTwelveResult } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
@@ -144,6 +143,7 @@ export default function DestinyMeetingPlacePage() {
 
     setIsCharging(true);
     try {
+      const { resolveAnimalTwelveResult } = await import("@/app/saju/animal-destiny/lib/sajuAdapter");
       const resolved = await resolveAnimalTwelveResult(input);
       if (!resolved.ok || !resolved.sajuResult) {
         const message = resolved.error || "사주 계산에 실패했습니다. 입력값을 다시 확인해 주세요.";

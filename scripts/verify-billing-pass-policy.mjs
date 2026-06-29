@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
@@ -27,7 +27,10 @@ const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "u
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const tarotPromptMakerSource = readFileSync(resolve(root, "app/tarot/prompt-maker/page.tsx"), "utf8");
-const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
+const pointsSourcePath = existsSync(resolve(root, "app/points/PointsClient.tsx"))
+  ? "app/points/PointsClient.tsx"
+  : "app/points/page.tsx";
+const pointsSource = readFileSync(resolve(root, pointsSourcePath), "utf8");
 const statusCardSource = readFileSync(resolve(root, "app/points/SubscriptionStatusCard.tsx"), "utf8");
 const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
 

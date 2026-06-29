@@ -753,12 +753,12 @@ function sajuContextSentence(sajuContext: MingriSajuContext, tenGod: TenGod) {
       sajuContext.yongshin ? `용신 ${sajuContext.yongshin}` : "",
       sajuContext.gisin ? `기신 ${sajuContext.gisin}` : "",
     ].filter(Boolean);
-    return `${sajuContext.name ? `${sajuContext.name}님의 ` : ""}저장된 사주 신호에서는 ${parts.join(", ") || `${tenGod} 기운`}이 감지됩니다. 다만 원국 전체가 모두 열린 자료가 아닐 수 있어, 이번 카드가 부른 ${tenGod}의 움직임을 중심으로 조심스럽게 봅니다.`;
+    return `${sajuContext.name ? `${sajuContext.name}님의 ` : ""}저장된 사주 신호에서는 ${parts.join(", ") || `${tenGod} 기운`}이 먼저 드러납니다. 다만 원국 전체가 모두 열린 자료는 아닐 수 있어, 이번 카드는 ${tenGod}의 움직임이 현실에서 어떻게 나타나는지 중심으로 조심스럽게 읽습니다.`;
   }
   if (sajuContext.hasProfile) {
-    return "프로필 생년월일은 연결되어 있지만 일간, 용신, 기신 같은 정밀 신호는 충분하지 않습니다. 그래서 이번 리딩에서는 카드가 부른 십성 상징을 빌려 현실 장면에 맞춰 봅니다.";
+    return "프로필 생년월일은 연결되어 있지만 일간, 용신, 기신 같은 정밀 신호는 충분하지 않습니다. 그래서 이번 리딩에서는 카드가 불러낸 십성 상징을 빌려, 지금 질문의 현실 장면에 맞추어 읽습니다.";
   }
-  return `사용자 사주 원국이 연결되지 않아, 이번 리딩에서는 ${tenGod}의 상징을 빌려 카드와 질문의 접점을 잡습니다.`;
+  return `저장된 사주 원국이 열려 있지 않아, 이번 리딩에서는 ${tenGod}의 상징을 빌려 카드와 질문이 만나는 지점을 살핍니다.`;
 }
 
 function variant<T>(items: T[], seed: string): T {
@@ -772,19 +772,19 @@ function buildCoreJudgment(card: DrawnCard, meaning: CardMeaning, tenGod: TenGod
   const orientation = orientationKr(card.orientation);
 
   if (card.cardId.toUpperCase() === "M16" && card.orientation !== "reversed" && domain === "wealthBusiness" && tenGod === "겁재") {
-    return "지금은 확장보다 구조 점검이 먼저입니다. 숨겨진 비용, 불리한 계약, 공동 운영이나 경쟁 구도에서 생긴 균열을 확인해야 합니다.";
+    return "지금은 확장보다 구조 점검이 먼저입니다. 숨겨진 비용, 불리한 계약, 공동 운영이나 경쟁 구도에서 생긴 균열을 차분히 확인해야 합니다.";
   }
   if (card.cardId.toUpperCase() === "M16" && card.orientation === "reversed" && domain === "wealthBusiness" && tenGod === "겁재") {
-    return "아직 크게 터지지 않았다는 이유로 안심하기에는 이릅니다. 돈이 새는 구조와 정산의 균열이 조용히 뒤로 밀려 있을 수 있습니다.";
+    return "아직 크게 드러나지 않았다고 해서 안심할 흐름은 아닙니다. 돈이 새는 구조와 정산의 균열이 조용히 뒤로 밀려 있을 수 있습니다.";
   }
   if (card.cardId.toUpperCase() === "M15" && domain === "wealthBusiness") {
-    return "큰돈의 냄새가 강할수록 조건을 차갑게 확인해야 합니다. 유혹적인 수익보다 빠져나올 수 있는 계약인지가 먼저입니다.";
+    return "수익의 향이 강할수록 조건은 더 차분하게 확인해야 합니다. 유혹적인 이익보다 빠져나올 수 있는 계약인지가 먼저입니다.";
   }
   if (card.cardId.toUpperCase() === "M19" && domain === "love") {
     return "관계의 온도는 밝아질 수 있습니다. 다만 좋은 감정은 말보다 꾸준한 표현과 약속 가능한 행동으로 살려야 합니다.";
   }
   if (card.cardId.toUpperCase() === "M18" && domain === "relationship") {
-    return "지금은 감정과 사실이 섞이기 쉬운 자리입니다. 관계를 단정하기보다 확인된 행동과 숨은 불안을 분리해야 합니다.";
+    return "지금은 감정과 사실이 섞이기 쉬운 자리입니다. 관계를 단정하기보다 확인된 행동과 내 안의 불안을 먼저 분리해야 합니다.";
   }
   if (card.cardId.toUpperCase() === "S10") {
     return "지금은 더 버티는 선택보다 멈춰야 할 구조를 인정하는 쪽이 먼저입니다. 회복 시간과 책임 범위를 정해야 다음 판단이 흐려지지 않습니다.";
@@ -796,10 +796,10 @@ function buildCoreJudgment(card: DrawnCard, meaning: CardMeaning, tenGod: TenGod
     return "계약과 일의 핵심은 공정한 기준과 책임 소재입니다. 말로 맞춘 약속보다 문서, 일정, 승인권자를 먼저 확인해야 합니다.";
   }
   if (card.cardId.toUpperCase() === "M10" && domain === "wealthBusiness") {
-    return "전환점은 열려 있지만 타이밍만 믿고 크게 베팅할 때는 아닙니다. 기회와 현금흐름이 같은 속도로 움직이는지 확인해야 합니다.";
+    return "전환점은 열려 있지만 타이밍만 믿고 크게 움직일 때는 아닙니다. 기회와 현금흐름이 같은 속도로 움직이는지 확인해야 합니다.";
   }
 
-  return `${cardName} ${orientation}은 ${meaning.core} ${domainAdvice.judgment}`;
+  return `${cardName} ${orientation}은 ${meaning.core} ${domainAdvice.anchor} 질문에서는 ${domainAdvice.judgment}`;
 }
 
 function buildCombinedReading(card: DrawnCard, meaning: CardMeaning, tenGod: TenGod, domain: QuestionDomain): string {
@@ -810,16 +810,16 @@ function buildCombinedReading(card: DrawnCard, meaning: CardMeaning, tenGod: Ten
   const domainAdvice = DOMAIN_ADVICE[domain];
 
   if (card.cardId.toUpperCase() === "M16" && card.orientation !== "reversed" && domain === "wealthBusiness" && tenGod === "겁재") {
-    return "탑 정방향은 이미 약해진 기반이 갑자기 드러나는 카드입니다. 여기에 겁재의 기운이 더해지면 문제는 혼자만의 실수보다 사람, 경쟁, 분배, 공동재정 문제로 나타나기 쉽습니다. 재물/사업 질문에서는 더 벌 수 있는가보다 어디서 새고 있는가를 먼저 봐야 합니다.";
+    return "탑 정방향은 이미 약해진 기반이 갑자기 드러나는 카드입니다. 여기에 겁재의 기운이 더해지면 문제는 혼자만의 실수보다 사람, 경쟁, 나눔 구조, 공동재정 문제로 나타나기 쉽습니다. 재물/사업 질문에서는 더 벌 수 있는가보다 어디서 새고 있는가를 먼저 보아야 합니다.";
   }
 
-  return `${cardName} ${orientation}은 ${meaning.core} 여기에 ${tenGod}의 기운이 닿으면 ${tenDomain.scene} ${domainAdvice.label} 질문에서는 ${meaning.reality} 그러므로 오늘의 핵심은 ${meaning.advice}`;
+  return `${cardName} ${orientation}은 ${meaning.core} 여기에 ${tenGod}의 기운이 닿으면 ${tenDomain.scene} ${domainAdvice.label} 질문에서 이 조합은 ${meaning.reality} 그래서 오늘의 핵심은 ${meaning.advice}`;
 }
 
 function buildTenGodOperation(tenGod: TenGod, domain: QuestionDomain, sajuContext: MingriSajuContext): string {
   const ten = TEN_GOD_READING[tenGod];
   const tenDomain = ten.domains[domain];
-  return `${topicMarked(tenGod)} ${ten.core} ${tenDomain.risk} ${tenDomain.advice} ${sajuContextSentence(sajuContext, tenGod)}`;
+  return `${topicMarked(tenGod)} ${ten.core} 이 기운이 ${DOMAIN_ADVICE[domain].anchor} 자리에서 흔들리면 ${tenDomain.risk} 그래서 ${tenDomain.advice} ${sajuContextSentence(sajuContext, tenGod)}`;
 }
 
 function buildPracticalAdvice(category: TarotCategory, meaning: CardMeaning, tenGod: TenGod, domain: QuestionDomain): string {
@@ -832,12 +832,12 @@ function buildPracticalAdvice(category: TarotCategory, meaning: CardMeaning, ten
     domainAdvice.reality,
   ], `${category}:${tenGod}:${meaning.keywords.join("|")}`);
 
-  return `${actions.join(" ")} ${closing}`;
+  return `${actions.join(" ")} 마지막으로 ${closing}`;
 }
 
 function buildOneLine(card: DrawnCard, tenGod: TenGod, domain: QuestionDomain): string {
   const key = String(card.cardId || "").toUpperCase();
-  if (key === "M16" && card.orientation !== "reversed") return "무너지는 신호를 빨리 본 사람만이 다음 판을 다시 세울 수 있습니다.";
+  if (key === "M16" && card.orientation !== "reversed") return "무너지는 신호를 일찍 본 사람은 다음 판을 더 단단히 세울 수 있습니다.";
   if (key === "M16" && card.orientation === "reversed") return "조용한 균열을 외면하지 않을 때 손실은 작아집니다.";
   if (key === "M19") return "따뜻한 빛은 꾸준한 행동 위에서 오래 머뭅니다.";
   if (key === "M18") return "불안이 짙을수록 사실 하나가 길을 밝힙니다.";
@@ -856,7 +856,7 @@ function buildSpreadReading(cards: DrawnCard[], domain: QuestionDomain, sajuCont
       const meaning = getCardMeaning(card);
       const tenGod = resolveCardTenGod(card, sajuContext);
       const tenDomain = TEN_GOD_READING[tenGod].domains[domain];
-      return `${idx + 1}. ${card.position || `자리 ${idx + 1}`} — ${cardName} ${orientationKr(card.orientation)}\n${meaning.core} ${topicMarked(tenGod)} ${tenDomain.scene} ${meaning.advice}`;
+      return `${idx + 1}. ${card.position || `자리 ${idx + 1}`} — ${cardName} ${orientationKr(card.orientation)}\n${meaning.core} 이 자리에서는 ${topicMarked(tenGod)} ${tenDomain.scene} 지금은 ${meaning.advice}`;
     })
     .join("\n\n");
 }
@@ -937,12 +937,12 @@ function generateLocalReading(category: TarotCategory, mode: TarotMode, selected
 
   const payload: ReadingPayload = {
     "제목": cardCount === 1 ? "명리학 타로 한 장 리딩" : "명리학 타로 세 장 리딩",
-    "서브카피": "질문의 방향을 차분히 정리해 드릴게요.",
+    "서브카피": "카드와 십성이 만나는 지점에서 오늘의 선택을 차분히 살핍니다.",
     "카드 표시": cardDisplay,
-    "핵심 판정": buildCoreJudgment(primaryCard, primaryMeaning, primaryTenGod, domain),
+    "핵심 흐름": buildCoreJudgment(primaryCard, primaryMeaning, primaryTenGod, domain),
     ...(cardCount >= 3 ? { "배열별 해석": buildSpreadReading(selectedCards, domain, sajuContext) } : {}),
     "카드와 십성의 결합 해석": buildCombinedReading(primaryCard, primaryMeaning, primaryTenGod, domain),
-    "십성 작동 방식": buildTenGodOperation(primaryTenGod, domain, sajuContext),
+    "십성이 움직이는 방식": buildTenGodOperation(primaryTenGod, domain, sajuContext),
     [`질문별 현실 조언 · ${domainAdvice.label}`]: buildPracticalAdvice(category, primaryMeaning, primaryTenGod, domain),
     "오늘의 한 문장": buildOneLine(primaryCard, primaryTenGod, domain),
   };

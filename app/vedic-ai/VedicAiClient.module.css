@@ -3,10 +3,10 @@
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 18% 12%, rgba(222, 172, 78, 0.22), transparent 23rem),
-    radial-gradient(circle at 82% 8%, rgba(178, 91, 214, 0.28), transparent 26rem),
-    radial-gradient(circle at 72% 76%, rgba(234, 92, 152, 0.14), transparent 24rem),
-    linear-gradient(135deg, #070b25 0%, #161343 48%, #07091c 100%);
+    radial-gradient(ellipse at 18% 8%, rgba(246, 214, 126, 0.2), transparent 24rem),
+    radial-gradient(ellipse at 82% 12%, rgba(139, 92, 246, 0.24), transparent 25rem),
+    radial-gradient(ellipse at 64% 88%, rgba(92, 196, 255, 0.12), transparent 22rem),
+    linear-gradient(145deg, #020617 0%, #08111f 36%, #1a1238 68%, #04020c 100%);
   color: #fff8e7;
   font-family: CodeDestinyBody, system-ui, sans-serif;
 }
@@ -17,16 +17,33 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, rgba(255, 239, 191, 0.72) 0 1px, transparent 1.5px),
-    radial-gradient(circle, rgba(232, 169, 255, 0.46) 0 1px, transparent 1.5px);
-  background-size: 64px 64px, 113px 113px;
-  background-position: 0 0, 24px 38px;
-  opacity: 0.32;
+    radial-gradient(circle, rgba(255, 244, 210, 0.76) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(199, 210, 254, 0.58) 0 1px, transparent 1.7px),
+    linear-gradient(115deg, transparent 0 47%, rgba(246, 214, 126, 0.08) 48% 48.5%, transparent 50%);
+  background-size: 72px 72px, 131px 131px, 100% 100%;
+  background-position: 0 0, 27px 43px, 0 0;
+  opacity: 0.34;
+}
+
+.shell::after {
+  content: "";
+  position: fixed;
+  inset: auto -18rem -24rem auto;
+  width: min(54rem, 88vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+  border: 1px solid rgba(226, 232, 240, 0.08);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 18deg, rgba(246, 214, 126, 0.12) 0deg 1deg, transparent 1deg 16deg),
+    radial-gradient(circle, transparent 0 47%, rgba(148, 163, 184, 0.11) 47.2% 47.5%, transparent 48% 67%, rgba(139, 92, 246, 0.12) 67.3% 67.6%, transparent 68%);
+  opacity: 0.72;
+  animation: orbitTurn 64s linear infinite;
 }
 
 .hero {
   position: relative;
-  min-height: 38rem;
+  min-height: clamp(21rem, 44vh, 28rem);
   overflow: hidden;
 }
 
@@ -35,26 +52,30 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(7, 9, 28, 0.88), rgba(11, 11, 42, 0.45)),
-    url("/fuctionassets/veda.webp") center/cover no-repeat;
-  opacity: 0.36;
+    linear-gradient(180deg, rgba(2, 6, 23, 0.94), rgba(8, 13, 35, 0.7) 52%, rgba(4, 2, 12, 0.96)),
+    radial-gradient(circle at 18% 26%, rgba(255, 248, 231, 0.82) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 34% 19%, rgba(246, 214, 126, 0.72) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 62% 31%, rgba(196, 181, 253, 0.7) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 84% 18%, rgba(226, 232, 240, 0.7) 0 1px, transparent 1.8px);
+  background-size: auto, 13rem 13rem, 17rem 17rem, 19rem 19rem, 23rem 23rem;
+  opacity: 1;
 }
 
 .hero::after {
   content: "";
   position: absolute;
-  right: min(8vw, 7rem);
-  bottom: -10rem;
-  width: min(42rem, 82vw);
+  right: min(7vw, 6rem);
+  bottom: -13rem;
+  width: min(38rem, 76vw);
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid rgba(238, 198, 116, 0.24);
+  border: 1px solid rgba(246, 214, 126, 0.2);
   background:
-    repeating-conic-gradient(from 0deg, rgba(238, 198, 116, 0.2) 0deg 5deg, transparent 5deg 12deg),
-    radial-gradient(circle, transparent 0 34%, rgba(238, 198, 116, 0.16) 35% 36%, transparent 37% 51%, rgba(238, 198, 116, 0.14) 52% 53%, transparent 54%);
-  opacity: 0.58;
-  filter: drop-shadow(0 0 38px rgba(238, 198, 116, 0.2));
-  animation: mandalaDrift 28s linear infinite;
+    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.18) 0deg 4deg, transparent 4deg 12deg),
+    radial-gradient(circle, transparent 0 33%, rgba(246, 214, 126, 0.14) 34% 34.5%, transparent 35% 52%, rgba(196, 181, 253, 0.12) 52.5% 53%, transparent 54%);
+  opacity: 0.64;
+  filter: drop-shadow(0 0 42px rgba(246, 214, 126, 0.16));
+  animation: mandalaDrift 36s linear infinite;
 }
 
 .starLayer {
@@ -65,25 +86,27 @@
     radial-gradient(circle at 24% 22%, rgba(255, 248, 231, 0.85) 0 1px, transparent 2px),
     radial-gradient(circle at 46% 18%, rgba(238, 198, 116, 0.82) 0 1px, transparent 2px),
     radial-gradient(circle at 74% 30%, rgba(234, 92, 152, 0.62) 0 1px, transparent 2px),
-    radial-gradient(circle at 66% 64%, rgba(255, 248, 231, 0.72) 0 1px, transparent 2px);
-  animation: starFloat 11s ease-in-out infinite alternate;
+    radial-gradient(circle at 66% 64%, rgba(255, 248, 231, 0.72) 0 1px, transparent 2px),
+    linear-gradient(128deg, transparent 0 42%, rgba(226, 232, 240, 0.1) 43%, transparent 44% 100%);
+  opacity: 0.86;
+  animation: starFloat 13s ease-in-out infinite alternate;
 }
 
 .heroInner {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 32rem);
-  gap: clamp(1.2rem, 4vw, 4rem);
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 24rem);
+  gap: clamp(1rem, 3.5vw, 3rem);
   align-items: center;
   width: min(1180px, calc(100% - 2rem));
-  min-height: 38rem;
+  min-height: clamp(21rem, 44vh, 28rem);
   margin: 0 auto;
-  padding: clamp(4rem, 8vw, 7rem) 0 2.4rem;
+  padding: clamp(3rem, 6vw, 5rem) 0 2.2rem;
 }
 
 .copy {
-  max-width: 45rem;
+  max-width: 43rem;
 }
 
 .eyebrow,
@@ -91,11 +114,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  border: 1px solid rgba(238, 198, 116, 0.48);
+  border: 1px solid rgba(246, 214, 126, 0.46);
   border-radius: 999px;
-  background: rgba(11, 12, 42, 0.62);
-  color: #f7d992;
-  box-shadow: 0 0 24px rgba(238, 198, 116, 0.1);
+  background: rgba(3, 7, 18, 0.56);
+  color: #f6d67e;
+  box-shadow: 0 0 24px rgba(246, 214, 126, 0.08), inset 0 1px 0 rgba(255, 248, 231, 0.08);
 }
 
 .eyebrow {
@@ -106,15 +129,16 @@
 .copy h1 {
   margin: 1rem 0 0.72rem;
   font-family: CodeDestinyDisplay, CodeDestinyPremium, serif;
-  font-size: clamp(2.65rem, 7vw, 6rem);
+  font-size: clamp(2.45rem, 5.6vw, 4.9rem);
   line-height: 0.98;
   letter-spacing: 0;
+  text-shadow: 0 0 38px rgba(246, 214, 126, 0.16);
 }
 
 .copy p {
-  max-width: 39rem;
+  max-width: 37rem;
   margin: 0;
-  color: rgba(255, 248, 231, 0.86);
+  color: rgba(255, 248, 231, 0.84);
   font-size: clamp(1rem, 1.8vw, 1.18rem);
   line-height: 1.78;
 }
@@ -133,11 +157,38 @@
 
 .mandalaStage {
   position: relative;
-  width: min(32rem, 78vw);
+  width: min(23rem, 55vw);
   aspect-ratio: 1;
   justify-self: end;
   display: grid;
   place-items: center;
+}
+
+.mandalaStage::before,
+.mandalaStage::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mandalaStage::before {
+  inset: -9%;
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  background:
+    repeating-conic-gradient(from 8deg, transparent 0deg 11deg, rgba(226, 232, 240, 0.16) 11deg 11.6deg, transparent 12deg 24deg),
+    radial-gradient(circle, transparent 0 62%, rgba(246, 214, 126, 0.1) 62.5% 63%, transparent 64%);
+  animation: orbitTurn 32s linear infinite;
+}
+
+.mandalaStage::after {
+  inset: 22%;
+  border: 1px solid rgba(196, 181, 253, 0.2);
+  box-shadow:
+    0 -9.2rem 0 -0.5rem rgba(246, 214, 126, 0.76),
+    7.6rem 4.9rem 0 -0.55rem rgba(196, 181, 253, 0.72),
+    -7.2rem 5.4rem 0 -0.58rem rgba(226, 232, 240, 0.66);
+  animation: orbitTurn 22s linear infinite reverse;
 }
 
 .mandalaCore,
@@ -147,11 +198,11 @@
 .loadingMandala {
   border-radius: 50%;
   background:
-    repeating-conic-gradient(from 0deg, rgba(238, 198, 116, 0.78) 0deg 4deg, transparent 4deg 9deg),
-    radial-gradient(circle, rgba(255, 248, 231, 0.13) 0 23%, transparent 24% 37%, rgba(238, 198, 116, 0.3) 38% 39%, transparent 40% 56%, rgba(234, 92, 152, 0.18) 57% 58%, transparent 59%);
+    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.78) 0deg 3deg, transparent 3deg 9deg),
+    radial-gradient(circle, rgba(255, 248, 231, 0.13) 0 22%, transparent 23% 36%, rgba(246, 214, 126, 0.32) 37% 37.5%, transparent 38% 56%, rgba(196, 181, 253, 0.2) 57% 57.5%, transparent 58%);
   box-shadow:
-    inset 0 0 28px rgba(238, 198, 116, 0.16),
-    0 0 72px rgba(238, 198, 116, 0.18);
+    inset 0 0 28px rgba(246, 214, 126, 0.18),
+    0 0 72px rgba(246, 214, 126, 0.16);
 }
 
 .mandalaCore {
@@ -163,7 +214,7 @@
 .orbitOne,
 .orbitTwo {
   position: absolute;
-  border: 1px solid rgba(238, 198, 116, 0.28);
+  border: 1px solid rgba(246, 214, 126, 0.26);
   background: transparent;
 }
 
@@ -184,16 +235,18 @@
   grid-template-columns: minmax(20rem, 30rem) minmax(0, 1fr);
   gap: 1rem;
   width: min(1180px, calc(100% - 2rem));
-  margin: -3.5rem auto 0;
+  margin: -1.75rem auto 0;
   padding: 0 0 3rem;
 }
 
 .formPanel,
 .resultPanel {
-  border: 1px solid rgba(238, 198, 116, 0.24);
+  border: 1px solid rgba(246, 214, 126, 0.2);
   border-radius: 8px;
-  background: linear-gradient(150deg, rgba(13, 15, 52, 0.82), rgba(28, 18, 62, 0.68));
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+  background:
+    linear-gradient(150deg, rgba(5, 10, 25, 0.9), rgba(20, 16, 48, 0.76)),
+    radial-gradient(circle at 18% 0%, rgba(246, 214, 126, 0.08), transparent 18rem);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 248, 231, 0.06);
   backdrop-filter: blur(18px);
 }
 
@@ -209,7 +262,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  color: #f7d992;
+  color: #f6d67e;
 }
 
 .panelHeader span,
@@ -248,9 +301,9 @@
 .formPanel select,
 .formPanel textarea {
   width: 100%;
-  border: 1px solid rgba(238, 198, 116, 0.26);
+  border: 1px solid rgba(246, 214, 126, 0.24);
   border-radius: 8px;
-  background: rgba(255, 248, 231, 0.08);
+  background: rgba(2, 6, 23, 0.38);
   color: #fff8e7;
   padding: 0.72rem 0.78rem;
   font: inherit;
@@ -269,7 +322,7 @@
 
 .geoStatus {
   min-height: 1rem;
-  color: rgba(134, 239, 172, 0.78);
+  color: rgba(191, 219, 254, 0.82);
   font-size: 0.76rem;
   overflow-wrap: anywhere;
 }
@@ -277,9 +330,9 @@
 .formPanel input:focus,
 .formPanel select:focus,
 .formPanel textarea:focus {
-  border-color: #f0cb78;
-  background: rgba(255, 248, 231, 0.12);
-  box-shadow: 0 0 0 3px rgba(240, 203, 120, 0.14), 0 0 22px rgba(240, 203, 120, 0.08);
+  border-color: #f6d67e;
+  background: rgba(255, 248, 231, 0.09);
+  box-shadow: 0 0 0 3px rgba(246, 214, 126, 0.13), 0 0 24px rgba(139, 92, 246, 0.12);
 }
 
 .checkRow {
@@ -292,7 +345,7 @@
 .checkRow input {
   width: 1rem;
   height: 1rem;
-  accent-color: #f0cb78;
+  accent-color: #f6d67e;
 }
 
 .softNotice,
@@ -307,9 +360,9 @@
 
 .softNotice,
 .noticeBox {
-  border: 1px solid rgba(238, 198, 116, 0.28);
-  background: rgba(238, 198, 116, 0.1);
-  color: #f8e2aa;
+  border: 1px solid rgba(246, 214, 126, 0.24);
+  background: rgba(246, 214, 126, 0.09);
+  color: #f8e7b4;
 }
 
 .errorBox {
@@ -333,18 +386,18 @@
   min-height: 3.25rem;
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f6d98d, #e4a54f 52%, #e96f9e);
-  color: #140d27;
+  background: linear-gradient(135deg, #f8e7b4 0%, #f0bd59 47%, #c4b5fd 100%);
+  color: #130b23;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 16px 36px rgba(238, 198, 116, 0.18);
+  box-shadow: 0 16px 36px rgba(246, 214, 126, 0.18), 0 0 26px rgba(196, 181, 253, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .primaryButton:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: saturate(1.05);
-  box-shadow: 0 20px 42px rgba(238, 198, 116, 0.26), 0 0 22px rgba(234, 92, 152, 0.18);
+  box-shadow: 0 20px 42px rgba(246, 214, 126, 0.26), 0 0 28px rgba(196, 181, 253, 0.2);
 }
 
 .primaryButton:disabled {
@@ -354,13 +407,25 @@
 
 .resultPanel {
   position: relative;
-  min-height: 41rem;
+  min-height: 39rem;
   padding: 1rem;
   overflow: hidden;
 }
 
 .resultPanel::before {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(150deg, transparent 0 62%, rgba(246, 214, 126, 0.07) 63%, transparent 64%),
+    radial-gradient(circle at 88% 14%, rgba(196, 181, 253, 0.1), transparent 14rem),
+    radial-gradient(circle at 12% 86%, rgba(92, 196, 255, 0.08), transparent 16rem);
+}
+
+.resultPanel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .cosmosLoading {
@@ -478,16 +543,17 @@
   place-items: center;
   align-content: center;
   min-height: 36rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: rgba(255, 248, 231, 0.78);
 }
 
 .emptyMandala {
-  width: min(16rem, 62vw);
+  width: min(14rem, 58vw);
   aspect-ratio: 1;
   margin-bottom: 1.1rem;
-  opacity: 0.72;
-  animation: mandalaDrift 30s linear infinite;
+  opacity: 0.82;
+  animation: mandalaDrift 34s linear infinite;
 }
 
 .emptyState h2 {
@@ -544,10 +610,10 @@
 .sectionCard,
 .userMsg {
   min-width: 0;
-  border: 1px solid rgba(238, 198, 116, 0.22);
+  border: 1px solid rgba(246, 214, 126, 0.18);
   border-radius: 8px;
-  background: rgba(255, 248, 231, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 248, 231, 0.05);
+  background: rgba(2, 6, 23, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 231, 0.06), 0 12px 34px rgba(0, 0, 0, 0.16);
 }
 
 .summaryGrid article,
@@ -561,7 +627,7 @@
 .sectionCard span,
 .userMsg span {
   display: block;
-  color: #f0cb78;
+  color: #f6d67e;
   font-size: 0.78rem;
 }
 
@@ -580,10 +646,10 @@
 }
 
 .keywordRow span {
-  border: 1px solid rgba(234, 92, 152, 0.36);
+  border: 1px solid rgba(196, 181, 253, 0.28);
   border-radius: 999px;
-  background: rgba(234, 92, 152, 0.14);
-  color: #ffd5e5;
+  background: rgba(139, 92, 246, 0.14);
+  color: #ddd6fe;
   padding: 0.38rem 0.62rem;
   font-size: 0.84rem;
 }
@@ -604,7 +670,7 @@
 
 .chartCards p {
   margin: 0;
-  color: rgba(255, 248, 231, 0.72);
+  color: rgba(255, 248, 231, 0.76);
   line-height: 1.55;
 }
 
@@ -630,8 +696,8 @@
 .userMsg {
   margin-left: min(4rem, 12vw);
   padding: 1rem;
-  border-color: rgba(234, 92, 152, 0.34);
-  background: rgba(234, 92, 152, 0.12);
+  border-color: rgba(196, 181, 253, 0.28);
+  background: rgba(139, 92, 246, 0.14);
 }
 
 .chatInput {
@@ -642,14 +708,14 @@
   gap: 0.5rem;
   margin-top: 1rem;
   padding-top: 0.75rem;
-  background: linear-gradient(180deg, rgba(13, 15, 52, 0), rgba(13, 15, 52, 0.95) 32%);
+  background: linear-gradient(180deg, rgba(5, 10, 25, 0), rgba(5, 10, 25, 0.96) 32%);
 }
 
 .chatInput textarea {
   min-height: 4rem;
-  border: 1px solid rgba(238, 198, 116, 0.25);
+  border: 1px solid rgba(246, 214, 126, 0.22);
   border-radius: 8px;
-  background: rgba(255, 248, 231, 0.08);
+  background: rgba(2, 6, 23, 0.46);
   color: #fff8e7;
   padding: 0.75rem;
   resize: vertical;
@@ -658,8 +724,8 @@
 .chatInput button {
   border: 0;
   border-radius: 8px;
-  background: #f0cb78;
-  color: #140d27;
+  background: linear-gradient(135deg, #f8e7b4, #c4b5fd);
+  color: #130b23;
   cursor: pointer;
 }
 
@@ -682,9 +748,9 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.8rem 0 1rem;
-  background: rgba(13, 15, 52, 0.92);
+  background: rgba(5, 10, 25, 0.92);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+  border-bottom: 1px solid rgba(196, 181, 253, 0.16);
 }
 
 .structuredHeader p {
@@ -714,9 +780,9 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid rgba(124, 58, 237, 0.24);
+  border: 1px solid rgba(196, 181, 253, 0.2);
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(251, 191, 36, 0.06));
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.13), rgba(246, 214, 126, 0.07));
 }
 
 .chartSummaryCard article {
@@ -749,8 +815,8 @@
   gap: 0.25rem;
   justify-items: center;
   padding: 0.9rem;
-  border-top: 1px solid rgba(124, 58, 237, 0.16);
-  border-bottom: 1px solid rgba(124, 58, 237, 0.16);
+  border-top: 1px solid rgba(196, 181, 253, 0.14);
+  border-bottom: 1px solid rgba(246, 214, 126, 0.14);
 }
 
 .dashaBanner strong {
@@ -794,7 +860,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #7c3aed, #a78bfa 50%, #fbbf24);
+  background: linear-gradient(90deg, #7c3aed, #c4b5fd 50%, #f6d67e);
   transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -802,7 +868,7 @@
   display: grid;
   gap: 0.75rem;
   padding-bottom: 1.4rem;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.14);
+  border-bottom: 1px solid rgba(196, 181, 253, 0.14);
 }
 
 .structuredSection div {
@@ -882,16 +948,18 @@
   }
 
   .heroInner {
-    min-height: 30rem;
+    min-height: auto;
+    padding-top: 3.2rem;
+    padding-bottom: 1.7rem;
   }
 
   .mandalaStage {
-    width: min(24rem, 76vw);
+    width: min(18rem, 68vw);
     justify-self: center;
   }
 
   .workspace {
-    margin-top: -1rem;
+    margin-top: 0;
   }
 
   .summaryGrid,
@@ -908,12 +976,28 @@
   }
 
   .heroInner {
-    min-height: 31rem;
-    padding-top: 2.6rem;
+    min-height: auto;
+    padding-top: 2.2rem;
   }
 
   .copy h1 {
-    font-size: 2.55rem;
+    font-size: 2.4rem;
+  }
+
+  .mandalaStage {
+    width: min(14rem, 64vw);
+  }
+
+  .heroMeta span {
+    font-size: 0.78rem;
+  }
+
+  .resultPanel {
+    min-height: 32rem;
+  }
+
+  .emptyState {
+    min-height: 28rem;
   }
 
   .formGrid,

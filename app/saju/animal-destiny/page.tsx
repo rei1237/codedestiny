@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AnimalDestinyPage from "./components/AnimalDestinyPage";
+import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -32,5 +32,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <AnimalDestinyPage />;
+  return <AnimalDestinyRouteClient />;
 }

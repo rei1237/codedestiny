@@ -2,15 +2,37 @@ import type { TarotOrientation } from "./tarotCards";
 import type { TenGodId } from "./tenGods";
 
 export type TeaHouseEmotionTone = "pink" | "purple" | "blue" | "gold" | "green";
+export type FortuneTeaHouseConsultMode = "tarot" | "saju" | "sukuyo";
+export type FortuneTeaHouseCalendarType = "solar" | "lunar";
+
+export type FortuneTeaHouseSukuyoPersonInput = {
+  name?: string;
+  birthDate?: string;
+  calendarType?: FortuneTeaHouseCalendarType;
+  gender?: string;
+};
+
+export type FortuneTeaHouseSukuyoInput = {
+  user: FortuneTeaHouseSukuyoPersonInput;
+  partner: FortuneTeaHouseSukuyoPersonInput;
+  relationshipType?: string;
+  focus?: string;
+  currentSituation?: string;
+};
 
 export type FortuneTeaHouseConsultRequest = {
+  consultationMode?: FortuneTeaHouseConsultMode;
+  attemptId?: string;
+  resultId?: string;
+  jobId?: string;
   nickname?: string;
   concernTopic?: string;
   birthInfo?: string;
   birthDate?: string;
   birthTime?: string;
   gender?: string;
-  calendarType?: "solar" | "lunar";
+  calendarType?: FortuneTeaHouseCalendarType;
+  sukuyo?: FortuneTeaHouseSukuyoInput;
   selectedTeaCupId: string;
   selectedTeaCupName: string;
   selectedTeaCupTopic: string;
@@ -18,14 +40,36 @@ export type FortuneTeaHouseConsultRequest = {
 };
 
 export type FortuneTeaHouseQuestionInput = {
+  consultationMode: FortuneTeaHouseConsultMode;
   nickname?: string;
   concernTopic: string;
   birthInfo?: string;
   birthDate?: string;
   birthTime?: string;
   gender?: string;
-  calendarType?: "solar" | "lunar";
+  calendarType?: FortuneTeaHouseCalendarType;
+  sukuyo?: FortuneTeaHouseSukuyoInput;
   question: string;
+};
+
+export type FortuneTeaHouseHoneyDropBonusAdvice = {
+  title: string;
+  message: string;
+  action: string;
+  source?: "gemini" | "local_fallback" | "guest_local";
+};
+
+export type FortuneTeaHouseHoneyDropsState = {
+  currentHoneyDrops: number;
+  totalHoneyDrops: number;
+  lastEarnedAt?: string;
+  resultId?: string;
+  earnedThisResult?: boolean;
+  duplicateResult?: boolean;
+  unlocked: boolean;
+  authenticated?: boolean;
+  disabled?: boolean;
+  reason?: string;
 };
 
 export type FortuneTeaSajuTenGodSnapshot = {
@@ -115,7 +159,94 @@ export type FortuneTeaTarotSnapshot = {
   source: "existing-ai-tarot" | "existing-card-data" | "fallback";
 };
 
+export type FortuneTeaSukuyoPersonSnapshot = {
+  name: string;
+  birthDate?: string;
+  calendarType?: FortuneTeaHouseCalendarType;
+  gender?: string;
+  sukuyoName?: string;
+  sukuyoHanja?: string;
+  index?: number;
+  element?: string;
+  direction?: string;
+  keywords?: string[];
+};
+
+export type FortuneTeaSukuyoCalculationPerson = {
+  lunarYear?: number;
+  lunarMonth?: number;
+  lunarDay?: number;
+  isLeapMonth?: boolean;
+  source?: string;
+  group?: string;
+  guardian?: string;
+  yinYang?: string;
+  keyword?: string;
+};
+
+export type FortuneTeaSukuyoRelationDetail = {
+  typeAToB?: string;
+  typeBToA?: string;
+  intensity?: string;
+  userToPartnerMeaning?: string;
+  partnerToUserMeaning?: string;
+};
+
+export type FortuneTeaSukuyoScoreSummary = {
+  total: number;
+  destiny: number;
+  harmony: number;
+  emotion: number;
+  growth: number;
+  stability: number;
+  label: string;
+};
+
+export type FortuneTeaSukuyoElementHarmony = {
+  userElement?: string;
+  partnerElement?: string;
+  relation?: string;
+  summary: string;
+};
+
+export type FortuneTeaSukuyoCompatibilitySnapshot = {
+  available: boolean;
+  calculationSource?: string;
+  title: string;
+  summary: string;
+  relationshipType?: string;
+  focus?: string;
+  currentSituation?: string;
+  user: FortuneTeaSukuyoPersonSnapshot;
+  partner: FortuneTeaSukuyoPersonSnapshot;
+  calculationBasis?: {
+    user: FortuneTeaSukuyoCalculationPerson;
+    partner: FortuneTeaSukuyoCalculationPerson;
+  };
+  relationDetail?: FortuneTeaSukuyoRelationDetail;
+  relationType?: string;
+  relationTypeHan?: string;
+  distanceLabel?: string;
+  distanceTier?: "same" | "near" | "middle" | "far";
+  forwardDistance?: number;
+  reverseDistance?: number;
+  shortestDistance?: number;
+  compatibilityIndex?: number;
+  scores?: FortuneTeaSukuyoScoreSummary;
+  elementHarmony?: FortuneTeaSukuyoElementHarmony;
+  direction?: string;
+  strengths: string[];
+  cautions: string[];
+  adviceKeywords: string[];
+  roleGuide?: {
+    userAction: string;
+    partnerAction: string;
+  };
+};
+
 export type FortuneTeaHouseConsultResponse = {
+  resultId?: string;
+  consultationMode?: FortuneTeaHouseConsultMode;
   sessionTitle: string;
   questionSummary: string;
   teaCup: {
@@ -153,6 +284,7 @@ export type FortuneTeaHouseConsultResponse = {
     meaning: string;
     reading: string;
   };
+  sukuyoCompatibility?: FortuneTeaSukuyoCompatibilitySnapshot;
   emotionAnalysis: Array<{
     label: string;
     value: number;
@@ -179,5 +311,6 @@ export type FortuneTeaHouseConsultResponse = {
   }>;
   actionPrescription: string;
   luckyKeywords: string[];
+  honeyDropBonusAdvice?: FortuneTeaHouseHoneyDropBonusAdvice;
   closingLine: string;
 };

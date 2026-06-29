@@ -24,7 +24,7 @@ const SW_RETIRE_VERSION = process.env.NEXT_PUBLIC_BUILD_TIME
   || process.env.NEXT_PUBLIC_APP_VERSION
   || "dev";
 const DEFER_GUARD_KEY = "app_version_defer_guard";
-const VERSION_CHECK_INTERVAL_MS = 15_000;
+const VERSION_CHECK_INTERVAL_MS = 60_000;
 
 type RuntimeWindow = Window & Record<string, unknown>;
 
@@ -505,6 +505,8 @@ export default function AppVersionGuard() {
 
     const runSafe = async () => {
       if (cancelled || checkInFlightRef.current) return;
+      if (document.visibilityState !== "visible") return;
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
 
       checkInFlightRef.current = true;
       try {
@@ -528,6 +530,7 @@ export default function AppVersionGuard() {
 
     document.addEventListener("visibilitychange", onWake);
     window.addEventListener("focus", onWake);
+    window.addEventListener("online", onWake);
     window.addEventListener("cd:critical-operation-state", onWake as EventListener);
 
     return () => {
@@ -535,6 +538,7 @@ export default function AppVersionGuard() {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onWake);
       window.removeEventListener("focus", onWake);
+      window.removeEventListener("online", onWake);
       window.removeEventListener("cd:critical-operation-state", onWake as EventListener);
     };
   }, [runVersionCheck]);

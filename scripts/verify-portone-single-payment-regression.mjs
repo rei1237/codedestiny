@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
@@ -9,8 +9,14 @@ const portoneSource = readFileSync(resolve(root, "worker/lib/portone.js"), "utf8
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
-const pointsPageSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
-const mePageSource = readFileSync(resolve(root, "app/me/page.tsx"), "utf8");
+const pointsPageSourcePath = existsSync(resolve(root, "app/points/PointsClient.tsx"))
+  ? "app/points/PointsClient.tsx"
+  : "app/points/page.tsx";
+const pointsPageSource = readFileSync(resolve(root, pointsPageSourcePath), "utf8");
+const mePageSourcePath = existsSync(resolve(root, "app/me/MeClient.tsx"))
+  ? "app/me/MeClient.tsx"
+  : "app/me/page.tsx";
+const mePageSource = readFileSync(resolve(root, mePageSourcePath), "utf8");
 const pagesHeadersSource = readFileSync(resolve(root, "public/_headers"), "utf8");
 const clientPaymentSource = `${indexSource}\n${destinyProfileSource}`;
 

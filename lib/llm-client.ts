@@ -9,6 +9,7 @@ export interface LLMRequest {
   apiEndpoint?: string;
   timeoutMs?: number;
   fallbackToWorkersAI?: boolean;
+  responseMimeType?: string;
   geminiParts?: Array<{
     text?: string;
     inline_data?: {
@@ -203,6 +204,7 @@ async function callGeminiPrimary(
     generationConfig: {
       maxOutputTokens: normalized.maxTokens,
       temperature: normalized.temperature,
+      ...(normalized.responseMimeType ? { responseMimeType: normalized.responseMimeType } : {}),
     },
   };
 

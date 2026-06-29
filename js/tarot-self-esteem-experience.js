@@ -7,21 +7,21 @@
   "use strict";
 
   var POSITION_LABELS = {
-    past_debuff: "내가 남의 눈치를 살피게 된 이유",
-    inner_monster: "왜 나는 거절을 어려워 할까",
-    current_damage: "눈치 보는 습관이 내 마음을 소모시키는 지점",
-    mind_shield: "타인의 실망 앞에서도 내 기준을 지키는 방법",
-    levelup_mastery: "내 마음을 1순위로 챙기는 방법",
+    past_debuff: "내 기준이 흐려지기 시작한 자리",
+    inner_monster: "거절 앞에서 마음이 작아지는 이유",
+    current_damage: "타인의 시선이 지금 마음을 소모시키는 지점",
+    mind_shield: "실망을 두려워하지 않고 나를 지키는 말",
+    levelup_mastery: "오늘 다시 붙잡을 나의 기준",
   };
 
   var POSITION_ORDER = ["past_debuff", "inner_monster", "current_damage", "mind_shield", "levelup_mastery"];
 
   var GUIDE_LABELS = [
-    "첫 번째 카드를 뒤집어 주세요.",
-    "두 번째 카드를 뒤집어 주세요.",
-    "세 번째 카드를 뒤집어 주세요.",
-    "네 번째 카드를 뒤집어 주세요.",
-    "다섯 번째 카드를 뒤집어 주세요.",
+    "첫 번째 카드를 열고, 마음이 처음 흔들린 자리를 바라봐 주세요.",
+    "두 번째 카드를 열고, 거절 앞에서 작아졌던 마음을 비춰 주세요.",
+    "세 번째 카드를 열고, 지금 가장 소모되는 지점을 확인해 주세요.",
+    "네 번째 카드를 열고, 나를 지켜 줄 말을 받아 주세요.",
+    "다섯 번째 카드를 열고, 오늘 다시 붙잡을 기준을 만나 주세요.",
   ];
 
   /* Client-side fallback deck (78 cards) when API is unavailable */
@@ -55,21 +55,21 @@
   var TAROT_SELF_ESTEEM_COPY_BY_LOCALE = {
     ko: {
       positions: {
-        past_debuff: "내가 나의 가치를 낮추게 된 이유",
-        inner_monster: "나는 왜 거절이 어려울까",
-        current_damage: "눈치 보는 습관이 지금 내 마음을 소모시키는 지점",
-        mind_shield: "타인의 기대 앞에서도 나를 지키는 방법",
-        levelup_mastery: "내 마음을 1순위로 챙기는 방법",
+        past_debuff: "내 기준이 흐려지기 시작한 자리",
+        inner_monster: "거절 앞에서 마음이 작아지는 이유",
+        current_damage: "타인의 시선이 지금 내 마음을 소모시키는 지점",
+        mind_shield: "실망을 두려워하지 않고 나를 지키는 말",
+        levelup_mastery: "오늘 다시 붙잡을 나의 기준",
       },
       guides: [
-        "첫 번째 카드를 뒤집어 주세요.",
-        "두 번째 카드를 뒤집어 주세요.",
-        "세 번째 카드를 뒤집어 주세요.",
-        "네 번째 카드를 뒤집어 주세요.",
-        "다섯 번째 카드를 뒤집어 주세요.",
+        "첫 번째 카드를 열고, 마음이 처음 흔들린 자리를 바라봐 주세요.",
+        "두 번째 카드를 열고, 거절 앞에서 작아졌던 마음을 비춰 주세요.",
+        "세 번째 카드를 열고, 지금 가장 소모되는 지점을 확인해 주세요.",
+        "네 번째 카드를 열고, 나를 지켜 줄 말을 받아 주세요.",
+        "다섯 번째 카드를 열고, 오늘 다시 붙잡을 기준을 만나 주세요.",
       ],
-      guideComplete: "모든 카드가 열렸습니다. 마음의 빛이 당신의 기준을 밝혔어요.",
-      guideDefault: "카드를 뒤집어 주세요.",
+      guideComplete: "다섯 장이 모두 열렸습니다. 이제 오늘 지킬 기준이 조용히 떠오릅니다.",
+      guideDefault: "마음이 이끄는 카드를 천천히 열어 주세요.",
       positionFallback: "자리 {number}",
       cardFallback: "카드 {number}",
       selectedCard: "선택된 카드",
@@ -77,7 +77,7 @@
       reversed: "역방향",
       keywordsLabel: "키워드",
       messageLabel: "메시지",
-      todayRecoveryLabel: "오늘의 기준 회복",
+      todayRecoveryLabel: "오늘 붙잡을 기준",
       promptIntro: "자기 기준 회복 타로에서 받은 아래 흐름을 바탕으로, 지금 내가 다시 내 편에 서는 길을 깊게 봐주세요.",
       promptTone: "차분하고 신뢰감 있는 타로 리더처럼 말해주세요. 타인의 반응을 예언처럼 단정하기보다, 내 기준을 흔드는 마음과 회복 가능한 선택을 중심으로 읽어주세요.",
       promptOpening: "처음 비친 장면",
@@ -92,18 +92,18 @@
       promptClosing: "이 흐름에서 내가 남의 시선을 맞추느라 잃어버린 기준, 다시 돌봐야 할 감정과 책임, 오늘 당장 지킬 수 있는 작은 경계를 차분히 봐주세요. 마지막에는 내 기준을 세우는 짧은 선언 3문장과 오늘 밤 실천할 회복 의식을 건네주세요.",
       promptOpeningFallback: "마음이 자기 기준을 되찾아야 하는 장면부터 짚어주세요.",
       promptFlowFallback: "카드들이 이어서 보여주는 자기 기준 회복 흐름을 연결해 주세요.",
-      aiPromptKicker: "AI에게 건넬 자기 기준 질문문",
-      aiPromptTitle: "다시 내 편에 서는 문장을 더 깊이 비추기",
+      aiPromptKicker: "더 깊이 묻고 싶은 문장",
+      aiPromptTitle: "내 편에 서는 길을 한 번 더 비추기",
       aiPromptLead: "아래 문장을 그대로 건네면 오늘 펼쳐진 카드와 기준 회복 흐름을 바탕으로 더 깊은 해석을 이어갈 수 있습니다.",
-      copyPrompt: "프롬프트 복사",
+      copyPrompt: "문장 복사",
       copySuccess: "복사했습니다.",
       copyManual: "직접 선택해 복사해 주세요.",
-      openingMessage: "오프닝 메시지",
+      openingMessage: "처음 비친 마음",
       recoveryGuide: "자기 기준 회복 가이드",
       todayRecoveryPractice: "오늘의 회복 실천",
-      summaryTitle: "오늘의 자기 기준 요약",
+      summaryTitle: "오늘 붙잡을 기준",
       fiveCardFlow: "다섯 장의 흐름",
-      corePatternField: "핵심 흐름",
+      corePatternField: "가장 또렷한 흐름",
       rootCauseField: "마음이 흔들리기 시작한 곳",
       mainDamageField: "가장 크게 소모되는 지점",
       recoveryKeyField: "회복의 열쇠",
@@ -112,11 +112,11 @@
       questionLabel: "질문",
       cardLabel: "카드",
       directionLabel: "방향",
-      fieldQuickAnswer: "한눈에 보는 답",
-      fieldPatternReason: "왜 이런 패턴이 생겼을까",
-      fieldRealLife: "실제 생활에서는 이렇게 나타나요",
-      fieldSignal: "이 카드가 비추는 반복 신호",
-      fieldImpact: "내 마음에 남기는 영향",
+      fieldQuickAnswer: "카드가 바로 비추는 말",
+      fieldPatternReason: "이 마음이 반복된 이유",
+      fieldRealLife: "현실에서 드러나는 모습",
+      fieldSignal: "카드가 비추는 반복 신호",
+      fieldImpact: "마음에 남은 흔적",
       fieldRecovery: "회복 방향",
       fieldPractice: "오늘의 연습",
       fieldCaution: "조심할 마음의 결론",
@@ -142,13 +142,13 @@
       shareMasteryLabel: "오늘의 회복 문장",
       shareLinkLabel: "자기 기준 회복 타로 보기",
       shareCopySuccess: "카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요.",
-      fallbackOpening: "다섯 장의 카드가 당신의 자기 기준 회복 흐름을 안내합니다. 오래된 눈치의 습관과 지금 마음이 지친 지점을 비추고, 다시 내 편에 서는 방향을 차분히 열어줍니다.",
-      fallbackGuidance: "다섯 장의 카드가 모두 열렸습니다. 자기 기준은 큰 결심보다 작은 선택을 지키는 마음에서 회복됩니다. 오늘 한 가지 경계를 행동으로 옮기며 마음의 중심을 천천히 되찾아 보세요.",
-      fallbackActionOne: "오늘 하루 무리한 부탁 하나에 바로 답하지 말고, 잠시 생각할 시간을 요청해 보세요.",
-      fallbackActionTwo: "내가 진짜 원하는 것을 한 문장으로 적고, 그 문장을 기준으로 선택해 보세요.",
-      fallbackActionThree: "상대의 기분을 추측하기 전에 지금 내 감정을 먼저 이름 붙여 보세요.",
-      fallbackActionFour: "거울 앞에서 나는 충분히 존중받을 가치가 있다고 세 번 말해 보세요.",
-      fallbackActionFive: "오늘 가장 마음에 남는 카드 한 장의 메시지를 메모해 두고 잠들기 전 다시 읽어 보세요.",
+      fallbackOpening: "다섯 장의 카드가 타인의 시선에 오래 머물다 흐려진 마음의 선을 비춥니다. 오래된 눈치의 습관을 지나, 다시 내 편에 서는 길이 조용히 열립니다.",
+      fallbackGuidance: "다섯 장이 모두 열렸습니다. 자기 기준은 큰 결심보다 오늘 지킬 작은 선택에서 되살아납니다. 한 가지 선을 부드럽게 지키며 마음의 중심을 다시 데려오세요.",
+      fallbackActionOne: "오늘 하루 무리한 부탁 하나에는 바로 답하지 말고, 마음이 정리될 시간을 먼저 허락해 주세요.",
+      fallbackActionTwo: "내가 진짜 원하는 것을 한 문장으로 적고, 그 문장을 오늘의 기준으로 삼아 보세요.",
+      fallbackActionThree: "상대의 기분을 추측하기 전에 지금 내 감정을 먼저 이름 붙여 주세요.",
+      fallbackActionFour: "거울 앞에서 나는 충분히 존중받을 가치가 있다고 천천히 세 번 말해 주세요.",
+      fallbackActionFive: "가장 마음에 남는 카드 한 장의 메시지를 메모하고, 잠들기 전 다시 읽어 주세요.",
     },
     en: {
       positions: {
@@ -761,9 +761,37 @@
     });
   }
 
+  function ensureTarotSelfEsteemStyle() {
+    var stylePath = "/styles/tarot-self-esteem-quest.css";
+    var link = document.querySelector('link[href*="' + stylePath + '"], link[data-cd-noncritical-style-src*="' + stylePath + '"]');
+    if (link) {
+      var href = link.getAttribute("href") || link.getAttribute("data-cd-noncritical-style-src");
+      if (href) link.setAttribute("href", href);
+      link.setAttribute("rel", "stylesheet");
+      link.setAttribute("media", "all");
+      return;
+    }
+
+    var version = "";
+    Array.prototype.some.call(document.scripts || [], function (script) {
+      var src = script && script.getAttribute ? String(script.getAttribute("src") || "") : "";
+      if (src.indexOf("/js/tarot-self-esteem-experience.js") < 0) return false;
+      var queryIndex = src.indexOf("?");
+      if (queryIndex >= 0) version = src.slice(queryIndex);
+      return true;
+    });
+
+    link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = stylePath + version;
+    link.media = "all";
+    document.head.appendChild(link);
+  }
+
   function openTarotSelfEsteemModal() {
     var overlay = byId("tarotSelfEsteemOverlay");
     if (!overlay) return;
+    ensureTarotSelfEsteemStyle();
     overlay.style.display = "block";
     overlay.classList.add("is-open");
     if (window._perf && window._perf.lockBody) window._perf.lockBody();

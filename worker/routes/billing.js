@@ -94,6 +94,18 @@ const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
   ),
 );
 
+const SAJU_ANALYSIS_ENTITLEMENT_SERVICE_KEYS = Object.freeze(["saju", "ziwei"]);
+const SAJU_ANALYSIS_ENTITLEMENT_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+  ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+});
+const SAJU_ANALYSIS_CORE_CONTENT_IDS = Object.freeze(Object.values(SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY));
+const SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS = Object.freeze({
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+});
+
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
 const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
@@ -3225,6 +3237,58 @@ function logPaidAccessStage(stage, details = {}) {
   }
 }
 
+function maskSajuUnlockLogId(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (text.length <= 8) return text;
+  return `...${text.slice(-8)}`;
+}
+
+function withSajuEntitlementNoStore(response) {
+  const headers = response?.headers;
+  if (!headers || typeof headers.set !== "function") return response;
+  headers.set("Cache-Control", SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS["Cache-Control"]);
+  headers.set("Pragma", SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS.Pragma);
+  headers.set("Expires", SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS.Expires);
+  return response;
+}
+
+function logSajuUnlockEntitlement(details = {}) {
+  const payload = {
+    userId: maskSajuUnlockLogId(details.userId),
+    attemptId: maskSajuUnlockLogId(details.attemptId),
+    paymentId: maskSajuUnlockLogId(details.paymentId),
+    purchaseStatus: String(details.purchaseStatus || ""),
+    unlockedContentIdsLength: Number(details.unlockedContentIdsLength || 0),
+    dbReadMs: Number(details.dbReadMs || 0),
+    totalMs: Number(details.totalMs || 0),
+    cacheHeader: SAJU_ANALYSIS_ENTITLEMENT_NO_STORE_HEADERS["Cache-Control"],
+  };
+  try {
+    console.log("[Saju Unlock Entitlement]", JSON.stringify(payload));
+  } catch (e) {
+    console.log("[Saju Unlock Entitlement]", payload);
+  }
+}
+
+function logSajuPaymentUnlockApplied(details = {}) {
+  const payload = {
+    userId: maskSajuUnlockLogId(details.userId),
+    attemptId: maskSajuUnlockLogId(details.attemptId),
+    paymentId: maskSajuUnlockLogId(details.paymentId),
+    productId: String(details.productId || ""),
+    contentIds: Array.isArray(details.contentIds) ? details.contentIds.map((item) => String(item || "")).filter(Boolean) : [],
+    paymentVerified: details.paymentVerified === true,
+    unlockSaved: details.unlockSaved === true,
+    totalMs: Number(details.totalMs || 0),
+  };
+  try {
+    console.log("[Saju Payment Unlock Applied]", JSON.stringify(payload));
+  } catch (e) {
+    console.log("[Saju Payment Unlock Applied]", payload);
+  }
+}
+
 async function consumeCoinWithRetry(request, env, delegatedBody) {
   const maxAttempts = 2;
   const consumeTimeoutMs = Math.max(2000, Number(env?.BILLING_COIN_GATE_TIMEOUT_MS || env?.COIN_GATE_TIMEOUT_MS || 15000));
@@ -5795,6 +5859,113 @@ async function readBillingSnapshot(request, env, options = {}) {
   }
 }
 
+function resolveSajuAnalysisPurchaseStatus(docs = [], passAvailable = false) {
+  const sources = new Set(
+    (Array.isArray(docs) ? docs : [])
+      .map((doc) => String(doc?.source || "").trim().toUpperCase())
+      .filter(Boolean),
+  );
+  if (sources.has(CONTENT_ENTITLEMENT_SOURCES.MONTHLY)) return "monthly";
+  if (sources.has(CONTENT_ENTITLEMENT_SOURCES.PASS)) return "pass";
+  if (
+    sources.has(CONTENT_ENTITLEMENT_SOURCES.PAYMENT)
+    || sources.has(CONTENT_ENTITLEMENT_SOURCES.COIN)
+    || sources.has(CONTENT_ENTITLEMENT_SOURCES.ADMIN)
+    || sources.has(CONTENT_ENTITLEMENT_SOURCES.BACKFILL)
+  ) return "paid";
+  return passAvailable ? "pass" : "none";
+}
+
+async function handleSajuAnalysisEntitlements(request, env) {
+  const startedAt = Date.now();
+  const url = new URL(request.url);
+  const requestedAttemptId = cleanProfileId(url.searchParams.get("attemptId") || "");
+  const requestedProfileId = cleanProfileId(url.searchParams.get("profileId") || "");
+  const snapshot = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false });
+
+  if (!snapshot?.authenticated || !snapshot?.authUserId) {
+    return withSajuEntitlementNoStore(failure(401, "AUTH_REQUIRED", "Authentication is required."));
+  }
+  if (snapshot?.degraded === true) {
+    return withSajuEntitlementNoStore(failure(503, "BALANCE_SNAPSHOT_UNAVAILABLE", "Billing snapshot is temporarily unavailable."));
+  }
+
+  const profileId = cleanProfileId(requestedProfileId || requestedAttemptId || snapshot.currentProfileId || "");
+  const attemptId = requestedAttemptId || profileId;
+  if (!profileId) {
+    return withSajuEntitlementNoStore(failure(400, "MISSING_PROFILE_ID", "Profile id is required."));
+  }
+
+  const dbStartedAt = Date.now();
+  const entitlementSnapshot = await getUnlockedContentSnapshot({
+    userId: String(snapshot.authUserId || ""),
+    profileId,
+    serviceKeys: SAJU_ANALYSIS_ENTITLEMENT_SERVICE_KEYS,
+  });
+  const dbReadMs = Date.now() - dbStartedAt;
+  const unlockedContentIds = Array.from(new Set(entitlementSnapshot.contentKeys || []));
+  const unlockedContentSet = new Set(unlockedContentIds);
+  const unlockedFeatures = Array.from(new Set(entitlementSnapshot.featureKeys || []));
+  const unlockMap = { ...(entitlementSnapshot.unlockMap || {}) };
+  const unlocks = Object.create(null);
+
+  for (const [featureKey, contentKey] of Object.entries(SAJU_ANALYSIS_ENTITLEMENT_CONTENT_BY_FEATURE_KEY)) {
+    const unlocked = unlockedContentSet.has(contentKey);
+    unlocks[contentKey] = {
+      unlocked,
+      featureKey,
+      contentKey,
+      serviceKey: contentKey.startsWith("ziwei.") ? "ziwei" : "saju",
+    };
+    unlockMap[featureKey] = unlocked;
+  }
+
+  const subscriptionPass = buildMembershipPassFromBillingSnapshot(snapshot);
+  const passAvailable = Boolean(subscriptionPass && canUseByPass(subscriptionPass.entitlement || subscriptionPass, 50));
+  const hasFullAccess = SAJU_ANALYSIS_CORE_CONTENT_IDS.every((contentId) => unlockedContentSet.has(contentId));
+  const purchaseStatus = resolveSajuAnalysisPurchaseStatus(entitlementSnapshot.docs || [], passAvailable);
+  const latestUnlockedAt = (entitlementSnapshot.docs || [])
+    .map((doc) => new Date(doc?.unlockedAt || doc?.createdAt || 0).getTime())
+    .filter((value) => Number.isFinite(value) && value > 0)
+    .sort((a, b) => b - a)[0];
+  const updatedAt = new Date(latestUnlockedAt || Date.now()).toISOString();
+  const data = {
+    success: true,
+    attemptId,
+    profileId,
+    authenticated: true,
+    currentProfileId: profileId,
+    unlockedContentIds,
+    unlockedContentKeys: unlockedContentIds,
+    paidContentIds: unlockedContentIds,
+    unlockedFeatures,
+    unlockMap,
+    unlocks,
+    accessUnlocks: {
+      ok: true,
+      profileId,
+      serviceKeys: SAJU_ANALYSIS_ENTITLEMENT_SERVICE_KEYS,
+      unlockedContentKeys: unlockedContentIds,
+      unlocks,
+    },
+    passAvailable,
+    hasFullAccess,
+    purchaseStatus,
+    updatedAt,
+  };
+
+  logSajuUnlockEntitlement({
+    userId: snapshot.authUserId,
+    attemptId,
+    purchaseStatus,
+    unlockedContentIdsLength: unlockedContentIds.length,
+    dbReadMs,
+    totalMs: Date.now() - startedAt,
+  });
+
+  return withSajuEntitlementNoStore(success(data, "Saju analysis entitlement snapshot loaded."));
+}
+
 async function handleUnlockStatus(request, env) {
   const url = new URL(request.url);
   const categoryKey = String(url.searchParams.get("categoryKey") || "").trim();
@@ -6029,6 +6200,7 @@ async function handleLegacyRefund(request, env) {
 }
 
 async function delegateToPayments(request, env, targetPath, body, options = {}) {
+  const delegatedStartedAt = Date.now();
   let delegatedResponse = null;
   let payload = {};
   try {
@@ -6061,6 +6233,24 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
       toMessage(payload, "결제 요청 실패"),
     );
   }
+
+  try {
+    const accessGrant = payload?.accessGrant && typeof payload.accessGrant === "object" ? payload.accessGrant : null;
+    const featureKey = String(accessGrant?.featureKey || body?.featureKey || options?.pricing?.featureKey || "").trim();
+    const contentId = resolveSajuProfileUnlockContentKey(featureKey, body?.contentKey || accessGrant?.contentKey || "");
+    if (String(targetPath || "").includes("/confirm") && accessGrant && SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[featureKey]) {
+      logSajuPaymentUnlockApplied({
+        userId: options?.authUserId || body?.userId || "",
+        attemptId: accessGrant?.profileId || body?.profileId || body?.selectedProfileId || "",
+        paymentId: body?.paymentId || body?.impUid || body?.merchantUid || payload?.payment?.merchantUid || payload?.payment?.id || "",
+        productId: body?.productId || payload?.payment?.productId || featureKey,
+        contentIds: contentId ? [contentId] : [],
+        paymentVerified: true,
+        unlockSaved: Boolean(accessGrant?.evidenceId || accessGrant?.unlockId || accessGrant?.purchaseId || payload?.accessGranted === true),
+        totalMs: Date.now() - delegatedStartedAt,
+      });
+    }
+  } catch (_) {}
 
   if (options?.premiumAccess === true && options?.authUserId && options?.pricing) {
     const pricing = options.pricing;
@@ -6490,6 +6680,7 @@ export async function handleBillingRoutes(request, env) {
   try {
     if (method === "GET" && path === "/features") return await handleFeatures(request);
     if (method === "GET" && path === "/balance") return await handleBillingSnapshotBalance(request, env);
+    if (method === "GET" && path === "/saju-analysis/entitlements") return await handleSajuAnalysisEntitlements(request, env);
     if ((method === "GET" || method === "POST") && path === "/access") return await handlePaidAccessCheck(request, env);
     if ((method === "GET" || method === "POST") && path === "/dev-payment-tester") return await handleDevPaymentTester(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);

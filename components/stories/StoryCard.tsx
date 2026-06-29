@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
-import { formatStoryCount } from "@/lib/stories/data";
+import { formatStoryCount } from "@/lib/stories/metrics";
 import type { IStory } from "@/lib/stories/types";
 import styles from "./storyComponents.module.css";
 

@@ -9,6 +9,7 @@ import type {
   StoryAct,
   StoryGenre,
 } from "./types";
+export { estimateReadingMinutes, formatStoryCount } from "./metrics";
 
 const STORY_DATA_TEXT_TRANSLATIONS = {
   ko: {
@@ -58538,15 +58539,6 @@ export function getFirstChapterHref(storyId: string) {
   const story = getStoryById(storyId);
   const first = getChaptersByStoryId(storyId)[0];
   return story && first ? `/stories/${story.slug}/${first.slug}` : "/stories";
-}
-
-export function formatStoryCount(value: number) {
-  if (value >= 10000) return `${(value / 10000).toFixed(1)}만`;
-  return value.toLocaleString("ko-KR");
-}
-
-export function estimateReadingMinutes(length: number) {
-  return Math.max(1, Math.ceil(length / 420));
 }
 
 const CODE_DESTINY_ACT_RULES: Array<{ act: StoryAct; startChapter: number; endChapter: number; focus: string }> = [

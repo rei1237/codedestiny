@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -99,13 +98,14 @@ export default function DestinyBiasPromoSection() {
         <div className="relative">
           <div className="pointer-events-none absolute -inset-2 rounded-3xl bg-fuchsia-300/30 blur-2xl" aria-hidden />
           <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-black/20">
-            <Image
+            <img
               src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"
               alt={copy.imageAlt}
               width={960}
               height={640}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
-              sizes="(max-width: 768px) 100vw, 40vw"
             />
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl border border-white/25 bg-black/40 px-3 py-2 text-[11px] font-semibold text-cyan-100/90 backdrop-blur-md">
               {copy.priceBadge}

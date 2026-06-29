@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const rootDir = process.cwd();
@@ -12,9 +12,13 @@ const distIndexPath = resolve(rootDir, "dist", "index.html");
 const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
 const distRobotsPath = resolve(rootDir, "dist", "robots.txt");
 const distStaticIndexPath = resolve(rootDir, "dist", "static", "index.html");
-const generatedRouteHtmlFiles = [
-  "insights/index.html",
-];
+const staticShellRouteHtmlFiles = new Set([
+  "index.html",
+  "static/index.html",
+  "en/index.html",
+  "ja/index.html",
+  "zh/index.html",
+]);
 
 function stripLeadingBom(buffer) {
   let offset = 0;
@@ -63,14 +67,47 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
   console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}`);
 }
 
+function relativePath(from, to) {
+  return to.slice(from.length + 1).replace(/\\/g, "/");
+}
+
+function collectGeneratedRouteHtmlFiles(sourceRoot, currentDir = sourceRoot, routeFiles = []) {
+  if (!existsSync(currentDir)) return routeFiles;
+
+  for (const entry of readdirSync(currentDir)) {
+    const entryPath = resolve(currentDir, entry);
+    const stats = statSync(entryPath);
+
+    if (stats.isDirectory()) {
+      collectGeneratedRouteHtmlFiles(sourceRoot, entryPath, routeFiles);
+      continue;
+    }
+
+    if (entry !== "index.html") continue;
+
+    const routeFile = relativePath(sourceRoot, entryPath);
+    if (!staticShellRouteHtmlFiles.has(routeFile)) {
+      routeFiles.push(routeFile);
+    }
+  }
+
+  return routeFiles;
+}
+
 function restoreGeneratedRouteHtml() {
-  for (const routeFile of generatedRouteHtmlFiles) {
+  let copiedCount = 0;
+
+  for (const routeFile of collectGeneratedRouteHtmlFiles(generatedOutDir)) {
     const sourcePath = resolve(generatedOutDir, routeFile);
     if (!existsSync(sourcePath)) continue;
     const destinationPath = resolve(rootDir, "dist", routeFile);
     mkdirSync(dirname(destinationPath), { recursive: true });
     copyFileSync(sourcePath, destinationPath);
-    console.log(`[promote-static-shell] app route: ${sourcePath} -> ${destinationPath}`);
+    copiedCount += 1;
+  }
+
+  if (copiedCount > 0) {
+    console.log(`[promote-static-shell] restored ${copiedCount} generated app route HTML file(s)`);
   }
 }
 

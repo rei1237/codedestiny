@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SocialFooter from "../_components/SocialFooter";
 import styles from "../home-cosmic.module.css";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
@@ -181,6 +182,8 @@ export default function KkulKkulUnsePage() {
           ))}
         </div>
       </section>
+
+      <SocialFooter />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

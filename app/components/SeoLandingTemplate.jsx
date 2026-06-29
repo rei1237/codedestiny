@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpenText, CalendarClock, Compass, ListChecks, ShieldCheck } from "lucide-react";
-import ShareWidget from "./ShareWidget";
+import DeferredShareWidget from "./DeferredShareWidget";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
@@ -267,7 +267,7 @@ export default function SeoLandingTemplate({ page }) {
         </section>
       </div>
 
-      <ShareWidget
+      <DeferredShareWidget
         title={page.title}
         description={page.description}
         path={page.path}

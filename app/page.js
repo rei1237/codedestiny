@@ -5,6 +5,7 @@ import {
   buildWebPageJsonLd,
 } from "../lib/structured-data";
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
+import SocialFooter from "./_components/SocialFooter";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -121,36 +122,42 @@ const DEST1NOVA_IMAGE_URL = buildMusicPublicUrl("DEST1NOVA/DEST1NOVA.webp");
 
 const SERVICE_LINKS = [
   {
+    id: "saju-basic",
     href: "/static/#destinyCardForm",
     title: homePageText("homePage.title.002"),
     description: homePageText("homePage.description.001"),
     meta: "무료 시작",
   },
   {
+    id: "tarot-reading",
     href: "/static/#tarotCollection",
     title: homePageText("homePage.title.003"),
     description: homePageText("homePage.description.002"),
     meta: "무료/유료 혼합",
   },
   {
+    id: "ziwei-chart",
     href: "/static/#cosmicCollection",
     title: homePageText("homePage.title.004"),
     description: homePageText("homePage.description.003"),
     meta: "기본 무료",
   },
   {
+    id: "astrology-chart",
     href: "/static/#cosmicCollection",
     title: homePageText("homePage.title.005"),
     description: homePageText("homePage.description.004"),
     meta: "코즈믹 리딩",
   },
   {
+    id: "sukuyo-compatibility",
     href: "/static/#premiumVvipCollection",
     title: homePageText("homePage.title.006"),
     description: homePageText("homePage.description.005"),
     meta: "궁합 안내",
   },
   {
+    id: "payment-pass-guide",
     href: "/static/#premiumVvipCollection",
     title: homePageText("homePage.title.007"),
     description: homePageText("homePage.description.006"),
@@ -275,7 +282,7 @@ export default function HomePage() {
         </div>
         <div className={styles.serviceGrid}>
           {SERVICE_LINKS.map((service) => (
-            <Link key={service.href} href={service.href} className={styles.serviceCard}>
+            <Link key={service.id} href={service.href} className={styles.serviceCard}>
               <span className={styles.serviceMeta}>{service.meta}</span>
               <strong>{service.title}</strong>
               <span>{service.description}</span>
@@ -327,6 +334,8 @@ export default function HomePage() {
           </nav>
         </div>
       </section>
+
+      <SocialFooter />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />

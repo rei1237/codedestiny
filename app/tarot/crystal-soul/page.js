@@ -1,4 +1,4 @@
-import CrystalSoulTarotClient from "./CrystalSoulTarotClient";
+import CrystalSoulRouteClient from "./CrystalSoulRouteClient";
 
 const CRYSTAL_SOUL_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -39,5 +39,5 @@ export const metadata = {
 };
 
 export default function CrystalSoulTarotPage() {
-  return <CrystalSoulTarotClient />;
+  return <CrystalSoulRouteClient />;
 }

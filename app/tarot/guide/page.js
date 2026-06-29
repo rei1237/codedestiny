@@ -1,11 +1,11 @@
-import TarotGuideContent from "./TarotGuideContent";
+import TarotGuideRouteClient from "./TarotGuideRouteClient";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const TAROT_GUIDE_METADATA_COPY = {
   ko: {
     title: "타로 카드 리딩 입문 | Code Destiny",
     description:
-      "타로 리딩의 기본 구조, 질문을 세우는 법, 카드 배열과 해석 흐름, 무료·유료 리딩의 차이와 주의사항을 안내합니다.",
+      "타로 리딩의 기본 구조, 좋은 질문을 세우는 법, 카드 배열과 해석 흐름, 리딩을 안전하게 받아들이는 기준을 안내합니다.",
     keywords: ["타로 가이드", "타로 리딩", "타로 카드", "카드 배열", "Code Destiny"],
   },
   en: {
@@ -39,5 +39,5 @@ export function generateMetadata() {
 }
 
 export default function TarotGuidePage() {
-  return <TarotGuideContent />;
+  return <TarotGuideRouteClient />;
 }

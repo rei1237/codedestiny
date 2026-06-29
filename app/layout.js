@@ -1,15 +1,10 @@
 import "../styles/globals.css";
-import AppVersionGuard from "./components/AppVersionGuard";
-import BuildInfoLogger from "./components/BuildInfoLogger";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
-import DeferredAdsense from "./components/DeferredAdsense";
-import LegacyAuthTokenCleanup from "./components/LegacyAuthTokenCleanup";
-import LocaleRuntimeBridge from "./components/LocaleRuntimeBridge";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
-import DevPaymentTester from "./components/DevPaymentTester";
+import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
 import {
@@ -175,14 +170,9 @@ export default function RootLayout({ children }) {
         <PaymentProcessingProvider>
           <Suspense>
             <NavigationProvider>
-              <DeferredAdsense />
-              <LocaleRuntimeBridge />
-              <LegacyAuthTokenCleanup />
-              <BuildInfoLogger />
-              <AppVersionGuard />
+              <RuntimeClientGuards />
               <ToastProvider />
               <AppChrome>{children}</AppChrome>
-              <DevPaymentTester />
             </NavigationProvider>
           </Suspense>
         </PaymentProcessingProvider>

@@ -3675,104 +3675,80 @@ async function handleSajuAIPrompt(request, auth, env) {
   const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
   const requestId = readAIPromptRequestId(body, fallbackRequestId);
   const promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
-  const profileId = readSajuAIPromptProfileId(body, sajuResult) || "default";
-  const bodyIdentity = readSajuAIPromptPaymentIdentity({}, body, requestId);
+  const resultId = buildSajuAIResultId(requestId, promptDigest);
 
-  let existingExecution = await findSajuAIPromptDuplicateExecution({
-    auth,
-    profileId,
-    requestId,
-    paymentId: bodyIdentity.paymentId,
-    orderId: bodyIdentity.orderId,
-  });
-  if (existingExecution?.status === "completed") {
-    const stored = normalizeSajuAIStoredResult(existingExecution);
-    if (stored) return json(stored);
+  let preflightAccess = null;
+  try {
+    preflightAccess = await findAIPromptPaidAccessEvidence({
+      auth,
+      featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+      body,
+      requestId,
+      cost: SAJU_AI_PROMPT_PRICE,
+      env,
+    });
+  } catch (error) {
+    if (isSajuAIPromptDbUnavailableError(error)) {
+      return buildSajuAIPromptPaidAccessRetryableError();
+    }
+    console.error("[fortune][saju-ai-prompt] paid access verification failed:", error);
+    return buildSajuAIPromptError(
+      "PAYMENT_VERIFY_FAILED",
+      "결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+      500,
+    );
   }
-  if (existingExecution?.status === "generating") {
-    if (isSajuAIPromptStaleGeneratingExecution(existingExecution)) {
-      existingExecution = await markSajuAIPromptStaleExecutionFailed(existingExecution, {
-        userId: auth.userId,
-        profileId,
-        requestId,
-      });
-    } else {
-      return json(buildSajuAIStatusPayload(existingExecution), { status: 202 });
-    }
-  }
-
-  const storedOrder = existingExecution?.result && typeof existingExecution.result === "object" ? existingExecution.result.order : null;
-  const skipPaymentConsume = existingExecution?.status === "generation_failed" && storedOrder?.paymentStatus === "PAID";
-
-  if (!skipPaymentConsume) {
-    let preflightAccess = null;
-    try {
-      preflightAccess = await findAIPromptPaidAccessEvidence({
-        auth,
-        featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-        body,
-        requestId,
-        cost: SAJU_AI_PROMPT_PRICE,
-        env,
-      });
-    } catch (error) {
-      if (isSajuAIPromptDbUnavailableError(error)) {
-        return buildSajuAIPromptPaidAccessRetryableError();
-      }
-      console.error("[fortune][saju-ai-prompt] paid access verification failed:", error);
-      return buildSajuAIPromptError(
-        "PAYMENT_VERIFY_FAILED",
-        "결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-        500,
-      );
-    }
-    if (!preflightAccess) {
-      return buildSajuAIPromptPaymentRequiredError();
-    }
+  if (!preflightAccess) {
+    return buildSajuAIPromptPaymentRequiredError();
   }
 
   let consumePayload = null;
+  let chargedCoins = 0;
+  let membershipCreditCost = 0;
+  let balanceAfter = undefined;
+  let paymentIdentity = { paymentId: "", orderId: "" };
   try {
-    if (skipPaymentConsume) {
-      consumePayload = existingExecution?.result?.billing?.consumePayload || body?.consume || {};
-    } else {
-      const delegatedRequest = new Request(request.url, {
-        method: "POST",
-        headers: new Headers({
-          "Content-Type": "application/json",
-          "idempotency-key": requestId,
-        }),
-        body: JSON.stringify({
-          featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-          reason: "사주 AI 상담 결과 생성",
-          forceDeduct: true,
-          requireExistingPaidAccess: true,
-          requestId,
-          categoryKey: "saju",
-          subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
-          payloadHash,
-          transactionId: body?.transactionId,
-          ledgerId: body?.ledgerId,
-          purchaseId: body?.purchaseId,
-          idempotencyKey: body?.idempotencyKey,
-          accessType: body?.accessType,
-          accessMethod: body?.accessMethod,
-          paymentMode: body?.paymentMode,
-          accessGrant: body?.accessGrant,
-          accessDecision: body?.accessDecision,
-          freeBySubscription: body?.freeBySubscription === true,
-          consume: body?.consume,
-          payment: body?.payment,
-          _paymentContext: body?._paymentContext,
-        }),
-      });
+    const delegatedRequest = new Request(request.url, {
+      method: "POST",
+      headers: new Headers({
+        "Content-Type": "application/json",
+        "idempotency-key": requestId,
+      }),
+      body: JSON.stringify({
+        featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+        reason: "사주 AI 상담 결과 생성",
+        forceDeduct: true,
+        requireExistingPaidAccess: true,
+        requestId,
+        categoryKey: "saju",
+        subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
+        payloadHash,
+        transactionId: body?.transactionId,
+        ledgerId: body?.ledgerId,
+        purchaseId: body?.purchaseId,
+        idempotencyKey: body?.idempotencyKey,
+        accessType: body?.accessType,
+        accessMethod: body?.accessMethod,
+        paymentMode: body?.paymentMode,
+        accessGrant: body?.accessGrant,
+        accessDecision: body?.accessDecision,
+        freeBySubscription: body?.freeBySubscription === true,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
+      }),
+    });
 
-      const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
-      consumePayload = await consumeResponse.json().catch(() => ({}));
-      if (!consumeResponse.ok) {
-        return mapSajuConsumeFailure(consumeResponse, consumePayload);
-      }
+    const consumeResponse = await handlePigCoinConsume(delegatedRequest, auth, { env });
+    consumePayload = await consumeResponse.json().catch(() => ({}));
+    if (!consumeResponse.ok) {
+      return mapSajuConsumeFailure(consumeResponse, consumePayload);
     }
+    chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
+    membershipCreditCost = Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0));
+    const balanceAfterRaw = Number(consumePayload?.user?.points);
+    balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+    paymentIdentity = readSajuAIPromptPaymentIdentity(consumePayload, body, requestId);
   } catch (error) {
     console.error("[fortune][saju-ai-prompt] paid consume verification failed:", error);
     return buildSajuAIPromptError(
@@ -3782,97 +3758,12 @@ async function handleSajuAIPrompt(request, auth, env) {
     );
   }
 
-  const chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
-  const membershipCreditCost = Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0));
-  const balanceAfterRaw = Number(consumePayload?.user?.points);
-  const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
-  const paymentIdentity = readSajuAIPromptPaymentIdentity(consumePayload, body, requestId);
-  const identityExecution = await findSajuAIPromptDuplicateExecution({
-    auth,
-    profileId,
-    requestId,
-    paymentId: paymentIdentity.paymentId,
-    orderId: paymentIdentity.orderId,
-  });
-  if (identityExecution && identityExecution.executionId !== existingExecution?.executionId) {
-    if (identityExecution.status === "completed") {
-      const stored = normalizeSajuAIStoredResult(identityExecution);
-      if (stored) return json(stored);
-    }
-    if (identityExecution.status === "generating" && !isSajuAIPromptStaleGeneratingExecution(identityExecution)) {
-      return json(buildSajuAIStatusPayload(identityExecution), { status: 202 });
-    }
-    existingExecution = identityExecution;
-  }
-  const accessMethod = String(existingExecution?.accessMethod || "").trim() || normalizeSajuAIPromptAccessMethod(consumePayload, body);
-  const executionId = existingExecution?.executionId || buildSajuAIPromptExecutionId({ userId: auth.userId, profileId, requestId });
-  const resultId = existingExecution?.resultId || buildSajuAIResultId(requestId, promptDigest);
-  const paidOrder = {
-    featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-    productName: SAJU_AI_PROMPT_TITLE,
-    amount: SAJU_AI_PROMPT_AMOUNT_KRW,
-    currency: "KRW",
-    paymentStatus: "PAID",
-    generationStatus: "GENERATING",
-    paidAt: new Date().toISOString(),
-  };
-
-  const executionSeed = {
-    executionId,
-    requestId,
-    userId: String(auth.userId),
-    featureId: SAJU_AI_PROMPT_FEATURE_KEY,
-    profileId,
-    accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
-    accessMethod,
-    amountCoins: SAJU_AI_PROMPT_PRICE,
-    amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
-    monthlyDeductedAmount: membershipCreditCost,
-    paymentId: paymentIdentity.paymentId || requestId,
-    orderId: paymentIdentity.orderId,
-    status: "generating",
-    consumedAt: new Date(),
-    resultId,
-    idempotencyKey: requestId,
-    result: {
-      ...(existingExecution?.result && typeof existingExecution.result === "object" ? existingExecution.result : {}),
-      order: paidOrder,
-      progress: buildSajuAIProgress(15, "generating", "사주 명식 불러오는 중"),
-      question,
-      domain: String(builtPrompt.domain || domain || "").trim() || "general",
-      promptDigest,
-      payloadHash,
-      billing: {
-        requestId,
-        chargedCoins,
-        membershipCreditCost,
-        paymentId: paymentIdentity.paymentId || requestId,
-        orderId: paymentIdentity.orderId,
-        consumePayload,
-      },
-    },
-    error: null,
-  };
-
-  const execution = await PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
-    {
-      $set: executionSeed,
-      $setOnInsert: {
-        createdAt: new Date(),
-      },
-    },
-    { upsert: true, returnDocument: "after" },
-  ).lean();
-
   logSajuAIPromptStage("LLM_JOB_STARTED", {
     userId: auth.userId,
-    profileId,
     requestId,
-    executionId,
     paymentId: paymentIdentity.paymentId,
     orderId: paymentIdentity.orderId,
-    accessMethod,
+    accessMethod: normalizeSajuAIPromptAccessMethod(consumePayload, body),
     amountCoins: SAJU_AI_PROMPT_PRICE,
     amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
   });
@@ -3882,11 +3773,7 @@ async function handleSajuAIPrompt(request, auth, env) {
     let finalText = "";
     let lastValidation = null;
 
-    await updateSajuAIExecutionProgress(executionId, 30, "질문 의도 분석 중");
-    await updateSajuAIExecutionProgress(executionId, 45, "명식 핵심 구조 해석 중");
-
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      await updateSajuAIExecutionProgress(executionId, 65, attempt > 0 ? "AI 상담문을 다시 가다듬는 중" : "AI 상담문 생성 중");
       const ai = await callGeminiText(env, buildSajuAIResultPrompt(builtPrompt, {
         repairReason: lastValidation?.reason || "",
       }), {
@@ -3920,7 +3807,6 @@ async function handleSajuAIPrompt(request, auth, env) {
       throw generationError;
     }
 
-    await updateSajuAIExecutionProgress(executionId, 85, "상담 결과 정리 중");
     const resultPayload = buildSajuAIPromptResultPayload({
       builtPrompt,
       resultText: finalText,
@@ -3928,79 +3814,50 @@ async function handleSajuAIPrompt(request, auth, env) {
       chargedCoins,
       balanceAfter,
       requestId,
-      execution: { executionId, resultId },
       domain,
       promptDigest,
       resultId,
       model: finalAi.model || undefined,
       provider: finalAi.provider || undefined,
     });
-    await PaidExecutionRecord.updateOne(
-      { executionId },
-      {
-        $set: {
-          status: "completed",
-          completedAt: new Date(),
-          resultId,
-          result: {
-            ...executionSeed.result,
-            order: {
-              ...paidOrder,
-              generationStatus: "GENERATED",
-              completedAt: new Date().toISOString(),
-            },
-            progress: buildSajuAIProgress(100, "completed", "결과 준비 완료"),
-            consultation: resultPayload,
-            billing: {
-              ...executionSeed.result.billing,
-              model: finalAi.model || undefined,
-              provider: finalAi.provider || undefined,
-            },
-          },
-          error: null,
-        },
-      },
-    );
     logSajuAIPromptStage("LLM_JOB_COMPLETED", {
       userId: auth.userId,
-      profileId,
       requestId,
-      executionId,
       paymentId: paymentIdentity.paymentId,
       orderId: paymentIdentity.orderId,
     });
     return json(resultPayload);
   } catch (error) {
-    await PaidExecutionRecord.updateOne(
-      { executionId },
-      {
-        $set: {
-          status: "generation_failed",
-          error: {
-            code: String(error?.code || "LLM_GENERATION_RETRYABLE"),
-            message: String(error?.message || error || "Saju AI consultation generation failed."),
-            retryable: true,
-            paymentRetainedForRetry: true,
-          },
-          result: {
-            ...executionSeed.result,
-            order: {
-              ...paidOrder,
-              generationStatus: "FAILED",
-              failedAt: new Date().toISOString(),
-            },
-            progress: buildSajuAIProgress(85, "failed", "상담문 생성 중 문제가 발생했어요"),
-            retryEligible: true,
-          },
-        },
-      },
-    );
+    const monthlyRefund = await refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, requestId, error }).catch((refundError) => {
+      console.error("[fortune][saju-ai-prompt] monthly credit refund failed:", refundError);
+      return { attempted: true, refundOk: false };
+    });
+    const pointRefundContext = readSajuAIPromptPointRefundContext(consumePayload, body);
+    let pointRefund = { attempted: false, refundOk: false };
+    if (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId) {
+      pointRefund = { attempted: true, refundOk: false };
+      try {
+        const refundRequest = new Request(request.url, {
+          method: "POST",
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            cost: pointRefundContext.chargedCoins,
+            featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+            sourceTransactionId: pointRefundContext.sourceTransactionId,
+            requestId: `refund:${requestId}`.slice(0, 120),
+            reason: "Saju AI prompt generation failed auto-refund",
+          }),
+        });
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        pointRefund.refundOk = refundResponse.ok;
+      } catch (refundError) {
+        console.error("[fortune][saju-ai-prompt] point refund failed:", refundError);
+      }
+    }
     console.error("[fortune][saju-ai-prompt] request failed:", error);
     logSajuAIPromptStage("LLM_JOB_FAILED", {
       userId: auth.userId,
-      profileId,
       requestId,
-      executionId,
       paymentId: paymentIdentity.paymentId,
       orderId: paymentIdentity.orderId,
       errorName: error?.name || error?.code || "Error",
@@ -4011,8 +3868,9 @@ async function handleSajuAIPrompt(request, auth, env) {
       membershipCreditCost,
       accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
       paymentMode: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
+      refundAttempted: Boolean(monthlyRefund.attempted || pointRefund.attempted),
+      refundOk: Boolean(monthlyRefund.refundOk || pointRefund.refundOk),
       requestId,
-      jobId: executionId,
       resultId,
     });
   }
@@ -4049,10 +3907,6 @@ async function handleSajuAIConsultationResult(request, auth, path = "") {
   if (!stored) {
     return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 AI 상담 결과가 비어 있습니다.", 404);
   }
-  await PaidExecutionRecord.updateOne(
-    { _id: record._id },
-    { $set: { "result.consultation.lastViewedAt": new Date().toISOString() } },
-  );
   return json(stored);
 }
 
@@ -4938,8 +4792,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSajuAIPrompt(request, auth, env);
     }
 

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
 import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
-import ShareWidget from "./ShareWidget";
+
+const ShareWidget = lazy(() => import("./ShareWidget"));
 
 type ServiceContent = {
   title?: string;
@@ -948,10 +949,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const pathname = usePathname() || "/";
   const basePath = stripLocalePrefix(pathname);
   const [locale, setLocale] = useState<LoadingLocale>(() => resolveFeatureLocaleFromPath(pathname));
+  const [shareReady, setShareReady] = useState(false);
 
   useEffect(() => {
     setLocale(resolveFeatureLocale(pathname));
   }, [pathname]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShareReady(true), 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const action = ACTION_MAP[basePath];
   const runHref = basePath === "/oracle/sikojen-povailu"
@@ -1043,16 +1050,22 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           pointer-events:none;
         }
         .flp-img-wrap:hover::after { animation: flp-shine .7s ease forwards; }
+        @media (max-width: 768px), (prefers-reduced-motion: reduce) {
+          .flp-orb,.flp-particle,.flp-petal,.flp-hero-icon,.flp-manse-card,.flp-manse-shine,.flp-manse-logo { animation:none!important; }
+          .flp-particle-extra { display:none!important; }
+          .flp-in { animation-duration:.32s; }
+          .flp-btn-p:hover,.flp-btn-s:hover { transform:none; }
+        }
       `}</style>
 
       {/* Ambient orbs */}
-      <div aria-hidden="true" style={{
+      <div className="flp-orb" aria-hidden="true" style={{
         position:"absolute", top:"-18%", left:"-12%", width:"58%", height:"58%",
         borderRadius:"50%", background:`radial-gradient(circle,${t.orb1} 0%,transparent 70%)`,
         filter:"blur(52px)", pointerEvents:"none",
         animation:"flp-orb 9s ease-in-out infinite",
       }}/>
-      <div aria-hidden="true" style={{
+      <div className="flp-orb" aria-hidden="true" style={{
         position:"absolute", bottom:"2%", right:"-14%", width:"65%", height:"65%",
         borderRadius:"50%", background:`radial-gradient(circle,${t.orb2} 0%,transparent 70%)`,
         filter:"blur(64px)", pointerEvents:"none",
@@ -1061,7 +1074,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
       {/* Floating particle decorations */}
       {cfg.particles.map((p, i) => (
-        <div key={i} aria-hidden="true" style={{
+        <div key={i} className={`flp-particle ${i >= 3 ? "flp-particle-extra" : ""}`} aria-hidden="true" style={{
           position:"absolute",
           opacity: 0.08 + i * 0.035,
           pointerEvents:"none",
@@ -1081,14 +1094,14 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
       {/* ── Flower category: extra petal orbs ── */}
       {isFlower && (
         <>
-          <div aria-hidden="true" style={{
+          <div className="flp-petal" aria-hidden="true" style={{
             position:"absolute", top:"28%", left:"50%",
             width:"320px", height:"320px", borderRadius:"50%",
             background:"radial-gradient(circle,rgba(236,72,153,.08) 0%,transparent 70%)",
             filter:"blur(40px)", pointerEvents:"none", transform:"translateX(-50%)",
           }}/>
           {["TL","TR","BL","BR"].map((pos,i) => (
-            <div key={pos} aria-hidden="true" style={{
+            <div key={pos} className="flp-petal" aria-hidden="true" style={{
               position:"absolute",
               top: i < 2 ? "18%" : "70%",
               left: i % 2 === 0 ? "12%" : undefined,
@@ -1122,7 +1135,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
         {/* Icon + Title */}
         <header className="flp-in flp-d1" style={{ textAlign:"center", marginBottom:"30px" }}>
-          <div style={{
+          <div className="flp-hero-icon" style={{
             lineHeight:1, marginBottom:"16px",
             filter:`drop-shadow(0 0 22px ${t.orb1})`,
             animation:`flp-float 4s ease-in-out infinite`,
@@ -1270,6 +1283,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
         <div className="flp-in flp-d4" style={{ marginBottom:"12px" }}>
           <a
+            className="flp-manse-card"
             href="/"
             style={{
               display:"flex", alignItems:"center", gap:"12px",
@@ -1283,13 +1297,13 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             }}
           >
             {/* shine sweep */}
-            <span aria-hidden="true" style={{
+            <span className="flp-manse-shine" aria-hidden="true" style={{
               position:"absolute", inset:0, pointerEvents:"none",
               background:"linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.55) 55%,transparent 75%)",
               animation:"flp-manse-shine 3.6s ease-in-out 1.2s infinite",
             }}/>
 
-            <span style={{
+            <span className="flp-manse-logo" style={{
               flexShrink:0, width:"46px", height:"46px",
               borderRadius:"50%", overflow:"hidden",
               border:"2px solid rgba(255,139,167,0.45)",
@@ -1362,14 +1376,18 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           </Link>
         </div>
 
-        <ShareWidget
-          title={title}
-          description={description}
-          path={basePath}
-          image={activeService?.ogImage}
-          contentType="software"
-          contentId={basePath}
-        />
+        {shareReady ? (
+          <Suspense fallback={null}>
+            <ShareWidget
+              title={title}
+              description={description}
+              path={basePath}
+              image={activeService?.ogImage}
+              contentType="software"
+              contentId={basePath}
+            />
+          </Suspense>
+        ) : null}
 
         {isPaidFeature && (
           <p style={{

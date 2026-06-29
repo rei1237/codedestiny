@@ -1,6 +1,5 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { Payment, PointHistory } from "../lib/models.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -15,15 +14,11 @@ import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
-  buildGeminiPrompt,
   buildFallbackInterpretation,
   buildNumerologyContext,
   normalizeCardInput,
-  normalizeInterpretation,
   normalizeTopic,
-  parseJsonCandidate,
   selectCards,
-  validateNumerologyTarotQuality,
 } from "../../lib/tarot/numerology-tarot.mjs";
 import {
   TarotInterpretationError,
@@ -216,41 +211,6 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
     ok: false,
     status: authError?.status === 401 ? 401 : 402,
     message: "결제 완료 내역을 확인할 수 없습니다. 추가 결제 없이 다시 시도하려면 결제 직후의 결과 확인 버튼을 사용해 주세요.",
-  };
-}
-
-function reinforceNumerologyInterpretation(interpretation, fallback) {
-  const fallbackCards = Array.isArray(fallback?.cardReadings) ? fallback.cardReadings : [];
-  const currentCards = Array.isArray(interpretation?.cardReadings) ? interpretation.cardReadings : [];
-
-  return {
-    ...interpretation,
-    numerologyReading: `${fallback?.numerologyReading || ""} ${interpretation?.numerologyReading || ""}`.trim(),
-    coreMessage: `${fallback?.coreMessage || ""} ${interpretation?.coreMessage || ""}`.trim(),
-    topicReading: {
-      ...(interpretation?.topicReading || {}),
-      ...(fallback?.topicReading || {}),
-    },
-    categoryDeepDive: {
-      ...(interpretation?.categoryDeepDive || {}),
-      ...(fallback?.categoryDeepDive || {}),
-    },
-    cardReadings: currentCards.map((card, idx) => ({
-      ...(fallbackCards[idx] || {}),
-      ...card,
-      cardMeaning: (fallbackCards[idx]?.cardMeaning || card?.cardMeaning || "").trim(),
-      numerologyBridge: (fallbackCards[idx]?.numerologyBridge || card?.numerologyBridge || "").trim(),
-      topicInterpretation: (fallbackCards[idx]?.topicInterpretation || card?.topicInterpretation || "").trim(),
-      hiddenPattern: (fallbackCards[idx]?.hiddenPattern || card?.hiddenPattern || "").trim(),
-      actionTip: (fallbackCards[idx]?.actionTip || card?.actionTip || "").trim(),
-      caution: (fallbackCards[idx]?.caution || card?.caution || "").trim(),
-    })),
-    conclusion: {
-      ...(interpretation?.conclusion || {}),
-      ...(fallback?.conclusion || {}),
-      summary: `${fallback?.conclusion?.summary || ""} ${interpretation?.conclusion?.summary || ""}`.trim(),
-      finalWord: `${fallback?.conclusion?.finalWord || ""} ${interpretation?.conclusion?.finalWord || ""}`.trim(),
-    },
   };
 }
 
@@ -1335,64 +1295,13 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
     question,
   });
 
-  const prompt = buildGeminiPrompt({
-    numerology,
-    cards,
-    topic,
-    question,
-    name: asText(body?.name),
-  });
-
-  const aiResult = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["NUMEROLOGY_TAROT_GEMINI_MODEL", "TAROT_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"],
-    maxOutputTokens: 4096,
-    timeoutMs: 16000,
-    totalTimeoutMs: 30000,
-  });
-
-  if (!aiResult?.ok || !asText(aiResult?.text)) {
-    return {
-      ok: true,
-      source: "fallback",
-      topic,
-      numerology,
-      cards,
-      interpretation: guardNumerologyWarningInterpretation(fallback, cards),
-      model: asText(aiResult?.model),
-      warning: asText(aiResult?.message) || "gemini_unavailable",
-    };
-  }
-
-  const parsed = parseJsonCandidate(aiResult.text);
-  let normalizedInterpretation = normalizeInterpretation(parsed, fallback, cards, topic, question);
-  const quality = validateNumerologyTarotQuality(normalizedInterpretation, topic);
-
-  if (!quality.ok) {
-    console.warn("[NumerologyTarot][QualityFail]", JSON.stringify({
-      topic: normalizeTopic(topic),
-      warnings: quality.warnings,
-      model: asText(aiResult.model),
-    }));
-    normalizedInterpretation = reinforceNumerologyInterpretation(normalizedInterpretation, fallback);
-    normalizedInterpretation.quality = {
-      ...(normalizedInterpretation.quality || {}),
-      source: parsed ? "gemini_reinforced" : "fallback_reinforced",
-      topicReflected: true,
-      cardCount: Array.isArray(normalizedInterpretation.cardReadings) ? normalizedInterpretation.cardReadings.length : 0,
-      warnings: quality.warnings,
-    };
-  }
-
-  normalizedInterpretation = guardNumerologyWarningInterpretation(normalizedInterpretation, cards);
-
   return {
     ok: true,
-    source: parsed ? "gemini" : "gemini_text_fallback",
+    source: "deterministic",
     topic,
     numerology,
     cards,
-    interpretation: normalizedInterpretation,
-    model: asText(aiResult.model),
+    interpretation: guardNumerologyWarningInterpretation(fallback, cards),
   };
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   createContext,
   useCallback,
@@ -10,11 +11,12 @@ import {
   useState,
 } from "react";
 
-import PaymentLoading, { PaymentPigVisual, type PaymentLoadingProps } from "./common/PaymentLoading";
+import type { PaymentLoadingProps } from "./common/PaymentLoading";
 import LoadingProgressMotion, {
   type LoadingMotionPhase,
   type LoadingMotionTone,
 } from "./common/LoadingProgressMotion";
+import { PaymentPigVisual } from "./common/PaymentPigVisual";
 import {
   getCurrentLoadingLocale,
   resolveLoadingMessage,
@@ -24,6 +26,14 @@ import {
 } from "@/constants/loadingMessages";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
+
+const DeferredPaymentProcessingOverlay = dynamic<PaymentLoadingProps>(
+  () => import("./PaymentProcessingOverlay"),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
 
 type PaymentProcessingContextValue = {
   isProcessing: boolean;
@@ -976,13 +986,15 @@ export function PaymentProcessingProvider({
   return (
     <PaymentProcessingContext.Provider value={value}>
       {children}
-      <PaymentLoading
-        open={isProcessing}
-        variant={processingVariant}
-        stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
-        paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
-        statusMessage={processingMessage}
-      />
+      {isProcessing ? (
+        <DeferredPaymentProcessingOverlay
+          open
+          variant={processingVariant}
+          stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
+          paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
+          statusMessage={processingMessage}
+        />
+      ) : null}
     </PaymentProcessingContext.Provider>
   );
 }

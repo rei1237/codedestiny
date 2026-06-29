@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import NumerologyTarotClient from "./NumerologyTarotClient";
+import NumerologyTarotRouteClient from "./NumerologyTarotRouteClient";
 
 const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -27,7 +27,6 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "faq.card.question": "좋지 않은 카드가 나오면 운이 나쁜 건가요?",
     "faq.card.answer": "카드는 확정된 미래를 말하기보다 지금 주의할 태도와 반복되는 마음의 그림자를 비춥니다. 불안을 키우기보다 조정할 행동을 찾는 쪽으로 읽는 것이 좋습니다.",
     "related.tarotGuide": "타로 카드 리딩 입문",
-    "related.promptMaker": "타로 프롬프트 도구",
     "related.sajuGuide": "사주 명리학 기본 가이드",
     "related.disclaimer": "운세 및 상담 면책 고지",
     "hero.eyebrow": "수비학 타로 가이드",
@@ -63,7 +62,6 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "faq.card.question": "Does an unfavorable card mean bad luck?",
     "faq.card.answer": "Cards point less to a fixed future than to attitudes and repeated shadows that need attention now. It is better to read them as a way to find an adjustable action rather than grow anxious.",
     "related.tarotGuide": "Tarot Card Reading Guide",
-    "related.promptMaker": "Tarot Prompt Tool",
     "related.sajuGuide": "Basic Saju Guide",
     "related.disclaimer": "Fortune and Counseling Disclaimer",
     "hero.eyebrow": "Numerology Tarot Guide",
@@ -99,7 +97,6 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "faq.card.question": "よくないカードは運が悪いという意味ですか？",
     "faq.card.answer": "カードは確定した未来より、今注意したい態度や繰り返す心の影を映します。不安を大きくするより、調整できる行動を見つけるために読むのがよいでしょう。",
     "related.tarotGuide": "タロットカード入門",
-    "related.promptMaker": "タロットプロンプトツール",
     "related.sajuGuide": "四柱推命基本ガイド",
     "related.disclaimer": "占い・相談の免責事項",
     "hero.eyebrow": "数秘タロットガイド",
@@ -135,7 +132,6 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "faq.card.question": "出现不好的牌就是运气不好吗？",
     "faq.card.answer": "牌面并不是宣布固定未来，而是照见此刻需要注意的态度与反复出现的心理阴影。与其放大不安，不如把它读成寻找可调整行动的提示。",
     "related.tarotGuide": "塔罗牌解读入门",
-    "related.promptMaker": "塔罗提示词工具",
     "related.sajuGuide": "四柱命理基础指南",
     "related.disclaimer": "占卜与咨询免责声明",
     "hero.eyebrow": "数字塔罗指南",
@@ -206,7 +202,6 @@ const faqItems = [
 
 const relatedLinks = [
   { href: "/tarot/guide", label: numerologyTarotPageText("related.tarotGuide") },
-  { href: "/tarot/prompt-maker", label: numerologyTarotPageText("related.promptMaker") },
   { href: "/saju/guide", label: numerologyTarotPageText("related.sajuGuide") },
   { href: "/disclaimer", label: numerologyTarotPageText("related.disclaimer") },
 ];
@@ -214,7 +209,7 @@ const relatedLinks = [
 export default function NumerologyTarotPage() {
   return (
     <>
-      <NumerologyTarotClient />
+      <NumerologyTarotRouteClient />
       <section className="bg-[#060713] px-4 py-12 text-[#f7f1e1] sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8">
           <div className="max-w-3xl">

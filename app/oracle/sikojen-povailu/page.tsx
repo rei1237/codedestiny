@@ -1,4 +1,4 @@
-import SikojenpovailuApp from "./SikojenpovailuApp";
+import SikojenpovailuRouteClient from "./SikojenpovailuRouteClient";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
 const SIKOJEN_POVAILU_METADATA_COPY = {
@@ -35,7 +35,7 @@ export default function SikojenpovailuPage() {
   return (
     <main>
       <h1 className="sr-only">{sikojenPovailuMetadataCopy.title}</h1>
-      <SikojenpovailuApp />
+      <SikojenpovailuRouteClient />
     </main>
   );
 }

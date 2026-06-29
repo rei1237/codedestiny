@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAnimalBySajuResult, getAnimalDisplayData, calculateAnimalCompatibility } from "../lib/animalMapping";
-import { fetchSajuEngineResult, resolveAnimalTwelveResult } from "../lib/sajuAdapter";
 import { getTwelveStagesForPillars } from "../lib/twelveStages";
 import { buildCompatibilityStageEvidence } from "../lib/analysisNarrative";
 import type {
@@ -147,6 +146,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
     });
 
     try {
+      const { resolveAnimalTwelveResult } = await import("../lib/sajuAdapter");
       const resolved = await resolveAnimalTwelveResult(currentInput);
       if (!resolved.ok || !resolved.profile || !resolved.sajuResult) {
         const resolvedError = locale === "ko" ? resolved.error : "";
@@ -199,6 +199,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
     }
 
     try {
+      const { fetchSajuEngineResult } = await import("../lib/sajuAdapter");
       const partnerSaju = await fetchSajuEngineResult(partnerInput);
       const partnerStages = getTwelveStagesForPillars(partnerSaju);
       const { animalId: partnerAnimalId } = getAnimalBySajuResult(partnerSaju);

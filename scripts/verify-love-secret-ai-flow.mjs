@@ -49,7 +49,10 @@ for (const file of [
 }
 
 const indexHtml = read("index.html");
-const page = read("app/love-secret-ai/page.tsx");
+const pageSourcePath = fs.existsSync(rel("app/love-secret-ai/LoveSecretAiClient.tsx"))
+  ? "app/love-secret-ai/LoveSecretAiClient.tsx"
+  : "app/love-secret-ai/page.tsx";
+const page = read(pageSourcePath);
 const resultPage = read("app/love-secret-ai/result/page.tsx");
 const route = read("worker/routes/love-secret-ai.js");
 const workerIndex = read("worker/index.js");
@@ -74,7 +77,7 @@ for (const marker of [
   "연애 비책 상담 시작하기",
   "/love-secret-ai/result",
 ]) {
-  assertIncludes("app/love-secret-ai/page.tsx", page, marker);
+  assertIncludes(pageSourcePath, page, marker);
 }
 for (const marker of [
   "requestPortOnePayment",
@@ -84,7 +87,7 @@ for (const marker of [
   "create-job",
   "chapter",
 ]) {
-  assertNotIncludes("app/love-secret-ai/page.tsx", page, marker);
+  assertNotIncludes(pageSourcePath, page, marker);
 }
 for (const marker of [
   "/api/love-secret-ai/result",

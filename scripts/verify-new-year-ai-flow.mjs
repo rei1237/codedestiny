@@ -29,6 +29,10 @@ function assertExcludes(file, text, message = `${file} should not include ${text
   assert(!read(file).includes(text), message);
 }
 
+const pageSourcePath = exists("app/new-year-ai-consultation/NewYearAiClient.tsx")
+  ? "app/new-year-ai-consultation/NewYearAiClient.tsx"
+  : "app/new-year-ai-consultation/page.tsx";
+
 const oldAccessRetryCopy = Buffer.from(
   "6rKw7KCcIOq2jO2VnCDtmZXsnbgg7KSRIOusuOygnOqwgCDrsJzsg53tlojsirXri4jri6QuIOyLoOuFhOyatOyEuCBBSSDsg4Hri7Qg67Cb6riw66W8IOuLpOyLnCDriIzrn6wg6raM7ZWc7J2EIO2ZleyduO2VtCDso7zshLjsmpQu",
   "base64",
@@ -54,27 +58,27 @@ assertExcludes("index.html", "/js/saju-new-year.js?v=", "main shell should not p
 assertExcludes("index.html", "sajuNewYearModal", "old new-year modal should be removed from the main shell");
 assertExcludes("index.html", oldAccessRetryCopy, "old access retry copy should be removed");
 
-assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/ensure-access");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/start");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "runBillingCoinGate");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "deferUsage: true", "new-year client should defer usage until generation succeeds");
-assertIncludes("app/new-year-ai-consultation/page.tsx", 'usagePolicy: "apply_after_success"', "new-year client should apply billing after success");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "상담을 준비하고 있습니다");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "결제창을 확인해 주세요");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "새해의 기운을 읽는 중...");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "targetYear");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "focusArea");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "더 깊게 보고 싶은 흐름");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "nyai-category-chip");
-assertIncludes("app/new-year-ai-consultation/page.tsx", "AI Consultation");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "/api/new-year-ai/message");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "handleFollowUp");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "nyai-follow");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "followUp");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "/api/saju-new-year");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "create-job");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "verify-access");
-assertExcludes("app/new-year-ai-consultation/page.tsx", "requestPortOnePayment");
+assertIncludes(pageSourcePath, "/api/new-year-ai/ensure-access");
+assertIncludes(pageSourcePath, "/api/new-year-ai/start");
+assertIncludes(pageSourcePath, "runBillingCoinGate");
+assertIncludes(pageSourcePath, "deferUsage: true", "new-year client should defer usage until generation succeeds");
+assertIncludes(pageSourcePath, 'usagePolicy: "apply_after_success"', "new-year client should apply billing after success");
+assertIncludes(pageSourcePath, "상담을 준비하고 있습니다");
+assertIncludes(pageSourcePath, "결제창을 확인해 주세요");
+assertIncludes(pageSourcePath, "새해의 기운을 읽는 중...");
+assertIncludes(pageSourcePath, "targetYear");
+assertIncludes(pageSourcePath, "focusArea");
+assertIncludes(pageSourcePath, "더 깊게 보고 싶은 흐름");
+assertIncludes(pageSourcePath, "nyai-category-chip");
+assertIncludes(pageSourcePath, "AI Consultation");
+assertExcludes(pageSourcePath, "/api/new-year-ai/message");
+assertExcludes(pageSourcePath, "handleFollowUp");
+assertExcludes(pageSourcePath, "nyai-follow");
+assertExcludes(pageSourcePath, "followUp");
+assertExcludes(pageSourcePath, "/api/saju-new-year");
+assertExcludes(pageSourcePath, "create-job");
+assertExcludes(pageSourcePath, "verify-access");
+assertExcludes(pageSourcePath, "requestPortOnePayment");
 
 assertIncludes("worker/index.js", '"/api/new-year-ai"');
 assertIncludes("worker/routes/new-year-ai.js", "handleEnsureAccess");

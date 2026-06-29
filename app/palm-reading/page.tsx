@@ -1,4 +1,4 @@
-import PalmDestinyMain from "./PalmDestinyMain";
+import PalmReadingRouteClient from "./PalmReadingRouteClient";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 
 const PALM_READING_METADATA_COPY = {
@@ -44,5 +44,5 @@ export function generateMetadata() {
 }
 
 export default function PalmReadingPage() {
-  return <PalmDestinyMain />;
+  return <PalmReadingRouteClient />;
 }

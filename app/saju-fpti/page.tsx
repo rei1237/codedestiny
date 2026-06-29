@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import FptiExperience from "@/components/fpti/FptiExperience";
+import SajuFptiRouteClient from "./SajuFptiRouteClient";
 
 const SAJU_FPTI_METADATA_COPY = {
   ko: {
@@ -35,5 +35,5 @@ export const metadata: Metadata = {
 };
 
 export default function SajuFptiPage() {
-  return <FptiExperience />;
+  return <SajuFptiRouteClient />;
 }

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { estimateReadingMinutes, getStories } from "@/lib/stories/data";
+import { estimateReadingMinutes } from "@/lib/stories/metrics";
+import type { IStory } from "@/lib/stories/types";
 import {
   READER_BODY_FONT_OPTIONS,
   READER_DISPLAY_FONT_STACK,
@@ -13,6 +14,10 @@ import {
 } from "@/hooks/useReaderSettings";
 import StoryCard from "./StoryCard";
 import styles from "@/app/stories/stories.module.css";
+
+interface StoriesIndexProps {
+  stories: IStory[];
+}
 
 interface Star {
   x: number;
@@ -209,12 +214,11 @@ function generateStars(count: number, seed = 42): Star[] {
   });
 }
 
-export default function StoriesIndex() {
+export default function StoriesIndex({ stories }: StoriesIndexProps) {
   const { settings, updateSetting, applyPreset } = useReaderSettings();
   const [continueHref, setContinueHref] = useState("");
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = getStoriesIndexCopy(locale);
-  const stories = getStories();
   const story = stories[0];
   const stars = useMemo(() => generateStars(55), []);
   const readerBodyFontOptions = useMemo(() => getReaderBodyFontOptions(locale), [locale]);

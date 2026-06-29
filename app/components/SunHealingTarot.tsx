@@ -958,16 +958,16 @@ export default function SunHealingTarot() {
                   </section>
                 ) : null}
                 {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
-                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">오늘의 태양 메시지가 한층 맑은 결로 정리되었습니다.</p>)}
+                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">네 장의 태양 메시지가 한결 차분한 결로 모였습니다.</p>)}
                 {aiPromptText ? (
                   <section
                     className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
                     data-marker="tarot-healing-ai-prompt-bottom-v20260621"
                   >
-                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">AI에게 건넬 회복 질문문</p>
-                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">태양이 남긴 문장을 더 깊이 비추기</h3>
+                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">이어 볼 회복 질문</p>
+                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">태양이 남긴 문장을 한 번 더 비추기</h3>
                     <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
-                      아래 문장을 그대로 전하면, 오늘 펼쳐진 카드의 온기와 회복 루틴을 바탕으로 더 깊은 운세를 이어서 들을 수 있습니다.
+                      아래 문장을 그대로 전하면, 오늘 펼쳐진 카드의 온기와 회복 루틴을 바탕으로 더 깊은 상담을 이어갈 수 있습니다.
                     </p>
                     <textarea
                       id="tarotHealingAiPromptOutput"
@@ -982,7 +982,7 @@ export default function SunHealingTarot() {
                         className="tarot-healing-ai-prompt-copy inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/92 px-5 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"
                       >
                         <Clipboard className="h-4 w-4" />
-                        프롬프트 복사
+                        상담 문장 복사
                       </button>
                       <span className="tarot-healing-ai-prompt-status text-xs font-semibold text-teal-700" aria-live="polite">
                         {aiPromptCopyStatus}

@@ -6,7 +6,7 @@ import {
   buildPsychotestExternalUrl,
   getPsychotestBySlug,
 } from "../../../lib/psychotest-catalog";
-import ShareWidget from "../../components/ShareWidget";
+import DeferredShareWidget from "../../components/DeferredShareWidget";
 import DestinyBiasPromoSection from "../_components/DestinyBiasPromoSection";
 
 type PageProps = {
@@ -254,7 +254,7 @@ export default function PsychotestDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <ShareWidget
+      <DeferredShareWidget
         title={test.title}
         description={test.summary}
         path={`/psychotest/${test.slug}`}
