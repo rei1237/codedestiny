@@ -24,6 +24,7 @@ const CHROMELESS_ROUTES = [
   "/fortune/prompt-hub",
   "/maya",
   "/fortune-tea-house",
+  "/neo-operation-room",
   "/new-year-ai-consultation",
   "/life-book-ai",
   "/love-secret-ai",

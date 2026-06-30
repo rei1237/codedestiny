@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import AssetImage from "./AssetImage";
@@ -23,13 +24,15 @@ function calendarLabel(value?: "solar" | "lunar") {
 }
 
 function timeLabel(hasBirthTime?: boolean, birthTime?: string) {
-  return hasBirthTime && birthTime ? birthTime : "출생시간 미입력";
+  return hasBirthTime && birthTime ? birthTime : "출생시간 미상";
 }
 
 export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo, showTarotAction = true }: TeaHouseSajuResultPanelProps) {
   const saju = result.saju;
   const birth = saju.birthSummary;
   const primaryTenGod = saju.primaryTenGod;
+  const deepSections = saju.deepSections || [];
+  const categoryGauges = result.emotionAnalysis || [];
   if (!saju.available) {
     return (
       <section className={styles.sajuResultPanel} data-available="false" aria-labelledby="sajuResultPanelTitle">
@@ -113,11 +116,42 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
             <dt>오늘 들어온 십성</dt>
             <dd>{primaryTenGod ? primaryTenGod.nameKo : "조용히 접힘"}</dd>
           </div>
+          <div>
+            <dt>출생지</dt>
+            <dd>{birth?.birthPlace || "선택 안 함"}</dd>
+          </div>
+          <div>
+            <dt>시간대</dt>
+            <dd>{birth?.timezone || "Asia/Seoul"}</dd>
+          </div>
         </dl>
       </section>
 
       <SajuPillarBoard pillars={saju.pillars} />
       <FiveElementBalance elements={saju.fiveElements} />
+
+      {categoryGauges.length ? (
+        <section className={styles.sajuPanelSection} aria-labelledby="sajuCategoryGaugeTitle">
+          <div className={styles.sajuPanelSectionHeader}>
+            <span>{result.teaCup.name}의 사주 흐름</span>
+            <h4 id="sajuCategoryGaugeTitle">찻잔별 상태 게이지</h4>
+          </div>
+          <div className={styles.resultEmotionList}>
+            {categoryGauges.map((item) => (
+              <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{item.value}%</span>
+                </div>
+                <div className={styles.resultGaugeTrack}>
+                  <span style={{ "--gauge-value": `${item.value}%` } as CSSProperties} />
+                </div>
+                <p>{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className={styles.sajuPanelSection} aria-labelledby="sajuTenGodTitle">
         <div className={styles.sajuPanelSectionHeader}>
@@ -157,6 +191,29 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           ))}
         </div>
       </section>
+
+      {deepSections.length ? (
+        <section className={styles.sajuDeepResultSection} aria-labelledby="sajuDeepResultTitle">
+          <div className={styles.sajuPanelSectionHeader}>
+            <span>상담 결과가 완성되었습니다</span>
+            <h4 id="sajuDeepResultTitle">오늘의 사주 상담지</h4>
+          </div>
+          <div className={styles.sajuDeepResultGrid}>
+            {deepSections.map((section) => (
+              <article className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
+                <span>{section.title}</span>
+                <p>{section.body}</p>
+              </article>
+            ))}
+          </div>
+          {saju.oneLineAdvice ? (
+            <aside className={styles.sajuOneLineAdvice}>
+              <span>한 문장 조언</span>
+              <p>{saju.oneLineAdvice}</p>
+            </aside>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className={styles.sajuCautionBlock} aria-labelledby="sajuCautionTitle">
         <span>주의할 기운</span>

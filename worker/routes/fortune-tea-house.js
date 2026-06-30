@@ -1,14 +1,265 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { Lunar, Solar } from "lunar-javascript";
 import { createHash } from "node:crypto";
 import { getCurrentUser } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
+import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 12;
 const requestBuckets = new Map();
 const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY", "GEMINIF_API_KEY1", "GEMINIF_API_KEY2", "GEMINIF_API_KEY3", "GEMINIF_API_KEY4", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
 const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|콘텐츠 블록|서비스 결과|API|JSON|payload|schema/i;
+const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|mock|dry[_-]?run|providerReason|Gemini|OpenAI|Workers AI|schema|payload|JSON/i;
+const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
+const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
+const SAJU_MIN_RESULT_CHARS = 5000;
+const TAROT_MIN_RESULT_CHARS = 1800;
+const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
+const HONEY_LETTER_COST = 10;
+const VALID_HONEY_CONSULTATION_MODES = new Set(["tarot", "saju", "sukuyo"]);
+const SAJU_REQUIRED_SECTION_TITLES = [
+  "핵심 요약",
+  "타고난 기질",
+  "오행 균형",
+  "십성 구조",
+  "강점",
+  "반복되는 약점",
+  "현재 운의 흐름",
+  "일 · 돈 · 관계 · 건강 리듬",
+  "앞으로 조심할 시기",
+  "실천 전략",
+  "오늘의 한 문장 조언",
+];
+const TAROT_LOVE_REQUIRED_TERMS = ["지금 연락", "금지 행동", "7일"];
+const TAROT_REUNION_REQUIRED_TERMS = ["재회 가능성"];
+const SAJU_FORBIDDEN_COPY_PATTERN = /긍정적으로 생각|마음을 차분히 바라보|대화가 중요|모든 것은 당신의 선택|작은 행동 하나만|인간 상담사 연이로서|무조건 잘 됩니다|반드시 재회|절대 안 됩니다|정해진 운명|타로 카드|카드 상징|점성술|숙요점|자미두수/i;
+const baseSajuSystemPrompt = [
+  "너는 운명의 찻집의 사주 상담사 연이다.",
+  "연이는 따뜻하고 귀엽지만 듣기 좋은 말만 하지 않는다.",
+  "연이는 사주 엔진이 제공한 명식 근거를 바탕으로 손님의 기질, 반복 패턴, 현재 운의 흐름, 현실적인 선택지를 차분히 읽어준다.",
+  "LLM은 계산자가 아니라 상담 문장화, 해석, 전략화 역할만 맡는다.",
+];
+const sajuSafetyRules = [
+  "사주 엔진이 제공한 계산 결과만 근거로 사용한다.",
+  "일간, 월령, 오행, 십성, 합충형해파, 대운, 세운 정보가 있으면 가능한 범위에서 반영한다.",
+  "모르는 정보는 지어내지 않는다.",
+  "출생시간이 없으면 시주 해석의 한계를 명시한다.",
+  "상대방 정보가 없으면 궁합이나 상대 마음을 단정하지 않는다.",
+  "찻잔 카테고리에 따라 해석 관점을 바꾼다.",
+  "타로, 점성술, 숙요점, 자미두수 해석을 섞지 않는다.",
+  "좋다/나쁘다보다 어떤 조건에서 좋아지고 어떤 패턴에서 막히는지 설명한다.",
+  "단정적 예언, 공포 마케팅, 반복 결제 유도 표현을 금지한다.",
+  "의료, 법률, 투자 판단을 확정하지 않는다.",
+  "결과는 구체적이되 불필요하게 장황하지 않게 작성한다.",
+  "같은 문장 패턴을 반복하지 않는다.",
+  "찻잔, 달빛, 향기, 꽃돼지 표현은 자연스럽게만 사용하고 남발하지 않는다.",
+];
+const baseTarotSystemPrompt = [
+  "너는 운명의 찻집의 타로 상담사 연이다.",
+  "연이는 귀엽고 따뜻하지만 듣기 좋은 말만 하지 않는다.",
+  "연이는 타로 카드의 실제 상징을 근거로 지금의 장면, 마음의 흐름, 현실적인 선택지를 읽는다.",
+  "찻잔은 별도 점술 체계가 아니라 질문의 분위기와 해석 관점을 정하는 장치다.",
+];
+const tarotSafetyRules = [
+  "consultationMode가 tarot이면 사주, 점성술, 숙요점, 자미두수 해석을 섞지 않는다.",
+  "선택된 카드 이름, 정방향/역방향, 질문 문장, 찻잔 카테고리를 모두 반영한다.",
+  "카드 키워드를 반복하지 말고 카드 상징을 찻잔 카테고리의 현실 질문으로 번역한다.",
+  "상대방의 마음을 초능력처럼 단정하지 않는다.",
+  "재회됩니다, 절대 안 됩니다, 무조건 됩니다처럼 확정하지 않는다.",
+  "불안 조장, 공포 마케팅, 반복 결제 유도 표현을 금지한다.",
+  "연락을 계속하세요처럼 집착을 부추기지 않는다.",
+  "거절, 차단, 불편함, 위험 신호가 있으면 연락보다 멈춤과 안전한 경계를 우선한다.",
+  "의료, 법률, 투자 판단을 확정하지 않는다.",
+  "결과는 구체적이되 짧고 밀도 있게 작성하고, 같은 문장 패턴을 반복하지 않는다.",
+];
+const teaCategorySajuPromptMap = {
+  "lotus-moon": {
+    id: "lotus-moon",
+    aliases: ["달빛 연꽃차", "연애", "재회"],
+    resultKey: "loveReunionSajuReading",
+    category: "연애 · 재회",
+    concept: "미련과 가능성 사이에서 내 사주의 관계 패턴과 현재 운의 흐름을 통해 가장 덜 다치는 다음 걸음을 찾는 상담",
+    minChars: 5500,
+    focus: ["일간의 관계 방식", "배우자성/관성/재성의 작동", "식상 표현 방식", "인성의 미련과 회상", "비겁의 자존심", "현재 대운·세운의 관계 흐름", "합충형해파가 만드는 거리감"],
+    requiredSections: ["지금 재회 질문이 떠오른 사주적 이유", "내 일간이 사랑을 붙잡는 방식", "미련과 가능성을 구분해야 하는 지점", "현재 운에서 관계가 다시 움직이는 조건", "재회를 닫아버리는 내 반복 패턴", "상대 정보 유무에 따른 관계 리듬", "지금 연락해도 되는가", "연락한다면 어떤 톤이어야 하는가", "7일 관계 정리/접근 플랜", "연이의 마지막 한마디"],
+    gauges: [
+      ["미련", "pink", 64, "인성과 관계 질문의 반복성이 오래 남은 장면을 되짚게 합니다."],
+      ["관계 압박", "purple", 58, "관성 흐름이 강하면 관계에서 책임과 부담을 크게 느낄 수 있습니다."],
+      ["표현 욕구", "gold", 54, "식상 흐름은 말을 꺼내고 싶은 마음과 표현의 온도를 보여줍니다."],
+      ["기다림", "blue", 62, "수 기운과 인성의 결은 서두르기보다 더 확인하려는 흐름을 키웁니다."],
+      ["회복 가능성", "green", 50, "용신 방향과 현재 운이 맞을수록 관계를 덜 다치게 정리할 힘이 올라옵니다."],
+    ],
+    requiredTerms: ["재회", "미련", "가능성", "연락", "7일"],
+  },
+  "honey-peach": {
+    id: "honey-peach",
+    aliases: ["꿀복숭아차", "썸", "인연"],
+    resultKey: "connectionSajuReading",
+    category: "썸 · 인연",
+    concept: "아직 이름 붙지 않은 설렘이 내 사주에서 어떻게 피어나는지, 인연의 속도와 접근 방식을 읽는 상담",
+    minChars: 5500,
+    focus: ["일간의 호감 표현", "식상으로 드러나는 매력", "재성/관성의 관계 욕구", "도화·홍염·천희 신살이 있으면 참고", "비겁의 경쟁심", "인성의 신중함", "새 인연이 들어오기 쉬운 운"],
+    requiredSections: ["내 사주에서 설렘이 시작되는 방식", "상대에게 끌리는 포인트", "호감을 표현할 때 생기는 장점과 어색함", "지금 인연이 커질 가능성", "너무 빨리 다가가면 생길 수 있는 문제", "좋은 연락 리듬과 만남 전략", "상대 정보가 있을 경우 두 사람의 속도 차이", "7일 썸 리듬 플랜", "오늘 보내기 좋은 가벼운 문장 예시", "연이의 마지막 한마디"],
+    gauges: [
+      ["설렘", "pink", 66, "식상과 화 기운은 마음이 밖으로 피어나는 속도를 보여줍니다."],
+      ["호감 표현력", "gold", 57, "식상이 살아 있으면 호감을 말과 행동으로 옮기기 쉽습니다."],
+      ["신중함", "blue", 55, "인성이 강하면 확인하고 싶은 마음이 먼저 움직입니다."],
+      ["인연 타이밍", "green", 52, "현재 운의 방향이 새 만남을 열어 주는지를 함께 봅니다."],
+      ["관계 확장성", "purple", 50, "비겁과 재성/관성의 균형이 관계의 자연스러운 확장을 좌우합니다."],
+    ],
+    requiredTerms: ["설렘", "호감", "인연", "7일"],
+  },
+  "star-black-tea": {
+    id: "star-black-tea",
+    aliases: ["별가루 홍차", "진로", "사업"],
+    resultKey: "careerBusinessSajuReading",
+    category: "진로 · 사업",
+    concept: "막막한 길 위에서 내 명식이 가진 일의 방향, 재능, 실행력, 확장 타이밍을 읽는 상담",
+    minChars: 6000,
+    focus: ["일간의 일하는 방식", "월령과 격국의 사회적 방향", "식상·재성·관성 연결", "인성의 공부와 보호막", "비겁의 독립성/협업", "현재 대운·세운의 확장/전환/정체 신호"],
+    requiredSections: ["내 명식이 보여주는 일의 기본 방향", "지금 막막함이 생긴 사주적 이유", "강하게 써야 할 재능", "지금 부족하거나 보완해야 할 기운", "사업/진로 확장 가능성", "현재 운에서 움직여도 되는 부분", "피해야 할 선택", "14일 실행 플랜", "리스크 체크리스트", "연이의 마지막 한마디"],
+    gauges: [
+      ["방향감", "gold", 54, "월령과 일간의 결은 사회적으로 힘을 쓰는 방향을 비춥니다."],
+      ["실행력", "green", 56, "식상과 비겁 흐름은 실제로 밀고 나가는 힘을 보여줍니다."],
+      ["확장성", "purple", 50, "재성과 관성의 연결이 시장과 제도 안에서 커질 여지를 만듭니다."],
+      ["압박감", "blue", 58, "관성이 강하면 책임과 기준이 커져 막막함으로 느껴질 수 있습니다."],
+      ["준비도", "pink", 52, "인성과 현재 운의 보완이 준비의 밀도를 가리킵니다."],
+    ],
+    requiredTerms: ["진로", "사업", "식상", "재성", "관성", "14일"],
+  },
+  "gold-cinnamon": {
+    id: "gold-cinnamon",
+    aliases: ["황금 계피차", "황금 커피차", "금전운", "돈"],
+    resultKey: "moneySajuReading",
+    category: "금전운",
+    concept: "내 명식의 돈 흐름, 수익화 방식, 소비 패턴, 회복 전략을 읽는 상담",
+    minChars: 6000,
+    focus: ["재성의 강약과 위치", "식상이 재성을 생하는지", "비겁이 재성을 나누는지", "관성이 재성을 지키는지", "인성이 재성 흐름을 막거나 안정시키는지", "현재 대운·세운의 재물 흐름"],
+    requiredSections: ["내 명식의 돈 그릇", "돈이 들어오는 방식", "돈이 새는 패턴", "현재 운에서 금전 흐름이 움직이는 지점", "이번 달 조심해야 할 소비/손실 패턴", "수익화를 위해 써야 할 재능", "돈을 지키는 현실 기준", "30일 금전 회복 플랜", "하지 말아야 할 금전 행동", "연이의 마지막 한마디"],
+    gauges: [
+      ["재물 감각", "gold", 58, "재성의 흐름은 돈을 알아보고 다루는 감각을 비춥니다."],
+      ["수익화 가능성", "green", 52, "식상이 재성을 돕는 구조일수록 재능이 수익으로 이어지기 쉽습니다."],
+      ["소비 누수", "purple", 55, "비겁이 강하면 돈이 나뉘거나 새는 구멍을 먼저 살펴야 합니다."],
+      ["안정성", "blue", 50, "관성은 돈을 지키는 기준과 장치를 만들어 줍니다."],
+      ["회복력", "pink", 53, "현재 운과 보완 기운은 금전 루틴을 되살릴 힘을 보여줍니다."],
+    ],
+    requiredTerms: ["재성", "돈", "소비", "30일"],
+  },
+  "white-lotus-healing": {
+    id: "white-lotus-healing",
+    aliases: ["백련 치유차", "마음회복", "마음 회복"],
+    resultKey: "healingSajuReading",
+    category: "마음회복",
+    concept: "내 명식 안에서 반복되는 소모 패턴을 보고 스스로에게 돌아오는 회복의 숨을 찾는 상담",
+    minChars: 5500,
+    focus: ["일간의 피로 방식", "오행 과다/부족의 정서적 긴장", "인성의 생각 과부하", "식상의 표현/해소", "관성의 압박", "비겁의 비교와 버티기", "재성의 현실 부담", "회복에 필요한 오행 균형"],
+    requiredSections: ["내 명식이 지치는 방식", "요즘 마음이 무거워진 사주적 이유", "반복되는 자기 소모 패턴", "지금 줄여야 할 생각과 행동", "회복에 필요한 기운", "오늘 바로 가능한 회복 행동", "7일 회복 루틴", "나에게 해도 되는 말", "도움을 요청해야 할 신호", "연이의 마지막 한마디"],
+    gauges: [
+      ["피로도", "purple", 64, "관성과 재성의 부담은 몸과 마음의 피로를 함께 올립니다."],
+      ["생각 과부하", "blue", 60, "인성이 강하면 지나간 장면을 오래 복기할 수 있습니다."],
+      ["자기돌봄", "green", 48, "부족한 오행을 보완하는 작은 루틴이 회복의 시작입니다."],
+      ["안정감", "gold", 50, "토와 관성의 균형은 마음을 현실에 고정하는 힘을 줍니다."],
+      ["회복 흐름", "pink", 52, "현재 운이 보완 기운과 닿으면 다시 숨을 고를 여지가 열립니다."],
+    ],
+    requiredTerms: ["회복", "오행", "십성", "7일"],
+  },
+  "black-moon-brown-rice": {
+    id: "black-moon-brown-rice",
+    aliases: ["흑월 현미차", "이별", "위기"],
+    resultKey: "crisisSajuReading",
+    category: "이별 · 위기",
+    concept: "끝내야 할 것과 지켜야 할 것 사이에서 내 사주의 관계 위기 패턴과 안전한 판단 기준을 찾는 상담",
+    minChars: 5500,
+    focus: ["일간이 위기에서 반응하는 방식", "관성/재성의 관계 압박", "식상의 말의 날카로움 또는 표현 부족", "인성의 집착/회상", "비겁의 자존심 싸움", "합충형해파가 만드는 단절과 충돌", "현재 운에서 위기가 커지는 이유"],
+    requiredSections: ["지금 위기가 커진 사주적 장면", "내가 위기에서 반복하는 반응", "관계를 지키기 위해 필요한 조건", "내려놓아야 하는 패턴", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "더 악화시키는 행동", "72시간 안정 플랜", "안전하게 판단하기 위한 체크리스트", "연이의 마지막 한마디"],
+    gauges: [
+      ["긴장도", "purple", 66, "충돌 신호와 관성 압박은 관계의 긴장을 높입니다."],
+      ["충돌 가능성", "pink", 58, "식상이 날카롭게 쓰이면 말의 온도가 쉽게 올라갈 수 있습니다."],
+      ["경계 필요성", "blue", 62, "위기 질문에서는 감정보다 안전한 거리와 기준이 먼저입니다."],
+      ["정리 필요성", "gold", 56, "금 기운과 관성은 관계에서 남길 것과 덜어낼 것을 가릅니다."],
+      ["안전감", "green", 46, "회복 가능성보다 먼저 나를 지키는 안정감을 확인해야 합니다."],
+    ],
+    requiredTerms: ["위기", "경계", "72시간", "안전"],
+  },
+};
+const teaCategoryTarotPromptMap = {
+  "lotus-moon": {
+    id: "lotus-moon",
+    aliases: ["달빛 연꽃차", "연애", "재회", "전여친", "전남친", "연락"],
+    resultKey: "loveReunionReading",
+    category: "연애 · 재회",
+    concept: "미련과 가능성 사이에서 지금 연락, 기다림, 정리, 재회 조건을 구분하는 타로 상담",
+    minChars: 2200,
+    focus: ["미련과 실제 가능성 분리", "상대의 침묵·거리두기 존중", "과거 방식 그대로의 재회 경계", "연락 가능 조건", "재회를 닫는 행동", "7일 관계 정리/접근 플랜"],
+    requiredSections: ["카드가 비춘 관계의 현재 장면", "아직 남아 있는 마음과 현실 가능성의 차이", "두 사람 사이에서 반복된 패턴", "재회 가능성이 열리는 조건", "재회 가능성을 닫는 행동", "지금 연락해도 되는가", "보낸다면 어떤 톤이어야 하는가", "오늘 하지 말아야 할 행동 3가지", "7일 행동 플랜", "연이의 마지막 한마디"],
+    gauges: ["기대", "불안", "미련", "망설임", "회복"],
+    requiredTerms: ["재회 가능성", "지금 연락", "금지 행동", "7일"],
+  },
+  "honey-peach": {
+    id: "honey-peach",
+    aliases: ["꿀복숭아차", "썸", "인연", "호감", "짝사랑"],
+    resultKey: "connectionReading",
+    category: "썸 · 인연",
+    concept: "아직 이름 붙지 않은 설렘의 온도, 호감 신호, 다가가도 좋은 속도를 읽는 타로 상담",
+    minChars: 1900,
+    focus: ["호감 단정 금지", "관찰 가능한 신호", "다가가는 속도", "어색해지기 쉬운 행동", "연락과 대화의 리듬", "7일 썸 리듬 플랜"],
+    requiredSections: ["카드가 비춘 설렘의 첫 장면", "이 인연의 현재 온도", "상대와 나 사이의 신호 읽기", "가까워질 가능성을 키우는 행동", "어색해지기 쉬운 행동", "연락/대화의 좋은 리듬", "다음 만남 또는 대화에서 쓸 사인", "오늘 보내기 좋은 가벼운 문장 예시", "7일 썸 리듬 플랜", "연이의 마지막 한마디"],
+    gauges: ["설렘", "호기심", "조심스러움", "기대", "타이밍"],
+    requiredTerms: ["호감", "설렘", "인연", "7일"],
+  },
+  "star-black-tea": {
+    id: "star-black-tea",
+    aliases: ["별가루 홍차", "진로", "사업", "직장", "이직", "창업"],
+    resultKey: "careerBusinessReading",
+    category: "진로 · 사업",
+    concept: "막막한 길 위에서 방향, 준비도, 실행 순서, 리스크를 나누어 읽는 타로 상담",
+    minChars: 1900,
+    focus: ["막연한 성공 예언 금지", "현재 길의 정체", "확장 가능성", "아직 부족한 준비", "이번 주 실행 우선순위", "리스크 체크", "14일 실행 플랜"],
+    requiredSections: ["카드가 비춘 현재 진로의 장면", "지금 막막함의 정체", "가능성이 있는 방향", "아직 준비가 부족한 부분", "올해/이번 달 선택 기준", "이번 주 실행 우선순위", "리스크 체크리스트", "작은 실험으로 검증할 방법", "14일 실행 플랜", "연이의 마지막 한마디"],
+    gauges: ["방향감", "막막함", "실행력", "리스크", "가능성"],
+    requiredTerms: ["진로", "사업", "리스크", "14일"],
+  },
+  "gold-cinnamon": {
+    id: "gold-cinnamon",
+    aliases: ["황금 계피차", "황금 커피차", "금전운", "돈", "수입", "지출", "투자"],
+    resultKey: "moneyReading",
+    category: "금전운",
+    concept: "수입, 지출, 누수, 현실 기준, 금전 회복 루틴을 나누어 읽는 타로 상담",
+    minChars: 1900,
+    focus: ["금전 확정 예언 금지", "현재 돈의 온도", "수입 기회", "충동 소비와 손실 위험", "이번 달 관리 기준", "투자 판단 단정 금지", "30일 금전 회복 플랜"],
+    requiredSections: ["카드가 비춘 돈의 현재 온도", "지금 돈이 새는 지점", "수입 기회가 열리는 방향", "충동 소비 또는 손실 위험", "이번 달 돈 관리 기준", "지금 하면 좋은 정리", "하지 말아야 할 금전 행동", "30일 금전 회복 플랜", "현실 체크리스트", "연이의 마지막 한마디"],
+    gauges: ["안정감", "소비 충동", "회복력", "기회감", "현실감"],
+    requiredTerms: ["금전", "소비", "30일", "투자"],
+  },
+  "white-lotus-healing": {
+    id: "white-lotus-healing",
+    aliases: ["백련 치유차", "마음회복", "마음 회복", "불안", "자존감", "지쳐"],
+    resultKey: "healingReading",
+    category: "마음회복",
+    concept: "예언보다 회복, 정리, 자기 돌봄, 안전한 감정 루틴을 먼저 찾는 타로 상담",
+    minChars: 1900,
+    focus: ["회복 중심", "자기 비난 완화", "지친 마음의 반복 패턴", "오늘 멈춰야 할 마음 습관", "작은 회복 행동", "도움을 요청해야 할 신호", "7일 회복 루틴"],
+    requiredSections: ["카드가 비춘 마음의 현재 상태", "가장 지친 부분", "반복되는 자기 소모 패턴", "지금 멈춰야 할 마음 습관", "회복을 여는 작은 행동", "나에게 해도 되는 말", "오늘 피해야 할 감정 소비", "7일 회복 루틴", "연이가 건네는 짧은 위로", "마지막 한마디"],
+    gauges: ["피로", "자책", "안정", "회복", "자기돌봄"],
+    requiredTerms: ["회복", "자기돌봄", "7일"],
+  },
+  "black-moon-brown-rice": {
+    id: "black-moon-brown-rice",
+    aliases: ["흑월 현미차", "이별", "위기", "붙잡", "헤어", "끝내"],
+    resultKey: "crisisReading",
+    category: "이별 · 위기",
+    concept: "끝내야 할 것과 지켜야 할 것 사이에서 안전, 경계, 정리 기준을 먼저 확인하는 타로 상담",
+    minChars: 2200,
+    focus: ["안전과 경계 우선", "무조건 붙잡으라는 조언 금지", "위험 신호 확인", "관계 회복 조건", "악화시키는 행동", "지금 대화 가능 여부", "72시간 안정 플랜"],
+    requiredSections: ["카드가 비춘 위기의 장면", "지금 가장 위험한 반복 패턴", "지켜야 할 것과 내려놓아야 할 것", "관계 회복 가능성을 여는 조건", "더 악화시키는 행동", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "오늘 하면 안 되는 행동", "72시간 안정 플랜", "연이의 마지막 한마디"],
+    gauges: ["긴장", "상처", "경계", "정리 필요", "안전감"],
+    requiredTerms: ["위기", "경계", "72시간", "금지 행동"],
+  },
+};
+const sajuResultSchemaByCategory = Object.fromEntries(Object.values(teaCategorySajuPromptMap).map((rule) => [rule.id, { resultKey: rule.resultKey, requiredSections: rule.requiredSections }]));
+const tarotResultSchemaByCategory = Object.fromEntries(Object.values(teaCategoryTarotPromptMap).map((rule) => [rule.id, { resultKey: rule.resultKey, requiredSections: rule.requiredSections }]));
 
 function cleanText(value, maxLength) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
@@ -16,6 +267,62 @@ function cleanText(value, maxLength) {
 
 function cleanMultiline(value, maxLength) {
   return String(value || "").trim().replace(/\r\n/g, "\n").slice(0, maxLength);
+}
+
+function tarotOrientationLabel(value) {
+  return value === "reversed" ? "역방향" : "정방향";
+}
+
+const TAROT_QUESTION_STOP_TERMS = new Set([
+  "오늘",
+  "지금",
+  "이번",
+  "어떻게",
+  "해야",
+  "할까",
+  "될까",
+  "보고",
+  "싶어",
+  "궁금해",
+  "너무",
+  "나와",
+  "내가",
+  "계속",
+]);
+
+function normalizeTarotQuestionTerm(value) {
+  return cleanText(value, 80)
+    .replace(/(해도|하는지|한지)$/u, "")
+    .replace(/(은|는|이|가|을|를|의|와|과|도|만|에|에서|으로|로)$/u, "")
+    .replace(/운$/u, "")
+    .trim();
+}
+
+function extractTarotQuestionTerms(value) {
+  const terms = cleanText(value, 300).match(/[0-9A-Za-z가-힣]{2,}/g) || [];
+  return Array.from(new Set(terms.map(normalizeTarotQuestionTerm)))
+    .filter((term) => term.length >= 2 && !TAROT_QUESTION_STOP_TERMS.has(term))
+    .slice(0, 8);
+}
+
+function assertTarotAnchorCoverage(joined, result, fallback) {
+  const teaName = cleanText(fallback?.teaCup?.name || result?.teaCup?.name, 80);
+  const cardName = cleanText(fallback?.tarot?.nameKo || result?.tarot?.nameKo, 80);
+  const direction = tarotOrientationLabel(fallback?.tarot?.orientation || result?.tarot?.orientation);
+  const questionTerms = extractTarotQuestionTerms(fallback?.questionSummary || result?.questionSummary);
+
+  if (teaName && !joined.includes(teaName)) {
+    throw new Error("fortune tea house quality failed: tarot missing tea name");
+  }
+  if (cardName && !joined.includes(cardName)) {
+    throw new Error("fortune tea house quality failed: tarot missing card name");
+  }
+  if (!joined.includes(direction)) {
+    throw new Error("fortune tea house quality failed: tarot missing orientation");
+  }
+  if (questionTerms.length && !questionTerms.some((term) => joined.includes(term))) {
+    throw new Error("fortune tea house quality failed: tarot missing question context");
+  }
 }
 
 function readClientKey(request) {
@@ -42,6 +349,33 @@ function normalizeConsultationMode(value) {
   return value === "saju" ? "saju" : value === "sukuyo" ? "sukuyo" : "tarot";
 }
 
+function normalizeTarotSpread(value) {
+  return value === "five" ? "five" : "three";
+}
+
+const TAROT_SPREAD_POSITIONS = {
+  three: [
+    { positionId: "present", positionLabel: "현재", positionMeaning: "지금 질문이 놓인 자리입니다." },
+    { positionId: "flow", positionLabel: "흐름", positionMeaning: "곧 이어질 마음과 상황의 결입니다." },
+    { positionId: "advice", positionLabel: "조언", positionMeaning: "오늘 붙잡을 가장 현실적인 기준입니다." },
+  ],
+  five: [
+    { positionId: "present", positionLabel: "현재", positionMeaning: "지금 질문이 놓인 자리입니다." },
+    { positionId: "other", positionLabel: "상대/상황", positionMeaning: "상대 또는 상황이 보여주는 결입니다." },
+    { positionId: "obstacle", positionLabel: "장애", positionMeaning: "흐름을 거칠게 만드는 반복 지점입니다." },
+    { positionId: "possibility", positionLabel: "가능성", positionMeaning: "열릴 수 있는 문과 조건입니다." },
+    { positionId: "advice", positionLabel: "조언", positionMeaning: "오늘 붙잡을 가장 현실적인 기준입니다." },
+  ],
+};
+
+function buildMinimalTarotSpreadCards(tarotSpread, tarot) {
+  return (TAROT_SPREAD_POSITIONS[normalizeTarotSpread(tarotSpread)] || TAROT_SPREAD_POSITIONS.three).map((position, index) => ({
+    ...tarot,
+    ...position,
+    reading: index === 0 ? tarot.reading : `${position.positionLabel} 자리에서는 ${position.positionMeaning}`,
+  }));
+}
+
 function normalizeSukuyoPerson(value, fallbackName) {
   const source = value && typeof value === "object" ? value : {};
   return {
@@ -61,6 +395,386 @@ function normalizeSukuyoInput(value) {
     focus: cleanText(source.focus, 80),
     currentSituation: cleanMultiline(source.currentSituation, 800),
   };
+}
+
+const FORTUNE_TEA_SUKUYO_RELATION_GUIDE = {
+  명: {
+    tone: "서로의 리듬이 닮아 익숙함이 빠르게 깊어지는 인연입니다.",
+    strengths: ["말하지 않아도 알아차리는 감각이 관계를 편안하게 합니다.", "비슷한 속도가 초반 신뢰를 쉽게 만듭니다."],
+    cautions: ["익숙함이 방심으로 흐르면 상대의 변화를 놓치기 쉽습니다.", "닮은 약점이 동시에 커지지 않게 작은 확인이 필요합니다."],
+    keywords: ["익숙함", "공명", "정기적 확인"],
+  },
+  영친: {
+    tone: "돌봄과 신뢰가 부드럽게 오가는 인연입니다.",
+    strengths: ["서로에게 안심을 주는 말과 행동이 자연스럽게 살아납니다.", "관계가 오래갈수록 정서적 지지가 강해집니다."],
+    cautions: ["한쪽만 돌보는 흐름이 굳어지면 서운함이 쌓일 수 있습니다.", "따뜻함을 당연하게 여기지 않는 확인이 필요합니다."],
+    keywords: ["돌봄", "신뢰", "고마움"],
+  },
+  우쇠: {
+    tone: "친밀함과 자극이 함께 움직이는 인연입니다.",
+    strengths: ["서로의 장점을 빠르게 알아보고 성장의 자극을 줍니다.", "가벼운 경쟁심이 관계에 생기를 만들 수 있습니다."],
+    cautions: ["비교가 깊어지면 자존심이 먼저 다칠 수 있습니다.", "침묵으로 벌주기보다 마음의 이유를 짧게 말해야 합니다."],
+    keywords: ["자극", "인정", "비교 내려놓기"],
+  },
+  안괴: {
+    tone: "강한 끌림과 흔들림이 함께 떠오르는 인연입니다.",
+    strengths: ["멈춰 있던 감정을 깨우고 관계를 빠르게 변화시킵니다.", "서로의 숨은 상처를 알아차리는 힘이 있습니다."],
+    cautions: ["상처가 올라오는 순간 결론을 서두르면 관계가 날카로워집니다.", "불안을 사랑의 증거로만 붙잡지 않도록 경계가 필요합니다."],
+    keywords: ["강한 끌림", "경계", "속도 조절"],
+  },
+  업태: {
+    tone: "오래된 숙제처럼 반복되는 감정이 떠오르는 인연입니다.",
+    strengths: ["서로에게 쉽게 잊히지 않는 존재감이 남습니다.", "반복되는 관계 패턴을 의식적으로 바꾸면 큰 성장이 열립니다."],
+    cautions: ["운명이라는 말로 현실의 선택을 미루면 같은 장면이 반복될 수 있습니다.", "강한 끌림일수록 속도와 약속을 또렷하게 나누어야 합니다."],
+    keywords: ["반복", "선택", "현실의 약속"],
+  },
+  위성: {
+    tone: "긴장과 성장이 함께 흐르는 인연입니다.",
+    strengths: ["서로의 기준을 넓혀 주고 새로운 역할을 배우게 합니다.", "함께 목표를 정하면 관계가 단단해질 수 있습니다."],
+    cautions: ["서로를 바꾸려는 마음이 커지면 피로가 빨리 쌓입니다.", "감정 목표와 현실 목표를 분리해 말해야 합니다."],
+    keywords: ["성장", "역할 균형", "기준 설명"],
+  },
+};
+const FORTUNE_TEA_SUKUYO_STABLE_GROUP_HANJA = new Set(["角", "亢", "氐", "房", "心", "尾", "箕"]);
+const FORTUNE_TEA_SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜", "參"]);
+const FORTUNE_TEA_SUKUYO_ELEMENT_CREATE = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
+const FORTUNE_TEA_SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
+const FORTUNE_TEA_SUKUYO_RELATION_12 = [
+  { name: "안", han: "安", meaning: "동숙·완벽한 공명" },
+  { name: "위", han: "危", meaning: "근접·날카로운 긴장" },
+  { name: "괴", han: "壞", meaning: "파괴적 변화 유발" },
+  { name: "복", han: "福", meaning: "복과 이익의 관계" },
+  { name: "명", han: "命", meaning: "운명적 연결" },
+  { name: "이", han: "利", meaning: "실익과 협력" },
+  { name: "쇠", han: "衰", meaning: "에너지 소진 위험" },
+  { name: "우", han: "友", meaning: "우정·동반의 결속" },
+  { name: "아", han: "我", meaning: "자기 투영·미러링" },
+  { name: "원", han: "怨", meaning: "원한·업보의 얽힘" },
+  { name: "친", han: "親", meaning: "깊은 친밀감" },
+  { name: "비", han: "非", meaning: "이질적 공존" },
+];
+
+function cleanTextOr(value, fallback, maxLength = 80) {
+  return cleanText(value, maxLength) || fallback;
+}
+
+function parseFortuneTeaSukuyoBirthDate(value) {
+  const raw = cleanText(value, 20);
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  if (year < 1900 || year > 2100) return null;
+  return { year, month, day, raw };
+}
+
+function lunarForFortuneTeaSukuyoPerson(person = {}) {
+  const birth = parseFortuneTeaSukuyoBirthDate(person.birthDate);
+  if (!birth) throw new Error("INVALID_SUKUYO_BIRTH");
+  if (person.calendarType === "lunar") {
+    Lunar.fromYmd(birth.year, birth.month, birth.day);
+    return {
+      lunarYear: birth.year,
+      lunarMonth: birth.month,
+      lunarDay: birth.day,
+      isLeapMonth: false,
+      source: "user-lunar-input",
+    };
+  }
+  const lunar = Solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0).getLunar();
+  const lunarMonth = Number(lunar.getMonth());
+  return {
+    lunarYear: Number(lunar.getYear()),
+    lunarMonth: Math.abs(lunarMonth),
+    lunarDay: Number(lunar.getDay()),
+    isLeapMonth: lunarMonth < 0,
+    source: "lunar-javascript",
+  };
+}
+
+function calculateFortuneTeaSukuyoPerson(person = {}) {
+  const lunar = lunarForFortuneTeaSukuyoPerson(person);
+  const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
+    isLeapMonth: lunar.isLeapMonth,
+    source: lunar.source,
+  });
+  if (!sukuyo) throw new Error("SUKUYO_EMPTY");
+  return { ...sukuyo, lunarYear: lunar.lunarYear };
+}
+
+function fortuneTeaSukuyoName(value = {}) {
+  const name = cleanText(value.nameKo || value.name, 12);
+  return name ? `${name}숙` : "";
+}
+
+function fortuneTeaSukuyoHanja(value = {}) {
+  const name = cleanText(value.nameHan || value.hanja, 12);
+  return name ? `${name}宿` : "";
+}
+
+function buildFortuneTeaSukuyoPersonSnapshot(input = {}, fallbackName, sukuyo) {
+  return {
+    name: cleanText(input.name, 40) || fallbackName,
+    birthDate: cleanText(input.birthDate, 20),
+    calendarType: input.calendarType === "lunar" ? "lunar" : "solar",
+    gender: cleanText(input.gender, 20) || undefined,
+    sukuyoName: sukuyo ? fortuneTeaSukuyoName(sukuyo) : undefined,
+    sukuyoHanja: sukuyo ? fortuneTeaSukuyoHanja(sukuyo) : undefined,
+    index: Number.isFinite(Number(sukuyo?.index)) ? Number(sukuyo.index) : undefined,
+    element: sukuyo?.element,
+    direction: sukuyo?.direction,
+    keywords: Array.isArray(sukuyo?.keywords) ? sukuyo.keywords.slice(0, 3) : [],
+  };
+}
+
+function normalizeFortuneTeaSukuyoElement(value) {
+  const element = cleanTextOr(value, "토", 4);
+  if (["목", "화", "토", "금", "수"].includes(element)) return element;
+  if (element === "일") return "화";
+  if (element === "월") return "수";
+  return "토";
+}
+
+function fortuneTeaSukuyoElementRelation(userElement, partnerElement) {
+  if (userElement === partnerElement) return "동류";
+  if (FORTUNE_TEA_SUKUYO_ELEMENT_CREATE[userElement] === partnerElement || FORTUNE_TEA_SUKUYO_ELEMENT_CREATE[partnerElement] === userElement) return "상생";
+  if (FORTUNE_TEA_SUKUYO_ELEMENT_CONTROL[userElement] === partnerElement || FORTUNE_TEA_SUKUYO_ELEMENT_CONTROL[partnerElement] === userElement) return "상극";
+  return "보완";
+}
+
+function fortuneTeaSukuyoGroup(sukuyo = {}) {
+  const han = cleanText(sukuyo.nameHan || sukuyo.hanja, 8);
+  if (FORTUNE_TEA_SUKUYO_STABLE_GROUP_HANJA.has(han)) return "안숙";
+  if (FORTUNE_TEA_SUKUYO_RISK_GROUP_HANJA.has(han)) return "위험숙";
+  return "성숙";
+}
+
+function fortuneTeaSukuyoGuardian(sukuyo = {}) {
+  const direction = cleanText(sukuyo.direction, 12);
+  if (direction.includes("동")) return "청룡";
+  if (direction.includes("남")) return "주작";
+  if (direction.includes("서")) return "백호";
+  if (direction.includes("북")) return "현무";
+  const index = Number(sukuyo.index);
+  if (Number.isFinite(index)) {
+    if (index <= 6) return "청룡";
+    if (index <= 13) return "현무";
+    if (index <= 20) return "백호";
+    return "주작";
+  }
+  return "청룡";
+}
+
+function fortuneTeaSukuyoYinYang(sukuyo = {}) {
+  const index = Number(sukuyo.index);
+  return Number.isFinite(index) && index % 2 === 0 ? "양" : "음";
+}
+
+function fortuneTeaSukuyoKeyword(sukuyo = {}) {
+  const words = []
+    .concat(Array.isArray(sukuyo.keywords) ? sukuyo.keywords : [])
+    .concat(Array.isArray(sukuyo.strengths) ? sukuyo.strengths : [])
+    .map((item) => cleanText(item, 20))
+    .filter(Boolean);
+  return words.slice(0, 3).join(" · ") || "직관 · 조율 · 성장";
+}
+
+function fortuneTeaSukuyoRelationByDistance(distance) {
+  const normalized = ((Math.floor(Number(distance) || 0) % 27) + 27) % 27;
+  const item = FORTUNE_TEA_SUKUYO_RELATION_12[Math.min(normalized, 11)] || FORTUNE_TEA_SUKUYO_RELATION_12[11];
+  return {
+    label: `${item.name}(${item.han})`,
+    meaning: item.meaning,
+  };
+}
+
+function fortuneTeaSukuyoIntensity(shortestDistance, relationType) {
+  const distance = Number(shortestDistance);
+  if (distance <= 3 || ["안괴", "업태"].includes(relationType)) return "강렬";
+  if (distance >= 9) return "잔잔";
+  return "보통";
+}
+
+function fortuneTeaSukuyoDistanceTier(shortestDistance) {
+  const distance = Number(shortestDistance);
+  if (!Number.isFinite(distance)) return "middle";
+  if (distance === 0) return "same";
+  if (distance <= 4) return "near";
+  if (distance <= 10) return "middle";
+  return "far";
+}
+
+function fortuneTeaSukuyoCompatibilityIndex(compatibility = {}) {
+  const chemistry = Number(compatibility.chemistryScore || 74);
+  const stability = Number(compatibility.stabilityScore || 72);
+  const conflict = Number(compatibility.conflictScore || 42);
+  return Math.max(1, Math.min(99, Math.round((chemistry + stability + (100 - conflict)) / 3)));
+}
+
+function clampFortuneTeaSukuyoAreaScore(value) {
+  return Math.max(12, Math.min(18, Math.round(Number(value) || 15)));
+}
+
+function normalizeFortuneTeaSukuyoScoreTotal(scores) {
+  const keys = ["destiny", "harmony", "emotion", "growth", "stability"];
+  const normalized = Object.fromEntries(keys.map((key) => [key, clampFortuneTeaSukuyoAreaScore(scores[key])]));
+  let total = keys.reduce((sum, key) => sum + normalized[key], 0);
+  while (total > 80) {
+    const key = keys.find((name) => normalized[name] > 14);
+    if (!key) break;
+    normalized[key] -= 1;
+    total -= 1;
+  }
+  while (total < 70) {
+    const key = keys.find((name) => normalized[name] < 16);
+    if (!key) break;
+    normalized[key] += 1;
+    total += 1;
+  }
+  return {
+    ...normalized,
+    total,
+    label: total >= 78 ? "깊은 공명" : total >= 74 ? "따뜻한 조율" : "천천히 맞춰갈 인연",
+  };
+}
+
+function buildFortuneTeaSukuyoScoreSummary(userSukuyo = {}, partnerSukuyo = {}, compatibility = {}, relationType, intensity) {
+  const userElement = normalizeFortuneTeaSukuyoElement(userSukuyo.element);
+  const partnerElement = normalizeFortuneTeaSukuyoElement(partnerSukuyo.element);
+  const harmonyType = fortuneTeaSukuyoElementRelation(userElement, partnerElement);
+  const distance = Number(compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance) || 0;
+  const chemistry = Number(compatibility.chemistryScore || 75);
+  const stability = Number(compatibility.stabilityScore || 74);
+  const boost = intensity === "강렬" ? 1 : intensity === "잔잔" ? -1 : 0;
+  return normalizeFortuneTeaSukuyoScoreTotal({
+    destiny: 15 + boost + (distance === 0 ? 2 : distance <= 4 ? 1 : 0),
+    harmony: 15 + (harmonyType === "상생" ? 2 : harmonyType === "동류" ? 1 : harmonyType === "상극" ? -2 : 0),
+    emotion: 15 + (fortuneTeaSukuyoYinYang(userSukuyo) !== fortuneTeaSukuyoYinYang(partnerSukuyo) ? 1 : 0) + (fortuneTeaSukuyoGuardian(userSukuyo) === fortuneTeaSukuyoGuardian(partnerSukuyo) ? 1 : 0) - (distance >= 9 ? 1 : 0),
+    growth: 15 + (["안괴", "업태"].includes(relationType) ? 2 : 0) + (chemistry >= 82 ? 1 : 0),
+    stability: 15 + (stability >= 82 ? 2 : stability <= 66 ? -2 : 0) - (intensity === "강렬" ? 1 : 0),
+  });
+}
+
+function buildUnavailableFortuneTeaSukuyoCompatibility(request, reason) {
+  const sukuyo = request.sukuyo || {};
+  return {
+    available: false,
+    calculationSource: "sukuyo-compatibility-ai-calculation",
+    title: "달빛 궁합의 방이 아직 조용히 닫혀 있어요",
+    summary: reason,
+    relationshipType: cleanText(sukuyo.relationshipType, 80),
+    focus: cleanText(sukuyo.focus, 80),
+    currentSituation: cleanText(sukuyo.currentSituation, 300),
+    user: buildFortuneTeaSukuyoPersonSnapshot(sukuyo.user, "나"),
+    partner: buildFortuneTeaSukuyoPersonSnapshot(sukuyo.partner, "상대"),
+    strengths: ["두 사람의 생년월일과 달력 기준이 모두 놓인 뒤에야 27숙의 거리를 열 수 있습니다."],
+    cautions: ["비어 있는 정보로 인연을 꾸미지 않고, 확인된 마음과 질문만 조용히 붙잡겠습니다."],
+    adviceKeywords: ["생년월일 확인", "달력 기준", "마음의 질문"],
+  };
+}
+
+function buildFortuneTeaSukuyoCompatibility(request) {
+  const input = request.sukuyo;
+  if (!input?.user?.birthDate || !input?.partner?.birthDate || !input.user.calendarType || !input.partner.calendarType) {
+    return buildUnavailableFortuneTeaSukuyoCompatibility(request, "두 사람의 생년월일과 달력 기준이 모두 놓여야 27숙 인연의 흐름을 열 수 있습니다.");
+  }
+
+  try {
+    const userSukuyo = calculateFortuneTeaSukuyoPerson(input.user);
+    const partnerSukuyo = calculateFortuneTeaSukuyoPerson(input.partner);
+    const compatibility = buildSukuyoAiCompatibility(userSukuyo, partnerSukuyo);
+    const user = buildFortuneTeaSukuyoPersonSnapshot(input.user, "나", userSukuyo);
+    const partner = buildFortuneTeaSukuyoPersonSnapshot(input.partner, "상대", partnerSukuyo);
+    const relationType = cleanTextOr(compatibility.relationType, "명", 12);
+    const guide = FORTUNE_TEA_SUKUYO_RELATION_GUIDE[relationType] || FORTUNE_TEA_SUKUYO_RELATION_GUIDE.명;
+    const distanceLabel = cleanTextOr(compatibility.distanceLabel || compatibility.distanceMetrics?.distanceLabel, "동숙", 20);
+    const forwardDistance = Number(compatibility.forwardDistance);
+    const reverseDistance = Number(compatibility.reverseDistance);
+    const shortestDistance = Number(compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance);
+    const forwardRelation = fortuneTeaSukuyoRelationByDistance(forwardDistance);
+    const reverseRelation = fortuneTeaSukuyoRelationByDistance(reverseDistance);
+    const intensity = fortuneTeaSukuyoIntensity(shortestDistance, relationType);
+    const scores = buildFortuneTeaSukuyoScoreSummary(userSukuyo, partnerSukuyo, compatibility, relationType, intensity);
+    const userElement = normalizeFortuneTeaSukuyoElement(userSukuyo.element);
+    const partnerElement = normalizeFortuneTeaSukuyoElement(partnerSukuyo.element);
+    const elementHarmonyRelation = fortuneTeaSukuyoElementRelation(userElement, partnerElement);
+    const questionFocus = cleanTextOr(input.focus, "관계의 흐름", 40);
+
+    return {
+      available: true,
+      calculationSource: "sukuyo-compatibility-ai-calculation",
+      title: `${user.sukuyoName || "나의 본명숙"}과 ${partner.sukuyoName || "상대의 본명숙"}이 만나는 ${relationType}의 달빛`,
+      summary: `${user.name}와 ${partner.name}의 27숙은 ${distanceLabel}의 거리에서 ${relationType} 관계로 맞닿습니다. ${guide.tone} 지금은 ${questionFocus}을 중심으로 끌림과 조심해야 할 리듬을 함께 보아야 합니다.`,
+      relationshipType: cleanText(input.relationshipType, 80),
+      focus: questionFocus,
+      currentSituation: cleanText(input.currentSituation, 300),
+      user,
+      partner,
+      calculationBasis: {
+        user: {
+          lunarYear: Number(userSukuyo.lunarYear),
+          lunarMonth: Number(userSukuyo.lunarMonth),
+          lunarDay: Number(userSukuyo.lunarDay),
+          isLeapMonth: Boolean(userSukuyo.isLeapMonth),
+          source: cleanTextOr(userSukuyo.source, "lunar-javascript", 40),
+          group: fortuneTeaSukuyoGroup(userSukuyo),
+          guardian: fortuneTeaSukuyoGuardian(userSukuyo),
+          yinYang: fortuneTeaSukuyoYinYang(userSukuyo),
+          keyword: fortuneTeaSukuyoKeyword(userSukuyo),
+        },
+        partner: {
+          lunarYear: Number(partnerSukuyo.lunarYear),
+          lunarMonth: Number(partnerSukuyo.lunarMonth),
+          lunarDay: Number(partnerSukuyo.lunarDay),
+          isLeapMonth: Boolean(partnerSukuyo.isLeapMonth),
+          source: cleanTextOr(partnerSukuyo.source, "lunar-javascript", 40),
+          group: fortuneTeaSukuyoGroup(partnerSukuyo),
+          guardian: fortuneTeaSukuyoGuardian(partnerSukuyo),
+          yinYang: fortuneTeaSukuyoYinYang(partnerSukuyo),
+          keyword: fortuneTeaSukuyoKeyword(partnerSukuyo),
+        },
+      },
+      relationDetail: {
+        typeAToB: forwardRelation.label,
+        typeBToA: reverseRelation.label,
+        intensity,
+        userToPartnerMeaning: forwardRelation.meaning,
+        partnerToUserMeaning: reverseRelation.meaning,
+      },
+      relationType,
+      relationTypeHan: cleanText(compatibility.relationTypeHan, 12),
+      distanceLabel,
+      distanceTier: fortuneTeaSukuyoDistanceTier(shortestDistance),
+      forwardDistance: Number.isFinite(forwardDistance) ? forwardDistance : undefined,
+      reverseDistance: Number.isFinite(reverseDistance) ? reverseDistance : undefined,
+      shortestDistance: Number.isFinite(shortestDistance) ? shortestDistance : undefined,
+      compatibilityIndex: fortuneTeaSukuyoCompatibilityIndex(compatibility),
+      scores,
+      elementHarmony: {
+        userElement,
+        partnerElement,
+        relation: elementHarmonyRelation,
+        summary: `${user.name}의 ${userElement} 기운과 ${partner.name}의 ${partnerElement} 기운은 ${elementHarmonyRelation}의 결로 맞닿습니다.`,
+      },
+      direction: [compatibility.directionFromAToB, compatibility.directionFromBToA].map((item) => cleanText(item, 24)).filter(Boolean).join(" / "),
+      strengths: [
+        `${user.sukuyoName || "나의 숙"}은 ${user.keywords?.slice(0, 2).join(" · ") || "감정의 결"}로 먼저 다가가고, ${partner.sukuyoName || "상대의 숙"}은 ${partner.keywords?.slice(0, 2).join(" · ") || "관계의 온도"}로 응답합니다.`,
+        `영역 점수는 ${scores.label}으로 모이며, ${elementHarmonyRelation}의 오행 결이 대화 온도에 영향을 줍니다.`,
+        ...guide.strengths,
+      ].slice(0, 3),
+      cautions: guide.cautions.slice(0, 3),
+      adviceKeywords: [relationType, distanceLabel, ...guide.keywords].slice(0, 5),
+      roleGuide: {
+        userAction: cleanTextOr(compatibility.roleActionGuide?.meAction, guide.keywords[0], 180),
+        partnerAction: cleanTextOr(compatibility.roleActionGuide?.otherAction, guide.keywords[1] || "상대의 속도 존중", 180),
+      },
+    };
+  } catch {
+    return buildUnavailableFortuneTeaSukuyoCompatibility(request, "27숙 계산이 잠시 열리지 않았어요. 연이는 없는 숙요 관계를 지어내지 않고, 확인된 질문의 온도만 먼저 붙잡겠습니다.");
+  }
 }
 
 function normalizeRequest(body) {
@@ -91,11 +805,16 @@ function normalizeRequest(body) {
     selectedTeaCupName,
     selectedTeaCupTopic,
     question,
+    tarotSpread: consultationMode === "tarot" ? normalizeTarotSpread(body?.tarotSpread) : undefined,
     nickname: cleanText(body?.nickname, 40),
     concernTopic: cleanText(body?.concernTopic, 80),
     birthInfo: cleanText(body?.birthInfo, 160),
+    profileId: cleanText(body?.profileId, 120),
     birthDate: cleanText(body?.birthDate, 20),
-    birthTime: cleanText(body?.birthTime, 12),
+    birthTime: body?.birthTimeUnknown === true ? "" : cleanText(body?.birthTime, 12),
+    birthTimeUnknown: body?.birthTimeUnknown === true,
+    birthPlace: cleanText(body?.birthPlace, 120),
+    timezone: cleanText(body?.timezone, 80),
     gender: cleanText(body?.gender, 20),
     calendarType,
     sukuyo: consultationMode === "sukuyo" ? normalizeSukuyoInput(body?.sukuyo) : undefined,
@@ -104,6 +823,11 @@ function normalizeRequest(body) {
 
 function hasGeminiKey(env = {}) {
   return GEMINI_KEY_NAMES.some((key) => cleanText(env?.[key], 4000));
+}
+
+function isLocalLikeEnv(env = {}) {
+  const mode = cleanText(env?.NODE_ENV || env?.ENVIRONMENT || env?.APP_ENV || env?.DEPLOY_ENV, 40).toLowerCase();
+  return !mode || ["development", "dev", "local", "test"].includes(mode);
 }
 
 function extractJson(text) {
@@ -126,8 +850,311 @@ function assertText(value, label) {
   if (!textValue(value)) throw new Error(`fortune tea house quality failed: ${label}`);
 }
 
+function normalizeDeepSections(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const section = item && typeof item === "object" ? item : {};
+      return {
+        id: cleanText(section.id || `section-${index + 1}`, 80),
+        title: cleanText(section.title, 80),
+        body: cleanMultiline(section.body, 1800),
+        tone: cleanText(section.tone, 20) || undefined,
+      };
+    })
+    .filter((section) => section.title && section.body.length >= 60);
+}
+
+function resolveSajuCategoryRule(value = {}) {
+  const id = cleanText(value.selectedTeaCupId || value.teaCup?.id, 80);
+  if (teaCategorySajuPromptMap[id]) return teaCategorySajuPromptMap[id];
+  const source = [
+    value.selectedTeaCupName,
+    value.selectedTeaCupTopic,
+    value.teaCup?.name,
+    value.teaCup?.topic,
+    value.concernTopic,
+    value.question,
+    value.questionSummary,
+  ].filter(Boolean).join(" ");
+  return Object.values(teaCategorySajuPromptMap).find((rule) => rule.aliases.some((alias) => source.includes(alias))) || {
+    id: "general",
+    aliases: [],
+    resultKey: "coreReading",
+    category: cleanText(value.selectedTeaCupTopic || value.teaCup?.topic, 80) || "사주 상담",
+    concept: "확인된 명식과 질문을 바탕으로 손님에게 필요한 기준과 다음 행동을 읽는 상담",
+    minChars: SAJU_MIN_RESULT_CHARS,
+    focus: ["일간", "오행", "십성", "현재 운의 흐름", "질문에 맞는 현실 조언"],
+    requiredSections: SAJU_REQUIRED_SECTION_TITLES,
+    gauges: [
+      ["기질 선명도", "gold", 56, "일간과 오행이 손님의 기본 반응 방식을 비춥니다."],
+      ["생각 과부하", "blue", 54, "인성과 수 기운은 마음이 오래 머무는 자리를 보여줍니다."],
+      ["표현 흐름", "pink", 52, "식상은 마음을 밖으로 꺼내는 방식을 가리킵니다."],
+      ["현실 압박", "purple", 55, "관성과 재성은 책임과 현실 조건을 함께 띄웁니다."],
+      ["회복 여지", "green", 50, "보완 기운은 오늘 다시 잡을 수 있는 균형을 보여줍니다."],
+    ],
+    requiredTerms: ["일간", "오행", "십성"],
+  };
+}
+
+function getSajuRequiredSectionTitles(value) {
+  return resolveSajuCategoryRule(value).requiredSections;
+}
+
+function getSajuMinResultChars(value) {
+  return resolveSajuCategoryRule(value).minChars || SAJU_MIN_RESULT_CHARS;
+}
+
+function resolveTarotCategoryRule(value = {}) {
+  const id = cleanText(value.selectedTeaCupId || value.teaCup?.id, 80);
+  if (teaCategoryTarotPromptMap[id]) return teaCategoryTarotPromptMap[id];
+  const source = [
+    value.selectedTeaCupName,
+    value.selectedTeaCupTopic,
+    value.teaCup?.name,
+    value.teaCup?.topic,
+    value.concernTopic,
+    value.question,
+    value.questionSummary,
+  ].filter(Boolean).join(" ");
+  return Object.values(teaCategoryTarotPromptMap).find((rule) => rule.aliases.some((alias) => source.includes(alias))) || teaCategoryTarotPromptMap["lotus-moon"];
+}
+
+function getTarotMinResultChars(value) {
+  return resolveTarotCategoryRule(value).minChars || TAROT_MIN_RESULT_CHARS;
+}
+
+function normalizeSajuFactText(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(" · ");
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([key, item]) => `${key}:${typeof item === "object" ? JSON.stringify(item) : item}`)
+      .join(" · ");
+  }
+  return cleanText(value, 300);
+}
+
+function buildSajuFactInput(request, saju, rule) {
+  return {
+    consultationMode: "saju",
+    teaId: request.selectedTeaCupId || saju?.teaCup?.id,
+    teaName: request.selectedTeaCupName || saju?.teaCup?.name,
+    teaCategory: rule.category,
+    userQuestion: request.question,
+    selfProfile: {
+      name: cleanText(request.nickname || saju?.birthSummary?.nickname, 40),
+      gender: cleanText(request.gender || saju?.birthSummary?.gender, 20),
+      birthDate: cleanText(request.birthDate || saju?.birthSummary?.birthDate, 20),
+      birthTime: request.birthTimeUnknown ? "" : cleanText(request.birthTime || saju?.birthSummary?.birthTime, 20),
+      birthTimeUnknown: request.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true,
+      calendarType: request.calendarType || saju?.birthSummary?.calendarType,
+      birthPlace: cleanText(request.birthPlace || saju?.birthSummary?.birthPlace, 120),
+    },
+    partnerProfile: undefined,
+    sajuFacts: {
+      dayMaster: cleanText(saju?.dayMaster, 80),
+      pillars: normalizeSajuFactText(saju?.pillars),
+      fiveElementsBalance: normalizeSajuFactText(saju?.fiveElements || saju?.dominantElements),
+      tenGodsBalance: normalizeSajuFactText([saju?.primaryTenGod?.nameKo, ...(saju?.secondaryTenGods || []).map((item) => item.nameKo)].filter(Boolean)),
+      strongElements: normalizeSajuFactText(saju?.dominantElements),
+      tenGodSnapshot: normalizeSajuFactText(saju?.tenGodSnapshot?.tenGodLabels),
+      currentLuckSummary: cleanMultiline(saju?.summary, 800),
+      caution: cleanMultiline(saju?.cautionReading || saju?.caution, 800),
+      actionPrescription: cleanMultiline(saju?.actionPrescription, 800),
+    },
+  };
+}
+
+function sajuHasTenGod(saju, pattern) {
+  const joined = [
+    saju?.primaryTenGod?.nameKo,
+    ...(saju?.secondaryTenGods || []).map((item) => item.nameKo),
+    ...(saju?.tenGodSnapshot?.tenGodLabels || []),
+    ...(saju?.keyPoints || []),
+  ].filter(Boolean).join(" ");
+  return pattern.test(joined);
+}
+
+function sajuElementValue(saju, key) {
+  const item = (saju?.fiveElements || []).find((element) => element.key === key || element.nameKo === key);
+  return Number(item?.value || 0);
+}
+
+function buildSajuCategoryGauges(request, saju = {}) {
+  const rule = resolveSajuCategoryRule(request);
+  const factReason = [
+    saju?.dayMaster ? `일간 ${saju.dayMaster}` : "",
+    Array.isArray(saju?.dominantElements) && saju.dominantElements.length ? `대표 기운 ${saju.dominantElements.join(" · ")}` : "",
+    saju?.primaryTenGod?.nameKo ? `십성 ${saju.primaryTenGod.nameKo}` : "",
+  ].filter(Boolean).join(", ");
+  return rule.gauges.map(([label, tone, base, description], index) => {
+    let value = Number(base) || 50;
+    if (/압박|긴장|경계/.test(label) && sajuHasTenGod(saju, /정관|편관/)) value += 10;
+    if (/생각|미련|기다림|신중/.test(label) && sajuHasTenGod(saju, /정인|편인/)) value += 10;
+    if (/표현|실행|호감|수익화/.test(label) && sajuHasTenGod(saju, /식신|상관/)) value += 10;
+    if (/재물|돈|소비|수익/.test(label) && sajuHasTenGod(saju, /정재|편재/)) value += 10;
+    if (/충돌|소비|경쟁/.test(label) && sajuHasTenGod(saju, /비견|겁재/)) value += 8;
+    if (/회복|안정|자기돌봄/.test(label) && (sajuElementValue(saju, "earth") || sajuElementValue(saju, "토")) >= 24) value += 6;
+    if (request.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true) value -= index % 2 === 0 ? 2 : 4;
+    value = Math.max(8, Math.min(96, Math.round(value)));
+    return {
+      label,
+      value,
+      description: `${description}${factReason ? ` 근거는 ${factReason}의 흐름입니다.` : " 확인된 명식 범위 안에서만 산출했습니다."}`,
+      tone,
+    };
+  });
+}
+
+function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCategoryRule(request)) {
+  const facts = buildSajuFactInput(request, saju, rule);
+  const nickname = cleanText(request.nickname || saju?.birthSummary?.nickname, 40) || "손님";
+  const question = cleanMultiline(request.question, 700) || "지금 이 흐름을 어떻게 봐야 할까요?";
+  const dayMaster = facts.sajuFacts.dayMaster || "드러난 일간";
+  const elements = facts.sajuFacts.fiveElementsBalance || "오행 균형";
+  const tenGods = facts.sajuFacts.tenGodsBalance || "십성 흐름";
+  const currentLuck = facts.sajuFacts.currentLuckSummary || "현재 운의 흐름은 질문의 결 안에서 조심스럽게 살핍니다.";
+  const timeLimit = facts.selfProfile.birthTimeUnknown ? "출생시간이 비어 있어 시주의 세밀한 해석은 제한하고, 확인된 생년월일과 질문의 결을 중심으로 봅니다." : "출생시간까지 놓고 반응 방식과 하루의 리듬을 함께 살핍니다.";
+  return rule.requiredSections.map((title, index) => ({
+    id: `${rule.resultKey}-${index + 1}`,
+    title,
+    tone: index <= 1 ? "summary" : index <= 3 ? "element" : index <= 5 ? "flow" : index <= 7 ? "advice" : "caution",
+    body: `${nickname}의 질문 "${question}"은 ${rule.category}의 찻잔에서 ${rule.concept}으로 열립니다. 이 대목에서는 ${title}을 먼저 보겠습니다. 명식의 중심은 ${dayMaster}이고, 오행은 ${elements}, 십성은 ${tenGods}의 결로 드러납니다. ${timeLimit} ${currentLuck} 연이는 여기서 결론을 단정하지 않고, 손님이 실제로 확인할 수 있는 신호와 마음이 만들어낸 해석을 나누어 봅니다. ${rule.focus[index % rule.focus.length]}을 기준으로 보면 지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을 분명히 세우는 일입니다. 오늘 할 수 있는 작은 처방은 이 섹션의 질문을 한 문장으로 줄이고, 확인된 사실 하나와 아직 추측인 마음 하나를 따로 적어보는 것입니다.`,
+  }));
+}
+
+function buildFallbackSajuDeepSections(request, saju = {}) {
+  const categoryRule = resolveSajuCategoryRule(request);
+  if (categoryRule.id !== "general") return buildCategorySajuDeepSections(request, saju, categoryRule);
+
+  const nickname = cleanText(request.nickname, 40) || cleanText(saju.birthSummary?.nickname, 40) || "손님";
+  const question = cleanMultiline(request.question, 700) || "오늘 내 마음이 향하는 곳은 어디인가요?";
+  const birthDate = cleanText(request.birthDate || saju.birthSummary?.birthDate, 40) || "확인된 생년월일";
+  const birthTimeUnknown = request.birthTimeUnknown === true || !cleanText(request.birthTime || saju.birthSummary?.birthTime, 20);
+  const timeGuide = birthTimeUnknown
+    ? "출생시간이 미상이라 시주의 세밀한 결은 제한적으로 보고, 생년월일과 질문 위에 드러난 큰 흐름을 중심으로 살핍니다."
+    : `출생시간 ${cleanText(request.birthTime || saju.birthSummary?.birthTime, 20)}의 결까지 함께 놓고, 하루의 리듬과 반응 방식을 더 촘촘히 살핍니다.`;
+  const dayMaster = cleanText(saju.dayMaster, 80) || "드러난 일간";
+  const tenGod = cleanText(saju.primaryTenGod?.nameKo, 80) || "오늘 드러난 십성";
+  const elements = Array.isArray(saju.dominantElements) && saju.dominantElements.length ? saju.dominantElements.join(" · ") : "오행의 균형";
+  const caution = cleanMultiline(saju.cautionReading || saju.caution, 700) || "한쪽 결론으로 급히 닫기보다, 감정과 기준을 나누어 보아야 합니다.";
+  const action = cleanMultiline(saju.actionPrescription, 700) || "오늘은 마음이 반복해서 향하는 장면을 적고, 그 안에서 지킬 기준 하나만 조용히 골라보세요.";
+  const sections = [
+    {
+      id: "summary",
+      title: "핵심 요약",
+      tone: "summary",
+      body: `${nickname}의 질문은 "${question}"이라는 결로 찻잔 위에 올라왔습니다. ${birthDate}의 흐름을 기준으로 보면, 지금은 결론을 서두르기보다 반복되어 온 마음의 반응을 먼저 살피는 때입니다. ${timeGuide} 오늘 상담의 핵심은 상대나 상황의 답을 억지로 끌어내는 것이 아니라, 내가 오래 붙잡은 기대와 실제로 확인된 신호를 나누어 보는 데 있습니다. 그 구분이 생기면 마음은 덜 흔들리고 다음 행동은 더 조용히 선명해집니다.`,
+    },
+    {
+      id: "temperament",
+      title: "타고난 기질",
+      tone: "summary",
+      body: `${dayMaster}을 중심에 두면, ${nickname}은 겉으로는 차분해 보여도 마음 안쪽에서는 오래 관찰하고 의미를 찾는 결이 강하게 떠오릅니다. 애매한 말, 늦어지는 답, 미완성된 약속이 있으면 그냥 넘기기보다 왜 그런지 마음속에서 다시 펼쳐 보는 편입니다. 이 성향은 피곤함이 되기도 하지만, 사람과 일의 미묘한 온도를 빨리 알아차리는 감각이기도 합니다. 다만 감각이 빠른 만큼 확인되지 않은 장면까지 마음이 먼저 완성하지 않도록 속도를 낮추는 연습이 필요합니다.`,
+    },
+    {
+      id: "elements",
+      title: "오행 균형",
+      tone: "element",
+      body: `${elements}의 흐름은 오늘 상담에서 마음이 어디로 몰리고 어디가 비어 있는지를 보여줍니다. 강한 기운은 추진력과 확신을 주지만, 지나치면 내가 정한 답만 보고 상대의 속도나 현실의 제약을 놓칠 수 있습니다. 약한 기운은 실패의 예고가 아니라 의식적으로 돌보아야 할 자리입니다. 말이 급해질 때는 수 기운처럼 한 박자 식히고, 마음이 굳을 때는 목 기운처럼 작은 대안을 열어 두세요. 그렇게 해야 사주의 균형이 실제 하루의 선택으로 내려옵니다.`,
+    },
+    {
+      id: "ten-gods",
+      title: "십성 구조",
+      tone: "tenGod",
+      body: `${tenGod}은 ${nickname}이 관계와 선택 앞에서 어떤 얼굴로 자신을 지키는지 보여줍니다. 책임을 크게 느끼는 흐름에서는 마음이 진중해지고 약속을 쉽게 흘리지 않지만, 동시에 내가 감당해야 한다는 압박도 커질 수 있습니다. 표현이 앞서는 흐름에서는 솔직함이 장점으로 드러나지만, 마음이 뜨거운 순간에는 상대가 받아들일 시간을 놓칠 수 있습니다. 십성은 결론을 대신 정하지 않습니다. 다만 지금 어떤 태도가 과해지고 어떤 태도가 부족한지 조용히 가리킵니다.`,
+    },
+    {
+      id: "strength",
+      title: "강점",
+      tone: "advice",
+      body: `${nickname}의 강점은 쉽게 체념하지 않고 마음의 이유를 끝까지 찾으려는 힘입니다. 단순히 좋다, 싫다로 닫지 않고 그 안에 어떤 기대와 두려움이 섞였는지 보려는 시선이 있습니다. 이 힘은 관계에서도 일에서도 중요한 기준이 됩니다. 사람의 말 뒤에 숨은 온도를 읽고, 상황이 흐릴 때도 작은 단서를 모아 방향을 세울 수 있기 때문입니다. 오늘은 이 강점을 불안한 추측이 아니라 차분한 관찰로 쓰는 편이 좋습니다.`,
+    },
+    {
+      id: "weakness",
+      title: "반복되는 약점",
+      tone: "caution",
+      body: `반복해서 조심할 약점은 마음이 흔들릴수록 확인되지 않은 이야기까지 먼저 완성해 버리는 흐름입니다. 답이 늦거나 분위기가 달라지면, 실제로 들은 말보다 마음속 해석이 더 커질 수 있어요. 이때 바로 묻거나 몰아붙이면 원하는 답을 듣기보다 방어적인 반응을 부를 수 있습니다. 사주는 이 약점을 탓하지 않고, 멈춰야 할 순간을 알려줍니다. 감정이 올라온 날에는 메시지 하나도 바로 보내지 말고 한 번 적어 둔 뒤 다음 날 다시 읽어 보세요.`,
+    },
+    {
+      id: "current-flow",
+      title: "현재 운의 흐름",
+      tone: "flow",
+      body: `현재 운은 오래 묻어 둔 감정이 표면으로 올라오는 흐름에 가깝습니다. 그래서 평소라면 넘겼을 말이 마음에 남고, 작은 신호에도 의미를 붙이고 싶어질 수 있습니다. 이 흐름은 무조건 나쁜 것이 아닙니다. 그동안 흐릿했던 기준을 다시 세울 기회가 되기도 합니다. 다만 운이 감정을 밀어 올릴 때는 선택도 빨라지기 쉬우니, 지금 필요한 것은 한 번의 큰 결단보다 질문을 선명하게 줄이는 일입니다. 무엇을 확인해야 마음이 안전한지 먼저 보세요.`,
+    },
+    {
+      id: "life-rhythm",
+      title: "일 · 돈 · 관계 · 건강 리듬",
+      tone: "flow",
+      body: `일의 자리에서는 감정의 기세보다 순서가 중요합니다. 해야 할 일을 작게 나누면 압박이 줄고, 결과도 더 안정적으로 쌓입니다. 돈의 자리에서는 기분을 달래기 위한 소비나 성급한 약속을 조심하세요. 관계에서는 서운함을 오래 참다가 한 번에 쏟기보다, 덜 뜨거운 말로 자주 확인하는 편이 좋습니다. 건강 리듬은 수면, 소화, 어깨와 목의 긴장처럼 기본 회복력이 중요하게 떠오릅니다. 몸이 지치면 마음은 더 쉽게 단정으로 기울어집니다.`,
+    },
+    {
+      id: "caution-period",
+      title: "앞으로 조심할 시기",
+      tone: "caution",
+      body: `${caution} 특히 마음이 급해지는 날에는 되돌리기 어려운 말, 계약, 결제, 이별이나 재회에 관한 최종 통보를 바로 꺼내지 않는 편이 좋습니다. 사주에서 조심할 시기는 무언가가 반드시 나빠지는 시간이 아니라, 내가 내 마음을 과하게 믿고 한쪽으로 치우치기 쉬운 시간입니다. 하루를 넘긴 뒤에도 같은 마음이라면 그때 움직여도 늦지 않습니다. 기다림은 포기가 아니라 판단을 맑게 하는 작은 의식입니다.`,
+    },
+    {
+      id: "strategy",
+      title: "실천 전략",
+      tone: "advice",
+      body: `${action} 여기에 한 가지를 더 보태면, 오늘의 질문을 '상대가 어떻게 생각할까' 또는 '결과가 어떻게 될까'에서 '나는 무엇을 확인해야 마음이 안전할까'로 바꾸어 보세요. 그렇게 질문이 바뀌면 행동도 달라집니다. 연락을 하더라도 답을 강요하는 말보다 확인하고 싶은 한 가지를 부드럽게 묻는 말이 좋습니다. 일이나 돈의 문제라면 감정으로 판단하지 말고 숫자, 날짜, 약속처럼 눈에 보이는 기준을 먼저 놓으세요.`,
+    },
+    {
+      id: "one-line",
+      title: "오늘의 한 문장 조언",
+      tone: "advice",
+      body: `오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요. 마음은 빠르게 달려가도 운은 조용히 자리를 잡습니다. 그 조용한 자리에서 손님이 고른 한 걸음이 가장 오래 남습니다.`,
+    },
+  ];
+  const expansions = {
+    summary: "이 흐름에서는 좋은 운과 나쁜 운을 단순히 가르는 것보다, 손님이 어떤 마음으로 같은 장면을 반복해서 바라보는지가 더 중요합니다. 질문 속에는 이미 답을 재촉하는 마음과 다치고 싶지 않은 마음이 함께 머물러 있어요. 그래서 오늘의 상담은 미래를 확정하는 말보다, 지금 손님이 선택의 중심을 다시 잡을 수 있도록 기준을 밝히는 쪽으로 열립니다.",
+    temperament: "이 기질은 혼자 있을 때 더 선명해집니다. 겉으로는 괜찮다고 말해도 속으로는 상대의 표정, 말투, 지난 약속의 흐름을 다시 맞춰 보며 마음의 지도를 그립니다. 그 섬세함이 손님을 지켜 준 시간도 많았지만, 때로는 쉬어야 할 밤까지 생각이 계속 움직이게 만들었을 수 있습니다. 오늘은 감각을 믿되, 감각이 곧 결론은 아니라는 점을 함께 기억해야 합니다.",
+    elements: "오행은 손님의 하루 안에서도 작게 드러납니다. 목은 새 선택을 열고, 화는 표현과 열기를 올리며, 토는 현실적인 안정감을 붙잡고, 금은 기준과 정리를 세우며, 수는 감정과 직감을 깊게 만집니다. 지금 어느 기운이 강하든 한 가지만 더 키우면 균형이 아니라 과열이 됩니다. 부족한 기운을 탓하기보다 오늘 할 수 있는 작은 보완으로 옮기는 것이 좋습니다.",
+    "ten-gods": "십성의 구조는 사람을 한 가지 성격으로 묶는 틀이 아닙니다. 오히려 같은 사람 안에서도 책임지는 얼굴, 표현하는 얼굴, 지키는 얼굴, 기대는 얼굴이 언제 앞에 나오는지를 보여줍니다. 지금 질문에서는 그중 어떤 얼굴이 너무 오래 앞에 서 있었는지 살피는 일이 중요합니다. 한 얼굴만 계속 쓰면 마음이 지치고, 다른 가능성을 보지 못하게 됩니다.",
+    strength: "이 강점은 상대를 이해하려는 마음에서도 드러나지만, 자기 삶을 다시 정돈하려는 힘으로도 이어집니다. 손님은 흔들리는 중에도 완전히 무너지기보다 의미를 붙잡고 다시 일어설 단서를 찾는 편입니다. 그러니 오늘 필요한 조언은 무작정 참고 기다리라는 말이 아닙니다. 이미 가진 감각을 현실의 언어로 바꾸고, 나를 덜 소모시키는 방식으로 쓰라는 말에 가깝습니다.",
+    weakness: "이 약점은 사랑이나 관계에서만 나타나는 것이 아니라 일, 돈, 가족과의 약속에서도 비슷하게 떠오를 수 있습니다. 내가 더 잘했어야 했나, 지금이라도 붙잡아야 하나, 혹은 완전히 끊어야 하나처럼 양끝으로 마음이 흔들리는 순간이 있습니다. 그럴수록 중간의 선택지를 일부러 만들어야 합니다. 오늘 보내지 않기, 오늘 결제하지 않기, 오늘 단정하지 않기가 때로는 가장 큰 보호가 됩니다.",
+    "current-flow": "운이 움직이는 시기에는 바깥 사건보다 내 반응이 먼저 크게 느껴질 때가 많습니다. 누군가의 한마디가 오래 남거나, 별일 아닌 변화에도 마음이 먼저 대비하려 할 수 있습니다. 이럴 때는 억지로 긍정하려고 애쓰기보다 감정의 이름을 정확히 붙이는 편이 더 낫습니다. 서운함인지, 두려움인지, 기대인지, 자존심인지 구분되면 같은 상황도 덜 무겁게 보입니다.",
+    "life-rhythm": "특히 관계와 건강 리듬은 서로 이어져 있습니다. 잠을 못 자거나 몸이 굳어 있으면 상대의 말도 더 날카롭게 들리고, 작은 침묵도 거절처럼 느껴질 수 있습니다. 그래서 오늘의 운을 좋게 쓰는 방법은 거창한 의식보다 몸을 안정시키는 기본 행동에 있습니다. 따뜻한 물, 짧은 산책, 늦은 밤의 메시지 보류처럼 작은 선택이 운의 결을 부드럽게 바꿉니다.",
+    "caution-period": "조심할 시기를 지나갈 때 가장 위험한 것은 불운 자체가 아니라 마음이 급해져 스스로를 몰아붙이는 태도입니다. 지금 당장 답을 얻지 못하면 모든 것이 끝날 것 같은 느낌이 올라올 수 있지만, 실제 운은 그렇게 한순간에 닫히지 않습니다. 손님에게 필요한 것은 겁을 먹는 일이 아니라, 중요한 결정을 하루 더 넓은 시야에서 보는 여유입니다.",
+    strategy: "실천은 작을수록 오래 갑니다. 오늘 바로 할 일은 세 가지를 넘기지 않는 편이 좋습니다. 첫째, 질문을 한 문장으로 줄입니다. 둘째, 확인된 사실과 추측을 나눕니다. 셋째, 내일 아침에도 같은 마음인지 다시 봅니다. 이 세 가지를 지나고도 마음이 선명하다면 그때는 말이나 행동이 덜 흔들립니다. 사주는 손님의 발걸음을 대신 걷지 않지만, 어느 길이 덜 다치게 이어지는지는 비춰 줍니다.",
+    "one-line": "그 한 문장을 마음에 두고 오늘 밤을 지나 보세요. 운은 손님을 재촉하지 않습니다. 지금 필요한 것은 완벽한 확답이 아니라, 내 안의 불안을 조금 덜어 내고도 선택할 수 있다는 감각입니다. 그 감각이 돌아오면 같은 질문도 더 부드럽고 정확한 방향으로 열립니다.",
+  };
+  const detailExpansions = {
+    summary: "손님이 이미 알고 있는 느낌과 사주가 비추는 흐름이 만나는 지점은, 지금 당장 모든 것을 해결하라는 압박이 아니라 마음의 순서를 다시 세우라는 신호입니다. 먼저 내 감정의 이름을 붙이고, 그다음 현실에서 확인할 수 있는 한 가지를 고르면 충분합니다.",
+    temperament: "누군가에게는 이 섬세함이 예민함으로 보일 수 있지만, 운의 자리에서는 그것이 중요한 감지력으로 드러납니다. 다만 감지한 것을 바로 판단으로 옮기면 마음이 지치니, 느낀 것과 결정한 것을 구분해 두는 습관이 필요합니다.",
+    elements: "오늘 부족하게 느껴지는 기운은 하루아침에 채워야 하는 숙제가 아닙니다. 말의 속도를 늦추고, 정리되지 않은 공간을 조금 치우고, 늦은 밤의 불안을 잠시 덮어 두는 작은 행동이 오행의 균형을 현실로 옮기는 첫걸음입니다.",
+    "ten-gods": "십성은 손님의 마음 안에서 어떤 역할이 앞장서는지 보여주는 등불과 같습니다. 너무 책임지려는 얼굴이 앞서면 쉬어야 하고, 너무 숨으려는 얼굴이 앞서면 작게 표현해야 합니다. 중요한 것은 어느 얼굴도 버리지 않는 균형입니다.",
+    strength: "강점은 조용할 때 더 잘 살아납니다. 남에게 보이기 위한 확신보다, 스스로 납득할 수 있는 기준을 찾을 때 손님의 운은 안정됩니다. 오늘은 큰 선언보다 작고 정확한 정리가 더 큰 힘을 냅니다.",
+    weakness: "마음이 양끝으로 달릴 때는 가운데 선택지를 일부러 써 보세요. 지금 묻지 않기, 오늘 결정하지 않기, 내일 다시 확인하기 같은 작은 유예가 관계와 상황을 무너뜨리지 않고 지켜 주는 완충이 됩니다.",
+    "current-flow": "이 흐름은 감정을 외면하라는 뜻이 아닙니다. 오히려 감정이 올라오는 이유를 더 정직하게 보라는 뜻입니다. 다만 그 감정을 곧바로 행동으로 바꾸기 전에, 내 몸과 마음이 충분히 쉬었는지 먼저 살펴야 합니다.",
+    "life-rhythm": "일과 돈은 기록으로 안정되고, 관계는 말의 온도로 안정되며, 건강은 규칙으로 안정됩니다. 세 영역은 따로 움직이는 듯해도 손님의 하루 안에서는 하나의 흐름으로 이어집니다. 가장 흐트러진 한 곳만 정리해도 나머지가 덜 흔들립니다.",
+    "caution-period": "운이 예민한 때에는 상대의 침묵, 돈의 압박, 일의 지연이 모두 내 탓처럼 느껴질 수 있습니다. 그러나 모든 흐름을 혼자 떠안을 필요는 없습니다. 내가 할 몫과 기다려야 할 몫을 나누는 것이 이 시기의 보호막입니다.",
+    strategy: "실천의 핵심은 손님이 다시 자기 편이 되는 것입니다. 상대의 답, 상황의 결과, 주변의 평가를 모두 한꺼번에 붙잡으면 손이 비어 버립니다. 오늘은 내가 선택할 수 있는 작은 몫 하나만 잡아도 운은 충분히 방향을 얻습니다.",
+    "one-line": "찻잔의 마지막 향은 조용하지만 오래 남습니다. 오늘의 한 문장은 그런 향처럼 손님의 마음에 남아, 급한 결론보다 부드러운 기준을 먼저 떠올리게 할 것입니다.",
+  };
+  const finalExpansions = {
+    summary: "그러니 이 상담을 읽을 때는 한 문장씩 내 현실에 대입해 보세요. 맞고 틀림을 급하게 판정하기보다, 어느 문장에서 마음이 조금 멈추는지 보는 것이 좋습니다.",
+    temperament: "손님의 기질은 빠른 결론보다 깊은 납득을 원합니다. 누군가의 말이 아무리 그럴듯해도 내 마음이 납득하지 못하면 오래 남기 어렵습니다.",
+    elements: "작은 보완은 운을 억지로 바꾸는 일이 아니라, 내 안의 치우침을 덜어 주는 일입니다. 오늘 한 가지 기운만 부드럽게 돌려도 충분합니다.",
+    "ten-gods": "오늘은 어느 십성이 옳은가보다, 어떤 태도가 지금 손님을 덜 지치게 하는지가 더 중요합니다. 그 태도가 곧 상담의 실제 처방입니다.",
+    strength: "이 힘을 나 자신에게도 써 주세요. 이해하려는 마음이 늘 타인에게만 향하면 손님은 쉽게 비어 버립니다. 오늘은 내 마음도 같은 깊이로 이해해야 합니다.",
+    weakness: "중간 선택지를 만드는 일은 우유부단함이 아닙니다. 운이 흐릴 때 스스로를 지키는 가장 현실적인 지혜입니다.",
+    "current-flow": "감정이 올라오는 흐름은 오래 지속되지 않습니다. 다만 그 순간에 어떤 말을 꺼내는지는 오래 남을 수 있으니, 말보다 호흡을 먼저 골라야 합니다.",
+    "life-rhythm": "이 네 가지 리듬 중 하나라도 안정되면 나머지도 조금씩 따라옵니다. 가장 쉬운 한 곳부터 돌보는 것이 오늘의 현실적인 개운법입니다.",
+    "caution-period": "손님이 늦게 움직인다고 해서 운이 사라지는 것은 아닙니다. 오히려 잘 고른 침묵은 성급한 말보다 더 큰 보호가 됩니다.",
+    strategy: "작은 기준은 작아 보여도 반복되면 삶의 방향이 됩니다. 오늘 고른 기준 하나가 내일의 말투와 선택을 조금 더 단단하게 만들 것입니다.",
+    "one-line": "그 기준을 잊지 않으면, 답이 늦어지는 시간도 손님을 무너뜨리는 시간이 아니라 마음을 정돈하는 시간이 됩니다.",
+  };
+  return sections.map((section) => ({
+    ...section,
+    body: `${section.body} ${expansions[section.id] || ""} ${detailExpansions[section.id] || ""} ${finalExpansions[section.id] || ""}`,
+  }));
+}
+
 function buildMinimalDraft(request) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
+  const sajuRule = resolveSajuCategoryRule(request);
   const modeLabel = consultationMode === "saju" ? "사주" : consultationMode === "sukuyo" ? "숙요점 궁합" : "타로";
   const synthesisTitle = consultationMode === "saju" ? "연이가 읽은 사주의 결" : consultationMode === "sukuyo" ? "연이가 읽은 27숙 인연의 흐름" : "연이가 읽은 타로의 장면";
   const synthesisSummary =
@@ -156,32 +1183,20 @@ function buildMinimalDraft(request) {
     topic: request.selectedTeaCupTopic,
     reading: `${request.selectedTeaCupName}은 ${request.selectedTeaCupTopic}의 결을 따라 지금 마음에 오래 머문 향을 비춥니다.`,
   };
-  const sukuyo = request.sukuyo || {};
   const sukuyoCompatibility = consultationMode === "sukuyo"
-    ? {
-        available: false,
-        title: "달빛 궁합의 방이 아직 조용히 닫혀 있어요",
-        summary: "두 사람의 생년월일과 달력 기준이 모두 놓이면 연이가 27숙 인연의 흐름을 다시 펼쳐볼게요.",
-        relationshipType: cleanText(sukuyo.relationshipType, 80),
-        focus: cleanText(sukuyo.focus, 80),
-        currentSituation: cleanText(sukuyo.currentSituation, 300),
-        user: {
-          name: cleanText(sukuyo.user?.name || "나", 40),
-          birthDate: cleanText(sukuyo.user?.birthDate, 20),
-          calendarType: sukuyo.user?.calendarType === "lunar" ? "lunar" : "solar",
-          gender: cleanText(sukuyo.user?.gender, 20),
-        },
-        partner: {
-          name: cleanText(sukuyo.partner?.name || "상대", 40),
-          birthDate: cleanText(sukuyo.partner?.birthDate, 20),
-          calendarType: sukuyo.partner?.calendarType === "lunar" ? "lunar" : "solar",
-          gender: cleanText(sukuyo.partner?.gender, 20),
-        },
-        strengths: ["확인된 두 사람의 정보 위에서만 인연의 흐름을 살핍니다."],
-        cautions: ["비어 있는 정보로 관계의 결말을 단정하지 않습니다."],
-        adviceKeywords: ["생년월일 확인", "달력 기준", "관계의 온도"],
-      }
+    ? buildFortuneTeaSukuyoCompatibility(request)
     : undefined;
+  const tarot = {
+    cardId: "major_18_moon",
+    number: 18,
+    nameEn: "The Moon",
+    nameKo: "달",
+    orientation: "upright",
+    keywords: ["직감", "불안", "숨은 마음"],
+    meaning: "아직 선명하지 않은 마음의 결을 조심스럽게 드러내는 카드입니다.",
+    reading: "지금의 질문은 확신보다 감정의 결을 먼저 읽어야 하는 흐름을 비춥니다.",
+  };
+  const tarotSpread = normalizeTarotSpread(request.tarotSpread);
 
   return {
     consultationMode,
@@ -193,25 +1208,34 @@ function buildMinimalDraft(request) {
       title: "사주가 열리지 않은 오늘의 흐름",
       summary: sajuFallbackSummary,
       keyPoints: [sajuFallbackPoint],
+      birthSummary: {
+        nickname: cleanText(request.nickname, 40) || "손님",
+        profileId: cleanText(request.profileId, 120) || undefined,
+        birthDate: cleanText(request.birthDate, 20) || undefined,
+        birthTime: request.birthTimeUnknown ? undefined : cleanText(request.birthTime, 12) || undefined,
+        birthTimeUnknown: request.birthTimeUnknown === true || !cleanText(request.birthTime, 12),
+        hasBirthTime: Boolean(cleanText(request.birthTime, 12)) && request.birthTimeUnknown !== true,
+        calendarType: request.calendarType === "lunar" ? "lunar" : "solar",
+        gender: cleanText(request.gender, 20) || undefined,
+        birthPlace: cleanText(request.birthPlace, 120) || undefined,
+        timezone: cleanText(request.timezone, 80) || undefined,
+      },
+      deepSections: consultationMode === "saju" ? buildFallbackSajuDeepSections(request) : undefined,
+      oneLineAdvice: consultationMode === "saju" ? "오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요." : undefined,
       tenGodSnapshot: { available: false, tenGodLabels: [], reason: "사주 초안이 전달되지 않았습니다.", source: "unavailable" },
     },
-    tarot: {
-      cardId: "major_18_moon",
-      number: 18,
-      nameEn: "The Moon",
-      nameKo: "달",
-      orientation: "upright",
-      keywords: ["직감", "불안", "숨은 마음"],
-      meaning: "아직 선명하지 않은 마음의 결을 조심스럽게 드러내는 카드입니다.",
-      reading: "지금의 질문은 확신보다 감정의 결을 먼저 읽어야 하는 흐름을 비춥니다.",
-    },
+    tarot,
+    tarotSpread,
+    tarotSpreadCards: buildMinimalTarotSpreadCards(tarotSpread, tarot),
     sukuyoCompatibility,
-    emotionAnalysis: [
-      { label: "기대", value: 66, description: "아직 마음 한쪽에는 다시 부드럽게 열리고 싶은 빛이 남아 있습니다.", tone: "gold" },
-      { label: "불안", value: 72, description: "작은 반응에도 마음이 크게 흔들릴 수 있는 흐름입니다.", tone: "purple" },
-      { label: "미련", value: 61, description: "지나간 말과 장면이 아직 찻잔 바닥에 오래 남아 있습니다.", tone: "pink" },
-      { label: "망설임", value: 58, description: "움직이고 싶은 마음과 스스로를 지키려는 마음이 함께 머뭅니다.", tone: "blue" },
-    ],
+    emotionAnalysis: consultationMode === "saju"
+      ? buildSajuCategoryGauges(request, { birthSummary: { birthTimeUnknown: request.birthTimeUnknown === true } })
+      : [
+          { label: "기대", value: 66, description: "아직 마음 한쪽에는 다시 부드럽게 열리고 싶은 빛이 남아 있습니다.", tone: "gold" },
+          { label: "불안", value: 72, description: "작은 반응에도 마음이 크게 흔들릴 수 있는 흐름입니다.", tone: "purple" },
+          { label: "미련", value: 61, description: "지나간 말과 장면이 아직 찻잔 바닥에 오래 남아 있습니다.", tone: "pink" },
+          { label: "망설임", value: 58, description: "움직이고 싶은 마음과 스스로를 지키려는 마음이 함께 머뭅니다.", tone: "blue" },
+        ],
     yeoniReading: {
       intro: "연이는 먼저 당신의 질문에 머문 온도를 차분히 읽어 봅니다.",
       main: "지금은 결론보다 마음의 방향을 먼저 확인해야 하는 때로 드러납니다.",
@@ -230,7 +1254,7 @@ function buildMinimalDraft(request) {
     ],
     actionPrescription: "오늘은 마음에 숨은 말을 한 문장으로 적고, 그중 실제로 확인할 수 있는 것 하나만 골라 보세요.",
     luckyKeywords: consultationMode === "saju"
-      ? [request.selectedTeaCupName, "기준", "흐름"]
+      ? [request.selectedTeaCupName, sajuRule.category, "명식 근거", "오늘의 기준"]
       : consultationMode === "sukuyo"
         ? [request.selectedTeaCupName, "인연", "속도 확인"]
         : [request.selectedTeaCupName, "직감", "작은 대화"],
@@ -240,27 +1264,81 @@ function buildMinimalDraft(request) {
   };
 }
 
+function mergeFortuneTeaSukuyoCompatibility(fallbackCompatibility, candidateCompatibility) {
+  if (!fallbackCompatibility) return candidateCompatibility;
+  const candidate = candidateCompatibility && typeof candidateCompatibility === "object" ? candidateCompatibility : {};
+  const merged = {
+    ...fallbackCompatibility,
+    ...candidate,
+  };
+  if (!fallbackCompatibility.available) return merged;
+  return {
+    ...merged,
+    available: true,
+    user: fallbackCompatibility.user,
+    partner: fallbackCompatibility.partner,
+    calculationSource: fallbackCompatibility.calculationSource,
+    calculationBasis: fallbackCompatibility.calculationBasis,
+    relationDetail: fallbackCompatibility.relationDetail,
+    relationType: fallbackCompatibility.relationType,
+    relationTypeHan: fallbackCompatibility.relationTypeHan,
+    distanceLabel: fallbackCompatibility.distanceLabel,
+    distanceTier: fallbackCompatibility.distanceTier,
+    forwardDistance: fallbackCompatibility.forwardDistance,
+    reverseDistance: fallbackCompatibility.reverseDistance,
+    shortestDistance: fallbackCompatibility.shortestDistance,
+    compatibilityIndex: fallbackCompatibility.compatibilityIndex,
+    scores: fallbackCompatibility.scores,
+    elementHarmony: fallbackCompatibility.elementHarmony,
+    direction: fallbackCompatibility.direction,
+    strengths: Array.isArray(candidate.strengths) && candidate.strengths.length ? candidate.strengths : fallbackCompatibility.strengths,
+    cautions: Array.isArray(candidate.cautions) && candidate.cautions.length ? candidate.cautions : fallbackCompatibility.cautions,
+    adviceKeywords: Array.isArray(candidate.adviceKeywords) && candidate.adviceKeywords.length ? candidate.adviceKeywords : fallbackCompatibility.adviceKeywords,
+  };
+}
+
 function normalizeDraftResult(candidate, request) {
   const draft = candidate && typeof candidate === "object" ? candidate : buildMinimalDraft(request);
   const fallback = buildMinimalDraft(request);
+  const draftSaju = draft.saju && typeof draft.saju === "object" ? draft.saju : {};
+  const mergedSaju = { ...fallback.saju, ...draftSaju };
+  const normalizedDeepSections = normalizeDeepSections(mergedSaju.deepSections);
+  const normalizedDeepLength = normalizedDeepSections.map((section) => section.body).join("\n").replace(/\s/g, "").length;
+  const requiredSajuSections = getSajuRequiredSectionTitles(request);
+  const hasRequiredSajuTitles = requiredSajuSections.every((title) => normalizedDeepSections.some((section) => section.title === title));
+  if (request.consultationMode === "saju") {
+    mergedSaju.deepSections = normalizedDeepSections.length >= requiredSajuSections.length && normalizedDeepLength >= getSajuMinResultChars(request) && hasRequiredSajuTitles
+      ? normalizedDeepSections
+      : buildFallbackSajuDeepSections(request, mergedSaju);
+    mergedSaju.oneLineAdvice = cleanMultiline(
+      mergedSaju.oneLineAdvice,
+      400,
+    ) || "오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요.";
+  }
+  const normalizedEmotionAnalysis = request.consultationMode === "saju"
+    ? buildSajuCategoryGauges(request, mergedSaju)
+    : Array.isArray(draft.emotionAnalysis) && draft.emotionAnalysis.length ? draft.emotionAnalysis : fallback.emotionAnalysis;
   return {
     ...fallback,
     ...draft,
     consultationMode: request.consultationMode,
     teaCup: draft.teaCup && typeof draft.teaCup === "object" ? { ...fallback.teaCup, ...draft.teaCup } : fallback.teaCup,
-    saju: draft.saju && typeof draft.saju === "object" ? { ...fallback.saju, ...draft.saju } : fallback.saju,
+    saju: mergedSaju,
     tarot: draft.tarot && typeof draft.tarot === "object" ? { ...fallback.tarot, ...draft.tarot } : fallback.tarot,
-    sukuyoCompatibility: draft.sukuyoCompatibility && typeof draft.sukuyoCompatibility === "object" ? { ...(fallback.sukuyoCompatibility || {}), ...draft.sukuyoCompatibility } : fallback.sukuyoCompatibility,
-    emotionAnalysis: Array.isArray(draft.emotionAnalysis) && draft.emotionAnalysis.length ? draft.emotionAnalysis : fallback.emotionAnalysis,
+    tarotSpread: normalizeTarotSpread(draft.tarotSpread || request.tarotSpread),
+    tarotSpreadCards: Array.isArray(draft.tarotSpreadCards) && draft.tarotSpreadCards.length ? draft.tarotSpreadCards : fallback.tarotSpreadCards,
+    sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, draft.sukuyoCompatibility),
+    emotionAnalysis: normalizedEmotionAnalysis,
     yeoniReading: draft.yeoniReading && typeof draft.yeoniReading === "object" ? { ...fallback.yeoniReading, ...draft.yeoniReading } : fallback.yeoniReading,
     synthesis: draft.synthesis && typeof draft.synthesis === "object" ? { ...fallback.synthesis, ...draft.synthesis } : fallback.synthesis,
-    choiceSimulation: Array.isArray(draft.choiceSimulation) && draft.choiceSimulation.length ? draft.choiceSimulation.slice(0, 3) : fallback.choiceSimulation,
+    choiceSimulation: Array.isArray(draft.choiceSimulation) && draft.choiceSimulation.length ? draft.choiceSimulation.slice(0, 4) : fallback.choiceSimulation,
     luckyKeywords: Array.isArray(draft.luckyKeywords) && draft.luckyKeywords.length ? draft.luckyKeywords : fallback.luckyKeywords,
   };
 }
 
 function mergeLlmResult(fallback, parsed) {
   const safeParsed = parsed && typeof parsed === "object" ? parsed : {};
+  const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections);
   return {
     ...fallback,
     ...safeParsed,
@@ -277,8 +1355,10 @@ function mergeLlmResult(fallback, parsed) {
       fiveElements: fallback.saju.fiveElements,
       primaryTenGod: fallback.saju.primaryTenGod,
       secondaryTenGods: fallback.saju.secondaryTenGods,
+      deepSections: parsedDeepSections.length ? parsedDeepSections : fallback.saju.deepSections,
       cautionReading: fallback.saju.cautionReading,
       actionPrescription: fallback.saju.actionPrescription,
+      oneLineAdvice: cleanMultiline(safeParsed.saju?.oneLineAdvice, 400) || fallback.saju.oneLineAdvice,
       tarotBridgeReady: fallback.saju.tarotBridgeReady,
       tenGodSnapshot: fallback.saju.tenGodSnapshot,
     },
@@ -293,31 +1373,9 @@ function mergeLlmResult(fallback, parsed) {
       keywords: fallback.tarot.keywords,
       meaning: fallback.tarot.meaning,
     },
-    sukuyoCompatibility: fallback.sukuyoCompatibility
-      ? {
-          ...fallback.sukuyoCompatibility,
-          ...(safeParsed.sukuyoCompatibility || {}),
-          user: fallback.sukuyoCompatibility.user,
-          partner: fallback.sukuyoCompatibility.partner,
-          calculationSource: fallback.sukuyoCompatibility.calculationSource,
-          calculationBasis: fallback.sukuyoCompatibility.calculationBasis,
-          relationDetail: fallback.sukuyoCompatibility.relationDetail,
-          relationType: fallback.sukuyoCompatibility.relationType,
-          relationTypeHan: fallback.sukuyoCompatibility.relationTypeHan,
-          distanceLabel: fallback.sukuyoCompatibility.distanceLabel,
-          distanceTier: fallback.sukuyoCompatibility.distanceTier,
-          forwardDistance: fallback.sukuyoCompatibility.forwardDistance,
-          reverseDistance: fallback.sukuyoCompatibility.reverseDistance,
-          shortestDistance: fallback.sukuyoCompatibility.shortestDistance,
-          compatibilityIndex: fallback.sukuyoCompatibility.compatibilityIndex,
-          scores: fallback.sukuyoCompatibility.scores,
-          elementHarmony: fallback.sukuyoCompatibility.elementHarmony,
-          direction: fallback.sukuyoCompatibility.direction,
-          strengths: safeParsed.sukuyoCompatibility?.strengths?.length ? safeParsed.sukuyoCompatibility.strengths : fallback.sukuyoCompatibility.strengths,
-          cautions: safeParsed.sukuyoCompatibility?.cautions?.length ? safeParsed.sukuyoCompatibility.cautions : fallback.sukuyoCompatibility.cautions,
-          adviceKeywords: safeParsed.sukuyoCompatibility?.adviceKeywords?.length ? safeParsed.sukuyoCompatibility.adviceKeywords : fallback.sukuyoCompatibility.adviceKeywords,
-        }
-      : safeParsed.sukuyoCompatibility,
+    tarotSpread: fallback.tarotSpread,
+    tarotSpreadCards: fallback.tarotSpreadCards,
+    sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, safeParsed.sukuyoCompatibility),
     emotionAnalysis: safeParsed.emotionAnalysis?.length ? safeParsed.emotionAnalysis : fallback.emotionAnalysis,
     yeoniReading: {
       ...fallback.yeoniReading,
@@ -327,7 +1385,7 @@ function mergeLlmResult(fallback, parsed) {
       ...fallback.synthesis,
       ...(safeParsed.synthesis || {}),
     },
-    choiceSimulation: safeParsed.choiceSimulation?.length ? safeParsed.choiceSimulation.slice(0, 3) : fallback.choiceSimulation,
+    choiceSimulation: safeParsed.choiceSimulation?.length ? safeParsed.choiceSimulation.slice(0, 4) : fallback.choiceSimulation,
     luckyKeywords: safeParsed.luckyKeywords?.length ? safeParsed.luckyKeywords : fallback.luckyKeywords,
   };
 }
@@ -339,6 +1397,7 @@ function assertNoMechanicalCopy(result) {
     result.saju?.title,
     result.saju?.summary,
     result.saju?.caution,
+    result.saju?.oneLineAdvice,
     result.tarot?.reading,
     result.sukuyoCompatibility?.title,
     result.sukuyoCompatibility?.summary,
@@ -352,6 +1411,7 @@ function assertNoMechanicalCopy(result) {
     result.actionPrescription,
     result.closingLine,
     ...(result.saju?.keyPoints || []),
+    ...(result.saju?.deepSections || []).flatMap((section) => [section.title, section.body]),
     ...(result.sukuyoCompatibility?.strengths || []),
     ...(result.sukuyoCompatibility?.cautions || []),
     ...(result.sukuyoCompatibility?.adviceKeywords || []),
@@ -361,6 +1421,202 @@ function assertNoMechanicalCopy(result) {
   ].join("\n");
   if (MECHANICAL_COPY_PATTERN.test(joined)) {
     throw new Error("fortune tea house quality failed: mechanical copy");
+  }
+}
+
+function collectConsultText(result) {
+  return [
+    result.sessionTitle,
+    result.questionSummary,
+    result.saju?.title,
+    result.saju?.summary,
+    result.saju?.cautionReading,
+    result.saju?.actionPrescription,
+    result.saju?.oneLineAdvice,
+    result.synthesis?.title,
+    result.synthesis?.summary,
+    result.synthesis?.sajuTarotBridge,
+    result.yeoniReading?.intro,
+    result.yeoniReading?.main,
+    result.yeoniReading?.advice,
+    result.yeoniReading?.caution,
+    result.actionPrescription,
+    result.closingLine,
+    ...(result.saju?.keyPoints || []),
+    ...(result.saju?.deepSections || []).flatMap((section) => [section.title, section.body]),
+    ...(result.emotionAnalysis || []).flatMap((item) => [item.label, item.description]),
+    ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
+    ...(result.luckyKeywords || []),
+  ].filter(Boolean).join("\n");
+}
+
+function hasRepeatedLongBlock(text) {
+  const blocks = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter((line) => line.length >= 80);
+  const seen = new Set();
+  for (const block of blocks) {
+    if (seen.has(block)) return true;
+    seen.add(block);
+  }
+  return false;
+}
+
+function assertSajuDeepQuality(result, fallback) {
+  const rule = resolveSajuCategoryRule(fallback || result);
+  const requiredSectionTitles = getSajuRequiredSectionTitles(fallback || result);
+  const sections = normalizeDeepSections(result.saju?.deepSections);
+  if (sections.length < requiredSectionTitles.length) {
+    throw new Error("fortune tea house quality failed: saju deepSections count");
+  }
+  const titles = new Set(sections.map((section) => section.title));
+  const missing = requiredSectionTitles.filter((title) => !titles.has(title));
+  if (missing.length) {
+    throw new Error(`fortune tea house quality failed: saju missing sections ${missing.join(",")}`);
+  }
+  sections.forEach((section, index) => {
+    assertText(section.title, `saju.deepSections.${index}.title`);
+    assertText(section.body, `saju.deepSections.${index}.body`);
+    if (section.body.length < 140) {
+      throw new Error(`fortune tea house quality failed: saju.deepSections.${index}.body too short`);
+    }
+  });
+  const joined = collectConsultText(result);
+  const compactLength = joined.replace(/\s/g, "").length;
+  if (compactLength < getSajuMinResultChars(fallback || result)) {
+    throw new Error(`fortune tea house quality failed: saju length ${compactLength}`);
+  }
+  if (SYSTEM_COPY_PATTERN.test(joined)) {
+    throw new Error("fortune tea house quality failed: system copy");
+  }
+  if (SAJU_FORBIDDEN_COPY_PATTERN.test(joined)) {
+    throw new Error("fortune tea house quality failed: saju forbidden copy");
+  }
+  const factTerms = ["일간", "오행", "십성"].filter((term) => joined.includes(term));
+  if (factTerms.length < 2) {
+    throw new Error("fortune tea house quality failed: saju fact terms");
+  }
+  if (!/현재 운|운의 흐름|대운|세운|월운/.test(joined)) {
+    throw new Error("fortune tea house quality failed: saju luck flow");
+  }
+  const missingCategoryTerms = (rule.requiredTerms || []).filter((term) => !joined.includes(term));
+  if (missingCategoryTerms.length) {
+    throw new Error(`fortune tea house quality failed: saju category terms ${missingCategoryTerms.join(",")}`);
+  }
+  if (hasRepeatedLongBlock(joined)) {
+    throw new Error("fortune tea house quality failed: repeated block");
+  }
+}
+
+function isLoveTarotQuestion(result, fallback) {
+  const joined = [
+    fallback?.teaCup?.topic,
+    fallback?.questionSummary,
+    result?.teaCup?.topic,
+    result?.questionSummary,
+  ].filter(Boolean).join(" ");
+  return /연애|재회|상대|연락|썸|짝사랑|이별|마음/.test(joined);
+}
+
+function isReunionTarotQuestion(result, fallback) {
+  const joined = [
+    fallback?.teaCup?.topic,
+    fallback?.questionSummary,
+    result?.teaCup?.topic,
+    result?.questionSummary,
+  ].filter(Boolean).join(" ");
+  return /재회|다시\s*만|전남|전여|헤어진|헤어졌|돌아오|붙잡/.test(joined);
+}
+
+function assertTarotDeepQuality(result, fallback) {
+  const tarotRule = resolveTarotCategoryRule({
+    selectedTeaCupId: fallback?.teaCup?.id,
+    selectedTeaCupName: fallback?.teaCup?.name,
+    selectedTeaCupTopic: fallback?.teaCup?.topic,
+    teaCup: fallback?.teaCup,
+    concernTopic: fallback?.questionSummary,
+    question: fallback?.questionSummary,
+  });
+  const generated = [
+    result.tarot?.reading,
+    result.synthesis?.title,
+    result.synthesis?.summary,
+    result.synthesis?.sajuTarotBridge,
+    result.yeoniReading?.intro,
+    result.yeoniReading?.main,
+    result.yeoniReading?.advice,
+    result.yeoniReading?.caution,
+    result.actionPrescription,
+    result.closingLine,
+    ...(result.emotionAnalysis || []).flatMap((item) => [item.label, item.description]),
+    ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
+    ...(result.luckyKeywords || []),
+  ].filter(Boolean).join("\n");
+  const joined = generated;
+  const compactLength = joined.replace(/\s/g, "").length;
+  const minChars = getTarotMinResultChars({
+    selectedTeaCupId: fallback?.teaCup?.id,
+    selectedTeaCupName: fallback?.teaCup?.name,
+    selectedTeaCupTopic: fallback?.teaCup?.topic,
+    teaCup: fallback?.teaCup,
+  });
+  if (compactLength < minChars) {
+    throw new Error(`fortune tea house quality failed: tarot length ${compactLength}`);
+  }
+  assertTarotAnchorCoverage(joined, result, fallback);
+  if (SYSTEM_COPY_PATTERN.test(joined)) {
+    throw new Error("fortune tea house quality failed: tarot system copy");
+  }
+  if (TAROT_GENERIC_COPY_PATTERN.test(joined)) {
+    throw new Error("fortune tea house quality failed: tarot generic copy");
+  }
+  if (TAROT_DETERMINISTIC_CLAIM_PATTERN.test(joined)) {
+    throw new Error("fortune tea house quality failed: tarot deterministic claim");
+  }
+  if (hasRepeatedLongBlock(joined)) {
+    throw new Error("fortune tea house quality failed: tarot repeated block");
+  }
+  if (cleanMultiline(result.tarot?.reading, 4000).length < 120) {
+    throw new Error("fortune tea house quality failed: tarot reading too short");
+  }
+  ["intro", "main", "advice", "caution"].forEach((key) => {
+    if (cleanMultiline(result.yeoniReading?.[key], 4000).length < 80) {
+      throw new Error(`fortune tea house quality failed: yeoniReading.${key} too short`);
+    }
+  });
+  if (cleanMultiline(result.actionPrescription, 4000).length < 100) {
+    throw new Error("fortune tea house quality failed: actionPrescription too short");
+  }
+  result.emotionAnalysis.forEach((item, index) => {
+    if (cleanMultiline(item.description, 1000).length < 80) {
+      throw new Error(`fortune tea house quality failed: emotionAnalysis.${index}.reason too short`);
+    }
+  });
+  const expectedGaugeLabels = new Set(tarotRule.gauges || []);
+  const matchedGaugeCount = (result.emotionAnalysis || []).filter((item) => expectedGaugeLabels.has(cleanText(item.label, 80))).length;
+  if (matchedGaugeCount < Math.min(4, expectedGaugeLabels.size)) {
+    throw new Error("fortune tea house quality failed: tarot category gauges");
+  }
+  const missingCategoryTerms = (tarotRule.requiredTerms || []).filter((term) => !joined.includes(term));
+  if (missingCategoryTerms.length) {
+    throw new Error(`fortune tea house quality failed: tarot missing category terms ${missingCategoryTerms.join(",")}`);
+  }
+  if (!Array.isArray(result.choiceSimulation) || result.choiceSimulation.length < 4) {
+    throw new Error("fortune tea house quality failed: tarot category action plan");
+  }
+  if (isLoveTarotQuestion(result, fallback)) {
+    const missing = TAROT_LOVE_REQUIRED_TERMS.filter((term) => !joined.includes(term));
+    if (missing.length) {
+      throw new Error(`fortune tea house quality failed: tarot missing terms ${missing.join(",")}`);
+    }
+    const missingReunion = isReunionTarotQuestion(result, fallback) ? TAROT_REUNION_REQUIRED_TERMS.filter((term) => !joined.includes(term)) : [];
+    if (missingReunion.length) {
+      throw new Error(`fortune tea house quality failed: tarot missing reunion terms ${missingReunion.join(",")}`);
+    }
+    if (!Array.isArray(result.choiceSimulation) || result.choiceSimulation.length < 4) {
+      throw new Error("fortune tea house quality failed: tarot 7day plan");
+    }
   }
 }
 
@@ -431,6 +1687,12 @@ function assertConsultQuality(result, fallback) {
   if (!Array.isArray(result.luckyKeywords) || result.luckyKeywords.length < 2) {
     throw new Error("fortune tea house quality failed: luckyKeywords");
   }
+  if (fallback.consultationMode === "saju") {
+    assertSajuDeepQuality(result, fallback);
+  }
+  if (fallback.consultationMode === "tarot") {
+    assertTarotDeepQuality(result, fallback);
+  }
   assertNoMechanicalCopy(result);
 }
 
@@ -439,27 +1701,47 @@ function buildSystemPrompt() {
     "너는 운명의 찻집 주인 연이다.",
     "연이는 꿈결처럼 따뜻하지만, 사용자의 고민을 찻잔과 손님이 고른 상담 방식의 상징으로 읽어 주는 숙련된 상담사다.",
     "사용자는 타로, 사주, 숙요점 궁합 중 하나만 선택한다. consultationMode가 tarot이면 타로만, saju이면 사주만, sukuyo이면 숙요점 궁합만 상담의 근거로 삼는다.",
+    ...baseSajuSystemPrompt,
+    ...sajuSafetyRules,
+    ...baseTarotSystemPrompt,
+    ...tarotSafetyRules,
     "상담문은 베타 안내나 결과 설명이 아니라, 연이가 바로 앞에서 조용히 말해 주는 상담처럼 쓴다.",
     "사주는 전달받은 기존 엔진 초안과 오행, 십성 흐름만 사용하고 없는 정보는 만들지 않는다.",
     "사주 상담에서 사주 정보가 부족하면 지어내지 말고 확인된 출생정보와 질문 안에서만 말한다.",
+    "사주 상담은 사용자의 실제 입력값, 출생시간 미상 여부, 오행 균형, 십성, 질문을 서로 연결해 충분한 분량으로 작성한다.",
+    "사주 용어를 쓰되 일반 사용자도 이해할 수 있도록 풀어서 말하고, 같은 문장 패턴을 반복하지 않는다.",
+    "사주 상담에서는 핵심 요약, 타고난 기질, 오행 균형, 십성 구조, 강점, 반복되는 약점, 현재 운의 흐름, 일·돈·관계·건강 리듬, 앞으로 조심할 시기, 실천 전략, 오늘의 한 문장 조언을 모두 포함한다.",
     "타로 상담에서는 사주를 근거처럼 말하지 않는다. 사주 상담에서는 타로 카드나 카드 상징을 상담 근거처럼 말하지 않는다.",
     "전달받은 타로 cardId, nameKo, nameEn, orientation, keywords, meaning은 절대 바꾸지 않는다.",
+    "타로 상담에서는 질문을 먼저 연애, 재회, 상대방 마음, 연락운, 관계 지속 가능성, 짝사랑, 이별 후 정리, 일·직장, 돈·재물, 진로, 인간관계, 오늘의 운세, 선택 고민, 마음 정리 중 하나로 분류하고 그 관점으로 쓴다.",
+    "타로 상담은 반드시 카드의 상징 → 현재 관계 장면 → 질문자의 내면 → 상대와의 거리 → 행동 조언 순서로 연결한다.",
+    "연이는 귀엽고 따뜻하지만 듣기 좋은 말만 하지 않는다. 손님의 마음을 다치지 않게 말하되 카드가 보여주는 불편한 진실도 부드럽게 짚는다.",
+    "연이는 타로 카드의 실제 상징을 근거로 상담하고, 사주·점성술·숙요점을 섞지 않는다.",
+    "카드 이름, 정방향/역방향, 질문 유형, 찻잔의 성격을 반드시 반영한다.",
+    "재회됩니다, 절대 안 됩니다, 상대는 반드시 당신을 사랑합니다처럼 확정하지 않는다.",
+    "연락을 계속하세요처럼 집착을 부추기지 않는다. 상대가 거부하거나 차단한 상황이면 연락보다 멈춤과 존중을 우선한다.",
+    "운명의 찻집, 찻잔, 마음의 향, 꽃돼지, 달빛 이미지는 가끔만 자연스럽게 쓴다. 킁... 표현은 마음의 향이나 감정 설명에서만 제한적으로 쓴다.",
     "전달받은 십성만 사용한다. primaryTenGod이 없으면 십성 이름을 새로 만들지 않는다.",
     "숙요점 궁합에서는 전달받은 27숙, 관계 유형, 거리, 방향, 오행 조화, 영역 점수, 키워드만 사용한다. 없는 숙요 계산값과 상대의 속마음은 만들지 않는다.",
     "100% 확정, 공포 조장, 의료/법률/금융 판단, 상대방 속마음 단정, 현실 판단 흐리기 유도는 금지한다.",
+    "시스템 문구, 프롬프트, 모델명, provider, mock, dry-run, JSON 설명은 결과 문장에 절대 쓰지 않는다.",
     "같은 주어 반복을 줄이고 전문적이지만 다정한 한국어 상담 문장으로 쓴다.",
     "반드시 JSON만 반환한다. 마크다운과 JSON 밖 설명은 쓰지 않는다.",
   ].join("\n");
 }
 
-function buildUserPrompt(request, fallback) {
+function buildUserPrompt(request, fallback, attempt = 0) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
+  const sajuRule = resolveSajuCategoryRule(request);
+  const tarotRule = resolveTarotCategoryRule(request);
+  const requiredSajuSections = getSajuRequiredSectionTitles(request);
+  const sajuFactInput = consultationMode === "saju" ? buildSajuFactInput(request, fallback.saju, sajuRule) : undefined;
   const focusRule =
     consultationMode === "saju"
-      ? "사주 상담만 작성한다. 기존 사주 초안, 오행, 십성, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다."
+      ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 오행, 십성, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
       : consultationMode === "sukuyo"
         ? "숙요점 궁합 상담만 작성한다. 전달받은 기본 숙요점 계산 데이터인 27숙, 방향별 관계, 거리, 오행 조화, 영역 점수, 관계 맥락만 말하고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
-      : "타로 상담만 작성한다. 보존된 카드의 cardId, 방향, 키워드, 의미를 바꾸지 말고 현재 질문에 대한 카드 해석만 깊게 쓴다.";
+      : `타로 상담만 작성한다. ${tarotRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${tarotRule.concept}"이다. 보존된 카드의 cardId, 방향, 키워드, 의미를 바꾸지 말고 현재 질문에 대한 카드 해석만 짧고 밀도 있게 쓴다. 우선 해석 렌즈는 ${tarotRule.focus.join(", ")}이다.`;
   const bridgeRule =
     consultationMode === "saju"
       ? "synthesis.sajuTarotBridge는 이름과 달라도 사주-only 요약으로 쓴다. 타로, 카드, card라는 단어를 상담 근거처럼 쓰지 않는다."
@@ -472,10 +1754,66 @@ function buildUserPrompt(request, fallback) {
       consultationMode,
       focusRule,
       bridgeRule,
-      preserveExactly: {
-        teaCup: fallback.teaCup,
-        sajuAvailability: fallback.saju.available,
-        tarot: {
+      qualityRecovery: attempt > 0 ? "이전 응답이 분량, 필수 섹션, 반복 문단, 일반론 또는 시스템 문구 검증을 통과하지 못했다. 이번에는 선택된 상담 방식의 필수 구조와 요구 분량을 반드시 지킨다." : undefined,
+      sajuFactInput,
+      sajuQualityRule: consultationMode === "saju"
+        ? {
+            category: sajuRule.category,
+            resultKey: sajuRule.resultKey,
+            minimumKoreanChars: getSajuMinResultChars(request),
+            requiredDeepSections: requiredSajuSections,
+            categorySchema: sajuResultSchemaByCategory[sajuRule.id],
+            sectionRule: "saju.deepSections는 위 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·오행·십성·현재 운의 흐름·질문을 연결한 자연스러운 상담 문장으로 충분히 길게 작성한다.",
+            noGenericAdvice: ["노력하면 좋아집니다", "긍정적으로 생각하세요", "대화가 중요합니다", "균형을 잡는 것이 필요합니다"],
+            birthTimeUnknownRule: "출생시간이 없거나 birthTimeUnknown이 true이면 세부 시주 해석 제한을 명시하고, 생년월일 중심의 큰 흐름으로 말한다.",
+            stateGaugeRule: "emotionAnalysis는 감정 분석이 아니라 선택된 찻잔의 상태 게이지로 쓴다. label은 categoryGaugeLabels 중에서만 사용하고, description에는 일간·오행·십성 중 최소 하나의 근거를 붙인다.",
+            categoryGaugeLabels: sajuRule.gauges.map(([label]) => label),
+            partnerRule: "partnerProfile이 없으면 상대 마음, 궁합, 상대 명식을 단정하지 말고 내 사주 기준의 관계 흐름으로 제한한다.",
+          }
+        : undefined,
+      tarotQualityRule: consultationMode === "tarot"
+        ? {
+            category: tarotRule.category,
+            resultKey: tarotRule.resultKey,
+            minimumKoreanChars: getTarotMinResultChars(request),
+            requiredDeepSections: tarotRule.requiredSections,
+            categorySchema: tarotResultSchemaByCategory[tarotRule.id],
+            thinkingOrder: [
+              "사용자 질문을 상담 유형으로 분류한다.",
+              "선택된 찻잔의 분위기와 상담 주제를 확인한다.",
+              "선택된 카드의 정방향/역방향 의미를 확인한다.",
+              "해당 카드가 이 질문 유형에서 어떻게 바뀌는지 해석한다.",
+              "질문자의 감정과 현실 상황을 분리한다.",
+              "재회/연락/기다림/정리 중 어느 쪽이 카드와 더 맞는지 설명한다.",
+              "확정 예언이 아니라 조건부 흐름으로 말한다.",
+              "마지막에는 실제 행동 조언을 준다.",
+            ],
+            fieldStructure: {
+              "tarot.reading": "오늘 카드가 연 첫 장면. 3-4문장으로 카드 상징과 현실 신호를 묶는다.",
+              "synthesis.summary": "질문자의 마음에서 가장 크게 흔들리는 지점. 1-2문장으로 감정과 현실 행동을 분리한다.",
+              "synthesis.sajuTarotBridge": "상대 마음을 단정하지 않고 반복된 패턴을 1-2문장으로 읽는다.",
+              "yeoniReading.intro": "카드가 비춘 질문자의 내면과 마음의 향. 1-2문장.",
+              "yeoniReading.main": "가능성이 열리는 조건. 2문장 안에서 질문 유형에 맞춰 쓴다.",
+              "yeoniReading.advice": "지금 연락해도 되는가. 조건과 짧은 문장 예시를 간결하게 쓴다.",
+              "yeoniReading.caution": "가능성을 닫는 행동과 오늘의 금지 행동을 짧게 묶는다.",
+              choiceSimulation: "카테고리별 행동 플랜. 3-4개 item으로 간결하게 작성한다.",
+              actionPrescription: "오늘 해도 되는 행동과 하면 안 되는 행동을 3-4문장으로 정리한다.",
+              closingLine: "연이의 마지막 한마디. 1-2문장으로 짧고 따뜻하게 쓴다.",
+            },
+            categorySectionRule: "requiredDeepSections의 의미가 결과 필드 전반에 모두 드러나야 한다. 섹션 제목을 그대로 쓰지 않아도 되지만, 누락된 주제가 있으면 실패다.",
+            questionReflectionRule: "사용자의 실제 질문 문장을 상담 본문 안에서 자연스럽게 되받아라. 전체 문장을 기계적으로 복사하지 말고, 핵심 단어와 고민의 방향이 tarot.reading, yeoniReading, actionPrescription 중 최소 한 곳에 살아 있어야 한다.",
+            emotionRule: "emotionAnalysis 수치는 상대방 마음이 아니라 질문자의 마음의 향이다. 각 description에 카드와 질문 맥락에서 왜 그 수치가 나왔는지 짧은 근거를 붙인다.",
+            categoryGaugeLabels: tarotRule.gauges,
+            noGenericAdvice: ["긍정적으로 생각", "대화가 중요", "마음을 차분히", "작은 행동 하나", "기다려 보세요", "당신의 선택입니다"],
+            requiredCategoryTerms: tarotRule.requiredTerms,
+          }
+        : undefined,
+        preserveExactly: {
+          teaCup: fallback.teaCup,
+          sajuAvailability: fallback.saju.available,
+          tarotSpread: fallback.tarotSpread,
+          tarotSpreadCards: fallback.tarotSpreadCards,
+          tarot: {
           cardId: fallback.tarot.cardId,
           number: fallback.tarot.number,
           nameKo: fallback.tarot.nameKo,
@@ -493,13 +1831,17 @@ function buildUserPrompt(request, fallback) {
         sessionTitle: "string",
         questionSummary: "string",
         teaCup: "preserve",
-        saju: "available/title/summary/keyPoints/caution/primaryTenGod preserve/secondaryTenGods preserve/tenGodSnapshot preserve",
+        saju: consultationMode === "saju"
+          ? `available/title/summary/keyPoints preserve/birthSummary preserve/dayMaster preserve/pillars preserve/fiveElements preserve/primaryTenGod preserve/secondaryTenGods preserve/deepSections required with exact category titles for ${sajuRule.resultKey}/cautionReading preserve/actionPrescription preserve/oneLineAdvice/tenGodSnapshot preserve`
+          : "available/title/summary/keyPoints/caution/primaryTenGod preserve/secondaryTenGods preserve/tenGodSnapshot preserve",
         tarot: "preserve card fields, improve only reading",
+        tarotSpread: "preserve",
+        tarotSpreadCards: "preserve",
         sukuyoCompatibility: "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords",
         emotionAnalysis: "4-5 items with label/value/description/tone",
         yeoniReading: "intro/main/advice/caution",
         synthesis: "title/summary/sajuTarotBridge",
-        choiceSimulation: "3 choices",
+        choiceSimulation: consultationMode === "tarot" ? `4 items for ${tarotRule.requiredSections.find((section) => /플랜/.test(section)) || "category-specific action plan"}` : consultationMode === "saju" ? "3-4 category-specific practical choices; include the plan window named in saju.deepSections" : "3 choices",
         actionPrescription: "string",
         luckyKeywords: "string[]",
         closingLine: "string",
@@ -512,6 +1854,11 @@ function buildUserPrompt(request, fallback) {
 
 async function generateConsultResult(request, fallback, env) {
   if (!hasGeminiKey(env)) {
+    if (!isLocalLikeEnv(env)) {
+      const error = new Error("fortune tea house llm unavailable");
+      error.status = 503;
+      throw error;
+    }
     return {
       result: fallback,
       generationMeta: {
@@ -522,41 +1869,55 @@ async function generateConsultResult(request, fallback, env) {
     };
   }
 
-  try {
-    const ai = await callGeminiText(env, buildUserPrompt(request, fallback), {
-      systemPrompt: buildSystemPrompt(),
-      taskType: "fortune",
-      temperature: 0.62,
-      maxOutputTokens: 4200,
-      timeoutMs: 24000,
-      fallbackToWorkersAI: false,
-    });
+  const consultationMode = normalizeConsultationMode(request.consultationMode);
+  const maxAttempts = consultationMode === "saju" || consultationMode === "tarot" ? 2 : 1;
+  let lastError = null;
 
-    if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
-    const parsed = extractJson(ai.text);
-    const result = mergeLlmResult(fallback, parsed);
-    assertConsultQuality(result, fallback);
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt), {
+        systemPrompt: buildSystemPrompt(),
+        taskType: "fortune",
+        temperature: attempt > 0 ? 0.54 : 0.62,
+        maxOutputTokens: consultationMode === "saju" ? 12000 : consultationMode === "tarot" ? 7200 : 4200,
+        timeoutMs: consultationMode === "saju" ? 42000 : consultationMode === "tarot" ? 36000 : 24000,
+        fallbackToWorkersAI: false,
+      });
 
-    return {
-      result,
-      generationMeta: {
-        mode: "gemini",
-        provider: ai.provider || "gemini",
-        model: ai.model,
-        generatedAt: new Date().toISOString(),
-      },
-    };
-  } catch (error) {
-    console.warn("[fortune-tea-house/consult] LLM fallback used", error);
-    return {
-      result: fallback,
-      generationMeta: {
-        mode: "local_fallback",
-        reason: error instanceof Error ? error.message : "llm_failed",
-        generatedAt: new Date().toISOString(),
-      },
-    };
+      if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
+      const parsed = extractJson(ai.text);
+      const result = mergeLlmResult(fallback, parsed);
+      assertConsultQuality(result, fallback);
+
+      return {
+        result,
+        generationMeta: {
+          mode: "gemini",
+          provider: ai.provider || "gemini",
+          model: ai.model,
+          generatedAt: new Date().toISOString(),
+        },
+      };
+    } catch (error) {
+      lastError = error;
+      if (attempt + 1 < maxAttempts) continue;
+    }
   }
+
+  console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
+  if (!isLocalLikeEnv(env)) {
+    const error = new Error("fortune tea house llm quality failed");
+    error.status = 502;
+    throw error;
+  }
+  return {
+    result: fallback,
+    generationMeta: {
+      mode: "local_fallback",
+      reason: lastError instanceof Error ? lastError.message : "llm_failed",
+      generatedAt: new Date().toISOString(),
+    },
+  };
 }
 
 function buildHoneyResultId(body, consultRequest) {
@@ -577,17 +1938,41 @@ function buildHoneyResultId(body, consultRequest) {
   return `fortune-tea-house:${digest}`;
 }
 
-function honeyStatePayload(doc, extra = {}) {
-  const currentHoneyDrops = Math.max(0, Number(doc?.currentHoneyDrops || 0));
-  const totalHoneyDrops = Math.max(0, Number(doc?.totalHoneyDrops || 0));
-  const lastEarnedAt = doc?.lastEarnedAt instanceof Date
-    ? doc.lastEarnedAt.toISOString()
-    : (doc?.lastEarnedAt ? new Date(doc.lastEarnedAt).toISOString() : undefined);
+function honeyCollections() {
+  const db = mongoose.connection.db;
   return {
-    currentHoneyDrops,
-    totalHoneyDrops,
-    lastEarnedAt,
-    unlocked: currentHoneyDrops >= 10,
+    wallets: db.collection("fortune_tea_house_honey_wallets"),
+    ledgers: db.collection("fortune_tea_house_honey_ledgers"),
+    results: db.collection("fortune_tea_house_results"),
+  };
+}
+
+function dateIso(value) {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
+}
+
+function unwrapUpdatedDoc(result) {
+  if (!result) return null;
+  if (Object.prototype.hasOwnProperty.call(result, "value")) return result.value || null;
+  return result;
+}
+
+function honeyStatePayload(doc, extra = {}) {
+  const balance = Math.max(0, Math.floor(Number(doc?.balance ?? doc?.currentHoneyDrops ?? 0)));
+  const totalEarned = Math.max(0, Math.floor(Number(doc?.totalEarned ?? doc?.totalHoneyDrops ?? 0)));
+  const totalSpent = Math.max(0, Math.floor(Number(doc?.totalSpent ?? 0)));
+  return {
+    serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    balance,
+    fortuneTeaHouseHoneyDrops: balance,
+    currentHoneyDrops: balance,
+    totalHoneyDrops: totalEarned,
+    totalEarned,
+    totalSpent,
+    lastEarnedAt: dateIso(doc?.lastEarnedAt),
+    unlocked: balance >= HONEY_LETTER_COST,
     authenticated: true,
     ...extra,
   };
@@ -597,8 +1982,13 @@ async function readHoneyDropsState(request, env) {
   const auth = await getCurrentUser(request, env);
   if (!auth?.userId) {
     return {
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      balance: 0,
+      fortuneTeaHouseHoneyDrops: 0,
       currentHoneyDrops: 0,
       totalHoneyDrops: 0,
+      totalEarned: 0,
+      totalSpent: 0,
       unlocked: false,
       authenticated: false,
     };
@@ -606,14 +1996,19 @@ async function readHoneyDropsState(request, env) {
 
   try {
     await connectDb(env);
-    const collection = mongoose.connection.db.collection("fortune_tea_honey_states");
-    const doc = await collection.findOne({ userId: String(auth.userId) });
+    const { wallets } = honeyCollections();
+    const doc = await wallets.findOne({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
     return honeyStatePayload(doc, { authenticated: true });
   } catch (error) {
     console.warn("[fortune-tea-house/honey-drops] disabled", error);
     return {
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      balance: 0,
+      fortuneTeaHouseHoneyDrops: 0,
       currentHoneyDrops: 0,
       totalHoneyDrops: 0,
+      totalEarned: 0,
+      totalSpent: 0,
       unlocked: false,
       authenticated: true,
       disabled: true,
@@ -622,141 +2017,486 @@ async function readHoneyDropsState(request, env) {
   }
 }
 
-async function grantHoneyDropReward(request, env, resultId, consultationMode) {
-  const auth = await getCurrentUser(request, env);
-  if (!auth?.userId) return null;
-
-  try {
-    await connectDb(env);
-    const userId = String(auth.userId);
-    const now = new Date();
-    const states = mongoose.connection.db.collection("fortune_tea_honey_states");
-    const logs = mongoose.connection.db.collection("fortune_tea_honey_reward_logs");
-    let earnedThisResult = false;
-
-    try {
-      await logs.insertOne({
-        _id: `${userId}:${resultId}`,
-        userId,
-        resultId,
-        consultationMode: cleanText(consultationMode, 20),
-        rewardType: "honey_drop",
-        amount: 1,
-        createdAt: now,
-      });
-      earnedThisResult = true;
-    } catch (error) {
-      if (Number(error?.code) !== 11000) throw error;
-    }
-
-    if (earnedThisResult) {
-      await states.updateOne(
-        { userId },
-        {
-          $inc: { currentHoneyDrops: 1, totalHoneyDrops: 1 },
-          $set: { lastEarnedAt: now, updatedAt: now },
-          $setOnInsert: { createdAt: now },
-        },
-        { upsert: true },
-      );
-    }
-
-    const stateDoc = await states.findOne({ userId });
-    return honeyStatePayload(stateDoc, {
-      resultId,
-      earnedThisResult,
-      duplicateResult: !earnedThisResult,
-    });
-  } catch (error) {
-    console.warn("[fortune-tea-house/honey-drops] reward disabled", error);
-    return {
-      currentHoneyDrops: 0,
-      totalHoneyDrops: 0,
-      resultId,
-      earnedThisResult: false,
-      duplicateResult: false,
-      unlocked: false,
-      authenticated: true,
-      disabled: true,
-      reason: "honey_reward_unavailable",
-    };
-  }
-}
-
-function buildLocalHoneyBonusAdvice(result) {
-  const mode = normalizeConsultationMode(result?.consultationMode);
-  const action =
-    mode === "saju"
-      ? "오늘은 내 속도를 지키는 약속 하나만 정해 보세요."
-      : mode === "sukuyo"
-        ? "오늘은 상대에게 확인하고 싶은 마음을 한 문장으로만 부드럽게 건네 보세요."
-        : "오늘은 카드가 건넨 키워드 하나를 적고, 지금 할 수 있는 가장 작은 행동을 골라 보세요.";
+function publicHoneyLetter(value) {
+  if (!value || typeof value !== "object") return null;
+  const body = cleanMultiline(value.body || value.message || value.content, 3000);
+  if (!body) return null;
   return {
-    title: "연이의 따뜻한 조언",
-    message: "꿀방울이 충분히 모였어요. 지금 마음을 급하게 결론내리기보다, 먼저 스스로에게 다정한 쪽을 골라 주세요. 흔들림이 있더라도 오늘의 작은 선택 하나가 내일의 온도를 조금 바꿔 줄 거예요.",
-    action,
-    source: "local_fallback",
+    title: cleanText(value.title, 80) || "연이의 꿀편지",
+    body,
+    createdAt: dateIso(value.createdAt),
+    provider: cleanText(value.provider, 80) || undefined,
+    model: cleanText(value.model, 120) || undefined,
   };
 }
 
-function parseHoneyAdvice(text, fallback) {
+function resultPayloadForStorage(result) {
+  const safe = result && typeof result === "object" ? { ...result } : {};
+  delete safe.honeyDropBonusAdvice;
+  return safe;
+}
+
+async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta }) {
+  if (!auth?.userId) return null;
+  const userId = String(auth.userId);
+  const now = new Date();
+  const { results } = honeyCollections();
+  await results.updateOne(
+    { userId, resultId },
+    {
+      $set: {
+        userId,
+        resultId,
+        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+        consultationMode: normalizeConsultationMode(consultRequest.consultationMode),
+        status: "completed",
+        profileId: cleanText(consultRequest.profileId, 120),
+        questionSummary: cleanMultiline(result.questionSummary || consultRequest.question, 1200),
+        result: resultPayloadForStorage(result),
+        generationMeta: generationMeta || {},
+        updatedAt: now,
+      },
+      $setOnInsert: { createdAt: now },
+    },
+    { upsert: true },
+  );
+  return results.findOne({ userId, resultId });
+}
+
+async function grantHoneyDropReward(auth, resultId, consultationMode) {
+  if (!auth?.userId) return null;
+
+  const userId = String(auth.userId);
+  const now = new Date();
+  const { wallets, ledgers } = honeyCollections();
+  let earnedThisResult = false;
+
   try {
-    const parsed = extractJson(text);
-    const message = cleanMultiline(parsed?.message, 420);
-    const action = cleanText(parsed?.action, 140);
-    if (!message || !action) return fallback;
-    return {
-      title: cleanText(parsed?.title, 60) || "연이의 따뜻한 조언",
-      message,
-      action,
-      source: "gemini",
-    };
-  } catch {
-    return fallback;
+    await ledgers.insertOne({
+      _id: `earn:${userId}:${resultId}`,
+      userId,
+      type: "earn",
+      amount: 1,
+      reason: "TEA_HOUSE_CONSULTATION_REWARD",
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      relatedResultId: resultId,
+      relatedConsultationMode: cleanText(consultationMode, 20),
+      idempotencyKey: `earn:${resultId}`,
+      createdAt: now,
+      metadata: { source: "fortune-tea-house-consult" },
+    });
+    earnedThisResult = true;
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+  }
+
+  if (earnedThisResult) {
+    await wallets.updateOne(
+      { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE },
+      {
+        $inc: { balance: 1, totalEarned: 1 },
+        $set: { lastEarnedAt: now, updatedAt: now },
+        $setOnInsert: { createdAt: now },
+      },
+      { upsert: true },
+    );
+  }
+
+  const wallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+  return honeyStatePayload(wallet, {
+    resultId,
+    earnedThisResult,
+    duplicateResult: !earnedThisResult,
+  });
+}
+
+function normalizeIdempotencyKey(value, fallback) {
+  return cleanText(value, 180) || fallback;
+}
+
+function extractHoneyLetterResultId(path, body) {
+  const match = String(path || "").match(/^\/results\/([^/]+)\/honey-letter$/);
+  const pathResultId = match ? decodeURIComponent(match[1]) : "";
+  return cleanText(body?.resultId || pathResultId, 180);
+}
+
+function honeyLetterError(errorCode, status, extra = {}) {
+  return json({
+    success: false,
+    serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    errorCode,
+    ...extra,
+  }, { status });
+}
+
+function buildHoneyLetterPrompt(resultDoc, attempt = 0) {
+  const result = resultDoc?.result || {};
+  return JSON.stringify({
+    task: "운명의 찻집 결과 하단에 붙일 '연이의 꿀편지'를 작성한다.",
+    serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    rules: [
+      "기존 상담 결과를 대체하지 않는다.",
+      "기존 본문을 반복 요약하거나 복붙하지 않는다.",
+      "편지처럼 따뜻하게, 손님에게 직접 말을 건넨다.",
+      "연이의 귀엽고 다정한 매력은 살리되 유치하게 쓰지 않는다.",
+      "꽃돼지, 꿀방울, 찻잔, 달빛 표현을 자연스럽게 섞는다.",
+      "상대방 마음을 단정하지 않는다.",
+      "확정 예언, 불안 조장, 결제 유도, 코인/월정석/이용권 언급을 하지 않는다.",
+      "상담 방식별 근거를 1~2개만 반영한다.",
+      "800자 이상 1200자 이하로 쓴다.",
+      "JSON만 반환한다.",
+    ],
+    retry: attempt > 0 ? "이전 편지는 품질 기준에 닿지 않았다. 이번에는 800자 이상, 편지체, 상담 근거 반영, 반복 금지를 반드시 지킨다." : undefined,
+    consultation: {
+      mode: resultDoc.consultationMode,
+      questionSummary: result.questionSummary || resultDoc.questionSummary,
+      teaCup: result.teaCup,
+      tarot: resultDoc.consultationMode === "tarot" ? result.tarot : undefined,
+      saju: resultDoc.consultationMode === "saju" ? {
+        dayMaster: result.saju?.dayMaster,
+        dominantElements: result.saju?.dominantElements,
+        primaryTenGod: result.saju?.primaryTenGod,
+        secondaryTenGods: result.saju?.secondaryTenGods,
+        summary: result.saju?.summary,
+        oneLineAdvice: result.saju?.oneLineAdvice,
+      } : undefined,
+      sukuyoCompatibility: resultDoc.consultationMode === "sukuyo" ? result.sukuyoCompatibility : undefined,
+    },
+    outputSchema: {
+      title: "연이의 꿀편지",
+      body: "800~1200자 편지 본문",
+    },
+  });
+}
+
+function parseHoneyLetterResponse(text) {
+  const parsed = extractJson(text);
+  return {
+    title: cleanText(parsed?.title, 80) || "연이의 꿀편지",
+    body: cleanMultiline(parsed?.body || parsed?.message || parsed?.content, 3000),
+  };
+}
+
+function isTestHoneyLetterEnabled(env) {
+  return cleanText(env?.NODE_ENV || env?.ENVIRONMENT || env?.APP_ENV, 40).toLowerCase() === "test"
+    && cleanMultiline(env?.FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT, 4000).length > 0;
+}
+
+function assertHoneyLetterQuality(letter, resultDoc) {
+  const body = cleanMultiline(letter?.body, 3000);
+  if (body.length < 800) {
+    throw new Error("honey letter quality failed: too short");
+  }
+  if (SYSTEM_COPY_PATTERN.test(body) || MECHANICAL_COPY_PATTERN.test(body)) {
+    throw new Error("honey letter quality failed: system copy");
+  }
+  if (/결제|코인|월정석|이용권|충전|구매|환불|할인/.test(body)) {
+    throw new Error("honey letter quality failed: payment copy");
+  }
+  if (/반드시|무조건|100%|틀림없이|상대는 너를|상대는 당신을/.test(body)) {
+    throw new Error("honey letter quality failed: deterministic claim");
+  }
+  if (hasRepeatedLongBlock(body)) {
+    throw new Error("honey letter quality failed: repeated block");
+  }
+
+  const result = resultDoc?.result || {};
+  if (resultDoc.consultationMode === "tarot") {
+    const direction = result.tarot?.orientation === "upright" ? "정방향" : "역방향";
+    const evidence = [result.tarot?.nameKo, direction, ...(result.tarot?.keywords || [])].filter(Boolean);
+    if (!evidence.some((item) => body.includes(String(item)))) {
+      throw new Error("honey letter quality failed: tarot evidence");
+    }
+  }
+  if (resultDoc.consultationMode === "saju") {
+    const evidence = [
+      result.saju?.dayMaster,
+      result.saju?.primaryTenGod?.nameKo,
+      ...(result.saju?.dominantElements || []),
+      ...(result.saju?.secondaryTenGods || []).map((item) => item.nameKo),
+    ].filter(Boolean);
+    if (evidence.length && !evidence.some((item) => body.includes(String(item)))) {
+      throw new Error("honey letter quality failed: saju evidence");
+    }
+  }
+  if (resultDoc.consultationMode === "sukuyo") {
+    const compatibility = result.sukuyoCompatibility || {};
+    const evidence = [
+      compatibility.relationType,
+      compatibility.relationTypeHan,
+      compatibility.distanceLabel,
+      compatibility.distanceTier,
+      compatibility.direction,
+    ].filter(Boolean);
+    if (evidence.length && !evidence.some((item) => body.includes(String(item)))) {
+      throw new Error("honey letter quality failed: sukuyo evidence");
+    }
   }
 }
 
-async function generateHoneyBonusAdvice(result, env) {
-  const fallback = buildLocalHoneyBonusAdvice(result);
-  if (!hasGeminiKey(env)) return fallback;
+async function generateHoneyLetter(resultDoc, env) {
+  if (isTestHoneyLetterEnabled(env)) {
+    const letter = {
+      title: "연이의 꿀편지",
+      body: cleanMultiline(env.FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT, 4000),
+      provider: "test",
+      model: "test",
+    };
+    assertHoneyLetterQuality(letter, resultDoc);
+    return letter;
+  }
+
+  if (!hasGeminiKey(env)) {
+    const error = new Error("fortune tea house honey letter llm unavailable");
+    error.status = 503;
+    throw error;
+  }
+
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const ai = await callGeminiText(env, buildHoneyLetterPrompt(resultDoc, attempt), {
+        systemPrompt: [
+          "너는 운명의 찻집 상담사 연이다.",
+          "꿀방울 10개를 모은 손님에게만 보내는 사적인 편지를 쓴다.",
+          "연이의 목소리로 따뜻하지만 현실적인 애정을 전한다.",
+          "결제, 코인, 월정석, 이용권, 환불, 시스템, 프롬프트 이야기는 절대 하지 않는다.",
+        ].join("\n"),
+        taskType: "fortune",
+        temperature: attempt > 0 ? 0.48 : 0.62,
+        maxOutputTokens: 2200,
+        timeoutMs: 22000,
+        fallbackToWorkersAI: false,
+      });
+      if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
+      const letter = {
+        ...parseHoneyLetterResponse(ai.text),
+        provider: ai.provider || "gemini",
+        model: ai.model || "",
+      };
+      assertHoneyLetterQuality(letter, resultDoc);
+      return letter;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("honey letter quality failed");
+}
+
+async function refundHoneyLetterSpend({ userId, resultId, consultationMode, idempotencyKey, spendLedgerId, reason }) {
+  const now = new Date();
+  const { wallets, ledgers } = honeyCollections();
+  await wallets.updateOne(
+    { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE },
+    {
+      $inc: { balance: HONEY_LETTER_COST, totalSpent: -HONEY_LETTER_COST },
+      $set: { updatedAt: now },
+    },
+  );
+  try {
+    await ledgers.insertOne({
+      _id: `refund:${userId}:${resultId}:${idempotencyKey}`,
+      userId,
+      type: "refund",
+      amount: HONEY_LETTER_COST,
+      reason: "YEONI_HONEY_LETTER_REFUND",
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      relatedResultId: resultId,
+      relatedConsultationMode: consultationMode,
+      idempotencyKey,
+      createdAt: now,
+      metadata: { spendLedgerId, reason: cleanText(reason, 160) },
+    });
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+  }
+}
+
+async function handleHoneyLetter(request, env, path) {
+  const auth = await getCurrentUser(request, env);
+  if (!auth?.userId) {
+    return honeyLetterError("UNAUTHORIZED", 401);
+  }
+
+  const body = await readJson(request);
+  const resultId = extractHoneyLetterResultId(path, body);
+  if (!resultId) {
+    return honeyLetterError("MISSING_TEA_HOUSE_RESULT_ID", 400);
+  }
+
+  await connectDb(env);
+  const userId = String(auth.userId);
+  const now = new Date();
+  const idempotencyKey = normalizeIdempotencyKey(body?.idempotencyKey, `yeoni-honey-letter:${userId}:${resultId}`);
+  const { wallets, ledgers, results } = honeyCollections();
+  const resultDoc = await results.findOne({ userId, resultId });
+
+  if (!resultDoc) {
+    return honeyLetterError("HONEY_DROPS_ONLY_FOR_FORTUNE_TEA_HOUSE", 404);
+  }
+  if (resultDoc.serviceScope !== FORTUNE_TEA_HOUSE_SCOPE || !VALID_HONEY_CONSULTATION_MODES.has(resultDoc.consultationMode)) {
+    return honeyLetterError("HONEY_DROPS_ONLY_FOR_FORTUNE_TEA_HOUSE", 403);
+  }
+  if (resultDoc.status !== "completed" || resultDoc.generationMeta?.mode === "local_fallback") {
+    return honeyLetterError("HONEY_LETTER_RESULT_NOT_READY", 409);
+  }
+
+  const existingLetter = publicHoneyLetter(resultDoc.honeyLetter || resultDoc.result?.honeyLetter);
+  if (existingLetter) {
+    const wallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    return json({
+      success: true,
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      spent: 0,
+      balance: honeyStatePayload(wallet).balance,
+      honeyDrops: honeyStatePayload(wallet),
+      honeyLetter: existingLetter,
+      alreadyApplied: true,
+    });
+  }
+
+  const lockedResult = await results.findOneAndUpdate(
+    {
+      userId,
+      resultId,
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      status: "completed",
+      honeyLetter: { $exists: false },
+      honeyLetterLock: { $exists: false },
+    },
+    {
+      $set: {
+        honeyLetterLock: { idempotencyKey, createdAt: now },
+        updatedAt: now,
+      },
+    },
+    { returnDocument: "after" },
+  );
+  const lockedDoc = unwrapUpdatedDoc(lockedResult);
+  if (!lockedDoc) {
+    const latest = await results.findOne({ userId, resultId });
+    const latestLetter = publicHoneyLetter(latest?.honeyLetter || latest?.result?.honeyLetter);
+    const wallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    if (latestLetter) {
+      return json({
+        success: true,
+        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+        spent: 0,
+        balance: honeyStatePayload(wallet).balance,
+        honeyDrops: honeyStatePayload(wallet),
+        honeyLetter: latestLetter,
+        alreadyApplied: true,
+      });
+    }
+    return honeyLetterError("YEONI_HONEY_LETTER_IN_PROGRESS", 409);
+  }
 
   try {
-    const prompt = JSON.stringify({
-      task: "운명의 찻집 결과 하단에 붙일 짧은 보너스 조언을 연이의 따뜻한 상담체로 작성한다.",
-      rules: [
-        "기존 결과를 대체하지 않는다.",
-        "과장된 예언체를 쓰지 않는다.",
-        "현실적인 위로, 감정 정리, 오늘 할 수 있는 작은 행동을 포함한다.",
-        "JSON만 반환한다.",
-      ],
-      resultSummary: {
-        consultationMode: result.consultationMode,
-        questionSummary: result.questionSummary,
-        teaCup: result.teaCup,
-        tarot: result.consultationMode === "tarot" ? result.tarot : undefined,
-        saju: result.consultationMode === "saju" ? result.saju : undefined,
-        sukuyoCompatibility: result.consultationMode === "sukuyo" ? result.sukuyoCompatibility : undefined,
-        yeoniReading: result.yeoniReading,
+    const walletBefore = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    const current = honeyStatePayload(walletBefore).balance;
+    if (current < HONEY_LETTER_COST) {
+      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+      return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, {
+        required: HONEY_LETTER_COST,
+        current,
+      });
+    }
+
+    const honeyLetter = await generateHoneyLetter(lockedDoc, env);
+    const chargedWallet = await wallets.findOneAndUpdate(
+      { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, balance: { $gte: HONEY_LETTER_COST } },
+      {
+        $inc: { balance: -HONEY_LETTER_COST, totalSpent: HONEY_LETTER_COST },
+        $set: { updatedAt: new Date() },
       },
-      outputSchema: {
-        title: "연이의 따뜻한 조언",
-        message: "string",
-        action: "string",
+      { returnDocument: "after" },
+    );
+    const chargedWalletDoc = unwrapUpdatedDoc(chargedWallet);
+    if (!chargedWalletDoc) {
+      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+      const latestWallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+      return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, {
+        required: HONEY_LETTER_COST,
+        current: honeyStatePayload(latestWallet).balance,
+      });
+    }
+
+    const spendLedgerId = `spend:${userId}:${resultId}`;
+    try {
+      await ledgers.insertOne({
+        _id: spendLedgerId,
+        userId,
+        type: "spend",
+        amount: HONEY_LETTER_COST,
+        reason: "YEONI_HONEY_LETTER_SPEND",
+        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+        relatedResultId: resultId,
+        relatedConsultationMode: lockedDoc.consultationMode,
+        idempotencyKey,
+        createdAt: new Date(),
+        metadata: { source: "yeoni-honey-letter" },
+      });
+    } catch (error) {
+      await refundHoneyLetterSpend({ userId, resultId, consultationMode: lockedDoc.consultationMode, idempotencyKey, spendLedgerId, reason: "spend_ledger_failed" });
+      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+      if (Number(error?.code) === 11000) {
+        const latest = await results.findOne({ userId, resultId });
+        const latestLetter = publicHoneyLetter(latest?.honeyLetter || latest?.result?.honeyLetter);
+        const latestWallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+        if (latestLetter) {
+          return json({
+            success: true,
+            serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+            spent: 0,
+            balance: honeyStatePayload(latestWallet).balance,
+            honeyDrops: honeyStatePayload(latestWallet),
+            honeyLetter: latestLetter,
+            alreadyApplied: true,
+          });
+        }
+      }
+      throw error;
+    }
+
+    const storedLetter = {
+      title: honeyLetter.title || "연이의 꿀편지",
+      body: honeyLetter.body,
+      createdAt: new Date(),
+      provider: cleanText(honeyLetter.provider, 80),
+      model: cleanText(honeyLetter.model, 120),
+      spendLedgerId,
+    };
+    const storeResult = await results.updateOne(
+      { userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey, honeyLetter: { $exists: false } },
+      {
+        $set: {
+          honeyLetter: storedLetter,
+          "result.honeyLetter": storedLetter,
+          updatedAt: new Date(),
+        },
+        $unset: { honeyLetterLock: "" },
       },
+    );
+    if (!storeResult.matchedCount || !storeResult.modifiedCount) {
+      await refundHoneyLetterSpend({ userId, resultId, consultationMode: lockedDoc.consultationMode, idempotencyKey, spendLedgerId, reason: "result_store_failed" });
+      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+      return honeyLetterError("YEONI_HONEY_LETTER_SAVE_FAILED", 500);
+    }
+
+    const walletAfter = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    return json({
+      success: true,
+      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      spent: HONEY_LETTER_COST,
+      balance: honeyStatePayload(walletAfter).balance,
+      honeyDrops: honeyStatePayload(walletAfter),
+      honeyLetter: publicHoneyLetter(storedLetter),
+      alreadyApplied: false,
     });
-    const ai = await callGeminiText(env, prompt, {
-      systemPrompt: "너는 운명의 찻집 상담사 연이다. 따뜻하지만 현실적인 한마디만 더한다.",
-      taskType: "fortune",
-      temperature: 0.58,
-      maxOutputTokens: 900,
-      timeoutMs: 12000,
-      fallbackToWorkersAI: false,
-    });
-    if (!ai.ok) return fallback;
-    return parseHoneyAdvice(ai.text, fallback);
   } catch (error) {
-    console.warn("[fortune-tea-house/honey-drops] bonus advice fallback used", error);
-    return fallback;
+    await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } }).catch(() => undefined);
+    console.warn("[fortune-tea-house/honey-letter] failed", error);
+    return honeyLetterError("YEONI_HONEY_LETTER_GENERATION_FAILED", Number(error?.status || 0) || 502);
   }
 }
 
@@ -773,14 +2513,40 @@ async function handleConsult(request, env) {
   const fallback = normalizeDraftResult(body?.draftResult, consultRequest);
   const generated = await generateConsultResult(consultRequest, fallback, env);
   const resultId = buildHoneyResultId(body, consultRequest);
-  const honeyDrops = await grantHoneyDropReward(request, env, resultId, consultRequest.consultationMode);
+  const auth = await getCurrentUser(request, env);
   const result = {
     ...generated.result,
     resultId,
+    serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+    consultationMode: consultRequest.consultationMode,
+    tarotSpread: consultRequest.tarotSpread,
   };
+  let honeyDrops = auth?.userId ? null : await readHoneyDropsState(request, env);
 
-  if (honeyDrops?.unlocked) {
-    result.honeyDropBonusAdvice = await generateHoneyBonusAdvice(result, env);
+  if (auth?.userId) {
+    try {
+      await connectDb(env);
+      await saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta: generated.generationMeta });
+      honeyDrops = await grantHoneyDropReward(auth, resultId, consultRequest.consultationMode);
+    } catch (error) {
+      console.warn("[fortune-tea-house/honey-drops] reward disabled", error);
+      honeyDrops = {
+        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+        balance: 0,
+        fortuneTeaHouseHoneyDrops: 0,
+        currentHoneyDrops: 0,
+        totalHoneyDrops: 0,
+        totalEarned: 0,
+        totalSpent: 0,
+        resultId,
+        earnedThisResult: false,
+        duplicateResult: false,
+        unlocked: false,
+        authenticated: true,
+        disabled: true,
+        reason: "honey_reward_unavailable",
+      };
+    }
   }
 
   return json({
@@ -795,18 +2561,20 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/fortune-tea-house");
-    if (method === "GET" && path === "/honey-drops") {
+    if (method === "GET" && (path === "/honey-drops" || path === "/honey-drops/balance")) {
       return json({ ok: true, honeyDrops: await readHoneyDropsState(request, env) });
     }
 
-    if (method !== "POST") {
-      if (["GET", "POST"].includes(method)) return notFound();
-      return methodNotAllowed();
+    if (method === "POST" && (path === "/results/honey-letter" || /^\/results\/[^/]+\/honey-letter$/.test(path))) {
+      return await handleHoneyLetter(request, env, path);
     }
 
-    if (path !== "/consult") return notFound();
+    if (method === "POST" && path === "/consult") {
+      return await handleConsult(request, env);
+    }
 
-    return await handleConsult(request, env);
+    if (["GET", "POST"].includes(method)) return notFound();
+    return methodNotAllowed();
   } catch (error) {
     if (Number.isFinite(Number(error?.status))) {
       return json({ ok: false, message: String(error?.message || "상담 내용을 다시 확인해 주세요.") }, { status: Number(error.status) });

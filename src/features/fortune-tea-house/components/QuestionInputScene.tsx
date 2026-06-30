@@ -1,9 +1,17 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { authFetch } from "@/app/_lib/auth-client";
+import {
+  normalizeDestinyProfileCard,
+  publishDestinyProfileList,
+  readCurrentDestinyProfile,
+  resolveDestinyProfileBirthParts,
+  type DestinyProfileCard,
+} from "@/app/_lib/profile-card-storage";
 import { fortuneTeaHouseAssets } from "../data/assets";
-import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSukuyoInput } from "../data/consult";
+import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSukuyoInput, FortuneTeaTarotSpread } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
@@ -39,7 +47,7 @@ const consultModeOptions: Array<{
     id: "tarot",
     title: "타로로 보기",
     eyebrow: "카드가 먼저 여는 장면",
-    description: "지금 질문 위로 떠오른 한 장의 상징을 깊게 읽습니다.",
+    description: "지금 질문 위로 떠오른 한 장의 상징을 따라, 마음의 기류와 선택의 방향을 읽습니다.",
     promise: "상대의 마음, 선택의 기류, 바로 움직일 수 있는 한 걸음",
     reads: "현재 질문에 가까운 카드의 상징, 상대 마음, 선택 앞의 기류",
     suitedFor: "연락, 재회, 선택처럼 지금 장면의 흐름이 궁금한 밤",
@@ -49,8 +57,8 @@ const consultModeOptions: Array<{
   {
     id: "saju",
     title: "사주로 보기",
-    eyebrow: "태어난 흐름이 밝히는 자리",
-    description: "출생정보로 오행과 십성의 결을 차분히 살핍니다.",
+    eyebrow: "태어난 흐름이 밝히는 저녁",
+    description: "태어난 흐름을 바탕으로 오행과 십성의 결을 차분히 살펴봅니다.",
     promise: "기질의 반복, 시기의 흐름, 오늘 붙잡을 기준",
     reads: "태어난 흐름, 오행의 균형, 반복되는 기질과 시기의 기준",
     suitedFor: "내 성향과 타이밍, 오래 반복되는 고민의 뿌리를 보고 싶은 때",
@@ -61,7 +69,7 @@ const consultModeOptions: Array<{
     id: "sukuyo",
     title: "숙요점 궁합 상담",
     eyebrow: "달빛 아래 피어나는 인연의 흐름",
-    description: "두 사람의 27숙 거리와 관계의 리듬을 연이가 조용히 펼칩니다.",
+    description: "두 사람의 27숙 거리와 관계 리듬을 달빛 아래 조용히 펼쳐봅니다.",
     promise: "끌림의 방식, 조심할 온도, 오늘 건넬 수 있는 한 문장",
     reads: "두 사람의 27숙 거리, 끌림과 부딪힘의 리듬, 관계의 온도",
     suitedFor: "궁합, 재회 가능성, 상대와 나 사이의 흐름을 조용히 보고 싶은 때",
@@ -70,15 +78,24 @@ const consultModeOptions: Array<{
   },
 ];
 
+const tarotSpreadOptions: Array<{
+  id: FortuneTeaTarotSpread;
+  title: string;
+  description: string;
+}> = [
+  { id: "three", title: "3카드 스프레드", description: "현재 · 흐름 · 조언을 차례로 펼칩니다." },
+  { id: "five", title: "5카드 스프레드", description: "현재 · 상대/상황 · 장애 · 가능성 · 조언까지 깊게 봅니다." },
+];
+
 const questionPanelUi =
   "rounded-[30px] border border-amber-100/30 bg-[#14091f]/85 shadow-[0_34px_96px_rgba(7,3,18,0.5),0_0_44px_rgba(248,187,221,0.12),inset_0_1px_0_rgba(255,255,255,0.16)] ring-1 ring-amber-100/10 backdrop-blur-2xl";
 const questionSectionUi =
   "rounded-[22px] border border-amber-100/15 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_18px_48px_rgba(7,3,18,0.18)]";
 const questionHeaderUi =
   "[&>span]:shadow-[0_0_22px_rgba(233,196,106,0.22)] [&_h3]:text-[1.08rem] [&_p]:text-white/68";
-const consultModeGridUi = "gap-3 lg:gap-4";
+const consultModeGridUi = "gap-4 lg:gap-5";
 const consultModeCardUi =
-  "rounded-[18px] border-white/15 bg-white/[0.055] shadow-[0_18px_52px_rgba(7,3,18,0.28)] transition duration-200 hover:-translate-y-1 hover:border-amber-100/55 hover:shadow-[0_26px_70px_rgba(7,3,18,0.38),0_0_34px_rgba(248,187,221,0.16)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-100/80 disabled:cursor-wait disabled:opacity-60";
+  "rounded-3xl border-white/10 bg-gradient-to-br from-[#26113c]/85 via-[#14091f]/88 to-[#090414]/92 shadow-[0_24px_70px_rgba(7,3,18,0.34),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-amber-100/50 hover:shadow-[0_32px_82px_rgba(7,3,18,0.46),0_0_42px_rgba(192,132,252,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-100/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f] disabled:cursor-wait disabled:opacity-60";
 const questionLabelUi = "text-amber-100/90";
 const questionInputUi =
   "min-h-12 rounded-2xl border border-amber-100/25 bg-[#10071c]/75 px-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_12px_28px_rgba(7,3,18,0.12)] outline-none transition placeholder:text-white/35 focus:border-amber-100/70 focus:ring-4 focus:ring-amber-100/15 disabled:cursor-not-allowed disabled:opacity-55";
@@ -90,13 +107,114 @@ const branchNoteUi =
   "rounded-2xl border border-indigo-100/20 bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
 const actionRowUi = "items-stretch sm:items-center";
 
+type TeaHouseProfileOption = {
+  optionId: string;
+  profileId?: string;
+  name: string;
+  gender: string;
+  birthDate: string;
+  birthTime: string;
+  birthTimeUnknown: boolean;
+  calendarType: FortuneTeaHouseCalendarType;
+  birthPlace: string;
+  timezone: string;
+};
+
+type ProfileListPayload = {
+  ok?: boolean;
+  profiles?: DestinyProfileCard[];
+  currentId?: string;
+  currentProfileId?: string;
+  selectedProfileId?: string;
+};
+
+function cleanProfileText(value: unknown): string {
+  return String(value || "").trim();
+}
+
+function padBirthPart(value: unknown): string {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? String(Math.trunc(numeric)).padStart(2, "0") : "";
+}
+
+function normalizeProfileGender(value: unknown): string {
+  const raw = cleanProfileText(value).toLowerCase();
+  if (["m", "male", "남", "남성"].includes(raw)) return "male";
+  if (["f", "female", "여", "여성"].includes(raw)) return "female";
+  return "";
+}
+
+function normalizeProfileCalendarType(profile: DestinyProfileCard): FortuneTeaHouseCalendarType {
+  const raw = cleanProfileText(profile.calType || profile.calendarType || profile.birth?.calType).toLowerCase();
+  return raw.includes("lunar") || raw.includes("음") ? "lunar" : "solar";
+}
+
+function normalizeProfileBirthDate(profile: DestinyProfileCard): string {
+  const normalized = normalizeDestinyProfileCard(profile) || profile;
+  if (normalized.birthDate) return normalized.birthDate;
+  const parts = resolveDestinyProfileBirthParts(normalized);
+  if (!parts) return "";
+  return `${String(parts.year).padStart(4, "0")}-${padBirthPart(parts.month)}-${padBirthPart(parts.day)}`;
+}
+
+function normalizeProfileBirthTime(profile: DestinyProfileCard): string {
+  const birth = profile.birth || {};
+  const raw = cleanProfileText(profile.birthTime);
+  if (/^\d{1,2}:\d{2}$/.test(raw)) return raw.padStart(5, "0");
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length >= 3) {
+    const hour = digits.length === 3 ? digits.slice(0, 1) : digits.slice(0, 2);
+    const minute = digits.length === 3 ? digits.slice(1, 3) : digits.slice(2, 4);
+    return `${padBirthPart(hour)}:${padBirthPart(minute)}`;
+  }
+  const hour = birth.hour ?? profile.birthHour;
+  const minute = birth.minute ?? profile.birthMinute ?? 0;
+  if (hour === null || hour === undefined || hour === "") return "";
+  return `${padBirthPart(hour)}:${padBirthPart(minute)}`;
+}
+
+function isProfileBirthTimeUnknown(profile: DestinyProfileCard, birthTime: string): boolean {
+  return Boolean(profile.birthTimeUnknown || profile.timeUnknown || profile.noBirthTime || profile.birth?.timeUnknown || !birthTime);
+}
+
+function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfileOption | null {
+  const normalized = normalizeDestinyProfileCard(profile) || profile;
+  const birthDate = normalizeProfileBirthDate(normalized);
+  if (!birthDate) return null;
+  const birthTime = normalizeProfileBirthTime(normalized);
+  const realProfileId = cleanProfileText(normalized.id || normalized.profileId);
+  const name = cleanProfileText(normalized.name) || "손님";
+  return {
+    optionId: realProfileId || `local-${birthDate}-${name}`,
+    profileId: realProfileId || undefined,
+    name,
+    gender: normalizeProfileGender(normalized.gender),
+    birthDate,
+    birthTime,
+    birthTimeUnknown: isProfileBirthTimeUnknown(normalized, birthTime),
+    calendarType: normalizeProfileCalendarType(normalized),
+    birthPlace: cleanProfileText(normalized.location?.label || normalized.birthRegion),
+    timezone: cleanProfileText(normalized.location?.tz) || "Asia/Seoul",
+  };
+}
+
 export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "" }: QuestionInputSceneProps) {
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
+  const [profileId, setProfileId] = useState(initialInput?.profileId || "");
+  const [selectedProfileOptionId, setSelectedProfileOptionId] = useState(initialInput?.profileId || "");
+  const [profileOptions, setProfileOptions] = useState<TeaHouseProfileOption[]>([]);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [birthDate, setBirthDate] = useState(initialInput?.birthDate || "");
   const [birthTime, setBirthTime] = useState(initialInput?.birthTime || "");
+  const [birthTimeUnknown, setBirthTimeUnknown] = useState(Boolean(initialInput?.birthTimeUnknown));
+  const [birthPlace, setBirthPlace] = useState(initialInput?.birthPlace || "");
+  const [timezone, setTimezone] = useState(initialInput?.timezone || "Asia/Seoul");
   const [gender, setGender] = useState(initialInput?.gender || "");
   const [calendarType, setCalendarType] = useState<FortuneTeaHouseCalendarType>(initialInput?.calendarType || "solar");
+  const [tarotSpread, setTarotSpread] = useState<FortuneTeaTarotSpread>(initialInput?.tarotSpread === "five" ? "five" : "three");
   const [sukuyoInput, setSukuyoInput] = useState<FortuneTeaHouseSukuyoInput>(() => ({
     user: {
       name: initialInput?.sukuyo?.user?.name || initialInput?.nickname || "",
@@ -116,6 +234,94 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   }));
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
+
+  const applyProfileOption = useCallback((option: TeaHouseProfileOption, announce = true) => {
+    setSelectedProfileOptionId(option.optionId);
+    setProfileId(option.profileId || "");
+    setNickname(option.name);
+    setBirthDate(option.birthDate);
+    setBirthTime(option.birthTimeUnknown ? "" : option.birthTime);
+    setBirthTimeUnknown(option.birthTimeUnknown);
+    setGender(option.gender);
+    setCalendarType(option.calendarType);
+    setBirthPlace(option.birthPlace);
+    setTimezone(option.timezone || "Asia/Seoul");
+    setSukuyoInput((current) => ({
+      ...current,
+      user: {
+        ...current.user,
+        name: option.name || current.user.name,
+        birthDate: option.birthDate || current.user.birthDate,
+        calendarType: option.calendarType || current.user.calendarType,
+        gender: option.gender || current.user.gender,
+      },
+    }));
+    if (announce) {
+      setProfileNotice("프로필 카드에 저장된 내 정보를 불러왔어요. 필요하면 이번 상담에서만 살짝 수정할 수 있어요.");
+    }
+    setProfileError("");
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function applyFallbackProfile() {
+      const fallback = readCurrentDestinyProfile();
+      const option = fallback ? mapProfileToTeaHouseOption(fallback) : null;
+      if (!alive) return;
+      if (option) {
+        setProfileOptions([option]);
+        applyProfileOption(option);
+      } else {
+        setProfileNotice("저장된 프로필을 찾지 못했어요. 아래 정보만 채우면 상담을 열 수 있어요.");
+      }
+    }
+
+    async function loadProfiles() {
+      setProfileLoading(true);
+      setProfileError("");
+      try {
+        const response = await authFetch("/api/profile", {
+          method: "GET",
+          cache: "no-store",
+        }, {
+          retryOn401: true,
+        });
+        const payload = await response.json().catch(() => null) as ProfileListPayload | null;
+        if (!alive) return;
+        if (response.ok && payload && payload.ok !== false && Array.isArray(payload.profiles)) {
+          const currentId = cleanProfileText(payload.currentId || payload.currentProfileId || payload.selectedProfileId);
+          publishDestinyProfileList(payload.profiles, currentId);
+          const options = payload.profiles
+            .map((profile) => mapProfileToTeaHouseOption(profile))
+            .filter((option): option is TeaHouseProfileOption => Boolean(option));
+          setProfileOptions(options);
+          const currentOption = options.find((option) => option.profileId && option.profileId === currentId);
+          const nextOption = currentOption || (options.length === 1 ? options[0] : null);
+          if (nextOption) {
+            applyProfileOption(nextOption);
+          } else if (options.length > 1) {
+            setProfileNotice("불러올 프로필을 골라 주세요. 선택하면 아래 정보가 바로 채워집니다.");
+          } else {
+            await applyFallbackProfile();
+          }
+          return;
+        }
+        await applyFallbackProfile();
+      } catch {
+        if (!alive) return;
+        setProfileError("프로필을 불러오지 못했어요. 저장된 정보가 있으면 다시 확인하고, 지금은 직접 입력해 주세요.");
+        await applyFallbackProfile();
+      } finally {
+        if (alive) setProfileLoading(false);
+      }
+    }
+
+    void loadProfiles();
+    return () => {
+      alive = false;
+    };
+  }, [applyProfileOption]);
 
   function updateSukuyoPerson(target: "user" | "partner", patch: Partial<FortuneTeaHouseSukuyoInput["user"]>) {
     setSukuyoInput((current) => ({
@@ -154,13 +360,23 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     };
   }
 
+  function buildSukuyoAutoQuestion(input = normalizedSukuyoInput()) {
+    const relationshipType = input.relationshipType || "연애 중";
+    const focus = input.focus || "앞으로의 흐름";
+    const currentSituation = input.currentSituation?.trim();
+    return currentSituation
+      ? `${relationshipType} 관계의 ${focus}: ${currentSituation}`
+      : `${relationshipType} 관계에서 ${focus}이 궁금해요.`;
+  }
+
   function buildInput(nextQuestion: string): FortuneTeaHouseQuestionInput {
     const nextSukuyoInput = normalizedSukuyoInput();
     const birthInfoSummary = [
       consultationMode === "sukuyo" ? `${nextSukuyoInput.user.name || "나"} ${nextSukuyoInput.user.birthDate || ""}` : birthDate ? birthDate.replaceAll("-", ".") : "",
-      consultationMode === "sukuyo" ? `${nextSukuyoInput.partner.name || "상대"} ${nextSukuyoInput.partner.birthDate || ""}` : birthTime ? birthTime : "",
+      consultationMode === "sukuyo" ? `${nextSukuyoInput.partner.name || "상대"} ${nextSukuyoInput.partner.birthDate || ""}` : birthTimeUnknown ? "출생시간 미상" : birthTime ? birthTime : "",
       consultationMode === "sukuyo" ? nextSukuyoInput.relationshipType || "" : gender === "male" ? "남성" : gender === "female" ? "여성" : "",
       consultationMode === "sukuyo" ? nextSukuyoInput.focus || "" : calendarType === "lunar" ? "음력" : "양력",
+      consultationMode === "sukuyo" ? "" : birthPlace,
     ]
       .filter(Boolean)
       .join(" ");
@@ -169,10 +385,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : nickname.trim(),
       concernTopic: selectedCup.topic,
       birthInfo: birthInfoSummary,
+      profileId: consultationMode === "saju" ? profileId : undefined,
       birthDate,
-      birthTime,
+      birthTime: birthTimeUnknown ? "" : birthTime,
+      birthTimeUnknown: consultationMode === "saju" ? birthTimeUnknown : undefined,
+      birthPlace: consultationMode === "saju" ? birthPlace.trim() : undefined,
+      timezone: consultationMode === "saju" ? timezone.trim() : undefined,
       gender,
       calendarType,
+      tarotSpread: consultationMode === "tarot" ? tarotSpread : undefined,
       sukuyo: consultationMode === "sukuyo" ? nextSukuyoInput : undefined,
       question: nextQuestion,
     };
@@ -180,7 +401,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
 
   function submitCurrentQuestion() {
     if (isSubmitting) return;
-    const nextQuestion = question.trim();
+    const nextQuestion = consultationMode === "sukuyo" && question.trim().length < 4
+      ? buildSukuyoAutoQuestion()
+      : question.trim();
     if (nextQuestion.length < 4) {
       setError("연이가 읽을 수 있도록 마음을 조금만 더 적어 주세요.");
       return;
@@ -212,6 +435,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     event.preventDefault();
     submitCurrentQuestion();
   }
+
+  const sukuyoAutoQuestionPreview = consultationMode === "sukuyo" ? buildSukuyoAutoQuestion() : "";
 
   return (
     <section className={styles.questionScene} aria-labelledby="teaQuestionTitle">
@@ -347,18 +572,61 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
           )}
 
-          <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
-            고민 내용
-            <textarea
-              id="fortuneTeaQuestion"
-              className={`${styles.questionTextarea} ${questionTextareaUi}`}
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder={consultationMode === "sukuyo" ? "그 사람과 앞으로 어떻게 될지 궁금해요." : selectedCup.questionPlaceholder}
-              rows={7}
-              disabled={isSubmitting}
-            />
-          </label>
+          {consultationMode === "tarot" ? (
+            <fieldset className={styles.tarotSpreadSelector}>
+              <legend>타로 스프레드</legend>
+              <div className={styles.tarotSpreadOptions} role="radiogroup" aria-label="타로 스프레드 선택">
+                {tarotSpreadOptions.map((option) => {
+                  const selected = tarotSpread === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      className={styles.tarotSpreadOption}
+                      data-selected={selected ? "true" : "false"}
+                      onClick={() => setTarotSpread(option.id)}
+                      disabled={isSubmitting}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+
+          {consultationMode === "sukuyo" ? (
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
+              짧은 질문
+              <input
+                id="fortuneTeaQuestion"
+                className={`${styles.questionInput} ${questionInputUi}`}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder="비워두면 선택한 흐름으로 질문을 만들게요."
+                disabled={isSubmitting}
+              />
+              <span className={styles.sukuyoAutoQuestionHint}>
+                비워두면 “{sukuyoAutoQuestionPreview}”로 열어볼게요.
+              </span>
+            </label>
+          ) : (
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
+              고민 내용
+              <textarea
+                id="fortuneTeaQuestion"
+                className={`${styles.questionTextarea} ${questionTextareaUi}`}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder={selectedCup.questionPlaceholder}
+                rows={7}
+                disabled={isSubmitting}
+              />
+            </label>
+          )}
         </section>
 
         {consultationMode === "saju" ? (
@@ -370,7 +638,46 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
               <p>사주 상담은 생년월일을 바탕으로 엽니다. 출생시간을 모르면 시주 없이 큰 흐름 중심으로 읽습니다.</p>
             </div>
           </div>
-          <div className={styles.questionFieldGrid}>
+          <section className={styles.profileLoadPanel} aria-label="내 프로필 불러오기">
+            <div className={styles.profileLoadHeader}>
+              <span>내 프로필 불러오기</span>
+              <strong>저장된 프로필 카드로 상담 정보를 먼저 채울게요.</strong>
+              <p>원본 프로필은 바뀌지 않고, 이번 상담에서만 살짝 고쳐 쓸 수 있어요.</p>
+            </div>
+            {profileLoading ? (
+              <p className={styles.profileLoadNotice}>프로필 카드의 태어난 흐름을 확인하고 있어요.</p>
+            ) : profileOptions.length > 1 ? (
+              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaProfileSelect">
+                상담에 사용할 프로필
+                <select
+                  id="fortuneTeaProfileSelect"
+                  className={`${styles.questionInput} ${questionInputUi}`}
+                  value={selectedProfileOptionId}
+                  onChange={(event) => {
+                    const nextProfile = profileOptions.find((option) => option.optionId === event.target.value);
+                    if (nextProfile) applyProfileOption(nextProfile);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <option value="">프로필 선택</option>
+                  {profileOptions.map((option) => (
+                    <option key={option.optionId} value={option.optionId}>
+                      {option.name} · {option.birthDate} · {option.calendarType === "lunar" ? "음력" : "양력"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : profileOptions.length === 1 ? (
+              <p className={styles.profileLoadNotice}>
+                {profileOptions[0].name}님의 프로필을 불러왔어요. 출생시간을 모르면 시간 미상으로 진행할 수 있어요.
+              </p>
+            ) : (
+              <p className={styles.profileLoadNotice}>저장된 프로필이 없어도 괜찮아요. 아래 정보로 사주 상담을 열 수 있어요.</p>
+            )}
+            {profileNotice ? <p className={styles.profileLoadNotice}>{profileNotice}</p> : null}
+            {profileError ? <p className={styles.profileLoadError}>{profileError}</p> : null}
+          </section>
+          <div className={`${styles.questionFieldGrid} ${styles.birthInfoGrid}`}>
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthDate">
               생년월일
               <input
@@ -389,9 +696,26 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 className={`${styles.questionInput} ${questionInputUi}`}
                 type="time"
                 value={birthTime}
-                onChange={(event) => setBirthTime(event.target.value)}
+                onChange={(event) => {
+                  setBirthTime(event.target.value);
+                  if (event.target.value) setBirthTimeUnknown(false);
+                }}
+                disabled={isSubmitting || birthTimeUnknown}
+              />
+            </label>
+            <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaBirthTimeUnknown">
+              <input
+                id="fortuneTeaBirthTimeUnknown"
+                type="checkbox"
+                checked={birthTimeUnknown}
+                onChange={(event) => {
+                  const checked = event.target.checked;
+                  setBirthTimeUnknown(checked);
+                  if (checked) setBirthTime("");
+                }}
                 disabled={isSubmitting}
               />
+              <span>출생시간 미상으로 진행</span>
             </label>
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaGender">
               성별
@@ -414,6 +738,28 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                 <option value="lunar">음력</option>
               </select>
             </label>
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthPlace">
+              출생지
+              <input
+                id="fortuneTeaBirthPlace"
+                className={`${styles.questionInput} ${questionInputUi}`}
+                value={birthPlace}
+                onChange={(event) => setBirthPlace(event.target.value)}
+                placeholder="서울, 대한민국"
+                disabled={isSubmitting}
+              />
+            </label>
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaTimezone">
+              시간대
+              <input
+                id="fortuneTeaTimezone"
+                className={`${styles.questionInput} ${questionInputUi}`}
+                value={timezone}
+                onChange={(event) => setTimezone(event.target.value)}
+                placeholder="Asia/Seoul"
+                disabled={isSubmitting}
+              />
+            </label>
           </div>
           <p className={styles.birthOptionalNotice}>
             사주는 보이는 정보만 읽습니다. 모르는 시간이나 기운은 연이가 지어내지 않아요.
@@ -432,7 +778,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             <div className={styles.sukuyoPairGrid}>
               <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
                 <span>나의 달빛</span>
-                <div className={styles.questionFieldGrid}>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserName">
                     이름 또는 닉네임
                     <input
@@ -488,7 +834,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
 
               <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
                 <span>상대의 달빛</span>
-                <div className={styles.questionFieldGrid}>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerName">
                     이름 또는 닉네임
                     <input
@@ -575,14 +921,14 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </div>
 
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoSituation">
-              지금 관계의 분위기
+              지금 관계의 분위기 <span className={styles.optionalFieldMark}>선택</span>
               <textarea
                 id="fortuneTeaSukuyoSituation"
-                className={`${styles.questionTextarea} ${questionTextareaUi}`}
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea} ${questionTextareaUi}`}
                 value={sukuyoInput.currentSituation || ""}
                 onChange={(event) => updateSukuyoMeta({ currentSituation: event.target.value })}
-                placeholder="요즘 연락이 줄었고, 서로 마음은 남아 있는지 알고 싶어요."
-                rows={4}
+                placeholder="요즘 연락이 줄었어요."
+                rows={3}
                 disabled={isSubmitting}
               />
             </label>

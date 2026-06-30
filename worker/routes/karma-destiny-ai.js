@@ -62,7 +62,13 @@ const VALID_TOPICS = new Set([
   "현재 고민 상담",
 ]);
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/gi;
+const INITIAL_CONSULTATION_MIN_LENGTH = 20000;
+const INITIAL_CONSULTATION_MAX_LENGTH = 30000;
+const INITIAL_CONSULTATION_SECTION_MIN_LENGTH = 1500;
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 28000;
+const INITIAL_SECTION_SYMBOLS = ["命", "業", "時", "情", "財", "課", "箋", "柱", "星", "梵"];
+
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/i;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -630,6 +636,7 @@ function buildSystemPrompt(mode = "initial") {
     "한국어 격식체로 씁니다.",
     "운세 전문가가 직접 사용자를 마주 보고 말하듯 전문적이고 신비로우며 감정적으로 자연스럽게 씁니다.",
     "각 단락은 서로 다른 은유와 이미지를 사용합니다.",
+    "분량을 채우기 위해 같은 표현, 같은 조언, 같은 상징을 반복하지 않고, 부족한 분량은 계산 근거에서 새 관점과 구체적 처방을 꺼내 채웁니다.",
     "‘업’은 벌이나 저주가 아니라 반복되는 선택, 감정 습관, 관계 패턴, 성장 과제로 해석합니다.",
     "불안감이나 죄책감을 자극하지 않고, 운명 확정 표현을 사실처럼 단정하지 않습니다.",
     "PDF, 챕터, chapter, job, progress, 프롬프트, 시스템, AI, 기능, 결과, 분석 결과, 출력, 데이터 같은 작업 표현을 노출하지 않습니다.",
@@ -640,7 +647,7 @@ function buildSystemPrompt(mode = "initial") {
       ...shared,
       "",
       "추가 질문 응답 방식:",
-      "처음 상담의 7개 장 제목을 반복하지 않습니다.",
+      "처음 상담의 10개 장 제목을 반복하지 않습니다.",
       "첫 문장부터 사용자의 새 질문에 직접 답합니다.",
       "이전 상담에서 이미 말한 내용을 길게 되풀이하지 말고, 새 질문에 필요한 흐름만 다시 짚습니다.",
       "사주, 서양 점성술, 베다 점성술의 근거는 필요한 만큼만 섞어 2~4개의 완성된 산문 단락으로 답합니다.",
@@ -655,7 +662,7 @@ function buildSystemPrompt(mode = "initial") {
     ...shared,
     "",
     "초기 상담 구조:",
-    "아래 7개 섹션을 순서대로 작성하고, 각 섹션은 300~500자의 완성된 산문으로 씁니다.",
+    "아래 10개 파트를 순서대로 작성하고, 각 파트는 2,000~2,600자의 완성된 산문으로 씁니다.",
     "불릿 리스트나 단순 나열을 사용하지 않습니다.",
     "## ① 命 — 당신이라는 별의 본질",
     "사주 일간과 태양 별자리, 나크샤트라를 통합하여 이 사람의 본질 에너지를 하나의 통일된 은유로 묘사합니다. 반드시 “당신은 ~와 같은 존재입니다”로 시작합니다.",
@@ -671,14 +678,20 @@ function buildSystemPrompt(mode = "initial") {
     "사주 용신·희신, 카이런, 라후의 방향을 통합하여 이 생에서 영혼이 배워야 할 가장 핵심적인 한 가지를 선명하게 서술합니다. 반드시 “당신의 운명은 ~를 배우도록 설계되어 있습니다”로 시작합니다.",
     "## ⑦ 箋 — 오늘을 위한 운명의 처방",
     "앞의 흐름을 바탕으로 지금 당장 실천 가능한 구체적인 방향을 제시합니다. 추상적 조언이 아니라 “오늘, ~를 해보세요”처럼 구체적으로 작성합니다. 마지막 문장은 사용자의 이름이나 닉네임을 불러 따뜻하게 마무리합니다.",
+    "## ⑧ 柱 — 명리학자가 짚는 삶의 균형",
+    "명리학자의 목소리로 일간, 오행, 십성, 대운의 균형을 깊게 읽어 삶에서 반복되는 선택 습관과 현실 처방을 구체적으로 전합니다. 용어 설명보다 상담가가 직접 맥을 짚는 문장으로 씁니다.",
+    "## ⑨ 星 — 점성술사가 비추는 영혼의 하늘",
+    "점성술사의 목소리로 태양, 달, 상승궁, 금성·화성, 카이런과 현재 하늘의 움직임을 엮어 감정 반응, 관계 방식, 자기 회복의 길을 신비롭고 자연스럽게 전합니다.",
+    "## ⑩ 梵 — 베다 점성술사가 여는 카르마의 길",
+    "베다 점성술사의 목소리로 라후-케투 축, 나크샤트라, 다샤 흐름, 다르마와 아르타의 방향을 엮어 이번 생에서 풀어야 할 카르마와 실제 실천의 길을 전합니다.",
     "",
     "초기 상담 금지 사항:",
     "‘당신의 사주를 보면’, ‘점성술에 따르면’ 등 출처 언급을 금지합니다.",
-    "동일한 내용을 다른 섹션에서 반복하지 않습니다.",
+    "동일한 내용을 다른 파트에서 반복하지 않습니다.",
     "‘~할 수 있습니다’, ‘~일 것입니다’의 반복적 어미를 피합니다.",
-    "7개 섹션 외의 추가 내용을 쓰지 않습니다.",
+    "10개 파트 외의 추가 내용을 쓰지 않습니다.",
     "마지막에 추가 질문을 유도하지 않습니다.",
-    "전체 분량은 2,500~3,500자로 맞춥니다.",
+    "전체 분량은 공백 제외 20,000~30,000자로 맞춥니다.",
   ].join("\n");
 }
 
@@ -700,10 +713,10 @@ function buildFirstPrompt(input, integratedResult) {
     "[상담 근거]",
     JSON.stringify(integratedResult),
     "",
-    "위 계산 데이터를 바탕으로 7개 섹션만 작성하세요.",
-    "각 섹션 제목은 지정된 한자와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
+    "위 계산 데이터를 바탕으로 10개 파트만 작성하고, 전체 상담문은 공백 제외 20,000~30,000자로 완성하세요.",
+    "각 파트 제목은 지정된 한자와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
     "사용자의 선택 주제와 질문은 전체 서사의 중심 감정으로 녹이고, 별도 문답 형식으로 나누지 마세요.",
-    "각 섹션에는 사주명리학, 서양 점성술, 베다 점성술의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
+    "각 파트에는 사주명리학, 서양 점성술, 베다 점성술의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
   ].join("\n");
 }
 
@@ -731,7 +744,7 @@ function buildFollowUpPrompt(consultation, question) {
     "[새 질문]",
     question,
     "",
-    "7개 섹션을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
+    "10개 파트를 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
     "이전 상담 흐름을 이어받되 필요한 부분만 짚고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
   ].join("\n");
 }
@@ -754,6 +767,146 @@ function cleanForbiddenResult(text) {
     .replace(/서버 계산 데이터|분석 데이터/g, "상담 근거");
 }
 
+function countMeaningfulChars(text) {
+  return clean(text).replace(/\s/g, "").length;
+}
+
+function parseKarmaConsultationSections(text) {
+  const normalized = clean(text).replace(/\r\n/g, "\n");
+  if (!normalized) return [];
+  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦⑧⑨⑩]\s*)?([命業時情財課箋柱星梵])\s*[—–-]\s*([^\n]+)/g;
+  const matches = [...normalized.matchAll(headingPattern)];
+  return matches.map((match, index) => {
+    const start = (match.index || 0) + match[0].length;
+    const end = matches[index + 1]?.index ?? normalized.length;
+    return {
+      symbol: clean(match[1], 2),
+      title: `${clean(match[1], 2)} — ${clean(match[2]).replace(/\*\*/g, "")}`,
+      body: normalized.slice(start, end).trim(),
+    };
+  }).filter((section) => section.symbol && section.body);
+}
+
+function validateInitialConsultationQuality(text, options = {}) {
+  const sanitized = cleanForbiddenResult(text);
+  const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
+  const maxLength = Number(options.maxLength || INITIAL_CONSULTATION_MAX_LENGTH);
+  const sectionMinLength = Number(options.sectionMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH);
+  const sections = parseKarmaConsultationSections(sanitized);
+  const totalChars = countMeaningfulChars(sanitized);
+  const missingSymbols = INITIAL_SECTION_SYMBOLS.filter((symbol) => !sections.some((section) => section.symbol === symbol));
+  const shortSections = sections
+    .filter((section) => countMeaningfulChars(section.body) < sectionMinLength)
+    .map((section) => section.symbol);
+  const hasForbiddenText = FORBIDDEN_RESULT_PATTERN.test(sanitized);
+  return {
+    ok: totalChars >= minLength && totalChars <= maxLength && sections.length === INITIAL_SECTION_SYMBOLS.length && missingSymbols.length === 0 && shortSections.length === 0 && !hasForbiddenText,
+    totalChars,
+    minLength,
+    maxLength,
+    sectionCount: sections.length,
+    missingSymbols,
+    shortSections,
+    tooShort: totalChars < minLength,
+    tooLong: totalChars > maxLength,
+    hasForbiddenText,
+  };
+}
+
+async function repairForbiddenConsultationText(env, text, systemPrompt, options = {}) {
+  if (!FORBIDDEN_RESULT_PATTERN.test(text)) return clean(text);
+  const repair = await callGeminiText(env, [
+    "다음 상담 답변에서 시스템성 표현과 작업 용어를 모두 제거하고, 자연스러운 운명의 업 상담문으로만 다시 써주세요.",
+    "10개 파트 제목과 전체 분량은 유지하고, 상담가가 직접 말하는 문장만 남겨주세요.",
+    "",
+    text,
+  ].join("\n"), {
+    systemPrompt,
+    taskType: "fortune",
+    temperature: 0.58,
+    maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+    timeoutMs: options.timeoutMs,
+  });
+  const repaired = clean(repair?.text);
+  return cleanForbiddenResult(repair?.ok && repaired.length >= 160 ? repaired : text);
+}
+
+async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt, options = {}) {
+  const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
+  const maxLength = Number(options.maxLength || INITIAL_CONSULTATION_MAX_LENGTH);
+  const maxOutputTokens = Number(options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS);
+  const timeoutMs = Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 90000);
+  let current = await repairForbiddenConsultationText(env, text, systemPrompt, { maxOutputTokens, timeoutMs });
+  let quality = validateInitialConsultationQuality(current, { minLength, maxLength });
+  if (quality.ok) return current;
+
+  const expanded = await callGeminiText(env, [
+    "다음 운명의 업 상담문을 같은 계산 근거 안에서 더 깊고 균형 잡힌 완성 원고로 다시 써주세요.",
+    `전체 분량은 공백 제외 ${minLength}~${maxLength}자 사이여야 합니다.`,
+    "10개 파트와 지정된 제목 순서는 반드시 유지합니다.",
+    "각 파트는 새로운 관점과 실제 상담의 밀도를 가져야 하며, 같은 문장을 늘리거나 비슷한 조언을 반복하지 않습니다.",
+    "명리학자, 점성술사, 베다 점성술사의 전문 파트는 서로 다른 근거와 처방을 드러냅니다.",
+    "PDF, 챕터, 프롬프트, 시스템, AI, 기능, 결과, 출력, 데이터 같은 작업 표현은 쓰지 않습니다.",
+    "",
+    "[원래 요청]",
+    prompt,
+    "",
+    "[현재 상담문]",
+    current,
+  ].join("\n"), {
+    systemPrompt,
+    taskType: "fortune",
+    temperature: 0.64,
+    maxOutputTokens,
+    timeoutMs,
+  });
+  const expandedText = clean(expanded?.text);
+  if (expanded?.ok && expandedText) {
+    current = await repairForbiddenConsultationText(env, expandedText, systemPrompt, { maxOutputTokens, timeoutMs });
+    quality = validateInitialConsultationQuality(current, { minLength, maxLength });
+  }
+  if (!quality.ok) {
+    const error = new Error("Karma destiny consultation did not meet quality length or section requirements.");
+    error.code = quality.tooShort ? "LLM_RESULT_TOO_SHORT" : quality.tooLong ? "LLM_RESULT_TOO_LONG" : "LLM_RESULT_QUALITY_FAILED";
+    error.quality = quality;
+    throw error;
+  }
+  return current;
+}
+
+function buildKarmaDestinyAiMockConsultation() {
+  const markers = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
+  const titles = [
+    ["命", "당신이라는 별의 본질"],
+    ["業", "반복되는 삶의 문양"],
+    ["時", "지금 이 계절의 의미"],
+    ["情", "관계에서 흐르는 강물"],
+    ["財", "재능과 물질이 만나는 지점"],
+    ["課", "이 생의 핵심 과제"],
+    ["箋", "오늘을 위한 운명의 처방"],
+    ["柱", "명리학자가 짚는 삶의 균형"],
+    ["星", "점성술사가 비추는 영혼의 하늘"],
+    ["梵", "베다 점성술사가 여는 카르마의 길"],
+  ];
+  const paragraphSeeds = [
+    "당신 안에는 오래 눌러 두었던 직감과 현실을 끝까지 확인하려는 힘이 함께 머무릅니다. 마음은 먼저 기척을 알아차리고, 몸은 그 기척이 실제 삶에서 어떤 선택으로 이어질지 천천히 따져 봅니다. 그래서 중요한 국면마다 서두르는 듯 보여도 속으로는 이미 여러 번 길을 가늠하고 있습니다.",
+    "반복되는 매듭은 약함의 흔적이 아니라 아직 다르게 써 보지 못한 능력의 그림자에 가깝습니다. 같은 사람, 같은 말투, 같은 기다림 앞에서 마음이 흔들릴 때마다 운명은 당신에게 더 단단한 기준을 세우라고 속삭입니다. 그 기준은 차가운 선이 아니라 스스로를 함부로 넘기지 않는 온기입니다.",
+    "지금의 시기는 닫힌 문 앞에서 멈춘 계절이 아니라, 안쪽에서 잠금이 풀리는 소리를 듣는 때에 가깝습니다. 밖으로 드러난 변화가 작아 보여도 내면에서는 무엇을 더 붙들고 무엇을 내려놓을지 이미 정리가 시작되었습니다. 이 흐름을 믿을수록 선택은 한결 조용하고 정확해집니다.",
+    "관계에서는 상대의 마음을 읽으려는 섬세함이 강하게 떠오르지만, 그 섬세함이 오래 지속되면 자신의 욕구를 뒤로 미루는 습관이 됩니다. 이제는 먼저 맞추는 사람이 아니라 함께 맞춰 갈 수 있는지를 보는 사람이 되어야 합니다. 사랑도 인연도 당신의 생기를 줄이지 않을 때 더 깊어집니다.",
+    "재능과 물질의 자리에서는 한 번에 크게 빛나는 운보다 꾸준히 쌓아 올린 감각이 더 강하게 열립니다. 당신은 흩어진 경험을 하나로 묶을 때 돈의 길도 함께 보이는 사람입니다. 지금 필요한 것은 더 많은 일을 떠안는 것이 아니라, 이미 가진 능력에 이름을 붙이고 값을 정하는 일입니다.",
+    "이 생의 과제는 모든 것을 혼자 감당하는 품을 내려놓고, 필요한 순간에 도움과 협력을 받아들이는 데 있습니다. 운명은 당신에게 강함만을 요구하지 않습니다. 오히려 부드럽게 기대고도 무너지지 않는 법, 마음을 열고도 자신을 잃지 않는 법을 배우도록 이끌고 있습니다.",
+    "오늘은 오래 미뤄 둔 작은 결정을 하나만 실제 행동으로 옮겨 보세요. 누군가에게 답장을 보내거나, 정리하지 못한 문장을 적거나, 마음속에서만 재던 제안을 조용히 꺼내는 것으로 충분합니다. 운명은 거창한 선언보다 정확한 한 걸음에 더 빠르게 반응합니다.",
+  ];
+  return titles.map(([symbol, title], sectionIndex) => {
+    const paragraphs = Array.from({ length: 10 }, (_, paragraphIndex) => {
+      const first = paragraphSeeds[(sectionIndex + paragraphIndex) % paragraphSeeds.length];
+      const second = paragraphSeeds[(sectionIndex + paragraphIndex + 2) % paragraphSeeds.length];
+      return `${first} ${second}`;
+    });
+    return `## ${markers[sectionIndex]} ${symbol} — ${title}\n\n${paragraphs.join("\n\n")}`;
+  }).join("\n\n");
+}
+
 async function generateConsultationText(env, prompt, options = {}) {
   const providerDiagnostics = getProviderDiagnostics(env);
   const mode = options.mode === "follow_up" ? "follow_up" : "initial";
@@ -766,15 +919,29 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt,
     taskType: "fortune",
     temperature: options.temperature || (mode === "follow_up" ? 0.68 : 0.74),
-    maxOutputTokens: options.maxOutputTokens || 7600,
+    maxOutputTokens: options.maxOutputTokens || (mode === "initial" ? INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS : 7600),
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
-  const text = clean(ai?.text);
-  if (!ai?.ok || isMock || text.length < (options.minLength || 220)) {
+  let text = clean(ai?.text);
+  if (!ai?.ok || isMock) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
+    error.providerDiagnostics = providerDiagnostics;
+    throw error;
+  }
+  if (mode === "initial") {
+    text = await ensureInitialConsultationQuality(env, text, prompt, systemPrompt, {
+      minLength: options.minLength || INITIAL_CONSULTATION_MIN_LENGTH,
+      maxLength: options.maxLength || INITIAL_CONSULTATION_MAX_LENGTH,
+      maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+    });
+    return { text, provider, model: clean(ai?.model) };
+  }
+  if (text.length < (options.minLength || 220)) {
+    const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
+    error.code = "LLM_GENERATION_FAILED";
     error.providerDiagnostics = providerDiagnostics;
     throw error;
   }
@@ -1076,8 +1243,9 @@ async function handleStart(request, env) {
     const summaryCards = buildSummaryCards(integratedResult);
     const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, integratedResult), {
       mode: "initial",
-      minLength: 360,
-      maxOutputTokens: 8200,
+      minLength: INITIAL_CONSULTATION_MIN_LENGTH,
+      maxLength: INITIAL_CONSULTATION_MAX_LENGTH,
+      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
     if (access.deferredUsage) {
@@ -1243,4 +1411,7 @@ export const __karmaDestinyAiTestUtils = {
   buildFirstPrompt,
   buildSystemPrompt,
   cleanForbiddenResult,
+  parseKarmaConsultationSections,
+  validateInitialConsultationQuality,
+  buildKarmaDestinyAiMockConsultation,
 };

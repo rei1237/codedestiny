@@ -18,7 +18,7 @@ export type Track = {
   lyricsLookupKey?: string;
 };
 
-type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom" | "DestinyCafe";
+type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom" | "DestinyCafe" | "DestinyWar";
 
 type ArtistConfig = {
   artistKey: ArtistKey;
@@ -192,6 +192,20 @@ const artistAudioManifests = [
       "불꽃의 운명.mp3",
       "은하수 아래.mp3",
       "은하수를 건너 니 곁으로 feat.yeoni.mp3",
+    ],
+  },
+  {
+    artistKey: "dest1nova",
+    folder: "DestinyWar",
+    fallbackCoverFileName: "데스티노바 인간버전 앨범.webp",
+    coverFileNames: ["데스티노바 인간버전 앨범.webp"],
+    displayCoverUrl: buildMusicPublicUrl("humanmode/데스티노바 인간버전 앨범.webp"),
+    audioFileNames: [
+      "Dream.mp3",
+      "Moonlit Strategy Map.mp3",
+      "Moonlit War Command Chamber.mp3",
+      "The Moonlit War Room.mp3",
+      "The war.mp3",
     ],
   },
   {

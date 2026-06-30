@@ -9,7 +9,6 @@ import DestinyIcon from "./icons/DestinyIcon";
 import type { ServiceCardModel } from "./ServiceCard";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
-import SocialFooter from "../_components/SocialFooter";
 
 const KKULKKUL_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
@@ -621,7 +620,6 @@ export default function MainLandingPage() {
         <DeferredGlobalTrustSection compact showFooter={false} locale={locale === "ko" ? "ko" : "en"} />
       </LazySection>
 
-      <SocialFooter />
     </main>
   );
 }

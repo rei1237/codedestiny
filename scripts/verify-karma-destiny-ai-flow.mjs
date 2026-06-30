@@ -40,6 +40,18 @@ assertIncludes(pageSource, "/api/karma-destiny-ai/message", "message API");
 assertIncludes(pageSource, "운명의 기록을 펼치고 있습니다", "preparing copy");
 assertIncludes(pageSource, "결제창을 확인해 주세요", "payment copy");
 assertIncludes(pageSource, "삶의 반복 패턴과 업의 흐름을 읽고 있습니다", "reading copy");
+assertIncludes(pageSource, "data-kdai-pdf-page", "PDF page split markers");
+assertIncludes(pageSource, "querySelectorAll<HTMLElement>(\"[data-kdai-pdf-page]\")", "PDF split rendering");
+assertIncludes(pageSource, "for (const [targetIndex, target] of targets.entries())", "PDF renders every split page");
+assertIncludes(pageSource, "pdf.save(fileName)", "PDF download save call");
+assertIncludes(pageSource, "상담에 사용된 차트 데이터", "PDF chart data page");
+assertIncludes(pageSource, "buildChartDataBlocks(integratedResult)", "PDF chart data source");
+assertIncludes(pageSource, "사주 원국 데이터", "saju chart data included");
+assertIncludes(pageSource, "서양 점성술 차트 데이터", "western chart data included");
+assertIncludes(pageSource, "베다 점성술 차트 데이터", "vedic chart data included");
+assertIncludes(pageSource, "柱 — 명리학자가 짚는 삶의 균형", "saju expert result rendering");
+assertIncludes(pageSource, "星 — 점성술사가 비추는 영혼의 하늘", "astrology expert result rendering");
+assertIncludes(pageSource, "梵 — 베다 점성술사가 여는 카르마의 길", "vedic expert result rendering");
 assertNotIncludes(pageSource, "/api/soul-origin", "old API not called");
 assertNotIncludes(pageSource, "prepare", "old prepare copy not present");
 assertNotIncludes(pageSource, "create-job", "old create API not present");
@@ -55,6 +67,13 @@ assertIncludes(routeSource, "PointHistory", "billing evidence verification");
 assertIncludes(routeSource, "START_ACCESS_CONFIRMATION_REQUIRED", "start route requires pre-confirmed access");
 assertIncludes(routeSource, "MONTHLY_CREDIT_GATE_REQUIRED", "monthly credit must use common billing gate");
 assertIncludes(routeSource, "accessType: \"monthly_credit\"", "monthly credit is payment evidence, not entitlement");
+assertIncludes(routeSource, "INITIAL_CONSULTATION_MIN_LENGTH = 20000", "initial consultation minimum length");
+assertIncludes(routeSource, "INITIAL_CONSULTATION_MAX_LENGTH = 30000", "initial consultation maximum length");
+assertIncludes(routeSource, "INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 28000", "initial consultation output budget");
+assertIncludes(routeSource, "같은 표현, 같은 조언, 같은 상징을 반복하지 않고", "quality anti-repetition instruction");
+assertIncludes(routeSource, "## ⑧ 柱 — 명리학자가 짚는 삶의 균형", "saju expert part");
+assertIncludes(routeSource, "## ⑨ 星 — 점성술사가 비추는 영혼의 하늘", "astrology expert part");
+assertIncludes(routeSource, "## ⑩ 梵 — 베다 점성술사가 여는 카르마의 길", "vedic expert part");
 assertNotIncludes(routeSource, "function hasMonthlyCredit", "monthly credit balance must not grant direct access");
 assertNotIncludes(routeSource, "return { ok: true, accessType: \"subscription\", paymentId: \"\", usageAlreadyApplied: false }", "monthly credit must not be direct entitlement");
 assertNotIncludes(routeSource, "return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });", "start route must not re-check entitlement without access token");
@@ -72,7 +91,20 @@ assert.equal(removedResponse.status, 410, "legacy soul-origin API should be disa
 assert.equal(removedJson.next, "/karma-destiny-ai", "legacy API should point to new page");
 
 const { handleKarmaDestinyAiRoutes, __karmaDestinyAiTestUtils } = await import(pathToFileURL(resolve(root, "worker/routes/karma-destiny-ai.js")).href);
-const { normalizeConsultationInput, resolveStartAccess } = __karmaDestinyAiTestUtils;
+const {
+  normalizeConsultationInput,
+  resolveStartAccess,
+  parseKarmaConsultationSections,
+  validateInitialConsultationQuality,
+  buildKarmaDestinyAiMockConsultation,
+} = __karmaDestinyAiTestUtils;
+const mockConsultation = buildKarmaDestinyAiMockConsultation();
+const mockSections = parseKarmaConsultationSections(mockConsultation);
+const mockQuality = validateInitialConsultationQuality(mockConsultation);
+assert.equal(mockSections.length, 10, "mock consultation should split into 10 sections");
+assert.equal(mockQuality.ok, true, `mock consultation quality should pass: ${JSON.stringify(mockQuality)}`);
+assert.ok(mockQuality.totalChars >= 20000, "mock consultation should be at least 20,000 meaningful chars");
+assert.ok(mockQuality.totalChars <= 30000, "mock consultation should stay under 30,000 meaningful chars");
 const noLoginResponse = await handleKarmaDestinyAiRoutes(new Request("https://example.test/api/karma-destiny-ai/ensure-access", {
   method: "POST",
   headers: { "Content-Type": "application/json", "Idempotency-Key": "verify-kdai-123456" },

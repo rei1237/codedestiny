@@ -14,6 +14,12 @@ function assertMissing(source, patterns, label) {
   }
 }
 
+function totalStructuredBodyChars(result) {
+  return Object.values(result.sections || {}).reduce((sum, section) => {
+    return sum + String(section?.body || "").trim().length;
+  }, 0);
+}
+
 const retiredTerms = [
   "/api/ziwei-book",
   "handleZiweiBookRoutes",
@@ -38,6 +44,14 @@ assert(!existsSync("worker/lib/ziwei-premium-pdf-v3.js"), "retired ziwei premium
 const route = read("worker/routes/ziwei-ai.js");
 assert(route.includes("FEATURE_KEY = \"ziwei-ai-consultation\""), "feature key missing");
 assert(route.includes("const AMOUNT_KRW = 30000"), "30,000 KRW constant missing");
+assert(route.includes("MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000"), "initial consultation 20,000 char guard missing");
+assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000"), "initial consultation 30,000 char cap missing");
+assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
+assert(route.includes("minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation min body guard missing");
+assert(route.includes("maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation max body guard missing");
+assert(route.includes("INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 26000"), "initial generation token budget missing");
+assert(route.includes("triad_axis") && route.includes("twelve_palaces") && route.includes("timing_strategy") && route.includes("core_answer"), "expert expansion sections missing");
+assert(route.includes("문장만 늘리지 말고") && route.includes("자미두수 전문가가 실제로 더 살필 파트"), "quality expansion guard missing");
 assert(route.includes("POST") && route.includes("/prepare") && route.includes("/generate") && route.includes("/ensure-access") && route.includes("/start") && route.includes("/message"), "API handlers missing");
 assert(route.includes("calculateZiweiAiChart"), "chart calculator not connected");
 assert(route.includes("resolveBillingGateAccess"), "runBillingCoinGate evidence verifier missing");
@@ -80,6 +94,40 @@ assert(page.includes("결제창을 확인해 주세요"), "payment copy missing"
 assert(page.includes("명궁과 신궁의 흐름을 맞춰보는 중"), "LLM loading copy missing");
 assert(page.includes("palaceSigil") && page.includes("heroBackdropText"), "star palace UI missing");
 assert(page.includes("명궁") && page.includes("신궁") && page.includes("상담 키워드"), "result summary cards missing");
+assert(page.includes("data-ziwei-complete-result=\"ziwei-ai-complete-result-v20260630\""), "complete result pdf root marker missing");
+assert(page.includes("data-ziwei-pdf-download=\"complete-result-v20260630\""), "pdf download marker missing");
+assert(page.includes("data-ziwei-pdf-section"), "pdf section markers missing");
+assert(page.includes("data-ziwei-chart-data=\"basic-chart-v20260630\""), "basic chart data pdf marker missing");
+assert(page.includes("화록") && page.includes("화권") && page.includes("화과") && page.includes("화기"), "four transformation chart data missing");
+assert(page.includes("import(\"html2canvas\")") && page.includes("import(\"jspdf\")"), "pdf renderer imports missing");
+assert(page.includes("PDF 다운로드"), "pdf download button copy missing");
+assert(page.includes("\"triad_axis\"") && page.includes("\"twelve_palaces\"") && page.includes("\"timing_strategy\"") && page.includes("\"core_answer\""), "expert sections not rendered by page");
+
+const mockSectionBody = [
+  "명궁의 별빛은 선택의 중심을 조용히 드러냅니다.",
+  "주성의 강약과 사화의 흐름은 지금 붙잡아야 할 방향을 비춥니다.",
+  "대운의 물길은 서두를 자리와 기다릴 자리를 나누어 줍니다.",
+  "현실의 조언은 관계와 일상에서 반복되는 리듬을 차분히 정돈합니다.",
+].join(" ").repeat(16);
+const mockConsultation = {
+  sections: Object.fromEntries([
+  "essence",
+  "flow",
+  "triad_axis",
+  "twelve_palaces",
+  "career",
+  "wealth",
+  "relationship",
+  "dayun_now",
+  "timing_strategy",
+  "caution",
+  "core_answer",
+  "prescription",
+].map((key) => [key, { title: key, body: mockSectionBody }])),
+};
+const mockBodyChars = totalStructuredBodyChars(mockConsultation);
+assert(mockBodyChars >= 20000 && mockBodyChars <= 30000, "mock consultation body must be 20,000-30,000 chars total");
+assert(!/\bAI\b|PDF|챕터|chapter|\bjob\b|\bprogress\b|프롬프트|시스템/i.test(JSON.stringify(mockConsultation.sections)), "mock consultation contains forbidden mechanical terms");
 
 const appChrome = read("app/components/AppChrome.tsx");
 assert(appChrome.includes("\"/ziwei-ai\""), "chromeless /ziwei-ai route missing");

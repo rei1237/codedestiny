@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { FortuneTeaHouseConsultResponse } from "../data/consult";
+import { useEffect, useMemo, useState } from "react";
+import type { FortuneTeaHouseConsultResponse, FortuneTeaTarotSpreadCard } from "../data/consult";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TarotCardBack from "./TarotCardBack";
 import TarotAssetCard from "./TarotAssetCard";
-import TarotRevealAnimation from "./TarotRevealAnimation";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
-import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
 
 type TarotRevealSceneProps = {
@@ -17,40 +15,83 @@ type TarotRevealSceneProps = {
   onComplete: () => void;
 };
 
+type TarotRevealPhase = "preparing" | "shuffling" | "choosing" | "complete";
+
+const deckSlotsByCount: Record<number, string[]> = {
+  3: ["left", "center", "right"],
+  5: ["far-left", "left", "center", "right", "far-right"],
+};
+
+const getInitialRevealPhase = (prefersReducedMotion: boolean): TarotRevealPhase => (prefersReducedMotion ? "choosing" : "preparing");
+
+function buildRevealCards(result: FortuneTeaHouseConsultResponse): FortuneTeaTarotSpreadCard[] {
+  if (result.tarotSpreadCards?.length) return result.tarotSpreadCards;
+
+  return [
+    {
+      ...result.tarot,
+      positionId: "representative",
+      positionLabel: "대표",
+      positionMeaning: "지금 질문에 가장 먼저 떠오른 카드입니다.",
+      reading: result.tarot.reading,
+      source: "existing-card-data",
+    },
+  ];
+}
+
 export default function TarotRevealScene({ result, onComplete }: TarotRevealSceneProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const [isFlipped, setIsFlipped] = useState(prefersReducedMotion);
-  const [isSpeaking, setIsSpeaking] = useState(true);
+  const spreadCards = useMemo(() => buildRevealCards(result), [result]);
+  const spreadSignature = spreadCards.map((card) => `${card.positionId}:${card.cardId}:${card.orientation}`).join("|");
+  const [phase, setPhase] = useState<TarotRevealPhase>(() => getInitialRevealPhase(prefersReducedMotion));
+  const [revealedPositions, setRevealedPositions] = useState<string[]>([]);
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
+  const revealedCount = revealedPositions.length;
+  const allCardsRevealed = spreadCards.length > 0 && revealedCount >= spreadCards.length;
+  const orientationLabel = result.tarot.orientation === "upright" ? "정방향" : "역방향";
 
   useEffect(() => {
-    setIsFlipped(prefersReducedMotion);
-    setIsSpeaking(true);
-    const timer = window.setTimeout(() => setIsSpeaking(false), 2500);
-    return () => window.clearTimeout(timer);
-  }, [prefersReducedMotion, result.tarot.cardId, result.tarot.orientation]);
+    setPhase(getInitialRevealPhase(prefersReducedMotion));
+    setRevealedPositions([]);
+    const timers = prefersReducedMotion
+      ? []
+      : [
+          window.setTimeout(() => setPhase("shuffling"), 720),
+          window.setTimeout(() => setPhase("choosing"), 2250),
+        ];
 
-  function revealCard() {
-    setIsFlipped(true);
-    setIsSpeaking(true);
-    window.setTimeout(() => setIsSpeaking(false), prefersReducedMotion ? 0 : 1800);
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [prefersReducedMotion, spreadSignature]);
+
+  function revealCard(positionId: string) {
+    if (phase !== "choosing") return;
+    if (revealedPositions.includes(positionId)) return;
+
+    setRevealedPositions([...revealedPositions, positionId]);
+    if (revealedPositions.length + 1 >= spreadCards.length) setPhase("complete");
   }
 
-  const dialogueText = isFlipped
-    ? `${result.tarot.nameKo} ${result.tarot.orientation === "upright" ? "정방향" : "역방향"}이 ${selectedCup?.name || "찻잔"} 위에 떠올랐어요.\n이제 연이가 이 카드의 상징이 지금 질문과 어디에서 만나는지 읽어볼게요.`
-    : selectedCup?.tarotBeforeLine || "이 카드는 정답을 명령하지 않아요.\n다만 지금 당신의 마음이 어디를 바라보고 있는지 조용히 보여줄 뿐이에요.\n그러니까 결과가 무엇이든, 오늘은 당신 편에서 읽어볼게요.";
+  const dialogueTextByPhase: Record<TarotRevealPhase, string> = {
+    preparing: selectedCup?.tarotBeforeLine || "카드는 정답을 명령하지 않아요.\n지금 마음이 바라보는 방향을 조용히 비출 뿐이에요.",
+    shuffling: "달빛 아래에서 카드들이 섞이고 있어요.\n질문의 향을 한 장씩 내려놓는 중이에요.",
+    choosing: revealedCount > 0
+      ? `${revealedCount}장을 펼쳤어요.\n남은 카드도 마음이 닿는 순서대로 천천히 열어 주세요.`
+      : `${spreadCards.length}장의 카드가 같은 질문을 바라보고 있어요.\n마음이 먼저 닿는 카드부터 하나씩 열어 주세요.`,
+    complete: `${result.tarot.nameKo} ${orientationLabel}을 중심으로 ${spreadCards.length}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요.`,
+  };
+  const phaseLabelByPhase: Record<TarotRevealPhase, string> = {
+    preparing: "카드 준비 중",
+    shuffling: "카드가 섞이는 중",
+    choosing: `${revealedCount}/${spreadCards.length}장 공개`,
+    complete: "모든 카드 공개 완료",
+  };
+  const dialogueText = dialogueTextByPhase[phase];
+  const phaseLabel = phaseLabelByPhase[phase];
 
   return (
     <section className={styles.tarotRevealScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="tarotRevealTitle">
-      <div className={styles.tarotRevealActor}>
-        <YeoniDialogueActor
-          mood={isFlipped ? "serious" : "welcome"}
-          isSpeaking={isSpeaking}
-          cueText={dialogueText}
-          className={styles.yeoniPortrait}
-          priority
-        />
-      </div>
       <div className={styles.tarotRevealPanel}>
         <p className={styles.sceneEyebrow}>{selectedCup?.visualMotif || "moonlit tarot"}</p>
         <h2 id="tarotRevealTitle">{selectedCup?.tarotRevealTitle || "찻잔 위에 카드가 떠올랐어요"}</h2>
@@ -58,27 +99,59 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
           speaker="연이"
           text={dialogueText}
         />
-        <div className={styles.tarotStage}>
-          {!isFlipped && !prefersReducedMotion ? <TarotRevealAnimation className={styles.tarotRevealStageAnimation} /> : null}
-          <div className={styles.tarotFlipCard} data-flipped={isFlipped ? "true" : "false"}>
-            <div className={styles.tarotFlipInner}>
-              <TarotCardBack className={styles.tarotFlipBack} animated={!isFlipped && !prefersReducedMotion} />
-              <TarotAssetCard
-                className={styles.tarotFlipFront}
-                cardId={result.tarot.cardId}
-                number={result.tarot.number}
-                nameKo={result.tarot.nameKo}
-                nameEn={result.tarot.nameEn}
-                orientation={result.tarot.orientation}
-                keywords={result.tarot.keywords}
-                meaning={result.tarot.meaning}
-              />
-            </div>
+        <div className={styles.tarotStage} data-phase={phase}>
+          <div className={styles.tarotDeck} data-count={spreadCards.length} role="group" aria-label="운명의 카드 선택">
+            {spreadCards.map((card, index) => {
+              const revealId = card.positionId || `position-${index}`;
+              const isRevealed = revealedPositions.includes(revealId);
+              const slot = deckSlotsByCount[spreadCards.length]?.[index] || "center";
+
+              return (
+                <button
+                  key={`${revealId}-${card.cardId}`}
+                  type="button"
+                  className={styles.tarotDeckCard}
+                  data-slot={slot}
+                  data-index={index}
+                  data-phase={phase}
+                  data-selected={isRevealed ? "true" : "false"}
+                  data-muted="false"
+                  data-revealed={isRevealed ? "true" : "false"}
+                  aria-label={`${card.positionLabel} 카드 ${isRevealed ? "공개됨" : "뒤집기"}`}
+                  aria-pressed={isRevealed}
+                  disabled={phase !== "choosing" || isRevealed}
+                  onClick={() => revealCard(revealId)}
+                >
+                  <span className={styles.tarotDeckCardInner}>
+                    <TarotCardBack className={styles.tarotDeckBack} animated={phase === "shuffling" && !prefersReducedMotion} />
+                    <TarotAssetCard
+                      className={styles.tarotDeckFace}
+                      cardId={card.cardId}
+                      number={card.number}
+                      nameKo={card.nameKo}
+                      nameEn={card.nameEn}
+                      orientation={card.orientation}
+                      keywords={card.keywords}
+                      meaning={card.meaning}
+                      size="sm"
+                      compact
+                    />
+                  </span>
+                  <span className={styles.tarotDeckPosition}>
+                    <strong>{card.positionLabel}</strong>
+                    <small>{card.positionMeaning}</small>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
-        <div className={styles.storyActions}>
-          <span className={styles.storyProgress}>{isFlipped ? "카드 공개 완료" : "카드 공개 전"}</span>
-          {isFlipped ? <TeaHouseButton onClick={onComplete}>결과 시트 보기</TeaHouseButton> : <TeaHouseButton onClick={revealCard}>카드 펼치기</TeaHouseButton>}
+        <div className={`${styles.storyActions} ${styles.tarotActionBar}`}>
+          <span className={styles.storyProgress}>{phaseLabel}</span>
+          {phase === "choosing" ? <span className={styles.tarotChoiceHint}>카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.</span> : null}
+          <TeaHouseButton onClick={onComplete} disabled={!allCardsRevealed}>
+            결과 시트 보기
+          </TeaHouseButton>
         </div>
       </div>
     </section>

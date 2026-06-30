@@ -18,6 +18,9 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "자미두수 AI 상담";
 const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
+const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000;
+const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 26000;
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
   "GEMINIF_API_KEY1",
@@ -72,6 +75,34 @@ const FORBIDDEN_RESULT_PATTERN = /\bAI\b|PDF|챕터|chapter|\bjob\b|\bprogress\b
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
+}
+
+function extractJsonObjectText(text) {
+  const normalized = clean(text).replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
+  const start = normalized.indexOf("{");
+  const end = normalized.lastIndexOf("}");
+  if (start < 0 || end <= start) return "";
+  return normalized.slice(start, end + 1);
+}
+
+function parseStructuredConsultationResult(text) {
+  const jsonText = extractJsonObjectText(text);
+  if (!jsonText) return null;
+  try {
+    const parsed = JSON.parse(jsonText);
+    return parsed && typeof parsed === "object" && parsed.sections && typeof parsed.sections === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function countStructuredConsultationBodyChars(text) {
+  const parsed = parseStructuredConsultationResult(text);
+  if (!parsed) return 0;
+  return Object.values(parsed.sections || {}).reduce((sum, section) => {
+    if (!section || typeof section !== "object") return sum;
+    return sum + clean(section.body).length;
+  }, 0);
 }
 
 function readProcessEnv(key) {
@@ -873,28 +904,37 @@ function buildFirstPrompt(input, chart) {
       sections: {
         essence: { title: "명궁이 말하는 본질", body: "상담 본문" },
         flow: { title: "사화와 흐름의 물결", body: "상담 본문" },
+        triad_axis: { title: "삼방사정이 여는 축", body: "상담 본문" },
+        twelve_palaces: { title: "12궁의 연결 지도", body: "상담 본문" },
         career: { title: "일과 사업의 지도", body: "상담 본문" },
         wealth: { title: "재물이 머무는 방식", body: "상담 본문" },
         relationship: { title: "관계와 인연의 결", body: "상담 본문" },
         dayun_now: { title: "지금의 대운", body: "상담 본문" },
+        timing_strategy: { title: "대한과 세운의 선택 전략", body: "상담 본문" },
         caution: { title: "반복되는 함정과 전환점", body: "상담 본문" },
+        core_answer: { title: "지금 질문에 대한 별궁의 답", body: "상담 본문" },
         prescription: { title: "지금의 처방", body: "상담 본문" },
       },
     }, null, 2),
     "",
     "작성 규칙:",
-    "1. sections의 8개 body는 각각 완결된 상담 문단으로 작성하고, 서로 같은 첫 문장 구조를 반복하지 마세요.",
-    "2. 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
-    "3. essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
-    "4. flow는 화록·화권·화과·화기를 모두 언급하고, 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
-    "5. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약, 삼방사정, 대운·세운 흐름을 질문 주제와 연결하세요.",
-    "6. health는 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
-    "7. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요.",
-    "8. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
-    "9. 각 body는 궁/별 근거, 현실에서 드러나는 모습, 지금의 선택 조언이 한 문단 안에서 이어지게 쓰세요.",
-    "10. career, wealth, relationship, health는 각 20점 만점, overall은 별도 종합 판단으로 100점 만점에 맞추세요.",
-    "11. 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
-    "12. 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
+    "1. sections의 12개 body는 각각 완결된 상담 문단으로 작성하고, 서로 같은 첫 문장 구조를 반복하지 마세요.",
+    `2. sections의 모든 body를 합산한 실제 상담 본문은 공백 포함 ${MIN_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이상 ${MAX_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
+    "3. 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
+    "4. essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
+    "5. flow는 화록·화권·화과·화기를 모두 언급하고, 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
+    "6. triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
+    "7. twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
+    "8. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약, 삼방사정, 대운·세운 흐름을 질문 주제와 연결하세요.",
+    "9. timing_strategy는 현재 대한, 올해 세운, 가까운 4주와 6개월의 선택 리듬을 분리해 말하세요.",
+    "10. health는 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
+    "11. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요.",
+    "12. core_answer는 사용자의 질문에 대해 자미두수 전문가가 마지막으로 짚어 줄 핵심 답을 명확하게 전하세요.",
+    "13. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
+    "14. 각 body는 궁/별 근거, 현실에서 드러나는 모습, 지금의 선택 조언이 한 문단 안에서 이어지게 쓰세요.",
+    "15. career, wealth, relationship, health는 각 20점 만점, overall은 별도 종합 판단으로 100점 만점에 맞추세요.",
+    "16. 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
+    "17. 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
     chart?.uncertainty?.birthTimeUnknown ? "출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
   ].filter(Boolean).join("\n");
 }
@@ -940,6 +980,30 @@ function cleanForbiddenResult(text) {
     .replace(/시스템/g, "상담 흐름");
 }
 
+function bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars) {
+  if (minBodyChars && bodyChars < minBodyChars) return "short";
+  if (maxBodyChars && bodyChars > maxBodyChars) return "long";
+  return "";
+}
+
+function buildBodyRangeRepairPrompt(text, { minBodyChars, maxBodyChars, bodyChars }) {
+  const problem = bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars);
+  return [
+    "다음 자미두수 상담 JSON을 같은 JSON 구조로 유지하면서 상담 본문 품질을 정리해 주세요.",
+    `현재 sections body 합산은 약 ${Number(bodyChars || 0).toLocaleString("ko-KR")}자입니다.`,
+    `sections의 모든 body 합산은 공백 포함 ${Number(minBodyChars).toLocaleString("ko-KR")}자 이상 ${Number(maxBodyChars).toLocaleString("ko-KR")}자 이하로 맞춰 주세요.`,
+    problem === "short"
+      ? "부족한 분량은 같은 말을 늘리지 말고 triad_axis, twelve_palaces, timing_strategy, core_answer 흐름에 실제 자미두수 상담에서 더 살필 근거를 보강해 주세요."
+      : "너무 길어진 분량은 중복 문장과 반복 조언을 줄이고, 핵심 근거와 상담의 결은 보존해 주세요.",
+    "전체 body에 명궁, 신궁, 주성 강약, 보성, 살성, 사화, 삼방사정, 대운과 세운의 근거를 고르게 나누어 풀어 주세요.",
+    "사용자의 질문에 직접 닿는 현실 조언을 충분히 담되, 불안을 키우는 단정이나 건강 진단은 피하세요.",
+    "반드시 JSON만 반환하고, JSON 앞뒤에 설명이나 마크다운 코드블록을 붙이지 마세요.",
+    "금지 표현: AI, PDF, 챕터, chapter, job, progress, 프롬프트, 시스템",
+    "",
+    text,
+  ].join("\n");
+}
+
 async function generateConsultationText(env, prompt, options = {}) {
   const logContext = options.logContext || {};
   logZiweiAi("Provider Selected", {
@@ -955,28 +1019,70 @@ async function generateConsultationText(env, prompt, options = {}) {
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
-  const text = clean(ai?.text);
+  let text = clean(ai?.text);
   if (!ai?.ok || isMock || text.length < (options.minLength || 180)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;
   }
-  if (!FORBIDDEN_RESULT_PATTERN.test(text)) return { text, provider, model: clean(ai?.model) };
+  const minBodyChars = Number(options.minBodyChars || 0);
+  const maxBodyChars = Number(options.maxBodyChars || 0);
+  let bodyChars = countStructuredConsultationBodyChars(text);
+  const initialRangeProblem = bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars);
+  if (initialRangeProblem) {
+    const expanded = await callGeminiText(env, buildBodyRangeRepairPrompt(text, { minBodyChars, maxBodyChars, bodyChars }), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: 0.62,
+      maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+      timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    });
+    const expandedText = clean(expanded?.text);
+    const expandedBodyChars = countStructuredConsultationBodyChars(expandedText);
+    const expandedRangeProblem = bodyCharRangeProblem(expandedBodyChars, minBodyChars, maxBodyChars);
+    const improved = initialRangeProblem === "short"
+      ? expandedBodyChars > bodyChars
+      : expandedBodyChars > 0 && expandedBodyChars < bodyChars;
+    if (expanded?.ok && !/mock/i.test(clean(expanded?.provider || expanded?.model)) && (!expandedRangeProblem || improved)) {
+      text = expandedText;
+      bodyChars = countStructuredConsultationBodyChars(text);
+    }
+  }
+  if (!FORBIDDEN_RESULT_PATTERN.test(text)) {
+    const cleanText = cleanForbiddenResult(text);
+    const finalBodyChars = countStructuredConsultationBodyChars(cleanText);
+    const rangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
+    if (rangeProblem) {
+      const error = new Error("Generated consultation body is outside required range.");
+      error.code = rangeProblem === "short" ? "INSUFFICIENT_RESULT_LENGTH" : "EXCESSIVE_RESULT_LENGTH";
+      throw error;
+    }
+    return { text: cleanText, provider, model: clean(ai?.model) };
+  }
 
   const repair = await callGeminiText(env, [
     "다음 상담 답변에서 개발 또는 제작 과정처럼 들리는 표현을 모두 빼고, 자연스러운 자미두수 상담문으로만 다시 써 주세요.",
+    minBodyChars && maxBodyChars ? `sections의 모든 body 합산은 ${Number(minBodyChars).toLocaleString("ko-KR")}자 이상 ${Number(maxBodyChars).toLocaleString("ko-KR")}자 이하로 유지해 주세요.` : "",
     "금지 표현: AI, PDF, 챕터, chapter, job, progress, 프롬프트, 시스템",
     "",
     text,
-  ].join("\n"), {
+  ].filter(Boolean).join("\n"), {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.58,
-    maxOutputTokens: options.maxOutputTokens || 7000,
+    maxOutputTokens: options.maxOutputTokens || 16000,
   });
   const repaired = clean(repair?.text);
+  const finalText = cleanForbiddenResult(repair?.ok && repaired.length >= 120 ? repaired : text);
+  const finalBodyChars = countStructuredConsultationBodyChars(finalText);
+  const finalRangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
+  if (finalRangeProblem) {
+    const error = new Error("Generated consultation body is outside required range.");
+    error.code = finalRangeProblem === "short" ? "INSUFFICIENT_RESULT_LENGTH" : "EXCESSIVE_RESULT_LENGTH";
+    throw error;
+  }
   return {
-    text: cleanForbiddenResult(repair?.ok && repaired.length >= 120 ? repaired : text),
+    text: finalText,
     provider: clean(repair?.provider || provider),
     model: clean(repair?.model || ai?.model),
   };
@@ -1459,7 +1565,13 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
 
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), { minLength: 360, maxOutputTokens: 8000, logContext });
+    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), {
+      minLength: 360,
+      minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
+      maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS,
+      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+      logContext,
+    });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
     const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
     const completed = await ZiweiAiConsultation.findOneAndUpdate(
@@ -1587,4 +1699,7 @@ export const __ziweiAiTestUtils = {
   buildFirstPrompt,
   buildSystemPrompt,
   cleanForbiddenResult,
+  countStructuredConsultationBodyChars,
+  MIN_INITIAL_CONSULTATION_BODY_CHARS,
+  MAX_INITIAL_CONSULTATION_BODY_CHARS,
 };

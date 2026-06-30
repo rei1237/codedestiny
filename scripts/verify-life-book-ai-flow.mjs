@@ -31,6 +31,111 @@ function assertNotIncludes(file, text, marker) {
   assert(!text.includes(marker), `${file} contains retired marker: ${marker}`);
 }
 
+const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
+const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 700;
+const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 10000;
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 20000;
+
+function mockChapterContent(chapterNumber, minLength) {
+  const base = [
+    `제${chapterNumber}장은 명식의 결이 삶에서 어떻게 드러나는지 차분히 비추는 상담문입니다.`,
+    "일간의 기질과 계절의 온도, 오행의 균형, 십성의 움직임을 함께 살피며 지금 붙잡을 수 있는 선택을 풀어냅니다.",
+    "말은 단정으로 기울지 않고, 사용자가 오늘의 생활에서 조정할 수 있는 리듬과 관계의 방향을 자연스럽게 짚습니다.",
+  ].join(" ");
+  return base.repeat(Math.ceil(minLength / base.length) + 1).slice(0, minLength);
+}
+
+function mockExpertContent(readingNumber, minLength) {
+  const base = [
+    `깊은 판독 ${readingNumber}은 일간과 월지, 오행과 조후, 십성의 움직임을 서로 엮어 삶의 결을 더 세밀하게 비춥니다.`,
+    "부족한 기운을 억지로 채우기보다 생활 리듬과 선택의 순서를 조정하며, 대운과 세운이 열어 주는 때를 차분히 짚습니다.",
+  ].join(" ");
+  return base.repeat(Math.ceil(minLength / base.length) + 1).slice(0, minLength);
+}
+
+function buildMockLifeBookReport({ chapterLength = 850, expertLength = 500, chapterCount = LIFE_BOOK_EXPECTED_CHAPTER_COUNT, omitAdvice = false, omitExpertReadings = false } = {}) {
+  return JSON.stringify({
+    title: "인생의 책",
+    subtitle: "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
+    coreSummary: {
+      oneLine: "삶의 중심 문장이 차분히 드러납니다.",
+      lifeTheme: "균형과 선택의 흐름",
+      strongestElement: "계산 기반",
+      neededBalance: "생활 리듬",
+    },
+    chapters: Array.from({ length: chapterCount }, (_, index) => ({
+      chapterNumber: index + 1,
+      title: `인생의 장 ${index + 1}`,
+      summary: `제${index + 1}장의 핵심이 한 문장으로 흐릅니다.`,
+      content: mockChapterContent(index + 1, chapterLength),
+      advice: omitAdvice ? [] : ["오늘의 선택을 작게 정리하세요.", "관계와 생활의 리듬을 무리 없이 조정하세요."],
+    })),
+    expertReadings: omitExpertReadings ? [] : Array.from({ length: 4 }, (_, index) => ({
+      title: ["일간과 월지가 여는 중심 기질", "오행과 조후가 청하는 보완", "십성으로 읽는 관계와 일의 방식", "대운과 세운이 비추는 선택의 시기"][index],
+      content: mockExpertContent(index + 1, expertLength),
+      guidance: ["강한 기운은 쓰임을 분명히 하세요.", "부족한 기운은 생활의 순서로 보완하세요."],
+    })),
+    finalMessage: "당신의 다음 장은 조용하지만 분명하게 열립니다.",
+  });
+}
+
+function getMockLifeBookQualityIssues(content) {
+  const issues = [];
+  let report = null;
+  try {
+    report = JSON.parse(content);
+  } catch {
+    return ["report_json_missing"];
+  }
+  const chapters = Array.isArray(report?.chapters) ? report.chapters : [];
+  if (chapters.length !== LIFE_BOOK_EXPECTED_CHAPTER_COUNT) issues.push("chapter_count_mismatch");
+  let totalContentLength = 0;
+  chapters.forEach((chapter, index) => {
+    const chapterNumber = index + 1;
+    const summary = String(chapter?.summary || "").trim();
+    const chapterContent = String(chapter?.content || "").trim();
+    const advice = Array.isArray(chapter?.advice) ? chapter.advice.map((item) => String(item || "").trim()).filter(Boolean) : [];
+    totalContentLength += chapterContent.length;
+    if (!summary) issues.push(`chapter_${chapterNumber}_summary_missing`);
+    if (!chapterContent) issues.push(`chapter_${chapterNumber}_content_missing`);
+    if (chapterContent && chapterContent.length < LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS) issues.push(`chapter_${chapterNumber}_content_too_short`);
+    if (!advice.length) issues.push(`chapter_${chapterNumber}_advice_missing`);
+  });
+  const expertReadings = Array.isArray(report?.expertReadings) ? report.expertReadings : [];
+  expertReadings.forEach((reading, index) => {
+    const readingNumber = index + 1;
+    const title = String(reading?.title || "").trim();
+    const readingContent = String(reading?.content || "").trim();
+    const guidance = Array.isArray(reading?.guidance) ? reading.guidance.map((item) => String(item || "").trim()).filter(Boolean) : [];
+    totalContentLength += readingContent.length;
+    if (!title) issues.push(`expert_reading_${readingNumber}_title_missing`);
+    if (!readingContent) issues.push(`expert_reading_${readingNumber}_content_missing`);
+    if (readingContent && readingContent.length < 350) issues.push(`expert_reading_${readingNumber}_content_too_short`);
+    if (readingContent && !guidance.length) issues.push(`expert_reading_${readingNumber}_guidance_missing`);
+  });
+  if (totalContentLength < LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) issues.push("total_content_too_short");
+  if (totalContentLength > LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS) issues.push("total_content_too_long");
+  return issues;
+}
+
+const passingMockIssues = getMockLifeBookQualityIssues(buildMockLifeBookReport({ chapterLength: 850, expertLength: 500 }));
+assert(passingMockIssues.length === 0, `life-book-ai mock quality should pass: ${passingMockIssues.join(", ")}`);
+
+const passingMockReport = JSON.parse(buildMockLifeBookReport({ chapterLength: 850, expertLength: 500 }));
+const passingMockLength = [
+  ...passingMockReport.chapters.map((chapter) => chapter.content),
+  ...passingMockReport.expertReadings.map((reading) => reading.content),
+].join("").length;
+assert(passingMockLength >= LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS, "life-book-ai mock quality should be at least 10000 chars");
+assert(passingMockLength <= LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS, "life-book-ai mock quality should stay within 20000 chars");
+
+const shortMockIssues = getMockLifeBookQualityIssues(buildMockLifeBookReport({ chapterLength: 650, omitExpertReadings: true }));
+assert(shortMockIssues.includes("total_content_too_short"), "life-book-ai mock quality should block total content under 10000 chars");
+assert(shortMockIssues.includes("chapter_1_content_too_short"), "life-book-ai mock quality should block shallow chapter content");
+
+const longMockIssues = getMockLifeBookQualityIssues(buildMockLifeBookReport({ chapterLength: 2000, expertLength: 500 }));
+assert(longMockIssues.includes("total_content_too_long"), "life-book-ai mock quality should block total content over 20000 chars");
+
 const indexHtml = read("index.html");
 const client = read("app/life-book-ai/LifeBookAiClient.tsx");
 const resultPage = read("app/life-book-ai/result/page.tsx");
@@ -96,6 +201,11 @@ for (const marker of [
   "pending",
   "html2canvas",
   "jspdf",
+  "[data-life-book-pdf-page]",
+  "empty_pdf_capture",
+  "expertReadings",
+  "명식의 깊은 판독",
+  "기본 명식",
   "life-book-reading-",
   "CANONICAL_TEN_GODS",
   "PDF로 저장하기",
@@ -127,6 +237,14 @@ for (const marker of [
   "extractReportJson",
   "reportJson",
   "CANONICAL_TEN_GODS",
+  "const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 700;",
+  "const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 10000;",
+  "const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 20000;",
+  "MOCK_PROVIDER_BLOCKED",
+  "LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS",
+  "LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS",
+  "expertReadings",
+  "10,000자 이상 20,000자 이하",
   "리포트 강조 영역",
   "finalizeDeferredBillingUsage",
   "cancelDeferredBillingUsage",

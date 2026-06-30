@@ -36,6 +36,11 @@ const CALCULATION_ERROR_MESSAGE = "점성술 차트 계산 중 문제가 발생�
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
+const ASTROLOGY_AI_MIN_RESULT_CHARS = 10000;
+const ASTROLOGY_AI_MAX_RESULT_CHARS = 20000;
+const ASTROLOGY_AI_MIN_FOLLOWUP_CHARS = 80;
+const ASTROLOGY_AI_SANITIZE_MAX_CHARS = 70000;
+const ASTROLOGY_AI_MIN_EXPERT_PARTS = 5;
 
 const TOPICS = new Set([
   "전체 차트 해석",
@@ -88,6 +93,15 @@ const MAJOR_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Sa
 const TIMING_TRANSIT_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TRANSIT_TARGETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
 const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, /시스템/g, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
+const BROKEN_RESULT_TEXT_PATTERN = /\uFFFD|\\uFFFD|Ã|Â|ì|í|ê|ë|ð/;
+const ASTROLOGY_EXPERT_PARTS = [
+  { id: "core_identity", label: "태양·달·상승궁의 중심축", pattern: /(태양[\s\S]{0,1400}달|달[\s\S]{0,1400}태양|상승궁|Ascendant|출생시간 미상)/ },
+  { id: "personal_planets", label: "수성·금성·화성의 생활 패턴", pattern: /(수성|Mercury)[\s\S]{0,1800}(금성|Venus)|(금성|Venus)[\s\S]{0,1800}(화성|Mars)|(수성|Mercury)[\s\S]{0,1800}(화성|Mars)/ },
+  { id: "growth_planets", label: "목성·토성의 성장 과제", pattern: /(목성|Jupiter|토성|Saturn)/ },
+  { id: "aspects_balance", label: "주요 각도와 원소·모드 균형", pattern: /(각도|어스펙트|Aspect|원소|element|모드|modality|균형)/i },
+  { id: "houses_timing", label: "하우스 또는 현재 트랜짓의 시기감", pattern: /(하우스|House|트랜짓|Transit|현재 시기|이번 달|타이밍|출생시간 미상)/i },
+  { id: "topic_practice", label: "상담 주제별 선택 기준과 실천 루틴", pattern: /(선택 기준|실천|루틴|점검|2주|30일|90일|이번 달)/ },
+];
 
 const PLACE_PRESETS = [
   ["서울", "대한민국", 37.5665, 126.978, "Asia/Seoul", ["seoul", "서울", "south korea", "korea"]],
@@ -826,9 +840,11 @@ function buildSystemPrompt() {
     "상담문은 질문에 대한 직접 답변, 차트 핵심 근거, 삶에서 드러나는 장면, 선택 기준, 실천 조언, 마무리 메시지의 흐름을 자연스럽게 담습니다.",
     "태양·달·상승궁, 개인 행성, 사회 행성, 세대 행성, 원소와 모드, 주요 각도, 하우스, 현재 트랜짓은 데이터가 있는 범위에서만 사용합니다.",
     "출생시간 미상이라면 상승궁과 하우스 앞에 반드시 제한적 해석임을 부드럽게 밝힙니다.",
+    `첫 상담 답변은 전체 본문 기준 공백 제외 ${ASTROLOGY_AI_MIN_RESULT_CHARS.toLocaleString("ko-KR")}자 이상 ${ASTROLOGY_AI_MAX_RESULT_CHARS.toLocaleString("ko-KR")}자 이하로 완성합니다.`,
+    "본문이 길어질 때는 같은 문장을 늘리지 말고, 점성술 상담가가 실제로 살피는 별도 흐름을 새롭게 열어 깊이를 더합니다.",
     "각 흐름은 짧은 운세가 아니라 사용자의 질문에 직접 닿는 상담 문장으로 충분히 펼칩니다.",
     "문체는 전문적이고 신비롭되 과장하지 않으며, 사용자의 마음을 안정시키는 상담가의 목소리를 유지합니다.",
-    "AI, 프롬프트, 시스템, PDF, 챕터, job, progress 같은 표현을 결과에 노출하지 않습니다.",
+    "도구명, 작성 지시, 내부 절차, 저장 파일 형식, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 않습니다.",
     "마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
   ].join("\n");
 }
@@ -851,11 +867,12 @@ function buildFirstPrompt(input, chart) {
     "[계산된 차트 데이터]",
     JSON.stringify(chart, null, 2),
     "",
-    "첫 답변은 충분히 깊게 작성하세요.",
+    `첫 답변은 전체 본문 기준 공백 제외 ${ASTROLOGY_AI_MIN_RESULT_CHARS.toLocaleString("ko-KR")}자 이상 ${ASTROLOGY_AI_MAX_RESULT_CHARS.toLocaleString("ko-KR")}자 이하로 충분히 깊게 작성하세요.`,
     "섹션 제목은 자연스러운 상담 제목으로 쓰고, 각 섹션은 서로 다른 정보 가치를 가져야 합니다.",
     "반드시 사용자의 현재 질문에 먼저 답하고, 그 답의 근거를 계산된 차트 흐름에서 이어 주세요.",
     "차트 근거를 말할 때는 '이 배치는 이런 성향입니다'에서 멈추지 말고, 사용자가 실제로 겪을 수 있는 장면과 선택 기준까지 연결하세요.",
     "태양·달·상승궁, 수성·금성·화성, 목성·토성, 천왕성·해왕성·명왕성, 원소와 모드, 주요 각도, 하우스, 현재 트랜짓, 상담 주제별 맞춤 해석, 이번 달 실천 조언, 피해야 할 패턴, 따뜻한 마무리를 자연스럽게 포함하세요.",
+    "분량이 부족해 보이면 앞 문장을 반복하지 말고, 태양·달·상승궁의 중심축, 개인 행성의 생활 패턴, 목성·토성의 성장 과제, 주요 각도와 원소·모드 균형, 하우스 또는 현재 트랜짓의 시기감, 상담 주제별 선택 기준과 실천 루틴 중 빠진 흐름을 새로 보강하세요.",
     "주요 각도와 트랜짓은 계산 데이터에 있는 것만 사용하고, 없다면 없다고 말하지 말고 행성 배치와 원소 균형 중심으로 상담을 이어가세요.",
     "출생시간 미상인 경우 상승궁과 하우스는 확정하지 말고 제한적 해석임을 분명히 밝히세요.",
     "마무리는 사용자가 오늘 바로 해볼 수 있는 작은 행동과, 2주 안에 점검할 선택 기준으로 닫아 주세요.",
@@ -883,8 +900,96 @@ function buildFollowUpPrompt(consultation, message) {
   ].join("\n");
 }
 
+function countConsultationChars(value) {
+  return clean(value).replace(/\s+/g, "").length;
+}
+
+function hasForbiddenResultTerms(value) {
+  return FORBIDDEN_RESULT_PATTERNS.some((pattern) => {
+    pattern.lastIndex = 0;
+    return pattern.test(value);
+  });
+}
+
+function hasRepeatedConsultationSentence(value) {
+  const counts = new Map();
+  const sentences = clean(value)
+    .split(/[.!?。！？\n]+/)
+    .map((sentence) => clean(sentence))
+    .filter((sentence) => sentence.length >= 34);
+  for (const sentence of sentences) {
+    const next = (counts.get(sentence) || 0) + 1;
+    if (next >= 3) return true;
+    counts.set(sentence, next);
+  }
+  return false;
+}
+
+function getMissingExpertParts(value) {
+  const text = clean(value);
+  return ASTROLOGY_EXPERT_PARTS.filter((part) => !part.pattern.test(text));
+}
+
+function getConsultationQualityIssues(content, options = {}) {
+  const text = clean(content);
+  const minLength = Math.max(0, Math.floor(Number(options.minLength || 0)));
+  const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
+  const issues = [];
+  if (!text) issues.push("EMPTY_RESULT");
+  const charCount = countConsultationChars(text);
+  if (minLength > 0 && charCount < minLength) issues.push(`MIN_TOTAL_CHARS:${charCount}/${minLength}`);
+  if (maxLength > 0 && charCount > maxLength) issues.push(`MAX_TOTAL_CHARS:${charCount}/${maxLength}`);
+  BROKEN_RESULT_TEXT_PATTERN.lastIndex = 0;
+  if (BROKEN_RESULT_TEXT_PATTERN.test(text)) issues.push("BROKEN_ENCODING_PATTERN");
+  if (hasForbiddenResultTerms(text)) issues.push("FORBIDDEN_RESULT_TERM");
+  if (hasRepeatedConsultationSentence(text)) issues.push("REPEATED_SENTENCE");
+  if (options.requireExpertParts === true) {
+    const missingExpertParts = getMissingExpertParts(text);
+    const coveredExpertParts = ASTROLOGY_EXPERT_PARTS.length - missingExpertParts.length;
+    if (coveredExpertParts < ASTROLOGY_AI_MIN_EXPERT_PARTS) {
+      issues.push(`MISSING_EXPERT_PARTS:${missingExpertParts.map((part) => part.id).join("|")}`);
+    }
+  }
+  return issues;
+}
+
+function buildConsultationExpansionPrompt(originalPrompt, draft, minChars, missingExpertParts = []) {
+  return [
+    "아래 점성술 상담 초안을 같은 계산 근거 안에서 더 깊고 길게 다시 완성하세요.",
+    `전체 본문은 공백을 제외하고 ${minChars.toLocaleString("ko-KR")}자 이상 ${ASTROLOGY_AI_MAX_RESULT_CHARS.toLocaleString("ko-KR")}자 이하이어야 합니다.`,
+    missingExpertParts.length ? `특히 새롭게 보강할 흐름: ${missingExpertParts.map((part) => part.label).join(", ")}` : "",
+    "새로운 행성, 하우스, 각도, 트랜짓을 지어내지 말고 초안과 계산 데이터에 있는 근거만 사용하세요.",
+    "질문에 대한 직접 답변, 차트 근거, 삶에서 드러나는 장면, 선택 기준, 실천 조언, 따뜻한 마무리를 모두 자연스럽게 확장하세요.",
+    "분량만 늘리지 말고, 빠진 흐름마다 실제 상담에서 새로 짚어 줄 장면과 판단 기준을 덧붙이세요.",
+    "반복 문장으로 분량을 채우지 말고, 전문적이고 신비롭되 실제 상담처럼 정돈된 한국어로만 쓰세요.",
+    "도구명, 작성 지시, 내부 절차, 저장 파일 형식, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 마세요.",
+    "",
+    "[기존 지시와 계산 근거]",
+    clean(originalPrompt, 36000),
+    "",
+    "[초안]",
+    clean(draft, 32000),
+  ].filter(Boolean).join("\n");
+}
+
+function buildConsultationCondensePrompt(originalPrompt, draft, minChars, maxChars) {
+  return [
+    "아래 점성술 상담문이 너무 길다면 핵심을 유지해 다시 정돈하세요.",
+    `전체 본문은 공백을 제외하고 ${minChars.toLocaleString("ko-KR")}자 이상 ${maxChars.toLocaleString("ko-KR")}자 이하이어야 합니다.`,
+    "태양·달·상승궁의 중심축, 개인 행성, 목성·토성, 주요 각도와 원소·모드, 하우스 또는 트랜짓, 상담 주제별 실천 기준은 반드시 남기세요.",
+    "같은 의미의 반복 문단만 덜어내고, 차트 근거와 사용자의 질문에 닿는 상담 흐름은 유지하세요.",
+    "새로운 행성, 하우스, 각도, 트랜짓을 지어내지 말고 기존 계산 근거 안에서만 정리하세요.",
+    "",
+    "[기존 지시와 계산 근거]",
+    clean(originalPrompt, 24000),
+    "",
+    "[정돈할 상담문]",
+    clean(draft, 42000),
+  ].join("\n");
+}
+
 function sanitizeConsultationText(text) {
-  let result = clean(text, 70000);
+  let result = clean(text, ASTROLOGY_AI_SANITIZE_MAX_CHARS);
   FORBIDDEN_RESULT_PATTERNS.forEach((pattern) => {
     result = result.replace(pattern, "");
   });
@@ -892,26 +997,112 @@ function sanitizeConsultationText(text) {
 }
 
 async function generateConsultation(env, prompt, options = {}) {
+  const minLength = Math.max(0, Math.floor(Number(options.minLength || 180)));
+  const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
+  const maxOutputTokens = Number(options.maxOutputTokens || 7000);
+  const timeoutMs = Number(env.ASTROLOGY_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000);
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
-    maxOutputTokens: options.maxOutputTokens || 7000,
-    timeoutMs: Number(env.ASTROLOGY_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    maxOutputTokens,
+    timeoutMs,
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   console.info("[AstrologyAI] provider selected", { provider, model });
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-  const content = sanitizeConsultationText(ai?.text || "");
-  if (!ai?.ok || isMock || content.length < (options.minLength || 180)) {
+  let content = sanitizeConsultationText(ai?.text || "");
+  let finalProvider = provider;
+  let finalModel = model;
+  if (!ai?.ok || isMock || !content) {
     console.error("[AstrologyAI] generation empty result", { provider, model, isMock, length: content.length, ok: ai?.ok === true });
     const error = new Error(LLM_ERROR_MESSAGE);
-    error.code = "LLM_FAILED";
+    error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_FAILED";
     error.status = 503;
     throw error;
   }
-  return { content, provider, model };
+
+  let qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
+  const shouldExpand = qualityIssues.some((issue) => issue.startsWith("MIN_TOTAL_CHARS:") || issue.startsWith("MISSING_EXPERT_PARTS:"));
+  if (shouldExpand) {
+    const missingExpertParts = options.requireExpertParts === true ? getMissingExpertParts(content) : [];
+    const repair = await callGeminiText(env, buildConsultationExpansionPrompt(prompt, content, minLength, missingExpertParts), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: options.expandTemperature ?? 0.62,
+      maxOutputTokens: Math.max(Number(options.expandMaxOutputTokens || 0), maxOutputTokens, 14000),
+      timeoutMs,
+    });
+    const repairProvider = clean(repair?.provider || finalProvider);
+    const repairModel = clean(repair?.model || finalModel);
+    const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
+    if (repairIsMock) {
+      const error = new Error(LLM_ERROR_MESSAGE);
+      error.code = "MOCK_PROVIDER_BLOCKED";
+      error.status = 503;
+      throw error;
+    }
+    const expanded = sanitizeConsultationText(repair?.text || "");
+    if (repair?.ok && expanded) {
+      content = countConsultationChars(expanded) >= countConsultationChars(content) ? expanded : `${content}\n\n${expanded}`;
+      finalProvider = repairProvider;
+      finalModel = repairModel;
+    }
+  }
+
+  qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
+  if (maxLength > 0 && qualityIssues.some((issue) => issue.startsWith("MAX_TOTAL_CHARS:"))) {
+    const repair = await callGeminiText(env, buildConsultationCondensePrompt(prompt, content, minLength, maxLength), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: options.condenseTemperature ?? 0.48,
+      maxOutputTokens: Math.max(Number(options.condenseMaxOutputTokens || 0), maxOutputTokens, 12000),
+      timeoutMs,
+    });
+    const repairProvider = clean(repair?.provider || finalProvider);
+    const repairModel = clean(repair?.model || finalModel);
+    const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
+    if (repairIsMock) {
+      const error = new Error(LLM_ERROR_MESSAGE);
+      error.code = "MOCK_PROVIDER_BLOCKED";
+      error.status = 503;
+      throw error;
+    }
+    const condensed = sanitizeConsultationText(repair?.text || "");
+    if (repair?.ok && condensed) {
+      content = condensed;
+      finalProvider = repairProvider;
+      finalModel = repairModel;
+    }
+  }
+
+  qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
+  if (qualityIssues.length) {
+    console.error("[AstrologyAI] generation quality check failed", {
+      provider: finalProvider,
+      model: finalModel,
+      charCount: countConsultationChars(content),
+      minLength,
+      maxLength,
+      issues: qualityIssues,
+    });
+    const error = new Error(LLM_ERROR_MESSAGE);
+    error.code = "LLM_QUALITY_CHECK_FAILED";
+    error.status = 503;
+    throw error;
+  }
+
+  return {
+    content,
+    provider: finalProvider,
+    model: finalModel,
+    quality: {
+      charCount: countConsultationChars(content),
+      minLength,
+      maxLength,
+    },
+  };
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
@@ -1195,7 +1386,14 @@ async function handleStart(request, env) {
   try {
     console.info("[AstrologyAI] generation started", { route: "/api/astrology-ai/start", requestId: idempotencyKey, sessionId });
     const chart = await calculateAstrologyChart(env, normalized);
-    const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), { minLength: 260, maxOutputTokens: 7500 });
+    const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), {
+      minLength: ASTROLOGY_AI_MIN_RESULT_CHARS,
+      maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
+      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 16000),
+      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 16000),
+      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 12000),
+      requireExpertParts: true,
+    });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
     await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
     const completed = await AstrologyAiConsultation.findOneAndUpdate(
@@ -1208,7 +1406,7 @@ async function handleStart(request, env) {
             { role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now },
             { role: "assistant", content: generated.content, createdAt: new Date() },
           ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString(), quality: generated.quality },
           generationError: null,
         },
       },
@@ -1293,7 +1491,7 @@ async function handleMessage(request, env) {
 
   try {
     const generated = await generateConsultation(env, buildFollowUpPrompt(consultation, message), {
-      minLength: 80,
+      minLength: ASTROLOGY_AI_MIN_FOLLOWUP_CHARS,
       maxOutputTokens: 4500,
       temperature: 0.7,
     });
@@ -1309,7 +1507,7 @@ async function handleMessage(request, env) {
           },
         },
         $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
+          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString(), lastMessageQuality: generated.quality },
         },
       },
       { new: true },

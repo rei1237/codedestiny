@@ -6,6 +6,8 @@ import { SUKYO_PREMIUM_CHAPTERS_V2, SUKYO_PREMIUM_CHAPTER_PLAN_VERSION } from ".
 export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
+export const SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH = 20000;
+export const SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH = 30000;
 export const SUKYO_PDF_CONFIG = Object.freeze({
   generationMode: "llm-html-v2",
   provider: "gemini-primary-workers-ai-fallback",
@@ -223,6 +225,35 @@ function decodeEntities(value) {
 
 function stripTags(value, max = 100000) {
   return clean(decodeEntities(String(value || "").replace(/<[^>]+>/g, " ")), max);
+}
+
+function countSukyoTextChars(value = "") {
+  return stripTags(value, Infinity).replace(/\s+/g, "").length;
+}
+
+function countSukyoChapterTextChars(chapter = {}) {
+  const sections = asArray(chapter.sections);
+  const expertCounsel = chapter.expertCounsel && typeof chapter.expertCounsel === "object" ? chapter.expertCounsel : {};
+  const expertCounselLength = [
+    expertCounsel.title,
+    ...asArray(expertCounsel.paragraphs),
+    ...asArray(expertCounsel.practices),
+  ].reduce((total, value) => total + countSukyoTextChars(value), 0);
+  if (sections.length) {
+    return expertCounselLength + sections.reduce((total, section) => total + countSukyoTextChars(section?.body || section?.text || ""), 0);
+  }
+  return expertCounselLength + countSukyoTextChars(chapter.html || chapter.body || "");
+}
+
+function countSukyoTotalTextChars(chapters = []) {
+  return asArray(chapters).reduce((total, chapter) => total + countSukyoChapterTextChars(chapter), 0);
+}
+
+function sukyoChapterTextRange(chapterSpec = {}) {
+  const base = Number(chapterSpec.minLength || 1600) || 1600;
+  const min = Math.max(900, Math.floor(base * 0.62));
+  const max = Math.max(min + 500, Math.floor(base * 1.35));
+  return { min, max };
 }
 
 function hashStable(value) {
@@ -874,8 +905,10 @@ function validateSukyoPremiumChapterHtml(html, chapterSpec) {
     if (sectionForbiddenTokens.length) issues.push(`section.forbidden.${index + 1}:${sectionForbiddenTokens.join("|")}`);
     if (!containsKorean(section.body)) issues.push(`section.korean.${index + 1}`);
   });
-  const minChapterLength = Math.max(1000, Math.floor((Number(chapterSpec.minLength) || 1600) * 0.75));
-  if (stripTags(source).length < minChapterLength) issues.push("chapter.length");
+  const chapterLength = stripTags(source).replace(/\s+/g, "").length;
+  const chapterRange = sukyoChapterTextRange(chapterSpec);
+  if (chapterLength < chapterRange.min) issues.push("chapter.length");
+  if (chapterLength > chapterRange.max) issues.push("chapter.length.max");
   return { ok: issues.length === 0, issues, html: source };
 }
 
@@ -939,6 +972,7 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
   const relationGuide = facts.compatibility.relationGuide || relationConsultationGuide(facts.compatibility.relationType);
   const distanceGuide = facts.compatibility.distanceGuide || distanceConsultationGuide(facts.compatibility.distance);
   const chapterFocus = SUKYO_CHAPTER_EXPERT_FOCUS[chapterSpec.order] || chapterSpec.purpose;
+  const chapterRange = sukyoChapterTextRange(chapterSpec);
   const selfName = clean(facts.consultation?.selfName || facts.personA.name || "본인", 80);
   const partnerName = clean(facts.consultation?.partnerName || facts.personB.name || "상대", 80);
   const categoryReadings = asArray(facts.consultation?.categoryReadings)
@@ -1015,7 +1049,8 @@ function buildChapterPrompt({ facts, chapterSpec, previousSummary = "" }) {
     `현재 장: ${chapterSpec.order}. ${chapterSpec.title}`,
     `장 목적: ${chapterSpec.purpose}`,
     `전문 상담 초점: ${chapterFocus}`,
-    `최소 본문 길이: 공백을 제외하고 ${Number(chapterSpec.minLength || 1600)}자 이상`,
+    `본문 길이: 공백을 제외하고 ${chapterRange.min}자 이상 ${chapterRange.max}자 이하`,
+    `전체 PDF 상담문 목표: 공백 제외 ${SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH}자 이상 ${SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH}자 이하. 분량을 늘리기보다 숙요점 근거, 관계 장면, 실천 처방을 압축해서 쓴다.`,
     `문체 기준: 기능 설명처럼 쓰지 말고 숙요점 상담가가 ${selfName}님과 ${partnerName}님에게 직접 전하는 말로 쓴다.`,
     "금지 문체: A:, B:, A와 B, 상대 A, 상대 B, personA, personB, 이 결과는, 이 기능은, 분석 결과는, 데이터에 따르면, 템플릿, 로컬, 자동 생성, 검증, 스키마.",
     "",
@@ -1529,8 +1564,8 @@ function renderBaseSukuyoCategoryTable(facts = {}) {
     }));
   }
   return `
-    <section class="base-sukuyo-chart-table" data-source="${escapeHtml(facts.consultation?.dataSource || facts.compatibility?.source || "calculated")}">
-      <h2>기본 숙요점 카테고리 지표</h2>
+    <section class="base-sukuyo-chart-table" data-sukuyo-basic-chart="premium-pdf-v1" data-source="${escapeHtml(facts.consultation?.dataSource || facts.compatibility?.source || "calculated")}">
+      <h2>기본 숙요점 차트</h2>
       <table class="chapter-summary-table">
         <thead>
           <tr>
@@ -1619,6 +1654,43 @@ function renderChapterSections(chapter = {}) {
   }).join("");
 }
 
+function buildSukyoExpertCounsel(chapter = {}, facts = {}) {
+  const selfName = facts.personA?.name || "본인";
+  const partnerName = facts.personB?.name || "상대";
+  const relationGuide = facts.compatibility?.relationGuide || relationConsultationGuide(facts.compatibility?.relationType);
+  const distanceGuide = facts.compatibility?.distanceGuide || distanceConsultationGuide(facts.compatibility?.distance);
+  const scoreMeta = resolveChapterScoreMeta(chapter, facts);
+  const title = "숙요점 궁합 전문가의 깊은 처방";
+  const chapterTitle = clean(chapter.title || "이 장", 120);
+  const relationType = clean(facts.compatibility?.relationType || "두 사람의 관계", 40);
+  const distance = clean(facts.compatibility?.distance || "거리 미확인", 40);
+  const scoreText = Number.isFinite(Number(scoreMeta.score)) ? `${Math.round(Number(scoreMeta.score))}점` : "점수보다 흐름";
+  const paragraphs = [
+    `${selfName}님과 ${partnerName}님의 ${chapterTitle}은 ${relationType} 관계의 ${relationGuide.axis}, 그리고 ${distance}의 거리감 위에서 읽어야 합니다. ${scoreText}으로 비치는 이 장의 기운은 판정이 아니라 조율점입니다. ${relationGuide.strength} 다만 ${relationGuide.caution} 그래서 지금은 마음의 확신보다 말의 순서와 약속의 크기를 먼저 맞추는 편이 좋습니다.`,
+  ];
+  const practices = [
+    "서운함은 결론보다 확인 한 문장으로 말하기",
+    "가까워질수록 연락 간격과 약속 범위를 작게 정하기",
+    "다툼 뒤에는 옳고 그름보다 회복 순서를 먼저 정하기",
+  ];
+  return { title, paragraphs, practices };
+}
+
+function renderSukyoExpertCounsel(chapter = {}, facts = {}) {
+  const counsel = chapter.expertCounsel && typeof chapter.expertCounsel === "object"
+    ? chapter.expertCounsel
+    : buildSukyoExpertCounsel(chapter, facts);
+  const paragraphs = asArray(counsel.paragraphs).map((paragraph) => clean(paragraph)).filter(Boolean);
+  const practices = asArray(counsel.practices).map((practice) => clean(practice)).filter(Boolean);
+  if (!paragraphs.length && !practices.length) return "";
+  return `
+      <section class="chapter-section chapter-section--expert-counsel">
+        <h2>${escapeHtml(counsel.title || "숙요점 궁합 전문가의 깊은 처방")}</h2>
+        ${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+        ${practices.length ? `<ul class="expert-practice-list">${practices.map((practice) => `<li>${escapeHtml(practice)}</li>`).join("")}</ul>` : ""}
+      </section>`;
+}
+
 function renderChapterArticle(chapter = {}, facts = {}) {
   const scoreMeta = resolveChapterScoreMeta(chapter, facts);
   const icon = CHAPTER_ICONS[(Number(chapter.order || 1) - 1) % CHAPTER_ICONS.length] || "◈";
@@ -1628,6 +1700,7 @@ function renderChapterArticle(chapter = {}, facts = {}) {
       ${drawChapterHeader(null, chapter.order || chapter.chapterNo, chapter.title, scoreMeta.score, icon, scoreMeta.label)}
       ${renderSummaryTable(facts)}
       ${renderChapterSections(chapter)}
+      ${renderSukyoExpertCounsel(chapter, facts)}
       ${drawComparisonTable(null, ["💚 이 궁합의 강점", "🔸 함께 보완할 부분"], buildChapterComparisonRows(chapter))}
       ${renderDialogueBlocks(chapter, facts)}
       ${drawCalloutBox(null, advice, "이 챕터의 핵심")}
@@ -1714,6 +1787,9 @@ function renderReportHtml({ facts, chapters }) {
     .chapter-section{margin:24px 0}
     .chapter-section h2{margin:0 0 10px;color:#c4b5fd;font-size:15px}
     .chapter-section p{margin:0 0 12px;color:#e2e8f0;font-size:14px}
+    .chapter-section--expert-counsel{break-inside:avoid;border:1px solid rgba(196,181,253,.24);border-left:4px solid #c4b5fd;border-radius:8px;background:rgba(196,181,253,.08);padding:16px 18px}
+    .expert-practice-list{margin:8px 0 0;padding-left:18px;color:#dbeafe;font-size:10pt}
+    .expert-practice-list li{margin:5px 0}
     .comparison-table th:first-child{background:rgba(52,211,153,.15);color:#34d399}
     .comparison-table th:last-child{background:rgba(245,158,11,.15);color:#f59e0b}
     .comparison-table td:first-child{color:#34d399}
@@ -1777,7 +1853,10 @@ function renderReportHtml({ facts, chapters }) {
 
 function buildChapterQuality(chapters = []) {
   const issues = [];
+  const totalTextLength = countSukyoTotalTextChars(chapters);
   if (chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
+  if (totalTextLength < SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength");
+  if (totalTextLength > SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength.max");
   chapters.forEach((chapter, index) => {
     const spec = SUKYO_PDF_CHAPTERS[index];
     if (!spec) return;
@@ -1787,6 +1866,9 @@ function buildChapterQuality(chapters = []) {
   return {
     ok: issues.length === 0,
     issues,
+    totalTextLength,
+    minTotalTextLength: SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH,
+    maxTotalTextLength: SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH,
     chapters: chapters.map((chapter) => ({
       id: chapter.id,
       order: chapter.order,
@@ -1800,6 +1882,7 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
   const issues = [];
   const llmAssembly = pdfReady?.llmAssembly || {};
   const html = String(pdfReady.html || "");
+  const totalTextLength = countSukyoTotalTextChars(chapters);
   if (!clean(html)) issues.push("pdfReady.html");
   if (requireDownloadUrl && !clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl)) issues.push("pdfReady.url");
   const htmlForbiddenTokens = findForbiddenPdfTokens(html);
@@ -1811,6 +1894,7 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
     if (!html.includes("class=\"distance-graph\"")) issues.push("visual.distance-graph");
     if (!html.includes("class=\"metric-grid\"")) issues.push("visual.metric-grid");
     if (!html.includes("class=\"base-sukuyo-chart-table\"")) issues.push("visual.base-sukuyo-chart-table");
+    if (!html.includes("data-sukuyo-basic-chart=\"premium-pdf-v1\"")) issues.push("visual.basic-sukuyo-chart-marker");
     if (!html.includes("class=\"chapter-header__basis\"")) issues.push("visual.chapter-score-basis");
     if (!html.includes("class=\"score-summary-table\"")) issues.push("visual.score-summary-table");
     if (!/data-forward-distance="\d+"/.test(html) || !/data-reverse-distance="\d+"/.test(html)) issues.push("visual.distance-values");
@@ -1818,6 +1902,8 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
     if (!/data-chapter-no="1"\s+data-chapter-score="\d+"/.test(html)) issues.push("visual.chapter-score-values");
   }
   if (chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
+  if (totalTextLength < SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength");
+  if (totalTextLength > SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength.max");
   if (llmAssembly.enabled !== true) issues.push("llmAssembly.enabled");
   if (llmAssembly.externalGeneration !== true) issues.push("llmAssembly.externalGeneration");
   if (llmAssembly.externalCallsAllowed !== true && llmAssembly.isMock !== true) issues.push("llmAssembly.externalCallsAllowed");
@@ -1833,13 +1919,16 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
       if (!clean(section.heading) || !clean(section.body)) issues.push(`section.body.${index + 1}.${sectionIndex + 1}`);
     });
   });
-  return { ok: issues.length === 0, issues };
+  return { ok: issues.length === 0, issues, totalTextLength, minTotalTextLength: SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH, maxTotalTextLength: SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH };
 }
 
 export function assertSukyoCompatibilityPdfComplete({ chapters = [] } = {}) {
   const chapterQuality = buildChapterQuality(chapters);
   const issues = [...chapterQuality.issues];
+  const totalTextLength = countSukyoTotalTextChars(chapters);
   if (chapters.length !== SUKYO_PDF_CHAPTER_COUNT) issues.push("chapter.count");
+  if (totalTextLength < SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength");
+  if (totalTextLength > SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH) issues.push("chapter.totalTextLength.max");
   chapters.forEach((chapter, index) => {
     const spec = SUKYO_PDF_CHAPTERS[index];
     if (!spec) return;
@@ -1857,6 +1946,9 @@ export function assertSukyoCompatibilityPdfComplete({ chapters = [] } = {}) {
     throw Object.assign(new Error("숙요점 PDF 챕터가 완성되지 않았습니다."), {
       code: "SUKUYO_PDF_INCOMPLETE",
       issues: uniqueIssues,
+      totalTextLength,
+      minTotalTextLength: SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH,
+      maxTotalTextLength: SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH,
     });
   }
   return true;
@@ -1923,6 +2015,7 @@ export async function generateSukyoPremiumReport(env = {}, seed = {}, options = 
       break;
     }
     const parsed = parseSukyoPremiumChapterHtml(result.html, displayChapterSpec);
+    parsed.expertCounsel = buildSukyoExpertCounsel(parsed, facts);
     parsed.provider = result.provider;
     parsed.modelName = result.modelName || "";
     parsed.tokensUsed = Number(result.tokensUsed || 0);

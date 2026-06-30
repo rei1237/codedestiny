@@ -868,6 +868,49 @@ const astrologyAiConsultationSchema = new mongoose.Schema({
 astrologyAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 astrologyAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+const neoOperationRoomMessageSchema = new mongoose.Schema({
+  role: { type: String, enum: ["user", "assistant"], required: true },
+  content: { type: String, required: true, trim: true, maxlength: 70000 },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
+
+const neoOperationRoomConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, default: "", trim: true, maxlength: 40 },
+    birthDate: { type: String, required: true, trim: true, match: birthDateRegex },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
+    birthPlace: { type: mongoose.Schema.Types.Mixed, default: null },
+  },
+  selectedMethod: { type: String, enum: ["saju", "ziwei", "vedic", "astrology"], required: true, index: true },
+  topic: { type: String, required: true, trim: true, maxlength: 120 },
+  intensity: { type: String, enum: ["soft", "standard", "roar"], required: true },
+  question: { type: String, required: true, trim: true, maxlength: 1200 },
+  methodSummary: { type: mongoose.Schema.Types.Mixed, default: null },
+  initialBriefing: { type: mongoose.Schema.Types.Mixed, default: null },
+  realityCheck: { type: mongoose.Schema.Types.Mixed, default: null },
+  refinedOrder: { type: mongoose.Schema.Types.Mixed, default: null },
+  versionHistory: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [neoOperationRoomMessageSchema], default: [] },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  refinementStatus: { type: String, enum: ["idle", "generating", "completed", "generation_failed"], default: "idle", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  refinementError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "neoOperationRoomConsultations" });
+
+neoOperationRoomConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+neoOperationRoomConsultationSchema.index({ userId: 1, createdAt: -1 });
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
@@ -898,6 +941,8 @@ export const VedicAiConsultation = mongoose.models.VedicAiConsultation
   || mongoose.model("VedicAiConsultation", vedicAiConsultationSchema);
 export const AstrologyAiConsultation = mongoose.models.AstrologyAiConsultation
   || mongoose.model("AstrologyAiConsultation", astrologyAiConsultationSchema);
+export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomConsultation
+  || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },

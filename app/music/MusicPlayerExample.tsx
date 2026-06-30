@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Bookmark,
   ChevronDown,
 
   Moon,
@@ -24,7 +25,6 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
-import MoonAlbumArtwork from "./MoonAlbumArtwork";
 import MusicPlaylistPanel from "./MusicPlaylistPanel";
 import styles from "./moon-music-player.module.css";
 
@@ -130,9 +130,15 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeDefault: "기본",
     albumModeHuman: "인간",
     close: "닫기",
-    heroKicker: "MOON LIBRARY",
-    heroTitle: "달빛 플레이리스트",
-    heroText: "네오와 연이의 감성 무드로 이어지는 플레이 리스트.",
+    heroKicker: "MOON MUSIC",
+    heroTitle: "달빛 아래 열린 89곡의 운명 플레이리스트",
+    heroText: "DEST1NOVA, NEO, YEONI, LUNA BLOOM의 별빛 무드를 한곳에 모은 Code Destiny의 음악 서고.",
+    heroPrimary: "전체 재생",
+    heroSecondary: "무드별 탐색",
+    featuredKicker: "오늘 밤 먼저 열리는 곡",
+    featuredMood: "지금 이 달빛에 가장 가까운 무드가 흐릅니다.",
+    save: "저장",
+    saved: "저장됨",
     shareCurrent: "현재 곡 공유",
     copied: "복사됨",
     share: "공유",
@@ -167,9 +173,15 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeDefault: "Default",
     albumModeHuman: "Human",
     close: "Close",
-    heroKicker: "MOON LIBRARY",
-    heroTitle: "Moonlit Playlist",
-    heroText: "A playlist woven through Neo and Yeoni's emotional moods.",
+    heroKicker: "MOON MUSIC",
+    heroTitle: "89 fate tracks opened under moonlight",
+    heroText: "A Code Destiny music archive gathering the starlit moods of DEST1NOVA, NEO, YEONI, and LUNA BLOOM.",
+    heroPrimary: "Play all",
+    heroSecondary: "Explore moods",
+    featuredKicker: "First track under tonight's moon",
+    featuredMood: "The mood closest to this moonlight is flowing now.",
+    save: "Save",
+    saved: "Saved",
     shareCurrent: "Share current track",
     copied: "Copied",
     share: "Share",
@@ -204,9 +216,15 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeDefault: "デフォルト",
     albumModeHuman: "ヒューマン",
     close: "閉じる",
-    heroKicker: "MOON LIBRARY",
-    heroTitle: "月明かりプレイリスト",
-    heroText: "ネオとヨニの感性ムードでつながるプレイリスト。",
+    heroKicker: "MOON MUSIC",
+    heroTitle: "月明かりの下で開く89曲の運命プレイリスト",
+    heroText: "DEST1NOVA、NEO、YEONI、LUNA BLOOMの星明かりのムードを集めたCode Destinyの音楽書庫。",
+    heroPrimary: "すべて再生",
+    heroSecondary: "ムードで探す",
+    featuredKicker: "今夜まず開く曲",
+    featuredMood: "この月明かりにいちばん近いムードが流れています。",
+    save: "保存",
+    saved: "保存済み",
     shareCurrent: "現在の曲を共有",
     copied: "コピー済み",
     share: "共有",
@@ -342,6 +360,270 @@ const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, o
   );
 });
 
+const MOON_LIBRARY_BADGES = ["4 moods", "Moon curated", "DEST1NOVA vol.2"] as const;
+const WAVEFORM_BARS = Array.from({ length: 28 }, (_, index) => index);
+
+type MoonWaveformProps = {
+  isPlaying: boolean;
+};
+
+function MoonWaveform({ isPlaying }: MoonWaveformProps) {
+  return (
+    <span className={styles.moonWaveform} data-playing={isPlaying ? "true" : "false"} aria-hidden>
+      {WAVEFORM_BARS.map((bar) => (
+        <i key={bar} style={{ "--wave-index": bar } as CSSProperties} />
+      ))}
+    </span>
+  );
+}
+
+function MoonCoverStack() {
+  return (
+    <div className={styles.moonCoverStack} aria-hidden>
+      <span className={styles.coverStackGlow} />
+      <span className={`${styles.floatingCover} ${styles.floatingCoverNeo}`} />
+      <span className={`${styles.floatingCover} ${styles.floatingCoverYeoni}`} />
+      <span className={`${styles.floatingCover} ${styles.floatingCoverDest1nova}`} />
+      <span className={`${styles.floatingCover} ${styles.floatingCoverLuna}`} />
+      <span className={styles.coverStackWave} />
+    </div>
+  );
+}
+
+type MoonLibraryHeroProps = {
+  tracksCount: number;
+  copy: ReturnType<typeof getMusicPlayerCopy>;
+  onPlayAll: () => void;
+  onExploreMoods: () => void;
+};
+
+function MoonLibraryHero({ tracksCount, copy, onPlayAll, onExploreMoods }: MoonLibraryHeroProps) {
+  return (
+    <section className={styles.libraryHero} aria-label={copy.heroKicker}>
+      <div className={styles.libraryHeroCopy}>
+        <span className={styles.libraryHeroKicker}>{copy.heroKicker}</span>
+        <h1 className={styles.libraryHeroTitle}>{copy.heroTitle}</h1>
+        <p className={styles.libraryHeroText}>{copy.heroText}</p>
+        <div className={styles.libraryHeroActions}>
+          <button className={styles.libraryHeroPrimary} type="button" onClick={onPlayAll}>
+            <Play size={18} aria-hidden />
+            <span>{copy.heroPrimary}</span>
+          </button>
+          <button className={styles.libraryHeroSecondary} type="button" onClick={onExploreMoods}>
+            <Moon size={17} aria-hidden />
+            <span>{copy.heroSecondary}</span>
+          </button>
+        </div>
+        <div className={styles.libraryHeroMeta} aria-label="Moon Music metadata">
+          <span>{tracksCount} tracks</span>
+          {MOON_LIBRARY_BADGES.map((badge) => (
+            <span key={badge}>{badge}</span>
+          ))}
+        </div>
+      </div>
+      <MoonCoverStack />
+    </section>
+  );
+}
+
+type FeaturedTrackCardProps = {
+  track: Track;
+  coverUrl: string;
+  coverFailed: boolean;
+  isPlaying: boolean;
+  isSaved: boolean;
+  listeningStatusLabel: string;
+  copy: ReturnType<typeof getMusicPlayerCopy>;
+  canToggleAlbumMode: boolean;
+  albumModeSwitchLabel: string;
+  currentTrackAlbumMode: AlbumImageMode;
+  nowPlayingShared: boolean;
+  onAlbumModeToggle: () => void;
+  onCoverLoad: () => void;
+  onCoverError: () => void;
+  onPlayToggle: () => void;
+  onSaveToggle: () => void;
+  onShare: () => void;
+};
+
+function FeaturedTrackCard({
+  track,
+  coverUrl,
+  coverFailed,
+  isPlaying,
+  isSaved,
+  listeningStatusLabel,
+  copy,
+  canToggleAlbumMode,
+  albumModeSwitchLabel,
+  currentTrackAlbumMode,
+  nowPlayingShared,
+  onAlbumModeToggle,
+  onCoverLoad,
+  onCoverError,
+  onPlayToggle,
+  onSaveToggle,
+  onShare,
+}: FeaturedTrackCardProps) {
+  return (
+    <section className={styles.featuredTrackCard} data-playing={isPlaying ? "true" : "false"} data-artist={track.artistKey}>
+      <div className={styles.featuredCover} data-fallback={coverFailed || !coverUrl ? "true" : "false"}>
+        {coverUrl ? (
+          <Image
+            className={styles.featuredCoverImage}
+            src={coverUrl}
+            alt={`${track.artistName} - ${track.title} cover`}
+            width={320}
+            height={320}
+            sizes="(max-width: 640px) 120px, 220px"
+            placeholder="blur"
+            blurDataURL={MOON_COVER_BLUR_DATA_URL}
+            unoptimized
+            data-hidden={coverFailed ? "true" : "false"}
+            onLoad={onCoverLoad}
+            onError={onCoverError}
+          />
+        ) : null}
+        <span className={styles.featuredCoverFallback} aria-hidden />
+      </div>
+
+      <div className={styles.featuredCopy}>
+        <span className={styles.featuredKicker}>
+          <span className={styles.equalizerIcon} aria-hidden>
+            <i />
+            <i />
+            <i />
+          </span>
+          {copy.featuredKicker}
+        </span>
+        <h2>{track.title}</h2>
+        <p className={styles.featuredArtist}>{track.artistName}</p>
+        <p className={styles.featuredMood}>{track.mood || copy.featuredMood}</p>
+        <MoonWaveform isPlaying={isPlaying} />
+        <span className={styles.featuredStatus} aria-live="polite">{listeningStatusLabel}</span>
+      </div>
+
+      <div className={styles.featuredActions}>
+        <button className={styles.featuredPlayButton} type="button" onClick={onPlayToggle} aria-label={isPlaying ? copy.pause : copy.play}>
+          {isPlaying ? <Pause size={22} aria-hidden /> : <Play size={22} aria-hidden />}
+        </button>
+        <button
+          className={styles.featuredSaveButton}
+          type="button"
+          onClick={onSaveToggle}
+          aria-label={isSaved ? copy.saved : copy.save}
+          aria-pressed={isSaved}
+          data-saved={isSaved ? "true" : "false"}
+        >
+          <Bookmark size={18} aria-hidden />
+          <span>{isSaved ? copy.saved : copy.save}</span>
+        </button>
+        {canToggleAlbumMode ? (
+          <button
+            className={styles.albumModeButton}
+            type="button"
+            onClick={onAlbumModeToggle}
+            data-mode={currentTrackAlbumMode}
+            aria-label={`${copy.albumModeLabel}: ${albumModeSwitchLabel}`}
+          >
+            <Moon size={14} aria-hidden />
+            <span className={styles.albumModeButtonText}>{albumModeSwitchLabel}</span>
+            <span className={styles.albumModeButtonGlow} aria-hidden />
+          </button>
+        ) : null}
+        <button
+          className={styles.nowPlayingShareButton}
+          type="button"
+          onClick={onShare}
+          aria-label={copy.shareCurrent}
+          data-shared={nowPlayingShared ? "true" : "false"}
+        >
+          <Share2 size={16} aria-hidden />
+          <span>{nowPlayingShared ? copy.copied : copy.share}</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+type StickyMoonPlayerProps = {
+  track: Track;
+  coverUrl: string;
+  coverFailed: boolean;
+  isPlaying: boolean;
+  muted: boolean;
+  progressPercent: number;
+  copy: ReturnType<typeof getMusicPlayerCopy>;
+  onPrevious: () => void;
+  onPlayToggle: () => void;
+  onNext: () => void;
+  onMuteToggle: () => void;
+  onCoverLoad: () => void;
+  onCoverError: () => void;
+};
+
+function StickyMoonPlayer({
+  track,
+  coverUrl,
+  coverFailed,
+  isPlaying,
+  muted,
+  progressPercent,
+  copy,
+  onPrevious,
+  onPlayToggle,
+  onNext,
+  onMuteToggle,
+  onCoverLoad,
+  onCoverError,
+}: StickyMoonPlayerProps) {
+  return (
+    <aside className={styles.nowPlayingDock} data-playing={isPlaying ? "true" : "false"} aria-label={copy.playerAria}>
+      <span className={styles.nowPlayingDockGlow} aria-hidden />
+      <span className={styles.nowPlayingDockCover} data-fallback={coverFailed ? "true" : "false"}>
+        {coverUrl ? (
+          <Image
+            src={coverUrl}
+            alt={`${track.artistName} - ${track.title} cover`}
+            width={64}
+            height={64}
+            sizes="64px"
+            placeholder="blur"
+            blurDataURL={MOON_COVER_BLUR_DATA_URL}
+            unoptimized
+            onLoad={onCoverLoad}
+            onError={onCoverError}
+          />
+        ) : null}
+        <span className={styles.nowPlayingDockFallback} aria-hidden />
+      </span>
+      <span className={styles.nowPlayingDockMeta}>
+        <span className={styles.nowPlayingDockTitle}>
+          <span>{track.title}</span>
+        </span>
+        <span className={styles.nowPlayingDockArtist}>{track.artistName}</span>
+      </span>
+      <span className={styles.nowPlayingDockControls}>
+        <button type="button" onClick={onPrevious} aria-label={copy.previousTrack}>
+          <SkipBack size={18} aria-hidden />
+        </button>
+        <button className={styles.nowPlayingDockPlay} type="button" onClick={onPlayToggle} aria-label={isPlaying ? copy.pause : copy.play}>
+          {isPlaying ? <Pause size={20} aria-hidden /> : <Play size={20} aria-hidden />}
+        </button>
+        <button type="button" onClick={onNext} aria-label={copy.nextTrack}>
+          <SkipForward size={18} aria-hidden />
+        </button>
+        <button type="button" onClick={onMuteToggle} aria-label={muted ? copy.unmute : copy.mute}>
+          {muted ? <VolumeX size={17} aria-hidden /> : <Volume2 size={17} aria-hidden />}
+        </button>
+      </span>
+      <span className={styles.nowPlayingDockProgress} aria-hidden>
+        <span style={{ width: `${progressPercent}%` }} />
+      </span>
+    </aside>
+  );
+}
+
 export default function MusicPlayerExample({ ambientAssetKey, presentation = "full" }: MusicPlayerExampleProps) {
   const searchParams = useSearchParams();
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
@@ -359,10 +641,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [nowPlayingShared, setNowPlayingShared] = useState(false);
+  const [savedTrackIds, setSavedTrackIds] = useState<Record<string, true>>({});
   const [playlistThemeMode, setPlaylistThemeMode] = useState<PlaylistThemeMode>("all");
   const [albumImageModeByArtist, setAlbumImageModeByArtist] = useState<Partial<Record<ArtistKey, AlbumImageMode>>>({});
   const currentTrack = player.currentTrack;
   const currentTrackId = currentTrack?.id || "";
+  const isCurrentTrackSaved = Boolean(currentTrackId && savedTrackIds[currentTrackId]);
   const currentTrackAlbumMode = currentTrack ? getAlbumCoverMode(albumImageModeByArtist, currentTrack.artistKey) : "default";
   const coverFailed = Boolean(!currentTrack || !resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS) || (currentTrackId && failedCoverIds[currentTrackId]));
   const displayedTracks = useMemo(() => {
@@ -638,6 +922,42 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     player.selectTrack(trackId, { play: true });
   }, [player.selectTrack]);
 
+  const handlePlayToggle = useCallback(() => {
+    if (player.isPlaying) {
+      player.pause();
+    } else {
+      void player.play();
+    }
+  }, [player]);
+
+  const handlePlayAll = useCallback(() => {
+    const firstTrack = player.tracks[0];
+    if (!firstTrack) return;
+    player.selectTrack(firstTrack.id, { play: true });
+  }, [player.selectTrack, player.tracks]);
+
+  const handleExploreMoods = useCallback(() => {
+    if (typeof document === "undefined") return;
+    const moodFilter = document.querySelector<HTMLElement>("[data-mood-filter-nav='true']");
+    moodFilter?.scrollIntoView({ behavior: "smooth", block: "center" });
+    moodFilter?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+  }, []);
+
+  const handleFeaturedSaveToggle = useCallback(() => {
+    const trackId = player.currentTrack?.id;
+    if (!trackId) return;
+
+    setSavedTrackIds((current) => {
+      if (current[trackId]) {
+        const next = { ...current };
+        delete next[trackId];
+        return next;
+      }
+
+      return { ...current, [trackId]: true };
+    });
+  }, [player.currentTrack?.id]);
+
   if (isCompact && !isListeningModeOpen && player.currentTrack) {
     return (
       <section
@@ -742,220 +1062,160 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
       {currentTrack ? (
         <>
-        <div className={`${styles.playerFrame} mx-auto animate-fade-in-up`}>
-          <div className={`${styles.playerHero} font-display`}>
-            <span className={`${styles.playerHeroKicker} font-decorative`}>{copy.heroKicker}</span>
-            <h1 className={`${styles.playerHeroTitle} font-display`}>{copy.heroTitle}</h1>
-            <p className={`${styles.playerHeroText} font-premium`}>{copy.heroText}</p>
-          </div>
-          <div className={`${styles.playerMain} rounded-[8px]`}>
-            <div className={`${styles.albumChamber} relative`}>
-              <MoonAlbumArtwork
-                coverUrl={currentTrackCoverUrl}
-                title={currentTrack.title}
-                artistKey={currentTrack.artistKey}
-                artistName={currentTrack.artistName}
-                coverFailed={coverFailed}
-                onCoverLoad={markCoverLoaded}
-                onCoverError={markCoverFailed}
-              />
-              <span
-                className={`${styles.albumStatusBadge} font-premium`}
-                data-playing={player.isPlaying ? "true" : "false"}
-                aria-live="polite"
-              >
-                {listeningStatusLabel}
-              </span>
-            </div>
-
-            <div className={`${styles.nowPlayingPanel} shadow-violet-neon`}>
-              <div className={styles.nowPlayingHeader}>
-                <span className={`${styles.artistName} font-decorative`}>{currentTrack.artistName}</span>
-                {canToggleAlbumMode ? (
-                  <button
-                    className={styles.albumModeButton}
-                    type="button"
-                    onClick={handleAlbumModeToggle}
-                    data-mode={currentTrackAlbumMode}
-                    aria-label={`${copy.albumModeLabel}: ${albumModeSwitchLabel}`}
-                  >
-                    <Moon size={14} aria-hidden />
-                    <span className={styles.albumModeButtonText}>{albumModeSwitchLabel}</span>
-                    <span className={styles.albumModeButtonGlow} aria-hidden />
-                  </button>
-                ) : null}
-                <button
-                  className={styles.nowPlayingShareButton}
-                  type="button"
-                  onClick={() => void handleShareNowPlaying()}
-                  aria-label={copy.shareCurrent}
-                  data-shared={nowPlayingShared ? "true" : "false"}
-                >
-                  <Share2 size={16} aria-hidden />
-                  <span>{nowPlayingShared ? copy.copied : copy.share}</span>
-                </button>
-              </div>
-              <h2 className="font-display">{currentTrack.title}</h2>
-              <p>{currentTrack.mood || copy.defaultMood}</p>
-            </div>
-
-            <div className={`${styles.controlDeck} shadow-violet-neon`}>
-              <div className={styles.controlRow}>
-                <button className={styles.iconButton} type="button" onClick={player.previous} aria-label={copy.previousTrack}>
-                  <SkipBack size={18} />
-                </button>
-                <button
-                  className={`${styles.playButton} shadow-violet-neon-focus`}
-                  type="button"
-                  onClick={player.isPlaying ? player.pause : player.play}
-                  aria-label={player.isPlaying ? copy.pause : copy.play}
-                >
-                  {player.isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                </button>
-                <button className={styles.iconButton} type="button" onClick={player.next} aria-label={copy.nextTrack}>
-                  <SkipForward size={18} />
-                </button>
-              </div>
-
-              <label
-                className={styles.progressArea}
-                data-playing={player.isPlaying ? "true" : "false"}
-                style={{ "--moon-progress": `${progressPercent}%` } as CSSProperties}
-              >
-                <span>{formatTime(player.currentTime)}</span>
-                <input
-                  className={styles.progressInput}
-                  type="range"
-                  min="0"
-                  max={progressMax}
-                  step="0.1"
-                  value={Math.min(player.currentTime, progressMax)}
-                  onChange={(event) => player.seek(Number(event.currentTarget.value))}
-                />
-                <span>{formatTime(player.duration)}</span>
-              </label>
-
-              <div className={styles.secondaryControls}>
-                <button
-                  className={styles.smallButton}
-                  type="button"
-                  onClick={() => player.setRepeat(getNextRepeatMode(player.repeat))}
-                  aria-label={copy.repeat(player.repeat)}
-                  data-active={player.repeat !== "off"}
-                >
-                  {player.repeat === "one" ? <Repeat1 size={18} /> : <Repeat size={18} />}
-                </button>
-                <button
-                  className={styles.smallButton}
-                  type="button"
-                  onClick={player.toggleShuffle}
-                  aria-label={player.shuffle ? copy.shuffleOn : copy.shuffleOff}
-                  aria-pressed={player.shuffle}
-                  data-active={player.shuffle}
-                >
-                  <Shuffle size={18} />
-                </button>
-                <button
-                  className={styles.smallButton}
-                  type="button"
-                  onClick={player.toggleMute}
-                  aria-label={player.muted ? copy.unmute : copy.mute}
-                  data-active={player.muted}
-                >
-                  {player.muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-                <label className={styles.volumeControl}>
-                  <span>{Math.round(player.volume * 100)}</span>
-                  <input
-                    className={styles.volumeInput}
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={player.volume}
-                    onChange={(event) => player.setVolume(Number(event.currentTarget.value))}
-                    aria-label={copy.volume}
-                  />
-                </label>
-              </div>
-            </div>
-
-            {player.errorMessage ? (
-              <p className={styles.errorText} role="alert">
-                {player.errorMessage}
-              </p>
-            ) : null}
-
-            {player.audioDebugHelperText ? (
-              <pre className={styles.errorText}>{player.audioDebugHelperText}</pre>
-            ) : null}
-
-            <LyricsPanel
-              isOpen={isLyricsOpen}
-              isLoading={isLyricsLoading}
-              lyricsText={lyricsText}
-              onToggle={toggleLyricsOpen}
+          <div className={`${styles.moonLibraryFrame} mx-auto animate-fade-in-up`}>
+            <MoonLibraryHero
+              tracksCount={player.tracks.length}
               copy={copy}
+              onPlayAll={handlePlayAll}
+              onExploreMoods={handleExploreMoods}
             />
-          </div>
 
-          <MusicPlaylistPanel
-            tracks={displayedTracks}
-            failedCoverIds={failedCoverIds}
-            onActiveTabChange={setPlaylistThemeMode}
-            onCoverError={handlePlaylistCoverError}
-            onSelectTrack={handlePlaylistTrackSelect}
-          />
-        </div>
-        <aside
-          className={styles.nowPlayingDock}
-          data-playing={player.isPlaying ? "true" : "false"}
-          aria-label={copy.playerAria}
-        >
-          <span className={styles.nowPlayingDockGlow} aria-hidden />
-          <span className={styles.nowPlayingDockCover} data-fallback={coverFailed ? "true" : "false"}>
-            {currentTrackCoverUrl ? (
-              <Image
-                src={currentTrackCoverUrl}
-                alt={`${currentTrack.artistName} - ${currentTrack.title} cover`}
-                width={64}
-                height={64}
-                sizes="64px"
-                placeholder="blur"
-                blurDataURL={MOON_COVER_BLUR_DATA_URL}
-                unoptimized
-                onLoad={markCoverLoaded}
-                onError={markCoverFailed}
+            <FeaturedTrackCard
+              track={currentTrack}
+              coverUrl={currentTrackCoverUrl}
+              coverFailed={coverFailed}
+              isPlaying={player.isPlaying}
+              isSaved={isCurrentTrackSaved}
+              listeningStatusLabel={listeningStatusLabel}
+              copy={copy}
+              canToggleAlbumMode={canToggleAlbumMode}
+              albumModeSwitchLabel={albumModeSwitchLabel}
+              currentTrackAlbumMode={currentTrackAlbumMode}
+              nowPlayingShared={nowPlayingShared}
+              onAlbumModeToggle={handleAlbumModeToggle}
+              onCoverLoad={markCoverLoaded}
+              onCoverError={markCoverFailed}
+              onPlayToggle={handlePlayToggle}
+              onSaveToggle={handleFeaturedSaveToggle}
+              onShare={() => void handleShareNowPlaying()}
+            />
+
+            <div className={styles.libraryContent}>
+              <div className={styles.libraryControlRail}>
+                <div className={`${styles.controlDeck} shadow-violet-neon`}>
+                  <div className={styles.controlRow}>
+                    <button className={styles.iconButton} type="button" onClick={player.previous} aria-label={copy.previousTrack}>
+                      <SkipBack size={18} />
+                    </button>
+                    <button
+                      className={`${styles.playButton} shadow-violet-neon-focus`}
+                      type="button"
+                      onClick={handlePlayToggle}
+                      aria-label={player.isPlaying ? copy.pause : copy.play}
+                    >
+                      {player.isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                    </button>
+                    <button className={styles.iconButton} type="button" onClick={player.next} aria-label={copy.nextTrack}>
+                      <SkipForward size={18} />
+                    </button>
+                  </div>
+
+                  <label
+                    className={styles.progressArea}
+                    data-playing={player.isPlaying ? "true" : "false"}
+                    style={{ "--moon-progress": `${progressPercent}%` } as CSSProperties}
+                  >
+                    <span>{formatTime(player.currentTime)}</span>
+                    <input
+                      className={styles.progressInput}
+                      type="range"
+                      min="0"
+                      max={progressMax}
+                      step="0.1"
+                      value={Math.min(player.currentTime, progressMax)}
+                      onChange={(event) => player.seek(Number(event.currentTarget.value))}
+                    />
+                    <span>{formatTime(player.duration)}</span>
+                  </label>
+
+                  <div className={styles.secondaryControls}>
+                    <button
+                      className={styles.smallButton}
+                      type="button"
+                      onClick={() => player.setRepeat(getNextRepeatMode(player.repeat))}
+                      aria-label={copy.repeat(player.repeat)}
+                      data-active={player.repeat !== "off"}
+                    >
+                      {player.repeat === "one" ? <Repeat1 size={18} /> : <Repeat size={18} />}
+                    </button>
+                    <button
+                      className={styles.smallButton}
+                      type="button"
+                      onClick={player.toggleShuffle}
+                      aria-label={player.shuffle ? copy.shuffleOn : copy.shuffleOff}
+                      aria-pressed={player.shuffle}
+                      data-active={player.shuffle}
+                    >
+                      <Shuffle size={18} />
+                    </button>
+                    <button
+                      className={styles.smallButton}
+                      type="button"
+                      onClick={player.toggleMute}
+                      aria-label={player.muted ? copy.unmute : copy.mute}
+                      data-active={player.muted}
+                    >
+                      {player.muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
+                    <label className={styles.volumeControl}>
+                      <span>{Math.round(player.volume * 100)}</span>
+                      <input
+                        className={styles.volumeInput}
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={player.volume}
+                        onChange={(event) => player.setVolume(Number(event.currentTarget.value))}
+                        aria-label={copy.volume}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {player.errorMessage ? (
+                  <p className={styles.errorText} role="alert">
+                    {player.errorMessage}
+                  </p>
+                ) : null}
+
+                {player.audioDebugHelperText ? (
+                  <pre className={styles.errorText}>{player.audioDebugHelperText}</pre>
+                ) : null}
+
+                <LyricsPanel
+                  isOpen={isLyricsOpen}
+                  isLoading={isLyricsLoading}
+                  lyricsText={lyricsText}
+                  onToggle={toggleLyricsOpen}
+                  copy={copy}
+                />
+              </div>
+
+              <MusicPlaylistPanel
+                tracks={displayedTracks}
+                failedCoverIds={failedCoverIds}
+                onActiveTabChange={setPlaylistThemeMode}
+                onCoverError={handlePlaylistCoverError}
+                onSelectTrack={handlePlaylistTrackSelect}
               />
-            ) : null}
-            <span className={styles.nowPlayingDockFallback} aria-hidden />
-          </span>
-          <span className={styles.nowPlayingDockMeta}>
-            <span className={styles.nowPlayingDockTitle}>
-              <span>{currentTrack.title}</span>
-            </span>
-            <span className={styles.nowPlayingDockArtist}>{currentTrack.artistName}</span>
-          </span>
-          <span className={styles.nowPlayingDockControls}>
-            <button type="button" onClick={player.previous} aria-label={copy.previousTrack}>
-              <SkipBack size={18} aria-hidden />
-            </button>
-            <button
-              className={styles.nowPlayingDockPlay}
-              type="button"
-              onClick={player.isPlaying ? player.pause : player.play}
-              aria-label={player.isPlaying ? copy.pause : copy.play}
-            >
-              {player.isPlaying ? <Pause size={20} aria-hidden /> : <Play size={20} aria-hidden />}
-            </button>
-            <button type="button" onClick={player.next} aria-label={copy.nextTrack}>
-              <SkipForward size={18} aria-hidden />
-            </button>
-          </span>
-          <span className={styles.nowPlayingDockProgress} aria-hidden>
-            <span style={{ width: `${progressPercent}%` }} />
-          </span>
-        </aside>
+            </div>
+          </div>
+          <StickyMoonPlayer
+            track={currentTrack}
+            coverUrl={currentTrackCoverUrl}
+            coverFailed={coverFailed}
+            isPlaying={player.isPlaying}
+            muted={player.muted}
+            progressPercent={progressPercent}
+            copy={copy}
+            onPrevious={player.previous}
+            onPlayToggle={handlePlayToggle}
+            onNext={player.next}
+            onMuteToggle={player.toggleMute}
+            onCoverLoad={markCoverLoaded}
+            onCoverError={markCoverFailed}
+          />
         </>
       ) : null}
     </section>

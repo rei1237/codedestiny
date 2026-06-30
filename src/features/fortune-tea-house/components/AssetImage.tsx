@@ -11,15 +11,17 @@ type AssetImageProps = {
   className?: string;
   imageClassName?: string;
   priority?: boolean;
+  loading?: "eager" | "lazy";
 };
 
-export default function AssetImage({ src, alt, fallbackSrc = "", className = "", imageClassName = "", priority = false }: AssetImageProps) {
+export default function AssetImage({ src, alt, fallbackSrc = "", className = "", imageClassName = "", priority = false, loading = "lazy" }: AssetImageProps) {
   const [failed, setFailed] = useState(false);
   const [fallbackFailed, setFallbackFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const useFallback = failed && !!fallbackSrc && !fallbackFailed;
   const hasFailedCompletely = failed && (!fallbackSrc || fallbackFailed);
   const activeSrc = useFallback ? fallbackSrc : src;
+  const shouldShowPlaceholder = !hasFailedCompletely && !loaded;
 
   useEffect(() => {
     setFailed(false);
@@ -41,6 +43,7 @@ export default function AssetImage({ src, alt, fallbackSrc = "", className = "",
           fill
           sizes="(max-width: 640px) 100vw, 50vw"
           priority={priority}
+          loading={priority ? undefined : loading}
           unoptimized
           onLoad={() => setLoaded(true)}
           onError={() => {
@@ -54,7 +57,8 @@ export default function AssetImage({ src, alt, fallbackSrc = "", className = "",
           }}
         />
       ) : null}
-      {hasFailedCompletely || !loaded ? (
+      {shouldShowPlaceholder ? <span className={styles.assetImagePlaceholder} aria-hidden /> : null}
+      {hasFailedCompletely ? (
         <span className={styles.assetImageFallback} role={alt ? "img" : undefined} aria-label={alt || undefined}>
           {alt ? <span>{alt}</span> : null}
         </span>

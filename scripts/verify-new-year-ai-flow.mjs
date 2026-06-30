@@ -71,6 +71,17 @@ assertIncludes(pageSourcePath, "focusArea");
 assertIncludes(pageSourcePath, "더 깊게 보고 싶은 흐름");
 assertIncludes(pageSourcePath, "nyai-category-chip");
 assertIncludes(pageSourcePath, "AI Consultation");
+assertIncludes(pageSourcePath, "handleDownloadPdf");
+assertIncludes(pageSourcePath, "html2canvas");
+assertIncludes(pageSourcePath, "jspdf");
+assertIncludes(pageSourcePath, "PDF 저장");
+assertIncludes(pageSourcePath, "data-pdf-section");
+assertIncludes(pageSourcePath, "SajuProfilePanel");
+assertIncludes(pageSourcePath, "기본 사주 명식");
+assertIncludes(pageSourcePath, "sajuProfile");
+assertIncludes(pageSourcePath, "pdf.addPage");
+assertIncludes(pageSourcePath, "pdf.addImage");
+assertIncludes(pageSourcePath, "pdf.save");
 assertExcludes(pageSourcePath, "/api/new-year-ai/message");
 assertExcludes(pageSourcePath, "handleFollowUp");
 assertExcludes(pageSourcePath, "nyai-follow");
@@ -99,6 +110,13 @@ assertIncludes("worker/routes/new-year-ai.js", "yongshin");
 assertIncludes("worker/routes/new-year-ai.js", "johu");
 assertIncludes("worker/routes/new-year-ai.js", "daewoonSewoon");
 assertIncludes("worker/routes/new-year-ai.js", "annualInteractions");
+assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000");
+assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000");
+assertIncludes("worker/routes/new-year-ai.js", "validateConsultationQuality");
+assertIncludes("worker/routes/new-year-ai.js", "buildMockConsultationText");
+assertIncludes("worker/routes/new-year-ai.js", "buildConsultationCompressionPrompt");
+assertIncludes("worker/routes/new-year-ai.js", "buildBasicSajuProfile");
+assertIncludes("worker/routes/new-year-ai.js", "sajuProfile");
 assertIncludes("worker/routes/new-year-ai.js", "path: \"apply\"");
 assertIncludes("worker/routes/new-year-ai.js", "path: \"cancel\"");
 assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Prepare Start\"");
@@ -156,9 +174,36 @@ assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year
 assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
 assert(firstPrompt.includes("새해 전체 운의 핵심 결론"), "new-year-ai first prompt should request consultation sections");
 assert(firstPrompt.includes("격국, 용신·기신, 조후, 대운-세운 관계"), "new-year-ai first prompt should request advanced saju synthesis");
+assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 10,000자 이상 20,000자 이하"), "new-year-ai prompt should require 10k-20k total content chars");
+assert(firstPrompt.includes("권장 분량은 12,000~18,000자"), "new-year-ai prompt should guide the rough expected length");
+assert(firstPrompt.includes("각 항목마다 10,000자를 쓰지 말고"), "new-year-ai prompt should not require 10k chars per section");
+assert(firstPrompt.includes("단순히 문장을 길게 늘이지 말고"), "new-year-ai prompt should require expert additions instead of filler");
 const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
 assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
 assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
+assert(systemPrompt.includes("완성 상담문 전체 본문은 공백을 제외하고 10,000자 이상 20,000자 이하"), "new-year-ai system prompt should require 10k-20k total chars");
+assert(systemPrompt.includes("명리 전문가로서 격국·월령"), "new-year-ai system prompt should require expert part additions");
+
+const mockConsultationText = route.__newYearAiTestUtils.buildMockConsultationText();
+const mockQuality = route.__newYearAiTestUtils.validateConsultationQuality(mockConsultationText);
+assert(mockQuality.ok === true, `mock consultation should pass quality gate: ${mockQuality.issues.join(", ")}`);
+assert(mockQuality.totalChars >= 10000, "mock consultation should be at least 10k total chars");
+assert(mockQuality.totalChars <= 20000, "mock consultation should stay under 20k total chars");
+assert(mockQuality.sectionCount >= 6, "mock consultation should include enough substantial sections");
+assert(mockQuality.missingTopics.length === 0, "mock consultation should cover all required expert topics");
+
+const mockSajuProfile = route.__newYearAiTestUtils.buildBasicSajuProfile({
+  id: "nyai-test-session",
+  accessType: "admin",
+  status: "completed",
+  year: normalized.input.targetYear,
+  birthInfo: normalized.input.birthInfo,
+  llmMeta: { fortuneData },
+});
+assert(mockSajuProfile?.pillars?.length === 4, "new-year-ai PDF saju profile should include four pillars");
+assert(mockSajuProfile?.dayMaster, "new-year-ai PDF saju profile should include day master");
+assert(mockSajuProfile?.targetYear?.pillar, "new-year-ai PDF saju profile should include target-year pillar");
+assert(mockSajuProfile?.yongshin?.core, "new-year-ai PDF saju profile should include yongshin summary");
 
 const messageHandlerSource = workerSource.slice(workerSource.indexOf("async function handleMessage"), workerSource.indexOf("export async function handleNewYearAiRoutes"));
 assert(!messageHandlerSource.includes("generateConsultationText"), "new-year-ai message route should not generate follow-up LLM text");

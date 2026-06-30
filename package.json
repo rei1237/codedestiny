@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "node scripts/dev-with-local-auth.mjs",
-    "dev:next": "next dev",
+    "dev:next": "node --require=./scripts/next-manifest-read-guard.cjs ./node_modules/next/dist/bin/next dev",
     "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",
     "api": "node server/server.js",
     "guard:privacy": "node scripts/guard-blocked-keywords.mjs",

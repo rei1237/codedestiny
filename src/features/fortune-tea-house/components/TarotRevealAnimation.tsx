@@ -2,7 +2,6 @@
 
 import type { CSSProperties } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
-import { tarotRevealAnimationAtlas } from "../data/tarotAnimationAtlas";
 import styles from "../styles/fortune-tea-house.module.css";
 
 type TarotRevealAnimationProps = {
@@ -17,8 +16,8 @@ export default function TarotRevealAnimation({ active = true, className = "" }: 
       data-active={active ? "true" : "false"}
       style={
         {
-          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCardAnim}")`,
-          "--tarot-reveal-columns": tarotRevealAnimationAtlas.columns,
+          "--tarot-card-animation": `url("${fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite7Tarot}")`,
+          "--tarot-reveal-columns": 4,
         } as CSSProperties
       }
       aria-hidden

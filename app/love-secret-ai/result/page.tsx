@@ -14,6 +14,36 @@ type PersonInfo = {
 };
 
 type ResultSection = { title: string; body: string };
+type Distribution = Record<string, number>;
+type SajuChartSummary = {
+  yearPillar?: string;
+  monthPillar?: string;
+  dayPillar?: string;
+  hourPillar?: string;
+  dayMaster?: string;
+  fiveElements?: Distribution;
+  tenGods?: Distribution;
+  lovePattern?: string;
+  reference?: {
+    dayElement?: string;
+    dominantElement?: string;
+    deficientElement?: string;
+    dominantTenGod?: string;
+    yongshinElement?: string;
+  };
+};
+type SajuSummary = {
+  myChart?: SajuChartSummary | null;
+  partnerChart?: SajuChartSummary | null;
+  compatibility?: {
+    summary?: string;
+    attractionPattern?: string;
+    conflictPattern?: string;
+    stability?: string;
+  } | null;
+  uncertainty?: string[];
+  consultationMode?: string;
+};
 type Consultation = {
   ok?: boolean;
   id?: string;
@@ -40,23 +70,27 @@ type Consultation = {
     finalMessage?: string;
   } | null;
   pdfSections?: ResultSection[];
+  sajuSummary?: SajuSummary | null;
   messages?: Array<{ role: "user" | "assistant"; content: string; createdAt?: string }>;
   message?: string;
   reason?: string;
 };
 
 const FALLBACK_SECTIONS = [
-  "오늘의 관계 한 줄 진단",
-  "나의 연애 기질",
-  "상대방의 연애 기질",
-  "두 사람의 궁합 흐름",
+  "현재 관계의 자리와 질문의 핵심",
+  "나의 명식이 사랑에서 반복하는 방식",
+  "상대의 기운과 감정 거리감",
+  "두 사람 사이 끌림이 살아나는 조건",
   "오행과 조후로 보는 감정의 온도",
+  "십성으로 보는 애착과 표현 방식",
   "속궁합과 친밀감 리듬",
-  "갈등이 생기는 지점",
-  "상대에게 다가가는 대화법",
+  "갈등의 뿌리와 회복 방식",
   "연락/고백/재회/관계 진전 타이밍",
-  "이 관계에서 내가 조심해야 할 패턴",
-  "지금 당장 실천할 연애 비책 5가지",
+  "관계 단계별 실행 비책",
+  "상대에게 다가가는 대화 문장",
+  "피해야 할 선택과 자기 보호",
+  "7일 실천 가이드",
+  "30일 관계 흐름 처방",
   "마지막 상담사의 한마디",
 ];
 
@@ -75,6 +109,12 @@ function formatDate(value?: string) {
   return date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 }
 
+function formatDistribution(value?: Distribution) {
+  const entries = Object.entries(value || {}).filter(([, score]) => Number(score) > 0);
+  if (!entries.length) return "확인된 균형 없음";
+  return entries.map(([key, score]) => `${key} ${score}`).join(" · ");
+}
+
 function splitAssistantSections(content: string) {
   const normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
@@ -82,7 +122,7 @@ function splitAssistantSections(content: string) {
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,46})\n+/gm;
   let match = headingPattern.exec(normalized);
   while (match) {
-    if (/관계|연애|궁합|오행|조후|친밀감|갈등|대화|타이밍|비책|한마디|진단/.test(match[2] || "")) headingMatches.push(match);
+    if (/관계|연애|궁합|오행|조후|십성|끌림|감정|친밀감|갈등|회복|대화|타이밍|비책|보호|가이드|처방|한마디|진단/.test(match[2] || "")) headingMatches.push(match);
     match = headingPattern.exec(normalized);
   }
 
@@ -162,7 +202,7 @@ export default function LoveSecretResultPage() {
 
   const assistantContent = consultation?.messages?.find((message) => message.role === "assistant")?.content?.trim() || "";
   const sections = useMemo(() => {
-    const direct = consultation?.sections?.length ? consultation.sections : consultation?.pdfSections;
+    const direct = consultation?.pdfSections?.length ? consultation.pdfSections : consultation?.sections;
     return direct?.length ? direct : splitAssistantSections(assistantContent);
   }, [assistantContent, consultation?.pdfSections, consultation?.sections]);
   const myName = toText(consultation?.myInfo?.name) || "나";
@@ -324,6 +364,10 @@ function LoveSecretResultPageContent({
         <InfoCard title="생성일" value={generatedAt} />
       </section>
 
+      {consultation.sajuSummary?.myChart && (
+        <LoveSecretSajuSummary summary={consultation.sajuSummary} myName={myName} partnerName={partnerName} />
+      )}
+
       {consultation.userQuestion && (
         <section className="mt-5 rounded-3xl border border-white/10 bg-white/10 p-5">
           <div className="mb-3 flex items-center gap-2 text-amber-100">
@@ -363,6 +407,66 @@ function LoveSecretResultPageContent({
         </div>
       )}
     </div>
+  );
+}
+
+function LoveSecretSajuSummary({ summary, myName, partnerName }: { summary: SajuSummary; myName: string; partnerName: string }) {
+  return (
+    <section className="mt-5 rounded-3xl border border-amber-100/20 bg-white/10 p-5">
+      <div className="mb-4 flex items-center gap-2 text-amber-100">
+        <Moon className="h-5 w-5" aria-hidden="true" />
+        <h2 className="text-lg font-black text-white">연애 명식 기초</h2>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SajuChartCard label={myName} chart={summary.myChart} />
+        {summary.partnerChart ? <SajuChartCard label={partnerName} chart={summary.partnerChart} /> : null}
+      </div>
+      {summary.compatibility && (
+        <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-rose-50/90">
+          <p className="font-black text-amber-100">궁합 흐름</p>
+          <p className="mt-2 whitespace-pre-wrap">{summary.compatibility.summary}</p>
+          <p className="mt-2 whitespace-pre-wrap">{summary.compatibility.attractionPattern}</p>
+          <p className="mt-2 whitespace-pre-wrap">{summary.compatibility.conflictPattern}</p>
+          <p className="mt-2 whitespace-pre-wrap">{summary.compatibility.stability}</p>
+        </div>
+      )}
+      {summary.uncertainty?.length ? (
+        <p className="mt-3 text-xs font-bold leading-6 text-amber-50/75">
+          출생 시간이 비어 있는 명식은 정오 기준의 흐름으로 조심스럽게 읽었습니다.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function SajuChartCard({ label, chart }: { label: string; chart?: SajuChartSummary | null }) {
+  if (!chart) return null;
+  const pillars: Array<[string, string | undefined]> = [
+    ["년주", chart.yearPillar],
+    ["월주", chart.monthPillar],
+    ["일주", chart.dayPillar],
+    ["시주", chart.hourPillar || "시 미상"],
+  ];
+  return (
+    <article className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <p className="text-sm font-black text-amber-100">{label}</p>
+      <div className="mt-3 grid grid-cols-4 gap-2 text-center text-sm">
+        {pillars.map(([title, value]) => (
+          <div key={title} className="rounded-xl border border-white/10 bg-white/10 px-2 py-3">
+            <p className="text-xs font-black text-rose-50/70">{title}</p>
+            <p className="mt-1 font-black text-white">{value || "-"}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid gap-2 text-sm leading-7 text-rose-50/90">
+        <p><span className="font-black text-amber-100">일간</span> {chart.dayMaster || "-"}</p>
+        <p><span className="font-black text-amber-100">오행</span> {formatDistribution(chart.fiveElements)}</p>
+        <p><span className="font-black text-amber-100">십성</span> {formatDistribution(chart.tenGods)}</p>
+        <p><span className="font-black text-amber-100">강한 기운</span> {chart.reference?.dominantElement || "-"} · <span className="font-black text-amber-100">보완 기운</span> {chart.reference?.deficientElement || "-"}</p>
+        {chart.reference?.dominantTenGod && <p><span className="font-black text-amber-100">두드러진 십성</span> {chart.reference.dominantTenGod}</p>}
+        {chart.lovePattern && <p className="whitespace-pre-wrap">{chart.lovePattern}</p>}
+      </div>
+    </article>
   );
 }
 

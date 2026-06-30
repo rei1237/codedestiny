@@ -618,7 +618,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   const ai = await callGeminiText(env, buildFirstConsultationPrompt(input, sajuResult), {
     systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
     temperature: 0.72,
-    maxOutputTokens: 8000,
+    maxOutputTokens: 14000,
     taskType: "fortune",
   });
   const provider = clean(ai?.provider);
@@ -849,6 +849,7 @@ function publicSession(doc) {
         body: clean(section?.body, 12000),
       })).filter((section) => section.title && section.body)
       : [],
+    sajuSummary: publicSajuSummary(raw?.sajuResult),
     consultationMode: clean(raw?.sajuResult?.consultationMode),
     messages: Array.isArray(raw?.messages)
       ? raw.messages.map((message) => ({
@@ -857,6 +858,55 @@ function publicSession(doc) {
         createdAt: message.createdAt,
       }))
       : [],
+  };
+}
+
+function publicDistribution(source = {}) {
+  if (!source || typeof source !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(source)
+      .map(([key, value]) => [clean(key, 20), Number(value || 0)])
+      .filter(([key, value]) => key && Number.isFinite(value)),
+  );
+}
+
+function publicChartSummary(chart = {}) {
+  if (!chart || typeof chart !== "object") return null;
+  return {
+    yearPillar: clean(chart.yearPillar, 20),
+    monthPillar: clean(chart.monthPillar, 20),
+    dayPillar: clean(chart.dayPillar, 20),
+    hourPillar: clean(chart.hourPillar, 20),
+    dayMaster: clean(chart.dayMaster, 20),
+    fiveElements: publicDistribution(chart.fiveElements),
+    tenGods: publicDistribution(chart.tenGods),
+    lovePattern: clean(chart.lovePattern, 600),
+    reference: {
+      dayElement: clean(chart?.reference?.dayElement, 20),
+      dominantElement: clean(chart?.reference?.dominantElement, 20),
+      deficientElement: clean(chart?.reference?.deficientElement, 20),
+      dominantTenGod: clean(chart?.reference?.dominantTenGod, 30),
+      yongshinElement: clean(chart?.reference?.yongshinElement, 20),
+    },
+  };
+}
+
+function publicSajuSummary(sajuResult = {}) {
+  const myChart = publicChartSummary(sajuResult?.myChart);
+  const partnerChart = publicChartSummary(sajuResult?.partnerChart);
+  return {
+    myChart,
+    partnerChart,
+    compatibility: sajuResult?.compatibility && typeof sajuResult.compatibility === "object"
+      ? {
+        summary: clean(sajuResult.compatibility.summary, 700),
+        attractionPattern: clean(sajuResult.compatibility.attractionPattern, 700),
+        conflictPattern: clean(sajuResult.compatibility.conflictPattern, 700),
+        stability: clean(sajuResult.compatibility.stability, 700),
+      }
+      : null,
+    uncertainty: Array.isArray(sajuResult?.uncertainty) ? sajuResult.uncertainty.map((item) => clean(item, 80)).filter(Boolean) : [],
+    consultationMode: clean(sajuResult?.consultationMode, 40),
   };
 }
 

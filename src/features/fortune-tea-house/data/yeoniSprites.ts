@@ -19,7 +19,7 @@ export const yeoniSpriteSheets = {
     aspectRatio: "4 / 5",
   },
   sprite2: {
-    src: fortuneTeaHouseAssets.yeoni.transparent.sprite2,
+    src: fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite2Thanks,
     columns: 4,
     rows: 2,
     frameCount: 8,
@@ -47,14 +47,14 @@ export const yeoniSpriteSheets = {
     aspectRatio: "4 / 5",
   },
   sprite6: {
-    src: fortuneTeaHouseAssets.yeoni.transparent.sprite6,
+    src: fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite6Waiting,
     columns: 4,
     rows: 2,
     frameCount: 8,
     aspectRatio: "4 / 5",
   },
   sprite7: {
-    src: fortuneTeaHouseAssets.yeoni.transparent.sprite7,
+    src: fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite7Tarot,
     columns: 4,
     rows: 2,
     frameCount: 8,

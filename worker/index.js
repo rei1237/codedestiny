@@ -405,6 +405,7 @@ const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
 const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
+const handleNeoOperationRoomRoutes = createLazyRouteHandler("./routes/neo-operation-room.js", () => import("./routes/neo-operation-room.js"), "handleNeoOperationRoomRoutes", "api/neo-operation-room");
 const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstroRoutes");
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
@@ -1226,6 +1227,10 @@ export default {
 
       if (url.pathname === "/api/vedic-ai" || url.pathname.startsWith("/api/vedic-ai/")) {
         return withCorsHeaders(request, env, await handleVedicAiRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
+        return withCorsHeaders(request, env, await handleNeoOperationRoomRoutes(request, env));
       }
 
       if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {

@@ -5,7 +5,6 @@ import {
   buildWebPageJsonLd,
 } from "../lib/structured-data";
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
-import SocialFooter from "./_components/SocialFooter";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -334,8 +333,6 @@ export default function HomePage() {
           </nav>
         </div>
       </section>
-
-      <SocialFooter />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />

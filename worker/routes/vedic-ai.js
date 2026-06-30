@@ -19,6 +19,23 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "베다점 AI 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
+const MIN_INITIAL_READING_CHARS = 10000;
+const MAX_INITIAL_READING_CHARS = 20000;
+const MAX_ASSISTANT_TEXT_CHARS = 60000;
+const INITIAL_MAX_OUTPUT_TOKENS = 16000;
+const READING_SECTION_KEYS = [
+  "lagna",
+  "sun_nakshatra",
+  "moon_nakshatra",
+  "graha_strength",
+  "bhava_focus",
+  "navamsa",
+  "dasha",
+  "transit_remedy",
+  "karma",
+  "topic",
+  "prescription",
+];
 const startLocks = new Map();
 
 const FOCUS_AREA_LABELS = Object.freeze({
@@ -86,31 +103,47 @@ JSON 외 어떤 텍스트도, 마크다운 블록도 포함하지 않습니다.
   "sections": {
     "lagna": {
       "title": "拉格納 — 어센던트가 말하는 영혼의 입구",
-      "body": "500~700자 산문. 어센던트 라시의 원소·성질·지배성을 기반으로 이 사람이 세상을 마주하는 방식, 타고난 기질의 외적 표현, 삶의 첫 번째 층위를 서술. 라시 이름은 한국어+산스크리트어 병기."
+      "body": "충분한 산문. 어센던트 라시의 원소·성질·지배성을 기반으로 이 사람이 세상을 마주하는 방식, 타고난 기질의 외적 표현, 삶의 첫 번째 층위를 서술. 라시 이름은 한국어+산스크리트어 병기."
     },
     "sun_nakshatra": {
       "title": "蘇利耶 — 태양이 머문 별자리의 빛",
-      "body": "500~700자 산문. 태양 나크샤트라의 지배 행성·상징·신격을 통합하여 이 사람의 자아 정체성, 아버지·권위와의 관계, 사회적 목적의식을 서술. 단순 나열 금지."
+      "body": "충분한 산문. 태양 나크샤트라의 지배 행성·상징·신격을 통합하여 이 사람의 자아 정체성, 아버지·권위와의 관계, 사회적 목적의식을 서술. 단순 나열 금지."
     },
     "moon_nakshatra": {
       "title": "旃陀羅 — 달이 머문 별자리의 감정",
-      "body": "500~700자 산문. 달 나크샤트라의 지배 행성·상징·파다를 통합하여 감정 반응 패턴, 내면의 욕구, 어머니·안전감·기억과의 관계를 서술. '당신의 달은 ~에 있습니다'로 시작."
+      "body": "충분한 산문. 달 나크샤트라의 지배 행성·상징·파다를 통합하여 감정 반응 패턴, 내면의 욕구, 어머니·안전감·기억과의 관계를 서술. '당신의 달은 ~에 있습니다'로 시작."
+    },
+    "graha_strength": {
+      "title": "格羅哈 — 행성 강약과 숨은 기질",
+      "body": "충분한 산문. 행성의 품위, 역행, 연소, 라시 배치, 상호 관망에서 살아나는 강점과 조심할 기질을 연결합니다. 단순한 길흉 판정이 아니라 어떤 행성이 삶을 밀어 올리고 어떤 행성이 속도를 늦추며 성숙을 요구하는지 베다 점성술사의 언어로 풀어냅니다."
+    },
+    "bhava_focus": {
+      "title": "婆伐 — 바바가 여는 삶의 무대",
+      "body": "충분한 산문. 1·4·7·10하우스와 질문 주제에 직접 닿는 하우스를 중심으로 가정, 관계, 일, 사회적 책임의 무대를 읽습니다. 하우스의 주인, 점유 행성, 관망이 현실에서 어떤 사건감과 선택의 질감으로 드러나는지 자연스럽게 서술합니다."
+    },
+    "navamsa": {
+      "title": "那婆姆沙 — 나밤샤가 비추는 깊은 약속",
+      "body": "충분한 산문. D9 나밤샤에서 보이는 성숙의 방향, 관계의 깊이, 시간이 지나며 살아나는 재능을 읽습니다. D1 라시 차트와 충돌하거나 보강되는 지점을 구분하여 지금의 선택이 장기적인 다르마와 어떻게 이어지는지 설명합니다."
     },
     "dasha": {
       "title": "達薩 — 지금 이 행성의 계절",
-      "body": "600~800자 산문. 현재 다샤 행성의 의미, 이 주기가 삶의 어느 영역을 활성화하는지, 앞으로 올 다샤의 예고를 통합 서술. '지금 당신은 ~의 계절을 살고 있습니다'로 시작. 구체적인 연도와 행성 이름 포함."
+      "body": "충분한 산문. 현재 다샤 행성의 의미, 이 주기가 삶의 어느 영역을 활성화하는지, 앞으로 올 다샤의 예고를 통합 서술. '지금 당신은 ~의 계절을 살고 있습니다'로 시작. 구체적인 연도와 행성 이름 포함."
+    },
+    "transit_remedy": {
+      "title": "高遮羅 — 고차르와 업야야의 조율",
+      "body": "충분한 산문. 현재 고차르가 다샤와 만나는 지점을 살피고, 오늘부터 현실에서 조율할 수 있는 업야야를 과장 없이 제시합니다. 의례나 보완 행동은 불안을 키우지 않는 범위에서 생활 리듬, 말의 태도, 관계의 선택, 일의 우선순위로 풀어냅니다."
     },
     "karma": {
       "title": "業 — 이 생의 카르마적 과제",
-      "body": "500~700자 산문. 나크샤트라 지배 행성들의 조합에서 읽히는 이 생의 반복 패턴과 영혼의 과제를 서술. 베다 점성술의 다르마(Dharma)·목샤(Moksha) 관점에서 서술."
+      "body": "충분한 산문. 나크샤트라 지배 행성들의 조합에서 읽히는 이 생의 반복 패턴과 영혼의 과제를 서술. 베다 점성술의 다르마(Dharma)·목샤(Moksha) 관점에서 서술."
     },
     "topic": {
       "title": "問 — 지금 질문에 대한 답",
-      "body": "600~800자 산문. 상담 주제(직업/연애/재물 등)에 집중하여 차트 데이터와 현재 다샤를 연결한 구체적 해석. 막연한 조언이 아니라 '지금 이 시기에 이 사람에게 맞는 방향'을 서술."
+      "body": "충분한 산문. 상담 주제(직업/연애/재물 등)에 집중하여 차트 데이터와 현재 다샤를 연결한 구체적 해석. 막연한 조언이 아니라 '지금 이 시기에 이 사람에게 맞는 방향'을 서술."
     },
     "prescription": {
       "title": "方 — 별이 건네는 오늘의 처방",
-      "body": "400~500자 산문. 전체 해석을 바탕으로 지금 이 사람에게 가장 필요한 방향 2~3가지를 산문으로 자연스럽게 연결. 마지막 문장은 이름을 불러 따뜻하게 마무리. 추가 질문 유도 문구 절대 금지."
+      "body": "충분한 산문. 전체 해석을 바탕으로 지금 이 사람에게 가장 필요한 방향 2~3가지를 산문으로 자연스럽게 연결. 마지막 문장은 이름을 불러 따뜻하게 마무리. 추가 질문 유도 문구 절대 금지."
     }
   }
 }
@@ -121,10 +154,11 @@ JSON 외 어떤 텍스트도, 마크다운 블록도 포함하지 않습니다.
 - 한국어 격식체(합니다)
 - 산스크리트 용어 첫 등장 시 한국어+산스크리트 병기
 - 각 섹션 body는 서로 다른 첫 문장 구조
+- 전체 분량은 10,000~20,000자 사이로 맞추되, 같은 뜻의 문장을 늘리지 말고 라그나·나크샤트라·행성 강약·바바·나밤샤·다샤·고차르·업야야의 서로 다른 판단 근거로 채웁니다.
 - '~할 수 있습니다' 한 단락 2회 이상 금지
 - 불릿·번호 나열 금지
 - 마지막 질문 유도 절대 금지
-- 전체 분량: 3,500~5,000자
+- 첫 상담문 전체 분량: sections body 합산 공백 제외 10,000~20,000자
 `.trim();
 
 function clean(value, maxLength = 0) {
@@ -832,6 +866,7 @@ function buildFirstPrompt(input, chart) {
   return [
     "아래 베다 차트와 사용자 질문을 바탕으로 조티시 상담을 시작하세요.",
     "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
+    "첫 상담문은 sections body 전체 합산 공백 제외 10,000~20,000자 사이로 완성하세요.",
     "",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
     `성별: ${input.birthInfo.gender}`,
@@ -870,7 +905,7 @@ function buildFollowUpPrompt(consultation, question) {
 }
 
 function sanitizeAssistantText(value) {
-  let text = cleanMultiline(value, 60000);
+  let text = cleanMultiline(value, MAX_ASSISTANT_TEXT_CHARS);
   text = text.replace(/\bPDF\b/gi, "상담문");
   text = text.replace(/챕터|chapter/gi, "흐름");
   text = text.replace(/\bjob\b/gi, "상담");
@@ -878,6 +913,61 @@ function sanitizeAssistantText(value) {
   text = text.replace(/프롬프트/g, "질문");
   text = text.replace(/시스템/g, "상담 기준");
   return text.trim();
+}
+
+function readingTextLength(value) {
+  return cleanMultiline(value).replace(/\s+/g, "").length;
+}
+
+function parseStructuredConsultationText(value) {
+  const text = cleanMultiline(value, MAX_ASSISTANT_TEXT_CHARS)
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  if (!text.startsWith("{")) return null;
+  try {
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function validateConsultationQuality(content, options = {}) {
+  const minTotalChars = Number(options.minTotalChars || 0);
+  const maxTotalChars = Number(options.maxTotalChars || 0);
+  const requireStructured = options.requireStructured === true;
+  const text = cleanMultiline(content, MAX_ASSISTANT_TEXT_CHARS);
+  const issues = [];
+  let totalChars = readingTextLength(text);
+  let sectionCount = 0;
+
+  if (!text) issues.push("content.empty");
+  if (/\b(?:undefined|null|NaN)\b|\[object Object\]|```|schema/i.test(text)) issues.push("raw_leak");
+  if (/이 기능은|이 결과는|분석 결과는/.test(text)) issues.push("mechanical_label");
+
+  const parsed = parseStructuredConsultationText(text);
+  if (!parsed) {
+    if (requireStructured) issues.push("structured_json.missing");
+  } else {
+    const scores = parsed.scores && typeof parsed.scores === "object" ? parsed.scores : {};
+    const sections = parsed.sections && typeof parsed.sections === "object" ? parsed.sections : {};
+    if (!Object.keys(scores).length) issues.push("scores.missing");
+    totalChars = 0;
+    for (const key of READING_SECTION_KEYS) {
+      const section = sections[key] && typeof sections[key] === "object" ? sections[key] : {};
+      const title = clean(section.title, 160);
+      const body = cleanMultiline(section.body, MAX_ASSISTANT_TEXT_CHARS);
+      if (!title) issues.push(`${key}.title_missing`);
+      if (!body) issues.push(`${key}.body_missing`);
+      if (body) sectionCount += 1;
+      totalChars += readingTextLength(body);
+    }
+  }
+
+  if (minTotalChars > 0 && totalChars < minTotalChars) issues.push("total_body_too_short");
+  if (maxTotalChars > 0 && totalChars > maxTotalChars) issues.push("total_body_too_long");
+  return { ok: issues.length === 0, issues, totalChars, sectionCount };
 }
 
 function getProviderDiagnostics(env) {
@@ -890,14 +980,14 @@ function getProviderDiagnostics(env) {
   };
 }
 
-async function callConsultationLlm(env, prompt, logContext = {}) {
+async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
   logVedicAi("LLM Provider Selected", {
     ...logContext,
     ...getProviderDiagnostics(env),
   });
   const result = await callGeminiText(env, prompt, {
     systemPrompt: SYSTEM_PROMPT,
-    maxOutputTokens: 6500,
+    maxOutputTokens: Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS),
     temperature: 0.72,
     taskType: "fortune",
   });
@@ -910,7 +1000,19 @@ async function callConsultationLlm(env, prompt, logContext = {}) {
     error.llm = result || null;
     throw error;
   }
-  return { content, meta: { provider, model: clean(result.model || ""), isMock: false } };
+  const quality = validateConsultationQuality(content, {
+    minTotalChars: Number(options.minTotalChars || 0),
+    maxTotalChars: Number(options.maxTotalChars || 0),
+    requireStructured: options.requireStructured === true,
+  });
+  if (!quality.ok) {
+    const error = new Error(`LLM_QUALITY_FAILED:${quality.issues.join(",")}`);
+    error.code = "LLM_FAILED";
+    error.llm = result || null;
+    error.quality = quality;
+    throw error;
+  }
+  return { content, meta: { provider, model: clean(result.model || ""), isMock: false, quality } };
 }
 
 function summaryCards(chart) {
@@ -1097,7 +1199,12 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 
   try {
     logVedicAi("LLM Generate Start", context);
-    const { content, meta } = await callConsultationLlm(env, buildFirstPrompt(normalized.input, chart), context);
+    const { content, meta } = await callConsultationLlm(env, buildFirstPrompt(normalized.input, chart), context, {
+      minTotalChars: MIN_INITIAL_READING_CHARS,
+      maxTotalChars: MAX_INITIAL_READING_CHARS,
+      requireStructured: true,
+      maxOutputTokens: INITIAL_MAX_OUTPUT_TOKENS,
+    });
     doc.vedicChart = chart;
     doc.messages = [
       ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),
@@ -1209,5 +1316,6 @@ export const __vedicAiTestUtils = {
   buildFirstPrompt,
   buildPaymentPayload,
   sanitizeAssistantText,
+  validateConsultationQuality,
   collectEvidenceIds,
 };

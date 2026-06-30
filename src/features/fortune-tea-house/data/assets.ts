@@ -10,7 +10,7 @@ const teaHouseAsset = (fileName: string) =>
   });
 
 const teaHouseNoBackgroundAsset = (fileName: string) => teaHouseAsset(`nobackground/${fileName}`);
-const tenGodSheetAsset = teaHouseNoBackgroundAsset("십성-Photoroom.png");
+const tenGodSheetAsset = "/images/fortune-tea-house/ten-gods-photoroom.png";
 
 export const fortuneTeaHouseAssets = {
   cutout: {
@@ -97,9 +97,14 @@ export const fortuneTeaHouseAssets = {
       sprite7: teaHouseNoBackgroundAsset("yeoni-sprite7-cutout.webp"),
       cupPose: "/images/fortune-tea-house/yeoni-cup-pose-photoroom.png",
       cupPoseSheet: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈 스프라이트 시트-Photoroom.png"),
+      cupPoseSpriteSheet: "/images/fortune-tea-house/yeoni-cup-pose-sprite-sheet-photoroom.png",
+      yeoniSprite2Thanks: "/images/fortune-tea-house/yeoni-sprite2-thanks-photoroom.png",
+      yeoniSprite6Waiting: "/images/fortune-tea-house/yeoni-sprite6-waiting-photoroom.png",
+      yeoniSprite7Tarot: "/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.png",
       teaChatSprite: "/images/fortune-tea-house/yeoni-tea-chat-loading-sprite.png",
-      tarotCard: teaHouseNoBackgroundAsset("연이 타로 카드-Photoroom.png"),
-      tarotCardAnim: teaHouseNoBackgroundAsset("연이 타로 카드 애니메이션-Photoroom.png"),
+      talkingPigYeoni3Sprite: "/images/fortune-tea-house/talking-flower-pig-yeoni3-sprite-cropped.png",
+      tarotCard: "/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.png",
+      tarotCardAnim: teaHouseAsset("연이 타로 카드 24 프레임-Photoroom.png"),
     },
   },
   backgrounds: {
@@ -156,6 +161,7 @@ export const fortuneTeaHouseAssets = {
   },
   saju: {
     tenGodSheet: tenGodSheetAsset,
+    tenGodSheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
   },
   consultModes: {
     tarot: teaHouseNoBackgroundAsset("운명의 찻집 타로.webp"),
@@ -164,6 +170,7 @@ export const fortuneTeaHouseAssets = {
   },
   tenGods: {
     sheet: tenGodSheetAsset,
+    sheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
   },
 } as const;
 

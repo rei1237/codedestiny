@@ -62,6 +62,12 @@ type LifeBookChapter = {
   advice?: string[];
 };
 
+type LifeBookExpertReading = {
+  title?: string;
+  content?: string;
+  guidance?: string[];
+};
+
 type LifeBookReportJson = {
   title?: string;
   subtitle?: string;
@@ -73,6 +79,7 @@ type LifeBookReportJson = {
     neededBalance?: string;
   };
   chapters?: LifeBookChapter[];
+  expertReadings?: LifeBookExpertReading[];
   finalMessage?: string;
 };
 
@@ -108,6 +115,16 @@ function formatGender(value?: string) {
 
 function formatCalendar(value?: string) {
   return value === "lunar" ? "음력" : "양력";
+}
+
+function formatSajuValue(value: unknown, fallback = "계산 제한") {
+  return toText(value) || fallback;
+}
+
+function recordEntries(record?: Record<string, unknown> | null) {
+  return Object.entries(record || {})
+    .map(([key, value]) => ({ key, value: toText(value) }))
+    .filter((entry) => entry.key && entry.value);
 }
 
 function compactLines(content: string) {
@@ -179,6 +196,7 @@ function buildReport(result: LifeBookResult | null) {
     title: parsed?.title || result?.title || "인생의 책 AI 상담 리포트",
     subtitle: parsed?.subtitle || "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
     coreSummary: parsed?.coreSummary || null,
+    expertReadings: Array.isArray(parsed?.expertReadings) ? parsed.expertReadings.filter((reading) => toText(reading?.title || reading?.content)) : [],
     finalMessage: parsed?.finalMessage || "",
     chapters,
   };
@@ -254,6 +272,15 @@ function LifeBookResultContent() {
   const generatedAt = toText(result?.updatedAt || result?.createdAt);
   const userName = toText(birth.name) || "당신";
   const isGenerating = result?.status === "generating";
+  const pillarRows = [
+    { label: "년주", value: formatSajuValue(saju?.yearPillar) },
+    { label: "월주", value: formatSajuValue(saju?.monthPillar) },
+    { label: "일주", value: formatSajuValue(saju?.dayPillar) },
+    { label: "시주", value: formatSajuValue(saju?.hourPillar, birth.birthTimeUnknown ? "출생시간 모름" : "계산 제한") },
+    { label: "일간", value: formatSajuValue(saju?.dayMaster) },
+  ];
+  const fiveElementEntries = recordEntries(saju?.fiveElements);
+  const tenGodEntries = recordEntries(saju?.tenGods);
 
   async function handlePdfDownload() {
     const element = document.getElementById("life-book-result-document");
@@ -266,26 +293,40 @@ function LifeBookResultContent() {
         import("jspdf"),
       ]);
       const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#100a08",
-        scale: Math.min(2, window.devicePixelRatio || 2),
-        useCORS: true,
-      });
       const pdf = new JsPDF("p", "mm", "a4");
-      const imageData = canvas.toDataURL("image/png");
       const pageWidth = 210;
       const pageHeight = 297;
-      const imageHeight = (canvas.height * pageWidth) / canvas.width;
-      let remainingHeight = imageHeight;
-      let position = 0;
-      pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-      remainingHeight -= pageHeight;
-      while (remainingHeight > 0) {
-        position = remainingHeight - imageHeight;
-        pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
+      const margin = 8;
+      const renderWidth = pageWidth - margin * 2;
+      const renderHeight = pageHeight - margin * 2;
+      const targets = Array.from(element.querySelectorAll<HTMLElement>("[data-life-book-pdf-page]"));
+      const pdfTargets = targets.length ? targets : [element];
+      let hasPage = false;
+
+      for (const target of pdfTargets) {
+        const canvas = await html2canvas(target, {
+          backgroundColor: "#100a08",
+          scale: Math.min(2, window.devicePixelRatio || 2),
+          useCORS: true,
+          windowWidth: Math.max(document.documentElement.scrollWidth, element.scrollWidth),
+        });
+        if (!canvas.width || !canvas.height) continue;
+        const imageData = canvas.toDataURL("image/png");
+        const imageHeight = (canvas.height * renderWidth) / canvas.width;
+        let remainingHeight = imageHeight;
+        let position = margin;
+        if (hasPage) pdf.addPage();
+        pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
+        hasPage = true;
+        remainingHeight -= renderHeight;
+        while (remainingHeight > 0) {
+          position = margin + remainingHeight - imageHeight;
+          pdf.addPage();
+          pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
+          remainingHeight -= renderHeight;
+        }
       }
+      if (!hasPage) throw new Error("empty_pdf_capture");
       pdf.save(`life-book-reading-${safeFilePart(attemptId)}.pdf`);
     } catch {
       setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -348,7 +389,7 @@ function LifeBookResultContent() {
         {pdfError && <div className="mb-4 rounded-2xl border border-rose-200/25 bg-rose-950/30 px-4 py-3 text-sm font-bold text-rose-100">{pdfError}</div>}
 
         <article id="life-book-result-document" className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-          <header className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7">
+          <header data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7">
             <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
               인생의 책 AI 상담 리포트
@@ -395,8 +436,45 @@ function LifeBookResultContent() {
             </aside>
 
             <section className="grid gap-4">
+              <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5">
+                <div className="flex items-center gap-2 text-amber-200">
+                  <ScrollText className="h-5 w-5" aria-hidden="true" />
+                  <h2 className="text-xl font-black">기본 명식</h2>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {pillarRows.map((row) => (
+                    <div key={row.label} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-3">
+                      <p className="text-xs font-bold text-amber-200">{row.label}</p>
+                      <p className="mt-1 text-sm font-black text-[#f4e6cb]">{row.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
+                    <h3 className="text-sm font-black text-amber-200">오행 분포</h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {fiveElementEntries.length ? fiveElementEntries.map((entry) => (
+                        <span key={entry.key} className="rounded-full border border-amber-200/20 bg-amber-100/10 px-3 py-1 text-xs font-bold text-[#f4e6cb]">
+                          {entry.key} {entry.value}
+                        </span>
+                      )) : <span className="text-sm text-[#eadbb9]">계산 가능한 오행 값이 제한되어 있습니다.</span>}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
+                    <h3 className="text-sm font-black text-amber-200">십성 분포</h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {tenGodEntries.length ? tenGodEntries.map((entry) => (
+                        <span key={entry.key} className="rounded-full border border-amber-200/20 bg-amber-100/10 px-3 py-1 text-xs font-bold text-[#f4e6cb]">
+                          {entry.key} {entry.value}
+                        </span>
+                      )) : <span className="text-sm text-[#eadbb9]">계산 가능한 십성 값이 제한되어 있습니다.</span>}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {report.coreSummary && (
-                <section className="rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5">
+                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Core Summary</p>
                   <h2 className="mt-2 text-2xl font-black text-amber-50">{report.coreSummary.oneLine || "삶의 중심 문장"}</h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -408,7 +486,7 @@ function LifeBookResultContent() {
               )}
 
               {report.chapters.map((chapter, index) => (
-                <section id={`chapter-${index + 1}`} key={`${chapter.title}-${index}`} className="scroll-mt-6 rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5 shadow-inner shadow-amber-200/5">
+                <section id={`chapter-${index + 1}`} key={`${chapter.title}-${index}`} data-life-book-pdf-page className="scroll-mt-6 rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5 shadow-inner shadow-amber-200/5">
                   <div className="mb-4 flex items-center gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-amber-200/30 bg-amber-100/10 text-sm font-black text-amber-200">
                       {String(chapter.chapterNumber || index + 1).padStart(2, "0")}
@@ -433,8 +511,38 @@ function LifeBookResultContent() {
                 </section>
               ))}
 
+              {report.expertReadings.length > 0 && (
+                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5">
+                  <div className="flex items-center gap-2 text-amber-200">
+                    <Sparkles className="h-5 w-5" aria-hidden="true" />
+                    <h2 className="text-xl font-black">명식의 깊은 판독</h2>
+                  </div>
+                  <div className="mt-4 grid gap-4">
+                    {report.expertReadings.map((reading, index) => (
+                      <div key={`${reading.title || "reading"}-${index}`} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-4">
+                        <h3 className="text-lg font-black text-amber-50">{reading.title || `깊은 판독 ${index + 1}`}</h3>
+                        <div className="mt-3 space-y-3 text-[15px] leading-8 text-[#f4e6cb]">
+                          {compactLines(reading.content || "").map((line, lineIndex) => (
+                            <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
+                          ))}
+                        </div>
+                        {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
+                          <div className="mt-4 grid gap-2">
+                            {reading.guidance.map((guide, guideIndex) => (
+                              <div key={`${guide}-${guideIndex}`} className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3 text-sm font-bold text-[#eadbb9]">
+                                {guide}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {report.finalMessage && (
-                <section className="rounded-3xl border border-amber-200/25 bg-amber-100/10 p-5">
+                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/25 bg-amber-100/10 p-5">
                   <div className="flex items-center gap-2 text-amber-200">
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
                     <h2 className="text-xl font-black">마지막 문장</h2>

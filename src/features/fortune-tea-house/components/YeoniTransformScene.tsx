@@ -17,6 +17,7 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
   const prefersReducedMotion = usePrefersReducedMotion();
   const [ready, setReady] = useState(prefersReducedMotion);
   const [stepIndex, setStepIndex] = useState(0);
+  const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const steps = getTeaHouseSteps("transform");
   const step = steps[stepIndex] || steps[0]!;
   const isLast = stepIndex >= steps.length - 1;
@@ -29,6 +30,16 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
     const timer = window.setTimeout(() => setReady(true), 1200);
     return () => window.clearTimeout(timer);
   }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    setIsCurrentLineTextComplete(false);
+  }, [stepIndex]);
+
+  function goNext() {
+    if (!isCurrentLineTextComplete) return;
+    if (isLast) onComplete();
+    else setStepIndex((current) => current + 1);
+  }
 
   return (
     <section className={styles.transformScene} aria-labelledby="yeoniTransformTitle">
@@ -45,14 +56,16 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
       <div className={styles.transformCopy}>
         <p className={styles.sceneEyebrow}>분홍빛이 피어나는 순간</p>
         <h2 id="yeoniTransformTitle">꽃잎 사이로 모습이 바뀝니다</h2>
-        <TeaHouseDialogueBox speaker={step.speaker} text={step.text} />
+        <TeaHouseDialogueBox
+          speaker={step.speaker}
+          text={step.text}
+          isAdvanceDisabled={!isCurrentLineTextComplete}
+          onTextComplete={setIsCurrentLineTextComplete}
+        />
         <TeaHouseButton
           loading={!ready}
-          disabled={!ready}
-          onClick={() => {
-            if (isLast) onComplete();
-            else setStepIndex((current) => current + 1);
-          }}
+          disabled={!ready || !isCurrentLineTextComplete}
+          onClick={goNext}
         >
           {step.cta || (isLast ? "연이를 만난다" : "다음")}
         </TeaHouseButton>

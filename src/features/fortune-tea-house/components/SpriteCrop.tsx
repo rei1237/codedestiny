@@ -33,6 +33,7 @@ export default function SpriteCrop({
   fallbackLabel = "이미지를 불러오지 못했어요.",
 }: SpriteCropProps) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const hasValidCrop = [sheetWidth, sheetHeight, x, y, width, height].every((value) => Number.isFinite(value)) && width > 0 && height > 0;
   const shouldShowFallback = failed || !src || !hasValidCrop;
@@ -41,6 +42,7 @@ export default function SpriteCrop({
 
   useEffect(() => {
     setFailed(false);
+    setLoaded(false);
     setRetryCount(0);
   }, [height, sheetHeight, sheetWidth, src, width, x, y]);
 
@@ -58,6 +60,7 @@ export default function SpriteCrop({
   }) as CSSProperties, [safeHeight, safeWidth, sheetHeight, sheetWidth, x, y]);
 
   function handleImageError() {
+    setLoaded(false);
     if (retryCount < 1) {
       setRetryCount((current) => current + 1);
       return;
@@ -66,8 +69,8 @@ export default function SpriteCrop({
   }
 
   return (
-    <span className={`${styles.spriteCrop} ${className}`} style={style} data-failed={shouldShowFallback ? "true" : "false"}>
-      {!shouldShowFallback ? <img src={imageSrc} alt={alt} loading="eager" decoding="async" onError={handleImageError} /> : null}
+    <span className={`${styles.spriteCrop} ${className}`} style={style} data-failed={shouldShowFallback ? "true" : "false"} data-loaded={loaded ? "true" : "false"}>
+      {!shouldShowFallback ? <img src={imageSrc} alt={alt} loading="eager" decoding="async" onLoad={() => setLoaded(true)} onError={handleImageError} /> : null}
       {shouldShowFallback ? <span className={styles.spriteCropFallback}>{fallback || alt || fallbackLabel}</span> : null}
     </span>
   );

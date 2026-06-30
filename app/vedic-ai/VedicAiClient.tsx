@@ -151,7 +151,11 @@ const SECTION_GLYPHS: Record<string, string> = {
   lagna: "↑",
   sun_nakshatra: "☉",
   moon_nakshatra: "☽",
+  graha_strength: "G",
+  bhava_focus: "B",
+  navamsa: "D9",
   dasha: "★",
+  transit_remedy: "T",
   karma: "業",
   topic: "問",
   prescription: "方",
@@ -386,6 +390,116 @@ function vargaPlanetSign(chart: Record<string, unknown>, chartKey: string, plane
   return toText(asRecord(varga[planetName]).sign);
 }
 
+const PLANET_LABELS: Record<string, string> = {
+  Sun: "태양",
+  Moon: "달",
+  Mars: "화성",
+  Mercury: "수성",
+  Jupiter: "목성",
+  Venus: "금성",
+  Saturn: "토성",
+  Rahu: "라후",
+  Ketu: "케투",
+};
+
+function chartDisplayValue(...values: unknown[]) {
+  for (const value of values) {
+    const text = toText(value);
+    if (text && text !== "-" && text !== "[object Object]") return text;
+  }
+  return "-";
+}
+
+function joinChartValues(...values: unknown[]) {
+  const tokens = values
+    .map((value) => chartDisplayValue(value))
+    .filter((value) => value && value !== "-");
+  return tokens.length ? tokens.join(" · ") : "-";
+}
+
+function chartPointSign(point: Record<string, unknown>) {
+  return chartDisplayValue(asRecord(point.rashi).name, point.sign);
+}
+
+function chartPointNakshatra(point: Record<string, unknown>) {
+  return chartDisplayValue(asRecord(point.nakshatra).name, point.nakshatra);
+}
+
+function planetRows(chart: Record<string, unknown>) {
+  const planets = Array.isArray(chart.planets) ? chart.planets.map(asRecord) : [];
+  const byName = new Map(planets.map((planet) => [toText(planet.name), planet]));
+  return Object.keys(PLANET_LABELS).map((name) => {
+    const planet = byName.get(name) || {};
+    return {
+      name,
+      label: PLANET_LABELS[name],
+      sign: chartPointSign(planet),
+      house: planet.house ? `${toText(planet.house)}H` : "-",
+      nakshatra: chartPointNakshatra(planet),
+      pada: chartDisplayValue(asRecord(planet.nakshatra).pada, planet.pada),
+    };
+  }).filter((row) => row.sign !== "-" || row.house !== "-" || row.nakshatra !== "-");
+}
+
+function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
+  const lagna = chartPoint(chart, "lagna");
+  const sun = chartPoint(chart, "sun");
+  const moon = chartPoint(chart, "moon");
+  const dasha = asRecord(chart.dasha);
+  const rows = [
+    ["아야남샤", chartDisplayValue(chart.ayanamsa)],
+    ["라그나", joinChartValues(chartPointSign(lagna), lagna.degree)],
+    ["태양", joinChartValues(chartPointSign(sun), chartPointNakshatra(sun), sun.degree)],
+    ["달", joinChartValues(chartPointSign(moon), chartPointNakshatra(moon), moon.degree)],
+    ["현재 다샤", chartDisplayValue(dasha.currentLord, dasha.currentMahadasha)],
+    ["남은 흐름", chartDisplayValue(dasha.remaining, dasha.remainingYears)],
+  ];
+  const planets = planetRows(chart);
+
+  return (
+    <section className={styles.basicChartData} aria-label="기본 베다 차트 데이터">
+      <div className={styles.basicChartHeader}>
+        <span>기본 베다 차트 데이터</span>
+        <strong>Chart Data</strong>
+      </div>
+      <dl className={styles.chartDataGrid}>
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {planets.length ? (
+        <div className={styles.planetTableWrap}>
+          <table className={styles.planetTable}>
+            <thead>
+              <tr>
+                <th>행성</th>
+                <th>라시</th>
+                <th>하우스</th>
+                <th>나크샤트라</th>
+                <th>파다</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planets.map((row) => (
+                <tr key={row.name}>
+                  <td>{row.label}</td>
+                  <td>{row.sign}</td>
+                  <td>{row.house}</td>
+                  <td>{row.nakshatra}</td>
+                  <td>{row.pada}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function sectionHeading(line: string) {
   const text = line.replace(/^#{1,4}\s*/, "").replace(/^\d+[\).]\s*/, "").replace(/[:：]\s*$/, "").trim();
   return SECTION_TITLES.find((title) => text.includes(title) || title.includes(text)) || "";
@@ -573,6 +687,8 @@ function StructuredReadingResult({
         <span>현재 다샤</span>
         <strong>{toText(dasha.currentLord || dasha.currentMahadasha) || "-"} · 잔여 {toText(dasha.remaining) || "-"}년</strong>
       </div>
+
+      <BasicVedicChartData chart={chart} />
 
       <section className={styles.scorePanel}>
         {Object.entries(SCORE_LABELS).map(([key, label]) => (

@@ -20,6 +20,18 @@ const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습�
 const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
+const NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000;
+const NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000;
+const NEW_YEAR_AI_MAX_OUTPUT_TOKENS = 16000;
+const NEW_YEAR_AI_REQUIRED_TOPIC_PATTERNS = Object.freeze({
+  structure: /격국|월령|일간|원국|명식/,
+  usefulGod: /용신|기신|희신/,
+  climate: /조후|한난조습|계절|온도/,
+  luckCycle: /대운|세운/,
+  interaction: /천간|지지|합|충|형|파|해|십신/,
+  monthly: /월별|월운|1월|2월|3월|4월|5월|6월|7월|8월|9월|10월|11월|12월/,
+  practice: /선택|실천|조언|정돈|회복|관리/,
+});
 
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|기능/i;
 const FOCUS_AREA_LABELS = Object.freeze({
@@ -1003,6 +1015,8 @@ function buildSystemPrompt() {
     "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
     "12. 계산 항목을 나열하는 대신, 왜 그런 흐름이 드러나는지 명식의 근거와 생활 선택을 한 문맥으로 이어 말합니다.",
+    "13. 완성 상담문 전체 본문은 공백을 제외하고 10,000자 이상 20,000자 이하로 씁니다. 권장 분량은 12,000~18,000자이며, 항목마다 10,000자를 쓰라는 뜻이 아닙니다.",
+    "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
   ].join("\n");
 }
 
@@ -1037,6 +1051,11 @@ function buildFirstPrompt(input, fortuneData) {
     "7. 조심해야 할 패턴은 겁주지 말고, 피해야 할 선택과 회복 방법을 함께 말합니다.",
     "8. 마지막에는 사용자가 올해 붙잡을 수 있는 현실 조언과 새해를 여는 한 줄을 남깁니다.",
     "",
+    "완성 상담문 전체 본문 합계는 공백을 제외하고 10,000자 이상 20,000자 이하로 맞추세요.",
+    "권장 분량은 12,000~18,000자이며, 더 중요한 기준은 분량보다 상담 품질과 명리 근거의 밀도입니다.",
+    "각 항목마다 10,000자를 쓰지 말고, 전체 상담문이 충분히 깊고 완성된 분량이 되도록 균형 있게 확장하세요.",
+    "분량이 부족하면 단순히 문장을 길게 늘이지 말고, 명리 전문가로서 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충, 월운, 현실 처방을 새 파트로 보강하세요.",
+    "",
     "출생시간이 없거나 계산상 불확실한 부분은 단정하지 말고 입력된 정보 기준으로 본 흐름이라고 자연스럽게 말하세요.",
     "전체 길이는 충분히 깊게 유지하되, 같은 의미의 문장을 반복하지 말고 각 문단마다 다른 근거와 조언을 담으세요.",
   ].join("\n");
@@ -1054,7 +1073,120 @@ function cleanForbiddenResult(text) {
     .replace(/기능/g, "상담");
 }
 
+function countConsultationChars(text) {
+  return clean(text).replace(/\s+/g, "").length;
+}
+
+function validateConsultationQuality(text, options = {}) {
+  const minTotalChars = Number(options.minTotalChars || NEW_YEAR_AI_MIN_TOTAL_CHARS) || NEW_YEAR_AI_MIN_TOTAL_CHARS;
+  const maxTotalChars = Number(options.maxTotalChars || NEW_YEAR_AI_MAX_TOTAL_CHARS) || NEW_YEAR_AI_MAX_TOTAL_CHARS;
+  const cleaned = cleanForbiddenResult(text);
+  const totalChars = countConsultationChars(cleaned);
+  const sections = cleaned.split(/\n{2,}/).map((section) => clean(section)).filter((section) => section.length >= 80);
+  const missingTopics = Object.entries(NEW_YEAR_AI_REQUIRED_TOPIC_PATTERNS)
+    .filter(([, pattern]) => !pattern.test(cleaned))
+    .map(([topic]) => topic);
+  const issues = [];
+  if (totalChars < minTotalChars) issues.push(`MIN_TOTAL_CHARS:${totalChars}/${minTotalChars}`);
+  if (totalChars > maxTotalChars) issues.push(`MAX_TOTAL_CHARS:${totalChars}/${maxTotalChars}`);
+  if (FORBIDDEN_RESULT_PATTERN.test(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
+  if (sections.length < 6) issues.push(`SECTION_COUNT:${sections.length}/6`);
+  if (missingTopics.length) issues.push(`MISSING_EXPERT_TOPICS:${missingTopics.join("|")}`);
+  return {
+    ok: issues.length === 0,
+    text: cleaned,
+    totalChars,
+    minTotalChars,
+    maxTotalChars,
+    sectionCount: sections.length,
+    missingTopics,
+    issues,
+  };
+}
+
+function buildConsultationExpansionPrompt(originalText, minTotalChars = NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars = NEW_YEAR_AI_MAX_TOTAL_CHARS) {
+  return [
+    "아래 신년운세 상담문은 방향은 좋지만 완성본으로 보기에는 깊이가 부족합니다.",
+    `기존 흐름과 어조를 유지하면서 전체 본문 합계가 공백 제외 ${minTotalChars.toLocaleString("ko-KR")}자 이상 ${maxTotalChars.toLocaleString("ko-KR")}자 이하가 되도록 보강하세요.`,
+    "단순히 문장의 양만 늘리지 말고, 부족한 부분에는 명리 전문가로서 새로운 파트를 추가하세요.",
+    "새 파트는 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충, 월운, 현실 처방을 필요한 만큼 자연스럽게 보강해야 합니다.",
+    "항목마다 같은 분량을 강제로 늘리지 말고, 전체 상담문이 한 번에 읽히는 긴 상담처럼 자연스럽게 이어 주세요.",
+    "원국의 격국, 용신·기신, 조후, 대운과 세운의 관계, 월별 기회와 주의, 현실 조언을 더 깊게 풀되 같은 문장을 반복하지 마세요.",
+    "기계적인 설명, 내부 작업 표현, 목차 안내처럼 들리는 문장은 쓰지 마세요.",
+    "",
+    "[기존 상담문]",
+    originalText,
+  ].join("\n");
+}
+
+function buildConsultationCompressionPrompt(originalText, minTotalChars = NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars = NEW_YEAR_AI_MAX_TOTAL_CHARS) {
+  return [
+    "아래 신년운세 상담문은 분량이 길어졌습니다.",
+    `명리 근거와 상담 품질을 유지하면서 전체 본문 합계가 공백 제외 ${minTotalChars.toLocaleString("ko-KR")}자 이상 ${maxTotalChars.toLocaleString("ko-KR")}자 이하가 되도록 다시 다듬으세요.`,
+    "격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방은 모두 남기고, 반복 문장과 장황한 비유만 줄이세요.",
+    "상담가가 직접 말하는 자연스러운 문체를 유지하세요.",
+    "",
+    "[기존 상담문]",
+    originalText,
+  ].join("\n");
+}
+
+function buildMockConsultationText(options = {}) {
+  const targetChars = Number(options.targetChars || 13000) || 13000;
+  const titles = [
+    "새해 전체 운의 결",
+    "명식에서 먼저 드러나는 힘",
+    "대운과 세운이 만나는 자리",
+    "일과 돈의 흐름",
+    "관계와 마음의 온도",
+    "몸과 생활 리듬",
+    "월별로 열리는 문",
+    "한 해를 여는 조언",
+  ];
+  const paragraphs = titles.map((title, index) => [
+    `**${title}**`,
+    `${index + 1}번째 흐름에서는 새해가 한꺼번에 달려오는 것이 아니라, 이미 오래전부터 쌓여 온 선택의 결이 조금씩 모습을 드러냅니다. 원국 안에서 강하게 빛나는 기운은 올해 더 선명하게 쓰이고, 약하게 남아 있던 자리는 대운과 세운이 닿을 때 생활의 균형을 다시 묻습니다. 이 운은 겁을 주는 징조가 아니라, 어떤 마음가짐으로 시간을 대해야 힘이 덜 새는지를 알려 주는 흐름에 가깝습니다.`,
+    `올해는 서둘러 결론을 만들기보다 먼저 내 안의 기준을 정돈할수록 길이 안정됩니다. 일에서는 역할의 이름이 바뀌거나 책임의 폭이 달라질 수 있고, 돈에서는 들어오는 흐름보다 새는 자리를 관리하는 감각이 중요하게 떠오릅니다. 관계에서는 오래 익숙했던 말투와 반응을 그대로 반복하지 않을 때 새로운 신뢰가 열리며, 몸과 마음은 일정한 수면과 식사의 리듬을 되찾을수록 운의 흔들림을 부드럽게 받아 냅니다.`,
+  ].join("\n"));
+  const expertParts = [
+    [
+      "**격국과 월령으로 보는 새해의 뼈대**",
+      "명식의 격국은 한 해를 해석할 때 가장 먼저 붙잡아야 할 중심입니다. 월령이 강하게 잡아 주는 계절의 힘이 있으면 올해의 선택은 밖으로 넓히는 방식보다 내 구조를 정확히 쓰는 쪽에서 빛납니다. 일간이 감당할 수 있는 힘과 원국이 이미 품고 있는 습관을 함께 보아야 새해의 사건을 단순한 행운이나 불운으로 오해하지 않습니다.",
+      "이 파트에서는 원국이 가진 재성, 관성, 인성, 식상의 균형을 먼저 보고, 어느 십신이 올해 실제 생활에서 역할을 얻는지를 살핍니다. 격국이 무너지지 않도록 지켜야 할 기준이 있고, 반대로 오래 묶여 있던 능력이 밖으로 나올 때도 있습니다. 새해는 그 기준을 먼저 세운 뒤에야 움직임이 단단해집니다.",
+    ].join("\n"),
+    [
+      "**용신·기신과 조후가 말하는 선택의 온도**",
+      "용신은 올해 붙잡아야 할 길이고, 기신은 힘이 과해질 때 먼저 새는 자리입니다. 조후는 그 길이 너무 차갑거나 뜨겁지 않게 흐르도록 온도를 맞추는 감각입니다. 한난조습의 균형이 맞지 않으면 좋은 기회도 몸과 마음이 따라가지 못해 부담으로 느껴질 수 있습니다.",
+      "따라서 올해의 조언은 무조건 앞으로 나가라는 말이 아닙니다. 필요한 때에는 속도를 낮추고, 필요한 때에는 말과 행동을 분명히 하며, 필요한 때에는 쉬어야 운이 오래 갑니다. 용신의 흐름이 살아나는 달에는 제안과 만남을 열고, 기신이 강해지는 달에는 지출과 감정적인 결정을 줄이는 편이 좋습니다.",
+    ].join("\n"),
+    [
+      "**대운과 세운, 천간·지지의 합충이 여는 사건성**",
+      "대운은 배경이고 세운은 문을 두드리는 손길입니다. 천간에서 합이 오면 생각과 계약, 말의 방향이 바뀌기 쉽고, 충이 오면 이미 미뤄 둔 문제가 더 이상 미뤄지지 않습니다. 지지의 합충형파해는 생활의 자리, 관계의 거리, 몸의 리듬에서 더 구체적으로 드러납니다.",
+      "이 흐름은 무조건 나쁘거나 좋은 것이 아니라, 정체되어 있던 것을 움직이는 힘입니다. 합은 편안하게 묶이지만 때로는 지나친 타협이 되고, 충은 불편하게 흔들지만 때로는 길을 트는 계기가 됩니다. 올해는 움직임이 생겼을 때 즉시 결론을 내리기보다, 그 일이 원국의 어느 자리를 건드리는지 먼저 살피는 태도가 필요합니다.",
+    ].join("\n"),
+    [
+      "**월운과 현실 처방**",
+      "월별 흐름은 한 해의 큰 결을 실제 생활로 내려오게 합니다. 1월과 2월에는 기준을 정리하고, 3월과 4월에는 사람과 일의 제안이 늘어날 수 있으며, 5월과 6월에는 무리한 확장보다 점검이 필요합니다. 7월과 8월에는 관계의 말투와 돈의 흐름을 함께 살피고, 9월과 10월에는 오래 준비한 일이 형태를 얻기 쉽습니다. 11월과 12월에는 새해 전체를 정리하며 다음 선택의 씨앗을 남기는 시간이 좋습니다.",
+      "현실 처방은 거창하지 않아도 됩니다. 중요한 약속은 기록하고, 큰 지출은 하루 더 늦추며, 관계에서 마음이 급해질 때는 먼저 몸의 피로를 확인하세요. 올해의 운은 성급한 단정이 아니라 꾸준한 정돈 속에서 열립니다.",
+    ].join("\n"),
+  ];
+  let text = [...paragraphs, ...expertParts].join("\n\n");
+  const deepen = [
+    "이 대목에서 중요한 것은 큰 운이 좋은가 나쁜가를 단정하는 일이 아니라, 나의 명식이 어느 계절의 기운을 만나 편안해지고 어느 자리에서 과해지는지를 섬세하게 살피는 일입니다.",
+    "세운이 건드리는 자리가 강하면 바깥의 사건이 먼저 오고, 약하면 마음속 결심이 먼저 일어납니다. 그래서 올해의 선택은 속도보다 순서가 중요합니다.",
+    "한 번에 모든 것을 바꾸려 하기보다, 지킬 것은 지키고 비울 것은 비우는 방식으로 움직일 때 새해의 문이 더 안정적으로 열립니다.",
+  ];
+  let index = 0;
+  while (countConsultationChars(text) < targetChars) {
+    text += `\n\n${deepen[index % deepen.length]} ${deepen[(index + 1) % deepen.length]} ${deepen[(index + 2) % deepen.length]}`;
+    index += 1;
+  }
+  return text;
+}
+
 async function generateConsultationText(env, prompt, options = {}) {
+  const minTotalChars = Number(options.minTotalChars || NEW_YEAR_AI_MIN_TOTAL_CHARS) || NEW_YEAR_AI_MIN_TOTAL_CHARS;
+  const maxTotalChars = Number(options.maxTotalChars || NEW_YEAR_AI_MAX_TOTAL_CHARS) || NEW_YEAR_AI_MAX_TOTAL_CHARS;
   const providerDiagnostics = getProviderDiagnostics(env);
   logNewYearAi("Provider Selected", {
     ...(options.logContext || {}),
@@ -1064,7 +1196,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
-    maxOutputTokens: options.maxOutputTokens || 6144,
+    maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
     timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1076,23 +1208,80 @@ async function generateConsultationText(env, prompt, options = {}) {
     error.providerDiagnostics = providerDiagnostics;
     throw error;
   }
-  if (!FORBIDDEN_RESULT_PATTERN.test(text)) return { text, provider, model: clean(ai?.model) };
+  let finalText = text;
+  let finalProvider = provider;
+  let finalModel = clean(ai?.model);
 
-  const repair = await callGeminiText(env, [
-    "다음 상담 답변에서 금지된 시스템성 표현을 모두 제거하고, 자연스러운 신년운세 상담문으로만 다시 써주세요.",
-    "",
-    text,
-  ].join("\n"), {
-    systemPrompt: buildSystemPrompt(),
-    taskType: "fortune",
-    temperature: 0.58,
-    maxOutputTokens: options.maxOutputTokens || 6144,
-  });
-  const repaired = clean(repair?.text);
+  if (FORBIDDEN_RESULT_PATTERN.test(finalText)) {
+    const repair = await callGeminiText(env, [
+      "다음 상담 답변에서 금지된 표현을 모두 걷어내고, 자연스러운 신년운세 상담문으로만 다시 써주세요.",
+      "",
+      finalText,
+    ].join("\n"), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: 0.58,
+      maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+    });
+    const repaired = clean(repair?.text);
+    if (repair?.ok && repaired.length >= 120) {
+      finalText = repaired;
+      finalProvider = clean(repair?.provider || finalProvider);
+      finalModel = clean(repair?.model || finalModel);
+    }
+  }
+
+  let quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
+  const shouldExpand = quality.issues.some((issue) => issue.startsWith("MIN_TOTAL_CHARS") || issue.startsWith("SECTION_COUNT") || issue.startsWith("MISSING_EXPERT_TOPICS"));
+  if (shouldExpand) {
+    const expansion = await callGeminiText(env, buildConsultationExpansionPrompt(quality.text, minTotalChars, maxTotalChars), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: 0.66,
+      maxOutputTokens: options.expansionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+      timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    });
+    const expansionProvider = clean(expansion?.provider || expansion?.model || "");
+    const expansionText = clean(expansion?.text);
+    if (expansion?.ok && !/mock/i.test(expansionProvider) && expansion?.isMock !== true && expansionText.length > quality.text.length) {
+      finalText = expansionText;
+      finalProvider = clean(expansion?.provider || finalProvider);
+      finalModel = clean(expansion?.model || finalModel);
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
+    }
+  }
+
+  if (quality.issues.some((issue) => issue.startsWith("MAX_TOTAL_CHARS"))) {
+    const compressed = await callGeminiText(env, buildConsultationCompressionPrompt(quality.text, minTotalChars, maxTotalChars), {
+      systemPrompt: buildSystemPrompt(),
+      taskType: "fortune",
+      temperature: 0.52,
+      maxOutputTokens: options.compressionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+      timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    });
+    const compressedProvider = clean(compressed?.provider || compressed?.model || "");
+    const compressedText = clean(compressed?.text);
+    if (compressed?.ok && !/mock/i.test(compressedProvider) && compressed?.isMock !== true && compressedText.length < quality.text.length) {
+      finalText = compressedText;
+      finalProvider = clean(compressed?.provider || finalProvider);
+      finalModel = clean(compressed?.model || finalModel);
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
+    }
+  }
+
+  if (!quality.ok) {
+    const error = new Error("신년운세 상담문 품질 기준을 충족하지 못했습니다.");
+    error.code = "NEW_YEAR_AI_QUALITY_FAILED";
+    error.quality = quality;
+    error.providerDiagnostics = providerDiagnostics;
+    throw error;
+  }
+
   return {
-    text: cleanForbiddenResult(repair?.ok && repaired.length >= 120 ? repaired : text),
-    provider: clean(repair?.provider || provider),
-    model: clean(repair?.model || ai?.model),
+    text: quality.text,
+    provider: finalProvider,
+    model: finalModel,
+    quality,
   };
 }
 
@@ -1124,12 +1313,64 @@ async function applyUsageOnce({ userId, sessionId, accessType }) {
   return true;
 }
 
+function buildBasicSajuProfile(doc = {}) {
+  const fortuneData = doc?.llmMeta?.fortuneData && typeof doc.llmMeta.fortuneData === "object" ? doc.llmMeta.fortuneData : null;
+  const saju = fortuneData?.saju && typeof fortuneData.saju === "object" ? fortuneData.saju : {};
+  if (!clean(saju.yearPillar || saju.monthPillar || saju.dayPillar || saju.hourPillar)) return null;
+  const advanced = fortuneData?.advancedSajuSummary && typeof fortuneData.advancedSajuSummary === "object" ? fortuneData.advancedSajuSummary : {};
+  const targetYear = fortuneData?.targetYear && typeof fortuneData.targetYear === "object" ? fortuneData.targetYear : {};
+  const birthInfo = doc?.birthInfo && typeof doc.birthInfo === "object" ? doc.birthInfo : {};
+  const domainSignals = advanced?.domainSignals && typeof advanced.domainSignals === "object" ? advanced.domainSignals : {};
+  return {
+    birthInfo: {
+      name: clean(birthInfo.name),
+      gender: clean(birthInfo.gender),
+      birthDate: clean(birthInfo.birthDate),
+      birthTime: clean(birthInfo.birthTime || "모름"),
+      calendarType: clean(birthInfo.calendarType),
+    },
+    pillars: [
+      { label: "년주", value: clean(saju.yearPillar) },
+      { label: "월주", value: clean(saju.monthPillar) },
+      { label: "일주", value: clean(saju.dayPillar) },
+      { label: "시주", value: clean(saju.hourPillar || "미산출") },
+    ],
+    dayMaster: clean(saju.dayMaster),
+    strength: clean(saju.strength),
+    dominantElement: clean(saju.dominantElement),
+    balancingElement: clean(saju.balancingElement),
+    targetYear: {
+      year: Number(targetYear.year || doc.year || 0) || null,
+      pillar: clean(targetYear.pillar),
+      tenGod: clean(targetYear.tenGodToDayMaster),
+      relationToDayBranch: clean(targetYear.relationToDayBranch),
+    },
+    gyeokguk: clean(advanced?.gyeokguk?.finalGyeokguk || advanced?.gyeokguk?.reading),
+    yongshin: {
+      core: clean(advanced?.yongshin?.coreYongshinKo),
+      heesin: clean(advanced?.yongshin?.heesinKo),
+      gisin: clean(advanced?.yongshin?.gisinKo),
+      reading: clean(advanced?.yongshin?.reading),
+    },
+    johu: {
+      urgentElement: clean(advanced?.johu?.urgentElementKo),
+      reading: clean(advanced?.johu?.reading || advanced?.johu?.climate),
+    },
+    daewoonSewoon: clean(advanced?.daewoonSewoon?.integratedReading),
+    monthlyHighlights: {
+      opportunity: Array.isArray(domainSignals.opportunityMonths) ? domainSignals.opportunityMonths.map((item) => clean(item)).filter(Boolean).slice(0, 4) : [],
+      caution: Array.isArray(domainSignals.cautionMonths) ? domainSignals.cautionMonths.map((item) => clean(item)).filter(Boolean).slice(0, 4) : [],
+    },
+  };
+}
+
 function publicSession(doc) {
   return {
     ok: true,
     sessionId: clean(doc.id),
     accessType: clean(doc.accessType),
     status: clean(doc.status),
+    sajuProfile: buildBasicSajuProfile(doc),
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
         role: message.role,
@@ -1368,8 +1609,10 @@ async function handleStart(request, env) {
 
   try {
     const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, fortuneData), {
-      minLength: 360,
-      maxOutputTokens: 7600,
+      minLength: 1000,
+      minTotalChars: NEW_YEAR_AI_MIN_TOTAL_CHARS,
+      maxTotalChars: NEW_YEAR_AI_MAX_TOTAL_CHARS,
+      maxOutputTokens: NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
     if (access.deferredUsage) {
@@ -1403,6 +1646,7 @@ async function handleStart(request, env) {
             deferredUsageApplied: access.deferredUsage === true,
             billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
             fortuneData,
+            quality: generated.quality,
           },
           generationError: null,
         },
@@ -1413,6 +1657,8 @@ async function handleStart(request, env) {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       provider: generated.provider,
       model: generated.model,
+      totalChars: generated.quality?.totalChars,
+      qualityStatus: generated.quality?.ok ? "passed" : "unknown",
     });
     return json(publicSession(completed));
   } catch (error) {
@@ -1491,4 +1737,8 @@ export const __newYearAiTestUtils = {
   buildFirstPrompt,
   buildSystemPrompt,
   cleanForbiddenResult,
+  countConsultationChars,
+  validateConsultationQuality,
+  buildMockConsultationText,
+  buildBasicSajuProfile,
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CalendarDays, Loader2, Moon, Sparkles, WalletCards } from "lucide-react";
+import { CalendarDays, Download, Loader2, Moon, Sparkles, WalletCards } from "lucide-react";
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
@@ -29,6 +29,43 @@ type ChatMessage = {
   createdAt?: string;
 };
 
+type SajuProfile = {
+  birthInfo?: {
+    name?: string;
+    gender?: string;
+    birthDate?: string;
+    birthTime?: string;
+    calendarType?: string;
+  };
+  pillars?: Array<{ label: string; value: string }>;
+  dayMaster?: string;
+  strength?: string;
+  dominantElement?: string;
+  balancingElement?: string;
+  targetYear?: {
+    year?: number | null;
+    pillar?: string;
+    tenGod?: string;
+    relationToDayBranch?: string;
+  };
+  gyeokguk?: string;
+  yongshin?: {
+    core?: string;
+    heesin?: string;
+    gisin?: string;
+    reading?: string;
+  };
+  johu?: {
+    urgentElement?: string;
+    reading?: string;
+  };
+  daewoonSewoon?: string;
+  monthlyHighlights?: {
+    opportunity?: string[];
+    caution?: string[];
+  };
+};
+
 type EnsureAccessResult =
   | { ok: true; accessToken: string; accessType: AccessType }
   | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload?: Record<string, unknown> }
@@ -42,6 +79,7 @@ type ConsultationResult = {
   accessType?: AccessType;
   status?: string;
   messages?: ChatMessage[];
+  sajuProfile?: SajuProfile | null;
   reason?: string;
   message?: string;
 };
@@ -180,12 +218,56 @@ function AssistantMessageContent({ content }: { content: string }) {
   return (
     <div className="nyai-section-list">
       {sections.map((section, index) => (
-        <section className="nyai-result-section" key={`${section.title}-${index}`}>
+        <section className="nyai-result-section" data-pdf-section={index + 1} key={`${section.title}-${index}`}>
           <h3>{section.title}</h3>
           <p>{section.body}</p>
         </section>
       ))}
     </div>
+  );
+}
+
+function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
+  if (!profile) return null;
+  const pillars = Array.isArray(profile.pillars) ? profile.pillars.filter((item) => item.value) : [];
+  const birth = profile.birthInfo || {};
+  const highlights = profile.monthlyHighlights || {};
+  return (
+    <section className="nyai-saju-profile" data-pdf-section="saju-profile">
+      <div className="nyai-saju-head">
+        <strong>기본 사주 명식</strong>
+        <span>{profile.targetYear?.year ? `${profile.targetYear.year}년 세운 ${profile.targetYear.pillar || ""}` : "세운 요약"}</span>
+      </div>
+      <div className="nyai-saju-birth">
+        {[birth.name, birth.birthDate, birth.birthTime, birth.calendarType === "lunar" ? "음력" : "양력", birth.gender].filter(Boolean).join(" · ")}
+      </div>
+      <div className="nyai-pillar-grid">
+        {pillars.map((pillar) => (
+          <div className="nyai-pillar" key={pillar.label}>
+            <span>{pillar.label}</span>
+            <strong>{pillar.value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="nyai-saju-facts">
+        <span>일간 {profile.dayMaster || "미산출"}</span>
+        <span>{profile.strength || "신강·신약 미산출"}</span>
+        <span>용신 {profile.yongshin?.core || "미산출"}</span>
+        <span>조후 {profile.johu?.urgentElement || "미산출"}</span>
+      </div>
+      <div className="nyai-saju-reading">
+        {profile.gyeokguk && <p>{profile.gyeokguk}</p>}
+        {profile.yongshin?.reading && <p>{profile.yongshin.reading}</p>}
+        {profile.johu?.reading && <p>{profile.johu.reading}</p>}
+        {profile.daewoonSewoon && <p>{profile.daewoonSewoon}</p>}
+        {(highlights.opportunity?.length || highlights.caution?.length) ? (
+          <p>
+            {highlights.opportunity?.length ? `기회 월운: ${highlights.opportunity.join(", ")}. ` : ""}
+            {highlights.caution?.length ? `주의 월운: ${highlights.caution.join(", ")}.` : ""}
+          </p>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -218,8 +300,11 @@ export default function NewYearAiConsultationPage() {
   const [error, setError] = useState("");
   const [accessType, setAccessType] = useState<AccessType | "">("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sajuProfile, setSajuProfile] = useState<SajuProfile | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   const statusText = useMemo(() => {
     if (status === "preparing") return "상담을 준비하고 있습니다";
@@ -241,6 +326,7 @@ export default function NewYearAiConsultationPage() {
     idempotencyKeyRef.current = createIdempotencyKey();
     setAccessType("");
     setMessages([]);
+    setSajuProfile(null);
     setError("");
     setNotice("");
     setStatus("idle");
@@ -276,6 +362,7 @@ export default function NewYearAiConsultationPage() {
     if (result.ok && Array.isArray(result.messages) && result.messages.length) {
       setAccessType(result.accessType || "");
       setMessages(result.messages);
+      setSajuProfile(result.sajuProfile || null);
       setNotice("");
       setError("");
       setStatus("ready");
@@ -363,6 +450,58 @@ export default function NewYearAiConsultationPage() {
       startLockRef.current = false;
     }
   };
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!resultRef.current || !assistantMessages.length || isDownloading) return;
+    setIsDownloading(true);
+    setNotice("");
+    setError("");
+    try {
+      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
+      const pdf = new JsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+      const sections = Array.from(resultRef.current.querySelectorAll<HTMLElement>("[data-pdf-section]"));
+      if (!sections.length) throw new Error("PDF 저장 대상 없음");
+      let hasPage = false;
+      for (const section of sections) {
+        const canvas = await html2canvas(section, {
+          backgroundColor: "#2e130f",
+          scale: Math.min(2, Math.max(1.4, window.devicePixelRatio || 1.5)),
+          useCORS: true,
+        });
+        const sliceHeightPx = Math.max(1, Math.floor((canvas.width / contentWidth) * contentHeight));
+        for (let offsetY = 0; offsetY < canvas.height; offsetY += sliceHeightPx) {
+          const currentSliceHeight = Math.min(sliceHeightPx, canvas.height - offsetY);
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = currentSliceHeight;
+          const context = sliceCanvas.getContext("2d");
+          if (!context) throw new Error("PDF 캔버스 생성 실패");
+          context.fillStyle = "#2e130f";
+          context.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          context.drawImage(canvas, 0, offsetY, canvas.width, currentSliceHeight, 0, 0, canvas.width, currentSliceHeight);
+          if (hasPage) pdf.addPage();
+          const sliceHeightMm = currentSliceHeight * contentWidth / canvas.width;
+          pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, contentWidth, Math.min(contentHeight, sliceHeightMm));
+          hasPage = true;
+        }
+      }
+      const safeName = (form.userName.trim() || "new-year").replace(/[\\/:*?"<>|]/g, "_");
+      pdf.save(`신년운세_AI상담_${safeName}_${form.targetYear}.pdf`);
+    } catch {
+      setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [assistantMessages.length, form.targetYear, form.userName, isDownloading]);
 
   return (
     <main className="nyai-page">
@@ -480,20 +619,31 @@ export default function NewYearAiConsultationPage() {
 
         <section className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">
-            <Sparkles size={18} />
-            <h2>새해의 첫 번째 답장</h2>
+            <div className="nyai-chat-title">
+              <Sparkles size={18} />
+              <h2>새해의 첫 번째 답장</h2>
+            </div>
+            {assistantMessages.length > 0 && (
+              <button className="nyai-pdf-button" type="button" onClick={handleDownloadPdf} disabled={isDownloading}>
+                {isDownloading ? <Loader2 size={16} className="nyai-spin" /> : <Download size={16} />}
+                <span>{isDownloading ? "저장 중" : "PDF 저장"}</span>
+              </button>
+            )}
           </div>
-          <div className="nyai-messages">
+          <div className="nyai-messages" ref={resultRef}>
             {assistantMessages.length === 0 ? (
               <div className="nyai-empty">
                 <p>아직 새해의 첫 문장이 열리지 않았습니다.</p>
                 <span>생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.</span>
               </div>
             ) : assistantMessages.map((message, index) => (
-              <article key={`${message.role}-${index}`} className="nyai-message nyai-message--assistant">
-                <span>새해 상담 편지</span>
-                <AssistantMessageContent content={message.content} />
-              </article>
+              <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
+                {index === 0 && <SajuProfilePanel profile={sajuProfile} />}
+                <article className="nyai-message nyai-message--assistant">
+                  <span>새해 상담 편지</span>
+                  <AssistantMessageContent content={message.content} />
+                </article>
+              </div>
             ))}
           </div>
         </section>
@@ -694,7 +844,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-kicker,
         .nyai-status,
         .nyai-form-title,
-        .nyai-chat-head {
+        .nyai-chat-title {
           display: inline-flex;
           align-items: center;
           gap: 8px;
@@ -741,11 +891,36 @@ export default function NewYearAiConsultationPage() {
           color: #ffe09a;
         }
 
+        .nyai-chat-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
         .nyai-form-title h2,
         .nyai-chat-head h2 {
           margin: 0;
           font-size: 18px;
           letter-spacing: 0;
+        }
+
+        .nyai-pdf-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          min-width: 108px;
+          min-height: 36px;
+          padding: 0 11px;
+          border: 1px solid rgba(255, 224, 154, .34);
+          border-radius: 8px;
+          background: rgba(255, 248, 226, .11);
+          color: #fff3cb;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 850;
+          cursor: pointer;
         }
 
         .nyai-grid {
@@ -909,7 +1084,8 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-primary:disabled,
-        .nyai-category-chip:disabled {
+        .nyai-category-chip:disabled,
+        .nyai-pdf-button:disabled {
           cursor: not-allowed;
           opacity: .62;
         }
@@ -954,6 +1130,97 @@ export default function NewYearAiConsultationPage() {
           border-radius: 8px;
           white-space: pre-wrap;
           line-height: 1.72;
+        }
+
+        .nyai-result-bundle {
+          display: grid;
+          gap: 12px;
+        }
+
+        .nyai-saju-profile {
+          padding: 15px;
+          border: 1px solid rgba(178, 238, 222, .24);
+          border-radius: 8px;
+          background:
+            linear-gradient(180deg, rgba(178, 238, 222, .11), rgba(255, 250, 235, .045)),
+            rgba(25, 42, 37, .36);
+          color: #fff8e6;
+          line-height: 1.62;
+        }
+
+        .nyai-saju-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 8px;
+          color: #d9fff2;
+        }
+
+        .nyai-saju-head strong {
+          font-size: 15px;
+        }
+
+        .nyai-saju-head span,
+        .nyai-saju-birth {
+          color: rgba(255, 248, 230, .78);
+          font-size: 12px;
+        }
+
+        .nyai-saju-birth {
+          margin-bottom: 10px;
+        }
+
+        .nyai-pillar-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .nyai-pillar {
+          display: grid;
+          gap: 4px;
+          min-height: 58px;
+          place-items: center;
+          border: 1px solid rgba(255, 224, 154, .2);
+          border-radius: 8px;
+          background: rgba(255, 248, 226, .08);
+        }
+
+        .nyai-pillar span,
+        .nyai-saju-facts span {
+          color: rgba(255, 248, 230, .7);
+          font-size: 12px;
+        }
+
+        .nyai-pillar strong {
+          color: #ffe09a;
+          font-size: 18px;
+        }
+
+        .nyai-saju-facts {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+          margin-bottom: 10px;
+        }
+
+        .nyai-saju-facts span {
+          padding: 5px 8px;
+          border-radius: 8px;
+          background: rgba(255, 248, 226, .08);
+        }
+
+        .nyai-saju-reading {
+          display: grid;
+          gap: 7px;
+        }
+
+        .nyai-saju-reading p {
+          margin: 0;
+          color: rgba(255, 248, 230, .9);
+          font-size: 13px;
         }
 
         .nyai-message span {
@@ -1036,6 +1303,15 @@ export default function NewYearAiConsultationPage() {
 
           .nyai-chat {
             min-height: 460px;
+          }
+
+          .nyai-pillar-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .nyai-saju-head {
+            align-items: flex-start;
+            flex-direction: column;
           }
         }
       `}</style>

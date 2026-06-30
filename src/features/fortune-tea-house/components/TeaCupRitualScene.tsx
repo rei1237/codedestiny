@@ -39,6 +39,7 @@ export default function TeaCupRitualScene({ selectedCup, onConfirm, onBack }: Te
           fallbackSrc={fortuneTeaHouseAssets.yeoni.cupPose}
           alt="선택한 찻잔을 내미는 연이"
           priority
+          loading="eager"
         />
         <TeaHouseDialogueBox speaker="연이" text={selectedCup.yeoniSelectLine} />
         <div className={styles.storyActions}>

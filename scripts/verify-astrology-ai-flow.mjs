@@ -15,6 +15,27 @@ function assertMissing(source, patterns, label) {
   }
 }
 
+function countMeaningfulChars(value) {
+  return String(value || "").replace(/\s+/g, "").length;
+}
+
+const shortMockConsultation = "태양과 달의 흐름이 지금의 질문을 비춥니다.".repeat(120);
+const completeMockConsultation = [
+  "태양과 달과 상승궁의 중심축이 지금의 질문을 차분히 비춥니다.",
+  "수성과 금성과 화성은 말, 애정, 행동 방식이 생활 안에서 드러나는 결을 보여 줍니다.",
+  "목성과 토성은 성장의 문과 책임의 기준을 함께 세웁니다.",
+  "주요 각도와 원소와 모드 균형은 반복되는 선택 패턴을 더 선명하게 드러냅니다.",
+  "하우스와 현재 트랜짓의 시기감은 이번 달의 타이밍을 부드럽게 가리킵니다.",
+  "상담 주제별 선택 기준과 실천 루틴은 2주 안에 점검할 작은 행동으로 이어집니다.",
+].join(" ").repeat(80);
+const expertMockMarkers = ["상승궁", "수성", "금성", "화성", "목성", "토성", "주요 각도", "원소", "모드", "하우스", "트랜짓", "선택 기준", "실천 루틴"];
+assert(countMeaningfulChars(shortMockConsultation) < 10000, "short mock consultation must fail the total-length quality gate");
+assert(countMeaningfulChars(completeMockConsultation) >= 10000, "complete mock consultation must pass the total-length quality gate");
+assert(countMeaningfulChars(completeMockConsultation) <= 20000, "complete mock consultation must stay within the upper-length quality gate");
+for (const marker of expertMockMarkers) {
+  assert(completeMockConsultation.includes(marker), `complete mock consultation missing expert marker: ${marker}`);
+}
+
 const retiredRuntimeTerms = [
   "/js/astro-book.js",
   "astroBookModal",
@@ -38,6 +59,7 @@ const retiredApiTerms = [
 assert(existsSync("worker/routes/astrology-ai.js"), "worker/routes/astrology-ai.js missing");
 assert(existsSync("app/astrology-ai/page.tsx"), "app/astrology-ai/page.tsx missing");
 assert(existsSync("app/astrology-ai/AstrologyAiClient.tsx"), "AstrologyAiClient.tsx missing");
+assert(existsSync("app/astrology-ai/result/page.tsx"), "Astrology AI result page missing");
 assert(!existsSync("js/astro-book.js"), "retired js/astro-book.js still exists");
 
 const route = read("worker/routes/astrology-ai.js");
@@ -48,6 +70,18 @@ assert(route.includes("getSwissWesternChart"), "Swiss western chart calculator m
 assert(route.includes("callGeminiText"), "LLM generation missing");
 assert(route.includes("applyUsageOnce"), "usage finalization missing");
 assert(route.includes("idempotencyKey"), "idempotency handling missing");
+assert(route.includes("ASTROLOGY_AI_MIN_RESULT_CHARS = 10000"), "minimum total result character gate missing");
+assert(route.includes("ASTROLOGY_AI_MAX_RESULT_CHARS = 20000"), "maximum total result character gate missing");
+assert(route.includes("countConsultationChars"), "result character counter missing");
+assert(route.includes("buildConsultationExpansionPrompt"), "short result expansion prompt missing");
+assert(route.includes("buildConsultationCondensePrompt"), "long result condense prompt missing");
+assert(route.includes("getConsultationQualityIssues"), "quality issue checker missing");
+assert(route.includes("MOCK_PROVIDER_BLOCKED"), "mock provider block missing");
+assert(route.includes("ASTROLOGY_EXPERT_PARTS"), "expert part coverage rules missing");
+assert(route.includes("MISSING_EXPERT_PARTS"), "expert part quality issue missing");
+assert(route.includes("MAX_TOTAL_CHARS"), "upper-length quality issue missing");
+assert(route.includes("requireExpertParts: true"), "first consultation must require expert part coverage");
+assert(route.includes("분량만 늘리지 말고"), "expansion prompt must reject quantity-only padding");
 assertMissing(route, retiredApiTerms, "worker route");
 
 const models = read("worker/lib/models.js");
@@ -78,6 +112,15 @@ assert(page.includes("별자리 차트를 펼치고 있습니다"), "chart loadi
 assert(page.includes("결제창을 확인해 주세요"), "payment copy missing");
 assert(page.includes("행성과 별자리의 흐름을 읽고 있습니다"), "LLM loading copy missing");
 assertMissing(page, ["/api/astrology/prepare", "/api/astrology/create-job", "/api/astrology/generate", "/api/astrology/chapter"], "page");
+
+const resultPage = read("app/astrology-ai/result/page.tsx");
+assert(resultPage.includes('document.getElementById("astrology-ai-result-document")'), "PDF result document lookup missing");
+assert(resultPage.includes('querySelectorAll("details")'), "PDF must expand collapsed result sections before capture");
+assert(resultPage.includes("html2canvas(element"), "PDF canvas capture missing");
+assert(resultPage.includes("pdf.save(`code-destiny-astrology-ai-"), "PDF save missing");
+assert(resultPage.includes("previousDetailOpenStates"), "PDF detail state restore missing");
+assert(resultPage.includes("기본 차트 데이터"), "basic chart data section missing from PDF document");
+assert(resultPage.includes("행성 위치") && resultPage.includes("하우스") && resultPage.includes("주요 각도") && resultPage.includes("현재 트랜짓"), "basic chart data groups missing");
 
 const appChrome = read("app/components/AppChrome.tsx");
 assert(appChrome.includes('"/astrology-ai"'), "chromeless route missing");

@@ -365,14 +365,13 @@ function buildSukuyoHtml(input = {}, context = {}) {
   const sections = asArray(chapterSpec.sections).length ? asArray(chapterSpec.sections) : ["관계의 결", "거리와 호흡", "현실의 조율", "마음의 주의점", "앞으로의 방향"];
   const chapterId = clean(input.chapterId || chapterSpec.id || `chapter_${input.chapterOrder || 1}`);
   const title = clean(input.chapterTitle || chapterSpec.title || `챕터 ${input.chapterOrder || 1}`);
-  const baseTerms = ["숙요", "본명성", "업태", "영친", "안괴", "관계", "거리", "호흡", "마음", "조율"];
+  const baseTerms = ["숙요", "본명숙", "업태", "영친", "안괴", "거리", "호흡", "마음", "조율"];
   return `<article data-chapter-id="${escapeHtml(chapterId)}">
   <h1>${escapeHtml(title)}</h1>
   ${sections.map((sectionTitle, index) => {
     const paragraphs = [
-      `${sectionTitle}에서는 ${termsText(baseTerms)}의 결이 어떻게 관계 안에서 드러나는지 살핍니다. 두 사람의 리듬은 가까워지는 힘과 물러서는 힘을 함께 품고 있어, 지금 필요한 말의 속도와 감정의 온도를 차분히 비춥니다.`,
-      `이 장의 ${index + 1}번째 흐름은 숙요점의 거리감과 본명성의 색을 바탕으로 관계의 장면을 정리합니다. 서로를 밀어붙이기보다 마음이 열리는 순간과 조심해야 할 순간을 나누어 바라보면, 불필요한 오해를 줄일 수 있습니다.`,
-      `현실에서는 대화의 시간, 연락의 간격, 약속의 무게가 관계의 신뢰를 만듭니다. 이 부분은 PDF 조판과 장별 저장을 확인할 수 있도록 충분한 길이로 구성되어 있으며, 한글 문단이 자연스럽게 이어지는지도 함께 확인됩니다.`,
+      `${sectionTitle}에서는 ${termsText(baseTerms)}의 결이 관계 안에서 어떻게 드러나는지 살핍니다. 가까워지는 힘과 물러서는 힘을 함께 읽어야 지금 필요한 말의 속도와 감정의 온도가 보입니다.`,
+      `이 흐름은 숙요점의 거리감과 본명숙의 색을 실제 대화, 연락 간격, 약속의 무게로 옮겨 보는 자리입니다. 감정이 커질수록 결론보다 확인 한 문장과 회복 순서를 먼저 정하는 편이 좋습니다.`,
     ];
     return `<section><h2>${escapeHtml(sectionTitle)}</h2>${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</section>`;
   }).join("\n  ")}

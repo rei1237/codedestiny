@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown, Moon, Search, Share2, Sparkles } from "lucide-react";
+import { Moon, Play, Search, Share2, Sparkles } from "lucide-react";
 import {
   type ChangeEvent,
   type MouseEvent as ReactMouseEvent,
@@ -14,13 +14,13 @@ import {
   useState,
   useTransition,
 } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import styles from "./moon-music-player.module.css";
 
-type PlaylistTab = "all" | ArtistKey;
+type VisibleArtistKey = Exclude<ArtistKey, "destinycafe">;
+type PlaylistTab = "all" | VisibleArtistKey;
 
 type MusicPlaylistPanelProps = {
   tracks: readonly Track[];
@@ -31,27 +31,27 @@ type MusicPlaylistPanelProps = {
 };
 
 const PLAYLIST_TAB_LABELS: Array<{ key: PlaylistTab; label: string }> = [
-  { key: "yeoni", label: "Yeoni" },
-  { key: "destinycafe", label: "Yeoni's destiny cafe" },
-  { key: "neo", label: "Neo" },
+  { key: "neo", label: "NEO" },
+  { key: "yeoni", label: "YEONI" },
   { key: "dest1nova", label: "DEST1NOVA" },
-  { key: "lunabloom", label: "Luna Bloom" },
-  { key: "all", label: "All" },
+  { key: "lunabloom", label: "LUNA BLOOM" },
+  { key: "all", label: "ALL" },
 ];
 
 const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
   ko: {
     playlistAria: "음악 플레이리스트",
     kicker: "Moon Library",
-    title: "Lunar Playlist",
+    title: "달빛 음악 서고",
     tracksCount: (shown: number, total: number) => `${shown} / ${total}곡`,
     filterAria: "플레이리스트 필터",
     searchPlaceholder: "트랙 검색",
-    emptyTitle: "검색 결과가 없습니다",
-    emptyBody: "All을 선택하거나 검색어를 지워 보세요.",
+    emptyTitle: "이 달빛에는 아직 곡이 머물지 않습니다.",
+    emptyBody: "다른 무드나 검색어로 다시 열어보세요.",
     shareLead: "Code Destiny 달빛 음악 라이브러리에서 들어보세요.",
     mainLabel: "Code Destiny 메인",
     playTrack: (title: string) => `${title} 재생`,
+    nowPlaying: "Now Playing",
   },
   en: {
     playlistAria: "Music playlist",
@@ -65,6 +65,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     shareLead: "Listen inside the Code Destiny moon library.",
     mainLabel: "Code Destiny main",
     playTrack: (title: string) => `Play ${title}`,
+    nowPlaying: "Now Playing",
   },
   ja: {
     playlistAria: "音楽プレイリスト",
@@ -78,28 +79,30 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     shareLead: "Code Destinyの月明かり音楽ライブラリで聴いてください。",
     mainLabel: "Code Destinyメイン",
     playTrack: (title: string) => `${title}を再生`,
+    nowPlaying: "Now Playing",
   },
 } as const;
 
 const PLAYLIST_COVER_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
+const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
 
 function musicPlaylistCopy(locale: LoadingLocale) {
   return MUSIC_PLAYLIST_TEXT_TRANSLATIONS[locale as keyof typeof MUSIC_PLAYLIST_TEXT_TRANSLATIONS] || MUSIC_PLAYLIST_TEXT_TRANSLATIONS.en;
 }
 
-const PLAYLIST_OVERSCAN_COUNT = 8;
-const PLAYLIST_DEFAULT_ROW_STRIDE = 92;
 type PlaylistTrackEntry = {
   track: Track;
   searchableText: string;
   collectionLabel: string;
   durationLabel: string;
+  moodTag: string;
   isPlayable: boolean;
 };
 type PlaylistTrackDisplay = {
   track: Track;
   collectionLabel: string;
   durationLabel: string;
+  moodTag: string;
   isPlayable: boolean;
 };
 
@@ -121,6 +124,21 @@ function getTrackCollectionLabel(track: Track) {
   if (track.artistKey === "lunabloom") return "Luna Bloom";
   if (track.audioKey.startsWith("neosongmini1/") || track.audioKey.startsWith("yeonisongmini1/")) return "Mini Album";
   return "Moon Cut";
+}
+
+function getTrackMoodTag(track: Track) {
+  if (track.artistKey === "neo") return "neon tarot";
+  if (track.artistKey === "yeoni") return "soft bloom";
+  if (track.artistKey === "destinycafe") return "moon tea";
+  if (track.artistKey === "dest1nova") return DEST1NOVA_SECOND_ALBUM_MARKER.test(track.audioKey) ? "starlight rush" : "cosmic pop";
+  if (track.artistKey === "lunabloom") return "lucid dream";
+  return "moon pop";
+}
+
+function doesTrackMatchTab(track: Track, tab: PlaylistTab) {
+  if (tab === "all") return true;
+  if (tab === "yeoni") return track.artistKey === "yeoni" || track.artistKey === "destinycafe";
+  return track.artistKey === tab;
 }
 
 function buildShareUrl(path: string) {
@@ -152,11 +170,12 @@ async function copyShareText(text: string) {
   document.body.removeChild(textarea);
 }
 
-type PlaylistTrackItemProps = {
+type PlaylistTrackCardProps = {
   track: Track;
   displayIndex: number;
   collectionLabel: string;
   durationLabel: string;
+  moodTag: string;
   isPlayable: boolean;
   isSharedTrack: boolean;
   hasCoverError: boolean;
@@ -165,18 +184,19 @@ type PlaylistTrackItemProps = {
   onShareTrack: (trackId: string) => void;
 };
 
-const PlaylistTrackItem = memo(function PlaylistTrackItem({
+const PlaylistTrackCard = memo(function PlaylistTrackCard({
   track,
   displayIndex,
   collectionLabel,
   durationLabel,
+  moodTag,
   isPlayable,
   isSharedTrack,
   hasCoverError,
   onCoverError,
   onSelectTrack,
   onShareTrack,
-}: PlaylistTrackItemProps) {
+}: PlaylistTrackCardProps) {
   const isCurrent = useMusicPlaybackStore(useCallback((state) => state.currentTrackId === track.id, [track.id]));
   const isCurrentTrackPlaying = useMusicPlaybackStore(
     useCallback((state) => state.currentTrackId === track.id && state.isPlaying, [track.id]),
@@ -239,6 +259,7 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
               onError={handleTrackCoverError}
             />
           ) : null}
+          <span className={styles.playlistThumbGlyph} aria-hidden />
         </span>
 
         <span className={styles.playlistTrackText}>
@@ -247,11 +268,16 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
             <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
             <span className={styles.playlistTrackMood}>{collectionLabel}</span>
           </span>
+          <span className={styles.playlistMoodTag}>{moodTag}</span>
         </span>
 
         <span className={styles.playlistTrackMeta}>
-          {durationLabel ? <span>{durationLabel}</span> : null}
+          <span>{durationLabel || `#${String(displayIndex).padStart(2, "0")}`}</span>
+          {isCurrent ? <span className={styles.playlistCurrentLabel}>Now Playing</span> : null}
           {isSharedTrack ? <span className={styles.playlistShareStatus}>Copied</span> : null}
+        </span>
+        <span className={styles.playlistPlayIcon} aria-hidden>
+          <Play size={16} />
         </span>
       </button>
 
@@ -276,6 +302,7 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
     && prev.displayIndex === next.displayIndex
     && prev.collectionLabel === next.collectionLabel
     && prev.durationLabel === next.durationLabel
+    && prev.moodTag === next.moodTag
     && prev.isPlayable === next.isPlayable
     && prev.isSharedTrack === next.isSharedTrack
     && prev.hasCoverError === next.hasCoverError
@@ -308,6 +335,7 @@ const PlaylistTabButton = memo(function PlaylistTabButton({
       type="button"
       role="tab"
       aria-selected={isActive}
+      data-tab={tab.key}
       onClick={handleClick}
     >
       <span>{tab.label}</span>
@@ -340,15 +368,13 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       all: tracks.length,
       neo: 0,
       yeoni: 0,
-      destinycafe: 0,
       dest1nova: 0,
       lunabloom: 0,
     } as Record<PlaylistTab, number>;
 
     tracks.forEach((track) => {
       if (track.artistKey === "neo") baseCounts.neo += 1;
-      else if (track.artistKey === "yeoni") baseCounts.yeoni += 1;
-      else if (track.artistKey === "destinycafe") baseCounts.destinycafe += 1;
+      else if (track.artistKey === "yeoni" || track.artistKey === "destinycafe") baseCounts.yeoni += 1;
       else if (track.artistKey === "dest1nova") baseCounts.dest1nova += 1;
       else if (track.artistKey === "lunabloom") baseCounts.lunabloom += 1;
     });
@@ -362,6 +388,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       searchableText: `${track.title} ${track.artistName} ${track.mood || ""} ${track.audioKey}`.toLowerCase(),
       collectionLabel: getTrackCollectionLabel(track),
       durationLabel: formatDuration(track.durationSeconds),
+      moodTag: getTrackMoodTag(track),
       isPlayable: Boolean(track.audioUrl),
     }));
   }, [tracks]);
@@ -371,7 +398,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       .filter((entry) => {
         const track = entry.track;
         if (!track || !track.id) return false;
-        if (activeTab !== "all" && track.artistKey !== activeTab) return false;
+        if (!doesTrackMatchTab(track, activeTab)) return false;
         if (!deferredQuery) return true;
 
         return entry.searchableText.includes(deferredQuery);
@@ -380,16 +407,10 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
         track: entry.track,
         collectionLabel: entry.collectionLabel,
         durationLabel: entry.durationLabel,
+        moodTag: entry.moodTag,
         isPlayable: entry.isPlayable,
       }));
   }, [activeTab, deferredQuery, searchableTracks]);
-
-  const playlistVirtualizer = useVirtualizer({
-    count: filteredTracks.length,
-    getScrollElement: () => playlistScrollRef.current,
-    estimateSize: () => PLAYLIST_DEFAULT_ROW_STRIDE,
-    overscan: PLAYLIST_OVERSCAN_COUNT,
-  });
 
   const handleTrackSelect = useCallback((trackId: string) => {
     onSelectTrack(trackId);
@@ -497,89 +518,72 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
 
   return (
     <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label={copy.playlistAria}>
-      <details className={styles.playlistDetails} open>
-        <summary className={styles.playlistHeaderButton}>
-          <span className={styles.playlistHeaderText}>
-            <span className={styles.playlistKicker}>
-              <Moon size={13} aria-hidden />
-              {copy.kicker}
-            </span>
-            <span className={styles.playlistTitle}>{copy.title}</span>
-            <span className={styles.playlistSubtitle}>{copy.tracksCount(filteredTracks.length, tracks.length)}</span>
+      <div className={styles.playlistHeaderButton}>
+        <span className={styles.playlistHeaderText}>
+          <span className={styles.playlistKicker}>
+            <Moon size={13} aria-hidden />
+            {copy.kicker}
           </span>
-          <span className={styles.playlistHeaderMeta}>
-            <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
-            <span className={styles.playlistCount}>{filteredTracks.length}</span>
-            <ChevronDown className={styles.playlistToggleIcon} size={18} aria-hidden />
-          </span>
-        </summary>
+          <span className={styles.playlistTitle}>{copy.title}</span>
+          <span className={styles.playlistSubtitle}>{copy.tracksCount(filteredTracks.length, tracks.length)}</span>
+        </span>
+        <span className={styles.playlistHeaderMeta}>
+          <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
+          <span className={styles.playlistCount}>{filteredTracks.length}</span>
+        </span>
+      </div>
 
-        <div className={styles.playlistBody}>
-          <div className={styles.playlistTabs} role="tablist" aria-label={copy.filterAria}>
-            {PLAYLIST_TAB_LABELS.map((tab) => (
-              <PlaylistTabButton
-                key={tab.key}
-                tab={tab}
-                isActive={activeTab === tab.key}
-                count={playlistCounts[tab.key]}
-                onSelectTab={handleTabSelect}
-              />
-            ))}
-          </div>
-
-          <label className={styles.playlistSearch}>
-            <Search size={16} aria-hidden />
-            <input
-              type="search"
-              value={searchInput}
-              placeholder={copy.searchPlaceholder}
-              onChange={handleQueryChange}
+      <div className={styles.playlistBody}>
+        <div className={styles.playlistTabs} role="tablist" aria-label={copy.filterAria} data-mood-filter-nav="true">
+          {PLAYLIST_TAB_LABELS.map((tab) => (
+            <PlaylistTabButton
+              key={tab.key}
+              tab={tab}
+              isActive={activeTab === tab.key}
+              count={playlistCounts[tab.key]}
+              onSelectTab={handleTabSelect}
             />
-          </label>
-
-          <div className={styles.playlistScroll} ref={playlistScrollRef}>
-            {filteredTracks.length ? (
-              <div
-                className={styles.playlistVirtualCanvas}
-                style={{ height: `${playlistVirtualizer.getTotalSize()}px` }}
-              >
-                {playlistVirtualizer.getVirtualItems().map((virtualItem) => {
-                  const track = filteredTracks[virtualItem.index];
-                  if (!track) return null;
-
-                  return (
-                    <div
-                      key={virtualItem.key}
-                      ref={playlistVirtualizer.measureElement}
-                      className={styles.playlistVirtualRow}
-                      data-index={virtualItem.index}
-                      style={{ transform: `translateY(${virtualItem.start}px)` }}
-                    >
-                      <PlaylistTrackItem
-                        track={track.track}
-                        displayIndex={virtualItem.index + 1}
-                        collectionLabel={track.collectionLabel}
-                        durationLabel={track.durationLabel}
-                        isPlayable={track.isPlayable}
-                        isSharedTrack={track.track.id === sharedTrackId}
-                        hasCoverError={Boolean(failedCoverIds[track.track.id])}
-                        onCoverError={handleTrackCoverError}
-                        onSelectTrack={handleTrackSelect}
-                        onShareTrack={handleTrackShare}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.playlistEmpty}>
-                <strong>{copy.emptyTitle}</strong>
-                <span>{copy.emptyBody}</span>
-              </div>
-            )}
-          </div>
+          ))}
         </div>
-      </details>
+
+        <label className={styles.playlistSearch}>
+          <Search size={16} aria-hidden />
+          <input
+            type="search"
+            value={searchInput}
+            placeholder={copy.searchPlaceholder}
+            onChange={handleQueryChange}
+          />
+        </label>
+
+        <div className={styles.playlistScroll} ref={playlistScrollRef}>
+          {filteredTracks.length ? (
+            <div className={styles.playlistGrid}>
+              {filteredTracks.map((track, index) => (
+                <PlaylistTrackCard
+                  key={track.track.id}
+                  track={track.track}
+                  displayIndex={index + 1}
+                  collectionLabel={track.collectionLabel}
+                  durationLabel={track.durationLabel}
+                  moodTag={track.moodTag}
+                  isPlayable={track.isPlayable}
+                  isSharedTrack={track.track.id === sharedTrackId}
+                  hasCoverError={Boolean(failedCoverIds[track.track.id])}
+                  onCoverError={handleTrackCoverError}
+                  onSelectTrack={handleTrackSelect}
+                  onShareTrack={handleTrackShare}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.playlistEmpty}>
+              <strong>{copy.emptyTitle}</strong>
+              <span>{copy.emptyBody}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   );
 });

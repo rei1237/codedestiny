@@ -7,78 +7,139 @@ import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
 
+const tarotAromaParticles = ["moon", "petal", "heart", "spark", "steam"];
+
 type ScentLoadingSceneProps = {
   selectedCup?: TeaHouseCup | null;
   consultationMode?: FortuneTeaHouseConsultMode;
+  progress?: {
+    percent: number;
+    label: string;
+    message: string;
+    delayed?: boolean;
+    status?: "running" | "complete" | "error";
+  };
 };
 
-export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot" }: ScentLoadingSceneProps) {
+export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
+  const isTarotMode = consultationMode === "tarot";
   const chatLine =
     consultationMode === "saju"
       ? "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요."
       : consultationMode === "sukuyo"
         ? "두 사람의 달빛이 서로 어떻게 닿는지 보고 있어요. 말은 천천히 골라드릴게요."
-        : "카드가 아직 잔 위에서 고르는 중이에요. 기다리는 동안 차가 식지 않게 제가 들고 있을게요.";
-  const loadingBars =
+        : "킁킁… 이 질문에는 아직 말하지 못한 마음이 묻어 있어요.";
+  const progressSteps =
     consultationMode === "saju"
       ? [
-          { label: "찻잔의 향이 출생정보와 질문의 온도를 모으고 있어요.", value: 42 },
-          { label: "오행과 십성의 결을 확인된 흐름 안에서만 살피고 있어요.", value: 68 },
-          { label: "연이가 사주의 말로 오늘의 기준을 고르고 있어요.", value: 92 },
+          "프로필 확인",
+          "명식 계산",
+          "오행과 십성",
+          "상담문 정리",
         ]
       : consultationMode === "sukuyo"
         ? [
-            { label: "두 사람의 생년월일이 달빛 아래 나란히 놓이고 있어요.", value: 42 },
-            { label: "27숙의 거리와 관계 유형을 확인된 흐름 안에서 살피고 있어요.", value: 68 },
-            { label: "연이가 인연의 말로 오늘 건넬 한 문장을 고르고 있어요.", value: 92 },
+            "달빛 자리",
+            "27숙 거리",
+            "관계 온도",
+            "상담문 정리",
           ]
-      : [
-          { label: "찻잔의 향이 지금 질문의 온도를 모으고 있어요.", value: 42 },
-          { label: "선택된 카드의 상징이 달빛 위에 천천히 떠오르고 있어요.", value: 68 },
-          { label: "연이가 타로의 말로 다음 장면을 고르고 있어요.", value: 92 },
+        : [
+          "질문 확인",
+          "카드 상징",
+          "마음의 향",
+          "상담문 정리",
         ];
   const loadingTitle =
     consultationMode === "saju"
       ? "연이가 사주의 향을 살피고 있어요"
       : consultationMode === "sukuyo"
         ? "연이가 27숙 인연의 흐름을 살피고 있어요"
-        : "연이가 타로의 향을 살피고 있어요";
+        : "연이가 마음의 향을 살짝 맡아보고 있어요";
   const scentLoadingDialogue = selectedCup
     ? `${selectedCup.loadingLine}\n${
         consultationMode === "saju"
           ? "연이가 사주의 드러난 결만 조심스럽게 상담에 올리고 있어요."
           : consultationMode === "sukuyo"
             ? "연이가 두 사람의 27숙 거리와 관계의 온도를 조용히 엮고 있어요."
-          : "연이가 타로의 상징만 따라 지금 질문의 장면을 고요히 읽고 있어요."
+          : "카드가 향기의 결을 따라 움직이고 있어요."
       }`
-    : `${loadingTitle}\n열리지 않은 것은 지어내지 않고, 지금 드러난 결만 고요히 읽습니다.`;
+    : isTarotMode
+      ? `${loadingTitle}\n카드가 향기의 결을 따라 움직이고 있어요.`
+      : `${loadingTitle}\n열리지 않은 것은 지어내지 않고, 지금 드러난 결만 고요히 읽습니다.`;
+  const waitingSprite = fortuneTeaHouseAssets.yeoni.transparent.cupPoseSpriteSheet;
+  const tarotScentPigSprite = fortuneTeaHouseAssets.yeoni.transparent.talkingPigYeoni3Sprite;
   const teaChatStyle = {
-    "--yeoni-tea-chat-sprite": `url("${fortuneTeaHouseAssets.yeoni.transparent.teaChatSprite}")`,
+    "--yeoni-tea-chat-sprite": `url("${waitingSprite}")`,
+    "--yeoni-waiting-sprite": `url("${tarotScentPigSprite}")`,
   } as CSSProperties;
+  const activeProgress = progress || {
+    percent: 5,
+    label: "요청 접수",
+    message: "찻잔 위에 질문을 올리고 있어요.",
+    status: "running" as const,
+  };
+  const visiblePercent = activeProgress.status === "complete"
+    ? 100
+    : Math.max(5, Math.min(95, activeProgress.percent));
+  const activeStepIndex = Math.min(
+    progressSteps.length - 1,
+    Math.max(0, Math.floor((visiblePercent / 100) * progressSteps.length)),
+  );
 
   return (
-    <section className={styles.emotionScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="scentLoadingTitle">
-      <div className={styles.emotionVisual}>
-        <AssetImage
-          className={styles.loadingSceneAsset}
-          src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-          alt="달빛 찻잔이 떠오르는 로딩 장면"
-          priority
-        />
-        <AssetImage
-          className={styles.emotionGaugeAsset}
-          src={fortuneTeaHouseAssets.pig.emotionGauge}
-          alt="마음의 향을 읽는 감정 분석 장식"
-        />
-        <div className={styles.scentLoadingTeaChatStage} style={teaChatStyle}>
-          <span className={styles.scentLoadingTeaChatAura} aria-hidden />
-          <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
-          <span className={styles.scentLoadingTeaChatBubble}>
-            <strong>연이</strong>
-            <span>{chatLine}</span>
-          </span>
-          {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentLoadingTeaCupBadge} /> : null}
-        </div>
+    <section className={`${styles.emotionScene} ${isTarotMode ? styles.tarotScentScene : ""}`} data-accent={selectedCup?.accent || "pink"} aria-labelledby="scentLoadingTitle">
+      <div className={`${styles.emotionVisual} ${isTarotMode ? styles.tarotScentVisual : ""}`}>
+        {isTarotMode ? (
+          <div className={styles.scentPigStage} aria-label="연이가 마음의 향을 살피는 장면">
+            <span className={styles.scentPigMoon} aria-hidden />
+            <span className={styles.scentPigTable} aria-hidden />
+            <span className={styles.scentPigAroma} aria-hidden>
+              {tarotAromaParticles.map((particle) => (
+                <i key={particle} />
+              ))}
+            </span>
+            {selectedCup ? (
+              <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentPigTeaCup} decorative />
+            ) : (
+              <span className={styles.scentPigTeaCupFallback} aria-hidden />
+            )}
+            <span
+              className={`${styles.scentPigActor} ${styles.scentWaitingYeoniSprite}`}
+              style={teaChatStyle}
+              role="img"
+              aria-label="마음의 향을 맡는 꽃돼지 연이"
+            />
+            <span className={styles.scentPigSparkle} aria-hidden />
+            <span className={styles.scentPigBubble}>
+              <strong>연이</strong>
+              <span>{chatLine}</span>
+            </span>
+          </div>
+        ) : (
+          <>
+            <AssetImage
+              className={styles.loadingSceneAsset}
+              src={fortuneTeaHouseAssets.backgrounds.loadingScene}
+              alt="달빛 찻잔이 떠오르는 로딩 장면"
+              priority
+            />
+            <AssetImage
+              className={styles.emotionGaugeAsset}
+              src={fortuneTeaHouseAssets.pig.emotionGauge}
+              alt="마음의 향을 읽는 감정 분석 장식"
+            />
+            <div className={styles.scentLoadingTeaChatStage} style={teaChatStyle}>
+              <span className={styles.scentLoadingTeaChatAura} aria-hidden />
+              <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
+              <span className={styles.scentLoadingTeaChatBubble}>
+                <strong>연이</strong>
+                <span>{chatLine}</span>
+              </span>
+              {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentLoadingTeaCupBadge} /> : null}
+            </div>
+          </>
+        )}
       </div>
       <div className={styles.emotionPanel}>
         <p className={styles.sceneEyebrow}>{selectedCup?.name || "찻잔"} 위로 향이 피어납니다</p>
@@ -87,16 +148,35 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
           speaker="연이"
           text={scentLoadingDialogue}
         />
-        <div className={styles.loadingGaugeList} aria-label="마음의 향 분석 진행 중">
-          {loadingBars.map((bar) => (
-            <div className={styles.loadingGaugeItem} key={bar.label}>
-              <span>{bar.label}</span>
-              <strong>{bar.value}%</strong>
-              <div className={styles.loadingGaugeTrack}>
-                <span style={{ "--gauge-value": `${bar.value}%` } as CSSProperties} />
-              </div>
-            </div>
-          ))}
+        <div className={styles.loadingProgressPanel} aria-label="상담 생성 진행 상태">
+          <div className={styles.loadingProgressHeader}>
+            <span>{activeProgress.label}</span>
+            <strong>{visiblePercent}%</strong>
+          </div>
+          <div
+            className={styles.loadingProgressTrack}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={visiblePercent}
+            aria-label={activeProgress.label}
+          >
+            <span style={{ "--gauge-value": `${visiblePercent}%` } as CSSProperties} />
+          </div>
+          <p>{activeProgress.message}</p>
+          <div className={styles.loadingProgressSteps} aria-hidden>
+            {progressSteps.map((label, index) => (
+              <span key={label} data-active={index <= activeStepIndex ? "true" : "false"}>
+                {label}
+              </span>
+            ))}
+          </div>
+          {activeProgress.delayed ? (
+            <p className={styles.loadingDelayNotice}>상담문을 조금 더 깊게 엮고 있어요. 오래 머물면 새로고침하지 말고 잠시만 기다려 주세요.</p>
+          ) : null}
+          {activeProgress.status === "error" ? (
+            <p className={styles.loadingDelayNotice}>흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요.</p>
+          ) : null}
         </div>
       </div>
     </section>

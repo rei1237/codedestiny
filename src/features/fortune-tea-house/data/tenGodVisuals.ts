@@ -15,12 +15,13 @@ export type TenGodVisualMeta = {
   alt: string;
 };
 
-const tenGodSheet = fortuneTeaHouseAssets.saju.tenGodSheet;
+const tenGodSheet = fortuneTeaHouseAssets.saju.tenGodSheetLocal;
 const tenGodSheetWidth = 1448;
 const tenGodSheetHeight = 1086;
-const tenGodIconSize = 290;
-const topRowY = 160;
-const bottomRowY = 560;
+const tenGodIconWidth = 290;
+const tenGodIconHeight = 520;
+const topRowY = 0;
+const bottomRowY = 543;
 
 const tenGodSprite = (tenGodId: TenGodId, x: number, y: number, glyph: string, alt: string): TenGodVisualMeta => ({
   tenGodId,
@@ -30,8 +31,8 @@ const tenGodSprite = (tenGodId: TenGodId, x: number, y: number, glyph: string, a
   sheetHeight: tenGodSheetHeight,
   x,
   y,
-  width: tenGodIconSize,
-  height: tenGodIconSize,
+  width: tenGodIconWidth,
+  height: tenGodIconHeight,
   glyph,
   alt,
 });

@@ -25,6 +25,10 @@ const UNSAFE_ADVICE_PATTERNS = Object.freeze([
   /반드시\s*(돌아|좋아|싫어|연락)/g,
 ]);
 
+export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 10000;
+export const LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS = 20000;
+const LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS = 24000;
+
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
@@ -110,7 +114,9 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     "관계 상태와 상담 주제를 모든 핵심 섹션의 판단 기준으로 삼습니다.",
     "명식 근거는 용어를 나열하지 말고 사랑에서 드러나는 감정, 거리감, 표현 방식, 선택 습관으로 번역합니다.",
     "상대 정보가 부족하면 단정하지 말고, 현재 드러난 흐름과 사용자가 확인할 수 있는 신호를 중심으로 말합니다.",
-    "각 섹션의 body는 3~7문장으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
+    "전체 상담 본문은 sections의 모든 body를 합산해 10,000~20,000자 사이로 씁니다.",
+    "분량을 채우기 위해 같은 조언을 늘이지 않고, 각 섹션마다 명리 근거, 관계 심리, 현실 행동 처방 중 하나 이상을 새롭게 펼칩니다.",
+    "각 섹션의 body는 700~1,000자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
     "조언은 기다림, 대화, 거리두기, 고백, 재회, 정리 중 사용자의 상황에 맞는 선택지를 구체적으로 좁힙니다.",
     "keywords는 지금 이 관계의 핵심 키워드 3개입니다.",
     "strategy는 지금의 연애 전략을 한 문장으로 씁니다.",
@@ -123,18 +129,20 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     "finalMessage와 finalLine은 마지막 상담사의 한마디입니다.",
     "answer는 주요 섹션을 자연스럽게 이어 붙인 전체 상담 본문입니다.",
     "",
-    "- 오늘의 관계 한 줄 진단",
-    "- 나의 연애 성향",
-    "- 상대방의 연애 성향",
-    "- 두 사람의 궁합 흐름",
+    "- 현재 관계의 자리와 질문의 핵심",
+    "- 나의 명식이 사랑에서 반복하는 방식",
+    "- 상대의 기운과 감정 거리감",
+    "- 두 사람 사이 끌림이 살아나는 조건",
     "- 오행과 조후로 보는 감정의 온도",
+    "- 십성으로 보는 애착과 표현 방식",
     "- 속궁합과 친밀감 리듬",
-    "- 갈등이 생기는 지점",
-    "- 상대에게 다가가는 대화법",
+    "- 갈등의 뿌리와 회복 방식",
     "- 연락/고백/재회/관계 진전 타이밍",
-    "- 내가 조심해야 할 연애 패턴",
-    "- 지금 당장 실천할 연애 비책 5가지",
+    "- 관계 단계별 실행 비책",
+    "- 상대에게 다가가는 대화 문장",
+    "- 피해야 할 선택과 자기 보호",
     "- 7일 실천 가이드",
+    "- 30일 관계 흐름 처방",
     "- 마지막 상담사의 한마디",
     "",
     "[출력 JSON]",
@@ -144,28 +152,37 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     '  "summaryTitle": "연애 비책 상담 제목",',
     '  "oneLineDiagnosis": "오늘의 관계 한 줄 진단",',
     '  "relationshipTemperature": "두 사람의 감정 온도",',
-    '  "userLovePattern": "내 일간과 오행 성향을 바탕으로 본 연애 방식",',
-    '  "partnerLovePattern": "상대방의 연애 성향. 상대 정보가 없으면 현재 관계에서 보이는 상대 에너지의 가능성",',
+    '  "relationshipCore": "현재 관계의 자리와 사용자가 묻는 질문의 핵심",',
+    '  "userLovePattern": "내 일간과 오행 성향을 바탕으로 반복되는 연애 방식",',
+    '  "partnerLovePattern": "상대의 기운과 감정 거리감. 상대 정보가 없으면 현재 관계에서 확인 가능한 신호",',
+    '  "attractionCondition": "두 사람 사이 끌림이 다시 살아나는 조건",',
     '  "compatibilityFlow": "두 사람의 궁합 흐름과 끌림의 이유",',
     '  "fiveElementsInsight": "오행 균형과 십성/일간/일지 관계를 쉬운 말로 풀어 쓴 해석",',
+    '  "tenGodsAttachmentPattern": "십성으로 보는 애착 방식, 표현 방식, 불안이 올라오는 순간",',
     '  "johuIntimacyRhythm": "조후로 보는 감정 온도, 속궁합, 친밀감 리듬의 품격 있는 해석",',
-    '  "conflictPattern": "충돌이 생기는 지점과 해서는 안 되는 말/행동",',
-    '  "communicationAdvice": "연락, 대화, 고백 또는 재회 접근법",',
+    '  "conflictPattern": "갈등의 뿌리와 회복 방식, 해서는 안 되는 말과 행동",',
     '  "timingAdvice": "연락/고백/재회/관계 진전 타이밍 조언",',
+    '  "stageActionSecrets": "썸, 연애, 재회, 정리 등 관계 단계별 실행 비책",',
+    '  "communicationAdvice": "상대에게 다가갈 때 사용할 수 있는 대화 문장과 말의 온도",',
+    '  "selfProtectionBoundary": "피해야 할 선택과 지켜야 할 자기 보호 기준",',
     '  "actionSecrets": ["실천 비책 1", "실천 비책 2", "실천 비책 3", "실천 비책 4", "실천 비책 5"],',
     '  "sevenDayGuide": ["1일차 가이드", "2일차 가이드", "3일차 가이드", "4일차 가이드", "5일차 가이드", "6일차 가이드", "7일차 가이드"],',
+    '  "thirtyDayFlow": "30일 동안 관계의 온도를 조율하는 흐름 처방",',
     '  "sections": [',
-    '    { "title": "오늘의 관계 한 줄 진단", "body": "상담 본문" },',
-    '    { "title": "나의 연애 성향", "body": "상담 본문" },',
-    '    { "title": "상대방의 연애 성향", "body": "상담 본문" },',
-    '    { "title": "두 사람의 궁합 흐름", "body": "상담 본문" },',
+    '    { "title": "현재 관계의 자리와 질문의 핵심", "body": "상담 본문" },',
+    '    { "title": "나의 명식이 사랑에서 반복하는 방식", "body": "상담 본문" },',
+    '    { "title": "상대의 기운과 감정 거리감", "body": "상담 본문" },',
+    '    { "title": "두 사람 사이 끌림이 살아나는 조건", "body": "상담 본문" },',
     '    { "title": "오행과 조후로 보는 감정의 온도", "body": "상담 본문" },',
+    '    { "title": "십성으로 보는 애착과 표현 방식", "body": "상담 본문" },',
     '    { "title": "속궁합과 친밀감 리듬", "body": "상담 본문" },',
-    '    { "title": "갈등이 생기는 지점", "body": "상담 본문" },',
-    '    { "title": "상대에게 다가가는 대화법", "body": "상담 본문" },',
+    '    { "title": "갈등의 뿌리와 회복 방식", "body": "상담 본문" },',
     '    { "title": "연락/고백/재회/관계 진전 타이밍", "body": "상담 본문" },',
-    '    { "title": "이 관계에서 내가 조심해야 할 패턴", "body": "상담 본문" },',
-    '    { "title": "지금 당장 실천할 연애 비책 5가지", "body": "상담 본문" },',
+    '    { "title": "관계 단계별 실행 비책", "body": "상담 본문" },',
+    '    { "title": "상대에게 다가가는 대화 문장", "body": "상담 본문" },',
+    '    { "title": "피해야 할 선택과 자기 보호", "body": "상담 본문" },',
+    '    { "title": "7일 실천 가이드", "body": "상담 본문" },',
+    '    { "title": "30일 관계 흐름 처방", "body": "상담 본문" },',
     '    { "title": "마지막 상담사의 한마디", "body": "상담 본문" }',
     "  ],",
     '  "pdfSections": [{ "title": "저장용 섹션 제목", "body": "저장용 상담 본문" }],',
@@ -209,17 +226,20 @@ export function buildFollowUpConsultationPrompt(consultation = {}, userMessage =
 }
 
 const STRUCTURED_SECTION_FIELDS = Object.freeze([
-  ["오늘의 관계 한 줄 진단", "oneLineDiagnosis"],
-  ["나의 연애 기질", "userLovePattern"],
-  ["상대방의 연애 기질", "partnerLovePattern"],
-  ["두 사람의 궁합 흐름", "compatibilityFlow"],
+  ["현재 관계의 자리와 질문의 핵심", "relationshipCore"],
+  ["나의 명식이 사랑에서 반복하는 방식", "userLovePattern"],
+  ["상대의 기운과 감정 거리감", "partnerLovePattern"],
+  ["두 사람 사이 끌림이 살아나는 조건", "attractionCondition"],
   ["오행과 조후로 보는 감정의 온도", "fiveElementsInsight"],
+  ["십성으로 보는 애착과 표현 방식", "tenGodsAttachmentPattern"],
   ["속궁합과 친밀감 리듬", "johuIntimacyRhythm"],
-  ["갈등이 생기는 지점", "conflictPattern"],
-  ["상대에게 다가가는 대화법", "communicationAdvice"],
+  ["갈등의 뿌리와 회복 방식", "conflictPattern"],
   ["연락/고백/재회/관계 진전 타이밍", "timingAdvice"],
-  ["지금 당장 실천할 연애 비책 5가지", "actionSecrets"],
+  ["관계 단계별 실행 비책", "stageActionSecrets"],
+  ["상대에게 다가가는 대화 문장", "communicationAdvice"],
+  ["피해야 할 선택과 자기 보호", "selfProtectionBoundary"],
   ["7일 실천 가이드", "sevenDayGuide"],
+  ["30일 관계 흐름 처방", "thirtyDayFlow"],
   ["마지막 상담사의 한마디", "finalMessage"],
 ]);
 
@@ -241,7 +261,7 @@ function normalizeSectionList(value, limit = 14) {
   if (!Array.isArray(value)) return [];
   return value.map((section) => ({
     title: clean(section?.title, 80),
-    body: clean(section?.body || section?.content || section?.text, 8000),
+    body: clean(section?.body || section?.content || section?.text, 12000),
   })).filter((section) => section.title && section.body.length >= 20).slice(0, limit);
 }
 
@@ -253,7 +273,7 @@ function buildStructuredSections(parsed = {}) {
 }
 
 function fallbackSectionsFromText(text) {
-  const value = clean(text, 20000).replace(/\r\n/g, "\n");
+  const value = clean(text, LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS).replace(/\r\n/g, "\n");
   const headingMatches = [];
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,42})\n+/gm;
   let match = headingPattern.exec(value);
@@ -269,9 +289,9 @@ function fallbackSectionsFromText(text) {
       const end = headingMatches[index + 1]?.index ?? value.length;
       return {
         title: clean(item[2].replace(/\*\*/g, ""), 80),
-        body: clean(value.slice(start, end), 8000),
+        body: clean(value.slice(start, end), 12000),
       };
-    }).filter((section) => section.title && section.body.length >= 20).slice(0, 12);
+    }).filter((section) => section.title && section.body.length >= 20).slice(0, 16);
   }
 
   const titles = STRUCTURED_SECTION_FIELDS.map(([title]) => title);
@@ -280,7 +300,35 @@ function fallbackSectionsFromText(text) {
   return titles.map((title, index) => ({
     title,
     body: paragraphs.slice(index * chunkSize, (index + 1) * chunkSize).join("\n\n"),
-  })).filter((section) => section.body.length >= 20).slice(0, 12);
+  })).filter((section) => section.body.length >= 20).slice(0, 16);
+}
+
+function countSectionBodyChars(sections = []) {
+  return Array.isArray(sections)
+    ? sections.reduce((sum, section) => sum + clean(section?.body).length, 0)
+    : 0;
+}
+
+export function countLoveSecretConsultationBodyChars(result = {}) {
+  const pdfChars = countSectionBodyChars(result.pdfSections);
+  if (pdfChars > 0) return pdfChars;
+  const sectionChars = countSectionBodyChars(result.sections);
+  if (sectionChars > 0) return sectionChars;
+  return clean(result.answer).length;
+}
+
+function ensureMinimumTotalBodyChars(result = {}) {
+  const totalChars = countLoveSecretConsultationBodyChars(result);
+  if (totalChars < LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS || totalChars > LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS) {
+    const error = new Error("first consultation response is outside target body length");
+    error.code = "INCOMPLETE_LLM_RESPONSE";
+    error.details = {
+      totalChars,
+      minTotalChars: LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
+      maxTotalChars: LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS,
+    };
+    throw error;
+  }
 }
 
 function normalizeReading(parsed = {}) {
@@ -288,16 +336,22 @@ function normalizeReading(parsed = {}) {
     summaryTitle: clean(parsed.summaryTitle, 120),
     oneLineDiagnosis: clean(parsed.oneLineDiagnosis, 500),
     relationshipTemperature: clean(parsed.relationshipTemperature, 500),
+    relationshipCore: clean(parsed.relationshipCore, 4000),
     userLovePattern: clean(parsed.userLovePattern, 4000),
     partnerLovePattern: clean(parsed.partnerLovePattern, 4000),
+    attractionCondition: clean(parsed.attractionCondition, 4000),
     compatibilityFlow: clean(parsed.compatibilityFlow, 4000),
     fiveElementsInsight: clean(parsed.fiveElementsInsight, 4000),
+    tenGodsAttachmentPattern: clean(parsed.tenGodsAttachmentPattern, 4000),
     johuIntimacyRhythm: clean(parsed.johuIntimacyRhythm, 4000),
     conflictPattern: clean(parsed.conflictPattern, 4000),
     communicationAdvice: clean(parsed.communicationAdvice, 4000),
     timingAdvice: clean(parsed.timingAdvice, 4000),
+    stageActionSecrets: clean(parsed.stageActionSecrets, 4000),
+    selfProtectionBoundary: clean(parsed.selfProtectionBoundary, 4000),
     actionSecrets: normalizeTextList(parsed.actionSecrets, 5),
     sevenDayGuide: normalizeTextList(parsed.sevenDayGuide, 7),
+    thirtyDayFlow: clean(parsed.thirtyDayFlow, 4000),
     finalMessage: clean(parsed.finalMessage || parsed.finalLine, 1000),
   };
 }
@@ -305,8 +359,8 @@ function normalizeReading(parsed = {}) {
 export function parseFirstConsultationResponse(text) {
   const jsonText = extractJsonObject(text);
   if (!jsonText) {
-    const raw = clean(stripCodeFence(text), 20000);
-    if (raw.length < 400) {
+    const raw = clean(stripCodeFence(text), LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS);
+    if (raw.length < LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) {
       const error = new Error("first consultation response is not json");
       error.code = "INVALID_LLM_JSON";
       throw error;
@@ -318,7 +372,7 @@ export function parseFirstConsultationResponse(text) {
       error.code = "INCOMPLETE_LLM_RESPONSE";
       throw error;
     }
-    return {
+    const fallbackResult = {
       keywords: ["마음의 온도", "관계 리듬", "연애 비책"],
       strategy: "지금은 마음의 속도를 낮추고 관계의 온도를 현실적으로 맞추는 흐름이 좋습니다.",
       sections,
@@ -332,6 +386,8 @@ export function parseFirstConsultationResponse(text) {
       },
       pdfSections: sections,
     };
+    ensureMinimumTotalBodyChars(fallbackResult);
+    return fallbackResult;
   }
 
   let parsed;
@@ -347,13 +403,18 @@ export function parseFirstConsultationResponse(text) {
     : [];
   const reading = normalizeReading(parsed);
   const strategy = clean(parsed.strategy || reading.oneLineDiagnosis || reading.relationshipTemperature, 300);
-  const explicitSections = normalizeSectionList(parsed.sections, 14);
+  const explicitSections = normalizeSectionList(parsed.sections, 16);
   const structuredSections = buildStructuredSections(parsed);
-  const sections = explicitSections.length >= 8 ? explicitSections : normalizeSectionList([...explicitSections, ...structuredSections], 14);
+  const sections = explicitSections.length >= 8 ? explicitSections : normalizeSectionList([...explicitSections, ...structuredSections], 16);
   const pdfSections = normalizeSectionList(parsed.pdfSections, 16);
   const finalLine = clean(parsed.finalLine || parsed.finalMessage || reading.finalMessage, 700);
   const sectionAnswer = sections.map((section) => `${section.title}\n${section.body}`).join("\n\n");
-  const answer = clean(parsed.answer || sectionAnswer || finalLine, 24000);
+  const answer = clean(parsed.answer || sectionAnswer || finalLine, LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS);
+  let resolvedPdfSections = pdfSections.length ? pdfSections : sections;
+  if (countSectionBodyChars(resolvedPdfSections) < LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS && answer.length >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) {
+    const answerSections = fallbackSectionsFromText(answer);
+    if (countSectionBodyChars(answerSections) >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) resolvedPdfSections = answerSections;
+  }
 
   if (keywords.length !== 3 || strategy.length < 8 || answer.length < 500 || sections.length < 8) {
     const error = new Error("first consultation response is incomplete");
@@ -362,15 +423,17 @@ export function parseFirstConsultationResponse(text) {
   }
 
   validateConsultationText(`${keywords.join(" ")} ${strategy} ${answer}`);
-  return {
+  const result = {
     keywords,
     strategy,
     sections,
     finalLine,
     answer,
     reading,
-    pdfSections: pdfSections.length ? pdfSections : sections,
+    pdfSections: resolvedPdfSections,
   };
+  ensureMinimumTotalBodyChars(result);
+  return result;
 }
 
 export function validateConsultationText(text) {
@@ -407,4 +470,6 @@ export function normalizeFollowUpResponse(text) {
 export const __loveSecretAiPromptTestUtils = {
   hasForbiddenResultText,
   hasUnsafeAdvice,
+  countSectionBodyChars,
+  ensureMinimumTotalBodyChars,
 };

@@ -172,13 +172,14 @@ function normalizeBirthInput(request: FortuneTeaHouseConsultRequest): Normalized
   const birthDate = parseBirthDate(text(request.birthDate) || birthInfo);
   if (!birthDate) return null;
 
-  const birthTime = parseBirthTime(text(request.birthTime) || birthInfo);
+  const explicitUnknownTime = request.birthTimeUnknown === true || /출생시간\s*(미상|모름)|시간\s*(미상|모름)/.test(birthInfo);
+  const birthTime = explicitUnknownTime ? "" : parseBirthTime(text(request.birthTime) || birthInfo);
   return {
     birthDate,
     birthTime: birthTime || undefined,
     calendarType: normalizeCalendarType(request),
     gender: normalizeGender(request) || undefined,
-    unknownTime: !birthTime,
+    unknownTime: explicitUnknownTime || !birthTime,
   };
 }
 
@@ -197,15 +198,20 @@ function birthSummaryFromRequest(request?: FortuneTeaHouseConsultRequest): Fortu
   if (!request) return undefined;
   const birthInfo = text(request.birthInfo);
   const birthDate = text(request.birthDate) || parseBirthDate(birthInfo) || undefined;
-  const birthTime = text(request.birthTime) || parseBirthTime(birthInfo) || undefined;
+  const explicitUnknownTime = request.birthTimeUnknown === true || /출생시간\s*(미상|모름)|시간\s*(미상|모름)/.test(birthInfo);
+  const birthTime = explicitUnknownTime ? undefined : text(request.birthTime) || parseBirthTime(birthInfo) || undefined;
 
   return {
     nickname: text(request.nickname) || "손님",
+    profileId: text(request.profileId) || undefined,
     birthDate,
     birthTime,
-    hasBirthTime: Boolean(birthTime),
+    birthTimeUnknown: explicitUnknownTime || !birthTime,
+    hasBirthTime: Boolean(birthTime) && !explicitUnknownTime,
     calendarType: request.calendarType,
     gender: text(request.gender) || undefined,
+    birthPlace: text(request.birthPlace) || undefined,
+    timezone: text(request.timezone) || undefined,
   };
 }
 

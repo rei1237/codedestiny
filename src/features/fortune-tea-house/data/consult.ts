@@ -4,6 +4,8 @@ import type { TenGodId } from "./tenGods";
 export type TeaHouseEmotionTone = "pink" | "purple" | "blue" | "gold" | "green";
 export type FortuneTeaHouseConsultMode = "tarot" | "saju" | "sukuyo";
 export type FortuneTeaHouseCalendarType = "solar" | "lunar";
+export type FortuneTeaHouseServiceScope = "FORTUNE_TEA_HOUSE";
+export type FortuneTeaTarotSpread = "three" | "five";
 
 export type FortuneTeaHouseSukuyoPersonInput = {
   name?: string;
@@ -28,10 +30,15 @@ export type FortuneTeaHouseConsultRequest = {
   nickname?: string;
   concernTopic?: string;
   birthInfo?: string;
+  profileId?: string;
   birthDate?: string;
   birthTime?: string;
+  birthTimeUnknown?: boolean;
+  birthPlace?: string;
+  timezone?: string;
   gender?: string;
   calendarType?: FortuneTeaHouseCalendarType;
+  tarotSpread?: FortuneTeaTarotSpread;
   sukuyo?: FortuneTeaHouseSukuyoInput;
   selectedTeaCupId: string;
   selectedTeaCupName: string;
@@ -44,24 +51,27 @@ export type FortuneTeaHouseQuestionInput = {
   nickname?: string;
   concernTopic: string;
   birthInfo?: string;
+  profileId?: string;
   birthDate?: string;
   birthTime?: string;
+  birthTimeUnknown?: boolean;
+  birthPlace?: string;
+  timezone?: string;
   gender?: string;
   calendarType?: FortuneTeaHouseCalendarType;
+  tarotSpread?: FortuneTeaTarotSpread;
   sukuyo?: FortuneTeaHouseSukuyoInput;
   question: string;
 };
 
-export type FortuneTeaHouseHoneyDropBonusAdvice = {
-  title: string;
-  message: string;
-  action: string;
-  source?: "gemini" | "local_fallback" | "guest_local";
-};
-
 export type FortuneTeaHouseHoneyDropsState = {
+  serviceScope?: FortuneTeaHouseServiceScope;
+  balance?: number;
+  fortuneTeaHouseHoneyDrops?: number;
   currentHoneyDrops: number;
   totalHoneyDrops: number;
+  totalEarned?: number;
+  totalSpent?: number;
   lastEarnedAt?: string;
   resultId?: string;
   earnedThisResult?: boolean;
@@ -70,6 +80,14 @@ export type FortuneTeaHouseHoneyDropsState = {
   authenticated?: boolean;
   disabled?: boolean;
   reason?: string;
+};
+
+export type FortuneTeaHouseHoneyLetter = {
+  title: string;
+  body: string;
+  createdAt?: string;
+  provider?: string;
+  model?: string;
 };
 
 export type FortuneTeaSajuTenGodSnapshot = {
@@ -127,11 +145,15 @@ export type FortuneTeaFiveElementBalance = {
 
 export type FortuneTeaSajuBirthSummary = {
   nickname: string;
+  profileId?: string;
   birthDate?: string;
   birthTime?: string;
+  birthTimeUnknown?: boolean;
   hasBirthTime: boolean;
   calendarType?: "solar" | "lunar";
   gender?: string;
+  birthPlace?: string;
+  timezone?: string;
 };
 
 export type FortuneTeaSajuTenGodReading = {
@@ -147,6 +169,13 @@ export type FortuneTeaSajuSecondaryTenGod = {
   roleInTeaHouse: string;
 };
 
+export type FortuneTeaSajuDeepSection = {
+  id: string;
+  title: string;
+  body: string;
+  tone?: "summary" | "element" | "tenGod" | "flow" | "advice" | "caution";
+};
+
 export type FortuneTeaTarotSnapshot = {
   cardId: string;
   number: number;
@@ -157,6 +186,13 @@ export type FortuneTeaTarotSnapshot = {
   meaning: string;
   topicReadingSeed?: string;
   source: "existing-ai-tarot" | "existing-card-data" | "fallback";
+};
+
+export type FortuneTeaTarotSpreadCard = FortuneTeaTarotSnapshot & {
+  positionId: string;
+  positionLabel: string;
+  positionMeaning: string;
+  reading?: string;
 };
 
 export type FortuneTeaSukuyoPersonSnapshot = {
@@ -247,6 +283,7 @@ export type FortuneTeaSukuyoCompatibilitySnapshot = {
 export type FortuneTeaHouseConsultResponse = {
   resultId?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
+  serviceScope?: FortuneTeaHouseServiceScope;
   sessionTitle: string;
   questionSummary: string;
   teaCup: {
@@ -268,9 +305,11 @@ export type FortuneTeaHouseConsultResponse = {
     fiveElements?: FortuneTeaFiveElementBalance[];
     primaryTenGod?: FortuneTeaSajuTenGodReading;
     secondaryTenGods?: FortuneTeaSajuSecondaryTenGod[];
+    deepSections?: FortuneTeaSajuDeepSection[];
     caution?: string;
     cautionReading?: string;
     actionPrescription?: string;
+    oneLineAdvice?: string;
     tarotBridgeReady?: string;
     tenGodSnapshot?: FortuneTeaSajuTenGodSnapshot;
   };
@@ -284,6 +323,8 @@ export type FortuneTeaHouseConsultResponse = {
     meaning: string;
     reading: string;
   };
+  tarotSpread?: FortuneTeaTarotSpread;
+  tarotSpreadCards?: FortuneTeaTarotSpreadCard[];
   sukuyoCompatibility?: FortuneTeaSukuyoCompatibilitySnapshot;
   emotionAnalysis: Array<{
     label: string;
@@ -311,6 +352,6 @@ export type FortuneTeaHouseConsultResponse = {
   }>;
   actionPrescription: string;
   luckyKeywords: string[];
-  honeyDropBonusAdvice?: FortuneTeaHouseHoneyDropBonusAdvice;
+  honeyLetter?: FortuneTeaHouseHoneyLetter;
   closingLine: string;
 };

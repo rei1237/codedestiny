@@ -1,7 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import type { FortuneTeaHouseConsultResponse } from "../data/consult";
+import { useState } from "react";
+import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { getTenGodMeta } from "../data/tenGods";
@@ -13,7 +14,6 @@ import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
-import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
 
 type TeaHouseResultSheetProps = {
@@ -22,14 +22,68 @@ type TeaHouseResultSheetProps = {
   onReady: () => void;
   onShowTarot: () => void;
   onEditBirthInfo: () => void;
+  honeyDrops: FortuneTeaHouseHoneyDropsState | null;
+  onHoneyDropsChange: (honeyDrops: FortuneTeaHouseHoneyDropsState) => void;
+  onResultUpdate: (result: FortuneTeaHouseConsultResponse) => void;
 };
 
-export default function TeaHouseResultSheet({ result, onRestart, onReady, onShowTarot, onEditBirthInfo }: TeaHouseResultSheetProps) {
+type HoneyLetterApiResponse = {
+  success?: boolean;
+  spent?: number;
+  balance?: number;
+  honeyDrops?: FortuneTeaHouseHoneyDropsState;
+  honeyLetter?: FortuneTeaHouseHoneyLetter;
+  alreadyApplied?: boolean;
+  errorCode?: string;
+  required?: number;
+  current?: number;
+};
+
+const tarotChoiceTitleByCupId: Record<string, string> = {
+  "lotus-moon": "7일 행동 플랜",
+  "honey-peach": "7일 썸 리듬 플랜",
+  "star-black-tea": "14일 실행 플랜",
+  "gold-cinnamon": "30일 금전 회복 플랜",
+  "white-lotus-healing": "7일 회복 루틴",
+  "black-moon-brown-rice": "72시간 안정 플랜",
+};
+
+function choiceCountLabel(count: number) {
+  if (count === 1) return "한 가지";
+  if (count === 2) return "두 가지";
+  if (count === 3) return "세 가지";
+  if (count === 4) return "네 가지";
+  return `${count}가지`;
+}
+
+export default function TeaHouseResultSheet({
+  result,
+  onRestart,
+  onReady,
+  onShowTarot,
+  onEditBirthInfo,
+  honeyDrops,
+  onHoneyDropsChange,
+  onResultUpdate,
+}: TeaHouseResultSheetProps) {
+  const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
+  const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const consultationMode = result.consultationMode || "tarot";
   const isTarotMode = consultationMode === "tarot";
   const isSajuMode = consultationMode === "saju";
   const isSukuyoMode = consultationMode === "sukuyo";
   const direction = result.tarot.orientation === "upright" ? "정방향" : "역방향";
+  const tarotSpreadCards = result.tarotSpreadCards?.length
+    ? result.tarotSpreadCards
+    : [
+        {
+          ...result.tarot,
+          positionId: "representative",
+          positionLabel: "대표",
+          positionMeaning: "지금 질문에 먼저 떠오른 카드입니다.",
+          reading: result.tarot.reading,
+        },
+      ];
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
   const resultPrelude = result.teaCup.resultPrelude || selectedCup?.resultPrelude || result.teaCup.reading;
   const yeoniOpening = isSajuMode
@@ -60,13 +114,63 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
   const tenGodSnapshot = saju.tenGodSnapshot;
   const primaryTenGodId = saju.primaryTenGod?.id || (tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined);
   const primaryTenGodMeta = primaryTenGodId ? getTenGodMeta(primaryTenGodId) : null;
-  const honeyBonusAdvice = result.honeyDropBonusAdvice;
+  const honeyLetter = result.honeyLetter;
+  const honeyBalance = honeyDrops?.currentHoneyDrops ?? honeyDrops?.balance ?? 0;
+  const canRequestHoneyLetter = Boolean(result.resultId && honeyDrops?.authenticated && honeyBalance >= 10 && !honeyLetter && !honeyLetterLoading);
+  const previewKeywords = result.luckyKeywords.slice(0, 3);
+  const resultThanksLine = "오늘 함께 찻잔을 열어줘서 고마워요.\n필요한 순간에 이 말만 조용히 떠올려 주세요.";
+  const choiceSimulationTitle = isTarotMode
+    ? tarotChoiceTitleByCupId[result.teaCup.id] || "카드가 권한 다음 행동 플랜"
+    : `지금 선택할 수 있는 ${choiceCountLabel(result.choiceSimulation.length)} 길`;
+
+  async function requestHoneyLetter() {
+    if (!result.resultId || honeyLetterLoading) return;
+    setHoneyLetterLoading(true);
+    setHoneyLetterMessage("연이가 꿀방울을 모아 편지를 쓰는 중이에요.");
+    try {
+      const idempotencyKey = `yeoni-honey-letter:${result.resultId}`;
+      const response = await fetch("/api/fortune-tea-house/results/honey-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resultId: result.resultId, idempotencyKey }),
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => ({}))) as HoneyLetterApiResponse;
+      if (!response.ok || !payload.success || !payload.honeyLetter) {
+        if (payload.errorCode === "INSUFFICIENT_TEA_HOUSE_HONEY_DROPS") {
+          setHoneyLetterMessage("꿀방울이 조금 부족해요. 운명의 찻집 상담을 더 열어보면 꿀방울을 모을 수 있어요.");
+          return;
+        }
+        if (payload.errorCode === "UNAUTHORIZED") {
+          setHoneyLetterMessage("로그인하면 꿀방울을 모아 연이의 꿀편지를 받을 수 있어요.");
+          return;
+        }
+        if (payload.errorCode === "YEONI_HONEY_LETTER_IN_PROGRESS") {
+          setHoneyLetterMessage("연이가 이미 편지를 쓰고 있어요. 잠시만 기다려 주세요.");
+          return;
+        }
+        setHoneyLetterMessage("연이가 편지를 끝까지 묶지 못했어요. 꿀방울은 그대로 지켜둘게요.");
+        return;
+      }
+      if (payload.honeyDrops) onHoneyDropsChange(payload.honeyDrops);
+      onResultUpdate({ ...result, honeyLetter: payload.honeyLetter });
+      setHoneyLetterMessage(payload.alreadyApplied ? "연이의 꿀편지를 다시 펼쳤어요." : "연이의 꿀편지가 도착했어요.");
+    } catch {
+      setHoneyLetterMessage("연이가 편지를 끝까지 묶지 못했어요. 꿀방울은 그대로 지켜둘게요.");
+    } finally {
+      setHoneyLetterLoading(false);
+    }
+  }
   return (
     <section className={styles.resultScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="teaResultTitle">
       <aside className={styles.resultYeoniPanel}>
-        <AssetImage className={styles.resultFullYeoni} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="상담 결과를 들려주는 인간 상담사 연이" priority />
-        <YeoniDialogueActor mood="closing" isSpeaking cueText={result.closingLine} className={styles.resultYeoniActor} priority />
-        <TeaHouseDialogueBox speaker="연이" text={result.closingLine} />
+        <span
+          className={styles.resultThanksYeoniSprite}
+          style={{ "--result-yeoni-sprite": `url("${fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite2Thanks}")` } as CSSProperties}
+          role="img"
+          aria-label="상담을 마치고 감사 인사를 건네는 연이"
+        />
+        <TeaHouseDialogueBox speaker="연이" text={resultThanksLine} />
       </aside>
 
       <article className={styles.resultSheet}>
@@ -114,8 +218,8 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
           )}
           <div>
             <span>오늘 붙잡을 말</span>
-            <strong>{result.luckyKeywords.slice(0, 2).join(" · ")}</strong>
-            <p>{result.luckyKeywords.slice(0, 3).join(" · ")}</p>
+            <strong>{previewKeywords.slice(0, 2).join(" · ")}</strong>
+            <p>{previewKeywords.slice(2).join(" · ") || previewKeywords.join(" · ")}</p>
           </div>
         </div>
 
@@ -153,9 +257,33 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
                 {result.tarot.nameKo} · {direction} · {result.tarot.keywords.join(" · ")}
               </strong>
               <p>{result.tarot.reading}</p>
-              <p>{selectedCup?.tarotRevealTitle || "타로 카드는 지금 이 순간, 질문이 품고 있는 상징을 비춰줍니다."}</p>
+              <p>{selectedCup?.tarotRevealTitle || "타로 카드는 지금 이 순간, 질문이 품고 있는 상징을 비춥니다."}</p>
             </div>
           </div>
+          {tarotSpreadCards.length > 1 ? (
+            <div className={styles.resultTarotSpreadGrid} aria-label="펼쳐진 타로 스프레드">
+              {tarotSpreadCards.map((card) => (
+                <article className={styles.resultTarotSpreadCard} key={`${card.positionId}-${card.cardId}`}>
+                  <TarotAssetCard
+                    cardId={card.cardId}
+                    number={card.number}
+                    nameKo={card.nameKo}
+                    nameEn={card.nameEn}
+                    orientation={card.orientation}
+                    keywords={card.keywords.slice(0, 2)}
+                    meaning={card.meaning}
+                    size="sm"
+                    compact
+                  />
+                  <div>
+                    <span>{card.positionLabel}</span>
+                    <strong>{card.nameKo}</strong>
+                    <p>{card.reading || card.positionMeaning}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
         </section>
         ) : null}
 
@@ -199,7 +327,15 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
 
         <section className={styles.resultBlock} aria-labelledby="emotionResultTitle">
           <h3 id="emotionResultTitle">연이가 맡은 마음의 향</h3>
-          <AssetImage className={styles.resultGaugeAsset} src={fortuneTeaHouseAssets.pig.emotionGauge} alt="감정 분석 게이지 장식" />
+          <div className={styles.resultEmotionPigStage}>
+            <span className={styles.resultEmotionPigGlow} aria-hidden />
+            <span
+              className={styles.resultEmotionPigSprite}
+              style={{ "--result-pig-sprite": `url("${fortuneTeaHouseAssets.yeoni.transparent.talkingPigYeoni3Sprite}")` } as CSSProperties}
+              role="img"
+              aria-label="마음의 향을 맡는 꽃돼지 연이"
+            />
+          </div>
           <div className={styles.resultEmotionList}>
             {result.emotionAnalysis.map((item) => (
               <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label}>
@@ -227,7 +363,7 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
-          <h3 id="choiceSimulationTitle">지금 선택할 수 있는 세 가지 길</h3>
+          <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
               <article className={styles.choiceCard} key={choice.id}>
@@ -244,30 +380,54 @@ export default function TeaHouseResultSheet({ result, onRestart, onReady, onShow
           <h3 id="actionPrescriptionTitle">오늘의 작은 처방</h3>
           <p>{result.actionPrescription}</p>
           <div className={styles.luckyKeywordList}>
-            {result.luckyKeywords.map((keyword) => (
+            {previewKeywords.map((keyword) => (
               <span key={keyword}>{keyword}</span>
             ))}
           </div>
         </section>
 
-        {honeyBonusAdvice ? (
-          <section className={`${styles.resultBlock} ${styles.honeyBonusAdvice}`} aria-labelledby="honeyBonusAdviceTitle">
-            <div className={styles.honeyBonusHeader}>
-              <AssetImage
-                className={styles.honeyBonusIcon}
-                src={fortuneTeaHouseAssets.rewards.honeyDrop}
-                fallbackSrc={fortuneTeaHouseAssets.rewards.honeyDrop2}
-                alt=""
-              />
-              <div>
-                <span>꿀방울 보너스</span>
-                <h3 id="honeyBonusAdviceTitle">{honeyBonusAdvice.title || "연이의 따뜻한 조언"}</h3>
-              </div>
+        <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
+          <div className={styles.honeyLetterLayout}>
+            <div className={styles.honeyLetterMascotWrap} aria-hidden>
+              <AssetImage className={styles.honeyLetterMascot} src={fortuneTeaHouseAssets.rewards.flowerPigHoneyHug} alt="" />
+              <span className={styles.honeyLetterBalance}>
+                <AssetImage className={styles.honeyLetterIcon} src={fortuneTeaHouseAssets.rewards.honeyDrop} fallbackSrc={fortuneTeaHouseAssets.rewards.honeyDrop2} alt="" />
+                {honeyBalance}개
+              </span>
             </div>
-            <p>{honeyBonusAdvice.message}</p>
-            <strong>{honeyBonusAdvice.action}</strong>
-          </section>
-        ) : null}
+            <div className={styles.honeyLetterContent}>
+              <div className={styles.honeyLetterHeader}>
+                <div>
+                  <span>보유 꿀방울: {honeyBalance}개</span>
+                  <h3 id="honeyLetterTitle">연이의 꿀편지</h3>
+                </div>
+              </div>
+
+              {honeyLetter ? (
+                <article className={styles.honeyLetterCard} aria-live="polite">
+                  <h4>{honeyLetter.title || "연이의 꿀편지"}</h4>
+                  <p>{honeyLetter.body}</p>
+                </article>
+              ) : (
+                <div className={styles.honeyLetterCta}>
+                  <p>
+                    연이가 꿀방울을 톡톡 모아, 오늘의 상담 끝에 손님 마음으로만 닿는 편지를 써줄게요.
+                  </p>
+                  <TeaHouseButton onClick={requestHoneyLetter} disabled={!canRequestHoneyLetter}>
+                    {honeyLetterLoading ? "연이가 편지를 쓰는 중이에요" : "꿀방울 10개로 연이의 꿀편지 받기"}
+                  </TeaHouseButton>
+                  {!honeyDrops?.authenticated ? (
+                    <small>로그인하면 꿀방울을 모아 연이의 꿀편지를 받을 수 있어요.</small>
+                  ) : honeyBalance < 10 ? (
+                    <small>꿀방울이 조금 부족해요. 운명의 찻집 상담을 더 열어보면 꿀방울을 모을 수 있어요.</small>
+                  ) : null}
+                </div>
+              )}
+
+              {honeyLetterMessage ? <strong className={styles.honeyLetterStatus}>{honeyLetterMessage}</strong> : null}
+            </div>
+          </div>
+        </section>
 
         <section className={styles.resultBlock} aria-labelledby="closingResultTitle">
           <h3 id="closingResultTitle">마지막 한마디</h3>

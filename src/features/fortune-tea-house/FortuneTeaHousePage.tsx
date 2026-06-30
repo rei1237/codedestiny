@@ -16,18 +16,15 @@ import TeaHouseButton from "./components/TeaHouseButton";
 import TeaHouseResultSheet from "./components/TeaHouseResultSheet";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
-import type { FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
+import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import { teaHouseCtaCopy, type TeaHouseStage } from "./data/story";
 import type { TeaHouseCup } from "./data/teaCups";
 import { buildFortuneTeaHouseConsultResult } from "./lib/buildConsultResult";
 import {
-  applyGuestHoneyDropReward,
-  attachHoneyBonusAdvice,
   createFortuneTeaAttemptId,
   normalizeHoneyDropsState,
   pickHoneyDropMessage,
-  readGuestHoneyDrops,
 } from "./lib/honeyDrops";
 import styles from "./styles/fortune-tea-house.module.css";
 
@@ -87,6 +84,46 @@ type FortuneTeaHouseConsultApiResponse = {
   };
 };
 
+export type FortuneTeaGenerationProgress = {
+  percent: number;
+  label: string;
+  message: string;
+  delayed?: boolean;
+  status: "running" | "complete" | "error";
+};
+
+type FortuneTeaProgressStep = {
+  percent: number;
+  label: string;
+  message: string;
+};
+
+const FORTUNE_TEA_PROGRESS_STEPS: FortuneTeaProgressStep[] = [
+  { percent: 5, label: "요청 접수", message: "찻잔 위에 질문을 올리고 있어요." },
+  { percent: 10, label: "권한과 입력 확인", message: "상담을 열 수 있는 상태인지 조용히 확인하고 있어요." },
+  { percent: 20, label: "프로필 확인", message: "태어난 흐름과 질문의 결을 맞추고 있어요." },
+  { percent: 35, label: "명식 계산", message: "명식의 기본 구조를 세우는 중이에요." },
+  { percent: 50, label: "상담 준비", message: "오행과 십성의 균형을 살피는 중이에요." },
+  { percent: 70, label: "상담문 생성", message: "대운과 현재 흐름을 질문에 연결하고 있어요." },
+  { percent: 85, label: "결과 정리", message: "상담 문장을 차분히 고르고 있어요." },
+  { percent: 95, label: "결과 저장 대기", message: "곧 결과지를 열어드릴게요." },
+];
+
+function progressMessageForMode(step: FortuneTeaProgressStep, mode: FortuneTeaHouseConsultMode): string {
+  if (mode === "saju") return step.message;
+  if (mode === "sukuyo" && step.percent >= 35) {
+    if (step.percent < 50) return "두 사람의 달빛 자리를 맞추고 있어요.";
+    if (step.percent < 70) return "27숙의 거리와 관계 온도를 살피는 중이에요.";
+    if (step.percent < 85) return "인연의 흐름을 상담 문장으로 엮고 있어요.";
+  }
+  if (mode === "tarot" && step.percent >= 35) {
+    if (step.percent < 50) return "선택된 카드의 상징을 잔 위에 띄우고 있어요.";
+    if (step.percent < 70) return "카드의 장면과 질문의 온도를 맞추고 있어요.";
+    if (step.percent < 85) return "연이가 타로의 말을 조심스럽게 고르고 있어요.";
+  }
+  return step.message;
+}
+
 type BrowserIdleWindow = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
   cancelIdleCallback?: (handle: number) => void;
@@ -124,13 +161,80 @@ export default function FortuneTeaHousePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
+    percent: 5,
+    label: "요청 접수",
+    message: "찻잔 위에 질문을 올리고 있어요.",
+    status: "running",
+  });
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const enterTimerRef = useRef<number | null>(null);
+  const progressTimerRef = useRef<number | null>(null);
+  const progressStartedAtRef = useRef(0);
   const consultRunRef = useRef(0);
   const submitLockRef = useRef(false);
   const loadingBgmIndexRef = useRef(0);
   const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
+
+  const clearGenerationProgressTimer = useCallback(() => {
+    if (progressTimerRef.current !== null) {
+      window.clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  }, []);
+
+  const startGenerationProgress = useCallback((mode: FortuneTeaHouseConsultMode) => {
+    clearGenerationProgressTimer();
+    progressStartedAtRef.current = Date.now();
+    let stepIndex = 0;
+    const firstStep = FORTUNE_TEA_PROGRESS_STEPS[0];
+    setGenerationProgress({
+      percent: firstStep.percent,
+      label: firstStep.label,
+      message: progressMessageForMode(firstStep, mode),
+      status: "running",
+    });
+    progressTimerRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - progressStartedAtRef.current;
+      stepIndex = Math.min(FORTUNE_TEA_PROGRESS_STEPS.length - 1, stepIndex + 1);
+      const step = FORTUNE_TEA_PROGRESS_STEPS[stepIndex];
+      setGenerationProgress((current) => {
+        const softPercent = elapsed > 12000
+          ? Math.min(95, Math.max(current.percent, current.percent + 1))
+          : step.percent;
+        return {
+          percent: Math.min(95, Math.max(current.percent, softPercent)),
+          label: step.percent > current.percent ? step.label : current.label,
+          message: step.percent > current.percent ? progressMessageForMode(step, mode) : current.message,
+          delayed: elapsed > 18000,
+          status: "running",
+        };
+      });
+      if (stepIndex >= FORTUNE_TEA_PROGRESS_STEPS.length - 1 && elapsed > 12000) {
+        stepIndex = FORTUNE_TEA_PROGRESS_STEPS.length - 2;
+      }
+    }, 1450);
+  }, [clearGenerationProgressTimer]);
+
+  const markGenerationComplete = useCallback(() => {
+    clearGenerationProgressTimer();
+    setGenerationProgress({
+      percent: 100,
+      label: "완료",
+      message: "상담 결과가 완성되었습니다. 결과지를 열어드릴게요.",
+      status: "complete",
+    });
+  }, [clearGenerationProgressTimer]);
+
+  const markGenerationError = useCallback(() => {
+    clearGenerationProgressTimer();
+    setGenerationProgress((current) => ({
+      ...current,
+      status: "error",
+      message: "상담문을 엮는 중 흐름이 끊겼어요. 다시 시도할 수 있게 준비해둘게요.",
+    }));
+  }, [clearGenerationProgressTimer]);
 
   useEffect(() => {
     const audio = bgmAudioRef.current;
@@ -147,16 +251,16 @@ export default function FortuneTeaHousePage() {
     return () => {
       if (audio) audio.pause();
       if (enterTimerRef.current) window.clearTimeout(enterTimerRef.current);
+      clearGenerationProgressTimer();
     };
-  }, []);
+  }, [clearGenerationProgressTimer]);
 
   useEffect(() => {
     let cancelled = false;
     const abortController = new AbortController();
-    setHoneyDrops(readGuestHoneyDrops());
 
     const syncServerHoneyDrops = () => {
-      fetch("/api/fortune-tea-house/honey-drops", {
+      fetch("/api/fortune-tea-house/honey-drops/balance", {
         cache: "no-store",
         signal: abortController.signal,
       })
@@ -166,7 +270,7 @@ export default function FortuneTeaHousePage() {
           return payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
         })
         .then((serverHoneyDrops) => {
-          if (!cancelled && serverHoneyDrops?.authenticated) setHoneyDrops(serverHoneyDrops);
+          if (!cancelled && serverHoneyDrops) setHoneyDrops(serverHoneyDrops);
         })
         .catch(() => {
           void 0;
@@ -207,7 +311,7 @@ export default function FortuneTeaHousePage() {
     } catch {
       setBgmStatus("blocked");
     }
-  }, [bgmEnabled, currentBgmTrack.url, currentBgmTrack.volume, isBgmPreferenceReady]);
+  }, [bgmEnabled, currentBgmTrack, isBgmPreferenceReady]);
 
   useEffect(() => {
     loadingBgmIndexRef.current = 0;
@@ -291,6 +395,7 @@ export default function FortuneTeaHousePage() {
   function restartConsultation() {
     consultRunRef.current += 1;
     submitLockRef.current = false;
+    clearGenerationProgressTimer();
     setIsSubmitting(false);
     setSubmitError("");
     setQuestionInput({});
@@ -301,6 +406,7 @@ export default function FortuneTeaHousePage() {
   function returnToLanding() {
     consultRunRef.current += 1;
     submitLockRef.current = false;
+    clearGenerationProgressTimer();
     if (enterTimerRef.current) {
       window.clearTimeout(enterTimerRef.current);
       enterTimerRef.current = null;
@@ -319,10 +425,16 @@ export default function FortuneTeaHousePage() {
   }
 
   function selectTeaCup(cup: TeaHouseCup) {
+    clearGenerationProgressTimer();
     setSelectedCup(cup);
     setConsultResult(null);
     setSubmitError("");
     goToStage("teaCupRitual");
+  }
+
+  function canUseLocalConsultPreview() {
+    if (typeof window === "undefined") return false;
+    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "::1";
   }
 
   async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput) {
@@ -341,9 +453,13 @@ export default function FortuneTeaHousePage() {
     setSubmitError("");
     setQuestionInput(nextQuestionInput);
     setConsultResult(null);
+    startGenerationProgress(nextQuestionInput.consultationMode);
     goToStage("scentLoading");
     const consultRunId = consultRunRef.current + 1;
     consultRunRef.current = consultRunId;
+    const useLocalPreview = canUseLocalConsultPreview();
+    let localPreviewResult: FortuneTeaHouseConsultResponse | null = null;
+    let localPreviewResultId = "";
 
     try {
       const startedAt = Date.now();
@@ -355,13 +471,19 @@ export default function FortuneTeaHousePage() {
         nickname: nextQuestionInput.nickname,
         concernTopic: nextQuestionInput.concernTopic,
         birthInfo: nextQuestionInput.birthInfo,
+        profileId: nextQuestionInput.profileId,
         birthDate: nextQuestionInput.birthDate,
         birthTime: nextQuestionInput.birthTime,
+        birthTimeUnknown: nextQuestionInput.birthTimeUnknown,
+        birthPlace: nextQuestionInput.birthPlace,
+        timezone: nextQuestionInput.timezone,
         gender: nextQuestionInput.gender,
         calendarType: nextQuestionInput.calendarType,
+        tarotSpread: nextQuestionInput.tarotSpread,
         sukuyo: nextQuestionInput.sukuyo,
         question: nextQuestionInput.question,
       });
+      localPreviewResult = localDraft;
       const requestPayload: FortuneTeaHouseConsultRequest = {
         consultationMode: nextQuestionInput.consultationMode,
         selectedTeaCupId: selectedCup.id,
@@ -370,30 +492,43 @@ export default function FortuneTeaHousePage() {
         nickname: nextQuestionInput.nickname,
         concernTopic: nextQuestionInput.concernTopic,
         birthInfo: nextQuestionInput.birthInfo,
+        profileId: nextQuestionInput.profileId,
         birthDate: nextQuestionInput.birthDate,
         birthTime: nextQuestionInput.birthTime,
+        birthTimeUnknown: nextQuestionInput.birthTimeUnknown,
+        birthPlace: nextQuestionInput.birthPlace,
+        timezone: nextQuestionInput.timezone,
         gender: nextQuestionInput.gender,
         calendarType: nextQuestionInput.calendarType,
+        tarotSpread: nextQuestionInput.tarotSpread,
         sukuyo: nextQuestionInput.sukuyo,
         question: nextQuestionInput.question,
       };
       const attemptId = createFortuneTeaAttemptId(requestPayload);
+      localPreviewResultId = attemptId;
       const requestPayloadWithAttempt: FortuneTeaHouseConsultRequest = {
         ...requestPayload,
         attemptId,
       };
       logSubmitStep("api result start");
+      const abortController = new AbortController();
+      const localPreviewTimeoutId = useLocalPreview ? window.setTimeout(() => abortController.abort(), 8500) : null;
       const response = await fetch("/api/fortune-tea-house/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...requestPayloadWithAttempt, draftResult: localDraft }),
         cache: "no-store",
+        signal: abortController.signal,
+      }).finally(() => {
+        if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
       });
       const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
       if (!response.ok || !payload.ok || !payload.result) {
         throw new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
       }
       logSubmitStep("api result success", payload.generationMeta);
+      if (consultRunRef.current !== consultRunId) return;
+      markGenerationComplete();
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
       if (remainingDelay > 0) {
@@ -403,14 +538,10 @@ export default function FortuneTeaHousePage() {
       if (consultRunRef.current !== consultRunId) return;
       const resultId = payload.result.resultId || attemptId;
       const serverHoneyDrops = normalizeHoneyDropsState(payload.honeyDrops);
-      const nextHoneyDrops = serverHoneyDrops || applyGuestHoneyDropReward(resultId);
-      const nextResult = attachHoneyBonusAdvice(
-        { ...payload.result, resultId, consultationMode: nextQuestionInput.consultationMode },
-        nextHoneyDrops,
-      );
-      setHoneyDrops(nextHoneyDrops);
-      if (nextHoneyDrops.earnedThisResult) {
-        setHoneyRewardMessage(pickHoneyDropMessage(nextHoneyDrops));
+      const nextResult = { ...payload.result, resultId, consultationMode: nextQuestionInput.consultationMode };
+      if (serverHoneyDrops) setHoneyDrops(serverHoneyDrops);
+      if (serverHoneyDrops?.earnedThisResult) {
+        setHoneyRewardMessage(pickHoneyDropMessage(serverHoneyDrops));
         setHoneyRewardBurstKey((key) => key + 1);
       }
       setConsultResult(nextResult);
@@ -433,6 +564,23 @@ export default function FortuneTeaHousePage() {
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error", error);
+      if (localPreviewResult && useLocalPreview) {
+        markGenerationComplete();
+        const nextResult = {
+          ...localPreviewResult,
+          resultId: localPreviewResult.resultId || localPreviewResultId,
+          consultationMode: nextQuestionInput.consultationMode,
+        };
+        setConsultResult(nextResult);
+        setNotice("로컬 UI 확인 모드로 상담 결과 초안을 열었어요. API 응답은 나중에 다시 확인해 주세요.");
+        if (nextQuestionInput.consultationMode === "saju" || nextQuestionInput.consultationMode === "sukuyo") {
+          goToStage("result");
+          return;
+        }
+        goToStage("tarotReveal");
+        return;
+      }
+      markGenerationError();
       setSubmitError("찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");
       goToStage("questionInput");
     } finally {
@@ -496,7 +644,7 @@ export default function FortuneTeaHousePage() {
     }
 
     if (stage === "scentLoading") {
-      return <ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} />;
+      return <ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} progress={generationProgress} />;
     }
 
     if (stage === "tarotReveal" && consultResult) {
@@ -511,10 +659,13 @@ export default function FortuneTeaHousePage() {
       return (
         <TeaHouseResultSheet
           result={consultResult}
+          honeyDrops={honeyDrops}
           onRestart={restartConsultation}
           onReady={() => showReadyNotice("저장은 아직 준비 중이에요. 오늘은 이 결과를 화면에서 천천히 읽어 주세요.")}
           onShowTarot={() => goToStage("tarotReveal")}
           onEditBirthInfo={() => goToStage("questionInput")}
+          onHoneyDropsChange={setHoneyDrops}
+          onResultUpdate={setConsultResult}
         />
       );
     }

@@ -825,6 +825,85 @@
   font-weight: 500;
 }
 
+.basicChartData {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(196, 181, 253, 0.18);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.basicChartHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.basicChartHeader span {
+  color: #f6d67e;
+  font-size: 0.82rem;
+}
+
+.basicChartHeader strong {
+  color: rgba(196, 181, 253, 0.58);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.chartDataGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.chartDataGrid div {
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(246, 214, 126, 0.12);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.24);
+}
+
+.chartDataGrid dt {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.72rem;
+}
+
+.chartDataGrid dd {
+  margin: 0.28rem 0 0;
+  color: rgba(255, 248, 231, 0.9);
+  overflow-wrap: anywhere;
+  font-size: 0.84rem;
+}
+
+.planetTableWrap {
+  overflow-x: auto;
+}
+
+.planetTable {
+  width: 100%;
+  min-width: 34rem;
+  border-collapse: collapse;
+  color: rgba(255, 248, 231, 0.86);
+  font-size: 0.78rem;
+}
+
+.planetTable th,
+.planetTable td {
+  padding: 0.52rem 0.45rem;
+  border-bottom: 1px solid rgba(196, 181, 253, 0.12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.planetTable th {
+  color: rgba(196, 181, 253, 0.62);
+  font-weight: 500;
+}
+
 .scorePanel {
   display: grid;
   gap: 0.75rem;
@@ -1003,6 +1082,7 @@
   .formGrid,
   .summaryGrid,
   .chartSummaryCard,
+  .chartDataGrid,
   .chartCards,
   .sectionGrid {
     grid-template-columns: 1fr;
@@ -1010,5 +1090,88 @@
 
   .userMsg {
     margin-left: 0;
+  }
+}
+
+@media print {
+  .hero {
+    min-height: auto;
+    background: #fff;
+    color: #111827;
+  }
+
+  .heroInner,
+  .formPanel,
+  .summaryGrid,
+  .chartCards,
+  .chatInput,
+  .emptyState {
+    display: none !important;
+  }
+
+  .workspace {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .resultPanel {
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .resultPanel::before,
+  .structuredHeader button {
+    display: none;
+  }
+
+  .structuredResult {
+    color: #111827;
+  }
+
+  .structuredHeader {
+    position: static;
+    padding: 0 0 1rem;
+    background: #fff;
+    border-bottom: 1px solid #d1d5db;
+    backdrop-filter: none;
+  }
+
+  .structuredHeader p,
+  .structuredHeader h2,
+  .chartSummaryCard strong,
+  .basicChartHeader span,
+  .basicChartHeader strong,
+  .chartDataGrid dt,
+  .chartDataGrid dd,
+  .planetTable,
+  .planetTable th,
+  .planetTable td,
+  .scorePanel strong,
+  .structuredSection h3,
+  .structuredSection p {
+    color: #111827;
+  }
+
+  .chartSummaryCard,
+  .basicChartData,
+  .chartDataGrid div,
+  .scorePanel div,
+  .structuredSection {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-color: #d1d5db;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .planetTable th,
+  .planetTable td {
+    border-bottom-color: #d1d5db;
   }
 }

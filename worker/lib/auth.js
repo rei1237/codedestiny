@@ -21,6 +21,7 @@ const PAID_SERVICE_ADMIN_AUTH_PATHS = Object.freeze([
   "/api/new-year-ai",
   "/api/ziwei-ai",
   "/api/astrology-ai",
+  "/api/neo-operation-room",
   "/api/sukuyo",
   "/api/sukuyo-compatibility-ai",
   "/api/astro",

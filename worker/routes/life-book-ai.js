@@ -70,8 +70,9 @@ const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능/gi;
 const CANONICAL_TEN_GODS = Object.freeze(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]);
 const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
-const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 240;
-const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 3500;
+const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 700;
+const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 10000;
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 20000;
 const startLocks = new Map();
 
 function clean(value, maxLength = 0) {
@@ -716,6 +717,12 @@ function buildFirstPrompt(input, sajuResult) {
         { chapterNumber: 9, title: "가까운 시기의 세운 조언", summary: "", content: "", advice: [] },
         { chapterNumber: 10, title: "인생의 책 마지막 문장", summary: "", content: "", advice: [] },
       ],
+      expertReadings: [
+        { title: "일간과 월지가 여는 중심 기질", content: "", guidance: [] },
+        { title: "오행과 조후가 청하는 보완", content: "", guidance: [] },
+        { title: "십성으로 읽는 관계와 일의 방식", content: "", guidance: [] },
+        { title: "대운과 세운이 비추는 선택의 시기", content: "", guidance: [] },
+      ],
       finalMessage: "",
       pdfSections: [],
     }, null, 2),
@@ -723,7 +730,10 @@ function buildFirstPrompt(input, sajuResult) {
     "반드시 포함할 분석: 일간 중심 기질, 월지와 계절감, 오행 균형, 십성 구조, 조후, 강점과 약점, 사랑과 인연, 일과 재능, 재물 흐름, 인간관계, 가족과 뿌리, 건강과 생활 리듬, 대운 흐름, 가까운 세운 흐름, 삶의 목적, 지금 실천할 조언.",
     "십성 이름은 계산 데이터의 tenGods 키와 허용 목록에 있는 이름만 사용하세요. 없는 십성 이름을 새로 만들거나 바꿔 부르지 마세요.",
     "계산 데이터가 제한적이면 단정하지 말고 계산 가능한 범위에서만 상담하세요.",
-    "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 2문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 2개 이상 담으세요.",
+    "열 장의 content와 expertReadings의 content를 모두 합산한 전체 본문은 10,000자 이상 20,000자 이하로 맞추며, 장별 10,000자가 아니라 전체 합산 기준입니다.",
+    "분량이 부족할 때는 같은 문장을 늘리지 말고, 사주 전문가로서 일간·월지·오행·조후·십성·대운·세운을 더 세밀하게 판독하는 expertReadings를 보강하세요.",
+    "문장의 양보다 명식 근거, 해석의 연결성, 현실 조언의 정확도를 우선하고, 근거 없이 감성 문장만 길게 늘리지 마세요.",
+    "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 700자 이상의 3문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 2개 이상 담으세요.",
     "열 장의 관점이 서로 겹치지 않게 하며, 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
   ].join("\n");
 }
@@ -754,6 +764,7 @@ function getLifeBookReportQualityIssues(content) {
   if (!report) {
     issues.push("report_json_missing");
     if (text.length < LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) issues.push("total_content_too_short");
+    if (text.length > LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS) issues.push("total_content_too_long");
     return issues;
   }
 
@@ -775,7 +786,23 @@ function getLifeBookReportQualityIssues(content) {
     if (!advice.length) issues.push(`chapter_${chapterNumber}_advice_missing`);
   });
 
+  const expertReadings = Array.isArray(report.expertReadings) ? report.expertReadings : [];
+  expertReadings.forEach((reading, index) => {
+    const readingNumber = index + 1;
+    const title = clean(reading?.title, 200);
+    const readingContent = clean(reading?.content, 12000);
+    const guidance = Array.isArray(reading?.guidance)
+      ? reading.guidance.map((item) => clean(item, 1000)).filter(Boolean)
+      : [];
+    totalContentLength += readingContent.length;
+    if (!title) issues.push(`expert_reading_${readingNumber}_title_missing`);
+    if (!readingContent) issues.push(`expert_reading_${readingNumber}_content_missing`);
+    if (readingContent && readingContent.length < 350) issues.push(`expert_reading_${readingNumber}_content_too_short`);
+    if (readingContent && !guidance.length) issues.push(`expert_reading_${readingNumber}_guidance_missing`);
+  });
+
   if (totalContentLength < LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS) issues.push("total_content_too_short");
+  if (totalContentLength > LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS) issues.push("total_content_too_long");
   return issues;
 }
 
@@ -783,6 +810,8 @@ function buildLifeBookRepairPrompt(content, issues) {
   return [
     "다음 인생의 책 상담문을 같은 JSON 구조로 다시 정돈해 주세요.",
     "열 장을 모두 채우고, 각 장에는 summary, content, advice를 빠짐없이 담아 주세요.",
+    "열 장 content와 expertReadings content의 전체 합산은 10,000자 이상 20,000자 이하로 조정하고, 각 장 content는 최소 700자 이상으로 유지해 주세요.",
+    "짧은 문장을 반복하지 말고, 부족한 깊이는 사주 전문가의 판독으로 expertReadings에 더해 주세요. 20,000자를 넘었다면 반복되는 위로와 중복 결론을 덜어내고 핵심 근거를 선명하게 남겨 주세요.",
     "각 장 content는 명식 근거, 삶에서 드러나는 의미, 현실 조언이 자연스럽게 이어지도록 충분히 깊게 써 주세요.",
     "전체 본문은 짧게 줄이지 말고, 같은 표현을 반복하지 않으며 전문 명리학자의 상담처럼 부드럽고 분명하게 유지하세요.",
     "기술 표현은 결과에 드러내지 말고, 계산 데이터에 없는 십성 이름은 만들지 마세요.",
@@ -808,7 +837,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: options.temperature || 0.72,
-    maxOutputTokens: options.maxOutputTokens || 7600,
+    maxOutputTokens: options.maxOutputTokens || 18000,
     timeoutMs: Number(env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -826,7 +855,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.52,
-    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), 9000),
+    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), 18000),
   });
   const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
   const repairedIssues = getLifeBookReportQualityIssues(repaired);
@@ -1372,8 +1401,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
     try {
       const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env });
       const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
-        minLength: 1800,
-        maxOutputTokens: 9000,
+        minLength: LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS,
+        maxOutputTokens: 18000,
         logContext,
       });
       await applyUsageOnce({

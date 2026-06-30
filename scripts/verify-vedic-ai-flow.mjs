@@ -46,11 +46,21 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
   "birthTimeUnknown",
   "data-vedic-ai-page",
   "splitAssistantSections",
+  "id=\"vedic-result-body\"",
+  "aria-label=\"PDF로 저장\"",
+  "window.print()",
+  "graha_strength",
+  "bhava_focus",
+  "navamsa",
+  "transit_remedy",
+  "BasicVedicChartData",
+  "기본 베다 차트 데이터",
+  "planetRows",
 ].forEach((needle) => assertIncludes(client, needle, "client contract"));
 assertMissing(client, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job"], "client");
 
 const css = read("app/vedic-ai/VedicAiClient.module.css");
-["radial-gradient", "mandala", "loadingMandala"].forEach((needle) => {
+["radial-gradient", "mandala", "loadingMandala", "@media print", ".structuredHeader button", ".basicChartData", ".planetTable"].forEach((needle) => {
   assertIncludes(css, needle, "css cosmic UI");
 });
 
@@ -70,8 +80,21 @@ const route = read("worker/routes/vedic-ai.js");
   "focusArea",
   "requestId",
   "LLM Payment Guard Passed",
+  "MIN_INITIAL_READING_CHARS = 10000",
+  "MAX_INITIAL_READING_CHARS = 20000",
+  "INITIAL_MAX_OUTPUT_TOKENS = 16000",
+  "validateConsultationQuality",
+  "maxTotalChars",
+  "requireStructured: true",
+  "graha_strength",
+  "bhava_focus",
+  "navamsa",
+  "transit_remedy",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
 assertMissing(route, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "generateChapter"], "worker route");
+assertMissing(route, ["3,500~5,000자", "500~700자", "600~800자", "400~500자"], "worker route length contract");
+assertIncludes(route, "10,000~20,000자", "length range contract");
+assertIncludes(route, "같은 뜻의 문장을 늘리지 말고", "expert depth guard");
 
 const workerIndex = read("worker/index.js");
 assertIncludes(workerIndex, "/api/vedic-ai", "worker index route");
@@ -86,6 +109,69 @@ assertIncludes(bindings, "window.location.assign('/vedic-ai')", "uiBindings navi
 assertIncludes(runtime, "window.location.assign('/vedic-ai')", "runtime navigation");
 
 const { handleVedicAiRoutes, __vedicAiTestUtils } = await import(new URL("../worker/routes/vedic-ai.js", import.meta.url).href);
+const readingSectionKeys = [
+  "lagna",
+  "sun_nakshatra",
+  "moon_nakshatra",
+  "graha_strength",
+  "bhava_focus",
+  "navamsa",
+  "dasha",
+  "transit_remedy",
+  "karma",
+  "topic",
+  "prescription",
+];
+const sectionTitles = {
+  lagna: "拉格納 — 어센던트가 말하는 영혼의 입구",
+  sun_nakshatra: "蘇利耶 — 태양이 머문 별자리의 빛",
+  moon_nakshatra: "旃陀羅 — 달이 머문 별자리의 감정",
+  graha_strength: "格羅哈 — 행성 강약과 숨은 기질",
+  bhava_focus: "婆伐 — 바바가 여는 삶의 무대",
+  navamsa: "那婆姆沙 — 나밤샤가 비추는 깊은 약속",
+  dasha: "達薩 — 지금 이 행성의 계절",
+  transit_remedy: "高遮羅 — 고차르와 업야야의 조율",
+  karma: "業 — 이 생의 카르마적 과제",
+  topic: "問 — 지금 질문에 대한 답",
+  prescription: "方 — 별이 건네는 오늘의 처방",
+};
+function repeatedReading(seed, minChars) {
+  let text = "";
+  while (text.replace(/\s+/g, "").length < minChars) {
+    text += `${seed} 라그나와 나크샤트라, 다샤의 흐름은 지금의 선택을 더 차분하게 비춥니다. 마음이 급하게 앞서기보다 이미 드러난 별의 리듬을 따라 책임과 관계, 일의 방향을 함께 살피면 길이 선명해집니다. `;
+  }
+  return text.trim();
+}
+const mockReading = JSON.stringify({
+  scores: { dharma: 82, artha: 76, kama: 71, moksha: 88, overall: 81 },
+  sections: Object.fromEntries(readingSectionKeys.map((key, index) => [
+    key,
+    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 흐름은`, 1500) },
+  ])),
+});
+const mockQuality = __vedicAiTestUtils.validateConsultationQuality(mockReading, { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
+assert.equal(mockQuality.ok, true, "[verify:vedic-ai-flow] mock reading quality must pass");
+assert(mockQuality.totalChars >= 10000, "[verify:vedic-ai-flow] mock reading must be 10000+ chars");
+assert(mockQuality.totalChars <= 20000, "[verify:vedic-ai-flow] mock reading must be 20000 chars or less");
+assert.equal(mockQuality.sectionCount, readingSectionKeys.length, "[verify:vedic-ai-flow] mock reading section count");
+const shortMockQuality = __vedicAiTestUtils.validateConsultationQuality(JSON.stringify({
+  scores: { dharma: 70, artha: 70, kama: 70, moksha: 70, overall: 70 },
+  sections: Object.fromEntries(readingSectionKeys.map((key) => [key, { title: sectionTitles[key], body: "짧은 상담문입니다." }])),
+}), { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
+assert.equal(shortMockQuality.ok, false, "[verify:vedic-ai-flow] short mock reading must fail");
+assert(shortMockQuality.issues.includes("total_body_too_short"), "[verify:vedic-ai-flow] short mock length issue missing");
+const longMockQuality = __vedicAiTestUtils.validateConsultationQuality(JSON.stringify({
+  scores: { dharma: 90, artha: 90, kama: 90, moksha: 90, overall: 90 },
+  sections: Object.fromEntries(readingSectionKeys.map((key, index) => [
+    key,
+    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 긴 흐름은`, 2200) },
+  ])),
+}), { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
+assert.equal(longMockQuality.ok, false, "[verify:vedic-ai-flow] long mock reading must fail");
+assert(longMockQuality.issues.includes("total_body_too_long"), "[verify:vedic-ai-flow] long mock length issue missing");
+const sanitizedMock = __vedicAiTestUtils.sanitizeAssistantText("PDF 챕터 프롬프트 시스템");
+assert.equal(/PDF|챕터|프롬프트|시스템/.test(sanitizedMock), false, "[verify:vedic-ai-flow] mechanical tokens must be sanitized");
+
 const validPayload = {
   serviceType: "vedic-ai-consultation",
   consultationType: "vedic",

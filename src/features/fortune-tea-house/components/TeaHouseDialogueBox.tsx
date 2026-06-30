@@ -11,6 +11,7 @@ type TeaHouseDialogueBoxProps = {
   className?: string;
   onAdvance?: () => void;
   isAdvanceDisabled?: boolean;
+  onTextComplete?: (complete: boolean) => void;
 };
 
 const TYPEWRITER_INTERVAL_MS = 24;
@@ -33,6 +34,7 @@ export default function TeaHouseDialogueBox({
   className = "",
   onAdvance,
   isAdvanceDisabled = false,
+  onTextComplete,
 }: TeaHouseDialogueBoxProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const characters = useMemo(() => Array.from(text), [text]);
@@ -63,6 +65,10 @@ export default function TeaHouseDialogueBox({
 
     return () => window.clearInterval(timer);
   }, [characters.length, prefersReducedMotion, text, typewriterIntervalMs]);
+
+  useEffect(() => {
+    onTextComplete?.(isTextComplete);
+  }, [isTextComplete, onTextComplete]);
 
   function handleDialogueAdvance() {
     if (!isTextComplete) {

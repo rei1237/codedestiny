@@ -56,6 +56,14 @@ type IntegratedResult = {
   synthesis?: Record<string, unknown> | null;
 };
 
+type ChartDataBlock = {
+  key: "saju" | "westernAstrology" | "vedicAstrology";
+  label: string;
+  title: string;
+  summary: string;
+  rows: { label: string; value: string }[];
+};
+
 type BillingGatePayload = {
   featureKey?: string;
   runtimeGate?: Record<string, unknown>;
@@ -111,6 +119,9 @@ const KARMA_SECTIONS = [
   { symbol: "財", fallbackTitle: "財 — 재능과 물질이 만나는 지점" },
   { symbol: "課", fallbackTitle: "課 — 이 생의 핵심 과제" },
   { symbol: "箋", fallbackTitle: "箋 — 오늘을 위한 운명의 처방" },
+  { symbol: "柱", fallbackTitle: "柱 — 명리학자가 짚는 삶의 균형" },
+  { symbol: "星", fallbackTitle: "星 — 점성술사가 비추는 영혼의 하늘" },
+  { symbol: "梵", fallbackTitle: "梵 — 베다 점성술사가 여는 카르마의 길" },
 ] as const;
 
 const LOADING_STAGES = [
@@ -268,6 +279,72 @@ function summarizeSystem(result: IntegratedResult | null | undefined, key: "saju
   return "라후와 케투의 축으로 익숙한 습관과 성장 방향을 살핍니다.";
 }
 
+function formatChartDataValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    const primitiveValues = value
+      .filter((item) => item !== null && item !== undefined && typeof item !== "object")
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+    if (primitiveValues.length) return primitiveValues.slice(0, 8).join(", ");
+    return value.slice(0, 3).map((item) => formatChartDataValue(item)).filter(Boolean).join(" / ");
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .map(([key, item]) => [key, formatChartDataValue(item)] as const)
+      .filter(([, item]) => item);
+    return entries.slice(0, 6).map(([key, item]) => `${key}: ${item}`).join(" · ");
+  }
+  return "";
+}
+
+function formatChartDataLabel(path: string): string {
+  return path
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[._-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function collectChartDataRows(source: unknown, prefix = "", limit = 18): { label: string; value: string }[] {
+  if (!source || typeof source !== "object") return [];
+  const rows: { label: string; value: string }[] = [];
+  for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
+    if (rows.length >= limit) break;
+    const path = prefix ? `${prefix}.${key}` : key;
+    const directValue = formatChartDataValue(value);
+    if (directValue && (typeof value !== "object" || Array.isArray(value))) {
+      rows.push({ label: formatChartDataLabel(path), value: directValue });
+      continue;
+    }
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const nested = collectChartDataRows(value, path, limit - rows.length);
+      if (nested.length) rows.push(...nested);
+      else if (directValue) rows.push({ label: formatChartDataLabel(path), value: directValue });
+    } else if (directValue) {
+      rows.push({ label: formatChartDataLabel(path), value: directValue });
+    }
+  }
+  return rows.slice(0, limit);
+}
+
+function buildChartDataBlocks(result: IntegratedResult | null | undefined): ChartDataBlock[] {
+  const configs = [
+    { key: "saju", label: "명리", title: "사주 원국 데이터" },
+    { key: "westernAstrology", label: "서양 점성술", title: "서양 점성술 차트 데이터" },
+    { key: "vedicAstrology", label: "베다 점성술", title: "베다 점성술 차트 데이터" },
+  ] as const;
+  return configs.map((config) => {
+    const rows = collectChartDataRows(result?.[config.key]).filter((row) => row.value.length <= 260);
+    return {
+      ...config,
+      summary: summarizeSystem(result, config.key),
+      rows: rows.length ? rows : [{ label: "기준", value: "입력된 출생 정보와 계산 흐름을 바탕으로 상담문에 반영되었습니다." }],
+    };
+  });
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -307,7 +384,7 @@ function splitAssistantSections(content: string): ParsedSection[] {
   const normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
 
-  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦]\s*)?([命業時情財課箋])\s*[—-]\s*([^\n]+)/g;
+  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦⑧⑨⑩]\s*)?([命業時情財課箋柱星梵])\s*[—–-]\s*([^\n]+)/g;
   const matches = [...normalized.matchAll(headingPattern)];
   if (matches.length) {
     return matches.map((match, index) => {
@@ -328,7 +405,7 @@ function splitAssistantSections(content: string): ParsedSection[] {
     const fallback = KARMA_SECTIONS[index] || KARMA_SECTIONS[KARMA_SECTIONS.length - 1];
     const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
     const first = lines[0] || "";
-    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦]|\d+[.)])?\s*(.{2,48}?)(?:[:：])?$/);
+    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦⑧⑨⑩]|\d+[.)])?\s*(.{2,48}?)(?:[:：])?$/);
     const hasHeading = Boolean(headingMatch && lines.length > 1 && first.length <= 54);
     return {
       symbol: fallback.symbol,
@@ -393,16 +470,19 @@ function KarmaLoadingScreen({ status }: { status: FlowStatus }) {
 function KarmaResultModal({
   content,
   userData,
+  integratedResult,
   onClose,
   onDownloadError,
 }: {
   content: string;
   userData: ConsultationForm;
+  integratedResult: IntegratedResult | null;
   onClose: () => void;
   onDownloadError: (message: string) => void;
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const sections = splitAssistantSections(content);
+  const chartDataBlocks = buildChartDataBlocks(integratedResult);
   const userName = userData.name.trim() || "당신";
   const birthDate = userData.birthDate || "생년월일 미입력";
 
@@ -416,25 +496,31 @@ function KarmaResultModal({
         import("jspdf"),
       ]);
       const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#060412",
-        scale: Math.min(2, window.devicePixelRatio || 2),
-        useCORS: true,
-      });
       const pdf = new JsPDF("p", "mm", "a4");
-      const imageData = canvas.toDataURL("image/png");
       const pageWidth = 210;
       const pageHeight = 297;
-      const imageHeight = (canvas.height * pageWidth) / canvas.width;
-      let remainingHeight = imageHeight;
-      let position = 0;
-      pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-      remainingHeight -= pageHeight;
-      while (remainingHeight > 0) {
-        position = remainingHeight - imageHeight;
-        pdf.addPage();
+      const pageTargets = Array.from(element.querySelectorAll<HTMLElement>("[data-kdai-pdf-page]"));
+      const targets = pageTargets.length ? pageTargets : [element];
+
+      for (const [targetIndex, target] of targets.entries()) {
+        const canvas = await html2canvas(target, {
+          backgroundColor: "#060412",
+          scale: Math.min(2, window.devicePixelRatio || 2),
+          useCORS: true,
+        });
+        const imageData = canvas.toDataURL("image/png");
+        const imageHeight = (canvas.height * pageWidth) / canvas.width;
+        let remainingHeight = imageHeight;
+        let position = 0;
+        if (targetIndex > 0) pdf.addPage();
         pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
         remainingHeight -= pageHeight;
+        while (remainingHeight > 0) {
+          position = remainingHeight - imageHeight;
+          pdf.addPage();
+          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
+          remainingHeight -= pageHeight;
+        }
       }
       const fileName = `운명의답장_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "")}.pdf`;
       pdf.save(fileName);
@@ -464,14 +550,41 @@ function KarmaResultModal({
       </header>
 
       <div id="karma-result-content" className="kdai-result-document">
-        <div className="kdai-result-cover">
+        <div className="kdai-result-cover" data-kdai-pdf-page>
           <span aria-hidden="true">☽</span>
           <h1>운명의 답장</h1>
           <p>{userName}님의 명(命) · 업(業) · 시(時)</p>
         </div>
 
+        <section className="kdai-chart-data" data-kdai-pdf-page>
+          <div className="kdai-chart-data__head">
+            <span>Chart Data</span>
+            <h2>상담에 사용된 차트 데이터</h2>
+            <p>명리, 서양 점성술, 베다 점성술의 계산값을 함께 담았습니다.</p>
+          </div>
+          <div className="kdai-chart-data__grid">
+            {chartDataBlocks.map((block) => (
+              <article key={block.key}>
+                <div>
+                  <span>{block.label}</span>
+                  <h3>{block.title}</h3>
+                  <p>{block.summary}</p>
+                </div>
+                <dl>
+                  {block.rows.map((row) => (
+                    <div key={`${block.key}-${row.label}`}>
+                      <dt>{row.label}</dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+
         {sections.map((section, index) => (
-          <article className="kdai-result-document__section" key={`${section.title}-${index}`}>
+          <article className="kdai-result-document__section" data-kdai-pdf-page key={`${section.title}-${index}`}>
             <div>
               <span>{section.symbol}</span>
               <h3>{section.title}</h3>
@@ -480,7 +593,7 @@ function KarmaResultModal({
           </article>
         ))}
 
-        <footer>Code Destiny · {new Date().toLocaleDateString("ko-KR")}</footer>
+        <footer data-kdai-pdf-page>Code Destiny · {new Date().toLocaleDateString("ko-KR")}</footer>
       </div>
     </div>
   );
@@ -932,6 +1045,7 @@ export default function KarmaDestinyAiPage() {
         <KarmaResultModal
           content={latestAssistantContent}
           userData={form}
+          integratedResult={integratedResult}
           onClose={() => setResultOpen(false)}
           onDownloadError={setError}
         />
@@ -1847,6 +1961,93 @@ export default function KarmaDestinyAiPage() {
           font-size: 13px;
         }
 
+        .kdai-chart-data {
+          padding: clamp(30px, 7vw, 46px) 0;
+          border-bottom: 1px solid rgba(239, 204, 137, .12);
+        }
+
+        .kdai-chart-data__head {
+          margin-bottom: 18px;
+        }
+
+        .kdai-chart-data__head span,
+        .kdai-chart-data article > div > span {
+          display: block;
+          margin-bottom: 7px;
+          color: rgba(241, 205, 124, .82);
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+        }
+
+        .kdai-chart-data__head h2 {
+          margin: 0 0 8px;
+          color: #fff7df;
+          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+          font-size: clamp(22px, 5vw, 30px);
+          line-height: 1.22;
+          letter-spacing: 0;
+        }
+
+        .kdai-chart-data__head p,
+        .kdai-chart-data article > div > p {
+          margin: 0;
+          color: rgba(255, 247, 223, .7);
+          font-size: 14px;
+          line-height: 1.7;
+        }
+
+        .kdai-chart-data__grid {
+          display: grid;
+          gap: 14px;
+        }
+
+        .kdai-chart-data article {
+          border: 1px solid rgba(239, 204, 137, .16);
+          border-radius: 8px;
+          background: rgba(255, 255, 255, .045);
+          padding: 18px;
+        }
+
+        .kdai-chart-data article h3 {
+          margin: 0 0 8px;
+          color: #ffe4a3;
+          font-size: 18px;
+          line-height: 1.35;
+          letter-spacing: 0;
+        }
+
+        .kdai-chart-data dl {
+          display: grid;
+          gap: 8px;
+          margin: 16px 0 0;
+        }
+
+        .kdai-chart-data dl > div {
+          display: grid;
+          grid-template-columns: minmax(120px, .34fr) minmax(0, 1fr);
+          gap: 10px;
+          border-top: 1px solid rgba(239, 204, 137, .1);
+          padding-top: 8px;
+        }
+
+        .kdai-chart-data dt {
+          color: rgba(241, 205, 124, .78);
+          font-size: 12px;
+          font-weight: 900;
+          line-height: 1.55;
+          word-break: keep-all;
+        }
+
+        .kdai-chart-data dd {
+          margin: 0;
+          color: rgba(255, 247, 223, .78);
+          font-size: 12px;
+          line-height: 1.65;
+          overflow-wrap: anywhere;
+        }
+
         .kdai-result-document__section {
           padding: clamp(30px, 7vw, 46px) 0;
           border-bottom: 1px solid rgba(239, 204, 137, .12);
@@ -1993,6 +2194,11 @@ export default function KarmaDestinyAiPage() {
           .kdai-result-document__section span {
             width: 46px;
             font-size: 25px;
+          }
+
+          .kdai-chart-data dl > div {
+            grid-template-columns: 1fr;
+            gap: 3px;
           }
         }
       `}</style>

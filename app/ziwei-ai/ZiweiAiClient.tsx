@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
-import { Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
+import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 
@@ -139,15 +139,32 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
   return acc;
 }, {} as Record<FocusArea, string>);
 
-const SECTION_ORDER = ["essence", "flow", "career", "wealth", "relationship", "dayun_now", "caution", "prescription"];
+const SECTION_ORDER = [
+  "essence",
+  "flow",
+  "triad_axis",
+  "twelve_palaces",
+  "career",
+  "wealth",
+  "relationship",
+  "dayun_now",
+  "timing_strategy",
+  "caution",
+  "core_answer",
+  "prescription",
+];
 const SECTION_GLYPHS: Record<string, string> = {
   essence: "命",
   flow: "化",
+  triad_axis: "合",
+  twelve_palaces: "宮",
   career: "官",
   wealth: "財",
   relationship: "緣",
   dayun_now: "運",
+  timing_strategy: "時",
   caution: "忌",
+  core_answer: "問",
   prescription: "策",
 };
 const SCORE_LABELS: Record<string, string> = {
@@ -427,18 +444,29 @@ function splitAssistantSections(content: string) {
   });
 }
 
+function safePdfName(value: string) {
+  return value.trim().replace(/[\\/:*?"<>|]/g, "_") || "별궁";
+}
+
+function formatTransformation(value: string | undefined) {
+  return toText(value) || "-";
+}
+
 export default function ZiweiAiPage() {
   const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const idempotencyRef = useRef("");
   const busyRef = useRef(false);
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   const busy = phase === "checking" || phase === "payment" || phase === "reading";
   const summary = consultation?.summaryCards || {};
   const palaces = consultation?.ziweiChart?.palaces || [];
+  const fourTransformations = consultation?.ziweiChart?.fourTransformations || {};
   const assistantMessages = useMemo(() => consultation?.messages?.filter((message) => message.role === "assistant") || [], [consultation?.messages]);
   const structuredResult = useMemo(() => {
     for (const message of assistantMessages) {
@@ -532,6 +560,57 @@ export default function ZiweiAiPage() {
       setPhase("idle");
     } finally {
       busyRef.current = false;
+    }
+  }
+
+  async function handlePdfDownload() {
+    const element = resultRef.current;
+    if (!element || pdfLoading) return;
+    setPdfLoading(true);
+    setError("");
+    try {
+      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
+      const pdf = new JsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const pdfSections = Array.from(element.querySelectorAll<HTMLElement>("[data-ziwei-pdf-section]"));
+      let hasPage = false;
+
+      for (const section of pdfSections) {
+        const canvas = await html2canvas(section, {
+          backgroundColor: "#060712",
+          scale: Math.min(2, window.devicePixelRatio || 2),
+          useCORS: true,
+        });
+        const imageData = canvas.toDataURL("image/png");
+        const imageHeight = (canvas.height * pageWidth) / canvas.width;
+        let remainingHeight = imageHeight;
+        let position = 0;
+
+        if (hasPage) pdf.addPage();
+        hasPage = true;
+        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
+        remainingHeight -= pageHeight;
+
+        while (remainingHeight > 0) {
+          position = remainingHeight - imageHeight;
+          pdf.addPage();
+          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
+          remainingHeight -= pageHeight;
+        }
+      }
+
+      const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
+      const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
+      pdf.save(`자미두수_AI_상담_${userName}_${date}.pdf`);
+    } catch {
+      setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setPdfLoading(false);
     }
   }
 
@@ -661,63 +740,99 @@ export default function ZiweiAiPage() {
             </div>
           ) : (
             <>
-              <div className="summaryGrid">
-                <div><span>명궁</span><strong>{summary.lifePalace || consultation.ziweiChart?.lifePalace || "-"}</strong></div>
-                <div><span>신궁</span><strong>{summary.bodyPalace || consultation.ziweiChart?.bodyPalace || "-"}</strong></div>
-                <div><span>핵심 별</span><strong>{(summary.keyStars || []).slice(0, 3).join(" · ") || "-"}</strong></div>
-                <div><span>상담 키워드</span><strong>{(summary.keywords || []).slice(0, 3).join(" · ") || consultation.topic}</strong></div>
-              </div>
-
-              {Object.keys(structuredScores).length > 0 && (
-                <div className="scoreGrid">
-                  {Object.entries(SCORE_LABELS).map(([key, label]) => {
-                    const value = Math.max(0, Math.min(20, toNumber(structuredScores[key], 0)));
-                    return (
-                      <div key={key} className="scoreItem">
-                        <span>{label}</span>
-                        <strong>{value}/20</strong>
-                        <em style={{ width: `${(value / 20) * 100}%` }} />
-                      </div>
-                    );
-                  })}
-                  <div className="overallScore">
-                    <span>종합</span>
-                    <strong>{Math.max(0, Math.min(100, toNumber(structuredScores.overall, 0)))}/100</strong>
-                  </div>
+              <div className="resultToolbar" data-ziwei-pdf-download="complete-result-v20260630">
+                <div>
+                  <span>완성 상담</span>
+                  <strong>별궁 기록이 완성되었습니다</strong>
                 </div>
-              )}
-
-              {structuredResult?.meta?.dayun && (
-                <section className="dayunBanner">
-                  <span>현재 대운</span>
-                  <strong>{structuredResult.meta.dayun.current_palace || "-"} · {structuredResult.meta.dayun.age_range || "-"}</strong>
-                  <p>{structuredResult.meta.dayun.theme || "지금의 흐름을 명반 기준으로 살핍니다."}</p>
-                </section>
-              )}
-
-              <div className="palaceGrid">
-                {palaces.slice(0, 12).map((palace) => (
-                  <article key={`${palace.name}-${palace.earthlyBranch}`} className="palaceCard">
-                    <div>
-                      <strong>{palace.name}</strong>
-                      <span>{palace.earthlyBranch || ""}</span>
-                    </div>
-                    <p>{(palace.mainStars || []).join(" · ") || "주성 없음"}</p>
-                    <small>{[...(palace.transformations || []), ...(palace.maleficStars || []).slice(0, 2)].join(" · ")}</small>
-                  </article>
-                ))}
+                <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading}>
+                  {pdfLoading ? <Loader2 className="spin" size={17} /> : <Download size={17} />}
+                  {pdfLoading ? "저장 중" : "PDF 다운로드"}
+                </button>
               </div>
 
-              <div className="chatList">
-                {assistantSections.map((section) => (
-                  <article className="chatCard" key={section.key}>
-                    <div className="chatCardTitle">
-                      <b>{section.glyph || "星"}</b>
-                      <h3>{section.title}</h3>
+              <div ref={resultRef} className="resultDocument" data-ziwei-complete-result="ziwei-ai-complete-result-v20260630">
+                <section className="resultCover" data-ziwei-pdf-section>
+                  <span>紫微斗數</span>
+                  <h2>자미두수 별궁 상담</h2>
+                  <p>{consultation.birthInfo?.name || form.name || "당신"} · {consultation.birthInfo?.birthDate || form.birthDate || "생년월일"} · {consultation.topic || FOCUS_TOPIC[form.focusArea]}</p>
+                </section>
+
+                <div className="summaryGrid" data-ziwei-pdf-section>
+                  <div><span>명궁</span><strong>{summary.lifePalace || consultation.ziweiChart?.lifePalace || "-"}</strong></div>
+                  <div><span>신궁</span><strong>{summary.bodyPalace || consultation.ziweiChart?.bodyPalace || "-"}</strong></div>
+                  <div><span>핵심 별</span><strong>{(summary.keyStars || []).slice(0, 3).join(" · ") || "-"}</strong></div>
+                  <div><span>상담 키워드</span><strong>{(summary.keywords || []).slice(0, 3).join(" · ") || consultation.topic}</strong></div>
+                </div>
+
+                {Object.keys(structuredScores).length > 0 && (
+                  <div className="scoreGrid" data-ziwei-pdf-section>
+                    {Object.entries(SCORE_LABELS).map(([key, label]) => {
+                      const value = Math.max(0, Math.min(20, toNumber(structuredScores[key], 0)));
+                      return (
+                        <div key={key} className="scoreItem">
+                          <span>{label}</span>
+                          <strong>{value}/20</strong>
+                          <em style={{ width: `${(value / 20) * 100}%` }} />
+                        </div>
+                      );
+                    })}
+                    <div className="overallScore">
+                      <span>종합</span>
+                      <strong>{Math.max(0, Math.min(100, toNumber(structuredScores.overall, 0)))}/100</strong>
                     </div>
-                    <p>{section.body}</p>
-                  </article>
-                ))}
+                  </div>
+                )}
+
+                {structuredResult?.meta?.dayun && (
+                  <section className="dayunBanner" data-ziwei-pdf-section>
+                    <span>현재 대운</span>
+                    <strong>{structuredResult.meta.dayun.current_palace || "-"} · {structuredResult.meta.dayun.age_range || "-"}</strong>
+                    <p>{structuredResult.meta.dayun.theme || "지금의 흐름을 명반 기준으로 살핍니다."}</p>
+                  </section>
+                )}
+
+                <section className="chartDataPanel" data-ziwei-pdf-section data-ziwei-chart-data="basic-chart-v20260630">
+                  <div className="chartDataHeader">
+                    <span>기본 명반 데이터</span>
+                    <strong>{consultation.birthInfo?.name || form.name || "당신"} · {consultation.birthInfo?.calendarType === "lunar" ? "음력" : "양력"} {consultation.birthInfo?.birthDate || form.birthDate || "-"}</strong>
+                  </div>
+                  <div className="chartDataGrid">
+                    <div><span>출생시간</span><strong>{consultation.birthInfo?.birthTimeUnknown ? "출생시간 모름" : consultation.birthInfo?.birthTime || form.birthTime || "-"}</strong></div>
+                    <div><span>성별</span><strong>{consultation.birthInfo?.gender || form.gender || "-"}</strong></div>
+                    <div><span>명궁</span><strong>{summary.lifePalace || consultation.ziweiChart?.lifePalace || "-"}</strong></div>
+                    <div><span>신궁</span><strong>{summary.bodyPalace || consultation.ziweiChart?.bodyPalace || "-"}</strong></div>
+                    <div><span>화록</span><strong>{formatTransformation(fourTransformations.huaLu)}</strong></div>
+                    <div><span>화권</span><strong>{formatTransformation(fourTransformations.huaQuan)}</strong></div>
+                    <div><span>화과</span><strong>{formatTransformation(fourTransformations.huaKe)}</strong></div>
+                    <div><span>화기</span><strong>{formatTransformation(fourTransformations.huaJi)}</strong></div>
+                  </div>
+                </section>
+
+                <div className="palaceGrid" data-ziwei-pdf-section>
+                  {palaces.slice(0, 12).map((palace) => (
+                    <article key={`${palace.name}-${palace.earthlyBranch}`} className="palaceCard">
+                      <div>
+                        <strong>{palace.name}</strong>
+                        <span>{palace.earthlyBranch || ""}</span>
+                      </div>
+                      <p>{(palace.mainStars || []).join(" · ") || "주성 없음"}</p>
+                      <small>{[...(palace.transformations || []), ...(palace.maleficStars || []).slice(0, 2)].join(" · ")}</small>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="chatList">
+                  {assistantSections.map((section) => (
+                    <article className="chatCard" key={section.key} data-ziwei-pdf-section>
+                      <div className="chatCardTitle">
+                        <b>{section.glyph || "星"}</b>
+                        <h3>{section.title}</h3>
+                      </div>
+                      <p>{section.body}</p>
+                    </article>
+                  ))}
+                </div>
               </div>
             </>
           )}
@@ -777,6 +892,24 @@ export default function ZiweiAiPage() {
         .palaceSigil span{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:999px;background:#fff0b8;box-shadow:0 0 16px rgba(245,217,145,.82);transform:rotate(calc(var(--i,0)*30deg)) translateY(-72px)}
         .palaceSigil span:nth-child(1){--i:0}.palaceSigil span:nth-child(2){--i:1}.palaceSigil span:nth-child(3){--i:2}.palaceSigil span:nth-child(4){--i:3}.palaceSigil span:nth-child(5){--i:4}.palaceSigil span:nth-child(6){--i:5}.palaceSigil span:nth-child(7){--i:6}.palaceSigil span:nth-child(8){--i:7}.palaceSigil span:nth-child(9){--i:8}.palaceSigil span:nth-child(10){--i:9}.palaceSigil span:nth-child(11){--i:10}.palaceSigil span:nth-child(12){--i:11}
         .palaceSigil.isSpinning{animation:ziweiSpin 9s linear infinite}
+        .resultToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.12),rgba(143,167,255,.10));padding:12px}
+        .resultToolbar span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
+        .resultToolbar strong{display:block;margin-top:3px;color:#fffaf0;font-family:var(--font-display);font-size:16px;line-height:1.35}
+        .resultToolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:1px solid rgba(245,217,145,.42);border-radius:8px;background:rgba(245,217,145,.14);color:#fff0b8;padding:0 13px;font-family:var(--font-display);font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 12px 24px rgba(0,0,0,.18)}
+        .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
+        .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
+        .resultCover{display:grid;gap:8px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:radial-gradient(ellipse at 74% 18%,rgba(245,217,145,.16),transparent 38%),linear-gradient(145deg,rgba(14,16,43,.96),rgba(7,9,25,.98));padding:24px}
+        .resultCover span{color:#fff0b8;font-family:var(--font-premium);font-size:18px;font-weight:900}
+        .resultCover h2{margin:0;color:#fffaf0;font-family:var(--font-premium);font-size:30px;line-height:1.2;letter-spacing:0}
+        .resultCover p{margin:0;color:#d9c7ff;line-height:1.65}
+        .chartDataPanel{display:grid;gap:13px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.11),rgba(32,38,78,.78));padding:16px}
+        .chartDataHeader{display:grid;gap:4px}
+        .chartDataHeader span{color:#cfc7f8;font-size:12px;font-weight:820}
+        .chartDataHeader strong{color:#fffaf0;font-family:var(--font-display);font-size:17px;line-height:1.42}
+        .chartDataGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+        .chartDataGrid div{min-height:74px;border:1px solid rgba(224,210,255,.18);border-radius:8px;background:rgba(6,7,18,.46);padding:11px}
+        .chartDataGrid span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
+        .chartDataGrid strong{display:block;margin-top:7px;color:#fffaf0;font-size:14px;line-height:1.45;word-break:keep-all}
         .summaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
         .summaryGrid div{min-height:94px;border:1px solid rgba(245,217,145,.22);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.12),rgba(125,103,209,.12));padding:13px}
         .summaryGrid span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
@@ -806,8 +939,8 @@ export default function ZiweiAiPage() {
         .chatCard p{margin:0;white-space:pre-wrap;line-height:1.84;font-size:15px;color:#f3efff}
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
-        @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
-        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.palaceGrid{grid-template-columns:1fr}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
+        @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
+        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.palaceGrid,.chartDataGrid{grid-template-columns:1fr}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
       `}</style>
     </main>
   );

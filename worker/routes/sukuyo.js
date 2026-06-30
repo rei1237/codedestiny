@@ -11,6 +11,8 @@ import {
   SUKYO_PDF_CHAPTERS,
   SUKYO_PDF_CONFIG,
   SUKYO_PDF_FEATURE_KEY,
+  SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH,
+  SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
   getPublicSukyoPdfChapters,
@@ -2689,13 +2691,25 @@ function buildSukuyoLlmContract(generated = {}, pdfReady = {}) {
 
 function hasCompleteSukuyoChapters(chapters = []) {
   if (!Array.isArray(chapters) || chapters.length !== SUKYO_PDF_CHAPTER_COUNT) return false;
-  return chapters.every((chapter, index) => {
+  let totalTextLength = 0;
+  const chaptersComplete = chapters.every((chapter, index) => {
     const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
     const expectedSections = Array.isArray(SUKYO_PDF_CHAPTERS[index]?.sections) ? SUKYO_PDF_CHAPTERS[index].sections.length : 5;
+    const expertCounsel = chapter?.expertCounsel && typeof chapter.expertCounsel === "object" ? chapter.expertCounsel : {};
+    const expertCounselText = [
+      expertCounsel.title,
+      ...(Array.isArray(expertCounsel.paragraphs) ? expertCounsel.paragraphs : []),
+      ...(Array.isArray(expertCounsel.practices) ? expertCounsel.practices : []),
+    ].filter(Boolean).join(" ");
+    totalTextLength += clean(expertCounselText).replace(/\s+/g, "").length;
+    totalTextLength += sections.reduce((total, section) => total + clean(section?.body || "").replace(/\s+/g, "").length, 0);
     return clean(chapter?.title)
       && sections.length >= Math.max(1, expectedSections)
       && sections.every((section) => clean(section?.heading) && clean(section?.body));
   });
+  return chaptersComplete
+    && totalTextLength >= SUKYO_PDF_MIN_TOTAL_TEXT_LENGTH
+    && totalTextLength <= SUKYO_PDF_MAX_TOTAL_TEXT_LENGTH;
 }
 
 function resolveSukuyoCompletedChaptersFromPayload(payload = {}) {

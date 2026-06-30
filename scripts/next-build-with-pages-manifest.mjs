@@ -111,9 +111,14 @@ function ensureExportFallbacks() {
 }
 
 function ensurePagesManifest({ exportFallback = false } = {}) {
+  const requiredEntries = {
+    "/_app": "../../node_modules/next/dist/pages/_app.js",
+    "/_error": "../../node_modules/next/dist/pages/_error.js",
+    "/_document": "../../node_modules/next/dist/pages/_document.js",
+  };
   const current = readJsonObject(manifestPath);
   const entries = collectPagesManifestEntries();
-  const merged = { ...current, ...entries };
+  const merged = { ...requiredEntries, ...current, ...entries };
   if (Object.keys(merged).length === 0) {
     seedEmptyPagesManifest();
     return;
@@ -197,7 +202,6 @@ function seedEmptyServerReferenceManifest() {
 
 function seedPrebuildManifests() {
   seedEmptyPagesManifest();
-  seedEmptyAppPathsManifest();
   seedEmptyMiddlewareManifest();
   seedEmptyServerReferenceManifest();
 }
@@ -205,7 +209,7 @@ function seedPrebuildManifests() {
 function seedRuntimeGuardManifests() {
   seedEmptyMiddlewareManifest();
   seedEmptyServerReferenceManifest();
-  ensureBuildManifests();
+  ensurePagesManifest();
 }
 
 function startManifestGuard() {

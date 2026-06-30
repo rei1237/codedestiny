@@ -1,4 +1,5 @@
 import styles from "./SiteFooterHub.module.css";
+import SocialFooter from "../_components/SocialFooter";
 
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
@@ -221,6 +222,8 @@ export default function SiteFooterHub() {
             </div>
           </section>
         </section>
+
+        <SocialFooter />
 
         <nav aria-label="정책 및 안내 링크" className={styles.sfhPolicyNav}>
           {POLICY_LINKS.map((link) => (

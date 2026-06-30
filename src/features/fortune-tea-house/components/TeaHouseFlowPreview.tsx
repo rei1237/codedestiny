@@ -25,11 +25,17 @@ const flowAssetSrc = {
 
 export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowPreviewProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
 
   useEffect(() => {
     setStepIndex(0);
+    setIsCurrentLineTextComplete(false);
   }, [firstStepId]);
+
+  useEffect(() => {
+    setIsCurrentLineTextComplete(false);
+  }, [stepIndex]);
 
   const currentStep = steps[stepIndex] || steps[0];
   const isLast = stepIndex >= steps.length - 1;
@@ -50,10 +56,16 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
           cueText={isYeoniLine ? currentStep.text : ""}
           compact
         />
-        <TeaHouseDialogueBox speaker={currentStep.speaker} text={currentStep.text} />
+        <TeaHouseDialogueBox
+          speaker={currentStep.speaker}
+          text={currentStep.text}
+          isAdvanceDisabled={!isCurrentLineTextComplete}
+          onTextComplete={setIsCurrentLineTextComplete}
+        />
         <div className={styles.storyActions}>
           <span className={styles.storyProgress}>{progressLabel}</span>
           <TeaHouseButton
+            disabled={!isCurrentLineTextComplete}
             onClick={() => {
               if (isLast) onComplete();
               else setStepIndex((current) => current + 1);

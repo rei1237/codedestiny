@@ -34,6 +34,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
           fallbackSrc={fortuneTeaHouseAssets.yeoni.cupPose}
           alt="찻잔을 건네는 연이"
           priority
+          loading="eager"
         />
         <TeaHouseDialogueBox speaker="연이" text={teaCupSelectionDialogue} />
         {selectedCup ? <p className={styles.teaCupSelectedComment}>{selectedCup.selectionComment}</p> : null}

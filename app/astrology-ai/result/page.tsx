@@ -7,15 +7,23 @@ import { authFetch } from "@/app/_lib/auth-client";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
+  zodiacType?: string;
+  houseSystem?: string;
   sun?: ChartPoint | null;
   moon?: ChartPoint | null;
   ascendant?: ChartPoint | null;
+  mc?: ChartPoint | null;
   chartRuler?: string;
   consultationKeywords?: string[];
   planets?: Array<ChartPoint & { name: string; label?: string; retrograde?: boolean | null }>;
-  houses?: Array<{ house: number; sign?: string; signKo?: string; planets?: string[] }>;
+  houses?: Array<{ house: number; sign?: string; signKo?: string; cuspDegree?: number | null; planets?: string[] }>;
+  elementBalance?: Record<string, number>;
+  modalityBalance?: Record<string, number>;
   majorAspects?: Array<{ planetA: string; aspect: string; planetB: string; orb?: number | null }>;
-  transits?: { majorAspectsToNatal?: Array<{ transitPlanet: string; aspect: string; natalPlanet: string; orb?: number | null }> };
+  transits?: {
+    planets?: Array<ChartPoint & { name: string; label?: string; retrograde?: boolean | null }>;
+    majorAspectsToNatal?: Array<{ transitPlanet: string; aspect: string; natalPlanet: string; orb?: number | null }>;
+  };
   birthTimeUnknown?: boolean;
 };
 type BirthInfo = {
@@ -89,6 +97,40 @@ function aspectLabel(type: string) {
   if (type === "trine") return "트라인";
   if (type === "sextile") return "섹스타일";
   return type;
+}
+
+function degreeText(value: unknown) {
+  return Number.isFinite(Number(value)) ? `${Number(value).toFixed(1)}°` : "";
+}
+
+function planetDataLabel(planet: ChartPoint & { name: string; label?: string; retrograde?: boolean | null }) {
+  return [
+    planet.label || planet.name,
+    pointLabel(planet),
+    Number.isFinite(Number(planet.house)) ? `${planet.house}하우스` : "",
+    planet.retrograde ? "역행" : "",
+  ].filter(Boolean).join(" · ");
+}
+
+function houseDataLabel(house: { house: number; sign?: string; signKo?: string; cuspDegree?: number | null; planets?: string[] }) {
+  const planets = Array.isArray(house.planets) && house.planets.length ? `입궁 ${house.planets.join(", ")}` : "입궁 행성 없음";
+  return `${house.house}하우스 · ${house.signKo || house.sign || "미확인"} ${degreeText(house.cuspDegree)} · ${planets}`.trim();
+}
+
+function aspectDataLabel(aspect: { planetA: string; aspect: string; planetB: string; orb?: number | null }) {
+  const orb = Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "";
+  return `${aspect.planetA} ${aspectLabel(aspect.aspect)} ${aspect.planetB}${orb ? ` · ${orb}` : ""}`;
+}
+
+function transitDataLabel(aspect: { transitPlanet: string; aspect: string; natalPlanet: string; orb?: number | null }) {
+  const orb = Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "";
+  return `Transit ${aspect.transitPlanet} ${aspectLabel(aspect.aspect)} Natal ${aspect.natalPlanet}${orb ? ` · ${orb}` : ""}`;
+}
+
+function balanceDataLabel(balance: Record<string, number> | undefined, labels: Record<string, string>) {
+  return Object.entries(labels)
+    .map(([key, label]) => `${label} ${Number(balance?.[key] || 0)}`)
+    .join(" · ");
 }
 
 function splitSections(content: string) {
@@ -188,14 +230,31 @@ export default function AstrologyAiResultPage() {
   const keywords = (highlights.keywords || chart?.consultationKeywords || []).filter(Boolean).slice(0, 6);
   const evidencePlanets = (chart?.planets || []).slice(0, 7);
   const evidenceAspects = (chart?.majorAspects || []).slice(0, 5);
+  const chartPlanets = chart?.planets || [];
+  const chartHouses = chart?.houses || [];
+  const chartAspects = chart?.majorAspects || [];
+  const chartTransitAspects = chart?.transits?.majorAspectsToNatal || [];
+  const chartBasics = [
+    `조디악: ${chart?.zodiacType === "tropical" ? "Tropical" : toText(chart?.zodiacType) || "미확인"}`,
+    `하우스 시스템: ${toText(chart?.houseSystem) || (chart?.birthTimeUnknown ? "출생시간 미상 제한" : "미확인")}`,
+    `MC: ${pointLabel(chart?.mc)}`,
+    `원소 균형: ${balanceDataLabel(chart?.elementBalance, { fire: "불", earth: "흙", air: "공기", water: "물" })}`,
+    `모드 균형: ${balanceDataLabel(chart?.modalityBalance, { cardinal: "활동", fixed: "고정", mutable: "변통" })}`,
+  ];
 
   async function handlePdfDownload() {
     const element = document.getElementById("astrology-ai-result-document");
     if (!element || pdfLoading) return;
+    const detailsElements = Array.from(element.querySelectorAll("details"));
+    const previousDetailOpenStates = detailsElements.map((details) => details.open);
     console.info("[AstrologyAI] pdf download started", { resultId });
     setPdfLoading(true);
     setPdfError("");
     try {
+      detailsElements.forEach((details) => {
+        details.open = true;
+      });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
@@ -228,6 +287,9 @@ export default function AstrologyAiResultPage() {
       console.error("[AstrologyAI] pdf download failed", { resultId, message: caught instanceof Error ? caught.message : String(caught) });
       setPdfError("별자리 리포트를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      detailsElements.forEach((details, index) => {
+        details.open = previousDetailOpenStates[index] ?? details.open;
+      });
       setPdfLoading(false);
     }
   }
@@ -366,6 +428,20 @@ export default function AstrologyAiResultPage() {
                 </div>
               </section>
 
+              <section className={`${RESULT_PANEL_CLASS} p-5`}>
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                    <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                  </span>
+                  <h2 className="text-lg font-black text-white">기본 차트 데이터</h2>
+                </div>
+                <ChartDataGroup title="차트 기준" items={chartBasics} />
+                <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
+                <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
+                <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
+                <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
+              </section>
+
               {pdfError && (
                 <section className="rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm leading-7 text-rose-50">
                   {pdfError}
@@ -393,5 +469,20 @@ function EvidencePill({ text }: { text: string }) {
     <span className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm font-semibold text-slate-100">
       {text}
     </span>
+  );
+}
+
+function ChartDataGroup({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="mb-4 last:mb-0">
+      <h3 className="mb-2 text-xs font-black uppercase text-[#f5d487]">{title}</h3>
+      <div className="grid gap-1.5 text-xs leading-5 text-slate-200">
+        {items.filter(Boolean).map((item, index) => (
+          <span key={`${title}-${index}`} className="break-words rounded-md border border-white/10 bg-white/[0.035] px-2.5 py-1.5">
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

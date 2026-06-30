@@ -15,6 +15,85 @@ const waitableServerManifests = new Set([
   "app-paths-manifest.json",
   "middleware-manifest.json",
 ]);
+const rootDevelopmentManifests = new Map([
+  ["routes-manifest.json", () => ({
+    version: 3,
+    pages404: true,
+    caseSensitive: false,
+    basePath: "",
+    redirects: [],
+    headers: [],
+    rewrites: {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: [],
+    },
+    dynamicRoutes: [],
+    staticRoutes: [],
+    dataRoutes: [],
+    rsc: {
+      header: "RSC",
+      varyHeader: "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+      prefetchHeader: "Next-Router-Prefetch",
+      didPostponeHeader: "x-nextjs-postponed",
+      contentTypeHeader: "text/x-component",
+      suffix: ".rsc",
+      prefetchSuffix: ".prefetch.rsc",
+      prefetchSegmentHeader: "Next-Router-Segment-Prefetch",
+      prefetchSegmentSuffix: ".segment.rsc",
+      prefetchSegmentDirSuffix: ".segments",
+    },
+    rewriteHeaders: {
+      pathHeader: "x-nextjs-rewritten-path",
+      queryHeader: "x-nextjs-rewritten-query",
+    },
+    skipMiddlewareUrlNormalize: false,
+  })],
+  ["prerender-manifest.json", () => ({
+    version: 4,
+    routes: {},
+    dynamicRoutes: {},
+    notFoundRoutes: [],
+    preview: {
+      previewModeId: "",
+      previewModeSigningKey: "",
+      previewModeEncryptionKey: "",
+    },
+  })],
+  ["required-server-files.json", () => ({
+    version: 1,
+    config: {
+      assetPrefix: "",
+      basePath: "",
+      trailingSlash: true,
+      poweredByHeader: true,
+      generateEtags: true,
+      reactMaxHeadersLength: 6000,
+      htmlLimitedBots: "",
+      images: {
+        unoptimized: true,
+      },
+      experimental: {
+        ppr: false,
+        staleTimes: {},
+        cacheLife: {},
+        serverActions: {},
+        taint: false,
+        devtoolSegmentExplorer: false,
+        clientSegmentCache: false,
+        clientParamParsing: false,
+        dynamicOnHover: false,
+        inlineCss: false,
+        authInterrupts: false,
+        clientTraceMetadata: [],
+      },
+    },
+    appDir: process.cwd(),
+    relativeAppDir: "",
+    files: [],
+    ignore: [],
+  })],
+]);
 
 function toPathString(filePath) {
   if (filePath instanceof URL) return fileURLToPath(filePath);
@@ -55,6 +134,41 @@ function ensureGuardedManifest(filePath) {
   fs.mkdirSync(path.dirname(normalizedPath), { recursive: true });
   if (!fs.existsSync(normalizedPath)) {
     fs.writeFileSync(normalizedPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  }
+  return true;
+}
+
+function isDevelopmentManifestFallbackEnabled() {
+  const argv = process.argv.map((value) => String(value || ""));
+  if (argv.includes("build") || argv.includes("export")) return false;
+  if (process.env.NODE_ENV === "production") return false;
+  return argv.includes("dev") || process.env.NODE_ENV === "development" || process.env.NEXT_PHASE === "phase-development-server";
+}
+
+function isNextRootManifestPath(filePath) {
+  const pathString = toPathString(filePath);
+  if (!pathString) return false;
+  const normalizedPath = path.normalize(pathString);
+  return path.dirname(normalizedPath).endsWith(`${path.sep}.next`);
+}
+
+function ensureRootDevelopmentManifest(filePath) {
+  if (!isDevelopmentManifestFallbackEnabled()) return false;
+  if (!isNextRootManifestPath(filePath)) return false;
+
+  const pathString = toPathString(filePath);
+  const fileName = path.basename(pathString);
+  const buildText = fileName === "BUILD_ID" ? "development\n" : "";
+  const manifestFactory = rootDevelopmentManifests.get(fileName);
+  if (!buildText && !manifestFactory) return false;
+
+  fs.mkdirSync(path.dirname(pathString), { recursive: true });
+  if (!fs.existsSync(pathString)) {
+    fs.writeFileSync(
+      pathString,
+      buildText || `${JSON.stringify(manifestFactory(), null, 2)}\n`,
+      "utf8",
+    );
   }
   return true;
 }
@@ -168,6 +282,9 @@ fs.readFileSync = function guardedReadFileSync(filePath, ...args) {
   try {
     return readStableNextJsonSync(filePath, args, readFileSync.call(this, filePath, ...args));
   } catch (error) {
+    if (error?.code === "ENOENT" && ensureRootDevelopmentManifest(filePath)) {
+      return readStableNextJsonSync(filePath, args, readFileSync.call(this, filePath, ...args));
+    }
     if (error?.code === "ENOENT" && isWaitableServerManifestPath(filePath) && waitForExistingFile(filePath)) {
       return readStableNextJsonSync(filePath, args, readFileSync.call(this, filePath, ...args));
     }
@@ -196,6 +313,9 @@ fs.promises.readFile = async function guardedReadFile(filePath, ...args) {
   try {
     return await readStableNextJson(filePath, args, await readFile.call(this, filePath, ...args));
   } catch (error) {
+    if (error?.code === "ENOENT" && ensureRootDevelopmentManifest(filePath)) {
+      return await readStableNextJson(filePath, args, await readFile.call(this, filePath, ...args));
+    }
     if (error?.code === "ENOENT" && isWaitableServerManifestPath(filePath) && waitForExistingFile(filePath)) {
       return readStableNextJson(filePath, args, await readFile.call(this, filePath, ...args));
     }

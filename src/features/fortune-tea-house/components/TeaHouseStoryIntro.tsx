@@ -18,11 +18,17 @@ type TeaHouseStoryIntroProps = {
 
 export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabel, onComplete }: TeaHouseStoryIntroProps) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
 
   useEffect(() => {
     setStepIndex(0);
+    setIsCurrentLineTextComplete(false);
   }, [firstStepId]);
+
+  useEffect(() => {
+    setIsCurrentLineTextComplete(false);
+  }, [stepIndex]);
 
   const currentStep = steps[stepIndex] || steps[0];
   const isLast = stepIndex >= steps.length - 1;
@@ -49,7 +55,12 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
       <div className={styles.storyPanel}>
         <p className={styles.sceneEyebrow}>{eyebrow}</p>
         <h2 id={`${currentStep.stage}Title`}>{title}</h2>
-        <TeaHouseDialogueBox speaker={currentStep.speaker} text={currentStep.text} />
+        <TeaHouseDialogueBox
+          speaker={currentStep.speaker}
+          text={currentStep.text}
+          isAdvanceDisabled={!isCurrentLineTextComplete}
+          onTextComplete={setIsCurrentLineTextComplete}
+        />
         <div className={styles.storyActions}>
           <span className={styles.storyProgress}>{progressLabel}</span>
           <div className={styles.storyButtonGroup}>
@@ -59,6 +70,7 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
               </TeaHouseButton>
             ) : null}
             <TeaHouseButton
+              disabled={!isCurrentLineTextComplete}
               onClick={() => {
                 if (isLast) onComplete();
                 else setStepIndex((current) => current + 1);

@@ -1,7 +1,26 @@
 import { buildOraclePrompt } from "@/app/tarot/prompt-maker/utils/buildOraclePrompt";
 import type { DrawnTarotCard, TarotSpread, TarotSpreadCategory } from "@/app/tarot/prompt-maker/types";
-import type { FortuneTeaHouseConsultRequest, FortuneTeaTarotSnapshot } from "../data/consult";
-import { drawMajorArcana, drawTarotOrientation, type TeaHouseTarotCard, type TarotOrientation } from "../data/tarotCards";
+import type { FortuneTeaHouseConsultRequest, FortuneTeaTarotSnapshot, FortuneTeaTarotSpread, FortuneTeaTarotSpreadCard } from "../data/consult";
+import { drawMajorArcana, drawTarotOrientation, majorArcanaCards, type TeaHouseTarotCard, type TarotOrientation } from "../data/tarotCards";
+
+const tarotSpreadPositions: Record<FortuneTeaTarotSpread, Array<{ positionId: string; positionLabel: string; positionMeaning: string }>> = {
+  three: [
+    { positionId: "present", positionLabel: "현재", positionMeaning: "지금 질문의 중심 장면" },
+    { positionId: "flow", positionLabel: "흐름", positionMeaning: "가까운 흐름과 감정의 방향" },
+    { positionId: "advice", positionLabel: "조언", positionMeaning: "오늘 붙잡을 현실적인 기준" },
+  ],
+  five: [
+    { positionId: "present", positionLabel: "현재", positionMeaning: "지금 질문의 중심 장면" },
+    { positionId: "other", positionLabel: "상대/상황", positionMeaning: "상대 또는 상황이 드러내는 온도" },
+    { positionId: "block", positionLabel: "장애", positionMeaning: "흐름을 막는 반복 패턴" },
+    { positionId: "possibility", positionLabel: "가능성", positionMeaning: "조심스럽게 열려 있는 길" },
+    { positionId: "advice", positionLabel: "조언", positionMeaning: "오늘 붙잡을 현실적인 기준" },
+  ],
+};
+
+export function normalizeFortuneTeaTarotSpread(value: unknown): FortuneTeaTarotSpread {
+  return value === "five" ? "five" : "three";
+}
 
 function orientationLabel(orientation: TarotOrientation) {
   return orientation === "upright" ? "정방향" : "역방향";
@@ -97,4 +116,48 @@ export function buildFortuneTeaTarotSnapshot(request: FortuneTeaHouseConsultRequ
       source: "existing-card-data",
     };
   }
+}
+
+function pickSpreadCards(seed: string, count: number) {
+  const picked: TeaHouseTarotCard[] = [];
+  for (let index = 0; picked.length < count && index < majorArcanaCards.length * 2; index += 1) {
+    const card = drawMajorArcana(`${seed}:spread:${index}`);
+    if (!picked.some((item) => item.id === card.id)) picked.push(card);
+  }
+  if (picked.length < count) {
+    for (const card of majorArcanaCards) {
+      if (picked.length >= count) break;
+      if (!picked.some((item) => item.id === card.id)) picked.push(card);
+    }
+  }
+  return picked;
+}
+
+export function buildFortuneTeaTarotSpreadCards(
+  request: FortuneTeaHouseConsultRequest,
+  seed: string,
+): { tarotSpread: FortuneTeaTarotSpread; tarotSpreadCards: FortuneTeaTarotSpreadCard[] } {
+  const tarotSpread = normalizeFortuneTeaTarotSpread(request.tarotSpread);
+  const positions = tarotSpreadPositions[tarotSpread];
+  const cards = pickSpreadCards(seed, positions.length);
+  const tarotSpreadCards = positions.map((position, index) => {
+    const card = cards[index] || drawMajorArcana(`${seed}:spread:fallback:${index}`);
+    const orientation = drawTarotOrientation(`${seed}:spread:${position.positionId}:${card.id}`);
+    const meaning = orientation === "upright" ? card.upright : card.reversed;
+    return {
+      cardId: card.id,
+      number: card.number,
+      nameKo: card.nameKo,
+      nameEn: card.nameEn,
+      orientation,
+      keywords: meaning.keywords,
+      meaning: meaning.meaning,
+      source: "existing-card-data" as const,
+      positionId: position.positionId,
+      positionLabel: position.positionLabel,
+      positionMeaning: position.positionMeaning,
+      reading: `${position.positionLabel} 자리에는 ${card.nameKo}이 ${orientationLabel(orientation)}으로 떠올라 ${meaning.keywords.slice(0, 2).join(", ")}의 결을 비춥니다.`,
+    };
+  });
+  return { tarotSpread, tarotSpreadCards };
 }
