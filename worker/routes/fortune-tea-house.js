@@ -7,6 +7,8 @@ import { connectDb, mongoose } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { handleBillingRoutes } from "./billing.js";
+import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 12;
@@ -29,6 +31,9 @@ const FORTUNE_TEA_HOUSE_FEATURE_KEYS = Object.freeze({
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 });
 const FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS = new Set(Object.values(FORTUNE_TEA_HOUSE_FEATURE_KEYS));
+const FORTUNE_TEA_HOUSE_SERVICE_KEY = "fortune-tea-house";
+const FORTUNE_TEA_HOUSE_BILLING_STATUSES = ["paid_pending_generation", "generating", "generation_failed", "completed"];
+const FORTUNE_TEA_HOUSE_PAYMENT_STATUSES = ["paid", "success", "fulfilled"];
 const SAJU_REQUIRED_SECTION_TITLES = [
   "핵심 요약",
   "타고난 기질",
@@ -895,7 +900,316 @@ function resolveFortuneTeaHouseFeatureKey(body = {}, consultRequest = {}) {
   return FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot;
 }
 
-function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDecision, status = 402 }) {
+function objectValue(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function isObjectIdLike(value) {
+  return /^[a-f0-9]{24}$/i.test(cleanText(value, 80));
+}
+
+function uniqueCleanTexts(values = [], maxLength = 180) {
+  return Array.from(new Set(values.map((value) => cleanText(value, maxLength)).filter(Boolean)));
+}
+
+function collectFortuneTeaBillingObjects(body = {}) {
+  const billingGate = objectValue(body.billingGate || body.billing || body.billingResult || body.paymentContext || body._paymentContext);
+  const consume = objectValue(body.consume || billingGate.consume);
+  const accessGrant = objectValue(body.accessGrant || billingGate.accessGrant || billingGate.accessGateResult);
+  const payment = objectValue(body.payment || billingGate.payment);
+  const pricing = objectValue(body.pricing || billingGate.pricing);
+  const runtimeGate = objectValue(body.runtimeGate || billingGate.runtimeGate || pricing.runtimeGate);
+  const licensePass = objectValue(body.licensePass || body.membershipPass || billingGate.licensePass || billingGate.membershipPass);
+  return { billingGate, consume, accessGrant, payment, pricing, runtimeGate, licensePass };
+}
+
+function collectFortuneTeaBillingFeatureKeys(body = {}) {
+  const ctx = collectFortuneTeaBillingObjects(body);
+  return uniqueCleanTexts([
+    body.featureKey,
+    body.subFeatureKey,
+    ctx.billingGate.featureKey,
+    ctx.billingGate.subFeatureKey,
+    ctx.consume.featureKey,
+    ctx.accessGrant.featureKey,
+    ctx.payment.featureKey,
+    ctx.pricing.featureKey,
+    ctx.runtimeGate.featureKey,
+    ctx.runtimeGate.subFeatureKey,
+  ], 140).filter((key) => FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS.has(key) || key.startsWith("fortune-tea-house-"));
+}
+
+function collectFortuneTeaBillingEvidenceIds(body = {}) {
+  const ctx = collectFortuneTeaBillingObjects(body);
+  const sources = [
+    body,
+    objectValue(body.paymentContext),
+    objectValue(body._paymentContext),
+    ctx.billingGate,
+    ctx.consume,
+    ctx.accessGrant,
+    ctx.payment,
+    ctx.pricing,
+    ctx.runtimeGate,
+    ctx.licensePass,
+  ];
+  const keys = [
+    "_id",
+    "id",
+    "attemptId",
+    "paymentId",
+    "merchantUid",
+    "merchant_uid",
+    "impUid",
+    "imp_uid",
+    "transactionId",
+    "purchaseId",
+    "evidenceId",
+    "requestId",
+    "idempotencyKey",
+    "orderId",
+    "ledgerId",
+    "executionId",
+    "pointHistoryId",
+    "monthlyCreditLedgerId",
+    "receiptId",
+  ];
+  const values = [];
+  const visit = (source, depth = 0) => {
+    if (!source || typeof source !== "object" || Array.isArray(source) || depth > 2) return;
+    keys.forEach((key) => values.push(source[key]));
+    ["data", "consume", "accessGrant", "payment", "pricing", "billingGate", "runtimeGate", "metadata"].forEach((key) => visit(source[key], depth + 1));
+  };
+  sources.forEach((source) => visit(source));
+  return uniqueCleanTexts(values, 180);
+}
+
+function billingEvidenceMatchesFeatureKey(body, featureKey) {
+  const candidates = collectFortuneTeaBillingFeatureKeys(body);
+  return candidates.length === 0 || candidates.every((candidate) => candidate === featureKey);
+}
+
+async function leanFindOne(model, query, options = {}) {
+  let finder = model.findOne(query);
+  if (finder?.sort && options.sort) finder = finder.sort(options.sort);
+  if (finder?.select && options.select) finder = finder.select(options.select);
+  if (finder?.lean) return finder.lean();
+  return finder;
+}
+
+function idClauses(ids = [], fields = []) {
+  const clauses = [];
+  ids.forEach((id) => {
+    fields.forEach((field) => clauses.push({ [field]: id }));
+    if (isObjectIdLike(id)) clauses.push({ _id: id });
+  });
+  return clauses;
+}
+
+function normalizeFortuneTeaBillingAccessType(source = {}) {
+  const haystack = [
+    source.accessType,
+    source.accessMethod,
+    source.paymentMethod,
+    source.transactionType,
+    source.paymentMode,
+  ].map((item) => cleanText(item, 80).toLowerCase()).join(" ");
+  if (/admin/.test(haystack)) return "admin";
+  if (/membership_credit|monthly/.test(haystack)) return "subscription";
+  if (/membership_pass|family_pass|license|pass|family/.test(haystack)) return "pass";
+  return "paid";
+}
+
+function isReusableFortuneTeaAccessDecision(accessDecision) {
+  if (!accessDecision?.allowed) return false;
+  const source = cleanText(accessDecision.accessSource, 80).toLowerCase();
+  const licenseType = cleanText(accessDecision.licenseType, 80).toLowerCase();
+  return source !== "paidfeatures" && licenseType !== "single_purchase";
+}
+
+async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey }) {
+  if (!billingEvidenceMatchesFeatureKey(body, featureKey)) {
+    return { ok: false, reason: "FEATURE_MISMATCH" };
+  }
+
+  const ids = collectFortuneTeaBillingEvidenceIds(body);
+  if (!ids.length) return null;
+
+  await connectDb(env);
+
+  const deferredClauses = idClauses(ids, ["requestId", "idempotencyKey", "executionId", "paymentId", "orderId", "result.deferredUsage.requestId", "result.deferredUsage.paymentId"]);
+  const deferredRecord = deferredClauses.length
+    ? await leanFindOne(PaidExecutionRecord, {
+      userId: cleanText(auth.userId, 120),
+      featureId: featureKey,
+      status: { $in: FORTUNE_TEA_HOUSE_BILLING_STATUSES },
+      $or: deferredClauses,
+    }, { sort: { updatedAt: -1, createdAt: -1 }, select: "_id executionId requestId paymentId accessMethod result status" })
+    : null;
+  if (deferredRecord) {
+    const deferredUsage = objectValue(objectValue(deferredRecord.result).deferredUsage);
+    return {
+      ok: true,
+      allowed: true,
+      reason: "BILLING_GATE_DEFERRED",
+      userId: cleanText(auth.userId, 120),
+      featureKey,
+      accessSource: "billing_gate_deferred",
+      licenseType: normalizeFortuneTeaBillingAccessType({
+        accessType: deferredUsage.accessType,
+        accessMethod: deferredUsage.paymentMethod || deferredRecord.accessMethod,
+      }),
+      paymentId: cleanText(deferredRecord.paymentId || deferredRecord.executionId || deferredRecord._id, 180),
+      pricing: null,
+    };
+  }
+
+  const pointClauses = idClauses(ids, ["paymentId", "impUid", "merchantUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.ledgerId", "metadata.evidenceId", "metadata.paymentId"]);
+  const pointHistory = pointClauses.length
+    ? await leanFindOne(PointHistory, {
+      userId: auth.userId,
+      kind: "deduct",
+      featureKey,
+      "metadata.refundedForServiceExecution": { $ne: true },
+      $or: pointClauses,
+    }, { sort: { createdAt: -1 }, select: "_id delta metadata" })
+    : null;
+  if (pointHistory) {
+    return {
+      ok: true,
+      allowed: true,
+      reason: "BILLING_GATE_POINT_HISTORY",
+      userId: cleanText(auth.userId, 120),
+      featureKey,
+      accessSource: "billing_gate",
+      licenseType: normalizeFortuneTeaBillingAccessType(pointHistory.metadata || {}),
+      paymentId: cleanText(pointHistory._id, 180),
+      pricing: null,
+    };
+  }
+
+  const monthlyClauses = idClauses(ids, ["sourceId", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.ledgerId", "metadata.evidenceId", "metadata.paymentId"]);
+  const monthlyLedger = monthlyClauses.length
+    ? await leanFindOne(MonthlyCreditLedger, {
+      userId: auth.userId,
+      type: "MONTHLY_CREDIT_SPEND",
+      "metadata.refundedForServiceExecution": { $ne: true },
+      $and: [
+        { $or: [{ serviceKey: featureKey }, { serviceKey: FORTUNE_TEA_HOUSE_SERVICE_KEY }, { "metadata.featureKey": featureKey }] },
+        { $or: monthlyClauses },
+      ],
+    }, { sort: { createdAt: -1 }, select: "_id amount sourceId metadata" })
+    : null;
+  if (monthlyLedger) {
+    return {
+      ok: true,
+      allowed: true,
+      reason: "BILLING_GATE_MONTHLY_CREDIT",
+      userId: cleanText(auth.userId, 120),
+      featureKey,
+      accessSource: "billing_gate",
+      licenseType: "subscription",
+      paymentId: cleanText(monthlyLedger._id || monthlyLedger.sourceId, 180),
+      pricing: null,
+    };
+  }
+
+  const paymentClauses = idClauses(ids, ["requestId", "idempotencyKey", "merchantUid", "impUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.paymentId"]);
+  const payment = paymentClauses.length
+    ? await leanFindOne(Payment, {
+      userId: auth.userId,
+      paymentType: "digital_content",
+      status: { $in: FORTUNE_TEA_HOUSE_PAYMENT_STATUSES },
+      $and: [
+        { $or: paymentClauses },
+        { $or: [{ featureKey }, { "pricingSnapshot.featureKey": featureKey }, { "metadata.featureKey": featureKey }] },
+      ],
+    }, { sort: { paidAt: -1, updatedAt: -1, createdAt: -1 }, select: "_id merchantUid impUid requestId" })
+    : null;
+  if (payment) {
+    return {
+      ok: true,
+      allowed: true,
+      reason: "BILLING_GATE_PAYMENT",
+      userId: cleanText(auth.userId, 120),
+      featureKey,
+      accessSource: "billing_gate",
+      licenseType: "single_purchase",
+      paymentId: cleanText(payment.merchantUid || payment.impUid || payment.requestId || payment._id, 180),
+      pricing: null,
+    };
+  }
+
+  return null;
+}
+
+function readFortuneTeaRequestId(body = {}, consultRequest = {}) {
+  return cleanText(
+    body?.requestId
+      || body?.idempotencyKey
+      || body?.attemptId
+      || body?.payment?.requestId
+      || body?.payment?.idempotencyKey
+      || body?._paymentContext?.requestId
+      || body?._paymentContext?.idempotencyKey
+      || consultRequest?.attemptId
+      || consultRequest?.resultId
+      || consultRequest?.jobId,
+    180,
+  );
+}
+
+function buildFortuneTeaPaymentPayload({ featureKey, pricing = {}, consultRequest = {}, requestId = "" }) {
+  const reason = cleanText(pricing.reason, 120) || "운명 찻집 상담";
+  const cost = Math.max(0, Math.floor(Number(pricing.coinPrice ?? pricing.cost ?? 0)));
+  const amountKRW = Math.max(0, Math.floor(Number(pricing.amountKRW ?? pricing.amountKrw ?? pricing.paymentAmount ?? 0)));
+  const membershipCreditCost = Math.max(0, Math.floor(Number(pricing.membershipCreditCost ?? 0)));
+  const idempotencyKey = cleanText(requestId || consultRequest.attemptId || consultRequest.resultId || consultRequest.jobId, 180);
+  const runtimeGate = {
+    categoryKey: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    subFeatureKey: pricing.subFeatureKey || featureKey,
+    featureKey,
+    reason,
+    productId: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    productType: "fortune-tea-house-consultation",
+    serviceType: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    cost,
+    coinPrice: cost,
+    amountKRW,
+    amountKrw: amountKRW,
+    paymentAmount: amountKRW,
+    membershipCreditCost,
+    requestId: idempotencyKey,
+    idempotencyKey,
+    deferUsage: true,
+    forceDeduct: true,
+  };
+  return {
+    billingMode: "coin-gate",
+    featureKey,
+    serviceKey: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    serviceId: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    serviceType: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+    consultationMode: consultRequest.consultationMode || "tarot",
+    categoryKey: runtimeGate.categoryKey,
+    subFeatureKey: runtimeGate.subFeatureKey,
+    contentId: featureKey,
+    orderName: reason,
+    reason,
+    requestId: idempotencyKey,
+    idempotencyKey,
+    cost,
+    coinPrice: cost,
+    amountKRW,
+    amountKrw: amountKRW,
+    paymentAmount: amountKRW,
+    membershipCreditCost,
+    runtimeGate,
+  };
+}
+
+function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDecision, consultRequest, status = 402 }) {
+  const requestId = readFortuneTeaRequestId({}, consultRequest);
   return json({
     ok: false,
     paymentRequired: true,
@@ -903,6 +1217,7 @@ function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDec
     featureKey,
     pricing,
     accessDecision,
+    paymentPayload: buildFortuneTeaPaymentPayload({ featureKey, pricing, consultRequest, requestId }),
   }, { status });
 }
 
@@ -931,6 +1246,7 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
         featureKey,
         pricing: pricingResult.pricing,
         accessDecision: { allowed: false, reason: "LOGIN_REQUIRED", featureKey },
+        consultRequest,
         status: 401,
       }),
     };
@@ -940,24 +1256,49 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     env,
     reason: pricingResult.pricing.reason,
   });
-  if (!accessDecision?.allowed) {
+  if (isReusableFortuneTeaAccessDecision(accessDecision)) {
+    return {
+      ok: true,
+      auth,
+      featureKey,
+      pricing: accessDecision.pricing || pricingResult.pricing,
+      accessDecision,
+      deferredUsage: false,
+    };
+  }
+
+  const billingEvidenceAccess = await resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey });
+  if (billingEvidenceAccess?.reason === "FEATURE_MISMATCH") {
     return {
       ok: false,
-      response: buildFortuneTeaPaymentRequiredResponse({
-        featureKey,
-        pricing: accessDecision?.pricing || pricingResult.pricing,
-        accessDecision,
-        status: 402,
-      }),
+      response: json({ ok: false, message: "상담 방식과 결제 기능 키를 다시 확인해 주세요.", featureKey }, { status: 400 }),
+    };
+  }
+  if (billingEvidenceAccess?.ok) {
+    return {
+      ok: true,
+      auth,
+      featureKey,
+      pricing: pricingResult.pricing,
+      accessDecision: {
+        ...billingEvidenceAccess,
+        pricing: pricingResult.pricing,
+      },
+      deferredUsage: billingEvidenceAccess.reason === "BILLING_GATE_DEFERRED",
     };
   }
 
   return {
-    ok: true,
-    auth,
-    featureKey,
-    pricing: accessDecision.pricing || pricingResult.pricing,
-    accessDecision,
+    ok: false,
+    response: buildFortuneTeaPaymentRequiredResponse({
+      featureKey,
+      pricing: accessDecision?.pricing || pricingResult.pricing,
+      accessDecision: accessDecision?.allowed
+        ? { ...accessDecision, allowed: false, reason: "REQUEST_PAYMENT_REQUIRED" }
+        : accessDecision,
+      consultRequest,
+      status: 402,
+    }),
   };
 }
 
@@ -3127,6 +3468,43 @@ async function handleHoneyLetter(request, env, path) {
   }
 }
 
+function cloneFortuneTeaBillingHeaders(request) {
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return headers;
+}
+
+async function callFortuneTeaDeferredUsageRoute({ request, env, path, featureKey, pricing = {}, requestId = "", resultId = "", code = "", message = "" }) {
+  if (!requestId) return null;
+  const url = new URL(request.url);
+  url.pathname = `/api/billing/coin-gate/deferred/${path}`;
+  url.search = "";
+  const response = await handleBillingRoutes(new Request(url.toString(), {
+    method: "POST",
+    headers: cloneFortuneTeaBillingHeaders(request),
+    body: JSON.stringify({
+      featureKey,
+      serviceType: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+      productId: FORTUNE_TEA_HOUSE_SERVICE_KEY,
+      reason: cleanText(pricing.reason, 120) || "운명 찻집 상담",
+      requestId,
+      idempotencyKey: requestId,
+      resultId,
+      sessionId: resultId,
+      code,
+      message,
+    }),
+  }), env);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.ok === false) {
+    const error = new Error(cleanText(payload?.message || payload?.error?.message || `Deferred usage ${path} failed.`, 500));
+    error.status = response.status || 500;
+    error.code = cleanText(payload?.error?.code || `DEFERRED_USAGE_${path.toUpperCase()}_FAILED`, 80);
+    throw error;
+  }
+  return payload?.data || payload;
+}
+
 async function handleConsult(request, env) {
   if (!checkRateLimit(request)) {
     return json(
@@ -3141,8 +3519,40 @@ async function handleConsult(request, env) {
   if (!access.ok) return access.response;
 
   const fallback = normalizeDraftResult(body?.draftResult, consultRequest);
-  const generated = await generateConsultResult(consultRequest, fallback, env);
   const resultId = buildHoneyResultId(body, consultRequest);
+  const requestId = readFortuneTeaRequestId(body, consultRequest);
+  let generated;
+  try {
+    generated = await generateConsultResult(consultRequest, fallback, env);
+    if (access.deferredUsage) {
+      await callFortuneTeaDeferredUsageRoute({
+        request,
+        env,
+        path: "apply",
+        featureKey: access.featureKey,
+        pricing: access.pricing,
+        requestId,
+        resultId,
+      });
+    }
+  } catch (error) {
+    if (access.deferredUsage) {
+      await callFortuneTeaDeferredUsageRoute({
+        request,
+        env,
+        path: "cancel",
+        featureKey: access.featureKey,
+        pricing: access.pricing,
+        requestId,
+        resultId,
+        code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
+        message: cleanText(error?.message || error, 500),
+      }).catch((cancelError) => {
+        console.warn("[fortune-tea-house/billing-deferred] cancel failed", cancelError);
+      });
+    }
+    throw error;
+  }
   const auth = access.auth;
   const result = {
     ...generated.result,

@@ -7,6 +7,7 @@ const SERVICE_SCOPE = "FORTUNE_TEA_HOUSE";
 
 let handleFortuneTeaHouseRoutes;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
+let paidAccessAllowed = true;
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -39,12 +40,18 @@ function matchesCondition(actual, expected) {
   if (expected && typeof expected === "object" && !Array.isArray(expected)) {
     if (Object.prototype.hasOwnProperty.call(expected, "$gte")) return Number(actual || 0) >= Number(expected.$gte);
     if (Object.prototype.hasOwnProperty.call(expected, "$exists")) return expected.$exists ? actual !== undefined : actual === undefined;
+    if (Object.prototype.hasOwnProperty.call(expected, "$in")) return Array.isArray(expected.$in) && expected.$in.includes(actual);
+    if (Object.prototype.hasOwnProperty.call(expected, "$ne")) return actual !== expected.$ne;
   }
   return actual === expected;
 }
 
 function matchesQuery(doc, query = {}) {
-  return Object.entries(query).every(([key, expected]) => matchesCondition(valueAt(doc, key), expected));
+  return Object.entries(query).every(([key, expected]) => {
+    if (key === "$or") return Array.isArray(expected) && expected.some((item) => matchesQuery(doc, item));
+    if (key === "$and") return Array.isArray(expected) && expected.every((item) => matchesQuery(doc, item));
+    return matchesCondition(valueAt(doc, key), expected);
+  });
 }
 
 function applyUpdate(doc, update, inserting = false) {
@@ -131,6 +138,21 @@ function collection(name) {
   return fakeDb.collection(name);
 }
 
+function modelForCollection(name) {
+  return {
+    findOne(query) {
+      const row = collection(name).all().find((doc) => matchesQuery(doc, query)) || null;
+      const chain = {
+        sort() { return chain; },
+        select() { return chain; },
+        lean: async () => clone(row),
+      };
+      return chain;
+    },
+    exists: async (query) => Boolean(collection(name).all().find((doc) => matchesQuery(doc, query))),
+  };
+}
+
 function validConsultBody(attemptId = "attempt-1") {
   return {
     consultationMode: "tarot",
@@ -188,6 +210,30 @@ beforeAll(async () => {
     connectDb: jest.fn(async () => undefined),
     mongoose: { connection: { db: fakeDb } },
   }));
+  jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({
+    canAccessPaidFeature: jest.fn(async (userId, featureKey) => ({
+      allowed: paidAccessAllowed,
+      reason: paidAccessAllowed ? "TEST_ACCESS" : "PAYMENT_REQUIRED",
+      userId,
+      featureKey,
+      pricing: null,
+    })),
+  }));
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    PaidExecutionRecord: modelForCollection("paid_execution_records"),
+    PointHistory: modelForCollection("point_histories"),
+    MonthlyCreditLedger: modelForCollection("monthly_credit_ledger"),
+    Payment: modelForCollection("payments"),
+  }));
+  jest.unstable_mockModule("../../worker/routes/billing.js", () => ({
+    handleBillingRoutes: jest.fn(async () => new Response(JSON.stringify({
+      ok: true,
+      data: { deferredUsage: true, status: "completed" },
+    }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    })),
+  }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
     callGeminiText: jest.fn(async () => ({ ok: false, error: "external_call_blocked" })),
   }));
@@ -198,9 +244,121 @@ beforeAll(async () => {
 beforeEach(() => {
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
+  paidAccessAllowed = true;
 });
 
+const FEATURE_KEYS = {
+  tarot: "fortune-tea-house-tarot-consultation",
+  saju: "fortune-tea-house-saju-consultation",
+  sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
+};
+
+function consultBodyForMode(mode, attemptId) {
+  const body = {
+    ...validConsultBody(attemptId),
+    consultationMode: mode,
+  };
+  if (mode === "saju") {
+    body.birthDate = "1990-01-01";
+    body.birthTime = "12:00";
+    body.gender = "female";
+    body.calendarType = "solar";
+  }
+  if (mode === "sukuyo") {
+    body.sukuyo = {
+      user: { name: "A", birthDate: "1990-01-01", calendarType: "solar", gender: "female" },
+      partner: { name: "B", birthDate: "1991-02-02", calendarType: "solar", gender: "male" },
+      relationshipType: "love",
+      focus: "current",
+    };
+  }
+  return body;
+}
+
+async function seedBillingEvidence({ featureKey, requestId, accessMethod = "single" }) {
+  await collection("paid_execution_records").insertOne({
+    _id: `paid:${requestId}`,
+    userId: USER_ID,
+    featureId: featureKey,
+    requestId,
+    idempotencyKey: requestId,
+    executionId: `exec:${requestId}`,
+    paymentId: `pay:${requestId}`,
+    orderId: `order:${requestId}`,
+    accessMethod,
+    status: "paid_pending_generation",
+    result: { deferredUsage: { requestId, paymentId: `pay:${requestId}`, accessType: accessMethod } },
+  });
+}
+
+function billingGatePayload(featureKey, requestId) {
+  return {
+    featureKey,
+    requestId,
+    idempotencyKey: requestId,
+    executionId: `exec:${requestId}`,
+    paymentId: `pay:${requestId}`,
+    accessGrant: { featureKey, requestId, paymentId: `pay:${requestId}` },
+    consume: { featureKey, requestId, transactionId: `exec:${requestId}`, accessType: "single_purchase" },
+  };
+}
+
 describe("fortune tea house honey drops", () => {
+  test.each(["tarot", "saju", "sukuyo"])("%s consult accepts verified billing gate evidence", async (mode) => {
+    paidAccessAllowed = false;
+    const requestId = `billing-${mode}`;
+    const featureKey = FEATURE_KEYS[mode];
+    await seedBillingEvidence({ featureKey, requestId });
+
+    const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...consultBodyForMode(mode, requestId),
+        featureKey,
+        billingGate: billingGatePayload(featureKey, requestId),
+      }),
+    }), { NODE_ENV: "test" });
+    const { status, payload } = await readJson(response);
+
+    expect(status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.result.consultationMode).toBe(mode);
+    expect(payload.result.featureKey).toBe(featureKey);
+  });
+
+  test("paid consult without evidence returns payment payload", async () => {
+    paidAccessAllowed = false;
+    const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(validConsultBody("payment-required")),
+    }), { NODE_ENV: "test" });
+    const { status, payload } = await readJson(response);
+
+    expect(status).toBe(402);
+    expect(payload.paymentRequired).toBe(true);
+    expect(payload.paymentPayload.featureKey).toBe(FEATURE_KEYS.tarot);
+  });
+
+  test("billing evidence with another fortune tea feature key is rejected", async () => {
+    paidAccessAllowed = false;
+    const requestId = "mismatch-feature";
+    await seedBillingEvidence({ featureKey: FEATURE_KEYS.tarot, requestId });
+
+    const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...consultBodyForMode("saju", requestId),
+        billingGate: billingGatePayload(FEATURE_KEYS.tarot, requestId),
+      }),
+    }), { NODE_ENV: "test" });
+    const { status, payload } = await readJson(response);
+
+    expect(status).toBe(400);
+    expect(payload.ok).toBe(false);
+  });
   test("상담 성공 후 전용 wallet에 꿀방울 1개만 중복 없이 지급한다", async () => {
     const env = { NODE_ENV: "test" };
     const first = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
@@ -234,7 +392,8 @@ describe("fortune tea house honey drops", () => {
     }), { NODE_ENV: "test" });
     const payload = await response.json();
 
-    expect(payload.honeyDrops.authenticated).toBe(false);
+    expect(response.status).toBe(401);
+    expect(payload.paymentRequired).toBe(true);
     expect(collection("fortune_tea_house_honey_wallets").all()).toHaveLength(0);
     expect(collection("fortune_tea_house_honey_ledgers").all()).toHaveLength(0);
   });

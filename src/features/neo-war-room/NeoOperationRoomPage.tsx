@@ -14,6 +14,7 @@ import {
 import {
   getNeoIntensityDialogue,
   getNeoLoadingDialogue,
+  getNeoMethodDialogue,
   getNeoTopicDialogue,
   neoOperationDialogues,
   pickNeoDialogue,
@@ -106,7 +107,7 @@ type NeoCommandSpriteConfig = {
   asset?: NeoWarRoomAsset;
   sheetFrame?: number;
 };
-type NeoPrologueSpeaker = "unknown" | "neo" | "narration" | "inner" | "system";
+type NeoPrologueSpeaker = "customer" | "neo" | "narration" | "inner" | "system";
 type NeoPrologueCharacter = "hidden" | "shadow" | "preTransformNeoMain" | "preTransformNeoTalk" | "transformingNeo" | "humanNeo";
 type NeoPrologueEffect = "none" | "signal" | "seal" | "transform" | "arrival";
 type NeoPrologueLine = {
@@ -139,7 +140,7 @@ const NEO_TRANSFORM_FRAME_COUNT = 24;
 const NEO_TRANSFORM_SHEET_COLUMNS = 6;
 const NEO_TRANSFORM_SHEET_ROWS = 4;
 const NEO_TRANSFORM_SHEET_CELL_PX = 256;
-const NEO_TRANSFORM_FRAME_INSET_PX = 10;
+const NEO_TRANSFORM_FRAME_INSET_PX = 0;
 const NEO_TRANSFORM_FRAME_INTERVAL_MS = 62;
 const NEO_PRE_TRANSFORM_SHEET_COLUMNS = 4;
 const NEO_PRE_TRANSFORM_SHEET_ROWS = 4;
@@ -288,74 +289,137 @@ const neoLandingDialogues = [
 
 const neoPrologueDialogues: readonly NeoPrologueLine[] = [
   {
-    id: "unknown-power",
-    speaker: "unknown",
-    speakerLabel: "???",
-    text: "힘을 원하나?",
+    id: "customer-arrival",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "잠깐. 상담 받으러 왔는데 왜 조명이 작전실 분위기야?\n나 혹시 잘못 눌렀나?",
     scene: "intro",
     character: "shadow",
     effect: "signal",
   },
   {
-    id: "inner-where",
+    id: "inner-shadow-check",
     speaker: "inner",
     speakerLabel: "내면의 목소리",
-    text: "여긴 어디지.\n분명 방금 전까지는 평범한 화면 앞에 있었는데, 도시의 불빛이 작전 지도처럼 펼쳐져 있다.",
+    text: "저 검은 그림자... 설마 나인가?\n요즘 선택을 미루다 보니 실루엣까지 흐릿해진 건가.",
     scene: "signal",
     character: "hidden",
     effect: "signal",
   },
   {
-    id: "unknown-choice",
-    speaker: "unknown",
-    speakerLabel: "???",
-    text: "흔들리는 선택을 계속 감으로만 넘길 건가.\n아니면 네 운명의 전선을 한번 제대로 들여다볼 건가.",
-    scene: "signal",
-    character: "shadow",
-    effect: "signal",
-  },
-  {
-    id: "inner-lion",
-    speaker: "inner",
-    speakerLabel: "내면의 목소리",
-    text: "잠깐.\n이 고양이인지 사자인지도 정체성이 애매한 생물은??",
+    id: "neo-war-room-welcome",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "잘못 누른 건 아니다.\n여긴 위로 상담소가 아니라, 네 선택 패턴을 작전처럼 해독하는 방이다.",
     scene: "lionReveal",
     character: "preTransformNeoMain",
     effect: "seal",
   },
   {
-    id: "unknown-not-cat",
-    speaker: "unknown",
-    speakerLabel: "???",
-    text: "고양이는 아니다.",
+    id: "customer-cat-misread",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "선택 패턴까지는 알겠는데...\n혹시 진행자는 고양이야?",
     scene: "identityComedy",
     character: "shadow",
     effect: "seal",
   },
   {
-    id: "inner-ok-lion",
-    speaker: "inner",
-    speakerLabel: "내면의 목소리",
-    text: "알겠어. 사자.",
+    id: "neo-not-cat",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "사자다.\n그리고 그냥 사자가 아니라 전략가 네오다. 발음 조심해라.",
     scene: "identityComedy",
     character: "preTransformNeoMain",
     effect: "seal",
   },
   {
-    id: "neo-name-reveal",
+    id: "customer-problem",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "그래, 전략가 사자.\n근데 나는 그냥 요즘 선택이 자꾸 꼬여서 온 거야. 큰일 난 건 아니고.",
+    scene: "signal",
+    character: "shadow",
+    effect: "signal",
+  },
+  {
+    id: "neo-denial-detected",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "그냥 사자가 아니라 전략가 네오다.\n운명은 감상문으로 읽는 게 아니다. 작전처럼 해독하는 거다.",
+    text: "방금 그 '큰일 난 건 아니고'가 첫 번째 단서다.\n사람은 진짜 급한 문제일수록 말끝을 흐린다.",
     scene: "nameReveal",
     character: "preTransformNeoMain",
     effect: "seal",
   },
   {
-    id: "inner-strategist-lion",
-    speaker: "inner",
-    speakerLabel: "내면의 목소리",
-    text: "알겠어. 전략가 사자.",
+    id: "customer-many-maps",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "그럼 여기서는 뭘 보는 건데?\n사주, 별자리, 자미두수, 베다점... 이름만 들어도 머리가 복잡한데.",
     scene: "nameReveal",
+    character: "shadow",
+    effect: "signal",
+  },
+  {
+    id: "neo-method-briefing",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "지도는 넷이지만 목적은 하나다.\n사주는 기본 전투 방식, 자미두수는 인생의 배치도, 베다는 반복 흐름, 점성술은 마음의 궤도를 본다.",
+    scene: "strategyRoom",
+    character: "preTransformNeoMain",
+    effect: "seal",
+  },
+  {
+    id: "neo-topic-briefing",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "그리고 주제를 골라야 한다.\n연애인지, 일인지, 돈인지, 인간관계인지. 전선을 흐리면 작전도 흐려진다.",
+    scene: "strategyRoom",
+    character: "preTransformNeoMain",
+    effect: "seal",
+  },
+  {
+    id: "customer-birth-coordinates",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "출생 정보까지 넣는 이유는?\n그냥 요즘 고민만 말하면 안 돼?",
+    scene: "strategyRoom",
+    character: "shadow",
+    effect: "signal",
+  },
+  {
+    id: "neo-coordinate-briefing",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "고민은 현재 위치고, 출생 좌표는 네가 들고 태어난 지도다.\n둘을 같이 봐야 길이 막힌 건지, 네가 같은 벽에 계속 박는 건지 구분된다.",
+    scene: "strategyRoom",
+    character: "preTransformNeoMain",
+    effect: "seal",
+  },
+  {
+    id: "customer-roar-question",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "팩폭 강도도 있네.\n사자 포효맛은 이름부터 좀 위험해 보이는데?",
+    scene: "strategyRoom",
+    character: "shadow",
+    effect: "signal",
+  },
+  {
+    id: "neo-roar-warning",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "멋으로 고르는 맛은 아니다.\n순한맛은 숨 쉴 틈을 남기고, 기본맛은 핵심을 찌르고, 포효맛은 변명부터 내려놓게 만든다.",
+    scene: "identityComedy",
+    character: "preTransformNeoMain",
+    effect: "seal",
+  },
+  {
+    id: "neo-transform-ready",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "겁먹을 필요는 없다.\n도망치지만 않으면, 감정의 안개는 작전 명령서로 바뀐다.",
+    scene: "transformation",
     character: "preTransformNeoMain",
     effect: "seal",
   },
@@ -363,51 +427,33 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "transform-flare",
     speaker: "narration",
     speakerLabel: "내레이션",
-    text: "사자 휘장이 빛을 토해 내자, 네오의 윤곽이 도시의 별빛과 겹쳐진다.\n전략실의 공기가 한순간 조용히 뒤집힌다.",
+    text: "사자 휘장이 빛을 토해 내자, 네오의 윤곽이 도시의 별빛과 겹쳐진다.\n흩어져 있던 고민들이 하나의 작전판 위로 정렬된다.",
     scene: "transformation",
     character: "transformingNeo",
     transformFrame: 1,
     effect: "transform",
   },
   {
-    id: "inner-style-change",
-    speaker: "inner",
-    speakerLabel: "내면의 목소리",
-    text: "뭔가 그림체가 바뀐것 같은데?",
+    id: "customer-style-change",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "잠깐, 방금 변신했지?\n상담보다 스케일이 큰데?",
     scene: "humanNeo",
-    character: "humanNeo",
+    character: "shadow",
     effect: "arrival",
   },
   {
-    id: "neo-mood",
+    id: "neo-final-briefing",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "기분탓이야~\n중요한 건 그림체가 아니라, 네 선택이 이제 작전실에 올라왔다는 거다.",
-    scene: "humanNeo",
-    character: "humanNeo",
-    effect: "arrival",
-  },
-  {
-    id: "strategy-room",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "여기서는 사주, 별의 각도, 반복된 선택의 흔적이 같은 테이블 위에 놓인다.\n지도는 달라도 네가 밀린 전선은 묘하게 같은 곳을 가리킨다.",
-    scene: "strategyRoom",
+    text: "이제 들어와라.\n네 고민은 감상문이 아니라 브리핑으로 정리하고, 네 회피는 현실 점검에서 다시 확인한다.",
+    scene: "final",
     character: "humanNeo",
     effect: "arrival",
     notification: {
       title: "작전실 연결 완료",
-      body: "네오가 운명의 지도를 펼쳤다.",
+      body: "분석 방식, 상담 주제, 출생 좌표, 팩폭 강도가 작전판에 올라간다.",
     },
-  },
-  {
-    id: "final-entry",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "망설이는 건 좋아.\n하지만 계속 제자리에 있는 건 작전이 아니야.",
-    scene: "final",
-    character: "humanNeo",
-    effect: "arrival",
     cta: {
       label: "운명 전략실 입장하기",
       helperText: "첫 작전 브리핑을 시작한다.",
@@ -694,6 +740,11 @@ const intensityOptions: Array<{
   { id: "roar", label: "사자 포효맛", body: "핑계의 방패를 내려놓게 만든다.", cropX: "-66.666%", cropY: "-50%", tone: "roar" },
 ];
 
+type NeoCommandChoice =
+  | { kind: "method"; value: NeoWarRoomConsultMode }
+  | { kind: "topic"; value: (typeof topicOptions)[number] }
+  | { kind: "intensity"; value: IntensityId };
+
 const operationMapStages = [
   "네오가 운명의 작전 지도를 펼치는 중...",
   "사자 휘장이 네 운명의 전선을 감지하는 중...",
@@ -763,6 +814,20 @@ function extractPaymentContext(result: unknown, fallbackRequestId: string) {
   const consume = asRecord(payload.consume);
   const accessGrant = asRecord(payload.accessGrant);
   const payment = asRecord(payload.payment);
+  const accessType = toText(payload.accessType || consume.accessType || accessGrant.accessType || payment.accessType);
+  const accessMethod = toText(
+    payload.accessMethod
+      || payload.paymentMode
+      || consume.accessMethod
+      || consume.paymentMethod
+      || accessGrant.accessMethod
+      || accessGrant.paymentMethod
+      || payment.accessMethod
+      || payment.paymentMode,
+  );
+  const transactionId = toText(payload.transactionId || consume.transactionId || accessGrant.transactionId || payment.transactionId);
+  const ledgerId = toText(payload.ledgerId || consume.ledgerId || accessGrant.ledgerId || payment.ledgerId);
+  const executionId = toText(payload.executionId || consume.executionId || accessGrant.executionId);
   const paymentId = toText(
     payload.paymentId
       || payload.transactionId
@@ -781,6 +846,14 @@ function extractPaymentContext(result: unknown, fallbackRequestId: string) {
     payment: { ...payment, paymentId, requestId: fallbackRequestId },
     accessGrant,
     consume,
+    accessType,
+    accessMethod,
+    paymentMode: accessMethod,
+    transactionId,
+    ledgerId,
+    executionId,
+    featureKey: toText(payload.featureKey || consume.featureKey || accessGrant.featureKey || payment.featureKey || FEATURE_KEY),
+    billingGate: payload,
     requestId: fallbackRequestId,
   };
 }
@@ -803,6 +876,7 @@ export default function NeoOperationRoomPage() {
   const [method, setMethod] = useState<NeoWarRoomConsultMode | "">("");
   const [topic, setTopic] = useState<(typeof topicOptions)[number] | "">("");
   const [intensity, setIntensity] = useState<IntensityId | "">("");
+  const [lastCommandChoice, setLastCommandChoice] = useState<NeoCommandChoice | null>(null);
   const [question, setQuestion] = useState("");
   const [operationReady, setOperationReady] = useState(false);
   const [flowPhase, setFlowPhase] = useState<FlowPhase>("idle");
@@ -912,12 +986,19 @@ export default function NeoOperationRoomPage() {
     Boolean(birthState.birth.birthDate)
     && Boolean(birthState.birth.gender)
     && (birthState.birth.birthTimeUnknown || Boolean(birthState.birth.birthTime));
+  const lastChoiceDialogue = useMemo(() => {
+    if (lastCommandChoice?.kind === "method" && method === lastCommandChoice.value) return getNeoMethodDialogue(method);
+    if (lastCommandChoice?.kind === "topic" && topic === lastCommandChoice.value) return getNeoTopicDialogue(topic);
+    if (lastCommandChoice?.kind === "intensity" && intensity === lastCommandChoice.value) return getNeoIntensityDialogue(intensity);
+    return null;
+  }, [intensity, lastCommandChoice, method, topic]);
   const activeCommandDialogue = useMemo(() => {
     if (validationErrors.length) return neoOperationDialogues.error.missingInput[0];
     if (errorMessage) return neoOperationDialogues.error.generatingFailed[0];
     if (busy || previewOperationMap) return getNeoLoadingDialogue(method, operationStageIndex);
     if (displayRefinedOrder) return neoOperationDialogues.refinedResult[0];
     if (displayBriefing) return neoOperationDialogues.initialResult[0];
+    if (lastChoiceDialogue) return lastChoiceDialogue;
     if (!method) return methodIntroDialogues[methodIntroStep % methodIntroDialogues.length];
     if (!topic) return getNeoTopicDialogue("");
     if (!hasBirthCoordinates) return pickNeoDialogue(neoOperationDialogues.birthCheck);
@@ -934,6 +1015,7 @@ export default function NeoOperationRoomPage() {
     operationStageIndex,
     displayRefinedOrder,
     displayBriefing,
+    lastChoiceDialogue,
     topic,
     hasBirthCoordinates,
     intensity,
@@ -949,8 +1031,8 @@ export default function NeoOperationRoomPage() {
   const activeHeroDialogue = activePrologueLine?.text || neoLandingDialogues[introStep % neoLandingDialogues.length];
   const activeHeroSpeakerLabel = activePrologueLine?.speakerLabel || "네오";
   const activeHeroSpeakerCode =
-    activePrologueLine?.speaker === "unknown"
-      ? "???"
+    activePrologueLine?.speaker === "customer"
+      ? "CLIENT"
       : activePrologueLine?.speaker === "inner"
         ? "VOICE"
         : activePrologueLine?.speaker === "narration"
@@ -1156,8 +1238,23 @@ export default function NeoOperationRoomPage() {
       audio.removeAttribute("src");
       audio.load();
       setBgmStatus("off");
+      return;
     }
-  }, [bgmEnabled, isBgmPreferenceReady]);
+    void playNeoBgm();
+  }, [bgmEnabled, isBgmPreferenceReady, playNeoBgm]);
+
+  useEffect(() => {
+    if (!bgmEnabled || bgmStatus !== "blocked" || !isBgmPreferenceReady) return undefined;
+    const resumeBgm = () => {
+      void playNeoBgm(true);
+    };
+    window.addEventListener("pointerdown", resumeBgm, { once: true });
+    window.addEventListener("keydown", resumeBgm, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", resumeBgm);
+      window.removeEventListener("keydown", resumeBgm);
+    };
+  }, [bgmEnabled, bgmStatus, isBgmPreferenceReady, playNeoBgm]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1500,7 +1597,8 @@ export default function NeoOperationRoomPage() {
       const paymentPayload = asRecord(data.paymentPayload);
       const runtimeGate = asRecord(paymentPayload.runtimeGate);
       const gateCoinPrice = toPositiveInteger(runtimeGate.coinPrice ?? runtimeGate.cost ?? paymentPayload.coinPrice ?? paymentPayload.cost);
-      const gateAmountKRW = toPositiveInteger(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount);
+      const gatePaymentAmount = toPositiveInteger(runtimeGate.paymentAmount ?? paymentPayload.paymentAmount ?? runtimeGate.totalAmount ?? paymentPayload.totalAmount);
+      const gateAmountKRW = toPositiveInteger(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? gatePaymentAmount);
       const gateMembershipCreditCost = toPositiveInteger(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost);
       openPaidFeatureGate({
         featureKey: FEATURE_KEY,
@@ -1515,8 +1613,8 @@ export default function NeoOperationRoomPage() {
       const gate = await runBillingCoinGate({
         ...runtimeGate,
         featureKey: FEATURE_KEY,
-        categoryKey: toText(runtimeGate.categoryKey || "premium-consultation"),
-        subFeatureKey: FEATURE_KEY,
+        categoryKey: toText(runtimeGate.categoryKey || paymentPayload.categoryKey || "premium-consultation"),
+        subFeatureKey: toText(runtimeGate.subFeatureKey || paymentPayload.subFeatureKey || FEATURE_KEY),
         reason: toText(runtimeGate.reason || paymentPayload.reason || FEATURE_TITLE),
         requestId: idempotencyKey,
         idempotencyKey,
@@ -1524,10 +1622,12 @@ export default function NeoOperationRoomPage() {
         coinPrice: gateCoinPrice || undefined,
         amountKRW: gateAmountKRW || undefined,
         amountKrw: gateAmountKRW || undefined,
+        paymentAmount: gatePaymentAmount || gateAmountKRW || undefined,
+        priceKRW: gateAmountKRW || gatePaymentAmount || undefined,
         membershipCreditCost: gateMembershipCreditCost || undefined,
-        productId: toText(runtimeGate.productId || FEATURE_KEY),
-        productType: toText(runtimeGate.productType || "premium-consultation"),
-        serviceType: toText(runtimeGate.serviceType || "neo-operation-room"),
+        productId: toText(runtimeGate.productId || paymentPayload.productId || "neo-operation-room"),
+        productType: toText(runtimeGate.productType || paymentPayload.productType || "neo-operation-room"),
+        serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType || FEATURE_KEY),
         forceDeduct: true,
       });
       if (!gate.ok || !gate.data) {
@@ -1564,6 +1664,7 @@ export default function NeoOperationRoomPage() {
 
   function updateBirthInput(field: keyof NeoWarRoomBirthInput, value: string | boolean) {
     resetPendingFlow();
+    setLastCommandChoice(null);
     setBirthState((prev) => ({
       ...prev,
       profileMode: "manual",
@@ -1578,6 +1679,7 @@ export default function NeoOperationRoomPage() {
   function selectSavedProfile() {
     if (!birthState.hasSavedProfile) return;
     resetPendingFlow();
+    setLastCommandChoice(null);
     setBirthState((prev) => ({
       ...prev,
       profileMode: "saved",
@@ -1587,6 +1689,7 @@ export default function NeoOperationRoomPage() {
 
   function selectManualProfile() {
     resetPendingFlow();
+    setLastCommandChoice(null);
     setBirthState((prev) => ({
       ...prev,
       profileMode: "manual",
@@ -1605,7 +1708,7 @@ export default function NeoOperationRoomPage() {
       style={backgroundStyle}
     >
       <audio ref={bgmAudioRef} className={styles.bgmAudio} preload="none" loop data-track={NEO_WAR_ROOM_BGM_TRACK.key} />
-      <button type="button" className={styles.bgmToggle} data-active={bgmStatus === "playing" ? "true" : "false"} onClick={toggleNeoBgm}>
+      <button type="button" className={styles.bgmToggle} data-active={bgmEnabled && bgmStatus !== "off" ? "true" : "false"} onClick={toggleNeoBgm}>
         <span aria-hidden="true" />
         <strong>BGM</strong>
         <em>{bgmStatusLabel}</em>
@@ -1667,6 +1770,7 @@ export default function NeoOperationRoomPage() {
             role="button"
             tabIndex={0}
             data-speaker={activePrologueLine?.speaker || "neo"}
+            data-character={activeHeroCharacter}
             data-complete={isPrologueActive && isLastPrologueStep ? "true" : "false"}
             onClick={advanceHeroDialogue}
             onKeyDown={handleIntroKeyDown}
@@ -1846,6 +1950,7 @@ export default function NeoOperationRoomPage() {
                       if (!item.enabled) return;
                       resetPendingFlow();
                       setMethod(item.mode);
+                      setLastCommandChoice({ kind: "method", value: item.mode });
                     }}
                   >
                     <NeoWarRoomAssetImage
@@ -1888,6 +1993,7 @@ export default function NeoOperationRoomPage() {
                     onClick={() => {
                       resetPendingFlow();
                       setTopic(item);
+                      setLastCommandChoice({ kind: "topic", value: item });
                     }}
                   >
                     {item}
@@ -2027,6 +2133,7 @@ export default function NeoOperationRoomPage() {
                     onClick={() => {
                       resetPendingFlow();
                       setIntensity(item.id);
+                      setLastCommandChoice({ kind: "intensity", value: item.id });
                     }}
                   >
                     <span
@@ -2052,6 +2159,13 @@ export default function NeoOperationRoomPage() {
                   </button>
                 ))}
               </div>
+              {intensity === "roar" ? (
+                <aside className={styles.roarWarning} role="alert">
+                  <span aria-hidden="true">!</span>
+                  <strong>사자 포효맛 주의</strong>
+                  <p>이 강도는 위로보다 직면을 앞세운다. 마음이 예민한 날이라면 기본맛으로 낮춰도 작전은 흐려지지 않는다.</p>
+                </aside>
+              ) : null}
             </section>
             ) : null}
 
@@ -2072,6 +2186,7 @@ export default function NeoOperationRoomPage() {
                 placeholder={"지금 네가 가장 답을 알고 싶은 문제를 적어라.\n길게 써도 된다. 변명도 포함해라.\n내가 알아서 걸러낸다."}
                 onChange={(event) => {
                   resetPendingFlow();
+                  setLastCommandChoice(null);
                   setQuestion(event.target.value);
                 }}
               />

@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
@@ -6,31 +6,6 @@ import AssetImage from "./AssetImage";
 import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
-
-const tarotAromaParticles = ["moon", "petal", "heart", "spark", "steam"];
-const TAROT_SCENT_PIG_FRAME_MS = 675;
-const tarotScentPigFrames = [
-  { x: 45, y: 31, width: 282, height: 303 },
-  { x: 379, y: 35, width: 262, height: 299 },
-  { x: 724, y: 35, width: 250, height: 299 },
-  { x: 1031, y: 44, width: 250, height: 290 },
-  { x: 23, y: 349, width: 295, height: 325 },
-  { x: 384, y: 345, width: 252, height: 329 },
-  { x: 731, y: 345, width: 237, height: 328 },
-  { x: 1054, y: 345, width: 272, height: 328 },
-  { x: 44, y: 717, width: 253, height: 297 },
-  { x: 377, y: 725, width: 267, height: 288 },
-  { x: 714, y: 728, width: 272, height: 285 },
-  { x: 1061, y: 731, width: 257, height: 283 },
-  { x: 85, y: 1032, width: 228, height: 289 },
-  { x: 374, y: 1066, width: 273, height: 288 },
-  { x: 717, y: 1066, width: 265, height: 287 },
-  { x: 1064, y: 1062, width: 251, height: 291 },
-] as const;
-const tarotScentPigSpriteSheet = {
-  width: 1360,
-  height: 1360,
-} as const;
 
 type ScentLoadingSceneProps = {
   selectedCup?: TeaHouseCup | null;
@@ -51,8 +26,6 @@ const scentProgressUi =
   "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.06] shadow-[0_20px_58px_rgba(4,2,12,0.24),inset_0_1px_0_rgba(255,255,255,0.12)] ring-1 ring-white/5 backdrop-blur-xl";
 
 export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
-  const isTarotMode = consultationMode === "tarot";
-  const [tarotScentPigFrameIndex, setTarotScentPigFrameIndex] = useState(0);
   const chatLine =
     consultationMode === "saju"
       ? "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요."
@@ -94,24 +67,12 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
             ? "연이가 두 사람의 27숙 거리와 관계의 온도를 조용히 엮고 있어요."
           : "카드가 향기의 결을 따라 움직이고 있어요."
       }`
-    : isTarotMode
+    : consultationMode === "tarot"
       ? `${loadingTitle}\n카드가 향기의 결을 따라 움직이고 있어요.`
       : `${loadingTitle}\n열리지 않은 것은 지어내지 않고, 지금 드러난 결만 고요히 읽습니다.`;
   const waitingSprite = fortuneTeaHouseAssets.yeoni.transparent.cupPoseSpriteSheet;
-  const tarotScentPigSprite = fortuneTeaHouseAssets.yeoni.transparent.talkingPigYeoni3Sprite;
-  const tarotScentPigFrame = tarotScentPigFrames[tarotScentPigFrameIndex] || tarotScentPigFrames[0];
   const teaChatStyle = {
     "--yeoni-tea-chat-sprite": `url("${waitingSprite}")`,
-  } as CSSProperties;
-  const tarotScentPigStyle = {
-    "--pig-sprite-x": `${tarotScentPigFrame.x}px`,
-    "--pig-sprite-y": `${tarotScentPigFrame.y}px`,
-    "--pig-sprite-width": `${tarotScentPigFrame.width}px`,
-    "--pig-sprite-height": `${tarotScentPigFrame.height}px`,
-    "--pig-sprite-aspect-width": tarotScentPigFrame.width,
-    "--pig-sprite-aspect-height": tarotScentPigFrame.height,
-    "--pig-sprite-sheet-width": `${tarotScentPigSpriteSheet.width}px`,
-    "--pig-sprite-sheet-height": `${tarotScentPigSpriteSheet.height}px`,
   } as CSSProperties;
   const activeProgress = progress || {
     percent: 5,
@@ -127,76 +88,29 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
     Math.max(0, Math.floor((visiblePercent / 100) * progressSteps.length)),
   );
 
-  useEffect(() => {
-    if (!isTarotMode) return;
-    const timer = window.setInterval(() => {
-      setTarotScentPigFrameIndex((current) => (current + 1) % tarotScentPigFrames.length);
-    }, TAROT_SCENT_PIG_FRAME_MS);
-    return () => window.clearInterval(timer);
-  }, [isTarotMode]);
-
   return (
-    <section className={`${styles.emotionScene} ${isTarotMode ? styles.tarotScentScene : ""}`} data-accent={selectedCup?.accent || "pink"} aria-labelledby="scentLoadingTitle">
-      <div className={`${styles.emotionVisual} ${isTarotMode ? styles.tarotScentVisual : ""}`}>
-        {isTarotMode ? (
-          <div className={styles.scentPigStage} aria-label="연이가 마음의 향을 살피는 장면">
-            <span className={styles.scentPigMoon} aria-hidden />
-            <span className={styles.scentPigTable} aria-hidden />
-            <span className={styles.scentPigAroma} aria-hidden>
-              {tarotAromaParticles.map((particle) => (
-                <i key={particle} />
-              ))}
-            </span>
-            {selectedCup ? (
-              <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentPigTeaCup} decorative />
-            ) : (
-              <span className={styles.scentPigTeaCupFallback} aria-hidden />
-            )}
-            <span
-              className={`${styles.scentPigActor} ${styles.scentWaitingYeoniSprite} ${styles.pigSpriteFrame}`}
-              style={tarotScentPigStyle}
-              role="img"
-              aria-label="마음의 향을 맡는 꽃돼지 연이"
-            >
-              <img
-                className={styles.pigSpriteSheet}
-                src={tarotScentPigSprite}
-                alt=""
-                decoding="async"
-                loading="eager"
-                aria-hidden
-              />
-            </span>
-            <span className={styles.scentPigSparkle} aria-hidden />
-            <span className={styles.scentPigBubble}>
-              <strong>연이</strong>
-              <span>{chatLine}</span>
-            </span>
-          </div>
-        ) : (
-          <>
-            <AssetImage
-              className={styles.loadingSceneAsset}
-              src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-              alt="달빛 찻잔이 떠오르는 로딩 장면"
-              priority
-            />
-            <AssetImage
-              className={styles.emotionGaugeAsset}
-              src={fortuneTeaHouseAssets.pig.emotionGauge}
-              alt="마음의 향을 읽는 감정 분석 장식"
-            />
-            <div className={styles.scentLoadingTeaChatStage} style={teaChatStyle}>
-              <span className={styles.scentLoadingTeaChatAura} aria-hidden />
-              <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
-              <span className={styles.scentLoadingTeaChatBubble}>
-                <strong>연이</strong>
-                <span>{chatLine}</span>
-              </span>
-              {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentLoadingTeaCupBadge} /> : null}
-            </div>
-          </>
-        )}
+    <section className={styles.emotionScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="scentLoadingTitle">
+      <div className={styles.emotionVisual}>
+        <AssetImage
+          className={styles.loadingSceneAsset}
+          src={fortuneTeaHouseAssets.backgrounds.loadingScene}
+          alt="달빛 찻잔이 떠오르는 로딩 장면"
+          priority
+        />
+        <AssetImage
+          className={styles.emotionGaugeAsset}
+          src={fortuneTeaHouseAssets.pig.emotionGauge}
+          alt="마음의 향을 읽는 감정 분석 장식"
+        />
+        <div className={styles.scentLoadingTeaChatStage} style={teaChatStyle}>
+          <span className={styles.scentLoadingTeaChatAura} aria-hidden />
+          <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
+          <span className={styles.scentLoadingTeaChatBubble}>
+            <strong>연이</strong>
+            <span>{chatLine}</span>
+          </span>
+          {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentLoadingTeaCupBadge} /> : null}
+        </div>
       </div>
       <div className={`${styles.emotionPanel} ${scentPanelUi}`}>
         <p className={styles.sceneEyebrow}>{selectedCup?.name || "찻잔"} 위로 향이 피어납니다</p>

@@ -196,15 +196,26 @@ function paymentRequired(pricing, idempotencyKey) {
     ok: false,
     reason: "PAYMENT_REQUIRED",
     paymentPayload: {
+      billingMode: "coin-gate",
       featureKey: FEATURE_KEY,
+      serviceKey: SERVICE_KEY,
+      serviceId: SERVICE_KEY,
+      serviceType: FEATURE_KEY,
+      categoryKey: "premium-consultation",
+      subFeatureKey: FEATURE_KEY,
+      contentId: FEATURE_KEY,
+      contentType: SERVICE_KEY,
       title: TITLE,
       reason: TITLE,
       orderName: TITLE,
       cost: pricing.coinPrice,
       coinPrice: pricing.coinPrice,
+      totalAmount: pricing.amountKRW,
+      paymentAmount: pricing.amountKRW,
       amountKRW: pricing.amountKRW,
       amountKrw: pricing.amountKRW,
       currency: "KRW",
+      membershipCreditCost: pricing.membershipCreditCost,
       requestId: idempotencyKey,
       idempotencyKey,
       checkoutEndpoint: "/api/billing/checkout",
@@ -215,15 +226,17 @@ function paymentRequired(pricing, idempotencyKey) {
         featureKey: FEATURE_KEY,
         categoryKey: "premium-consultation",
         subFeatureKey: FEATURE_KEY,
-        serviceKey: FEATURE_KEY,
+        serviceKey: SERVICE_KEY,
         cost: pricing.coinPrice,
         coinPrice: pricing.coinPrice,
+        totalAmount: pricing.amountKRW,
+        paymentAmount: pricing.amountKRW,
         amountKRW: pricing.amountKRW,
         amountKrw: pricing.amountKRW,
         membershipCreditCost: pricing.membershipCreditCost,
-        productId: FEATURE_KEY,
-        productType: "premium-consultation",
-        serviceType: SERVICE_KEY,
+        productId: SERVICE_KEY,
+        productType: SERVICE_KEY,
+        serviceType: FEATURE_KEY,
         allowedPaymentModes: ["direct", "monthly", "pass"],
         requestId: idempotencyKey,
         idempotencyKey,
@@ -308,40 +321,54 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
 }
 
 function paymentIdFromBody(body = {}) {
-  const payment = asObject(body.payment);
-  const accessGrant = asObject(body.accessGrant);
-  const consume = asObject(body.consume);
+  const billingGate = asObject(body.billingGate || body.billing || body.billingResult || body.paymentContext || body._paymentContext);
+  const payment = asObject(body.payment || billingGate.payment);
+  const accessGrant = asObject(body.accessGrant || billingGate.accessGrant || billingGate.accessGateResult);
+  const consume = asObject(body.consume || billingGate.consume);
   return clean(
     body.paymentId
+      || body.transactionId
+      || body.purchaseId
+      || body.ledgerId
+      || body.executionId
       || body.impUid
       || body.merchantUid
+      || billingGate.paymentId
+      || billingGate.transactionId
+      || billingGate.purchaseId
       || payment.paymentId
       || payment.impUid
       || payment.merchantUid
       || accessGrant.paymentId
       || accessGrant.purchaseId
       || accessGrant.transactionId
+      || accessGrant.evidenceId
       || consume.paymentId
       || consume.purchaseId
-      || consume.transactionId,
+      || consume.transactionId
+      || consume.evidenceId,
     160,
   );
 }
 
 function billingContextFromBody(body = {}) {
-  const consume = asObject(body.consume);
-  const accessGrant = asObject(body.accessGrant);
-  const payment = asObject(body.payment);
+  const billingGate = asObject(body.billingGate || body.billing || body.billingResult || body.paymentContext || body._paymentContext);
+  const consume = asObject(body.consume || billingGate.consume);
+  const accessGrant = asObject(body.accessGrant || billingGate.accessGrant || billingGate.accessGateResult);
+  const payment = asObject(body.payment || billingGate.payment);
+  const pricing = asObject(body.pricing || billingGate.pricing);
   return {
+    billingGate,
     consume,
     accessGrant,
     payment,
-    accessType: clean(consume.accessType || accessGrant.accessType || body.accessType).toLowerCase(),
-    accessMethod: clean(consume.accessMethod || accessGrant.accessMethod || body.accessMethod || body.paymentMode).toUpperCase(),
-    featureKey: clean(consume.featureKey || accessGrant.featureKey || payment.featureKey || body.featureKey),
-    requestId: clean(consume.requestId || accessGrant.requestId || payment.requestId || body.requestId || body.idempotencyKey, 180),
-    transactionId: clean(consume.transactionId || accessGrant.transactionId, 160),
-    ledgerId: clean(consume.ledgerId || accessGrant.ledgerId, 160),
+    pricing,
+    accessType: clean(consume.accessType || accessGrant.accessType || billingGate.accessType || body.accessType).toLowerCase(),
+    accessMethod: clean(consume.accessMethod || consume.paymentMethod || accessGrant.accessMethod || accessGrant.paymentMethod || billingGate.accessMethod || billingGate.paymentMode || body.accessMethod || body.paymentMode).toUpperCase(),
+    featureKey: clean(consume.featureKey || accessGrant.featureKey || payment.featureKey || pricing.featureKey || billingGate.featureKey || body.featureKey),
+    requestId: clean(consume.requestId || accessGrant.requestId || payment.requestId || billingGate.requestId || body.requestId || body.idempotencyKey, 180),
+    transactionId: clean(consume.transactionId || accessGrant.transactionId || billingGate.transactionId || body.transactionId, 160),
+    ledgerId: clean(consume.ledgerId || accessGrant.ledgerId || billingGate.ledgerId || body.ledgerId, 160),
     paymentId: paymentIdFromBody(body),
   };
 }
@@ -405,7 +432,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       source: "payment",
     };
   }
-  if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY") {
+  if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY" || ctx.accessMethod === "MONTHLY_CREDIT" || ctx.accessMethod === "MOONLIGHT_STONE") {
     if (await hasMonthlyConsume(auth, ctx, idempotencyKey)) {
       return {
         ok: true,
@@ -418,7 +445,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       };
     }
   }
-  if (ctx.accessType === "membership_pass" || ctx.accessType === "usage_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS") {
+  if (ctx.accessType === "membership_pass" || ctx.accessType === "usage_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS" || ctx.accessMethod === "MEMBERSHIP_PASS" || ctx.accessMethod === "FAMILY_PASS") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
       return {
         ok: true,

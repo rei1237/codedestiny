@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
 import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
 import QuestionInputScene from "./components/QuestionInputScene";
@@ -70,6 +71,9 @@ const FORTUNE_TEA_LOADING_PLAYLIST = [
 ] as const;
 
 type FortuneTeaBgmTrack = (typeof FORTUNE_TEA_BGM_TRACKS)[keyof typeof FORTUNE_TEA_BGM_TRACKS];
+type FortuneTeaBillingGateInput = Parameters<typeof runBillingCoinGate>[0];
+type FortuneTeaBillingGateResult = Awaited<ReturnType<typeof runBillingCoinGate>>;
+type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]>;
 
 type FortuneTeaHouseConsultApiResponse = {
   ok?: boolean;
@@ -77,6 +81,12 @@ type FortuneTeaHouseConsultApiResponse = {
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
   paymentRequired?: boolean;
+  featureKey?: string;
+  pricing?: Record<string, unknown>;
+  accessDecision?: Record<string, unknown>;
+  paymentPayload?: {
+    runtimeGate?: Partial<FortuneTeaBillingGateInput> & Record<string, unknown>;
+  } & Record<string, unknown>;
   generationMeta?: {
     mode?: "gemini" | "local_fallback";
     provider?: string;
@@ -99,6 +109,93 @@ type FortuneTeaProgressStep = {
   label: string;
   message: string;
 };
+
+type FortuneTeaConsultPostBody = FortuneTeaHouseConsultRequest & Record<string, unknown>;
+
+const FORTUNE_TEA_FEATURE_KEY_BY_MODE: Record<FortuneTeaHouseConsultMode, string> = {
+  tarot: "fortune-tea-house-tarot-consultation",
+  saju: "fortune-tea-house-saju-consultation",
+  sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function toText(value: unknown): string {
+  return String(value || "").trim();
+}
+
+function toNumber(value: unknown): number {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+}
+
+function buildFortuneTeaPaymentError(message: string) {
+  const error = new Error(message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.");
+  (error as Error & { paymentRequired?: boolean }).paymentRequired = true;
+  return error;
+}
+
+function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string): FortuneTeaBillingGateInput {
+  const paymentPayload = asRecord(payload.paymentPayload);
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  const pricing = asRecord(payload.pricing);
+  const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode];
+  const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost));
+  const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount));
+  const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost));
+  if (!featureKey || coinPrice <= 0 || amountKRW <= 0 || membershipCreditCost <= 0) {
+    throw buildFortuneTeaPaymentError("결제 가격 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+  }
+
+  return {
+    ...runtimeGate,
+    categoryKey: toText(runtimeGate.categoryKey) || "fortune-tea-house",
+    subFeatureKey: toText(runtimeGate.subFeatureKey) || featureKey,
+    featureKey,
+    serviceType: toText(runtimeGate.serviceType) || "fortune-tea-house",
+    productType: toText(runtimeGate.productType) || "fortune-tea-house-consultation",
+    reason: toText(runtimeGate.reason ?? pricing.reason) || "운명 찻집 상담",
+    requestId: attemptId,
+    idempotencyKey: attemptId,
+    cost: coinPrice,
+    coinPrice,
+    amountKRW,
+    paymentAmount: amountKRW,
+    membershipCreditCost,
+    deferUsage: true,
+    forceDeduct: true,
+  };
+}
+
+async function postFortuneTeaConsultRequest(body: FortuneTeaConsultPostBody, signal?: AbortSignal) {
+  const response = await fetch("/api/fortune-tea-house/consult", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+    signal,
+  });
+  const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
+  return { response, payload };
+}
+
+async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string) {
+  const billingInput = buildFortuneTeaBillingGateInput(payload, mode, attemptId);
+  const gate = await runBillingCoinGate(billingInput);
+  if (!gate.ok || !gate.data) {
+    const code = toText(gate.error?.code).toUpperCase();
+    const message = code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED"
+      ? "로그인 후 운명 찻집 상담을 열 수 있어요."
+      : gate.error?.message || gate.message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.";
+    throw buildFortuneTeaPaymentError(message);
+  }
+  return {
+    featureKey: toText(billingInput.featureKey),
+    data: gate.data as FortuneTeaBillingGateData & Record<string, unknown>,
+  };
+}
 
 const FORTUNE_TEA_PROGRESS_STEPS: FortuneTeaProgressStep[] = [
   { percent: 5, label: "요청 접수", message: "찻잔 위에 질문을 올리고 있어요." },
@@ -509,23 +606,45 @@ export default function FortuneTeaHousePage() {
       };
       const attemptId = createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
-      const requestPayloadWithAttempt: FortuneTeaHouseConsultRequest = {
+      const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
         ...requestPayload,
         attemptId,
+        requestId: attemptId,
+        idempotencyKey: attemptId,
       };
       logSubmitStep("api result start");
       const abortController = new AbortController();
       const localPreviewTimeoutId = useLocalPreview ? window.setTimeout(() => abortController.abort(), 8500) : null;
-      const response = await fetch("/api/fortune-tea-house/consult", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...requestPayloadWithAttempt, draftResult: localDraft }),
-        cache: "no-store",
-        signal: abortController.signal,
-      }).finally(() => {
+      let { response, payload } = await postFortuneTeaConsultRequest({
+        ...requestPayloadWithAttempt,
+        draftResult: localDraft,
+      }, abortController.signal).finally(() => {
         if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
       });
-      const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
+      if ((!response.ok || !payload.ok || !payload.result) && payload.paymentRequired) {
+        const billing = await runFortuneTeaBillingGate(payload, nextQuestionInput.consultationMode, attemptId);
+        if (consultRunRef.current !== consultRunId) return;
+        const billingGate = asRecord(billing.data);
+        const accessGrant = asRecord(billingGate.accessGrant);
+        const consume = asRecord(billingGate.consume);
+        logSubmitStep("billing gate success", { featureKey: billing.featureKey });
+        ({ response, payload } = await postFortuneTeaConsultRequest({
+          ...requestPayloadWithAttempt,
+          draftResult: localDraft,
+          featureKey: billing.featureKey,
+          billingGate,
+          accessGrant,
+          consume,
+          _paymentContext: {
+            featureKey: billing.featureKey,
+            requestId: attemptId,
+            idempotencyKey: attemptId,
+            billingGate,
+            accessGrant,
+            consume,
+          },
+        }));
+      }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
         if (payload.paymentRequired) {

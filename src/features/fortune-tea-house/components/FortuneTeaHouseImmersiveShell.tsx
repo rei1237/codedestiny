@@ -71,10 +71,10 @@ function getStageBackgroundAssets(stage: TeaHouseStage) {
 
   if (stage === "scentLoading") {
     return {
-      desktop: fortuneTeaHouseAssets.backgrounds.loadingDesktop,
-      mobile: fortuneTeaHouseAssets.backgrounds.loadingMobile,
+      desktop: fortuneTeaHouseAssets.backgrounds.interiorDesktop2,
+      mobile: fortuneTeaHouseAssets.backgrounds.interiorMobile2,
       desktopPosition: "center center",
-      mobilePosition: "center center",
+      mobilePosition: "center top",
     };
   }
 

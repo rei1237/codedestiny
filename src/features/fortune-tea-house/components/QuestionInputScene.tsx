@@ -956,9 +956,6 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           <section className={styles.questionSubmitErrorCard} role="alert" aria-live="assertive">
             <strong>찻잔의 향이 잠시 흐려졌어요.</strong>
             <p>{submitError}</p>
-            <TeaHouseButton type="button" variant="secondary" onClick={submitCurrentQuestion} loading={isSubmitting}>
-              {submitButtonLabel}
-            </TeaHouseButton>
           </section>
         ) : null}
         <div className={`${styles.storyActions} ${actionRowUi}`}>

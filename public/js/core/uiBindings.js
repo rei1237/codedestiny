@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-b4723286f708'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-b4723286f708'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-b4723286f708'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-d69c074628d4'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-d69c074628d4'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-d69c074628d4'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-b4723286f708')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-d69c074628d4')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-b4723286f708'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-b4723286f708'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-d69c074628d4'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-d69c074628d4'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-b4723286f708'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-b4723286f708'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-d69c074628d4'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d69c074628d4'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -104,14 +104,14 @@ const __lazyActionLoaders = {
   closeLoveSecretModal: () => Promise.resolve(),
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-b4723286f708').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-d69c074628d4').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-b4723286f708')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-d69c074628d4')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -487,10 +487,11 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     skeleton.className = 'tarot-tile__img-skeleton';
     wrap.insertBefore(skeleton, wrap.firstChild);
 
+    const isPriorityImage = Boolean(wrap.closest && wrap.closest('.cd-prompt-feature-spotlight'));
     const img = document.createElement('img');
     img.className = 'tarot-tile__img';
-    img.loading = 'lazy';
-    img.fetchPriority = 'low';
+    img.loading = isPriorityImage ? 'eager' : 'lazy';
+    img.fetchPriority = isPriorityImage ? 'high' : 'low';
     img.decoding = 'async';
     img.width = 200;
     img.height = 150;
@@ -554,6 +555,22 @@ function __bindCollectionToggleHydration(root) {
   });
 }
 
+function __schedulePromptSpotlightHydration(root) {
+  if (typeof document === 'undefined') return;
+  const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+  const start = () => {
+    const spotlights = scope.querySelectorAll('.cd-prompt-feature-spotlight');
+    __runChunked(spotlights, (spotlight) => {
+      __scheduleCollectionHydration(spotlight, true);
+    }, { minBatch: 1, maxBatch: 3, budgetMs: 4 });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+    return;
+  }
+  start();
+}
+
 function __releaseCollectionImagesChunked(collection) {
   if (!collection) return;
   const observer = collection.__cdCollectionImageObserver;
@@ -595,6 +612,7 @@ export function bindGlobalActions(root) {
   }
 
   __bindCollectionToggleHydration(root);
+  __schedulePromptSpotlightHydration(root);
 
   root.addEventListener('click', (event) => {
     const target = __resolveEventElement(event);
